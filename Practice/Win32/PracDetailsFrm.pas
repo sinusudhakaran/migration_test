@@ -465,31 +465,28 @@ begin
     end else
       UseBankLinkOnline := False;
 
-    if  ckUseBankLinkOnline.Checked
-    and ProductConfigService.OnLine
-    and ProductConfigService.ValidBConnectDetails and (not ProductConfigService.Registered) then
+    if ckUseBankLinkOnline.Checked and ProductConfigService.OnLine then
     begin
-      edtURL.Text := 'Not registered for BankLink Online';
-      cbPrimaryContact.Enabled := False;
-      ckUseBankLinkOnline.Checked := False;
-      if Visible then
+      //Not registered
+      if (not ProductConfigService.Registered) then
       begin
-        if YesNoDlg.AskYesNo(Globals.BANKLINK_ONLINE_NAME,
-                             'You are not currently registered for BankLink Online. ' +
-                             'Would you like to register now?', dlg_no, 0) = DLG_YES then
+        ckUseBankLinkOnline.Checked := False;
+        edtURL.Text := 'Not registered for BankLink Online';
+        if ProductConfigService.ValidBConnectDetails then
         begin
-          if ServiceAgreementAccepted then
-            if not RequestBankLinkOnlineRegistration then
+          cbPrimaryContact.Enabled := False;
+          if Visible then
+          begin
+            if YesNoDlg.AskYesNo(Globals.BANKLINK_ONLINE_NAME,
+                                 'You are not currently registered for BankLink Online. ' +
+                                 'Would you like to register now?', dlg_no, 0) = DLG_YES then
             begin
-              ckUseBankLinkOnline.Checked := False;
-              Exit;
+              if ServiceAgreementAccepted then
+                RequestBankLinkOnlineRegistration;
             end;
-        end
-        else
-        begin
-          ckUseBankLinkOnline.Checked := False;
-          Exit;
+          end;
         end;
+        UseBankLinkOnline := False;        
       end;
     end;
 
