@@ -467,7 +467,7 @@ begin
 
     if  ckUseBankLinkOnline.Checked
     and ProductConfigService.OnLine
-    and not ProductConfigService.Registered then
+    and ProductConfigService.ValidBConnectDetails and (not ProductConfigService.Registered) then
     begin
       edtURL.Text := 'Not registered for BankLink Online';
       cbPrimaryContact.Enabled := False;

@@ -78,6 +78,7 @@ type
     FClientList: ClientList;
     FOnLine: Boolean;
     FRegistered: Boolean;
+    FValidBConnectDetails: Boolean;
     FArrNameSpaceList : Array of TRemRegEntry;
     procedure CopyRemotableObject(ASource, ATarget: TRemotable);
 
@@ -113,6 +114,7 @@ type
     function MessageResponseHasError(AMesageresponse: MessageResponse; ErrorText: string): Boolean;
     function GetProducts : TBloArrayOfGuid;
     function GetRegistered: Boolean;
+    function GetValidBConnectDetails: Boolean;
   public
     destructor Destroy; override;
     //Practice methods
@@ -163,6 +165,7 @@ type
                                 aPractice : TBloPracticeDetail = nil) : Boolean;
     property OnLine: Boolean read FOnLine;
     property Registered: Boolean read GetRegistered;
+    property ValidBConnectDetails: Boolean read GetValidBConnectDetails;    
     property ProductList : TBloArrayOfGuid read GetProducts;
   end;
 
@@ -473,6 +476,7 @@ begin
   //Initialise
   FOnLine := False;
   FRegistered := False;
+  FValidBConnectDetails := False;
   //UseBankLinkOnline is updated by the user when the practice details
   //dialog is open - so dont't reset it.
   if aUpdateUseOnline then
@@ -520,15 +524,26 @@ begin
               AdminSystem.fdFields.fdLast_BankLink_Online_Update := stDate.CurrentDate;
               FPractice := PracticeDetailResponse.Result;
               FRegistered := True;
+              FValidBConnectDetails := True;
             end else begin
               //Something went wrong
               Msg := '';
-              for i := Low(PracticeDetailResponse.ErrorMessages) to High(PracticeDetailResponse.ErrorMessages) do
-                Msg := Msg + ServiceErrorMessage(PracticeDetailResponse.ErrorMessages[i]).Message_;
-              if Msg = 'Invalid BConnect Credentials' then
-                //Clear the cached practice details if not registered for this practice code
-                AdminSystem.fdFields.fdBankLink_Online_Config := ''
-              else
+              if Length(PracticeDetailResponse.ErrorMessages) > 0 then begin
+                //Check for non-registered Practice
+                if (PracticeDetailResponse.ErrorMessages[0].ErrorCode = 'BusinessPlusService_GetPracticeIdFailed') then begin
+                  FRegistered := False;
+                  FValidBConnectDetails := True;
+                  AdminSystem.fdFields.fdBankLink_Online_Config := '';
+                end else begin
+                  for i := Low(PracticeDetailResponse.ErrorMessages) to High(PracticeDetailResponse.ErrorMessages) do
+                    Msg := Msg + ServiceErrorMessage(PracticeDetailResponse.ErrorMessages[i]).Message_;
+                  if Msg = 'Invalid BConnect Credentials' then
+                    //Clear the cached practice details if not registered for this practice code
+                    AdminSystem.fdFields.fdBankLink_Online_Config := '';
+                end;
+              end else
+                Msg := 'Unknown error';
+              if Msg <> '' then
                 raise Exception.Create(Msg);
             end;
           end;
@@ -739,6 +754,11 @@ begin
   end;
 end;
 
+function TProductConfigService.GetValidBConnectDetails: Boolean;
+begin
+  Result := FValidBConnectDetails;
+end;
+
 //------------------------------------------------------------------------------
 procedure TProductConfigService.AddTypeItem(var aDataArray: TArrVarTypeData;
                                             var aDataItem: TVarTypeData);
@@ -932,10 +952,52 @@ end;
 
 //------------------------------------------------------------------------------
 procedure TProductConfigService.GetServiceAgreement(ARichEdit: TRichEdit);
+var
+  BlopiInterface: IBlopiServiceFacade;
+  Msg: string;
+  i: integer;
+  ReturnMsg: MessageResponseOfstring;
+  ShowProgress : Boolean;
 begin
-  ARichEdit.Text := 'Service agreement is not available.';
-  if FileExists('BK5_EULA.rtf') then
-    ARichEdit.Lines.LoadFromFile('BK5_EULA.rtf');
+  try
+    ShowProgress := Progress.StatusSilent;
+    if ShowProgress then
+    begin
+      Screen.Cursor := crHourGlass;
+      Progress.StatusSilent := False;
+      Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Connecting', 10);
+    end;
+    try
+      FreeAndNil(FClientList);
+      if UseBankLinkOnline then begin
+        if ShowProgress then
+          Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Getting Service Agreement', 50);
+
+        BlopiInterface := GetServiceFacade;
+        ReturnMsg := BlopiInterface.GetTermsAndConditions(CountryText(AdminSystem.fdFields.fdCountry),
+                                                          AdminSystem.fdFields.fdBankLink_Code,
+                                                          AdminSystem.fdFields.fdBankLink_Connect_Password);
+        if not MessageResponseHasError(MessageResponse(ReturnMsg), 'get the service agreement from') then
+          if ReturnMsg.Result <> '' then
+            ARichEdit.Text := ReturnMsg.Result;
+
+        if ShowProgress then
+          Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finished', 100);
+      end;
+    finally
+      if ShowProgress then
+      begin
+        Progress.StatusSilent := True;
+        Progress.ClearStatus;
+        Screen.Cursor := crDefault;
+      end;
+    end;
+  except
+    on E:Exception do begin
+      HelpfulErrorMsg('Error getting client list from ' + BANKLINK_ONLINE_NAME + '.',
+                      0, True, E.Message, True);
+    end;
+  end;
 end;
 
 function TProductConfigService.GetServiceFacade: IBlopiServiceFacade;
