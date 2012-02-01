@@ -115,6 +115,7 @@ type
     function GetProducts : TBloArrayOfGuid;
     function GetRegistered: Boolean;
     function GetValidBConnectDetails: Boolean;
+    procedure RemoveInvalidSubscriptions;
   public
     destructor Destroy; override;
     //Practice methods
@@ -1194,6 +1195,31 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+procedure TProductConfigService.RemoveInvalidSubscriptions;
+var
+  i, j: integer;
+  GuidList: TStringList;
+  Found: Boolean;
+begin
+  GuidList := TStringList.Create;
+  try
+    //Remove any subscriptions that aren't in the catalogue
+    for i := Low(FPracticeCopy.Subscription) to High(FPracticeCopy.Subscription) do begin
+      Found := False;
+      for j := Low(FPracticeCopy.Catalogue) to High(FPracticeCopy.Catalogue) do begin
+        if FPracticeCopy.Subscription[i] = FPracticeCopy.Catalogue[j].Id then
+          Found := True;
+      end;
+      if not Found then
+        GuidList.Add(FPracticeCopy.Subscription[i]);
+    end;
+    for i  := 0 to GuidList.Count - 1 do
+      RemoveProduct(GuidList[i]);
+  finally
+    GuidList.Free;
+  end;
+end;
+
 procedure TProductConfigService.RemoveProduct(AProductId: TBloGuid);
 var
   i, j: integer;
@@ -1390,6 +1416,7 @@ begin
 
       SavePractice := Practice.Create;
       try
+        RemoveInvalidSubscriptions;
         CopyRemotableObject(FPracticeCopy, FPractice);
         CopyRemotableObject(FPractice, SavePractice);
 
