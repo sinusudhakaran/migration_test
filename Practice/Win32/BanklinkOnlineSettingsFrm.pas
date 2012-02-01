@@ -454,18 +454,11 @@ begin
       end;
     end;
 
-    if (not (chkUseClientDetails.Checked)) and
-       (Length(MyClient.BlopiClientDetail.Users) > 0) then
+    if (Length(MyClient.BlopiClientDetail.Users) > 0) then
     begin
       edtUserName.Text := TBloUserDetail(MyClient.BlopiClientDetail.Users[0]).FullName;
       edtEmailAddress.Text := TBloUserDetail(MyClient.BlopiClientDetail.Users[0]).Email;
-    end else
-    if chkUseClientDetails.Checked then    
-    begin
-      edtUserName.Text := MyClient.clFields.clContact_Name;
-      edtEmailAddress.Text := MyClient.clFields.clClient_EMail_Address;
     end;
-
   end
   // New Client
   else if Assigned(MyClient.BlopiClientNew) then

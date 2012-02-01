@@ -33,6 +33,11 @@ type
 
   TArrVarTypeData = Array of TVarTypeData;
 
+  TUserDetailHelper = class helper for BlopiServiceFacade.UserDetail
+  public
+    function AddRoleName(RoleName: string) : Boolean;
+  end;
+
   TClientBaseHelper = class helper for BlopiServiceFacade.Client
   public
     function AddSubscription(AProductID: TBloGuid) : Boolean;
@@ -1340,6 +1345,8 @@ begin
             try
               MyNewUser.FullName := MyUserDetail.FullName;
               MyNewUser.EMail := MyUserDetail.EMail;
+              MyUserDetail.AddRoleName('Client Administrator');
+
               MyNewUser.RoleNames := MyUserDetail.RoleNames;
               MyNewUser.UserCode := MyUserDetail.UserCode;
               if ShowProgress then
@@ -1365,6 +1372,7 @@ begin
             MessageResponseHasError(MsgResponse, 'update this client user on');
           end;
         end;
+
         if ShowProgress then
           Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Updating Client', 50);
         MsgResponse := BlopiInterface.SaveClient(CountryText(AdminSystem.fdFields.fdCountry),
@@ -1372,6 +1380,7 @@ begin
                                                  AdminSystem.fdFields.fdBankLink_Connect_Password,
                                                  MyClientUpdate);
         MessageResponseHasError(MsgResponse, 'update this client''s settings on');
+
         Result := True;
 
         if ShowProgress then
@@ -1572,6 +1581,28 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+function TUserDetailHelper.AddRoleName(RoleName: string): Boolean;
+var
+  RoleArray: ArrayOfstring;
+  NewRole: Role;
+  i: integer;
+
+begin
+  Result := False;
+  for i := Low(RoleNames) to High(RoleNames) do
+    if (RoleNames[i] = RoleName) then
+      Exit;
+
+  RoleArray := RoleNames;
+  try
+    SetLength(RoleArray, Length(RoleArray) + 1);
+    RoleArray[High(RoleArray)] := RoleName;
+    Result := True;
+  finally
+    RoleNames := RoleArray;
+  end;
+end;
+
 function TClientBaseHelper.AddSubscription(AProductID: TBloGuid) : Boolean;
 var
   SubArray: TBloArrayOfGuid;

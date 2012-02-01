@@ -1483,10 +1483,8 @@ begin
         if EditBanklinkOnlineSettings then
           MyClient.BlopiClientChanged := True;
     finally
-      if Assigned(MyClient) then begin
-        CloseClientHomepage;
-        RefreshLookup(ClientCode);        
-      end;
+      CloseClient();
+      RefreshLookup(ClientCode);
     end;
   finally
     ClientLookup.vtClients.EndUpdate;

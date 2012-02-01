@@ -1562,15 +1562,8 @@ begin
   if UseBankLinkOnline then
   begin
     if Assigned(BlopiClientNew) then
-    begin
       CopyPracticeClientNew;
-      ProductConfigService.CreateNewClient(BlopiClientNew);
-      ProductConfigService.LoadClientList;
-      BlopiClientDetail := ProductConfigService.GetClientDetailsWithCode(BlopiClientNew.ClientCode);
-    end else begin
-      if FBlopiClient.IsEdited then
-        ProductConfigService.SaveClient(BlopiClientDetail);
-    end;
+    FBlopiClient.SaveClient;
   end;
 
   LogDebugMsg( ThisMethodName + ' Ends');
