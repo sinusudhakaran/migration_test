@@ -451,16 +451,8 @@ begin
   if Assigned(MyClient.BlopiClientDetail) then begin
     if (OriginalEmail <> eMail.Text) then
     begin
-      buttonSelected := AskYesNo('Email address changed',
-                                 'You have changed the Email Address for this client. Do you ' +
-                                 'want the Banklink Online Default Client Administrator to be ' +
-                                 'updated to this Email Address?', DLG_YES, 0, false);
-      case buttonSelected of
-        mrYes:
-          if Assigned(MyClient.BlopiClientDetail) and UpdateBO
-            then MyClient.BlopiClientDetail.UpdateAdminUser(eContact.Text, eMail.Text);
-        mrNo: Exit;
-      end;
+      if Assigned(MyClient.BlopiClientDetail) and UpdateBO
+        then MyClient.BlopiClientDetail.UpdateAdminUser(eContact.Text, eMail.Text);
     end;
   end;
 
