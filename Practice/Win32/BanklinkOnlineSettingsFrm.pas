@@ -179,7 +179,7 @@ begin
   else if Assigned(MyClient.BlopiClientNew) then
     ClientStatus := MyClient.BlopiClientNew.Status;
 
-  if (ClientStatus = staSuspended) and not rbSuspended.Checked
+  if (ClientStatus <> staActive) and rbActive.Checked
     then ButtonPressed := AskYesNo('Resuming client',
                                    'You are about to resume this Client on ' +
                                    'Banklink Online. They will be able to access BankLink Online as per ' +
@@ -195,12 +195,6 @@ begin
     then ButtonPressed := AskYesNo('Deactivating client',
                                    'You are about to deactivate this Client from BankLink ' +
                                    'Online. All user log-ins will be disabled.' + #10#10 +
-                                   'Are you sure you want to continue?',
-                                   DLG_YES, 0, false)
-  else if (ClientStatus = staDeactivated) and not rbDeactivated.Checked
-    then ButtonPressed := AskYesNo('Reactivating client',
-                                   'You are about to re-activate this Client from BankLink ' +
-                                   'Online. All user log-ins will be enabled.' + #10#10 +
                                    'Are you sure you want to continue?',
                                    DLG_YES, 0, false)
   else
