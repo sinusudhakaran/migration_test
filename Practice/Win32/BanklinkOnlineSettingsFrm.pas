@@ -103,7 +103,8 @@ begin
   if not Assigned(MyClient) then
     Exit;
 
-  if not MyClient.BlopiClientChanged then begin
+  if not Assigned(MyClient.BlopiClientNew) and
+     not MyClient.BlopiClientChanged then begin
     //Get Practice details (so we can load the list of available products)
     ProductConfigService.GetPractice;
     if not Assigned(ProductConfigService.CachedPractice) then
@@ -115,7 +116,8 @@ begin
       Exit;
   end;
 
-  if Assigned(MyClient.BlopiClientDetail) then begin
+  if Assigned(MyClient.BlopiClientNew) or
+     Assigned(MyClient.BlopiClientDetail) then begin
     BanklinkOnlineSettings := TfrmBanklinkOnlineSettings.Create(Application.MainForm);
     try
       Result := BanklinkOnlineSettings.Execute;
