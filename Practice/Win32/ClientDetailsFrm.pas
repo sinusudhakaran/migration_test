@@ -157,7 +157,6 @@ type
     ChangingDiskID : boolean;
     PassGenCodeEntered : boolean;
     FViewNotes : Boolean;
-    OriginalCode, OriginalEmail : string;
 //    FClient : ClientDetail;
     FEnableClientSettings : boolean;
     FUseClientDetailsForBankLinkOnline: Boolean;
@@ -230,9 +229,6 @@ begin
 
    ChangingDiskID := false;
    grpBooks.Caption := BKBOOKSNAME + ' Clients';
-
-   OriginalCode := eCode.Text;
-   OriginalEmail := eMail.Text;
 end;
 
 //------------------------------------------------------------------------------
@@ -448,13 +444,6 @@ var
   UpdateBO: boolean;
 begin
   UpdateBO := AdminSystem.fdFields.fdUse_BankLink_Online;
-  if Assigned(MyClient.BlopiClientDetail) then begin
-    if (OriginalEmail <> eMail.Text) then
-    begin
-      if Assigned(MyClient.BlopiClientDetail) and UpdateBO
-        then MyClient.BlopiClientDetail.UpdateAdminUser(eContact.Text, eMail.Text);
-    end;
-  end;
 
   if okToPost then
   begin

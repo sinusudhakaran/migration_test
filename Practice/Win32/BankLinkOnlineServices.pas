@@ -33,7 +33,7 @@ type
 
   TArrVarTypeData = Array of TVarTypeData;
 
-  TUserDetailHelper = class helper for BlopiServiceFacade.UserDetail
+  TUserDetailHelper = class helper for BlopiServiceFacade.User
   public
     function AddRoleName(RoleName: string) : Boolean;
   end;
@@ -1345,10 +1345,9 @@ begin
             try
               MyNewUser.FullName := MyUserDetail.FullName;
               MyNewUser.EMail := MyUserDetail.EMail;
-              MyUserDetail.AddRoleName('Client Administrator');
+              MyNewUser.AddRoleName('Client Administrator');
+              // MyNewUser.UserCode := MyUserDetail.UserCode;
 
-              MyNewUser.RoleNames := MyUserDetail.RoleNames;
-              MyNewUser.UserCode := MyUserDetail.UserCode;
               if ShowProgress then
                 Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Creating Client User', 30);
               MsgResponse := BlopiInterface.CreateClientUser(CountryText(AdminSystem.fdFields.fdCountry),
