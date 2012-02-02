@@ -462,7 +462,7 @@ begin
   else if Assigned(MyClient.BlopiClientNew) then
   begin
     Status := MyClient.BlopiClientNew.Status;
-    cmbConnectDays.Text := '0';
+    cmbConnectDays.Text := '30 days';
     chkUseClientDetails.Checked := False;
 
     // Checks the Products that Client Subscribes to
