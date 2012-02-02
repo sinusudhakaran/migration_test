@@ -236,9 +236,13 @@ begin
       MaxOfflineDays := IntToStr(MyClient.BlopiClientNew.MaxOfflineDays);
     end;
 
-    ProductsChanged := NewProducts.Count > 0;
-    BillingFrequencyChanged := cmbBillingFrequency.Text <> BillingFrequency;
+    if (BillingFrequency = 'A') then
+      BillingFrequency := 'Annually'
+    else if (BillingFrequency = 'M') then
+      BillingFrequency := 'Monthly';
 
+    ProductsChanged := NewProducts.Count > 0;
+    BillingFrequencyChanged := (cmbBillingFrequency.Text <> BillingFrequency);
     if EmailChanged and not (ProductsChanged or BillingFrequencyChanged) then
       ButtonPressed := AskYesNo('Changing Default Administrator Address',
                                 'You have changed the Default Client Administrator Email Address. ' +
