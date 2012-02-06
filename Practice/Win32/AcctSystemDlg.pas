@@ -86,6 +86,9 @@ type
     AutoRefreshFlag : Boolean;
     fAlternateID : string;
     InSetup: Boolean;
+    WebFormatChanged : Boolean;
+
+    procedure ShowBankLinkOnlineConfirmation;
     function VerifyForm : boolean;
     procedure FillSystemList;
   protected
@@ -423,6 +426,7 @@ var
   NotesId : TBloGuid;
   ClientChanged : Boolean;
 begin
+   WebFormatChanged := false;
    okPressed := false;
    AutoRefreshFlag := False;
    cmbSystem.Items.Clear;
@@ -698,20 +702,27 @@ end;
 
 //------------------------------------------------------------------------------
 procedure TdlgAcctSystem.cmbWebFormatsChange(Sender: TObject);
+begin
+  WebFormatChanged := True;
+  if (ComboUtils.GetComboCurrentIntObject(cmbWebFormats) = wfWebNotes) then
+  begin
+    ShowBankLinkOnlineConfirmation;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+procedure TdlgAcctSystem.ShowBankLinkOnlineConfirmation;
 var
   aMsg : String;
 begin
-  if (ComboUtils.GetComboCurrentIntObject(cmbWebFormats) = wfWebNotes) then
+  if (Assigned(MyClient.BlopiClientNew)) then
   begin
-    if (Assigned(MyClient.BlopiClientNew)) then
-    begin
-      aMsg := 'You have selected to use BankLink Notes Online for this client. ' +
-              'Please confirm the BankLink Online details for this client. ' +
-              #13#10 + #13#10 +
-              'Selecting OK will also display the BankLink Online settings for ' +
-              'this client';
-      HelpfulInfoMsg(aMsg, 0);
-    end;
+    aMsg := 'You have selected to use BankLink Notes Online for this client. ' +
+            'Please confirm the BankLink Online details for this client. ' +
+            #13#10 + #13#10 +
+            'Selecting OK will also display the BankLink Online settings for ' +
+            'this client';
+    HelpfulInfoMsg(aMsg, 0);
   end;
 end;
 
@@ -763,6 +774,9 @@ begin
        (ComboUtils.GetComboCurrentIntObject(cmbWebFormats) = wfWebNotes) and
        (Assigned(MyClient.BlopiClientNew)) then
     begin
+      if not WebFormatChanged then
+        ShowBankLinkOnlineConfirmation;
+
       CanClose := EditBanklinkOnlineSettings;
     end;
   end;
