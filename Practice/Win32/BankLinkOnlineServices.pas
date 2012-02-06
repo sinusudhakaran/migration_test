@@ -94,7 +94,6 @@ type
     function RemotableObjectToXML(ARemotable: TRemotable): string;
     procedure LoadRemotableObjectFromXML(const XML: string; ARemotable: TRemotable);
     procedure SaveRemotableObjectToFile(ARemotable: TRemotable);
-    procedure SavePracticeDetailsToSystemDB;
     function LoadRemotableObjectFromFile(ARemotable: TRemotable): Boolean;
     function OnlineStatus: TBloStatus;
     function GetTypeItemIndex(var aDataArray: TArrVarTypeData;
@@ -144,6 +143,7 @@ type
     function GetCatFromSub(aSubGuid : Guid): CatalogueEntry;
     property CachedPractice: PracticeDetail read GetCachedPractice;
     procedure GetServiceAgreement(ARichEdit: TRichEdit);
+    procedure SavePracticeDetailsToSystemDB(ARemotable: TRemotable);    
     //Client methods
     procedure LoadClientList;
     function GetClientDetailsWithCode(AClientCode: string): ClientDetail;
@@ -976,22 +976,19 @@ begin
       Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Connecting', 10);
     end;
     try
-      FreeAndNil(FClientList);
-      if UseBankLinkOnline then begin
-        if ShowProgress then
-          Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Getting Service Agreement', 50);
+      if ShowProgress then
+        Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Getting Service Agreement', 50);
 
-        BlopiInterface := GetServiceFacade;
-        ReturnMsg := BlopiInterface.GetTermsAndConditions(CountryText(AdminSystem.fdFields.fdCountry),
-                                                          AdminSystem.fdFields.fdBankLink_Code,
-                                                          AdminSystem.fdFields.fdBankLink_Connect_Password);
-        if not MessageResponseHasError(MessageResponse(ReturnMsg), 'get the service agreement from') then
-          if ReturnMsg.Result <> '' then
-            ARichEdit.Text := ReturnMsg.Result;
+      BlopiInterface := GetServiceFacade;
+      ReturnMsg := BlopiInterface.GetTermsAndConditions(CountryText(AdminSystem.fdFields.fdCountry),
+                                                        AdminSystem.fdFields.fdBankLink_Code,
+                                                        AdminSystem.fdFields.fdBankLink_Connect_Password);
+      if not MessageResponseHasError(MessageResponse(ReturnMsg), 'get the service agreement from') then
+        if ReturnMsg.Result <> '' then
+          ARichEdit.Text := ReturnMsg.Result;
 
-        if ShowProgress then
-          Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finished', 100);
-      end;
+      if ShowProgress then
+        Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finished', 100);
     finally
       if ShowProgress then
       begin
@@ -1002,7 +999,7 @@ begin
     end;
   except
     on E:Exception do begin
-      HelpfulErrorMsg('Error getting client list from ' + BANKLINK_ONLINE_NAME + '.',
+      HelpfulErrorMsg('Error getting service agreement from ' + BANKLINK_ONLINE_NAME + '.',
                       0, True, E.Message, True);
     end;
   end;
@@ -1483,9 +1480,6 @@ begin
           if not MessageResponseHasError(MsgResponce, 'update the Practice settings to') then
           begin
             Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Saving Practice Details to System Database', 66);
-
-            //If save ok then save an offline copy to System DB
-            SavePracticeDetailsToSystemDB;
             Result := True;
             Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finished', 100);
           end;
@@ -1503,20 +1497,16 @@ begin
       if not Result then
         HelpfulErrorMsg(BKPRACTICENAME + ' is unable to update the Practice settings to ' + BANKLINK_ONLINE_NAME + '.', 0);
     end;
-  end else begin
-    //Settings are only saved locally if not using BankLink Online
-    SavePracticeDetailsToSystemDB;
-    Result := True;
   end;
 end;
 
 //------------------------------------------------------------------------------
-procedure TProductConfigService.SavePracticeDetailsToSystemDB;
+procedure TProductConfigService.SavePracticeDetailsToSystemDB(ARemotable: TRemotable);
 begin
   if not Assigned(AdminSystem) then
     Exit;
 
-  AdminSystem.fdFields.fdBankLink_Online_Config := RemotableObjectToXML(FPractice);
+  AdminSystem.fdFields.fdBankLink_Online_Config := RemotableObjectToXML(ARemotable);
 end;
 
 //------------------------------------------------------------------------------

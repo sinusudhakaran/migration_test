@@ -121,6 +121,7 @@ type
     procedure btnClearAllClick(Sender: TObject);
     procedure edtURLChange(Sender: TObject);
     procedure tsBankLinkOnlineShow(Sender: TObject);
+    procedure tbsDetailsShow(Sender: TObject);
   private
     { Private declarations }
     okPressed : boolean;
@@ -449,22 +450,22 @@ begin
     if ckUseBankLinkOnline.Checked then begin
       UseBankLinkOnline := True;
       FPrac := ProductConfigService.GetPractice(False);
-      if Assigned(FPrac) then begin
+      if (FPrac.id <> '') then begin
         if ProductConfigService.Registered  then begin
           //Need the client list for checking if clients are using products before
           //they are removed. Only load if practice details have been received
           //from BankLink Online (not from cache).
           ProductConfigService.LoadClientList;
-          LoadPracticeDetails
         end;
       end else
       begin
-        ckUseBankLinkOnline.Checked := False;
-        Exit;
+        UseBankLinkOnline := False;
       end;
     end else
       UseBankLinkOnline := False;
 
+    LoadPracticeDetails;
+      
     if ckUseBankLinkOnline.Checked and ProductConfigService.OnLine then
     begin
       //Not registered
@@ -492,8 +493,11 @@ begin
 
     for i := 0 to tsBanklinkOnline.ControlCount - 1 do
       tsBanklinkOnline.Controls[i].Enabled := UseBankLinkOnline and
+                                              ProductConfigService.OnLine and
+                                              ProductConfigService.Registered and
                                               ProductConfigService.IsPracticeActive(False);
-    ckUseBankLinkOnline.Enabled := True;
+
+    ckUseBankLinkOnline.Enabled := ProductConfigService.OnLine;
   finally
     ckUseBankLinkOnline.OnClick := EventHolder;
   end;
@@ -573,8 +577,11 @@ begin
     ckUseBankLinkOnline.Checked := Adminsystem.fdFields.fdUse_BankLink_Online;
     for i := 0 to tsBanklinkOnline.ControlCount - 1 do
       tsBanklinkOnline.Controls[i].Enabled := UseBankLinkOnline and
+                                              ProductConfigService.OnLine and
+                                              ProductConfigService.Registered and
                                               ProductConfigService.IsPracticeActive(False);
-    ckUseBankLinkOnline.Enabled := True;
+    ckUseBankLinkOnline.Enabled := ProductConfigService.OnLine;
+
 
     //Web export format
     if fdFields.fdWeb_Export_Format = 255 then
@@ -742,12 +749,15 @@ begin
          //Save BankLink Online settings
          //Saved to BankLink Online in VerifyForm - form can't be closed unless online changes are saved
          AdminSystem.fdFields.fdUse_BankLink_Online := UseBankLinkOnline;
-         
+         //Saved a copy of BankLink Online settings locally for display when offline
+         if UseBankLinkOnline and ProductConfigService.OnLine then 
+           ProductConfigService.SavePracticeDetailsToSystemDB(FPrac);
+
          //Web
          fdWeb_Export_Format         := ComboUtils.GetComboCurrentIntObject(cmbWebFormats);
          if (wfNames[fdWeb_Export_Format] = WebNotesName) and
             (not ProductConfigService.IsNotesOnlineEnabled) then
-           fdWeb_Export_Format := wfDefault; 
+           fdWeb_Export_Format := wfDefault;
 
          //Practice Management System
          fdPractice_Management_System := ComboUtils.GetComboCurrentIntObject(cmbPracticeManagementSystem);
@@ -949,11 +959,13 @@ begin
            if not (Assigned(Data.tdObject)) and DebugMe then
              LogUtil.LogMsg(lmDebug, UnitName, 'No Node Data!!');
            Cat := TBloCatalogueEntry(Data.tdObject);
-           if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, 'Start set product check state:' + Cat.Id);
-           Node.CheckState := csUncheckedNormal;
-           if ProductConfigService.IsPracticeProductEnabled(Cat.Id, True) then
-             Node.CheckState := csCheckedNormal;
-           if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, 'End set product check state:' + Cat.Id);
+           if Assigned(Cat) then begin
+             if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, 'Start set product check state:' + Cat.Id);
+             Node.CheckState := csUncheckedNormal;
+             if ProductConfigService.IsPracticeProductEnabled(Cat.Id, True) then
+               Node.CheckState := csCheckedNormal;
+             if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, 'End set product check state:' + Cat.Id);
+           end;
          end;
       1: CellText := Data.tdCaption;
     end;
@@ -1025,7 +1037,8 @@ begin
     TreeColumn.Text := 'TestCol2';
     TreeColumn.Width := 200;
 
-    if Assigned(FPrac) then begin
+    if ((FPrac.Id <> '') and ProductConfigService.Registered) or
+       ((FPrac.Id <> '') and (not ProductConfigService.OnLine)) then begin
       //URL
       edtURL.Text := 'https://' + FPrac.DomainName + '.' +
                      Copy(Globals.BANKLINK_ONLINE_BOOKS_DEFAULT_URL, 13 ,
@@ -1213,6 +1226,11 @@ begin
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+procedure TfrmPracticeDetails.tbsDetailsShow(Sender: TObject);
+begin
+  btnBrowseLogoBitmap.Top := edtLogoBitmapFilename.Top;
+end;
+
 procedure TfrmPracticeDetails.tbsInterfacesShow(Sender: TObject);
 begin
   if (cmbWebFormats.ItemIndex >= 0) then

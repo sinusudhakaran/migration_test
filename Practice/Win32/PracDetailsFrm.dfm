@@ -47,10 +47,11 @@ object frmPracticeDetails: TfrmPracticeDetails
     Top = 8
     Width = 617
     Height = 387
-    ActivePage = tsBankLinkOnline
+    ActivePage = tbsDetails
     TabOrder = 0
     object tbsDetails: TTabSheet
       Caption = 'Details'
+      OnShow = tbsDetailsShow
       ExplicitLeft = 0
       ExplicitTop = 0
       ExplicitWidth = 0
