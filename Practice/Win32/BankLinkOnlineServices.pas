@@ -133,6 +133,7 @@ type
     function GetNotesId : TBloGuid;
     function IsNotesOnlineEnabled: Boolean;
     function IsCICOEnabled: Boolean;
+    procedure UpdateUserAllowOnlineSetting;
     function SavePractice: Boolean;
     function PracticeChanged: Boolean;
     procedure AddProduct(AProductId: TBloGuid);
@@ -209,7 +210,8 @@ uses
   WideStrUtils,
   WSDLIntf,
   IntfInfo,
-  ObjAuto;
+  ObjAuto,
+  SyDefs;
 
 const
   UNIT_NAME = 'BankLinkOnlineServices';
@@ -1054,6 +1056,42 @@ begin
         end;
         Break;
       end;
+    end;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+procedure TProductConfigService.UpdateUserAllowOnlineSetting;
+var
+  AdminUserIndex : integer;
+  BlopiUserIndex : integer;
+  User           : pUser_Rec;
+begin
+  if not Assigned(AdminSystem) then
+    Exit;
+
+  if not Assigned(FPractice) then
+    GetPractice;
+
+  if Assigned(FPractice) then
+  begin
+    for AdminUserIndex := AdminSystem.fdSystem_User_List.First to
+                          AdminSystem.fdSystem_User_List.Last do
+    begin
+      User := AdminSystem.fdSystem_User_List.User_At(AdminUserIndex);
+
+      User.usAllow_Banklink_Online := False;
+      for BlopiUserIndex := Low(FPractice.Users) to High(FPractice.Users) do
+      begin
+        if User.usCode = FPractice.Users[BlopiUserIndex].UserCode then
+        begin
+          User.usAllow_Banklink_Online := True;
+          Break;
+        end;
+      end;
+
+      if CurrUser.Code = User.usCode then
+        CurrUser.AllowBanklinkOnline := User.usAllow_Banklink_Online;
     end;
   end;
 end;

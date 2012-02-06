@@ -807,9 +807,17 @@ begin
        actSendViaOnline.Visible := False;
        actGetFromOnline.Visible := False;
        UseBankLinkOnline := AdminSystem.fdFields.fdUse_BankLink_Online;
-       if UseBankLinkOnline and ProductConfigService.IsCICOEnabled then begin
-         actSendViaOnline.Visible := True;
-         actGetFromOnline.Visible := True;
+       if UseBankLinkOnline then
+       begin
+         if ProductConfigService.IsCICOEnabled then
+         begin
+           actSendViaOnline.Visible := True;
+           actGetFromOnline.Visible := True;
+         end;
+
+         ProductConfigService.UpdateUserAllowOnlineSetting;
+
+         RefreshUserControls;
        end;
      end else if ClientFileOpen then begin
        actSendToFile.Enabled := (MyClient.clExtra.ceFile_Transfer_Method <> ftmOnline);

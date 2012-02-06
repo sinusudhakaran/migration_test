@@ -753,7 +753,7 @@ type
 
     function DoAutoSave: Boolean;
     function CanAutoSaveNow: boolean;
-    function LoadCustomLogoFromFile(filename: string) : boolean;    
+    function LoadCustomLogoFromFile(filename: string) : boolean;
     procedure ResetAutoSave;
     procedure DoHDE;
     procedure DoMDE;
@@ -793,7 +793,6 @@ type
     procedure SetLastActiveMDIChild(const Value: Forms.TForm);
     property LastActiveMDIChild :Forms.TForm read FLastActiveMDIChild write SetLastActiveMDIChild;
     procedure RunGSTReport (Value: REPORT_LIST_TYPE);
-    procedure RefreshUserControls;
     //procedure ThreadMessage(var Message: TMessage);	message THREAD_MESSAGE;
   protected
     procedure UpdateActions; override;
@@ -826,6 +825,7 @@ type
     procedure ActiveFormChange(Sender: TObject);
     procedure ActivateApplication(Sender: TObject);
     procedure mniBatchReportsClick(Sender: TObject);
+    procedure RefreshUserControls;
   end;
 
 
@@ -1479,8 +1479,6 @@ begin
     else
     begin
        //Self.Tag := 0; case 7071 - everything now goes screen center
-
-       RefreshUserControls;
 
        ReloadCustomLogo;
 
@@ -3863,7 +3861,6 @@ begin
   mniChangePassword.Visible := (CurrUser.AllowBanklinkOnline
                            and FAdminSystemFound);
 end;
-
 procedure TfrmMain.ReloadCustomLogo;
 //loads the correct logo, or makes it invisible
 //load the practice logo if admin system is present
