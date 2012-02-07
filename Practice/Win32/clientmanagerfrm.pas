@@ -448,7 +448,6 @@ const
 var
   GLClientManager: TfrmClientManager;
   DebugMe : boolean = false;
-  BanklinkOnlineConnected : boolean = true;
   GlfrmClientManagerUp : Boolean;
 
 //------------------------------------------------------------------------------
@@ -550,7 +549,7 @@ begin
   actHelp.Visible := bkHelp.BKHelpFileExists;
   //StartFocus := True;
 
-  if not BanklinkOnlineConnected then
+  if not ProductConfigService.OnLine then
     LogUtil.LogMsg(lmError, UnitName, 'Cannot connect to Banklink Online');
 end;
 
@@ -722,8 +721,8 @@ end;
 procedure TfrmClientManager.CheckBOConnection(var message: TMessage);
 begin
   // todo: Check if Banklink Online is connected
-  imgCannotConnect.Visible := (AdminSystem.fdFields.fdUse_BankLink_Online and not BanklinkOnlineConnected);
-  lblCannotConnect.Visible := (AdminSystem.fdFields.fdUse_BankLink_Online and not BanklinkOnlineConnected);
+  imgCannotConnect.Visible := (AdminSystem.fdFields.fdUse_BankLink_Online and not ProductConfigService.OnLine);
+  lblCannotConnect.Visible := (AdminSystem.fdFields.fdUse_BankLink_Online and not ProductConfigService.OnLine);
 end;
 
 //------------------------------------------------------------------------------
@@ -970,7 +969,7 @@ begin
         NumColumns := 12;
         // ShowMessage(ProductConfigService.GetCatalogueEntry(ProductConfigService.ProductList[0]).Description);
 
-        if (BanklinkOnlineConnected and AdminSystem.fdFields.fdUse_BankLink_Online) then
+        if (ProductConfigService.OnLine and AdminSystem.fdFields.fdUse_BankLink_Online) then
         begin
 
           ProductConfigService.LoadClientList;
@@ -1077,7 +1076,7 @@ begin
   gbClientmanager.BeginUpdateLayout;
   try
     ClientLookup.GetSelectionTypes(ProspectSelected, ActiveSelected, UnsyncSelected);
-    actBOSettings.Enabled := (AdminSystem.fdFields.fdUse_BankLink_Online and BanklinkOnlineConnected and
+    actBOSettings.Enabled := (AdminSystem.fdFields.fdUse_BankLink_Online and ProductConfigService.OnLine and
                              (not ProspectSelected) and (not NoClientSelected) and (not UnsyncSelected));
     actScheduled.Enabled := (not ProspectSelected) and (not NoClientSelected) and (not UnsyncSelected);
     actPracticeContact.Enabled := (not ProspectSelected) and (not NoClientSelected) and (not UnsyncSelected);
