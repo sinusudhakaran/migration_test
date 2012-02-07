@@ -255,8 +255,6 @@ type
     StartFocus        : Boolean;
     FUserSet: Boolean;
     InModal: Boolean;
-//    FClient: ClientDetail;
-    BankLinkOnlineSettings : TfrmBanklinkOnlineSettings;
     procedure FillClientDetails;
     procedure ShowSelectedNo( Count : integer);
     procedure UpdateClientDetails(Count: integer);
@@ -716,12 +714,11 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TfrmClientManager.CheckBOConnection(var message: TMessage);
+procedure TfrmClientManager.CheckBOConnection(var message: TMessage); 
 var
   TestBool: boolean;
 begin
   TestBool := ProductConfigService.OnLine;
-  // todo: Check if Banklink Online is connected
   imgCannotConnect.Visible := (AdminSystem.fdFields.fdUse_BankLink_Online and not TestBool);
   lblCannotConnect.Visible := (AdminSystem.fdFields.fdUse_BankLink_Online and not ProductConfigService.OnLine);
 end;
@@ -919,7 +916,6 @@ function DoGlobalClientSetup(L, T, H, W: Integer) : boolean;
 var
   ClientManager : TfrmClientManager;
   i, NumColumns: Integer;
-  AClientID: WideString;
   ColumnName: string;
 const
    Offset = 30;
@@ -1935,10 +1931,9 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmClientManager.DoDeleteFile;
 var
-  ScrollPos, NumProducts, i, k: Integer;
-  StringCodeToSelect, DeleteMsgStr, NoProductsStr, ErrMsg, EmailAddress: string;
-  ClientID, GUID1, GUID2: WideString;
-  ProductList: TStringList;
+  ScrollPos, i: Integer;
+  StringCodeToSelect, DeleteMsgStr: string;
+  ClientID: WideString;
   ClientDet : ClientDetail;
   ClientCode : String;
   ClientName : String;
@@ -1946,7 +1941,6 @@ begin
   ClientCode := ClientLookup.FirstSelectedCode;
   ClientName := ClientLookup.FirstSelectedName;
 
-  NumProducts := 0;
   if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Enter DoDeleteFile');
   //act upon a single client only
   ScrollPos := ClientLookup.LastScrollPosition;
