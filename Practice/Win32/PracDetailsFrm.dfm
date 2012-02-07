@@ -52,10 +52,6 @@ object frmPracticeDetails: TfrmPracticeDetails
     object tbsDetails: TTabSheet
       Caption = 'Details'
       OnShow = tbsDetailsShow
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       DesignSize = (
         609
         359)

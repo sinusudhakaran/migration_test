@@ -529,7 +529,17 @@ begin
                                                                AdminSystem.fdFields.fdBankLink_Code,
                                                                AdminSystem.fdFields.fdBankLink_Connect_Password);
           if Assigned(PracticeDetailResponse) then begin
-            FOnLine := True;
+            FOnline := True;
+            
+            for i := 1 to Screen.FormCount - 1 do
+            begin
+              if (Screen.Forms[i].Name = 'frmClientManager') then
+              begin
+                SendMessage(Screen.Forms[i].Handle, BK_PRACTICE_DETAILS_CHANGED, 0, 0);
+                break;
+              end;
+            end;
+
             if Assigned(PracticeDetailResponse.Result) then begin
               AdminSystem.fdFields.fdLast_BankLink_Online_Update := stDate.CurrentDate;
               FPractice := PracticeDetailResponse.Result;

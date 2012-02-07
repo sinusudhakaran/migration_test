@@ -618,8 +618,6 @@ begin
      ClientLookup.vtClients.SetFocus;
   except
   end;
-
-  SendMessage(Self.Handle, BK_PRACTICE_DETAILS_CHANGED, 0, 0);
 end;
 
 //------------------------------------------------------------------------------
@@ -719,9 +717,12 @@ end;
 
 //------------------------------------------------------------------------------
 procedure TfrmClientManager.CheckBOConnection(var message: TMessage);
+var
+  TestBool: boolean;
 begin
+  TestBool := ProductConfigService.OnLine;
   // todo: Check if Banklink Online is connected
-  imgCannotConnect.Visible := (AdminSystem.fdFields.fdUse_BankLink_Online and not ProductConfigService.OnLine);
+  imgCannotConnect.Visible := (AdminSystem.fdFields.fdUse_BankLink_Online and not TestBool);
   lblCannotConnect.Visible := (AdminSystem.fdFields.fdUse_BankLink_Online and not ProductConfigService.OnLine);
 end;
 
@@ -1172,9 +1173,6 @@ begin
        ShowSelectedNo( Count);
        UpdateMultiTasks();
        actTasks.Caption := 'Task List and Comments';
-
-       if Assigned(AdminSystem) then
-         SendMessage(Self.Handle, BK_PRACTICE_DETAILS_CHANGED, 0, 0);
     end;
     UpdatePrintTasks;
   finally
