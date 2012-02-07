@@ -1334,10 +1334,12 @@ var
   Msg: string;
   BlopiInterface: IBlopiServiceFacade;
   MsgResponse: MessageResponse;
+  MsgResponseOfGuid: MessageResponseOfGuid;
   MyClientUpdate: ClientUpdate;
   MyNewUser: User;
   MyUserDetail : TBloUserDetail;
-  ShowProgress : Boolean;  
+  ShowProgress : Boolean;
+  BlankSubscription: TBloArrayOfGuid;
 begin
   Result := False;
 
@@ -1381,16 +1383,19 @@ begin
               MyNewUser.FullName := MyUserDetail.FullName;
               MyNewUser.EMail := MyUserDetail.EMail;
               MyNewUser.AddRoleName('Client Administrator');
-              // MyNewUser.UserCode := MyUserDetail.UserCode;
+              MyNewUser.UserCode := '';
+              SetLength(BlankSubscription, 0);
+              MyNewUser.Subscription := BlankSubscription;
 
               if ShowProgress then
                 Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Creating Client User', 30);
-              MsgResponse := BlopiInterface.CreateClientUser(CountryText(AdminSystem.fdFields.fdCountry),
+              MsgResponseOfGuid := BlopiInterface.CreateClientUser(CountryText(AdminSystem.fdFields.fdCountry),
                                                              AdminSystem.fdFields.fdBankLink_Code,
                                                              AdminSystem.fdFields.fdBankLink_Connect_Password,
                                                              AClient.Id,
                                                              MyNewUser);
-              MessageResponseHasError(MsgResponse, 'create the client user on');
+              if not MessageResponseHasError(MsgResponseOfGuid, 'create the client user on') then
+                MyClientUpdate.PrimaryContactUserId := MsgResponseOfGuid.Result;
             finally
               MyNewUser.Free;
             end;

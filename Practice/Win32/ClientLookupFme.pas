@@ -1938,6 +1938,24 @@ var
   FoundIndex : integer;
   CatEntry : TBloCatalogueEntry;
   ClientCode : String;
+
+  function FindClientIndex: integer;
+  var
+    j: integer;
+  begin
+    Result := -1;
+    for j := low(ProductConfigService.Clients.Clients) to
+             high(ProductConfigService.Clients.Clients) do
+    begin
+      ClientCode := ProductConfigService.Clients.Clients[j].ClientCode;
+      if ClientCode = sysClientRec^.cfFile_Code then
+      begin
+        Result := j;
+        break;
+      end;
+    end;
+  end;
+
 begin
   CellText := '';
 
@@ -2226,6 +2244,23 @@ begin
                 end;
               end;
             end;
+          end;
+
+          cluBOBillingFrequency :
+          begin
+            { This returns the right result but is too slow to be practical
+            FoundIndex := FindClientIndex;
+            if (FoundIndex > -1) then begin
+              S := ProductConfigService.GetClientDetailsWithCode(
+                     ProductConfigService.Clients.Clients[FoundIndex].ClientCode).BillingFrequency;
+              CellText := S;
+            end;
+            }
+          end;
+
+          cluBOUserAdmin :
+          begin
+
           end;
         end;
       end;

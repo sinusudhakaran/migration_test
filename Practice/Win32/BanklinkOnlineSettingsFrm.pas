@@ -134,7 +134,7 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmBanklinkOnlineSettings.btnOKClick(Sender: TObject);
 var
-  EmailChanged, ProductsChanged, BillingFrequencyChanged, ProductFound: boolean;
+  EmailChanged, ProductsChanged, ProductFound: boolean;
   NewProducts, ProductsRemoved: TStringList;
   PromptMessage, ErrorMsg, NewUserName, NewEmail, MailTo, MailSubject, MailBody: string;
   i, j, ButtonPressed: integer;
@@ -146,7 +146,6 @@ var
 begin
   EmailChanged := False;
   ProductsChanged := False;
-  BillingFrequencyChanged := False;
 
   if (Trim(edtUserName.Text) = '') then
   begin
@@ -225,6 +224,11 @@ begin
         ProductsRemoved.Add(chklistProducts.Items[i]);
     end;
 
+    if (BillingFrequency = 'A') then
+      BillingFrequency := 'Annually'
+    else if (BillingFrequency = 'M') then
+      BillingFrequency := 'Monthly';
+
     if Assigned(MyClient.BlopiClientDetail) then
     begin
       BillingFrequency := MyClient.BlopiClientDetail.BillingFrequency;
@@ -236,50 +240,32 @@ begin
       MaxOfflineDays := IntToStr(MyClient.BlopiClientNew.MaxOfflineDays);
     end;
 
-    if (BillingFrequency = 'A') then
-      BillingFrequency := 'Annually'
-    else if (BillingFrequency = 'M') then
-      BillingFrequency := 'Monthly';
-
     ProductsChanged := NewProducts.Count > 0;
-    BillingFrequencyChanged := (cmbBillingFrequency.Text <> BillingFrequency);
-    if EmailChanged and not (ProductsChanged or BillingFrequencyChanged) then
+    if (EmailChanged and ProductsChanged) then
+    begin
+      PromptMessage := 'Are you sure you want to update the following for ' +
+                       edtUserName.text + ':' + #10#10 +
+                       'Activate the following products & services:' + #10 +
+                       Trim(NewProducts.Text) + #10#10 + 'Change the Default Client ' +
+                       'Administrator Email Address. The new Default Client ' +
+                       'Adminstrator will be sent to ' + edtEmailAddress.Text + '.';
+      ButtonPressed := AskYesNo('Changing client details',
+                                PromptMessage, DLG_YES, 0, false);
+    end
+    else if EmailChanged then
       ButtonPressed := AskYesNo('Changing Default Administrator Address',
                                 'You have changed the Default Client Administrator Email Address. ' +
                                 'The new Default Client Administrator will be set to ' +
                                 '‘' + edtEmailAddress.Text + '’.' + #10 + #10 +
                                 'Are you sure you want to continue?',
                                 DLG_YES, 0, false)
-    else if ProductsChanged and not (EmailChanged or BillingFrequencyChanged) then
+    else if ProductsChanged then
       ButtonPressed := AskYesNo('Reactiving products',
                                 'Are you sure you want to activate the following products:' + #10#10 +
                                 NewProducts.Text + #10 +
                                 'By clicking ''OK'' you are confirming that you wish to activate these products ' +
                                 'for ' + edtUserName.Text,
-                                DLG_YES, 0, false)
-    else if BillingFrequencyChanged and not (ProductsChanged or EmailChanged) then
-      ButtonPressed := AskYesNo('Changing client billing frequency',
-                                'You have changed this Client''s billing frequency. Your next ' +
-                                'invoice for this Client will be for the period...', // fill in later
-                                DLG_YES, 0, false)
-    else if (EmailChanged or ProductsChanged or BillingFrequencyChanged) then // will reach and trigger this if two or more have changed
-    begin
-      PromptMessage := 'Are you sure you want to update the following for ' +
-                       edtUserName.text + ':';
-      if ProductsChanged then
-        PromptMessage := PromptMessage + #10#10 + 'Activate the following products & services:' +
-                         #10 + Trim(NewProducts.Text);
-      if BillingFrequencyChanged then
-        PromptMessage := PromptMessage + #10#10 + 'Change this Client''s billing ' +
-                         'frequency. Your next invoice for this Client will be for ' +
-                         'the period...'; // fill in later
-      if EmailChanged then
-        PromptMessage := PromptMessage + #10#10 + 'Change the Default Client ' +
-                         'Administrator Email Address. The new Default Client ' +
-                         'Adminstrator will be sent to ' + edtEmailAddress.Text + '.';
-      ButtonPressed := AskYesNo('Changing client details',
-                                PromptMessage, DLG_YES, 0, false);
-    end;
+                                DLG_YES, 0, false);
   end;
   if ButtonPressed = mrNo then
     ModalResult := mrNone
@@ -431,8 +417,10 @@ begin
     cmbConnectDays.SelLength := 0;
     if MyClient.BlopiClientDetail.BillingFrequency = 'M' then
       cmbBillingFrequency.Text := 'Monthly'
-    else if MyClient.BlopiClientDetail.BillingFrequency = 'A' then        
-      cmbBillingFrequency.Text := 'Annually';
+    else if MyClient.BlopiClientDetail.BillingFrequency = 'A' then
+      cmbBillingFrequency.Text := 'Annually'
+    else
+      cmbBillingFrequency.Text := MyClient.BlopiClientDetail.BillingFrequency;
     cmbBillingFrequency.SelLength := 0;
     chkUseClientDetails.Checked := false;
 
