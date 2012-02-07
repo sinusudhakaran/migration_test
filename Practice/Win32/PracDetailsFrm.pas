@@ -580,7 +580,7 @@ begin
                                               ProductConfigService.OnLine and
                                               ProductConfigService.Registered and
                                               ProductConfigService.IsPracticeActive(False);
-    ckUseBankLinkOnline.Enabled := ProductConfigService.OnLine;
+    ckUseBankLinkOnline.Enabled := ProductConfigService.OnLine or (not UseBankLinkOnline);
 
 
     //Web export format
