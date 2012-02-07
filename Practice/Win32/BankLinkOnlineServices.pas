@@ -125,7 +125,7 @@ type
   public
     destructor Destroy; override;
     //Practice methods
-    function GetPractice(aUpdateUseOnline: Boolean = True): TBloPracticeDetail;
+    function GetPractice(aUpdateUseOnline: Boolean = True; aForceOnlineCall : Boolean = false): TBloPracticeDetail;
     function IsPracticeActive(ShowWarning: Boolean = true): Boolean;
     function GetCatalogueEntry(AProductId: TBloGuid): TBloCatalogueEntry;
     function IsPracticeProductEnabled(AProductId: TBloGuid; AUsePracCopy : Boolean): Boolean;
@@ -463,7 +463,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TProductConfigService.GetPractice(aUpdateUseOnline: Boolean): TBloPracticeDetail;
+function TProductConfigService.GetPractice(aUpdateUseOnline: Boolean; aForceOnlineCall : Boolean): TBloPracticeDetail;
 var
   i: integer;
   BlopiInterface: IBlopiServiceFacade;
@@ -521,7 +521,8 @@ begin
         //Try to load practice details from BankLink Online
         FOnLine := False;
         if (UseBankLinkOnline)
-        or not FPractice.IsEqual(FPracticeCopy) then
+        or not FPractice.IsEqual(FPracticeCopy)
+        or (aForceOnlineCall) then
         begin
           //Reload from BankLink Online
           BlopiInterface := GetServiceFacade;
@@ -1791,7 +1792,7 @@ begin
     try
       // Does the User Already Exist on BankLink Online?
       Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Recieving Data', 33);
-      CurrPractice := GetPractice(true);
+      CurrPractice := GetPractice(true, true);
 
       IsUserOnline := IsUserCreatedOnBankLinkOnline(CurrPractice, aUserId, aUserCode);
 
@@ -2025,6 +2026,9 @@ begin
   or (aUstNameIndex > ustMax) then
     raise Exception.Create('Practice User Type does not exist in the Admin System.');
 
+  if High(aInstance.Roles) < 1 then
+    raise Exception.Create('Get Practice Roles returned no role information.');
+
   case aUstNameIndex of
                             // Accountant Practice Standard User
     ustRestricted : Result := aInstance.Roles[1].id;
@@ -2120,3 +2124,4 @@ initialization
   DebugMe := DebugUnit(UNIT_NAME);
 
 end.
+
