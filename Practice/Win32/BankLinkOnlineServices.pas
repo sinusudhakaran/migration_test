@@ -39,10 +39,13 @@ type
   end;
 
   TClientBaseHelper = class helper for BlopiServiceFacade.Client
+  private
+    function GetStatusString: string;
   public
     function AddSubscription(AProductID: TBloGuid) : Boolean;
     function RemoveSubscription(AProductID: TBloGuid) : Boolean;
     function HasSubscription(AProductID: TBloGuid) : Boolean;
+    property StatusString: string read GetStatusString;
   end;
 
   TClientHelper = Class helper for BlopiServiceFacade.ClientDetail
@@ -55,7 +58,6 @@ type
     function GetSuspended: boolean;
   public
     procedure UpdateAdminUser(AUserName, AEmail: WideString);
-
     property Deactivated: boolean read GetDeactivated;
     property ClientConnectDays: string read GetClientConnectDays; // 0 if client must always be online
     property FreeTrialEndDate: TDateTime read GetFreeTrialEndDate;
@@ -1689,6 +1691,16 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+function TClientBaseHelper.GetStatusString: string;
+begin
+  case self.Status of
+    Active: Result := 'Active';
+    Suspended: Result := 'Suspended';
+    Deactivated: Result := 'Deactivated';
+    else Result := '';
+  end;
+end;
+
 function TClientBaseHelper.HasSubscription(AProductID: TBloGuid) : Boolean;
 var
   i : Integer;

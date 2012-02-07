@@ -989,10 +989,8 @@ begin
             trunc(vtClients.Canvas.TextWidth(trim('Billing Frequency')) * 2), NumColumns, cluBOBillingFrequency);
           AddCustomColumn( 'User Admin',
             trunc(vtClients.Canvas.TextWidth(trim('User Admin')) * 2), NumColumns + 1, cluBOUserAdmin);
-          AddCustomColumn( 'Suspended',
-            trunc(vtClients.Canvas.TextWidth(trim('Suspended')) * 2), NumColumns + 2, cluBOSuspended);
-          AddCustomColumn( 'Deactivated',
-            trunc(vtClients.Canvas.TextWidth(trim('Deactivated')) * 2), NumColumns + 3, cluBODeactivated);
+          AddCustomColumn( 'Banklink Online Access',
+            trunc(vtClients.Canvas.TextWidth(trim('Banklink Online Access')) * 2), NumColumns + 2, cluBOAccess);
         end;
 
         BuildGrid( cluCode);
