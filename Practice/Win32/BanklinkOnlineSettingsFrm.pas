@@ -81,7 +81,8 @@ uses
   SysUtils,
   Variants,
   MailFrm,
-  YesNoDlg;
+  YesNoDlg,
+  Files;
 
 const
   UnitName = 'BanklinkOnlineSettingsFrm';
@@ -96,6 +97,7 @@ var
   i: integer;
   BanklinkOnlineSettings: TfrmBanklinkOnlineSettings;
   SuccessMessage: string;
+  NewClient: TBloClientNew;
 const
   ThisMethodName = 'EditBanklinkOnlineSettings';
 begin
@@ -112,12 +114,16 @@ begin
     //Get client list (so that we can lookup the client code)
     ProductConfigService.LoadClientList;
     //Get client details
-    if not MyClient.RefreshBlopiClient then
-      Exit;
+    MyClient.RefreshBlopiClient;
   end;
 
-  if Assigned(MyClient.BlopiClientNew) or
-     Assigned(MyClient.BlopiClientDetail) then begin
+  if not (Assigned(MyClient.BlopiClientNew) or Assigned(MyClient.BlopiClientDetail)) then
+  begin
+    NewClient := TBloClientNew.Create;
+    MyClient.BlopiClientNew := TBloClientNew.Create;
+    DoClientSave(false, MyClient);
+  end;
+  if Assigned(MyClient.BlopiClientNew) or Assigned(MyClient.BlopiClientDetail) then begin
     BanklinkOnlineSettings := TfrmBanklinkOnlineSettings.Create(Application.MainForm);
     try
       Result := BanklinkOnlineSettings.Execute;

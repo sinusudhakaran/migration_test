@@ -57,7 +57,14 @@ begin
     FreeAndNil(FClientNew)
   end else begin
     if IsEdited then
+    begin
+      if not Assigned(ClientDetail) then
+      begin
+        ClientNew.Create;  
+        ClientDetail := TBloClientDetail.Create;
+      end;
       ProductConfigService.SaveClient(ClientDetail);
+    end;                                            
   end;
 end;
 
