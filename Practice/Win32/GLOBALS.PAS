@@ -175,7 +175,7 @@ CONST
     MAX_TRX_TYPE        = 100;
 
     MAX_CODING_COLUMNS  = 15;
-    MAX_CLIENT_MANAGER_COLUMNS = 20;
+    MAX_CLIENT_MANAGER_COLUMNS = 22;
     MAX_CLIENT_HOMEPAGE_COLUMNS = 8;
     MAX_FAVOURITE_REPORTS_COLUMNS = 1;
     MAX_EXCHANGE_RATE_COLUMNS = 99;
@@ -206,7 +206,6 @@ CONST
 
     NZDESCRIPTOR        = 'BankLink';
     OZDESCRIPTOR        = 'OZLink';
-
     DefaultBConnectHTTPTimeout = 120;
 
     //Mail Descriptors
@@ -456,7 +455,12 @@ var
     UserINI_CM_Default_View : integer;  // 0 = all files, 1 = my files
     UserINI_CM_Column_Widths : Array[ 0..MAX_CLIENT_MANAGER_COLUMNS] of integer;
     UserINI_CM_Column_Positions : Array[ 0..MAX_CLIENT_MANAGER_COLUMNS] of integer;
-    UserINI_CM_Column_Visible : Array[ 0..MAX_CLIENT_MANAGER_COLUMNS] of boolean;    
+    UserINI_CM_Column_Visible : Array[ 0..MAX_CLIENT_MANAGER_COLUMNS] of boolean;
+    UserINI_CM_Var_Col_Count : integer;
+    UserINI_CM_Var_Col_Widths : Array of integer;
+    UserINI_CM_Var_Col_Positions : Array of integer;
+    UserINI_CM_Var_Col_Visible : Array of boolean;
+    UserINI_CM_Var_Col_Guid : Array of WideString;
     UserINI_CM_Filter: integer; // see filter definitions in bkconst.pas
     UserINI_CM_SubFilter: Int64; // see filter definitions in bkconst.pas
     UserINI_CM_SubFilter_Name: string;

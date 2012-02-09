@@ -855,6 +855,20 @@ begin
         UserINI_CM_Column_Widths[ i] := IniFile.ReadInteger( GrpClientMgr, 'ColWidth' + inttostr( i), -1);
         UserINI_CM_Column_Visible[ i] := IniFile.ReadBool( GrpClientMgr, 'ColVisible' + inttostr( i), True);
       end;
+
+      UserINI_CM_Var_Col_Count := IniFile.ReadInteger( GrpClientMgr, 'VarColCount', 0);
+      SetLength(UserINI_CM_Var_Col_Positions, UserINI_CM_Var_Col_Count);
+      SetLength(UserINI_CM_Var_Col_Widths, UserINI_CM_Var_Col_Count);
+      SetLength(UserINI_CM_Var_Col_Visible, UserINI_CM_Var_Col_Count);
+      SetLength(UserINI_CM_Var_Col_Guid, UserINI_CM_Var_Col_Count);
+      for i := 0 to UserINI_CM_Var_Col_Count-1 do
+      begin
+        UserINI_CM_Var_Col_Positions[i] := IniFile.ReadInteger( GrpClientMgr, 'VarColPosition' + inttostr( i), -1);
+        UserINI_CM_Var_Col_Widths[i] := IniFile.ReadInteger( GrpClientMgr, 'VarColWidth' + inttostr( i), -1);
+        UserINI_CM_Var_Col_Visible[i] := IniFile.ReadBool( GrpClientMgr, 'VarColVisible' + inttostr( i), True);
+        UserINI_CM_Var_Col_Guid[i] := IniFile.ReadString( GrpClientMgr, 'VarColGuid' + inttostr( i), '');
+      end;
+
       UserINI_CM_Filter:= IniFile.ReadInteger( GrpClientMgr, 'Filter', 0);
 
       //Client HomePage
@@ -954,6 +968,16 @@ begin
         IniFile.WriteInteger( GrpClientMgr, 'ColWidth' + inttostr( i), UserINI_CM_Column_Widths[ i]);
         IniFile.WriteBool( GrpClientMgr, 'ColVisible' + inttostr( i), UserINI_CM_Column_Visible[ i]);
       end;
+
+      IniFile.WriteInteger(GrpClientMgr, 'VarColCount', UserINI_CM_Var_Col_Count );
+      for i := 0 to UserINI_CM_Var_Col_Count-1 do
+      begin
+        IniFile.WriteInteger( GrpClientMgr, 'VarColPosition' + inttostr( i), UserINI_CM_Var_Col_Positions[ i]);
+        IniFile.WriteInteger( GrpClientMgr, 'VarColWidth' + inttostr( i), UserINI_CM_Var_Col_Widths[ i]);
+        IniFile.WriteBool( GrpClientMgr, 'VarColVisible' + inttostr( i), UserINI_CM_Var_Col_Visible[ i]);
+        IniFile.WriteString( GrpClientMgr, 'VarColGuid' + inttostr( i), UserINI_CM_Var_Col_Guid[ i]);
+      end;
+
       IniFile.WriteInteger( GrpClientMgr, 'SortColumn', UserINI_CM_SortColumn);
       IniFile.WriteBool( GrpClientMgr, 'SortDescending', UserINI_CM_SortDescending);
 

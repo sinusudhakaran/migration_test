@@ -69,7 +69,8 @@ type
     DisplayWidth  : integer;
     Visible       : Boolean;
     Color         : TColor;
-    ColObject     : TObject;
+    ProdIndex     : Integer;
+    ProdGuid      : TBloGuid;
   end;
 
   TCluColumnList = class( TList)
@@ -289,7 +290,8 @@ type
     function AddColumnEx( aFieldID : TClientLookupCol; aCaption : string;
                           aDefaultWidth : integer; aDefaultPos : integer;
                           aUserWidth : integer; aUserPos : integer; visible: Boolean;
-                          aColObject : TObject = Nil): TCluColumnDefn;
+                          aProdIndex : Integer = -1;
+                          aProdGuid : TBloGuid = ''): TCluColumnDefn;
     procedure BuildGrid( const SelectColumn : TClientLookupCol; const SortDirection: TSortDirection = sdAscending);
     procedure LocateCode( aCode : string);
     procedure SetFocusToGrid;
@@ -312,10 +314,15 @@ type
     property FilesDirectory : string read FFilesDirectory write SetFilesDirectory;
     property Options : TLookupOptions read FOptions write SetOptions;
 
-    function GetColumnPosition( aFieldID : TClientLookupCol) : integer;
-    function GetColumnWidth( aFieldID : TClientLookupCol) : integer;
-    function GetColumnVisibility( aFieldID : TClientLookupCol) : boolean;
-    function GetColumnCaption( aFieldID : TClientLookupCol) : string;
+    function FindColumnIndex( aFieldID : TClientLookupCol) : integer;
+    function GetColumnPosition( aColIndex : integer) : integer; overload;
+    function GetColumnPosition( aFieldID : TClientLookupCol) : integer; overload;
+    function GetColumnWidth( aColIndex : integer) : integer; overload;
+    function GetColumnWidth( aFieldID : TClientLookupCol) : integer; overload;
+    function GetColumnVisibility( aColIndex : integer) : boolean; overload;
+    function GetColumnVisibility( aFieldID : TClientLookupCol) : boolean; overload;
+    function GetColumnCaption( aColIndex : integer) : string; overload;
+    function GetColumnCaption( aFieldID : TClientLookupCol) : string; overload;
     function GetColumnID( ColumnNo : integer) : TClientLookupCol;
     function GetColumnIDByPosition(ColumnNo: integer): TClientLookupCol;
     function GetSortedByText : string;
@@ -550,7 +557,8 @@ begin
   NewColumn.DisplayPos      := NewColumn.DefaultPos;
   NewColumn.DisplayWidth    := NewColumn.DefaultWidth;
   NewColumn.Visible         := True;
-  NewColumn.ColObject       := Nil;
+  NewColumn.ProdIndex       := -1;
+  NewColumn.ProdGuid        := '';
   //add columns
   FColumns.Add( NewColumn);
   result := NewColumn;
@@ -561,7 +569,8 @@ function TfmeClientLookup.AddColumnEx( aFieldID: TClientLookupCol;
                                        aDefaultWidth, aDefaultPos, aUserWidth,
                                        aUserPos: integer;
                                        visible: Boolean;
-                                       aColObject : TObject): TCluColumnDefn;
+                                       aProdIndex : Integer;
+                                       aProdGuid : TBloGuid): TCluColumnDefn;
 //extended version of AddColumn that allows customizable column position and
 //width
 //passing -1 as the default width will set that column to be auto-sizing
@@ -575,7 +584,8 @@ begin
   NewColumn.DefaultWidth    := aDefaultWidth;
   NewColumn.DefaultPos      := aDefaultPos;
   NewColumn.Visible         := visible;
-  NewColumn.ColObject       := aColObject;
+  NewColumn.ProdIndex       := aProdIndex;
+  NewColumn.ProdGuid        := aProdGuid;
   //set custom settings if specified
   if aUserPos = -1 then
   begin
@@ -1908,8 +1918,9 @@ var
   i: Integer;
   Period, CD, M, MM, EM, Y, D: Integer;
   FoundIndex : integer;
-  CatEntry : TBloCatalogueEntry;
   ClientCode : String;
+  ProdIndex : integer;
+  ProdGuid : TBloGuid;
 
   function FindClientIndex: integer;
   var
@@ -2188,17 +2199,14 @@ begin
           cluBOProduct :
           begin
             CellText := '';
-            if (Assigned(FColumns.ColumnDefn_At(Column).ColObject)) and
-               (FColumns.ColumnDefn_At(Column).ColObject is TBloCatalogueEntry) then
-            begin
-              CatEntry := TBloCatalogueEntry(FColumns.ColumnDefn_At(Column).ColObject);
 
-              FoundIndex := FindClientIndex;
-              if (FoundIndex > -1) then
-              begin
-                if ProductConfigService.Clients.Clients[FoundIndex].HasSubscription(CatEntry.Id) then
-                  CellText := #10004; // tick
-              end;
+            ProdGuid := FColumns.ColumnDefn_At(Column).ProdGuid;
+
+            FoundIndex := FindClientIndex;
+            if (FoundIndex > -1) then
+            begin
+              if ProductConfigService.Clients.Clients[FoundIndex].HasSubscription(ProdGuid) then
+                CellText := #10004; // tick
             end;
           end;
 
@@ -3587,67 +3595,85 @@ begin
   end;
 end;
 
-function TfmeClientLookup.GetColumnPosition(
-  aFieldID: TClientLookupCol): integer;
-var
-  cIndex : integer;
+function TfmeClientLookup.FindColumnIndex( aFieldID : TClientLookupCol) : integer;
 begin
-  cIndex := FColumns.FindColumnIndex( aFieldID);
-  if cIndex = - 1 then
-    result := -1
-  else
-  begin
-    result := vtClients.Header.Columns[ cIndex].Position;
-  end;
+  Result := FColumns.FindColumnIndex( aFieldID);
 end;
 
-function TfmeClientLookup.GetColumnWidth(
-  aFieldID: TClientLookupCol): integer;
-var
-  cIndex : integer;
+function TfmeClientLookup.GetColumnPosition(aColIndex: Integer): integer;
 begin
-  cIndex := FColumns.FindColumnIndex( aFieldID);
-  if cIndex = - 1 then
-    result := -1
+  if aColIndex = - 1 then
+    Result := -1
   else
-  begin
-    result := vtClients.Header.Columns[ cIndex].Width;
-  end;
+    Result := vtClients.Header.Columns[ aColIndex].Position;
 end;
 
-function TfmeClientLookup.GetColumnCaption(
-  aFieldID: TClientLookupCol): string;
+function TfmeClientLookup.GetColumnPosition(aFieldID: TClientLookupCol): integer;
 var
-  cIndex : integer;
+  ColIndex : integer;
+begin
+  ColIndex := FColumns.FindColumnIndex( aFieldID);
+  Result := GetColumnPosition(ColIndex);
+end;
+
+function TfmeClientLookup.GetColumnWidth(aColIndex: Integer): integer;
+begin
+  if aColIndex = - 1 then
+    Result := -1
+  else
+    Result := vtClients.Header.Columns[ aColIndex].Width;
+end;
+
+function TfmeClientLookup.GetColumnWidth(aFieldID: TClientLookupCol): integer;
+var
+  ColIndex : integer;
+begin
+  ColIndex := FColumns.FindColumnIndex( aFieldID);
+  Result := GetColumnWidth(ColIndex);
+end;
+
+function TfmeClientLookup.GetColumnCaption(aColIndex: Integer): string;
+begin
+  if aColIndex = - 1 then
+    Result := ''
+  else
+    Result := vtClients.Header.Columns[ aColIndex].Text;
+end;
+
+function TfmeClientLookup.GetColumnCaption(aFieldID: TClientLookupCol): string;
+var
+  ColIndex : integer;
 begin
   if aFieldID = cluProcessing then
-     Result := FormatDateTime('mmm yy', IncMonth(ProcStatDate, -11)) + ' to ' + FormatDateTime('mmm yy', ProcStatDate)
-  else begin
-     cIndex := FColumns.FindColumnIndex( aFieldID);
-     if cIndex = - 1 then
-        Result := ''
-     else begin
-        Result := vtClients.Header.Columns[ cIndex].Text;
-     end;
+    Result := FormatDateTime('mmm yy', IncMonth(ProcStatDate, -11)) + ' to ' + FormatDateTime('mmm yy', ProcStatDate)
+  else
+  begin
+    ColIndex := FColumns.FindColumnIndex( aFieldID);
+    Result := GetColumnCaption(ColIndex);
   end;
 end;
 
-function TfmeClientLookup.GetColumnVisibility(
-  aFieldID: TClientLookupCol): Boolean;
+function TfmeClientLookup.GetColumnVisibility(aColIndex: Integer): Boolean;
 var
-  cIndex : integer;
-  vc: TVirtualTreeColumn;
-  o: TVTColumnOption;
+  VitTreeCol : TVirtualTreeColumn;
+  VitTreeColOpt : TVTColumnOption;
 begin
-  cIndex := FColumns.FindColumnIndex( aFieldID);
-  if cIndex = - 1 then
-    result := true
+  if aColIndex = - 1 then
+    Result := True
   else
   begin
-    vc := vtClients.Header.Columns[ cIndex];
-    o := coVisible;
-    result := o in vc.Options;
+    VitTreeCol := vtClients.Header.Columns[ aColIndex];
+    VitTreeColOpt := coVisible;
+    result := VitTreeColOpt in VitTreeCol.Options;
   end;
+end;
+
+function TfmeClientLookup.GetColumnVisibility(aFieldID: TClientLookupCol): Boolean;
+var
+  ColIndex : integer;
+begin
+  ColIndex := FColumns.FindColumnIndex( aFieldID);
+  Result := GetColumnVisibility(ColIndex);
 end;
 
 function TfmeClientLookup.GetSortedByText: string;

@@ -44,7 +44,7 @@ uses
   dxGDIPlusClasses,
   Globals,
   BanklinkOnlineSettingsFrm,
-  BlopiServiceFacade;
+  BanklinkOnlineServices;
 
 type
   TfrmClientManager = class(TForm)
@@ -292,8 +292,11 @@ type
     procedure DoEditClientDetails;
     procedure DoDeleteFile;
     procedure DoUnlock;
-    procedure AddCustomColumn(aCaption: string; aDefWidth,
-      aDefPos: integer; aFieldID: TClientLookupCol; aColObject : TObject = Nil);
+    procedure AddCustomColumn(aCaption: string;
+                              aDefWidth,aDefPos: integer;
+                              aFieldID: TClientLookupCol;
+                              aProductIndex : integer = -1;
+                              aProductGuid  : TBloGuid = '');
     function GetINI_ID(aFieldID: TClientLookupCol): integer;
     procedure UpdateColumnINISettings;
     procedure ResetIniColumnDefaults;
@@ -398,7 +401,6 @@ uses
   MainFrm,
   CheckInOutFrm,
   Clipbrd,
-  BanklinkOnlineServices,
   YesNoDlg;
 
 {$R *.dfm}
@@ -563,31 +565,31 @@ procedure TfrmClientManager.UpdateINI;
 begin
   if not IsGlobal then begin
 
-      if Assigned(CurrUser)
-      and (not CurrUser.HasRestrictedAccess)
-      and UserSet then
-      begin
-        //save user settings
-        case ClientLookup.ViewMode of
-          vmAllFiles : UserINI_CM_Default_View := 0;
-          vmMyFiles : UserINI_CM_Default_View := 1;
-        else
-          UserINI_CM_Default_View := 0;
-        end;
-        UserINI_CM_Filter := Integer(cmbFilter.Items.Objects[cmbFilter.ItemIndex]);
-        UserINI_CM_SubFilter := ClientLookup.SubFilter;
-        UserINI_CM_SubFilter_Name := btnFilter.Hint;
-        if Assigned(UserINI_CM_UserFilter) then
-          UserINI_CM_UserFilter.Text := FCurrentUserFilter.Text;
-        if Assigned(UserINI_CM_GroupFilter) then
-          UserINI_CM_GroupFilter.Text := FCurrentGroupFilter.Text;
-        if Assigned(UserINI_CM_ClientTypeFilter) then
-          UserINI_CM_ClientTypeFilter.Text := FCurrentClientTypeFilter.Text;
-        //update user ini settings for columns
-        if (ClientLookup.ClientFilter = filterAllClients)
-        or (ClientLookup.ClientFilter = filterMyClients) then
-           UpdateColumnINISettings;   
+    if Assigned(CurrUser)
+    and (not CurrUser.HasRestrictedAccess)
+    and UserSet then
+    begin
+      //save user settings
+      case ClientLookup.ViewMode of
+        vmAllFiles : UserINI_CM_Default_View := 0;
+        vmMyFiles : UserINI_CM_Default_View := 1;
+      else
+        UserINI_CM_Default_View := 0;
       end;
+      UserINI_CM_Filter := Integer(cmbFilter.Items.Objects[cmbFilter.ItemIndex]);
+      UserINI_CM_SubFilter := ClientLookup.SubFilter;
+      UserINI_CM_SubFilter_Name := btnFilter.Hint;
+      if Assigned(UserINI_CM_UserFilter) then
+        UserINI_CM_UserFilter.Text := FCurrentUserFilter.Text;
+      if Assigned(UserINI_CM_GroupFilter) then
+        UserINI_CM_GroupFilter.Text := FCurrentGroupFilter.Text;
+      if Assigned(UserINI_CM_ClientTypeFilter) then
+        UserINI_CM_ClientTypeFilter.Text := FCurrentClientTypeFilter.Text;
+      //update user ini settings for columns
+      if (ClientLookup.ClientFilter = filterAllClients)
+      or (ClientLookup.ClientFilter = filterMyClients) then
+         UpdateColumnINISettings;
+    end;
   end;
 end;
 
@@ -624,30 +626,57 @@ begin
   case aFieldID of
     cluCode : Result := icid_Code;
     cluName : Result := icid_Name;
+    cluAction : Result := icid_Action;
+    cluReminderDate : Result := icid_ReminderDate;
     cluStatus : Result := icid_Status;
-    cluProcessing : Result := icid_Processing;
-    cluNextGSTDue : Result := icid_NextGSTDue;
     cluUser : Result := icid_User;
-    cluGroup : Result := icid_Group;
-    cluClientType : Result := icid_ClientType;
     cluReportingPeriod : Result := icid_ReportingPeriod;
     cluSendBy : Result := icid_SendBy;
     cluLastAccessed : Result := icid_LastAccessed;
     cluFinYearStarts : Result := icid_FinYearStarts;
     cluContactType : Result := icid_ContactType;
-    cluAction : Result := icid_Action;
-    cluReminderDate : Result := icid_ReminderDate;
+    cluProcessing : Result := icid_Processing;
+    cluGroup : Result := icid_Group;
+    cluClientType : Result := icid_ClientType;
+    cluNextGSTDue : Result := icid_NextGSTDue;
+    cluBankLinkOnline : Result := icid_BankLinkOnline;
+    cluModifiedDate : Result := icid_ModifiedDate;
+    cluBOProduct : Result := icid_BOProduct;
+    cluBOBillingFrequency : Result := icid_BOBillingFrequency;
+    cluBOUserAdmin : Result := icid_BOUserAdmin;
+    cluBOAccess : Result := icid_BOAccess;
   else
     Result := -1;
   end;
 end;
 
 //------------------------------------------------------------------------------
-procedure TfrmClientManager.AddCustomColumn( aCaption : string; aDefWidth, aDefPos : integer; aFieldID : TClientLookupCol; aColObject : TObject);
+procedure TfrmClientManager.AddCustomColumn( aCaption : string;
+                                             aDefWidth, aDefPos : integer;
+                                             aFieldID : TClientLookupCol;
+                                             aProductIndex : integer;
+                                             aProductGuid  : TBloGuid);
 var
   UserPos, UserWidth : integer;
   IniColumnID : integer;
   UserVisible: Boolean;
+  OldProdIndex: Integer;
+
+  Function GetProdGuidIndex(aProductGuid : TBloGuid) : Integer;
+  var
+    Index : integer;
+  begin
+    Result := -1;
+
+    for Index := 0 to High(UserINI_CM_Var_Col_Guid) do
+    begin
+      if UserINI_CM_Var_Col_Guid[Index] = aProductGuid then
+      begin
+        Result := Index;
+        Exit;
+      end;
+    end;
+  end;
 begin
 
   UserPos := -1;  //-1 inidicates no info for this column
@@ -660,6 +689,24 @@ begin
   begin
     if IniColumnID in [ icid_Min..icid_Max] then
     begin
+      if IniColumnID = icid_BOProduct then
+      begin
+        OldProdIndex := GetProdGuidIndex(aProductGuid);
+
+        if OldProdIndex > -1 then
+        begin
+          UserPos := UserINI_CM_Var_Col_Positions[OldProdIndex];
+          UserWidth := UserINI_CM_Var_Col_Widths[OldProdIndex];
+          UserVisible := UserINI_CM_Var_Col_Visible[OldProdIndex];
+        end
+        else
+        begin
+          UserPos := aDefPos;
+          UserWidth := aDefWidth;
+          UserVisible := True;
+        end;
+      end
+      else
       if FMode = md_ClientManager then
       begin
         UserPos := UserINI_CM_Column_Positions[ IniColumnID];
@@ -676,7 +723,8 @@ begin
     end;
   end;
 
-  ClientLookup.AddColumnEx( aFieldID, aCaption, aDefWidth, aDefPos, UserWidth, UserPos, UserVisible, aColObject);
+  ClientLookup.AddColumnEx( aFieldID, aCaption, aDefWidth, aDefPos, UserWidth,
+                            UserPos, UserVisible, aProductIndex, aProductGuid);
 end;
 
 //------------------------------------------------------------------------------
@@ -685,11 +733,15 @@ var
   i : integer;
   IniColumnID : integer;
   FieldID : TClientLookupCol;
+  ProdIndex : integer;
+  ProdGuid : TBloGuid;
 begin
   //cycle thru each column and update ini setting
 
   for i := 0 to ClientLookup.ColumnCount - 1 do
   begin
+    ProdIndex := ClientLookup.Columns.ColumnDefn_At(i).ProdIndex;
+    ProdGuid := ClientLookup.Columns.ColumnDefn_At(i).ProdGuid;
     FieldID := ClientLookup.GetColumnID( i);
     IniColumnID := GetINI_ID( FieldID);
     UserINI_CM_SortColumn := Ord(ClientLookup.SortColumn);
@@ -697,6 +749,14 @@ begin
     //have column id, now save correct setting
     if IniColumnID in [ icid_Min..icid_Max] then
     begin
+      if IniColumnID = icid_BOProduct then
+      begin
+        UserINI_CM_Var_Col_Positions[ProdIndex] := ClientLookup.GetColumnPosition(i);
+        UserINI_CM_Var_Col_Widths[ProdIndex] := ClientLookup.GetColumnWidth(i);
+        UserINI_CM_Var_Col_Visible[ProdIndex] := ClientLookup.GetColumnVisibility(i);
+        UserINI_CM_Var_Col_Guid[ProdIndex] := ProdGuid;
+      end
+      else
       if FMode = md_ClientManager then
       begin
         UserINI_CM_Column_Positions[ IniColumnID] := ClientLookup.GetColumnPosition( FieldID);
@@ -963,23 +1023,33 @@ begin
         AddCustomColumn( 'Financial Year Starts', 75, 10, cluFinYearStarts);
         AddCustomColumn( 'Practice Contact', 75, 11, cluContactType);
 
-        NumColumns := 12;
-        // ShowMessage(ProductConfigService.GetCatalogueEntry(ProductConfigService.ProductList[0]).Description);
+        NumColumns := 12; 
 
         if (ProductConfigService.OnLine and AdminSystem.fdFields.fdUse_BankLink_Online) then
         begin
-
           ProductConfigService.LoadClientList;
-          for i := 0 to High(ProductConfigService.Clients.Catalogue) do
+
+          for i := 0 to Length(ProductConfigService.Clients.Catalogue)-1 do
           begin
             ColumnName := ProductConfigService.Clients.Catalogue[i].Description;
 
             AddCustomColumn(trim(ColumnName),
                             trunc(vtClients.Canvas.TextWidth(trim(ColumnName)) * 2),
                             NumColumns,
-                            cluBOProduct);
+                            cluBOProduct,
+                            i,
+                            ProductConfigService.Clients.Catalogue[i].Id);
 
             inc(NumColumns);
+          end;
+
+          if UserINI_CM_Var_Col_Count <> Length(ProductConfigService.Clients.Catalogue) then
+          begin
+            UserINI_CM_Var_Col_Count := Length(ProductConfigService.Clients.Catalogue);
+            SetLength(UserINI_CM_Var_Col_Positions, UserINI_CM_Var_Col_Count);
+            SetLength(UserINI_CM_Var_Col_Widths,    UserINI_CM_Var_Col_Count);
+            SetLength(UserINI_CM_Var_Col_Visible,   UserINI_CM_Var_Col_Count);
+            SetLength(UserINI_CM_Var_Col_Guid,      UserINI_CM_Var_Col_Count);
           end;
 
           AddCustomColumn( 'Billing Frequency',
@@ -1934,7 +2004,7 @@ var
   ScrollPos, i: Integer;
   StringCodeToSelect, DeleteMsgStr: string;
   ClientID: WideString;
-  ClientDet : ClientDetail;
+  ClientDet : TBloClientDetail;
   ClientCode : String;
   ClientName : String;
 begin

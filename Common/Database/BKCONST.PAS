@@ -1834,8 +1834,14 @@ const
   icid_Group = 14;
   icid_ClientType = 15;
   icid_NextGSTDue = 16;
+  icid_BankLinkOnline = 17;
+  icid_ModifiedDate = 18;
+  icid_BOProduct = 19;
+  icid_BOBillingFrequency = 20;
+  icid_BOUserAdmin = 21;
+  icid_BOAccess = 22;
 
-  icid_Max = 16;
+  icid_Max = 22;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    fxtNone = 0; fxtMin = 0;
