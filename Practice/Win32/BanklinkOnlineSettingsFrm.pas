@@ -273,7 +273,7 @@ begin
                                 'for ' + edtUserName.Text,
                                 DLG_YES, 0, false);
   end;
-  if ButtonPressed = mrNo then
+  if ButtonPressed in [mrNo, mrCancel] then
     ModalResult := mrNone
   else
   begin
