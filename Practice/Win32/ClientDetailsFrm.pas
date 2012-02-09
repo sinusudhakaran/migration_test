@@ -312,17 +312,16 @@ begin
 
     if UseBankLinkOnline then begin
       lblClientBOProducts.Visible := ClientSynced;
-      btnClientSettings.Enabled := ClientSynced;
+      btnClientSettings.Enabled := ClientSynced and FEnableClientSettings;
       lblClientBOProducts.Visible := ClientSynced;
       if lblClientBOProducts.Visible  then
       begin
         if not FEnableClientSettings then
           lblClientBOProducts.Caption := 'Please save the client to access the Banklink Online settings';
-          lblClientBOProducts.Caption := '';          CachedPracticeDetail := ProductConfigService.CachedPractice;
-          if btnClientSettings.Enabled and Assigned(CachedPracticeDetail) then
-            lblClientBOProducts.Caption := 'This client currently has access to ' +
-                                           IntToStr(Length(CachedPracticeDetail.Subscription)) +
-                                           ' Banklink Online product(s)'
+        CachedPracticeDetail := ProductConfigService.CachedPractice;        if btnClientSettings.Enabled and Assigned(CachedPracticeDetail) then
+          lblClientBOProducts.Caption := 'This client currently has access to ' +
+                                         IntToStr(Length(CachedPracticeDetail.Subscription)) +
+                                         ' Banklink Online product(s)'
       end;
     end;
   end;
@@ -1126,6 +1125,7 @@ begin
    begin
      try
         FEnableClientSettings := EnableClientSettings;
+        btnClientSettings.Enabled := FEnableClientSettings;
         BKHelpSetUp(ClientDetails, BKH_Step_1_Client_Details);
         CreatingClient := true;
         Result := Execute(PCode);

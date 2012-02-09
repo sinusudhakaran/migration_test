@@ -429,7 +429,7 @@ begin
             end
             else begin
                // Edit existing New Client Details
-               NewClientDetails(FPCode);
+               NewClientDetails(FPCode, false);
             end;
          end;
          opAccountSys : begin
