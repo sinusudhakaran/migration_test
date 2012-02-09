@@ -482,14 +482,15 @@ begin
         Result := ProductConfigService.DeletePracUser(GetCurrentCode, '')
       else
       begin
+        // if user is the primary user and been deleted pick a new primary user
         if fIsPrimaryUser then
         begin
           Result := PickPrimaryUser(UserGuid);
-          if Result then
-            Result := ProductConfigService.DeletePracUser('', UserGuid);
-        end
-        else
-          Result := ProductConfigService.DeletePracUser('', UserGuid);
+          if not Result then
+            Exit;
+        end;
+
+        Result := ProductConfigService.DeletePracUser('', UserGuid);
       end;
 
       if Result then
@@ -499,6 +500,15 @@ begin
     if  (chkCanAccessBankLinkOnline.Checked)
     and (chkCanAccessBankLinkOnline.Visible) then
     begin
+      // if user is the primary user and been set to a non supervisor then pick a new primary user
+      if (fIsPrimaryUser) and
+         (cmbUserType.ItemIndex in [ustRestricted, ustNormal]) then
+      begin
+        Result := PickPrimaryUser(UserGuid);
+        if not Result then
+          Exit;
+      end;
+
       Result := ProductConfigService.AddEditPracUser(fUserGuid,
                                                      eMail.Text,
                                                      eFullName.Text,
