@@ -437,12 +437,14 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmClientDetails.btnOkClick(Sender: TObject);
 var
   buttonSelected: integer;
   UpdateBO: boolean;
 begin
-  UpdateBO := AdminSystem.fdFields.fdUse_BankLink_Online;
+  UpdateBO := Assigned(AdminSystem) and
+              AdminSystem.fdFields.fdUse_BankLink_Online;
 
   if okToPost then
   begin
@@ -456,7 +458,7 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmClientDetails.btnCancelClick(Sender: TObject);
 begin
-   close;
+  close;
 end;
 
 //------------------------------------------------------------------------------
