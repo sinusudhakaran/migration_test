@@ -303,12 +303,12 @@ begin
    //Audit table
    FreeAndNil(fAuditTable);
    FreeAndNil(FClientAuditMgr);
+   //Delete audit copy if assigned
+   if Assigned(FClientCopy) then
+     FreeAndNil(FClientCopy);
 {$ENDIF}
    inherited Destroy;
    LogDebugMsg( ThisMethodName + ' Ends');
-
-   if Assigned(FClientCopy) then
-     FreeAndNil(FClientCopy); //Delete audit copy if assigned
 end;
 
 {$IFNDEF ParserDll}
