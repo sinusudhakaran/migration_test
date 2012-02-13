@@ -219,6 +219,9 @@ const
   UNIT_NAME = 'BankLinkOnlineServices';
   INIFILE_NAME = 'BankLinkOnline.ini';
 
+  PRODUCT_GUID_CICO = '6D700B31-DAEE-4847-8CB2-82C21328AC33';
+  PRODUCT_GUID_NOTES_ONLINE = '6D700B31-DAEE-4847-8CB2-82C21328AC30';
+
 var
   __BankLinkOnlineServiceMgr: TProductConfigService;
   DebugMe : Boolean = False;
@@ -1057,7 +1060,7 @@ begin
   if Assigned(FPractice) then begin
     for i := Low(FPractice.Catalogue) to High(FPractice.Catalogue) do begin
       Cat := FPractice.Catalogue[i];
-      if Cat.Description = 'CICO' then begin
+      if UpperCase(Cat.Id) = PRODUCT_GUID_CICO then begin
         for j := Low(FPractice.Subscription) to High(FPractice.Subscription) do begin
           if FPractice.Subscription[j] = Cat.Id then begin
             Result := True;
@@ -1118,7 +1121,7 @@ begin
     for i := Low(FPracticeCopy.Catalogue) to High(FPracticeCopy.Catalogue) do
     begin
       Cat := FPracticeCopy.Catalogue[i];
-      if Cat.Description = 'Notes Online' then
+      if UpperCase(Cat.Id) = PRODUCT_GUID_NOTES_ONLINE then
       begin
         Result := Cat.Id;
         Exit;

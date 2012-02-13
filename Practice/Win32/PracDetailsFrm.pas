@@ -1024,7 +1024,7 @@ begin
     TreeColumn.Width := 20;
     TreeColumn := vtProducts.Header.Columns.Add;
     TreeColumn.Text := 'TestCol2';
-    TreeColumn.Width := 200;
+    TreeColumn.Width := 450;
 
     if ((FPrac.Id <> '') and ProductConfigService.Registered) or
        ((FPrac.Id <> '') and (not ProductConfigService.OnLine)) then begin
