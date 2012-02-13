@@ -11,11 +11,6 @@ library BooksIO;
   using PChar or ShortString parameters. }
 
 uses
-  madExcept,
-  madLinkDisAsm,
-  madListHardware,
-  madListProcesses,
-  madListModules,
   SysUtils,
   Classes,
   ImportExport in 'ImportExport.pas',

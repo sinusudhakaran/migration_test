@@ -8,6 +8,7 @@ baobj32,
 trxList32,
 MemorisationsObj,
 PayeeObj,
+sysutils,
 XMLIntf,
 bkdefs;
 
@@ -29,6 +30,7 @@ private
   procedure ReadFromNode(var value: TPayee; Node :IXMLNode); overload;
   procedure ReadFromNode(var value: TBudget; Node :IXMLNode); overload;
 
+  procedure Reraise(E: Exception; Doing: string);
 public
   function MakeXML(value: TClientObj): string;
 
@@ -42,7 +44,7 @@ implementation
 uses
     webutils,
     LogUtil,
-    sysutils,
+
     classes,
     BKplIO,
     BKmlIO,
@@ -82,8 +84,9 @@ var I: Integer;
 begin
 
   value.clFields.WriteRecToNode(Node);
-  value.clExtra.WriteRecToNode(Node);
   value.clMoreFields.WriteRecToNode(Node);
+  value.clExtra.WriteRecToNode(Node);
+
 
   logDebug('Start write Accounts');
 
@@ -156,10 +159,12 @@ var
    nHeading: pCustom_Heading_Rec;
    nLog: pDisk_Log_Rec;
 begin
-   value.clFields.ReadRecFromNode(Node);
-   value.clExtra.ReadRecFromNode(Node);
-   value.clMoreFields.ReadRecFromNode(Node);
 
+   value.clFields.ReadRecFromNode(Node);
+   value.clMoreFields.ReadRecFromNode(Node);
+   value.clExtra.ReadRecFromNode(Node);
+
+   try
    lNode := Node.ChildNodes.FindNode('BankAccounts');
    value.clBank_Account_List.DeleteAll;
    if Assigned(LNode) then begin
@@ -173,7 +178,30 @@ begin
       end;
    end;
    value.clBank_Account_List.Sort(BankAccountCompare);
+   except
+      on e: exception do
+         Reraise(e, 'Reading Bank Accounts');
+   end;
 
+
+   try
+   lNode := Node.ChildNodes.FindNode('Chart');
+   value.clChart.DeleteAll;
+   if Assigned(LNode) then begin
+      lnode := lnode.ChildNodes.First;
+      while Assigned(lNode) do begin
+         nChart := New_Account_Rec;
+         nChart.ReadRecFromNode(LNode);
+         value.clChart.Insert(nChart);
+         lNode := lNode.NextSibling;
+      end;
+   end;
+   except
+      on e: exception do
+         Reraise(e, 'Reading Chart');
+   end;
+
+   try
    lNode := Node.ChildNodes.FindNode('Payees');
    if Assigned(LNode) then begin
       lnode := lnode.ChildNodes.First;
@@ -184,7 +212,12 @@ begin
          lNode := lNode.NextSibling;
       end
    end;
+   except
+      on e: exception do
+         Reraise(e, 'Reading Payees');
+   end;
 
+   try
    lNode := Node.ChildNodes.FindNode('Jobs');
    if Assigned(LNode) then begin
       lnode := lnode.ChildNodes.First;
@@ -195,7 +228,12 @@ begin
          lNode := lNode.NextSibling;
       end
    end;
-   
+   except
+      on e: exception do
+         Reraise(e, 'Reading Jobs');
+   end;
+
+   try
    lNode := Node.ChildNodes.FindNode('Budgets');
    if Assigned(LNode) then begin
       lnode := lnode.ChildNodes.First;
@@ -206,7 +244,12 @@ begin
          lNode := lNode.NextSibling;
       end
    end;
+   except
+      on e: exception do
+         Reraise(e, 'Reading Budgets');
+   end;
 
+   try
    lNode := Node.ChildNodes.FindNode('Balances');
    if Assigned(LNode) then begin
       lnode := lnode.ChildNodes.First;
@@ -217,7 +260,12 @@ begin
          lNode := lNode.NextSibling;
       end
    end;
+   except
+      on e: exception do
+         Reraise(e, 'Reading Balances');
+   end;
 
+   try
    lNode := Node.ChildNodes.FindNode('Headings');
    if Assigned(LNode) then begin
       lnode := lnode.ChildNodes.First;
@@ -228,7 +276,12 @@ begin
          lNode := lNode.NextSibling;
       end
    end;
+   except
+      on e: exception do
+         Reraise(e, 'Reading Headings');
+   end;
 
+   try
    lNode := Node.ChildNodes.FindNode('DiskLog');
    if Assigned(LNode) then begin
       lnode := lnode.ChildNodes.First;
@@ -239,6 +292,11 @@ begin
          lNode := lNode.NextSibling;
       end
    end;
+   except
+      on e: exception do
+         Reraise(e, 'Reading DiskLog');
+   end;
+
    lNode := nil;
 end;
 
@@ -461,6 +519,11 @@ begin
 end;
 
 
+
+procedure TXML_Helper.Reraise(E: Exception; Doing: string);
+begin
+  raise exception.Create( format('Error : %s While : %s',[E.Message, Doing]));
+end;
 
 //---------------------------  XML direct --------------------------------------
 function TXML_Helper.MakeXML(value: TClientObj): string;
