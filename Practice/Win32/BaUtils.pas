@@ -34,7 +34,7 @@ function GetHistoricalDataRange( ba : TBank_Account; var FirstDate : integer; va
 
 function MDEExpired(BAList: TBank_Account_List; LastUseDate: Integer; SkipTransCheck: Boolean = False): Boolean;
 function GetMDEExpiryDate(BAList: TBank_Account_List): Integer;
-function GetLatestTransDate(BAList: TBank_Account_List): Integer;
+function GetLatestTransDate(BAList: TBank_Account_List; aIncludeProvTrx : Boolean = false): Integer;
 function MakeManualXMLString(atype, inst: string): string;
 function HasManualAccounts(Client: TClientObj; ToSend: Boolean = False): Boolean;
 function AnyAccountIsInAdmin(Client: TClientObj): Boolean;
@@ -189,7 +189,7 @@ begin
   if Assigned(AdminSystem) and AdminSystem.fdFields.fdEnhanced_Software_Options[ sfUnlimitedDateTempAccounts] then
     exit;
   ED := GetMDEExpiryDate(BAList);
-  TD := GetLatestTransDate(BAList);
+  TD := GetLatestTransDate(BAList, True); // Include Provisional Transactions when getting latest Trans
   CD := IncDate(CurrentDate, 0, -4, 0); // check date is today minus 4 months
   // If we have received live data in the last 4 months then we skip the last use date check
   if (CurrentDate < LastUseDate) and (TD < CD) then
@@ -227,7 +227,7 @@ begin
   end;
 end;
 
-function GetLatestTransDate(BAList: TBank_Account_List): Integer;
+function GetLatestTransDate(BAList: TBank_Account_List; aIncludeProvTrx : Boolean): Integer;
 var
   i, t: Integer;
   b: TBank_Account;
@@ -243,7 +243,9 @@ begin
       for t := b.baTransaction_List.First to b.baTransaction_List.Last do
       begin
         pT := b.baTransaction_List.Transaction_At(t);
-        if (pT.txSource = orBank) and ( pT^.txDate_Presented > Result) then
+        if ((pT.txSource = orBank) or
+            ((pT.txSource = orProvisional) and (aIncludeProvTrx))) and
+           (pT^.txDate_Presented > Result) then
           Result := pT^.txDate_Presented;
       end;
     end;
