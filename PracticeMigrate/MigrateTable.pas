@@ -38,6 +38,7 @@ type
 
     class function ToSQL(Value: TGuid): variant; overload; static;
     class function ToSQL(Value: Money): variant; overload; static;
+    class function DateTimeToSQL(Value: TDateTime): variant; overload; static;
     class function QtyToSQL(Value: Money): variant;overload;  static;
     class function PercentToSQL(Value: Money): variant;overload;  static;
     class function ToSQL(Value: Integer):variant;overload;  static;
@@ -124,6 +125,14 @@ begin
   MakeQuery;
 
   Count := 0;
+end;
+
+class function TMigrateTable.DateTimeToSQL(Value: TDateTime): variant;
+begin
+   if Value = 0 then
+     result := null
+   else
+     result := Value;
 end;
 
 class  function TMigrateTable.DateToSQL(Value: Integer): variant;
@@ -258,7 +267,8 @@ begin
 
    // Run the query
    try
-      Result := ExecSQL = 1;
+      ExecSQL;
+      Result := true;
    except
       on e: exception do begin
          raise exception.Create(Format('Error : %s in table %s',[e.Message,TableName]));
@@ -284,13 +294,13 @@ begin
 end;
 
 class function TMigrateTable.ToSQL(Value: string): variant;
-var ls: string;
+//var ls: string;
 begin
-   ls := trim(value);
-   if ls = '' then
+   //ls := trim(value);
+   if Value = '' then
       Result := Null
    else
-      Result := ls;
+      Result := Value;
 end;
 
 class function TMigrateTable.ToSQL(Value: Boolean): variant;

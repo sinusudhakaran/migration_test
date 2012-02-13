@@ -3,6 +3,7 @@ unit MigrateActions;
 interface
 
 uses
+  logger,
   Types,
   Graphics,
   SysUtils,
@@ -56,6 +57,7 @@ type
     procedure SetTotSize(const Value: Int64);
     procedure SetCount(const Value: Integer);
     procedure SetSpeed(const Value: Double);
+    function LogTitle: string;
   protected
     procedure Paintbackground(Sender: TBaseVirtualTree; TargetCanvas: TCanvas; R: TRect;
                                var Handled: Boolean);
@@ -106,12 +108,12 @@ var
    procedure ClearMigrationCanceled;
    procedure SetMigrationCanceled;
 
-   procedure LogMessage(Value1,Value: string);
+
 
 implementation
 
 uses
-   Logutil,
+   //Logutil,
    Windows,
    Forms;
 
@@ -127,7 +129,7 @@ const
    img_Processing = 0;
    img_success = 0;
 
-   YeildCount = 50;
+   YieldCount = 50;
    //StepSize = 200;
     StepSize = 20;
 var
@@ -142,14 +144,11 @@ end;
 procedure SetMigrationCanceled;
 begin
    FMigrationCanceled := True;
-   logutil.LogError('MigrateActions','User Canceled');
+   logger.LogMessage(Audit, 'Data Migration Canceled by User');
 end;
 
 
-procedure LogMessage(Value1,Value: string);
-begin
-  Logutil.LogMsg(lmInfo,Value1,Value );
-end;
+
 
 { MigrateAction }
 
@@ -166,7 +165,7 @@ begin
       ParentList.Tree.Expanded[Self.Node] := True;
       ParentList.Tree.ScrollIntoView(Node, False);
    end;
-   inc(ActionCount,YeildCount);
+   inc(ActionCount,YieldCount);
    Changed;
 end;
 
@@ -209,7 +208,7 @@ begin
 
    Parentlist.Tree.Update;
    inc(ActionCount);
-   if actionCount > YeildCount then begin
+   if actionCount > YieldCount then begin
       ActionCount := 0;
       Application.ProcessMessages;
    end;
@@ -313,7 +312,23 @@ end;
 
 procedure TMigrateAction.LogMessage(const Value: string);
 begin
-   MigrateActions.LogMessage(Title, Value);
+   Logger.LogMessage(Info, format('%s : %s', [LogTitle, Value]));
+end;
+
+function TMigrateAction.LogTitle: string;
+var pn: PVirtualNode;
+begin
+   Result := Title;
+
+   if not Assigned(FNode) then
+      Exit;
+   pn := FNode.Parent;
+   while Assigned(pn)
+   and (Parentlist.Tree.RootNode <> pn) do begin
+      Result :=  (ParentList.GetNodeItem(pn)).Title + ':' + Result;
+      pn := pn.Parent;
+   end;
+
 end;
 
 function TMigrateAction.NewAction(Title: string;
@@ -387,7 +402,7 @@ begin
      if FError > ''  then
         FError := FError + '; ';
 
-     Logutil.LogError(Title, Value);
+     Logger.LogMessage(logger.Warning, format ('%s Failed with Error: %s', [Title, Value]));
 
      FError := FError + Value;
   end;

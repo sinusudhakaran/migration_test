@@ -358,9 +358,10 @@ begin
    Clients := ClientMigrater as TClientMigrater;
    Clientrec := pClient_File_Rec(Value.Data);
 
-   if DoClients
-   and (DoUnsynchronised or (not Clientrec.cfForeign_File))
-   and (DoArchived or (not Clientrec.cfArchived))  then begin
+   if DoClients then
+      if (DoUnsynchronised or (not Clientrec.cfForeign_File)) then
+         if (DoArchived or (not Clientrec.cfArchived))  then begin
+
       Result := Clients.Migrate
                         (
                             ForAction,
@@ -374,7 +375,10 @@ begin
                             GetUserID,
                             Clientrec
                        );
-   end;
+        end
+           else ForAction.LogMessage(Format('Archived Client %s Skipped',[Clientrec.cfFile_Code ]))
+      else ForAction.LogMessage(Format('Unsynchronised Client %s Skipped',[Clientrec.cfFile_Code ]));
+
 end;
 
 function TSystemMigrater.AddClientGroup(ForAction: TMigrateAction;
@@ -749,7 +753,7 @@ var MyAction: TMigrateAction;
 
 begin
    Result := false;
-   MyAction := ForAction.NewAction('Clear System');
+   MyAction := ForAction.InsertAction('Clear System');
    try
       Connected := true;
 

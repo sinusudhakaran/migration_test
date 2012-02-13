@@ -41,6 +41,8 @@ public
     // static Data...
     class function GetTaxClassGuid(Country, TaxClass: byte): TGuid; static;
     class function GetProviderID(provider: TProvider; Country,System: byte): Tguid; static;
+    class function GetColumnName(Country, ScreenType, ColumnIndex: byte): string; static;
+    class function IsSortColumn(ScreenType, ColumnIndex, SortColumn: Integer): Boolean; static;
 
     //helpers
     function GetMasterMemList(ForCountry: byte; List: TStrings): Integer;
@@ -61,6 +63,8 @@ uses
   mxFiles32,
   bkConst,
   glconst,
+
+  CodingFormConst,
   SysUtils;
 
 { TMigrater }
@@ -110,6 +114,200 @@ destructor TMigrater.Destroy;
 begin
   FreeAndNil(FConnection);
   inherited;
+end;
+
+
+class function TMigrater.IsSortColumn(ScreenType, ColumnIndex, SortColumn: Integer): Boolean;
+begin
+
+  result := false;
+case screentype of
+
+  0, 3:
+  case ColumnIndex of
+   CodingFormConst.ceStatus         : result := false;
+   CodingFormConst.ceEffDate        : result := SortColumn = csDateEffective;
+   CodingFormConst.ceReference      : case screentype of
+                      0 : result := SortColumn = csChequeNumber;
+                      else result := SortColumn = csReference;
+                      end;
+   CodingFormConst.ceAnalysis       : result := SortColumn = csByAnalysis;
+   CodingFormConst.ceAccount        : result := SortColumn = csAccountCode;
+   CodingFormConst.ceAmount         : result := SortColumn = csByValue;
+   CodingFormConst.ceNarration      : result := SortColumn = csByNarration;
+   CodingFormConst.ceOtherParty     : result := SortColumn = csByOtherParty;
+   CodingFormConst.ceParticulars    : result := SortColumn = csByParticulars;
+   CodingFormConst.cePayee          : result := SortColumn = csByPayee;
+   CodingFormConst.ceGSTClass       : result := SortColumn = csByGSTClass;
+   CodingFormConst.ceGSTAmount      : result := SortColumn = csByGSTAmount;
+   CodingFormConst.ceQuantity       : result := SortColumn = csByQuantity;
+   CodingFormConst.ceEntryType      : result := SortColumn = csByEntryType;
+   CodingFormConst.cePresDate       : result := SortColumn = csDatePresented;
+   CodingFormConst.ceCodedBy        : result := SortColumn = csByCodedBy;
+   CodingFormConst.ceNotesIcon      : result := false;  //Obsolete
+   CodingFormConst.ceStatementDetails : result := SortColumn = csByStatementDetails;
+   CodingFormConst.ceTaxInvoice     : result := false;
+   CodingFormConst.ceBalance        : result := false;
+   CodingFormConst.ceDescription    : result := false;
+   CodingFormConst.cePayeeName      : result := SortColumn = csByPayeeName;
+   CodingFormConst.ceDocument       : result := SortColumn = csByDocumentTitle; // Smart Book
+   CodingFormConst.ceJob            : result := SortColumn = csByJob;
+   CodingFormConst.ceJobName        : result := SortColumn = csByJobName;
+   CodingFormConst.ceAction         : result := SortColumn = csByAction;
+   CodingFormConst.ceForexAmount    : result := SortColumn = csByForexAmount;
+   CodingFormConst.ceForexRate      : result := SortColumn = csByForexRate;
+   CodingFormConst.ceLocalCurrencyAmount : result := SortColumn = csByValue;
+   CodingFormConst.ceAltChartCode   : result := SortColumn = csByAltChartCode;
+  end;
+
+  1:; // dissections dont have a sort column ??
+      {
+  case ColumnIndex of //From DissectionDlg
+   0 : result := SortColumn = csAccountCode;
+   1 : result := SortColumn = csByValue;
+   2 : result := SortColumn = csByGSTClass;
+   3 : result := SortColumn = csByGSTAmount;
+   4 : result := SortColumn = csByQuantity;
+   5 : result := SortColumn = csByNarration;
+   8 : result := SortColumn =  csByPayee;
+   11 : result := SortColumn =  csByAccountDesc;
+   12 : result := SortColumn = csByPayeeName;
+   13 : result := SortColumn = csByJob;
+   14 : result := SortColumn = csByJobName;
+
+   16 : result := SortColumn = csByForexRate;
+
+   18 : result := SortColumn = csByAltChartCode;
+   end;
+   }
+
+   2: // manual Historical..
+   case ColumnIndex of //From HistoricalDlg
+   1 : result := SortColumn = csDateEffective;
+   2 : result := SortColumn = csReference;
+   3 : result := SortColumn = csByAnalysis;
+   4 : result := SortColumn = csAccountCode;
+   5 : result := SortColumn = csByValue;
+   6 : result := SortColumn = csByNarration;
+   7 : result := SortColumn = csByOtherParty;
+   8 : result := SortColumn = csByParticulars;
+   9 : result := SortColumn = csByPayee;
+   10 : result := SortColumn = csByGSTClass;
+   11 : result := SortColumn = csByGSTAmount;
+   12 : result := SortColumn = csByQuantity;
+
+   18 : result := SortColumn = csByPayeeName;
+   19 : result := false;
+   20 : result := SortColumn = csByJob;
+   21 : result := SortColumn = csByJobName;
+   22 : result := SortColumn = csByForexRate;
+
+   23 : result := SortColumn = csByValue;
+   24 : result := SortColumn = csByAltChartCode;
+  end;
+
+end;
+end;
+
+class function TMigrater.GetColumnName(Country, ScreenType,  ColumnIndex: Byte): string;
+begin
+   Result := '';
+
+   case ScreenType  of
+      0, 3 : begin
+                        {
+            case Country  of
+                 whNewZealand : if not (ColumnIndex in DefaultColumnOrderNZ) then
+                    Exit;
+
+                 whAustralia : if not (ColumnIndex in ) then
+                    Exit;
+
+                 whUK : if not (ColumnIndex in   DefaultColumnOrderUK ) then
+                    Exit;
+            end;
+                       }
+            case ColumnIndex  of
+             0: result := 'StatusColumn';
+             1: result := 'EffectiveDateColumn';
+             2: result := 'ReferenceColumn';
+             3: result := 'AnalysisColumn';
+             4: result := 'AccountColumn';
+             5: result := 'AmountColumn';
+             6: result := 'NarrationColumn';
+             7: result := 'OtherPartyColumn';
+             8: result := 'ParticularsColumn';
+             9: result := 'PayeeColumn';
+             10: result := 'GSTColumn';
+             11: result := 'GSTAmountColumn';
+             12: result := 'QuantityColumn';
+             13: result := 'EntryTypeColumn';
+             14: result := 'PresentedDateColumn';
+             15: result := 'CodedByColumn';
+                            // Mind the gap...
+
+             17: result := 'StatementDetailsColumn';
+             18: result := 'TaxInvoiceColumn';
+             19: result := 'BalanceColumn';
+             20: result := 'AccountDescriptionColumn';
+             21: result := 'PayeeNameColumn';
+             23: result := 'JobColumn';
+             24: result := 'JobNameColumn';
+             25: result := 'ActionColumn';
+
+             // Forex...
+          end;
+      end;
+      1 :   case ColumnIndex  of // Dissections
+            0: result := 'AccountColumn';
+            1: result := 'AmountColumn';
+            2: result := 'GSTColumn';
+            3: result := 'GSTAmountColumn';
+            4: result := 'QuantityColumn';
+            5: result := 'NarrationColumn';
+                            
+            8: result := 'PayeeColumn';
+            9: result := 'PercentColumn';
+            10: result := 'EntryTypeColumn';
+            11: result := 'AccountDescriptionColumn';
+            12: result := 'PayeeNameColumn';
+            13: result := 'JobColumn';
+            14: result := 'JobNameColumn';
+            15: result := 'TaxInvoiceColumn';
+            18: result := 'ASXCodeColumn';
+          end;
+
+       2 :   case ColumnIndex  of // Manual /Historical
+            1: result := 'EffectiveDateColumn';
+            2: result := 'ReferenceColumn';
+            3: result := 'AnalysisColumn';
+            4: result := 'AccountColumn';
+            5: result := 'AmountColumn';
+            6: result := 'NarrationColumn';
+            7: result := 'OtherPartyColumn';
+            8: result := 'ParticularsColumn';
+            9: result := 'PayeeColumn';
+            10: result := 'GSTColumn';
+            11: result := 'GSTAmountColumn';
+            12: result := 'QuantityColumn';
+            13: result := 'EntryTypeColumn';
+
+            15: result := 'CodedByColumn';
+                                                       
+            16: result := 'BalanceColumn';
+            17: result := 'AccountDescriptionColumn';
+            18: result := 'PayeeNameColumn';
+
+            19: result := 'TaxInvoiceColumn';
+            20: result := 'JobColumn';
+            21: result := 'JobNameColumn';
+                           
+
+            24: result := 'ASXCodeColumn';
+         end;
+
+
+   end;
 end;
 
 function TMigrater.GetConnected: Boolean;

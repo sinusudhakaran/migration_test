@@ -4,8 +4,8 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
- 
-  Dialogs, StdCtrls, ExtCtrls, ComCtrls, DB, ADODB, GuidList, sydefs, VirtualTreeHandler,
+  logger,
+  LogMigrater, Dialogs, StdCtrls, ExtCtrls, ComCtrls, DB, ADODB, GuidList, sydefs, VirtualTreeHandler,
   VirtualTrees, MigrateActions,ClientMigrater,SystemMigrater, jpeg, ImgList,
   FMTBcd, SqlExpr;
 
@@ -97,7 +97,10 @@ type
     FTreeList: TMigrateList;
     FClientMigrater: TClientMigrater;
     FSystemMigrater: TSystemMigrater;
+    FLogMigrater: TLogMigrater;
     FPreLoaded: Boolean;
+    FLogFileName: string;
+    FPracticeCode: string;
     procedure SetFromDir(const Value: string);
     function GetFromDir: string;
     procedure Setprogress(const Value: Tprogress);
@@ -108,6 +111,7 @@ type
     function Connect(ForAction: TMigrateAction; connection:TADOConnection; ASource,ACatalog,AUser,APW: string):Boolean;
     function ConnectSystem(ForAction: TMigrateAction): Boolean;
     function ConnectClient(ForAction: TMigrateAction): Boolean;
+    function ConnectLog(ForAction: TMigrateAction): Boolean;
     procedure Disconnect(ForAction: TMigrateAction; connection:TADOConnection; ACatalog: string);
     procedure DoDisconnects(ForAction: TMigrateAction);
     function ClearPracticeLogs(ForAction: TMigrateAction): Boolean;
@@ -121,6 +125,10 @@ type
     function GetDestination: string;
     procedure SetPreLoaded(const Value: Boolean);
 
+    procedure LogMessage(const msgType: TLogMsgType;  const logMsg: string);
+    procedure SetLogFileName(const Value: string);
+    procedure SetPracticeCode(const Value: string);
+
     { Private declarations }
   protected
     procedure UpdateActions; override;
@@ -130,6 +138,8 @@ type
     property FromDir: string read GetFromDir write SetFromDir;
     property progress: Tprogress read Fprogress write Setprogress;
     property Destination: string read GetDestination write SetDestination;
+    property PracticeCode: string read FPracticeCode write SetPracticeCode;
+    property LogFileName: string read FLogFileName write SetLogFileName;
     property User: string read FUser write SetUser;
     property PW: string read FPW write SetPW;
     { Public declarations }
@@ -173,8 +183,9 @@ files,
 SQLHelpers,
 bthelpers,
 bkHelpers,
-syhelpers,
-LogUtil;
+syhelpers
+,LogUtil
+;
 
 {$R *.dfm}
 
@@ -190,9 +201,6 @@ type
     constructor Create;
     property IsCritical: Boolean read FIsCritical write SetIsCritical;
   end;
-
-
-
 
 
 var
@@ -212,7 +220,7 @@ begin
         btnPrev.Enabled := False;
         btnNext.Enabled := True;
         btnNext.Caption := 'Next';
-
+        btnCancel.Caption := 'Cancel';
         pcMain.ActivePage := tsBrowse;
         tsBrowse.Update;
       end;
@@ -221,6 +229,7 @@ begin
         btnPrev.Enabled := True;
         btnNext.Enabled := True;
         btnNext.Caption := 'Next';
+        btnCancel.Caption := 'Cancel';
 
         pcMain.ActivePage := tsSelect;
 
@@ -235,7 +244,7 @@ begin
         btnPrev.Enabled := False;
         btnNext.Enabled := False;
         btnNext.Caption := 'Next';
-
+        btnCancel.Caption := 'Cancel';
         pcMain.ActivePage := TsProgress;
         TsProgress.Update;
      end;
@@ -244,7 +253,7 @@ begin
         btnPrev.Enabled := True;
         btnNext.Enabled := True;
         btnNext.Caption := 'Finished';
-
+        btnCancel.Caption := 'OK';
    end;
   end;
   pcMain.Update;
@@ -345,7 +354,14 @@ begin
      end else
          Action.Error := format('Could not connect to [%s]',[Destination]);
 
-     ClearPracticeLogs(Action);    
+     if ConnectLog(Action) then begin
+        FLogMigrater.ClearData(Action);
+     end else
+         Action.Error := format('Could not connect to [%s]',[Destination]);
+
+     // this can only be looged after the fact...
+     logger.LogMessage(Audit,'All data cleared By user');
+     //ClearPracticeLogs(Action);
      // Cleanup
    finally
      DoDisconnects(Action);
@@ -399,19 +415,19 @@ begin
    Con.LoginPrompt := false;
    Con.Provider := 'SQLNCLI10.1';
    Con.CommandTimeout := 120;
-   MyAction := ForAction.NewAction('Clear Logs');
+   MyAction := ForAction.InsertAction('Clear Logs');
    try
      if Connect(MyAction, Con, Destination, 'PracticeLog', User, Pw) then begin
 
-        ClearAction := MyAction.NewAction('Clearing Logs');
+        ClearAction := MyAction.InsertAction('Clearing Logs');
 
 //        TMigrater.RunSQL(con,ClearAction,
 
 //     'IF  EXISTS (SELECT * FROM sys.foreign_keys WHERE object_id = OBJECT_ID(N''[dbo].[FK_CategoryLog_Log]'') AND parent_object_id = OBJECT_ID(N''[dbo].[CategoryLogs]'')) ALTER TABLE [dbo].[CategoryLogs] DROP CONSTRAINT [FK_CategoryLog_Log]'
 //                 ,'Drop foreign keys' );
-//        TMigrater.RunSQL(con,ClearAction,'TRUNCATE TABLE categorylogs', 'Delete categorylogs');
+       // TMigrater.RunSQL(con,ClearAction,'Delete categorylogs', 'Delete categorylogs');
 
-        TMigrater.RunSQL(con,ClearAction,'TRUNCATE TABLE logs', 'Delete Logs');
+        TMigrater.RunSQL(con,ClearAction,'Delete logs', 'Delete Logs');
 
 //        TMigrater.RunSQL(con,ClearAction,'ALTER TABLE [dbo].[CategoryLogs]  WITH CHECK ADD  CONSTRAINT [FK_CategoryLog_Log] FOREIGN KEY([LogID]) REFERENCES [dbo].[Logs] ([LogID])'
 //        , 'Add foreign keys');
@@ -427,7 +443,7 @@ begin
      end;
    except
      on E : Exception do
-     LogUtil.LogMsg(lmInfo, 'MainForm', 'ClearPracticeLogs - ' + MyAction.Title + ', ' +
+        logger.LogMessage(Warning, 'ClearPracticeLogs - ' + MyAction.Title + ', ' +
                     Con.ConnectionString + ', ' + Destination + ', ' + User + ', ' + Pw);
 
    end;
@@ -451,7 +467,7 @@ begin
    Connection.Connected := False;
    if ASource = '' then
       Exit;
-   MyAction := ForAction.NewAction(format('Connecting %s',[ACatalog]));
+   MyAction := ForAction.InsertAction(format('Connecting %s',[ACatalog]));
 
    ConnStr := TStringList.Create;
    try
@@ -507,6 +523,17 @@ begin
    end;
 end;
 
+function TformMain.ConnectLog(ForAction: TMigrateAction): Boolean;
+begin
+   Result := false;
+   try
+      Result := Connect(ForAction, FLogMigrater.Connection, Destination, 'PracticeLog', User, Pw);
+   except
+      on e: exception do
+         ForAction.Exception(e,'Connect to Log Database')
+   end;
+end;
+
 function TformMain.ConnectSystem(ForAction: TMigrateAction): Boolean;
 begin
    Result := false;
@@ -527,7 +554,7 @@ begin
       exit;
    if connection.Connected then begin
       try
-         MyAction := ForAction.NewAction(Format('Disconnect %s',[ACatalog]));
+         MyAction := ForAction.InsertAction(Format('Disconnect %s',[ACatalog]));
          //TMigrater.RunSQL(connection,MyAction,'DBCC TRACEOFF (610)', 'Trace Off');
          TMigrater.RunSQL(connection,MyAction,Format('DBCC SHRINKFILE(''%s_Log'',1)',[ACatalog]), 'Shrink log' );
          TMigrater.RunSQL(connection,MyAction,format('ALTER DATABASE [%s] SET MULTI_USER WITH ROLLBACK IMMEDIATE',[ACatalog]),'Multi User');
@@ -545,6 +572,8 @@ begin
      Disconnect(ForAction,FSystemMigrater.Connection,'PracticeSystem');
   if Assigned(FClientMigrater) then
      Disconnect(ForAction,FClientMigrater.Connection,'PracticeClient');
+  if Assigned(FLogMigrater) then
+     Disconnect(ForAction,FLogMigrater.Connection,'PracticeLog');
 end;
 
 procedure TformMain.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
@@ -574,12 +603,13 @@ end;
 procedure TformMain.FormCreate(Sender: TObject);
 var I: Integer;
 begin
-
+   logger.logMessageProc := self.LogMessage;
    // Create the Global List...
    FTreeList := TMigrateList.Create(StatusTree);
    FTreeList.HookUp;
    FClientMigrater := TClientMigrater.Create('');
    FSystemMigrater := TSystemMigrater.Create();
+   FLogMigrater := TLogMigrater.Create();
 
    FClientMigrater.SystemMirater := FSystemMigrater;
 
@@ -598,6 +628,7 @@ begin
    FreeAndnil(FTreeList);
    FreeAndnil(FClientMigrater);
    FreeAndNil(FSystemMigrater);
+   FreeAndNil(FLogMigrater);
 
    FreeAndNil(AdminSystem);
 end;
@@ -618,8 +649,9 @@ end;
 procedure TformMain.FormShow(Sender: TObject);
 const
   //UserSwitch = '/USER=';
-  PracticeSwitch = '/PRACTICE=';
-  LocationSwitch = '/LOCATION=';
+  PracticeSwitch = 'PRACTICE=';
+  LocationSwitch = 'LOCATION=';
+  LogFileSwitch  = 'ACTIONLOG=';
   //pwSwitch = '/PW=';
 var I: Integer;
     s: string;
@@ -636,7 +668,7 @@ begin
          s := Uppercase( ParamStr(i));
          if Pos(PracticeSwitch, S) > 0 then begin
             //Practice Code specified
-            s := Copy( S, Pos( PracticeSwitch, S) + Length(PracticeSwitch), 20);
+            PracticeCode := Copy( S, Pos( PracticeSwitch, S) + Length(PracticeSwitch), 20);
          end else if Pos( LocationSwitch, S) > 0 then begin
             //location specified
             Destination := Copy( S, Pos( LocationSwitch, S) + Length(LocationSwitch), 255);
@@ -644,7 +676,10 @@ begin
             User := PracticeUser;
             PW := PracticePw;
             {}
+         end else if Pos(LogFileSwitch, S) > 0 then begin
+            logFileName := Copy( S, Pos( LogFileSwitch, S) + Length(LogFileSwitch), 255);
          end;
+
       end;
       {
       if (PW = '')
@@ -671,6 +706,31 @@ end;
 function TformMain.GetFromDir: string;
 begin
    Result := Globals.DataDir;
+end;
+
+procedure TformMain.LogMessage(const msgType: TLogMsgType;  const logMsg: string);
+begin
+   LogData.StampTime;
+   try
+      // Are we connected ??
+      if FLogMigrater.Connected then
+         FLogMigrater.UserActionLogTable.Insert(msgType, logMsg);
+   except
+   end;
+
+   try
+      case msgtype of
+         Audit: logUtil.LogMsg(lmInfo,'Migrator',logMsg);
+         Info: logUtil.LogMsg(lmDebug,'Migrator',logMsg);
+         Warning: logUtil.LogMsg(lmError,'Migrator',logMsg);
+      end;
+   except
+   end;
+
+   try
+      LogData.LogToFile(msgType, logMsg);
+   except
+   end;
 end;
 
 function TformMain.NewAction(const Title: string;
@@ -701,6 +761,18 @@ begin
   EFromDir.Text := Value;
 end;
 
+
+procedure TformMain.SetLogFileName(const Value: string);
+begin
+  FLogFileName := Value;
+  // While we are here...
+   LogData.LogFileName := Value;
+end;
+
+procedure TformMain.SetPracticeCode(const Value: string);
+begin
+  FPracticeCode := Value;
+end;
 
 procedure TformMain.SetPreLoaded(const Value: Boolean);
 {var
@@ -943,16 +1015,42 @@ end;
 
 procedure TformMain.MigrateSystem;
  var Myaction : TMigrateAction;
+
+   function YesNo(Value: TCheckBox): string;
+   begin
+      if Value.Enabled then
+         if Value.Checked then
+            Result := 'Yes'
+         else
+            Result := 'No'
+      else
+         Result := 'NA (None)'
+   end;
 begin
    ClearMigrationCanceled;
    FTreeList.Clear;
    FTreeList.Tree.Clear;
 
+   logger.LogMessage(Audit,'Migration Started by User'
+      + format ('; Include System transactions: %s', [YesNo(cbSysTrans)])
+      + format ('; Include Unsynchronised clients: %s', [YesNo(cbUnsync)])
+      + format ('; Include Archived clients: %s', [YesNo(cbUnsync)])
+      + format ('; Include User profiles: %s', [YesNo(cbUsers)])
+      + format ('; Include Client Groups: %s', [YesNo(cbGroups)])
+      + format ('; Include Client Types: %s', [YesNo(cbClientTypes)])
+      + format ('; Include Custom Documents: %s', [YesNo(cbCustomDocs)])
+      + format ('; Include Styles: %s', [YesNo(cbStyles)])
+      + format ('; Include Invoices and Charges: %s', [YesNo(cbDocuments)])
+
+      );
+
  {$ifDef DEBUG}
  {$Else}
 
-  if not EnterPassword('Migrate Data',TimeToStr(Now) + 'Migrate'  ,0, true, false) then
+  if not EnterPassword('Migrate Data',TimeToStr(Now) + 'Migrate'  ,0, true, false) then begin
+     logger.LogMessage(Audit,'Migration Password failed');
      Exit;
+  end;
  {$EndIf}
 
 
@@ -960,18 +1058,25 @@ begin
    progress := migrate;
    SystemCritical.IsCritical := true;
    try
-      if ConnectSystem(MyAction)
+      if ConnectLog(MyAction)
+      and ConnectSystem(MyAction)
       and ConnectClient(MyAction) then begin
 
+         Logger.LogMessage(info,'Clearing Practice System Database');
+
          FSystemMigrater.ClearData(MyAction);
+
+         Logger.LogMessage(Info,'Clearing Practice Client database');
          FClientMigrater.ClearData(MyAction);
-         ClearPracticeLogs(MyAction);
+         //FlogMigrater.ClearData(MyAction); // Dont Clear Log...
                
          FSystemMigrater.ClientMigrater := FClientMigrater;
          //FSystemMigrater.System := Adminsystem; already done ??
 
+         {}
          FSystemMigrater.Migrate(MyAction);
-
+         {}
+         
          DoDisconnects(MyAction);
          MyAction.Status := Success;
 

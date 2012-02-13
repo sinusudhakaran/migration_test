@@ -59,11 +59,14 @@ TClientMigrater = class (TMigrater)
     FFuelSheetTable: TFuelSheetTable;
     FBAS_OptionsTable: TBAS_OptionsTable;
     FNotesOptionsTable: TNotesOptionsTable;
+    FColumnConfigTable: TColumnConfigTable;
+    FColumnConfigColumnsTable: TColumnConfigColumnsTable;
     FMatchIDList: TGuidList;
     //FUpdateAccountStatus: TADOStoredProc;
     //FUpdateProcessingStatusForAllClients : TADOStoredProc;
     FExcludedFromScheduledReports: TStringList;
-    FReportingParameterTable: TReportingParameterTable;
+    FClientReportTable: TClientReportTable;
+    FReportParameterTable: TReportParameterTable;
     procedure SetClientID(const Value: TGuid);
     procedure SetCode(const Value: string);
 
@@ -107,6 +110,8 @@ TClientMigrater = class (TMigrater)
     function GetTaxEntriesTable: TTaxEntriesTable;
     function GetTaxRatesTable: TTaxRatesTable;
     function GetClient_ScheduleTable: TClient_ScheduleTable;
+    function GetColumnConfigTable: TColumnConfigTable;
+    function GetColumnConfigColumnsTable: TColumnConfigColumnsTable;
     function GetSubGroupTable: TSubGroupTable;
     //function GetClient_ReportOptionsTable: TClient_ReportOptionsTable;
     function GetClientFinacialReportOptionsTable: TClientFinacialReportOptionsTable;
@@ -128,7 +133,8 @@ TClientMigrater = class (TMigrater)
     function GetMatchIDList: TGuidList;
     //function GetUpdateAccountStatus: TADOStoredProc;
     //function GetUpdateProcessingStatusForAllClients: TADOStoredProc;
-    function GetReportingParameterTable: TReportingParameterTable;
+    function GetReportParameterTable: TReportParameterTable;
+    function GetClientReportTable: TClientReportTable;
   public
    constructor Create(AConnection: string);
    destructor Destroy; override;
@@ -177,7 +183,10 @@ TClientMigrater = class (TMigrater)
    property CustomDocSceduleTable: TCustomDocSceduleTable read GetCustomDocSceduleTable;
    property BAS_OptionsTable: TBAS_OptionsTable read GetTBAS_OptionsTable;
    property NotesOptionsTable: TNotesOptionsTable read GetNotesOptionsTable;
-   property ReportingParameterTable: TReportingParameterTable read GetReportingParameterTable;
+   property ReportParameterTable: TReportParameterTable read GetReportParameterTable;
+   property ClientReportTable: TClientReportTable read GetClientReportTable;
+   property ColumnConfigTable: TColumnConfigTable read GetColumnConfigTable;
+   property ColumnConfigColumnsTable: TColumnConfigColumnsTable read GetColumnConfigColumnsTable;
 
    // Lists
    property DivisionList: TGuidList read GetDivisionList write SetDivisionList;
@@ -202,6 +211,9 @@ end;
 
 implementation
 uses
+   STRUtils,
+   OmniXML,
+   OmniXMLUtils,
    ClientDetailCacheObj,
    variants,
    MigrateTable,
@@ -216,6 +228,7 @@ uses
    MemorisationsObj,
    bkConst,
    bkDefs,
+   stDate,
    glConst,
    baObj32,
    Software,
@@ -289,6 +302,45 @@ var
       end;
    end;
      *)
+   procedure AddColumnConfiguration (
+        ScreenType: Integer; // the screen type we are saving
+        Positions: array of byte;
+        Widths: array of integer;
+        IsEdtiables: array of Boolean;
+        IsVisibles: array of Boolean;
+        SortColumn: Integer);
+
+   var ConfigID: TGuid;
+       I: Integer;
+       Name: string;
+       NoData : boolean;
+   begin
+       // Test First....
+       NoData := true;
+       for I := low(positions) to High(Positions) do
+           if (Widths[i] > 0)then begin
+              Nodata := false;
+              break; // One is enough ??
+           end;
+       if Nodata then
+          Exit;
+       // Have a Go..
+       ConfigID := NewGuid;
+       ColumnConfigTable.Insert(ConfigID,Value.GuidID,ScreenType,bkConst.whShortNames[FClient.clFields.clCountry], CurrentDate);
+
+       for I := low(positions) to High(Positions) do begin
+          Name := GetColumnName(FClient.clFields.clCountry,ScreenType,I);
+          if (Name = '')
+          or (Widths[i] = 0) then
+             Continue;
+          ColumnConfigColumnsTable.Insert(NewGuid, ConfigID, Name,
+              Positions[i],
+              Widths[i],
+              not IsEdtiables[i],
+              not IsVisibles[i],
+              IsSortColumn(ScreenType,I, SortColumn) ); // This is the sort column
+       end;
+   end;
 
 begin
    Result := False;
@@ -304,6 +356,55 @@ begin
              AddClientAccountMap,
              ExcludedFromScheduledReports
           );
+       if Account.baFields.baAccount_Type = 0 then
+         AddColumnConfiguration(0,
+                 Account.baFields.baColumn_Order,
+                 Account.baFields.baColumn_Width,
+                 Account.baFields.baColumn_Is_Not_Editable,
+                 Account.baFields.baColumn_is_Hidden,
+                 Account.baFields.baCoding_Sort_Order)
+       else if Account.baFields.baAccount_Type in [ btCashJournals, btAccrualJournals, btGSTJournals,  btStockJournals] then
+          // List journals
+          AddColumnConfiguration(3,
+                 Account.baFields.baColumn_Order,
+                 Account.baFields.baColumn_Width,
+                 Account.baFields.baColumn_Is_Not_Editable,
+                 Account.baFields.baColumn_is_Hidden,
+                 Account.baFields.baCoding_Sort_Order);
+
+
+       if Account.baFields.baAccount_Type = 0 then
+           // Dissections..
+          AddColumnConfiguration(1,
+                 Account.baFields.baDIS_Column_Order,
+                 Account.baFields.baDIS_Column_Width,
+                 Account.baFields.baDIS_Column_Is_Not_Editable,
+                 Account.baFields.baDIS_Column_is_Hidden,
+                 Account.baFields.baDIS_Sort_Order)
+        else if Account.baFields.baAccount_Type in [ btCashJournals, btAccrualJournals, btGSTJournals,  btStockJournals] then
+           // JourNal entry..
+          AddColumnConfiguration(4,
+                 Account.baFields.baDIS_Column_Order,
+                 Account.baFields.baDIS_Column_Width,
+                 Account.baFields.baDIS_Column_Is_Not_Editable,
+                 Account.baFields.baDIS_Column_is_Hidden,
+                 Account.baFields.baDIS_Sort_Order);
+
+       AddColumnConfiguration(2,
+                 Account.baFields.baMDE_Column_Order,
+                 Account.baFields.baMDE_Column_Width,
+                 Account.baFields.baMDE_Column_Is_Not_Editable,
+                 Account.baFields.baMDE_Column_is_Hidden,
+                 Account.baFields.baMDE_Sort_Order);
+
+        {
+        AddColumnConfiguration(3,
+                 Account.baFields.baHDE_Column_Order,
+                 Account.baFields.baHDE_Column_Width,
+                 Account.baFields.baHDE_Column_Is_Not_Editable,
+                 Account.baFields.baHDE_Column_is_Hidden,
+                 Account.baFields.baHDE_Sort_Order);
+                 }
 
        GuidList := TGuidList.Create(Account.baTransaction_List);
        if not RunGuidList(MyAction,'Transactions',GuidList,AddTransaction) then
@@ -542,7 +643,11 @@ var
    I: Integer;
 begin
    Memorization := TMemorisation(Value.Data);
-   Result := Memorisation_Detail_RecTable.Insert
+   if Memorization.mdFields.mdFrom_Master_List then begin
+      Result := True;
+      Exit; // this does srew the result...
+   end else
+      Result := Memorisation_Detail_RecTable.Insert
                 (
                    Value.GuidID,
                    ForAction.Item.GuidID,
@@ -657,104 +762,75 @@ var
    Diss: PDissection_Rec;
    Transaction: PTransaction_Rec;
    GST: money;
-
-   function GetSplitPayee: boolean;
-   var
-     Query: TADOQuery;
-   begin
-     Query := TADOQuery.Create(nil);
-     try
-       Query.Connection := Connection;
-       Query.SQL.Clear;
-       Query.SQL.Add(Format('SELECT COUNT(*) FROM [PracticeClient].[dbo].[Payees] P, ' +
-                            '[PracticeClient].[dbo].[PayeeLines] PL ' +
-                            'WHERE P.Client_Id = ''%0:s''' + 'AND P.Number = ''%1:s''' +
-                            'AND P.id = PL.Payee_id',
-                            [GuidToString(self.FClientID), IntToStr(Transaction.txPayee_Number)]));
-       Query.Open;
-       Result := (Query.FieldCount > 1);
-     finally
-       Query.Free;
-     end;
-   end;
-
-   function IsDissected: boolean;
-   begin
-     Result := Assigned(Transaction.txFirst_Dissection);
-   end;
-
-   function IsSplitJob: boolean;
-   var
-     Dissection: PDissection_Rec;
-     JobCode: string;
-   begin
-    Result := false;
-    Dissection := PDissection_Rec(Transaction.txFirst_Dissection);
-    while Assigned(Dissection) do
-    begin
-      if (JobCode = '') then
-        JobCode := Dissection.dsJob_Code
-      else
-      begin
-        if (Dissection.dsJob_Code <> '') and (Dissection.dsJob_Code <> JobCode) then
-        begin
-          Result := true;
-          break;
-        end;
-      end;
-      Dissection := Dissection.dsNext;
-    end;
-   end;
-
-   function IsPayeeOverridden: boolean;
-   var
-     Query: TADOQuery;
-   begin
-     Query := TADOQuery.Create(nil);
-     try
-       Query.Connection := Connection;
-       Query.SQL.Clear;
-       Query.SQL.Add(Format('SELECT COUNT(DISTINCT(D.PayeeNumber)) FROM [PracticeClient].[dbo].[Transactions] T, [PracticeClient].[dbo].[Dissections] D ' +
-                            'WHERE T.Id = ''%0:s'' AND T.PayeeNumber <> D.PayeeNumber',
-                            [GuidToString(Value.GuidID)]));
-       Query.Open;
-       Query.First;
-       Result := (Query.FieldCount > 1);
-     finally
-       Query.Free;
-     end;
-   end;
-
-   function IsJobOverridden: boolean;
-   var
-     Query: TADOQuery;
-   begin
-     Query := TADOQuery.Create(nil);
-     try
-       Query.Connection := Connection;
-       Query.SQL.Clear;
-       Query.SQL.Add(Format('SELECT COUNT(DISTINCT(D.JobCode)) FROM [PracticeClient].[dbo].[Transactions] T, [PracticeClient].[dbo].[Dissections] D ' +
-                            'WHERE T.Id = ''%0:s'' AND T.JobCode <> D.JobCode',
-                            [GuidToString(Value.GuidID)]));
-       Query.Open;
-       Query.First;
-       Result := (Query.FieldCount > 1);
-     finally
-       Query.Free;
-     end;
-   end;
+   JobCode: string;
+   SplitPayee,
+   IsDissected,
+   IsSplitJob,
+   IsPayeeOverridden,
+   IsJobOverridden : Boolean;
+   DissPayee : integer;
 
 begin
    Transaction := PTransaction_Rec(Value.Data);
 
-   // Collect the GST First...
+   // reset the extra help fields
    GST := 0;
+   SplitPayee := False;
+   IsDissected := False;
+   IsSplitJob := False;
+   IsPayeeOverridden := False;
+   IsJobOverridden := False;
+   JobCode := '';
+   DissPayee := 0;
+
    Diss := Transaction.txFirst_Dissection;
    while Assigned(Diss) do begin
+      // Dissected ?
+      IsDissected := true;
+
+      // GST ?
       GST := GST + Diss.dsGST_Amount;
+
+      // Split Job? See CodingForm
+      if (Diss.dsJob_Code <> Transaction.txJob_code) then begin
+         if (Transaction.txJob_code > '')
+         and (Diss.dsJob_Code > '') then
+            IsJobOverridden := True;
+
+         if JobCode > '' then begin // Have Dissection Job
+            if (JobCode <> Diss.dsJob_Code)
+            and (Diss.dsJob_Code > '') then begin
+                 //Dissections not the same
+                 IsSplitJob := True;
+            end;
+         end else
+            if Diss.dsJob_Code > '' then
+              // First Dissection with a Job
+              JobCode := Diss.dsJob_Code;
+      end;
+
+      if (Diss.dsAmount <> 0)
+      or (Diss.dsAccount <> '') then begin
+         if Diss.dsPayee_Number <> Transaction.txPayee_Number then begin
+             if (Diss.dsPayee_Number <> 0)
+             and (Transaction.txPayee_Number <> 0) then
+               IsPayeeOverridden := True;
+
+             if(DissPayee > 0) then begin
+                if (DissPayee <> Diss.dsPayee_Number) then
+                    SplitPayee := True;
+             end else
+                DissPayee := Diss.dsPayee_Number;
+
+         end;
+
+      end;
+
+
       Diss := Diss.dsNext;
    end;
-   Transaction.txGST_Amount := GST;
+   if IsDissected then
+      Transaction.txGST_Amount := GST;
 
    Transaction_RecTable.Insert
                        (
@@ -762,7 +838,7 @@ begin
                             ForAction.Item.GuidID,
                             MatchIDList.GetIDGuid(Transaction.txMatched_Item_ID),
                             Transaction,
-                            GetSplitPayee,
+                            SplitPayee,
                             IsDissected,
                             IsSplitJob,
                             IsPayeeOverridden,
@@ -819,7 +895,7 @@ var myAction: TMigrateAction;
 
        ClearAction := MyAction.InsertAction(format('Clear %s',[Name]));
        try
-           RunSQL(connection,MyAction, format('DELETE rp FROM [%s] rp where rp.[Client_ID] is not null',[Table]),'clear Prarameters' );
+           RunSQL(connection,MyAction, format('DELETE rp FROM [%s] rp where rp.[Client_ID] is not null',[Table]),'Clear Parameters' );
             ClearAction.Status := Success;
           except
            on e: Exception do begin
@@ -832,8 +908,11 @@ var myAction: TMigrateAction;
 
 begin
    Result := false;
-   MyAction := ForAction.NewAction('Clear Clients');
-   try
+   MyAction := ForAction.InsertAction('Clear Clients');
+
+   RunSQL(Connection,MyAction,'EXEC sp_msforeachtable "ALTER TABLE ? NOCHECK CONSTRAINT all"', 'Drop Constraints');
+
+   try try
       Connected := true;
       // Dont use the Table to get the name, Too early and Clear may not work...
 
@@ -873,6 +952,8 @@ begin
       DeleteTable(MyAction,'Memorisations');
       DeleteTable(MyAction,'Dissections', True);
 
+      //
+      RunSQL(Connection,MyAction,Format('DBCC SHRINKFILE(''%s_Log'',1)',['PracticeClient']), 'Shrink Log');
       KeepTime := Connection.CommandTimeout;
       Connection.CommandTimeout := 20 * 60;
       DeleteTable(MyAction,'Transactions');
@@ -899,15 +980,17 @@ begin
       DeleteTable(MyAction,'TaxReturnParameters', True);
       DeleteTable(MyAction,'TaxReturns');
 
-      DeleteTable(MyAction,'FavouriteReports', True);
+      //DeleteTable(MyAction,'FavouriteReports', True);
       DeleteTable(MyAction,'ClientAttachments', True);
 
       DeleteTable(MyAction,'ClientTasks');
 
       ClearParametersTable('Client Parameters','ClientParameters');
 
+      DeleteTable(MyAction,'ReportParameters',True);
+      DeleteTable(MyAction,'ClientReports');
 
-      ClearParametersTable('Report Parameters','ReportingParameters');
+      //ClearParametersTable('Report Parameters','ReportParameters');
 
 
       DeleteTable(MyAction,'Clients');
@@ -919,7 +1002,9 @@ begin
       on E: Exception do
          MyAction.Error := E.Message;
    end;
-
+   finally
+      RunSQL(Connection,MyAction,'EXEC sp_msforeachtable "ALTER TABLE ? WITH CHECK CHECK CONSTRAINT all"', 'Re-instate Constraints');
+   end;
 end;
 
 constructor TClientMigrater.Create(AConnection: string);
@@ -959,7 +1044,8 @@ begin
    FBAS_OptionsTable := nil;
    FNotesOptionsTable := nil;
    FExcludedFromScheduledReports := nil;
-   FReportingParameterTable := nil;
+   FReportParameterTable := nil;
+   FClientReportTable := nil;
 end;
 
 destructor TClientMigrater.Destroy;
@@ -996,7 +1082,10 @@ begin
   FreeAndNil(FNotesOptionsTable);
   FreeAndNil(FMatchIDList);
   FreeAndNil(FExcludedFromScheduledReports);
-  FreeAndNil (FReportingParameterTable);
+  FreeAndNil(FReportParameterTable);
+  FreeAndNil(FClientReportTable);
+  FreeAndNil(FColumnConfigTable);
+  FreeAndNil(FColumnConfigColumnsTable);
   inherited;
 end;
 
@@ -1100,6 +1189,20 @@ begin
    Result := FCodingReportOptionsTable;
 end;
 
+function TClientMigrater.GetColumnConfigColumnsTable: TColumnConfigColumnsTable;
+begin
+   if not Assigned(FColumnConfigColumnsTable) then
+      FColumnConfigColumnsTable := TColumnConfigColumnsTable.Create(Connection);
+   Result := FColumnConfigColumnsTable;
+end;
+
+function TClientMigrater.GetColumnConfigTable: TColumnConfigTable;
+begin
+  if not Assigned(FColumnConfigTable) then
+      FColumnConfigTable := TColumnConfigTable.Create(Connection);
+   Result := FColumnConfigTable;
+end;
+
 function TClientMigrater.GetCustomDocSceduleTable: TCustomDocSceduleTable;
 begin
    if not Assigned(FCustomDocSceduleTable) then
@@ -1199,11 +1302,18 @@ begin
    Result := FReminderTable;
 end;
 
-function TClientMigrater.GetReportingParameterTable: TReportingParameterTable;
+function TClientMigrater.GetReportParameterTable: TReportParameterTable;
 begin
-  if not Assigned(FReportingParameterTable) then
-      FReportingParameterTable := TReportingParameterTable.Create(Connection);
-   Result := FReportingParameterTable;
+  if not Assigned(FReportParameterTable) then
+      FReportParameterTable := TReportParameterTable.Create(Connection);
+   Result := FReportParameterTable;
+end;
+
+function TClientMigrater.GetClientReportTable: TClientReportTable;
+begin
+  if not Assigned(FClientReportTable) then
+      FClientReportTable := TClientReportTable.Create(Connection);
+   Result := FClientReportTable;
 end;
 
 function TClientMigrater.GetSubGroupTable: TSubGroupTable;
@@ -1321,12 +1431,125 @@ var
           result := false;
    end;
 
+   procedure AddReporting;
+   var ClientReportID: TGuid;
+       i: Integer;
+       CustomDoc: TReportBase;
+       SeqNo: Integer;
+
+       procedure CheckClient (Value : TReportClient);
+           function NextSeq: Integer;
+           begin
+              inc(SeqNo);
+              result := SeqNo;
+           end;
+
+           procedure addFavouriteReport (Value: TReportBase);
+                   (*
+           procedure AddSettings(Value: IXMLNode);
+           var nxn: IXMLNode;
+               LList: IXMLNodeList;
+               I: Integer;
+               S: string;
+           begin //AddSettings
+              if not Assigned(Value) then
+                 Exit;
+
+              if Sametext(Value.NodeName,ReportGUID)
+              or SameText(Value.NodeName,'_Report_Column')  then
+                  Exit; // Not usefull
+
+
+              if Sametext(Value.NodeName,'Accounts') then begin
+                  LList := FilterNodes(Value,'Account');
+                  S := '';
+                  if Assigned(LList) then
+                     for I := 0 to pred(LList.Length) do
+                        S:= S + GetNodeTextStr(LList.Item[I],'_Number','') +',';
+                  I := Length(S);
+                  if I > 1 then begin
+                     SetLength(S,Pred(I));
+                     ReportParameterTable.Update('Accounts',S,'Favoutire',ClientReportID);
+                  end;
+
+                  Exit;
+              end;
+
+              if Sametext(Value.NodeName,'Codes') then begin
+                 LList := FilterNodes(Value,'Code');
+                  S := '';
+                  if Assigned(LList) then
+                     for I := 0 to pred(LList.Length) do
+                        S:= S + GetNodeTextStr(LList.Item[I],'_Number','') +',';
+                  I := Length(S);
+                  if I > 1 then begin
+                     SetLength(S,Pred(I));
+                     ReportParameterTable.Update('Codes',S,'Favoutire',ClientReportID);
+                  end;
+
+                  Exit;
+              end;
+
+              nxn := Value.FirstChild;
+              while assigned(nxn) do begin
+                 if (nxn.NodeType in [TEXT_NODE])
+                 and (Length(nxn.ParentNode.NodeName) > 0)then begin
+                   ReportParameterTable.Update(
+                      Replacetext(nxn.ParentNode.NodeName,'_',''),
+                      Replacetext(Replacetext(nxn.NodeValue,'_',''),' ',''),
+                      'Favoutire',ClientReportID);
+                 end;
+                 AddSettings (nxn);
+                 nxn := nxn.NextSibling;
+              end;
+           end; //AddSettings
+               *)
+           begin //addFavouriteReport
+              ClientReportID := NewGuid;
+              ClientReportTable.InsertReport(ClientReportID, ClientID, Value, NextSeq);
+              ReportParameterTable.Update('Favoutire',Value.Settings.XML,'Favoutire',ClientReportID);
+              //AddSettings(Value.Settings);
+           end;
+       var i : integer;
+       begin //CheckClient
+          SeqNo := 0;
+          for i  := 0 to Value.List.Count - 1 do
+             addFavouriteReport(Value.Child[i]);
+
+       end;
+
+       {DEBUG}
+       procedure SaveXML(value: string);
+       var f: text;
+       begin
+          assignFile(F,format('C:\temp\%s.xml', [FCLient.clFields.clCode] ));
+          rewrite(F);
+          WriteLn(F,Value);
+          CloseFile(F);
+       end;
+       {}
+   begin
+      // Client report settings..
+      ClientReportID := NewGuid;
+      ClientReportTable.InsertClient(ClientReportID, ClientID);
+      ReportParameterTable.AddClient(NewGuid,ClientReportID,@FClient.clFields, @FCLient.clExtra);
+
+      // Favourites ...
+      SaveXML(FClient.clFields.clFavourite_Report_XML);
+      BatchReports.XMLString := FClient.clFields.clFavourite_Report_XML;
+      // Now run trough the list..
+      for I := 0 to pred(BatchReports.List.Count) do
+         CheckClient( TReportClient(BatchReports.Child[I]));
+
+   end;
+
+
 begin
    Result := False;
    Reset;
    // set some global bits
    Code := ACode;
-   ClientID := AClientID;  
+   ClientID := AClientID;
    GuidList := nil;
    MyAction := ForAction.InsertAction(Code);
    MyAction.LogMessage('TClientMigrater.Migrate Start');
@@ -1349,7 +1572,7 @@ begin
                       ClientDetailsCache,
                       AClient
                     );
-            
+
             Exit;
          end;
       end else
@@ -1414,7 +1637,9 @@ begin
       end;
 
 
-      ReportingParameterTable.Update('GstReport_IncludeFuelTaxCalculationSheet',FClient.clFields.clBAS_Include_Fuel, ClientID );
+      AddReporting;
+
+      //ReportingParameterTable.Update('GstReport_IncludeFuelTaxCalculationSheet',FClient.clFields.clBAS_Include_Fuel, ClientID );
 
         {
       try

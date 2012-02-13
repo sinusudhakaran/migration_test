@@ -3,6 +3,7 @@ unit bkTables;
 interface
 
 uses
+   UBatchBase,
    MoneyDef,
    MigrateTable,
    ToDoListUnit,
@@ -69,6 +70,16 @@ public
                    Notification: Integer): Boolean;
 end;
 
+TClientReportTable  = class (TMigrateTable)
+protected
+   procedure SetupTable; override;
+public
+   function InsertClient(MyId, ClientID: TGuid
+                  ): Boolean;
+   function InsertReport(MyiD, ClientID: TGuid; Report: TReportBase; SequenceNo: Integer):  Boolean;
+
+end;
+
 (*
 TClient_ReportOptionsTable = class (TMigrateTable)
 protected
@@ -124,6 +135,27 @@ public
                    Map: pClient_Account_Map_Rec;
                    Excluded: boolean
                    ): Boolean;
+end;
+
+TColumnConfigTable = class (TMigrateTable)
+protected
+   procedure SetupTable; override;
+public
+   function Insert(MyID, AccountID: TGuid;
+     ScreenType: integer; Country: string; date: Integer ): Boolean;
+end;
+
+TColumnConfigColumnsTable = class (TMigrateTable)
+protected
+   procedure SetupTable; override;
+public
+   function Insert(MyID, ConFigID : TGuid;
+                   ColumnID : string;
+                   Position : integer;
+                   Width : Integer;
+                   IsEditable : Boolean;
+                   IsVisible: Boolean;
+                   IsSortColumn: Boolean): Boolean;
 end;
 
 
@@ -342,15 +374,17 @@ public
 end;
 
 
-TReportingParameterTable = class (TMigrateTable)
+TReportParameterTable = class (TMigrateTable)
 protected
    procedure SetupTable; override;
 public
-   function Update(ParamName, ParamValue, ParamType: string; ClientID:TGuid; ReportID: Integer = 0): Boolean; overload;
-   function Update(ParamName: string; ParamValue: Boolean; ClientID:TGuid; ReportID: Integer = 0): Boolean; overload;
-   function Update(ParamName: string; ParamValue: TGuid; ClientID:TGuid; ReportID: Integer = 0): Boolean; overload;
-   function Update(ParamName: string;ParamValue: Integer; ClientID:TGuid; ReportID: Integer = 0): Boolean; overload;
-   function Update(ParamName: string; ParamValue: Money; ClientID:TGuid; ReportID: Integer = 0): Boolean; overload;
+   function AddClient(MyId, ClientReportID: TGuid; Value: pClient_Rec;  Extra: pClientExtra_Rec): boolean;
+
+   function Update(ParamName, ParamValue, ParamType: string; ClientReportID:TGuid): Boolean; overload;
+   function Update(ParamName: string; ParamValue: Boolean; ClientReportID:TGuid): Boolean; overload;
+   function Update(ParamName: string; ParamValue: TGuid; ClientReportID:TGuid): Boolean; overload;
+   function Update(ParamName: string; ParamValue: Integer; ClientReportID:TGuid): Boolean; overload;
+   function Update(ParamName: string; ParamValue: Money; ClientReportID:TGuid): Boolean; overload;
 end;
 
 
@@ -358,6 +392,7 @@ end;
 implementation
 
 uses
+   CustomDocEditorFrm,
    STDate,
    Variants,
    SysUtils,
@@ -415,7 +450,7 @@ begin
                  ,ToSQL(clContact_Name),ToSQL(clPhone_No),ToSQL(clFax_No),ToSQL(clClient_EMail_Address)
   {2}        ,ToSQL(clCountry),ToSQL(clBankLink_Connect_Password),ToSQL(clPIN_Number),DateToSQL(clFinancial_Year_Starts)
   {3}        ,ToSQL(clGST_Number),ToSQL(clGST_Period),ToSQL(clGST_Start_Month),ToSQL(clGST_Basis)
-                ,ToSQL(clGST_on_Presentation_Date),ToSQL(clGST_Excludes_Accruals),ToSQL(clGST_Inclusive_Cashflow)
+                ,ToSQL(clGST_Inclusive_Cashflow)
   {4}        ,ToSQL(AccountingSystemID),ToSQL(clAccount_Code_Mask),ToSQL(clLoad_Client_Files_From),ToSQL(clSave_Client_Files_To)
                  ,ToSQL(clChart_Is_Locked),DateToSQL(clChart_Last_Updated)
   {5}        ,ToSQL(clMagic_Number),ToSQL(clException_Options),DateToSQL(clPeriod_Start_Date),DateToSQL(clPeriod_End_Date),ToSQL(clBankLink_Code)
@@ -456,8 +491,8 @@ with  AClient^, ClientDetailsCache do begin
   Result := RunValues([ToSQL(MyId),ToSQL(cfFile_Code),ToSQL(cfFile_Name),ToSQL(Address_L1),ToSQL(Address_L2),ToSQL(Address_L3)
                ,ToSQL(Contact_Name),ToSQL(Phone_No),ToSQL(Fax_No),ToSQL(EMail_Address)
 {2}        ,ToSQL(Country),null,null,null
-{3}        ,null,ToSQL(cfGST_Period),ToSQL(cfGST_Start_Month),null
-              ,null,null,null
+{3}        ,null,ToSQL(cfGST_Period),ToSQL(cfGST_Start_Month)
+              ,null,null
 {4}        ,null,null,null,null
                ,null,null
 {5}        ,ToSQL(Magic_Number),null,null,null,null
@@ -487,7 +522,7 @@ begin
   TableName := 'Clients';
   SetFields(['Id','Code','Name','AddressL1','AddressL2','AddressL3','ContactName','PhoneNo','FaxNo','EmailAddress'
 {2}     ,'Country','BankLinkConnectPassword','PINNumber','FinancialYearStarts'
-{3}     ,'GSTNumber','GSTPeriod','GSTStartMonth','GSTBasis','GSTOnPresentationDate','GSTExcludesAccruals','GSTInclusiveCashflow'
+{3}     ,'GSTNumber','GSTPeriod','GSTStartMonth','GSTBasis','GSTInclusiveCashflow'
 {4}     ,'AccountingSystemUsed','AccountCodeMask','LoadClientFilesFrom','SaveClientFilesTo','ChartIsLocked','ChartLastUpdated'
 {5}     ,'MagicNumber','ExceptionOptions','PeriodStartDate','PeriodEndDate','BankLinkCode'
 {6}     ,'DiskSequenceNo','StaffMemberId','SuppressCheckForNewTXns','DownloadFrom','LastBatchNumber'
@@ -557,6 +592,46 @@ end;
 
 (*******************************************************************************)
 
+{ TColumnConfigTable }
+
+function TColumnConfigTable.Insert(MyID, AccountID: TGuid;
+  ScreenType: integer; Country: string; date: Integer ): Boolean;
+begin
+    Result := RunValues([ ToSQL(MyId), ToSQL(Name),ToSQL(AccountID),ToSQL(ScreenType),ToSQL(Country)
+    ,ToSQL(0),DateToSQL(date)],[]);
+end;
+
+procedure TColumnConfigTable.SetupTable;
+begin
+  TableName := 'CodingColumnConfigurations';
+   SetFields(['Id', 'Name', 'BankAccount_Id',  'ScreenType', 'Country',
+   'IsDefault', 'DateCreated'],[]);
+end;
+
+
+(*******************************************************************************)
+
+{ TColumnConfigColumnsTable }
+
+function TColumnConfigColumnsTable.Insert(MyID, ConFigID: TGuid; ColumnID: string;
+  Position, Width: Integer; IsEditable, IsVisible,
+  IsSortColumn: Boolean): Boolean;
+begin
+   Result := RunValues([ToSQL(MyId), ToSQL(ColumnID), ToSQL(Position), ToSQL(Width), ToSQL(IsVisible)
+    ,ToSQL(IsEditable),ToSQL(IsSortColumn),ToSql(0), ToSQL(ConFigID)],[]);
+end;
+
+procedure TColumnConfigColumnsTable.SetupTable;
+begin
+   TableName := 'CodingColumns';
+   SetFields(['Id', 'ColumnId', 'Position',  'Width', 'IsVisible',
+   'IsEditable', 'IsSortColumn', 'SortAscending', 'CodingColumnConfiguration_Id' ],[]);
+
+end;
+
+
+(*******************************************************************************)
+
 { TTransaction_RecTable }
 
 function TTransaction_RecTable.Insert(MyID, AccountID,MatchedItemID: TGuid;
@@ -595,8 +670,7 @@ begin  with Value^ do
 
 {7}       ToSQL(txSF_Capital_Gains_Other), ToSQL(txSF_Capital_Gains_Foreign_Disc), ToSQL(txSF_Foreign_Capital_Gains_Credit),
 
-{8}       DateToSQl(txSF_CGT_Date), ToSQL(txSF_Capital_Gains_Fraction_Half),
-{9}       ToSQL(IsDissected),ToSQL(IsSplitPayee),ToSQL(IsSplitJob),ToSQL(IsPayeeOverridden),ToSQL(IsJobOverridden)
+{8}       DateToSQl(txSF_CGT_Date), ToSQL(txSF_Capital_Gains_Fraction_Half)
 
 ]);
 end;
@@ -1471,15 +1545,95 @@ end;
 
 (*******************************************************************************)
 
-{ TReportingParameterTable }
+{ TReportParameterTable }
 
-procedure TReportingParameterTable.SetupTable;
+function TReportParameterTable.AddClient(MyId, ClientReportID: TGuid;
+  Value: pClient_Rec;  Extra: pClientExtra_Rec): boolean;
+
+  function GetYear(fromDate: Integer): Integer;
+  var tmp : Integer;
+  begin
+     result := 0;
+     if(fromdate = 0)
+     or (fromdate = -1) then
+        exit;
+     StDateToDMY(fromDate,tmp,tmp,result);
+  end;
+
 begin
-   TableName := 'ReportingParameters';
+   Update('CodingReportStyle', Value.clCoding_Report_Style,ClientReportID);
+   Update('CodingReportSortOrder', Value.clCoding_Report_Sort_Order ,ClientReportID);
+   Update('CodingReportEntrySelection', Value.clCoding_Report_Entry_Selection ,ClientReportID);
+   Update('CodingReportBlankLines', Value.clCoding_Report_Blank_Lines ,ClientReportID);
+   Update('CodingReportRuleLine', Value.clCoding_Report_Rule_Line ,ClientReportID);
+   Update('CodingReportPrintTI', Value.clCoding_Report_Print_TI ,ClientReportID);
+   Update('CodingReportShowOP', Value.clCoding_Report_Show_OP ,ClientReportID);
+   Update('CodingReportWrapNarration', Value.clCoding_Report_Wrap_Narration ,ClientReportID);
+   Update('CodingReportColumnLine', Extra.ceCoding_Report_Column_Line ,ClientReportID);
+   Update('ReportingPeriod', Value.clReporting_Period ,ClientReportID);
+   Update('ReportingYearStarts', GetYear(Value.clReporting_Year_Starts) ,ClientReportID);
+   Update('FRSPrintChartCodes', Value.clFRS_Print_Chart_Codes ,ClientReportID);
+   Update('FRSShowYTD', Value.clFRS_Show_YTD ,ClientReportID);
+   Update('FRSShowVariance', Value.clFRS_Show_Variance ,ClientReportID);
+   Update('FRSCompareType', Value.clFRS_Compare_Type ,ClientReportID);
+   Update('FRSReportDetailType', Value.clFRS_Report_Detail_Type ,ClientReportID);
+   Update('FRSPrintNPChartCodeTitles', Extra.ceFRS_Print_NP_Chart_Code_Titles ,ClientReportID);
+   Update('FRSNPChartCodeDetailType', Extra.ceFRS_NP_Chart_Code_Detail_Type ,ClientReportID);
+   Update('FRSReportingPeriodType', Value.clFRS_Reporting_Period_Type ,ClientReportID);
+   Update('FRSReportStyle', Value.clFRS_Report_Style ,ClientReportID);
+   Update('FRSShowQuantity', Value.clFRS_Show_Quantity ,ClientReportID);
+   Update('ProfitReportShowPercentage', Value.clProfit_Report_Show_Percentage ,ClientReportID);
+   Update('CflwCashOnHandStyle', Value.clCflw_Cash_On_Hand_Style ,ClientReportID);
+   Update('FRSPromptUsertouseBudgetedfigures', Value.clFRS_Prompt_User_to_use_Budgeted_figures ,ClientReportID);
+
+   Update('GSTInclusive', Value.clGST_Inclusive_Cashflow ,ClientReportID); //??
+
+   Update('LedgerReportSummary', Value.clLedger_Report_Summary ,ClientReportID);
+   Update('LedgerReportShowNotes', Value.clLedger_Report_Show_Notes ,ClientReportID);
+   Update('LedgerReportShowQuantities', Value.clLedger_Report_Show_Quantities ,ClientReportID);
+   Update('LedgerReportShowNonTrf', Value.clLedger_Report_Show_Non_Trf ,ClientReportID);
+   Update('LedgerReportShowInactiveCodes', Value.clLedger_Report_Show_Inactive_Codes ,ClientReportID);
+   Update('LedgerReportBankContra', Value.clLedger_Report_Bank_Contra ,ClientReportID);
+   Update('LedgerReportGSTContra', Value.clLedger_Report_GST_Contra ,ClientReportID);
+   Update('LedgerReportShowBalances', Value.clLedger_Report_Show_Balances ,ClientReportID);
+   Update('LedgerReportShowGrossAndGST', Value.clLedger_Report_Show_Gross_And_GST ,ClientReportID);
+   Update('LedgerReportWrapNarration', Value.clLedger_Report_Wrap_Narration ,ClientReportID);
+   Update('ListEntriesSortOrder', Extra.ceList_Entries_Sort_Order ,ClientReportID);
+   Update('ListEntriesInclude', Extra.ceList_Entries_Include ,ClientReportID);
+   Update('ListEntriesTwoColumn', Extra.ceList_Entries_Two_Column ,ClientReportID);
+   Update('ListEntriesShowBalance', Extra.ceList_Entries_Show_Balance ,ClientReportID);
+   Update('ListEntriesShowNotes', Extra.ceList_Entries_Show_Notes ,ClientReportID);
+   Update('ListEntriesWrapNarration', Extra.ceList_Entries_Wrap_Narration ,ClientReportID);
+   Update('ListEntriesShowOtherParty', Extra.ceList_Entries_Show_Other_Party ,ClientReportID);
+   Update('ListPayeesDetailed', Extra.ceList_Payees_Detailed ,ClientReportID);
+   Update('ListPayeesSortBy', Extra.ceList_Payees_SortBy ,ClientReportID);
+   Update('ListPayeesRuleLine', Extra.ceList_Payees_Rule_Line ,ClientReportID);
+
+   Update('GstReportIncludeAccrualJournals',not Value.clGST_Excludes_Accruals,ClientReportID);
+   if value.clGST_on_Presentation_Date then
+      Update('GstReportClassifyEntriesBy', 1, ClientReportID)
+   else
+      Update('GstReportClassifyEntriesBy', 0, ClientReportID);
+
+   Update('GstReportBasFormat',Value.clBAS_Report_Format,ClientReportID);
+   Update('GstReportIncludeGstCalculationSheet',not value.clBAS_Dont_Print_Calc_Sheet,ClientReportID);
+   Update('GstReportIncludeFuelTaxCalculationSheet', Value.clBAS_Include_Fuel,ClientReportID);
+
+
+
+   //Update('X', Value ,ClientReportID);
 
 end;
 
-function TReportingParameterTable.Update(ParamName: string; ParamValue: Boolean; ClientID:TGuid; ReportID: Integer): Boolean;
+
+
+procedure TReportParameterTable.SetupTable;
+begin
+   TableName := 'ReportParameters';
+
+end;
+
+function TReportParameterTable.Update(ParamName: string; ParamValue: Boolean; ClientReportID:TGuid): Boolean;
   function value : string;
   begin
    if ParamValue then
@@ -1488,29 +1642,22 @@ function TReportingParameterTable.Update(ParamName: string; ParamValue: Boolean;
       Result := 'false';
   end;
 begin
-   Result :=  Update (ParamName,value ,'bool',ClientID, ReportID);
+   Result :=  Update (ParamName,value ,'Boolean',ClientReportID);
 end;
 
-function TReportingParameterTable.Update(ParamName, ParamValue, ParamType: string; ClientID:TGuid; ReportID: Integer): Boolean;
+function TReportParameterTable.Update(ParamName, ParamValue, ParamType: string; ClientReportID:TGuid): Boolean;
   var sql : string;
-  function GetReportID : string;
-  begin
-     if ReportID = 0 then
-        result := 'NULL'
-     else
-        result := format('''%d''',[ReportID]);
-  end;
 
 
 begin
    Result := false;
    try
-   sql :=  format('if (exists (select * from  [%0:s] as t1 where t1.ParameterName = ''%1:s'' and t1.Client_Id = ''%4:s'' and t1.ReportID = %5:s ))'   +
-   ' begin update [%0:s] set [ParameterValue] = ''%2:s'' where [ParameterName] = ''%1:s''  and [Client_Id] = ''%4:s'' and [ReportID] = %5:s end else begin' +
-   ' insert into [%0:s] ([ParameterName], [ParameterType], [ParameterValue], [ReportID], [Client_Id], [ID] ) values '+
-                        '(''%1:s'',''%3:s'',''%2:s'',%5:s, ''%4:s'',  ''%6:s'' ) end',
-     // 0     1         2          3               4          5            6
-   [TableName,ParamName,Paramvalue,Paramtype,ToSQL(ClientID), GetReportID, ToSQL(NewGuid)]);
+   sql :=  format('if (exists (select * from  [%0:s] as t1 where t1.ParameterName = ''%1:s'' and t1.ClientReport_Id = ''%4:s'' ))'   +
+   ' begin update [%0:s] set [ParameterValue] = ''%2:s'' where [ParameterName] = ''%1:s''  and [ClientReport_Id] = ''%4:s''  end else begin' +
+   ' insert into [%0:s] ([ParameterName], [ParameterType], [ParameterValue],  [ClientReport_Id], [ID] ) values '+
+                        '(''%1:s'',''%3:s'',''%2:s'', ''%4:s'',  ''%5:s'' ) end',
+     // 0     1         2          3               4                     5
+   [TableName,ParamName,Paramvalue,Paramtype,ToSQL(ClientReportID),  ToSQL(NewGuid)]);
 
       connection.Execute( sql );
       Result := true;
@@ -1521,21 +1668,47 @@ begin
    end;
 end;
 
-function TReportingParameterTable.Update(ParamName: string;
-  ParamValue: Money; ClientID:TGuid; ReportID: Integer): Boolean;
+function TReportParameterTable.Update(ParamName: string;
+  ParamValue: Money; ClientReportID:TGuid): Boolean;
 begin
 
 end;
 
-function TReportingParameterTable.Update(ParamName: string; ParamValue: Integer; ClientID:TGuid; ReportID: Integer): Boolean;
+function TReportParameterTable.Update(ParamName: string; ParamValue: Integer; ClientReportID:TGuid): Boolean;
 begin
-    Result := UpDate(ParamName, IntToStr(ParamValue), 'int',ClientID, ReportID);
+    Result := UpDate(ParamName, IntToStr(ParamValue), 'int32',ClientReportID);
 end;
 
-function TReportingParameterTable.Update(ParamName: string; ParamValue: TGuid; ClientID:TGuid; ReportID: Integer): Boolean;
+function TReportParameterTable.Update(ParamName: string; ParamValue: TGuid; ClientReportID:TGuid): Boolean;
 begin
 
 end;
 
+
+
+{ TClientReportTable }
+
+function TClientReportTable.InsertClient(MyId, ClientID: TGuid): Boolean;
+begin
+   result := RunValues([ToSql(MyID), null, null, null, null, null,
+      null, null, null,null, null, null, null, toSql(ClientID)],[]);
+end;
+
+function TClientReportTable.InsertReport(MyiD, ClientID: TGuid;
+  Report: TReportBase; SequenceNo: Integer): Boolean;
+begin
+   result := RunValues([ToSql(MyID), ToSQL(integer(Get_ReportListType(report.Name))), ToSql(report.Name), DateTimeToSQL(report.Createdon), null, ToSQL(report.Createdby),
+      ToSQL(report.DatesText), ToSQL(report.RunDestination), DateTimeToSQL(report.LastRun), null, ToSQL(report.User), ToSQL(SequenceNo),
+      ToSQL(report.Title), toSql(ClientID)],[]);
+end;
+
+procedure TClientReportTable.SetupTable;
+begin
+     TableName := 'ClientReports';
+   SetFields(['Id' ,'Report_Id','FavouriteName', 'CreatedDate', 'CreatedBy_Id', 'CreatedBy'
+      ,'LastRunForDates', 'LastRunDestination', 'LastRunDate', 'LastRunBy_Id', 'LastRunBy', 'SequenceNo'
+      ,'Report', 'Client_Id'],[]);
+
+end;
 
 end.
