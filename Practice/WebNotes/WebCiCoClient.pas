@@ -76,7 +76,7 @@ type
     destructor Destroy; override;
 
     function GetStatusFromCode(AClientCode : string) : TClientStatusItem;
-
+    procedure Clear; override;
     property Items[Index : Integer]: TClientStatusItem read Get write Put; default;
   end;
 
@@ -338,7 +338,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-destructor TClientStatusList.Destroy;
+procedure TClientStatusList.Clear;
 var
   ItemIndex : integer;
 begin
@@ -347,6 +347,12 @@ begin
     Items[ItemIndex].Free;
     Self.Remove(Items[ItemIndex]);
   end;
+  inherited;
+end;
+
+destructor TClientStatusList.Destroy;
+begin
+  Clear;
 
   inherited;
 end;
@@ -936,6 +942,7 @@ end;
 //------------------------------------------------------------------------------
 destructor TWebCiCoClient.Destroy;
 begin
+  fServerClientStatusList.Clear;
   FreeAndNil(fServerClientStatusList);
 
   inherited;

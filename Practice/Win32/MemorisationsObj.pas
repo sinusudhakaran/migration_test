@@ -420,6 +420,7 @@ destructor TMemorisation.Destroy;
 begin
   mdLines.Free;
   Free_Memorisation_Detail_Rec_Dynamic_Fields(mdFields^);
+  SafeFreeMem(mdFields, Memorisation_Detail_Rec_Size);
   inherited Destroy;
 end;
 

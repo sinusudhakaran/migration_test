@@ -565,4 +565,7 @@ end;
 
 initialization
   DebugMe := DebugUnit(UNIT_NAME);
+finalization
+ if Assigned(__BankLinkOnlineMgr) then
+   __BankLinkOnlineMgr.Free;
 end.

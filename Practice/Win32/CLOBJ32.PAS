@@ -306,6 +306,9 @@ begin
 {$ENDIF}
    inherited Destroy;
    LogDebugMsg( ThisMethodName + ' Ends');
+
+   if Assigned(FClientCopy) then
+     FreeAndNil(FClientCopy); //Delete audit copy if assigned
 end;
 
 {$IFNDEF ParserDll}
