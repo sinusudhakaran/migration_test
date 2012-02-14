@@ -130,7 +130,6 @@ type
     function GetCatalogueEntry(AProductId: TBloGuid): TBloCatalogueEntry;
     function IsPracticeProductEnabled(AProductId: TBloGuid; AUsePracCopy : Boolean): Boolean;
     function HasProductJustBeenUnTicked(AProductId: TBloGuid): Boolean;
-    function NumOfClientsUsingProduct(AProductId: TBloGuid): Integer;
     function GetNotesId : TBloGuid;
     function IsNotesOnlineEnabled: Boolean;
     function IsCICOEnabled: Boolean;
@@ -1198,33 +1197,6 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TProductConfigService.NumOfClientsUsingProduct(AProductId: TBloGuid): Integer;
-var
-  ClientIndex : integer;
-  SubIndex : integer;
-  ClientSum : ClientSummary;
-begin
-  Result := 0;
-  if Assigned(FPracticeCopy) then
-  begin
-    for ClientIndex := Low(FClientList.Clients) to High(FClientList.Clients) do
-    begin
-      ClientSum := FClientList.Clients[ClientIndex];
-
-
-      for SubIndex := Low(ClientSum.Subscription) to High(ClientSum.Subscription) do
-      begin
-        if ClientSum.Subscription[SubIndex] = AProductId then
-        begin
-          Inc(Result);
-          break;
-        end;
-      end;
-    end;
-  end;
-end;
-
-//------------------------------------------------------------------------------
 function TProductConfigService.RemotableObjectToXML(
   ARemotable: TRemotable): string;
 var
@@ -1295,7 +1267,7 @@ begin
     //Check if any clients are using the product
     for i := Low(FClientList.Clients) to High(FClientList.Clients) do begin
       for j := Low(FClientList.Clients[i].Subscription) to High(FClientList.Clients[i].Subscription) do begin
-        if AProductId = FClientList.Clients[i].Subscription[j] then
+        if (FClientList.Clients[i].Status <> Deactivated) and (AProductId = FClientList.Clients[i].Subscription[j]) then
           Inc(ClientsUsingProduct);
       end;
     end;
