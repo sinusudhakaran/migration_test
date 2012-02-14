@@ -198,8 +198,14 @@ end;
 // ----------------------------------------------------------------------------
 implementation
 uses
-	WebUtils;
+	WebUtils,
+	SysUtils;
 
+
+procedure ReRaise(E: Exception; Doing: string);
+begin
+	raise exception.Create( format('Error : %s While : %s',[E.Message, Doing]));
+end;
 
 
 // ----------------------------------------------------------------------------
@@ -211,8 +217,8 @@ end;
 
 
 function TClient_RecHelper.WriteRecToNode(var Node: IXMLNode): IXMLNode;
-var PNode, CNode: IXMLNode;
-	I: Integer;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J, M: Integer;
 begin
 	Result := Node.AddChild(GetXMLNodeName);
 	SetTextAttr(Result, 'Code', clCode);
@@ -250,15 +256,39 @@ begin
 	SetIntAttr(Result, 'GSTPeriod', clGST_Period);
 	SetIntAttr(Result, 'GSTStartMonth', clGST_Start_Month);
 	PNode := Result.AddChild('GSTClassNames');
-	for I := Low(clGST_Class_Names) to High(clGST_Class_Names) do begin
+	M :=  Low(clGST_Class_Names);
+	for I := Low(clGST_Class_Names) to High(clGST_Class_Names) do
+		if  clGST_Class_Names[I] > '' then
+			M := I;
+	for I := Low(clGST_Class_Names) to M do begin
 		CNode := PNode.AddChild('GSTClassName');
 		CNode.NodeValue := clGST_Class_Names[I];
 	end;
 	SetArray(Result, 'GSTClassTypes', clGST_Class_Types);
 	PNode := Result.AddChild('GSTAccountCodes');
-	for I := Low(clGST_Account_Codes) to High(clGST_Account_Codes) do begin
+	M :=  Low(clGST_Account_Codes);
+	for I := Low(clGST_Account_Codes) to High(clGST_Account_Codes) do
+		if  clGST_Account_Codes[I] > '' then
+			M := I;
+	for I := Low(clGST_Account_Codes) to M do begin
 		CNode := PNode.AddChild('GSTAccountCode');
 		CNode.NodeValue := clGST_Account_Codes[I];
+	end;
+	PNode := result.AddChild('GSTRates');
+	M :=  Low(clGST_Rates);
+	for I := Low(clGST_Rates) to High(clGST_Rates) do
+		for J := Low(clGST_Rates[I]) to High(clGST_Rates[I]) do
+			if clGST_Rates[I,J] > 0 then begin
+				M := I;
+				Break;
+			end;
+	for I := low(clGST_Rates) to M do begin
+		CNode := PNode.AddChild('GSTRates');
+		CNode := CNode.AddChild('GSTRates');
+		for J := Low(clGST_Rates[I]) to High(clGST_Rates[I]) do begin
+			CCNode := CNode.AddChild('GSTRate');
+			CCNode.NodeValue := (clGST_Rates[I,J]);
+		end;
 	end;
 	SetIntAttr(Result, 'GSTBasis', clGST_Basis);
 	SetBoolAttr(Result, 'GSTonPresentationDate', clGST_on_Presentation_Date);
@@ -277,7 +307,11 @@ begin
 	SetBoolAttr(Result, 'CodingReportRuleLine', clCoding_Report_Rule_Line);
 	SetBoolAttr(Result, 'CodingReportNewPage', clCoding_Report_New_Page);
 	PNode := Result.AddChild('OldDivisionNames');
-	for I := Low(clOld_Division_Names) to High(clOld_Division_Names) do begin
+	M :=  Low(clOld_Division_Names);
+	for I := Low(clOld_Division_Names) to High(clOld_Division_Names) do
+		if  clOld_Division_Names[I] > '' then
+			M := I;
+	for I := Low(clOld_Division_Names) to M do begin
 		CNode := PNode.AddChild('OldDivisionName');
 		CNode.NodeValue := clOld_Division_Names[I];
 	end;
@@ -294,7 +328,11 @@ begin
 	SetIntAttr(Result, 'LastBatchNumber', clLast_Batch_Number);
 	SetTextAttr(Result, 'OldGSTClassCodes', clOld_GST_Class_Codes);
 	PNode := Result.AddChild('DivisionCodeLists');
-	for I := Low(clDivision_Code_List) to High(clDivision_Code_List) do begin
+	M :=  Low(clDivision_Code_List);
+	for I := Low(clDivision_Code_List) to High(clDivision_Code_List) do
+		if  clDivision_Code_List[I] > '' then
+			M := I;
+	for I := Low(clDivision_Code_List) to M do begin
 		CNode := PNode.AddChild('DivisionCodeList');
 		CNode.NodeValue := clDivision_Code_List[I];
 	end;
@@ -304,12 +342,20 @@ begin
 	SetBoolAttr(Result, 'V31GSTFormatUsed', clV31_GST_Format_Used);
 	SetBoolAttr(Result, 'EmailScheduledReports', clEmail_Scheduled_Reports);
 	PNode := Result.AddChild('OLDBASSpecialAccounts');
-	for I := Low(clOLD_BAS_Special_Accounts) to High(clOLD_BAS_Special_Accounts) do begin
+	M :=  Low(clOLD_BAS_Special_Accounts);
+	for I := Low(clOLD_BAS_Special_Accounts) to High(clOLD_BAS_Special_Accounts) do
+		if  clOLD_BAS_Special_Accounts[I] > '' then
+			M := I;
+	for I := Low(clOLD_BAS_Special_Accounts) to M do begin
 		CNode := PNode.AddChild('OLDBASSpecialAccount');
 		CNode.NodeValue := clOLD_BAS_Special_Accounts[I];
 	end;
 	PNode := Result.AddChild('GSTClassCodes');
-	for I := Low(clGST_Class_Codes) to High(clGST_Class_Codes) do begin
+	M :=  Low(clGST_Class_Codes);
+	for I := Low(clGST_Class_Codes) to High(clGST_Class_Codes) do
+		if  clGST_Class_Codes[I] > '' then
+			M := I;
+	for I := Low(clGST_Class_Codes) to M do begin
 		CNode := PNode.AddChild('GSTClassCode');
 		CNode.NodeValue := clGST_Class_Codes[I];
 	end;
@@ -318,7 +364,11 @@ begin
 	SetArray(Result, 'BASFieldNumbers', clBAS_Field_Number);
 	SetArray(Result, 'BASFieldSources', clBAS_Field_Source);
 	PNode := Result.AddChild('BASFieldAccountCodes');
-	for I := Low(clBAS_Field_Account_Code) to High(clBAS_Field_Account_Code) do begin
+	M :=  Low(clBAS_Field_Account_Code);
+	for I := Low(clBAS_Field_Account_Code) to High(clBAS_Field_Account_Code) do
+		if  clBAS_Field_Account_Code[I] > '' then
+			M := I;
+	for I := Low(clBAS_Field_Account_Code) to M do begin
 		CNode := PNode.AddChild('BASFieldAccountCode');
 		CNode.NodeValue := clBAS_Field_Account_Code[I];
 	end;
@@ -439,38 +489,51 @@ begin
 	SetTextAttr(Result, 'PracticeCode', clPractice_Code);
 	SetArray(Result, 'CashJColumnOrders', clCashJ_Column_Order);
 	SetArray(Result, 'CashJColumnWidths', clCashJ_Column_Width);
+	SetArray(Result, 'CashJColumnisHiddens', clCashJ_Column_is_Hidden);
+	SetArray(Result, 'CashJColumnisNotEditables', clCashJ_Column_is_Not_Editable);
 	SetIntAttr(Result, 'CashJSortOrder', clCashJ_Sort_Order);
 	SetArray(Result, 'AcrlJColumnOrders', clAcrlJ_Column_Order);
 	SetArray(Result, 'AcrlJColumnWidths', clAcrlJ_Column_Width);
+	SetArray(Result, 'AcrlJColumnisHiddens', clAcrlJ_Column_is_Hidden);
+	SetArray(Result, 'AcrlJColumnisNotEditables', clAcrlJ_Column_is_Not_Editable);
 	SetIntAttr(Result, 'AcrlJSortOrder', clAcrlJ_Sort_Order);
 	SetArray(Result, 'StockJColumnOrders', clStockJ_Column_Order);
 	SetArray(Result, 'StockJColumnWidths', clStockJ_Column_Width);
+	SetArray(Result, 'StockJColumnisHiddens', clStockJ_Column_is_Hidden);
+	SetArray(Result, 'StockJColumnisNotEditables', clStockJ_Column_is_Not_Editable);
 	SetIntAttr(Result, 'StockJSortOrder', clStockJ_Sort_Order);
 	SetArray(Result, 'YrEJColumnOrders', clYrEJ_Column_Order);
 	SetArray(Result, 'YrEJColumnWidths', clYrEJ_Column_Width);
+	SetArray(Result, 'YrEJColumnisHiddens', clYrEJ_Column_is_Hidden);
+	SetArray(Result, 'YrEJColumnisNotEditables', clYrEJ_Column_is_Not_Editable);
 	SetIntAttr(Result, 'YrEJSortOrder', clYrEJ_Sort_Order);
 	SetArray(Result, 'gstJColumnOrders', clgstJ_Column_Order);
 	SetArray(Result, 'gstJColumnWidths', clgstJ_Column_Width);
+	SetArray(Result, 'gstJColumnisHiddens', clgstJ_Column_is_Hidden);
+	SetArray(Result, 'gstJColumnisNotEditables', clgstJ_Column_is_Not_Editable);
 	SetIntAttr(Result, 'gstJSortOrder', clgstJ_Sort_Order);
 	SetTextAttr(Result, 'FavouriteReportXML', clFavourite_Report_XML);
 	SetBoolAttr(Result, 'AllEditModeCES', clAll_EditMode_CES);
 	SetBoolAttr(Result, 'AllEditModeDIS', clAll_EditMode_DIS);
 	SetTextAttr(Result, 'TFN', clTFN);
+	SetArray(Result, 'AllEditModeJournals', clAll_EditMode_Journals);
 	SetArray(Result, 'BudgetColumnWidths', clBudget_Column_Width);
 
 	CNode := nil;
+	CCNode := nil;
 	PNode := nil;
 end;
 
 
 function TClient_RecHelper.ReadRecFromNode(Node :IXMLNode): IXMLNode;
-var PNode, CNode: IXMLNode;
-	I: Integer;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J: Integer;
 begin
 	if Node.NodeName = GetXMLNodeName then Result := Node
 	else
 	Result := Node.ChildNodes.FindNode(GetXMLNodeName);
 	if not assigned(Result) then exit;
+	try
 	clCode := GetTextAttr(Result, 'Code');
 	clName := GetTextAttr(Result, 'Name');
 	clAddress_L1 := GetTextAttr(Result, 'AddressL1');
@@ -506,28 +569,56 @@ begin
 	clGST_Period := GetIntAttr(Result, 'GSTPeriod');
 	clGST_Start_Month := GetIntAttr(Result, 'GSTStartMonth');
 	
-	PNode := Node.ChildNodes.FindNode('GSTClassNames');
-	if Assigned(PNode) then begin;
-		I := Low(clGST_Class_Names);
-		CNode := PNode.ChildNodes.FindNode('GSTClassName');
-		while assigned(CNode) and (I <= High(clGST_Class_Names)) do begin
+	PNode := Result.ChildNodes.FindNode('GSTClassNames');
+	if Assigned(PNode) then
+		CNode := PNode.ChildNodes.FindNode('GSTClassName')
+	else
+		CNode := Nil;
+	for I := low(clGST_Class_Names) to High(clGST_Class_Names) do begin
+		if Assigned(CNode) then begin
 			clGST_Class_Names[I] := CNode.Nodevalue;
-			Cnode := CNode.NextSibling;
-		end;
+			CNode := CNode.NextSibling;
+		end else
+			clGST_Class_Names[I] := ''
 	end;
 
 	GetArray(Result, 'GSTClassTypes', clGST_Class_Types);
 	
-	PNode := Node.ChildNodes.FindNode('GSTAccountCodes');
-	if Assigned(PNode) then begin;
-		I := Low(clGST_Account_Codes);
-		CNode := PNode.ChildNodes.FindNode('GSTAccountCode');
-		while assigned(CNode) and (I <= High(clGST_Account_Codes)) do begin
+	PNode := Result.ChildNodes.FindNode('GSTAccountCodes');
+	if Assigned(PNode) then
+		CNode := PNode.ChildNodes.FindNode('GSTAccountCode')
+	else
+		CNode := Nil;
+	for I := low(clGST_Account_Codes) to High(clGST_Account_Codes) do begin
+		if Assigned(CNode) then begin
 			clGST_Account_Codes[I] := CNode.Nodevalue;
-			Cnode := CNode.NextSibling;
-		end;
+			CNode := CNode.NextSibling;
+		end else
+			clGST_Account_Codes[I] := ''
 	end;
 
+		PNode := Result.ChildNodes.FindNode('GSTRates');
+	if Assigned(PNode) then begin
+		PNode := PNode.ChildNodes.FindNode('GSTRates');
+	end;
+	for I := low(clGST_Rates) to High(clGST_Rates) do begin
+		if Assigned(PNode) then begin
+			CNode := PNode.ChildNodes.FindNode('GSTRates');
+			if Assigned(CNode) then
+				CCNode := CNode.ChildNodes.FindNode('GSTRate')
+			else CCNode := Nil;
+		end else
+			CNode := Nil;
+		for J := Low(clGST_Rates[I]) to High(clGST_Rates[I]) do begin
+			if Assigned(CCNode) then begin
+				clGST_Rates[I,J] := CCNode.Nodevalue;
+				CCNode := CCNode.NextSibling;
+			end else
+				clGST_Rates[I,J] := 0;
+		end;
+			if Assigned(PNode) then
+				PNode := PNode.NextSibling;
+	end;
 	clGST_Basis := GetIntAttr(Result, 'GSTBasis');
 	clGST_on_Presentation_Date := GetBoolAttr(Result, 'GSTonPresentationDate');
 	clGST_Excludes_Accruals := GetBoolAttr(Result, 'GSTExcludesAccruals');
@@ -545,14 +636,17 @@ begin
 	clCoding_Report_Rule_Line := GetBoolAttr(Result, 'CodingReportRuleLine');
 	clCoding_Report_New_Page := GetBoolAttr(Result, 'CodingReportNewPage');
 	
-	PNode := Node.ChildNodes.FindNode('OldDivisionNames');
-	if Assigned(PNode) then begin;
-		I := Low(clOld_Division_Names);
-		CNode := PNode.ChildNodes.FindNode('OldDivisionName');
-		while assigned(CNode) and (I <= High(clOld_Division_Names)) do begin
+	PNode := Result.ChildNodes.FindNode('OldDivisionNames');
+	if Assigned(PNode) then
+		CNode := PNode.ChildNodes.FindNode('OldDivisionName')
+	else
+		CNode := Nil;
+	for I := low(clOld_Division_Names) to High(clOld_Division_Names) do begin
+		if Assigned(CNode) then begin
 			clOld_Division_Names[I] := CNode.Nodevalue;
-			Cnode := CNode.NextSibling;
-		end;
+			CNode := CNode.NextSibling;
+		end else
+			clOld_Division_Names[I] := ''
 	end;
 
 	clMagic_Number := GetIntAttr(Result, 'MagicNumber');
@@ -568,14 +662,17 @@ begin
 	clLast_Batch_Number := GetIntAttr(Result, 'LastBatchNumber');
 	clOld_GST_Class_Codes := GetTextAttr(Result, 'OldGSTClassCodes');
 	
-	PNode := Node.ChildNodes.FindNode('DivisionCodeLists');
-	if Assigned(PNode) then begin;
-		I := Low(clDivision_Code_List);
-		CNode := PNode.ChildNodes.FindNode('DivisionCodeList');
-		while assigned(CNode) and (I <= High(clDivision_Code_List)) do begin
+	PNode := Result.ChildNodes.FindNode('DivisionCodeLists');
+	if Assigned(PNode) then
+		CNode := PNode.ChildNodes.FindNode('DivisionCodeList')
+	else
+		CNode := Nil;
+	for I := low(clDivision_Code_List) to High(clDivision_Code_List) do begin
+		if Assigned(CNode) then begin
 			clDivision_Code_List[I] := CNode.Nodevalue;
-			Cnode := CNode.NextSibling;
-		end;
+			CNode := CNode.NextSibling;
+		end else
+			clDivision_Code_List[I] := ''
 	end;
 
 	clSB_Export_As := GetIntAttr(Result, 'SBExportAs');
@@ -584,43 +681,52 @@ begin
 	clV31_GST_Format_Used := GetBoolAttr(Result, 'V31GSTFormatUsed');
 	clEmail_Scheduled_Reports := GetBoolAttr(Result, 'EmailScheduledReports');
 	
-	PNode := Node.ChildNodes.FindNode('OLDBASSpecialAccounts');
-	if Assigned(PNode) then begin;
-		I := Low(clOLD_BAS_Special_Accounts);
-		CNode := PNode.ChildNodes.FindNode('OLDBASSpecialAccount');
-		while assigned(CNode) and (I <= High(clOLD_BAS_Special_Accounts)) do begin
+	PNode := Result.ChildNodes.FindNode('OLDBASSpecialAccounts');
+	if Assigned(PNode) then
+		CNode := PNode.ChildNodes.FindNode('OLDBASSpecialAccount')
+	else
+		CNode := Nil;
+	for I := low(clOLD_BAS_Special_Accounts) to High(clOLD_BAS_Special_Accounts) do begin
+		if Assigned(CNode) then begin
 			clOLD_BAS_Special_Accounts[I] := CNode.Nodevalue;
-			Cnode := CNode.NextSibling;
-		end;
+			CNode := CNode.NextSibling;
+		end else
+			clOLD_BAS_Special_Accounts[I] := ''
 	end;
 
 	
-	PNode := Node.ChildNodes.FindNode('GSTClassCodes');
-	if Assigned(PNode) then begin;
-		I := Low(clGST_Class_Codes);
-		CNode := PNode.ChildNodes.FindNode('GSTClassCode');
-		while assigned(CNode) and (I <= High(clGST_Class_Codes)) do begin
+	PNode := Result.ChildNodes.FindNode('GSTClassCodes');
+	if Assigned(PNode) then
+		CNode := PNode.ChildNodes.FindNode('GSTClassCode')
+	else
+		CNode := Nil;
+	for I := low(clGST_Class_Codes) to High(clGST_Class_Codes) do begin
+		if Assigned(CNode) then begin
 			clGST_Class_Codes[I] := CNode.Nodevalue;
-			Cnode := CNode.NextSibling;
-		end;
+			CNode := CNode.NextSibling;
+		end else
+			clGST_Class_Codes[I] := ''
 	end;
 
 	clTax_Ledger_Code := GetTextAttr(Result, 'TaxLedgerCode');
 	clEOY_Locked_SB_Only := GetBoolAttr(Result, 'EOYLockedSBOnly');
-	GetArray(Result, 'BASFieldNumber', clBAS_Field_Number);
-	GetArray(Result, 'BASFieldSource', clBAS_Field_Source);
+	GetArray(Result, 'BASFieldNumbers', clBAS_Field_Number);
+	GetArray(Result, 'BASFieldSources', clBAS_Field_Source);
 	
-	PNode := Node.ChildNodes.FindNode('BASFieldAccountCodes');
-	if Assigned(PNode) then begin;
-		I := Low(clBAS_Field_Account_Code);
-		CNode := PNode.ChildNodes.FindNode('BASFieldAccountCode');
-		while assigned(CNode) and (I <= High(clBAS_Field_Account_Code)) do begin
+	PNode := Result.ChildNodes.FindNode('BASFieldAccountCodes');
+	if Assigned(PNode) then
+		CNode := PNode.ChildNodes.FindNode('BASFieldAccountCode')
+	else
+		CNode := Nil;
+	for I := low(clBAS_Field_Account_Code) to High(clBAS_Field_Account_Code) do begin
+		if Assigned(CNode) then begin
 			clBAS_Field_Account_Code[I] := CNode.Nodevalue;
-			Cnode := CNode.NextSibling;
-		end;
+			CNode := CNode.NextSibling;
+		end else
+			clBAS_Field_Account_Code[I] := ''
 	end;
 
-	GetArray(Result, 'BASFieldBalanceType', clBAS_Field_Balance_Type);
+	GetArray(Result, 'BASFieldBalanceTypes', clBAS_Field_Balance_Type);
 	GetArray(Result, 'BASFieldPercent', clBAS_Field_Percent);
 	GetArray(Result, 'GSTBusinessPercent', clGST_Business_Percent);
 	clBAS_Calculation_Method := GetIntAttr(Result, 'BASCalculationMethod');
@@ -735,28 +841,43 @@ begin
 	clSpare_Byte_1 := GetIntAttr(Result, 'SpareByte1');
 	clSpare_Byte_2 := GetIntAttr(Result, 'SpareByte2');
 	clPractice_Code := GetTextAttr(Result, 'PracticeCode');
-	GetArray(Result, 'CashJColumnOrder', clCashJ_Column_Order);
-	GetArray(Result, 'CashJColumnWidth', clCashJ_Column_Width);
+	GetArray(Result, 'CashJColumnOrders', clCashJ_Column_Order);
+	GetArray(Result, 'CashJColumnWidths', clCashJ_Column_Width);
+	GetArray(Result, 'CashJColumnisHiddens', clCashJ_Column_is_Hidden);
+	GetArray(Result, 'CashJColumnisNotEditables', clCashJ_Column_is_Not_Editable);
 	clCashJ_Sort_Order := GetIntAttr(Result, 'CashJSortOrder');
-	GetArray(Result, 'AcrlJColumnOrder', clAcrlJ_Column_Order);
-	GetArray(Result, 'AcrlJColumnWidth', clAcrlJ_Column_Width);
+	GetArray(Result, 'AcrlJColumnOrders', clAcrlJ_Column_Order);
+	GetArray(Result, 'AcrlJColumnWidths', clAcrlJ_Column_Width);
+	GetArray(Result, 'AcrlJColumnisHiddens', clAcrlJ_Column_is_Hidden);
+	GetArray(Result, 'AcrlJColumnisNotEditables', clAcrlJ_Column_is_Not_Editable);
 	clAcrlJ_Sort_Order := GetIntAttr(Result, 'AcrlJSortOrder');
-	GetArray(Result, 'StockJColumnOrder', clStockJ_Column_Order);
-	GetArray(Result, 'StockJColumnWidth', clStockJ_Column_Width);
+	GetArray(Result, 'StockJColumnOrders', clStockJ_Column_Order);
+	GetArray(Result, 'StockJColumnWidths', clStockJ_Column_Width);
+	GetArray(Result, 'StockJColumnisHiddens', clStockJ_Column_is_Hidden);
+	GetArray(Result, 'StockJColumnisNotEditables', clStockJ_Column_is_Not_Editable);
 	clStockJ_Sort_Order := GetIntAttr(Result, 'StockJSortOrder');
-	GetArray(Result, 'YrEJColumnOrder', clYrEJ_Column_Order);
-	GetArray(Result, 'YrEJColumnWidth', clYrEJ_Column_Width);
+	GetArray(Result, 'YrEJColumnOrders', clYrEJ_Column_Order);
+	GetArray(Result, 'YrEJColumnWidths', clYrEJ_Column_Width);
+	GetArray(Result, 'YrEJColumnisHiddens', clYrEJ_Column_is_Hidden);
+	GetArray(Result, 'YrEJColumnisNotEditables', clYrEJ_Column_is_Not_Editable);
 	clYrEJ_Sort_Order := GetIntAttr(Result, 'YrEJSortOrder');
-	GetArray(Result, 'gstJColumnOrder', clgstJ_Column_Order);
-	GetArray(Result, 'gstJColumnWidth', clgstJ_Column_Width);
+	GetArray(Result, 'gstJColumnOrders', clgstJ_Column_Order);
+	GetArray(Result, 'gstJColumnWidths', clgstJ_Column_Width);
+	GetArray(Result, 'gstJColumnisHiddens', clgstJ_Column_is_Hidden);
+	GetArray(Result, 'gstJColumnisNotEditables', clgstJ_Column_is_Not_Editable);
 	clgstJ_Sort_Order := GetIntAttr(Result, 'gstJSortOrder');
 	clFavourite_Report_XML := GetTextAttr(Result, 'FavouriteReportXML');
 	clAll_EditMode_CES := GetBoolAttr(Result, 'AllEditModeCES');
 	clAll_EditMode_DIS := GetBoolAttr(Result, 'AllEditModeDIS');
 	clTFN := GetTextAttr(Result, 'TFN');
-	GetArray(Result, 'BudgetColumnWidth', clBudget_Column_Width);
+	GetArray(Result, 'AllEditModeJournals', clAll_EditMode_Journals);
+	GetArray(Result, 'BudgetColumnWidths', clBudget_Column_Width);
+	except
+		on E: Exception do ReRaise (E, 'Reading TClient_Rec');
+	end;
 
 	CNode := nil;
+	CCNode := nil;
 	PNode := nil;
 end;
 
@@ -769,8 +890,8 @@ end;
 
 
 function TAccount_RecHelper.WriteRecToNode(var Node: IXMLNode): IXMLNode;
-var PNode, CNode: IXMLNode;
-	I: Integer;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J, M: Integer;
 begin
 	Result := Node.AddChild(GetXMLNodeName);
 	SetTextAttr(Result, 'AccountCode', chAccount_Code);
@@ -792,21 +913,22 @@ begin
 	SetTextAttr(Result, 'LinkedAccountOS', chLinked_Account_OS);
 	SetTextAttr(Result, 'LinkedAccountCS', chLinked_Account_CS);
 	SetBoolAttr(Result, 'HideInBasicChart', chHide_In_Basic_Chart);
-	SetIntAttr(Result, 'AuditRecordID', chAudit_Record_ID);
 
 	CNode := nil;
+	CCNode := nil;
 	PNode := nil;
 end;
 
 
 function TAccount_RecHelper.ReadRecFromNode(Node :IXMLNode): IXMLNode;
-var PNode, CNode: IXMLNode;
-	I: Integer;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J: Integer;
 begin
 	if Node.NodeName = GetXMLNodeName then Result := Node
 	else
 	Result := Node.ChildNodes.FindNode(GetXMLNodeName);
 	if not assigned(Result) then exit;
+	try
 	chAccount_Code := GetTextAttr(Result, 'AccountCode');
 	chChart_ID := GetTextAttr(Result, 'ChartID');
 	chAccount_Description := GetTextAttr(Result, 'AccountDescription');
@@ -826,9 +948,12 @@ begin
 	chLinked_Account_OS := GetTextAttr(Result, 'LinkedAccountOS');
 	chLinked_Account_CS := GetTextAttr(Result, 'LinkedAccountCS');
 	chHide_In_Basic_Chart := GetBoolAttr(Result, 'HideInBasicChart');
-	chAudit_Record_ID := GetIntAttr(Result, 'AuditRecordID');
+	except
+		on E: Exception do ReRaise (E, 'Reading TAccount_Rec');
+	end;
 
 	CNode := nil;
+	CCNode := nil;
 	PNode := nil;
 end;
 
@@ -841,14 +966,18 @@ end;
 
 
 function TPayee_RecHelper.WriteRecToNode(var Node: IXMLNode): IXMLNode;
-var PNode, CNode: IXMLNode;
-	I: Integer;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J, M: Integer;
 begin
 	Result := Node.AddChild(GetXMLNodeName);
 	SetIntAttr(Result, 'Number', pyNumber);
 	SetTextAttr(Result, 'Name', pyName);
 	PNode := Result.AddChild('Accounts');
-	for I := Low(pyAccount) to High(pyAccount) do begin
+	M :=  Low(pyAccount);
+	for I := Low(pyAccount) to High(pyAccount) do
+		if  pyAccount[I] > '' then
+			M := I;
+	for I := Low(pyAccount) to M do begin
 		CNode := PNode.AddChild('Account');
 		CNode.NodeValue := pyAccount[I];
 	end;
@@ -856,55 +985,69 @@ begin
 	SetArray(Result, 'GSTClass', pyGST_Class);
 	SetArray(Result, 'GSTHasBeenEditeds', pyGST_Has_Been_Edited);
 	PNode := Result.AddChild('GLNarrations');
-	for I := Low(pyGL_Narration) to High(pyGL_Narration) do begin
+	M :=  Low(pyGL_Narration);
+	for I := Low(pyGL_Narration) to High(pyGL_Narration) do
+		if  pyGL_Narration[I] > '' then
+			M := I;
+	for I := Low(pyGL_Narration) to M do begin
 		CNode := PNode.AddChild('GLNarration');
 		CNode.NodeValue := pyGL_Narration[I];
 	end;
-	SetIntAttr(Result, 'AuditRecordID', pyAudit_Record_ID);
 
 	CNode := nil;
+	CCNode := nil;
 	PNode := nil;
 end;
 
 
 function TPayee_RecHelper.ReadRecFromNode(Node :IXMLNode): IXMLNode;
-var PNode, CNode: IXMLNode;
-	I: Integer;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J: Integer;
 begin
 	if Node.NodeName = GetXMLNodeName then Result := Node
 	else
 	Result := Node.ChildNodes.FindNode(GetXMLNodeName);
 	if not assigned(Result) then exit;
+	try
 	pyNumber := GetIntAttr(Result, 'Number');
 	pyName := GetTextAttr(Result, 'Name');
 	
-	PNode := Node.ChildNodes.FindNode('Accounts');
-	if Assigned(PNode) then begin;
-		I := Low(pyAccount);
-		CNode := PNode.ChildNodes.FindNode('Account');
-		while assigned(CNode) and (I <= High(pyAccount)) do begin
+	PNode := Result.ChildNodes.FindNode('Accounts');
+	if Assigned(PNode) then
+		CNode := PNode.ChildNodes.FindNode('Account')
+	else
+		CNode := Nil;
+	for I := low(pyAccount) to High(pyAccount) do begin
+		if Assigned(CNode) then begin
 			pyAccount[I] := CNode.Nodevalue;
-			Cnode := CNode.NextSibling;
-		end;
+			CNode := CNode.NextSibling;
+		end else
+			pyAccount[I] := ''
 	end;
 
 	GetArray(Result, 'Percentage', pyPercentage);
 	GetArray(Result, 'GSTClass', pyGST_Class);
 	GetArray(Result, 'GSTHasBeenEdited', pyGST_Has_Been_Edited);
 	
-	PNode := Node.ChildNodes.FindNode('GLNarrations');
-	if Assigned(PNode) then begin;
-		I := Low(pyGL_Narration);
-		CNode := PNode.ChildNodes.FindNode('GLNarration');
-		while assigned(CNode) and (I <= High(pyGL_Narration)) do begin
+	PNode := Result.ChildNodes.FindNode('GLNarrations');
+	if Assigned(PNode) then
+		CNode := PNode.ChildNodes.FindNode('GLNarration')
+	else
+		CNode := Nil;
+	for I := low(pyGL_Narration) to High(pyGL_Narration) do begin
+		if Assigned(CNode) then begin
 			pyGL_Narration[I] := CNode.Nodevalue;
-			Cnode := CNode.NextSibling;
-		end;
+			CNode := CNode.NextSibling;
+		end else
+			pyGL_Narration[I] := ''
 	end;
 
-	pyAudit_Record_ID := GetIntAttr(Result, 'AuditRecordID');
+	except
+		on E: Exception do ReRaise (E, 'Reading TPayee_Rec');
+	end;
 
 	CNode := nil;
+	CCNode := nil;
 	PNode := nil;
 end;
 
@@ -917,32 +1060,36 @@ end;
 
 
 function TPayee_Detail_RecHelper.WriteRecToNode(var Node: IXMLNode): IXMLNode;
-var PNode, CNode: IXMLNode;
-	I: Integer;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J, M: Integer;
 begin
 	Result := Node.AddChild(GetXMLNodeName);
 	SetIntAttr(Result, 'Number', pdNumber);
 	SetTextAttr(Result, 'Name', pdName);
-	SetIntAttr(Result, 'AuditRecordID', pdAudit_Record_ID);
 
 	CNode := nil;
+	CCNode := nil;
 	PNode := nil;
 end;
 
 
 function TPayee_Detail_RecHelper.ReadRecFromNode(Node :IXMLNode): IXMLNode;
-var PNode, CNode: IXMLNode;
-	I: Integer;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J: Integer;
 begin
 	if Node.NodeName = GetXMLNodeName then Result := Node
 	else
 	Result := Node.ChildNodes.FindNode(GetXMLNodeName);
 	if not assigned(Result) then exit;
+	try
 	pdNumber := GetIntAttr(Result, 'Number');
 	pdName := GetTextAttr(Result, 'Name');
-	pdAudit_Record_ID := GetIntAttr(Result, 'AuditRecordID');
+	except
+		on E: Exception do ReRaise (E, 'Reading TPayee_Detail_Rec');
+	end;
 
 	CNode := nil;
+	CCNode := nil;
 	PNode := nil;
 end;
 
@@ -955,8 +1102,8 @@ end;
 
 
 function TPayee_Line_RecHelper.WriteRecToNode(var Node: IXMLNode): IXMLNode;
-var PNode, CNode: IXMLNode;
-	I: Integer;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J, M: Integer;
 begin
 	Result := Node.AddChild(GetXMLNodeName);
 	SetTextAttr(Result, 'Account', plAccount);
@@ -999,21 +1146,22 @@ begin
 	SetBoolAttr(Result, 'SFCapitalGainsFractionHalf', plSF_Capital_Gains_Fraction_Half);
 	SetIntAttr(Result, 'SFLedgerID', plSF_Ledger_ID);
 	SetTextAttr(Result, 'SFLedgerName', plSF_Ledger_Name);
-	SetIntAttr(Result, 'AuditRecordID', plAudit_Record_ID);
 
 	CNode := nil;
+	CCNode := nil;
 	PNode := nil;
 end;
 
 
 function TPayee_Line_RecHelper.ReadRecFromNode(Node :IXMLNode): IXMLNode;
-var PNode, CNode: IXMLNode;
-	I: Integer;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J: Integer;
 begin
 	if Node.NodeName = GetXMLNodeName then Result := Node
 	else
 	Result := Node.ChildNodes.FindNode(GetXMLNodeName);
 	if not assigned(Result) then exit;
+	try
 	plAccount := GetTextAttr(Result, 'Account');
 	plPercentage := GetInt64Attr(Result, 'Percentage');
 	plGST_Class := GetIntAttr(Result, 'GSTClass');
@@ -1054,9 +1202,12 @@ begin
 	plSF_Capital_Gains_Fraction_Half := GetBoolAttr(Result, 'SFCapitalGainsFractionHalf');
 	plSF_Ledger_ID := GetIntAttr(Result, 'SFLedgerID');
 	plSF_Ledger_Name := GetTextAttr(Result, 'SFLedgerName');
-	plAudit_Record_ID := GetIntAttr(Result, 'AuditRecordID');
+	except
+		on E: Exception do ReRaise (E, 'Reading TPayee_Line_Rec');
+	end;
 
 	CNode := nil;
+	CCNode := nil;
 	PNode := nil;
 end;
 
@@ -1069,8 +1220,8 @@ end;
 
 
 function TBudget_Header_RecHelper.WriteRecToNode(var Node: IXMLNode): IXMLNode;
-var PNode, CNode: IXMLNode;
-	I: Integer;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J, M: Integer;
 begin
 	Result := Node.AddChild(GetXMLNodeName);
 	SetIntAttr(Result, 'StartDate', buStart_Date);
@@ -1079,24 +1230,30 @@ begin
 	SetBoolAttr(Result, 'IsInclusive', buIs_Inclusive);
 
 	CNode := nil;
+	CCNode := nil;
 	PNode := nil;
 end;
 
 
 function TBudget_Header_RecHelper.ReadRecFromNode(Node :IXMLNode): IXMLNode;
-var PNode, CNode: IXMLNode;
-	I: Integer;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J: Integer;
 begin
 	if Node.NodeName = GetXMLNodeName then Result := Node
 	else
 	Result := Node.ChildNodes.FindNode(GetXMLNodeName);
 	if not assigned(Result) then exit;
+	try
 	buStart_Date := GetIntAttr(Result, 'StartDate');
 	buName := GetTextAttr(Result, 'Name');
 	buEstimated_Opening_Bank_Balance := GetInt64Attr(Result, 'EstimatedOpeningBankBalance');
 	buIs_Inclusive := GetBoolAttr(Result, 'IsInclusive');
+	except
+		on E: Exception do ReRaise (E, 'Reading TBudget_Header_Rec');
+	end;
 
 	CNode := nil;
+	CCNode := nil;
 	PNode := nil;
 end;
 
@@ -1109,8 +1266,8 @@ end;
 
 
 function TBudget_Detail_RecHelper.WriteRecToNode(var Node: IXMLNode): IXMLNode;
-var PNode, CNode: IXMLNode;
-	I: Integer;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J, M: Integer;
 begin
 	Result := Node.AddChild(GetXMLNodeName);
 	SetTextAttr(Result, 'AccountCode', bdAccount_Code);
@@ -1119,24 +1276,30 @@ begin
 	SetArray(Result, 'EachBudgets', bdEach_Budget);
 
 	CNode := nil;
+	CCNode := nil;
 	PNode := nil;
 end;
 
 
 function TBudget_Detail_RecHelper.ReadRecFromNode(Node :IXMLNode): IXMLNode;
-var PNode, CNode: IXMLNode;
-	I: Integer;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J: Integer;
 begin
 	if Node.NodeName = GetXMLNodeName then Result := Node
 	else
 	Result := Node.ChildNodes.FindNode(GetXMLNodeName);
 	if not assigned(Result) then exit;
+	try
 	bdAccount_Code := GetTextAttr(Result, 'AccountCode');
-	GetArray(Result, 'Budget', bdBudget);
-	GetArray(Result, 'QtyBudget', bdQty_Budget);
-	GetArray(Result, 'EachBudget', bdEach_Budget);
+	GetArray(Result, 'Budgets', bdBudget);
+	GetArray(Result, 'QtyBudgets', bdQty_Budget);
+	GetArray(Result, 'EachBudgets', bdEach_Budget);
+	except
+		on E: Exception do ReRaise (E, 'Reading TBudget_Detail_Rec');
+	end;
 
 	CNode := nil;
+	CCNode := nil;
 	PNode := nil;
 end;
 
@@ -1149,8 +1312,8 @@ end;
 
 
 function TDisk_Log_RecHelper.WriteRecToNode(var Node: IXMLNode): IXMLNode;
-var PNode, CNode: IXMLNode;
-	I: Integer;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J, M: Integer;
 begin
 	Result := Node.AddChild(GetXMLNodeName);
 	SetTextAttr(Result, 'DiskID', dlDisk_ID);
@@ -1159,24 +1322,30 @@ begin
 	SetIntAttr(Result, 'NoofEntries', dlNo_of_Entries);
 
 	CNode := nil;
+	CCNode := nil;
 	PNode := nil;
 end;
 
 
 function TDisk_Log_RecHelper.ReadRecFromNode(Node :IXMLNode): IXMLNode;
-var PNode, CNode: IXMLNode;
-	I: Integer;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J: Integer;
 begin
 	if Node.NodeName = GetXMLNodeName then Result := Node
 	else
 	Result := Node.ChildNodes.FindNode(GetXMLNodeName);
 	if not assigned(Result) then exit;
+	try
 	dlDisk_ID := GetTextAttr(Result, 'DiskID');
 	dlDate_Downloaded := GetIntAttr(Result, 'DateDownloaded');
 	dlNo_of_Accounts := GetIntAttr(Result, 'NoofAccounts');
 	dlNo_of_Entries := GetIntAttr(Result, 'NoofEntries');
+	except
+		on E: Exception do ReRaise (E, 'Reading TDisk_Log_Rec');
+	end;
 
 	CNode := nil;
+	CCNode := nil;
 	PNode := nil;
 end;
 
@@ -1189,8 +1358,8 @@ end;
 
 
 function TMemorisation_Detail_RecHelper.WriteRecToNode(var Node: IXMLNode): IXMLNode;
-var PNode, CNode: IXMLNode;
-	I: Integer;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J, M: Integer;
 begin
 	Result := Node.AddChild(GetXMLNodeName);
 	SetIntAttr(Result, 'SequenceNo', mdSequence_No);
@@ -1216,21 +1385,22 @@ begin
 	SetIntAttr(Result, 'AccountingSystem', mdAccounting_System);
 	SetIntAttr(Result, 'FromDate', mdFrom_Date);
 	SetIntAttr(Result, 'UntilDate', mdUntil_Date);
-	SetIntAttr(Result, 'AuditRecordID', mdAudit_Record_ID);
 
 	CNode := nil;
+	CCNode := nil;
 	PNode := nil;
 end;
 
 
 function TMemorisation_Detail_RecHelper.ReadRecFromNode(Node :IXMLNode): IXMLNode;
-var PNode, CNode: IXMLNode;
-	I: Integer;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J: Integer;
 begin
 	if Node.NodeName = GetXMLNodeName then Result := Node
 	else
 	Result := Node.ChildNodes.FindNode(GetXMLNodeName);
 	if not assigned(Result) then exit;
+	try
 	mdSequence_No := GetIntAttr(Result, 'SequenceNo');
 	mdType := GetIntAttr(Result, 'Type');
 	mdAmount := GetInt64Attr(Result, 'Amount');
@@ -1254,9 +1424,12 @@ begin
 	mdAccounting_System := GetIntAttr(Result, 'AccountingSystem');
 	mdFrom_Date := GetIntAttr(Result, 'FromDate');
 	mdUntil_Date := GetIntAttr(Result, 'UntilDate');
-	mdAudit_Record_ID := GetIntAttr(Result, 'AuditRecordID');
+	except
+		on E: Exception do ReRaise (E, 'Reading TMemorisation_Detail_Rec');
+	end;
 
 	CNode := nil;
+	CCNode := nil;
 	PNode := nil;
 end;
 
@@ -1269,8 +1442,8 @@ end;
 
 
 function TMemorisation_Line_RecHelper.WriteRecToNode(var Node: IXMLNode): IXMLNode;
-var PNode, CNode: IXMLNode;
-	I: Integer;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J, M: Integer;
 begin
 	Result := Node.AddChild(GetXMLNodeName);
 	SetTextAttr(Result, 'Account', mlAccount);
@@ -1313,21 +1486,22 @@ begin
 	SetInt64Attr(Result, 'SFNonResidentTax', mlSF_Non_Resident_Tax);
 	SetInt64Attr(Result, 'SFForeignCapitalGainsCredit', mlSF_Foreign_Capital_Gains_Credit);
 	SetBoolAttr(Result, 'SFCapitalGainsFractionHalf', mlSF_Capital_Gains_Fraction_Half);
-	SetIntAttr(Result, 'AuditRecordID', mlAudit_Record_ID);
 
 	CNode := nil;
+	CCNode := nil;
 	PNode := nil;
 end;
 
 
 function TMemorisation_Line_RecHelper.ReadRecFromNode(Node :IXMLNode): IXMLNode;
-var PNode, CNode: IXMLNode;
-	I: Integer;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J: Integer;
 begin
 	if Node.NodeName = GetXMLNodeName then Result := Node
 	else
 	Result := Node.ChildNodes.FindNode(GetXMLNodeName);
 	if not assigned(Result) then exit;
+	try
 	mlAccount := GetTextAttr(Result, 'Account');
 	mlPercentage := GetInt64Attr(Result, 'Percentage');
 	mlGST_Class := GetIntAttr(Result, 'GSTClass');
@@ -1368,9 +1542,12 @@ begin
 	mlSF_Non_Resident_Tax := GetInt64Attr(Result, 'SFNonResidentTax');
 	mlSF_Foreign_Capital_Gains_Credit := GetInt64Attr(Result, 'SFForeignCapitalGainsCredit');
 	mlSF_Capital_Gains_Fraction_Half := GetBoolAttr(Result, 'SFCapitalGainsFractionHalf');
-	mlAudit_Record_ID := GetIntAttr(Result, 'AuditRecordID');
+	except
+		on E: Exception do ReRaise (E, 'Reading TMemorisation_Line_Rec');
+	end;
 
 	CNode := nil;
+	CCNode := nil;
 	PNode := nil;
 end;
 
@@ -1383,8 +1560,8 @@ end;
 
 
 function TBank_Account_RecHelper.WriteRecToNode(var Node: IXMLNode): IXMLNode;
-var PNode, CNode: IXMLNode;
-	I: Integer;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J, M: Integer;
 begin
 	Result := Node.AddChild(GetXMLNodeName);
 	SetTextAttr(Result, 'BankAccountNumber', baBank_Account_Number);
@@ -1399,11 +1576,13 @@ begin
 	SetIntAttr(Result, 'PreferredView', baPreferred_View);
 	SetIntAttr(Result, 'HighestBankLinkID', baHighest_BankLink_ID);
 	SetIntAttr(Result, 'HighestLRN', baHighest_LRN);
+	SetArray(Result, 'ColumnisHiddens', baColumn_is_Hidden);
 	SetIntAttr(Result, 'AccountExpiryDate', baAccount_Expiry_Date);
 	SetIntAttr(Result, 'HighestMatchedItemID', baHighest_Matched_Item_ID);
 	SetBoolAttr(Result, 'NotesAlwaysVisible', baNotes_Always_Visible);
 	SetIntAttr(Result, 'NotesHeight', baNotes_Height);
 	SetIntAttr(Result, 'LastECodingTransactionUID', baLast_ECoding_Transaction_UID);
+	SetArray(Result, 'ColumnIsNotEditables', baColumn_Is_Not_Editable);
 	SetBoolAttr(Result, 'ExtendExpiryDate', baExtend_Expiry_Date);
 	SetBoolAttr(Result, 'IsAManualAccount', baIs_A_Manual_Account);
 	SetIntAttr(Result, 'AnalysisCodingLevel', baAnalysis_Coding_Level);
@@ -1418,33 +1597,40 @@ begin
 	SetIntAttr(Result, 'SpareByte', baSpare_Byte);
 	SetArray(Result, 'HDEColumnOrders', baHDE_Column_Order);
 	SetArray(Result, 'HDEColumnWidths', baHDE_Column_Width);
+	SetArray(Result, 'HDEColumnisHiddens', baHDE_Column_is_Hidden);
+	SetArray(Result, 'HDEColumnisNotEditables', baHDE_Column_is_Not_Editable);
 	SetIntAttr(Result, 'HDESortOrder', baHDE_Sort_Order);
 	SetArray(Result, 'MDEColumnOrders', baMDE_Column_Order);
 	SetArray(Result, 'MDEColumnWidths', baMDE_Column_Width);
+	SetArray(Result, 'MDEColumnisHiddens', baMDE_Column_is_Hidden);
+	SetArray(Result, 'MDEColumnisNotEditables', baMDE_Column_is_Not_Editable);
 	SetIntAttr(Result, 'MDESortOrder', baMDE_Sort_Order);
 	SetArray(Result, 'DISColumnOrders', baDIS_Column_Order);
 	SetArray(Result, 'DISColumnWidths', baDIS_Column_Width);
+	SetArray(Result, 'DISColumnisHiddens', baDIS_Column_is_Hidden);
+	SetArray(Result, 'DISColumnisNotEditables', baDIS_Column_is_Not_Editable);
 	SetIntAttr(Result, 'DISSortOrder', baDIS_Sort_Order);
 	SetIntAttr(Result, 'DesktopSuperLedgerID', baDesktop_Super_Ledger_ID);
 	SetTextAttr(Result, 'CurrencyCode', baCurrency_Code);
 	SetTextAttr(Result, 'DefaultForexSource', baDefault_Forex_Source);
 	SetTextAttr(Result, 'DefaultForexDescription', baDefault_Forex_Description);
 	SetTextAttr(Result, 'SuperFundLedgerCode', baSuperFund_Ledger_Code);
-	SetIntAttr(Result, 'AuditRecordID', baAudit_Record_ID);
 
 	CNode := nil;
+	CCNode := nil;
 	PNode := nil;
 end;
 
 
 function TBank_Account_RecHelper.ReadRecFromNode(Node :IXMLNode): IXMLNode;
-var PNode, CNode: IXMLNode;
-	I: Integer;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J: Integer;
 begin
 	if Node.NodeName = GetXMLNodeName then Result := Node
 	else
 	Result := Node.ChildNodes.FindNode(GetXMLNodeName);
 	if not assigned(Result) then exit;
+	try
 	baBank_Account_Number := GetTextAttr(Result, 'BankAccountNumber');
 	baBank_Account_Name := GetTextAttr(Result, 'BankAccountName');
 	baBank_Account_Password := GetTextAttr(Result, 'BankAccountPassword');
@@ -1452,16 +1638,18 @@ begin
 	baCurrent_Balance := GetInt64Attr(Result, 'CurrentBalance');
 	baApply_Master_Memorised_Entries := GetBoolAttr(Result, 'ApplyMasterMemorisedEntries');
 	baAccount_Type := GetIntAttr(Result, 'AccountType');
-	GetArray(Result, 'ColumnOrder', baColumn_Order);
-	GetArray(Result, 'ColumnWidth', baColumn_Width);
+	GetArray(Result, 'ColumnOrders', baColumn_Order);
+	GetArray(Result, 'ColumnWidths', baColumn_Width);
 	baPreferred_View := GetIntAttr(Result, 'PreferredView');
 	baHighest_BankLink_ID := GetIntAttr(Result, 'HighestBankLinkID');
 	baHighest_LRN := GetIntAttr(Result, 'HighestLRN');
+	GetArray(Result, 'ColumnisHiddens', baColumn_is_Hidden);
 	baAccount_Expiry_Date := GetIntAttr(Result, 'AccountExpiryDate');
 	baHighest_Matched_Item_ID := GetIntAttr(Result, 'HighestMatchedItemID');
 	baNotes_Always_Visible := GetBoolAttr(Result, 'NotesAlwaysVisible');
 	baNotes_Height := GetIntAttr(Result, 'NotesHeight');
 	baLast_ECoding_Transaction_UID := GetIntAttr(Result, 'LastECodingTransactionUID');
+	GetArray(Result, 'ColumnIsNotEditables', baColumn_Is_Not_Editable);
 	baExtend_Expiry_Date := GetBoolAttr(Result, 'ExtendExpiryDate');
 	baIs_A_Manual_Account := GetBoolAttr(Result, 'IsAManualAccount');
 	baAnalysis_Coding_Level := GetIntAttr(Result, 'AnalysisCodingLevel');
@@ -1474,23 +1662,32 @@ begin
 	baIs_A_Provisional_Account := GetBoolAttr(Result, 'IsAProvisionalAccount');
 	baSpare_Number := GetIntAttr(Result, 'SpareNumber');
 	baSpare_Byte := GetIntAttr(Result, 'SpareByte');
-	GetArray(Result, 'HDEColumnOrder', baHDE_Column_Order);
-	GetArray(Result, 'HDEColumnWidth', baHDE_Column_Width);
+	GetArray(Result, 'HDEColumnOrders', baHDE_Column_Order);
+	GetArray(Result, 'HDEColumnWidths', baHDE_Column_Width);
+	GetArray(Result, 'HDEColumnisHiddens', baHDE_Column_is_Hidden);
+	GetArray(Result, 'HDEColumnisNotEditables', baHDE_Column_is_Not_Editable);
 	baHDE_Sort_Order := GetIntAttr(Result, 'HDESortOrder');
-	GetArray(Result, 'MDEColumnOrder', baMDE_Column_Order);
-	GetArray(Result, 'MDEColumnWidth', baMDE_Column_Width);
+	GetArray(Result, 'MDEColumnOrders', baMDE_Column_Order);
+	GetArray(Result, 'MDEColumnWidths', baMDE_Column_Width);
+	GetArray(Result, 'MDEColumnisHiddens', baMDE_Column_is_Hidden);
+	GetArray(Result, 'MDEColumnisNotEditables', baMDE_Column_is_Not_Editable);
 	baMDE_Sort_Order := GetIntAttr(Result, 'MDESortOrder');
-	GetArray(Result, 'DISColumnOrder', baDIS_Column_Order);
-	GetArray(Result, 'DISColumnWidth', baDIS_Column_Width);
+	GetArray(Result, 'DISColumnOrders', baDIS_Column_Order);
+	GetArray(Result, 'DISColumnWidths', baDIS_Column_Width);
+	GetArray(Result, 'DISColumnisHiddens', baDIS_Column_is_Hidden);
+	GetArray(Result, 'DISColumnisNotEditables', baDIS_Column_is_Not_Editable);
 	baDIS_Sort_Order := GetIntAttr(Result, 'DISSortOrder');
 	baDesktop_Super_Ledger_ID := GetIntAttr(Result, 'DesktopSuperLedgerID');
 	baCurrency_Code := GetTextAttr(Result, 'CurrencyCode');
 	baDefault_Forex_Source := GetTextAttr(Result, 'DefaultForexSource');
 	baDefault_Forex_Description := GetTextAttr(Result, 'DefaultForexDescription');
 	baSuperFund_Ledger_Code := GetTextAttr(Result, 'SuperFundLedgerCode');
-	baAudit_Record_ID := GetIntAttr(Result, 'AuditRecordID');
+	except
+		on E: Exception do ReRaise (E, 'Reading TBank_Account_Rec');
+	end;
 
 	CNode := nil;
+	CCNode := nil;
 	PNode := nil;
 end;
 
@@ -1503,8 +1700,8 @@ end;
 
 
 function TTransaction_RecHelper.WriteRecToNode(var Node: IXMLNode): IXMLNode;
-var PNode, CNode: IXMLNode;
-	I: Integer;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J, M: Integer;
 begin
 	Result := Node.AddChild(GetXMLNodeName);
 	SetIntAttr(Result, 'SequenceNo', txSequence_No);
@@ -1584,24 +1781,25 @@ begin
 	SetIntAttr(Result, 'SFTransactionID', txSF_Transaction_ID);
 	SetTextAttr(Result, 'SFTransactionCode', txSF_Transaction_Code);
 	SetBoolAttr(Result, 'SFCapitalGainsFractionHalf', txSF_Capital_Gains_Fraction_Half);
-	SetIntAttr(Result, 'AuditRecordID', txAudit_Record_ID);
 	SetTextAttr(Result, 'JobCode', txJob_Code);
 	SetInt64Attr(Result, 'SpareMoney1', txSpare_Money_1);
 	SetInt64Attr(Result, 'SpareMoney2', txSpare_Money_2);
 
 	CNode := nil;
+	CCNode := nil;
 	PNode := nil;
 end;
 
 
 function TTransaction_RecHelper.ReadRecFromNode(Node :IXMLNode): IXMLNode;
-var PNode, CNode: IXMLNode;
-	I: Integer;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J: Integer;
 begin
 	if Node.NodeName = GetXMLNodeName then Result := Node
 	else
 	Result := Node.ChildNodes.FindNode(GetXMLNodeName);
 	if not assigned(Result) then exit;
+	try
 	txSequence_No := GetIntAttr(Result, 'SequenceNo');
 	txLRN_NOW_UNUSED := GetIntAttr(Result, 'LRNNOWUNUSED');
 	txType := GetIntAttr(Result, 'Type');
@@ -1679,12 +1877,15 @@ begin
 	txSF_Transaction_ID := GetIntAttr(Result, 'SFTransactionID');
 	txSF_Transaction_Code := GetTextAttr(Result, 'SFTransactionCode');
 	txSF_Capital_Gains_Fraction_Half := GetBoolAttr(Result, 'SFCapitalGainsFractionHalf');
-	txAudit_Record_ID := GetIntAttr(Result, 'AuditRecordID');
 	txJob_Code := GetTextAttr(Result, 'JobCode');
 	txSpare_Money_1 := GetInt64Attr(Result, 'SpareMoney1');
 	txSpare_Money_2 := GetInt64Attr(Result, 'SpareMoney2');
+	except
+		on E: Exception do ReRaise (E, 'Reading TTransaction_Rec');
+	end;
 
 	CNode := nil;
+	CCNode := nil;
 	PNode := nil;
 end;
 
@@ -1697,8 +1898,8 @@ end;
 
 
 function TDissection_RecHelper.WriteRecToNode(var Node: IXMLNode): IXMLNode;
-var PNode, CNode: IXMLNode;
-	I: Integer;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J, M: Integer;
 begin
 	Result := Node.AddChild(GetXMLNodeName);
 	SetIntAttr(Result, 'SequenceNo', dsSequence_No);
@@ -1755,7 +1956,6 @@ begin
 	SetIntAttr(Result, 'SFTransactionID', dsSF_Transaction_ID);
 	SetTextAttr(Result, 'SFTransactionCode', dsSF_Transaction_Code);
 	SetBoolAttr(Result, 'SFCapitalGainsFractionHalf', dsSF_Capital_Gains_Fraction_Half);
-	SetIntAttr(Result, 'AuditRecordID', dsAudit_Record_ID);
 	SetTextAttr(Result, 'JobCode', dsJob_Code);
 	SetBoolAttr(Result, 'TaxInvoice', dsTax_Invoice);
 	SetInt64Attr(Result, 'ForeignCurrencyAmount', dsForeign_Currency_Amount);
@@ -1763,18 +1963,20 @@ begin
 	SetTextAttr(Result, 'OpeningBalanceCurrency', dsOpening_Balance_Currency);
 
 	CNode := nil;
+	CCNode := nil;
 	PNode := nil;
 end;
 
 
 function TDissection_RecHelper.ReadRecFromNode(Node :IXMLNode): IXMLNode;
-var PNode, CNode: IXMLNode;
-	I: Integer;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J: Integer;
 begin
 	if Node.NodeName = GetXMLNodeName then Result := Node
 	else
 	Result := Node.ChildNodes.FindNode(GetXMLNodeName);
 	if not assigned(Result) then exit;
+	try
 	dsSequence_No := GetIntAttr(Result, 'SequenceNo');
 	dsAccount := GetTextAttr(Result, 'Account');
 	dsAmount := GetInt64Attr(Result, 'Amount');
@@ -1829,14 +2031,17 @@ begin
 	dsSF_Transaction_ID := GetIntAttr(Result, 'SFTransactionID');
 	dsSF_Transaction_Code := GetTextAttr(Result, 'SFTransactionCode');
 	dsSF_Capital_Gains_Fraction_Half := GetBoolAttr(Result, 'SFCapitalGainsFractionHalf');
-	dsAudit_Record_ID := GetIntAttr(Result, 'AuditRecordID');
 	dsJob_Code := GetTextAttr(Result, 'JobCode');
 	dsTax_Invoice := GetBoolAttr(Result, 'TaxInvoice');
 	dsForeign_Currency_Amount := GetInt64Attr(Result, 'ForeignCurrencyAmount');
 	dsForex_Document_Date := GetIntAttr(Result, 'ForexDocumentDate');
 	dsOpening_Balance_Currency := GetTextAttr(Result, 'OpeningBalanceCurrency');
+	except
+		on E: Exception do ReRaise (E, 'Reading TDissection_Rec');
+	end;
 
 	CNode := nil;
+	CCNode := nil;
 	PNode := nil;
 end;
 
@@ -1849,8 +2054,8 @@ end;
 
 
 function TBalances_RecHelper.WriteRecToNode(var Node: IXMLNode): IXMLNode;
-var PNode, CNode: IXMLNode;
-	I: Integer;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J, M: Integer;
 begin
 	Result := Node.AddChild(GetXMLNodeName);
 	SetIntAttr(Result, 'GSTPeriodStarts', blGST_Period_Starts);
@@ -1915,22 +2120,23 @@ begin
 	SetBoolAttr(Result, 'UsingFuelPercentMethod', blUsing_Fuel_Percent_Method);
 	SetIntAttr(Result, 'PTFormType', blPT_Form_Type);
 	SetInt64Attr(Result, 'GSTCdjCustoms', blGST_Cdj_Customs);
-	SetIntAttr(Result, 'AuditRecordID', blAudit_Record_ID);
 	SetArray(Result, 'VATAdjustments', blVAT_Adjustments);
 
 	CNode := nil;
+	CCNode := nil;
 	PNode := nil;
 end;
 
 
 function TBalances_RecHelper.ReadRecFromNode(Node :IXMLNode): IXMLNode;
-var PNode, CNode: IXMLNode;
-	I: Integer;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J: Integer;
 begin
 	if Node.NodeName = GetXMLNodeName then Result := Node
 	else
 	Result := Node.ChildNodes.FindNode(GetXMLNodeName);
 	if not assigned(Result) then exit;
+	try
 	blGST_Period_Starts := GetIntAttr(Result, 'GSTPeriodStarts');
 	blGST_Period_Ends := GetIntAttr(Result, 'GSTPeriodEnds');
 	blClosing_Debtors_Balance := GetInt64Attr(Result, 'ClosingDebtorsBalance');
@@ -1993,10 +2199,13 @@ begin
 	blUsing_Fuel_Percent_Method := GetBoolAttr(Result, 'UsingFuelPercentMethod');
 	blPT_Form_Type := GetIntAttr(Result, 'PTFormType');
 	blGST_Cdj_Customs := GetInt64Attr(Result, 'GSTCdjCustoms');
-	blAudit_Record_ID := GetIntAttr(Result, 'AuditRecordID');
 	GetArray(Result, 'VATAdjustments', blVAT_Adjustments);
+	except
+		on E: Exception do ReRaise (E, 'Reading TBalances_Rec');
+	end;
 
 	CNode := nil;
+	CCNode := nil;
 	PNode := nil;
 end;
 
@@ -2009,34 +2218,38 @@ end;
 
 
 function TSubGroup_Heading_RecHelper.WriteRecToNode(var Node: IXMLNode): IXMLNode;
-var PNode, CNode: IXMLNode;
-	I: Integer;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J, M: Integer;
 begin
 	Result := Node.AddChild(GetXMLNodeName);
 	SetTextAttr(Result, 'Heading', shHeading);
 	SetIntAttr(Result, 'ReportGroupNo', shReport_Group_No);
 	SetIntAttr(Result, 'SubGroupNo', shSub_Group_No);
-	SetIntAttr(Result, 'AuditRecordID', shAudit_Record_ID);
 
 	CNode := nil;
+	CCNode := nil;
 	PNode := nil;
 end;
 
 
 function TSubGroup_Heading_RecHelper.ReadRecFromNode(Node :IXMLNode): IXMLNode;
-var PNode, CNode: IXMLNode;
-	I: Integer;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J: Integer;
 begin
 	if Node.NodeName = GetXMLNodeName then Result := Node
 	else
 	Result := Node.ChildNodes.FindNode(GetXMLNodeName);
 	if not assigned(Result) then exit;
+	try
 	shHeading := GetTextAttr(Result, 'Heading');
 	shReport_Group_No := GetIntAttr(Result, 'ReportGroupNo');
 	shSub_Group_No := GetIntAttr(Result, 'SubGroupNo');
-	shAudit_Record_ID := GetIntAttr(Result, 'AuditRecordID');
+	except
+		on E: Exception do ReRaise (E, 'Reading TSubGroup_Heading_Rec');
+	end;
 
 	CNode := nil;
+	CCNode := nil;
 	PNode := nil;
 end;
 
@@ -2049,32 +2262,36 @@ end;
 
 
 function TDivision_Heading_RecHelper.WriteRecToNode(var Node: IXMLNode): IXMLNode;
-var PNode, CNode: IXMLNode;
-	I: Integer;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J, M: Integer;
 begin
 	Result := Node.AddChild(GetXMLNodeName);
 	SetTextAttr(Result, 'Heading', dhHeading);
 	SetIntAttr(Result, 'DivisionNo', dhDivision_No);
-	SetIntAttr(Result, 'AuditRecordID', dhAudit_Record_ID);
 
 	CNode := nil;
+	CCNode := nil;
 	PNode := nil;
 end;
 
 
 function TDivision_Heading_RecHelper.ReadRecFromNode(Node :IXMLNode): IXMLNode;
-var PNode, CNode: IXMLNode;
-	I: Integer;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J: Integer;
 begin
 	if Node.NodeName = GetXMLNodeName then Result := Node
 	else
 	Result := Node.ChildNodes.FindNode(GetXMLNodeName);
 	if not assigned(Result) then exit;
+	try
 	dhHeading := GetTextAttr(Result, 'Heading');
 	dhDivision_No := GetIntAttr(Result, 'DivisionNo');
-	dhAudit_Record_ID := GetIntAttr(Result, 'AuditRecordID');
+	except
+		on E: Exception do ReRaise (E, 'Reading TDivision_Heading_Rec');
+	end;
 
 	CNode := nil;
+	CCNode := nil;
 	PNode := nil;
 end;
 
@@ -2087,8 +2304,8 @@ end;
 
 
 function TMemorised_Transaction_RecHelper.WriteRecToNode(var Node: IXMLNode): IXMLNode;
-var PNode, CNode: IXMLNode;
-	I: Integer;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J, M: Integer;
 begin
 	Result := Node.AddChild(GetXMLNodeName);
 	SetIntAttr(Result, 'SequenceNo', mxSequence_No);
@@ -2106,7 +2323,11 @@ begin
 	SetBoolAttr(Result, 'MatchonOtherParty', mxMatch_on_Other_Party);
 	SetBoolAttr(Result, 'MatchOnStatementDetails', mxMatch_On_Statement_Details);
 	PNode := Result.AddChild('Accounts');
-	for I := Low(mxAccount) to High(mxAccount) do begin
+	M :=  Low(mxAccount);
+	for I := Low(mxAccount) to High(mxAccount) do
+		if  mxAccount[I] > '' then
+			M := I;
+	for I := Low(mxAccount) to M do begin
 		CNode := PNode.AddChild('Account');
 		CNode.NodeValue := mxAccount[I];
 	end;
@@ -2118,26 +2339,31 @@ begin
 	SetBoolAttr(Result, 'MatchonNotes', mxMatch_on_Notes);
 	SetTextAttr(Result, 'Notes', mxNotes);
 	PNode := Result.AddChild('GLNarrations');
-	for I := Low(mxGL_Narration) to High(mxGL_Narration) do begin
+	M :=  Low(mxGL_Narration);
+	for I := Low(mxGL_Narration) to High(mxGL_Narration) do
+		if  mxGL_Narration[I] > '' then
+			M := I;
+	for I := Low(mxGL_Narration) to M do begin
 		CNode := PNode.AddChild('GLNarration');
 		CNode.NodeValue := mxGL_Narration[I];
 	end;
 	SetArray(Result, 'LineTypes', mxLine_Type);
-	SetIntAttr(Result, 'AuditRecordID', mxAudit_Record_ID);
 
 	CNode := nil;
+	CCNode := nil;
 	PNode := nil;
 end;
 
 
 function TMemorised_Transaction_RecHelper.ReadRecFromNode(Node :IXMLNode): IXMLNode;
-var PNode, CNode: IXMLNode;
-	I: Integer;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J: Integer;
 begin
 	if Node.NodeName = GetXMLNodeName then Result := Node
 	else
 	Result := Node.ChildNodes.FindNode(GetXMLNodeName);
 	if not assigned(Result) then exit;
+	try
 	mxSequence_No := GetIntAttr(Result, 'SequenceNo');
 	mxType := GetIntAttr(Result, 'Type');
 	mxAmount := GetInt64Attr(Result, 'Amount');
@@ -2153,14 +2379,17 @@ begin
 	mxMatch_on_Other_Party := GetBoolAttr(Result, 'MatchonOtherParty');
 	mxMatch_On_Statement_Details := GetBoolAttr(Result, 'MatchOnStatementDetails');
 	
-	PNode := Node.ChildNodes.FindNode('Accounts');
-	if Assigned(PNode) then begin;
-		I := Low(mxAccount);
-		CNode := PNode.ChildNodes.FindNode('Account');
-		while assigned(CNode) and (I <= High(mxAccount)) do begin
+	PNode := Result.ChildNodes.FindNode('Accounts');
+	if Assigned(PNode) then
+		CNode := PNode.ChildNodes.FindNode('Account')
+	else
+		CNode := Nil;
+	for I := low(mxAccount) to High(mxAccount) do begin
+		if Assigned(CNode) then begin
 			mxAccount[I] := CNode.Nodevalue;
-			Cnode := CNode.NextSibling;
-		end;
+			CNode := CNode.NextSibling;
+		end else
+			mxAccount[I] := ''
 	end;
 
 	GetArray(Result, 'Percentage', mxPercentage);
@@ -2171,20 +2400,26 @@ begin
 	mxMatch_on_Notes := GetBoolAttr(Result, 'MatchonNotes');
 	mxNotes := GetTextAttr(Result, 'Notes');
 	
-	PNode := Node.ChildNodes.FindNode('GLNarrations');
-	if Assigned(PNode) then begin;
-		I := Low(mxGL_Narration);
-		CNode := PNode.ChildNodes.FindNode('GLNarration');
-		while assigned(CNode) and (I <= High(mxGL_Narration)) do begin
+	PNode := Result.ChildNodes.FindNode('GLNarrations');
+	if Assigned(PNode) then
+		CNode := PNode.ChildNodes.FindNode('GLNarration')
+	else
+		CNode := Nil;
+	for I := low(mxGL_Narration) to High(mxGL_Narration) do begin
+		if Assigned(CNode) then begin
 			mxGL_Narration[I] := CNode.Nodevalue;
-			Cnode := CNode.NextSibling;
-		end;
+			CNode := CNode.NextSibling;
+		end else
+			mxGL_Narration[I] := ''
 	end;
 
-	GetArray(Result, 'LineType', mxLine_Type);
-	mxAudit_Record_ID := GetIntAttr(Result, 'AuditRecordID');
+	GetArray(Result, 'LineTypes', mxLine_Type);
+	except
+		on E: Exception do ReRaise (E, 'Reading TMemorised_Transaction_Rec');
+	end;
 
 	CNode := nil;
+	CCNode := nil;
 	PNode := nil;
 end;
 
@@ -2197,36 +2432,40 @@ end;
 
 
 function TCustom_Heading_RecHelper.WriteRecToNode(var Node: IXMLNode): IXMLNode;
-var PNode, CNode: IXMLNode;
-	I: Integer;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J, M: Integer;
 begin
 	Result := Node.AddChild(GetXMLNodeName);
 	SetIntAttr(Result, 'HeadingType', hdHeading_Type);
 	SetTextAttr(Result, 'Heading', hdHeading);
 	SetIntAttr(Result, 'MajorID', hdMajor_ID);
 	SetIntAttr(Result, 'MinorID', hdMinor_ID);
-	SetIntAttr(Result, 'AuditRecordID', hdAudit_Record_ID);
 
 	CNode := nil;
+	CCNode := nil;
 	PNode := nil;
 end;
 
 
 function TCustom_Heading_RecHelper.ReadRecFromNode(Node :IXMLNode): IXMLNode;
-var PNode, CNode: IXMLNode;
-	I: Integer;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J: Integer;
 begin
 	if Node.NodeName = GetXMLNodeName then Result := Node
 	else
 	Result := Node.ChildNodes.FindNode(GetXMLNodeName);
 	if not assigned(Result) then exit;
+	try
 	hdHeading_Type := GetIntAttr(Result, 'HeadingType');
 	hdHeading := GetTextAttr(Result, 'Heading');
 	hdMajor_ID := GetIntAttr(Result, 'MajorID');
 	hdMinor_ID := GetIntAttr(Result, 'MinorID');
-	hdAudit_Record_ID := GetIntAttr(Result, 'AuditRecordID');
+	except
+		on E: Exception do ReRaise (E, 'Reading TCustom_Heading_Rec');
+	end;
 
 	CNode := nil;
+	CCNode := nil;
 	PNode := nil;
 end;
 
@@ -2239,30 +2478,36 @@ end;
 
 
 function TMacro_RecHelper.WriteRecToNode(var Node: IXMLNode): IXMLNode;
-var PNode, CNode: IXMLNode;
-	I: Integer;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J, M: Integer;
 begin
 	Result := Node.AddChild(GetXMLNodeName);
 	SetTextAttr(Result, 'Code', maCode);
 	SetTextAttr(Result, 'Description', maDescription);
 
 	CNode := nil;
+	CCNode := nil;
 	PNode := nil;
 end;
 
 
 function TMacro_RecHelper.ReadRecFromNode(Node :IXMLNode): IXMLNode;
-var PNode, CNode: IXMLNode;
-	I: Integer;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J: Integer;
 begin
 	if Node.NodeName = GetXMLNodeName then Result := Node
 	else
 	Result := Node.ChildNodes.FindNode(GetXMLNodeName);
 	if not assigned(Result) then exit;
+	try
 	maCode := GetTextAttr(Result, 'Code');
 	maDescription := GetTextAttr(Result, 'Description');
+	except
+		on E: Exception do ReRaise (E, 'Reading TMacro_Rec');
+	end;
 
 	CNode := nil;
+	CCNode := nil;
 	PNode := nil;
 end;
 
@@ -2275,8 +2520,8 @@ end;
 
 
 function TFuel_Sheet_RecHelper.WriteRecToNode(var Node: IXMLNode): IXMLNode;
-var PNode, CNode: IXMLNode;
-	I: Integer;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J, M: Integer;
 begin
 	Result := Node.AddChild(GetXMLNodeName);
 	SetTextAttr(Result, 'Account', fsAccount);
@@ -2288,18 +2533,20 @@ begin
 	SetInt64Attr(Result, 'CreditRate', fsCredit_Rate);
 
 	CNode := nil;
+	CCNode := nil;
 	PNode := nil;
 end;
 
 
 function TFuel_Sheet_RecHelper.ReadRecFromNode(Node :IXMLNode): IXMLNode;
-var PNode, CNode: IXMLNode;
-	I: Integer;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J: Integer;
 begin
 	if Node.NodeName = GetXMLNodeName then Result := Node
 	else
 	Result := Node.ChildNodes.FindNode(GetXMLNodeName);
 	if not assigned(Result) then exit;
+	try
 	fsAccount := GetTextAttr(Result, 'Account');
 	fsFuel_Type := GetTextAttr(Result, 'FuelType');
 	fsFuel_Litres := GetInt64Attr(Result, 'FuelLitres');
@@ -2307,8 +2554,12 @@ begin
 	fsPercentage := GetInt64Attr(Result, 'Percentage');
 	fsFuel_Eligible := GetInt64Attr(Result, 'FuelEligible');
 	fsCredit_Rate := GetInt64Attr(Result, 'CreditRate');
+	except
+		on E: Exception do ReRaise (E, 'Reading TFuel_Sheet_Rec');
+	end;
 
 	CNode := nil;
+	CCNode := nil;
 	PNode := nil;
 end;
 
@@ -2321,8 +2572,8 @@ end;
 
 
 function TMoreClient_RecHelper.WriteRecToNode(var Node: IXMLNode): IXMLNode;
-var PNode, CNode: IXMLNode;
-	I: Integer;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J, M: Integer;
 begin
 	Result := Node.AddChild(GetXMLNodeName);
 	SetBoolAttr(Result, 'BASDontPrintFuelSheet', mcBAS_Dont_Print_Fuel_Sheet);
@@ -2330,23 +2581,29 @@ begin
 	SetIntAttr(Result, 'JournalProcessingDuration', mcJournal_Processing_Duration);
 
 	CNode := nil;
+	CCNode := nil;
 	PNode := nil;
 end;
 
 
 function TMoreClient_RecHelper.ReadRecFromNode(Node :IXMLNode): IXMLNode;
-var PNode, CNode: IXMLNode;
-	I: Integer;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J: Integer;
 begin
 	if Node.NodeName = GetXMLNodeName then Result := Node
 	else
 	Result := Node.ChildNodes.FindNode(GetXMLNodeName);
 	if not assigned(Result) then exit;
+	try
 	mcBAS_Dont_Print_Fuel_Sheet := GetBoolAttr(Result, 'BASDontPrintFuelSheet');
 	mcArchived := GetBoolAttr(Result, 'Archived');
 	mcJournal_Processing_Duration := GetIntAttr(Result, 'JournalProcessingDuration');
+	except
+		on E: Exception do ReRaise (E, 'Reading TMoreClient_Rec');
+	end;
 
 	CNode := nil;
+	CCNode := nil;
 	PNode := nil;
 end;
 
@@ -2359,36 +2616,40 @@ end;
 
 
 function TJob_Heading_RecHelper.WriteRecToNode(var Node: IXMLNode): IXMLNode;
-var PNode, CNode: IXMLNode;
-	I: Integer;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J, M: Integer;
 begin
 	Result := Node.AddChild(GetXMLNodeName);
 	SetTextAttr(Result, 'Heading', jhHeading);
 	SetIntAttr(Result, 'LRN', jhLRN);
 	SetIntAttr(Result, 'DateCompleted', jhDate_Completed);
 	SetTextAttr(Result, 'Code', jhCode);
-	SetIntAttr(Result, 'AuditRecordID', jhAudit_Record_ID);
 
 	CNode := nil;
+	CCNode := nil;
 	PNode := nil;
 end;
 
 
 function TJob_Heading_RecHelper.ReadRecFromNode(Node :IXMLNode): IXMLNode;
-var PNode, CNode: IXMLNode;
-	I: Integer;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J: Integer;
 begin
 	if Node.NodeName = GetXMLNodeName then Result := Node
 	else
 	Result := Node.ChildNodes.FindNode(GetXMLNodeName);
 	if not assigned(Result) then exit;
+	try
 	jhHeading := GetTextAttr(Result, 'Heading');
 	jhLRN := GetIntAttr(Result, 'LRN');
 	jhDate_Completed := GetIntAttr(Result, 'DateCompleted');
 	jhCode := GetTextAttr(Result, 'Code');
-	jhAudit_Record_ID := GetIntAttr(Result, 'AuditRecordID');
+	except
+		on E: Exception do ReRaise (E, 'Reading TJob_Heading_Rec');
+	end;
 
 	CNode := nil;
+	CCNode := nil;
 	PNode := nil;
 end;
 
@@ -2401,10 +2662,26 @@ end;
 
 
 function TClientExtra_RecHelper.WriteRecToNode(var Node: IXMLNode): IXMLNode;
-var PNode, CNode: IXMLNode;
-	I: Integer;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J, M: Integer;
 begin
 	Result := Node.AddChild(GetXMLNodeName);
+	PNode := result.AddChild('TAXRates');
+	M :=  Low(ceTAX_Rates);
+	for I := Low(ceTAX_Rates) to High(ceTAX_Rates) do
+		for J := Low(ceTAX_Rates[I]) to High(ceTAX_Rates[I]) do
+			if ceTAX_Rates[I,J] > 0 then begin
+				M := I;
+				Break;
+			end;
+	for I := low(ceTAX_Rates) to M do begin
+		CNode := PNode.AddChild('TAXRates');
+		CNode := CNode.AddChild('TAXRates');
+		for J := Low(ceTAX_Rates[I]) to High(ceTAX_Rates[I]) do begin
+			CCNode := CNode.AddChild('TAXRate');
+			CCNode.NodeValue := (ceTAX_Rates[I,J]);
+		end;
+	end;
 	SetIntAttr(Result, 'ListEntriesSortOrder', ceList_Entries_Sort_Order);
 	SetIntAttr(Result, 'ListEntriesInclude', ceList_Entries_Include);
 	SetBoolAttr(Result, 'ListEntriesTwoColumn', ceList_Entries_Two_Column);
@@ -2430,7 +2707,11 @@ begin
 	SetBoolAttr(Result, 'BlockClientEditMems', ceBlock_Client_Edit_Mems);
 	SetBoolAttr(Result, 'SendCustomDocuments', ceSend_Custom_Documents);
 	PNode := Result.AddChild('SendCustomDocumentsLists');
-	for I := Low(ceSend_Custom_Documents_List) to High(ceSend_Custom_Documents_List) do begin
+	M :=  Low(ceSend_Custom_Documents_List);
+	for I := Low(ceSend_Custom_Documents_List) to High(ceSend_Custom_Documents_List) do
+		if  ceSend_Custom_Documents_List[I] > '' then
+			M := I;
+	for I := Low(ceSend_Custom_Documents_List) to M do begin
 		CNode := PNode.AddChild('SendCustomDocumentsList');
 		CNode.NodeValue := ceSend_Custom_Documents_List[I];
 	end;
@@ -2438,31 +2719,59 @@ begin
 	SetIntAttr(Result, 'ListPayeesSortBy', ceList_Payees_SortBy);
 	SetBoolAttr(Result, 'ListPayeesRuleLine', ceList_Payees_Rule_Line);
 	PNode := Result.AddChild('CustomSFLedgerTitles');
-	for I := Low(ceCustom_SFLedger_Titles) to High(ceCustom_SFLedger_Titles) do begin
+	M :=  Low(ceCustom_SFLedger_Titles);
+	for I := Low(ceCustom_SFLedger_Titles) to High(ceCustom_SFLedger_Titles) do
+		if  ceCustom_SFLedger_Titles[I] > '' then
+			M := I;
+	for I := Low(ceCustom_SFLedger_Titles) to M do begin
 		CNode := PNode.AddChild('CustomSFLedgerTitle');
 		CNode.NodeValue := ceCustom_SFLedger_Titles[I];
 	end;
 	SetIntAttr(Result, 'SUIPeriodStart', ceSUI_Period_Start);
 	SetIntAttr(Result, 'SUIPeriodEnd', ceSUI_Period_End);
-	SetIntAttr(Result, 'AuditRecordID', ceAudit_Record_ID);
+	SetArray(Result, 'SUIStepDones', ceSUI_Step_Done);
 	SetBoolAttr(Result, 'SendJobList', ceSend_Job_List);
 	SetTextAttr(Result, 'SpareString', ceSpare_String);
 	SetBoolAttr(Result, 'OnlineScheduledReports', ceOnline_Scheduled_Reports);
 	SetIntAttr(Result, 'FileTransferMethod', ceFile_Transfer_Method);
 
 	CNode := nil;
+	CCNode := nil;
 	PNode := nil;
 end;
 
 
 function TClientExtra_RecHelper.ReadRecFromNode(Node :IXMLNode): IXMLNode;
-var PNode, CNode: IXMLNode;
-	I: Integer;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J: Integer;
 begin
 	if Node.NodeName = GetXMLNodeName then Result := Node
 	else
 	Result := Node.ChildNodes.FindNode(GetXMLNodeName);
 	if not assigned(Result) then exit;
+	try
+		PNode := Result.ChildNodes.FindNode('TAXRates');
+	if Assigned(PNode) then begin
+		PNode := PNode.ChildNodes.FindNode('TAXRates');
+	end;
+	for I := low(ceTAX_Rates) to High(ceTAX_Rates) do begin
+		if Assigned(PNode) then begin
+			CNode := PNode.ChildNodes.FindNode('TAXRates');
+			if Assigned(CNode) then
+				CCNode := CNode.ChildNodes.FindNode('TAXRate')
+			else CCNode := Nil;
+		end else
+			CNode := Nil;
+		for J := Low(ceTAX_Rates[I]) to High(ceTAX_Rates[I]) do begin
+			if Assigned(CCNode) then begin
+				ceTAX_Rates[I,J] := CCNode.Nodevalue;
+				CCNode := CCNode.NextSibling;
+			end else
+				ceTAX_Rates[I,J] := 0;
+		end;
+			if Assigned(PNode) then
+				PNode := PNode.NextSibling;
+	end;
 	ceList_Entries_Sort_Order := GetIntAttr(Result, 'ListEntriesSortOrder');
 	ceList_Entries_Include := GetIntAttr(Result, 'ListEntriesInclude');
 	ceList_Entries_Two_Column := GetBoolAttr(Result, 'ListEntriesTwoColumn');
@@ -2488,39 +2797,49 @@ begin
 	ceBlock_Client_Edit_Mems := GetBoolAttr(Result, 'BlockClientEditMems');
 	ceSend_Custom_Documents := GetBoolAttr(Result, 'SendCustomDocuments');
 	
-	PNode := Node.ChildNodes.FindNode('SendCustomDocumentsLists');
-	if Assigned(PNode) then begin;
-		I := Low(ceSend_Custom_Documents_List);
-		CNode := PNode.ChildNodes.FindNode('SendCustomDocumentsList');
-		while assigned(CNode) and (I <= High(ceSend_Custom_Documents_List)) do begin
+	PNode := Result.ChildNodes.FindNode('SendCustomDocumentsLists');
+	if Assigned(PNode) then
+		CNode := PNode.ChildNodes.FindNode('SendCustomDocumentsList')
+	else
+		CNode := Nil;
+	for I := low(ceSend_Custom_Documents_List) to High(ceSend_Custom_Documents_List) do begin
+		if Assigned(CNode) then begin
 			ceSend_Custom_Documents_List[I] := CNode.Nodevalue;
-			Cnode := CNode.NextSibling;
-		end;
+			CNode := CNode.NextSibling;
+		end else
+			ceSend_Custom_Documents_List[I] := ''
 	end;
 
 	ceList_Payees_Detailed := GetBoolAttr(Result, 'ListPayeesDetailed');
 	ceList_Payees_SortBy := GetIntAttr(Result, 'ListPayeesSortBy');
 	ceList_Payees_Rule_Line := GetBoolAttr(Result, 'ListPayeesRuleLine');
 	
-	PNode := Node.ChildNodes.FindNode('CustomSFLedgerTitles');
-	if Assigned(PNode) then begin;
-		I := Low(ceCustom_SFLedger_Titles);
-		CNode := PNode.ChildNodes.FindNode('CustomSFLedgerTitle');
-		while assigned(CNode) and (I <= High(ceCustom_SFLedger_Titles)) do begin
+	PNode := Result.ChildNodes.FindNode('CustomSFLedgerTitles');
+	if Assigned(PNode) then
+		CNode := PNode.ChildNodes.FindNode('CustomSFLedgerTitle')
+	else
+		CNode := Nil;
+	for I := low(ceCustom_SFLedger_Titles) to High(ceCustom_SFLedger_Titles) do begin
+		if Assigned(CNode) then begin
 			ceCustom_SFLedger_Titles[I] := CNode.Nodevalue;
-			Cnode := CNode.NextSibling;
-		end;
+			CNode := CNode.NextSibling;
+		end else
+			ceCustom_SFLedger_Titles[I] := ''
 	end;
 
 	ceSUI_Period_Start := GetIntAttr(Result, 'SUIPeriodStart');
 	ceSUI_Period_End := GetIntAttr(Result, 'SUIPeriodEnd');
-	ceAudit_Record_ID := GetIntAttr(Result, 'AuditRecordID');
+	GetArray(Result, 'SUIStepDones', ceSUI_Step_Done);
 	ceSend_Job_List := GetBoolAttr(Result, 'SendJobList');
 	ceSpare_String := GetTextAttr(Result, 'SpareString');
 	ceOnline_Scheduled_Reports := GetBoolAttr(Result, 'OnlineScheduledReports');
 	ceFile_Transfer_Method := GetIntAttr(Result, 'FileTransferMethod');
+	except
+		on E: Exception do ReRaise (E, 'Reading TClientExtra_Rec');
+	end;
 
 	CNode := nil;
+	CCNode := nil;
 	PNode := nil;
 end;
 

@@ -25,6 +25,7 @@ uses
   xmldom;
 
   type test = string[60];
+  type moneyArray = array of array of Comp;
 
 function FormatXMLdate(Value: TstDate): string;
 procedure AddBooleanOption(var ToNode: IXMLNode; name: string; Value: Boolean);
@@ -42,6 +43,7 @@ procedure SetArray(var OnNode: IXMLNode; Name: string; Value: array of byte); ov
 //procedure SetArray(var OnNode: IXMLNode; Name: string; Value: array of test); overload;
 procedure SetArray(var OnNode: IXMLNode; Name: string; Value: array of integer); overload;
 procedure SetArray(var OnNode: IXMLNode; Name: string; Value: array of money); overload;
+procedure SetMArray(var OnNode: IXMLNode; Name: string; Value: moneyArray); overload;
 procedure SetArray(var OnNode: IXMLNode; Name: string; Value: array of Boolean); overload;
 
 procedure SetRateAttr(var OnNode: IXMLNode; Name: string; Value: Money);
@@ -251,7 +253,13 @@ begin
     CNode := PNode.ChildNodes.FindNode(MakeSingleName(Name));
     while assigned(CNode) and (I <= High(Value)) do begin
        Value[I] := CNode.Nodevalue;
+       inc(i);
        Cnode := CNode.NextSibling;
+    end;
+    while (I <= High(Value)) do begin
+       Value[I] := 0;
+       inc(i);
+     
     end;
 
 end;
@@ -268,7 +276,12 @@ begin
     CNode := PNode.ChildNodes.FindNode(MakeSingleName(Name));
     while assigned(CNode) and (I <= High(Value)) do begin
        Value[I] := CNode.Nodevalue;
+       inc(i);
        Cnode := CNode.NextSibling;
+    end;
+    while (I <= High(Value)) do begin
+       Value[I] := 0;
+       inc(i);
     end;
 
 end;
@@ -286,9 +299,13 @@ begin
     CNode := PNode.ChildNodes.FindNode(MakeSingleName(Name));
     while assigned(CNode) and (I <= High(Value)) do begin
        Value[I] := CNode.Nodevalue;
+       Inc(i);
        Cnode := CNode.NextSibling;
     end;
-
+    while assigned(CNode) and (I <= High(Value)) do begin
+       Value[I] := 0;
+       Inc(i);
+    end;
 end;
 
 
@@ -305,21 +322,30 @@ begin
     CNode := PNode.ChildNodes.FindNode(MakeSingleName(Name));
     while assigned(CNode) and (I <= High(Value)) do begin
        Value[I] := CNode.Nodevalue;
+       Inc(I);
        Cnode := CNode.NextSibling;
     end;
-
+    while (I <= High(Value)) do begin
+       Value[I] := false;
+       Inc(I);
+    end;
 end;
 
 
 procedure SetArray(var OnNode: IXMLNode; Name: string; Value: array of byte);
-var I: Integer;
+var I, M: Integer;
     PNode,
     CNode: IXMLNode;
     ChildName: string;
 begin
    PNode := OnNode.AddChild(name);
    ChildName := MakeSingleName(Name);
+   M := low(Value);
    for I := low(Value) to High(Value) do begin
+      if Value[I] <> 0 then
+        M := I;
+   end;
+   for I := low(Value) to M do begin
      CNode := PNode.AddChild(ChildName);
      CNode.NodeValue := Value[I];
    end;
@@ -340,36 +366,65 @@ begin
 end;
 
 procedure SetArray(var OnNode: IXMLNode; Name: string; Value: array of integer);
-var I: Integer;
+var I,M: Integer;
     PNode,
     CNode: IXMLNode;
     ChildName: string;
 begin
    PNode := OnNode.AddChild(name);
    ChildName := MakeSingleName(Name);
+   M := low(Value);
    for I := low(Value) to High(Value) do begin
+      if Value[I] <> 0 then
+        M := I;
+   end;
+   for I := low(Value) to M do begin
      CNode := PNode.AddChild(ChildName);
      CNode.NodeValue := Value[I];
    end;
 end;
 
 procedure SetArray(var OnNode: IXMLNode; Name: string; Value: array of money);
-var I: Integer;
+var I,M: Integer;
     PNode,
     CNode: IXMLNode;
     ChildName: string;
 begin
    PNode := OnNode.AddChild(name);
    ChildName := MakeSingleName(Name);
+   M := low(Value);
    for I := low(Value) to High(Value) do begin
+      if (Value[I] <> 0) then
+        M := I;
+   end;
+   for I := low(Value) to M do begin
      CNode := PNode.AddChild(ChildName);
-     CNode.NodeValue := (Value[I] / 100);
+     CNode.NodeValue := (Value[I]);
    end;
 end;
 
 
+procedure SetMArray(var OnNode: IXMLNode; Name: string; Value: moneyArray); overload;
+var I, J, M, N: Integer;
+    PNode,
+    CNode,
+    CCNode: IXMLNode;
+    ChildName: string;
+begin
+   PNode := OnNode.AddChild(name);
+   ChildName := MakeSingleName(Name);
+
+   for I := low(Value) to High(Value) do begin
+     CNode := PNode.AddChild(ChildName);
+     for J := Low(Value[I]) to High(Value[I]) do begin
+       CCNode := CNode.AddChild(ChildName);
+       CCNode.NodeValue := (Value[I,J]);
+     end;
+   end;
+end;
+
 procedure SetArray(var OnNode: IXMLNode; Name: string; Value: array of Boolean);
-var I: Integer;
+var I,M: Integer;
     PNode,
     CNode: IXMLNode;
     ChildName: string;
@@ -377,6 +432,10 @@ begin
    PNode := OnNode.AddChild(name);
    ChildName := MakeSingleName(Name);
    for I := low(Value) to High(Value) do begin
+      if Value[I]  then
+        M := I;
+   end;
+   for I := low(Value) to M do begin
      CNode := PNode.AddChild(ChildName);
      CNode.NodeValue := Value[I];
    end;
