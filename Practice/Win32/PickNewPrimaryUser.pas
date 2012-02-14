@@ -62,7 +62,6 @@ function PickPrimaryUser(aUserCode : string = '';
                          aPractice : TBloPracticeDetail = Nil) : Boolean;
 var
   MyDlg         : TPickNewPrimaryUser;
-  CurrPractice  : TBloPracticeDetail;
   UserIndex     : integer;
   AdminRollName : Widestring;
   RoleIndex     : integer;
@@ -100,8 +99,8 @@ begin
       // show error if no users
       if MyDlg.cmbPrimaryContact.Items.Count = 0 then
       begin
-        HelpfulWarningMsg('BankLink Practice is unable to delete the user as it is the primary contact ' +
-                          'for this practice. (' + CurrPractice.DisplayName + ')', 0 );
+        HelpfulWarningMsg('BankLink Practice is unable to delete the user as it is the primary contact user ' +
+                          'for this practice. (' + aPractice.DisplayName + ')', 0 );
         Exit;
       end;
 
