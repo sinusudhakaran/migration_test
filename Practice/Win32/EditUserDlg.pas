@@ -469,9 +469,11 @@ Function TdlgEditUser.PosttoBankLinkOnline : Boolean;
 var
   RoleNames         : TBloArrayOfstring;
   MsgCreateorUpdate : string;
-
+  UserCode          : string;
 begin
   Result := True;
+
+  UserCode := GetCurrentCode;
 
   // if User was on Banklink Online and now is removed delete user on Banklink online
   Try
@@ -479,13 +481,13 @@ begin
     and (chkCanAccessBankLinkOnline.Checked = False) then
     begin
       if UserGuid = '' then
-        Result := ProductConfigService.DeletePracUser(GetCurrentCode, '')
+        Result := ProductConfigService.DeletePracUser(UserCode, '')
       else
       begin
         // if user is the primary user and been deleted pick a new primary user
         if fIsPrimaryUser then
         begin
-          Result := PickPrimaryUser(UserGuid);
+          Result := PickPrimaryUser(UserCode);
           if not Result then
             Exit;
         end;
@@ -504,7 +506,7 @@ begin
       if (fIsPrimaryUser) and
          (cmbUserType.ItemIndex in [ustRestricted, ustNormal]) then
       begin
-        Result := PickPrimaryUser(UserGuid);
+        Result := PickPrimaryUser(UserCode);
         if not Result then
           Exit;
       end;
