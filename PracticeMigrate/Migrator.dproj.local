@@ -26,5 +26,8 @@
     <Transaction>2010/11/12 15:08:40.159.pas,C:\DelphiTFS\Practice\Dev\PracticeMigrate\Unit1.pas=C:\DelphiTFS\Practice\Dev\PracticeMigrate\MigrateStats.pas</Transaction>
     <Transaction>2010/12/24 07:49:35.510.pas,C:\DelphiTFS\Practice\Dev\PracticeMigrate\Unit1.pas=C:\DelphiTFS\Practice\Dev\PracticeMigrate\CDTables.pas</Transaction>
     <Transaction>2011/02/11 14:43:44.989.pas,C:\DelphiTFS\Practice\Dev\PracticeMigrate\SQLTable.pas=</Transaction>
+    <Transaction>2012/01/23 12:58:08.204.pas,C:\DelphiTFS\Practice\Dev\PracticeMigrate\Unit1.pas=C:\DelphiTFS\Practice\Dev\PracticeMigrate\LogTables.pas</Transaction>
+    <Transaction>2012/01/23 14:52:47.727.pas,C:\DelphiTFS\Practice\Dev\PracticeMigrate\Unit1.pas=C:\DelphiTFS\Practice\Dev\PracticeMigrate\LogMigrater.pas</Transaction>
+    <Transaction>2012/01/24 13:13:12.194.pas,C:\DelphiTFS\Practice\Dev\PracticeMigrate\Unit1.pas=C:\DelphiTFS\Practice\Dev\PracticeMigrate\logger.pas</Transaction>
   </Transactions>
 </BorlandProject>

@@ -20,7 +20,10 @@ uses
   AvailableSQLServers in 'AvailableSQLServers.pas',
   MigrateStats in 'MigrateStats.pas',
   CDTables in 'CDTables.pas',
-  RTFEditFme in '..\Practice\Win32\RTFEditFme.pas' {fmeEditRTF: TFrame};
+  RTFEditFme in '..\Practice\Win32\RTFEditFme.pas' {fmeEditRTF: TFrame},
+  LogTables in 'LogTables.pas',
+  LogMigrater in 'LogMigrater.pas',
+  logger in 'logger.pas';
 
 {$R *.res}
 
