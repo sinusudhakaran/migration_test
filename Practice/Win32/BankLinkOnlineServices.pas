@@ -1888,7 +1888,7 @@ begin
         Result := MsgResponce.Success;
     end
     else
-      Result := True;
+      Result := Online;
 
     if Result then
     begin
