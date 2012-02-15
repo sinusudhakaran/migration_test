@@ -49,13 +49,17 @@ type
 //------------------------------------------------------------------------------
 implementation
 
-{$R *.dfm}
-
 uses
-  bkXPThemes,
+  LOGUTIL,
   imagesfrm,
+  bkXPThemes,
   WarningMoreFrm,
   BkConst;
+
+{$R *.dfm}
+
+const
+  UNIT_NAME = 'PickNewPrimaryUser';
 
 //------------------------------------------------------------------------------
 function PickPrimaryUser(aUserCode : string = '';
@@ -65,6 +69,7 @@ var
   UserIndex     : integer;
   AdminRollName : Widestring;
   RoleIndex     : integer;
+  UserCode      : string;
 begin
   Result := False;
   try
@@ -111,6 +116,9 @@ begin
         // Save Default Admin User
         aPractice.DefaultAdminUserId := TBloUserPractice(MyDlg.cmbPrimaryContact.Items.Objects[MyDlg.cmbPrimaryContact.ItemIndex]).Id;
         Result := ProductConfigService.SavePractice;
+
+        UserCode := TBloUserPractice(MyDlg.cmbPrimaryContact.Items.Objects[MyDlg.cmbPrimaryContact.ItemIndex]).UserCode;
+        LogUtil.LogMsg(lmInfo, UNIT_NAME, UserCode + ' has been successfully set to the Default Admin on BankLink Online.');
       end;
 
     Finally

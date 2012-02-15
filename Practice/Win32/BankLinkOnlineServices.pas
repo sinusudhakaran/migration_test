@@ -1812,6 +1812,7 @@ begin
         begin
           aIsUserCreated := false;
           Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finished', 100);
+          LogUtil.LogMsg(lmInfo, UNIT_NAME, aUserCode + ' has been successfully updated to BankLink Online.');
         end;
       end;
     end
@@ -1835,6 +1836,7 @@ begin
         aUserId := MsgResponceGuid.Result;
         aIsUserCreated := True;
         Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finished', 100);
+        LogUtil.LogMsg(lmInfo, UNIT_NAME, aUserCode + ' has been successfully created on BankLink Online.');
       end;
     end;
   finally
@@ -1889,7 +1891,10 @@ begin
       Result := True;
 
     if Result then
+    begin
       Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finished', 100);
+      LogUtil.LogMsg(lmInfo, UNIT_NAME, aUserCode + ' has been successfully deleted from BankLink Online.');
+    end;
 
   finally
     Progress.StatusSilent := True;
@@ -1978,7 +1983,10 @@ begin
     if not MessageResponseHasError(MsgResponce, 'change practice user password on') then begin
       Result := MsgResponce.Success;
       if ShowProgress then
+      begin
         Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finished', 100);
+        LogUtil.LogMsg(lmInfo, UNIT_NAME, aUserCode + ' password has been successfully changed on BankLink Online.');
+      end;
     end;
 
   finally
