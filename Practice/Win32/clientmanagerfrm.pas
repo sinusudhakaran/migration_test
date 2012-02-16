@@ -1143,7 +1143,8 @@ begin
   try
     ClientLookup.GetSelectionTypes(ProspectSelected, ActiveSelected, UnsyncSelected);
     actBOSettings.Enabled := (AdminSystem.fdFields.fdUse_BankLink_Online and ProductConfigService.OnLine and
-                             (not ProspectSelected) and (not NoClientSelected) and (not UnsyncSelected));
+                             (not ProspectSelected) and (not NoClientSelected) and (not UnsyncSelected) and
+                             SingleClientSelected);
     actScheduled.Enabled := (not ProspectSelected) and (not NoClientSelected) and (not UnsyncSelected);
     actPracticeContact.Enabled := (not ProspectSelected) and (not NoClientSelected) and (not UnsyncSelected);
     actFinancialYear.Enabled := (not ProspectSelected) and (not NoClientSelected) and (not UnsyncSelected);
