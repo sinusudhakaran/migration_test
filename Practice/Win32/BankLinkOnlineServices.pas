@@ -533,7 +533,7 @@ begin
                                                                AdminSystem.fdFields.fdBankLink_Connect_Password);
           if Assigned(PracticeDetailResponse) then begin
             FOnline := True;
-            
+
             for i := 1 to Screen.FormCount - 1 do
             begin
               if (Screen.Forms[i].Name = 'frmClientManager') then
@@ -591,7 +591,7 @@ begin
     //Make a copy for editing
     if FPractice <> nil then
       CopyRemotableObject(FPractice, FPracticeCopy);
-    Result := FPracticeCopy;    
+    Result := FPracticeCopy;
   end;
 end;
 
@@ -1768,75 +1768,88 @@ begin
       // Does the User Already Exist on BankLink Online?
       Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Recieving Data', 33);
       CurrPractice := GetPractice(true, true);
+      if OnLine then
+      begin
+        IsUserOnline := IsUserCreatedOnBankLinkOnline(CurrPractice, aUserId, aUserCode);
 
-      IsUserOnline := IsUserCreatedOnBankLinkOnline(CurrPractice, aUserId, aUserCode);
+        SetLength(RoleNames,1);
+        RoleNames[0] := CurrPractice.GetRoleFromPracUserType(aUstNameIndex, CurrPractice).RoleName;
 
-      SetLength(RoleNames,1);
-      RoleNames[0] := CurrPractice.GetRoleFromPracUserType(aUstNameIndex, CurrPractice).RoleName;
+        Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Sending Data', 66);
+        BlopiInterface := GetServiceFacade;
+
+        if IsUserOnline then
+        begin
+          if aUserId = '' then
+            aUserId := GetPracUserGuid(aUserCode, CurrPractice);
+
+          UpdateUser := TBloUserPractice.Create;
+          UpdateUser.EMail        := aEMail;
+          UpdateUser.FullName     := aFullName;
+          UpdateUser.Id           := aUserId;
+          UpdateUser.RoleNames    := RoleNames;
+          UpdateUser.Subscription := CurrPractice.Subscription;
+          UpdateUser.UserCode     := aUserCode;
+
+          MsgResponce := BlopiInterface.SavePracticeUser(PracCountryCode, PracCode, PracPassHash, UpdateUser);
+          if not MessageResponseHasError(MsgResponce, 'update practice user on') then
+          begin
+            Result := MsgResponce.Success;
+
+            if aChangePassword then
+            begin
+              Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Sending Data', 88);
+              Result := ChangePracUserPass(aUserCode, aPassword, CurrPractice);
+            end;
+
+            if Result then
+            begin
+              aIsUserCreated := false;
+              Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finished', 100);
+              LogUtil.LogMsg(lmInfo, UNIT_NAME, aUserCode + ' has been successfully updated to BankLink Online.');
+            end
+            else
+              LogUtil.LogMsg(lmInfo, UNIT_NAME, aUserCode + ' was not updated to BankLink Online.');
+          end;
+        end
+        else
+        begin
+          CreateUser := UserPracticeNew.Create;
+          CreateUser.EMail        := aEMail;
+          CreateUser.FullName     := aFullName;
+          CreateUser.RoleNames    := RoleNames;
+          CreateUser.Subscription := CurrPractice.Subscription;
+          CreateUser.UserCode     := aUserCode;
+
+          if aChangePassword then
+            CreateUser.Password := aPassword
+          else
+            CreateUser.Password := '';
+
+          MsgResponceGuid := BlopiInterface.CreatePracticeUser(PracCountryCode, PracCode, PracPassHash, CreateUser);
+          if not MessageResponseHasError(MessageResponse(MsgResponceGuid), 'create practice user on') then begin
+            Result  := True;
+            aUserId := MsgResponceGuid.Result;
+            aIsUserCreated := True;
+            Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finished', 100);
+            LogUtil.LogMsg(lmInfo, UNIT_NAME, aUserCode + ' has been successfully created on BankLink Online.');
+          end
+          else
+            LogUtil.LogMsg(lmInfo, UNIT_NAME, aUserCode + ' was not created on BankLink Online.');
+        end;
+      end
+      else
+      begin
+        if aIsUserCreated then
+          LogUtil.LogMsg(lmInfo, UNIT_NAME, aUserCode + ' was not created on BankLink Online.')
+        else
+          LogUtil.LogMsg(lmInfo, UNIT_NAME, aUserCode + ' was not updated to BankLink Online.');
+      end;
     except
       on E : Exception do
       begin
-        LogUtil.LogMsg(lmError, UNIT_NAME, 'Exception running IsUserCreatedOnBankLinkOnline, Error Message : ' + E.Message);
+        LogUtil.LogMsg(lmError, UNIT_NAME, 'Exception running AddEditPracUser, Error Message : ' + E.Message);
         raise Exception.Create(BKPRACTICENAME + ' was unable to connect to ' + BANKLINK_ONLINE_NAME + '.' + #13#13 + E.Message );
-      end;
-    end;
-
-    Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Sending Data', 66);
-    BlopiInterface := GetServiceFacade;
-
-    if IsUserOnline then
-    begin
-      if aUserId = '' then
-        aUserId := GetPracUserGuid(aUserCode, CurrPractice);
-
-      UpdateUser := TBloUserPractice.Create;
-      UpdateUser.EMail        := aEMail;
-      UpdateUser.FullName     := aFullName;
-      UpdateUser.Id           := aUserId;
-      UpdateUser.RoleNames    := RoleNames;
-      UpdateUser.Subscription := CurrPractice.Subscription;
-      UpdateUser.UserCode     := aUserCode;
-
-      MsgResponce := BlopiInterface.SavePracticeUser(PracCountryCode, PracCode, PracPassHash, UpdateUser);
-      if not MessageResponseHasError(MsgResponce, 'update practice user on') then
-      begin
-        Result := MsgResponce.Success;
-
-        if aChangePassword then
-        begin
-          Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Sending Data', 88);
-          Result := ChangePracUserPass(aUserCode, aPassword, CurrPractice);
-        end;
-
-        if Result then
-        begin
-          aIsUserCreated := false;
-          Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finished', 100);
-          LogUtil.LogMsg(lmInfo, UNIT_NAME, aUserCode + ' has been successfully updated to BankLink Online.');
-        end;
-      end;
-    end
-    else
-    begin
-      CreateUser := UserPracticeNew.Create;
-      CreateUser.EMail        := aEMail;
-      CreateUser.FullName     := aFullName;
-      CreateUser.RoleNames    := RoleNames;
-      CreateUser.Subscription := CurrPractice.Subscription;
-      CreateUser.UserCode     := aUserCode;
-
-      if aChangePassword then
-        CreateUser.Password := aPassword
-      else
-        CreateUser.Password := '';
-
-      MsgResponceGuid := BlopiInterface.CreatePracticeUser(PracCountryCode, PracCode, PracPassHash, CreateUser);
-      if not MessageResponseHasError(MessageResponse(MsgResponceGuid), 'create practice user on') then begin
-        Result  := True;
-        aUserId := MsgResponceGuid.Result;
-        aIsUserCreated := True;
-        Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finished', 100);
-        LogUtil.LogMsg(lmInfo, UNIT_NAME, aUserCode + ' has been successfully created on BankLink Online.');
       end;
     end;
   finally
@@ -1866,36 +1879,45 @@ begin
   Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Connecting', 10);
 
   try
-    BlopiInterface  := GetServiceFacade;
-    PracCountryCode := CountryText(AdminSystem.fdFields.fdCountry);
-    PracCode        := AdminSystem.fdFields.fdBankLink_Code;
-    PracPassHash    := AdminSystem.fdFields.fdBankLink_Connect_Password;
+    try
+      BlopiInterface  := GetServiceFacade;
+      PracCountryCode := CountryText(AdminSystem.fdFields.fdCountry);
+      PracCode        := AdminSystem.fdFields.fdBankLink_Code;
+      PracPassHash    := AdminSystem.fdFields.fdBankLink_Connect_Password;
 
-    if not Assigned(aPractice) then
-      aPractice := GetPractice;
+      if not Assigned(aPractice) then
+        aPractice := GetPractice;
 
-    Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Sending Data', 50);
-    if aUserCode = '' then
-      UserGuid := aUserGuid
-    else
-      UserGuid := GetPracUserGuid(aUserCode, aPractice);
+      Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Sending Data', 50);
+      if aUserCode = '' then
+        UserGuid := aUserGuid
+      else
+        UserGuid := GetPracUserGuid(aUserCode, aPractice);
 
-    if not (UserGuid = '') then
-    begin
-      MsgResponce := BlopiInterface.DeleteUser(PracCountryCode, PracCode, PracPassHash, UserGuid);
+      if not (UserGuid = '') then
+      begin
+        MsgResponce := BlopiInterface.DeleteUser(PracCountryCode, PracCode, PracPassHash, UserGuid);
 
-      if not MessageResponseHasError(MsgResponce, 'delete practice user on') then
-        Result := MsgResponce.Success;
-    end
-    else
-      Result := Online;
+        if not MessageResponseHasError(MsgResponce, 'delete practice user on') then
+          Result := MsgResponce.Success;
+      end
+      else
+        Result := Online;
 
-    if Result then
-    begin
-      Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finished', 100);
-      LogUtil.LogMsg(lmInfo, UNIT_NAME, aUserCode + ' has been successfully deleted from BankLink Online.');
+      if Result then
+      begin
+        Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finished', 100);
+        LogUtil.LogMsg(lmInfo, UNIT_NAME, aUserCode + ' has been successfully deleted from BankLink Online.');
+      end
+      else
+        LogUtil.LogMsg(lmInfo, UNIT_NAME, aUserCode + ' was not deleted from BankLink Online.');
+    except
+      on E : Exception do
+      begin
+        LogUtil.LogMsg(lmError, UNIT_NAME, 'Exception running DeletePracUser, Error Message : ' + E.Message);
+        raise Exception.Create(BKPRACTICENAME + ' was unable to connect to ' + BANKLINK_ONLINE_NAME + '.' + #13#13 + E.Message );
+      end;
     end;
-
   finally
     Progress.StatusSilent := True;
     Progress.ClearStatus;
