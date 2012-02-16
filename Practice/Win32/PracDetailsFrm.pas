@@ -676,93 +676,94 @@ begin
     end else
        PageControl1.ActivePage := tbsDetails;
 
- end; {with}
- InSetup := False;
-//**************
-   ShowModal;
-//**************
+  end; {with}
 
-   if okPressed then
-   begin
-      if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, 'Update Practice Details Starts');
+  InSetup := False;
 
-      if LoadAdminSystem(true, ThisMethodName ) then with AdminSystem.fdFields do
-      begin
-         //log change of last download no!!!
-         LastDiskSequenceNo := SuffixToSequenceNo( txtLastDiskID.Text);
+  PopupParent := Application.MainForm;
+  ShowModal;
 
-         if fdDisk_Sequence_No <> LastDiskSequenceNo then begin
-            LogUtil.LogMsg(lmInfo, UnitName, 'Last Download No changed from ' +
-                                             MakeSuffix( fdDisk_Sequence_No) +
-                                             ' to ' +
-                                             txtLastDiskID.Text);
-         end;
-         fdPractice_Name_for_Reports := ePracName.Text;
-         fdBankLink_Code             := eBCode.Text;
-         fdDisk_Sequence_No          := LastDiskSequenceNo;
-         fdPractice_EMail_Address    := Trim( ePracEmail.Text);
-         fdAccount_Code_Mask         := eMask.Text;
-         fdPractice_Phone            := edtPhone.Text;
-         fdPractice_Web_Site         := edtWebSite.Text;
-         fdPractice_Logo_Filename    := edtLogoBitmapFilename.Text;
+  if okPressed then
+  begin
+    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, 'Update Practice Details Starts');
 
-         fdAccounting_System_Used := GetComboCurrentIntObject(cmbSystem,snOther);
+    if LoadAdminSystem(true, ThisMethodName ) then with AdminSystem.fdFields do
+    begin
+       //log change of last download no!!!
+       LastDiskSequenceNo := SuffixToSequenceNo( txtLastDiskID.Text);
 
-         fdSave_Client_Files_To      := eSave.Text;
-         if CanRefreshChart( fdCountry, fdAccounting_System_Used ) then begin
-            fdLoad_Client_Files_From := eLoad.text;
-         end else begin
-            fdLoad_Client_Files_From := '';
-         end;
+       if fdDisk_Sequence_No <> LastDiskSequenceNo then begin
+          LogUtil.LogMsg(lmInfo, UnitName, 'Last Download No changed from ' +
+                                           MakeSuffix( fdDisk_Sequence_No) +
+                                           ' to ' +
+                                           txtLastDiskID.Text);
+       end;
+       fdPractice_Name_for_Reports := ePracName.Text;
+       fdBankLink_Code             := eBCode.Text;
+       fdDisk_Sequence_No          := LastDiskSequenceNo;
+       fdPractice_EMail_Address    := Trim( ePracEmail.Text);
+       fdAccount_Code_Mask         := eMask.Text;
+       fdPractice_Phone            := edtPhone.Text;
+       fdPractice_Web_Site         := edtWebSite.Text;
+       fdPractice_Logo_Filename    := edtLogoBitmapFilename.Text;
 
-         //Superfund system
-         fdSuperfund_System := GetComboCurrentIntObject(cmbSuperSystem,asNone);
+       fdAccounting_System_Used := GetComboCurrentIntObject(cmbSystem,snOther);
 
-         //only save values if superfund selected
-         if not (fdSuperfund_System = asNone) then begin
-            fdSuperfund_Code_Mask         := eSuperMask.Text;
-            fdSave_Client_Super_Files_To  := eSuperSave.Text;
-            if CanRefreshChart( fdCountry, fdSuperfund_System ) then
-               fdLoad_Client_Super_Files_From := eSuperLoad.text
-            else
-               fdLoad_Client_Super_Files_From := '';
-         end;
+       fdSave_Client_Files_To      := eSave.Text;
+       if CanRefreshChart( fdCountry, fdAccounting_System_Used ) then begin
+          fdLoad_Client_Files_From := eLoad.text;
+       end else begin
+          fdLoad_Client_Files_From := '';
+       end;
 
-         //Tax
-         fdTax_Interface_Used        := ComboUtils.GetComboCurrentIntObject( cmbTaxInterface);
-         if fdTax_Interface_Used = tsNone then
-           fdSave_Tax_Files_To       := ''
-         else
-           fdSave_Tax_Files_To       := AddSlash( Trim( edtSaveTaxTo.Text));
+       //Superfund system
+       fdSuperfund_System := GetComboCurrentIntObject(cmbSuperSystem,asNone);
 
-         //Save BankLink Online settings
-         //Saved to BankLink Online in VerifyForm - form can't be closed unless online changes are saved
-         AdminSystem.fdFields.fdUse_BankLink_Online := UseBankLinkOnline;
-         //Saved a copy of BankLink Online settings locally for display when offline
-         if UseBankLinkOnline and ProductConfigService.OnLine then 
-           ProductConfigService.SavePracticeDetailsToSystemDB(FPrac);
+       //only save values if superfund selected
+       if not (fdSuperfund_System = asNone) then begin
+          fdSuperfund_Code_Mask         := eSuperMask.Text;
+          fdSave_Client_Super_Files_To  := eSuperSave.Text;
+          if CanRefreshChart( fdCountry, fdSuperfund_System ) then
+             fdLoad_Client_Super_Files_From := eSuperLoad.text
+          else
+             fdLoad_Client_Super_Files_From := '';
+       end;
 
-         //Web
-         fdWeb_Export_Format         := ComboUtils.GetComboCurrentIntObject(cmbWebFormats);
-         if (wfNames[fdWeb_Export_Format] = WebNotesName) and
-            (not ProductConfigService.IsNotesOnlineEnabled) then
-           fdWeb_Export_Format := wfDefault;
+       //Tax
+       fdTax_Interface_Used        := ComboUtils.GetComboCurrentIntObject( cmbTaxInterface);
+       if fdTax_Interface_Used = tsNone then
+         fdSave_Tax_Files_To       := ''
+       else
+         fdSave_Tax_Files_To       := AddSlash( Trim( edtSaveTaxTo.Text));
 
-         //Practice Management System
-         fdPractice_Management_System := ComboUtils.GetComboCurrentIntObject(cmbPracticeManagementSystem);
+       //Save BankLink Online settings
+       //Saved to BankLink Online in VerifyForm - form can't be closed unless online changes are saved
+       AdminSystem.fdFields.fdUse_BankLink_Online := UseBankLinkOnline;
+       //Saved a copy of BankLink Online settings locally for display when offline
+       if UseBankLinkOnline and ProductConfigService.OnLine then 
+         ProductConfigService.SavePracticeDetailsToSystemDB(FPrac);
 
-         //*** Flag Audit ***
-         SystemAuditMgr.FlagAudit(arPracticeSetup);
+       //Web
+       fdWeb_Export_Format         := ComboUtils.GetComboCurrentIntObject(cmbWebFormats);
+       if (wfNames[fdWeb_Export_Format] = WebNotesName) and
+          (not ProductConfigService.IsNotesOnlineEnabled) then
+         fdWeb_Export_Format := wfDefault;
 
-         SaveAdminSystem;
-         UpdateMenus;
+       //Practice Management System
+       fdPractice_Management_System := ComboUtils.GetComboCurrentIntObject(cmbPracticeManagementSystem);
 
-         if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, 'Update Practice Details Completed');
-      end
-      else
-         HelpfulErrorMsg('Could not update Practice Details at this time. Admin System unavailable.',0);
-   end;
-   result := okPressed;
+       //*** Flag Audit ***
+       SystemAuditMgr.FlagAudit(arPracticeSetup);
+
+       SaveAdminSystem;
+       UpdateMenus;
+
+       if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, 'Update Practice Details Completed');
+    end
+    else
+       HelpfulErrorMsg('Could not update Practice Details at this time. Admin System unavailable.',0);
+  end;
+  result := okPressed;
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function EditPracticeDetails(SelPracticeMan: Boolean = False) : boolean;
