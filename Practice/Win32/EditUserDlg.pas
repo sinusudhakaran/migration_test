@@ -496,7 +496,9 @@ begin
       end;
 
       if Result then
-        HelpfulInfoMsg(Format('%s has been successfully deleted from BankLink Online.', [eFullName.Text]), 0 );
+        HelpfulInfoMsg(Format('%s has been successfully deleted from BankLink Online.', [eFullName.Text]), 0 )
+      else
+        HelpfulInfoMsg('BankLink Practice was unable to remove this user from BankLink Online', 0);
     end;
 
     if  (chkCanAccessBankLinkOnline.Checked)
@@ -527,6 +529,13 @@ begin
           MsgCreateorUpdate := 'updated to';
 
         HelpfulInfoMsg(Format('%s has been successfully %s BankLink Online.', [eFullName.Text, MsgCreateorUpdate]), 0 );
+      end
+      else
+      begin
+        if fIsCreateUser then
+          HelpfulInfoMsg(Format('BankLink Practice was unable to create %s on BankLink Online', [eFullName.Text]), 0)
+        else
+          HelpfulInfoMsg(Format('BankLink Practice was unable to update %s on BankLink Online', [eFullName.Text]), 0);
       end;
     end;
   Except

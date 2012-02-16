@@ -187,7 +187,10 @@ begin
       end;
 
       if not ProductConfigService.DeletePracUser(User^.usCode, '', aPractice) then
+      begin
+        HelpfulInfoMsg('BankLink Practice was unable to remove this user from BankLink Online', 0);
         exit;
+      end;
 
       HasDelOnline := True;
     except
