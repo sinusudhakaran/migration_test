@@ -109,7 +109,8 @@ begin
      not MyClient.BlopiClientChanged then begin
     //Get Practice details (so we can load the list of available products)
     ProductConfigService.GetPractice;
-    if not Assigned(ProductConfigService.CachedPractice) then
+    if (not Assigned(ProductConfigService.CachedPractice)) or
+       (not ProductConfigService.ValidBConnectDetails) then
       Exit;
     //Get client list (so that we can lookup the client code)
     ProductConfigService.LoadClientList;

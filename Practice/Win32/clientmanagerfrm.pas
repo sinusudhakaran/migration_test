@@ -1023,41 +1023,42 @@ begin
         AddCustomColumn( 'Financial Year Starts', 75, 10, cluFinYearStarts);
         AddCustomColumn( 'Practice Contact', 75, 11, cluContactType);
 
-        NumColumns := 12; 
+        NumColumns := 12;
 
         if (ProductConfigService.OnLine and AdminSystem.fdFields.fdUse_BankLink_Online) then
         begin
           ProductConfigService.LoadClientList;
+          if Assigned(ProductConfigService.Clients) then begin
+            for i := 0 to Length(ProductConfigService.Clients.Catalogue)-1 do
+            begin
+              ColumnName := ProductConfigService.Clients.Catalogue[i].Description;
 
-          for i := 0 to Length(ProductConfigService.Clients.Catalogue)-1 do
-          begin
-            ColumnName := ProductConfigService.Clients.Catalogue[i].Description;
+              AddCustomColumn(trim(ColumnName),
+                              trunc(vtClients.Canvas.TextWidth(trim(ColumnName)) * 2),
+                              NumColumns,
+                              cluBOProduct,
+                              i,
+                              ProductConfigService.Clients.Catalogue[i].Id);
 
-            AddCustomColumn(trim(ColumnName),
-                            trunc(vtClients.Canvas.TextWidth(trim(ColumnName)) * 2),
-                            NumColumns,
-                            cluBOProduct,
-                            i,
-                            ProductConfigService.Clients.Catalogue[i].Id);
+              inc(NumColumns);
+            end;
 
-            inc(NumColumns);
+            if UserINI_CM_Var_Col_Count <> Length(ProductConfigService.Clients.Catalogue) then
+            begin
+              UserINI_CM_Var_Col_Count := Length(ProductConfigService.Clients.Catalogue);
+              SetLength(UserINI_CM_Var_Col_Positions, UserINI_CM_Var_Col_Count);
+              SetLength(UserINI_CM_Var_Col_Widths,    UserINI_CM_Var_Col_Count);
+              SetLength(UserINI_CM_Var_Col_Visible,   UserINI_CM_Var_Col_Count);
+              SetLength(UserINI_CM_Var_Col_Guid,      UserINI_CM_Var_Col_Count);
+            end;
+
+            AddCustomColumn( 'Billing Frequency',
+              trunc(vtClients.Canvas.TextWidth(trim('Billing Frequency')) * 2), NumColumns, cluBOBillingFrequency);
+            AddCustomColumn( 'User Admin',
+              trunc(vtClients.Canvas.TextWidth(trim('User Admin')) * 2), NumColumns + 1, cluBOUserAdmin);
+            AddCustomColumn( 'Banklink Online Access',
+              trunc(vtClients.Canvas.TextWidth(trim('Banklink Online Access')) * 2), NumColumns + 2, cluBOAccess);
           end;
-
-          if UserINI_CM_Var_Col_Count <> Length(ProductConfigService.Clients.Catalogue) then
-          begin
-            UserINI_CM_Var_Col_Count := Length(ProductConfigService.Clients.Catalogue);
-            SetLength(UserINI_CM_Var_Col_Positions, UserINI_CM_Var_Col_Count);
-            SetLength(UserINI_CM_Var_Col_Widths,    UserINI_CM_Var_Col_Count);
-            SetLength(UserINI_CM_Var_Col_Visible,   UserINI_CM_Var_Col_Count);
-            SetLength(UserINI_CM_Var_Col_Guid,      UserINI_CM_Var_Col_Count);
-          end;
-
-          AddCustomColumn( 'Billing Frequency',
-            trunc(vtClients.Canvas.TextWidth(trim('Billing Frequency')) * 2), NumColumns, cluBOBillingFrequency);
-          AddCustomColumn( 'User Admin',
-            trunc(vtClients.Canvas.TextWidth(trim('User Admin')) * 2), NumColumns + 1, cluBOUserAdmin);
-          AddCustomColumn( 'Banklink Online Access',
-            trunc(vtClients.Canvas.TextWidth(trim('Banklink Online Access')) * 2), NumColumns + 2, cluBOAccess);
         end;
 
         BuildGrid( cluCode);
