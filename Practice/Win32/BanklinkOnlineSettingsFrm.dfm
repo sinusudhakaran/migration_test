@@ -58,6 +58,7 @@ object frmBanklinkOnlineSettings: TfrmBanklinkOnlineSettings
       Height = 93
       ItemHeight = 13
       TabOrder = 2
+      OnClick = chklistProductsClick
     end
   end
   object grpBillingFrequency: TGroupBox

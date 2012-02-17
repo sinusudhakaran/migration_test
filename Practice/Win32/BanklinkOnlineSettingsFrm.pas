@@ -52,6 +52,7 @@ type
     procedure rbDeactivatedClick(Sender: TObject);
     procedure chkUseClientDetailsClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
+    procedure chklistProductsClick(Sender: TObject);
   private
   protected
     procedure FillClientDetails;
@@ -334,6 +335,12 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+procedure TfrmBanklinkOnlineSettings.chklistProductsClick(Sender: TObject);
+begin
+  chklistProducts.Checked[TCheckListBox(Sender).ItemIndex] :=
+    not chklistProducts.Checked[TCheckListBox(Sender).ItemIndex];
+end;
+
 procedure TfrmBanklinkOnlineSettings.chkUseClientDetailsClick(Sender: TObject);
 begin
   FillClientDetails;
