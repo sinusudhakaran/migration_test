@@ -314,13 +314,16 @@ begin
       lblClientBOProducts.Visible := ClientSynced;
       btnClientSettings.Enabled := ClientSynced and FEnableClientSettings;
       lblClientBOProducts.Visible := ClientSynced;
+      //Get client list (so that we can lookup the client code)
+      ProductConfigService.LoadClientList;
+      //Get client details (need this to fill out lblClientBOProducts.Caption)
+      MyClient.RefreshBlopiClient;
       if lblClientBOProducts.Visible  then
       begin
         if not FEnableClientSettings then
           lblClientBOProducts.Caption := 'Please save the client to access the Banklink Online settings';
-        CachedPracticeDetail := ProductConfigService.CachedPractice;        if btnClientSettings.Enabled and Assigned(CachedPracticeDetail) then
-          lblClientBOProducts.Caption := 'This client currently has access to ' +
-                                         IntToStr(Length(CachedPracticeDetail.Subscription)) +
+        CachedPracticeDetail := ProductConfigService.CachedPractice;        if btnClientSettings.Enabled and Assigned(CachedPracticeDetail) then          lblClientBOProducts.Caption := 'This client currently has access to ' +
+                                         IntToStr(Length(MyClient.BlopiClientDetail.Subscription)) +
                                          ' Banklink Online product(s)'
       end;
     end;
