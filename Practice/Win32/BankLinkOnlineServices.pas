@@ -1477,7 +1477,7 @@ begin
       FPractice.Free;
       FPractice := PracticeRead.Create;
 
-      PracUpdate := PracUpdate.Create;
+      PracUpdate := PracticeUpdate.Create;
       try
         RemoveInvalidSubscriptions;
         CopyRemotableObject(FPracticeCopy, FPractice);
