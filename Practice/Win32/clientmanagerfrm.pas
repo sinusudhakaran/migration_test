@@ -319,6 +319,7 @@ type
     procedure vtClientsHeaderMouseUp(Sender: TVTHeader;
       Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
     procedure CheckBOConnection (var message: TMessage); message BK_PRACTICE_DETAILS_CHANGED;
+    procedure CheckBOConnectionLocal;
   protected
     procedure UpdateActions; override;
   public
@@ -618,6 +619,8 @@ begin
      ClientLookup.vtClients.SetFocus;
   except
   end;
+
+  CheckBOConnectionLocal;
 end;
 
 //------------------------------------------------------------------------------
@@ -775,6 +778,11 @@ end;
 
 //------------------------------------------------------------------------------
 procedure TfrmClientManager.CheckBOConnection(var message: TMessage); 
+begin
+  CheckBOConnectionLocal;
+end;
+
+procedure TfrmClientManager.CheckBOConnectionLocal;
 var
   TestBool: boolean;
 begin
