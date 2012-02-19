@@ -128,7 +128,7 @@ type
     PassGenCodeEntered : boolean;
     ChangingDiskID : boolean;
     InSetup: Boolean;
-    FPrac: TBloPracticeDetail;
+    FPrac: TBloPracticeRead;
     FOnlineSettingsChanged: Boolean;
     procedure SetUpHelp;
     function AddTreeNode(AVST: TCustomVirtualStringTree; ANode:
@@ -421,10 +421,10 @@ end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmPracticeDetails.cbPrimaryContactClick(Sender: TObject);
 var
-  TempUser: TBloUserPractice;
+  TempUser: TBloUserRead;
 begin
   //Set primary contact
-  TempUser := TBloUserPractice(cbPrimaryContact.Items.Objects[cbPrimaryContact.ItemIndex]);
+  TempUser := TBloUserRead(cbPrimaryContact.Items.Objects[cbPrimaryContact.ItemIndex]);
   ProductConfigService.SetPrimaryContact(TempUser);
 end;
 
@@ -1053,7 +1053,7 @@ begin
       //Select default admin
       cbPrimaryContact.ItemIndex := -1;
       for i := 0 to cbPrimaryContact.Items.Count - 1 do
-        if TBloUserPractice(cbPrimaryContact.Items.Objects[i]).Id = FPrac.DefaultAdminUserId then
+        if TBloUserRead(cbPrimaryContact.Items.Objects[i]).Id = FPrac.DefaultAdminUserId then
           cbPrimaryContact.ItemIndex := i;
 
       //Products and Service
@@ -1283,5 +1283,7 @@ end;
 initialization
    DebugMe := DebugUnit(UnitName);
 end.
+
+
 
 

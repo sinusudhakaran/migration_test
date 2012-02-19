@@ -145,7 +145,7 @@ var
   DelMsg : String;
   HasDelOnline : Boolean;
   Name : String;
-  aPractice : TBloPracticeDetail;
+  aPractice : TBloPracticeRead;
 begin
   HasDelOnline := False;
   Result := False;
@@ -257,7 +257,7 @@ var
   Count    : integer;
   i,j      : integer;
   Online   : String;
-  Prac     : TBloPracticeDetail;
+  Prac     : TBloPracticeRead;
 begin
   lvUsers.Items.beginUpdate;
   try

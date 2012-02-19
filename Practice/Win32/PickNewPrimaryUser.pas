@@ -44,7 +44,7 @@ type
   end;
 
   function PickPrimaryUser(aUserCode: string = '';
-                           aPractice : TBloPracticeDetail = Nil) : Boolean;
+                           aPractice : TBloPracticeRead = Nil) : Boolean;
 
 //------------------------------------------------------------------------------
 implementation
@@ -63,7 +63,7 @@ const
 
 //------------------------------------------------------------------------------
 function PickPrimaryUser(aUserCode : string = '';
-                         aPractice : TBloPracticeDetail = Nil) : Boolean;
+                         aPractice : TBloPracticeRead = Nil) : Boolean;
 var
   MyDlg         : TPickNewPrimaryUser;
   UserIndex     : integer;
@@ -114,10 +114,10 @@ begin
       if MyDlg.ShowModal = mrYes then
       begin
         // Save Default Admin User
-        aPractice.DefaultAdminUserId := TBloUserPractice(MyDlg.cmbPrimaryContact.Items.Objects[MyDlg.cmbPrimaryContact.ItemIndex]).Id;
+        aPractice.DefaultAdminUserId := TBloUserRead(MyDlg.cmbPrimaryContact.Items.Objects[MyDlg.cmbPrimaryContact.ItemIndex]).Id;
         Result := ProductConfigService.SavePractice;
 
-        UserCode := TBloUserPractice(MyDlg.cmbPrimaryContact.Items.Objects[MyDlg.cmbPrimaryContact.ItemIndex]).UserCode;
+        UserCode := TBloUserRead(MyDlg.cmbPrimaryContact.Items.Objects[MyDlg.cmbPrimaryContact.ItemIndex]).UserCode;
         LogUtil.LogMsg(lmInfo, UNIT_NAME, UserCode + ' has been successfully set to the Default Admin on BankLink Online.');
       end;
 
@@ -147,3 +147,4 @@ begin
 end;
 
 end.
+

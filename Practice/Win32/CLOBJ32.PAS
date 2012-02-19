@@ -70,10 +70,10 @@ type
     procedure SetAuditInfo(P1, P2: pClient_Rec; var AAuditInfo: TAuditInfo);
     procedure SetExtraAuditInfo(P1, P2: pClientExtra_Rec; var AAuditInfo: TAuditInfo;
                                 NewClient: boolean = false);
-    procedure SetBlopiClientDetail(const Value: TBloClientDetail);
-    procedure SetBlopiClientNew(const Value: TBloClientNew);
-    function GetBlopiClientDetail: TBloClientDetail;
-    function GetBlopiClientNew: TBloClientNew;
+    procedure SetBlopiClientDetail(const Value: TBloClientReadDetail);
+    procedure SetBlopiClientNew(const Value: TBloClientCreate);
+    function GetBlopiClientDetail: TBloClientReadDetail;
+    function GetBlopiClientNew: TBloClientCreate;
     function CopyPracticeClientNew: boolean;
     procedure SetBlopiClientChanged(const Value: Boolean);
     function GetBlopiClientChanged: Boolean;
@@ -141,8 +141,8 @@ type
     property AuditTable: TAuditTable read FAuditTable;
     property ClientAuditMgr: TClientAuditManager read FClientAuditMgr;
     property ClientCopy: TClientObj read GetClientCopy;
-    property BlopiClientDetail: TBloClientDetail read GetBlopiClientDetail write SetBlopiClientDetail;
-    property BlopiClientNew: TBloClientNew read GetBlopiClientNew write SetBlopiClientNew;
+    property BlopiClientDetail: TBloClientReadDetail read GetBlopiClientDetail write SetBlopiClientDetail;
+    property BlopiClientNew: TBloClientCreate read GetBlopiClientNew write SetBlopiClientNew;
     property BlopiClientChanged: Boolean read GetBlopiClientChanged write SetBlopiClientChanged;
 {$ENDIF}
   end;
@@ -911,12 +911,12 @@ begin
   FBlopiClient.IsEdited := Value;
 end;
 
-procedure TClientObj.SetBlopiClientDetail(const Value: TBloClientDetail);
+procedure TClientObj.SetBlopiClientDetail(const Value: TBloClientReadDetail);
 begin
   FBlopiClient.ClientDetail := Value;
 end;
 
-procedure TClientObj.SetBlopiClientNew(const Value: TBloClientNew);
+procedure TClientObj.SetBlopiClientNew(const Value: TBloClientCreate);
 begin
   FBlopiClient.ClientNew := Value;
 end;
@@ -1638,12 +1638,12 @@ begin
   Result := FBlopiClient.IsEdited;
 end;
 
-function TClientObj.GetBlopiClientDetail: TBloClientDetail;
+function TClientObj.GetBlopiClientDetail: TBloClientReadDetail;
 begin
   Result := FBlopiClient.ClientDetail
 end;
 
-function TClientObj.GetBlopiClientNew: TBloClientNew;
+function TClientObj.GetBlopiClientNew: TBloClientCreate;
 begin
   Result := FBlopiClient.ClientNew;
 end;
@@ -1657,3 +1657,4 @@ initialization
    DebugMe := DebugUnit(UnitName);
 {$ENDIF}
 end.
+

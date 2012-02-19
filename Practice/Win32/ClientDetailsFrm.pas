@@ -237,9 +237,9 @@ var
   i, k : Integer;
   GUID1, GUID2: WideString;
   ClientSynced: boolean;
-  MyNewClient: TBloClientNew;
+  MyNewClient: TBloClientCreate;
   MyNewClientGuid: TBloGuid;
-  CachedPracticeDetail: TBloPracticeDetail;
+  CachedPracticeDetail: TBloPracticeRead;
 begin
   PageControl1.ActivePage := tbsClient;
 
@@ -322,7 +322,9 @@ begin
       begin
         if not FEnableClientSettings then
           lblClientBOProducts.Caption := 'Please save the client to access the Banklink Online settings';
-        CachedPracticeDetail := ProductConfigService.CachedPractice;        if btnClientSettings.Enabled and Assigned(CachedPracticeDetail) then          lblClientBOProducts.Caption := 'This client currently has access to ' +
+        CachedPracticeDetail := ProductConfigService.CachedPractice;
+        if btnClientSettings.Enabled and Assigned(CachedPracticeDetail) then
+          lblClientBOProducts.Caption := 'This client currently has access to ' +
                                          IntToStr(Length(MyClient.BlopiClientDetail.Subscription)) +
                                          ' Banklink Online product(s)'
       end;

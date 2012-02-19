@@ -1,7 +1,7 @@
 // ************************************************************************ //
 // The types declared in this file were generated from data read from the
 // WSDL File described below:
-// WSDL     : https://www.banklinkonline.com/Services/BlopiServiceFacade.svc?wsdl
+// WSDL     : https://www.banklinkonline.com/services/BlopiServiceFacade.svc?wsdl
 //  >Import : https://www.banklinkonline.com/Services/BlopiServiceFacade.svc?wsdl=wsdl0
 //  >Import : https://www.banklinkonline.com/Services/BlopiServiceFacade.svc?wsdl=wsdl0>0
 //  >Import : https://www.banklinkonline.com/Services/BlopiServiceFacade.svc?xsd=xsd0
@@ -11,7 +11,7 @@
 // Encoding : utf-8
 // Codegen  : [wfMapStringsToWideStrings+, wfUseScopedEnumeration-]
 // Version  : 1.0
-// (31/01/2012 11:44:19 a.m. - - $Rev: 25127 $)
+// (17/02/2012 3:22:15 p.m. - - $Rev: 25127 $)
 // ************************************************************************ //
 
 unit BlopiServiceFacade;
@@ -44,47 +44,53 @@ type
   MessageResponseOfArrayOfCatalogueEntryMIdCYrSK = class;   { "http://schemas.datacontract.org/2004/07/BankLink.Common.Services"[GblCplx] }
   ServiceErrorMessage  = class;                 { "http://schemas.datacontract.org/2004/07/BankLink.Common.Services"[GblCplx] }
   ExceptionDetails     = class;                 { "http://schemas.datacontract.org/2004/07/BankLink.Common.Services"[GblCplx] }
-  MessageResponseOfPracticeDetailMIdCYrSK = class;   { "http://schemas.datacontract.org/2004/07/BankLink.Common.Services"[GblCplx] }
+  MessageResponseOfPracticeReadMIdCYrSK = class;   { "http://schemas.datacontract.org/2004/07/BankLink.Common.Services"[GblCplx] }
   MessageResponseOfguid = class;                { "http://schemas.datacontract.org/2004/07/BankLink.Common.Services"[GblCplx] }
   MessageResponseOfClientListMIdCYrSK = class;   { "http://schemas.datacontract.org/2004/07/BankLink.Common.Services"[GblCplx] }
-  MessageResponseOfClientDetailMIdCYrSK = class;   { "http://schemas.datacontract.org/2004/07/BankLink.Common.Services"[GblCplx] }
+  MessageResponseOfClientReadDetailMIdCYrSK = class;   { "http://schemas.datacontract.org/2004/07/BankLink.Common.Services"[GblCplx] }
   MessageResponseOfstring = class;              { "http://schemas.datacontract.org/2004/07/BankLink.Common.Services"[GblCplx] }
   MessageResponseOfArrayOfCatalogueEntryMIdCYrSK2 = class;   { "http://schemas.datacontract.org/2004/07/BankLink.Common.Services"[GblElm] }
   MessageResponse2     = class;                 { "http://schemas.datacontract.org/2004/07/BankLink.Common.Services"[GblElm] }
   ServiceErrorMessage2 = class;                 { "http://schemas.datacontract.org/2004/07/BankLink.Common.Services"[GblElm] }
   ExceptionDetails2    = class;                 { "http://schemas.datacontract.org/2004/07/BankLink.Common.Services"[GblElm] }
-  MessageResponseOfPracticeDetailMIdCYrSK2 = class;   { "http://schemas.datacontract.org/2004/07/BankLink.Common.Services"[GblElm] }
+  MessageResponseOfPracticeReadMIdCYrSK2 = class;   { "http://schemas.datacontract.org/2004/07/BankLink.Common.Services"[GblElm] }
   MessageResponseOfguid2 = class;               { "http://schemas.datacontract.org/2004/07/BankLink.Common.Services"[GblElm] }
   MessageResponseOfClientListMIdCYrSK2 = class;   { "http://schemas.datacontract.org/2004/07/BankLink.Common.Services"[GblElm] }
-  MessageResponseOfClientDetailMIdCYrSK2 = class;   { "http://schemas.datacontract.org/2004/07/BankLink.Common.Services"[GblElm] }
+  MessageResponseOfClientReadDetailMIdCYrSK2 = class;   { "http://schemas.datacontract.org/2004/07/BankLink.Common.Services"[GblElm] }
   MessageResponseOfstring2 = class;             { "http://schemas.datacontract.org/2004/07/BankLink.Common.Services"[GblElm] }
   CatalogueEntry       = class;                 { "http://www.banklinkonline.com/2011/11/Blopi"[GblCplx] }
   Practice             = class;                 { "http://www.banklinkonline.com/2011/11/Blopi"[GblCplx] }
-  PracticeDetail       = class;                 { "http://www.banklinkonline.com/2011/11/Blopi"[GblCplx] }
+  PracticeRead         = class;                 { "http://www.banklinkonline.com/2011/11/Blopi"[GblCplx] }
   Role                 = class;                 { "http://www.banklinkonline.com/2011/11/Blopi"[GblCplx] }
   User                 = class;                 { "http://www.banklinkonline.com/2011/11/Blopi"[GblCplx] }
-  UserDetail           = class;                 { "http://www.banklinkonline.com/2011/11/Blopi"[GblCplx] }
-  UserPracticeNew      = class;                 { "http://www.banklinkonline.com/2011/11/Blopi"[GblCplx] }
-  UserPractice         = class;                 { "http://www.banklinkonline.com/2011/11/Blopi"[GblCplx] }
+  UserRead             = class;                 { "http://www.banklinkonline.com/2011/11/Blopi"[GblCplx] }
+  PracticeUpdate       = class;                 { "http://www.banklinkonline.com/2011/11/Blopi"[GblCplx] }
+  UserCreate           = class;                 { "http://www.banklinkonline.com/2011/11/Blopi"[GblCplx] }
+  UserCreatePractice   = class;                 { "http://www.banklinkonline.com/2011/11/Blopi"[GblCplx] }
+  UserUpdate           = class;                 { "http://www.banklinkonline.com/2011/11/Blopi"[GblCplx] }
+  UserUpdatePractice   = class;                 { "http://www.banklinkonline.com/2011/11/Blopi"[GblCplx] }
   ClientList           = class;                 { "http://www.banklinkonline.com/2011/11/Blopi"[GblCplx] }
   Client               = class;                 { "http://www.banklinkonline.com/2011/11/Blopi"[GblCplx] }
-  ClientSummary        = class;                 { "http://www.banklinkonline.com/2011/11/Blopi"[GblCplx] }
-  ClientDetail         = class;                 { "http://www.banklinkonline.com/2011/11/Blopi"[GblCplx] }
-  ClientNew            = class;                 { "http://www.banklinkonline.com/2011/11/Blopi"[GblCplx] }
+  ClientRead           = class;                 { "http://www.banklinkonline.com/2011/11/Blopi"[GblCplx] }
+  ClientReadDetail     = class;                 { "http://www.banklinkonline.com/2011/11/Blopi"[GblCplx] }
+  ClientCreate         = class;                 { "http://www.banklinkonline.com/2011/11/Blopi"[GblCplx] }
   ClientUpdate         = class;                 { "http://www.banklinkonline.com/2011/11/Blopi"[GblCplx] }
   CatalogueEntry2      = class;                 { "http://www.banklinkonline.com/2011/11/Blopi"[GblElm] }
-  PracticeDetail2      = class;                 { "http://www.banklinkonline.com/2011/11/Blopi"[GblElm] }
+  PracticeRead2        = class;                 { "http://www.banklinkonline.com/2011/11/Blopi"[GblElm] }
   Practice2            = class;                 { "http://www.banklinkonline.com/2011/11/Blopi"[GblElm] }
   Role2                = class;                 { "http://www.banklinkonline.com/2011/11/Blopi"[GblElm] }
-  UserDetail2          = class;                 { "http://www.banklinkonline.com/2011/11/Blopi"[GblElm] }
+  UserRead2            = class;                 { "http://www.banklinkonline.com/2011/11/Blopi"[GblElm] }
   User2                = class;                 { "http://www.banklinkonline.com/2011/11/Blopi"[GblElm] }
-  UserPracticeNew2     = class;                 { "http://www.banklinkonline.com/2011/11/Blopi"[GblElm] }
-  UserPractice2        = class;                 { "http://www.banklinkonline.com/2011/11/Blopi"[GblElm] }
+  PracticeUpdate2      = class;                 { "http://www.banklinkonline.com/2011/11/Blopi"[GblElm] }
+  UserCreatePractice2  = class;                 { "http://www.banklinkonline.com/2011/11/Blopi"[GblElm] }
+  UserCreate2          = class;                 { "http://www.banklinkonline.com/2011/11/Blopi"[GblElm] }
+  UserUpdatePractice2  = class;                 { "http://www.banklinkonline.com/2011/11/Blopi"[GblElm] }
+  UserUpdate2          = class;                 { "http://www.banklinkonline.com/2011/11/Blopi"[GblElm] }
   ClientList2          = class;                 { "http://www.banklinkonline.com/2011/11/Blopi"[GblElm] }
-  ClientSummary2       = class;                 { "http://www.banklinkonline.com/2011/11/Blopi"[GblElm] }
+  ClientRead2          = class;                 { "http://www.banklinkonline.com/2011/11/Blopi"[GblElm] }
   Client2              = class;                 { "http://www.banklinkonline.com/2011/11/Blopi"[GblElm] }
-  ClientDetail2        = class;                 { "http://www.banklinkonline.com/2011/11/Blopi"[GblElm] }
-  ClientNew2           = class;                 { "http://www.banklinkonline.com/2011/11/Blopi"[GblElm] }
+  ClientReadDetail2    = class;                 { "http://www.banklinkonline.com/2011/11/Blopi"[GblElm] }
+  ClientCreate2        = class;                 { "http://www.banklinkonline.com/2011/11/Blopi"[GblElm] }
   ClientUpdate2        = class;                 { "http://www.banklinkonline.com/2011/11/Blopi"[GblElm] }
 
   { "http://www.banklinkonline.com/2011/11/Blopi"[GblSmpl] }
@@ -192,19 +198,19 @@ type
 
 
   // ************************************************************************ //
-  // XML       : MessageResponseOfPracticeDetailMIdCYrSK, global, <complexType>
+  // XML       : MessageResponseOfPracticeReadMIdCYrSK, global, <complexType>
   // Namespace : http://schemas.datacontract.org/2004/07/BankLink.Common.Services
   // ************************************************************************ //
-  MessageResponseOfPracticeDetailMIdCYrSK = class(MessageResponse)
+  MessageResponseOfPracticeReadMIdCYrSK = class(MessageResponse)
   private
-    FResult: PracticeDetail;
+    FResult: PracticeRead;
     FResult_Specified: boolean;
-    procedure SetResult(Index: Integer; const APracticeDetail: PracticeDetail);
+    procedure SetResult(Index: Integer; const APracticeRead: PracticeRead);
     function  Result_Specified(Index: Integer): boolean;
   public
     destructor Destroy; override;
   published
-    property Result: PracticeDetail  Index (IS_OPTN or IS_NLBL) read FResult write SetResult stored Result_Specified;
+    property Result: PracticeRead  Index (IS_OPTN or IS_NLBL) read FResult write SetResult stored Result_Specified;
   end;
 
 
@@ -244,19 +250,19 @@ type
 
 
   // ************************************************************************ //
-  // XML       : MessageResponseOfClientDetailMIdCYrSK, global, <complexType>
+  // XML       : MessageResponseOfClientReadDetailMIdCYrSK, global, <complexType>
   // Namespace : http://schemas.datacontract.org/2004/07/BankLink.Common.Services
   // ************************************************************************ //
-  MessageResponseOfClientDetailMIdCYrSK = class(MessageResponse)
+  MessageResponseOfClientReadDetailMIdCYrSK = class(MessageResponse)
   private
-    FResult: ClientDetail;
+    FResult: ClientReadDetail;
     FResult_Specified: boolean;
-    procedure SetResult(Index: Integer; const AClientDetail: ClientDetail);
+    procedure SetResult(Index: Integer; const AClientReadDetail: ClientReadDetail);
     function  Result_Specified(Index: Integer): boolean;
   public
     destructor Destroy; override;
   published
-    property Result: ClientDetail  Index (IS_OPTN or IS_NLBL) read FResult write SetResult stored Result_Specified;
+    property Result: ClientReadDetail  Index (IS_OPTN or IS_NLBL) read FResult write SetResult stored Result_Specified;
   end;
 
 
@@ -322,10 +328,10 @@ type
 
 
   // ************************************************************************ //
-  // XML       : MessageResponseOfPracticeDetailMIdCYrSK, global, <element>
+  // XML       : MessageResponseOfPracticeReadMIdCYrSK, global, <element>
   // Namespace : http://schemas.datacontract.org/2004/07/BankLink.Common.Services
   // ************************************************************************ //
-  MessageResponseOfPracticeDetailMIdCYrSK2 = class(MessageResponseOfPracticeDetailMIdCYrSK)
+  MessageResponseOfPracticeReadMIdCYrSK2 = class(MessageResponseOfPracticeReadMIdCYrSK)
   private
   published
   end;
@@ -355,10 +361,10 @@ type
 
 
   // ************************************************************************ //
-  // XML       : MessageResponseOfClientDetailMIdCYrSK, global, <element>
+  // XML       : MessageResponseOfClientReadDetailMIdCYrSK, global, <element>
   // Namespace : http://schemas.datacontract.org/2004/07/BankLink.Common.Services
   // ************************************************************************ //
-  MessageResponseOfClientDetailMIdCYrSK2 = class(MessageResponseOfClientDetailMIdCYrSK)
+  MessageResponseOfClientReadDetailMIdCYrSK2 = class(MessageResponseOfClientReadDetailMIdCYrSK)
   private
   published
   end;
@@ -401,7 +407,7 @@ type
   end;
 
   ArrayOfRole = array of Role;                  { "http://www.banklinkonline.com/2011/11/Blopi"[GblCplx] }
-  ArrayOfUserDetail = array of UserDetail;      { "http://www.banklinkonline.com/2011/11/Blopi"[GblCplx] }
+  ArrayOfUserRead = array of UserRead;          { "http://www.banklinkonline.com/2011/11/Blopi"[GblCplx] }
 
 
   // ************************************************************************ //
@@ -446,10 +452,10 @@ type
 
 
   // ************************************************************************ //
-  // XML       : PracticeDetail, global, <complexType>
+  // XML       : PracticeRead, global, <complexType>
   // Namespace : http://www.banklinkonline.com/2011/11/Blopi
   // ************************************************************************ //
-  PracticeDetail = class(Practice)
+  PracticeRead = class(Practice)
   private
     FCatalogue: ArrayOfCatalogueEntry;
     FCatalogue_Specified: boolean;
@@ -459,7 +465,7 @@ type
     FId_Specified: boolean;
     FRoles: ArrayOfRole;
     FRoles_Specified: boolean;
-    FUsers: ArrayOfUserDetail;
+    FUsers: ArrayOfUserRead;
     FUsers_Specified: boolean;
     procedure SetCatalogue(Index: Integer; const AArrayOfCatalogueEntry: ArrayOfCatalogueEntry);
     function  Catalogue_Specified(Index: Integer): boolean;
@@ -469,7 +475,7 @@ type
     function  Id_Specified(Index: Integer): boolean;
     procedure SetRoles(Index: Integer; const AArrayOfRole: ArrayOfRole);
     function  Roles_Specified(Index: Integer): boolean;
-    procedure SetUsers(Index: Integer; const AArrayOfUserDetail: ArrayOfUserDetail);
+    procedure SetUsers(Index: Integer; const AArrayOfUserRead: ArrayOfUserRead);
     function  Users_Specified(Index: Integer): boolean;
   public
     destructor Destroy; override;
@@ -478,7 +484,7 @@ type
     property DomainName: WideString             Index (IS_OPTN or IS_NLBL) read FDomainName write SetDomainName stored DomainName_Specified;
     property Id:         guid                   Index (IS_OPTN) read FId write SetId stored Id_Specified;
     property Roles:      ArrayOfRole            Index (IS_OPTN or IS_NLBL) read FRoles write SetRoles stored Roles_Specified;
-    property Users:      ArrayOfUserDetail      Index (IS_OPTN or IS_NLBL) read FUsers write SetUsers stored Users_Specified;
+    property Users:      ArrayOfUserRead        Index (IS_OPTN or IS_NLBL) read FUsers write SetUsers stored Users_Specified;
   end;
 
 
@@ -515,8 +521,6 @@ type
   // ************************************************************************ //
   User = class(TRemotable)
   private
-    FEMail: WideString;
-    FEMail_Specified: boolean;
     FFullName: WideString;
     FFullName_Specified: boolean;
     FRoleNames: ArrayOfstring;
@@ -525,8 +529,6 @@ type
     FSubscription_Specified: boolean;
     FUserCode: WideString;
     FUserCode_Specified: boolean;
-    procedure SetEMail(Index: Integer; const AWideString: WideString);
-    function  EMail_Specified(Index: Integer): boolean;
     procedure SetFullName(Index: Integer; const AWideString: WideString);
     function  FullName_Specified(Index: Integer): boolean;
     procedure SetRoleNames(Index: Integer; const AArrayOfstring: ArrayOfstring);
@@ -536,7 +538,6 @@ type
     procedure SetUserCode(Index: Integer; const AWideString: WideString);
     function  UserCode_Specified(Index: Integer): boolean;
   published
-    property EMail:        WideString     Index (IS_OPTN or IS_NLBL) read FEMail write SetEMail stored EMail_Specified;
     property FullName:     WideString     Index (IS_OPTN or IS_NLBL) read FFullName write SetFullName stored FullName_Specified;
     property RoleNames:    ArrayOfstring  Index (IS_OPTN or IS_NLBL) read FRoleNames write SetRoleNames stored RoleNames_Specified;
     property Subscription: ArrayOfguid    Index (IS_OPTN or IS_NLBL) read FSubscription write SetSubscription stored Subscription_Specified;
@@ -546,10 +547,31 @@ type
 
 
   // ************************************************************************ //
-  // XML       : UserDetail, global, <complexType>
+  // XML       : UserRead, global, <complexType>
   // Namespace : http://www.banklinkonline.com/2011/11/Blopi
   // ************************************************************************ //
-  UserDetail = class(User)
+  UserRead = class(User)
+  private
+    FEMail: WideString;
+    FEMail_Specified: boolean;
+    FId: guid;
+    FId_Specified: boolean;
+    procedure SetEMail(Index: Integer; const AWideString: WideString);
+    function  EMail_Specified(Index: Integer): boolean;
+    procedure SetId(Index: Integer; const Aguid: guid);
+    function  Id_Specified(Index: Integer): boolean;
+  published
+    property EMail: WideString  Index (IS_OPTN or IS_NLBL) read FEMail write SetEMail stored EMail_Specified;
+    property Id:    guid        Index (IS_OPTN) read FId write SetId stored Id_Specified;
+  end;
+
+
+
+  // ************************************************************************ //
+  // XML       : PracticeUpdate, global, <complexType>
+  // Namespace : http://www.banklinkonline.com/2011/11/Blopi
+  // ************************************************************************ //
+  PracticeUpdate = class(Practice)
   private
     FId: guid;
     FId_Specified: boolean;
@@ -562,10 +584,26 @@ type
 
 
   // ************************************************************************ //
-  // XML       : UserPracticeNew, global, <complexType>
+  // XML       : UserCreate, global, <complexType>
   // Namespace : http://www.banklinkonline.com/2011/11/Blopi
   // ************************************************************************ //
-  UserPracticeNew = class(User)
+  UserCreate = class(User)
+  private
+    FEMail: WideString;
+    FEMail_Specified: boolean;
+    procedure SetEMail(Index: Integer; const AWideString: WideString);
+    function  EMail_Specified(Index: Integer): boolean;
+  published
+    property EMail: WideString  Index (IS_OPTN or IS_NLBL) read FEMail write SetEMail stored EMail_Specified;
+  end;
+
+
+
+  // ************************************************************************ //
+  // XML       : UserCreatePractice, global, <complexType>
+  // Namespace : http://www.banklinkonline.com/2011/11/Blopi
+  // ************************************************************************ //
+  UserCreatePractice = class(UserCreate)
   private
     FPassword: WideString;
     FPassword_Specified: boolean;
@@ -578,10 +616,26 @@ type
 
 
   // ************************************************************************ //
-  // XML       : UserPractice, global, <complexType>
+  // XML       : UserUpdate, global, <complexType>
   // Namespace : http://www.banklinkonline.com/2011/11/Blopi
   // ************************************************************************ //
-  UserPractice = class(UserDetail)
+  UserUpdate = class(User)
+  private
+    FId: guid;
+    FId_Specified: boolean;
+    procedure SetId(Index: Integer; const Aguid: guid);
+    function  Id_Specified(Index: Integer): boolean;
+  published
+    property Id: guid  Index (IS_OPTN) read FId write SetId stored Id_Specified;
+  end;
+
+
+
+  // ************************************************************************ //
+  // XML       : UserUpdatePractice, global, <complexType>
+  // Namespace : http://www.banklinkonline.com/2011/11/Blopi
+  // ************************************************************************ //
+  UserUpdatePractice = class(UserUpdate)
   private
     FPassword: WideString;
     FPassword_Specified: boolean;
@@ -591,7 +645,7 @@ type
     property Password: WideString  Index (IS_OPTN or IS_NLBL) read FPassword write SetPassword stored Password_Specified;
   end;
 
-  ArrayOfClientSummary = array of ClientSummary;   { "http://www.banklinkonline.com/2011/11/Blopi"[GblCplx] }
+  ArrayOfClientRead = array of ClientRead;      { "http://www.banklinkonline.com/2011/11/Blopi"[GblCplx] }
 
 
   // ************************************************************************ //
@@ -602,17 +656,17 @@ type
   private
     FCatalogue: ArrayOfCatalogueEntry;
     FCatalogue_Specified: boolean;
-    FClients: ArrayOfClientSummary;
+    FClients: ArrayOfClientRead;
     FClients_Specified: boolean;
     procedure SetCatalogue(Index: Integer; const AArrayOfCatalogueEntry: ArrayOfCatalogueEntry);
     function  Catalogue_Specified(Index: Integer): boolean;
-    procedure SetClients(Index: Integer; const AArrayOfClientSummary: ArrayOfClientSummary);
+    procedure SetClients(Index: Integer; const AArrayOfClientRead: ArrayOfClientRead);
     function  Clients_Specified(Index: Integer): boolean;
   public
     destructor Destroy; override;
   published
     property Catalogue: ArrayOfCatalogueEntry  Index (IS_OPTN or IS_NLBL) read FCatalogue write SetCatalogue stored Catalogue_Specified;
-    property Clients:   ArrayOfClientSummary   Index (IS_OPTN or IS_NLBL) read FClients write SetClients stored Clients_Specified;
+    property Clients:   ArrayOfClientRead      Index (IS_OPTN or IS_NLBL) read FClients write SetClients stored Clients_Specified;
   end;
 
 
@@ -659,59 +713,64 @@ type
 
 
   // ************************************************************************ //
-  // XML       : ClientSummary, global, <complexType>
+  // XML       : ClientRead, global, <complexType>
   // Namespace : http://www.banklinkonline.com/2011/11/Blopi
   // ************************************************************************ //
-  ClientSummary = class(Client)
+  ClientRead = class(Client)
   private
     FId: guid;
     FId_Specified: boolean;
+    FPrimaryContactFullName: WideString;
+    FPrimaryContactFullName_Specified: boolean;
+    FPrimaryContactUserId: guid;
+    FPrimaryContactUserId_Specified: boolean;
     procedure SetId(Index: Integer; const Aguid: guid);
     function  Id_Specified(Index: Integer): boolean;
+    procedure SetPrimaryContactFullName(Index: Integer; const AWideString: WideString);
+    function  PrimaryContactFullName_Specified(Index: Integer): boolean;
+    procedure SetPrimaryContactUserId(Index: Integer; const Aguid: guid);
+    function  PrimaryContactUserId_Specified(Index: Integer): boolean;
   published
-    property Id: guid  Index (IS_OPTN) read FId write SetId stored Id_Specified;
+    property Id:                     guid        Index (IS_OPTN) read FId write SetId stored Id_Specified;
+    property PrimaryContactFullName: WideString  Index (IS_OPTN or IS_NLBL) read FPrimaryContactFullName write SetPrimaryContactFullName stored PrimaryContactFullName_Specified;
+    property PrimaryContactUserId:   guid        Index (IS_OPTN) read FPrimaryContactUserId write SetPrimaryContactUserId stored PrimaryContactUserId_Specified;
   end;
 
 
 
   // ************************************************************************ //
-  // XML       : ClientDetail, global, <complexType>
+  // XML       : ClientReadDetail, global, <complexType>
   // Namespace : http://www.banklinkonline.com/2011/11/Blopi
   // ************************************************************************ //
-  ClientDetail = class(ClientSummary)
+  ClientReadDetail = class(ClientRead)
   private
     FCatalogue: ArrayOfCatalogueEntry;
     FCatalogue_Specified: boolean;
-    FPrimaryContactUserId: guid;
-    FPrimaryContactUserId_Specified: boolean;
     FRoles: ArrayOfRole;
     FRoles_Specified: boolean;
-    FUsers: ArrayOfUserDetail;
+    FUsers: ArrayOfUserRead;
     FUsers_Specified: boolean;
     procedure SetCatalogue(Index: Integer; const AArrayOfCatalogueEntry: ArrayOfCatalogueEntry);
     function  Catalogue_Specified(Index: Integer): boolean;
-    procedure SetPrimaryContactUserId(Index: Integer; const Aguid: guid);
-    function  PrimaryContactUserId_Specified(Index: Integer): boolean;
     procedure SetRoles(Index: Integer; const AArrayOfRole: ArrayOfRole);
     function  Roles_Specified(Index: Integer): boolean;
-    procedure SetUsers(Index: Integer; const AArrayOfUserDetail: ArrayOfUserDetail);
+    procedure SetUsers(Index: Integer; const AArrayOfUserRead: ArrayOfUserRead);
     function  Users_Specified(Index: Integer): boolean;
   public
     destructor Destroy; override;
   published
-    property Catalogue:            ArrayOfCatalogueEntry  Index (IS_OPTN or IS_NLBL) read FCatalogue write SetCatalogue stored Catalogue_Specified;
-    property PrimaryContactUserId: guid                   Index (IS_OPTN) read FPrimaryContactUserId write SetPrimaryContactUserId stored PrimaryContactUserId_Specified;
-    property Roles:                ArrayOfRole            Index (IS_OPTN or IS_NLBL) read FRoles write SetRoles stored Roles_Specified;
-    property Users:                ArrayOfUserDetail      Index (IS_OPTN or IS_NLBL) read FUsers write SetUsers stored Users_Specified;
+    property Catalogue: ArrayOfCatalogueEntry  Index (IS_OPTN or IS_NLBL) read FCatalogue write SetCatalogue stored Catalogue_Specified;
+    property Roles:     ArrayOfRole            Index (IS_OPTN or IS_NLBL) read FRoles write SetRoles stored Roles_Specified;
+    property Users:     ArrayOfUserRead        Index (IS_OPTN or IS_NLBL) read FUsers write SetUsers stored Users_Specified;
   end;
 
 
 
   // ************************************************************************ //
-  // XML       : ClientNew, global, <complexType>
+  // XML       : ClientCreate, global, <complexType>
   // Namespace : http://www.banklinkonline.com/2011/11/Blopi
   // ************************************************************************ //
-  ClientNew = class(Client)
+  ClientCreate = class(Client)
   private
     FAbn: WideString;
     FAbn_Specified: boolean;
@@ -787,13 +846,18 @@ type
   // XML       : ClientUpdate, global, <complexType>
   // Namespace : http://www.banklinkonline.com/2011/11/Blopi
   // ************************************************************************ //
-  ClientUpdate = class(ClientSummary)
+  ClientUpdate = class(Client)
   private
+    FId: guid;
+    FId_Specified: boolean;
     FPrimaryContactUserId: guid;
     FPrimaryContactUserId_Specified: boolean;
+    procedure SetId(Index: Integer; const Aguid: guid);
+    function  Id_Specified(Index: Integer): boolean;
     procedure SetPrimaryContactUserId(Index: Integer; const Aguid: guid);
     function  PrimaryContactUserId_Specified(Index: Integer): boolean;
   published
+    property Id:                   guid  Index (IS_OPTN) read FId write SetId stored Id_Specified;
     property PrimaryContactUserId: guid  Index (IS_OPTN) read FPrimaryContactUserId write SetPrimaryContactUserId stored PrimaryContactUserId_Specified;
   end;
 
@@ -811,10 +875,10 @@ type
 
 
   // ************************************************************************ //
-  // XML       : PracticeDetail, global, <element>
+  // XML       : PracticeRead, global, <element>
   // Namespace : http://www.banklinkonline.com/2011/11/Blopi
   // ************************************************************************ //
-  PracticeDetail2 = class(PracticeDetail)
+  PracticeRead2 = class(PracticeRead)
   private
   published
   end;
@@ -844,10 +908,10 @@ type
 
 
   // ************************************************************************ //
-  // XML       : UserDetail, global, <element>
+  // XML       : UserRead, global, <element>
   // Namespace : http://www.banklinkonline.com/2011/11/Blopi
   // ************************************************************************ //
-  UserDetail2 = class(UserDetail)
+  UserRead2 = class(UserRead)
   private
   published
   end;
@@ -866,10 +930,10 @@ type
 
 
   // ************************************************************************ //
-  // XML       : UserPracticeNew, global, <element>
+  // XML       : PracticeUpdate, global, <element>
   // Namespace : http://www.banklinkonline.com/2011/11/Blopi
   // ************************************************************************ //
-  UserPracticeNew2 = class(UserPracticeNew)
+  PracticeUpdate2 = class(PracticeUpdate)
   private
   published
   end;
@@ -877,10 +941,43 @@ type
 
 
   // ************************************************************************ //
-  // XML       : UserPractice, global, <element>
+  // XML       : UserCreatePractice, global, <element>
   // Namespace : http://www.banklinkonline.com/2011/11/Blopi
   // ************************************************************************ //
-  UserPractice2 = class(UserPractice)
+  UserCreatePractice2 = class(UserCreatePractice)
+  private
+  published
+  end;
+
+
+
+  // ************************************************************************ //
+  // XML       : UserCreate, global, <element>
+  // Namespace : http://www.banklinkonline.com/2011/11/Blopi
+  // ************************************************************************ //
+  UserCreate2 = class(UserCreate)
+  private
+  published
+  end;
+
+
+
+  // ************************************************************************ //
+  // XML       : UserUpdatePractice, global, <element>
+  // Namespace : http://www.banklinkonline.com/2011/11/Blopi
+  // ************************************************************************ //
+  UserUpdatePractice2 = class(UserUpdatePractice)
+  private
+  published
+  end;
+
+
+
+  // ************************************************************************ //
+  // XML       : UserUpdate, global, <element>
+  // Namespace : http://www.banklinkonline.com/2011/11/Blopi
+  // ************************************************************************ //
+  UserUpdate2 = class(UserUpdate)
   private
   published
   end;
@@ -899,10 +996,10 @@ type
 
 
   // ************************************************************************ //
-  // XML       : ClientSummary, global, <element>
+  // XML       : ClientRead, global, <element>
   // Namespace : http://www.banklinkonline.com/2011/11/Blopi
   // ************************************************************************ //
-  ClientSummary2 = class(ClientSummary)
+  ClientRead2 = class(ClientRead)
   private
   published
   end;
@@ -921,10 +1018,10 @@ type
 
 
   // ************************************************************************ //
-  // XML       : ClientDetail, global, <element>
+  // XML       : ClientReadDetail, global, <element>
   // Namespace : http://www.banklinkonline.com/2011/11/Blopi
   // ************************************************************************ //
-  ClientDetail2 = class(ClientDetail)
+  ClientReadDetail2 = class(ClientReadDetail)
   private
   published
   end;
@@ -932,10 +1029,10 @@ type
 
 
   // ************************************************************************ //
-  // XML       : ClientNew, global, <element>
+  // XML       : ClientCreate, global, <element>
   // Namespace : http://www.banklinkonline.com/2011/11/Blopi
   // ************************************************************************ //
-  ClientNew2 = class(ClientNew)
+  ClientCreate2 = class(ClientCreate)
   private
   published
   end;
@@ -969,18 +1066,18 @@ type
     function  GetPracticeCatalogue(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString): MessageResponseOfArrayOfCatalogueEntryMIdCYrSK; stdcall;
     function  GetSmeCatalogue(const countryCode: WideString; const practiceCode: WideString): MessageResponseOfArrayOfCatalogueEntryMIdCYrSK; stdcall;
     function  GetUserCatalogue(const countryCode: WideString; const practiceCode: WideString; const clientCode: WideString): MessageResponseOfArrayOfCatalogueEntryMIdCYrSK; stdcall;
-    function  GetPractice(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString): MessageResponseOfPracticeDetailMIdCYrSK; stdcall;
-    function  SavePractice(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const practice: Practice): MessageResponse; stdcall;
-    function  CreatePracticeUser(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const user: UserPracticeNew): MessageResponseOfguid; stdcall;
-    function  SavePracticeUser(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const user: UserPractice): MessageResponse; stdcall;
+    function  GetPractice(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString): MessageResponseOfPracticeReadMIdCYrSK; stdcall;
+    function  SavePractice(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const practice: PracticeUpdate): MessageResponse; stdcall;
+    function  CreatePracticeUser(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const user: UserCreatePractice): MessageResponseOfguid; stdcall;
+    function  SavePracticeUser(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const user: UserUpdatePractice): MessageResponse; stdcall;
     function  SetPracticeUserPassword(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const userId: guid; const newPassword: WideString): MessageResponse; stdcall;
     function  DeleteUser(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const userId: guid): MessageResponse; stdcall;
     function  GetClientList(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString): MessageResponseOfClientListMIdCYrSK; stdcall;
-    function  GetClient(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const clientId: guid): MessageResponseOfClientDetailMIdCYrSK; stdcall;
-    function  CreateClient(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const newClient: ClientNew): MessageResponseOfguid; stdcall;
-    function  SaveClient(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const client: ClientUpdate): MessageResponse; stdcall;
-    function  CreateClientUser(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const clientId: guid; const user: User): MessageResponseOfguid; stdcall;
-    function  SaveClientUser(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const clientId: guid; const user: UserDetail): MessageResponse; stdcall;
+    function  GetClient(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const clientId: guid): MessageResponseOfClientReadDetailMIdCYrSK; stdcall;
+    function  CreateClient(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const ClientCreate: ClientCreate): MessageResponseOfguid; stdcall;
+    function  SaveClient(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const ClientUpdate: ClientUpdate): MessageResponse; stdcall;
+    function  CreateClientUser(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const clientId: guid; const user: UserCreate): MessageResponseOfguid; stdcall;
+    function  SaveClientUser(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const clientId: guid; const user: UserUpdate): MessageResponse; stdcall;
     function  GetTermsAndConditions(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString): MessageResponseOfstring; stdcall;
   end;
 
@@ -992,7 +1089,7 @@ implementation
 
 function GetIBlopiServiceFacade(UseWSDL: Boolean; Addr: string; HTTPRIO: THTTPRIO): IBlopiServiceFacade;
 const
-  defWSDL = 'https://www.banklinkonline.com/Services/BlopiServiceFacade.svc?wsdl';
+  defWSDL = 'https://www.banklinkonline.com/services/BlopiServiceFacade.svc?wsdl';
   defURL  = 'https://www.banklinkonline.com/Services/BlopiServiceFacade.svc';
   defSvc  = 'BlopiServiceFacade';
   defPrt  = 'BasicHttpBinding_IBlopiServiceFacade';
@@ -1149,19 +1246,19 @@ begin
   Result := FStackTrace_Specified;
 end;
 
-destructor MessageResponseOfPracticeDetailMIdCYrSK.Destroy;
+destructor MessageResponseOfPracticeReadMIdCYrSK.Destroy;
 begin
   SysUtils.FreeAndNil(FResult);
   inherited Destroy;
 end;
 
-procedure MessageResponseOfPracticeDetailMIdCYrSK.SetResult(Index: Integer; const APracticeDetail: PracticeDetail);
+procedure MessageResponseOfPracticeReadMIdCYrSK.SetResult(Index: Integer; const APracticeRead: PracticeRead);
 begin
-  FResult := APracticeDetail;
+  FResult := APracticeRead;
   FResult_Specified := True;
 end;
 
-function MessageResponseOfPracticeDetailMIdCYrSK.Result_Specified(Index: Integer): boolean;
+function MessageResponseOfPracticeReadMIdCYrSK.Result_Specified(Index: Integer): boolean;
 begin
   Result := FResult_Specified;
 end;
@@ -1194,19 +1291,19 @@ begin
   Result := FResult_Specified;
 end;
 
-destructor MessageResponseOfClientDetailMIdCYrSK.Destroy;
+destructor MessageResponseOfClientReadDetailMIdCYrSK.Destroy;
 begin
   SysUtils.FreeAndNil(FResult);
   inherited Destroy;
 end;
 
-procedure MessageResponseOfClientDetailMIdCYrSK.SetResult(Index: Integer; const AClientDetail: ClientDetail);
+procedure MessageResponseOfClientReadDetailMIdCYrSK.SetResult(Index: Integer; const AClientReadDetail: ClientReadDetail);
 begin
-  FResult := AClientDetail;
+  FResult := AClientReadDetail;
   FResult_Specified := True;
 end;
 
-function MessageResponseOfClientDetailMIdCYrSK.Result_Specified(Index: Integer): boolean;
+function MessageResponseOfClientReadDetailMIdCYrSK.Result_Specified(Index: Integer): boolean;
 begin
   Result := FResult_Specified;
 end;
@@ -1321,7 +1418,7 @@ begin
   Result := FSubscription_Specified;
 end;
 
-destructor PracticeDetail.Destroy;
+destructor PracticeRead.Destroy;
 var
   I: Integer;
 begin
@@ -1337,57 +1434,57 @@ begin
   inherited Destroy;
 end;
 
-procedure PracticeDetail.SetCatalogue(Index: Integer; const AArrayOfCatalogueEntry: ArrayOfCatalogueEntry);
+procedure PracticeRead.SetCatalogue(Index: Integer; const AArrayOfCatalogueEntry: ArrayOfCatalogueEntry);
 begin
   FCatalogue := AArrayOfCatalogueEntry;
   FCatalogue_Specified := True;
 end;
 
-function PracticeDetail.Catalogue_Specified(Index: Integer): boolean;
+function PracticeRead.Catalogue_Specified(Index: Integer): boolean;
 begin
   Result := FCatalogue_Specified;
 end;
 
-procedure PracticeDetail.SetDomainName(Index: Integer; const AWideString: WideString);
+procedure PracticeRead.SetDomainName(Index: Integer; const AWideString: WideString);
 begin
   FDomainName := AWideString;
   FDomainName_Specified := True;
 end;
 
-function PracticeDetail.DomainName_Specified(Index: Integer): boolean;
+function PracticeRead.DomainName_Specified(Index: Integer): boolean;
 begin
   Result := FDomainName_Specified;
 end;
 
-procedure PracticeDetail.SetId(Index: Integer; const Aguid: guid);
+procedure PracticeRead.SetId(Index: Integer; const Aguid: guid);
 begin
   FId := Aguid;
   FId_Specified := True;
 end;
 
-function PracticeDetail.Id_Specified(Index: Integer): boolean;
+function PracticeRead.Id_Specified(Index: Integer): boolean;
 begin
   Result := FId_Specified;
 end;
 
-procedure PracticeDetail.SetRoles(Index: Integer; const AArrayOfRole: ArrayOfRole);
+procedure PracticeRead.SetRoles(Index: Integer; const AArrayOfRole: ArrayOfRole);
 begin
   FRoles := AArrayOfRole;
   FRoles_Specified := True;
 end;
 
-function PracticeDetail.Roles_Specified(Index: Integer): boolean;
+function PracticeRead.Roles_Specified(Index: Integer): boolean;
 begin
   Result := FRoles_Specified;
 end;
 
-procedure PracticeDetail.SetUsers(Index: Integer; const AArrayOfUserDetail: ArrayOfUserDetail);
+procedure PracticeRead.SetUsers(Index: Integer; const AArrayOfUserRead: ArrayOfUserRead);
 begin
-  FUsers := AArrayOfUserDetail;
+  FUsers := AArrayOfUserRead;
   FUsers_Specified := True;
 end;
 
-function PracticeDetail.Users_Specified(Index: Integer): boolean;
+function PracticeRead.Users_Specified(Index: Integer): boolean;
 begin
   Result := FUsers_Specified;
 end;
@@ -1423,17 +1520,6 @@ end;
 function Role.RoleName_Specified(Index: Integer): boolean;
 begin
   Result := FRoleName_Specified;
-end;
-
-procedure User.SetEMail(Index: Integer; const AWideString: WideString);
-begin
-  FEMail := AWideString;
-  FEMail_Specified := True;
-end;
-
-function User.EMail_Specified(Index: Integer): boolean;
-begin
-  Result := FEMail_Specified;
 end;
 
 procedure User.SetFullName(Index: Integer; const AWideString: WideString);
@@ -1480,35 +1566,79 @@ begin
   Result := FUserCode_Specified;
 end;
 
-procedure UserDetail.SetId(Index: Integer; const Aguid: guid);
+procedure UserRead.SetEMail(Index: Integer; const AWideString: WideString);
+begin
+  FEMail := AWideString;
+  FEMail_Specified := True;
+end;
+
+function UserRead.EMail_Specified(Index: Integer): boolean;
+begin
+  Result := FEMail_Specified;
+end;
+
+procedure UserRead.SetId(Index: Integer; const Aguid: guid);
 begin
   FId := Aguid;
   FId_Specified := True;
 end;
 
-function UserDetail.Id_Specified(Index: Integer): boolean;
+function UserRead.Id_Specified(Index: Integer): boolean;
 begin
   Result := FId_Specified;
 end;
 
-procedure UserPracticeNew.SetPassword(Index: Integer; const AWideString: WideString);
+procedure PracticeUpdate.SetId(Index: Integer; const Aguid: guid);
+begin
+  FId := Aguid;
+  FId_Specified := True;
+end;
+
+function PracticeUpdate.Id_Specified(Index: Integer): boolean;
+begin
+  Result := FId_Specified;
+end;
+
+procedure UserCreate.SetEMail(Index: Integer; const AWideString: WideString);
+begin
+  FEMail := AWideString;
+  FEMail_Specified := True;
+end;
+
+function UserCreate.EMail_Specified(Index: Integer): boolean;
+begin
+  Result := FEMail_Specified;
+end;
+
+procedure UserCreatePractice.SetPassword(Index: Integer; const AWideString: WideString);
 begin
   FPassword := AWideString;
   FPassword_Specified := True;
 end;
 
-function UserPracticeNew.Password_Specified(Index: Integer): boolean;
+function UserCreatePractice.Password_Specified(Index: Integer): boolean;
 begin
   Result := FPassword_Specified;
 end;
 
-procedure UserPractice.SetPassword(Index: Integer; const AWideString: WideString);
+procedure UserUpdate.SetId(Index: Integer; const Aguid: guid);
+begin
+  FId := Aguid;
+  FId_Specified := True;
+end;
+
+function UserUpdate.Id_Specified(Index: Integer): boolean;
+begin
+  Result := FId_Specified;
+end;
+
+procedure UserUpdatePractice.SetPassword(Index: Integer; const AWideString: WideString);
 begin
   FPassword := AWideString;
   FPassword_Specified := True;
 end;
 
-function UserPractice.Password_Specified(Index: Integer): boolean;
+function UserUpdatePractice.Password_Specified(Index: Integer): boolean;
 begin
   Result := FPassword_Specified;
 end;
@@ -1537,9 +1667,9 @@ begin
   Result := FCatalogue_Specified;
 end;
 
-procedure ClientList.SetClients(Index: Integer; const AArrayOfClientSummary: ArrayOfClientSummary);
+procedure ClientList.SetClients(Index: Integer; const AArrayOfClientRead: ArrayOfClientRead);
 begin
-  FClients := AArrayOfClientSummary;
+  FClients := AArrayOfClientRead;
   FClients_Specified := True;
 end;
 
@@ -1614,18 +1744,40 @@ begin
   Result := FSubscription_Specified;
 end;
 
-procedure ClientSummary.SetId(Index: Integer; const Aguid: guid);
+procedure ClientRead.SetId(Index: Integer; const Aguid: guid);
 begin
   FId := Aguid;
   FId_Specified := True;
 end;
 
-function ClientSummary.Id_Specified(Index: Integer): boolean;
+function ClientRead.Id_Specified(Index: Integer): boolean;
 begin
   Result := FId_Specified;
 end;
 
-destructor ClientDetail.Destroy;
+procedure ClientRead.SetPrimaryContactFullName(Index: Integer; const AWideString: WideString);
+begin
+  FPrimaryContactFullName := AWideString;
+  FPrimaryContactFullName_Specified := True;
+end;
+
+function ClientRead.PrimaryContactFullName_Specified(Index: Integer): boolean;
+begin
+  Result := FPrimaryContactFullName_Specified;
+end;
+
+procedure ClientRead.SetPrimaryContactUserId(Index: Integer; const Aguid: guid);
+begin
+  FPrimaryContactUserId := Aguid;
+  FPrimaryContactUserId_Specified := True;
+end;
+
+function ClientRead.PrimaryContactUserId_Specified(Index: Integer): boolean;
+begin
+  Result := FPrimaryContactUserId_Specified;
+end;
+
+destructor ClientReadDetail.Destroy;
 var
   I: Integer;
 begin
@@ -1641,191 +1793,191 @@ begin
   inherited Destroy;
 end;
 
-procedure ClientDetail.SetCatalogue(Index: Integer; const AArrayOfCatalogueEntry: ArrayOfCatalogueEntry);
+procedure ClientReadDetail.SetCatalogue(Index: Integer; const AArrayOfCatalogueEntry: ArrayOfCatalogueEntry);
 begin
   FCatalogue := AArrayOfCatalogueEntry;
   FCatalogue_Specified := True;
 end;
 
-function ClientDetail.Catalogue_Specified(Index: Integer): boolean;
+function ClientReadDetail.Catalogue_Specified(Index: Integer): boolean;
 begin
   Result := FCatalogue_Specified;
 end;
 
-procedure ClientDetail.SetPrimaryContactUserId(Index: Integer; const Aguid: guid);
-begin
-  FPrimaryContactUserId := Aguid;
-  FPrimaryContactUserId_Specified := True;
-end;
-
-function ClientDetail.PrimaryContactUserId_Specified(Index: Integer): boolean;
-begin
-  Result := FPrimaryContactUserId_Specified;
-end;
-
-procedure ClientDetail.SetRoles(Index: Integer; const AArrayOfRole: ArrayOfRole);
+procedure ClientReadDetail.SetRoles(Index: Integer; const AArrayOfRole: ArrayOfRole);
 begin
   FRoles := AArrayOfRole;
   FRoles_Specified := True;
 end;
 
-function ClientDetail.Roles_Specified(Index: Integer): boolean;
+function ClientReadDetail.Roles_Specified(Index: Integer): boolean;
 begin
   Result := FRoles_Specified;
 end;
 
-procedure ClientDetail.SetUsers(Index: Integer; const AArrayOfUserDetail: ArrayOfUserDetail);
+procedure ClientReadDetail.SetUsers(Index: Integer; const AArrayOfUserRead: ArrayOfUserRead);
 begin
-  FUsers := AArrayOfUserDetail;
+  FUsers := AArrayOfUserRead;
   FUsers_Specified := True;
 end;
 
-function ClientDetail.Users_Specified(Index: Integer): boolean;
+function ClientReadDetail.Users_Specified(Index: Integer): boolean;
 begin
   Result := FUsers_Specified;
 end;
 
-procedure ClientNew.SetAbn(Index: Integer; const AWideString: WideString);
+procedure ClientCreate.SetAbn(Index: Integer; const AWideString: WideString);
 begin
   FAbn := AWideString;
   FAbn_Specified := True;
 end;
 
-function ClientNew.Abn_Specified(Index: Integer): boolean;
+function ClientCreate.Abn_Specified(Index: Integer): boolean;
 begin
   Result := FAbn_Specified;
 end;
 
-procedure ClientNew.SetAddress1(Index: Integer; const AWideString: WideString);
+procedure ClientCreate.SetAddress1(Index: Integer; const AWideString: WideString);
 begin
   FAddress1 := AWideString;
   FAddress1_Specified := True;
 end;
 
-function ClientNew.Address1_Specified(Index: Integer): boolean;
+function ClientCreate.Address1_Specified(Index: Integer): boolean;
 begin
   Result := FAddress1_Specified;
 end;
 
-procedure ClientNew.SetAddress2(Index: Integer; const AWideString: WideString);
+procedure ClientCreate.SetAddress2(Index: Integer; const AWideString: WideString);
 begin
   FAddress2 := AWideString;
   FAddress2_Specified := True;
 end;
 
-function ClientNew.Address2_Specified(Index: Integer): boolean;
+function ClientCreate.Address2_Specified(Index: Integer): boolean;
 begin
   Result := FAddress2_Specified;
 end;
 
-procedure ClientNew.SetAddress3(Index: Integer; const AWideString: WideString);
+procedure ClientCreate.SetAddress3(Index: Integer; const AWideString: WideString);
 begin
   FAddress3 := AWideString;
   FAddress3_Specified := True;
 end;
 
-function ClientNew.Address3_Specified(Index: Integer): boolean;
+function ClientCreate.Address3_Specified(Index: Integer): boolean;
 begin
   Result := FAddress3_Specified;
 end;
 
-procedure ClientNew.SetAddressCountry(Index: Integer; const AWideString: WideString);
+procedure ClientCreate.SetAddressCountry(Index: Integer; const AWideString: WideString);
 begin
   FAddressCountry := AWideString;
   FAddressCountry_Specified := True;
 end;
 
-function ClientNew.AddressCountry_Specified(Index: Integer): boolean;
+function ClientCreate.AddressCountry_Specified(Index: Integer): boolean;
 begin
   Result := FAddressCountry_Specified;
 end;
 
-procedure ClientNew.SetCountryCode(Index: Integer; const AWideString: WideString);
+procedure ClientCreate.SetCountryCode(Index: Integer; const AWideString: WideString);
 begin
   FCountryCode := AWideString;
   FCountryCode_Specified := True;
 end;
 
-function ClientNew.CountryCode_Specified(Index: Integer): boolean;
+function ClientCreate.CountryCode_Specified(Index: Integer): boolean;
 begin
   Result := FCountryCode_Specified;
 end;
 
-procedure ClientNew.SetEmail(Index: Integer; const AWideString: WideString);
+procedure ClientCreate.SetEmail(Index: Integer; const AWideString: WideString);
 begin
   FEmail := AWideString;
   FEmail_Specified := True;
 end;
 
-function ClientNew.Email_Specified(Index: Integer): boolean;
+function ClientCreate.Email_Specified(Index: Integer): boolean;
 begin
   Result := FEmail_Specified;
 end;
 
-procedure ClientNew.SetFax(Index: Integer; const AWideString: WideString);
+procedure ClientCreate.SetFax(Index: Integer; const AWideString: WideString);
 begin
   FFax := AWideString;
   FFax_Specified := True;
 end;
 
-function ClientNew.Fax_Specified(Index: Integer): boolean;
+function ClientCreate.Fax_Specified(Index: Integer): boolean;
 begin
   Result := FFax_Specified;
 end;
 
-procedure ClientNew.SetMobile(Index: Integer; const AWideString: WideString);
+procedure ClientCreate.SetMobile(Index: Integer; const AWideString: WideString);
 begin
   FMobile := AWideString;
   FMobile_Specified := True;
 end;
 
-function ClientNew.Mobile_Specified(Index: Integer): boolean;
+function ClientCreate.Mobile_Specified(Index: Integer): boolean;
 begin
   Result := FMobile_Specified;
 end;
 
-procedure ClientNew.SetPhone(Index: Integer; const AWideString: WideString);
+procedure ClientCreate.SetPhone(Index: Integer; const AWideString: WideString);
 begin
   FPhone := AWideString;
   FPhone_Specified := True;
 end;
 
-function ClientNew.Phone_Specified(Index: Integer): boolean;
+function ClientCreate.Phone_Specified(Index: Integer): boolean;
 begin
   Result := FPhone_Specified;
 end;
 
-procedure ClientNew.SetSalutation(Index: Integer; const AWideString: WideString);
+procedure ClientCreate.SetSalutation(Index: Integer; const AWideString: WideString);
 begin
   FSalutation := AWideString;
   FSalutation_Specified := True;
 end;
 
-function ClientNew.Salutation_Specified(Index: Integer): boolean;
+function ClientCreate.Salutation_Specified(Index: Integer): boolean;
 begin
   Result := FSalutation_Specified;
 end;
 
-procedure ClientNew.SetTaxNumber(Index: Integer; const AWideString: WideString);
+procedure ClientCreate.SetTaxNumber(Index: Integer; const AWideString: WideString);
 begin
   FTaxNumber := AWideString;
   FTaxNumber_Specified := True;
 end;
 
-function ClientNew.TaxNumber_Specified(Index: Integer): boolean;
+function ClientCreate.TaxNumber_Specified(Index: Integer): boolean;
 begin
   Result := FTaxNumber_Specified;
 end;
 
-procedure ClientNew.SetTfn(Index: Integer; const AWideString: WideString);
+procedure ClientCreate.SetTfn(Index: Integer; const AWideString: WideString);
 begin
   FTfn := AWideString;
   FTfn_Specified := True;
 end;
 
-function ClientNew.Tfn_Specified(Index: Integer): boolean;
+function ClientCreate.Tfn_Specified(Index: Integer): boolean;
 begin
   Result := FTfn_Specified;
+end;
+
+procedure ClientUpdate.SetId(Index: Integer; const Aguid: guid);
+begin
+  FId := Aguid;
+  FId_Specified := True;
+end;
+
+function ClientUpdate.Id_Specified(Index: Integer): boolean;
+begin
+  Result := FId_Specified;
 end;
 
 procedure ClientUpdate.SetPrimaryContactUserId(Index: Integer; const Aguid: guid);
@@ -1855,52 +2007,58 @@ initialization
   RemClassRegistry.RegisterExternalPropName(TypeInfo(ServiceErrorMessage), 'Message_', 'Message');
   RemClassRegistry.RegisterXSClass(ExceptionDetails, 'http://schemas.datacontract.org/2004/07/BankLink.Common.Services', 'ExceptionDetails');
   RemClassRegistry.RegisterExternalPropName(TypeInfo(ExceptionDetails), 'Message_', 'Message');
-  RemClassRegistry.RegisterXSClass(MessageResponseOfPracticeDetailMIdCYrSK, 'http://schemas.datacontract.org/2004/07/BankLink.Common.Services', 'MessageResponseOfPracticeDetailMIdCYrSK');
+  RemClassRegistry.RegisterXSClass(MessageResponseOfPracticeReadMIdCYrSK, 'http://schemas.datacontract.org/2004/07/BankLink.Common.Services', 'MessageResponseOfPracticeReadMIdCYrSK');
   RemClassRegistry.RegisterXSClass(MessageResponseOfguid, 'http://schemas.datacontract.org/2004/07/BankLink.Common.Services', 'MessageResponseOfguid');
   RemClassRegistry.RegisterXSClass(MessageResponseOfClientListMIdCYrSK, 'http://schemas.datacontract.org/2004/07/BankLink.Common.Services', 'MessageResponseOfClientListMIdCYrSK');
-  RemClassRegistry.RegisterXSClass(MessageResponseOfClientDetailMIdCYrSK, 'http://schemas.datacontract.org/2004/07/BankLink.Common.Services', 'MessageResponseOfClientDetailMIdCYrSK');
+  RemClassRegistry.RegisterXSClass(MessageResponseOfClientReadDetailMIdCYrSK, 'http://schemas.datacontract.org/2004/07/BankLink.Common.Services', 'MessageResponseOfClientReadDetailMIdCYrSK');
   RemClassRegistry.RegisterXSClass(MessageResponseOfstring, 'http://schemas.datacontract.org/2004/07/BankLink.Common.Services', 'MessageResponseOfstring');
   RemClassRegistry.RegisterXSClass(MessageResponseOfArrayOfCatalogueEntryMIdCYrSK2, 'http://schemas.datacontract.org/2004/07/BankLink.Common.Services', 'MessageResponseOfArrayOfCatalogueEntryMIdCYrSK2', 'MessageResponseOfArrayOfCatalogueEntryMIdCYrSK');
   RemClassRegistry.RegisterXSClass(MessageResponse2, 'http://schemas.datacontract.org/2004/07/BankLink.Common.Services', 'MessageResponse2', 'MessageResponse');
   RemClassRegistry.RegisterXSClass(ServiceErrorMessage2, 'http://schemas.datacontract.org/2004/07/BankLink.Common.Services', 'ServiceErrorMessage2', 'ServiceErrorMessage');
   RemClassRegistry.RegisterXSClass(ExceptionDetails2, 'http://schemas.datacontract.org/2004/07/BankLink.Common.Services', 'ExceptionDetails2', 'ExceptionDetails');
-  RemClassRegistry.RegisterXSClass(MessageResponseOfPracticeDetailMIdCYrSK2, 'http://schemas.datacontract.org/2004/07/BankLink.Common.Services', 'MessageResponseOfPracticeDetailMIdCYrSK2', 'MessageResponseOfPracticeDetailMIdCYrSK');
+  RemClassRegistry.RegisterXSClass(MessageResponseOfPracticeReadMIdCYrSK2, 'http://schemas.datacontract.org/2004/07/BankLink.Common.Services', 'MessageResponseOfPracticeReadMIdCYrSK2', 'MessageResponseOfPracticeReadMIdCYrSK');
   RemClassRegistry.RegisterXSClass(MessageResponseOfguid2, 'http://schemas.datacontract.org/2004/07/BankLink.Common.Services', 'MessageResponseOfguid2', 'MessageResponseOfguid');
   RemClassRegistry.RegisterXSClass(MessageResponseOfClientListMIdCYrSK2, 'http://schemas.datacontract.org/2004/07/BankLink.Common.Services', 'MessageResponseOfClientListMIdCYrSK2', 'MessageResponseOfClientListMIdCYrSK');
-  RemClassRegistry.RegisterXSClass(MessageResponseOfClientDetailMIdCYrSK2, 'http://schemas.datacontract.org/2004/07/BankLink.Common.Services', 'MessageResponseOfClientDetailMIdCYrSK2', 'MessageResponseOfClientDetailMIdCYrSK');
+  RemClassRegistry.RegisterXSClass(MessageResponseOfClientReadDetailMIdCYrSK2, 'http://schemas.datacontract.org/2004/07/BankLink.Common.Services', 'MessageResponseOfClientReadDetailMIdCYrSK2', 'MessageResponseOfClientReadDetailMIdCYrSK');
   RemClassRegistry.RegisterXSClass(MessageResponseOfstring2, 'http://schemas.datacontract.org/2004/07/BankLink.Common.Services', 'MessageResponseOfstring2', 'MessageResponseOfstring');
   RemClassRegistry.RegisterXSClass(CatalogueEntry, 'http://www.banklinkonline.com/2011/11/Blopi', 'CatalogueEntry');
   RemClassRegistry.RegisterXSInfo(TypeInfo(ArrayOfRole), 'http://www.banklinkonline.com/2011/11/Blopi', 'ArrayOfRole');
-  RemClassRegistry.RegisterXSInfo(TypeInfo(ArrayOfUserDetail), 'http://www.banklinkonline.com/2011/11/Blopi', 'ArrayOfUserDetail');
+  RemClassRegistry.RegisterXSInfo(TypeInfo(ArrayOfUserRead), 'http://www.banklinkonline.com/2011/11/Blopi', 'ArrayOfUserRead');
   RemClassRegistry.RegisterXSInfo(TypeInfo(Status), 'http://www.banklinkonline.com/2011/11/Blopi', 'Status');
   RemClassRegistry.RegisterXSClass(Practice, 'http://www.banklinkonline.com/2011/11/Blopi', 'Practice');
-  RemClassRegistry.RegisterXSClass(PracticeDetail, 'http://www.banklinkonline.com/2011/11/Blopi', 'PracticeDetail');
+  RemClassRegistry.RegisterXSClass(PracticeRead, 'http://www.banklinkonline.com/2011/11/Blopi', 'PracticeRead');
   RemClassRegistry.RegisterXSClass(Role, 'http://www.banklinkonline.com/2011/11/Blopi', 'Role');
   RemClassRegistry.RegisterXSClass(User, 'http://www.banklinkonline.com/2011/11/Blopi', 'User');
-  RemClassRegistry.RegisterXSClass(UserDetail, 'http://www.banklinkonline.com/2011/11/Blopi', 'UserDetail');
-  RemClassRegistry.RegisterXSClass(UserPracticeNew, 'http://www.banklinkonline.com/2011/11/Blopi', 'UserPracticeNew');
-  RemClassRegistry.RegisterXSClass(UserPractice, 'http://www.banklinkonline.com/2011/11/Blopi', 'UserPractice');
-  RemClassRegistry.RegisterXSInfo(TypeInfo(ArrayOfClientSummary), 'http://www.banklinkonline.com/2011/11/Blopi', 'ArrayOfClientSummary');
+  RemClassRegistry.RegisterXSClass(UserRead, 'http://www.banklinkonline.com/2011/11/Blopi', 'UserRead');
+  RemClassRegistry.RegisterXSClass(PracticeUpdate, 'http://www.banklinkonline.com/2011/11/Blopi', 'PracticeUpdate');
+  RemClassRegistry.RegisterXSClass(UserCreate, 'http://www.banklinkonline.com/2011/11/Blopi', 'UserCreate');
+  RemClassRegistry.RegisterXSClass(UserCreatePractice, 'http://www.banklinkonline.com/2011/11/Blopi', 'UserCreatePractice');
+  RemClassRegistry.RegisterXSClass(UserUpdate, 'http://www.banklinkonline.com/2011/11/Blopi', 'UserUpdate');
+  RemClassRegistry.RegisterXSClass(UserUpdatePractice, 'http://www.banklinkonline.com/2011/11/Blopi', 'UserUpdatePractice');
+  RemClassRegistry.RegisterXSInfo(TypeInfo(ArrayOfClientRead), 'http://www.banklinkonline.com/2011/11/Blopi', 'ArrayOfClientRead');
   RemClassRegistry.RegisterXSClass(ClientList, 'http://www.banklinkonline.com/2011/11/Blopi', 'ClientList');
   RemClassRegistry.RegisterXSClass(Client, 'http://www.banklinkonline.com/2011/11/Blopi', 'Client');
   RemClassRegistry.RegisterExternalPropName(TypeInfo(Client), 'Name_', 'Name');
-  RemClassRegistry.RegisterXSClass(ClientSummary, 'http://www.banklinkonline.com/2011/11/Blopi', 'ClientSummary');
-  RemClassRegistry.RegisterXSClass(ClientDetail, 'http://www.banklinkonline.com/2011/11/Blopi', 'ClientDetail');
-  RemClassRegistry.RegisterXSClass(ClientNew, 'http://www.banklinkonline.com/2011/11/Blopi', 'ClientNew');
+  RemClassRegistry.RegisterXSClass(ClientRead, 'http://www.banklinkonline.com/2011/11/Blopi', 'ClientRead');
+  RemClassRegistry.RegisterXSClass(ClientReadDetail, 'http://www.banklinkonline.com/2011/11/Blopi', 'ClientReadDetail');
+  RemClassRegistry.RegisterXSClass(ClientCreate, 'http://www.banklinkonline.com/2011/11/Blopi', 'ClientCreate');
   RemClassRegistry.RegisterXSClass(ClientUpdate, 'http://www.banklinkonline.com/2011/11/Blopi', 'ClientUpdate');
   RemClassRegistry.RegisterXSClass(CatalogueEntry2, 'http://www.banklinkonline.com/2011/11/Blopi', 'CatalogueEntry2', 'CatalogueEntry');
-  RemClassRegistry.RegisterXSClass(PracticeDetail2, 'http://www.banklinkonline.com/2011/11/Blopi', 'PracticeDetail2', 'PracticeDetail');
+  RemClassRegistry.RegisterXSClass(PracticeRead2, 'http://www.banklinkonline.com/2011/11/Blopi', 'PracticeRead2', 'PracticeRead');
   RemClassRegistry.RegisterXSClass(Practice2, 'http://www.banklinkonline.com/2011/11/Blopi', 'Practice2', 'Practice');
   RemClassRegistry.RegisterXSClass(Role2, 'http://www.banklinkonline.com/2011/11/Blopi', 'Role2', 'Role');
-  RemClassRegistry.RegisterXSClass(UserDetail2, 'http://www.banklinkonline.com/2011/11/Blopi', 'UserDetail2', 'UserDetail');
+  RemClassRegistry.RegisterXSClass(UserRead2, 'http://www.banklinkonline.com/2011/11/Blopi', 'UserRead2', 'UserRead');
   RemClassRegistry.RegisterXSClass(User2, 'http://www.banklinkonline.com/2011/11/Blopi', 'User2', 'User');
-  RemClassRegistry.RegisterXSClass(UserPracticeNew2, 'http://www.banklinkonline.com/2011/11/Blopi', 'UserPracticeNew2', 'UserPracticeNew');
-  RemClassRegistry.RegisterXSClass(UserPractice2, 'http://www.banklinkonline.com/2011/11/Blopi', 'UserPractice2', 'UserPractice');
+  RemClassRegistry.RegisterXSClass(PracticeUpdate2, 'http://www.banklinkonline.com/2011/11/Blopi', 'PracticeUpdate2', 'PracticeUpdate');
+  RemClassRegistry.RegisterXSClass(UserCreatePractice2, 'http://www.banklinkonline.com/2011/11/Blopi', 'UserCreatePractice2', 'UserCreatePractice');
+  RemClassRegistry.RegisterXSClass(UserCreate2, 'http://www.banklinkonline.com/2011/11/Blopi', 'UserCreate2', 'UserCreate');
+  RemClassRegistry.RegisterXSClass(UserUpdatePractice2, 'http://www.banklinkonline.com/2011/11/Blopi', 'UserUpdatePractice2', 'UserUpdatePractice');
+  RemClassRegistry.RegisterXSClass(UserUpdate2, 'http://www.banklinkonline.com/2011/11/Blopi', 'UserUpdate2', 'UserUpdate');
   RemClassRegistry.RegisterXSClass(ClientList2, 'http://www.banklinkonline.com/2011/11/Blopi', 'ClientList2', 'ClientList');
-  RemClassRegistry.RegisterXSClass(ClientSummary2, 'http://www.banklinkonline.com/2011/11/Blopi', 'ClientSummary2', 'ClientSummary');
+  RemClassRegistry.RegisterXSClass(ClientRead2, 'http://www.banklinkonline.com/2011/11/Blopi', 'ClientRead2', 'ClientRead');
   RemClassRegistry.RegisterXSClass(Client2, 'http://www.banklinkonline.com/2011/11/Blopi', 'Client2', 'Client');
-  RemClassRegistry.RegisterXSClass(ClientDetail2, 'http://www.banklinkonline.com/2011/11/Blopi', 'ClientDetail2', 'ClientDetail');
-  RemClassRegistry.RegisterXSClass(ClientNew2, 'http://www.banklinkonline.com/2011/11/Blopi', 'ClientNew2', 'ClientNew');
+  RemClassRegistry.RegisterXSClass(ClientReadDetail2, 'http://www.banklinkonline.com/2011/11/Blopi', 'ClientReadDetail2', 'ClientReadDetail');
+  RemClassRegistry.RegisterXSClass(ClientCreate2, 'http://www.banklinkonline.com/2011/11/Blopi', 'ClientCreate2', 'ClientCreate');
   RemClassRegistry.RegisterXSClass(ClientUpdate2, 'http://www.banklinkonline.com/2011/11/Blopi', 'ClientUpdate2', 'ClientUpdate');
 
 end.

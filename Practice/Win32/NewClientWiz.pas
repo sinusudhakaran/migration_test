@@ -596,7 +596,7 @@ begin
      Close;
 
    if ProductConfigService.OnLine then
-     MyClient.BlopiClientNew := TBloClientNew.Create;
+     MyClient.BlopiClientNew := TBloClientCreate.Create;
 
    {now load default settings from admin system}
    with AdminSystem.fdFields, MyClient, clFields do

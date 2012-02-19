@@ -15,16 +15,24 @@ uses
 
 type
   TBloStatus                = BlopiServiceFacade.Status;
-  TBloGuid                  = BlopiServiceFacade.Guid;
   TBloArrayOfString         = BlopiServiceFacade.ArrayOfString;
-  TBloPracticeDetail        = BlopiServiceFacade.PracticeDetail;
-  TBloClientDetail          = BlopiServiceFacade.ClientDetail;
-  TBloClientNew             = BlopiServiceFacade.ClientNew;
-  TBloUserPractice          = BlopiServiceFacade.UserPractice;
+
+  TBloGuid                  = BlopiServiceFacade.Guid;
+  TBloArrayOfGuid           = BlopiServiceFacade.ArrayOfGuid;
+
   TBloCatalogueEntry        = BlopiServiceFacade.CatalogueEntry;
   TBloArrayOfCatalogueEntry = BlopiServiceFacade.ArrayOfCatalogueEntry;
-  TBloArrayOfGuid           = BlopiServiceFacade.ArrayOfGuid;
-  TBloUserDetail            = BlopiServiceFacade.UserDetail;
+
+  TBloPracticeRead          = BlopiServiceFacade.PracticeRead;
+
+  TBloClientCreate          = BlopiServiceFacade.ClientCreate;
+  TBloClientReadDetail      = BlopiServiceFacade.ClientReadDetail;
+
+  TBloUserCreate            = BlopiServiceFacade.UserCreate;
+  TBloUserCreatePractice    = BlopiServiceFacade.UserCreatePractice;
+  TBloUserUpdate            = BlopiServiceFacade.UserUpdate;
+  TBloUserUpdatePractice    = BlopiServiceFacade.UserUpdatePractice;
+  TBloUserRead              = BlopiServiceFacade.UserRead;
 
   TVarTypeData = record
     Name     : String;
@@ -48,7 +56,7 @@ type
     property StatusString: string read GetStatusString;
   end;
 
-  TClientHelper = Class helper for BlopiServiceFacade.ClientDetail
+  TClientHelper = Class helper for BlopiServiceFacade.ClientReadDetail
   private
     function GetDeactivated: boolean;
     function GetClientConnectDays: string;
@@ -66,14 +74,14 @@ type
     property Suspended: boolean read GetSuspended;
   End;
 
-  TPracticeHelper = Class helper for PracticeDetail
+  TPracticeHelper = Class helper for PracticeRead
   private
     function GetUserRoleGuidFromPracUserType(aUstNameIndex : integer;
-                                             aInstance: PracticeDetail) : Guid;
+                                             aInstance: PracticeRead) : Guid;
   public
     function GetRoleFromPracUserType(aUstNameIndex : integer;
-                                     aInstance: PracticeDetail) : Role;
-    function IsEqual(Instance: PracticeDetail): Boolean;
+                                     aInstance: PracticeRead) : Role;
+    function IsEqual(Instance: PracticeRead): Boolean;
   End;
 
   TProductConfigService = class(TObject)
@@ -81,7 +89,7 @@ type
     fMethodName: string;
     fSOAPRequest: InvString;
 
-    FPractice, FPracticeCopy: TBloPracticeDetail;
+    FPractice, FPracticeCopy: TBloPracticeRead;
     FClientList: ClientList;
     FOnLine: Boolean;
     FRegistered: Boolean;
@@ -89,7 +97,7 @@ type
     FArrNameSpaceList : Array of TRemRegEntry;
     procedure CopyRemotableObject(ASource, ATarget: TRemotable);
 
-    function IsUserCreatedOnBankLinkOnline(const APractice : TBloPracticeDetail;
+    function IsUserCreatedOnBankLinkOnline(const APractice : TBloPracticeRead;
                                            const AUserId   : TBloGuid   = '';
                                            const AUserCode : string = ''): Boolean;
 
@@ -116,7 +124,7 @@ type
                           ReciveTimeout : DWord);
     function GetServiceFacade : IBlopiServiceFacade;
     function GetClientGuid(const AClientCode: string): WideString;
-    function GetCachedPractice: TBloPracticeDetail;
+    function GetCachedPractice: TBloPracticeRead;
     function MessageResponseHasError(AMesageresponse: MessageResponse; ErrorText: string): Boolean;
     function GetProducts : TBloArrayOfGuid;
     function GetRegistered: Boolean;
@@ -125,7 +133,7 @@ type
   public
     destructor Destroy; override;
     //Practice methods
-    function GetPractice(aUpdateUseOnline: Boolean = True; aForceOnlineCall : Boolean = false): TBloPracticeDetail;
+    function GetPractice(aUpdateUseOnline: Boolean = True; aForceOnlineCall : Boolean = false): TBloPracticeRead;
     function IsPracticeActive(ShowWarning: Boolean = true): Boolean;
     function GetCatalogueEntry(AProductId: TBloGuid): TBloCatalogueEntry;
     function IsPracticeProductEnabled(AProductId: TBloGuid; AUsePracCopy : Boolean): Boolean;
@@ -140,17 +148,17 @@ type
     procedure ClearAllProducts;
     procedure RemoveProduct(AProductId: TBloGuid);
     procedure SelectAllProducts;
-    procedure SetPrimaryContact(AUser: UserPractice);
+    procedure SetPrimaryContact(AUser: TBloUserRead);
     function GetCatFromSub(aSubGuid : Guid): CatalogueEntry;
-    property CachedPractice: PracticeDetail read GetCachedPractice;
+    property CachedPractice: PracticeRead read GetCachedPractice;
     procedure GetServiceAgreement(ARichEdit: TRichEdit);
-    procedure SavePracticeDetailsToSystemDB(ARemotable: TRemotable);    
+    procedure SavePracticeDetailsToSystemDB(ARemotable: TRemotable);
     //Client methods
     procedure LoadClientList;
-    function GetClientDetailsWithCode(AClientCode: string): ClientDetail;
-    function GetClientDetailsWithGUID(AClientGuid: Guid): ClientDetail;
-    function CreateNewClient(ANewClient: TBloClientNew): Guid;
-    function SaveClient(AClient: ClientDetail): Boolean;
+    function GetClientDetailsWithCode(AClientCode: string): TBloClientReadDetail;
+    function GetClientDetailsWithGUID(AClientGuid: Guid): TBloClientReadDetail;
+    function CreateNewClient(ANewClient: TBloClientCreate): Guid;
+    function SaveClient(AClient: TBloClientReadDetail): Boolean;
     property Clients: ClientList read FClientList;
     //User methods
     function AddEditPracUser(var   aUserId         : TBloGuid;
@@ -163,14 +171,14 @@ type
                              const aPassword       : WideString ) : Boolean;
     function DeletePracUser(const aUserCode : string;
                             const aUserGuid : string;
-                            aPractice : TBloPracticeDetail = nil): Boolean;
+                            aPractice : TBloPracticeRead = nil): Boolean;
     function IsPrimPracUser(const aUserCode : string = '';
-                            aPractice : TBloPracticeDetail = nil): Boolean;
+                            aPractice : TBloPracticeRead = nil): Boolean;
     function GetPracUserGuid(const aUserCode : string;
-                             aPractice : TBloPracticeDetail): TBloGuid;
+                             aPractice : TBloPracticeRead): TBloGuid;
     function ChangePracUserPass(const aUserCode : WideString;
                                 const aPassword : WideString;
-                                aPractice : TBloPracticeDetail = nil) : Boolean;
+                                aPractice : TBloPracticeRead = nil) : Boolean;
     property OnLine: Boolean read FOnLine;
     property Registered: Boolean read GetRegistered;
     property ValidBConnectDetails: Boolean read GetValidBConnectDetails;    
@@ -292,7 +300,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TProductConfigService.CreateNewClient(ANewClient: TBloClientNew): TBloGuid;
+function TProductConfigService.CreateNewClient(ANewClient: TBloClientCreate): TBloGuid;
 var
   i: integer;
   Msg: string;
@@ -358,7 +366,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TProductConfigService.GetCachedPractice: TBloPracticeDetail;
+function TProductConfigService.GetCachedPractice: TBloPracticeRead;
 begin
   Result := FPractice;
 end;
@@ -379,7 +387,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TProductConfigService.GetClientDetailsWithCode(AClientCode: string): TBloClientDetail;
+function TProductConfigService.GetClientDetailsWithCode(AClientCode: string): TBloClientReadDetail;
 var
   ClientGuid: WideString;
 begin
@@ -398,11 +406,11 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TProductConfigService.GetClientDetailsWithGuid(AClientGuid: TBloGuid): TBloClientDetail;
+function TProductConfigService.GetClientDetailsWithGuid(AClientGuid: TBloGuid): TBloClientReadDetail;
 var
   i, j: integer;
   BlopiInterface: IBlopiServiceFacade;
-  ClientDetailResponse: MessageResponseOfClientDetailMIdCYrSK;
+  ClientDetailResponse: MessageResponseOfClientReadDetailMIdCYrSK;
   Msg: string;
   ShowProgress : Boolean;
 begin
@@ -465,11 +473,11 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TProductConfigService.GetPractice(aUpdateUseOnline: Boolean; aForceOnlineCall : Boolean): TBloPracticeDetail;
+function TProductConfigService.GetPractice(aUpdateUseOnline: Boolean; aForceOnlineCall : Boolean): TBloPracticeRead;
 var
   i: integer;
   BlopiInterface: IBlopiServiceFacade;
-  PracticeDetailResponse: MessageResponseOfPracticeDetailMIdCYrSK;
+  PracticeDetailResponse: MessageResponseOfPracticeReadMIdCYrSK;
   Msg: string;
   ShowProgress : Boolean;
 begin
@@ -494,9 +502,9 @@ begin
   if aUpdateUseOnline then
     UseBankLinkOnline := False;
   FreeAndNil(FPractice);
-  FPractice := TBloPracticeDetail.Create;
+  FPractice := TBloPracticeRead.Create;
   FreeAndNil(FPracticeCopy);
-  FPracticeCopy := TBloPracticeDetail.Create;
+  FPracticeCopy := TBloPracticeRead.Create;
   try
     ShowProgress := Progress.StatusSilent;
     if ShowProgress then
@@ -1170,7 +1178,7 @@ end;
 function TProductConfigService.IsPracticeProductEnabled(AProductId: TBloGuid; AUsePracCopy : Boolean): Boolean;
 var
   i: integer;
-  Prac : TBloPracticeDetail;
+  Prac : TBloPracticeRead;
 begin
   if AUsePracCopy then
     Prac := FPracticeCopy
@@ -1316,7 +1324,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TProductConfigService.SaveClient(AClient: TBloClientDetail): Boolean;
+function TProductConfigService.SaveClient(AClient: TBloClientReadDetail): Boolean;
 var
   i: integer;
   Msg: string;
@@ -1324,10 +1332,12 @@ var
   MsgResponse: MessageResponse;
   MsgResponseOfGuid: MessageResponseOfGuid;
   MyClientUpdate: ClientUpdate;
-  MyNewUser: User;
-  MyUserDetail : TBloUserDetail;
   ShowProgress : Boolean;
   BlankSubscription: TBloArrayOfGuid;
+
+  MyUserRead   : TBloUserRead;
+  MyUserUpdate : TBloUserUpdate;
+  MyUserCreate : TBloUserCreate;
 begin
   Result := False;
 
@@ -1362,41 +1372,58 @@ begin
         BlopiInterface := GetServiceFacade;
 
         //Save client admin user
-        if (Length(AClient.Users) > 0) then begin
-          MyUserDetail := AClient.Users[0];
-          if MyUserDetail.Id = '' then begin
-            //Create new client admin user
-            MyNewUser := User.Create;
-            try
-              MyNewUser.FullName := MyUserDetail.FullName;
-              MyNewUser.EMail := MyUserDetail.EMail;
-              MyNewUser.AddRoleName('Client Administrator');
-              MyNewUser.UserCode := '';
-              SetLength(BlankSubscription, 0);
-              MyNewUser.Subscription := BlankSubscription;
+        if (Length(AClient.Users) > 0) then
+        begin
+          MyUserRead := AClient.Users[0];
+          if MyUserRead.Id = '' then
+          begin
+            if ShowProgress then
+              Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Creating Client User', 30);
 
-              if ShowProgress then
-                Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Creating Client User', 30);
+            //Create new client admin user
+            MyUserCreate := TBloUserCreate.Create;
+            try
+              MyUserCreate.FullName := MyUserRead.FullName;
+              MyUserCreate.EMail    := MyUserRead.EMail;
+              MyUserCreate.AddRoleName('Client Administrator');
+              MyUserCreate.UserCode := '';
+              SetLength(BlankSubscription, 0);
+              MyUserCreate.Subscription := BlankSubscription;
+
               MsgResponseOfGuid := BlopiInterface.CreateClientUser(CountryText(AdminSystem.fdFields.fdCountry),
                                                              AdminSystem.fdFields.fdBankLink_Code,
                                                              AdminSystem.fdFields.fdBankLink_Connect_Password,
                                                              AClient.Id,
-                                                             MyNewUser);
+                                                             MyUserCreate);
               if not MessageResponseHasError(MsgResponseOfGuid, 'create the client user on') then
                 MyClientUpdate.PrimaryContactUserId := MsgResponseOfGuid.Result;
             finally
-              MyNewUser.Free;
+              FreeAndNil(MyUserCreate);
             end;
-          end else begin
+          end else
+          begin
             //Update existing client admin user
             if ShowProgress then
               Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Updating Client User', 30);
-            MsgResponse := BlopiInterface.SaveclientUser(CountryText(AdminSystem.fdFields.fdCountry),
+
+            //Create new client admin user
+            MyUserCreate := TBloUserCreate.Create;
+            try
+              MyUserCreate.FullName     := MyUserRead.FullName;
+              MyUserCreate.EMail        := MyUserRead.EMail;
+              MyUserCreate.RoleNames    := MyUserRead.RoleNames;
+              MyUserCreate.UserCode     := MyUserRead.UserCode;
+              MyUserCreate.Subscription := MyUserRead.Subscription;
+
+              MsgResponse := BlopiInterface.SaveclientUser(CountryText(AdminSystem.fdFields.fdCountry),
                                                          AdminSystem.fdFields.fdBankLink_Code,
                                                          AdminSystem.fdFields.fdBankLink_Connect_Password,
                                                          AClient.Id,
-                                                         MyUserDetail);
-            MessageResponseHasError(MsgResponse, 'update this client user on');
+                                                         MyUserUpdate);
+              MessageResponseHasError(MsgResponse, 'update this client user on');
+            finally
+              FreeAndNil(MyUserCreate);
+            end;
           end;
         end;
 
@@ -1442,19 +1469,19 @@ var
   PracCode        : WideString;
   PracPassHash    : WideString;
   MsgResponce     : MessageResponse;
-  SavePractice    : Practice;
+  PracUpdate      : PracticeUpdate;
 begin
   Result := False;
   if UseBankLinkOnline then begin
     if Assigned(FPracticeCopy) then begin
       FPractice.Free;
-      FPractice := PracticeDetail.Create;
+      FPractice := PracticeRead.Create;
 
-      SavePractice := Practice.Create;
+      PracUpdate := PracUpdate.Create;
       try
         RemoveInvalidSubscriptions;
         CopyRemotableObject(FPracticeCopy, FPractice);
-        CopyRemotableObject(FPractice, SavePractice);
+        CopyRemotableObject(FPractice, PracUpdate);
 
         //Save to the web service
         Screen.Cursor := crHourGlass;
@@ -1469,7 +1496,7 @@ begin
 
           Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Saving Practice Details', 33);
 
-          MsgResponce := BlopiInterface.SavePractice(PracCountryCode, PracCode, PracPassHash, SavePractice);
+          MsgResponce := BlopiInterface.SavePractice(PracCountryCode, PracCode, PracPassHash, PracUpdate);
           if not MessageResponseHasError(MsgResponce, 'update the Practice settings to') then
           begin
             Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Saving Practice Details to System Database', 66);
@@ -1484,7 +1511,7 @@ begin
         end;
 
       finally
-        FreeandNil(SavePractice);
+        FreeandNil(PracUpdate);
       end;
 
       if not Result then
@@ -1532,7 +1559,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TProductConfigService.SetPrimaryContact(AUser: TBloUserPractice);
+procedure TProductConfigService.SetPrimaryContact(AUser: TBloUserRead);
 begin
   FPracticeCopy.DefaultAdminUserId := AUser.Id;
 end;
@@ -1571,14 +1598,14 @@ end;
 //------------------------------------------------------------------------------
 procedure TClientHelper.UpdateAdminUser(AUserName, AEmail: WideString);
 var
-  UserArray: ArrayOfUserDetail;
-  RoleArray: TBloArrayOfString;
-  NewUser: TBloUserDetail;
+  UserArray : ArrayOfUserRead;
+  RoleArray : TBloArrayOfString;
+  NewUser   : TBloUserRead;
 begin
   //Should only be one client admin user
   if Length(Self.Users) = 0 then begin
     //Add
-    NewUser := TBloUserDetail.Create;
+    NewUser := TBloUserRead.Create;
     UserArray := Self.Users;
     try
       SetLength(UserArray, Length(Self.Users) + 1);
@@ -1597,7 +1624,7 @@ begin
   end;
   //Update
   User(Self.Users[0]).FullName := AUserName;
-  User(Self.Users[0]).EMail := AEmail;
+  //User(Self.Users[0]).EMail := AEmail;  // Email Removed from Service Client User Array
 end;
 
 //------------------------------------------------------------------------------
@@ -1709,7 +1736,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TProductConfigService.IsUserCreatedOnBankLinkOnline(const APractice : TBloPracticeDetail;
+function TProductConfigService.IsUserCreatedOnBankLinkOnline(const APractice : TBloPracticeRead;
                                                              const AUserId   : TBloGuid   = '';
                                                              const AUserCode : string = '') : Boolean;
 var
@@ -1740,15 +1767,15 @@ function TProductConfigService.AddEditPracUser(var   aUserId         : TBloGuid;
                                                const aChangePassword : Boolean;
                                                const aPassword       : WideString) : Boolean;
 var
-  UpdateUser      : TBloUserPractice;
-  CreateUser      : UserPracticeNew;
+  UpdateUser      : TBloUserUpdatePractice;
+  CreateUser      : TBloUserCreatePractice;
   PracCountryCode : WideString;
   PracCode        : WideString;
   PracPassHash    : WideString;
   MsgResponce     : MessageResponse;
   MsgResponceGuid : MessageResponseOfGuid;
   ErrMsg          : String;
-  CurrPractice    : TBloPracticeDetail;
+  CurrPractice    : TBloPracticeRead;
   IsUserOnline    : Boolean;
   BlopiInterface  : IBlopiServiceFacade;
   RoleNames       : TBloArrayOfString;
@@ -1783,8 +1810,8 @@ begin
           if aUserId = '' then
             aUserId := GetPracUserGuid(aUserCode, CurrPractice);
 
-          UpdateUser := TBloUserPractice.Create;
-          UpdateUser.EMail        := aEMail;
+          UpdateUser := TBloUserUpdatePractice.Create;
+          // UpdateUser.EMail        := aEMail;  // Email Removed for Service Pratice User
           UpdateUser.FullName     := aFullName;
           UpdateUser.Id           := aUserId;
           UpdateUser.RoleNames    := RoleNames;
@@ -1814,7 +1841,7 @@ begin
         end
         else
         begin
-          CreateUser := UserPracticeNew.Create;
+          CreateUser := TBloUserCreatePractice.Create;
           CreateUser.EMail        := aEMail;
           CreateUser.FullName     := aFullName;
           CreateUser.RoleNames    := RoleNames;
@@ -1862,7 +1889,7 @@ end;
 //------------------------------------------------------------------------------
 function TProductConfigService.DeletePracUser(const aUserCode : string;
                                               const aUserGuid : string;
-                                              aPractice : TBloPracticeDetail) : Boolean;
+                                              aPractice : TBloPracticeRead) : Boolean;
 var
   PracCountryCode : WideString;
   PracCode        : WideString;
@@ -1927,7 +1954,7 @@ end;
 
 //------------------------------------------------------------------------------
 function TProductConfigService.IsPrimPracUser(const aUserCode : string;
-                                              aPractice : TBloPracticeDetail): Boolean;
+                                              aPractice : TBloPracticeRead): Boolean;
 begin
   if aUserCode = '' then
   begin
@@ -1943,10 +1970,10 @@ end;
 
 //------------------------------------------------------------------------------
 function TProductConfigService.GetPracUserGuid(const aUserCode : string;
-                                               aPractice : TBloPracticeDetail): TBloGuid;
+                                               aPractice : TBloPracticeRead): TBloGuid;
 var
   i: integer;
-  TempUser: TBloUserDetail;
+  TempUser: TBloUserRead;
 begin
   Result := '';
 
@@ -1963,7 +1990,7 @@ end;
 //------------------------------------------------------------------------------
 function TProductConfigService.ChangePracUserPass(const aUserCode : WideString;
                                                   const aPassword : WideString;
-                                                  aPractice : TBloPracticeDetail) : Boolean;
+                                                  aPractice : TBloPracticeRead) : Boolean;
 var
   MsgResponce     : MessageResponse;
   UserGuid        : WideString;
@@ -2024,7 +2051,7 @@ end;
 { TPracticeHelper }
 //------------------------------------------------------------------------------
 function TPracticeHelper.GetUserRoleGuidFromPracUserType(aUstNameIndex: integer;
-                                                         aInstance: PracticeDetail): Guid;
+                                                         aInstance: PracticeRead): Guid;
 begin
   Result := '';
   if (aUstNameIndex < ustMin)
@@ -2045,7 +2072,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TPracticeHelper.IsEqual(Instance: PracticeDetail): Boolean;
+function TPracticeHelper.IsEqual(Instance: PracticeRead): Boolean;
 var
   i: integer;
 begin
@@ -2104,7 +2131,7 @@ end;
 
 //------------------------------------------------------------------------------
 function TPracticeHelper.GetRoleFromPracUserType(aUstNameIndex: integer;
-                                                 aInstance: PracticeDetail): Role;
+                                                 aInstance: PracticeRead): Role;
 var
   RoleGuid : TBloGuid;
   RoleIndex : integer;
@@ -2129,4 +2156,9 @@ initialization
   DebugMe := DebugUnit(UNIT_NAME);
 
 end.
+
+
+
+
+
 

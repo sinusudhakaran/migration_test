@@ -789,7 +789,7 @@ Const
 Var
   i : Integer;
   NewLVItem : TListItem;
-  Prac : TBloPracticeDetail;
+  Prac : TBloPracticeRead;
 begin { TdlgEditUser.Execute }
   lvFiles.Items.Clear;
 
@@ -924,7 +924,7 @@ Var
   pu          : pUser_Rec;
   WasLoggedIn : boolean;
   i           : integer;
-  Prac        : TBloPracticeDetail;
+  Prac        : TBloPracticeRead;
 begin { EditUser }
   Result := false;
 

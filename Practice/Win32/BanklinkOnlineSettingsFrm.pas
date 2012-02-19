@@ -97,7 +97,7 @@ var
   i: integer;
   BanklinkOnlineSettings: TfrmBanklinkOnlineSettings;
   SuccessMessage: string;
-  NewClient: TBloClientNew;
+  NewClient: TBloClientCreate;
 const
   ThisMethodName = 'EditBanklinkOnlineSettings';
 begin
@@ -120,8 +120,8 @@ begin
 
   if not (Assigned(MyClient.BlopiClientNew) or Assigned(MyClient.BlopiClientDetail)) then
   begin
-    NewClient := TBloClientNew.Create;
-    MyClient.BlopiClientNew := TBloClientNew.Create;
+    NewClient := TBloClientCreate.Create;
+    MyClient.BlopiClientNew := TBloClientCreate.Create;
     DoClientSave(false, MyClient);
   end;
   if Assigned(MyClient.BlopiClientNew) or Assigned(MyClient.BlopiClientDetail) then begin
@@ -207,7 +207,7 @@ begin
   begin
     if Assigned(MyClient.BlopiClientDetail) then
       if Length(MyClient.BlopiClientDetail.Users) > 0 then
-        EmailChanged := (edtEmailAddress.Text <> TBloUserDetail(MyClient.BlopiClientDetail.Users[0]).EMail);
+        EmailChanged := (edtEmailAddress.Text <> TBloUserRead(MyClient.BlopiClientDetail.Users[0]).EMail);
 
     NewProducts := TStringList.Create;
     ProductsRemoved := TStringList.Create;
@@ -263,7 +263,7 @@ begin
       ButtonPressed := AskYesNo('Changing Default Administrator Address',
                                 'You have changed the Default Client Administrator Email Address. ' +
                                 'The new Default Client Administrator will be set to ' +
-                                '�' + edtEmailAddress.Text + '�.' + #10 + #10 +
+                                'â€˜' + edtEmailAddress.Text + 'â€™.' + #10 + #10 +
                                 'Are you sure you want to continue?',
                                 DLG_YES, 0, false)
     else if ProductsChanged then
@@ -397,7 +397,7 @@ procedure TfrmBanklinkOnlineSettings.LoadClientInfo;
 var
   ProdIndex     : integer;
   SubIndex      : integer;
-  PracDetail    : TBloPracticeDetail;
+  PracDetail    : TBloPracticeRead;
   ProductGuid   : TBloGuid;
   ClientSubGuid : TBloGuid;
   CatEntry      : TBloCatalogueEntry;
@@ -449,8 +449,8 @@ begin
 
     if (Length(MyClient.BlopiClientDetail.Users) > 0) then
     begin
-      edtUserName.Text := TBloUserDetail(MyClient.BlopiClientDetail.Users[0]).FullName;
-      edtEmailAddress.Text := TBloUserDetail(MyClient.BlopiClientDetail.Users[0]).Email;
+      edtUserName.Text := TBloUserRead(MyClient.BlopiClientDetail.Users[0]).FullName;
+      edtEmailAddress.Text := TBloUserRead(MyClient.BlopiClientDetail.Users[0]).Email;
     end;
   end
   // New Client
@@ -570,3 +570,5 @@ begin
 end;
 
 end.
+
+

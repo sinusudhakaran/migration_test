@@ -1538,7 +1538,7 @@ Procedure DoUpgradeAdminToLatestVersion( var UpgradingToVersion : integer; const
   procedure UpgradeAdminToVersion128;
   var
     UserIndex : integer;
-    Prac: TBloPracticeDetail;
+    Prac: TBloPracticeRead;
   begin
     UpgradingToVersion := 128;
 

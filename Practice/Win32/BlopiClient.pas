@@ -9,19 +9,19 @@ uses
 type
   TBlopiClient = Class
   private
-    FClientDetail: TBloClientDetail;
-    FClientNew: TBloClientNew;
+    FClientDetail: TBloClientReadDetail;
+    FClientNew: TBloClientCreate;
     FIsEdited: Boolean;
-    procedure SetClientDetail(const Value: TBloClientDetail);
-    procedure SetClientNew(const Value: TBloClientNew);
+    procedure SetClientDetail(const Value: TBloClientReadDetail);
+    procedure SetClientNew(const Value: TBloClientCreate);
     procedure SetIsEdited(const Value: Boolean);
   public
     constructor create;
     destructor destroy; override;
     function SaveClient: Boolean;
-    function GetClientDetail(const AClientCode: string): TBloClientDetail;
-    property ClientDetail: TBloClientDetail read FClientDetail write SetClientDetail;
-    property ClientNew: TBloClientNew read FClientNew write SetClientNew;
+    function GetClientDetail(const AClientCode: string): TBloClientReadDetail;
+    property ClientDetail: TBloClientReadDetail read FClientDetail write SetClientDetail;
+    property ClientNew: TBloClientCreate read FClientNew write SetClientNew;
     property IsEdited: Boolean read FIsEdited write SetIsEdited;
   End;
 
@@ -42,7 +42,7 @@ begin
   inherited;
 end;
 
-function TBlopiClient.GetClientDetail(const AClientCode: string): TBloClientDetail;
+function TBlopiClient.GetClientDetail(const AClientCode: string): TBloClientReadDetail;
 begin
   Result := ProductConfigService.GetClientDetailsWithCode(AClientCode);
 end;
@@ -61,19 +61,19 @@ begin
       if not Assigned(ClientDetail) then
       begin
         ClientNew.Create;  
-        ClientDetail := TBloClientDetail.Create;
+        ClientDetail := TBloClientReadDetail.Create;
       end;
       ProductConfigService.SaveClient(ClientDetail);
     end;                                            
   end;
 end;
 
-procedure TBlopiClient.SetClientDetail(const Value: TBloClientDetail);
+procedure TBlopiClient.SetClientDetail(const Value: TBloClientReadDetail);
 begin
   FClientDetail := Value;
 end;
 
-procedure TBlopiClient.SetClientNew(const Value: TBloClientNew);
+procedure TBlopiClient.SetClientNew(const Value: TBloClientCreate);
 begin
   FClientNew := Value;
 end;

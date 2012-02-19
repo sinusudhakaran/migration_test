@@ -2006,7 +2006,7 @@ var
   ScrollPos, i: Integer;
   StringCodeToSelect, DeleteMsgStr: string;
   ClientID: WideString;
-  ClientDet : TBloClientDetail;
+  ClientDet : TBloClientReadDetail;
   ClientCode : String;
   ClientName : String;
 begin
