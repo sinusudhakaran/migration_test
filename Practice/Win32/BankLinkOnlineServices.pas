@@ -1410,7 +1410,7 @@ begin
             MyUserUpdate := TBloUserUpdate.Create;
             try
               MyUserUpdate.FullName     := MyUserRead.FullName;
-//              MyUserUpdate.EMail        := MyUserRead.EMail;
+              MyUserUpdate.Id           := MyUserRead.Id;
               MyUserUpdate.RoleNames    := MyUserRead.RoleNames;
               MyUserUpdate.UserCode     := MyUserRead.UserCode;
               MyUserUpdate.Subscription := MyUserRead.Subscription;
