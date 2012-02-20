@@ -865,9 +865,7 @@ begin
       //Don't exit dialog if online settings were not updated
       if UseBankLinkOnline then
         Exit;
-    end
-    else
-      HelpfulInfoMsg('Practice settings have been successfully updated to BankLink Online.', 0 );
+    end;
   end;
 
   Result := True;

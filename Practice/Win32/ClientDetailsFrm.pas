@@ -148,6 +148,7 @@ type
     procedure chkForceCheckoutClick(Sender: TObject);
     procedure chkDisableCheckoutClick(Sender: TObject);
     procedure btnClientSettingsClick(Sender: TObject);
+    procedure UpdateProductsLabel;
 
   private
     { Private declarations }
@@ -324,9 +325,7 @@ begin
           lblClientBOProducts.Caption := 'Please save the client to access the Banklink Online settings';
         CachedPracticeDetail := ProductConfigService.CachedPractice;
         if btnClientSettings.Enabled and Assigned(CachedPracticeDetail) then
-          lblClientBOProducts.Caption := 'This client currently has access to ' +
-                                         IntToStr(Length(MyClient.BlopiClientDetail.Subscription)) +
-                                         ' Banklink Online product(s)'
+          UpdateProductsLabel;
       end;
     end;
   end;
@@ -439,6 +438,7 @@ begin
   MyClient.clFields.clClient_EMail_Address := eMail.text;
   if EditBanklinkOnlineSettings then begin
     MyClient.BlopiClientChanged := True;
+    UpdateProductsLabel;
   end;
 end;
 
@@ -454,7 +454,10 @@ begin
   if okToPost then
   begin
      if Assigned(MyClient.BlopiClientDetail) and UpdateBO then
+     begin
        MyClient.BlopiClientDetail.ClientCode := eCode.Text;
+       HelpfulInfoMsg('Practice settings have been successfully updated to BankLink Online.', 0 );
+     end;
      okPressed := true;
      Close;
   end;
@@ -1243,6 +1246,13 @@ begin
   if Email = '' then
     Email := lnone;
   lblEmailView.Caption := Email;
+end;
+
+procedure TfrmClientDetails.UpdateProductsLabel;
+begin
+  lblClientBOProducts.Caption := 'This client currently has access to ' +
+                                 IntToStr(Length(MyClient.BlopiClientDetail.Subscription)) +
+                                 ' Banklink Online product(s)'
 end;
 
 //------------------------------------------------------------------------------
