@@ -1407,13 +1407,13 @@ begin
               Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Updating Client User', 30);
 
             //Create new client admin user
-            MyUserCreate := TBloUserCreate.Create;
+            MyUserUpdate := TBloUserUpdate.Create;
             try
-              MyUserCreate.FullName     := MyUserRead.FullName;
-              MyUserCreate.EMail        := MyUserRead.EMail;
-              MyUserCreate.RoleNames    := MyUserRead.RoleNames;
-              MyUserCreate.UserCode     := MyUserRead.UserCode;
-              MyUserCreate.Subscription := MyUserRead.Subscription;
+              MyUserUpdate.FullName     := MyUserRead.FullName;
+//              MyUserUpdate.EMail        := MyUserRead.EMail;
+              MyUserUpdate.RoleNames    := MyUserRead.RoleNames;
+              MyUserUpdate.UserCode     := MyUserRead.UserCode;
+              MyUserUpdate.Subscription := MyUserRead.Subscription;
 
               MsgResponse := BlopiInterface.SaveclientUser(CountryText(AdminSystem.fdFields.fdCountry),
                                                          AdminSystem.fdFields.fdBankLink_Code,
@@ -1422,7 +1422,7 @@ begin
                                                          MyUserUpdate);
               MessageResponseHasError(MsgResponse, 'update this client user on');
             finally
-              FreeAndNil(MyUserCreate);
+              FreeAndNil(MyUserUpdate);
             end;
           end;
         end;
