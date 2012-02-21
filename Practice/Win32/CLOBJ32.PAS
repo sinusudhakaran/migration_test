@@ -74,7 +74,7 @@ type
     procedure SetBlopiClientNew(const Value: TBloClientCreate);
     function GetBlopiClientDetail: TBloClientReadDetail;
     function GetBlopiClientNew: TBloClientCreate;
-    function CopyPracticeClientNew: boolean;
+//    function CopyPracticeClientNew: boolean;
     procedure SetBlopiClientChanged(const Value: Boolean);
     function GetBlopiClientChanged: Boolean;
 {$ENDIF}
@@ -1524,6 +1524,7 @@ begin
   LogDebugMsg( ThisMethodName + ' Ends');
 end;
 
+{
 function TClientObj.CopyPracticeClientNew: boolean;
 begin
   FBlopiClient.ClientNew.Abn := '';
@@ -1545,6 +1546,7 @@ begin
   FBlopiClient.ClientNew.Name_ := clFields.clName;
   FBlopiClient.ClientNew.Subscription := nil;
 end;
+}
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -1562,12 +1564,14 @@ begin
   Self.clFields.clCurrent_CRC        := GetCurrentCRC;
   Self.ClFields.clCRC_at_Last_Save   := Self.clFields.clCurrent_CRC;
 
+  {
   if UseBankLinkOnline then
   begin
     if Assigned(BlopiClientNew) then
       CopyPracticeClientNew;
     FBlopiClient.SaveClient;
   end;
+  }
 
   LogDebugMsg( ThisMethodName + ' Ends');
 end;

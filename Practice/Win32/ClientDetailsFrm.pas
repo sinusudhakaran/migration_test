@@ -36,7 +36,8 @@ uses
   WinUtils,
   OsFont,
   BanklinkOnlineSettingsFrm,
-  BankLinkOnlineServices;
+  BankLinkOnlineServices,
+  BlopiClient;
 
 type
   TfrmClientDetails = class(TForm)
@@ -161,12 +162,17 @@ type
 //    FClient : ClientDetail;
     FEnableClientSettings : boolean;
     FUseClientDetailsForBankLinkOnline: Boolean;
+    FBlopiClient: TBlopiClient;
     function  OkToPost : boolean;
     procedure UpdatePracticeContactDetails( ContactType : byte);
     procedure ShowPracticeContactDetails(ReadOnly : Boolean);
+    function CopyPracticeClientNew: boolean;
+    function GetBlopiClientNew: TBloClientCreate;
+    procedure SetBlopiClientNew(const Value: TBloClientCreate);
   public
     { Public declarations }
     function Execute(PCode: string = '') : boolean;
+    property BlopiClientNew: TBloClientCreate read GetBlopiClientNew write SetBlopiClientNew;
   end;
 
   function EditClientDetails (ViewNotes : Boolean = False) : boolean;
@@ -197,7 +203,8 @@ uses
    BKDEFS,
    ClientUtils,
    AuditMgr,
-   InfoMoreFrm;
+   InfoMoreFrm,
+   WebUtils;
 
 {$R *.DFM}
 
@@ -331,7 +338,17 @@ begin
   end;
 end;
 
+function TfrmClientDetails.GetBlopiClientNew: TBloClientCreate;
+begin
+  Result := FBlopiClient.ClientNew;
+end;
+
 //------------------------------------------------------------------------------
+procedure TfrmClientDetails.SetBlopiClientNew(const Value: TBloClientCreate);
+begin
+  FBlopiClient.ClientNew := Value;
+end;
+
 procedure TfrmClientDetails.SetUpHelp;
 begin
    Self.ShowHint    := INI_ShowFormHints;
@@ -456,7 +473,18 @@ begin
      if Assigned(MyClient.BlopiClientDetail) and UpdateBO then
      begin
        MyClient.BlopiClientDetail.ClientCode := eCode.Text;
-       HelpfulInfoMsg('Practice settings have been successfully updated to BankLink Online.', 0 );
+
+       if UseBankLinkOnline then
+       begin
+         if not Assigned(FBlopiClient) then
+           FBlopiClient := TBlopiClient.Create;
+         FBlopiClient.IsEdited := True;
+         if Assigned(BlopiClientNew) then
+           CopyPracticeClientNew;   
+         FBlopiClient.SaveClient(MyClient.BlopiClientDetail);
+       end;
+
+//       HelpfulInfoMsg('Practice settings have been successfully updated to BankLink Online.', 0 );
      end;
      okPressed := true;
      Close;
@@ -1260,6 +1288,28 @@ procedure TfrmClientDetails.cmbResponsibleChange(Sender: TObject);
 begin
   if (radStaffMember.Checked)then
     UpdatePracticeContactDetails( cdtStaffMember);
+end;
+
+function TfrmClientDetails.CopyPracticeClientNew: boolean;
+begin
+  FBlopiClient.ClientNew.Abn := '';
+  FBlopiClient.ClientNew.Address1 := MyClient.clFields.clAddress_L1;
+  FBlopiClient.ClientNew.Address2 := MyClient.clFields.clAddress_L2;
+  FBlopiClient.ClientNew.Address3 := MyClient.clFields.clAddress_L3;
+  FBlopiClient.ClientNew.AddressCountry := '';
+  FBlopiClient.ClientNew.ClientCode := MyClient.clFields.clCode;
+  FBlopiClient.ClientNew.CountryCode := CountryText(MyClient.clFields.clCountry);
+  FBlopiClient.ClientNew.Email := MyClient.clFields.clClient_EMail_Address;
+  FBlopiClient.ClientNew.Fax := MyClient.clFields.clFax_No;
+  FBlopiClient.ClientNew.Mobile := MyClient.clFields.clMobile_No;
+  FBlopiClient.ClientNew.Phone := MyClient.clFields.clPhone_No;
+  FBlopiClient.ClientNew.Salutation := MyClient.clFields.clSalutation;
+  FBlopiClient.ClientNew.TaxNumber := MyClient.clFields.clTax_Ledger_Code;
+  FBlopiClient.ClientNew.Tfn := MyClient.clFields.clTFN;
+  FBlopiClient.ClientNew.BillingFrequency := 'M'; // default to monthly billing
+  FBlopiClient.ClientNew.MaxOfflineDays := 30; // default to 'must connect every 30 days'
+  FBlopiClient.ClientNew.Name_ := MyClient.clFields.clName;
+  FBlopiClient.ClientNew.Subscription := nil;
 end;
 
 //------------------------------------------------------------------------------
