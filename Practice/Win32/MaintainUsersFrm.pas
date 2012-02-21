@@ -177,10 +177,7 @@ begin
   begin
     try
       aPractice := ProductConfigService.GetPractice;
-      if not Assigned(aPractice) then
-        exit;
-
-      if ProductConfigService.IsPrimPracUser(User^.usCode, aPractice) then
+      if ProductConfigService.OnLine and ProductConfigService.IsPrimPracUser(User^.usCode, aPractice) then
       begin
         if not PickPrimaryUser(User^.usCode, aPractice) then
           exit;
