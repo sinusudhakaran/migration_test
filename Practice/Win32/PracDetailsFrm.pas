@@ -680,7 +680,6 @@ begin
 
   InSetup := False;
 
-  PopupParent := Application.MainForm;
   ShowModal;
 
   if okPressed then

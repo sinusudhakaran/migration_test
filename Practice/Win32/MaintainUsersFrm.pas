@@ -270,72 +270,76 @@ begin
      lvUsers.Column[4].MaxWidth := 0;
    end
    else
+   begin
      Prac := ProductConfigService.GetPractice;
+     if ProductConfigService.Online then
+       ProductConfigService.UpdateUserAllowOnlineSetting;
+   end;
 
    with AdminSystem, fdSystem_User_List do
-   for i := 0 to Pred(itemCount) do
-   begin
-    User := User_At(i);
-    if User.usLogged_In then
-      Status := 'Logged In'
-    else
-      Status := '';
-
-    if User.usSystem_Access then
-      UserType := ustNames[ustSystem] //'System'
-    else if User.usIs_Remote_User then
-      UserType := ustNames[ustRestricted] //'Restricted'
-    else
-      UserType := ustNames[ustNormal]; //'Normal';
-
-    if AdminSystem.fdSystem_File_Access_List.Restricted_User( User.usLRN ) then begin
-      //count how many files the user has access to
-      Count := 0;
-      for j := 0 to Pred( AdminSystem.fdSystem_Client_File_List.ItemCount ) do begin
-        scf := AdminSystem.fdSystem_Client_File_List.Client_File_At( j);
-          If AdminSystem.fdSystem_File_Access_List.Allow_Access( User.usLRN, scf.cfLRN) then
-            Inc( Count);
-      end;
-
-      If Count = 0 then
-        FileAccess := 'None'
-      else
-        FileAccess := 'Selected';
-    end
-    else begin
-      FileAccess := 'All';
-    end;
-
-    Online := '';
-    if UseBankLinkOnline then
+    for i := 0 to Pred(itemCount) do
     begin
-      if (User.usAllow_Banklink_Online) then
-      begin
-        if (ProductConfigService.OnLine) and
-           (ProductConfigService.IsPrimPracUser(User.usCode, Prac)) then
-          Online := ONLINE_YES_ADMIN
-        else
-          Online := ONLINE_YES;
-      end
+      User := User_At(i);
+      if User.usLogged_In then
+        Status := 'Logged In'
       else
-      begin
-        Online := ONLINE_NO;
+        Status := '';
+
+      if User.usSystem_Access then
+        UserType := ustNames[ustSystem] //'System'
+      else if User.usIs_Remote_User then
+        UserType := ustNames[ustRestricted] //'Restricted'
+      else
+        UserType := ustNames[ustNormal]; //'Normal';
+
+      if AdminSystem.fdSystem_File_Access_List.Restricted_User( User.usLRN ) then begin
+        //count how many files the user has access to
+        Count := 0;
+        for j := 0 to Pred( AdminSystem.fdSystem_Client_File_List.ItemCount ) do begin
+          scf := AdminSystem.fdSystem_Client_File_List.Client_File_At( j);
+            If AdminSystem.fdSystem_File_Access_List.Allow_Access( User.usLRN, scf.cfLRN) then
+              Inc( Count);
+        end;
+
+        If Count = 0 then
+          FileAccess := 'None'
+        else
+          FileAccess := 'Selected';
+      end
+      else begin
+        FileAccess := 'All';
       end;
+
+      Online := '';
+      if UseBankLinkOnline then
+      begin
+        if (User^.usAllow_Banklink_Online) then
+        begin
+          if (ProductConfigService.OnLine) and
+             (ProductConfigService.IsPrimPracUser(User.usCode, Prac)) then
+            Online := ONLINE_YES_ADMIN
+          else
+            Online := ONLINE_YES;
+        end
+        else
+        begin
+          Online := ONLINE_NO;
+        end;
+      end;
+
+      NewItem := lvUsers.Items.Add;
+      NewItem.Caption := User.usCode;
+      if User.usLogged_In then
+        NewItem.ImageIndex := MAINTAIN_USER_BMP
+      else
+        NewItem.ImageIndex := -1;
+
+      NewItem.SubItems.AddObject(User.usName,TObject(User));
+      NewItem.SubItems.Add(Status);
+      NewItem.subITems.Add(UserType);
+      NewItem.SubItems.Add(Online);
+      NewItem.SubItems.Add(FileAccess);
     end;
-
-    NewItem := lvUsers.Items.Add;
-    NewItem.Caption := User.usCode;
-    if User.usLogged_In then
-      NewItem.ImageIndex := MAINTAIN_USER_BMP
-    else
-      NewItem.ImageIndex := -1;
-
-    NewItem.SubItems.AddObject(User.usName,TObject(User));
-    NewItem.SubItems.Add(Status);
-    NewItem.subITems.Add(UserType);
-    NewItem.SubItems.Add(Online);
-    NewItem.SubItems.Add(FileAccess);
-   end;
 
   finally
     lvUsers.items.EndUpdate;
