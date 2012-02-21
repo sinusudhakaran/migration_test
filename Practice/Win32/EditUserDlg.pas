@@ -856,10 +856,18 @@ begin { TdlgEditUser.Execute }
 
       try
         Prac := ProductConfigService.GetPractice(true);
-        Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Sending Data to ' + BANKLINK_ONLINE_NAME, 50);
-        UserGuid := ProductConfigService.GetPracUserGuid(User.usCode, Prac);
-        fIsPrimaryUser := ProductConfigService.IsPrimPracUser(User.usCode, Prac);
-        Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finnished', 100);
+        if ProductConfigService.Online then
+        begin
+          Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Sending Data to ' + BANKLINK_ONLINE_NAME, 50);
+          UserGuid := ProductConfigService.GetPracUserGuid(User.usCode, Prac);
+          fIsPrimaryUser := ProductConfigService.IsPrimPracUser(User.usCode, Prac);
+          Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finnished', 100);
+        end
+        else
+        begin
+          UserGuid := '';
+          fIsPrimaryUser := False;
+        end;
       finally
         Progress.StatusSilent := True;
         Progress.ClearStatus;

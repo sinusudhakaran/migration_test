@@ -1915,21 +1915,24 @@ begin
       if not Assigned(aPractice) then
         aPractice := GetPractice;
 
-      Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Sending Data', 50);
-      if aUserCode = '' then
-        UserGuid := aUserGuid
-      else
-        UserGuid := GetPracUserGuid(aUserCode, aPractice);
-
-      if not (UserGuid = '') then
+      if Online then
       begin
-        MsgResponce := BlopiInterface.DeleteUser(PracCountryCode, PracCode, PracPassHash, UserGuid);
+        Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Sending Data', 50);
+        if aUserCode = '' then
+          UserGuid := aUserGuid
+        else
+          UserGuid := GetPracUserGuid(aUserCode, aPractice);
 
-        if not MessageResponseHasError(MsgResponce, 'delete practice user on') then
-          Result := MsgResponce.Success;
-      end
-      else
-        Result := Online;
+        if not (UserGuid = '') then
+        begin
+          MsgResponce := BlopiInterface.DeleteUser(PracCountryCode, PracCode, PracPassHash, UserGuid);
+
+          if not MessageResponseHasError(MsgResponce, 'delete practice user on') then
+            Result := MsgResponce.Success;
+        end
+        else
+          Result := True;
+      end;
 
       if Result then
       begin
