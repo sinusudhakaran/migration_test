@@ -270,7 +270,6 @@ type
     procedure SetOnUpdateCount(const Value: TNotifyEvent);
     procedure UpdateCount;
     procedure UpdateOnlineStatus;
-    procedure ClearOnlineStatusList;
     procedure SetNoOnlineConnection(const Value: boolean);
     procedure DoStatusProgress(APercentComplete : integer;
                                AMessage         : string);
@@ -1230,7 +1229,7 @@ begin
       Attempt := -1;
       while (Attempt < 3) do begin
         Inc(Attempt);
-        ClearOnlineStatusList;
+        FClientStatusList.Clear;
 
         if (FSeverResponce.Status = '') then
           if Assigned(AdminSystem) then
@@ -3087,15 +3086,6 @@ end;
 procedure TfmeClientLookup.ClearColumns;
 begin
   FColumns.Clear;
-end;
-procedure TfmeClientLookup.ClearOnlineStatusList;
-var
-  i: integer;
-begin
-  for i := 0 to FClientStatusList.Count - 1 do
-    if Assigned(FClientStatusList.Items[i]) then
-      FClientStatusList.Items[i].Free;
-  FClientStatusList.Clear;
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
