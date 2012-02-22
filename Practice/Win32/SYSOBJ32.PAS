@@ -205,6 +205,7 @@ begin
   FreeAndNil(fdSystem_Client_Type_List);
   FreeAndNil(fAuditTable);
   FreeAndNil(fSystem_Memorisation_List);
+//  FreeAndNil(_SystemCopy);
 {$ENDIF}
   {free dynamic fields}
   SYFDIO.Free_Practice_Details_Rec_Dynamic_Fields( fdFields);
@@ -627,6 +628,8 @@ begin
   FreeAndNil(_SystemCopy); //Delete current copy
   S.Seek(SizeOf(LongInt), soFromBeginning);
   SystemCopy.LoadFromStream(S);
+  //System copy doesn't require an Audit Table
+  FreeAndNil(SystemCopy.fAuditTable);
 end;
 
 function TSystemObj.NewSystemAccount(AccNumber: string; Delivered: Boolean):pSystem_Bank_Account_Rec;

@@ -129,6 +129,7 @@ type
     procedure AddScope(AAuditType: TAuditType; AAuditRecordID: integer;
                        AAuditAction: byte; AOtherInfo: string);
     procedure SetCountry(const Value: TCountry);
+    procedure ClearAuditScope;
   public
     constructor Create;
     destructor Destroy; override;
@@ -139,6 +140,8 @@ type
     function CurrentUserCode: string;
     function NextAuditRecordID: integer; virtual; abstract;
     function GetParentRecordID(ARecordType: byte; ARecordID: integer): integer; virtual; abstract;
+    function GetRecordSize(AuditRec: TAudit_Trail_Rec): integer; virtual; abstract;
+    procedure FreeDynamicFields(AuditRec: TAudit_Trail_Rec); virtual; abstract;
     procedure AddAuditValue(AFieldName: string; AValue: variant; var AAuditValue: string); virtual;
     procedure DoAudit; virtual; abstract;
     procedure FlagAudit(AAuditType: TAuditType; AAuditRecordID: integer = -1;
@@ -158,6 +161,8 @@ type
     function GetParentRecordID(ARecordType: byte; ARecordID: integer): integer; override;
     function BankAccountFromLRN(ALRN: integer): string;
     function ClientCodeFromLRN(ALRN: integer): string;
+    function GetRecordSize(AuditRec: TAudit_Trail_Rec): integer; override;
+    procedure FreeDynamicFields(AuditRec: TAudit_Trail_Rec); override;
     procedure DoAudit; override;
     procedure FlagAudit(AAuditType: TAuditType; AAuditRecordID: integer = -1;
                         AAuditAction: byte = aaNone; AOtherInfo: string = ''); override;
@@ -179,6 +184,8 @@ type
     function GetParentRecordID(ARecordType: byte; ARecordID: integer): integer; override;
     function GetTransactionAuditType(ABankAccountSource: byte; ABankAccountType: byte): TAuditType;
     function GetBankAccountAuditType(ABankAccountType: byte): TAuditType;
+    function GetRecordSize(AuditRec: TAudit_Trail_Rec): integer; override;
+    procedure FreeDynamicFields(AuditRec: TAudit_Trail_Rec); override;
     procedure DoAudit; override;
     procedure FlagAudit(AAuditType: TAuditType; AAuditRecordID: integer = -1;
                         AAuditAction: byte = aaNone; AOtherInfo: string = ''); override;
@@ -197,6 +204,8 @@ type
     constructor Create(Owner: TObject);
     function NextAuditRecordID: integer; override;
     function GetParentRecordID(ARecordType: byte; ARecordID: integer): integer; override;
+    function GetRecordSize(AuditRec: TAudit_Trail_Rec): integer; override;
+    procedure FreeDynamicFields(AuditRec: TAudit_Trail_Rec); override;
     procedure DoAudit; override;
     procedure FlagAudit(AAuditType: TAuditType; AAuditRecordID: integer = -1;
                         AAuditAction: byte = aaNone; AOtherInfo: string = ''); override;
@@ -219,6 +228,7 @@ type
     procedure LoadFromStream( var S: TIOStream);
     procedure SaveToFile (AFileName: TFileName);
     procedure SaveToStream (var S: TIOStream);
+    procedure ClearAuditTable;
 //    procedure SetAuditStrings(Index: integer; Strings: TStrings);
     property AuditRecords: TAuditCollection read FAuditRecords;
   end;
@@ -244,7 +254,7 @@ uses
   MCAUDIT, MCEHIO, MCERIO;
 {$ELSE}
 uses
-  Globals, SysObj32, ClObj32, ExchangeRateList, MoneyUtils, SystemMemorisationList,
+  Malloc, Globals, SysObj32, ClObj32, ExchangeRateList, MoneyUtils, SystemMemorisationList,
   BKAuditValues, SYAuditValues, MCAuditValues,
   bkdateutils, TOKENS,  BKDbExcept, CountryUtils,
   SYAUDIT, SYATIO, SYUSIO, SYFDIO, SYDLIO, SYSBIO, SYAMIO, SYCFIO, SYSMIO,
@@ -481,7 +491,11 @@ begin
   ScopeInfo.AuditAction := AAuditAction;
   ScopeInfo.OtherInfo := AOtherInfo;
   if FindScopeInfo(ScopeInfo) = - 1 then
-    FAuditScope.Add(ScopeInfo);
+    FAuditScope.Add(ScopeInfo)
+  else begin
+    ScopeInfo^.OtherInfo := '';
+    Dispose(ScopeInfo);
+  end;
 {$ENDIF}    
 end;
 
@@ -529,6 +543,17 @@ begin
 {$ENDIF}
 end;
 
+procedure TAuditManager.ClearAuditScope;
+var
+  i: integer;
+begin
+  for i := 0 to FAuditScope.Count - 1 do begin
+    PScopeInfo(FAuditScope.Items[i])^.OtherInfo := '';
+    Dispose(FAuditScope.Items[i]);
+  end;
+  FAuditScope.Clear;
+end;
+
 constructor TAuditManager.Create;
 begin
   FAuditScope := TList.Create;
@@ -565,11 +590,8 @@ begin
 end;
 
 destructor TAuditManager.Destroy;
-var
-  i: integer;
 begin
-  for i := 0 to FAuditScope.Count - 1 do
-    Dispose(FAuditScope.Items[i]);
+  ClearAuditScope;
   FreeAndNil(FAuditScope);
   inherited;
 end;
@@ -735,7 +757,7 @@ begin
       end;
     end;
   end;
-  FAuditScope.Clear;
+  ClearAuditScope;
 {$ENDIF}
 end;
 
@@ -746,6 +768,22 @@ begin
   if (Country <> whUK) then Exit;
 
   AddScope(AAuditType, AAuditRecordID, AAuditAction, AOtherInfo);
+end;
+
+procedure TSystemAuditManager.FreeDynamicFields(AuditRec: TAudit_Trail_Rec);
+begin
+{$IFNDEF LOOKUPDLL}
+  case AuditRec.atAudit_Record_Type of
+    tkBegin_Practice_Details        : Free_Practice_Details_Rec_Dynamic_Fields(TPractice_Details_Rec(AuditRec.atAudit_Record^));
+    tkBegin_User                    : Free_User_Rec_Dynamic_Fields(TUser_Rec(AuditRec.atAudit_Record^));
+    tkBegin_System_Bank_Account     : Free_System_Bank_Account_Rec_Dynamic_Fields(TSystem_Bank_Account_Rec(AuditRec.atAudit_Record^));
+    tkBegin_Client_Account_Map      : Free_Client_Account_Map_Rec_Dynamic_Fields(TClient_Account_Map_Rec(AuditRec.atAudit_Record^));
+    tkBegin_Client_File             : Free_Client_File_Rec_Dynamic_Fields(TClient_File_Rec(AuditRec.atAudit_Record^));
+    tkBegin_System_Memorisation_List: Free_System_Memorisation_List_Rec_Dynamic_Fields(TSystem_Memorisation_List_Rec(AuditRec.atAudit_Record^));
+    tkBegin_Memorisation_Detail     : Free_Memorisation_Detail_Rec_Dynamic_Fields(TMemorisation_Detail_Rec(AuditRec.atAudit_Record^));
+    tkBegin_Memorisation_Line       : Free_Memorisation_Line_Rec_Dynamic_Fields(TMemorisation_Line_Rec(AuditRec.atAudit_Record^));
+  end;
+{$ENDIF}  
 end;
 
 function TSystemAuditManager.GetParentRecordID(ARecordType: byte; ARecordID: integer): integer;
@@ -761,6 +799,32 @@ begin
     tkBegin_System_Memorisation_List: Result := AdminSystem.fdFields.fdAudit_Record_ID;
     tkBegin_Memorisation_Detail: Result := 0; //Should be ID of system master mem list
     tkBegin_Memorisation_Line: Result := 0; //Should be ID of mem list
+  end;
+{$ENDIF}
+end;
+
+function TSystemAuditManager.GetRecordSize(AuditRec: TAudit_Trail_Rec): integer;
+begin
+{$IFNDEF LOOKUPDLL}
+  Result := 0;
+  case DBFromAuditType(AuditRec.atTransaction_Type) of
+    dbSystem:
+      case AuditRec.atAudit_Record_Type of
+        tkBegin_Practice_Details        : Result := Practice_Details_Rec_Size;
+        tkBegin_User                    : Result := User_Rec_Size;
+        tkBegin_System_Bank_Account     : Result := System_Bank_Account_Rec_Size;
+        tkBegin_Client_Account_Map      : Result := Client_Account_Map_Rec_Size;
+        tkBegin_Client_File             : Result := Client_File_Rec_Size;
+        tkBegin_System_Memorisation_List: Result := System_Memorisation_List_Rec_Size;
+        tkBegin_Memorisation_Detail     : Result := Memorisation_Detail_Rec_Size;
+        tkBegin_Memorisation_Line       : Result := Memorisation_Line_Rec_Size;
+      end;
+    //System DB can also contain an exchange rate DB
+    dbExchangeRates:
+      case AuditRec.atAudit_Record_Type  of
+        tkBegin_Exchange_Rates_Header: Result := Exchange_Rates_Header_Rec_Size;
+        tkBegin_Exchange_Rate        : Result := Exchange_Rate_Rec_Size;
+      end;
   end;
 {$ENDIF}
 end;
@@ -1005,7 +1069,7 @@ begin
       end;
     end;
   end;
-  FAuditScope.Clear;
+  ClearAuditScope;
 {$ENDIF}
 end;
 
@@ -1016,6 +1080,25 @@ begin
   if (Country <> whUK) then Exit;
 
   AddScope(AAuditType, AAuditRecordID, AAuditAction, AOtherInfo);
+end;
+
+procedure TClientAuditManager.FreeDynamicFields(AuditRec: TAudit_Trail_Rec);
+begin
+{$IFNDEF LOOKUPDLL}
+  case AuditRec.atAudit_Record_Type of
+    tkBegin_Client              : Free_Client_Rec_Dynamic_Fields(TClient_Rec(AuditRec.atAudit_Record^));
+    tkBegin_ClientExtra         : Free_ClientExtra_Rec_Dynamic_Fields(TClientExtra_Rec(AuditRec.atAudit_Record^));
+    tkBegin_Payee_Detail        : Free_Payee_Detail_Rec_Dynamic_Fields(TPayee_Detail_Rec(AuditRec.atAudit_Record^));
+    tkBegin_Payee_Line          : Free_Payee_Line_Rec_Dynamic_Fields(TPayee_Line_Rec(AuditRec.atAudit_Record^));
+    tkBegin_Bank_Account        : Free_Bank_Account_Rec_Dynamic_Fields(TBank_Account_Rec(AuditRec.atAudit_Record^));
+    tkBegin_Transaction         : Free_Transaction_Rec_Dynamic_Fields(TTransaction_Rec(AuditRec.atAudit_Record^));
+    tkBegin_Dissection          : Free_Dissection_Rec_Dynamic_Fields(TDissection_Rec(AuditRec.atAudit_Record^));
+    tkBegin_Account             : Free_Account_Rec_Dynamic_Fields(TAccount_Rec(AuditRec.atAudit_Record^));
+    tkBegin_Custom_Heading      : Free_Custom_Heading_Rec_Dynamic_Fields(TCustom_Heading_Rec(AuditRec.atAudit_Record^));
+    tkBegin_Memorisation_Detail : Free_Memorisation_Detail_Rec_Dynamic_Fields(TMemorisation_Detail_Rec(AuditRec.atAudit_Record^));
+    tkBegin_Memorisation_Line   : Free_Memorisation_Line_Rec_Dynamic_Fields(TMemorisation_Line_Rec(AuditRec.atAudit_Record^));
+  end;
+{$ENDIF}
 end;
 
 function TClientAuditManager.GetBankAccountAuditType(ABankAccountType: byte): TAuditType;
@@ -1038,6 +1121,27 @@ function TClientAuditManager.GetParentRecordID(ARecordType: byte;
   ARecordID: integer): integer;
 begin
   Result := 0;
+end;
+
+function TClientAuditManager.GetRecordSize(AuditRec: TAudit_Trail_Rec): integer;
+begin
+{$IFNDEF LOOKUPDLL}
+  case AuditRec.atAudit_Record_Type  of
+    tkBegin_Client              : Result := Client_Rec_Size;
+    tkBegin_ClientExtra         : Result := ClientExtra_Rec_Size;
+    tkBegin_Payee_Detail        : Result := Payee_Detail_Rec_Size;
+    tkBegin_Payee_Line          : Result := Payee_Line_Rec_Size;
+    tkBegin_Bank_Account        : Result := Bank_Account_Rec_Size;
+    tkBegin_Transaction         : Result := Transaction_Rec_Size;
+    tkBegin_Dissection          : Result := Dissection_Rec_Size;
+    tkBegin_Account             : Result := Account_Rec_Size;
+    tkBegin_Custom_Heading      : Result := Custom_Heading_Rec_Size;
+    tkBegin_Memorisation_Detail : Result := Memorisation_Detail_Rec_Size;
+    tkBegin_Memorisation_Line   : Result := Memorisation_Line_Rec_Size;
+  else
+    Result := 0;
+  end;
+{$ENDIF}
 end;
 
 function TClientAuditManager.GetTransactionAuditType(ABankAccountSource: byte;
@@ -1206,7 +1310,7 @@ begin
     tkBegin_Account     : Write_Account_Rec(TAccount_Rec(ARecord^), AStream);
     tkBegin_Custom_Heading: Write_Custom_Heading_Rec(TCustom_Heading_Rec(ARecord^), AStream);
     tkBegin_Memorisation_Detail: Write_Memorisation_Detail_Rec(TMemorisation_Detail_Rec(ARecord^), AStream);
-    tkBegin_Memorisation_Line: Write_Memorisation_Line_Rec(TMemorisation_Line_Rec(ARecord^), AStream);    
+    tkBegin_Memorisation_Line: Write_Memorisation_Line_Rec(TMemorisation_Line_Rec(ARecord^), AStream);
   end;
 {$ENDIF}
 end;
@@ -1244,6 +1348,26 @@ begin
 {$ENDIF}
 end;
 
+procedure TAuditTable.ClearAuditTable;
+var
+  i: integer;
+  AuditRec: TAudit_Trail_Rec;
+  RecSize: integer;
+begin
+  //Dispose audit records
+  for i := 0 to Pred(FAuditRecords.ItemCount) do begin
+    AuditRec := FAuditRecords.Audit_At(i);
+    //Free dynamic fields
+    if Assigned(AuditRec.atAudit_Record) then begin
+      FAuditManager.FreeDynamicFields(AuditRec);
+      RecSize := FAuditManager.GetRecordSize(AuditRec);
+      SafeFreeMem(AuditRec.atAudit_Record, RecSize);
+    end;
+  end;
+  FAuditRecords.FreeAll;
+  FAuditRecords.SetLimit(0);
+end;
+
 constructor TAuditTable.Create(AAuditManager: TAuditManager);
 begin
   inherited Create;
@@ -1252,15 +1376,8 @@ begin
 end;
 
 destructor TAuditTable.Destroy;
-var
-  i: integer;
 begin
-  //Dispose audit records
-  for i := 0 to Pred(FAuditRecords.ItemCount) do
-    Dispose(FAuditRecords.Audit_At(i).atAudit_Record);
-
-  FAuditRecords.FreeAll;
-  FAuditRecords.SetLimit(0);
+  ClearAuditTable;
   FAuditRecords.Free;
   inherited;
 end;
@@ -1416,7 +1533,9 @@ end;
 
 procedure TAuditCollection.FreeItem(Item: Pointer);
 begin
-  Dispose(pAudit_Trail_Rec(Item));
+  //Free audit trail record
+  Free_Audit_Trail_Rec_Dynamic_Fields(TAudit_Trail_Rec(Item^));
+  SafeFreeMem(Item, Audit_Trail_Rec_Size);
 end;
 
 { TAudit_Trail_Rec_Helper }
@@ -1503,7 +1622,7 @@ begin
         end;
       end;
     end;
-    FAuditScope.Clear;
+    ClearAuditScope;
   end;
 {$ENDIF}
 end;
@@ -1516,10 +1635,36 @@ begin
 {$ENDIF}
 end;
 
+procedure TExchangeRateAuditManager.FreeDynamicFields(
+  AuditRec: TAudit_Trail_Rec);
+begin
+{$IFNDEF LOOKUPDLL}
+  if (DBFromAuditType(AuditRec.atTransaction_Type) <> dbExchangeRates) then
+    Exit;
+
+  case AuditRec.atAudit_Record_Type of
+    tkBegin_Exchange_Rates_Header: Free_Exchange_Rates_Header_Rec_Dynamic_Fields(TExchange_Rates_Header_Rec(AuditRec.atAudit_Record^));
+    tkBegin_Exchange_Rate        : Free_Exchange_Rate_Rec_Dynamic_Fields(TExchange_Rate_Rec(AuditRec.atAudit_Record^));
+  end;
+{$ENDIF}
+end;
+
 function TExchangeRateAuditManager.GetParentRecordID(ARecordType: byte;
   ARecordID: integer): integer;
 begin
   Result := 0;
+end;
+
+function TExchangeRateAuditManager.GetRecordSize(AuditRec: TAudit_Trail_Rec): integer;
+begin
+{$IFNDEF LOOKUPDLL}
+  case AuditRec.atAudit_Record_Type  of
+    tkBegin_Exchange_Rates_Header: Result := Exchange_Rates_Header_Rec_Size;
+    tkBegin_Exchange_Rate        : Result := Exchange_Rate_Rec_Size;
+  else
+    Result := 0;
+  end;
+{$ENDIF}
 end;
 
 procedure TExchangeRateAuditManager.GetValues(
@@ -1608,6 +1753,5 @@ end;
 initialization
   _SystemAuditMgr := nil;
 finalization
-  if Assigned(_SystemAuditMgr) then
-    FreeAndNil(_SystemAuditMgr);
+  FreeAndNil(_SystemAuditMgr);
 end.

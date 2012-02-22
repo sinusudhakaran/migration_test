@@ -251,7 +251,9 @@ end;
 
 destructor TExchangeSource.Destroy;
 begin
+  FExchangeTree.Clear;
   FreeAndNil(FExchangeTree);
+
   inherited;
 end;
 
@@ -309,7 +311,7 @@ begin
         if AuditInfo.AuditAction in [aaAdd, aaChange] then
            ExchangeRateSourceCopy.FAuditTable.AddAuditRec(AuditInfo);
       finally
-        Dispose(AuditInfo.AuditRecord);
+        SafeFreeMem(AuditInfo.AuditRecord, Exchange_Rate_Rec_Size);
       end;
     end;
   finally
@@ -381,7 +383,8 @@ begin
       AAuditTable.AddAuditRec(AuditInfo);
     end;
   finally
-    Dispose(AuditInfo.AuditRecord);
+//    Dispose(AuditInfo.AuditRecord);
+    SafeFreeMem(AuditInfo.AuditRecord, Exchange_Rates_Header_Rec_Size);
   end;
 
   //Exchange Rates
@@ -697,6 +700,7 @@ end;
 destructor TExchangeRateList.Destroy;
 begin
   //Audit table
+  FreeAndNil(FExchangeRateListCopy); //Delete copy
   FreeAndNil(FAuditTable);
   FreeAndNil(FAuditManager);
 
@@ -743,6 +747,8 @@ begin
   FLoading := True;
   try
     ExchangeRateListCopy.LoadFromStream(S);
+    //copy doesn't need an audit table
+//SW    FreeAndNil(FExchangeRateListCopy.FAuditTable);
   finally
     FLoading := False;
   end;
@@ -800,7 +806,6 @@ begin
       for i := 0 to ItemCount - 1 do begin
         ExchangeSource := TExchangeSource(Items[i]);
         ExchangeSourceCopy := FExchangeRateListCopy.GetSource(ExchangeSource.FHeader.ehName);
-
         //GetSource increments the Audit ID, but the ExchangeSourceCopy is
         //not saved, so we have to decrement it
         Dec(FLastAuditRecordID);
