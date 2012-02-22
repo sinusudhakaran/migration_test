@@ -86,6 +86,10 @@ object dlgProfitAndLossOptions: TdlgProfitAndLossOptions
     TabOrder = 0
     object tbsOptions: TTabSheet
       Caption = 'Options'
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object pnlReportStyle: TPanel
         Left = 0
         Top = 0
@@ -128,7 +132,7 @@ object dlgProfitAndLossOptions: TdlgProfitAndLossOptions
           Width = 177
           Height = 21
           Style = csDropDownList
-          ItemHeight = 13
+          ItemHeight = 0
           ItemIndex = 0
           TabOrder = 1
           Text = 'One Month'
@@ -147,7 +151,7 @@ object dlgProfitAndLossOptions: TdlgProfitAndLossOptions
           Width = 177
           Height = 21
           Style = csDropDownList
-          ItemHeight = 13
+          ItemHeight = 0
           ItemIndex = 0
           TabOrder = 0
           Text = 'Single Period (Actual)'
@@ -163,7 +167,7 @@ object dlgProfitAndLossOptions: TdlgProfitAndLossOptions
           Width = 90
           Height = 21
           Style = csDropDownList
-          ItemHeight = 13
+          ItemHeight = 0
           TabOrder = 2
           OnChange = cmbStartMonthChange
         end
@@ -324,7 +328,7 @@ object dlgProfitAndLossOptions: TdlgProfitAndLossOptions
           Height = 21
           Style = csDropDownList
           Enabled = False
-          ItemHeight = 13
+          ItemHeight = 0
           TabOrder = 3
           OnChange = cmbBudgetChange
         end
@@ -391,7 +395,7 @@ object dlgProfitAndLossOptions: TdlgProfitAndLossOptions
           Width = 210
           Height = 21
           Style = csDropDownList
-          ItemHeight = 13
+          ItemHeight = 0
           Sorted = True
           TabOrder = 0
         end

@@ -136,6 +136,8 @@ type
     procedure vsOutGetHint(Sender: TBaseVirtualTree; Node: PVirtualNode;
       Column: TColumnIndex; TextType: TVSTTextType; var CellText: WideString);
     procedure FormShow(Sender: TObject);
+    procedure EDateChange(Sender: TObject);
+    procedure EDateKeyPress(Sender: TObject; var Key: Char);
 
   private
     FHDEForm: TdlgHistorical;
@@ -906,6 +908,23 @@ begin
    if fCurrentDate = 0 then  // so wo only do this once
      fCurrentDate := stdate.CurrentDate;
    Result := fCurrentDate;
+end;
+
+procedure TImportHist.EDateChange(Sender: TObject);
+begin
+  cbDateChange(nil);
+end;
+
+procedure TImportHist.EDateKeyPress(Sender: TObject; var Key: Char);
+begin
+  if not (Key in ['d','m','y','D','M','Y','/','\','-',#8]) then
+  begin
+    Key := #0;
+    Exit;
+  end;
+  
+  if Key in ['d','m','y'] then
+    Key := UpCase(Key);
 end;
 
 procedure TImportHist.Endupdate;

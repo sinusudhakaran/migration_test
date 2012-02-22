@@ -566,11 +566,11 @@ begin
          (BudgetPrompt) then
       begin
         //see if should prompt
-        //dont prompt if doing budget remaining report or detailed cash on hand
+        //dont prompt if doing budget remaining report
         if not ((clFRS_Report_Style    = crsBudgetRemaining) or
                 (cmbBudget.Items.Count = 0) or
-                (not(clFRS_Reporting_Period_Type in ValidPeriodTypesForBudgetSet)) or
-                (clCflw_Cash_On_Hand_Style = cflCash_On_Hand_Detailed)) then
+                (not(clFRS_Reporting_Period_Type in ValidPeriodTypesForBudgetSet))) then
+//                (clCflw_Cash_On_Hand_Style = cflCash_On_Hand_Detailed)) then
         begin
           AskForBudget := (clTemp_FRS_Budget_To_Use = '');
 

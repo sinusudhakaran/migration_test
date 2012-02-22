@@ -258,6 +258,9 @@ begin
   fmeAccountSelector1.btnSelectAllAccounts.Click;
   PageControl1.ActivePage := tsOptions;
   SetUpHelp;
+
+  btnLoad.Enabled := not CurrUser.HasRestrictedAccess;
+  btnSaveTemplate.Enabled := not CurrUser.HasRestrictedAccess;
 end;
 //------------------------------------------------------------------------------
 procedure TdlgLedgerRep.ActivateApplication(Sender: TObject);

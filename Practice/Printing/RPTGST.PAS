@@ -556,6 +556,7 @@ begin
                                  //reference counting
 
     MaxPeriods := Max(MyClient.clFields.clTemp_Periods_This_Year, MyClient.clFields.clTemp_Periods_Last_Year);
+    MaxPeriods := Ceil(MyClient.clFields.clTemp_FRS_Last_Period_To_Show/Floor(12/MaxPeriods));
     for i := 1 to MaxPeriods+1 do
     begin
       Total[i] := 0.00;
@@ -809,6 +810,7 @@ begin
 
         //Find number of periods
        MaxPeriods := Max(clTemp_Periods_This_Year, clTemp_Periods_Last_Year);
+       MaxPeriods := Ceil(clTemp_FRS_Last_Period_To_Show/Floor(12/MaxPeriods));
        case MaxPeriods of
        1..2 : cWidth := 50;
        3..4 : cWidth := 40;
@@ -842,6 +844,7 @@ begin
 
        //Add period columns
        for i := 1 to MaxPeriods{( Job.iVisiblePeriods)} do begin
+
          //get period dates, there is a chance that the no of periods in each
          //year may be different, so need to make sure we are getting dates
          //for the correct period

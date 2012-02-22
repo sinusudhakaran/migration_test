@@ -1067,15 +1067,21 @@ function TfrmExportCharges.ConvertToHandiNumber(s: string; maxVal, maxWidth: Int
 var
   x: Integer;
 begin
-  x := StrToIntDef(s, -1);
-  if (x <= 0) or (x > maxVal) then
-    Result := ''
-  else if Length(s) = maxWidth-2 then
-    Result := '00' + s
-  else if Length(s) = maxwidth-1 then
-    Result := '0' + s
-  else
-    Result := Copy(s, 1, maxWidth)
+  if (s = '00') or (s = '000') then
+  begin
+    Result := s;
+  end else
+  begin
+    x := StrToIntDef(s, -1);
+    if (x <= 0) or (x > maxVal) then
+      Result := ''
+    else if Length(s) = maxWidth-2 then
+      Result := '00' + s
+    else if Length(s) = maxwidth-1 then
+      Result := '0' + s
+    else
+      Result := Copy(s, 1, maxWidth)
+  end;
 end;
 
 procedure TfrmExportCharges.MyCommaText(List: TStringList; Line: string);

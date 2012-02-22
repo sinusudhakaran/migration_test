@@ -458,7 +458,7 @@ begin
    abAmount := Abs(Amount);
    Test := SetFrank.asFloat;
 
-   if Test >= abAmount  then begin
+   if Test > abAmount  then begin
       SetFrank.asFloat := abAmount;
       GetFrank.asFloat := 0.0;
    end else if Test <= 0 then begin

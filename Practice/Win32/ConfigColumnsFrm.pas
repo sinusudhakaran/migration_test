@@ -430,6 +430,9 @@ begin
   SetupHelp;
   FConfigBankAccount := nil;
   ColumnListSwapped := False;
+
+  btnLoad.Enabled := not CurrUser.HasRestrictedAccess;
+  btnSave.Enabled := not CurrUser.HasRestrictedAccess;
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmConfigure.tabRestoreShow(Sender: TObject);

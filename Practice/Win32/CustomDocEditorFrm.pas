@@ -92,7 +92,7 @@ type
     procedure EditorERTFChange(Sender: TObject);
     procedure btnsaveAsClick(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
-  
+
   private
     FCurrentDoc : TReportBase;
     FIsNewDoc: Boolean;
@@ -135,6 +135,7 @@ type
     function FaxScheduledCustomDoc(SchedulePRS: TPrintManagerObj;
                                    srOptions: TSchReportOptions;
                                    FaxParams: TFaxParameters ): boolean;
+    procedure PreviewPDFFromMemStream(ARTFString: WideString);
   public
     constructor Create;
     destructor Destroy; override;
@@ -350,6 +351,19 @@ begin
   end;
 end;
 
+procedure TCustomDocManager.PreviewPDFFromMemStream(ARTFString: WideString);
+var
+  MemStream: TMemoryStream;
+begin
+  MemStream := TMemoryStream.Create;
+  try
+    CreatePDF(ARTFString, '', MemStream);
+    PreviewPDF('', MemStream);
+  finally
+    MemStream.Free;
+  end;
+end;
+
 procedure TCustomDocManager.DoPrinterPrint(AReport: TReportBase; ARTFDoc: TWPRichText; StartPage: Integer=0; EndPage: Integer = 0);
 begin
    ARTFDoc.ReformatAll;
@@ -459,9 +473,9 @@ begin
       end;
 
       //Print
-      if (Result = mrPrint) then begin
-        DoPrinterPrint(AReport, ARTFDoc, StartPage, EndPage);
-
+      case Result of
+        mrPrint: DoPrinterPrint(AReport, ARTFDoc, StartPage, EndPage);
+        mrPreview: PreviewPDFFromMemStream(AReport.GetRTF);
       end;
     end;
   finally
@@ -496,9 +510,8 @@ begin
     WPRichText.UpdatePrinterProperties(Printer, 0);
     //Display custom print dialog
     case Destination of
-    rdSetup : DoPrinterSetup(AReport, WPRichText);
-    rdPrinter : DoPrinterPrint(AReport, WPRichText);
-
+      rdSetup :   DoPrinterSetup(AReport, WPRichText);
+      rdPrinter : DoPrinterPrint(AReport, WPRichText);
     end;
   finally
     WPRichText.Free;
@@ -524,66 +537,58 @@ var
   MsgStr: string;
   tmpFilename: string;
   dummy: Integer;
-   function GetUserName : string;
-   begin
-      if assigned(CurrUser) then
-         if CurrUser.FullName > '' then
-            Result := CurrUser.FullName
-         else if CurrUser.Code > '' then
-            Result := CurrUser.Code
-         else
-            Result := 'ID: ' + IntTostr(CurrUser.LRN)
+
+  function GetUserName : string;
+  begin
+    if Assigned(CurrUser) then begin
+      if CurrUser.FullName > '' then
+        Result := CurrUser.FullName
+      else if CurrUser.Code > '' then
+        Result := CurrUser.Code
       else
-         Result := '';
-   end;
+        Result := 'ID: ' + IntTostr(CurrUser.LRN)
+    end else
+      Result := '';
+  end;
 
 begin
   if not Assigned(AReport) then
-     Exit;
+    Exit;
+
   // Set the last run details..
   AReport.LastRun := Now;
   AReport.User := GetUserName;
   AReport.RunDestination := Get_DestinationText (Destination);
 
-
   LocalReport := CustomDocManager.GetReportByGUID(AReport.GetGUID);
   if Assigned(LocalReport) then begin
-
-
     LocalReport.RunFileName := Globals.DataDir + LocalReport.Name + '.pdf';
-
-    ////
-    if Destination = rdFile then begin
-       tmpFilename := LocalReport.RunFileName;
-       if GenerateReportTo(tmpFilename, dummy, [ffPDF], MsgStr, MsgStr, dummy, dummy, True) then begin
-           LocalReport.RunFileName := tmpFilename;
-       end else
-          Exit; // Must have canceled..
-    end;
-    ///
-
-    CreatePDF(TReportBase(LocalReport).GetRTF, LocalReport.RunFileName);
-
     case Destination of
-    rdScreen : PreviewPDF(LocalReport.RunFileName);
-    rdFile   : begin //File
-          MsgStr := Format('Report saved to "%s".%s%sDo you want to view it now?',
-                       [LocalReport.RunFileName, #13#10, #13#10]);
-          if (AskYesNo(rfNames[rfPDF], MsgStr, DLG_YES, 0) = DLG_YES) then
-             ShellExecute(0, 'open', PChar(LocalReport.RunFileName), nil, nil, SW_SHOWMAXIMIZED);
-       end;
-    rdPrinter,
-    rdSetup:  begin
-          //may need to keep the file
-          AReport.RunFileName := LocalReport.RunFileName;
-          AReport.RunBtn := Btn_Print;
-          case AReport.BatchRunMode of
-             R_Setup : Destination := rdSetup;
-             R_Batch : Exit;
-          end;
-          PrintCustomDoc(LocalReport, Destination);
-       end;
-    end;
+      rdScreen : PreviewPDFFromMemStream(TReportBase(LocalReport).GetRTF);
+      rdFile   : begin
+                   tmpFilename := LocalReport.RunFileName;
+                   if GenerateReportTo(tmpFilename, dummy, [ffPDF], MsgStr,
+                                       MsgStr, dummy, dummy, True) then begin
+                     LocalReport.RunFileName := tmpFilename;
+                     CreatePDF(TReportBase(LocalReport).GetRTF, LocalReport.RunFileName);
+                     MsgStr := Format('Report saved to "%s".%s%sDo you want to view it now?',
+                                      [LocalReport.RunFileName, #13#10, #13#10]);
+                     if (AskYesNo(rfNames[rfPDF], MsgStr, DLG_YES, 0) = DLG_YES) then
+                       ShellExecute(0, 'open', PChar(LocalReport.RunFileName), nil, nil, SW_SHOWMAXIMIZED);
+                   end;
+                 end;
+      rdPrinter,
+      rdSetup:  begin
+                  //may need to keep the file
+                  AReport.RunFileName := LocalReport.RunFileName;
+                  AReport.RunBtn := Btn_Print;
+                  case AReport.BatchRunMode of
+                    R_Setup : Destination := rdSetup;
+                    R_Batch : Exit;
+                  end;
+                  PrintCustomDoc(LocalReport, Destination);
+                end;
+    end; //Case
   end;
 end;
 
@@ -658,17 +663,8 @@ begin
 end;
 
 procedure TfrmCustomDocEditor.btnPreviewClick(Sender: TObject);
-var
-  MemStream: TMemoryStream;
 begin
-  //Preview the current unsaved RTF
-  MemStream := TMemoryStream.Create;
-  try
-    CreatePDF(Editor.ERTF.AsString, '', MemStream);
-    CustomDocManager.PreviewPDF('', MemStream);
-  finally
-    MemStream.Free;
-  end;
+  CustomDocManager.PreviewPDFFromMemStream(Editor.ERTF.AsString);
 end;
 
 procedure TfrmCustomDocEditor.btnsaveAsClick(Sender: TObject);
@@ -802,7 +798,6 @@ begin
   // Add the normal ones...
   Editor.LoadGlobalMergeMenues;
 end;
-
 
 procedure TfrmCustomDocEditor.ReportTreeCreateEditor(
   Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex;
@@ -1194,65 +1189,72 @@ begin
 end;
 
 function TCustomDocManager.DoScheduledCustomDoc (Destination: TReportDest;
-                                  SchedulePRS: TPrintManagerObj;
-                                  var srOptions: TSchReportOptions;
-                                  FaxParams: TFaxParameters = nil ): Boolean;
+  SchedulePRS: TPrintManagerObj; var srOptions: TSchReportOptions;
+  FaxParams: TFaxParameters = nil ): Boolean;
 var
   LocalReport: TReportBase;
   HeaderRptName: string;
 
   function GetPDFFilename: string;
-  var I: integer;
+  var
+    I: integer;
   begin
-     if Destination = rdEmail then begin
-        I := 0;
-        repeat
-           Result := format('%s[%s]%s.pdf',[EmailOutboxDir, padLeft(IntToStr(I),4,'0') , LocalReport.Name]);
-           Inc(i);
-        until not bkFileexists(Result);
-     end else
-        // Does not matter much..
-        Result := Globals.DataDir + LocalReport.Name + '.pdf';
+    if Destination = rdEmail then begin
+      I := 0;
+      repeat
+        Result := Format('%s[%s]%s.pdf',[EmailOutboxDir, padLeft(IntToStr(I),4,'0') , LocalReport.Name]);
+        Inc(i);
+      until not bkFileexists(Result);
+    end else
+      // Does not matter much..
+      Result := Globals.DataDir + LocalReport.Name + '.pdf';
   end;
+
 begin
-   Result := False;
-   LocalReport := CustomDocManager.GetReportByGUID(srOptions.srCustomDocGUID);
-   if not Assigned(LocalReport) then
-      Exit;
-   if Destination = rdFax then begin
-      Result := FaxScheduledCustomDoc(SchedulePRS,srOptions,FaxParams);
-      exit; // Im done...
-   end;
+  Result := False;
+  LocalReport := CustomDocManager.GetReportByGUID(srOptions.srCustomDocGUID);
+  if not Assigned(LocalReport) then
+    Exit;
 
-   LocalReport.RunFileName := GetPDFFilename;
-   CreatePDF(TReportBase(LocalReport).GetRTF, LocalReport.RunFileName);
-   Result := True;
-   case Destination of
-        rdScreen : PreviewPDF(LocalReport.RunFileName);
-
-        rdEmail, rdECoding,rdWebX, rdCSVExport, rdCheckOut
-            :  srOptions.srAttachment := LocalReport.RunFileName;
-
-        rdPrinter : begin
-           //Select same printer as header message
-           HeaderRptName := Report_List_Names[Report_Client_Header];
-           FPrinterSettings := GetBKUserReportSettings(SchedulePRS, HeaderRptName);
-           if Assigned(FPrinterSettings) then
-              Printer.PrinterIndex := FindPrinterIndex(FPrinterSettings.s7Printer_Name)
-           else begin
-              FPrinterSettings := GetDefaultReportSettings(HeaderRptName);
-              try
-                 if Assigned(FPrinterSettings) then
-                    Printer.PrinterIndex := FindPrinterIndex(FPrinterSettings.s7Printer_Name);
-              finally
-                FreeMem(FPrinterSettings, Windows_Report_Setting_Rec_Size);
-              end;
-           end;
-           //Print
-           PrintCustomDoc(LocalReport, rdPrinter);
-
-        end;
-   end;
+  LocalReport.RunFileName := GetPDFFilename;
+  case Destination of
+    //Fax
+    rdFax       : Result := FaxScheduledCustomDoc(SchedulePRS,srOptions,FaxParams);
+    //Preview
+    rdScreen    : begin
+                    PreviewPDFFromMemStream(TReportBase(LocalReport).GetRTF);
+                    Result := True;
+                  end;
+    //Email or File
+    rdEmail,
+    rdECoding,
+    rdWebX,
+    rdCSVExport,
+    rdCheckOut  : begin
+                    CreatePDF(TReportBase(LocalReport).GetRTF, LocalReport.RunFileName);
+                    srOptions.srAttachment := LocalReport.RunFileName;
+                    Result := True;
+                  end;
+    //Printer
+    rdPrinter   : begin
+                    //Select same printer as header message
+                    HeaderRptName := Report_List_Names[Report_Client_Header];
+                    FPrinterSettings := GetBKUserReportSettings(SchedulePRS, HeaderRptName);
+                    if Assigned(FPrinterSettings) then
+                      Printer.PrinterIndex := FindPrinterIndex(FPrinterSettings.s7Printer_Name)
+                    else begin
+                      FPrinterSettings := GetDefaultReportSettings(HeaderRptName);
+                      try
+                        if Assigned(FPrinterSettings) then
+                          Printer.PrinterIndex := FindPrinterIndex(FPrinterSettings.s7Printer_Name);
+                      finally
+                        FreeMem(FPrinterSettings, Windows_Report_Setting_Rec_Size);
+                      end;
+                    end;
+                    PrintCustomDoc(LocalReport, rdPrinter);
+                    Result := True;
+                  end;
+  end; //Case
 end;
 
 function TCustomDocManager.FaxScheduledCustomDoc(

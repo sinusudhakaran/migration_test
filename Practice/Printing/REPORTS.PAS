@@ -113,8 +113,7 @@ uses
    FaxParametersObj,
    WinUtils,
    CustomDocEditorFrm,
-   AuditReportOptionsDlg,
-   Files;
+   AuditReportOptionsDlg;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const
@@ -127,9 +126,7 @@ var
 procedure DoReport(ReportType: Report_List_Type; Destination: TReportDest;
                     HelpCtx: integer = 0;
                     RptBatch: TReportBase = nil);
-var
-   RunNow: Boolean;
-   Msg: string;
+   var RunNow: Boolean;
 
    function LocalAsk(After: Boolean): Boolean;
    var Params: TRPTParameters;
@@ -168,16 +165,6 @@ var
 
 begin
    if not Assigned(MyClient) then exit;
-
-   //Save client file to ensure UK audit trail matches report
-   if (MyClient.clFields.clCountry = whUK) then begin
-//     Msg := Format('Report Run (%s)',[REPORT_LIST_NAMES[ReportType]]);
-//     MyClient.ClientAuditMgr.FlagAudit(arClientFiles,
-//                                       MyClient.clExtra.ceAudit_Record_ID,
-//                                       aaNone,
-//                                       Msg);
-     SaveClient(false);
-   end;
 
    //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    // check for any budget reports
@@ -453,7 +440,8 @@ begin
               Report_List_Divisions,
               Report_List_SubGroups,
               Report_List_bankAccts,
-              REPORT_DOWNLOAD_LOG_OFFSITE
+              REPORT_DOWNLOAD_LOG_OFFSITE,
+              REPORT_CUSTOM_DOCUMENT
            ]) then begin
                if not LocalAsk(True) then
                    Break; // Canceled
@@ -523,7 +511,7 @@ begin
       REPORT_CUSTOM_DOCUMENT     : if Destination = rdfax then
                                       DoScheduledfax(REPORT_CUSTOM_DOCUMENT,rdfax,srOptions)
                                    else
-            Result := CustomDocManager.DoScheduledCustomDoc(Destination, SchedulePRS,srOptions);
+                                      Result := CustomDocManager.DoScheduledCustomDoc(Destination, SchedulePRS,srOptions);
     end;
 
   finally

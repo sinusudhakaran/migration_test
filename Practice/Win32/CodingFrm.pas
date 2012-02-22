@@ -1710,10 +1710,6 @@ begin
             Refresh;
             Msg.CharCode := VK_RIGHT;
             celAccount.SendKeyToTable(Msg);
-
-            //Audit journal add for UK
-            if (JA > 0) and (MyClient.clFields.clCountry = whUK) then
-              SaveClient(false);
          end;
       end;
    end;
@@ -2517,7 +2513,8 @@ begin
 
       if pT.IsDissected then
       begin
-        if not DissectEntry( pT, BankAccount.baFields.baNotes_Always_Visible, True, BankAccount ) then
+        if not DissectEntry( pT, BankAccount.baFields.baNotes_Always_Visible, True, BankAccount,
+                             (Money2Double(OldForexAmount) <> Amount) ) then
         begin
 //          txForeign_Currency_Amount := OldForexAmount;
 //          txAmount := OldAmount;
@@ -3131,10 +3128,7 @@ begin
      I := WorkTranList.Last;
    if ValidDataRow(I) then
       tblCoding.ActiveRow := Succ(I);
-
-   //Audit journal delete for UK
-   if (MyClient.clFields.clCountry = whUK) then
-     SaveClient(false);
+   
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmCoding.LoadWorkTranList;
@@ -4952,19 +4946,25 @@ begin
           //make sure the column width is not larger than the grid width
           if (tblCoding.Columns[ColNum1].Width >= tblCoding.ClientWidth) then
             tblCoding.Columns[ColNum1].Width := tblCoding.ClientWidth - 2;
-          //update column width in ColumnFmtList
-          pCD1 := ColumnFmtList.ColumnDefn_At(ColNum1);
-          pCD1^.cdWidth := tblCoding.Columns[ColNum1].Width;
+          if not CurrUser.HasRestrictedAccess then
+          begin
+            //update column width in ColumnFmtList
+            pCD1 := ColumnFmtList.ColumnDefn_At(ColNum1);
+            pCD1^.cdWidth := tblCoding.Columns[ColNum1].Width;
+          end;
         end;
 
       taExchange : with ColumnFmtList do begin
-           //swap cols, the table takes care of restructing itself, so all
-           //we need to do is update the ColumnFmtList and ColConfigList.
-           pCD1 := ColumnDefn_At(ColNum1);
-           pCD2 := ColumnDefn_At(ColNum2);
-           Items[ColNum1] := pCD2;
-           Items[ColNum2] := pCD1;
-        end;
+        if not CurrUser.HasRestrictedAccess then
+          begin
+            //swap cols, the table takes care of restructing itself, so all
+            //we need to do is update the ColumnFmtList and ColConfigList.
+            pCD1 := ColumnDefn_At(ColNum1);
+            pCD2 := ColumnDefn_At(ColNum2);
+            Items[ColNum1] := pCD2;
+            Items[ColNum2] := pCD1;
+         end;
+      end;
    end;
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -6731,7 +6731,7 @@ end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmCoding.SaveFileClick(Sender: TObject);
 begin
-   SaveClient(false);
+   SaveClient;
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmCoding.ToggleModeClick(Sender: TObject);

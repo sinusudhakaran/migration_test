@@ -369,7 +369,7 @@ type
     function HasPercentLines: Boolean;
     function HasSingle100PercentLine: Boolean;
     procedure SetupColumnFmtList;
-    procedure UpdateDisplayTotals;
+    procedure UpdateDisplayTotals(AmountChanged: boolean = false);
     function  GSTDifferentToDefault( pD : pWorkDissect_Rec) : boolean;
     procedure ReadCellforEdit(RowNum, ColNum: Integer; var Data: Pointer);
     procedure ReadCellforPaint(RowNum, ColNum: Integer; var Data: Pointer);
@@ -434,7 +434,7 @@ type
     property BankAcct: TBank_Account read FBankAcct write FBankAcct;
   end;
 
-  function DissectEntry( pT : pTransaction_rec; const NotesVisible : boolean; const SuperVisible: Boolean; BA: TBank_Account) : boolean;
+  function DissectEntry( pT : pTransaction_rec; const NotesVisible : boolean; const SuperVisible: Boolean; BA: TBank_Account; AmountChanged: Boolean = false) : boolean;
 //******************************************************************************
 implementation
 {$R *.DFM}
@@ -2879,7 +2879,7 @@ begin
   end;
 end;
 
-procedure TdlgDissection.UpdateDisplayTotals;
+procedure TdlgDissection.UpdateDisplayTotals(AmountChanged: boolean = false);
 begin
   UpdateControlTotals;
 
@@ -2898,7 +2898,11 @@ begin
     lblPercentTotal.Caption  := '100.0000';
     lblPercentRemain.Caption := '0.0000';
   end
-  else
+  else if AmountChanged and (FControlTotals.ctRemainder <> 0) then
+  begin
+    lblPercentTotal.Caption  := '0.0000';
+    lblPercentRemain.Caption := '100.0000';
+  end else
   begin
     lblPercentTotal.Caption := Format( '%0.4f', [FControlTotals.ctPercent/10000] );
     lblPercentRemain.Caption := Format( '%0.4f', [100 - (FControlTotals.ctPercent/10000)] );
@@ -3247,7 +3251,7 @@ end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function DissectEntry( pT : pTransaction_rec; const NotesVisible : boolean; const SuperVisible : Boolean;
-  BA: TBank_Account) : boolean;
+  BA: TBank_Account; AmountChanged: Boolean = false) : boolean;
 {
 Calling function to create the dialog, setup, build columns and populate data into
 the columns.
@@ -3543,7 +3547,7 @@ begin
          end;
 
          UpdateBaseAmounts(pD);
-         UpdateDisplayTotals;
+         UpdateDisplayTotals(AmountChanged);
 
          //setup notes panel
          dsNotesAlwaysVisible    := NotesVisible;
@@ -3752,13 +3756,13 @@ begin
                   end;
                 end;
               end;
-              pTran^.txCoded_By    := cbManual;
-              pTran^.txAccount     := DISSECT_DESC;
-              //clean up any gst amounts that are left on the transaction
-              ClearGSTFields( pTran);
-              ClearSuperFundFields( pTran);
-              Result := True;
            end;
+           pTran^.txCoded_By    := cbManual;
+           pTran^.txAccount     := DISSECT_DESC;
+           //clean up any gst amounts that are left on the transaction
+           ClearGSTFields( pTran);
+           ClearSuperFundFields( pTran);
+           Result := True;
          finally
            AuditIDList.Free;
          end;

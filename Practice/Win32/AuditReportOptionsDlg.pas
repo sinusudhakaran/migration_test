@@ -54,8 +54,8 @@ type
     DateSelector: TfmeDateSelector;
     pnlSelectTransaction: TPanel;
     GroupBox1: TGroupBox;
-    rbSytemTransactionType: TRadioButton;
-    rbSytemTransactionID: TRadioButton;
+    rbSystemTransactionType: TRadioButton;
+    rbSystemTransactionID: TRadioButton;
     cbTransactionType: TComboBox;
     eTransactionID: TEdit;
     cbIncludeChildren: TCheckBox;
@@ -68,7 +68,9 @@ type
     procedure FormCreate(Sender: TObject);
     procedure btnPreviewClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
-    procedure rbSytemTransactionTypeClick(Sender: TObject);
+    procedure rbSystemTransactionTypeClick(Sender: TObject);
+    procedure rbSystemTransactionIdClick(Sender: TObject);
+    procedure TransactionRBSelected;
     procedure btnCancelClick(Sender: TObject);
     procedure btnFileClick(Sender: TObject);
     procedure eTransactionIDKeyPress(Sender: TObject; var Key: Char);
@@ -123,7 +125,7 @@ begin
       end;
       cbClientFileCodes.ItemIndex := cbClientFileCodes.Items.IndexOf(AuditReportOptions.ClientCode);
       rbSystemClick(frmAuditReportOption);
-      rbSytemTransactionTypeClick(frmAuditReportOption);
+      rbSystemTransactionTypeClick(frmAuditReportOption);
 
       ShowModal;
       if FBtnPressed in [BTN_PREVIEW, BTN_PRINT, BTN_FILE] then begin
@@ -140,7 +142,7 @@ begin
             DateTo    := DateSelector.eDateTo.AsStDate;
             AuditReportOptions.AuditSelection := byTransactionType;
             AuditReportOptions.TransactionType := byte(cbTransactionType.Items.Objects[cbTransactionType.ItemIndex]);
-            if rbSytemTransactionID.Checked then
+            if rbSystemTransactionID.Checked then
               AuditReportOptions.AuditSelection := byTransactionID;
 
             if cbTransactionType.ItemIndex > 0 then
@@ -269,10 +271,24 @@ begin
     LoadAuditTypes(artSystem)
 end;
 
-procedure TfrmAuditReportOption.rbSytemTransactionTypeClick(Sender: TObject);
+procedure TfrmAuditReportOption.rbSystemTransactionIdClick(Sender: TObject);
 begin
-  cbTransactionType.Enabled := rbSytemTransactionType.Checked;
-  eTransactionID.Enabled := rbSytemTransactionID.Checked;
+  TransactionRBSelected;
+  if Self.Visible then
+    eTransactionID.SetFocus;
+end;
+
+procedure TfrmAuditReportOption.rbSystemTransactionTypeClick(Sender: TObject);
+begin
+  TransactionRBSelected;
+  if Self.Visible then
+    cbTransactionType.SetFocus;
+end;
+
+procedure TfrmAuditReportOption.TransactionRBSelected;
+begin
+  cbTransactionType.Enabled := rbSystemTransactionType.Checked;
+  eTransactionID.Enabled := rbSystemTransactionID.Checked;
 end;
 
 function TfrmAuditReportOption.Validate: Boolean;

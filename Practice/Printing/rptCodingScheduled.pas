@@ -811,8 +811,10 @@ begin
               SendBy             := rdNone;
               UserResponsible    := 0;
               Completed          := False;
-              TxLastMonth        := (MyClient.clFields.clReporting_Period = roSendEveryMonth) and (Mgr.FirstEntryDate < TScheduledCodingReport( Mgr.ReportJob).ScheduledRptParams.srDisplayFromDate) and
-               (not MyClient.clFields.clCheckOut_Scheduled_Reports);
+              TxLastMonth        := (MyClient.clFields.clReporting_Period = roSendEveryMonth) and
+                                    (Mgr.FirstEntryDate < TScheduledCodingReport( Mgr.ReportJob).ScheduledRptParams.srDisplayFromDate) and
+                                    (not MyClient.clFields.clCheckOut_Scheduled_Reports) and
+                                    (not MyClient.clExtra.ceOnline_Scheduled_Reports);
            end;
            Mgr.ScheduledRptParams.srSummaryInfoList.Add( NewSummaryRec);
            //store a pointer to the first record so that we can update it with the

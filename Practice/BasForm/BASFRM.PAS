@@ -272,6 +272,8 @@ type
     procedure tgFuelExit(Sender: TObject);
     procedure tabFuelSheetShow(Sender: TObject);
     procedure tabFuelSheetHide(Sender: TObject);
+    procedure rbYes_GSTOption1Click(Sender: TObject);
+    procedure rbNo_GSTOption1Click(Sender: TObject);
   private
     { Private declarations }
     BasInfo      : TBasInfo;
@@ -1070,7 +1072,9 @@ begin
             stGSTDates.caption := lblPeriod.caption;
 
          if iGSTOptionUsed = 1 then begin
-            basG1_GSTOption1.AsInteger      := iIncome_G1;
+            if bG1IncludesGST
+              then basG1_GSTOption1.AsInteger := iIncome_G1
+              else basG1_GSTOption1.AsInteger := iIncome_G1 - iGSTPayable_G9;
             basG2_GSTOption1.AsInteger      := iExports_G2;
             basG3_GSTOption3.AsInteger      := iGSTFreeSupplies_G3;
             basG10_GSTOption1.AsInteger     := iCapitalAcq_G10;
@@ -1878,6 +1882,11 @@ begin
    //force a redisplay
    ReDisplay;
 end;
+procedure TfrmBAS.rbNo_GSTOption1Click(Sender: TObject);
+begin
+  ReDisplay;
+end;
+
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmBAS.rbPAYGI_Option1Click(Sender: TObject);
 begin
@@ -1914,6 +1923,11 @@ begin
 
    Redisplay;
 end;
+procedure TfrmBAS.rbYes_GSTOption1Click(Sender: TObject);
+begin
+  ReDisplay;
+end;
+
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure ShowAnnualGSTReturn(Params: TrptParameters = nil);
 var

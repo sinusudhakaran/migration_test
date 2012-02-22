@@ -175,6 +175,10 @@ object frmConfigure: TfrmConfigure
       Caption = 'Restore Defaults'
       ImageIndex = 1
       OnShow = tabRestoreShow
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object lblWarning: TLabel
         Left = 8
         Top = 8
@@ -262,7 +266,7 @@ object frmConfigure: TfrmConfigure
     Left = 16
     Top = 288
     Bitmap = {
-      494C010107000900040010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C010107000900080010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000002000000001002000000000000020
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000

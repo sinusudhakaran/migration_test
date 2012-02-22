@@ -4893,7 +4893,6 @@ var
      //SystemAuditMgr.FlagAudit(arAttachBankAccounts);
 
      SaveAdminSystem;
-     AdminSystem.DownloadSave;
      Result := True;
   end;
 

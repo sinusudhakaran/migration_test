@@ -1023,9 +1023,6 @@ begin
              fdSched_Rep_Books_Custom_Doc   := Byte(MyDlg.ckCDBooks.Checked);
              fdSched_Rep_Books_Custom_Doc_GUID := GetCDGuid(MyDlg.cbCDBooks);
 
-             fdSched_Rep_Online_Custom_Doc   := Byte(MyDlg.ckCDOnline.Checked);
-             fdSched_Rep_Online_Custom_Doc_GUID := GetCDGuid(MyDlg.cbCDOnline);
-
              fdSched_Rep_Notes_Custom_Doc   := Byte(MyDlg.ckCDNotes.Checked);
              fdSched_Rep_Notes_Custom_Doc_GUID := GetCDGuid(MyDlg.cbCDNotes);
 
@@ -1263,18 +1260,12 @@ procedure TdlgPrintScheduled.NothingToDoMsg;
 var
   msg: string;
 begin
-  msg := 'You have not specified one of the following destinations :'+#13#10 +
-    'Printed Reports, Faxed Reports, E-Mailed Reports, ' +
-    glConst.ECODING_APP_NAME + ' Files';
+  msg := 'You have not specified one of the following options :'+#13#10 +
+    'Include Printed Reports, Include Faxed Reports, Send E-Mailed Reports,' +
+    ' Send ' + glConst.ECODING_APP_NAME + ' Files, Send Checked Out Files';
 
   if cbToWebX.Visible then
-    msg := msg + ', ' + glConst.WEBX_GENERIC_APP_NAME + ' Files';
-
-  msg := msg + ', BankLink Books Files, ' +
-    'BankLink Books Files via ' + bkConst.BankLinkLiveName;
-
-  if cbToBusinessProducts.Visible then
-    msg := msg + ', Business Product Files';
+    msg := msg + ', Send ' + glConst.WEBX_GENERIC_APP_NAME + ' Files';
 
   HelpfulInfoMsg(msg, 0);
 end;
@@ -1616,7 +1607,6 @@ begin
   cbCDFax.Clear;
   cbCDEmail.Clear;
   cbCDBooks.Clear;
-  cbCDOnline.Clear;
   cbCDNotes.Clear;
   cbCDWebNotes.Clear;
   for i := 0 to Pred(CustomDocManager.ReportList.Count) do begin
@@ -1625,7 +1615,6 @@ begin
      cbCDFax.Items.AddObject(CustomDoc.Name, CustomDoc);
      cbCDEmail.Items.AddObject(CustomDoc.Name, CustomDoc);
      cbCDBooks.Items.AddObject(CustomDoc.Name, CustomDoc);
-     cbCDOnline.Items.AddObject(CustomDoc.Name, CustomDoc);
      cbCDNotes.Items.AddObject(CustomDoc.Name, CustomDoc);
      cbCDWebNotes.Items.AddObject(CustomDoc.Name, CustomDoc);
   end;

@@ -160,7 +160,7 @@ object frmAuditReportOption: TfrmAuditReportOption
       Height = 120
       Caption = 'Select Transactions'
       TabOrder = 0
-      object rbSytemTransactionType: TRadioButton
+      object rbSystemTransactionType: TRadioButton
         Left = 16
         Top = 32
         Width = 113
@@ -169,16 +169,16 @@ object frmAuditReportOption: TfrmAuditReportOption
         Checked = True
         TabOrder = 0
         TabStop = True
-        OnClick = rbSytemTransactionTypeClick
+        OnClick = rbSystemTransactionTypeClick
       end
-      object rbSytemTransactionID: TRadioButton
+      object rbSystemTransactionID: TRadioButton
         Left = 16
         Top = 64
         Width = 113
         Height = 17
         Caption = 'Transaction ID'
         TabOrder = 1
-        OnClick = rbSytemTransactionTypeClick
+        OnClick = rbSystemTransactionIdClick
       end
       object cbTransactionType: TComboBox
         Left = 145
@@ -215,7 +215,6 @@ object frmAuditReportOption: TfrmAuditReportOption
     Align = alTop
     BevelOuter = bvNone
     TabOrder = 3
-    ExplicitTop = 338
     object btnCancel: TButton
       Left = 371
       Top = 5

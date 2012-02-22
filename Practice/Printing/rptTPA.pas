@@ -71,7 +71,8 @@ begin
 
       if Result
       and (Mode = AFEmail) then begin
-         MailFrm.SendFileTo( 'Send Client Authority Form', Addr, '', Job.ReportFile, AttachmentSent, False, True);
+
+         MailFrm.SendFileTo( 'Send Third Party Authority Form', Addr, '', Job.ReportFile, AttachmentSent, False, True);
          DeleteFile(PAnsiChar(Job.ReportFile));
       end;
    finally

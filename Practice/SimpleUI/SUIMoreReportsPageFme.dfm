@@ -356,7 +356,7 @@ object fmeSUIMoreReportsPage: TfmeSUIMoreReportsPage
       Top = 371
       Width = 150
       Height = 165
-      ButtonCaption = 'Bank reconcilation reports...'
+      ButtonCaption = 'Bank reconciliation reports...'
       ButtonColor = clOlive
       ButtonFontColor = clWhite
       ButtonVertMargin = 0

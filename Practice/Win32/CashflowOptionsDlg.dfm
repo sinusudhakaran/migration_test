@@ -195,7 +195,7 @@ object dlgCashflowOptions: TdlgCashflowOptions
           Height = 21
           Style = csDropDownList
           DropDownCount = 10
-          ItemHeight = 13
+          ItemHeight = 0
           ItemIndex = 0
           TabOrder = 1
           Text = 'One Month'
@@ -214,7 +214,7 @@ object dlgCashflowOptions: TdlgCashflowOptions
           Width = 177
           Height = 21
           Style = csDropDownList
-          ItemHeight = 13
+          ItemHeight = 0
           ItemIndex = 0
           TabOrder = 0
           Text = 'Single Period (Actual)'
@@ -230,7 +230,7 @@ object dlgCashflowOptions: TdlgCashflowOptions
           Width = 90
           Height = 21
           Style = csDropDownList
-          ItemHeight = 13
+          ItemHeight = 0
           TabOrder = 4
           OnChange = cmbStartMonthChange
         end
@@ -420,7 +420,7 @@ object dlgCashflowOptions: TdlgCashflowOptions
           Height = 21
           Style = csDropDownList
           Enabled = False
-          ItemHeight = 13
+          ItemHeight = 0
           TabOrder = 3
           OnChange = ControlChange
           OnDropDown = cmbBudgetDropDown
@@ -520,7 +520,7 @@ object dlgCashflowOptions: TdlgCashflowOptions
           Width = 200
           Height = 21
           Style = csDropDownList
-          ItemHeight = 13
+          ItemHeight = 0
           Sorted = True
           TabOrder = 0
           OnChange = ControlChange
