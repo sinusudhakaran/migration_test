@@ -39,6 +39,7 @@ type
     btnCancel: TButton;
     lblConfirmPassword: TLabel;
     edtConfirmPassword: TEdit;
+    LblPasswordValidation: TLabel;
     procedure FormCreate(Sender: TObject);
     procedure btnOkClick(Sender: TObject);
   private

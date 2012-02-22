@@ -277,7 +277,6 @@ begin
     RemoveProduct(SubArray[i]);
 end;
 
-
 //------------------------------------------------------------------------------
 procedure TProductConfigService.CopyRemotableObject(ASource,
   ATarget: TRemotable);
@@ -352,8 +351,6 @@ begin
                                       BANKLINK_ONLINE_NAME + ': ' + E.Message, 0);
   end;
 end;
-
-
 
 //------------------------------------------------------------------------------
 destructor TProductConfigService.Destroy;
@@ -465,11 +462,16 @@ var
 begin
   Result := '';
   if Assigned(FClientList) then
+  begin
     for i := Low(FClientList.Clients) to High(FClientList.Clients) do
-      if (AClientCode = FClientList.Clients[i].ClientCode) then begin
+    begin
+      if (AClientCode = FClientList.Clients[i].ClientCode) then
+      begin
         Result := FClientList.Clients[i].Id;
         Break;
       end;
+    end;
+  end;
 end;
 
 //------------------------------------------------------------------------------
@@ -610,6 +612,7 @@ begin
     Result := FPracticeCopy.Subscription;
 end;
 
+//------------------------------------------------------------------------------
 function TProductConfigService.GetRegistered: Boolean;
 begin
   if not Assigned(FPractice) then
@@ -700,6 +703,7 @@ begin
   ARemotable.SOAPToObject(NodeRoot, NodeObject, Converter);
 end;
 
+//------------------------------------------------------------------------------
 function TProductConfigService.MessageResponseHasError(
   AMesageresponse: MessageResponse; ErrorText: string): Boolean;
 const
@@ -709,6 +713,7 @@ var
   ErrIndex : integer;
   Details: TStringList;
 
+  //-------------------------------------------------------------
   procedure AddLine(const aName: string; const aMessage: string);
   begin
     if aMessage = '' then
@@ -722,8 +727,10 @@ var
 
 begin
   Result := False;
-  if Assigned(AMesageresponse) then begin
-    if not AMesageresponse.Success then begin
+  if Assigned(AMesageresponse) then
+  begin
+    if not AMesageresponse.Success then
+    begin
       //Error message returned by BankLink Online
       Result := True;
       ErrorMessage := Format(MAIN_ERROR_MESSAGE, [ErrorText]);
@@ -745,7 +752,9 @@ begin
         Details.Free;
       end;
     end;
-  end else begin
+  end
+  else
+  begin
     //No response from BankLink Online
     ErrorMessage := Format(MAIN_ERROR_MESSAGE, ['connect to']);
     HelpfulErrorMsg(ErrorMessage, 0);
@@ -760,6 +769,7 @@ begin
     Result := FPractice.Status;
 end;
 
+//------------------------------------------------------------------------------
 function TProductConfigService.PracticeChanged: Boolean;
 begin
   if not Assigned(FPracticeCopy) then
@@ -785,6 +795,7 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 function TProductConfigService.GetValidBConnectDetails: Boolean;
 begin
   Result := FValidBConnectDetails;
@@ -1028,6 +1039,7 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 function TProductConfigService.GetServiceFacade: IBlopiServiceFacade;
 var
   HTTPRIO: THTTPRIO;
@@ -1256,6 +1268,7 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 procedure TProductConfigService.RemoveProduct(AProductId: TBloGuid);
 var
   i, j: integer;
@@ -1650,6 +1663,7 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 function TClientBaseHelper.AddSubscription(AProductID: TBloGuid) : Boolean;
 var
   SubArray: TBloArrayOfGuid;
@@ -1714,6 +1728,7 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 function TClientBaseHelper.HasSubscription(AProductID: TBloGuid) : Boolean;
 var
   i : Integer;

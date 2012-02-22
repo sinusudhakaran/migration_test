@@ -54,6 +54,7 @@ type
     function Execute : boolean;
   end;
 
+  //-----------------------------------------
   function MaintainUsers : boolean;
 
 //------------------------------------------------------------------------------
@@ -92,25 +93,25 @@ const
 //------------------------------------------------------------------------------
 procedure TfrmMaintainUsers.FormCreate(Sender: TObject);
 begin
-   bkXPThemes.ThemeForm( Self);
-   SetUpHelp;
+  bkXPThemes.ThemeForm( Self);
+  SetUpHelp;
 end;
 
 //------------------------------------------------------------------------------
 procedure TfrmMaintainUsers.SetUpHelp;
 begin
-   Self.ShowHint    := INI_ShowFormHints;
-   Self.HelpContext := 0;
-   //Components
-   tbNew.Hint       :=
-                    'Add a new User|' +
-                    'Add a new User';
-   tbEdit.Hint      :=
-                    'Edit the details for the selected User|' +
-                    'Edit the details for the selected User';
-   tbDelete.Hint    :=
-                    'Delete the selected User|' +
-                    'Delete the selected User';
+  Self.ShowHint    := INI_ShowFormHints;
+  Self.HelpContext := 0;
+  //Components
+  tbNew.Hint       :=
+                   'Add a new User|' +
+                   'Add a new User';
+  tbEdit.Hint      :=
+                   'Edit the details for the selected User|' +
+                   'Edit the details for the selected User';
+  tbDelete.Hint    :=
+                   'Delete the selected User|' +
+                   'Delete the selected User';
 end;
 
 //------------------------------------------------------------------------------
@@ -258,87 +259,92 @@ var
 begin
   lvUsers.Items.beginUpdate;
   try
-   lvUsers.Items.Clear;
+    lvUsers.Items.Clear;
 
-   if not RefreshAdmin then
-     exit;
+    if not RefreshAdmin then
+      exit;
 
-   if (not UseBankLinkOnline) then
-   begin
-     lvUsers.Column[4].Caption  := '';
-     lvUsers.Column[4].Width    := 0;
-     lvUsers.Column[4].MaxWidth := 0;
-   end
-   else
-   begin
-     Prac := ProductConfigService.GetPractice;
-     if ProductConfigService.Online then
-       ProductConfigService.UpdateUserAllowOnlineSetting;
-   end;
-
-   with AdminSystem, fdSystem_User_List do
-    for i := 0 to Pred(itemCount) do
+    if (not UseBankLinkOnline) then
     begin
-      User := User_At(i);
-      if User.usLogged_In then
-        Status := 'Logged In'
-      else
-        Status := '';
+      lvUsers.Column[4].Caption  := '';
+      lvUsers.Column[4].Width    := 0;
+      lvUsers.Column[4].MaxWidth := 0;
+    end
+    else
+    begin
+      Prac := ProductConfigService.GetPractice;
+      if ProductConfigService.Online then
+        ProductConfigService.UpdateUserAllowOnlineSetting;
+    end;
 
-      if User.usSystem_Access then
-        UserType := ustNames[ustSystem] //'System'
-      else if User.usIs_Remote_User then
-        UserType := ustNames[ustRestricted] //'Restricted'
-      else
-        UserType := ustNames[ustNormal]; //'Normal';
+    with AdminSystem, fdSystem_User_List do
+    begin
+      for i := 0 to Pred(itemCount) do
+      begin
+        User := User_At(i);
+        if User.usLogged_In then
+          Status := 'Logged In'
+        else
+          Status := '';
 
-      if AdminSystem.fdSystem_File_Access_List.Restricted_User( User.usLRN ) then begin
-        //count how many files the user has access to
-        Count := 0;
-        for j := 0 to Pred( AdminSystem.fdSystem_Client_File_List.ItemCount ) do begin
-          scf := AdminSystem.fdSystem_Client_File_List.Client_File_At( j);
+        if User.usSystem_Access then
+          UserType := ustNames[ustSystem] //'System'
+        else if User.usIs_Remote_User then
+          UserType := ustNames[ustRestricted] //'Restricted'
+        else
+          UserType := ustNames[ustNormal]; //'Normal';
+
+        if AdminSystem.fdSystem_File_Access_List.Restricted_User( User.usLRN ) then
+        begin
+          //count how many files the user has access to
+          Count := 0;
+          for j := 0 to Pred( AdminSystem.fdSystem_Client_File_List.ItemCount ) do
+          begin
+            scf := AdminSystem.fdSystem_Client_File_List.Client_File_At( j);
             If AdminSystem.fdSystem_File_Access_List.Allow_Access( User.usLRN, scf.cfLRN) then
               Inc( Count);
-        end;
+          end;
 
-        If Count = 0 then
-          FileAccess := 'None'
-        else
-          FileAccess := 'Selected';
-      end
-      else begin
-        FileAccess := 'All';
-      end;
-
-      Online := '';
-      if UseBankLinkOnline then
-      begin
-        if (User^.usAllow_Banklink_Online) then
-        begin
-          if (ProductConfigService.OnLine) and
-             (ProductConfigService.IsPrimPracUser(User.usCode, Prac)) then
-            Online := ONLINE_YES_ADMIN
+          If Count = 0 then
+            FileAccess := 'None'
           else
-            Online := ONLINE_YES;
+            FileAccess := 'Selected';
         end
         else
         begin
-          Online := ONLINE_NO;
+          FileAccess := 'All';
         end;
+
+        Online := '';
+        if UseBankLinkOnline then
+        begin
+          if (User^.usAllow_Banklink_Online) then
+          begin
+            if (ProductConfigService.OnLine) and
+               (ProductConfigService.IsPrimPracUser(User.usCode, Prac)) then
+              Online := ONLINE_YES_ADMIN
+            else
+              Online := ONLINE_YES;
+          end
+          else
+          begin
+            Online := ONLINE_NO;
+          end;
+        end;
+
+        NewItem := lvUsers.Items.Add;
+        NewItem.Caption := User.usCode;
+        if User.usLogged_In then
+          NewItem.ImageIndex := MAINTAIN_USER_BMP
+        else
+          NewItem.ImageIndex := -1;
+
+        NewItem.SubItems.AddObject(User.usName,TObject(User));
+        NewItem.SubItems.Add(Status);
+        NewItem.subITems.Add(UserType);
+        NewItem.SubItems.Add(Online);
+        NewItem.SubItems.Add(FileAccess);
       end;
-
-      NewItem := lvUsers.Items.Add;
-      NewItem.Caption := User.usCode;
-      if User.usLogged_In then
-        NewItem.ImageIndex := MAINTAIN_USER_BMP
-      else
-        NewItem.ImageIndex := -1;
-
-      NewItem.SubItems.AddObject(User.usName,TObject(User));
-      NewItem.SubItems.Add(Status);
-      NewItem.subITems.Add(UserType);
-      NewItem.SubItems.Add(Online);
-      NewItem.SubItems.Add(FileAccess);
     end;
 
   finally
@@ -350,10 +356,11 @@ end;
 procedure TfrmMaintainUsers.lvUsersColumnClick(Sender: TObject;
   Column: TListColumn);
 var
- i : integer;
+  i : integer;
 begin
   for i := 0 to lvUsers.columns.Count-1 do
     lvUsers.columns[i].ImageIndex := -1;
+
   column.ImageIndex := MAINTAIN_COLSORT_BMP;
 
   SortCol := Column.ID;
@@ -564,7 +571,8 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmMaintainUsers.tbNewClick(Sender: TObject);
 begin
-  if AddUser then RefreshUserList;
+  if AddUser then
+    RefreshUserList;
 end;
 
 //------------------------------------------------------------------------------
@@ -573,7 +581,9 @@ var
   MyDlg : TfrmMaintainUsers;
 begin
   result := false;
-  if not Assigned( AdminSystem) then exit;
+
+  if not Assigned(AdminSystem) then
+    exit;
 
   MyDlg := TfrmMaintainUsers.Create(Application.mainForm);
   try
@@ -587,12 +597,12 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmMaintainUsers.FormShow(Sender: TObject);
 begin
-   if (lvUsers.Items.Count > 0) then
-   begin
-     //highlight the top user
-     lvUsers.Items[0].Selected := True;
-     lvUsers.Items[0].Focused := True;
-   end;
+  if (lvUsers.Items.Count > 0) then
+  begin
+    //highlight the top user
+    lvUsers.Items[0].Selected := True;
+    lvUsers.Items[0].Focused := True;
+  end;
 end;
 
 //------------------------------------------------------------------------------

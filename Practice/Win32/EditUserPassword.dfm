@@ -56,6 +56,19 @@ object EditUserPassword: TEditUserPassword
     Font.Style = []
     ParentFont = False
   end
+  object LblPasswordValidation: TLabel
+    Left = 16
+    Top = 140
+    Width = 147
+    Height = 16
+    Caption = '(Maximum 12 characters)'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -13
+    Font.Name = 'Tahoma'
+    Font.Style = []
+    ParentFont = False
+  end
   object edtOldPassword: TEdit
     Left = 144
     Top = 18
