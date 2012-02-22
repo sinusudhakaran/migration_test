@@ -44,7 +44,8 @@ uses
   dxGDIPlusClasses,
   Globals,
   BanklinkOnlineSettingsFrm,
-  BanklinkOnlineServices;
+  BanklinkOnlineServices,
+  BlopiClient;
 
 type
   TfrmClientManager = class(TForm)
@@ -255,6 +256,7 @@ type
     StartFocus        : Boolean;
     FUserSet: Boolean;
     InModal: Boolean;
+    FBlopiClient: TBlopiClient;
     procedure FillClientDetails;
     procedure ShowSelectedNo( Count : integer);
     procedure UpdateClientDetails(Count: integer);
@@ -1552,10 +1554,15 @@ begin
     try
       if Assigned(MyClient) then
         if EditBanklinkOnlineSettings then
+        begin
           MyClient.BlopiClientChanged := True;
+          if not Assigned(FBlopiClient) then
+            FBlopiClient := TBlopiClient.Create;
+          FBlopiClient.IsEdited := True;
+          FBlopiClient.SaveClient(MyClient.BlopiClientDetail);
+        end;
     finally
       CloseClient();
-      RefreshLookup(ClientCode);
     end;
   finally
     ClientLookup.vtClients.EndUpdate;
