@@ -2,7 +2,7 @@ object frmMain: TfrmMain
   Left = 315
   Top = 258
   Caption = 'TT'
-  ClientHeight = 1008
+  ClientHeight = 1004
   ClientWidth = 881
   Color = 10459904
   Constraints.MinHeight = 360
@@ -24,7 +24,7 @@ object frmMain: TfrmMain
   OnShow = FormShow
   DesignSize = (
     881
-    1008)
+    1004)
   PixelsPerInch = 96
   TextHeight = 13
   object Image1: TImage
@@ -94,7 +94,7 @@ object frmMain: TfrmMain
   end
   object MainStatus: TStatusBar
     Left = 0
-    Top = 984
+    Top = 980
     Width = 881
     Height = 24
     Panels = <
@@ -180,24 +180,20 @@ object frmMain: TfrmMain
       object tbGetClientFiles: TRzToolButton
         Left = 195
         Top = 4
-        Width = 145
+        Width = 113
         DropDownMenu = PopGetClients
         ImageIndex = 9
-        UseToolbarButtonSize = False
         ToolStyle = tsDropDown
         Caption = 'Get Client Files'
-        Constraints.MinWidth = 145
       end
       object tbSendClientFiles: TRzToolButton
-        Left = 340
+        Left = 308
         Top = 4
-        Width = 145
+        Width = 120
         DropDownMenu = PopSendClients
         ImageIndex = 10
-        UseToolbarButtonSize = False
         ToolStyle = tsDropDown
         Caption = 'Send Client Files'
-        Constraints.MinWidth = 145
       end
       object tbHome: TRzToolButton
         Left = 75
@@ -205,11 +201,11 @@ object frmMain: TfrmMain
         Action = ActHomePage
       end
       object RzSpacer1: TRzSpacer
-        Left = 704
+        Left = 647
         Top = 4
       end
       object tbOnline: TRzToolButton
-        Left = 485
+        Left = 428
         Top = 4
         Width = 99
         ImageIndex = 20
@@ -217,14 +213,14 @@ object frmMain: TfrmMain
         OnClick = tbOnlineClick
       end
       object tbAbout: TRzToolButton
-        Left = 584
+        Left = 527
         Top = 4
         Caption = 'About'
         Visible = False
         OnClick = mniHelpAboutClick
       end
       object tbClose: TRzToolButton
-        Left = 644
+        Left = 587
         Top = 4
         ImageIndex = 2
         Images = AppImages.Maintain
@@ -591,7 +587,6 @@ object frmMain: TfrmMain
       object RzSpacer3: TRzSpacer
         Left = 827
         Top = 4
-        Visible = False
       end
       object tbBudgetHide: TRzToolButton
         Left = 548
@@ -681,6 +676,10 @@ object frmMain: TfrmMain
       end
       object NA2: TMenuItem
         Caption = '-'
+      end
+      object mniChangePassword: TMenuItem
+        Caption = 'Change &Password'
+        OnClick = mniChangePasswordClick
       end
       object mniFileInformation: TMenuItem
         Caption = '&Information'
@@ -1652,7 +1651,7 @@ object frmMain: TfrmMain
         OnClick = mniHelpAboutClick
       end
       object mniInstallCheckInExtn: TMenuItem
-        Caption = 'Install Check-In extension...'
+        Caption = 'Install Client File Handler...'
         OnClick = mniInstallCheckInExtnClick
       end
       object CRCFileCheck: TMenuItem

@@ -11,7 +11,7 @@ uses
   {$IFNDEF TESTLOCKING}
   procedure OpenClient(OpenCode : string; IsDDE: Boolean = False);
   function CloseClient( Interactive : boolean = false; DoClientHomePage: Boolean = True): Boolean;
-  procedure SaveClient(CopyWarning: boolean);
+  procedure SaveClient(CopyWarning: boolean = false);
   function AbandonChanges(ConfirmAction : boolean): Boolean; {only applicable to global client obj}
   procedure SendClientFiles(CodesToSend : string = ''; ASendMethod: byte = 0;
                             AFirstUpload: boolean = False; AFlagReadOnly: boolean = False;

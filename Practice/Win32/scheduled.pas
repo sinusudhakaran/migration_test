@@ -106,7 +106,7 @@ srTrxToDate is always the report ending date. FogBugz #7263 asks for this to be 
 Interface
 
 uses
-  sydefs, classes, reportdefs, SchedRepUtils, Dialogs;
+  sydefs, classes, reportdefs, SchedRepUtils;
 
   Procedure PrintScheduledReports;
   procedure AddSummaryRec(ClientCode : String; srOptions : TSchReportOptions;
@@ -1348,6 +1348,69 @@ Var
   pCF: pClient_File_Rec;
   RptPeriodToUse: byte;
   User: Integer;
+  procedure AddAccountsToSummary(aCompleted : boolean);
+  var
+    i, j : integer;
+  begin
+    // Add summary reports
+    AcctsPrinted := 0;
+    AcctsTotal := 0;
+    for i := 0 to Pred(aClient.clBank_Account_List.ItemCount) do
+    begin
+      Included := False;
+      BA := aClient.clBank_Account_List.Bank_Account_At(i);
+      if BA.baFields.baAccount_Type <> btBank then Continue;
+      for j := BA.baTransaction_List.Last downto BA.baTransaction_List.First do
+      begin
+        T := BA.baTransaction_List.Transaction_At(j);
+        Included := False;
+        //see if transaction is outside date range or earlier than last printed date
+        if ( ( T.txDate_Effective >= srOptions.srTrxFromDate) and
+             ( T.txDate_Effective <= srOptions.srTrxToDate) and
+             ( T.txDate_Effective > BA.baFields.baTemp_Date_Of_Last_Trx_Printed) and
+              (not IsUPCFromPreviousMonth(T.txDate_Effective, T.txUPI_State, srOptions.srDisplayFromDate))) then
+        begin
+          Inc(AcctsPrinted);
+          Included := True;
+          BA.baFields.baTemp_Include_In_Scheduled_Coding_Report := True;
+          BA.baFields.baTemp_New_Date_Last_Trx_Printed := T.txDate_Effective;
+          Break;
+        end;
+      end;
+      if Included then
+      begin
+        GetMem( NewSummaryRec, SizeOf( TSchdRepSummaryRec));
+        with NewSummaryRec^ do
+        begin
+          ClientCode     := aClient.clFields.clCode;
+          AccountNo      := BA.baFields.baBank_Account_Number;
+          PrintedFrom    := srOptions.srDisplayFromDate;
+          PrintedTo      := srOptions.srTrxToDate;
+          AcctsPrinted   := 0; // changed at end
+          AcctsFound     := 0; // changed at end
+          UserResponsible := User;
+          if aClient.clFields.clCheckOut_Scheduled_Reports then
+            SendBy       := rdCheckOut
+          else if aClient.clExtra.ceOnline_Scheduled_Reports then
+            SendBy       := rdBankLinkOnline;
+          TxLastMonth    := ShowTransLastMonth(aClient, srOptions);
+          Completed      := aCompleted;
+        end;
+        if FirstSummaryRec = nil then
+          FirstSummaryRec := NewSummaryRec;
+        srOptions.srSummaryInfoList.Add( NewSummaryRec);
+      end;
+      Inc(AcctsTotal);
+    end;
+
+    //now update first rec details
+    if Assigned( FirstSummaryRec) then
+    begin
+      FirstSummaryRec.AcctsPrinted := AcctsPrinted;
+      FirstSummaryRec.AcctsFound   := AcctsTotal;
+    end;
+  end;
+
 begin
   Assert( OutputDest in [ rdPrinter, rdScreen ], 'DoExportScheduledCheckOutFile.OutputDest in [ rdPrinter, rdScreen ]');
   Result := False;
@@ -1419,10 +1482,15 @@ begin
   begin // Check out the client file
    try
     //Override cleint file rec send method with client file sceduled report destination
-    if aClient.clExtra.ceOnline_Scheduled_Reports then
-      pCF.cfSend_Method := ftmOnline;
+    pCF.cfFile_Transfer_Method := ftmNone;
+    if aClient.clFields.clCheckOut_Scheduled_Reports then
+      pCF.cfFile_Transfer_Method := ftmFile
+    else if aClient.clFields.clEmail_Scheduled_Reports then
+      pCF.cfFile_Transfer_Method := ftmEmail
+    else if aClient.clExtra.ceOnline_Scheduled_Reports then
+      pCF.cfFile_Transfer_Method := ftmOnline;
 
-    if SendClient(aClient.clFields.clCode, EMailOutboxDir, pCF.cfSend_Method) then
+    if SendClient(aClient.clFields.clCode, EMailOutboxDir, pCF.cfFile_Transfer_Method) then
     begin
       IncUsage('Check Out (Scheduled)');
       Result := True;
@@ -1430,7 +1498,11 @@ begin
       EmailInfo := TClientEmailInfo.Create;
       with EmailInfo do
       begin
-        EmailType       := EMAIL_CHECKOUT;
+        if srOptions.srSendViaBankLinkOnline then
+          EmailType := EMAIL_BANKLINK_ONLINE
+        else
+          EmailType := EMAIL_CHECKOUT;
+
         ClientCode      := aClient.clFields.clCode;
         EmailAddress    := Trim( aClient.clFields.clClient_EMail_Address);
         CCEmailAddress  := Trim( aClient.clFields.clClient_CC_EMail_Address);
@@ -1458,65 +1530,16 @@ begin
              AddSummaryRec(aClient.clFields.clCode, srOptions, rdEcoding, False, CUSTOM_DOCUMENT);
        end;
 
-
-
       EmailList.Add( EmailInfo);
-      // Add summary reports
-      AcctsPrinted := 0;
-      AcctsTotal := 0;
-      for i := 0 to Pred(aClient.clBank_Account_List.ItemCount) do
-      begin
-        Included := False;
-        BA := aClient.clBank_Account_List.Bank_Account_At(i);
-        if BA.baFields.baAccount_Type <> btBank then Continue;
-        for j := BA.baTransaction_List.Last downto BA.baTransaction_List.First do
-        begin
-          T := BA.baTransaction_List.Transaction_At(j);
-          Included := False;
-          //see if transaction is outside date range or earlier than last printed date
-          if ( ( T.txDate_Effective >= srOptions.srTrxFromDate) and
-               ( T.txDate_Effective <= srOptions.srTrxToDate) and
-               ( T.txDate_Effective > BA.baFields.baTemp_Date_Of_Last_Trx_Printed) and
-                (not IsUPCFromPreviousMonth(T.txDate_Effective, T.txUPI_State, srOptions.srDisplayFromDate))) then
-          begin
-            Inc(AcctsPrinted);
-            Included := True;
-            BA.baFields.baTemp_Include_In_Scheduled_Coding_Report := True;
-            BA.baFields.baTemp_New_Date_Last_Trx_Printed := T.txDate_Effective;
-            Break;
-          end;
-        end;
-        if Included then
-        begin
-          GetMem( NewSummaryRec, SizeOf( TSchdRepSummaryRec));
-          with NewSummaryRec^ do
-          begin
-            ClientCode     := aClient.clFields.clCode;
-            AccountNo      := BA.baFields.baBank_Account_Number;
-            PrintedFrom    := srOptions.srDisplayFromDate;
-            PrintedTo      := srOptions.srTrxToDate;
-            AcctsPrinted   := 0; // changed at end
-            AcctsFound     := 0; // changed at end
-            UserResponsible := User;
-            SendBy         := rdCheckOut;
-            TxLastMonth    := ShowTransLastMonth(aClient, srOptions);
-            Completed      := True;
-          end;
-          if FirstSummaryRec = nil then
-            FirstSummaryRec := NewSummaryRec;
-          srOptions.srSummaryInfoList.Add( NewSummaryRec);
-        end;
-        Inc(AcctsTotal);
-      end;
-      //now update first rec details
-      if Assigned( FirstSummaryRec) then
-      begin
-        FirstSummaryRec.AcctsPrinted := AcctsPrinted;
-        FirstSummaryRec.AcctsFound   := AcctsTotal;
-      end;
+
+      AddAccountsToSummary(True);
     end
-    else
+    else begin
+      if aClient.clExtra.ceOnline_Scheduled_Reports then
+        AddAccountsToSummary(False);
+
       Result := False;
+    end;
    finally
     StatusSilent := False;
    end;
@@ -1896,6 +1919,7 @@ begin
      srOptions.srTrxFromDate := 0;
      srOptions.srTrxToDate   := 0;                 
      srOptions.srPrintAllForThisClient := false;
+     srOptions.srSendViaBankLinkOnline := MyClient.clExtra.ceOnline_Scheduled_Reports;
 
      try
         GeneratingECodingFile := (MyClient.clFields.clECoding_Export_Scheduled_Reports or
@@ -2873,7 +2897,6 @@ begin
                    FaxPrintSettings.Open;
                  end;
 
-                 ShowMessage('test2');
                  //----------------- G E N E R A T E   T H E   R E P O R T S -----
                  case AdminSystem.fdFields.fdSort_Reports_By of
                    srsoStaffMember: PrintReportsbyStaffMember(Dest, ReportOptions);
