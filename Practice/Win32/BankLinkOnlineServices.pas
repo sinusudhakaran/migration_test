@@ -2172,7 +2172,9 @@ end;
 //------------------------------------------------------------------------------
 initialization
   DebugMe := DebugUnit(UNIT_NAME);
-
+  __BankLinkOnlineServiceMgr := nil;
+finalization
+ FreeAndNil(__BankLinkOnlineServiceMgr);
 end.
 
 
