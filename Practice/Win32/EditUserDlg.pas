@@ -487,7 +487,7 @@ begin
         // if user is the primary user and been deleted pick a new primary user
         if fIsPrimaryUser then
         begin
-          Result := PickPrimaryUser(UserCode);
+          Result := PickPrimaryUser(puaDelete, UserCode);
           if not Result then
             Exit;
         end;
@@ -508,7 +508,7 @@ begin
       if (fIsPrimaryUser) and
          (cmbUserType.ItemIndex in [ustRestricted, ustNormal]) then
       begin
-        Result := PickPrimaryUser(UserCode);
+        Result := PickPrimaryUser(puaRoleChange, UserCode);
         if not Result then
           Exit;
       end;

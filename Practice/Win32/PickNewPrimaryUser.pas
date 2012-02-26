@@ -29,11 +29,13 @@ uses
   OsFont;
 
 type
+  TPickNewPrimUserAction = (puaDelete, puaRoleChange);
+
   TPickNewPrimaryUser = class(TForm)
     Image1  : TImage;
     btnYes  : TButton;
     btnNo   : TButton;
-    lblText : TLabel;
+    lblMainMessage: TLabel;
     Label1  : TLabel;
     Label2  : TLabel;
     cmbPrimaryContact: TComboBox;
@@ -43,8 +45,9 @@ type
   public
   end;
 
-  function PickPrimaryUser(aUserCode: string = '';
-                           aPractice : TBloPracticeRead = Nil) : Boolean;
+  function PickPrimaryUser(aUserAction : TPickNewPrimUserAction;
+                           aUserCode   : string = '';
+                           aPractice   : TBloPracticeRead = Nil) : Boolean;
 
 //------------------------------------------------------------------------------
 implementation
@@ -60,16 +63,22 @@ uses
 
 const
   UNIT_NAME = 'PickNewPrimaryUser';
+  MAIN_MESSAGE = 'This user is the current primary contact for this practice. ' +
+                 'Another user will need to be set as the primary contact before %s. ';
+  DELETE_MSG = 'this user can be deleted';
+  ROLE_CHANGE_MSG = 'this user''s type can be changed';
 
 //------------------------------------------------------------------------------
-function PickPrimaryUser(aUserCode : string = '';
-                         aPractice : TBloPracticeRead = Nil) : Boolean;
+function PickPrimaryUser(aUserAction : TPickNewPrimUserAction;
+                         aUserCode   : string = '';
+                         aPractice   : TBloPracticeRead = Nil) : Boolean;
 var
   MyDlg         : TPickNewPrimaryUser;
   UserIndex     : integer;
   AdminRollName : Widestring;
   RoleIndex     : integer;
   UserCode      : string;
+  UserActionMsg : string;
 begin
   Result := False;
   try
@@ -81,6 +90,12 @@ begin
     MyDlg := TPickNewPrimaryUser.Create(Application);
     Try
       MyDlg.cmbPrimaryContact.Clear;
+
+      case aUserAction of
+        puaDelete     : UserActionMsg := DELETE_MSG;
+        puaRoleChange : UserActionMsg := ROLE_CHANGE_MSG;
+      end;
+      MyDlg.lblMainMessage.Caption := format(MAIN_MESSAGE, [UserActionMsg]);
 
       // Go through users adding to Combo if not current user
       for UserIndex := 0 to high(aPractice.Users) do

@@ -25,11 +25,11 @@ object PickNewPrimaryUser: TPickNewPrimaryUser
     Stretch = True
     Transparent = True
   end
-  object lblText: TLabel
+  object lblMainMessage: TLabel
     Left = 76
     Top = 10
     Width = 352
-    Height = 47
+    Height = 50
     AutoSize = False
     Caption = 
       'This user is the current primary contact for this practice. Anot' +

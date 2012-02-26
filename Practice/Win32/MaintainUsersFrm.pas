@@ -180,7 +180,7 @@ begin
       aPractice := ProductConfigService.GetPractice;
       if ProductConfigService.OnLine and ProductConfigService.IsPrimPracUser(User^.usCode, aPractice) then
       begin
-        if not PickPrimaryUser(User^.usCode, aPractice) then
+        if not PickPrimaryUser(puaDelete, User^.usCode, aPractice) then
           exit;
       end;
 
