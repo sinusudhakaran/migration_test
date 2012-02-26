@@ -1527,7 +1527,9 @@ begin
         FreeandNil(PracUpdate);
       end;
 
-      if not Result then
+      if Result then
+        HelpfulInfoMsg('Practice Settings have been successfully updated to BankLink Online.', 0)
+      else
         HelpfulErrorMsg(BKPRACTICENAME + ' is unable to update the Practice settings to ' + BANKLINK_ONLINE_NAME + '.', 0);
     end;
   end;
