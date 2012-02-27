@@ -51,10 +51,7 @@ function TBlopiClient.SaveClient(ClientToSave: TBloClientReadDetail = nil): Bool
 begin
   if Assigned(ClientToSave) then
   begin
-//    if IsEdited then
-//      if not Assigned(ClientToSave.Users) then
-//        ClientToSave.UpdateAdminUser();
-      ProductConfigService.SaveClient(ClientToSave);
+    ProductConfigService.SaveClient(ClientToSave);
   end else
   if Assigned(ClientNew) then
   begin

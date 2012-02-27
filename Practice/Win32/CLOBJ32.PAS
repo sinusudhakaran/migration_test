@@ -1564,15 +1564,6 @@ begin
   Self.clFields.clCurrent_CRC        := GetCurrentCRC;
   Self.ClFields.clCRC_at_Last_Save   := Self.clFields.clCurrent_CRC;
 
-  {
-  if UseBankLinkOnline then
-  begin
-    if Assigned(BlopiClientNew) then
-      CopyPracticeClientNew;
-    FBlopiClient.SaveClient;
-  end;
-  }
-
   LogDebugMsg( ThisMethodName + ' Ends');
 end;
 

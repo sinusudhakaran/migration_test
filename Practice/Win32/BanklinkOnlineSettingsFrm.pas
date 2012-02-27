@@ -88,16 +88,12 @@ const
   UnitName = 'BanklinkOnlineSettingsFrm';
 
 var
-  frmBanklinkOnlineSettings: TfrmBanklinkOnlineSettings;
   BanklinkOnlineConnected : boolean = true;
 
 //------------------------------------------------------------------------------
 function EditBanklinkOnlineSettings : boolean;
 var
-  i: integer;
   BanklinkOnlineSettings: TfrmBanklinkOnlineSettings;
-  SuccessMessage: string;
-  NewClient: TBloClientCreate;
 const
   ThisMethodName = 'EditBanklinkOnlineSettings';
 begin
@@ -129,7 +125,6 @@ begin
 
   if not (Assigned(MyClient.BlopiClientNew) or Assigned(MyClient.BlopiClientDetail)) then
   begin
-    NewClient := TBloClientCreate.Create;
     MyClient.BlopiClientNew := TBloClientCreate.Create;
     DoClientSave(false, MyClient);
   end;
@@ -157,12 +152,9 @@ var
   ClientStatus : TBloStatus;
   MaxOfflineDays : String;
   BillingFrequency : WideString;
-  NotesId : TBloGuid;
   MyUserCreate: TBloUserCreate;
   BlankSubscription: TBloArrayOfGuid;
-  TheReadClient: TBloClientReadDetail;
   TheCreateClient: TBloClientCreate;
-  CatEntry  : TBloCatalogueEntry;
 begin
   EmailChanged := False;
   ProductsChanged := False;
@@ -342,7 +334,6 @@ begin
         MyClient.CopyPracticeClientNew;
 
         SaveClientInfo;
-        TheReadClient := ProductConfigService.CreateNewClientWithUser(MyClient.BlopiClientNew, MyUserCreate);
       finally
         FreeAndNil(TheCreateClient);
         FreeAndNil(MyUserCreate);
@@ -411,7 +402,7 @@ begin
     Result := staActive
   else if rbSuspended.Checked then
     Result := staSuspended
-  else if rbDeactivated.Checked then
+  else // if rbDeactivated.Checked then
     Result := staDeactivated
 end;
 
@@ -431,7 +422,6 @@ procedure TfrmBanklinkOnlineSettings.LoadClientInfo;
 var
   ProdIndex     : integer;
   SubIndex      : integer;
-  PracDetail    : TBloPracticeRead;
   ProductGuid   : TBloGuid;
   ClientSubGuid : TBloGuid;
   CatEntry      : TBloCatalogueEntry;
