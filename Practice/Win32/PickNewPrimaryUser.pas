@@ -51,6 +51,7 @@ type
 
 //------------------------------------------------------------------------------
 implementation
+{$R *.dfm}
 
 uses
   LOGUTIL,
@@ -59,14 +60,16 @@ uses
   WarningMoreFrm,
   BkConst;
 
-{$R *.dfm}
-
 const
   UNIT_NAME = 'PickNewPrimaryUser';
   MAIN_MESSAGE = 'This user is the current primary contact for this practice. ' +
                  'Another user will need to be set as the primary contact before %s. ';
-  DELETE_MSG = 'this user can be deleted';
-  ROLE_CHANGE_MSG = 'this user''s type can be changed';
+  MAIN_DELETE_MSG = 'this user can be deleted';
+  MAIN_ROLE_CHANGE_MSG = 'this user''s type can be changed';
+  WARNING_MESSAGE = 'BankLink Practice is unable to %s as it is the primary contact user ' +
+                    'for this practice. (%s)';
+  WARNING_DELETE_MSG = 'delete the user';
+  WARNING_ROLE_CHANGE_MSG = 'changed the user''s type';
 
 //------------------------------------------------------------------------------
 function PickPrimaryUser(aUserAction : TPickNewPrimUserAction;
@@ -92,8 +95,8 @@ begin
       MyDlg.cmbPrimaryContact.Clear;
 
       case aUserAction of
-        puaDelete     : UserActionMsg := DELETE_MSG;
-        puaRoleChange : UserActionMsg := ROLE_CHANGE_MSG;
+        puaDelete     : UserActionMsg := MAIN_DELETE_MSG;
+        puaRoleChange : UserActionMsg := MAIN_ROLE_CHANGE_MSG;
       end;
       MyDlg.lblMainMessage.Caption := format(MAIN_MESSAGE, [UserActionMsg]);
 
@@ -119,8 +122,12 @@ begin
       // show error if no users
       if MyDlg.cmbPrimaryContact.Items.Count = 0 then
       begin
-        HelpfulWarningMsg('BankLink Practice is unable to delete the user as it is the primary contact user ' +
-                          'for this practice. (' + aPractice.DisplayName + ')', 0 );
+        case aUserAction of
+          puaDelete     : UserActionMsg := WARNING_DELETE_MSG;
+          puaRoleChange : UserActionMsg := WARNING_ROLE_CHANGE_MSG;
+        end;
+
+        HelpfulWarningMsg(format(WARNING_MESSAGE,[UserActionMsg, aPractice.DisplayName]), 0 );
         Exit;
       end;
 
