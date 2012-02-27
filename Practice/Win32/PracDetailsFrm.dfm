@@ -589,10 +589,6 @@ object frmPracticeDetails: TfrmPracticeDetails
       Caption = 'BankLink Online'
       ImageIndex = 4
       OnShow = tsBankLinkOnlineShow
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object lblURL: TLabel
         Left = 16
         Top = 51
@@ -643,7 +639,7 @@ object frmPracticeDetails: TfrmPracticeDetails
         Width = 249
         Height = 21
         Style = csDropDownList
-        ItemHeight = 0
+        ItemHeight = 13
         TabOrder = 2
         OnClick = cbPrimaryContactClick
       end

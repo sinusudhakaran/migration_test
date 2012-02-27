@@ -6,10 +6,10 @@ uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
   StdCtrls, OvcBase, OvcEF, OvcPB, OvcNF, Buttons, ExtCtrls, ExtDlgs,
   ComCtrls, BankLinkOnlineServices,
-  OSFont, VirtualTrees, ActnList;
+  OSFont, VirtualTrees, ActnList, ModalForms;
 
 type
-  TfrmPracticeDetails = class(TForm)
+  TfrmPracticeDetails = class(TModalForm)
     OvcController1: TOvcController;
     btnOK: TButton;
     btnCancel: TButton;
@@ -680,6 +680,7 @@ begin
 
   InSetup := False;
 
+  self.
   ShowModal;
 
   if okPressed then
