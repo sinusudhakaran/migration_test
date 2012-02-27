@@ -1,12 +1,31 @@
 unit PracDetailsFrm;
 
+//------------------------------------------------------------------------------
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  StdCtrls, OvcBase, OvcEF, OvcPB, OvcNF, Buttons, ExtCtrls, ExtDlgs,
-  ComCtrls, BankLinkOnlineServices,
-  OSFont, VirtualTrees, ActnList, ModalForms;
+  Windows,
+  Messages,
+  SysUtils,
+  Classes,
+  Graphics,
+  Controls,
+  Forms,
+  Dialogs,
+  StdCtrls,
+  OvcBase,
+  OvcEF,
+  OvcPB,
+  OvcNF,
+  Buttons,
+  ExtCtrls,
+  ExtDlgs,
+  ComCtrls,
+  BankLinkOnlineServices,
+  OSFont,
+  VirtualTrees,
+  ActnList,
+  ModalForms;
 
 type
   TfrmPracticeDetails = class(TModalForm)
@@ -118,8 +137,6 @@ type
     var Result: Integer);
     procedure actSelectAllProductsExecute(Sender: TObject);
     procedure actClearAllProductsExecute(Sender: TObject);
-    procedure btnClearAllClick(Sender: TObject);
-    procedure edtURLChange(Sender: TObject);
     procedure tsBankLinkOnlineShow(Sender: TObject);
     procedure tbsDetailsShow(Sender: TObject);
   private
@@ -152,10 +169,12 @@ type
     tdObject: TObject;
   end;
 
+  //----------------------------------------------------------------------
   function EditPracticeDetails (SelPracticeMan: Boolean = False): boolean;
 
-//******************************************************************************
+//------------------------------------------------------------------------------
 implementation
+{$R *.DFM}
 
 uses
   MailFrm,
@@ -185,35 +204,36 @@ uses
   ServiceAgreementDlg,
   UpdateMF;
 
-{$R *.DFM}
-
 const
   UnitName = 'PRACDETAILSFRM';
+
 var
   DebugMe : boolean = false;
   BanklinkOnlineConnected : boolean = true;
 
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
 procedure TfrmPracticeDetails.FormCreate(Sender: TObject);
 begin
-   bkXPThemes.ThemeForm( Self);
+  bkXPThemes.ThemeForm( Self);
 
-   lblConnect.caption := BCONNECTNAME+' &Code';
-//   btnLoadFolder.Glyph := ImagesFrm.AppImages.imgFindStates.Picture.Bitmap;
-   ImagesFrm.AppImages.Misc.GetBitmap(MISC_FINDFOLDER_BMP,btnLoadFolder.Glyph);
-   ImagesFrm.AppImages.Misc.GetBitmap(MISC_FINDFOLDER_BMP,btnSaveFolder.Glyph);
-   ImagesFrm.AppImages.Misc.GetBitmap(MISC_FINDFOLDER_BMP,btnTaxFolder.Glyph);
-   SetUpHelp;
-   lblLogoBitmapNote.Caption   := 'Note: This image will be added to ' + glConst.ECODING_APP_NAME + ' files and ' +
-                                 BKBOOKSNAME + ' files';
-   ImagesFrm.AppImages.Maintain.GetBitmap(MAINTAIN_PREVIEW_BMP,btnBrowseLogoBitmap.Glyph);
-   ChangingDiskID := false;
+  lblConnect.caption := BCONNECTNAME+' &Code';
 
-   btnSuperLoadFolder.Glyph := btnLoadFolder.Glyph;
-   ImagesFrm.AppImages.Misc.GetBitmap(MISC_FINDFOLDER_BMP,btnSuperSaveFolder.Glyph);
+  // btnLoadFolder.Glyph := ImagesFrm.AppImages.imgFindStates.Picture.Bitmap;
+  ImagesFrm.AppImages.Misc.GetBitmap(MISC_FINDFOLDER_BMP,btnLoadFolder.Glyph);
+  ImagesFrm.AppImages.Misc.GetBitmap(MISC_FINDFOLDER_BMP,btnSaveFolder.Glyph);
+  ImagesFrm.AppImages.Misc.GetBitmap(MISC_FINDFOLDER_BMP,btnTaxFolder.Glyph);
+  SetUpHelp;
+  lblLogoBitmapNote.Caption   := 'Note: This image will be added to ' + glConst.ECODING_APP_NAME + ' files and ' +
+                               BKBOOKSNAME + ' files';
+
+  ImagesFrm.AppImages.Maintain.GetBitmap(MAINTAIN_PREVIEW_BMP,btnBrowseLogoBitmap.Glyph);
+  ChangingDiskID := false;
+
+  btnSuperLoadFolder.Glyph := btnLoadFolder.Glyph;
+  ImagesFrm.AppImages.Misc.GetBitmap(MISC_FINDFOLDER_BMP,btnSuperSaveFolder.Glyph);
 end;
 
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
 procedure TfrmPracticeDetails.SetUpAccounting(const AccountingSystem: Byte);
 var
   CanRefresh,
@@ -245,53 +265,54 @@ begin
   end;
 end;
 
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
 procedure TfrmPracticeDetails.SetUpHelp;
 begin
-   Self.ShowHint    := INI_ShowFormHints;
-   Self.HelpContext := 0;
-   //Components
-   ePracName.Hint   :=
-      'Enter your Practice Name|'+
-      'Enter your Practice Name';
-   ePracEMail.Hint   :=
-      'Enter your Practice E-mail address|'+
-      'Enter your Practice E-mail address';
-   edtPhone.Hint    := 'Enter your contact phone number for clients';
+  Self.ShowHint    := INI_ShowFormHints;
+  Self.HelpContext := 0;
+  //Components
+  ePracName.Hint   :=
+    'Enter your Practice Name|'+
+    'Enter your Practice Name';
+  ePracEMail.Hint   :=
+    'Enter your Practice E-mail address|'+
+    'Enter your Practice E-mail address';
+  edtPhone.Hint    := 'Enter your contact phone number for clients';
 
-   edtWebSite.Hint  := 'Enter the address of your practice web site';
+  edtWebSite.Hint  := 'Enter the address of your practice web site';
 
-   eBCode.Hint      :=
-      'Enter the '+SHORTAPPNAME+' Code assigned to your Practice|'+
-      'Enter the '+SHORTAPPNAME+' Code assigned to your Practice';
-   txtLastDiskID.Hint :=
-      'Enter the number of the last '+SHORTAPPNAME+' data file processed|'+
-      'Enter the number of the last '+SHORTAPPNAME+' data file processed';
-   cmbSystem.Hint   :=
-      'Select the main accounting system used in your Practice|'+
-      'Select the main accounting system used in your Practice' ;
-   eLoad.Hint       :=
-      'Enter the default directory path to your chart files|'+
-      'Enter the default directory path to your chart files';
-   eSave.Hint       :=
-      'Enter the default directory path to extract transactions to|'+
-      'Enter the default directory path to extract transactions to';
-   eMask.Hint       :=
-      'Enter the default Account Code mask|'+
-      'Enter the default Account Code mask';
+  eBCode.Hint      :=
+    'Enter the '+SHORTAPPNAME+' Code assigned to your Practice|'+
+    'Enter the '+SHORTAPPNAME+' Code assigned to your Practice';
+  txtLastDiskID.Hint :=
+    'Enter the number of the last '+SHORTAPPNAME+' data file processed|'+
+    'Enter the number of the last '+SHORTAPPNAME+' data file processed';
+  cmbSystem.Hint   :=
+    'Select the main accounting system used in your Practice|'+
+    'Select the main accounting system used in your Practice' ;
+  eLoad.Hint       :=
+    'Enter the default directory path to your chart files|'+
+    'Enter the default directory path to your chart files';
+  eSave.Hint       :=
+    'Enter the default directory path to extract transactions to|'+
+    'Enter the default directory path to extract transactions to';
+  eMask.Hint       :=
+    'Enter the default Account Code mask|'+
+    'Enter the default Account Code mask';
 
-   btnLoadFolder.Hint    := STDHINTS.DirButtonHint;
+  btnLoadFolder.Hint    := STDHINTS.DirButtonHint;
 
-   btnSaveFolder.Hint    := STDHINTS.DirButtonHint;
+  btnSaveFolder.Hint    := STDHINTS.DirButtonHint;
 
-   //Superfund system hints
-   eSuperMask.Hint := eMask.Hint;
-   eSuperLoad.Hint := eLoad.Hint;
-   eSuperSave.Hint := eSave.Hint;
-   btnSuperLoadFolder.Hint := STDHINTS.DirButtonHint;
-   btnSuperSaveFolder.Hint := STDHINTS.DirButtonHint;
+  //Superfund system hints
+  eSuperMask.Hint := eMask.Hint;
+  eSuperLoad.Hint := eLoad.Hint;
+  eSuperSave.Hint := eSave.Hint;
+  btnSuperLoadFolder.Hint := STDHINTS.DirButtonHint;
+  btnSuperSaveFolder.Hint := STDHINTS.DirButtonHint;
 end;
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 procedure TfrmPracticeDetails.SetUpSuper(const SuperfundSystem: Byte);
 var
   CanRefresh : Boolean;
@@ -320,6 +341,7 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmPracticeDetails.SetUpWebExport(const WebExportFormat: Byte);
 var
   i: integer;
@@ -343,7 +365,7 @@ begin
   end;
 end;
 
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
 procedure TfrmPracticeDetails.btnOKClick(Sender: TObject);
 begin
   // Make sure we have an accounting System
@@ -359,24 +381,21 @@ begin
 
   Close;  
 end;
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 procedure TfrmPracticeDetails.btnCancelClick(Sender: TObject);
 begin
   OkPressed := False;
   close;
 end;
 
-procedure TfrmPracticeDetails.btnClearAllClick(Sender: TObject);
-begin
-
-end;
-
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
 procedure TfrmPracticeDetails.btnEditClick(Sender: TObject);
 begin
-   EditSignature;
+  EditSignature;
 end;
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 procedure TfrmPracticeDetails.btnLoadFolderClick(Sender: TObject);
 var
   test : string;
@@ -386,7 +405,8 @@ begin
   if BrowseFolder( test, 'Select the Default Folder for Loading Charts From' ) then
     eLoad.Text := test;
 end;
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 procedure TfrmPracticeDetails.btnSaveFolderClick(Sender: TObject);
 var
   test : string;
@@ -397,7 +417,7 @@ begin
     eSave.Text := test;
 end;
 
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
 procedure TfrmPracticeDetails.btnSuperLoadFolderClick(Sender: TObject);
 var
   test : string;
@@ -407,7 +427,8 @@ begin
   if BrowseFolder( test, 'Select the Default Folder for Loading Charts From' ) then
     eSuperLoad.Text := test;
 end;
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 procedure TfrmPracticeDetails.btnSuperSaveFolderClick(Sender: TObject);
 var
   test : string;
@@ -418,7 +439,7 @@ begin
     eSuperSave.Text := test;
 end;
 
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
 procedure TfrmPracticeDetails.cbPrimaryContactClick(Sender: TObject);
 var
   TempUser: TBloUserRead;
@@ -428,6 +449,7 @@ begin
   ProductConfigService.SetPrimaryContact(TempUser);
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmPracticeDetails.ckUseBankLinkOnlineClick(Sender: TObject);
 var
   i: integer;
@@ -492,35 +514,40 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmPracticeDetails.cmbSuperSystemChange(Sender: TObject);
 var
-   CurrentSuperSystem: Byte;
+  CurrentSuperSystem: Byte;
 begin
-   with cmbSuperSystem do
-      if ItemIndex >=0 then begin
-         CurrentSuperSystem := Byte( Items.Objects[ ItemIndex ] );
-         SetUpSuper(CurrentSuperSystem);
-      end;
+  with cmbSuperSystem do
+    if ItemIndex >=0 then
+    begin
+      CurrentSuperSystem := Byte( Items.Objects[ ItemIndex ] );
+      SetUpSuper(CurrentSuperSystem);
+    end;
 end;
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 procedure TfrmPracticeDetails.cmbSystemChange(Sender: TObject);
 var
   AccountingSystem: Byte;
 begin
-   if Insetup
-   and Assigned(Sender)then
-      Exit;
+  if Insetup and
+     Assigned(Sender) then
+    Exit;
 
-   with cmbSystem do
-      if ItemIndex >=0 then begin
-         AccountingSystem := Integer( Items.Objects[ ItemIndex ] );
-         SetUpAccounting(AccountingSystem);
-      end;
+  with cmbSystem do
+    if ItemIndex >=0 then
+    begin
+      AccountingSystem := Integer( Items.Objects[ ItemIndex ] );
+      SetUpAccounting(AccountingSystem);
+    end;
 end;
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 function TfrmPracticeDetails.Execute(SelPracticeMan: Boolean): boolean;
 const
-   ThisMethodName = 'TfrmPracticeDetails.Execute';
+  ThisMethodName = 'TfrmPracticeDetails.Execute';
 var
   i :integer;
   LastDiskSequenceNo : integer;
@@ -740,7 +767,7 @@ begin
        //Saved to BankLink Online in VerifyForm - form can't be closed unless online changes are saved
        AdminSystem.fdFields.fdUse_BankLink_Online := UseBankLinkOnline;
        //Saved a copy of BankLink Online settings locally for display when offline
-       if UseBankLinkOnline and ProductConfigService.OnLine then 
+       if UseBankLinkOnline and ProductConfigService.OnLine then
          ProductConfigService.SavePracticeDetailsToSystemDB(FPrac);
 
        //Web
@@ -765,25 +792,29 @@ begin
   end;
   result := okPressed;
 end;
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 function EditPracticeDetails(SelPracticeMan: Boolean = False) : boolean;
 var
   PracticeDetails : TfrmPracticeDetails;
 begin
-   Result := false;
-   if not RefreshAdmin then exit;
+  Result := false;
+  if not RefreshAdmin then
+    exit;
 
-   PracticeDetails := TfrmPracticeDetails.Create(Application.MainForm);
-   with PracticeDetails do begin
-      try
-         BKHelpSetUp(PracticeDetails, BKH_Practice_details);
-         Result := Execute(SelPracticeMan);
-      finally
-         Free;
-      end;
-   end;
+  PracticeDetails := TfrmPracticeDetails.Create(Application.MainForm);
+  with PracticeDetails do
+  begin
+    try
+      BKHelpSetUp(PracticeDetails, BKH_Practice_details);
+      Result := Execute(SelPracticeMan);
+    finally
+      Free;
+    end;
+  end;
 end;
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 function TfrmPracticeDetails.VerifyForm: boolean;
 const
   ThisMethodName = 'VerifyForm';
@@ -871,6 +902,7 @@ begin
   Result := True;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmPracticeDetails.vtProductsBeforeItemPaint(
   Sender: TBaseVirtualTree; TargetCanvas: TCanvas; Node: PVirtualNode;
   ItemRect: TRect; var CustomDraw: Boolean);
@@ -895,6 +927,7 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmPracticeDetails.vtProductsChecked(Sender: TBaseVirtualTree;
   Node: PVirtualNode);
 var
@@ -921,6 +954,7 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmPracticeDetails.vtProductsFreeNode(Sender: TBaseVirtualTree;
   Node: PVirtualNode);
 var
@@ -933,6 +967,7 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmPracticeDetails.vtProductsGetText(Sender: TBaseVirtualTree;
   Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType;
   var CellText: WideString);
@@ -941,7 +976,8 @@ var
   Cat: TBloCatalogueEntry;
 begin
   Data := vtProducts.GetNodeData(Node);
-  if (Data.tdObject <> nil) then begin
+  if (Data.tdObject <> nil) then
+  begin
     case Column of
       0: begin
            if not (Assigned(Data.tdObject)) and DebugMe then
@@ -960,11 +996,12 @@ begin
   end;
 end;
 
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
 procedure TfrmPracticeDetails.FormCloseQuery(Sender: TObject;
   var CanClose: Boolean);
 begin
-  if OKPressed then begin
+  if OKPressed then
+  begin
     Screen.Cursor := crHourGlass;
     try
       CanClose := VerifyForm;
@@ -973,7 +1010,8 @@ begin
     end;
   end;
 end;
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 procedure TfrmPracticeDetails.btnTaxFolderClick(Sender: TObject);
 var
   test : string;
@@ -984,7 +1022,7 @@ begin
     edtSaveTaxTo.Text := test;
 end;
 
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
 procedure TfrmPracticeDetails.cmbTaxInterfaceChange(Sender: TObject);
 //set the default directory if the directory is currently blank
 var
@@ -1002,6 +1040,7 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmPracticeDetails.LoadPracticeDetails;
 var
   i: integer;
@@ -1085,7 +1124,7 @@ begin
   end;
 end;
 
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
 procedure TfrmPracticeDetails.actClearAllProductsExecute(Sender: TObject);
 begin
   ProductConfigService.ClearAllProducts;
@@ -1097,6 +1136,7 @@ begin
     btnClearAll.SetFocus;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmPracticeDetails.actSelectAllProductsExecute(Sender: TObject);
 begin
   ProductConfigService.SelectAllProducts;
@@ -1108,6 +1148,7 @@ begin
     btnSelectAll.SetFocus;
 end;
 
+//------------------------------------------------------------------------------
 function TfrmPracticeDetails.AddTreeNode(AVST: TCustomVirtualStringTree;
   ANode: PVirtualNode; ACaption: widestring; AObject: TObject): PVirtualNode;
 var
@@ -1122,6 +1163,7 @@ begin
     Result.CheckType := ctCheckBox;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmPracticeDetails.btnBrowseLogoBitmapClick(Sender: TObject);
 const
   RecommendedMaxSize = 100000;   //100K
@@ -1131,7 +1173,8 @@ var
   fsize        : int64;
 begin
   try
-    with OpenPictureDlg do begin
+    with OpenPictureDlg do
+    begin
       FileName := ExtractFileName(edtLogoBitmapFilename.text);
       InitialDir := ExtractFilePath(edtLogoBitmapFilename.text);
 
@@ -1174,7 +1217,8 @@ begin
     SysUtils.SetCurrentDir( Globals.DataDir);
   end;
 end;
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 procedure TfrmPracticeDetails.ReloadLogo;
 var
   filename : string;
@@ -1195,30 +1239,27 @@ begin
       end;
     end;
   end
-  else begin
+  else
+  begin
     imgPracticeLogo.Visible := false;
     SetUsage('Practice Logo', 0);
   end;
 end;
 
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
 procedure TfrmPracticeDetails.edtLogoBitmapFilenameChange(Sender: TObject);
 begin
   ReloadLogo;
   edtLogoBitmapFilename.Hint := edtLogoBitmapFilename.Text;
 end;
 
-procedure TfrmPracticeDetails.edtURLChange(Sender: TObject);
-begin
-
-end;
-
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
 procedure TfrmPracticeDetails.tbsDetailsShow(Sender: TObject);
 begin
   btnBrowseLogoBitmap.Top := edtLogoBitmapFilename.Top;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmPracticeDetails.tbsInterfacesShow(Sender: TObject);
 begin
   if (cmbWebFormats.ItemIndex >= 0) then
@@ -1227,6 +1268,7 @@ begin
     SetUpWebExport(wfDefault);
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmPracticeDetails.TreeCompare(Sender: TBaseVirtualTree; Node1,
   Node2: PVirtualNode; Column: TColumnIndex; var Result: Integer);
 var
@@ -1245,11 +1287,13 @@ begin
     Result := CompareText(Data1.tdCaption, Data2.tdCaption);
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmPracticeDetails.tsBankLinkOnlineShow(Sender: TObject);
 begin
   ProductConfigService.IsPracticeActive;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmPracticeDetails.txtLastDiskIDChange(Sender: TObject);
 begin
   if PassGenCodeEntered or PRACINI_DontAskForPGDiskNo then

@@ -18,6 +18,7 @@ type
 //------------------------------------------------------------------------------
 implementation
 
+//------------------------------------------------------------------------------
 procedure TModalForm.CreateParams(var params: TCreateParams);
 begin
   inherited;
