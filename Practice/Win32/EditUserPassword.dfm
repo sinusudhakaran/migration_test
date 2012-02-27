@@ -4,8 +4,8 @@ object EditUserPassword: TEditUserPassword
   BorderIcons = [biSystemMenu]
   BorderStyle = bsDialog
   Caption = 'Change Password'
-  ClientHeight = 175
-  ClientWidth = 397
+  ClientHeight = 211
+  ClientWidth = 476
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -20,9 +20,9 @@ object EditUserPassword: TEditUserPassword
   object lblOldPassword: TLabel
     Left = 16
     Top = 21
-    Width = 78
+    Width = 102
     Height = 16
-    Caption = '&Old Password'
+    Caption = 'Current Password'
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
     Font.Height = -13
@@ -35,7 +35,7 @@ object EditUserPassword: TEditUserPassword
     Top = 52
     Width = 84
     Height = 16
-    Caption = '&New Password'
+    Caption = 'New Password'
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
     Font.Height = -13
@@ -48,7 +48,7 @@ object EditUserPassword: TEditUserPassword
     Top = 82
     Width = 104
     Height = 16
-    Caption = '&Confirm Password'
+    Caption = 'Confirm Password'
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
     Font.Height = -13
@@ -59,9 +59,11 @@ object EditUserPassword: TEditUserPassword
   object LblPasswordValidation: TLabel
     Left = 16
     Top = 140
-    Width = 147
+    Width = 449
     Height = 16
-    Caption = '(Maximum 12 characters)'
+    Caption = 
+      '(Your password must be 8 to 12 characters long and include at le' +
+      'ast one digit)'
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
     Font.Height = -13
@@ -70,8 +72,8 @@ object EditUserPassword: TEditUserPassword
     ParentFont = False
   end
   object edtOldPassword: TEdit
-    Left = 144
-    Top = 18
+    Left = 136
+    Top = 20
     Width = 245
     Height = 21
     CharCase = ecUpperCase
@@ -80,8 +82,8 @@ object EditUserPassword: TEditUserPassword
     TabOrder = 0
   end
   object edtNewPassword: TEdit
-    Left = 144
-    Top = 49
+    Left = 136
+    Top = 51
     Width = 244
     Height = 21
     CharCase = ecUpperCase
@@ -104,8 +106,8 @@ object EditUserPassword: TEditUserPassword
     TabOrder = 3
   end
   object btnOk: TButton
-    Left = 224
-    Top = 136
+    Left = 300
+    Top = 176
     Width = 75
     Height = 25
     Caption = 'Ok'
@@ -114,8 +116,8 @@ object EditUserPassword: TEditUserPassword
     OnClick = btnOkClick
   end
   object btnCancel: TButton
-    Left = 314
-    Top = 136
+    Left = 390
+    Top = 176
     Width = 75
     Height = 25
     Caption = 'Cancel'
@@ -123,8 +125,8 @@ object EditUserPassword: TEditUserPassword
     TabOrder = 5
   end
   object edtConfirmPassword: TEdit
-    Left = 144
-    Top = 79
+    Left = 136
+    Top = 81
     Width = 245
     Height = 21
     CharCase = ecUpperCase
