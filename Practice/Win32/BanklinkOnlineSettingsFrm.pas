@@ -1,4 +1,4 @@
-unit BanklinkOnlineSettingsFrm;
+﻿unit BanklinkOnlineSettingsFrm;
 
 //------------------------------------------------------------------------------
 interface
@@ -116,6 +116,15 @@ begin
     ProductConfigService.LoadClientList;
     //Get client details
     MyClient.RefreshBlopiClient;
+    if not Assigned(MyClient.BlopiClientDetail) and
+       not Assigned(MyClient.BlopiClientNew) then
+    begin
+      MyClient.BlopiClientNew := TBloClientCreate.Create;
+      MyClient.CopyPracticeClientNew;
+      ProductConfigService.CreateNewClient(MyClient.BlopiClientNew);
+
+      MyClient.RefreshBlopiClient;
+    end;
   end;
 
   if not (Assigned(MyClient.BlopiClientNew) or Assigned(MyClient.BlopiClientDetail)) then
@@ -145,11 +154,15 @@ var
   NewProducts, ProductsRemoved: TStringList;
   PromptMessage, ErrorMsg, NewUserName, NewEmail, MailTo, MailSubject, MailBody: string;
   i, j, ButtonPressed: integer;
-
   ClientStatus : TBloStatus;
   MaxOfflineDays : String;
   BillingFrequency : WideString;
   NotesId : TBloGuid;
+  MyUserCreate: TBloUserCreate;
+  BlankSubscription: TBloArrayOfGuid;
+  TheReadClient: TBloClientReadDetail;
+  TheCreateClient: TBloClientCreate;
+  CatEntry  : TBloCatalogueEntry;
 begin
   EmailChanged := False;
   ProductsChanged := False;
@@ -314,6 +327,27 @@ begin
     end;                                                            
 
     ModalResult := mrOk;
+
+    if Assigned(MyClient.BlopiClientNew) then
+    begin
+      //Create new client admin user
+      MyUserCreate := TBloUserCreate.Create;
+      try
+        MyUserCreate.FullName := edtUserName.Text;
+        MyUserCreate.EMail    := edtEmailAddress.Text;
+        MyUserCreate.AddRoleName('Client Administrator');
+        MyUserCreate.UserCode := MyClient.BlopiClientDetail.ClientCode;
+        SetLength(BlankSubscription, 0);
+        MyUserCreate.Subscription := BlankSubscription;
+        MyClient.CopyPracticeClientNew;
+
+        SaveClientInfo;
+        TheReadClient := ProductConfigService.CreateNewClientWithUser(MyClient.BlopiClientNew, MyUserCreate);
+      finally
+        FreeAndNil(TheCreateClient);
+        FreeAndNil(MyUserCreate);
+      end;
+    end;
   end;
 end;
 
@@ -439,9 +473,7 @@ begin
       begin
         ClientSubGuid := MyClient.BlopiClientDetail.Subscription[SubIndex];
         ProductGuid   := TBloCatalogueEntry(chklistProducts.Items.Objects[ProdIndex]).id;
-
         chklistProducts.Checked[ProdIndex] := (ClientSubGuid = ProductGuid);
-
         if chklistProducts.Checked[ProdIndex] then
           break;
       end;
@@ -463,7 +495,15 @@ begin
     // Checks the Products that Client Subscribes to
     for ProdIndex := 0 to chklistProducts.Items.Count - 1 do
     begin
-      chklistProducts.Checked[ProdIndex] := True;
+      for SubIndex := Low(MyClient.BlopiClientNew.Subscription) to
+                      High(MyClient.BlopiClientNew.Subscription) do
+      begin
+        ClientSubGuid := MyClient.BlopiClientNew.Subscription[SubIndex];
+        ProductGuid   := TBloCatalogueEntry(chklistProducts.Items.Objects[ProdIndex]).id;
+        chklistProducts.Checked[ProdIndex] := (ClientSubGuid = ProductGuid);
+        if chklistProducts.Checked[ProdIndex] then
+          break;
+      end;
     end;
 
     edtUserName.Text := MyClient.clFields.clContact_Name;
@@ -499,11 +539,16 @@ begin
 
     MyClient.BlopiClientDetail.UpdateAdminUser(edtUserName.Text,
                                                edtEmailAddress.Text);
-  end
+  end;
+
   // New Client
-  else if Assigned(MyClient.BlopiClientNew) then
+  if Assigned(MyClient.BlopiClientNew) then
   begin
     MyClient.BlopiClientNew.Status := Status;
+    MyClient.BlopiClientNew.BillingFrequency := cmbBillingFrequency.Text;
+    ConnectDays := StringReplace(cmbConnectDays.Text, 'Always', '0', [rfReplaceAll]);
+    ConnectDays := StringReplace(ConnectDays, ' days', '', [rfReplaceAll]);
+    MyClient.BlopiClientNew.MaxOfflineDays := StrToInt(ConnectDays);
     MyClient.BlopiClientNew.Subscription := Nil;
 
     for ProdIndex := 0 to chklistProducts.Count - 1 do

@@ -154,6 +154,7 @@ type
     procedure GetServiceAgreement(ARichEdit: TRichEdit);
     procedure SavePracticeDetailsToSystemDB(ARemotable: TRemotable);
     //Client methods
+    function CreateNewClientWithUser(aNewClient: TBloClientCreate; aNewUserCreate: TBloUserCreate): TBloClientReadDetail;
     procedure LoadClientList;
     function GetClientDetailsWithCode(AClientCode: string): TBloClientReadDetail;
     function GetClientDetailsWithGUID(AClientGuid: Guid): TBloClientReadDetail;
@@ -338,6 +339,7 @@ begin
 
       if ShowProgress then
         Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finished', 100);
+
     finally
       if ShowProgress then
       begin
@@ -350,6 +352,31 @@ begin
     on E:Exception do HelpfulErrorMsg('Error creating a new client on ' +
                                       BANKLINK_ONLINE_NAME + ': ' + E.Message, 0);
   end;
+end;
+
+
+function TProductConfigService.CreateNewClientWithUser(aNewClient: TBloClientCreate; aNewUserCreate: TBloUserCreate): TBloClientReadDetail;
+var
+  TheGuid: TBloGuid;
+  MsgResponseOfGuid: MessageResponseOfGuid;
+  ClientDetailResponse: MessageResponseOfClientReadDetailMIdCYrSK;
+  BlopiInterface: IBlopiServiceFacade;
+begin
+//  TheClient := ProductConfigService.GetClientDetailsWithCode(MyClient.BlopiClientDetail.ClientCode);
+//  if not Assigned(TheClient.Users) then
+//  begin
+    BlopiInterface  := GetServiceFacade;
+    TheGuid := CreateNewClient(aNewClient);
+    MsgResponseOfGuid := BlopiInterface.CreateClientUser(CountryText(AdminSystem.fdFields.fdCountry),
+                                                         AdminSystem.fdFields.fdBankLink_Code,
+                                                         AdminSystem.fdFields.fdBankLink_Connect_Password,
+                                                         TheGuid,
+                                                         aNewUserCreate);
+    ClientDetailResponse := BlopiInterface.GetClient(CountryText(AdminSystem.fdFields.fdCountry),
+                                                     AdminSystem.fdFields.fdBankLink_Code,
+                                                     AdminSystem.fdFields.fdBankLink_Connect_Password,
+                                                     MsgResponseOfGuid.Result);
+    Result := ClientDetailResponse.Result;
 end;
 
 //------------------------------------------------------------------------------

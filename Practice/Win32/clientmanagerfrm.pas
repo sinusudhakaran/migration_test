@@ -322,11 +322,15 @@ type
       Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
     procedure CheckBOConnection (var message: TMessage); message BK_PRACTICE_DETAILS_CHANGED;
     procedure CheckBOConnectionLocal;
+    function CopyPracticeClientNew: boolean;
+    function GetBlopiClientNew: TBloClientCreate;
+    procedure SetBlopiClientNew(const Value: TBloClientCreate);
   protected
     procedure UpdateActions; override;
   public
     property IsGlobal: Boolean read FIsGlobal write FIsGlobal;
     property UserSet: Boolean read FUserSet write SetUserSet;
+    property BlopiClientNew: TBloClientCreate read GetBlopiClientNew write SetBlopiClientNew;
     { Public declarations }
   end;
 
@@ -404,7 +408,8 @@ uses
   MainFrm,
   CheckInOutFrm,
   Clipbrd,
-  YesNoDlg;
+  YesNoDlg,
+  WebUtils;
 
 {$R *.dfm}
 
@@ -626,6 +631,11 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+function TfrmClientManager.GetBlopiClientNew: TBloClientCreate;
+begin
+  Result := FBlopiClient.ClientNew;
+end;
+
 function TfrmClientManager.GetINI_ID( aFieldID : TClientLookupCol ) : integer;
 begin
   case aFieldID of
@@ -1556,9 +1566,12 @@ begin
         if EditBanklinkOnlineSettings then
         begin
           MyClient.BlopiClientChanged := True;
+
           if not Assigned(FBlopiClient) then
             FBlopiClient := TBlopiClient.Create;
           FBlopiClient.IsEdited := True;
+          if Assigned(BlopiClientNew) then
+            CopyPracticeClientNew;
           FBlopiClient.SaveClient(MyClient.BlopiClientDetail);
         end;
     finally
@@ -2799,8 +2812,14 @@ begin
 
 end;
 
+procedure TfrmClientManager.SetBlopiClientNew(const Value: TBloClientCreate);
+begin
+  FBlopiClient.ClientNew := Value;
+end;
+
 //------------------------------------------------------------------------------
 // Set the user status for opening CM on opening BK5
+
 procedure TfrmClientManager.SetShowLegend(const Value: Boolean);
 begin
    FShowLegend := Value;
@@ -3194,6 +3213,28 @@ end;
 procedure TfrmClientManager.ColumnMoved(Sender: TVTHeader; Column: TColumnIndex; OldPosition: Integer);
 begin
   BuildHeaderContextMenu;
+end;
+
+function TfrmClientManager.CopyPracticeClientNew: boolean;
+begin
+  FBlopiClient.ClientNew.Abn := '';
+  FBlopiClient.ClientNew.Address1 := MyClient.clFields.clAddress_L1;
+  FBlopiClient.ClientNew.Address2 := MyClient.clFields.clAddress_L2;
+  FBlopiClient.ClientNew.Address3 := MyClient.clFields.clAddress_L3;
+  FBlopiClient.ClientNew.AddressCountry := '';
+  FBlopiClient.ClientNew.ClientCode := MyClient.clFields.clCode;
+  FBlopiClient.ClientNew.CountryCode := CountryText(MyClient.clFields.clCountry);
+  FBlopiClient.ClientNew.Email := MyClient.clFields.clClient_EMail_Address;
+  FBlopiClient.ClientNew.Fax := MyClient.clFields.clFax_No;
+  FBlopiClient.ClientNew.Mobile := MyClient.clFields.clMobile_No;
+  FBlopiClient.ClientNew.Phone := MyClient.clFields.clPhone_No;
+  FBlopiClient.ClientNew.Salutation := MyClient.clFields.clSalutation;
+  FBlopiClient.ClientNew.TaxNumber := MyClient.clFields.clTax_Ledger_Code;
+  FBlopiClient.ClientNew.Tfn := MyClient.clFields.clTFN;
+  FBlopiClient.ClientNew.BillingFrequency := 'M'; // default to monthly billing
+  FBlopiClient.ClientNew.MaxOfflineDays := 30; // default to 'must connect every 30 days'
+  FBlopiClient.ClientNew.Name_ := MyClient.clFields.clName;
+  FBlopiClient.ClientNew.Subscription := nil;
 end;
 
 //------------------------------------------------------------------------------

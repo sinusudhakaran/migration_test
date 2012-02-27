@@ -74,7 +74,6 @@ type
     procedure SetBlopiClientNew(const Value: TBloClientCreate);
     function GetBlopiClientDetail: TBloClientReadDetail;
     function GetBlopiClientNew: TBloClientCreate;
-//    function CopyPracticeClientNew: boolean;
     procedure SetBlopiClientChanged(const Value: Boolean);
     function GetBlopiClientChanged: Boolean;
 {$ENDIF}
@@ -138,6 +137,7 @@ type
     procedure DoAudit(AAuditType: TAuditType; AClientCopy: TClientObj);
     procedure ClientCopyReset;
     function RefreshBlopiClient: boolean;
+    function CopyPracticeClientNew: boolean;    
     property AuditTable: TAuditTable read FAuditTable;
     property ClientAuditMgr: TClientAuditManager read FClientAuditMgr;
     property ClientCopy: TClientObj read GetClientCopy;
@@ -1524,7 +1524,7 @@ begin
   LogDebugMsg( ThisMethodName + ' Ends');
 end;
 
-{
+
 function TClientObj.CopyPracticeClientNew: boolean;
 begin
   FBlopiClient.ClientNew.Abn := '';
@@ -1546,7 +1546,7 @@ begin
   FBlopiClient.ClientNew.Name_ := clFields.clName;
   FBlopiClient.ClientNew.Subscription := nil;
 end;
-}
+
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

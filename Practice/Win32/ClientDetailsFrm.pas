@@ -162,17 +162,16 @@ type
 //    FClient : ClientDetail;
     FEnableClientSettings : boolean;
     FUseClientDetailsForBankLinkOnline: Boolean;
-    FBlopiClient: TBlopiClient;
     function  OkToPost : boolean;
     procedure UpdatePracticeContactDetails( ContactType : byte);
     procedure ShowPracticeContactDetails(ReadOnly : Boolean);
-    function CopyPracticeClientNew: boolean;
-    function GetBlopiClientNew: TBloClientCreate;
-    procedure SetBlopiClientNew(const Value: TBloClientCreate);
+//    function CopyPracticeClientNew: boolean;
+//    function GetBlopiClientNew: TBloClientCreate;
+//    procedure SetBlopiClientNew(const Value: TBloClientCreate);
   public
     { Public declarations }
     function Execute(PCode: string = '') : boolean;
-    property BlopiClientNew: TBloClientCreate read GetBlopiClientNew write SetBlopiClientNew;
+//    property BlopiClientNew: TBloClientCreate read GetBlopiClientNew write SetBlopiClientNew;
   end;
 
   function EditClientDetails (ViewNotes : Boolean = False) : boolean;
@@ -204,7 +203,8 @@ uses
    ClientUtils,
    AuditMgr,
    InfoMoreFrm,
-   WebUtils;
+   WebUtils,
+   BlopiServiceFacade;
 
 {$R *.DFM}
 
@@ -338,16 +338,16 @@ begin
   end;
 end;
 
-function TfrmClientDetails.GetBlopiClientNew: TBloClientCreate;
-begin
-  Result := FBlopiClient.ClientNew;
-end;
+//function TfrmClientDetails.GetBlopiClientNew: TBloClientCreate;
+//begin
+//  Result := FBlopiClient.ClientNew;
+//end;
 
 //------------------------------------------------------------------------------
-procedure TfrmClientDetails.SetBlopiClientNew(const Value: TBloClientCreate);
-begin
-  FBlopiClient.ClientNew := Value;
-end;
+//procedure TfrmClientDetails.SetBlopiClientNew(const Value: TBloClientCreate);
+//begin
+//  FBlopiClient.ClientNew := Value;
+//end;
 
 procedure TfrmClientDetails.SetUpHelp;
 begin
@@ -464,30 +464,28 @@ procedure TfrmClientDetails.btnOkClick(Sender: TObject);
 var
   buttonSelected: integer;
   UpdateBO: boolean;
+  TheCreateClient: TBloClientCreate;
+  TheReadClient: TBloClientReadDetail;
+  MyUserCreate: TBloUserCreate;
+  MyUserRead   : TBloUserRead;
+  BlankSubscription: TBloArrayOfGuid; 
+  ClientDetailResponse: MessageResponseOfClientReadDetailMIdCYrSK;
+  MsgResponseOfGuid: MessageResponseOfGuid;
 begin
   UpdateBO := Assigned(AdminSystem) and
               AdminSystem.fdFields.fdUse_BankLink_Online;
 
   if okToPost then
   begin
-     if Assigned(MyClient.BlopiClientDetail) and UpdateBO then
-     begin
-       MyClient.BlopiClientDetail.ClientCode := eCode.Text;
+    if Assigned(MyClient.BlopiClientDetail) and UpdateBO then
+    begin
+      MyClient.BlopiClientDetail.ClientCode := eCode.Text;
 
-       if UseBankLinkOnline then
-       begin
-         if not Assigned(FBlopiClient) then
-           FBlopiClient := TBlopiClient.Create;
-         FBlopiClient.IsEdited := True;
-         if Assigned(BlopiClientNew) then
-           CopyPracticeClientNew;   
-         FBlopiClient.SaveClient(MyClient.BlopiClientDetail);
-       end;
-
-//       HelpfulInfoMsg('Practice settings have been successfully updated to BankLink Online.', 0 );
-     end;
-     okPressed := true;
-     Close;
+      if Assigned(MyClient.BlopiClientDetail.Users) then
+        ProductConfigService.SaveClient(MyClient.BlopiClientDetail);
+    end;
+    okPressed := true;
+    Close;
   end;
 end;
 
@@ -1278,9 +1276,11 @@ end;
 
 procedure TfrmClientDetails.UpdateProductsLabel;
 begin
-  lblClientBOProducts.Caption := 'This client currently has access to ' +
-                                 IntToStr(Length(MyClient.BlopiClientDetail.Subscription)) +
-                                 ' Banklink Online product(s)'
+  if Assigned(MyClient) then
+    if Assigned(MyClient.BlopiClientDetail) then    
+      lblClientBOProducts.Caption := 'This client currently has access to ' +
+                                     IntToStr(Length(MyClient.BlopiClientDetail.Subscription)) +
+                                     ' Banklink Online product(s)'
 end;
 
 //------------------------------------------------------------------------------
@@ -1290,7 +1290,7 @@ begin
     UpdatePracticeContactDetails( cdtStaffMember);
 end;
 
-function TfrmClientDetails.CopyPracticeClientNew: boolean;
+{function TfrmClientDetails.CopyPracticeClientNew: boolean;
 begin
   FBlopiClient.ClientNew.Abn := '';
   FBlopiClient.ClientNew.Address1 := MyClient.clFields.clAddress_L1;
@@ -1310,7 +1310,7 @@ begin
   FBlopiClient.ClientNew.MaxOfflineDays := 30; // default to 'must connect every 30 days'
   FBlopiClient.ClientNew.Name_ := MyClient.clFields.clName;
   FBlopiClient.ClientNew.Subscription := nil;
-end;
+end;}
 
 //------------------------------------------------------------------------------
 procedure TfrmClientDetails.ShowPracticeContactDetails(ReadOnly : Boolean);
