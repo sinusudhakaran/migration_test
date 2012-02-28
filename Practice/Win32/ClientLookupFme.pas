@@ -2211,14 +2211,17 @@ begin
 
           cluBOBillingFrequency :
           begin
-            { This returns the right result but is too slow to be practical
             FoundIndex := FindClientIndex;
-            if (FoundIndex > -1) then begin
-              S := ProductConfigService.GetClientDetailsWithCode(
-                     ProductConfigService.Clients.Clients[FoundIndex].ClientCode).BillingFrequency;
-              CellText := S;
+            if (FoundIndex > -1) then
+            begin
+              S := ProductConfigService.Clients.Clients[FoundIndex].BillingFrequency;
+              if S = 'M' then
+                CellText := 'Monthly'
+              else if S = 'A' then
+                CellText := 'Annually'
+              else
+                CellText := S;
             end;
-            }
           end;
 
           cluBOUserAdmin :

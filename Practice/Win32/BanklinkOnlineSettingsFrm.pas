@@ -82,7 +82,8 @@ uses
   Variants,
   MailFrm,
   YesNoDlg,
-  Files;
+  Files,
+  StrUtils;
 
 const
   UnitName = 'BanklinkOnlineSettingsFrm';
@@ -454,7 +455,7 @@ begin
     else if MyClient.BlopiClientDetail.BillingFrequency = 'A' then
       cmbBillingFrequency.Text := 'Annually'
     else
-      cmbBillingFrequency.Text := MyClient.BlopiClientDetail.BillingFrequency;
+      cmbBillingFrequency.Text := MyClient.BlopiClientDetail.BillingFrequency; // shouldn't ever need this line
     cmbBillingFrequency.SelLength := 0;
     chkUseClientDetails.Checked := false;
 
@@ -491,7 +492,7 @@ begin
     else if MyClient.BlopiClientNew.BillingFrequency = 'A' then
       cmbBillingFrequency.Text := 'Annually'
     else
-      cmbBillingFrequency.Text := MyClient.BlopiClientNew.BillingFrequency;
+      cmbBillingFrequency.Text := MyClient.BlopiClientNew.BillingFrequency; // shouldn't ever need this line
     cmbBillingFrequency.SelLength := 0;
     cmbConnectDays.SelLength := 0;
     chkUseClientDetails.Checked := False;
@@ -526,7 +527,7 @@ begin
   if Assigned(MyClient.BlopiClientDetail) then
   begin
     MyClient.BlopiClientDetail.Status := Status;
-    MyClient.BlopiClientDetail.BillingFrequency := cmbBillingFrequency.Text;
+    MyClient.BlopiClientDetail.BillingFrequency := AnsiLeftStr(cmbBillingFrequency.Text, 1);
     ConnectDays := StringReplace(cmbConnectDays.Text, 'Always', '0', [rfReplaceAll]);
     ConnectDays := StringReplace(ConnectDays, ' days', '', [rfReplaceAll]);
     MyClient.BlopiClientDetail.MaxOfflineDays := StrToInt(ConnectDays);
@@ -554,7 +555,7 @@ begin
   if Assigned(MyClient.BlopiClientNew) then
   begin
     MyClient.BlopiClientNew.Status := Status;
-    MyClient.BlopiClientNew.BillingFrequency := cmbBillingFrequency.Text;
+    MyClient.BlopiClientNew.BillingFrequency := AnsiLeftStr(cmbBillingFrequency.Text, 1);
     ConnectDays := StringReplace(cmbConnectDays.Text, 'Always', '0', [rfReplaceAll]);
     ConnectDays := StringReplace(ConnectDays, ' days', '', [rfReplaceAll]);
     MyClient.BlopiClientNew.MaxOfflineDays := StrToInt(ConnectDays);
