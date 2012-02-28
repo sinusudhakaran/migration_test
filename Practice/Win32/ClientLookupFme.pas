@@ -2226,7 +2226,9 @@ begin
 
           cluBOUserAdmin :
           begin
-
+            FoundIndex := FindClientIndex;
+            if (FoundIndex > -1) then
+              CellText := ProductConfigService.Clients.Clients[FoundIndex].PrimaryContactFullName;
           end;
 
           cluBOAccess:
