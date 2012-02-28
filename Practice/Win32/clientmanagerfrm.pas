@@ -2057,15 +2057,15 @@ begin
     end;
 
     DeleteMsgStr := 'Deleting this client will remove ALL TRANSACTIONS in the ' +
-                      'client file and will REMOVE the client file from the ' +
-                      'Administration System.' + #13#10 + #13#10;
+                    'client file and will REMOVE the client file from the ' +
+                    'Administration System.' + #13#10 + #13#10;
 
     if not(ClientID = '') and
       (high(ClientDet.Subscription) > -1) then
     begin
-      DeleteMsgStr := DeleteMsgStr + 'Deleting this client will also, permanently ' +
-                      'remove ALL CLIENT DATA & ACCESS for the following products: ' +
-                      #13#10 + #13#10;
+      DeleteMsgStr := DeleteMsgStr +
+                      'Deleting this client will also, permanently remove ALL CLIENT DATA ' + #13#10 +
+                      '& ACCESS for the following products: ' + #13#10 + #13#10;
 
       for i := low(ClientDet.Subscription) to high(ClientDet.Subscription) do
       begin
