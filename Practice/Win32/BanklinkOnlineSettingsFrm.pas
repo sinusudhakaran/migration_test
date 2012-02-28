@@ -99,6 +99,10 @@ const
   ThisMethodName = 'EditBanklinkOnlineSettings';
 begin
   Result := False;
+
+  if not ProductConfigService.IsPracticeActive then
+    Exit;
+
   if not Assigned(MyClient) then
     Exit;
 
