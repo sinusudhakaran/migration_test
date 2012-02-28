@@ -132,7 +132,10 @@ begin
     BanklinkOnlineSettings := TfrmBanklinkOnlineSettings.Create(Application.MainForm);
     try
       Result := BanklinkOnlineSettings.Execute;
-      if Result then begin
+      if Result then
+      begin
+        ProductConfigService.LoadClientList;
+
         //Update access
         // BanklinkOnlineSettings.SaveClientInfo;
       end;
