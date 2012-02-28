@@ -1570,9 +1570,11 @@ begin
           if not Assigned(FBlopiClient) then
             FBlopiClient := TBlopiClient.Create;
           FBlopiClient.IsEdited := True;
+          {
           if Assigned(BlopiClientNew) then
             CopyPracticeClientNew;
           FBlopiClient.SaveClient(MyClient.BlopiClientDetail);
+          }
         end;
     finally
       CloseClient();
