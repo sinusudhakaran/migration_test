@@ -332,7 +332,7 @@ begin
         MyUserCreate.FullName := edtUserName.Text;
         MyUserCreate.EMail    := edtEmailAddress.Text;
         MyUserCreate.AddRoleName('Client Administrator');
-        MyUserCreate.UserCode := MyClient.BlopiClientDetail.ClientCode;
+        MyUserCreate.UserCode := MyClient.clWas_Code;
         SetLength(BlankSubscription, 0);
         MyUserCreate.Subscription := BlankSubscription;
         MyClient.CopyPracticeClientNew;
