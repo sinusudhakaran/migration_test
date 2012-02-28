@@ -492,7 +492,7 @@ begin
     else if MyClient.BlopiClientNew.BillingFrequency = 'A' then
       cmbBillingFrequency.Text := 'Annually'
     else
-      cmbBillingFrequency.Text := MyClient.BlopiClientNew.BillingFrequency; // shouldn't ever need this line
+      cmbBillingFrequency.Text := 'Monthly'; // default value
     cmbBillingFrequency.SelLength := 0;
     cmbConnectDays.SelLength := 0;
     chkUseClientDetails.Checked := False;
