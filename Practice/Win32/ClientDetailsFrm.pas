@@ -465,8 +465,10 @@ begin
     begin
       MyClient.BlopiClientDetail.ClientCode := eCode.Text;
 
+      { Redundant, saving now happens when OK is pressed on BanklinkOnlineSettingsFrm
       if Assigned(MyClient.BlopiClientDetail.Users) then
         ProductConfigService.SaveClient(MyClient.BlopiClientDetail);
+      }
     end;
     okPressed := true;
     Close;
@@ -1259,12 +1261,19 @@ begin
 end;
 
 procedure TfrmClientDetails.UpdateProductsLabel;
+var
+  NumProducts: string;
 begin
   if Assigned(MyClient) then
-    if Assigned(MyClient.BlopiClientDetail) then    
-      lblClientBOProducts.Caption := 'This client currently has access to ' +
-                                     IntToStr(Length(MyClient.BlopiClientDetail.Subscription)) +
-                                     ' Banklink Online product(s)'
+  begin
+    NumProducts := '#';
+    if Assigned(MyClient.BlopiClientDetail) then
+      NumProducts := IntToStr(Length(MyClient.BlopiClientDetail.Subscription))
+    else if Assigned(MyClient.BlopiClientNew) then
+      NumProducts := IntToStr(Length(MyClient.BlopiClientNew.Subscription));
+    lblClientBOProducts.Caption := 'This client currently has access to ' + NumProducts +
+                                   ' Banklink Online product(s)';
+  end;
 end;
 
 //------------------------------------------------------------------------------

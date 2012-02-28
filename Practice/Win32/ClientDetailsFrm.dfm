@@ -47,7 +47,7 @@ object frmClientDetails: TfrmClientDetails
     Top = 5
     Width = 589
     Height = 550
-    ActivePage = tbsClient
+    ActivePage = tbsOptions
     TabOrder = 0
     object tbsClient: TTabSheet
       Caption = 'Client Details'
@@ -603,7 +603,7 @@ object frmClientDetails: TfrmClientDetails
         Height = 21
         Style = csDropDownList
         Ctl3D = True
-        ItemHeight = 13
+        ItemHeight = 0
         ParentCtl3D = False
         TabOrder = 0
         OnChange = cmbResponsibleChange
@@ -809,7 +809,7 @@ object frmClientDetails: TfrmClientDetails
         Height = 21
         Style = csDropDownList
         Ctl3D = True
-        ItemHeight = 13
+        ItemHeight = 0
         ParentCtl3D = False
         TabOrder = 3
         OnChange = cmbResponsibleChange
@@ -821,7 +821,7 @@ object frmClientDetails: TfrmClientDetails
         Height = 21
         Style = csDropDownList
         Ctl3D = True
-        ItemHeight = 13
+        ItemHeight = 0
         ParentCtl3D = False
         TabOrder = 4
         OnChange = cmbResponsibleChange

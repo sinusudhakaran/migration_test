@@ -134,7 +134,7 @@ begin
       Result := BanklinkOnlineSettings.Execute;
       if Result then begin
         //Update access
-        BanklinkOnlineSettings.SaveClientInfo;
+        // BanklinkOnlineSettings.SaveClientInfo;
       end;
     finally
       BanklinkOnlineSettings.Free;
@@ -332,13 +332,13 @@ begin
         SetLength(BlankSubscription, 0);
         MyUserCreate.Subscription := BlankSubscription;
         MyClient.CopyPracticeClientNew;
-
-        SaveClientInfo;
       finally
         FreeAndNil(TheCreateClient);
         FreeAndNil(MyUserCreate);
       end;
     end;
+
+    SaveClientInfo;
   end;
 end;
 
@@ -479,7 +479,18 @@ begin
   else if Assigned(MyClient.BlopiClientNew) then
   begin
     Status := MyClient.BlopiClientNew.Status;
-    cmbConnectDays.Text := '30 days';
+    if (MyClient.BlopiClientNew.MaxOfflineDays = 0) then
+      cmbConnectDays.Text := 'Always'
+    else
+      cmbConnectDays.Text := IntToStr(MyClient.BlopiClientNew.MaxOfflineDays) + ' days';
+    if MyClient.BlopiClientNew.BillingFrequency = 'M' then
+      cmbBillingFrequency.Text := 'Monthly'
+    else if MyClient.BlopiClientNew.BillingFrequency = 'A' then
+      cmbBillingFrequency.Text := 'Annually'
+    else
+      cmbBillingFrequency.Text := MyClient.BlopiClientNew.BillingFrequency;
+    cmbBillingFrequency.SelLength := 0;
+    cmbConnectDays.SelLength := 0;
     chkUseClientDetails.Checked := False;
 
     // Checks the Products that Client Subscribes to
@@ -529,6 +540,11 @@ begin
 
     MyClient.BlopiClientDetail.UpdateAdminUser(edtUserName.Text,
                                                edtEmailAddress.Text);
+
+    if Assigned(MyClient.BlopiClientDetail.Users) then
+      // Temporarily passing in the email address while waiting for a change request to go through, as
+      // BlopiInterface.CreateClientUser requires the user to have one
+      ProductConfigService.SaveClient(MyClient.BlopiClientDetail, edtEmailAddress.Text);
   end;
 
   // New Client

@@ -159,7 +159,7 @@ type
     function GetClientDetailsWithCode(AClientCode: string): TBloClientReadDetail;
     function GetClientDetailsWithGUID(AClientGuid: Guid): TBloClientReadDetail;
     function CreateNewClient(ANewClient: TBloClientCreate): Guid;
-    function SaveClient(AClient: TBloClientReadDetail): Boolean;
+    function SaveClient(AClient: TBloClientReadDetail; TempEmail: string = ''): Boolean;
     property Clients: ClientList read FClientList;
     //User methods
     function AddEditPracUser(var   aUserId         : TBloGuid;
@@ -362,9 +362,6 @@ var
   ClientDetailResponse: MessageResponseOfClientReadDetailMIdCYrSK;
   BlopiInterface: IBlopiServiceFacade;
 begin
-//  TheClient := ProductConfigService.GetClientDetailsWithCode(MyClient.BlopiClientDetail.ClientCode);
-//  if not Assigned(TheClient.Users) then
-//  begin
     BlopiInterface  := GetServiceFacade;
     TheGuid := CreateNewClient(aNewClient);
     MsgResponseOfGuid := BlopiInterface.CreateClientUser(CountryText(AdminSystem.fdFields.fdCountry),
@@ -1364,7 +1361,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TProductConfigService.SaveClient(AClient: TBloClientReadDetail): Boolean;
+function TProductConfigService.SaveClient(AClient: TBloClientReadDetail; TempEmail: string = ''): Boolean;
 var
   i: integer;
   Msg: string;
@@ -1424,9 +1421,11 @@ begin
             MyUserCreate := TBloUserCreate.Create;
             try
               MyUserCreate.FullName := MyUserRead.FullName;
-              MyUserCreate.EMail    := MyUserRead.EMail;
+              // MyUserCreate.EMail    := MyUserRead.EMail;
+              if (TempEmail <> '') then
+                MyUserCreate.EMail    := TempEmail;
               MyUserCreate.AddRoleName('Client Administrator');
-              MyUserCreate.UserCode := '';
+              MyUserCreate.UserCode := AClient.ClientCode;
               SetLength(BlankSubscription, 0);
               MyUserCreate.Subscription := BlankSubscription;
 
@@ -1667,6 +1666,7 @@ begin
   //Update
   User(Self.Users[0]).FullName := AUserName;
   //User(Self.Users[0]).EMail := AEmail;  // Email Removed from Service Client User Array
+
 end;
 
 //------------------------------------------------------------------------------
