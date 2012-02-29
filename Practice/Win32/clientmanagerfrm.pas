@@ -322,7 +322,6 @@ type
       Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
     procedure CheckBOConnection (var message: TMessage); message BK_PRACTICE_DETAILS_CHANGED;
     procedure CheckBOConnectionLocal;
-    function CopyPracticeClientNew: boolean;
     function GetBlopiClientNew: TBloClientCreate;
     procedure SetBlopiClientNew(const Value: TBloClientCreate);
   protected
@@ -3210,28 +3209,6 @@ end;
 procedure TfrmClientManager.ColumnMoved(Sender: TVTHeader; Column: TColumnIndex; OldPosition: Integer);
 begin
   BuildHeaderContextMenu;
-end;
-
-function TfrmClientManager.CopyPracticeClientNew: boolean;
-begin
-  FBlopiClient.ClientNew.Abn := '';
-  FBlopiClient.ClientNew.Address1 := MyClient.clFields.clAddress_L1;
-  FBlopiClient.ClientNew.Address2 := MyClient.clFields.clAddress_L2;
-  FBlopiClient.ClientNew.Address3 := MyClient.clFields.clAddress_L3;
-  FBlopiClient.ClientNew.AddressCountry := '';
-  FBlopiClient.ClientNew.ClientCode := MyClient.clFields.clCode;
-  FBlopiClient.ClientNew.CountryCode := CountryText(MyClient.clFields.clCountry);
-  FBlopiClient.ClientNew.Email := MyClient.clFields.clClient_EMail_Address;
-  FBlopiClient.ClientNew.Fax := MyClient.clFields.clFax_No;
-  FBlopiClient.ClientNew.Mobile := MyClient.clFields.clMobile_No;
-  FBlopiClient.ClientNew.Phone := MyClient.clFields.clPhone_No;
-  FBlopiClient.ClientNew.Salutation := MyClient.clFields.clSalutation;
-  FBlopiClient.ClientNew.TaxNumber := MyClient.clFields.clTax_Ledger_Code;
-  FBlopiClient.ClientNew.Tfn := MyClient.clFields.clTFN;
-  FBlopiClient.ClientNew.BillingFrequency := 'M'; // default to monthly billing
-  FBlopiClient.ClientNew.MaxOfflineDays := 30; // default to 'must connect every 30 days'
-  FBlopiClient.ClientNew.Name_ := MyClient.clFields.clName;
-  FBlopiClient.ClientNew.Subscription := nil;
 end;
 
 //------------------------------------------------------------------------------
