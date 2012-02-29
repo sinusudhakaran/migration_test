@@ -325,12 +325,13 @@ object frmClientManager: TfrmClientManager
           Left = 25
           Top = 2
           Width = 39
-          Height = 13
+          Height = 23
           Margins.Top = 0
           Margins.Bottom = 0
           Align = alLeft
           Caption = 'Legend:'
           Layout = tlCenter
+          ExplicitHeight = 13
         end
         object tbtnClose: TRzToolButton
           Left = 2
@@ -388,7 +389,6 @@ object frmClientManager: TfrmClientManager
         inherited vtClients: TVirtualStringTree
           Width = 845
           Height = 434
-          ExplicitLeft = 3
           ExplicitWidth = 845
           ExplicitHeight = 434
         end
@@ -408,26 +408,28 @@ object frmClientManager: TfrmClientManager
         Left = 632
         Top = 2
         Width = 96
-        Height = 13
+        Height = 18
         Margins.Top = 0
         Margins.Bottom = 0
         Align = alLeft
         Caption = '99999 Clients Listed'
         Layout = tlCenter
         Visible = False
+        ExplicitHeight = 13
       end
       object Label1: TLabel
         AlignWithMargins = True
         Left = 345
         Top = 2
         Width = 33
-        Height = 13
+        Height = 18
         Margins.Left = 9
         Margins.Top = 0
         Margins.Bottom = 0
         Align = alLeft
         Caption = 'Search'
         Layout = tlCenter
+        ExplicitHeight = 13
       end
       object imgCannotConnect: TImage
         Left = 747
@@ -477,7 +479,7 @@ object frmClientManager: TfrmClientManager
         Margins.Bottom = 0
         Align = alLeft
         Style = csDropDownList
-        ItemHeight = 0
+        ItemHeight = 13
         TabOrder = 0
         OnChange = cmbFilterChange
       end

@@ -77,7 +77,8 @@ uses
   sycfIO, sydefs, bkconst, ovcDate, warningMoreFrm, ErrorMoreFrm, bkdefs,
   MaintainBankFrm, imagesfrm, Import32, glConst, LogUtil, baobj32,
   ClientReportScheduleDlg, ClientDetailCacheObj, GlobalClientSetupRoutines,
-  ToDoHandler, ToDoListUnit, syamio, ClientManagerFrm, BankLinkOnlineServices;
+  ToDoHandler, ToDoListUnit, syamio, ClientManagerFrm,
+  BanklinkOnlineSettingsFrm, BankLinkOnlineServices;
 
 {$R *.DFM}
 
@@ -168,6 +169,7 @@ begin
         ShowModal;
         Result := ( ModalResult = mrOK );
         if Result then begin
+           EditBanklinkOnlineSettings(true);
            LogUtil.LogMsg( lmInfo, UnitName, 'CreateClient: ' + MyClient.clFields.clCode);
            if ProspectCode <> '' then
            begin

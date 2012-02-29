@@ -1322,7 +1322,7 @@ begin
       if ClientsUsingProduct > 0 then begin
         if ClientsUsingProduct = 1 then
           Msg := Format('There is currently 1 client using %s. Please remove ' +
-                        'access for this clients from this product before ' +
+                        'access for this client from this product before ' +
                         'disabling it',
                         [TempCatalogueEntry.Description])
         else

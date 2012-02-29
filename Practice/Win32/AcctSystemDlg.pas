@@ -720,8 +720,8 @@ begin
     aMsg := 'You have selected to use BankLink Notes Online for this client. ' +
             'Please confirm the BankLink Online details for this client. ' +
             #13#10 + #13#10 +
-            'Selecting OK will also display the BankLink Online settings for ' +
-            'this client';
+            'The BankLink Online settings for this client will be displayed ' +
+            'at the end of this wizard.';
     HelpfulInfoMsg(aMsg, 0);
   end;
 end;
@@ -776,8 +776,6 @@ begin
     begin
       if not WebFormatChanged then
         ShowBankLinkOnlineConfirmation;
-
-      CanClose := EditBanklinkOnlineSettings;
     end;
   end;
 end;

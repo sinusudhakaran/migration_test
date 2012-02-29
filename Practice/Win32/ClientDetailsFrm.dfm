@@ -603,7 +603,7 @@ object frmClientDetails: TfrmClientDetails
         Height = 21
         Style = csDropDownList
         Ctl3D = True
-        ItemHeight = 0
+        ItemHeight = 13
         ParentCtl3D = False
         TabOrder = 0
         OnChange = cmbResponsibleChange
@@ -809,7 +809,7 @@ object frmClientDetails: TfrmClientDetails
         Height = 21
         Style = csDropDownList
         Ctl3D = True
-        ItemHeight = 0
+        ItemHeight = 13
         ParentCtl3D = False
         TabOrder = 3
         OnChange = cmbResponsibleChange
@@ -821,7 +821,7 @@ object frmClientDetails: TfrmClientDetails
         Height = 21
         Style = csDropDownList
         Ctl3D = True
-        ItemHeight = 0
+        ItemHeight = 13
         ParentCtl3D = False
         TabOrder = 4
         OnChange = cmbResponsibleChange

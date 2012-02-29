@@ -61,14 +61,14 @@ type
     function GetStatus : TBloStatus;
     procedure UpdateClientWebFormat;
   public
-    function Execute : boolean;
+    function Execute(TickNotesOnline: boolean = false) : boolean;
 
-    procedure LoadClientInfo;
+    procedure LoadClientInfo(TickNotesOnline: boolean);
     procedure SaveClientInfo;
     property Status : TBloStatus read GetStatus write SetStatus;
   end;
 
-  function EditBanklinkOnlineSettings : boolean;
+  function EditBanklinkOnlineSettings(TickNotesOnline: boolean): boolean;
 
 //------------------------------------------------------------------------------
 implementation
@@ -93,7 +93,7 @@ var
   BanklinkOnlineConnected : boolean = true;
 
 //------------------------------------------------------------------------------
-function EditBanklinkOnlineSettings : boolean;
+function EditBanklinkOnlineSettings(TickNotesOnline: boolean): boolean;
 var
   BanklinkOnlineSettings: TfrmBanklinkOnlineSettings;
 const
@@ -137,7 +137,7 @@ begin
   if Assigned(MyClient.BlopiClientNew) or Assigned(MyClient.BlopiClientDetail) then begin
     BanklinkOnlineSettings := TfrmBanklinkOnlineSettings.Create(Application.MainForm);
     try
-      Result := BanklinkOnlineSettings.Execute;
+      Result := BanklinkOnlineSettings.Execute(TickNotesOnline);
       if Result then
       begin
         ProductConfigService.LoadClientList;
@@ -416,19 +416,19 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TfrmBanklinkOnlineSettings.Execute : boolean;
+function TfrmBanklinkOnlineSettings.Execute(TickNotesOnline: boolean = false) : boolean;
 begin
   fBusyKeyPress := false;
   Result := False;
 
-  LoadClientInfo;
+  LoadClientInfo(TickNotesOnline);
 
   if ShowModal = mrOk then
     Result := True;
 end;
 
 //------------------------------------------------------------------------------
-procedure TfrmBanklinkOnlineSettings.LoadClientInfo;
+procedure TfrmBanklinkOnlineSettings.LoadClientInfo(TickNotesOnline: boolean);
 var
   ProdIndex     : integer;
   SubIndex      : integer;
@@ -506,14 +506,21 @@ begin
     // Checks the Products that Client Subscribes to
     for ProdIndex := 0 to chklistProducts.Items.Count - 1 do
     begin
-      for SubIndex := Low(MyClient.BlopiClientNew.Subscription) to
-                      High(MyClient.BlopiClientNew.Subscription) do
+      if ((chklistProducts.Items[ProdIndex] = 'Notes Online') or (chklistProducts.Items[ProdIndex] = 'BankLink Notes Online'))
+      and TickNotesOnline then
       begin
-        ClientSubGuid := MyClient.BlopiClientNew.Subscription[SubIndex];
-        ProductGuid   := TBloCatalogueEntry(chklistProducts.Items.Objects[ProdIndex]).id;
-        chklistProducts.Checked[ProdIndex] := (ClientSubGuid = ProductGuid);
-        if chklistProducts.Checked[ProdIndex] then
-          break;
+        chklistProducts.Checked[ProdIndex] := true;
+      end else
+      begin
+        for SubIndex := Low(MyClient.BlopiClientNew.Subscription) to
+                        High(MyClient.BlopiClientNew.Subscription) do
+        begin
+          ClientSubGuid := MyClient.BlopiClientNew.Subscription[SubIndex];
+          ProductGuid   := TBloCatalogueEntry(chklistProducts.Items.Objects[ProdIndex]).id;
+          chklistProducts.Checked[ProdIndex] := (ClientSubGuid = ProductGuid);
+          if chklistProducts.Checked[ProdIndex] then
+            break;
+        end;
       end;
     end;
 

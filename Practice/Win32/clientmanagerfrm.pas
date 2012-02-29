@@ -1562,7 +1562,7 @@ begin
     OpenClient(ClientCode);
     try
       if Assigned(MyClient) then
-        if EditBanklinkOnlineSettings then
+        if EditBanklinkOnlineSettings(false) then
         begin
           MyClient.BlopiClientChanged := True;
 
