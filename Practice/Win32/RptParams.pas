@@ -205,7 +205,7 @@ uses Buttons,
      ImagesFrm,
      dlgAddFavourite,
      glConst, bkConst, baObj32, OmniXMLUtils, SysUtils,
-     GenUtils, IOStream, Dialogs;
+     GenUtils, IOStream;
 
 //Const used for writting node values as stings
 const
@@ -702,24 +702,11 @@ end;
 
 procedure TRPTParameters.LoadChart;
 begin
-  try
-    //Use a copy of the client chart that can be sorted
-    FChart := TCustomSortChart.Create(FClient.ClientAuditMgr);
-    FChart.CopyChart(FClient.clChart);
-    if UseXlonSort then
-      FChart.Sort(XlonCompare);
-  except
-    on E: Exception do
-    begin
-      if UseXlonSort
-        then ShowMessage('Duplicate account code found. This may be ' +
-                         'caused by leading zeros, eg. 01 = 001')
-        else ShowMessage(E.Message);
-      Raise Exception.Create(E.Message);
-      FChart.Free;
-      Exit;
-    end;
-  end;
+  //Use a copy of the client chart that can be sorted
+  FChart := TCustomSortChart.Create(FClient.ClientAuditMgr);
+  FChart.CopyChart(FClient.clChart);
+  if UseXlonSort then
+    FChart.Sort(XlonCompare);
 end;
 
 function TRPTParameters.MakeRptName(Title: string): string;
@@ -1027,12 +1014,7 @@ begin
   if Assigned(FCLient) then begin
      SaveClient;
      LoadFromClient(FClient);
-//     try
-       LoadChart;
-//     except
-//       Raise Exception.Create('bad6');
-//       Exit;
-//     end;
+     LoadChart;
   end;
 end;
 
@@ -1266,3 +1248,4 @@ begin
 end;
 
 end.
+

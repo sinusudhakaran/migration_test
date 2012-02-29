@@ -102,8 +102,7 @@ uses
    BKUtil32,
    calculateAccountTotals,
    WarningMoreFrm,
-   ForexHelpers,
-   Dialogs;
+   ForexHelpers;
 
 const
   QUANTITY_FORMAT = '#,##0.0000;(#,##0.0000);-';
@@ -2414,21 +2413,14 @@ var
    ISOCodes: string;
 begin
    Previewed := False;
-   try
-     Params := TLRParameters.Create(ord(Report_List_Ledger),MyClient,RptBatch,DPeriod);
-   except
-     on E: Exception do
-     begin
-       Exit;
-     end;
-   end;
+   Params := TLRParameters.Create(ord(Report_List_Ledger),MyClient,RptBatch,DPeriod);
 
    try
      Params.AccountFilter := TransferringJournalsSet;
      Params.GetBatchAccounts;
      repeat
        if not GetLRParameters(Params,Previewed) then
-         exit;  // done..
+           exit;  // done..
 
        case Params.Runbtn of
          BTN_PRINT   : Dest := rdPrinter;
@@ -2494,3 +2486,4 @@ begin
 end;
 
 end.
+
