@@ -137,7 +137,7 @@ begin
       begin
         // Save Default Admin User
         aPractice.DefaultAdminUserId := TBloUserRead(MyDlg.cmbPrimaryContact.Items.Objects[MyDlg.cmbPrimaryContact.ItemIndex]).Id;
-        Result := ProductConfigService.SavePractice;
+        Result := ProductConfigService.SavePractice(false);
 
         UserCode := TBloUserRead(MyDlg.cmbPrimaryContact.Items.Objects[MyDlg.cmbPrimaryContact.ItemIndex]).UserCode;
         LogUtil.LogMsg(lmInfo, UNIT_NAME, UserCode + ' has been successfully set to the Default Admin on BankLink Online.');

@@ -142,7 +142,7 @@ type
     function IsNotesOnlineEnabled: Boolean;
     function IsCICOEnabled: Boolean;
     procedure UpdateUserAllowOnlineSetting;
-    function SavePractice: Boolean;
+    function SavePractice(aShowMessage : Boolean = true): Boolean;
     function PracticeChanged: Boolean;
     procedure AddProduct(AProductId: TBloGuid);
     procedure ClearAllProducts;
@@ -1501,7 +1501,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TProductConfigService.SavePractice: Boolean;
+function TProductConfigService.SavePractice(aShowMessage : Boolean): Boolean;
 var
   BlopiInterface : IBlopiServiceFacade;
   PracCountryCode : WideString;
@@ -1553,10 +1553,13 @@ begin
         FreeandNil(PracUpdate);
       end;
 
-      if Result then
-        HelpfulInfoMsg('Practice Settings have been successfully updated to BankLink Online.', 0)
-      else
-        HelpfulErrorMsg(BKPRACTICENAME + ' is unable to update the Practice settings to ' + BANKLINK_ONLINE_NAME + '.', 0);
+      if aShowMessage then
+      begin
+        if Result then
+          HelpfulInfoMsg('Practice Settings have been successfully updated to BankLink Online.', 0)
+        else
+          HelpfulErrorMsg(BKPRACTICENAME + ' is unable to update the Practice settings to ' + BANKLINK_ONLINE_NAME + '.', 0);
+      end;
     end;
   end;
 end;
