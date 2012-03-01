@@ -4,7 +4,7 @@ object frmPracticeDetails: TfrmPracticeDetails
   BorderIcons = [biSystemMenu, biMaximize]
   BorderStyle = bsDialog
   Caption = 'Practice Details'
-  ClientHeight = 431
+  ClientHeight = 432
   ClientWidth = 632
   Color = clBtnFace
   DefaultMonitor = dmMainForm
@@ -17,12 +17,12 @@ object frmPracticeDetails: TfrmPracticeDetails
   OnCreate = FormCreate
   DesignSize = (
     632
-    431)
+    432)
   PixelsPerInch = 96
   TextHeight = 13
   object btnOK: TButton
     Left = 464
-    Top = 401
+    Top = 402
     Width = 75
     Height = 25
     Anchors = [akRight, akBottom]
@@ -30,10 +30,11 @@ object frmPracticeDetails: TfrmPracticeDetails
     Default = True
     TabOrder = 1
     OnClick = btnOKClick
+    ExplicitTop = 401
   end
   object btnCancel: TButton
     Left = 548
-    Top = 401
+    Top = 402
     Width = 75
     Height = 25
     Anchors = [akRight, akBottom]
@@ -41,6 +42,7 @@ object frmPracticeDetails: TfrmPracticeDetails
     Caption = 'Cancel'
     TabOrder = 2
     OnClick = btnCancelClick
+    ExplicitTop = 401
   end
   object PageControl1: TPageControl
     Left = 8
@@ -654,6 +656,7 @@ object frmPracticeDetails: TfrmPracticeDetails
         Width = 75
         Height = 25
         Action = actSelectAllProducts
+        Caption = 'Select &All'
         TabOrder = 4
       end
       object btnClearAll: TButton
@@ -678,8 +681,8 @@ object frmPracticeDetails: TfrmPracticeDetails
       False
       ())
     Epoch = 1900
-    Left = 48
-    Top = 392
+    Left = 40
+    Top = 400
   end
   object OpenPictureDlg: TOpenPictureDialog
     Filter = 
@@ -687,12 +690,12 @@ object frmPracticeDetails: TfrmPracticeDetails
       '.jpg)|*.jpg|JPEG Image File (*.jpeg)|*.jpeg|Bitmaps (*.bmp)|*.bm' +
       'p'
     Options = [ofHideReadOnly, ofFileMustExist, ofEnableSizing]
-    Left = 16
-    Top = 392
+    Left = 8
+    Top = 400
   end
   object ActionList1: TActionList
-    Left = 80
-    Top = 392
+    Left = 72
+    Top = 400
     object actSelectAllProducts: TAction
       Caption = '&Select All'
       OnExecute = actSelectAllProductsExecute

@@ -13,7 +13,6 @@ object frmBanklinkOnlineSettings: TfrmBanklinkOnlineSettings
   KeyPreview = True
   OldCreateOrder = False
   Position = poScreenCenter
-  OnKeyDown = FormKeyDown
   OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 13
@@ -73,7 +72,8 @@ object frmBanklinkOnlineSettings: TfrmBanklinkOnlineSettings
       Top = 22
       Width = 108
       Height = 13
-      Caption = 'Next billing frequency:'
+      Caption = 'Next &billing frequency:'
+      FocusControl = cmbBillingFrequency
     end
     object cmbBillingFrequency: TComboBox
       Left = 165
@@ -101,6 +101,7 @@ object frmBanklinkOnlineSettings: TfrmBanklinkOnlineSettings
       Width = 52
       Height = 13
       Caption = 'User &Name'
+      FocusControl = edtUserName
     end
     object lblEmailAddress: TLabel
       Left = 21
@@ -108,13 +109,14 @@ object frmBanklinkOnlineSettings: TfrmBanklinkOnlineSettings
       Width = 70
       Height = 13
       Caption = '&E-mail Address'
+      FocusControl = edtEmailAddress
     end
     object chkUseClientDetails: TCheckBox
       Left = 16
       Top = 24
       Width = 193
       Height = 17
-      Caption = 'Use Client Details'
+      Caption = '&Use Client Details'
       TabOrder = 0
       OnClick = chkUseClientDetailsClick
     end
@@ -166,14 +168,15 @@ object frmBanklinkOnlineSettings: TfrmBanklinkOnlineSettings
       Top = 37
       Width = 125
       Height = 13
-      Caption = 'Client must connect every'
+      Caption = 'Client &must connect every'
+      FocusControl = cmbConnectDays
     end
     object rbActive: TRadioButton
       Left = 16
       Top = 17
       Width = 113
       Height = 17
-      Caption = 'Active'
+      Caption = 'Ac&tive'
       Checked = True
       TabOrder = 0
       TabStop = True
@@ -184,7 +187,7 @@ object frmBanklinkOnlineSettings: TfrmBanklinkOnlineSettings
       Top = 57
       Width = 113
       Height = 17
-      Caption = 'Suspended'
+      Caption = '&Suspended'
       TabOrder = 1
       OnClick = rbSuspendedClick
     end
@@ -193,7 +196,7 @@ object frmBanklinkOnlineSettings: TfrmBanklinkOnlineSettings
       Top = 77
       Width = 113
       Height = 17
-      Caption = 'Deactivated'
+      Caption = '&Deactivated'
       TabOrder = 2
       OnClick = rbDeactivatedClick
     end

@@ -51,7 +51,6 @@ type
     procedure rbDeactivatedClick(Sender: TObject);
     procedure chkUseClientDetailsClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
-    procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
   private
     fBusyKeyPress : Boolean;
   protected
@@ -606,53 +605,6 @@ begin
   end;
   edtUserName.Enabled := not chkUseClientDetails.Checked;
   edtEmailAddress.Enabled := not chkUseClientDetails.Checked;
-end;
-
-//------------------------------------------------------------------------------
-procedure TfrmBanklinkOnlineSettings.FormKeyDown(Sender: TObject; var Key: Word;
-  Shift: TShiftState);
-
-const
-  KEY_T = 84;
-  KEY_M = 77;
-  KEY_S = 83;
-  KEY_D = 68;
-  KEY_A = 65;
-  KEY_C = 67;
-  KEY_B = 66;
-  KEY_U = 85;
-  KEY_N = 78;
-  KEY_E = 69;
-
-begin
-  if fBusyKeyPress then
-    Exit;
-
-  try
-    if (Shift = [ssAlt]) then
-    begin
-      if Key in [KEY_T,KEY_M,KEY_S,KEY_D,KEY_A,KEY_C,KEY_B,KEY_U,KEY_N,KEY_E] then
-        fBusyKeyPress := true;
-
-      case Key of
-        KEY_T : rbActive.Checked := true;
-        KEY_M : if rbActive.Checked then cmbConnectDays.SetFocus;
-        KEY_S : rbSuspended.Checked := true;
-        KEY_D : rbDeactivated.Checked := true;
-        KEY_A : btnSelectAll.Click;
-        KEY_C : btnClearAll.Click;
-        KEY_B : cmbBillingFrequency.SetFocus;
-        KEY_U : chkUseClientDetails.Checked := not chkUseClientDetails.Checked;
-        KEY_N : edtUserName.SetFocus;
-        KEY_E : edtEmailAddress.SetFocus;
-      end;
-
-      if Key in [KEY_T,KEY_M,KEY_S,KEY_D,KEY_A,KEY_C,KEY_B,KEY_U,KEY_N,KEY_E] then
-        Key := 0;
-    end;
-  finally
-    fBusyKeyPress := false;
-  end;
 end;
 
 //------------------------------------------------------------------------------
