@@ -169,7 +169,8 @@ begin
         ShowModal;
         Result := ( ModalResult = mrOK );
         if Result then begin
-           EditBanklinkOnlineSettings(true);
+           if (MyClient.clFields.clWeb_Export_Format = wfWebNotes) then
+             EditBanklinkOnlineSettings(true);
            LogUtil.LogMsg( lmInfo, UnitName, 'CreateClient: ' + MyClient.clFields.clCode);
            if ProspectCode <> '' then
            begin
