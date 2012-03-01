@@ -642,7 +642,7 @@ begin
         KEY_A : btnSelectAll.Click;
         KEY_C : btnClearAll.Click;
         KEY_B : cmbBillingFrequency.SetFocus;
-        KEY_U : chkUseClientDetails.Checked := true;
+        KEY_U : chkUseClientDetails.Checked := not chkUseClientDetails.Checked;
         KEY_N : edtUserName.SetFocus;
         KEY_E : edtEmailAddress.SetFocus;
       end;
