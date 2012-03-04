@@ -58,7 +58,8 @@ uses
   imagesfrm,
   bkXPThemes,
   WarningMoreFrm,
-  BkConst;
+  BkConst,
+  Globals;
 
 const
   UNIT_NAME = 'PickNewPrimaryUser';
@@ -68,8 +69,8 @@ const
   MAIN_ROLE_CHANGE_MSG = 'this user''s type can be changed';
   WARNING_MESSAGE = 'BankLink Practice is unable to %s as it is the primary contact user ' +
                     'for this practice. (%s)';
-  WARNING_DELETE_MSG = 'delete the user';
-  WARNING_ROLE_CHANGE_MSG = 'changed the user''s type';
+  WARNING_DELETE_MSG = 'delete the online user';
+  WARNING_ROLE_CHANGE_MSG = 'change the online user''s type';
 
 //------------------------------------------------------------------------------
 function PickPrimaryUser(aUserAction : TPickNewPrimUserAction;
@@ -82,8 +83,15 @@ var
   RoleIndex     : integer;
   UserCode      : string;
   UserActionMsg : string;
+  PracticeCode  : String;
 begin
   Result := False;
+
+  if not assigned(AdminSystem) then
+    Exit;
+  
+  PracticeCode := AdminSystem.fdFields.fdBankLink_Code;
+
   try
     if not Assigned(aPractice) then
       aPractice := ProductConfigService.GetPractice;
@@ -127,7 +135,7 @@ begin
           puaRoleChange : UserActionMsg := WARNING_ROLE_CHANGE_MSG;
         end;
 
-        HelpfulWarningMsg(format(WARNING_MESSAGE,[UserActionMsg, aPractice.DisplayName]), 0 );
+        HelpfulWarningMsg(format(WARNING_MESSAGE,[UserActionMsg, PracticeCode]), 0 );
         Exit;
       end;
 
