@@ -134,8 +134,8 @@ uses
   clObj32,
   WinUtils,
   DesktopSuper_Utils,
-  BanklinkOnlineSettingsFrm,
-  BankLinkOnlineServices;
+  BankLinkOnlineServices,
+  BlopiServiceFacade;
 
 const
   UnitName = 'PRACDETAILSFRM';
@@ -467,9 +467,6 @@ begin
 
       if clWeb_Export_Format = 255 then
          clWeb_Export_Format := wfDefault;
-      ComboUtils.SetComboIndexByIntObject(clWeb_Export_Format, cmbWebFormats);
-
-
 
       case clCountry of
        whNewZealand :
@@ -545,6 +542,8 @@ begin
          end;
      end; {case}
      cmbSystemChange(nil);
+     if (cmbWebFormats.ItemIndex < 0) then
+       cmbWebFormats.ItemIndex := cmbWebFormats.Items.IndexOf(wfNames[wfDefault]);
 
      chkLockChart.Checked := clChart_Is_Locked;
      chkUseCustomLedgerCode.Checked := clUse_Alterate_ID_for_extract;

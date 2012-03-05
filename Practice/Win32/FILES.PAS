@@ -95,7 +95,8 @@ uses
   RadioOptionsDlg, BKDEFS, SysObj32, cfList32, GenUtils, syamio, WebXUtils,
   ECodingUtils, BKUtil32, baObj32, baUtils, bkDateUtils,
   UpgradeHelper, ClientManagerFrm, ClientUtils, ExchangeRateList,
-  MailFrm, ClientDetailCacheObj, BankLinkOnline;
+  MailFrm, ClientDetailCacheObj, BankLinkOnline, BankLinkOnlineServices,
+  BlopiServiceFacade;
 
 const
   UnitName = 'FILES';
@@ -2258,8 +2259,22 @@ begin
         if Assigned( aClient) then
         begin
           try
+            //Get client list (so that we can lookup the client code)
+            ProductConfigService.LoadClientList;
+            //Get client details
+            aClient.RefreshBlopiClient;
+            // Clearing products, setting other fields to default
+            if Assigned(aClient.BlopiClientDetail) then
+            begin
+              aClient.BlopiClientDetail.Subscription := nil;
+              aClient.BlopiClientDetail.Status := BlopiServiceFacade.Status(0);
+              aClient.BlopiClientDetail.BillingFrequency := 'M';
+              aClient.BlopiClientDetail.MaxOfflineDays := 30;
+              ProductConfigService.SaveClient(aClient.BlopiClientDetail,
+                                              aClient.BlopiClientDetail.Users[0].Email);
+            end;
             if (aClient.clFields.clWeb_Export_Format = wfWebNotes) then
-              aClient.clFields.clWeb_Export_Format := wfDefault;
+                aClient.clFields.clWeb_Export_Format := wfDefault;
             SyncAdminToClient( CFRec, aClient);
             RefreshContactDetails( aClient, CFRec, syncDir_ClientToAdmin);
             if RemapAccounts then

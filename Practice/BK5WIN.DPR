@@ -63,7 +63,8 @@ uses
   peList32 in 'Win32\peList32.pas',
   BKAuditValues in 'Win32\BKAuditValues.pas',
   BankLinkOnline in 'Win32\BankLinkOnline.pas',
-  BanklinkOnlineSettingsFrm in 'Win32\BanklinkOnlineSettingsFrm.pas' {frmBanklinkOnlineSettings};
+  BanklinkOnlineSettingsFrm in 'Win32\BanklinkOnlineSettingsFrm.pas' {frmBanklinkOnlineSettings},
+  BlopiClient in 'Win32\BlopiClient.pas';
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
