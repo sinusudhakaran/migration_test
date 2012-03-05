@@ -142,7 +142,7 @@ object frmBanklinkOnlineSettings: TfrmBanklinkOnlineSettings
   end
   object btnOK: TButton
     Left = 301
-    Top = 479
+    Top = 481
     Width = 75
     Height = 25
     Caption = 'OK'
@@ -155,6 +155,7 @@ object frmBanklinkOnlineSettings: TfrmBanklinkOnlineSettings
     Top = 479
     Width = 75
     Height = 25
+    Cancel = True
     Caption = 'Cancel'
     ModalResult = 2
     TabOrder = 4
