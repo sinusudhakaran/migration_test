@@ -53,12 +53,14 @@ type
     procedure FormShow(Sender: TObject);
   private
     fBusyKeyPress : Boolean;
+    fReadOnly : Boolean;
   protected
     procedure FillClientDetails;
 
     procedure SetStatus(aStatus : TBloStatus);
     function GetStatus : TBloStatus;
     procedure UpdateClientWebFormat;
+    procedure SetReadOnly;
   public
     function Execute(TickNotesOnline: boolean = false) : boolean;
 
@@ -99,9 +101,6 @@ const
   ThisMethodName = 'EditBanklinkOnlineSettings';
 begin
   Result := False;
-
-  if not ProductConfigService.IsPracticeActive then
-    Exit;
 
   if not Assigned(MyClient) then
     Exit;
@@ -373,6 +372,29 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+procedure TfrmBanklinkOnlineSettings.SetReadOnly;
+begin
+  rbActive.Enabled := false;
+  lblClientConnect.Enabled := false;
+  cmbConnectDays.Enabled := false;
+  rbSuspended.Enabled := false;
+  rbDeactivated.Enabled := false;
+  lblSelectProducts.Enabled := false;
+  chklistProducts.Enabled := false;
+  btnSelectAll.Enabled := false;
+  btnClearAll.Enabled := false;
+  lblNextBillingFrequency.Enabled := false;
+  cmbBillingFrequency.Enabled := false;
+  chkUseClientDetails.Enabled := false;
+  lblUserName.Enabled := false;
+  edtUserName.Enabled := false;
+  lblEmailAddress.Enabled := false;
+  edtEmailAddress.Enabled := false;
+  btnOK.Enabled := false;
+  btnCancel.Caption := 'Close';
+end;
+
+//------------------------------------------------------------------------------
 procedure TfrmBanklinkOnlineSettings.SetStatus(aStatus : TBloStatus);
 begin
   case aStatus of
@@ -421,6 +443,11 @@ begin
   Result := False;
 
   LoadClientInfo(TickNotesOnline);
+
+  fReadOnly := not ProductConfigService.IsPracticeActive;
+
+  if fReadOnly then
+    SetReadOnly;
 
   if ShowModal = mrOk then
     Result := True;
@@ -603,8 +630,12 @@ begin
     edtUserName.Text := MyClient.clFields.clContact_Name;
     edtEmailAddress.Text := MyClient.clFields.clClient_EMail_Address;
   end;
-  edtUserName.Enabled := not chkUseClientDetails.Checked;
-  edtEmailAddress.Enabled := not chkUseClientDetails.Checked;
+
+  if not fReadOnly then
+  begin
+    edtUserName.Enabled := not chkUseClientDetails.Checked;
+    edtEmailAddress.Enabled := not chkUseClientDetails.Checked;
+  end;
 end;
 
 //------------------------------------------------------------------------------

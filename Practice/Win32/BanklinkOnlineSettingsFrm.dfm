@@ -3,7 +3,7 @@ object frmBanklinkOnlineSettings: TfrmBanklinkOnlineSettings
   Top = 0
   BorderStyle = bsDialog
   Caption = 'BankLink Online Settings'
-  ClientHeight = 514
+  ClientHeight = 517
   ClientWidth = 480
   Color = clBtnFace
   DefaultMonitor = dmMainForm
@@ -142,7 +142,7 @@ object frmBanklinkOnlineSettings: TfrmBanklinkOnlineSettings
   end
   object btnOK: TButton
     Left = 301
-    Top = 481
+    Top = 479
     Width = 75
     Height = 25
     Caption = 'OK'
@@ -151,7 +151,7 @@ object frmBanklinkOnlineSettings: TfrmBanklinkOnlineSettings
     OnClick = btnOKClick
   end
   object btnCancel: TButton
-    Left = 382
+    Left = 390
     Top = 479
     Width = 75
     Height = 25
