@@ -682,6 +682,7 @@ begin
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 procedure ResetReadOnlyFlag( OpenCode : string; ASendMethod: Byte);
 const
   ThisMethodname = 'ResetReadOnlyFlag';
@@ -2257,11 +2258,13 @@ begin
         if Assigned( aClient) then
         begin
           try
+            if (aClient.clFields.clWeb_Export_Format = wfWebNotes) then
+              aClient.clFields.clWeb_Export_Format := wfDefault;
             SyncAdminToClient( CFRec, aClient);
             RefreshContactDetails( aClient, CFRec, syncDir_ClientToAdmin);
             if RemapAccounts then
                ReSyncClientAccountMap(aClient);
-                                   
+
 
             UpdateProcessingStats(aClient, True, False);
           finally
