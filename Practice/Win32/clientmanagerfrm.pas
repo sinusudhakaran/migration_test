@@ -2047,6 +2047,13 @@ begin
     if UseBankLinkOnline then
     begin
       ProductConfigService.LoadClientList;
+
+      if not ProductConfigService.Online then
+        Exit;
+
+      if not ProductConfigService.IsPracticeActive then
+        Exit;
+      
       ClientDet := ProductConfigService.GetClientDetailsWithCode(ClientCode);
       if Assigned(ClientDet) then
         ClientID := ClientDet.Id;
