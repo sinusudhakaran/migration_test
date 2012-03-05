@@ -2051,12 +2051,14 @@ begin
       if not ProductConfigService.Online then
         Exit;
 
-      if not ProductConfigService.IsPracticeActive then
-        Exit;
-      
       ClientDet := ProductConfigService.GetClientDetailsWithCode(ClientCode);
       if Assigned(ClientDet) then
+      begin
+        if not ProductConfigService.IsPracticeActive then
+          Exit;
+
         ClientID := ClientDet.Id;
+      end;
     end;
 
     DeleteMsgStr := 'Deleting this client will remove ALL TRANSACTIONS in the ' +
