@@ -1,18 +1,21 @@
 object frmBanklinkOnlineSettings: TfrmBanklinkOnlineSettings
   Left = 0
   Top = 0
+  BorderStyle = bsDialog
   Caption = 'BankLink Online Settings'
-  ClientHeight = 519
-  ClientWidth = 481
+  ClientHeight = 514
+  ClientWidth = 480
   Color = clBtnFace
+  DefaultMonitor = dmMainForm
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
   Font.Height = -11
   Font.Name = 'Tahoma'
   Font.Style = []
-  KeyPreview = True
   OldCreateOrder = False
   Position = poScreenCenter
+  Scaled = False
+  ShowHint = True
   OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 13
