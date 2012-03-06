@@ -608,6 +608,9 @@ begin
         MyClient.BlopiClientNew.AddSubscription(CatEntry.id);
       end;
     end;
+
+    LogUtil.LogMsg(lmInfo, UnitName, 'The new client has been successfully added ' +
+                                     'to BankLink Online.');
   end;
 
   UpdateClientWebFormat;
