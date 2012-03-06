@@ -795,11 +795,20 @@ end;
 
 procedure TfrmClientManager.CheckBOConnectionLocal;
 var
-  TestBool: boolean;
+  BOOnline, PracticeOnline: boolean;
 begin
-  TestBool := ProductConfigService.OnLine;
-  imgCannotConnect.Visible := (AdminSystem.fdFields.fdUse_BankLink_Online and not TestBool);
-  lblCannotConnect.Visible := (AdminSystem.fdFields.fdUse_BankLink_Online and not ProductConfigService.OnLine);
+  BOOnline := ProductConfigService.OnLine;
+  if BOOnline then
+    PracticeOnline := ProductConfigService.IsPracticeActive;
+  imgCannotConnect.Visible := (AdminSystem.fdFields.fdUse_BankLink_Online and
+                              ((BOOnline = false) or (PracticeOnline = false)));
+  lblCannotConnect.Visible := imgCannotConnect.Visible;
+  if not BOOnline then
+    lblCannotConnect.Caption := 'Cannot connect to Banklink Online'
+  else if not PracticeOnline then
+    lblCannotConnect.Caption := 'BankLink Online is currently deactivated. Please ' +
+                                'contact BankLink Support for further assistance';
+
 end;
 
 //------------------------------------------------------------------------------
