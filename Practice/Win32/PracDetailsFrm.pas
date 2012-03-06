@@ -24,11 +24,10 @@ uses
   BankLinkOnlineServices,
   OSFont,
   VirtualTrees,
-  ActnList,
-  ModalForms;
+  ActnList;
 
 type
-  TfrmPracticeDetails = class(TModalForm)
+  TfrmPracticeDetails = class(TForm)
     OvcController1: TOvcController;
     btnOK: TButton;
     btnCancel: TButton;
