@@ -234,12 +234,11 @@ end;
 //------------------------------------------------------------------------------
 function TfrmMaintainUsers.Execute: boolean;
 begin
-  RefreshUserList;
-
   SortCol := 2;
   lvUsers.AlphaSort;
 
   ShowModal;
+
   result := true;
 end;
 
@@ -597,6 +596,8 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmMaintainUsers.FormShow(Sender: TObject);
 begin
+  RefreshUserList;
+
   if (lvUsers.Items.Count > 0) then
   begin
     //highlight the top user
