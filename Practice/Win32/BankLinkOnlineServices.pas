@@ -33,6 +33,7 @@ type
   TBloUserUpdate            = BlopiServiceFacade.UserUpdate;
   TBloUserUpdatePractice    = BlopiServiceFacade.UserUpdatePractice;
   TBloUserRead              = BlopiServiceFacade.UserRead;
+  TBloArrayOfUserRead       = BlopiServiceFacade.ArrayOfUserRead;
 
   TVarTypeData = record
     Name     : String;
