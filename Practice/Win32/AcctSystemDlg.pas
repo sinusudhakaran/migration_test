@@ -543,7 +543,7 @@ begin
      end; {case}
      cmbSystemChange(nil);
      if (cmbWebFormats.ItemIndex < 0) then
-       cmbWebFormats.ItemIndex := cmbWebFormats.Items.IndexOf(wfNames[wfDefault]);
+       ComboUtils.SetComboIndexByIntObject(AdminSystem.fdFields.fdWeb_Export_Format, cmbWebFormats);
 
      chkLockChart.Checked := clChart_Is_Locked;
      chkUseCustomLedgerCode.Checked := clUse_Alterate_ID_for_extract;
