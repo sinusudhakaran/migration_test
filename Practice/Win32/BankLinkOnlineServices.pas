@@ -106,7 +106,6 @@ type
     procedure LoadRemotableObjectFromXML(const XML: string; ARemotable: TRemotable);
     procedure SaveRemotableObjectToFile(ARemotable: TRemotable);
     function LoadRemotableObjectFromFile(ARemotable: TRemotable): Boolean;
-    function OnlineStatus: TBloStatus;
     function GetTypeItemIndex(var aDataArray: TArrVarTypeData;
                               const aName : String) : integer;
     procedure AddTypeItem(var aDataArray : TArrVarTypeData;
@@ -147,6 +146,7 @@ type
     function PracticeChanged: Boolean;
     procedure AddProduct(AProductId: TBloGuid);
     procedure ClearAllProducts;
+    function OnlineStatus: TBloStatus;
     procedure RemoveProduct(AProductId: TBloGuid);
     procedure SelectAllProducts;
     procedure SetPrimaryContact(AUser: TBloUserRead);

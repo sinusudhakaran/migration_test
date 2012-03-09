@@ -164,6 +164,7 @@ type
     function  OkToPost : boolean;
     procedure UpdatePracticeContactDetails( ContactType : byte);
     procedure ShowPracticeContactDetails(ReadOnly : Boolean);
+    procedure SetProductsCaption(NewCaption: string);
   public
     { Public declarations }
     function Execute(PCode: string = '') : boolean;
@@ -239,7 +240,7 @@ procedure TfrmClientDetails.FormShow(Sender: TObject);
 var
   i, k : Integer;
   GUID1, GUID2: WideString;
-  ClientSynced: boolean;
+  ClientSynced, PracticeIsActive: boolean;
   MyNewClient: TBloClientCreate;
   MyNewClientGuid: TBloGuid;
   CachedPracticeDetail: TBloPracticeRead;
@@ -315,7 +316,8 @@ begin
 
     if UseBankLinkOnline then begin
       lblClientBOProducts.Visible := ClientSynced;
-      btnClientSettings.Enabled := ClientSynced and FEnableClientSettings;
+      PracticeIsActive := ProductConfigService.IsPracticeActive(false);
+      btnClientSettings.Enabled := ClientSynced and FEnableClientSettings and PracticeIsActive;
       lblClientBOProducts.Visible := ClientSynced;
       //Get client list (so that we can lookup the client code)
       ProductConfigService.LoadClientList;
@@ -324,13 +326,36 @@ begin
       if lblClientBOProducts.Visible  then
       begin
         if not FEnableClientSettings then
-          lblClientBOProducts.Caption := 'Please save the client to access the Banklink Online settings';
-        CachedPracticeDetail := ProductConfigService.CachedPractice;
-        if btnClientSettings.Enabled and Assigned(CachedPracticeDetail) then
-          UpdateProductsLabel;
+          SetProductsCaption('Please save the client to access the Banklink Online settings')
+        else if not PracticeIsActive then
+          case ProductConfigService.OnlineStatus of
+            Suspended:   SetProductsCaption('BankLink Online is currently in suspended ' +
+                                            '(read-only) mode. Please contact BankLink ' +
+                                            'Support for further assistance');
+            Deactivated: SetProductsCaption('BankLink Online is currently deactivated. Please ' +
+                                            'contact BankLink Support for further assistance');
+          end
+        else
+        begin
+          CachedPracticeDetail := ProductConfigService.CachedPractice;
+          if btnClientSettings.Enabled and Assigned(CachedPracticeDetail) then
+            UpdateProductsLabel;
+        end;
       end;
     end;
   end;
+end;
+
+procedure TfrmClientDetails.SetProductsCaption(NewCaption: string);
+begin
+  lblClientBOProducts.Caption := NewCaption;
+  if (Length(NewCaption) < 55) then
+    lblClientBOProducts.Height := 14
+  else
+    lblClientBOProducts.Height := 34;
+  lblClientBOProducts.Top := btnClientSettings.Top + Round(btnClientSettings.Height / 2) -
+                             Round(lblClientBOProducts.Height / 2);
+  lblClientBOProducts.Width := grpBOClients.Width - (lblClientBOProducts.Left + 20);  
 end;
 
 procedure TfrmClientDetails.SetUpHelp;
@@ -1271,8 +1296,8 @@ begin
       NumProducts := IntToStr(Length(MyClient.BlopiClientDetail.Subscription))
     else if Assigned(MyClient.BlopiClientNew) then
       NumProducts := IntToStr(Length(MyClient.BlopiClientNew.Subscription));
-    lblClientBOProducts.Caption := 'This client currently has access to ' + NumProducts +
-                                   ' Banklink Online product(s)';
+    SetProductsCaption('This client currently has access to ' + NumProducts +
+                       ' Banklink Online product(s)');
   end;
 end;
 
