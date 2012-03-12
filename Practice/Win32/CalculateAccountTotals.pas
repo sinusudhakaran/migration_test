@@ -77,7 +77,7 @@ const
   Tag_Budget_Movement     = 8;
 
 
-procedure CalculateAccountTotalsForClient( aClient : TClientObj; AddContras : boolean = true; AccountList: TList = nil);
+procedure CalculateAccountTotalsForClient( aClient : TClientObj; AddContras : boolean = true; AccountList: TList = nil; MaxDate: integer = -1);
 
 procedure AddAutoContraCodes( aClient : TClientObj);
 procedure RemoveAutoContraCodes( aClient : TClientObj);
@@ -238,7 +238,7 @@ begin
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-procedure CalculateAccountTotalsForClient( aClient : TClientObj; AddContras : boolean = true; AccountList: TList = nil);
+procedure CalculateAccountTotalsForClient( aClient : TClientObj; AddContras : boolean = true; AccountList: TList = nil; MaxDate: integer = -1);
 //note add contras will only be false for when generating budget figures
 type
    TWhichYear = ( wyThisYear, wyLastYear);
@@ -539,7 +539,7 @@ var
 
                for t := 0 to Pred(ba.baTransaction_List.ItemCount) do begin
                   pT := ba.baTransaction_List.Transaction_At(t);
-                  if ( pT^.txDate_Effective >= Last_Year_Starts) and ( pT^.txDate_Effective <= This_Year_Ends) then begin
+                  if ( pT^.txDate_Effective >= Last_Year_Starts) and ( pT^.txDate_Effective <= This_Year_Ends) and (pT^.txDate_Effective <= MaxDate) then begin
                      if CompareDates( pT^.txDate_Effective, This_Year_Starts, This_Year_Ends) = Within then
                         WhichYear := wyThisYear
                      else
@@ -730,6 +730,9 @@ var
 
                         for PeriodNo := 1 to MaxPeriods do
                         begin//cycle through each period in the budget
+                           if (Budget_Period_End_Dates[PeriodNo] > MaxDate) then
+                             Continue;
+                           
                            DestPeriod := GetPeriodNo( Budget_Period_End_Dates[ PeriodNo], aClient.clFields.clTemp_Period_Details_This_Year);
                            if DestPeriod <> -1 then
                            begin

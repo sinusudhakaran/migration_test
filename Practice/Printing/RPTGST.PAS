@@ -572,11 +572,11 @@ begin
         begin
           if PeriodNo <= MyClient.clFields.clTemp_Periods_This_Year then begin
             PeriodStartDate[PeriodNo] := MyClient.clFields.clTemp_Period_Details_This_Year[PeriodNo].Period_Start_Date;
-            PeriodEndDate[PeriodNo]   := MyClient.clFields.clTemp_Period_Details_This_Year[PeriodNo].Period_End_Date;
+            PeriodEndDate[PeriodNo]   := Min(MyClient.clFields.clTemp_Period_Details_This_Year[PeriodNo].Period_End_Date, D2);
           end
           else begin
             PeriodStartDate[PeriodNo] := MyClient.clFields.clTemp_Period_Details_Last_Year[PeriodNo].Period_Start_Date;
-            PeriodEndDate[PeriodNo]   := MyClient.clFields.clTemp_Period_Details_Last_Year[PeriodNo].Period_End_Date;
+            PeriodEndDate[PeriodNo]   := Min(MyClient.clFields.clTemp_Period_Details_Last_Year[PeriodNo].Period_End_Date, D2);
           end;
           Values[PeriodNo] := 0;
         end;
@@ -778,7 +778,7 @@ begin
        Continue;
      end;
 
-     CalculateAccountTotals.CalculateAccountTotalsForClient( MyClient, False);
+     CalculateAccountTotals.CalculateAccountTotalsForClient( MyClient, False, nil, ToDate);
 
      //D1 := FromDate;
      //D2 := IncDate(Fromdate, 0, Period, 0);
@@ -807,7 +807,6 @@ begin
        AddJobHeader(Job,siSubTitle,'',true);
        AddJobHeader(Job,siSubTitle,'',true);
 
-
         //Find number of periods
        MaxPeriods := Max(clTemp_Periods_This_Year, clTemp_Periods_Last_Year);
        MaxPeriods := Ceil(clTemp_FRS_Last_Period_To_Show/Floor(12/MaxPeriods));
@@ -817,8 +816,6 @@ begin
        5..6 : cWidth := 30;
        else  cWidth := 14;
        end;
-
-
 
        cLeft := GcLeft;
        if clFRS_Reporting_Period_Type = frpMonthly then
@@ -851,12 +848,12 @@ begin
          if i <= clTemp_Periods_This_Year then
          begin
             PeriodStartDate := clTemp_Period_Details_This_Year[i].Period_Start_Date;
-            PeriodEndDate   := clTemp_Period_Details_This_Year[i].Period_End_Date;
+            PeriodEndDate   := Min(clTemp_Period_Details_This_Year[i].Period_End_Date, Todate);
          end
          else
          begin
             PeriodStartDate := clTemp_Period_Details_Last_Year[i].Period_Start_Date;
-            PeriodEndDate   := clTemp_Period_Details_Last_Year[i].Period_End_Date;
+            PeriodEndDate   := Min(clTemp_Period_Details_Last_Year[i].Period_End_Date, Todate);
          end;
 
          aColumn := AddFormatColAuto(Job,cLeft,cWidth,GcGap,'Date',jtRight,'#,##0;(#,##0);-','#,##0;(#,##0);-',true);
