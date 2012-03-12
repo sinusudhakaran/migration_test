@@ -1435,6 +1435,9 @@ begin
                                                              AdminSystem.fdFields.fdBankLink_Connect_Password,
                                                              AClient.Id,
                                                              MyUserCreate);
+
+              Result := MsgResponseOfGuid.Success;
+
               if not MessageResponseHasError(MsgResponseOfGuid, 'create the client user on') then
                 MyClientUpdate.PrimaryContactUserId := MsgResponseOfGuid.Result;
             finally
@@ -1460,6 +1463,9 @@ begin
                                                          AdminSystem.fdFields.fdBankLink_Connect_Password,
                                                          AClient.Id,
                                                          MyUserUpdate);
+
+              Result := MsgResponseOfGuid.Success;
+
               MessageResponseHasError(MsgResponse, 'update this client user on');
             finally
               FreeAndNil(MyUserUpdate);
@@ -1467,23 +1473,29 @@ begin
           end;
         end;
 
-        if ShowProgress then
-          Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Updating Client', 50);
-        MsgResponse := BlopiInterface.SaveClient(CountryText(AdminSystem.fdFields.fdCountry),
-                                                 AdminSystem.fdFields.fdBankLink_Code,
-                                                 AdminSystem.fdFields.fdBankLink_Connect_Password,
-                                                 MyClientUpdate);
-        MessageResponseHasError(MsgResponse, 'update this client''s settings on');
+        if Result then
+        begin
+          if ShowProgress then
+            Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Updating Client', 50);
+          MsgResponse := BlopiInterface.SaveClient(CountryText(AdminSystem.fdFields.fdCountry),
+                                                   AdminSystem.fdFields.fdBankLink_Code,
+                                                   AdminSystem.fdFields.fdBankLink_Connect_Password,
+                                                   MyClientUpdate);
+          Result := MsgResponseOfGuid.Success;
 
-        Result := True;
+          MessageResponseHasError(MsgResponse, 'update this client''s settings on');
+        end;
 
         if ShowProgress then
           Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finished', 100);
 
-        Msg := Format('Settings for %s have been successfully updated to ' +
+        if Result then
+        begin
+          Msg := Format('Settings for %s have been successfully updated to ' +
                       '%s.',[AClient.ClientCode, BANKLINK_ONLINE_NAME]);
-        HelpfulInfoMsg(Msg, 0);
-        LogUtil.LogMsg(lmInfo, UNIT_NAME, Msg);
+          HelpfulInfoMsg(Msg, 0);
+          LogUtil.LogMsg(lmInfo, UNIT_NAME, Msg)
+        end;
       finally
         FreeAndNil(MyClientUpdate);
       end;

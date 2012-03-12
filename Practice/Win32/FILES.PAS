@@ -2287,8 +2287,12 @@ begin
                 aClient.BlopiClientDetail.Users := Users;
               end;
 
-              ProductConfigService.SaveClient(aClient.BlopiClientDetail,
-                                              aClient.BlopiClientDetail.Users[0].Email);
+              if not ProductConfigService.SaveClient(aClient.BlopiClientDetail,
+                                                     aClient.BlopiClientDetail.Users[0].Email) then
+              begin
+                UnlockAdmin;
+                Exit;
+              end;
 
               if (aClient.clFields.clWeb_Export_Format = wfWebNotes) then
                 aClient.clFields.clWeb_Export_Format := wfDefault;
