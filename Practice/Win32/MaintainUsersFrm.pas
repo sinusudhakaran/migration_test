@@ -164,8 +164,7 @@ begin
   end;
 
   DelMsg := '';
-  if (User^.usAllow_Banklink_Online) and
-     (UseBankLinkOnline) then
+  if User^.usAllow_Banklink_Online then
     DelMsg := 'This user will be deleted from both Banklink Practice and Banklink Online.' + #13;
 
   DelMsg := DelMsg + 'OK to Delete User %s ?';
@@ -173,8 +172,7 @@ begin
   if AskYesNo('Delete User',Format(DelMsg, [User^.uscode]), DLG_NO, 0) <> DLG_YES then
     exit;
 
-  if (User^.usAllow_Banklink_Online) and
-     (UseBankLinkOnline) then
+  if User^.usAllow_Banklink_Online then
   begin
     try
       aPractice := ProductConfigService.GetPractice;
