@@ -307,7 +307,6 @@ type
     tbZero: TRzToolButton;
     tbGenerate: TRzToolButton;
     tbSmooth: TRzToolButton;
-    RzSpacer8: TRzSpacer;
     tbAverage: TRzToolButton;
     tbCopy: TRzToolButton;
     tbIncrease: TRzToolButton;
@@ -369,7 +368,6 @@ type
     mniReportStyle: TMenuItem;
     RzSpacer1: TRzSpacer;
     RzSpacer2: TRzSpacer;
-    RzSpacer3: TRzSpacer;
     RzSpacer4: TRzSpacer;
     mniReportOption: TMenuItem;
     N41: TMenuItem;
