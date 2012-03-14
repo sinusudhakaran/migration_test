@@ -30,7 +30,6 @@ object frmPracticeDetails: TfrmPracticeDetails
     Default = True
     TabOrder = 1
     OnClick = btnOKClick
-    ExplicitTop = 401
   end
   object btnCancel: TButton
     Left = 548
@@ -42,14 +41,13 @@ object frmPracticeDetails: TfrmPracticeDetails
     Caption = 'Cancel'
     TabOrder = 2
     OnClick = btnCancelClick
-    ExplicitTop = 401
   end
   object PageControl1: TPageControl
     Left = 8
     Top = 8
     Width = 617
     Height = 387
-    ActivePage = tsBankLinkOnline
+    ActivePage = tbsInterfaces
     TabOrder = 0
     object tbsDetails: TTabSheet
       Caption = 'Details'

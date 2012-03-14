@@ -2261,49 +2261,19 @@ begin
         if Assigned( aClient) then
         begin
           try
-            //Get client list (so that we can lookup the client code)
-
-            ProductConfigService.LoadClientList;
-            //Get client details
-            aClient.RefreshBlopiClient;
-            // Clearing products, setting other fields to default
-            if Assigned(aClient.BlopiClientDetail) then
-            begin
-              aClient.BlopiClientDetail.Subscription     := nil;
-              aClient.BlopiClientDetail.Status           := BlopiServiceFacade.Status(0);
-              aClient.BlopiClientDetail.BillingFrequency := 'M';
-              aClient.BlopiClientDetail.MaxOfflineDays   := 30;
-
-              if high(Users) < 0 then
-              begin
-                SetLength(Users,1);
-                Users[0] := TBloUserRead.create;
-                Users[0].FullName     := aClient.clFields.clContact_Name;
-                Users[0].EMail        := aClient.clFields.clClient_EMail_Address;
-                Users[0].AddRoleName('Client Administrator');
-                Users[0].UserCode := aClient.clWas_Code;
-                SetLength(BlankSubscription, 0);
-                Users[0].Subscription := BlankSubscription;
-                aClient.BlopiClientDetail.Users := Users;
-              end;
-
-              if not ProductConfigService.SaveClient(aClient.BlopiClientDetail,
-                                                     aClient.BlopiClientDetail.Users[0].Email) then
-              begin
-                UnlockAdmin;
-                Exit;
-              end;
-
-              if (aClient.clFields.clWeb_Export_Format = wfWebNotes) then
-                aClient.clFields.clWeb_Export_Format := wfDefault;
-            end;
-
             SyncAdminToClient( CFRec, aClient);
             RefreshContactDetails( aClient, CFRec, syncDir_ClientToAdmin);
             if RemapAccounts then
                ReSyncClientAccountMap(aClient);
 
             UpdateProcessingStats(aClient, True, False);
+
+            // Clearing Banklink Online details before syncing client
+            // Get client list (so that we can lookup the client code)
+            ProductConfigService.LoadClientList;
+            // Get client details
+            aClient.RefreshBlopiClient;
+
           finally
             FreeAndNil( aClient);
           end;

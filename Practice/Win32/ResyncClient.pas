@@ -114,7 +114,9 @@ uses
   bk5Except,
   WinUtils,
   EnterPwdDlg,
-  syamio;
+  syamio,
+  BankLinkOnlineServices,
+  BlopiServiceFacade;
 
 const
    UnitName = 'RESYNCCLIENT';
@@ -491,6 +493,7 @@ var
    NewBankAccount: TBank_Account;
    OkToResync: boolean;
    pSB: pSystem_Bank_Account_Rec;
+   CatEntry: TBloCatalogueEntry;
 begin
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
 
@@ -528,6 +531,24 @@ begin
                AdminLastTrxDate := sbLast_Entry_Date;
          end;
       end;
+
+      // Clearing Banklink Online details before syncing client
+      // Get client list (so that we can lookup the client code)
+      ProductConfigService.LoadClientList;
+      // Get client details
+      aClient.RefreshBlopiClient;
+      // Changing the web export format (if necessary) 
+      if Assigned(aClient.BlopiClientDetail) then
+      begin
+        for i := 0 to High(aClient.BlopiClientDetail.Subscription) do
+        begin
+          CatEntry := ProductConfigService.GetCatalogueEntry(aClient.BlopiClientDetail.Subscription[i]);
+          if (CatEntry.Description = 'Notes Online') or (CatEntry.Description = 'BankLink Notes Online') then
+            aClient.clFields.clWeb_Export_Format := wfWebNotes
+          else if aClient.clFields.clWeb_Export_Format = wfWebNotes then
+            aClient.clFields.clWeb_Export_Format := wfNone;
+        end;
+      end; 
 
       ClientLastTrxDate := 0;
       BankAccountExistsInAdmin := False;
