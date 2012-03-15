@@ -135,6 +135,7 @@ type
     //Practice methods
     function GetPractice(aUpdateUseOnline: Boolean = True; aForceOnlineCall : Boolean = false): TBloPracticeRead;
     function IsPracticeActive(ShowWarning: Boolean = true): Boolean;
+    function IsPracticeDeactivated: boolean;
     function GetCatalogueEntry(AProductId: TBloGuid): TBloCatalogueEntry;
     function IsPracticeProductEnabled(AProductId: TBloGuid; AUsePracCopy : Boolean): Boolean;
     function HasProductJustBeenUnTicked(AProductId: TBloGuid): Boolean;
@@ -1215,6 +1216,11 @@ begin
     end;
 end;
 
+function TProductConfigService.IsPracticeDeactivated: boolean;
+begin
+  Result := (OnlineStatus = Deactivated);  
+end;
+
 //------------------------------------------------------------------------------
 function TProductConfigService.IsPracticeProductEnabled(AProductId: TBloGuid; AUsePracCopy : Boolean): Boolean;
 var
@@ -1453,7 +1459,7 @@ begin
             if ShowProgress then
               Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Updating Client User', 30);
 
-            //Create new client admin user
+            // Update client admin user
             MyUserUpdate := TBloUserUpdate.Create;
             try
               MyUserUpdate.FullName     := MyUserRead.FullName;
@@ -1468,7 +1474,7 @@ begin
                                                          AClient.Id,
                                                          MyUserUpdate);
 
-              Result := MsgResponseOfGuid.Success;
+              Result := MsgResponse.Success;
 
               MessageResponseHasError(MsgResponse, 'update this client user on');
             finally
@@ -1485,7 +1491,7 @@ begin
                                                    AdminSystem.fdFields.fdBankLink_Code,
                                                    AdminSystem.fdFields.fdBankLink_Connect_Password,
                                                    MyClientUpdate);
-          Result := MsgResponseOfGuid.Success;
+          Result := MsgResponse.Success;
 
           MessageResponseHasError(MsgResponse, 'update this client''s settings on');
         end;
