@@ -163,6 +163,9 @@ type
     function SaveClient(AClient: TBloClientReadDetail; TempEmail: string = ''): Boolean;
     property Clients: ClientList read FClientList;
     //User methods
+    function GetUnLinkedOnlineUsers(aPractice : TBloPracticeRead = nil) : TBloArrayOfUserRead;
+    function GetOnlineUserLinkedToCode(aUserCode : String; aPractice: TBloPracticeRead = nil): TBloUserRead;
+
     function AddEditPracUser(var   aUserId         : TBloGuid;
                              const aEMail          : WideString;
                              const aFullName       : WideString;
@@ -180,7 +183,8 @@ type
                              aPractice : TBloPracticeRead): TBloGuid;
     function ChangePracUserPass(const aUserCode : WideString;
                                 const aPassword : WideString;
-                                aPractice : TBloPracticeRead = nil) : Boolean;
+                                aPractice : TBloPracticeRead = nil;
+                                aLinkedUserGuid : TBloGuid = '') : Boolean;
     property OnLine: Boolean read FOnLine;
     property Registered: Boolean read GetRegistered;
     property ValidBConnectDetails: Boolean read GetValidBConnectDetails;    
@@ -1818,6 +1822,78 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+function TProductConfigService.GetUnLinkedOnlineUsers(aPractice: TBloPracticeRead): TBloArrayOfUserRead;
+var
+  PracUserIndex : integer;
+  OnlineUserIndex : integer;
+  Found : Boolean;
+  FreeUserIndex : Integer;
+begin
+  SetLength(Result,0);
+
+  if not Assigned(aPractice) then
+    aPractice := GetPractice;
+
+  if not online then
+    Exit;
+
+  for OnlineUserIndex := 0 to high(aPractice.Users) do
+  begin
+    Found := False;
+    for PracUserIndex := 0 to AdminSystem.fdSystem_User_List.Last do
+    begin
+      if (AdminSystem.fdSystem_User_List.User_At(PracUserIndex).usCode = aPractice.Users[OnlineUserIndex].UserCode) then
+      begin
+        Found := True;
+        break;
+      end;
+    end;
+
+    if not Found then
+    begin
+      SetLength(Result, Length(Result)+1);
+      FreeUserIndex := High(Result);
+      Result[FreeUserIndex] := TBloUserRead.Create;
+      Result[FreeUserIndex].EMail := aPractice.Users[OnlineUserIndex].EMail;
+      Result[FreeUserIndex].Id := aPractice.Users[OnlineUserIndex].Id;
+      Result[FreeUserIndex].FullName := aPractice.Users[OnlineUserIndex].FullName;
+      Result[FreeUserIndex].RoleNames := aPractice.Users[OnlineUserIndex].RoleNames;
+      Result[FreeUserIndex].Subscription := aPractice.Users[OnlineUserIndex].Subscription;
+      Result[FreeUserIndex].UserCode := aPractice.Users[OnlineUserIndex].UserCode;
+    end;
+  end;
+end;
+
+//-----------------------------------------------------------------------------
+function TProductConfigService.GetOnlineUserLinkedToCode(aUserCode : String; aPractice: TBloPracticeRead): TBloUserRead;
+var
+  OnlineUserIndex : integer;
+begin
+  Result := Nil;
+
+  if not Assigned(aPractice) then
+    aPractice := GetPractice;
+
+  if not online then
+    Exit;
+
+  for OnlineUserIndex := 0 to high(aPractice.Users) do
+  begin
+    if (aUserCode = aPractice.Users[OnlineUserIndex].UserCode) then
+    begin
+      Result := TBloUserRead.Create;
+      Result.EMail := aPractice.Users[OnlineUserIndex].EMail;
+      Result.Id := aPractice.Users[OnlineUserIndex].Id;
+      Result.FullName := aPractice.Users[OnlineUserIndex].FullName;
+      Result.RoleNames := aPractice.Users[OnlineUserIndex].RoleNames;
+      Result.Subscription := aPractice.Users[OnlineUserIndex].Subscription;
+      Result.UserCode := aPractice.Users[OnlineUserIndex].UserCode;
+      Exit;
+    end;
+  end;
+end;
+
+//------------------------------------------------------------------------------
 function TProductConfigService.AddEditPracUser(var   aUserId         : TBloGuid;
                                                const aEMail          : WideString;
                                                const aFullName       : WideString;
@@ -1886,7 +1962,7 @@ begin
             if aChangePassword then
             begin
               Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Sending Data', 88);
-              Result := ChangePracUserPass(aUserCode, aPassword, CurrPractice);
+              Result := ChangePracUserPass(aUserCode, aPassword, CurrPractice, aUserId);
             end;
 
             if Result then
@@ -2053,7 +2129,8 @@ end;
 //------------------------------------------------------------------------------
 function TProductConfigService.ChangePracUserPass(const aUserCode : WideString;
                                                   const aPassword : WideString;
-                                                  aPractice : TBloPracticeRead) : Boolean;
+                                                  aPractice : TBloPracticeRead;
+                                                  aLinkedUserGuid : TBloGuid) : Boolean;
 var
   MsgResponce     : MessageResponse;
   UserGuid        : WideString;
@@ -2089,7 +2166,11 @@ begin
     if ShowProgress then
       Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Sending Data', 60);
 
-    UserGuid := GetPracUserGuid(aUserCode, aPractice);
+    if aLinkedUserGuid = '' then
+      UserGuid := GetPracUserGuid(aUserCode, aPractice)
+    else
+      UserGuid := aLinkedUserGuid;
+
     MsgResponce := BlopiInterface.SetPracticeUserPassword(PracCountryCode, PracCode, PracPassHash, UserGuid, aPassword);
 
     if not MessageResponseHasError(MsgResponce, 'change practice user password on') then begin

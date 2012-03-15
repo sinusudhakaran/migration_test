@@ -533,8 +533,6 @@ end;
 //------------------------------------------------------------------------------
 function TfrmMaintainBank.Execute: boolean;
 begin
-   RefreshBankAccountList;
-
    SortCol := 0;
    lvBank.AlphaSort;
 
@@ -710,6 +708,8 @@ end;
 
 procedure TfrmMaintainBank.FormShow(Sender: TObject);
 begin
+  RefreshBankAccountList;
+
   lvBankColumnClick(lvBank, lvBank.Columns[0]); // force sort by number
 end;
 

@@ -34,7 +34,6 @@ type
     edtNewPassword: TEdit;
     lblOldPassword: TLabel;
     lblNewPassword: TLabel;
-    chkOnlineAndPracticeSamePass: TCheckBox;
     btnOk: TButton;
     btnCancel: TButton;
     lblConfirmPassword: TLabel;
@@ -104,9 +103,8 @@ begin
   BtnOk.ModalResult := mrNone;
   If Validate Then
   begin
-    if chkOnlineAndPracticeSamePass.checked then
-      if not UpdateOnline then
-        Exit;
+    if not UpdateOnline then
+      Exit;
 
     if not UpdateSystemAdmin then
       Exit;
@@ -170,8 +168,6 @@ begin
     HelpfulErrorMsg('The User ' + CurrUser.FullName + ' can no longer be found in the Admin System.', 0);
     Exit;
   end;
-
-  chkOnlineAndPracticeSamePass.Checked := fUser_Rec.usUse_Practice_Password_Online;
 
   SetPasswordFont(edtOldPassword);
   SetPasswordFont(edtNewPassword);

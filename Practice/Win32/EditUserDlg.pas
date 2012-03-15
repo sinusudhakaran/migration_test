@@ -46,48 +46,62 @@ Type
     UserType : Integer;
   end;
 
+  TUI_Modes = (uimBasic, uimOnline, uimOnlineUnlinked, uimOnlineShowUser);
 
   TdlgEditUser = Class(TForm)
     btnOK        : TButton;
     btnCancel    : TButton;
     pcMain: TPageControl;
     tsDetails: TTabSheet;
-    stUserName: TLabel;
-    eUserCode: TEdit;
-    Label1: TLabel;
-    Label2: TLabel;
-    eFullName: TEdit;
-    Label3: TLabel;
-    eMail: TEdit;
-    ePass: TEdit;
-    Label4: TLabel;
-    Label5: TLabel;
-    eConfirmPass: TEdit;
-    chkMaster: TCheckBox;
-    pnlSpecial: TPanel;
     tsFiles: TTabSheet;
     Label6: TLabel;
     rbAllFiles: TRadioButton;
     rbSelectedFiles: TRadioButton;
-    Label7: TLabel;
     pnlSelected: TPanel;
     lvFiles: TListView;
     btnAdd: TButton;
     btnRemove: TButton;
     btnRemoveAll: TButton;
+    pnlMain: TPanel;
+    chkShowPracticeLogo: TCheckBox;
+    CBSuppressHeaderFooter: TCheckBox;
+    CBPrintDialogOption: TCheckBox;
+    chkMaster: TCheckBox;
+    Label7: TLabel;
     Label8: TLabel;
     cmbUserType: TComboBox;
     lblUserType: TLabel;
+    Label5: TLabel;
+    eConfirmPass: TEdit;
+    ePass: TEdit;
+    Label4: TLabel;
     Label9: TLabel;
     eDirectDial: TEdit;
-    chkLoggedIn: TCheckBox;
+    eMail: TEdit;
+    Label3: TLabel;
+    Label2: TLabel;
+    eFullName: TEdit;
+    eUserCode: TEdit;
+    Label1: TLabel;
     LblPasswordValidation: TLabel;
-    CBPrintDialogOption: TCheckBox;
-    CBSuppressHeaderFooter: TCheckBox;
-    chkShowPracticeLogo: TCheckBox;
-    chkCanAccessBankLinkOnline: TCheckBox;
+    stUserName: TLabel;
+    pnlUserIsLoggedOn: TPanel;
+    pnlSpecial: TPanel;
+    chkLoggedIn: TCheckBox;
+    pnlOnline: TPanel;
+    pnlOnlineLeft: TPanel;
+    pnlOnlineRight: TPanel;
     lblPrimaryContact: TLabel;
-    chkUsePracPassInOnline: TCheckBox;
+    pnlOnlineMid: TPanel;
+    pnlAllowAccess: TPanel;
+    chkCanAccessBankLinkOnline: TCheckBox;
+    pnlUnlinked: TPanel;
+    radCreateNewOnlineUser: TRadioButton;
+    radLinkExistingOnlineUser: TRadioButton;
+    cmbLinkExistingOnlineUser: TComboBox;
+    pnlOnlineUser: TPanel;
+    Label10: TLabel;
+    eOnlineUser: TEdit;
 
     Procedure btnCancelClick(Sender: TObject);
     Procedure btnOKClick(Sender: TObject);
@@ -102,6 +116,8 @@ Type
     procedure rbSelectedFilesClick(Sender: TObject);
     procedure cmbUserTypeSelect(Sender: TObject);
     procedure chkCanAccessBankLinkOnlineClick(Sender: TObject);
+    procedure radCreateNewOnlineUserClick(Sender: TObject);
+    procedure radLinkExistingOnlineUserClick(Sender: TObject);
   Private
     fOldValues : TUserValues;
 
@@ -111,15 +127,17 @@ Type
     fokPressed  : boolean;
     fformLoaded : boolean;
     fEditChk    : boolean;
+    fUIMode     : TUI_Modes;
 
     procedure StoreOldValues;
     function HasUserValueChanged : Boolean;
     function GetCurrentCode : string;
-    procedure OnlineControlSetup;
+    procedure OnlineControlSetup(aUIMode : TUI_Modes);
     Function OKtoPost : boolean;
     Function PosttoBankLinkOnline : Boolean;
     Procedure UpdateAdminFileAccessList( UserLRN : integer);
     Function IsBankLinkOnlineUser : Boolean;
+    procedure SetOnlineUIMode(var aUIMode : TUI_Modes; aPractice: TBloPracticeRead);
 
     property okPressed  : boolean read fokPressed  write fokPressed;
     property formLoaded : boolean read fformLoaded write fformLoaded;
@@ -178,6 +196,64 @@ begin
   for UserTypeIndex := ustmin to ustMax do
     cmbUserType.Items.Add(ustNames[UserTypeIndex]);
 End;
+
+//------------------------------------------------------------------------------
+procedure TdlgEditUser.SetOnlineUIMode(var aUIMode : TUI_Modes; aPractice: TBloPracticeRead);
+var
+  BloUserRead : TBloUserRead;
+  BloArrayOfUserRead : TBloArrayOfUserRead;
+
+  //----------------------------
+  procedure CheckForUnlinked;
+  var
+    index : integer;
+  begin
+    BloArrayOfUserRead := ProductConfigService.GetUnLinkedOnlineUsers(aPractice);
+    // Are there unlinked online users to link to?
+    if (assigned(BloArrayOfUserRead)) and
+       (high(BloArrayOfUserRead) >= 0) then
+    begin
+      aUIMode := uimOnlineUnlinked;
+      cmbLinkExistingOnlineUser.Clear;
+      for index := 0 to high(BloArrayOfUserRead) do
+      begin
+        cmbLinkExistingOnlineUser.AddItem(BloArrayOfUserRead[index].EMail, BloArrayOfUserRead[index]);
+      end;
+    end
+    else
+      aUIMode := uimOnline;
+  end;
+
+begin
+  // is the user marked as online?
+  if chkCanAccessBankLinkOnline.Checked then
+  begin
+    If fOldValues.CanAccessBankLinkOnline then
+    begin
+      // Is online user linked to practice user?
+      BloUserRead := ProductConfigService.GetOnlineUserLinkedToCode(GetCurrentCode, aPractice);
+
+      if Assigned(BloUserRead) then
+      begin
+        // Linked
+        if Trim(Uppercase(BloUserRead.EMail)) = Trim(Uppercase(eMail.text)) then
+          aUIMode := uimOnline
+        else
+        begin
+          // Differant user name to email
+          aUIMode := uimOnlineShowUser;
+          eOnlineUser.text := BloUserRead.EMail;
+        end;
+      end
+      else
+        CheckForUnlinked;
+    end
+    else
+      CheckForUnlinked;
+  end
+  else
+    fUIMode := uimOnline;
+end;
 
 //------------------------------------------------------------------------------
 procedure TdlgEditUser.SetUpHelp;
@@ -280,7 +356,6 @@ begin
   fOldValues.SuppressHeaderFooter    := CBSuppressHeaderFooter.Checked;
   fOldValues.ShowPracticeLogo        := chkShowPracticeLogo.Checked;
   fOldValues.CanAccessBankLinkOnline := chkCanAccessBankLinkOnline.Checked;
-  fOldValues.UsePracPassInOnline     := chkUsePracPassInOnline.Checked;
   fOldValues.UserType                := cmbUserType.ItemIndex;
 end;
 
@@ -296,7 +371,6 @@ begin
                 (fOldValues.SuppressHeaderFooter    = CBSuppressHeaderFooter.Checked) and
                 (fOldValues.ShowPracticeLogo        = chkShowPracticeLogo.Checked) and
                 (fOldValues.CanAccessBankLinkOnline = chkCanAccessBankLinkOnline.Checked) and
-                (fOldValues.UsePracPassInOnline     = chkUsePracPassInOnline.Checked) and
                 (fOldValues.UserType                = cmbUserType.ItemIndex));
 end;
 
@@ -310,28 +384,51 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-Procedure TdlgEditUser.OnlineControlSetup;
+Procedure TdlgEditUser.OnlineControlSetup(aUIMode : TUI_Modes);
 begin
-  chkCanAccessBankLinkOnline.Visible := UseBankLinkOnline or
-                                        chkCanAccessBankLinkOnline.Checked;
-  if not chkCanAccessBankLinkOnline.Visible then
-  begin
-    pcMain.Height  := pcMain.Height  - COMP_VERT_DIFF;
-    Self.Height    := Self.Height    - COMP_VERT_DIFF;
-    pnlSpecial.Top := pnlSpecial.Top - COMP_VERT_DIFF;
+  case aUIMode of
+    uimBasic :
+    Begin
+      pnlOnline.Visible := False;
+      Self.Height := 458;
+    End;
+    uimOnline :
+    Begin
+      pnlOnlineMid.BevelInner := bvNone;
+      pnlOnlineMid.BevelOuter := bvNone;
+      pnlOnline.Visible := True;
+      pnlUnlinked.Visible := False;
+      pnlOnlineUser.Visible := False;
+      Self.Height := 524;
+    End;
+    uimOnlineUnlinked :
+    Begin
+      pnlOnlineMid.BevelInner := bvLowered;
+      pnlOnlineMid.BevelOuter := bvRaised;
+      pnlOnline.Visible := True;
+      pnlUnlinked.Visible := True;
+      pnlOnlineUser.Visible := False;
+      Self.Height := 600;
+    End;
+    uimOnlineShowUser :
+    Begin
+      pnlOnlineMid.BevelInner := bvLowered;
+      pnlOnlineMid.BevelOuter := bvRaised;
+      pnlOnline.Visible := True;
+      pnlUnlinked.Visible := False;
+      pnlOnlineUser.Visible := True;
+      Self.Height := 552;
+    End;
   end;
 
-  if chkCanAccessBankLinkOnline.Checked then
+  if (aUIMode = uimBasic) or (chkCanAccessBankLinkOnline.Checked = false) then
   begin
-    lblPasswordValidation.Caption  := '(8-12 characters, including at least 1 digit)';
-    chkUsePracPassInOnline.Visible := True;
-    lblPrimaryContact.Visible      := fIsPrimaryUser;
+    lblPasswordValidation.Caption  := '(Maximum 12 characters)'
   end
   else
   begin
-    lblPasswordValidation.Caption  := '(Maximum 12 characters)';
-    chkUsePracPassInOnline.Visible := False;
-    lblPrimaryContact.Visible      := False;
+    lblPasswordValidation.Caption  := '(8-12 characters, including at least 1 digit)';
+    lblPrimaryContact.Visible      := fIsPrimaryUser;
   end;
 end;
 
@@ -404,6 +501,16 @@ begin { TdlgEditUser.OKtoPost }
       ePass.SetFocus;
       exit;
     end; { ValidPassword }
+
+    if (radLinkExistingOnlineUser.Checked) and
+       (cmbLinkExistingOnlineUser.ItemIndex = -1) and
+       (fUIMode = uimOnlineUnlinked) then
+    begin
+      HelpfulWarningMsg('An existing user on BankLink Online must be selected.', 0 );
+      pcMain.ActivePage := tsDetails;
+      cmbLinkExistingOnlineUser.SetFocus;
+      exit;
+    end;
   end  { IsBankLinkOnlineUser }
   else
   begin
@@ -470,6 +577,8 @@ var
   RoleNames         : TBloArrayOfstring;
   MsgCreateorUpdate : string;
   UserCode          : string;
+  UserEmail         : String;
+  BloUserRead       : TBloUserRead;
 begin
   Result := True;
 
@@ -513,14 +622,31 @@ begin
           Exit;
       end;
 
+      // Check if the the user is unlinked and a user from the list is being picked
+      if (fUIMode = uimOnlineUnlinked) and
+         (radLinkExistingOnlineUser.Checked) and
+         (cmbLinkExistingOnlineUser.ItemIndex > -1) then
+      begin
+        BloUserRead := TBloUserRead(cmbLinkExistingOnlineUser.Items.Objects[cmbLinkExistingOnlineUser.ItemIndex]);
+
+        if assigned(BloUserRead) then
+        begin
+          UserEmail := BloUserRead.EMail;
+          fUserGuid := BloUserRead.Id;
+        end;
+      end
+      else
+        UserEmail := eMail.Text;
+
       Result := ProductConfigService.AddEditPracUser(fUserGuid,
-                                                     eMail.Text,
+                                                     UserEmail,
                                                      eFullName.Text,
                                                      GetCurrentCode,
                                                      cmbUserType.ItemIndex,
                                                      fIsCreateUser,
-                                                     chkUsePracPassInOnline.Checked,
+                                                     true,
                                                      ePass.Text);
+
       if Result then
       begin
         if IsCreateUser then
@@ -552,6 +678,7 @@ procedure TdlgEditUser.chkCanAccessBankLinkOnlineClick(Sender: TObject);
 var
   MsgCreateorUpdate : String;
   MsgAddorUpdate    : String;
+  Practice          : TBloPracticeRead;
 begin
   If formLoaded Then
   begin
@@ -584,23 +711,13 @@ begin
         DLG_YES Then
       begin
         chkCanAccessBankLinkOnline.Checked := Not chkCanAccessBankLinkOnline.Checked;
-      End;
+      end;
     End;
-  End; { formLoaded };
 
-  if chkCanAccessBankLinkOnline.Checked then
-  begin
-    lblPasswordValidation.Caption  := '(8-12 characters, including at least 1 digit)';
-    chkUsePracPassInOnline.Visible := True;
-    chkUsePracPassInOnline.Checked := formLoaded;
-    lblPrimaryContact.Visible      := fIsPrimaryUser;
-  end
-  else
-  begin
-    lblPasswordValidation.Caption  := '(Maximum 12 characters)';
-    chkUsePracPassInOnline.Visible := False;
-    lblPrimaryContact.Visible      := False;
-  end;
+    Practice := ProductConfigService.GetPractice;
+    SetOnlineUIMode(fUIMode, Practice);
+    OnlineControlSetup(fUIMode);
+  End; { formLoaded };
 end;
 
 //------------------------------------------------------------------------------
@@ -724,6 +841,18 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+procedure TdlgEditUser.radCreateNewOnlineUserClick(Sender: TObject);
+begin
+  cmbLinkExistingOnlineUser.enabled := false;
+end;
+
+//------------------------------------------------------------------------------
+procedure TdlgEditUser.radLinkExistingOnlineUserClick(Sender: TObject);
+begin
+  cmbLinkExistingOnlineUser.enabled := true;
+end;
+
+//------------------------------------------------------------------------------
 procedure TdlgEditUser.rbAllFilesClick(Sender: TObject);
 begin
   pnlSelected.Visible := rbSelectedFiles.Checked;
@@ -789,9 +918,13 @@ Const
 Var
   i : Integer;
   NewLVItem : TListItem;
-  Prac : TBloPracticeRead;
+  Practice : TBloPracticeRead;
 begin { TdlgEditUser.Execute }
   lvFiles.Items.Clear;
+
+  if (UseBankLinkOnline or
+      (Assigned(User) and User.usAllow_Banklink_Online)) then
+    Practice := ProductConfigService.GetPractice(true);
 
   if Assigned(User) then
   begin
@@ -845,8 +978,6 @@ begin { TdlgEditUser.Execute }
     cbSuppressHeaderFooter.Checked := (User.usSuppress_HF = shfChecked);
     chkShowPracticeLogo.Checked := User.usShow_Practice_Logo;
     chkCanAccessBankLinkOnline.Checked := User.usAllow_Banklink_Online;
-    chkUsePracPassInOnline.Checked := User.usUse_Practice_Password_Online
-                                  and User.usAllow_Banklink_Online;
 
     if User.usAllow_Banklink_Online then
     begin
@@ -855,12 +986,11 @@ begin { TdlgEditUser.Execute }
       Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Connecting', 10);
 
       try
-        Prac := ProductConfigService.GetPractice(true);
         if ProductConfigService.Online then
         begin
           Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Sending Data to ' + BANKLINK_ONLINE_NAME, 50);
-          UserGuid := ProductConfigService.GetPracUserGuid(User.usCode, Prac);
-          fIsPrimaryUser := ProductConfigService.IsPrimPracUser(User.usCode, Prac);
+          UserGuid := ProductConfigService.GetPracUserGuid(User.usCode, Practice);
+          fIsPrimaryUser := ProductConfigService.IsPrimPracUser(User.usCode, Practice);
           Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finnished', 100);
         end
         else
@@ -905,11 +1035,18 @@ begin { TdlgEditUser.Execute }
     rbAllFiles.Checked := true;
     chkCanAccessBankLinkOnline.Checked := false;
     UserGuid := '';
-    chkUsePracPassInOnline.Checked := false;
   end { not (Assigned(User)) };
 
   StoreOldValues;
-  OnlineControlSetup;
+
+  // Checks what User View to show
+  // is the view online?
+  if (UseBankLinkOnline or chkCanAccessBankLinkOnline.Checked) then
+    SetOnlineUIMode(fUIMode, Practice)
+  else
+    fUIMode := uimBasic;
+
+  OnlineControlSetup(fUIMode);
 
   pnlSelected.Visible := rbSelectedFiles.Checked;
   rbAllFiles.Enabled := (cmbUserType.ItemIndex <> ustRestricted);
@@ -988,9 +1125,6 @@ begin { EditUser }
 
           pu.usShow_Practice_Logo := chkShowPracticeLogo.Checked;
           pu.usAllow_Banklink_Online := chkCanAccessBankLinkOnline.Checked;
-
-          pu.usUse_Practice_Password_Online := chkUsePracPassInOnline.Checked
-                                           and chkCanAccessBankLinkOnline.Enabled;
 
           case cmbUserType.ItemIndex of
             ustRestricted :
@@ -1130,8 +1264,6 @@ begin { AddUser }
 
           pu.usShow_Practice_Logo := chkShowPracticeLogo.Checked;
           pu.usAllow_Banklink_Online := chkCanAccessBankLinkOnline.Checked;
-          pu.usUse_Practice_Password_Online := chkUsePracPassInOnline.Checked
-                                     and chkCanAccessBankLinkOnline.Enabled;
 
           case cmbUserType.ItemIndex of
            ustRestricted :
