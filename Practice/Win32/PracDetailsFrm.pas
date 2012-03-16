@@ -136,8 +136,9 @@ type
     var Result: Integer);
     procedure actSelectAllProductsExecute(Sender: TObject);
     procedure actClearAllProductsExecute(Sender: TObject);
-    procedure tsBankLinkOnlineShow(Sender: TObject);
     procedure tbsDetailsShow(Sender: TObject);
+    procedure PageControl1Change(Sender: TObject);
+    procedure PageControl1Changing(Sender: TObject; var AllowChange: Boolean);
   private
     { Private declarations }
     okPressed : boolean;
@@ -145,6 +146,7 @@ type
     ChangingDiskID : boolean;
     InSetup: Boolean;
     FPrac: TBloPracticeRead;
+    FPreviousPage: integer;
     FOnlineSettingsChanged: Boolean;
     procedure SetUpHelp;
     function AddTreeNode(AVST: TCustomVirtualStringTree; ANode:
@@ -167,6 +169,9 @@ type
     tdCaption: widestring;
     tdObject: TObject;
   end;
+
+  { "http://www.banklinkonline.com/2011/11/Blopi"[GblSmpl] }
+  Status = (Active, Suspended, Deactivated);
 
   //----------------------------------------------------------------------
   function EditPracticeDetails (SelPracticeMan: Boolean = False): boolean;
@@ -201,7 +206,8 @@ uses
   AuditMgr,
   RequestRegFrm,
   ServiceAgreementDlg,
-  UpdateMF;
+  UpdateMF,
+  commctrl;
 
 const
   UnitName = 'PRACDETAILSFRM';
@@ -230,6 +236,8 @@ begin
 
   btnSuperLoadFolder.Glyph := btnLoadFolder.Glyph;
   ImagesFrm.AppImages.Misc.GetBitmap(MISC_FINDFOLDER_BMP,btnSuperSaveFolder.Glyph);
+
+  FPreviousPage := 0;
 end;
 
 //------------------------------------------------------------------------------
@@ -1123,6 +1131,20 @@ begin
   end;
 end;
 
+procedure TfrmPracticeDetails.PageControl1Change(Sender: TObject);
+begin
+  if (PageControl1.ActivePage = tsBankLinkOnline) then
+    if not ProductConfigService.IsPracticeActive then // Brings up the suspended/deactivated message (if not active)
+      if (ProductConfigService.IsPracticeDeactivated) then
+        PageControl1.ActivePageIndex := FPreviousPage;
+end;
+
+procedure TfrmPracticeDetails.PageControl1Changing(Sender: TObject;
+  var AllowChange: Boolean);
+begin
+  FPreviousPage := PageControl1.ActivePageIndex;
+end;
+
 //------------------------------------------------------------------------------
 procedure TfrmPracticeDetails.actClearAllProductsExecute(Sender: TObject);
 begin
@@ -1284,12 +1306,6 @@ begin
       Result := 1;
   end else // both are of same type (folder or file)
     Result := CompareText(Data1.tdCaption, Data2.tdCaption);
-end;
-
-//------------------------------------------------------------------------------
-procedure TfrmPracticeDetails.tsBankLinkOnlineShow(Sender: TObject);
-begin
-  ProductConfigService.IsPracticeActive;
 end;
 
 //------------------------------------------------------------------------------

@@ -47,8 +47,10 @@ object frmPracticeDetails: TfrmPracticeDetails
     Top = 8
     Width = 617
     Height = 387
-    ActivePage = tbsInterfaces
+    ActivePage = tsBankLinkOnline
     TabOrder = 0
+    OnChange = PageControl1Change
+    OnChanging = PageControl1Changing
     object tbsDetails: TTabSheet
       Caption = 'Details'
       OnShow = tbsDetailsShow
@@ -588,11 +590,6 @@ object frmPracticeDetails: TfrmPracticeDetails
     object tsBankLinkOnline: TTabSheet
       Caption = 'BankLink Online'
       ImageIndex = 4
-      OnShow = tsBankLinkOnlineShow
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object lblURL: TLabel
         Left = 16
         Top = 51
@@ -642,7 +639,7 @@ object frmPracticeDetails: TfrmPracticeDetails
         Width = 249
         Height = 21
         Style = csDropDownList
-        ItemHeight = 0
+        ItemHeight = 13
         TabOrder = 2
         OnClick = cbPrimaryContactClick
       end
