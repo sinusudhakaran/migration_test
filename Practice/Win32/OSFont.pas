@@ -61,7 +61,9 @@ end;
 //------------------------------------------------------------------------------
 function TForm.ShowModal: Integer;
 begin
-  PopupParent := Application.MainForm;
+  // This created too many problems with forms doing work before Showmodal and then
+  // all the object being cleared
+  //PopupParent := Application.MainForm;
 
   Result := inherited ShowModal;
 end;

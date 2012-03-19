@@ -919,6 +919,7 @@ Var
   i : Integer;
   NewLVItem : TListItem;
   Practice : TBloPracticeRead;
+  pCF : pClient_File_Rec;
 begin { TdlgEditUser.Execute }
   lvFiles.Items.Clear;
 
@@ -946,17 +947,16 @@ begin { TdlgEditUser.Execute }
       //load selected files into list view
       lvFiles.Items.BeginUpdate;
       try
-        With AdminSystem.fdSystem_Client_File_List do
+        For i := 0 to AdminSystem.fdSystem_Client_File_List.ItemCount-1 do
         begin
-          For i := 0 to Pred( ItemCount ) do With AdminSystem.fdSystem_Client_File_List.Client_File_At( i )^ do
+          pCF := AdminSystem.fdSystem_Client_File_List.Client_File_At( i );
+
+          If AdminSystem.fdSystem_File_Access_List.Allow_Access( User^.usLRN, pCF^.cfLRN ) then
           begin
-            If AdminSystem.fdSystem_File_Access_List.Allow_Access( User^.usLRN, cfLRN ) then
-            begin
-              NewLVItem := lvFiles.Items.Add;
-              NewLVItem.caption := cfFile_Code;
-              NewLVItem.SubItems.AddObject( cfFile_Name, Pointer( cfLRN ));
-              NewLVItem.ImageIndex := 0;
-            end;
+            NewLVItem := lvFiles.Items.Add;
+            NewLVItem.caption := pCF^.cfFile_Code;
+            NewLVItem.SubItems.AddObject( pCF^.cfFile_Name, Pointer( pCF^.cfLRN ));
+            NewLVItem.ImageIndex := 0;
           end;
         end;
       finally
