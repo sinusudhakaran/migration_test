@@ -1579,7 +1579,7 @@ var lFile: TStringList;
     InItem: TFileItem;
     OutItem: TOutitem;
     R,C: Integer;
-    TestBool: Boolean;
+    HeaderLine: Boolean;
     AmountColumnCount: Integer;
 
     procedure TryDate(Column: Integer);
@@ -1692,19 +1692,15 @@ begin
        if not NextLine then
           Exit; // Nothing found..
 
-       TestBool := True;
+       HeaderLine := True;
        for C := 0 to lLine.Count - 1 do begin
-          {if not (LLine[C] > ' ') then begin
-             TestBool := False;
-             Break;
-          end else }
           if not IsAlphaOnly(LLine[C]) then
           if IsNumericOnly(LLine[C]) then begin
-             TestBool := False;
+             HeaderLine := False;
              Break;
           end;
        end;
-       if TestBool then begin
+       if HeaderLine then begin
           // All Text, Must be header (No valid amount Or Date)
           CHFirstLine.Checked := True;
           CHFirstLine.Enabled := False;
@@ -1810,7 +1806,6 @@ begin
    end;
 end;
 
-
 procedure TImportHist.ReloadTimerTimer(Sender: TObject);
 begin
    if FInSetup then
@@ -1826,7 +1821,7 @@ var R: Integer;
 begin
    for R := 0 to fOutlist.Count - 1 do
       MatchOutItem(R);
-   NeedMatch := False;   
+   NeedMatch := False;
 end;
 
 procedure TImportHist.SkipLineChange(Sender: TObject);
