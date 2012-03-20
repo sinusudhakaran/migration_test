@@ -315,8 +315,13 @@ begin
     if UseBankLinkOnline then begin
       lblClientBOProducts.Visible := ClientSynced;
       PracticeIsActive := ProductConfigService.IsPracticeActive(false);
-      btnClientSettings.Enabled := ClientSynced and FEnableClientSettings and PracticeIsActive;
-      lblClientBOProducts.Visible := ClientSynced;
+      btnClientSettings.Enabled := ClientSynced and
+                                   FEnableClientSettings and
+                                   PracticeIsActive and
+                                   CurrUser.CanAccessAdmin;
+
+      lblClientBOProducts.Visible := ClientSynced and
+                                     CurrUser.CanAccessAdmin;
       //Get client list (so that we can lookup the client code)
       ProductConfigService.LoadClientList;
       //Get client details (need this to fill out lblClientBOProducts.Caption)
