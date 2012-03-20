@@ -161,7 +161,7 @@ type
     function GetClientDetailsWithCode(AClientCode: string): TBloClientReadDetail;
     function GetClientDetailsWithGUID(AClientGuid: Guid): TBloClientReadDetail;
     function CreateNewClient(ANewClient: TBloClientCreate): Guid;
-    function SaveClient(AClient: TBloClientReadDetail; TempEmail: string = ''): Boolean;
+    function SaveClient(AClient: TBloClientReadDetail): Boolean;
     property Clients: ClientList read FClientList;
     //User methods
     function GetUnLinkedOnlineUsers(aPractice : TBloPracticeRead = nil) : TBloArrayOfUserRead;
@@ -1372,7 +1372,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TProductConfigService.SaveClient(AClient: TBloClientReadDetail; TempEmail: string = ''): Boolean;
+function TProductConfigService.SaveClient(AClient: TBloClientReadDetail): Boolean;
 var
   i: integer;
   Msg: string;
@@ -1432,9 +1432,7 @@ begin
             MyUserCreate := TBloUserCreate.Create;
             try
               MyUserCreate.FullName := MyUserRead.FullName;
-              // MyUserCreate.EMail    := MyUserRead.EMail;
-              if (TempEmail <> '') then
-                MyUserCreate.EMail    := TempEmail;
+              MyUserCreate.EMail    := MyUserRead.EMail;
               MyUserCreate.AddRoleName('Client Administrator');
               MyUserCreate.UserCode := AClient.ClientCode;
               SetLength(BlankSubscription, 0);

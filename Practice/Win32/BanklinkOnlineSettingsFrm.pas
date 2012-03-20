@@ -97,6 +97,10 @@ var
 function EditBanklinkOnlineSettings(TickNotesOnline: boolean): boolean;
 var
   BanklinkOnlineSettings: TfrmBanklinkOnlineSettings;
+  i: integer;
+  NotesOnlineTicked: boolean;
+  CatName: string;
+
 const
   ThisMethodName = 'EditBanklinkOnlineSettings';
 begin
@@ -126,6 +130,13 @@ begin
       MyClient.RefreshBlopiClient;
     end;
   end;
+  { else
+  if Assigned(MyClient.BlopiClientNew) then
+  begin
+    MyClient.CopyPracticeClientNew;
+    ProductConfigService.CreateNewClient(MyClient.BlopiClientNew);
+  end;
+  }
 
   if not (Assigned(MyClient.BlopiClientNew) or Assigned(MyClient.BlopiClientDetail)) then
   begin
@@ -135,13 +146,43 @@ begin
   if Assigned(MyClient.BlopiClientNew) or Assigned(MyClient.BlopiClientDetail) then begin
     BanklinkOnlineSettings := TfrmBanklinkOnlineSettings.Create(Application.MainForm);
     try
+      // Checking if Notes Online was ticked, if it isn't then the web export format shouldn't be Notes Online
       Result := BanklinkOnlineSettings.Execute(TickNotesOnline);
       if Result then
       begin
         ProductConfigService.LoadClientList;
-
-        //Update access
-        // BanklinkOnlineSettings.SaveClientInfo;
+        NotesOnlineTicked := false;
+        if Assigned(MyClient.BlopiClientNew) then
+        begin
+          for i := 0 to High(MyClient.BlopiClientNew.Subscription) do
+          begin
+            CatName := ProductConfigService.GetCatalogueEntry(MyClient.BlopiClientNew.Subscription[i]).Description;
+            if (CatName = 'BankLink Notes Online') or (CatName = 'Notes Online') then
+            begin
+              NotesOnlineTicked := true;
+              break;
+            end;
+          end;
+        end else
+        if Assigned(MyClient.BlopiClientDetail) then
+        begin
+          for i := 0 to High(MyClient.BlopiClientDetail.Subscription) do
+          begin
+            CatName := ProductConfigService.GetCatalogueEntry(MyClient.BlopiClientDetail.Subscription[i]).Description;
+            if (CatName = 'BankLink Notes Online') or (CatName = 'Notes Online') then
+            begin
+              NotesOnlineTicked := true;
+              break;
+            end;
+          end;
+        end;
+        if (MyClient.clFields.clWeb_Export_Format = wfWebNotes) and not NotesOnlineTicked then
+          MyClient.clFields.clWeb_Export_Format := wfNone;
+      end else
+      begin
+        // Cancel was pressed
+        if (MyClient.clFields.clWeb_Export_Format = wfWebNotes) then
+          MyClient.clFields.clWeb_Export_Format := wfNone;
       end;
     finally
       BanklinkOnlineSettings.Free;
@@ -581,13 +622,9 @@ begin
       end;
     end;
 
-    MyClient.BlopiClientDetail.UpdateAdminUser(edtUserName.Text,
-                                               edtEmailAddress.Text);
-
+    MyClient.BlopiClientDetail.UpdateAdminUser(edtUserName.Text, edtEmailAddress.Text);
     if Assigned(MyClient.BlopiClientDetail.Users) then
-      // Temporarily passing in the email address while waiting for a change request to go through, as
-      // BlopiInterface.CreateClientUser requires the user to have one
-      ProductConfigService.SaveClient(MyClient.BlopiClientDetail, edtEmailAddress.Text);
+      ProductConfigService.SaveClient(MyClient.BlopiClientDetail);
   end;
 
   // New Client
@@ -608,6 +645,7 @@ begin
         MyClient.BlopiClientNew.AddSubscription(CatEntry.id);
       end;
     end;
+    ProductConfigService.CreateNewClient(MyClient.BlopiClientNew);
 
     LogUtil.LogMsg(lmInfo, UnitName, 'The new client has been successfully added ' +
                                      'to BankLink Online.');
