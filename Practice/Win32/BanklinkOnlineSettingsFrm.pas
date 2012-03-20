@@ -90,9 +90,6 @@ uses
 const
   UnitName = 'BanklinkOnlineSettingsFrm';
 
-var
-  BanklinkOnlineConnected : boolean = true;
-
 //------------------------------------------------------------------------------
 function EditBanklinkOnlineSettings(TickNotesOnline: boolean): boolean;
 var
@@ -221,7 +218,7 @@ begin
     Exit;
   end;
 
-  if not BanklinkOnlineConnected then
+  if not ProductConfigService.OnLine then
   begin
     ErrorMsg := 'Banklink Practice is unable to connect to Banklink Online and so ' +
                 'cannot update this client''s settings';

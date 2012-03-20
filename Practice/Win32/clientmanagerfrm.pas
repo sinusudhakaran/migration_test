@@ -2055,6 +2055,11 @@ begin
     ClientID := '';
     if UseBankLinkOnline then
     begin
+      if not ProductConfigService.OnLine then
+      begin
+        ShowMessage('BankLink Practice is unable to connect to BankLink Online');
+        Exit;
+      end;
       ProductConfigService.LoadClientList;
 
       if not ProductConfigService.Online then

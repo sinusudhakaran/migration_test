@@ -214,7 +214,6 @@ const
 
 var
   DebugMe : boolean = false;
-  BanklinkOnlineConnected : boolean = true;
 
 //------------------------------------------------------------------------------
 procedure TfrmPracticeDetails.FormCreate(Sender: TObject);

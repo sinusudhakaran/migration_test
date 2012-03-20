@@ -207,8 +207,6 @@ uses
 const
    Unitname = 'ClientDetailsFrm';
    lnone = '<none>';
-var
-   BanklinkOnlineConnected : boolean = true;
 
 //------------------------------------------------------------------------------
 procedure TfrmClientDetails.FormCreate(Sender: TObject);
