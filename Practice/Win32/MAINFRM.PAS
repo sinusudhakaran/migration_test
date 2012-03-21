@@ -2420,7 +2420,7 @@ procedure TfrmMain.DoAccountingSystem;
 var
   AutoRefreshDone : Boolean;
 begin
-   EditAccountingSystem(AutoRefreshDone, BKH_Direct_link_to_the_main_accounting_system);
+   EditAccountingSystem(Self, AutoRefreshDone, BKH_Direct_link_to_the_main_accounting_system);
    SendCmdToAllCodingWindows( ecRecodeTrans);
    SendCmdToAllCodingWindows( ecUpdatePopups);
 end;

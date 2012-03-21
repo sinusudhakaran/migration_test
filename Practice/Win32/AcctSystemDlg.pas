@@ -98,7 +98,7 @@ type
     function Execute(var AutoRefreshDone : Boolean) : boolean;
   end;
 
-function EditAccountingSystem(var AutoRefreshDone : Boolean; ContextID : Integer) : boolean;
+function EditAccountingSystem(w_PopupParent: TForm; var AutoRefreshDone : Boolean; ContextID : Integer) : boolean;
 
 //------------------------------------------------------------------------------
 implementation
@@ -671,12 +671,15 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function EditAccountingSystem(var AutoRefreshDone: Boolean; ContextID : Integer) : boolean;
+function EditAccountingSystem(w_PopupParent: TForm; var AutoRefreshDone: Boolean; ContextID : Integer) : boolean;
 var
    Mydlg : TdlgAcctSystem;
 begin
    MyDlg := TdlgAcctSystem.Create(Application.MainForm);
    try
+     MyDlg.PopupParent := w_PopupParent;
+     MyDlg.PopupMode := pmExplicit;
+     
       BKHelpSetUp(MyDlg, ContextID);
       result := MyDlg.Execute(AutoRefreshDone);
       AutoRefreshDone := MyDlg.AutoRefreshFlag;

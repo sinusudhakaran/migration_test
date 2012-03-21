@@ -439,7 +439,7 @@ begin
             end;
          end;
          opAccountSys : begin
-            if EditAccountingSystem(AutoRefreshDone, BKH_Step_2_Accounting_System) then begin
+            if EditAccountingSystem(Self, AutoRefreshDone, BKH_Step_2_Accounting_System) then begin
                Option[ opAccountSys ].Complete := True;
                if (AutoRefreshDone) then
                  Option[ opChart ].Complete := True;
