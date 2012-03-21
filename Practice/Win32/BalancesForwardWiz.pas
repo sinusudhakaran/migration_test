@@ -491,7 +491,7 @@ end;
 procedure TwizBalancesForward.Button1Click(Sender: TObject);
 begin
   ThisClient.clFields.clReporting_Year_Starts := ThisClient.clFields.clLast_Financial_Year_Start;
-  TrialBalanceOptionsDlg.UpdateTrialBalanceReportOptions(Self, ThisClient);
+  TrialBalanceOptionsDlg.UpdateTrialBalanceReportOptions(ThisClient);
 end;
 
 procedure TwizBalancesForward.Button2Click(Sender: TObject);
