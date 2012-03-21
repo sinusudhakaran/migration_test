@@ -55,7 +55,7 @@ type
   end;
 
   //-----------------------------------------
-  function MaintainUsers : boolean;
+  function MaintainUsers(w_PopupParent: TForm) : boolean;
 
 //------------------------------------------------------------------------------
 implementation
@@ -531,7 +531,7 @@ begin
     p := pUser_Rec(lvUsers.Selected.SubItems.Objects[0]);
     WasCaption := p^.usCode;
 
-    EditUser(p^.usCode);
+    EditUser(Self, p^.usCode);
     RefreshUserList;  {must reload because the admin object was freed and recreated}
     lvUsers.Selected := lvUsers.FindCaption(0,WasCaption,false,false,true);
   end;
@@ -568,12 +568,12 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmMaintainUsers.tbNewClick(Sender: TObject);
 begin
-  if AddUser then
+  if AddUser(Self) then
     RefreshUserList;
 end;
 
 //------------------------------------------------------------------------------
-function MaintainUsers : boolean;
+function MaintainUsers(w_PopupParent: TForm) : boolean;
 var
   MyDlg : TfrmMaintainUsers;
 begin
@@ -584,6 +584,9 @@ begin
 
   MyDlg := TfrmMaintainUsers.Create(Application.mainForm);
   try
+    MyDlg.PopupParent := w_PopupParent;
+    MyDlg.PopupMode := pmExplicit;
+    
     BKHelpSetUp(MyDlg, BKH_Setting_up_BankLink_users);
     MyDlg.Execute;
   finally

@@ -2535,7 +2535,7 @@ end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmMain.mniSystemUsersClick(Sender: TObject);
 begin
-  MaintainUsers;
+  MaintainUsers(Self);
 
   RefreshUserControls;
 

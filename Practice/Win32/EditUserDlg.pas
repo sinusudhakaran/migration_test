@@ -149,8 +149,8 @@ Type
     property IsCreateUser : boolean read fIsCreateUser write fIsCreateUser;
   End;
 
-Function EditUser(User_Code: String) : boolean;
-Function AddUser : boolean;
+Function EditUser(w_PopupParent: TForm; User_Code: String) : boolean;
+Function AddUser(w_PopupParent: TForm) : boolean;
 
 //------------------------------------------------------------------------------
 implementation
@@ -1057,7 +1057,7 @@ begin { TdlgEditUser.Execute }
 End; { TdlgEditUser.Execute }
 
 //------------------------------------------------------------------------------
-Function EditUser(User_Code: String) : boolean;
+Function EditUser(w_PopupParent: TForm; User_Code: String) : boolean;
 const
   ThisMethodName = 'EditUser';
 Var
@@ -1080,6 +1080,9 @@ begin { EditUser }
 
   MyDlg := TdlgEditUser.Create(Application);
   Try
+    MyDlg.PopupParent := w_PopupParent;
+    MyDlg.PopupMode := pmExplicit;
+    
     MyDlg.IsCreateUser := False;
 
     BKHelpSetUp(MyDlg, BKH_Adding_and_maintaining_users);
@@ -1220,7 +1223,7 @@ begin { EditUser }
 End; { EditUser }
 
 //------------------------------------------------------------------------------
-Function AddUser : boolean;
+Function AddUser(w_PopupParent: TForm) : boolean;
 const
   ThisMethodName = 'AddUser';
 Var
@@ -1233,6 +1236,9 @@ begin { AddUser }
 
   MyDlg := TdlgEditUser.Create(Application);
   Try
+    MyDlg.PopupParent := w_PopupParent;
+    MyDlg.PopupMode := pmExplicit;
+    
     MyDlg.IsCreateUser := True;
     BKHelpSetUp(MyDlg, BKH_Adding_and_maintaining_users);
     If MyDlg.Execute(Nil) Then
