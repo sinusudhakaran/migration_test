@@ -69,7 +69,7 @@ type
     property Status : TBloStatus read GetStatus write SetStatus;
   end;
 
-  function EditBanklinkOnlineSettings(TickNotesOnline: boolean): boolean;
+  function EditBanklinkOnlineSettings(w_PopupParent: TForm; TickNotesOnline: boolean): boolean;
 
 //------------------------------------------------------------------------------
 implementation
@@ -91,7 +91,7 @@ const
   UnitName = 'BanklinkOnlineSettingsFrm';
 
 //------------------------------------------------------------------------------
-function EditBanklinkOnlineSettings(TickNotesOnline: boolean): boolean;
+function EditBanklinkOnlineSettings(w_PopupParent: TForm; TickNotesOnline: boolean): boolean;
 var
   BanklinkOnlineSettings: TfrmBanklinkOnlineSettings;
   i: integer;
@@ -143,6 +143,9 @@ begin
   if Assigned(MyClient.BlopiClientNew) or Assigned(MyClient.BlopiClientDetail) then begin
     BanklinkOnlineSettings := TfrmBanklinkOnlineSettings.Create(Application.MainForm);
     try
+      BanklinkOnlineSettings.PopupParent := w_PopupParent;
+      BanklinkOnlineSettings.PopupMode := pmExplicit;
+      
       // Checking if Notes Online was ticked, if it isn't then the web export format shouldn't be Notes Online
       Result := BanklinkOnlineSettings.Execute(TickNotesOnline);
       if Result then
