@@ -805,10 +805,12 @@ begin
   lblCannotConnect.Visible := imgCannotConnect.Visible;
   if not BOOnline then
     lblCannotConnect.Caption := 'Cannot connect to Banklink Online'
-  else if not PracticeOnline then
+  else if (ProductConfigService.OnlineStatus = staDeactivated) then
     lblCannotConnect.Caption := 'BankLink Online is currently deactivated. Please ' +
-                                'contact BankLink Support for further assistance';
-
+                                'contact BankLink Support for further assistance'
+  else if (ProductConfigService.OnlineStatus = staSuspended) then
+    lblCannotConnect.Caption := 'BankLink Online is currently in suspended (read-only) ' +
+                                'mode. Please contact BankLink Support for further assistance';
 end;
 
 //------------------------------------------------------------------------------
