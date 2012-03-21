@@ -62,7 +62,7 @@ type
   end;
 
 
-function CreateClient(DoBankAccounts : boolean; ProspectCode: string = ''): boolean;
+function CreateClient(w_PopupParent: TForm; DoBankAccounts : boolean; ProspectCode: string = ''): boolean;
 
 //******************************************************************************
 implementation
@@ -142,7 +142,7 @@ var
 
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function CreateClient (DoBankAccounts : boolean; ProspectCode: string = ''): boolean;
+function CreateClient (w_PopupParent: TForm; DoBankAccounts : boolean; ProspectCode: string = ''): boolean;
 // Note - This is not a Form Method
 var
   pRec: pClient_File_Rec;
@@ -162,6 +162,9 @@ begin
 
   with TWizNewClient.Create(Application.mainForm) do begin
      try
+       PopupParent := w_PopupParent;
+       PopupMode := pmExplicit;
+       
         PCode := ProspectCode;
         IncBankAccounts := DoBankAccounts;
         // Bank Accounts button available, not avail if entered thru Start New Month...
@@ -170,7 +173,7 @@ begin
         Result := ( ModalResult = mrOK );
         if Result then begin
            if (MyClient.clFields.clWeb_Export_Format = wfWebNotes) then
-             EditBanklinkOnlineSettings(true);
+             EditBanklinkOnlineSettings(w_PopupParent, true);
            LogUtil.LogMsg( lmInfo, UnitName, 'CreateClient: ' + MyClient.clFields.clCode);
            if ProspectCode <> '' then
            begin
@@ -426,13 +429,13 @@ begin
                    clClient_Type_LRN := pRec^.cfClient_Type_LRN;
                  end;
                end;
-               if NewClientDetails(FPCode, false) then begin
+               if NewClientDetails(Self, FPCode, false) then begin
                   Option[ opNewClient ].Complete := True;
                end;
             end
             else begin
                // Edit existing New Client Details
-               NewClientDetails(FPCode, false);
+               NewClientDetails(Self, FPCode, false);
             end;
          end;
          opAccountSys : begin

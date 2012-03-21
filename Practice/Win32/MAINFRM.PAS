@@ -4321,7 +4321,7 @@ begin
                           CloseClientHomePage;
                           FormResize(Self);
                          end;
-        mf_mcNewFile : CreateClient(true);
+        mf_mcNewFile : CreateClient(Self, true);
         mf_mcOpenFromMRU : DoOpenFromMRU( Sender);
         mf_mcSave : SaveClient(false);
         mf_mcSaveAs : SaveAs;
