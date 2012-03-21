@@ -171,7 +171,7 @@ type
   end;
 
   function EditClientDetails (w_PopupParent: TForm; ViewNotes : Boolean = False) : boolean;
-  function NewClientDetails(PCode: string = ''; EnableClientSettings: boolean = true) : boolean;
+  function NewClientDetails(w_PopupParent: TForm; PCode: string = ''; EnableClientSettings: boolean = true) : boolean;
 
 //------------------------------------------------------------------------------
 implementation
@@ -465,7 +465,7 @@ begin
   // Details' is ticked
   MyClient.clFields.clContact_name := econtact.text;
   MyClient.clFields.clClient_EMail_Address := eMail.text;
-  if EditBanklinkOnlineSettings(false) then begin
+  if EditBanklinkOnlineSettings(Self, false) then begin
     MyClient.BlopiClientChanged := True;
     UpdateProductsLabel;
   end;
@@ -1167,7 +1167,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function NewClientDetails(PCode: string = ''; EnableClientSettings: boolean = true) : boolean;
+function NewClientDetails(w_PopupParent: TForm; PCode: string = ''; EnableClientSettings: boolean = true) : boolean;
 var
   ClientDetails : TfrmClientDetails;
 begin
@@ -1178,6 +1178,9 @@ begin
    with ClientDetails do
    begin
      try
+        PopupParent := w_PopupParent;
+        PopupMode := pmExplicit;
+
         FEnableClientSettings := EnableClientSettings;
         btnClientSettings.Enabled := FEnableClientSettings;
         BKHelpSetUp(ClientDetails, BKH_Step_1_Client_Details);
