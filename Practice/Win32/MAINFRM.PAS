@@ -4416,7 +4416,7 @@ begin
                  ResetAutoSave;
         end;
         mf_mcTrialBalance : begin
-             TrialBalanceOptionsDlg.UpdateTrialBalanceReportOptions( MyClient);
+             TrialBalanceOptionsDlg.UpdateTrialBalanceReportOptions(Self, MyClient);
         end;
         mf_mcViewCashJournals : ViewJournals(btCashJournals);
         mf_mcViewAccrualJournals : ViewJournals(btAccrualJournals);
