@@ -340,7 +340,7 @@ type
 //------------------------------------------------------------------------------
 function DoClientManager(L, T, H, W: Integer) : boolean;
 procedure CloseClientManager(ProcessMessage: Boolean = True);
-function DoGlobalClientSetup(L, T, H, W: Integer) : boolean;
+function DoGlobalClientSetup(w_PopupParent: TForm; L, T, H, W: Integer) : boolean;
 procedure RefreshClientManager(Code: string = ''; restore: Boolean = True);
 procedure DisableClientManager;
 procedure EnableClientManager;
@@ -1000,7 +1000,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function DoGlobalClientSetup(L, T, H, W: Integer) : boolean;
+function DoGlobalClientSetup(w_PopupParent: TForm; L, T, H, W: Integer) : boolean;
 var
   ClientManager : TfrmClientManager;
   i, NumColumns: Integer;
@@ -1013,7 +1013,10 @@ begin
   ClientManager := TfrmClientMaint.Create(Application.MainForm);
   with ClientManager do
   begin
-    try          
+    try
+      PopupParent := w_PopupParent;
+      PopupMode := pmExplicit;
+          
       BKHelpSetUp(ClientManager, BKH_Maintain_Clients);
       //load a snapshot of the admin system
       Admin32.ReloadAdminAndTakeSnapshot( ClientLookup.AdminSnapshot);
