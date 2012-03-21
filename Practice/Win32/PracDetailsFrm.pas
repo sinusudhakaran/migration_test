@@ -1133,14 +1133,15 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmPracticeDetails.PageControl1Change(Sender: TObject);
 begin
-  if (PageControl1.ActivePage = tsBankLinkOnline) then
-    if not ProductConfigService.IsPracticeActive then // Brings up the suspended/deactivated message (if not active)
-      if (ProductConfigService.IsPracticeDeactivated) then
-        PageControl1.ActivePageIndex := FPreviousPage;
+  if (PageControl1.ActivePage = tsBankLinkOnline) and
+     (ProductConfigService.IsPracticeDeactivated) then
+    PageControl1.ActivePageIndex := FPreviousPage;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmPracticeDetails.PageControl1Changing(Sender: TObject;
   var AllowChange: Boolean);
 begin
