@@ -325,12 +325,13 @@ object frmClientManager: TfrmClientManager
           Left = 25
           Top = 2
           Width = 39
-          Height = 13
+          Height = 23
           Margins.Top = 0
           Margins.Bottom = 0
           Align = alLeft
           Caption = 'Legend:'
           Layout = tlCenter
+          ExplicitHeight = 13
         end
         object tbtnClose: TRzToolButton
           Left = 2
@@ -388,6 +389,7 @@ object frmClientManager: TfrmClientManager
         inherited vtClients: TVirtualStringTree
           Width = 845
           Height = 434
+          ExplicitLeft = 4
           ExplicitWidth = 845
           ExplicitHeight = 434
         end
@@ -407,35 +409,41 @@ object frmClientManager: TfrmClientManager
         Left = 632
         Top = 2
         Width = 96
-        Height = 13
+        Height = 18
         Margins.Top = 0
         Margins.Bottom = 0
         Align = alLeft
         Caption = '99999 Clients Listed'
         Layout = tlCenter
         Visible = False
+        ExplicitHeight = 13
       end
       object Label1: TLabel
         AlignWithMargins = True
         Left = 345
         Top = 2
         Width = 33
-        Height = 13
+        Height = 18
         Margins.Left = 9
         Margins.Top = 0
         Margins.Bottom = 0
         Align = alLeft
         Caption = 'Search'
         Layout = tlCenter
+        ExplicitHeight = 13
       end
       object imgCannotConnect: TImage
-        Left = 747
+        AlignWithMargins = True
+        Left = 734
         Top = 6
         Width = 16
-        Height = 16
+        Height = 14
         Hint = 
           'BankLink Practice will not display any BankLink Online related s' +
           'ettings or functions'
+        Margins.Top = 4
+        Margins.Bottom = 0
+        Align = alLeft
         ParentShowHint = False
         Picture.Data = {
           0B546478504E47496D61676589504E470D0A1A0A0000000D4948445200000010
@@ -452,19 +460,28 @@ object frmClientManager: TfrmClientManager
         ShowHint = True
         Transparent = True
         Visible = False
+        ExplicitTop = 4
+        ExplicitHeight = 18
       end
       object lblCannotConnect: TLabel
-        Left = 769
-        Top = 5
+        AlignWithMargins = True
+        Left = 756
+        Top = 2
         Width = 163
-        Height = 13
+        Height = 18
         Hint = 
           'BankLink Practice will not display any BankLink Online related s' +
           'ettings or functions'
+        Margins.Top = 0
+        Margins.Bottom = 0
+        Align = alLeft
         Caption = 'Cannot connect to Banklink Online'
         ParentShowHint = False
         ShowHint = True
+        Layout = tlCenter
         Visible = False
+        ExplicitLeft = 753
+        ExplicitTop = -2
       end
       object cmbFilter: TComboBox
         AlignWithMargins = True
@@ -476,7 +493,7 @@ object frmClientManager: TfrmClientManager
         Margins.Bottom = 0
         Align = alLeft
         Style = csDropDownList
-        ItemHeight = 0
+        ItemHeight = 13
         TabOrder = 0
         OnChange = cmbFilterChange
       end

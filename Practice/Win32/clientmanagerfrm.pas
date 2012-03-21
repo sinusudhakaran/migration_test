@@ -793,6 +793,7 @@ begin
   CheckBOConnectionLocal;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmClientManager.CheckBOConnectionLocal;
 var
   BOOnline, PracticeOnline: boolean;
