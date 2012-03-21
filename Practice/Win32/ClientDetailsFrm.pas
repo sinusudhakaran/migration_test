@@ -170,7 +170,7 @@ type
     function Execute(PCode: string = '') : boolean;
   end;
 
-  function EditClientDetails (ViewNotes : Boolean = False) : boolean;
+  function EditClientDetails (w_PopupParent: TForm; ViewNotes : Boolean = False) : boolean;
   function NewClientDetails(PCode: string = ''; EnableClientSettings: boolean = true) : boolean;
 
 //------------------------------------------------------------------------------
@@ -1137,7 +1137,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function EditClientDetails (ViewNotes : Boolean = False): boolean;
+function EditClientDetails (w_PopupParent: TForm; ViewNotes : Boolean = False): boolean;
 var
   ClientDetails : TfrmClientDetails;
 begin
@@ -1148,6 +1148,10 @@ begin
    with ClientDetails do
    begin
      try
+        //Required for the proper handling of the window z-order so that a modal window does not show-up behind another window
+        PopupParent := w_PopupParent;
+        PopupMode := pmExplicit;
+        
         BKHelpSetUp(ClientDetails, BKH_Editing_client_details);
         CreatingClient := false;
         FViewNotes := ViewNotes;

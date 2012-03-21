@@ -2341,7 +2341,7 @@ var
   OldFinYear : integer;
 begin
   OldFinYear := MyClient.clFields.clFinancial_Year_Starts;
-  if EditClientDetails(ViewNotes) then begin
+  if EditClientDetails(Self, ViewNotes) then begin
     UpdateName;
     // Invalidate, Repaint, Refresh, Update do not work here. No idea why!!?? so this is a hack to force a repaint...
     lblClientName.Top := lblClientName.Top - 1;
