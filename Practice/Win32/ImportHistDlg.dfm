@@ -92,7 +92,7 @@ object ImportHist: TImportHist
         Top = 1
         Width = 1025
         Height = 121
-        ActivePage = TSDate
+        ActivePage = TSAmount
         Align = alTop
         TabOrder = 0
         OnChange = PCFormatChange
@@ -381,6 +381,7 @@ object ImportHist: TImportHist
         Header.Options = [hoColumnResize, hoDrag, hoVisible]
         Header.ParentFont = True
         HintMode = hmHint
+        ParentBackground = False
         ParentShowHint = False
         ShowHint = True
         TabOrder = 0
@@ -540,6 +541,7 @@ object ImportHist: TImportHist
         Header.MainColumn = -1
         Header.Options = [hoAutoResize, hoColumnResize, hoDblClickResize, hoVisible]
         Header.ParentFont = True
+        ParentBackground = False
         TabOrder = 0
         TreeOptions.PaintOptions = [toShowButtons, toShowDropmark, toThemeAware, toUseBlendedImages]
         TreeOptions.SelectionOptions = [toFullRowSelect]

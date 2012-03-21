@@ -1790,10 +1790,11 @@ begin
 
        if RBSign.Enabled then
           RBSign.Checked := true
-       else if RBSingle.Enabled then
-          RBSingle.Checked := true
        else if RBdebitCredit.Enabled then
-          RBdebitCredit.Checked := true;
+          RBdebitCredit.Checked := true     
+       else if RBSingle.Enabled then
+          RBSingle.Checked := true;
+          
        // Apply previous settings
        ApplyDefaults;
    finally
