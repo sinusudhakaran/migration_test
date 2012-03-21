@@ -1575,7 +1575,7 @@ begin
     OpenClient(ClientCode);
     try
       if Assigned(MyClient) then
-        if EditBanklinkOnlineSettings(false) then
+        if EditBanklinkOnlineSettings(Self, false) then
         begin
           MyClient.BlopiClientChanged := True;
 
@@ -2633,7 +2633,7 @@ var
 begin
   if CheckCodeExists(ClientLookup.FirstSelectedCode) then
   begin
-    NewClientWiz.CreateClient( true, ClientLookup.FirstSelectedCode);
+    NewClientWiz.CreateClient(Self, true, ClientLookup.FirstSelectedCode);
     if Assigned( MyClient) then
       NewCode := MyClient.clFields.clCode
     else
