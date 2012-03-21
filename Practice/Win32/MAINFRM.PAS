@@ -2511,7 +2511,7 @@ begin
    LastDiskNum := AdminSystem.fdFields.fdDisk_Sequence_No;
    tmrDataThread.Enabled := False;
    try
-     EditPracticeDetails;
+     EditPracticeDetails(Self);
 
      if Assigned( MyClient) then
        Merge32.SyncClientToAdmin( MyClient, false, false);
@@ -4236,7 +4236,7 @@ end;
 
 procedure TfrmMain.mnsSystemClientsClick(Sender: TObject);
 begin
-  ClientManagerFrm.DoGlobalClientSetup(Self.Left, Self.Top, Self.Height, Self.Width);
+  ClientManagerFrm.DoGlobalClientSetup(Self, Self.Left, Self.Top, Self.Height, Self.Width);
 end;
 
 procedure TfrmMain.DoFileOpen;
@@ -4295,7 +4295,7 @@ procedure TfrmMain.DoMainFormCommand( command: byte; Sender : TObject; Modal: bo
       if AdminSystem.fdFields.fdPractice_Management_System <> xcNA  then
          Exit; // Already set.
       HelpfulInfoMsg( 'A Practice Management system has not been selected.', 0);
-      EditPracticeDetails(True);
+      EditPracticeDetails(Self, True);
 
       Result := (AdminSystem.fdFields.fdPractice_Management_System <> xcNA);
    end;

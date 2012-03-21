@@ -174,7 +174,7 @@ type
   Status = (Active, Suspended, Deactivated);
 
   //----------------------------------------------------------------------
-  function EditPracticeDetails (SelPracticeMan: Boolean = False): boolean;
+  function EditPracticeDetails (w_PopupParent: TForm; SelPracticeMan: Boolean = False): boolean;
 
 //------------------------------------------------------------------------------
 implementation
@@ -800,7 +800,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function EditPracticeDetails(SelPracticeMan: Boolean = False) : boolean;
+function EditPracticeDetails(w_PopupParent: TForm; SelPracticeMan: Boolean = False) : boolean;
 var
   PracticeDetails : TfrmPracticeDetails;
 begin
@@ -812,6 +812,9 @@ begin
   with PracticeDetails do
   begin
     try
+      PopupParent := w_PopupParent;
+      PopupMode := pmExplicit;
+      
       BKHelpSetUp(PracticeDetails, BKH_Practice_details);
       Result := Execute(SelPracticeMan);
     finally
