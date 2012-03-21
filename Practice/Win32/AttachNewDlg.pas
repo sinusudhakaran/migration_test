@@ -393,7 +393,7 @@ var
    SelectItem : TListItem;
    WndHandle : HWND;
 begin
-  if CreateClient(false) then begin
+  if CreateClient(Self, false) then begin
     StoredCode := MyClient.clFields.clCode;
 
     //if we have just created one then we need to close it so we can attach bank accounts
