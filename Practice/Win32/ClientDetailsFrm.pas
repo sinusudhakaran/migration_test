@@ -238,7 +238,7 @@ procedure TfrmClientDetails.FormShow(Sender: TObject);
 var
   i, k : Integer;
   GUID1, GUID2: WideString;
-  ClientSynced, PracticeIsActive: boolean;
+  ClientSynced: boolean;
   MyNewClient: TBloClientCreate;
   MyNewClientGuid: TBloGuid;
   CachedPracticeDetail: TBloPracticeRead;
@@ -314,10 +314,10 @@ begin
 
     if UseBankLinkOnline then begin
       lblClientBOProducts.Visible := ClientSynced;
-      PracticeIsActive := ProductConfigService.IsPracticeActive(false);
+
       btnClientSettings.Enabled := ClientSynced and
                                    FEnableClientSettings and
-                                   PracticeIsActive and
+                                   not (ProductConfigService.OnlineStatus = staDeactivated) and
                                    CurrUser.CanAccessAdmin;
 
       lblClientBOProducts.Visible := ClientSynced and
@@ -330,7 +330,7 @@ begin
       begin
         if not FEnableClientSettings then
           SetProductsCaption('Please save the client to access the Banklink Online settings')
-        else if not PracticeIsActive then
+        else if not (ProductConfigService.OnlineStatus = staActive) then
           case ProductConfigService.OnlineStatus of
             Suspended:   SetProductsCaption('BankLink Online is currently in suspended ' +
                                             '(read-only) mode. Please contact BankLink ' +

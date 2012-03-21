@@ -482,7 +482,7 @@ begin
 
   LoadClientInfo(TickNotesOnline);
 
-  fReadOnly := not ProductConfigService.IsPracticeActive;
+  fReadOnly := ProductConfigService.IsPracticeSuspended;
 
   if fReadOnly then
     SetReadOnly;

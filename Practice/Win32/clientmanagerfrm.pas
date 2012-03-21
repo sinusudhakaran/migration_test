@@ -1170,9 +1170,13 @@ begin
   gbClientmanager.BeginUpdateLayout;
   try
     ClientLookup.GetSelectionTypes(ProspectSelected, ActiveSelected, UnsyncSelected);
-    actBOSettings.Enabled := (AdminSystem.fdFields.fdUse_BankLink_Online and ProductConfigService.OnLine and
-                             (not ProspectSelected) and (not NoClientSelected) and (not UnsyncSelected) and
-                             SingleClientSelected);
+    actBOSettings.Enabled := (AdminSystem.fdFields.fdUse_BankLink_Online and
+                             ProductConfigService.OnLine and
+                             (not ProspectSelected) and
+                             (not NoClientSelected) and
+                             (not UnsyncSelected) and
+                             SingleClientSelected and
+                             not (ProductConfigService.OnlineStatus = staDeactivated));
     actScheduled.Enabled := (not ProspectSelected) and (not NoClientSelected) and (not UnsyncSelected);
     actPracticeContact.Enabled := (not ProspectSelected) and (not NoClientSelected) and (not UnsyncSelected);
     actFinancialYear.Enabled := (not ProspectSelected) and (not NoClientSelected) and (not UnsyncSelected);

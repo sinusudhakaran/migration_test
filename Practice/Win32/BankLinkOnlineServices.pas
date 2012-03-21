@@ -130,6 +130,8 @@ type
     function GetRegistered: Boolean;
     function GetValidBConnectDetails: Boolean;
     procedure RemoveInvalidSubscriptions;
+    procedure ShowSuspendDeactiveWarning;
+
 
     // Practice User methods
     function UpdatePracticeUserPass(const aUserId      : TBloGuid;
@@ -152,8 +154,9 @@ type
     destructor Destroy; override;
     //Practice methods
     function GetPractice(aUpdateUseOnline: Boolean = True; aForceOnlineCall : Boolean = false): TBloPracticeRead;
-    function IsPracticeActive(ShowWarning: Boolean = true): Boolean;
-    function IsPracticeDeactivated: boolean;
+    function IsPracticeActive(aShowWarning: Boolean = true): Boolean;
+    function IsPracticeDeactivated(aShowWarning: Boolean = true): boolean;
+    function IsPracticeSuspended(aShowWarning: Boolean = true): boolean;
     function GetCatalogueEntry(AProductId: TBloGuid): TBloCatalogueEntry;
     function IsPracticeProductEnabled(AProductId: TBloGuid; AUsePracCopy : Boolean): Boolean;
     function HasProductJustBeenUnTicked(AProductId: TBloGuid): Boolean;
@@ -1220,23 +1223,30 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TProductConfigService.IsPracticeActive(ShowWarning: Boolean): Boolean;
+function TProductConfigService.IsPracticeActive(aShowWarning: Boolean): Boolean;
 begin
-  Result := not (OnlineStatus in [Suspended, Deactivated]);
-  if ShowWarning then
-    case OnlineStatus of
-      Suspended: HelpfulWarningMsg(BANKLINK_ONLINE_NAME + ' is currently in suspended ' +
-                                   '(read-only) mode. Please contact BankLink ' +
-                                   'Support for further assistance.', 0);
-      Deactivated: HelpfulWarningMsg(BANKLINK_ONLINE_NAME + ' is currently deactivated. ' +
-                                     'Please contact BankLink Support for further ' +
-                                     'assistance.', 0);
-    end;
+  Result := (OnlineStatus = Active);
+
+  if AShowWarning then
+    ShowSuspendDeactiveWarning;
 end;
 
-function TProductConfigService.IsPracticeDeactivated: boolean;
+//------------------------------------------------------------------------------
+function TProductConfigService.IsPracticeDeactivated(aShowWarning: Boolean): boolean;
 begin
-  Result := (OnlineStatus = Deactivated);  
+  Result := (OnlineStatus = Deactivated);
+
+  if AShowWarning then
+    ShowSuspendDeactiveWarning;
+end;
+
+//------------------------------------------------------------------------------
+function TProductConfigService.IsPracticeSuspended(aShowWarning: Boolean): boolean;
+begin
+  Result := (OnlineStatus = Suspended);
+
+  if AShowWarning then
+    ShowSuspendDeactiveWarning;
 end;
 
 //------------------------------------------------------------------------------
@@ -1318,6 +1328,19 @@ begin
       RemoveProduct(GuidList[i]);
   finally
     GuidList.Free;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+procedure TProductConfigService.ShowSuspendDeactiveWarning;
+begin
+  case OnlineStatus of
+    Suspended: HelpfulWarningMsg(BANKLINK_ONLINE_NAME + ' is currently in suspended ' +
+                                 '(read-only) mode. Please contact BankLink ' +
+                                 'Support for further assistance.', 0);
+    Deactivated: HelpfulWarningMsg(BANKLINK_ONLINE_NAME + ' is currently deactivated. ' +
+                                   'Please contact BankLink Support for further ' +
+                                   'assistance.', 0);
   end;
 end;
 
