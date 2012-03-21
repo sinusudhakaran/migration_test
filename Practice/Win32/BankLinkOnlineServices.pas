@@ -183,6 +183,7 @@ type
     function GetClientDetailsWithGUID(AClientGuid: Guid): TBloClientReadDetail;
     function CreateNewClient(ANewClient: TBloClientCreate): Guid;
     function SaveClient(AClient: TBloClientReadDetail): Boolean;
+    function CreateNewClientUser(NewUser: TBloUserCreate; ClientGUID: string): Guid;
     property Clients: ClientList read FClientList;
     //User methods
     function GetUnLinkedOnlineUsers(aPractice : TBloPracticeRead = nil) : TBloArrayOfUserRead;
@@ -381,6 +382,25 @@ begin
   end;
 end;
 
+
+function TProductConfigService.CreateNewClientUser(NewUser: TBloUserCreate; ClientGUID: string): Guid;
+var
+  BlopiInterface: IBlopiServiceFacade;
+  MsgResponseOfGuid: MessageResponseOfGuid;
+begin                              
+  BlopiInterface  := GetServiceFacade;
+  MsgResponseOfGuid := BlopiInterface.CreateClientUser(CountryText(AdminSystem.fdFields.fdCountry),
+                                                       AdminSystem.fdFields.fdBankLink_Code,
+                                                       AdminSystem.fdFields.fdBankLink_Connect_Password,
+                                                       ClientGUID,
+                                                       NewUser);
+  Result := MsgResponseOfGuid.Result;
+
+  if not MessageResponseHasError(MsgResponseOfGuid, 'update practice user password on') then
+    LogUtil.LogMsg(lmInfo, UNIT_NAME, 'User ' + NewUser.FullName + ' has been successfully created on BankLink Online.')
+  else
+    LogUtil.LogMsg(lmInfo, UNIT_NAME, 'User ' + NewUser.FullName + ' was not created on BankLink Online.');
+end;
 
 function TProductConfigService.CreateNewClientWithUser(aNewClient: TBloClientCreate; aNewUserCreate: TBloUserCreate): TBloClientReadDetail;
 var
@@ -1730,7 +1750,7 @@ begin
   end;
   //Update
   User(Self.Users[0]).FullName := AUserName;
-  //User(Self.Users[0]).EMail := AEmail;  // Email Removed from Service Client User Array
+  // User(Self.Users[0]).Email := AEmail;   Removed from service
 
 end;
 
@@ -1812,6 +1832,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+
 function TClientBaseHelper.GetStatusString: string;
 begin
   case self.Status of

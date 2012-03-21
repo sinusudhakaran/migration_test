@@ -365,24 +365,8 @@ begin
 
     ModalResult := mrOk;
 
-    if Assigned(MyClient.BlopiClientNew) then
-    begin
-      //Create new client admin user
-      MyUserCreate := TBloUserCreate.Create;
-      try
-        MyUserCreate.FullName := edtUserName.Text;
-        MyUserCreate.EMail    := edtEmailAddress.Text;
-        MyUserCreate.AddRoleName('Client Administrator');
-        MyUserCreate.UserCode := MyClient.clWas_Code;
-        SetLength(BlankSubscription, 0);
-        MyUserCreate.Subscription := BlankSubscription;
-        MyClient.CopyPracticeClientNew;
-      finally
-        FreeAndNil(TheCreateClient);
-        FreeAndNil(MyUserCreate);
-      end;
-    end;
-
+    if Assigned(MyClient.BlopiClientNew) then     
+      MyClient.CopyPracticeClientNew;
     SaveClientInfo;
   end;
 end;
@@ -599,6 +583,9 @@ var
   ProdIndex : integer;
   CatEntry  : TBloCatalogueEntry;
   ConnectDays : string;
+  ClientGUID: TBloGuid;
+  MyUserCreate: TBloUserCreate;
+  BlankSubscription: TBloArrayOfGuid;
 begin
   // Existing Client
   if Assigned(MyClient.BlopiClientDetail) then
@@ -642,10 +629,27 @@ begin
         MyClient.BlopiClientNew.AddSubscription(CatEntry.id);
       end;
     end;
-    ProductConfigService.CreateNewClient(MyClient.BlopiClientNew);
+    ClientGUID := ProductConfigService.CreateNewClient(MyClient.BlopiClientNew);
 
     LogUtil.LogMsg(lmInfo, UnitName, 'The new client has been successfully added ' +
                                      'to BankLink Online.');
+
+    if Assigned(MyClient.BlopiClientNew) then
+    begin
+      //Create new client admin user
+      MyUserCreate := TBloUserCreate.Create;
+      try
+        MyUserCreate.FullName := edtUserName.Text;
+        MyUserCreate.EMail    := edtEmailAddress.Text;
+        MyUserCreate.AddRoleName('Client Administrator');
+        MyUserCreate.UserCode := MyClient.clWas_Code;
+        SetLength(BlankSubscription, 0);
+        MyUserCreate.Subscription := BlankSubscription;
+        ProductConfigService.CreateNewClientUser(MyUserCreate, ClientGUID);
+      finally
+        FreeAndNil(MyUserCreate);
+      end;
+    end;
   end;
 
   UpdateClientWebFormat;

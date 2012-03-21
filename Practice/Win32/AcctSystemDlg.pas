@@ -611,7 +611,13 @@ begin
         begin
           clWeb_Export_Format := ComboUtils.GetComboCurrentIntObject(cmbWebFormats);
 
-          MyClient.RefreshBlopiClient;
+          if not Assigned(MyClient.BlopiClientDetail) then
+          begin
+            //Get client list (so that we can lookup the client code)
+            ProductConfigService.LoadClientList;
+            //Get client details
+            MyClient.RefreshBlopiClient;
+          end;
           if Assigned(MyClient.BlopiClientDetail) then
           begin
             NotesId := ProductConfigService.GetNotesId;
