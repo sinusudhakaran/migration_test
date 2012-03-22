@@ -252,12 +252,20 @@ begin
                   else
                   begin
                     LastDate := ClientUtils.GetLastPrintedDate(aClient.clFields.clCode, AdminBA.sbLRN);
+
                     if LastDate = 0 then
+                    begin
                       BA.baFields.baTemp_Date_Of_Last_Trx_Printed := IncDate(ReportStartDate, -1, 0, 0)
+                    end
                     else if GetMonthsBetween(LastDate, ReportStartDate) > 1 then
-                      BA.baFields.baTemp_Date_Of_Last_Trx_Printed := GetFirstDayOfMonth(IncDate(ReportStartDate, 0, -1, 0))
+                    begin
+                      //Decremented this date by 1 day since we want transactions greater than (and not equal to) the date of the last transaction printed. 
+                      BA.baFields.baTemp_Date_Of_Last_Trx_Printed := IncDate(GetFirstDayOfMonth(IncDate(ReportStartDate, 0, -1, 0)), -1, 0, 0)
+                    end
                     else
+                    begin
                       BA.baFields.baTemp_Date_Of_Last_Trx_Printed := LastDate;
+                    end;
                   end;
                end
                else begin
