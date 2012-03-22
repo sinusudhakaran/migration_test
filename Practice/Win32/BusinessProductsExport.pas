@@ -419,18 +419,11 @@ begin //DoBusinessProduct
                   LastDate := ClientUtils.GetLastPrintedDate(aClient.clFields.clCode, AdminBA.sbLRN);
 
                   if LastDate = 0 then
-                  begin
                     BA.baFields.baTemp_Date_Of_Last_Trx_Printed := IncDate(srOptions.srDisplayFromDate, -1, 0, 0)
-                  end
                   else if GetMonthsBetween(LastDate, srOptions.srDisplayFromDate) > 1 then
-                  begin
-                    //Decremented day by one since we are looking for transactions with an effective date greater than (and not equal to) the date of the last transaction printed.
-                    BA.baFields.baTemp_Date_Of_Last_Trx_Printed := IncDate(GetFirstDayOfMonth(IncDate(srOptions.srDisplayFromDate, 0, -1, 0)), -1, 0, 0)
-                  end
+                    BA.baFields.baTemp_Date_Of_Last_Trx_Printed := GetFirstDayOfMonth(IncDate(srOptions.srDisplayFromDate, 0, -1, 0))
                   else
-                  begin
                     BA.baFields.baTemp_Date_Of_Last_Trx_Printed := LastDate;
-                  end;
                  end;
                end
                else
