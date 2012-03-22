@@ -1067,8 +1067,12 @@ function TfrmExportCharges.ConvertToHandiNumber(s: string; maxVal, maxWidth: Int
 var
   x: Integer;
 begin
-  if (s = '00') or (s = '000') then
+  if (s = StringOfChar('0', Length(s))) and (s <> '') then
   begin
+    if (Length(s) > maxWidth) then
+      s := Copy(s, 1, maxWidth)
+    else if (Length(s) < maxWidth) then
+      s := StringOfChar('0', maxWidth - Length(s)) + s;
     Result := s;
   end else
   begin

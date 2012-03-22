@@ -386,6 +386,8 @@ object frmExportCharges: TfrmExportCharges
       OnKeyDown = tgChargesKeyDown
       OnMouseUp = tgChargesMouseUp
       OnRowChanged = tgChargesRowChanged
+      ExplicitLeft = 8
+      ExplicitTop = 6
       ColProperties = <
         item
           DataCol = 1
