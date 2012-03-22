@@ -330,8 +330,6 @@ end;
 //------------------------------------------------------------------------------
 function TProductConfigService.CreateNewClient(ANewClient: TBloClientCreate): TBloGuid;
 var
-  i: integer;
-  Msg: string;
   BlopiInterface: IBlopiServiceFacade;
   MsgResponse: MessageResponseOfGuid;
   ShowProgress : Boolean;
@@ -387,14 +385,22 @@ function TProductConfigService.CreateNewClientUser(NewUser: TBloUserCreate; Clie
 var
   BlopiInterface: IBlopiServiceFacade;
   MsgResponseOfGuid: MessageResponseOfGuid;
-begin                              
-  BlopiInterface  := GetServiceFacade;
-  MsgResponseOfGuid := BlopiInterface.CreateClientUser(CountryText(AdminSystem.fdFields.fdCountry),
-                                                       AdminSystem.fdFields.fdBankLink_Code,
-                                                       AdminSystem.fdFields.fdBankLink_Connect_Password,
-                                                       ClientGUID,
-                                                       NewUser);
-  Result := MsgResponseOfGuid.Result;
+begin
+  try
+    BlopiInterface  := GetServiceFacade;
+    MsgResponseOfGuid := BlopiInterface.CreateClientUser(CountryText(AdminSystem.fdFields.fdCountry),
+                                                         AdminSystem.fdFields.fdBankLink_Code,
+                                                         AdminSystem.fdFields.fdBankLink_Connect_Password,
+                                                         ClientGUID,
+                                                         NewUser);
+    Result := MsgResponseOfGuid.Result;
+  except
+    on E : Exception do
+    begin
+      LogUtil.LogMsg(lmError, UNIT_NAME, 'Exception running CreateNewClientUser, Error Message : ' + E.Message);
+      raise Exception.Create(BKPRACTICENAME + ' was unable to create user ' + NewUser.FullName + '.' + #13#13 + E.Message );
+    end;
+  end;
 
   if not MessageResponseHasError(MsgResponseOfGuid, 'update practice user password on') then
     LogUtil.LogMsg(lmInfo, UNIT_NAME, 'User ' + NewUser.FullName + ' has been successfully created on BankLink Online.')
@@ -476,10 +482,8 @@ end;
 //------------------------------------------------------------------------------
 function TProductConfigService.GetClientDetailsWithGuid(AClientGuid: TBloGuid): TBloClientReadDetail;
 var
-  i, j: integer;
   BlopiInterface: IBlopiServiceFacade;
   ClientDetailResponse: MessageResponseOfClientReadDetailMIdCYrSK;
-  Msg: string;
   ShowProgress : Boolean;
 begin
   Result := nil;
@@ -696,8 +700,6 @@ procedure TProductConfigService.LoadClientList;
 var
   BlopiInterface: IBlopiServiceFacade;
   BlopiClientList: MessageResponseOfClientListMIdCYrSK;
-  Msg: string;
-  i: integer;
   ShowProgress : Boolean;
 begin
   try
@@ -1067,8 +1069,6 @@ end;
 procedure TProductConfigService.GetServiceAgreement(ARichEdit: TRichEdit);
 var
   BlopiInterface: IBlopiServiceFacade;
-  Msg: string;
-  i: integer;
   ReturnMsg: MessageResponseOfstring;
   ShowProgress : Boolean;
 begin
@@ -1123,7 +1123,7 @@ end;
 //------------------------------------------------------------------------------
 function TProductConfigService.GetCatFromSub(aSubGuid : TBloGuid): TBloCatalogueEntry;
 var
-  i, j: integer;
+  i: integer;
 begin
   Result := Nil;
   if Assigned(FPracticeCopy) then begin
@@ -1435,7 +1435,6 @@ end;
 //------------------------------------------------------------------------------
 function TProductConfigService.SaveClient(AClient: TBloClientReadDetail): Boolean;
 var
-  i: integer;
   Msg: string;
   BlopiInterface: IBlopiServiceFacade;
   MsgResponse: MessageResponse;
@@ -1758,7 +1757,6 @@ end;
 function TUserDetailHelper.AddRoleName(RoleName: string): Boolean;
 var
   RoleArray: ArrayOfstring;
-  NewRole: Role;
   i: integer;
 
 begin
