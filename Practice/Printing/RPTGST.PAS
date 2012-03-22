@@ -848,13 +848,11 @@ begin
          if i <= clTemp_Periods_This_Year then
          begin
             PeriodStartDate := clTemp_Period_Details_This_Year[i].Period_Start_Date;
-            // PeriodEndDate   := Min(clTemp_Period_Details_This_Year[i].Period_End_Date, Todate);
             PeriodEndDate   := clTemp_Period_Details_This_Year[i].Period_End_Date;
          end
          else
          begin
             PeriodStartDate := clTemp_Period_Details_Last_Year[i].Period_Start_Date;
-            // PeriodEndDate   := Min(clTemp_Period_Details_Last_Year[i].Period_End_Date, Todate);
             PeriodEndDate   := clTemp_Period_Details_Last_Year[i].Period_End_Date;
          end;
 
