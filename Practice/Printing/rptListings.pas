@@ -1417,7 +1417,7 @@ begin
             else          Exit;
          end;
 
-         MONEY_FORMAT := MyClient.FmtMoneyStrBrackets;
+         MONEY_FORMAT := MyClient.FmtMoneyStr;
 
          //check for entries
          HasSomeEntries := False;
@@ -1567,7 +1567,7 @@ begin
                       Job.AmountCol := AddFormatColAuto(Job,cleft,11.0 + Gcgap,Gcgap,'Amount',jtRight,NUMBER_FORMAT,MONEY_FORMAT,true);
 
                     if ShowJournalOnly then // Show GST for journals as per OZ
-                      Job.TaxCol := AddFormatColAuto( Job, cLeft, 8, Gcgap, 'GST', jtRight,NUMBER_FORMAT,NUMBER_FORMAT, true);
+                      Job.TaxCol := AddFormatColAuto( Job, cLeft, 8, Gcgap, 'GST', jtRight,MONEY_FORMAT,MONEY_FORMAT, true);
 //                      Job.TaxCol := AddFormatColAuto( Job, cLeft, 8, Gcgap, 'GST', jtRight,NUMBER_FORMAT_SIGNED,NUMBER_FORMAT_SIGNED, true);
 
                     if ShowOp then
@@ -1601,7 +1601,7 @@ begin
                     else
                       Job.AmountCol := AddFormatColAuto(Job,cleft,11.0,Gcgap,'Amount',jtRight,NUMBER_FORMAT,MONEY_FORMAT,true);
 
-                    Job.TaxCol := AddFormatColAuto( Job, cLeft, 8, Gcgap, Localise( clCountry, 'GST') , jtRight,NUMBER_FORMAT_SIGNED,NUMBER_FORMAT_SIGNED, true);
+                    Job.TaxCol := AddFormatColAuto( Job, cLeft, 8, Gcgap, Localise( clCountry, 'GST') , jtRight,MONEY_FORMAT,MONEY_FORMAT, true);
                     AddColAuto(Job,cLeft, 23.8 + ( 2 * ExtraWidth ),Gcgap, 'Narration',jtLeft);
 
                     if ShowBalance then
@@ -1670,7 +1670,7 @@ begin
                     else
                       Job.AmountCol := AddFormatColAuto(Job,cleft,8.0,Gcgap,'Amount',jtRight,NUMBER_FORMAT,MONEY_FORMAT,true);
 
-                    Job.TaxCol := AddFormatColAuto( Job, cLeft, 7, Gcgap, Localise( clCountry, 'GST' ), jtRight,NUMBER_FORMAT,MONEY_FORMAT, true);
+                    Job.TaxCol := AddFormatColAuto( Job, cLeft, 7, Gcgap, Localise( clCountry, 'GST' ), jtRight,MONEY_FORMAT,MONEY_FORMAT, true);
                     AddColAuto(Job,cLeft, 19 + ( 2 * ExtraWidth ),Gcgap, 'Narration',jtLeft);
 
                     if ShowBalance then
@@ -1684,8 +1684,6 @@ begin
 
        //Add Footers
        AddCommonFooter(Job);
-
-
 
        Job.Generate(Dest, Lparams);
 
