@@ -588,7 +588,7 @@ var
   ConnectDays : string;
   ClientGUID: TBloGuid;
   MyUserCreate: TBloUserCreate;
-  BlankSubscription: TBloArrayOfGuid;
+  Subscription: TBloArrayOfGuid;
 begin
   // Existing Client
   if Assigned(MyClient.BlopiClientDetail) then
@@ -617,42 +617,29 @@ begin
   // New Client
   if Assigned(MyClient.BlopiClientNew) then
   begin
-    MyClient.BlopiClientNew.Status := Status;
-    MyClient.BlopiClientNew.BillingFrequency := AnsiLeftStr(cmbBillingFrequency.Text, 1);
     ConnectDays := StringReplace(cmbConnectDays.Text, 'Always', '0', [rfReplaceAll]);
     ConnectDays := StringReplace(ConnectDays, ' days', '', [rfReplaceAll]);
-    MyClient.BlopiClientNew.MaxOfflineDays := StrToInt(ConnectDays);
-    MyClient.BlopiClientNew.Subscription := Nil;
-
     for ProdIndex := 0 to chklistProducts.Count - 1 do
     begin
       if chklistProducts.Checked[ProdIndex] then
       begin
         CatEntry := TBloCatalogueEntry(chklistProducts.Items.Objects[ProdIndex]);
-        MyClient.BlopiClientNew.AddSubscription(CatEntry.id);
+        ProductConfigService.AddItemToArrayGuid(Subscription, CatEntry.id);
       end;
     end;
+
+    MyClient.BlopiClientNew.Status := Status;
+    MyClient.BlopiClientNew.BillingFrequency := AnsiLeftStr(cmbBillingFrequency.Text, 1);
+
+    MyClient.BlopiClientNew.MaxOfflineDays := StrToInt(ConnectDays);
+    MyClient.BlopiClientNew.Subscription := Nil;
+
     ClientGUID := ProductConfigService.CreateNewClient(MyClient.BlopiClientNew);
 
     LogUtil.LogMsg(lmInfo, UnitName, 'The new client has been successfully added ' +
                                      'to BankLink Online.');
 
-    if Assigned(MyClient.BlopiClientNew) then
-    begin
-      //Create new client admin user
-      MyUserCreate := TBloUserCreate.Create;
-      try
-        MyUserCreate.FullName := edtUserName.Text;
-        MyUserCreate.EMail    := edtEmailAddress.Text;
-        MyUserCreate.AddRoleName('Client Administrator');
-        MyUserCreate.UserCode := MyClient.clWas_Code;
-        SetLength(BlankSubscription, 0);
-        MyUserCreate.Subscription := BlankSubscription;
-        ProductConfigService.CreateNewClientUser(MyUserCreate, ClientGUID);
-      finally
-        FreeAndNil(MyUserCreate);
-      end;
-    end;
+
   end;
 
   UpdateClientWebFormat;

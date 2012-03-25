@@ -25,7 +25,9 @@ type
 
   TBloPracticeRead          = BlopiServiceFacade.PracticeRead;
 
+  TBloClient                = BlopiServiceFacade.Client;
   TBloClientCreate          = BlopiServiceFacade.ClientCreate;
+  TBloClientUpdate          = BlopiServiceFacade.ClientUpdate;
   TBloClientReadDetail      = BlopiServiceFacade.ClientReadDetail;
 
   TBloUserCreate            = BlopiServiceFacade.UserCreate;
@@ -96,6 +98,7 @@ type
     FRegistered: Boolean;
     FValidBConnectDetails: Boolean;
     FArrNameSpaceList : Array of TRemRegEntry;
+
     procedure CopyRemotableObject(ASource, ATarget: TRemotable);
 
     function IsUserCreatedOnBankLinkOnline(const APractice : TBloPracticeRead;
@@ -132,6 +135,25 @@ type
     procedure RemoveInvalidSubscriptions;
     procedure ShowSuspendDeactiveWarning;
 
+    // Client methods
+    function CreateClientUser(const aClientId     : TBloGuid;
+                              const aEMail        : WideString;
+                              const aFullName     : WideString;
+                              const aRoleNames    : TBloArrayOfString;
+                              const aSubscription : TBloArrayOfGuid;
+                              const aUserCode     : WideString): MessageResponseOfguid;
+    function UpdateClientUser(const aClientId     : TBloGuid;
+                              const aId           : TBloGuid;
+                              const aFullName     : WideString;
+                              const aRoleNames    : TBloArrayOfString;
+                              const aSubscription : TBloArrayOfGuid;
+                              const aUserCode     : WideString): MessageResponse;
+    function AddEditClientUser(const aExistingClient : TBloClientReadDetail;
+                               aNewClientId    : TBloGuid;
+                               var   aUserId   : TBloGuid;
+                               const aEMail    : WideString;
+                               const aFullName : WideString) : Boolean;
+
 
     // Practice User methods
     function UpdatePracticeUserPass(const aUserId      : TBloGuid;
@@ -150,7 +172,13 @@ type
                                 const aSubscription : TBloArrayOfguid) : MessageResponse;
     function DeletePracticeUser(const aUserId      : TBloGuid;
                                 const aUserCode    : WideString) : MessageResponse;
+
   public
+    procedure AddItemToArrayString(var aBloArrayOfString : TBloArrayOfString;
+                                   aItem : WideString);
+    procedure AddItemToArrayGuid(var aBloArrayOfGuid : TBloArrayOfGuid;
+                                 aItem : TBloGuid);
+
     destructor Destroy; override;
     //Practice methods
     function GetPractice(aUpdateUseOnline: Boolean = True; aForceOnlineCall : Boolean = false): TBloPracticeRead;
@@ -185,6 +213,37 @@ type
     function SaveClient(AClient: TBloClientReadDetail): Boolean;
     function CreateNewClientUser(NewUser: TBloUserCreate; ClientGUID: string): Guid;
     property Clients: ClientList read FClientList;
+
+    function CreateClient(const aAbn              : WideString;
+                          const aAddress1         : WideString;
+                          const aAddress2         : WideString;
+                          const aAddress3         : WideString;
+                          const aAddressCountry   : WideString;
+                          const aCountryCode      : WideString;
+                          const aEmail            : WideString;
+                          const aFax              : WideString;
+                          const aMobile           : WideString;
+                          const aPhone            : WideString;
+                          const aSalutation       : WideString;
+                          const aTaxNumber        : WideString;
+                          const aTfn              : WideString;
+                          const aBillingFrequency : WideString;
+                          const aClientCode       : WideString;
+                                aMaxOfflineDays   : Integer;
+                          const aName             : WideString;
+                                aStatus           : TBloStatus;
+                          const aSubscription     : TBloArrayOfguid;
+                          const aUserEMail        : WideString;
+                          const aUserFullName     : WideString) : Boolean;
+    function UpdateClient(const aId                   : TBloGuid;
+                          const aPrimaryContactUserId : TBloGuid;
+                          const aBillingFrequency     : WideString;
+                          const aClientCode           : WideString;
+                                aMaxOfflineDays       : Integer;
+                          const aName                 : WideString;
+                                aStatus               : TBloStatus;
+                          const aSubscription         : TBloArrayOfGuid): MessageResponse;
+
     //User methods
     function GetUnLinkedOnlineUsers(aPractice : TBloPracticeRead = nil) : TBloArrayOfUserRead;
     function GetOnlineUserLinkedToCode(aUserCode : String; aPractice: TBloPracticeRead = nil): TBloUserRead;
@@ -210,7 +269,7 @@ type
                                 aLinkedUserGuid : TBloGuid = '') : Boolean;
     property OnLine: Boolean read FOnLine;
     property Registered: Boolean read GetRegistered;
-    property ValidBConnectDetails: Boolean read GetValidBConnectDetails;    
+    property ValidBConnectDetails: Boolean read GetValidBConnectDetails;
     property ProductList : TBloArrayOfGuid read GetProducts;
   end;
 
@@ -272,22 +331,47 @@ end;
 
 { TProductConfigService }
 //------------------------------------------------------------------------------
+procedure TProductConfigService.AddItemToArrayString(var aBloArrayOfString : TBloArrayOfString;
+                                                     aItem : WideString);
+var
+  Index : integer;
+begin
+  // Check if Item Exists
+  for Index := Low(aBloArrayOfString) to High(aBloArrayOfString) do
+    if aBloArrayOfString[Index] = aItem then
+      Exit;
+
+  //Add Item
+  SetLength(aBloArrayOfString, Length(aBloArrayOfString) + 1);
+  aBloArrayOfString[High(aBloArrayOfString)] := aItem;
+end;
+
+//------------------------------------------------------------------------------
+procedure TProductConfigService.AddItemToArrayGuid(var aBloArrayOfGuid : TBloArrayOfGuid;
+                                                   aItem : TBloGuid);
+var
+  Index : integer;
+begin
+  // Check if Item Exists
+  for Index := Low(aBloArrayOfGuid) to High(aBloArrayOfGuid) do
+    if aBloArrayOfGuid[Index] = aItem then
+      Exit;
+
+  //Add Item
+  SetLength(aBloArrayOfGuid, Length(aBloArrayOfGuid) + 1);
+  aBloArrayOfGuid[High(aBloArrayOfGuid)] := aItem;
+end;
+
+//------------------------------------------------------------------------------
 procedure TProductConfigService.AddProduct(AProductId: TBloGuid);
 var
-  i: integer;
-  SubArray:  TBloArrayOfGuid;
+  Subscription : TBloArrayOfGuid;
 begin
-  //Add product
-  for i := Low(FPracticeCopy.Subscription) to High(FPracticeCopy.Subscription) do
-    if AProductId = FPracticeCopy.Subscription[i] then
-      Exit;
-  //Add if still here
-  SubArray := FPracticeCopy.Subscription;
+  Subscription := FPracticeCopy.Subscription;
   try
-    SetLength(SubArray, Length(SubArray) + 1);
-    SubArray[High(SubArray)] := AProductId;
+    AddItemToArrayGuid(Subscription, AProductId);
   finally
-    FPracticeCopy.Subscription := SubArray;
+    FPracticeCopy.Subscription := Subscription;
   end;
 end;
 
@@ -301,7 +385,7 @@ begin
   SetLength(SubArray, Length(FPracticeCopy.Subscription));
   for i := Low(FPracticeCopy.Subscription) to High(FPracticeCopy.Subscription) do
     SubArray[i] := FPracticeCopy.Subscription[i];
-  //Try to remove product  
+  //Try to remove product
   for i := Low(SubArray) to High(SubArray) do
     RemoveProduct(SubArray[i]);
 end;
@@ -1479,67 +1563,7 @@ begin
 
         BlopiInterface := GetServiceFacade;
 
-        //Save client admin user
-        if (Length(AClient.Users) > 0) then
-        begin
-          MyUserRead := AClient.Users[0];
-          if MyUserRead.Id = '' then
-          begin
-            if ShowProgress then
-              Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Creating Client User', 30);
 
-            //Create new client admin user
-            MyUserCreate := TBloUserCreate.Create;
-            try
-              MyUserCreate.FullName := MyUserRead.FullName;
-              MyUserCreate.EMail    := MyUserRead.EMail;
-              MyUserCreate.AddRoleName('Client Administrator');
-              MyUserCreate.UserCode := AClient.ClientCode;
-              SetLength(BlankSubscription, 0);
-              MyUserCreate.Subscription := BlankSubscription;
-
-              MsgResponseOfGuid := BlopiInterface.CreateClientUser(CountryText(AdminSystem.fdFields.fdCountry),
-                                                             AdminSystem.fdFields.fdBankLink_Code,
-                                                             AdminSystem.fdFields.fdBankLink_Connect_Password,
-                                                             AClient.Id,
-                                                             MyUserCreate);
-
-              Result := MsgResponseOfGuid.Success;
-
-              if not MessageResponseHasError(MsgResponseOfGuid, 'create the client user on') then
-                MyClientUpdate.PrimaryContactUserId := MsgResponseOfGuid.Result;
-            finally
-              FreeAndNil(MyUserCreate);
-            end;
-          end else
-          begin
-            //Update existing client admin user
-            if ShowProgress then
-              Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Updating Client User', 30);
-
-            // Update client admin user
-            MyUserUpdate := TBloUserUpdate.Create;
-            try
-              MyUserUpdate.FullName     := MyUserRead.FullName;
-              MyUserUpdate.Id           := MyUserRead.Id;
-              MyUserUpdate.RoleNames    := MyUserRead.RoleNames;
-              MyUserUpdate.UserCode     := MyUserRead.UserCode;
-              MyUserUpdate.Subscription := MyUserRead.Subscription;
-
-              MsgResponse := BlopiInterface.SaveclientUser(CountryText(AdminSystem.fdFields.fdCountry),
-                                                         AdminSystem.fdFields.fdBankLink_Code,
-                                                         AdminSystem.fdFields.fdBankLink_Connect_Password,
-                                                         AClient.Id,
-                                                         MyUserUpdate);
-
-              Result := MsgResponse.Success;
-
-              MessageResponseHasError(MsgResponse, 'update this client user on');
-            finally
-              FreeAndNil(MyUserUpdate);
-            end;
-          end;
-        end;
 
         if Result then
         begin
@@ -1958,6 +1982,163 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+function TProductConfigService.CreateClientUser(const aClientId     : TBloGuid;
+                                                const aEMail        : WideString;
+                                                const aFullName     : WideString;
+                                                const aRoleNames    : TBloArrayOfString;
+                                                const aSubscription : TBloArrayOfGuid;
+                                                const aUserCode     : WideString): MessageResponseOfguid;
+var
+  BloUserCreate  : TBloUserCreate;
+  BlopiInterface : IBlopiServiceFacade;
+begin
+  BlopiInterface := GetServiceFacade;
+
+  BloUserCreate := TBloUserCreate.Create;
+  try
+    BloUserCreate.EMail        := aEMail;
+    BloUserCreate.FullName     := aFullName;
+    BloUserCreate.RoleNames    := aRoleNames;
+    BloUserCreate.Subscription := aSubscription;
+    BloUserCreate.UserCode     := aUserCode;
+
+    Result := BlopiInterface.CreateClientUser(CountryText(AdminSystem.fdFields.fdCountry),
+                                              AdminSystem.fdFields.fdBankLink_Code,
+                                              AdminSystem.fdFields.fdBankLink_Connect_Password,
+                                              aClientId,
+                                              BloUserCreate);
+
+    if Result.Success then
+      LogUtil.LogMsg(lmInfo, UNIT_NAME, 'Client User ' + aUserCode + ' has been successfully updated on BankLink Online.')
+    else
+      LogUtil.LogMsg(lmInfo, UNIT_NAME, 'Client User ' + aUserCode + ' was not updated on BankLink Online.');
+
+  finally
+    FreeAndNil(BloUserCreate);
+  end;
+end;
+
+//------------------------------------------------------------------------------
+function TProductConfigService.UpdateClientUser(const aClientId     : TBloGuid;
+                                                const aId           : TBloGuid;
+                                                const aFullName     : WideString;
+                                                const aRoleNames    : TBloArrayOfString;
+                                                const aSubscription : TBloArrayOfGuid;
+                                                const aUserCode     : WideString): MessageResponse;
+var
+  BloUserUpdate  : TBloUserUpdate;
+  BlopiInterface : IBlopiServiceFacade;
+begin
+  BlopiInterface := GetServiceFacade;
+
+  BloUserUpdate := TBloUserUpdate.Create;
+  try
+    BloUserUpdate.Id           := aId;
+    BloUserUpdate.FullName     := aFullName;
+    BloUserUpdate.RoleNames    := aRoleNames;
+    BloUserUpdate.Subscription := aSubscription;
+    BloUserUpdate.UserCode     := aUserCode;
+
+    Result := BlopiInterface.SaveClientUser(CountryText(AdminSystem.fdFields.fdCountry),
+                                            AdminSystem.fdFields.fdBankLink_Code,
+                                            AdminSystem.fdFields.fdBankLink_Connect_Password,
+                                            aClientId,
+                                            BloUserUpdate);
+
+    if Result.Success then
+      LogUtil.LogMsg(lmInfo, UNIT_NAME, 'Client User ' + aUserCode + ' has been successfully updated on BankLink Online.')
+    else
+      LogUtil.LogMsg(lmInfo, UNIT_NAME, 'Client User ' + aUserCode + ' was not updated on BankLink Online.');
+
+  finally
+    FreeAndNil(BloUserUpdate);
+  end;
+end;
+
+//------------------------------------------------------------------------------
+function TProductConfigService.AddEditClientUser(const aExistingClient : TBloClientReadDetail;
+                                                 aNewClientId    : TBloGuid;
+                                                 var   aUserId   : TBloGuid;
+                                                 const aEMail    : WideString;
+                                                 const aFullName : WideString) : Boolean;
+var
+  MsgResponce     : MessageResponse;
+  MsgResponceGuid : MessageResponseOfGuid;
+  UserCode        : WideString;
+  RoleNames       : TBloArrayOfstring;
+  Subscription    : TBloArrayOfguid;
+  ClientId        : TBloGuid;
+begin
+  Result := False;
+
+  if not Assigned(aExistingClient) then
+    Exit;
+
+  // Do nothing user exists and is the same
+  if (Assigned(aExistingClient)) and
+     (Length(aExistingClient.Users) = 1) and
+     (Trim(Uppercase(aExistingClient.Users[0].EMail)) = Trim(Uppercase(aEMail))) and
+     (Trim(Uppercase(aExistingClient.Users[0].FullName)) = Trim(Uppercase(aFullName))) then
+  begin
+    aUserId := aExistingClient.Users[0].Id;
+    Result := True;
+    Exit;
+  end;
+
+  // if the user is empty or the email is differant Create a new User
+  if (not Assigned(aExistingClient)) or
+     (Length(aExistingClient.Users) = 0) or
+     (Trim(Uppercase(aExistingClient.Users[0].EMail)) <> Trim(Uppercase(aEMail))) then
+  begin
+    if (Assigned(aExistingClient)) and
+       (Length(aExistingClient.Users) = 1) then
+    begin
+      RoleNames    := aExistingClient.Users[0].RoleNames;
+      Subscription := aExistingClient.Users[0].Subscription;
+      UserCode     := aExistingClient.Users[0].UserCode;
+      ClientId     := aExistingClient.Id;
+    end
+    else
+    begin
+      AddItemToArrayString(RoleNames, 'Client Administrator');
+      SetLength(Subscription, 0);
+      UserCode := aExistingClient.ClientCode;
+      ClientId := aNewClientId;
+    end;
+
+    MsgResponceGuid := CreateClientUser(ClientId,
+                                        aEMail,
+                                        aFullName,
+                                        RoleNames,
+                                        Subscription,
+                                        UserCode);
+
+    Result := not MessageResponseHasError(MsgResponceGuid, 'create the client user on');
+    if Result then
+      aUserId := MsgResponceGuid.Result;
+
+    Exit;
+  end;
+
+  // if the user exist and the email is the same update
+  if (Length(aExistingClient.Users) = 1) and
+     (Trim(Uppercase(aExistingClient.Users[0].EMail)) = Trim(Uppercase(aEMail))) then
+  begin
+    aUserId := aExistingClient.Users[0].Id;
+    MsgResponce := UpdateClientUser(aExistingClient.Id,
+                                    aUserId,
+                                    aFullName,
+                                    aExistingClient.Users[0].RoleNames,
+                                    aExistingClient.Users[0].Subscription,
+                                    aExistingClient.Users[0].UserCode);
+
+    Result := not MessageResponseHasError(MsgResponce, 'create the client user on');
+
+    Exit;
+  end;
+end;
+
+//------------------------------------------------------------------------------
 function TProductConfigService.UpdatePracticeUserPass(const aUserId      : TBloGuid;
                                                       const aUserCode    : WideString;
                                                       const aNewPassword : WideString) : MessageResponse;
@@ -1973,9 +2154,9 @@ begin
                                                    aNewPassword);
 
   if Result.Success then
-    LogUtil.LogMsg(lmInfo, UNIT_NAME, aUserCode + ' password has been successfully changed on BankLink Online.')
+    LogUtil.LogMsg(lmInfo, UNIT_NAME, 'Practice User ' + aUserCode + ' password has been successfully changed on BankLink Online.')
   else
-    LogUtil.LogMsg(lmInfo, UNIT_NAME, aUserCode + ' password was not changed on BankLink Online.');
+    LogUtil.LogMsg(lmInfo, UNIT_NAME, 'Practice User ' + aUserCode + ' password was not changed on BankLink Online.');
 end;
 
 //------------------------------------------------------------------------------
@@ -1986,8 +2167,8 @@ function TProductConfigService.CreatePracticeUser(const aEmail        : WideStri
                                                   const aSubscription : TBloArrayOfguid;
                                                   const aPassword     : WideString) : MessageResponseOfGuid;
 var
-  CreateUser     : TBloUserCreatePractice;
-  BlopiInterface : IBlopiServiceFacade;
+  CreateUser      : TBloUserCreatePractice;
+  BlopiInterface  : IBlopiServiceFacade;
 begin
   BlopiInterface := GetServiceFacade;
 
@@ -2006,9 +2187,9 @@ begin
                                                 CreateUser);
 
     if Result.Success then
-      LogUtil.LogMsg(lmInfo, UNIT_NAME, aUserCode + ' has been successfully created on BankLink Online.')
+      LogUtil.LogMsg(lmInfo, UNIT_NAME, 'Practice User ' + aUserCode + ' has been successfully created on BankLink Online.')
     else
-      LogUtil.LogMsg(lmInfo, UNIT_NAME, aUserCode + ' was not created on BankLink Online.');
+      LogUtil.LogMsg(lmInfo, UNIT_NAME, 'Practice User ' + aUserCode + ' was not created on BankLink Online.');
 
   finally
     FreeAndNil(CreateUser);
@@ -2041,9 +2222,9 @@ begin
                                               UpdateUser);
 
     if Result.Success then
-      LogUtil.LogMsg(lmInfo, UNIT_NAME, aUserCode + ' has been successfully updated to BankLink Online.')
+      LogUtil.LogMsg(lmInfo, UNIT_NAME, 'Practice User ' + aUserCode + ' has been successfully updated to BankLink Online.')
     else
-      LogUtil.LogMsg(lmInfo, UNIT_NAME, aUserCode + ' was not updated to BankLink Online.');
+      LogUtil.LogMsg(lmInfo, UNIT_NAME, 'Practice User ' + aUserCode + ' was not updated to BankLink Online.');
 
   finally
     FreeAndNil(UpdateUser);
@@ -2064,9 +2245,147 @@ begin
                                       aUserId);
 
   if Result.Success then
-    LogUtil.LogMsg(lmInfo, UNIT_NAME, aUserCode + ' has been successfully deleted from BankLink Online.')
+    LogUtil.LogMsg(lmInfo, UNIT_NAME, 'Practice User ' + aUserCode + ' has been successfully deleted from BankLink Online.')
   else
-    LogUtil.LogMsg(lmInfo, UNIT_NAME, aUserCode + ' was not deleted from BankLink Online.');
+    LogUtil.LogMsg(lmInfo, UNIT_NAME, 'Practice User ' + aUserCode + ' was not deleted from BankLink Online.');
+end;
+
+//------------------------------------------------------------------------------
+function TProductConfigService.CreateClient(const aAbn              : WideString;
+                                            const aAddress1         : WideString;
+                                            const aAddress2         : WideString;
+                                            const aAddress3         : WideString;
+                                            const aAddressCountry   : WideString;
+                                            const aCountryCode      : WideString;
+                                            const aEmail            : WideString;
+                                            const aFax              : WideString;
+                                            const aMobile           : WideString;
+                                            const aPhone            : WideString;
+                                            const aSalutation       : WideString;
+                                            const aTaxNumber        : WideString;
+                                            const aTfn              : WideString;
+                                            const aBillingFrequency : WideString;
+                                            const aClientCode       : WideString;
+                                                  aMaxOfflineDays   : Integer;
+                                            const aName             : WideString;
+                                                  aStatus           : TBloStatus;
+                                            const aSubscription     : TBloArrayOfguid;
+                                            const aUserEMail        : WideString;
+                                            const aUserFullName     : WideString) : Boolean;
+var
+  BloClientCreate : TBloClientCreate;
+  BlopiInterface  : IBlopiServiceFacade;
+  MsgResponseGuid : MessageResponseOfguid;
+  UserId : TBloGuid;
+begin
+  Result := False;
+
+  Screen.Cursor := crHourGlass;
+  Progress.StatusSilent := False;
+  Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Connecting', 10);
+
+  BlopiInterface := GetServiceFacade;
+  try
+    try
+      Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Creating Client', 40);
+      BloClientCreate := TBloClientCreate.Create;
+      try
+        BloClientCreate.Abn              := aAbn;
+        BloClientCreate.Address1         := aAddress1;
+        BloClientCreate.Address2         := aAddress2;
+        BloClientCreate.Address3         := aAddress3;
+        BloClientCreate.AddressCountry   := aAddressCountry;
+        BloClientCreate.CountryCode      := aCountryCode;
+        BloClientCreate.Email            := aEmail;
+        BloClientCreate.Fax              := aFax;
+        BloClientCreate.Mobile           := aMobile;
+        BloClientCreate.Phone            := aPhone;
+        BloClientCreate.Salutation       := aSalutation;
+        BloClientCreate.TaxNumber        := aTaxNumber;
+        BloClientCreate.Tfn              := aTfn;
+        BloClientCreate.BillingFrequency := aBillingFrequency;
+        BloClientCreate.ClientCode       := aClientCode;
+        BloClientCreate.MaxOfflineDays   := aMaxOfflineDays;
+        BloClientCreate.Name_            := aName;
+        BloClientCreate.Status           := aStatus;
+        BloClientCreate.Subscription     := aSubscription;
+
+        MsgResponseGuid := BlopiInterface.CreateClient(CountryText(AdminSystem.fdFields.fdCountry),
+                                                       AdminSystem.fdFields.fdBankLink_Code,
+                                                       AdminSystem.fdFields.fdBankLink_Connect_Password,
+                                                       BloClientCreate);
+
+        Result := MessageResponseHasError(MsgResponseGuid, 'create client on');
+      finally
+        FreeAndNil(BloClientCreate);
+      end;
+
+      if Result then
+      begin
+        LogUtil.LogMsg(lmInfo, UNIT_NAME, 'Client ' + aClientCode + ' has been successfully created on BankLink Online.');
+
+        Result := AddEditClientUser(Nil,
+                                    MsgResponseGuid.Result,
+                                    UserId,
+                                    aUserEMail,
+                                    aUserFullName);
+      end
+      else
+        LogUtil.LogMsg(lmInfo, UNIT_NAME, 'Client ' + aClientCode + ' was not created on BankLink Online.');
+
+    except
+      on E : Exception do
+      begin
+        LogUtil.LogMsg(lmError, UNIT_NAME, 'Exception running CreateClient, Error Message : ' + E.Message);
+        raise Exception.Create(BKPRACTICENAME + ' was unable to connect to ' + BANKLINK_ONLINE_NAME + '.' + #13#13 + E.Message );
+      end;
+    end;
+  finally
+    Progress.StatusSilent := True;
+    Progress.ClearStatus;
+    Screen.Cursor := crDefault;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+function TProductConfigService.UpdateClient(const aId                   : TBloGuid;
+                                            const aPrimaryContactUserId : TBloGuid;
+                                            const aBillingFrequency     : WideString;
+                                            const aClientCode           : WideString;
+                                                  aMaxOfflineDays       : Integer;
+                                            const aName                 : WideString;
+                                                  aStatus               : TBloStatus;
+                                            const aSubscription         : TBloArrayOfGuid): MessageResponse;
+var
+  BloClientUpdate : TBloClientUpdate;
+  BlopiInterface  : IBlopiServiceFacade;
+begin
+  BlopiInterface := GetServiceFacade;
+
+  BloClientUpdate := TBloClientUpdate.Create;
+  try
+    BloClientUpdate.Id                   := aId;
+    BloClientUpdate.PrimaryContactUserId := aPrimaryContactUserId;
+    BloClientUpdate.BillingFrequency     := aBillingFrequency;
+    BloClientUpdate.ClientCode           := aClientCode;
+    BloClientUpdate.MaxOfflineDays       := aMaxOfflineDays;
+    BloClientUpdate.Name_                := aName;
+    BloClientUpdate.Status               := aStatus;
+    BloClientUpdate.Subscription         := aSubscription;
+
+    Result := BlopiInterface.SaveClient(CountryText(AdminSystem.fdFields.fdCountry),
+                                        AdminSystem.fdFields.fdBankLink_Code,
+                                        AdminSystem.fdFields.fdBankLink_Connect_Password,
+                                        BloClientUpdate);
+
+    if Result.Success then
+      LogUtil.LogMsg(lmInfo, UNIT_NAME, 'Client ' + aClientCode + ' has been successfully updated on BankLink Online.')
+    else
+      LogUtil.LogMsg(lmInfo, UNIT_NAME, 'Client ' + aClientCode + ' was not updated on BankLink Online.');
+
+  finally
+    FreeAndNil(BloClientUpdate);
+  end;
 end;
 
 //------------------------------------------------------------------------------
