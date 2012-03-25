@@ -60,6 +60,7 @@ object frmBanklinkOnlineSettings: TfrmBanklinkOnlineSettings
       Width = 300
       Height = 93
       ItemHeight = 13
+      Sorted = True
       TabOrder = 2
     end
   end
