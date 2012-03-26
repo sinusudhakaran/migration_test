@@ -1579,8 +1579,10 @@ var lFile: TStringList;
     InItem: TFileItem;
     OutItem: TOutitem;
     R,C: Integer;
-    HeaderLine: Boolean;
+    HeaderLine, DCFound: Boolean;
     AmountColumnCount: Integer;
+    FirstLine: string;
+    ImportedFile: TextFile;
 
     procedure TryDate(Column: Integer);
     var DateMask: string;
@@ -1625,6 +1627,36 @@ var lFile: TStringList;
        end;
     end;
 
+    // This function could be further refined by comparing the number of times the char occurs in each
+    // line of the CSV (the Sniffer class in Python does something along these lines), as the
+    // delimiter should appear the same number of times on each line, but I don't think this will
+    // prove necessary if the Chrs array is sensibly populated. For now this just picks the delimiter
+    // from the given set which appears the most times
+    function FindDelimiter: char;
+    var
+      i, j, BestDelimByCount: Integer;
+      CharCounts: array[0..2] of integer; // length should match that of Chrs
+    const
+      Chrs: array[0..2] of char = (';', #9, ',');
+    begin
+      // Getting the number of times each delimiter 'candidate' appears in the first line of the imported file
+      for i := 0 to High(Chrs) do
+      begin
+        CharCounts[i] := 0;
+        for j := 1 to length(FirstLine) do
+          if FirstLine[j] = Chrs[i] then
+            inc(CharCounts[i]);
+      end;
+
+      // Find which delimiter candidate has the most occurences
+      BestDelimByCount := 0;
+      for i := 1 to High(CharCounts) do // starting from the second char
+        if (CharCounts[i] > CharCounts[BestDelimByCount]) then
+          BestDelimByCount := i;
+
+      // Return the char that appears the most.
+      Result := Chrs[BestDelimByCount];
+    end;
 begin
    if FReloading then
       Exit;
@@ -1665,12 +1697,11 @@ begin
        RBSign.Checked := False;
        RBDebitCredit.Checked := False;
 
-       // Read the File into the grid.
-       case cbDelimiter.ItemIndex of
-       1 :   lline.Delimiter := ';';
-       2 :   lline.Delimiter := #9;
-       else  lline.Delimiter := ',';
-       end;
+       // Get the first line of the file so we can find the most likely delimiter
+       AssignFile(ImportedFile, EPath.Text);
+       Reset(ImportedFile);
+       ReadLn(ImportedFile, FirstLine);
+       CloseFile(ImportedFile);
 
        lLine.StrictDelimiter := True;
        try
@@ -1751,6 +1782,14 @@ begin
        vsFile.Header.AutoFitColumns(False);
 
        // AmountColumnCount := 0;
+       lline.Delimiter := FindDelimiter;
+       case lline.Delimiter of
+         ';' : cbDelimiter.ItemIndex := 1;
+         #9 : cbDelimiter.ItemIndex := 2;
+         else  cbDelimiter.ItemIndex := 0;
+       end;
+       
+       DCFound := False;
        for C := 0 to vsFile.Header.Columns.Count - 1 do begin
           if IsAlphaOnly(C) then begin
              // has no digits.. cannot be a Date or amount
@@ -1758,6 +1797,7 @@ begin
              if IsDebitCredit(C) then begin
                 vsFile.Header.Columns[C].Tag := TagDebitCredit;
                 RBSign.Enabled := True;
+                DCFound := True;
              end else
                 vsFile.Header.Columns[C].Tag := TagAlpha;
           end else if IsNumericOnly(C) then begin
@@ -1790,7 +1830,7 @@ begin
 
        if RBSign.Enabled then
           RBSign.Checked := true
-       else if RBdebitCredit.Enabled then
+       else if RBdebitCredit.Enabled and DCFound then
           RBdebitCredit.Checked := true     
        else if RBSingle.Enabled then
           RBSingle.Checked := true;
