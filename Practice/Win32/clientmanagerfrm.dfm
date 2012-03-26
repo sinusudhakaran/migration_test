@@ -3,7 +3,7 @@ object frmClientManager: TfrmClientManager
   Top = 157
   Caption = 'Client Manager'
   ClientHeight = 554
-  ClientWidth = 1049
+  ClientWidth = 1205
   Color = clBtnFace
   Constraints.MinHeight = 163
   Constraints.MinWidth = 406
@@ -294,7 +294,7 @@ object frmClientManager: TfrmClientManager
   object pnlMain: TPanel
     Left = 200
     Top = 33
-    Width = 849
+    Width = 1005
     Height = 487
     Align = alClient
     BevelOuter = bvNone
@@ -304,7 +304,7 @@ object frmClientManager: TfrmClientManager
     object pnlFrameHolder: TPanel
       Left = 2
       Top = 24
-      Width = 845
+      Width = 1001
       Height = 461
       Align = alClient
       BevelOuter = bvNone
@@ -315,82 +315,96 @@ object frmClientManager: TfrmClientManager
       object pnlLegend: TPanel
         Left = 0
         Top = 0
-        Width = 845
+        Width = 1001
         Height = 27
         Align = alTop
         BevelInner = bvLowered
         TabOrder = 0
-        object Label6: TLabel
-          AlignWithMargins = True
-          Left = 25
-          Top = 2
-          Width = 39
-          Height = 23
-          Margins.Top = 0
-          Margins.Bottom = 0
-          Align = alLeft
-          Caption = 'Legend:'
-          Layout = tlCenter
-          ExplicitHeight = 13
-        end
-        object tbtnClose: TRzToolButton
+        object pnlLegendA: TPanel
           Left = 2
           Top = 2
-          Width = 20
+          Width = 997
           Height = 23
-          GradientColorStyle = gcsCustom
-          ImageIndex = 0
-          Images = AppImages.ToolBtn
-          UseToolbarButtonSize = False
-          UseToolbarVisualStyle = False
-          VisualStyle = vsGradient
-          Align = alLeft
-          Caption = 'Show Legend'
-          OnClick = actShowLegendExecute
-          ExplicitHeight = 19
-        end
-        object sgLegend: TStringGrid
-          AlignWithMargins = True
-          Left = 70
-          Top = 2
-          Width = 501
-          Height = 23
-          Margins.Top = 0
-          Margins.Bottom = 0
-          Align = alLeft
-          BevelInner = bvNone
+          Align = alClient
           BevelOuter = bvNone
-          BorderStyle = bsNone
-          Color = clBtnFace
-          ColCount = 12
-          DefaultColWidth = 75
-          Enabled = False
-          FixedCols = 0
-          RowCount = 1
-          FixedRows = 0
-          Options = []
-          ScrollBars = ssNone
           TabOrder = 0
-          OnDrawCell = sgLegendDrawCell
-          OnSelectCell = sgLegendSelectCell
+          object Label6: TLabel
+            AlignWithMargins = True
+            Left = 23
+            Top = 0
+            Width = 39
+            Height = 23
+            Margins.Top = 0
+            Margins.Bottom = 0
+            Align = alLeft
+            Caption = 'Legend:'
+            Layout = tlCenter
+            ExplicitLeft = 25
+            ExplicitTop = 2
+            ExplicitHeight = 13
+          end
+          object tbtnClose: TRzToolButton
+            Left = 0
+            Top = 0
+            Width = 20
+            Height = 23
+            GradientColorStyle = gcsCustom
+            ImageIndex = 0
+            Images = AppImages.ToolBtn
+            UseToolbarButtonSize = False
+            UseToolbarVisualStyle = False
+            VisualStyle = vsGradient
+            Align = alLeft
+            Caption = 'Show Legend'
+            OnClick = actShowLegendExecute
+            ExplicitLeft = 2
+            ExplicitTop = 2
+            ExplicitHeight = 19
+          end
+          object sgLegend: TStringGrid
+            AlignWithMargins = True
+            Left = 68
+            Top = 0
+            Width = 501
+            Height = 23
+            Margins.Top = 0
+            Margins.Bottom = 0
+            Align = alLeft
+            BevelInner = bvNone
+            BevelOuter = bvNone
+            BorderStyle = bsNone
+            Color = clBtnFace
+            ColCount = 12
+            DefaultColWidth = 75
+            Enabled = False
+            FixedCols = 0
+            RowCount = 1
+            FixedRows = 0
+            Options = []
+            ScrollBars = ssNone
+            TabOrder = 0
+            OnDrawCell = sgLegendDrawCell
+            OnSelectCell = sgLegendSelectCell
+          end
         end
       end
       inline ClientLookup: TfmeClientLookup
         Left = 0
         Top = 27
-        Width = 845
+        Width = 1001
         Height = 434
         Align = alClient
         TabOrder = 1
         TabStop = True
         ExplicitTop = 27
-        ExplicitWidth = 845
+        ExplicitWidth = 1001
         ExplicitHeight = 434
         inherited vtClients: TVirtualStringTree
-          Width = 845
+          Width = 1001
           Height = 434
           ExplicitLeft = 4
-          ExplicitWidth = 845
+          ExplicitTop = -3
+          ExplicitWidth = 1001
           ExplicitHeight = 434
         end
       end
@@ -398,169 +412,177 @@ object frmClientManager: TfrmClientManager
     object pnlFilter: TPanel
       Left = 2
       Top = 2
-      Width = 845
+      Width = 1001
       Height = 22
       Align = alTop
       BevelInner = bvRaised
       BevelOuter = bvLowered
       TabOrder = 1
-      object lblCount: TLabel
-        AlignWithMargins = True
-        Left = 632
+      object pnlFilterA: TPanel
+        Left = 2
         Top = 2
-        Width = 96
+        Width = 997
         Height = 18
-        Margins.Top = 0
-        Margins.Bottom = 0
-        Align = alLeft
-        Caption = '99999 Clients Listed'
-        Layout = tlCenter
-        Visible = False
-        ExplicitHeight = 13
-      end
-      object Label1: TLabel
-        AlignWithMargins = True
-        Left = 345
-        Top = 2
-        Width = 33
-        Height = 18
-        Margins.Left = 9
-        Margins.Top = 0
-        Margins.Bottom = 0
-        Align = alLeft
-        Caption = 'Search'
-        Layout = tlCenter
-        ExplicitHeight = 13
-      end
-      object imgCannotConnect: TImage
-        AlignWithMargins = True
-        Left = 734
-        Top = 6
-        Width = 16
-        Height = 14
-        Hint = 
-          'BankLink Practice will not display any BankLink Online related s' +
-          'ettings or functions'
-        Margins.Top = 4
-        Margins.Bottom = 0
-        Align = alLeft
-        ParentShowHint = False
-        Picture.Data = {
-          0B546478504E47496D61676589504E470D0A1A0A0000000D4948445200000010
-          0000001008060000001FF3FF61000000017352474200AECE1CE9000000046741
-          4D410000B18F0BFC6105000000097048597300000EBC00000EBC0195BC724900
-          00001874455874536F667477617265005061696E742E4E45542076332E313072
-          B22592000000AC49444154384F9593DB0DC02008455DC9995CCB995C898AA845
-          B8D4F48398281C2E0F13112568AD102D8B7CFABD0FEE41AD66670306400EC0C1
-          E2AC9E26F40ED88E692828594E86BDE0B3E44381CECEC1CB869A40C50B50D939
-          C00102151B606BAF454AE073F703A81080C9BE6AD63D5810DB8B01883ACF80DB
-          4460F68FBD7113C1D967C3500976220200DB8CA6A0FD24AEAF7204B08B64936C
-          009AC0AF1EE831A24F74FB58F82BDF24A8F7072AE8D967758DBB870000000049
-          454E44AE426082}
-        ShowHint = True
-        Transparent = True
-        Visible = False
-        ExplicitTop = 4
-        ExplicitHeight = 18
-      end
-      object lblCannotConnect: TLabel
-        AlignWithMargins = True
-        Left = 756
-        Top = 2
-        Width = 163
-        Height = 18
-        Hint = 
-          'BankLink Practice will not display any BankLink Online related s' +
-          'ettings or functions'
-        Margins.Top = 0
-        Margins.Bottom = 0
-        Align = alLeft
-        Caption = 'Cannot connect to Banklink Online'
-        ParentShowHint = False
-        ShowHint = True
-        Layout = tlCenter
-        Visible = False
-        ExplicitLeft = 753
-        ExplicitTop = -2
-      end
-      object cmbFilter: TComboBox
-        AlignWithMargins = True
-        Left = 5
-        Top = 2
-        Width = 116
-        Height = 21
-        Margins.Top = 0
-        Margins.Bottom = 0
-        Align = alLeft
-        Style = csDropDownList
-        ItemHeight = 13
+        Align = alClient
+        BevelOuter = bvNone
         TabOrder = 0
-        OnChange = cmbFilterChange
-      end
-      object btnFilter: TButton
-        AlignWithMargins = True
-        Left = 127
-        Top = 2
-        Width = 100
-        Height = 18
-        Margins.Top = 0
-        Margins.Bottom = 0
-        Align = alLeft
-        Caption = 'Filter Clients'
-        ParentShowHint = False
-        ShowHint = True
-        TabOrder = 1
-        OnClick = btnFilterClick
-      end
-      object btnResetFilter: TButton
-        AlignWithMargins = True
-        Left = 233
-        Top = 2
-        Width = 100
-        Height = 18
-        Margins.Top = 0
-        Margins.Bottom = 0
-        Align = alLeft
-        Caption = 'Reset Filter'
-        ParentShowHint = False
-        ShowHint = True
-        TabOrder = 2
-        OnClick = mniResetFilterClick
-      end
-      object EBFind: TEdit
-        AlignWithMargins = True
-        Left = 384
-        Top = 2
-        Width = 161
-        Height = 18
-        Margins.Top = 0
-        Margins.Bottom = 0
-        Align = alLeft
-        MaxLength = 12
-        TabOrder = 3
-        OnChange = EBFindChange
-        OnKeyPress = EBFindKeyPress
-        ExplicitHeight = 21
-      end
-      object btnFind: TButton
-        AlignWithMargins = True
-        Left = 551
-        Top = 2
-        Width = 75
-        Height = 18
-        Margins.Top = 0
-        Margins.Bottom = 0
-        Align = alLeft
-        Caption = 'Clear'
-        TabOrder = 4
-        OnClick = btnFindClick
+        object lblCount: TLabel
+          AlignWithMargins = True
+          Left = 630
+          Top = 0
+          Width = 96
+          Height = 18
+          Margins.Top = 0
+          Margins.Bottom = 0
+          Align = alLeft
+          Caption = '99999 Clients Listed'
+          Layout = tlCenter
+          Visible = False
+          ExplicitHeight = 13
+        end
+        object Label1: TLabel
+          AlignWithMargins = True
+          Left = 343
+          Top = 0
+          Width = 33
+          Height = 18
+          Margins.Left = 9
+          Margins.Top = 0
+          Margins.Bottom = 0
+          Align = alLeft
+          Caption = 'Search'
+          Layout = tlCenter
+          ExplicitHeight = 13
+        end
+        object imgCannotConnect: TImage
+          AlignWithMargins = True
+          Left = 732
+          Top = 4
+          Width = 16
+          Height = 14
+          Hint = 
+            'BankLink Practice will not display any BankLink Online related s' +
+            'ettings or functions'
+          Margins.Top = 4
+          Margins.Bottom = 0
+          Align = alLeft
+          ParentShowHint = False
+          Picture.Data = {
+            0B546478504E47496D61676589504E470D0A1A0A0000000D4948445200000010
+            0000001008060000001FF3FF61000000017352474200AECE1CE9000000046741
+            4D410000B18F0BFC6105000000097048597300000EBC00000EBC0195BC724900
+            00001874455874536F667477617265005061696E742E4E45542076332E313072
+            B22592000000AC49444154384F9593DB0DC02008455DC9995CCB995C898AA845
+            B8D4F48398281C2E0F13112568AD102D8B7CFABD0FEE41AD66670306400EC0C1
+            E2AC9E26F40ED88E692828594E86BDE0B3E44381CECEC1CB869A40C50B50D939
+            C00102151B606BAF454AE073F703A81080C9BE6AD63D5810DB8B01883ACF80DB
+            4460F68FBD7113C1D967C3500976220200DB8CA6A0FD24AEAF7204B08B64936C
+            009AC0AF1EE831A24F74FB58F82BDF24A8F7072AE8D967758DBB870000000049
+            454E44AE426082}
+          ShowHint = True
+          Transparent = True
+          Visible = False
+          ExplicitLeft = 734
+          ExplicitHeight = 18
+        end
+        object lblCannotConnect: TLabel
+          AlignWithMargins = True
+          Left = 754
+          Top = 0
+          Width = 163
+          Height = 18
+          Hint = 
+            'BankLink Practice will not display any BankLink Online related s' +
+            'ettings or functions'
+          Margins.Top = 0
+          Margins.Bottom = 0
+          Align = alLeft
+          Caption = 'Cannot connect to Banklink Online'
+          ParentShowHint = False
+          ShowHint = True
+          Layout = tlCenter
+          Visible = False
+          ExplicitHeight = 13
+        end
+        object cmbFilter: TComboBox
+          AlignWithMargins = True
+          Left = 3
+          Top = 0
+          Width = 116
+          Height = 21
+          Margins.Top = 0
+          Margins.Bottom = 0
+          Align = alLeft
+          Style = csDropDownList
+          ItemHeight = 13
+          TabOrder = 0
+          OnChange = cmbFilterChange
+        end
+        object btnFilter: TButton
+          AlignWithMargins = True
+          Left = 125
+          Top = 0
+          Width = 100
+          Height = 18
+          Margins.Top = 0
+          Margins.Bottom = 0
+          Align = alLeft
+          Caption = 'Filter Clients'
+          ParentShowHint = False
+          ShowHint = True
+          TabOrder = 1
+          OnClick = btnFilterClick
+        end
+        object btnResetFilter: TButton
+          AlignWithMargins = True
+          Left = 231
+          Top = 0
+          Width = 100
+          Height = 18
+          Margins.Top = 0
+          Margins.Bottom = 0
+          Align = alLeft
+          Caption = 'Reset Filter'
+          ParentShowHint = False
+          ShowHint = True
+          TabOrder = 2
+          OnClick = mniResetFilterClick
+        end
+        object EBFind: TEdit
+          AlignWithMargins = True
+          Left = 382
+          Top = 0
+          Width = 161
+          Height = 18
+          Margins.Top = 0
+          Margins.Bottom = 0
+          Align = alLeft
+          MaxLength = 12
+          TabOrder = 3
+          OnChange = EBFindChange
+          OnKeyPress = EBFindKeyPress
+          ExplicitHeight = 21
+        end
+        object btnFind: TButton
+          AlignWithMargins = True
+          Left = 549
+          Top = 0
+          Width = 75
+          Height = 18
+          Margins.Top = 0
+          Margins.Bottom = 0
+          Align = alLeft
+          Caption = 'Clear'
+          TabOrder = 4
+          OnClick = btnFindClick
+        end
       end
     end
   end
   object PnlLogo: TRzPanel
     Left = 0
     Top = 0
-    Width = 1049
+    Width = 1205
     Height = 33
     Align = alTop
     BorderOuter = fsNone
@@ -588,7 +610,7 @@ object frmClientManager: TfrmClientManager
       ExplicitHeight = 20
     end
     object imgRight: TImage
-      Left = 963
+      Left = 1119
       Top = 0
       Width = 86
       Height = 33
@@ -601,16 +623,16 @@ object frmClientManager: TfrmClientManager
   object pnlClose: TPanel
     Left = 0
     Top = 520
-    Width = 1049
+    Width = 1205
     Height = 34
     Align = alBottom
     TabOrder = 1
     OnResize = pnlCloseResize
     DesignSize = (
-      1049
+      1205
       34)
     object btnClose: TButton
-      Left = 963
+      Left = 1119
       Top = 4
       Width = 77
       Height = 25

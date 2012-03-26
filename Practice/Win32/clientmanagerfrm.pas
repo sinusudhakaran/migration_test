@@ -162,6 +162,8 @@ type
     imgCannotConnect: TImage;
     actBOSettings: TAction;
     mniEditBOSettings: TMenuItem;
+    pnlFilterA: TPanel;
+    pnlLegendA: TPanel;
     procedure FormCreate(Sender: TObject);
     procedure FormShow(Sender: TObject);
 
