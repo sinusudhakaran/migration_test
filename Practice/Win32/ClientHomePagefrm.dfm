@@ -4,7 +4,7 @@ object frmClientHomePage: TfrmClientHomePage
   ActiveControl = ClientTree
   Caption = 'Home'
   ClientHeight = 523
-  ClientWidth = 939
+  ClientWidth = 1209
   Color = clBtnFace
   ParentFont = True
   FormStyle = fsMDIChild
@@ -161,21 +161,21 @@ object frmClientHomePage: TfrmClientHomePage
   object Panel1: TPanel
     Left = 185
     Top = 31
-    Width = 754
+    Width = 1024
     Height = 492
     Align = alClient
     TabOrder = 0
     object PnlClient: TRzPanel
       Left = 1
       Top = 28
-      Width = 752
+      Width = 1022
       Height = 438
       Align = alClient
       TabOrder = 0
       object ClientTree: TVirtualStringTree
         Left = 2
         Top = 2
-        Width = 748
+        Width = 1018
         Height = 434
         Hint = ' '
         Align = alClient
@@ -239,7 +239,7 @@ object frmClientHomePage: TfrmClientHomePage
             Options = [coEnabled, coParentBidiMode, coParentColor, coShowDropMark, coVisible]
             Position = 4
             Tag = 8
-            Width = 100
+            Width = 228
             WideText = 'Currency'
           end>
       end
@@ -287,70 +287,83 @@ object frmClientHomePage: TfrmClientHomePage
     object pnlLegend: TPanel
       Left = 1
       Top = 1
-      Width = 752
+      Width = 1022
       Height = 27
       Align = alTop
       BevelInner = bvLowered
       TabOrder = 1
-      object lblLegend: TLabel
-        AlignWithMargins = True
-        Left = 30
-        Top = 2
-        Width = 39
-        Height = 23
-        Margins.Top = 0
-        Margins.Bottom = 0
-        Align = alLeft
-        Caption = 'Legend:'
-        Layout = tlCenter
-        ExplicitHeight = 13
-      end
-      object tbtnClose: TRzToolButton
+      object pnlLegendA: TPanel
         Left = 2
         Top = 2
+        Width = 1018
         Height = 23
-        GradientColorStyle = gcsCustom
-        ImageIndex = 0
-        Images = AppImages.ToolBtn
-        UseToolbarButtonSize = False
-        UseToolbarVisualStyle = False
-        VisualStyle = vsGradient
-        Align = alLeft
-        Caption = 'Hide Legend'
-        OnClick = acShowlegendExecute
-        ExplicitHeight = 18
-      end
-      object sgLegend: TStringGrid
-        AlignWithMargins = True
-        Left = 75
-        Top = 2
-        Width = 681
-        Height = 23
-        HelpType = htKeyword
-        Margins.Top = 0
-        Margins.Bottom = 0
-        Align = alLeft
-        BevelInner = bvNone
+        Align = alClient
         BevelOuter = bvNone
-        BorderStyle = bsNone
-        Color = clBtnFace
-        ColCount = 14
-        DefaultColWidth = 75
-        Enabled = False
-        FixedCols = 0
-        RowCount = 1
-        FixedRows = 0
-        Options = []
-        ScrollBars = ssNone
         TabOrder = 0
-        OnDrawCell = sgLegendDrawCell
-        OnSelectCell = sgLegendSelectCell
+        object lblLegend: TLabel
+          AlignWithMargins = True
+          Left = 28
+          Top = 0
+          Width = 39
+          Height = 23
+          Margins.Top = 0
+          Margins.Bottom = 0
+          Align = alLeft
+          Caption = 'Legend:'
+          Layout = tlCenter
+          ExplicitLeft = 30
+          ExplicitTop = 2
+          ExplicitHeight = 13
+        end
+        object tbtnClose: TRzToolButton
+          Left = 0
+          Top = 0
+          Height = 23
+          GradientColorStyle = gcsCustom
+          ImageIndex = 0
+          Images = AppImages.ToolBtn
+          UseToolbarButtonSize = False
+          UseToolbarVisualStyle = False
+          VisualStyle = vsGradient
+          Align = alLeft
+          Caption = 'Hide Legend'
+          OnClick = acShowlegendExecute
+          ExplicitLeft = 2
+          ExplicitTop = 2
+          ExplicitHeight = 18
+        end
+        object sgLegend: TStringGrid
+          AlignWithMargins = True
+          Left = 73
+          Top = 0
+          Width = 681
+          Height = 23
+          HelpType = htKeyword
+          Margins.Top = 0
+          Margins.Bottom = 0
+          Align = alLeft
+          BevelInner = bvNone
+          BevelOuter = bvNone
+          BorderStyle = bsNone
+          Color = clBtnFace
+          ColCount = 14
+          DefaultColWidth = 75
+          Enabled = False
+          FixedCols = 0
+          RowCount = 1
+          FixedRows = 0
+          Options = []
+          ScrollBars = ssNone
+          TabOrder = 0
+          OnDrawCell = sgLegendDrawCell
+          OnSelectCell = sgLegendSelectCell
+        end
       end
     end
     object pnlTabs: TPanel
       Left = 1
       Top = 466
-      Width = 752
+      Width = 1022
       Height = 25
       Align = alBottom
       BevelInner = bvLowered
@@ -358,7 +371,7 @@ object frmClientHomePage: TfrmClientHomePage
       object tcWindows: TRzTabControl
         Left = 2
         Top = 2
-        Width = 748
+        Width = 1018
         Height = 21
         Align = alClient
         TabIndex = 0
@@ -376,7 +389,7 @@ object frmClientHomePage: TfrmClientHomePage
   object pnlTitle: TRzPanel
     Left = 0
     Top = 0
-    Width = 939
+    Width = 1209
     Height = 31
     Align = alTop
     BorderOuter = fsNone
@@ -406,7 +419,7 @@ object frmClientHomePage: TfrmClientHomePage
     object lblClientName: TLabel
       Left = 134
       Top = 0
-      Width = 725
+      Width = 995
       Height = 31
       Margins.Left = 0
       Margins.Top = 0
@@ -431,7 +444,7 @@ object frmClientHomePage: TfrmClientHomePage
       ExplicitHeight = 21
     end
     object imgRight: TImage
-      Left = 859
+      Left = 1129
       Top = 0
       Width = 80
       Height = 31
@@ -439,6 +452,7 @@ object frmClientHomePage: TfrmClientHomePage
       Anchors = [akTop, akRight]
       AutoSize = True
       Transparent = True
+      ExplicitLeft = 859
     end
   end
   object ActionList1: TActionList

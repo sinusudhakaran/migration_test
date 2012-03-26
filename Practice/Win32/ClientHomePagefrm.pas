@@ -93,7 +93,7 @@ type
     tcWindows: TRzTabControl;
     NotesTimer: TTimer;
     acForexRatesMissing: TAction;
-
+    pnlLegendA: TPanel;
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormDestroy(Sender: TObject);
