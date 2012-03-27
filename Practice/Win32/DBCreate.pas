@@ -329,6 +329,7 @@ begin
   AddNewClientType('Coding Report');
   AddNewClientType('Notes');
   AddNewClientType('Books');
+  AddNewClientType('Books via BankLink Online');
   AddNewClientType('Books Secure');
   AddNewClientType('CodeIT');
   AddNewClientType('Annual');
