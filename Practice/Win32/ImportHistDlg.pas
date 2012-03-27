@@ -1704,6 +1704,7 @@ begin
        CloseFile(ImportedFile);
 
        lLine.StrictDelimiter := True;
+       lline.Delimiter := FindDelimiter;
        try
           lFile.LoadFromFile(EPath.Text);
        except
@@ -1782,13 +1783,12 @@ begin
        vsFile.Header.AutoFitColumns(False);
 
        // AmountColumnCount := 0;
-       lline.Delimiter := FindDelimiter;
        case lline.Delimiter of
          ';' : cbDelimiter.ItemIndex := 1;
          #9 : cbDelimiter.ItemIndex := 2;
          else  cbDelimiter.ItemIndex := 0;
        end;
-       
+
        DCFound := False;
        for C := 0 to vsFile.Header.Columns.Count - 1 do begin
           if IsAlphaOnly(C) then begin
@@ -1831,7 +1831,7 @@ begin
        if RBSign.Enabled then
           RBSign.Checked := true
        else if RBdebitCredit.Enabled and DCFound then
-          RBdebitCredit.Checked := true     
+          RBdebitCredit.Checked := true
        else if RBSingle.Enabled then
           RBSingle.Checked := true;
           
