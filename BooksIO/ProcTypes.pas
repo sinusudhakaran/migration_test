@@ -4,9 +4,8 @@ interface
 uses Sysutils;
 
 type
-   OutputFile = procedure (FileType: Integer; Filename: pChar; Data: PChar); stdcall;
-   OutputError = procedure (Error: Integer; ErrorText: pChar); stdcall;
-
+   OutputFileProc = procedure (FileType: Integer; Data: PChar); stdcall;
+   OutputStatusProc = procedure (Status: Integer; StatusText: PChar); stdcall;
 
 
 

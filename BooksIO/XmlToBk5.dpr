@@ -10,7 +10,11 @@ library XmlToBk5;
   with your DLL. To avoid using BORLNDMM.DLL, pass string information
   using PChar or ShortString parameters. }
 
+
+{$DEFINE DLLONLY}
+
 uses
+
   SysUtils,
   Classes,
   Dialogs,
@@ -20,6 +24,7 @@ uses
   ListHelpers;
 
 {$R *.res}
+
 
 function EnCodetext(Value: Tstream): string;
 var
@@ -67,18 +72,18 @@ begin
       try
         Client := TClientObj.Create;
         try
-          LogDebug('read Client Start');
+          //LogDebug('read Client Start');
           Client.SimpleRead('', ClientStream);
           try
             XML := TXML_Helper.Create;
             try
-              LogDebug('Make XML Start');
+              //LogDebug('Make XML Start');
               XMLString := XML.MakeXML(Client);
               BuffSize := SizeOf(Char)*(Length(XMLString) + 1);//+1 for null-terminator
               GetMem(XMLFile, BuffSize);
               FillChar(XMLFile^, BuffSize, 0);
               Move(PChar(XMLString)^, XMLFile^, BuffSize);
-              LogDebug('Import done');
+              //LogDebug('Import done');
             finally
               XML.Free;
             end;

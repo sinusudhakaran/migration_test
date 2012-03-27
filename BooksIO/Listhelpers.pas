@@ -37,14 +37,14 @@ public
   function ReadClient(Value: string):TClientObj;
 End;
 
-procedure logDebug(msg: string);
+//procedure logDebug(msg: string);
 
 implementation
 
 uses
     webutils,
-    LogUtil,
 
+    logger,
     classes,
     BKplIO,
     BKmlIO,
@@ -68,8 +68,10 @@ var DebugMe : boolean = true;
 
 procedure logDebug(msg: string);
 begin
-   if DebugMe then
-      logMsg(lmDebug,'BooksIO ListHelper',msg);
+   if DebugMe then begin
+
+      logger.LogDebug(msg);
+   end;
 end;
 
 
@@ -171,13 +173,14 @@ begin
       lnode := lnode.ChildNodes.First;
       while Assigned(lNode) do begin
          nAccount := TBank_Account.Create(value);
-         nAccount.baFields.baCurrency_Code := 'XXX'; // default value
-         value.clBank_Account_List.Insert(nAccount);
          ReadFromNode(nAccount,LNode);
+         //LogDebug(LNode.XML);
+         value.clBank_Account_List.Insert(nAccount);
+
          lNode := lNode.NextSibling;
       end;
    end;
-   value.clBank_Account_List.Sort(BankAccountCompare);
+   //value.clBank_Account_List.Sort(BankAccountCompare);
    except
       on e: exception do
          Reraise(e, 'Reading Bank Accounts');
@@ -272,7 +275,7 @@ begin
       while Assigned(lNode) do begin
          nHeading := New_Custom_Heading_Rec;
          nHeading.ReadRecFromNode(lNode);
-         value.clBalances_List.Insert(nHeading);
+         value.clCustom_Headings_List.Insert(nHeading);
          lNode := lNode.NextSibling;
       end
    end;
@@ -565,11 +568,21 @@ var
   lXMLDoc: IXMLDocument;
 begin
   //setup XML Document
+    //logDebug('Make doc');
+
+     Result := TClientObj.Create;
+      logDebug('Make Client Done ');
+
   lXMLDoc := MakeXMLDoc(value);
+    logDebug('Make doc Done');
 
 
-  Result := TClientObj.Create;
+
+
+
   lNode :=  lXMLDoc.ChildNodes.FindNode('BKClientFile');
+
+     logDebug('Find Client Done ');
   if not assigned(Lnode) then
        raise Exception.Create('No BKClientFile Node found');
 

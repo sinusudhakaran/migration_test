@@ -1,23 +1,24 @@
 library BooksIO;
+{$DEFINE DLLONLY}   // Does not work here, make sure its set in the project options; stops the HMutex (oneinst)
+{
 
-{ Important note about DLL memory management: ShareMem must be the
-  first unit in your library's USES clause AND your project's (select
-  Project-View Source) USES clause if your DLL exports any procedures or
-  functions that pass strings as parameters or function results. This
-  applies to all strings passed to and from your DLL--even those that
-  are nested in records and classes. ShareMem is the interface unit to
-  the BORLNDMM.DLL shared memory manager, which must be deployed along
-  with your DLL. To avoid using BORLNDMM.DLL, pass string information
-  using PChar or ShortString parameters. }
+         FastMM4 must be the first unit (to make it the Memory Mannager)
+         Please rememeber that a Dll shares the Heap (and stack) with the hosting app.
+         So if the host is not a Delphi app, we have to play nice.
+         FastMM is much better at  that...
+
+}
 
 uses
+  FastMM4,
   SysUtils,
   Classes,
   ImportExport in 'ImportExport.pas',
   ProcTypes in 'ProcTypes.pas',
   WebUtils in '..\Practice\WebNotes\WebUtils.pas',
   Listhelpers in 'Listhelpers.pas',
-  BK_XMLHelper in '..\Common\Database\BK_XMLHelper.PAS';
+  BK_XMLHelper in '..\Common\Database\BK_XMLHelper.PAS',
+  logger in 'logger.pas';
 
 {$R *.res}
 
@@ -48,7 +49,7 @@ uses
 
              SetOutputFileProc,
 
-             SetErrorProc,
+             SetStatusProc,
              ImportBooksFile,
              ExportBooksFile;
 
