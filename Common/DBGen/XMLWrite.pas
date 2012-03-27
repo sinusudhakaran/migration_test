@@ -342,6 +342,7 @@ begin
    WriteLn(WritePFile,'implementation');
    WriteLn(WritePFile,'uses');
    WriteLn(WritePFile,#09'WebUtils,');
+   WriteLn(WritePFile,#09'Variants,');
    WriteLn(WritePFile,#09'SysUtils;');
    WriteLn(WritePFile,'');
    WriteLn(WritePFile,'');
@@ -419,7 +420,9 @@ const
     #9#9'CNode := Nil;'#13#10 +
     #9'for I := low(%s) to High(%s) do begin'#13#10 +
     #9#9'if Assigned(CNode) then begin'#13#10 +
-    #9#9#9'%s[I] := CNode.Nodevalue;'#13#10 +
+    #9#9#9'if CNode.Nodevalue <> null then '#13#10 +
+    #9#9#9#9'%s[I] := CNode.Nodevalue'#13#10 +
+    #9#9#9'else %s[I] := '''';'#13#10 +
     #9#9#9'CNode := CNode.NextSibling;'#13#10 +
     #9#9'end else'#13#10 +
     #9#9#9'%s[I] := '''''#13#10 +
@@ -530,11 +533,17 @@ begin
 
     F := tCodeBlock.Create;
     F.fCode := 'BS';
-    F.fReadCode  := format(SArrayRead,[Plural,Single,Make, Make, make, Make]);
+    F.fReadCode  := format(SArrayRead,[Plural,Single,Make, Make, make, Make, make, make]);
     F.fWriteCode := format(SArrayWrite,[Plural, make, make, make,make,make, Single, Make]);
     F.fCProperty  :=  format(ArrayField,[Plural,Single,'string','String',save]);
     FieldTypes.Add(F);
 
+    F := tCodeBlock.Create;
+    F.fCode := 'BS0';
+    F.fReadCode  := format(SArrayRead,[Plural,Single,Make, Make, make, Make, make, make]);
+    F.fWriteCode := format(SArrayWrite,[Plural, make, make, make,make,make, Single, Make]);
+    F.fCProperty  :=  format(ArrayField,[Plural,Single,'string','String',save]);
+    FieldTypes.Add(F);
 
 
     F := tCodeBlock.Create;
@@ -546,16 +555,9 @@ begin
 
     F := tCodeBlock.Create;
     F.fCode := 'D';
-    {
-    F.fReadCode  := format(NulbaseRead,[make, 'Date', save]);
-    F.fWriteCode := format(NulbaseWrite,['Date',save, Make]);
-    F.FCClass  :=  format(NulbaseField,[save,'date','DateTime',save]);
-    }
-    { Do it as }
     F.fReadCode  := format(baseRead,[make, 'Int', save]);
     F.fWriteCode := format(baseWrite,['Int',save, Make]);
     F.fCProperty  :=  format(baseField,[save,'int','Int32',save]);
-    {}
     FieldTypes.Add(F);
 
     F := tCodeBlock.Create;
@@ -567,6 +569,20 @@ begin
 
     F := tCodeBlock.Create;
     F.fCode := 'BL';
+    F.fReadCode  := format(ArrayRead,[Plural, Make]);
+    F.fWriteCode := format(ArrayWrite,[Plural, Make]);
+    F.fCProperty  :=  format(ArrayField,[Plural,Single,'int','Int32',save]);
+    FieldTypes.Add(F);
+
+    F := tCodeBlock.Create;
+    F.fCode := 'BD';
+    F.fReadCode  := format(ArrayRead,[Plural, Make]);
+    F.fWriteCode := format(ArrayWrite,[Plural, Make]);
+    F.fCProperty  :=  format(ArrayField,[Plural,Single,'int','Int32',save]);
+    FieldTypes.Add(F);
+
+    F := tCodeBlock.Create;
+    F.fCode := 'BD0';
     F.fReadCode  := format(ArrayRead,[Plural, Make]);
     F.fWriteCode := format(ArrayWrite,[Plural, Make]);
     F.fCProperty  :=  format(ArrayField,[Plural,Single,'int','Int32',save]);
@@ -651,7 +667,7 @@ begin
 
     F := tCodeBlock.Create;
     F.fCode := 'B$';
-    F.fReadCode  := format(ArrayRead,[Save, Make]);
+    F.fReadCode  := format(ArrayRead,[Plural, Make]);
     F.fWriteCode := format(ArrayWrite,[Plural, Make]);
     //F.FCClass  :=  format(arrayField,[Plural,Single,'decimal','Decimal',save]);
     F.fCProperty  :=  format(arrayField,[Plural,Single,'long','Int64',save]);
