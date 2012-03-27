@@ -3,7 +3,7 @@ object frmBanklinkOnlineSettings: TfrmBanklinkOnlineSettings
   Top = 0
   BorderStyle = bsDialog
   Caption = 'BankLink Online Settings'
-  ClientHeight = 517
+  ClientHeight = 458
   ClientWidth = 480
   Color = clBtnFace
   DefaultMonitor = dmMainForm
@@ -66,11 +66,12 @@ object frmBanklinkOnlineSettings: TfrmBanklinkOnlineSettings
   end
   object grpBillingFrequency: TGroupBox
     Left = 8
-    Top = 292
+    Top = 366
     Width = 465
     Height = 53
     Caption = 'Billing Frequency'
     TabOrder = 1
+    Visible = False
     object lblNextBillingFrequency: TLabel
       Left = 21
       Top = 22
@@ -94,7 +95,7 @@ object frmBanklinkOnlineSettings: TfrmBanklinkOnlineSettings
   end
   object grpDefaultClientAdministrator: TGroupBox
     Left = 8
-    Top = 351
+    Top = 292
     Width = 465
     Height = 114
     Caption = 'Default Client Administrator'
@@ -143,7 +144,7 @@ object frmBanklinkOnlineSettings: TfrmBanklinkOnlineSettings
   end
   object btnOK: TButton
     Left = 301
-    Top = 479
+    Top = 425
     Width = 75
     Height = 25
     Caption = 'OK'
@@ -153,7 +154,7 @@ object frmBanklinkOnlineSettings: TfrmBanklinkOnlineSettings
   end
   object btnCancel: TButton
     Left = 390
-    Top = 479
+    Top = 425
     Width = 75
     Height = 25
     Cancel = True

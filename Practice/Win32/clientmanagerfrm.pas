@@ -658,7 +658,7 @@ begin
     cluBankLinkOnline : Result := icid_BankLinkOnline;
     cluModifiedDate : Result := icid_ModifiedDate;
     cluBOProduct : Result := icid_BOProduct;
-    cluBOBillingFrequency : Result := icid_BOBillingFrequency;
+    // cluBOBillingFrequency : Result := icid_BOBillingFrequency;
     cluBOUserAdmin : Result := icid_BOUserAdmin;
     cluBOAccess : Result := icid_BOAccess;
   else
@@ -1088,12 +1088,10 @@ begin
               SetLength(UserINI_CM_Var_Col_Guid,      UserINI_CM_Var_Col_Count);
             end;
 
-            AddCustomColumn( 'Billing Frequency',
-              trunc(vtClients.Canvas.TextWidth(trim('Billing Frequency')) * 2), NumColumns, cluBOBillingFrequency);
             AddCustomColumn( 'User Admin',
-              trunc(vtClients.Canvas.TextWidth(trim('User Admin')) * 2), NumColumns + 1, cluBOUserAdmin);
+              trunc(vtClients.Canvas.TextWidth(trim('User Admin')) * 2), NumColumns, cluBOUserAdmin);
             AddCustomColumn( 'Banklink Online Access',
-              trunc(vtClients.Canvas.TextWidth(trim('Banklink Online Access')) * 2), NumColumns + 2, cluBOAccess);
+              trunc(vtClients.Canvas.TextWidth(trim('Banklink Online Access')) * 2), NumColumns + 1, cluBOAccess);
           end;
         end;
 
