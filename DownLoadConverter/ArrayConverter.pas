@@ -273,6 +273,7 @@ var lNode,
        SetTextAttr(LNode,'Currency',Account.dbFields.dbCurrency);
        SetIntAttr(LNode,'InstitutionID',Account.dbFields.dbInstitution_ID);
        SetIntAttr(LNode,'FrequencyID',Account.dbFields.dbFrequency_ID);
+       SetTextAttr(LNode,'IsProvisional',BoolToStr(Account.dbFields.dbIs_Provisional, true));
        LNode := ToNode.AddChild('Transactions');
        for T := 0 to Account.dbTransaction_List.ItemCount - 1 do
            AddTransaction(lNode, Account.dbTransaction_List.Disk_Transaction_At(T));

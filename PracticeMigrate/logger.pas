@@ -11,9 +11,9 @@ uses
 // Trivial attempt to disconnect the implementation from the Definition..
 type
   TLogMsgType = (Audit, Info, Warning);
-  TlogMessageProc = procedure (const msgType: TLogMsgType;  const logMsg: string) of object;
+  TlogMessageProc = procedure (const msgType: TLogMsgType; const logMsg: string; ClientCode: string = '') of object;
 
-procedure LogMessage(const msgType: TLogMsgType;  const logMsg: string);
+procedure LogMessage(const msgType: TLogMsgType; const logMsg: string; ClientCode: string ='');
 
 var logMessageProc: TlogMessageProc;
 
@@ -45,7 +45,7 @@ type
      property ProcessID: Integer read GetProcessID;
      function TypeToText(value :TLogMsgType): string;
 
-     procedure LogToFile(const msgType: TLogMsgType;  const logMsg: string);
+     procedure LogToFile(const msgType: TLogMsgType;  const logMsg: string; ClientCode: string ='');
   end;
 
 function LogData: TLogData;
@@ -60,10 +60,10 @@ uses
   Winutils;
 
 
-procedure LogMessage(const msgType: TLogMsgType;  const logMsg: string);
+procedure LogMessage(const msgType: TLogMsgType; const logMsg: string; ClientCode: string ='');
 begin
    if Assigned(logMessageProc) then
-      logMessageProc(msgType, logMsg);
+      logMessageProc(msgType, logMsg, ClientCode);
 end;
 
 var FLogData : TLogData;
@@ -117,7 +117,6 @@ begin
 end;
 
 
-
 procedure TLogData.SetLogFileName(const Value: string);
 begin
    FLogFileName := Value;
@@ -137,7 +136,7 @@ begin
    end;
 end;
 
-procedure TLogData.LogToFile(const msgType: TLogMsgType;  const logMsg: string);
+procedure TLogData.LogToFile(const msgType: TLogMsgType;  const logMsg: string; ClientCode: string = '');
 var LogFile: text;
 begin
   if LogFileName > '' then begin

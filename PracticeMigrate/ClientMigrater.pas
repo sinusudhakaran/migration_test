@@ -211,6 +211,7 @@ end;
 
 implementation
 uses
+   logger,
    STRUtils,
    OmniXML,
    OmniXMLUtils,
@@ -910,6 +911,8 @@ begin
    Result := false;
    MyAction := ForAction.InsertAction('Clear Clients');
 
+   logger.LogMessage(Info,'Clearing All Client data');
+
    RunSQL(Connection,MyAction,'EXEC sp_msforeachtable "ALTER TABLE ? NOCHECK CONSTRAINT all"', 'Drop Constraints');
 
    try try
@@ -992,9 +995,10 @@ begin
 
       //ClearParametersTable('Report Parameters','ReportParameters');
 
-
+      KeepTime := Connection.CommandTimeout;
+      Connection.CommandTimeout := 10 * 60;
       DeleteTable(MyAction,'Clients');
-
+      Connection.CommandTimeout := KeepTime;
 
       Result := True;
       MyAction.Status := Success;
@@ -1507,7 +1511,7 @@ var
            begin //addFavouriteReport
               ClientReportID := NewGuid;
               ClientReportTable.InsertReport(ClientReportID, ClientID, Value, NextSeq);
-              ReportParameterTable.Update('Favoutire',Value.Settings.XML,'Favoutire',ClientReportID);
+              ReportParameterTable.Update('Settings',Value.Settings.XML,'String',ClientReportID);
               //AddSettings(Value.Settings);
            end;
        var i : integer;
@@ -1535,7 +1539,7 @@ var
       ReportParameterTable.AddClient(NewGuid,ClientReportID,@FClient.clFields, @FCLient.clExtra);
 
       // Favourites ...
-      SaveXML(FClient.clFields.clFavourite_Report_XML);
+      //SaveXML(FClient.clFields.clFavourite_Report_XML);
       BatchReports.XMLString := FClient.clFields.clFavourite_Report_XML;
       // Now run trough the list..
       for I := 0 to pred(BatchReports.List.Count) do
@@ -1553,6 +1557,7 @@ begin
    GuidList := nil;
    MyAction := ForAction.InsertAction(Code);
    MyAction.LogMessage('TClientMigrater.Migrate Start');
+   logger.LogMessage(Info,format('Start Client : %s',[Code]),Code );
 
    try try
       if Assigned(AClient) then begin
@@ -1766,6 +1771,7 @@ begin
    finally
       FreeAndNil(FClient);
       FreeAndNil(GuidList);
+      logger.LogMessage(Info,format('Completed Client : %s',[Code]),Code );
    end;
 end;
 

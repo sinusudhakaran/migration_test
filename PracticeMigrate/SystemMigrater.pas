@@ -175,6 +175,7 @@ end;
 implementation
 
 uses
+   logger,
    FileExtensionUtils,
    CustomDocEditorFrm,
    INISettings,
@@ -598,6 +599,7 @@ var
     Entry: tArchived_Transaction;
     MyAction: TMigrateAction;
     Count: Integer;
+
 begin
    Account := pSystem_Bank_Account_Rec(Value.Data);
    // Do the record
@@ -611,13 +613,15 @@ begin
    if not BKFileExists(eFileName)then
       Exit;
 
-
-
    // have a go..
-   Count := 0;
+
    MyAction := nil;
    AssignFile(eFile, eFileName);
-   Reset(eFile); { TODO : May need to chnge, cannot handle readOnly files.. }
+   Count := FileMode;
+   FileMode := fmOpenRead or fmShareDenyNone;
+   Reset(eFile);
+   FileMode := Count;
+   Count := 0;
 
    //BTTable.BeginBatch;
    try
@@ -737,8 +741,7 @@ var MyAction: TMigrateAction;
        result := true;
        ClearAction := MyAction.InsertAction('Clear Server Task Schedule Instances');
        try
-
-
+          // ?? Not sure if this is what we want
           RunSQL(connection,MyAction,
           'DELETE FROM ServerTaskScheduleInstances where [UserID] = ''00000000-0000-0000-0000-000000000000''' ,
              'Clear Server Task Schedule Instances');
@@ -761,9 +764,11 @@ begin
       exit;
       {}
       // Dont use the Table to get the name, Too early and Clear may not work...
+      Logger.LogMessage(Info,'Clearing All System Data');
 
-      Connection.Execute( 'EXEC sp_msforeachtable "ALTER TABLE ? NOCHECK CONSTRAINT all"');
+      RunSQL(Connection, MyAction, 'EXEC sp_msforeachtable "ALTER TABLE ? NOCHECK CONSTRAINT all"', 'Drop constraints');
       try
+
       DeleteTable(MyAction,'UserOpenClients');
       DeleteTable(MyAction,'UserClients');
       ClearUserViewConfigurations;
@@ -784,10 +789,7 @@ begin
       DeleteTable(MyAction,'ClientSystemAccounts');;
       DeleteTable(MyAction,'SystemBankAccounts');
 
-      //DeleteTable(MyAction,'FavouriteReports'); In PracticeClient
-
       ClearStyles;
-
 
       DeleteTable(MyAction,'PracticeClients');
 
@@ -805,12 +807,13 @@ begin
       DeleteTable(MyAction,'Emails');
 
       DeleteTable(MyAction,'ServerTaskMessages');
+      DeleteTable(MyAction,'BankLinkBooksExports');
       ClearServerTaskScheduleInstances;
 
       Result := True;
       MyAction.Status := Success;
       finally
-         Connection.Execute( 'EXEC sp_msforeachtable "ALTER TABLE ? WITH CHECK CHECK CONSTRAINT all"');
+         RunSQL(Connection, MyAction,'EXEC sp_msforeachtable "ALTER TABLE ? WITH CHECK CHECK CONSTRAINT all"', 'Re-instate constraints');
       end;
    except
       on E: Exception do
@@ -1581,9 +1584,10 @@ begin
 
    //TClientMigrater(ClientMigrater).UpdateProcessingStatusAllClients(MyAction);
 
-   StartRetrieve(MyAction);
-
    MigrateSystem(MyAction);
+
+   // Do this after all the settings
+   StartRetrieve(MyAction);
 
 
    if DoDocuments then begin

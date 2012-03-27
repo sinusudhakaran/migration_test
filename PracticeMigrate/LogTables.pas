@@ -1,7 +1,7 @@
 unit LogTables;
 
 interface
-      
+
 uses
    Types,
    logger,
@@ -15,7 +15,7 @@ type
   protected
      procedure SetupTable; override;
   public
-     function Insert (const msgType: TLogMsgType;  const logMsg: string): Boolean;
+     function Insert (const msgType: TLogMsgType;  const logMsg: string; ClientCode: string = ''): Boolean;
   end;
 
 implementation
@@ -30,7 +30,7 @@ uses
 
 
 
-function TUserActionLogTable.Insert(const msgType: TLogMsgType;  const logMsg: string): Boolean;
+function TUserActionLogTable.Insert(const msgType: TLogMsgType;  const logMsg: string; ClientCode: string = ''): Boolean;
 
 begin
 
@@ -47,7 +47,7 @@ begin
        ,ToSQL('BankLink Migrator')
        ,ToSQL(LogData.ProcessID)
        ,ToSQL(LogData.ProcsessName)
-       ,ToSQL('Information')
+       ,ToSQL(logMsg)
        ,ToSQL(format(
 'Timestamp: %s Message: Information Category: %s Machine: %s Area - Data Migration LoggedInUser - %s Details - %s',
            [FormatDateTime('dd/mm/yyyy  hh:nn:ss am/pm', LogData.Timestamp),
@@ -57,6 +57,10 @@ begin
            LogMsg ] ))
        ,ToSQL(LogData.UserName)
        ,ToSQL('Data Migration')
+       ,ToSQL(ClientCode)
+       ,ToSQL(LogData.TypeToText(msgType))
+
+
       ],[]);
 
 end;
@@ -76,11 +80,12 @@ begin
       ,'AppDomainName'
       ,'ProcessID'
       ,'ProcessName'
-
       ,'Message'
       ,'FormattedMessage'
       ,'LoggedInUser'
       ,'Area'
+      ,'ClientCode'
+      ,'Category'
 
        ],[]);
 

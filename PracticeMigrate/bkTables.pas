@@ -471,7 +471,7 @@ begin
   {16}       , ToSQL(mcJournal_Processing_Duration),ToSQL( clBAS_Field_Source[bfGSTProvisional] = GSTprovisional)
                 ,ToSql(clBAS_Field_Number[bfGSTProvisional] = GSTRatio),PercentToSQL(GetGSTRatio)
   {17}       , ToSQL(GetNotes),ToSQL(ceBook_Gen_Finance_Reports),ToSQL(not ceBlock_Client_Edit_Mems)
-                ,ToSQL(ComputePWHash(clFile_Password,MyId)),ToSQL(False),ToSQL(CheckedOutToGuid)],[]);
+                ,ToSQL(clFile_Password),ToSQL(False),ToSQL(CheckedOutToGuid)],[]);
 end;
 
 function TClient_RecFieldsTable.InsertProspect(
@@ -1697,7 +1697,7 @@ end;
 function TClientReportTable.InsertReport(MyiD, ClientID: TGuid;
   Report: TReportBase; SequenceNo: Integer): Boolean;
 begin
-   result := RunValues([ToSql(MyID), ToSQL(integer(Get_ReportListType(report.Name))), ToSql(report.Name), DateTimeToSQL(report.Createdon), null, ToSQL(report.Createdby),
+   result := RunValues([ToSql(MyID), ToSQL(integer(Get_ReportListType(report.Title))), ToSql(report.Name), DateTimeToSQL(report.Createdon), null, ToSQL(report.Createdby),
       ToSQL(report.DatesText), ToSQL(report.RunDestination), DateTimeToSQL(report.LastRun), null, ToSQL(report.User), ToSQL(SequenceNo),
       ToSQL(report.Title), toSql(ClientID)],[]);
 end;

@@ -69,7 +69,9 @@ uses
    appUserObj,
    WinUtils,
    GlobalDirectories,
+{$IFNDEF DLLONLY}
    OneInst,
+{$ENDIF}
    Classes,
    Messages;
 

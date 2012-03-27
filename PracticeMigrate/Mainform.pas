@@ -125,7 +125,7 @@ type
     function GetDestination: string;
     procedure SetPreLoaded(const Value: Boolean);
 
-    procedure LogMessage(const msgType: TLogMsgType;  const logMsg: string);
+    procedure LogMessage(const msgType: TLogMsgType; const logMsg: string; ClientCode: string = '');
     procedure SetLogFileName(const Value: string);
     procedure SetPracticeCode(const Value: string);
 
@@ -151,6 +151,7 @@ var
 implementation
 
 uses
+ADOInt,
 EnterPwdDlg,
 Migraters,
 ErrorLog,
@@ -216,19 +217,29 @@ begin
   fprogress := Value;
   case fprogress of
    SelectSource : begin
+
         btnDef.Visible := False;
+
+        btnPrev.Visible := True;
         btnPrev.Enabled := False;
+
+        btnNext.Visible := True;
         btnNext.Enabled := True;
-        btnNext.Caption := 'Next';
+
         btnCancel.Caption := 'Cancel';
         pcMain.ActivePage := tsBrowse;
         tsBrowse.Update;
       end;
    Selection :begin
+
         btnDef.Visible := True;
+
+        btnPrev.Visible := True;
         btnPrev.Enabled := True;
+
+        btnNext.Visible := True;
         btnNext.Enabled := True;
-        btnNext.Caption := 'Next';
+
         btnCancel.Caption := 'Cancel';
 
         pcMain.ActivePage := tsSelect;
@@ -240,27 +251,34 @@ begin
         tsSelect.Update;
      end;
    Migrate :begin
+
         btnDef.Visible := False;
+
+        btnPrev.Visible := True;
         btnPrev.Enabled := False;
+
+        btnNext.Visible := True;
         btnNext.Enabled := False;
-        btnNext.Caption := 'Next';
+
         btnCancel.Caption := 'Cancel';
         pcMain.ActivePage := TsProgress;
         TsProgress.Update;
      end;
    Done: begin
         btnDef.Visible := False;
-        btnPrev.Enabled := True;
-        btnNext.Enabled := True;
-        btnNext.Caption := 'Finished';
+
+        btnPrev.Visible := False;
+
+        btnNext.Visible := False;
+
         btnCancel.Caption := 'OK';
    end;
   end;
   pcMain.Update;
   self.update;
-  
+
   Application.ProcessMessages;
-  
+
 end;
 
 
@@ -341,9 +359,18 @@ var Action: TMigrateAction;
 begin
    FTreeList.Clear;
    FTreeList.Tree.Clear;
+   LProgressImp.Caption := Format('Clear all data  on %s',[Destination]);
    progress := Migrate;
    Action := NewAction('Clear All');
+
+   Logger.LogMessage(Info,'ALL DATA CLEARED BY USER, START');
    try
+     // Do the Log First, so the rest can be logged again
+     if ConnectLog(Action) then begin
+        FLogMigrater.ClearData(Action);
+     end else
+         Action.Error := format('Could not connect to [%s]',[Destination]);
+
      if ConnectSystem(Action) then begin
         FSystemMigrater.ClearData(Action)
      end else
@@ -354,13 +381,9 @@ begin
      end else
          Action.Error := format('Could not connect to [%s]',[Destination]);
 
-     if ConnectLog(Action) then begin
-        FLogMigrater.ClearData(Action);
-     end else
-         Action.Error := format('Could not connect to [%s]',[Destination]);
 
      // this can only be looged after the fact...
-     logger.LogMessage(Audit,'All data cleared By user');
+     logger.LogMessage(Audit,'ALL DATA CLEARED BY USER, COMPLETED');
      //ClearPracticeLogs(Action);
      // Cleanup
    finally
@@ -443,7 +466,7 @@ begin
      end;
    except
      on E : Exception do
-        logger.LogMessage(Warning, 'ClearPracticeLogs - ' + MyAction.Title + ', ' +
+        logger.LogMessage(Warning , 'ClearPracticeLogs - ' + MyAction.Title + ', ' +
                     Con.ConnectionString + ', ' + Destination + ', ' + User + ', ' + Pw);
 
    end;
@@ -454,12 +477,28 @@ function TformMain.Connect(ForAction: TMigrateAction; connection: TADOConnection
   APW: string): Boolean;
 var ConnStr:TStringList;
     MyAction: TMigrateAction;
+
     function BuildConnStr: string;
     var I: Integer;
     begin
       Result := ConnStr[0];
       for I := 1 to ConnStr.Count - 1 do
          result := result + ';' + ConnStr[I]
+    end;
+
+    function sesionID : Integer;
+    var data : Recordset;
+    begin
+         try try
+             data := connection.Execute('select @@SPID',cmdText);
+             data.MoveFirst;
+             result := data.Fields[0].value;
+         except
+
+         end;
+         finally
+            data := nil;
+         end;
     end;
 
 begin
@@ -495,9 +534,11 @@ begin
 
       Connection.Connected := true;
       try
+         logger.logMessageProc(Info,format('Conneted to: [%s].[%s] , SessionID: (%u)',[ASource,Acatalog,sesionID ]));
          //TMigrater.RunSQL(Connection,MyAction,'DBCC TRACEON (610)', 'Trace on');
          TMigrater.RunSQL(Connection,MyAction,Format('DBCC SHRINKFILE(''%s_Log'',1)',[ACatalog]), 'Shrink Log');
          TMigrater.RunSQL(Connection,MyAction,format('ALTER DATABASE [%s] SET SINGLE_USER WITH ROLLBACK IMMEDIATE',[ACatalog]),'Single user');
+
 
          MyAction.Status := Success;
       except
@@ -555,9 +596,10 @@ begin
    if connection.Connected then begin
       try
          MyAction := ForAction.InsertAction(Format('Disconnect %s',[ACatalog]));
+         // Dont forget, RunSQL already traps exceptions
          //TMigrater.RunSQL(connection,MyAction,'DBCC TRACEOFF (610)', 'Trace Off');
-         TMigrater.RunSQL(connection,MyAction,Format('DBCC SHRINKFILE(''%s_Log'',1)',[ACatalog]), 'Shrink log' );
-         TMigrater.RunSQL(connection,MyAction,format('ALTER DATABASE [%s] SET MULTI_USER WITH ROLLBACK IMMEDIATE',[ACatalog]),'Multi User');
+         TMigrater.RunSQL(connection,MyAction,Format('DBCC SHRINKFILE(''%s_Log'',1)',[ACatalog]), 'Shrink log file' );
+         TMigrater.RunSQL(connection,MyAction,format('ALTER DATABASE [%s] SET MULTI_USER WITH ROLLBACK IMMEDIATE',[ACatalog]),'Back to Multi User');
          MyAction.Status := Success;
       except
              // Had a Go..
@@ -708,13 +750,13 @@ begin
    Result := Globals.DataDir;
 end;
 
-procedure TformMain.LogMessage(const msgType: TLogMsgType;  const logMsg: string);
+procedure TformMain.LogMessage(const msgType: TLogMsgType;  const logMsg: string; ClientCode: string = '');
 begin
    LogData.StampTime;
    try
       // Are we connected ??
       if FLogMigrater.Connected then
-         FLogMigrater.UserActionLogTable.Insert(msgType, logMsg);
+         FLogMigrater.UserActionLogTable.Insert(msgType, logMsg, ClientCode);
    except
    end;
 
@@ -902,7 +944,7 @@ begin
    end;
 
    if not BKFileExists(DATADIR + SYSFILENAME) then begin
-      HelpfulErrorMsg(format('Could not open %s'#13'Please select a valid location',[DATADIR + SYSFILENAME]), 0,false);
+      HelpfulErrorMsg(format('Could not find %s'#13'Please select a valid location',[DATADIR + SYSFILENAME]), 0,false);
       if EFromDir.CanFocus then
          EFromDir.SetFocus;
       Exit;
@@ -936,6 +978,7 @@ begin
 
          except
             on e: Exception do begin
+               logger.LogMessage(Warning,format('%s : reading %s ',[e.Message,DATADIR + SYSFILENAME ]));
                HelpfulErrorMsg(format('Could not open %s'#13'Please select a valid location',[DATADIR + SYSFILENAME]), 0,false);
                FreeAndnil(AdminSystem);
                Exit;
@@ -1032,6 +1075,8 @@ begin
    FTreeList.Tree.Clear;
 
    logger.LogMessage(Audit,'Migration Started by User'
+      + format ('; Practice5 Path: %s', [DATADIR + SYSFILENAME])
+      + format ('; Practice5 Code: %s', [AdminSystem.fdFields.fdBankLink_Code])
       + format ('; Include System transactions: %s', [YesNo(cbSysTrans)])
       + format ('; Include Unsynchronised clients: %s', [YesNo(cbUnsync)])
       + format ('; Include Archived clients: %s', [YesNo(cbUnsync)])

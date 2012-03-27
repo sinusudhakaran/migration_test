@@ -175,6 +175,13 @@ begin
 end;
 
 function TSystemBankAccountTable.Insert(MyId: TGuid; Value: pSystem_Bank_Account_Rec): Boolean;
+   function FrequencyDate(value: Boolean): tdateTime;
+   begin
+      if value then
+         result := Date
+      else
+         result := 0; //12/30/1899
+   end;
 begin with Value^ do
    result := RunValues([ToSQL(MyId) ,ToSQL(Value.sbAccount_Number) ,ToSQL(Value.sbAccount_Name) ,ToSQL(Value.sbAccount_Password)
               ,ToSQL(Value.sbCurrent_Balance) ,toSQL(Value.sbLast_Transaction_LRN)
@@ -191,7 +198,7 @@ begin with Value^ do
 {5}         ,ToSQL(Value.sbJob_Code) ,ToSQL(Value.sbActivity_Code) , DateToSQL(Value.sbFirst_Available_Date) ,ToSQL(Value.sbNo_Charge_Account)
               ,ToSQL(Value.sbCurrency_Code) ,ToSQL(Value.sbInstitution) ,ToSQL(Value.sbBankLink_Code) ,toSQL(value.sbInActive)
 
-{6}         ,ToSQL(Value.sbFrequency) ,ToSQL(Value.sbFrequency_Change_Pending), ToSQL(0)],[]);
+{6}         ,ToSQL(Value.sbFrequency) ,FrequencyDate(Boolean(Value.sbFrequency_Change_Pending)), ToSQL(0)],[]);
 end;
 
 (******************************************************************************)

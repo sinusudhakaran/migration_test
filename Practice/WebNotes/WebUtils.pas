@@ -302,7 +302,7 @@ begin
        Inc(i);
        Cnode := CNode.NextSibling;
     end;
-    while assigned(CNode) and (I <= High(Value)) do begin
+    while (I <= High(Value)) do begin
        Value[I] := 0;
        Inc(i);
     end;

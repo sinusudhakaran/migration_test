@@ -24,7 +24,8 @@ end;
 implementation
 
 uses
-  SysUtils;
+    logger,
+    SysUtils;
 
 { TLogMigrater }
 
@@ -42,6 +43,7 @@ begin
 
        //DeleteTable(MyAction,'AuditEntries');
 
+       logger.logMessageProc(Warning,'ALL LOG DATA CLEARED');
        Result := True;
        MyAction.Status := Success;
    except
