@@ -199,6 +199,7 @@ end;
 implementation
 uses
 	WebUtils,
+	Variants,
 	SysUtils;
 
 
@@ -252,9 +253,28 @@ begin
 	SetBoolAttr(Result, 'SendUnpresentedChequeList', clSend_Unpresented_Cheque_List);
 	SetBoolAttr(Result, 'SendPayeeList', clSend_Payee_List);
 	SetBoolAttr(Result, 'SendPayeeReport', clSend_Payee_Report);
+	PNode := Result.AddChild('ShortNames');
+	M :=  Low(clShort_Name);
+	for I := Low(clShort_Name) to High(clShort_Name) do
+		if  clShort_Name[I] > '' then
+			M := I;
+	for I := Low(clShort_Name) to M do begin
+		CNode := PNode.AddChild('ShortName');
+		CNode.NodeValue := clShort_Name[I];
+	end;
+	PNode := Result.AddChild('LongNames');
+	M :=  Low(clLong_Name);
+	for I := Low(clLong_Name) to High(clLong_Name) do
+		if  clLong_Name[I] > '' then
+			M := I;
+	for I := Low(clLong_Name) to M do begin
+		CNode := PNode.AddChild('LongName');
+		CNode.NodeValue := clLong_Name[I];
+	end;
 	SetTextAttr(Result, 'GSTNumber', clGST_Number);
 	SetIntAttr(Result, 'GSTPeriod', clGST_Period);
 	SetIntAttr(Result, 'GSTStartMonth', clGST_Start_Month);
+	SetArray(Result, 'GSTAppliesFroms', clGST_Applies_From);
 	PNode := Result.AddChild('GSTClassNames');
 	M :=  Low(clGST_Class_Names);
 	for I := Low(clGST_Class_Names) to High(clGST_Class_Names) do
@@ -314,6 +334,24 @@ begin
 	for I := Low(clOld_Division_Names) to M do begin
 		CNode := PNode.AddChild('OldDivisionName');
 		CNode.NodeValue := clOld_Division_Names[I];
+	end;
+	PNode := Result.AddChild('CFHeadings');
+	M :=  Low(clCF_Headings);
+	for I := Low(clCF_Headings) to High(clCF_Headings) do
+		if  clCF_Headings[I] > '' then
+			M := I;
+	for I := Low(clCF_Headings) to M do begin
+		CNode := PNode.AddChild('CFHeading');
+		CNode.NodeValue := clCF_Headings[I];
+	end;
+	PNode := Result.AddChild('PRHeadings');
+	M :=  Low(clPR_Headings);
+	for I := Low(clPR_Headings) to High(clPR_Headings) do
+		if  clPR_Headings[I] > '' then
+			M := I;
+	for I := Low(clPR_Headings) to M do begin
+		CNode := PNode.AddChild('PRHeading');
+		CNode.NodeValue := clPR_Headings[I];
 	end;
 	SetIntAttr(Result, 'MagicNumber', clMagic_Number);
 	SetIntAttr(Result, 'ExceptionOptions', clException_Options);
@@ -379,6 +417,24 @@ begin
 	SetBoolAttr(Result, 'BASDontPrintCalcSheet', clBAS_Dont_Print_Calc_Sheet);
 	SetIntAttr(Result, 'BASPAYGWithheldPeriod', clBAS_PAYG_Withheld_Period);
 	SetBoolAttr(Result, 'FaxScheduledReports', clFax_Scheduled_Reports);
+	PNode := Result.AddChild('GraphHeadings');
+	M :=  Low(clGraph_Headings);
+	for I := Low(clGraph_Headings) to High(clGraph_Headings) do
+		if  clGraph_Headings[I] > '' then
+			M := I;
+	for I := Low(clGraph_Headings) to M do begin
+		CNode := PNode.AddChild('GraphHeading');
+		CNode.NodeValue := clGraph_Headings[I];
+	end;
+	PNode := Result.AddChild('Notes');
+	M :=  Low(clNotes);
+	for I := Low(clNotes) to High(clNotes) do
+		if  clNotes[I] > '' then
+			M := I;
+	for I := Low(clNotes) to M do begin
+		CNode := PNode.AddChild('Note');
+		CNode.NodeValue := clNotes[I];
+	end;
 	SetIntAttr(Result, 'ChequesExpireWhen', clCheques_Expire_When);
 	SetBoolAttr(Result, 'ShowNotesOnOpen', clShow_Notes_On_Open);
 	SetIntAttr(Result, 'ECodingEntrySelection', clECoding_Entry_Selection);
@@ -409,6 +465,15 @@ begin
 	SetIntAttr(Result, 'ReportingYearStarts', clReporting_Year_Starts);
 	SetIntAttr(Result, 'FRSReportDetailType', clFRS_Report_Detail_Type);
 	SetBoolAttr(Result, 'FRSPromptUsertouseBudgetedfigures', clFRS_Prompt_User_to_use_Budgeted_figures);
+	PNode := Result.AddChild('BalanceSheetHeadings');
+	M :=  Low(clBalance_Sheet_Headings);
+	for I := Low(clBalance_Sheet_Headings) to High(clBalance_Sheet_Headings) do
+		if  clBalance_Sheet_Headings[I] > '' then
+			M := I;
+	for I := Low(clBalance_Sheet_Headings) to M do begin
+		CNode := PNode.AddChild('BalanceSheetHeading');
+		CNode.NodeValue := clBalance_Sheet_Headings[I];
+	end;
 	SetIntAttr(Result, 'LastFinancialYearStart', clLast_Financial_Year_Start);
 	SetBoolAttr(Result, 'N520ReferenceFixRun', cl520_Reference_Fix_Run);
 	SetIntAttr(Result, 'TaxInterfaceUsed', clTax_Interface_Used);
@@ -565,9 +630,42 @@ begin
 	clSend_Unpresented_Cheque_List := GetBoolAttr(Result, 'SendUnpresentedChequeList');
 	clSend_Payee_List := GetBoolAttr(Result, 'SendPayeeList');
 	clSend_Payee_Report := GetBoolAttr(Result, 'SendPayeeReport');
+	
+	PNode := Result.ChildNodes.FindNode('ShortNames');
+	if Assigned(PNode) then
+		CNode := PNode.ChildNodes.FindNode('ShortName')
+	else
+		CNode := Nil;
+	for I := low(clShort_Name) to High(clShort_Name) do begin
+		if Assigned(CNode) then begin
+			if CNode.Nodevalue <> null then 
+				clShort_Name[I] := CNode.Nodevalue
+			else clShort_Name[I] := '';
+			CNode := CNode.NextSibling;
+		end else
+			clShort_Name[I] := ''
+	end;
+
+	
+	PNode := Result.ChildNodes.FindNode('LongNames');
+	if Assigned(PNode) then
+		CNode := PNode.ChildNodes.FindNode('LongName')
+	else
+		CNode := Nil;
+	for I := low(clLong_Name) to High(clLong_Name) do begin
+		if Assigned(CNode) then begin
+			if CNode.Nodevalue <> null then 
+				clLong_Name[I] := CNode.Nodevalue
+			else clLong_Name[I] := '';
+			CNode := CNode.NextSibling;
+		end else
+			clLong_Name[I] := ''
+	end;
+
 	clGST_Number := GetTextAttr(Result, 'GSTNumber');
 	clGST_Period := GetIntAttr(Result, 'GSTPeriod');
 	clGST_Start_Month := GetIntAttr(Result, 'GSTStartMonth');
+	GetArray(Result, 'GSTAppliesFroms', clGST_Applies_From);
 	
 	PNode := Result.ChildNodes.FindNode('GSTClassNames');
 	if Assigned(PNode) then
@@ -576,7 +674,9 @@ begin
 		CNode := Nil;
 	for I := low(clGST_Class_Names) to High(clGST_Class_Names) do begin
 		if Assigned(CNode) then begin
-			clGST_Class_Names[I] := CNode.Nodevalue;
+			if CNode.Nodevalue <> null then 
+				clGST_Class_Names[I] := CNode.Nodevalue
+			else clGST_Class_Names[I] := '';
 			CNode := CNode.NextSibling;
 		end else
 			clGST_Class_Names[I] := ''
@@ -591,7 +691,9 @@ begin
 		CNode := Nil;
 	for I := low(clGST_Account_Codes) to High(clGST_Account_Codes) do begin
 		if Assigned(CNode) then begin
-			clGST_Account_Codes[I] := CNode.Nodevalue;
+			if CNode.Nodevalue <> null then 
+				clGST_Account_Codes[I] := CNode.Nodevalue
+			else clGST_Account_Codes[I] := '';
 			CNode := CNode.NextSibling;
 		end else
 			clGST_Account_Codes[I] := ''
@@ -643,10 +745,44 @@ begin
 		CNode := Nil;
 	for I := low(clOld_Division_Names) to High(clOld_Division_Names) do begin
 		if Assigned(CNode) then begin
-			clOld_Division_Names[I] := CNode.Nodevalue;
+			if CNode.Nodevalue <> null then 
+				clOld_Division_Names[I] := CNode.Nodevalue
+			else clOld_Division_Names[I] := '';
 			CNode := CNode.NextSibling;
 		end else
 			clOld_Division_Names[I] := ''
+	end;
+
+	
+	PNode := Result.ChildNodes.FindNode('CFHeadings');
+	if Assigned(PNode) then
+		CNode := PNode.ChildNodes.FindNode('CFHeading')
+	else
+		CNode := Nil;
+	for I := low(clCF_Headings) to High(clCF_Headings) do begin
+		if Assigned(CNode) then begin
+			if CNode.Nodevalue <> null then 
+				clCF_Headings[I] := CNode.Nodevalue
+			else clCF_Headings[I] := '';
+			CNode := CNode.NextSibling;
+		end else
+			clCF_Headings[I] := ''
+	end;
+
+	
+	PNode := Result.ChildNodes.FindNode('PRHeadings');
+	if Assigned(PNode) then
+		CNode := PNode.ChildNodes.FindNode('PRHeading')
+	else
+		CNode := Nil;
+	for I := low(clPR_Headings) to High(clPR_Headings) do begin
+		if Assigned(CNode) then begin
+			if CNode.Nodevalue <> null then 
+				clPR_Headings[I] := CNode.Nodevalue
+			else clPR_Headings[I] := '';
+			CNode := CNode.NextSibling;
+		end else
+			clPR_Headings[I] := ''
 	end;
 
 	clMagic_Number := GetIntAttr(Result, 'MagicNumber');
@@ -669,7 +805,9 @@ begin
 		CNode := Nil;
 	for I := low(clDivision_Code_List) to High(clDivision_Code_List) do begin
 		if Assigned(CNode) then begin
-			clDivision_Code_List[I] := CNode.Nodevalue;
+			if CNode.Nodevalue <> null then 
+				clDivision_Code_List[I] := CNode.Nodevalue
+			else clDivision_Code_List[I] := '';
 			CNode := CNode.NextSibling;
 		end else
 			clDivision_Code_List[I] := ''
@@ -688,7 +826,9 @@ begin
 		CNode := Nil;
 	for I := low(clOLD_BAS_Special_Accounts) to High(clOLD_BAS_Special_Accounts) do begin
 		if Assigned(CNode) then begin
-			clOLD_BAS_Special_Accounts[I] := CNode.Nodevalue;
+			if CNode.Nodevalue <> null then 
+				clOLD_BAS_Special_Accounts[I] := CNode.Nodevalue
+			else clOLD_BAS_Special_Accounts[I] := '';
 			CNode := CNode.NextSibling;
 		end else
 			clOLD_BAS_Special_Accounts[I] := ''
@@ -702,7 +842,9 @@ begin
 		CNode := Nil;
 	for I := low(clGST_Class_Codes) to High(clGST_Class_Codes) do begin
 		if Assigned(CNode) then begin
-			clGST_Class_Codes[I] := CNode.Nodevalue;
+			if CNode.Nodevalue <> null then 
+				clGST_Class_Codes[I] := CNode.Nodevalue
+			else clGST_Class_Codes[I] := '';
 			CNode := CNode.NextSibling;
 		end else
 			clGST_Class_Codes[I] := ''
@@ -720,19 +862,53 @@ begin
 		CNode := Nil;
 	for I := low(clBAS_Field_Account_Code) to High(clBAS_Field_Account_Code) do begin
 		if Assigned(CNode) then begin
-			clBAS_Field_Account_Code[I] := CNode.Nodevalue;
+			if CNode.Nodevalue <> null then 
+				clBAS_Field_Account_Code[I] := CNode.Nodevalue
+			else clBAS_Field_Account_Code[I] := '';
 			CNode := CNode.NextSibling;
 		end else
 			clBAS_Field_Account_Code[I] := ''
 	end;
 
 	GetArray(Result, 'BASFieldBalanceTypes', clBAS_Field_Balance_Type);
-	GetArray(Result, 'BASFieldPercent', clBAS_Field_Percent);
-	GetArray(Result, 'GSTBusinessPercent', clGST_Business_Percent);
+	GetArray(Result, 'BASFieldPercents', clBAS_Field_Percent);
+	GetArray(Result, 'GSTBusinessPercents', clGST_Business_Percent);
 	clBAS_Calculation_Method := GetIntAttr(Result, 'BASCalculationMethod');
 	clBAS_Dont_Print_Calc_Sheet := GetBoolAttr(Result, 'BASDontPrintCalcSheet');
 	clBAS_PAYG_Withheld_Period := GetIntAttr(Result, 'BASPAYGWithheldPeriod');
 	clFax_Scheduled_Reports := GetBoolAttr(Result, 'FaxScheduledReports');
+	
+	PNode := Result.ChildNodes.FindNode('GraphHeadings');
+	if Assigned(PNode) then
+		CNode := PNode.ChildNodes.FindNode('GraphHeading')
+	else
+		CNode := Nil;
+	for I := low(clGraph_Headings) to High(clGraph_Headings) do begin
+		if Assigned(CNode) then begin
+			if CNode.Nodevalue <> null then 
+				clGraph_Headings[I] := CNode.Nodevalue
+			else clGraph_Headings[I] := '';
+			CNode := CNode.NextSibling;
+		end else
+			clGraph_Headings[I] := ''
+	end;
+
+	
+	PNode := Result.ChildNodes.FindNode('Notes');
+	if Assigned(PNode) then
+		CNode := PNode.ChildNodes.FindNode('Note')
+	else
+		CNode := Nil;
+	for I := low(clNotes) to High(clNotes) do begin
+		if Assigned(CNode) then begin
+			if CNode.Nodevalue <> null then 
+				clNotes[I] := CNode.Nodevalue
+			else clNotes[I] := '';
+			CNode := CNode.NextSibling;
+		end else
+			clNotes[I] := ''
+	end;
+
 	clCheques_Expire_When := GetIntAttr(Result, 'ChequesExpireWhen');
 	clShow_Notes_On_Open := GetBoolAttr(Result, 'ShowNotesOnOpen');
 	clECoding_Entry_Selection := GetIntAttr(Result, 'ECodingEntrySelection');
@@ -763,6 +939,22 @@ begin
 	clReporting_Year_Starts := GetIntAttr(Result, 'ReportingYearStarts');
 	clFRS_Report_Detail_Type := GetIntAttr(Result, 'FRSReportDetailType');
 	clFRS_Prompt_User_to_use_Budgeted_figures := GetBoolAttr(Result, 'FRSPromptUsertouseBudgetedfigures');
+	
+	PNode := Result.ChildNodes.FindNode('BalanceSheetHeadings');
+	if Assigned(PNode) then
+		CNode := PNode.ChildNodes.FindNode('BalanceSheetHeading')
+	else
+		CNode := Nil;
+	for I := low(clBalance_Sheet_Headings) to High(clBalance_Sheet_Headings) do begin
+		if Assigned(CNode) then begin
+			if CNode.Nodevalue <> null then 
+				clBalance_Sheet_Headings[I] := CNode.Nodevalue
+			else clBalance_Sheet_Headings[I] := '';
+			CNode := CNode.NextSibling;
+		end else
+			clBalance_Sheet_Headings[I] := ''
+	end;
+
 	clLast_Financial_Year_Start := GetIntAttr(Result, 'LastFinancialYearStart');
 	cl520_Reference_Fix_Run := GetBoolAttr(Result, 'N520ReferenceFixRun');
 	clTax_Interface_Used := GetIntAttr(Result, 'TaxInterfaceUsed');
@@ -941,7 +1133,7 @@ begin
 	chMoney_Variance_Down := GetInt64Attr(Result, 'MoneyVarianceDown');
 	chPercent_Variance_Up := GetInt64Attr(Result, 'PercentVarianceUp');
 	chPercent_Variance_Down := GetInt64Attr(Result, 'PercentVarianceDown');
-	GetArray(Result, 'LastYearsTotalsSBOnly', chLast_Years_Totals_SB_Only);
+	GetArray(Result, 'LastYearsTotalsSBOnlys', chLast_Years_Totals_SB_Only);
 	chOpening_Balance_SB_Only := GetInt64Attr(Result, 'OpeningBalanceSBOnly');
 	chSubtype := GetIntAttr(Result, 'Subtype');
 	chAlternative_Code := GetTextAttr(Result, 'AlternativeCode');
@@ -1019,13 +1211,15 @@ begin
 		CNode := Nil;
 	for I := low(pyAccount) to High(pyAccount) do begin
 		if Assigned(CNode) then begin
-			pyAccount[I] := CNode.Nodevalue;
+			if CNode.Nodevalue <> null then 
+				pyAccount[I] := CNode.Nodevalue
+			else pyAccount[I] := '';
 			CNode := CNode.NextSibling;
 		end else
 			pyAccount[I] := ''
 	end;
 
-	GetArray(Result, 'Percentage', pyPercentage);
+	GetArray(Result, 'Percentages', pyPercentage);
 	GetArray(Result, 'GSTClass', pyGST_Class);
 	GetArray(Result, 'GSTHasBeenEdited', pyGST_Has_Been_Edited);
 	
@@ -1036,7 +1230,9 @@ begin
 		CNode := Nil;
 	for I := low(pyGL_Narration) to High(pyGL_Narration) do begin
 		if Assigned(CNode) then begin
-			pyGL_Narration[I] := CNode.Nodevalue;
+			if CNode.Nodevalue <> null then 
+				pyGL_Narration[I] := CNode.Nodevalue
+			else pyGL_Narration[I] := '';
 			CNode := CNode.NextSibling;
 		end else
 			pyGL_Narration[I] := ''
@@ -2386,13 +2582,15 @@ begin
 		CNode := Nil;
 	for I := low(mxAccount) to High(mxAccount) do begin
 		if Assigned(CNode) then begin
-			mxAccount[I] := CNode.Nodevalue;
+			if CNode.Nodevalue <> null then 
+				mxAccount[I] := CNode.Nodevalue
+			else mxAccount[I] := '';
 			CNode := CNode.NextSibling;
 		end else
 			mxAccount[I] := ''
 	end;
 
-	GetArray(Result, 'Percentage', mxPercentage);
+	GetArray(Result, 'Percentages', mxPercentage);
 	GetArray(Result, 'GSTClass', mxGST_Class);
 	mxPayee_Number := GetIntAttr(Result, 'PayeeNumber');
 	mxFrom_Master_List := GetBoolAttr(Result, 'FromMasterList');
@@ -2407,7 +2605,9 @@ begin
 		CNode := Nil;
 	for I := low(mxGL_Narration) to High(mxGL_Narration) do begin
 		if Assigned(CNode) then begin
-			mxGL_Narration[I] := CNode.Nodevalue;
+			if CNode.Nodevalue <> null then 
+				mxGL_Narration[I] := CNode.Nodevalue
+			else mxGL_Narration[I] := '';
 			CNode := CNode.NextSibling;
 		end else
 			mxGL_Narration[I] := ''
@@ -2804,7 +3004,9 @@ begin
 		CNode := Nil;
 	for I := low(ceSend_Custom_Documents_List) to High(ceSend_Custom_Documents_List) do begin
 		if Assigned(CNode) then begin
-			ceSend_Custom_Documents_List[I] := CNode.Nodevalue;
+			if CNode.Nodevalue <> null then 
+				ceSend_Custom_Documents_List[I] := CNode.Nodevalue
+			else ceSend_Custom_Documents_List[I] := '';
 			CNode := CNode.NextSibling;
 		end else
 			ceSend_Custom_Documents_List[I] := ''
@@ -2821,7 +3023,9 @@ begin
 		CNode := Nil;
 	for I := low(ceCustom_SFLedger_Titles) to High(ceCustom_SFLedger_Titles) do begin
 		if Assigned(CNode) then begin
-			ceCustom_SFLedger_Titles[I] := CNode.Nodevalue;
+			if CNode.Nodevalue <> null then 
+				ceCustom_SFLedger_Titles[I] := CNode.Nodevalue
+			else ceCustom_SFLedger_Titles[I] := '';
 			CNode := CNode.NextSibling;
 		end else
 			ceCustom_SFLedger_Titles[I] := ''
