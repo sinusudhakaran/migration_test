@@ -2266,13 +2266,6 @@ begin
                ReSyncClientAccountMap(aClient);
 
             UpdateProcessingStats(aClient, True, False);
-
-            // Clearing Banklink Online details before syncing client
-            // Get client list (so that we can lookup the client code)
-            //ProductConfigService.LoadClientList;
-            // Get client details
-            //aClient.RefreshBlopiClient;
-
           finally
             FreeAndNil( aClient);
           end;

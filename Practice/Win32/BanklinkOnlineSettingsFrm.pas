@@ -69,7 +69,7 @@ type
     function Execute(TickNotesOnline: boolean = false) : boolean;
 
     procedure LoadClientInfo(TickNotesOnline: boolean);
-    procedure SaveClientInfo;
+    function SaveClientInfo : Boolean;
     property Status : TBloStatus read GetStatus write SetStatus;
   end;
 
@@ -115,45 +115,7 @@ begin
     BanklinkOnlineSettings.PopupParent := w_PopupParent;
     BanklinkOnlineSettings.PopupMode := pmExplicit;
 
-    // Checking if Notes Online was ticked, if it isn't then the web export format shouldn't be Notes Online
-    Result := BanklinkOnlineSettings.Execute(TickNotesOnline);
-
-    {if Result then
-    begin
-      ProductConfigService.LoadClientList;
-      NotesOnlineTicked := false;
-      if Assigned(MyClient.BlopiClientNew) then
-      begin
-        for i := 0 to High(MyClient.BlopiClientNew.Subscription) do
-        begin
-          CatName := ProductConfigService.GetCatalogueEntry(MyClient.BlopiClientNew.Subscription[i]).Description;
-          if (CatName = 'BankLink Notes Online') or (CatName = 'Notes Online') then
-          begin
-            NotesOnlineTicked := true;
-            break;
-          end;
-        end;
-      end else
-      if Assigned(MyClient.BlopiClientDetail) then
-      begin
-        for i := 0 to High(MyClient.BlopiClientDetail.Subscription) do
-        begin
-          CatName := ProductConfigService.GetCatalogueEntry(MyClient.BlopiClientDetail.Subscription[i]).Description;
-          if (CatName = 'BankLink Notes Online') or (CatName = 'Notes Online') then
-          begin
-            NotesOnlineTicked := true;
-            break;
-          end;
-        end;
-      end;
-      if (MyClient.clFields.clWeb_Export_Format = wfWebNotes) and not NotesOnlineTicked then
-        MyClient.clFields.clWeb_Export_Format := wfNone;
-    end else
-    begin
-      // Cancel was pressed
-      if (MyClient.clFields.clWeb_Export_Format = wfWebNotes) then
-        MyClient.clFields.clWeb_Export_Format := wfNone;
-    end;  }
+    BanklinkOnlineSettings.Execute(TickNotesOnline);
   finally
     FreeAndNil(BanklinkOnlineSettings);
   end;
@@ -164,8 +126,8 @@ procedure TfrmBanklinkOnlineSettings.btnOKClick(Sender: TObject);
 begin
   if Validate then
   begin
-    SaveClientInfo;
-    Close;
+    if SaveClientInfo then
+      Close;
   end;
 end;
 
@@ -249,7 +211,7 @@ end;
 function TfrmBanklinkOnlineSettings.Validate: Boolean;
 var
   EmailChanged, ProductsChanged, ProductFound: boolean;
-  NewProducts, ProductsRemoved: TStringList;
+  NewProducts, RemovedProducts: TStringList;
   PromptMessage, ErrorMsg, NewUserName, NewEmail, MailTo, MailSubject, MailBody: string;
   i, j, ButtonPressed: integer;
   ClientStatus : TBloStatus;
@@ -267,12 +229,14 @@ begin
   if (Trim(edtUserName.Text) = '') then
   begin
     ShowMessage('You must enter a user name. Please try again');
+    edtUserName.SetFocus;
     Exit;
   end;
 
   if not RegExIsEmailValid(edtEmailAddress.Text) then
   begin
     ShowMessage('You must enter a valid e-mail address. Please try again');
+    edtEmailAddress.SetFocus;
     Exit;
   end;
 
@@ -285,39 +249,48 @@ begin
     Exit;
   end;
 
-  Result := True;
-
   if MyClient.Opened then
     ClientStatus := ClientReadDetail.Status
   else
     ClientStatus := staActive;
 
-  if (ClientStatus <> staActive) and rbActive.Checked
-    then ButtonPressed := AskYesNo('Resuming client',
-                                   'You are about to resume this Client on ' +
-                                   'Banklink Online. They will be able to access BankLink Online as per ' +
-                                   'normal.' + #10#10 + 'Are you sure you want to continue?',
-                                   DLG_YES, 0, false)
-  else if (ClientStatus <> staSuspended) and rbSuspended.Checked
-    then ButtonPressed := AskYesNo('Suspending client',
-                                   'You are about to suspend this Client from BankLink ' +
-                                   'Online. They will be able to access BankLink Online in read-only mode.' +
-                                   #10#10 + 'Are you sure you want to continue?',
-                                   DLG_YES, 0, false)
-  else if (ClientStatus <> staDeactivated) and rbDeactivated.Checked
-    then ButtonPressed := AskYesNo('Deactivating client',
-                                   'You are about to deactivate this Client from BankLink ' +
-                                   'Online. All user log-ins will be disabled.' + #10#10 +
-                                   'Are you sure you want to continue?',
-                                   DLG_YES, 0, false)
-  else
+  if (ClientStatus <> staActive) and (rbActive.Checked) then
   begin
-    if MyClient.Opened then
-      if Length(ClientReadDetail.Users) > 0 then
-        EmailChanged := (edtEmailAddress.Text <> ClientReadDetail.Users[0].EMail);
+    if AskYesNo('Resuming client',
+                'You are about to resume this Client on ' +
+                'Banklink Online. They will be able to access BankLink Online as per ' +
+                'normal.' + #10#10 + 'Are you sure you want to continue?',
+                DLG_YES, 0, false) <> DLG_YES then
+      Exit;
+  end;
 
-    NewProducts := TStringList.Create;
-    ProductsRemoved := TStringList.Create;
+  if (ClientStatus <> staSuspended) and (rbSuspended.Checked) then
+  begin
+    if AskYesNo('Suspending client',
+                'You are about to suspend this Client from BankLink ' +
+                'Online. They will be able to access BankLink Online in read-only mode.' +
+                #10#10 + 'Are you sure you want to continue?',
+                DLG_YES, 0, false) <> DLG_YES then
+      Exit;
+  end;
+
+  if (ClientStatus <> staDeactivated) and (rbDeactivated.Checked) then
+  begin
+    if AskYesNo('Deactivating client',
+                'You are about to deactivate this Client from BankLink ' +
+                'Online. All user log-ins will be disabled.' + #10#10 +
+                'Are you sure you want to continue?',
+                DLG_YES, 0, false) <> DLG_YES then
+      Exit;
+  end;
+
+  if MyClient.Opened then
+    if Length(ClientReadDetail.Users) > 0 then
+      EmailChanged := (edtEmailAddress.Text <> ClientReadDetail.Users[0].EMail);
+
+  NewProducts := TStringList.Create;
+  RemovedProducts := TStringList.Create;
+  try
     for i := 0 to chklistProducts.Count - 1 do
     begin
       ProductFound := false;
@@ -332,82 +305,96 @@ begin
           end;
         end;
       end;
+
       if (chklistProducts.Checked[i] = true) and not ProductFound then
         NewProducts.Add(chklistProducts.Items[i])
       else if (chklistProducts.Checked[i] = false) and ProductFound then
-        ProductsRemoved.Add(chklistProducts.Items[i]);
-    end;
+        RemovedProducts.Add(chklistProducts.Items[i]);
 
-    if MyClient.Opened then
-    begin
-      BillingFrequency := ClientReadDetail.BillingFrequency;
-      MaxOfflineDays   := IntToStr(ClientReadDetail.MaxOfflineDays);
-    end
-    else
-    begin
-      BillingFrequency := 'Monthly';
-      MaxOfflineDays   := '0';
-    end;
-
-    ProductsChanged := NewProducts.Count > 0;
-    if (EmailChanged and ProductsChanged) then
-    begin
-      PromptMessage := 'Are you sure you want to update the following for ' +
-                       edtUserName.text + ':' + #10#10 +
-                       'Activate the following products & services:' + #10 +
-                       Trim(NewProducts.Text) + #10#10 + 'Change the Default Client ' +
-                       'Administrator Email Address. The new Default Client ' +
-                       'Adminstrator will be sent to ' + edtEmailAddress.Text + '.';
-      ButtonPressed := AskYesNo('Changing client details',
-                                PromptMessage, DLG_YES, 0, false);
-    end
-    else if EmailChanged then
-      ButtonPressed := AskYesNo('Changing Default Administrator Address',
-                                'You have changed the Default Client Administrator Email Address. ' +
-                                'The new Default Client Administrator will be set to ' +
-                                'â€˜' + edtEmailAddress.Text + 'â€™.' + #10 + #10 +
-                                'Are you sure you want to continue?',
-                                DLG_YES, 0, false)
-    else if ProductsChanged then
-      ButtonPressed := AskYesNo('Reactiving products',
-                                'Are you sure you want to activate the following products:' + #10#10 +
-                                NewProducts.Text + #10 +
-                                'By clicking ''OK'' you are confirming that you wish to activate these products ' +
-                                'for ' + edtUserName.Text,
-                                DLG_YES, 0, false);
-  end;
-
-  if ProductsChanged then
-  begin
-    // Send email to support
-    MailTo := whSupportEmail[AdminSystem.fdFields.fdCountry];
-    MailSubject := 'Banklink Online product and service updates (' + AdminSystem.fdFields.fdBankLink_Code + ')';
-    MailBody := 'This practice has changed its Banklink Online product and service settings' + #10#10 +
-                'Practice Name: ' + AdminSystem.fdFields.fdPractice_Name_for_Reports + #10 +
-                'Practice Code: ' + AdminSystem.fdFields.fdBankLink_Code + #10#10 +
-                'The BankLink Online Administrator (Primary Contact) for the practice' + #10 +
-                'Name: ' + edtUserName.text + #10 +
-                // Can't find phone number... do we have this at all for the practice administrator?
-                'Email Address: ' + edtEmailAddress.text + #10#10 +
-                'Updated settings:' + #10;
-    for i := 0 to NewProducts.Count - 1 do
-      MailBody := MailBody + NewProducts[i] + ' is now enabled' + #10;
-    for i := 0 to ProductsRemoved.Count - 1 do
-      MailBody := MailBody + ProductsRemoved[i] + ' is now disabled' + #10;
-    MailBody := MailBody + #10 +
-                   'Product and service settings:' + #10;
-    for i := 0 to chklistProducts.Count - 1 do
-    begin
-      MailBody := MailBody + chklistProducts.Items[i] + ' - ';
-      if chklistProducts.Checked[i] then
-        MailBody := MailBody + 'enabled' + #10
+      if MyClient.Opened then
+      begin
+        BillingFrequency := ClientReadDetail.BillingFrequency;
+        MaxOfflineDays   := IntToStr(ClientReadDetail.MaxOfflineDays);
+      end
       else
-        MailBody := MailBody + 'disabled' + #10;
-    end;
-    SendMailTo('Email to Support', MailTo, MailSubject, MailBody);
-  end;
+      begin
+        BillingFrequency := 'Monthly';
+        MaxOfflineDays   := '0';
+      end;
 
-  Result := True;
+      ProductsChanged := NewProducts.Count > 0;
+      if (EmailChanged and ProductsChanged) then
+      begin
+        PromptMessage := 'Are you sure you want to update the following for ' +
+                         edtUserName.text + ':' + #10#10 +
+                         'Activate the following products & services:' + #10 +
+                         Trim(NewProducts.Text) + #10#10 + 'Change the Default Client ' +
+                         'Administrator Email Address. The new Default Client ' +
+                         'Adminstrator will be sent to ' + edtEmailAddress.Text + '.';
+
+        if AskYesNo('Changing client details',
+                    PromptMessage, DLG_YES, 0, false) <> DLG_YES then
+          Exit;
+      end
+      else
+      if EmailChanged then
+      begin
+        if AskYesNo('Changing Default Administrator Address',
+                    'You have changed the Default Client Administrator Email Address. ' +
+                    'The new Default Client Administrator will be set to ' +
+                    'â€˜' + edtEmailAddress.Text + 'â€™.' + #10 + #10 +
+                    'Are you sure you want to continue?',
+                    DLG_YES, 0, false) <> DLG_YES then
+          Exit;
+      end
+      else
+      if ProductsChanged then
+      begin
+        if AskYesNo('Reactiving products',
+                    'Are you sure you want to activate the following products:' + #10#10 +
+                    NewProducts.Text + #10 +
+                   'By clicking ''OK'' you are confirming that you wish to activate these products ' +
+                   'for ' + edtUserName.Text,
+                   DLG_YES, 0, false) <> DLG_YES then
+          Exit;
+      end;
+    end;
+
+    if ProductsChanged then
+    begin
+      // Send email to support
+      MailTo := whSupportEmail[AdminSystem.fdFields.fdCountry];
+      MailSubject := 'Banklink Online product and service updates (' + AdminSystem.fdFields.fdBankLink_Code + ')';
+      MailBody := 'This practice has changed its Banklink Online product and service settings' + #10#10 +
+                  'Practice Name: ' + AdminSystem.fdFields.fdPractice_Name_for_Reports + #10 +
+                  'Practice Code: ' + AdminSystem.fdFields.fdBankLink_Code + #10#10 +
+                  'The BankLink Online Administrator (Primary Contact) for the practice' + #10 +
+                  'Name: ' + edtUserName.text + #10 +
+                  // Can't find phone number... do we have this at all for the practice administrator?
+                  'Email Address: ' + edtEmailAddress.text + #10#10 +
+                  'Updated settings:' + #10;
+      for i := 0 to NewProducts.Count - 1 do
+        MailBody := MailBody + NewProducts[i] + ' is now enabled' + #10;
+      for i := 0 to RemovedProducts.Count - 1 do
+        MailBody := MailBody + RemovedProducts[i] + ' is now disabled' + #10;
+      MailBody := MailBody + #10 +
+                     'Product and service settings:' + #10;
+      for i := 0 to chklistProducts.Count - 1 do
+      begin
+        MailBody := MailBody + chklistProducts.Items[i] + ' - ';
+        if chklistProducts.Checked[i] then
+          MailBody := MailBody + 'enabled' + #10
+        else
+          MailBody := MailBody + 'disabled' + #10;
+      end;
+      SendMailTo('Email to Support', MailTo, MailSubject, MailBody);
+    end;
+
+    Result := True;
+  finally
+    FreeAndNil(NewProducts);
+    FreeAndNil(RemovedProducts);
+  end;
 end;
 
 //------------------------------------------------------------------------------
@@ -520,13 +507,14 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TfrmBanklinkOnlineSettings.SaveClientInfo;
+function TfrmBanklinkOnlineSettings.SaveClientInfo : Boolean;
 var
   ProdIndex : integer;
   CatEntry  : TBloCatalogueEntry;
   ConnectDays : string;
   Subscription: TBloArrayOfGuid;
 begin
+  Result := False;
   ConnectDays := StringReplace(cmbConnectDays.Text, 'Always', '0', [rfReplaceAll]);
   ConnectDays := StringReplace(ConnectDays, ' days', '', [rfReplaceAll]);
 
@@ -542,26 +530,27 @@ begin
   // Existing Client
   if MyClient.Opened then
   begin
-    ProductConfigService.UpdateClient(ClientReadDetail,
-                                      AnsiLeftStr(cmbBillingFrequency.Text, 1),
-                                      StrToInt(ConnectDays),
-                                      Status,
-                                      Subscription,
-                                      edtUserName.Text,
-                                      edtEmailAddress.Text);
+    Result := ProductConfigService.UpdateClient(ClientReadDetail,
+                                                AnsiLeftStr(cmbBillingFrequency.Text, 1),
+                                                StrToInt(ConnectDays),
+                                                Status,
+                                                Subscription,
+                                                edtEmailAddress.Text,
+                                                edtUserName.Text);
   end
   else
   // New Client
   begin
-    ProductConfigService.CreateClient(AnsiLeftStr(cmbBillingFrequency.Text, 1),
-                                      StrToInt(ConnectDays),
-                                      Status,
-                                      Subscription,
-                                      edtUserName.Text,
-                                      edtEmailAddress.Text);
+    Result := ProductConfigService.CreateClient(AnsiLeftStr(cmbBillingFrequency.Text, 1),
+                                                StrToInt(ConnectDays),
+                                                Status,
+                                                Subscription,
+                                                edtEmailAddress.Text,
+                                                edtUserName.Text);
   end;
 
-  UpdateClientWebFormat;
+  if Result then
+    UpdateClientWebFormat;
 end;
 
 //------------------------------------------------------------------------------

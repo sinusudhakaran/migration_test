@@ -2200,9 +2200,6 @@ var
 begin
   Result := False;
 
-  if not Assigned(aExistingClient) then
-    Exit;
-
   // Do nothing user exists and is the same
   if (Assigned(aExistingClient)) and
      (Length(aExistingClient.Users) = 1) and
