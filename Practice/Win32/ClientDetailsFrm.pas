@@ -324,8 +324,6 @@ begin
                                      CurrUser.CanAccessAdmin;
       //Get client list (so that we can lookup the client code)
       ProductConfigService.LoadClientList;
-      //Get client details (need this to fill out lblClientBOProducts.Caption)
-      MyClient.RefreshBlopiClient;
       if lblClientBOProducts.Visible  then
       begin
         if not FEnableClientSettings then
@@ -465,8 +463,8 @@ begin
   // Details' is ticked
   MyClient.clFields.clContact_name := econtact.text;
   MyClient.clFields.clClient_EMail_Address := eMail.text;
-  if EditBanklinkOnlineSettings(Self, false) then begin
-    MyClient.BlopiClientChanged := True;
+  if EditBanklinkOnlineSettings(Self, false) then
+  begin
     UpdateProductsLabel;
   end;
 end;
@@ -475,29 +473,16 @@ end;
 procedure TfrmClientDetails.btnOkClick(Sender: TObject);
 var
   buttonSelected: integer;
-  UpdateBO: boolean;
   TheCreateClient: TBloClientCreate;
   TheReadClient: TBloClientReadDetail;
   MyUserCreate: TBloUserCreate;
   MyUserRead   : TBloUserRead;
-  BlankSubscription: TBloArrayOfGuid; 
+  BlankSubscription: TBloArrayOfGuid;
   ClientDetailResponse: MessageResponseOfClientReadDetailMIdCYrSK;
   MsgResponseOfGuid: MessageResponseOfGuid;
 begin
-  UpdateBO := Assigned(AdminSystem) and
-              AdminSystem.fdFields.fdUse_BankLink_Online;
-
   if okToPost then
   begin
-    if Assigned(MyClient.BlopiClientDetail) and UpdateBO then
-    begin
-      MyClient.BlopiClientDetail.ClientCode := eCode.Text;
-
-      { Redundant, saving now happens when OK is pressed on BanklinkOnlineSettingsFrm
-      if Assigned(MyClient.BlopiClientDetail.Users) then
-        ProductConfigService.SaveClient(MyClient.BlopiClientDetail);
-      }
-    end;
     okPressed := true;
     Close;
   end;
@@ -1298,14 +1283,16 @@ end;
 procedure TfrmClientDetails.UpdateProductsLabel;
 var
   NumProducts: string;
+  ClientReadDetail : TBloClientReadDetail;
 begin
   if Assigned(MyClient) then
   begin
-    NumProducts := '#';
-    if Assigned(MyClient.BlopiClientDetail) then
-      NumProducts := IntToStr(Length(MyClient.BlopiClientDetail.Subscription))
-    else if Assigned(MyClient.BlopiClientNew) then
-      NumProducts := IntToStr(Length(MyClient.BlopiClientNew.Subscription));
+    ClientReadDetail := ProductConfigService.GetClientDetailsWithCode(MyClient.clFields.clCode);
+
+    NumProducts := '0';
+    if Assigned(ClientReadDetail) then
+      NumProducts := IntToStr(Length(ClientReadDetail.Subscription));
+
     SetProductsCaption('This client currently has access to ' + NumProducts +
                        ' Banklink Online product(s)');
   end;

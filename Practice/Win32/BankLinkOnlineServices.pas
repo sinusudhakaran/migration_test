@@ -174,10 +174,25 @@ type
                                 const aUserCode    : WideString) : MessageResponse;
 
   public
-    procedure AddItemToArrayString(var aBloArrayOfString : TBloArrayOfString;
-                                   aItem : WideString);
-    procedure AddItemToArrayGuid(var aBloArrayOfGuid : TBloArrayOfGuid;
-                                 aItem : TBloGuid);
+    function IsItemInArrayString(const aBloArrayOfString : TBloArrayOfString;
+                                 const aItem : WideString) : Boolean;
+    function GetItemIndexInArrayString(const aBloArrayOfString : TBloArrayOfString;
+                                       const aItem : WideString) : Integer;
+    function AddItemToArrayString(var aBloArrayOfString : TBloArrayOfString;
+                                  aItem : WideString) : Boolean;
+    function RemoveItemFromArrayString(var aBloArrayOfString : TBloArrayOfString;
+                                       aItem : WideString) : Boolean;
+
+
+    function IsItemInArrayGuid(const aBloArrayOfGuid : TBloArrayOfGuid;
+                               const aItem : TBloGuid) : Boolean;
+    function GetItemIndexInArrayGuid(const aBloArrayOfGuid : TBloArrayOfGuid;
+                                     const aItem : TBloGuid) : Integer;
+    function AddItemToArrayGuid(var aBloArrayOfGuid : TBloArrayOfGuid;
+                                aItem : TBloGuid) : Boolean;
+    function RemoveItemFromArrayGuid(var aBloArrayOfGuid : TBloArrayOfGuid;
+                                     aItem : TBloGuid) : Boolean;
+
 
     destructor Destroy; override;
     //Practice methods
@@ -214,6 +229,7 @@ type
     function CreateNewClientUser(NewUser: TBloUserCreate; ClientGUID: string): Guid;
     property Clients: ClientList read FClientList;
 
+    procedure SaveClientNotesOption(aWebExportFormat : Byte);
     function CreateClient(const aBillingFrequency : WideString;
                                 aMaxOfflineDays   : Integer;
                                 aStatus           : TBloStatus;
@@ -227,6 +243,7 @@ type
                           const aSubscription         : TBloArrayOfGuid;
                           const aUserEMail            : WideString;
                           const aUserFullName         : WideString): Boolean;
+    function DeleteClient(const aExistingClient : TBloClientReadDetail): Boolean;
 
     //User methods
     function GetUnLinkedOnlineUsers(aPractice : TBloPracticeRead = nil) : TBloArrayOfUserRead;
@@ -315,35 +332,163 @@ end;
 
 { TProductConfigService }
 //------------------------------------------------------------------------------
-procedure TProductConfigService.AddItemToArrayString(var aBloArrayOfString : TBloArrayOfString;
-                                                     aItem : WideString);
+function TProductConfigService.IsItemInArrayString(const aBloArrayOfString : TBloArrayOfString;
+                                                   const aItem : WideString) : Boolean;
 var
   Index : integer;
 begin
+  Result := False;
+
   // Check if Item Exists
   for Index := Low(aBloArrayOfString) to High(aBloArrayOfString) do
+  begin
     if aBloArrayOfString[Index] = aItem then
+    begin
+      Result := True;
       Exit;
+    end;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+function TProductConfigService.GetItemIndexInArrayString(const aBloArrayOfString : TBloArrayOfString;
+                                                         const aItem : WideString) : Integer;
+var
+  Index : integer;
+begin
+  Result := -1;
+
+  // Check if Item Exists
+  for Index := Low(aBloArrayOfString) to High(aBloArrayOfString) do
+  begin
+    if aBloArrayOfString[Index] = aItem then
+    begin
+      Result := Index;
+      Exit;
+    end;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+function TProductConfigService.AddItemToArrayString(var aBloArrayOfString : TBloArrayOfString;
+                                                    aItem : WideString) : Boolean;
+begin
+  Result := False;
+  // Check if Item Exists
+  if IsItemInArrayString(aBloArrayOfString, aItem) then
+    Exit;
 
   //Add Item
   SetLength(aBloArrayOfString, Length(aBloArrayOfString) + 1);
   aBloArrayOfString[High(aBloArrayOfString)] := aItem;
+  Result := True;
 end;
 
 //------------------------------------------------------------------------------
-procedure TProductConfigService.AddItemToArrayGuid(var aBloArrayOfGuid : TBloArrayOfGuid;
-                                                   aItem : TBloGuid);
+function TProductConfigService.RemoveItemFromArrayString(var aBloArrayOfString : TBloArrayOfString;
+                                                         aItem : WideString) : Boolean;
+var
+  Index : integer;
+  ItemIndex : integer;
+begin
+  Result := False;
+
+  // Get Item Index
+  ItemIndex := GetItemIndexInArrayString(aBloArrayOfString, aItem);
+  if ItemIndex = -1 then
+    Exit;
+
+  //Remove Item
+  if High(aBloArrayOfString) >= (ItemIndex+1) then
+  begin
+    for Index := High(aBloArrayOfString) downto ItemIndex+1 do
+    begin
+      aBloArrayOfString[Index-1] := aBloArrayOfString[Index];
+    end;
+  end;
+  SetLength(aBloArrayOfString, Length(aBloArrayOfString) - 1);
+
+  Result := True;
+end;
+
+//------------------------------------------------------------------------------
+function TProductConfigService.IsItemInArrayGuid(const aBloArrayOfGuid : TBloArrayOfGuid;
+                                                 const aItem : TBloGuid) : Boolean;
 var
   Index : integer;
 begin
+  Result := False;
+
   // Check if Item Exists
   for Index := Low(aBloArrayOfGuid) to High(aBloArrayOfGuid) do
+  begin
     if aBloArrayOfGuid[Index] = aItem then
+    begin
+      Result := True;
       Exit;
+    end;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+function TProductConfigService.GetItemIndexInArrayGuid(const aBloArrayOfGuid : TBloArrayOfGuid;
+                                                       const aItem : TBloGuid) : Integer;
+var
+  Index : integer;
+begin
+  Result := -1;
+
+  // Check if Item Exists
+  for Index := Low(aBloArrayOfGuid) to High(aBloArrayOfGuid) do
+  begin
+    if aBloArrayOfGuid[Index] = aItem then
+    begin
+      Result := Index;
+      Exit;
+    end;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+function TProductConfigService.AddItemToArrayGuid(var aBloArrayOfGuid : TBloArrayOfGuid;
+                                                  aItem : TBloGuid) : Boolean;
+begin
+  Result := False;
+  // Check if Item Exists
+  if IsItemInArrayGuid(aBloArrayOfGuid, aItem) then
+    Exit;
 
   //Add Item
   SetLength(aBloArrayOfGuid, Length(aBloArrayOfGuid) + 1);
   aBloArrayOfGuid[High(aBloArrayOfGuid)] := aItem;
+  Result := True;
+end;
+
+//------------------------------------------------------------------------------
+function TProductConfigService.RemoveItemFromArrayGuid(var aBloArrayOfGuid : TBloArrayOfGuid;
+                                                       aItem : TBloGuid) : Boolean;
+var
+  Index : integer;
+  ItemIndex : integer;
+begin
+  Result := False;
+
+  // Get Item Index
+  ItemIndex := GetItemIndexInArrayGuid(aBloArrayOfGuid, aItem);
+  if ItemIndex = -1 then
+    Exit;
+
+  //Remove Item
+  if High(aBloArrayOfGuid) >= (ItemIndex+1) then
+  begin
+    for Index := High(aBloArrayOfGuid) downto ItemIndex+1 do
+    begin
+      aBloArrayOfGuid[Index-1] := aBloArrayOfGuid[Index];
+    end;
+  end;
+  SetLength(aBloArrayOfGuid, Length(aBloArrayOfGuid) - 1);
+
+  Result := True;
 end;
 
 //------------------------------------------------------------------------------
@@ -2265,6 +2410,35 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+procedure TProductConfigService.SaveClientNotesOption(aWebExportFormat : Byte);
+var
+  Changed : Boolean;
+  ClientReadDetail : TBloClientReadDetail;
+  NotesId : TBloGuid;
+  Subscription : TBloArrayOfguid;
+begin
+  //Get client list (so that we can lookup the client code)
+  ProductConfigService.LoadClientList;
+  ClientReadDetail := ProductConfigService.GetClientDetailsWithCode(MyClient.clFields.clCode);
+  NotesId := ProductConfigService.GetNotesId;
+  Subscription := ClientReadDetail.Subscription;
+
+  if aWebExportFormat = wfWebNotes then
+    Changed := AddItemToArrayGuid(Subscription, NotesId)
+  else
+    Changed := RemoveItemFromArrayGuid(Subscription, NotesId);
+
+  if Changed then
+    ProductConfigService.UpdateClient(ClientReadDetail,
+                                      ClientReadDetail.BillingFrequency,
+                                      ClientReadDetail.MaxOfflineDays,
+                                      ClientReadDetail.Status,
+                                      Subscription,
+                                      ClientReadDetail.Users[0].FullName,
+                                      ClientReadDetail.Users[0].Email);
+end;
+
+//------------------------------------------------------------------------------
 function TProductConfigService.CreateClient(const aBillingFrequency : WideString;
                                                   aMaxOfflineDays   : Integer;
                                                   aStatus           : TBloStatus;
@@ -2327,6 +2501,8 @@ begin
       else
         LogUtil.LogMsg(lmInfo, UNIT_NAME, 'Client ' + ClientCode + ' was not created on BankLink Online.');
 
+      if Result then
+        Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finished', 100);
     except
       on E : Exception do
       begin
@@ -2448,7 +2624,73 @@ begin
         finally
           FreeAndNil(BloClientUpdate);
         end;
+
+        if Result then
+        begin
+          HelpfulInfoMsg(Format('Settings for %s have been successfully updated to ' +
+                         '%s.',[ClientCode, BANKLINK_ONLINE_NAME]), 0);
+          Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finished', 100);
+        end;
       end;
+    except
+      on E : Exception do
+      begin
+        LogUtil.LogMsg(lmError, UNIT_NAME, 'Exception running UpdateClient, Error Message : ' + E.Message);
+        raise Exception.Create(BKPRACTICENAME + ' was unable to connect to ' + BANKLINK_ONLINE_NAME + '.' + #13#13 + E.Message );
+      end;
+    end;
+  finally
+    Progress.StatusSilent := True;
+    Progress.ClearStatus;
+    Screen.Cursor := crDefault;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+function TProductConfigService.DeleteClient(const aExistingClient : TBloClientReadDetail): Boolean;
+var
+  BloClientUpdate : TBloClientUpdate;
+  BlopiInterface  : IBlopiServiceFacade;
+  MsgResponse     : MessageResponse;
+begin
+  Screen.Cursor := crHourGlass;
+  Progress.StatusSilent := False;
+  Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Connecting', 10);
+
+  BlopiInterface := GetServiceFacade;
+  try
+    try
+      Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Deleting Client User', 55);
+
+      BloClientUpdate := TBloClientUpdate.Create;
+      try
+        BloClientUpdate.Id                   := aExistingClient.Id;
+        BloClientUpdate.PrimaryContactUserId := aExistingClient.Users[0].Id;
+        BloClientUpdate.BillingFrequency     := aExistingClient.BillingFrequency;
+        BloClientUpdate.ClientCode           := aExistingClient.ClientCode;
+        BloClientUpdate.MaxOfflineDays       := aExistingClient.MaxOfflineDays;
+        BloClientUpdate.Name_                := aExistingClient.Name_;
+        BloClientUpdate.Status               := staDeactivated;
+        BloClientUpdate.Subscription         := aExistingClient.Subscription;
+
+        MsgResponse := BlopiInterface.SaveClient(CountryText(AdminSystem.fdFields.fdCountry),
+                                                 AdminSystem.fdFields.fdBankLink_Code,
+                                                 AdminSystem.fdFields.fdBankLink_Connect_Password,
+                                                 BloClientUpdate);
+
+        Result := MessageResponseHasError(MsgResponse, 'delete client on');
+
+        if Result then
+          LogUtil.LogMsg(lmInfo, UNIT_NAME, 'Client ' + aExistingClient.ClientCode + ' has been successfully marked as Deleted on BankLink Online.')
+        else
+          LogUtil.LogMsg(lmInfo, UNIT_NAME, 'Client ' + aExistingClient.ClientCode + ' was not marked as Deleted on BankLink Online.');
+
+      finally
+        FreeAndNil(BloClientUpdate);
+      end;
+
+      if Result then
+        Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finished', 100);
     except
       on E : Exception do
       begin

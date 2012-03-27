@@ -14,7 +14,6 @@ uses
    buList32, blList32, jobobj,
    PayeeObj,
    CustomHeadingsListObj, ExchangeRateList, mcDefs, AuditMgr,
-   BankLinkOnlineServices, BlopiClient,
 {$ENDIF}
    sysutils, MoneyDef;
 
@@ -37,6 +36,7 @@ type
     clExtra                : TClientExtra_Rec;
     FAuditTable            : TAuditTable;
     FClientAuditMgr        : TClientAuditManager;
+    FOpened                : Boolean;
 {$ENDIF}
     clWas_Code             : string;  //store the client code to detect a rename
     clRawStreamSize        : integer; //store stream size on open so can estimate for save
@@ -48,7 +48,6 @@ type
     FExchangeSource: TExchangeSource;
     FLastAuditRecordID: integer;
     FClientCopy: TClientObj;
-    FBlopiClient: TBlopiClient;
 {$ENDIF}
     procedure LoadFromStream( var s:TIOStream);
     procedure GetZipStreamFromFile(var Filename : String; const ZipStream : TBigMemoryStream);
@@ -70,12 +69,6 @@ type
     procedure SetAuditInfo(P1, P2: pClient_Rec; var AAuditInfo: TAuditInfo);
     procedure SetExtraAuditInfo(P1, P2: pClientExtra_Rec; var AAuditInfo: TAuditInfo;
                                 NewClient: boolean = false);
-    procedure SetBlopiClientDetail(const Value: TBloClientReadDetail);
-    procedure SetBlopiClientNew(const Value: TBloClientCreate);
-    function GetBlopiClientDetail: TBloClientReadDetail;
-    function GetBlopiClientNew: TBloClientCreate;
-    procedure SetBlopiClientChanged(const Value: Boolean);
-    function GetBlopiClientChanged: Boolean;
 {$ENDIF}
   public
     procedure Open(FileCode, FileExtension : String);
@@ -136,14 +129,10 @@ type
     function NextAuditRecordID: integer;
     procedure DoAudit(AAuditType: TAuditType; AClientCopy: TClientObj);
     procedure ClientCopyReset;
-    function RefreshBlopiClient: boolean;
-    function CopyPracticeClientNew: boolean;    
     property AuditTable: TAuditTable read FAuditTable;
     property ClientAuditMgr: TClientAuditManager read FClientAuditMgr;
     property ClientCopy: TClientObj read GetClientCopy;
-    property BlopiClientDetail: TBloClientReadDetail read GetBlopiClientDetail write SetBlopiClientDetail;
-    property BlopiClientNew: TBloClientCreate read GetBlopiClientNew write SetBlopiClientNew;
-    property BlopiClientChanged: Boolean read GetBlopiClientChanged write SetBlopiClientChanged;
+    property Opened: Boolean read FOpened write FOpened default false;
 {$ENDIF}
   end;
 
@@ -252,8 +241,6 @@ begin
 
    //Exchange rate source
    FExchangeSource := TExchangeSource.Create;
-   // Creating Blopi client
-   FBlopiClient := TBlopiClient.Create;
 {$ENDIF}
    LogDebugMsg(ThisMethodName + ' Ends');
 end;
@@ -284,7 +271,6 @@ begin
    BKCLIO.Free_Client_Rec_Dynamic_Fields( clFields);
 {$IFDEF ParserDll}
 {$ELSE}
-   FreeAndNil(FBlopiClient);
    FreeAndNil(FExchangeSource);
 
    clBank_Account_List.Free;
@@ -657,16 +643,11 @@ begin
          clTemp_Old_Download_From   := clDownload_From;
       end;
 {$ENDIF}
-
+      FOpened := true;
   finally
     FreeAndNil( ZipStream);
     FreeAndNil( DataStream);
   end;
-
-{$IFNDEF ParserDll}
-  if UseBankLinkOnline then
-    GetBlopiClientDetail;
-{$ENDIF}
 
   LogDebugMsg( ThisMethodName + ' ends');
 end;
@@ -776,15 +757,6 @@ end;
 //       'Normal Only ' (NON Parser DLL) BITS
 //
 //******************************************************************************
-
-
-function TClientObj.RefreshBlopiClient: boolean;
-begin
-  Result := False;
-  if UseBankLinkOnline then
-    FBlopiClient.ClientDetail := FBlopiClient.GetClientDetail(clFields.clCode);
-  Result := Assigned(FBlopiClient.ClientDetail);
-end;
 
 procedure TClientObj.RefreshExchangeSource(DefaultGST: Boolean = True);
 var
@@ -904,21 +876,6 @@ begin
     AAuditInfo.AuditParentID := -1; //No parent
     AAuditInfo.AuditRecordType := tkBegin_Client;
   end;
-end;
-
-procedure TClientObj.SetBlopiClientChanged(const Value: Boolean);
-begin
-  FBlopiClient.IsEdited := Value;
-end;
-
-procedure TClientObj.SetBlopiClientDetail(const Value: TBloClientReadDetail);
-begin
-  FBlopiClient.ClientDetail := Value;
-end;
-
-procedure TClientObj.SetBlopiClientNew(const Value: TBloClientCreate);
-begin
-  FBlopiClient.ClientNew := Value;
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -1524,32 +1481,7 @@ begin
   LogDebugMsg( ThisMethodName + ' Ends');
 end;
 
-
-function TClientObj.CopyPracticeClientNew: boolean;
-begin
-  FBlopiClient.ClientNew.Abn := '';
-  FBlopiClient.ClientNew.Address1 := clFields.clAddress_L1;
-  FBlopiClient.ClientNew.Address2 := clFields.clAddress_L2;
-  FBlopiClient.ClientNew.Address3 := clFields.clAddress_L3;
-  FBlopiClient.ClientNew.AddressCountry := '';
-  FBlopiClient.ClientNew.ClientCode := clFields.clCode;
-  FBlopiClient.ClientNew.CountryCode := CountryText(clFields.clCountry);
-  FBlopiClient.ClientNew.Email := clFields.clClient_EMail_Address;
-  FBlopiClient.ClientNew.Fax := clFields.clFax_No;
-  FBlopiClient.ClientNew.Mobile := clFields.clMobile_No;
-  FBlopiClient.ClientNew.Phone := clFields.clPhone_No;
-  FBlopiClient.ClientNew.Salutation := clFields.clSalutation;
-  FBlopiClient.ClientNew.TaxNumber := clFields.clTax_Ledger_Code;
-  FBlopiClient.ClientNew.Tfn := clFields.clTFN;
-  FBlopiClient.ClientNew.BillingFrequency := 'M'; // default to monthly billing
-  FBlopiClient.ClientNew.MaxOfflineDays := 30; // default to 'must connect every 30 days'
-  FBlopiClient.ClientNew.Name_ := clFields.clName;
-  FBlopiClient.ClientNew.Subscription := nil;
-end;
-
-
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 procedure TClientObj.Save;
 const
   ThisMethodName = 'TClientObj.Save';
@@ -1626,21 +1558,6 @@ begin
         result := suNames[ clFields.clAccounting_System_Used];
     end;
   end;
-end;
-
-function TClientObj.GetBlopiClientChanged: Boolean;
-begin
-  Result := FBlopiClient.IsEdited;
-end;
-
-function TClientObj.GetBlopiClientDetail: TBloClientReadDetail;
-begin
-  Result := FBlopiClient.ClientDetail
-end;
-
-function TClientObj.GetBlopiClientNew: TBloClientCreate;
-begin
-  Result := FBlopiClient.ClientNew;
 end;
 
 {$ENDIF}

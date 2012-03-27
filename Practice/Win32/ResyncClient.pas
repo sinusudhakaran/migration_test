@@ -494,6 +494,7 @@ var
    OkToResync: boolean;
    pSB: pSystem_Bank_Account_Rec;
    CatEntry: TBloCatalogueEntry;
+   ClientReadDetail : TBloClientReadDetail;
 begin
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
 
@@ -536,19 +537,23 @@ begin
       // Get client list (so that we can lookup the client code)
       ProductConfigService.LoadClientList;
       // Get client details
-      aClient.RefreshBlopiClient;
-      // Changing the web export format (if necessary) 
-      if Assigned(aClient.BlopiClientDetail) then
-      begin
-        for i := 0 to High(aClient.BlopiClientDetail.Subscription) do
+      ClientReadDetail := ProductConfigService.GetClientDetailsWithCode(MyClient.clFields.clCode);
+      try
+        // Changing the web export format (if necessary)
+        if Assigned(ClientReadDetail) then
         begin
-          CatEntry := ProductConfigService.GetCatalogueEntry(aClient.BlopiClientDetail.Subscription[i]);
-          if (CatEntry.Description = 'Notes Online') or (CatEntry.Description = 'BankLink Notes Online') then
-            aClient.clFields.clWeb_Export_Format := wfWebNotes
-          else if aClient.clFields.clWeb_Export_Format = wfWebNotes then
-            aClient.clFields.clWeb_Export_Format := wfNone;
+          for i := 0 to High(ClientReadDetail.Subscription) do
+          begin
+            CatEntry := ProductConfigService.GetCatalogueEntry(ClientReadDetail.Subscription[i]);
+            if (CatEntry.Description = 'Notes Online') or (CatEntry.Description = 'BankLink Notes Online') then
+              aClient.clFields.clWeb_Export_Format := wfWebNotes
+            else if aClient.clFields.clWeb_Export_Format = wfWebNotes then
+              aClient.clFields.clWeb_Export_Format := wfNone;
+          end;
         end;
-      end; 
+      finally
+        FreeAndNil(ClientReadDetail);
+      end;
 
       ClientLastTrxDate := 0;
       BankAccountExistsInAdmin := False;

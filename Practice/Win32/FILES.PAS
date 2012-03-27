@@ -2269,9 +2269,9 @@ begin
 
             // Clearing Banklink Online details before syncing client
             // Get client list (so that we can lookup the client code)
-            ProductConfigService.LoadClientList;
+            //ProductConfigService.LoadClientList;
             // Get client details
-            aClient.RefreshBlopiClient;
+            //aClient.RefreshBlopiClient;
 
           finally
             FreeAndNil( aClient);

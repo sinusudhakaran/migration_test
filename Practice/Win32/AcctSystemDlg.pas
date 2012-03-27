@@ -611,25 +611,8 @@ begin
         begin
           clWeb_Export_Format := ComboUtils.GetComboCurrentIntObject(cmbWebFormats);
 
-          if not Assigned(MyClient.BlopiClientDetail) then
-          begin
-            //Get client list (so that we can lookup the client code)
-            ProductConfigService.LoadClientList;
-            //Get client details
-            MyClient.RefreshBlopiClient;
-          end;
-          if Assigned(MyClient.BlopiClientDetail) then
-          begin
-            NotesId := ProductConfigService.GetNotesId;
-
-            if clWeb_Export_Format = wfWebNotes then
-              ClientChanged := MyClient.BlopiClientDetail.AddSubscription(NotesId)
-            else
-              ClientChanged := MyClient.BlopiClientDetail.RemoveSubscription(NotesId);
-
-            MyClient.BlopiClientChanged := ClientChanged;
-            ProductConfigService.SaveClient(MyClient.BlopiClientDetail);
-          end;
+          if MyClient.Opened then
+            ProductConfigService.SaveClientNotesOption(clWeb_Export_Format);
         end;
 
         S := Trim( edtSaveTaxTo.Text);
@@ -724,7 +707,7 @@ procedure TdlgAcctSystem.ShowBankLinkOnlineConfirmation;
 var
   aMsg : String;
 begin
-  if (Assigned(MyClient.BlopiClientNew)) then
+  if not MyClient.Opened then
   begin
     aMsg := 'You have selected to use BankLink Notes Online for this client. ' +
             'Please confirm the BankLink Online details for this client. ' +
@@ -781,7 +764,7 @@ begin
     // Check WebNotes
     if (CanClose) and
        (ComboUtils.GetComboCurrentIntObject(cmbWebFormats) = wfWebNotes) and
-       (Assigned(MyClient.BlopiClientNew)) then
+       (not MyClient.Opened) then
     begin
       if not WebFormatChanged then
         ShowBankLinkOnlineConfirmation;

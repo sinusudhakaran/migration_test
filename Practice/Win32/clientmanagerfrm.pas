@@ -1581,14 +1581,7 @@ begin
     OpenClient(ClientCode);
     try
       if Assigned(MyClient) then
-        if EditBanklinkOnlineSettings(Self, false) then
-        begin
-          MyClient.BlopiClientChanged := True;
-
-          if not Assigned(FBlopiClient) then
-            FBlopiClient := TBlopiClient.Create;
-          FBlopiClient.IsEdited := True;
-        end;
+        EditBanklinkOnlineSettings(Self, false);
     finally
       CloseClient();
     end;
