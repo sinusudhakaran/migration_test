@@ -455,8 +455,8 @@ begin
     chklistProducts.AddItem(CatEntry.Description, CatEntry);
   end;
 
-  // Existing Client
-  if MyClient.Opened then
+  // Existing Client and the client actuall has blopi information, i.e. Its not an upgrade.
+  if MyClient.Opened and Assigned(ClientReadDetail) then
   begin
     Status := ClientReadDetail.Status;
     if (ClientReadDetail.MaxOfflineDays = 0) then
@@ -503,6 +503,19 @@ begin
     chkUseClientDetails.Checked := False;
     edtUserName.Text := MyClient.clFields.clContact_Name;
     edtEmailAddress.Text := MyClient.clFields.clClient_EMail_Address;
+
+    if MyClient.clFields.clWeb_Export_Format = wfWebNotes then
+    begin
+      for ProdIndex := 0 to chklistProducts.Items.Count - 1 do
+      begin
+        if chklistProducts.Items[ProdIndex] = 'BankLink Notes Online' then
+        begin
+          chklistProducts.Checked[ProdIndex] := True;
+
+          Break;
+        end;
+      end;
+    end;
   end;
 end;
 
