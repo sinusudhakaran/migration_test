@@ -463,7 +463,7 @@ begin
   // Details' is ticked
   MyClient.clFields.clContact_name := econtact.text;
   MyClient.clFields.clClient_EMail_Address := eMail.text;
-  if EditBanklinkOnlineSettings(Self, false) then
+  if EditBanklinkOnlineSettings(Self, MyClient.clFields.clWeb_Export_Format = wfWebNotes) then
   begin
     UpdateProductsLabel;
   end;
