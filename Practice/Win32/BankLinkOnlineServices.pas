@@ -150,6 +150,7 @@ type
                               const aUserCode     : WideString): MessageResponse;
     function AddEditClientUser(const aExistingClient : TBloClientReadDetail;
                                aNewClientId    : TBloGuid;
+                               aClientCode     : String;
                                var   aUserId   : TBloGuid;
                                const aEMail    : WideString;
                                const aFullName : WideString) : Boolean;
@@ -170,8 +171,8 @@ type
                                 const aUserCode     : WideString;
                                 const aRoleNames    : TBloArrayOfstring;
                                 const aSubscription : TBloArrayOfguid) : MessageResponse;
-    function DeletePracticeUser(const aUserId      : TBloGuid;
-                                const aUserCode    : WideString) : MessageResponse;
+    function DeleteUser(const aUserId      : TBloGuid;
+                        const aUserCode    : WideString) : MessageResponse;
 
   public
     function IsItemInArrayString(const aBloArrayOfString : TBloArrayOfString;
@@ -2187,6 +2188,7 @@ end;
 //------------------------------------------------------------------------------
 function TProductConfigService.AddEditClientUser(const aExistingClient : TBloClientReadDetail;
                                                  aNewClientId    : TBloGuid;
+                                                 aClientCode     : String;
                                                  var   aUserId   : TBloGuid;
                                                  const aEMail    : WideString;
                                                  const aFullName : WideString) : Boolean;
@@ -2202,7 +2204,7 @@ begin
 
   // Do nothing user exists and is the same
   if (Assigned(aExistingClient)) and
-     (Length(aExistingClient.Users) = 1) and
+     (Length(aExistingClient.Users) > 0) and
      (Trim(Uppercase(aExistingClient.Users[0].EMail)) = Trim(Uppercase(aEMail))) and
      (Trim(Uppercase(aExistingClient.Users[0].FullName)) = Trim(Uppercase(aFullName))) then
   begin
@@ -2223,17 +2225,24 @@ begin
       Subscription := aExistingClient.Users[0].Subscription;
       UserCode     := aExistingClient.Users[0].UserCode;
       ClientId     := aExistingClient.Id;
+
+      MsgResponce := DeleteUser(aExistingClient.Users[0].Id, UserCode);
+
+      Result := not MessageResponseHasError(MsgResponce, 'Clear the client user on');
     end
     else
     begin
       AddItemToArrayString(RoleNames, 'Client Administrator');
       SetLength(Subscription, 0);
-      UserCode := aExistingClient.ClientCode;
 
       if Assigned(aExistingClient) then
-        ClientId := aExistingClient.Id
+      begin
+        UserCode := aExistingClient.ClientCode;
+        ClientId := aExistingClient.Id;
+      end
       else
         ClientId := aNewClientId;
+        UserCode := aClientCode;
     end;
 
     MsgResponceGuid := CreateClientUser(ClientId,
@@ -2251,7 +2260,7 @@ begin
   end;
 
   // if the user exist and the email is the same update
-  if (Length(aExistingClient.Users) = 1) and
+  if (Length(aExistingClient.Users) > 0) and
      (Trim(Uppercase(aExistingClient.Users[0].EMail)) = Trim(Uppercase(aEMail))) then
   begin
     aUserId := aExistingClient.Users[0].Id;
@@ -2392,8 +2401,8 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TProductConfigService.DeletePracticeUser(const aUserId      : TBloGuid;
-                                                  const aUserCode    : WideString) : MessageResponse;
+function TProductConfigService.DeleteUser(const aUserId      : TBloGuid;
+                                          const aUserCode    : WideString) : MessageResponse;
 var
   BlopiInterface : IBlopiServiceFacade;
 begin
@@ -2405,9 +2414,9 @@ begin
                                       aUserId);
 
   if Result.Success then
-    LogUtil.LogMsg(lmInfo, UNIT_NAME, 'Practice User ' + aUserCode + ' has been successfully deleted from BankLink Online.')
+    LogUtil.LogMsg(lmInfo, UNIT_NAME, 'User ' + aUserCode + ' has been successfully deleted from BankLink Online.')
   else
-    LogUtil.LogMsg(lmInfo, UNIT_NAME, 'Practice User ' + aUserCode + ' was not deleted from BankLink Online.');
+    LogUtil.LogMsg(lmInfo, UNIT_NAME, 'User ' + aUserCode + ' was not deleted from BankLink Online.');
 end;
 
 //------------------------------------------------------------------------------
@@ -2499,6 +2508,9 @@ begin
                                                        BloClientCreate);
 
         Result := not MessageResponseHasError(MsgResponseGuid, 'create client on');
+
+        if Result then
+          MyClient.Opened := True;
       finally
         FreeAndNil(BloClientCreate);
       end;
@@ -2510,6 +2522,7 @@ begin
         Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Saving Client User', 70);
         Result := AddEditClientUser(Nil,
                                     MsgResponseGuid.Result,
+                                    ClientCode,
                                     UserId,
                                     aUserEMail,
                                     aUserFullName);
@@ -2607,6 +2620,7 @@ begin
       Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Saving Client User', 40);
       Result := AddEditClientUser(aExistingClient,
                                   '',
+                                  '',
                                   UserId,
                                   aUserEMail,
                                   aUserFullName);
@@ -2642,13 +2656,13 @@ begin
         finally
           FreeAndNil(BloClientUpdate);
         end;
+      end;
 
-        if Result then
-        begin
-          HelpfulInfoMsg(Format('Settings for %s have been successfully updated to ' +
-                         '%s.',[ClientCode, BANKLINK_ONLINE_NAME]), 0);
-          Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finished', 100);
-        end;
+      if Result then
+      begin
+        HelpfulInfoMsg(Format('Settings for %s have been successfully updated to ' +
+                       '%s.',[ClientCode, BANKLINK_ONLINE_NAME]), 0);
+        Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finished', 100);
       end;
     except
       on E : Exception do
@@ -2864,8 +2878,8 @@ begin
 
         if not (UserGuid = '') then
         begin
-          MsgResponce := DeletePracticeUser(aUserGuid,
-                                            aUserCode);
+          MsgResponce := DeleteUser(aUserGuid,
+                                    aUserCode);
 
           Result := not MessageResponseHasError(MsgResponce, 'delete practice user on');
         end
