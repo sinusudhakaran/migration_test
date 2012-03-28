@@ -22,7 +22,7 @@ interface
 uses
   Classes, Controls, Forms, ActnList,
   StdCtrls, ExtCtrls, ReportDefs,
-  OSFont;
+  OSFont, Messages, Windows;
 
 type
   TModalProcessorCommand = ( mpcDoDownloadFromBConnect,
@@ -42,10 +42,14 @@ type
     procedure FormShow(Sender: TObject);
   private
     { Private declarations }
+    FHiding: Boolean;
+
     Activated        : boolean;
     FHelpID          : integer;
     procedure ProcessCommand(Command: TModalProcessorCommand);
     procedure ProcessReport(ReportType : Report_List_Type; Destination : TReportDest);
+
+    procedure WMWindowPosChanging(var Message: TWMWindowPosChanging); message WM_WINDOWPOSCHANGING;
   public
     { Public declarations }
     CommandToProcess : TModalProcessorCommand;
@@ -123,6 +127,20 @@ begin
   end;
 end;
 
+procedure TdlgModalProcessor.WMWindowPosChanging(var Message: TWMWindowPosChanging);
+begin
+  inherited;
+
+  //If the zorder of the form changes while a modal form is showing then we need to prevent it.
+  if (Message.WindowPos.flags and SWP_NOZORDER <> SWP_NOZORDER) and Assigned(Screen.ActiveForm) then
+  begin
+    if (fsModal in Screen.ActiveForm.FormState) and (Message.WindowPos.hwndInsertAfter = Screen.ActiveForm.Handle) then
+    begin
+      Message.WindowPos.Flags := Message.WindowPos.Flags or SWP_NOZORDER;
+    end;
+  end;
+end;
+
 procedure DoModalReport(ReportType : Report_List_Type; Destination : TReportDest; HelpCtx : integer = 0);
 begin
   Progress.CalledFromModalProcessor := true;
@@ -171,6 +189,8 @@ begin
   Activated := false;
   CommandToProcess := mpcNone;
   FHelpID := 0;
+
+  FHiding := False;
 end;
 
 procedure TdlgModalProcessor.FormShow(Sender: TObject);
