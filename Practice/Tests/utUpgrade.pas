@@ -65,7 +65,7 @@ begin
 
   //Check 96 Update (Client Types)
   //Check 8 are there
-  CheckEquals(8, AdminSystem.fdSystem_Client_Type_List.ItemCount, 'Client Type List Count incorrect');
+  CheckEquals(9, AdminSystem.fdSystem_Client_Type_List.ItemCount, 'Client Type List Count incorrect');
   //Test to make sure this one isn't there (also checks tests)
   CheckEquals(0, Integer(AdminSystem.fdSystem_Client_Type_List.FindName('Test')), 'Test Client Type Found');
   //Check the correct ones are there
