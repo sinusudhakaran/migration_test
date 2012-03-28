@@ -78,7 +78,7 @@ uses
   MaintainBankFrm, imagesfrm, Import32, glConst, LogUtil, baobj32,
   ClientReportScheduleDlg, ClientDetailCacheObj, GlobalClientSetupRoutines,
   ToDoHandler, ToDoListUnit, syamio, ClientManagerFrm,
-  BanklinkOnlineSettingsFrm, BankLinkOnlineServices;
+  BanklinkOnlineSettingsFrm, BankLinkOnlineServices, InfoMoreFrm;
 
 {$R *.DFM}
 
@@ -148,6 +148,7 @@ var
   pRec: pClient_File_Rec;
   LRN, i: Integer;
   HasNotes: Boolean;
+  aMsg : String;
 begin
   result := false;
   if not RefreshAdmin then exit;
@@ -171,9 +172,23 @@ begin
         Execute;
         ShowModal;
         Result := ( ModalResult = mrOK );
-        if Result then begin
+        if Result then
+        begin
            if (MyClient.clFields.clWeb_Export_Format = wfWebNotes) then
+           begin
+             if TOptionRec(Option[opAccountSys]).Complete = false then
+             begin
+               aMsg := 'You have selected to use BankLink Notes Online for this client. ' +
+                       'Please confirm the BankLink Online details for this client. ' +
+                       #13#10 + #13#10 +
+                       'The BankLink Online settings for this client will be displayed ' +
+                       'at the end of this wizard.';
+               HelpfulInfoMsg(aMsg, 0);
+             end;
+
              EditBanklinkOnlineSettings(w_PopupParent, true);
+           end;
+
            LogUtil.LogMsg( lmInfo, UnitName, 'CreateClient: ' + MyClient.clFields.clCode);
            if ProspectCode <> '' then
            begin

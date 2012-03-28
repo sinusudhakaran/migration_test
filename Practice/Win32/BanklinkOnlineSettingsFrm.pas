@@ -64,6 +64,7 @@ type
     function GetStatus : TBloStatus;
     procedure UpdateClientWebFormat;
     procedure SetReadOnly;
+    function IsClientOnline : boolean;
 
   public
     function Execute(TickNotesOnline: boolean = false) : boolean;
@@ -124,10 +125,11 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmBanklinkOnlineSettings.btnOKClick(Sender: TObject);
 begin
+  Self.ModalResult := mrNone;
   if Validate then
   begin
     if SaveClientInfo then
-      Close;
+      Self.ModalResult := mrOK;
   end;
 end;
 
@@ -191,7 +193,7 @@ procedure TfrmBanklinkOnlineSettings.UpdateClientWebFormat;
 var
   NotesId : TBloGuid;
 begin
-  if not MyClient.Opened then
+  if not IsClientOnline then
     Exit;
 
   NotesId := ProductConfigService.GetNotesId;
@@ -249,7 +251,7 @@ begin
     Exit;
   end;
 
-  if MyClient.Opened then
+  if IsClientOnline then
     ClientStatus := ClientReadDetail.Status
   else
     ClientStatus := staActive;
@@ -284,7 +286,7 @@ begin
       Exit;
   end;
 
-  if MyClient.Opened then
+  if IsClientOnline then
     if Length(ClientReadDetail.Users) > 0 then
       EmailChanged := (edtEmailAddress.Text <> ClientReadDetail.Users[0].EMail);
 
@@ -294,7 +296,7 @@ begin
     for i := 0 to chklistProducts.Count - 1 do
     begin
       ProductFound := false;
-      if MyClient.Opened then
+      if IsClientOnline then
       begin
         for j := 0 to High(ClientReadDetail.Subscription) do
         begin
@@ -306,12 +308,19 @@ begin
         end;
       end;
 
+      ProductsChanged := False;
       if (chklistProducts.Checked[i] = true) and not ProductFound then
-        NewProducts.Add(chklistProducts.Items[i])
+      begin
+        NewProducts.Add(chklistProducts.Items[i]);
+        ProductsChanged := True;
+      end
       else if (chklistProducts.Checked[i] = false) and ProductFound then
+      begin
         RemovedProducts.Add(chklistProducts.Items[i]);
+        ProductsChanged := True;
+      end;
 
-      if MyClient.Opened then
+      if IsClientOnline then
       begin
         BillingFrequency := ClientReadDetail.BillingFrequency;
         MaxOfflineDays   := IntToStr(ClientReadDetail.MaxOfflineDays);
@@ -322,7 +331,6 @@ begin
         MaxOfflineDays   := '0';
       end;
 
-      ProductsChanged := NewProducts.Count > 0;
       if (EmailChanged and ProductsChanged) then
       begin
         PromptMessage := 'Are you sure you want to update the following for ' +
@@ -409,12 +417,18 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+function TfrmBanklinkOnlineSettings.IsClientOnline: boolean;
+begin
+  Result := (MyClient.Opened) and (Assigned(ClientReadDetail));
+end;
+
+//------------------------------------------------------------------------------
 function TfrmBanklinkOnlineSettings.Execute(TickNotesOnline: boolean = false) : boolean;
 begin
   fBusyKeyPress := false;
   Result := False;
 
-  if MyClient.Opened then
+  if IsClientOnline then
   begin
     //Get Practice details (so we can load the list of available products)
     ProductConfigService.GetPractice;
@@ -455,8 +469,18 @@ begin
     chklistProducts.AddItem(CatEntry.Description, CatEntry);
   end;
 
-  // Existing Client and the client actuall has blopi information, i.e. Its not an upgrade.
-  if MyClient.Opened and Assigned(ClientReadDetail) then
+  if TickNotesOnline then
+  begin
+    // Checks the Products that Client Subscribes to
+    for ProdIndex := 0 to chklistProducts.Items.Count - 1 do
+    begin
+      if TBloCatalogueEntry(chklistProducts.Items.Objects[ProdIndex]).id = ProductConfigService.GetNotesId then
+        chklistProducts.Checked[ProdIndex] := True;
+    end;
+  end;
+
+  // Existing Client
+  if IsClientOnline then
   begin
     Status := ClientReadDetail.Status;
     if (ClientReadDetail.MaxOfflineDays = 0) then
@@ -503,19 +527,6 @@ begin
     chkUseClientDetails.Checked := False;
     edtUserName.Text := MyClient.clFields.clContact_Name;
     edtEmailAddress.Text := MyClient.clFields.clClient_EMail_Address;
-
-    if MyClient.clFields.clWeb_Export_Format = wfWebNotes then
-    begin
-      for ProdIndex := 0 to chklistProducts.Items.Count - 1 do
-      begin
-        if chklistProducts.Items[ProdIndex] = 'BankLink Notes Online' then
-        begin
-          chklistProducts.Checked[ProdIndex] := True;
-
-          Break;
-        end;
-      end;
-    end;
   end;
 end;
 
@@ -541,7 +552,7 @@ begin
   end;
 
   // Existing Client
-  if MyClient.Opened then
+  if IsClientOnline then
   begin
     Result := ProductConfigService.UpdateClient(ClientReadDetail,
                                                 AnsiLeftStr(cmbBillingFrequency.Text, 1),
