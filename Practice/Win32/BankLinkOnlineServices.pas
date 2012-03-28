@@ -833,6 +833,7 @@ begin
           if Assigned(PracticeDetailResponse) then begin
             FOnline := True;
 
+            {Moved to after we have retrived the practice data otherwise it could be working with out of date data. 
             for i := 1 to Screen.FormCount - 1 do
             begin
               if (Screen.Forms[i].Name = 'frmClientManager') then
@@ -840,13 +841,23 @@ begin
                 SendMessage(Screen.Forms[i].Handle, BK_PRACTICE_DETAILS_CHANGED, 0, 0);
                 break;
               end;
-            end;
+            end;}
 
             if Assigned(PracticeDetailResponse.Result) then begin
               AdminSystem.fdFields.fdLast_BankLink_Online_Update := stDate.CurrentDate;
               FPractice := PracticeDetailResponse.Result;
               FRegistered := True;
               FValidBConnectDetails := True;
+
+              for i := 1 to Screen.FormCount - 1 do
+              begin
+                if (Screen.Forms[i].Name = 'frmClientManager') then
+                begin
+                  SendMessage(Screen.Forms[i].Handle, BK_PRACTICE_DETAILS_CHANGED, 0, 0);
+                  break;
+                end;
+              end;
+                  
             end else begin
               //Something went wrong
               Msg := '';
