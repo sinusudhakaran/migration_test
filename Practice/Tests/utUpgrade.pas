@@ -64,7 +64,7 @@ begin
   //Can't check without having client files.
 
   //Check 96 Update (Client Types)
-  //Check 8 are there
+  //Check 9 are there
   CheckEquals(9, AdminSystem.fdSystem_Client_Type_List.ItemCount, 'Client Type List Count incorrect');
   //Test to make sure this one isn't there (also checks tests)
   CheckEquals(0, Integer(AdminSystem.fdSystem_Client_Type_List.FindName('Test')), 'Test Client Type Found');
@@ -72,6 +72,7 @@ begin
   CheckNotEquals(0, Integer(AdminSystem.fdSystem_Client_Type_List.FindName('Coding Report')), 'Coding Report not Found');
   CheckNotEquals(0, Integer(AdminSystem.fdSystem_Client_Type_List.FindName('Notes')), 'Notes not Found');
   CheckNotEquals(0, Integer(AdminSystem.fdSystem_Client_Type_List.FindName('Books')), 'Books not Found');
+  CheckNotEquals(0, Integer(AdminSystem.fdSystem_Client_Type_List.FindName('Books via BankLink Online')), 'Books via BankLink Online not Found');
   CheckNotEquals(0, Integer(AdminSystem.fdSystem_Client_Type_List.FindName('Books Secure')), 'Books Secure not Found');
   CheckNotEquals(0, Integer(AdminSystem.fdSystem_Client_Type_List.FindName('CodeIT')), 'CodeIT not Found');
   CheckNotEquals(0, Integer(AdminSystem.fdSystem_Client_Type_List.FindName('GST')), 'GST not Found');
