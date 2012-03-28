@@ -2217,7 +2217,7 @@ begin
      (Trim(Uppercase(aExistingClient.Users[0].EMail)) <> Trim(Uppercase(aEMail))) then
   begin
     if (Assigned(aExistingClient)) and
-       (Length(aExistingClient.Users) = 1) then
+       (Length(aExistingClient.Users) > 0) then
     begin
       RoleNames    := aExistingClient.Users[0].RoleNames;
       Subscription := aExistingClient.Users[0].Subscription;
