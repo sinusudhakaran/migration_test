@@ -229,7 +229,7 @@ type
     function CreateNewClientUser(NewUser: TBloUserCreate; ClientGUID: string): Guid;
     property Clients: ClientList read FClientList;
 
-    procedure SaveClientNotesOption(aWebExportFormat : Byte);
+    function SaveClientNotesOption(aWebExportFormat : Byte) : Boolean;
     function CreateClient(const aBillingFrequency : WideString;
                                 aMaxOfflineDays   : Integer;
                                 aStatus           : TBloStatus;
@@ -2229,7 +2229,11 @@ begin
       AddItemToArrayString(RoleNames, 'Client Administrator');
       SetLength(Subscription, 0);
       UserCode := aExistingClient.ClientCode;
-      ClientId := aNewClientId;
+
+      if Assigned(aExistingClient) then
+        ClientId := aExistingClient.Id
+      else
+        ClientId := aNewClientId;
     end;
 
     MsgResponceGuid := CreateClientUser(ClientId,
@@ -2407,32 +2411,47 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TProductConfigService.SaveClientNotesOption(aWebExportFormat : Byte);
+function TProductConfigService.SaveClientNotesOption(aWebExportFormat : Byte) : Boolean;
 var
   Changed : Boolean;
   ClientReadDetail : TBloClientReadDetail;
   NotesId : TBloGuid;
   Subscription : TBloArrayOfguid;
 begin
-  //Get client list (so that we can lookup the client code)
-  ProductConfigService.LoadClientList;
-  ClientReadDetail := ProductConfigService.GetClientDetailsWithCode(MyClient.clFields.clCode);
-  NotesId := ProductConfigService.GetNotesId;
-  Subscription := ClientReadDetail.Subscription;
+  Screen.Cursor := crHourGlass;
+  Progress.StatusSilent := False;
+  Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Connecting', 10);
 
-  if aWebExportFormat = wfWebNotes then
-    Changed := AddItemToArrayGuid(Subscription, NotesId)
-  else
-    Changed := RemoveItemFromArrayGuid(Subscription, NotesId);
+  try
+    //Get client list (so that we can lookup the client code)
+    ProductConfigService.LoadClientList;
+    ClientReadDetail := ProductConfigService.GetClientDetailsWithCode(MyClient.clFields.clCode);
+    NotesId := ProductConfigService.GetNotesId;
+    Subscription := ClientReadDetail.Subscription;
 
-  if Changed then
-    ProductConfigService.UpdateClient(ClientReadDetail,
-                                      ClientReadDetail.BillingFrequency,
-                                      ClientReadDetail.MaxOfflineDays,
-                                      ClientReadDetail.Status,
-                                      Subscription,
-                                      ClientReadDetail.Users[0].FullName,
-                                      ClientReadDetail.Users[0].Email);
+    if aWebExportFormat = wfWebNotes then
+      Changed := AddItemToArrayGuid(Subscription, NotesId)
+    else
+      Changed := RemoveItemFromArrayGuid(Subscription, NotesId);
+
+    if Changed then
+    begin
+      Result := ProductConfigService.UpdateClient(ClientReadDetail,
+                                                  ClientReadDetail.BillingFrequency,
+                                                  ClientReadDetail.MaxOfflineDays,
+                                                  ClientReadDetail.Status,
+                                                  Subscription,
+                                                  ClientReadDetail.Users[0].FullName,
+                                                  ClientReadDetail.Users[0].Email);
+    end
+    else
+      Result := True;
+
+  finally
+    Progress.StatusSilent := True;
+    Progress.ClearStatus;
+    Screen.Cursor := crDefault;
+  end;
 end;
 
 //------------------------------------------------------------------------------
@@ -2479,7 +2498,7 @@ begin
                                                        AdminSystem.fdFields.fdBankLink_Connect_Password,
                                                        BloClientCreate);
 
-        Result := MessageResponseHasError(MsgResponseGuid, 'create client on');
+        Result := not MessageResponseHasError(MsgResponseGuid, 'create client on');
       finally
         FreeAndNil(BloClientCreate);
       end;
@@ -2504,7 +2523,9 @@ begin
       on E : Exception do
       begin
         LogUtil.LogMsg(lmError, UNIT_NAME, 'Exception running CreateClient, Error Message : ' + E.Message);
-        raise Exception.Create(BKPRACTICENAME + ' was unable to connect to ' + BANKLINK_ONLINE_NAME + '.' + #13#13 + E.Message );
+
+        HelpfulErrorMsg(BKPRACTICENAME + ' is unable to connect to ' + BANKLINK_ONLINE_NAME + '.',
+                          0, True, E.Message, True);
       end;
     end;
   finally
@@ -2611,7 +2632,7 @@ begin
                                                    AdminSystem.fdFields.fdBankLink_Code,
                                                    AdminSystem.fdFields.fdBankLink_Connect_Password,
                                                    BloClientUpdate);
-          Result := MessageResponseHasError(MsgResponse, 'update client on');
+          Result := not MessageResponseHasError(MsgResponse, 'update client on');
 
           if Result then
             LogUtil.LogMsg(lmInfo, UNIT_NAME, 'Client ' + ClientCode + ' has been successfully updated on BankLink Online.')
@@ -2633,7 +2654,9 @@ begin
       on E : Exception do
       begin
         LogUtil.LogMsg(lmError, UNIT_NAME, 'Exception running UpdateClient, Error Message : ' + E.Message);
-        raise Exception.Create(BKPRACTICENAME + ' was unable to connect to ' + BANKLINK_ONLINE_NAME + '.' + #13#13 + E.Message );
+
+        HelpfulErrorMsg(BKPRACTICENAME + ' is unable to connect to ' + BANKLINK_ONLINE_NAME + '.',
+                          0, True, E.Message, True);
       end;
     end;
   finally
@@ -2675,7 +2698,7 @@ begin
                                                  AdminSystem.fdFields.fdBankLink_Connect_Password,
                                                  BloClientUpdate);
 
-        Result := MessageResponseHasError(MsgResponse, 'delete client on');
+        Result := not MessageResponseHasError(MsgResponse, 'delete client on');
 
         if Result then
           LogUtil.LogMsg(lmInfo, UNIT_NAME, 'Client ' + aExistingClient.ClientCode + ' has been successfully marked as Deleted on BankLink Online.')

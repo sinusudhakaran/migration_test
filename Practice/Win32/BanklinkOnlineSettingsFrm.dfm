@@ -148,7 +148,6 @@ object frmBanklinkOnlineSettings: TfrmBanklinkOnlineSettings
     Width = 75
     Height = 25
     Caption = 'OK'
-    ModalResult = 1
     TabOrder = 3
     OnClick = btnOKClick
   end

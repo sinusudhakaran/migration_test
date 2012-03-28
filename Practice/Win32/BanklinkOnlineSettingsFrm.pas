@@ -125,11 +125,10 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmBanklinkOnlineSettings.btnOKClick(Sender: TObject);
 begin
-  Self.ModalResult := mrNone;
   if Validate then
   begin
     if SaveClientInfo then
-      Self.ModalResult := mrOK;
+      Close;
   end;
 end;
 
@@ -308,7 +307,6 @@ begin
         end;
       end;
 
-      ProductsChanged := False;
       if (chklistProducts.Checked[i] = true) and not ProductFound then
       begin
         NewProducts.Add(chklistProducts.Items[i]);
@@ -330,42 +328,42 @@ begin
         BillingFrequency := 'Monthly';
         MaxOfflineDays   := '0';
       end;
+    end;
 
-      if (EmailChanged and ProductsChanged) then
-      begin
-        PromptMessage := 'Are you sure you want to update the following for ' +
-                         edtUserName.text + ':' + #10#10 +
-                         'Activate the following products & services:' + #10 +
-                         Trim(NewProducts.Text) + #10#10 + 'Change the Default Client ' +
-                         'Administrator Email Address. The new Default Client ' +
-                         'Adminstrator will be sent to ' + edtEmailAddress.Text + '.';
+    if (EmailChanged and ProductsChanged) then
+    begin
+      PromptMessage := 'Are you sure you want to update the following for ' +
+                       edtUserName.text + ':' + #10#10 +
+                       'Activate the following products & services:' + #10 +
+                       Trim(NewProducts.Text) + #10#10 + 'Change the Default Client ' +
+                       'Administrator Email Address. The new Default Client ' +
+                       'Adminstrator will be sent to ' + edtEmailAddress.Text + '.';
 
-        if AskYesNo('Changing client details',
-                    PromptMessage, DLG_YES, 0, false) <> DLG_YES then
-          Exit;
-      end
-      else
-      if EmailChanged then
-      begin
-        if AskYesNo('Changing Default Administrator Address',
-                    'You have changed the Default Client Administrator Email Address. ' +
-                    'The new Default Client Administrator will be set to ' +
-                    'â€˜' + edtEmailAddress.Text + 'â€™.' + #10 + #10 +
-                    'Are you sure you want to continue?',
-                    DLG_YES, 0, false) <> DLG_YES then
-          Exit;
-      end
-      else
-      if ProductsChanged then
-      begin
-        if AskYesNo('Reactiving products',
-                    'Are you sure you want to activate the following products:' + #10#10 +
-                    NewProducts.Text + #10 +
-                   'By clicking ''OK'' you are confirming that you wish to activate these products ' +
-                   'for ' + edtUserName.Text,
-                   DLG_YES, 0, false) <> DLG_YES then
-          Exit;
-      end;
+      if AskYesNo('Changing client details',
+                  PromptMessage, DLG_YES, 0, false) <> DLG_YES then
+        Exit;
+    end
+    else
+    if EmailChanged then
+    begin
+      if AskYesNo('Changing Default Administrator Address',
+                  'You have changed the Default Client Administrator Email Address. ' +
+                  'The new Default Client Administrator will be set to ' +
+                  edtEmailAddress.Text + #10#10 +
+                  'Are you sure you want to continue?',
+                  DLG_YES, 0, false) <> DLG_YES then
+        Exit;
+    end
+    else
+    if ProductsChanged then
+    begin
+      if AskYesNo('Reactiving products',
+                  'Are you sure you want to activate the following products:' + #10#10 +
+                  NewProducts.Text + #10 +
+                 'By clicking ''OK'' you are confirming that you wish to activate these products ' +
+                 'for ' + edtUserName.Text,
+                 DLG_YES, 0, false) <> DLG_YES then
+        Exit;
     end;
 
     if ProductsChanged then
@@ -428,7 +426,7 @@ begin
   fBusyKeyPress := false;
   Result := False;
 
-  if IsClientOnline then
+  if MyClient.Opened then
   begin
     //Get Practice details (so we can load the list of available products)
     ProductConfigService.GetPractice;
