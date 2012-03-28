@@ -642,8 +642,8 @@ begin
          clLast_Auto_Save_CRC       := clCurrent_CRC;
          clTemp_Old_Download_From   := clDownload_From;
       end;
-{$ENDIF}
       FOpened := true;
+{$ENDIF}
   finally
     FreeAndNil( ZipStream);
     FreeAndNil( DataStream);
