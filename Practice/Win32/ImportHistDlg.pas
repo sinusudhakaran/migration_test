@@ -162,6 +162,7 @@ type
     FDateMask: string;
     FIniFile: string;
     FMatchTransactions: TMatchTransactions;
+    HeaderLineList: TStringList;
 
     procedure BeginUpdate;
     procedure Endupdate;
@@ -1174,23 +1175,24 @@ end;
 
 function TImportHist.IsDebitCredit(const Value: string): Boolean;
 var l: integer;
-    V: PChar;
+    V, LowerV: PChar;
 begin
    l := Length(Value);
    if l > 0 then begin
 
       Result := True;
       V := pchar(Value);
-
-      if StrliComp(V,'debit',l) = 0 then
+      LowerV := PChar(AnsiLowerCase(StrPas(V)));
+      
+      if StrliComp(LowerV,'debit',l) = 0 then
          Exit;
-      if StrliComp(V,'credit',l) = 0 then
+      if StrliComp(LowerV,'credit',l) = 0 then
          Exit;
-      if StrliComp(V,'DR',l) = 0 then
+      if StrliComp(LowerV,'dr',l) = 0 then
          Exit;
-      if StrliComp(V,'CR',l) = 0 then
+      if StrliComp(LowerV,'cr',l) = 0 then
          Exit;
-      if StrliComp(V,'m',l) = 0 then
+      if StrliComp(LowerV,'m',l) = 0 then
          Exit;
    end;
 
@@ -1357,13 +1359,10 @@ begin
 end;
 
 function TImportHist.IsDebitCredit(const Value: Integer): Boolean;
-var I: Integer;
 begin
    Result := False;
-   for I := 0 to fFileList.Count -1 do
-      if not IsDebitCredit(GetFileText(I,Value)) then
-           Exit;
-
+   if not IsDebitCredit(HeaderLineList[Value]) then
+     Exit;
    Result := true;
 end;
 
@@ -1389,18 +1388,14 @@ begin
                 if not (vsFile.header.Columns[Value].Tag in [TagDebitCredit, TagAmount, TagAmountSign]) then
                    Result := false;
              end else if RBDebitCredit.Checked then begin
-                if not (vsFile.header.Columns[Value].Tag in [TagAmount]) then
+                if not (vsFile.header.Columns[Value].Tag in [TagDebitCredit, TagAmount]) then
                    Result := false;
              end else
               if not (vsFile.header.Columns[Value].Tag in [TagAmount, TagAmountSign]) then
                   Result := false;
 
    end;
-end;
-
-
-
-
+end;         
 
 procedure TImportHist.OutColResize(Value: Integer);
 begin
@@ -1482,7 +1477,7 @@ begin
       cbAmount.Clear;
       cbAmount2.Clear;
       for I := 0 to vsFile.header.Columns.Count - 1 do
-         if vsFile.header.Columns[I].Tag in [ TagAmount, TagAmountSign ] then begin
+         if vsFile.header.Columns[I].Tag in [ TagAmount, TagAmountSign, TagDebitCredit ] then begin
             cbAmount.Items.AddObject (vsFile.header.Columns[I].Text, TObject(I));
             cbAmount2.Items.AddObject(vsFile.header.Columns[I].Text, TObject(I));
          end;
@@ -1697,7 +1692,8 @@ begin
        RBSign.Checked := False;
        RBDebitCredit.Checked := False;
 
-       // Get the first line of the file so we can find the most likely delimiter
+       // Get the first line of the file so we can find the most likely delimiter. Also used elsewhere
+       // when we need to check the column headers
        AssignFile(ImportedFile, EPath.Text);
        Reset(ImportedFile);
        ReadLn(ImportedFile, FirstLine);
@@ -1736,6 +1732,9 @@ begin
           // All Text, Must be header (No valid amount Or Date)
           CHFirstLine.Checked := True;
           CHFirstLine.Enabled := False;
+          HeaderLineList := TStringList.Create;
+          for C := 0 to lLine.Count - 1 do
+            HeaderLineList.Add(lLine.Strings[C]);
        end else
           CHFirstLine.Enabled := True;
 
@@ -1790,16 +1789,18 @@ begin
        end;
 
        DCFound := False;
+       
        for C := 0 to vsFile.Header.Columns.Count - 1 do begin
+          if IsDebitCredit(C) then begin
+            vsFile.Header.Columns[C].Tag := TagDebitCredit;
+            RBSign.Enabled := True;
+            DCFound := True;
+          end else
           if IsAlphaOnly(C) then begin
              // has no digits.. cannot be a Date or amount
              // Could still be Debit or Credit Column
-             if IsDebitCredit(C) then begin
-                vsFile.Header.Columns[C].Tag := TagDebitCredit;
-                RBSign.Enabled := True;
-                DCFound := True;
-             end else
-                vsFile.Header.Columns[C].Tag := TagAlpha;
+
+            vsFile.Header.Columns[C].Tag := TagAlpha;
           end else if IsNumericOnly(C) then begin
              // Has No Letters
              case IsAmount(C) of
@@ -1807,12 +1808,10 @@ begin
              Amount : begin
                    vsFile.Header.Columns[C].Tag := TagAmount;
                    rbSingle.Enabled := True;
-                   // inc(AmountColumnCount);
-                   // if AmountColumnCount >= 2 then
-                      rbDebitCredit.Enabled := True;
+                   rbDebitCredit.Enabled := True;
 
-                end;
-             AmountWithSign :begin
+             end;
+             AmountWithSign : begin
                 vsFile.Header.Columns[C].Tag := TagAmountSign;
                 rbSingle.Enabled := True;
              end;
@@ -1828,10 +1827,10 @@ begin
        // Do some obvious defaults.
        LookFor('date',cbDate);
 
-       if RBSign.Enabled then
-          RBSign.Checked := true
-       else if RBdebitCredit.Enabled and DCFound then
+       if RBdebitCredit.Enabled and DCFound then
           RBdebitCredit.Checked := true
+       else if RBSign.Enabled then
+          RBSign.Checked := true
        else if RBSingle.Enabled then
           RBSingle.Checked := true;
           
