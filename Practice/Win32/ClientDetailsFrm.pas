@@ -39,7 +39,11 @@ uses
   BankLinkOnlineServices,
   BlopiClient;
 
+const
+  UM_AFTERSHOW = WM_USER + 1;
+
 type
+
   TfrmClientDetails = class(TForm)
     btnOk: TButton;
     btnCancel: TButton;
@@ -165,6 +169,11 @@ type
     procedure UpdatePracticeContactDetails( ContactType : byte);
     procedure ShowPracticeContactDetails(ReadOnly : Boolean);
     procedure SetProductsCaption(NewCaption: string);
+
+    procedure WMKillFocus(var w_Message: TWMKillFocus); message WM_KILLFOCUS;
+    procedure WMActivate(var w_Message: TWMActivate); message WM_ACTIVATE;
+
+    procedure AfterShow(var Message: TMessage); message UM_AFTERSHOW;
   public
     { Public declarations }
     function Execute(PCode: string = '') : boolean;
@@ -345,6 +354,8 @@ begin
       end;
     end;
   end;
+
+  PostMessage(Handle, UM_AFTERSHOW, 0, 0);
 end;
 
 procedure TfrmClientDetails.SetProductsCaption(NewCaption: string);
@@ -489,6 +500,12 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+procedure TfrmClientDetails.AfterShow(var Message: TMessage);
+begin
+  //Prevent the processing form from appearing ontop
+  BringToFront;
+end;
+
 procedure TfrmClientDetails.btnCancelClick(Sender: TObject);
 begin
   close;
@@ -1296,6 +1313,17 @@ begin
     SetProductsCaption('This client currently has access to ' + NumProducts +
                        ' Banklink Online product(s)');
   end;
+end;
+
+procedure TfrmClientDetails.WMActivate(var w_Message: TWMActivate);
+begin
+  inherited;
+end;
+
+procedure TfrmClientDetails.WMKillFocus(var w_Message: TWMKillFocus);
+begin
+  inherited;
+
 end;
 
 //------------------------------------------------------------------------------
