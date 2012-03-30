@@ -86,9 +86,16 @@ begin
    end;
 
    if Visible then
-     Self.Show
+   begin
+     if not Self.Visible then
+     begin
+       Self.Show;
+     end;
+   end
    else
+   begin
      Self.Hide;
+   end;
 
    lblLine1.caption  := Msg1;
    lblLine2.caption  := Msg2;
