@@ -17,6 +17,9 @@ uses
   OSFont,
   BankLinkOnlineServices;
 
+const
+  UM_AFTERSHOW = WM_USER + 1;
+
 type
 
   TfrmBanklinkOnlineSettings = class(TForm)
@@ -65,7 +68,8 @@ type
     procedure UpdateClientWebFormat;
     procedure SetReadOnly;
     function IsClientOnline : boolean;
-
+    
+    procedure AfterShow(var Message: TMessage); message UM_AFTERSHOW;
   public
     function Execute(TickNotesOnline: boolean = false) : boolean;
 
@@ -576,6 +580,12 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+procedure TfrmBanklinkOnlineSettings.AfterShow(var Message: TMessage);
+begin
+  //Prevent the processing form from appearing ontop
+  BringToFront;
+end;
+
 procedure TfrmBanklinkOnlineSettings.btnClearAllClick(Sender: TObject);
 var
   i: integer;
@@ -604,6 +614,8 @@ end;
 procedure TfrmBanklinkOnlineSettings.FormShow(Sender: TObject);
 begin
   FillClientDetails;
+
+  PostMessage(Handle, UM_AFTERSHOW, 0, 0);
 end;
 
 //------------------------------------------------------------------------------
