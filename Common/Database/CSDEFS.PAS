@@ -5,20 +5,21 @@ Unit CSDEFS;
 // when DBGen is run again.
 
 {  -------------------------------------------------------------------  }
-Interface uses MONEYDEF, DATEDEF;
+Interface uses MoneyDef, DateDef;
 {  -------------------------------------------------------------------  }
 
 Const
-   CS_IOLIB_Version : Integer = 108;
-   CS_IOLIB_Date    = '15/06/10';
-   CS_FILE_VERSION  = 101;  (* Current Version counter for files
+   CS_IOLIB_Version : Integer = 109;
+   CS_IOLIB_Date    = '30/03/12';
+   CS_FILE_VERSION  = 102;  (* Current Version counter for files
                               Changes if structure or method of storing a value would cause
                               data to be represented incorrectly, or an exception to be raised *)
    
    
    (*
-       History            : 100     Introduction
-       5.18.1 (2010 SMSF) : 101     Additional Categories
+       History              : 100     Introduction
+       5.18.1 (2010 SMSF)   : 101     Additional Categories
+       Change Request 41880 : 102     Client File counts added
    *)
 
 {  -------------------------------------------------------------------  }
@@ -31,8 +32,8 @@ Type
 
    tCoding_Stat_Fields_Rec = Packed Record
       sfRecord_Type                      : Byte;
-      sfFile_Version                     : Integer;       { Stored }
-      sfRead_Version                     : Integer;       { Stored }
+      sfFile_Version                     : LongInt;       { Stored }
+      sfRead_Version                     : LongInt;       { Stored }
       sfEOR                              : Byte;
    end;
 
@@ -40,17 +41,19 @@ Type
 
    tCoding_Statistics_Rec = Packed Record
       csRecord_Type                      : Byte;
-      csClient_LRN                       : Integer;       { Stored }
-      csMonth                            : Integer;       { Stored }
+      csClient_LRN                       : LongInt;       { Stored }
+      csMonth                            : LongInt;       { Stored }
       csUpdated                          : Boolean;       { Stored }
-      csMemorization_Count               : Integer;       { Stored }
-      csAnalysis_Count                   : Integer;       { Stored }
-      csPayee_Count                      : Integer;       { Stored }
-      csManual_Count                     : Integer;       { Stored }
-      csUncoded_Count                    : Integer;       { Stored }
-      csMaster_Mem_Count                 : Integer;       { Stored }
-      csMan_Super_Count                  : Integer;       { Stored }
-      csNotes_Count                      : Integer;       { Stored }
+      csMemorization_Count               : LongInt;       { Stored }
+      csAnalysis_Count                   : LongInt;       { Stored }
+      csPayee_Count                      : LongInt;       { Stored }
+      csManual_Count                     : LongInt;       { Stored }
+      csUncoded_Count                    : LongInt;       { Stored }
+      csMaster_Mem_Count                 : LongInt;       { Stored }
+      csMan_Super_Count                  : LongInt;       { Stored }
+      csNotes_Count                      : LongInt;       { Stored }
+      csClient_Files_Sent                : LongInt;       { Stored }
+      csClient_Files_Received            : LongInt;       { Stored }
       csEOR                              : Byte;
    end;
 

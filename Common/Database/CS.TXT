@@ -2,14 +2,15 @@
 ;File for saving coding statistics
 ;
 
-$|CS_FILE_VERSION  = 101;  (* Current Version counter for files
+$|CS_FILE_VERSION  = 102;  (* Current Version counter for files
 $|                           Changes if structure or method of storing a value would cause
 $|                           data to be represented incorrectly, or an exception to be raised *)
 $|
 $|
 $|(*
-$|    History            : 100     Introduction
-$|    5.18.1 (2010 SMSF) : 101     Additional Categories
+$|    History              : 100     Introduction
+$|    5.18.1 (2010 SMSF)   : 101     Additional Categories
+$|    Change Request 41880 : 102     Client File counts added
 $|*)
 
 
@@ -32,4 +33,6 @@ F|Uncoded Count|L
 F|Master Mem Count|L
 F|Man Super Count|L
 F|Notes Count|L
+F|Client Files Sent|L
+F|Client Files Received|L
 E
