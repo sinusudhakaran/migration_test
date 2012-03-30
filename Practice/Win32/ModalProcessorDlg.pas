@@ -48,8 +48,6 @@ type
     FHelpID          : integer;
     procedure ProcessCommand(Command: TModalProcessorCommand);
     procedure ProcessReport(ReportType : Report_List_Type; Destination : TReportDest);
-
-    procedure WMWindowPosChanging(var Message: TWMWindowPosChanging); message WM_WINDOWPOSCHANGING;
   public
     { Public declarations }
     CommandToProcess : TModalProcessorCommand;
@@ -124,20 +122,6 @@ begin
   case CommandToProcess of
     mpcDoReport : DoReport(ReportType, Destination, FHelpID);
     mpcDoAdminReport : DoAdminReport( ReportType, Destination, FHelpID);
-  end;
-end;
-
-procedure TdlgModalProcessor.WMWindowPosChanging(var Message: TWMWindowPosChanging);
-begin
-  inherited;
-
-  //If the zorder of the form changes while a modal form is showing then we need to prevent it.
-  if (Message.WindowPos.flags and SWP_NOZORDER <> SWP_NOZORDER) and Assigned(Screen.ActiveForm) then
-  begin
-    if (fsModal in Screen.ActiveForm.FormState) and (Message.WindowPos.hwndInsertAfter = Screen.ActiveForm.Handle) then
-    begin
-      Message.WindowPos.Flags := Message.WindowPos.Flags or SWP_NOZORDER;
-    end;
   end;
 end;
 
