@@ -244,8 +244,7 @@ type
                                 aStatus               : TBloStatus;
                           const aSubscription         : TBloArrayOfGuid;
                           const aUserEMail            : WideString;
-                          const aUserFullName         : WideString;
-                                aShowSuccessMessage   : Boolean = True): Boolean;
+                          const aUserFullName         : WideString): Boolean;
     function DeleteClient(const aExistingClient : TBloClientReadDetail): Boolean;
 
     //User methods
@@ -2568,6 +2567,12 @@ begin
         else
           LogUtil.LogMsg(lmInfo, UNIT_NAME, 'Client ' + ClientCode + ' was not created on BankLink Online.');
 
+        if Result then
+        begin
+          HelpfulInfoMsg(Format('Settings for %s have been successfully created on ' +
+                         '%s.',[ClientCode, BANKLINK_ONLINE_NAME]), 0);
+          Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finished', 100);
+        end;
       end
       else
       begin
@@ -2579,15 +2584,7 @@ begin
                                aStatus,
                                aSubscription,
                                aUserEMail,
-                               aUserFullName,
-                               False);
-      end;
-
-      if Result then
-      begin
-        HelpfulInfoMsg(Format('Settings for %s have been successfully created on ' +
-                       '%s.',[ClientCode, BANKLINK_ONLINE_NAME]), 0);
-        Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finished', 100);
+                               aUserFullName);
       end;
     except
       on E : Exception do
@@ -2612,8 +2609,7 @@ function TProductConfigService.UpdateClient(const aExistingClient       : TBloCl
                                                   aStatus               : TBloStatus;
                                             const aSubscription         : TBloArrayOfGuid;
                                             const aUserEMail            : WideString;
-                                            const aUserFullName         : WideString;
-                                                  aShowSuccessMessage   : Boolean): Boolean;
+                                            const aUserFullName         : WideString): Boolean;
 var
   BloClientUpdate : TBloClientUpdate;
   BlopiInterface  : IBlopiServiceFacade;
@@ -2716,8 +2712,7 @@ begin
         end;
       end;
 
-      if (Result) and
-         (aShowSuccessMessage) then
+      if (Result) then
       begin
         HelpfulInfoMsg(Format('Settings for %s have been successfully updated to ' +
                        '%s.',[ClientCode, BANKLINK_ONLINE_NAME]), 0);

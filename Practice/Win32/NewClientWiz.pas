@@ -711,8 +711,31 @@ var
   i, x: Integer;
   ba: TBank_Account;
   p: pSystem_Bank_Account_Rec;
+  Msg : String;
 begin
   CanClose := True;
+
+  if (ModalResult = mrOk) and
+     (MyClient.clFields.clWeb_Export_Format = wfWebNotes) and
+     (UseBankLinkOnline) and
+     (ProductConfigService.GetOnlineClientIndex(MyClient.clFields.clCode) > -1) then
+  begin
+    Msg := 'A BankLink Online client with this client code already exists. ' +
+           'Linking the BankLink Practice and BankLink Online clients cannot ' +
+           'be undone. Are you sure you want to link this client file to the ' +
+           'following BankLink Online client? (%s) - (%s)';
+
+    if AskYesNo('New Client Wizard',
+                format(Msg, [MyClient.clFields.clCode, MyClient.clFields.clName]),
+                DLG_NO,
+                0) <> DLG_YES then
+    begin
+      CanClose := False;
+      Exit;
+    end;
+  end;
+
+
   if (ModalResult <> mrOk) and (Option[ opNewClient ].Complete) then
   begin
     if AskYesNo('New Client Wizard', 'Are you sure you want to cancel the New Client Wizard?' + #13#13 +
