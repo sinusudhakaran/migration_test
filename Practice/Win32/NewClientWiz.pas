@@ -148,7 +148,8 @@ var
   pRec: pClient_File_Rec;
   LRN, i: Integer;
   HasNotes: Boolean;
-  aMsg : String;
+  Msg : String;
+  PraticeState : String;
 begin
   result := false;
   if not RefreshAdmin then exit;
@@ -176,17 +177,35 @@ begin
         begin
            if (MyClient.clFields.clWeb_Export_Format = wfWebNotes) then
            begin
-             if TOptionRec(Option[opAccountSys]).Complete = false then
+             if (ProductConfigService.Online) and
+                (ProductConfigService.IsPracticeActive(false)) then
              begin
-               aMsg := 'You have selected to use BankLink Notes Online for this client. ' +
-                       'Please confirm the BankLink Online details for this client. ' +
-                       #13#10 + #13#10 +
-                       'The BankLink Online settings for this client will be displayed ' +
-                       'at the end of this wizard.';
-               HelpfulInfoMsg(aMsg, 0);
-             end;
+               if TOptionRec(Option[opAccountSys]).Complete = false then
+               begin
+                 Msg := 'You have selected to use BankLink Notes Online for this client. ' +
+                        'Please confirm the BankLink Online details for this client. ' +
+                        #13#10 + #13#10 +
+                        'The BankLink Online settings for this client will be displayed ' +
+                        'at the end of this wizard.';
+                 HelpfulInfoMsg(Msg, 0);
+               end;
+             end
+             else
+             begin
+               if (ProductConfigService.Online = false) then
+                 PraticeState := 'unavailable'
+               else if (ProductConfigService.IsPracticeSuspended(false)) then
+                 PraticeState := 'suspended'
+               else if (ProductConfigService.IsPracticeDeactivated(false)) then
+                 PraticeState := 'deactivated';
 
-             EditBanklinkOnlineSettings(w_PopupParent, true);
+               Msg := 'BankLink Online is currently {%s}. The Web Export Format ' +
+                      ' will be set to ''None''.';
+
+               HelpfulInfoMsg(format(Msg,[PraticeState]), 0);
+
+               MyClient.clFields.clWeb_Export_Format := wfNone;
+             end;
            end;
 
            LogUtil.LogMsg( lmInfo, UnitName, 'CreateClient: ' + MyClient.clFields.clCode);
