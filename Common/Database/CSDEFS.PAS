@@ -5,7 +5,7 @@ Unit CSDEFS;
 // when DBGen is run again.
 
 {  -------------------------------------------------------------------  }
-Interface uses MoneyDef, DateDef;
+Interface uses MONEYDEF, DATEDEF;
 {  -------------------------------------------------------------------  }
 
 Const
@@ -32,28 +32,28 @@ Type
 
    tCoding_Stat_Fields_Rec = Packed Record
       sfRecord_Type                      : Byte;
-      sfFile_Version                     : LongInt;       { Stored }
-      sfRead_Version                     : LongInt;       { Stored }
+      sfFile_Version                     : Integer;       { Stored }
+      sfRead_Version                     : Integer;       { Stored }
       sfEOR                              : Byte;
    end;
 
 {  -------------------------------------------------------------------  }
 
    tCoding_Statistics_Rec = Packed Record
-      csRecord_Type                      : Byte;
-      csClient_LRN                       : LongInt;       { Stored }
-      csMonth                            : LongInt;       { Stored }
+      csRecord_Type                      : Byte;                            
+      csClient_LRN                       : Integer;       { Stored }
+      csMonth                            : Integer;       { Stored }
       csUpdated                          : Boolean;       { Stored }
-      csMemorization_Count               : LongInt;       { Stored }
-      csAnalysis_Count                   : LongInt;       { Stored }
-      csPayee_Count                      : LongInt;       { Stored }
-      csManual_Count                     : LongInt;       { Stored }
-      csUncoded_Count                    : LongInt;       { Stored }
-      csMaster_Mem_Count                 : LongInt;       { Stored }
-      csMan_Super_Count                  : LongInt;       { Stored }
-      csNotes_Count                      : LongInt;       { Stored }
-      csClient_Files_Sent                : LongInt;       { Stored }
-      csClient_Files_Received            : LongInt;       { Stored }
+      csMemorization_Count               : Integer;       { Stored }
+      csAnalysis_Count                   : Integer;       { Stored }
+      csPayee_Count                      : Integer;       { Stored }
+      csManual_Count                     : Integer;       { Stored }
+      csUncoded_Count                    : Integer;       { Stored }
+      csMaster_Mem_Count                 : Integer;       { Stored }
+      csMan_Super_Count                  : Integer;       { Stored }
+      csNotes_Count                      : Integer;       { Stored }
+      csClient_Files_Sent                : Integer;       { Stored }
+      csClient_Files_Received            : Integer;       { Stored }
       csEOR                              : Byte;
    end;
 
