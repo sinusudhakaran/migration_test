@@ -230,6 +230,7 @@ type
     function CreateNewClientUser(NewUser: TBloUserCreate; ClientGUID: string): Guid;
     property Clients: ClientList read FClientList;
 
+    function GetOnlineClientIndex(aClientCode: string) : Integer;
     function SaveClientNotesOption(aWebExportFormat : Byte) : Boolean;
     function CreateClient(const aBillingFrequency : WideString;
                                 aMaxOfflineDays   : Integer;
@@ -243,7 +244,8 @@ type
                                 aStatus               : TBloStatus;
                           const aSubscription         : TBloArrayOfGuid;
                           const aUserEMail            : WideString;
-                          const aUserFullName         : WideString): Boolean;
+                          const aUserFullName         : WideString;
+                                aShowSuccessMessage   : Boolean = True): Boolean;
     function DeleteClient(const aExistingClient : TBloClientReadDetail): Boolean;
 
     //User methods
@@ -2431,6 +2433,24 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+function TProductConfigService.GetOnlineClientIndex(aClientCode: string) : Integer;
+var
+  ClientIndex : Integer;
+begin
+  Result := -1;
+  ProductConfigService.LoadClientList;
+
+  for ClientIndex := 0 to high(fClientList.Clients) do
+  begin
+    if fClientList.Clients[ClientIndex].ClientCode = aClientCode then
+    begin
+      Result := ClientIndex;
+      Exit;
+    end;
+  end;
+end;
+
+//------------------------------------------------------------------------------
 function TProductConfigService.SaveClientNotesOption(aWebExportFormat : Byte) : Boolean;
 var
   Changed : Boolean;
@@ -2487,6 +2507,8 @@ var
   MsgResponseGuid : MessageResponseOfguid;
   UserId : TBloGuid;
   ClientCode : WideString;
+  ClientIndex : Integer;
+  BloClientReadDetail : TBloClientReadDetail;
 begin
   Result := False;
 
@@ -2502,47 +2524,71 @@ begin
   BlopiInterface := GetServiceFacade;
   try
     try
-      Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Creating Client', 40);
-      BloClientCreate := TBloClientCreate.Create;
-      try
-        FillInClientDetails(BloClientCreate);
+      Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Retieving Info', 25);
+      ClientIndex := GetOnlineClientIndex(ClientCode);
 
-        BloClientCreate.BillingFrequency := aBillingFrequency;
-        BloClientCreate.ClientCode       := ClientCode;
-        BloClientCreate.MaxOfflineDays   := aMaxOfflineDays;
-        BloClientCreate.Status           := aStatus;
-        BloClientCreate.Subscription     := aSubscription;
+      if ClientIndex = -1 then
+      begin
+        Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Creating Client', 40);
+        BloClientCreate := TBloClientCreate.Create;
+        try
+          FillInClientDetails(BloClientCreate);
 
-        MsgResponseGuid := BlopiInterface.CreateClient(CountryText(AdminSystem.fdFields.fdCountry),
-                                                       AdminSystem.fdFields.fdBankLink_Code,
-                                                       AdminSystem.fdFields.fdBankLink_Connect_Password,
-                                                       BloClientCreate);
+          BloClientCreate.BillingFrequency := aBillingFrequency;
+          BloClientCreate.ClientCode       := ClientCode;
+          BloClientCreate.MaxOfflineDays   := aMaxOfflineDays;
+          BloClientCreate.Status           := aStatus;
+          BloClientCreate.Subscription     := aSubscription;
 
-        Result := not MessageResponseHasError(MsgResponseGuid, 'create client on');
+          MsgResponseGuid := BlopiInterface.CreateClient(CountryText(AdminSystem.fdFields.fdCountry),
+                                                         AdminSystem.fdFields.fdBankLink_Code,
+                                                         AdminSystem.fdFields.fdBankLink_Connect_Password,
+                                                         BloClientCreate);
+
+          Result := not MessageResponseHasError(MsgResponseGuid, 'create client on');
+
+          if Result then
+            MyClient.Opened := True;
+        finally
+          FreeAndNil(BloClientCreate);
+        end;
 
         if Result then
-          MyClient.Opened := True;
-      finally
-        FreeAndNil(BloClientCreate);
+        begin
+          LogUtil.LogMsg(lmInfo, UNIT_NAME, 'Client ' + ClientCode + ' has been successfully created on BankLink Online.');
+
+          Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Saving Client User', 70);
+          Result := AddEditClientUser(Nil,
+                                      MsgResponseGuid.Result,
+                                      ClientCode,
+                                      UserId,
+                                      aUserEMail,
+                                      aUserFullName);
+        end
+        else
+          LogUtil.LogMsg(lmInfo, UNIT_NAME, 'Client ' + ClientCode + ' was not created on BankLink Online.');
+
+      end
+      else
+      begin
+        BloClientReadDetail := GetClientDetailsWithGUID(fClientList.Clients[ClientIndex].Id);
+
+        Result := UpdateClient(BloClientReadDetail,
+                               aBillingFrequency,
+                               aMaxOfflineDays,
+                               aStatus,
+                               aSubscription,
+                               aUserEMail,
+                               aUserFullName,
+                               False);
       end;
 
       if Result then
       begin
-        LogUtil.LogMsg(lmInfo, UNIT_NAME, 'Client ' + ClientCode + ' has been successfully created on BankLink Online.');
-
-        Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Saving Client User', 70);
-        Result := AddEditClientUser(Nil,
-                                    MsgResponseGuid.Result,
-                                    ClientCode,
-                                    UserId,
-                                    aUserEMail,
-                                    aUserFullName);
-      end
-      else
-        LogUtil.LogMsg(lmInfo, UNIT_NAME, 'Client ' + ClientCode + ' was not created on BankLink Online.');
-
-      if Result then
+        HelpfulInfoMsg(Format('Settings for %s have been successfully created on ' +
+                       '%s.',[ClientCode, BANKLINK_ONLINE_NAME]), 0);
         Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finished', 100);
+      end;
     except
       on E : Exception do
       begin
@@ -2566,7 +2612,8 @@ function TProductConfigService.UpdateClient(const aExistingClient       : TBloCl
                                                   aStatus               : TBloStatus;
                                             const aSubscription         : TBloArrayOfGuid;
                                             const aUserEMail            : WideString;
-                                            const aUserFullName         : WideString): Boolean;
+                                            const aUserFullName         : WideString;
+                                                  aShowSuccessMessage   : Boolean): Boolean;
 var
   BloClientUpdate : TBloClientUpdate;
   BlopiInterface  : IBlopiServiceFacade;
@@ -2669,7 +2716,8 @@ begin
         end;
       end;
 
-      if Result then
+      if (Result) and
+         (aShowSuccessMessage) then
       begin
         HelpfulInfoMsg(Format('Settings for %s have been successfully updated to ' +
                        '%s.',[ClientCode, BANKLINK_ONLINE_NAME]), 0);
