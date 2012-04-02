@@ -1361,6 +1361,8 @@ end;
 function TImportHist.IsDebitCredit(const Value: Integer): Boolean;
 begin
    Result := False;
+   if not Assigned(HeaderLineList) then
+     Exit;
    if not IsDebitCredit(HeaderLineList[Value]) then
      Exit;
    Result := true;
