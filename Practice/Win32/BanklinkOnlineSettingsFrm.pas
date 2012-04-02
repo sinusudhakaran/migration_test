@@ -47,13 +47,13 @@ type
     cmbConnectDays: TComboBox;
     procedure btnSelectAllClick(Sender: TObject);
     procedure btnClearAllClick(Sender: TObject);
-    procedure btnOKClick(Sender: TObject);
     procedure rbSuspendedClick(Sender: TObject);
     procedure CheckClientConnectControls;
     procedure rbActiveClick(Sender: TObject);
     procedure rbDeactivatedClick(Sender: TObject);
     procedure chkUseClientDetailsClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
+    procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
   private
     fBusyKeyPress : Boolean;
     fReadOnly : Boolean;
@@ -120,20 +120,9 @@ begin
     BanklinkOnlineSettings.PopupParent := w_PopupParent;
     BanklinkOnlineSettings.PopupMode := pmExplicit;
 
-    BanklinkOnlineSettings.Execute(TickNotesOnline);
-    Result := True;
+    Result := BanklinkOnlineSettings.Execute(TickNotesOnline);
   finally
     FreeAndNil(BanklinkOnlineSettings);
-  end;
-end;
-
-//------------------------------------------------------------------------------
-procedure TfrmBanklinkOnlineSettings.btnOKClick(Sender: TObject);
-begin
-  if Validate then
-  begin
-    if SaveClientInfo then
-      Close;
   end;
 end;
 
@@ -609,6 +598,16 @@ begin
     edtUserName.Enabled := not chkUseClientDetails.Checked;
     edtEmailAddress.Enabled := not chkUseClientDetails.Checked;
   end;
+end;
+
+//------------------------------------------------------------------------------
+procedure TfrmBanklinkOnlineSettings.FormCloseQuery(Sender: TObject;
+  var CanClose: Boolean);
+begin
+  CanClose := Validate;
+
+  if CanClose then
+    CanClose := SaveClientInfo;
 end;
 
 //------------------------------------------------------------------------------

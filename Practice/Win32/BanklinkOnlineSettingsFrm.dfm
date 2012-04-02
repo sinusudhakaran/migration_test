@@ -16,6 +16,7 @@ object frmBanklinkOnlineSettings: TfrmBanklinkOnlineSettings
   Position = poScreenCenter
   Scaled = False
   ShowHint = True
+  OnCloseQuery = FormCloseQuery
   OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 13
@@ -148,8 +149,8 @@ object frmBanklinkOnlineSettings: TfrmBanklinkOnlineSettings
     Width = 75
     Height = 25
     Caption = 'OK'
+    ModalResult = 1
     TabOrder = 3
-    OnClick = btnOKClick
   end
   object btnCancel: TButton
     Left = 390
