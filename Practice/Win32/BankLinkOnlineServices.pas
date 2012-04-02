@@ -751,6 +751,9 @@ var
   i: integer;
 begin
   Result := '';
+
+  LoadClientList;
+  
   if Assigned(FClientList) then
   begin
     for i := Low(FClientList.Clients) to High(FClientList.Clients) do

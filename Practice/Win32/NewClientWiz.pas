@@ -189,6 +189,7 @@ begin
                         'at the end of this wizard.';
                  HelpfulInfoMsg(Msg, 0);
                end;
+               EditBanklinkOnlineSettings(w_PopupParent, true);
              end
              else
              begin
