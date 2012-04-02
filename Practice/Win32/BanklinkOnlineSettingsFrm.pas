@@ -48,9 +48,9 @@ type
     procedure btnSelectAllClick(Sender: TObject);
     procedure btnClearAllClick(Sender: TObject);
     procedure rbSuspendedClick(Sender: TObject);
-    procedure CheckClientConnectControls;
     procedure rbActiveClick(Sender: TObject);
     procedure rbDeactivatedClick(Sender: TObject);
+    procedure CheckClientConnectControls;
     procedure chkUseClientDetailsClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
@@ -102,12 +102,88 @@ const
   UnitName = 'BanklinkOnlineSettingsFrm';
 
 //------------------------------------------------------------------------------
+procedure TfrmBanklinkOnlineSettings.btnSelectAllClick(Sender: TObject);
+var
+  i: integer;
+begin
+  for i := 0 to chkListProducts.Items.Count - 1 do
+    chkListProducts.Checked[i] := true;
+end;
+
+//------------------------------------------------------------------------------
+procedure TfrmBanklinkOnlineSettings.btnClearAllClick(Sender: TObject);
+var
+  i: integer;
+begin
+  for i := 0 to chkListProducts.Items.Count - 1 do
+    chkListProducts.Checked[i] := false;
+end;
+
+//------------------------------------------------------------------------------
+procedure TfrmBanklinkOnlineSettings.rbSuspendedClick(Sender: TObject);
+begin
+  CheckClientConnectControls;
+end;
+
+//------------------------------------------------------------------------------
+procedure TfrmBanklinkOnlineSettings.rbActiveClick(Sender: TObject);
+begin
+  CheckClientConnectControls;
+end;
+
+//------------------------------------------------------------------------------
+procedure TfrmBanklinkOnlineSettings.rbDeactivatedClick(Sender: TObject);
+begin
+  CheckClientConnectControls;
+end;
+
+//------------------------------------------------------------------------------
+procedure TfrmBanklinkOnlineSettings.chkUseClientDetailsClick(Sender: TObject);
+begin
+  FillClientDetails;
+end;
+
+//------------------------------------------------------------------------------
+procedure TfrmBanklinkOnlineSettings.FormShow(Sender: TObject);
+begin
+  FillClientDetails;
+
+  PostMessage(Handle, UM_AFTERSHOW, 0, 0);
+end;
+
+//------------------------------------------------------------------------------
+procedure TfrmBanklinkOnlineSettings.FormCloseQuery(Sender: TObject;
+  var CanClose: Boolean);
+begin
+  if fOkPressed = false then
+  begin
+    CanClose := True;
+    Exit;
+  end;
+
+  CanClose := Validate;
+
+  if CanClose then
+    CanClose := SaveClientInfo;
+end;
+
+//------------------------------------------------------------------------------
+procedure TfrmBanklinkOnlineSettings.btnOKClick(Sender: TObject);
+begin
+  fOkPressed := True;
+end;
+
+//------------------------------------------------------------------------------
+procedure TfrmBanklinkOnlineSettings.CheckClientConnectControls;
+begin
+  lblClientConnect.Enabled := rbActive.Checked;
+  cmbConnectDays.Enabled := rbActive.Checked;
+end;
+  
+//------------------------------------------------------------------------------
 function EditBanklinkOnlineSettings(w_PopupParent: TForm; TickNotesOnline: boolean): boolean;
 var
   BanklinkOnlineSettings: TfrmBanklinkOnlineSettings;
-  i: integer;
-  NotesOnlineTicked: boolean;
-  CatName: string;
 const
   ThisMethodName = 'EditBanklinkOnlineSettings';
 begin
@@ -125,28 +201,6 @@ begin
   finally
     FreeAndNil(BanklinkOnlineSettings);
   end;
-end;
-
-//------------------------------------------------------------------------------
-procedure TfrmBanklinkOnlineSettings.btnSelectAllClick(Sender: TObject);
-var
-  i: integer;
-begin
-  for i := 0 to chkListProducts.Items.Count - 1 do
-    chkListProducts.Checked[i] := true;
-end;
-
-//------------------------------------------------------------------------------
-procedure TfrmBanklinkOnlineSettings.CheckClientConnectControls;
-begin
-  lblClientConnect.Enabled := rbActive.Checked;
-  cmbConnectDays.Enabled := rbActive.Checked;
-end;
-
-//------------------------------------------------------------------------------
-procedure TfrmBanklinkOnlineSettings.chkUseClientDetailsClick(Sender: TObject);
-begin
-  FillClientDetails;
 end;
 
 //------------------------------------------------------------------------------
@@ -208,14 +262,11 @@ function TfrmBanklinkOnlineSettings.Validate: Boolean;
 var
   EmailChanged, ProductsChanged, ProductFound: boolean;
   NewProducts, RemovedProducts: TStringList;
-  PromptMessage, ErrorMsg, NewUserName, NewEmail, MailTo, MailSubject, MailBody: string;
-  i, j, ButtonPressed: integer;
+  PromptMessage, ErrorMsg, MailTo, MailSubject, MailBody: string;
+  i, j : integer;
   ClientStatus : TBloStatus;
   MaxOfflineDays : String;
   BillingFrequency : WideString;
-  MyUserCreate: TBloUserCreate;
-  BlankSubscription: TBloArrayOfGuid;
-  TheCreateClient: TBloClientCreate;
 begin
   Result := False;
 
@@ -537,7 +588,6 @@ var
   ConnectDays : string;
   Subscription: TBloArrayOfGuid;
 begin
-  Result := False;
   ConnectDays := StringReplace(cmbConnectDays.Text, 'Always', '0', [rfReplaceAll]);
   ConnectDays := StringReplace(ConnectDays, ' days', '', [rfReplaceAll]);
 
@@ -583,20 +633,6 @@ begin
   BringToFront;
 end;
 
-procedure TfrmBanklinkOnlineSettings.btnClearAllClick(Sender: TObject);
-var
-  i: integer;
-begin
-  for i := 0 to chkListProducts.Items.Count - 1 do
-    chkListProducts.Checked[i] := false;
-end;
-
-//------------------------------------------------------------------------------
-procedure TfrmBanklinkOnlineSettings.btnOKClick(Sender: TObject);
-begin
-  fOkPressed := True;
-end;
-
 //------------------------------------------------------------------------------
 procedure TfrmBanklinkOnlineSettings.FillClientDetails;
 begin
@@ -611,48 +647,6 @@ begin
     edtUserName.Enabled := not chkUseClientDetails.Checked;
     edtEmailAddress.Enabled := not chkUseClientDetails.Checked;
   end;
-end;
-
-//------------------------------------------------------------------------------
-procedure TfrmBanklinkOnlineSettings.FormCloseQuery(Sender: TObject;
-  var CanClose: Boolean);
-begin
-  if fOkPressed = false then
-  begin
-    CanClose := True;
-    Exit;
-  end;
-
-  CanClose := Validate;
-
-  if CanClose then
-    CanClose := SaveClientInfo;
-end;
-
-//------------------------------------------------------------------------------
-procedure TfrmBanklinkOnlineSettings.FormShow(Sender: TObject);
-begin
-  FillClientDetails;
-
-  PostMessage(Handle, UM_AFTERSHOW, 0, 0);
-end;
-
-//------------------------------------------------------------------------------
-procedure TfrmBanklinkOnlineSettings.rbActiveClick(Sender: TObject);
-begin
-  CheckClientConnectControls;
-end;
-
-//------------------------------------------------------------------------------
-procedure TfrmBanklinkOnlineSettings.rbDeactivatedClick(Sender: TObject);
-begin
-  CheckClientConnectControls;
-end;
-
-//------------------------------------------------------------------------------
-procedure TfrmBanklinkOnlineSettings.rbSuspendedClick(Sender: TObject);
-begin
-  CheckClientConnectControls;
 end;
 
 end.
