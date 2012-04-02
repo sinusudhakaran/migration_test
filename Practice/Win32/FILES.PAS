@@ -1302,6 +1302,7 @@ begin
         ShowMessage('BankLink Practice will not copy the BankLink Online settings for ' +
                     'this client. To set BankLink Online access, please click ‘Other ' +
                     'Functions | Client Details | Client Settings’');
+
       MyClient.clFields.clFavourite_Report_XML := BatchReports.XMLString;
       MsgBar('Saving Client',true);
       DoClientSave(false, MyClient);
@@ -2917,9 +2918,11 @@ begin
         MyClient.clWas_Code := NewCode;  {so doesnt try to rename}
         clFile_Read_Only := False; //allow to save as even if it's read only
         clUse_Alterate_ID_for_extract := false;  //default back to client code to avoid duplicates
+        if clWeb_Export_Format = wfWebNotes then
+          clWeb_Export_Format := wfNone;
       end;
 
-      SaveClient(OldFileName <> NewFileName);
+      SaveClient(OldFileName <> NewFileName);   
 
       //delete the autosave file if it exists
       DeleteFile(OldFileName + AUTOSAVEEXTN);
