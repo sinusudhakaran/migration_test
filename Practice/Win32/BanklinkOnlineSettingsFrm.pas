@@ -121,6 +121,7 @@ begin
     BanklinkOnlineSettings.PopupMode := pmExplicit;
 
     BanklinkOnlineSettings.Execute(TickNotesOnline);
+    Result := True;
   finally
     FreeAndNil(BanklinkOnlineSettings);
   end;
