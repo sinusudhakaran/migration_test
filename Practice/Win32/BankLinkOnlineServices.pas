@@ -2439,6 +2439,9 @@ begin
   Result := -1;
   ProductConfigService.LoadClientList;
 
+  if not assigned(fClientList) then
+    Exit;
+  
   for ClientIndex := 0 to high(fClientList.Clients) do
   begin
     if fClientList.Clients[ClientIndex].ClientCode = aClientCode then
