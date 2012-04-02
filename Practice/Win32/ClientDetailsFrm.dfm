@@ -51,10 +51,6 @@ object frmClientDetails: TfrmClientDetails
     TabOrder = 0
     object tbsClient: TTabSheet
       Caption = 'Client Details'
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       DesignSize = (
         581
         522)
@@ -532,16 +528,6 @@ object frmClientDetails: TfrmClientDetails
         Height = 67
         Caption = 'Banklink Online Clients'
         TabOrder = 4
-        object lblClientBOProducts: TLabel
-          Left = 136
-          Top = 30
-          Width = 309
-          Height = 13
-          Caption = 
-            'This client currently has access to {#} Banklink Online product(' +
-            's)'
-          WordWrap = True
-        end
         object btnClientSettings: TButton
           Left = 20
           Top = 24
@@ -550,6 +536,29 @@ object frmClientDetails: TfrmClientDetails
           Caption = 'Client Settings'
           TabOrder = 0
           OnClick = btnClientSettingsClick
+        end
+        object Panel1: TPanel
+          Left = 125
+          Top = 8
+          Width = 401
+          Height = 56
+          BevelOuter = bvNone
+          TabOrder = 1
+          object lblClientBOProducts: TLabel
+            Left = 0
+            Top = 0
+            Width = 401
+            Height = 56
+            Align = alClient
+            AutoSize = False
+            Caption = 
+              'This client currently has access to {#} Banklink Online product(' +
+              's)'
+            Layout = tlCenter
+            WordWrap = True
+            ExplicitLeft = 12
+            ExplicitWidth = 395
+          end
         end
       end
     end
@@ -835,10 +844,6 @@ object frmClientDetails: TfrmClientDetails
     object tbsNotes: TTabSheet
       Caption = 'Notes'
       ImageIndex = 2
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       DesignSize = (
         581
         522)
@@ -869,10 +874,6 @@ object frmClientDetails: TfrmClientDetails
     object tsSmartLink: TTabSheet
       Caption = 'SmartLink'
       ImageIndex = 4
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object Label19: TLabel
         Left = 16
         Top = 16

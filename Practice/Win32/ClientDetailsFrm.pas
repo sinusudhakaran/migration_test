@@ -136,6 +136,7 @@ type
     chkEditMems: TCheckBox;
     grpBOClients: TGroupBox;
     btnClientSettings: TButton;
+    Panel1: TPanel;
     lblClientBOProducts: TLabel;
 
     procedure btnOkClick(Sender: TObject);
@@ -361,13 +362,13 @@ end;
 procedure TfrmClientDetails.SetProductsCaption(NewCaption: string);
 begin
   lblClientBOProducts.Caption := NewCaption;
-  if (Length(NewCaption) < 55) then
+  {if (Length(NewCaption) < 55) then
     lblClientBOProducts.Height := 14
   else
     lblClientBOProducts.Height := 34;
   lblClientBOProducts.Top := btnClientSettings.Top + Round(btnClientSettings.Height / 2) -
                              Round(lblClientBOProducts.Height / 2);
-  lblClientBOProducts.Width := grpBOClients.Width - (lblClientBOProducts.Left + 20);  
+  lblClientBOProducts.Width := grpBOClients.Width - (lblClientBOProducts.Left + 20);}
 end;
 
 procedure TfrmClientDetails.SetUpHelp;
