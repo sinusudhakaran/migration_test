@@ -151,6 +151,7 @@ object frmBanklinkOnlineSettings: TfrmBanklinkOnlineSettings
     Caption = 'OK'
     ModalResult = 1
     TabOrder = 3
+    OnClick = btnOKClick
   end
   object btnCancel: TButton
     Left = 390

@@ -54,7 +54,9 @@ type
     procedure chkUseClientDetailsClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
+    procedure btnOKClick(Sender: TObject);
   private
+    fOkPressed : Boolean;
     fBusyKeyPress : Boolean;
     fReadOnly : Boolean;
 
@@ -106,7 +108,6 @@ var
   i: integer;
   NotesOnlineTicked: boolean;
   CatName: string;
-
 const
   ThisMethodName = 'EditBanklinkOnlineSettings';
 begin
@@ -417,6 +418,7 @@ end;
 //------------------------------------------------------------------------------
 function TfrmBanklinkOnlineSettings.Execute(TickNotesOnline: boolean = false) : boolean;
 begin
+  fOkPressed := false;
   fBusyKeyPress := false;
   Result := False;
 
@@ -432,7 +434,7 @@ begin
 
   LoadClientInfo(TickNotesOnline);
 
-  fReadOnly := ProductConfigService.IsPracticeSuspended;
+  fReadOnly := ProductConfigService.IsPracticeSuspended(not MyClient.Opened);
 
   if fReadOnly then
     SetReadOnly;
@@ -506,6 +508,11 @@ begin
     begin
       edtUserName.Text := ClientReadDetail.Users[0].FullName;
       edtEmailAddress.Text := ClientReadDetail.Users[0].Email;
+    end
+    else
+    begin
+      edtUserName.Text := MyClient.clFields.clContact_Name;
+      edtEmailAddress.Text := MyClient.clFields.clClient_EMail_Address;
     end;
   end
   // New Client
@@ -585,6 +592,12 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+procedure TfrmBanklinkOnlineSettings.btnOKClick(Sender: TObject);
+begin
+  fOkPressed := True;
+end;
+
+//------------------------------------------------------------------------------
 procedure TfrmBanklinkOnlineSettings.FillClientDetails;
 begin
   if (chkUseClientDetails.Checked) then
@@ -604,6 +617,12 @@ end;
 procedure TfrmBanklinkOnlineSettings.FormCloseQuery(Sender: TObject;
   var CanClose: Boolean);
 begin
+  if fOkPressed = false then
+  begin
+    CanClose := True;
+    Exit;
+  end;
+
   CanClose := Validate;
 
   if CanClose then
