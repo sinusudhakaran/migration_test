@@ -2742,6 +2742,7 @@ var
   BloClientUpdate : TBloClientUpdate;
   BlopiInterface  : IBlopiServiceFacade;
   MsgResponse     : MessageResponse;
+  UserId          : TBloGuid;
 begin
   Screen.Cursor := crHourGlass;
   Progress.StatusSilent := False;
@@ -2752,10 +2753,23 @@ begin
     try
       Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Deleting Client User', 55);
 
+      if High(aExistingClient.Users) = -1 then
+      begin
+        Result := AddEditClientUser(aExistingClient,
+                                    '',
+                                    '',
+                                    UserId,
+                                    'DeleteClientUser@Test.com',
+                                    'DeleteClientUser');
+
+        if Not Result then
+          Exit;
+      end;
+
       BloClientUpdate := TBloClientUpdate.Create;
       try
         BloClientUpdate.Id                   := aExistingClient.Id;
-        BloClientUpdate.PrimaryContactUserId := aExistingClient.Users[0].Id;
+        BloClientUpdate.PrimaryContactUserId := UserId;
         BloClientUpdate.BillingFrequency     := aExistingClient.BillingFrequency;
         BloClientUpdate.ClientCode           := aExistingClient.ClientCode;
         BloClientUpdate.MaxOfflineDays       := aExistingClient.MaxOfflineDays;
