@@ -199,7 +199,7 @@ begin
                else if (ProductConfigService.IsPracticeDeactivated(false)) then
                  PraticeState := 'deactivated';
 
-               Msg := 'BankLink Online is currently {%s}. The Web Export Format ' +
+               Msg := 'BankLink Online is currently %s. The Web Export Format ' +
                       ' will be set to ''None''.';
 
                HelpfulInfoMsg(format(Msg,[PraticeState]), 0);
