@@ -2538,6 +2538,7 @@ begin
           BloClientCreate.MaxOfflineDays   := aMaxOfflineDays;
           BloClientCreate.Status           := aStatus;
           BloClientCreate.Subscription     := aSubscription;
+          BloClientCreate.SecureCode       := MyClient.clFields.clBankLink_Code;
 
           MsgResponseGuid := BlopiInterface.CreateClient(CountryText(AdminSystem.fdFields.fdCountry),
                                                          AdminSystem.fdFields.fdBankLink_Code,
@@ -2695,6 +2696,7 @@ begin
           BloClientUpdate.Name_                := ClientName;
           BloClientUpdate.Status               := aStatus;
           BloClientUpdate.Subscription         := aSubscription;
+          BloClientUpdate.SecureCode           := MyClient.clFields.clBankLink_Code;
 
           MsgResponse := BlopiInterface.SaveClient(CountryText(AdminSystem.fdFields.fdCountry),
                                                    AdminSystem.fdFields.fdBankLink_Code,
