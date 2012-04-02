@@ -399,8 +399,6 @@ object frmClientManager: TfrmClientManager
         inherited vtClients: TVirtualStringTree
           Width = 1001
           Height = 434
-          ExplicitLeft = 4
-          ExplicitTop = -3
           ExplicitWidth = 1001
           ExplicitHeight = 434
         end

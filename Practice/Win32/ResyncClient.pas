@@ -533,27 +533,18 @@ begin
          end;
       end;
 
-      // Clearing Banklink Online details before syncing client
-      // Get client list (so that we can lookup the client code)
-      ProductConfigService.LoadClientList;
-      // Get client details
-      ClientReadDetail := ProductConfigService.GetClientDetailsWithCode(MyClient.clFields.clCode);
+      // *** Clearing Banklink Online details before syncing client (start) ***
+      // Changing the web export format (if necessary)
+      if aClient.clFields.clWeb_Export_Format = wfWebNotes then
+        aClient.clFields.clWeb_Export_Format := wfNone;
       try
-        // Changing the web export format (if necessary)
-        if Assigned(ClientReadDetail) then
-        begin
-          for i := 0 to High(ClientReadDetail.Subscription) do
-          begin
-            CatEntry := ProductConfigService.GetCatalogueEntry(ClientReadDetail.Subscription[i]);
-            if (CatEntry.Description = 'Notes Online') or (CatEntry.Description = 'BankLink Notes Online') then
-              aClient.clFields.clWeb_Export_Format := wfWebNotes
-            else if aClient.clFields.clWeb_Export_Format = wfWebNotes then
-              aClient.clFields.clWeb_Export_Format := wfNone;
-          end;
-        end;
+        // Get client list
+        ProductConfigService.LoadClientList;
+        ProductConfigService.SaveClientNotesOption(aClient.clFields.clWeb_Export_Format);
       finally
         FreeAndNil(ClientReadDetail);
-      end;
+      end;                                         
+      // *** Clearing Banklink Online details before syncing client (end) ***
 
       ClientLastTrxDate := 0;
       BankAccountExistsInAdmin := False;
