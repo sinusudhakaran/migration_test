@@ -1,7 +1,7 @@
 // ************************************************************************ //
 // The types declared in this file were generated from data read from the
 // WSDL File described below:
-// WSDL     : https://www.banklinkonline.com/Services/BlopiServiceFacade.svc?wsdl
+// WSDL     : https://www.banklinkonline.com/services/BlopiServiceFacade.svc?wsdl
 //  >Import : https://www.banklinkonline.com/Services/BlopiServiceFacade.svc?wsdl=wsdl0
 //  >Import : https://www.banklinkonline.com/Services/BlopiServiceFacade.svc?wsdl=wsdl0>0
 //  >Import : https://www.banklinkonline.com/Services/BlopiServiceFacade.svc?xsd=xsd0
@@ -11,7 +11,7 @@
 // Encoding : utf-8
 // Codegen  : [wfMapStringsToWideStrings+, wfUseScopedEnumeration-]
 // Version  : 1.0
-// (28/03/2012 3:10:49 p.m. - - $Rev: 25127 $)
+// (17/02/2012 3:22:15 p.m. - - $Rev: 25127 $)
 // ************************************************************************ //
 
 unit BlopiServiceFacade;
@@ -685,8 +685,6 @@ type
     FMaxOfflineDays_Specified: boolean;
     FName_: WideString;
     FName__Specified: boolean;
-    FSecureCode: WideString;
-    FSecureCode_Specified: boolean;
     FStatus: Status;
     FStatus_Specified: boolean;
     FSubscription: ArrayOfguid;
@@ -699,8 +697,6 @@ type
     function  MaxOfflineDays_Specified(Index: Integer): boolean;
     procedure SetName_(Index: Integer; const AWideString: WideString);
     function  Name__Specified(Index: Integer): boolean;
-    procedure SetSecureCode(Index: Integer; const AWideString: WideString);
-    function  SecureCode_Specified(Index: Integer): boolean;
     procedure SetStatus(Index: Integer; const AStatus: Status);
     function  Status_Specified(Index: Integer): boolean;
     procedure SetSubscription(Index: Integer; const AArrayOfguid: ArrayOfguid);
@@ -710,7 +706,6 @@ type
     property ClientCode:       WideString   Index (IS_OPTN or IS_NLBL) read FClientCode write SetClientCode stored ClientCode_Specified;
     property MaxOfflineDays:   Integer      Index (IS_OPTN) read FMaxOfflineDays write SetMaxOfflineDays stored MaxOfflineDays_Specified;
     property Name_:            WideString   Index (IS_OPTN or IS_NLBL) read FName_ write SetName_ stored Name__Specified;
-    property SecureCode:       WideString   Index (IS_OPTN or IS_NLBL) read FSecureCode write SetSecureCode stored SecureCode_Specified;
     property Status:           Status       Index (IS_OPTN) read FStatus write SetStatus stored Status_Specified;
     property Subscription:     ArrayOfguid  Index (IS_OPTN or IS_NLBL) read FSubscription write SetSubscription stored Subscription_Specified;
   end;
@@ -1094,7 +1089,7 @@ implementation
 
 function GetIBlopiServiceFacade(UseWSDL: Boolean; Addr: string; HTTPRIO: THTTPRIO): IBlopiServiceFacade;
 const
-  defWSDL = 'https://www.banklinkonline.com/Services/BlopiServiceFacade.svc?wsdl';
+  defWSDL = 'https://www.banklinkonline.com/services/BlopiServiceFacade.svc?wsdl';
   defURL  = 'https://www.banklinkonline.com/Services/BlopiServiceFacade.svc';
   defSvc  = 'BlopiServiceFacade';
   defPrt  = 'BasicHttpBinding_IBlopiServiceFacade';
@@ -1725,17 +1720,6 @@ end;
 function Client.Name__Specified(Index: Integer): boolean;
 begin
   Result := FName__Specified;
-end;
-
-procedure Client.SetSecureCode(Index: Integer; const AWideString: WideString);
-begin
-  FSecureCode := AWideString;
-  FSecureCode_Specified := True;
-end;
-
-function Client.SecureCode_Specified(Index: Integer): boolean;
-begin
-  Result := FSecureCode_Specified;
 end;
 
 procedure Client.SetStatus(Index: Integer; const AStatus: Status);
