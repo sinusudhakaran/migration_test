@@ -517,8 +517,8 @@ begin
   begin
     ProductGuid := ProductConfigService.ProductList[ProdIndex];
     CatEntry := ProductConfigService.GetCatalogueEntry(ProductGuid);
-
-    chklistProducts.AddItem(CatEntry.Description, CatEntry);
+    if CatEntry.CatalogueType <> 'Service' then
+      chklistProducts.AddItem(CatEntry.Description, CatEntry);
   end;
 
   if TickNotesOnline then
