@@ -4556,11 +4556,11 @@ const
     pc.ctLRN := AdminSystem.fdFields.fdClient_Type_LRN_Counter;
     pc.ctName := Name;
     AdminSystem.fdSystem_Client_Type_List.Insert(pc);
-    ShowMessage('3');
+//    ShowMessage('3');
   end;
 
 begin
-  ShowMessage('2');
+//  ShowMessage('2');
   NewClientTypeName := 'Books via BankLink Online';
   if (AdminSystem.fdSystem_Client_Type_List.FindName(NewClientTypeName) = nil) then
     AddNewClientType(NewClientTypeName);

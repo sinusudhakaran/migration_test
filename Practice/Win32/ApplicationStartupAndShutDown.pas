@@ -309,12 +309,13 @@ begin
 {$ENDIF}
 
   //See if the admin system needs to be upgraded
+
   if Assigned( AdminSystem) then
   begin
     StartUpStep := 'Checking for admin upgrade';
     Upgrade.UpgradeAdminToLatestVersion;
     Upgrade.UpgradeExchangeRatesToLatestVersion;
-    ShowMessage('1');
+//    ShowMessage('1');
     Upgrade.UpgradeClientTypes;
   end;
 
