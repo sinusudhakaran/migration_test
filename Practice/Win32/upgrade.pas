@@ -4564,6 +4564,7 @@ begin
   NewClientTypeName := 'Books via BankLink Online';
   if (AdminSystem.fdSystem_Client_Type_List.FindName(NewClientTypeName) = nil) then
     AddNewClientType(NewClientTypeName);
+  AdminSystem.Save;
 end;
 
 procedure UpgradeExchangeRatesToLatestVersion;
