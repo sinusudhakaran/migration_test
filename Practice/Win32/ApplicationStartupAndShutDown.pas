@@ -314,6 +314,7 @@ begin
     StartUpStep := 'Checking for admin upgrade';
     Upgrade.UpgradeAdminToLatestVersion;
     Upgrade.UpgradeExchangeRatesToLatestVersion;
+    ShowMessage('1');
     Upgrade.UpgradeClientTypes;
   end;
 
