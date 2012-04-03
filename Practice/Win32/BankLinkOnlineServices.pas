@@ -2236,8 +2236,6 @@ begin
     if (Assigned(aExistingClient)) and
        (Length(aExistingClient.Users) > 0) then
     begin
-      RoleNames    := aExistingClient.Users[0].RoleNames;
-      Subscription := aExistingClient.Users[0].Subscription;
       UserCode     := aExistingClient.Users[0].UserCode;
       ClientId     := aExistingClient.Id;
 
@@ -2247,18 +2245,19 @@ begin
     end
     else
     begin
-      AddItemToArrayString(RoleNames, 'Client Administrator');
-      SetLength(Subscription, 0);
-
       if Assigned(aExistingClient) then
       begin
         UserCode := aExistingClient.ClientCode;
         ClientId := aExistingClient.Id;
       end
       else
+      begin
         ClientId := aNewClientId;
         UserCode := aClientCode;
+      end;
     end;
+    AddItemToArrayString(RoleNames, 'Client Administrator');
+    SetLength(Subscription, 0);
 
     MsgResponceGuid := CreateClientUser(ClientId,
                                         aEMail,

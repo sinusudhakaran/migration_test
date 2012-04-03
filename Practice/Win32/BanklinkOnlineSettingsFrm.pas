@@ -55,6 +55,7 @@ type
     procedure FormShow(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
     procedure btnOKClick(Sender: TObject);
+    procedure btnCancelClick(Sender: TObject);
   private
     fOkPressed : Boolean;
     fBusyKeyPress : Boolean;
@@ -171,6 +172,12 @@ end;
 procedure TfrmBanklinkOnlineSettings.btnOKClick(Sender: TObject);
 begin
   fOkPressed := True;
+end;
+
+//------------------------------------------------------------------------------
+procedure TfrmBanklinkOnlineSettings.btnCancelClick(Sender: TObject);
+begin
+  fOkPressed := False;
 end;
 
 //------------------------------------------------------------------------------
@@ -623,7 +630,9 @@ begin
   end;
 
   if Result then
-    UpdateClientWebFormat;
+    UpdateClientWebFormat
+  else
+    ClientReadDetail := ProductConfigService.GetClientDetailsWithCode(MyClient.clFields.clCode);
 end;
 
 //------------------------------------------------------------------------------

@@ -162,6 +162,7 @@ object frmBanklinkOnlineSettings: TfrmBanklinkOnlineSettings
     Caption = 'Cancel'
     ModalResult = 2
     TabOrder = 4
+    OnClick = btnCancelClick
   end
   object grpClientAccess: TGroupBox
     Left = 8
