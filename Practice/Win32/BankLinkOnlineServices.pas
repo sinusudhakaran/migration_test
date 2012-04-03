@@ -861,7 +861,7 @@ begin
                   break;
                 end;
               end;
-                  
+
             end else begin
               //Something went wrong
               Msg := '';
@@ -2769,7 +2769,9 @@ begin
 
         if Not Result then
           Exit;
-      end;
+      end
+      else
+        UserId := aExistingClient.Users[0].Id;
 
       BloClientUpdate := TBloClientUpdate.Create;
       try
