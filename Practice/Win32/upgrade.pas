@@ -23,6 +23,7 @@ uses
 
 Procedure UpgradeAdminToLatestVersion;
 Procedure UpgradeClientToLatestVersion( aClient : TClientObj );
+procedure UpgradeClientTypes;
 Procedure UpgradeExchangeRatesToLatestVersion;
 
 // ----------------------------------------------------------------------------
@@ -79,7 +80,8 @@ uses
   YesNoDlg, pyList32, cfList32, WinUtils, SYamIO, mxFiles32, BasUtils, Software,
   SystemMemorisationList, IOStream, AuditMgr, CountryUtils,
   ExchangeRateList, MCDEFS, stTree, stBase,
-  BankLinkOnlineServices;
+  BankLinkOnlineServices,
+  SYctIO;
 // ----------------------------------------------------------------------------
 
 Const
@@ -4537,6 +4539,29 @@ begin
       LogMsg(lmError, Unitname, Msg);
     end;
   end;
+end;
+
+procedure UpgradeClientTypes;
+var
+  NewClientTypeName: string;
+const
+  ThisMethodName = 'UpgradeClientTypes';
+
+  procedure AddNewClientType(Name: string);
+  var
+    pc: pClient_Type_Rec;
+  begin
+    pc := New_Client_Type_Rec;
+    Inc(AdminSystem.fdFields.fdClient_Type_LRN_Counter);
+    pc.ctLRN := AdminSystem.fdFields.fdClient_Type_LRN_Counter;
+    pc.ctName := Name;
+    AdminSystem.fdSystem_Client_Type_List.Insert(pc);
+  end;
+
+begin
+  NewClientTypeName := 'Books via BankLink Online';
+  if (AdminSystem.fdSystem_Client_Type_List.FindName(NewClientTypeName) = nil) then
+    AddNewClientType(NewClientTypeName);
 end;
 
 procedure UpgradeExchangeRatesToLatestVersion;

@@ -314,6 +314,7 @@ begin
     StartUpStep := 'Checking for admin upgrade';
     Upgrade.UpgradeAdminToLatestVersion;
     Upgrade.UpgradeExchangeRatesToLatestVersion;
+    Upgrade.UpgradeClientTypes;
   end;
 
   StartUpStep := 'Checking for custom bitmap';
