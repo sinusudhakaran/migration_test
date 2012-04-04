@@ -205,6 +205,7 @@ type
     function ColumnColor(const Value: Integer):tColor;
     function ReadNum(Var NumText: string):Integer;
     function ReadMonth(Var NumText: string):Integer;
+    function FindDelimiter(TextLine: string): char;
 
     function StrtoCurr(Value: string): Currency;
     function StrtoDate(Value,Mask: string): Integer;
@@ -1182,8 +1183,12 @@ begin
 
       Result := True;
       V := pchar(Value);
-      LowerV := PChar(AnsiLowerCase(StrPas(V)));
-      
+      LowerV := PChar(Trim(AnsiLowerCase(StrPas(V))));
+
+      if StrliComp(LowerV,'debit amount',l) = 0 then
+         Exit;
+      if StrliComp(LowerV,'credit amount',l) = 0 then
+         Exit;
       if StrliComp(LowerV,'debit',l) = 0 then
          Exit;
       if StrliComp(LowerV,'credit',l) = 0 then
@@ -1570,6 +1575,37 @@ begin
    end;
 end;
 
+// This function could be further refined by comparing the number of times the char occurs in each
+// line of the CSV (the Sniffer class in Python does something along these lines), as the
+// delimiter should appear the same number of times on each line, but I don't think this will
+// prove necessary if the Chrs array is sensibly populated. For now this just picks the delimiter
+// from the given set which appears the most times
+function TImportHist.FindDelimiter(TextLine: string): char;
+var
+  i, j, BestDelimByCount: Integer;
+  CharCounts: array[0..2] of integer; // length should match that of Chrs
+const
+  Chrs: array[0..2] of char = (',', ';', #9);
+begin
+  // Getting the number of times each delimiter 'candidate' appears in the first line of the imported file
+  for i := 0 to High(Chrs) do
+  begin
+    CharCounts[i] := 0;
+    for j := 1 to length(TextLine) do
+      if TextLine[j] = Chrs[i] then
+        inc(CharCounts[i]);
+  end;
+
+  // Find which delimiter candidate has the most occurences
+  BestDelimByCount := 0;
+  for i := 1 to High(CharCounts) do // starting from the second char
+    if (CharCounts[i] > CharCounts[BestDelimByCount]) then
+      BestDelimByCount := i;
+
+  // Return the char that appears the most.
+  Result := Chrs[BestDelimByCount];
+end;
+
 procedure TImportHist.ReloadFile;
 var lFile: TStringList;
     lLine: TStringList;
@@ -1577,7 +1613,6 @@ var lFile: TStringList;
     OutItem: TOutitem;
     R,C: Integer;
     HeaderLine, DCFound: Boolean;
-    AmountColumnCount: Integer;
     FirstLine: string;
     ImportedFile: TextFile;
 
@@ -1597,13 +1632,16 @@ var lFile: TStringList;
        Result := False;
        while R < Pred(LFile.Count) do begin
           Inc(R);
+          lline.Delimiter := FindDelimiter(LFile[R]);
           lLine.DelimitedText := LFile[R];
           if Keep then begin
              // Show the skipped lines
              if lbFile.Caption > '' then
                 lbFile.Caption := LbFile.Caption + #13 + LFile[R]
              else
+             begin
                lbFile.Caption := LFile[R];
+             end;
           end;
 
           if lLine.Count > 1 then begin
@@ -1622,37 +1660,6 @@ var lFile: TStringList;
           Minwidth := 50;
           Tag := aTag;
        end;
-    end;
-
-    // This function could be further refined by comparing the number of times the char occurs in each
-    // line of the CSV (the Sniffer class in Python does something along these lines), as the
-    // delimiter should appear the same number of times on each line, but I don't think this will
-    // prove necessary if the Chrs array is sensibly populated. For now this just picks the delimiter
-    // from the given set which appears the most times
-    function FindDelimiter: char;
-    var
-      i, j, BestDelimByCount: Integer;
-      CharCounts: array[0..2] of integer; // length should match that of Chrs
-    const
-      Chrs: array[0..2] of char = (';', #9, ',');
-    begin
-      // Getting the number of times each delimiter 'candidate' appears in the first line of the imported file
-      for i := 0 to High(Chrs) do
-      begin
-        CharCounts[i] := 0;
-        for j := 1 to length(FirstLine) do
-          if FirstLine[j] = Chrs[i] then
-            inc(CharCounts[i]);
-      end;
-
-      // Find which delimiter candidate has the most occurences
-      BestDelimByCount := 0;
-      for i := 1 to High(CharCounts) do // starting from the second char
-        if (CharCounts[i] > CharCounts[BestDelimByCount]) then
-          BestDelimByCount := i;
-
-      // Return the char that appears the most.
-      Result := Chrs[BestDelimByCount];
     end;
 begin
    if FReloading then
@@ -1793,35 +1800,40 @@ begin
        DCFound := False;
        
        for C := 0 to vsFile.Header.Columns.Count - 1 do begin
-          if IsDebitCredit(C) then begin
-            vsFile.Header.Columns[C].Tag := TagDebitCredit;
-            RBSign.Enabled := True;
-            DCFound := True;
-          end else
-          if IsAlphaOnly(C) then begin
-             // has no digits.. cannot be a Date or amount
-             // Could still be Debit or Credit Column
+          try
+            if IsDebitCredit(C) then begin
+              vsFile.Header.Columns[C].Tag := TagDebitCredit;
+              RBSign.Enabled := True;
+              DCFound := True;
+            end else
+            if IsAlphaOnly(C) then begin
+               // has no digits.. cannot be a Date or amount
+               // Could still be Debit or Credit Column
 
-            vsFile.Header.Columns[C].Tag := TagAlpha;
-          end else if IsNumericOnly(C) then begin
-             // Has No Letters
-             case IsAmount(C) of
-             NotAmount : TryDate(C);
-             Amount : begin
-                   vsFile.Header.Columns[C].Tag := TagAmount;
-                   rbSingle.Enabled := True;
-                   rbDebitCredit.Enabled := True;
+              vsFile.Header.Columns[C].Tag := TagAlpha;
+            end else if IsNumericOnly(C) then begin
+               // Has No Letters
+               case IsAmount(C) of
+               NotAmount : TryDate(C);
+               Amount : begin
+                     vsFile.Header.Columns[C].Tag := TagAmount;
+                     rbSingle.Enabled := True;
+                     rbDebitCredit.Enabled := True;
 
-             end;
-             AmountWithSign : begin
-                vsFile.Header.Columns[C].Tag := TagAmountSign;
-                rbSingle.Enabled := True;
-             end;
-             end;
-          end else begin
-             // Can have Numbers and Letters
-             // Could Be a Date...
-             TryDate(C);
+               end;
+               AmountWithSign : begin
+                  vsFile.Header.Columns[C].Tag := TagAmountSign;
+                  rbSingle.Enabled := True;
+               end;
+               end;
+            end else begin
+               // Can have Numbers and Letters
+               // Could Be a Date...
+               TryDate(C);
+            end;
+          except
+            on E: Exception do
+              HelpfulErrorMsg(E.Message ,0);
           end;
 
        end;
