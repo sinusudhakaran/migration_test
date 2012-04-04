@@ -1106,6 +1106,8 @@ begin
       end;
     end;
 
+    //Clear it here as well so we don't have data hanging around until next time we run this.
+    ClearHttpHeader;
   finally
     fProcessState := psNothing;
   end;
@@ -1151,6 +1153,9 @@ begin
     WaitForProcess;
 
     AServerResponce := fServerResponce;
+    
+    //Clear it here as well so we don't have data hanging around until next time we run this.
+    ClearHttpHeader;
   finally
     fProcessState := psNothing;
   end;
