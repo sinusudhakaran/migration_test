@@ -2461,6 +2461,7 @@ var
   ClientReadDetail : TBloClientReadDetail;
   NotesId : TBloGuid;
   Subscription : TBloArrayOfguid;
+  UserEmail, UserName: string;
 begin
   Screen.Cursor := crHourGlass;
   Progress.StatusSilent := False;
@@ -2480,13 +2481,23 @@ begin
 
     if Changed then
     begin
+      if (Length(ClientReadDetail.Users) > 0) then
+      begin
+        UserEmail := ClientReadDetail.Users[0].Email;
+        UserName := ClientReadDetail.Users[0].FullName;
+      end else
+      begin
+        UserEmail := MyClient.clFields.clClient_EMail_Address;
+        UserName := MyClient.clFields.clContact_Name;
+      end;
+
       Result := ProductConfigService.UpdateClient(ClientReadDetail,
                                                   ClientReadDetail.BillingFrequency,
                                                   ClientReadDetail.MaxOfflineDays,
                                                   ClientReadDetail.Status,
                                                   Subscription,
-                                                  ClientReadDetail.Users[0].FullName,
-                                                  ClientReadDetail.Users[0].Email);
+                                                  UserEmail,
+                                                  UserName);
     end
     else
       Result := True;
