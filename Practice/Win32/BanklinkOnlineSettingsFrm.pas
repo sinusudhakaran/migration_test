@@ -68,7 +68,7 @@ type
 
     procedure SetStatus(aStatus : TBloStatus);
     function GetStatus : TBloStatus;
-    procedure UpdateClientWebFormat;
+    procedure UpdateClientWebFormat(Subscription: TBloArrayOfGuid);
     procedure SetReadOnly;
     function IsClientOnline : boolean;
     
@@ -244,7 +244,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TfrmBanklinkOnlineSettings.UpdateClientWebFormat;
+procedure TfrmBanklinkOnlineSettings.UpdateClientWebFormat(Subscription: TBloArrayOfGuid);
 var
   NotesId : TBloGuid;
 begin
@@ -252,7 +252,7 @@ begin
     Exit;
 
   NotesId := ProductConfigService.GetNotesId;
-  if ProductConfigService.IsItemInArrayGuid(ClientReadDetail.Subscription, NotesId) then
+  if ProductConfigService.IsItemInArrayGuid(Subscription, NotesId) then
   begin
     if MyClient.clFields.clWeb_Export_Format <> wfWebNotes then
       MyClient.clFields.clWeb_Export_Format := wfWebNotes;
@@ -630,9 +630,13 @@ begin
   end;
 
   if Result then
-    UpdateClientWebFormat
+  begin
+    UpdateClientWebFormat(Subscription);
+  end
   else
+  begin
     ClientReadDetail := ProductConfigService.GetClientDetailsWithCode(MyClient.clFields.clCode);
+  end;
 end;
 
 //------------------------------------------------------------------------------
