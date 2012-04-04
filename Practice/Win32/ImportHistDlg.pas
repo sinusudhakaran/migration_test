@@ -1709,7 +1709,7 @@ begin
        CloseFile(ImportedFile);
 
        lLine.StrictDelimiter := True;
-       lline.Delimiter := FindDelimiter;
+       lline.Delimiter := FindDelimiter(FirstLine);
        try
           lFile.LoadFromFile(EPath.Text);
        except
