@@ -459,7 +459,7 @@ begin
       begin
         if (wfNames[i] = WebNotesName) then
         begin
-          if (ProductConfigService.OnLine and ProductConfigService.IsNotesOnlineEnabled) then
+          if (ProductConfigService.OnLine and ProductConfigService.IsNotesOnlineEnabled) or (MyClient.clFields.clWeb_Export_Format = wfWebNotes) then
           begin
             cmbWebFormats.Items.AddObject(wfNames[i], TObject(i));
           end;
@@ -550,6 +550,15 @@ begin
      if (cmbWebFormats.ItemIndex < 0) then
        ComboUtils.SetComboIndexByIntObject(MyClient.clFields.clWeb_Export_Format, cmbWebFormats);
 
+      //If the client is on notes but the practice is not only then they shouldn't be able to change the web export format off notes. 
+     if MyClient.clFields.clWeb_Export_Format = wfWebNotes then
+     begin
+       if not Assigned(AdminSystem) then
+       begin
+         cmbWebFormats.Enabled := False;
+       end;
+     end;
+     
      chkLockChart.Checked := clChart_Is_Locked;
      chkUseCustomLedgerCode.Checked := clUse_Alterate_ID_for_extract;
      if clUse_Alterate_ID_for_extract then
