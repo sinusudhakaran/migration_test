@@ -425,6 +425,7 @@ var
   LCLRec: pClient_File_Rec;
   NotesId : TBloGuid;
   ClientChanged : Boolean;
+  OldWebExportFormat: Byte;
 begin
    WebFormatChanged := false;
    okPressed := false;
@@ -623,13 +624,20 @@ begin
 
         if clWeb_Export_Format <> ComboUtils.GetComboCurrentIntObject(cmbWebFormats) then
         begin
+          OldWebExportFormat := clWeb_Export_Format;
+          
           clWeb_Export_Format := ComboUtils.GetComboCurrentIntObject(cmbWebFormats);
 
-          //Only update the web export format on blopi, if blopi is available. 
+          //Only update the web export format on blopi, if blopi is available.
           if UseBankLinkOnline then
           begin
             if MyClient.Opened then
-              ProductConfigService.SaveClientNotesOption(clWeb_Export_Format);
+            begin
+              if not ProductConfigService.SaveClientNotesOption(clWeb_Export_Format) then
+              begin
+                clWeb_Export_Format := OldWebExportFormat;
+              end;
+            end;
           end;
         end;
 
