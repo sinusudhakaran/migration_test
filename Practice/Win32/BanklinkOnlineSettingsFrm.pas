@@ -487,7 +487,8 @@ begin
     //Get client list (so that we can lookup the client code)
     ProductConfigService.LoadClientList;
     //Get client details
-    ClientReadDetail := ProductConfigService.GetClientDetailsWithCode(MyClient.clFields.clCode);
+    //Perform blopi client synchronization
+    ClientReadDetail := ProductConfigService.GetClientDetailsWithCode(MyClient.clFields.clCode, True);
   end;
 
   LoadClientInfo(TickNotesOnline);
