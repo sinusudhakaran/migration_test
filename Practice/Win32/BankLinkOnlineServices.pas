@@ -99,6 +99,8 @@ type
     FValidBConnectDetails: Boolean;
     FArrNameSpaceList : Array of TRemRegEntry;
 
+    procedure SynchronizeClientSettings(BlopiClient: TBloClientReadDetail);
+
     procedure CopyRemotableObject(ASource, ATarget: TRemotable);
 
     function IsUserCreatedOnBankLinkOnline(const APractice : TBloPracticeRead;
@@ -223,8 +225,8 @@ type
     //Client methods
     function CreateNewClientWithUser(aNewClient: TBloClientCreate; aNewUserCreate: TBloUserCreate): TBloClientReadDetail;
     procedure LoadClientList;
-    function GetClientDetailsWithCode(AClientCode: string): TBloClientReadDetail;
-    function GetClientDetailsWithGUID(AClientGuid: Guid): TBloClientReadDetail;
+    function GetClientDetailsWithCode(AClientCode: string; SynchronizeBlopi: Boolean = False): TBloClientReadDetail;
+    function GetClientDetailsWithGUID(AClientGuid: Guid; SynchronizeBlopi: Boolean = False): TBloClientReadDetail;
     function CreateNewClient(ANewClient: TBloClientCreate): Guid;
     function SaveClient(AClient: TBloClientReadDetail): Boolean;
     function CreateNewClientUser(NewUser: TBloUserCreate; ClientGUID: string): Guid;
@@ -676,7 +678,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TProductConfigService.GetClientDetailsWithCode(AClientCode: string): TBloClientReadDetail;
+function TProductConfigService.GetClientDetailsWithCode(AClientCode: string; SynchronizeBlopi: Boolean = False): TBloClientReadDetail;
 var
   ClientGuid: WideString;
 begin
@@ -691,11 +693,11 @@ begin
   //Find client code in the client list
   ClientGuid := GetClientGuid(AClientCode);
   if (ClientGuid <> '') then
-    Result := GetClientDetailsWithGuid(ClientGuid);
+    Result := GetClientDetailsWithGuid(ClientGuid, SynchronizeBlopi);
 end;
 
 //------------------------------------------------------------------------------
-function TProductConfigService.GetClientDetailsWithGuid(AClientGuid: TBloGuid): TBloClientReadDetail;
+function TProductConfigService.GetClientDetailsWithGuid(AClientGuid: TBloGuid; SynchronizeBlopi: Boolean = False): TBloClientReadDetail;
 var
   BlopiInterface: IBlopiServiceFacade;
   ClientDetailResponse: MessageResponseOfClientReadDetailMIdCYrSK;
@@ -728,7 +730,14 @@ begin
                                                        AdminSystem.fdFields.fdBankLink_Connect_Password,
                                                        AClientGuid);
       if not MessageResponseHasError(MessageResponse(ClientDetailResponse), 'get the client settings from') then
+      begin
         Result := ClientDetailResponse.Result;
+
+        if SynchronizeBlopi then
+        begin
+          SynchronizeClientSettings(Result);
+        end;
+      end;
 
       if ShowProgress then
         Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finished', 100);
@@ -1590,6 +1599,62 @@ begin
     Deactivated: HelpfulWarningMsg(BANKLINK_ONLINE_NAME + ' is currently deactivated. ' +
                                    'Please contact BankLink Support for further ' +
                                    'assistance.', 0);
+  end;
+end;
+
+procedure TProductConfigService.SynchronizeClientSettings(BlopiClient: TBloClientReadDetail);
+var
+  UserEmail: String;
+  UserName: String;
+  NotesId : TBloGuid;
+  Subscription: TBloArrayOfguid;
+  ClientCode: String;
+  BlopiClientChanged: Boolean;
+begin
+  if Assigned(MyClient) then
+  begin
+    if MyClient.clFields.clCode = BlopiClient.ClientCode then
+    begin
+      Subscription := BlopiClient.Subscription;
+
+      BlopiClientChanged := False;
+
+      if (MyClient.clFields.clWeb_Export_Format <> wfWebNotes) then
+      begin
+        NotesId := GetNotesId;
+
+        if IsItemInArrayGuid(Subscription, NotesId) then
+        begin
+          RemoveItemFromArrayGuid(Subscription, NotesId);
+
+          BlopiClientChanged := True;
+        end;
+      end;
+
+      if BlopiClientChanged then
+      begin
+        if (Length(BlopiClient.Users) > 0) then
+        begin
+          UserEmail := BlopiClient.Users[0].Email;
+          UserName := BlopiClient.Users[0].FullName;
+        end else
+        begin
+          UserEmail := MyClient.clFields.clClient_EMail_Address;
+          UserName := MyClient.clFields.clContact_Name;
+        end;
+
+        if ProductConfigService.UpdateClient(BlopiClient,
+                                             BlopiClient.BillingFrequency,
+                                             BlopiClient.MaxOfflineDays,
+                                             BlopiClient.Status,
+                                             Subscription,
+                                             UserEmail,
+                                             UserName) then
+        begin
+          BlopiClient.Subscription := Subscription;
+        end;
+      end;
+    end;
   end;
 end;
 
@@ -2593,7 +2658,7 @@ begin
       end
       else
       begin
-        BloClientReadDetail := GetClientDetailsWithGUID(fClientList.Clients[ClientIndex].Id);
+        BloClientReadDetail := GetClientDetailsWithGUID(fClientList.Clients[ClientIndex].Id, False);
 
         Result := UpdateClient(BloClientReadDetail,
                                aBillingFrequency,
