@@ -459,7 +459,7 @@ begin
       begin
         if (wfNames[i] = WebNotesName) then
         begin
-          if (ProductConfigService.OnLine and ProductConfigService.IsNotesOnlineEnabled) or (MyClient.clFields.clWeb_Export_Format = wfWebNotes) then
+          if (UseBankLinkOnline and ProductConfigService.OnLine and ProductConfigService.IsNotesOnlineEnabled) or (MyClient.clFields.clWeb_Export_Format = wfWebNotes) then
           begin
             cmbWebFormats.Items.AddObject(wfNames[i], TObject(i));
           end;
