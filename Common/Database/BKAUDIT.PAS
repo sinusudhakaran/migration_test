@@ -846,6 +846,14 @@ begin
     FAuditNamesArray[40,78] := 'Spare_String';
     FAuditNamesArray[40,79] := 'Online_Scheduled_Reports';
     FAuditNamesArray[40,80] := 'File_Transfer_Method';
+    FAuditNamesArray[40,81] := 'OnlineBillingFrequency';
+    FAuditNamesArray[40,82] := 'OnlineMaxOfflineDays';
+    FAuditNamesArray[40,83] := 'OnlineStatus';
+    FAuditNamesArray[40,84] := 'OnlineSubscription';
+    FAuditNamesArray[40,85] := 'OnlineUserEMail';
+    FAuditNamesArray[40,86] := 'OnlineUserFullName';
+    FAuditNamesArray[40,87] := 'OnlineValuesStored';
+    FAuditNamesArray[40,88] := 'OnlineSubscriptionCount';
 
 end;
 

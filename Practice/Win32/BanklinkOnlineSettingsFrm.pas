@@ -97,7 +97,8 @@ uses
   MailFrm,
   YesNoDlg,
   Files,
-  StrUtils;
+  StrUtils,
+  InfoMoreFrm;
 
 const
   UnitName = 'BanklinkOnlineSettingsFrm';
@@ -267,15 +268,17 @@ end;
 //------------------------------------------------------------------------------
 function TfrmBanklinkOnlineSettings.Validate: Boolean;
 var
-  EmailChanged, ProductsChanged, ProductFound: boolean;
-  NewProducts, RemovedProducts: TStringList;
+  EmailChanged, ProductsChanged, ProductFound, NotesOnlineTicked: boolean;
+  NewProducts, RemovedProducts, AllProducts: TStringList;
   PromptMessage, ErrorMsg, MailTo, MailSubject, MailBody: string;
-  i, j : integer;
+  i, j, NumProdTicked : integer;
   ClientStatus : TBloStatus;
   MaxOfflineDays : String;
   BillingFrequency : WideString;
 begin
   Result := False;
+  NotesOnlineTicked := False;
+  NumProdTicked := 0;
 
   EmailChanged := False;
   ProductsChanged := False;
@@ -344,10 +347,20 @@ begin
 
   NewProducts := TStringList.Create;
   RemovedProducts := TStringList.Create;
+  AllProducts     := TStringList.Create;
   try
     for i := 0 to chklistProducts.Count - 1 do
     begin
       ProductFound := false;
+
+      if chklistProducts.Checked[i] then
+      begin
+        AllProducts.Add(chklistProducts.Items[i]);
+        if TBloCatalogueEntry(chklistProducts.Items.Objects[i]).Id = ProductConfigService.GetNotesId then
+          NotesOnlineTicked := True;
+
+        inc(NumProdTicked);
+      end;
       if IsClientOnline then
       begin
         for j := 0 to High(ClientReadDetail.Subscription) do
@@ -383,6 +396,22 @@ begin
       end;
     end;
 
+    if (not IsClientOnline) and
+       (NotesOnlineTicked) and
+       (NumProdTicked > 1) then
+    begin
+      PromptMessage := 'BankLink Practice will create this client with the following ' +
+                       'details onto BankLink Online: ' + #10#10 +
+                       'Name: ' + edtUserName.text + #10 +
+                       'Email Address: ' + edtEmailAddress.text + #10#10 +
+                       'Products: ' + #10 +
+                       Trim(AllProducts.Text) + #10#10 +
+                       'Are you sure you want to continue? ';
+      if AskYesNo('Create Client Online',
+                  PromptMessage, DLG_YES, 0, false) <> DLG_YES then
+        Exit;
+    end
+    else
     if (EmailChanged and ProductsChanged) then
     begin
       PromptMessage := 'Are you sure you want to update the following for ' +
@@ -453,6 +482,7 @@ begin
   finally
     FreeAndNil(NewProducts);
     FreeAndNil(RemovedProducts);
+    FreeAndNil(AllProducts);
   end;
 end;
 
@@ -487,8 +517,7 @@ begin
     //Get client list (so that we can lookup the client code)
     ProductConfigService.LoadClientList;
     //Get client details
-    //Perform blopi client synchronization
-    ClientReadDetail := ProductConfigService.GetClientDetailsWithCode(MyClient.clFields.clCode, True);
+    ClientReadDetail := ProductConfigService.GetClientDetailsWithCode(MyClient.clFields.clCode);
   end;
 
   LoadClientInfo(TickNotesOnline);
@@ -510,6 +539,51 @@ var
   ProductGuid   : TBloGuid;
   ClientSubGuid : TBloGuid;
   CatEntry      : TBloCatalogueEntry;
+  UserEMail     : String;
+  UserFullName  : String;
+  Subscription  : TBloArrayOfguid;
+
+  procedure FillDetailIn(const aBillingFrequency : WideString;
+                         const aMaxOfflineDays   : Integer;
+                         const aStatus           : TBloStatus;
+                         const aSubscription     : TBloArrayOfguid;
+                         const aUserEMail        : WideString;
+                         const aUserFullName     : WideString);
+  var
+    ProdIndex : integer;
+    SubIndex  : integer;
+  begin
+    Status := aStatus;
+    if (aMaxOfflineDays = 0) then
+      cmbConnectDays.Text := 'Always'
+    else
+      cmbConnectDays.Text := IntToStr(aMaxOfflineDays) + ' days';
+    cmbConnectDays.SelLength := 0;
+    if aBillingFrequency = 'M' then
+      cmbBillingFrequency.Text := 'Monthly'
+    else if aBillingFrequency = 'A' then
+      cmbBillingFrequency.Text := 'Annually'
+    else
+      cmbBillingFrequency.Text := aBillingFrequency; // shouldn't ever need this line
+    cmbBillingFrequency.SelLength := 0;
+    chkUseClientDetails.Checked := false;
+
+    // Checks the Products that Client Subscribes to
+    for ProdIndex := 0 to chklistProducts.Items.Count - 1 do
+    begin
+      for SubIndex := 0 to High(aSubscription) do
+      begin
+        ClientSubGuid := aSubscription[SubIndex];
+        ProductGuid   := TBloCatalogueEntry(chklistProducts.Items.Objects[ProdIndex]).id;
+        chklistProducts.Checked[ProdIndex] := (ClientSubGuid = ProductGuid);
+        if chklistProducts.Checked[ProdIndex] then
+          break;
+      end;
+    end;
+
+    edtUserName.Text := aUserFullName;
+    edtEmailAddress.Text := aUserEMail;
+  end;
 begin
   //Load products
   chklistProducts.Clear;
@@ -535,56 +609,51 @@ begin
   // Existing Client
   if IsClientOnline then
   begin
-    Status := ClientReadDetail.Status;
-    if (ClientReadDetail.MaxOfflineDays = 0) then
-      cmbConnectDays.Text := 'Always'
-    else
-      cmbConnectDays.Text := IntToStr(ClientReadDetail.MaxOfflineDays) + ' days';
-    cmbConnectDays.SelLength := 0;
-    if ClientReadDetail.BillingFrequency = 'M' then
-      cmbBillingFrequency.Text := 'Monthly'
-    else if ClientReadDetail.BillingFrequency = 'A' then
-      cmbBillingFrequency.Text := 'Annually'
-    else
-      cmbBillingFrequency.Text := ClientReadDetail.BillingFrequency; // shouldn't ever need this line
-    cmbBillingFrequency.SelLength := 0;
-    chkUseClientDetails.Checked := false;
-
-    // Checks the Products that Client Subscribes to
-    for ProdIndex := 0 to chklistProducts.Items.Count - 1 do
-    begin
-      for SubIndex := 0 to High(ClientReadDetail.Subscription) do
-      begin
-        ClientSubGuid := ClientReadDetail.Subscription[SubIndex];
-        ProductGuid   := TBloCatalogueEntry(chklistProducts.Items.Objects[ProdIndex]).id;
-        chklistProducts.Checked[ProdIndex] := (ClientSubGuid = ProductGuid);
-        if chklistProducts.Checked[ProdIndex] then
-          break;
-      end;
-    end;
-
     if (Length(ClientReadDetail.Users) > 0) then
     begin
-      edtUserName.Text := ClientReadDetail.Users[0].FullName;
-      edtEmailAddress.Text := ClientReadDetail.Users[0].Email;
+      UserFullName := ClientReadDetail.Users[0].FullName;
+      UserEMail    := ClientReadDetail.Users[0].Email;
     end
     else
     begin
-      edtUserName.Text := MyClient.clFields.clContact_Name;
-      edtEmailAddress.Text := MyClient.clFields.clClient_EMail_Address;
+      UserFullName := MyClient.clFields.clContact_Name;
+      UserEMail    := MyClient.clFields.clClient_EMail_Address;
     end;
+
+    FillDetailIn(ClientReadDetail.BillingFrequency,
+                 ClientReadDetail.MaxOfflineDays,
+                 ClientReadDetail.Status,
+                 ClientReadDetail.Subscription,
+                 UserEMail,
+                 UserFullName);
   end
   // New Client
   else
   begin
-    Status := staActive;
-    cmbConnectDays.Text := 'Always';
-    cmbBillingFrequency.Text := 'Monthly';
-    cmbBillingFrequency.SelLength := 0;
-    cmbConnectDays.SelLength := 0;
-    chkUseClientDetails.Checked := False;
-    edtUserName.Text := MyClient.clFields.clContact_Name;
-    edtEmailAddress.Text := MyClient.clFields.clClient_EMail_Address;
+    if MyClient.clExtra.ceOnlineValuesStored then
+    begin
+      SetLength(Subscription, MyClient.clExtra.ceOnlineSubscriptionCount);
+      for SubIndex := 1 to MyClient.clExtra.ceOnlineSubscriptionCount do
+        Subscription[SubIndex-1] := MyClient.clExtra.ceOnlineSubscription[SubIndex];
+
+      FillDetailIn(MyClient.clExtra.ceOnlineBillingFrequency,
+                   MyClient.clExtra.ceOnlineMaxOfflineDays,
+                   TBloStatus(MyClient.clExtra.ceOnlineStatus),
+                   Subscription,
+                   MyClient.clExtra.ceOnlineUserEMail,
+                   MyClient.clExtra.ceOnlineUserFullName);
+    end
+    else
+    begin
+      Status := staActive;
+      cmbConnectDays.Text := 'Always';
+      cmbBillingFrequency.Text := 'Monthly';
+      cmbBillingFrequency.SelLength := 0;
+      cmbConnectDays.SelLength := 0;
+      chkUseClientDetails.Checked := False;
+      edtUserName.Text := MyClient.clFields.clContact_Name;
+      edtEmailAddress.Text := MyClient.clFields.clClient_EMail_Address;
+    end;
   end;
 end;
 
@@ -592,10 +661,16 @@ end;
 function TfrmBanklinkOnlineSettings.SaveClientInfo : Boolean;
 var
   ProdIndex : integer;
+  SubIndex : integer;
   CatEntry  : TBloCatalogueEntry;
   ConnectDays : string;
   Subscription: TBloArrayOfGuid;
+  NotesOnlineTicked : Boolean;
+  NumProdTicked : Integer;
 begin
+  NotesOnlineTicked := False;
+  NumProdTicked := 0;
+
   ConnectDays := StringReplace(cmbConnectDays.Text, 'Always', '0', [rfReplaceAll]);
   ConnectDays := StringReplace(ConnectDays, ' days', '', [rfReplaceAll]);
 
@@ -605,6 +680,11 @@ begin
     begin
       CatEntry := TBloCatalogueEntry(chklistProducts.Items.Objects[ProdIndex]);
       ProductConfigService.AddItemToArrayGuid(Subscription, CatEntry.id);
+
+      if CatEntry.id = ProductConfigService.GetNotesId then
+        NotesOnlineTicked := True;
+
+      Inc(NumProdTicked);
     end;
   end;
 
@@ -622,12 +702,37 @@ begin
   else
   // New Client
   begin
-    Result := ProductConfigService.CreateClient(AnsiLeftStr(cmbBillingFrequency.Text, 1),
-                                                StrToInt(ConnectDays),
-                                                Status,
-                                                Subscription,
-                                                edtEmailAddress.Text,
-                                                edtUserName.Text);
+    if (NotesOnlineTicked) and
+       (NumProdTicked = 1) then
+    begin
+      MyClient.clExtra.ceOnlineBillingFrequency := AnsiLeftStr(cmbBillingFrequency.Text, 1);
+      MyClient.clExtra.ceOnlineMaxOfflineDays   := StrToInt(ConnectDays);
+      MyClient.clExtra.ceOnlineStatus           := Ord(Status);
+
+      if Length(Subscription) > 64 then
+        MyClient.clExtra.ceOnlineSubscriptionCount := 64
+      else
+        MyClient.clExtra.ceOnlineSubscriptionCount := Length(Subscription);
+
+      for SubIndex := 1 to MyClient.clExtra.ceOnlineSubscriptionCount do
+      begin
+        MyClient.clExtra.ceOnlineSubscription[SubIndex] := Subscription[SubIndex-1];
+      end;
+
+      MyClient.clExtra.ceOnlineUserEMail    := edtEmailAddress.Text;
+      MyClient.clExtra.ceOnlineUserFullName := edtUserName.Text;
+      MyClient.clExtra.ceOnlineValuesStored := True;
+      Result := True;
+    end
+    else
+    begin
+      Result := ProductConfigService.CreateClient(AnsiLeftStr(cmbBillingFrequency.Text, 1),
+                                                  StrToInt(ConnectDays),
+                                                  Status,
+                                                  Subscription,
+                                                  edtEmailAddress.Text,
+                                                  edtUserName.Text);
+    end;
   end;
 
   if Result then

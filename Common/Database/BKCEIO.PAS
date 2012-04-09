@@ -85,6 +85,14 @@ CONST
    tkceSpare_String                     = 78 ;
    tkceOnline_Scheduled_Reports         = 79 ;
    tkceFile_Transfer_Method             = 80 ;
+   tkceOnlineBillingFrequency           = 81 ;
+   tkceOnlineMaxOfflineDays             = 82 ;
+   tkceOnlineStatus                     = 83 ;
+   tkceOnlineSubscription               = 84 ;
+   tkceOnlineUserEMail                  = 85 ;
+   tkceOnlineUserFullName               = 86 ;
+   tkceOnlineValuesStored               = 87 ;
+   tkceOnlineSubscriptionCount          = 88 ;
 
 {  -------------------------------------------------------------------  }
 
@@ -158,6 +166,14 @@ Begin
       F.WriteAnsiStringValue( tkceSpare_String , ceSpare_String );
       F.WriteBooleanValue( tkceOnline_Scheduled_Reports , ceOnline_Scheduled_Reports );
       F.WriteByteValue( tkceFile_Transfer_Method , ceFile_Transfer_Method );
+      F.WriteStringValue( tkceOnlineBillingFrequency , ceOnlineBillingFrequency );
+      F.WriteIntegerValue( tkceOnlineMaxOfflineDays , ceOnlineMaxOfflineDays );
+      F.WriteIntegerValue( tkceOnlineStatus , ceOnlineStatus );
+      For i := 1 to 64 do F.WriteBStringValue( tkceOnlineSubscription , i, ceOnlineSubscription[ i ] );
+      F.WriteStringValue( tkceOnlineUserEMail , ceOnlineUserEMail );
+      F.WriteStringValue( tkceOnlineUserFullName , ceOnlineUserFullName );
+      F.WriteBooleanValue( tkceOnlineValuesStored , ceOnlineValuesStored );
+      F.WriteIntegerValue( tkceOnlineSubscriptionCount , ceOnlineSubscriptionCount );
       F.WriteToken( tkEnd_ClientExtra );
    end;
 end; { of Write_ClientExtra_Rec }
@@ -253,6 +269,19 @@ Begin
          tkceSpare_String                     : ceSpare_String := F.ReadAnsiStringValue;
          tkceOnline_Scheduled_Reports         : ceOnline_Scheduled_Reports := F.ReadBooleanValue;
          tkceFile_Transfer_Method             : ceFile_Transfer_Method := F.ReadByteValue;
+         tkceOnlineBillingFrequency           : ceOnlineBillingFrequency := F.ReadStringValue;
+         tkceOnlineMaxOfflineDays             : ceOnlineMaxOfflineDays := F.ReadIntegerValue;
+         tkceOnlineStatus                     : ceOnlineStatus := F.ReadIntegerValue;
+         tkceOnlineSubscription               : 
+            Begin
+               S := F.ReadBStringValue( I );
+               CheckBounds( I, 1, 64, 'ceOnlineSubscription' );
+               ceOnlineSubscription[ I ] := S;
+            end;
+         tkceOnlineUserEMail                  : ceOnlineUserEMail := F.ReadStringValue;
+         tkceOnlineUserFullName               : ceOnlineUserFullName := F.ReadStringValue;
+         tkceOnlineValuesStored               : ceOnlineValuesStored := F.ReadBooleanValue;
+         tkceOnlineSubscriptionCount          : ceOnlineSubscriptionCount := F.ReadIntegerValue;
          else
             Raise ETokenException.CreateFmt( SUnknownToken, [ Token ] );
       end; { of Case }
@@ -303,7 +332,7 @@ begin
   for i := Low(ChangedFields) to High(ChangedFields) do
     ChangedFields[i] := 0;
   j := 0;
-  for i := tkceTAX_Applies_From to tkceFile_Transfer_Method do begin
+  for i := tkceTAX_Applies_From to tkceOnlineSubscriptionCount do begin
     ChangedFields[j] := i;
     Inc(j);
   end;
@@ -525,6 +554,47 @@ begin
   if (P1.ceFile_Transfer_Method <> P2.ceFile_Transfer_Method) then begin
     P3.ceFile_Transfer_Method := P1.ceFile_Transfer_Method;
     ChangedFields[i] := tkceFile_Transfer_Method;
+    Inc(i);
+  end;
+  if (P1.ceOnlineBillingFrequency <> P2.ceOnlineBillingFrequency) then begin
+    P3.ceOnlineBillingFrequency := P1.ceOnlineBillingFrequency;
+    ChangedFields[i] := tkceOnlineBillingFrequency;
+    Inc(i);
+  end;
+  if (P1.ceOnlineMaxOfflineDays <> P2.ceOnlineMaxOfflineDays) then begin
+    P3.ceOnlineMaxOfflineDays := P1.ceOnlineMaxOfflineDays;
+    ChangedFields[i] := tkceOnlineMaxOfflineDays;
+    Inc(i);
+  end;
+  if (P1.ceOnlineStatus <> P2.ceOnlineStatus) then begin
+    P3.ceOnlineStatus := P1.ceOnlineStatus;
+    ChangedFields[i] := tkceOnlineStatus;
+    Inc(i);
+  end;
+  if OnlineSubscription_Changed(TOnlineSubscription_Array(P1.ceOnlineSubscription), 
+                  TOnlineSubscription_Array(P2.ceOnlineSubscription), 
+                  TOnlineSubscription_Array(P3.ceOnlineSubscription)) then begin
+    ChangedFields[i] := tkceOnlineSubscription;
+    Inc(i);
+  end;
+  if (P1.ceOnlineUserEMail <> P2.ceOnlineUserEMail) then begin
+    P3.ceOnlineUserEMail := P1.ceOnlineUserEMail;
+    ChangedFields[i] := tkceOnlineUserEMail;
+    Inc(i);
+  end;
+  if (P1.ceOnlineUserFullName <> P2.ceOnlineUserFullName) then begin
+    P3.ceOnlineUserFullName := P1.ceOnlineUserFullName;
+    ChangedFields[i] := tkceOnlineUserFullName;
+    Inc(i);
+  end;
+  if (P1.ceOnlineValuesStored <> P2.ceOnlineValuesStored) then begin
+    P3.ceOnlineValuesStored := P1.ceOnlineValuesStored;
+    ChangedFields[i] := tkceOnlineValuesStored;
+    Inc(i);
+  end;
+  if (P1.ceOnlineSubscriptionCount <> P2.ceOnlineSubscriptionCount) then begin
+    P3.ceOnlineSubscriptionCount := P1.ceOnlineSubscriptionCount;
+    ChangedFields[i] := tkceOnlineSubscriptionCount;
     Inc(i);
   end;
 

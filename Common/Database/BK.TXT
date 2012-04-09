@@ -1109,4 +1109,12 @@ F|Send Job List|Y
 F|Spare String|AS
 F|Online Scheduled Reports|Y
 F|File Transfer Method|B
+F|OnlineBillingFrequency|S|32
+F|OnlineMaxOfflineDays|L
+F|OnlineStatus|L
+F|OnlineSubscription|BS|64|36
+F|OnlineUserEMail|S|64
+F|OnlineUserFullName|S|32
+F|OnlineValuesStored|Y
+F|OnlineSubscriptionCount|L
 E

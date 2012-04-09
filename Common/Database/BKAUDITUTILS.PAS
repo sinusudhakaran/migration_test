@@ -90,6 +90,7 @@ type
   TSend_Custom_Documents_List_Array = Array[ 1..10 ] of String[ 40 ];
   TCustom_SFLedger_Titles_Array = Array[ 1..1 ] of String[ 60 ];
   TSUI_Step_Done_Array = Array[ 0..32 ] of Boolean;
+  TOnlineSubscription_Array = Array[ 1..64 ] of String[ 36 ];
 
  function Short_Name_Changed(const V1, V2: TShort_Name_Array; var V3: TShort_Name_Array): boolean;
  function Long_Name_Changed(const V1, V2: TLong_Name_Array; var V3: TLong_Name_Array): boolean;
@@ -168,6 +169,7 @@ type
  function Send_Custom_Documents_List_Changed(const V1, V2: TSend_Custom_Documents_List_Array; var V3: TSend_Custom_Documents_List_Array): boolean;
  function Custom_SFLedger_Titles_Changed(const V1, V2: TCustom_SFLedger_Titles_Array; var V3: TCustom_SFLedger_Titles_Array): boolean;
  function SUI_Step_Done_Changed(const V1, V2: TSUI_Step_Done_Array; var V3: TSUI_Step_Done_Array): boolean;
+ function OnlineSubscription_Changed(const V1, V2: TOnlineSubscription_Array; var V3: TOnlineSubscription_Array): boolean;
  function Changed_Fields_Changed(const V1, V2: TChanged_Fields_Array; var V3: TChanged_Fields_Array): boolean;
 
 implementation
@@ -1319,6 +1321,21 @@ begin
 end;
 
 function SUI_Step_Done_Changed(const V1, V2: TSUI_Step_Done_Array; var V3: TSUI_Step_Done_Array): boolean;
+var
+  i: integer;
+begin
+  Result := False;
+  for i := Low(V1) to High(V2) do
+    if V1[i] <> V2[i] then begin
+      Result := True;
+      Break;
+    end;
+  if Result then
+    for i := Low(V1) to High(V1) do
+        V3[i] := V1[i];
+end;
+
+function OnlineSubscription_Changed(const V1, V2: TOnlineSubscription_Array; var V3: TOnlineSubscription_Array): boolean;
 var
   i: integer;
 begin

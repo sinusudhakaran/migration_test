@@ -9,8 +9,8 @@ Interface uses MONEYDEF, DATEDEF;
 {  -------------------------------------------------------------------  }
 
 Const
-   BK_IOLIB_Version : Integer = 647;
-   BK_IOLIB_Date    = '02/11/11';
+   BK_IOLIB_Version : Integer = 651;
+   BK_IOLIB_Date    = '05/04/12';
    BK_FILE_VERSION  = 168;  (* Current Version counter for files
                               Changes if structure or method of storing a value would cause
                               data to be represented incorrectly, or an exception to be raised *)
@@ -1239,6 +1239,14 @@ Type
       ceSpare_String                     : AnsiString;       { Stored }
       ceOnline_Scheduled_Reports         : Boolean;       { Stored }
       ceFile_Transfer_Method             : Byte;       { Stored }
+      ceOnlineBillingFrequency           : String[ 32 ];       { Stored }
+      ceOnlineMaxOfflineDays             : Integer;       { Stored }
+      ceOnlineStatus                     : Integer;       { Stored }
+      ceOnlineSubscription               : Array[ 1..64 ] of String[ 36 ];       { Stored }
+      ceOnlineUserEMail                  : String[ 64 ];       { Stored }
+      ceOnlineUserFullName               : String[ 32 ];       { Stored }
+      ceOnlineValuesStored               : Boolean;       { Stored }
+      ceOnlineSubscriptionCount          : Integer;       { Stored }
       ceEOR                              : Byte;
    end;
 
