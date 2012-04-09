@@ -116,7 +116,8 @@ uses
   EnterPwdDlg,
   syamio,
   BankLinkOnlineServices,
-  BlopiServiceFacade;
+  BlopiServiceFacade,
+  ErrorMoreFrm;
 
 const
    UnitName = 'RESYNCCLIENT';
@@ -536,16 +537,28 @@ begin
       // *** Clearing Banklink Online details before syncing client (start) ***
       // Changing the web export format (if necessary)
       if aClient.clFields.clWeb_Export_Format = wfWebNotes then
-        aClient.clFields.clWeb_Export_Format := wfNone;
-      try
-        // Get client list
-        ProductConfigService.LoadClientList;
-        ProductConfigService.SaveClientNotesOption(aClient.clFields.clWeb_Export_Format);
-      finally
-        FreeAndNil(ClientReadDetail);
-      end;                                         
-      // *** Clearing Banklink Online details before syncing client (end) ***
+      begin
+        ClientReadDetail := ProductConfigService.GetClientDetailsWithCode(MyClient.clFields.clCode);
 
+        if Assigned(ClientReadDetail) then
+        begin
+          try
+            // Get client list
+            if ProductConfigService.UpdateClientNotesOption(ClientReadDetail, wfNone) then
+            begin
+              aClient.clFields.clWeb_Export_Format := wfNone;
+            end
+            else
+            begin
+              HelpfulErrorMsg('Client web export format could not be reset to none', 0);
+            end;
+          finally
+            ClientReadDetail.Free;
+          end;
+        end;
+        // *** Clearing Banklink Online details before syncing client (end) ***
+      end;
+      
       ClientLastTrxDate := 0;
       BankAccountExistsInAdmin := False;
       with aClient.clBank_Account_List do for i := 0 to Pred(ItemCount) do begin
