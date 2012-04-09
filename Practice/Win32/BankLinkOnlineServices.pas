@@ -272,6 +272,9 @@ type
                                 const aPassword : WideString;
                                 aPractice : TBloPracticeRead = nil;
                                 aLinkedUserGuid : TBloGuid = '') : Boolean;
+
+    function UpdateClientNotesOption(ClientReadDetail: TBloClientReadDetail; WebExportFormat: Byte): Boolean;
+
     property OnLine: Boolean read FOnLine;
     property Registered: Boolean read GetRegistered;
     property ValidBConnectDetails: Boolean read GetValidBConnectDetails;
@@ -2810,6 +2813,55 @@ begin
                           0, True, E.Message, True);
       end;
     end;
+  finally
+    Progress.StatusSilent := True;
+    Progress.ClearStatus;
+    Screen.Cursor := crDefault;
+  end;
+end;
+
+function TProductConfigService.UpdateClientNotesOption(ClientReadDetail: TBloClientReadDetail; WebExportFormat: Byte): Boolean;
+var
+  Changed : Boolean;
+  NotesId : TBloGuid;
+  Subscription : TBloArrayOfguid;
+  UserEmail, UserName: string;
+begin
+  Screen.Cursor := crHourGlass;
+  Progress.StatusSilent := False;
+  Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Connecting', 10);
+
+  try
+    Subscription := ClientReadDetail.Subscription;
+
+    NotesId := GetNotesId;
+    
+    if WebExportFormat = wfWebNotes then
+    begin
+      Changed := AddItemToArrayGuid(Subscription, NotesId)
+    end
+    else
+    begin
+      Changed := RemoveItemFromArrayGuid(Subscription, NotesId);
+    end;
+
+    if (Length(ClientReadDetail.Users) > 0) then
+    begin
+      UserEmail := ClientReadDetail.Users[0].Email;
+      UserName := ClientReadDetail.Users[0].FullName;
+    end else
+    begin
+      UserEmail := MyClient.clFields.clClient_EMail_Address;
+      UserName := MyClient.clFields.clContact_Name;
+    end;
+
+    Result := UpdateClient(ClientReadDetail,
+                           ClientReadDetail.BillingFrequency,
+                           ClientReadDetail.MaxOfflineDays,
+                           ClientReadDetail.Status,
+                           Subscription,
+                           UserEmail,
+                           UserName);
   finally
     Progress.StatusSilent := True;
     Progress.ClearStatus;
