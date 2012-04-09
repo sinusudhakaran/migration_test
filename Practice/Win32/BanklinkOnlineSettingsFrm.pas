@@ -609,6 +609,9 @@ begin
   // Existing Client
   if IsClientOnline then
   begin
+    if MyClient.clExtra.ceOnlineValuesStored then
+      MyClient.clExtra.ceOnlineValuesStored := false;
+
     if (Length(ClientReadDetail.Users) > 0) then
     begin
       UserFullName := ClientReadDetail.Users[0].FullName;

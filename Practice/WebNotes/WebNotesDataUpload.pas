@@ -131,7 +131,8 @@ uses
   GSTCALC32,
   WebNotesSchema,
   WebUtils,
-  Admin32;
+  Admin32,
+  BankLinkOnlineServices;
 
 const
   UnitName = 'WebNotesDataUpload';
@@ -157,6 +158,9 @@ var
   WebClient : TWebNotesClient;
   Service: TWebNotesDataUpload;
   Reply,Batch: string;
+  SubIndex     : integer;
+  Subscription : TBloArrayOfguid;
+  ClientReadDetail : TBloClientReadDetail;
 
   //----------------------------------------------
   procedure SaveUrl(NewUri: string);
@@ -233,6 +237,38 @@ begin
           Result := True;
           // Set a flag we did it atleast once
           UploadedToWebnotes;
+
+          if aClient.clExtra.ceOnlineValuesStored then
+          begin
+            ProductConfigService.GetPractice;
+
+            if ProductConfigService.Online then
+            begin
+              //Get client list (so that we can lookup the client code)
+              ProductConfigService.LoadClientList;
+              //Get client details
+              ClientReadDetail := ProductConfigService.GetClientDetailsWithCode(aClient.clFields.clCode);
+
+              try
+                if Assigned(ClientReadDetail) then
+                begin
+                  SetLength(Subscription, aClient.clExtra.ceOnlineSubscriptionCount);
+                  for SubIndex := 1 to aClient.clExtra.ceOnlineSubscriptionCount do
+                    Subscription[SubIndex-1] := aClient.clExtra.ceOnlineSubscription[SubIndex];
+
+                  Result := ProductConfigService.UpdateClient(ClientReadDetail,
+                                                              aClient.clExtra.ceOnlineBillingFrequency,
+                                                              aClient.clExtra.ceOnlineMaxOfflineDays,
+                                                              TBloStatus(aClient.clExtra.ceOnlineStatus),
+                                                              Subscription,
+                                                              aClient.clExtra.ceOnlineUserEMail,
+                                                              aClient.clExtra.ceOnlineUserFullName);
+                end;
+              finally
+                FreeandNil(ClientReadDetail);
+              end;
+            end;
+          end;
         end
         else
           raise Exception.Create('Wrong server response' );
