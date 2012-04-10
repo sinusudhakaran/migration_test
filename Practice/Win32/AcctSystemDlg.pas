@@ -426,6 +426,7 @@ var
   NotesId : TBloGuid;
   ClientChanged : Boolean;
   OldWebExportFormat: Byte;
+  BlopiClientDetails: TBloClientReadDetail;
 begin
    WebFormatChanged := false;
    okPressed := false;
@@ -633,9 +634,14 @@ begin
           begin
             if MyClient.Opened then
             begin
-              if not ProductConfigService.SaveClientNotesOption(clWeb_Export_Format) then
+              BlopiClientDetails := ProductConfigService.GetClientDetailsWithCode(MyClient.clFields.clCode);
+
+              if Assigned(BlopiClientDetails) then
               begin
-                clWeb_Export_Format := OldWebExportFormat;
+                if not ProductConfigService.UpdateClientNotesOption(BlopiClientDetails, clWeb_Export_Format) then
+                begin
+                  clWeb_Export_Format := OldWebExportFormat;
+                end;
               end;
             end;
           end;
