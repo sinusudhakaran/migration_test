@@ -755,7 +755,7 @@ type
     procedure ResetAutoSave;
     procedure DoHDE;
     procedure DoMDE;
-    procedure DoClientDetails(ViewNotes : Boolean = False);
+    procedure DoClientDetails(PopupParent: Forms.TForm; ViewNotes : Boolean = False);
     procedure DoEditGSTDetails;
     procedure DoGSTReturn;
     procedure DoAccountingSystem;
@@ -2336,12 +2336,12 @@ begin
    Previous;
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-procedure TfrmMain.DoClientDetails(ViewNotes : Boolean = False);
+procedure TfrmMain.DoClientDetails(PopupParent: Forms.TForm; ViewNotes : Boolean = False);
 var
   OldFinYear : integer;
 begin
   OldFinYear := MyClient.clFields.clFinancial_Year_Starts;
-  if EditClientDetails(Self, ViewNotes) then begin
+  if EditClientDetails(PopupParent, ViewNotes) then begin
     UpdateName;
     // Invalidate, Repaint, Refresh, Update do not work here. No idea why!!?? so this is a hack to force a repaint...
     lblClientName.Top := lblClientName.Top - 1;
@@ -4313,7 +4313,12 @@ begin
     if Modal then DisableMainForm;
     try
       if Assigned( ProcessFrm) then
+      begin
+        ProcessFrm.PopupParent := Screen.ActiveForm;
+        ProcessFrm.PopupMode := pmExplicit;
+
         ProcessFrm.Show;
+      end;
 
       case Command of
         mf_mcOpenFile : DoFileOpen;
@@ -4348,8 +4353,8 @@ begin
            RunBalancesForwardWizard( MyClient);
            UPDATEMF.UpdateMenus;
         end;
-        mf_mcClientDetails : DoClientDetails;
-        mf_mcClientNotes : DoClientDetails(True);
+        mf_mcClientDetails : DoClientDetails(Screen.ActiveForm);
+        mf_mcClientNotes : DoClientDetails(Screen.ActiveForm, True);
         mf_mcAccountingSystem : begin
           DoAccountingSystem;
           UPDATEMF.UpdateMenus;
