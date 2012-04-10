@@ -22,7 +22,9 @@ uses
   WebClient,
   XMLDoc,
   XMLIntf,
-  EncdDecd;
+  EncdDecd,
+  CodingStatsList32,
+  BKDateUtils;
 
 {$M+}
 type
@@ -246,7 +248,8 @@ uses
   WebUtils,
   StrUtils,
   Windows,
-  LogUtil;
+  LogUtil,
+  CSDEFS;
 
 const
   // XML Server packet Names
@@ -1122,6 +1125,9 @@ var
   PracticeCode : String;
   PracticePass : String;
   CountryCode  : String;
+  PS: pCoding_Statistics_Rec;
+  lMonth: TstDate;
+  lPractice: TSystem_Coding_Statistics;
 begin
   fProcessState := psUploadPrac;
 
@@ -1156,6 +1162,16 @@ begin
     
     //Clear it here as well so we don't have data hanging around until next time we run this.
     ClearHttpHeader;
+
+    // Increasing stat for 'total number of client files sent'
+    lPractice := CodingStatsList32.CodingStatsManager.GetPracticeStats;
+    try
+      lMonth := GetFirstDayOfMonth(CurrentDate);
+      PS := lPractice.FindClientMonth(PracticeLRN, lMonth);
+      inc(PS.csClient_Files_Sent, 1);
+    finally
+      lPractice.Free;
+    end;
   finally
     fProcessState := psNothing;
   end;
@@ -1175,6 +1191,9 @@ var
   Guid         : TGuid;
   StrGuid      : String;
   TempPath     : String;
+  PS: pCoding_Statistics_Rec;
+  lMonth: TstDate;
+  lPractice: TSystem_Coding_Statistics;
 begin
   fProcessState := psDownloadPrac;
 
@@ -1218,6 +1237,17 @@ begin
     end;
 
     AServerResponce := fServerResponce;
+
+    // Increasing stat for 'total number of client files received'
+    lPractice := CodingStatsList32.CodingStatsManager.GetPracticeStats;
+    try
+      lMonth := GetFirstDayOfMonth(CurrentDate);
+      PS := lPractice.FindClientMonth(PracticeLRN, lMonth);
+      inc(PS.csClient_Files_Received, 1);
+    finally
+      lPractice.Free;
+    end;
+
   finally
     fProcessState := psNothing;
   end;

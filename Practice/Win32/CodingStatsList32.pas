@@ -552,6 +552,7 @@ begin
     // So they get read first
     Write_Coding_Stat_Fields_Rec (FStatFields,S);
 
+
     FSavedClientStats.SaveToStream(S);
 
     S.WriteToken(tkEndSection);
