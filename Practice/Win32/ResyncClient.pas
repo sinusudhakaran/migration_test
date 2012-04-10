@@ -538,6 +538,8 @@ begin
       // Changing the web export format (if necessary)
       if aClient.clFields.clWeb_Export_Format = wfWebNotes then
       begin
+        aClient.clFields.clWeb_Export_Format := wfNone;
+        
         ClientReadDetail := ProductConfigService.GetClientDetailsWithCode(MyClient.clFields.clCode);
 
         if Assigned(ClientReadDetail) then
