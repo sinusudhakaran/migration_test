@@ -705,6 +705,9 @@ begin
   else
   // New Client
   begin
+    // If Notes Online is selected and no other products are selected instead of creating a
+    // new client then it stores the values offline (in the client file) to be uploaded
+    // after the first Note upload when it does create the client
     if (NotesOnlineTicked) and
        (NumProdTicked = 1) then
     begin
