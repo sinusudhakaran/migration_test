@@ -183,8 +183,8 @@ type
     function Execute(PCode: string = ''; InWizard: Boolean = False) : boolean;
   end;
 
-  function EditClientDetails (w_PopupParent: TForm; ViewNotes : Boolean = False) : boolean;
-  function NewClientDetails(w_PopupParent: TForm; PCode: string = ''; EnableClientSettings: boolean = true; InWizard: Boolean = False) : boolean;
+  function EditClientDetails (w_PopupParent: Forms.TForm; ViewNotes : Boolean = False) : boolean;
+  function NewClientDetails(w_PopupParent: Forms.TForm; PCode: string = ''; EnableClientSettings: boolean = true; InWizard: Boolean = False) : boolean;
 
 //------------------------------------------------------------------------------
 implementation
@@ -499,7 +499,7 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmClientDetails.AfterShow(var Message: TMessage);
 begin
-  //Prevent the processing form from appearing ontop
+  //Prevent the application from disapearing begin another application
   BringToFront;
 end;
 
@@ -1139,7 +1139,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function EditClientDetails (w_PopupParent: TForm; ViewNotes : Boolean = False): boolean;
+function EditClientDetails (w_PopupParent: Forms.TForm; ViewNotes : Boolean = False): boolean;
 var
   ClientDetails : TfrmClientDetails;
 begin
@@ -1169,7 +1169,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function NewClientDetails(w_PopupParent: TForm; PCode: string = ''; EnableClientSettings: boolean = true; InWizard: Boolean = False) : boolean;
+function NewClientDetails(w_PopupParent: Forms.TForm; PCode: string = ''; EnableClientSettings: boolean = true; InWizard: Boolean = False) : boolean;
 var
   ClientDetails : TfrmClientDetails;
 begin
