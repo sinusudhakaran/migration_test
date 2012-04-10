@@ -166,6 +166,9 @@ type
     FViewNotes : Boolean;
     FEnableClientSettings : boolean;
     FUseClientDetailsForBankLinkOnline: Boolean;
+
+    FInWizard: Boolean;
+    
     function  OkToPost : boolean;
     procedure UpdatePracticeContactDetails( ContactType : byte);
     procedure ShowPracticeContactDetails(ReadOnly : Boolean);
@@ -177,11 +180,11 @@ type
     procedure AfterShow(var Message: TMessage); message UM_AFTERSHOW;
   public
     { Public declarations }
-    function Execute(PCode: string = '') : boolean;
+    function Execute(PCode: string = ''; InWizard: Boolean = False) : boolean;
   end;
 
   function EditClientDetails (w_PopupParent: TForm; ViewNotes : Boolean = False) : boolean;
-  function NewClientDetails(w_PopupParent: TForm; PCode: string = ''; EnableClientSettings: boolean = true) : boolean;
+  function NewClientDetails(w_PopupParent: TForm; PCode: string = ''; EnableClientSettings: boolean = true; InWizard: Boolean = False) : boolean;
 
 //------------------------------------------------------------------------------
 implementation
@@ -650,7 +653,8 @@ begin
   end;
 
   // Web Export to BankLink test
-  if (MyClient.clFields.clWeb_Export_Format = wfWebNotes) then begin
+  if (MyClient.clFields.clWeb_Export_Format = wfWebNotes) and not FInWizard then
+  begin
       CodeType := format( 'You have selected'#13'Web export to %s,'#13'under Accounting System.'#13#13, [WebNotesName]);
       if EContact.Text = '' then begin
          HelpfulWarningMsg(CodeType + 'This requires a Contact Name.', 0);
@@ -670,7 +674,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TfrmClientDetails.Execute(PCode: string = ''): boolean;
+function TfrmClientDetails.Execute(PCode: string = ''; InWizard: Boolean = False): boolean;
 var
   AdminLoaded   : boolean;
   i             : integer;
@@ -693,6 +697,8 @@ begin
    okPressed := false;
    FileRenamed := false;
    AdminLoaded := RefreshAdmin;  //stored - will be used later too
+
+   FInWizard := InWizard;
 
    with MyClient.clFields do
    begin
@@ -1163,7 +1169,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function NewClientDetails(w_PopupParent: TForm; PCode: string = ''; EnableClientSettings: boolean = true) : boolean;
+function NewClientDetails(w_PopupParent: TForm; PCode: string = ''; EnableClientSettings: boolean = true; InWizard: Boolean = False) : boolean;
 var
   ClientDetails : TfrmClientDetails;
 begin
@@ -1181,7 +1187,7 @@ begin
         btnClientSettings.Enabled := FEnableClientSettings;
         BKHelpSetUp(ClientDetails, BKH_Step_1_Client_Details);
         CreatingClient := true;
-        Result := Execute(PCode);
+        Result := Execute(PCode, InWizard);
 
      finally
         Free;
