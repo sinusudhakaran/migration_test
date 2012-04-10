@@ -1304,7 +1304,7 @@ var
 begin
   if Assigned(MyClient) then
   begin
-    ClientReadDetail := ProductConfigService.GetClientDetailsWithCode(MyClient.clFields.clCode);
+    ClientReadDetail := ProductConfigService.GetClientDetailsWithCode(MyClient.clFields.clCode, True);
 
     NumProducts := '0';
     if Assigned(ClientReadDetail) then
