@@ -140,10 +140,6 @@ object ImportHist: TImportHist
         object TSAmount: TTabSheet
           Caption = '&Amount'
           ImageIndex = 1
-          ExplicitLeft = 0
-          ExplicitTop = 0
-          ExplicitWidth = 0
-          ExplicitHeight = 0
           object lbAmount: TLabel
             Left = 216
             Top = 10
@@ -166,7 +162,7 @@ object ImportHist: TImportHist
             Width = 300
             Height = 21
             Style = csDropDownList
-            ItemHeight = 0
+            ItemHeight = 13
             TabOrder = 3
             Visible = False
             OnChange = cbAmountChange
@@ -177,7 +173,7 @@ object ImportHist: TImportHist
             Width = 300
             Height = 21
             Style = csDropDownList
-            ItemHeight = 0
+            ItemHeight = 13
             TabOrder = 4
             Visible = False
             OnChange = cbAmountChange
@@ -538,11 +534,12 @@ object ImportHist: TImportHist
       object lbFile: TLabel
         Left = 1
         Top = 1
-        Width = 3
+        Width = 1025
         Height = 13
         Align = alTop
         Constraints.MaxHeight = 100
         WordWrap = True
+        ExplicitWidth = 3
       end
       object vsFile: TVirtualStringTree
         Left = 1

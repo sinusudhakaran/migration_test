@@ -418,9 +418,17 @@ procedure TImportHist.BTNBrowseClick(Sender: TObject);
 begin
    OpenDLG.FileName := EPath.Text;
    OpenDlg.InitialDir := ExtractFilePath(EPath.Text);
-   if OpenDLG.Execute() then begin
+   if OpenDLG.Execute() then
+   begin
+     //So that the timer is not triggered when setting the CHFirstLine checkbox in ReloadFile.
+     FInSetup := True;
+
+     try
        EPath.Text := OpenDLG.FileName;
        ReloadFile;
+     finally
+       FInSetup := False;
+     end;
    end;
 end;
 
@@ -966,6 +974,8 @@ procedure TImportHist.FormCreate(Sender: TObject);
     end;
 
 begin
+   HeaderLineList := TStringList.Create;
+   
    FInSetup := True;
    FCursor := Screen.Cursor;
    Screen.Cursor := crHourGlass;
@@ -1019,6 +1029,8 @@ begin
    fFileList.Free;
    fOutList.Free;
    FreeAndNil(FMatchTransactions);
+
+   HeaderLineList.Free;
 end;
 
 procedure TImportHist.FormResize(Sender: TObject);
@@ -1730,6 +1742,7 @@ begin
           Exit; // Nothing found..
 
        HeaderLine := True;
+
        for C := 0 to lLine.Count - 1 do begin
           if not IsAlphaOnly(LLine[C]) then
           if IsNumericOnly(LLine[C]) then begin
@@ -1737,15 +1750,41 @@ begin
              Break;
           end;
        end;
-       if HeaderLine then begin
-          // All Text, Must be header (No valid amount Or Date)
-          CHFirstLine.Checked := True;
-          CHFirstLine.Enabled := False;
-          HeaderLineList := TStringList.Create;
+
+       HeaderLineList.Clear;
+       
+       if HeaderLine then
+       begin
+         // All Text, Must be header (No valid amount Or Date)
+         CHFirstLine.Checked := True;
+         CHFirstLine.Enabled := False;
+
+         { This should not be created here since a global function depends on it.  Now created in the constructor
+         HeaderLineList := TStringList.Create;
+         }
+
           for C := 0 to lLine.Count - 1 do
             HeaderLineList.Add(lLine.Strings[C]);
-       end else
-          CHFirstLine.Enabled := True;
+       end
+       else
+       begin
+         CHFirstLine.Enabled := True;
+
+         if CHFirstLine.Checked then
+         begin
+           for C := 0 to lLine.Count - 1 do
+           begin
+             HeaderLineList.Add(lLine.Strings[C]);
+           end;
+         end
+         else
+         begin
+           for C := 0 to lLine.Count - 1 do
+           begin
+             HeaderLineList.Add(Format('Column %d',[C + 1]));
+           end;
+         end;
+       end;
 
        // Fill in the First line
 
