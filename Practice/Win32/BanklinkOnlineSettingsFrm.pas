@@ -754,7 +754,7 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmBanklinkOnlineSettings.AfterShow(var Message: TMessage);
 begin
-  //Prevent the processing form from appearing ontop
+  //Prevent the application from disapearing begin another application
   BringToFront;
 end;
 
