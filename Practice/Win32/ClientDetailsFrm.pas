@@ -1307,8 +1307,11 @@ begin
     ClientReadDetail := ProductConfigService.GetClientDetailsWithCode(MyClient.clFields.clCode, True);
 
     NumProducts := '0';
+
     if Assigned(ClientReadDetail) then
-      NumProducts := IntToStr(Length(ClientReadDetail.Subscription));
+      NumProducts := IntToStr(Length(ClientReadDetail.Subscription))
+    else if MyClient.clExtra.ceOnlineValuesStored then
+      NumProducts := IntToStr(MyClient.clExtra.ceOnlineSubscriptionCount);
 
     SetProductsCaption('This client currently has access to ' + NumProducts +
                        ' Banklink Online product(s)');
