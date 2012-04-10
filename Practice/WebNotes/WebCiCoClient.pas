@@ -249,7 +249,8 @@ uses
   StrUtils,
   Windows,
   LogUtil,
-  CSDEFS;
+  CSDEFS,
+  UsageUtils;
 
 const
   // XML Server packet Names
