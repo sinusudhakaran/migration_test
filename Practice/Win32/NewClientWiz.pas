@@ -40,6 +40,7 @@ type
     procedure FormActivate(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
+    procedure btnAcceptClick(Sender: TObject);
 
   private
     { Private declarations }
@@ -177,8 +178,7 @@ begin
         begin
            if (MyClient.clFields.clWeb_Export_Format = wfWebNotes) then
            begin
-             if (ProductConfigService.Online) and
-                (ProductConfigService.IsPracticeActive(false)) then
+             if (ProductConfigService.Online) and (ProductConfigService.IsPracticeActive(false)) then
              begin
                if TOptionRec(Option[opAccountSys]).Complete = false then
                begin
@@ -464,13 +464,13 @@ begin
                    clClient_Type_LRN := pRec^.cfClient_Type_LRN;
                  end;
                end;
-               if NewClientDetails(Self, FPCode, false) then begin
+               if NewClientDetails(Self, FPCode, false, True) then begin
                   Option[ opNewClient ].Complete := True;
                end;
             end
             else begin
                // Edit existing New Client Details
-               NewClientDetails(Self, FPCode, false);
+               NewClientDetails(Self, FPCode, false, True);
             end;
          end;
          opAccountSys : begin
@@ -525,6 +525,30 @@ begin
       end;
    end;
 end;
+procedure TwizNewClient.btnAcceptClick(Sender: TObject);
+var
+  Msg: String;
+begin
+  if (MyClient.clFields.clWeb_Export_Format = wfWebNotes) then
+  begin
+    if (ProductConfigService.Online) and (ProductConfigService.IsPracticeActive(false)) then
+    begin
+      if (Trim(MyClient.clFields.clContact_Name) = '') or (Trim(MyClient.clFields.clClient_EMail_Address) = '') then
+      begin
+        Msg := Format( 'Web export to %s requires both an Email address and a contact name' +
+                        #13#10 + 'Please update the Client Details before selecting this option',
+                        [WebNotesName]);
+                        
+        HelpfulWarningMsg(Msg, 0);
+
+        Exit;
+      end;
+    end;
+  end;
+
+  ModalResult := mrOk;
+end;
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function TwizNewClient.AddClientToAdmin(LRN: Integer = -1; HasNotes: Boolean = False) : boolean;
 const
