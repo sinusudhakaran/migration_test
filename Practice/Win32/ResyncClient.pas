@@ -552,7 +552,7 @@ begin
             end
             else
             begin
-              HelpfulErrorMsg('Client web export format could not be reset to none', 0);
+              HelpfulErrorMsg('Client banklink online web export format could not be reset to none', 0);
             end;
           finally
             ClientReadDetail.Free;
