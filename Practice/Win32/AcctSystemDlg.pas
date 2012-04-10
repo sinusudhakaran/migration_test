@@ -427,6 +427,8 @@ var
   ClientChanged : Boolean;
   OldWebExportFormat: Byte;
   BlopiClientDetails: TBloClientReadDetail;
+  OffLineSubscription : TBloArrayOfguid;
+  SubIndex : integer;
 begin
    WebFormatChanged := false;
    okPressed := false;
@@ -641,6 +643,30 @@ begin
                 if not ProductConfigService.UpdateClientNotesOption(BlopiClientDetails, clWeb_Export_Format) then
                 begin
                   clWeb_Export_Format := OldWebExportFormat;
+                end;
+              end
+              else
+              begin
+                // If notes is unticked and there are offline values
+                if MyClient.clExtra.ceOnlineValuesStored then
+                begin
+                  SetLength(OffLineSubscription, MyClient.clExtra.ceOnlineSubscriptionCount);
+                  for SubIndex := 1 to MyClient.clExtra.ceOnlineSubscriptionCount do
+                    OffLineSubscription[SubIndex-1] := MyClient.clExtra.ceOnlineSubscription[SubIndex];
+
+                  NotesId := ProductConfigService.GetNotesId;
+                  if clWeb_Export_Format = wfWebNotes then
+                  begin
+                    ProductConfigService.AddItemToArrayGuid(OffLineSubscription, NotesId)
+                  end
+                  else
+                  begin
+                    ProductConfigService.RemoveItemFromArrayGuid(OffLineSubscription, NotesId);
+                  end;
+
+                  MyClient.clExtra.ceOnlineSubscriptionCount := length(OffLineSubscription);
+                  for SubIndex := 1 to MyClient.clExtra.ceOnlineSubscriptionCount do
+                    MyClient.clExtra.ceOnlineSubscription[SubIndex] := OffLineSubscription[SubIndex-1];
                 end;
               end;
             end;
