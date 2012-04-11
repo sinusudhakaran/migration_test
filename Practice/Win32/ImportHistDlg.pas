@@ -2044,7 +2044,15 @@ begin
          'c','C','r','R', // DR, CR
          '$', ',', '+', ')':; // These are fine too...
 
-         else raise Exception.Create(format( 'Illegal Char [%s]:%d',[Value[I],Integer(Value[I])]) );
+         else
+         begin
+           { Don't raise an exception because of an invalid currency value, just exit and return 0
+           raise Exception.Create(format( 'Illegal Char [%s]:%d',[Value[I],Integer(Value[I])]) );
+           }
+           
+           Result := 0;
+           Break;
+         end;
 
          end;
       if S > '' then
