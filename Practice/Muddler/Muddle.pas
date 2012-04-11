@@ -110,6 +110,9 @@ Type
     fArrFileOldNew        : TArrFileOldNew;
     fArrBillingInfo       : TArrBillingInfo;
     fClientDetailsCache   : TClientDetailsCache;
+    fOnlyMuddleEmails     : Boolean;
+    fSetAllEmailToOne     : Boolean;
+    fGlobalEmail          : String;
 
     procedure SetProgressUpdate(ProgressPercent : single);
     procedure CopyFolder(SourceDirectory, DestinationDirectory: string; FileCount : integer; var FileIndex : integer);
@@ -196,6 +199,9 @@ Type
 
     property OnProgressUpdate : TProgressEvent read fOnProgressUpdate write fOnProgressUpdate;
     property DataGenerator : TDataGenerator read fDataGenerator write fDataGenerator;
+    property OnlyMuddleEmails : Boolean read fOnlyMuddleEmails write fOnlyMuddleEmails;
+    property SetAllEmailToOne : Boolean read fSetAllEmailToOne write fSetAllEmailToOne;
+    property GlobalEmail : String read fGlobalEmail write fGlobalEmail;
   end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -781,12 +787,16 @@ procedure TMuddler.MuddlePracticeSys(var PracticeFields : tPractice_Details_Rec;
                                      WebSite      : string;
                                      BankLinkCode : string);
 begin
-  PracticeFields.fdPractice_Name_for_Reports := Name;
-  PracticeFields.fdPractice_Phone            := Phone;
+  if not fOnlyMuddleEmails then
+  begin
+    PracticeFields.fdPractice_Name_for_Reports := Name;
+    PracticeFields.fdPractice_Phone            := Phone;
+    PracticeFields.fdPractice_Web_Site         := WebSite;
+    PracticeFields.fdBankLink_Code             := BankLinkCode;
+    PracticeFields.fdPractice_Logo_Filename    := '';
+  end;
+
   PracticeFields.fdPractice_EMail_Address    := Email;
-  PracticeFields.fdPractice_Web_Site         := WebSite;
-  PracticeFields.fdBankLink_Code             := BankLinkCode;
-  PracticeFields.fdPractice_Logo_Filename    := '';
 end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -807,19 +817,30 @@ begin
   end
   else
   begin
-    Name := fDataGenerator.GeneratePersonName(1,2);
-    Code := fDataGenerator.GetUserNameFromPersonName(Name);
-    Password := '1';
+    if not fOnlyMuddleEmails then
+    begin
+      Name := fDataGenerator.GeneratePersonName(1,2);
+      Code := fDataGenerator.GetUserNameFromPersonName(Name);
+      Password := '1';
+    end;
   end;
 
-  RenameFile(fDestinationDirectory + '\' + UserFields.usCode + '.ini' ,
-             fDestinationDirectory + '\' + Code + '.ini' );
+  if not fOnlyMuddleEmails then
+  begin
+    RenameFile(fDestinationDirectory + '\' + UserFields.usCode + '.ini' ,
+               fDestinationDirectory + '\' + Code + '.ini' );
 
-  UserFields.usCode          := Code;
-  UserFields.usName          := Name;
-  UserFields.usPassword      := Password;
-  UserFields.usEMail_Address := fDataGenerator.GenerateEmail(Code, PracticeName, 'co', 'nz');
-  UserFields.usDirect_Dial   := fDataGenerator.GeneratePhoneNumber;
+    UserFields.usCode          := Code;
+    UserFields.usName          := Name;
+    UserFields.usPassword      := Password;
+    UserFields.usDirect_Dial   := fDataGenerator.GeneratePhoneNumber;
+  end;
+
+  if not fSetAllEmailToOne then
+    UserFields.usEMail_Address := fDataGenerator.GenerateEmail(Code, PracticeName, 'co', 'nz')
+  else
+    UserFields.usEMail_Address := fGlobalEmail;
+
   UserFields.usLogged_In     := False;
 end;
 
@@ -828,12 +849,15 @@ procedure TMuddler.MuddleClientSys(ClientField : pClient_File_Rec;
                                    Code        : string;
                                    Name        : string);
 begin
-  ClientField.cfFile_Code         := Code;
-  ClientField.cfFile_Name         := Name;
-  ClientField.cfFile_Password     := '';
-  ClientField.cfNext_ToDo_Desc    := '';
-  ClientField.cfBank_Accounts     := '';
-  ClientField.cfBulk_Extract_Code := '';
+  if not fOnlyMuddleEmails then
+  begin
+    ClientField.cfFile_Code         := Code;
+    ClientField.cfFile_Name         := Name;
+    ClientField.cfFile_Password     := '';
+    ClientField.cfNext_ToDo_Desc    := '';
+    ClientField.cfBank_Accounts     := '';
+    ClientField.cfBulk_Extract_Code := '';
+  end;
 end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -869,86 +893,109 @@ begin
 
   StaffName  := fDataGenerator.GeneratePersonName(1,2);
   StaffUser  := fDataGenerator.GetUserNameFromPersonName(StaffUser);
-  StaffEmail := fDataGenerator.GenerateEmail(StaffUser,Name,'co','nz');
+
+  if not fSetAllEmailToOne then
+    StaffEmail := fDataGenerator.GenerateEmail(StaffUser,Name,'co','nz')
+  else
+    StaffEmail := fGlobalEmail;
 
   CustName  := fDataGenerator.GeneratePersonName(1,2);
   CustUser  := fDataGenerator.GetUserNameFromPersonName(CustName);
 
-  ClientObj.clFields.clCode := Code;
-  ClientObj.clFields.clName := Name;
-  ClientObj.clFields.clAddress_L1 := fDataGenerator.GenerateStreetAddress;
-  ClientObj.clFields.clAddress_L2 := 'BankLink City';
-  ClientObj.clFields.clAddress_L3 := fDataGenerator.GenerateCode(4);
-  ClientObj.clFields.clContact_Name := ContactName;
-  ClientObj.clFields.clPhone_No := fDataGenerator.GeneratePhoneNumber;
-  ClientObj.clFields.clFax_No := fDataGenerator.GeneratePhoneNumber;
-  ClientObj.clFields.clFile_Password := '';
-  ClientObj.clFields.clPractice_Name := PracticeName;
-  ClientObj.clFields.clStaff_Member_Name := StaffName;
-  ClientObj.clFields.clPractice_EMail_Address := PracticeEmail;
-  ClientObj.clFields.clStaff_Member_EMail_Address := StaffEmail;
-  ClientObj.clFields.clClient_EMail_Address := fDataGenerator.GenerateEmail(ContactUser,Name,'co','nz');
-  ClientObj.clFields.clFile_Name := Code;
-  ClientObj.clFields.clBankLink_Connect_Password := '';
-  ClientObj.clFields.clGST_Number := 'GST' + fDataGenerator.GenerateCode(5);
-  ClientObj.clFields.clBankLink_Code := BankLinkCode;
-  ClientObj.clFields.clECoding_Default_Password := '';
-  ClientObj.clFields.clPractice_Web_Site := PracticeWebSite;
-  ClientObj.clFields.clPractice_Phone := PracticePhone;
-  ClientObj.clFields.clPractice_Logo := '';
-  ClientObj.clFields.clWeb_Site_Login_URL := fDataGenerator.GenerateWebSite(Name,'co','nz');;
-  ClientObj.clFields.clStaff_Member_Direct_Dial := fDataGenerator.GeneratePhoneNumber;
-  ClientObj.clFields.clCustom_Contact_Name := CustName;
-  ClientObj.clFields.clCustom_Contact_EMail_Address := fDataGenerator.GenerateEmail(CustUser,Name,'co','nz');
-  ClientObj.clFields.clCustom_Contact_Phone := fDataGenerator.GeneratePhoneNumber;
+  if not fOnlyMuddleEmails then
+  begin
+    ClientObj.clFields.clCode := Code;
+    ClientObj.clFields.clName := Name;
+    ClientObj.clFields.clAddress_L1 := fDataGenerator.GenerateStreetAddress;
+    ClientObj.clFields.clAddress_L2 := 'BankLink City';
+    ClientObj.clFields.clAddress_L3 := fDataGenerator.GenerateCode(4);
+    ClientObj.clFields.clContact_Name := ContactName;
+    ClientObj.clFields.clPhone_No := fDataGenerator.GeneratePhoneNumber;
+    ClientObj.clFields.clFax_No := fDataGenerator.GeneratePhoneNumber;
+    ClientObj.clFields.clFile_Password := '';
+    ClientObj.clFields.clPractice_Name := PracticeName;
+    ClientObj.clFields.clStaff_Member_Name := StaffName;
+    ClientObj.clFields.clStaff_Member_EMail_Address := StaffEmail;
+    ClientObj.clFields.clFile_Name := Code;
+    ClientObj.clFields.clBankLink_Connect_Password := '';
+    ClientObj.clFields.clGST_Number := 'GST' + fDataGenerator.GenerateCode(5);
+    ClientObj.clFields.clBankLink_Code := BankLinkCode;
+    ClientObj.clFields.clECoding_Default_Password := '';
+    ClientObj.clFields.clPractice_Web_Site := PracticeWebSite;
+    ClientObj.clFields.clPractice_Phone := PracticePhone;
+    ClientObj.clFields.clPractice_Logo := '';
+    ClientObj.clFields.clWeb_Site_Login_URL := fDataGenerator.GenerateWebSite(Name,'co','nz');;
+    ClientObj.clFields.clStaff_Member_Direct_Dial := fDataGenerator.GeneratePhoneNumber;
+    ClientObj.clFields.clCustom_Contact_Name := CustName;
+    ClientObj.clFields.clCustom_Contact_Phone := fDataGenerator.GeneratePhoneNumber;
+    ClientObj.clFields.clMobile_No := fDataGenerator.GeneratePhoneNumber;
+    ClientObj.clFields.clPractice_Code := PracticeCode;
+  end;
+
   ClientObj.clFields.clClient_CC_EMail_Address := StaffEmail;
-  ClientObj.clFields.clMobile_No := fDataGenerator.GeneratePhoneNumber;
-  ClientObj.clFields.clPractice_Code := PracticeCode;
+  if not fSetAllEmailToOne then
+  begin
+    ClientObj.clFields.clCustom_Contact_EMail_Address := fDataGenerator.GenerateEmail(CustUser,Name,'co','nz');
+    ClientObj.clFields.clClient_EMail_Address := fDataGenerator.GenerateEmail(ContactUser,Name,'co','nz');
+  end
+  else
+  begin
+    ClientObj.clFields.clCustom_Contact_EMail_Address := fGlobalEmail;
+    ClientObj.clFields.clClient_EMail_Address := fGlobalEmail;
+  end;
+  ClientObj.clFields.clPractice_EMail_Address := PracticeEmail;
 
   // Go through Cache for each System Client
   if (InSystem) and
     (fClientDetailsCache.Load(ClientObj.clFields.clSystem_LRN)) then
   begin
-    fClientDetailsCache.Code          := Code;
-    fClientDetailsCache.Name          := Name;
-    fClientDetailsCache.Address_L1    := ClientObj.clFields.clAddress_L1;
-    fClientDetailsCache.Address_L2    := ClientObj.clFields.clAddress_L2;
-    fClientDetailsCache.Address_L3    := ClientObj.clFields.clAddress_L3;
-    fClientDetailsCache.Contact_Name  := ContactName;
-    fClientDetailsCache.Phone_No      := ClientObj.clFields.clPhone_No;
-    fClientDetailsCache.Fax_No        := ClientObj.clFields.clFax_No;
+    if not fOnlyMuddleEmails then
+    begin
+      fClientDetailsCache.Code          := Code;
+      fClientDetailsCache.Name          := Name;
+      fClientDetailsCache.Address_L1    := ClientObj.clFields.clAddress_L1;
+      fClientDetailsCache.Address_L2    := ClientObj.clFields.clAddress_L2;
+      fClientDetailsCache.Address_L3    := ClientObj.clFields.clAddress_L3;
+      fClientDetailsCache.Contact_Name  := ContactName;
+      fClientDetailsCache.Phone_No      := ClientObj.clFields.clPhone_No;
+      fClientDetailsCache.Fax_No        := ClientObj.clFields.clFax_No;
+    end;
+
     fClientDetailsCache.Email_Address := ClientObj.clFields.clClient_EMail_Address;
 
     fClientDetailsCache.Save(ClientObj.clFields.clSystem_LRN);
   end;
 
   // Goes Through Payee List, Each Name must be unique and the names must be sorted
-  PayeeList := TstringList.Create;
-  try
-    for PayeeIndex := 0 to ClientObj.clPayee_List.ItemCount-1 do
-      PayeeList.Add(fDataGenerator.GeneratePersonName(2,3));
-
-    PayeeList.Sort;
-
-    for PayeeIndex := 0 to ClientObj.clPayee_List.ItemCount-1 do
-      MuddlePayeeBk5(ClientObj.clPayee_List.Payee_At(PayeeIndex), PayeeList.strings[PayeeIndex]);
-
-  finally
-    FreeAndNil(PayeeList);
-  end;
-
-  // jobs
-  for JobIndex := 0 to ClientObj.clJobs.ItemCount - 1 do
+  if not fOnlyMuddleEmails then
   begin
-    MuddleJobBk5(ClientObj.clJobs.Job_At(JobIndex));
-  end;
+    PayeeList := TstringList.Create;
+    try
+      for PayeeIndex := 0 to ClientObj.clPayee_List.ItemCount-1 do
+        PayeeList.Add(fDataGenerator.GeneratePersonName(2,3));
 
-  //Accounts
-  for AccountIndex := 0 to ClientObj.clBank_Account_List.ItemCount-1 do
-  begin
-    MuddleAccountBk5(ClientObj.clBank_Account_List.Bank_Account_At(AccountIndex), Name);
+      PayeeList.Sort;
+
+      for PayeeIndex := 0 to ClientObj.clPayee_List.ItemCount-1 do
+        MuddlePayeeBk5(ClientObj.clPayee_List.Payee_At(PayeeIndex), PayeeList.strings[PayeeIndex]);
+
+    finally
+      FreeAndNil(PayeeList);
+    end;
+
+   // jobs
+    for JobIndex := 0 to ClientObj.clJobs.ItemCount - 1 do
+    begin
+      MuddleJobBk5(ClientObj.clJobs.Job_At(JobIndex));
+    end;
+
+    //Accounts
+    for AccountIndex := 0 to ClientObj.clBank_Account_List.ItemCount-1 do
+    begin
+      MuddleAccountBk5(ClientObj.clBank_Account_List.Bank_Account_At(AccountIndex), Name);
+    end;
+    ClientObj.clBank_Account_List.Sort;
   end;
-  ClientObj.clBank_Account_List.Sort;
 end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -1026,20 +1073,23 @@ end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TMuddler.MuddleTransactionBk5(TransField : pTransaction_Rec);
 begin
-  TransField.txReference            := MuddleNumericData(TransField.txReference);
-  TransField.txParticulars          := MuddleNumericData(TransField.txParticulars);
-  TransField.txAnalysis             := MuddleNumericData(TransField.txAnalysis);
-  TransField.txOrigBB               := MuddleNumericData(TransField.txOrigBB);
-  TransField.txOther_Party          := MuddleNumericData(TransField.txOther_Party);
-  TransField.txOld_Narration        := MuddleNumericData(TransField.txOld_Narration);
-  TransField.txOriginal_Reference   := MuddleNumericData(TransField.txOriginal_Reference);
-  TransField.txNotes                := MuddleNumericData(TransField.txNotes);
-  TransField.txECoding_Import_Notes := MuddleNumericData(TransField.txECoding_Import_Notes);
-  TransField.txGL_Narration         := MuddleNumericData(TransField.txGL_Narration);
-  TransField.txStatement_Details    := MuddleNumericData(TransField.txStatement_Details);
-  TransField.txDocument_Title       := MuddleNumericData(TransField.txDocument_Title);
-  TransField.txSpare_string         := MuddleNumericData(TransField.txSpare_string);
-  TransField.txTemp_Prov_Entered_By := MuddleNumericData(TransField.txTemp_Prov_Entered_By);
+  if not fOnlyMuddleEmails then
+  begin
+    TransField.txReference            := MuddleNumericData(TransField.txReference);
+    TransField.txParticulars          := MuddleNumericData(TransField.txParticulars);
+    TransField.txAnalysis             := MuddleNumericData(TransField.txAnalysis);
+    TransField.txOrigBB               := MuddleNumericData(TransField.txOrigBB);
+    TransField.txOther_Party          := MuddleNumericData(TransField.txOther_Party);
+    TransField.txOld_Narration        := MuddleNumericData(TransField.txOld_Narration);
+    TransField.txOriginal_Reference   := MuddleNumericData(TransField.txOriginal_Reference);
+    TransField.txNotes                := MuddleNumericData(TransField.txNotes);
+    TransField.txECoding_Import_Notes := MuddleNumericData(TransField.txECoding_Import_Notes);
+    TransField.txGL_Narration         := MuddleNumericData(TransField.txGL_Narration);
+    TransField.txStatement_Details    := MuddleNumericData(TransField.txStatement_Details);
+    TransField.txDocument_Title       := MuddleNumericData(TransField.txDocument_Title);
+    TransField.txSpare_string         := MuddleNumericData(TransField.txSpare_string);
+    TransField.txTemp_Prov_Entered_By := MuddleNumericData(TransField.txTemp_Prov_Entered_By);
+  end;
 end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -1049,17 +1099,20 @@ var
   Memorisation : TMemorisation;
   MemIndex : integer;
 begin
-  Memorisations_List := TMemorisations_List(MemField.smMemorisations);
-
-  for MemIndex := 0 to Memorisations_List.ItemCount-1 do
+  if not fOnlyMuddleEmails then
   begin
-    Memorisation := Memorisations_List.Memorisation_At(MemIndex);
+    Memorisations_List := TMemorisations_List(MemField.smMemorisations);
 
-    Memorisation.mdFields.mdParticulars       := MuddleNumericData(Memorisation.mdFields.mdParticulars);
-    Memorisation.mdFields.mdAnalysis          := MuddleNumericData(Memorisation.mdFields.mdAnalysis);
-    Memorisation.mdFields.mdOther_Party       := MuddleNumericData(Memorisation.mdFields.mdOther_Party);
-    Memorisation.mdFields.mdStatement_Details := MuddleNumericData(Memorisation.mdFields.mdStatement_Details);
-    Memorisation.mdFields.mdNotes             := MuddleNumericData(Memorisation.mdFields.mdNotes);
+    for MemIndex := 0 to Memorisations_List.ItemCount-1 do
+    begin
+      Memorisation := Memorisations_List.Memorisation_At(MemIndex);
+
+      Memorisation.mdFields.mdParticulars       := MuddleNumericData(Memorisation.mdFields.mdParticulars);
+      Memorisation.mdFields.mdAnalysis          := MuddleNumericData(Memorisation.mdFields.mdAnalysis);
+      Memorisation.mdFields.mdOther_Party       := MuddleNumericData(Memorisation.mdFields.mdOther_Party);
+      Memorisation.mdFields.mdStatement_Details := MuddleNumericData(Memorisation.mdFields.mdStatement_Details);
+      Memorisation.mdFields.mdNotes             := MuddleNumericData(Memorisation.mdFields.mdNotes);
+    end;
   end;
 end;
 
@@ -1072,36 +1125,39 @@ var
   FilePath       : string;
   FileName       : string;
 begin
-  FilePath := sysutils.ExtractFilePath(FullFileName);
-  FileName := sysutils.ExtractFileName(FullFileName);
-  AddFileOldNew(FullFileName, FullFileName + '$$$');
+  if not fOnlyMuddleEmails then
+  begin
+    FilePath := sysutils.ExtractFilePath(FullFileName);
+    FileName := sysutils.ExtractFileName(FullFileName);
+    AddFileOldNew(FullFileName, FullFileName + '$$$');
 
-  Assignfile(InArchiveFile, FullFileName);
-  Reset(InArchiveFile);
-  try
-    Assignfile(OutArchiveFile, FullFileName + '$$$');
-    Rewrite(OutArchiveFile);
+    Assignfile(InArchiveFile, FullFileName);
+    Reset(InArchiveFile);
     try
-      while not Eof(InArchiveFile) do
-      begin
-        Read( InArchiveFile, Trans_Record );
+      Assignfile(OutArchiveFile, FullFileName + '$$$');
+      Rewrite(OutArchiveFile);
+      try
+        while not Eof(InArchiveFile) do
+        begin
+          Read( InArchiveFile, Trans_Record );
 
-        Trans_Record.aReference         := MuddleNumericData(Trans_Record.aReference);
-        Trans_Record.aParticulars       := MuddleNumericData(Trans_Record.aParticulars);
-        Trans_Record.aAnalysis          := MuddleNumericData(Trans_Record.aAnalysis);
-        Trans_Record.aOrigBB            := MuddleNumericData(Trans_Record.aOrigBB);
-        Trans_Record.aOther_Party       := MuddleNumericData(Trans_Record.aOther_Party);
-        Trans_Record.aNarration         := MuddleNumericData(Trans_Record.aNarration);
-        Trans_Record.aStatement_Details := MuddleNumericData(Trans_Record.aStatement_Details);
+          Trans_Record.aReference         := MuddleNumericData(Trans_Record.aReference);
+          Trans_Record.aParticulars       := MuddleNumericData(Trans_Record.aParticulars);
+          Trans_Record.aAnalysis          := MuddleNumericData(Trans_Record.aAnalysis);
+          Trans_Record.aOrigBB            := MuddleNumericData(Trans_Record.aOrigBB);
+          Trans_Record.aOther_Party       := MuddleNumericData(Trans_Record.aOther_Party);
+          Trans_Record.aNarration         := MuddleNumericData(Trans_Record.aNarration);
+          Trans_Record.aStatement_Details := MuddleNumericData(Trans_Record.aStatement_Details);
 
-        Write( OutArchiveFile, Trans_Record );
+          Write( OutArchiveFile, Trans_Record );
+        end;
+
+      finally
+        CloseFile(OutArchiveFile);
       end;
-
     finally
-      CloseFile(OutArchiveFile);
+      CloseFile(InArchiveFile);
     end;
-  finally
-    CloseFile(InArchiveFile);
   end;
 end;
 
@@ -1162,73 +1218,77 @@ var
   FilePath       : string;
   FileName       : string;
 begin
-  DiskImage := TUpdateDiskReader.Create;
-  try
-    //load update file
+  if not fOnlyMuddleEmails then
+  begin
+
+    DiskImage := TUpdateDiskReader.Create;
     try
-      DiskImage.LoadFromUpdateFile( FullFileName);
-      DiskImage.Validate;
-    except
-      On E : Exception do
-      begin
-        Exit;
+      //load update file
+      try
+        DiskImage.LoadFromUpdateFile( FullFileName);
+        DiskImage.Validate;
+      except
+        On E : Exception do
+        begin
+          Exit;
+        end;
       end;
-    end;
 
-    FilePath := sysutils.ExtractFilePath(FullFileName);
-    FileName := sysutils.ExtractFileName(FullFileName);
-    DeleteFile(PChar(FullFileName));
+      FilePath := sysutils.ExtractFilePath(FullFileName);
+      FileName := sysutils.ExtractFileName(FullFileName);
+      DeleteFile(PChar(FullFileName));
 
-    // Try Find Client Code
-    ClientItem := fClientList.GetClientFromOldClientCode(DiskImage.dhFields.dhClient_Code);
-    if Assigned(ClientItem) then
-    begin
-      DiskImage.dhFields.dhClient_Code := ClientItem.ClientObj.clFields.clCode;
-      DiskImage.dhFields.dhClient_Name := ClientItem.ClientObj.clFields.clName;
-    end
-    else
-    begin
-      DiskImage.dhFields.dhClient_Code := 'Cl' + fDataGenerator.GenerateCode(6);
-      DiskImage.dhFields.dhClient_Name := fDataGenerator.GenerateCompanyName;
-    end;
-
-    AddFileOldNew(FilePath + 'BK_' + DiskImage.dhFields.dhClient_Code + leftstr(FileName,4),
-                  FilePath + '$$$BK_' + DiskImage.dhFields.dhClient_Code + leftstr(FileName,4));
-
-    for AccountIndex := 0 to DiskImage.dhAccount_List.ItemCount-1 do
-    begin
-      DiskAccount := DiskImage.dhAccount_List.Disk_Bank_Account_At(AccountIndex);
-
-      // Try Find Account Number in Array of Muddled Accounts
-      if FindOldAccount(DiskAccount.dbFields.dbAccount_Number, NewAccNumber, NewAccName) then
+      // Try Find Client Code
+      ClientItem := fClientList.GetClientFromOldClientCode(DiskImage.dhFields.dhClient_Code);
+      if Assigned(ClientItem) then
       begin
-        DiskAccount.dbFields.dbAccount_Number := NewAccNumber;
-        DiskAccount.dbFields.dbAccount_Name   := NewAccName;
+        DiskImage.dhFields.dhClient_Code := ClientItem.ClientObj.clFields.clCode;
+        DiskImage.dhFields.dhClient_Name := ClientItem.ClientObj.clFields.clName;
       end
       else
       begin
-        DiskAccount.dbFields.dbAccount_Number := '1111' + fDataGenerator.GenerateCode(8);;
-        DiskAccount.dbFields.dbAccount_Name   := fDataGenerator.GeneratePersonName(1,2);
+        DiskImage.dhFields.dhClient_Code := 'Cl' + fDataGenerator.GenerateCode(6);
+        DiskImage.dhFields.dhClient_Name := fDataGenerator.GenerateCompanyName;
       end;
 
-      // Muddle Transactions for each account
-      for TransIndex := 0 to DiskAccount.dbTransaction_List.ItemCount-1 do
+      AddFileOldNew(FilePath + 'BK_' + DiskImage.dhFields.dhClient_Code + leftstr(FileName,4),
+                    FilePath + '$$$BK_' + DiskImage.dhFields.dhClient_Code + leftstr(FileName,4));
+
+      for AccountIndex := 0 to DiskImage.dhAccount_List.ItemCount-1 do
       begin
-        DiskTxn := DiskAccount.dbTransaction_List.Disk_Transaction_At(TransIndex);
+        DiskAccount := DiskImage.dhAccount_List.Disk_Bank_Account_At(AccountIndex);
 
-        DiskTxn.dtReference           := MuddleNumericData(DiskTxn.dtReference);
-        DiskTxn.dtParticulars_NZ_Only := MuddleNumericData(DiskTxn.dtParticulars_NZ_Only);
-        DiskTxn.dtOther_Party_NZ_Only := MuddleNumericData(DiskTxn.dtOther_Party_NZ_Only);
-        DiskTxn.dtOrig_BB             := MuddleNumericData(DiskTxn.dtOrig_BB);
-        DiskTxn.dtNarration           := MuddleNumericData(DiskTxn.dtNarration);
+        // Try Find Account Number in Array of Muddled Accounts
+        if FindOldAccount(DiskAccount.dbFields.dbAccount_Number, NewAccNumber, NewAccName) then
+        begin
+          DiskAccount.dbFields.dbAccount_Number := NewAccNumber;
+          DiskAccount.dbFields.dbAccount_Name   := NewAccName;
+        end
+        else
+        begin
+          DiskAccount.dbFields.dbAccount_Number := '1111' + fDataGenerator.GenerateCode(8);;
+          DiskAccount.dbFields.dbAccount_Name   := fDataGenerator.GeneratePersonName(1,2);
+        end;
+
+        // Muddle Transactions for each account
+        for TransIndex := 0 to DiskAccount.dbTransaction_List.ItemCount-1 do
+        begin
+          DiskTxn := DiskAccount.dbTransaction_List.Disk_Transaction_At(TransIndex);
+
+          DiskTxn.dtReference           := MuddleNumericData(DiskTxn.dtReference);
+          DiskTxn.dtParticulars_NZ_Only := MuddleNumericData(DiskTxn.dtParticulars_NZ_Only);
+          DiskTxn.dtOther_Party_NZ_Only := MuddleNumericData(DiskTxn.dtOther_Party_NZ_Only);
+          DiskTxn.dtOrig_BB             := MuddleNumericData(DiskTxn.dtOrig_BB);
+          DiskTxn.dtNarration           := MuddleNumericData(DiskTxn.dtNarration);
+        end;
       end;
+
+      DiskImage.SaveToFile(FilePath + '$$$BK_' + DiskImage.dhFields.dhClient_Code + leftstr(FileName,4),
+                           nil);
+
+    finally
+      FreeAndNil(DiskImage);
     end;
-
-    DiskImage.SaveToFile(FilePath + '$$$BK_' + DiskImage.dhFields.dhClient_Code + leftstr(FileName,4),
-                         nil);
-
-  finally
-    FreeAndNil(DiskImage);
   end;
 end;
 
@@ -1380,7 +1440,12 @@ begin
   PracticeName       := fDataGenerator.GenerateCompanyName('Accountants');
   PracticePersonName := fDataGenerator.GeneratePersonName(1,2);
   PracticeUserName   := fDataGenerator.GetUserNameFromPersonName(PracticePersonName);
-  PracticeEmail      := fDataGenerator.GenerateEmail(PracticeUserName,PracticeName,'co','nz');
+
+  if not fSetAllEmailToOne then
+    PracticeEmail := fDataGenerator.GenerateEmail(PracticeUserName,PracticeName,'co','nz')
+  else
+    PracticeEmail := fGlobalEmail;
+
   PracticeWebSite    := fDataGenerator.GenerateWebSite(PracticeName,'co','nz');
   PracticePhone      := fDataGenerator.GeneratePhoneNumber;
   PracticeCode       := 'Prac0001';
@@ -1450,7 +1515,12 @@ begin
       PracticeName       := fDataGenerator.GenerateCompanyName('Accountants');
       PracticePersonName := fDataGenerator.GeneratePersonName(1,2);
       PracticeUserName   := fDataGenerator.GetUserNameFromPersonName(PracticePersonName);
-      PracticeEmail      := fDataGenerator.GenerateEmail(PracticeUserName,PracticeName,'co','nz');
+
+      if not fSetAllEmailToOne then
+        PracticeEmail := fDataGenerator.GenerateEmail(PracticeUserName,PracticeName,'co','nz')
+      else
+        PracticeEmail := fGlobalEmail;
+
       PracticeWebSite    := fDataGenerator.GenerateWebSite(PracticeName,'co','nz');
 
       MuddleClientBk5(fClientList[ClientIndex].ClientObj,
@@ -1467,30 +1537,33 @@ begin
   end;
 
   // System Bank Accounts
-  for AccountIndex := 0 to AdminSystem.fdSystem_Bank_Account_List.ItemCount-1 do
+  if not fOnlyMuddleEmails then
   begin
-    SysBankAccItem := AdminSystem.fdSystem_Bank_Account_List.System_Bank_Account_At(AccountIndex);
-
-    if not (SysBankAccItem.sbAccount_Type in ACC_TYPE_NOT_MUDDLED) then
+    for AccountIndex := 0 to AdminSystem.fdSystem_Bank_Account_List.ItemCount-1 do
     begin
+      SysBankAccItem := AdminSystem.fdSystem_Bank_Account_List.System_Bank_Account_At(AccountIndex);
 
-      if not FindOldAccount(SysBankAccItem.sbAccount_Number,
-                            NewAccNumber,
-                            NewAccName) then
+      if not (SysBankAccItem.sbAccount_Type in ACC_TYPE_NOT_MUDDLED) then
       begin
-        NewAccNumber := '1111' + fDataGenerator.GenerateCode(6);
-        NewAccName   := fDataGenerator.GeneratePersonName(1,2);
 
-        NewAccNumber := GetFirstAlphaCharFromAcc(SysBankAccItem.sbAccount_Number) + NewAccNumber;
-      end;
+        if not FindOldAccount(SysBankAccItem.sbAccount_Number,
+                              NewAccNumber,
+                              NewAccName) then
+        begin
+          NewAccNumber := '1111' + fDataGenerator.GenerateCode(6);
+          NewAccName   := fDataGenerator.GeneratePersonName(1,2);
 
-      SysBankAccItem.sbAccount_Number := NewAccNumber;
-      SysBankAccItem.sbAccount_Name   := NewAccName;
-    end
-    else
-      SysBankAccItem.sbAccount_Name := fDataGenerator.GeneratePersonName(1,2);
+          NewAccNumber := GetFirstAlphaCharFromAcc(SysBankAccItem.sbAccount_Number) + NewAccNumber;
+        end;
 
-    SysBankAccItem.sbAccount_Password := '';
+        SysBankAccItem.sbAccount_Number := NewAccNumber;
+        SysBankAccItem.sbAccount_Name   := NewAccName;
+      end
+      else
+        SysBankAccItem.sbAccount_Name := fDataGenerator.GeneratePersonName(1,2);
+
+      SysBankAccItem.sbAccount_Password := '';
+    end;
   end;
 
   // Admin Memorizations
@@ -1503,7 +1576,8 @@ begin
   SearchForTXNFiles(fDestinationDirectory);
 
   // Billing csv files in work Directory
-  CreateWorkCsvFile;
+  if not fOnlyMuddleEmails then
+    CreateWorkCsvFile;
 
   SetProgressUpdate(75);
 end;

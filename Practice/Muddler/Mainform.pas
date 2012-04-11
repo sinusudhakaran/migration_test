@@ -72,6 +72,10 @@ type
     actSaveBk5Exe: TAction;
     mnuLoadBK5Exe: TMenuItem;
     mnuSaveBk5Exe: TMenuItem;
+    grpOptions: TGroupBox;
+    chkOnlyMuddleEmails: TCheckBox;
+    chkSetAllEmailsToOne: TCheckBox;
+    edtGlobalEmail: TEdit;
     procedure btnSourceDirectoryClick(Sender: TObject);
     procedure btnDestinationDirectoryClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -88,6 +92,7 @@ type
     procedure FormDestroy(Sender: TObject);
     procedure actLoadBK5ExeExecute(Sender: TObject);
     procedure actSaveBk5ExeExecute(Sender: TObject);
+    procedure chkSetAllEmailsToOneClick(Sender: TObject);
   private
     fMuddler : TMuddler;
     fMuddleDatFileName : string;
@@ -138,6 +143,12 @@ begin
       edtDestinationDirectory.Text := edtSourceDirectory.Text + ADDON_MUDDLED;
     end;
   end;
+end;
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+procedure TformMain.chkSetAllEmailsToOneClick(Sender: TObject);
+begin
+  edtGlobalEmail.enabled := chkSetAllEmailsToOne.Checked;
 end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -354,6 +365,10 @@ begin
   try
     try
       EnableControls(False);
+      fMuddler.OnlyMuddleEmails := chkOnlyMuddleEmails.Checked;
+      fMuddler.SetAllEmailToOne := chkSetAllEmailsToOne.Checked;
+      fMuddler.GlobalEmail := edtGlobalEmail.text;
+
       fMuddler.Execute(edtSourceDirectory.Text, edtDestinationDirectory.Text);
 
       Messagedlg(MSG_FINISHED, mtInformation, [mbOk], 0);

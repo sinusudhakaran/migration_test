@@ -2,8 +2,8 @@ object formMain: TformMain
   Left = 0
   Top = 0
   Caption = 'Practice Data Muddler'
-  ClientHeight = 95
-  ClientWidth = 605
+  ClientHeight = 174
+  ClientWidth = 562
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -318,8 +318,8 @@ object formMain: TformMain
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   DesignSize = (
-    605
-    95)
+    562
+    174)
   PixelsPerInch = 96
   TextHeight = 13
   object lblSourceDirectory: TLabel
@@ -331,7 +331,7 @@ object formMain: TformMain
     FocusControl = edtSourceDirectory
   end
   object btnSourceDirectory: TSpeedButton
-    Left = 570
+    Left = 527
     Top = 8
     Width = 25
     Height = 22
@@ -395,7 +395,7 @@ object formMain: TformMain
     ExplicitLeft = 580
   end
   object btnDestinationDirectory: TSpeedButton
-    Left = 570
+    Left = 527
     Top = 36
     Width = 25
     Height = 22
@@ -469,53 +469,101 @@ object formMain: TformMain
   object edtSourceDirectory: TEdit
     Left = 122
     Top = 9
-    Width = 442
+    Width = 399
     Height = 21
     Hint = 'Enter in the practice folder '
     Anchors = [akLeft, akTop, akRight]
     TabOrder = 0
+    ExplicitWidth = 442
   end
   object edtDestinationDirectory: TEdit
     Left = 122
     Top = 37
-    Width = 442
+    Width = 399
     Height = 21
     Hint = 'Enter the Output/Muddled Pactice Folder'
     Anchors = [akLeft, akTop, akRight]
     TabOrder = 1
+    ExplicitWidth = 442
   end
   object btnGo: TButton
-    Left = 439
-    Top = 63
+    Left = 396
+    Top = 142
     Width = 75
     Height = 25
     Hint = 'Starts the Muddle Process'
     Action = actExecute
     Anchors = [akRight, akBottom]
     TabOrder = 2
+    ExplicitLeft = 439
+    ExplicitTop = 120
   end
   object btnExit: TButton
-    Left = 520
-    Top = 63
+    Left = 477
+    Top = 142
     Width = 75
     Height = 25
     Hint = 'Exits the Application'
     Action = actExit
     Anchors = [akRight, akBottom]
     TabOrder = 3
+    ExplicitLeft = 520
+    ExplicitTop = 120
   end
   object ProgressBar: TProgressBar
     Left = 15
-    Top = 66
-    Width = 410
+    Top = 145
+    Width = 367
     Height = 18
     Anchors = [akLeft, akRight, akBottom]
     Position = 100
     TabOrder = 4
+    ExplicitTop = 123
+    ExplicitWidth = 410
+  end
+  object grpOptions: TGroupBox
+    Left = 15
+    Top = 64
+    Width = 536
+    Height = 69
+    Anchors = [akLeft, akTop, akRight, akBottom]
+    Caption = 'Options'
+    TabOrder = 5
+    ExplicitWidth = 570
+    ExplicitHeight = 46
+    DesignSize = (
+      536
+      69)
+    object chkOnlyMuddleEmails: TCheckBox
+      Left = 16
+      Top = 18
+      Width = 185
+      Height = 17
+      Caption = 'Only Muddle Emails'
+      TabOrder = 0
+    end
+    object chkSetAllEmailsToOne: TCheckBox
+      Left = 16
+      Top = 41
+      Width = 217
+      Height = 17
+      Caption = 'Don'#39't Muddle Emails rather set them all to :'
+      TabOrder = 1
+      OnClick = chkSetAllEmailsToOneClick
+    end
+    object edtGlobalEmail: TEdit
+      Left = 241
+      Top = 39
+      Width = 280
+      Height = 21
+      Anchors = [akLeft, akTop, akRight]
+      Enabled = False
+      TabOrder = 2
+    end
   end
   object MainMenu: TMainMenu
     Left = 160
-    Top = 64
+    Top = 184
     object mnuFile: TMenuItem
       Caption = 'File'
       object mnuLoadDataFile: TMenuItem
@@ -562,15 +610,15 @@ object formMain: TformMain
   object OpenDialog: TOpenDialog
     Filter = 'Muddler Data File|*.dat|Text File|*.txt'
     Left = 192
-    Top = 64
+    Top = 184
   end
   object SaveDialog: TSaveDialog
     Left = 224
-    Top = 64
+    Top = 184
   end
   object ActionList: TActionList
     Left = 256
-    Top = 64
+    Top = 184
     object actLoadDataFile: TAction
       Caption = 'Load Data File'
       OnExecute = actLoadDataFileExecute
