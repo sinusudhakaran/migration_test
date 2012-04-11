@@ -88,6 +88,8 @@ type
     InSetup: Boolean;
     WebFormatChanged : Boolean;
 
+    FInWizard: Boolean;
+
     procedure ShowBankLinkOnlineConfirmation;
     function VerifyForm : boolean;
     procedure FillSystemList;
@@ -95,10 +97,10 @@ type
     procedure UpdateActions; override;
   public
     { Public declarations }
-    function Execute(var AutoRefreshDone : Boolean) : boolean;
+    function Execute(var AutoRefreshDone : Boolean; InWizard: Boolean = False) : boolean;
   end;
 
-function EditAccountingSystem(w_PopupParent: TForm; var AutoRefreshDone : Boolean; ContextID : Integer) : boolean;
+function EditAccountingSystem(w_PopupParent: TForm; var AutoRefreshDone : Boolean; ContextID : Integer; InWizard: Boolean = False) : boolean;
 
 //------------------------------------------------------------------------------
 implementation
@@ -146,6 +148,8 @@ procedure TdlgAcctSystem.FormCreate(Sender: TObject);
 begin
    bkXPThemes.ThemeForm( Self);
 
+   FInWizard := False;
+   
    btnFromFolder.Glyph := ImagesFrm.AppImages.imgFindStates.Picture.Bitmap;
    ImagesFrm.AppImages.Misc.GetBitmap(MISC_FINDFOLDER_BMP,btnToFolder.Glyph);
    ImagesFrm.AppImages.Misc.GetBitmap(MISC_FINDFOLDER_BMP,btnMasLedgerCode.Glyph);
@@ -417,7 +421,7 @@ begin
  end;
 
 //------------------------------------------------------------------------------
-function TdlgAcctSystem.Execute(var AutoRefreshDone : Boolean) : boolean;
+function TdlgAcctSystem.Execute(var AutoRefreshDone : Boolean; InWizard: Boolean = False) : boolean;
 var
   i : integer;
   OldLoadFrom : String;
@@ -430,6 +434,8 @@ var
   OffLineSubscription : TBloArrayOfguid;
   SubIndex : integer;
 begin
+  FInWizard := InWizard;
+  
    WebFormatChanged := false;
    okPressed := false;
    AutoRefreshFlag := False;
@@ -712,7 +718,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function EditAccountingSystem(w_PopupParent: TForm; var AutoRefreshDone: Boolean; ContextID : Integer) : boolean;
+function EditAccountingSystem(w_PopupParent: TForm; var AutoRefreshDone: Boolean; ContextID : Integer; InWizard: Boolean = False) : boolean;
 var
    Mydlg : TdlgAcctSystem;
 begin
@@ -722,7 +728,7 @@ begin
      MyDlg.PopupMode := pmExplicit;
      
       BKHelpSetUp(MyDlg, ContextID);
-      result := MyDlg.Execute(AutoRefreshDone);
+      result := MyDlg.Execute(InWizard, AutoRefreshDone);
       AutoRefreshDone := MyDlg.AutoRefreshFlag;
    finally
       Mydlg.Free;
@@ -897,9 +903,19 @@ begin
     if (MyClient.clFields.clClient_EMail_Address = '')
     or (MyClient.clFields.clContact_Name = '') then
     begin
-      aMsg := Format( 'Web export to %s requires both an Email address and a contact name' +
-                      #13#10 + 'Please update the Client Details before selecting this option',
-                      [WebNotesName]);
+      if FInWizard then
+      begin
+        aMsg := Format( 'The Web Export Format for this client is set to %s. ' +
+                          #13#10#13#10 + 'If you want to keep this setting, please go back to Client Details and enter a Contact Name and an Email address, or change the Web Export Format before clicking OK',
+                          [WebNotesName]);
+      end
+      else
+      begin
+        aMsg := Format( 'Web export to %s requires both an Email address and a contact name' +
+                        #13#10 + 'Please update the Client Details before selecting this option',
+                        [WebNotesName]);
+      end;
+      
       HelpfulWarningMsg(aMsg, 0);
       Exit;
     end;
