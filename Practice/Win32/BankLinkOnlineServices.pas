@@ -732,6 +732,16 @@ begin
                                                        AdminSystem.fdFields.fdBankLink_Code,
                                                        AdminSystem.fdFields.fdBankLink_Connect_Password,
                                                        AClientGuid);
+      if not Assigned(Globals.AdminSystem) then
+      begin
+        // Show this warning for suspended/deactivated books users
+        case ClientDetailResponse.Result.Status of
+          Suspended,
+          Deactivated: HelpfulWarningMsg('BankLink Books is unable to access BankLink Online. ' +
+                                         'Please contact your accountant for further assistance', 0);
+        end;
+      end;
+
       if not MessageResponseHasError(MessageResponse(ClientDetailResponse), 'get the client settings from') then
       begin
         Result := ClientDetailResponse.Result;
