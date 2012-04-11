@@ -474,7 +474,7 @@ begin
             end;
          end;
          opAccountSys : begin
-            if EditAccountingSystem(Self, AutoRefreshDone, BKH_Step_2_Accounting_System) then begin
+            if EditAccountingSystem(Self, AutoRefreshDone, BKH_Step_2_Accounting_System, True) then begin
                Option[ opAccountSys ].Complete := True;
                if (AutoRefreshDone) then
                  Option[ opChart ].Complete := True;
@@ -535,8 +535,8 @@ begin
     begin
       if (Trim(MyClient.clFields.clContact_Name) = '') or (Trim(MyClient.clFields.clClient_EMail_Address) = '') then
       begin
-        Msg := Format( 'Web export to %s requires both an Email address and a contact name' +
-                        #13#10 + 'Please update the Client Details before selecting this option',
+        Msg := Format( 'The Web Export Format for this client is set to %s. ' +
+                        #13#10#13#10 + 'If you want to keep this setting, please go back to Client Details and enter a Contact Name and an Email address, or change the Web Export Format under Accounting System before clicking OK',
                         [WebNotesName]);
                         
         HelpfulWarningMsg(Msg, 0);
