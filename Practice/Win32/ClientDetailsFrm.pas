@@ -1311,7 +1311,9 @@ begin
     if Assigned(ClientReadDetail) then
       NumProducts := IntToStr(Length(ClientReadDetail.Subscription))
     else if MyClient.clExtra.ceOnlineValuesStored then
-      NumProducts := IntToStr(MyClient.clExtra.ceOnlineSubscriptionCount);
+      NumProducts := IntToStr(MyClient.clExtra.ceOnlineSubscriptionCount)
+    else if MyClient.clFields.clWeb_Export_Format = wfWebNotes then
+      NumProducts := '1';
 
     SetProductsCaption('This client currently has access to ' + NumProducts +
                        ' Banklink Online product(s)');
