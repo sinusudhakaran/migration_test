@@ -1692,7 +1692,12 @@ begin
     for i := Low(FClientList.Clients) to High(FClientList.Clients) do begin
       for j := Low(FClientList.Clients[i].Subscription) to High(FClientList.Clients[i].Subscription) do begin
         if (FClientList.Clients[i].Status <> Deactivated) and (AProductId = FClientList.Clients[i].Subscription[j]) then
-          Inc(ClientsUsingProduct);
+        begin
+          if AdminSystem.fdSystem_Client_File_List.FindCode(FClientList.Clients[i].ClientCode) <> nil then
+          begin
+            Inc(ClientsUsingProduct);
+          end;
+        end;
       end;
     end;
 
