@@ -400,6 +400,8 @@ begin
       pnlUnlinked.Visible := False;
       pnlOnlineUser.Visible := False;
       Self.Height := 524;
+      chkCanAccessBankLinkOnline.Left := 13;
+      chkCanAccessBankLinkOnline.Top  := 10;
     End;
     uimOnlineUnlinked :
     Begin
@@ -409,6 +411,8 @@ begin
       pnlUnlinked.Visible := True;
       pnlOnlineUser.Visible := False;
       Self.Height := 600;
+      chkCanAccessBankLinkOnline.Left := 11;
+      chkCanAccessBankLinkOnline.Top  := 8;
     End;
     uimOnlineShowUser :
     Begin
@@ -418,6 +422,8 @@ begin
       pnlUnlinked.Visible := False;
       pnlOnlineUser.Visible := True;
       Self.Height := 552;
+      chkCanAccessBankLinkOnline.Left := 11;
+      chkCanAccessBankLinkOnline.Top  := 8;
     End;
   end;
 
