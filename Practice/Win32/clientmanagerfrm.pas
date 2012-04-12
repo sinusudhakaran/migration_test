@@ -1580,8 +1580,11 @@ begin
     ClientCode := ClientLookup.FirstSelectedCode;
     OpenClient(ClientCode);
     try
-      if Assigned(MyClient) then
-        EditBanklinkOnlineSettings(Self, false);
+      if EditBanklinkOnlineSettings(Self, false) then
+      begin
+        //Need to reload TProductConfigService.Clients after blopi has been updated.  Probably better to update this locally somehow.
+        ProductConfigService.LoadClientList;
+      end;
     finally
       CloseClient();
     end;
