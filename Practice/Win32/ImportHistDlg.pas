@@ -693,26 +693,51 @@ begin
 
           if rbSingle.Checked then begin
               for R := 0 to fOutlist.Count - 1 do
-                 SetAmount(StrtoCurr(GetFileText(R,C))*100 );
+              begin
+                 try
+                   SetAmount(StrtoCurr(GetFileText(R,C))*100 );
+                 except
+                   SetAmount(0);
+                 end;
+              end;
+
               Exit;
           end else if rbDebitCredit.Checked then begin
               C2 := GetComboCurrentIntObject(cbAmount2);
               if C2 >= 0 then begin
-                 for R := 0 to fOutlist.Count - 1 do begin
-                    Amt1 := StrtoCurr(GetFileText(R,C2))*100;
-                    Amt2 := StrtoCurr(GetFileText(R,C))*100;
+                 for R := 0 to fOutlist.Count - 1 do
+                 begin
+                    try
+                      Amt1 := StrtoCurr(GetFileText(R,C2))*100;
+                    except
+                      Amt1 := 0;
+                    end;
+
+                    try
+                      Amt2 := StrtoCurr(GetFileText(R,C))*100;
+                    except
+                      Amt2 := 0;
+                    end;
+                    
                     if (Amt2 < 0) then
                       SetAmount (Amt2 - Amt1)
                     else
                       SetAmount (Amt1 - Amt2);
                  end;
+
                  Exit;
               end;
           end else if RbSign.Checked then begin
               C2 := GetComboCurrentIntObject(cbAmount2);
               if C2 >= 0 then begin
-                 for R := 0 to fOutlist.Count - 1 do begin
-                    Amt1 := StrtoCurr(GetFileText(R,C))*100;
+                 for R := 0 to fOutlist.Count - 1 do
+                 begin
+                    try
+                      Amt1 := StrtoCurr(GetFileText(R,C))*100;
+                    except
+                      Amt1 := 0;
+                    end;
+                    
                     if IsDebit then
                        Amt1 := - Amt1;
                     SetAmount(Amt1);
@@ -1741,23 +1766,32 @@ begin
        if not NextLine then
           Exit; // Nothing found..
 
-       HeaderLine := True;
+       if FInSetup then
+       begin
+         HeaderLine := True;
 
-       for C := 0 to lLine.Count - 1 do begin
-          if not IsAlphaOnly(LLine[C]) then
-          if IsNumericOnly(LLine[C]) then begin
-             HeaderLine := False;
-             Break;
-          end;
+         for C := 0 to lLine.Count - 1 do begin
+            if not IsAlphaOnly(LLine[C]) then
+            if IsNumericOnly(LLine[C]) then begin
+               HeaderLine := False;
+               Break;
+            end;
+         end;
+       end
+       else
+       begin
+         HeaderLine := CHFirstLine.Checked;
        end;
-
+       
        HeaderLineList.Clear;
        
        if HeaderLine then
        begin
-         // All Text, Must be header (No valid amount Or Date)
-         CHFirstLine.Checked := True;
-         CHFirstLine.Enabled := False;
+         if FInSetup then
+         begin
+           CHFirstLine.Checked := True;
+           CHFirstLine.Enabled := False;
+         end;
 
          { This should not be created here since a global function depends on it.  Now created in the constructor
          HeaderLineList := TStringList.Create;
@@ -1768,21 +1802,15 @@ begin
        end
        else
        begin
-         CHFirstLine.Enabled := True;
+         if FInSetup then
+         begin
+           CHFirstLine.Checked := False;
+           CHFirstLine.Enabled := True;
+         end;
 
-         if CHFirstLine.Checked then
+         for C := 0 to lLine.Count - 1 do
          begin
-           for C := 0 to lLine.Count - 1 do
-           begin
-             HeaderLineList.Add(lLine.Strings[C]);
-           end;
-         end
-         else
-         begin
-           for C := 0 to lLine.Count - 1 do
-           begin
-             HeaderLineList.Add(Format('Column %d',[C + 1]));
-           end;
+           HeaderLineList.Add(Format('Column %d',[C + 1]));
          end;
        end;
 
@@ -2045,14 +2073,7 @@ begin
          '$', ',', '+', ')':; // These are fine too...
 
          else
-         begin
-           { Don't raise an exception because of an invalid currency value, just exit and return 0
            raise Exception.Create(format( 'Illegal Char [%s]:%d',[Value[I],Integer(Value[I])]) );
-           }
-           
-           Result := 0;
-           Break;
-         end;
 
          end;
       if S > '' then
