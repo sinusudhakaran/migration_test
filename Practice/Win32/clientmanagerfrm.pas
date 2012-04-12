@@ -1004,12 +1004,18 @@ begin
   end;
 end;
 
+function CompareProductColumns(List: TStringList; Index1, Index2: Integer): Integer;
+begin
+  Result := CompareText(List.ValueFromIndex[Index1], List.ValueFromIndex[Index2]); 
+end;
+
 //------------------------------------------------------------------------------
 function DoGlobalClientSetup(w_PopupParent: TForm; L, T, H, W: Integer) : boolean;
 var
   ClientManager : TfrmClientManager;
   i, NumColumns: Integer;
   ColumnName: string;
+  ColumnSorter: TStringList;
 const
    Offset = 30;
 begin
@@ -1064,22 +1070,54 @@ begin
         if (ProductConfigService.OnLine and AdminSystem.fdFields.fdUse_BankLink_Online) then
         begin
           ProductConfigService.LoadClientList;
-          if Assigned(ProductConfigService.Clients) then begin
-            for i := 0 to Length(ProductConfigService.Clients.Catalogue)-1 do
-            begin
-              if ProductConfigService.Clients.Catalogue[i].CatalogueType <> 'Service' then
+
+          if Assigned(ProductConfigService.Clients) then
+          begin
+            ColumnSorter := TStringList.Create;
+
+            try
+              for i := 0 to Length(ProductConfigService.Clients.Catalogue)-1 do
               begin
-                ColumnName := ProductConfigService.Clients.Catalogue[i].Description;
+                if ProductConfigService.Clients.Catalogue[i].CatalogueType <> 'Service' then
+                begin
+                  ColumnSorter.Add(ProductConfigService.Clients.Catalogue[i].Id + '=' + ProductConfigService.Clients.Catalogue[i].Description);
+                end;
+
+                {
+                if ProductConfigService.Clients.Catalogue[i].CatalogueType <> 'Service' then
+                begin
+                  ColumnName := ProductConfigService.Clients.Catalogue[i].Description;
+
+                  AddCustomColumn(trim(ColumnName),
+                                  trunc(vtClients.Canvas.TextWidth(trim(ColumnName)) * 2),
+                                  NumColumns,
+                                  cluBOProduct,
+                                  i,
+                                  ProductConfigService.Clients.Catalogue[i].Id);
+
+                  inc(NumColumns);
+                end;
+                }
+              end;
+
+               //Sort the columns so that they appear by default in alphabetical order
+              ColumnSorter.CustomSort(CompareProductColumns);
+
+              for i := 0 to ColumnSorter.Count - 1 do
+              begin
+                ColumnName := ColumnSorter.ValueFromIndex[i];
 
                 AddCustomColumn(trim(ColumnName),
                                 trunc(vtClients.Canvas.TextWidth(trim(ColumnName)) * 2),
                                 NumColumns,
                                 cluBOProduct,
                                 i,
-                                ProductConfigService.Clients.Catalogue[i].Id);
+                                ColumnSorter.Names[i]);
 
                 inc(NumColumns);
-              end;
+              end; 
+            finally
+              ColumnSorter.Free;
             end;
 
             if UserINI_CM_Var_Col_Count <> Length(ProductConfigService.Clients.Catalogue) then
