@@ -1067,16 +1067,19 @@ begin
           if Assigned(ProductConfigService.Clients) then begin
             for i := 0 to Length(ProductConfigService.Clients.Catalogue)-1 do
             begin
-              ColumnName := ProductConfigService.Clients.Catalogue[i].Description;
+              if ProductConfigService.Clients.Catalogue[i].CatalogueType <> 'Service' then
+              begin
+                ColumnName := ProductConfigService.Clients.Catalogue[i].Description;
 
-              AddCustomColumn(trim(ColumnName),
-                              trunc(vtClients.Canvas.TextWidth(trim(ColumnName)) * 2),
-                              NumColumns,
-                              cluBOProduct,
-                              i,
-                              ProductConfigService.Clients.Catalogue[i].Id);
+                AddCustomColumn(trim(ColumnName),
+                                trunc(vtClients.Canvas.TextWidth(trim(ColumnName)) * 2),
+                                NumColumns,
+                                cluBOProduct,
+                                i,
+                                ProductConfigService.Clients.Catalogue[i].Id);
 
-              inc(NumColumns);
+                inc(NumColumns);
+              end;
             end;
 
             if UserINI_CM_Var_Col_Count <> Length(ProductConfigService.Clients.Catalogue) then
