@@ -249,9 +249,6 @@ procedure TfrmBanklinkOnlineSettings.UpdateClientWebFormat(Subscription: TBloArr
 var
   NotesId : TBloGuid;
 begin
-  if not IsClientOnline then
-    Exit;
-
   NotesId := ProductConfigService.GetNotesId;
   if ProductConfigService.IsItemInArrayGuid(Subscription, NotesId) then
   begin
@@ -750,6 +747,12 @@ begin
                                                     Subscription,
                                                     edtEmailAddress.Text,
                                                     edtUserName.Text);
+      end
+      else
+      begin
+        SetLength(Subscription,0);
+        MyClient.clExtra.ceOnlineValuesStored := False;
+        Result := True;
       end;
     end;
   end;
