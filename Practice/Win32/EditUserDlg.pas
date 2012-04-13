@@ -91,7 +91,6 @@ Type
     pnlOnline: TPanel;
     pnlOnlineLeft: TPanel;
     pnlOnlineRight: TPanel;
-    lblPrimaryContact: TLabel;
     pnlOnlineMid: TPanel;
     pnlAllowAccess: TPanel;
     chkCanAccessBankLinkOnline: TCheckBox;
@@ -102,6 +101,8 @@ Type
     pnlOnlineUser: TPanel;
     Label10: TLabel;
     eOnlineUser: TEdit;
+    pnlPrimaryContact: TPanel;
+    lblPrimaryContact: TLabel;
 
     Procedure btnCancelClick(Sender: TObject);
     Procedure btnOKClick(Sender: TObject);
@@ -434,7 +435,15 @@ begin
   else
   begin
     lblPasswordValidation.Caption  := '(8-12 characters, including at least 1 digit)';
-    lblPrimaryContact.Visible      := fIsPrimaryUser;
+
+    //lblPrimaryContact.Visible      := fIsPrimaryUser;
+
+    pnlPrimaryContact.Visible := fIsPrimaryUser;
+  end;
+
+  if pnlPrimaryContact.Visible then
+  begin
+    Self.Height := Self.Height + pnlPrimaryContact.Height;
   end;
 end;
 
