@@ -742,12 +742,15 @@ begin
     end
     else
     begin
-      Result := ProductConfigService.CreateClient(AnsiLeftStr(cmbBillingFrequency.Text, 1),
-                                                  StrToInt(ConnectDays),
-                                                  Status,
-                                                  Subscription,
-                                                  edtEmailAddress.Text,
-                                                  edtUserName.Text);
+      if NumProdTicked > 0 then
+      begin
+        Result := ProductConfigService.CreateClient(AnsiLeftStr(cmbBillingFrequency.Text, 1),
+                                                    StrToInt(ConnectDays),
+                                                    Status,
+                                                    Subscription,
+                                                    edtEmailAddress.Text,
+                                                    edtUserName.Text);
+      end;
     end;
   end;
 
