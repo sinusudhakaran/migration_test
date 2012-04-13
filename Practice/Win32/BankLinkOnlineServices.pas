@@ -3098,7 +3098,7 @@ begin
 
         if not (UserGuid = '') then
         begin
-          MsgResponce := DeleteUser(aUserGuid,
+          MsgResponce := DeleteUser(UserGuid,
                                     aUserCode);
 
           Result := not MessageResponseHasError(MsgResponce, 'delete practice user on');
