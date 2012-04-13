@@ -101,7 +101,6 @@ Type
     pnlOnlineUser: TPanel;
     Label10: TLabel;
     eOnlineUser: TEdit;
-    pnlPrimaryContact: TPanel;
     lblPrimaryContact: TLabel;
 
     Procedure btnCancelClick(Sender: TObject);
@@ -436,14 +435,7 @@ begin
   begin
     lblPasswordValidation.Caption  := '(8-12 characters, including at least 1 digit)';
 
-    //lblPrimaryContact.Visible      := fIsPrimaryUser;
-
-    pnlPrimaryContact.Visible := fIsPrimaryUser;
-  end;
-
-  if pnlPrimaryContact.Visible then
-  begin
-    Self.Height := Self.Height + pnlPrimaryContact.Height;
+    lblPrimaryContact.Visible      := fIsPrimaryUser;
   end;
 end;
 
