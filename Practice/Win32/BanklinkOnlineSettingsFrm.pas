@@ -542,6 +542,7 @@ var
   UserEMail     : String;
   UserFullName  : String;
   Subscription  : TBloArrayOfguid;
+  Index: Integer;
 
   procedure FillDetailIn(const aBillingFrequency : WideString;
                          const aMaxOfflineDays   : Integer;
@@ -656,6 +657,15 @@ begin
       chkUseClientDetails.Checked := False;
       edtUserName.Text := MyClient.clFields.clContact_Name;
       edtEmailAddress.Text := MyClient.clFields.clClient_EMail_Address;
+    end;
+  end;
+
+  //If the client is opened in read-only mode then disable the product items.
+  if MyClient.clFields.clFile_Read_Only then
+  begin
+    for Index := 0 to chklistProducts.Items.Count - 1 do
+    begin
+      chklistProducts.ItemEnabled[Index] := False; 
     end;
   end;
 end;
