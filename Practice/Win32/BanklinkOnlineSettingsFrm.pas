@@ -657,12 +657,17 @@ begin
     end;
   end;
 
-  //If the client is opened in read-only mode then disable the product items.
+  //If the client is opened in read-only mode then disable the notes online product.
   if MyClient.clFields.clFile_Read_Only then
   begin
     for Index := 0 to chklistProducts.Items.Count - 1 do
     begin
-      chklistProducts.ItemEnabled[Index] := False; 
+      if TBloCatalogueEntry(chklistProducts.Items.Objects[Index]).id = ProductConfigService.GetNotesId then
+      begin
+        chklistProducts.ItemEnabled[Index] := False;
+
+        Break;
+      end;
     end;
   end;
 end;
