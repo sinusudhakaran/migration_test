@@ -2280,20 +2280,6 @@ begin
         SystemAuditMgr.FlagAudit(arSystemClientFiles, CFRec.cfAudit_Record_ID, aaNone, Msg);
 
         SaveAdminSystem;
-
-        if UseBankLinkOnline then
-        begin
-          OpenAClient(CFRec^.cfFile_Code, aClient, True);
-
-          if Assigned(aClient) then
-          begin
-            try
-              ProductConfigService.SynchronizeLocalClientSettings(aClient);
-            finally
-              CloseAClient(aClient);
-            end;
-          end;
-        end;
       end;
    end
    else begin
