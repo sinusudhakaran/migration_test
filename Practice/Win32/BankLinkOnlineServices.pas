@@ -11,7 +11,8 @@ uses
   XMLIntf,
   TypInfo,
   Classes,
-  ComCtrls;
+  ComCtrls,
+  clObj32;
 
 type
   TBloStatus                = BlopiServiceFacade.Status;
@@ -275,6 +276,8 @@ type
 
     function UpdateClientNotesOption(ClientReadDetail: TBloClientReadDetail; WebExportFormat: Byte): Boolean;
 
+    procedure SynchronizeLocalClientSettings(LocalClient: TClientObj);
+
     property OnLine: Boolean read FOnLine;
     property Registered: Boolean read GetRegistered;
     property ValidBConnectDetails: Boolean read GetValidBConnectDetails;
@@ -294,7 +297,6 @@ implementation
 
 uses
   Controls,
-  Globals,
   SysUtils,
   XMLDoc,
   OPToSOAPDomConv,
@@ -316,7 +318,8 @@ uses
   WSDLIntf,
   IntfInfo,
   ObjAuto,
-  SyDefs;
+  SyDefs,
+  Globals;
 
 const
   UNIT_NAME = 'BankLinkOnlineServices';
@@ -1666,6 +1669,35 @@ begin
         begin
           BlopiClient.Subscription := Subscription;
         end;
+      end;
+    end;
+  end;
+end;
+
+procedure TProductConfigService.SynchronizeLocalClientSettings(LocalClient: TClientObj);
+var
+  BlopiClient: TBloClientReadDetail;
+  NotesId : TBloGuid;
+begin
+  BlopiClient := Self.GetClientDetailsWithCode(LocalClient.clFields.clCode);
+
+  if Assigned(BlopiClient) then
+  begin
+    NotesId := GetNotesId;
+    
+    if (LocalClient.clFields.clWeb_Export_Format <> wfWebNotes) then
+    begin
+      if BlopiClient.HasSubscription(NotesId) then
+      begin
+        LocalClient.clFields.clWeb_Export_Format := wfWebNotes;
+      end;
+    end
+    else
+    if (LocalClient.clFields.clWeb_Export_Format = wfWebNotes) then
+    begin
+      if not BlopiClient.HasSubscription(NotesId) then
+      begin
+        LocalClient.clFields.clWeb_Export_Format := wfNone;
       end;
     end;
   end;
