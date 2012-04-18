@@ -2985,7 +2985,7 @@ begin
   try
     try
       // Does the User Already Exist on BankLink Online?
-      Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Recieving Data', 33);
+      Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Receiving Data', 33);
       CurrPractice := GetPractice(true, true);
       if OnLine then
       begin
