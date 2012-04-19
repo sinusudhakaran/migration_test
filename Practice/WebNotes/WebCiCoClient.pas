@@ -505,7 +505,7 @@ procedure TWebCiCoClient.RaiseHttpError(AErrMessage : String;
 begin
   logutil.LogError(UNIT_NAME, format('%s Error:<%s>',[InttoStr(AErrCode), AErrMessage] ));
 
-  raise EWebHttpCiCoClientError.Create(AErrMessage, AErrCode);
+  raise EWebHttpCiCoClientError.Create('Unable to connect to BankLink Online. (' + inttostr(AErrCode) + ')', AErrCode);
 end;
 
 //------------------------------------------------------------------------------
