@@ -1169,7 +1169,9 @@ begin
     try
       lMonth := GetFirstDayOfMonth(CurrentDate);
       PS := lPractice.FindClientMonth(PracticeLRN, lMonth);
-      inc(PS.csClient_Files_Sent, 1);
+      if (PS = nil) then
+        PS := lPractice.Insert(PracticeLRN, lMonth);
+      inc(PS.csClient_Files_Sent);
       IncUsage('Client Files Sent');
     finally
       lPractice.Free;
@@ -1245,7 +1247,9 @@ begin
     try
       lMonth := GetFirstDayOfMonth(CurrentDate);
       PS := lPractice.FindClientMonth(PracticeLRN, lMonth);
-      inc(PS.csClient_Files_Received, 1);
+      if (PS = nil) then
+        PS := lPractice.Insert(PracticeLRN, lMonth);
+      inc(PS.csClient_Files_Received);
       IncUsage('Client Files Received');
     finally
       lPractice.Free;
