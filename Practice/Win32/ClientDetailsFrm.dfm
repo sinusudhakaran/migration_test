@@ -844,10 +844,6 @@ object frmClientDetails: TfrmClientDetails
     object tbsNotes: TTabSheet
       Caption = 'Notes'
       ImageIndex = 2
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       DesignSize = (
         581
         522)
@@ -878,10 +874,6 @@ object frmClientDetails: TfrmClientDetails
     object tsSmartLink: TTabSheet
       Caption = 'SmartLink'
       ImageIndex = 4
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object Label19: TLabel
         Left = 16
         Top = 16

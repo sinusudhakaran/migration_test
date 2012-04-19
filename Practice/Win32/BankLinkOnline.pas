@@ -50,7 +50,8 @@ uses
   YesNoDlg,
   ClientWrapper,
   WinUtils,
-  progress;
+  progress,
+  RegExprUtils;
 
 const
   UNIT_NAME = 'BankLinkOnline';
@@ -535,9 +536,20 @@ begin
     try
       try
         if Assigned(AdminSystem) then
-          CiCoClient.UploadFileFromPractice(AClientCode, AClientName, AClientEmail, AClientContact, ServerResponce)
+        begin
+          if not RegExIsEmailValid(AClientEmail) then
+            raise EUploadFailed.Create('A valid client email is required to upload.');
+
+          CiCoClient.UploadFileFromPractice(AClientCode, AClientName, AClientEmail, AClientContact, ServerResponce);
+        end
         else
+        begin
+          if not RegExIsEmailValid(NotifyEmail) then
+            raise EUploadFailed.Create('A valid email is required to upload.');
+
           CiCoClient.UploadFileFromBooks(AClientCode, IsCopy, NotifyPractice, NotifyEmail, ServerResponce);
+        end;
+
       except
         on E : Exception do
           raise EUploadFailed.Create(E.Message);

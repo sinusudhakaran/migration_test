@@ -213,7 +213,8 @@ uses
    AuditMgr,
    InfoMoreFrm,
    WebUtils,
-   BlopiServiceFacade;
+   BlopiServiceFacade,
+   RegExprUtils;
 
 {$R *.DFM}
 
@@ -479,15 +480,6 @@ end;
 
 //------------------------------------------------------------------------------
 procedure TfrmClientDetails.btnOkClick(Sender: TObject);
-var
-  buttonSelected: integer;
-  TheCreateClient: TBloClientCreate;
-  TheReadClient: TBloClientReadDetail;
-  MyUserCreate: TBloUserCreate;
-  MyUserRead   : TBloUserRead;
-  BlankSubscription: TBloArrayOfGuid;
-  ClientDetailResponse: MessageResponseOfClientReadDetailMIdCYrSK;
-  MsgResponseOfGuid: MessageResponseOfGuid;
 begin
   if okToPost then
   begin
@@ -652,22 +644,37 @@ begin
     end;
   end;
 
+  // Cico valid Email
+  if (AdminSystem.fdFields.fdUse_BankLink_Online) and
+     (ProductConfigService.IsCICOEnabled) and
+     (not RegExIsEmailValid(EMail.Text)) then
+  begin
+    HelpfulWarningMsg('You have selected' + #13 +
+                      'Enhanced Client File Handling.' + #13#13 +
+                      'This requires a Valid E-mail address.', 0);
+    PageControl1.ActivePage := tbsClient;
+    EMail.SetFocus;
+    Exit;
+  end;
+
   // Web Export to BankLink test
   if (MyClient.clFields.clWeb_Export_Format = wfWebNotes) and not FInWizard then
   begin
-      CodeType := format( 'You have selected'#13'Web export to %s,'#13'under Accounting System.'#13#13, [WebNotesName]);
-      if EContact.Text = '' then begin
-         HelpfulWarningMsg(CodeType + 'This requires a Contact Name.', 0);
-         PageControl1.ActivePage := tbsClient;
-         EContact.SetFocus;
-         Exit;
-      end;
-      if EMail.Text = '' then begin
-         HelpfulWarningMsg(CodeType + 'This requires an E-mail address.', 0);
-         PageControl1.ActivePage := tbsClient;
-         EMail.SetFocus;
-         Exit;
-      end;
+    CodeType := format( 'You have selected'#13'Web export to %s,'#13'under Accounting System.'#13#13, [WebNotesName]);
+    if EContact.Text = '' then
+    begin
+      HelpfulWarningMsg(CodeType + 'This requires a Contact Name.', 0);
+      PageControl1.ActivePage := tbsClient;
+      EContact.SetFocus;
+      Exit;
+    end;
+    if (not RegExIsEmailValid(EMail.Text)) then
+    begin
+      HelpfulWarningMsg(CodeType + 'This requires a Valid E-mail address.', 0);
+      PageControl1.ActivePage := tbsClient;
+      EMail.SetFocus;
+      Exit;
+    end;
   end;
 
   Result := true;
