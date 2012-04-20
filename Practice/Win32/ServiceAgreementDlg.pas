@@ -4,16 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, OSFont, StdCtrls, ComCtrls, cxGraphics, cxControls, cxLookAndFeels,
-  cxLookAndFeelPainters, cxContainer, cxEdit, dxSkinsCore, dxSkinBlack,
-  dxSkinBlue, dxSkinCaramel, dxSkinCoffee, dxSkinDarkRoom, dxSkinDarkSide,
-  dxSkinFoggy, dxSkinGlassOceans, dxSkiniMaginary, dxSkinLilian,
-  dxSkinLiquidSky, dxSkinLondonLiquidSky, dxSkinMcSkin, dxSkinMoneyTwins,
-  dxSkinOffice2007Black, dxSkinOffice2007Blue, dxSkinOffice2007Green,
-  dxSkinOffice2007Pink, dxSkinOffice2007Silver, dxSkinPumpkin, dxSkinSeven,
-  dxSkinSharp, dxSkinSilver, dxSkinSpringTime, dxSkinStardust, dxSkinSummer2008,
-  dxSkinsDefaultPainters, dxSkinValentine, dxSkinXmas2008Blue, cxTextEdit,
-  cxMemo, cxRichEdit;
+  Dialogs, OSFont, StdCtrls, ComCtrls;
 
 type
   TfrmServiceAgreement = class(TForm)
@@ -21,7 +12,6 @@ type
     btnCancel: TButton;
     Label1: TLabel;
     Label2: TLabel;
-    memServiceAgreement: TcxRichEdit;
     procedure FormResize(Sender: TObject);
   private
     { Private declarations }
@@ -58,7 +48,7 @@ function TfrmServiceAgreement.Execute: Boolean;
 begin
   Result := False;
   //Get text for service agreement
-  memServiceAgreement.Text := ProductConfigService.GetServiceAgreement;
+  //memServiceAgreement.Text := ProductConfigService.GetServiceAgreement;
 
   if ShowModal = mrYes then
     Result := True;

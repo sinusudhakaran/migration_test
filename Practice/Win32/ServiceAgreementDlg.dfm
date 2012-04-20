@@ -78,18 +78,4 @@ object frmServiceAgreement: TfrmServiceAgreement
     ExplicitLeft = 524
     ExplicitTop = 424
   end
-  object memServiceAgreement: TcxRichEdit
-    Left = 8
-    Top = 35
-    Anchors = [akLeft, akTop, akRight]
-    Properties.HideScrollBars = False
-    Properties.ReadOnly = True
-    Properties.ScrollBars = ssVertical
-    Lines.Strings = (
-      'memServiceAgreement')
-    TabOrder = 2
-    ExplicitWidth = 618
-    Height = 318
-    Width = 628
-  end
 end
