@@ -590,7 +590,9 @@ begin
   begin
     ProductGuid := ProductConfigService.ProductList[ProdIndex];
     CatEntry := ProductConfigService.GetCatalogueEntry(ProductGuid);
-    if CatEntry.CatalogueType <> 'Service' then
+
+    if (Assigned(CatEntry)) and
+       (CatEntry.CatalogueType <> 'Service') then
       chklistProducts.AddItem(CatEntry.Description, CatEntry);
   end;
 
