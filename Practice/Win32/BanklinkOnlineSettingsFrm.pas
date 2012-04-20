@@ -436,7 +436,7 @@ begin
     else
     if ProductsChanged then
     begin
-      if AskYesNo('Reactiving products',
+      if AskYesNo('Activating products',
                   'Are you sure you want to activate the following products:' + #10#10 +
                   NewProducts.Text + #10 +
                  'By clicking ''OK'' you are confirming that you wish to activate these products ' +
