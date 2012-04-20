@@ -78,4 +78,15 @@ object frmServiceAgreement: TfrmServiceAgreement
     ExplicitLeft = 524
     ExplicitTop = 424
   end
+  object memServiceAgreement: TBKRichEdit
+    Left = 8
+    Top = 35
+    Width = 628
+    Height = 318
+    Anchors = [akLeft, akTop, akRight]
+    ReadOnly = True
+    ScrollBars = ssVertical
+    TabOrder = 2
+    ReadOnlyColor = clWindow
+  end
 end

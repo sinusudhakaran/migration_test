@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, OSFont, StdCtrls, ComCtrls;
+  Dialogs, OSFont, StdCtrls, ComCtrls, RzEdit, BKRichEdit;
 
 type
   TfrmServiceAgreement = class(TForm)
@@ -12,6 +12,7 @@ type
     btnCancel: TButton;
     Label1: TLabel;
     Label2: TLabel;
+    memServiceAgreement: TBKRichEdit;
     procedure FormResize(Sender: TObject);
   private
     { Private declarations }
@@ -48,7 +49,7 @@ function TfrmServiceAgreement.Execute: Boolean;
 begin
   Result := False;
   //Get text for service agreement
-  //memServiceAgreement.Text := ProductConfigService.GetServiceAgreement;
+  memServiceAgreement.Text := ProductConfigService.GetServiceAgreement;
 
   if ShowModal = mrYes then
     Result := True;
