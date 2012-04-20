@@ -221,7 +221,7 @@ type
     procedure SetPrimaryContact(AUser: TBloUserRead);
     function GetCatFromSub(aSubGuid : Guid): CatalogueEntry;
     property CachedPractice: PracticeRead read GetCachedPractice;
-    procedure GetServiceAgreement(ARichEdit: TRichEdit);
+    function GetServiceAgreement : WideString;
     procedure SavePracticeDetailsToSystemDB(ARemotable: TRemotable);
     //Client methods
     function CreateNewClientWithUser(aNewClient: TBloClientCreate; aNewUserCreate: TBloUserCreate): TBloClientReadDetail;
@@ -1318,11 +1318,13 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TProductConfigService.GetServiceAgreement(ARichEdit: TRichEdit);
+function TProductConfigService.GetServiceAgreement : WideString;
 var
   BlopiInterface: IBlopiServiceFacade;
   ReturnMsg: MessageResponseOfstring;
   ShowProgress : Boolean;
+
+  FileTxt : Textfile;
 begin
   try
     ShowProgress := Progress.StatusSilent;
@@ -1342,7 +1344,7 @@ begin
                                                         AdminSystem.fdFields.fdBankLink_Connect_Password);
       if not MessageResponseHasError(MessageResponse(ReturnMsg), 'get the service agreement from') then
         if ReturnMsg.Result <> '' then
-          ARichEdit.Text := ReturnMsg.Result;
+          Result := ReturnMsg.Result;
 
       if ShowProgress then
         Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finished', 100);
