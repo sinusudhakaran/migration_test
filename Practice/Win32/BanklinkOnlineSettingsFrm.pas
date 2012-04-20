@@ -409,15 +409,15 @@ begin
         Exit;
     end
     else
-    if (EmailChanged and ProductsChanged) then
+    if (EmailChanged and ProductsChanged) and (NewProducts.Count > 0) then
     begin
-      PromptMessage := 'Are you sure you want to update the following for ' +
-                       edtUserName.text + ':' + #10#10 +
-                       'Activate the following products & services:' + #10 +
-                       Trim(NewProducts.Text) + #10#10 + 'Change the Default Client ' +
-                       'Administrator Email Address. The new Default Client ' +
-                       'Adminstrator will be sent to ' + edtEmailAddress.Text + '.';
-
+        PromptMessage := 'Are you sure you want to update the following for ' +
+                         edtUserName.text + ':' + #10#10 +
+                         'Activate the following products & services:' + #10 +
+                         Trim(NewProducts.Text) + #10#10 + 'Change the Default Client ' +
+                         'Administrator Email Address. The new Default Client ' +
+                         'Adminstrator will be sent to ' + edtEmailAddress.Text + '.';
+      
       if AskYesNo('Changing client details',
                   PromptMessage, DLG_YES, 0, false) <> DLG_YES then
         Exit;
@@ -434,7 +434,7 @@ begin
         Exit;
     end
     else
-    if ProductsChanged then
+    if ProductsChanged and (NewProducts.Count > 0) then
     begin
       if AskYesNo('Activating products',
                   'Are you sure you want to activate the following products:' + #10#10 +
