@@ -60,6 +60,7 @@ type
     fOkPressed : Boolean;
     fBusyKeyPress : Boolean;
     fReadOnly : Boolean;
+    fOldEmail : string;
 
     ClientReadDetail : TBloClientReadDetail;
   protected
@@ -277,7 +278,7 @@ begin
   NotesOnlineTicked := False;
   NumProdTicked := 0;
 
-  EmailChanged := False;
+  EmailChanged := (uppercase(fOldEmail) <> uppercase(edtEmailAddress.Text));
   ProductsChanged := False;
 
   if (Trim(edtUserName.Text) = '') then
@@ -337,10 +338,6 @@ begin
                 DLG_YES, 0, false) <> DLG_YES then
       Exit;
   end;
-
-  if IsClientOnline then
-    if Length(ClientReadDetail.Users) > 0 then
-      EmailChanged := (edtEmailAddress.Text <> ClientReadDetail.Users[0].EMail);
 
   NewProducts := TStringList.Create;
   RemovedProducts := TStringList.Create;
@@ -672,6 +669,8 @@ begin
       end;
     end;
   end;
+
+  fOldEmail := edtEmailAddress.Text;
 end;
 
 //------------------------------------------------------------------------------
