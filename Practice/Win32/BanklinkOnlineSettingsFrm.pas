@@ -464,6 +464,7 @@ begin
         Exit;
     end;
 
+    (* We only want to send an email with products at the practice level have changed, not at the client level.
     if ProductsChanged then
     begin
       // Send email to support
@@ -493,7 +494,8 @@ begin
       end;
       SendMailTo('Email to Support', MailTo, MailSubject, MailBody);
     end;
-
+    *)
+    
     Result := True;
   finally
     FreeAndNil(NewProducts);
