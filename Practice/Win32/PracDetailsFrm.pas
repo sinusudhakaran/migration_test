@@ -148,6 +148,7 @@ type
     FPrac: TBloPracticeRead;
     FPreviousPage: integer;
     FOnlineSettingsChanged: Boolean;
+
     procedure SetUpHelp;
     function AddTreeNode(AVST: TCustomVirtualStringTree; ANode:
                                PVirtualNode; ACaption: widestring;
@@ -823,6 +824,11 @@ begin
   end;
 end;
 
+function SortList(List: TStringList; Index1, Index2: Integer): Integer;
+begin
+  Result := CompareText(List.ValueFromIndex[Index1], List.ValueFromIndex[Index2]);  
+end;
+
 //------------------------------------------------------------------------------
 function TfrmPracticeDetails.VerifyForm: boolean;
 const
@@ -831,6 +837,13 @@ var
   aMsg : string;
   Path : string;
   CurrType : integer;
+  MailTo, MailSubject, MailBody: string;
+  NewProducts: TStringList;
+  RemovedProducts: TStringList;
+  AllProducts: TStringList;
+  Index: Integer;
+  Catalogue: TBloCatalogueEntry;
+  PrimaryContact: TBloUserRead; 
 begin
   result := false;
 
@@ -900,11 +913,104 @@ begin
     if not (YesNoDlg.AskYesNo('BankLink Online products and services change', aMsg, DLG_YES, 0) = DLG_YES) then
       Exit;
 
-    if not ProductConfigService.SavePractice then
-    begin
-      //Don't exit dialog if online settings were not updated
-      if UseBankLinkOnline then
-        Exit;
+    NewProducts := TStringList.Create;
+
+    try
+      NewProducts.Sorted := True;
+      
+      RemovedProducts := TStringList.Create;
+
+      try
+        RemovedProducts.Sorted := True;
+        
+        for Index := Low(FPrac.Catalogue) to High(FPrac.Catalogue) do
+        begin
+          Catalogue := TBloCatalogueEntry(FPrac.Catalogue[Index]);
+
+          if ProductConfigService.HasProductJustBeenTicked(Catalogue.Id) then
+          begin
+            NewProducts.Add(Catalogue.Description);
+          end
+          else
+          if ProductConfigService.HasProductJustBeenUnTicked(Catalogue.Id) then
+          begin
+            RemovedProducts.Add(Catalogue.Description);
+          end;
+        end;
+
+        if not ProductConfigService.SavePractice then
+        begin
+          //Don't exit dialog if online settings were not updated
+          if UseBankLinkOnline then
+            Exit;
+        end;
+    
+         // Send email to support
+        if (NewProducts.Count > 0) or (RemovedProducts.Count > 0) then
+        begin
+          PrimaryContact := ProductConfigService.GetPrimaryContact(False);
+
+          MailTo := whSupportEmail[AdminSystem.fdFields.fdCountry];
+
+          MailSubject := 'Banklink Online product and service updates (' + AdminSystem.fdFields.fdBankLink_Code + ')';
+
+          MailBody := 'This practice has changed its Banklink Online product and service settings' + #10#10 +
+                      'Practice Name: ' + AdminSystem.fdFields.fdPractice_Name_for_Reports + #10 +
+                      'Practice Code: ' + AdminSystem.fdFields.fdBankLink_Code + #10#10 +
+                      'The BankLink Online Administrator (Primary Contact) for the practice' + #10 +
+                      'Name: ' + PrimaryContact.FullName + #10 +
+                      // Can't find phone number... do we have this at all for the practice administrator?
+                      'Email Address: ' + PrimaryContact.EMail + #10#10 +
+                      'Updated settings:' + #10;
+
+          for Index := 0 to NewProducts.Count - 1 do
+          begin
+            MailBody := MailBody + NewProducts[Index] + ' is now enabled' + #10;
+          end;
+
+          for Index := 0 to RemovedProducts.Count - 1 do
+          begin
+            MailBody := MailBody + RemovedProducts[Index] + ' is now disabled' + #10;
+          end;
+
+          MailBody := MailBody + #10 + 'Product and service settings:' + #10;
+
+          AllProducts := TStringList.Create;
+
+          try
+            for Index := Low(FPrac.Catalogue) to High(FPrac.Catalogue) do
+            begin
+              Catalogue := TBloCatalogueEntry(FPrac.Catalogue[Index]);
+
+              AllProducts.Add(Catalogue.Id + '=' + Catalogue.Description);
+            end;
+
+            AllProducts.CustomSort(SortList);
+
+            for Index := 0 to AllProducts.Count -1 do
+            begin
+              MailBody := MailBody + AllProducts.ValueFromIndex[Index] + ' - ';
+
+              if ProductConfigService.IsPracticeProductEnabled(AllProducts.Names[Index], False) then
+              begin
+                MailBody := MailBody + 'enabled' + #10
+              end
+              else
+              begin
+                MailBody := MailBody + 'disabled' + #10;
+              end;
+            end;
+          finally
+            AllProducts.Free;
+          end;
+
+          SendMailTo('Email to Support', MailTo, MailSubject, MailBody);
+        end;
+      finally
+        RemovedProducts.Free;
+      end;
+    finally
+      NewProducts.Free;
     end;
   end;
 
