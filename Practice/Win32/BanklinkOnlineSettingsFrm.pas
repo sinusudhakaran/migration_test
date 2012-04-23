@@ -441,7 +441,7 @@ begin
         Exit;
     end
     else
-    if EmailChanged then
+    if EmailChanged and not ClientAccessChanged then
     begin
       if AskYesNo('Changing Default Administrator Address',
                   'You have changed the Default Client Administrator Email Address. ' +
