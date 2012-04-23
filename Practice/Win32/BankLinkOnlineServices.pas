@@ -207,6 +207,8 @@ type
     function GetCatalogueEntry(AProductId: TBloGuid): TBloCatalogueEntry;
     function IsPracticeProductEnabled(AProductId: TBloGuid; AUsePracCopy : Boolean): Boolean;
     function HasProductJustBeenUnTicked(AProductId: TBloGuid): Boolean;
+    function HasProductJustBeenTicked(AProductId: TBloGuid): Boolean;
+
     function GetNotesId : TBloGuid;
     function IsNotesOnlineEnabled: Boolean;
     function IsCICOEnabled: Boolean;
@@ -218,7 +220,10 @@ type
     function OnlineStatus: TBloStatus;
     procedure RemoveProduct(AProductId: TBloGuid);
     procedure SelectAllProducts;
+    
     procedure SetPrimaryContact(AUser: TBloUserRead);
+    function GetPrimaryContact(AUsePracCopy: Boolean): TBloUserRead;
+
     function GetCatFromSub(aSubGuid : Guid): CatalogueEntry;
     property CachedPractice: PracticeRead read GetCachedPractice;
     function GetServiceAgreement : WideString;
@@ -1546,6 +1551,11 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+function TProductConfigService.HasProductJustBeenTicked(AProductId: TBloGuid): Boolean;
+begin
+  Result := (not IsPracticeProductEnabled(AProductID, False)) and IsPracticeProductEnabled(AProductID, True); 
+end;
+
 function TProductConfigService.HasProductJustBeenUnTicked(AProductId: TBloGuid): Boolean;
 begin
   // Was the Product Ticked and is it currently unticked
@@ -3162,6 +3172,32 @@ begin
       Break;
     end;
   end;
+end;
+
+function TProductConfigService.GetPrimaryContact(AUsePracCopy: Boolean): TBloUserRead;
+var
+  TempPractice: TBloPracticeRead;
+  Index: Integer;
+begin
+  if AUsePracCopy then
+  begin
+    TempPractice := FPracticeCopy;
+  end
+  else
+  begin
+    TempPractice := FPractice;
+  end;
+
+  for Index := Low(TempPractice.Users) to High(TempPractice.Users) do
+  begin
+    if TempPractice.Users[Index].Id = TempPractice.DefaultAdminUserId then
+    begin
+      Result := TempPractice.Users[Index];
+      
+      Break;
+    end;
+  end;
+
 end;
 
 //------------------------------------------------------------------------------
