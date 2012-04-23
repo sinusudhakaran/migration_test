@@ -412,6 +412,17 @@ begin
       end;
     end;
 
+    if (NumProdTicked = 0) then
+    begin
+      PromptMessage := 'You have edited the BankLink Online settings for this client, ' +
+                       'but have not enabled any products so your changes will not be saved. ' + #10#10 +
+                       'Click OK to continue without saving your changes, ' +
+                       'or click Cancel if you wish to go back and enable a BankLink Online product for this client.';
+
+      if MessageDlg(PromptMessage, mtWarning, [mbOK, mbCancel], 0) = idCancel then
+        Exit;
+    end
+    else
     if (not IsClientOnline) and
        (NotesOnlineTicked) and
        (NumProdTicked > 1) then
