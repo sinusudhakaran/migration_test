@@ -678,7 +678,7 @@ begin
     end;
     if (not RegExIsEmailValid(EMail.Text)) then
     begin
-      if not (BlankEmailIsValid and (Trim(Email.Text) = '') then
+      if not (BlankEmailIsValid) and (Trim(Email.Text) = '') then
       begin
         HelpfulWarningMsg(CodeType + 'This requires a Valid E-mail address.', 0);
         PageControl1.ActivePage := tbsClient;
