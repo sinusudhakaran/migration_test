@@ -843,7 +843,9 @@ var
   AllProducts: TStringList;
   Index: Integer;
   Catalogue: TBloCatalogueEntry;
-  PrimaryContact: TBloUserRead; 
+  PrimaryContact: TBloUserRead;
+  ContactName: String;
+  ContactEmail: String;
 begin
   result := false;
 
@@ -948,19 +950,25 @@ begin
          // Send email to support
         if (NewProducts.Count > 0) or (RemovedProducts.Count > 0) then
         begin
-          PrimaryContact := ProductConfigService.GetPrimaryContact(False);
-
           MailTo := whSupportEmail[AdminSystem.fdFields.fdCountry];
 
           MailSubject := 'Banklink Online product and service updates (' + AdminSystem.fdFields.fdBankLink_Code + ')';
+
+          PrimaryContact := ProductConfigService.GetPrimaryContact(False);
+
+          if Assigned(PrimaryContact) then
+          begin
+            ContactName := PrimaryContact.Fullname;
+            ContactEmail := PrimaryContact.Email;
+          end;
 
           MailBody := 'This practice has changed its Banklink Online product and service settings' + #10#10 +
                       'Practice Name: ' + AdminSystem.fdFields.fdPractice_Name_for_Reports + #10 +
                       'Practice Code: ' + AdminSystem.fdFields.fdBankLink_Code + #10#10 +
                       'The BankLink Online Administrator (Primary Contact) for the practice' + #10 +
-                      'Name: ' + PrimaryContact.FullName + #10 +
+                      'Name: ' + ContactName + #10 +
                       // Can't find phone number... do we have this at all for the practice administrator?
-                      'Email Address: ' + PrimaryContact.EMail + #10#10 +
+                      'Email Address: ' + ContactEmail + #10#10 +
                       'Updated settings:' + #10;
 
           for Index := 0 to NewProducts.Count - 1 do
