@@ -49,7 +49,7 @@ object dlgAdminOptions: TdlgAdminOptions
     Top = 0
     Width = 618
     Height = 433
-    ActivePage = tsGeneral
+    ActivePage = tsExporting
     Align = alTop
     MultiLine = True
     TabOrder = 1

@@ -311,8 +311,6 @@ object frmClientHomePage: TfrmClientHomePage
           Align = alLeft
           Caption = 'Legend:'
           Layout = tlCenter
-          ExplicitLeft = 30
-          ExplicitTop = 2
           ExplicitHeight = 13
         end
         object tbtnClose: TRzToolButton

@@ -647,7 +647,8 @@ begin
   // Cico valid Email
   if (AdminSystem.fdFields.fdUse_BankLink_Online) and
      (ProductConfigService.IsCICOEnabled) and
-     (not RegExIsEmailValid(EMail.Text)) then
+     (not RegExIsEmailValid(EMail.Text)) and
+     (Email.Text <> '') then // null email is valid
   begin
     HelpfulWarningMsg('You have selected' + #13 +
                       'Enhanced Client File Handling.' + #13#13 +
