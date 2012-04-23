@@ -637,8 +637,8 @@ begin
           
           clWeb_Export_Format := ComboUtils.GetComboCurrentIntObject(cmbWebFormats);
 
-          //Only update the web export format on blopi, if blopi is available.
-          if UseBankLinkOnline then
+          //Only update the web export format on blopi, if blopi is available and the client is not read-only.
+          if UseBankLinkOnline and not MyClient.clFields.clFile_Read_Only then
           begin
             if MyClient.Opened then
             begin
