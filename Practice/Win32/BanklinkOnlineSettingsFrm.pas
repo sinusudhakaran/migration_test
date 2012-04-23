@@ -166,7 +166,9 @@ begin
   CanClose := Validate;
 
   if CanClose then
-    CanClose := SaveClientInfo;
+    CanClose := SaveClientInfo
+  else
+    fOkPressed := false;
 end;
 
 //------------------------------------------------------------------------------
