@@ -1635,15 +1635,18 @@ begin
 
       BlopiClientChanged := False;
 
-      if (MyClient.clFields.clWeb_Export_Format <> wfWebNotes) then
+      if not MyClient.clFields.clFile_Read_Only then
       begin
-        NotesId := GetNotesId;
-
-        if IsItemInArrayGuid(Subscription, NotesId) then
+        if (MyClient.clFields.clWeb_Export_Format <> wfWebNotes) then
         begin
-          RemoveItemFromArrayGuid(Subscription, NotesId);
+          NotesId := GetNotesId;
 
-          BlopiClientChanged := True;
+          if IsItemInArrayGuid(Subscription, NotesId) then
+          begin
+            RemoveItemFromArrayGuid(Subscription, NotesId);
+
+            BlopiClientChanged := True;
+          end;
         end;
       end;
 
