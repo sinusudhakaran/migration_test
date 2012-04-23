@@ -273,6 +273,7 @@ var
   ClientStatus : TBloStatus;
   MaxOfflineDays : String;
   BillingFrequency : WideString;
+  ClientAccessChanged: Boolean;
 begin
   Result := False;
   NotesOnlineTicked := False;
@@ -280,6 +281,8 @@ begin
 
   EmailChanged := (uppercase(fOldEmail) <> uppercase(edtEmailAddress.Text));
   ProductsChanged := False;
+
+  ClientAccessChanged := False;
 
   if (Trim(edtUserName.Text) = '') then
   begin
@@ -316,7 +319,13 @@ begin
                 'Banklink Online. They will be able to access BankLink Online as per ' +
                 'normal.' + #10#10 + 'Are you sure you want to continue?',
                 DLG_YES, 0, false) <> DLG_YES then
+    begin
       Exit;
+    end
+    else
+    begin
+      ClientAccessChanged := True;
+    end;
   end;
 
   if (ClientStatus <> staSuspended) and (rbSuspended.Checked) then
@@ -326,7 +335,13 @@ begin
                 'Online. They will be able to access BankLink Online in read-only mode.' +
                 #10#10 + 'Are you sure you want to continue?',
                 DLG_YES, 0, false) <> DLG_YES then
+    begin
       Exit;
+    end
+    else
+    begin
+      ClientAccessChanged := True;
+    end;
   end;
 
   if (ClientStatus <> staDeactivated) and (rbDeactivated.Checked) then
@@ -336,7 +351,13 @@ begin
                 'Online. All user log-ins will be disabled.' + #10#10 +
                 'Are you sure you want to continue?',
                 DLG_YES, 0, false) <> DLG_YES then
+    begin
       Exit;
+    end
+    else
+    begin
+      ClientAccessChanged := True;
+    end;
   end;
 
   NewProducts := TStringList.Create;
@@ -406,7 +427,7 @@ begin
         Exit;
     end
     else
-    if (EmailChanged and ProductsChanged) and (NewProducts.Count > 0) then
+    if (EmailChanged and ProductsChanged) and (NewProducts.Count > 0) and not ClientAccessChanged then
     begin
         PromptMessage := 'Are you sure you want to update the following for ' +
                          edtUserName.text + ':' + #10#10 +
@@ -431,7 +452,7 @@ begin
         Exit;
     end
     else
-    if ProductsChanged and (NewProducts.Count > 0) then
+    if ProductsChanged and (NewProducts.Count > 0) and not ClientAccessChanged then
     begin
       if AskYesNo('Activating products',
                   'Are you sure you want to activate the following products:' + #10#10 +
