@@ -103,7 +103,7 @@ object frmBanklinkOnlineSettings: TfrmBanklinkOnlineSettings
     TabOrder = 2
     object lblUserName: TLabel
       Left = 21
-      Top = 47
+      Top = 55
       Width = 52
       Height = 13
       Caption = 'User &Name'
@@ -111,36 +111,36 @@ object frmBanklinkOnlineSettings: TfrmBanklinkOnlineSettings
     end
     object lblEmailAddress: TLabel
       Left = 21
-      Top = 73
+      Top = 81
       Width = 70
       Height = 13
       Caption = '&E-mail Address'
       FocusControl = edtEmailAddress
     end
-    object chkUseClientDetails: TCheckBox
-      Left = 16
-      Top = 24
-      Width = 193
-      Height = 17
-      Caption = '&Use Client Details'
-      TabOrder = 0
-      OnClick = chkUseClientDetailsClick
-    end
     object edtUserName: TEdit
       Left = 128
-      Top = 47
+      Top = 55
       Width = 321
       Height = 21
       MaxLength = 60
-      TabOrder = 1
+      TabOrder = 0
     end
     object edtEmailAddress: TEdit
       Left = 128
-      Top = 74
+      Top = 82
       Width = 321
       Height = 21
       MaxLength = 80
+      TabOrder = 1
+    end
+    object btnUseClientDetails: TButton
+      Left = 20
+      Top = 21
+      Width = 125
+      Height = 25
+      Caption = '&Use Client Details'
       TabOrder = 2
+      OnClick = btnUseClientDetailsClick
     end
   end
   object btnOK: TButton

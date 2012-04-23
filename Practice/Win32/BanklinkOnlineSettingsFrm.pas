@@ -30,7 +30,6 @@ type
     grpBillingFrequency: TGroupBox;
     lblNextBillingFrequency: TLabel;
     grpDefaultClientAdministrator: TGroupBox;
-    chkUseClientDetails: TCheckBox;
     lblUserName: TLabel;
     lblEmailAddress: TLabel;
     edtUserName: TEdit;
@@ -45,17 +44,18 @@ type
     rbDeactivated: TRadioButton;
     lblClientConnect: TLabel;
     cmbConnectDays: TComboBox;
+    btnUseClientDetails: TButton;
     procedure btnSelectAllClick(Sender: TObject);
     procedure btnClearAllClick(Sender: TObject);
     procedure rbSuspendedClick(Sender: TObject);
     procedure rbActiveClick(Sender: TObject);
     procedure rbDeactivatedClick(Sender: TObject);
     procedure CheckClientConnectControls;
-    procedure chkUseClientDetailsClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
     procedure btnOKClick(Sender: TObject);
     procedure btnCancelClick(Sender: TObject);
+    procedure btnUseClientDetailsClick(Sender: TObject);
   private
     fOkPressed : Boolean;
     fBusyKeyPress : Boolean;
@@ -113,6 +113,11 @@ begin
     chkListProducts.Checked[i] := true;
 end;
 
+procedure TfrmBanklinkOnlineSettings.btnUseClientDetailsClick(Sender: TObject);
+begin
+  FillClientDetails;
+end;
+
 //------------------------------------------------------------------------------
 procedure TfrmBanklinkOnlineSettings.btnClearAllClick(Sender: TObject);
 var
@@ -138,12 +143,6 @@ end;
 procedure TfrmBanklinkOnlineSettings.rbDeactivatedClick(Sender: TObject);
 begin
   CheckClientConnectControls;
-end;
-
-//------------------------------------------------------------------------------
-procedure TfrmBanklinkOnlineSettings.chkUseClientDetailsClick(Sender: TObject);
-begin
-  FillClientDetails;
 end;
 
 //------------------------------------------------------------------------------
@@ -226,7 +225,7 @@ begin
   btnClearAll.Enabled := false;
   lblNextBillingFrequency.Enabled := false;
   cmbBillingFrequency.Enabled := false;
-  chkUseClientDetails.Enabled := false;
+  btnUseClientDetails.Enabled := false;
   lblUserName.Enabled := false;
   edtUserName.Enabled := false;
   lblEmailAddress.Enabled := false;
@@ -582,7 +581,6 @@ var
     else
       cmbBillingFrequency.Text := aBillingFrequency; // shouldn't ever need this line
     cmbBillingFrequency.SelLength := 0;
-    chkUseClientDetails.Checked := false;
 
     // Checks the Products that Client Subscribes to
     for ProdIndex := 0 to chklistProducts.Items.Count - 1 do
@@ -671,7 +669,6 @@ begin
       cmbBillingFrequency.Text := 'Monthly';
       cmbBillingFrequency.SelLength := 0;
       cmbConnectDays.SelLength := 0;
-      chkUseClientDetails.Checked := False;
       edtUserName.Text := MyClient.clFields.clContact_Name;
       edtEmailAddress.Text := MyClient.clFields.clClient_EMail_Address;
     end;
@@ -804,17 +801,8 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmBanklinkOnlineSettings.FillClientDetails;
 begin
-  if (chkUseClientDetails.Checked) then
-  begin
-    edtUserName.Text := MyClient.clFields.clContact_Name;
-    edtEmailAddress.Text := MyClient.clFields.clClient_EMail_Address;
-  end;
-
-  if not fReadOnly then
-  begin
-    edtUserName.Enabled := not chkUseClientDetails.Checked;
-    edtEmailAddress.Enabled := not chkUseClientDetails.Checked;
-  end;
+  edtUserName.Text := MyClient.clFields.clContact_Name;
+  edtEmailAddress.Text := MyClient.clFields.clClient_EMail_Address;
 end;
 
 end.
