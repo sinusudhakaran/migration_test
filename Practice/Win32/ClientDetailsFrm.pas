@@ -506,6 +506,7 @@ var
   cfRec : pClient_File_REc;
   NameExists : boolean;
   CodeType: string;
+  BlankEmailIsValid: boolean;
 begin
   result := false;
 
@@ -644,18 +645,24 @@ begin
     end;
   end;
 
+  BlankEmailIsValid := false;
   // Cico valid Email
   if (AdminSystem.fdFields.fdUse_BankLink_Online) and
      (ProductConfigService.IsCICOEnabled) and
-     (not RegExIsEmailValid(EMail.Text)) and
-     (Email.Text <> '') then // null email is valid
+     (not RegExIsEmailValid(EMail.Text)) then
   begin
-    HelpfulWarningMsg('You have selected' + #13 +
-                      'Enhanced Client File Handling.' + #13#13 +
-                      'This requires a Valid E-mail address.', 0);
-    PageControl1.ActivePage := tbsClient;
-    EMail.SetFocus;
-    Exit;
+    if (Trim(Email.Text) = '') then
+    begin
+      BlankEmailIsValid := true; // blank emails are allowed under these circumstances
+    end else
+    begin
+      HelpfulWarningMsg('You have selected' + #13 +
+                        'Enhanced Client File Handling.' + #13#13 +
+                        'This requires a Valid E-mail address.', 0);
+      PageControl1.ActivePage := tbsClient;
+      EMail.SetFocus;
+      Exit;
+    end;
   end;
 
   // Web Export to BankLink test
@@ -671,10 +678,13 @@ begin
     end;
     if (not RegExIsEmailValid(EMail.Text)) then
     begin
-      HelpfulWarningMsg(CodeType + 'This requires a Valid E-mail address.', 0);
-      PageControl1.ActivePage := tbsClient;
-      EMail.SetFocus;
-      Exit;
+      if not (BlankEmailIsValid and (Trim(Email.Text) = '') then
+      begin
+        HelpfulWarningMsg(CodeType + 'This requires a Valid E-mail address.', 0);
+        PageControl1.ActivePage := tbsClient;
+        EMail.SetFocus;
+        Exit;
+      end;
     end;
   end;
 
