@@ -1592,6 +1592,10 @@ object frmMain: TfrmMain
           OnClick = mniBulkClearTransferFlagsClick
         end
       end
+      object mniExportdatatoBanklinkOnline: TMenuItem
+        Caption = '&Export data to Banklink Online'
+        Visible = False
+      end
     end
     object mnsWindow: TMenuItem
       Caption = '&Window'

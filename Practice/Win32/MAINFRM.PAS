@@ -429,6 +429,7 @@ type
     actGetFromFolder: TAction;
     actGetFromOnline: TAction;
     mniChangePassword: TMenuItem;
+    mniExportdatatoBanklinkOnline: TMenuItem;
     procedure FormResize(Sender: TObject);
     procedure tmClockTimer(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -1522,6 +1523,8 @@ begin
          mniBalanceExport.Visible := False;
        end;
 
+       mniExportdatatoBanklinkOnline.Visible := ProductConfigService.OnLine and ProductConfigService.IsPracticeProductEnabled(ProductConfigService.GetExportDataId, False);
+
        //test to see if the log file should be archived
        SysLog.MinSize  := PRACINI_MinLogFileSize * 1000; //convert KB to Bytes
        SysLog.MaxSize  := PRACINI_MaxLogFileSize * 1000;
@@ -2520,6 +2523,15 @@ begin
      UpdateClientManagerCaption(AdminSystem.fdFields.fdPractice_Name_for_Reports);
      FormResize( Self);
      RedrawFormBackground;
+
+     if UseBankLinkOnline then
+     begin
+       mniExportdatatoBanklinkOnline.Visible := ProductConfigService.IsPracticeProductEnabled(ProductConfigService.GetExportDataId, False);
+     end
+     else
+     begin
+       mniExportdatatoBanklinkOnline.Visible := False;
+     end;
    finally
      if LastDiskNum <> AdminSystem.fdFields.fdDisk_Sequence_No then
        // recheck status immediately if disk seq changed
