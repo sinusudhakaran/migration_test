@@ -47,17 +47,13 @@ object frmPracticeDetails: TfrmPracticeDetails
     Top = 8
     Width = 617
     Height = 387
-    ActivePage = tsBankLinkOnline
+    ActivePage = tbsDataExport
     TabOrder = 0
     OnChange = PageControl1Change
     OnChanging = PageControl1Changing
     object tbsDetails: TTabSheet
       Caption = 'Details'
       OnShow = tbsDetailsShow
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       DesignSize = (
         609
         359)
@@ -267,10 +263,6 @@ object frmPracticeDetails: TfrmPracticeDetails
       Caption = 'Accounting System'
       ImageIndex = 1
       OnShow = tbsInterfacesShow
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object gbxClientDefault: TGroupBox
         Left = 8
         Top = 4
@@ -333,7 +325,7 @@ object frmPracticeDetails: TfrmPracticeDetails
           Width = 316
           Height = 21
           Style = csDropDownList
-          ItemHeight = 0
+          ItemHeight = 13
           Sorted = True
           TabOrder = 0
           OnChange = cmbSystemChange
@@ -389,7 +381,7 @@ object frmPracticeDetails: TfrmPracticeDetails
           Width = 322
           Height = 21
           Style = csDropDownList
-          ItemHeight = 0
+          ItemHeight = 13
           Sorted = True
           TabOrder = 0
         end
@@ -431,7 +423,7 @@ object frmPracticeDetails: TfrmPracticeDetails
           Width = 322
           Height = 21
           Style = csDropDownList
-          ItemHeight = 0
+          ItemHeight = 13
           Sorted = True
           TabOrder = 0
           OnChange = cmbTaxInterfaceChange
@@ -450,10 +442,6 @@ object frmPracticeDetails: TfrmPracticeDetails
     object tsSuperFundSystem: TTabSheet
       Caption = 'Superfund System'
       ImageIndex = 2
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object gbxSuperSystem: TGroupBox
         Left = 8
         Top = 4
@@ -516,7 +504,7 @@ object frmPracticeDetails: TfrmPracticeDetails
           Width = 316
           Height = 21
           Style = csDropDownList
-          ItemHeight = 0
+          ItemHeight = 13
           Sorted = True
           TabOrder = 0
           OnChange = cmbSuperSystemChange
@@ -556,10 +544,6 @@ object frmPracticeDetails: TfrmPracticeDetails
     object tbsPracticeManagementSystem: TTabSheet
       Caption = 'Practice Management System'
       ImageIndex = 3
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object gbxPracticeManagementSystem: TGroupBox
         Left = 8
         Top = 4
@@ -580,7 +564,7 @@ object frmPracticeDetails: TfrmPracticeDetails
           Width = 316
           Height = 21
           Style = csDropDownList
-          ItemHeight = 0
+          ItemHeight = 13
           Sorted = True
           TabOrder = 0
           OnChange = cmbSuperSystemChange
@@ -681,6 +665,45 @@ object frmPracticeDetails: TfrmPracticeDetails
         Height = 25
         Action = actClearAllProducts
         TabOrder = 5
+      end
+    end
+    object tbsDataExport: TTabSheet
+      Caption = 'Data Export'
+      ImageIndex = 5
+      TabVisible = False
+      object Label6: TLabel
+        Left = 16
+        Top = 20
+        Width = 47
+        Height = 13
+        Caption = '&Export To'
+        FocusControl = chklistExportTo
+      end
+      object lblAcclipseCode: TLabel
+        Left = 16
+        Top = 147
+        Width = 66
+        Height = 13
+        Caption = '&Acclipse Code'
+        Enabled = False
+        FocusControl = edtAcclipseCode
+      end
+      object chklistExportTo: TCheckListBox
+        Left = 129
+        Top = 20
+        Width = 309
+        Height = 101
+        OnClickCheck = chklistExportToClickCheck
+        ItemHeight = 13
+        TabOrder = 0
+      end
+      object edtAcclipseCode: TEdit
+        Left = 129
+        Top = 142
+        Width = 128
+        Height = 21
+        Enabled = False
+        TabOrder = 1
       end
     end
   end

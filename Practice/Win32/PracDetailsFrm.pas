@@ -24,9 +24,14 @@ uses
   BankLinkOnlineServices,
   OSFont,
   VirtualTrees,
-  ActnList;
+  ActnList, CheckLst;
 
 type
+  TCheckListBoxHelper = class helper for TCheckListBox
+  public
+    function CountCheckedItems: Integer;
+  end;
+
   TfrmPracticeDetails = class(TForm)
     OvcController1: TOvcController;
     btnOK: TButton;
@@ -105,6 +110,11 @@ type
     ActionList1: TActionList;
     actSelectAllProducts: TAction;
     actClearAllProducts: TAction;
+    tbsDataExport: TTabSheet;
+    chklistExportTo: TCheckListBox;
+    Label6: TLabel;
+    lblAcclipseCode: TLabel;
+    edtAcclipseCode: TEdit;
     
     procedure btnOKClick(Sender: TObject);
     procedure btnCancelClick(Sender: TObject);
@@ -139,6 +149,7 @@ type
     procedure tbsDetailsShow(Sender: TObject);
     procedure PageControl1Change(Sender: TObject);
     procedure PageControl1Changing(Sender: TObject; var AllowChange: Boolean);
+    procedure chklistExportToClickCheck(Sender: TObject);
   private
     { Private declarations }
     okPressed : boolean;
@@ -179,6 +190,7 @@ type
 
 //------------------------------------------------------------------------------
 implementation
+
 {$R *.DFM}
 
 uses
@@ -212,6 +224,16 @@ uses
 
 const
   UnitName = 'PRACDETAILSFRM';
+
+type
+  TVendorExport = class
+  private
+    FId: TBloGuid;
+  public
+    constructor Create(VendorExportID: TBloGuid);
+    
+    property Id: TBloGuid read FId;
+  end;
 
 var
   DebugMe : boolean = false;
@@ -454,6 +476,35 @@ begin
   //Set primary contact
   TempUser := TBloUserRead(cbPrimaryContact.Items.Objects[cbPrimaryContact.ItemIndex]);
   ProductConfigService.SetPrimaryContact(TempUser);
+end;
+
+procedure TfrmPracticeDetails.chklistExportToClickCheck(Sender: TObject);
+begin
+  if chklistExportTo.ItemIndex > -1 then
+  begin
+    if chklistExportTo.Checked[chklistExportTo.ItemIndex] then
+    begin
+      ProductConfigService.AddVendorExport(TVendorExport(chklistExportTo.Items.Objects[chklistExportTo.ItemIndex]).Id);
+    end
+    else
+    begin
+      ProductConfigService.RemoveVendorExport(TVendorExport(chklistExportTo.Items.Objects[chklistExportTo.ItemIndex]).Id);
+    end;
+
+    if ProductConfigService.GuidsEqual(TVendorExport(chklistExportTo.Items.Objects[chklistExportTo.ItemIndex]).Id, ProductConfigService.GetIBizzExportGuid) then
+    begin
+      if chklistExportTo.Checked[chklistExportTo.ItemIndex] then
+      begin
+        lblAcclipseCode.Enabled := True;
+        edtAcclipseCode.Enabled := True;
+      end
+      else
+      begin
+        lblAcclipseCode.Enabled := False;
+        edtAcclipseCode.Enabled := False;
+      end;
+    end;
+  end;
 end;
 
 //------------------------------------------------------------------------------
@@ -915,6 +966,17 @@ begin
     if not (YesNoDlg.AskYesNo('BankLink Online products and services change', aMsg, DLG_YES, 0) = DLG_YES) then
       Exit;
 
+    if ProductConfigService.HasProductJustBeenTicked(ProductConfigService.GetExportDataId) then
+    begin
+      if (chklistExportTo.Count > 0) and (chklistExportTo.CountCheckedItems = 0) and ProductConfigService.VendorExportsChanged then
+      begin
+        if YesNoDlg.AskYesNo('Banklink Online Data Export', 'You have not selected a vendor export type.' + #10#13#10#13 + 'Are you sure you want to continue saving?', DLG_YES, 0) = DLG_NO then
+        begin
+          Exit;
+        end;
+      end;
+    end;
+
     NewProducts := TStringList.Create;
 
     try
@@ -1062,14 +1124,27 @@ begin
     Data := vtProducts.GetNodeData(Node);
     if Assigned(Data.tdObject) then begin
       Cat := TBloCatalogueEntry(Data.tdObject);
-      if Node.CheckState = csCheckedNormal then begin
+      if Node.CheckState = csCheckedNormal then
+      begin
         //Add product
         ProductConfigService.AddProduct(Cat.Id);
-      end else begin
+
+        if ProductConfigService.GuidsEqual(Cat.Id, ProductConfigService.GetExportDataId) and not tbsDataExport.TabVisible then
+        begin
+          tbsDataExport.TabVisible := True;
+        end;
+      end
+      else
+      begin
         //Remove product
         if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, 'Start remove product: ' + Cat.Id);
         ProductConfigService.RemoveProduct(Cat.Id);
         if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, 'End remove product: ' + Cat.Id);
+
+        if ProductConfigService.GuidsEqual(Cat.Id, ProductConfigService.GetExportDataId) and tbsDataExport.TabVisible then
+        begin
+          tbsDataExport.TabVisible := False;
+        end;
       end;
     end;
   finally
@@ -1239,6 +1314,15 @@ begin
 
       vtProducts.OnCompareNodes := TreeCompare;
       vtProducts.SortTree(0, sdAscending);
+
+      tbsDataExport.TabVisible := ProductConfigService.IsPracticeProductEnabled(ProductConfigService.GetExportDataId, False);
+
+      //Test data since we don't yet have the service calls to retrieve the available vendor export types.  Remove this when they are available.
+      chklistExportTo.AddItem('BGL Simple Fund', TVendorExport.Create('53E1E0EB-DBAD-4D20-ABA9-2F32AC9A1A0D'));
+      chklistExportTo.AddItem('iBizz Export', TVendorExport.Create('C048EEB5-978D-4768-87C2-CAD43B8D888D'));
+      chklistExportTo.AddItem('{BanklinkOnlineExportFormat1}', TVendorExport.Create('8CE9B867-F1A7-40E0-9B23-3D28C5B4DA98'));
+      chklistExportTo.AddItem('{BanklinkOnlineExportFormat2}', TVendorExport.Create('71CA8468-0C24-473D-87D1-2D0D65F29C51'));
+      chklistExportTo.AddItem('{BanklinkOnlineExportFormat3}', TVendorExport.Create('0BB13981-D35E-4A89-BE4E-CAFEAB9C802A'));
     end;
   except
     on E: Exception do begin
@@ -1452,6 +1536,30 @@ begin
      //log the fact that the user can change the download no
      LogUtil.LogMsg(lmInfo, UnitName, 'Password Used to Access Last Download No');
   end;
+end;
+
+{ TCheckBoxListHelper }
+
+function TCheckListBoxHelper.CountCheckedItems: Integer;
+var
+  Index: Integer;
+begin
+  Result := 0;
+  
+  for Index := 0 to Count - 1 do
+  begin
+    if Checked[Index] then
+    begin
+      Inc(Result);
+    end;
+  end;
+end;
+
+{ TVendorExport }
+
+constructor TVendorExport.Create(VendorExportID: TBloGuid);
+begin
+  FId := VendorExportID;
 end;
 
 initialization
