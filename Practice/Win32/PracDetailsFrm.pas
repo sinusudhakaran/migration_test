@@ -566,6 +566,17 @@ begin
                                               ProductConfigService.Registered and
                                               ProductConfigService.IsPracticeActive(False);
 
+    if tbsDataExport.TabVisible then
+    begin
+      for i := 0 to tbsDataExport.ControlCount - 1 do
+      begin
+        tbsDataExport.Controls[i].Enabled := UseBankLinkOnline and
+                                                ProductConfigService.OnLine and
+                                                ProductConfigService.Registered and
+                                                ProductConfigService.IsPracticeActive(False);
+      end;
+    end;
+
     ckUseBankLinkOnline.Enabled := ProductConfigService.OnLine;
   finally
     ckUseBankLinkOnline.OnClick := EventHolder;
@@ -1315,7 +1326,7 @@ begin
       vtProducts.OnCompareNodes := TreeCompare;
       vtProducts.SortTree(0, sdAscending);
 
-      tbsDataExport.TabVisible := ProductConfigService.IsPracticeProductEnabled(ProductConfigService.GetExportDataId, False);
+      tbsDataExport.TabVisible := ProductConfigService.IsPracticeProductEnabled(ProductConfigService.GetExportDataId, True);
 
       //Test data since we don't yet have the service calls to retrieve the available vendor export types.  Remove this when they are available.
       chklistExportTo.AddItem('BGL Simple Fund', TVendorExport.Create('53E1E0EB-DBAD-4D20-ABA9-2F32AC9A1A0D'));
