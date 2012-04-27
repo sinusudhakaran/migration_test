@@ -12,10 +12,13 @@ unit ZipUtils;
 }
 //------------------------------------------------------------------------------
 interface
+
 uses
-  VCLZip;
+  VCLZip, Classes;
 
    procedure CompressFile( const SourceFilename : string; const DestFilename : string);
+   function CompressString(const SourceStr: String; HttpCompression: Boolean = False): String;
+   procedure CompressStream(Source, Dest: TStream; HttpCompression: Boolean = False);
 
 //******************************************************************************
 implementation
@@ -54,5 +57,44 @@ begin
     Zipper.Free;
   end;
 end;
+
+function CompressString(const SourceStr: String; HttpCompression: Boolean = False): String;
+var
+  Zipper : TVCLZip;
+begin
+  Zipper := TVCLZip.Create( nil);
+  try
+    try
+      Result := Zipper.ZLibCompressStr(SourceStr, HttpCompression);
+    except
+      on E:Exception do
+      begin
+        raise ECompressionFailure.Create(E.Message);
+      end;  
+    end;
+  finally
+    Zipper.Free;
+  end;
+end;
+
+procedure CompressStream(Source, Dest: TStream; HttpCompression: Boolean = False);
+var
+  Zipper : TVCLZip;
+begin
+  Zipper := TVCLZip.Create( nil);
+  try
+    try
+      Zipper.ZLibCompressStream(Source, Dest, HttpCompression);
+    except
+      on E:Exception do
+      begin
+        raise ECompressionFailure.Create(E.Message);
+      end;
+    end;
+  finally
+    Zipper.Free;
+  end;
+end;
+
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 end.
