@@ -176,7 +176,6 @@ type
                                 const aSubscription : TBloArrayOfguid) : MessageResponse;
     function DeleteUser(const aUserId      : TBloGuid;
                         const aUserCode    : WideString) : MessageResponse;
-
   public
     function IsItemInArrayString(const aBloArrayOfString : TBloArrayOfString;
                                  const aItem : WideString) : Boolean;
@@ -280,6 +279,15 @@ type
                                 aLinkedUserGuid : TBloGuid = '') : Boolean;
 
     function UpdateClientNotesOption(ClientReadDetail: TBloClientReadDetail; WebExportFormat: Byte): Boolean;
+
+    function GetExportDataId: TBloGuid;
+    function GetIBizzExportGuid: TBloGuid;
+
+    function GuidsEqual(GuidA, GuidB: TBloGuid): Boolean;
+    
+    function VendorExportsChanged: Boolean;
+    procedure AddVendorExport(VendorExportId: TBloGuid);
+    procedure RemoveVendorExport(VendorExportId: TbloGuid);
     
     property OnLine: Boolean read FOnLine;
     property Registered: Boolean read GetRegistered;
@@ -330,6 +338,9 @@ const
 
   PRODUCT_GUID_CICO = '6D700B31-DAEE-4847-8CB2-82C21328AC33';
   PRODUCT_GUID_NOTES_ONLINE = '6D700B31-DAEE-4847-8CB2-82C21328AC30';
+  PRODUCT_GUID_EXPORT_DATA = '6D700B31-DAEE-4847-8CB2-82C21328AC34';
+  
+  VENDOR_EXPORT_GUID_IBIZZ = 'C048EEB5-978D-4768-87C2-CAD43B8D888D';  //This is a made up guid, replace it with the real one when it becomes available
 
 var
   __BankLinkOnlineServiceMgr: TProductConfigService;
@@ -666,6 +677,11 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+function TProductConfigService.GetIBizzExportGuid: TBloGuid;
+begin
+  Result := VENDOR_EXPORT_GUID_IBIZZ;
+end;
+
 function TProductConfigService.GetCachedPractice: TBloPracticeRead;
 begin
   Result := FPractice;
@@ -790,6 +806,29 @@ begin
       begin
         Result := FClientList.Clients[i].Id;
         Break;
+      end;
+    end;
+  end;
+end;
+
+function TProductConfigService.GetExportDataId: TBloGuid;
+var
+  i   : integer;
+  Cat : TBloCatalogueEntry;
+begin
+  Result := '';
+  
+  if Assigned(FPractice) then
+  begin
+    for i := Low(FPracticeCopy.Catalogue) to High(FPracticeCopy.Catalogue) do
+    begin
+      Cat := FPracticeCopy.Catalogue[i];
+
+      if GuidsEqual(Cat.Id, PRODUCT_GUID_EXPORT_DATA) then
+      begin
+        Result := Cat.Id;
+        
+        Exit;
       end;
     end;
   end;
@@ -1131,12 +1170,22 @@ begin
   Result := FValidBConnectDetails;
 end;
 
+function TProductConfigService.GuidsEqual(GuidA, GuidB: TBloGuid): Boolean;
+begin
+  Result := CompareText(GuidA, GuidB) = 0;
+end;
+
 //------------------------------------------------------------------------------
 procedure TProductConfigService.AddTypeItem(var aDataArray: TArrVarTypeData;
                                             var aDataItem: TVarTypeData);
 begin
   SetLength(aDataArray, High(aDataArray) + 2);
   aDataArray[High(aDataArray)] := aDataItem;
+end;
+
+procedure TProductConfigService.AddVendorExport(VendorExportId: TBloGuid);
+begin
+
 end;
 
 //------------------------------------------------------------------------------
@@ -1458,6 +1507,11 @@ begin
   end;
 end;
 
+function TProductConfigService.VendorExportsChanged: Boolean;
+begin
+  Result := False;
+end;
+
 //------------------------------------------------------------------------------
 function TProductConfigService.GetNotesId : TBloGuid;
 var
@@ -1758,6 +1812,11 @@ begin
       Exit;
     end;
   end;
+end;
+
+procedure TProductConfigService.RemoveVendorExport(VendorExportId: TbloGuid);
+begin
+
 end;
 
 //------------------------------------------------------------------------------
