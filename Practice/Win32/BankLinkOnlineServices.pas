@@ -286,8 +286,8 @@ type
     function GuidsEqual(GuidA, GuidB: TBloGuid): Boolean;
     
     function VendorExportsChanged: Boolean;
-    procedure AddVendorExport(VendorExportId: TBloGuid);
-    procedure RemoveVendorExport(VendorExportId: TbloGuid);
+    procedure AddVendorExport(ProductId: TBloGuid);
+    procedure RemoveVendorExport(ProductId: TbloGuid);
     
     property OnLine: Boolean read FOnLine;
     property Registered: Boolean read GetRegistered;
@@ -1183,7 +1183,7 @@ begin
   aDataArray[High(aDataArray)] := aDataItem;
 end;
 
-procedure TProductConfigService.AddVendorExport(VendorExportId: TBloGuid);
+procedure TProductConfigService.AddVendorExport(ProductId: TBloGuid);
 begin
 
 end;
@@ -1814,7 +1814,7 @@ begin
   end;
 end;
 
-procedure TProductConfigService.RemoveVendorExport(VendorExportId: TbloGuid);
+procedure TProductConfigService.RemoveVendorExport(ProductId: TbloGuid);
 begin
 
 end;
