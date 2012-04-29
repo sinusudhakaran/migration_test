@@ -16,7 +16,7 @@ uses
   Buttons,
   Software,
   ExtCtrls,
-  OsFont;
+  OsFont, CheckLst;
 
 type
   TdlgAcctSystem = class(TForm)
@@ -60,6 +60,8 @@ type
     cbExtract: TComboBox;
     ckExtract: TCheckBox;
     Label3: TLabel;
+    chkListExports: TCheckListBox;
+    lblExportTo: TLabel;
     procedure FormCreate(Sender: TObject);
     procedure SetUpHelp;
     procedure btnOkClick(Sender: TObject);

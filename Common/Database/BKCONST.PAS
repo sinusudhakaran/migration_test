@@ -1840,8 +1840,9 @@ const
   icid_BOBillingFrequency = 20;
   icid_BOUserAdmin = 21;
   icid_BOAccess = 22;
+  icid_BOBulkExport = 23;
 
-  icid_Max = 22;
+  icid_Max = 23;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    fxtNone = 0; fxtMin = 0;

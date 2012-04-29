@@ -56,7 +56,8 @@ type
                        cluBOProduct,
                        cluBOBillingFrequency,
                        cluBOUserAdmin,
-                       cluBOAccess
+                       cluBOAccess,
+                       cluBOBulkExport
                        );
 
   TCluColumnDefn = class
@@ -2237,6 +2238,11 @@ begin
             if (FoundIndex > -1) then
               CellText := ProductConfigService.Clients.Clients[FoundIndex].StatusString;
               // ProductConfigService.Clients.Clients[FoundIndex].Status;
+          end;
+
+          cluBOBulkExport:
+          begin
+            
           end;
         end;
       end;
