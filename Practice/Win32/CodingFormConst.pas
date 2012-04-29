@@ -46,10 +46,12 @@ const
    ceForexRate      = 27;
    ceLocalCurrencyAmount = 28;
    ceAltChartCode  = 29;
+   ceCoreTransactionId = 30;
+   ceTransferedToOnline = 31;
 
-   ceMax = 29;
+   ceMax = 31;
 
-   MaxNZColumns = 28;
+   MaxNZColumns = 30;
 
    DefaultColumnOrderNZ : array[ 1..MaxNZColumns] of byte =
              (
@@ -80,13 +82,15 @@ const
              cePresDate,
              ceCodedBy,
              ceAction,
-             ceAltChartCode
+             ceAltChartCode,
+             ceCoreTransactionId,
+             ceTransferedToOnline
              );
 
 
 
 {$IFDEF SmartLink}
-    MaxOZColumns = 25;
+    MaxOZColumns = 27;
    DefaultColumnOrderOZ : array[ 1..MaxOZColumns] of byte =
              (
              ceStatus,
@@ -112,11 +116,13 @@ const
              ceQuantity,
              ceEntryType,
              cePresDate,
-             ceCodedBy
+             ceCodedBy,
              ceAction,
+             ceCoreTransactionId,
+             ceTransferedToOnline
              );
 {$ELSE}
-   MaxOZColumns = 26;
+   MaxOZColumns = 28;
    DefaultColumnOrderOZ : array[ 1..MaxOZColumns] of byte =
              (
              ceStatus,
@@ -144,10 +150,12 @@ const
              ceCodedBy,
              ceDocument,
              ceAction,
-             ceAltChartCode
+             ceAltChartCode,
+             ceCoreTransactionId,
+             ceTransferedToOnline
              );
 
-   MaxUKColumns = 25;
+   MaxUKColumns = 27;
    DefaultColumnOrderUK : array[ 1..MaxUKColumns] of byte =
              (
              ceStatus,
@@ -174,7 +182,9 @@ const
              cePresDate,
              ceCodedBy,
              ceDocument,
-             ceAltChartCode
+             ceAltChartCode,
+             ceCoreTransactionId,
+             ceTransferedToOnline
              );
 {$ENDIF}
 

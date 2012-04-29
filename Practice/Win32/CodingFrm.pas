@@ -117,6 +117,8 @@ type
     miFind: TMenuItem;
     miSearch: TMenuItem;
     tbtnClose: TRzToolButton;
+    celCoreTransactionId: TOvcTCNumericField;
+    celTransferedToOnline: TOvcTCCheckBox;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
 
@@ -598,7 +600,8 @@ uses
 {$ENDIF PLAYSOUNDS}
    SwapUtils, clObj32, pyList32, ECollect, mainfrm,
    PayeeObj, UsageUtils, QueryTx, NewReportUtils,
-   CountryUtils, SetClearTransferFlags, ExchangeRateList, AuditMgr;
+   CountryUtils, SetClearTransferFlags, ExchangeRateList, AuditMgr,
+   BankLinkOnlineServices;
 
 const
    UnitName = 'CODINGFRM';
@@ -3799,7 +3802,11 @@ begin
 
       end;
 
-
+      if (ProductConfigService.OnLine and ProductConfigService.IsPracticeProductEnabled(ProductConfigService.GetExportDataId, False)) then
+      begin
+        InsColDefnRec('Transaction Id', ceCoreTransactionId, celCoreTransactionId, 90, true, false, false, -1);
+        InsColDefnRec('Transfered to Online', ceTransferedToOnline, celTransferedToOnline, 120, true, false, false, -1);
+      end;
 
       EditMode := emGeneral; //Never changed here
    end;
@@ -4521,7 +4528,23 @@ begin
         ceAction : begin
            tmpPaintShortStr := GetFormattedAction(pT);
            data := @tmpPaintShortStr;
+        end;
+
+        ceCoreTransactionId :
+        begin
+           tmpPaintInteger := pT^.txCore_Transaction_ID;
+           data := @tmpPaintInteger;
+        end;
+
+        ceTransferedToOnline :
+        begin
+           if pT^.txTransfered_To_Online then
+             tmpPaintInteger := 1
+           else
+             tmpPaintInteger := 0;
+           data := @tmpPaintInteger;
         end
+
       else
          data := nil;
       end;{case}
@@ -8475,7 +8498,9 @@ begin
                              ceDocument,
                              ceAction,
                              ceGSTAmount,
-                             ceAltChartCode];
+                             ceAltChartCode,
+                             ceCoreTransactionId,
+                             ceTransferedToOnline ];
       DefaultEditColumn := ceReference;
    end else begin
       NeverEditableCols := [ ceStatus,

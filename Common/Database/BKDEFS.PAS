@@ -9,8 +9,8 @@ Interface uses MONEYDEF, DATEDEF;
 {  -------------------------------------------------------------------  }
 
 Const
-   BK_IOLIB_Version : Integer = 651;
-   BK_IOLIB_Date    = '05/04/12';
+   BK_IOLIB_Version : Integer = 654;
+   BK_IOLIB_Date    = '27/04/12';
    BK_FILE_VERSION  = 168;  (* Current Version counter for files
                               Changes if structure or method of storing a value would cause
                               data to be represented incorrectly, or an exception to be raised *)
@@ -209,6 +209,8 @@ Const
      5.22 (2011 CICO)166    Add Client File GUID to Client Extra
                      167    Add field for CheckOut Online Scheduled Reports
                             Client File GUID not needed. Added field for File Transfer Method
+     5.23 (2012BLOPI)168    Add Offline version of Client Settings for a New Client when Notes online is used
+     5.24 (2012 Tag) 169    Add Core Trans ID and sent to Online to Transactions
    *)
    //Audit Trail - 135 Don't reuse token!!! - Record defined in SY.TXT but also used in Client File
 
@@ -935,6 +937,8 @@ Type
       txTemp_Base_Amount                 : Money;
       txTemp_Prov_Entered_By             : String[ 8 ];
       txTemp_Prov_Date_Time              : TDateTime;
+      txCore_Transaction_ID              : Integer;       { Stored }
+      txTransfered_To_Online             : Boolean;       { Stored }
       txEOR                              : Byte;
    end;
 

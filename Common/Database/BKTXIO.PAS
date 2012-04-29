@@ -129,6 +129,8 @@ CONST
    tktxSpare_Money_1                    = 242 ;
    tktxOriginal_Forex_Conversion_Rate   = 243 ;
    tktxSpare_Money_2                    = 244 ;
+   tktxCore_Transaction_ID              = 245 ;
+   tktxTransfered_To_Online             = 246 ;
 
 {  -------------------------------------------------------------------  }
 
@@ -237,6 +239,8 @@ Begin
       F.WriteMoneyValue( tktxSpare_Money_1 , txSpare_Money_1 );
       F.WriteDoubleValue( tktxOriginal_Forex_Conversion_Rate, txOriginal_Forex_Conversion_Rate );
       F.WriteMoneyValue( tktxSpare_Money_2 , txSpare_Money_2 );
+      F.WriteIntegerValue( tktxCore_Transaction_ID , txCore_Transaction_ID );
+      F.WriteBooleanValue( tktxTransfered_To_Online , txTransfered_To_Online );
       F.WriteToken( tkEnd_Transaction );
    end;
 end; { of Write_Transaction_Rec }
@@ -342,6 +346,8 @@ Begin
          tktxSpare_Money_1                    : txSpare_Money_1 := F.ReadMoneyValue;
          tktxOriginal_Forex_Conversion_Rate   : txOriginal_Forex_Conversion_Rate := F.ReadDoubleValue;
          tktxSpare_Money_2                    : txSpare_Money_2 := F.ReadMoneyValue;
+         tktxCore_Transaction_ID              : txCore_Transaction_ID := F.ReadIntegerValue;
+         tktxTransfered_To_Online             : txTransfered_To_Online := F.ReadBooleanValue;
          else
             Raise ETokenException.CreateFmt( SUnknownToken, [ Token ] );
       end; { of Case }
@@ -397,7 +403,7 @@ begin
   for i := Low(ChangedFields) to High(ChangedFields) do
     ChangedFields[i] := 0;
   j := 0;
-  for i := tktxSequence_No to tktxSpare_Money_2 do begin
+  for i := tktxSequence_No to tktxTransfered_To_Online do begin
     ChangedFields[j] := i;
     Inc(j);
   end;
@@ -834,6 +840,16 @@ begin
   if (P1.txSpare_Money_2 <> P2.txSpare_Money_2) then begin
     P3.txSpare_Money_2 := P1.txSpare_Money_2;
     ChangedFields[i] := tktxSpare_Money_2;
+    Inc(i);
+  end;
+  if (P1.txCore_Transaction_ID <> P2.txCore_Transaction_ID) then begin
+    P3.txCore_Transaction_ID := P1.txCore_Transaction_ID;
+    ChangedFields[i] := tktxCore_Transaction_ID;
+    Inc(i);
+  end;
+  if (P1.txTransfered_To_Online <> P2.txTransfered_To_Online) then begin
+    P3.txTransfered_To_Online := P1.txTransfered_To_Online;
+    ChangedFields[i] := tktxTransfered_To_Online;
     Inc(i);
   end;
 

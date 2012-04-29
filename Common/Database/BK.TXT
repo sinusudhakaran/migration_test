@@ -196,6 +196,8 @@ $|                  168    Add VAT Adjustments field to Balance rec
 $|  5.22 (2011 CICO)166    Add Client File GUID to Client Extra
 $|                  167    Add field for CheckOut Online Scheduled Reports
 $|                         Client File GUID not needed. Added field for File Transfer Method
+$|  5.23 (2012BLOPI)168    Add Offline version of Client Settings for a New Client when Notes online is used
+$|  5.24 (2012 Tag) 169    Add Core Trans ID and sent to Online to Transactions
 $|*)
 
 N|Client|cl|20
@@ -849,6 +851,8 @@ C|Temp Forex Rate|R
 C|Temp Base Amount|$
 C|Temp Prov Entered By|S|8
 C|Temp Prov Date Time|DT
+F|Core Transaction ID|L
+F|Transfered To Online|Y
 E
 
 N|Dissection|ds|180
