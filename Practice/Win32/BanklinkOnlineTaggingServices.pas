@@ -12,13 +12,13 @@ type
     class procedure ChartToXML(ParentNode: IXMLNode; ChartOfAccounts: TChart); static;
   public
     class procedure UpdateAccountVendors(ClientCode: String; BankAccount: TBank_Account; Vendors: array of String); static;
-    class function ExportTaggedAccounts(Practice: TSystemObj): Integer; static;
+    class function ExportTaggedAccounts: Integer; static;
   end;
 
 implementation
 
 uses
-  Files;
+  Files, Globals;
 
 { TBanklinkOnlineServices }
 
@@ -57,7 +57,7 @@ begin
   end;
 end;
 
-class function TBanklinkOnlineTaggingServices.ExportTaggedAccounts(Practice: TSystemObj): Integer;
+class function TBanklinkOnlineTaggingServices.ExportTaggedAccounts: Integer;
 var
   XMLDocument: IXMLDocument;
   RootNode: IXMLNode;
@@ -91,15 +91,16 @@ begin
     if ShowProgress then
     begin
       Screen.Cursor := crHourGlass;
-      Progress.StatusSilent := False;   
+      Progress.StatusSilent := False;
+      Progress.AllowClearStatus := False;   
     end;
     
     try
-      ClientProgressValue := 70 / Practice.fdSystem_Client_File_List.ItemCount;
+      ClientProgressValue := 70 / AdminSystem.fdSystem_Client_File_List.ItemCount;
 
       TotalProgress := 0;
       
-      for Index := 0 to Practice.fdSystem_Client_File_List.ItemCount -1 do
+      for Index := 0 to AdminSystem.fdSystem_Client_File_List.ItemCount -1 do
       begin
         Client := nil;
 
@@ -107,11 +108,11 @@ begin
         begin
           if ShowProgress then
           begin
-            Progress.UpdateAppStatus('Exporting Client Transactions', 'Exporting transactions for ' + Practice.fdSystem_Client_File_List.Client_File_At(Index).cfFile_Code, TotalProgress, True);
+            Progress.UpdateAppStatus('Exporting Client Transactions', 'Exporting transactions for ' + AdminSystem.fdSystem_Client_File_List.Client_File_At(Index).cfFile_Code, TotalProgress, True);
           end;
 
           try
-            OpenAClient(Practice.fdSystem_Client_File_List.Client_File_At(Index).cfFile_Code, Client, True);
+            OpenAClient(AdminSystem.fdSystem_Client_File_List.Client_File_At(Index).cfFile_Code, Client, True);
 
             if Assigned(Client) then
             begin
@@ -169,15 +170,11 @@ begin
           Progress.UpdateAppStatus('Exporting Client Transactions', 'Saving changes to transactions', 90, True);
         end;
       
-        while ClientList.Count > 0 do
+        for Index := 0 to ClientList.Count -1 do
         begin
-          Index := ClientList.Count -1;
-      
           Client := TClientObj(ClientList[Index]);
 
-          CloseAClient(Client, False);
-
-          ClientList.Delete(Index);  
+          DoClientSave(True, Client, True);
         end;
 
         if ShowProgress then
@@ -190,7 +187,8 @@ begin
     finally
       if ShowProgress then
       begin
-        Progress.StatusSilent := True;
+        Progress.StatusSilent := True;   
+        Progress.AllowClearStatus := True;
         Progress.ClearStatus;
         Screen.Cursor := crDefault;
       end;
