@@ -2808,6 +2808,7 @@ var
   pS: pSystem_Bank_Account_Rec;
   pM, pM1: pClient_Account_Map_Rec;
   i: Integer;
+  Index: Integer;
 begin
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
   if not Assigned(MyClient) then exit;
@@ -2920,6 +2921,17 @@ begin
         clUse_Alterate_ID_for_extract := false;  //default back to client code to avoid duplicates
         if clWeb_Export_Format = wfWebNotes then
           clWeb_Export_Format := wfNone;
+
+        //Make sure we clear the extra cached settings as well
+        if MyClient.clExtra.ceOnlineValuesStored then
+        begin
+          for Index := 1 to MyClient.clExtra.ceOnlineSubscriptionCount do
+          begin
+            MyClient.clExtra.ceOnlineSubscription[Index] := '';
+          end;
+
+          MyClient.clExtra.ceOnlineValuesStored := False;
+        end;
       end;
 
       SaveClient(OldFileName <> NewFileName);   
