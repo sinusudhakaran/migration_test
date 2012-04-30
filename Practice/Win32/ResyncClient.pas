@@ -496,6 +496,7 @@ var
    pSB: pSystem_Bank_Account_Rec;
    CatEntry: TBloCatalogueEntry;
    ClientReadDetail : TBloClientReadDetail;
+   Index: Integer;
 begin
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
 
@@ -557,6 +558,17 @@ begin
           finally
             ClientReadDetail.Free;
           end;
+        end
+        else
+        //Make sure we clear the extra cached settings as well
+        if MyClient.clExtra.ceOnlineValuesStored then
+        begin
+          for Index := 1 to MyClient.clExtra.ceOnlineSubscriptionCount do
+          begin
+            MyClient.clExtra.ceOnlineSubscription[Index] := '';
+          end;
+
+          MyClient.clExtra.ceOnlineValuesStored := False;
         end;
         // *** Clearing Banklink Online details before syncing client (end) ***
       end;
