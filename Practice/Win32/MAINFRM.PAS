@@ -32,7 +32,7 @@ uses
   pfNamesDlg, updateMF, CodingFrm, SysObj32, Admin32, BudgetFrm, Login32, CodingFormCommands,
   jpeg, AppEvnts, ModalProcessorDlg, ActnList, RzButton, RzPanel, DdeMan, ExportChargesFrm,
   BatchReportFrm,{,threadData}
-  OSFont;
+  OSFont, ModalProgressFrm;
 
 const
   BK_SHOWCM = (WM_USER + 1);
@@ -793,6 +793,7 @@ type
     procedure SetLastActiveMDIChild(const Value: Forms.TForm);
     property LastActiveMDIChild :Forms.TForm read FLastActiveMDIChild write SetLastActiveMDIChild;
     procedure RunGSTReport (Value: REPORT_LIST_TYPE);
+    procedure ExportTaggedAccounts(ProgressDialog: TfrmModalProgress);
     //procedure ThreadMessage(var Message: TMessage);	message THREAD_MESSAGE;
   protected
     procedure UpdateActions; override;
@@ -1525,7 +1526,7 @@ begin
          mniBalanceExport.Visible := False;
        end;
 
-       mniExportdatatoBanklinkOnline.Visible := ProductConfigService.OnLine and ProductConfigService.IsPracticeProductEnabled(ProductConfigService.GetExportDataId, False);
+       mniExportdatatoBanklinkOnline.Visible := True; //ProductConfigService.OnLine and ProductConfigService.IsPracticeProductEnabled(ProductConfigService.GetExportDataId, False);
 
        //test to see if the log file should be archived
        SysLog.MinSize  := PRACINI_MinLogFileSize * 1000; //convert KB to Bytes
@@ -1935,6 +1936,11 @@ begin
   CloseSimpleUIOpen(False);
   DoMainFormCommand(mf_mcCloseFile);
   LogoutUser;
+end;
+
+procedure TfrmMain.ExportTaggedAccounts(ProgressDialog: TfrmModalProgress);
+begin
+  TBanklinkonlineTaggingServices.ExportTaggedAccounts(ProgressDialog);
 end;
 
 procedure TfrmMain.mniBulkClearTransferFlagsClick(Sender: TObject);
@@ -5251,7 +5257,7 @@ procedure TfrmMain.mniExportdatatoBanklinkOnlineClick(Sender: TObject);
 begin
   if MessageDlg('Are you sure you want to send all unsent client transactions to Banklink Online?', mtConfirmation, [mbYes, mbNo], 0) = mrYes then
   begin
-    TBanklinkOnlineTaggingServices.ExportTaggedAccounts;
+    TfrmModalProgress.ShowProgress(Self, 'Please wait...', ExportTaggedAccounts);  
   end;
 end;
 
