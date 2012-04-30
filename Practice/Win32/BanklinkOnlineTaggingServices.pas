@@ -12,7 +12,7 @@ type
     class procedure ChartToXML(ParentNode: IXMLNode; ChartOfAccounts: TChart); static;
   public
     class procedure UpdateAccountVendors(ClientCode: String; BankAccount: TBank_Account; Vendors: array of String); static;
-    class function ExportClientTransactions(Practice: TSystemObj): Integer; static;
+    class function ExportTaggedAccounts(Practice: TSystemObj): Integer; static;
   end;
 
 implementation
@@ -57,7 +57,7 @@ begin
   end;
 end;
 
-class function TBanklinkOnlineTaggingServices.ExportClientTransactions(Practice: TSystemObj): Integer;
+class function TBanklinkOnlineTaggingServices.ExportTaggedAccounts(Practice: TSystemObj): Integer;
 var
   XMLDocument: IXMLDocument;
   RootNode: IXMLNode;
