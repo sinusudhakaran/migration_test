@@ -38,6 +38,13 @@ type
   TBloUserRead              = BlopiServiceFacade.UserRead;
   TBloArrayOfUserRead       = BlopiServiceFacade.ArrayOfUserRead;
 
+  TTempVendor = record
+    ID   : TBloGuid;
+    Name : string;
+  end;
+
+  TBloArrayOfVendors        = Array of TTempVendor;
+
   TVarTypeData = record
     Name     : String;
     TypeInfo : PTypeInfo;
@@ -282,13 +289,19 @@ type
 
     function GetExportDataId: TBloGuid;
     function GetIBizzExportGuid: TBloGuid;
+    function GetBGLExportGuid: TBloGuid;
 
     function GuidsEqual(GuidA, GuidB: TBloGuid): Boolean;
-    
+
     function VendorExportsChanged: Boolean;
     procedure AddVendorExport(ProductId: TBloGuid);
     procedure RemoveVendorExport(ProductId: TbloGuid);
-    
+
+    function GetExportVenders : TBloArrayOfVendors;
+    function GetAvailableVendersForPratice : TBloArrayOfVendors;
+    function GetAvailableVendersForClient(aClientCode: string) : TBloArrayOfVendors;
+    function GetAvailableVendersForAccount(aAccountNumber: string) : TBloArrayOfVendors;
+
     property OnLine: Boolean read FOnLine;
     property Registered: Boolean read GetRegistered;
     property ValidBConnectDetails: Boolean read GetValidBConnectDetails;
@@ -341,7 +354,7 @@ const
   PRODUCT_GUID_EXPORT_DATA = '6D700B31-DAEE-4847-8CB2-82C21328AC34';
   
   VENDOR_EXPORT_GUID_IBIZZ = 'C048EEB5-978D-4768-87C2-CAD43B8D888D';  //This is a made up guid, replace it with the real one when it becomes available
-
+  VENDOR_EXPORT_GUID_BGL = 'AAE9F2C8-4CAC-4AFA-A3E5-4856675AA0F6';    // so is this
 var
   __BankLinkOnlineServiceMgr: TProductConfigService;
   DebugMe : Boolean = False;
@@ -680,6 +693,12 @@ end;
 function TProductConfigService.GetIBizzExportGuid: TBloGuid;
 begin
   Result := VENDOR_EXPORT_GUID_IBIZZ;
+end;
+
+//------------------------------------------------------------------------------
+function TProductConfigService.GetBGLExportGuid: TBloGuid;
+begin
+  Result := VENDOR_EXPORT_GUID_BGL;
 end;
 
 function TProductConfigService.GetCachedPractice: TBloPracticeRead;
@@ -3314,6 +3333,45 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
+function TProductConfigService.GetExportVenders : TBloArrayOfVendors;
+begin
+  SetLength(Result,2);
+  Result[0].ID   := GetBGLExportGuid;
+  Result[0].Name := 'BGL Export Data';
+  Result[1].ID   := GetIBizzExportGuid;
+  Result[1].Name := 'Ibiz Export Data';
+end;
+
+//------------------------------------------------------------------------------
+function TProductConfigService.GetAvailableVendersForPratice : TBloArrayOfVendors;
+begin
+  SetLength(Result,2);
+  Result[0].ID   := GetBGLExportGuid;
+  Result[0].Name := 'BGL Export Data';
+  Result[1].ID   := GetIBizzExportGuid;
+  Result[1].Name := 'Ibiz Export Data';
+end;
+
+//------------------------------------------------------------------------------
+function TProductConfigService.GetAvailableVendersForClient(aClientCode: string) : TBloArrayOfVendors;
+begin
+  SetLength(Result,2);
+  Result[0].ID   := GetBGLExportGuid;
+  Result[0].Name := 'BGL Export Data';
+  Result[1].ID   := GetIBizzExportGuid;
+  Result[1].Name := 'Ibiz Export Data';
+end;
+
+//------------------------------------------------------------------------------
+function TProductConfigService.GetAvailableVendersForAccount(aAccountNumber: string) : TBloArrayOfVendors;
+begin
+  SetLength(Result,2);
+  Result[0].ID   := GetBGLExportGuid;
+  Result[0].Name := 'BGL Export Data';
+  Result[1].ID   := GetIBizzExportGuid;
+  Result[1].Name := 'Ibiz Export Data';
+end;
 { TPracticeHelper }
 //------------------------------------------------------------------------------
 function TPracticeHelper.GetUserRoleGuidFromPracUserType(aUstNameIndex: integer;
