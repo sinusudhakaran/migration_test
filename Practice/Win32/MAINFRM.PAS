@@ -709,6 +709,7 @@ type
     procedure actGetFromFolderExecute(Sender: TObject);
     procedure actGetFromOnlineExecute(Sender: TObject);
     procedure mniChangePasswordClick(Sender: TObject);
+    procedure mniExportdatatoBanklinkOnlineClick(Sender: TObject);
   private
     { Private declarations }
     FClientInstance,
@@ -1037,7 +1038,8 @@ uses
   CustomDocEditorFrm,
   frmExchangeRates,
   BankLinkOnlineServices,
-  EditUserPassword;
+  EditUserPassword,
+  BanklinkOnlineTaggingServices;
   //StockBalancesDlg;
 
 const
@@ -5243,6 +5245,14 @@ end;
 procedure TfrmMain.mniExportChargesClick(Sender: TObject);
 begin
   DoMainFormCommand(mf_mcExportCharges);
+end;
+
+procedure TfrmMain.mniExportdatatoBanklinkOnlineClick(Sender: TObject);
+begin
+  if MessageDlg('Are you sure you want to send all unsent client transactions to Banklink Online?', mtConfirmation, [mbYes, mbNo], 0) = mrYes then
+  begin
+    TBanklinkOnlineTaggingServices.ExportTaggedAccounts(AdminSystem);
+  end;
 end;
 
 procedure TfrmMain.mniViewNotesOnlyClick(Sender: TObject);
