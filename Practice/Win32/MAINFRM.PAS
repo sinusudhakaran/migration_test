@@ -5251,7 +5251,7 @@ procedure TfrmMain.mniExportdatatoBanklinkOnlineClick(Sender: TObject);
 begin
   if MessageDlg('Are you sure you want to send all unsent client transactions to Banklink Online?', mtConfirmation, [mbYes, mbNo], 0) = mrYes then
   begin
-    TBanklinkOnlineTaggingServices.ExportTaggedAccounts(AdminSystem);
+    TBanklinkOnlineTaggingServices.ExportTaggedAccounts;
   end;
 end;
 
