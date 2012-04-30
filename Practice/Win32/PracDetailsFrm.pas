@@ -113,6 +113,8 @@ type
     tbsDataExport: TTabSheet;
     chklistExportTo: TCheckListBox;
     Label6: TLabel;
+    PageControl2: TPageControl;
+    TabSheet1: TTabSheet;
     lblAcclipseCode: TLabel;
     edtAcclipseCode: TEdit;
     
@@ -977,8 +979,28 @@ begin
     if not (YesNoDlg.AskYesNo('BankLink Online products and services change', aMsg, DLG_YES, 0) = DLG_YES) then
       Exit;
 
-    if ProductConfigService.HasProductJustBeenTicked(ProductConfigService.GetExportDataId) then
+    if ProductConfigService.IsPracticeProductEnabled(ProductConfigService.GetExportDataId, True) then
     begin
+      if edtAcclipseCode.Text = '' then
+      begin
+        case MessageDlg('To set up this export you must enter the code provided to your practice by Acclipse.  If you do not have a code, please contact Acclipse.' + #10#13#10#13 + 'Client OK to go back and enter your code, or Cancel to exit this setup', mtInformation, [mbOK, mbCancel], 0) of
+          mrOk:
+          begin
+            edtAcclipseCode.SetFocus;
+
+            Exit;
+          end;
+          mrCancel:
+          begin
+            OkPressed := False;
+
+            Result := True;
+
+            Exit;
+          end;
+        end;
+      end;
+      
       if (chklistExportTo.Count > 0) and (chklistExportTo.CountCheckedItems = 0) and ProductConfigService.VendorExportsChanged then
       begin
         if YesNoDlg.AskYesNo('Banklink Online Data Export', 'You have not selected a vendor export type.' + #10#13#10#13 + 'Are you sure you want to continue saving?', DLG_YES, 0) = DLG_NO then
