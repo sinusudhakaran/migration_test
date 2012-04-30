@@ -1349,13 +1349,6 @@ begin
       vtProducts.SortTree(0, sdAscending);
 
       tbsDataExport.TabVisible := ProductConfigService.IsPracticeProductEnabled(ProductConfigService.GetExportDataId, True);
-
-      //Test data since we don't yet have the service calls to retrieve the available vendor export types.  Remove this when they are available.
-      chklistExportTo.AddItem('BGL Simple Fund', TVendorExport.Create('53E1E0EB-DBAD-4D20-ABA9-2F32AC9A1A0D'));
-      chklistExportTo.AddItem('iBizz Export', TVendorExport.Create('C048EEB5-978D-4768-87C2-CAD43B8D888D'));
-      chklistExportTo.AddItem('{BanklinkOnlineExportFormat1}', TVendorExport.Create('8CE9B867-F1A7-40E0-9B23-3D28C5B4DA98'));
-      chklistExportTo.AddItem('{BanklinkOnlineExportFormat2}', TVendorExport.Create('71CA8468-0C24-473D-87D1-2D0D65F29C51'));
-      chklistExportTo.AddItem('{BanklinkOnlineExportFormat3}', TVendorExport.Create('0BB13981-D35E-4A89-BE4E-CAFEAB9C802A'));
     end;
   except
     on E: Exception do begin
