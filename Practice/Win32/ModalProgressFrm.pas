@@ -23,6 +23,8 @@ type
     procedure FormCreate(Sender: TObject);
     procedure btnCancelClick(Sender: TObject);
   private
+    FCurrentStepTotal: Extended;
+    
     FCancelled: Boolean;
 
     FOnStartProcess: TStartProcessEvent;
@@ -68,14 +70,27 @@ begin
 end;
 
 procedure TfrmModalProgress.UpdateProgress(StepSize: Double);
+var
+  Remainder: Double;
 begin
-  prgProgress.Percent := prgProgress.Percent + StepSize;
+  FCurrentStepTotal := FCurrentStepTotal + StepSize;
+
+  if FCurrentStepTotal >= 1 then
+  begin
+    Remainder := Frac(FCurrentStepTotal);
+    
+    prgProgress.Percent := prgProgress.Percent + Round(FCurrentStepTotal - Remainder);
+
+    FCurrentStepTotal := Remainder;
+  end;
 
   Application.ProcessMessages;
 end;
 
 procedure TfrmModalProgress.Initialize(const Title: String);
 begin
+  FCurrentStepTotal := 0;
+  
   FCancelled := False;
   
   lblProgressTitle.Caption := Title;
@@ -97,7 +112,7 @@ begin
     ProgressForm.PopupParent := Owner;
     ProgressForm.PopupMode := pmExplicit;
 
-    ProgressForm.ShowModal;
+    Result := ProgressForm.ShowModal;
   finally
     ProgressForm.Free;
   end;
@@ -121,13 +136,33 @@ end;
 procedure TfrmModalProgress.UMStartProcess(var Message: TMessage);
 begin
   StartProcess;
+
+  if FCancelled then
+  begin
+    ModalResult := mrCancel;
+  end
+  else
+  begin
+    ModalResult := mrOk;
+  end;
 end;
 
 procedure TfrmModalProgress.UpdateProgress(const ProgressLabel: String; StepSize: Double);
+var
+  Remainder: Double;
 begin
   lblProgress.Caption := ProgressLabel;
-  
-  prgProgress.Percent := prgProgress.Percent + StepSize;
+
+  FCurrentStepTotal := FCurrentStepTotal + StepSize;
+
+  if FCurrentStepTotal >= 1 then
+  begin
+    Remainder := Frac(FCurrentStepTotal);
+    
+    prgProgress.Percent := prgProgress.Percent + Round(FCurrentStepTotal - Remainder);
+
+    FCurrentStepTotal := Remainder;
+  end;
 
   Application.ProcessMessages;
 end;
