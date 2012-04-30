@@ -3,7 +3,7 @@ unit BanklinkOnlineTaggingServices;
 interface
 
 uses
-  Classes, Forms, Contnrs, Controls, SysUtils, baObj32, BKDEFS, BK_XMLHelper, clObj32, SysObj32, chList32, XMLDoc, XMLIntf, BanklinkOnlineServices, ZipUtils, Progress;
+  Classes, Forms, Contnrs, Controls, SysUtils, baObj32, BKDEFS, BK_XMLHelper, clObj32, SysObj32, chList32, XMLDoc, XMLIntf, BanklinkOnlineServices, ZipUtils, ModalProgressFrm;
 
 type
   TBanklinkOnlineTaggingServices = class
@@ -12,7 +12,8 @@ type
     class procedure ChartToXML(ParentNode: IXMLNode; ChartOfAccounts: TChart); static;
   public
     class procedure UpdateAccountVendors(ClientCode: String; BankAccount: TBank_Account; Vendors: array of String); static;
-    class function ExportTaggedAccounts: Integer; static;
+
+    class procedure ExportTaggedAccounts(ProgressFrm: TfrmModalProgress); static;
   end;
 
 implementation
@@ -57,7 +58,7 @@ begin
   end;
 end;
 
-class function TBanklinkOnlineTaggingServices.ExportTaggedAccounts: Integer;
+class procedure TBanklinkOnlineTaggingServices.ExportTaggedAccounts(ProgressFrm: TfrmModalProgress);
 var
   XMLDocument: IXMLDocument;
   RootNode: IXMLNode;
@@ -67,12 +68,8 @@ var
   CompressedXml: String;
   Client: TClientObj;
   ClientList: TObjectList;
-  ShowProgress: Boolean;
-  ClientProgressValue: Double;
-  TotalProgress: Double;
+  ClientProgressSize: Double;
 begin
-  Result := 0;
-
   XMLDocument := XMLDoc.NewXMLDocument;
 
   XMLDocument.Active := True;
@@ -86,112 +83,78 @@ begin
   ClientList := TObjectList.Create(True);
 
   try
-    ShowProgress := Progress.StatusSilent;
+    ClientProgressSize := 60 / AdminSystem.fdSystem_Client_File_List.ItemCount;
 
-    if ShowProgress then
-    begin
-      Screen.Cursor := crHourGlass;
-      Progress.StatusSilent := False;
-      Progress.AllowClearStatus := False;   
-    end;
+    ProgressFrm.Initialize('Exporting Client Transactions'); 
     
-    try
-      ClientProgressValue := 70 / AdminSystem.fdSystem_Client_File_List.ItemCount;
+    for Index := 0 to AdminSystem.fdSystem_Client_File_List.ItemCount -1 do
+    begin
+      Client := nil;
 
-      TotalProgress := 0;
-      
-      for Index := 0 to AdminSystem.fdSystem_Client_File_List.ItemCount -1 do
+      if not ProgressFrm.Cancelled then
       begin
-        Client := nil;
+        ProgressFrm.UpdateProgress('Exporting transactions for ' + AdminSystem.fdSystem_Client_File_List.Client_File_At(Index).cfFile_Code, ClientProgressSize);
 
-        if not Progress.Cancelled then
-        begin
-          if ShowProgress then
+        try
+          OpenAClient(AdminSystem.fdSystem_Client_File_List.Client_File_At(Index).cfFile_Code, Client, True);
+
+          if Assigned(Client) then
           begin
-            Progress.UpdateAppStatus('Exporting Client Transactions', 'Exporting transactions for ' + AdminSystem.fdSystem_Client_File_List.Client_File_At(Index).cfFile_Code, TotalProgress, True);
-          end;
-
-          try
-            OpenAClient(AdminSystem.fdSystem_Client_File_List.Client_File_At(Index).cfFile_Code, Client, True);
-
-            if Assigned(Client) then
+            if not Client.clFields.clFile_Read_Only then
             begin
-              if not Client.clFields.clFile_Read_Only then
+              ClientList.Add(Client);
+
+              for IIndex := 0 to Client.clBank_Account_List.ItemCount - 1 do
               begin
-                ClientList.Add(Client);
+                BankAccount := Client.clBank_Account_List[IIndex];
 
-                for IIndex := 0 to Client.clBank_Account_List.ItemCount - 1 do
+                //Only delivered accounts can be sent
+                if not (BankAccount.IsManual or BankAccount.IsAJournalAccount) then
                 begin
-                  BankAccount := Client.clBank_Account_List[IIndex];
-
                   //if bank account tagged then
                   begin
-                    Result := Result + BankAccountToXML(RootNode, BankAccount);
+                    BankAccountToXML(RootNode, BankAccount);
                   end;
                 end;
               end;
             end;
-          except
-            on E:Exception do
-            begin
-
-            end;
           end;
-        
-          TotalProgress := TotalProgress + ClientProgressValue;
+        except
+          on E:Exception do
+          begin
+
+          end;
         end;
       end;
+    end;
 
-      if ShowProgress then
-      begin
-        Progress.UpdateAppStatus('Exporting Client Transactions', 'Exporting chart of accounts', 70, True);
-      end;
+    if not ProgressFrm.Cancelled then
+    begin
+      ProgressFrm.UpdateProgress('Exporting chart of accounts', 10);
 
       //Add chart of accounts to xml packet
       ChartToXML(RootNode, Client.clChart);
 
-      Progress.ToggleCancelEnabled(False);
+      ProgressFrm.ToggleCancelEnabled(False);
 
-      if not Progress.Cancelled then
+      ProgressFrm.UpdateProgress('Sending transactions to Banklink Online', 10);
+
+      //Zip the xml to reduce the size of the packet sent
+      CompressedXml := ZipUtils.CompressString(XMLDocument.XML.Text);
+
+      //Send xml to Banklink online.
+      XMLDocument.SaveToFile('C:\Users\kerry.convery\Desktop\ClientAccountTransactions.xml');
+
+      ProgressFrm.UpdateProgress('Saving changes to transactions', 10);
+
+      for Index := 0 to ClientList.Count -1 do
       begin
-        if ShowProgress then
-        begin
-          Progress.UpdateAppStatus('Exporting Client Transactions', 'Sending transactions to Banklink Online', 80, True);
-        end;
+        Client := TClientObj(ClientList[Index]);
 
-        //Zip the xml to reduce the size of the packet sent
-        CompressedXml := ZipUtils.CompressString(XMLDocument.XML.Text);
-
-        //Send xml to Banklink online.
-        XMLDocument.SaveToFile('C:\Users\kerry.convery\Desktop\ClientAccountTransactions.xml');
-
-        if ShowProgress then
-        begin
-          Progress.UpdateAppStatus('Exporting Client Transactions', 'Saving changes to transactions', 90, True);
-        end;
-      
-        for Index := 0 to ClientList.Count -1 do
-        begin
-          Client := TClientObj(ClientList[Index]);
-
-          DoClientSave(True, Client, True);
-        end;
-
-        if ShowProgress then
-        begin
-          Progress.UpdateAppStatus('Exporting Client Transactions', 'Saving changes to transactions', 100, True);
-
-          Progress.ToggleCancelEnabled(True);
-        end;
+        DoClientSave(True, Client, True);
       end;
-    finally
-      if ShowProgress then
-      begin
-        Progress.StatusSilent := True;   
-        Progress.AllowClearStatus := True;
-        Progress.ClearStatus;
-        Screen.Cursor := crDefault;
-      end;
+
+      ProgressFrm.UpdateProgress(10);
     end;
   finally
     ClientList.Free;
