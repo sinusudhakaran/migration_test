@@ -200,7 +200,7 @@ var
   NewColumn: TListColumn;
   VendorIndex : integer;
 begin
-  fArrayOfVendorsForClient := ProductConfigService.GetAvailableVendersForClient(MyClient.clFields.clCode);
+  fArrayOfVendorsForClient := ProductConfigService.GetAvailableVendorsForClient(MyClient.clFields.clCode);
 
   for VendorIndex := 0 to high(fArrayOfVendorsForClient) do
   begin
@@ -231,7 +231,7 @@ var
   SubItemIndex : integer;
 begin
   if fExportDataEnabled then
-    fArrayOfVendorsForClient := ProductConfigService.GetAvailableVendersForClient(MyClient.clFields.clCode);
+    fArrayOfVendorsForClient := ProductConfigService.GetAvailableVendorsForClient(MyClient.clFields.clCode);
 
   if (MyClient.clFields.clCountry = whUK) and (MyClient.HasForeignCurrencyAccounts) then
   begin
@@ -290,7 +290,7 @@ begin
 
       if fExportDataEnabled then
       begin
-        ArrayOfVendorsForAccount := ProductConfigService.GetAvailableVendersForAccount(BankAcct.baFields.baBank_Account_Number);
+        ArrayOfVendorsForAccount := ProductConfigService.GetAvailableVendorsForAccount(BankAcct.baFields.baBank_Account_Number);
 
         for ClientVendorIndex := 0 to High(fArrayOfVendorsForClient) do
         begin

@@ -339,8 +339,8 @@ var
 
   ItemIndex : Integer;
 begin
-  ArrayOfVendorsForClient  := ProductConfigService.GetAvailableVendersForClient(MyClient.clFields.clCode);
-  ArrayOfVendorsForAccount := ProductConfigService.GetAvailableVendersForAccount(BankAcct.baFields.baBank_Account_Number);
+  ArrayOfVendorsForClient  := ProductConfigService.GetAvailableVendorsForClient(MyClient.clFields.clCode);
+  ArrayOfVendorsForAccount := ProductConfigService.GetAvailableVendorsForAccount(BankAcct.baFields.baBank_Account_Number);
 
   for ClientVendorIndex := 0 to high(ArrayOfVendorsForClient) do
   begin
