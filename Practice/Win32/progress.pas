@@ -32,7 +32,7 @@ type
   ISingleProgressForm = interface
   ['{64625C68-46EE-482D-B2FD-1F9B3979075B}']
     function GetCancelled: Boolean;
-    procedure Initialize(const Title: String);
+    procedure Initialize;
     procedure UpdateProgressLabel(const ProgressLabel: String); overload;
     procedure UpdateProgress(const ProgressLabel: String; StepSize: Double); overload;
     procedure UpdateProgress(StepSize: Double); overload;
