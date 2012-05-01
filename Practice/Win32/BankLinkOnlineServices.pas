@@ -302,6 +302,8 @@ type
     function GetAvailableVendersForClient(aClientCode: string) : TBloArrayOfVendors;
     function GetAvailableVendersForAccount(aAccountNumber: string) : TBloArrayOfVendors;
 
+    function IsVendorExportOptionEnabled(ProductId: TBloGuid; AUsePracCopy: Boolean): Boolean;
+
     property OnLine: Boolean read FOnLine;
     property Registered: Boolean read GetRegistered;
     property ValidBConnectDetails: Boolean read GetValidBConnectDetails;
@@ -2229,6 +2231,11 @@ begin
       Exit;
     end;
   end;
+end;
+
+function TProductConfigService.IsVendorExportOptionEnabled(ProductId: TBloGuid; AUsePracCopy: Boolean): Boolean;
+begin
+  Result := False;
 end;
 
 //------------------------------------------------------------------------------
