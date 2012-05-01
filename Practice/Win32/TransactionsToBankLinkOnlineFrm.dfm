@@ -1,6 +1,7 @@
 object frmTransactionsToBankLinkOnline: TfrmTransactionsToBankLinkOnline
   Left = 0
   Top = 0
+  ActiveControl = edtTransactionsToDate
   BorderStyle = bsDialog
   Caption = 'Export data to BankLink Online'
   ClientHeight = 222
@@ -12,6 +13,8 @@ object frmTransactionsToBankLinkOnline: TfrmTransactionsToBankLinkOnline
   Font.Name = 'Tahoma'
   Font.Style = []
   OldCreateOrder = False
+  Position = poOwnerFormCenter
+  OnCreate = FormCreate
   PixelsPerInch = 96
   TextHeight = 13
   object Label1: TLabel
@@ -51,20 +54,23 @@ object frmTransactionsToBankLinkOnline: TfrmTransactionsToBankLinkOnline
     Top = 107
     Width = 23
     Height = 23
+    OnClick = btnNextClick
   end
   object btnQuik: TSpeedButton
     Left = 325
     Top = 107
     Width = 23
     Height = 23
+    OnClick = btnQuikClick
   end
   object btnPrev: TSpeedButton
     Left = 272
     Top = 107
     Width = 23
     Height = 23
+    OnClick = btnPrevClick
   end
-  object eDateFrom: TOvcPictureField
+  object edtTransactionsToDate: TOvcPictureField
     Left = 152
     Top = 108
     Width = 105
@@ -91,7 +97,7 @@ object frmTransactionsToBankLinkOnline: TfrmTransactionsToBankLinkOnline
     RangeHigh = {25600D00000000000000}
     RangeLow = {00000000000000000000}
   end
-  object CheckBox1: TCheckBox
+  object chkExportChartOfAccounts: TCheckBox
     Left = 16
     Top = 147
     Width = 217
@@ -106,6 +112,7 @@ object frmTransactionsToBankLinkOnline: TfrmTransactionsToBankLinkOnline
     Height = 25
     Caption = '&OK'
     TabOrder = 2
+    OnClick = Button1Click
   end
   object Button2: TButton
     Left = 478
@@ -114,5 +121,36 @@ object frmTransactionsToBankLinkOnline: TfrmTransactionsToBankLinkOnline
     Height = 25
     Caption = 'Cancel'
     TabOrder = 3
+    OnClick = Button2Click
+  end
+  object pmDates: TPopupMenu
+    Left = 200
+    Top = 176
+    object LastMonth1: TMenuItem
+      Caption = 'Last &Month'
+      Hint = 'Select Last Calendar Month'
+    end
+    object Last2Months1: TMenuItem
+      Caption = 'Last &2 Month Period'
+    end
+    object LastQuarter1: TMenuItem
+      Caption = 'Last &Quarter'
+      Hint = 'Select This Quarter'
+    end
+    object Last6months1: TMenuItem
+      Caption = 'Last &6 Month Period'
+    end
+    object ThisYear1: TMenuItem
+      Caption = '&This Year'
+      Hint = 'Select This Financial Year'
+    end
+    object LastYear1: TMenuItem
+      Caption = '&Last Year'
+      Hint = 'Select Last Financial Year'
+    end
+    object AllData1: TMenuItem
+      Caption = '&All Data'
+      Hint = 'Select ALL transactions for client'
+    end
   end
 end
