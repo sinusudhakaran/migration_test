@@ -6,6 +6,11 @@ uses
   Classes, Forms, Contnrs, Controls, SysUtils, baObj32, BKDEFS, BK_XMLHelper, clObj32, SysObj32, chList32, XMLDoc, XMLIntf, BanklinkOnlineServices, ZipUtils, Progress, OvcDate;
 
 type
+  TExportOptions = record
+    MaxTransactionDate: TStDate;
+    ExportChartOfAccounts: Boolean;
+  end;
+  
   TBanklinkOnlineTaggingServices = class
   private
     class procedure BankAccountToXML(ParentNode: IXMLNode; BankAccount: TBank_Account; MaxTransactionDate: TStDate); static;
@@ -16,11 +21,10 @@ type
     class function HasExportableTransactions(BankAccount: TBank_Account; MaxTransactionDate: TStDate): Boolean; static;
   public
     class procedure UpdateAccountVendors(BankAccount: TBank_Account; Vendors: array of String);  overload; static;  
-    class procedure UpdateAccountVendors(Vendors: array of String; ProgressFrm: ISingleProgressForm); overload; static;   
-    
+    class procedure UpdateAccountVendors(Client: TClientObj; Vendors: array of String; ProgressForm: ISingleProgressForm); overload; static;   
+
+    class procedure ExportTaggedAccounts(ExportOptions: TExportOptions; ProgressFrm: ISingleProgressForm); static;
     class function GetMaxExportableTransactionDate: TStDate; static;
-    
-    class procedure ExportTaggedAccounts(MaxTransactionDate: TStDate; ExportChartOfAccounts: Boolean; ProgressFrm: ISingleProgressForm); static;
   end;
 
 implementation
@@ -61,7 +65,7 @@ begin
   end;
 end;
 
-class procedure TBanklinkOnlineTaggingServices.ExportTaggedAccounts(MaxTransactionDate: TStDate; ExportChartOfAccounts: Boolean; ProgressFrm: ISingleProgressForm);
+class procedure TBanklinkOnlineTaggingServices.ExportTaggedAccounts(ExportOptions: TExportOptions; ProgressFrm: ISingleProgressForm);
 var
   XMLDocument: IXMLDocument;
   RootNode: IXMLNode;
@@ -91,7 +95,7 @@ begin
 
         ClientProgressSize := 40 / AdminSystem.fdSystem_Client_File_List.ItemCount;
 
-        ProgressFrm.Initialize('Exporting Client Transactions'); 
+        ProgressFrm.Initialize; 
     
         for Index := 0 to AdminSystem.fdSystem_Client_File_List.ItemCount -1 do
         begin
@@ -116,13 +120,13 @@ begin
                     BankAccount := Client.clBank_Account_List[IIndex];
 
                     //Only delivered accounts can be sent
-                    if IsExportableBankAccount(BankAccount) and HasExportableTransactions(BankAccount, MaxTransactionDate) then
+                    if IsExportableBankAccount(BankAccount) and HasExportableTransactions(BankAccount, ExportOptions.MaxTransactionDate) then
                     begin
-                      BankAccountToXML(RootNode, BankAccount, MaxTransactionDate);
+                      BankAccountToXML(RootNode, BankAccount, ExportOptions.MaxTransactionDate);
                     end;
                   end;
 
-                  if ExportChartOfAccounts then
+                  if ExportOptions.ExportChartOfAccounts then
                   begin
                     //Add chart of accounts for this client
                     ChartToXML(RootNode, Client.clChart);
@@ -172,7 +176,7 @@ begin
               if Assigned(Client) then
               begin
                 try
-                  FlagTransactionsAsSent(Client, MaxTransactionDate);
+                  FlagTransactionsAsSent(Client, ExportOptions.MaxTransactionDate);
                 finally
                   CloseAClient(Client);
                 end;
@@ -211,43 +215,44 @@ begin
   end;
 end;
 
-class procedure TBanklinkOnlineTaggingServices.UpdateAccountVendors(Vendors: array of String; ProgressFrm: ISingleProgressForm);
+class procedure TBanklinkOnlineTaggingServices.UpdateAccountVendors(Client: TClientObj; Vendors: array of String; ProgressForm: ISingleProgressForm);
 var
   Index: Integer;
-  Client: TClientObj;
   IIndex: Integer;
   BankAccount: TBank_Account;
+  ClientProgressSize: Double;
 begin
-  for Index := 0 to AdminSystem.fdSystem_Client_File_List.ItemCount - 1 do
-  begin
-    Client := nil;
-
-    if not ProgressFrm.Cancelled then
-    begin
-      try
-        OpenAClientForRead(AdminSystem.fdSystem_Client_File_List.Client_File_At(Index).cfFile_Code, Client);
-      except
-      end;
-
-      if Assigned(Client) then
+  try
+    ProgressForm.Initialize;
+  
+    ClientProgressSize := 100 / Client.clBank_Account_List.ItemCount -1;
+  
+    ProgressForm.UpdateProgressLabel('Updating bank account vendors for client ' + Client.clFields.clCode);
+   
+    for Index := 0 to Client.clBank_Account_List.ItemCount - 1 do
+    begin     
+      if not ProgressForm.Cancelled then
       begin
-        try
-          if not Client.clFields.clFile_Read_Only then
+        if not Client.clFields.clFile_Read_Only then
+        begin
+          for IIndex := 0 to Client.clBank_Account_List.ItemCount - 1 do
           begin
-            for IIndex := 0 to Client.clBank_Account_List.ItemCount - 1 do
-            begin
-              BankAccount := Client.clBank_Account_List[IIndex];
-            end;
+            BankAccount := Client.clBank_Account_List[IIndex];
           end;
-        finally
-          FreeAndNil(Client);
         end;
+      end
+      else
+      begin
+        Break;
       end;
-    end
-    else
+
+      ProgressForm.UpdateProgress(ClientProgressSize);     
+    end;
+  except
+    on E:Exception do
     begin
-      Break;
-    end;    
+      HelpfulErrorMsg('Error exporting transactions to ' + BANKLINK_ONLINE_NAME + ': ' + E.Message, 0);
+    end;
   end;
 end;
 
