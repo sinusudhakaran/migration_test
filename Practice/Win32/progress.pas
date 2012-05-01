@@ -29,6 +29,19 @@ Interface
 type
   TUpdateMessageBarEvent = procedure ( aMsg : string; WaitCursor : boolean);
 
+  ISingleProgressForm = interface
+  ['{64625C68-46EE-482D-B2FD-1F9B3979075B}']
+    function GetCancelled: Boolean;
+    procedure Initialize(const Title: String);
+    procedure UpdateProgressLabel(const ProgressLabel: String); overload;
+    procedure UpdateProgress(const ProgressLabel: String; StepSize: Double); overload;
+    procedure UpdateProgress(StepSize: Double); overload;
+    procedure ToggleCancelEnabled(Enabled: Boolean);
+    procedure CompleteProgress;
+
+    property Cancelled: Boolean read GetCancelled; 
+  end;
+
 procedure UpdateAppStatus(sMsgLine1: string; sMsgLine2: string; dPercentage: double; ProcessMessages : Boolean = false);
 procedure UpdateAppStatusLine2(Msg: string; ProcessMessages : Boolean = false);
 procedure UpdateAppStatusPerc(dPercentage: double; ProcessMessages : Boolean = false);
