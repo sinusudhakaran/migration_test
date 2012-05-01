@@ -35,7 +35,6 @@ type
     procedure btnQuikClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
   private
-    function GetLatestExportableTransactionDate: TDateTime;
     procedure ExportTaggedAccounts(ProgressForm: TfrmModalProgress);
   public
     class procedure ShowDialog(Owner: TComponent; PopupParent: TCustomForm); static;
@@ -47,7 +46,7 @@ var
 implementation
 
 uses
-  OvcDate, ImagesFrm, Globals;
+  OvcDate, ImagesFrm, Globals, StDateSt;
 
 {$R *.dfm}
 
@@ -93,6 +92,8 @@ begin
 end;
 
 procedure TfrmTransactionsToBankLinkOnline.FormCreate(Sender: TObject);
+var
+  MaxExportableDate: TStDate;
 begin
   edtTransactionsToDate.Epoch       := BKDATEEPOCH;
   edtTransactionsToDate.PictureMask := BKDATEFORMAT;
@@ -104,14 +105,14 @@ begin
     GetBitmap(MISC_CALENDAR_BMP, btnQuik.Glyph);
   end;
 
-  lblTransactionsExportableTo.Caption := ReplaceText(lblTransactionsExportableTo.Caption, '<exportable>', FormatDateTime(BKDATEFORMAT, GetLatestExportableTransactionDate));
+  MaxExportableDate := TBankLinkOnlineTaggingServices.GetMaxExportableTransactionDate;
+
+  if MaxExportableDate > 0 then
+  begin
+    lblTransactionsExportableTo.Caption := ReplaceText(lblTransactionsExportableTo.Caption, '<exportable>', StDateToDateString(BKDATEFORMAT, MaxExportableDate, False));
+  end;
 
   edtTransactionsToDate.AsStDate := OvcDate.CurrentDate;
-end;
-
-function TfrmTransactionsToBankLinkOnline.GetLatestExportableTransactionDate: TDateTime;
-begin
-  Result := Date;
 end;
 
 class procedure TfrmTransactionsToBankLinkOnline.ShowDialog(Owner: TComponent; PopupParent: TCustomForm);
