@@ -36,9 +36,11 @@ type
     class function ShowProgress(Owner: TCustomForm; Caption: String; OnStartProcessHandler: TStartProcessEvent): TModalResult; static;
 
     procedure Initialize(const Title: String);
+    procedure UpdateProgressLabel(const ProgressLabel: String); overload;
     procedure UpdateProgress(const ProgressLabel: String; StepSize: Double); overload;
     procedure UpdateProgress(StepSize: Double); overload;
     procedure ToggleCancelEnabled(Enabled: Boolean);
+    procedure CompleteProgress;
 
     property Cancelled: Boolean read FCancelled; 
 
@@ -57,6 +59,16 @@ implementation
 procedure TfrmModalProgress.btnCancelClick(Sender: TObject);
 begin
   FCancelled := True;
+end;
+
+procedure TfrmModalProgress.CompleteProgress;
+begin
+  if prgProgress.Percent < 100 then
+  begin
+    prgProgress.Percent := 100;
+
+    Application.ProcessMessages;
+  end;
 end;
 
 procedure TfrmModalProgress.FormCreate(Sender: TObject);
@@ -83,6 +95,13 @@ begin
 
     FCurrentStepTotal := Remainder;
   end;
+
+  Application.ProcessMessages;
+end;
+
+procedure TfrmModalProgress.UpdateProgressLabel(const ProgressLabel: String);
+begin
+  lblProgress.Caption := ProgressLabel;
 
   Application.ProcessMessages;
 end;
