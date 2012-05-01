@@ -1,12 +1,23 @@
 unit MaintainBankFrm;
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-//Maintain Client Bank Accounts
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  ComCtrls, ToolWin, baObj32, ActnList, AuditMgr,
+  Windows,
+  Messages,
+  SysUtils,
+  Classes,
+  Graphics,
+  Controls,
+  Forms,
+  Dialogs,
+  ComCtrls,
+  ToolWin,
+  baObj32,
+  ActnList,
+  AuditMgr,
+  BankLinkOnlineServices,
   OsFont;
 
 type
@@ -32,22 +43,28 @@ type
     procedure SetUpHelp;
     procedure tbEditClick(Sender: TObject);
     procedure FormShortCut(var Msg: TWMKey; var Handled: Boolean);
-    procedure tbAttachClick(Sender: TObject);
     procedure tbDeleteClick(Sender: TObject);
     procedure actCreateExecute(Sender: TObject);
     procedure actAttachExecute(Sender: TObject);
     procedure tbHelpClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure lvBankCustomDrawSubItem(Sender: TCustomListView; Item: TListItem;
+      SubItem: Integer; State: TCustomDrawState; var DefaultDraw: Boolean);
 //    procedure lvBankKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
   private
     { Private declarations }
+    fOnlineVendorStartCol : integer;
+    fOnlineVendorEndCol : integer;
+    fArrayOfVendorsForClient : TBloArrayOfVendors;
+    fExportDataEnabled : Boolean;
     SortCol : integer;
     FUpdateRefNeeded: boolean;
     AccountChanged : Boolean;
     CurrencyColumnShowing: boolean;
     procedure ShowCurrencyColumn;
     procedure HideCurrencyColumn;
+    procedure AddOnlineExportVendors;
     procedure RefreshBankAccountList;
     function DeleteBankAccount(BankAccount : TBank_Account) :boolean;
     procedure SetUpdateRefNeeded(const Value: boolean);
@@ -63,8 +80,10 @@ type
 
 function MaintainBankAccounts(ContextID : Integer) : boolean;
 
-//******************************************************************************
+//------------------------------------------------------------------------------
 implementation
+
+{$R *.DFM}
 
 uses
   ClientHomepageFrm,
@@ -87,16 +106,24 @@ uses
   bkConst,
   Software,
   UpdateMF,
-  MoneyDef, InfoMoreFrm, BKDEFS, clObj32, BaList32, sydefs, ErrorMoreFrm,
-  BKUtil32, BAUtils, Math;
+  MoneyDef,
+  InfoMoreFrm,
+  BKDEFS,
+  clObj32,
+  BaList32,
+  sydefs,
+  ErrorMoreFrm,
+  BKUtil32,
+  BAUtils,
+  Math,
+  CommCtrl,
+  strutils;
 
 const
   COL_ACCOUNT_NO    = 0;
   COL_ACCOUNT_NAME  = 1;
   COL_CURRENCY      = 2;
   COL_CHART_CODE    = 3;
-
-{$R *.DFM}
 
 //------------------------------------------------------------------------------
 procedure TfrmMaintainBank.FormCreate(Sender: TObject);
@@ -120,12 +147,17 @@ begin
   ContraColumn.Caption := 'Contra';
   ContraColumn.Width := 100;
 
+  fExportDataEnabled := (ProductConfigService.OnLine and
+                        ProductConfigService.IsPracticeProductEnabled(ProductConfigService.GetExportDataId, False));
+  if fExportDataEnabled then
+    AddOnlineExportVendors;
+
   LVUTILS.SetListViewColWidth(lvBank,1);
   UpdateRefNeeded := false;
   SetUpHelp;
 end;
 
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
 procedure TfrmMaintainBank.SetUpHelp;
 begin
    Self.ShowHint    := INI_ShowFormHints;
@@ -147,94 +179,157 @@ begin
    tbHelp.Visible := bkHelp.BKHelpFileExists;
    tbHelpSep.Visible := tbHelp.Visible;
 end;
-//------------------------------------------------------------------------------
 
+//------------------------------------------------------------------------------
 procedure TfrmMaintainBank.ShowCurrencyColumn;
 begin
   lvBank.Columns.Items[COL_CURRENCY].Width := 80;
   CurrencyColumnShowing := true;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmMaintainBank.HideCurrencyColumn;
 begin
   lvBank.Columns.Items[COL_CURRENCY].Width := 0;
   CurrencyColumnShowing := false;
 end;
 
+//------------------------------------------------------------------------------
+procedure TfrmMaintainBank.AddOnlineExportVendors;
+var
+  NewColumn: TListColumn;
+  VendorIndex : integer;
+begin
+  fArrayOfVendorsForClient := ProductConfigService.GetAvailableVendersForClient(MyClient.clFields.clCode);
+
+  for VendorIndex := 0 to high(fArrayOfVendorsForClient) do
+  begin
+    NewColumn := lvBank.Columns.Add;
+    NewColumn.Caption := fArrayOfVendorsForClient[VendorIndex].Name;
+    NewColumn.Width := 120;
+
+    if VendorIndex = 0 then
+      fOnlineVendorStartCol := NewColumn.Index;
+
+    if VendorIndex = high(fArrayOfVendorsForClient) then
+      fOnlineVendorEndCol := NewColumn.Index;
+  end;
+end;
+
+//------------------------------------------------------------------------------
 procedure TfrmMaintainBank.RefreshBankAccountList;
 var
-   NewItem : TListItem;
-   BankAcct  : TBank_Account;
-   i : integer;
-   CurrencyColumn: TListColumn;
-   ColumnStrings: TStrings;
+  NewItem : TListItem;
+  BankAcct  : TBank_Account;
+  i : integer;
+  CurrencyColumn: TListColumn;
+  ColumnStrings: TStrings;
+  ArrayOfVendorsForAccount : TBloArrayOfVendors;
+  ClientVendorIndex : integer;
+  AccountVendorIndex : integer;
+  Found : Boolean;
+  SubItemIndex : integer;
 begin
+  if fExportDataEnabled then
+    fArrayOfVendorsForClient := ProductConfigService.GetAvailableVendersForClient(MyClient.clFields.clCode);
+
   if (MyClient.clFields.clCountry = whUK) and (MyClient.HasForeignCurrencyAccounts) then
   begin
     if not CurrencyColumnShowing then
       ShowCurrencyColumn;
-  end else
+  end
+  else
+  begin
     if CurrencyColumnShowing then
       HideCurrencyColumn;
+  end;
 
-   lvBank.Items.beginUpdate;
-   try                     
-     lvBank.Items.Clear;
+  lvBank.Items.beginUpdate;
+  try
+    lvBank.Items.Clear;
 
-     with MyClient, clBank_Account_List do
-     for i := 0 to Pred(itemCount) do
-     begin
-        BankAcct :=  Bank_Account_At(i);
+    for i := 0 to Pred(MyClient.clBank_Account_List.itemCount) do
+    begin
+      BankAcct := MyClient.clBank_Account_List.Bank_Account_At(i);
 
-        //if not (BankAcct.IsAJournalAccount) then
-        if BankAcct.baFields.baAccount_Type <> btStockBalances then
+      if BankAcct.baFields.baAccount_Type <> btStockBalances then
+      begin
+        NewItem := lvBank.Items.Add;
+        NewItem.Caption := BankAcct.baFields.baBank_Account_Number;
+
+        if AccountVisible(BankAcct) then  {check if visible in coding window}
+          NewItem.ImageIndex := MAINTAIN_PAGE_OPEN_BMP
+        else
+          NewItem.ImageIndex := MAINTAIN_PAGE_NORMAL_BMP;
+
+        if ( BankAcct.baFields.baAccount_Type = btBank ) and
+           ContraCodeRequired( MyClient.clFields.clCountry, MyClient.clFields.clAccounting_System_Used ) and
+           ( BankAcct.baFields.baContra_Account_Code = '' ) then
+          NewItem.ImageIndex := MAINTAIN_ALERT;
+
+        NewItem.SubItems.AddObject(BankAcct.baFields.baBank_Account_Name,BankAcct);
+
+        if (MyClient.clFields.clCountry = whUK) and (MyClient.HasForeignCurrencyAccounts) then
         begin
-          NewItem := lvBank.Items.Add;
-          NewItem.Caption := BankAcct.baFields.baBank_Account_Number;
-
-          if AccountVisible(BankAcct) then  {check if visible in coding window}
-            NewItem.ImageIndex := MAINTAIN_PAGE_OPEN_BMP
-          else
-             NewItem.ImageIndex := MAINTAIN_PAGE_NORMAL_BMP;
-
-          if ( BankAcct.baFields.baAccount_Type = btBank ) and
-             ContraCodeRequired( MyClient.clFields.clCountry, MyClient.clFields.clAccounting_System_Used )
-             and ( BankAcct.baFields.baContra_Account_Code = '' ) then
-              NewItem.ImageIndex := MAINTAIN_ALERT;
-
-          NewItem.SubItems.AddObject(BankAcct.baFields.baBank_Account_Name,BankAcct);
-
-          if (MyClient.clFields.clCountry = whUK) and (MyClient.HasForeignCurrencyAccounts) then
+          if CurrencyColumnShowing then
           begin
-            if CurrencyColumnShowing then
-            begin
-              NewItem.SubItems.Add(BankAcct.baFields.baCurrency_Code);
-              NewItem.SubItems.Add(BankAcct.baFields.baContra_Account_Code);
-            end else
-            begin
-              NewItem.SubItems.Add(BankAcct.baFields.baCurrency_Code);
-              NewItem.SubItems.Add(BankAcct.baFields.baContra_Account_Code);
-            end;
-          end else
-            NewItem.SubItems.Add(''); // blank currency code
+            NewItem.SubItems.Add(BankAcct.baFields.baCurrency_Code);
             NewItem.SubItems.Add(BankAcct.baFields.baContra_Account_Code);
-        end;
-     end;
-   finally
-      lvBank.items.EndUpdate;
-   end;
+          end
+          else
+          begin
+            NewItem.SubItems.Add(BankAcct.baFields.baCurrency_Code);
+            NewItem.SubItems.Add(BankAcct.baFields.baContra_Account_Code);
+          end;
+        end
+        else
+          NewItem.SubItems.Add(''); // blank currency code
 
-   if lvBank.items.count > 0 then
-   begin
-     lvBank.selected := lvBank.items[0];
-     lvBank.selected.Focused := true;
-   end;
+        NewItem.SubItems.Add(BankAcct.baFields.baContra_Account_Code);
+      end;
+
+      if fExportDataEnabled then
+      begin
+        ArrayOfVendorsForAccount := ProductConfigService.GetAvailableVendersForAccount(BankAcct.baFields.baBank_Account_Number);
+
+        for ClientVendorIndex := 0 to High(fArrayOfVendorsForClient) do
+        begin
+          Found := False;
+          for AccountVendorIndex := 0 to High(ArrayOfVendorsForAccount) do
+          begin
+            if fArrayOfVendorsForClient[AccountVendorIndex].id =
+              ArrayOfVendorsForAccount[AccountVendorIndex].id then
+            begin
+              Found := True;
+              break;
+            end;
+          end;
+
+          if Found then
+            SubItemIndex := NewItem.SubItems.Add('1')
+          else
+            SubItemIndex := NewItem.SubItems.Add('0');
+        end;
+      end;
+    end;
+
+  finally
+    lvBank.items.EndUpdate;
+  end;
+
+  if lvBank.items.count > 0 then
+  begin
+    lvBank.selected := lvBank.items[0];
+    lvBank.selected.Focused := true;
+  end;
 end;
+
 //------------------------------------------------------------------------------
 procedure TfrmMaintainBank.tbCloseClick(Sender: TObject);
 begin
    Close;
 end;
+
 //------------------------------------------------------------------------------
 procedure TfrmMaintainBank.lvBankCompare(Sender: TObject; Item1,
   Item2: TListItem; Data: Integer; var Compare: Integer);
@@ -255,6 +350,99 @@ begin
 
   Compare := StStrS.CompStringS(Key1,Key2);
 end;
+
+//------------------------------------------------------------------------------
+procedure TfrmMaintainBank.lvBankCustomDrawSubItem(Sender: TCustomListView;
+  Item: TListItem; SubItem: Integer; State: TCustomDrawState;
+  var DefaultDraw: Boolean);
+
+  //------------------------------------------------------
+  function GetSubItemLeft(aItemIndex : integer) : integer;
+  var
+    ItemIndex : integer;
+  begin
+    Result := 0;
+    for ItemIndex := 0 to aItemIndex do
+      Result := Result + lvBank.Columns[ItemIndex].Width;
+  end;
+
+var
+  ItemRect : TRect;
+  SubItemRect : TRect;
+  OutputText : String;
+  SubItemIndex : integer;
+  First : Boolean;
+  SubItemLeft : integer;
+  SubItemTop  : integer;
+  bmpSelected : TBitmap;
+begin
+  if not assigned(Item) then
+    Exit;
+
+  SubItemIndex := SubItem-1;
+
+  DefaultDraw := false;
+
+  SetBkMode(lvBank.Canvas.Handle, TRANSPARENT);
+  ListView_SetTextBkColor(lvBank.Handle, CLR_NONE);
+  ListView_SetBKColor(lvBank.Handle, CLR_NONE);
+
+  ItemRect := Item.DisplayRect(drBounds);
+  SubItemRect := ItemRect;
+  SubItemRect.left  := ItemRect.Left + GetSubItemLeft(SubItemIndex);
+  SubItemRect.right := ItemRect.left + GetSubItemLeft(SubItemIndex+1);
+
+  SubItemLeft := ItemRect.Left + GetSubItemLeft(SubItemIndex);
+  SubItemTop  := ItemRect.Top + 2;
+
+  if (SubItem >= fOnlineVendorStartCol) and
+     (SubItem <= fOnlineVendorEndCol) then
+  begin
+    bmpSelected := TBitmap.create;
+    try
+      If (cdsFocused  in State) or
+         (cdsSelected in State) then
+        AppImages.Maintain.GetBitmap(MAINTAIN_SELECT, bmpSelected);
+
+      if Item.SubItems[SubItemIndex] = '1' then
+        AppImages.Maintain.GetBitmap(MAINTAIN_ONLINE, bmpSelected);
+
+      Sender.Canvas.Draw(SubItemLeft+30, SubItemTop, bmpSelected);
+    finally
+      FreeandNil(bmpSelected);
+    end;
+  end
+  else
+  begin
+    First := true;
+    OutputText := Item.SubItems[SubItemIndex];
+
+    while (Sender.Canvas.TextWidth(OutputText) >= (SubItemRect.Right - SubItemRect.Left)) and
+          (length(OutputText) > 0) do
+    begin
+      if (First = True) then
+      begin
+        if length(OutputText) > 2 then
+          OutputText := leftStr(OutputText,length(OutputText)-2) + '...'
+        else
+          OutputText := '';
+
+        First := false;
+      end
+      else
+      begin
+        if length(OutputText) > 4 then
+          OutputText := leftStr(OutputText,length(OutputText)-4) + '...'
+        else
+          OutputText := '';
+      end;
+    end;
+
+    if not (OutputText = '') then
+      Sender.Canvas.TextOut(SubItemLeft, SubItemTop, OutputText);
+  end;
+end;
+
 //------------------------------------------------------------------------------
 procedure TfrmMaintainBank.lvBankColumnClick(Sender: TObject;
   Column: TListColumn);
@@ -268,80 +456,12 @@ begin
   SortCol := Column.ID;
   LvBank.AlphaSort;
 end;
+
 //------------------------------------------------------------------------------
 procedure TfrmMaintainBank.lvBankDblClick(Sender: TObject);
 begin
   tbEdit.Click;
 end;
-
-//procedure TfrmMaintainBank.lvBankKeyDown(Sender: TObject; var Key: Word;
-//  Shift: TShiftState);
-//
-//  Procedure ChangeCurrency( B : TBank_Account; Code : String );
-//  Var
-//    pSB : pSystem_Bank_Account_Rec;
-//  Begin
-//    B.baFields.baCurrency_Code := Code;
-//    If LoadAdminSystem( True, 'ChangingCurrencyHack!' ) then
-//    Begin
-//      pSB := AdminSystem.fdSystem_Bank_Account_List.FindCode( B.baFields.baBank_Account_Number );
-//      if Assigned( pSB ) then pSB.sbCurrency_Code := Code;
-//      SaveAdminSystem;
-//    end;
-//  end;
-//
-//var
-//  B: TBank_Account;
-//begin
-//  if ( lvBank.Selected <> nil ) then
-//  begin
-//    B := TBank_Account(lvBank.Selected.SubItems.Objects[0]);
-//
-//    if Shift = [] then
-//    Begin
-//      if ( Chr( Key ) in [ 'n', 'N' ] ) then
-//      Begin
-//        ChangeCurrency( B, 'NZD' );
-//        RefreshBankAccountList;
-//        Key := 0;
-//        exit;
-//      End;
-//
-//      if ( Chr( Key ) in [ 'u', 'U' ] ) then
-//      Begin
-//        ChangeCurrency( B, 'USD' );
-//        RefreshBankAccountList;
-//        Key := 0;
-//        exit;
-//      End;
-//
-//      if ( Chr( Key ) in [ 'a', 'A' ] ) then
-//      Begin
-//        ChangeCurrency( B, 'AUD' );
-//        RefreshBankAccountList;
-//        Key := 0;
-//        exit;
-//      End;
-//
-//      if ( Chr( Key ) in [ 'e', 'E' ] ) then
-//      Begin
-//        ChangeCurrency( B, 'EUR' );
-//        RefreshBankAccountList;
-//        Key := 0;
-//        exit;
-//      End;
-//
-//      if ( Chr( Key ) in [ 'g', 'G' ] ) then
-//      Begin
-//        ChangeCurrency( B, 'GBP' );
-//        RefreshBankAccountList;
-//        Key := 0;
-//        exit;
-//      End;
-//    End;
-//  end;
-//  Inherited;
-//end;
 
 //------------------------------------------------------------------------------
 function TfrmMaintainBank.DeleteBankAccount(
@@ -440,6 +560,7 @@ begin
 
   LogUtil.LogMsg(lmInfo,'MAINTAINBANKFRM','User Delete Bank Account '+AcctNo+' - '+AcctName);
 end;
+
 //------------------------------------------------------------------------------
 procedure TfrmMaintainBank.tbEditClick(Sender: TObject);
 var
@@ -467,6 +588,7 @@ begin
     end;
   end;
 end;
+
 //------------------------------------------------------------------------------
 procedure TfrmMaintainBank.FormShortCut(var Msg: TWMKey;
   var Handled: Boolean);
@@ -481,11 +603,7 @@ begin
     Handled := false;
   end;
 end;
-//------------------------------------------------------------------------------
-procedure TfrmMaintainBank.tbAttachClick(Sender: TObject);
-begin
 
-end;
 //------------------------------------------------------------------------------
 procedure TfrmMaintainBank.tbDeleteClick(Sender: TObject);
 var
@@ -525,11 +643,13 @@ begin
     end;
   end;
 end;
+
 //------------------------------------------------------------------------------
 procedure TfrmMaintainBank.SetUpdateRefNeeded(const Value: boolean);
 begin
   FUpdateRefNeeded := Value;
 end;
+
 //------------------------------------------------------------------------------
 function TfrmMaintainBank.Execute: boolean;
 begin
@@ -542,8 +662,8 @@ begin
    //check if a bank account was added or deleted
    if UpdateRefNeeded then MyClient.UpdateRefs;
 end;
-//------------------------------------------------------------------------------
 
+//------------------------------------------------------------------------------
 function MaintainBankAccounts(ContextID : Integer) : boolean;
 //always return true at this stage
 var
@@ -559,8 +679,8 @@ begin
     MyDlg.Free;
   end;
 end;
-//------------------------------------------------------------------------------
 
+//------------------------------------------------------------------------------
 procedure TfrmMaintainBank.actCreateExecute(Sender: TObject);
 begin
 {$IFDEF Smartbooks}
@@ -573,6 +693,7 @@ begin
    CreateManualAccount;
 {$ENDIF}
 end;
+
 //------------------------------------------------------------------------------
 {$IFNDEF SmartBooks}
 procedure TfrmMaintainBank.CreateManualAccount;
@@ -650,8 +771,8 @@ begin
    end;
 end;
 {$ENDIF}
-//------------------------------------------------------------------------------
 
+//------------------------------------------------------------------------------
 procedure TfrmMaintainBank.actAttachExecute(Sender: TObject);
 begin
   if (CurrUser.CanAccessAdmin) and (not MyClient.clFields.clFile_Read_Only) then
@@ -677,11 +798,13 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmMaintainBank.tbHelpClick(Sender: TObject);
 begin
   BKHelpShow(Self);
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmMaintainBank.UpdateISOCodes;
 var
   i: integer;
@@ -706,6 +829,7 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmMaintainBank.FormShow(Sender: TObject);
 begin
   RefreshBankAccountList;
@@ -713,6 +837,7 @@ begin
   lvBankColumnClick(lvBank, lvBank.Columns[0]); // force sort by number
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmMaintainBank.FormClose(Sender: TObject;
   var Action: TCloseAction);
 begin
