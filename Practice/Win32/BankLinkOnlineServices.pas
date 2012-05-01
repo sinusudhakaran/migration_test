@@ -41,6 +41,7 @@ type
   TTempVendor = record
     ID   : TBloGuid;
     Name : string;
+    Code : string;
   end;
 
   TBloArrayOfVendors        = Array of TTempVendor;
@@ -297,10 +298,10 @@ type
     procedure AddVendorExport(ProductId: TBloGuid);
     procedure RemoveVendorExport(ProductId: TbloGuid);
 
-    function GetExportVenders : TBloArrayOfVendors;
-    function GetAvailableVendersForPratice : TBloArrayOfVendors;
-    function GetAvailableVendersForClient(aClientCode: string) : TBloArrayOfVendors;
-    function GetAvailableVendersForAccount(aAccountNumber: string) : TBloArrayOfVendors;
+    function GetExportVendors : TBloArrayOfVendors;
+    function GetAvailableVendorsForPratice : TBloArrayOfVendors;
+    function GetAvailableVendorsForClient(aClientCode: string) : TBloArrayOfVendors;
+    function GetAvailableVendorsForAccount(aAccountNumber: string) : TBloArrayOfVendors;
 
     function IsVendorExportOptionEnabled(ProductId: TBloGuid; AUsePracCopy: Boolean): Boolean;
 
@@ -3341,44 +3342,50 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TProductConfigService.GetExportVenders : TBloArrayOfVendors;
+function TProductConfigService.GetExportVendors : TBloArrayOfVendors;
 begin
   SetLength(Result,2);
   Result[0].ID   := GetBGLExportGuid;
   Result[0].Name := 'BGL Export Data';
+  Result[0].Code := 'BGL001';
   Result[1].ID   := GetIBizzExportGuid;
   Result[1].Name := 'Ibiz Export Data';
+  Result[1].Code := 'IBIZ001';
 end;
 
 //------------------------------------------------------------------------------
-function TProductConfigService.GetAvailableVendersForPratice : TBloArrayOfVendors;
+function TProductConfigService.GetAvailableVendorsForPratice : TBloArrayOfVendors;
 begin
   SetLength(Result,2);
   Result[0].ID   := GetBGLExportGuid;
   Result[0].Name := 'BGL Export Data';
+  Result[0].Code := 'BGL001';
   Result[1].ID   := GetIBizzExportGuid;
   Result[1].Name := 'Ibiz Export Data';
+  Result[1].Code := 'IBIZ001';
 end;
 
 //------------------------------------------------------------------------------
-function TProductConfigService.GetAvailableVendersForClient(aClientCode: string) : TBloArrayOfVendors;
+function TProductConfigService.GetAvailableVendorsForClient(aClientCode: string) : TBloArrayOfVendors;
 begin
   SetLength(Result,2);
   Result[0].ID   := GetBGLExportGuid;
   Result[0].Name := 'BGL Export Data';
+  Result[0].Code := 'BGL001';
   Result[1].ID   := GetIBizzExportGuid;
   Result[1].Name := 'Ibiz Export Data';
+  Result[1].Code := 'IBIZ001';
 end;
 
 //------------------------------------------------------------------------------
-function TProductConfigService.GetAvailableVendersForAccount(aAccountNumber: string) : TBloArrayOfVendors;
+function TProductConfigService.GetAvailableVendorsForAccount(aAccountNumber: string) : TBloArrayOfVendors;
 begin
   SetLength(Result,2);
   Result[0].ID   := GetBGLExportGuid;
   Result[0].Name := 'BGL Export Data';
-  //Result[1].ID   := GetIBizzExportGuid;
-  //Result[1].Name := 'Ibiz Export Data';
+  Result[0].Code := 'BGL001';
 end;
+
 { TPracticeHelper }
 //------------------------------------------------------------------------------
 function TPracticeHelper.GetUserRoleGuidFromPracUserType(aUstNameIndex: integer;
@@ -3489,6 +3496,7 @@ initialization
 finalization
  FreeAndNil(__BankLinkOnlineServiceMgr);
 end.
+
 
 
 
