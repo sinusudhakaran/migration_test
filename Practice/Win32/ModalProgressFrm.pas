@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, RzPrgres, ExtCtrls, OSFont;
+  Dialogs, StdCtrls, RzPrgres, ExtCtrls, OSFont, Progress;
 
 const
   UM_START_PROCESS = WM_USER + 1;
@@ -12,9 +12,9 @@ const
 type
   TfrmModalProgress = class;
   
-  TStartProcessEvent = procedure(Sender: TfrmModalProgress) of object;
+  TStartProcessEvent = procedure(Sender: ISingleProgressForm) of object;
 
-  TfrmModalProgress = class(TForm)
+  TfrmModalProgress = class(TForm, ISingleProgressForm)
     lblProgressTitle: TLabel;
     btnCancel: TButton;
     prgProgress: TRzProgressBar;
@@ -32,17 +32,17 @@ type
     procedure StartProcess;
 
     procedure UMStartProcess(var Message: TMessage); message UM_START_PROCESS;
-  public
-    class function ShowProgress(Owner: TCustomForm; Caption: String; OnStartProcessHandler: TStartProcessEvent): TModalResult; static;
-
+  protected
+    function GetCancelled: Boolean;
+    
     procedure Initialize(const Title: String);
     procedure UpdateProgressLabel(const ProgressLabel: String); overload;
     procedure UpdateProgress(const ProgressLabel: String; StepSize: Double); overload;
     procedure UpdateProgress(StepSize: Double); overload;
     procedure ToggleCancelEnabled(Enabled: Boolean);
     procedure CompleteProgress;
-
-    property Cancelled: Boolean read FCancelled; 
+  public
+    class function ShowProgress(Owner: TCustomForm; Caption: String; OnStartProcessHandler: TStartProcessEvent): TModalResult; static;
 
     property OnStartProcess: TStartProcessEvent read FOnStartProcess write FOnStartProcess;
   end;
@@ -79,6 +79,11 @@ end;
 procedure TfrmModalProgress.FormShow(Sender: TObject);
 begin
   PostMessage(Handle, UM_START_PROCESS, 0, 0);
+end;
+
+function TfrmModalProgress.GetCancelled: Boolean;
+begin
+  Result := FCancelled;
 end;
 
 procedure TfrmModalProgress.UpdateProgress(StepSize: Double);
