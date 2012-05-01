@@ -44,7 +44,7 @@ object frmTransactionsToBankLinkOnline: TfrmTransactionsToBankLinkOnline
   end
   object Label3: TLabel
     Left = 16
-    Top = 112
+    Top = 111
     Width = 111
     Height = 13
     Caption = 'Export transactions to:'
@@ -79,10 +79,10 @@ object frmTransactionsToBankLinkOnline: TfrmTransactionsToBankLinkOnline
   object chkExportChartOfAccounts: TCheckBox
     Left = 16
     Top = 147
-    Width = 217
+    Width = 353
     Height = 17
     Caption = 'Include Chart of Accounts for each Client'
-    TabOrder = 1
+    TabOrder = 2
   end
   object Button1: TButton
     Left = 397
@@ -90,7 +90,7 @@ object frmTransactionsToBankLinkOnline: TfrmTransactionsToBankLinkOnline
     Width = 75
     Height = 25
     Caption = '&OK'
-    TabOrder = 2
+    TabOrder = 3
     OnClick = Button1Click
   end
   object Button2: TButton
@@ -99,7 +99,7 @@ object frmTransactionsToBankLinkOnline: TfrmTransactionsToBankLinkOnline
     Width = 75
     Height = 25
     Caption = 'Cancel'
-    TabOrder = 3
+    TabOrder = 4
     OnClick = Button2Click
   end
   object BtnCal: TButton
@@ -108,37 +108,7 @@ object frmTransactionsToBankLinkOnline: TfrmTransactionsToBankLinkOnline
     Width = 21
     Height = 20
     Caption = '...'
-    TabOrder = 4
+    TabOrder = 1
     OnClick = BtnCalClick
-  end
-  object pmDates: TPopupMenu
-    Left = 200
-    Top = 176
-    object LastMonth1: TMenuItem
-      Caption = 'Last &Month'
-      Hint = 'Select Last Calendar Month'
-    end
-    object Last2Months1: TMenuItem
-      Caption = 'Last &2 Month Period'
-    end
-    object LastQuarter1: TMenuItem
-      Caption = 'Last &Quarter'
-      Hint = 'Select This Quarter'
-    end
-    object Last6months1: TMenuItem
-      Caption = 'Last &6 Month Period'
-    end
-    object ThisYear1: TMenuItem
-      Caption = '&This Year'
-      Hint = 'Select This Financial Year'
-    end
-    object LastYear1: TMenuItem
-      Caption = '&Last Year'
-      Hint = 'Select Last Financial Year'
-    end
-    object AllData1: TMenuItem
-      Caption = '&All Data'
-      Hint = 'Select ALL transactions for client'
-    end
   end
 end

@@ -17,14 +17,6 @@ type
     chkExportChartOfAccounts: TCheckBox;
     Button1: TButton;
     Button2: TButton;
-    pmDates: TPopupMenu;
-    LastMonth1: TMenuItem;
-    Last2Months1: TMenuItem;
-    LastQuarter1: TMenuItem;
-    Last6months1: TMenuItem;
-    ThisYear1: TMenuItem;
-    LastYear1: TMenuItem;
-    AllData1: TMenuItem;
     BtnCal: TButton;
     procedure Button1Click(Sender: TObject);
     procedure Button2Click(Sender: TObject);
@@ -126,6 +118,10 @@ begin
   if MaxExportableDate > 0 then
   begin
     lblTransactionsExportableTo.Caption := ReplaceText(lblTransactionsExportableTo.Caption, '<exportable>', StDateToDateString(BKDATEFORMAT, MaxExportableDate, False));
+  end
+  else
+  begin
+    lblTransactionsExportableTo.Caption := 'There are no exportable transactions available.';
   end;
 
   edtTransactionsToDate.AsStDate := OvcDate.CurrentDate;
@@ -153,13 +149,13 @@ begin
 
   if edtTransactionsToDate.AsStDate <= 0 then
   begin
-    HelpfulWarningMsg('You must specify an export transactions to date.' + #10#13 + 'Please try again.', 0);
+    HelpfulWarningMsg('You must specify an export date.' + #10#13 + 'Please try again.', 0);
 
     edtTransactionsToDate.SetFocus;
   end
   else if edtTransactionsToDate.AsStDate > CurrentDate then
   begin
-    HelpfulWarningMsg('You cannot specify a future export transactions to date.' + #10#13 + 'Please try again.', 0);
+    HelpfulWarningMsg('You cannot specify a future export date.' + #10#13 + 'Please try again.', 0);
 
     edtTransactionsToDate.SetFocus;
   end
