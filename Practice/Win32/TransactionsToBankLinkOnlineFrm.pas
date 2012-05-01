@@ -89,7 +89,7 @@ begin
   begin
     if AskYesNo('Export data to BankLink Online', 'Are you sure you want to send unsent client transactions to Banklink Online?', Dlg_Yes, 0) = DLG_YES then
     begin
-      TfrmModalProgress.ShowProgress(Self, 'Please wait...', ExportTaggedAccounts);
+      TfrmModalProgress.ShowProgress(Self, 'Please wait...', 'Exporting Client Transactions', ExportTaggedAccounts);
 
       Close;
     end;
@@ -102,8 +102,13 @@ begin
 end;
 
 procedure TfrmTransactionsToBankLinkOnline.ExportTaggedAccounts(ProgressForm: ISingleProgressForm);
+var
+  ExportOptions: TExportOptions;
 begin
-  TBankLinkOnlineTaggingServices.ExportTaggedAccounts(edtTransactionsToDate.AsStDate, chkExportChartOfAccounts.Checked, ProgressForm);
+  ExportOptions.MaxTransactionDate := edtTransactionsToDate.AsStDate;
+  ExportOptions.ExportChartOfAccounts := chkExportChartOfAccounts.Checked;
+
+  TBankLinkOnlineTaggingServices.ExportTaggedAccounts(ExportOptions, ProgressForm);
 end;
 
 procedure TfrmTransactionsToBankLinkOnline.FormCreate(Sender: TObject);
