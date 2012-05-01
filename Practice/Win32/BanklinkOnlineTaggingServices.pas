@@ -10,9 +10,9 @@ type
   private
     class procedure BankAccountToXML(ParentNode: IXMLNode; BankAccount: TBank_Account; MaxTransactionDate: TStDate); static;
     class procedure ChartToXML(ParentNode: IXMLNode; ChartOfAccounts: TChart); static;
-    class function IsExportableTransaction(Transaction: pTransaction_Rec): Boolean; static;
+    class function IsExportableTransaction(Transaction: pTransaction_Rec; MaxTransactionDate: TStDate): Boolean; static;
     class function IsExportableBankAccount(BankAccount: TBank_Account): Boolean; static;
-    class procedure FlagTransactionsAsSent(Client: TClientObj); static;
+    class procedure FlagTransactionsAsSent(Client: TClientObj; MaxTransactionDate: TStDate); static;
     class function HasExportableTransactions(BankAccount: TBank_Account; MaxTransactionDate: TStDate): Boolean; static;
   public
     class procedure UpdateAccountVendors(ClientCode: String; BankAccount: TBank_Account; Vendors: array of String); static;
@@ -41,7 +41,7 @@ begin
   begin
     Transaction := BankAccount.baTransaction_List[TransactionIndex];
 
-    if IsExportableTransaction(Transaction) then    
+    if IsExportableTransaction(Transaction, MaxTransactionDate) then    
     begin
       Transaction.WriteRecToNode(BankAccountNode);
     end;
@@ -169,7 +169,7 @@ begin
               if Assigned(Client) then
               begin
                 try
-                  FlagTransactionsAsSent(Client);
+                  FlagTransactionsAsSent(Client, MaxTransactionDate);
                 finally
                   CloseAClient(Client);
                 end;
@@ -196,9 +196,16 @@ begin
   Result := not (BankAccount.IsManual or BankAccount.IsAJournalAccount); //and IsTagged
 end;
 
-class function TBanklinkOnlineTaggingServices.IsExportableTransaction(Transaction: pTransaction_Rec): Boolean;
+class function TBanklinkOnlineTaggingServices.IsExportableTransaction(Transaction: pTransaction_Rec; MaxTransactionDate: TStDate): Boolean;
 begin
-  Result := (Transaction.txCore_Transaction_ID <> 0) and not Transaction.txTransfered_To_Online;
+  if MaxTransactionDate > -1 then
+  begin
+    Result := (Transaction.txCore_Transaction_ID <> 0) and (not Transaction.txTransfered_To_Online) and (Transaction.txDate_Effective <= MaxTransactionDate);
+  end
+  else
+  begin
+    Result := (Transaction.txCore_Transaction_ID <> 0) and (not Transaction.txTransfered_To_Online);
+  end;
 end;
 
 class procedure TBanklinkOnlineTaggingServices.UpdateAccountVendors(ClientCode: String; BankAccount: TBank_Account; Vendors: array of String);
@@ -206,7 +213,7 @@ begin
 
 end;
 
-class procedure TBanklinkOnlineTaggingServices.FlagTransactionsAsSent(Client: TClientObj);
+class procedure TBanklinkOnlineTaggingServices.FlagTransactionsAsSent(Client: TClientObj; MaxTransactionDate: TStDate);
 var
   Index: Integer;
   BankAccount: TBank_Account;
@@ -223,7 +230,7 @@ begin
       begin
         Transaction := BankAccount.baTransaction_List[IIndex];
 
-        if IsExportableTransaction(Transaction) then
+        if IsExportableTransaction(Transaction, MaxTransactionDate) then
         begin
           Transaction.txTransfered_To_Online := True;
         end;
@@ -240,7 +247,7 @@ begin
 
   for TransactionIndex := 0 to BankAccount.baTransaction_List.ItemCount - 1 do
   begin
-    if IsExportableTransaction(BankAccount.baTransaction_List[TransactionIndex]) then
+    if IsExportableTransaction(BankAccount.baTransaction_List[TransactionIndex], MaxTransactionDate) then
     begin
       Result := True;
 
