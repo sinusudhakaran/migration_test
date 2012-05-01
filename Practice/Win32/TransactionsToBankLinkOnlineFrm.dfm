@@ -49,27 +49,6 @@ object frmTransactionsToBankLinkOnline: TfrmTransactionsToBankLinkOnline
     Height = 13
     Caption = 'Export transactions to:'
   end
-  object btnNext: TSpeedButton
-    Left = 296
-    Top = 107
-    Width = 23
-    Height = 23
-    OnClick = btnNextClick
-  end
-  object btnQuik: TSpeedButton
-    Left = 325
-    Top = 107
-    Width = 23
-    Height = 23
-    OnClick = btnQuikClick
-  end
-  object btnPrev: TSpeedButton
-    Left = 272
-    Top = 107
-    Width = 23
-    Height = 23
-    OnClick = btnPrevClick
-  end
   object edtTransactionsToDate: TOvcPictureField
     Left = 152
     Top = 108
@@ -122,6 +101,15 @@ object frmTransactionsToBankLinkOnline: TfrmTransactionsToBankLinkOnline
     Caption = 'Cancel'
     TabOrder = 3
     OnClick = Button2Click
+  end
+  object BtnCal: TButton
+    Left = 263
+    Top = 108
+    Width = 21
+    Height = 20
+    Caption = '...'
+    TabOrder = 4
+    OnClick = BtnCalClick
   end
   object pmDates: TPopupMenu
     Left = 200

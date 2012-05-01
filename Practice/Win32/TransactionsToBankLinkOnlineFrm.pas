@@ -13,9 +13,6 @@ type
     Label2: TLabel;
     lblTransactionsExportableTo: TLabel;
     Label3: TLabel;
-    btnNext: TSpeedButton;
-    btnQuik: TSpeedButton;
-    btnPrev: TSpeedButton;
     edtTransactionsToDate: TOvcPictureField;
     chkExportChartOfAccounts: TCheckBox;
     Button1: TButton;
@@ -28,13 +25,13 @@ type
     ThisYear1: TMenuItem;
     LastYear1: TMenuItem;
     AllData1: TMenuItem;
+    BtnCal: TButton;
     procedure Button1Click(Sender: TObject);
-    procedure btnPrevClick(Sender: TObject);
-    procedure btnNextClick(Sender: TObject);
     procedure Button2Click(Sender: TObject);
-    procedure btnQuikClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
+    procedure BtnCalClick(Sender: TObject);
   private
+    function ValidateFields: Boolean;
     procedure ExportTaggedAccounts(ProgressForm: TfrmModalProgress);
   public
     class procedure ShowDialog(Owner: TComponent; PopupParent: TCustomForm); static;
@@ -46,38 +43,64 @@ var
 implementation
 
 uses
-  OvcDate, ImagesFrm, Globals, StDateSt;
+  OvcDate, ImagesFrm, Globals, StDateSt, GenUtils, RzPopups, StDate, WarningMoreFrm, YesNoDlg;
 
 {$R *.dfm}
 
-procedure TfrmTransactionsToBankLinkOnline.btnNextClick(Sender: TObject);
-begin
-  edtTransactionsToDate.asStDate := IncDate(edtTransactionsToDate.asStDate, 1, 0, 0);
-end;
-
-procedure TfrmTransactionsToBankLinkOnline.btnPrevClick(Sender: TObject);
-begin
-  edtTransactionsToDate.asStDate := IncDate(edtTransactionsToDate.asStDate, -1, 0, 0);
-end;
-
-procedure TfrmTransactionsToBankLinkOnline.btnQuikClick(Sender: TObject);
+procedure TfrmTransactionsToBankLinkOnline.BtnCalClick(Sender: TObject);
 var
-   ClientP, ScreenP : TPoint;
+  PopupPanel: TRzPopupPanel;
+  Calendar: TRzCalendar;
 begin
-   ClientP.x := btnQuik.left + btnQuik.width; ClientP.y := btnQuik.top;
+  PopupPanel := TRzPopupPanel.Create(Owner);
 
-   ScreenP   := Self.ClientToScreen(clientP);
+  try
+    Calendar := TRzCalendar.Create(PopupPanel);
+    Calendar.Font := edtTransactionsToDate.Font;
+    Calendar.Parent := PopupPanel;
+    PopupPanel.Parent := edtTransactionsToDate;
 
-   pmDates.Popup(Screenp.x,ScreenP.y);
+    Calendar.IsPopup := True;
+    Calendar.Color := edtTransactionsToDate.Color;
+    Calendar.Elements := [ceYear,ceMonth,ceArrows,ceDaysOfWeek,ceFillDays,ceTodayButton,ceClearButton];
+    Calendar.FirstDayOfWeek := fdowLocale;
+    Calendar.Handle; // Creates the handle
+
+    if edtTransactionsToDate.AsStDate <> 0 then
+    begin
+      Calendar.Date := StDate.StDateToDateTime(edtTransactionsToDate.AsStDate);
+    end;
+
+    //Calendar.BorderOuter := fsFlat;
+    Calendar.Visible := True;
+    Calendar.OnClick := PopupPanel.Close;
+
+    if PopupPanel.Popup(edtTransactionsToDate) then
+    begin
+       if ( Calendar.Date <> 0 ) then
+       begin
+         edtTransactionsToDate.AsStDate := StDate.DateTimeToStDate(Calendar.Date);
+       end
+       else
+       begin
+         edtTransactionsToDate.AsStDate := 0;
+       end;
+    end;
+  finally
+    PopupPanel.Free;
+  end;
 end;
 
 procedure TfrmTransactionsToBankLinkOnline.Button1Click(Sender: TObject);
 begin
-  if MessageDlg('Are you sure you want to send all unsent client transactions to Banklink Online?', mtConfirmation, [mbYes, mbNo], 0) = mrYes then
+  if ValidateFields then
   begin
-    TfrmModalProgress.ShowProgress(Self, 'Please wait...', ExportTaggedAccounts);
+    if AskYesNo('Export data to BankLink Online', 'Are you sure you want to send unsent client transactions to Banklink Online?', Dlg_Yes, 0) = DLG_YES then
+    begin
+      TfrmModalProgress.ShowProgress(Self, 'Please wait...', ExportTaggedAccounts);
 
-    Close;
+      Close;
+    end;
   end;
 end;
 
@@ -97,13 +120,6 @@ var
 begin
   edtTransactionsToDate.Epoch       := BKDATEEPOCH;
   edtTransactionsToDate.PictureMask := BKDATEFORMAT;
-
-  with ImagesFrm.AppImages.Misc do
-  begin
-    GetBitmap(MISC_ARROWLEFT_BMP, btnPrev.Glyph);
-    GetBitmap(MISC_ARROWRIGHT_BMP, btnNext.Glyph);
-    GetBitmap(MISC_CALENDAR_BMP, btnQuik.Glyph);
-  end;
 
   MaxExportableDate := TBankLinkOnlineTaggingServices.GetMaxExportableTransactionDate;
 
@@ -128,6 +144,28 @@ begin
     Dialog.ShowModal;
   finally
     Dialog.Free;
+  end;
+end;
+
+function TfrmTransactionsToBankLinkOnline.ValidateFields: Boolean;
+begin
+  Result := False;
+
+  if edtTransactionsToDate.AsStDate <= 0 then
+  begin
+    HelpfulWarningMsg('You must specify an export transactions to date.' + #10#13 + 'Please try again.', 0);
+
+    edtTransactionsToDate.SetFocus;
+  end
+  else if edtTransactionsToDate.AsStDate > CurrentDate then
+  begin
+    HelpfulWarningMsg('You cannot specify a future export transactions to date.' + #10#13 + 'Please try again.', 0);
+
+    edtTransactionsToDate.SetFocus;
+  end
+  else
+  begin
+    Result := True;
   end;
 end;
 
