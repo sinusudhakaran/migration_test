@@ -4,8 +4,8 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, ovcbase, ovcef, ovcpb, ovcpf, Buttons, ModalProgressFrm,
-  BanklinkOnlineTaggingServices, OSFont, Menus, StrUtils;
+  Dialogs, StdCtrls, ovcbase, ovcef, ovcpb, ovcpf, Buttons,
+  BanklinkOnlineTaggingServices, OSFont, Menus, StrUtils, Progress;
 
 type
   TfrmTransactionsToBankLinkOnline = class(TForm)
@@ -24,7 +24,7 @@ type
     procedure BtnCalClick(Sender: TObject);
   private
     function ValidateFields: Boolean;
-    procedure ExportTaggedAccounts(ProgressForm: TfrmModalProgress);
+    procedure ExportTaggedAccounts(ProgressForm: ISingleProgressForm);
   public
     class procedure ShowDialog(Owner: TComponent; PopupParent: TCustomForm); static;
   end;
@@ -35,7 +35,7 @@ var
 implementation
 
 uses
-  OvcDate, ImagesFrm, Globals, StDateSt, GenUtils, RzPopups, StDate, WarningMoreFrm, YesNoDlg;
+  OvcDate, ImagesFrm, Globals, StDateSt, GenUtils, RzPopups, StDate, WarningMoreFrm, YesNoDlg, ModalProgressFrm;
 
 {$R *.dfm}
 
@@ -101,7 +101,7 @@ begin
   ModalResult := mrCancel;
 end;
 
-procedure TfrmTransactionsToBankLinkOnline.ExportTaggedAccounts(ProgressForm: TfrmModalProgress);
+procedure TfrmTransactionsToBankLinkOnline.ExportTaggedAccounts(ProgressForm: ISingleProgressForm);
 begin
   TBankLinkOnlineTaggingServices.ExportTaggedAccounts(edtTransactionsToDate.AsStDate, chkExportChartOfAccounts.Checked, ProgressForm);
 end;
