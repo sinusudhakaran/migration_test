@@ -111,12 +111,19 @@ type
     actSelectAllProducts: TAction;
     actClearAllProducts: TAction;
     tbsDataExport: TTabSheet;
-    chklistExportTo: TCheckListBox;
+    pnlExportOptions: TPanel;
     Label6: TLabel;
-    PageControl2: TPageControl;
-    TabSheet1: TTabSheet;
+    chklistExportTo: TCheckListBox;
+    pgcVendorExportOptions: TPageControl;
+    tbsIBizz: TTabSheet;
     lblAcclipseCode: TLabel;
     edtAcclipseCode: TEdit;
+    Label12: TLabel;
+    tbsBGLSimpleFund: TTabSheet;
+    tbsOtherVendors: TTabSheet;
+    Label13: TLabel;
+    Label14: TLabel;
+    edtBGLSimpleFundCode: TEdit;
     
     procedure btnOKClick(Sender: TObject);
     procedure btnCancelClick(Sender: TObject);
@@ -172,6 +179,8 @@ type
     procedure SetUpSuper(const SuperfundSystem: Byte);
     procedure SetUpWebExport(const WebExportFormat: Byte);
     procedure LoadPracticeDetails;
+
+    procedure ToggleEnableDataExportSettings(Enabled: Boolean);
   public
     { Public declarations }
     function Execute(SelPracticeMan: Boolean) : boolean;
@@ -495,17 +504,19 @@ begin
 
     if ProductConfigService.GuidsEqual(TVendorExport(chklistExportTo.Items.Objects[chklistExportTo.ItemIndex]).Id, ProductConfigService.GetIBizzExportGuid) then
     begin
-      if chklistExportTo.Checked[chklistExportTo.ItemIndex] then
-      begin
-        lblAcclipseCode.Enabled := True;
-        edtAcclipseCode.Enabled := True;
-      end
-      else
-      begin
-        lblAcclipseCode.Enabled := False;
-        edtAcclipseCode.Enabled := False;
-      end;
+      tbsIBizz.TabVisible := chklistExportTo.Checked[chklistExportTo.ItemIndex];
+    end
+    else
+    if ProductConfigService.GuidsEqual(TVendorExport(chklistExportTo.Items.Objects[chklistExportTo.ItemIndex]).Id, ProductConfigService.GetBGLExportGuid) then
+    begin
+      tbsBGLSimpleFund.TabVisible := chklistExportTo.Checked[chklistExportTo.ItemIndex];
+    end
+    else
+    begin
+      tbsOtherVendors.TabVisible := chklistExportTo.Checked[chklistExportTo.ItemIndex];
     end;
+
+    pgcVendorExportOptions.Visible := chklistExportTo.CountCheckedItems > 0;
   end;
 end;
 
@@ -569,14 +580,13 @@ begin
                                               ProductConfigService.IsPracticeActive(False);
 
     if tbsDataExport.TabVisible then
-    begin
-      for i := 0 to tbsDataExport.ControlCount - 1 do
-      begin
-        tbsDataExport.Controls[i].Enabled := UseBankLinkOnline and
-                                                ProductConfigService.OnLine and
-                                                ProductConfigService.Registered and
-                                                ProductConfigService.IsPracticeActive(False);
-      end;
+    begin                                        
+      ToggleEnableDataExportSettings(
+        UseBankLinkOnline and 
+        ProductConfigService.OnLine and 
+        ProductConfigService.Registered and 
+        ProductConfigService.IsPracticeActive(False) and 
+        ProductConfigService.IsPracticeProductEnabled(ProductConfigService.GetExportDataId, True));
     end;
 
     ckUseBankLinkOnline.Enabled := ProductConfigService.OnLine;
@@ -628,6 +638,12 @@ begin
   {load values}
   with AdminSystem do
   begin
+    tbsDataExport.TabVisible := False;
+    tbsBGLSimpleFund.TabVisible := False;
+    tbsIBizz.TabVisible := False;
+    tbsOtherVendors.TabVisible := False;
+    pgcVendorExportOptions.Visible := False;
+    
     ePracName.Text  := fdFields.fdPractice_Name_for_Reports;
     eBCode.Text     := fdFields.fdBankLink_Code;
 
@@ -775,7 +791,7 @@ begin
        PageControl1.ActivePage := tbsDetails;
 
   end; {with}
-
+  
   InSetup := False;
 
   self.
@@ -895,6 +911,24 @@ end;
 
 //------------------------------------------------------------------------------
 function TfrmPracticeDetails.VerifyForm: boolean;
+
+  function IsValidVendorCode(const Code: String): Boolean;
+  var
+    AChar: Char;
+  begin
+    Result := True;
+    
+    for AChar in Code do
+    begin
+      if not (AChar in['A'..'Z', 'a'..'z', '0'..'9']) then
+      begin
+        Result := False;
+
+        Break;
+      end;
+    end;
+  end;
+  
 const
   ThisMethodName = 'VerifyForm';
 var
@@ -981,31 +1015,53 @@ begin
 
     if ProductConfigService.IsPracticeProductEnabled(ProductConfigService.GetExportDataId, True) then
     begin
-      if edtAcclipseCode.Text = '' then
-      begin
-        case MessageDlg('To set up this export you must enter the code provided to your practice by Acclipse.  If you do not have a code, please contact Acclipse.' + #10#13#10#13 + 'Client OK to go back and enter your code, or Cancel to exit this setup', mtInformation, [mbOK, mbCancel], 0) of
-          mrOk:
-          begin
-            edtAcclipseCode.SetFocus;
-
-            Exit;
-          end;
-          mrCancel:
-          begin
-            OkPressed := False;
-
-            Result := True;
-
-            Exit;
-          end;
-        end;
-      end;
-      
       if (chklistExportTo.Count > 0) and (chklistExportTo.CountCheckedItems = 0) and ProductConfigService.VendorExportsChanged then
       begin
         if YesNoDlg.AskYesNo('Banklink Online Data Export', 'You have not selected a vendor export type.' + #10#13#10#13 + 'Are you sure you want to continue saving?', DLG_YES, 0) = DLG_NO then
         begin
           Exit;
+        end;
+      end;
+      
+      if ProductConfigService.IsVendorExportOptionEnabled(ProductConfigService.GetIBizzExportGuid, True) then
+      begin
+        if edtAcclipseCode.Text = '' then
+        begin
+          HelpfulWarningMsg('To set up this export you must enter the code provided to your practice by Acclipse.  If you do not have a code, please contact Acclipse.', 0);
+
+          edtAcclipseCode.SetFocus;
+              
+          Exit;
+        end
+        else
+        if not IsValidVendorCode(edtAcclipseCode.Text) then
+        begin
+          HelpfulWarningMsg('The Acclipse code you have entered contains illegal characters. Please try again', 0);
+
+          edtAcclipseCode.SetFocus;
+              
+          Exit;                        
+        end;
+      end;
+
+      if ProductConfigService.IsVendorExportOptionEnabled(ProductConfigService.GetBGLExportGuid, True) then
+      begin
+        if edtBGLSimpleFundCode.Text = '' then
+        begin
+          HelpfulWarningMsg('To set up this export you must enter the code provided to your practice by BGL Simple Fund.  If you do not have a code, please contact BGL Simple Fund.', 0);
+
+          edtBGLSimpleFundCode.SetFocus;
+              
+          Exit;
+        end
+        else
+        if not IsValidVendorCode(edtBGLSimpleFundCode.Text) then
+        begin
+          HelpfulWarningMsg('The BGL Simple Fund code you have entered contains illegal characters. Please try again', 0);
+
+          edtBGLSimpleFundCode.SetFocus;
+              
+          Exit;                        
         end;
       end;
     end;
@@ -1162,9 +1218,16 @@ begin
         //Add product
         ProductConfigService.AddProduct(Cat.Id);
 
-        if ProductConfigService.GuidsEqual(Cat.Id, ProductConfigService.GetExportDataId) and not tbsDataExport.TabVisible then
+        if ProductConfigService.GuidsEqual(Cat.Id, ProductConfigService.GetExportDataId) then
         begin
-          tbsDataExport.TabVisible := True;
+          if not tbsDataExport.TabVisible then
+          begin
+            tbsDataExport.TabVisible := True;
+          end
+          else
+          begin
+            ToggleEnableDataExportSettings(True);
+          end;
         end;
       end
       else
@@ -1176,7 +1239,7 @@ begin
 
         if ProductConfigService.GuidsEqual(Cat.Id, ProductConfigService.GetExportDataId) and tbsDataExport.TabVisible then
         begin
-          tbsDataExport.TabVisible := False;
+          ToggleEnableDataExportSettings(False);
         end;
       end;
     end;
@@ -1348,7 +1411,10 @@ begin
       vtProducts.OnCompareNodes := TreeCompare;
       vtProducts.SortTree(0, sdAscending);
 
-      tbsDataExport.TabVisible := ProductConfigService.IsPracticeProductEnabled(ProductConfigService.GetExportDataId, True);
+      if not tbsDataExport.TabVisible then
+      begin
+        tbsDataExport.TabVisible := ProductConfigService.IsPracticeProductEnabled(ProductConfigService.GetExportDataId, True);
+      end;
     end;
   except
     on E: Exception do begin
@@ -1517,6 +1583,16 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+procedure TfrmPracticeDetails.ToggleEnableDataExportSettings(Enabled: Boolean);
+var
+  Index: Integer;
+begin
+  for Index := 0 to tbsDataExport.ControlCount - 1 do
+  begin
+    tbsDataExport.Controls[Index].Enabled := Enabled;
+  end;
+end;
+
 procedure TfrmPracticeDetails.TreeCompare(Sender: TBaseVirtualTree; Node1,
   Node2: PVirtualNode; Column: TColumnIndex; var Result: Integer);
 var

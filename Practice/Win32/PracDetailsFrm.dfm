@@ -54,10 +54,6 @@ object frmPracticeDetails: TfrmPracticeDetails
     object tbsDetails: TTabSheet
       Caption = 'Details'
       OnShow = tbsDetailsShow
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       DesignSize = (
         609
         359)
@@ -267,10 +263,6 @@ object frmPracticeDetails: TfrmPracticeDetails
       Caption = 'Accounting System'
       ImageIndex = 1
       OnShow = tbsInterfacesShow
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object gbxClientDefault: TGroupBox
         Left = 8
         Top = 4
@@ -333,7 +325,7 @@ object frmPracticeDetails: TfrmPracticeDetails
           Width = 316
           Height = 21
           Style = csDropDownList
-          ItemHeight = 0
+          ItemHeight = 13
           Sorted = True
           TabOrder = 0
           OnChange = cmbSystemChange
@@ -389,7 +381,7 @@ object frmPracticeDetails: TfrmPracticeDetails
           Width = 322
           Height = 21
           Style = csDropDownList
-          ItemHeight = 0
+          ItemHeight = 13
           Sorted = True
           TabOrder = 0
         end
@@ -431,7 +423,7 @@ object frmPracticeDetails: TfrmPracticeDetails
           Width = 322
           Height = 21
           Style = csDropDownList
-          ItemHeight = 0
+          ItemHeight = 13
           Sorted = True
           TabOrder = 0
           OnChange = cmbTaxInterfaceChange
@@ -450,10 +442,6 @@ object frmPracticeDetails: TfrmPracticeDetails
     object tsSuperFundSystem: TTabSheet
       Caption = 'Superfund System'
       ImageIndex = 2
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object gbxSuperSystem: TGroupBox
         Left = 8
         Top = 4
@@ -516,7 +504,7 @@ object frmPracticeDetails: TfrmPracticeDetails
           Width = 316
           Height = 21
           Style = csDropDownList
-          ItemHeight = 0
+          ItemHeight = 13
           Sorted = True
           TabOrder = 0
           OnChange = cmbSuperSystemChange
@@ -556,10 +544,6 @@ object frmPracticeDetails: TfrmPracticeDetails
     object tbsPracticeManagementSystem: TTabSheet
       Caption = 'Practice Management System'
       ImageIndex = 3
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object gbxPracticeManagementSystem: TGroupBox
         Left = 8
         Top = 4
@@ -580,7 +564,7 @@ object frmPracticeDetails: TfrmPracticeDetails
           Width = 316
           Height = 21
           Style = csDropDownList
-          ItemHeight = 0
+          ItemHeight = 13
           Sorted = True
           TabOrder = 0
           OnChange = cmbSuperSystemChange
@@ -590,10 +574,6 @@ object frmPracticeDetails: TfrmPracticeDetails
     object tsBankLinkOnline: TTabSheet
       Caption = 'BankLink Online'
       ImageIndex = 4
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object lblURL: TLabel
         Left = 16
         Top = 51
@@ -643,7 +623,7 @@ object frmPracticeDetails: TfrmPracticeDetails
         Width = 249
         Height = 21
         Style = csDropDownList
-        ItemHeight = 0
+        ItemHeight = 13
         TabOrder = 2
         OnClick = cbPrimaryContactClick
       end
@@ -688,51 +668,95 @@ object frmPracticeDetails: TfrmPracticeDetails
       end
     end
     object tbsDataExport: TTabSheet
-      Caption = 'Data Export'
+      Caption = 'Data Export Settings'
       ImageIndex = 5
-      TabVisible = False
-      object Label6: TLabel
+      object Label12: TLabel
         Left = 16
         Top = 20
-        Width = 47
+        Width = 256
         Height = 13
-        Caption = '&Export To'
-        FocusControl = chklistExportTo
+        Caption = 'There are no Export Data options currently available.'
       end
-      object chklistExportTo: TCheckListBox
-        Left = 141
-        Top = 20
-        Width = 309
-        Height = 122
-        OnClickCheck = chklistExportToClickCheck
-        ItemHeight = 13
+      object pnlExportOptions: TPanel
+        Left = 0
+        Top = 0
+        Width = 609
+        Height = 359
+        Align = alClient
+        BevelOuter = bvNone
         TabOrder = 0
-      end
-      object PageControl2: TPageControl
-        Left = 16
-        Top = 157
-        Width = 575
-        Height = 193
-        ActivePage = TabSheet1
-        TabOrder = 1
-        object TabSheet1: TTabSheet
-          Caption = 'iBizz'
-          object lblAcclipseCode: TLabel
-            Left = 5
-            Top = 21
-            Width = 89
-            Height = 13
-            Caption = '&Acclipse iBizz Code'
-            Enabled = False
-            FocusControl = edtAcclipseCode
+        ExplicitLeft = 1
+        ExplicitTop = 1
+        ExplicitWidth = 607
+        ExplicitHeight = 357
+        object Label6: TLabel
+          Left = 16
+          Top = 20
+          Width = 47
+          Height = 13
+          Caption = 'Export To'
+        end
+        object chklistExportTo: TCheckListBox
+          Left = 141
+          Top = 20
+          Width = 309
+          Height = 122
+          OnClickCheck = chklistExportToClickCheck
+          ItemHeight = 13
+          TabOrder = 0
+        end
+        object pgcVendorExportOptions: TPageControl
+          Left = 16
+          Top = 157
+          Width = 575
+          Height = 193
+          ActivePage = tbsBGLSimpleFund
+          TabOrder = 1
+          object tbsBGLSimpleFund: TTabSheet
+            Caption = 'BGL Simple Fund'
+            ImageIndex = 1
+            object Label14: TLabel
+              Left = 5
+              Top = 21
+              Width = 106
+              Height = 13
+              Caption = 'BGL Simple Fund Code'
+            end
+            object edtBGLSimpleFundCode: TEdit
+              Left = 145
+              Top = 15
+              Width = 177
+              Height = 21
+              TabOrder = 0
+            end
           end
-          object edtAcclipseCode: TEdit
-            Left = 121
-            Top = 18
-            Width = 177
-            Height = 21
-            Enabled = False
-            TabOrder = 0
+          object tbsIBizz: TTabSheet
+            Caption = 'iBizz'
+            object lblAcclipseCode: TLabel
+              Left = 5
+              Top = 21
+              Width = 89
+              Height = 13
+              Caption = 'Acclipse iBizz Code'
+            end
+            object edtAcclipseCode: TEdit
+              Left = 145
+              Top = 15
+              Width = 177
+              Height = 21
+              TabOrder = 0
+            end
+          end
+          object tbsOtherVendors: TTabSheet
+            Caption = 'Other Vendors'
+            ImageIndex = 2
+            object Label13: TLabel
+              Left = 5
+              Top = 21
+              Width = 107
+              Height = 13
+              Caption = 'There are no settings.'
+            end
           end
         end
       end
