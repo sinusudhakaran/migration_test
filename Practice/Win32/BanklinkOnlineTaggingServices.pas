@@ -3,7 +3,7 @@ unit BanklinkOnlineTaggingServices;
 interface
 
 uses
-  Classes, Forms, Contnrs, Controls, SysUtils, baObj32, BKDEFS, BK_XMLHelper, clObj32, SysObj32, chList32, XMLDoc, XMLIntf, BanklinkOnlineServices, ZipUtils, ModalProgressFrm, OvcDate;
+  Classes, Forms, Contnrs, Controls, SysUtils, baObj32, BKDEFS, BK_XMLHelper, clObj32, SysObj32, chList32, XMLDoc, XMLIntf, BanklinkOnlineServices, ZipUtils, Progress, OvcDate;
 
 type
   TBanklinkOnlineTaggingServices = class
@@ -15,10 +15,12 @@ type
     class procedure FlagTransactionsAsSent(Client: TClientObj; MaxTransactionDate: TStDate); static;
     class function HasExportableTransactions(BankAccount: TBank_Account; MaxTransactionDate: TStDate): Boolean; static;
   public
-    class procedure UpdateAccountVendors(ClientCode: String; BankAccount: TBank_Account; Vendors: array of String); static;
+    class procedure UpdateAccountVendors(BankAccount: TBank_Account; Vendors: array of String);  overload; static;  
+    class procedure UpdateAccountVendors(Vendors: array of String; ProgressFrm: ISingleProgressForm); overload; static;   
+    
     class function GetMaxExportableTransactionDate: TStDate; static;
     
-    class procedure ExportTaggedAccounts(MaxTransactionDate: TStDate; ExportChartOfAccounts: Boolean; ProgressFrm: TfrmModalProgress); static;
+    class procedure ExportTaggedAccounts(MaxTransactionDate: TStDate; ExportChartOfAccounts: Boolean; ProgressFrm: ISingleProgressForm); static;
   end;
 
 implementation
@@ -59,7 +61,7 @@ begin
   end;
 end;
 
-class procedure TBanklinkOnlineTaggingServices.ExportTaggedAccounts(MaxTransactionDate: TStDate; ExportChartOfAccounts: Boolean; ProgressFrm: TfrmModalProgress);
+class procedure TBanklinkOnlineTaggingServices.ExportTaggedAccounts(MaxTransactionDate: TStDate; ExportChartOfAccounts: Boolean; ProgressFrm: ISingleProgressForm);
 var
   XMLDocument: IXMLDocument;
   RootNode: IXMLNode;
@@ -209,7 +211,47 @@ begin
   end;
 end;
 
-class procedure TBanklinkOnlineTaggingServices.UpdateAccountVendors(ClientCode: String; BankAccount: TBank_Account; Vendors: array of String);
+class procedure TBanklinkOnlineTaggingServices.UpdateAccountVendors(Vendors: array of String; ProgressFrm: ISingleProgressForm);
+var
+  Index: Integer;
+  Client: TClientObj;
+  IIndex: Integer;
+  BankAccount: TBank_Account;
+begin
+  for Index := 0 to AdminSystem.fdSystem_Client_File_List.ItemCount - 1 do
+  begin
+    Client := nil;
+
+    if not ProgressFrm.Cancelled then
+    begin
+      try
+        OpenAClientForRead(AdminSystem.fdSystem_Client_File_List.Client_File_At(Index).cfFile_Code, Client);
+      except
+      end;
+
+      if Assigned(Client) then
+      begin
+        try
+          if not Client.clFields.clFile_Read_Only then
+          begin
+            for IIndex := 0 to Client.clBank_Account_List.ItemCount - 1 do
+            begin
+              BankAccount := Client.clBank_Account_List[IIndex];
+            end;
+          end;
+        finally
+          FreeAndNil(Client);
+        end;
+      end;
+    end
+    else
+    begin
+      Break;
+    end;    
+  end;
+end;
+
+class procedure TBanklinkOnlineTaggingServices.UpdateAccountVendors(BankAccount: TBank_Account; Vendors: array of String);
 begin
 
 end;
