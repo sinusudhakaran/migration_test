@@ -3,7 +3,7 @@ object frmBanklinkOnlineSettings: TfrmBanklinkOnlineSettings
   Top = 0
   BorderStyle = bsDialog
   Caption = 'BankLink Online Settings'
-  ClientHeight = 458
+  ClientHeight = 626
   ClientWidth = 480
   Color = clBtnFace
   DefaultMonitor = dmMainForm
@@ -21,12 +21,13 @@ object frmBanklinkOnlineSettings: TfrmBanklinkOnlineSettings
   PixelsPerInch = 96
   TextHeight = 13
   object grpProductAccess: TGroupBox
-    Left = 8
-    Top = 120
-    Width = 465
+    Left = 0
+    Top = 105
+    Width = 480
     Height = 166
+    Align = alTop
     Caption = 'Product Access'
-    TabOrder = 0
+    TabOrder = 1
     object lblSelectProducts: TLabel
       Left = 16
       Top = 20
@@ -38,21 +39,21 @@ object frmBanklinkOnlineSettings: TfrmBanklinkOnlineSettings
       WordWrap = True
     end
     object btnSelectAll: TButton
-      Left = 327
-      Top = 67
+      Left = 362
+      Top = 75
       Width = 75
       Height = 25
       Caption = 'Select &All'
-      TabOrder = 0
+      TabOrder = 1
       OnClick = btnSelectAllClick
     end
     object btnClearAll: TButton
-      Left = 327
-      Top = 98
+      Left = 362
+      Top = 106
       Width = 75
       Height = 25
       Caption = '&Clear All'
-      TabOrder = 1
+      TabOrder = 2
       OnClick = btnClearAllClick
     end
     object chklistProducts: TCheckListBox
@@ -62,16 +63,17 @@ object frmBanklinkOnlineSettings: TfrmBanklinkOnlineSettings
       Height = 93
       ItemHeight = 13
       Sorted = True
-      TabOrder = 2
+      TabOrder = 0
     end
   end
   object grpBillingFrequency: TGroupBox
-    Left = 8
-    Top = 366
-    Width = 465
+    Left = 0
+    Top = 520
+    Width = 480
     Height = 53
+    Align = alTop
     Caption = 'Billing Frequency'
-    TabOrder = 1
+    TabOrder = 4
     Visible = False
     object lblNextBillingFrequency: TLabel
       Left = 21
@@ -95,12 +97,13 @@ object frmBanklinkOnlineSettings: TfrmBanklinkOnlineSettings
     end
   end
   object grpDefaultClientAdministrator: TGroupBox
-    Left = 8
-    Top = 292
-    Width = 465
+    Left = 0
+    Top = 406
+    Width = 480
     Height = 114
+    Align = alTop
     Caption = 'Default Client Administrator'
-    TabOrder = 2
+    TabOrder = 3
     object lblUserName: TLabel
       Left = 21
       Top = 55
@@ -123,7 +126,7 @@ object frmBanklinkOnlineSettings: TfrmBanklinkOnlineSettings
       Width = 321
       Height = 21
       MaxLength = 60
-      TabOrder = 0
+      TabOrder = 1
     end
     object edtEmailAddress: TEdit
       Left = 128
@@ -131,7 +134,7 @@ object frmBanklinkOnlineSettings: TfrmBanklinkOnlineSettings
       Width = 321
       Height = 21
       MaxLength = 80
-      TabOrder = 1
+      TabOrder = 2
     end
     object btnUseClientDetails: TButton
       Left = 20
@@ -139,38 +142,39 @@ object frmBanklinkOnlineSettings: TfrmBanklinkOnlineSettings
       Width = 125
       Height = 25
       Caption = '&Use Client Details'
-      TabOrder = 2
+      TabOrder = 0
       OnClick = btnUseClientDetailsClick
     end
   end
   object btnOK: TButton
     Left = 301
-    Top = 425
+    Top = 591
     Width = 75
     Height = 25
     Caption = 'OK'
     ModalResult = 1
-    TabOrder = 3
+    TabOrder = 5
     OnClick = btnOKClick
   end
   object btnCancel: TButton
     Left = 390
-    Top = 425
+    Top = 591
     Width = 75
     Height = 25
     Cancel = True
     Caption = 'Cancel'
     ModalResult = 2
-    TabOrder = 4
+    TabOrder = 6
     OnClick = btnCancelClick
   end
   object grpClientAccess: TGroupBox
-    Left = 8
-    Top = 8
-    Width = 465
+    Left = 0
+    Top = 0
+    Width = 480
     Height = 105
+    Align = alTop
     Caption = 'Client Access'
-    TabOrder = 5
+    TabOrder = 0
     object lblClientConnect: TLabel
       Left = 34
       Top = 37
@@ -196,7 +200,7 @@ object frmBanklinkOnlineSettings: TfrmBanklinkOnlineSettings
       Width = 113
       Height = 17
       Caption = '&Suspended'
-      TabOrder = 1
+      TabOrder = 2
       OnClick = rbSuspendedClick
     end
     object rbDeactivated: TRadioButton
@@ -205,7 +209,7 @@ object frmBanklinkOnlineSettings: TfrmBanklinkOnlineSettings
       Width = 113
       Height = 17
       Caption = '&Deactivated'
-      TabOrder = 2
+      TabOrder = 3
       OnClick = rbDeactivatedClick
     end
     object cmbConnectDays: TComboBox
@@ -214,13 +218,45 @@ object frmBanklinkOnlineSettings: TfrmBanklinkOnlineSettings
       Width = 84
       Height = 21
       ItemHeight = 13
-      TabOrder = 3
+      TabOrder = 1
       Text = 'Always'
       Items.Strings = (
         'Always'
         '30 days'
         '90 days'
         '365 days')
+    end
+  end
+  object grpServicesAvailable: TGroupBox
+    Left = 0
+    Top = 271
+    Width = 480
+    Height = 135
+    Align = alTop
+    Caption = 'Services Available'
+    TabOrder = 2
+    object lblExportTo: TLabel
+      Left = 9
+      Top = 20
+      Width = 47
+      Height = 13
+      Caption = 'Export To'
+    end
+    object chkListServicesAvailable: TCheckListBox
+      Left = 80
+      Top = 21
+      Width = 368
+      Height = 82
+      ItemHeight = 13
+      TabOrder = 0
+    end
+    object chkDeliverData: TCheckBox
+      Left = 9
+      Top = 109
+      Width = 281
+      Height = 17
+      Caption = 'Deliver data direct to BankLink Online'
+      TabOrder = 1
     end
   end
 end

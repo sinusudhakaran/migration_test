@@ -466,13 +466,17 @@ end;
 
 //------------------------------------------------------------------------------
 procedure TfrmClientDetails.btnClientSettingsClick(Sender: TObject);
+var
+  ShowServicesAvailable: boolean;
 begin
   // These need to be updated immediately so that the user name and email address in
   // the Banklink Online Settings form will be populated correctly when 'Use Client
   // Details' is ticked
   MyClient.clFields.clContact_name := econtact.text;
   MyClient.clFields.clClient_EMail_Address := eMail.text;
-  if EditBanklinkOnlineSettings(Self, MyClient.clFields.clWeb_Export_Format = wfWebNotes) then
+  ShowServicesAvailable := ((chkOffSite.Checked = false) or (Trim(eConnectCode.Text) = ''));
+  if EditBanklinkOnlineSettings(Self, MyClient.clFields.clWeb_Export_Format = wfWebNotes,
+                                false, ShowServicesAvailable) then
   begin
     UpdateProductsLabel;
   end;

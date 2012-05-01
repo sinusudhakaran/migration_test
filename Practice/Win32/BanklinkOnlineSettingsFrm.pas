@@ -45,6 +45,10 @@ type
     lblClientConnect: TLabel;
     cmbConnectDays: TComboBox;
     btnUseClientDetails: TButton;
+    grpServicesAvailable: TGroupBox;
+    lblExportTo: TLabel;
+    chkListServicesAvailable: TCheckListBox;
+    chkDeliverData: TCheckBox;
     procedure btnSelectAllClick(Sender: TObject);
     procedure btnClearAllClick(Sender: TObject);
     procedure rbSuspendedClick(Sender: TObject);
@@ -75,14 +79,15 @@ type
     
     procedure AfterShow(var Message: TMessage); message UM_AFTERSHOW;
   public
-    function Execute(TickNotesOnline: boolean = false) : boolean;
+    function Execute(TickNotesOnline, ForceActiveClient: boolean) : boolean;
 
     procedure LoadClientInfo(TickNotesOnline: boolean);
     function SaveClientInfo : Boolean;
     property Status : TBloStatus read GetStatus write SetStatus;
   end;
 
-  function EditBanklinkOnlineSettings(w_PopupParent: TForm; TickNotesOnline: boolean): boolean;
+  function EditBanklinkOnlineSettings(w_PopupParent: TForm; TickNotesOnline, ForceActiveClient,
+                                      ShowServicesAvailable: boolean): boolean;
 
 //------------------------------------------------------------------------------
 implementation
@@ -149,7 +154,6 @@ end;
 procedure TfrmBanklinkOnlineSettings.FormShow(Sender: TObject);
 begin
   FillClientDetails;
-
   PostMessage(Handle, UM_AFTERSHOW, 0, 0);
 end;
 
@@ -189,11 +193,13 @@ begin
   lblClientConnect.Enabled := rbActive.Checked;
   cmbConnectDays.Enabled := rbActive.Checked;
 end;
-  
+
 //------------------------------------------------------------------------------
-function EditBanklinkOnlineSettings(w_PopupParent: TForm; TickNotesOnline: boolean): boolean;
+function EditBanklinkOnlineSettings(w_PopupParent: TForm; TickNotesOnline, ForceActiveClient,
+                                    ShowServicesAvailable: boolean): boolean;
 var
   BanklinkOnlineSettings: TfrmBanklinkOnlineSettings;
+  OkTop: integer;
 const
   ThisMethodName = 'EditBanklinkOnlineSettings';
 begin
@@ -206,8 +212,18 @@ begin
   try
     BanklinkOnlineSettings.PopupParent := w_PopupParent;
     BanklinkOnlineSettings.PopupMode := pmExplicit;
+    BanklinkOnlineSettings.grpServicesAvailable.Visible := ShowServicesAvailable;
+    OkTop := BanklinkOnlineSettings.grpBillingFrequency.Top +
+             BanklinkOnlineSettings.grpBillingFrequency.Height + 10;
+    if (BanklinkOnlineSettings.grpServicesAvailable.Visible = false) then
+      OkTop := OkTop - BanklinkOnlineSettings.grpServicesAvailable.Height;
+    if (BanklinkOnlineSettings.grpBillingFrequency.Visible = false) then
+      OkTop := OkTop - BanklinkOnlineSettings.grpBillingFrequency.Height;
+    BanklinkOnlineSettings.btnOk.Top := OkTop;
+    BanklinkOnlineSettings.btnCancel.Top := OkTop;
+    BanklinkOnlineSettings.Height := OkTop + 70;
 
-    Result := BanklinkOnlineSettings.Execute(TickNotesOnline);
+    Result := BanklinkOnlineSettings.Execute(TickNotesOnline, ForceActiveClient);
   finally
     FreeAndNil(BanklinkOnlineSettings);
   end;
@@ -533,7 +549,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TfrmBanklinkOnlineSettings.Execute(TickNotesOnline: boolean = false) : boolean;
+function TfrmBanklinkOnlineSettings.Execute(TickNotesOnline, ForceActiveClient: boolean) : boolean;
 begin
   fOkPressed := false;
   fBusyKeyPress := false;

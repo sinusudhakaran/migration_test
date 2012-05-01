@@ -151,6 +151,7 @@ var
   HasNotes: Boolean;
   Msg : String;
   PraticeState : String;
+  ShowServicesAvailable: boolean;
 begin
   result := false;
   if not RefreshAdmin then exit;
@@ -189,7 +190,9 @@ begin
                         'at the end of this wizard.';
                  HelpfulInfoMsg(Msg, 0);
                end;
-               EditBanklinkOnlineSettings(w_PopupParent, true);
+               ShowServicesAvailable := ((MyClient.clFields.clDownload_From <> dlBankLinkConnect) or
+                                         (Trim(MyClient.clFields.clBankLink_Code) = ''));
+               EditBanklinkOnlineSettings(w_PopupParent, true, true, ShowServicesAvailable);
              end
              else
              begin

@@ -1620,13 +1620,16 @@ end;
 procedure TfrmClientManager.actBOSettingsExecute(Sender: TObject);
 var
   ClientCode: string;
+  ShowServicesAvailable: boolean;
 begin
   ClientLookup.vtClients.BeginUpdate;
   try
     ClientCode := ClientLookup.FirstSelectedCode;
     OpenClient(ClientCode);
     try
-      if EditBanklinkOnlineSettings(Self, false) then
+      ShowServicesAvailable := ((MyClient.clFields.clDownload_From <> dlBankLinkConnect) or
+                                (Trim(MyClient.clFields.clBankLink_Code) = ''));
+      if EditBanklinkOnlineSettings(Self, false, false, ShowServicesAvailable) then
       begin
         //Need to reload TProductConfigService.Clients after blopi has been updated.  Probably better to update this locally somehow.
         ProductConfigService.LoadClientList;
