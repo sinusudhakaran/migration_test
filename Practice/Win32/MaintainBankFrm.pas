@@ -297,7 +297,7 @@ begin
           Found := False;
           for AccountVendorIndex := 0 to High(ArrayOfVendorsForAccount) do
           begin
-            if fArrayOfVendorsForClient[AccountVendorIndex].id =
+            if fArrayOfVendorsForClient[ClientVendorIndex].id =
               ArrayOfVendorsForAccount[AccountVendorIndex].id then
             begin
               Found := True;

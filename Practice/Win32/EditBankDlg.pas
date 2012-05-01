@@ -6,9 +6,16 @@ uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
   StdCtrls, Buttons, OvcBase, OvcEF, OvcPB, OvcNF, baObj32, OvcPF,
   Mask, ExtCtrls, ComCtrls,
-  OsFont;
+  OsFont, VirtualTrees, CheckLst;
 
 type
+  //Node data record
+  PTreeData = ^TTreeData;
+  TTreeData = record
+    tdCaption: widestring;
+    tdObject: TObject;
+  end;
+
   TdlgEditBank = class(TForm)
     OvcController1: TOvcController;
     PageControl1: TPageControl;
@@ -64,6 +71,10 @@ type
     lblLedgerID: TLabel;
     lblCurrency: TLabel;
     cmbCurrency: TComboBox;
+    tbBankLinkOnline: TTabSheet;
+    lblSelectExport: TLabel;
+    lblExportTo: TLabel;
+    chkLstAccVendors: TCheckListBox;
 
     procedure FormCreate(Sender: TObject);
     procedure SetUpHelp;
@@ -102,11 +113,13 @@ type
     LastTrxDate,
     FirstTrxDate : integer;
     LedgerCode: shortString;
+
     procedure SetAddNew(Value: Boolean);
     procedure DoList;
     function OKtoPost : boolean;
     procedure SetLedgerLabel;
     procedure FillCurrencies;
+    procedure LoadAcccountVendors;
   public
     { Public declarations }
     function Execute : boolean;
@@ -144,8 +157,13 @@ uses
   ComboUtils,
   AdvanceAccountOptionsFrm,
   pwdSeed,
-  EnterPwdDlg, chList32,
-  bkXPThemes, baUtils, YesNoDlg, DesktopSuper_Utils;
+  EnterPwdDlg,
+  chList32,
+  bkXPThemes,
+  baUtils,
+  YesNoDlg,
+  DesktopSuper_Utils,
+  BankLinkOnlineServices;
 
 {$R *.DFM}
 
@@ -309,6 +327,37 @@ begin
   if (key = 113) or ((key=40) and (Shift = [ssAlt])) then
      DoList;
 end;
+
+//------------------------------------------------------------------------------
+procedure TdlgEditBank.LoadAcccountVendors;
+var
+  ArrayOfVendorsForClient : TBloArrayOfVendors;
+  ArrayOfVendorsForAccount : TBloArrayOfVendors;
+
+  ClientVendorIndex : integer;
+  AccountVendorIndex : integer;
+
+  ItemIndex : Integer;
+begin
+  ArrayOfVendorsForClient  := ProductConfigService.GetAvailableVendersForClient(MyClient.clFields.clCode);
+  ArrayOfVendorsForAccount := ProductConfigService.GetAvailableVendersForAccount(BankAcct.baFields.baBank_Account_Number);
+
+  for ClientVendorIndex := 0 to high(ArrayOfVendorsForClient) do
+  begin
+    ItemIndex := chkLstAccVendors.Items.Add(ArrayOfVendorsForClient[ClientVendorIndex].Name);
+
+    for AccountVendorIndex := 0 to high(ArrayOfVendorsForAccount) do
+    begin
+      if ArrayOfVendorsForClient[ClientVendorIndex].ID =
+         ArrayOfVendorsForAccount[AccountVendorIndex].ID then
+      begin
+        chkLstAccVendors.Checked[ItemIndex] := true;
+        break;
+      end;
+    end;
+  end;
+end;
+
 //------------------------------------------------------------------------------
 procedure TdlgEditBank.btnCancelClick(Sender: TObject);
 begin
@@ -582,8 +631,6 @@ end;
 function TdlgEditBank.Execute: boolean;
 var
    Amount : money;
-   P : pISO_4217_Record;
-   I : Integer;
 begin
    result := false;
    okPressed := false;
@@ -723,6 +770,14 @@ begin
       btnLedgerID.Visible := False;
       lblLedgerID.Visible := False;
    end;
+
+   tbBankLinkOnline.Visible := ProductConfigService.OnLine and
+                               ProductConfigService.IsPracticeProductEnabled(ProductConfigService.GetExportDataId, False) and
+                               (not BankAcct.baFields.baIs_A_Manual_Account) and
+                               (not (BankAcct.baFields.baAccount_Type in [sbtProvisional]));
+
+   if tbBankLinkOnline.Visible then
+     LoadAcccountVendors;
 
    ///////////////////////
    ShowModal;

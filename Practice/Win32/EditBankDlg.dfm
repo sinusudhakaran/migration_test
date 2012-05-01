@@ -20,15 +20,11 @@ object dlgEditBank: TdlgEditBank
     Top = 0
     Width = 592
     Height = 448
-    ActivePage = tbDetails
+    ActivePage = tbBankLinkOnline
     Align = alClient
     TabOrder = 0
     object tbDetails: TTabSheet
       Caption = '&Details'
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object lblNo: TLabel
         Left = 24
         Top = 12
@@ -514,10 +510,8 @@ object dlgEditBank: TdlgEditBank
     object tbAnalysis: TTabSheet
       Caption = '&Analysis Coding'
       ImageIndex = 1
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
+      ExplicitLeft = 3
+      ExplicitTop = 22
       object Label8: TLabel
         Left = 16
         Top = 16
@@ -558,6 +552,46 @@ object dlgEditBank: TdlgEditBank
         Height = 17
         Caption = '&Disabled'
         TabOrder = 3
+      end
+    end
+    object tbBankLinkOnline: TTabSheet
+      Caption = 'BankLink Online'
+      ImageIndex = 2
+      object lblSelectExport: TLabel
+        Left = 16
+        Top = 11
+        Width = 412
+        Height = 16
+        Caption = 
+          'Select the Data Export options you want this account to be avail' +
+          'able for:'
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -13
+        Font.Name = 'Tahoma'
+        Font.Style = []
+        ParentFont = False
+      end
+      object lblExportTo: TLabel
+        Left = 16
+        Top = 40
+        Width = 55
+        Height = 16
+        Caption = 'Export To'
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -13
+        Font.Name = 'Tahoma'
+        Font.Style = []
+        ParentFont = False
+      end
+      object chkLstAccVendors: TCheckListBox
+        Left = 77
+        Top = 40
+        Width = 351
+        Height = 122
+        ItemHeight = 13
+        TabOrder = 0
       end
     end
   end

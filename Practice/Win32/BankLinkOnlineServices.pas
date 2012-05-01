@@ -3376,8 +3376,8 @@ begin
   SetLength(Result,2);
   Result[0].ID   := GetBGLExportGuid;
   Result[0].Name := 'BGL Export Data';
-  Result[1].ID   := GetIBizzExportGuid;
-  Result[1].Name := 'Ibiz Export Data';
+  //Result[1].ID   := GetIBizzExportGuid;
+  //Result[1].Name := 'Ibiz Export Data';
 end;
 { TPracticeHelper }
 //------------------------------------------------------------------------------
