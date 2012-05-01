@@ -32,7 +32,7 @@ uses
   pfNamesDlg, updateMF, CodingFrm, SysObj32, Admin32, BudgetFrm, Login32, CodingFormCommands,
   jpeg, AppEvnts, ModalProcessorDlg, ActnList, RzButton, RzPanel, DdeMan, ExportChargesFrm,
   BatchReportFrm,{,threadData}
-  OSFont, ModalProgressFrm;
+  OSFont;
 
 const
   BK_SHOWCM = (WM_USER + 1);
@@ -793,7 +793,7 @@ type
     procedure SetLastActiveMDIChild(const Value: Forms.TForm);
     property LastActiveMDIChild :Forms.TForm read FLastActiveMDIChild write SetLastActiveMDIChild;
     procedure RunGSTReport (Value: REPORT_LIST_TYPE);
-    procedure ExportTaggedAccounts(ProgressDialog: TfrmModalProgress);
+    procedure SendTransactionsToBankLinkOnline;
     //procedure ThreadMessage(var Message: TMessage);	message THREAD_MESSAGE;
   protected
     procedure UpdateActions; override;
@@ -910,6 +910,7 @@ const
   mf_mcExchangeRates           = 75;
   mf_mcSendOnline              = 76;
   mf_mcGetOnline               = 77;
+  mf_mcTransactionsToBankLinkOnline = 78;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 var
@@ -1040,7 +1041,7 @@ uses
   frmExchangeRates,
   BankLinkOnlineServices,
   EditUserPassword,
-  BanklinkOnlineTaggingServices;
+  TransactionsToBankLinkOnlineFrm;
   //StockBalancesDlg;
 
 const
@@ -1938,11 +1939,6 @@ begin
   LogoutUser;
 end;
 
-procedure TfrmMain.ExportTaggedAccounts(ProgressDialog: TfrmModalProgress);
-begin
-  TBanklinkonlineTaggingServices.ExportTaggedAccounts(ProgressDialog);
-end;
-
 procedure TfrmMain.mniBulkClearTransferFlagsClick(Sender: TObject);
 begin
    DoMainFormCommand(mf_DoBulkClear);
@@ -2057,6 +2053,11 @@ begin
    bkArrangeToolBars;
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+procedure TfrmMain.SendTransactionsToBankLinkOnline;
+begin
+  TfrmTransactionsToBankLinkOnline.ShowDialog(Self, Self);
+end;
+
 procedure TfrmMain.SetCaptionState( TBar: TRzToolbar; CaptionOn: boolean);
 var
   pS : PChar;
@@ -4445,6 +4446,8 @@ begin
         end;
         mf_mcViewCashJournals : ViewJournals(btCashJournals);
         mf_mcViewAccrualJournals : ViewJournals(btAccrualJournals);
+        mf_mcTransactionsToBankLinkOnline: SendTransactionsToBankLinkOnline;
+
       end;
 
       //reset auto save time after the following actions
@@ -5255,10 +5258,7 @@ end;
 
 procedure TfrmMain.mniExportdatatoBanklinkOnlineClick(Sender: TObject);
 begin
-  if MessageDlg('Are you sure you want to send all unsent client transactions to Banklink Online?', mtConfirmation, [mbYes, mbNo], 0) = mrYes then
-  begin
-    TfrmModalProgress.ShowProgress(Self, 'Please wait...', ExportTaggedAccounts);  
-  end;
+  DoMainFormCommand(mf_mcTransactionsToBankLinkOnline);
 end;
 
 procedure TfrmMain.mniViewNotesOnlyClick(Sender: TObject);
