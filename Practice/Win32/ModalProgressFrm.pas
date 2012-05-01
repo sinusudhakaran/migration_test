@@ -32,18 +32,24 @@ type
     procedure StartProcess;
 
     procedure UMStartProcess(var Message: TMessage); message UM_START_PROCESS;
+    function GetTitle: String;
+    procedure SetTitle(const Value: String);
   protected
     function GetCancelled: Boolean;
     
-    procedure Initialize(const Title: String);
+    procedure Initialize;
     procedure UpdateProgressLabel(const ProgressLabel: String); overload;
     procedure UpdateProgress(const ProgressLabel: String; StepSize: Double); overload;
     procedure UpdateProgress(StepSize: Double); overload;
     procedure ToggleCancelEnabled(Enabled: Boolean);
     procedure CompleteProgress;
   public
-    class function ShowProgress(Owner: TCustomForm; Caption: String; OnStartProcessHandler: TStartProcessEvent): TModalResult; static;
+    constructor Create(Owner: TComponent); override;
+    
+    class function ShowProgress(Owner: TCustomForm; Caption, Title: String; OnStartProcessHandler: TStartProcessEvent): TModalResult; static;
 
+    property Title: String read GetTitle write SetTitle;
+    
     property OnStartProcess: TStartProcessEvent read FOnStartProcess write FOnStartProcess;
   end;
   
@@ -71,6 +77,13 @@ begin
   end;
 end;
 
+constructor TfrmModalProgress.Create(Owner: TComponent);
+begin
+  inherited;
+
+  lblProgress.Visible := False;
+end;
+
 procedure TfrmModalProgress.FormCreate(Sender: TObject);
 begin
   lblProgressTitle.Font.Name := Font.Name;
@@ -86,11 +99,21 @@ begin
   Result := FCancelled;
 end;
 
+function TfrmModalProgress.GetTitle: String;
+begin
+  Result := lblProgressTitle.Caption;
+end;
+
 procedure TfrmModalProgress.UpdateProgress(StepSize: Double);
 var
   Remainder: Double;
 begin
   FCurrentStepTotal := FCurrentStepTotal + StepSize;
+
+  if not lblProgress.Visible then
+  begin
+    lblProgress.Visible := True;
+  end;
 
   if FCurrentStepTotal >= 1 then
   begin
@@ -108,23 +131,33 @@ procedure TfrmModalProgress.UpdateProgressLabel(const ProgressLabel: String);
 begin
   lblProgress.Caption := ProgressLabel;
 
+  if not lblProgress.Visible then
+  begin
+    lblProgress.Visible := True;
+  end;
+
   Application.ProcessMessages;
 end;
 
-procedure TfrmModalProgress.Initialize(const Title: String);
+procedure TfrmModalProgress.Initialize;
 begin
+  lblProgress.Visible := False;
+
   FCurrentStepTotal := 0;
   
   FCancelled := False;
-  
-  lblProgressTitle.Caption := Title;
 
   prgProgress.Percent := 0;
 
   Application.ProcessMessages;
 end;
 
-class function TfrmModalProgress.ShowProgress(Owner: TCustomForm; Caption: String; OnStartProcessHandler:  TStartProcessEvent): TModalResult;
+procedure TfrmModalProgress.SetTitle(const Value: String);
+begin
+  lblProgressTitle.Caption := Value;
+end;
+
+class function TfrmModalProgress.ShowProgress(Owner: TCustomForm; Caption, Title: String; OnStartProcessHandler:  TStartProcessEvent): TModalResult;
 var
   ProgressForm: TfrmModalProgress;
 begin
@@ -132,6 +165,7 @@ begin
 
   try
     ProgressForm.Caption := Caption;
+    ProgressForm.Title := Title;
     ProgressForm.OnStartProcess := OnStartProcessHandler;
     ProgressForm.PopupParent := Owner;
     ProgressForm.PopupMode := pmExplicit;
@@ -176,6 +210,11 @@ var
   Remainder: Double;
 begin
   lblProgress.Caption := ProgressLabel;
+
+  if not lblProgress.Visible then
+  begin
+    lblProgress.Visible := True;
+  end;
 
   FCurrentStepTotal := FCurrentStepTotal + StepSize;
 
