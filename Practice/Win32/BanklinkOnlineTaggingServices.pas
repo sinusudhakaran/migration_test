@@ -10,7 +10,7 @@ type
   private
     class procedure BankAccountToXML(ParentNode: IXMLNode; BankAccount: TBank_Account; MaxTransactionDate: TStDate); static;
     class procedure ChartToXML(ParentNode: IXMLNode; ChartOfAccounts: TChart); static;
-    class function IsExportableTransaction(Transaction: pTransaction_Rec; MaxTransactionDate: TStDate): Boolean; static;
+    class function IsExportableTransaction(Transaction: pTransaction_Rec; MaxTransactionDate: TStDate = -1): Boolean; static;
     class function IsExportableBankAccount(BankAccount: TBank_Account): Boolean; static;
     class procedure FlagTransactionsAsSent(Client: TClientObj; MaxTransactionDate: TStDate); static;
     class function HasExportableTransactions(BankAccount: TBank_Account; MaxTransactionDate: TStDate): Boolean; static;
@@ -197,7 +197,7 @@ begin
   Result := not (BankAccount.IsManual or BankAccount.IsAJournalAccount); //and IsTagged
 end;
 
-class function TBanklinkOnlineTaggingServices.IsExportableTransaction(Transaction: pTransaction_Rec; MaxTransactionDate: TStDate): Boolean;
+class function TBanklinkOnlineTaggingServices.IsExportableTransaction(Transaction: pTransaction_Rec; MaxTransactionDate: TStDate = -1): Boolean;
 begin
   if MaxTransactionDate > -1 then
   begin
@@ -247,6 +247,7 @@ var
   TransactionIndex: Integer;
   Client: TClientObj;
   BankAccount: TBank_Account;
+  Transaction: pTransaction_Rec;
 begin
   Result := -1;
   
@@ -266,13 +267,18 @@ begin
           begin
             BankAccount := Client.clBank_Account_List[AccountIndex];
 
-            if IsExportableBankAccount(BankAccount) and HasExportableTransactions(BankAccount, -1) then
+            if IsExportableBankAccount(BankAccount) then
             begin
               for TransactionIndex := 0 to BankAccount.baTransaction_List.ItemCount - 1 do
               begin
-                if BankAccount.baTransaction_List.Transaction_At(TransactionIndex).txDate_Effective > Result then
+                Transaction := BankAccount.baTransaction_List[TransactionIndex];
+                
+                if IsExportableTransaction(Transaction) then
                 begin
-                  Result := BankAccount.baTransaction_List.Transaction_At(TransactionIndex).txDate_Effective;
+                  if Transaction.txDate_Effective > Result then
+                  begin
+                    Result := Transaction.txDate_Effective;
+                  end;
                 end;
               end;
             end;
