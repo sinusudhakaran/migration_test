@@ -16,7 +16,8 @@ type
     class function HasExportableTransactions(BankAccount: TBank_Account; MaxTransactionDate: TStDate): Boolean; static;
   public
     class procedure UpdateAccountVendors(ClientCode: String; BankAccount: TBank_Account; Vendors: array of String); static;
-
+    class function GetMaxExportableTransactionDate: TStDate; static;
+    
     class procedure ExportTaggedAccounts(MaxTransactionDate: TStDate; ExportChartOfAccounts: Boolean; ProgressFrm: TfrmModalProgress); static;
   end;
 
@@ -200,7 +201,7 @@ class function TBanklinkOnlineTaggingServices.IsExportableTransaction(Transactio
 begin
   if MaxTransactionDate > -1 then
   begin
-    Result := (Transaction.txCore_Transaction_ID <> 0) and (not Transaction.txTransfered_To_Online) and (Transaction.txDate_Effective <= MaxTransactionDate);
+    Result := (Transaction.txCore_Transaction_ID <> 0) and (not Transaction.txTransfered_To_Online) and (Transaction.txDate_Transferred <= MaxTransactionDate);
   end
   else
   begin
@@ -237,6 +238,51 @@ begin
       end;
     end;
   end;
+end;
+
+class function TBanklinkOnlineTaggingServices.GetMaxExportableTransactionDate: TStDate;
+var
+  ClientIndex: Integer;
+  AccountIndex: Integer;
+  TransactionIndex: Integer;
+  Client: TClientObj;
+  BankAccount: TBank_Account;
+begin
+  Result := -1;
+  
+  for ClientIndex := 0 to AdminSystem.fdSystem_Client_File_List.ItemCount -1 do
+  begin
+    try
+      OpenAClientForRead(AdminSystem.fdSystem_Client_File_List.Client_File_At(ClientIndex).cfFile_Code, Client);
+    except
+    end;
+
+    if Assigned(Client) then
+    begin
+      try
+        if not Client.clFields.clFile_Read_Only then
+        begin
+          for AccountIndex := 0 to Client.clBank_Account_List.ItemCount - 1 do
+          begin
+            BankAccount := Client.clBank_Account_List[AccountIndex];
+
+            if IsExportableBankAccount(BankAccount) and HasExportableTransactions(BankAccount, -1) then
+            begin
+              for TransactionIndex := 0 to BankAccount.baTransaction_List.ItemCount - 1 do
+              begin
+                if BankAccount.baTransaction_List.Transaction_At(TransactionIndex).txDate_Effective > Result then
+                begin
+                  Result := BankAccount.baTransaction_List.Transaction_At(TransactionIndex).txDate_Effective;
+                end;
+              end;
+            end;
+          end;
+        end;
+      finally
+        FreeAndNil(Client);
+      end;
+    end;
+  end;  
 end;
 
 class function TBanklinkOnlineTaggingServices.HasExportableTransactions(BankAccount: TBank_Account; MaxTransactionDate: TStDate): Boolean;
