@@ -100,7 +100,9 @@ begin
             StartupParam_Action := sa_BulkExport;
          end else  if p = 'DOWNLOAD' then begin
             StartupParam_Action := sa_Connect;
-         end;
+         end
+         else if p = 'EXPORTTRANSACTIONS' then
+           StartupParam_Action := sa_ExportTransactions;
       end;
     end;
   end;
