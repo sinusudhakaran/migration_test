@@ -35,7 +35,7 @@ var
 implementation
 
 uses
-  OvcDate, ImagesFrm, Globals, StDateSt, GenUtils, RzPopups, StDate, WarningMoreFrm, YesNoDlg, ModalProgressFrm;
+  OvcDate, ImagesFrm, Globals, StDateSt, GenUtils, RzPopups, StDate, WarningMoreFrm, YesNoDlg, ModalProgressFrm, BanklinkOnlineServices;
 
 {$R *.dfm}
 
@@ -108,7 +108,7 @@ begin
   ExportOptions.MaxTransactionDate := edtTransactionsToDate.AsStDate;
   ExportOptions.ExportChartOfAccounts := chkExportChartOfAccounts.Checked;
 
-  TBankLinkOnlineTaggingServices.ExportTaggedAccounts(ExportOptions, ProgressForm);
+  TBankLinkOnlineTaggingServices.ExportTaggedAccounts(ProductConfigService.CachedPractice, ExportOptions, ProgressForm);
 end;
 
 procedure TfrmTransactionsToBankLinkOnline.FormCreate(Sender: TObject);
