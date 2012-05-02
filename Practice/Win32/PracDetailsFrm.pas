@@ -168,6 +168,8 @@ type
     FPrac: TBloPracticeRead;
     FPreviousPage: integer;
     FOnlineSettingsChanged: Boolean;
+    FPracticeVendorExports: TBloDataPlatformSubscription;
+
 
     procedure SetUpHelp;
     function AddTreeNode(AVST: TCustomVirtualStringTree; ANode:
@@ -538,6 +540,8 @@ begin
           //they are removed. Only load if practice details have been received
           //from BankLink Online (not from cache).
           ProductConfigService.LoadClientList;
+
+          FPracticeVendorExports := ProductConfigService.GetPracticeVendorExports;
         end;
       end else
       begin
@@ -1343,6 +1347,8 @@ var
   ProductNode, ServiceNode: PVirtualNode;
   RoleIndex : integer;
   AdminRollName : WideString;
+  Index: Integer;
+  IIndex: Integer;
 begin
   //Clear
   edtURL.Text := '';
@@ -1411,9 +1417,25 @@ begin
       vtProducts.OnCompareNodes := TreeCompare;
       vtProducts.SortTree(0, sdAscending);
 
-      if not tbsDataExport.TabVisible then
+      if ProductConfigService.IsPracticeProductEnabled(ProductConfigService.GetExportDataId, True) then
       begin
-        tbsDataExport.TabVisible := ProductConfigService.IsPracticeProductEnabled(ProductConfigService.GetExportDataId, True);
+        for Index := 0 to Length(FPracticeVendorExports.Available) - 1 do
+        begin
+          chklistExportTo.AddItem(FPracticeVendorExports.Available[Index].Name_, TVendorExport.Create(FPracticeVendorExports.Available[Index].Id));
+
+          for IIndex := 0 to Length(FPracticeVendorExports.Current) - 1 do
+          begin
+            if FPracticeVendorExports.Available[Index].Id = FPracticeVendorExports.Current[IIndex].Id then
+            begin
+              chklistExportTo.Checked[chklistExportTo.Count -1] := True; 
+            end;
+          end;
+        end;
+
+        if not tbsDataExport.TabVisible then
+        begin
+          tbsDataExport.TabVisible := True;
+        end;
       end;
     end;
   except

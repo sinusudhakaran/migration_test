@@ -685,10 +685,6 @@ object frmPracticeDetails: TfrmPracticeDetails
         Align = alClient
         BevelOuter = bvNone
         TabOrder = 0
-        ExplicitLeft = 1
-        ExplicitTop = 1
-        ExplicitWidth = 607
-        ExplicitHeight = 357
         object Label6: TLabel
           Left = 16
           Top = 20
