@@ -26,14 +26,18 @@ type
     class procedure FlagTransactionsAsSent(Client: TClientObj; MaxTransactionDate: TStDate); static;
     class function HasExportableTransactions(BankAccount: TBank_Account; MaxTransactionDate: TStDate): Boolean; static;
   public
-    class procedure UpdateAccountVendors(ClientReadDetail: TBloClientReadDetail; BankAccount: TBank_Account; Vendors: TBloArrayOfGuid);  overload; static;  
+    class procedure UpdateAccountVendors(ClientReadDetail: TBloClientReadDetail; BankAccount: TBank_Account; Vendors: TBloArrayOfGuid); overload; static;  
     class procedure UpdateAccountVendors(ClientReadDetail: TBloClientReadDetail; Client: TClientObj; Vendors: TBloArrayOfGuid; ProgressForm: ISingleProgressForm); overload; static;  
      
     class procedure GetAccountVendors(BankAccount: TBank_Account; out TaggedAccount: TTaggedAccount); static;
     class procedure GetTaggedAccounts(ClientReadDetail: TBloClientReadDetail; out TaggedAccounts: array of TTaggedAccount); overload; static;
     class procedure GetTaggedAccounts(Practice: TBloPracticeRead; out TaggedAccounts: array of TTaggedAccount); overload; static;
+
+    class procedure ResetTransactionSentFlag(BankAccount: TBank_Account; ProgressFrm: ISingleProgressForm); overload; static;
+    class procedure ResetTransactionSentFlag(Client: TClientObj; ProgressFrm: ISingleProgressForm); overload; static;  
     
     class procedure ExportTaggedAccounts(Practice: TBloPracticeRead; ExportOptions: TExportOptions; ProgressFrm: ISingleProgressForm); static;
+    
     class function GetMaxExportableTransactionDate: TStDate; static;
   end;
 
@@ -72,6 +76,51 @@ begin
   for Index := 0 to ChartOfAccounts.ItemCount - 1 do
   begin
     ChartOfAccounts.Account_At(Index).WriteRecToNode(ParentNode);
+  end;
+end;
+
+class procedure TBanklinkOnlineTaggingServices.ResetTransactionSentFlag(BankAccount: TBank_Account; ProgressFrm: ISingleProgressForm);
+var
+  Index: Integer;
+  ClientProgressSize: Double;
+begin
+  ProgressFrm.Initialize;
+
+  ClientProgressSize := 100 / BankAccount.baTransaction_List.ItemCount;
+  
+  ProgressFrm.UpdateProgressLabel('Clearing sent to BankLink Online');
+  
+  for Index := 0 to BankAccount.baTransaction_List.ItemCount - 1 do
+  begin
+    BankAccount.baTransaction_List.Transaction_At(Index).txTransfered_To_Online := False;  
+
+    ProgressFrm.UpdateProgress(ClientProgressSize);
+  end;
+end;
+
+class procedure TBanklinkOnlineTaggingServices.ResetTransactionSentFlag(Client: TClientObj; ProgressFrm: ISingleProgressForm);
+var
+  Index: Integer;
+  IIndex: Integer;
+  BankAccount: TBank_Account;
+  ClientProgressSize: Double;
+begin
+  ProgressFrm.Initialize;
+
+  ClientProgressSize := 100 / Client.clBank_Account_List.ItemCount;
+  
+  ProgressFrm.UpdateProgressLabel('Clearing sent to BankLink Online');
+   
+  for Index := 0 to Client.clBank_Account_List.ItemCount - 1 do
+  begin
+    BankAccount := Client.clBank_Account_List[Index];
+     
+    for IIndex := 0 to BankAccount.baTransaction_List.ItemCount - 1 do
+    begin
+      BankAccount.baTransaction_List.Transaction_At(Index).txTransfered_To_Online := False;  
+    end;
+
+    ProgressFrm.UpdateProgress(ClientProgressSize); 
   end;
 end;
 
