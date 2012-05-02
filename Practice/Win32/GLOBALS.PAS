@@ -243,7 +243,7 @@ CONST
     sa_ExportTransactions = 3;
 
     // actions that require system users
-    System_Actions   = [sa_BulkExport, sa_Connect];
+    System_Actions   = [sa_BulkExport, sa_Connect, sa_ExportTransactions];
 
     ClientCodeDelimiter = '~';
 
