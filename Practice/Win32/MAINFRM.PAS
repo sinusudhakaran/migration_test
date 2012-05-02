@@ -32,7 +32,7 @@ uses
   pfNamesDlg, updateMF, CodingFrm, SysObj32, Admin32, BudgetFrm, Login32, CodingFormCommands,
   jpeg, AppEvnts, ModalProcessorDlg, ActnList, RzButton, RzPanel, DdeMan, ExportChargesFrm,
   BatchReportFrm,{,threadData}
-  OSFont;
+  OSFont, Progress;
 
 const
   BK_SHOWCM = (WM_USER + 1);
@@ -793,7 +793,11 @@ type
     procedure SetLastActiveMDIChild(const Value: Forms.TForm);
     property LastActiveMDIChild :Forms.TForm read FLastActiveMDIChild write SetLastActiveMDIChild;
     procedure RunGSTReport (Value: REPORT_LIST_TYPE);
-    procedure SendTransactionsToBankLinkOnline;
+    procedure ShowExportTransactionsDialog;
+    procedure ExportTransactionsToBankLinkOnline;
+
+    procedure ExportTaggedAccounts(ProgressForm: ISingleProgressForm);
+    
     //procedure ThreadMessage(var Message: TMessage);	message THREAD_MESSAGE;
   protected
     procedure UpdateActions; override;
@@ -1001,7 +1005,6 @@ uses
   PracDetailsFrm,
   PracticeLogo,
   ProfitAndLossOptionsDlg,
-  Progress,
   PurgeClientEntriesDlg,
   Resync,
   Scheduled,
@@ -1041,7 +1044,9 @@ uses
   frmExchangeRates,
   BankLinkOnlineServices,
   EditUserPassword,
-  TransactionsToBankLinkOnlineFrm;
+  TransactionsToBankLinkOnlineFrm,
+  BankLinkOnlineTaggingServices,
+  ModalProgressFrm;
   //StockBalancesDlg;
 
 const
@@ -1939,6 +1944,21 @@ begin
   LogoutUser;
 end;
 
+procedure TfrmMain.ExportTaggedAccounts(ProgressForm: ISingleProgressForm);
+var
+  ExportOptions: TExportOptions;
+begin
+  ExportOptions.MaxTransactionDate := CurrentDate;
+  ExportOptions.ExportChartOfAccounts := True;
+
+  TBankLinkOnlineTaggingServices.ExportTaggedAccounts(ProductConfigService.CachedPractice, ExportOptions, ProgressForm);
+end;
+
+procedure TfrmMain.ExportTransactionsToBankLinkOnline;
+begin
+  TfrmModalProgress.ShowProgress(Self, 'Please wait...', 'Exporting Client Transactions', ExportTaggedAccounts);
+end;
+
 procedure TfrmMain.mniBulkClearTransferFlagsClick(Sender: TObject);
 begin
    DoMainFormCommand(mf_DoBulkClear);
@@ -2053,7 +2073,7 @@ begin
    bkArrangeToolBars;
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-procedure TfrmMain.SendTransactionsToBankLinkOnline;
+procedure TfrmMain.ShowExportTransactionsDialog;
 begin
   TfrmTransactionsToBankLinkOnline.ShowDialog(Self, Self);
 end;
@@ -4446,7 +4466,7 @@ begin
         end;
         mf_mcViewCashJournals : ViewJournals(btCashJournals);
         mf_mcViewAccrualJournals : ViewJournals(btAccrualJournals);
-        mf_mcTransactionsToBankLinkOnline: SendTransactionsToBankLinkOnline;
+        mf_mcTransactionsToBankLinkOnline: ShowExportTransactionsDialog;
 
       end;
 
@@ -5153,11 +5173,21 @@ begin
   //see if a default client file has been specified
   if Globals.StartupParam_Action <> 0 then begin
      case Globals.StartupParam_Action of
-     sa_BulkExport:  DoMainFormCommand(mf_DoBulkExtract);
-     sa_Connect: begin
-          tmrDataThread.Enabled := False;
-          ProcessModalCmdWithDlg( mpcDoDownloadFromBConnect);
-        end;
+       sa_BulkExport:
+       begin
+         DoMainFormCommand(mf_DoBulkExtract);
+       end;
+       
+       sa_Connect:
+       begin
+         tmrDataThread.Enabled := False;
+         ProcessModalCmdWithDlg( mpcDoDownloadFromBConnect);
+       end;
+
+       sa_ExportTransactions:
+       begin
+         ExportTransactionsToBankLinkOnline;
+       end;
      end;
 
      Close;
