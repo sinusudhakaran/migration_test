@@ -161,9 +161,11 @@ begin
          
         GetTaggedAccounts(Practice, TaggedAccounts);
     
+        ProgressFrm.UpdateProgress(10);
+    
         for Index := 0 to AdminSystem.fdSystem_Client_File_List.ItemCount -1 do
         begin
-          ProgressFrm.UpdateProgress('Exporting transactions for ' + AdminSystem.fdSystem_Client_File_List.Client_File_At(Index).cfFile_Code, 10);
+          ProgressFrm.UpdateProgressLabel('Exporting transactions for ' + AdminSystem.fdSystem_Client_File_List.Client_File_At(Index).cfFile_Code);
       
           Client := nil;
 
