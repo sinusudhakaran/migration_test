@@ -44,7 +44,10 @@ type
     Code : string;
   end;
 
-  TBloArrayOfVendors        = Array of TTempVendor;
+  TBloArrayOfVendors        = array of TTempVendor;
+  TBloDataPlatformSubscription = BlopiServiceFacade.DataPlatformSubscription;
+  TBloArrayOfDataPlatformSubscriber = BlopiServiceFacade.DataPlatformSubscriber;  
+
 
   TVarTypeData = record
     Name     : String;
@@ -299,7 +302,7 @@ type
     procedure RemoveVendorExport(ProductId: TbloGuid);
 
     function GetExportVendors : TBloArrayOfVendors;
-    function GetAvailableVendorsForPratice : TBloArrayOfVendors;
+    function GetPracticeVendorExports : TBloDataPlatformSubscription;
     function GetAvailableVendorsForClient(aClientCode: string) : TBloArrayOfVendors;
     function GetAvailableVendorsForAccount(aAccountNumber: string) : TBloArrayOfVendors;
 
@@ -356,8 +359,9 @@ const
   PRODUCT_GUID_NOTES_ONLINE = '6D700B31-DAEE-4847-8CB2-82C21328AC30';
   PRODUCT_GUID_EXPORT_DATA = '6D700B31-DAEE-4847-8CB2-82C21328AC34';
   
-  VENDOR_EXPORT_GUID_IBIZZ = 'C048EEB5-978D-4768-87C2-CAD43B8D888D';  //This is a made up guid, replace it with the real one when it becomes available
-  VENDOR_EXPORT_GUID_BGL = 'AAE9F2C8-4CAC-4AFA-A3E5-4856675AA0F6';    // so is this
+  VENDOR_EXPORT_GUID_IBIZZ = '18dd8002-cbc2-44bd-8c76-fd2ef4b53894';
+  VENDOR_EXPORT_GUID_BGL = '5fc52936-cfb0-4c19-85ea-d048a5b3440c';
+  
 var
   __BankLinkOnlineServiceMgr: TProductConfigService;
   DebugMe : Boolean = False;
@@ -3354,15 +3358,57 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TProductConfigService.GetAvailableVendorsForPratice : TBloArrayOfVendors;
+function TProductConfigService.GetPracticeVendorExports : TBloDataPlatformSubscription;
+var
+  DataPlatformSubscriberResponse: MessageResponseOfDataPlatformSubscription6cY85e5k;
+  ShowProgress: Boolean;
+  BlopiInterface: IBlopiServiceFacade; 
 begin
-  SetLength(Result,2);
-  Result[0].ID   := GetBGLExportGuid;
-  Result[0].Name := 'BGL Export Data';
-  Result[0].Code := 'BGL001';
-  Result[1].ID   := GetIBizzExportGuid;
-  Result[1].Name := 'Ibiz Export Data';
-  Result[1].Code := 'IBIZ001';
+  try
+    if not Assigned(AdminSystem) then
+      Exit;
+
+    if not Registered then
+      Exit;
+
+    ShowProgress := Progress.StatusSilent;
+
+    if ShowProgress then
+    begin
+      Screen.Cursor := crHourGlass;
+      Progress.StatusSilent := False;
+      Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Connecting', 10);
+    end;
+
+    try
+      if ShowProgress then
+        Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Getting Vendor Export Types', 50);
+
+      BlopiInterface :=  GetServiceFacade;
+      
+      //Get the vendor export types from BankLink Online
+      DataPlatformSubscriberResponse := BlopiInterface.GetPracticeDataSubscribers(CountryText(AdminSystem.fdFields.fdCountry),
+                                                       AdminSystem.fdFields.fdBankLink_Code,
+                                                       AdminSystem.fdFields.fdBankLink_Connect_Password);
+                                                       
+      if not MessageResponseHasError(MessageResponse(DataPlatformSubscriberResponse), 'get the vendor export types from') then
+      begin
+        Result := DataPlatformSubscriberResponse.Result;
+      end;
+
+      if ShowProgress then
+        Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finished', 100);
+    finally
+      if ShowProgress then
+      begin
+        Progress.StatusSilent := True;
+        Progress.ClearStatus;
+        Screen.Cursor := crDefault;
+      end;
+    end;
+  except
+    on E:Exception do HelpfulErrorMsg('Error getting vendor export types: ' + E.Message, 0);
+  end;
 end;
 
 //------------------------------------------------------------------------------
