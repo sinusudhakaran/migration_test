@@ -240,6 +240,7 @@ CONST
     // Startup actions
     sa_BulkExport = 1;
     sa_Connect = 2;
+    sa_ExportTransactions = 3;
 
     // actions that require system users
     System_Actions   = [sa_BulkExport, sa_Connect];
