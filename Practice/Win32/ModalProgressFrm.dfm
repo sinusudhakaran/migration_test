@@ -51,7 +51,7 @@ object frmModalProgress: TfrmModalProgress
     NumSegments = 50
     ParentFont = False
     PartsComplete = 0
-    Percent = 60
+    Percent = 0
     ShowPercent = False
     TotalParts = 0
   end
