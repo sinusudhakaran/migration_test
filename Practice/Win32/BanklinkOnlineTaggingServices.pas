@@ -12,8 +12,9 @@ type
   end;
   
   TTaggedAccount = record
-    BankAccount: TBank_Account;
-    Vendors: array of TBloGuid;
+    AccountNo: WideString;
+    VendorNames: TBloArrayOfString;
+    VendorGuids: TBloArrayOfGuid;
   end;
   
   TBanklinkOnlineTaggingServices = class
@@ -25,12 +26,14 @@ type
     class procedure FlagTransactionsAsSent(Client: TClientObj; MaxTransactionDate: TStDate); static;
     class function HasExportableTransactions(BankAccount: TBank_Account; MaxTransactionDate: TStDate): Boolean; static;
   public
-    class procedure UpdateAccountVendors(BankAccount: TBank_Account; Vendors: array of String);  overload; static;  
-    class procedure UpdateAccountVendors(Client: TClientObj; Vendors: array of String; ProgressForm: ISingleProgressForm); overload; static;   
-    class procedure GetAccountVendors(BankAccount: TBank_Account; out Vendors: array of TBloGuid); static;
-    class procedure GetTaggedAccounts(Client: TClientObj; out TaggedAccounts: array of TTaggedAccount); static;
+    class procedure UpdateAccountVendors(ClientReadDetail: TBloClientReadDetail; BankAccount: TBank_Account; Vendors: TBloArrayOfGuid);  overload; static;  
+    class procedure UpdateAccountVendors(ClientReadDetail: TBloClientReadDetail; Client: TClientObj; Vendors: TBloArrayOfGuid; ProgressForm: ISingleProgressForm); overload; static;  
+     
+    class procedure GetAccountVendors(BankAccount: TBank_Account; out TaggedAccount: TTaggedAccount); static;
+    class procedure GetTaggedAccounts(ClientReadDetail: TBloClientReadDetail; out TaggedAccounts: array of TTaggedAccount); overload; static;
+    class procedure GetTaggedAccounts(Practice: TBloPracticeRead; out TaggedAccounts: array of TTaggedAccount); overload; static;
     
-    class procedure ExportTaggedAccounts(ExportOptions: TExportOptions; ProgressFrm: ISingleProgressForm); static;
+    class procedure ExportTaggedAccounts(Practice: TBloPracticeRead; ExportOptions: TExportOptions; ProgressFrm: ISingleProgressForm); static;
     class function GetMaxExportableTransactionDate: TStDate; static;
   end;
 
@@ -72,7 +75,7 @@ begin
   end;
 end;
 
-class procedure TBanklinkOnlineTaggingServices.ExportTaggedAccounts(ExportOptions: TExportOptions; ProgressFrm: ISingleProgressForm);
+class procedure TBanklinkOnlineTaggingServices.ExportTaggedAccounts(Practice: TBloPracticeRead; ExportOptions: TExportOptions; ProgressFrm: ISingleProgressForm);
 var
   XMLDocument: IXMLDocument;
   RootNode: IXMLNode;
@@ -83,6 +86,7 @@ var
   Client: TClientObj;
   ClientList: TStringList;
   ClientProgressSize: Double;
+  TaggedAccounts: array of TTaggedAccount;
 begin
   if AdminSystem.fdSystem_Client_File_List.ItemCount > 0 then
   begin
@@ -103,10 +107,14 @@ begin
         ClientProgressSize := 40 / AdminSystem.fdSystem_Client_File_List.ItemCount;
 
         ProgressFrm.Initialize; 
+
+        ProgressFrm.UpdateProgressLabel('Getting account vendors');
+         
+        GetTaggedAccounts(Practice, TaggedAccounts);
     
         for Index := 0 to AdminSystem.fdSystem_Client_File_List.ItemCount -1 do
         begin
-          ProgressFrm.UpdateProgressLabel('Exporting transactions for ' + AdminSystem.fdSystem_Client_File_List.Client_File_At(Index).cfFile_Code);
+          ProgressFrm.UpdateProgress('Exporting transactions for ' + AdminSystem.fdSystem_Client_File_List.Client_File_At(Index).cfFile_Code, 10);
       
           Client := nil;
 
@@ -172,7 +180,7 @@ begin
 
           if ClientList.Count > 0 then
           begin
-            ProgressFrm.UpdateProgress('Saving changes to transactions', 20);
+            ProgressFrm.UpdateProgress('Saving changes to transactions', 10);
       
             ClientProgressSize := 40 / ClientList.Count;
 
@@ -191,6 +199,7 @@ begin
               ProgressFrm.UpdateProgress(ClientProgressSize);
             end; 
           end;
+
           ProgressFrm.CompleteProgress;
         end;
       finally
@@ -222,7 +231,7 @@ begin
   end;
 end;
 
-class procedure TBanklinkOnlineTaggingServices.UpdateAccountVendors(Client: TClientObj; Vendors: array of String; ProgressForm: ISingleProgressForm);
+class procedure TBanklinkOnlineTaggingServices.UpdateAccountVendors(ClientReadDetail: TBloClientReadDetail; Client: TClientObj; Vendors: TBloArrayOfGuid; ProgressForm: ISingleProgressForm);
 var
   Index: Integer;
   IIndex: Integer;
@@ -263,7 +272,7 @@ begin
   end;
 end;
 
-class procedure TBanklinkOnlineTaggingServices.UpdateAccountVendors(BankAccount: TBank_Account; Vendors: array of String);
+class procedure TBanklinkOnlineTaggingServices.UpdateAccountVendors(ClientReadDetail: TBloClientReadDetail; BankAccount: TBank_Account; Vendors: TBloArrayOfGuid);
 begin
 
 end;
@@ -294,7 +303,7 @@ begin
   end;
 end;
 
-class procedure TBanklinkOnlineTaggingServices.GetAccountVendors(BankAccount: TBank_Account; out Vendors: array of TBloGuid);
+class procedure TBanklinkOnlineTaggingServices.GetAccountVendors(BankAccount: TBank_Account; out TaggedAccount: TTaggedAccount);
 begin
 
 end;
@@ -350,7 +359,12 @@ begin
   end;  
 end;
 
-class procedure TBanklinkOnlineTaggingServices.GetTaggedAccounts(Client: TClientObj; out TaggedAccounts: array of TTaggedAccount);
+class procedure TBanklinkOnlineTaggingServices.GetTaggedAccounts(Practice: TBloPracticeRead; out TaggedAccounts: array of TTaggedAccount);
+begin
+
+end;
+
+class procedure TBanklinkOnlineTaggingServices.GetTaggedAccounts(ClientReadDetail: TBloClientReadDetail; out TaggedAccounts: array of TTaggedAccount);
 begin
 
 end;
