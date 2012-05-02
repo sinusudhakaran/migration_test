@@ -11,6 +11,11 @@ type
     ExportChartOfAccounts: Boolean;
   end;
   
+  TTaggedAccount = record
+    BankAccount: TBank_Account;
+    Vendors: array of TBloGuid;
+  end;
+  
   TBanklinkOnlineTaggingServices = class
   private
     class procedure BankAccountToXML(ParentNode: IXMLNode; BankAccount: TBank_Account; MaxTransactionDate: TStDate); static;
@@ -22,7 +27,9 @@ type
   public
     class procedure UpdateAccountVendors(BankAccount: TBank_Account; Vendors: array of String);  overload; static;  
     class procedure UpdateAccountVendors(Client: TClientObj; Vendors: array of String; ProgressForm: ISingleProgressForm); overload; static;   
-
+    class procedure GetAccountVendors(BankAccount: TBank_Account; out Vendors: array of TBloGuid); static;
+    class procedure GetTaggedAccounts(Client: TClientObj; out TaggedAccounts: array of TTaggedAccount); static;
+    
     class procedure ExportTaggedAccounts(ExportOptions: TExportOptions; ProgressFrm: ISingleProgressForm); static;
     class function GetMaxExportableTransactionDate: TStDate; static;
   end;
@@ -287,6 +294,11 @@ begin
   end;
 end;
 
+class procedure TBanklinkOnlineTaggingServices.GetAccountVendors(BankAccount: TBank_Account; out Vendors: array of TBloGuid);
+begin
+
+end;
+
 class function TBanklinkOnlineTaggingServices.GetMaxExportableTransactionDate: TStDate;
 var
   ClientIndex: Integer;
@@ -336,6 +348,11 @@ begin
       end;
     end;
   end;  
+end;
+
+class procedure TBanklinkOnlineTaggingServices.GetTaggedAccounts(Client: TClientObj; out TaggedAccounts: array of TTaggedAccount);
+begin
+
 end;
 
 class function TBanklinkOnlineTaggingServices.HasExportableTransactions(BankAccount: TBank_Account; MaxTransactionDate: TStDate): Boolean;
