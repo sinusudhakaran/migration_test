@@ -3366,6 +3366,8 @@ var
   ShowProgress: Boolean;
   BlopiInterface: IBlopiServiceFacade; 
 begin
+  Result := nil;
+  
   try
     if not Assigned(AdminSystem) then
       Exit;
@@ -3420,6 +3422,8 @@ var
   ShowProgress: Boolean;
   BlopiInterface: IBlopiServiceFacade; 
 begin
+  Result := nil;
+  
   try
     if not Assigned(AdminSystem) then
       Exit;
