@@ -15,7 +15,8 @@ uses
   ExtCtrls,
   CheckLst,
   OSFont,
-  BankLinkOnlineServices;
+  BankLinkOnlineServices,
+  Progress;
 
 const
   UM_AFTERSHOW = WM_USER + 1;
@@ -67,6 +68,8 @@ type
     fOldEmail : string;
 
     ClientReadDetail : TBloClientReadDetail;
+    PracticeServiceArray  : TBloDataPlatformSubscription;
+    procedure ExportTaggedAccounts(ProgressForm: ISingleProgressForm);
   protected
     function Validate : Boolean;
     procedure FillClientDetails;
@@ -104,7 +107,10 @@ uses
   YesNoDlg,
   Files,
   StrUtils,
-  InfoMoreFrm;
+  InfoMoreFrm,
+  BanklinkOnlineTaggingServices,
+  ModalProgressFrm;
+
 
 const
   UnitName = 'BanklinkOnlineSettingsFrm';
@@ -572,22 +578,48 @@ begin
   if fReadOnly then
     SetReadOnly;
 
-  if ShowModal = mrOk then
+  if (ShowModal = mrOk) then
+  begin
     Result := True;
+    TfrmModalProgress.ShowProgress(Self, 'Please wait...', 'Sending selected vendors to BankLink Online',
+                                   ExportTaggedAccounts);
+  end;
+end;
+
+procedure TfrmBanklinkOnlineSettings.ExportTaggedAccounts(ProgressForm: ISingleProgressForm);
+var
+  VendorsSelected: TBloArrayOfGuid;
+  i: integer;
+begin
+  // Tag accounts attached to this client for the vendor(s) selected
+  for i := 0 to chkListServicesAvailable.Items.Count - 1 do
+  begin
+    if chkListServicesAvailable.Checked[i] then
+    begin
+      SetLength(VendorsSelected, Length(VendorsSelected) + 1);
+      VendorsSelected[High(VendorsSelected)] := PracticeServiceArray.Current[i].ID;
+    end;
+  end;
+
+  TBankLinkOnlineTaggingServices.UpdateAccountVendors(ClientReadDetail, MyClient, VendorsSelected, ProgressForm);
 end;
 
 //------------------------------------------------------------------------------
 procedure TfrmBanklinkOnlineSettings.LoadClientInfo(TickNotesOnline: boolean);
 var
-  ProdIndex     : integer;
-  SubIndex      : integer;
-  ProductGuid   : TBloGuid;
-  ClientSubGuid : TBloGuid;
-  CatEntry      : TBloCatalogueEntry;
-  UserEMail     : String;
-  UserFullName  : String;
-  Subscription  : TBloArrayOfguid;
-  Index: Integer;
+  ProdIndex            : integer;
+  SubIndex             : integer;
+  ProductGuid          : TBloGuid;
+  ClientSubGuid        : TBloGuid;
+  CatEntry             : TBloCatalogueEntry;
+  UserEMail            : String;
+  UserFullName         : String;
+  Subscription         : TBloArrayOfguid;
+  ClientServiceArray   : TBloDataPlatformSubscription;
+  Index                : Integer;
+  PracticeServiceIndex : Integer;
+  ClientServiceIndex   : Integer;
+  ClientID             : String;
 
   procedure FillDetailIn(const aBillingFrequency : WideString;
                          const aMaxOfflineDays   : Integer;
@@ -641,6 +673,36 @@ begin
     if (Assigned(CatEntry)) and
        (CatEntry.CatalogueType <> 'Service') then
       chklistProducts.AddItem(CatEntry.Description, CatEntry);
+  end;
+
+  // Load services
+  PracticeServiceArray := ProductConfigService.GetPracticeVendorExports;
+  for PracticeServiceIndex := 0 to High(PracticeServiceArray.Current) do
+    chkListServicesAvailable.Items.Add(PracticeServiceArray.Current[PracticeServiceIndex].Name_);
+
+  // Tick the services that the client has enabled
+  if Assigned(ClientReadDetail) then
+    ClientID := ClientReadDetail.Id
+  else
+    ClientID := ProductConfigService.GetClientGuid(MyClient.clFields.clCode);
+  if (ClientID <> '') then
+  begin
+    ClientServiceArray := ProductConfigService.GetClientVendorExports(ClientReadDetail.Id);
+    if Assigned(ClientServiceArray) then
+    begin
+      for ClientServiceIndex := 0 to High(ClientServiceArray.Current) do
+      begin
+        for PracticeServiceIndex := 0 to High(PracticeServiceArray.Current) do
+        begin
+          if (ClientServiceArray.Current[ClientServiceIndex].Id =
+          PracticeServiceArray.Current[PracticeServiceIndex].Id) then
+          begin
+            chkListServicesAvailable.Checked[PracticeServiceIndex] := true;
+            break;
+          end;
+        end;
+      end;
+    end;
   end;
 
   if TickNotesOnline then

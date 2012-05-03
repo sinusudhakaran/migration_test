@@ -338,7 +338,8 @@ var
 begin
   try
     ProgressForm.Initialize;
-  
+
+    if (Client.clBank_Account_List.ItemCount = 0) then Exit; 
     ClientProgressSize := 100 / Client.clBank_Account_List.ItemCount -1;
   
     ProgressForm.UpdateProgressLabel('Updating bank account vendors for client ' + Client.clFields.clCode);

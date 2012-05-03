@@ -143,7 +143,6 @@ type
                           SendTimeout   : DWord ;
                           ReciveTimeout : DWord);
     function GetServiceFacade : IBlopiServiceFacade;
-    function GetClientGuid(const AClientCode: string): WideString;
     function GetCachedPractice: TBloPracticeRead;
     function MessageResponseHasError(AMesageresponse: MessageResponse; ErrorText: string): Boolean;
     function GetProducts : TBloArrayOfGuid;
@@ -211,6 +210,7 @@ type
                                 aItem : TBloGuid) : Boolean;
     function RemoveItemFromArrayGuid(var aBloArrayOfGuid : TBloArrayOfGuid;
                                      aItem : TBloGuid) : Boolean;
+    function GetClientGuid(const AClientCode: string): WideString;
 
 
     destructor Destroy; override;
