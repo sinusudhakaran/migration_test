@@ -42,7 +42,7 @@ type
   private
     class procedure ExportTaggedClientsToXML(ParentNode: IXMLNode; ExportOptions: TExportOptions; ProgressForm: ISingleProgressForm; ExportedClients: TObjectList); static;
     class procedure ClientToXML(ParentNode: IXMLNode; Client: TClientObj; MaxTransactionDate: TStDate; out AccountsExported, TransactionsExported: Integer); static;
-    class function BankAccountToXML(ParentNode: IXMLNode; BankAccount: TBank_Account; MaxTransactionDate: TStDate): Integer; static;
+    class function BankAccountToXML(ParentNode: IXMLNode; Client: TClientObj; BankAccount: TBank_Account; MaxTransactionDate: TStDate): Integer; static;
     class procedure ChartToXML(ParentNode: IXMLNode; ChartOfAccounts: TChart); static;
     class function IsExportableTransaction(Transaction: pTransaction_Rec; MaxTransactionDate: TStDate = -1): Boolean; static;
     class function IsExportableBankAccount(BankAccount: TBank_Account): Boolean; static;
@@ -71,27 +71,29 @@ uses
 
 { TBanklinkOnlineServices }
 
-class function TBanklinkOnlineTaggingServices.BankAccountToXML(ParentNode: IXMLNode; BankAccount: TBank_Account; MaxTransactionDate: TStDate): Integer;
+class function TBanklinkOnlineTaggingServices.BankAccountToXML(ParentNode: IXMLNode; Client: TClientObj; BankAccount: TBank_Account; MaxTransactionDate: TStDate): Integer;
 var
   TransactionIndex: Integer;
   Transaction: pTransaction_Rec;
-  BankAccountNode: IXMLNode;
 begin
   Result := 0;
-  
-  BankAccountNode := ParentNode.AddChild('BKBankAccount');
-
-  BankAccountNode.Attributes['AccountNumber'] := BankAccount.baFields.baBank_Account_Number;
 
   for TransactionIndex := 0 to BankAccount.baTransaction_List.ItemCount - 1 do
   begin
     Transaction := BankAccount.baTransaction_List[TransactionIndex];
 
-    if IsExportableTransaction(Transaction, MaxTransactionDate) then    
-    begin
-      Transaction.WriteRecToNode(BankAccountNode);
-
-      Inc(Result);
+    try
+      if IsExportableTransaction(Transaction, MaxTransactionDate) then    
+      begin
+        Transaction.WriteRecToNode(ParentNode);
+        
+        Inc(Result);
+      end;
+    except
+      on E:Exception do
+      begin
+        LogUtil.LogMsg(lmError, 'BankLinkOnlineTaggingService', 'Bank Account ' + BankAccount.baFields.baBank_Account_Number + ' ' + Client.clFields.clCode + ' could not be exported - ' + E.Message);
+      end;
     end;
   end;
 end;
@@ -110,20 +112,34 @@ class procedure TBanklinkOnlineTaggingServices.ClientToXML(ParentNode: IXMLNode;
 var
   Index: Integer;
   BankAccount: TBank_Account;
+  TransactionNode: IXMLNode;
+  TempTransExported: Integer;    
 begin
   AccountsExported := 0;
   TransactionsExported := 0;
-  
+
   for Index := 0 to Client.clBank_Account_List.ItemCount - 1 do
   begin
     BankAccount := Client.clBank_Account_List[Index];
 
-    //Only delivered accounts can be sent
-    if IsExportableBankAccount(BankAccount) and HasExportableTransactions(BankAccount, MaxTransactionDate) then
-    begin
-      TransactionsExported := TransactionsExported + BankAccountToXML(ParentNode, BankAccount, MaxTransactionDate);
+    try
+      //Only delivered accounts can be sent
+      if IsExportableBankAccount(BankAccount) and HasExportableTransactions(BankAccount, MaxTransactionDate) then
+      begin
+        TempTransExported := BankAccountToXML(ParentNode, Client, BankAccount, MaxTransactionDate);
 
-      Inc(AccountsExported);
+        if TempTransExported > 0 then
+        begin
+          TransactionsExported := TransactionsExported + TempTransExported;
+          
+          Inc(AccountsExported);
+        end;
+      end;
+    except
+      on E:Exception do
+      begin
+        LogUtil.LogMsg(lmError, 'BankLinkOnlineTaggingService', 'Bank Account ' + BankAccount.baFields.baBank_Account_Number + ' ' + Client.clFields.clCode + ' could not be exported - ' + E.Message);
+      end;
     end;
   end;
 end;
@@ -272,6 +288,7 @@ var
   AccountsExported: Integer;
   TransactionsExported: Integer;
   Index: Integer;
+  ClientNode: IXMLNode;
 begin
   if AdminSystem.fdSystem_Client_File_List.ItemCount > 0 then
   begin
@@ -290,7 +307,7 @@ begin
         except
           on E:Exception do
           begin
-            
+            LogUtil.LogMsg(lmError, 'BankLinkOnlineTaggingService', 'Client File ' + AdminSystem.fdSystem_Client_File_List.Client_File_At(Index).cfFile_Code + ' could not be exported - ' + E.Message); 
           end;
         end;
 
@@ -308,8 +325,15 @@ begin
               begin
                 if ExportOptions.ExportChartOfAccounts then
                 begin
-                  //Add chart of accounts for this client
-                  ChartToXML(ParentNode, Client.clChart);
+                  try
+                    //Add chart of accounts for this client
+                    ChartToXML(ParentNode, Client.clChart);
+                  except
+                    on E:Exception do
+                    begin
+                      LogUtil.LogMsg(lmError, 'BankLinkOnlineTaggingService', 'Client File' + AdminSystem.fdSystem_Client_File_List.Client_File_At(Index).cfFile_Code + ' could export the Chart of Accounts - ' + E.Message);
+                    end;
+                  end;
                 end;
 
                 ExportedClients.Add(TExportedClient.Create(Client.clFields.clCode, AccountsExported, TransactionsExported));
@@ -317,7 +341,7 @@ begin
             end
             else
             begin
-            
+              LogUtil.LogMsg(lmError, 'BankLinkOnlineTaggingService', 'Client File ' + AdminSystem.fdSystem_Client_File_List.Client_File_At(Index).cfFile_Code + ' could not be exported - The client is read-only.');
             end;
           finally
             FreeAndNil(Client);
