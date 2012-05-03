@@ -105,6 +105,7 @@ type
     fSOAPRequest: InvString;
 
     FPractice, FPracticeCopy: TBloPracticeRead;
+    
     FClientList: ClientList;
     FOnLine: Boolean;
     FRegistered: Boolean;
@@ -187,6 +188,8 @@ type
                                 const aSubscription : TBloArrayOfguid) : MessageResponse;
     function DeleteUser(const aUserId      : TBloGuid;
                         const aUserCode    : WideString) : MessageResponse;
+    function IsVendorExportOptionEnabled(ProductId: TBloGuid;
+      AUsePracCopy: Boolean): Boolean;
   public
     function IsItemInArrayString(const aBloArrayOfString : TBloArrayOfString;
                                  const aItem : WideString) : Boolean;
@@ -223,7 +226,7 @@ type
     function IsNotesOnlineEnabled: Boolean;
     function IsCICOEnabled: Boolean;
     procedure UpdateUserAllowOnlineSetting;
-    function SavePractice(aShowMessage : Boolean = true): Boolean;
+    function SavePractice(aShowMessage : Boolean; ShowSuccessMessage: Boolean = True): Boolean;
     function PracticeChanged: Boolean;
     procedure AddProduct(AProductId: TBloGuid);
     procedure ClearAllProducts;
@@ -296,10 +299,7 @@ type
     function GetBGLExportGuid: TBloGuid;
 
     function GuidsEqual(GuidA, GuidB: TBloGuid): Boolean;
-
-    function VendorExportsChanged: Boolean;
-    procedure AddVendorExport(ProductId: TBloGuid);
-    procedure RemoveVendorExport(ProductId: TbloGuid);
+    function GuidArraysEqual(GuidArrayA, GuidArrayB: TBloArrayOfGuid): Boolean;
 
     function GetExportVendors : TBloArrayOfVendors;
     function GetPracticeVendorExports : TBloDataPlatformSubscription;
@@ -307,8 +307,8 @@ type
     function GetAvailableVendorsForAccount(aAccountNumber: string) : TBloArrayOfVendors;
 
     function GetAvailableVendorsForClient(aClientCode: String): TBloArrayOfVendors;
-
-    function IsVendorExportOptionEnabled(ProductId: TBloGuid; AUsePracCopy: Boolean): Boolean;
+    
+    function SavePracticeVendorExports(VendorExports: TBloArrayOfGuid; aShowMessage: Boolean = True): Boolean;
 
     property OnLine: Boolean read FOnLine;
     property Registered: Boolean read GetRegistered;
@@ -1198,6 +1198,30 @@ begin
   Result := FValidBConnectDetails;
 end;
 
+function TProductConfigService.GuidArraysEqual(GuidArrayA, GuidArrayB: TBloArrayOfGuid): Boolean;
+var
+  Index: Integer;
+begin
+  Result := True;
+  
+  if Length(GuidArrayA) = Length(GuidArrayB) then
+  begin
+    for Index := 0 to Length(GuidArrayA) - 1 do
+    begin
+      if GuidArrayA[Index] <> GuidArrayB[Index] then
+      begin
+        Result := False;
+
+        Break;
+      end;
+    end;
+  end
+  else
+  begin
+    Result := False;
+  end;
+end;
+
 function TProductConfigService.GuidsEqual(GuidA, GuidB: TBloGuid): Boolean;
 begin
   Result := CompareText(GuidA, GuidB) = 0;
@@ -1209,11 +1233,6 @@ procedure TProductConfigService.AddTypeItem(var aDataArray: TArrVarTypeData;
 begin
   SetLength(aDataArray, High(aDataArray) + 2);
   aDataArray[High(aDataArray)] := aDataItem;
-end;
-
-procedure TProductConfigService.AddVendorExport(ProductId: TBloGuid);
-begin
-
 end;
 
 //------------------------------------------------------------------------------
@@ -1535,11 +1554,6 @@ begin
   end;
 end;
 
-function TProductConfigService.VendorExportsChanged: Boolean;
-begin
-  Result := False;
-end;
-
 //------------------------------------------------------------------------------
 function TProductConfigService.GetNotesId : TBloGuid;
 var
@@ -1842,11 +1856,6 @@ begin
   end;
 end;
 
-procedure TProductConfigService.RemoveVendorExport(ProductId: TbloGuid);
-begin
-
-end;
-
 //------------------------------------------------------------------------------
 function TProductConfigService.SaveClient(AClient: TBloClientReadDetail): Boolean;
 var
@@ -1937,7 +1946,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TProductConfigService.SavePractice(aShowMessage : Boolean): Boolean;
+function TProductConfigService.SavePractice(aShowMessage : Boolean; ShowSuccessMessage: Boolean = True): Boolean;
 var
   BlopiInterface : IBlopiServiceFacade;
   PracCountryCode : WideString;
@@ -1992,7 +2001,12 @@ begin
       if aShowMessage then
       begin
         if Result then
-          HelpfulInfoMsg('Practice Settings have been successfully updated to BankLink Online.', 0)
+        begin
+          if ShowSuccessMessage then
+          begin
+            HelpfulInfoMsg('Practice Settings have been successfully updated to BankLink Online.', 0);
+          end;
+        end
         else
           HelpfulErrorMsg(BKPRACTICENAME + ' is unable to update the Practice settings to ' + BANKLINK_ONLINE_NAME + '.', 0);
       end;
@@ -2007,6 +2021,71 @@ begin
     Exit;
 
   AdminSystem.fdFields.fdBankLink_Online_Config := RemotableObjectToXML(ARemotable);
+end;
+
+function TProductConfigService.SavePracticeVendorExports(VendorExports: TBloArrayOfGuid; aShowMessage: Boolean = True): Boolean;
+var
+  BlopiInterface : IBlopiServiceFacade;
+  PracCountryCode : WideString;
+  PracCode        : WideString;
+  PracPassHash    : WideString;
+  MsgResponce     : MessageResponse;
+  PracUpdate      : PracticeUpdate;
+begin
+  Result := False;
+  if UseBankLinkOnline then
+  begin
+    if Assigned(FPracticeCopy) then
+    begin
+      FPractice.Free;
+      FPractice := PracticeRead.Create;
+
+      PracUpdate := PracticeUpdate.Create;
+      try
+        RemoveInvalidSubscriptions;
+        CopyRemotableObject(FPracticeCopy, FPractice);
+        CopyRemotableObject(FPractice, PracUpdate);
+
+        //Save to the web service
+        Screen.Cursor := crHourGlass;
+        Progress.StatusSilent := False;
+        Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Connecting', 10);
+        try
+          PracCountryCode := CountryText(AdminSystem.fdFields.fdCountry);
+          PracCode        := AdminSystem.fdFields.fdBankLink_Code;
+          PracPassHash    := AdminSystem.fdFields.fdBankLink_Connect_Password;
+
+          BlopiInterface := GetServiceFacade;
+
+          Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Saving Practice data export settings', 33);
+
+          MsgResponce := BlopiInterface.SavePracticeDataSubscribers(PracCountryCode, PracCode, PracPassHash, VendorExports);
+          
+          if not MessageResponseHasError(MsgResponce, 'update the Practice data export settings to') then
+          begin
+            Result := True;
+            Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finished', 100);
+          end;
+
+        finally
+          Progress.StatusSilent := True;
+          Progress.ClearStatus;
+          Screen.Cursor := crDefault;
+        end;
+
+      finally
+        FreeandNil(PracUpdate);
+      end;
+
+      if aShowMessage then
+      begin
+        if Result then
+          HelpfulInfoMsg('Practice data export settings have been successfully updated to BankLink Online.', 0)
+        else
+          HelpfulErrorMsg(BKPRACTICENAME + ' is unable to update the Practice data export settings to ' + BANKLINK_ONLINE_NAME + '.', 0);
+      end;
+    end;
+  end;
 end;
 
 //------------------------------------------------------------------------------
@@ -3364,7 +3443,8 @@ function TProductConfigService.GetPracticeVendorExports : TBloDataPlatformSubscr
 var
   DataPlatformSubscriberResponse: MessageResponseOfDataPlatformSubscription6cY85e5k;
   ShowProgress: Boolean;
-  BlopiInterface: IBlopiServiceFacade; 
+  BlopiInterface: IBlopiServiceFacade;
+  Index: Integer;
 begin
   Result := nil;
   
