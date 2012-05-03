@@ -12,9 +12,11 @@ object frmTransactionsToBankLinkOnline: TfrmTransactionsToBankLinkOnline
   Font.Height = -11
   Font.Name = 'Tahoma'
   Font.Style = []
+  KeyPreview = True
   OldCreateOrder = False
   Position = poOwnerFormCenter
   OnCreate = FormCreate
+  OnKeyPress = FormKeyPress
   PixelsPerInch = 96
   TextHeight = 13
   object Label1: TLabel
@@ -47,7 +49,8 @@ object frmTransactionsToBankLinkOnline: TfrmTransactionsToBankLinkOnline
     Top = 111
     Width = 111
     Height = 13
-    Caption = 'Export transactions to:'
+    Caption = '&Export transactions to:'
+    FocusControl = edtTransactionsToDate
   end
   object edtTransactionsToDate: TOvcPictureField
     Left = 152
@@ -81,7 +84,7 @@ object frmTransactionsToBankLinkOnline: TfrmTransactionsToBankLinkOnline
     Top = 147
     Width = 353
     Height = 17
-    Caption = 'Include Chart of Accounts for each Client'
+    Caption = '&Include Chart of Accounts for each Client'
     TabOrder = 2
   end
   object Button1: TButton

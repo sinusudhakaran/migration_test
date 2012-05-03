@@ -22,7 +22,10 @@ type
     procedure Button2Click(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure BtnCalClick(Sender: TObject);
+    procedure FormKeyPress(Sender: TObject; var Key: Char);
   private
+    FExportStatistics: TExportStatistics;
+    
     function ValidateFields: Boolean;
     procedure ExportTaggedAccounts(ProgressForm: ISingleProgressForm);
   public
@@ -35,7 +38,7 @@ var
 implementation
 
 uses
-  OvcDate, ImagesFrm, Globals, StDateSt, GenUtils, RzPopups, StDate, WarningMoreFrm, YesNoDlg, ModalProgressFrm, BanklinkOnlineServices;
+  OvcDate, ImagesFrm, Globals, StDateSt, GenUtils, RzPopups, StDate, WarningMoreFrm, YesNoDlg, ModalProgressFrm, BanklinkOnlineServices, InfoMoreFrm, ErrorMoreFrm;
 
 {$R *.dfm}
 
@@ -89,7 +92,27 @@ begin
   begin
     if AskYesNo('Export data to BankLink Online', 'Are you sure you want to send unsent client transactions to Banklink Online?', Dlg_Yes, 0) = DLG_YES then
     begin
-      TfrmModalProgress.ShowProgress(Self, 'Please wait...', 'Exporting Client Transactions', ExportTaggedAccounts);
+      try
+        if TfrmModalProgress.ShowProgress(Self, 'Please wait...', 'Exporting Client Transactions', ExportTaggedAccounts) = mrOK then
+        begin
+          if FExportStatistics.TransactionsExported > 0 then
+          begin
+            HelpfulInfoMsg('BankLink Practice successfully exported data to BankLink Online up to ' + StDateToDateString(BKDATEFORMAT, edtTransactionsToDate.AsStDate, False) + #10#13 +
+                            IntToStr(FExportStatistics.TransactionsExported) + ' Transaction(s) exported' + #10#13 +
+                            IntToStr(FExportStatistics.AccountsExported) + ' Accpimts(s) exported' + #10#13 +
+                            IntToStr(FExportStatistics.ClientFilesProcessed ) + ' Client files(s) Processed', 0);
+          end
+          else
+          begin
+            HelpfulInfoMsg('BankLink Practice could not find any data up to ' + StDateToDateString(BKDATEFORMAT, edtTransactionsToDate.AsStDate, False) + ' to export to BankLink Online.', 0);  
+          end;
+        end;
+      except
+        on E:Exception do
+        begin
+          
+        end;
+      end;
 
       Close;
     end;
@@ -108,7 +131,7 @@ begin
   ExportOptions.MaxTransactionDate := edtTransactionsToDate.AsStDate;
   ExportOptions.ExportChartOfAccounts := chkExportChartOfAccounts.Checked;
 
-  TBankLinkOnlineTaggingServices.ExportTaggedAccounts(ProductConfigService.CachedPractice, ExportOptions, ProgressForm);
+  TBankLinkOnlineTaggingServices.ExportTaggedAccounts(ProductConfigService.CachedPractice, ExportOptions, ProgressForm, FExportStatistics);
 end;
 
 procedure TfrmTransactionsToBankLinkOnline.FormCreate(Sender: TObject);
@@ -130,6 +153,15 @@ begin
   end;
 
   edtTransactionsToDate.AsStDate := OvcDate.CurrentDate;
+end;
+
+procedure TfrmTransactionsToBankLinkOnline.FormKeyPress(Sender: TObject;
+  var Key: Char);
+begin
+  if Key = Chr(VK_ESCAPE) then
+  begin
+    ModalResult := mrCancel;
+  end;
 end;
 
 class procedure TfrmTransactionsToBankLinkOnline.ShowDialog(Owner: TComponent; PopupParent: TCustomForm);
@@ -154,13 +186,13 @@ begin
 
   if edtTransactionsToDate.AsStDate <= 0 then
   begin
-    HelpfulWarningMsg('You must specify an export date.' + #10#13 + 'Please try again.', 0);
+    HelpfulWarningMsg('Invalid date entered.', 0);
 
     edtTransactionsToDate.SetFocus;
   end
   else if edtTransactionsToDate.AsStDate > CurrentDate then
   begin
-    HelpfulWarningMsg('You cannot specify a future export date.' + #10#13 + 'Please try again.', 0);
+    HelpfulWarningMsg('Invalid date entered.', 0);
 
     edtTransactionsToDate.SetFocus;
   end
