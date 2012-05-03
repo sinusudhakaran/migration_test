@@ -1949,7 +1949,7 @@ var
   ExportOptions: TExportOptions;
 begin
   ExportOptions.MaxTransactionDate := CurrentDate;
-  ExportOptions.ExportChartOfAccounts := True;
+  ExportOptions.ExportChartOfAccounts := not StartupParam_ExcludeCOA;
 
   TBankLinkOnlineTaggingServices.ExportTaggedAccounts(ProductConfigService.CachedPractice, ExportOptions, ProgressForm);
 end;
