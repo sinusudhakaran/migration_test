@@ -69,6 +69,8 @@ const
   MaxClientCodeLength  = 8;
   MaxPWLenght = 8;
   ThisMethodName = 'SetCommandLineParameters';
+  ExcludeCOASwitch = '/EXCLUDECOA';
+  
 var
   i : integer;
   s : string;
@@ -92,7 +94,9 @@ begin
       p := Copy( S, Pos( pwSwitch, S) + Length(pwSwitch), MaxPWLenght);
       if p <> '' then
          Globals.StartupParam_UserPassword := p;
-    end else if Pos( ActionSwitch, S) > 0 then begin
+    end
+    else if Pos( ActionSwitch, S) > 0 then
+    begin
       //Action specified
       p := Copy( S, Pos( ActionSwitch, S) + Length(ActionSwitch), 255);
       if p <> '' then begin
@@ -101,9 +105,14 @@ begin
          end else  if p = 'DOWNLOAD' then begin
             StartupParam_Action := sa_Connect;
          end
-         else if p = 'EXPORTTRANSACTIONS' then
+         else if p = 'EXPORTACCOUNTS' then
            StartupParam_Action := sa_ExportTransactions;
       end;
+    end
+    else
+    if Pos(ExcludeCOASwitch, S) > 0 then
+    begin
+      StartupParam_ExcludeCOA := True;
     end;
   end;
 
