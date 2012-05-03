@@ -86,15 +86,18 @@ var
 begin
   ProgressFrm.Initialize;
 
-  ClientProgressSize := 100 / BankAccount.baTransaction_List.ItemCount;
-  
-  ProgressFrm.UpdateProgressLabel('Clearing sent to BankLink Online');
-  
-  for Index := 0 to BankAccount.baTransaction_List.ItemCount - 1 do
+  if BankAccount.baTransaction_List.ItemCount > 0 then
   begin
-    BankAccount.baTransaction_List.Transaction_At(Index).txTransfered_To_Online := False;  
+    ClientProgressSize := 100 / BankAccount.baTransaction_List.ItemCount;
 
-    ProgressFrm.UpdateProgress(ClientProgressSize);
+    ProgressFrm.UpdateProgressLabel('Clearing sent to BankLink Online');
+
+    for Index := 0 to BankAccount.baTransaction_List.ItemCount - 1 do
+    begin
+      BankAccount.baTransaction_List.Transaction_At(Index).txTransfered_To_Online := False;
+
+      ProgressFrm.UpdateProgress(ClientProgressSize);
+    end;
   end;
 end;
 
@@ -107,20 +110,23 @@ var
 begin
   ProgressFrm.Initialize;
 
-  ClientProgressSize := 100 / Client.clBank_Account_List.ItemCount;
-  
-  ProgressFrm.UpdateProgressLabel('Clearing sent to BankLink Online');
-   
-  for Index := 0 to Client.clBank_Account_List.ItemCount - 1 do
+  if Client.clBank_Account_List.ItemCount > 0 then
   begin
-    BankAccount := Client.clBank_Account_List[Index];
-     
-    for IIndex := 0 to BankAccount.baTransaction_List.ItemCount - 1 do
-    begin
-      BankAccount.baTransaction_List.Transaction_At(Index).txTransfered_To_Online := False;  
-    end;
+    ClientProgressSize := 100 / Client.clBank_Account_List.ItemCount;
 
-    ProgressFrm.UpdateProgress(ClientProgressSize); 
+    ProgressFrm.UpdateProgressLabel('Clearing sent to BankLink Online');
+
+    for Index := 0 to Client.clBank_Account_List.ItemCount - 1 do
+    begin
+      BankAccount := Client.clBank_Account_List[Index];
+
+      for IIndex := 0 to BankAccount.baTransaction_List.ItemCount - 1 do
+      begin
+        BankAccount.baTransaction_List.Transaction_At(Index).txTransfered_To_Online := False;
+      end;
+
+      ProgressFrm.UpdateProgress(ClientProgressSize);
+    end;
   end;
 end;
 
