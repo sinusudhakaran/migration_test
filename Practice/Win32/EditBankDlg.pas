@@ -139,6 +139,7 @@ type
     procedure SetLedgerLabel;
     procedure FillCurrencies;
     procedure LoadAcccountVendors;
+    function SaveAccountVendors : Boolean;
   public
     { Public declarations }
     function Execute : boolean;
@@ -365,7 +366,7 @@ begin
   for AccAvailableIndex := 0 to high(AccountVendors.AccountVendors.Available) do
   begin
     VendorName := AccountVendors.AccountVendors.Available[AccAvailableIndex].Name_;
-    ItemIndex := chkLstAccVendors.Items.Add(VendorName);
+    ItemIndex := chkLstAccVendors.Items.AddObject(VendorName, AccountVendors.AccountVendors.Available[AccAvailableIndex]);
 
     for AccCurrentIndex := 0 to high(AccountVendors.AccountVendors.Current) do
     begin
@@ -377,6 +378,32 @@ begin
       end;
     end;
   end;
+end;
+
+//------------------------------------------------------------------------------
+function TdlgEditBank.SaveAccountVendors: Boolean;
+var
+  ItemIndex : integer;
+  VendorID : TBloGuid;
+  VendorCount : integer;
+  CurrentVendors : TBloArrayOfDataPlatformSubscriber;
+begin
+  VendorCount := 0;
+  SetLength(CurrentVendors, VendorCount);
+
+  for ItemIndex := 0 to chkLstAccVendors.Items.Count-1 do
+  begin
+    if chkLstAccVendors.Checked[ItemIndex] = true then
+    begin
+      inc(VendorCount);
+      SetLength(CurrentVendors, VendorCount);
+
+      CurrentVendors[VendorCount-1] :=
+        TBloDataPlatformSubscriber(chkLstAccVendors.Items.Objects[ItemIndex]);
+    end;
+  end;
+
+  AccountVendors.AccountVendors.Current := CurrentVendors;
 end;
 
 //------------------------------------------------------------------------------
@@ -809,6 +836,10 @@ begin
    
    if okPressed then
    begin
+     if ExportDataEnabled then
+       SaveAccountVendors;
+     
+
      {save values}
      if BankAcct.IsManual then
      begin
