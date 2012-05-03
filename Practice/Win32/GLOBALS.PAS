@@ -301,6 +301,7 @@ var
     StartupParam_UserToLoginAs       : string = '';
     StartupParam_UserPassword        : string = '';
     StartupParam_Action              : Byte = 0;
+    StartupParam_ExcludeCOA          : Boolean = False;
 
 
     ApplicationIsTerminating : boolean = false;
