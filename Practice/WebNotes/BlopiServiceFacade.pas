@@ -12,7 +12,7 @@
 // Encoding : utf-8
 // Codegen  : [wfMapStringsToWideStrings+, wfUseScopedEnumeration-]
 // Version  : 1.0
-// (3/05/2012 12:15:40 p.m. - - $Rev: 25127 $)
+// (3/05/2012 4:00:24 p.m. - - $Rev: 25127 $)
 // ************************************************************************ //
 
 unit BlopiServiceFacade;
@@ -1192,6 +1192,8 @@ type
     function  GetBankAccountDataSubscribers(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const clientId: guid; const bankAccountNumber: WideString): MessageResponseOfDataPlatformSubscription6cY85e5k; stdcall;
     function  SavePracticeDataSubscribers(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const subscription: ArrayOfguid): MessageResponse; stdcall;
     function  SaveClientDataSubscribers(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const clientId: guid; const subscription: ArrayOfguid): MessageResponse; stdcall;
+    function  SaveBankAccountDataSubscribers(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const clientId: guid; const bankAccountNumber: WideString; const subscription: ArrayOfguid
+                                             ): MessageResponse; stdcall;
   end;
 
 function GetIBlopiServiceFacade(UseWSDL: Boolean=System.False; Addr: string=''; HTTPRIO: THTTPRIO = nil): IBlopiServiceFacade;
