@@ -1956,7 +1956,10 @@ end;
 
 procedure TfrmMain.ExportTransactionsToBankLinkOnline;
 begin
-  TfrmModalProgress.ShowProgress(Self, 'Please wait...', 'Exporting Client Transactions', ExportTaggedAccounts);
+  if ProductConfigService.OnLine and ProductConfigService.IsPracticeProductEnabled(ProductConfigService.GetExportDataId, False) then
+  begin
+    TfrmModalProgress.ShowProgress(Self, 'Please wait...', 'Exporting Client Transactions', ExportTaggedAccounts);
+  end;
 end;
 
 procedure TfrmMain.mniBulkClearTransferFlagsClick(Sender: TObject);
