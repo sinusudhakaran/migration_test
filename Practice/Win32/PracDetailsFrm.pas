@@ -122,8 +122,6 @@ type
     tbsBGLSimpleFund: TTabSheet;
     tbsOtherVendors: TTabSheet;
     Label13: TLabel;
-    Label14: TLabel;
-    edtBGLSimpleFundCode: TEdit;
     
     procedure btnOKClick(Sender: TObject);
     procedure btnCancelClick(Sender: TObject);
