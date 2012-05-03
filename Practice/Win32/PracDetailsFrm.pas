@@ -187,6 +187,7 @@ type
     function VendorExportsChanged: Boolean;
     procedure ToggleVendorExportSettings(VendorExportGuid: TBloGuid; Visible: Boolean);
     procedure HideVendorExportSettings;
+    function CanShowDataExportSettings: Boolean;
   public
     { Public declarations }
     function Execute(SelPracticeMan: Boolean) : boolean;
@@ -553,9 +554,23 @@ begin
 
     if UseBankLinkOnline and Assigned(FPracticeVendorExports) then
     begin
-      LoadDataExports(FPracticeVendorExports);
+      if Length(FPracticeVendorExports.Available) > 0 then
+      begin
+        LoadDataExports(FPracticeVendorExports);
+        
+        pnlExportOptions.Visible := True;
 
-      if not tbsDataExport.TabVisible then
+        if not ProductConfigService.IsPracticeProductEnabled(ProductConfigService.GetExportDataId, True) then
+        begin
+          ToggleEnableChildControls(pnlExportOptions, False);
+        end;
+      end
+      else
+      begin
+        pnlExportOptions.Visible := False;
+      end;
+
+      if CanShowDataExportSettings and not tbsDataExport.TabVisible then
       begin
         tbsDataExport.TabVisible := True;
       end;
@@ -595,7 +610,7 @@ begin
     if tbsDataExport.TabVisible then
     begin                                        
       ToggleEnableChildControls(
-        tbsDataExport,
+        pnlExportOptions,
         UseBankLinkOnline and 
         ProductConfigService.OnLine and 
         ProductConfigService.Registered and 
@@ -1070,6 +1085,8 @@ begin
         begin
           HelpfulWarningMsg('To set up this export you must enter the code provided to your practice by Acclipse.  If you do not have a code, please contact Acclipse.', 0);
 
+          PageControl1.ActivePage := tbsDataExport;
+          
           pgcVendorExportOptions.ActivePage := tbsIBizz;
 
           edtAcclipseCode.SetFocus;
@@ -1081,6 +1098,8 @@ begin
         begin
           HelpfulWarningMsg('The Acclipse code you have entered contains illegal characters. Please try again', 0);
 
+          PageControl1.ActivePage := tbsDataExport;
+          
           pgcVendorExportOptions.ActivePage := tbsIBizz;
           
           edtAcclipseCode.SetFocus;
@@ -1095,6 +1114,8 @@ begin
         begin
           HelpfulWarningMsg('To set up this export you must enter the code provided to your practice by BGL Simple Fund.  If you do not have a code, please contact BGL Simple Fund.', 0);
 
+          PageControl1.ActivePage := tbsDataExport;
+          
           pgcVendorExportOptions.ActivePage := tbsBGLSimpleFund;
           
           edtBGLSimpleFundCode.SetFocus;
@@ -1106,6 +1127,8 @@ begin
         begin
           HelpfulWarningMsg('The BGL Simple Fund code you have entered contains illegal characters. Please try again', 0);
 
+          PageControl1.ActivePage := tbsDataExport;
+          
           pgcVendorExportOptions.ActivePage := tbsBGLSimpleFund;
 
           edtBGLSimpleFundCode.SetFocus;
@@ -1299,7 +1322,7 @@ begin
         //Add product
         ProductConfigService.AddProduct(Cat.Id);
 
-        if ProductConfigService.GuidsEqual(Cat.Id, ProductConfigService.GetExportDataId) then
+        if CanShowDataExportSettings then
         begin
           if not tbsDataExport.TabVisible then
           begin
@@ -1307,7 +1330,7 @@ begin
           end
           else
           begin
-            ToggleEnableChildControls(tbsDataExport, True);
+            ToggleEnableChildControls(pnlExportOptions, True);
           end;
         end;
       end
@@ -1320,7 +1343,7 @@ begin
 
         if ProductConfigService.GuidsEqual(Cat.Id, ProductConfigService.GetExportDataId) and tbsDataExport.TabVisible then
         begin
-          ToggleEnableChildControls(tbsDataExport, False);
+          ToggleEnableChildControls(pnlExportOptions, False);
         end;
       end;
     end;
@@ -1395,6 +1418,18 @@ begin
 
   if BrowseFolder( test, 'Select the Default Folder for exporting Tax File to' ) then
     edtSaveTaxTo.Text := test;
+end;
+
+function TfrmPracticeDetails.CanShowDataExportSettings: Boolean;
+begin
+  if Assigned(FPracticeVendorExports) then
+  begin
+    Result := ProductConfigService.IsPracticeProductEnabled(ProductConfigService.GetExportDataId, True) or (Length(FPracticeVendorExports.Current) > 0);
+  end
+  else
+  begin
+    Result := False;
+  end;
 end;
 
 //------------------------------------------------------------------------------
