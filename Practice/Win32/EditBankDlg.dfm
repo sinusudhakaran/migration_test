@@ -326,7 +326,6 @@ object dlgEditBank: TdlgEditBank
           Text = '12345678901234567890'
           OnChange = eContraChange
           OnExit = eContraExit
-          OnKeyDown = eContraKeyDown
           OnKeyPress = eContraKeyPress
           OnKeyUp = eContraKeyUp
         end

@@ -62,14 +62,16 @@ type
     FUpdateRefNeeded: boolean;
     AccountChanged : Boolean;
     CurrencyColumnShowing: boolean;
+
+    function GetAccountIndexOnVendorList(aAccountNumber : string) : integer;
     procedure ShowCurrencyColumn;
     procedure HideCurrencyColumn;
     procedure AddOnlineExportVendors;
+    procedure UpdateLocalVendorList(aAccountVendors : TAccountVendors);
     procedure RefreshBankAccountList;
     function DeleteBankAccount(BankAccount : TBank_Account) :boolean;
     procedure SetUpdateRefNeeded(const Value: boolean);
     procedure UpdateISOCodes;
-    procedure RefreshVendorExports;
 
     {$IFNDEF SmartBooks}
     procedure CreateManualAccount;
@@ -210,25 +212,25 @@ begin
 
   fClientAccVendors := ProductConfigService.GetClientAccountVendors(MyClient.clFields.clCode, AccNumbers);
 
-  {for VendorIndex := 0 to high(fArrayOfVendorsForClient) do
+  for VendorIndex := 0 to high(fClientAccVendors.ClientVendors.Current) do
   begin
     NewColumn := lvBank.Columns.Add;
-    NewColumn.Caption := fArrayOfVendorsForClient[VendorIndex].Name;
+    NewColumn.Caption := fClientAccVendors.ClientVendors.Current[VendorIndex].Name_;
     NewColumn.Width := 120;
 
     if VendorIndex = 0 then
       fOnlineVendorStartCol := NewColumn.Index;
 
-    if VendorIndex = high(fArrayOfVendorsForClient) then
+    if VendorIndex = high(fClientAccVendors.ClientVendors.Current) then
       fOnlineVendorEndCol := NewColumn.Index;
-  end; }
+  end;
 end;
 
 //------------------------------------------------------------------------------
 procedure TfrmMaintainBank.RefreshBankAccountList;
 var
-  NewItem : TListItem;
-  BankAcct  : TBank_Account;
+  NewItem  : TListItem;
+  BankAcct : TBank_Account;
   i : integer;
   CurrencyColumn: TListColumn;
   ColumnStrings: TStrings;
@@ -237,9 +239,6 @@ var
   Found : Boolean;
   SubItemIndex : integer;
 begin
-  //if fExportDataEnabled then
-  //  fArrayOfVendorsForClient := ProductConfigService.GetAvailableVendorsForClient(MyClient.clFields.clCode);
-
   if (MyClient.clFields.clCountry = whUK) and (MyClient.HasForeignCurrencyAccounts) then
   begin
     if not CurrencyColumnShowing then
@@ -295,29 +294,33 @@ begin
         NewItem.SubItems.Add(BankAcct.baFields.baContra_Account_Code);
       end;
 
-      {if fExportDataEnabled then
+      if (fExportDataEnabled) then
       begin
-        ArrayOfVendorsForAccount := ProductConfigService.GetAvailableVendorsForAccount(BankAcct.baFields.baBank_Account_Number);
-
-        for ClientVendorIndex := 0 to High(fArrayOfVendorsForClient) do
+        
+        for ClientVendorIndex := 0 to high(fClientAccVendors.ClientVendors.Current) do
         begin
-          Found := False;
-          for AccountVendorIndex := 0 to High(ArrayOfVendorsForAccount) do
+          if (not BankAcct.baFields.baIs_A_Manual_Account) and
+             (not (BankAcct.baFields.baAccount_Type in [sbtProvisional])) then
           begin
-            if fArrayOfVendorsForClient[ClientVendorIndex].id =
-              ArrayOfVendorsForAccount[AccountVendorIndex].id then
+            Found := False;
+            for AccountVendorIndex := 0 to High(fClientAccVendors.AccountsVendors[i].AccountVendors.Current) do
             begin
-              Found := True;
-              break;
+              if fClientAccVendors.AccountsVendors[i].AccountVendors.Current[AccountVendorIndex].Id =
+                 fClientAccVendors.ClientVendors.Current[ClientVendorIndex].Id then
+              begin
+                Found := True;
+                break;
+              end;
             end;
-          end;
-
-          if Found then
-            SubItemIndex := NewItem.SubItems.Add('1')
+            if Found then
+              SubItemIndex := NewItem.SubItems.Add('1')
+            else
+              SubItemIndex := NewItem.SubItems.Add('0');
+          end  
           else
             SubItemIndex := NewItem.SubItems.Add('0');
         end;
-      end;}
+      end;
     end;
 
   finally
@@ -329,11 +332,6 @@ begin
     lvBank.selected := lvBank.items[0];
     lvBank.selected.Focused := true;
   end;
-end;
-
-procedure TfrmMaintainBank.RefreshVendorExports;
-begin
-
 end;
 
 //------------------------------------------------------------------------------
@@ -578,6 +576,7 @@ procedure TfrmMaintainBank.tbEditClick(Sender: TObject);
 var
   B: TBank_Account;
   Result: Boolean;
+  AccIndex : integer;
 begin
   if lvBank.Selected <> nil then
   begin
@@ -585,7 +584,8 @@ begin
     if B.IsManual then // a/c number may of changed - need to re-insert in the correct position
        MyClient.clBank_Account_List.Delete(B);
 
-    Result := EditBankAccount(B);
+    AccIndex := GetAccountIndexOnVendorList(B.baFields.baBank_Account_Number);
+    Result := EditBankAccount(B, fClientAccVendors.AccountsVendors[AccIndex]);
 
     if B.IsManual then
        MyClient.clBank_Account_List.Insert(B);
@@ -714,6 +714,7 @@ var
   aMsg                  : string;
   AllowUnlimitedDate    : boolean;
   ExpiryDate, ED, TD    : integer;
+  DummyAccVendor        : TAccountVendors;
 begin
   if MDEExpired(MyClient.clBank_Account_List, MyClient.clFields.clLast_Use_Date) then
   begin
@@ -769,7 +770,7 @@ begin
    end;
 
    //call add dummy account
-   if EditBankAccount( DummyAccount, True) then begin
+   if EditBankAccount( DummyAccount, DummyAccVendor, True) then begin
       //if user did not cancel add account to client
       MyClient.clBank_Account_List.Insert( DummyAccount);
       //Update ISO Codes in Client_File_Rec
@@ -842,11 +843,42 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+procedure TfrmMaintainBank.UpdateLocalVendorList(aAccountVendors: TAccountVendors);
+var
+  AccountIndex : integer;
+begin
+  for AccountIndex := 0 to high(fClientAccVendors.AccountsVendors) do
+  begin
+    if fClientAccVendors.AccountsVendors[AccountIndex].AccountNumber =
+       aAccountVendors.AccountNumber then
+    begin
+      fClientAccVendors.AccountsVendors[AccountIndex] := aAccountVendors;
+      Exit;
+    end;
+  end;
+end;
+
+//------------------------------------------------------------------------------
 procedure TfrmMaintainBank.FormShow(Sender: TObject);
 begin
   RefreshBankAccountList;
 
   lvBankColumnClick(lvBank, lvBank.Columns[0]); // force sort by number
+end;
+
+function TfrmMaintainBank.GetAccountIndexOnVendorList(aAccountNumber: string): integer;
+var
+  AccountIndex : integer;
+begin
+  Result := -1;
+  for AccountIndex := 0 to high(fClientAccVendors.AccountsVendors) do
+  begin
+    if aAccountNumber = fClientAccVendors.AccountsVendors[AccountIndex].AccountNumber then
+    begin
+      Result := AccountIndex;
+      Exit;
+    end;
+  end;
 end;
 
 //------------------------------------------------------------------------------

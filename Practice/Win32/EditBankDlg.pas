@@ -3,10 +3,29 @@ unit EditBankDlg;
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  StdCtrls, Buttons, OvcBase, OvcEF, OvcPB, OvcNF, baObj32, OvcPF,
-  Mask, ExtCtrls, ComCtrls,
-  OsFont, VirtualTrees, CheckLst;
+  Windows,
+  Messages,
+  SysUtils,
+  Classes,
+  Graphics,
+  Controls,
+  Forms,
+  Dialogs,
+  StdCtrls,
+  Buttons,
+  OvcBase,
+  OvcEF,
+  OvcPB,
+  OvcNF,
+  baObj32,
+  OvcPF,
+  Mask,
+  ExtCtrls,
+  ComCtrls,
+  OsFont,
+  VirtualTrees,
+  CheckLst,
+  BankLinkOnlineServices;
 
 type
   //Node data record
@@ -93,8 +112,6 @@ type
     procedure nBalanceKeyDown(Sender: TObject; var Key: Word;
       Shift: TShiftState);
     procedure nBalanceChange(Sender: TObject);
-    procedure eContraKeyDown(Sender: TObject; var Key: Word;
-      Shift: TShiftState);
     procedure eContraChange(Sender: TObject);
     procedure eContraKeyPress(Sender: TObject; var Key: Char);
     procedure eContraKeyUp(Sender: TObject; var Key: Word;
@@ -113,6 +130,8 @@ type
     LastTrxDate,
     FirstTrxDate : integer;
     LedgerCode: shortString;
+    fExportDataEnabled : Boolean;
+    fAccountVendors : TAccountVendors;
 
     procedure SetAddNew(Value: Boolean);
     procedure DoList;
@@ -124,16 +143,19 @@ type
     { Public declarations }
     function Execute : boolean;
     property AddNew: Boolean write SetAddNew;
+    property ExportDataEnabled : Boolean read fExportDataEnabled write fExportDataEnabled;
+    property AccountVendors : TAccountVendors read fAccountVendors write fAccountVendors;
   end;
 
 {$IFDEF SmartBooks}
   function AddBankAccount : Boolean;
 {$ENDIF}
 
-  function EditBankAccount(aBankAcct : TBank_Account; IsNew: Boolean = False) : boolean;
+  function EditBankAccount(aBankAcct : TBank_Account; var aAccountVendors : TAccountVendors; IsNew: Boolean = False) : boolean;
 
-//******************************************************************************
+//------------------------------------------------------------------------------
 implementation
+{$R *.DFM}
 
 uses
   ClassSuperIP,
@@ -162,10 +184,7 @@ uses
   bkXPThemes,
   baUtils,
   YesNoDlg,
-  DesktopSuper_Utils,
-  BankLinkOnlineServices;
-
-{$R *.DFM}
+  DesktopSuper_Utils;
 
 const
   GMargin = 10;
@@ -173,6 +192,7 @@ const
   BAL_OVERDRAWN = 1;
   BAL_UNKNOWN = 2;
 
+//------------------------------------------------------------------------------
 procedure TdlgEditBank.SetAddNew(Value: Boolean);
 begin
   if Value then
@@ -181,6 +201,7 @@ begin
     Caption := 'Edit Bank Account Details';
   FAddNew := Value;
 end;
+
 //------------------------------------------------------------------------------
 procedure TdlgEditBank.DoList;
 var s : string;
@@ -189,6 +210,7 @@ begin
    if PickAccount(s) then eContra.text := s;
    eContra.Refresh;
 end;
+
 //------------------------------------------------------------------------------
 procedure TdlgEditBank.FillCurrencies;
 var
@@ -219,6 +241,7 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 procedure TdlgEditBank.FormCreate(Sender: TObject);
 var
   i: Integer;
@@ -255,6 +278,7 @@ begin
 
   SetUpHelp;
 end;
+
 //------------------------------------------------------------------------------
 procedure TdlgEditBank.SetUpHelp;
 begin
@@ -314,12 +338,14 @@ begin
                     'Choose the Account Type|' +
                     'Choose the Account Type';
 end;
+
 //------------------------------------------------------------------------------
 procedure TdlgEditBank.sbtnChartClick(Sender: TObject);
 begin
   DoList;
   eContra.setFocus;
 end;
+
 //------------------------------------------------------------------------------
 procedure TdlgEditBank.FormKeyUp(Sender: TObject; var Key: Word;
   Shift: TShiftState);
@@ -331,28 +357,26 @@ end;
 //------------------------------------------------------------------------------
 procedure TdlgEditBank.LoadAcccountVendors;
 var
-  ClientVendorIndex : integer;
-  AccountVendorIndex : integer;
-
   ItemIndex : Integer;
+  AccAvailableIndex : integer;
+  AccCurrentIndex : integer;
+  VendorName : String;
 begin
-  {ArrayOfVendorsForClient  := ProductConfigService.GetAvailableVendorsForClient(MyClient.clFields.clCode);
-  ArrayOfVendorsForAccount := ProductConfigService.GetAvailableVendorsForAccount(BankAcct.baFields.baBank_Account_Number);
-
-  for ClientVendorIndex := 0 to high(ArrayOfVendorsForClient) do
+  for AccAvailableIndex := 0 to high(AccountVendors.AccountVendors.Available) do
   begin
-    ItemIndex := chkLstAccVendors.Items.Add(ArrayOfVendorsForClient[ClientVendorIndex].Name);
+    VendorName := AccountVendors.AccountVendors.Available[AccAvailableIndex].Name_;
+    ItemIndex := chkLstAccVendors.Items.Add(VendorName);
 
-    for AccountVendorIndex := 0 to high(ArrayOfVendorsForAccount) do
+    for AccCurrentIndex := 0 to high(AccountVendors.AccountVendors.Current) do
     begin
-      if ArrayOfVendorsForClient[ClientVendorIndex].ID =
-         ArrayOfVendorsForAccount[AccountVendorIndex].ID then
+      if AccountVendors.AccountVendors.Available[AccAvailableIndex].id =
+         AccountVendors.AccountVendors.Current[AccCurrentIndex].id then
       begin
         chkLstAccVendors.Checked[ItemIndex] := true;
         break;
       end;
     end;
-  end; }
+  end;
 end;
 
 //------------------------------------------------------------------------------
@@ -361,6 +385,8 @@ begin
   okPressed := false;
   close;
 end;
+
+//------------------------------------------------------------------------------
 procedure TdlgEditBank.btnLedgerIDClick(Sender: TObject);
 begin
   case MyClient.clFields.clAccounting_System_Used of
@@ -383,6 +409,7 @@ begin
     Close;
   end;
 end;
+
 //------------------------------------------------------------------------------
 function TdlgEditBank.OKtoPost: boolean;
 var
@@ -467,6 +494,7 @@ begin
 
   result := true;
 end;
+
 //------------------------------------------------------------------------------
 procedure TdlgEditBank.sbCalcClick(Sender: TObject);
 begin
@@ -483,6 +511,7 @@ begin
     nCalcBal.SetFocus;
   end;
 end;
+
 //------------------------------------------------------------------------------
 procedure TdlgEditBank.btnUpdateClick(Sender: TObject);
 begin
@@ -498,6 +527,7 @@ procedure TdlgEditBank.eDateFromError(Sender: TObject; ErrorCode: Word;
 begin
   ShowDateError(Sender);
 end;
+
 //------------------------------------------------------------------------------
 procedure TdlgEditBank.btnCalcClick(Sender: TObject);
 //need to calculate the balance from a given date - just run through all trans adding up
@@ -545,30 +575,28 @@ begin
 
    nCalculated.AsFloat := Abs(Money2Double(Amt));
 end;
+
 //------------------------------------------------------------------------------
 procedure TdlgEditBank.nCalcBalKeyDown(Sender: TObject; var Key: Word;
   Shift: TShiftState);
 begin
   if (key = vk_subtract) or (key = 189) then key := 0;  {ignore minus key}
 end;
+
 //------------------------------------------------------------------------------
 procedure TdlgEditBank.nBalanceKeyDown(Sender: TObject; var Key: Word;
   Shift: TShiftState);
 begin
   if (key = vk_subtract) or (key = 189) then key := 0;  {ignore minus key}
 end;
+
 //------------------------------------------------------------------------------
 procedure TdlgEditBank.nBalanceChange(Sender: TObject);
 begin
   if (cmbBalance.ItemIndex = BAL_UNKNOWN) and (nBalance.asFloat <> 0) then
     cmbBalance.ItemIndex := BAL_INFUNDS;
 end;
-//------------------------------------------------------------------------------
-procedure TdlgEditBank.eContraKeyDown(Sender: TObject; var Key: Word;
-  Shift: TShiftState);
-begin
 
-end;
 //------------------------------------------------------------------------------
 procedure TdlgEditBank.eContraChange(Sender: TObject);
 var
@@ -603,6 +631,7 @@ begin
     eContra.Color      := clRed;
   end;
 end;
+
 //------------------------------------------------------------------------------
 procedure TdlgEditBank.eContraKeyPress(Sender: TObject; var Key: Char);
 begin
@@ -610,8 +639,9 @@ begin
   begin
     key := #0;
     PickCodeForEdit(Sender);
- end;
+  end;
 end;
+
 //------------------------------------------------------------------------------
 procedure TdlgEditBank.eContraKeyUp(Sender: TObject; var Key: Word;
   Shift: TShiftState);
@@ -624,6 +654,7 @@ begin
     bkMaskUtils.CheckForMaskChar(eContra,RemovingMask);
 
 end;
+
 //------------------------------------------------------------------------------
 function TdlgEditBank.Execute: boolean;
 var
@@ -768,12 +799,8 @@ begin
       lblLedgerID.Visible := False;
    end;
 
-   tbBankLinkOnline.Visible := ProductConfigService.OnLine and
-                               ProductConfigService.IsPracticeProductEnabled(ProductConfigService.GetExportDataId, False) and
-                               (not BankAcct.baFields.baIs_A_Manual_Account) and
-                               (not (BankAcct.baFields.baAccount_Type in [sbtProvisional]));
-
-   if tbBankLinkOnline.Visible then
+   tbBankLinkOnline.Visible := ExportDataEnabled;
+   if ExportDataEnabled then
      LoadAcccountVendors;
 
    ///////////////////////
@@ -850,9 +877,9 @@ begin
    end;
    result := okPressed;
 end;
-//------------------------------------------------------------------------------
 
-function EditBankAccount( aBankAcct : TBank_Account; IsNew: Boolean = False) : boolean;
+//------------------------------------------------------------------------------
+function EditBankAccount( aBankAcct : TBank_Account; var aAccountVendors : TAccountVendors; IsNew: Boolean = False) : boolean;
 var
   MyDlg : tdlgEditBank;
 begin
@@ -869,13 +896,22 @@ begin
       BKHelpSetUp(MyDlg, BKH_Edit_bank_account_details);
     MyDlg.BankAcct := aBankAcct;
     MyDlg.AddNew := IsNew;
+    MyDlg.ExportDataEnabled := (ProductConfigService.OnLine and
+                               ProductConfigService.IsPracticeProductEnabled(ProductConfigService.GetExportDataId, False)) and
+                               (not aBankAcct.baFields.baIs_A_Manual_Account) and
+                               (not (aBankAcct.baFields.baAccount_Type in [sbtProvisional]));
+
+    MyDlg.AccountVendors := aAccountVendors;
     result := MyDlg.Execute;
+
+    if Result then
+      aAccountVendors := MyDlg.AccountVendors;
   finally
     MyDlg.Free;
   end;
 end;
-//------------------------------------------------------------------------------
 
+//------------------------------------------------------------------------------
 {$IFDEF SmartBooks}
 function AddBankAccount : Boolean;
 //This function is used by SmartBooks to allow users to add new Bank Account
@@ -917,8 +953,8 @@ begin
    end;
 end;
 {$ENDIF}
-//------------------------------------------------------------------------------
 
+//------------------------------------------------------------------------------
 procedure TdlgEditBank.btnAdvancedClick(Sender: TObject);
 const
    ThisMethodName = 'AdvancedBankAccountOptions';
@@ -956,17 +992,20 @@ begin
    end;
 end;
 
+//------------------------------------------------------------------------------
 procedure TdlgEditBank.eContraExit(Sender: TObject);
 begin
   if not MyClient.clChart.CodeIsThere(eContra.Text) then
     bkMaskUtils.CheckRemoveMaskChar(eContra,RemovingMask);
 end;
 
+//------------------------------------------------------------------------------
 procedure TdlgEditBank.eNumberExit(Sender: TObject);
 begin
   (Sender as TEdit).Text := Trim((Sender as TEdit).Text);
 end;
 
+//------------------------------------------------------------------------------
 procedure TdlgEditBank.SetLedgerLabel;
 var lDesc: string;
 begin

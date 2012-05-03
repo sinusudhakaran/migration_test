@@ -360,7 +360,8 @@ uses
    BKDEFS,
    //SelectJournalDlg,
    ReportImages,
-   AuditMgr;
+   AuditMgr,
+   BankLinkOnlineServices;
 
 const
 
@@ -960,6 +961,7 @@ end;
 procedure TCHAccountItem.EditAccount(Sender: TObject);
 var
   B: TBank_Account;
+  DummyAccVendor : TAccountVendors;
 begin
    GetBankaccount;
    if Assigned(FAccount) then
@@ -967,7 +969,7 @@ begin
      B := FAccount;
      if B.IsManual then // a/c number may of changed (for manual accounts) - need to re-insert in the correct position
        FClient.clBank_Account_List.Delete(B);
-     EditBankAccount(FAccount, False);
+     EditBankAccount(FAccount, DummyAccVendor, False);
      if B.IsManual then
        FClient.clBank_Account_List.Insert(B);
 

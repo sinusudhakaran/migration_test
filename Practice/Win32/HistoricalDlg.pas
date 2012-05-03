@@ -55,7 +55,8 @@ uses
   ColFmtListObj, baObj32, BKOvcTable, TxUl, BkDefs,
   Menus, OvcTCCBx, OvcPF, ActnList, CheqCollectionObj,
   jpeg, RzPanel, RzButton, MoneyDef, ovctcbmp, ovctcgly, ovctcbox,
-  OsFont;
+  OsFont,
+  BankLinkOnlineServices;
 
 const
     //Entry type indentifiers
@@ -4670,6 +4671,7 @@ function AddManualData : boolean;
 var
   SelectedBA: TBank_Account;
   R: Boolean;
+  DummyAccVendor : TAccountVendors;
 begin
    Result := false;
 
@@ -4717,7 +4719,7 @@ begin
           exit;
 
      MyClient.clBank_Account_List.Delete(SelectedBA);
-     R := EditBankAccount(SelectedBA);
+     R := EditBankAccount(SelectedBA, DummyAccVendor);
      //Must be a manual bank account so that the Audit ID is not overwritten
      //when it's inserted into the list.
      SelectedBA.baFields.baIs_A_Manual_Account := True;
