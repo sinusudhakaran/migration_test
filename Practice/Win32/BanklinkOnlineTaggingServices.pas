@@ -25,7 +25,22 @@ type
   
   TBanklinkOnlineTaggingServices = class
   private
-    class procedure ExportTaggedClientsToXML(ParentNode: IXMLNode; ExportOptions: TExportOptions; ProgressForm: ISingleProgressForm; ExportedClients: TStrings; out ExportStatistics: TExportStatistics); static;
+    type
+      TExportedClient = class
+      strict private
+        FClientCode: String;
+        FTransactionsExported: Integer;
+        FAccountsExported: Integer;
+      public
+        constructor Create(const ClientCode: String; ExportedAccounts, ExportedTransactions: Integer);
+         
+        property ClientCode: String read FClientCode;
+        property TransactionsExports: Integer read FTransactionsExported;
+        property AccountsExported: Integer read FAccountsExported;
+      end;
+
+  private
+    class procedure ExportTaggedClientsToXML(ParentNode: IXMLNode; ExportOptions: TExportOptions; ProgressForm: ISingleProgressForm; ExportedClients: TObjectList); static;
     class procedure ClientToXML(ParentNode: IXMLNode; Client: TClientObj; MaxTransactionDate: TStDate; out AccountsExported, TransactionsExported: Integer); static;
     class function BankAccountToXML(ParentNode: IXMLNode; BankAccount: TBank_Account; MaxTransactionDate: TStDate): Integer; static;
     class procedure ChartToXML(ParentNode: IXMLNode; ChartOfAccounts: TChart); static;
@@ -52,7 +67,7 @@ type
 implementation
 
 uses
-  Files, Globals, ErrorMoreFrm;
+  Files, Globals, ErrorMoreFrm, LogUtil;
 
 { TBanklinkOnlineServices }
 
@@ -171,7 +186,7 @@ var
   Index: Integer;
   CompressedXml: String;
   Client: TClientObj;
-  ClientList: TStringList;
+  ClientList: TObjectList;
   TaggedAccounts: array of TTaggedAccount;
   ClientProgressSize: Double;
 begin
@@ -181,7 +196,7 @@ begin
   
   if AdminSystem.fdSystem_Client_File_List.ItemCount > 0 then
   begin
-    ClientList := TStringList.Create;
+    ClientList := TObjectList.Create(True);
 
     try
       XMLDocument := XMLDoc.NewXMLDocument;
@@ -202,12 +217,12 @@ begin
     
       ProgressForm.UpdateProgress(10);
 
-      ExportTaggedClientsToXML(RootNode, ExportOptions, ProgressForm, ClientList, Statistics);
+      ExportTaggedClientsToXML(RootNode, ExportOptions, ProgressForm, ClientList);
+
+      ProgressForm.ToggleCancelEnabled(False);
 
       if not ProgressForm.Cancelled then
       begin
-        ProgressForm.ToggleCancelEnabled(False);
-
         ProgressForm.UpdateProgressLabel('Sending transactions to Banklink Online');
 
         //Zip the xml to reduce the size of the packet sent
@@ -228,7 +243,7 @@ begin
 
           for Index := 0 to ClientList.Count -1 do
           begin
-            OpenAClient(AdminSystem.fdSystem_Client_File_List.Client_File_At(Index).cfFile_Code, Client, True);
+            OpenAClient(TExportedClient(ClientList[Index]).ClientCode, Client, True);
 
             if Assigned(Client) then
             begin
@@ -250,7 +265,7 @@ begin
   end;
 end;
 
-class procedure TBanklinkOnlineTaggingServices.ExportTaggedClientsToXML(ParentNode: IXMLNode; ExportOptions: TExportOptions; ProgressForm: ISingleProgressForm; ExportedClients: TStrings; out ExportStatistics: TExportStatistics);
+class procedure TBanklinkOnlineTaggingServices.ExportTaggedClientsToXML(ParentNode: IXMLNode; ExportOptions: TExportOptions; ProgressForm: ISingleProgressForm; ExportedClients: TObjectList);
 var
   ClientProgressSize: Double;
   Client: TClientObj;
@@ -270,7 +285,14 @@ begin
 
       if not ProgressForm.Cancelled then
       begin
-        OpenAClientForRead(AdminSystem.fdSystem_Client_File_List.Client_File_At(Index).cfFile_Code, Client);
+        try
+          OpenAClientForRead(AdminSystem.fdSystem_Client_File_List.Client_File_At(Index).cfFile_Code, Client);
+        except
+          on E:Exception do
+          begin
+            
+          end;
+        end;
 
         if Assigned(Client) then
         begin
@@ -290,12 +312,12 @@ begin
                   ChartToXML(ParentNode, Client.clChart);
                 end;
 
-                ExportedClients.Add(Client.clFields.clCode);
-
-                ExportStatistics.ClientFilesProcessed := ExportStatistics.ClientFilesProcessed + 1;
-                ExportStatistics.AccountsExported := ExportStatistics.AccountsExported + AccountsExported;
-                ExportStatistics.TransactionsExported := ExportStatistics.TransactionsExported + TransactionsExported;
+                ExportedClients.Add(TExportedClient.Create(Client.clFields.clCode, AccountsExported, TransactionsExported));
               end;
+            end
+            else
+            begin
+            
             end;
           finally
             FreeAndNil(Client);
@@ -480,6 +502,15 @@ begin
       Break;
     end;
   end;
+end;
+
+{ TBanklinkOnlineTaggingServices.TExportedClient }
+
+constructor TBanklinkOnlineTaggingServices.TExportedClient.Create(const ClientCode: String; ExportedAccounts, ExportedTransactions: Integer);
+begin
+  FClientCode := ClientCode;
+  FAccountsExported := ExportedAccounts;
+  FTransactionsExported := ExportedTransactions;
 end;
 
 end.
