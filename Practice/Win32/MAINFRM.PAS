@@ -1947,11 +1947,12 @@ end;
 procedure TfrmMain.ExportTaggedAccounts(ProgressForm: ISingleProgressForm);
 var
   ExportOptions: TExportOptions;
+  ExportStatistics: TExportStatistics;
 begin
   ExportOptions.MaxTransactionDate := CurrentDate;
   ExportOptions.ExportChartOfAccounts := not StartupParam_ExcludeCOA;
 
-  TBankLinkOnlineTaggingServices.ExportTaggedAccounts(ProductConfigService.CachedPractice, ExportOptions, ProgressForm);
+  TBankLinkOnlineTaggingServices.ExportTaggedAccounts(ProductConfigService.CachedPractice, ExportOptions, ProgressForm, ExportStatistics);
 end;
 
 procedure TfrmMain.ExportTransactionsToBankLinkOnline;
