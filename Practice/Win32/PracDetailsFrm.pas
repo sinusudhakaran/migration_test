@@ -1424,7 +1424,7 @@ function TfrmPracticeDetails.CanShowDataExportSettings: Boolean;
 begin
   if Assigned(FPracticeVendorExports) then
   begin
-    Result := ProductConfigService.IsPracticeProductEnabled(ProductConfigService.GetExportDataId, True) or (Length(FPracticeVendorExports.Current) > 0);
+    Result := ProductConfigService.IsPracticeProductEnabled(ProductConfigService.GetExportDataId, True);
   end
   else
   begin
