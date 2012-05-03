@@ -54,6 +54,10 @@ object frmPracticeDetails: TfrmPracticeDetails
     object tbsDetails: TTabSheet
       Caption = 'Details'
       OnShow = tbsDetailsShow
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       DesignSize = (
         609
         359)
@@ -263,6 +267,10 @@ object frmPracticeDetails: TfrmPracticeDetails
       Caption = 'Accounting System'
       ImageIndex = 1
       OnShow = tbsInterfacesShow
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object gbxClientDefault: TGroupBox
         Left = 8
         Top = 4
@@ -325,7 +333,7 @@ object frmPracticeDetails: TfrmPracticeDetails
           Width = 316
           Height = 21
           Style = csDropDownList
-          ItemHeight = 13
+          ItemHeight = 0
           Sorted = True
           TabOrder = 0
           OnChange = cmbSystemChange
@@ -381,7 +389,7 @@ object frmPracticeDetails: TfrmPracticeDetails
           Width = 322
           Height = 21
           Style = csDropDownList
-          ItemHeight = 13
+          ItemHeight = 0
           Sorted = True
           TabOrder = 0
         end
@@ -423,7 +431,7 @@ object frmPracticeDetails: TfrmPracticeDetails
           Width = 322
           Height = 21
           Style = csDropDownList
-          ItemHeight = 13
+          ItemHeight = 0
           Sorted = True
           TabOrder = 0
           OnChange = cmbTaxInterfaceChange
@@ -442,6 +450,10 @@ object frmPracticeDetails: TfrmPracticeDetails
     object tsSuperFundSystem: TTabSheet
       Caption = 'Superfund System'
       ImageIndex = 2
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object gbxSuperSystem: TGroupBox
         Left = 8
         Top = 4
@@ -504,7 +516,7 @@ object frmPracticeDetails: TfrmPracticeDetails
           Width = 316
           Height = 21
           Style = csDropDownList
-          ItemHeight = 13
+          ItemHeight = 0
           Sorted = True
           TabOrder = 0
           OnChange = cmbSuperSystemChange
@@ -544,6 +556,10 @@ object frmPracticeDetails: TfrmPracticeDetails
     object tbsPracticeManagementSystem: TTabSheet
       Caption = 'Practice Management System'
       ImageIndex = 3
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object gbxPracticeManagementSystem: TGroupBox
         Left = 8
         Top = 4
@@ -564,7 +580,7 @@ object frmPracticeDetails: TfrmPracticeDetails
           Width = 316
           Height = 21
           Style = csDropDownList
-          ItemHeight = 13
+          ItemHeight = 0
           Sorted = True
           TabOrder = 0
           OnChange = cmbSuperSystemChange
@@ -670,6 +686,10 @@ object frmPracticeDetails: TfrmPracticeDetails
     object tbsDataExport: TTabSheet
       Caption = 'Data Export Settings'
       ImageIndex = 5
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object Label12: TLabel
         Left = 16
         Top = 20
@@ -711,6 +731,10 @@ object frmPracticeDetails: TfrmPracticeDetails
           object tbsBGLSimpleFund: TTabSheet
             Caption = 'BGL Simple Fund'
             ImageIndex = 1
+            ExplicitLeft = 0
+            ExplicitTop = 0
+            ExplicitWidth = 0
+            ExplicitHeight = 0
             object Label14: TLabel
               Left = 5
               Top = 21
@@ -728,6 +752,10 @@ object frmPracticeDetails: TfrmPracticeDetails
           end
           object tbsIBizz: TTabSheet
             Caption = 'iBizz'
+            ExplicitLeft = 0
+            ExplicitTop = 0
+            ExplicitWidth = 0
+            ExplicitHeight = 0
             object lblAcclipseCode: TLabel
               Left = 5
               Top = 21
@@ -746,6 +774,10 @@ object frmPracticeDetails: TfrmPracticeDetails
           object tbsOtherVendors: TTabSheet
             Caption = 'Other Vendors'
             ImageIndex = 2
+            ExplicitLeft = 0
+            ExplicitTop = 0
+            ExplicitWidth = 0
+            ExplicitHeight = 0
             object Label13: TLabel
               Left = 5
               Top = 21

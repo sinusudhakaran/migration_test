@@ -1056,7 +1056,7 @@ begin
   //Save BankLink Online settings
   UseBankLinkOnline := ckUseBankLinkOnline.Checked;
 
-  if UseBankLinkOnline and (ProductConfigService.PracticeChanged or VendorExportsChanged) then
+  if UseBankLinkOnline and (ProductConfigService.PracticeChanged or (VendorExportsChanged and ProductConfigService.IsPracticeProductEnabled(ProductConfigService.GetExportDataId, True))) then
   begin
     aMsg := 'Changing the BankLink Online products and services that are available ' +
             'for this practice will affect how client files can be individually setup ' +
