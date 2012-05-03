@@ -24,7 +24,7 @@ type
   end;
   
   TBanklinkOnlineTaggingServices = class
-  private
+  strict private
     type
       TExportedClient = class
       strict private
@@ -40,14 +40,16 @@ type
       end;
 
   private
-    class procedure ExportTaggedClientsToXML(ParentNode: IXMLNode; ExportOptions: TExportOptions; ProgressForm: ISingleProgressForm; ExportedClients: TObjectList); static;
-    class procedure ClientToXML(ParentNode: IXMLNode; Client: TClientObj; MaxTransactionDate: TStDate; out AccountsExported, TransactionsExported: Integer); static;
-    class function BankAccountToXML(ParentNode: IXMLNode; Client: TClientObj; BankAccount: TBank_Account; MaxTransactionDate: TStDate): Integer; static;
+    class procedure ClientsToXML(ParentNode: IXMLNode; ExportOptions: TExportOptions; ProgressForm: ISingleProgressForm; ExportedClients: TObjectList); static;    
+    class procedure BankAccountsToXML(ParentNode: IXMLNode; Client: TClientObj; MaxTransactionDate: TStDate; out AccountsExported, TransactionsExported: Integer); static;
+    class function TransactionsToXML(ParentNode: IXMLNode; Client: TClientObj; BankAccount: TBank_Account; MaxTransactionDate: TStDate): Integer; static;
     class procedure ChartToXML(ParentNode: IXMLNode; ChartOfAccounts: TChart); static;
+
     class function IsExportableTransaction(Transaction: pTransaction_Rec; MaxTransactionDate: TStDate = -1): Boolean; static;
     class function IsExportableBankAccount(BankAccount: TBank_Account): Boolean; static;
-    class procedure FlagTransactionsAsSent(Client: TClientObj; MaxTransactionDate: TStDate); static;
     class function HasExportableTransactions(BankAccount: TBank_Account; MaxTransactionDate: TStDate): Boolean; static;
+
+    class procedure FlagTransactionsAsSent(Client: TClientObj; MaxTransactionDate: TStDate); static;
   public
     class procedure UpdateAccountVendors(ClientReadDetail: TBloClientReadDetail; BankAccount: TBank_Account; Vendors: TBloArrayOfGuid); overload; static;  
     class procedure UpdateAccountVendors(ClientReadDetail: TBloClientReadDetail; Client: TClientObj; Vendors: TBloArrayOfGuid; ProgressForm: ISingleProgressForm); overload; static;  
@@ -71,7 +73,7 @@ uses
 
 { TBanklinkOnlineServices }
 
-class function TBanklinkOnlineTaggingServices.BankAccountToXML(ParentNode: IXMLNode; Client: TClientObj; BankAccount: TBank_Account; MaxTransactionDate: TStDate): Integer;
+class function TBanklinkOnlineTaggingServices.TransactionsToXML(ParentNode: IXMLNode; Client: TClientObj; BankAccount: TBank_Account; MaxTransactionDate: TStDate): Integer;
 var
   TransactionIndex: Integer;
   Transaction: pTransaction_Rec;
@@ -108,7 +110,7 @@ begin
   end;
 end;
 
-class procedure TBanklinkOnlineTaggingServices.ClientToXML(ParentNode: IXMLNode; Client: TClientObj; MaxTransactionDate: TStDate; out AccountsExported, TransactionsExported: Integer);
+class procedure TBanklinkOnlineTaggingServices.BankAccountsToXML(ParentNode: IXMLNode; Client: TClientObj; MaxTransactionDate: TStDate; out AccountsExported, TransactionsExported: Integer);
 var
   Index: Integer;
   BankAccount: TBank_Account;
@@ -126,7 +128,7 @@ begin
       //Only delivered accounts can be sent
       if IsExportableBankAccount(BankAccount) and HasExportableTransactions(BankAccount, MaxTransactionDate) then
       begin
-        TempTransExported := BankAccountToXML(ParentNode, Client, BankAccount, MaxTransactionDate);
+        TempTransExported := TransactionsToXML(ParentNode, Client, BankAccount, MaxTransactionDate);
 
         if TempTransExported > 0 then
         begin
@@ -233,7 +235,7 @@ begin
     
       ProgressForm.UpdateProgress(10);
 
-      ExportTaggedClientsToXML(RootNode, ExportOptions, ProgressForm, ClientList);
+      ClientsToXML(RootNode, ExportOptions, ProgressForm, ClientList);
 
       ProgressForm.ToggleCancelEnabled(False);
 
@@ -281,7 +283,7 @@ begin
   end;
 end;
 
-class procedure TBanklinkOnlineTaggingServices.ExportTaggedClientsToXML(ParentNode: IXMLNode; ExportOptions: TExportOptions; ProgressForm: ISingleProgressForm; ExportedClients: TObjectList);
+class procedure TBanklinkOnlineTaggingServices.ClientsToXML(ParentNode: IXMLNode; ExportOptions: TExportOptions; ProgressForm: ISingleProgressForm; ExportedClients: TObjectList);
 var
   ClientProgressSize: Double;
   Client: TClientObj;
@@ -319,7 +321,7 @@ begin
               AccountsExported := 0;
               TransactionsExported := 0;
 
-              ClientToXML(ParentNode, Client, ExportOptions.MaxTransactionDate, AccountsExported, TransactionsExported);
+              BankAccountsToXML(ParentNode, Client, ExportOptions.MaxTransactionDate, AccountsExported, TransactionsExported);
 
               if TransactionsExported > 0 then
               begin
