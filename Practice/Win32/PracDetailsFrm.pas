@@ -169,7 +169,7 @@ type
     FPreviousPage: integer;
     FOnlineSettingsChanged: Boolean;
     FPracticeVendorExports: TBloDataPlatformSubscription;
-
+    FSelectedVendorExports: TBloArrayOfGuid;
 
     procedure SetUpHelp;
     function AddTreeNode(AVST: TCustomVirtualStringTree; ANode:
@@ -181,8 +181,12 @@ type
     procedure SetUpSuper(const SuperfundSystem: Byte);
     procedure SetUpWebExport(const WebExportFormat: Byte);
     procedure LoadPracticeDetails;
+    procedure LoadDataExports(PracticeVendorExports: TBloDataPlatformSubscription);
 
-    procedure ToggleEnableDataExportSettings(Enabled: Boolean);
+    procedure ToggleEnableChildControls(ParentControl: TWinControl; Enabled: Boolean);
+    function VendorExportsChanged: Boolean;
+    procedure ToggleVendorExportSettings(VendorExportGuid: TBloGuid; Visible: Boolean);
+    procedure HideVendorExportSettings;
   public
     { Public declarations }
     function Execute(SelPracticeMan: Boolean) : boolean;
@@ -273,6 +277,14 @@ begin
   ImagesFrm.AppImages.Misc.GetBitmap(MISC_FINDFOLDER_BMP,btnSuperSaveFolder.Glyph);
 
   FPreviousPage := 0;
+end;
+
+procedure TfrmPracticeDetails.HideVendorExportSettings;
+begin
+  pgcVendorExportOptions.Visible := False;
+  tbsBGLSimpleFund.TabVisible := False;
+  tbsIBizz.TabVisible := False;
+  tbsOtherVendors.TabVisible := False;
 end;
 
 //------------------------------------------------------------------------------
@@ -497,28 +509,14 @@ begin
   begin
     if chklistExportTo.Checked[chklistExportTo.ItemIndex] then
     begin
-      ProductConfigService.AddVendorExport(TVendorExport(chklistExportTo.Items.Objects[chklistExportTo.ItemIndex]).Id);
+      ProductConfigService.AddItemToArrayGuid(FSelectedVendorExports, TVendorExport(chklistExportTo.Items.Objects[chklistExportTo.ItemIndex]).Id);
     end
     else
     begin
-      ProductConfigService.RemoveVendorExport(TVendorExport(chklistExportTo.Items.Objects[chklistExportTo.ItemIndex]).Id);
+      ProductConfigService.RemoveItemFromArrayGuid(FSelectedVendorExports, TVendorExport(chklistExportTo.Items.Objects[chklistExportTo.ItemIndex]).Id);
     end;
 
-    if ProductConfigService.GuidsEqual(TVendorExport(chklistExportTo.Items.Objects[chklistExportTo.ItemIndex]).Id, ProductConfigService.GetIBizzExportGuid) then
-    begin
-      tbsIBizz.TabVisible := chklistExportTo.Checked[chklistExportTo.ItemIndex];
-    end
-    else
-    if ProductConfigService.GuidsEqual(TVendorExport(chklistExportTo.Items.Objects[chklistExportTo.ItemIndex]).Id, ProductConfigService.GetBGLExportGuid) then
-    begin
-      tbsBGLSimpleFund.TabVisible := chklistExportTo.Checked[chklistExportTo.ItemIndex];
-    end
-    else
-    begin
-      tbsOtherVendors.TabVisible := chklistExportTo.Checked[chklistExportTo.ItemIndex];
-    end;
-
-    pgcVendorExportOptions.Visible := chklistExportTo.CountCheckedItems > 0;
+    ToggleVendorExportSettings(TVendorExport(chklistExportTo.Items.Objects[chklistExportTo.ItemIndex]).Id, chklistExportTo.Checked[chklistExportTo.ItemIndex]);
   end;
 end;
 
@@ -535,13 +533,14 @@ begin
       UseBankLinkOnline := True;
       FPrac := ProductConfigService.GetPractice(False);
       if (FPrac.id <> '') then begin
-        if ProductConfigService.Registered  then begin
+        if ProductConfigService.Registered  then
+        begin
+          FPracticeVendorExports := ProductConfigService.GetPracticeVendorExports;
+
           //Need the client list for checking if clients are using products before
           //they are removed. Only load if practice details have been received
           //from BankLink Online (not from cache).
           ProductConfigService.LoadClientList;
-
-          FPracticeVendorExports := ProductConfigService.GetPracticeVendorExports;
         end;
       end else
       begin
@@ -551,7 +550,17 @@ begin
       UseBankLinkOnline := False;
 
     LoadPracticeDetails;
-      
+
+    if UseBankLinkOnline and Assigned(FPracticeVendorExports) then
+    begin
+      LoadDataExports(FPracticeVendorExports);
+
+      if not tbsDataExport.TabVisible then
+      begin
+        tbsDataExport.TabVisible := True;
+      end;
+    end;
+
     if ckUseBankLinkOnline.Checked and ProductConfigService.OnLine then
     begin
       //Not registered
@@ -585,7 +594,8 @@ begin
 
     if tbsDataExport.TabVisible then
     begin                                        
-      ToggleEnableDataExportSettings(
+      ToggleEnableChildControls(
+        tbsDataExport,
         UseBankLinkOnline and 
         ProductConfigService.OnLine and 
         ProductConfigService.Registered and 
@@ -643,10 +653,8 @@ begin
   with AdminSystem do
   begin
     tbsDataExport.TabVisible := False;
-    tbsBGLSimpleFund.TabVisible := False;
-    tbsIBizz.TabVisible := False;
-    tbsOtherVendors.TabVisible := False;
-    pgcVendorExportOptions.Visible := False;
+
+    HideVendorExportSettings;
     
     ePracName.Text  := fdFields.fdPractice_Name_for_Reports;
     eBCode.Text     := fdFields.fdBankLink_Code;
@@ -914,6 +922,33 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+function TfrmPracticeDetails.VendorExportsChanged: Boolean;
+var
+  Index: Integer;
+begin
+  Result := False;
+
+  if Assigned(FPracticeVendorExports) then
+  begin
+    if Length(FSelectedVendorExports) = Length(FPracticeVendorExports.Current) then
+    begin
+      for Index := 0 to Length(FPracticeVendorExports.Current) - 1 do
+      begin
+        if FSelectedVendorExports[Index] <> FPracticeVendorExports.Current[Index].Id then
+        begin
+          Result := True;
+
+          Break;
+        end; 
+      end;
+    end
+    else
+    begin
+      Result := True;
+    end;
+  end;
+end;
+
 function TfrmPracticeDetails.VerifyForm: boolean;
 
   function IsValidVendorCode(const Code: String): Boolean;
@@ -948,6 +983,8 @@ var
   PrimaryContact: TBloUserRead;
   ContactName: String;
   ContactEmail: String;
+  ExportItem: Integer;
+  VendorExports: TBloArrayOfGuid;
 begin
   result := false;
 
@@ -1004,7 +1041,7 @@ begin
   //Save BankLink Online settings
   UseBankLinkOnline := ckUseBankLinkOnline.Checked;
 
-  if UseBankLinkOnline and ProductConfigService.PracticeChanged then
+  if UseBankLinkOnline and (ProductConfigService.PracticeChanged or VendorExportsChanged) then
   begin
     aMsg := 'Changing the BankLink Online products and services that are available ' +
             'for this practice will affect how client files can be individually setup ' +
@@ -1019,7 +1056,7 @@ begin
 
     if ProductConfigService.IsPracticeProductEnabled(ProductConfigService.GetExportDataId, True) then
     begin
-      if (chklistExportTo.Count > 0) and (chklistExportTo.CountCheckedItems = 0) and ProductConfigService.VendorExportsChanged then
+      if (chklistExportTo.Count > 0) and (chklistExportTo.CountCheckedItems = 0) and VendorExportsChanged then
       begin
         if YesNoDlg.AskYesNo('Banklink Online Data Export', 'You have not selected a vendor export type.' + #10#13#10#13 + 'Are you sure you want to continue saving?', DLG_YES, 0) = DLG_NO then
         begin
@@ -1027,11 +1064,13 @@ begin
         end;
       end;
       
-      if ProductConfigService.IsVendorExportOptionEnabled(ProductConfigService.GetIBizzExportGuid, True) then
+      if ProductConfigService.IsItemInArrayGuid(FSelectedVendorExports, ProductConfigService.GetIBizzExportGuid) then
       begin
         if edtAcclipseCode.Text = '' then
         begin
           HelpfulWarningMsg('To set up this export you must enter the code provided to your practice by Acclipse.  If you do not have a code, please contact Acclipse.', 0);
+
+          pgcVendorExportOptions.ActivePage := tbsIBizz;
 
           edtAcclipseCode.SetFocus;
               
@@ -1042,18 +1081,22 @@ begin
         begin
           HelpfulWarningMsg('The Acclipse code you have entered contains illegal characters. Please try again', 0);
 
+          pgcVendorExportOptions.ActivePage := tbsIBizz;
+          
           edtAcclipseCode.SetFocus;
               
           Exit;                        
         end;
       end;
 
-      if ProductConfigService.IsVendorExportOptionEnabled(ProductConfigService.GetBGLExportGuid, True) then
+      if ProductConfigService.IsItemInArrayGuid(FSelectedVendorExports, ProductConfigService.GetBGLExportGuid) then
       begin
         if edtBGLSimpleFundCode.Text = '' then
         begin
           HelpfulWarningMsg('To set up this export you must enter the code provided to your practice by BGL Simple Fund.  If you do not have a code, please contact BGL Simple Fund.', 0);
 
+          pgcVendorExportOptions.ActivePage := tbsBGLSimpleFund;
+          
           edtBGLSimpleFundCode.SetFocus;
               
           Exit;
@@ -1062,6 +1105,8 @@ begin
         if not IsValidVendorCode(edtBGLSimpleFundCode.Text) then
         begin
           HelpfulWarningMsg('The BGL Simple Fund code you have entered contains illegal characters. Please try again', 0);
+
+          pgcVendorExportOptions.ActivePage := tbsBGLSimpleFund;
 
           edtBGLSimpleFundCode.SetFocus;
               
@@ -1095,13 +1140,45 @@ begin
           end;
         end;
 
-        if not ProductConfigService.SavePractice then
+        if ProductConfigService.PracticeChanged then
         begin
-          //Don't exit dialog if online settings were not updated
-          if UseBankLinkOnline then
-            Exit;
+          if ProductConfigService.IsPracticeProductEnabled(ProductConfigService.GetExportDataId, True) and VendorExportsChanged then
+          begin
+            if ProductConfigService.SavePractice(True, False) then
+            begin
+              if not ProductConfigService.SavePracticeVendorExports(FSelectedVendorExports) then
+              begin
+                //Don't exit dialog if online settings were not updated
+                if UseBankLinkOnline then
+                  Exit;              
+              end;
+            end
+            else
+            begin
+              //Don't exit dialog if online settings were not updated
+              if UseBankLinkOnline then
+                Exit;
+            end
+          end
+          else
+          if not ProductConfigService.SavePractice(True) then
+          begin
+            //Don't exit dialog if online settings were not updated
+            if UseBankLinkOnline then
+              Exit;
+          end;
+        end
+        else
+        if ProductConfigService.IsPracticeProductEnabled(ProductConfigService.GetExportDataId, True) and VendorExportsChanged then
+        begin
+          if not ProductConfigService.SavePracticeVendorExports(FSelectedVendorExports) then
+          begin
+            //Don't exit dialog if online settings were not updated
+            if UseBankLinkOnline then
+              Exit;
+          end;
         end;
-    
+        
          // Send email to support
         if (NewProducts.Count > 0) or (RemovedProducts.Count > 0) then
         begin
@@ -1230,7 +1307,7 @@ begin
           end
           else
           begin
-            ToggleEnableDataExportSettings(True);
+            ToggleEnableChildControls(tbsDataExport, True);
           end;
         end;
       end
@@ -1243,7 +1320,7 @@ begin
 
         if ProductConfigService.GuidsEqual(Cat.Id, ProductConfigService.GetExportDataId) and tbsDataExport.TabVisible then
         begin
-          ToggleEnableDataExportSettings(False);
+          ToggleEnableChildControls(tbsDataExport, False);
         end;
       end;
     end;
@@ -1339,6 +1416,52 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+procedure TfrmPracticeDetails.LoadDataExports(PracticeVendorExports: TBloDataPlatformSubscription);
+var
+  Index: Integer;
+  IIndex: Integer;
+  VendorSortList: TStringList;
+begin
+  if UseBankLinkOnline then
+  begin
+    chklistExportTo.Clear;
+                                            
+    HideVendorExportSettings;
+        
+    VendorSortList := TStringList.Create;
+
+    try
+      VendorSortList.Sort;
+          
+      for Index := 0 to Length(FPracticeVendorExports.Available) - 1 do
+      begin
+        VendorSortList.AddObject(FPracticeVendorExports.Available[Index].Name_, TVendorExport.Create(FPracticeVendorExports.Available[Index].Id));
+      end;
+
+      for Index := 0 to VendorSortList.Count - 1 do
+      begin
+        chklistExportTo.AddItem(VendorSortList[Index], VendorSortList.Objects[Index]); 
+
+        SetLength(FSelectedVendorExports, Length(FPracticeVendorExports.Current));
+          
+        for IIndex := 0 to Length(FPracticeVendorExports.Current) - 1 do
+        begin
+          if TVendorExport(VendorSortList.Objects[Index]).Id = FPracticeVendorExports.Current[IIndex].Id then
+          begin
+            chklistExportTo.Checked[chklistExportTo.Count -1] := True;
+
+            ToggleVendorExportSettings(FPracticeVendorExports.Current[IIndex].Id, True);
+          end;
+
+          FSelectedVendorExports[IIndex] := FPracticeVendorExports.Current[IIndex].Id;
+        end;
+      end;
+    finally
+      VendorSortList.Free;
+    end;
+  end;
+end;
+
 procedure TfrmPracticeDetails.LoadPracticeDetails;
 var
   i: integer;
@@ -1347,8 +1470,6 @@ var
   ProductNode, ServiceNode: PVirtualNode;
   RoleIndex : integer;
   AdminRollName : WideString;
-  Index: Integer;
-  IIndex: Integer;
 begin
   //Clear
   edtURL.Text := '';
@@ -1416,27 +1537,6 @@ begin
 
       vtProducts.OnCompareNodes := TreeCompare;
       vtProducts.SortTree(0, sdAscending);
-
-      if ProductConfigService.IsPracticeProductEnabled(ProductConfigService.GetExportDataId, True) then
-      begin
-        for Index := 0 to Length(FPracticeVendorExports.Available) - 1 do
-        begin
-          chklistExportTo.AddItem(FPracticeVendorExports.Available[Index].Name_, TVendorExport.Create(FPracticeVendorExports.Available[Index].Id));
-
-          for IIndex := 0 to Length(FPracticeVendorExports.Current) - 1 do
-          begin
-            if FPracticeVendorExports.Available[Index].Id = FPracticeVendorExports.Current[IIndex].Id then
-            begin
-              chklistExportTo.Checked[chklistExportTo.Count -1] := True; 
-            end;
-          end;
-        end;
-
-        if not tbsDataExport.TabVisible then
-        begin
-          tbsDataExport.TabVisible := True;
-        end;
-      end;
     end;
   except
     on E: Exception do begin
@@ -1605,14 +1705,41 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TfrmPracticeDetails.ToggleEnableDataExportSettings(Enabled: Boolean);
+procedure TfrmPracticeDetails.ToggleEnableChildControls(ParentControl: TWinControl; Enabled: Boolean);
 var
   Index: Integer;
 begin
-  for Index := 0 to tbsDataExport.ControlCount - 1 do
+  for Index := 0 to ParentControl.ControlCount - 1 do
   begin
-    tbsDataExport.Controls[Index].Enabled := Enabled;
+    if ParentControl.Controls[Index] is TWinControl then
+    begin
+      if TWinControl(ParentControl.Controls[Index]).ControlCount > 0 then
+      begin
+        ToggleEnableChildControls(TWinControl(ParentControl.Controls[Index]), Enabled);
+      end;
+    end;
+    
+    ParentControl.Controls[Index].Enabled := Enabled;
   end;
+end;
+
+procedure TfrmPracticeDetails.ToggleVendorExportSettings(VendorExportGuid: TBloGuid; Visible: Boolean);
+begin
+  if ProductConfigService.GuidsEqual(VendorExportGuid, ProductConfigService.GetIBizzExportGuid) then
+  begin
+    tbsIBizz.TabVisible := Visible;
+  end
+  else
+  if ProductConfigService.GuidsEqual(VendorExportGuid, ProductConfigService.GetBGLExportGuid) then
+  begin
+    tbsBGLSimpleFund.TabVisible := Visible;
+  end
+  else
+  begin
+    tbsOtherVendors.TabVisible := Visible;
+  end;
+
+  pgcVendorExportOptions.Visible := chklistExportTo.CountCheckedItems > 0;
 end;
 
 procedure TfrmPracticeDetails.TreeCompare(Sender: TBaseVirtualTree; Node1,
