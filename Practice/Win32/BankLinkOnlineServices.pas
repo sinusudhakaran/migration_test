@@ -38,8 +38,9 @@ type
   TBloUserRead              = BlopiServiceFacade.UserRead;
   TBloArrayOfUserRead       = BlopiServiceFacade.ArrayOfUserRead;
 
-  TBloDataPlatformSubscription = BlopiServiceFacade.DataPlatformSubscription;
-  TBloArrayOfDataPlatformSubscriber = BlopiServiceFacade.DataPlatformSubscriber;
+  TBloDataPlatformSubscription      = BlopiServiceFacade.DataPlatformSubscription;
+  TBloArrayOfDataPlatformSubscriber = BlopiServiceFacade.ArrayOfDataPlatformSubscriber;
+  TBloDataPlatformSubscriber        = BlopiServiceFacade.DataPlatformSubscriber;
 
   TAccountVendors = record
     AccountNumber  : WideString;
@@ -307,7 +308,7 @@ type
     function GetClientVendorExports(aClientGuid: TBloGuid) : TBloDataPlatformSubscription;
     function GetClientAccountVendors(aClientCode: string; aAccounts : TBloArrayOfString): TClientAccVendors;
     function GetAccountVendors(aClientGuid : TBloGuid; aAccountNumber: string): TBloDataPlatformSubscription;
-    
+
     function SavePracticeVendorExports(VendorExports: TBloArrayOfGuid; aShowMessage: Boolean = True): Boolean;
 
     property OnLine: Boolean read FOnLine;
