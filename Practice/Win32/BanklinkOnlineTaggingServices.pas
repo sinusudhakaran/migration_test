@@ -348,6 +348,10 @@ begin
           finally
             FreeAndNil(Client);
           end;
+        end
+        else
+        begin
+          LogUtil.LogMsg(lmError, 'BankLinkOnlineTaggingService', 'Client File ' + AdminSystem.fdSystem_Client_File_List.Client_File_At(Index).cfFile_Code + ' could not be exported - The client file could not be opened or does not exist.');
         end;
       end
       else
