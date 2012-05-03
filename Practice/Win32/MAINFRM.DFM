@@ -1593,7 +1593,7 @@ object frmMain: TfrmMain
         end
       end
       object mniExportdatatoBanklinkOnline: TMenuItem
-        Caption = '&Export data to Banklink Online'
+        Caption = 'E&xport data to Banklink Online'
         Visible = False
         OnClick = mniExportdatatoBanklinkOnlineClick
       end
