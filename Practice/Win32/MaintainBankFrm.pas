@@ -56,7 +56,7 @@ type
     { Private declarations }
     fOnlineVendorStartCol : integer;
     fOnlineVendorEndCol : integer;
-    fArrayOfVendorsForClient : TBloArrayOfVendors;
+    fClientAccVendors : TClientAccVendors;
     fExportDataEnabled : Boolean;
     SortCol : integer;
     FUpdateRefNeeded: boolean;
@@ -69,6 +69,8 @@ type
     function DeleteBankAccount(BankAccount : TBank_Account) :boolean;
     procedure SetUpdateRefNeeded(const Value: boolean);
     procedure UpdateISOCodes;
+    procedure RefreshVendorExports;
+
     {$IFNDEF SmartBooks}
     procedure CreateManualAccount;
     {$ENDIF}
@@ -197,12 +199,18 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmMaintainBank.AddOnlineExportVendors;
 var
-  NewColumn: TListColumn;
-  VendorIndex : integer;
+  NewColumn    : TListColumn;
+  VendorIndex  : integer;
+  BankAccIndex : integer;
+  AccNumbers   : TBloArrayOfString;
 begin
-  fArrayOfVendorsForClient := ProductConfigService.GetAvailableVendorsForClient(MyClient.clFields.clCode);
+  Setlength(AccNumbers, MyClient.clBank_Account_List.itemCount);
+  for BankAccIndex := 0 to MyClient.clBank_Account_List.itemCount-1 do
+    AccNumbers[BankAccIndex] := MyClient.clBank_Account_List.Bank_Account_At(BankAccIndex).baFields.baBank_Account_Number;
 
-  for VendorIndex := 0 to high(fArrayOfVendorsForClient) do
+  fClientAccVendors := ProductConfigService.GetClientAccountVendors(MyClient.clFields.clCode, AccNumbers);
+
+  {for VendorIndex := 0 to high(fArrayOfVendorsForClient) do
   begin
     NewColumn := lvBank.Columns.Add;
     NewColumn.Caption := fArrayOfVendorsForClient[VendorIndex].Name;
@@ -213,7 +221,7 @@ begin
 
     if VendorIndex = high(fArrayOfVendorsForClient) then
       fOnlineVendorEndCol := NewColumn.Index;
-  end;
+  end; }
 end;
 
 //------------------------------------------------------------------------------
@@ -224,14 +232,13 @@ var
   i : integer;
   CurrencyColumn: TListColumn;
   ColumnStrings: TStrings;
-  ArrayOfVendorsForAccount : TBloArrayOfVendors;
   ClientVendorIndex : integer;
   AccountVendorIndex : integer;
   Found : Boolean;
   SubItemIndex : integer;
 begin
-  if fExportDataEnabled then
-    fArrayOfVendorsForClient := ProductConfigService.GetAvailableVendorsForClient(MyClient.clFields.clCode);
+  //if fExportDataEnabled then
+  //  fArrayOfVendorsForClient := ProductConfigService.GetAvailableVendorsForClient(MyClient.clFields.clCode);
 
   if (MyClient.clFields.clCountry = whUK) and (MyClient.HasForeignCurrencyAccounts) then
   begin
@@ -288,7 +295,7 @@ begin
         NewItem.SubItems.Add(BankAcct.baFields.baContra_Account_Code);
       end;
 
-      if fExportDataEnabled then
+      {if fExportDataEnabled then
       begin
         ArrayOfVendorsForAccount := ProductConfigService.GetAvailableVendorsForAccount(BankAcct.baFields.baBank_Account_Number);
 
@@ -310,7 +317,7 @@ begin
           else
             SubItemIndex := NewItem.SubItems.Add('0');
         end;
-      end;
+      end;}
     end;
 
   finally
@@ -322,6 +329,11 @@ begin
     lvBank.selected := lvBank.items[0];
     lvBank.selected.Focused := true;
   end;
+end;
+
+procedure TfrmMaintainBank.RefreshVendorExports;
+begin
+
 end;
 
 //------------------------------------------------------------------------------

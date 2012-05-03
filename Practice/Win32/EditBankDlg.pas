@@ -331,15 +331,12 @@ end;
 //------------------------------------------------------------------------------
 procedure TdlgEditBank.LoadAcccountVendors;
 var
-  ArrayOfVendorsForClient : TBloArrayOfVendors;
-  ArrayOfVendorsForAccount : TBloArrayOfVendors;
-
   ClientVendorIndex : integer;
   AccountVendorIndex : integer;
 
   ItemIndex : Integer;
 begin
-  ArrayOfVendorsForClient  := ProductConfigService.GetAvailableVendorsForClient(MyClient.clFields.clCode);
+  {ArrayOfVendorsForClient  := ProductConfigService.GetAvailableVendorsForClient(MyClient.clFields.clCode);
   ArrayOfVendorsForAccount := ProductConfigService.GetAvailableVendorsForAccount(BankAcct.baFields.baBank_Account_Number);
 
   for ClientVendorIndex := 0 to high(ArrayOfVendorsForClient) do
@@ -355,7 +352,7 @@ begin
         break;
       end;
     end;
-  end;
+  end; }
 end;
 
 //------------------------------------------------------------------------------
