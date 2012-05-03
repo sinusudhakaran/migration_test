@@ -1327,11 +1327,9 @@ begin
           if not tbsDataExport.TabVisible then
           begin
             tbsDataExport.TabVisible := True;
-          end
-          else
-          begin
-            ToggleEnableChildControls(pnlExportOptions, True);
           end;
+
+          ToggleEnableChildControls(pnlExportOptions, True);
         end;
       end
       else
