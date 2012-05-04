@@ -3628,15 +3628,18 @@ var
 begin
   ClientGuid := GetClientGuid(AClientCode);
 
-  Result.ClientID   := ClientGuid;
-  Result.ClientCode := aClientCode;
-  Result.ClientVendors := GetClientVendorExports(ClientGuid);
-
-  SetLength(Result.AccountsVendors, Length(aAccounts));
-  for AccountIndex := 0 to high(aAccounts) do
+  if (ClientGuid <> '') then
   begin
-    Result.AccountsVendors[AccountIndex].AccountNumber  := aAccounts[AccountIndex];
-    Result.AccountsVendors[AccountIndex].AccountVendors := GetAccountVendors(ClientGuid, aAccounts[AccountIndex]);
+    Result.ClientID   := ClientGuid;
+    Result.ClientCode := aClientCode;
+    Result.ClientVendors := GetClientVendorExports(ClientGuid);
+
+    SetLength(Result.AccountsVendors, Length(aAccounts));
+    for AccountIndex := 0 to high(aAccounts) do
+    begin
+      Result.AccountsVendors[AccountIndex].AccountNumber  := aAccounts[AccountIndex];
+      Result.AccountsVendors[AccountIndex].AccountVendors := GetAccountVendors(ClientGuid, aAccounts[AccountIndex]);
+    end;
   end;
 end;
 
