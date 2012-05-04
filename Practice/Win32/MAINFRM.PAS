@@ -1952,7 +1952,14 @@ begin
   ExportOptions.MaxTransactionDate := CurrentDate;
   ExportOptions.ExportChartOfAccounts := not StartupParam_ExcludeCOA;
 
-  TBankLinkOnlineTaggingServices.ExportTaggedAccounts(ProductConfigService.CachedPractice, ExportOptions, ProgressForm, ExportStatistics);
+  try
+    TBankLinkOnlineTaggingServices.ExportTaggedAccounts(ProductConfigService.CachedPractice, ExportOptions, ProgressForm, ExportStatistics);
+  except
+    on E:Exception do
+    begin
+      LogUtil.LogMsg(lmError, 'ExportTaggedAccounts', 'The following error occurred while exporting transactions to BankLink Online: ' + E.Message);
+    end;
+  end;
 end;
 
 procedure TfrmMain.ExportTransactionsToBankLinkOnline;
