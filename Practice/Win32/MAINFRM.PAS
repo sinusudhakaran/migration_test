@@ -1964,7 +1964,7 @@ begin
   else
   if not CurrUser.CanAccessAdmin then
   begin
-    LogUtil.LogMsg(lmError, 'ExportTransactionsToBankLinkOnline', 'Export transactions to BankLink Online could be be performed because the current user does not have administrator access.');
+    LogUtil.LogMsg(lmError, 'ExportTransactionsToBankLinkOnline', 'Export transactions to BankLink Online could be be performed because the current user does not have system level access.');
   end
   else
   if not ProductConfigService.OnLine then
