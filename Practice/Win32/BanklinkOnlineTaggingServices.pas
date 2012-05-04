@@ -69,7 +69,7 @@ type
 implementation
 
 uses
-  Files, Globals, ErrorMoreFrm, LogUtil, StDateSt;
+  Files, Globals, ErrorMoreFrm, LogUtil, StDateSt, SYDEFS, bkConst;
 
 { TBanklinkOnlineServices }
 
@@ -209,6 +209,7 @@ var
   ClientProgressSize: Double;
   ExportedClient: TExportedClient;
   ErrorReported: Boolean;
+  ClientRec: pClient_File_Rec;
 begin
   Statistics.TransactionsExported := 0;
   Statistics.AccountsExported := 0;
@@ -262,39 +263,55 @@ begin
           ExportedClient := TExportedClient(ClientList[Index]);
 
           ErrorReported := False;
-          
-          try
-            OpenAClient(ExportedClient.ClientCode, Client, True);
-          except
-            on E:Exception do
-            begin
-              LogUtil.LogMsg(lmError, 'BankLinkOnlineTaggingService', 'Client File ' + AdminSystem.fdSystem_Client_File_List.Client_File_At(Index).cfFile_Code + ' could not opened for update - ' + E.Message);
 
-              ErrorReported := True;
-            end;
-          end;
+          ClientRec := AdminSystem.fdSystem_Client_File_List.FindCode(ExportedClient.ClientCode);
 
-          if Assigned(Client) then
+          if Assigned(ClientRec) then
           begin
-            try
+            if ClientRec.cfFile_Status = bkConst.fsNormal then
+            begin
               try
-                FlagTransactionsAsSent(Client, ExportOptions.MaxTransactionDate);
-              finally
-                CloseAClient(Client);
+                OpenAClient(ExportedClient.ClientCode, Client, True);
+              except
+                on E:Exception do
+                begin
+                  LogUtil.LogMsg(lmError, 'BankLinkOnlineTaggingService', 'Client File ' + AdminSystem.fdSystem_Client_File_List.Client_File_At(Index).cfFile_Code + ' could not opened for update - ' + E.Message);
+
+                  ErrorReported := True;
+                end;
               end;
-            except
-              on E:Exception do
+
+              if Assigned(Client) then
               begin
-                LogUtil.LogMsg(lmError, 'BankLinkOnlineTaggingService', 'Client File ' + AdminSystem.fdSystem_Client_File_List.Client_File_At(Index).cfFile_Code + ' transactions could not updated - ' + E.Message);
+                try
+                  try
+                    FlagTransactionsAsSent(Client, ExportOptions.MaxTransactionDate);
+                  finally
+                    CloseAClient(Client);
+                  end;
+                except
+                  on E:Exception do
+                  begin
+                    LogUtil.LogMsg(lmError, 'BankLinkOnlineTaggingService', 'Client File ' + AdminSystem.fdSystem_Client_File_List.Client_File_At(Index).cfFile_Code + ' transactions could not updated - ' + E.Message);
+                  end;
+                end;
+              end
+              else
+              begin
+                if not ErrorReported then
+                begin
+                  LogUtil.LogMsg(lmError, 'BankLinkOnlineTaggingService', 'Client File ' + AdminSystem.fdSystem_Client_File_List.Client_File_At(Index).cfFile_Code + ' could not opened for update - Client file could not be opened or does not exist.');
+                end;
               end;
             end;
           end
           else
           begin
-            if not ErrorReported then
-            begin
-              LogUtil.LogMsg(lmError, 'BankLinkOnlineTaggingService', 'Client File ' + AdminSystem.fdSystem_Client_File_List.Client_File_At(Index).cfFile_Code + ' could not opened for update - Client file could not be opened or does not exist.');
-            end;
+            case ClientRec.cfFile_Status of
+              bkConst.fsOpen: LogUtil.LogMsg(lmError, 'BankLinkOnlineTaggingService', 'Client File ' + ClientRec.cfFile_Code + ' could not be updated - The client file is currently open.');
+              bkConst.fsCheckedOut: LogUtil.LogMsg(lmError, 'BankLinkOnlineTaggingService', 'Client File ' + ClientRec.cfFile_Code + ' could not be update - The client file is checked out.');
+              bkConst.fsOffsite: LogUtil.LogMsg(lmError, 'BankLinkOnlineTaggingService', 'Client File ' + ClientRec.cfFile_Code + ' could not be updated - The client file is offsite.');
+            end;          
           end;
 
           Statistics.TransactionsExported := Statistics.TransactionsExported + ExportedClient.TransactionsExports;
@@ -343,58 +360,69 @@ begin
       
       Client := nil;
 
-      try
-        OpenAClientForRead(AdminSystem.fdSystem_Client_File_List.Client_File_At(Index).cfFile_Code, Client);
-      except
-        on E:Exception do
-        begin
-          LogUtil.LogMsg(lmError, 'BankLinkOnlineTaggingService', 'Client File ' + AdminSystem.fdSystem_Client_File_List.Client_File_At(Index).cfFile_Code + ' could not be exported - ' + E.Message);
-
-          ErrorReported := True;
-        end;
-      end;
-
-      if Assigned(Client) then
+      if AdminSystem.fdSystem_Client_File_List.Client_File_At(Index).cfFile_Status = bkConst.fsNormal then
       begin
         try
-          if not Client.clFields.clFile_Read_Only then
+          OpenAClientForRead(AdminSystem.fdSystem_Client_File_List.Client_File_At(Index).cfFile_Code, Client);
+        except
+          on E:Exception do
           begin
-            AccountsExported := 0;
-            TransactionsExported := 0;
+            LogUtil.LogMsg(lmError, 'BankLinkOnlineTaggingService', 'Client File ' + AdminSystem.fdSystem_Client_File_List.Client_File_At(Index).cfFile_Code + ' could not be exported - ' + E.Message);
 
-            BankAccountsToXML(ParentNode, Client, ExportOptions.MaxTransactionDate, AccountsExported, TransactionsExported);
+            ErrorReported := True;
+          end;
+        end;
 
-            if TransactionsExported > 0 then
+        if Assigned(Client) then
+        begin
+          try
+            if not Client.clFields.clFile_Read_Only then
             begin
-              if ExportOptions.ExportChartOfAccounts then
+              AccountsExported := 0;
+              TransactionsExported := 0;
+
+              BankAccountsToXML(ParentNode, Client, ExportOptions.MaxTransactionDate, AccountsExported, TransactionsExported);
+
+              if TransactionsExported > 0 then
               begin
-                try
-                  //Add chart of accounts for this client
-                  ChartToXML(ParentNode, Client.clChart);
-                except
-                  on E:Exception do
-                  begin
-                    LogUtil.LogMsg(lmError, 'BankLinkOnlineTaggingService', 'Client File ' + AdminSystem.fdSystem_Client_File_List.Client_File_At(Index).cfFile_Code + ' could export the Chart of Accounts - ' + E.Message);
+                if ExportOptions.ExportChartOfAccounts then
+                begin
+                  try
+                    //Add chart of accounts for this client
+                    ChartToXML(ParentNode, Client.clChart);
+                  except
+                    on E:Exception do
+                    begin
+                      LogUtil.LogMsg(lmError, 'BankLinkOnlineTaggingService', 'Client File ' + AdminSystem.fdSystem_Client_File_List.Client_File_At(Index).cfFile_Code + ' could export the Chart of Accounts - ' + E.Message);
+                    end;
                   end;
                 end;
-              end;
 
-              ExportedClients.Add(TExportedClient.Create(Client.clFields.clCode, AccountsExported, TransactionsExported));
+                ExportedClients.Add(TExportedClient.Create(Client.clFields.clCode, AccountsExported, TransactionsExported));
+              end;
+            end
+            else
+            begin
+              LogUtil.LogMsg(lmError, 'BankLinkOnlineTaggingService', 'Client File ' + AdminSystem.fdSystem_Client_File_List.Client_File_At(Index).cfFile_Code + ' could not be exported - The client file is read-only.');
             end;
-          end
-          else
-          begin
-            LogUtil.LogMsg(lmError, 'BankLinkOnlineTaggingService', 'Client File ' + AdminSystem.fdSystem_Client_File_List.Client_File_At(Index).cfFile_Code + ' could not be exported - The client is read-only.');
+          finally
+            FreeAndNil(Client);
           end;
-        finally
-          FreeAndNil(Client);
+        end
+        else
+        begin
+          if not ErrorReported then
+          begin
+            LogUtil.LogMsg(lmError, 'BankLinkOnlineTaggingService', 'Client File ' + AdminSystem.fdSystem_Client_File_List.Client_File_At(Index).cfFile_Code + ' could not be exported - The client file could not be opened or does not exist.');
+          end;
         end;
       end
       else
       begin
-        if not ErrorReported then
-        begin
-          LogUtil.LogMsg(lmError, 'BankLinkOnlineTaggingService', 'Client File ' + AdminSystem.fdSystem_Client_File_List.Client_File_At(Index).cfFile_Code + ' could not be exported - The client file could not be opened or does not exist.');
+        case AdminSystem.fdSystem_Client_File_List.Client_File_At(Index).cfFile_Status of
+          bkConst.fsOpen: LogUtil.LogMsg(lmError, 'BankLinkOnlineTaggingService', 'Client File ' + AdminSystem.fdSystem_Client_File_List.Client_File_At(Index).cfFile_Code + ' could not be exported - The client file is currently open.');
+          bkConst.fsCheckedOut: LogUtil.LogMsg(lmError, 'BankLinkOnlineTaggingService', 'Client File ' + AdminSystem.fdSystem_Client_File_List.Client_File_At(Index).cfFile_Code + ' could not be exported - The client file is checked out.');
+          bkConst.fsOffsite: LogUtil.LogMsg(lmError, 'BankLinkOnlineTaggingService', 'Client File ' + AdminSystem.fdSystem_Client_File_List.Client_File_At(Index).cfFile_Code + ' could not be exported - The client file is offsite.');
         end;
       end;
 
