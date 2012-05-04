@@ -16,15 +16,13 @@ type
 
   TfrmModalProgress = class(TForm, ISingleProgressForm)
     lblProgressTitle: TLabel;
-    btnCancel: TButton;
     prgProgress: TRzProgressBar;
     lblProgress: TLabel;
     procedure FormShow(Sender: TObject);
     procedure FormCreate(Sender: TObject);
-    procedure btnCancelClick(Sender: TObject);
   private
     FCurrentStepTotal: Extended;
-    
+
     FCancelled: Boolean;
 
     FOnStartProcess: TStartProcessEvent;
@@ -41,7 +39,6 @@ type
     procedure UpdateProgressLabel(const ProgressLabel: String); overload;
     procedure UpdateProgress(const ProgressLabel: String; StepSize: Double); overload;
     procedure UpdateProgress(StepSize: Double); overload;
-    procedure ToggleCancelEnabled(Enabled: Boolean);
     procedure CompleteProgress;
   public
     constructor Create(Owner: TComponent); override;
@@ -61,11 +58,6 @@ implementation
 {$R *.dfm}
 
 { TfrmModalProgress }
-
-procedure TfrmModalProgress.btnCancelClick(Sender: TObject);
-begin
-  FCancelled := True;
-end;
 
 procedure TfrmModalProgress.CompleteProgress;
 begin
@@ -182,13 +174,6 @@ begin
   begin
     FOnStartProcess(Self);
   end;
-end;
-
-procedure TfrmModalProgress.ToggleCancelEnabled(Enabled: Boolean);
-begin
-  btnCancel.Enabled := Enabled;
-
-  Application.ProcessMessages;
 end;
 
 procedure TfrmModalProgress.UMStartProcess(var Message: TMessage);

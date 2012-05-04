@@ -3,7 +3,7 @@ object frmModalProgress: TfrmModalProgress
   Top = 0
   BorderStyle = bsDialog
   Caption = 'frmModalProgress'
-  ClientHeight = 116
+  ClientHeight = 90
   ClientWidth = 435
   Color = clWindow
   Font.Charset = DEFAULT_CHARSET
@@ -63,15 +63,5 @@ object frmModalProgress: TfrmModalProgress
     Alignment = taCenter
     AutoSize = False
     Caption = 'Exporting Client TEST1'
-  end
-  object btnCancel: TButton
-    Left = 184
-    Top = 85
-    Width = 77
-    Height = 25
-    Cancel = True
-    Caption = 'Cancel'
-    TabOrder = 0
-    OnClick = btnCancelClick
   end
 end
