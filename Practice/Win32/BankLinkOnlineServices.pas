@@ -41,6 +41,7 @@ type
   TBloDataPlatformSubscription      = BlopiServiceFacade.DataPlatformSubscription;
   TBloArrayOfDataPlatformSubscriber = BlopiServiceFacade.ArrayOfDataPlatformSubscriber;
   TBloDataPlatformSubscriber        = BlopiServiceFacade.DataPlatformSubscriber;
+  TBloIBizzCredentials              = BlopiServiceFacade.PracticeDataSubscriberCredentials;
 
   TAccountVendors = record
     AccountNumber  : WideString;
@@ -309,6 +310,10 @@ type
     function GetClientVendorExports(aClientGuid: TBloGuid) : TBloDataPlatformSubscription;
     function GetClientAccountVendors(aClientCode: string; aAccounts : TBloArrayOfString): TClientAccVendors;
     function GetAccountVendors(aClientGuid : TBloGuid; aAccountNumber: string): TBloDataPlatformSubscription;
+    function GetIBizzCredentials: TBloIBizzCredentials;
+    function SaveIBizzCredentials(const AcclipseCode: WideString; aShowMessage: Boolean): Boolean;
+
+    function VendorExportExists(VendorExports: ArrayOfDataPlatformSubscriber; VendorExportGuid: TBloGuid): Boolean;
 
     function SavePracticeVendorExports(VendorExports: TBloArrayOfGuid; aShowMessage: Boolean = True): Boolean;
     function SaveAccountDataSubscribers(VendorExports: TBloArrayOfGuid; aShowMessage: Boolean; ClientID: GUID;
@@ -708,6 +713,63 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+function TProductConfigService.GetIBizzCredentials: TBloIBizzCredentials;
+var
+  DataSubscriberCredentialsResponse: MessageResponseOfPracticeDataSubscriberCredentials6cY85e5k;
+  ShowProgress: Boolean;
+  BlopiInterface: IBlopiServiceFacade;
+  Index: Integer;
+begin
+  Result := nil;
+  
+  try
+    if not Assigned(AdminSystem) then
+      Exit;
+
+    if not Registered then
+      Exit;
+
+    ShowProgress := Progress.StatusSilent;
+
+    if ShowProgress then
+    begin
+      Screen.Cursor := crHourGlass;
+      Progress.StatusSilent := False;
+      Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Connecting', 10);
+    end;
+
+    try
+      if ShowProgress then
+        Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Getting iBizz subscriber credentials', 50);
+
+      BlopiInterface :=  GetServiceFacade;
+      
+      //Get the vendor export types from BankLink Online
+      DataSubscriberCredentialsResponse := BlopiInterface.GetPracticeDataSubscriberCredentials(CountryText(AdminSystem.fdFields.fdCountry),
+                                                       AdminSystem.fdFields.fdBankLink_Code,
+                                                       AdminSystem.fdFields.fdBankLink_Connect_Password,
+                                                       GetIBizzExportGuid);
+                                                       
+      if not MessageResponseHasError(MessageResponse(DataSubscriberCredentialsResponse), 'get the iBizz subscriber credentials from') then
+      begin
+        Result := DataSubscriberCredentialsResponse.Result;
+      end;
+
+      if ShowProgress then
+        Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finished', 100);
+    finally
+      if ShowProgress then
+      begin
+        Progress.StatusSilent := True;
+        Progress.ClearStatus;
+        Screen.Cursor := crDefault;
+      end;
+    end;
+  except
+    on E:Exception do HelpfulErrorMsg('Error getting the iBizz subscriber credentials: ' + E.Message, 0);
+  end;
+end;
+
 function TProductConfigService.GetIBizzExportGuid: TBloGuid;
 begin
   Result := VENDOR_EXPORT_GUID_IBIZZ;
@@ -1563,6 +1625,23 @@ begin
   end;
 end;
 
+function TProductConfigService.VendorExportExists(VendorExports: ArrayOfDataPlatformSubscriber; VendorExportGuid: TBloGuid): Boolean;
+var
+  Index: Integer;
+begin
+  Result := False;
+  
+  for Index := 0 to Length(VendorExports) - 1 do
+  begin
+    if GuidsEqual(VendorExports[Index].Id, VendorExportGuid) then
+    begin
+      Result := True;
+
+      Break;
+    end;
+  end;
+end;
+
 //------------------------------------------------------------------------------
 function TProductConfigService.GetNotesId : TBloGuid;
 var
@@ -2031,7 +2110,7 @@ begin
   AdminSystem.fdFields.fdBankLink_Online_Config := RemotableObjectToXML(ARemotable);
 end;
 
-function TProductConfigService.SavePracticeVendorExports(VendorExports: TBloArrayOfGuid; aShowMessage: Boolean = True): Boolean;
+function TProductConfigService.SavePracticeVendorExports(VendorExports: TBloArrayOfGuid; aShowMessage: Boolean): Boolean;
 var
   BlopiInterface : IBlopiServiceFacade;
   PracCountryCode : WideString;
@@ -2085,12 +2164,9 @@ begin
         FreeandNil(PracUpdate);
       end;
 
-      if aShowMessage then
+      if not Result and aShowMessage then
       begin
-        if Result then
-          HelpfulInfoMsg('Practice data export settings have been successfully updated to BankLink Online.', 0)
-        else
-          HelpfulErrorMsg(BKPRACTICENAME + ' is unable to update the Practice data export settings to ' + BANKLINK_ONLINE_NAME + '.', 0);
+        HelpfulErrorMsg(BKPRACTICENAME + ' is unable to update the Practice data export settings to ' + BANKLINK_ONLINE_NAME + '.', 0);
       end;
     end;
   end;
@@ -2924,6 +3000,77 @@ begin
     Progress.StatusSilent := True;
     Progress.ClearStatus;
     Screen.Cursor := crDefault;
+  end;
+end;
+
+function TProductConfigService.SaveIBizzCredentials(const AcclipseCode: WideString; aShowMessage: Boolean): Boolean;
+var
+  BlopiInterface : IBlopiServiceFacade;
+  PracCountryCode : WideString;
+  PracCode        : WideString;
+  PracPassHash    : WideString;
+  MsgResponce     : MessageResponse;
+  PracUpdate      : PracticeUpdate;
+  IBizzCredentials: TBloIBizzCredentials;
+begin
+  Result := False;
+  if UseBankLinkOnline then
+  begin
+    if Assigned(FPracticeCopy) then
+    begin
+      FPractice.Free;
+      FPractice := PracticeRead.Create;
+
+      PracUpdate := PracticeUpdate.Create;
+      try
+        RemoveInvalidSubscriptions;
+        CopyRemotableObject(FPracticeCopy, FPractice);
+        CopyRemotableObject(FPractice, PracUpdate);
+
+        //Save to the web service
+        Screen.Cursor := crHourGlass;
+        Progress.StatusSilent := False;
+        Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Connecting', 10);
+        try
+          PracCountryCode := CountryText(AdminSystem.fdFields.fdCountry);
+          PracCode        := AdminSystem.fdFields.fdBankLink_Code;
+          PracPassHash    := AdminSystem.fdFields.fdBankLink_Connect_Password;
+
+          BlopiInterface := GetServiceFacade;
+
+          Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Saving iBizz subscriber credentials', 33);
+
+          IBizzCredentials := TBloIBizzCredentials.Create;
+
+          try
+            IBizzCredentials.ExternalSubscriberId := AcclipseCode;
+            
+            MsgResponce := BlopiInterface.SavePracticeDataSubscriberCredentials(PracCountryCode, PracCode, PracPassHash, GetIBizzExportGuid, IBizzCredentials);
+
+            if not MessageResponseHasError(MsgResponce, 'update the iBizz subscriber credentials to') then
+            begin
+              Result := True;
+              Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finished', 100);
+            end;
+          finally
+            IBizzCredentials.Free;
+          end;
+
+        finally
+          Progress.StatusSilent := True;
+          Progress.ClearStatus;
+          Screen.Cursor := crDefault;
+        end;
+
+      finally
+        FreeandNil(PracUpdate);
+      end;
+
+      if not Result and aShowMessage then
+      begin
+        HelpfulErrorMsg(BKPRACTICENAME + ' is unable to update the iBizz subscriber credentials ' + BANKLINK_ONLINE_NAME + '.', 0);
+      end;
+    end;
   end;
 end;
 
