@@ -119,7 +119,6 @@ type
     lblAcclipseCode: TLabel;
     edtAcclipseCode: TEdit;
     Label12: TLabel;
-    tbsBGLSimpleFund: TTabSheet;
     tbsOtherVendors: TTabSheet;
     Label13: TLabel;
     
@@ -281,7 +280,6 @@ end;
 procedure TfrmPracticeDetails.HideVendorExportSettings;
 begin
   pgcVendorExportOptions.Visible := False;
-  tbsBGLSimpleFund.TabVisible := False;
   tbsIBizz.TabVisible := False;
   tbsOtherVendors.TabVisible := False;
 end;
@@ -1105,35 +1103,6 @@ begin
           Exit;                        
         end;
       end;
-
-      if ProductConfigService.IsItemInArrayGuid(FSelectedVendorExports, ProductConfigService.GetBGLExportGuid) then
-      begin
-        if edtBGLSimpleFundCode.Text = '' then
-        begin
-          HelpfulWarningMsg('To set up this export you must enter the code provided to your practice by BGL Simple Fund.  If you do not have a code, please contact BGL Simple Fund.', 0);
-
-          PageControl1.ActivePage := tbsDataExport;
-          
-          pgcVendorExportOptions.ActivePage := tbsBGLSimpleFund;
-          
-          edtBGLSimpleFundCode.SetFocus;
-              
-          Exit;
-        end
-        else
-        if not IsValidVendorCode(edtBGLSimpleFundCode.Text) then
-        begin
-          HelpfulWarningMsg('The BGL Simple Fund code you have entered contains illegal characters. Please try again', 0);
-
-          PageControl1.ActivePage := tbsDataExport;
-          
-          pgcVendorExportOptions.ActivePage := tbsBGLSimpleFund;
-
-          edtBGLSimpleFundCode.SetFocus;
-              
-          Exit;                        
-        end;
-      end;
     end;
 
     NewProducts := TStringList.Create;
@@ -1759,11 +1728,6 @@ begin
   if ProductConfigService.GuidsEqual(VendorExportGuid, ProductConfigService.GetIBizzExportGuid) then
   begin
     tbsIBizz.TabVisible := Visible;
-  end
-  else
-  if ProductConfigService.GuidsEqual(VendorExportGuid, ProductConfigService.GetBGLExportGuid) then
-  begin
-    tbsBGLSimpleFund.TabVisible := Visible;
   end
   else
   begin

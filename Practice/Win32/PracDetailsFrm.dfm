@@ -706,12 +706,8 @@ object frmPracticeDetails: TfrmPracticeDetails
           Top = 157
           Width = 575
           Height = 193
-          ActivePage = tbsBGLSimpleFund
+          ActivePage = tbsIBizz
           TabOrder = 1
-          object tbsBGLSimpleFund: TTabSheet
-            Caption = 'BGL Simple Fund'
-            ImageIndex = 1
-          end
           object tbsIBizz: TTabSheet
             Caption = 'iBizz'
             object lblAcclipseCode: TLabel
