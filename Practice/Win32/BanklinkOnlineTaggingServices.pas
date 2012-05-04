@@ -275,7 +275,7 @@ begin
               except
                 on E:Exception do
                 begin
-                  LogUtil.LogMsg(lmError, 'BankLinkOnlineTaggingService', 'Client File ' + AdminSystem.fdSystem_Client_File_List.Client_File_At(Index).cfFile_Code + ' could not opened for update - ' + E.Message);
+                  LogUtil.LogMsg(lmError, 'BankLinkOnlineTaggingService', 'Client File ' + AdminSystem.fdSystem_Client_File_List.Client_File_At(Index).cfFile_Code + ' transactions could not be updated - ' + E.Message);
 
                   ErrorReported := True;
                 end;
@@ -300,7 +300,7 @@ begin
               begin
                 if not ErrorReported then
                 begin
-                  LogUtil.LogMsg(lmError, 'BankLinkOnlineTaggingService', 'Client File ' + AdminSystem.fdSystem_Client_File_List.Client_File_At(Index).cfFile_Code + ' could not opened for update - Client file could not be opened or does not exist.');
+                  LogUtil.LogMsg(lmError, 'BankLinkOnlineTaggingService', 'Client File ' + AdminSystem.fdSystem_Client_File_List.Client_File_At(Index).cfFile_Code + ' transactions could not be updated - Client file could not be opened or does not exist.');
                 end;
               end;
             end;
@@ -308,9 +308,9 @@ begin
           else
           begin
             case ClientRec.cfFile_Status of
-              bkConst.fsOpen: LogUtil.LogMsg(lmError, 'BankLinkOnlineTaggingService', 'Client File ' + ClientRec.cfFile_Code + ' could not be updated - The client file is currently open.');
-              bkConst.fsCheckedOut: LogUtil.LogMsg(lmError, 'BankLinkOnlineTaggingService', 'Client File ' + ClientRec.cfFile_Code + ' could not be update - The client file is checked out.');
-              bkConst.fsOffsite: LogUtil.LogMsg(lmError, 'BankLinkOnlineTaggingService', 'Client File ' + ClientRec.cfFile_Code + ' could not be updated - The client file is offsite.');
+              bkConst.fsOpen: LogUtil.LogMsg(lmError, 'BankLinkOnlineTaggingService', 'Client File ' + ClientRec.cfFile_Code + ' transactions could not be updated - The client file is currently open.');
+              bkConst.fsCheckedOut: LogUtil.LogMsg(lmError, 'BankLinkOnlineTaggingService', 'Client File ' + ClientRec.cfFile_Code + ' transactions could not be update - The client file is checked out.');
+              bkConst.fsOffsite: LogUtil.LogMsg(lmError, 'BankLinkOnlineTaggingService', 'Client File ' + ClientRec.cfFile_Code + ' transactions could not be updated - The client file is offsite.');
             end;          
           end;
 
