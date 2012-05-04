@@ -38,7 +38,8 @@ var
 implementation
 
 uses
-  OvcDate, ImagesFrm, Globals, StDateSt, GenUtils, RzPopups, StDate, WarningMoreFrm, YesNoDlg, ModalProgressFrm, BanklinkOnlineServices, InfoMoreFrm, ErrorMoreFrm;
+  OvcDate, ImagesFrm, Globals, StDateSt, GenUtils, RzPopups, StDate, WarningMoreFrm, YesNoDlg, ModalProgressFrm, BanklinkOnlineServices, InfoMoreFrm, ErrorMoreFrm,
+  LOGUTIL;
 
 {$R *.dfm}
 
@@ -104,13 +105,15 @@ begin
           end
           else
           begin
-            HelpfulInfoMsg('BankLink Practice could not find any data up to ' + StDateToDateString(BKDATEFORMAT, edtTransactionsToDate.AsStDate, False) + ' to export to BankLink Online.', 0);  
+            HelpfulInfoMsg('BankLink Practice could not find any data up to ' + StDateToDateString(BKDATEFORMAT, edtTransactionsToDate.AsStDate, False) + ' to export to BankLink Online.', 0);
           end;
         end;
       except
         on E:Exception do
         begin
-          
+          HelpfulErrorMsg('The following error occurred while exporting transactions to BankLink Online: ' + #10#13#10#13 + '"' + E.Message + '"', 0);
+
+          LogUtil.LogMsg(lmError, 'ExportTaggedAccounts', 'The following error occurred while exporting transactions to BankLink Online: ' + E.Message);
         end;
       end;
 
