@@ -1969,7 +1969,7 @@ begin
   else
   if not ProductConfigService.OnLine then
   begin
-    LogUtil.LogMsg(lmError, 'ExportTransactionsToBankLinkOnline', 'Export transactions to BankLink Online could be be performed because a connection to BankLink Online could not be established.');
+    LogUtil.LogMsg(lmError, 'ExportTransactionsToBankLinkOnline', 'Export transactions to BankLink Online could be be performed because BankLink Online is not enabled.');
   end
   else
   if not ProductConfigService.IsPracticeProductEnabled(ProductConfigService.GetExportDataId, False) then
