@@ -1532,7 +1532,7 @@ begin
          mniBalanceExport.Visible := False;
        end;
 
-       mniExportdatatoBanklinkOnline.Visible := ProductConfigService.OnLine and ProductConfigService.IsPracticeProductEnabled(ProductConfigService.GetExportDataId, False);
+       mniExportdatatoBanklinkOnline.Visible := CurrUser.CanAccessAdmin and CurrUser.AllowBanklinkOnline and ProductConfigService.OnLine and ProductConfigService.IsPracticeProductEnabled(ProductConfigService.GetExportDataId, False);
 
        //test to see if the log file should be archived
        SysLog.MinSize  := PRACINI_MinLogFileSize * 1000; //convert KB to Bytes
@@ -1957,9 +1957,34 @@ end;
 
 procedure TfrmMain.ExportTransactionsToBankLinkOnline;
 begin
-  if ProductConfigService.OnLine and ProductConfigService.IsPracticeProductEnabled(ProductConfigService.GetExportDataId, False) then
+  if CurrUser.CanAccessAdmin and CurrUser.AllowBanklinkOnline then
   begin
-    TfrmModalProgress.ShowProgress(Self, 'Please wait...', 'Exporting Client Transactions', ExportTaggedAccounts);
+    if ProductConfigService.OnLine and ProductConfigService.IsPracticeProductEnabled(ProductConfigService.GetExportDataId, False) then
+    begin
+      TfrmModalProgress.ShowProgress(Self, 'Please wait...', 'Exporting Client Transactions', ExportTaggedAccounts);
+    end
+    else
+    if not ProductConfigService.OnLine then
+    begin
+      LogUtil.LogMsg(lmError, 'ExportTransactionsToBankLinkOnline', 'Export transactions to BankLink Online could be be performed because a connection to BankLink Online could not be established.');
+    end
+    else
+    if not ProductConfigService.IsPracticeProductEnabled(ProductConfigService.GetExportDataId, False) then
+    begin
+      LogUtil.LogMsg(lmError, 'ExportTransactionsToBankLinkOnline', 'Export transactions to BankLink Online could be be performed because the Export Data Product is not enabled for this Practice.');
+    end;
+  end
+  else
+  begin
+    if CurrUser.CanAccessAdmin then
+    begin
+      LogUtil.LogMsg(lmError, 'ExportTransactionsToBankLinkOnline', 'Export transactions to BankLink Online could be be performed because the current user does not have administrator access.');
+    end
+    else
+    if CurrUser.AllowBanklinkOnline then
+    begin
+      LogUtil.LogMsg(lmError, 'ExportTransactionsToBankLinkOnline', 'Export transactions to BankLink Online could be be performed because the current user does not have access to BankLink Online.');
+    end;
   end;
 end;
 
