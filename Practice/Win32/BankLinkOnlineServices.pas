@@ -48,6 +48,7 @@ type
   end;
 
   TClientAccVendors = record
+    ClientID     : TBloGuid;
     ClientCode   : WideString;
     ClientVendors : TBloDataPlatformSubscription;
     AccountsVendors : Array of TAccountVendors;
@@ -310,6 +311,11 @@ type
     function GetAccountVendors(aClientGuid : TBloGuid; aAccountNumber: string): TBloDataPlatformSubscription;
 
     function SavePracticeVendorExports(VendorExports: TBloArrayOfGuid; aShowMessage: Boolean = True): Boolean;
+    function SaveAccountVendorExports(aClientId : TBloGuid;
+                                      aAccountNumber : WideString;
+                                      aVendorExports: TBloArrayOfGuid;
+                                      aShowMessage: Boolean = True): Boolean;
+
 
     property OnLine: Boolean read FOnLine;
     property Registered: Boolean read GetRegistered;
@@ -2061,7 +2067,7 @@ begin
           Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Saving Practice data export settings', 33);
 
           MsgResponce := BlopiInterface.SavePracticeDataSubscribers(PracCountryCode, PracCode, PracPassHash, VendorExports);
-          
+
           if not MessageResponseHasError(MsgResponce, 'update the Practice data export settings to') then
           begin
             Result := True;
@@ -2082,6 +2088,79 @@ begin
       begin
         if Result then
           HelpfulInfoMsg('Practice data export settings have been successfully updated to BankLink Online.', 0)
+        else
+          HelpfulErrorMsg(BKPRACTICENAME + ' is unable to update the Practice data export settings to ' + BANKLINK_ONLINE_NAME + '.', 0);
+      end;
+    end;
+  end;
+end;
+
+function TProductConfigService.SaveAccountVendorExports(aClientId : TBloGuid;
+                                                        aAccountNumber : WideString;
+                                                        aVendorExports: TBloArrayOfGuid;
+                                                        aShowMessage: Boolean = True): Boolean;
+var
+  BlopiInterface : IBlopiServiceFacade;
+  PracCountryCode : WideString;
+  PracCode        : WideString;
+  PracPassHash    : WideString;
+  MsgResponce     : MessageResponse;
+  PracUpdate      : PracticeUpdate;
+begin
+  Result := False;
+  if UseBankLinkOnline then
+  begin
+    if Assigned(FPracticeCopy) then
+    begin
+      FPractice.Free;
+      FPractice := PracticeRead.Create;
+
+      PracUpdate := PracticeUpdate.Create;
+      try
+        RemoveInvalidSubscriptions;
+        CopyRemotableObject(FPracticeCopy, FPractice);
+        CopyRemotableObject(FPractice, PracUpdate);
+
+        //Save to the web service
+        Screen.Cursor := crHourGlass;
+        Progress.StatusSilent := False;
+        Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Connecting', 10);
+        try
+          PracCountryCode := CountryText(AdminSystem.fdFields.fdCountry);
+          PracCode        := AdminSystem.fdFields.fdBankLink_Code;
+          PracPassHash    := AdminSystem.fdFields.fdBankLink_Connect_Password;
+
+          BlopiInterface := GetServiceFacade;
+
+          Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Saving Account data export settings', 33);
+
+          MsgResponce := BlopiInterface.SaveBankAccountDataSubscribers(PracCountryCode,
+                                                                       PracCode,
+                                                                       PracPassHash,
+                                                                       aClientId,
+                                                                       aAccountNumber,
+                                                                       aVendorExports);
+
+          if not MessageResponseHasError(MsgResponce, 'update the Account data export settings to') then
+          begin
+            Result := True;
+            Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finished', 100);
+          end;
+
+        finally
+          Progress.StatusSilent := True;
+          Progress.ClearStatus;
+          Screen.Cursor := crDefault;
+        end;
+
+      finally
+        FreeandNil(PracUpdate);
+      end;
+
+      if aShowMessage then
+      begin
+        if Result then
+          HelpfulInfoMsg('Account data export settings have been successfully updated to BankLink Online.', 0)
         else
           HelpfulErrorMsg(BKPRACTICENAME + ' is unable to update the Practice data export settings to ' + BANKLINK_ONLINE_NAME + '.', 0);
       end;
@@ -3549,6 +3628,7 @@ var
 begin
   ClientGuid := GetClientGuid(AClientCode);
 
+  Result.ClientID   := ClientGuid;
   Result.ClientCode := aClientCode;
   Result.ClientVendors := GetClientVendorExports(ClientGuid);
 

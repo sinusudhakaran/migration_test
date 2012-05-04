@@ -585,7 +585,7 @@ begin
        MyClient.clBank_Account_List.Delete(B);
 
     AccIndex := GetAccountIndexOnVendorList(B.baFields.baBank_Account_Number);
-    Result := EditBankAccount(B, fClientAccVendors.AccountsVendors[AccIndex]);
+    Result := EditBankAccount(B, fClientAccVendors.AccountsVendors[AccIndex], fClientAccVendors.ClientId);
 
     if B.IsManual then
        MyClient.clBank_Account_List.Insert(B);
@@ -770,7 +770,7 @@ begin
    end;
 
    //call add dummy account
-   if EditBankAccount( DummyAccount, DummyAccVendor, True) then begin
+   if EditBankAccount( DummyAccount, DummyAccVendor, '', True) then begin
       //if user did not cancel add account to client
       MyClient.clBank_Account_List.Insert( DummyAccount);
       //Update ISO Codes in Client_File_Rec

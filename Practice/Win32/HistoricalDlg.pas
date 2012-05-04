@@ -4719,7 +4719,7 @@ begin
           exit;
 
      MyClient.clBank_Account_List.Delete(SelectedBA);
-     R := EditBankAccount(SelectedBA, DummyAccVendor);
+     R := EditBankAccount(SelectedBA, DummyAccVendor, '');
      //Must be a manual bank account so that the Audit ID is not overwritten
      //when it's inserted into the list.
      SelectedBA.baFields.baIs_A_Manual_Account := True;
