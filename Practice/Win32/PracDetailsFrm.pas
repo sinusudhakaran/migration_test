@@ -167,6 +167,7 @@ type
     FOnlineSettingsChanged: Boolean;
     FPracticeVendorExports: TBloDataPlatformSubscription;
     FSelectedVendorExports: TBloArrayOfGuid;
+    FIBizzCredentials: TBloIBizzCredentials;
 
     procedure SetUpHelp;
     function AddTreeNode(AVST: TCustomVirtualStringTree; ANode:
@@ -180,8 +181,11 @@ type
     procedure LoadPracticeDetails;
     procedure LoadDataExports(PracticeVendorExports: TBloDataPlatformSubscription);
 
-    procedure ToggleEnableChildControls(ParentControl: TWinControl; Enabled: Boolean);
+    function DataExportSettingsChanged: Boolean;
     function VendorExportsChanged: Boolean;
+    function IBizzCredentialsChanged: Boolean;
+
+    procedure ToggleEnableChildControls(ParentControl: TWinControl; Enabled: Boolean);
     procedure ToggleVendorExportSettings(VendorExportGuid: TBloGuid; Visible: Boolean);
     procedure HideVendorExportSettings;
     function CanShowDataExportSettings: Boolean;
@@ -282,6 +286,23 @@ begin
   pgcVendorExportOptions.Visible := False;
   tbsIBizz.TabVisible := False;
   tbsOtherVendors.TabVisible := False;
+end;
+
+function TfrmPracticeDetails.IBizzCredentialsChanged: Boolean;
+begin
+  Result := False;
+  
+  if ProductConfigService.IsPracticeProductEnabled(ProductConfigService.GetExportDataId, True) and ProductConfigService.IsItemInArrayGuid(FSelectedVendorExports, ProductConfigService.GetIBizzExportGuid)  then
+  begin
+    if Assigned(FIBizzCredentials) then
+    begin
+      Result := CompareText(edtAcclipseCode.Text, FIBizzCredentials.ExternalSubscriberId) <> 0;
+    end
+    else
+    begin
+      Result := edtAcclipseCode.Text <> '';
+    end;
+  end;
 end;
 
 //------------------------------------------------------------------------------
@@ -523,6 +544,9 @@ var
   i: integer;
   EventHolder : TNotifyEvent;
 begin
+  FIBizzCredentials := nil;
+  FPracticeVendorExports := nil;
+
   EventHolder := ckUseBankLinkOnline.OnClick;
   ckUseBankLinkOnline.OnClick := nil;
   try
@@ -533,6 +557,14 @@ begin
         if ProductConfigService.Registered  then
         begin
           FPracticeVendorExports := ProductConfigService.GetPracticeVendorExports;
+
+          if Assigned(FPracticeVendorExports) then
+          begin
+            if ProductConfigService.VendorExportExists(FPracticeVendorExports.Current, ProductConfigService.GetIBizzExportGuid) then
+            begin
+              FIBizzCredentials := ProductConfigService.GetIBizzCredentials;
+            end;
+          end;
 
           //Need the client list for checking if clients are using products before
           //they are removed. Only load if practice details have been received
@@ -553,7 +585,12 @@ begin
       if Length(FPracticeVendorExports.Available) > 0 then
       begin
         LoadDataExports(FPracticeVendorExports);
-        
+
+        if Assigned(FIBizzCredentials) then
+        begin
+          edtAcclipseCode.Text := FIBizzCredentials.ExternalSubscriberId;
+        end;
+
         pnlExportOptions.Visible := True;
 
         if not ProductConfigService.IsPracticeProductEnabled(ProductConfigService.GetExportDataId, True) then
@@ -939,23 +976,26 @@ var
 begin
   Result := False;
 
-  if Assigned(FPracticeVendorExports) then
+  if ProductConfigService.IsPracticeProductEnabled(ProductConfigService.GetExportDataId, True) then
   begin
-    if Length(FSelectedVendorExports) = Length(FPracticeVendorExports.Current) then
+    if Assigned(FPracticeVendorExports) then
     begin
-      for Index := 0 to Length(FPracticeVendorExports.Current) - 1 do
+      if Length(FSelectedVendorExports) = Length(FPracticeVendorExports.Current) then
       begin
-        if FSelectedVendorExports[Index] <> FPracticeVendorExports.Current[Index].Id then
+        for Index := 0 to Length(FPracticeVendorExports.Current) - 1 do
         begin
-          Result := True;
+          if FSelectedVendorExports[Index] <> FPracticeVendorExports.Current[Index].Id then
+          begin
+            Result := True;
 
-          Break;
-        end; 
+            Break;
+          end; 
+        end;
+      end
+      else
+      begin
+        Result := True;
       end;
-    end
-    else
-    begin
-      Result := True;
     end;
   end;
 end;
@@ -976,6 +1016,30 @@ function TfrmPracticeDetails.VerifyForm: boolean;
 
         Break;
       end;
+    end;
+  end;
+
+  function SaveDataExportSettings: Boolean;
+  begin
+    Result := False;
+    
+    if VendorExportsChanged then
+    begin
+      if IBizzCredentialsChanged then
+      begin
+        if ProductConfigService.SavePracticeVendorExports(FSelectedVendorExports, True) then
+        begin
+          Result := ProductConfigService.SaveIBizzCredentials(edtAcclipseCode.Text, True);
+        end;
+      end
+      else
+      begin
+        Result := ProductConfigService.SavePracticeVendorExports(FSelectedVendorExports, True);
+      end;
+    end
+    else
+    begin
+      Result := ProductConfigService.SaveIBizzCredentials(edtAcclipseCode.Text, True);
     end;
   end;
   
@@ -1052,7 +1116,7 @@ begin
   //Save BankLink Online settings
   UseBankLinkOnline := ckUseBankLinkOnline.Checked;
 
-  if UseBankLinkOnline and (ProductConfigService.PracticeChanged or (VendorExportsChanged and ProductConfigService.IsPracticeProductEnabled(ProductConfigService.GetExportDataId, True))) then
+  if UseBankLinkOnline and (ProductConfigService.PracticeChanged or DataExportSettingsChanged) then
   begin
     aMsg := 'Changing the BankLink Online products and services that are available ' +
             'for this practice will affect how client files can be individually setup ' +
@@ -1067,7 +1131,7 @@ begin
 
     if ProductConfigService.IsPracticeProductEnabled(ProductConfigService.GetExportDataId, True) then
     begin
-      if (chklistExportTo.Count > 0) and (chklistExportTo.CountCheckedItems = 0) and VendorExportsChanged then
+      if (chklistExportTo.Count > 0) and (chklistExportTo.CountCheckedItems = 0) and DataExportSettingsChanged then
       begin
         if YesNoDlg.AskYesNo('Banklink Online Data Export', 'You have not selected a vendor export type.' + #10#13#10#13 + 'Are you sure you want to continue saving?', DLG_YES, 0) = DLG_NO then
         begin
@@ -1132,11 +1196,15 @@ begin
 
         if ProductConfigService.PracticeChanged then
         begin
-          if ProductConfigService.IsPracticeProductEnabled(ProductConfigService.GetExportDataId, True) and VendorExportsChanged then
+          if DataExportSettingsChanged then
           begin
             if ProductConfigService.SavePractice(True, False) then
             begin
-              if not ProductConfigService.SavePracticeVendorExports(FSelectedVendorExports) then
+              if SaveDataExportSettings then
+              begin
+                HelpfulInfoMsg('Practice Settings have been successfully updated to BankLink Online.', 0); 
+              end
+              else
               begin
                 //Don't exit dialog if online settings were not updated
                 if UseBankLinkOnline then
@@ -1159,9 +1227,13 @@ begin
           end;
         end
         else
-        if ProductConfigService.IsPracticeProductEnabled(ProductConfigService.GetExportDataId, True) and VendorExportsChanged then
+        if DataExportSettingsChanged then
         begin
-          if not ProductConfigService.SavePracticeVendorExports(FSelectedVendorExports) then
+          if SaveDataExportSettings then
+          begin
+            HelpfulInfoMsg('Practice Settings have been successfully updated to BankLink Online.', 0);
+          end
+          else
           begin
             //Don't exit dialog if online settings were not updated
             if UseBankLinkOnline then
@@ -1413,6 +1485,11 @@ begin
   else
     edtSaveTaxTo.Text := '';
   end;
+end;
+
+function TfrmPracticeDetails.DataExportSettingsChanged: Boolean;
+begin
+  Result := VendorExportsChanged or IBizzCredentialsChanged;
 end;
 
 //------------------------------------------------------------------------------
