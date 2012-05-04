@@ -448,6 +448,7 @@ begin
   end;
 end;
 
+// Update account vendors for a client
 class procedure TBanklinkOnlineTaggingServices.UpdateAccountVendors(ClientReadDetail: TBloClientReadDetail; Client: TClientObj; Vendors: TBloArrayOfGuid; ProgressForm: ISingleProgressForm);
 var
   Index: Integer;
@@ -472,6 +473,7 @@ begin
           for IIndex := 0 to Client.clBank_Account_List.ItemCount - 1 do
           begin
             BankAccount := Client.clBank_Account_List[IIndex];
+            UpdateAccountVendors(ClientReadDetail, BankAccount, Vendors);
           end;
         end;
       end
@@ -490,9 +492,11 @@ begin
   end;
 end;
 
+// Update account vendors for a single account
 class procedure TBanklinkOnlineTaggingServices.UpdateAccountVendors(ClientReadDetail: TBloClientReadDetail; BankAccount: TBank_Account; Vendors: TBloArrayOfGuid);
 begin
-
+  ProductConfigService.SaveAccountDataSubscribers(Vendors, true, ClientReadDetail.Id,
+                                                  BankAccount.baFields.baBank_Account_Number);
 end;
 
 class procedure TBanklinkOnlineTaggingServices.FlagTransactionsAsSent(Client: TClientObj; MaxTransactionDate: TStDate);
