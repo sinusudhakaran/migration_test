@@ -1974,7 +1974,7 @@ begin
   else
   if not ProductConfigService.IsPracticeProductEnabled(ProductConfigService.GetExportDataId, False) then
   begin
-    LogUtil.LogMsg(lmError, 'ExportTransactionsToBankLinkOnline', 'Export transactions to BankLink Online could be be performed because the Export Data Product is not enabled for this Practice.');
+    LogUtil.LogMsg(lmError, 'ExportTransactionsToBankLinkOnline', 'Export transactions to BankLink Online could be be performed because the Export Data product is not enabled for this Practice.');
   end;
 end;
 
