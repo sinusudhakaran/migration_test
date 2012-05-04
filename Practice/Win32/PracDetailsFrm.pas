@@ -1727,7 +1727,15 @@ procedure TfrmPracticeDetails.ToggleVendorExportSettings(VendorExportGuid: TBloG
 begin
   if ProductConfigService.GuidsEqual(VendorExportGuid, ProductConfigService.GetIBizzExportGuid) then
   begin
-    tbsIBizz.TabVisible := Visible;
+    if tbsIBizz.TabVisible <> Visible then
+    begin
+      tbsIBizz.TabVisible := Visible;
+
+      if tbsIBizz.TabVisible then
+      begin
+        pgcVendorExportOptions.ActivePage := tbsIBizz;
+      end;
+    end;
   end
   else
   begin
