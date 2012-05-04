@@ -36,7 +36,6 @@ type
     procedure UpdateProgressLabel(const ProgressLabel: String); overload;
     procedure UpdateProgress(const ProgressLabel: String; StepSize: Double); overload;
     procedure UpdateProgress(StepSize: Double); overload;
-    procedure ToggleCancelEnabled(Enabled: Boolean);
     procedure CompleteProgress;
 
     property Cancelled: Boolean read GetCancelled; 
