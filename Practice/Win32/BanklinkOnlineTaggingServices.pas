@@ -495,8 +495,10 @@ end;
 // Update account vendors for a single account
 class procedure TBanklinkOnlineTaggingServices.UpdateAccountVendors(ClientReadDetail: TBloClientReadDetail; BankAccount: TBank_Account; Vendors: TBloArrayOfGuid);
 begin
-  ProductConfigService.SaveAccountDataSubscribers(Vendors, true, ClientReadDetail.Id,
-                                                  BankAccount.baFields.baBank_Account_Number);
+  ProductConfigService.SaveAccountVendorExports(ClientReadDetail.Id,
+                                                BankAccount.baFields.baBank_Account_Number,
+                                                Vendors,
+                                                True);
 end;
 
 class procedure TBanklinkOnlineTaggingServices.FlagTransactionsAsSent(Client: TClientObj; MaxTransactionDate: TStDate);
