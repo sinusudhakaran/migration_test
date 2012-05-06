@@ -463,9 +463,10 @@ begin
     ClientProgressSize := 100 / Client.clBank_Account_List.ItemCount -1;
   
     ProgressForm.UpdateProgressLabel('Updating bank account vendors for client ' + Client.clFields.clCode);
-   
+    ProductConfigService.SaveClientVendorExports(ClientReadDetail.Id, Vendors, true);
+
     for Index := 0 to Client.clBank_Account_List.ItemCount - 1 do
-    begin     
+    begin
       if not ProgressForm.Cancelled then
       begin
         if not Client.clFields.clFile_Read_Only then
@@ -473,7 +474,10 @@ begin
           for IIndex := 0 to Client.clBank_Account_List.ItemCount - 1 do
           begin
             BankAccount := Client.clBank_Account_List[IIndex];
-            UpdateAccountVendors(ClientReadDetail, BankAccount, Vendors);
+            // no tagging for Journals or Provisional/Manual accounts. Temporarily removed for testing
+            // if (BankAccount.baFields.baAccount_Type = btBank) and
+            // (BankAccount.baFields.baBank_Account_Number[1] <> 'M') then
+              UpdateAccountVendors(ClientReadDetail, BankAccount, Vendors);
           end;
         end;
       end
