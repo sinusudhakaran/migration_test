@@ -12,7 +12,7 @@
 // Encoding : utf-8
 // Codegen  : [wfMapStringsToWideStrings+, wfUseScopedEnumeration-]
 // Version  : 1.0
-// (4/05/2012 1:50:07 p.m. - - $Rev: 25127 $)
+// (7/05/2012 9:16:55 a.m. - - $Rev: 25127 $)
 // ************************************************************************ //
 
 unit BlopiServiceFacade;
@@ -44,9 +44,13 @@ type
   DataPlatformSubscription = class;             { "http://www.banklinkonline.com/2011/11/DataPlatform"[GblCplx] }
   DataPlatformSubscriber = class;               { "http://www.banklinkonline.com/2011/11/DataPlatform"[GblCplx] }
   PracticeDataSubscriberCredentials = class;    { "http://www.banklinkonline.com/2011/11/DataPlatform"[GblCplx] }
+  DataPlatformClient   = class;                 { "http://www.banklinkonline.com/2011/11/DataPlatform"[GblCplx] }
+  DataPlatformBankAccount = class;              { "http://www.banklinkonline.com/2011/11/DataPlatform"[GblCplx] }
   DataPlatformSubscription2 = class;            { "http://www.banklinkonline.com/2011/11/DataPlatform"[GblElm] }
   DataPlatformSubscriber2 = class;              { "http://www.banklinkonline.com/2011/11/DataPlatform"[GblElm] }
   PracticeDataSubscriberCredentials2 = class;   { "http://www.banklinkonline.com/2011/11/DataPlatform"[GblElm] }
+  DataPlatformClient2  = class;                 { "http://www.banklinkonline.com/2011/11/DataPlatform"[GblElm] }
+  DataPlatformBankAccount2 = class;             { "http://www.banklinkonline.com/2011/11/DataPlatform"[GblElm] }
   MessageResponse      = class;                 { "http://schemas.datacontract.org/2004/07/BankLink.Common.Services"[GblCplx] }
   MessageResponseOfArrayOfCatalogueEntryMIdCYrSK = class;   { "http://schemas.datacontract.org/2004/07/BankLink.Common.Services"[GblCplx] }
   ServiceErrorMessage  = class;                 { "http://schemas.datacontract.org/2004/07/BankLink.Common.Services"[GblCplx] }
@@ -58,6 +62,7 @@ type
   MessageResponseOfstring = class;              { "http://schemas.datacontract.org/2004/07/BankLink.Common.Services"[GblCplx] }
   MessageResponseOfDataPlatformSubscription6cY85e5k = class;   { "http://schemas.datacontract.org/2004/07/BankLink.Common.Services"[GblCplx] }
   MessageResponseOfPracticeDataSubscriberCredentials6cY85e5k = class;   { "http://schemas.datacontract.org/2004/07/BankLink.Common.Services"[GblCplx] }
+  MessageResponseOfDataPlatformClient6cY85e5k = class;   { "http://schemas.datacontract.org/2004/07/BankLink.Common.Services"[GblCplx] }
   MessageResponseOfArrayOfCatalogueEntryMIdCYrSK2 = class;   { "http://schemas.datacontract.org/2004/07/BankLink.Common.Services"[GblElm] }
   MessageResponse2     = class;                 { "http://schemas.datacontract.org/2004/07/BankLink.Common.Services"[GblElm] }
   ServiceErrorMessage2 = class;                 { "http://schemas.datacontract.org/2004/07/BankLink.Common.Services"[GblElm] }
@@ -69,6 +74,7 @@ type
   MessageResponseOfstring2 = class;             { "http://schemas.datacontract.org/2004/07/BankLink.Common.Services"[GblElm] }
   MessageResponseOfDataPlatformSubscription6cY85e5k2 = class;   { "http://schemas.datacontract.org/2004/07/BankLink.Common.Services"[GblElm] }
   MessageResponseOfPracticeDataSubscriberCredentials6cY85e5k2 = class;   { "http://schemas.datacontract.org/2004/07/BankLink.Common.Services"[GblElm] }
+  MessageResponseOfDataPlatformClient6cY85e5k2 = class;   { "http://schemas.datacontract.org/2004/07/BankLink.Common.Services"[GblElm] }
   CatalogueEntry       = class;                 { "http://www.banklinkonline.com/2011/11/Blopi"[GblCplx] }
   Practice             = class;                 { "http://www.banklinkonline.com/2011/11/Blopi"[GblCplx] }
   PracticeRead         = class;                 { "http://www.banklinkonline.com/2011/11/Blopi"[GblCplx] }
@@ -171,6 +177,51 @@ type
     property ExternalSubscriberId: WideString  Index (IS_OPTN or IS_NLBL) read FExternalSubscriberId write SetExternalSubscriberId stored ExternalSubscriberId_Specified;
   end;
 
+  ArrayOfDataPlatformBankAccount = array of DataPlatformBankAccount;   { "http://www.banklinkonline.com/2011/11/DataPlatform"[GblCplx] }
+
+
+  // ************************************************************************ //
+  // XML       : DataPlatformClient, global, <complexType>
+  // Namespace : http://www.banklinkonline.com/2011/11/DataPlatform
+  // ************************************************************************ //
+  DataPlatformClient = class(TRemotable)
+  private
+    FAvailable: ArrayOfDataPlatformSubscriber;
+    FAvailable_Specified: boolean;
+    FBankAccounts: ArrayOfDataPlatformBankAccount;
+    FBankAccounts_Specified: boolean;
+    procedure SetAvailable(Index: Integer; const AArrayOfDataPlatformSubscriber: ArrayOfDataPlatformSubscriber);
+    function  Available_Specified(Index: Integer): boolean;
+    procedure SetBankAccounts(Index: Integer; const AArrayOfDataPlatformBankAccount: ArrayOfDataPlatformBankAccount);
+    function  BankAccounts_Specified(Index: Integer): boolean;
+  public
+    destructor Destroy; override;
+  published
+    property Available:    ArrayOfDataPlatformSubscriber   Index (IS_OPTN or IS_NLBL) read FAvailable write SetAvailable stored Available_Specified;
+    property BankAccounts: ArrayOfDataPlatformBankAccount  Index (IS_OPTN or IS_NLBL) read FBankAccounts write SetBankAccounts stored BankAccounts_Specified;
+  end;
+
+
+
+  // ************************************************************************ //
+  // XML       : DataPlatformBankAccount, global, <complexType>
+  // Namespace : http://www.banklinkonline.com/2011/11/DataPlatform
+  // ************************************************************************ //
+  DataPlatformBankAccount = class(TRemotable)
+  private
+    FBankAccountNumber: WideString;
+    FBankAccountNumber_Specified: boolean;
+    FSubscribers: ArrayOfguid;
+    FSubscribers_Specified: boolean;
+    procedure SetBankAccountNumber(Index: Integer; const AWideString: WideString);
+    function  BankAccountNumber_Specified(Index: Integer): boolean;
+    procedure SetSubscribers(Index: Integer; const AArrayOfguid: ArrayOfguid);
+    function  Subscribers_Specified(Index: Integer): boolean;
+  published
+    property BankAccountNumber: WideString   Index (IS_OPTN or IS_NLBL) read FBankAccountNumber write SetBankAccountNumber stored BankAccountNumber_Specified;
+    property Subscribers:       ArrayOfguid  Index (IS_OPTN or IS_NLBL) read FSubscribers write SetSubscribers stored Subscribers_Specified;
+  end;
+
 
 
   // ************************************************************************ //
@@ -200,6 +251,28 @@ type
   // Namespace : http://www.banklinkonline.com/2011/11/DataPlatform
   // ************************************************************************ //
   PracticeDataSubscriberCredentials2 = class(PracticeDataSubscriberCredentials)
+  private
+  published
+  end;
+
+
+
+  // ************************************************************************ //
+  // XML       : DataPlatformClient, global, <element>
+  // Namespace : http://www.banklinkonline.com/2011/11/DataPlatform
+  // ************************************************************************ //
+  DataPlatformClient2 = class(DataPlatformClient)
+  private
+  published
+  end;
+
+
+
+  // ************************************************************************ //
+  // XML       : DataPlatformBankAccount, global, <element>
+  // Namespace : http://www.banklinkonline.com/2011/11/DataPlatform
+  // ************************************************************************ //
+  DataPlatformBankAccount2 = class(DataPlatformBankAccount)
   private
   published
   end;
@@ -425,6 +498,24 @@ type
 
 
   // ************************************************************************ //
+  // XML       : MessageResponseOfDataPlatformClient6cY85e5k, global, <complexType>
+  // Namespace : http://schemas.datacontract.org/2004/07/BankLink.Common.Services
+  // ************************************************************************ //
+  MessageResponseOfDataPlatformClient6cY85e5k = class(MessageResponse)
+  private
+    FResult: DataPlatformClient;
+    FResult_Specified: boolean;
+    procedure SetResult(Index: Integer; const ADataPlatformClient: DataPlatformClient);
+    function  Result_Specified(Index: Integer): boolean;
+  public
+    destructor Destroy; override;
+  published
+    property Result: DataPlatformClient  Index (IS_OPTN or IS_NLBL) read FResult write SetResult stored Result_Specified;
+  end;
+
+
+
+  // ************************************************************************ //
   // XML       : MessageResponseOfArrayOfCatalogueEntryMIdCYrSK, global, <element>
   // Namespace : http://schemas.datacontract.org/2004/07/BankLink.Common.Services
   // ************************************************************************ //
@@ -539,6 +630,17 @@ type
   // Namespace : http://schemas.datacontract.org/2004/07/BankLink.Common.Services
   // ************************************************************************ //
   MessageResponseOfPracticeDataSubscriberCredentials6cY85e5k2 = class(MessageResponseOfPracticeDataSubscriberCredentials6cY85e5k)
+  private
+  published
+  end;
+
+
+
+  // ************************************************************************ //
+  // XML       : MessageResponseOfDataPlatformClient6cY85e5k, global, <element>
+  // Namespace : http://schemas.datacontract.org/2004/07/BankLink.Common.Services
+  // ************************************************************************ //
+  MessageResponseOfDataPlatformClient6cY85e5k2 = class(MessageResponseOfDataPlatformClient6cY85e5k)
   private
   published
   end;
@@ -1256,6 +1358,7 @@ type
     function  GetBankAccountDataSubscribers(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const clientId: guid; const bankAccountNumber: WideString): MessageResponseOfDataPlatformSubscription6cY85e5k; stdcall;
     function  SaveBankAccountDataSubscribers(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const clientId: guid; const bankAccountNumber: WideString; const subscription: ArrayOfguid
                                              ): MessageResponse; stdcall;
+    function  GetBankAccountsDataSubscribers(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const clientId: guid): MessageResponseOfDataPlatformClient6cY85e5k; stdcall;
   end;
 
 function GetIBlopiServiceFacade(UseWSDL: Boolean=System.False; Addr: string=''; HTTPRIO: THTTPRIO = nil): IBlopiServiceFacade;
@@ -1367,6 +1470,63 @@ end;
 function PracticeDataSubscriberCredentials.ExternalSubscriberId_Specified(Index: Integer): boolean;
 begin
   Result := FExternalSubscriberId_Specified;
+end;
+
+destructor DataPlatformClient.Destroy;
+var
+  I: Integer;
+begin
+  for I := 0 to System.Length(FAvailable)-1 do
+    SysUtils.FreeAndNil(FAvailable[I]);
+  System.SetLength(FAvailable, 0);
+  for I := 0 to System.Length(FBankAccounts)-1 do
+    SysUtils.FreeAndNil(FBankAccounts[I]);
+  System.SetLength(FBankAccounts, 0);
+  inherited Destroy;
+end;
+
+procedure DataPlatformClient.SetAvailable(Index: Integer; const AArrayOfDataPlatformSubscriber: ArrayOfDataPlatformSubscriber);
+begin
+  FAvailable := AArrayOfDataPlatformSubscriber;
+  FAvailable_Specified := True;
+end;
+
+function DataPlatformClient.Available_Specified(Index: Integer): boolean;
+begin
+  Result := FAvailable_Specified;
+end;
+
+procedure DataPlatformClient.SetBankAccounts(Index: Integer; const AArrayOfDataPlatformBankAccount: ArrayOfDataPlatformBankAccount);
+begin
+  FBankAccounts := AArrayOfDataPlatformBankAccount;
+  FBankAccounts_Specified := True;
+end;
+
+function DataPlatformClient.BankAccounts_Specified(Index: Integer): boolean;
+begin
+  Result := FBankAccounts_Specified;
+end;
+
+procedure DataPlatformBankAccount.SetBankAccountNumber(Index: Integer; const AWideString: WideString);
+begin
+  FBankAccountNumber := AWideString;
+  FBankAccountNumber_Specified := True;
+end;
+
+function DataPlatformBankAccount.BankAccountNumber_Specified(Index: Integer): boolean;
+begin
+  Result := FBankAccountNumber_Specified;
+end;
+
+procedure DataPlatformBankAccount.SetSubscribers(Index: Integer; const AArrayOfguid: ArrayOfguid);
+begin
+  FSubscribers := AArrayOfguid;
+  FSubscribers_Specified := True;
+end;
+
+function DataPlatformBankAccount.Subscribers_Specified(Index: Integer): boolean;
+begin
+  Result := FSubscribers_Specified;
 end;
 
 destructor MessageResponse.Destroy;
@@ -1594,6 +1754,23 @@ begin
 end;
 
 function MessageResponseOfPracticeDataSubscriberCredentials6cY85e5k.Result_Specified(Index: Integer): boolean;
+begin
+  Result := FResult_Specified;
+end;
+
+destructor MessageResponseOfDataPlatformClient6cY85e5k.Destroy;
+begin
+  SysUtils.FreeAndNil(FResult);
+  inherited Destroy;
+end;
+
+procedure MessageResponseOfDataPlatformClient6cY85e5k.SetResult(Index: Integer; const ADataPlatformClient: DataPlatformClient);
+begin
+  FResult := ADataPlatformClient;
+  FResult_Specified := True;
+end;
+
+function MessageResponseOfDataPlatformClient6cY85e5k.Result_Specified(Index: Integer): boolean;
 begin
   Result := FResult_Specified;
 end;
@@ -2293,9 +2470,14 @@ initialization
   RemClassRegistry.RegisterXSClass(DataPlatformSubscriber, 'http://www.banklinkonline.com/2011/11/DataPlatform', 'DataPlatformSubscriber');
   RemClassRegistry.RegisterExternalPropName(TypeInfo(DataPlatformSubscriber), 'Name_', 'Name');
   RemClassRegistry.RegisterXSClass(PracticeDataSubscriberCredentials, 'http://www.banklinkonline.com/2011/11/DataPlatform', 'PracticeDataSubscriberCredentials');
+  RemClassRegistry.RegisterXSInfo(TypeInfo(ArrayOfDataPlatformBankAccount), 'http://www.banklinkonline.com/2011/11/DataPlatform', 'ArrayOfDataPlatformBankAccount');
+  RemClassRegistry.RegisterXSClass(DataPlatformClient, 'http://www.banklinkonline.com/2011/11/DataPlatform', 'DataPlatformClient');
+  RemClassRegistry.RegisterXSClass(DataPlatformBankAccount, 'http://www.banklinkonline.com/2011/11/DataPlatform', 'DataPlatformBankAccount');
   RemClassRegistry.RegisterXSClass(DataPlatformSubscription2, 'http://www.banklinkonline.com/2011/11/DataPlatform', 'DataPlatformSubscription2', 'DataPlatformSubscription');
   RemClassRegistry.RegisterXSClass(DataPlatformSubscriber2, 'http://www.banklinkonline.com/2011/11/DataPlatform', 'DataPlatformSubscriber2', 'DataPlatformSubscriber');
   RemClassRegistry.RegisterXSClass(PracticeDataSubscriberCredentials2, 'http://www.banklinkonline.com/2011/11/DataPlatform', 'PracticeDataSubscriberCredentials2', 'PracticeDataSubscriberCredentials');
+  RemClassRegistry.RegisterXSClass(DataPlatformClient2, 'http://www.banklinkonline.com/2011/11/DataPlatform', 'DataPlatformClient2', 'DataPlatformClient');
+  RemClassRegistry.RegisterXSClass(DataPlatformBankAccount2, 'http://www.banklinkonline.com/2011/11/DataPlatform', 'DataPlatformBankAccount2', 'DataPlatformBankAccount');
   RemClassRegistry.RegisterXSInfo(TypeInfo(ArrayOfCatalogueEntry), 'http://www.banklinkonline.com/2011/11/Blopi', 'ArrayOfCatalogueEntry');
   RemClassRegistry.RegisterXSInfo(TypeInfo(ArrayOfServiceErrorMessage), 'http://schemas.datacontract.org/2004/07/BankLink.Common.Services', 'ArrayOfServiceErrorMessage');
   RemClassRegistry.RegisterXSInfo(TypeInfo(ArrayOfExceptionDetails), 'http://schemas.datacontract.org/2004/07/BankLink.Common.Services', 'ArrayOfExceptionDetails');
@@ -2312,6 +2494,7 @@ initialization
   RemClassRegistry.RegisterXSClass(MessageResponseOfstring, 'http://schemas.datacontract.org/2004/07/BankLink.Common.Services', 'MessageResponseOfstring');
   RemClassRegistry.RegisterXSClass(MessageResponseOfDataPlatformSubscription6cY85e5k, 'http://schemas.datacontract.org/2004/07/BankLink.Common.Services', 'MessageResponseOfDataPlatformSubscription6cY85e5k');
   RemClassRegistry.RegisterXSClass(MessageResponseOfPracticeDataSubscriberCredentials6cY85e5k, 'http://schemas.datacontract.org/2004/07/BankLink.Common.Services', 'MessageResponseOfPracticeDataSubscriberCredentials6cY85e5k');
+  RemClassRegistry.RegisterXSClass(MessageResponseOfDataPlatformClient6cY85e5k, 'http://schemas.datacontract.org/2004/07/BankLink.Common.Services', 'MessageResponseOfDataPlatformClient6cY85e5k');
   RemClassRegistry.RegisterXSClass(MessageResponseOfArrayOfCatalogueEntryMIdCYrSK2, 'http://schemas.datacontract.org/2004/07/BankLink.Common.Services', 'MessageResponseOfArrayOfCatalogueEntryMIdCYrSK2', 'MessageResponseOfArrayOfCatalogueEntryMIdCYrSK');
   RemClassRegistry.RegisterXSClass(MessageResponse2, 'http://schemas.datacontract.org/2004/07/BankLink.Common.Services', 'MessageResponse2', 'MessageResponse');
   RemClassRegistry.RegisterXSClass(ServiceErrorMessage2, 'http://schemas.datacontract.org/2004/07/BankLink.Common.Services', 'ServiceErrorMessage2', 'ServiceErrorMessage');
@@ -2323,6 +2506,7 @@ initialization
   RemClassRegistry.RegisterXSClass(MessageResponseOfstring2, 'http://schemas.datacontract.org/2004/07/BankLink.Common.Services', 'MessageResponseOfstring2', 'MessageResponseOfstring');
   RemClassRegistry.RegisterXSClass(MessageResponseOfDataPlatformSubscription6cY85e5k2, 'http://schemas.datacontract.org/2004/07/BankLink.Common.Services', 'MessageResponseOfDataPlatformSubscription6cY85e5k2', 'MessageResponseOfDataPlatformSubscription6cY85e5k');
   RemClassRegistry.RegisterXSClass(MessageResponseOfPracticeDataSubscriberCredentials6cY85e5k2, 'http://schemas.datacontract.org/2004/07/BankLink.Common.Services', 'MessageResponseOfPracticeDataSubscriberCredentials6cY85e5k2', 'MessageResponseOfPracticeDataSubscriberCredentials6cY85e5k');
+  RemClassRegistry.RegisterXSClass(MessageResponseOfDataPlatformClient6cY85e5k2, 'http://schemas.datacontract.org/2004/07/BankLink.Common.Services', 'MessageResponseOfDataPlatformClient6cY85e5k2', 'MessageResponseOfDataPlatformClient6cY85e5k');
   RemClassRegistry.RegisterXSClass(CatalogueEntry, 'http://www.banklinkonline.com/2011/11/Blopi', 'CatalogueEntry');
   RemClassRegistry.RegisterXSInfo(TypeInfo(ArrayOfRole), 'http://www.banklinkonline.com/2011/11/Blopi', 'ArrayOfRole');
   RemClassRegistry.RegisterXSInfo(TypeInfo(ArrayOfUserRead), 'http://www.banklinkonline.com/2011/11/Blopi', 'ArrayOfUserRead');
