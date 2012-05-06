@@ -185,6 +185,7 @@ type
     function VendorExportsChanged: Boolean;
     function IBizzCredentialsChanged: Boolean;
 
+    procedure SetupDataExportSettings;
     procedure ToggleEnableChildControls(ParentControl: TWinControl; Enabled: Boolean);
     procedure ToggleVendorExportSettings(VendorExportGuid: TBloGuid; Visible: Boolean);
     procedure HideVendorExportSettings;
@@ -334,6 +335,38 @@ begin
     eMask.Text := AdminSystem.fdFields.fdAccount_Code_Mask;
     eLoad.Text := AdminSystem.fdFields.fdLoad_Client_Files_From;
     eSave.Text := AdminSystem.fdFields.fdSave_Client_Files_To;
+  end;
+end;
+
+procedure TfrmPracticeDetails.SetupDataExportSettings;
+begin
+  if Assigned(FPracticeVendorExports) then
+  begin
+    if Length(FPracticeVendorExports.Available) > 0 then
+    begin
+      LoadDataExports(FPracticeVendorExports);
+
+      if Assigned(FIBizzCredentials) then
+      begin
+        edtAcclipseCode.Text := FIBizzCredentials.ExternalSubscriberId;
+      end;
+
+      pnlExportOptions.Visible := True;
+
+      if not ProductConfigService.IsPracticeProductEnabled(ProductConfigService.GetExportDataId, True) then
+      begin
+        ToggleEnableChildControls(pnlExportOptions, False);
+      end;
+    end
+    else
+    begin
+      pnlExportOptions.Visible := False;
+    end;
+
+    if CanShowDataExportSettings and not tbsDataExport.TabVisible then
+    begin
+      tbsDataExport.TabVisible := True;
+    end;
   end;
 end;
 
@@ -533,7 +566,7 @@ begin
     begin
       ProductConfigService.RemoveItemFromArrayGuid(FSelectedVendorExports, TVendorExport(chklistExportTo.Items.Objects[chklistExportTo.ItemIndex]).Id);
     end;
-
+    
     ToggleVendorExportSettings(TVendorExport(chklistExportTo.Items.Objects[chklistExportTo.ItemIndex]).Id, chklistExportTo.Checked[chklistExportTo.ItemIndex]);
   end;
 end;
@@ -556,13 +589,16 @@ begin
       if (FPrac.id <> '') then begin
         if ProductConfigService.Registered  then
         begin
-          FPracticeVendorExports := ProductConfigService.GetPracticeVendorExports;
-
-          if Assigned(FPracticeVendorExports) then
+          if ProductConfigService.IsPracticeProductEnabled(ProductConfigService.GetExportDataId, True) then
           begin
-            if ProductConfigService.VendorExportExists(FPracticeVendorExports.Current, ProductConfigService.GetIBizzExportGuid) then
+            FPracticeVendorExports := ProductConfigService.GetPracticeVendorExports;
+
+            if Assigned(FPracticeVendorExports) then
             begin
-              FIBizzCredentials := ProductConfigService.GetIBizzCredentials;
+              if ProductConfigService.VendorExportExists(FPracticeVendorExports.Current, ProductConfigService.GetIBizzExportGuid) then
+              begin
+                FIBizzCredentials := ProductConfigService.GetIBizzCredentials;
+              end;
             end;
           end;
 
@@ -580,33 +616,9 @@ begin
 
     LoadPracticeDetails;
 
-    if UseBankLinkOnline and Assigned(FPracticeVendorExports) then
+    if UseBankLinkOnline then
     begin
-      if Length(FPracticeVendorExports.Available) > 0 then
-      begin
-        LoadDataExports(FPracticeVendorExports);
-
-        if Assigned(FIBizzCredentials) then
-        begin
-          edtAcclipseCode.Text := FIBizzCredentials.ExternalSubscriberId;
-        end;
-
-        pnlExportOptions.Visible := True;
-
-        if not ProductConfigService.IsPracticeProductEnabled(ProductConfigService.GetExportDataId, True) then
-        begin
-          ToggleEnableChildControls(pnlExportOptions, False);
-        end;
-      end
-      else
-      begin
-        pnlExportOptions.Visible := False;
-      end;
-
-      if CanShowDataExportSettings and not tbsDataExport.TabVisible then
-      begin
-        tbsDataExport.TabVisible := True;
-      end;
+      SetupDataExportSettings;
     end;
 
     if ckUseBankLinkOnline.Checked and ProductConfigService.OnLine then
@@ -1361,6 +1373,16 @@ begin
         //Add product
         ProductConfigService.AddProduct(Cat.Id);
 
+        if ProductConfigService.GuidsEqual(Cat.Id, ProductConfigService.GetExportDataId) then
+        begin
+          if not Assigned(FPracticeVendorExports) then
+          begin
+            FPracticeVendorExports := ProductConfigService.GetPracticeVendorExports;
+
+            SetupDataExportSettings;
+          end;
+        end;
+        
         if CanShowDataExportSettings then
         begin
           if not tbsDataExport.TabVisible then
