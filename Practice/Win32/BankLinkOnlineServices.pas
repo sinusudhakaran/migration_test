@@ -38,10 +38,12 @@ type
   TBloUserRead              = BlopiServiceFacade.UserRead;
   TBloArrayOfUserRead       = BlopiServiceFacade.ArrayOfUserRead;
 
-  TBloDataPlatformSubscription      = BlopiServiceFacade.DataPlatformSubscription;
-  TBloArrayOfDataPlatformSubscriber = BlopiServiceFacade.ArrayOfDataPlatformSubscriber;
-  TBloDataPlatformSubscriber        = BlopiServiceFacade.DataPlatformSubscriber;
-  TBloIBizzCredentials              = BlopiServiceFacade.PracticeDataSubscriberCredentials;
+  TBloDataPlatformSubscription       = BlopiServiceFacade.DataPlatformSubscription;
+  TBloArrayOfDataPlatformSubscriber  = BlopiServiceFacade.ArrayOfDataPlatformSubscriber;
+  TBloArrayOfDataPlatformBankAccount = BlopiServiceFacade.ArrayOfDataPlatformBankAccount;
+  TBloDataPlatformBankAccount        = BlopiServiceFacade.DataPlatformBankAccount;
+  TBloDataPlatformSubscriber         = BlopiServiceFacade.DataPlatformSubscriber;
+  TBloIBizzCredentials               = BlopiServiceFacade.PracticeDataSubscriberCredentials;
 
   TAccountVendors = record
     AccountNumber  : WideString;
@@ -51,7 +53,7 @@ type
   TClientAccVendors = record
     ClientID     : TBloGuid;
     ClientCode   : WideString;
-    ClientVendors : TBloDataPlatformSubscription;
+    ClientVendors : TBloArrayOfDataPlatformSubscriber;
     AccountsVendors : Array of TAccountVendors;
   end;
 
@@ -308,8 +310,8 @@ type
 
     function GetPracticeVendorExports : TBloDataPlatformSubscription;
     function GetClientVendorExports(aClientGuid: TBloGuid) : TBloDataPlatformSubscription;
-    function GetClientAccountVendors(aClientCode: string; aAccounts : TBloArrayOfString): TClientAccVendors;
     function GetAccountVendors(aClientGuid : TBloGuid; aAccountNumber: string): TBloDataPlatformSubscription;
+    function GetClientAccountsVendors(aClientCode: string): TClientAccVendors;
     function GetIBizzCredentials: TBloIBizzCredentials;
     function SaveIBizzCredentials(const AcclipseCode: WideString; aShowMessage: Boolean): Boolean;
 
@@ -2943,7 +2945,7 @@ begin
 
   if not assigned(fClientList) then
     Exit;
-  
+
   for ClientIndex := 0 to high(fClientList.Clients) do
   begin
     if fClientList.Clients[ClientIndex].ClientCode = aClientCode then
@@ -3842,29 +3844,6 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TProductConfigService.GetClientAccountVendors(aClientCode: string; aAccounts : TBloArrayOfString): TClientAccVendors;
-var
-  AccountIndex : integer;
-  ClientGuid : TBloGuid;
-begin
-  ClientGuid := GetClientGuid(AClientCode);
-
-  if (ClientGuid <> '') then
-  begin
-    Result.ClientID   := ClientGuid;
-    Result.ClientCode := aClientCode;
-    Result.ClientVendors := GetClientVendorExports(ClientGuid);
-
-    SetLength(Result.AccountsVendors, Length(aAccounts));
-    for AccountIndex := 0 to high(aAccounts) do
-    begin
-      Result.AccountsVendors[AccountIndex].AccountNumber  := aAccounts[AccountIndex];
-      Result.AccountsVendors[AccountIndex].AccountVendors := GetAccountVendors(ClientGuid, aAccounts[AccountIndex]);
-    end;
-  end;
-end;
-
-//------------------------------------------------------------------------------
 function TProductConfigService.GetAccountVendors(aClientGuid : TBloGuid; aAccountNumber: string): TBloDataPlatformSubscription;
 var
   DataPlatformSubscriberResponse: MessageResponseOfDataPlatformSubscription6cY85e5k;
@@ -3905,6 +3884,112 @@ begin
       if not MessageResponseHasError(MessageResponse(DataPlatformSubscriberResponse), 'get the vendor export types from') then
       begin
         Result := DataPlatformSubscriberResponse.Result;
+      end;
+
+      if ShowProgress then
+        Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finished', 100);
+    finally
+      if ShowProgress then
+      begin
+        Progress.StatusSilent := True;
+        Progress.ClearStatus;
+        Screen.Cursor := crDefault;
+      end;
+    end;
+  except
+    on E:Exception do HelpfulErrorMsg('Error getting vendor export types: ' + E.Message, 0);
+  end;
+end;
+
+//------------------------------------------------------------------------------
+function TProductConfigService.GetClientAccountsVendors(aClientCode: string): TClientAccVendors;
+var
+  DataPlatformClientSubscriberResponse: MessageResponseOfDataPlatformClient6cY85e5k;
+  ShowProgress: Boolean;
+  BlopiInterface: IBlopiServiceFacade;
+  ClientGuid : TBloGuid;
+  AccountIndex : integer;
+  VendorIndex : integer;
+  VendorGuid : TBloGuid;
+  Current : ArrayOfDataPlatformSubscriber;
+
+  function GetClientVendorName(aVendorid : TBloGuid; aClientVendors : TBloArrayOfDataPlatformSubscriber) : string;
+  var
+    VenIndex : integer;
+  begin
+    Result := '';
+    for VenIndex := 0 to high(aClientVendors) do
+    begin
+      if aClientVendors[VenIndex].Id = aVendorid then
+      begin
+        Result := aClientVendors[VenIndex].Name_;
+        break;
+      end;
+    end;
+  end;
+
+begin
+  ClientGuid := GetClientGuid(AClientCode);
+
+  if ClientGuid = '' then
+    Exit;
+
+  try
+    if not Assigned(AdminSystem) then
+      Exit;
+
+    if not Registered then
+      Exit;
+
+    ShowProgress := Progress.StatusSilent;
+
+    if ShowProgress then
+    begin
+      Screen.Cursor := crHourGlass;
+      Progress.StatusSilent := False;
+      Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Connecting', 10);
+    end;
+
+    try
+      if ShowProgress then
+        Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Getting Vendor Export Types', 50);
+
+      BlopiInterface :=  GetServiceFacade;
+
+      //Get the vendor export types from BankLink Online
+      DataPlatformClientSubscriberResponse := BlopiInterface.GetBankAccountsDataSubscribers(CountryText(AdminSystem.fdFields.fdCountry),
+                                                             AdminSystem.fdFields.fdBankLink_Code,
+                                                             AdminSystem.fdFields.fdBankLink_Connect_Password,
+                                                             ClientGuid);
+
+      if not MessageResponseHasError(MessageResponse(DataPlatformClientSubscriberResponse), 'get the vendor export types from') then
+      begin
+        Result.ClientID := ClientGuid;
+        Result.ClientCode := aClientCode;
+        Result.ClientVendors := DataPlatformClientSubscriberResponse.Result.Available;
+
+        Setlength(Result.AccountsVendors, length(DataPlatformClientSubscriberResponse.Result.BankAccounts));
+        for AccountIndex := 0 to high(Result.AccountsVendors) do
+        begin
+          Result.AccountsVendors[AccountIndex].AccountVendors.Available :=
+            DataPlatformClientSubscriberResponse.Result.Available;
+
+          Result.AccountsVendors[AccountIndex].AccountNumber :=
+            DataPlatformClientSubscriberResponse.Result.BankAccounts[AccountIndex].BankAccountNumber;
+
+          Setlength(Current, length(DataPlatformClientSubscriberResponse.Result.BankAccounts[AccountIndex].Subscribers));
+          Result.AccountsVendors[AccountIndex].AccountVendors.Current := Current;
+
+          for VendorIndex := 0 to high(Result.AccountsVendors[AccountIndex].AccountVendors.Current) do
+          begin
+            VendorGuid := DataPlatformClientSubscriberResponse.Result.BankAccounts[AccountIndex].Subscribers[VendorIndex];
+
+            Result.AccountsVendors[AccountIndex].AccountVendors.Current[VendorIndex].Id :=
+              VendorGuid;
+            Result.AccountsVendors[AccountIndex].AccountVendors.Current[VendorIndex].Name_ :=
+              GetClientVendorName(VendorGuid, Result.ClientVendors);
+          end;
+        end;
       end;
 
       if ShowProgress then

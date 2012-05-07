@@ -67,7 +67,7 @@ type
     procedure ShowCurrencyColumn;
     procedure HideCurrencyColumn;
     procedure AddOnlineExportVendors;
-    procedure UpdateLocalVendorList(aAccountVendors : TAccountVendors);
+    //procedure UpdateLocalVendorList(aAccountVendors : TBloDataPlatformBankAccount);
     procedure RefreshBankAccountList;
     function DeleteBankAccount(BankAccount : TBank_Account) :boolean;
     procedure SetUpdateRefNeeded(const Value: boolean);
@@ -204,25 +204,20 @@ var
   NewColumn    : TListColumn;
   VendorIndex  : integer;
   BankAccIndex : integer;
-  AccNumbers   : TBloArrayOfString;
 begin
-  Setlength(AccNumbers, MyClient.clBank_Account_List.itemCount);
-  for BankAccIndex := 0 to MyClient.clBank_Account_List.itemCount-1 do
-    AccNumbers[BankAccIndex] := MyClient.clBank_Account_List.Bank_Account_At(BankAccIndex).baFields.baBank_Account_Number;
-
-  fClientAccVendors := ProductConfigService.GetClientAccountVendors(MyClient.clFields.clCode, AccNumbers);
+  fClientAccVendors := ProductConfigService.GetClientAccountsVendors(MyClient.clFields.clCode);
   if fClientAccVendors.ClientID <> '' then
   begin
-    for VendorIndex := 0 to high(fClientAccVendors.ClientVendors.Current) do
+    for VendorIndex := 0 to high(fClientAccVendors.ClientVendors) do
     begin
       NewColumn := lvBank.Columns.Add;
-      NewColumn.Caption := fClientAccVendors.ClientVendors.Current[VendorIndex].Name_;
+      NewColumn.Caption := fClientAccVendors.ClientVendors[VendorIndex].Name_;
       NewColumn.Width := 120;
 
       if VendorIndex = 0 then
         fOnlineVendorStartCol := NewColumn.Index;
 
-      if VendorIndex = high(fClientAccVendors.ClientVendors.Current) then
+      if VendorIndex = high(fClientAccVendors.ClientVendors) then
         fOnlineVendorEndCol := NewColumn.Index;
     end;
   end;
@@ -300,7 +295,7 @@ begin
       begin
         if fClientAccVendors.ClientID <> '' then
         begin
-          for ClientVendorIndex := 0 to high(fClientAccVendors.ClientVendors.Current) do
+          for ClientVendorIndex := 0 to high(fClientAccVendors.ClientVendors) do
           begin
             if (not BankAcct.baFields.baIs_A_Manual_Account) and
                (not (BankAcct.baFields.baAccount_Type in [sbtProvisional])) then
@@ -309,7 +304,7 @@ begin
               for AccountVendorIndex := 0 to High(fClientAccVendors.AccountsVendors[i].AccountVendors.Current) do
               begin
                 if fClientAccVendors.AccountsVendors[i].AccountVendors.Current[AccountVendorIndex].Id =
-                   fClientAccVendors.ClientVendors.Current[ClientVendorIndex].Id then
+                   fClientAccVendors.ClientVendors[ClientVendorIndex].Id then
                 begin
                   Found := True;
                   break;
@@ -847,7 +842,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TfrmMaintainBank.UpdateLocalVendorList(aAccountVendors: TAccountVendors);
+{procedure TfrmMaintainBank.UpdateLocalVendorList(aAccountVendors: TBloDataPlatformBankAccount);
 var
   AccountIndex : integer;
 begin
@@ -860,7 +855,7 @@ begin
       Exit;
     end;
   end;
-end;
+end;    }
 
 //------------------------------------------------------------------------------
 procedure TfrmMaintainBank.FormShow(Sender: TObject);
