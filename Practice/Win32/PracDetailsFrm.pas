@@ -142,7 +142,7 @@ type
       var CustomDraw: Boolean);
     procedure vtProductsGetText(Sender: TBaseVirtualTree; Node: PVirtualNode;
       Column: TColumnIndex; TextType: TVSTTextType; var CellText: WideString);
-    procedure ckUseBankLinkOnlineClick(Sender: TObject);
+    procedure la(Sender: TObject);
     procedure vtProductsFreeNode(Sender: TBaseVirtualTree; Node: PVirtualNode);
     procedure vtProductsChecked(Sender: TBaseVirtualTree; Node: PVirtualNode);
     procedure tbsInterfacesShow(Sender: TObject);
@@ -167,7 +167,8 @@ type
     FPracticeVendorExports: TBloDataPlatformSubscription;
     FSelectedVendorExports: TBloArrayOfGuid;
     FIBizzCredentials: TBloIBizzCredentials;
-
+    FVendorSubscriberCount: TBloArrayOfPracticeDataSubscriberCount;
+    
     procedure SetUpHelp;
     function AddTreeNode(AVST: TCustomVirtualStringTree; ANode:
                                PVirtualNode; ACaption: widestring;
@@ -195,7 +196,7 @@ type
     procedure RemoveVendorSettingsTab(const VendorName: String);
 
     function GetVendorExportName(VendorExportGuid: TBloGuid; PracticeVendorExports: TBloDataPlatformSubscription): String;
-    function CountVendorExportClients(VendorSubscriberCount: TBloArrayOfPracticeDataSubscriberCount): Integer;
+    function CountVendorExportClients: Integer;
   public
     { Public declarations }
     function Execute(SelPracticeMan: Boolean) : boolean;
@@ -267,6 +268,10 @@ var
 //------------------------------------------------------------------------------
 procedure TfrmPracticeDetails.FormCreate(Sender: TObject);
 begin
+  FIBizzCredentials := nil;
+  FPracticeVendorExports := nil;
+  FVendorSubscriberCount := nil;
+
   bkXPThemes.ThemeForm( Self);
 
   lblConnect.caption := BCONNECTNAME+' &Code';
@@ -617,7 +622,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TfrmPracticeDetails.ckUseBankLinkOnlineClick(Sender: TObject);
+procedure TfrmPracticeDetails.la(Sender: TObject);
 var
   i: integer;
   EventHolder : TNotifyEvent;
@@ -636,11 +641,17 @@ begin
           begin                               
             FIBizzCredentials := nil;
             FPracticeVendorExports := nil;
+            FVendorSubscriberCount := nil;
 
             FPracticeVendorExports := ProductConfigService.GetPracticeVendorExports;
 
             if Assigned(FPracticeVendorExports) then
             begin
+              if Length(FPracticeVendorExports.Available) > 0 then
+              begin
+                FVendorSubscriberCount := ProductConfigService.GetVendorExportClientCount;
+              end;
+              
               if ProductConfigService.VendorExportExists(FPracticeVendorExports.Current, ProductConfigService.GetIBizzExportGuid) then
               begin
                 FIBizzCredentials := ProductConfigService.GetIBizzCredentials;
@@ -1461,7 +1472,7 @@ begin
       begin
         if ProductConfigService.GuidsEqual(Cat.Id, ProductConfigService.GetExportDataId) and tbsDataExport.TabVisible then
         begin
-          ClientCount := CountVendorExportClients(ProductConfigService.GetVendorExportClientCount);
+          ClientCount := CountVendorExportClients;
 
           if ClientCount > 0 then
           begin
@@ -1600,15 +1611,18 @@ begin
   end;
 end;
 
-function TfrmPracticeDetails.CountVendorExportClients(VendorSubscriberCount: TBloArrayOfPracticeDataSubscriberCount): Integer;
+function TfrmPracticeDetails.CountVendorExportClients: Integer;
 var
   Index: Integer;
 begin
   Result := 0;
-  
-  for Index := 0 to Length(VendorSubscriberCount) - 1 do
+
+  if Assigned(FVendorSubscriberCount) then
   begin
-    Result := Result + VendorSubscriberCount[Index].ClientCount;
+    for Index := 0 to Length(FVendorSubscriberCount) - 1 do
+    begin
+      Result := Result + FVendorSubscriberCount[Index].ClientCount;
+    end;
   end;
 end;
 
