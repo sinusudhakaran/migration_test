@@ -409,7 +409,7 @@ begin
   begin
     bmpSelected := TBitmap.create;
     try
-      If (cdsFocused  in State) or
+      If (cdsFocused  in State) and
          (cdsSelected in State) then
         AppImages.Maintain.GetBitmap(MAINTAIN_SELECT, bmpSelected);
 

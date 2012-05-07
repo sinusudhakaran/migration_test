@@ -3913,6 +3913,7 @@ var
   VendorGuid : TBloGuid;
   Current : ArrayOfDataPlatformSubscriber;
 
+  //----------------------------------------
   function GetClientVendorName(aVendorid : TBloGuid; aClientVendors : TBloArrayOfDataPlatformSubscriber) : string;
   var
     VenIndex : integer;

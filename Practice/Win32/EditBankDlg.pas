@@ -444,6 +444,12 @@ begin
   eNumberExit(eInst);
   if okToPost then
   begin
+    if ExportDataEnabled then
+    begin
+      if not SaveAccountVendors then
+        Exit;
+    end;
+
     okPressed := true;
     Close;
   end;
@@ -844,7 +850,8 @@ var
     lblLedgerID.Visible := False;
   end;
 
-  tbBankLinkOnline.Visible := ExportDataEnabled;
+  tbBankLinkOnline.TabVisible := ExportDataEnabled;
+
   if ExportDataEnabled then
     LoadAcccountVendors;
 
@@ -854,9 +861,6 @@ var
 
   if okPressed then
   begin
-   if ExportDataEnabled then
-     SaveAccountVendors;
-
 
    {save values}
   if BankAcct.IsManual then
