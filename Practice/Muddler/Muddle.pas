@@ -475,6 +475,7 @@ var
   FileIndex : integer;
   ArrIndex  : integer;
   LoopLength : integer;
+  Balance : Currency;
 
   //- - - - - - - - - - - - - - - - - - - - - - - -
   function GetFirstDate : TDateTime;
@@ -541,12 +542,15 @@ begin
 
       for ArrIndex := 0 to LoopLength do
       begin
+        if not TryFloatToCurr(fArrBillingInfo[ArrIndex].CurrentBalance, Balance) then
+          Balance := 0;
+
         WriteLn(WorkFile, Format(WORK_FILE_DATA,[fArrBillingInfo[ArrIndex].ClientName,
                                                  fArrBillingInfo[ArrIndex].AccountNumber,
                                                  fArrBillingInfo[ArrIndex].AccountName,
                                                  GetCharge,
                                                  inttostr(round(fArrBillingInfo[ArrIndex].NumOfTrans/FileIndex)),
-                                                 currtostr(fArrBillingInfo[ArrIndex].CurrentBalance/FileIndex),
+                                                 currtostr(Balance/FileIndex),
                                                  inttostr(Random(28)),
                                                  inttostr(Monthof(FirstDate)),
                                                  inttostr(Yearof(FirstDate)),
