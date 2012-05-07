@@ -746,7 +746,7 @@ begin
 
     try
       if ShowProgress then
-        Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Getting iBizz subscriber credentials', 50);
+        Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Getting iBizz Subscriber Credentials', 50);
 
       BlopiInterface :=  GetServiceFacade;
       
@@ -1302,7 +1302,7 @@ begin
 
     try
       if ShowProgress then
-        Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Getting vendor subscribers', 50);
+        Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Getting Vendor Subscribers', 50);
 
       BlopiInterface :=  GetServiceFacade;
       
@@ -4011,7 +4011,7 @@ begin
 
     try
       if ShowProgress then
-        Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Getting Vendor Export Types', 50);
+        Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Getting Available Data Exports', 50);
 
       BlopiInterface :=  GetServiceFacade;
 
