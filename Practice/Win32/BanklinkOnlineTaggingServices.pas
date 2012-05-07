@@ -225,14 +225,10 @@ begin
   if AdminSystem.fdSystem_Client_File_List.ItemCount > 0 then
   begin
     ProgressForm.Initialize;
-
-    ProgressForm.UpdateProgressLabel('Getting account vendors');
-
-    ProgressForm.UpdateProgress(10);
       
     if AdminSystem.fdSystem_Client_File_List.ItemCount > 0 then
     begin
-      ClientProgressSize := 90 / AdminSystem.fdSystem_Client_File_List.ItemCount;
+      ClientProgressSize := 100 / AdminSystem.fdSystem_Client_File_List.ItemCount;
 
       for Index := 0 to AdminSystem.fdSystem_Client_File_List.ItemCount -1 do
       begin
