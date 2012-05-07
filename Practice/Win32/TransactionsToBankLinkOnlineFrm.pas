@@ -5,7 +5,8 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, ovcbase, ovcef, ovcpb, ovcpf, Buttons,
-  BanklinkOnlineTaggingServices, OSFont, Menus, StrUtils, Progress;
+  BanklinkOnlineTaggingServices, OSFont, Menus, StrUtils, Progress,
+  StDate;
 
 type
   TfrmTransactionsToBankLinkOnline = class(TForm)
@@ -20,14 +21,17 @@ type
     BtnCal: TButton;
     procedure Button1Click(Sender: TObject);
     procedure Button2Click(Sender: TObject);
-    procedure FormCreate(Sender: TObject);
     procedure BtnCalClick(Sender: TObject);
     procedure FormKeyPress(Sender: TObject; var Key: Char);
+    procedure FormShow(Sender: TObject);
   private
+    FMaxExportableDate: TStDate;
+    
     FExportStatistics: TExportStatistics;
     
     function ValidateFields: Boolean;
     procedure ExportTaggedAccounts(ProgressForm: ISingleProgressForm);
+    procedure GetMaxExportableDate(ProgressForm: ISingleProgressForm);
   public
     class procedure ShowDialog(Owner: TComponent; PopupParent: TCustomForm); static;
   end;
@@ -38,7 +42,7 @@ var
 implementation
 
 uses
-  OvcDate, ImagesFrm, Globals, StDateSt, GenUtils, RzPopups, StDate, WarningMoreFrm, YesNoDlg, ModalProgressFrm, BanklinkOnlineServices, InfoMoreFrm, ErrorMoreFrm,
+  OvcDate, ImagesFrm, Globals, StDateSt, GenUtils, RzPopups, WarningMoreFrm, YesNoDlg, ModalProgressFrm, BanklinkOnlineServices, InfoMoreFrm, ErrorMoreFrm,
   LOGUTIL;
 
 {$R *.dfm}
@@ -94,7 +98,7 @@ begin
     if AskYesNo('Export data to BankLink Online', 'Are you sure you want to send unsent client transactions to Banklink Online?', Dlg_Yes, 0) = DLG_YES then
     begin
       try
-        if TfrmModalProgress.ShowProgress(Self, 'Please wait...', 'Exporting Client Transactions', ExportTaggedAccounts) = mrOK then
+        if TfrmModalProgress.ShowProgress(Self, 'Please wait...', 'Export data to BankLink Online', ExportTaggedAccounts) = mrOK then
         begin
           if FExportStatistics.TransactionsExported > 0 then
           begin
@@ -137,18 +141,25 @@ begin
   TBankLinkOnlineTaggingServices.ExportTaggedAccounts(ProductConfigService.CachedPractice, ExportOptions, ProgressForm, FExportStatistics);
 end;
 
-procedure TfrmTransactionsToBankLinkOnline.FormCreate(Sender: TObject);
-var
-  MaxExportableDate: TStDate;
+procedure TfrmTransactionsToBankLinkOnline.FormKeyPress(Sender: TObject;
+  var Key: Char);
+begin
+  if Key = Chr(VK_ESCAPE) then
+  begin
+    ModalResult := mrCancel;
+  end;
+end;
+
+procedure TfrmTransactionsToBankLinkOnline.FormShow(Sender: TObject);
 begin
   edtTransactionsToDate.Epoch       := BKDATEEPOCH;
   edtTransactionsToDate.PictureMask := BKDATEFORMAT;
 
-  MaxExportableDate := TBankLinkOnlineTaggingServices.GetMaxExportableTransactionDate;
+  TfrmModalProgress.ShowProgress(Self, 'Please wait...', 'Export data to BankLink Online', GetMaxExportableDate);
 
-  if MaxExportableDate > 0 then
+  if FMaxExportableDate > 0 then
   begin
-    lblTransactionsExportableTo.Caption := ReplaceText(lblTransactionsExportableTo.Caption, '<exportable>', StDateToDateString(BKDATEFORMAT, MaxExportableDate, False));
+    lblTransactionsExportableTo.Caption := ReplaceText(lblTransactionsExportableTo.Caption, '<exportable>', StDateToDateString(BKDATEFORMAT, FMaxExportableDate, False));
   end
   else
   begin
@@ -158,13 +169,9 @@ begin
   edtTransactionsToDate.AsStDate := OvcDate.CurrentDate;
 end;
 
-procedure TfrmTransactionsToBankLinkOnline.FormKeyPress(Sender: TObject;
-  var Key: Char);
+procedure TfrmTransactionsToBankLinkOnline.GetMaxExportableDate(ProgressForm: ISingleProgressForm);
 begin
-  if Key = Chr(VK_ESCAPE) then
-  begin
-    ModalResult := mrCancel;
-  end;
+  FMaxExportableDate := TBankLinkOnlineTaggingServices.GetMaxExportableTransactionDate(ProgressForm);
 end;
 
 class procedure TfrmTransactionsToBankLinkOnline.ShowDialog(Owner: TComponent; PopupParent: TCustomForm);

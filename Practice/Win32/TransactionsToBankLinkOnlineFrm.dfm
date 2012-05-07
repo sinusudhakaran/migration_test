@@ -15,8 +15,8 @@ object frmTransactionsToBankLinkOnline: TfrmTransactionsToBankLinkOnline
   KeyPreview = True
   OldCreateOrder = False
   Position = poOwnerFormCenter
-  OnCreate = FormCreate
   OnKeyPress = FormKeyPress
+  OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 13
   object Label1: TLabel
