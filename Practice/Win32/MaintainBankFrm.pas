@@ -66,6 +66,7 @@ type
     function GetAccountIndexOnVendorList(aAccountNumber : string) : integer;
     procedure ShowCurrencyColumn;
     procedure HideCurrencyColumn;
+    procedure RefreshExportVendors;
     procedure AddOnlineExportVendors;
     //procedure UpdateLocalVendorList(aAccountVendors : TBloDataPlatformBankAccount);
     procedure RefreshBankAccountList;
@@ -199,13 +200,20 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+procedure TfrmMaintainBank.RefreshExportVendors;
+begin
+  ProductConfigService.GetClientAccountsVendors(MyClient.clFields.clCode, fClientAccVendors);
+end;
+
+//------------------------------------------------------------------------------
 procedure TfrmMaintainBank.AddOnlineExportVendors;
 var
   NewColumn    : TListColumn;
   VendorIndex  : integer;
   BankAccIndex : integer;
 begin
-  fClientAccVendors := ProductConfigService.GetClientAccountsVendors(MyClient.clFields.clCode);
+  RefreshExportVendors;
+
   if fClientAccVendors.ClientID <> '' then
   begin
     for VendorIndex := 0 to high(fClientAccVendors.ClientVendors) do
@@ -291,33 +299,32 @@ begin
         NewItem.SubItems.Add(BankAcct.baFields.baContra_Account_Code);
       end;
 
-      if (fExportDataEnabled) then
+      if (fExportDataEnabled) and
+         (fClientAccVendors.ClientID <> '') then
       begin
-        if fClientAccVendors.ClientID <> '' then
+        for ClientVendorIndex := 0 to high(fClientAccVendors.ClientVendors) do
         begin
-          for ClientVendorIndex := 0 to high(fClientAccVendors.ClientVendors) do
+          if (not BankAcct.baFields.baIs_A_Manual_Account) and
+             (not (BankAcct.baFields.baAccount_Type in [sbtProvisional])) and
+             (i <= high(fClientAccVendors.AccountsVendors)) then
           begin
-            if (not BankAcct.baFields.baIs_A_Manual_Account) and
-               (not (BankAcct.baFields.baAccount_Type in [sbtProvisional])) then
+            Found := False;
+            for AccountVendorIndex := 0 to High(fClientAccVendors.AccountsVendors[i].AccountVendors.Current) do
             begin
-              Found := False;
-              for AccountVendorIndex := 0 to High(fClientAccVendors.AccountsVendors[i].AccountVendors.Current) do
+              if fClientAccVendors.AccountsVendors[i].AccountVendors.Current[AccountVendorIndex].Id =
+                 fClientAccVendors.ClientVendors[ClientVendorIndex].Id then
               begin
-                if fClientAccVendors.AccountsVendors[i].AccountVendors.Current[AccountVendorIndex].Id =
-                   fClientAccVendors.ClientVendors[ClientVendorIndex].Id then
-                begin
-                  Found := True;
-                  break;
-                end;
+                Found := True;
+                break;
               end;
-              if Found then
-                SubItemIndex := NewItem.SubItems.Add('1')
-              else
-                SubItemIndex := NewItem.SubItems.Add('0');
-            end
+            end;
+            if Found then
+              SubItemIndex := NewItem.SubItems.Add('1')
             else
               SubItemIndex := NewItem.SubItems.Add('0');
-          end;
+          end
+          else
+            SubItemIndex := NewItem.SubItems.Add('0');
         end;
       end;
     end;

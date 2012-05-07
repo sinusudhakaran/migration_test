@@ -312,7 +312,7 @@ type
     function GetPracticeVendorExports : TBloDataPlatformSubscription;
     function GetClientVendorExports(aClientGuid: TBloGuid) : TBloDataPlatformSubscription;
     function GetAccountVendors(aClientGuid : TBloGuid; aAccountNumber: string): TBloDataPlatformSubscription;
-    function GetClientAccountsVendors(aClientCode: string): TClientAccVendors;
+    function GetClientAccountsVendors(aClientCode: string; out aClientAccVendors : TClientAccVendors): Boolean;
     function GetIBizzCredentials: TBloIBizzCredentials;
     function SaveIBizzCredentials(const AcclipseCode: WideString; aShowMessage: Boolean): Boolean;
 
@@ -3960,7 +3960,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TProductConfigService.GetClientAccountsVendors(aClientCode: string): TClientAccVendors;
+function TProductConfigService.GetClientAccountsVendors(aClientCode: string; out aClientAccVendors : TClientAccVendors): Boolean;
 var
   DataPlatformClientSubscriberResponse: MessageResponseOfDataPlatformClient6cY85e5k;
   ShowProgress: Boolean;
@@ -3988,8 +3988,8 @@ var
   end;
 
 begin
+  Result := false;
   ClientGuid := GetClientGuid(AClientCode);
-
   if ClientGuid = '' then
     Exit;
 
@@ -4023,36 +4023,38 @@ begin
 
       if not MessageResponseHasError(MessageResponse(DataPlatformClientSubscriberResponse), 'get the vendor export types from') then
       begin
-        Result.ClientID := ClientGuid;
-        Result.ClientCode := aClientCode;
-        Result.ClientVendors := DataPlatformClientSubscriberResponse.Result.Available;
+        aClientAccVendors.ClientID := ClientGuid;
+        aClientAccVendors.ClientCode := aClientCode;
+        aClientAccVendors.ClientVendors := DataPlatformClientSubscriberResponse.Result.Available;
 
-        Setlength(Result.AccountsVendors, length(DataPlatformClientSubscriberResponse.Result.BankAccounts));
-        for AccountIndex := 0 to high(Result.AccountsVendors) do
+        Setlength(aClientAccVendors.AccountsVendors, length(DataPlatformClientSubscriberResponse.Result.BankAccounts));
+        for AccountIndex := 0 to high(aClientAccVendors.AccountsVendors) do
         begin
-          Result.AccountsVendors[AccountIndex].AccountVendors := TBloDataPlatformSubscription.Create;
+          aClientAccVendors.AccountsVendors[AccountIndex].AccountVendors := TBloDataPlatformSubscription.Create;
 
-          Result.AccountsVendors[AccountIndex].AccountVendors.Available :=
+          aClientAccVendors.AccountsVendors[AccountIndex].AccountVendors.Available :=
             DataPlatformClientSubscriberResponse.Result.Available;
 
-          Result.AccountsVendors[AccountIndex].AccountNumber :=
+          aClientAccVendors.AccountsVendors[AccountIndex].AccountNumber :=
             DataPlatformClientSubscriberResponse.Result.BankAccounts[AccountIndex].BankAccountNumber;
 
           Setlength(Current, length(DataPlatformClientSubscriberResponse.Result.BankAccounts[AccountIndex].Subscribers));
-          Result.AccountsVendors[AccountIndex].AccountVendors.Current := Current;
+          aClientAccVendors.AccountsVendors[AccountIndex].AccountVendors.Current := Current;
 
-          for VendorIndex := 0 to high(Result.AccountsVendors[AccountIndex].AccountVendors.Current) do
+          for VendorIndex := 0 to high(aClientAccVendors.AccountsVendors[AccountIndex].AccountVendors.Current) do
           begin
             VendorGuid := DataPlatformClientSubscriberResponse.Result.BankAccounts[AccountIndex].Subscribers[VendorIndex];
 
-            Result.AccountsVendors[AccountIndex].AccountVendors.Current[VendorIndex] := TBloDataPlatformSubscriber.Create;
-            Result.AccountsVendors[AccountIndex].AccountVendors.Current[VendorIndex].Id :=
+            aClientAccVendors.AccountsVendors[AccountIndex].AccountVendors.Current[VendorIndex] := TBloDataPlatformSubscriber.Create;
+            aClientAccVendors.AccountsVendors[AccountIndex].AccountVendors.Current[VendorIndex].Id :=
               VendorGuid;
-            Result.AccountsVendors[AccountIndex].AccountVendors.Current[VendorIndex].Name_ :=
-              GetClientVendorName(VendorGuid, Result.ClientVendors);
+            aClientAccVendors.AccountsVendors[AccountIndex].AccountVendors.Current[VendorIndex].Name_ :=
+              GetClientVendorName(VendorGuid, aClientAccVendors.ClientVendors);
           end;
         end;
       end;
+
+      Result := True;
 
       if ShowProgress then
         Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finished', 100);
