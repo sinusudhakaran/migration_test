@@ -44,6 +44,7 @@ type
   TBloDataPlatformBankAccount        = BlopiServiceFacade.DataPlatformBankAccount;
   TBloDataPlatformSubscriber         = BlopiServiceFacade.DataPlatformSubscriber;
   TBloIBizzCredentials               = BlopiServiceFacade.PracticeDataSubscriberCredentials;
+  TBloArrayOfPracticeDataSubscriberCount = BlopiServiceFacade.ArrayOfPracticeDataSubscriberCount;
 
   TAccountVendors = record
     AccountNumber  : WideString;
@@ -327,6 +328,7 @@ type
                                       aVendorExports: TBloArrayOfGuid;
                                       aShowMessage: Boolean = True): Boolean;
 
+    function GetVendorExportClientCount: TBloArrayOfPracticeDataSubscriberCount;
 
     property OnLine: Boolean read FOnLine;
     property Registered: Boolean read GetRegistered;
@@ -1271,6 +1273,62 @@ end;
 function TProductConfigService.GetValidBConnectDetails: Boolean;
 begin
   Result := FValidBConnectDetails;
+end;
+
+function TProductConfigService.GetVendorExportClientCount: TBloArrayOfPracticeDataSubscriberCount;
+var
+  DataSubscriberCredentialsResponse: MessageResponseOfArrayOfPracticeDataSubscriberCount6cY85e5k;
+  ShowProgress: Boolean;
+  BlopiInterface: IBlopiServiceFacade;
+  Index: Integer;
+begin
+  Result := nil;
+  
+  try
+    if not Assigned(AdminSystem) then
+      Exit;
+
+    if not Registered then
+      Exit;
+
+    ShowProgress := Progress.StatusSilent;
+
+    if ShowProgress then
+    begin
+      Screen.Cursor := crHourGlass;
+      Progress.StatusSilent := False;
+      Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Connecting', 10);
+    end;
+
+    try
+      if ShowProgress then
+        Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Getting vendor subscribers', 50);
+
+      BlopiInterface :=  GetServiceFacade;
+      
+      //Get the vendor export types from BankLink Online
+      DataSubscriberCredentialsResponse := BlopiInterface.GetPracticeDataSubscriberCount(CountryText(AdminSystem.fdFields.fdCountry),
+                                                       AdminSystem.fdFields.fdBankLink_Code,
+                                                       AdminSystem.fdFields.fdBankLink_Connect_Password);
+                                                       
+      if not MessageResponseHasError(MessageResponse(DataSubscriberCredentialsResponse), 'get the vendor subscribers') then
+      begin
+        Result := DataSubscriberCredentialsResponse.Result;
+      end;
+
+      if ShowProgress then
+        Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finished', 100);
+    finally
+      if ShowProgress then
+      begin
+        Progress.StatusSilent := True;
+        Progress.ClearStatus;
+        Screen.Cursor := crDefault;
+      end;
+    end;
+  except
+    on E:Exception do HelpfulErrorMsg('Error getting the vendor subscribers: ' + E.Message, 0);
+  end;
 end;
 
 function TProductConfigService.GuidArraysEqual(GuidArrayA, GuidArrayB: TBloArrayOfGuid): Boolean;
