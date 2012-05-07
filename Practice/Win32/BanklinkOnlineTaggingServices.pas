@@ -375,29 +375,22 @@ begin
     ProgressForm.UpdateProgressLabel('Updating bank account vendors for client ' + Client.clFields.clCode);
     ProductConfigService.SaveClientVendorExports(ClientReadDetail.Id, Vendors, true);
 
-    for Index := 0 to Client.clBank_Account_List.ItemCount - 1 do
+    if not ProgressForm.Cancelled then
     begin
-      if not ProgressForm.Cancelled then
+      if not Client.clFields.clFile_Read_Only then
       begin
-        if not Client.clFields.clFile_Read_Only then
+        for IIndex := 0 to Client.clBank_Account_List.ItemCount - 1 do
         begin
-          for IIndex := 0 to Client.clBank_Account_List.ItemCount - 1 do
-          begin
-            BankAccount := Client.clBank_Account_List[IIndex];
-            // no tagging for Journals or Provisional/Manual accounts. Temporarily removed for testing
-            // if (BankAccount.baFields.baAccount_Type = btBank) and
-            // (BankAccount.baFields.baBank_Account_Number[1] <> 'M') then
-              UpdateAccountVendors(ClientReadDetail, BankAccount, Vendors);
-          end;
+          BankAccount := Client.clBank_Account_List[IIndex];
+          // no tagging for Journals or Provisional/Manual accounts. Temporarily removed for testing
+          // if (BankAccount.baFields.baAccount_Type = btBank) and
+          // (BankAccount.baFields.baBank_Account_Number[1] <> 'M') then
+            UpdateAccountVendors(ClientReadDetail, BankAccount, Vendors);
         end;
-      end
-      else
-      begin
-        Break;
       end;
-
-      ProgressForm.UpdateProgress(ClientProgressSize);     
     end;
+    ProgressForm.UpdateProgress(ClientProgressSize);
+
   except
     on E:Exception do
     begin
@@ -412,7 +405,7 @@ begin
   ProductConfigService.SaveAccountVendorExports(ClientReadDetail.Id,
                                                 BankAccount.baFields.baBank_Account_Number,
                                                 Vendors,
-                                                True);
+                                                False);
 end;
 
 class procedure TBanklinkOnlineTaggingServices.FlagTransactionsAsSent(Client: TClientObj; MaxTransactionDate: TStDate);
