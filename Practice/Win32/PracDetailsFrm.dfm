@@ -47,7 +47,7 @@ object frmPracticeDetails: TfrmPracticeDetails
     Top = 8
     Width = 617
     Height = 387
-    ActivePage = tsBankLinkOnline
+    ActivePage = tbsDataExport
     TabOrder = 0
     OnChange = PageControl1Change
     OnChanging = PageControl1Changing
@@ -670,10 +670,6 @@ object frmPracticeDetails: TfrmPracticeDetails
     object tbsDataExport: TTabSheet
       Caption = 'Data Export Settings'
       ImageIndex = 5
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object Label12: TLabel
         Left = 16
         Top = 20
@@ -714,10 +710,6 @@ object frmPracticeDetails: TfrmPracticeDetails
           TabOrder = 1
           object tbsIBizz: TTabSheet
             Caption = 'iBizz'
-            ExplicitLeft = 0
-            ExplicitTop = 0
-            ExplicitWidth = 0
-            ExplicitHeight = 0
             object lblAcclipseCode: TLabel
               Left = 5
               Top = 21
@@ -731,21 +723,6 @@ object frmPracticeDetails: TfrmPracticeDetails
               Width = 177
               Height = 21
               TabOrder = 0
-            end
-          end
-          object tbsOtherVendors: TTabSheet
-            Caption = 'Other Vendors'
-            ImageIndex = 2
-            ExplicitLeft = 0
-            ExplicitTop = 0
-            ExplicitWidth = 0
-            ExplicitHeight = 0
-            object Label13: TLabel
-              Left = 5
-              Top = 21
-              Width = 107
-              Height = 13
-              Caption = 'There are no settings.'
             end
           end
         end

@@ -119,8 +119,6 @@ type
     lblAcclipseCode: TLabel;
     edtAcclipseCode: TEdit;
     Label12: TLabel;
-    tbsOtherVendors: TTabSheet;
-    Label13: TLabel;
     
     procedure btnOKClick(Sender: TObject);
     procedure btnCancelClick(Sender: TObject);
@@ -190,6 +188,12 @@ type
     procedure ToggleVendorExportSettings(VendorExportGuid: TBloGuid; Visible: Boolean);
     procedure HideVendorExportSettings;
     function CanShowDataExportSettings: Boolean;
+
+    function GetVendorSettingsTab(const VendorName: String): TTabsheet;
+    function AddVendorSettingsTab(const VendorName: String): TTabsheet;
+    procedure RemoveVendorSettingsTab(const VendorName: String);
+
+    function GetVendorExportName(VendorExportGuid: TBloGuid; PracticeVendorExports: TBloDataPlatformSubscription): String;
   public
     { Public declarations }
     function Execute(SelPracticeMan: Boolean) : boolean;
@@ -282,11 +286,42 @@ begin
   FPreviousPage := 0;
 end;
 
+function TfrmPracticeDetails.GetVendorExportName(VendorExportGuid: TBloGuid; PracticeVendorExports: TBloDataPlatformSubscription): String;
+var
+  Index: Integer;
+begin
+  Result := '';
+
+  for Index := 0 to Length(PracticeVendorExports.Available) - 1 do
+  begin
+    if ProductConfigService.GuidsEqual(PracticeVendorExports.Available[Index].Id, VendorExportGuid) then
+    begin
+      Result := PracticeVendorExports.Available[Index].Name_;
+
+      Break;
+    end;
+  end;
+end;
+
+function TfrmPracticeDetails.GetVendorSettingsTab(const VendorName: String): TTabsheet;
+var
+  Index: Integer;
+begin
+  for Index := 0 to pgcVendorExportOptions.PageCount - 1 do
+  begin
+    if pgcVendorExportOptions.Pages[Index].Caption = VendorName then
+    begin
+      Result := pgcVendorExportOptions.Pages[Index];
+
+      Break;
+    end;
+  end;
+end;
+
 procedure TfrmPracticeDetails.HideVendorExportSettings;
 begin
   pgcVendorExportOptions.Visible := False;
   tbsIBizz.TabVisible := False;
-  tbsOtherVendors.TabVisible := False;
 end;
 
 function TfrmPracticeDetails.IBizzCredentialsChanged: Boolean;
@@ -1698,6 +1733,28 @@ begin
     Result.CheckType := ctCheckBox;
 end;
 
+function TfrmPracticeDetails.AddVendorSettingsTab(const VendorName: String): TTabsheet;
+var
+  VendorLabel: TLabel;
+  VendorTab: TTabsheet;
+begin
+  VendorTab := TTabsheet.Create(pgcVendorExportOptions);
+
+  VendorLabel := TLabel.Create(VendorTab);
+  VendorLabel.Parent := VendorTab;
+  VendorLabel.Top := 21;
+  VendorLabel.Left := 5;
+  VendorLabel.Caption := 'Service enabled, no further settings required.';
+
+  VendorTab.Caption := VendorName;
+
+  VendorTab.TabVisible := False;
+
+  VendorTab.PageControl := pgcVendorExportOptions;
+
+  Result := VendorTab;
+end;
+
 //------------------------------------------------------------------------------
 procedure TfrmPracticeDetails.btnBrowseLogoBitmapClick(Sender: TObject);
 const
@@ -1781,6 +1838,21 @@ begin
   end;
 end;
 
+procedure TfrmPracticeDetails.RemoveVendorSettingsTab(const VendorName: String);
+var
+  Index: Integer;
+begin
+  for Index := 0 to pgcVendorExportOptions.PageCount - 1 do
+  begin
+    if pgcVendorExportOptions.Pages[Index].Caption = VendorName then
+    begin
+      pgcVendorExportOptions.Pages[Index].TabVisible := False;
+
+      Break;
+    end;
+  end;
+end;
+
 //------------------------------------------------------------------------------
 procedure TfrmPracticeDetails.edtLogoBitmapFilenameChange(Sender: TObject);
 begin
@@ -1823,6 +1895,9 @@ begin
 end;
 
 procedure TfrmPracticeDetails.ToggleVendorExportSettings(VendorExportGuid: TBloGuid; Visible: Boolean);
+var
+  VendorSettingsTab: TTabsheet;
+  VendorExportName: String;
 begin
   if ProductConfigService.GuidsEqual(VendorExportGuid, ProductConfigService.GetIBizzExportGuid) then
   begin
@@ -1838,7 +1913,28 @@ begin
   end
   else
   begin
-    tbsOtherVendors.TabVisible := Visible;
+    if Assigned(FPracticeVendorExports) then
+    begin
+      VendorExportName := GetVendorExportName(VendorExportGuid, FPracticeVendorExports);
+
+      if Visible then
+      begin
+        VendorSettingsTab := GetVendorSettingsTab(VendorExportName);
+
+        if not Assigned(VendorSettingsTab) then
+        begin
+          VendorSettingsTab := AddVendorSettingsTab(VendorExportName);
+        end;
+
+        VendorSettingsTab.TabVisible := True;
+
+        pgcVendorExportOptions.ActivePage := VendorSettingsTab;
+      end
+      else
+      begin
+        RemoveVendorSettingsTab(GetVendorExportName(VendorExportGuid, FPracticeVendorExports));
+      end;
+    end;
   end;
 
   pgcVendorExportOptions.Visible := chklistExportTo.CountCheckedItems > 0;
