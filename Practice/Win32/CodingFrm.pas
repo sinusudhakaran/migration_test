@@ -118,7 +118,7 @@ type
     miSearch: TMenuItem;
     tbtnClose: TRzToolButton;
     celCoreTransactionId: TOvcTCNumericField;
-    celTransferedToOnline: TOvcTCString;
+    celTransferedToOnline: TOvcTCCheckBox;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
 
@@ -3805,7 +3805,7 @@ begin
       if (ProductConfigService.OnLine and ProductConfigService.IsPracticeProductEnabled(ProductConfigService.GetExportDataId, False)) then
       begin
         InsColDefnRec('Transaction Id', ceCoreTransactionId, celCoreTransactionId, 90, false, true, false, -1);
-        InsColDefnRec('Transfered to Online', ceTransferedToOnline, celTransferedToOnline, 120, false, true, false, -1);
+        InsColDefnRec('Sent to BankLink Online', ceTransferedToOnline, celTransferedToOnline, 142, false, true, false, -1);
       end;
 
       EditMode := emGeneral; //Never changed here
@@ -4538,12 +4538,12 @@ begin
 
         ceTransferedToOnline :
         begin
-          if pT^.txTransfered_To_Online then
-            tmpPaintString := 'Yes'
+          if random(2) = 1 then
+            pT^.txTransfered_To_Online := True
           else
-            tmpPaintString := ' ';
+            pT^.txTransfered_To_Online := False;
 
-          data := PChar( tmpPaintString);
+          data := @pT^.txTransfered_To_Online;
         end
 
       else
