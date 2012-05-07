@@ -142,7 +142,7 @@ type
       var CustomDraw: Boolean);
     procedure vtProductsGetText(Sender: TBaseVirtualTree; Node: PVirtualNode;
       Column: TColumnIndex; TextType: TVSTTextType; var CellText: WideString);
-    procedure la(Sender: TObject);
+    procedure ckUseBankLinkOnlineClick(Sender: TObject);
     procedure vtProductsFreeNode(Sender: TBaseVirtualTree; Node: PVirtualNode);
     procedure vtProductsChecked(Sender: TBaseVirtualTree; Node: PVirtualNode);
     procedure tbsInterfacesShow(Sender: TObject);
@@ -622,12 +622,16 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TfrmPracticeDetails.la(Sender: TObject);
+procedure TfrmPracticeDetails.ckUseBankLinkOnlineClick(Sender: TObject);
 var
   i: integer;
   EventHolder : TNotifyEvent;
   Index: Integer;
 begin
+  FIBizzCredentials := nil;
+  FPracticeVendorExports := nil;
+  FVendorSubscriberCount := nil;
+
   EventHolder := ckUseBankLinkOnline.OnClick;
   ckUseBankLinkOnline.OnClick := nil;
   try
@@ -638,11 +642,7 @@ begin
         if ProductConfigService.Registered  then
         begin
           if ProductConfigService.IsPracticeProductEnabled(ProductConfigService.GetExportDataId, True) then
-          begin                               
-            FIBizzCredentials := nil;
-            FPracticeVendorExports := nil;
-            FVendorSubscriberCount := nil;
-
+          begin
             FPracticeVendorExports := ProductConfigService.GetPracticeVendorExports;
 
             if Assigned(FPracticeVendorExports) then
@@ -673,21 +673,9 @@ begin
 
     LoadPracticeDetails;
 
-    SetupDataExportSettings;
-
-    if not UseBankLinkOnline then
+    if UsebankLinkOnline then
     begin
-      Index := 0;
-
-      while Index < chklistExportTo.Count do
-      begin
-        if not chklistExportTo.Checked[Index] then
-        begin
-          chklistExportTo.Items.Delete(Index);
-        end;
-
-        Inc(Index);
-      end;
+      SetupDataExportSettings;
     end;
 
     if ckUseBankLinkOnline.Checked and ProductConfigService.OnLine then
@@ -1459,10 +1447,6 @@ begin
           if not tbsDataExport.TabVisible then
           begin
             tbsDataExport.TabVisible := True;
-          end
-          else
-          begin
-            SetupDataExportSettings;
           end;
 
           ToggleEnableChildControls(pnlExportOptions, True);
@@ -1490,20 +1474,6 @@ begin
 
         if ProductConfigService.GuidsEqual(Cat.Id, ProductConfigService.GetExportDataId) and tbsDataExport.TabVisible then
         begin
-          SetupDataExportSettings;
-
-          Index := 0;
-          
-          while Index < chklistExportTo.Count do
-          begin
-            if not chklistExportTo.Checked[Index] then
-            begin
-              chklistExportTo.Items.Delete(Index);
-            end;
-
-            Inc(Index);
-          end;
-
           ToggleEnableChildControls(pnlExportOptions, False);
         end;
       end;

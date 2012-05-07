@@ -606,7 +606,7 @@ object frmPracticeDetails: TfrmPracticeDetails
         Height = 17
         Caption = 'Use &BankLink Online'
         TabOrder = 0
-        OnClick = la
+        OnClick = ckUseBankLinkOnlineClick
       end
       object edtURL: TEdit
         Left = 129
