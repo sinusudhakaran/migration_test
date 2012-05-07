@@ -118,7 +118,7 @@ type
     miSearch: TMenuItem;
     tbtnClose: TRzToolButton;
     celCoreTransactionId: TOvcTCNumericField;
-    celTransferedToOnline: TOvcTCCheckBox;
+    celTransferedToOnline: TOvcTCString;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
 
@@ -3793,7 +3793,7 @@ begin
 
         end;
 
-        
+
 
         if fIsForex then
            InsColDefnRec( 'Balance ('+BCode+')', ceBalance, celBalance, CE_BALANCE_DEF_WIDTH, CE_BALANCE_DEF_VISIBLE, false, CE_BALANCE_DEF_EDITABLE, csDateEffective)
@@ -3804,8 +3804,8 @@ begin
 
       if (ProductConfigService.OnLine and ProductConfigService.IsPracticeProductEnabled(ProductConfigService.GetExportDataId, False)) then
       begin
-        InsColDefnRec('Transaction Id', ceCoreTransactionId, celCoreTransactionId, 90, true, false, false, -1);
-        InsColDefnRec('Transfered to Online', ceTransferedToOnline, celTransferedToOnline, 120, true, false, false, -1);
+        InsColDefnRec('Transaction Id', ceCoreTransactionId, celCoreTransactionId, 90, false, true, false, -1);
+        InsColDefnRec('Transfered to Online', ceTransferedToOnline, celTransferedToOnline, 120, false, true, false, -1);
       end;
 
       EditMode := emGeneral; //Never changed here
@@ -4538,11 +4538,12 @@ begin
 
         ceTransferedToOnline :
         begin
-           if pT^.txTransfered_To_Online then
-             tmpPaintInteger := 1
-           else
-             tmpPaintInteger := 0;
-           data := @tmpPaintInteger;
+          if pT^.txTransfered_To_Online then
+            tmpPaintString := 'Yes'
+          else
+            tmpPaintString := ' ';
+
+          data := PChar( tmpPaintString);
         end
 
       else
@@ -8518,7 +8519,9 @@ begin
                              ceJobName,
                              ceDocument,
                              ceAction,
-                             ceAltChartCode ];
+                             ceAltChartCode,
+                             ceCoreTransactionId,
+                             ceTransferedToOnline ];
      DefaultEditColumn := ceAccount;
 
      if fIsForex then
