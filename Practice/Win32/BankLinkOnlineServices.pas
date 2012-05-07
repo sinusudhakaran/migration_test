@@ -3971,6 +3971,8 @@ begin
         Setlength(Result.AccountsVendors, length(DataPlatformClientSubscriberResponse.Result.BankAccounts));
         for AccountIndex := 0 to high(Result.AccountsVendors) do
         begin
+          Result.AccountsVendors[AccountIndex].AccountVendors := TBloDataPlatformSubscription.Create;
+
           Result.AccountsVendors[AccountIndex].AccountVendors.Available :=
             DataPlatformClientSubscriberResponse.Result.Available;
 
@@ -3984,6 +3986,7 @@ begin
           begin
             VendorGuid := DataPlatformClientSubscriberResponse.Result.BankAccounts[AccountIndex].Subscribers[VendorIndex];
 
+            Result.AccountsVendors[AccountIndex].AccountVendors.Current[VendorIndex] := TBloDataPlatformSubscriber.Create;
             Result.AccountsVendors[AccountIndex].AccountVendors.Current[VendorIndex].Id :=
               VendorGuid;
             Result.AccountsVendors[AccountIndex].AccountVendors.Current[VendorIndex].Name_ :=
