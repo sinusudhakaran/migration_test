@@ -462,7 +462,7 @@ begin
   begin
     ClientProgressStepSize := 100 / AdminSystem.fdSystem_Client_File_List.ItemCount;
 
-    ProgressForm.UpdateProgressLabel(''); 
+    ProgressForm.UpdateProgressLabel('Checking client files and bank accounts'); 
 
     for ClientIndex := 0 to AdminSystem.fdSystem_Client_File_List.ItemCount -1 do
     begin
