@@ -155,6 +155,8 @@ begin
   edtTransactionsToDate.Epoch       := BKDATEEPOCH;
   edtTransactionsToDate.PictureMask := BKDATEFORMAT;
 
+  ProductConfigService.LoadClientList;
+  
   TfrmModalProgress.ShowProgress(Self, 'Please wait...', 'Export data to BankLink Online', GetMaxExportableDate);
 
   if FMaxExportableDate > 0 then
