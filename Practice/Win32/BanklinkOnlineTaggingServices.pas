@@ -62,7 +62,7 @@ type
     
     class procedure ExportTaggedAccounts(Practice: TBloPracticeRead; ExportOptions: TExportOptions; ProgressForm: ISingleProgressForm; out Statistics: TExportStatistics); static;
     
-    class function GetMaxExportableTransactionDate: TStDate; static;
+    class function GetMaxExportableTransactionDate(ProgressForm: ISingleProgressForm): TStDate; static;
   end;
 
 implementation
@@ -356,8 +356,6 @@ begin
   begin
     Result := (Transaction.txCore_Transaction_ID <> 0) and (not Transaction.txTransfered_To_Online);
   end;
-
-  Result := True;
 end;
 
 // Update account vendors for a client
@@ -448,7 +446,7 @@ begin
 
 end;
 
-class function TBanklinkOnlineTaggingServices.GetMaxExportableTransactionDate: TStDate;
+class function TBanklinkOnlineTaggingServices.GetMaxExportableTransactionDate(ProgressForm: ISingleProgressForm): TStDate;
 var
   ClientIndex: Integer;
   AccountIndex: Integer;
@@ -456,44 +454,60 @@ var
   Client: TClientObj;
   BankAccount: TBank_Account;
   Transaction: pTransaction_Rec;
+  ClientProgressStepSize: Double;
 begin
   Result := -1;
-  
-  for ClientIndex := 0 to Min(AdminSystem.fdSystem_Client_File_List.ItemCount -1, 99) do
-  begin
-    OpenAClientForRead(AdminSystem.fdSystem_Client_File_List.Client_File_At(ClientIndex).cfFile_Code, Client);
-    
-    if Assigned(Client) then
-    begin
-      try
-        if not Client.clFields.clFile_Read_Only then
-        begin
-          for AccountIndex := 0 to Min(Client.clBank_Account_List.ItemCount - 1, 2) do
-          begin
-            BankAccount := Client.clBank_Account_List[AccountIndex];
 
-            if IsExportableBankAccount(BankAccount) then
+  if AdminSystem.fdSystem_Client_File_List.ItemCount > 0 then
+  begin
+    ClientProgressStepSize := 100 / AdminSystem.fdSystem_Client_File_List.ItemCount;
+
+    ProgressForm.UpdateProgressLabel(''); 
+
+    for ClientIndex := 0 to AdminSystem.fdSystem_Client_File_List.ItemCount -1 do
+    begin
+      if AdminSystem.fdSystem_Client_File_List.Client_File_At(ClientIndex).cfFile_Status = bkConst.fsNormal then
+      begin
+        try
+          OpenAClientForRead(AdminSystem.fdSystem_Client_File_List.Client_File_At(ClientIndex).cfFile_Code, Client);
+        except
+        end;
+
+        if Assigned(Client) then
+        begin
+          try
+            if not Client.clFields.clFile_Read_Only then
             begin
-              for TransactionIndex := 0 to Min(BankAccount.baTransaction_List.ItemCount - 1, 19) do
+              for AccountIndex := 0 to Client.clBank_Account_List.ItemCount - 1 do
               begin
-                Transaction := BankAccount.baTransaction_List[TransactionIndex];
-                
-                if IsExportableTransaction(Transaction) then
+                BankAccount := Client.clBank_Account_List[AccountIndex];
+
+                if IsExportableBankAccount(BankAccount) then
                 begin
-                  if Transaction.txDate_Effective > Result then
+                  for TransactionIndex := 0 to BankAccount.baTransaction_List.ItemCount - 1 do
                   begin
-                    Result := Transaction.txDate_Effective;
+                    Transaction := BankAccount.baTransaction_List[TransactionIndex];
+
+                    if IsExportableTransaction(Transaction) then
+                    begin
+                      if Transaction.txDate_Effective > Result then
+                      begin
+                        Result := Transaction.txDate_Effective;
+                      end;
+                    end;
                   end;
                 end;
               end;
             end;
+          finally
+            FreeAndNil(Client);
           end;
         end;
-      finally
-        FreeAndNil(Client);
       end;
+
+      ProgressForm.UpdateProgress(ClientProgressStepSize); 
     end;
-  end;  
+  end;
 end;
 
 class procedure TBanklinkOnlineTaggingServices.GetTaggedAccounts(Practice: TBloPracticeRead; out TaggedAccounts: array of TTaggedAccount);
