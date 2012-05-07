@@ -111,7 +111,6 @@ uses
   BanklinkOnlineTaggingServices,
   ModalProgressFrm;
 
-
 const
   UnitName = 'BanklinkOnlineSettingsFrm';
 
@@ -702,7 +701,8 @@ begin
           end;
         end;
       end;
-    end;
+    end else
+      grpServicesAvailable.Visible := false;
   end;
 
   if TickNotesOnline then
