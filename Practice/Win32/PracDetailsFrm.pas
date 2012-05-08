@@ -1595,20 +1595,9 @@ var
 begin
   Result := 0;
 
-  if not Assigned(FVendorSubscriberCount) then
+  for Index := 0 to Length(FVendorSubscriberCount) - 1 do
   begin
-    if Length(FPracticeVendorExports.Available) > 0 then
-    begin
-      FVendorSubscriberCount := ProductConfigService.GetVendorExportClientCount;
-    end;
-  end;
-
-  if Assigned(FVendorSubscriberCount) then
-  begin
-    for Index := 0 to Length(FVendorSubscriberCount) - 1 do
-    begin
-      Result := Result + FVendorSubscriberCount[Index].ClientCount;
-    end;
+    Result := Result + FVendorSubscriberCount[Index].ClientCount;
   end;
 end;
 
