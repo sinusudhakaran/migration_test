@@ -619,6 +619,7 @@ var
   PracticeServiceIndex : Integer;
   ClientServiceIndex   : Integer;
   ClientID             : String;
+  DataExportEnabled    : boolean;
 
   procedure FillDetailIn(const aBillingFrequency : WideString;
                          const aMaxOfflineDays   : Integer;
@@ -661,6 +662,7 @@ var
     edtEmailAddress.Text := aUserEMail;
   end;
 begin
+  DataExportEnabled := False;
   //Load products
   chklistProducts.Clear;
   // Adds the Subscriptions/Products for the Practice to the List
@@ -670,8 +672,12 @@ begin
     CatEntry := ProductConfigService.GetCatalogueEntry(ProductGuid);
 
     if (Assigned(CatEntry)) and
-       (CatEntry.CatalogueType <> 'Service') then
+    (CatEntry.CatalogueType <> 'Service') then
       chklistProducts.AddItem(CatEntry.Description, CatEntry);
+
+    if (CatEntry.CatalogueType = 'Service') and
+    ((CatEntry.Description = 'Data Export') or (CatEntry.Description = 'Export Data')) then
+      DataExportEnabled := True;     
   end;
 
   // Load services
@@ -686,7 +692,8 @@ begin
     ClientID := ProductConfigService.GetClientGuid(MyClient.clFields.clCode);
   if (ClientID <> '') then
   begin
-    ClientServiceArray := ProductConfigService.GetClientVendorExports(ClientReadDetail.Id);
+    if DataExportEnabled then    
+      ClientServiceArray := ProductConfigService.GetClientVendorExports(ClientReadDetail.Id);
     if Assigned(ClientServiceArray) then
     begin
       for ClientServiceIndex := 0 to High(ClientServiceArray.Current) do
