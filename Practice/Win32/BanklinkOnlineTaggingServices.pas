@@ -136,16 +136,12 @@ begin
       //Only delivered accounts can be sent
       if IsExportableBankAccount(BankAccount, ClientAccountVendors) and HasExportableTransactions(BankAccount, MaxTransactionDate) then
       begin
-        BankAccountNode := ParentNode.OwnerDocument.CreateElement('BKBankAccount', '');
-
-        BankAccountNode.Attributes['AccountNumber'] := BankAccount.baFields.baBank_Account_Number;
+        BankAccountNode := BankAccount.baFields.WriteRecToNode(ParentNode);
 
         TempTransExported := TransactionsToXML(BankAccountNode, Client, BankAccount, MaxTransactionDate);
 
         if TempTransExported > 0 then
         begin
-          ParentNode.ChildNodes.Add(BankAccountNode);
-           
           TransactionsExported := TransactionsExported + TempTransExported;
           
           Inc(AccountsExported);
@@ -225,6 +221,8 @@ var
   TransactionsExported: Integer;
   ClientAccountVendors: TClientAccVendors;
   ClientGuid: TBloGuid;
+  ClientNode: IXMLNode;
+  ExportClient: Boolean;
 begin
   FatalError := False;
   
@@ -279,7 +277,7 @@ begin
                     XMLDocument.Version:= '1.0';
                     XMLDocument.Encoding:= 'UTF-8';
 
-                    RootNode := XMLDocument.AddChild('BKClientTransactions');
+                    RootNode := XMLDocument.CreateElement('BKClients', '');
       
                     AccountsExported := 0;
                     TransactionsExported := 0;
@@ -291,30 +289,41 @@ begin
                       Exit;
                     end;
 
-                    BankAccountsToXML(RootNode, Client, ExportOptions.MaxTransactionDate, ClientAccountVendors, AccountsExported, TransactionsExported);
+                    ClientNode := Client.clFields.WriteRecToNode(RootNode);
+
+                    BankAccountsToXML(ClientNode, Client, ExportOptions.MaxTransactionDate, ClientAccountVendors, AccountsExported, TransactionsExported);
 
                     if TransactionsExported > 0 then
                     begin
+                      ExportClient := True;
+                      
                       if ExportOptions.ExportChartOfAccounts then
                       begin
                         try
                           //Add chart of accounts for this client
-                          ChartToXML(RootNode, Client.clChart);
+                          ChartToXML(ClientNode, Client.clChart);
                         except
                           on E:Exception do
                           begin
                             LogUtil.LogMsg(lmError, 'BankLinkOnlineTaggingService', 'Client File ' + AdminSystem.fdSystem_Client_File_List.Client_File_At(Index).cfFile_Code + ' could export the Chart of Accounts - ' + E.Message);
+
+                            ExportClient := False;
                           end;
                         end;
                       end;
 
-                      XMLDocument.SaveToFile('C:\Users\kerry.convery\Desktop\ClientAccountTransactions' + IntToStr(Index) + '.xml');
+                      if ExportClient then
+                      begin
+                        XMLDocument.ChildNodes.Add(RootNode);
 
-                      DoClientSave(true, Client);
+                        XMLDocument.SaveToFile('C:\Users\kerry.convery\Desktop\ClientAccountTransactions' + IntToStr(Index) + '.xml');
 
-                      Statistics.TransactionsExported := Statistics.TransactionsExported + TransactionsExported;
-                      Statistics.AccountsExported := Statistics.AccountsExported + AccountsExported;
-                      Statistics.ClientFilesProcessed := Statistics.ClientFilesProcessed + 1;
+                        DoClientSave(true, Client);
+
+                        Statistics.TransactionsExported := Statistics.TransactionsExported + TransactionsExported;
+                        Statistics.AccountsExported := Statistics.AccountsExported + AccountsExported;
+                        Statistics.ClientFilesProcessed := Statistics.ClientFilesProcessed + 1;
+                      end;
                     end;
                   finally
                     XMLDocument.Active := False;
