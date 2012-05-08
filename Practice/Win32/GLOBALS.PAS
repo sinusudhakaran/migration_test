@@ -164,6 +164,7 @@ CONST
     //YesNo Dialogs
     DLG_YES             = 1;     //duplicated in glConst.pas  SHOULD REMOVE!
     DLG_NO              = 2;     //duplicated in glConst.pas
+    DLG_OK              = 1;
 
     GST_CLASS_CODE_LENGTH = 4;
 

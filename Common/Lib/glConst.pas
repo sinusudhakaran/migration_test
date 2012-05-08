@@ -78,6 +78,7 @@ CONST
    BKDATEFORMAT        = 'dd/mm/yy';   //duplicated in globals.pas
 
    //YesNo Dialogs
+   DLG_OK              = 1;    
    DLG_YES             = 1;     //duplicated in globals.pas
    DLG_NO              = 2;     //duplicated in globals.pas
    DLG_CANCEL          = 3;

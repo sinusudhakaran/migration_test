@@ -194,6 +194,7 @@ uses
   bkXPThemes,
   baUtils,
   YesNoDlg,
+  OkCancelDlg,
   DesktopSuper_Utils;
 
 const
@@ -628,7 +629,7 @@ begin
   fVendorDirty := HaveVendorExportsChanged(PromptMessage);
   if fVendorDirty then
   begin
-    if MessageDlg(PromptMessage, mtInformation, [mbOK, mbCancel], 0) = idCancel then
+    if AskOkCancel('Export Options Updated', PromptMessage, DLG_OK, 0) <> DLG_OK then
     begin
       fVendorDirty := false;
       Exit;
