@@ -323,11 +323,13 @@ type
                                        aShowMessage: Boolean = True): Boolean;
     function SaveClientVendorExports(aClientId : TBloGuid;
                                      aVendorExports: TBloArrayOfGuid;
-                                     aShowMessage: Boolean = True): Boolean;
+                                     aShowMessage: Boolean = True;
+                                     ShowProgressBar: Boolean = true): Boolean;
     function SaveAccountVendorExports(aClientId : TBloGuid;
                                       aAccountNumber : WideString;
                                       aVendorExports: TBloArrayOfGuid;
-                                      aShowMessage: Boolean = True): Boolean;
+                                      aShowMessage: Boolean = True;
+                                      ShowProgressBar: Boolean = True): Boolean;
 
     function GetVendorExportClientCount: TBloArrayOfPracticeDataSubscriberCount;
 
@@ -2344,7 +2346,8 @@ end;
 
 function TProductConfigService.SaveClientVendorExports(aClientId: TBloGuid;
                                                        aVendorExports: TBloArrayOfGuid;
-                                                       aShowMessage: Boolean): Boolean;
+                                                       aShowMessage: Boolean;
+                                                       ShowProgressBar: Boolean): Boolean;
 var
   BlopiInterface : IBlopiServiceFacade;
   PracCountryCode : WideString;
@@ -2370,15 +2373,16 @@ begin
         //Save to the web service
         Screen.Cursor := crHourGlass;
         Progress.StatusSilent := False;
-        Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Connecting', 10);
+        if ShowProgressBar then
+          Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Connecting', 10);
         try
           PracCountryCode := CountryText(AdminSystem.fdFields.fdCountry);
           PracCode        := AdminSystem.fdFields.fdBankLink_Code;
           PracPassHash    := AdminSystem.fdFields.fdBankLink_Connect_Password;
 
           BlopiInterface := GetServiceFacade;
-
-          Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Saving Client data export settings', 33);
+          if ShowProgressBar then
+            Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Saving Client data export settings', 33);
 
           MsgResponce := BlopiInterface.SaveClientDataSubscribers(PracCountryCode,
                                                                   PracCode,
@@ -2389,7 +2393,8 @@ begin
           if not MessageResponseHasError(MsgResponce, 'update the Client data export settings to') then
           begin
             Result := True;
-            Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finished', 100);
+            if ShowProgressBar then                 
+              Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finished', 100);
           end;
 
         finally
@@ -2416,7 +2421,8 @@ end;
 function TProductConfigService.SaveAccountVendorExports(aClientId : TBloGuid;
                                                         aAccountNumber : WideString;
                                                         aVendorExports: TBloArrayOfGuid;
-                                                        aShowMessage: Boolean = True): Boolean;
+                                                        aShowMessage: Boolean = True;
+                                                        ShowProgressBar: Boolean = True): Boolean;
 var
   BlopiInterface : IBlopiServiceFacade;
   PracCountryCode : WideString;
@@ -2442,7 +2448,8 @@ begin
         //Save to the web service
         Screen.Cursor := crHourGlass;
         Progress.StatusSilent := False;
-        Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Connecting', 10);
+        if ShowProgressBar then
+          Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Connecting', 10);
         try
           PracCountryCode := CountryText(AdminSystem.fdFields.fdCountry);
           PracCode        := AdminSystem.fdFields.fdBankLink_Code;
@@ -2450,7 +2457,8 @@ begin
 
           BlopiInterface := GetServiceFacade;
 
-          Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Saving Account data export settings', 33);
+          if ShowProgressBar then
+            Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Saving Account data export settings', 33);
 
           MsgResponce := BlopiInterface.SaveBankAccountDataSubscribers(PracCountryCode,
                                                                        PracCode,
@@ -2462,7 +2470,8 @@ begin
           if not MessageResponseHasError(MsgResponce, 'update the Account data export settings to') then
           begin
             Result := True;
-            Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finished', 100);
+            if ShowProgressBar then
+              Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finished', 100);
           end;
 
         finally
