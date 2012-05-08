@@ -1438,6 +1438,14 @@ begin
           begin
             FPracticeVendorExports := ProductConfigService.GetPracticeVendorExports;
 
+            if Assigned(FPracticeVendorExports) then
+            begin
+              if ProductConfigService.VendorExportExists(FPracticeVendorExports.Current, ProductConfigService.GetIBizzExportGuid) then
+              begin
+                FIBizzCredentials := ProductConfigService.GetIBizzCredentials;
+              end;            
+            end;
+
             SetupDataExportSettings;
           end;
         end;
