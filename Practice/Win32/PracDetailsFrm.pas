@@ -1187,17 +1187,20 @@ begin
 
   if UseBankLinkOnline and (ProductConfigService.PracticeChanged or DataExportSettingsChanged) then
   begin
-    aMsg := 'Changing the BankLink Online products and services that are available ' +
-            'for this practice will affect how client files can be individually setup ' +
-            'for these products and services. Such products and services may incur ' +
-            'charges per client use.' + #13#10 + #13#10 +
-            'Please contact BankLink Client Services if you require further charges ' +
-            'information.' + #13#10 + #13#10 +
-            'Are you sure you want to continue?';
+    if ProductConfigService.PracticeChanged then
+    begin
+      aMsg := 'Changing the BankLink Online products and services that are available ' +
+              'for this practice will affect how client files can be individually setup ' +
+              'for these products and services. Such products and services may incur ' +
+              'charges per client use.' + #13#10 + #13#10 +
+              'Please contact BankLink Client Services if you require further charges ' +
+              'information.' + #13#10 + #13#10 +
+              'Are you sure you want to continue?';
 
-    if not (YesNoDlg.AskYesNo('BankLink Online products and services change', aMsg, DLG_YES, 0) = DLG_YES) then
-      Exit;
-
+      if not (YesNoDlg.AskYesNo('BankLink Online products and services change', aMsg, DLG_YES, 0) = DLG_YES) then
+        Exit;
+    end;
+    
     if ProductConfigService.IsPracticeProductEnabled(ProductConfigService.GetExportDataId, True) then
     begin
       if (chklistExportTo.Count > 0) and (chklistExportTo.CountCheckedItems = 0) and DataExportSettingsChanged then
