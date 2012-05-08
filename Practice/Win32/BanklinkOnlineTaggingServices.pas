@@ -499,7 +499,7 @@ begin
 
     for ClientIndex := 0 to AdminSystem.fdSystem_Client_File_List.ItemCount -1 do
     begin
-      if AdminSystem.fdSystem_Client_File_List.Client_File_At(ClientIndex).cfFile_Status in[bkConst.fsNormal, bkConst.fsOpen] then
+      if AdminSystem.fdSystem_Client_File_List.Client_File_At(ClientIndex).cfFile_Status = bkConst.fsNormal then
       begin
         try
           OpenAClientForRead(AdminSystem.fdSystem_Client_File_List.Client_File_At(ClientIndex).cfFile_Code, Client);
