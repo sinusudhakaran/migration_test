@@ -1948,12 +1948,14 @@ procedure TfrmMain.ExportTaggedAccounts(ProgressForm: ISingleProgressForm);
 var
   ExportOptions: TExportOptions;
   ExportStatistics: TExportStatistics;
+  ExportError: Boolean;
+  ErrorDetails: TFatalErrorDetails;
 begin
   ExportOptions.MaxTransactionDate := CurrentDate;
   ExportOptions.ExportChartOfAccounts := not StartupParam_ExcludeCOA;
 
   try
-    TBankLinkOnlineTaggingServices.ExportTaggedAccounts(ProductConfigService.CachedPractice, ExportOptions, ProgressForm, ExportStatistics);
+    TBankLinkOnlineTaggingServices.ExportTaggedAccounts(ProductConfigService.CachedPractice, ExportOptions, ProgressForm, ExportStatistics, ExportError, ErrorDetails);
   except
     on E:Exception do
     begin
