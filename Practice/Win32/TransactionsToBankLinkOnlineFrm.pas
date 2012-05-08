@@ -112,7 +112,7 @@ begin
             begin
               HelpfulInfoMsg('BankLink Practice successfully exported data to BankLink Online up to ' + StDateToDateString(BKDATEFORMAT, edtTransactionsToDate.AsStDate, False) + #10#13 +
                               IntToStr(FExportStatistics.TransactionsExported) + ' Transaction(s) exported' + #10#13 +
-                              IntToStr(FExportStatistics.AccountsExported) + ' Accpimts(s) exported' + #10#13 +
+                              IntToStr(FExportStatistics.AccountsExported) + ' Account(s) exported' + #10#13 +
                               IntToStr(FExportStatistics.ClientFilesProcessed ) + ' Client files(s) Processed', 0);
             end
             else
