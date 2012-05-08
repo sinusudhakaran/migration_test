@@ -251,7 +251,7 @@ type
     procedure SavePracticeDetailsToSystemDB(ARemotable: TRemotable);
     //Client methods
     function CreateNewClientWithUser(aNewClient: TBloClientCreate; aNewUserCreate: TBloUserCreate): TBloClientReadDetail;
-    procedure LoadClientList;
+    procedure LoadClientList(LogException: Boolean = False);
     function GetClientDetailsWithCode(AClientCode: string; SynchronizeBlopi: Boolean = False): TBloClientReadDetail;
     function GetClientDetailsWithGUID(AClientGuid: Guid; SynchronizeBlopi: Boolean = False): TBloClientReadDetail;
     function CreateNewClient(ANewClient: TBloClientCreate): Guid;
@@ -1097,7 +1097,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TProductConfigService.LoadClientList;
+procedure TProductConfigService.LoadClientList(LogException: Boolean = False);
 var
   BlopiInterface: IBlopiServiceFacade;
   BlopiClientList: MessageResponseOfClientListMIdCYrSK;
@@ -1140,6 +1140,11 @@ begin
     on E:Exception do begin
       HelpfulErrorMsg('Error getting client list from ' + BANKLINK_ONLINE_NAME + '.',
                       0, True, E.Message, True);
+
+      if LogException then
+      begin
+        LogUtil.LogMsg(lmError, UNIT_NAME, 'Exception getting the client list LoadClientList, Error Message : ' + E.Message);
+      end;
     end;
   end;
 end;
