@@ -4538,11 +4538,6 @@ begin
 
         ceTransferedToOnline :
         begin
-          if random(2) = 1 then
-            pT^.txTransfered_To_Online := True
-          else
-            pT^.txTransfered_To_Online := False;
-
           data := @pT^.txTransfered_To_Online;
         end
 

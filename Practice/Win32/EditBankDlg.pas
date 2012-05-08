@@ -133,6 +133,7 @@ type
     fExportDataEnabled : Boolean;
     fAccountVendors : TAccountVendors;
     fClientId : TBloGuid;
+    fVendorDirty : Boolean;
 
     procedure SetAddNew(Value: Boolean);
     procedure DoList;
@@ -141,6 +142,9 @@ type
     procedure FillCurrencies;
     procedure LoadAcccountVendors;
     function SaveAccountVendors : Boolean;
+    function IsGuidInCurrentVendors(aGuid : TBloGuid) : boolean;
+    function HaveVendorExportsChanged(out aMessage : string) : Boolean;
+    procedure UpdateAccountVendorInfo;
   public
     { Public declarations }
     function Execute : boolean;
@@ -346,6 +350,22 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+procedure TdlgEditBank.UpdateAccountVendorInfo;
+
+  //VendorIndex : integer;
+begin
+  {for VendorIndex := 0 to high(fAccountVendors.AccountVendors.Current) do
+    FreeAndNil(fAccountVendors.AccountVendors.Current[VendorIndex]);
+
+  SetLength(fAccountVendors.AccountVendors.Current,}
+
+
+  fAccountVendors.AccountVendors :=
+        ProductConfigService.GetAccountVendors(ClientID,
+                                               AccountVendors.AccountNumber);
+end;
+
+//------------------------------------------------------------------------------
 procedure TdlgEditBank.sbtnChartClick(Sender: TObject);
 begin
   DoList;
@@ -412,10 +432,52 @@ begin
                                                           AccountVendors.AccountNumber,
                                                           CurrentVendors,
                                                           True);
+end;
 
-  if Result then
-    fAccountVendors.AccountVendors := ProductConfigService.GetAccountVendors(ClientID,
-                                                                             AccountVendors.AccountNumber);
+//------------------------------------------------------------------------------
+function TdlgEditBank.IsGuidInCurrentVendors(aGuid : TBloGuid) : boolean;
+var
+  AccCurrentIndex : integer;
+begin
+  Result := False;
+
+  if not ExportDataEnabled then
+    Exit;
+
+  for AccCurrentIndex := 0 to high(AccountVendors.AccountVendors.Current) do
+  begin
+    if aGuid = AccountVendors.AccountVendors.Current[AccCurrentIndex].id then
+    begin
+      Result := true;
+      break;
+    end;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+function TdlgEditBank.HaveVendorExportsChanged(out aMessage : string) : Boolean;
+var
+  VendorIndex : integer;
+  VendorId : TBloGuid;
+begin
+  Result := False;
+  aMessage := 'You have updated the Export To options for the following for bank account ''' + AccountVendors.AccountNumber + '''' + #10#10;
+  for VendorIndex := 0 to chkLstAccVendors.Items.Count-1 do
+  begin
+    VendorId := TBloDataPlatformSubscriber(chkLstAccVendors.Items.Objects[VendorIndex]).Id;
+
+    if chkLstAccVendors.Checked[VendorIndex] <> IsGuidInCurrentVendors(VendorId) then
+    begin
+      Result := True;
+      if chkLstAccVendors.Checked[VendorIndex] then
+        aMessage := aMessage + 'Enabled '
+      else
+        aMessage := aMessage + 'Disabled ';
+
+      aMessage := aMessage + 'the export to BankLink Online for ' +
+                  chkLstAccVendors.Items.Strings[VendorIndex] + #10;
+    end;
+  end;
 end;
 
 //------------------------------------------------------------------------------
@@ -444,10 +506,15 @@ begin
   eNumberExit(eInst);
   if okToPost then
   begin
-    if ExportDataEnabled then
+    if (ExportDataEnabled) and
+      (fVendorDirty) then
     begin
-      if not SaveAccountVendors then
-        Exit;
+      try
+        if not SaveAccountVendors then
+          Exit;
+      finally
+        fVendorDirty := false;
+      end;
     end;
 
     okPressed := true;
@@ -461,6 +528,7 @@ var
   AccName : string;
   i: Integer;
   BA: TBank_Account;
+  PromptMessage : String;
 begin
   result := false;
 
@@ -534,6 +602,16 @@ begin
           Exit;
         end;
       end;
+    end;
+  end;
+
+  fVendorDirty := HaveVendorExportsChanged(PromptMessage);
+  if fVendorDirty then
+  begin
+    if MessageDlg(PromptMessage, mtInformation, [mbOK, mbCancel], 0) = idCancel then
+    begin
+      fVendorDirty := false;
+      Exit;
     end;
   end;
 
@@ -707,6 +785,7 @@ var
   begin
   result := false;
   okPressed := false;
+  fVendorDirty := false;
 
   if not Assigned(BankAcct) then exit;
   AutoUpdate := false;
@@ -862,76 +941,79 @@ var
   if okPressed then
   begin
 
-   {save values}
-  if BankAcct.IsManual then
-  begin
-    BankAcct.baFields.baBank_Account_Number := lblM.Caption + eNumber.Text;
-    if FAddNew then
-    begin
-      if chkPrivacy.Checked then
-      begin
-        if Assigned(AdminSystem) then
-        begin
-          if LoadAdminSystem(true, 'TdlgEditBank.Execute' ) then
-          begin
-            AdminSystem.fdFields.fdManual_Account_XML := AdminSystem.fdFields.fdManual_Account_XML +
-            MakeManualXMLString(mtNames[cmbType.ItemIndex], eInst.Text);
-            SaveAdminSystem;
-          end;
-        end;
-        BankAcct.baFields.baManual_Account_Sent_To_Admin := Assigned(AdminSystem);
-      end
-      else
-        BankAcct.baFields.baManual_Account_Sent_To_Admin := True;
-    end;
-  end;
-  BankAcct.baFields.baCurrency_Code := cmbCurrency.Items[cmbCurrency.ItemIndex];
-  BankAcct.baFields.baBank_Account_Name := eName.Text;
-  BankAcct.baFields.baContra_Account_Code := eContra.Text;
-  BankAcct.baFields.baApply_Master_Memorised_Entries := chkMaster.Checked;
-  BankAcct.baFields.baManual_Account_Institution := eInst.Text;
-  BankAcct.baFields.baManual_Account_Type := cmbType.ItemIndex;
+    if ExportDataEnabled then
+      UpdateAccountVendorInfo;
 
-  if Software.HasSuperfundLegerID(MyClient.clFields.clCountry,MyClient.clFields.clAccounting_System_Used) then
-  begin
-    BankAcct.baFields.baDesktop_Super_Ledger_ID := StrToIntDef(LedgerCode, -1);
-    BankAcct.baFields.baSuperFund_Ledger_Code := '';
-  end
-  else
-  begin
-    if Software.HasSuperfundLegerCode(MyClient.clFields.clCountry,MyClient.clFields.clAccounting_System_Used) then
+     {save values}
+    if BankAcct.IsManual then
     begin
-      BankAcct.baFields.baSuperFund_Ledger_Code := LedgerCode;
-      BankAcct.baFields.baDesktop_Super_Ledger_ID := -1;
+      BankAcct.baFields.baBank_Account_Number := lblM.Caption + eNumber.Text;
+      if FAddNew then
+      begin
+        if chkPrivacy.Checked then
+        begin
+          if Assigned(AdminSystem) then
+          begin
+            if LoadAdminSystem(true, 'TdlgEditBank.Execute' ) then
+            begin
+              AdminSystem.fdFields.fdManual_Account_XML := AdminSystem.fdFields.fdManual_Account_XML +
+              MakeManualXMLString(mtNames[cmbType.ItemIndex], eInst.Text);
+              SaveAdminSystem;
+            end;
+          end;
+          BankAcct.baFields.baManual_Account_Sent_To_Admin := Assigned(AdminSystem);
+        end
+        else
+          BankAcct.baFields.baManual_Account_Sent_To_Admin := True;
+      end;
+    end;
+    BankAcct.baFields.baCurrency_Code := cmbCurrency.Items[cmbCurrency.ItemIndex];
+    BankAcct.baFields.baBank_Account_Name := eName.Text;
+    BankAcct.baFields.baContra_Account_Code := eContra.Text;
+    BankAcct.baFields.baApply_Master_Memorised_Entries := chkMaster.Checked;
+    BankAcct.baFields.baManual_Account_Institution := eInst.Text;
+    BankAcct.baFields.baManual_Account_Type := cmbType.ItemIndex;
+
+    if Software.HasSuperfundLegerID(MyClient.clFields.clCountry,MyClient.clFields.clAccounting_System_Used) then
+    begin
+      BankAcct.baFields.baDesktop_Super_Ledger_ID := StrToIntDef(LedgerCode, -1);
+      BankAcct.baFields.baSuperFund_Ledger_Code := '';
     end
     else
     begin
-      BankAcct.baFields.baDesktop_Super_Ledger_ID := -1;
-      BankAcct.baFields.baSuperFund_Ledger_Code := '';
-    end;
-  end;
-
-  Amount := Double2Money(nBalance.AsFloat);
-  Amount := Abs(Amount);
-
-  case cmbBalance.itemIndex of
-    BAL_INFUNDS : Amount := -Amount;
-    BAL_OVERDRAWN : ;
-    BAL_UNKNOWN : Amount := UNKNOWN;
-  end;
-
-  if rbAnalysisEnabled.Checked then
-    BankAcct.baFields.baAnalysis_Coding_Level := acEnabled
-  else
-    if rbRestricted.checked then
-      BankAcct.baFields.baAnalysis_Coding_Level := acRestrictedLevel1
-    else
-      if rbVeryRestricted.checked then
-        BankAcct.baFields.baAnalysis_Coding_Level := acRestrictedLevel2
+      if Software.HasSuperfundLegerCode(MyClient.clFields.clCountry,MyClient.clFields.clAccounting_System_Used) then
+      begin
+        BankAcct.baFields.baSuperFund_Ledger_Code := LedgerCode;
+        BankAcct.baFields.baDesktop_Super_Ledger_ID := -1;
+      end
       else
-        BankAcct.baFields.baAnalysis_Coding_Level := acDisabled;
+      begin
+        BankAcct.baFields.baDesktop_Super_Ledger_ID := -1;
+        BankAcct.baFields.baSuperFund_Ledger_Code := '';
+      end;
+    end;
 
-  BankAcct.baFields.baCurrent_Balance := Amount;
+    Amount := Double2Money(nBalance.AsFloat);
+    Amount := Abs(Amount);
+
+    case cmbBalance.itemIndex of
+      BAL_INFUNDS : Amount := -Amount;
+      BAL_OVERDRAWN : ;
+      BAL_UNKNOWN : Amount := UNKNOWN;
+    end;
+
+    if rbAnalysisEnabled.Checked then
+      BankAcct.baFields.baAnalysis_Coding_Level := acEnabled
+    else
+      if rbRestricted.checked then
+        BankAcct.baFields.baAnalysis_Coding_Level := acRestrictedLevel1
+      else
+        if rbVeryRestricted.checked then
+          BankAcct.baFields.baAnalysis_Coding_Level := acRestrictedLevel2
+        else
+          BankAcct.baFields.baAnalysis_Coding_Level := acDisabled;
+
+    BankAcct.baFields.baCurrent_Balance := Amount;
   end;
   result := okPressed;
 end;
