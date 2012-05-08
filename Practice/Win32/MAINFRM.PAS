@@ -1532,7 +1532,7 @@ begin
          mniBalanceExport.Visible := False;
        end;
 
-       mniExportdatatoBanklinkOnline.Visible := CurrUser.CanAccessAdmin and ProductConfigService.OnLine and ProductConfigService.IsPracticeProductEnabled(ProductConfigService.GetExportDataId, False);
+       mniExportdatatoBanklinkOnline.Visible := False; //CurrUser.CanAccessAdmin and ProductConfigService.OnLine and ProductConfigService.IsPracticeProductEnabled(ProductConfigService.GetExportDataId, False);
 
        //test to see if the log file should be archived
        SysLog.MinSize  := PRACINI_MinLogFileSize * 1000; //convert KB to Bytes
@@ -2583,7 +2583,7 @@ begin
 
      if UseBankLinkOnline then
      begin
-       mniExportdatatoBanklinkOnline.Visible := ProductConfigService.IsPracticeProductEnabled(ProductConfigService.GetExportDataId, False);
+       mniExportdatatoBanklinkOnline.Visible := False; //ProductConfigService.IsPracticeProductEnabled(ProductConfigService.GetExportDataId, False);
      end
      else
      begin
@@ -5212,10 +5212,12 @@ begin
          ProcessModalCmdWithDlg( mpcDoDownloadFromBConnect);
        end;
 
+       {
        sa_ExportTransactions:
        begin
          ExportTransactionsToBankLinkOnline;
        end;
+       }
      end;
 
      Close;
