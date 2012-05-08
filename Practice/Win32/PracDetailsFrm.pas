@@ -1225,7 +1225,7 @@ begin
         else
         if not IsValidVendorCode(edtAcclipseCode.Text) then
         begin
-          HelpfulWarningMsg('The Acclipse code you have entered contains illegal characters. Please try again', 0);
+          HelpfulWarningMsg('The Acclipse code you have entered contains illegal characters. Please try again.', 0);
 
           PageControl1.ActivePage := tbsDataExport;
           
