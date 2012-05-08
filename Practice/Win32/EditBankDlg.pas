@@ -351,18 +351,36 @@ end;
 
 //------------------------------------------------------------------------------
 procedure TdlgEditBank.UpdateAccountVendorInfo;
-
-  //VendorIndex : integer;
+var
+  VendorIndex : integer;
+  VendorCount : integer;
+  Current : TBloArrayOfDataPlatformSubscriber;
 begin
-  {for VendorIndex := 0 to high(fAccountVendors.AccountVendors.Current) do
+  for VendorIndex := 0 to high(fAccountVendors.AccountVendors.Current) do
     FreeAndNil(fAccountVendors.AccountVendors.Current[VendorIndex]);
 
-  SetLength(fAccountVendors.AccountVendors.Current,}
+  VendorCount := 0;
+  for VendorIndex := 0 to chkLstAccVendors.Items.Count-1 do
+  begin
+    if chkLstAccVendors.Checked[VendorIndex] then
+      inc(VendorCount);
+  end;
 
+  SetLength(Current, VendorCount);
+  fAccountVendors.AccountVendors.Current := Current;
 
-  fAccountVendors.AccountVendors :=
+  for VendorIndex := 0 to VendorCount-1 do
+  begin
+    fAccountVendors.AccountVendors.Current[VendorIndex] := TBloDataPlatformSubscriber.Create;
+    fAccountVendors.AccountVendors.Current[VendorIndex].Id :=
+      TBloDataPlatformSubscriber(chkLstAccVendors.Items.Objects[VendorIndex]).Id;
+    fAccountVendors.AccountVendors.Current[VendorIndex].Name_ :=
+      TBloDataPlatformSubscriber(chkLstAccVendors.Items.Objects[VendorIndex]).Name_;
+  end;
+
+  {fAccountVendors.AccountVendors :=
         ProductConfigService.GetAccountVendors(ClientID,
-                                               AccountVendors.AccountNumber);
+                                               AccountVendors.AccountNumber);}
 end;
 
 //------------------------------------------------------------------------------
@@ -432,6 +450,8 @@ begin
                                                           AccountVendors.AccountNumber,
                                                           CurrentVendors,
                                                           True);
+  if Result then
+    UpdateAccountVendorInfo;
 end;
 
 //------------------------------------------------------------------------------
@@ -940,9 +960,6 @@ var
 
   if okPressed then
   begin
-
-    if ExportDataEnabled then
-      UpdateAccountVendorInfo;
 
      {save values}
     if BankAcct.IsManual then
