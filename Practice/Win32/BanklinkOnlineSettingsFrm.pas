@@ -61,6 +61,8 @@ type
     procedure btnOKClick(Sender: TObject);
     procedure btnCancelClick(Sender: TObject);
     procedure btnUseClientDetailsClick(Sender: TObject);
+    procedure chkListServicesAvailableClickCheck(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
   private
     fOkPressed : Boolean;
     fBusyKeyPress : Boolean;
@@ -68,7 +70,10 @@ type
     fOldEmail : string;
 
     ClientReadDetail : TBloClientReadDetail;
-    PracticeServiceArray  : TBloDataPlatformSubscription;
+    AvailableServiceArray : TBloArrayOfDataPlatformSubscriber;
+    OriginalDataExports: TBloArrayOfGuid;
+    ModifiedDataExports: TBloArrayOfGuid;    
+
     procedure ExportTaggedAccounts(ProgressForm: ISingleProgressForm);
     procedure AdjustControlPositions;
   protected
@@ -80,18 +85,26 @@ type
     procedure UpdateClientWebFormat(Subscription: TBloArrayOfGuid);
     procedure SetReadOnly;
     function IsClientOnline : boolean;
-    
+
     procedure AfterShow(var Message: TMessage); message UM_AFTERSHOW;
   public
-    function Execute(TickNotesOnline, ForceActiveClient: boolean) : boolean;
+    function Execute(TickNotesOnline, ForceActiveClient: boolean; ClientDetails: TBloClientReadDetail) : boolean;
 
     procedure LoadClientInfo(TickNotesOnline: boolean);
     function SaveClientInfo : Boolean;
     property Status : TBloStatus read GetStatus write SetStatus;
   end;
 
+  TDataExportOption = class
+  private
+    FGuid: TBloGuid;
+  public
+    constructor Create(Guid: TBloGuid);
+    property Guid: TBloGuid read FGuid;
+  end;
+
   function EditBanklinkOnlineSettings(w_PopupParent: TForm; TickNotesOnline, ForceActiveClient,
-                                      ShowServicesAvailable: boolean): boolean;
+                                      ShowServicesAvailable: boolean; ClientDetails: TBloClientReadDetail = nil): boolean;
 
 //------------------------------------------------------------------------------
 implementation
@@ -181,6 +194,16 @@ begin
     fOkPressed := false;
 end;
 
+procedure TfrmBanklinkOnlineSettings.FormDestroy(Sender: TObject);
+var
+  Index: Integer;
+begin
+  for Index := 0 to chklistServicesAvailable.Count - 1 do
+  begin
+    chklistServicesAvailable.Items.Objects[Index].Free;
+  end;
+end;
+
 //------------------------------------------------------------------------------
 procedure TfrmBanklinkOnlineSettings.btnOKClick(Sender: TObject);
 begin
@@ -200,9 +223,21 @@ begin
   cmbConnectDays.Enabled := rbActive.Checked;
 end;
 
+procedure TfrmBanklinkOnlineSettings.chkListServicesAvailableClickCheck(Sender: TObject);
+begin
+  if chklistServicesAvailable.Checked[chklistServicesAvailable.ItemIndex] then
+  begin
+    ProductConfigService.AddItemToArrayGuid(ModifiedDataExports, TDataExportOption(chklistServicesAvailable.Items.Objects[chklistServicesAvailable.ItemIndex]).Guid);
+  end
+  else
+  begin
+    ProductConfigService.RemoveItemFromArrayGuid(ModifiedDataExports, TDataExportOption(chklistServicesAvailable.Items.Objects[chklistServicesAvailable.ItemIndex]).Guid);
+  end;
+end;
+
 //------------------------------------------------------------------------------
 function EditBanklinkOnlineSettings(w_PopupParent: TForm; TickNotesOnline, ForceActiveClient,
-                                    ShowServicesAvailable: boolean): boolean;
+                                    ShowServicesAvailable: boolean; ClientDetails: TBloClientReadDetail = nil): boolean;
 var
   BanklinkOnlineSettings: TfrmBanklinkOnlineSettings;
 const
@@ -220,7 +255,7 @@ begin
     BanklinkOnlineSettings.grpServicesAvailable.Visible := ShowServicesAvailable;
     BanklinkOnlineSettings.AdjustControlPositions;
 
-    Result := BanklinkOnlineSettings.Execute(TickNotesOnline, ForceActiveClient);
+    Result := BanklinkOnlineSettings.Execute(TickNotesOnline, ForceActiveClient, ClientDetails);
   finally
     FreeAndNil(BanklinkOnlineSettings);
   end;
@@ -563,7 +598,9 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TfrmBanklinkOnlineSettings.Execute(TickNotesOnline, ForceActiveClient: boolean) : boolean;
+function TfrmBanklinkOnlineSettings.Execute(TickNotesOnline, ForceActiveClient: boolean; ClientDetails: TBloClientReadDetail) : boolean;
+var
+  ClientGuid: TBloGuid;
 begin
   fOkPressed := false;
   fBusyKeyPress := false;
@@ -571,15 +608,23 @@ begin
 
   if MyClient.Opened then
   begin
-    //Get Practice details (so we can load the list of available products)
-    ProductConfigService.GetPractice;
-    //Get client list (so that we can lookup the client code)
-    ProductConfigService.LoadClientList;
-    
-     //Get client details
-    if Assigned(ProductConfigService.Clients) then
+    if Assigned(ClientDetails) then
     begin
-      ClientReadDetail := ProductConfigService.GetClientDetailsWithGUID(ProductConfigService.Clients.GetClientGuid(MyClient.clFields.clCode), True);
+      ClientReadDetail := ClientDetails;
+    end
+    else
+    begin
+      //Get client details
+      if ProductConfigService.GetClientGuid(MyClient.clFields.clCode, ClientGuid) then
+      begin
+        ClientReadDetail := ProductConfigService.GetClientDetailsWithGUID(ClientGuid, True);
+      end;
+    end;
+
+    if not Assigned(ClientReadDetail) then
+    begin
+      //Get Practice details (so we can load the list of available products)
+      ProductConfigService.GetPractice;
     end;
   end;
 
@@ -609,7 +654,7 @@ begin
     if chkListServicesAvailable.Checked[i] then
     begin
       SetLength(VendorsSelected, Length(VendorsSelected) + 1);
-      VendorsSelected[High(VendorsSelected)] := PracticeServiceArray.Current[i].ID;
+      VendorsSelected[High(VendorsSelected)] := AvailableServiceArray[i].ID;
     end;
   end;
 
@@ -627,12 +672,13 @@ var
   UserEMail            : String;
   UserFullName         : String;
   Subscription         : TBloArrayOfguid;
-  ClientServiceArray   : TBloDataPlatformSubscription;
+  ClientExportDataService   : TBloDataPlatformSubscription;
   Index                : Integer;
-  PracticeServiceIndex : Integer;
+  AvailableServiceIndex : Integer;
   ClientServiceIndex   : Integer;
   ClientID             : String;
   DataExportEnabled    : boolean;
+  PracticeExportDataService   : TBloDataPlatformSubscription;
 
   procedure FillDetailIn(const aBillingFrequency : WideString;
                          const aMaxOfflineDays   : Integer;
@@ -678,50 +724,98 @@ begin
   DataExportEnabled := False;
   //Load products
   chklistProducts.Clear;
-  // Adds the Subscriptions/Products for the Practice to the List
-  for ProdIndex := Low(ProductConfigService.ProductList) to High(ProductConfigService.ProductList) do
+
+  if not Assigned(ClientReadDetail) then
   begin
-    ProductGuid := ProductConfigService.ProductList[ProdIndex];
-    CatEntry := ProductConfigService.GetCatalogueEntry(ProductGuid);
+    // Adds the Subscriptions/Products for the Practice to the List
+    for ProdIndex := Low(ProductConfigService.ProductList) to High(ProductConfigService.ProductList) do
+    begin
+      ProductGuid := ProductConfigService.ProductList[ProdIndex];
+      CatEntry := ProductConfigService.GetCatalogueEntry(ProductGuid);
 
-    if (Assigned(CatEntry)) and
-    (CatEntry.CatalogueType <> 'Service') then
-      chklistProducts.AddItem(CatEntry.Description, CatEntry);
+      if (Assigned(CatEntry)) and
+      (CatEntry.CatalogueType <> 'Service') then
+        chklistProducts.AddItem(CatEntry.Description, CatEntry);
 
-    if (CatEntry.CatalogueType = 'Service') and
-    ((CatEntry.Description = 'Data Export') or (CatEntry.Description = 'Export Data')) then
-      DataExportEnabled := True;     
+      if (CatEntry.CatalogueType = 'Service') and
+      (CatEntry.Id = ProductConfigService.GetExportDataId) then
+        DataExportEnabled := True;     
+    end;
+  end
+  else
+  begin
+    for ProdIndex := Low(ClientReadDetail.Catalogue) to High(ClientReadDetail.Catalogue) do
+    begin
+      CatEntry := ClientReadDetail.Catalogue[ProdIndex]; 
+
+      if (Assigned(CatEntry)) and
+      (CatEntry.CatalogueType <> 'Service') then
+        chklistProducts.AddItem(CatEntry.Description, CatEntry);
+
+      if (CatEntry.CatalogueType = 'Service') and
+      (CatEntry.Id = ProductConfigService.GetExportDataId) then
+        DataExportEnabled := True;     
+    end;
   end;
 
-  // Load available services
-  PracticeServiceArray := ProductConfigService.GetPracticeVendorExports;
-  for PracticeServiceIndex := 0 to High(PracticeServiceArray.Current) do
-    chkListServicesAvailable.Items.Add(PracticeServiceArray.Current[PracticeServiceIndex].Name_);
+  // Load services
+  if DataExportEnabled then
+  begin
+    if Assigned(ClientReadDetail) then
+    begin
+      ClientID := ClientReadDetail.Id;
+    end
+    else
+    begin
+      ClientID := ProductConfigService.GetClientGuid(MyClient.clFields.clCode);
+    end;
 
-  // Tick the services that the client has enabled
-  if Assigned(ClientReadDetail) then
-    ClientID := ClientReadDetail.Id
-  else
-    ClientID := ProductConfigService.GetClientGuid(MyClient.clFields.clCode);
+    if ClientID <> '' then
+    begin
+      ClientExportDataService := ProductConfigService.GetClientVendorExports(ClientReadDetail.Id);
+
+      if Assigned(ClientExportDataService) then
+      begin
+        AvailableServiceArray := ClientExportDataService.Available;
+      end;
+    end
+    else
+    begin
+      PracticeExportDataService := ProductConfigService.GetPracticeVendorExports;
+
+      if Assigned(PracticeExportDataService) then
+      begin
+        AvailableServiceArray := PracticeExportDataService.Current;
+      end;  
+    end;
+
+    for AvailableServiceIndex := 0 to High(AvailableServiceArray) do
+    begin
+      chkListServicesAvailable.AddItem(AvailableServiceArray[AvailableServiceIndex].Name_, TDataExportOption.Create(AvailableServiceArray[AvailableServiceIndex].Id));
+    end;
+  end;
+
   if (ClientID <> '') then
   begin
-    if DataExportEnabled then    
-      ClientServiceArray := ProductConfigService.GetClientVendorExports(ClientReadDetail.Id);
-    if Assigned(ClientServiceArray) then
+    if Assigned(ClientExportDataService) then
     begin
-      for ClientServiceIndex := 0 to High(ClientServiceArray.Current) do
+      for ClientServiceIndex := 0 to High(ClientExportDataService.Current) do
       begin
-        for PracticeServiceIndex := 0 to High(PracticeServiceArray.Current) do
+        for AvailableServiceIndex := 0 to High(AvailableServiceArray) do
         begin
-          if (ClientServiceArray.Current[ClientServiceIndex].Id =
-          PracticeServiceArray.Current[PracticeServiceIndex].Id) then
+          if (ClientExportDataService.Current[ClientServiceIndex].Id = AvailableServiceArray[AvailableServiceIndex].Id) then
           begin
-            chkListServicesAvailable.Checked[PracticeServiceIndex] := true;
+            chkListServicesAvailable.Checked[AvailableServiceIndex] := true;
+
+            ProductConfigService.AddItemToArrayGuid(OriginalDataExports, ClientExportDataService.Current[ClientServiceIndex].Id);
+            ProductConfigService.AddItemToArrayGuid(ModifiedDataExports, ClientExportDataService.Current[ClientServiceIndex].Id);
+
             break;
           end;
         end;
       end;
-    end else
+    end
+    else
     begin
       grpServicesAvailable.Visible := false;
       AdjustControlPositions;
@@ -904,6 +998,11 @@ begin
     ClientCode := MyClient.clFields.clCode;
     HelpfulInfoMsg(Format('Settings for %s have been successfully updated to ' +
                        '%s.',[ClientCode, BANKLINK_ONLINE_NAME]), 0);
+
+    if not ProductConfigService.GuidArraysEqual(OriginalDataExports, ModifiedDataExports)  then
+    begin
+      ProductConfigService.SaveClientVendorExports(ClientReadDetail.Id, ModifiedDataExports, true, false);
+    end;
   end
   else
   begin
@@ -923,6 +1022,13 @@ procedure TfrmBanklinkOnlineSettings.FillClientDetails;
 begin
   edtUserName.Text := MyClient.clFields.clContact_Name;
   edtEmailAddress.Text := MyClient.clFields.clClient_EMail_Address;
+end;
+
+{ TDataExport }
+
+constructor TDataExportOption.Create(Guid: TBloGuid);
+begin
+  FGuid := Guid;
 end;
 
 end.

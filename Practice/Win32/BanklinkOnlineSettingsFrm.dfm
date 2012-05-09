@@ -17,6 +17,7 @@ object frmBanklinkOnlineSettings: TfrmBanklinkOnlineSettings
   Scaled = False
   ShowHint = True
   OnCloseQuery = FormCloseQuery
+  OnDestroy = FormDestroy
   OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 13
@@ -247,6 +248,7 @@ object frmBanklinkOnlineSettings: TfrmBanklinkOnlineSettings
       Top = 21
       Width = 368
       Height = 82
+      OnClickCheck = chkListServicesAvailableClickCheck
       ItemHeight = 13
       TabOrder = 0
     end
