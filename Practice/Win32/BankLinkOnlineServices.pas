@@ -221,7 +221,7 @@ type
                                 aItem : TBloGuid) : Boolean;
     function RemoveItemFromArrayGuid(var aBloArrayOfGuid : TBloArrayOfGuid;
                                      aItem : TBloGuid) : Boolean;
-    function GetClientGuid(const AClientCode: string): WideString;
+    function GetClientGuid(const AClientCode: string): WideString; overload;
 
 
     destructor Destroy; override;
@@ -329,7 +329,9 @@ type
     function SaveClientVendorExports(aClientId : TBloGuid;
                                      aVendorExports: TBloArrayOfGuid;
                                      aShowMessage: Boolean = True;
-                                     ShowProgressBar: Boolean = true): Boolean;
+                                     ShowProgressBar: Boolean = true;
+                                     ShowSuccessMessage: Boolean = True): Boolean;
+                                     
     function SaveAccountVendorExports(aClientId : TBloGuid;
                                       aAccountNumber : WideString;
                                       aVendorExports: TBloArrayOfGuid;
@@ -337,6 +339,8 @@ type
                                       ShowProgressBar: Boolean = True): Boolean;
 
     function GetVendorExportClientCount: TBloArrayOfPracticeDataSubscriberCount;
+
+    function GetClientGuid(const ClientCode: WideString; out Id: TBloGuid): Boolean; overload;
 
     property OnLine: Boolean read FOnLine;
     property Registered: Boolean read GetRegistered;
@@ -1013,20 +1017,73 @@ end;
 function TProductConfigService.GetClientGuid(const aClientCode: string): WideString;
 var
   i: integer;
+  Guid: TBloGuid;
 begin
   Result := '';
 
-  LoadClientList;
-  
-  if Assigned(FClientList) then
+  if GetClientGuid(aClientCode, Guid) then
   begin
-    for i := Low(FClientList.Clients) to High(FClientList.Clients) do
+    Result := Guid;
+  end;
+end;
+
+function TProductConfigService.GetClientGuid(const ClientCode: WideString; out Id: TBloGuid): Boolean;
+var
+  BlopiInterface: IBlopiServiceFacade;
+  BlopiClientGuid: MessageResponseOfguid;
+  ShowProgress : Boolean;
+begin
+  Result := False;
+  
+  try
+    ShowProgress := Progress.StatusSilent;
+    
+    if ShowProgress then
     begin
-      if (AClientCode = FClientList.Clients[i].ClientCode) then
+      Screen.Cursor := crHourGlass;
+      Progress.StatusSilent := False;
+      Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Connecting', 10);
+    end;
+
+    try
+      if UseBankLinkOnline then
       begin
-        Result := FClientList.Clients[i].Id;
-        Break;
+        if ShowProgress then
+        begin
+          Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Looking Up Client', 50);
+        end;
+
+        BlopiInterface := GetServiceFacade;
+
+        BlopiClientGuid := BlopiInterface.GetClientId(CountryText(AdminSystem.fdFields.fdCountry),
+                                                        AdminSystem.fdFields.fdBankLink_Code,
+                                                        AdminSystem.fdFields.fdBankLink_Connect_Password,
+                                                        ClientCode);
+                                                        
+        if not MessageResponseHasError(MessageResponse(BlopiClientGuid), 'looking up the client from') then
+        begin
+          Id := BlopiClientGuid.Result;
+
+          Result := True;
+        end;
+
+        if ShowProgress then
+        begin
+          Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finished', 100);
+        end;
       end;
+    finally
+      if ShowProgress then
+      begin
+        Progress.StatusSilent := True;
+        Progress.ClearStatus;
+        Screen.Cursor := crDefault;
+      end;
+    end;
+  except
+    on E:Exception do
+    begin
+      HelpfulErrorMsg('Error looking up the client from ' + BANKLINK_ONLINE_NAME + '.', 0, True, E.Message, True);
     end;
   end;
 end;
@@ -2349,10 +2406,11 @@ begin
   end;
 end;
 
-function TProductConfigService.SaveClientVendorExports(aClientId: TBloGuid;
+function TProductConfigService.SaveClientVendorExports(aClientId : TBloGuid;
                                                        aVendorExports: TBloArrayOfGuid;
-                                                       aShowMessage: Boolean;
-                                                       ShowProgressBar: Boolean): Boolean;
+                                                       aShowMessage: Boolean = True;
+                                                       ShowProgressBar: Boolean = true;
+                                                       ShowSuccessMessage: Boolean = True): Boolean;
 var
   BlopiInterface : IBlopiServiceFacade;
   PracCountryCode : WideString;
@@ -2415,9 +2473,16 @@ begin
       if aShowMessage then
       begin
         if Result then
-          HelpfulInfoMsg('Client data export settings have been successfully updated to BankLink Online.', 0)
+        begin
+          if ShowSuccessMessage then
+          begin
+            HelpfulInfoMsg('Client data export settings have been successfully updated to BankLink Online.', 0);
+          end;
+        end
         else
+        begin
           HelpfulErrorMsg(BKPRACTICENAME + ' is unable to update the Client data export settings to ' + BANKLINK_ONLINE_NAME + '.', 0);
+        end;
       end;
     end;
   end;
