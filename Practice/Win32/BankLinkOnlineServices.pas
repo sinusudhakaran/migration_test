@@ -98,6 +98,11 @@ type
     property Suspended: boolean read GetSuspended;
   End;
 
+  TClientListHelper = class helper for ClientList
+  public
+    function GetClientGuid(const ClientCode: WideString): TBloGuid;
+  end;
+
   TPracticeHelper = Class helper for PracticeRead
   private
     function GetUserRoleGuidFromPracUserType(aUstNameIndex : integer;
@@ -4292,6 +4297,24 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+
+{ TClientListHelper }
+
+function TClientListHelper.GetClientGuid(const ClientCode: WideString): TBloGuid;
+var
+  Index: Integer;
+begin
+  for Index := Low(Clients) to High(Clients) do
+  begin
+    if (ClientCode = Clients[Index].ClientCode) then
+    begin
+      Result := Clients[Index].Id;
+
+      Break;
+    end;
+  end;
+end;
+
 initialization
   DebugMe := DebugUnit(UNIT_NAME);
   __BankLinkOnlineServiceMgr := nil;
