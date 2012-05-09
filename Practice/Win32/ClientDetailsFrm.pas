@@ -168,6 +168,8 @@ type
     FUseClientDetailsForBankLinkOnline: Boolean;
 
     FInWizard: Boolean;
+
+    FClientReadDetail: TBloClientReadDetail;
     
     function  OkToPost : boolean;
     procedure UpdatePracticeContactDetails( ContactType : byte);
@@ -336,8 +338,7 @@ begin
 
       lblClientBOProducts.Visible := ClientSynced and
                                      CurrUser.CanAccessAdmin;
-      //Get client list (so that we can lookup the client code)
-      ProductConfigService.LoadClientList;
+
       if lblClientBOProducts.Visible  then
       begin
         if not FEnableClientSettings then
@@ -353,6 +354,12 @@ begin
         else
         begin
           CachedPracticeDetail := ProductConfigService.CachedPractice;
+
+          if btnClientSettings.Enabled then
+          begin
+            FClientReadDetail := ProductConfigService.GetClientDetailsWithCode(MyClient.clFields.clCode, True);
+          end;
+          
           if btnClientSettings.Enabled and Assigned(CachedPracticeDetail) then
             UpdateProductsLabel;
         end;
@@ -476,8 +483,10 @@ begin
   MyClient.clFields.clClient_EMail_Address := eMail.text;
   ShowServicesAvailable := ((chkOffSite.Checked = false) or (Trim(eConnectCode.Text) = ''));
   if EditBanklinkOnlineSettings(Self, MyClient.clFields.clWeb_Export_Format = wfWebNotes,
-                                false, ShowServicesAvailable) then
+                                false, ShowServicesAvailable, FClientReadDetail) then
   begin
+    FClientReadDetail := ProductConfigService.GetClientDetailsWithCode(MyClient.clFields.clCode, False);
+    
     UpdateProductsLabel;
   end;
 end;
@@ -716,6 +725,8 @@ var
   DetailsChanged   : boolean;
   LastDiskSequenceNo : integer;
 begin
+   FClientReadDetail := nil;
+   
    okPressed := false;
    FileRenamed := false;
    AdminLoaded := RefreshAdmin;  //stored - will be used later too
@@ -1322,19 +1333,13 @@ end;
 procedure TfrmClientDetails.UpdateProductsLabel;
 var
   NumProducts: string;
-  ClientReadDetail : TBloClientReadDetail;
 begin
   if Assigned(MyClient) then
   begin
-    if Assigned(ProductConfigService.Clients) then
-    begin
-      ClientReadDetail := ProductConfigService.GetClientDetailsWithGuid(ProductConfigService.Clients.GetClientGuid(MyClient.clFields.clCode), True);
-    end;
-
     NumProducts := '0';
 
-    if Assigned(ClientReadDetail) then
-      NumProducts := IntToStr(Length(ClientReadDetail.Subscription))
+    if Assigned(FClientReadDetail) then
+      NumProducts := IntToStr(Length(FClientReadDetail.Subscription))
     else if MyClient.clExtra.ceOnlineValuesStored then
       NumProducts := IntToStr(MyClient.clExtra.ceOnlineSubscriptionCount)
     else if MyClient.clFields.clWeb_Export_Format = wfWebNotes then
