@@ -615,11 +615,32 @@ Begin
 
          csByForexRate       :
             Begin
-               Result :=   LongToKey( txBank_Seq ) +   //DoubletoKey, does not work... 
+               Result :=   LongToKey( txBank_Seq ) +   //DoubletoKey, does not work...
                                LongToKey( Trunc(   txForex_Conversion_Rate * 100000) ) +
                                LongToKey( txDate_Effective ) +
                                LongToKey( txSequence_No ); {22}
             end;
+         csByTransId         :
+            begin
+               Result :=   LongToKey( txCore_Transaction_ID ) +
+                           LongToKey( txBank_Seq ) +
+                           LongToKey( txDate_Effective ) +
+                           LongToKey ( txSequence_No ) ;
+            end;
+         csBySentToAndAcc    :
+            begin
+              if txTransfered_To_Online then
+                i := 1
+              else
+                i := 0;
+
+
+               Result :=   LongToKey( i ) +
+                           LongToKey( txBank_Seq ) +
+                           LongToKey( txDate_Effective ) +
+                           LongToKey ( txSequence_No )
+            end;
+
       else
          begin
             MakeSortKey := LongToKey( txBank_Seq ) +

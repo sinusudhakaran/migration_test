@@ -348,8 +348,10 @@ CONST
    csByForexRate   = 25;
 
    csByAltChartCode = 26;
+   csByTransId      = 27;
+   csBySentToAndAcc = 28;
 
-   csMax = 26;
+   csMax = 28;
 
    csNames : Array[ csMin..csMax ] of String[20]=
       (  'Date Effective',
@@ -378,7 +380,9 @@ CONST
          'Action',
          'F/C Amount',
          'Exchange Rate',
-         'Alternative Code'
+         'Alternative Code',
+         'Core Transaction Id',
+         'Sent to Banklink Online'
           );
 
   //use this array to pick out items in the order the should appear in picklists
@@ -411,7 +415,9 @@ CONST
     csByStatementDetails,
     csAccountCodeXLON,
     csByQuantity,
-    csByAltChartCode
+    csByAltChartCode,
+    csByTransId,
+    csBySentToAndAcc
   );
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
