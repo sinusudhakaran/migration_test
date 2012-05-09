@@ -566,8 +566,12 @@ begin
     ProductConfigService.GetPractice;
     //Get client list (so that we can lookup the client code)
     ProductConfigService.LoadClientList;
-    //Get client details
-    ClientReadDetail := ProductConfigService.GetClientDetailsWithCode(MyClient.clFields.clCode, True);
+    
+     //Get client details
+    if Assigned(ProductConfigService.Clients) then
+    begin
+      ClientReadDetail := ProductConfigService.GetClientDetailsWithGUID(ProductConfigService.Clients.GetClientGuid(MyClient.clFields.clCode), True);
+    end;
   end;
 
   LoadClientInfo(TickNotesOnline);
