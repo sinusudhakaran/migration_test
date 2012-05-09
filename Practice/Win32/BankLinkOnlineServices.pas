@@ -1028,6 +1028,30 @@ begin
 end;
 
 function TProductConfigService.GetClientGuid(const ClientCode: WideString; out Id: TBloGuid): Boolean;
+
+type
+  TResponseType = (rtClientFound, ctClientNotFound, rtError);
+  
+  function CheckResponse(Response: MessageResponse): TResponseType;
+  begin
+    Result := rtError;
+    
+    if Assigned(Response) then
+    begin
+      if Response.Success then
+      begin
+        Result := rtClientFound;
+      end
+      else if Length(Response.ErrorMessages) = 1  then
+      begin
+        if CompareText(Response.ErrorMessages[0].ErrorCode, 'BusinessPlusService_GetSmeIdFailed') = 0 then
+        begin
+          Result := ctClientNotFound;
+        end;
+      end;
+    end;
+  end;
+
 var
   BlopiInterface: IBlopiServiceFacade;
   BlopiClientGuid: MessageResponseOfguid;
@@ -1059,12 +1083,19 @@ begin
                                                         AdminSystem.fdFields.fdBankLink_Code,
                                                         AdminSystem.fdFields.fdBankLink_Connect_Password,
                                                         ClientCode);
-                                                        
-        if not MessageResponseHasError(MessageResponse(BlopiClientGuid), 'looking up the client from') then
-        begin
-          Id := BlopiClientGuid.Result;
 
-          Result := True;
+        case CheckResponse(BlopiClientGuid) of
+          rtClientFound:
+          begin
+            Id := BlopiClientGuid.Result;
+
+            Result := True;
+          end;
+
+          rtError:
+          begin
+            MessageResponseHasError(MessageResponse(BlopiClientGuid), 'looking up the client from');
+          end;
         end;
 
         if ShowProgress then
