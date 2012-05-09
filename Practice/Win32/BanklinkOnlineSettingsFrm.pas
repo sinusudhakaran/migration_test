@@ -70,6 +70,7 @@ type
     ClientReadDetail : TBloClientReadDetail;
     PracticeServiceArray  : TBloDataPlatformSubscription;
     procedure ExportTaggedAccounts(ProgressForm: ISingleProgressForm);
+    procedure AdjustControlPositions;
   protected
     function Validate : Boolean;
     procedure FillClientDetails;
@@ -204,7 +205,6 @@ function EditBanklinkOnlineSettings(w_PopupParent: TForm; TickNotesOnline, Force
                                     ShowServicesAvailable: boolean): boolean;
 var
   BanklinkOnlineSettings: TfrmBanklinkOnlineSettings;
-  OkTop: integer;
 const
   ThisMethodName = 'EditBanklinkOnlineSettings';
 begin
@@ -218,20 +218,29 @@ begin
     BanklinkOnlineSettings.PopupParent := w_PopupParent;
     BanklinkOnlineSettings.PopupMode := pmExplicit;
     BanklinkOnlineSettings.grpServicesAvailable.Visible := ShowServicesAvailable;
-    OkTop := BanklinkOnlineSettings.grpBillingFrequency.Top +
-             BanklinkOnlineSettings.grpBillingFrequency.Height + 10;
-    if (BanklinkOnlineSettings.grpServicesAvailable.Visible = false) then
-      OkTop := OkTop - BanklinkOnlineSettings.grpServicesAvailable.Height;
-    if (BanklinkOnlineSettings.grpBillingFrequency.Visible = false) then
-      OkTop := OkTop - BanklinkOnlineSettings.grpBillingFrequency.Height;
-    BanklinkOnlineSettings.btnOk.Top := OkTop;
-    BanklinkOnlineSettings.btnCancel.Top := OkTop;
-    BanklinkOnlineSettings.Height := OkTop + 70;
+    BanklinkOnlineSettings.AdjustControlPositions;
 
     Result := BanklinkOnlineSettings.Execute(TickNotesOnline, ForceActiveClient);
   finally
     FreeAndNil(BanklinkOnlineSettings);
   end;
+end;
+
+procedure TfrmBanklinkOnlineSettings.AdjustControlPositions;
+var
+  OkTop: integer;
+begin
+  OkTop := grpBillingFrequency.Top +
+           grpBillingFrequency.Height + 10;
+  if (grpServicesAvailable.Visible = false) then
+    OkTop := OkTop - grpServicesAvailable.Height;
+  if (grpDefaultClientAdministrator.Visible = false) then
+    OkTop := OkTop - grpDefaultClientAdministrator.Height;
+  if (grpBillingFrequency.Visible = false) then
+    OkTop := OkTop - grpBillingFrequency.Height;
+  btnOk.Top := OkTop;
+  btnCancel.Top := OkTop;
+  Height := OkTop + 70;
 end;
 
 //------------------------------------------------------------------------------
@@ -684,7 +693,7 @@ begin
       DataExportEnabled := True;     
   end;
 
-  // Load services
+  // Load available services
   PracticeServiceArray := ProductConfigService.GetPracticeVendorExports;
   for PracticeServiceIndex := 0 to High(PracticeServiceArray.Current) do
     chkListServicesAvailable.Items.Add(PracticeServiceArray.Current[PracticeServiceIndex].Name_);
@@ -713,7 +722,10 @@ begin
         end;
       end;
     end else
+    begin
       grpServicesAvailable.Visible := false;
+      AdjustControlPositions;
+    end;
   end;
 
   if TickNotesOnline then
@@ -805,6 +817,7 @@ var
   Subscription: TBloArrayOfGuid;
   NotesOnlineTicked : Boolean;
   NumProdTicked : Integer;
+  ClientCode : WideString;
 begin
   NotesOnlineTicked := False;
   NumProdTicked := 0;
@@ -888,6 +901,9 @@ begin
   if Result then
   begin
     UpdateClientWebFormat(Subscription);
+    ClientCode := MyClient.clFields.clCode;
+    HelpfulInfoMsg(Format('Settings for %s have been successfully updated to ' +
+                       '%s.',[ClientCode, BANKLINK_ONLINE_NAME]), 0);
   end
   else
   begin
