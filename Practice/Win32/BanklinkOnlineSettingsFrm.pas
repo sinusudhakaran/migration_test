@@ -995,13 +995,17 @@ begin
   if Result then
   begin
     UpdateClientWebFormat(Subscription);
-    ClientCode := MyClient.clFields.clCode;
-    HelpfulInfoMsg(Format('Settings for %s have been successfully updated to ' +
-                       '%s.',[ClientCode, BANKLINK_ONLINE_NAME]), 0);
 
     if not ProductConfigService.GuidArraysEqual(OriginalDataExports, ModifiedDataExports)  then
     begin
-      ProductConfigService.SaveClientVendorExports(ClientReadDetail.Id, ModifiedDataExports, true, false);
+      Result := ProductConfigService.SaveClientVendorExports(ClientReadDetail.Id, ModifiedDataExports, true, True, False);
+    end;
+
+    if Result then
+    begin
+      ClientCode := MyClient.clFields.clCode;
+      HelpfulInfoMsg(Format('Settings for %s have been successfully updated to ' +
+                       '%s.',[ClientCode, BANKLINK_ONLINE_NAME]), 0);
     end;
   end
   else
