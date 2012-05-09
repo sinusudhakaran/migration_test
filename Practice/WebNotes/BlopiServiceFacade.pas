@@ -12,7 +12,7 @@
 // Encoding : utf-8
 // Codegen  : [wfMapStringsToWideStrings+, wfUseScopedEnumeration-]
 // Version  : 1.0
-// (7/05/2012 2:22:42 p.m. - - $Rev: 25127 $)
+// (8/05/2012 2:03:21 p.m. - - $Rev: 25127 $)
 // ************************************************************************ //
 
 unit BlopiServiceFacade;
@@ -1416,16 +1416,18 @@ type
     function  SaveClientUser(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const clientId: guid; const user: UserUpdate): MessageResponse; stdcall;
     function  GetTermsAndConditions(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString): MessageResponseOfstring; stdcall;
     function  GetPracticeDataSubscribers(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString): MessageResponseOfDataPlatformSubscription6cY85e5k; stdcall;
-    function  SavePracticeDataSubscribers(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const subscription: ArrayOfguid): MessageResponse; stdcall;
     function  GetPracticeDataSubscriberCredentials(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const subscriberId: guid): MessageResponseOfPracticeDataSubscriberCredentials6cY85e5k; stdcall;
     function  GetPracticeDataSubscriberCount(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString): MessageResponseOfArrayOfPracticeDataSubscriberCount6cY85e5k; stdcall;
+    function  SavePracticeDataSubscribers(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const subscription: ArrayOfguid): MessageResponse; stdcall;
     function  SavePracticeDataSubscriberCredentials(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const subscriberId: guid; const practiceDataSubscriberCredentials: PracticeDataSubscriberCredentials): MessageResponse; stdcall;
     function  GetClientDataSubscribers(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const clientId: guid): MessageResponseOfDataPlatformSubscription6cY85e5k; stdcall;
     function  SaveClientDataSubscribers(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const clientId: guid; const subscription: ArrayOfguid): MessageResponse; stdcall;
     function  GetBankAccountDataSubscribers(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const clientId: guid; const bankAccountNumber: WideString): MessageResponseOfDataPlatformSubscription6cY85e5k; stdcall;
+    function  GetBankAccountsDataSubscribers(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const clientId: guid): MessageResponseOfDataPlatformClient6cY85e5k; stdcall;
     function  SaveBankAccountDataSubscribers(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const clientId: guid; const bankAccountNumber: WideString; const subscription: ArrayOfguid
                                              ): MessageResponse; stdcall;
-    function  GetBankAccountsDataSubscribers(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const clientId: guid): MessageResponseOfDataPlatformClient6cY85e5k; stdcall;
+    function  SaveBankAccountsDataSubscribers(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const clientId: guid; const bankAccountNumbers: ArrayOfstring; const subscription: ArrayOfguid
+                                              ): MessageResponse; stdcall;
   end;
 
 function GetIBlopiServiceFacade(UseWSDL: Boolean=System.False; Addr: string=''; HTTPRIO: THTTPRIO = nil): IBlopiServiceFacade;
