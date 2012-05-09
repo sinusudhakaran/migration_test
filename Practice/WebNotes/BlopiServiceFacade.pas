@@ -12,7 +12,7 @@
 // Encoding : utf-8
 // Codegen  : [wfMapStringsToWideStrings+, wfUseScopedEnumeration-]
 // Version  : 1.0
-// (8/05/2012 2:03:21 p.m. - - $Rev: 25127 $)
+// (9/05/2012 3:11:44 p.m. - - $Rev: 25127 $)
 // ************************************************************************ //
 
 unit BlopiServiceFacade;
@@ -1410,6 +1410,7 @@ type
     function  DeleteUser(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const userId: guid): MessageResponse; stdcall;
     function  GetClientList(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString): MessageResponseOfClientListMIdCYrSK; stdcall;
     function  GetClient(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const clientId: guid): MessageResponseOfClientReadDetailMIdCYrSK; stdcall;
+    function  GetClientId(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const clientCode: WideString): MessageResponseOfguid; stdcall;
     function  CreateClient(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const ClientCreate: ClientCreate): MessageResponseOfguid; stdcall;
     function  SaveClient(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const ClientUpdate: ClientUpdate): MessageResponse; stdcall;
     function  CreateClientUser(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const clientId: guid; const user: UserCreate): MessageResponseOfguid; stdcall;
