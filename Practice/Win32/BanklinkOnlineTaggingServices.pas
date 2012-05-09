@@ -426,7 +426,6 @@ begin
     ClientProgressSize := 100 / Client.clBank_Account_List.ItemCount -1;
   
     ProgressForm.UpdateProgressLabel('Updating bank account vendors for client ' + Client.clFields.clCode);
-    ProductConfigService.SaveClientVendorExports(ClientReadDetail.Id, Vendors, true, false);
 
     if not ProgressForm.Cancelled then
     begin
