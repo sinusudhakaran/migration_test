@@ -382,7 +382,7 @@ CONST
          'Exchange Rate',
          'Alternative Code',
          'Core Transaction Id',
-         'Sent to Banklink Online'
+         'Sent to Banklink'
           );
 
   //use this array to pick out items in the order the should appear in picklists
