@@ -483,7 +483,7 @@ begin
   MyClient.clFields.clClient_EMail_Address := eMail.text;
   ShowServicesAvailable := ((chkOffSite.Checked = false) or (Trim(eConnectCode.Text) = ''));
   if EditBanklinkOnlineSettings(Self, MyClient.clFields.clWeb_Export_Format = wfWebNotes,
-                                false, ShowServicesAvailable, FClientReadDetail) then
+                                false, ShowServicesAvailable) then
   begin
     FClientReadDetail := ProductConfigService.GetClientDetailsWithCode(MyClient.clFields.clCode, False);
     
