@@ -701,22 +701,24 @@ begin
     end;
   end;
 
-  (* Uncommend and complete when the deliver data direct to banklink online field becomes available.
-  if chkOffsite.Checked and (eConnectCode.Text <> '') then
+  (* Uncomment and finish off implementation once the banklink online fields are available.
+  if chkOffsite.Checked then
   begin
     if Assigned(FClientReadDetail) then
     begin
-      //If Deliver data direct to banklink online is enabled then
+      //If deliver directly to banklink online ticked and secure code entered.
       begin
-        HelpfulWarningMsg('This client is set up for data delivery directly to BankLink Online. Please contact BankLink Client Services' +
+        HelpfulWarningMsg('This client is set up for data delivery directly to BankLink Online. Please contact BankLink Client Services ' +
         'if you want to change the data delivery method to downloading data directly from BankLink to the client file.', 0);
+
+        chkOffsite.Checked := False;
 
         Exit;
       end;
     end;
   end;
-   *)
-   
+  *)
+  
   Result := true;
 end;
 
