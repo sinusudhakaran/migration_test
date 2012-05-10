@@ -88,7 +88,7 @@ type
 
     procedure AfterShow(var Message: TMessage); message UM_AFTERSHOW;
   public
-    function Execute(TickNotesOnline, ForceActiveClient: boolean; ClientDetails: TBloClientReadDetail) : boolean;
+    function Execute(TickNotesOnline, ForceActiveClient: boolean) : boolean;
 
     procedure LoadClientInfo(TickNotesOnline: boolean);
     function SaveClientInfo : Boolean;
@@ -104,7 +104,7 @@ type
   end;
 
   function EditBanklinkOnlineSettings(w_PopupParent: TForm; TickNotesOnline, ForceActiveClient,
-                                      ShowServicesAvailable: boolean; ClientDetails: TBloClientReadDetail = nil): boolean;
+                                      ShowServicesAvailable: boolean): boolean;
 
 //------------------------------------------------------------------------------
 implementation
@@ -237,7 +237,7 @@ end;
 
 //------------------------------------------------------------------------------
 function EditBanklinkOnlineSettings(w_PopupParent: TForm; TickNotesOnline, ForceActiveClient,
-                                    ShowServicesAvailable: boolean; ClientDetails: TBloClientReadDetail = nil): boolean;
+                                    ShowServicesAvailable: boolean): boolean;
 var
   BanklinkOnlineSettings: TfrmBanklinkOnlineSettings;
 const
@@ -255,7 +255,7 @@ begin
     BanklinkOnlineSettings.grpServicesAvailable.Visible := ShowServicesAvailable;
     BanklinkOnlineSettings.AdjustControlPositions;
 
-    Result := BanklinkOnlineSettings.Execute(TickNotesOnline, ForceActiveClient, ClientDetails);
+    Result := BanklinkOnlineSettings.Execute(TickNotesOnline, ForceActiveClient);
   finally
     FreeAndNil(BanklinkOnlineSettings);
   end;
@@ -598,7 +598,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TfrmBanklinkOnlineSettings.Execute(TickNotesOnline, ForceActiveClient: boolean; ClientDetails: TBloClientReadDetail) : boolean;
+function TfrmBanklinkOnlineSettings.Execute(TickNotesOnline, ForceActiveClient: boolean) : boolean;
 var
   ClientGuid: TBloGuid;
 begin
@@ -608,17 +608,9 @@ begin
 
   if MyClient.Opened then
   begin
-    if Assigned(ClientDetails) then
+    if ProductConfigService.GetClientGuid(MyClient.clFields.clCode, ClientGuid) then
     begin
-      ClientReadDetail := ClientDetails;
-    end
-    else
-    begin
-      //Get client details
-      if ProductConfigService.GetClientGuid(MyClient.clFields.clCode, ClientGuid) then
-      begin
-        ClientReadDetail := ProductConfigService.GetClientDetailsWithGUID(ClientGuid, True);
-      end;
+      ClientReadDetail := ProductConfigService.GetClientDetailsWithGUID(ClientGuid, True);
     end;
 
     if not Assigned(ClientReadDetail) then
