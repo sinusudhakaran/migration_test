@@ -772,7 +772,7 @@ begin
 
     if ClientID <> '' then
     begin
-      ClientExportDataService := ProductConfigService.GetClientVendorExports(ClientReadDetail.Id);
+      ClientExportDataService := ProductConfigService.GetClientVendorExports(ClientID);
 
       if Assigned(ClientExportDataService) then
       begin
@@ -793,10 +793,7 @@ begin
     begin
       chkListServicesAvailable.AddItem(AvailableServiceArray[AvailableServiceIndex].Name_, TDataExportOption.Create(AvailableServiceArray[AvailableServiceIndex].Id));
     end;
-  end;
-
-  if (ClientID <> '') then
-  begin
+  
     if Assigned(ClientExportDataService) then
     begin
       for ClientServiceIndex := 0 to High(ClientExportDataService.Current) do
@@ -814,12 +811,12 @@ begin
           end;
         end;
       end;
-    end
-    else
-    begin
-      grpServicesAvailable.Visible := false;
-      AdjustControlPositions;
     end;
+  end
+  else
+  begin
+    grpServicesAvailable.Visible := false;
+    AdjustControlPositions;
   end;
 
   if TickNotesOnline then
@@ -996,7 +993,7 @@ begin
   begin
     UpdateClientWebFormat(Subscription);
 
-    if not ProductConfigService.GuidArraysEqual(OriginalDataExports, ModifiedDataExports)  then
+    if Assigned(ClientReadDetail) and not ProductConfigService.GuidArraysEqual(OriginalDataExports, ModifiedDataExports)  then
     begin
       Result := ProductConfigService.SaveClientVendorExports(ClientReadDetail.Id, ModifiedDataExports, true, True, False);
     end;
