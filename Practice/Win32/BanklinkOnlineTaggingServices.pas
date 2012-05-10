@@ -155,6 +155,16 @@ begin
       Node.ChildNodes.Delete(NodeIndex);
     end
     else
+    if Uppercase(ChildNode.NodeName) = 'SHORTNAMES' then
+    begin
+      Node.ChildNodes.Delete(NodeIndex);
+    end
+    else
+    if Uppercase(ChildNode.NodeName) = 'LONGNAMES' then
+    begin
+      Node.ChildNodes.Delete(NodeIndex);
+    end
+    else
     begin
       Inc(NodeIndex);
     end;
