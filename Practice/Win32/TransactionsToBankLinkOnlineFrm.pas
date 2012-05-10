@@ -182,6 +182,8 @@ begin
   end;
 
   edtTransactionsToDate.AsStDate := OvcDate.CurrentDate;
+
+  chkExportChartOfAccounts.Checked := True;
 end;
 
 procedure TfrmTransactionsToBankLinkOnline.GetMaxExportableDate(ProgressForm: ISingleProgressForm);
