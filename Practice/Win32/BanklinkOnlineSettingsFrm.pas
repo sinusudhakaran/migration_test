@@ -756,10 +756,6 @@ begin
     if Assigned(ClientReadDetail) then
     begin
       ClientID := ClientReadDetail.Id;
-    end
-    else
-    begin
-      ClientID := ProductConfigService.GetClientGuid(MyClient.clFields.clCode);
     end;
 
     if ClientID <> '' then
