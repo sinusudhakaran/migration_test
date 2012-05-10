@@ -55,6 +55,7 @@ type
     class function IsBankAccountTagged(BankAccount: TBank_Account; ClientAccountVendors: TClientAccVendors): Boolean; static;
 
     class function GetClientGuid(const ClientCode: String): TBloGuid; static;
+    class procedure CleanXML(Node: IXMLNode); static;
   public
     class procedure UpdateAccountVendors(ClientReadDetail: TBloClientReadDetail; BankAccount: TBank_Account; Vendors: TBloArrayOfGuid); overload; static;
     class procedure UpdateAccountVendors(ClientReadDetail: TBloClientReadDetail; Client: TClientObj; Vendors: TBloArrayOfGuid; ProgressForm: ISingleProgressForm); overload; static;  
@@ -82,6 +83,7 @@ class function TBanklinkOnlineTaggingServices.TransactionsToXML(ParentNode: IXML
 var
   TransactionIndex: Integer;
   Transaction: pTransaction_Rec;
+  TransactionNode: IXMLNode;
 begin
   Result := 0;
 
@@ -92,8 +94,10 @@ begin
     try
       if IsExportableTransaction(Transaction, MaxTransactionDate) then    
       begin
-        Transaction.WriteRecToNode(ParentNode);
+        TransactionNode := Transaction.WriteRecToNode(ParentNode);
 
+        CleanXML(TransactionNode);
+        
         Transaction.txTransfered_To_Online := True;
 
         Inc(Result);
@@ -110,10 +114,50 @@ end;
 class procedure TBanklinkOnlineTaggingServices.ChartToXML(ParentNode: IXMLNode; ChartOfAccounts: TChart);
 var
   Index: Integer;
+  ChartNode: IXMLNode;
 begin
   for Index := 0 to ChartOfAccounts.ItemCount - 1 do
   begin
-    ChartOfAccounts.Account_At(Index).WriteRecToNode(ParentNode);
+    ChartNode := ChartOfAccounts.Account_At(Index).WriteRecToNode(ParentNode);
+
+    CleanXML(ChartNode);
+  end;
+end;
+
+class procedure TBanklinkOnlineTaggingServices.CleanXML(Node: IXMLNode);
+var
+  NodeIndex: Integer;
+  ChildNode: IXMLNode;
+begin
+  NodeIndex := 0;
+  
+  while NodeIndex < Node.ChildNodes.Count do
+  begin
+    ChildNode := Node.ChildNodes[NodeIndex];
+
+    if Pos('COLUMNORDERS', Uppercase(ChildNode.NodeName)) > 0 then
+    begin
+      Node.ChildNodes.Delete(NodeIndex);
+    end
+    else
+    if Pos('COLUMNWIDTHS', Uppercase(ChildNode.NodeName)) > 0 then
+    begin
+      Node.ChildNodes.Delete(NodeIndex);
+    end
+    else
+    if Pos('COLUMNIS', Uppercase(ChildNode.NodeName)) > 0 then
+    begin
+      Node.ChildNodes.Delete(NodeIndex);
+    end
+    else
+    if Pos('HEADINGS', Uppercase(ChildNode.NodeName)) > 0 then
+    begin
+      Node.ChildNodes.Delete(NodeIndex);
+    end
+    else
+    begin
+      Inc(NodeIndex);
+    end;
   end;
 end;
 
@@ -138,6 +182,8 @@ begin
       begin
         BankAccountNode := BankAccount.baFields.WriteRecToNode(ParentNode);
 
+        CleanXML(BankAccountNode);
+        
         TempTransExported := TransactionsToXML(BankAccountNode, Client, BankAccount, MaxTransactionDate);
 
         if TempTransExported > 0 then
@@ -291,6 +337,8 @@ begin
 
                     ClientNode := Client.clFields.WriteRecToNode(RootNode);
 
+                    CleanXML(ClientNode);
+                    
                     BankAccountsToXML(ClientNode, Client, ExportOptions.MaxTransactionDate, ClientAccountVendors, AccountsExported, TransactionsExported);
 
                     if TransactionsExported > 0 then
