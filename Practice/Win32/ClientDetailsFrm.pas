@@ -175,7 +175,7 @@ type
     procedure UpdatePracticeContactDetails( ContactType : byte);
     procedure ShowPracticeContactDetails(ReadOnly : Boolean);
     procedure SetProductsCaption(NewCaption: string);
-
+    
     procedure WMKillFocus(var w_Message: TWMKillFocus); message WM_KILLFOCUS;
     procedure WMActivate(var w_Message: TWMActivate); message WM_ACTIVATE;
 
@@ -701,6 +701,22 @@ begin
     end;
   end;
 
+  (* Uncommend and complete when the deliver data direct to banklink online field becomes available.
+  if chkOffsite.Checked and (eConnectCode.Text <> '') then
+  begin
+    if Assigned(FClientReadDetail) then
+    begin
+      //If Deliver data direct to banklink online is enabled then
+      begin
+        HelpfulWarningMsg('This client is set up for data delivery directly to BankLink Online. Please contact BankLink Client Services' +
+        'if you want to change the data delivery method to downloading data directly from BankLink to the client file.', 0);
+
+        Exit;
+      end;
+    end;
+  end;
+   *)
+   
   Result := true;
 end;
 
@@ -1232,6 +1248,7 @@ end;
 procedure TfrmClientDetails.chkOffsiteClick(Sender: TObject);
 begin
    grpDownloadSettings.visible := chkOffsite.Checked;
+
    if chkOffsite.Checked then
    begin
      if cmbOSDMethod.ItemIndex = -1 then
