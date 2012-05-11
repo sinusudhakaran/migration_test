@@ -1968,7 +1968,9 @@ procedure TfrmMain.ExportTransactionsToBankLinkOnline;
 begin
   if CurrUser.CanAccessAdmin and ProductConfigService.OnLine and ProductConfigService.IsPracticeProductEnabled(ProductConfigService.GetExportDataId, False) then
   begin
+    (* Uncomment this once exporting (S05) is finished
     TfrmModalProgress.ShowProgress(Self, 'Please wait...', 'Exporting Client Transactions', ExportTaggedAccounts);
+    *)
   end
   else
   if not CurrUser.CanAccessAdmin then
