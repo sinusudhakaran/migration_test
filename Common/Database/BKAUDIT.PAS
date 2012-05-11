@@ -856,6 +856,8 @@ begin
     FAuditNamesArray[40,86] := 'OnlineUserFullName';
     FAuditNamesArray[40,87] := 'OnlineValuesStored';
     FAuditNamesArray[40,88] := 'OnlineSubscriptionCount';
+    FAuditNamesArray[40,89] := 'DeliverDataDirectToBLO';
+    FAuditNamesArray[40,90] := 'BLOSecureCode';
 
 end;
 

@@ -9,13 +9,13 @@ Interface uses MONEYDEF, DATEDEF;
 {  -------------------------------------------------------------------  }
 
 Const
-   BK_IOLIB_Version : Integer = 654;
-   BK_IOLIB_Date    = '27/04/12';
-   BK_FILE_VERSION  = 168;  (* Current Version counter for files
+   BK_IOLIB_Version : Integer = 655;
+   BK_IOLIB_Date    = '11/05/12';
+   BK_FILE_VERSION  = 170;  (* Current Version counter for files
                               Changes if structure or method of storing a value would cause
                               data to be represented incorrectly, or an exception to be raised *)
    
-   BK_FILE_VERSION_STR = '5.22';   (* Should be changed whenever BK_FILE_VERSION changes. Is used to show user what version they need *)
+   BK_FILE_VERSION_STR = '5.25';   (* Should be changed whenever BK_FILE_VERSION changes. Is used to show user what version they need *)
    
    (*
        History  :     31    New format for GST class codes ( delimited string)
@@ -211,6 +211,8 @@ Const
                             Client File GUID not needed. Added field for File Transfer Method
      5.23 (2012BLOPI)168    Add Offline version of Client Settings for a New Client when Notes online is used
      5.24 (2012 Tag) 169    Add Core Trans ID and sent to Online to Transactions
+     5.25            170    Added DeliverDataDirectToBLO and BLOSecureCode fields to ClientExtra, to store 
+                            tagging additions to the BLO settings form
    *)
    //Audit Trail - 135 Don't reuse token!!! - Record defined in SY.TXT but also used in Client File
 
@@ -1251,6 +1253,8 @@ Type
       ceOnlineUserFullName               : String[ 32 ];       { Stored }
       ceOnlineValuesStored               : Boolean;       { Stored }
       ceOnlineSubscriptionCount          : Integer;       { Stored }
+      ceDeliverDataDirectToBLO           : Boolean;       { Stored }
+      ceBLOSecureCode                    : String[ 20 ];       { Stored }
       ceEOR                              : Byte;
    end;
 

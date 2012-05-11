@@ -93,6 +93,8 @@ CONST
    tkceOnlineUserFullName               = 86 ;
    tkceOnlineValuesStored               = 87 ;
    tkceOnlineSubscriptionCount          = 88 ;
+   tkceDeliverDataDirectToBLO           = 89 ;
+   tkceBLOSecureCode                    = 90 ;
 
 {  -------------------------------------------------------------------  }
 
@@ -174,6 +176,8 @@ Begin
       F.WriteStringValue( tkceOnlineUserFullName , ceOnlineUserFullName );
       F.WriteBooleanValue( tkceOnlineValuesStored , ceOnlineValuesStored );
       F.WriteIntegerValue( tkceOnlineSubscriptionCount , ceOnlineSubscriptionCount );
+      F.WriteBooleanValue( tkceDeliverDataDirectToBLO , ceDeliverDataDirectToBLO );
+      F.WriteStringValue( tkceBLOSecureCode , ceBLOSecureCode );
       F.WriteToken( tkEnd_ClientExtra );
    end;
 end; { of Write_ClientExtra_Rec }
@@ -282,6 +286,8 @@ Begin
          tkceOnlineUserFullName               : ceOnlineUserFullName := F.ReadStringValue;
          tkceOnlineValuesStored               : ceOnlineValuesStored := F.ReadBooleanValue;
          tkceOnlineSubscriptionCount          : ceOnlineSubscriptionCount := F.ReadIntegerValue;
+         tkceDeliverDataDirectToBLO           : ceDeliverDataDirectToBLO := F.ReadBooleanValue;
+         tkceBLOSecureCode                    : ceBLOSecureCode := F.ReadStringValue;
          else
             Raise ETokenException.CreateFmt( SUnknownToken, [ Token ] );
       end; { of Case }
@@ -332,7 +338,7 @@ begin
   for i := Low(ChangedFields) to High(ChangedFields) do
     ChangedFields[i] := 0;
   j := 0;
-  for i := tkceTAX_Applies_From to tkceOnlineSubscriptionCount do begin
+  for i := tkceTAX_Applies_From to tkceBLOSecureCode do begin
     ChangedFields[j] := i;
     Inc(j);
   end;
@@ -595,6 +601,16 @@ begin
   if (P1.ceOnlineSubscriptionCount <> P2.ceOnlineSubscriptionCount) then begin
     P3.ceOnlineSubscriptionCount := P1.ceOnlineSubscriptionCount;
     ChangedFields[i] := tkceOnlineSubscriptionCount;
+    Inc(i);
+  end;
+  if (P1.ceDeliverDataDirectToBLO <> P2.ceDeliverDataDirectToBLO) then begin
+    P3.ceDeliverDataDirectToBLO := P1.ceDeliverDataDirectToBLO;
+    ChangedFields[i] := tkceDeliverDataDirectToBLO;
+    Inc(i);
+  end;
+  if (P1.ceBLOSecureCode <> P2.ceBLOSecureCode) then begin
+    P3.ceBLOSecureCode := P1.ceBLOSecureCode;
+    ChangedFields[i] := tkceBLOSecureCode;
     Inc(i);
   end;
 
