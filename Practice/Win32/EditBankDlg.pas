@@ -537,8 +537,8 @@ begin
     VendorId := TBloDataPlatformSubscriber(chkLstAccVendors.Items.Objects[VIndex]).Id;
     VendorIndex := GetVendorIndex(VendorId);
 
-    if (chkLstAccVendors.Checked[VIndex] = False)
-       (AccountVendors.IsLastAccForVendors[VendorIndex])  then
+    if (chkLstAccVendors.Checked[VIndex] = False) and
+       (AccountVendors.IsLastAccForVendors[VendorIndex]) then
     begin
       if Length(VendorNames) > 0 then
         VendorNames := VendorNames + ', ';
