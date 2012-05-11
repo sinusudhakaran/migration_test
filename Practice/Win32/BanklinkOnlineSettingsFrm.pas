@@ -996,8 +996,6 @@ begin
       MyClient.clExtra.ceOnlineUserEMail    := edtEmailAddress.Text;
       MyClient.clExtra.ceOnlineUserFullName := edtUserName.Text;
       MyClient.clExtra.ceOnlineValuesStored := True;
-      MyClient.clExtra.ceDeliverDataDirectToBLO := chkDeliverData.Checked;
-      MyClient.clExtra.ceBLOSecureCode := edtSecureCode.Text;
       Result := True;
     end
     else
@@ -1019,6 +1017,8 @@ begin
       end;
     end;
   end;
+  MyClient.clExtra.ceDeliverDataDirectToBLO := chkDeliverData.Checked;
+  MyClient.clExtra.ceBLOSecureCode := edtSecureCode.Text;
 
   if Result then
   begin
