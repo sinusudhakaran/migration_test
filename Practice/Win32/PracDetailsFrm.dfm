@@ -47,7 +47,7 @@ object frmPracticeDetails: TfrmPracticeDetails
     Top = 8
     Width = 617
     Height = 387
-    ActivePage = tsBankLinkOnline
+    ActivePage = tbsDataExport
     TabOrder = 0
     OnChange = PageControl1Change
     OnChanging = PageControl1Changing

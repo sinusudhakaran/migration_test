@@ -401,11 +401,6 @@ begin
       end;
 
       pnlExportOptions.Visible := True;
-
-      if not ProductConfigService.IsPracticeProductEnabled(ProductConfigService.GetExportDataId, True) then
-      begin
-        ToggleEnableChildControls(pnlExportOptions, False);
-      end;
     end
     else
     begin
@@ -615,20 +610,6 @@ begin
     end
     else
     begin
-      ClientCount := GetVendorExportClientCount(TVendorExport(chklistExportTo.Items.Objects[chklistExportTo.ItemIndex]).Id);
-
-      if ClientCount > 0 then
-      begin
-        if AskYesNo('Banklink Online Export To', 'There are currently ' + IntToStr(ClientCount) + ' clients using the Export To ' + chklistExportTo.Items[chklistExportTo.ItemIndex] + ' service. ' +
-          'Removing access for this service will prevent any transaction data from being exported to ' + chklistExportTo.Items[chklistExportTo.ItemIndex] + '. Are you sure you wan tto continue?',
-          DLG_YES, 0) = DLG_NO then
-        begin
-          chklistExportTo.Checked[chklistExportTo.ItemIndex] := True;
-
-          Exit;
-        end;
-      end;
-
       ProductConfigService.RemoveItemFromArrayGuid(FSelectedVendorExports, TVendorExport(chklistExportTo.Items.Objects[chklistExportTo.ItemIndex]).Id);
     end;
     
@@ -723,17 +704,13 @@ begin
                                               ProductConfigService.OnLine and
                                               ProductConfigService.Registered and
                                               ProductConfigService.IsPracticeActive(False);
-
-    if tbsDataExport.TabVisible then
-    begin                                        
-      ToggleEnableChildControls(
-        pnlExportOptions,
-        UseBankLinkOnline and 
-        ProductConfigService.OnLine and 
-        ProductConfigService.Registered and 
-        ProductConfigService.IsPracticeActive(False) and 
-        ProductConfigService.IsPracticeProductEnabled(ProductConfigService.GetExportDataId, True));
-    end;
+      
+    tbsDataExport.TabVisible :=
+        UseBankLinkOnline and
+        ProductConfigService.OnLine and
+        ProductConfigService.Registered and
+        ProductConfigService.IsPracticeActive(False) and
+        ProductConfigService.IsPracticeProductEnabled(ProductConfigService.GetExportDataId, True);
 
     ckUseBankLinkOnline.Enabled := ProductConfigService.OnLine;
   finally
@@ -1466,8 +1443,6 @@ begin
           begin
             tbsDataExport.TabVisible := True;
           end;
-
-          ToggleEnableChildControls(pnlExportOptions, True);
         end;
       end
       else
@@ -1492,7 +1467,7 @@ begin
 
         if ProductConfigService.GuidsEqual(Cat.Id, ProductConfigService.GetExportDataId) and tbsDataExport.TabVisible then
         begin
-          ToggleEnableChildControls(pnlExportOptions, False);
+          tbsDataExport.TabVisible := False;
         end;
       end;
     end;
