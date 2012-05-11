@@ -610,6 +610,20 @@ begin
     end
     else
     begin
+      ClientCount := GetVendorExportClientCount(TVendorExport(chklistExportTo.Items.Objects[chklistExportTo.ItemIndex]).Id);
+
+      if ClientCount > 0 then
+      begin
+        if AskYesNo('Banklink Online Export To', 'There are currently ' + IntToStr(ClientCount) + ' clients using the Export To ' + chklistExportTo.Items[chklistExportTo.ItemIndex] + ' service. ' +
+          'Removing access for this service will prevent any transaction data from being exported to ' + chklistExportTo.Items[chklistExportTo.ItemIndex] + '. Are you sure you wan tto continue?',
+          DLG_YES, 0) = DLG_NO then
+        begin
+          chklistExportTo.Checked[chklistExportTo.ItemIndex] := True;
+
+          Exit;
+        end;
+      end;
+      
       ProductConfigService.RemoveItemFromArrayGuid(FSelectedVendorExports, TVendorExport(chklistExportTo.Items.Objects[chklistExportTo.ItemIndex]).Id);
     end;
     
