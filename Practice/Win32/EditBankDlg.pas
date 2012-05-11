@@ -145,6 +145,8 @@ type
     function IsGuidInCurrentVendors(aGuid : TBloGuid) : boolean;
     function HaveVendorExportsChanged(out aMessage : string) : Boolean;
     procedure UpdateAccountVendorInfo;
+    function AccountHasNoTicks(out aMessage : string) : Boolean;
+    function GetVendorIndex(aGuid : TBloGuid) : integer;
   public
     { Public declarations }
     function Execute : boolean;
@@ -476,6 +478,23 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+function TdlgEditBank.GetVendorIndex(aGuid : TBloGuid) : integer;
+var
+  VendorIndex : integer;
+begin
+  Result := -1;
+
+  for VendorIndex := 0 to high(AccountVendors.AccountVendors.Available) do
+  begin
+    if aGuid = AccountVendors.AccountVendors.Available[VendorIndex].id then
+    begin
+      Result := VendorIndex;
+      Exit;
+    end;
+  end;
+end;
+
+//------------------------------------------------------------------------------
 function TdlgEditBank.HaveVendorExportsChanged(out aMessage : string) : Boolean;
 var
   VendorIndex : integer;
@@ -498,6 +517,41 @@ begin
       aMessage := aMessage + 'the export to BankLink Online for ' +
                   chkLstAccVendors.Items.Strings[VendorIndex] + #10;
     end;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+function TdlgEditBank.AccountHasNoTicks(out aMessage : string) : Boolean;
+var
+  VIndex : integer;
+  VendorIndex : integer;
+  VendorId : TBloGuid;
+  VendorNames : string;
+begin
+  Result := false;
+  VendorNames := '';
+  aMessage := '';
+
+  for VIndex := 0 to chkLstAccVendors.Items.Count-1 do
+  begin
+    VendorId := TBloDataPlatformSubscriber(chkLstAccVendors.Items.Objects[VIndex]).Id;
+    VendorIndex := GetVendorIndex(VendorId);
+
+    if (chkLstAccVendors.Checked[VIndex] = False)
+       (AccountVendors.IsLastAccForVendors[VendorIndex])  then
+    begin
+      if Length(VendorNames) > 0 then
+        VendorNames := VendorNames + ', ';
+      
+      VendorNames := VendorNames + AccountVendors.AccountVendors.Available[VendorIndex].Name_;
+    end;
+  end;
+
+  if Length(VendorNames) > 0 then
+  begin
+    aMessage := 'Client ' + MyClient.clFields.clCode + ' no longer has any bank accounts using ' + VendorNames + '.' + #10 +
+                'Would you like BankLink Practice to remove ' + VendorNames + ' for this client?';
+    Result := True;
   end;
 end;
 
@@ -626,13 +680,22 @@ begin
     end;
   end;
 
-  fVendorDirty := HaveVendorExportsChanged(PromptMessage);
-  if fVendorDirty then
+  if ExportDataEnabled then
   begin
-    if AskOkCancel('Export Options Updated', PromptMessage, DLG_OK, 0) <> DLG_OK then
+    fVendorDirty := HaveVendorExportsChanged(PromptMessage);
+    if fVendorDirty then
     begin
-      fVendorDirty := false;
-      Exit;
+      if AskOkCancel('Export Options Updated', PromptMessage, DLG_OK, 0) <> DLG_OK then
+      begin
+        fVendorDirty := false;
+        Exit;
+      end;
+    end;
+
+    if (fVendorDirty) and
+       (AccountHasNoTicks(PromptMessage)) then
+    begin
+
     end;
   end;
 

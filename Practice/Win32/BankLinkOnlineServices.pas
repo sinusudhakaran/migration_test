@@ -49,6 +49,7 @@ type
   TAccountVendors = record
     AccountNumber  : WideString;
     AccountVendors : TBloDataPlatformSubscription;
+    IsLastAccForVendors : Array of Boolean;
   end;
 
   TClientAccVendors = record

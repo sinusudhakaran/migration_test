@@ -63,6 +63,7 @@ type
     AccountChanged : Boolean;
     CurrencyColumnShowing: boolean;
 
+    procedure UpdateLastVendorsUsedByAccounts;
     function GetAccountIndexOnVendorList(aAccountNumber : string) : integer;
     procedure ShowCurrencyColumn;
     procedure HideCurrencyColumn;
@@ -326,6 +327,8 @@ begin
           else
             SubItemIndex := NewItem.SubItems.Add('0');
         end;
+
+        UpdateLastVendorsUsedByAccounts;
       end;
     end;
 
@@ -671,14 +674,15 @@ end;
 //------------------------------------------------------------------------------
 function TfrmMaintainBank.Execute: boolean;
 begin
-   SortCol := 0;
-   lvBank.AlphaSort;
+  SortCol := 0;
+  lvBank.AlphaSort;
 
-   ShowModal;
-   result := true;
-   RefreshHomepage([HPR_Coding]);
-   //check if a bank account was added or deleted
-   if UpdateRefNeeded then MyClient.UpdateRefs;
+  ShowModal;
+  result := true;
+  RefreshHomepage([HPR_Coding]);
+  //check if a bank account was added or deleted
+  if UpdateRefNeeded then
+    MyClient.UpdateRefs;
 end;
 
 //------------------------------------------------------------------------------
@@ -872,7 +876,51 @@ begin
   lvBankColumnClick(lvBank, lvBank.Columns[0]); // force sort by number
 end;
 
-function TfrmMaintainBank.GetAccountIndexOnVendorList(aAccountNumber: string): integer;
+//------------------------------------------------------------------------------
+procedure TfrmMaintainBank.UpdateLastVendorsUsedByAccounts;
+var
+  AccountIndex : integer;
+  VendorIndex : integer;
+  VendorGuid : TBloGuid;
+  CurrentId : Integer;
+  VendorCount : integer;
+  AccSelIndex : integer;
+begin
+  for AccountIndex := 0 to high(fClientAccVendors.AccountsVendors) do
+  begin
+    SetLength(fClientAccVendors.AccountsVendors[AccountIndex].IsLastAccForVendors,
+              length(fClientAccVendors.ClientVendors));
+
+    for VendorIndex := 0 to high(fClientAccVendors.ClientVendors) do
+      fClientAccVendors.AccountsVendors[AccountIndex].IsLastAccForVendors[VendorIndex] := false;
+  end;
+
+  for VendorIndex := 0 to high(fClientAccVendors.ClientVendors) do
+  begin
+    VendorGuid := fClientAccVendors.ClientVendors[VendorIndex].Id;
+    VendorCount := 0;
+
+    for AccountIndex := 0 to high(fClientAccVendors.AccountsVendors) do
+    begin
+      for CurrentId := 0 to high(fClientAccVendors.AccountsVendors[AccountIndex].AccountVendors.Current) do
+      begin
+        if VendorGuid = fClientAccVendors.AccountsVendors[AccountIndex].AccountVendors.Current[CurrentId].Id then
+        begin
+          inc(VendorCount);
+          AccSelIndex := AccountIndex;
+        end;
+      end;
+    end;
+
+    if VendorCount = 1 then
+    begin
+      fClientAccVendors.AccountsVendors[AccSelIndex].IsLastAccForVendors[VendorIndex] := True;
+    end;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+function TfrmMaintainBank.GetAccountIndexOnVendorList(aAccountNumber: string) : integer;
 var
   AccountIndex : integer;
 begin
