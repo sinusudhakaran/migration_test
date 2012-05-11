@@ -3,7 +3,7 @@ object frmBanklinkOnlineSettings: TfrmBanklinkOnlineSettings
   Top = 0
   BorderStyle = bsDialog
   Caption = 'BankLink Online Settings'
-  ClientHeight = 626
+  ClientHeight = 647
   ClientWidth = 480
   Color = clBtnFace
   DefaultMonitor = dmMainForm
@@ -69,7 +69,7 @@ object frmBanklinkOnlineSettings: TfrmBanklinkOnlineSettings
   end
   object grpBillingFrequency: TGroupBox
     Left = 0
-    Top = 520
+    Top = 547
     Width = 480
     Height = 53
     Align = alTop
@@ -99,7 +99,7 @@ object frmBanklinkOnlineSettings: TfrmBanklinkOnlineSettings
   end
   object grpDefaultClientAdministrator: TGroupBox
     Left = 0
-    Top = 406
+    Top = 433
     Width = 480
     Height = 114
     Align = alTop
@@ -149,7 +149,7 @@ object frmBanklinkOnlineSettings: TfrmBanklinkOnlineSettings
   end
   object btnOK: TButton
     Left = 301
-    Top = 591
+    Top = 612
     Width = 75
     Height = 25
     Caption = 'OK'
@@ -159,7 +159,7 @@ object frmBanklinkOnlineSettings: TfrmBanklinkOnlineSettings
   end
   object btnCancel: TButton
     Left = 390
-    Top = 591
+    Top = 612
     Width = 75
     Height = 25
     Cancel = True
@@ -232,7 +232,7 @@ object frmBanklinkOnlineSettings: TfrmBanklinkOnlineSettings
     Left = 0
     Top = 271
     Width = 480
-    Height = 135
+    Height = 162
     Align = alTop
     Caption = 'Services Available'
     TabOrder = 2
@@ -242,6 +242,14 @@ object frmBanklinkOnlineSettings: TfrmBanklinkOnlineSettings
       Width = 47
       Height = 13
       Caption = 'Export To'
+    end
+    object lblSecureCode: TLabel
+      Left = 10
+      Top = 135
+      Width = 142
+      Height = 13
+      Caption = 'BankLink Online Secure Code:'
+      Visible = False
     end
     object chkListServicesAvailable: TCheckListBox
       Left = 80
@@ -259,6 +267,15 @@ object frmBanklinkOnlineSettings: TfrmBanklinkOnlineSettings
       Height = 17
       Caption = 'Deliver data direct to BankLink Online'
       TabOrder = 1
+      OnClick = chkDeliverDataClick
+    end
+    object edtSecureCode: TEdit
+      Left = 208
+      Top = 132
+      Width = 240
+      Height = 21
+      TabOrder = 2
+      Visible = False
     end
   end
 end

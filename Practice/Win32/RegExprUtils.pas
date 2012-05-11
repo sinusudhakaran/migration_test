@@ -21,6 +21,7 @@ uses
   Function PerlRegEx : TPerlRegEx;
   Function RegExIsEmailValid(aEmail : String) : Boolean;
   Function RegExIsPasswordValid(aPassword : String) : Boolean;
+  Function RegExIsAlphaNumeric(aString : String; AllowUnderscore : boolean): Boolean;
 
 //------------------------------------------------------------------------------
 implementation
@@ -58,6 +59,18 @@ begin
   PerlRegEx.RegEx := '^.*(?=.{8,})(?=.*\d)(?=.*[A-Za-z]).*$';
   PerlRegEx.Subject := aPassword;
 
+  Result := PerlRegEx.Match;
+end;
+
+function RegExIsAlphaNumeric(aString : String; AllowUnderscore : boolean): Boolean;
+begin
+  { Checks that the string is not blank and only contains alphanumeric characters.
+    Underscores are a bit iffy so I've put in an option for them }
+  if AllowUnderscore then
+    PerlRegEx.RegEx := '^[a-zA-Z0-9_]+'
+  else
+    PerlRegEx.RegEx := '^[a-zA-Z0-9]+';
+    
   Result := PerlRegEx.Match;
 end;
 

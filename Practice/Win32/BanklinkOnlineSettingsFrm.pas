@@ -50,6 +50,8 @@ type
     lblExportTo: TLabel;
     chkListServicesAvailable: TCheckListBox;
     chkDeliverData: TCheckBox;
+    edtSecureCode: TEdit;
+    lblSecureCode: TLabel;
     procedure btnSelectAllClick(Sender: TObject);
     procedure btnClearAllClick(Sender: TObject);
     procedure rbSuspendedClick(Sender: TObject);
@@ -63,6 +65,7 @@ type
     procedure btnUseClientDetailsClick(Sender: TObject);
     procedure chkListServicesAvailableClickCheck(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
+    procedure chkDeliverDataClick(Sender: TObject);
   private
     fOkPressed : Boolean;
     fBusyKeyPress : Boolean;
@@ -113,7 +116,6 @@ implementation
 uses
   Globals,
   LogUtil,
-  RegExprUtils,
   BkConst,
   SysUtils,
   Variants,
@@ -123,7 +125,8 @@ uses
   StrUtils,
   InfoMoreFrm,
   BanklinkOnlineTaggingServices,
-  ModalProgressFrm;
+  ModalProgressFrm,
+  RegExprUtils;
 
 const
   UnitName = 'BanklinkOnlineSettingsFrm';
@@ -224,6 +227,12 @@ procedure TfrmBanklinkOnlineSettings.CheckClientConnectControls;
 begin
   lblClientConnect.Enabled := rbActive.Checked;
   cmbConnectDays.Enabled := rbActive.Checked;
+end;
+
+procedure TfrmBanklinkOnlineSettings.chkDeliverDataClick(Sender: TObject);
+begin
+  lblSecureCode.Visible := chkDeliverData.Checked;
+  edtSecureCode.Visible := chkDeliverData.Checked;
 end;
 
 procedure TfrmBanklinkOnlineSettings.chkListServicesAvailableClickCheck(Sender: TObject);
@@ -542,6 +551,18 @@ begin
                  DLG_YES, 0, false) <> DLG_YES then
         Exit;
     end;
+    if grpServicesAvailable.Visible then
+    begin
+      if not RegExIsAlphaNumeric(Trim(edtSecureCode.Text), false) then
+      begin
+        ShowMessage('You must enter a BankLink Online Secure Code if you want data for this ' +
+                    'client to be sent direct to BankLink Online.  Click OK to return and enter ' +
+                    'the code, or remove the tick from the Deliver data direct to BankLink Online ' +
+                    'checkbox before saving your changes.');
+        Exit;
+      end;
+    end;     
+
 
     (* We only want to send an email with products at the practice level have changed, not at the client level.
     if ProductsChanged then
@@ -673,6 +694,7 @@ var
   ClientServiceIndex   : Integer;
   ClientID             : String;
   DataExportEnabled    : boolean;
+  ClientHasServices    : boolean;
   PracticeExportDataService   : TBloDataPlatformSubscription;
   ExportToSortList: TStringList;
 
@@ -715,6 +737,8 @@ var
 
     edtUserName.Text := aUserFullName;
     edtEmailAddress.Text := aUserEMail;
+    chkDeliverData.Checked := MyClient.clExtra.ceDeliverDataDirectToBLO;
+    edtSecureCode.Text := MyClient.clExtra.ceBLOSecureCode;
   end;
 begin
   DataExportEnabled := False;
@@ -972,6 +996,8 @@ begin
       MyClient.clExtra.ceOnlineUserEMail    := edtEmailAddress.Text;
       MyClient.clExtra.ceOnlineUserFullName := edtUserName.Text;
       MyClient.clExtra.ceOnlineValuesStored := True;
+      MyClient.clExtra.ceDeliverDataDirectToBLO := chkDeliverData.Checked;
+      MyClient.clExtra.ceBLOSecureCode := edtSecureCode.Text;
       Result := True;
     end
     else
