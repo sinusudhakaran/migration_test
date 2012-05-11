@@ -197,6 +197,7 @@ type
 
     function GetVendorExportName(VendorExportGuid: TBloGuid; PracticeVendorExports: TBloDataPlatformSubscription): String;
     function CountVendorExportClients: Integer;
+    function GetVendorExportClientCount(VendorExportGuid: TBloGuid): Integer;
   public
     { Public declarations }
     function Execute(SelPracticeMan: Boolean) : boolean;
@@ -614,6 +615,20 @@ begin
     end
     else
     begin
+      ClientCount := GetVendorExportClientCount(TVendorExport(chklistExportTo.Items.Objects[chklistExportTo.ItemIndex]).Id);
+
+      if ClientCount > 0 then
+      begin
+        if AskYesNo('Banklink Online Export To', 'There are currently ' + IntToStr(ClientCount) + ' clients using the Export To ' + chklistExportTo.Items[chklistExportTo.ItemIndex] + ' service. ' +
+          'Removing access for this service will prevent any transaction data from being exported to ' + chklistExportTo.Items[chklistExportTo.ItemIndex] + '. Are you sure you wan tto continue?',
+          DLG_YES, 0) = DLG_NO then
+        begin
+          chklistExportTo.Checked[chklistExportTo.ItemIndex] := True;
+
+          Exit;
+        end;
+      end;
+
       ProductConfigService.RemoveItemFromArrayGuid(FSelectedVendorExports, TVendorExport(chklistExportTo.Items.Objects[chklistExportTo.ItemIndex]).Id);
     end;
     
@@ -1203,14 +1218,6 @@ begin
     
     if ProductConfigService.IsPracticeProductEnabled(ProductConfigService.GetExportDataId, True) then
     begin
-      if (chklistExportTo.Count > 0) and (chklistExportTo.CountCheckedItems = 0) and DataExportSettingsChanged then
-      begin
-        if YesNoDlg.AskYesNo('Banklink Online Data Export', 'You have not selected a vendor export type.' + #10#13#10#13 + 'Are you sure you want to continue saving?', DLG_YES, 0) = DLG_NO then
-        begin
-          Exit;
-        end;
-      end;
-      
       if ProductConfigService.IsItemInArrayGuid(FSelectedVendorExports, ProductConfigService.GetIBizzExportGuid) then
       begin
         if edtAcclipseCode.Text = '' then
@@ -1589,6 +1596,23 @@ begin
     tsBAS_Sol6ELS : edtSaveTaxTo.Text := 'ELS\';
   else
     edtSaveTaxTo.Text := '';
+  end;
+end;
+
+function TfrmPracticeDetails.GetVendorExportClientCount(VendorExportGuid: TBloGuid): Integer;
+var
+  Index: Integer;
+begin
+  Result := 0;
+
+  for Index := 0 to Length(FVendorSubscriberCount) - 1 do
+  begin
+    if ProductConfigService.GuidsEqual(FVendorSubscriberCount[Index].SubscriberId, VendorExportGuid) then
+    begin
+      Result := FVendorSubscriberCount[Index].ClientCount;
+
+      Break;
+    end;
   end;
 end;
 
