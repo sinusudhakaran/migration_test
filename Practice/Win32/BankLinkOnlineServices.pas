@@ -3482,8 +3482,7 @@ var
   BlopiInterface  : IBlopiServiceFacade;
   MsgResponse     : MessageResponse;
   UserId : TBloGuid;
-  ClientCode : WideString;
-  ClientName : WideString;
+  ClientName, ClientCode : WideString;
 
   //------------------------------------------
   function ClientDetailsHasChanged : Boolean;
@@ -3526,10 +3525,10 @@ begin
   Result := False;
 
   if not Assigned(MyClient) then
-    Exit;
+    Exit; 
 
-  ClientCode := MyClient.clFields.clCode;
   ClientName := MyClient.clFields.clName;
+  ClientCode := MyClient.clFields.clCode;
 
   Screen.Cursor := crHourGlass;
   Progress.StatusSilent := False;
@@ -3581,9 +3580,7 @@ begin
       end;
 
       if (Result) then
-      begin
-        HelpfulInfoMsg(Format('Settings for %s have been successfully updated to ' +
-                       '%s.',[ClientCode, BANKLINK_ONLINE_NAME]), 0);
+      begin 
         Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finished', 100);
       end;
     except
