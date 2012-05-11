@@ -701,23 +701,18 @@ begin
     end;
   end;
 
-  (* Uncomment and finish off implementation once the banklink online fields are available.
   if chkOffsite.Checked then
   begin
-    if Assigned(FClientReadDetail) then
+    if MyClient.clExtra.ceDeliverDataDirectToBLO and (MyClient.clExtra.ceBLOSecureCode <> '') then
     begin
-      //If deliver directly to banklink online ticked and secure code entered.
-      begin
-        HelpfulWarningMsg('This client is set up for data delivery directly to BankLink Online. Please contact BankLink Client Services ' +
-        'if you want to change the data delivery method to downloading data directly from BankLink to the client file.', 0);
+      HelpfulWarningMsg('This client is set up for data delivery directly to BankLink Online. Please contact BankLink Client Services ' +
+      'if you want to change the data delivery method to downloading data directly from BankLink to the client file.', 0);
 
-        chkOffsite.Checked := False;
+      chkOffsite.Checked := False;
 
-        Exit;
-      end;
+      Exit;
     end;
   end;
-  *)
   
   Result := true;
 end;
