@@ -5212,12 +5212,10 @@ begin
          ProcessModalCmdWithDlg( mpcDoDownloadFromBConnect);
        end;
 
-       {
        sa_ExportTransactions:
        begin
          ExportTransactionsToBankLinkOnline;
        end;
-       }
      end;
 
      Close;
