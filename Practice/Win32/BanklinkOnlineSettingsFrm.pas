@@ -200,7 +200,10 @@ var
 begin
   for Index := 0 to chklistServicesAvailable.Count - 1 do
   begin
-    chklistServicesAvailable.Items.Objects[Index].Free;
+    if Assigned(chklistServicesAvailable.Items.Objects[Index]) then
+    begin
+      chklistServicesAvailable.Items.Objects[Index].Free;
+    end;
   end;
 end;
 
@@ -671,6 +674,7 @@ var
   ClientID             : String;
   DataExportEnabled    : boolean;
   PracticeExportDataService   : TBloDataPlatformSubscription;
+  ExportToSortList: TStringList;
 
   procedure FillDetailIn(const aBillingFrequency : WideString;
                          const aMaxOfflineDays   : Integer;
@@ -777,9 +781,22 @@ begin
       end;  
     end;
 
-    for AvailableServiceIndex := 0 to High(AvailableServiceArray) do
-    begin
-      chkListServicesAvailable.AddItem(AvailableServiceArray[AvailableServiceIndex].Name_, TDataExportOption.Create(AvailableServiceArray[AvailableServiceIndex].Id));
+    ExportToSortList := TStringList.Create;
+
+    try
+      ExportToSortList.Sorted := True;
+
+      for AvailableServiceIndex := 0 to High(AvailableServiceArray) do
+      begin
+        ExportToSortList.AddObject(AvailableServiceArray[AvailableServiceIndex].Name_, TDataExportOption.Create(AvailableServiceArray[AvailableServiceIndex].Id));
+      end;
+
+      for AvailableServiceIndex := 0 to ExportToSortList.Count - 1 do
+      begin
+        chkListServicesAvailable.AddItem(ExportToSortList[AvailableServiceIndex], ExportToSortList.Objects[AvailableServiceIndex]);
+      end;
+    finally
+      ExportToSortList.Free;
     end;
   
     if Assigned(ClientExportDataService) then
