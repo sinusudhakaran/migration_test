@@ -3,7 +3,7 @@ object dlgAcctSystem: TdlgAcctSystem
   Top = 83
   BorderStyle = bsDialog
   Caption = 'Maintain Accounting System'
-  ClientHeight = 629
+  ClientHeight = 540
   ClientWidth = 520
   Color = clBtnFace
   DefaultMonitor = dmMainForm
@@ -17,12 +17,12 @@ object dlgAcctSystem: TdlgAcctSystem
   OnShow = FormShow
   DesignSize = (
     520
-    629)
+    540)
   PixelsPerInch = 96
   TextHeight = 13
   object btnOk: TButton
     Left = 356
-    Top = 599
+    Top = 510
     Width = 75
     Height = 25
     Anchors = [akRight, akBottom]
@@ -30,11 +30,10 @@ object dlgAcctSystem: TdlgAcctSystem
     Default = True
     TabOrder = 5
     OnClick = btnOkClick
-    ExplicitTop = 510
   end
   object btnCancel: TButton
     Left = 437
-    Top = 599
+    Top = 510
     Width = 75
     Height = 25
     Anchors = [akRight, akBottom]
@@ -42,7 +41,6 @@ object dlgAcctSystem: TdlgAcctSystem
     Caption = 'Cancel'
     TabOrder = 6
     OnClick = btnCancelClick
-    ExplicitTop = 510
   end
   object gbType: TGroupBox
     AlignWithMargins = True
@@ -183,7 +181,7 @@ object dlgAcctSystem: TdlgAcctSystem
       Width = 347
       Height = 21
       Style = csDropDownList
-      ItemHeight = 13
+      ItemHeight = 0
       Sorted = True
       TabOrder = 0
       OnChange = cmbSystemChange
@@ -259,7 +257,7 @@ object dlgAcctSystem: TdlgAcctSystem
     Left = 8
     Top = 296
     Width = 504
-    Height = 138
+    Height = 46
     Margins.Left = 8
     Margins.Right = 8
     Margins.Bottom = 0
@@ -272,20 +270,13 @@ object dlgAcctSystem: TdlgAcctSystem
       Height = 13
       Caption = 'Bulk Export'
     end
-    object lblExportTo: TLabel
-      Left = 16
-      Top = 41
-      Width = 47
-      Height = 13
-      Caption = 'Export To'
-    end
     object cbExtract: TComboBox
       Left = 272
       Top = 13
       Width = 215
       Height = 21
       Style = csDropDownList
-      ItemHeight = 13
+      ItemHeight = 0
       TabOrder = 0
     end
     object ckExtract: TCheckBox
@@ -297,19 +288,11 @@ object dlgAcctSystem: TdlgAcctSystem
       TabOrder = 1
       OnClick = ckExtractClick
     end
-    object chkListExports: TCheckListBox
-      Left = 140
-      Top = 40
-      Width = 347
-      Height = 89
-      ItemHeight = 13
-      TabOrder = 2
-    end
   end
   object gbxTaxInterface: TGroupBox
     AlignWithMargins = True
     Left = 8
-    Top = 437
+    Top = 345
     Width = 504
     Height = 105
     Margins.Left = 8
@@ -317,7 +300,6 @@ object dlgAcctSystem: TdlgAcctSystem
     Margins.Bottom = 0
     Align = alTop
     TabOrder = 2
-    ExplicitTop = 345
     object Label5: TLabel
       Left = 16
       Top = 16
@@ -377,7 +359,7 @@ object dlgAcctSystem: TdlgAcctSystem
       Width = 347
       Height = 21
       Style = csDropDownList
-      ItemHeight = 13
+      ItemHeight = 0
       Sorted = True
       TabOrder = 0
       OnChange = cmbTaxInterfaceChange
@@ -386,7 +368,7 @@ object dlgAcctSystem: TdlgAcctSystem
   object gbxWebExport: TGroupBox
     AlignWithMargins = True
     Left = 8
-    Top = 546
+    Top = 454
     Width = 504
     Height = 46
     Margins.Left = 8
@@ -395,8 +377,6 @@ object dlgAcctSystem: TdlgAcctSystem
     Margins.Bottom = 0
     Align = alTop
     TabOrder = 3
-    ExplicitLeft = 13
-    ExplicitTop = 502
     object Label4: TLabel
       Left = 16
       Top = 16
@@ -411,7 +391,7 @@ object dlgAcctSystem: TdlgAcctSystem
       Width = 347
       Height = 21
       Style = csDropDownList
-      ItemHeight = 13
+      ItemHeight = 0
       Sorted = True
       TabOrder = 0
       OnChange = cmbWebFormatsChange
@@ -419,13 +399,12 @@ object dlgAcctSystem: TdlgAcctSystem
   end
   object btndefault: TButton
     Left = 8
-    Top = 599
+    Top = 510
     Width = 108
     Height = 25
     Anchors = [akLeft, akBottom]
     Caption = '&Load Default'
     TabOrder = 4
     OnClick = btndefaultClick
-    ExplicitTop = 510
   end
 end

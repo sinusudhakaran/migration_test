@@ -16,7 +16,7 @@ uses
   Buttons,
   Software,
   ExtCtrls,
-  OsFont, CheckLst;
+  OsFont;
 
 type
   TdlgAcctSystem = class(TForm)
@@ -60,8 +60,6 @@ type
     cbExtract: TComboBox;
     ckExtract: TCheckBox;
     Label3: TLabel;
-    chkListExports: TCheckListBox;
-    lblExportTo: TLabel;
     procedure FormCreate(Sender: TObject);
     procedure SetUpHelp;
     procedure btnOkClick(Sender: TObject);
@@ -471,7 +469,10 @@ begin
       begin
         if (wfNames[i] = WebNotesName) then
         begin
-          if (UseBankLinkOnline and ProductConfigService.OnLine and ProductConfigService.IsNotesOnlineEnabled) or (MyClient.clFields.clWeb_Export_Format = wfWebNotes) then
+          if (UseBankLinkOnline and
+              ProductConfigService.OnLine and
+              ProductConfigService.IsNotesOnlineEnabled) or
+              (MyClient.clFields.clWeb_Export_Format = wfWebNotes) then
           begin
             cmbWebFormats.Items.AddObject(wfNames[i], TObject(i));
           end;

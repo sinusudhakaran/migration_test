@@ -543,12 +543,7 @@ begin
           CiCoClient.UploadFileFromPractice(AClientCode, AClientName, AClientEmail, AClientContact, ServerResponce);
         end
         else
-        begin
-          if not RegExIsEmailValid(NotifyEmail) then
-            raise EUploadFailed.Create('A valid email is required to upload.');
-
           CiCoClient.UploadFileFromBooks(AClientCode, IsCopy, NotifyPractice, NotifyEmail, ServerResponce);
-        end;
 
       except
         on E : Exception do

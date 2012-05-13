@@ -175,7 +175,7 @@ type
     procedure UpdatePracticeContactDetails( ContactType : byte);
     procedure ShowPracticeContactDetails(ReadOnly : Boolean);
     procedure SetProductsCaption(NewCaption: string);
-    
+
     procedure WMKillFocus(var w_Message: TWMKillFocus); message WM_KILLFOCUS;
     procedure WMActivate(var w_Message: TWMActivate); message WM_ACTIVATE;
 
@@ -339,6 +339,7 @@ begin
       lblClientBOProducts.Visible := ClientSynced and
                                      CurrUser.CanAccessAdmin;
 
+      ProductConfigService.LoadClientList;
       if lblClientBOProducts.Visible  then
       begin
         if not FEnableClientSettings then
@@ -660,7 +661,8 @@ begin
 
   BlankEmailIsValid := false;
   // Cico valid Email
-  if (AdminSystem.fdFields.fdUse_BankLink_Online) and
+  if (Assigned(AdminSystem)) and
+     (AdminSystem.fdFields.fdUse_BankLink_Online) and
      (ProductConfigService.IsCICOEnabled) and
      (not RegExIsEmailValid(EMail.Text)) then
   begin
@@ -1245,7 +1247,6 @@ end;
 procedure TfrmClientDetails.chkOffsiteClick(Sender: TObject);
 begin
    grpDownloadSettings.visible := chkOffsite.Checked;
-
    if chkOffsite.Checked then
    begin
      if cmbOSDMethod.ItemIndex = -1 then
@@ -1347,10 +1348,96 @@ end;
 procedure TfrmClientDetails.UpdateProductsLabel;
 var
   NumProducts: string;
+  ClientReadDetail : TBloClientReadDetail;
+  NotesId : TBloGuid;
+  NotesIndex : integer;
+  WebExportSetToNotes : Boolean;
+  Subscription : TBloArrayOfguid;
+  UserName : String;
+  UserEmail : String;
+  SubIndex : integer;
+  SubscriptionSetToNotes : Boolean;
 begin
   if Assigned(MyClient) then
   begin
+    ClientReadDetail := ProductConfigService.GetClientDetailsWithCode(MyClient.clFields.clCode, True);
+    NotesId := ProductConfigService.GetNotesId;
     NumProducts := '0';
+    WebExportSetToNotes := (MyClient.clFields.clWeb_Export_Format = wfWebNotes);
+
+    if Assigned(ClientReadDetail) then
+    begin
+      SubscriptionSetToNotes := ProductConfigService.IsItemInArrayGuid(ClientReadDetail.Subscription, NotesId);
+
+      // Sync up Web Export Fromat with Online Subscription
+      if SubscriptionSetToNotes <> WebExportSetToNotes then
+      begin
+        Subscription := ClientReadDetail.Subscription;
+
+        if WebExportSetToNotes then
+          ProductConfigService.AddItemToArrayGuid(Subscription, NotesId)
+        else
+          ProductConfigService.RemoveItemFromArrayGuid(Subscription, NotesId);
+
+        if length(ClientReadDetail.Users) > 0 then
+        begin
+          UserEmail := ClientReadDetail.Users[0].EMail;
+          UserName  := ClientReadDetail.Users[0].FullName;
+        end
+        else
+        begin
+          UserEMail := MyClient.clFields.clClient_EMail_Address;
+          UserName  := MyClient.clFields.clContact_Name;
+        end;
+
+        ProductConfigService.UpdateClient(ClientReadDetail,
+                                          ClientReadDetail.BillingFrequency,
+                                          ClientReadDetail.MaxOfflineDays,
+                                          ClientReadDetail.Status,
+                                          Subscription,
+                                          UserEmail,
+                                          UserName);
+      end;
+    end
+    else if MyClient.clExtra.ceOnlineValuesStored then
+    begin
+      SubscriptionSetToNotes := false;
+      for SubIndex := 1 to MyClient.clExtra.ceOnlineSubscriptionCount do
+      begin
+        if MyClient.clExtra.ceOnlineSubscription[SubIndex] = NotesId then
+        begin
+          SubscriptionSetToNotes := True;
+          NotesIndex := SubIndex;
+          break;
+        end;
+      end;
+
+      // Sync up Web Export Fromat with Offline Subscription
+      if SubscriptionSetToNotes <> WebExportSetToNotes then
+      begin
+        if not SubscriptionSetToNotes then
+        begin
+          inc(MyClient.clExtra.ceOnlineSubscriptionCount);
+          SubIndex := MyClient.clExtra.ceOnlineSubscriptionCount;
+
+          MyClient.clExtra.ceOnlineSubscription[SubIndex] := NotesId;
+          // Add Notes to offline Subscription
+        end
+        else
+        begin
+          // Remove Notes from offline Subscription
+          if (NotesIndex + 1) <= MyClient.clExtra.ceOnlineSubscriptionCount then
+          begin
+            for SubIndex := (NotesIndex + 1) to MyClient.clExtra.ceOnlineSubscriptionCount do
+            begin
+              MyClient.clExtra.ceOnlineSubscription[SubIndex-1] :=
+                MyClient.clExtra.ceOnlineSubscription[SubIndex];
+            end;
+          end;
+          Dec(MyClient.clExtra.ceOnlineSubscriptionCount);
+        end;
+      end;
+    end;
 
     if Assigned(FClientReadDetail) then
       NumProducts := IntToStr(Length(FClientReadDetail.Subscription))

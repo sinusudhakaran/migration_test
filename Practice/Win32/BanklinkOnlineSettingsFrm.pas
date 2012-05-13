@@ -121,6 +121,7 @@ uses
   Variants,
   MailFrm,
   YesNoDlg,
+  OkCancelDlg,
   Files,
   StrUtils,
   InfoMoreFrm,
@@ -466,6 +467,19 @@ begin
         end;
       end;
 
+      if not (ProductFound or Assigned(ClientReadDetail)) then
+      begin
+        for j := 1 to High(MyClient.clExtra.ceOnlineSubscription) do
+        begin
+          if (TBloCatalogueEntry(chklistProducts.Items.Objects[i]).Id =
+              MyClient.clExtra.ceOnlineSubscription[j]) then
+          begin
+            ProductFound := true;
+            break
+          end;
+        end;
+      end;
+
       if (chklistProducts.Checked[i] = true) and not ProductFound then
       begin
         NewProducts.Add(chklistProducts.Items[i]);
@@ -543,12 +557,12 @@ begin
     else
     if ProductsChanged and (NewProducts.Count > 0) and not ClientAccessChanged then
     begin
-      if AskYesNo('Activating products',
-                  'Are you sure you want to activate the following products:' + #10#10 +
-                  NewProducts.Text + #10 +
-                 'By clicking ''OK'' you are confirming that you wish to activate these products ' +
-                 'for ' + edtUserName.Text,
-                 DLG_YES, 0, false) <> DLG_YES then
+      if AskOkCancel('Activate Products',
+                     'Are you sure you want to activate the following products:' + #10#10 +
+                    NewProducts.Text + #10 +
+                    'By clicking ''OK'' you are confirming that you wish to activate these products ' +
+                    'for ' + edtUserName.Text,
+                    DLG_OK, 0) <> DLG_OK then
         Exit;
     end;
     if grpServicesAvailable.Visible then
@@ -629,6 +643,8 @@ begin
   fOkPressed := false;
   fBusyKeyPress := false;
   Result := False;
+  rbSuspended.Enabled   := not ForceActiveClient;
+  rbDeactivated.Enabled := not ForceActiveClient;
 
   if MyClient.Opened then
   begin
@@ -697,6 +713,21 @@ var
   ClientHasServices    : boolean;
   PracticeExportDataService   : TBloDataPlatformSubscription;
   ExportToSortList: TStringList;
+  
+  function HasCachedSubscription(CachedProdId: TBloGuid): boolean;
+  var
+    j: integer;
+  begin
+    Result := false;
+    for j := 1 to High(MyClient.clExtra.ceOnlineSubscription) do      
+    begin
+      if (MyClient.clExtra.ceOnlineSubscription[j] = CachedProdId) then
+      begin
+        Result := true;
+        break;
+      end;
+    end;
+  end;
 
   procedure FillDetailIn(const aBillingFrequency : WideString;
                          const aMaxOfflineDays   : Integer;
@@ -856,6 +887,13 @@ begin
       if TBloCatalogueEntry(chklistProducts.Items.Objects[ProdIndex]).id = ProductConfigService.GetNotesId then
         chklistProducts.Checked[ProdIndex] := True;
     end;
+
+    if not HasCachedSubscription(ProductConfigService.GetNotesId) then
+    begin
+      MyClient.clExtra.ceOnlineSubscription[MyClient.clExtra.ceOnlineSubscriptionCount + 1] := 
+        ProductConfigService.GetNotesId;  
+      MyClient.clExtra.ceOnlineSubscriptionCount := MyClient.clExtra.ceOnlineSubscriptionCount + 1;
+    end;
   end;
 
   // Existing Client
@@ -976,8 +1014,8 @@ begin
     // If Notes Online is selected and no other products are selected instead of creating a
     // new client then it stores the values offline (in the client file) to be uploaded
     // after the first Note upload when it does create the client
-    if (NotesOnlineTicked) and
-       (NumProdTicked = 1) then
+    if ((NotesOnlineTicked) and (NumProdTicked = 1)) or
+       ((MyClient.clExtra.ceOnlineValuesStored = False) and (NumProdTicked = 0)) then
     begin
       MyClient.clExtra.ceOnlineBillingFrequency := AnsiLeftStr(cmbBillingFrequency.Text, 1);
       MyClient.clExtra.ceOnlineMaxOfflineDays   := StrToInt(ConnectDays);
@@ -1000,6 +1038,14 @@ begin
     end
     else
     begin
+      for SubIndex := 1 to MyClient.clExtra.ceOnlineSubscriptionCount do
+      begin
+        if SubIndex > Length(Subscription) then               
+          MyClient.clExtra.ceOnlineSubscription[SubIndex] := ''
+        else
+          MyClient.clExtra.ceOnlineSubscription[SubIndex] := Subscription[SubIndex-1];
+      end;       
+    
       if NumProdTicked > 0 then
       begin
         Result := ProductConfigService.CreateClient(AnsiLeftStr(cmbBillingFrequency.Text, 1),
