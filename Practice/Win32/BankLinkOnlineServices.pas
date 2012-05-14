@@ -4276,7 +4276,8 @@ begin
             begin
               aClientAccVendors.AccountsVendors[AccountIndex].ExportDataEnabled :=
                 (not BankAcct.baFields.baIs_A_Manual_Account) and
-                (not (BankAcct.baFields.baAccount_Type in [sbtProvisional]));
+                (not (BankAcct.baFields.baAccount_Type in [sbtProvisional])) and
+                (not (BankAcct.IsAJournalAccount));
             end;
           end;
 

@@ -1171,7 +1171,9 @@ begin
                                ProductConfigService.IsPracticeProductEnabled(ProductConfigService.GetExportDataId, False)) and
                                (not aBankAcct.baFields.baIs_A_Manual_Account) and
                                (not (aBankAcct.baFields.baAccount_Type in [sbtProvisional])) and
-                               (aClientId <> '');
+                               (not (aBankAcct.IsAJournalAccount)) and
+                               (aClientId <> '') and
+                               not CurrUser.HasRestrictedAccess;
 
     if MyDlg.ExportDataEnabled then
     begin

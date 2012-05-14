@@ -49,11 +49,12 @@ type
     procedure tbHelpClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
-    procedure lvBankCustomDrawSubItem(Sender: TCustomListView; Item: TListItem;
-      SubItem: Integer; State: TCustomDrawState; var DefaultDraw: Boolean);
-//    procedure lvBankKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    procedure lvBankCustomDrawSubItem(Sender: TCustomListView;
+                                      Item: TListItem;
+                                      SubItem: Integer;
+                                      State: TCustomDrawState;
+                                      var DefaultDraw: Boolean);
   private
-    { Private declarations }
     fOnlineVendorStartCol : integer;
     fOnlineVendorEndCol : integer;
     fClientAccVendors : TClientAccVendors;
@@ -78,7 +79,6 @@ type
     procedure CreateManualAccount;
     {$ENDIF}
   public
-    { Public declarations }
     function Execute : boolean;
     property UpdateRefNeeded : boolean read FUpdateRefNeeded write SetUpdateRefNeeded;
   end;
@@ -861,22 +861,6 @@ begin
     end;
   end;
 end;
-
-//------------------------------------------------------------------------------
-{procedure TfrmMaintainBank.UpdateLocalVendorList(aAccountVendors: TBloDataPlatformBankAccount);
-var
-  AccountIndex : integer;
-begin
-  for AccountIndex := 0 to high(fClientAccVendors.AccountsVendors) do
-  begin
-    if fClientAccVendors.AccountsVendors[AccountIndex].AccountNumber =
-       aAccountVendors.AccountNumber then
-    begin
-      fClientAccVendors.AccountsVendors[AccountIndex] := aAccountVendors;
-      Exit;
-    end;
-  end;
-end;    }
 
 //------------------------------------------------------------------------------
 procedure TfrmMaintainBank.FormShow(Sender: TObject);
