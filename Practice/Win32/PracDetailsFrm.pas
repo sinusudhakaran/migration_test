@@ -411,6 +411,10 @@ begin
     begin
       tbsDataExport.TabVisible := True;
     end;
+  end
+  else
+  begin
+    pnlExportOptions.Visible := False;
   end;
 end;
 
@@ -644,6 +648,11 @@ begin
 
   EventHolder := ckUseBankLinkOnline.OnClick;
   ckUseBankLinkOnline.OnClick := nil;
+
+  edtAcclipseCode.Text := '';
+  chklistExportTo.Clear;
+  SetLength(FSelectedVendorExports, 0);
+  
   try
     if ckUseBankLinkOnline.Checked then begin
       UseBankLinkOnline := True;
