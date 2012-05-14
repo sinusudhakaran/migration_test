@@ -1444,10 +1444,16 @@ begin
               if ProductConfigService.VendorExportExists(FPracticeVendorExports.Current, ProductConfigService.GetIBizzExportGuid) then
               begin
                 FIBizzCredentials := ProductConfigService.GetIBizzCredentials;
-              end;            
-            end;
+              end;
 
-            SetupDataExportSettings;
+              SetupDataExportSettings;
+            end
+            else
+            begin
+              ProductConfigService.RemoveProduct(Cat.Id);
+
+              Exit;
+            end;
           end;
         end;
         
