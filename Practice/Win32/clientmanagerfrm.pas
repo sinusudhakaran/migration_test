@@ -661,7 +661,6 @@ begin
     // cluBOBillingFrequency : Result := icid_BOBillingFrequency;
     cluBOUserAdmin : Result := icid_BOUserAdmin;
     cluBOAccess : Result := icid_BOAccess;
-    cluBOBulkExport : Result := icid_BOBulkExport;
   else
     Result := -1;
   end;
@@ -1070,10 +1069,6 @@ begin
 
         if (ProductConfigService.OnLine and AdminSystem.fdFields.fdUse_BankLink_Online) then
         begin
-          // For below, check if System | Options | Exporting | Enable Bulk Data Export option is ticked
-          AddCustomColumn( 'Bulk Export Format',
-            trunc(vtClients.Canvas.TextWidth(trim('Bulk Export Format')) * 2), NumColumns + 1, cluBOBulkExport);
-
           ProductConfigService.LoadClientList;
 
           if Assigned(ProductConfigService.Clients) then

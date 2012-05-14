@@ -66,6 +66,7 @@ type
     procedure chkListServicesAvailableClickCheck(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure chkDeliverDataClick(Sender: TObject);
+    procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
   private
     fOkPressed : Boolean;
     fBusyKeyPress : Boolean;
@@ -211,6 +212,15 @@ begin
   end;
 end;
 
+procedure TfrmBanklinkOnlineSettings.FormKeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+  if ((ssAlt in Shift) and (Key = 86)) then
+    chkDeliverData.Checked := not chkDeliverData.Checked;
+  if ((ssAlt in Shift) and (Key = 66)) then
+    Self.ActiveControl := Self.edtSecureCode;
+end;
+
 //------------------------------------------------------------------------------
 procedure TfrmBanklinkOnlineSettings.btnOKClick(Sender: TObject);
 begin
@@ -232,6 +242,18 @@ end;
 
 procedure TfrmBanklinkOnlineSettings.chkDeliverDataClick(Sender: TObject);
 begin
+  if chkDeliverData.Checked and (MyClient.clFields.clDownload_From = dlBankLinkConnect) and
+  (MyClient.clFields.clBankLink_Code <> '') then
+  begin
+    { This is actually an impossible condition, I'm really just putting this here in
+      case we need it later. I will probably end up removing this. }
+    ShowMessage('This client is set up to download data directly from BankLink to the ' +
+                'client file. Please contact BankLink Client Services if you want to ' +
+                'change the data delivery method to BankLink Online');
+    chkDeliverData.Checked := false;
+    Exit;
+  end;                              
+
   lblSecureCode.Visible := chkDeliverData.Checked;
   edtSecureCode.Visible := chkDeliverData.Checked;
 end;
@@ -346,13 +368,13 @@ end;
 function TfrmBanklinkOnlineSettings.Validate: Boolean;
 var
   EmailChanged, ProductsChanged, ProductFound, NotesOnlineTicked: boolean;
-  NewProducts, RemovedProducts, AllProducts: TStringList;
+  NewProducts, RemovedProducts, AllProducts, NewExports: TStringList;
   PromptMessage, ErrorMsg, MailTo, MailSubject, MailBody: string;
   i, j, NumProdTicked : integer;
   ClientStatus : TBloStatus;
-  MaxOfflineDays : String;
+  MaxOfflineDays, NewExportsStr : String;
   BillingFrequency : WideString;
-  ClientAccessChanged: Boolean;
+  ClientAccessChanged, ExportFound: Boolean;
 begin
   Result := False;
   NotesOnlineTicked := False;
@@ -575,7 +597,54 @@ begin
                     'checkbox before saving your changes.');
         Exit;
       end;
-    end;     
+    end;
+
+    // Below is not really 'validation'
+    for i := 0 to High(ModifiedDataExports) do
+    begin
+      ExportFound := False;
+      for j := 0 to High(OriginalDataExports) do
+      begin
+        if (ModifiedDataExports[i] = OriginalDataExports[j]) then
+        begin
+          ExportFound := True;
+          break;
+        end;
+      end;
+      if not ExportFound then
+      begin
+        if not Assigned(NewExports) then
+          NewExports := TStringList.Create;
+        for j := 0 to High(AvailableServiceArray) do
+        begin
+          if (ModifiedDataExports[i] = AvailableServiceArray[j].Id) then
+          begin
+            NewExports.Add(AvailableServiceArray[j].Name_);
+            break;
+          end;
+        end;
+      end;
+    end;
+    if Assigned(NewExports) then
+    begin
+      case NewExports.Count of
+        1: NewExportsStr := NewExports[0];
+        2: NewExportsStr := NewExports[0] + ' and ' + NewExports[1];
+        else
+        begin
+          for i := 0 to NewExports.Count - 2 do
+            NewExportsStr := NewExports[i] + ', ';
+          NewExportsStr := NewExportsStr + ' and ' + NewExports[NewExports.Count - 1];
+        end;
+      end;
+      ShowMessage('You have enabled the export of data to BankLink Online for ' +
+                  NewExportsStr + ' for all the Bank Accounts currently attached to ' +
+                  'this client file. If there are Bank Accounts that you do not ' +
+                  'want to send to ' + NewExportsStr + ' you can deselect them via ' +
+                  'Other Functions | Bank Accounts.');
+    end;
+
+    FreeAndNil(NewExports);  
 
 
     (* We only want to send an email with products at the practice level have changed, not at the client level.
@@ -1006,7 +1075,8 @@ begin
                                                 Status,
                                                 Subscription,
                                                 edtEmailAddress.Text,
-                                                edtUserName.Text);
+                                                edtUserName.Text,
+                                                false);
   end
   else
   // New Client

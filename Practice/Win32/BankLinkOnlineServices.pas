@@ -281,7 +281,8 @@ type
                                 aStatus               : TBloStatus;
                           const aSubscription         : TBloArrayOfGuid;
                           const aUserEMail            : WideString;
-                          const aUserFullName         : WideString): Boolean;
+                          const aUserFullName         : WideString;
+                          aShowUpdateSuccess  : Boolean = true): Boolean;
     function DeleteClient(const aExistingClient : TBloClientReadDetail): Boolean;
 
     //User methods
@@ -3481,7 +3482,8 @@ function TProductConfigService.UpdateClient(const aExistingClient       : TBloCl
                                                   aStatus               : TBloStatus;
                                             const aSubscription         : TBloArrayOfGuid;
                                             const aUserEMail            : WideString;
-                                            const aUserFullName         : WideString): Boolean;
+                                            const aUserFullName         : WideString;
+                                            aShowUpdateSuccess  : Boolean = true): Boolean;
 var
   BloClientUpdate : TBloClientUpdate;
   BlopiInterface  : IBlopiServiceFacade;
@@ -3585,9 +3587,10 @@ begin
       end;
 
       if (Result) then
-      begin 
-        HelpfulInfoMsg(Format('Settings for %s have been successfully updated to ' +
-                       '%s.',[ClientCode, BANKLINK_ONLINE_NAME]), 0);
+      begin
+        if aShowUpdateSuccess then
+          HelpfulInfoMsg(Format('Settings for %s have been successfully updated to ' +
+                                '%s.',[ClientCode, BANKLINK_ONLINE_NAME]), 0);
         Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finished', 100);
       end;
     except

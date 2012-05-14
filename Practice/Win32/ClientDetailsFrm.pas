@@ -7,7 +7,7 @@ unit ClientDetailsFrm;
   Authors:
 
   Purpose:  Allow editing of client details
-                 
+
   Notes:
 }
 //------------------------------------------------------------------------------
@@ -702,19 +702,6 @@ begin
       end;
     end;
   end;
-
-  if chkOffsite.Checked then
-  begin
-    if MyClient.clExtra.ceDeliverDataDirectToBLO and (MyClient.clExtra.ceBLOSecureCode <> '') then
-    begin
-      HelpfulWarningMsg('This client is set up for data delivery directly to BankLink Online. Please contact BankLink Client Services ' +
-      'if you want to change the data delivery method to downloading data directly from BankLink to the client file.', 0);
-
-      chkOffsite.Checked := False;
-
-      Exit;
-    end;
-  end;
   
   Result := true;
 end;
@@ -1246,6 +1233,17 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmClientDetails.chkOffsiteClick(Sender: TObject);
 begin
+   if chkOffsite.Checked and MyClient.clExtra.ceDeliverDataDirectToBLO and
+   (MyClient.clExtra.ceBLOSecureCode <> '') then
+   begin
+     HelpfulWarningMsg('This client is set up for data delivery directly to BankLink Online. ' +
+                       'Please contact BankLink Client Services if you want to change the ' +
+                       'data delivery method to downloading data directly from BankLink to ' +
+                       'the client file.', 0);
+     chkOffsite.Checked := False;
+     Exit;
+   end;
+
    grpDownloadSettings.visible := chkOffsite.Checked;
    if chkOffsite.Checked then
    begin

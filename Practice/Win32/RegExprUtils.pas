@@ -67,9 +67,10 @@ begin
   { Checks that the string is not blank and only contains alphanumeric characters.
     Underscores are a bit iffy so I've put in an option for them }
   if AllowUnderscore then
-    PerlRegEx.RegEx := '^[a-zA-Z0-9_]+'
+    PerlRegEx.RegEx := '^[a-zA-Z0-9_]+$'
   else
-    PerlRegEx.RegEx := '^[a-zA-Z0-9]+';
+    PerlRegEx.RegEx := '^[a-zA-Z0-9]+$';
+  PerlRegEx.Subject := aString;
     
   Result := PerlRegEx.Match;
 end;
