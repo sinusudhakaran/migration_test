@@ -3,7 +3,7 @@ unit BanklinkOnlineTaggingServices;
 interface
 
 uses
-  Classes, Forms, Contnrs, Controls, SysUtils, baObj32, BKDEFS, BK_XMLHelper, clObj32, SysObj32, chList32, XMLDoc, XMLIntf, BanklinkOnlineServices, ZipUtils, Progress, OvcDate;
+  Classes, Forms, Contnrs, Controls, SysUtils, baObj32, BKDEFS, BK_XMLHelper, clObj32, SysObj32, chList32, XMLDoc, XMLIntf, BanklinkOnlineServices, ZipUtils, Progress, OvcDate, DataPlatformPractice;
 
 type
   TExportOptions = record
@@ -70,14 +70,38 @@ type
     class procedure ExportTaggedAccounts(Practice: TBloPracticeRead; ExportOptions: TExportOptions; ProgressForm: ISingleProgressForm; out Statistics: TExportStatistics; out FatalError: Boolean; out FatalErrorDetails: TFatalErrorDetails); static;
     
     class function GetMaxExportableTransactionDate(ProgressForm: ISingleProgressForm): TStDate; static;
+
+    class function UploadXMLData(const XmlData: WideString): Boolean; static;
+    class function TestDataService: Boolean; static;
   end;
 
 implementation
 
 uses
-  Files, Globals, ErrorMoreFrm, LogUtil, StDateSt, SYDEFS, bkConst, math;
+  Files, Globals, ErrorMoreFrm, LogUtil, StDateSt, SYDEFS, bkConst, math, WebUtils;
 
 { TBanklinkOnlineServices }
+
+class function TBanklinkOnlineTaggingServices.TestDataService: Boolean;
+var
+  DataPlatformInterface: IDataPlatformPractice;
+begin
+  Result := False;
+
+  try
+    if not Assigned(AdminSystem) then
+      Exit;
+
+    DataPlatformInterface :=  GetIDataPlatformPractice;
+      
+    Result := DataPlatformInterface.Echo('TEST') = 'TEST';
+  except
+    on E:Exception do
+    begin
+      HelpfulErrorMsg('Error contacting server: ' + E.Message, 0);
+    end;
+  end;
+end;
 
 class function TBanklinkOnlineTaggingServices.TransactionsToXML(ParentNode: IXMLNode; Client: TClientObj; BankAccount: TBank_Account; MaxTransactionDate: TStDate): Integer;
 var
@@ -285,155 +309,169 @@ begin
   Statistics.TransactionsExported := 0;
   Statistics.AccountsExported := 0;
   Statistics.ClientFilesProcessed := 0;
-  
-  if AdminSystem.fdSystem_Client_File_List.ItemCount > 0 then
+
+  if TestDataService then
   begin
-    ProgressForm.Initialize;
-      
     if AdminSystem.fdSystem_Client_File_List.ItemCount > 0 then
     begin
-      ClientProgressSize := 100 / AdminSystem.fdSystem_Client_File_List.ItemCount;
-
-      for Index := 0 to AdminSystem.fdSystem_Client_File_List.ItemCount -1 do
-      begin
-        ProgressForm.UpdateProgressLabel('Exporting transactions for ' + AdminSystem.fdSystem_Client_File_List.Client_File_At(Index).cfFile_Code);
-
-        ErrorReported := False;
+      ProgressForm.Initialize;
       
-        Client := nil;
+      if AdminSystem.fdSystem_Client_File_List.ItemCount > 0 then
+      begin
+        ClientProgressSize := 100 / AdminSystem.fdSystem_Client_File_List.ItemCount;
 
-        if AdminSystem.fdSystem_Client_File_List.Client_File_At(Index).cfFile_Status = bkConst.fsNormal then
+        for Index := 0 to AdminSystem.fdSystem_Client_File_List.ItemCount -1 do
         begin
-          try
-            OpenAClient(AdminSystem.fdSystem_Client_File_List.Client_File_At(Index).cfFile_Code, Client, True);
-          except
-            on E:Exception do
-            begin
-              LogUtil.LogMsg(lmError, 'BankLinkOnlineTaggingService', 'Client File ' + AdminSystem.fdSystem_Client_File_List.Client_File_At(Index).cfFile_Code + ' could not be exported - ' + E.Message);
+          ProgressForm.UpdateProgressLabel('Exporting transactions for ' + AdminSystem.fdSystem_Client_File_List.Client_File_At(Index).cfFile_Code);
 
-              ErrorReported := True;
-            end;
-          end;
+          ErrorReported := False;
+      
+          Client := nil;
 
-          if Assigned(Client) then
+          if AdminSystem.fdSystem_Client_File_List.Client_File_At(Index).cfFile_Status = bkConst.fsNormal then
           begin
             try
-              if not Client.clFields.clFile_Read_Only then
+              OpenAClient(AdminSystem.fdSystem_Client_File_List.Client_File_At(Index).cfFile_Code, Client, True);
+            except
+              on E:Exception do
               begin
-                ClientGuid := GetClientGuid(Client.clFields.clCode);
+                LogUtil.LogMsg(lmError, 'BankLinkOnlineTaggingService', 'Client File ' + AdminSystem.fdSystem_Client_File_List.Client_File_At(Index).cfFile_Code + ' could not be exported - ' + E.Message);
 
-                if ClientGuid <> '' then
+                ErrorReported := True;
+              end;
+            end;
+
+            if Assigned(Client) then
+            begin
+              try
+                if not Client.clFields.clFile_Read_Only then
                 begin
-                  XMLDocument := XMLDoc.NewXMLDocument;
+                  ClientGuid := GetClientGuid(Client.clFields.clCode);
 
-                  XMLDocument.Active := True;
+                  if ClientGuid <> '' then
+                  begin
+                    XMLDocument := XMLDoc.NewXMLDocument;
 
-                  try
-                    XMLDocument.Options := [doNodeAutoIndent,doAttrNull,doNamespaceDecl];
-                    XMLDocument.Version:= '1.0';
-                    XMLDocument.Encoding:= 'UTF-8';
+                    XMLDocument.Active := True;
 
-                    RootNode := XMLDocument.CreateElement('BKClients', '');
+                    try
+                      XMLDocument.Options := [doNodeAutoIndent,doAttrNull,doNamespaceDecl];
+                      XMLDocument.Version:= '1.0';
+                      XMLDocument.Encoding:= 'UTF-8';
+
+                      RootNode := XMLDocument.CreateElement('BKClients', '');
       
-                    AccountsExported := 0;
-                    TransactionsExported := 0;
+                      AccountsExported := 0;
+                      TransactionsExported := 0;
 
-                    if not ProductConfigService.GetClientAccountsVendors(Client.clFields.clCode, ClientGuid, ClientAccountVendors, False) then
-                    begin
-                      FatalError := True;
-
-                      Exit;
-                    end;
-
-                    ClientNode := Client.clFields.WriteRecToNode(RootNode);
-
-                    CleanXML(ClientNode);
-                    
-                    BankAccountsToXML(ClientNode, Client, ExportOptions.MaxTransactionDate, ClientAccountVendors, AccountsExported, TransactionsExported);
-
-                    if TransactionsExported > 0 then
-                    begin
-                      ExportClient := True;
-                      
-                      if ExportOptions.ExportChartOfAccounts then
+                      if not ProductConfigService.GetClientAccountsVendors(Client.clFields.clCode, ClientGuid, ClientAccountVendors, False) then
                       begin
-                        try
-                          //Add chart of accounts for this client
-                          ChartToXML(ClientNode, Client.clChart);
-                        except
-                          on E:Exception do
-                          begin
-                            LogUtil.LogMsg(lmError, 'BankLinkOnlineTaggingService', 'Client File ' + AdminSystem.fdSystem_Client_File_List.Client_File_At(Index).cfFile_Code + ' could export the Chart of Accounts - ' + E.Message);
+                        FatalError := True;
 
-                            ExportClient := False;
+                        Exit;
+                      end;
+
+                      ClientNode := Client.clFields.WriteRecToNode(RootNode);
+
+                      CleanXML(ClientNode);
+                    
+                      BankAccountsToXML(ClientNode, Client, ExportOptions.MaxTransactionDate, ClientAccountVendors, AccountsExported, TransactionsExported);
+
+                      if TransactionsExported > 0 then
+                      begin
+                        ExportClient := True;
+                      
+                        if ExportOptions.ExportChartOfAccounts then
+                        begin
+                          try
+                            //Add chart of accounts for this client
+                            ChartToXML(ClientNode, Client.clChart);
+                          except
+                            on E:Exception do
+                            begin
+                              LogUtil.LogMsg(lmError, 'BankLinkOnlineTaggingService', 'Client File ' + AdminSystem.fdSystem_Client_File_List.Client_File_At(Index).cfFile_Code + ' could export the Chart of Accounts - ' + E.Message);
+
+                              ExportClient := False;
+                            end;
+                          end;
+                        end;
+
+                        if ExportClient then
+                        begin
+                          XMLDocument.ChildNodes.Add(RootNode);
+
+                          //XMLDocument.SaveToFile('C:\Users\kerry.convery\Desktop\ClientAccountTransactions' + IntToStr(Index) + '.xml');
+
+                          if UploadXMLData(XMLDocument.XML.Text) then
+                          begin
+                            DoClientSave(true, Client);
+
+                            Statistics.TransactionsExported := Statistics.TransactionsExported + TransactionsExported;
+                            Statistics.AccountsExported := Statistics.AccountsExported + AccountsExported;
+                            Statistics.ClientFilesProcessed := Statistics.ClientFilesProcessed + 1;
                           end;
                         end;
                       end;
-
-                      if ExportClient then
-                      begin
-                        XMLDocument.ChildNodes.Add(RootNode);
-
-                        XMLDocument.SaveToFile('C:\Users\kerry.convery\Desktop\ClientAccountTransactions' + IntToStr(Index) + '.xml');
-
-                        DoClientSave(true, Client);
-
-                        Statistics.TransactionsExported := Statistics.TransactionsExported + TransactionsExported;
-                        Statistics.AccountsExported := Statistics.AccountsExported + AccountsExported;
-                        Statistics.ClientFilesProcessed := Statistics.ClientFilesProcessed + 1;
-                      end;
+                    finally
+                      XMLDocument.Active := False;
                     end;
-                  finally
-                    XMLDocument.Active := False;
                   end;
+                end
+                else
+                begin
+                  LogUtil.LogMsg(lmError, 'BankLinkOnlineTaggingService', 'Client File ' + AdminSystem.fdSystem_Client_File_List.Client_File_At(Index).cfFile_Code + ' could not be exported - The client file is read-only.');
                 end;
-              end
-              else
-              begin
-                LogUtil.LogMsg(lmError, 'BankLinkOnlineTaggingService', 'Client File ' + AdminSystem.fdSystem_Client_File_List.Client_File_At(Index).cfFile_Code + ' could not be exported - The client file is read-only.');
+              finally
+                FreeAndNil(Client);
               end;
-            finally
-              FreeAndNil(Client);
+            end
+            else
+            begin
+              if not ErrorReported then
+              begin
+                LogUtil.LogMsg(lmError, 'BankLinkOnlineTaggingService', 'Client File ' + AdminSystem.fdSystem_Client_File_List.Client_File_At(Index).cfFile_Code + ' could not be exported - The client file could not be opened or does not exist.');
+              end;
             end;
           end
           else
           begin
-            if not ErrorReported then
-            begin
-              LogUtil.LogMsg(lmError, 'BankLinkOnlineTaggingService', 'Client File ' + AdminSystem.fdSystem_Client_File_List.Client_File_At(Index).cfFile_Code + ' could not be exported - The client file could not be opened or does not exist.');
+            case AdminSystem.fdSystem_Client_File_List.Client_File_At(Index).cfFile_Status of
+              bkConst.fsOpen: LogUtil.LogMsg(lmError, 'BankLinkOnlineTaggingService', 'Client File ' + AdminSystem.fdSystem_Client_File_List.Client_File_At(Index).cfFile_Code + ' could not be exported - The client file is currently open.');
+              bkConst.fsCheckedOut: LogUtil.LogMsg(lmError, 'BankLinkOnlineTaggingService', 'Client File ' + AdminSystem.fdSystem_Client_File_List.Client_File_At(Index).cfFile_Code + ' could not be exported - The client file is checked out.');
+              bkConst.fsOffsite: LogUtil.LogMsg(lmError, 'BankLinkOnlineTaggingService', 'Client File ' + AdminSystem.fdSystem_Client_File_List.Client_File_At(Index).cfFile_Code + ' could not be exported - The client file is offsite.');
             end;
           end;
+
+          ProgressForm.UpdateProgress(ClientProgressSize);
+        end;
+      end;
+
+      if not FatalError then
+      begin
+        ProgressForm.CompleteProgress;
+
+        if Statistics.TransactionsExported > 0 then
+        begin
+          LogUtil.LogMsg(lmInfo, 'BankLinkOnlineTaggingService', 'BankLink Practice successfully exported data to BankLink Online up to ' + StDateToDateString(BKDATEFORMAT, ExportOptions.MaxTransactionDate, False) + ': ' + IntToStr(Statistics.TransactionsExported) + ' Transaction(s) exported, ' + IntToStr(Statistics.AccountsExported) + ' Account(s) exported ' + IntToStr(Statistics.ClientFilesProcessed) + ' Client file(s) processed.');
         end
         else
         begin
-          case AdminSystem.fdSystem_Client_File_List.Client_File_At(Index).cfFile_Status of
-            bkConst.fsOpen: LogUtil.LogMsg(lmError, 'BankLinkOnlineTaggingService', 'Client File ' + AdminSystem.fdSystem_Client_File_List.Client_File_At(Index).cfFile_Code + ' could not be exported - The client file is currently open.');
-            bkConst.fsCheckedOut: LogUtil.LogMsg(lmError, 'BankLinkOnlineTaggingService', 'Client File ' + AdminSystem.fdSystem_Client_File_List.Client_File_At(Index).cfFile_Code + ' could not be exported - The client file is checked out.');
-            bkConst.fsOffsite: LogUtil.LogMsg(lmError, 'BankLinkOnlineTaggingService', 'Client File ' + AdminSystem.fdSystem_Client_File_List.Client_File_At(Index).cfFile_Code + ' could not be exported - The client file is offsite.');
-          end;
+          LogUtil.LogMsg(lmInfo, 'BankLinkOnlineTaggingService', 'BankLink Practice could not find any data up to ' + StDateToDateString(BKDATEFORMAT, ExportOptions.MaxTransactionDate, False) + ' to export to BankLink Online.');
         end;
-
-        ProgressForm.UpdateProgress(ClientProgressSize);
-      end;
-    end;
-
-    if not FatalError then
-    begin
-      ProgressForm.CompleteProgress;
-
-      if Statistics.TransactionsExported > 0 then
-      begin
-        LogUtil.LogMsg(lmInfo, 'BankLinkOnlineTaggingService', 'BankLink Practice successfully exported data to BankLink Online up to ' + StDateToDateString(BKDATEFORMAT, ExportOptions.MaxTransactionDate, False) + ': ' + IntToStr(Statistics.TransactionsExported) + ' Transaction(s) exported, ' + IntToStr(Statistics.AccountsExported) + ' Account(s) exported ' + IntToStr(Statistics.ClientFilesProcessed) + ' Client file(s) processed.');
       end
       else
       begin
-        LogUtil.LogMsg(lmInfo, 'BankLinkOnlineTaggingService', 'BankLink Practice could not find any data up to ' + StDateToDateString(BKDATEFORMAT, ExportOptions.MaxTransactionDate, False) + ' to export to BankLink Online.');
+        LogUtil.LogMsg(lmInfo, 'BankLinkOnlineTaggingService', 'The following error occurred during the export of client ' + FatalErrorDetails.ClientCode + ' : ' + FatalErrorDetails.ErrorMessage + ' BankLink Practice completed the following data export to BankLink Online up to ' + StDateToDateString(BKDATEFORMAT, ExportOptions.MaxTransactionDate, False) + ': ' + IntToStr(Statistics.TransactionsExported) + ' Transaction(s) exported, ' + IntToStr(Statistics.AccountsExported) + ' Account(s) exported ' + IntToStr(Statistics.ClientFilesProcessed) + ' Client file(s) processed.');
       end;
-    end
-    else
-    begin
-      LogUtil.LogMsg(lmInfo, 'BankLinkOnlineTaggingService', 'The following error occurred during the export of client ' + FatalErrorDetails.ClientCode + ' : ' + FatalErrorDetails.ErrorMessage + ' BankLink Practice completed the following data export to BankLink Online up to ' + StDateToDateString(BKDATEFORMAT, ExportOptions.MaxTransactionDate, False) + ': ' + IntToStr(Statistics.TransactionsExported) + ' Transaction(s) exported, ' + IntToStr(Statistics.AccountsExported) + ' Account(s) exported ' + IntToStr(Statistics.ClientFilesProcessed) + ' Client file(s) processed.');
     end;
+  end
+  else
+  begin
+    LogUtil.LogMsg(lmInfo, 'BankLinkOnlineTaggingService', 'The BankLink Online data export service did not respond or the response was incorrect.');
+
+    FatalErrorDetails.ClientCode := '';
+    FatalErrorDetails.ErrorMessage := 'The BankLink Online data export service is not available.';
+    FatalError := True; 
   end;
 end;
 
@@ -505,6 +543,31 @@ begin
     on E:Exception do
     begin
       HelpfulErrorMsg('Error exporting transactions to ' + BANKLINK_ONLINE_NAME + ': ' + E.Message, 0);
+    end;
+  end;
+end;
+
+class function TBanklinkOnlineTaggingServices.UploadXMLData(const XmlData: WideString): Boolean;
+var
+  DataPlatformInterface: IDataPlatformPractice;
+begin
+  Result := False;
+  
+  try
+    if not Assigned(AdminSystem) then
+      Exit;
+
+    DataPlatformInterface :=  GetIDataPlatformPractice;
+      
+    Result := DataPlatformInterface.UploadData(CountryText(AdminSystem.fdFields.fdCountry),
+                                                           AdminSystem.fdFields.fdBankLink_Code,
+                                                           AdminSystem.fdFields.fdBankLink_Connect_Password,
+                                                           XmlData);
+
+  except
+    on E:Exception do
+    begin
+      HelpfulErrorMsg('Error sending xml data: ' + E.Message, 0);
     end;
   end;
 end;
