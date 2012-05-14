@@ -85,6 +85,7 @@ uses
 class function TBanklinkOnlineTaggingServices.TestDataService: Boolean;
 var
   DataPlatformInterface: IDataPlatformPractice;
+  Response: WideString;
 begin
   Result := False;
 
@@ -94,7 +95,9 @@ begin
 
     DataPlatformInterface :=  GetIDataPlatformPractice;
       
-    Result := DataPlatformInterface.Echo('TEST') = 'TEST';
+    Response := DataPlatformInterface.Echo('TEST');
+
+    Result := Pos('TEST', Response) > 0;
   except
     on E:Exception do
     begin
