@@ -69,7 +69,6 @@ type
     procedure HideCurrencyColumn;
     procedure RefreshExportVendors;
     procedure AddOnlineExportVendors;
-    //procedure UpdateLocalVendorList(aAccountVendors : TBloDataPlatformBankAccount);
     procedure RefreshBankAccountList;
     function DeleteBankAccount(BankAccount : TBank_Account) :boolean;
     procedure SetUpdateRefNeeded(const Value: boolean);
@@ -327,10 +326,9 @@ begin
           else
             SubItemIndex := NewItem.SubItems.Add('0');
         end;
-
-        UpdateLastVendorsUsedByAccounts;
       end;
     end;
+    UpdateLastVendorsUsedByAccounts;
 
   finally
     lvBank.items.EndUpdate;
@@ -586,6 +584,7 @@ var
   B: TBank_Account;
   Result: Boolean;
   AccIndex : integer;
+  VendorIndex : integer;
 begin
   if lvBank.Selected <> nil then
   begin
@@ -601,6 +600,17 @@ begin
 
     if Result then
     begin
+      if fClientAccVendors.AccountsVendors[AccIndex].ClientNeedRefresh then
+      begin
+        fClientAccVendors.AccountsVendors[AccIndex].ClientNeedRefresh := false;
+
+        // Remove All Vendor Columns
+        for VendorIndex := 0 to high(fClientAccVendors.ClientVendors) do
+          lvBank.Columns.Delete(lvBank.Columns.Count-1);
+
+        AddOnlineExportVendors;
+      end;
+
       AccountChanged := True;
       RefreshBankAccountList;
 
@@ -902,12 +912,15 @@ begin
 
     for AccountIndex := 0 to high(fClientAccVendors.AccountsVendors) do
     begin
-      for CurrentId := 0 to high(fClientAccVendors.AccountsVendors[AccountIndex].AccountVendors.Current) do
+      if fClientAccVendors.AccountsVendors[AccountIndex].ExportDataEnabled then
       begin
-        if VendorGuid = fClientAccVendors.AccountsVendors[AccountIndex].AccountVendors.Current[CurrentId].Id then
+        for CurrentId := 0 to high(fClientAccVendors.AccountsVendors[AccountIndex].AccountVendors.Current) do
         begin
-          inc(VendorCount);
-          AccSelIndex := AccountIndex;
+          if VendorGuid = fClientAccVendors.AccountsVendors[AccountIndex].AccountVendors.Current[CurrentId].Id then
+          begin
+            inc(VendorCount);
+            AccSelIndex := AccountIndex;
+          end;
         end;
       end;
     end;

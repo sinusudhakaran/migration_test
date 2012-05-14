@@ -50,6 +50,8 @@ type
     AccountNumber  : WideString;
     AccountVendors : TBloDataPlatformSubscription;
     IsLastAccForVendors : Array of Boolean;
+    ExportDataEnabled : Boolean;
+    ClientNeedRefresh : Boolean;
   end;
 
   TClientAccVendors = record
@@ -332,7 +334,7 @@ type
                                      aShowMessage: Boolean = True;
                                      ShowProgressBar: Boolean = true;
                                      ShowSuccessMessage: Boolean = True): Boolean;
-                                     
+
     function SaveAccountVendorExports(aClientId : TBloGuid;
                                       aAccountNumber : WideString;
                                       aVendorExports: TBloArrayOfGuid;
@@ -384,7 +386,8 @@ uses
   IntfInfo,
   ObjAuto,
   SyDefs,
-  Globals;
+  Globals,
+  baObj32;
 
 const
   UNIT_NAME = 'BankLinkOnlineServices';
@@ -887,6 +890,8 @@ begin
         Setlength(aClientAccVendors.AccountsVendors, length(DataPlatformClientSubscriberResponse.Result.BankAccounts));
         for AccountIndex := 0 to high(aClientAccVendors.AccountsVendors) do
         begin
+          aClientAccVendors.AccountsVendors[AccountIndex].ClientNeedRefresh := false;
+
           aClientAccVendors.AccountsVendors[AccountIndex].AccountVendors := TBloDataPlatformSubscription.Create;
 
           aClientAccVendors.AccountsVendors[AccountIndex].AccountVendors.Available :=
@@ -3581,6 +3586,8 @@ begin
 
       if (Result) then
       begin 
+        HelpfulInfoMsg(Format('Settings for %s have been successfully updated to ' +
+                       '%s.',[ClientCode, BANKLINK_ONLINE_NAME]), 0);
         Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finished', 100);
       end;
     except
@@ -4186,6 +4193,8 @@ var
   VendorIndex : integer;
   VendorGuid : TBloGuid;
   Current : ArrayOfDataPlatformSubscriber;
+  BankAccountIndex : integer;
+  BankAcct : TBank_Account;
 
   //----------------------------------------
   function GetClientVendorName(aVendorid : TBloGuid; aClientVendors : TBloArrayOfDataPlatformSubscriber) : string;
@@ -4253,6 +4262,20 @@ begin
 
           aClientAccVendors.AccountsVendors[AccountIndex].AccountNumber :=
             DataPlatformClientSubscriberResponse.Result.BankAccounts[AccountIndex].BankAccountNumber;
+
+          aClientAccVendors.AccountsVendors[AccountIndex].ExportDataEnabled := False;
+          for BankAccountIndex := 0 to MyClient.clBank_Account_List.ItemCount-1 do
+          begin
+            BankAcct := MyClient.clBank_Account_List.Bank_Account_At(BankAccountIndex);
+
+            if uppercase(trim(BankAcct.baFields.baBank_Account_Number)) =
+               uppercase(trim(aClientAccVendors.AccountsVendors[AccountIndex].AccountNumber)) then
+            begin
+              aClientAccVendors.AccountsVendors[AccountIndex].ExportDataEnabled :=
+                (not BankAcct.baFields.baIs_A_Manual_Account) and
+                (not (BankAcct.baFields.baAccount_Type in [sbtProvisional]));
+            end;
+          end;
 
           Setlength(Current, length(DataPlatformClientSubscriberResponse.Result.BankAccounts[AccountIndex].Subscribers));
           aClientAccVendors.AccountsVendors[AccountIndex].AccountVendors.Current := Current;

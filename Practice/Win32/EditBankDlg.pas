@@ -134,6 +134,8 @@ type
     fAccountVendors : TAccountVendors;
     fClientId : TBloGuid;
     fVendorDirty : Boolean;
+    fRemoveVendorsFromClient : Boolean;
+    fRemoveVendorsFromClientList : TBloArrayOfGuid;
 
     procedure SetAddNew(Value: Boolean);
     procedure DoList;
@@ -197,7 +199,8 @@ uses
   baUtils,
   YesNoDlg,
   OkCancelDlg,
-  DesktopSuper_Utils;
+  DesktopSuper_Utils,
+  glConst;
 
 const
   GMargin = 10;
@@ -433,9 +436,11 @@ var
   VendorID : TBloGuid;
   VendorCount : integer;
   CurrentVendors : TBloArrayOfGuid;
+  ClientNeedRefresh : boolean;
 begin
   VendorCount := 0;
   SetLength(CurrentVendors, VendorCount);
+  ClientNeedRefresh := false;
 
   for ItemIndex := 0 to chkLstAccVendors.Items.Count-1 do
   begin
@@ -449,12 +454,35 @@ begin
     end;
   end;
 
-  Result := ProductConfigService.SaveAccountVendorExports(ClientID,
-                                                          AccountVendors.AccountNumber,
-                                                          CurrentVendors,
-                                                          True);
+  Result := true;
+  if fRemoveVendorsFromClient then
+  begin
+    try
+      ClientNeedRefresh := true;
+      Result := ProductConfigService.SaveClientVendorExports(ClientID,
+                                                             fRemoveVendorsFromClientList,
+                                                             true,
+                                                             true,
+                                                             False);
+    finally
+      fRemoveVendorsFromClient := false;
+    end;
+  end;
+
   if Result then
-    UpdateAccountVendorInfo;
+  begin
+    Result := ProductConfigService.SaveAccountVendorExports(ClientID,
+                                                            AccountVendors.AccountNumber,
+                                                            CurrentVendors,
+                                                            True);
+
+    if Result then
+    begin
+      fAccountVendors.ClientNeedRefresh := ClientNeedRefresh;
+
+      UpdateAccountVendorInfo;
+    end;
+  end;
 end;
 
 //------------------------------------------------------------------------------
@@ -532,6 +560,7 @@ begin
   VendorNames := '';
   aMessage := '';
 
+  Setlength(fRemoveVendorsFromClientList,0);
   for VIndex := 0 to chkLstAccVendors.Items.Count-1 do
   begin
     VendorId := TBloDataPlatformSubscriber(chkLstAccVendors.Items.Objects[VIndex]).Id;
@@ -542,8 +571,14 @@ begin
     begin
       if Length(VendorNames) > 0 then
         VendorNames := VendorNames + ', ';
-      
+
       VendorNames := VendorNames + AccountVendors.AccountVendors.Available[VendorIndex].Name_;
+    end
+    else
+    begin
+      Setlength(fRemoveVendorsFromClientList, length(fRemoveVendorsFromClientList) + 1);
+      fRemoveVendorsFromClientList[high(fRemoveVendorsFromClientList)] :=
+        AccountVendors.AccountVendors.Available[VendorIndex].Id;
     end;
   end;
 
@@ -604,6 +639,7 @@ var
   i: Integer;
   BA: TBank_Account;
   PromptMessage : String;
+  DlgResult : integer;
 begin
   result := false;
 
@@ -695,7 +731,17 @@ begin
     if (fVendorDirty) and
        (AccountHasNoTicks(PromptMessage)) then
     begin
+      DlgResult := AskYesNo('Export Options Updated', PromptMessage, DLG_YES, 0, true);
 
+      case DlgResult of
+        DLG_YES : begin
+          fRemoveVendorsFromClient := true;
+        end;
+        DLG_CANCEL : begin
+          fVendorDirty := false;
+          Exit;
+        end;
+      end;
     end;
   end;
 
@@ -870,6 +916,7 @@ var
   result := false;
   okPressed := false;
   fVendorDirty := false;
+  fRemoveVendorsFromClient := false;
 
   if not Assigned(BankAcct) then exit;
   AutoUpdate := false;
@@ -1123,7 +1170,8 @@ begin
     MyDlg.ExportDataEnabled := (ProductConfigService.OnLine and
                                ProductConfigService.IsPracticeProductEnabled(ProductConfigService.GetExportDataId, False)) and
                                (not aBankAcct.baFields.baIs_A_Manual_Account) and
-                               (not (aBankAcct.baFields.baAccount_Type in [sbtProvisional]));
+                               (not (aBankAcct.baFields.baAccount_Type in [sbtProvisional])) and
+                               (aClientId <> '');
 
     if MyDlg.ExportDataEnabled then
     begin
