@@ -383,6 +383,9 @@ Begin
                                  txGL_Narration       := aStatement_Details;
                                  txStatement_Details  := aStatement_Details;
                                  txBank_Seq           := baFields.baNumber;  //setbank account sequence no to current bank index
+
+                                 txCore_Transaction_ID := aCoreTransactionID;
+
                                  //Get extra info for Provisional transactions
                                  if (txSource = orProvisional) then
                                    SetProvisionalInfo(aLRN, txTemp_Prov_Entered_By, txTemp_Prov_Date_Time);

@@ -654,6 +654,7 @@ begin //ProcessDiskImages
                   begin
                     aRecord_End_Marker := ArchUtil32.ARCHIVE_REC_END_MARKER;
 
+                    aCoreTransactionID := DiskTxn.dtBankLink_ID;
                     aType              := DiskTxn.dtEntry_Type;
                     aSource            := BKCONST.orBank;
                     aDate_Presented    := DiskTxn.dtEffective_Date;

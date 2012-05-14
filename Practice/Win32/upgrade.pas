@@ -767,8 +767,8 @@ Procedure DoUpgradeAdminToLatestVersion( var UpgradingToVersion : integer; const
        OriginalFileName, ShortName, NewFilename: string;
        OldFile : TbfsBufferedFileStream;
        NewFile : TbfsBufferedFileStream;
-       OldArchRec : tArchived_Transaction;
-       NewArchRec : tArchived_Transaction;
+       OldArchRec : tV169_Archived_Transaction;
+       NewArchRec : tV169_Archived_Transaction;
     begin
        // upgrade to 4 decimal places
        UpgradingToVersion := 87;
@@ -888,7 +888,7 @@ Procedure DoUpgradeAdminToLatestVersion( var UpgradingToVersion : integer; const
     const
        uaBuffSize = 8192;
     var
-       i, NumRead, LastLRN: Integer;
+       i, NumRead, LastLRN : Integer;
        sba: pSystem_Bank_Account_Rec;
        OriginalFileName, ShortName, NewFilename: string;
        OldFile : TbfsBufferedFileStream;
@@ -4135,6 +4135,105 @@ const
     aClient.ClientCopyReset;
   end;
 
+  procedure UpgradeToVersion170;
+  // Tagging Archive Transactions update
+  const
+     uaBuffSize = 8192;
+  var
+     i, j, k, NumRead, SpareIndex: Integer;
+     PrefixList: TStringList;
+     sba: pSystem_Bank_Account_Rec;
+     Prefix: BankPrefixStr;
+     OriginalFileName, ShortName, NewFilename: string;
+     OldFile : TbfsBufferedFileStream;
+     NewFile : TbfsBufferedFileStream;
+     OldArchRec : tV169_Archived_Transaction;
+     NewArchRec : tArchived_Transaction;
+  begin
+     // Master Mems and Archive upgrade
+     PrefixList := TStringList.Create;
+     try
+        Progress.UpdateAppStatus( 'Updating Transaction Archive','Please wait', 0 , ProcessMessages_On);
+        for i := AdminSystem.fdSystem_Bank_Account_List.First to AdminSystem.fdSystem_Bank_Account_List.Last do
+        begin
+           sba := AdminSystem.fdSystem_Bank_Account_List.System_Bank_Account_At(i);
+           Progress.UpdateAppStatusPerc_NR((i /AdminSystem.fdSystem_Bank_Account_List.ItemCount * 100), True);
+           if sba.sbLast_Transaction_LRN > 0 then
+           begin
+              try
+                 OriginalFileName := ArchUtil32.ArchiveFileName( sba.sbLRN);
+                 Shortname        := ExtractFilename( OriginalFilename);
+                 if BKFileExists( OriginalFilename) then
+                 begin
+                   Progress.UpdateAppStatusLine2( 'Updating file ' + Shortname, ProcessMessages_On);
+                   if DebugMe then
+                      LogMsg( lmDebug, Unitname, 'Updating ' + OriginalFilename);
+                   NewFilename      := ExtractFilePath( OriginalFilename) + 'newtxn.tmp';
+                   DeleteFile_RaiseException( NewFilename);
+                   //open the old file.
+                   OldFile := TbfsBufferedFileStream.Create( OriginalFilename, fmOpenRead, uaBuffSize);
+                   try
+                      NewFile := TbfsBufferedFileStream.Create( NewFilename, fmCreate, uaBuffSize);
+                      try
+                         repeat
+                            NumRead := OldFile.Read( OldArchRec, SizeOf( tArchived_Transaction));
+                            if NumRead > 0 then
+                               begin
+                                  if NumRead <> SizeOf( tArchived_Transaction) then
+                                     raise Exception.Create( 'Stream Read error reading ' + OriginalFilename);
+
+                                  FillChar( NewArchRec, Sizeof( NewArchRec ), 0 );
+                                  NewArchRec.aLRN                 := OldArchRec.aLRN;
+                                  NewArchRec.aType                := OldArchRec.aType;
+                                  NewArchRec.aSource              := OldArchRec.aSource;
+                                  NewArchRec.aDate_Presented      := OldArchRec.aDate_Presented;
+                                  NewArchRec.aDate_Transferred    := OldArchRec.aDate_Transferred;
+                                  NewArchRec.aAmount              := OldArchRec.aAmount;
+                                  NewArchRec.aQuantity            := OldArchRec.aQuantity;
+                                  NewArchRec.aCheque_Number       := OldArchRec.aCheque_Number;
+                                  NewArchRec.aReference           := OldArchRec.aReference;
+                                  NewArchRec.aParticulars         := OldArchRec.aParticulars;
+                                  NewArchRec.aAnalysis            := OldArchRec.aAnalysis;
+                                  NewArchRec.aOrigBB              := OldArchRec.aOrigBB;
+                                  NewArchRec.aOther_Party         := OldArchRec.aOther_Party;
+                                  NewArchRec.aNarration           := OldArchRec.aNarration;
+                                  NewArchRec.aStatement_Details   := OldArchRec.aStatement_Details;
+                                  NewArchRec.aUnique_ID           := OldArchRec.aUnique_ID;
+
+                                  for SpareIndex := 1 to 32 do
+                                    NewArchRec.aSpare[SpareIndex] := OldArchRec.aSpare[SpareIndex];
+
+                                  NewArchRec.aCoreTransactionID   := 0;
+                                  NewFile.WriteBuffer( NewArchRec, SizeOf( tArchived_Transaction));
+                               end; // if NumRead > 0
+                         until NumRead = 0;
+                         //ensure buffer is written to disk
+                         NewFile.Commit;
+                      finally
+                         NewFile.Free;
+                      end;
+                   finally
+                      OldFile.Free;
+                   end;
+                   //now rename temp file to new file
+                   if DebugMe then
+                      LogMsg( lmDebug, Unitname, 'Renaming ' + NewFilename + ' to ' + OriginalFilename);
+                   RenameFileOverwriteIfExists( NewFilename, OriginalFilename);
+                 end; // if bkfileexists
+              except on E : Exception do
+                 //re raise any exceptions so that we know which file we were working on
+                 raise EUpgradeAdmin.Create( 'Error Updating ' + OriginalFilename + ' ' + E.Message + ' ' + E.Classname);
+              end;
+           end; // if lrn > 0
+           Prefix := mxFiles32.GetBankPrefix(sba.sbAccount_Number);
+           if PrefixList.IndexOf(Prefix) = -1 then
+              PrefixList.Add(Prefix);
+        end; // for
+     finally
+        PrefixList.Free;
+     end;
+  end;
+
 begin
    with aClient.clFields do begin
 
@@ -4468,6 +4567,11 @@ begin
       if (CLFile_Version < 165) then begin
         UpgradeToVersion165;
         clFile_Version := 165;
+      end;
+      // 2012 Tagging
+      if (CLFile_Version < 170) then begin
+        UpgradeToVersion170;
+        clFile_Version := 170;
       end;
 
    end;
