@@ -1117,7 +1117,38 @@ function TfrmPracticeDetails.VerifyForm: boolean;
       Result := ProductConfigService.SaveIBizzCredentials(edtAcclipseCode.Text, True);
     end;
   end;
-  
+
+  function ValidateIBizzCredentials: Boolean;
+  begin
+    Result := False;
+
+    if edtAcclipseCode.Text = '' then
+    begin
+      HelpfulWarningMsg('To set up this export you must enter the code provided to your practice by Acclipse.  If you do not have a code, please contact Acclipse.', 0);
+
+      PageControl1.ActivePage := tbsDataExport;
+          
+      pgcVendorExportOptions.ActivePage := tbsIBizz;
+
+      edtAcclipseCode.SetFocus;
+    end
+    else
+    if not IsValidVendorCode(edtAcclipseCode.Text) then
+    begin
+      HelpfulWarningMsg('The Acclipse code you have entered contains illegal characters. Please try again.', 0);
+
+      PageControl1.ActivePage := tbsDataExport;
+          
+      pgcVendorExportOptions.ActivePage := tbsIBizz;
+          
+      edtAcclipseCode.SetFocus;
+    end
+    else
+    begin
+      Result := True;
+    end;
+  end;
+
 const
   ThisMethodName = 'VerifyForm';
 var
@@ -1211,30 +1242,9 @@ begin
     begin
       if ProductConfigService.IsItemInArrayGuid(FSelectedVendorExports, ProductConfigService.GetIBizzExportGuid) then
       begin
-        if edtAcclipseCode.Text = '' then
+        if not ValidateIBizzCredentials then
         begin
-          HelpfulWarningMsg('To set up this export you must enter the code provided to your practice by Acclipse.  If you do not have a code, please contact Acclipse.', 0);
-
-          PageControl1.ActivePage := tbsDataExport;
-          
-          pgcVendorExportOptions.ActivePage := tbsIBizz;
-
-          edtAcclipseCode.SetFocus;
-              
           Exit;
-        end
-        else
-        if not IsValidVendorCode(edtAcclipseCode.Text) then
-        begin
-          HelpfulWarningMsg('The Acclipse code you have entered contains illegal characters. Please try again.', 0);
-
-          PageControl1.ActivePage := tbsDataExport;
-          
-          pgcVendorExportOptions.ActivePage := tbsIBizz;
-          
-          edtAcclipseCode.SetFocus;
-              
-          Exit;                        
         end;
       end;
     end;
@@ -1384,6 +1394,19 @@ begin
     finally
       NewProducts.Free;
     end;
+  end
+  else
+  begin
+    if ProductConfigService.IsPracticeProductEnabled(ProductConfigService.GetExportDataId, True) then
+    begin
+      if ProductConfigService.IsItemInArrayGuid(FSelectedVendorExports, ProductConfigService.GetIBizzExportGuid) then
+      begin
+        if not ValidateIBizzCredentials then
+        begin
+          Exit;
+        end;
+      end;
+    end;  
   end;
 
   Result := True;
