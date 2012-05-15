@@ -639,7 +639,7 @@ begin
           NewExportsStr := '';
           for i := 0 to NewExports.Count - 2 do
             NewExportsStr := NewExportsStr + NewExports[i] + ', ';
-          NewExportsStr := NewExportsStr + ' and ' + NewExports[NewExports.Count - 1];
+          NewExportsStr := NewExportsStr + 'and ' + NewExports[NewExports.Count - 1];
         end;
       end;
       ShowMessage('You have enabled the export of data to BankLink Online for ' +
@@ -1046,10 +1046,11 @@ var
   CatEntry  : TBloCatalogueEntry;
   ConnectDays : string;
   Subscription: TBloArrayOfGuid;
-  NotesOnlineTicked : Boolean;
+  NotesOnlineTicked, ShowUpdateMsg : Boolean;
   NumProdTicked : Integer;
   ClientCode : WideString;
 begin
+  ShowUpdateMsg := True;
   NotesOnlineTicked := False;
   NumProdTicked := 0;
 
@@ -1128,6 +1129,7 @@ begin
                                                     Subscription,
                                                     edtEmailAddress.Text,
                                                     edtUserName.Text);
+        ShowUpdateMsg := not Result;
       end
       else
       begin
@@ -1152,7 +1154,8 @@ begin
     if Result then
     begin
       ClientCode := MyClient.clFields.clCode;
-      HelpfulInfoMsg(Format('Settings for %s have been successfully updated to ' +
+      if ShowUpdateMsg then      
+        HelpfulInfoMsg(Format('Settings for %s have been successfully updated to ' +
                        '%s.',[ClientCode, BANKLINK_ONLINE_NAME]), 0);
     end;
   end
