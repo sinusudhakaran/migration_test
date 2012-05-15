@@ -584,8 +584,8 @@ begin
 
   if Length(VendorNames) > 0 then
   begin
-    aMessage := 'Client ' + MyClient.clFields.clCode + ' no longer has any bank accounts using ' + VendorNames + '.' + #10 +
-                'Would you like BankLink Practice to remove ' + VendorNames + ' for this client?';
+    aMessage := 'Client ' + MyClient.clFields.clCode + ' no longer has any bank accounts using (' + VendorNames + ').' + #10 +
+                'Would you like BankLink Practice to remove (' + VendorNames + ') for this client?';
     Result := True;
   end;
 end;

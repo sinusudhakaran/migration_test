@@ -202,6 +202,7 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmMaintainBank.RefreshExportVendors;
 begin
+  // Blopi Call
   ProductConfigService.GetClientAccountsVendors(MyClient.clFields.clCode, fClientAccVendors);
 end;
 
@@ -212,8 +213,10 @@ var
   VendorIndex  : integer;
   BankAccIndex : integer;
 begin
+  // Service Call
   RefreshExportVendors;
 
+  // Adds Needed Columns
   if fClientAccVendors.ClientID <> '' then
   begin
     for VendorIndex := 0 to high(fClientAccVendors.ClientVendors) do
@@ -243,6 +246,8 @@ var
   AccountVendorIndex : integer;
   Found : Boolean;
   SubItemIndex : integer;
+  AccVendorIndex : integer;
+
 begin
   if (MyClient.clFields.clCountry = whUK) and (MyClient.HasForeignCurrencyAccounts) then
   begin
@@ -299,33 +304,40 @@ begin
         NewItem.SubItems.Add(BankAcct.baFields.baContra_Account_Code);
       end;
 
+      // For this account Get the Vendor data and updates extra columns
       if (fExportDataEnabled) and
          (fClientAccVendors.ClientID <> '') then
       begin
-        for ClientVendorIndex := 0 to high(fClientAccVendors.ClientVendors) do
+        AccVendorIndex := GetAccountIndexOnVendorList(BankAcct.baFields.baBank_Account_Number);
+        if AccVendorIndex > -1 then
         begin
-          if (not BankAcct.baFields.baIs_A_Manual_Account) and
-             (not (BankAcct.baFields.baAccount_Type in [sbtProvisional])) and
-             (i <= high(fClientAccVendors.AccountsVendors)) then
+          for ClientVendorIndex := 0 to high(fClientAccVendors.ClientVendors) do
           begin
-            Found := False;
-            for AccountVendorIndex := 0 to High(fClientAccVendors.AccountsVendors[i].AccountVendors.Current) do
+            if (not BankAcct.baFields.baIs_A_Manual_Account) and
+               (not (BankAcct.baFields.baAccount_Type in [sbtProvisional])) and
+               (i <= high(fClientAccVendors.AccountsVendors)) then
             begin
-              if fClientAccVendors.AccountsVendors[i].AccountVendors.Current[AccountVendorIndex].Id =
-                 fClientAccVendors.ClientVendors[ClientVendorIndex].Id then
+              Found := False;
+              for AccountVendorIndex := 0 to High(fClientAccVendors.AccountsVendors[AccVendorIndex].AccountVendors.Current) do
               begin
-                Found := True;
-                break;
+                if fClientAccVendors.AccountsVendors[AccVendorIndex].AccountVendors.Current[AccountVendorIndex].Id =
+                   fClientAccVendors.ClientVendors[ClientVendorIndex].Id then
+                begin
+                  Found := True;
+                  break;
+                end;
               end;
-            end;
-            if Found then
-              SubItemIndex := NewItem.SubItems.Add('1')
+              if Found then
+                SubItemIndex := NewItem.SubItems.Add('1')
+              else
+                SubItemIndex := NewItem.SubItems.Add('0');
+            end
             else
               SubItemIndex := NewItem.SubItems.Add('0');
-          end
-          else
-            SubItemIndex := NewItem.SubItems.Add('0');
-        end;
+          end;
+        end
+        else
+          SubItemIndex := NewItem.SubItems.Add('0');
       end;
     end;
     UpdateLastVendorsUsedByAccounts;
@@ -600,6 +612,7 @@ begin
 
     if Result then
     begin
+      // if the Client Vendors have been changed the window will need a refresh of the data
       if fClientAccVendors.AccountsVendors[AccIndex].ClientNeedRefresh then
       begin
         fClientAccVendors.AccountsVendors[AccIndex].ClientNeedRefresh := false;
@@ -880,6 +893,8 @@ var
   VendorCount : integer;
   AccSelIndex : integer;
 begin
+
+  // Clears the IsLastAccForVendors Array
   for AccountIndex := 0 to high(fClientAccVendors.AccountsVendors) do
   begin
     SetLength(fClientAccVendors.AccountsVendors[AccountIndex].IsLastAccForVendors,
@@ -894,6 +909,8 @@ begin
     VendorGuid := fClientAccVendors.ClientVendors[VendorIndex].Id;
     VendorCount := 0;
 
+    // Searches for Vendors through all Valid Accounts and if there is only one
+    // left in the Current Vendor Set the Flag
     for AccountIndex := 0 to high(fClientAccVendors.AccountsVendors) do
     begin
       if fClientAccVendors.AccountsVendors[AccountIndex].ExportDataEnabled then
@@ -921,6 +938,7 @@ function TfrmMaintainBank.GetAccountIndexOnVendorList(aAccountNumber: string) : 
 var
   AccountIndex : integer;
 begin
+  // uses the AccountNumber to get the Index
   Result := -1;
   for AccountIndex := 0 to high(fClientAccVendors.AccountsVendors) do
   begin
