@@ -203,7 +203,7 @@ end;
 procedure TfrmMaintainBank.RefreshExportVendors;
 begin
   // Blopi Call
-  ProductConfigService.GetClientAccountsVendors(MyClient.clFields.clCode, fClientAccVendors);
+  ProductConfigService.GetClientAccountsVendors(MyClient.clFields.clCode, '', fClientAccVendors, True);
 end;
 
 //------------------------------------------------------------------------------
