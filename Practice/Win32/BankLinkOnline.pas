@@ -488,8 +488,15 @@ begin
         end else begin
           raise EDownloadFailed.Create(ServerResponce.Description);
         end;
-      end else begin
+      end
+      else
+      begin
         CicoClient.DownloadFileToBooks(AClientCode, ARemoteFilename, ServerResponce);
+
+        if ServerResponce.Status <> '200' then
+        begin
+          raise EDownloadFailed.Create(ServerResponce.Description);
+        end;
       end;
     finally
       CiCoClient.OnProgressEvent := Nil;
