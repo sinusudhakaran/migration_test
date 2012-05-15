@@ -858,28 +858,27 @@ begin
       ProductGuid := ProductConfigService.ProductList[ProdIndex];
       CatEntry := ProductConfigService.GetCatalogueEntry(ProductGuid);
 
-      if (Assigned(CatEntry)) and
-      (CatEntry.CatalogueType <> 'Service') then
-        chklistProducts.AddItem(CatEntry.Description, CatEntry);
-
-      if (CatEntry.CatalogueType = 'Service') and
-      (CatEntry.Id = ProductConfigService.GetExportDataId) then
-        DataExportEnabled := True;     
+      if Assigned(CatEntry) then
+      begin
+        if (CatEntry.CatalogueType <> 'Service') then
+          chklistProducts.AddItem(CatEntry.Description, CatEntry)
+        else if (CatEntry.Id = ProductConfigService.GetExportDataId) then
+          DataExportEnabled := True;
+      end;
     end;
-  end
-  else
+  end else
   begin
     for ProdIndex := Low(ClientReadDetail.Catalogue) to High(ClientReadDetail.Catalogue) do
     begin
       CatEntry := ClientReadDetail.Catalogue[ProdIndex]; 
 
-      if (Assigned(CatEntry)) and
-      (CatEntry.CatalogueType <> 'Service') then
-        chklistProducts.AddItem(CatEntry.Description, CatEntry);
-
-      if (CatEntry.CatalogueType = 'Service') and
-      (CatEntry.Id = ProductConfigService.GetExportDataId) then
-        DataExportEnabled := True;     
+      if Assigned(CatEntry) then
+      begin
+        if (CatEntry.CatalogueType <> 'Service') then
+          chklistProducts.AddItem(CatEntry.Description, CatEntry)
+        else if (CatEntry.Id = ProductConfigService.GetExportDataId) then
+          DataExportEnabled := True;
+      end;  
     end;
   end;
 
