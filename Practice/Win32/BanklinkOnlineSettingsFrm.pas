@@ -245,14 +245,15 @@ begin
   if chkDeliverData.Checked and (MyClient.clFields.clDownload_From = dlBankLinkConnect) and
   (MyClient.clFields.clBankLink_Code <> '') then
   begin
-    { This is actually an impossible condition, I'm really just putting this here in
-      case we need it later. I will probably end up removing this. }
+    { Shouldn't be able to reach here, as the Services Available panel should be invisible
+      if the second and third conditions are true, and thus chkDeliverData can't be
+      checked }
     ShowMessage('This client is set up to download data directly from BankLink to the ' +
                 'client file. Please contact BankLink Client Services if you want to ' +
                 'change the data delivery method to BankLink Online');
-    chkDeliverData.Checked := false;
+    chkDeliverData.Checked := False;
     Exit;
-  end;                              
+  end;
 
   lblSecureCode.Visible := chkDeliverData.Checked;
   edtSecureCode.Visible := chkDeliverData.Checked;
@@ -587,7 +588,7 @@ begin
                     DLG_OK, 0) <> DLG_OK then
         Exit;
     end;
-    if grpServicesAvailable.Visible then
+    if grpServicesAvailable.Visible and edtSecureCode.Visible then
     begin
       if not RegExIsAlphaNumeric(Trim(edtSecureCode.Text), false) then
       begin
@@ -600,6 +601,8 @@ begin
     end;
 
     // Below is not really 'validation'
+    if Assigned(NewExports) then
+      NewExports.Clear;
     for i := 0 to High(ModifiedDataExports) do
     begin
       ExportFound := False;
@@ -625,6 +628,7 @@ begin
         end;
       end;
     end;
+
     if Assigned(NewExports) then
     begin
       case NewExports.Count of
@@ -632,8 +636,9 @@ begin
         2: NewExportsStr := NewExports[0] + ' and ' + NewExports[1];
         else
         begin
+          NewExportsStr := '';
           for i := 0 to NewExports.Count - 2 do
-            NewExportsStr := NewExports[i] + ', ';
+            NewExportsStr := NewExportsStr + NewExports[i] + ', ';
           NewExportsStr := NewExportsStr + ' and ' + NewExports[NewExports.Count - 1];
         end;
       end;
