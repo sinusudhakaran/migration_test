@@ -1551,7 +1551,7 @@ begin
 
           if ClientCount > 0 then
           begin
-            if AskYesNo('Disable the Export Data service', 'There are currently ' + IntToStr(ClientCount) + ' clients using the Export Data Service.  Removing access for this service will prevent any transaction data from being exported to your selected vendors.', DLG_YES, 0) <> DLG_YES then
+            if AskYesNo('Disable the Export Data service', 'There are currently ' + IntToStr(ClientCount) + ' client(s) using the Export Data Service.  Removing access for this service will prevent any transaction data from being exported to your selected vendor(s). Are you sure you want to continue?', DLG_YES, 0) <> DLG_YES then
             begin
               Exit;
             end;
