@@ -219,12 +219,8 @@ procedure TfrmBanklinkOnlineSettings.FormKeyDown(Sender: TObject; var Key: Word;
 begin
   if ((ssAlt in Shift) and (Key = 86)) then // Alt + V
     chkDeliverData.Checked := not chkDeliverData.Checked;
-  if ((ssAlt in Shift) and (Key = 66)) then // Alt + B
-  begin
-    chkDeliverData.Checked := True;
-    chkDeliverDataClick(Sender);
+  if ((ssAlt in Shift) and (Key = 66) and edtSecureCode.Visible) then // Alt + B
     Self.ActiveControl := Self.edtSecureCode;
-  end;
 end;
 
 //------------------------------------------------------------------------------
