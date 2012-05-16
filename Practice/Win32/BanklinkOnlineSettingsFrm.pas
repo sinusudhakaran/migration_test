@@ -76,7 +76,7 @@ type
     ClientReadDetail : TBloClientReadDetail;
     AvailableServiceArray : TBloArrayOfDataPlatformSubscriber;
     OriginalDataExports: TBloArrayOfGuid;
-    ModifiedDataExports: TBloArrayOfGuid;    
+    ModifiedDataExports: TBloArrayOfGuid;
 
     procedure ExportTaggedAccounts(ProgressForm: ISingleProgressForm);
     procedure AdjustControlPositions;
@@ -1073,7 +1073,9 @@ var
   NotesOnlineTicked, ShowUpdateMsg : Boolean;
   NumProdTicked : Integer;
   ClientCode : WideString;
+  ClientID: TBloGuid;
 begin
+  ClientID := '';
   ShowUpdateMsg := True;
   NotesOnlineTicked := False;
   NumProdTicked := 0;
@@ -1129,8 +1131,9 @@ begin
     // If Notes Online is selected and no other products are selected instead of creating a
     // new client then it stores the values offline (in the client file) to be uploaded
     // after the first Note upload when it does create the client
-    if ((NotesOnlineTicked) and (NumProdTicked = 1)) or
-       ((MyClient.clExtra.ceOnlineValuesStored = False) and (NumProdTicked = 0)) then
+    if (((NotesOnlineTicked) and (NumProdTicked = 1)) or
+       ((MyClient.clExtra.ceOnlineValuesStored = False) and (NumProdTicked = 0))) and
+       (Length(ModifiedDataExports) = 0) then
     begin
       MyClient.clExtra.ceOnlineBillingFrequency := AnsiLeftStr(cmbBillingFrequency.Text, 1);
       MyClient.clExtra.ceOnlineMaxOfflineDays   := StrToInt(ConnectDays);
@@ -1168,7 +1171,8 @@ begin
                                                     Status,
                                                     Subscription,
                                                     edtEmailAddress.Text,
-                                                    edtUserName.Text);
+                                                    edtUserName.Text,
+                                                    ClientID);
         ShowUpdateMsg := not Result;
       end
       else
@@ -1186,9 +1190,12 @@ begin
   begin
     UpdateClientWebFormat(Subscription);
 
-    if Assigned(ClientReadDetail) and not ProductConfigService.GuidArraysEqual(OriginalDataExports, ModifiedDataExports)  then
+    if not ProductConfigService.GuidArraysEqual(OriginalDataExports, ModifiedDataExports) then
     begin
-      Result := ProductConfigService.SaveClientVendorExports(ClientReadDetail.Id, ModifiedDataExports, true, True, False);
+      if Assigned(ClientReadDetail) then
+        Result := ProductConfigService.SaveClientVendorExports(ClientReadDetail.Id, ModifiedDataExports, true, True, False)
+      else if (ClientID <> '') then
+        Result := ProductConfigService.SaveClientVendorExports(ClientID, ModifiedDataExports, true, True, False);
     end;
 
     if Result then

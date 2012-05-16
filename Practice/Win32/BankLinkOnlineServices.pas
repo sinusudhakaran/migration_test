@@ -274,7 +274,8 @@ type
                                 aStatus           : TBloStatus;
                           const aSubscription     : TBloArrayOfguid;
                           const aUserEMail        : WideString;
-                          const aUserFullName     : WideString) : Boolean;
+                          const aUserFullName     : WideString;
+                          var ClientID            : TBloGuid) : Boolean;
     function UpdateClient(const aExistingClient       : TBloClientReadDetail;
                           const aBillingFrequency     : WideString;
                                 aMaxOfflineDays       : Integer;
@@ -3263,7 +3264,8 @@ function TProductConfigService.CreateClient(const aBillingFrequency : WideString
                                                   aStatus           : TBloStatus;
                                             const aSubscription     : TBloArrayOfguid;
                                             const aUserEMail        : WideString;
-                                            const aUserFullName     : WideString) : Boolean;
+                                            const aUserFullName     : WideString;
+                                            var ClientID            : TBloGuid) : Boolean;
 var
   BloClientCreate : TBloClientCreate;
   BlopiInterface  : IBlopiServiceFacade;
@@ -3313,6 +3315,7 @@ begin
 
           if Result then
             MyClient.Opened := True;
+          ClientID := GetClientGuid(BloClientCreate.ClientCode);
         finally
           FreeAndNil(BloClientCreate);
         end;
