@@ -80,6 +80,8 @@ type
 
     procedure ExportTaggedAccounts(ProgressForm: ISingleProgressForm);
     procedure AdjustControlPositions;
+
+    function GetClientSubscriptionCategory(SubscriptionId: TBloGuid): TBloCatalogueEntry;
   protected
     function Validate : Boolean;
     procedure FillClientDetails;
@@ -693,6 +695,28 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+function TfrmBanklinkOnlineSettings.GetClientSubscriptionCategory(SubscriptionId: TBloGuid): TBloCatalogueEntry;
+var
+  Index: Integer;
+begin
+  Result := nil;
+
+  if not Assigned(ClientReadDetail) then
+  begin
+    Exit;
+  end;
+
+  for Index := 0 to Length(ClientReadDetail.Catalogue) - 1 do
+  begin
+    if ProductConfigService.GuidsEqual(ClientReadDetail.Catalogue[Index].Id, SubscriptionId) then
+    begin
+      Result := ClientReadDetail.Catalogue[Index];
+
+      Break;
+    end;
+  end;
+end;
+
 function TfrmBanklinkOnlineSettings.GetStatus : TBloStatus;
 begin
   if rbActive.Checked then
@@ -1068,6 +1092,22 @@ begin
         NotesOnlineTicked := True;
 
       Inc(NumProdTicked);
+    end;
+  end;
+
+  if Assigned(ClientReadDetail) then
+  begin
+    for ProdIndex := 0 to Length(ClientReadDetail.Subscription) - 1 do
+    begin
+      CatEntry := GetClientSubscriptionCategory(ClientReadDetail.Subscription[ProdIndex]);
+
+      if Assigned(CatEntry) then
+      begin
+        if (CatEntry.CatalogueType = 'Service') then
+        begin
+          ProductConfigService.AddItemToArrayGuid(Subscription, CatEntry.id); 
+        end;
+      end;  
     end;
   end;
 
