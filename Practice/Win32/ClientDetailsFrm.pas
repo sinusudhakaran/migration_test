@@ -170,6 +170,9 @@ type
     FInWizard: Boolean;
 
     FClientReadDetail: TBloClientReadDetail;
+
+    function CountClientProducts(ClientDetails: TBloClientReadDetail): Integer;
+    function GetClientSubscriptionCategory(SubscriptionId: TBloGuid): TBloCatalogueEntry;
     
     function  OkToPost : boolean;
     procedure UpdatePracticeContactDetails( ContactType : byte);
@@ -369,6 +372,28 @@ begin
   end;
 
   PostMessage(Handle, UM_AFTERSHOW, 0, 0);
+end;
+
+function TfrmClientDetails.GetClientSubscriptionCategory(SubscriptionId: TBloGuid): TBloCatalogueEntry;
+var
+  Index: Integer;
+begin
+  Result := nil;
+
+  if not Assigned(FClientReadDetail) then
+  begin
+    Exit;
+  end;
+
+  for Index := 0 to Length(FClientReadDetail.Catalogue) - 1 do
+  begin
+    if ProductConfigService.GuidsEqual(FClientReadDetail.Catalogue[Index].Id, SubscriptionId) then
+    begin
+      Result := FClientReadDetail.Catalogue[Index];
+
+      Break;
+    end;
+  end;
 end;
 
 procedure TfrmClientDetails.SetProductsCaption(NewCaption: string);
@@ -1438,7 +1463,7 @@ begin
     end;
 
     if Assigned(FClientReadDetail) then
-      NumProducts := IntToStr(Length(FClientReadDetail.Subscription))
+      NumProducts := IntToStr(CountClientProducts(FClientReadDetail))
     else if MyClient.clExtra.ceOnlineValuesStored then
       NumProducts := IntToStr(MyClient.clExtra.ceOnlineSubscriptionCount)
     else if MyClient.clFields.clWeb_Export_Format = wfWebNotes then
@@ -1465,6 +1490,27 @@ procedure TfrmClientDetails.cmbResponsibleChange(Sender: TObject);
 begin
   if (radStaffMember.Checked)then
     UpdatePracticeContactDetails( cdtStaffMember);
+end;
+
+function TfrmClientDetails.CountClientProducts(ClientDetails: TBloClientReadDetail): Integer;
+var
+  Index: Integer;
+  CatEntry: TBloCatalogueEntry;
+begin
+  Result := 0;
+
+  for Index := 0 to Length(ClientDetails.Subscription) - 1 do
+  begin
+    CatEntry := GetClientSubscriptionCategory(ClientDetails.Subscription[Index]);
+
+    if Assigned(CatEntry) then
+    begin
+      if (CatEntry.CatalogueType <> 'Service') then
+      begin
+        Inc(Result);
+      end;
+    end;    
+  end;
 end;
 
 //------------------------------------------------------------------------------
