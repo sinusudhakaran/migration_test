@@ -12,7 +12,7 @@
 // Encoding : utf-8
 // Codegen  : [wfMapStringsToWideStrings+, wfUseScopedEnumeration-]
 // Version  : 1.0
-// (9/05/2012 3:11:44 p.m. - - $Rev: 25127 $)
+// (16/05/2012 4:53:25 p.m. - - $Rev: 25127 $)
 // ************************************************************************ //
 
 unit BlopiServiceFacade;
@@ -1406,7 +1406,10 @@ type
     function  SavePractice(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const practice: PracticeUpdate): MessageResponse; stdcall;
     function  CreatePracticeUser(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const user: UserCreatePractice): MessageResponseOfguid; stdcall;
     function  SavePracticeUser(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const user: UserUpdatePractice): MessageResponse; stdcall;
-    function  SetPracticeUserPassword(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const userId: guid; const newPassword: WideString): MessageResponse; stdcall;
+    function  ResetPracticeUserPassword(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const userId: guid): MessageResponse; stdcall;
+    function  ChangePracticeUserPassword(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const userId: guid; const oldPassword: WideString; const newPassword: WideString
+                                         ): MessageResponse; stdcall;
+    function  AuthenticatePracticeUser(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const userId: guid; const password: WideString): MessageResponse; stdcall;
     function  DeleteUser(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const userId: guid): MessageResponse; stdcall;
     function  GetClientList(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString): MessageResponseOfClientListMIdCYrSK; stdcall;
     function  GetClient(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const clientId: guid): MessageResponseOfClientReadDetailMIdCYrSK; stdcall;

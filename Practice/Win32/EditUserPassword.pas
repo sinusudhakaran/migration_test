@@ -180,6 +180,7 @@ begin
   Result := False;
   try
     if ProductConfigService.ChangePracUserPass(fUser_Rec.usCode,
+                                               Trim(Uppercase(edtOldPassword.text)),
                                                Trim(Uppercase(edtNewPassword.text))) then
     begin
       Result := True;

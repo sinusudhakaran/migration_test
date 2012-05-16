@@ -652,6 +652,7 @@ begin
                                                      cmbUserType.ItemIndex,
                                                      fIsCreateUser,
                                                      true,
+                                                     fOldValues.Password,
                                                      ePass.Text);
 
       if Result then
