@@ -24,10 +24,18 @@ uses
   BankLinkOnlineServices,
   OSFont,
   VirtualTrees,
-  ActnList, CheckLst;
+  ActnList, CheckLst, RzLstBox, RzChkLst, cxGraphics, cxControls,
+  cxLookAndFeels, cxLookAndFeelPainters, dxSkinsDefaultPainters,
+  dxSkinValentine, dxSkinXmas2008Blue, cxContainer, cxCheckListBox, dxSkinsCore,
+  dxSkinBlack, dxSkinBlue, dxSkinCaramel, dxSkinCoffee, dxSkinDarkRoom,
+  dxSkinDarkSide, dxSkinFoggy, dxSkinGlassOceans, dxSkiniMaginary, dxSkinLilian,
+  dxSkinLiquidSky, dxSkinLondonLiquidSky, dxSkinMcSkin, dxSkinMoneyTwins,
+  dxSkinOffice2007Black, dxSkinOffice2007Blue, dxSkinOffice2007Green,
+  dxSkinOffice2007Pink, dxSkinOffice2007Silver, dxSkinPumpkin, dxSkinSeven,
+  dxSkinSharp, dxSkinSilver, dxSkinSpringTime, dxSkinStardust, dxSkinSummer2008;
 
 type
-  TCheckListBoxHelper = class helper for TCheckListBox
+  TCheckListHelper = class helper for TcxCheckListBox
   public
     function CountCheckedItems: Integer;
     procedure ReleaseObjects;
@@ -114,12 +122,12 @@ type
     tbsDataExport: TTabSheet;
     pnlExportOptions: TPanel;
     Label6: TLabel;
-    chklistExportTo: TCheckListBox;
     pgcVendorExportOptions: TPageControl;
     tbsIBizz: TTabSheet;
     lblAcclipseCode: TLabel;
     edtAcclipseCode: TEdit;
     Label12: TLabel;
+    chklistExportTo: TcxCheckListBox;
     
     procedure btnOKClick(Sender: TObject);
     procedure btnCancelClick(Sender: TObject);
@@ -154,7 +162,8 @@ type
     procedure tbsDetailsShow(Sender: TObject);
     procedure PageControl1Change(Sender: TObject);
     procedure PageControl1Changing(Sender: TObject; var AllowChange: Boolean);
-    procedure chklistExportToClickCheck(Sender: TObject);
+    procedure chklistExportToClickCheck(Sender: TObject; AIndex: Integer;
+      APrevState, ANewState: TcxCheckBoxState);
   private
     { Private declarations }
     okPressed : boolean;
@@ -165,10 +174,9 @@ type
     FPreviousPage: integer;
     FOnlineSettingsChanged: Boolean;
     FPracticeVendorExports: TBloDataPlatformSubscription;
-    FSelectedVendorExports: TBloArrayOfGuid;
     FIBizzCredentials: TBloIBizzCredentials;
     FVendorSubscriberCount: TBloArrayOfPracticeDataSubscriberCount;
-    
+
     procedure SetUpHelp;
     function AddTreeNode(AVST: TCustomVirtualStringTree; ANode:
                                PVirtualNode; ACaption: widestring;
@@ -198,6 +206,8 @@ type
     function GetVendorExportName(VendorExportGuid: TBloGuid; PracticeVendorExports: TBloDataPlatformSubscription): String;
     function CountVendorExportClients: Integer;
     function GetVendorExportClientCount(VendorExportGuid: TBloGuid): Integer;
+    procedure PopulateSelectedVendorList(var SelectedVendors: TBloArrayOfGuid);
+    function IsVendorSelected(VendorExportId: TBloGuid): Boolean;
   public
     { Public declarations }
     function Execute(SelPracticeMan: Boolean) : boolean;
@@ -342,7 +352,7 @@ function TfrmPracticeDetails.IBizzCredentialsChanged: Boolean;
 begin
   Result := False;
   
-  if ProductConfigService.IsPracticeProductEnabled(ProductConfigService.GetExportDataId, True) and ProductConfigService.IsItemInArrayGuid(FSelectedVendorExports, ProductConfigService.GetIBizzExportGuid)  then
+  if ProductConfigService.IsPracticeProductEnabled(ProductConfigService.GetExportDataId, True) and IsVendorSelected(ProductConfigService.GetIBizzExportGuid)  then
   begin
     if Assigned(FIBizzCredentials) then
     begin
@@ -351,6 +361,23 @@ begin
     else
     begin
       Result := edtAcclipseCode.Text <> '';
+    end;
+  end;
+end;
+
+function TfrmPracticeDetails.IsVendorSelected(VendorExportId: TBloGuid): Boolean;
+var
+  Index: Integer;
+begin
+  Result := False;
+  
+  for Index := 0 to chklistExportTo.Count - 1 do
+  begin
+    if ProductConfigService.GuidsEqual(TVendorExport(chklistExportTo.Items[Index].ItemObject).Id, VendorExportId) then
+    begin
+      Result := chklistExportTo.Items[Index].Checked;
+
+      Break;
     end;
   end;
 end;
@@ -602,36 +629,30 @@ begin
   ProductConfigService.SetPrimaryContact(TempUser);
 end;
 
-procedure TfrmPracticeDetails.chklistExportToClickCheck(Sender: TObject);
+procedure TfrmPracticeDetails.chklistExportToClickCheck(Sender: TObject; AIndex: Integer; APrevState, ANewState: TcxCheckBoxState);
 var
   ClientCount: Integer;
 begin
-  if chklistExportTo.ItemIndex > -1 then
+  if APrevState <> ANewState then
   begin
-    if chklistExportTo.Checked[chklistExportTo.ItemIndex] then
+    if ANewState = cbsUnChecked then
     begin
-      ProductConfigService.AddItemToArrayGuid(FSelectedVendorExports, TVendorExport(chklistExportTo.Items.Objects[chklistExportTo.ItemIndex]).Id);
-    end
-    else
-    begin
-      ClientCount := GetVendorExportClientCount(TVendorExport(chklistExportTo.Items.Objects[chklistExportTo.ItemIndex]).Id);
+      ClientCount := GetVendorExportClientCount(TVendorExport(chklistExportTo.Items.Objects[AIndex]).Id);
 
       if ClientCount > 0 then
       begin
-        if AskYesNo('Banklink Online Export To', 'There are currently ' + IntToStr(ClientCount) + ' clients using the Export To ' + chklistExportTo.Items[chklistExportTo.ItemIndex] + ' service. ' +
-          'Removing access for this service will prevent any transaction data from being exported to ' + chklistExportTo.Items[chklistExportTo.ItemIndex] + '. Are you sure you wan tto continue?',
+        if AskYesNo('Banklink Online Export To', 'There are currently ' + IntToStr(ClientCount) + ' clients using the Export To ' + chklistExportTo.Items[AIndex].Text + ' service. ' +
+          'Removing access for this service will prevent any transaction data from being exported to ' + chklistExportTo.Items[AIndex].Text + '. Are you sure you wan tto continue?',
           DLG_YES, 0) = DLG_NO then
         begin
-          chklistExportTo.Checked[chklistExportTo.ItemIndex] := True;
+          chklistExportTo.Items[AIndex].Checked := True;
 
           Exit;
         end;
       end;
-      
-      ProductConfigService.RemoveItemFromArrayGuid(FSelectedVendorExports, TVendorExport(chklistExportTo.Items.Objects[chklistExportTo.ItemIndex]).Id);
     end;
     
-    ToggleVendorExportSettings(TVendorExport(chklistExportTo.Items.Objects[chklistExportTo.ItemIndex]).Id, chklistExportTo.Checked[chklistExportTo.ItemIndex]);
+    ToggleVendorExportSettings(TVendorExport(chklistExportTo.Items.Objects[AIndex]).Id, ANewState = cbsChecked);
   end;
 end;
 
@@ -651,7 +672,6 @@ begin
 
   edtAcclipseCode.Text := '';
   chklistExportTo.Clear;
-  SetLength(FSelectedVendorExports, 0);
   
   try
     if ckUseBankLinkOnline.Checked then begin
@@ -1057,6 +1077,8 @@ end;
 function TfrmPracticeDetails.VendorExportsChanged: Boolean;
 var
   Index: Integer;
+  SelectedVendors: TBloArrayOfGuid;
+  CurrentVendors: TBloArrayOfGuid;
 begin
   Result := False;
 
@@ -1064,16 +1086,36 @@ begin
   begin
     if Assigned(FPracticeVendorExports) then
     begin
-      if Length(FSelectedVendorExports) = Length(FPracticeVendorExports.Current) then
+      PopulateSelectedVendorList(SelectedVendors);
+
+      for Index := 0 to Length(FPracticeVendorExports.Current) - 1 do
       begin
-        for Index := 0 to Length(FPracticeVendorExports.Current) - 1 do
+        ProductConfigService.AddItemToArrayGuid(CurrentVendors, FPracticeVendorExports.Current[Index].Id);
+      end;
+          
+      if Length(SelectedVendors) = Length(FPracticeVendorExports.Current) then
+      begin
+        for Index := 0 to Length(SelectedVendors) - 1 do
         begin
-          if FSelectedVendorExports[Index] <> FPracticeVendorExports.Current[Index].Id then
+          if not ProductConfigService.IsItemInArrayGuid(CurrentVendors, SelectedVendors[Index]) then
           begin
             Result := True;
 
             Break;
-          end; 
+          end;
+        end;
+
+        if not Result then
+        begin
+          for Index := 0 to Length(CurrentVendors) - 1 do
+          begin
+            if not ProductConfigService.IsItemInArrayGuid(SelectedVendors, CurrentVendors[Index]) then
+            begin
+              Result := True;
+
+              Break;
+            end;
+          end;
         end;
       end
       else
@@ -1104,21 +1146,25 @@ function TfrmPracticeDetails.VerifyForm: boolean;
   end;
 
   function SaveDataExportSettings: Boolean;
+  var
+    SelectedVendors: TBloArrayOfGuid;
   begin
     Result := False;
     
     if VendorExportsChanged then
     begin
+      PopulateSelectedVendorList(SelectedVendors);
+      
       if IBizzCredentialsChanged then
       begin
-        if ProductConfigService.SavePracticeVendorExports(FSelectedVendorExports, True) then
+        if ProductConfigService.SavePracticeVendorExports(SelectedVendors, True) then
         begin
           Result := ProductConfigService.SaveIBizzCredentials(edtAcclipseCode.Text, True);
         end;
       end
       else
       begin
-        Result := ProductConfigService.SavePracticeVendorExports(FSelectedVendorExports, True);
+        Result := ProductConfigService.SavePracticeVendorExports(SelectedVendors, True);
       end;
     end
     else
@@ -1249,7 +1295,7 @@ begin
     
     if ProductConfigService.IsPracticeProductEnabled(ProductConfigService.GetExportDataId, True) then
     begin
-      if ProductConfigService.IsItemInArrayGuid(FSelectedVendorExports, ProductConfigService.GetIBizzExportGuid) then
+      if IsVendorSelected(ProductConfigService.GetIBizzExportGuid) then
       begin
         if not ValidateIBizzCredentials then
         begin
@@ -1408,7 +1454,7 @@ begin
   begin
     if ProductConfigService.IsPracticeProductEnabled(ProductConfigService.GetExportDataId, True) then
     begin
-      if ProductConfigService.IsItemInArrayGuid(FSelectedVendorExports, ProductConfigService.GetIBizzExportGuid) then
+      if IsVendorSelected(ProductConfigService.GetIBizzExportGuid) then
       begin
         if not ValidateIBizzCredentials then
         begin
@@ -1666,6 +1712,7 @@ var
   Index: Integer;
   IIndex: Integer;
   VendorSortList: TStringList;
+  CheckListItem: TcxCheckListBoxItem;
 begin
   chklistExportTo.ReleaseObjects;
   chklistExportTo.Clear;
@@ -1684,20 +1731,28 @@ begin
 
     for Index := 0 to VendorSortList.Count - 1 do
     begin
-      chklistExportTo.AddItem(VendorSortList[Index], VendorSortList.Objects[Index]); 
+      CheckListItem := chklistExportTo.Items.Add;
 
-      SetLength(FSelectedVendorExports, Length(FPracticeVendorExports.Current));
+      CheckListItem.Text := VendorSortList[Index];
+      CheckListItem.ItemObject := VendorSortList.Objects[Index];
+      
+      if TVendorExport(VendorSortList.Objects[Index]).Id = ProductConfigService.GetIBizzExportGuid then
+      begin
+        tbsIBizz.PageIndex := Index;
+      end
+      else
+      begin
+        AddVendorSettingsTab(VendorSortList[Index]);
+      end;
           
       for IIndex := 0 to Length(FPracticeVendorExports.Current) - 1 do
       begin
         if TVendorExport(VendorSortList.Objects[Index]).Id = FPracticeVendorExports.Current[IIndex].Id then
         begin
-          chklistExportTo.Checked[chklistExportTo.Count -1] := True;
+          chklistExportTo.Items[chklistExportTo.Count -1].Checked := True;
 
           ToggleVendorExportSettings(FPracticeVendorExports.Current[IIndex].Id, True);
         end;
-
-        FSelectedVendorExports[IIndex] := FPracticeVendorExports.Current[IIndex].Id;
       end;
     end;
   finally
@@ -1801,6 +1856,19 @@ procedure TfrmPracticeDetails.PageControl1Changing(Sender: TObject;
   var AllowChange: Boolean);
 begin
   FPreviousPage := PageControl1.ActivePageIndex;
+end;
+
+procedure TfrmPracticeDetails.PopulateSelectedVendorList(var SelectedVendors: TBloArrayOfGuid);
+var
+  Index: Integer;
+begin
+  for Index := 0 to chklistExportTo.Count - 1 do
+  begin
+    if chklistExportTo.Items[Index].Checked then
+    begin
+      ProductConfigService.AddItemToArrayGuid(SelectedVendors, TVendorExport(chklistExportTo.Items[Index].ItemObject).Id); 
+    end;
+  end;
 end;
 
 //------------------------------------------------------------------------------
@@ -1955,7 +2023,9 @@ begin
   begin
     if pgcVendorExportOptions.Pages[Index].Caption = VendorName then
     begin
-      pgcVendorExportOptions.Pages[Index].TabVisible := False;
+      pgcVendorExportoptions.Pages[Index].TabVisible := False;
+
+      pgcVendorExportoptions.Pages[Index].PageIndex := pgcVendorExportoptions.PageCount -1; 
 
       Break;
     end;
@@ -2004,44 +2074,71 @@ begin
 end;
 
 procedure TfrmPracticeDetails.ToggleVendorExportSettings(VendorExportGuid: TBloGuid; Visible: Boolean);
+
+
+  function GetPageIndex(VendorExportName: String): Integer;
+  var
+    Index: Integer;
+    TabPos: Integer;
+  begin
+    Result := -1;
+
+    TabPos := 0;
+    
+    for Index := 0 to pgcVendorExportOptions.PageCount - 1 do
+    begin
+      if pgcVendorExportOptions.Pages[Index].TabVisible then
+      begin
+        if CompareText(VendorExportName, pgcVendorExportOptions.Pages[Index].Caption) < 0 then
+        begin
+          Break;
+        end;
+
+        Inc(TabPos);
+      end;
+    end;
+
+    Result := TabPos;
+  end;
+  
 var
   VendorSettingsTab: TTabsheet;
   VendorExportName: String;
+  PageIndex: Integer;
 begin
-  if ProductConfigService.GuidsEqual(VendorExportGuid, ProductConfigService.GetIBizzExportGuid) then
+  if Assigned(FPracticeVendorExports) then
   begin
-    if tbsIBizz.TabVisible <> Visible then
-    begin
-      tbsIBizz.TabVisible := Visible;
+    VendorExportName := GetVendorExportName(VendorExportGuid, FPracticeVendorExports);
 
-      if tbsIBizz.TabVisible then
-      begin
-        pgcVendorExportOptions.ActivePage := tbsIBizz;
-      end;
-    end;
-  end
-  else
-  begin
-    if Assigned(FPracticeVendorExports) then
+    if ProductConfigService.GuidsEqual(VendorExportGuid, ProductConfigService.GetIBizzExportGuid) then
     begin
-      VendorExportName := GetVendorExportName(VendorExportGuid, FPracticeVendorExports);
+      if tbsIBizz.TabVisible <> Visible then
+      begin
+        if Visible then
+        begin
+          tbsIBizz.TabVisible := True;
+
+          pgcVendorExportOptions.ActivePage := tbsIBizz;
+        end
+        else
+        begin
+          tbsIBizz.TabVisible := False;
+        end;
+      end;
+    end
+    else
+    begin
+      VendorSettingsTab := GetVendorSettingsTab(VendorExportName);
 
       if Visible then
       begin
-        VendorSettingsTab := GetVendorSettingsTab(VendorExportName);
-
-        if not Assigned(VendorSettingsTab) then
-        begin
-          VendorSettingsTab := AddVendorSettingsTab(VendorExportName);
-        end;
-
         VendorSettingsTab.TabVisible := True;
 
         pgcVendorExportOptions.ActivePage := VendorSettingsTab;
       end
       else
       begin
-        RemoveVendorSettingsTab(GetVendorExportName(VendorExportGuid, FPracticeVendorExports));
+        VendorSettingsTab.TabVisible := False;
       end;
     end;
   end;
@@ -2098,7 +2195,7 @@ end;
 
 { TCheckBoxListHelper }
 
-function TCheckListBoxHelper.CountCheckedItems: Integer;
+function TCheckListHelper.CountCheckedItems: Integer;
 var
   Index: Integer;
 begin
@@ -2106,7 +2203,7 @@ begin
   
   for Index := 0 to Count - 1 do
   begin
-    if Checked[Index] then
+    if Items[Index].Checked then
     begin
       Inc(Result);
     end;
@@ -2120,7 +2217,7 @@ begin
   FId := VendorExportID;
 end;
 
-procedure TCheckListBoxHelper.ReleaseObjects;
+procedure TCheckListHelper.ReleaseObjects;
 var
   Index: Integer;
 begin
