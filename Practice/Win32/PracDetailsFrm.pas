@@ -154,7 +154,11 @@ type
     procedure tbsDetailsShow(Sender: TObject);
     procedure PageControl1Change(Sender: TObject);
     procedure PageControl1Changing(Sender: TObject; var AllowChange: Boolean);
-    procedure chklistExportToClick(Sender: TObject);
+    procedure chklistExportToMatch(Sender: TObject);
+    procedure chklistExportToChanging(Sender: TObject; Index: Integer;
+      NewState: TCheckBoxState; var AllowChange: Boolean);
+    procedure chklistExportToChange(Sender: TObject; Index: Integer;
+      NewState: TCheckBoxState);
   private
     { Private declarations }
     okPressed : boolean;
@@ -620,26 +624,36 @@ begin
   ProductConfigService.SetPrimaryContact(TempUser);
 end;
 
-procedure TfrmPracticeDetails.chklistExportToClick(Sender: TObject);
+procedure TfrmPracticeDetails.chklistExportToChange(Sender: TObject;
+  Index: Integer; NewState: TCheckBoxState);
+begin
+  ToggleVendorExportSettings(TVendorExport(chklistExportTo.Items.Objects[Index]).Id, NewState = cbChecked);
+end;
+
+procedure TfrmPracticeDetails.chklistExportToChanging(Sender: TObject;
+  Index: Integer; NewState: TCheckBoxState; var AllowChange: Boolean);
 var
   ClientCount: Integer;
 begin
-  if chklistExportTo.ItemChecked[chklistExportTo.ItemIndex] then
+  if NewState = cbUnchecked then
   begin
-    ClientCount := GetVendorExportClientCount(TVendorExport(chklistExportTo.Items.Objects[chklistExportTo.ItemIndex]).Id);
+    ClientCount := GetVendorExportClientCount(TVendorExport(chklistExportTo.Items.Objects[Index]).Id);
 
     if ClientCount > 0 then
     begin
-      if AskYesNo('Banklink Online Export To', 'There are currently ' + IntToStr(ClientCount) + ' clients using the Export To ' + chklistExportTo.Items[chklistExportTo.ItemIndex] + ' service. ' +
-        'Removing access for this service will prevent any transaction data from being exported to ' + chklistExportTo.Items[chklistExportTo.ItemIndex] + '. Are you sure you wan tto continue?',
+      if AskYesNo('Banklink Online Export To', 'There are currently ' + IntToStr(ClientCount) + ' clients using the Export To ' + chklistExportTo.Items[Index] + ' service. ' +
+        'Removing access for this service will prevent any transaction data from being exported to ' + chklistExportTo.Items[Index] + '. Are you sure you wan tto continue?',
         DLG_YES, 0) = DLG_NO then
       begin
-        Exit;
+        AllowChange := False;
       end;
     end;
   end;
-    
-  ToggleVendorExportSettings(TVendorExport(chklistExportTo.Items.Objects[chklistExportTo.ItemIndex]).Id, not chklistExportTo.ItemChecked[chklistExportTo.ItemIndex]);
+end;
+
+procedure TfrmPracticeDetails.chklistExportToMatch(Sender: TObject);
+begin
+
 end;
 
 //------------------------------------------------------------------------------

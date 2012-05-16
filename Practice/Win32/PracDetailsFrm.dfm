@@ -722,9 +722,11 @@ object frmPracticeDetails: TfrmPracticeDetails
           Top = 24
           Width = 253
           Height = 108
+          OnChange = chklistExportToChange
+          OnChanging = chklistExportToChanging
           ItemHeight = 17
           TabOrder = 1
-          OnClick = chklistExportToClick
+          OnMatch = chklistExportToMatch
         end
       end
     end
