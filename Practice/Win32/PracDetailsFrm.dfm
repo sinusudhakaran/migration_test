@@ -47,7 +47,7 @@ object frmPracticeDetails: TfrmPracticeDetails
     Top = 8
     Width = 617
     Height = 387
-    ActivePage = tsBankLinkOnline
+    ActivePage = tbsDataExport
     TabOrder = 0
     OnChange = PageControl1Change
     OnChanging = PageControl1Changing
@@ -698,7 +698,7 @@ object frmPracticeDetails: TfrmPracticeDetails
           Width = 575
           Height = 193
           ActivePage = tbsIBizz
-          TabOrder = 0
+          TabOrder = 1
           object tbsIBizz: TTabSheet
             Caption = 'iBizz'
             object lblAcclipseCode: TLabel
@@ -725,7 +725,7 @@ object frmPracticeDetails: TfrmPracticeDetails
           OnChange = chklistExportToChange
           OnChanging = chklistExportToChanging
           ItemHeight = 17
-          TabOrder = 1
+          TabOrder = 0
           OnMatch = chklistExportToMatch
         end
       end
