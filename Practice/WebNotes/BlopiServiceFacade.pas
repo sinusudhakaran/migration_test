@@ -12,7 +12,7 @@
 // Encoding : utf-8
 // Codegen  : [wfMapStringsToWideStrings+, wfUseScopedEnumeration-]
 // Version  : 1.0
-// (16/05/2012 4:53:25 p.m. - - $Rev: 25127 $)
+// (18/05/2012 10:00:43 a.m. - - $Rev: 25127 $)
 // ************************************************************************ //
 
 unit BlopiServiceFacade;
@@ -192,15 +192,20 @@ type
   private
     FClientCount: Integer;
     FClientCount_Specified: boolean;
+    FClientIds: ArrayOfguid;
+    FClientIds_Specified: boolean;
     FSubscriberId: guid;
     FSubscriberId_Specified: boolean;
     procedure SetClientCount(Index: Integer; const AInteger: Integer);
     function  ClientCount_Specified(Index: Integer): boolean;
+    procedure SetClientIds(Index: Integer; const AArrayOfguid: ArrayOfguid);
+    function  ClientIds_Specified(Index: Integer): boolean;
     procedure SetSubscriberId(Index: Integer; const Aguid: guid);
     function  SubscriberId_Specified(Index: Integer): boolean;
   published
-    property ClientCount:  Integer  Index (IS_OPTN) read FClientCount write SetClientCount stored ClientCount_Specified;
-    property SubscriberId: guid     Index (IS_OPTN) read FSubscriberId write SetSubscriberId stored SubscriberId_Specified;
+    property ClientCount:  Integer      Index (IS_OPTN) read FClientCount write SetClientCount stored ClientCount_Specified;
+    property ClientIds:    ArrayOfguid  Index (IS_OPTN or IS_NLBL) read FClientIds write SetClientIds stored ClientIds_Specified;
+    property SubscriberId: guid         Index (IS_OPTN) read FSubscriberId write SetSubscriberId stored SubscriberId_Specified;
   end;
 
   ArrayOfDataPlatformBankAccount = array of DataPlatformBankAccount;   { "http://www.banklinkonline.com/2011/11/DataPlatform"[GblCplx] }
@@ -1554,6 +1559,17 @@ end;
 function PracticeDataSubscriberCount.ClientCount_Specified(Index: Integer): boolean;
 begin
   Result := FClientCount_Specified;
+end;
+
+procedure PracticeDataSubscriberCount.SetClientIds(Index: Integer; const AArrayOfguid: ArrayOfguid);
+begin
+  FClientIds := AArrayOfguid;
+  FClientIds_Specified := True;
+end;
+
+function PracticeDataSubscriberCount.ClientIds_Specified(Index: Integer): boolean;
+begin
+  Result := FClientIds_Specified;
 end;
 
 procedure PracticeDataSubscriberCount.SetSubscriberId(Index: Integer; const Aguid: guid);
