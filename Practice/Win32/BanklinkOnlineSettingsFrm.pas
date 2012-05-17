@@ -130,7 +130,8 @@ uses
   InfoMoreFrm,
   BanklinkOnlineTaggingServices,
   ModalProgressFrm,
-  RegExprUtils;
+  RegExprUtils,
+  GenUtils;
 
 const
   UnitName = 'BanklinkOnlineSettingsFrm';
@@ -633,17 +634,8 @@ begin
 
     if Assigned(NewExports) then
     begin
-      case NewExports.Count of
-        1: NewExportsStr := NewExports[0];
-        2: NewExportsStr := NewExports[0] + ' and ' + NewExports[1];
-        else
-        begin
-          NewExportsStr := '';
-          for i := 0 to NewExports.Count - 2 do
-            NewExportsStr := NewExportsStr + NewExports[i] + ', ';
-          NewExportsStr := NewExportsStr + 'and ' + NewExports[NewExports.Count - 1];
-        end;
-      end;
+      NewExportsStr := GetCommaSepStrFromList(NewExports);
+
       ShowMessage('You have enabled the export of data to BankLink Online for ' +
                   NewExportsStr + ' for all the Bank Accounts currently attached to ' +
                   'this client file. If there are Bank Accounts that you do not ' +

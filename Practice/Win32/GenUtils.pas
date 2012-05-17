@@ -144,6 +144,9 @@ function StrToFontStyle(FontStyle : String) : TFontStyles;
 
 procedure PopUpCalendar(Owner:TEdit; var aDate : integer);
 
+function GetCommaSepStrFromList(const Items : TStringList) : string; overload;
+function GetCommaSepStrFromList(const Items : array of string) : string; overload;
+
 
 //******************************************************************************
 Implementation
@@ -1175,6 +1178,43 @@ begin
          aDate := 0;
   finally
     PopupPanel.Free;
+  end;
+end;
+
+function GetCommaSepStrFromList(const Items : TStringList) : string;
+var
+  ItemArr   : array of string;
+  ItemIndex : integer;
+begin
+  Setlength(ItemArr, Items.Count);
+
+  for ItemIndex := 0 to Items.Count - 1 do
+    ItemArr[ItemIndex] := Items.Strings[ItemIndex];
+
+  Result := GetCommaSepStrFromList(ItemArr);
+
+  Setlength(ItemArr, 0);
+end;
+
+function GetCommaSepStrFromList(const Items : array of string) : string;
+var
+  ItemCount : integer;
+  ItemIndex : integer;
+begin
+  Result := '';
+  ItemCount := Length(Items);
+
+  case ItemCount of
+    0 : Exit;
+    1 : Result := Items[0];
+    2 : Result := Items[0] + ' and ' + Items[1];
+    else
+    begin
+      for ItemIndex := 0 to ItemCount - 2 do
+        Result := Result + Items[ItemIndex] + ', ';
+
+      Result := Result + 'and ' + Items[ItemCount - 1];
+    end;
   end;
 end;
 

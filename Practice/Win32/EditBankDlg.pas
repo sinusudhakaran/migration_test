@@ -147,7 +147,7 @@ type
     function IsGuidInCurrentVendors(aGuid : TBloGuid) : boolean;
     function HaveVendorExportsChanged(out aMessage : string) : Boolean;
     procedure UpdateAccountVendorInfo;
-    function AccountHasNoTicks(out aMessage : string) : Boolean;
+    function AllAccountsHaveOneVendorSelected(out aMessage : string) : Boolean;
     function GetVendorIndex(aGuid : TBloGuid) : integer;
   public
     { Public declarations }
@@ -549,15 +549,16 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TdlgEditBank.AccountHasNoTicks(out aMessage : string) : Boolean;
+function TdlgEditBank.AllAccountsHaveOneVendorSelected(out aMessage : string) : Boolean;
 var
   VIndex : integer;
   VendorIndex : integer;
   VendorId : TBloGuid;
-  VendorNames : string;
+  VendorNames : Array of String;
+  VendorStr : String;
 begin
   Result := false;
-  VendorNames := '';
+  SetLength(VendorNames, 0);
   aMessage := '';
 
   Setlength(fRemoveVendorsFromClientList,0);
@@ -569,10 +570,8 @@ begin
     if (chkLstAccVendors.Checked[VIndex] = False) and
        (AccountVendors.IsLastAccForVendors[VendorIndex]) then
     begin
-      if Length(VendorNames) > 0 then
-        VendorNames := VendorNames + ', ';
-
-      VendorNames := VendorNames + AccountVendors.AccountVendors.Available[VendorIndex].Name_;
+      SetLength(VendorNames, length(VendorNames)+1);
+      VendorNames[High(VendorNames)] := AccountVendors.AccountVendors.Available[VendorIndex].Name_;
     end
     else
     begin
@@ -582,10 +581,12 @@ begin
     end;
   end;
 
+  VendorStr := GetCommaSepStrFromList(VendorNames);
+
   if Length(VendorNames) > 0 then
   begin
-    aMessage := 'Client ' + MyClient.clFields.clCode + ' no longer has any bank accounts using (' + VendorNames + ').' + #10 +
-                'Would you like BankLink Practice to remove (' + VendorNames + ') for this client?';
+    aMessage := 'Client ' + MyClient.clFields.clCode + ' no longer has any bank accounts using ' + VendorStr + '.' + #10 +
+                'Would you like BankLink Practice to remove ' + VendorStr + ' for this client?';
     Result := True;
   end;
 end;
@@ -729,7 +730,7 @@ begin
     end;
 
     if (fVendorDirty) and
-       (AccountHasNoTicks(PromptMessage)) then
+       (AllAccountsHaveOneVendorSelected(PromptMessage)) then
     begin
       DlgResult := AskYesNo('Export Options Updated', PromptMessage, DLG_YES, 0, true);
 
