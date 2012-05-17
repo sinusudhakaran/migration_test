@@ -1574,14 +1574,6 @@ begin
       begin
         if ProductConfigService.GuidsEqual(Cat.Id, ProductConfigService.GetExportDataId) and tbsDataExport.TabVisible then
         begin
-          if DataExportSettingsChanged then
-          begin
-            if AskYesNo('Disable the Export Data service', 'You have made changes to your Data Export Settings - click Yes to return and save or No to continue without saving.', DLG_YES, 0) = DLG_NO then
-            begin
-              Exit;
-            end;
-          end;
-
           ClientCount := CountVendorExportClients;
 
           if ClientCount > 0 then
