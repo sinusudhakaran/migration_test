@@ -250,7 +250,7 @@ object frmBanklinkOnlineSettings: TfrmBanklinkOnlineSettings
       Top = 135
       Width = 142
       Height = 13
-      Caption = 'BankLink Online Secure Code:'
+      Caption = '&BankLink Online Secure Code:'
       Visible = False
     end
     object chkListServicesAvailable: TCheckListBox
@@ -267,7 +267,7 @@ object frmBanklinkOnlineSettings: TfrmBanklinkOnlineSettings
       Top = 109
       Width = 281
       Height = 17
-      Caption = 'Deliver data direct to BankLink Online'
+      Caption = 'Deli&ver data direct to BankLink Online'
       TabOrder = 1
       OnClick = chkDeliverDataClick
     end
