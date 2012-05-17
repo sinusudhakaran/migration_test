@@ -570,7 +570,7 @@ begin
   //Remove Item
   if High(aBloArrayOfGuid) >= (ItemIndex+1) then
   begin
-    for Index := High(aBloArrayOfGuid) downto ItemIndex+1 do
+    for Index := ItemIndex+1 to High(aBloArrayOfGuid) do
     begin
       aBloArrayOfGuid[Index-1] := aBloArrayOfGuid[Index];
     end;
