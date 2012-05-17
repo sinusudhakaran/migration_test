@@ -668,8 +668,8 @@ begin
 
     if ClientCount > 0 then
     begin
-      if AskYesNo('Banklink Online Export To', 'There are currently ' + IntToStr(ClientCount) + ' clients using the Export To ' + chklistExportTo.Items[Index] + ' service. ' +
-        'Removing access for this service will prevent any transaction data from being exported to ' + chklistExportTo.Items[Index] + '. Are you sure you wan tto continue?',
+      if AskYesNo('Banklink Online Export To', 'There are currently ' + IntToStr(ClientCount) + ' client(s) using the Export To ' + chklistExportTo.Items[Index] + ' service. ' +
+        'Removing access for this service will prevent any transaction data from being exported to ' + chklistExportTo.Items[Index] + '. Are you sure you want to continue?',
         DLG_YES, 0) = DLG_NO then
       begin
         AllowChange := False;
