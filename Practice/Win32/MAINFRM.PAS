@@ -1413,6 +1413,8 @@ begin
   FAdminSystemFound := Assigned( AdminSystem) or AdminExists;
   SetupHelp;
 
+  mniChangePassword.Visible := FAdminSystemFound;
+
   if FAdminSystemFound then
   begin
     DoClientManager(0, 0, 0, 0);
