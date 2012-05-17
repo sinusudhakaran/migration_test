@@ -16,7 +16,7 @@ uses
   CheckLst,
   OSFont,
   BankLinkOnlineServices,
-  Progress;
+  Progress, RzLstBox, RzChkLst;
 
 const
   UM_AFTERSHOW = WM_USER + 1;
@@ -48,10 +48,10 @@ type
     btnUseClientDetails: TButton;
     grpServicesAvailable: TGroupBox;
     lblExportTo: TLabel;
-    chkListServicesAvailable: TCheckListBox;
     chkDeliverData: TCheckBox;
     edtSecureCode: TEdit;
     lblSecureCode: TLabel;
+    chklistServicesAvailable: TRzCheckList;
     procedure btnSelectAllClick(Sender: TObject);
     procedure btnClearAllClick(Sender: TObject);
     procedure rbSuspendedClick(Sender: TObject);
@@ -63,10 +63,11 @@ type
     procedure btnOKClick(Sender: TObject);
     procedure btnCancelClick(Sender: TObject);
     procedure btnUseClientDetailsClick(Sender: TObject);
-    procedure chkListServicesAvailableClickCheck(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure chkDeliverDataClick(Sender: TObject);
     procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    procedure chklistServicesAvailableChange(Sender: TObject; Index: Integer;
+      NewState: TCheckBoxState);
   private
     fOkPressed : Boolean;
     fBusyKeyPress : Boolean;
@@ -262,9 +263,9 @@ begin
   edtSecureCode.Visible := chkDeliverData.Checked;
 end;
 
-procedure TfrmBanklinkOnlineSettings.chkListServicesAvailableClickCheck(Sender: TObject);
+procedure TfrmBanklinkOnlineSettings.chklistServicesAvailableChange(Sender: TObject; Index: Integer; NewState: TCheckBoxState);
 begin
-  if chklistServicesAvailable.Checked[chklistServicesAvailable.ItemIndex] then
+  if chklistServicesAvailable.ItemChecked[chklistServicesAvailable.ItemIndex] then
   begin
     ProductConfigService.AddItemToArrayGuid(ModifiedDataExports, TDataExportOption(chklistServicesAvailable.Items.Objects[chklistServicesAvailable.ItemIndex]).Guid);
   end
@@ -773,7 +774,7 @@ begin
   // Tag accounts attached to this client for the vendor(s) selected
   for i := 0 to chkListServicesAvailable.Items.Count - 1 do
   begin
-    if chkListServicesAvailable.Checked[i] then
+    if chkListServicesAvailable.ItemChecked[i] then
     begin
       SetLength(VendorsSelected, Length(VendorsSelected) + 1);
       VendorsSelected[High(VendorsSelected)] := AvailableServiceArray[i].ID;
@@ -951,7 +952,7 @@ begin
         begin
           if (ClientExportDataService.Current[ClientServiceIndex].Id = AvailableServiceArray[AvailableServiceIndex].Id) then
           begin
-            chkListServicesAvailable.Checked[AvailableServiceIndex] := true;
+            chkListServicesAvailable.ItemChecked[AvailableServiceIndex] := true;
 
             ProductConfigService.AddItemToArrayGuid(OriginalDataExports, ClientExportDataService.Current[ClientServiceIndex].Id);
             ProductConfigService.AddItemToArrayGuid(ModifiedDataExports, ClientExportDataService.Current[ClientServiceIndex].Id);

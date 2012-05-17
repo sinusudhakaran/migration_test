@@ -253,22 +253,13 @@ object frmBanklinkOnlineSettings: TfrmBanklinkOnlineSettings
       Caption = '&BankLink Online Secure Code:'
       Visible = False
     end
-    object chkListServicesAvailable: TCheckListBox
-      Left = 80
-      Top = 21
-      Width = 368
-      Height = 82
-      OnClickCheck = chkListServicesAvailableClickCheck
-      ItemHeight = 13
-      TabOrder = 0
-    end
     object chkDeliverData: TCheckBox
       Left = 9
       Top = 109
       Width = 281
       Height = 17
       Caption = 'Deli&ver data direct to BankLink Online'
-      TabOrder = 1
+      TabOrder = 0
       OnClick = chkDeliverDataClick
     end
     object edtSecureCode: TEdit
@@ -276,8 +267,17 @@ object frmBanklinkOnlineSettings: TfrmBanklinkOnlineSettings
       Top = 132
       Width = 240
       Height = 21
-      TabOrder = 2
+      TabOrder = 1
       Visible = False
+    end
+    object chklistServicesAvailable: TRzCheckList
+      Left = 80
+      Top = 21
+      Width = 368
+      Height = 82
+      OnChange = chklistServicesAvailableChange
+      ItemHeight = 17
+      TabOrder = 2
     end
   end
 end
