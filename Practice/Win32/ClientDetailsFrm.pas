@@ -1259,7 +1259,8 @@ end;
 procedure TfrmClientDetails.chkOffsiteClick(Sender: TObject);
 begin
    if chkOffsite.Checked and MyClient.clExtra.ceDeliverDataDirectToBLO and
-   (MyClient.clExtra.ceBLOSecureCode <> '') then
+   (MyClient.clExtra.ceBLOSecureCode <> '') and
+   ProductConfigService.IsPracticeProductEnabled(ProductConfigService.GetExportDataId, False) then
    begin
      HelpfulWarningMsg('This client is set up for data delivery directly to BankLink Online. ' +
                        'Please contact BankLink Client Services if you want to change the ' +
