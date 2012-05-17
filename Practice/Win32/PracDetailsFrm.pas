@@ -410,6 +410,26 @@ begin
 end;
 
 procedure TfrmPracticeDetails.SetupDataExportSettings;
+
+  function GetFirstVisibleTab: TTabSheet;
+  var
+    Index: Integer;
+  begin
+    Result := nil;
+    
+    for Index := 0 to pgcVendorExportOptions.PageCount - 1 do
+    begin
+      if pgcVendorExportOptions.Pages[Index].TabVisible then
+      begin
+        Result := pgcVendorExportOptions.Pages[Index];
+
+        Break;
+      end;
+    end;
+  end;
+
+var
+  FirstVisibleTab: TTabSheet;
 begin
   if Assigned(FPracticeVendorExports) then
   begin
@@ -420,6 +440,13 @@ begin
       if Assigned(FIBizzCredentials) then
       begin
         edtAcclipseCode.Text := FIBizzCredentials.ExternalSubscriberId;
+      end;
+
+      FirstVisibleTab := GetFirstVisibleTab;
+
+      if Assigned(FirstVisibleTab) then
+      begin
+        pgcVendorExportOptions.ActivePage := GetFirstVisibleTab;
       end;
 
       pnlExportOptions.Visible := True;
@@ -1547,6 +1574,14 @@ begin
       begin
         if ProductConfigService.GuidsEqual(Cat.Id, ProductConfigService.GetExportDataId) and tbsDataExport.TabVisible then
         begin
+          if DataExportSettingsChanged then
+          begin
+            if AskYesNo('Disable the Export Data service', 'You have made changes to your Data Export Settings - click Yes to return and save or No to continue without saving.', DLG_YES, 0) = DLG_NO then
+            begin
+              Exit;
+            end;
+          end;
+
           ClientCount := CountVendorExportClients;
 
           if ClientCount > 0 then
