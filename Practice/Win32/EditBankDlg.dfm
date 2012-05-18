@@ -582,12 +582,13 @@ object dlgEditBank: TdlgEditBank
         Font.Style = []
         ParentFont = False
       end
-      object chkLstAccVendors: TRzCheckList
+      object chkLstAccVendors: TCheckListBox
         Left = 77
         Top = 40
         Width = 351
-        Height = 122
-        ItemHeight = 17
+        Height = 108
+        IntegralHeight = True
+        ItemHeight = 13
         TabOrder = 0
       end
     end

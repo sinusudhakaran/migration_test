@@ -25,7 +25,7 @@ uses
   OsFont,
   VirtualTrees,
   CheckLst,
-  BankLinkOnlineServices, RzLstBox, RzChkLst;
+  BankLinkOnlineServices;
 
 type
   //Node data record
@@ -93,7 +93,7 @@ type
     tbBankLinkOnline: TTabSheet;
     lblSelectExport: TLabel;
     lblExportTo: TLabel;
-    chkLstAccVendors: TRzCheckList;
+    chkLstAccVendors: TCheckListBox;
 
     procedure FormCreate(Sender: TObject);
     procedure SetUpHelp;
@@ -368,7 +368,7 @@ begin
   VendorCount := 0;
   for VendorIndex := 0 to chkLstAccVendors.Items.Count-1 do
   begin
-    if chkLstAccVendors.ItemChecked[VendorIndex] then
+    if chkLstAccVendors.Checked[VendorIndex] then
       inc(VendorCount);
   end;
 
@@ -422,7 +422,7 @@ begin
       if AccountVendors.AccountVendors.Available[AccAvailableIndex].id =
          AccountVendors.AccountVendors.Current[AccCurrentIndex].id then
       begin
-        chkLstAccVendors.ItemChecked[ItemIndex] := true;
+        chkLstAccVendors.Checked[ItemIndex] := true;
         break;
       end;
     end;
@@ -444,7 +444,7 @@ begin
 
   for ItemIndex := 0 to chkLstAccVendors.Items.Count-1 do
   begin
-    if chkLstAccVendors.ItemChecked[ItemIndex] = true then
+    if chkLstAccVendors.Checked[ItemIndex] = true then
     begin
       inc(VendorCount);
       SetLength(CurrentVendors, VendorCount);
@@ -534,10 +534,10 @@ begin
   begin
     VendorId := TBloDataPlatformSubscriber(chkLstAccVendors.Items.Objects[VendorIndex]).Id;
 
-    if chkLstAccVendors.ItemChecked[VendorIndex] <> IsGuidInCurrentVendors(VendorId) then
+    if chkLstAccVendors.Checked[VendorIndex] <> IsGuidInCurrentVendors(VendorId) then
     begin
       Result := True;
-      if chkLstAccVendors.ItemChecked[VendorIndex] then
+      if chkLstAccVendors.Checked[VendorIndex] then
         aMessage := aMessage + 'Enabled '
       else
         aMessage := aMessage + 'Disabled ';
@@ -567,7 +567,7 @@ begin
     VendorId := TBloDataPlatformSubscriber(chkLstAccVendors.Items.Objects[VIndex]).Id;
     VendorIndex := GetVendorIndex(VendorId);
 
-    if (chkLstAccVendors.ItemChecked[VIndex] = False) and
+    if (chkLstAccVendors.Checked[VIndex] = False) and
        (AccountVendors.IsLastAccForVendors[VendorIndex]) then
     begin
       SetLength(VendorNames, length(VendorNames)+1);
