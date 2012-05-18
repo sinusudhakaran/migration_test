@@ -25,10 +25,6 @@ object dlgEditBank: TdlgEditBank
     TabOrder = 0
     object tbDetails: TTabSheet
       Caption = '&Details'
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object lblNo: TLabel
         Left = 24
         Top = 12
@@ -513,10 +509,6 @@ object dlgEditBank: TdlgEditBank
     object tbAnalysis: TTabSheet
       Caption = '&Analysis Coding'
       ImageIndex = 1
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object Label8: TLabel
         Left = 16
         Top = 16
@@ -562,10 +554,6 @@ object dlgEditBank: TdlgEditBank
     object tbBankLinkOnline: TTabSheet
       Caption = 'BankLink Online'
       ImageIndex = 2
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object lblSelectExport: TLabel
         Left = 16
         Top = 11
@@ -594,12 +582,12 @@ object dlgEditBank: TdlgEditBank
         Font.Style = []
         ParentFont = False
       end
-      object chkLstAccVendors: TCheckListBox
+      object chkLstAccVendors: TRzCheckList
         Left = 77
         Top = 40
         Width = 351
         Height = 122
-        ItemHeight = 13
+        ItemHeight = 17
         TabOrder = 0
       end
     end
