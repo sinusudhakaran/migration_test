@@ -158,7 +158,8 @@ type
                           ReciveTimeout : DWord);
     function GetServiceFacade : IBlopiServiceFacade;
     function GetCachedPractice: TBloPracticeRead;
-    function MessageResponseHasError(AMesageresponse: MessageResponse; ErrorText: string): Boolean;
+    function MessageResponseHasError(AMesageresponse: MessageResponse; ErrorText: string;
+                                     SimpleError: boolean = false): Boolean;
     function GetProducts : TBloArrayOfGuid;
     function GetRegistered: Boolean;
     function GetValidBConnectDetails: Boolean;
@@ -1285,7 +1286,7 @@ end;
 
 //------------------------------------------------------------------------------
 function TProductConfigService.MessageResponseHasError(
-  AMesageresponse: MessageResponse; ErrorText: string): Boolean;
+  AMesageresponse: MessageResponse; ErrorText: string; SimpleError: boolean = false): Boolean;
 const
   MAIN_ERROR_MESSAGE = BKPRACTICENAME + ' is unable to %s ' + BANKLINK_ONLINE_NAME + '.';
 var
@@ -1327,7 +1328,7 @@ begin
           AddLine('Source', AMesageresponse.Exceptions[ErrIndex].Source);
           AddLine('StackTrace', AMesageresponse.Exceptions[ErrIndex].StackTrace);
         end;
-        HelpfulErrorMsg(ErrorMessage, 0, True, Details.Text, True);
+        HelpfulErrorMsg(ErrorMessage, 0, True, Details.Text, not SimpleError);
       finally
         Details.Free;
       end;
@@ -2947,7 +2948,7 @@ begin
                                         Subscription,
                                         UserCode);
 
-    Result := not MessageResponseHasError(MsgResponceGuid, 'create the client user on');
+    Result := not MessageResponseHasError(MsgResponceGuid, 'create the client user on', true);
     if Result then
       aUserId := MsgResponceGuid.Result;
 
