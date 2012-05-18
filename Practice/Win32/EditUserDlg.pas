@@ -341,7 +341,7 @@ begin { TdlgEditUser.btnOKClick }
         Exit;
     end;
 
-    if HasUserValueChanged or not UserLoggedInChanged then
+    if HasUserValueChanged then
     begin
      if not PosttoBankLinkOnline then
        Exit;
