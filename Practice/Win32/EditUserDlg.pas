@@ -129,6 +129,10 @@ Type
     fEditChk    : boolean;
     fUIMode     : TUI_Modes;
 
+    FIsLoggedIn: Boolean;
+
+    function UserLoggedInChanged: Boolean;
+    
     procedure StoreOldValues;
     function HasUserValueChanged : Boolean;
     function GetCurrentCode : string;
@@ -337,9 +341,12 @@ begin { TdlgEditUser.btnOKClick }
         Exit;
     end;
 
-    if not PosttoBankLinkOnline then
-      Exit;
-
+    if HasUserValueChanged or not UserLoggedInChanged then
+    begin
+     if not PosttoBankLinkOnline then
+       Exit;
+    end;
+    
     okPressed := true;
     Close;
   End { OKtoPost };
@@ -782,6 +789,18 @@ begin
   end;
 end;
 
+function TdlgEditUser.UserLoggedInChanged: Boolean;
+begin
+  if FIsLoggedIn then
+  begin
+    Result := FIsLoggedIn <> chkLoggedIn.Checked;
+  end
+  else
+  begin
+    Result := False;
+  end;
+end;
+
 //------------------------------------------------------------------------------
 procedure TdlgEditUser.btnRemoveAllClick(Sender: TObject);
 begin
@@ -929,6 +948,8 @@ Var
   Practice : TBloPracticeRead;
   pCF : pClient_File_Rec;
 begin { TdlgEditUser.Execute }
+  FIsLoggedIn := False;
+  
   lvFiles.Items.Clear;
 
   if (UseBankLinkOnline or
@@ -937,6 +958,8 @@ begin { TdlgEditUser.Execute }
 
   if Assigned(User) then
   begin
+    FIsLoggedIn := User.usLogged_In;
+    
     //user type
     if (User.usSystem_Access) then
       cmbUserType.ItemIndex := ustSystem
@@ -1103,7 +1126,7 @@ begin { EditUser }
       end; { CurrUser.LRN = eUser.usLRN }
     end;
     WasLoggedIn := eUser^.usLogged_In;
-
+    
     If MyDlg.Execute(eUser) Then
     begin
       //get the user_rec again as the admin system may have changed in the mean time.
