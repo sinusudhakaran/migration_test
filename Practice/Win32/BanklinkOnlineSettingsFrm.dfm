@@ -275,10 +275,10 @@ object frmBanklinkOnlineSettings: TfrmBanklinkOnlineSettings
       Top = 21
       Width = 368
       Height = 82
+      OnClickCheck = chklistServicesAvailableClickCheck
       IntegralHeight = True
       ItemHeight = 13
       TabOrder = 0
-      OnClick = chklistServicesAvailableClick
     end
   end
 end

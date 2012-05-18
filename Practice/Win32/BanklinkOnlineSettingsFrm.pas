@@ -66,7 +66,7 @@ type
     procedure FormDestroy(Sender: TObject);
     procedure chkDeliverDataClick(Sender: TObject);
     procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
-    procedure chklistServicesAvailableClick(Sender: TObject);
+    procedure chklistServicesAvailableClickCheck(Sender: TObject);
   private
     fOkPressed : Boolean;
     fBusyKeyPress : Boolean;
@@ -262,7 +262,8 @@ begin
   edtSecureCode.Visible := chkDeliverData.Checked;
 end;
 
-procedure TfrmBanklinkOnlineSettings.chklistServicesAvailableClick(Sender: TObject);
+procedure TfrmBanklinkOnlineSettings.chklistServicesAvailableClickCheck(
+  Sender: TObject);
 begin
   if chklistServicesAvailable.Checked[chklistServicesAvailable.ItemIndex] then
   begin
