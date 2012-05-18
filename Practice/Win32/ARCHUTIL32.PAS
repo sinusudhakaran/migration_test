@@ -45,29 +45,29 @@ TYPE
   End;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   tV169_Archived_Transaction = Packed Record
-    aLRN                 : LongInt     ; (* LRN *)
-    aType                : Byte        ; (* Type *)
-    aSource              : Byte        ; (* Source *)
-    aDate_Presented      : LongInt     ; (* Date Presented *)
-    aDate_Transferred    : LongInt     ; (* Date Transferred *)
-    aAmount              : Money       ; (* Amount *)
-    aQuantity            : Money       ; (* Quantity *)
-    aCheque_Number       : LongInt     ; (* Cheque Number *)
-    aReference           : String[ 12] ; (* Reference *)
-    aParticulars         : String[ 12] ; (* Particulars *)
-    aAnalysis            : String[ 12] ; (* Analysis *)
-    aOrigBB              : String[  6] ; (* OrigBB *)
-    aOther_Party         : String[ 20] ; (* Other Party *)
-    aNarration           : String[ 40] ; (* Narration *)
-    aStatement_Details   : String[ 200];
-    aUnique_ID           : LongInt     ;
-    aSpare               : Array[1..32] of Byte; (* Spare *)
-    aRecord_End_Marker   : LongInt;
+    tV169_aLRN                 : LongInt     ; (* LRN *)
+    tV169_aType                : Byte        ; (* Type *)
+    tV169_aSource              : Byte        ; (* Source *)
+    tV169_aDate_Presented      : LongInt     ; (* Date Presented *)
+    tV169_aDate_Transferred    : LongInt     ; (* Date Transferred *)
+    tV169_aAmount              : Money       ; (* Amount *)
+    tV169_aQuantity            : Money       ; (* Quantity *)
+    tV169_aCheque_Number       : LongInt     ; (* Cheque Number *)
+    tV169_aReference           : String[ 12] ; (* Reference *)
+    tV169_aParticulars         : String[ 12] ; (* Particulars *)
+    tV169_aAnalysis            : String[ 12] ; (* Analysis *)
+    tV169_aOrigBB              : String[  6] ; (* OrigBB *)
+    tV169_aOther_Party         : String[ 20] ; (* Other Party *)
+    tV169_aNarration           : String[ 40] ; (* Narration *)
+    tV169_aStatement_Details   : String[ 200];
+    tV169_aUnique_ID           : LongInt     ;
+    tV169_aSpare               : Array[1..32] of Byte; (* Spare *)
+    tV169_aRecord_End_Marker   : LongInt;
   End;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   //LATEST VERSION
-  //upgraded in version 54 of admin
+  //upgraded in version 170 of admin
   tArchived_Transaction = Packed Record
     aLRN                 : LongInt     ; (* LRN *)
     aType                : Byte        ; (* Type *)

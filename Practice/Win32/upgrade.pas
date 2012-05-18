@@ -806,32 +806,32 @@ Procedure DoUpgradeAdminToLatestVersion( var UpgradingToVersion : integer; const
                         NewFile := TbfsBufferedFileStream.Create( NewFilename, fmCreate, uaBuffSize);
                         try
                            repeat
-                              NumRead := OldFile.Read( OldArchRec, SizeOf( tArchived_Transaction));
+                              NumRead := OldFile.Read( OldArchRec, SizeOf( tV169_Archived_Transaction));
                               if NumRead > 0 then
                                  begin
-                                    if NumRead <> SizeOf( tArchived_Transaction) then
+                                    if NumRead <> SizeOf( tV169_Archived_Transaction) then
                                        raise Exception.Create( 'Stream Read error reading ' + OriginalFilename);
 
                                     FillChar( NewArchRec, Sizeof( NewArchRec ), 0 );
-                                    NewArchRec.aLRN                 := OldArchRec.aLRN;
-                                    NewArchRec.aType                := OldArchRec.aType;
-                                    NewArchRec.aSource              := OldArchRec.aSource;
-                                    NewArchRec.aDate_Presented      := OldArchRec.aDate_Presented;
-                                    NewArchRec.aDate_Transferred    := OldArchRec.aDate_Transferred;
-                                    NewArchRec.aAmount              := OldArchRec.aAmount;
-                                    NewArchRec.aQuantity            := OldArchRec.aQuantity * 10;
-                                    NewArchRec.aCheque_Number       := OldArchRec.aCheque_Number;
-                                    NewArchRec.aReference           := OldArchRec.aReference;
-                                    NewArchRec.aParticulars         := OldArchRec.aParticulars;
-                                    NewArchRec.aAnalysis            := OldArchRec.aAnalysis;
-                                    NewArchRec.aOrigBB              := OldArchRec.aOrigBB;
-                                    NewArchRec.aOther_Party         := OldArchRec.aOther_Party;
-                                    NewArchRec.aNarration           := OldArchRec.aNarration;
-                                    NewArchRec.aStatement_Details   := OldArchRec.aStatement_Details;
-                                    NewArchRec.aUnique_ID           := OldArchRec.aUnique_ID;
-                                    NewArchRec.aSpare               := OldArchRec.aSpare;
-                                    NewArchRec.aRecord_End_Marker   := OldArchRec.aRecord_End_Marker;
-                                    NewFile.WriteBuffer( NewArchRec, SizeOf( tArchived_Transaction));
+                                    NewArchRec.tV169_aLRN                 := OldArchRec.tV169_aLRN;
+                                    NewArchRec.tV169_aType                := OldArchRec.tV169_aType;
+                                    NewArchRec.tV169_aSource              := OldArchRec.tV169_aSource;
+                                    NewArchRec.tV169_aDate_Presented      := OldArchRec.tV169_aDate_Presented;
+                                    NewArchRec.tV169_aDate_Transferred    := OldArchRec.tV169_aDate_Transferred;
+                                    NewArchRec.tV169_aAmount              := OldArchRec.tV169_aAmount;
+                                    NewArchRec.tV169_aQuantity            := OldArchRec.tV169_aQuantity * 10;
+                                    NewArchRec.tV169_aCheque_Number       := OldArchRec.tV169_aCheque_Number;
+                                    NewArchRec.tV169_aReference           := OldArchRec.tV169_aReference;
+                                    NewArchRec.tV169_aParticulars         := OldArchRec.tV169_aParticulars;
+                                    NewArchRec.tV169_aAnalysis            := OldArchRec.tV169_aAnalysis;
+                                    NewArchRec.tV169_aOrigBB              := OldArchRec.tV169_aOrigBB;
+                                    NewArchRec.tV169_aOther_Party         := OldArchRec.tV169_aOther_Party;
+                                    NewArchRec.tV169_aNarration           := OldArchRec.tV169_aNarration;
+                                    NewArchRec.tV169_aStatement_Details   := OldArchRec.tV169_aStatement_Details;
+                                    NewArchRec.tV169_aUnique_ID           := OldArchRec.tV169_aUnique_ID;
+                                    NewArchRec.tV169_aSpare               := OldArchRec.tV169_aSpare;
+                                    NewArchRec.tV169_aRecord_End_Marker   := OldArchRec.tV169_aRecord_End_Marker;
+                                    NewFile.WriteBuffer( NewArchRec, SizeOf( tV169_Archived_Transaction));
                                  end; // if NumRead > 0
                            until NumRead = 0;
                            //ensure buffer is written to disk
@@ -893,8 +893,8 @@ Procedure DoUpgradeAdminToLatestVersion( var UpgradingToVersion : integer; const
        OriginalFileName, ShortName, NewFilename: string;
        OldFile : TbfsBufferedFileStream;
        NewFile : TbfsBufferedFileStream;
-       OldArchRec : tArchived_Transaction;
-       NewArchRec : tArchived_Transaction;
+       OldArchRec : tV169_Archived_Transaction;
+       NewArchRec : tV169_Archived_Transaction;
        FErrors: Boolean;
     begin
        // #7218 - fix for archive duplication bug
@@ -922,37 +922,37 @@ Procedure DoUpgradeAdminToLatestVersion( var UpgradingToVersion : integer; const
               NewFile := TbfsBufferedFileStream.Create( NewFilename, fmCreate, uaBuffSize);
               try
                 repeat
-                  NumRead := OldFile.Read( OldArchRec, SizeOf( tArchived_Transaction));
+                  NumRead := OldFile.Read( OldArchRec, SizeOf( tV169_Archived_Transaction));
                   if NumRead > 0 then
                   begin
-                    if NumRead <> SizeOf( tArchived_Transaction) then
+                    if NumRead <> SizeOf( tV169_Archived_Transaction) then
                       raise Exception.Create( 'Stream Read error reading ' + OriginalFilename);
 
-                    if LastLRN = OldArchRec.aLRN then
+                    if LastLRN = OldArchRec.tV169_aLRN then
                       FErrors := True
                     else
                     begin
-                      LastLRN := OldArchRec.aLRN;
+                      LastLRN := OldArchRec.tV169_aLRN;
                       FillChar( NewArchRec, Sizeof( NewArchRec ), 0 );
-                      NewArchRec.aLRN                 := OldArchRec.aLRN;
-                      NewArchRec.aType                := OldArchRec.aType;
-                      NewArchRec.aSource              := OldArchRec.aSource;
-                      NewArchRec.aDate_Presented      := OldArchRec.aDate_Presented;
-                      NewArchRec.aDate_Transferred    := OldArchRec.aDate_Transferred;
-                      NewArchRec.aAmount              := OldArchRec.aAmount;
-                      NewArchRec.aQuantity            := OldArchRec.aQuantity * 10;
-                      NewArchRec.aCheque_Number       := OldArchRec.aCheque_Number;
-                      NewArchRec.aReference           := OldArchRec.aReference;
-                      NewArchRec.aParticulars         := OldArchRec.aParticulars;
-                      NewArchRec.aAnalysis            := OldArchRec.aAnalysis;
-                      NewArchRec.aOrigBB              := OldArchRec.aOrigBB;
-                      NewArchRec.aOther_Party         := OldArchRec.aOther_Party;
-                      NewArchRec.aNarration           := OldArchRec.aNarration;
-                      NewArchRec.aStatement_Details   := OldArchRec.aStatement_Details;
-                      NewArchRec.aUnique_ID           := OldArchRec.aUnique_ID;
-                      NewArchRec.aSpare               := OldArchRec.aSpare;
-                      NewArchRec.aRecord_End_Marker   := OldArchRec.aRecord_End_Marker;
-                      NewFile.WriteBuffer( NewArchRec, SizeOf( tArchived_Transaction));
+                      NewArchRec.tV169_aLRN                 := OldArchRec.tV169_aLRN;
+                      NewArchRec.tV169_aType                := OldArchRec.tV169_aType;
+                      NewArchRec.tV169_aSource              := OldArchRec.tV169_aSource;
+                      NewArchRec.tV169_aDate_Presented      := OldArchRec.tV169_aDate_Presented;
+                      NewArchRec.tV169_aDate_Transferred    := OldArchRec.tV169_aDate_Transferred;
+                      NewArchRec.tV169_aAmount              := OldArchRec.tV169_aAmount;
+                      NewArchRec.tV169_aQuantity            := OldArchRec.tV169_aQuantity * 10;
+                      NewArchRec.tV169_aCheque_Number       := OldArchRec.tV169_aCheque_Number;
+                      NewArchRec.tV169_aReference           := OldArchRec.tV169_aReference;
+                      NewArchRec.tV169_aParticulars         := OldArchRec.tV169_aParticulars;
+                      NewArchRec.tV169_aAnalysis            := OldArchRec.tV169_aAnalysis;
+                      NewArchRec.tV169_aOrigBB              := OldArchRec.tV169_aOrigBB;
+                      NewArchRec.tV169_aOther_Party         := OldArchRec.tV169_aOther_Party;
+                      NewArchRec.tV169_aNarration           := OldArchRec.tV169_aNarration;
+                      NewArchRec.tV169_aStatement_Details   := OldArchRec.tV169_aStatement_Details;
+                      NewArchRec.tV169_aUnique_ID           := OldArchRec.tV169_aUnique_ID;
+                      NewArchRec.tV169_aSpare               := OldArchRec.tV169_aSpare;
+                      NewArchRec.tV169_aRecord_End_Marker   := OldArchRec.tV169_aRecord_End_Marker;
+                      NewFile.WriteBuffer( NewArchRec, SizeOf( tV169_Archived_Transaction));
                     end;
                   end; // if NumRead > 0
                 until NumRead = 0;
@@ -4138,100 +4138,120 @@ const
   procedure UpgradeToVersion170;
   // Tagging Archive Transactions update
   const
-     uaBuffSize = 8192;
+    uaBuffSize = 8192;
   var
-     i, j, k, NumRead, SpareIndex: Integer;
-     PrefixList: TStringList;
-     sba: pSystem_Bank_Account_Rec;
-     Prefix: BankPrefixStr;
-     OriginalFileName, ShortName, NewFilename: string;
-     OldFile : TbfsBufferedFileStream;
-     NewFile : TbfsBufferedFileStream;
-     OldArchRec : tV169_Archived_Transaction;
-     NewArchRec : tArchived_Transaction;
+    i, j, k, NumRead, SpareIndex: Integer;
+    PrefixList: TStringList;
+    sba: pSystem_Bank_Account_Rec;
+    Prefix: BankPrefixStr;
+    OriginalFileName, ShortName, NewFilename: string;
+    OldFile : TbfsBufferedFileStream;
+    NewFile : TbfsBufferedFileStream;
+    OldArchRec : tV169_Archived_Transaction;
+    NewArchRec : tArchived_Transaction;
+    SkipFile : Boolean;
   begin
-     // Master Mems and Archive upgrade
-     PrefixList := TStringList.Create;
-     try
-        Progress.UpdateAppStatus( 'Updating Transaction Archive','Please wait', 0 , ProcessMessages_On);
-        for i := AdminSystem.fdSystem_Bank_Account_List.First to AdminSystem.fdSystem_Bank_Account_List.Last do
-        begin
-           sba := AdminSystem.fdSystem_Bank_Account_List.System_Bank_Account_At(i);
-           Progress.UpdateAppStatusPerc_NR((i /AdminSystem.fdSystem_Bank_Account_List.ItemCount * 100), True);
-           if sba.sbLast_Transaction_LRN > 0 then
-           begin
-              try
-                 OriginalFileName := ArchUtil32.ArchiveFileName( sba.sbLRN);
-                 Shortname        := ExtractFilename( OriginalFilename);
-                 if BKFileExists( OriginalFilename) then
-                 begin
-                   Progress.UpdateAppStatusLine2( 'Updating file ' + Shortname, ProcessMessages_On);
-                   if DebugMe then
-                      LogMsg( lmDebug, Unitname, 'Updating ' + OriginalFilename);
-                   NewFilename      := ExtractFilePath( OriginalFilename) + 'newtxn.tmp';
-                   DeleteFile_RaiseException( NewFilename);
-                   //open the old file.
-                   OldFile := TbfsBufferedFileStream.Create( OriginalFilename, fmOpenRead, uaBuffSize);
-                   try
-                      NewFile := TbfsBufferedFileStream.Create( NewFilename, fmCreate, uaBuffSize);
-                      try
-                         repeat
-                            NumRead := OldFile.Read( OldArchRec, SizeOf( tArchived_Transaction));
-                            if NumRead > 0 then
-                               begin
-                                  if NumRead <> SizeOf( tArchived_Transaction) then
-                                     raise Exception.Create( 'Stream Read error reading ' + OriginalFilename);
+    if Not Assigned(AdminSystem) then
+      exit;
 
-                                  FillChar( NewArchRec, Sizeof( NewArchRec ), 0 );
-                                  NewArchRec.aLRN                 := OldArchRec.aLRN;
-                                  NewArchRec.aType                := OldArchRec.aType;
-                                  NewArchRec.aSource              := OldArchRec.aSource;
-                                  NewArchRec.aDate_Presented      := OldArchRec.aDate_Presented;
-                                  NewArchRec.aDate_Transferred    := OldArchRec.aDate_Transferred;
-                                  NewArchRec.aAmount              := OldArchRec.aAmount;
-                                  NewArchRec.aQuantity            := OldArchRec.aQuantity;
-                                  NewArchRec.aCheque_Number       := OldArchRec.aCheque_Number;
-                                  NewArchRec.aReference           := OldArchRec.aReference;
-                                  NewArchRec.aParticulars         := OldArchRec.aParticulars;
-                                  NewArchRec.aAnalysis            := OldArchRec.aAnalysis;
-                                  NewArchRec.aOrigBB              := OldArchRec.aOrigBB;
-                                  NewArchRec.aOther_Party         := OldArchRec.aOther_Party;
-                                  NewArchRec.aNarration           := OldArchRec.aNarration;
-                                  NewArchRec.aStatement_Details   := OldArchRec.aStatement_Details;
-                                  NewArchRec.aUnique_ID           := OldArchRec.aUnique_ID;
+    Progress.UpdateAppStatus( 'Updating Transaction Archive','Please wait', 0 , ProcessMessages_On);
+    for i := AdminSystem.fdSystem_Bank_Account_List.First to AdminSystem.fdSystem_Bank_Account_List.Last do
+    begin
+      sba := AdminSystem.fdSystem_Bank_Account_List.System_Bank_Account_At(i);
+      Progress.UpdateAppStatusPerc_NR((i /AdminSystem.fdSystem_Bank_Account_List.ItemCount * 100), True);
+      if sba.sbLast_Transaction_LRN > 0 then
+      begin
+        try
+          OriginalFileName := ArchUtil32.ArchiveFileName( sba.sbLRN);
+          Shortname        := ExtractFilename( OriginalFilename);
+          if BKFileExists( OriginalFilename) then
+          begin
+            Progress.UpdateAppStatusLine2( 'Updating file ' + Shortname, ProcessMessages_On);
+            if DebugMe then
+              LogMsg( lmDebug, Unitname, 'Updating ' + OriginalFilename);
+            NewFilename      := ExtractFilePath( OriginalFilename) + 'newtxn.tmp';
+            DeleteFile_RaiseException( NewFilename);
 
-                                  for SpareIndex := 1 to 32 do
-                                    NewArchRec.aSpare[SpareIndex] := OldArchRec.aSpare[SpareIndex];
+            //open the old file.
+            SkipFile := True;
+            OldFile := TbfsBufferedFileStream.Create( OriginalFilename, fmOpenRead, uaBuffSize);
+            try
+              NumRead := OldFile.Read( OldArchRec, SizeOf( tV169_Archived_Transaction));
+              if NumRead > 0 then
+              begin
+                if NumRead <> SizeOf( tV169_Archived_Transaction) then
+                  raise Exception.Create( 'Stream Read error reading ' + OriginalFilename);
 
-                                  NewArchRec.aCoreTransactionID   := 0;
-                                  NewFile.WriteBuffer( NewArchRec, SizeOf( tArchived_Transaction));
-                               end; // if NumRead > 0
-                         until NumRead = 0;
-                         //ensure buffer is written to disk
-                         NewFile.Commit;
-                      finally
-                         NewFile.Free;
-                      end;
-                   finally
-                      OldFile.Free;
-                   end;
-                   //now rename temp file to new file
-                   if DebugMe then
-                      LogMsg( lmDebug, Unitname, 'Renaming ' + NewFilename + ' to ' + OriginalFilename);
-                   RenameFileOverwriteIfExists( NewFilename, OriginalFilename);
-                 end; // if bkfileexists
-              except on E : Exception do
-                 //re raise any exceptions so that we know which file we were working on
-                 raise EUpgradeAdmin.Create( 'Error Updating ' + OriginalFilename + ' ' + E.Message + ' ' + E.Classname);
+                SkipFile := (OldArchRec.tV169_aRecord_End_Marker <> ARCHIVE_REC_END_MARKER);
               end;
-           end; // if lrn > 0
-           Prefix := mxFiles32.GetBankPrefix(sba.sbAccount_Number);
-           if PrefixList.IndexOf(Prefix) = -1 then
-              PrefixList.Add(Prefix);
-        end; // for
-     finally
-        PrefixList.Free;
-     end;
+            finally
+              OldFile.Free;
+            end;
+
+            if not SkipFile then
+            begin
+              OldFile := TbfsBufferedFileStream.Create( OriginalFilename, fmOpenRead, uaBuffSize);
+              try
+                NewFile := TbfsBufferedFileStream.Create( NewFilename, fmCreate, uaBuffSize);
+                try
+                  repeat
+                    NumRead := OldFile.Read( OldArchRec, SizeOf( tV169_Archived_Transaction));
+                    if NumRead > 0 then
+                    begin
+                      if NumRead <> SizeOf( tV169_Archived_Transaction) then
+                        raise Exception.Create( 'Stream Read error reading ' + OriginalFilename);
+
+                      FillChar( NewArchRec, Sizeof( NewArchRec ), 0 );
+
+                      NewArchRec.aLRN                 := OldArchRec.tV169_aLRN;
+                      NewArchRec.aType                := OldArchRec.tV169_aType;
+                      NewArchRec.aSource              := OldArchRec.tV169_aSource;
+                      NewArchRec.aDate_Presented      := OldArchRec.tV169_aDate_Presented;
+                      NewArchRec.aDate_Transferred    := OldArchRec.tV169_aDate_Transferred;
+                      NewArchRec.aAmount              := OldArchRec.tV169_aAmount;
+                      NewArchRec.aQuantity            := OldArchRec.tV169_aQuantity;
+                      NewArchRec.aCheque_Number       := OldArchRec.tV169_aCheque_Number;
+                      NewArchRec.aReference           := OldArchRec.tV169_aReference;
+                      NewArchRec.aParticulars         := OldArchRec.tV169_aParticulars;
+                      NewArchRec.aAnalysis            := OldArchRec.tV169_aAnalysis;
+                      NewArchRec.aOrigBB              := OldArchRec.tV169_aOrigBB;
+                      NewArchRec.aOther_Party         := OldArchRec.tV169_aOther_Party;
+                      NewArchRec.aNarration           := OldArchRec.tV169_aNarration;
+                      NewArchRec.aStatement_Details   := OldArchRec.tV169_aStatement_Details;
+                      NewArchRec.aUnique_ID           := OldArchRec.tV169_aUnique_ID;
+
+                      for SpareIndex := 1 to 32 do
+                        NewArchRec.aSpare[SpareIndex] := OldArchRec.tV169_aSpare[SpareIndex];
+
+                      NewArchRec.aCoreTransactionID   := 0;
+                      NewArchRec.aRecord_End_Marker   := ARCHIVE_REC_END_MARKER;
+
+                      NewFile.WriteBuffer( NewArchRec, SizeOf( tArchived_Transaction));
+                    end; // if NumRead > 0
+                  until NumRead = 0;
+                  //ensure buffer is written to disk
+                  NewFile.Commit;
+                finally
+                  NewFile.Free;
+                end;
+              finally
+                OldFile.Free;
+              end;
+              //now rename temp file to new file
+              if DebugMe then
+                LogMsg( lmDebug, Unitname, 'Renaming ' + NewFilename + ' to ' + OriginalFilename);
+
+              RenameFileOverwriteIfExists( NewFilename, OriginalFilename);
+            end;
+          end; // if bkfileexists
+        except on E : Exception do
+          //re raise any exceptions so that we know which file we were working on
+          raise EUpgradeAdmin.Create( 'Error Updating ' + OriginalFilename + ' ' + E.Message + ' ' + E.Classname);
+        end;
+      end; // if lrn > 0
+    end;
+    //upgrade ok
+    aClient.clFields.clFile_Version := 170;
   end;
 
 begin
@@ -4569,9 +4589,9 @@ begin
         clFile_Version := 165;
       end;
       // 2012 Tagging
-      if (CLFile_Version < 170) then begin
+      if (CLFile_Version < 170) then
+      begin
         UpgradeToVersion170;
-        clFile_Version := 170;
       end;
 
    end;
