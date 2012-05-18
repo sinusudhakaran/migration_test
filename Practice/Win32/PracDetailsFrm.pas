@@ -27,7 +27,7 @@ uses
   ActnList, CheckLst, RzLstBox, RzChkLst, cxControls;
 
 type
-  TCheckListHelper = class helper for TRzCheckList
+  TCheckListHelper = class helper for TCheckListBox
   public
     function CountCheckedItems: Integer;
     procedure ReleaseObjects;
@@ -119,7 +119,7 @@ type
     lblAcclipseCode: TLabel;
     edtAcclipseCode: TEdit;
     Label12: TLabel;
-    chklistExportTo: TRzCheckList;
+    chklistExportTo: TCheckListBox;
     
     procedure btnOKClick(Sender: TObject);
     procedure btnCancelClick(Sender: TObject);
@@ -155,10 +155,7 @@ type
     procedure PageControl1Change(Sender: TObject);
     procedure PageControl1Changing(Sender: TObject; var AllowChange: Boolean);
     procedure chklistExportToMatch(Sender: TObject);
-    procedure chklistExportToChanging(Sender: TObject; Index: Integer;
-      NewState: TCheckBoxState; var AllowChange: Boolean);
-    procedure chklistExportToChange(Sender: TObject; Index: Integer;
-      NewState: TCheckBoxState);
+    procedure chklistExportToClickCheck(Sender: TObject);
   private
     { Private declarations }
     okPressed : boolean;
@@ -370,7 +367,7 @@ begin
   begin
     if ProductConfigService.GuidsEqual(TVendorExport(chklistExportTo.Items.Objects[Index]).Id, VendorExportId) then
     begin
-      Result := chklistExportTo.ItemChecked[Index];
+      Result := chklistExportTo.Checked[Index];
 
       Break;
     end;
@@ -651,31 +648,29 @@ begin
   ProductConfigService.SetPrimaryContact(TempUser);
 end;
 
-procedure TfrmPracticeDetails.chklistExportToChange(Sender: TObject;
-  Index: Integer; NewState: TCheckBoxState);
-begin
-  ToggleVendorExportSettings(TVendorExport(chklistExportTo.Items.Objects[Index]).Id, NewState = cbChecked);
-end;
-
-procedure TfrmPracticeDetails.chklistExportToChanging(Sender: TObject;
-  Index: Integer; NewState: TCheckBoxState; var AllowChange: Boolean);
+procedure TfrmPracticeDetails.chklistExportToClickCheck(Sender: TObject);
 var
   ClientCount: Integer;
 begin
-  if NewState = cbUnchecked then
+  if not chklistExportTo.Checked[chklistExportTo.ItemIndex] then
   begin
-    ClientCount := GetVendorExportClientCount(TVendorExport(chklistExportTo.Items.Objects[Index]).Id);
+    ClientCount := GetVendorExportClientCount(TVendorExport(chklistExportTo.Items.Objects[chklistExportTo.ItemIndex]).Id);
 
     if ClientCount > 0 then
     begin
-      if AskYesNo('Banklink Online Export To', 'There are currently ' + IntToStr(ClientCount) + ' client(s) using the Export To ' + chklistExportTo.Items[Index] + ' service. ' +
-        'Removing access for this service will prevent any transaction data from being exported to ' + chklistExportTo.Items[Index] + '. Are you sure you want to continue?',
+      if AskYesNo('Banklink Online Export To', 'There are currently ' + IntToStr(ClientCount) + ' client(s) using the Export To ' + chklistExportTo.Items[chklistExportTo.ItemIndex] + ' service. ' +
+        'Removing access for this service will prevent any transaction data from being exported to ' + chklistExportTo.Items[chklistExportTo.ItemIndex] + '. Are you sure you want to continue?',
         DLG_YES, 0) = DLG_NO then
       begin
-        AllowChange := False;
+        chklistExportTo.Checked[chklistExportTo.ItemIndex] := True;
+        
+        Exit;
       end;
     end;
   end;
+
+  
+  ToggleVendorExportSettings(TVendorExport(chklistExportTo.Items.Objects[chklistExportTo.ItemIndex]).Id, chklistExportTo.Checked[chklistExportTo.ItemIndex]);
 end;
 
 procedure TfrmPracticeDetails.chklistExportToMatch(Sender: TObject);
@@ -1799,7 +1794,7 @@ begin
       begin
         if TVendorExport(VendorSortList.Objects[Index]).Id = FPracticeVendorExports.Current[IIndex].Id then
         begin
-          chklistExportTo.ItemChecked[chklistExportTo.Count -1] := True;
+          chklistExportTo.Checked[chklistExportTo.Count -1] := True;
 
           ToggleVendorExportSettings(FPracticeVendorExports.Current[IIndex].Id, True);
         end;
@@ -1914,7 +1909,7 @@ var
 begin
   for Index := 0 to chklistExportTo.Count - 1 do
   begin
-    if chklistExportTo.ItemChecked[Index] then
+    if chklistExportTo.Checked[Index] then
     begin
       ProductConfigService.AddItemToArrayGuid(SelectedVendors, TVendorExport(chklistExportTo.Items.Objects[Index]).Id);
     end;
@@ -2253,7 +2248,7 @@ begin
 
   for Index := 0 to Count - 1 do
   begin
-    if ItemChecked[Index] then
+    if Checked[Index] then
     begin
       Inc(Result);
     end;

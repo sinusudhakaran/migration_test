@@ -47,7 +47,7 @@ object frmPracticeDetails: TfrmPracticeDetails
     Top = 8
     Width = 617
     Height = 387
-    ActivePage = tsBankLinkOnline
+    ActivePage = tbsDataExport
     TabOrder = 0
     OnChange = PageControl1Change
     OnChanging = PageControl1Changing
@@ -670,10 +670,6 @@ object frmPracticeDetails: TfrmPracticeDetails
     object tbsDataExport: TTabSheet
       Caption = 'Data Export Settings'
       ImageIndex = 5
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object Label12: TLabel
         Left = 16
         Top = 20
@@ -705,10 +701,6 @@ object frmPracticeDetails: TfrmPracticeDetails
           TabOrder = 1
           object tbsIBizz: TTabSheet
             Caption = 'iBizz'
-            ExplicitLeft = 0
-            ExplicitTop = 0
-            ExplicitWidth = 0
-            ExplicitHeight = 0
             object lblAcclipseCode: TLabel
               Left = 5
               Top = 21
@@ -725,16 +717,15 @@ object frmPracticeDetails: TfrmPracticeDetails
             end
           end
         end
-        object chklistExportTo: TRzCheckList
-          Left = 165
+        object chklistExportTo: TCheckListBox
+          Left = 161
           Top = 24
-          Width = 253
+          Width = 307
           Height = 108
-          OnChange = chklistExportToChange
-          OnChanging = chklistExportToChanging
-          ItemHeight = 17
+          OnClickCheck = chklistExportToClickCheck
+          IntegralHeight = True
+          ItemHeight = 13
           TabOrder = 0
-          OnMatch = chklistExportToMatch
         end
       end
     end
