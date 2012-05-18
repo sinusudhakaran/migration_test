@@ -59,12 +59,13 @@ object frmBanklinkOnlineSettings: TfrmBanklinkOnlineSettings
       TabOrder = 2
       OnClick = btnClearAllClick
     end
-    object chklistProducts: TRzCheckList
+    object chkListProducts: TCheckListBox
       Left = 21
       Top = 60
       Width = 300
-      Height = 93
-      ItemHeight = 17
+      Height = 95
+      IntegralHeight = True
+      ItemHeight = 13
       TabOrder = 0
     end
   end
@@ -269,14 +270,15 @@ object frmBanklinkOnlineSettings: TfrmBanklinkOnlineSettings
       TabOrder = 2
       Visible = False
     end
-    object chklistServicesAvailable: TRzCheckList
+    object chklistServicesAvailable: TCheckListBox
       Left = 80
       Top = 21
       Width = 368
       Height = 82
-      OnChange = chklistServicesAvailableChange
-      ItemHeight = 17
+      IntegralHeight = True
+      ItemHeight = 13
       TabOrder = 0
+      OnClick = chklistServicesAvailableClick
     end
   end
 end

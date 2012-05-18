@@ -50,8 +50,8 @@ type
     chkDeliverData: TCheckBox;
     edtSecureCode: TEdit;
     lblSecureCode: TLabel;
-    chklistServicesAvailable: TRzCheckList;
-    chklistProducts: TRzCheckList;
+    chkListProducts: TCheckListBox;
+    chklistServicesAvailable: TCheckListBox;
     procedure btnSelectAllClick(Sender: TObject);
     procedure btnClearAllClick(Sender: TObject);
     procedure rbSuspendedClick(Sender: TObject);
@@ -66,8 +66,7 @@ type
     procedure FormDestroy(Sender: TObject);
     procedure chkDeliverDataClick(Sender: TObject);
     procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
-    procedure chklistServicesAvailableChange(Sender: TObject; Index: Integer;
-      NewState: TCheckBoxState);
+    procedure chklistServicesAvailableClick(Sender: TObject);
   private
     fOkPressed : Boolean;
     fBusyKeyPress : Boolean;
@@ -143,7 +142,7 @@ var
   i: integer;
 begin
   for i := 0 to chkListProducts.Items.Count - 1 do
-    chkListProducts.ItemChecked[i] := true;
+    chkListProducts.Checked[i] := true;
 end;
 
 procedure TfrmBanklinkOnlineSettings.btnUseClientDetailsClick(Sender: TObject);
@@ -157,7 +156,7 @@ var
   i: integer;
 begin
   for i := 0 to chkListProducts.Items.Count - 1 do
-    chkListProducts.ItemChecked[i] := false;
+    chkListProducts.Checked[i] := false;
 end;
 
 //------------------------------------------------------------------------------
@@ -263,9 +262,9 @@ begin
   edtSecureCode.Visible := chkDeliverData.Checked;
 end;
 
-procedure TfrmBanklinkOnlineSettings.chklistServicesAvailableChange(Sender: TObject; Index: Integer; NewState: TCheckBoxState);
+procedure TfrmBanklinkOnlineSettings.chklistServicesAvailableClick(Sender: TObject);
 begin
-  if chklistServicesAvailable.ItemChecked[chklistServicesAvailable.ItemIndex] then
+  if chklistServicesAvailable.Checked[chklistServicesAvailable.ItemIndex] then
   begin
     ProductConfigService.AddItemToArrayGuid(ModifiedDataExports, TDataExportOption(chklistServicesAvailable.Items.Objects[chklistServicesAvailable.ItemIndex]).Guid);
   end
@@ -474,7 +473,7 @@ begin
     begin
       ProductFound := false;
 
-      if chklistProducts.ItemChecked[i] then
+      if chklistProducts.Checked[i] then
       begin
         AllProducts.Add(chklistProducts.Items[i]);
         if TBloCatalogueEntry(chklistProducts.Items.Objects[i]).Id = ProductConfigService.GetNotesId then
@@ -507,12 +506,12 @@ begin
         end;
       end;
 
-      if (chklistProducts.ItemChecked[i] = true) and not ProductFound then
+      if (chklistProducts.Checked[i] = true) and not ProductFound then
       begin
         NewProducts.Add(chklistProducts.Items[i]);
         ProductsChanged := True;
       end
-      else if (chklistProducts.ItemChecked[i] = false) and ProductFound then
+      else if (chklistProducts.Checked[i] = false) and ProductFound then
       begin
         RemovedProducts.Add(chklistProducts.Items[i]);
         ProductsChanged := True;
@@ -774,7 +773,7 @@ begin
   // Tag accounts attached to this client for the vendor(s) selected
   for i := 0 to chkListServicesAvailable.Items.Count - 1 do
   begin
-    if chkListServicesAvailable.ItemChecked[i] then
+    if chkListServicesAvailable.Checked[i] then
     begin
       SetLength(VendorsSelected, Length(VendorsSelected) + 1);
       VendorsSelected[High(VendorsSelected)] := AvailableServiceArray[i].ID;
@@ -851,8 +850,8 @@ var
       begin
         ClientSubGuid := aSubscription[SubIndex];
         ProductGuid   := TBloCatalogueEntry(chklistProducts.Items.Objects[ProdIndex]).id;
-        chklistProducts.ItemChecked[ProdIndex] := (ClientSubGuid = ProductGuid);
-        if chklistProducts.ItemChecked[ProdIndex] then
+        chklistProducts.Checked[ProdIndex] := (ClientSubGuid = ProductGuid);
+        if chklistProducts.Checked[ProdIndex] then
           break;
       end;
     end;
@@ -952,7 +951,7 @@ begin
         begin
           if (ClientExportDataService.Current[ClientServiceIndex].Id = AvailableServiceArray[AvailableServiceIndex].Id) then
           begin
-            chkListServicesAvailable.ItemChecked[AvailableServiceIndex] := true;
+            chkListServicesAvailable.Checked[AvailableServiceIndex] := true;
 
             ProductConfigService.AddItemToArrayGuid(OriginalDataExports, ClientExportDataService.Current[ClientServiceIndex].Id);
             ProductConfigService.AddItemToArrayGuid(ModifiedDataExports, ClientExportDataService.Current[ClientServiceIndex].Id);
@@ -975,7 +974,7 @@ begin
     for ProdIndex := 0 to chklistProducts.Items.Count - 1 do
     begin
       if TBloCatalogueEntry(chklistProducts.Items.Objects[ProdIndex]).id = ProductConfigService.GetNotesId then
-        chklistProducts.ItemChecked[ProdIndex] := True;
+        chklistProducts.Checked[ProdIndex] := True;
     end;
 
     if not HasCachedSubscription(ProductConfigService.GetNotesId) then
@@ -1078,7 +1077,7 @@ begin
 
   for ProdIndex := 0 to chklistProducts.Count - 1 do
   begin
-    if chklistProducts.ItemChecked[ProdIndex] then
+    if chklistProducts.Checked[ProdIndex] then
     begin
       CatEntry := TBloCatalogueEntry(chklistProducts.Items.Objects[ProdIndex]);
       ProductConfigService.AddItemToArrayGuid(Subscription, CatEntry.id);
