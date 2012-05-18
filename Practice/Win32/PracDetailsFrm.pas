@@ -1574,6 +1574,14 @@ begin
       begin
         if ProductConfigService.GuidsEqual(Cat.Id, ProductConfigService.GetExportDataId) and tbsDataExport.TabVisible then
         begin
+          if DataExportSettingsChanged then
+          begin
+            if AskYesNo('Disable the Export Data service', 'You have made changed to your Data Export Settings - click Yes to return and save or No to continue without saving those changes.', DLG_YES, 0) = DLG_NO then
+            begin
+              Exit;
+            end;
+          end;
+
           ClientCount := CountVendorExportClients;
 
           if ClientCount > 0 then
@@ -1718,13 +1726,32 @@ end;
 
 function TfrmPracticeDetails.CountVendorExportClients: Integer;
 var
+  UniqueClients: TStringList;
   Index: Integer;
+  IIndex: Integer;
 begin
   Result := 0;
 
-  for Index := 0 to Length(FVendorSubscriberCount) - 1 do
+  if Assigned(FVendorSubscriberCount) then
   begin
-    Result := Result + FVendorSubscriberCount[Index].ClientCount;
+    UniqueClients := TStringList.Create;
+
+    try
+      for Index := 0 to Length(FVendorSubscriberCount) - 1 do
+      begin
+        for IIndex := 0 to Length(FVendorSubscriberCount[Index].ClientIds) - 1 do
+        begin
+          if UniqueClients.IndexOf(FVendorSubscriberCount[Index].ClientIds[IIndex]) < 0 then
+          begin
+            UniqueClients.Add(FVendorSubscriberCount[Index].ClientIds[IIndex]); 
+          end;
+        end;
+      end;
+      
+      Result := UniqueClients.Count;
+    finally
+      UniqueClients.Free;
+    end;
   end;
 end;
 
@@ -2223,7 +2250,7 @@ var
   Index: Integer;
 begin
   Result := 0;
-  
+
   for Index := 0 to Count - 1 do
   begin
     if ItemChecked[Index] then
