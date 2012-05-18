@@ -59,13 +59,12 @@ object frmBanklinkOnlineSettings: TfrmBanklinkOnlineSettings
       TabOrder = 2
       OnClick = btnClearAllClick
     end
-    object chklistProducts: TCheckListBox
+    object chklistProducts: TRzCheckList
       Left = 21
       Top = 60
       Width = 300
       Height = 93
-      ItemHeight = 13
-      Sorted = True
+      ItemHeight = 17
       TabOrder = 0
     end
   end
@@ -259,7 +258,7 @@ object frmBanklinkOnlineSettings: TfrmBanklinkOnlineSettings
       Width = 281
       Height = 17
       Caption = 'Deli&ver data direct to BankLink Online'
-      TabOrder = 0
+      TabOrder = 1
       OnClick = chkDeliverDataClick
     end
     object edtSecureCode: TEdit
@@ -267,7 +266,7 @@ object frmBanklinkOnlineSettings: TfrmBanklinkOnlineSettings
       Top = 132
       Width = 240
       Height = 21
-      TabOrder = 1
+      TabOrder = 2
       Visible = False
     end
     object chklistServicesAvailable: TRzCheckList
@@ -277,7 +276,7 @@ object frmBanklinkOnlineSettings: TfrmBanklinkOnlineSettings
       Height = 82
       OnChange = chklistServicesAvailableChange
       ItemHeight = 17
-      TabOrder = 2
+      TabOrder = 0
     end
   end
 end

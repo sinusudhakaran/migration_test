@@ -37,7 +37,6 @@ type
     edtEmailAddress: TEdit;
     btnOK: TButton;
     btnCancel: TButton;
-    chklistProducts: TCheckListBox;
     cmbBillingFrequency: TComboBox;
     grpClientAccess: TGroupBox;
     rbActive: TRadioButton;
@@ -52,6 +51,7 @@ type
     edtSecureCode: TEdit;
     lblSecureCode: TLabel;
     chklistServicesAvailable: TRzCheckList;
+    chklistProducts: TRzCheckList;
     procedure btnSelectAllClick(Sender: TObject);
     procedure btnClearAllClick(Sender: TObject);
     procedure rbSuspendedClick(Sender: TObject);
@@ -143,7 +143,7 @@ var
   i: integer;
 begin
   for i := 0 to chkListProducts.Items.Count - 1 do
-    chkListProducts.Checked[i] := true;
+    chkListProducts.ItemChecked[i] := true;
 end;
 
 procedure TfrmBanklinkOnlineSettings.btnUseClientDetailsClick(Sender: TObject);
@@ -157,7 +157,7 @@ var
   i: integer;
 begin
   for i := 0 to chkListProducts.Items.Count - 1 do
-    chkListProducts.Checked[i] := false;
+    chkListProducts.ItemChecked[i] := false;
 end;
 
 //------------------------------------------------------------------------------
@@ -474,7 +474,7 @@ begin
     begin
       ProductFound := false;
 
-      if chklistProducts.Checked[i] then
+      if chklistProducts.ItemChecked[i] then
       begin
         AllProducts.Add(chklistProducts.Items[i]);
         if TBloCatalogueEntry(chklistProducts.Items.Objects[i]).Id = ProductConfigService.GetNotesId then
@@ -507,12 +507,12 @@ begin
         end;
       end;
 
-      if (chklistProducts.Checked[i] = true) and not ProductFound then
+      if (chklistProducts.ItemChecked[i] = true) and not ProductFound then
       begin
         NewProducts.Add(chklistProducts.Items[i]);
         ProductsChanged := True;
       end
-      else if (chklistProducts.Checked[i] = false) and ProductFound then
+      else if (chklistProducts.ItemChecked[i] = false) and ProductFound then
       begin
         RemovedProducts.Add(chklistProducts.Items[i]);
         ProductsChanged := True;
@@ -851,8 +851,8 @@ var
       begin
         ClientSubGuid := aSubscription[SubIndex];
         ProductGuid   := TBloCatalogueEntry(chklistProducts.Items.Objects[ProdIndex]).id;
-        chklistProducts.Checked[ProdIndex] := (ClientSubGuid = ProductGuid);
-        if chklistProducts.Checked[ProdIndex] then
+        chklistProducts.ItemChecked[ProdIndex] := (ClientSubGuid = ProductGuid);
+        if chklistProducts.ItemChecked[ProdIndex] then
           break;
       end;
     end;
@@ -975,7 +975,7 @@ begin
     for ProdIndex := 0 to chklistProducts.Items.Count - 1 do
     begin
       if TBloCatalogueEntry(chklistProducts.Items.Objects[ProdIndex]).id = ProductConfigService.GetNotesId then
-        chklistProducts.Checked[ProdIndex] := True;
+        chklistProducts.ItemChecked[ProdIndex] := True;
     end;
 
     if not HasCachedSubscription(ProductConfigService.GetNotesId) then
@@ -1078,7 +1078,7 @@ begin
 
   for ProdIndex := 0 to chklistProducts.Count - 1 do
   begin
-    if chklistProducts.Checked[ProdIndex] then
+    if chklistProducts.ItemChecked[ProdIndex] then
     begin
       CatEntry := TBloCatalogueEntry(chklistProducts.Items.Objects[ProdIndex]);
       ProductConfigService.AddItemToArrayGuid(Subscription, CatEntry.id);
