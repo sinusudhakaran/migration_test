@@ -1544,11 +1544,14 @@ Procedure DoUpgradeAdminToLatestVersion( var UpgradingToVersion : integer; const
   begin
     UpgradingToVersion := 128;
 
-    // Moves Redundant password to New 12 length Password
     for UserIndex := 0 to AdminSystem.fdSystem_User_List.ItemCount-1 do
     begin
+      // Moves Redundant password to New 12 length Password
       AdminSystem.fdSystem_User_List.User_At(UserIndex).usPassword :=
         AdminSystem.fdSystem_User_List.User_At(UserIndex).usRedundant_Password;
+
+      //Default this to false for the first time.
+      AdminSystem.fdSystem_User_List.User_At(UserIndex).usUsing_Mixed_Case_Password := False;
     end;
 
     if (Trim(Globals.PRACINI_OnlineLink) <> '') then begin
