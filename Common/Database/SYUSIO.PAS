@@ -72,6 +72,7 @@ CONST
    tkusAllow_Banklink_Online            = 85 ;
    tkusPassword                         = 86 ;
    tkusUse_Practice_Password_Online     = 87 ;
+   tkusUsing_Mixed_Case_Password        = 88;
 
 {  -------------------------------------------------------------------  }
 
@@ -123,6 +124,7 @@ Begin
       F.WriteBooleanValue( tkusAllow_Banklink_Online , usAllow_Banklink_Online );
       F.WriteStringValue( tkusPassword , usPassword );
       F.WriteBooleanValue( tkusUse_Practice_Password_Online , usUse_Practice_Password_Online );
+      F.WriteBooleanValue(tkusUsing_Mixed_Case_Password, usUsing_Mixed_Case_Password);
       F.WriteToken( tkEnd_User );
    end;
 end; { of Write_User_Rec }
@@ -171,6 +173,7 @@ Begin
          tkusAllow_Banklink_Online            : usAllow_Banklink_Online := F.ReadBooleanValue;
          tkusPassword                         : usPassword := F.ReadStringValue;
          tkusUse_Practice_Password_Online     : usUse_Practice_Password_Online := F.ReadBooleanValue;
+         tkusUsing_Mixed_Case_Password        : usUsing_Mixed_Case_Password := F.ReadBooleanValue;
          else
             Raise ETokenException.CreateFmt( SUnknownToken, [ Token ] );
       end; { of Case }
@@ -218,7 +221,7 @@ begin
   for i := Low(ChangedFields) to High(ChangedFields) do
     ChangedFields[i] := 0;
   j := 0;
-  for i := tkusCode to tkusUse_Practice_Password_Online do begin
+  for i := tkusCode to tkusUsing_Mixed_Case_Password do begin
     ChangedFields[j] := i;
     Inc(j);
   end;
@@ -372,7 +375,11 @@ begin
     ChangedFields[i] := tkusUse_Practice_Password_Online;
     Inc(i);
   end;
-
+  if (P1.usUsing_Mixed_Case_Password <> P2.usUsing_Mixed_Case_Password) then begin
+    P3.usUsing_Mixed_Case_Password := P1.usUsing_Mixed_Case_Password;
+    ChangedFields[i] := tkusUsing_Mixed_Case_Password;
+    Inc(i);
+  end;
   Result := (i > 0);
 end;
 
