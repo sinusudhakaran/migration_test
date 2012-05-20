@@ -359,7 +359,7 @@ end;
 procedure TdlgEditBank.UpdateAccountVendorInfo;
 var
   VendorIndex : integer;
-  VendorCount : integer;
+  VendorCount, VendorNum : integer;
   Current : TBloArrayOfDataPlatformSubscriber;
 begin
   for VendorIndex := 0 to high(fAccountVendors.AccountVendors.Current) do
@@ -375,14 +375,20 @@ begin
   SetLength(Current, VendorCount);
   fAccountVendors.AccountVendors.Current := Current;
 
-  for VendorIndex := 0 to VendorCount-1 do
+  VendorNum := 0;
+  for VendorIndex := 0 to chkLstAccVendors.Count - 1 do
   begin
-    fAccountVendors.AccountVendors.Current[VendorIndex] := TBloDataPlatformSubscriber.Create;
-    fAccountVendors.AccountVendors.Current[VendorIndex].Id :=
-      TBloDataPlatformSubscriber(chkLstAccVendors.Items.Objects[VendorIndex]).Id;
-    fAccountVendors.AccountVendors.Current[VendorIndex].Name_ :=
-      TBloDataPlatformSubscriber(chkLstAccVendors.Items.Objects[VendorIndex]).Name_;
+    if chkLstAccVendors.Checked[VendorIndex] then
+    begin
+      fAccountVendors.AccountVendors.Current[VendorNum] := TBloDataPlatformSubscriber.Create;
+      fAccountVendors.AccountVendors.Current[VendorNum].Id :=
+        TBloDataPlatformSubscriber(chkLstAccVendors.Items.Objects[VendorIndex]).Id;
+      fAccountVendors.AccountVendors.Current[VendorNum].Name_ :=
+        TBloDataPlatformSubscriber(chkLstAccVendors.Items.Objects[VendorIndex]).Name_;
+      inc(VendorNum);
+    end;
   end;
+    
 
   {fAccountVendors.AccountVendors :=
         ProductConfigService.GetAccountVendors(ClientID,
