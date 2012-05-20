@@ -377,6 +377,7 @@ Type
       usAllow_Banklink_Online            : Boolean;       { Stored }
       usPassword                         : String[ 12 ];       { Stored }
       usUse_Practice_Password_Online     : Boolean;       { Stored }
+      usUsing_Mixed_Case_Password        : Boolean;
       usEOR                              : Byte;
    end;
 
