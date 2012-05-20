@@ -247,7 +247,7 @@ var
   Found : Boolean;
   SubItemIndex : integer;
   AccVendorIndex : integer;
-
+  VendorFirstIndex : integer;
 begin
   if (MyClient.clFields.clCountry = whUK) and (MyClient.HasForeignCurrencyAccounts) then
   begin
@@ -305,6 +305,16 @@ begin
       end;
 
       // For this account Get the Vendor data and updates extra columns
+      if (fExportDataEnabled) then
+      begin
+        for ClientVendorIndex := 0 to high(fClientAccVendors.ClientVendors) do
+          if ClientVendorIndex = 0 then
+            VendorFirstIndex := NewItem.SubItems.Add('0')
+          else
+            NewItem.SubItems.Add('0');
+      end;
+
+
       if (fExportDataEnabled) and
          (fClientAccVendors.ClientID <> '') then
       begin
@@ -327,17 +337,12 @@ begin
                   break;
                 end;
               end;
+
               if Found then
-                SubItemIndex := NewItem.SubItems.Add('1')
-              else
-                SubItemIndex := NewItem.SubItems.Add('0');
-            end
-            else
-              SubItemIndex := NewItem.SubItems.Add('0');
+                NewItem.SubItems.Strings[VendorFirstIndex + ClientVendorIndex] := '1';
+            end;
           end;
-        end
-        else
-          SubItemIndex := NewItem.SubItems.Add('0');
+        end;
       end;
     end;
     UpdateLastVendorsUsedByAccounts;
