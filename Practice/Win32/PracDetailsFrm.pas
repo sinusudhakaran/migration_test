@@ -1571,7 +1571,7 @@ begin
         begin
           if DataExportSettingsChanged then
           begin
-            if AskYesNo('Disable the Export Data service', 'You have made changed to your Data Export Settings - click Yes to return and save or No to continue without saving those changes.', DLG_YES, 0) = DLG_NO then
+            if AskYesNo('Disable the Export Data service', 'You have made changes to your Data Export Settings - click Yes to return and save or No to continue without saving those changes.', DLG_YES, 0) = DLG_NO then
             begin
               Exit;
             end;
