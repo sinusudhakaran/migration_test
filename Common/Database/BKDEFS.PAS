@@ -9,7 +9,7 @@ Interface uses MONEYDEF, DATEDEF;
 {  -------------------------------------------------------------------  }
 
 Const
-   BK_IOLIB_Version : Integer = 656;
+   BK_IOLIB_Version : Integer = 657;
    BK_IOLIB_Date    = '21/05/12';
    BK_FILE_VERSION  = 170;  (* Current Version counter for files
                               Changes if structure or method of storing a value would cause
@@ -213,6 +213,7 @@ Const
      5.24 (2012 Tag) 169    Add Core Trans ID and sent to Online to Transactions
      5.25            170    Added DeliverDataDirectToBLO and BLOSecureCode fields to ClientExtra, to store 
                             tagging additions to the BLO settings form
+                            Added Core Trans ID High Integer
    *)
    //Audit Trail - 135 Don't reuse token!!! - Record defined in SY.TXT but also used in Client File
 

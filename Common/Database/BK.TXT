@@ -200,6 +200,7 @@ $|  5.23 (2012BLOPI)168    Add Offline version of Client Settings for a New Clie
 $|  5.24 (2012 Tag) 169    Add Core Trans ID and sent to Online to Transactions
 $|  5.25            170    Added DeliverDataDirectToBLO and BLOSecureCode fields to ClientExtra, to store 
 $|                         tagging additions to the BLO settings form
+$|                         Added Core Trans ID High Integer
 $|*)
 
 N|Client|cl|20
