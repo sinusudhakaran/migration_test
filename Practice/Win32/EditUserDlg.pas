@@ -130,6 +130,7 @@ Type
     fUIMode     : TUI_Modes;
 
     FIsLoggedIn: Boolean;
+    FUsingMixedCasePassword: Boolean;
 
     function UserLoggedInChanged: Boolean;
     
@@ -499,6 +500,14 @@ begin { TdlgEditUser.OKtoPost }
       ePass.SetFocus;
       exit;
     end; { (Trim(ePass.text) = '') }
+
+    if (FOldValues.Password = ePass.Text) and not FUsingMixedCasePassword then
+    begin
+      HelpfulWarningMsg('BankLink Online enabled for the first time. Please enter a new password.', 0 );
+      pcMain.ActivePage := tsDetails;
+      ePass.SetFocus;
+      exit;      
+    end;
 
     if (ePass.text <> eConfirmPass.text) then
     begin
@@ -959,6 +968,7 @@ begin { TdlgEditUser.Execute }
   if Assigned(User) then
   begin
     FIsLoggedIn := User.usLogged_In;
+    FUsingMixedCasePassword := User.usUsing_Mixed_Case_Password;
     
     //user type
     if (User.usSystem_Access) then
@@ -1101,6 +1111,7 @@ Var
   WasLoggedIn : boolean;
   i           : integer;
   Prac        : TBloPracticeRead;
+  Password    : String;
 begin { EditUser }
   Result := false;
 
@@ -1126,7 +1137,9 @@ begin { EditUser }
       end; { CurrUser.LRN = eUser.usLRN }
     end;
     WasLoggedIn := eUser^.usLogged_In;
-    
+
+    Password := eUser.usPassword;
+
     If MyDlg.Execute(eUser) Then
     begin
       //get the user_rec again as the admin system may have changed in the mean time.
@@ -1151,6 +1164,11 @@ begin { EditUser }
           pu.usEMail_Address  := Trim( eMail.text);
           pu.usDirect_Dial    := eDirectDial.Text;
           pu.usShow_Printer_Choice := cbPrintDialogOption.Checked;
+
+          if Password <> pu.usPassword then
+          begin
+            pu.usUsing_Mixed_Case_Password := True;
+          end;
 
           if CBSuppressHeaderFooter.Checked then
             pu.usSuppress_HF := shfChecked
@@ -1294,6 +1312,7 @@ begin { AddUser }
           pu.usEMail_Address  := Trim( eMail.text);
           pu.usDirect_Dial    := eDirectDial.Text;
           pu.usShow_Printer_Choice := cbPrintDialogOption.Checked;
+
           if CBSuppressHeaderFooter.Checked then
             pu.usSuppress_HF := shfChecked
           else
@@ -1301,6 +1320,11 @@ begin { AddUser }
 
           pu.usShow_Practice_Logo := chkShowPracticeLogo.Checked;
           pu.usAllow_Banklink_Online := chkCanAccessBankLinkOnline.Checked;
+
+          if (ePass.text <> FOldValues.Password) or pu.usAllow_Banklink_Online then
+          begin
+            pu.usUsing_Mixed_Case_Password := True;
+          end;
 
           case cmbUserType.ItemIndex of
            ustRestricted :
