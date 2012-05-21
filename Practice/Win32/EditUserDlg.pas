@@ -365,6 +365,7 @@ begin
   fOldValues.ShowPracticeLogo        := chkShowPracticeLogo.Checked;
   fOldValues.CanAccessBankLinkOnline := chkCanAccessBankLinkOnline.Checked;
   fOldValues.UserType                := cmbUserType.ItemIndex;
+  FOldValues.CanCreateEditMasterMems := chkMaster.Checked;
 end;
 
 //------------------------------------------------------------------------------
