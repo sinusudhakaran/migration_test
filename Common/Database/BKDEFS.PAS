@@ -9,8 +9,8 @@ Interface uses MONEYDEF, DATEDEF;
 {  -------------------------------------------------------------------  }
 
 Const
-   BK_IOLIB_Version : Integer = 655;
-   BK_IOLIB_Date    = '11/05/12';
+   BK_IOLIB_Version : Integer = 656;
+   BK_IOLIB_Date    = '21/05/12';
    BK_FILE_VERSION  = 170;  (* Current Version counter for files
                               Changes if structure or method of storing a value would cause
                               data to be represented incorrectly, or an exception to be raised *)
@@ -941,6 +941,7 @@ Type
       txTemp_Prov_Date_Time              : TDateTime;
       txCore_Transaction_ID              : Integer;       { Stored }
       txTransfered_To_Online             : Boolean;       { Stored }
+      txCore_Transaction_ID_High         : Integer;       { Stored }
       txEOR                              : Byte;
    end;
 

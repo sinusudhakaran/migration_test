@@ -4226,8 +4226,9 @@ const
                       for SpareIndex := 1 to 32 do
                         NewArchRec.aSpare[SpareIndex] := OldArchRec.tV169_aSpare[SpareIndex];
 
-                      NewArchRec.aCoreTransactionID   := 0;
-                      NewArchRec.aRecord_End_Marker   := ARCHIVE_REC_END_MARKER;
+                      NewArchRec.aCoreTransactionID     := 0;
+                      NewArchRec.aCoreTransactionIDHigh := 0;
+                      NewArchRec.aRecord_End_Marker     := ARCHIVE_REC_END_MARKER;
 
                       NewFile.WriteBuffer( NewArchRec, SizeOf( tArchived_Transaction));
                     end; // if NumRead > 0

@@ -608,6 +608,7 @@ begin
     FAuditNamesArray[160,244] := 'Spare_Money_2';
     FAuditNamesArray[160,245] := 'Core_Transaction_ID';
     FAuditNamesArray[160,246] := 'Transfered_To_Online';
+    FAuditNamesArray[160,247] := 'Core_Transaction_ID_High';
 
    FAuditTableArray[180] := 'Dissection';
     FAuditNamesArray[180,182] := 'Sequence_No';

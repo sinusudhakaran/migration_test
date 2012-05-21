@@ -855,6 +855,7 @@ C|Temp Prov Entered By|S|8
 C|Temp Prov Date Time|DT
 F|Core Transaction ID|L
 F|Transfered To Online|Y
+F|Core Transaction ID High|L
 E
 
 N|Dissection|ds|180

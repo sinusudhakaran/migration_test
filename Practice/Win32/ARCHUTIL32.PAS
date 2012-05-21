@@ -69,25 +69,26 @@ TYPE
   //LATEST VERSION
   //upgraded in version 170 of admin
   tArchived_Transaction = Packed Record
-    aLRN                 : LongInt     ; (* LRN *)
-    aType                : Byte        ; (* Type *)
-    aSource              : Byte        ; (* Source *)
-    aDate_Presented      : LongInt     ; (* Date Presented *)
-    aDate_Transferred    : LongInt     ; (* Date Transferred *)
-    aAmount              : Money       ; (* Amount *)
-    aQuantity            : Money       ; (* Quantity *)
-    aCheque_Number       : LongInt     ; (* Cheque Number *)
-    aReference           : String[ 12] ; (* Reference *)
-    aParticulars         : String[ 12] ; (* Particulars *)
-    aAnalysis            : String[ 12] ; (* Analysis *)
-    aOrigBB              : String[  6] ; (* OrigBB *)
-    aOther_Party         : String[ 20] ; (* Other Party *)
-    aNarration           : String[ 40] ; (* Narration *)
-    aStatement_Details   : String[ 200];
-    aUnique_ID           : LongInt;
-    aSpare               : Array[1..32] of Byte; (* Spare *)
-    aCoreTransactionID   : LongInt;
-    aRecord_End_Marker   : LongInt;
+    aLRN                   : LongInt     ; (* LRN *)
+    aType                  : Byte        ; (* Type *)
+    aSource                : Byte        ; (* Source *)
+    aDate_Presented        : LongInt     ; (* Date Presented *)
+    aDate_Transferred      : LongInt     ; (* Date Transferred *)
+    aAmount                : Money       ; (* Amount *)
+    aQuantity              : Money       ; (* Quantity *)
+    aCheque_Number         : LongInt     ; (* Cheque Number *)
+    aReference             : String[ 12] ; (* Reference *)
+    aParticulars           : String[ 12] ; (* Particulars *)
+    aAnalysis              : String[ 12] ; (* Analysis *)
+    aOrigBB                : String[  6] ; (* OrigBB *)
+    aOther_Party           : String[ 20] ; (* Other Party *)
+    aNarration             : String[ 40] ; (* Narration *)
+    aStatement_Details     : String[ 200];
+    aUnique_ID             : LongInt;
+    aSpare                 : Array[1..32] of Byte; (* Spare *)
+    aCoreTransactionID     : Integer;
+    aRecord_End_Marker     : LongInt;
+    aCoreTransactionIDHigh : Integer;
   End;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

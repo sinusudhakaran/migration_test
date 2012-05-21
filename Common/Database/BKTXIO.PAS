@@ -131,6 +131,7 @@ CONST
    tktxSpare_Money_2                    = 244 ;
    tktxCore_Transaction_ID              = 245 ;
    tktxTransfered_To_Online             = 246 ;
+   tktxCore_Transaction_ID_High         = 247 ;
 
 {  -------------------------------------------------------------------  }
 
@@ -241,6 +242,7 @@ Begin
       F.WriteMoneyValue( tktxSpare_Money_2 , txSpare_Money_2 );
       F.WriteIntegerValue( tktxCore_Transaction_ID , txCore_Transaction_ID );
       F.WriteBooleanValue( tktxTransfered_To_Online , txTransfered_To_Online );
+      F.WriteIntegerValue( tktxCore_Transaction_ID_High , txCore_Transaction_ID_High );
       F.WriteToken( tkEnd_Transaction );
    end;
 end; { of Write_Transaction_Rec }
@@ -348,6 +350,7 @@ Begin
          tktxSpare_Money_2                    : txSpare_Money_2 := F.ReadMoneyValue;
          tktxCore_Transaction_ID              : txCore_Transaction_ID := F.ReadIntegerValue;
          tktxTransfered_To_Online             : txTransfered_To_Online := F.ReadBooleanValue;
+         tktxCore_Transaction_ID_High         : txCore_Transaction_ID_High := F.ReadIntegerValue;
          else
             Raise ETokenException.CreateFmt( SUnknownToken, [ Token ] );
       end; { of Case }
@@ -403,7 +406,7 @@ begin
   for i := Low(ChangedFields) to High(ChangedFields) do
     ChangedFields[i] := 0;
   j := 0;
-  for i := tktxSequence_No to tktxTransfered_To_Online do begin
+  for i := tktxSequence_No to tktxCore_Transaction_ID_High do begin
     ChangedFields[j] := i;
     Inc(j);
   end;
@@ -850,6 +853,11 @@ begin
   if (P1.txTransfered_To_Online <> P2.txTransfered_To_Online) then begin
     P3.txTransfered_To_Online := P1.txTransfered_To_Online;
     ChangedFields[i] := tktxTransfered_To_Online;
+    Inc(i);
+  end;
+  if (P1.txCore_Transaction_ID_High <> P2.txCore_Transaction_ID_High) then begin
+    P3.txCore_Transaction_ID_High := P1.txCore_Transaction_ID_High;
+    ChangedFields[i] := tktxCore_Transaction_ID_High;
     Inc(i);
   end;
 

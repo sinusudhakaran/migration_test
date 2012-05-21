@@ -12,6 +12,7 @@ Type
       function       Compare( Item1, Item2 : pointer ) : integer; override;
       procedure      FreeItem( Item : Pointer ); override;
       function       Transaction_At( Index : Longint ) : pTransaction_Rec;
+      function       GetTransCoreID_At( Index : longint ) : int64;
    end;
 //******************************************************************************
 IMPLEMENTATION
@@ -79,6 +80,19 @@ Begin
       Transaction_At := P;
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function TSorted_Transaction_List.GetTransCoreID_At( Index : longint ) : int64;
+var
+  High : int64;
+  Low  : int64;
+begin
+  Low  := Transaction_At(Index).txCore_Transaction_ID;
+  High := Transaction_At(Index).txCore_Transaction_ID_High;
+
+  Result := (High shr 15) or Low;
+end;
+
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 initialization
    DebugMe := DebugUnit(UnitName);

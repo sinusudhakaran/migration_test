@@ -30,6 +30,7 @@ type
       procedure LoadFromFile(var S : TIOStream);
       procedure SaveToFile(var S: TIOStream);
       function  Transaction_At(Index : longint) : pTransaction_Rec;
+      function  GetTransCoreID_At(Index : longint) : int64;
       function  FindTransactionFromECodingUID( UID : integer) : pTransaction_Rec;
       function  FindTransactionFromMatchId(UID: integer): pTransaction_Rec;
       function New_Transaction : pTransaction_Rec;
@@ -419,6 +420,19 @@ Begin
       result := P;
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function TTransaction_List.GetTransCoreID_At(Index : longint) : int64;
+var
+  High : int64;
+  Low  : int64;
+begin
+  Low  := Transaction_At(Index).txCore_Transaction_ID;
+  High := Transaction_At(Index).txCore_Transaction_ID_High;
+
+  Result := (High shr 15) or Low;
+end;
+
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function TTransaction_List.FirstPresDate : LongInt;
 //returns 0 if no transactions or the first Date of Presentation

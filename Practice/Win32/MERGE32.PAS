@@ -384,7 +384,8 @@ Begin
                                  txStatement_Details  := aStatement_Details;
                                  txBank_Seq           := baFields.baNumber;  //setbank account sequence no to current bank index
 
-                                 txCore_Transaction_ID := aCoreTransactionID;
+                                 txCore_Transaction_ID      := aCoreTransactionID;
+                                 txCore_Transaction_ID_High := aCoreTransactionIDHigh;
 
                                  //Get extra info for Provisional transactions
                                  if (txSource = orProvisional) then

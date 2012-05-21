@@ -117,8 +117,8 @@ type
     miFind: TMenuItem;
     miSearch: TMenuItem;
     tbtnClose: TRzToolButton;
-    celCoreTransactionId: TOvcTCNumericField;
     celTransferedToOnline: TOvcTCCheckBox;
+    celCoreTransactionId: TOvcTCString;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
 
@@ -3802,11 +3802,11 @@ begin
 
       end;
 
-      if (ProductConfigService.OnLine and ProductConfigService.IsPracticeProductEnabled(ProductConfigService.GetExportDataId, False)) then
-      begin
+      //if (ProductConfigService.OnLine and ProductConfigService.IsPracticeProductEnabled(ProductConfigService.GetExportDataId, False)) then
+      //begin
         InsColDefnRec('Transaction Id', ceCoreTransactionId, celCoreTransactionId, 90, false, true, false, csByTransId);
         InsColDefnRec('Sent to BankLink Online', ceTransferedToOnline, celTransferedToOnline, 142, false, true, false, csBySentToAndAcc);
-      end;
+      //end;
 
       EditMode := emGeneral; //Never changed here
    end;
@@ -4318,11 +4318,13 @@ var
    pA: pAccount_Rec;
    APayee : TPayee;
    Job: PJob_Heading_Rec;
+   CoreTransID : Int64;
 
 begin
   if not ValidDataRow(RowNum) then exit;
 
   with WorkTranList do begin
+      CoreTransID := GetTransCoreID_At(RowNum-1);
       pT   := Transaction_At(RowNum-1);
       FieldID := ColumnFmtList.ColumnDefn_At(ColNum)^.cdFieldID;
 
@@ -4532,8 +4534,9 @@ begin
 
         ceCoreTransactionId :
         begin
-           tmpPaintInteger := pT^.txCore_Transaction_ID;
-           data := @tmpPaintInteger;
+           tmpPaintString := IntToStr(CoreTransID);
+
+           data := PChar(tmpPaintString);
         end;
 
         ceTransferedToOnline :
@@ -8600,6 +8603,7 @@ begin
   DrawText(C.Handle, Data, StrLen(Data), R, DT_RIGHT or DT_VCENTER or DT_SINGLELINE);
   DoneIt := True;
 end;
+
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmCoding.DoCopyNotesToNarration( Append : boolean);
 var

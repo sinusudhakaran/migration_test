@@ -596,7 +596,6 @@ object frmCoding: TfrmCoding
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd, efoTrimBlanks]
     PictureMask = '999999'
     ShowHint = True
     OnKeyDown = celPayeeKeyDown
@@ -615,7 +614,6 @@ object frmCoding: TfrmCoding
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd]
     PictureMask = '#########.##'
     ShowHint = True
     OnChange = celGstAmtChange
@@ -635,7 +633,6 @@ object frmCoding: TfrmCoding
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd]
     PictureMask = '#########.####'
     ShowHint = True
     OnChange = celQuantityChange
@@ -994,7 +991,6 @@ object frmCoding: TfrmCoding
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd]
     PictureMask = '####.####'
     Left = 624
     Top = 48
@@ -1009,7 +1005,6 @@ object frmCoding: TfrmCoding
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd]
     PictureMask = '########.##'
     OnChange = celLocalCurrencyAmountChange
     OnExit = celAmountExit
@@ -1043,21 +1038,6 @@ object frmCoding: TfrmCoding
       Checked = True
       OnClick = miSearchClick
     end
-  end
-  object celCoreTransactionId: TOvcTCNumericField
-    Access = otxReadOnly
-    EFColors.Disabled.BackColor = clWindow
-    EFColors.Disabled.TextColor = clGrayText
-    EFColors.Error.BackColor = clRed
-    EFColors.Error.TextColor = clBlack
-    EFColors.Highlight.BackColor = clHighlight
-    EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd, efoTrimBlanks]
-    PictureMask = 'iiiiiiiiiii'
-    Left = 336
-    Top = 312
-    RangeHigh = {FFFFFF7F000000000000}
-    RangeLow = {00000080000000000000}
   end
   object celTransferedToOnline: TOvcTCCheckBox
     Access = otxReadOnly
@@ -1129,5 +1109,14 @@ object frmCoding: TfrmCoding
     OnMouseUp = celTaxInvMouseUp
     Left = 372
     Top = 314
+  end
+  object celCoreTransactionId: TOvcTCString
+    Access = otxReadOnly
+    Adjust = otaCenterLeft
+    MaxLength = 20
+    ShowHint = True
+    OnOwnerDraw = celPayeeNameOwnerDraw
+    Left = 336
+    Top = 313
   end
 end
