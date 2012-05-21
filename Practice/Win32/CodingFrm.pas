@@ -3802,11 +3802,11 @@ begin
 
       end;
 
-      //if (ProductConfigService.OnLine and ProductConfigService.IsPracticeProductEnabled(ProductConfigService.GetExportDataId, False)) then
-      //begin
+      if (ProductConfigService.OnLine and ProductConfigService.IsPracticeProductEnabled(ProductConfigService.GetExportDataId, False)) then
+      begin
         InsColDefnRec('Transaction Id', ceCoreTransactionId, celCoreTransactionId, 90, false, true, false, csByTransId);
         InsColDefnRec('Sent to BankLink Online', ceTransferedToOnline, celTransferedToOnline, 142, false, true, false, csBySentToAndAcc);
-      //end;
+      end;
 
       EditMode := emGeneral; //Never changed here
    end;
