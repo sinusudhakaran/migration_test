@@ -56,6 +56,8 @@ function SetBKAdminLocation( AdminDir : PChar) : LongBool; stdcall;
 procedure IntegrityCheck;
 procedure DumpClientAccountMapToFile;
 
+function ValidateUserPassword(User: pUser_Rec; const Password: String): Boolean;
+
 //******************************************************************************
 implementation
 uses
@@ -91,6 +93,18 @@ var
   DebugMe       : boolean = false;
   AdminDate     : Int64 = 0;
   AdminIsLocked : Boolean = False;
+
+function ValidateUserPassword(User: pUser_Rec; const Password: String): Boolean;
+begin
+  if User.usUsing_Mixed_Case_Password then
+  begin
+    Result := Password = User.usPassword;
+  end
+  else
+  begin
+    Result := Uppercase(Password) = User.usPassword;
+  end;
+end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function  LockAdmin( RequestedBy : string ) : Boolean;
