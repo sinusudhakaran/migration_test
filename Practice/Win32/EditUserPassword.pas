@@ -119,7 +119,7 @@ function TEditUserPassword.Validate : boolean;
 begin
   Result := false;
 
-  if (Trim(Uppercase(edtOldPassword.text)) <> fUser_Rec.usPassword) then
+  if not ValidateUserPassword(fUser_Rec, Trim(edtOldPassword.Text)) then
   begin
     HelpfulWarningMsg('Practice old user password is not correct', 0 );
     edtOldPassword.SetFocus;
@@ -176,12 +176,23 @@ end;
 
 //------------------------------------------------------------------------------
 function TEditUserPassword.UpdateOnline: Boolean;
+var
+  OldPassword: String;
 begin
   Result := False;
   try
+    if fUser_Rec.usUsing_Mixed_Case_Password then
+    begin
+      OldPassword := edtOldPassword.Text;
+    end
+    else
+    begin
+      OldPassword := Uppercase(edtOldPassword.Text);
+    end;
+    
     if ProductConfigService.ChangePracUserPass(fUser_Rec.usCode,
-                                               Trim(Uppercase(edtOldPassword.text)),
-                                               Trim(Uppercase(edtNewPassword.text))) then
+                                               Trim(OldPassword),
+                                               Trim(edtNewPassword.text)) then
     begin
       Result := True;
     end;
