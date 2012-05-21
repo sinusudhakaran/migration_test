@@ -1174,13 +1174,9 @@ begin
       BKHelpSetUp(MyDlg, BKH_Edit_bank_account_details);
     MyDlg.BankAcct := aBankAcct;
     MyDlg.AddNew := IsNew;
-    MyDlg.ExportDataEnabled := (ProductConfigService.OnLine and
-                               ProductConfigService.IsPracticeProductEnabled(ProductConfigService.GetExportDataId, False)) and
-                               (not aBankAcct.baFields.baIs_A_Manual_Account) and
-                               (not (aBankAcct.baFields.baAccount_Type in [sbtProvisional])) and
-                               (not (aBankAcct.IsAJournalAccount)) and
+    MyDlg.ExportDataEnabled := (ProductConfigService.IsExportDataEnabledFoAccount(aBankAcct)) and
                                (aClientId <> '') and
-                               not CurrUser.HasRestrictedAccess;
+                               (not CurrUser.HasRestrictedAccess);
 
     if MyDlg.ExportDataEnabled then
     begin

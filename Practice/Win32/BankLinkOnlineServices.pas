@@ -12,7 +12,8 @@ uses
   TypInfo,
   Classes,
   ComCtrls,
-  clObj32;
+  clObj32,
+  baObj32;
 
 type
   TBloStatus                = BlopiServiceFacade.Status;
@@ -208,6 +209,9 @@ type
     function IsVendorExportOptionEnabled(ProductId: TBloGuid;
       AUsePracCopy: Boolean): Boolean;
   public
+    function IsExportDataEnabled : Boolean;
+    function IsExportDataEnabledFoAccount(const aBankAcct : TBank_Account) : Boolean;
+
     function IsItemInArrayString(const aBloArrayOfString : TBloArrayOfString;
                                  const aItem : WideString) : Boolean;
     function GetItemIndexInArrayString(const aBloArrayOfString : TBloArrayOfString;
@@ -394,8 +398,7 @@ uses
   IntfInfo,
   ObjAuto,
   SyDefs,
-  Globals,
-  baObj32;
+  Globals;
 
 const
   UNIT_NAME = 'BankLinkOnlineServices';
@@ -421,6 +424,25 @@ begin
 end;
 
 { TProductConfigService }
+
+//------------------------------------------------------------------------------
+function TProductConfigService.IsExportDataEnabled : Boolean;
+begin
+  Result := OnLine and
+            Registered and
+            IsPracticeActive(False) and
+            IsPracticeProductEnabled(GetExportDataId, True);
+end;
+
+//------------------------------------------------------------------------------
+function TProductConfigService.IsExportDataEnabledFoAccount(const aBankAcct : TBank_Account) : Boolean;
+begin
+  Result := IsExportDataEnabled and
+            (not aBankAcct.baFields.baIs_A_Manual_Account) and
+            (not (aBankAcct.baFields.baAccount_Type in [sbtProvisional])) and
+            (not (aBankAcct.IsAJournalAccount));
+end;
+
 //------------------------------------------------------------------------------
 function TProductConfigService.IsItemInArrayString(const aBloArrayOfString : TBloArrayOfString;
                                                    const aItem : WideString) : Boolean;

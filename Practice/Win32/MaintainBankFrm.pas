@@ -152,8 +152,8 @@ begin
   ContraColumn.Caption := 'Contra';
   ContraColumn.Width := 100;
 
-  fExportDataEnabled := (ProductConfigService.OnLine and
-                        ProductConfigService.IsPracticeProductEnabled(ProductConfigService.GetExportDataId, False));
+  fExportDataEnabled := ProductConfigService.IsExportDataEnabled;
+
   if fExportDataEnabled then
     AddOnlineExportVendors;
 
@@ -319,28 +319,24 @@ begin
          (fClientAccVendors.ClientID <> '') then
       begin
         AccVendorIndex := GetAccountIndexOnVendorList(BankAcct.baFields.baBank_Account_Number);
-        if AccVendorIndex > -1 then
+        if (ProductConfigService.IsExportDataEnabledFoAccount(BankAcct)) and
+           (AccVendorIndex > -1) then
         begin
           for ClientVendorIndex := 0 to high(fClientAccVendors.ClientVendors) do
           begin
-            if (not BankAcct.baFields.baIs_A_Manual_Account) and
-               (not (BankAcct.baFields.baAccount_Type in [sbtProvisional])) and
-               (i <= high(fClientAccVendors.AccountsVendors)) then
+            Found := False;
+            for AccountVendorIndex := 0 to High(fClientAccVendors.AccountsVendors[AccVendorIndex].AccountVendors.Current) do
             begin
-              Found := False;
-              for AccountVendorIndex := 0 to High(fClientAccVendors.AccountsVendors[AccVendorIndex].AccountVendors.Current) do
+              if fClientAccVendors.AccountsVendors[AccVendorIndex].AccountVendors.Current[AccountVendorIndex].Id =
+                 fClientAccVendors.ClientVendors[ClientVendorIndex].Id then
               begin
-                if fClientAccVendors.AccountsVendors[AccVendorIndex].AccountVendors.Current[AccountVendorIndex].Id =
-                   fClientAccVendors.ClientVendors[ClientVendorIndex].Id then
-                begin
-                  Found := True;
-                  break;
-                end;
+                Found := True;
+                break;
               end;
-
-              if Found then
-                NewItem.SubItems.Strings[VendorFirstIndex + ClientVendorIndex] := '1';
             end;
+
+            if Found then
+              NewItem.SubItems.Strings[VendorFirstIndex + ClientVendorIndex] := '1';
           end;
         end;
       end;
