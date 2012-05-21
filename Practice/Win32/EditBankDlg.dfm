@@ -562,10 +562,6 @@ object dlgEditBank: TdlgEditBank
     object tbBankLinkOnline: TTabSheet
       Caption = 'BankLink Online'
       ImageIndex = 2
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object lblSelectExport: TLabel
         Left = 16
         Top = 11

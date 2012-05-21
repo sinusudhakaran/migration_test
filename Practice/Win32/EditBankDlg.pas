@@ -552,6 +552,9 @@ begin
                   chkLstAccVendors.Items.Strings[VendorIndex] + #10;
     end;
   end;
+
+  aMessage := aMessage + #10 +
+              'Click OK to confirm that you want to update this bank account’s BankLink Online Export settings.';
 end;
 
 //------------------------------------------------------------------------------
