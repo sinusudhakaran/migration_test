@@ -552,6 +552,10 @@ begin
         else
           CiCoClient.UploadFileFromBooks(AClientCode, IsCopy, NotifyPractice, NotifyEmail, ServerResponce);
 
+          if ServerResponce.Status <> '200' then
+          begin
+            raise EDownloadFailed.Create(ServerResponce.Description);
+          end;
       except
         on E : Exception do
           raise EUploadFailed.Create(E.Message);
