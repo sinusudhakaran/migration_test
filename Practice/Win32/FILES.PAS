@@ -1356,6 +1356,7 @@ var
   RemoteFileName: string;
   Msg: string;
   ClientName, ClientContact : string;
+  ClientStatus: Integer;
 begin
   Result := False;
   TempClient := nil;
@@ -1365,6 +1366,8 @@ begin
   LocalFileName  := DATADIR + CODE + FILEEXTN;
   RemoteFileName := Path + CODE + FILEEXTN;
 
+  ClientStatus := 0;
+    
   //check if this is the code for the current client
   if Assigned(MyClient) and (MyClient.clFields.clCode = Code) then begin
     //make sure this is not a read only file
@@ -1405,6 +1408,11 @@ begin
   ClientContact := TempClient.clFields.clContact_Name;
   AClientEmail := Trim(TempClient.clFields.clClient_EMail_Address);
 
+  if TempClient.clExtra.ceOnlineValuesStored then
+  begin
+    ClientStatus := TempClient.clExtra.ceOnlineStatus;
+  end;
+  
   try
     StatusSilent := false;   //what is this doing? (Matt&Andy)
     try
@@ -1424,6 +1432,20 @@ begin
     else begin
       TempClient.clWas_Code := TempClient.clFields.clCode;
       DoClientSave(false, Tempclient);
+    end;
+
+    if ClientStatus > 0 then
+    begin
+      Msg := 'Cannot send a suspended or deactivated file [' + Code + ']';
+
+      LogUtil.LogMsg(lmInfo, UnitName, ThisMethodName + ' : ' + Msg);
+
+      if not IsScheduledReport then
+      begin
+        ProgressFrm.mProgress.Lines.Add('Skipped ' + Code + ' - ' + Msg);
+      end;
+        
+      Exit;
     end;
 
     //Copy/Upload client file
@@ -1564,6 +1586,7 @@ var
   Msg: string;
   SendCopy: Boolean;
   NotifyEmailAddress: string;
+  ClientStatus: Integer;
 begin
   //Never comes in here for scheduled reports - admin system must exist
   //admin system does not exists so is an off-site client
@@ -1579,6 +1602,8 @@ begin
   RemoteFileName := Path + CODE + FILEEXTN;
   BackupFileName := DATADIR + CODE + BACKUPEXTN;
 
+  ClientStatus := 0;
+  
   if Assigned(MyClient) and (MyClient.clFields.clCode = Code) then begin
     AClientEmail := MyClient.clFields.clPractice_Name + NAME_EMAIL_SPACER +
                     MyClient.clFields.clPractice_EMail_Address;
@@ -1592,6 +1617,12 @@ begin
       Msg := Format(CANNOT_FLAG_READ_ONLY, [CODE]);
       LogUtil.LogMsg(lmInfo,UnitName,ThisMethodName + ' '+Msg);
     end;
+
+    if MyClient.clExtra.ceOnlineValuesStored then
+    begin
+      ClientStatus := MyClient.clExtra.ceOnlineStatus;
+    end;
+
     if not CloseClient then begin
       Msg := 'Cannot close client file ' + CODE;
       LogUtil.LogMsg(lmInfo,UnitName,ThisMethodName + ' '+Msg);
@@ -1613,6 +1644,12 @@ begin
       if TempClient.clFields.clCustom_Contact_EMail_Address <> '' then
         AClientEmail := TempClient.clFields.clContact_Name + NAME_EMAIL_SPACER +
                         TempClient.clFields.clCustom_Contact_EMail_Address;
+
+      if MyClient.clExtra.ceOnlineValuesStored then
+      begin
+        ClientStatus := MyClient.clExtra.ceOnlineStatus;
+      end;
+    
       CloseAClient(TempClient);
     end else if (ASendMethod = ftmOnline) then begin
       //Need to get email for banklink online
@@ -1630,11 +1667,31 @@ begin
         if TempClient.clFields.clCustom_Contact_EMail_Address <> '' then
           AClientEmail := TempClient.clFields.clContact_Name + NAME_EMAIL_SPACER +
                           TempClient.clFields.clCustom_Contact_EMail_Address;
+
+        if MyClient.clExtra.ceOnlineValuesStored then
+        begin
+          ClientStatus := MyClient.clExtra.ceOnlineStatus;
+        end;
+    
         CloseAClient(TempClient);
       end;
     end;
   end;
 
+  if ClientStatus > 0 then
+  begin
+    Msg := 'Cannot send a suspended or deactivated file [' + Code + ']';
+
+    LogUtil.LogMsg(lmInfo, UnitName, ThisMethodName + ' : ' + Msg);
+
+    if not IsScheduledReport then
+    begin
+      ProgressFrm.mProgress.Lines.Add('Skipped ' + Code + ' - ' + Msg);
+    end;
+        
+    Exit;
+  end;
+    
   //Take a backup copy
   if BKFileExists(BackupFileName) then
     DeleteFile(BackupFileName);
