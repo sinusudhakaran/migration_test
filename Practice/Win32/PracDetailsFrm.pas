@@ -774,13 +774,10 @@ begin
                                               ProductConfigService.OnLine and
                                               ProductConfigService.Registered and
                                               ProductConfigService.IsPracticeActive(False);
-      
+
     tbsDataExport.TabVisible :=
         UseBankLinkOnline and
-        ProductConfigService.OnLine and
-        ProductConfigService.Registered and
-        ProductConfigService.IsPracticeActive(False) and
-        ProductConfigService.IsPracticeProductEnabled(ProductConfigService.GetExportDataId, True);
+        ProductConfigService.IsExportDataEnabled;
 
     ckUseBankLinkOnline.Enabled := ProductConfigService.OnLine;
   finally
