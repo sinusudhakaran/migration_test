@@ -428,6 +428,11 @@ procedure TfrmPracticeDetails.SetupDataExportSettings;
 var
   FirstVisibleTab: TTabSheet;
 begin
+  chklistExportTo.ReleaseObjects;
+  chklistExportTo.Clear;
+
+  edtAcclipseCode.Text := '';
+              
   if Assigned(FPracticeVendorExports) then
   begin
     if Length(FPracticeVendorExports.Available) > 0 then
@@ -1571,9 +1576,13 @@ begin
         begin
           if DataExportSettingsChanged then
           begin
-            if AskYesNo('Disable the Export Data service', 'You have made changes to your Data Export Settings - click Yes to return and save or No to continue without saving those changes.', DLG_YES, 0) = DLG_NO then
+            if AskYesNo('Disable the Export Data service', 'You have made changes to your Data Export Settings - click Yes to return and save or No to continue without saving those changes.', DLG_YES, 0) = DLG_YES then
             begin
               Exit;
+            end
+            else
+            begin
+              SetupDataExportSettings;
             end;
           end;
 
