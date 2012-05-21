@@ -502,7 +502,7 @@ begin { TdlgEditUser.OKtoPost }
       exit;
     end; { (Trim(ePass.text) = '') }
 
-    if (FOldValues.Password = ePass.Text) and not FUsingMixedCasePassword then
+    if (CompareText(FOldValues.Password, ePass.Text) = 0) and not FUsingMixedCasePassword then
     begin
       HelpfulWarningMsg('BankLink Online enabled for the first time. Please enter a new password.', 0 );
       pcMain.ActivePage := tsDetails;
