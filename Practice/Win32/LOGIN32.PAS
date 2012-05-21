@@ -331,7 +331,7 @@ begin
   end;
 
   {user found now check password}
-  If (User.usPassword <> pass) then
+  if not ValidateUserPassword(User, pass) then
   begin
     ErrorSound;
     HelpfulWarningMsg('Your Username and/or Password is invalid.  Please try again.',0);
