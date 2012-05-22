@@ -1436,7 +1436,7 @@ begin
 
     if ClientStatus > 0 then
     begin
-      Msg := 'Cannot send a suspended or deactivated file [' + Code + ']';
+      Msg := 'This client file has been de-activated or suspended by the accountant so you cannot transfer files via BankLink Online.';
 
       LogUtil.LogMsg(lmInfo, UnitName, ThisMethodName + ' : ' + Msg);
 
@@ -1680,7 +1680,7 @@ begin
 
   if ClientStatus > 0 then
   begin
-    Msg := 'Cannot send a suspended or deactivated file [' + Code + ']';
+    Msg := 'This client file has been de-activated or suspended by the accountant so you cannot transfer files via BankLink Online. Please contact your accountant for assistance.';
 
     LogUtil.LogMsg(lmInfo, UnitName, ThisMethodName + ' : ' + Msg);
 
