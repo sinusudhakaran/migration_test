@@ -180,7 +180,7 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmBanklinkOnlineSettings.FormShow(Sender: TObject);
 begin
-  FillClientDetails;
+  //FillClientDetails;
   PostMessage(Handle, UM_AFTERSHOW, 0, 0);
 end;
 
@@ -1103,6 +1103,8 @@ begin
                                                 edtEmailAddress.Text,
                                                 edtUserName.Text,
                                                 false);
+                                                
+    MyClient.clExtra.ceOnlineValuesStored := False;
   end
   else
   // New Client
@@ -1110,9 +1112,7 @@ begin
     // If Notes Online is selected and no other products are selected instead of creating a
     // new client then it stores the values offline (in the client file) to be uploaded
     // after the first Note upload when it does create the client
-    if (((NotesOnlineTicked) and (NumProdTicked = 1)) or
-       ((MyClient.clExtra.ceOnlineValuesStored = False) and (NumProdTicked = 0))) and
-       (Length(ModifiedDataExports) = 0) then
+    if (((NotesOnlineTicked) and (NumProdTicked = 1)) or (NumProdTicked = 0)) and (Length(ModifiedDataExports) = 0) then
     begin
       MyClient.clExtra.ceOnlineBillingFrequency := AnsiLeftStr(cmbBillingFrequency.Text, 1);
       MyClient.clExtra.ceOnlineMaxOfflineDays   := StrToInt(ConnectDays);
@@ -1130,7 +1130,9 @@ begin
 
       MyClient.clExtra.ceOnlineUserEMail    := edtEmailAddress.Text;
       MyClient.clExtra.ceOnlineUserFullName := edtUserName.Text;
+      
       MyClient.clExtra.ceOnlineValuesStored := True;
+
       Result := True;
     end
     else
@@ -1152,16 +1154,19 @@ begin
                                                     edtEmailAddress.Text,
                                                     edtUserName.Text,
                                                     ClientID);
+        
+        MyClient.clExtra.ceOnlineValuesStored := False;
+        
         ShowUpdateMsg := not Result;
       end
       else
       begin
         SetLength(Subscription,0);
-        MyClient.clExtra.ceOnlineValuesStored := False;
         Result := True;
       end;
     end;
   end;
+  
   MyClient.clExtra.ceDeliverDataDirectToBLO := chkDeliverData.Checked;
   MyClient.clExtra.ceBLOSecureCode := edtSecureCode.Text;
 
