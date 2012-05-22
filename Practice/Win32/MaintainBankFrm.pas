@@ -122,7 +122,9 @@ uses
   BAUtils,
   Math,
   CommCtrl,
-  strutils;
+  strutils,
+  genutils,
+  GLConst;
 
 const
   COL_ACCOUNT_NO    = 0;
@@ -504,6 +506,54 @@ var
   pS: pSystem_Bank_Account_Rec;
   i: Integer;
   pF: pClient_File_Rec;
+  AccVendorIndex : integer;
+  DlgResult : integer;
+  fRemoveVendorsFromClient : boolean;
+  fRemoveVendorsFromClientList : TBloArrayOfGuid;
+  CurrentVendors : TBloArrayOfGuid;
+  IsExportDataEnabledFoAccount : Boolean;
+
+  //------------------------------------------------------------------------------
+  function AllAccountsHaveOneVendorSelected(aAccVendorIndex : integer;
+                                            out aMessage : string) : Boolean;
+  var
+    VendorIndex : integer;
+    VendorId : TBloGuid;
+    VendorNames : Array of String;
+    VendorStr : String;
+    AccountVendors : TAccountVendors;
+  begin
+    Result := false;
+    SetLength(VendorNames, 0);
+    aMessage := '';
+    AccountVendors := fClientAccVendors.AccountsVendors[aAccVendorIndex];
+
+    Setlength(fRemoveVendorsFromClientList,0);
+    for VendorIndex := 0 to high(fClientAccVendors.ClientVendors) do
+    begin
+      if AccountVendors.IsLastAccForVendors[VendorIndex] then
+      begin
+        SetLength(VendorNames, length(VendorNames)+1);
+        VendorNames[High(VendorNames)] := AccountVendors.AccountVendors.Available[VendorIndex].Name_;
+      end
+      else
+      begin
+        Setlength(fRemoveVendorsFromClientList, length(fRemoveVendorsFromClientList) + 1);
+        fRemoveVendorsFromClientList[high(fRemoveVendorsFromClientList)] :=
+          AccountVendors.AccountVendors.Available[VendorIndex].Id;
+      end;
+    end;
+
+    VendorStr := GetCommaSepStrFromList(VendorNames);
+
+    if Length(VendorNames) > 0 then
+    begin
+      aMessage := 'Client ' + MyClient.clFields.clCode + ' no longer has any bank accounts using ' + VendorStr + '.' + #10 +
+                  'Would you like BankLink Practice to remove ' + VendorStr + ' for this client?';
+      Result := True;
+    end;
+  end;
+
 begin
   result := false;
 
@@ -552,6 +602,29 @@ begin
   else
     exit;
 
+  IsExportDataEnabledFoAccount := ProductConfigService.IsExportDataEnabledFoAccount(BankAccount);
+  fRemoveVendorsFromClient := false;
+  if IsExportDataEnabledFoAccount then
+  begin
+    AccVendorIndex := GetAccountIndexOnVendorList(BankAccount.baFields.baBank_Account_Number);
+    if (AccVendorIndex > -1) then
+    begin
+      if AllAccountsHaveOneVendorSelected(AccVendorIndex, aMsg) then
+      begin
+        DlgResult := AskYesNo('Export Options removed', aMsg, DLG_YES, 0, true);
+
+        case DlgResult of
+          DLG_YES : begin
+            fRemoveVendorsFromClient := true;
+          end;
+          DLG_CANCEL : begin
+            Exit;
+          end;
+        end;
+      end;
+    end;
+  end;
+
   {do the deletion}
   if LoadAdminSystem(true, 'TfrmMaintainBank.tbDeleteClick' ) then
   begin
@@ -587,6 +660,41 @@ begin
   end
   else
     HelpfulErrorMsg('Unable to Delete Bank Account.  Admin System cannot be loaded',0);
+
+  if (Result) and
+     (IsExportDataEnabledFoAccount) then
+  begin
+    if fRemoveVendorsFromClient then
+    begin
+      try
+        Result := ProductConfigService.SaveClientVendorExports(fClientAccVendors.ClientID,
+                                                               fRemoveVendorsFromClientList,
+                                                               true,
+                                                               true,
+                                                               False);
+      finally
+        fRemoveVendorsFromClient := false;
+      end;
+
+      if Result then
+      begin
+        // Remove All Vendor Columns
+        for i := 0 to high(fClientAccVendors.ClientVendors) do
+          lvBank.Columns.Delete(lvBank.Columns.Count-1);
+
+        AddOnlineExportVendors;
+      end;
+    end;
+
+    if Result then
+    begin
+      SetLength(CurrentVendors, 0);
+      Result := ProductConfigService.SaveAccountVendorExports(fClientAccVendors.ClientID,
+                                                              AcctNo,
+                                                              CurrentVendors,
+                                                              True);
+    end;
+  end;
 
   LogUtil.LogMsg(lmInfo,'MAINTAINBANKFRM','User Delete Bank Account '+AcctNo+' - '+AcctName);
 end;
