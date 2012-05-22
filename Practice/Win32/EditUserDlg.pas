@@ -504,7 +504,12 @@ begin { TdlgEditUser.OKtoPost }
 
     if (CompareText(FOldValues.Password, ePass.Text) = 0) and not FUsingMixedCasePassword then
     begin
-      HelpfulWarningMsg('BankLink Online enabled for the first time. Please enter a new password.', 0 );
+      HelpfulInfoMsg('Your login has been enabled for access to BankLink Online.  This means you need to enter a new password which ' +
+                     'you can use for both BankLink Practice and BankLink Online.' + #10#13#01#13 +
+                     'Your new password must be a minimum of 8 and a maximum of 12 characters long.  It must contain at least ' +
+                     '1 alpha (a-z, A-Z) and 1 numeric (0-9) character.' + #10#13#10#13 +
+                     'Click OK to enter a new password.', 0);
+                        
       pcMain.ActivePage := tsDetails;
       ePass.SetFocus;
       exit;      
