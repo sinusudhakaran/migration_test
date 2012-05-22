@@ -526,6 +526,7 @@ begin
       end;
     end;
 
+    {
     if (NumProdTicked = 0) then
     begin
       PromptMessage := 'You have edited the BankLink Online settings for this client, ' +
@@ -537,6 +538,7 @@ begin
         Exit;
     end
     else
+    }
     if (not IsClientOnline) and
        (NotesOnlineTicked) and
        (NumProdTicked > 1) then
