@@ -376,7 +376,11 @@ begin
         HelpfulWarningMsg( 'You cannot use the directory that contains your ' +
                            Globals.SHORTAPPNAME + ' data!'#13#13 +
                            'Please select another directory', 0);
-        ePath.SetFocus;
+        if ePath.CanFocus then
+        begin
+          ePath.SetFocus;
+        end;
+        
         Exit;
       end;
 
@@ -406,7 +410,12 @@ begin
         begin
           HelpfulWarningMsg( 'The Directory '+ SelectedDir+' does not exist.'#13#13+
                              'Please enter a valid directory path.',0);
-          ePath.Setfocus;
+
+          if ePath.CanFocus then
+          begin
+            ePath.Setfocus;
+          end;
+
           exit;
         end;
       end;
