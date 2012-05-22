@@ -16,6 +16,9 @@ type
   private
     FClientStatusList: TClientStatusList;
     FSilent : Boolean;
+
+    function GetBankLinkOnlineErrorString(Response: TServerResponse; ForClient: Boolean): String;
+    
     procedure DebugMsg(AMessage: string);
     procedure CheckBankLinkOnlineStatus(AClientCode: string; AAction: TOnlineAction);
     procedure CheckPracticeUploadStatus(AClientCode: string; AStatus: TClientStatusItem);
@@ -486,7 +489,7 @@ begin
           end;
           Result := True;
         end else begin
-          raise EDownloadFailed.Create(ServerResponce.Description);
+          raise EDownloadFailed.Create(GetBankLinkOnlineErrorString(ServerResponce, False));
         end;
       end
       else
@@ -495,7 +498,7 @@ begin
 
         if ServerResponce.Status <> '200' then
         begin
-          raise EDownloadFailed.Create(ServerResponce.Description);
+          raise EDownloadFailed.Create(GetBankLinkOnlineErrorString(ServerResponce, True));
         end;
       end;
     finally
@@ -507,6 +510,25 @@ begin
         CiCoClient.OnProgressEvent := Nil;
         raise EDownloadFailed.Create(E.Message);
       end;
+  end;
+end;
+
+function TBankLinkOnlineManager.GetBankLinkOnlineErrorString(Response: TServerResponse; ForClient: Boolean): String;
+begin
+  if Response.Status = '120' then
+  begin
+    if ForClient then
+    begin
+      Result := 'This client file has been de-activated or suspended by the accountant so you cannot transfer files via BankLink Online. Please contact your accountant for assistance.';
+    end
+    else
+    begin
+      Result := 'This client file has been de-activated or suspended by the accountant so you cannot transfer files via BankLink Online.';
+    end;
+  end
+  else
+  begin
+    Result := Response.Description;
   end;
 end;
 
@@ -548,13 +570,18 @@ begin
             raise EUploadFailed.Create('A valid client email is required to upload.');
 
           CiCoClient.UploadFileFromPractice(AClientCode, AClientName, AClientEmail, AClientContact, ServerResponce);
+
+          if ServerResponce.Status <> '200' then
+          begin
+            raise EDownloadFailed.Create(GetBankLinkOnlineErrorString(ServerResponce, False));
+          end;
         end
         else
           CiCoClient.UploadFileFromBooks(AClientCode, IsCopy, NotifyPractice, NotifyEmail, ServerResponce);
 
           if ServerResponce.Status <> '200' then
           begin
-            raise EDownloadFailed.Create(ServerResponce.Description);
+            raise EDownloadFailed.Create(GetBankLinkOnlineErrorString(ServerResponce, True));
           end;
       except
         on E : Exception do
