@@ -219,7 +219,9 @@ uses
    InfoMoreFrm,
    WebUtils,
    BlopiServiceFacade,
-   RegExprUtils;
+   RegExprUtils,
+   glConst,
+   BankLinkSecureCodeDlg;
 
 {$R *.DFM}
 
@@ -546,6 +548,7 @@ var
   NameExists : boolean;
   CodeType: string;
   BlankEmailIsValid: boolean;
+  SecureCode: String;
 begin
   result := false;
 
@@ -727,7 +730,36 @@ begin
       end;
     end;
   end;
-  
+
+  if chkOffsite.Checked then
+  begin
+    if Trim(eConnectCode.Text) = '' then
+    begin
+      case AskYesNo('BankLink Secure Code', 'The BankLink Secure Code for this client has not been set.  Would you like to set it now?', DLG_YES, 0, True) of
+        glConst.DLG_CANCEL:
+        begin
+          eConnectCode.SetFocus;
+
+          Exit;
+        end;
+
+        glConst.DLG_YES:
+        begin
+          if TfrmBankLinkSecureCode.PromptUser(Self, SecureCode) then
+          begin
+            eConnectCode.Text := SecureCode;
+          end
+          else
+          begin
+            eConnectCode.SetFocus;
+
+            Exit;
+          end;
+        end;
+      end;
+    end;
+  end;
+
   Result := true;
 end;
 
