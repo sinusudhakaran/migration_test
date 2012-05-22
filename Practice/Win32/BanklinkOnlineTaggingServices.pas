@@ -57,9 +57,9 @@ type
     class function GetClientGuid(const ClientCode: String): TBloGuid; static;
     class procedure CleanXML(Node: IXMLNode); static;
   public
-    class procedure UpdateAccountVendors(ClientReadDetail: TBloClientReadDetail; BankAccount: TBank_Account; Vendors: TBloArrayOfGuid); overload; static;
-    class procedure UpdateAccountVendors(ClientReadDetail: TBloClientReadDetail; Client: TClientObj; Vendors: TBloArrayOfGuid; ProgressForm: ISingleProgressForm); overload; static;  
-     
+    class procedure UpdateAccountVendors(ClientReadDetail: TBloClientReadDetail; Client: TClientObj; OriginalVendors, ModifiedVendors: TBloArrayOfGuid; ProgressForm: ISingleProgressForm); overload; static; // Update vendors for a client
+    class procedure UpdateAccountVendors(ClientReadDetail: TBloClientReadDetail; BankAccount: TBank_Account; OriginalVendors, ModifiedVendors: TBloArrayOfGuid); overload; static; // Update vendors for a single account
+
     class procedure GetAccountVendors(BankAccount: TBank_Account; out TaggedAccount: TTaggedAccount); static;
     class procedure GetTaggedAccounts(ClientReadDetail: TBloClientReadDetail; out TaggedAccounts: array of TTaggedAccount); overload; static;
     class procedure GetTaggedAccounts(Practice: TBloPracticeRead; out TaggedAccounts: array of TTaggedAccount); overload; static;
@@ -511,7 +511,7 @@ begin
 end;
 
 // Update account vendors for a client
-class procedure TBanklinkOnlineTaggingServices.UpdateAccountVendors(ClientReadDetail: TBloClientReadDetail; Client: TClientObj; Vendors: TBloArrayOfGuid; ProgressForm: ISingleProgressForm);
+class procedure TBanklinkOnlineTaggingServices.UpdateAccountVendors(ClientReadDetail: TBloClientReadDetail; Client: TClientObj; OriginalVendors, ModifiedVendors: TBloArrayOfGuid; ProgressForm: ISingleProgressForm);
 var
   Index: Integer;
   IIndex: Integer;
@@ -533,10 +533,8 @@ begin
         for IIndex := 0 to Client.clBank_Account_List.ItemCount - 1 do
         begin
           BankAccount := Client.clBank_Account_List[IIndex];
-          // no tagging for Journals or Provisional/Manual accounts. Temporarily removed for testing
-          // if (BankAccount.baFields.baAccount_Type = btBank) and
-          // (BankAccount.baFields.baBank_Account_Number[1] <> 'M') then
-            UpdateAccountVendors(ClientReadDetail, BankAccount, Vendors);
+          if ProductConfigService.IsExportDataEnabledFoAccount(BankAccount) then
+            UpdateAccountVendors(ClientReadDetail, BankAccount, OriginalVendors, ModifiedVendors);
         end;
       end;
     end;
@@ -548,6 +546,79 @@ begin
       HelpfulErrorMsg('Error exporting transactions to ' + BANKLINK_ONLINE_NAME + ': ' + E.Message, 0);
     end;
   end;
+end;
+
+// Update account vendors for a single account
+class procedure TBanklinkOnlineTaggingServices.UpdateAccountVendors(ClientReadDetail: TBloClientReadDetail; BankAccount: TBank_Account; OriginalVendors, ModifiedVendors: TBloArrayOfGuid);
+var
+  AccountVendors: TBloDataPlatformSubscription;
+  ClientVendorsAdded, ClientVendorsRemoved, AccountVendorsModified: TBloArrayOfGuid;
+  i, j, AccountVendorsLength: integer;
+  FoundVendor: boolean;
+begin
+  // Creating list of vendors that have been added to the client
+  for i := 0 to High(ModifiedVendors) do
+  begin
+    FoundVendor := False;
+    for j := 0 to High(OriginalVendors) do
+    begin
+      if (ModifiedVendors[i] = OriginalVendors[j]) then
+      begin
+        FoundVendor := True; // Vendor was already there, it has not been added
+        break;
+      end;
+    end;
+    if not FoundVendor then // This is a new vendor
+      ProductConfigService.AddItemToArrayGuid(ClientVendorsAdded, ModifiedVendors[i]);
+  end;
+
+  // Creating list of vendors that have been removed from the client
+  for i := 0 to High(OriginalVendors) do
+  begin
+    FoundVendor := False;
+    for j := 0 to High(ModifiedVendors) do
+    begin
+      if (OriginalVendors[i] = ModifiedVendors[j]) then
+      begin
+        FoundVendor := True;
+        break; // Vendor still in the list, it has not been removed
+      end;
+    end;
+    if not FoundVendor then // This vendor has been removed
+      ProductConfigService.AddItemToArrayGuid(ClientVendorsRemoved, OriginalVendors[i]);
+  end;
+
+  AccountVendors := ProductConfigService.GetAccountVendors(ClientReadDetail.Id,
+                                                           BankAccount.baFields.baBank_Account_Number);
+
+  // Creating list of vendors that the account currently has which have not
+  // just been removed from the client
+  for i := 0 to High(AccountVendors.Current) do
+  begin
+    FoundVendor := False;
+    for j := 0 to High(ClientVendorsRemoved) do
+    begin
+      if (AccountVendors.Current[i].Id = ClientVendorsRemoved[j]) then
+      begin
+        FoundVendor := True;
+        break;
+      end;
+    end;
+    if not FoundVendor then // This vendor has not been removed
+      ProductConfigService.AddItemToArrayGuid(AccountVendorsModified, AccountVendors.Current[i].Id);
+  end;
+
+  // Adding vendors which have just been added to the client to the list
+  // of account vendors
+  for i := 0 to High(ClientVendorsAdded) do
+    ProductConfigService.AddItemToArrayGuid(AccountVendorsModified, ClientVendorsAdded[i]);
+
+  // Save account vendors
+  ProductConfigService.SaveAccountVendorExports(ClientReadDetail.Id,
+                                                BankAccount.baFields.baBank_Account_Number,
+                                                AccountVendorsModified,
+                                                False,
+                                                False);
 end;
 
 class function TBanklinkOnlineTaggingServices.UploadXMLData(const XmlData: WideString): Boolean;
@@ -573,16 +644,6 @@ begin
       HelpfulErrorMsg('Error sending xml data: ' + E.Message, 0);
     end;
   end;
-end;
-
-// Update account vendors for a single account
-class procedure TBanklinkOnlineTaggingServices.UpdateAccountVendors(ClientReadDetail: TBloClientReadDetail; BankAccount: TBank_Account; Vendors: TBloArrayOfGuid);
-begin
-  ProductConfigService.SaveAccountVendorExports(ClientReadDetail.Id,
-                                                BankAccount.baFields.baBank_Account_Number,
-                                                Vendors,
-                                                False,
-                                                False);
 end;
 
 class procedure TBanklinkOnlineTaggingServices.GetAccountVendors(BankAccount: TBank_Account; out TaggedAccount: TTaggedAccount);

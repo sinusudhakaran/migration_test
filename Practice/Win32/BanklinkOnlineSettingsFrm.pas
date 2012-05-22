@@ -266,13 +266,9 @@ procedure TfrmBanklinkOnlineSettings.chklistServicesAvailableClickCheck(
   Sender: TObject);
 begin
   if chklistServicesAvailable.Checked[chklistServicesAvailable.ItemIndex] then
-  begin
-    ProductConfigService.AddItemToArrayGuid(ModifiedDataExports, TDataExportOption(chklistServicesAvailable.Items.Objects[chklistServicesAvailable.ItemIndex]).Guid);
-  end
+    ProductConfigService.AddItemToArrayGuid(ModifiedDataExports, TDataExportOption(chklistServicesAvailable.Items.Objects[chklistServicesAvailable.ItemIndex]).Guid)
   else
-  begin
     ProductConfigService.RemoveItemFromArrayGuid(ModifiedDataExports, TDataExportOption(chklistServicesAvailable.Items.Objects[chklistServicesAvailable.ItemIndex]).Guid);
-  end;
 end;
 
 //------------------------------------------------------------------------------
@@ -768,20 +764,10 @@ end;
 
 procedure TfrmBanklinkOnlineSettings.ExportTaggedAccounts(ProgressForm: ISingleProgressForm);
 var
-  VendorsSelected: TBloArrayOfGuid;
   i: integer;
-begin
-  // Tag accounts attached to this client for the vendor(s) selected
-  for i := 0 to chkListServicesAvailable.Items.Count - 1 do
-  begin
-    if chkListServicesAvailable.Checked[i] then
-    begin
-      SetLength(VendorsSelected, Length(VendorsSelected) + 1);
-      VendorsSelected[High(VendorsSelected)] := AvailableServiceArray[i].ID;
-    end;
-  end;
-
-  TBankLinkOnlineTaggingServices.UpdateAccountVendors(ClientReadDetail, MyClient, VendorsSelected, ProgressForm);
+begin 
+  TBankLinkOnlineTaggingServices.UpdateAccountVendors(ClientReadDetail, MyClient, OriginalDataExports,
+                                                      ModifiedDataExports, ProgressForm);
 end;
 
 //------------------------------------------------------------------------------
