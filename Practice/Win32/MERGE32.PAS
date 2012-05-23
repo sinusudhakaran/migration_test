@@ -27,6 +27,7 @@ procedure StripCustomLogo( aClient : TClientObj);
 
 procedure UpdateProcessingStats(aClient: TClientObj; const IncludeDownloads: Boolean; Save: Boolean = True);
 procedure RefreshAllProcessingStatistics(const IncludeDownloads: Boolean; const Save: Boolean = True; const Sync: Boolean = False);
+procedure UpdateSystemDownloadIndicators;
 
 // For homepage..
 function NewDataAvailable(aClient : TClientObj) : boolean;
@@ -77,8 +78,6 @@ uses
   PDDates32,
   ClientCodingStatistics,
   stDate,
-//  ForexUtils,
-//  CurrencyConversions,
   CodingStatsList32,
   UsageUtils,
   AuditMgr,
@@ -192,7 +191,6 @@ Var
 
    AccountPasswordOK : boolean;
    Msg               : string;
-//   ForeignCurrency : Boolean;
    BCode, CCode : String[3];
    Rate : Extended;
 Begin
@@ -222,14 +220,6 @@ Begin
            Begin
               BCode := baCurrency_Code;
               CCode := aClient.clExtra.ceLocal_Currency_Code;
-//              ForeignCurrency := Bank_Account.IsAForexAccount;
-//              if ForeignCurrency and ( Bank_Account.baForex_Info = NIL  ) then
-//              Begin { We check for a valid source before allowing the user to retrieve transactions }
-//                Msg := Format( 'Client %s, Bank Account %s : Unable to find an exchange rate currency data source for converting %s to %s with the description %s (%s)',
-//                  [ aClient.clFields.clCode, baBank_Account_Number, BCode, CCode, baDefault_Forex_Description, baDefault_Forex_Source ] );
-//                LogUtil.LogMsg( lmError,UnitName, ThisMethodName + ' : ' + Msg );
-//                Raise Exception.CreateFmt( '%s - %s : %s', [ UnitName, ThisMethodName, Msg ] );
-//              End;
 
               MaxLRN := baHighest_LRN;  //baTransaction_List.HighestLRN;
               pSB := AdminSystem.fdSystem_Bank_Account_List.FindCode( baBank_Account_Number );
@@ -294,9 +284,6 @@ Begin
                    end;
                    //build list of unpresented items
 
-//                   if ForeignCurrency  then
-//                     UEList := MakeForeignCurrencyUEList( Bank_Account )
-//                   else
                      UEList    := MakeUEList( Bank_Account );
 
                    //begin import for archive
@@ -356,7 +343,6 @@ Begin
                               ptr^.txOriginal_Source    := aSource;
                               ptr^.txOriginal_Type      := aType;
                               ptr^.txOriginal_Forex_Conversion_Rate    := ptr^.txForex_Conversion_Rate   ;
-//                              ptr^.txOriginal_Foreign_Currency_Amount  := ptr^.txForeign_Currency_Amount ;
                               ptr^.txOriginal_Amount                   := ptr^.txAmount;
                               ptr^.txOriginal_Cheque_Number            := aCheque_Number;
                            end
@@ -503,21 +489,10 @@ end;
 {-----------------------------------------------------------------}
 
 function CanMergeNewDataNow( Client : TClientObj ): Boolean;
-//Var
-//  fBadForexCurrencyCode : String;
-//  fBadForexAccountCode : String;
-//  fBadForexFileName : String;
 Begin
   Result := False;
   if not NewDataAvailable( Client ) then
       Exit; { No new data }
-//  If Client.HasForeignCurrencyAccounts then
-//  Begin
-//    if not HasRequiredForexSources(Client, fBadForexCurrencyCode, fBadForexAccountCode) then
-//       Exit;
-//    If HasNewEntriesWithDatesOutsideTheCurrentForexDataRange( Client, AdminSystem, fBadForexCurrencyCode, fBadForexFileName) then
-//       Exit;
-//  end;
 
   Result := True;
 End;
@@ -923,7 +898,6 @@ var
   MasterMemX  : TMemorisation;
   ClientMemX  : TMemorisation;
   Msg         : String;
-//  MemFrom, MemTo : TMemorisation;
   MasterLine, ClientLine : pMemorisation_Line_Rec;
   SystemMemorisation: pSystem_Memorisation_List_Rec;
 begin
@@ -948,8 +922,6 @@ begin
            baMemorisations_List.DumpMasters;  //double check no existing entries
 
            BankPrefix := mxfiles32.GetBankPrefix( baFields.baBank_Account_Number);
-//           Master_Mem_Lists_Collection.ReloadSystemMXList( BankPrefix);
-//           MasterMemList := Master_Mem_Lists_Collection.FindPrefix( BankPrefix);
            SystemMemorisation := AdminSystem.SystemMemorisationList.FindPrefix(BankPrefix);
            MasterMemList := nil;
            if Assigned(SystemMemorisation) then
@@ -1192,6 +1164,95 @@ begin
   end;
 end;
 
+procedure UpdateSystemDownloadIndicators;
+var
+  i, Y, Period : integer;
+  YearStartDate, PeriodStartDate: integer;
+  SystemClient: pClient_File_Rec;
+  SystemBankAccount: pSystem_Bank_Account_Rec;
+  ClientAccountMap: pClient_Account_Map_Rec;
+  DateDiff, ArrayIndex: integer;
+  OldProcessingStatusDate: integer;
+begin
+  UpdateAppStatus('Updating Download Status', '' ,0, not ProcessMessages_On);
+  try
+    Admin32.LoadAdminSystem( True, 'UpdateSystemDownloadIndicators');
+    try
+      for i := AdminSystem.fdSystem_Bank_Account_List.First to AdminSystem.fdSystem_Bank_Account_List.Last do begin
+        SystemBankAccount := AdminSystem.fdSystem_Bank_Account_List.System_Bank_Account_At(i);
+        if Assigned(SystemBankAccount) then begin
+          ClientAccountMap := AdminSystem.fdSystem_Client_Account_Map.FindFirstClient(SystemBankAccount.sbLRN);
+          while Assigned(ClientAccountMap) do begin
+            SystemClient := AdminSystem.fdSystem_Client_File_List.FindLRN(ClientAccountMap.amClient_LRN);
+            if Assigned(SystemClient) then begin
+              OldProcessingStatusDate := SystemClient.cfLast_Processing_Status_Date;
+              SystemClient.cfLast_Processing_Status_Date := GetLastDayOfMonth(CurrentDate);
+
+              //Adjust system client status to match current 36 month period
+              DateDiff := bkDateUtils.GetMonthsBetween(OldProcessingStatusDate,
+                                                       SystemClient.cfLast_Processing_Status_Date);
+              for ArrayIndex := Low(SystemClient.cfDownloaded) to High(SystemClient.cfDownloaded) do begin
+                if (ArrayIndex + DateDiff) < High(SystemClient.cfDownloaded) then begin
+                  //Move intersection to start of array
+                  SystemClient.cfCoded[ArrayIndex]       := SystemClient.cfCoded[ArrayIndex + DateDiff];
+                  SystemClient.cfDownloaded[ArrayIndex]  := SystemClient.cfDownloaded[ArrayIndex + DateDiff];
+                  SystemClient.cfFinalized[ArrayIndex]   := SystemClient.cfFinalized[ArrayIndex + DateDiff];
+                  SystemClient.cfTransferred[ArrayIndex] := SystemClient.cfTransferred[ArrayIndex + DateDiff];
+                end else begin
+                  //Set rest of array to 0
+                  SystemClient.cfCoded[ArrayIndex]       := 0;
+                  SystemClient.cfDownloaded[ArrayIndex]  := 0;
+                  SystemClient.cfFinalized[ArrayIndex]   := 0;
+                  SystemClient.cfTransferred[ArrayIndex] := 0;
+                end;
+              end;
+
+              IncDate(GetLastDayOfMonth(CurrentDate), 1, 0, Y - 3);
+
+              SystemClient.cfLast_Processing_Status_Date := GetLastDayOfMonth(CurrentDate);
+              //For each year
+              for Y := 0 to 2 do begin
+                YearStartDate := IncDate(SystemClient.cfLast_Processing_Status_Date, 1, 0, Y - 3);
+                PeriodStartDate := YearStartDate;
+                //For each month
+                for Period := 1 to 12 do begin
+                  //Only update the download status on download
+                  //Get downloaded state from system bank accounts instead of client bank accounts
+                  if (SystemBankAccount.sbNo_of_Entries_This_Month > 0) and
+                     (GetFirstDayOfMonth(PeriodStartDate) >= GetFirstDayOfMonth(SystemBankAccount.sbFrom_Date_This_Month)) and
+                     (GetLastDayOfMonth(PeriodStartDate)  <= GetLastDayOfMonth(SystemBankAccount.sbTo_Date_This_Month)) then begin
+                    //FLAG PERIOD AS DOWNLOADED
+                    //Conditions:
+                    //The system bank account has new transactions in the last download
+                    //and the current period is in the months between the first and last new txn dates.
+                    SystemClient.cfDownloaded[ Period + Y * 12] := 1;
+                  end else if (SystemClient.cfDownloaded[ Period + Y * 12] = 0) and
+                              (SystemClient.cfCoded[ Period + Y * 12] = 0) and
+                              (ClientAccountMap.amEarliest_Download_Date <= PeriodStartDate) and
+                              (GetFirstDayOfMonth(PeriodStartDate) < GetFirstDayOfMonth(SystemBankAccount.sbFrom_Date_This_Month)) then begin
+                    //FLAG PERIOD AS DOWNLOADED
+                    //Conditions:
+                    //The current period has no status info
+                    //and the current period is after the earliest download date for the client
+                    //and the current period is before the first new txn date
+                    SystemClient.cfDownloaded[ Period + Y * 12] := 1;
+                  end;
+                  //Get first day of next month
+                  PeriodStartDate := IncDate(YearStartDate, 0, Period, 0);
+                end;
+              end;
+            end;
+            ClientAccountMap := AdminSystem.fdSystem_Client_Account_Map.FindNextClient(SystemBankAccount.sbLRN);
+          end;
+        end;
+      end;
+    finally
+      Admin32.SaveAdminSystem;
+    end;
+  finally
+    ClearStatus;
+  end;
+end;
 
 initialization
    DebugMe := DebugUnit(UnitName);
