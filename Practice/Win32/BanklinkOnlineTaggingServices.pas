@@ -555,6 +555,7 @@ var
   ClientVendorsAdded, ClientVendorsRemoved, AccountVendorsModified: TBloArrayOfGuid;
   i, j, AccountVendorsLength: integer;
   FoundVendor: boolean;
+  ClientGuid: TBloGuid;
 begin
   // Creating list of vendors that have been added to the client
   for i := 0 to High(ModifiedVendors) do
@@ -588,7 +589,11 @@ begin
       ProductConfigService.AddItemToArrayGuid(ClientVendorsRemoved, OriginalVendors[i]);
   end;
 
-  AccountVendors := ProductConfigService.GetAccountVendors(ClientReadDetail.Id,
+  if Assigned(ClientReadDetail) then
+    ClientGuid := ClientReadDetail.Id
+  else
+    ClientGuid := ProductConfigService.GetClientGuid(MyClient.clFields.clCode);
+  AccountVendors := ProductConfigService.GetAccountVendors(ClientGuid,
                                                            BankAccount.baFields.baBank_Account_Number);
 
   // Creating list of vendors that the account currently has which have not
@@ -614,7 +619,7 @@ begin
     ProductConfigService.AddItemToArrayGuid(AccountVendorsModified, ClientVendorsAdded[i]);
 
   // Save account vendors
-  ProductConfigService.SaveAccountVendorExports(ClientReadDetail.Id,
+  ProductConfigService.SaveAccountVendorExports(ClientGuid,
                                                 BankAccount.baFields.baBank_Account_Number,
                                                 AccountVendorsModified,
                                                 False,
