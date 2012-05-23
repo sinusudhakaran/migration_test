@@ -5,9 +5,20 @@ unit dlgNewBank;
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  StdCtrls, ComCtrls, ExtCtrls, AuditMgr,
-  OsFont;
+  Windows,
+  Messages,
+  SysUtils,
+  Classes,
+  Graphics,
+  Controls,
+  Forms,
+  Dialogs,
+  StdCtrls,
+  ComCtrls,
+  ExtCtrls,
+  AuditMgr,
+  OsFont,
+  BankLinkOnlineServices;
 
 type
   TdlgAddNewBank = class(TForm)
@@ -42,6 +53,8 @@ type
     { Private declarations }
     AttachPressed : boolean;
     SortColA, SortColB : integer;
+    fClientVendors : TBloArrayOfGuid;
+    fClientID      : TBloGuid;
 
     procedure RefreshBankAccountList;
     procedure RefreshAdminAccountList;
@@ -50,9 +63,12 @@ type
   public
     { Public declarations }
     function Execute : boolean;
+    property ClientID : TBloGuid read fClientID write fClientID;
+    property ClientVendors : TBloArrayOfGuid read fClientVendors write fClientVendors;
   end;
 
-function AddNewAccountToClient : boolean;
+function AddNewAccountToClient(aClientVendors : TBloArrayOfGuid;
+                               aClientID      : TBloGuid) : boolean;
 
 //******************************************************************************
 implementation
@@ -323,45 +339,56 @@ begin
         ChangedAdmin := true;
 
         with MyClient.clBank_Account_List do begin
-           if ( FindCode(AdminBankAccount.sbAccount_Number) = nil ) then begin
-              {update bankaccount in client file}
-              NewBankAccount := TBank_Account.Create(MyClient);
+          if ( FindCode(AdminBankAccount.sbAccount_Number) = nil ) then
+          begin
+            {update bankaccount in client file}
+            NewBankAccount := TBank_Account.Create(MyClient);
 
-              with NewBankAccount do begin
-                 baFields.baBank_Account_Number     := AdminBankAccount.sbAccount_Number;
-                 baFields.baBank_Account_Name       := AdminBankAccount.sbAccount_Name;
-                 baFields.baBank_Account_Password   := AdminBankAccount.sbAccount_Password;
-                 baFields.baCurrent_Balance         := Unknown;  //dont assign bal until have all trx
-                 baFields.baBank_Account_Password   := AdminBankAccount.sbAccount_Password;
-                 baFields.baApply_Master_Memorised_Entries := true;
-                 baFields.baDesktop_Super_Ledger_ID := -1;
-                 baFields.baCurrency_Code           := AdminBankAccount.sbCurrency_Code;
-                 //Provisional bank account
-                 if AdminBankAccount.sbAccount_Type = sbtProvisional then begin
-                    baFields.baIs_A_Provisional_Account := True;
-                    //Needed to force client file save so transactions can't be
-                    //altered before audit.
-                    MyClient.ClientAuditMgr.ProvisionalAccountAttached := True;
-                 end;
-
-              end;
-
-             Insert(NewBankAccount);
-
-             // Add to client-account map
-             pF := AdminSystem.fdSystem_Client_File_List.FindCode(MyClient.clFields.clCode);
-             if Assigned(pF) and (not Assigned(AdminSystem.fdSystem_Client_Account_Map.FindLRN(AdminBankAccount.sbLRN, pF.cfLRN))) then
-             begin
-               pM := New_Client_Account_Map_Rec;
-               if Assigned(pM) then
-               begin
-                 pM.amClient_LRN := pF.cfLRN;
-                 pM.amAccount_LRN := AdminBankAccount.sbLRN;
-                 pM.amLast_Date_Printed := 0;
-                 AdminSystem.fdSystem_Client_Account_Map.Insert(pM);
+            with NewBankAccount do begin
+               baFields.baBank_Account_Number     := AdminBankAccount.sbAccount_Number;
+               baFields.baBank_Account_Name       := AdminBankAccount.sbAccount_Name;
+               baFields.baBank_Account_Password   := AdminBankAccount.sbAccount_Password;
+               baFields.baCurrent_Balance         := Unknown;  //dont assign bal until have all trx
+               baFields.baBank_Account_Password   := AdminBankAccount.sbAccount_Password;
+               baFields.baApply_Master_Memorised_Entries := true;
+               baFields.baDesktop_Super_Ledger_ID := -1;
+               baFields.baCurrency_Code           := AdminBankAccount.sbCurrency_Code;
+               //Provisional bank account
+               if AdminBankAccount.sbAccount_Type = sbtProvisional then begin
+                  baFields.baIs_A_Provisional_Account := True;
+                  //Needed to force client file save so transactions can't be
+                  //altered before audit.
+                  MyClient.ClientAuditMgr.ProvisionalAccountAttached := True;
                end;
-             end;
-           end;
+
+            end;
+
+            if (Assigned(fClientVendors)) and
+               (ClientID <> '') and
+               (ProductConfigService.IsExportDataEnabledFoAccount(NewBankAccount)) then
+            begin
+              ProductConfigService.SaveAccountVendorExports(ClientID,
+                                                            NewBankAccount.baFields.baBank_Account_Number,
+                                                            fClientVendors,
+                                                            True);
+            end;
+
+            Insert(NewBankAccount);
+
+            // Add to client-account map
+            pF := AdminSystem.fdSystem_Client_File_List.FindCode(MyClient.clFields.clCode);
+            if Assigned(pF) and (not Assigned(AdminSystem.fdSystem_Client_Account_Map.FindLRN(AdminBankAccount.sbLRN, pF.cfLRN))) then
+            begin
+              pM := New_Client_Account_Map_Rec;
+              if Assigned(pM) then
+              begin
+                pM.amClient_LRN := pF.cfLRN;
+                pM.amAccount_LRN := AdminBankAccount.sbLRN;
+                pM.amLast_Date_Printed := 0;
+                AdminSystem.fdSystem_Client_Account_Map.Insert(pM);
+              end;
+            end;
+          end;
         end; //with MyClient...
       end
       else
@@ -466,7 +493,8 @@ begin
    result := attachPressed;
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function AddNewAccountToClient : boolean;
+function AddNewAccountToClient(aClientVendors : TBloArrayOfGuid;
+                               aClientID      : TBloGuid) : boolean;
 var
   MyDlg : TdlgAddNewBank;
 begin
@@ -489,9 +517,16 @@ begin
 
   MyDlg := TDlgAddNewBank.Create(Application.MainForm);
   try
-     result := MyDlg.Execute; //returns true if new account added
+    if (Assigned(aClientVendors)) and
+       (aClientID <> '') then
+    begin
+      MyDlg.ClientVendors := aClientVendors;
+      MyDlg.ClientID      := aClientID;
+    end;
+
+    result := MyDlg.Execute; //returns true if new account added
   finally
-     MyDlg.Free;
+    MyDlg.Free;
   end;
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

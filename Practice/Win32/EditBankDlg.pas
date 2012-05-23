@@ -1176,10 +1176,11 @@ begin
     else
       BKHelpSetUp(MyDlg, BKH_Edit_bank_account_details);
     MyDlg.BankAcct := aBankAcct;
-    MyDlg.AddNew := IsNew;
+    MyDlg.AddNew   := IsNew;
     MyDlg.ExportDataEnabled := (ProductConfigService.IsExportDataEnabledFoAccount(aBankAcct)) and
                                (aClientId <> '') and
-                               (not CurrUser.HasRestrictedAccess);
+                               (not CurrUser.HasRestrictedAccess) and
+                               (aAccountVendors.AccountNumber <> '');
 
     if MyDlg.ExportDataEnabled then
     begin

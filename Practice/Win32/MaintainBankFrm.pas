@@ -706,6 +706,8 @@ var
   Result: Boolean;
   AccIndex : integer;
   VendorIndex : integer;
+  ClientVendors : TBloArrayOfGuid;
+  Done : Boolean;
 begin
   if lvBank.Selected <> nil then
   begin
@@ -714,6 +716,23 @@ begin
        MyClient.clBank_Account_List.Delete(B);
 
     AccIndex := GetAccountIndexOnVendorList(B.baFields.baBank_Account_Number);
+    if AccIndex = -1 then
+    begin
+      SetLength(ClientVendors, length(fClientAccVendors.ClientVendors));
+      for VendorIndex := 0 to high(ClientVendors) do
+        ClientVendors[VendorIndex] := fClientAccVendors.ClientVendors[VendorIndex].Id;
+
+      Done := ProductConfigService.SaveAccountVendorExports(fClientAccVendors.ClientID,
+                                                            B.baFields.baBank_Account_Number,
+                                                            ClientVendors,
+                                                            false);
+      if Done then
+      begin
+        RefreshExportVendors;
+        RefreshBankAccountList;
+      end;
+    end;
+
     Result := EditBankAccount(B, fClientAccVendors.AccountsVendors[AccIndex], fClientAccVendors.ClientId);
 
     if B.IsManual then
@@ -929,13 +948,21 @@ end;
 
 //------------------------------------------------------------------------------
 procedure TfrmMaintainBank.actAttachExecute(Sender: TObject);
+var
+  ClientVendors : TBloArrayOfGuid;
+  VendorIndex : integer;
 begin
   if (CurrUser.CanAccessAdmin) and (not MyClient.clFields.clFile_Read_Only) then
   begin
-    if AddNewAccountToClient then
+    SetLength(ClientVendors, length(fClientAccVendors.ClientVendors));
+    for VendorIndex := 0 to high(ClientVendors) do
+      ClientVendors[VendorIndex] := fClientAccVendors.ClientVendors[VendorIndex].Id;
+
+    if AddNewAccountToClient(ClientVendors, fClientAccVendors.ClientID) then
     begin
       UpdateRefNeeded := true;
       AccountChanged := True;
+      RefreshExportVendors;
       RefreshBankAccountList;
 
       //try to download any new transactions into the client
