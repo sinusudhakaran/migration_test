@@ -1428,7 +1428,6 @@ end;
 procedure TfrmClientDetails.UpdateProductsLabel;
 var
   NumProducts: string;
-  ClientReadDetail : TBloClientReadDetail;
   NotesId : TBloGuid;
   NotesIndex : integer;
   WebExportSetToNotes : Boolean;
@@ -1440,29 +1439,28 @@ var
 begin
   if Assigned(MyClient) then
   begin
-    ClientReadDetail := ProductConfigService.GetClientDetailsWithCode(MyClient.clFields.clCode, True);
     NotesId := ProductConfigService.GetNotesId;
     NumProducts := '0';
     WebExportSetToNotes := (MyClient.clFields.clWeb_Export_Format = wfWebNotes);
 
-    if Assigned(ClientReadDetail) then
+    if Assigned(FClientReadDetail) then
     begin
-      SubscriptionSetToNotes := ProductConfigService.IsItemInArrayGuid(ClientReadDetail.Subscription, NotesId);
+      SubscriptionSetToNotes := ProductConfigService.IsItemInArrayGuid(FClientReadDetail.Subscription, NotesId);
 
       // Sync up Web Export Fromat with Online Subscription
       if SubscriptionSetToNotes <> WebExportSetToNotes then
       begin
-        Subscription := ClientReadDetail.Subscription;
+        Subscription := FClientReadDetail.Subscription;
 
         if WebExportSetToNotes then
           ProductConfigService.AddItemToArrayGuid(Subscription, NotesId)
         else
           ProductConfigService.RemoveItemFromArrayGuid(Subscription, NotesId);
 
-        if length(ClientReadDetail.Users) > 0 then
+        if length(FClientReadDetail.Users) > 0 then
         begin
-          UserEmail := ClientReadDetail.Users[0].EMail;
-          UserName  := ClientReadDetail.Users[0].FullName;
+          UserEmail := FClientReadDetail.Users[0].EMail;
+          UserName  := FClientReadDetail.Users[0].FullName;
         end
         else
         begin
@@ -1470,13 +1468,16 @@ begin
           UserName  := MyClient.clFields.clContact_Name;
         end;
 
-        ProductConfigService.UpdateClient(ClientReadDetail,
-                                          ClientReadDetail.BillingFrequency,
-                                          ClientReadDetail.MaxOfflineDays,
-                                          ClientReadDetail.Status,
+        if ProductConfigService.UpdateClient(FClientReadDetail,
+                                          FClientReadDetail.BillingFrequency,
+                                          FClientReadDetail.MaxOfflineDays,
+                                          FClientReadDetail.Status,
                                           Subscription,
                                           UserEmail,
-                                          UserName);
+                                          UserName) then
+        begin
+          FClientReadDetail.Subscription := Subscription;
+        end;
       end;
     end
     else if MyClient.clExtra.ceOnlineValuesStored then
