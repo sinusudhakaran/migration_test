@@ -730,6 +730,7 @@ begin
       begin
         RefreshExportVendors;
         RefreshBankAccountList;
+        AccIndex := GetAccountIndexOnVendorList(B.baFields.baBank_Account_Number);
       end;
     end;
 
