@@ -2032,6 +2032,13 @@ begin
             BlopiClientChanged := True;
           end;
         end;
+
+        if BlopiClient.SecureCode <> MyClient.clFields.clBankLink_Code then
+        begin
+          BlopiClient.SecureCode := MyClient.clFields.clBankLink_Code;
+          
+          BlopiClientChanged := True;
+        end;
       end;
 
       if BlopiClientChanged then
