@@ -203,7 +203,8 @@ type
                                 const aFullName     : WideString;
                                 const aUserCode     : WideString;
                                 const aRoleNames    : TBloArrayOfstring;
-                                const aSubscription : TBloArrayOfguid) : MessageResponse;
+                                const aSubscription : TBloArrayOfguid;
+                                const Password      : WideString) : MessageResponse;
     function DeleteUser(const aUserId      : TBloGuid;
                         const aUserCode    : WideString) : MessageResponse;
     function IsVendorExportOptionEnabled(ProductId: TBloGuid;
@@ -302,8 +303,6 @@ type
                              const aUserCode       : WideString;
                              const aUstNameIndex   : integer;
                              var   aIsUserCreated  : Boolean;
-                             const aChangePassword : Boolean;
-                             aOldPassword          : WideString;
                              aNewPassword          : WideString) : Boolean;
     function DeletePracUser(const aUserCode : string;
                             const aUserGuid : string;
@@ -3090,7 +3089,8 @@ function TProductConfigService.UpdatePracticeUser(const aUserId       : TBloGuid
                                                   const aFullName     : WideString;
                                                   const aUserCode     : WideString;
                                                   const aRoleNames    : TBloArrayOfstring;
-                                                  const aSubscription : TBloArrayOfguid) : MessageResponse;
+                                                  const aSubscription : TBloArrayOfguid;
+                                                  const Password      : WideString) : MessageResponse;
 var
   UpdateUser     : TBloUserUpdatePractice;
   BlopiInterface : IBlopiServiceFacade;
@@ -3104,6 +3104,7 @@ begin
     UpdateUser.UserCode     := aUserCode;
     UpdateUser.RoleNames    := aRoleNames;
     UpdateUser.Subscription := aSubscription;
+    UpdateUser.Password     := Password;
 
     Result := BlopiInterface.SavePracticeUser(CountryText(AdminSystem.fdFields.fdCountry),
                                               AdminSystem.fdFields.fdBankLink_Code,
@@ -3663,8 +3664,6 @@ function TProductConfigService.AddEditPracUser(var   aUserId         : TBloGuid;
                                                const aUserCode       : WideString;
                                                const aUstNameIndex   : integer;
                                                var   aIsUserCreated  : Boolean;
-                                               const aChangePassword : Boolean;
-                                               aOldPassword          : WideString;
                                                aNewPassword          : WideString) : Boolean;
 var
   MsgResponce     : MessageResponse;
@@ -3702,34 +3701,19 @@ begin
                                             aFullName,
                                             aUserCode,
                                             RoleNames,
-                                            CurrPractice.Subscription);
+                                            CurrPractice.Subscription,
+                                            aNewPassword);
 
           Result := not MessageResponseHasError(MsgResponce, 'update practice user on');
 
           if Result then
           begin
-            if aChangePassword then
-            begin
-              Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Sending Data', 88);
-              MsgResponce := UpdatePracticeUserPass(aUserId,
-                                                    aUserCode,
-                                                    aOldPassword,
-                                                    aNewPassword);
-              Result := not MessageResponseHasError(MsgResponce, 'update practice user password on');
-            end;
-
-            if Result then
-            begin
-              aIsUserCreated := false;
-              Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finished', 100);
-            end;
+            aIsUserCreated := false;
+            Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finished', 100);
           end;
         end
         else
         begin
-          if not aChangePassword then
-            aNewPassword := '';
-
           MsgResponceGuid := CreatePracticeUser(aEmail,
                                                 aFullName,
                                                 aUserCode,
