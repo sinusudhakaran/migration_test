@@ -2035,8 +2035,6 @@ begin
 
         if BlopiClient.SecureCode <> MyClient.clFields.clBankLink_Code then
         begin
-          BlopiClient.SecureCode := MyClient.clFields.clBankLink_Code;
-          
           BlopiClientChanged := True;
         end;
       end;
@@ -2062,6 +2060,8 @@ begin
                                              UserName) then
         begin
           BlopiClient.Subscription := Subscription;
+          
+          BlopiClient.SecureCode := MyClient.clFields.clBankLink_Code;
         end;
       end;
     end;
