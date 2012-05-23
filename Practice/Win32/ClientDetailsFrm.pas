@@ -783,6 +783,8 @@ var
   OldFinancialYear : integer;
   DetailsChanged   : boolean;
   LastDiskSequenceNo : integer;
+  AllowClientDirectDownload: Boolean;
+  SecureCode: String;
 begin
    FClientReadDetail := nil;
    
@@ -1029,6 +1031,10 @@ begin
      edtFingertipsClientID.Enabled := TRUE; //AdminLoaded and (AdminSystem.fdFields.fdMagic_Number = clMagic_Number);
 {$ENDIF}
 
+
+     AllowClientDirectDownload := chkOffsite.Checked;
+     SecureCode := eConnectCode.Text;
+     
      //****************************
      Self.ShowModal;
      if okPressed then begin
@@ -1192,8 +1198,11 @@ begin
            clBankLink_Code    := eConnectCode.Text;
         end
         else
+        begin
            clDownload_From    := dlAdminSystem;
-
+           clBankLink_Code    := '';
+        end;
+        
         if (radPractice.Checked) then
           clContact_Details_To_Show := cdtPractice
         else if (radStaffMember.Checked) then
@@ -1224,6 +1233,21 @@ begin
            //Flag Audit
            MyClient.ClientAuditMgr.FlagAudit(arClientFiles);
            SaveClient(false);
+        end;
+        
+        if Assigned(FClientReadDetail) and (SecureCode <> clBankLink_Code) then
+        begin
+          if Length(FClientReadDetail.Users) > 0 then
+          begin
+            ProductConfigService.UpdateClient(
+              FClientReadDetail,
+              FClientReadDetail.BillingFrequency,
+              FClientReadDetail.MaxOfflineDays,
+              FClientReadDetail.Status,
+              FClientReadDetail.Subscription,
+              FClientReadDetail.Users[0].EMail,
+              FClientReadDetail.Users[0].FullName);
+          end;
         end;
      end;   // if okPressed
    end;  //with MyClient
