@@ -708,6 +708,7 @@ var
   VendorIndex : integer;
   ClientVendors : TBloArrayOfGuid;
   Done : Boolean;
+  TempAccVendors : TAccountVendors;
 begin
   if lvBank.Selected <> nil then
   begin
@@ -734,7 +735,10 @@ begin
       end;
     end;
 
-    Result := EditBankAccount(B, fClientAccVendors.AccountsVendors[AccIndex], fClientAccVendors.ClientId);
+    if AccIndex = -1 then
+      Result := EditBankAccount(B, TempAccVendors, fClientAccVendors.ClientId)
+    else
+      Result := EditBankAccount(B, fClientAccVendors.AccountsVendors[AccIndex], fClientAccVendors.ClientId);
 
     if B.IsManual then
        MyClient.clBank_Account_List.Insert(B);
@@ -742,7 +746,8 @@ begin
     if Result then
     begin
       // if the Client Vendors have been changed the window will need a refresh of the data
-      if fClientAccVendors.AccountsVendors[AccIndex].ClientNeedRefresh then
+      if (AccIndex > -1) and
+         (fClientAccVendors.AccountsVendors[AccIndex].ClientNeedRefresh) then
       begin
         fClientAccVendors.AccountsVendors[AccIndex].ClientNeedRefresh := false;
 
