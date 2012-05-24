@@ -484,7 +484,7 @@ var
 begin
   for Index := 0 to Length(ClientAccountVendors.AccountsVendors) - 1 do
   begin
-    if BankAccount.baFields.baBank_Account_Number = ClientAccountVendors.AccountsVendors[Index].AccountNumber then
+    if BankAccount.baFields.baCore_Account_ID = ClientAccountVendors.AccountsVendors[Index].CoreAccountID then
     begin
       Result := Length(ClientAccountVendors.AccountsVendors[Index].AccountVendors.Current) > 0;
 
@@ -495,7 +495,7 @@ end;
 
 class function TBanklinkOnlineTaggingServices.IsExportableBankAccount(BankAccount: TBank_Account; ClientAccountVendors: TClientAccVendors): Boolean;
 begin
-  Result := not (BankAccount.IsManual or BankAccount.IsAJournalAccount) and IsBankAccountTagged(BankAccount, ClientAccountVendors);
+  Result := not (BankAccount.IsManual or BankAccount.IsAJournalAccount) and (BankAccount.baFields.baCore_Account_ID > 0) and IsBankAccountTagged(BankAccount, ClientAccountVendors);
 end;
 
 class function TBanklinkOnlineTaggingServices.IsExportableTransaction(Transaction: pTransaction_Rec; MaxTransactionDate: TStDate = -1): Boolean;
