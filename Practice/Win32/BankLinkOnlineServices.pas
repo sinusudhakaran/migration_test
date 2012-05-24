@@ -440,7 +440,8 @@ begin
   Result := IsExportDataEnabled and
             (not aBankAcct.baFields.baIs_A_Manual_Account) and
             (not (aBankAcct.baFields.baAccount_Type in [sbtProvisional])) and
-            (not (aBankAcct.IsAJournalAccount));
+            (not (aBankAcct.IsAJournalAccount)) and
+            (aBankAcct.baFields.baCore_Account_ID > 0);
 end;
 
 //------------------------------------------------------------------------------
