@@ -48,12 +48,11 @@ type
   TBloArrayOfPracticeDataSubscriberCount = BlopiServiceFacade.ArrayOfPracticeDataSubscriberCount;
 
   TAccountVendors = record
-    AccountNumber  : WideString;
     AccountVendors : TBloDataPlatformSubscription;
     IsLastAccForVendors : Array of Boolean;
     ExportDataEnabled : Boolean;
     ClientNeedRefresh : Boolean;
-    CoreAccountID: Integer;
+    AccountID: Integer;
   end;
 
   TClientAccVendors = record
@@ -332,7 +331,7 @@ type
 
     function GetPracticeVendorExports : TBloDataPlatformSubscription;
     function GetClientVendorExports(aClientGuid: TBloGuid) : TBloDataPlatformSubscription;
-    function GetAccountVendors(aClientGuid : TBloGuid; aAccountNumber: string;
+    function GetAccountVendors(aClientGuid : TBloGuid; aAccountId: Integer;
                                ShowProgressBar: boolean): TBloDataPlatformSubscription;
     function GetClientAccountsVendors(aClientCode: string;
                                       aClientGuid: TBloGuid;
@@ -352,7 +351,7 @@ type
                                      ShowSuccessMessage: Boolean = True): Boolean;
 
     function SaveAccountVendorExports(aClientId : TBloGuid;
-                                      aCoreAccountID : Integer;
+                                      aAccountID : Integer;
                                       aVendorExports: TBloArrayOfGuid;
                                       aShowMessage: Boolean = True;
                                       ShowProgressBar: Boolean = True): Boolean;
@@ -2512,7 +2511,7 @@ begin
 end;
 
 function TProductConfigService.SaveAccountVendorExports(aClientId : TBloGuid;
-                                                        aCoreAccountID : Integer;
+                                                        aAccountID : Integer;
                                                         aVendorExports: TBloArrayOfGuid;
                                                         aShowMessage: Boolean = True;
                                                         ShowProgressBar: Boolean = True): Boolean;
@@ -2557,7 +2556,7 @@ begin
                                                                        PracCode,
                                                                        PracPassHash,
                                                                        aClientId,
-                                                                       aCoreAccountID,
+                                                                       aAccountID,
                                                                        aVendorExports);
 
           if not MessageResponseHasError(MsgResponce, 'update the Account data export settings to') then
@@ -4106,7 +4105,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TProductConfigService.GetAccountVendors(aClientGuid : TBloGuid; aAccountNumber: string;
+function TProductConfigService.GetAccountVendors(aClientGuid : TBloGuid; aAccountID: Integer;
                                                  ShowProgressBar: boolean): TBloDataPlatformSubscription;
 var
   DataPlatformSubscriberResponse: MessageResponseOfDataPlatformSubscription6cY85e5k;
@@ -4142,7 +4141,7 @@ begin
                                                        AdminSystem.fdFields.fdBankLink_Code,
                                                        AdminSystem.fdFields.fdBankLink_Connect_Password,
                                                        aClientGuid,
-                                                       aAccountNumber);
+                                                       aAccountId);
 
       if not MessageResponseHasError(MessageResponse(DataPlatformSubscriberResponse), 'get the vendor export types from') then
       begin
@@ -4254,16 +4253,15 @@ begin
           aClientAccVendors.AccountsVendors[AccountIndex].AccountVendors.Available :=
             DataPlatformClientSubscriberResponse.Result.Available;
 
-          aClientAccVendors.AccountsVendors[AccountIndex].AccountNumber :=
-            DataPlatformClientSubscriberResponse.Result.BankAccounts[AccountIndex].BankAccountNumber;
+          aClientAccVendors.AccountsVendors[AccountIndex].AccountID := 
+            DataPlatformClientSubscriberResponse.Result.BankAccounts[AccountIndex].AccountId;
 
           aClientAccVendors.AccountsVendors[AccountIndex].ExportDataEnabled := False;
           for BankAccountIndex := 0 to MyClient.clBank_Account_List.ItemCount-1 do
           begin
             BankAcct := MyClient.clBank_Account_List.Bank_Account_At(BankAccountIndex);
 
-            if uppercase(trim(BankAcct.baFields.baBank_Account_Number)) =
-               uppercase(trim(aClientAccVendors.AccountsVendors[AccountIndex].AccountNumber)) then
+            if BankAcct.baFields.baCore_Account_ID = aClientAccVendors.AccountsVendors[AccountIndex].AccountId then
             begin
               aClientAccVendors.AccountsVendors[AccountIndex].ExportDataEnabled :=
                 (not BankAcct.baFields.baIs_A_Manual_Account) and
