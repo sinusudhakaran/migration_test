@@ -357,7 +357,7 @@ var
     Stream: TStream;
     FilePIN: Integer;
     DiskImage: TNewFormatDisk;
-    {
+    {}
     fStream: TMemoryStream;
     {}
 
@@ -379,7 +379,7 @@ begin
          DiskImage := TUKDisk.Create
       else
          DiskImage := nil;
-       {
+       {}
       fStream := TMemoryStream.Create;
       Stream.Position := 0;
       fStream.CopyFrom(Stream,0);

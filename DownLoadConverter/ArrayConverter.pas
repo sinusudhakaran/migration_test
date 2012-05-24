@@ -91,6 +91,7 @@ type
      procedure Extract(const FileName: string; filestream: TStream);
      procedure SetIntAttr(var OnNode: IXMLNode; Name: string; Value: Integer);
      procedure SetMoneyAttr(var OnNode: IXMLNode; Name: string; Value: int64);
+     procedure SetIdAttr(var OnNode: IXMLNode; Name: string; Value: int64);
      procedure SetQtyAttr(var OnNode: IXMLNode; Name: string; Value: int64);
 end;
 
@@ -194,6 +195,11 @@ begin
       OnNode.Attributes [Name] := (Value / 100);
 end;
 
+procedure TArrayConverter.SetIDAttr(var OnNode: IXMLNode; Name: string; Value: int64);
+begin
+    OnNode.Attributes [Name] := Value;
+end;
+
 procedure TArrayConverter.SetQtyAttr(var OnNode: IXMLNode; Name: string;
   Value: int64);
 begin
@@ -211,13 +217,18 @@ var lNode,
     LAccounts: IXMLNode;
     lXMLDoc: IXMLDocument;
     a: Integer;
+    lLong: int64;
 
     procedure AddTransaction(ToNode:IXMLNode; Trans: pDisk_Transaction_Rec);
     var lNode: IXMLNode;
     begin
        LNode := ToNode.AddChild('Transaction');
-       if Trans.dtBankLink_ID <> 0 then
-          SetIntAttr(LNode,'BankLinkID',Trans.dtBankLink_ID);
+       if (Trans.dtBankLink_ID <> 0)
+       or (Trans.dtBankLink_ID_H <> 0) then begin
+          lLong := Trans.dtBankLink_ID_H;
+          lLong := (LLong shr 32) + Trans.dtBankLink_ID;
+          SetIDAttr(LNode,'BankLinkID',llong);
+       end;
        SetDateAttr(LNode,'EffectiveDate',Trans.dtEffective_Date);
        SetDateAttr(LNode,'OriginalDate',Trans.dtOriginal_Date);
        SetIntAttr(LNode,'EntryType',Trans.dtEntry_Type);
@@ -227,11 +238,11 @@ var lNode,
            SetTextAttr(LNode,'Particulars',Trans.dtParticulars_NZ_Only);
            SetTextAttr(LNode,'OtherParty',Trans.dtOther_Party_NZ_Only);
         end;
-        whAustralia : begin
+        whAustralia, whUnitedKingdom : begin
            SetTextAttr(LNode,'BankTypeCode',Trans.dtBank_Type_Code_OZ_Only);
            SetTextAttr(LNode,'DefaultCode',Trans.dtDefault_Code_OZ_Only);
         end;
-        //whUnitedKingdom :;
+
        end;
 
        SetTextAttr(LNode,'Reference',Trans.dtReference);
@@ -301,7 +312,6 @@ begin
     SetIntAttr(LNode,'DiskNumber',Value.dhFields.dhDisk_Number);
     SetIntAttr(LNode,'DisksInSet',Value.dhFields.dhNo_Of_Disks_in_Set);
     SetIntAttr(LNode,'SequenceInSet',Value.dhFields.dhSequence_In_Set);
-    SetIntAttr(LNode,'DisksInSet',Value.dhFields.dhNo_Of_Disks_in_Set);
     SetDateAttr(LNode,'CreationDate',Value.dhFields.dhCreation_Date);
 
     //  dhFile_Name                        : String[ 12 ];       { Stored }
