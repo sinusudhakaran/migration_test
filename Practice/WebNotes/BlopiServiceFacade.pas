@@ -12,7 +12,7 @@
 // Encoding : utf-8
 // Codegen  : [wfMapStringsToWideStrings+, wfUseScopedEnumeration-]
 // Version  : 1.0
-// (18/05/2012 10:00:43 a.m. - - $Rev: 25127 $)
+// (24/05/2012 11:51:06 a.m. - - $Rev: 25127 $)
 // ************************************************************************ //
 
 unit BlopiServiceFacade;
@@ -120,6 +120,7 @@ type
   guid            =  type WideString;      { "http://schemas.microsoft.com/2003/10/Serialization/"[GblSmpl] }
   ArrayOfstring = array of WideString;          { "http://schemas.microsoft.com/2003/10/Serialization/Arrays"[GblCplx] }
   ArrayOfguid = array of guid;                  { "http://schemas.microsoft.com/2003/10/Serialization/Arrays"[GblCplx] }
+  ArrayOfint = array of Integer;                { "http://schemas.microsoft.com/2003/10/Serialization/Arrays"[GblCplx] }
   ArrayOfDataPlatformSubscriber = array of DataPlatformSubscriber;   { "http://www.banklinkonline.com/2011/11/DataPlatform"[GblCplx] }
 
 
@@ -1433,9 +1434,9 @@ type
     function  SaveClientDataSubscribers(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const clientId: guid; const subscription: ArrayOfguid): MessageResponse; stdcall;
     function  GetBankAccountDataSubscribers(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const clientId: guid; const bankAccountNumber: WideString): MessageResponseOfDataPlatformSubscription6cY85e5k; stdcall;
     function  GetBankAccountsDataSubscribers(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const clientId: guid): MessageResponseOfDataPlatformClient6cY85e5k; stdcall;
-    function  SaveBankAccountDataSubscribers(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const clientId: guid; const bankAccountNumber: WideString; const subscription: ArrayOfguid
+    function  SaveBankAccountDataSubscribers(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const clientId: guid; const accountId: Integer; const subscription: ArrayOfguid
                                              ): MessageResponse; stdcall;
-    function  SaveBankAccountsDataSubscribers(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const clientId: guid; const bankAccountNumbers: ArrayOfstring; const subscription: ArrayOfguid
+    function  SaveBankAccountsDataSubscribers(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const clientId: guid; const accountIds: ArrayOfint; const subscription: ArrayOfguid
                                               ): MessageResponse; stdcall;
   end;
 
@@ -2597,6 +2598,7 @@ initialization
   RemClassRegistry.RegisterXSInfo(TypeInfo(guid), 'http://schemas.microsoft.com/2003/10/Serialization/', 'guid');
   RemClassRegistry.RegisterXSInfo(TypeInfo(ArrayOfstring), 'http://schemas.microsoft.com/2003/10/Serialization/Arrays', 'ArrayOfstring');
   RemClassRegistry.RegisterXSInfo(TypeInfo(ArrayOfguid), 'http://schemas.microsoft.com/2003/10/Serialization/Arrays', 'ArrayOfguid');
+  RemClassRegistry.RegisterXSInfo(TypeInfo(ArrayOfint), 'http://schemas.microsoft.com/2003/10/Serialization/Arrays', 'ArrayOfint');
   RemClassRegistry.RegisterXSInfo(TypeInfo(ArrayOfDataPlatformSubscriber), 'http://www.banklinkonline.com/2011/11/DataPlatform', 'ArrayOfDataPlatformSubscriber');
   RemClassRegistry.RegisterXSClass(DataPlatformSubscription, 'http://www.banklinkonline.com/2011/11/DataPlatform', 'DataPlatformSubscription');
   RemClassRegistry.RegisterXSClass(DataPlatformSubscriber, 'http://www.banklinkonline.com/2011/11/DataPlatform', 'DataPlatformSubscriber');
@@ -2683,5 +2685,4 @@ initialization
   RemClassRegistry.RegisterXSClass(ClientReadDetail2, 'http://www.banklinkonline.com/2011/11/Blopi', 'ClientReadDetail2', 'ClientReadDetail');
   RemClassRegistry.RegisterXSClass(ClientCreate2, 'http://www.banklinkonline.com/2011/11/Blopi', 'ClientCreate2', 'ClientCreate');
   RemClassRegistry.RegisterXSClass(ClientUpdate2, 'http://www.banklinkonline.com/2011/11/Blopi', 'ClientUpdate2', 'ClientUpdate');
-
 end.
