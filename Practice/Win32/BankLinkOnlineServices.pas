@@ -232,6 +232,7 @@ type
                                 aItem : TBloGuid) : Boolean;
     function RemoveItemFromArrayGuid(var aBloArrayOfGuid : TBloArrayOfGuid;
                                      aItem : TBloGuid) : Boolean;
+    function CheckGuidArrayEquality(GuidArray1, GuidArray2: TBloArrayOfGuid): boolean;
     function GetClientGuid(const AClientCode: string): WideString; overload;
 
 
@@ -265,6 +266,8 @@ type
     property CachedPractice: PracticeRead read GetCachedPractice;
     function GetServiceAgreement : WideString;
     procedure SavePracticeDetailsToSystemDB(ARemotable: TRemotable);
+    function VendorEnabledForPractice(ClientVendorGuid: TBloGuid): boolean;
+
     //Client methods
     function CreateNewClientWithUser(aNewClient: TBloClientCreate; aNewUserCreate: TBloUserCreate): TBloClientReadDetail;
     procedure LoadClientList;
@@ -329,7 +332,8 @@ type
 
     function GetPracticeVendorExports : TBloDataPlatformSubscription;
     function GetClientVendorExports(aClientGuid: TBloGuid) : TBloDataPlatformSubscription;
-    function GetAccountVendors(aClientGuid : TBloGuid; aAccountNumber: string): TBloDataPlatformSubscription;
+    function GetAccountVendors(aClientGuid : TBloGuid; aAccountNumber: string;
+                               ShowProgressBar: boolean): TBloDataPlatformSubscription;
     function GetClientAccountsVendors(aClientCode: string;
                                       aClientGuid: TBloGuid;
                                       out aClientAccVendors : TClientAccVendors;
@@ -602,6 +606,38 @@ begin
   SetLength(aBloArrayOfGuid, Length(aBloArrayOfGuid) - 1);
 
   Result := True;
+end;
+
+function TProductConfigService.CheckGuidArrayEquality(GuidArray1, GuidArray2: TBloArrayOfGuid): boolean;
+var
+  i, j: integer;
+  MatchFound: boolean;
+begin
+  Result := False;
+  MatchFound := False;
+  if (Length(GuidArray1) = Length(GuidArray2)) then
+  begin
+    if (Length(GuidArray1) = 0) then
+    begin
+      Result := True; // both arrays are empty, and therefore equal
+      Exit;
+    end;
+    for i := 0 to High(GuidArray1) do
+    begin
+      MatchFound := False;
+      for j := 0 to High(GuidArray2) do
+      begin
+        if (GuidArray1[i] = GuidArray2[j]) then
+        begin
+          MatchFound := True;
+          break;
+        end;
+      end;
+      if not MatchFound then
+        break; // There is an ID in one array without a matching ID in the other array, so these arrays don't match
+    end;
+    Result := MatchFound;
+  end;
 end;
 
 //------------------------------------------------------------------------------
@@ -1813,6 +1849,28 @@ begin
 
       if CurrUser.Code = User.usCode then
         CurrUser.AllowBanklinkOnline := User.usAllow_Banklink_Online;
+    end;
+  end;
+end;
+
+// Get list of vendors enabled for the practice
+function TProductConfigService.VendorEnabledForPractice(ClientVendorGuid: TBloGuid): boolean;
+var
+  PracticeExportDataService   : TBloDataPlatformSubscription;
+  AvailableServiceArray : TBloArrayOfDataPlatformSubscriber;
+  i: integer;
+begin
+  PracticeExportDataService := GetPracticeVendorExports;
+  if Assigned(PracticeExportDataService) then
+    AvailableServiceArray := PracticeExportDataService.Current;
+
+  Result := False;
+  for i := 0 to High(AvailableServiceArray) do
+  begin
+    if (ClientVendorGuid = AvailableServiceArray[i].Id) then
+    begin
+      Result := True;
+      break;
     end;
   end;
 end;
@@ -4048,7 +4106,8 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TProductConfigService.GetAccountVendors(aClientGuid : TBloGuid; aAccountNumber: string): TBloDataPlatformSubscription;
+function TProductConfigService.GetAccountVendors(aClientGuid : TBloGuid; aAccountNumber: string;
+                                                 ShowProgressBar: boolean): TBloDataPlatformSubscription;
 var
   DataPlatformSubscriberResponse: MessageResponseOfDataPlatformSubscription6cY85e5k;
   ShowProgress: Boolean;
@@ -4063,7 +4122,7 @@ begin
     if not Registered then
       Exit;
 
-    ShowProgress := Progress.StatusSilent;
+    ShowProgress := Progress.StatusSilent and ShowProgressBar;
 
     if ShowProgress then
     begin

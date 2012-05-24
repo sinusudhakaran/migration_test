@@ -416,23 +416,34 @@ var
   ItemIndex : Integer;
   AccAvailableIndex : integer;
   AccCurrentIndex : integer;
+  VendorId: TBloGuid;
   VendorName : String;
+  ThereAreVendors: boolean;
 begin
+  ThereAreVendors := False;
   for AccAvailableIndex := 0 to high(AccountVendors.AccountVendors.Available) do
   begin
     VendorName := AccountVendors.AccountVendors.Available[AccAvailableIndex].Name_;
-    ItemIndex := chkLstAccVendors.Items.AddObject(VendorName, AccountVendors.AccountVendors.Available[AccAvailableIndex]);
-
-    for AccCurrentIndex := 0 to high(AccountVendors.AccountVendors.Current) do
+    VendorId := AccountVendors.AccountVendors.Available[AccAvailableIndex].Id;
+    if ProductConfigService.VendorEnabledForPractice(VendorId) then
     begin
-      if AccountVendors.AccountVendors.Available[AccAvailableIndex].id =
-         AccountVendors.AccountVendors.Current[AccCurrentIndex].id then
+      ItemIndex := chkLstAccVendors.Items.AddObject(VendorName, AccountVendors.AccountVendors.Available[AccAvailableIndex]);
+      ThereAreVendors := True;
+      for AccCurrentIndex := 0 to high(AccountVendors.AccountVendors.Current) do
       begin
-        chkLstAccVendors.Checked[ItemIndex] := true;
-        break;
+        if AccountVendors.AccountVendors.Available[AccAvailableIndex].id =
+           AccountVendors.AccountVendors.Current[AccCurrentIndex].id then
+        begin
+          chkLstAccVendors.Checked[ItemIndex] := true;
+          break;
+        end;
       end;
     end;
   end;
+  tbBankLinkOnline.TabVisible := ThereAreVendors; // no point in showing the BankLink Online tab if there are no vendors to export to
+  if (PageControl1.TabIndex = tbBankLinkOnline.TabIndex) and not ThereAreVendors then
+    PageControl1.TabIndex := tbDetails.TabIndex;
+  
 end;
 
 //------------------------------------------------------------------------------

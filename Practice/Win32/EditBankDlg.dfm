@@ -20,15 +20,11 @@ object dlgEditBank: TdlgEditBank
     Top = 0
     Width = 592
     Height = 448
-    ActivePage = tbBankLinkOnline
+    ActivePage = tbDetails
     Align = alClient
     TabOrder = 0
     object tbDetails: TTabSheet
       Caption = '&Details'
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object lblNo: TLabel
         Left = 24
         Top = 12
@@ -513,10 +509,6 @@ object dlgEditBank: TdlgEditBank
     object tbAnalysis: TTabSheet
       Caption = '&Analysis Coding'
       ImageIndex = 1
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object Label8: TLabel
         Left = 16
         Top = 16

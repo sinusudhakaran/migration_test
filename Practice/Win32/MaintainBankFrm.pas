@@ -214,6 +214,7 @@ var
   NewColumn    : TListColumn;
   VendorIndex  : integer;
   BankAccIndex : integer;
+  FirstVendorCol: boolean;
 begin
   // Service Call
   RefreshExportVendors;
@@ -221,18 +222,23 @@ begin
   // Adds Needed Columns
   if fClientAccVendors.ClientID <> '' then
   begin
+    FirstVendorCol := True;
     for VendorIndex := 0 to high(fClientAccVendors.ClientVendors) do
     begin
-      NewColumn := lvBank.Columns.Add;
-      NewColumn.Caption := fClientAccVendors.ClientVendors[VendorIndex].Name_;
-      NewColumn.Width := 120;
+      if ProductConfigService.VendorEnabledForPractice(fClientAccVendors.ClientVendors[VendorIndex].Id) then
+      begin
+        NewColumn := lvBank.Columns.Add;
+        NewColumn.Caption := fClientAccVendors.ClientVendors[VendorIndex].Name_;
 
-      if VendorIndex = 0 then
-        fOnlineVendorStartCol := NewColumn.Index;
+        NewColumn.Width := 120;
 
-      if VendorIndex = high(fClientAccVendors.ClientVendors) then
-        fOnlineVendorEndCol := NewColumn.Index;
+        if FirstVendorCol then
+          fOnlineVendorStartCol := NewColumn.Index;
+        FirstVendorCol := False;
+      end;
     end;
+    if not FirstVendorCol then // ie. is there at least one vendor    
+      fOnlineVendorEndCol := NewColumn.Index;
   end;
 end;
 

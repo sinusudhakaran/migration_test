@@ -58,7 +58,7 @@ type
     class procedure CleanXML(Node: IXMLNode); static;
   public
     class procedure UpdateAccountVendors(ClientReadDetail: TBloClientReadDetail; Client: TClientObj; OriginalVendors, ModifiedVendors: TBloArrayOfGuid; ProgressForm: ISingleProgressForm); overload; static; // Update vendors for a client
-    class procedure UpdateAccountVendors(ClientReadDetail: TBloClientReadDetail; BankAccount: TBank_Account; OriginalVendors, ModifiedVendors: TBloArrayOfGuid); overload; static; // Update vendors for a single account
+    class procedure UpdateAccountVendors(ClientReadDetail: TBloClientReadDetail; BankAccount: TBank_Account; OriginalVendors, ModifiedVendors: TBloArrayOfGuid; ShowProgressBar: Boolean = True); overload; static; // Update vendors for a single account
 
     class procedure GetAccountVendors(BankAccount: TBank_Account; out TaggedAccount: TTaggedAccount); static;
     class procedure GetTaggedAccounts(ClientReadDetail: TBloClientReadDetail; out TaggedAccounts: array of TTaggedAccount); overload; static;
@@ -523,7 +523,7 @@ begin
 
     if (Client.clBank_Account_List.ItemCount = 0) then Exit; 
     ClientProgressSize := 100 / Client.clBank_Account_List.ItemCount -1;
-  
+
     ProgressForm.UpdateProgressLabel('Updating bank account vendors for client ' + Client.clFields.clCode);
 
     if not ProgressForm.Cancelled then
@@ -534,7 +534,8 @@ begin
         begin
           BankAccount := Client.clBank_Account_List[IIndex];
           if ProductConfigService.IsExportDataEnabledFoAccount(BankAccount) then
-            UpdateAccountVendors(ClientReadDetail, BankAccount, OriginalVendors, ModifiedVendors);
+            if not ProductConfigService.CheckGuidArrayEquality(OriginalVendors, ModifiedVendors) then // No need to update the accounts if the vendors haven't changed            
+              UpdateAccountVendors(ClientReadDetail, BankAccount, OriginalVendors, ModifiedVendors, False);
         end;
       end;
     end;
@@ -549,10 +550,10 @@ begin
 end;
 
 // Update account vendors for a single account
-class procedure TBanklinkOnlineTaggingServices.UpdateAccountVendors(ClientReadDetail: TBloClientReadDetail; BankAccount: TBank_Account; OriginalVendors, ModifiedVendors: TBloArrayOfGuid);
+class procedure TBanklinkOnlineTaggingServices.UpdateAccountVendors(ClientReadDetail: TBloClientReadDetail; BankAccount: TBank_Account; OriginalVendors, ModifiedVendors: TBloArrayOfGuid; ShowProgressBar: boolean = True);
 var
   AccountVendors: TBloDataPlatformSubscription;
-  ClientVendorsAdded, ClientVendorsRemoved, AccountVendorsModified: TBloArrayOfGuid;
+  ClientVendorsAdded, AccountVendorsModified: TBloArrayOfGuid;
   i, j, AccountVendorsLength: integer;
   FoundVendor: boolean;
   ClientGuid: TBloGuid;
@@ -573,45 +574,20 @@ begin
       ProductConfigService.AddItemToArrayGuid(ClientVendorsAdded, ModifiedVendors[i]);
   end;
 
-  // Creating list of vendors that have been removed from the client
-  for i := 0 to High(OriginalVendors) do
-  begin
-    FoundVendor := False;
-    for j := 0 to High(ModifiedVendors) do
-    begin
-      if (OriginalVendors[i] = ModifiedVendors[j]) then
-      begin
-        FoundVendor := True;
-        break; // Vendor still in the list, it has not been removed
-      end;
-    end;
-    if not FoundVendor then // This vendor has been removed
-      ProductConfigService.AddItemToArrayGuid(ClientVendorsRemoved, OriginalVendors[i]);
-  end;
-
   if Assigned(ClientReadDetail) then
     ClientGuid := ClientReadDetail.Id
   else
     ClientGuid := ProductConfigService.GetClientGuid(MyClient.clFields.clCode);
   AccountVendors := ProductConfigService.GetAccountVendors(ClientGuid,
-                                                           BankAccount.baFields.baBank_Account_Number);
+                                                           BankAccount.baFields.baBank_Account_Number,
+                                                           ShowProgressBar);
 
-  // Creating list of vendors that the account currently has which have not
-  // just been removed from the client
+  // Creating list of vendors that the account currently has. Note that, when the
+  // user removes a vendor from a client, this change should NOT recurse down to
+  // its accounts (nor should removing a vendor from a practice recurse to its
+  // clients)
   for i := 0 to High(AccountVendors.Current) do
-  begin
-    FoundVendor := False;
-    for j := 0 to High(ClientVendorsRemoved) do
-    begin
-      if (AccountVendors.Current[i].Id = ClientVendorsRemoved[j]) then
-      begin
-        FoundVendor := True;
-        break;
-      end;
-    end;
-    if not FoundVendor then // This vendor has not been removed
-      ProductConfigService.AddItemToArrayGuid(AccountVendorsModified, AccountVendors.Current[i].Id);
-  end;
+    ProductConfigService.AddItemToArrayGuid(AccountVendorsModified, AccountVendors.Current[i].Id);
 
   // Adding vendors which have just been added to the client to the list
   // of account vendors
