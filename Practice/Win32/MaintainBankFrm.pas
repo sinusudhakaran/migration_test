@@ -722,9 +722,10 @@ begin
     if B.IsManual then // a/c number may of changed - need to re-insert in the correct position
        MyClient.clBank_Account_List.Delete(B);
 
-    if B.baFields.baCore_Account_ID > 0 then
+    AccIndex := GetAccountIndexOnVendorList(B.baFields.baCore_Account_Id);
+    if (B.baFields.baCore_Account_ID > 0) and
+       (fClientAccVendors.ClientId <> '') then
     begin
-      AccIndex := GetAccountIndexOnVendorList(B.baFields.baCore_Account_Id);
       if AccIndex = -1 then
       begin
         SetLength(ClientVendors, length(fClientAccVendors.ClientVendors));
@@ -1091,6 +1092,10 @@ var
 begin
   // uses the AccountNumber to get the Index
   Result := -1;
+
+  if aAccountId = 0 then
+    Exit;
+
   for AccountIndex := 0 to high(fClientAccVendors.AccountsVendors) do
   begin
     if aAccountId = fClientAccVendors.AccountsVendors[AccountIndex].AccountId then
