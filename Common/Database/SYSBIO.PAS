@@ -84,6 +84,7 @@ CONST
    tksbFrequency                        = 87 ;
    tksbFrequency_Change_Pending         = 88 ;
    tksbAudit_Record_ID                  = 89 ;
+   tksbCore_Account_ID                  = 90 ;
 
 {  -------------------------------------------------------------------  }
 
@@ -147,6 +148,7 @@ Begin
       F.WriteByteValue( tksbFrequency , sbFrequency );
       F.WriteByteValue( tksbFrequency_Change_Pending , sbFrequency_Change_Pending );
       F.WriteIntegerValue( tksbAudit_Record_ID , sbAudit_Record_ID );
+      F.WriteIntegerValue(tksbCore_Account_ID, sbCore_Account_ID);
       F.WriteToken( tkEnd_System_Bank_Account );
    end;
 end; { of Write_System_Bank_Account_Rec }
@@ -207,6 +209,7 @@ Begin
          tksbFrequency                        : sbFrequency := F.ReadByteValue;
          tksbFrequency_Change_Pending         : sbFrequency_Change_Pending := F.ReadByteValue;
          tksbAudit_Record_ID                  : sbAudit_Record_ID := F.ReadIntegerValue;
+         tksbCore_Account_ID                  : sbCore_Account_ID := F.ReadIntegerValue;
          else
             Raise ETokenException.CreateFmt( SUnknownToken, [ Token ] );
       end; { of Case }
@@ -470,6 +473,12 @@ begin
   if (P1.sbAudit_Record_ID <> P2.sbAudit_Record_ID) then begin
     P3.sbAudit_Record_ID := P1.sbAudit_Record_ID;
     ChangedFields[i] := tksbAudit_Record_ID;
+    Inc(i);
+  end;
+  if (P1.sbCore_Account_ID <> P2.sbCore_Account_ID) then
+  begin
+    P3.sbCore_Account_ID := P1.sbCore_Account_ID;
+    ChangedFields[i] := tksbCore_Account_ID;
     Inc(i);
   end;
 
