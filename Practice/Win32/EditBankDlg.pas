@@ -478,7 +478,7 @@ begin
   if Result then
   begin
     Result := ProductConfigService.SaveAccountVendorExports(ClientID,
-                                                            AccountVendors.AccountNumber,
+                                                            BankAcct.baFields.baCore_Account_ID,
                                                             CurrentVendors,
                                                             True);
 
