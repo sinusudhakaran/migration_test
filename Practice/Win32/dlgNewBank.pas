@@ -360,7 +360,7 @@ begin
                   //altered before audit.
                   MyClient.ClientAuditMgr.ProvisionalAccountAttached := True;
                end;
-
+               baFields.baCore_Account_ID         := AdminBankAccount.sbCore_Account_ID;
             end;
 
             if (Assigned(fClientVendors)) and
