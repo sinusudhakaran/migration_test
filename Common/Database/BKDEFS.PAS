@@ -832,6 +832,7 @@ Type
       baTemp_New_Date_Last_Trx_Printed   : Integer;
       baTemp_Include_In_Report           : Boolean;
       baTemp_Balance                     : Money;
+      baCore_Account_ID                  : Integer;
       baEOR                              : Byte;
    end;
 
