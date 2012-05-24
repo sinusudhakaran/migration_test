@@ -423,6 +423,7 @@ Type
       sbFrequency                        : Byte;       { Stored }
       sbFrequency_Change_Pending         : Byte;       { Stored }
       sbAudit_Record_ID                  : Integer;       { Stored }
+      sbCore_Account_ID                  : Integer;
       sbEOR                              : Byte;
    end;
 
