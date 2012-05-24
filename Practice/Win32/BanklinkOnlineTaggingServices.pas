@@ -620,7 +620,7 @@ begin
 
   // Save account vendors
   ProductConfigService.SaveAccountVendorExports(ClientGuid,
-                                                BankAccount.baFields.baBank_Account_Number,
+                                                BankAccount.baFields.baCore_Account_ID,
                                                 AccountVendorsModified,
                                                 False,
                                                 False);
