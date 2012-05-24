@@ -621,6 +621,9 @@ begin //ProcessDiskImages
                 SystemAccount.sbFrequency_Change_Pending := Byte(False);
               end;
 
+              //The dbAccount_LRN is the unique core id
+              SystemAccount.sbCore_Account_ID := DiskAccount.dbFields.dbAccount_LRN;
+
               //now prepare archive txn file for transactions
               TxnFilename := ArchUtil32.ArchiveFileName( SystemAccount.sbLRN);
 
