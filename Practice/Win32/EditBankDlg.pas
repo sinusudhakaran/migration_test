@@ -546,7 +546,7 @@ var
   VendorId : TBloGuid;
 begin
   Result := False;
-  aMessage := 'You have updated the Export To options for the following for bank account ''' + AccountVendors.AccountNumber + '''' + #10#10;
+  aMessage := 'You have updated the Export To options for the following for bank account ''' + BankAcct.baFields.baBank_Account_Number + '''' + #10#10;
   for VendorIndex := 0 to chkLstAccVendors.Items.Count-1 do
   begin
     VendorId := TBloDataPlatformSubscriber(chkLstAccVendors.Items.Objects[VendorIndex]).Id;
@@ -1191,7 +1191,8 @@ begin
     MyDlg.ExportDataEnabled := (ProductConfigService.IsExportDataEnabledFoAccount(aBankAcct)) and
                                (aClientId <> '') and
                                (not CurrUser.HasRestrictedAccess) and
-                               (aAccountVendors.AccountNumber <> '');
+                               (aBankAcct.baFields.baBank_Account_Number <> '') and
+                               (aAccountVendors.AccountID > 0);
 
     if MyDlg.ExportDataEnabled then
     begin
