@@ -3290,6 +3290,9 @@ var
             ceLocalCurrencyAmount : if TestMoney(pT.Local_Amount) then
                Exit;
 
+            ceCoreTransactionId : if TestInteger(BKUTIL32.GetTransCoreID(pT)) then
+               Exit;
+
             end;
           end;
 

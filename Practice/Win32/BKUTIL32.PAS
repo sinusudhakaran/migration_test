@@ -19,6 +19,7 @@ procedure GetPracticeContactDetails( aClient : TClientObj;
                                          aWebSite : string);
 
 // The following routines operate on GLOBALS.MyClient
+function GetTransCoreID( P : pTransaction_Rec ) : Int64;
 function MakeSortKey( P : pTransaction_Rec ; SortMethod : Byte ): ShortString;
 function GetChequeNo(T : pTransaction_Rec ): LongInt;
 
@@ -242,7 +243,18 @@ Begin
 end;
 
 {  -----------------------------------------------------------------------  }
+function GetTransCoreID( P : pTransaction_Rec ) : Int64;
+var
+  High : int64;
+  Low  : int64;
+begin
+  Low  := P^.txCore_Transaction_ID;
+  High := P^.txCore_Transaction_ID_High;
 
+  Result := (High shr 15) or Low;
+end;
+
+{  -----------------------------------------------------------------------  }
 Function MakeSortKey( P : pTransaction_Rec ; SortMethod : Byte ): ShortString;
 { Can now return a String up to 32 characters long }
 Const
@@ -622,7 +634,7 @@ Begin
             end;
          csByTransId         :
             begin
-               Result :=   LongToKey( txCore_Transaction_ID ) +
+               Result :=   inttostr(GetTransCoreID(P)) +
                            LongToKey( txBank_Seq ) +
                            LongToKey( txDate_Effective ) +
                            LongToKey ( txSequence_No ) ;

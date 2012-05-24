@@ -83,14 +83,8 @@ end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function TSorted_Transaction_List.GetTransCoreID_At( Index : longint ) : int64;
-var
-  High : int64;
-  Low  : int64;
 begin
-  Low  := Transaction_At(Index).txCore_Transaction_ID;
-  High := Transaction_At(Index).txCore_Transaction_ID_High;
-
-  Result := (High shr 15) or Low;
+  Result := BKUTIL32.GetTransCoreID(Transaction_At(Index));
 end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
