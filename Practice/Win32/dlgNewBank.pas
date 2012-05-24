@@ -368,7 +368,7 @@ begin
                (ProductConfigService.IsExportDataEnabledFoAccount(NewBankAccount)) then
             begin
               ProductConfigService.SaveAccountVendorExports(ClientID,
-                                                            NewBankAccount.baFields.baBank_Account_Number,
+                                                            NewBankAccount.baFields.baCore_Account_ID,
                                                             fClientVendors,
                                                             True);
             end;
