@@ -1541,6 +1541,7 @@ Procedure DoUpgradeAdminToLatestVersion( var UpgradingToVersion : integer; const
   var
     UserIndex : integer;
     Prac: TBloPracticeRead;
+    Index: Integer;
   begin
     UpgradingToVersion := 128;
 
@@ -1560,6 +1561,11 @@ Procedure DoUpgradeAdminToLatestVersion( var UpgradingToVersion : integer; const
       Prac := ProductConfigService.GetPractice;
       if not Assigned(Prac) then
         AdminSystem.fdFields.fdUse_BankLink_Online := False;
+    end;
+
+    for Index := 0 to AdminSystem.fdSystem_Bank_Account_List.ItemCount - 1 do
+    begin
+      AdminSystem.fdSystem_Bank_Account_List.System_Bank_Account_At(Index).sbCore_Account_ID := 0;  
     end;
   end;
 
@@ -4153,6 +4159,7 @@ const
     OldArchRec : tV169_Archived_Transaction;
     NewArchRec : tArchived_Transaction;
     SkipFile : Boolean;
+    Index: Integer;
   begin
     if Not Assigned(AdminSystem) then
       exit;
@@ -4254,6 +4261,12 @@ const
         end;
       end; // if lrn > 0
     end;
+
+    for Index := 0 to aClient.clBank_Account_List.ItemCount  - 1 do
+    begin
+      aClient.clBank_Account_List.Bank_Account_At(Index).baFields.baCore_Account_ID := 0; 
+    end;
+    
     //upgrade ok
     aClient.clFields.clFile_Version := 170;
   end;
