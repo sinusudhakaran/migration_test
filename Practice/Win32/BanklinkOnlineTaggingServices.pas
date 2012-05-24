@@ -484,7 +484,7 @@ var
 begin
   for Index := 0 to Length(ClientAccountVendors.AccountsVendors) - 1 do
   begin
-    if BankAccount.baFields.baCore_Account_ID = ClientAccountVendors.AccountsVendors[Index].CoreAccountID then
+    if BankAccount.baFields.baCore_Account_ID = ClientAccountVendors.AccountsVendors[Index].AccountID then
     begin
       Result := Length(ClientAccountVendors.AccountsVendors[Index].AccountVendors.Current) > 0;
 
@@ -579,7 +579,7 @@ begin
   else
     ClientGuid := ProductConfigService.GetClientGuid(MyClient.clFields.clCode);
   AccountVendors := ProductConfigService.GetAccountVendors(ClientGuid,
-                                                           BankAccount.baFields.baBank_Account_Number,
+                                                           BankAccount.baFields.baCore_Account_ID,
                                                            ShowProgressBar);
 
   // Creating list of vendors that the account currently has. Note that, when the
