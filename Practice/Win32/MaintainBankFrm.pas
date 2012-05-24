@@ -690,7 +690,7 @@ begin
     begin
       SetLength(CurrentVendors, 0);
       Result := ProductConfigService.SaveAccountVendorExports(fClientAccVendors.ClientID,
-                                                              AcctNo,
+                                                              BankAccount.baFields.baCore_Account_ID,
                                                               CurrentVendors,
                                                               True);
     end;
@@ -724,7 +724,7 @@ begin
         ClientVendors[VendorIndex] := fClientAccVendors.ClientVendors[VendorIndex].Id;
 
       Done := ProductConfigService.SaveAccountVendorExports(fClientAccVendors.ClientID,
-                                                            B.baFields.baBank_Account_Number,
+                                                            B.baFields.baCore_Account_ID,
                                                             ClientVendors,
                                                             false);
       if Done then
