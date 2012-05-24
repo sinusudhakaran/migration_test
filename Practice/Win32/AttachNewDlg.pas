@@ -343,6 +343,7 @@ begin
                  baFields.baCurrency_Code           := AdminBankAccount.sbCurrency_Code;
                  baFields.baApply_Master_Memorised_Entries := true;
                  baFields.baDesktop_Super_Ledger_ID := -1;
+                 baFields.baCore_Account_ID         := AdminBankAccount.sbCore_Account_ID;
               end;
 
              Insert(NewBankAccount);
