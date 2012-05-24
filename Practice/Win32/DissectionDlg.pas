@@ -193,8 +193,6 @@ type
     Bevel4: TBevel;
     CelAltChartCode: TOvcTCString;
     ConvertAmount1: TMenuItem;
-    celCoreTransactionId: TOvcTCNumericField;
-    celTransferedToOnline: TOvcTCCheckBox;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure tblDissectGetCellData(Sender: TObject; RowNum,
@@ -487,8 +485,7 @@ uses
    PayeeObj, ECollect,
    stStrs, ConfigColumnsFrm, NewReportUtils,
    ForexHelpers,
-   CountryUtils,
-   BankLinkOnlineServices;
+   CountryUtils;
    {,TransactionNotesFrm;}
 
 const
@@ -512,13 +509,8 @@ const
    ceForexRate      = 16;
    ceLocalAmount    = 17;
    ceAltChartCode   = 18;
-   ceCoreTransactionId = 19;
-   ceTransferedToOnline = 20;
 
-   ceMax            = 20;
-
-
-
+   ceMax = 19;
 
    UnitName = 'DISSECTIONDLG';
 
@@ -625,11 +617,6 @@ begin
       else
          InsColDefnRec( 'Narration',  ceNarration,  celNarration, 295, true, false, true, -1 );
 
-      if (ProductConfigService.OnLine and ProductConfigService.IsPracticeProductEnabled(ProductConfigService.GetExportDataId, False)) then
-      begin
-        InsColDefnRec('Transaction Id', ceCoreTransactionId, celCoreTransactionId, 90, true, false, false, -1);
-        InsColDefnRec('Transfered to Online', ceTransferedToOnline, celTransferedToOnline, 120, true, false, false, -1);
-      end;
    end;
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -1711,22 +1698,6 @@ begin
          ceTaxInvoice : begin
            Data := @dtTax_Invoice;
          end;
-
-         ceCoreTransactionId :
-         begin
-           //tmpPaintInteger := pT^.txCore_Transaction_ID;
-           data := @tmpPaintInteger;
-         end;
-
-         ceTransferedToOnline :
-         begin
-           //if pT^.txTransfered_To_Online then
-           //  tmpPaintInteger := 1
-           //else
-           //  tmpPaintInteger := 0;
-           data := @tmpPaintInteger;
-         end;
-
       end;
    end;
 end;
@@ -5441,7 +5412,7 @@ begin
          SortColumn := -1;
          CodingScreen := DISSECTION_SCREEN;
          ColumnFormatList := ColumnFmtList;
-         NeverEditable := [ceForexRate, ceLocalAmount, ceCoreTransactionId, ceTransferedToOnline];
+         NeverEditable := [ceForexRate, ceLocalAmount];
          SetUpColDefaultsets;
          DefaultEditable := DefaultEditableCols;
          AlwaysEditable := AlwaysEditableCols;
