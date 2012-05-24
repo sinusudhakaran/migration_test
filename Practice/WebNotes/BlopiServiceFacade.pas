@@ -12,7 +12,7 @@
 // Encoding : utf-8
 // Codegen  : [wfMapStringsToWideStrings+, wfUseScopedEnumeration-]
 // Version  : 1.0
-// (24/05/2012 11:51:06 a.m. - - $Rev: 25127 $)
+// (24/05/2012 2:24:40 p.m. - - $Rev: 25127 $)
 // ************************************************************************ //
 
 unit BlopiServiceFacade;
@@ -241,17 +241,17 @@ type
   // ************************************************************************ //
   DataPlatformBankAccount = class(TRemotable)
   private
-    FBankAccountNumber: WideString;
-    FBankAccountNumber_Specified: boolean;
+    FAccountId: Integer;
+    FAccountId_Specified: boolean;
     FSubscribers: ArrayOfguid;
     FSubscribers_Specified: boolean;
-    procedure SetBankAccountNumber(Index: Integer; const AWideString: WideString);
-    function  BankAccountNumber_Specified(Index: Integer): boolean;
+    procedure SetAccountId(Index: Integer; const AInteger: Integer);
+    function  AccountId_Specified(Index: Integer): boolean;
     procedure SetSubscribers(Index: Integer; const AArrayOfguid: ArrayOfguid);
     function  Subscribers_Specified(Index: Integer): boolean;
   published
-    property BankAccountNumber: WideString   Index (IS_OPTN or IS_NLBL) read FBankAccountNumber write SetBankAccountNumber stored BankAccountNumber_Specified;
-    property Subscribers:       ArrayOfguid  Index (IS_OPTN or IS_NLBL) read FSubscribers write SetSubscribers stored Subscribers_Specified;
+    property AccountId:   Integer      Index (IS_OPTN) read FAccountId write SetAccountId stored AccountId_Specified;
+    property Subscribers: ArrayOfguid  Index (IS_OPTN or IS_NLBL) read FSubscribers write SetSubscribers stored Subscribers_Specified;
   end;
 
 
@@ -1432,7 +1432,7 @@ type
     function  SavePracticeDataSubscriberCredentials(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const subscriberId: guid; const practiceDataSubscriberCredentials: PracticeDataSubscriberCredentials): MessageResponse; stdcall;
     function  GetClientDataSubscribers(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const clientId: guid): MessageResponseOfDataPlatformSubscription6cY85e5k; stdcall;
     function  SaveClientDataSubscribers(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const clientId: guid; const subscription: ArrayOfguid): MessageResponse; stdcall;
-    function  GetBankAccountDataSubscribers(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const clientId: guid; const bankAccountNumber: WideString): MessageResponseOfDataPlatformSubscription6cY85e5k; stdcall;
+    function  GetBankAccountDataSubscribers(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const clientId: guid; const accountId: Integer): MessageResponseOfDataPlatformSubscription6cY85e5k; stdcall;
     function  GetBankAccountsDataSubscribers(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const clientId: guid): MessageResponseOfDataPlatformClient6cY85e5k; stdcall;
     function  SaveBankAccountDataSubscribers(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const clientId: guid; const accountId: Integer; const subscription: ArrayOfguid
                                              ): MessageResponse; stdcall;
@@ -1619,15 +1619,15 @@ begin
   Result := FBankAccounts_Specified;
 end;
 
-procedure DataPlatformBankAccount.SetBankAccountNumber(Index: Integer; const AWideString: WideString);
+procedure DataPlatformBankAccount.SetAccountId(Index: Integer; const AInteger: Integer);
 begin
-  FBankAccountNumber := AWideString;
-  FBankAccountNumber_Specified := True;
+  FAccountId := AInteger;
+  FAccountId_Specified := True;
 end;
 
-function DataPlatformBankAccount.BankAccountNumber_Specified(Index: Integer): boolean;
+function DataPlatformBankAccount.AccountId_Specified(Index: Integer): boolean;
 begin
-  Result := FBankAccountNumber_Specified;
+  Result := FAccountId_Specified;
 end;
 
 procedure DataPlatformBankAccount.SetSubscribers(Index: Integer; const AArrayOfguid: ArrayOfguid);
@@ -2685,4 +2685,5 @@ initialization
   RemClassRegistry.RegisterXSClass(ClientReadDetail2, 'http://www.banklinkonline.com/2011/11/Blopi', 'ClientReadDetail2', 'ClientReadDetail');
   RemClassRegistry.RegisterXSClass(ClientCreate2, 'http://www.banklinkonline.com/2011/11/Blopi', 'ClientCreate2', 'ClientCreate');
   RemClassRegistry.RegisterXSClass(ClientUpdate2, 'http://www.banklinkonline.com/2011/11/Blopi', 'ClientUpdate2', 'ClientUpdate');
+
 end.
