@@ -347,7 +347,7 @@ type
                                      ShowSuccessMessage: Boolean = True): Boolean;
 
     function SaveAccountVendorExports(aClientId : TBloGuid;
-                                      aAccountNumber : WideString;
+                                      aCoreAccountID : Integer;
                                       aVendorExports: TBloArrayOfGuid;
                                       aShowMessage: Boolean = True;
                                       ShowProgressBar: Boolean = True): Boolean;
@@ -2452,7 +2452,7 @@ begin
 end;
 
 function TProductConfigService.SaveAccountVendorExports(aClientId : TBloGuid;
-                                                        aAccountNumber : WideString;
+                                                        aCoreAccountID : Integer;
                                                         aVendorExports: TBloArrayOfGuid;
                                                         aShowMessage: Boolean = True;
                                                         ShowProgressBar: Boolean = True): Boolean;
@@ -2497,7 +2497,7 @@ begin
                                                                        PracCode,
                                                                        PracPassHash,
                                                                        aClientId,
-                                                                       aAccountNumber,
+                                                                       aCoreAccountID,
                                                                        aVendorExports);
 
           if not MessageResponseHasError(MsgResponce, 'update the Account data export settings to') then
