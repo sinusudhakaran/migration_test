@@ -65,7 +65,7 @@ type
     CurrencyColumnShowing: boolean;
 
     procedure UpdateLastVendorsUsedByAccounts;
-    function GetAccountIndexOnVendorList(aAccountNumber : string) : integer;
+    function GetAccountIndexOnVendorList(aAccountId: Integer) : integer;
     procedure ShowCurrencyColumn;
     procedure HideCurrencyColumn;
     procedure RefreshExportVendors;
@@ -326,7 +326,7 @@ begin
       if (fExportDataEnabled) and
          (fClientAccVendors.ClientID <> '') then
       begin
-        AccVendorIndex := GetAccountIndexOnVendorList(BankAcct.baFields.baBank_Account_Number);
+        AccVendorIndex := GetAccountIndexOnVendorList(BankAcct.baFields.baCore_Account_ID);
         if (ProductConfigService.IsExportDataEnabledFoAccount(BankAcct)) and
            (AccVendorIndex > -1) then
         begin
@@ -612,7 +612,7 @@ begin
   fRemoveVendorsFromClient := false;
   if IsExportDataEnabledFoAccount then
   begin
-    AccVendorIndex := GetAccountIndexOnVendorList(BankAccount.baFields.baBank_Account_Number);
+    AccVendorIndex := GetAccountIndexOnVendorList(BankAccount.baFields.baCore_Account_ID);
     if (AccVendorIndex > -1) then
     begin
       if AllAccountsHaveOneVendorSelected(AccVendorIndex, aMsg) then
@@ -722,25 +722,28 @@ begin
     if B.IsManual then // a/c number may of changed - need to re-insert in the correct position
        MyClient.clBank_Account_List.Delete(B);
 
-    AccIndex := GetAccountIndexOnVendorList(B.baFields.baBank_Account_Number);
-    if AccIndex = -1 then
+    if B.baFields.baCore_Account_ID > 0 then
     begin
-      SetLength(ClientVendors, length(fClientAccVendors.ClientVendors));
-      for VendorIndex := 0 to high(ClientVendors) do
-        ClientVendors[VendorIndex] := fClientAccVendors.ClientVendors[VendorIndex].Id;
-
-      Done := ProductConfigService.SaveAccountVendorExports(fClientAccVendors.ClientID,
-                                                            B.baFields.baCore_Account_ID,
-                                                            ClientVendors,
-                                                            false);
-      if Done then
+      AccIndex := GetAccountIndexOnVendorList(B.baFields.baCore_Account_Id);
+      if AccIndex = -1 then
       begin
-        RefreshExportVendors;
-        RefreshBankAccountList;
-        AccIndex := GetAccountIndexOnVendorList(B.baFields.baBank_Account_Number);
+        SetLength(ClientVendors, length(fClientAccVendors.ClientVendors));
+        for VendorIndex := 0 to high(ClientVendors) do
+          ClientVendors[VendorIndex] := fClientAccVendors.ClientVendors[VendorIndex].Id;
+
+        Done := ProductConfigService.SaveAccountVendorExports(fClientAccVendors.ClientID,
+                                                              B.baFields.baCore_Account_ID,
+                                                              ClientVendors,
+                                                              false);
+        if Done then
+        begin
+          RefreshExportVendors;
+          RefreshBankAccountList;
+          AccIndex := GetAccountIndexOnVendorList(B.baFields.baCore_Account_Id);
+        end;
       end;
     end;
-
+    
     if AccIndex = -1 then
       Result := EditBankAccount(B, TempAccVendors, fClientAccVendors.ClientId)
     else
@@ -1082,7 +1085,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TfrmMaintainBank.GetAccountIndexOnVendorList(aAccountNumber: string) : integer;
+function TfrmMaintainBank.GetAccountIndexOnVendorList(aAccountId: Integer) : integer;
 var
   AccountIndex : integer;
 begin
@@ -1090,7 +1093,7 @@ begin
   Result := -1;
   for AccountIndex := 0 to high(fClientAccVendors.AccountsVendors) do
   begin
-    if aAccountNumber = fClientAccVendors.AccountsVendors[AccountIndex].AccountNumber then
+    if aAccountId = fClientAccVendors.AccountsVendors[AccountIndex].AccountId then
     begin
       Result := AccountIndex;
       Exit;
