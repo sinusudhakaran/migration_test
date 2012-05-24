@@ -52,7 +52,8 @@ type
     AccountVendors : TBloDataPlatformSubscription;
     IsLastAccForVendors : Array of Boolean;
     ExportDataEnabled : Boolean;
-    ClientNeedRefresh : Boolean;
+    ClientNeedRefresh : Boolean
+    CoreAccountID: Integer;
   end;
 
   TClientAccVendors = record
@@ -60,7 +61,6 @@ type
     ClientCode   : WideString;
     ClientVendors : TBloArrayOfDataPlatformSubscriber;
     AccountsVendors : Array of TAccountVendors;
-    CoreAccountID: Integer;
   end;
 
   TVarTypeData = record
