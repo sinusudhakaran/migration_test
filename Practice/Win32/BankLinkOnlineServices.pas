@@ -60,6 +60,7 @@ type
     ClientCode   : WideString;
     ClientVendors : TBloArrayOfDataPlatformSubscriber;
     AccountsVendors : Array of TAccountVendors;
+    CoreAccountID: Integer;
   end;
 
   TVarTypeData = record
