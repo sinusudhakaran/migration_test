@@ -1147,7 +1147,7 @@ begin
           MyClient.clExtra.ceOnlineSubscription[SubIndex] := Subscription[SubIndex-1];
       end;       
     
-      if NumProdTicked > 0 then
+      if (NumProdTicked > 0) or (Length(ModifiedDataExports) > 0) then
       begin
         Result := ProductConfigService.CreateClient(AnsiLeftStr(cmbBillingFrequency.Text, 1),
                                                     StrToInt(ConnectDays),
@@ -1160,6 +1160,11 @@ begin
         MyClient.clExtra.ceOnlineValuesStored := False;
         
         ShowUpdateMsg := not Result;
+
+        if Result then
+        begin
+          ClientReadDetail := ProductConfigService.GetClientDetailsWithCode(MyClient.clFields.clCode);
+        end;
       end
       else
       begin
