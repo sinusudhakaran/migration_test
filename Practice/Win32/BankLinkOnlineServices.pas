@@ -52,7 +52,7 @@ type
     AccountVendors : TBloDataPlatformSubscription;
     IsLastAccForVendors : Array of Boolean;
     ExportDataEnabled : Boolean;
-    ClientNeedRefresh : Boolean
+    ClientNeedRefresh : Boolean;
     CoreAccountID: Integer;
   end;
 
