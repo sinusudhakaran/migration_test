@@ -6,7 +6,8 @@ interface
 
 uses
   Dialogs, Classes, Windows, Sysutils,
-  LogUtil, clObj32, ChkProgressFrm, AuditMgr, WebCiCoClient;
+  LogUtil, clObj32, ChkProgressFrm, AuditMgr, WebCiCoClient,
+  SysObj32;
 
   {$IFNDEF TESTLOCKING}
   procedure OpenClient(OpenCode : string; IsDDE: Boolean = False);
@@ -45,7 +46,7 @@ uses
   function DoClientSave(Closing: Boolean; Client: TClientObj; const Silent: Boolean = False): Boolean;
   function ClientFileExists(ClientCode : string): boolean;
   procedure OpenAClientForRead(OpenCode :string; var Client : TClientObj);
-
+  procedure UpdateCoreAccountIds(Client: TClientObj; AdminSystem: TSystemObj);
 //******************************************************************************
 implementation
 
@@ -92,7 +93,7 @@ uses
   YesNoDlg,
   DirUtils,
   UBatchBase,
-  RadioOptionsDlg, BKDEFS, SysObj32, cfList32, GenUtils, syamio, WebXUtils,
+  RadioOptionsDlg, BKDEFS, cfList32, GenUtils, syamio, WebXUtils,
   ECodingUtils, BKUtil32, baObj32, baUtils, bkDateUtils,
   UpgradeHelper, ClientManagerFrm, ClientUtils, ExchangeRateList,
   MailFrm, ClientDetailCacheObj, BankLinkOnline, BankLinkOnlineServices,
@@ -159,6 +160,40 @@ begin
          SaveAdminSystem;
       end;
    end;
+end;
+
+procedure UpdateCoreAccountIds(Client: TClientObj; AdminSystem: TSystemObj);
+
+  function FindSystemAccount(const BankAccountNumber: String): pSystem_Bank_Account_Rec;
+  var
+    Index: Integer;
+  begin
+    Result := nil;
+
+    for Index := 0 to AdminSystem.fdSystem_Bank_Account_List.ItemCount -1  - 1 do
+    begin
+      if CompareText(AdminSystem.fdSystem_Bank_Account_List.System_Bank_Account_At(Index).sbAccount_Number, BankAccountNumber) = 0 then
+      begin
+        Result := AdminSystem.fdSystem_Bank_Account_List.System_Bank_Account_At(Index);
+
+        Break;
+      end;
+    end;
+  end;
+  
+var
+  Index: Integer;
+  SystemAccount: pSystem_Bank_Account_Rec;
+begin
+  for Index := 0 to Client.clBank_Account_List.ItemCount - 1 do
+  begin
+    SystemAccount := FindSystemAccount(Client.clBank_Account_List.Bank_Account_At(Index).baFields.baBank_Account_Number);
+
+    if Assigned(SystemAccount) then
+    begin
+      Client.clBank_Account_List.Bank_Account_At(Index).baFields.baCore_Account_ID := SystemAccount.sbCore_Account_ID;
+    end;
+  end;
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -520,6 +555,11 @@ begin
          clFile_Load_Time     := Round(AppTime.GetElapsed*1000);
          clFile_Save_Required := FALSE;
          clFile_Read_Only     := OpenReadOnly;
+       end;
+
+       if (not Client.clFields.clFile_Read_Only) and Assigned(AdminSystem) then
+       begin
+         UpdateCoreAccountIds(Client, AdminSystem);
        end;
 
        Msg := Format( 'Client file %s Opened by %s', [ Code, CurrUser.Code ] );
