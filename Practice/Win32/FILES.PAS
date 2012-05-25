@@ -1474,7 +1474,7 @@ begin
       DoClientSave(false, Tempclient);
     end;
 
-    if ClientStatus > 0 then
+    if (ClientStatus > 0) and (ASendMethod = ftmOnline) then
     begin
       Msg := CICOERRORSTR_PRACTICE_CLIENTDEACTIVATED;
 
@@ -1484,10 +1484,10 @@ begin
       begin
         ProgressFrm.mProgress.Lines.Add('Skipped ' + Code + ' - ' + Msg);
       end;
-        
+
       Exit;
     end;
-
+     
     //Copy/Upload client file
     try
       case ASendMethod of
@@ -1718,7 +1718,7 @@ begin
     end;
   end;
 
-  if ClientStatus > 0 then
+  if (ClientStatus > 0) and (ASendMethod = ftmOnline) then
   begin
     Msg := CICOERRORSTR_CLIENT_CLIENTDEACTIVATED;
     
