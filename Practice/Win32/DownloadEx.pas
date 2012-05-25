@@ -56,7 +56,9 @@ uses
   SysUtils,
   YesNoDlg, SYDEFS, BaseDisk, ECollect, dbList, SysObj32, SBAList32, dtList,
   WinUtils, Windows, Merge32,
-  AuditMgr;
+  AuditMgr,
+  clObj32,
+  Files;
 
 const
   UnitName = 'DownloadEx';
@@ -565,6 +567,7 @@ begin //ProcessDiskImages
               begin
                  SystemAccount := AdminSystem.NewSystemAccount(DiskAccount.dbFields.dbAccount_Number, True);
                  SystemAccount.sbAccount_Name    := DiskAccount.dbFields.dbAccount_Name;
+                 SystemAccount.sbCore_Account_ID := 0;
               end;
               //This can actualy change, over time, so update regardless.
               SystemAccount.sbInstitution := DiskAccount.dbFields.dbBank_Name;
@@ -622,8 +625,11 @@ begin //ProcessDiskImages
               end;
 
               //The dbAccount_LRN is the unique core id
-              SystemAccount.sbCore_Account_ID := DiskAccount.dbFields.dbAccount_LRN;
-
+              if (DiskAccount.dbFields.dbAccount_LRN <> 0) then
+              begin
+                SystemAccount.sbCore_Account_ID := DiskAccount.dbFields.dbAccount_LRN;
+              end;
+              
               //now prepare archive txn file for transactions
               TxnFilename := ArchUtil32.ArchiveFileName( SystemAccount.sbLRN);
 
@@ -896,6 +902,51 @@ begin //ProcessDiskImages
 
   LogDebugMsg( ThisMethodName + ' ends');
 end;
+
+procedure UpdateClientAccounts;
+
+  function FindSystemAccount(const BankAccountNumber: String): pSystem_Bank_Account_Rec;
+  var
+    Index: Integer;
+  begin
+    Result := nil;
+    
+    for Index := 0 to AdminSystem.fdSystem_Bank_Account_List.ItemCount -1  - 1 do
+    begin
+      if CompareText(AdminSystem.fdSystem_Bank_Account_List.System_Bank_Account_At(Index).sbAccount_Number, BankAccountNumber) = 0 then
+      begin
+        Result := AdminSystem.fdSystem_Bank_Account_List.System_Bank_Account_At(Index);
+
+        Break;
+      end;
+    end;
+  end;
+
+var
+  Index: Integer;
+  AdminAccountIndex: Integer;
+  Client: TClientObj;
+  IIndex: Integer;
+begin
+  for Index := 0 to AdminSystem.fdSystem_Client_File_List.ItemCount  - 1 do
+  begin
+    if AdminSystem.fdSystem_Client_File_List.Client_File_At(Index).cfFile_Status = bkConst.fsNormal then
+    begin
+      try
+        OpenAClient(AdminSystem.fdSystem_Client_File_List.Client_File_At(Index).cfFile_Code, Client, True);
+
+        if Assigned(Client) then
+        begin
+          UpdateCoreAccountIds(Client, AdminSystem);
+
+          DoClientSave(true, Client);
+        end;
+      except
+      end;
+    end;
+  end;
+end;
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure DownloadDiskImages( Source : TDownloadSource);
 //Note: Application Process Messages will be called during this procedure
@@ -944,8 +995,11 @@ begin
   begin
     try
       if ProcessDiskImages then
+      begin
+        UpdateClientAccounts;
          // all done - now update processing status to show downloaded months
          RefreshAllProcessingStatistics(True);
+      end;
     except
       on E : EDownloadVerify do
       begin
