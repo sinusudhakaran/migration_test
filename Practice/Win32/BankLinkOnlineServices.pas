@@ -3384,7 +3384,7 @@ begin
   BlopiInterface := GetServiceFacade;
   try
     try
-      Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Retieving Info', 25);
+      Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Retrieving Info', 25);
       ClientIndex := GetOnlineClientIndex(ClientCode);
 
       if ClientIndex = -1 then
