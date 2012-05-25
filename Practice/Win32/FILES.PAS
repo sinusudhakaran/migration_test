@@ -1476,7 +1476,7 @@ begin
 
     if ClientStatus > 0 then
     begin
-      Msg := 'This client file has been de-activated or suspended by the accountant so you cannot transfer files via BankLink Online.';
+      Msg := CICOERRORSTR_PRACTICE_CLIENTDEACTIVATED;
 
       LogUtil.LogMsg(lmInfo, UnitName, ThisMethodName + ' : ' + Msg);
 
@@ -1720,8 +1720,8 @@ begin
 
   if ClientStatus > 0 then
   begin
-    Msg := 'This client file has been de-activated or suspended by the accountant so you cannot transfer files via BankLink Online. Please contact your accountant for assistance.';
-
+    Msg := CICOERRORSTR_CLIENT_CLIENTDEACTIVATED;
+    
     LogUtil.LogMsg(lmInfo, UnitName, ThisMethodName + ' : ' + Msg);
 
     if not IsScheduledReport then
