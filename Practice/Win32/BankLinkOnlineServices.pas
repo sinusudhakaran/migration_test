@@ -3492,7 +3492,8 @@ var
     if (not (aExistingClient.BillingFrequency   = aBillingFrequency)) or
        (not (aExistingClient.MaxOfflineDays     = aMaxOfflineDays)) or
        (not (aExistingClient.Status             = aStatus)) or
-       (not (High(aExistingClient.Subscription) = High(aSubscription))) then
+       (not (High(aExistingClient.Subscription) = High(aSubscription))) or
+       (not (aExistingClient.SecureCode = MyClient.clFields.clBankLink_Code)) then
     begin
       Result := True;
       Exit;
