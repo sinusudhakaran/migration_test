@@ -18,7 +18,7 @@ type
     FSilent : Boolean;
 
     function GetBankLinkOnlineErrorString(Response: TServerResponse; ForClient: Boolean): String;
-    
+
     procedure DebugMsg(AMessage: string);
     procedure CheckBankLinkOnlineStatus(AClientCode: string; AAction: TOnlineAction);
     procedure CheckPracticeUploadStatus(AClientCode: string; AStatus: TClientStatusItem);
@@ -34,8 +34,14 @@ type
                           NotifyPractice: Boolean = False; NotifyEmail: string = ''): boolean;
     function DownloadClient(AClientCode: string; AProgressFrm: TfrmChkProgress;
                             var ARemoteFileName: string): boolean;
+
     property Silent : Boolean read FSilent write FSilent;
   end;
+
+const
+  CICOERRORSTR_CLIENT_CLIENTDEACTIVATED = 'This client file is currently de-activated or suspended so you will not be able to transfer files via BankLink Online. Please contact your accountant for assistance.';
+  CICOERRORSTR_PRACTICE_CLIENTDEACTIVATED = 'This client file is currently de-activated or suspended so you will not be able to transfer files via BankLink Online.';
+
 
   function BankLinkOnlineMgr: TBankLinkOnlineManager;
 
@@ -519,11 +525,11 @@ begin
   begin
     if ForClient then
     begin
-      Result := 'This client file has been de-activated or suspended by the accountant so you cannot transfer files via BankLink Online. Please contact your accountant for assistance.';
+      Result := CICOERRORSTR_CLIENT_CLIENTDEACTIVATED;
     end
     else
     begin
-      Result := 'This client file has been de-activated or suspended by the accountant so you cannot transfer files via BankLink Online.';
+      Result := CICOERRORSTR_PRACTICE_CLIENTDEACTIVATED;
     end;
   end
   else
