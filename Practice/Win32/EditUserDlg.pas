@@ -608,11 +608,15 @@ var
   UserCode          : string;
   UserEmail         : String;
   BloUserRead       : TBloUserRead;
+  OldPassword       : String;
+  AuthenticationResult: TPracticeUserAuthentication;
+  UserGuid: TBloGuid;
 begin
   Result := True;
 
   UserCode := GetCurrentCode;
-
+  UserGuid := FUserGuid;
+  
   // if User was on Banklink Online and now is removed delete user on Banklink online
   Try
     if  (fOldValues.CanAccessBankLinkOnline = True)
@@ -639,8 +643,7 @@ begin
         HelpfulInfoMsg('BankLink Practice was unable to remove this user from BankLink Online', 0);
     end;
 
-    if  (chkCanAccessBankLinkOnline.Checked)
-    and (chkCanAccessBankLinkOnline.Visible) then
+    if  (chkCanAccessBankLinkOnline.Checked) and (chkCanAccessBankLinkOnline.Visible) then
     begin
       // if user is the primary user and been set to a non supervisor then pick a new primary user
       if (fIsPrimaryUser) and
@@ -661,22 +664,44 @@ begin
         if assigned(BloUserRead) then
         begin
           UserEmail := BloUserRead.EMail;
-          fUserGuid := BloUserRead.Id;
+          UserGuid := BloUserRead.Id;
+
+          case ProductConfigService.AuthenticatePracticeUser(UserGuid, ePass.Text) of
+            paFailed:
+            begin
+              HelpfulWarningMsg('The BankLink Practice and BankLink Online passwords do not match - please ask the user to enter and confirm their BankLink Online password in the fields above.', 0);
+
+              Result := False;
+              
+              Exit;
+            end;
+
+            paError:
+            begin
+              Result := False;
+              
+              Exit;
+            end;
+          end;
         end;
       end
       else
         UserEmail := eMail.Text;
 
-      Result := ProductConfigService.AddEditPracUser(fUserGuid,
+      Result := ProductConfigService.AddEditPracUser(UserGuid,
                                                      UserEmail,
                                                      eFullName.Text,
                                                      GetCurrentCode,
                                                      cmbUserType.ItemIndex,
                                                      fIsCreateUser,
+                                                     not (fIsCreateUser or (fUIMode = uimOnlineUnlinked)) ,
+                                                     FOldValues.Password,
                                                      ePass.Text);
-
+      
       if Result then
       begin
+        FUserGuid := UserGuid;
+
         if IsCreateUser then
           MsgCreateorUpdate := 'created on'
         else
