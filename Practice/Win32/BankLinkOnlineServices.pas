@@ -69,6 +69,8 @@ type
 
   TArrVarTypeData = Array of TVarTypeData;
 
+  TPracticeUserAuthentication = (paSuccess, paFailed, paError);
+
   TUserDetailHelper = class helper for BlopiServiceFacade.User
   public
     function AddRoleName(RoleName: string) : Boolean;
@@ -306,7 +308,10 @@ type
                              const aUserCode       : WideString;
                              const aUstNameIndex   : integer;
                              var   aIsUserCreated  : Boolean;
+                             const aChangePassword : Boolean;
+                             aOldPassword          : WideString;
                              aNewPassword          : WideString) : Boolean;
+                             
     function DeletePracUser(const aUserCode : string;
                             const aUserGuid : string;
                             aPractice : TBloPracticeRead = nil): Boolean;
@@ -318,8 +323,15 @@ type
                                 const aOldPassword : WideString;
                                 const aNewPassword : WideString;
                                 aPractice          : TBloPracticeRead = nil;
-                                aLinkedUserGuid    : TBloGuid = '') : Boolean;
+                                aLinkedUserGuid    : TBloGuid = '') : Boolean;  overload;
 
+    function ChangePracUserPass(const aUserGuid    : TBloGuid;
+                                const aUserCode    : WideString;
+                                const aOldPassword : WideString;
+                                const aNewPassword : WideString): Boolean; overload;
+                                
+    function AuthenticatePracticeUser(UserId: TBloGuid; const Password: String): TPracticeUserAuthentication;
+    
     function UpdateClientNotesOption(ClientReadDetail: TBloClientReadDetail; WebExportFormat: Byte): Boolean;
 
     function GetExportDataId: TBloGuid;
@@ -605,6 +617,45 @@ begin
   SetLength(aBloArrayOfGuid, Length(aBloArrayOfGuid) - 1);
 
   Result := True;
+end;
+
+function TProductConfigService.ChangePracUserPass(const aUserGuid: TBloGuid; const aUserCode: WideString; const aOldPassword, aNewPassword: WideString): Boolean;
+var
+  MsgResponce     : MessageResponse;
+  ShowProgress    : Boolean;
+begin
+  Result := false;
+
+  ShowProgress := Progress.StatusSilent;
+  if ShowProgress then
+  begin
+    Screen.Cursor := crHourGlass;
+    Progress.StatusSilent := False;
+    Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Connecting', 10);
+  end;
+
+  try
+    if ShowProgress then
+      Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Sending Data', 60);
+
+    MsgResponce := UpdatePracticeUserPass(aUserGuid,
+                                          aUserCode,
+                                          aOldPassword,
+                                          aNewPassword);
+
+    Result := not MessageResponseHasError(MsgResponce, 'change practice user password on');
+
+    if (Result) and (ShowProgress) then
+      Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finished', 100);
+
+  finally
+    if ShowProgress then
+    begin
+      Progress.StatusSilent := True;
+      Progress.ClearStatus;
+      Screen.Cursor := crDefault;
+    end;
+  end;
 end;
 
 function TProductConfigService.CheckGuidArrayEquality(GuidArray1, GuidArray2: TBloArrayOfGuid): boolean;
@@ -1660,6 +1711,82 @@ begin
     // Recursive call for child nodes
     for NodeIndex := 0 to aCurrNode.ChildNodes.Count - 1 do
       AddXMLNStoArrays(aCurrNode.ChildNodes.Nodes[NodeIndex], aNameList);
+  end;
+end;
+
+function TProductConfigService.AuthenticatePracticeUser(UserId: TBloGuid; const Password: String): TPracticeUserAuthentication;
+var
+  BlopiInterface : IBlopiServiceFacade;
+  Response: MessageResponse;
+  ShowProgress: Boolean;
+begin
+  Result := paFailed;
+  
+  try
+    ShowProgress := Progress.StatusSilent;
+
+    if ShowProgress then
+    begin
+      Screen.Cursor := crHourGlass;
+      Progress.StatusSilent := False;
+      Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Connecting', 10);
+    end;
+
+    try
+      if ShowProgress then
+        Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Authenticating user', 50);
+
+
+      BlopiInterface := GetServiceFacade;
+
+      Response := BlopiInterface.AuthenticatePracticeUser(CountryText(AdminSystem.fdFields.fdCountry),
+                                                          AdminSystem.fdFields.fdBankLink_Code,
+                                                          AdminSystem.fdFields.fdBankLink_Connect_Password,
+                                                          UserId,
+                                                          Password);
+
+      if not Response.Success then
+      begin
+        if Length(Response.ErrorMessages) > 0 then
+        begin
+          if Response.ErrorMessages[0].ErrorCode <> '102' then
+          begin
+            MessageResponseHasError(Response, 'authenticate user');
+
+            Result := paError;
+          end;
+        end
+        else
+        begin
+          MessageResponseHasError(Response, 'authenticate user');
+
+          Result := paError;        
+        end;
+      end
+      else
+      begin
+        Result := paSuccess;
+      end;
+
+      if ShowProgress then
+      begin
+        Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finished', 100);
+      end;
+    finally
+      if ShowProgress then
+      begin
+        Progress.StatusSilent := True;
+        Progress.ClearStatus;
+        Screen.Cursor := crDefault;
+      end;
+    end;
+  except
+    on E:Exception do
+    begin
+      HelpfulErrorMsg('Error getting service agreement from ' + BANKLINK_ONLINE_NAME + '.', 0, True, E.Message, True);
+
+      Result := paError;
+    end;
   end;
 end;
 
@@ -3170,7 +3297,6 @@ begin
     UpdateUser.UserCode     := aUserCode;
     UpdateUser.RoleNames    := aRoleNames;
     UpdateUser.Subscription := aSubscription;
-    UpdateUser.Password     := Password;
 
     Result := BlopiInterface.SavePracticeUser(CountryText(AdminSystem.fdFields.fdCountry),
                                               AdminSystem.fdFields.fdBankLink_Code,
@@ -3731,6 +3857,8 @@ function TProductConfigService.AddEditPracUser(var   aUserId         : TBloGuid;
                                                const aUserCode       : WideString;
                                                const aUstNameIndex   : integer;
                                                var   aIsUserCreated  : Boolean;
+                                               const aChangePassword : Boolean;
+                                               aOldPassword          : WideString;
                                                aNewPassword          : WideString) : Boolean;
 var
   MsgResponce     : MessageResponse;
@@ -3775,8 +3903,23 @@ begin
 
           if Result then
           begin
-            aIsUserCreated := false;
-            Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finished', 100);
+            if aChangePassword then
+            begin
+              Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Sending Data', 88);
+
+              MsgResponce := UpdatePracticeUserPass(aUserId,
+                                                    aUserCode,
+                                                    aOldPassword,
+                                                    aNewPassword);
+
+              Result := not MessageResponseHasError(MsgResponce, 'update practice user password on');
+            end;
+
+            if Result then
+            begin
+              aIsUserCreated := false;
+              Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finished', 100);
+            end;
           end;
         end
         else
