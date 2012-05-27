@@ -386,6 +386,12 @@ begin
      end;
   end; {case}
 
+  if SortCol >= fOnlineVendorStartCol then
+  begin
+    Key1 := Key1 + Item1.Caption;
+    Key2 := Key2 + Item2.Caption;
+  end;
+
   Compare := StStrS.CompStringS(Key1,Key2);
 end;
 
