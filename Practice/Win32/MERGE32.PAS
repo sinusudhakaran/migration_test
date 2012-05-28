@@ -932,7 +932,9 @@ begin
                MasterMemX  := MasterMemList.Memorisation_At(m);
                ClientMemX  := TMemorisation.Create(aClient.ClientAuditMgr);
 
-               ClientMemX.mdFields := MasterMemX.mdFields;
+
+               ClientMemX.mdFields^ := MasterMemX.mdFields^;
+
                for j := MasterMemX.mdLines.First to MasterMemX.mdLines.Last do
                begin
                  MasterLine  := MasterMemX.mdLines.MemorisationLine_At(j);
