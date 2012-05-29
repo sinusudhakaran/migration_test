@@ -169,7 +169,7 @@ begin
      for i := 0 to Pred(itemCount) do
      begin
         BankAcct := System_Bank_Account_At(i);
-        if not(BankAcct.sbAccount_Type in [sbtData, sbtProvisional]) then
+        if not(BankAcct.sbAccount_Type in [sbtData, sbtProvisional, sbtOnlineSecure]) then
            Continue;
         //include non attached and not deleted
         IncludeAccount := (BankAcct.sbAttach_Required) and (not BankAcct.sbMark_As_Deleted);
