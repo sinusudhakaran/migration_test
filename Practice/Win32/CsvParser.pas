@@ -3,7 +3,7 @@ unit CsvParser;
 interface
 
 uses
-  Classes;
+  Classes, Contnrs;
 
 type
   TCsvParser = class;  // Forward declaration
@@ -86,6 +86,66 @@ type
     procedure ExtractFields(const s : string;AFieldList : TStrings);
   end;
 
+  TDelimitedFile = class;
+  
+  TDelimitedField = class
+  private
+    FOwner: TDelimitedFile;
+    FIndex: Integer;
+    FFieldName: String;
+
+    function GetValue(RowIndex: Integer): String;
+  public
+    constructor Create(Owner: TDelimitedFile; const FieldName: String; Index: Integer);
+
+    property FieldName: String read FFieldName;
+
+    property Values[RowIndex: Integer]: String read GetValue;
+  end;
+
+  TDelimitedFile = class
+  private
+    type
+      TRow = class
+      private
+        FValues: array of String;
+        
+        function GetValue(Index: Integer): String;
+        procedure SetValue(Index: Integer; const Value: String);
+      public
+        constructor Create(ColumnCount: Integer);
+        destructor Destroy; override;
+        
+        property Values[Index: Integer] : String read GetValue write SetValue;
+      end;
+
+  private
+    FFields: TObjectList;
+    FRows: TObjectList;
+    FDelimiter: Char;
+    
+    function GetFieldCount: Integer;
+    function GetRowCount: Integer;
+    procedure SetDelimited(const Value: Char);
+    function GetValue(Row, Column: Integer): String;
+  public
+    constructor Create;
+    destructor Destroy; override;
+
+    procedure LoadFromFile(const FileName: String; FirstRowIsHeader: Boolean); virtual;
+
+    procedure Clear;
+
+    function FieldExists(const FieldName: String): Boolean;
+    
+    function FieldByName(const FieldName: String): TDelimitedField;
+
+    property Delimited: Char read FDelimiter write SetDelimited;
+    
+    property FieldCount: Integer read GetFieldCount;
+    property RowCount: Integer read GetRowCount;
+    property Values[Row, Column: Integer]: String read GetValue;
+  end;
 
 implementation
 
@@ -271,5 +331,189 @@ begin
   raise Exception.Create(Format('Error in line at position %d',[Pos]));
 end;
 
+
+{ TDelimitedFile }
+
+procedure TDelimitedFile.Clear;
+begin
+  FFields.Clear;
+  FRows.Clear;
+end;
+
+constructor TDelimitedFile.Create;
+begin
+  FFields := TObjectList.Create(True);
+  FRows := TObjectList.Create(True);
+
+  FDelimiter := ',';
+end;
+
+destructor TDelimitedFile.Destroy;
+begin
+  FFields.Free;
+  FRows.Free;
+  
+  inherited;
+end;
+
+function TDelimitedFile.GetFieldCount: Integer;
+begin
+  Result := FFields.Count;
+end;
+
+function TDelimitedFile.GetRowCount: Integer;
+begin
+  Result := FRows.Count;
+end;
+
+function TDelimitedFile.GetValue(Row, Column: Integer): String;
+begin
+  Result := TRow(FRows[Row]).Values[Column];
+end;
+
+procedure TDelimitedFile.LoadFromFile(const FileName: String; FirstRowIsHeader: Boolean);
+var
+  FileLines: TStringList;
+  FileLine: TStringList;
+  ValuesRow: Integer;
+  Index: Integer;
+  IIndex: Integer;
+  Row: TRow;
+begin
+  Clear;
+  
+  FileLines := TStringList.Create;
+
+  try
+    FileLines.LoadFromFile(FileName);
+
+    if FileLines.Count > 0 then
+    begin
+      FileLine := TStringList.Create;
+
+      try
+        FileLine.Delimiter := FDelimiter;
+        FileLine.StrictDelimiter := True;
+        
+        if FirstRowIsHeader then
+        begin
+          FileLine.DelimitedText := FileLines[0];
+
+          for Index := 0 to FileLine.Count - 1 do
+          begin
+            FFields.Add(TDelimitedField.Create(Self, FileLine[Index], Index));
+          end;
+
+          ValuesRow := 1;
+        end
+        else
+        begin
+          ValuesRow := 0;
+        end;
+
+        for Index := ValuesRow to FileLines.Count - 1 do
+        begin
+          FileLine.DelimitedText := FileLines[Index];
+
+          Row := TRow.Create(FileLine.Count);
+
+          try
+            for IIndex := 0 to FileLine.Count - 1 do
+            begin
+              Row.Values[IIndex] := FileLine[IIndex];
+            end;
+
+            FRows.Add(Row);
+          except
+            Row.Free;
+
+            raise;
+          end;
+        end;
+      finally
+        FileLine.Free;
+      end;
+    end;
+  finally
+    FileLines.Free;
+  end;
+end;
+
+procedure TDelimitedFile.SetDelimited(const Value: Char);
+begin
+  FDelimiter := Value;
+end;
+
+function TDelimitedFile.FieldByName(const FieldName: String): TDelimitedField;
+var
+  Index: Integer;
+begin
+  Result := nil;
+  
+  for Index := 0 to FFields.Count - 1 do
+  begin
+    if CompareText(TDelimitedField(FFields[Index]).FieldName, FieldName) = 0 then
+    begin
+      Result := TDelimitedField(FFields[Index]);
+
+      Break;
+    end;
+  end;
+end;
+
+function TDelimitedFile.FieldExists(const FieldName: String): Boolean;
+var
+  Index: Integer;
+begin
+  Result := False;
+  
+  for Index := 0 to FFields.Count - 1 do
+  begin
+    if CompareText(TDelimitedField(FFields[Index]).FieldName, FieldName) = 0 then
+    begin
+      Result := True;
+
+      Break;
+    end;
+  end;
+end;
+
+{ TDelimitedFile.TRow }
+
+constructor TDelimitedFile.TRow.Create(ColumnCount: Integer);
+begin
+  SetLength(FValues, ColumnCount);
+end;
+
+destructor TDelimitedFile.TRow.Destroy;
+begin
+  SetLength(FValues, 0);
+  
+  inherited;
+end;
+
+function TDelimitedFile.TRow.GetValue(Index: Integer): String;
+begin
+  Result := FValues[Index];
+end;
+
+procedure TDelimitedFile.TRow.SetValue(Index: Integer; const Value: String);
+begin
+  FValues[Index] := Value;
+end;
+
+{ TDelimitedField }
+
+constructor TDelimitedField.Create(Owner: TDelimitedFile; const FieldName: String; Index: Integer);
+begin
+  FOwner := Owner;
+  FIndex := Index;
+  FFieldName := FieldName;
+end;
+
+function TDelimitedField.GetValue(RowIndex: Integer): String;
+begin
+  Result := FOwner.Values[RowIndex, FIndex]; 
+end;
 
 end.
