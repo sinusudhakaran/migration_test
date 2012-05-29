@@ -240,7 +240,7 @@ procedure ProcessOnlineSecureAccountsFile(const FileName: String);
 var
   AccountSource: TSecureOnlineAccounts;
   Index: Integer;
-  SAccount: pSystem_Bank_Account_Rec;
+  SystemAccount: pSystem_Bank_Account_Rec;
 begin
   if FileExists(FileName) then
   begin
@@ -251,29 +251,32 @@ begin
 
       while not AccountSource.Eof do
       begin
-        SAccount := AdminSystem.fdSystem_Bank_Account_List.FindCode(AccountSource.AccountNo);
+        SystemAccount := AdminSystem.fdSystem_Bank_Account_List.FindCode(AccountSource.AccountNo);
 
-        if not Assigned(SAccount) then
+        if not Assigned(SystemAccount) then
         begin
-          SAccount := AdminSystem.NewSystemAccount(AccountSource.AccountNo, False);
-          SAccount.sbAccount_Name  := AccountSource.AccountName;
-          SAccount.sbAccount_Type := sbtOnlineSecure;
+          SystemAccount := AdminSystem.NewSystemAccount(AccountSource.AccountNo, False);
+          SystemAccount.sbAccount_Name  := AccountSource.AccountName;
         end;
 
-        SAccount.sbCost_Code := AccountSource.CostCode;
-        SAccount.sbFile_Code := AccountSource.FileCode;
+        SystemAccount.sbAccount_Type := sbtOnlineSecure;
+        SystemAccount.sbAttach_Required := True;
+        SystemAccount.sbWas_On_Latest_Disk := true;
+
+        SystemAccount.sbCost_Code := AccountSource.CostCode;
+        SystemAccount.sbFile_Code := AccountSource.FileCode;
 
         // Update the rest of the details
-        SAccount.sbCore_Account_ID := StrToIntDef(AccountSource.CoreAccountID, 0);
+        SystemAccount.sbCore_Account_ID := StrToIntDef(AccountSource.CoreAccountID, 0);
 
-        SAccount.sbCurrent_Balance := StrToFloatDef(AccountSource.CurrentBalance, 0);
+        SystemAccount.sbCurrent_Balance := StrToFloatDef(AccountSource.CurrentBalance, 0);
 
         if AccountSource.LastTransactionDate <> '' then
         begin
-          SAccount.sbLast_Entry_Date :=  DateStringToStDate('dd/mm/yy', AccountSource.LastTransactionDate, Epoch);
+          SystemAccount.sbLast_Entry_Date :=  DateStringToStDate('dd/mm/yy', AccountSource.LastTransactionDate, Epoch);
         end;
         
-        SAccount.sbSecure_Online_Code := AccountSource.SecureCode;
+        SystemAccount.sbSecure_Online_Code := AccountSource.SecureCode;
 
         AccountSource.Next;
       end;
