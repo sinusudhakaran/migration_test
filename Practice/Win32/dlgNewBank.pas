@@ -88,14 +88,15 @@ uses
   Enterpwddlg,
   BkConst,
   MoneyDef,
-  SYamio;
+  SYamio,
+  ClientUtils;
 
 const
   UnitName = 'DLGNEWBANK';
 
 var
    DebugMe : boolean = false;
-
+    
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TdlgAddNewBank.FormCreate(Sender: TObject);
 begin
@@ -278,134 +279,25 @@ begin
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TdlgAddNewBank.AttachAccounts;
-const
-   ThisMethodName = 'TdlgAddNewBank.AttachAccounts';
 var
-  AdminBankAccount : pSystem_Bank_Account_Rec;
-  NewBankAccount : tBank_Account;
   i : integer;
-  AccountOK : boolean;
-  ChangedAdmin : boolean;
-  Msg : String;
-  pM: pClient_Account_Map_Rec;
-  pF: pClient_File_Rec;
+  SelectedAccs : TStringList;
+  AdminBankAccount : pSystem_Bank_Account_Rec;
 begin
-  ChangedAdmin := false;
+  SelectedAccs := TStringList.Create;
+  Try
+    for i := 0 to lvAdminBank.items.count -1 do
+    begin
+      if lvAdminBank.Items[i].Selected then
+      begin
+        SelectedAccs.Add(lvAdminBank.Items[i].Caption);
+      end;
+    end;
 
-  //first check for passwords needed or if already added
-  for i := 0 to lvAdminBank.items.count -1 do
-     if lvAdminBank.Items[i].Selected then begin
-        AccountOK := true;
-
-        AdminBankAccount := AdminSystem.fdSystem_Bank_Account_List.FindCode(lvAdminBank.Items[i].Caption);
-        if Assigned(AdminBankAccount) then begin
-           //check to see if a password is required
-           if AdminBankAccount^.sbAccount_Password <> '' then begin
-              if not EnterPassword('Attach Account '+AdminBankAccount^.sbAccount_Number,
-                             AdminBankAccount^.sbAccount_Password,0,false,true) then
-              begin
-                 HelpfulErrorMsg('Invalid Password.  Permission to attach this account is denied.',0);
-                 AccountOK := false;
-              end;
-           end;
-
-           //check if already added
-           with MyClient.clBank_Account_List do begin
-              if ( FindCode( AdminBankAccount^.sbAccount_Number ) <> nil ) then begin
-                 Msg := Format( 'BankAccount %s is already attached to this Client',
-                               [ AdminBankAccount^.sbAccount_Number ] );
-                 HelpfulErrorMsg( Msg, 0 );
-                 AccountOK := false;
-              end;
-           end;
-        end
-        else
-           AccountOK := false; //could not be found
-
-        lvAdminBank.Items[i].Selected := AccountOK;
-     end;
-
-  //accounts verified, now attach them
-  if LoadAdminSystem(true, ThisMethodName ) then begin
-    for i := 0 to lvAdminBank.Items.Count-1 do
-    if lvAdminBank.Items[i].Selected then begin
-      AdminBankAccount := AdminSystem.fdSystem_Bank_Account_List.FindCode(lvAdminBank.Items[i].Caption);
-      if Assigned(AdminBankAccount) then begin
-        if DebugMe then
-           LogUtil.LogMsg(lmDebug, UnitName, 'Attach Bank Account '+AdminBankAccount.sbAccount_Number+' to Client '+ MyClient.clFields.clCode);
-
-        //update admin and attach bank account
-        AdminBankAccount.sbAttach_Required := false;
-        ChangedAdmin := true;
-
-        with MyClient.clBank_Account_List do begin
-          if ( FindCode(AdminBankAccount.sbAccount_Number) = nil ) then
-          begin
-            {update bankaccount in client file}
-            NewBankAccount := TBank_Account.Create(MyClient);
-
-            with NewBankAccount do begin
-               baFields.baBank_Account_Number     := AdminBankAccount.sbAccount_Number;
-               baFields.baBank_Account_Name       := AdminBankAccount.sbAccount_Name;
-               baFields.baBank_Account_Password   := AdminBankAccount.sbAccount_Password;
-               baFields.baCurrent_Balance         := Unknown;  //dont assign bal until have all trx
-               baFields.baBank_Account_Password   := AdminBankAccount.sbAccount_Password;
-               baFields.baApply_Master_Memorised_Entries := true;
-               baFields.baDesktop_Super_Ledger_ID := -1;
-               baFields.baCurrency_Code           := AdminBankAccount.sbCurrency_Code;
-               //Provisional bank account
-               if AdminBankAccount.sbAccount_Type = sbtProvisional then begin
-                  baFields.baIs_A_Provisional_Account := True;
-                  //Needed to force client file save so transactions can't be
-                  //altered before audit.
-                  MyClient.ClientAuditMgr.ProvisionalAccountAttached := True;
-               end;
-               baFields.baCore_Account_ID         := AdminBankAccount.sbCore_Account_ID;
-            end;
-
-            if (Assigned(fClientVendors)) and
-               (ClientID <> '') and
-               (ProductConfigService.IsExportDataEnabledFoAccount(NewBankAccount)) then
-            begin
-              ProductConfigService.SaveAccountVendorExports(ClientID,
-                                                            NewBankAccount.baFields.baCore_Account_ID,
-                                                            fClientVendors,
-                                                            True);
-            end;
-
-            Insert(NewBankAccount);
-
-            // Add to client-account map
-            pF := AdminSystem.fdSystem_Client_File_List.FindCode(MyClient.clFields.clCode);
-            if Assigned(pF) and (not Assigned(AdminSystem.fdSystem_Client_Account_Map.FindLRN(AdminBankAccount.sbLRN, pF.cfLRN))) then
-            begin
-              pM := New_Client_Account_Map_Rec;
-              if Assigned(pM) then
-              begin
-                pM.amClient_LRN := pF.cfLRN;
-                pM.amAccount_LRN := AdminBankAccount.sbLRN;
-                pM.amLast_Date_Printed := 0;
-                AdminSystem.fdSystem_Client_Account_Map.Insert(pM);
-              end;
-            end;
-          end;
-        end; //with MyClient...
-      end
-      else
-        //couldn't find it, might as well continue on
-        LogUtil.LogMsg(lmInfo,UnitName,'Bank Account '+ lvAdminBank.items[i].caption+' no longer found in Admin System.  Account will be skipped.');
-    end; {if selected}
-
-    if ChangedAdmin then begin
-      //*** Flag Audit ***
-      SystemAuditMgr.FlagAudit(arAttachBankAccounts);
-
-      SaveAdminSystem;
-    end else
-      UnlockAdmin;  //no changes made
-  end  //cycle thru selected items
-  else
-    HelpfulErrorMsg('Unable to Attach Accounts.  Admin System cannot be loaded',0);
+    ClientUtils.AttachAccountsToClient(MyClient, SelectedAccs , fClientVendors, ClientID, DebugMe);
+  Finally
+    FreeAndNil(SelectedAccs);
+  End;
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TdlgAddNewBank.lvBankCompare(Sender: TObject; Item1,

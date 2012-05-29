@@ -391,7 +391,9 @@ begin
      cot_FirstDate    : Result := bkDate2Str(SysAccount.sbFirst_Available_Date);
      cot_LastDate     : Result := bkDate2str(SysAccount.sbLast_Entry_Date);
      cot_Status       : begin
-                         if SysAccount.sbMark_As_Deleted then
+                         if SysAccount.sbAccount_Type = sbtOnlineSecure then
+                           Result := 'Online Secure'
+                         else if SysAccount.sbMark_As_Deleted then
                             Result := 'Deleted'
                          else if SysAccount.sbInActive then
                             Result := 'Inactive'
@@ -1168,21 +1170,24 @@ var
       procedure StatusGroups;
           function StatusGroup: Integer;
           begin
-             if BankAcct.sbMark_As_Deleted then
-                Result := 5  //Deleted
-             else if BankAcct.sbInActive then
-                Result := 2 //Inactive
+             if BankAcct.sbAccount_Type = sbtOnlineSecure then
+               Result := 6 //Online Secure
              else
-                if BankAcct.sbAttach_Required then begin
-                   if BankAcct.sbNew_This_Month then
-                      Result := 0 //New
-                   else
-                      Result := 1; //Unatached
-                end else
-                   if TestOffsite(BankAcct) then
-                      Result := 4 //Offsite
-                   else
-                      Result := 3;//Local actached
+               if BankAcct.sbMark_As_Deleted then
+                  Result := 5  //Deleted
+               else if BankAcct.sbInActive then
+                  Result := 2 //Inactive
+               else
+                  if BankAcct.sbAttach_Required then begin
+                     if BankAcct.sbNew_This_Month then
+                        Result := 0 //New
+                     else
+                        Result := 1; //Unatached
+                  end else
+                     if TestOffsite(BankAcct) then
+                        Result := 4 //Offsite
+                     else
+                        Result := 3;//Local actached
           end;
 
        begin //StatusGroups
@@ -1196,6 +1201,7 @@ var
               3 : NewGroup.Title := 'Attached Accounts';
               4 : NewGroup.Title := 'Books Secure Accounts';
               5 : NewGroup.Title := 'Deleted Accounts';
+              6 : NewGroup.Title := 'Banklink Online Secure Accounts';
               end;
               lnode := fAccountList.AddNodeItem(nil, NewGroup);
            end;

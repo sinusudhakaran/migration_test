@@ -4,7 +4,11 @@ unit ClientUtils;
 
 interface
 
-uses Classes, bkdefs;
+uses
+  Classes,
+  bkdefs,
+  clObj32,
+  BanklinkOnlineServices;
 
 procedure AddNewProspectRec(const ClientCode, ClientName, Address1,
   Address2, Address3, Phone, Fax, Mobile, Sal, Email, ContactName: string;
@@ -27,15 +31,37 @@ procedure PurgeEntriesFromMyClient(const PurgeDate: integer;
                                    const DelTransferredOnly: boolean;
                                    var TotalDeleted, TotalUnpresented: integer;
                                    const BankAccountList: TStringList);
+procedure AttachAccountsToClient(aClient           : TClientObj;
+                                 aSelectedAccounts : TStringList;
+                                 aClientVendors    : TBloArrayOfGuid;
+                                 aClientID         : TBloGuid;
+                                 aDebugMe          : Boolean);
 
 const
   UnitName = 'ClientUtils';
 
 implementation
 
-uses SysUtils, ClientDetailCacheObj, Globals, SyDefs, SycfIO, BkConst, Admin32,
-  ErrorMoreFrm, LogUtil, trxList32, bkdateutils, stdate, baObj32,clObj32, Files,
-  AuditMgr;
+uses
+  SysUtils,
+  ClientDetailCacheObj,
+  Globals,
+  SyDefs,
+  SycfIO,
+  BkConst,
+  Admin32,
+  ErrorMoreFrm,
+  LogUtil,
+  trxList32,
+  bkdateutils,
+  stdate,
+  baObj32,
+  Files,
+  AuditMgr,
+  EnterPwdDlg,
+  MONEYDEF,
+  SYamIO,
+  GenUtils;
 
 // Check to see if a given client code is valid
 function IsABadCode( S : String ): Boolean;
@@ -490,6 +516,185 @@ begin
       end; //with BankAccount
     end; /// b
   end; //with myClient
+end;
+
+procedure AttachAccountsToClient(aClient           : TClientObj;
+                                 aSelectedAccounts : TStringList;
+                                 aClientVendors    : TBloArrayOfGuid;
+                                 aClientID         : TBloGuid;
+                                 aDebugMe          : Boolean);
+const
+  ThisMethodName = 'ClientUtils.AttachAccountsToClient';
+var
+  AdminBankAccount : pSystem_Bank_Account_Rec;
+  NewBankAccount : tBank_Account;
+  AccIndex : integer;
+  AccountOK : boolean;
+  ChangedAdmin : boolean;
+  Msg : String;
+  pM: pClient_Account_Map_Rec;
+  pF: pClient_File_Rec;
+  AccountsMsg : TStringList;
+begin
+  ChangedAdmin := false;
+
+  //first check for passwords needed or if already added
+  for AccIndex := 0 to aSelectedAccounts.Count-1 do
+  begin
+    AccountOK := true;
+
+    AdminBankAccount := AdminSystem.fdSystem_Bank_Account_List.FindCode(aSelectedAccounts.Strings[AccIndex]);
+    if Assigned(AdminBankAccount) then
+    begin
+      //check to see if a password is required
+      if AdminBankAccount^.sbAccount_Password <> '' then
+      begin
+        if not EnterPassword('Attach Account '+AdminBankAccount^.sbAccount_Number,
+          AdminBankAccount^.sbAccount_Password,0,false,true) then
+        begin
+          HelpfulErrorMsg('Invalid Password.  Permission to attach this account is denied.',0);
+          AccountOK := false;
+        end;
+      end;
+
+      //check if already added
+      if ( aClient.clBank_Account_List.FindCode( AdminBankAccount^.sbAccount_Number ) <> nil ) then
+      begin
+        Msg := Format( 'BankAccount %s is already attached to this Client',
+                       [ AdminBankAccount^.sbAccount_Number ] );
+        HelpfulErrorMsg( Msg, 0 );
+        AccountOK := false;
+      end;
+
+      if aClient.clExtra.ceBLOSecureCode = '' then
+      begin
+        Msg := 'You cannot attach this bank account to the selected client file ' +
+               'because the client file does not have a BankLink Online Secure Code. ' +
+               'Click OK to return and select a different account or client file. ';
+        HelpfulErrorMsg( Msg, 0 );
+        AccountOK := false;
+      end;
+
+      if aClient.clExtra.ceBLOSecureCode <> AdminBankAccount.sbSecure_Online_Code then
+      begin
+        Msg := 'You cannot attach the selected bank account(s) to the client file ' +
+               'because the BankLink Online Secure Codes do not match.  Click OK to ' +
+               'return and select a different account or client file. ';
+        HelpfulErrorMsg( Msg, 0 );
+        AccountOK := false;
+      end;
+    end
+    else
+      AccountOK := false; //could not be found
+
+    if not AccountOK then
+      aSelectedAccounts.Strings[AccIndex] := '';
+  end;
+
+  //accounts verified, now attach them
+  AccountsMsg := TStringList.Create;
+  Try
+    if LoadAdminSystem(true, ThisMethodName ) then
+    begin
+      for AccIndex := 0 to aSelectedAccounts.Count-1 do
+      begin
+        if aSelectedAccounts.Strings[AccIndex] <> '' then
+        begin
+          AdminBankAccount := AdminSystem.fdSystem_Bank_Account_List.FindCode(aSelectedAccounts.Strings[AccIndex]);
+          if Assigned(AdminBankAccount) then
+          begin
+            AccountsMsg.Add(AdminBankAccount.sbAccount_Number);
+
+            if aDebugMe then
+              LogUtil.LogMsg(lmDebug, UnitName, 'Attach Bank Account ' +
+                                                AdminBankAccount.sbAccount_Number +
+                                                ' to Client ' +
+                                                aClient.clFields.clCode);
+
+            //update admin and attach bank account
+            AdminBankAccount.sbAttach_Required := false;
+            ChangedAdmin := true;
+
+            with aClient.clBank_Account_List do
+            begin
+              if ( FindCode(AdminBankAccount.sbAccount_Number) = nil ) then
+              begin
+                {update bankaccount in client file}
+                NewBankAccount := TBank_Account.Create(MyClient);
+
+                with NewBankAccount do
+                begin
+                  baFields.baBank_Account_Number     := AdminBankAccount.sbAccount_Number;
+                  baFields.baBank_Account_Name       := AdminBankAccount.sbAccount_Name;
+                  baFields.baBank_Account_Password   := AdminBankAccount.sbAccount_Password;
+                  baFields.baCurrent_Balance         := Unknown;  //dont assign bal until have all trx
+                  baFields.baBank_Account_Password   := AdminBankAccount.sbAccount_Password;
+                  baFields.baApply_Master_Memorised_Entries := true;
+                  baFields.baDesktop_Super_Ledger_ID := -1;
+                  baFields.baCurrency_Code           := AdminBankAccount.sbCurrency_Code;
+                  //Provisional bank account
+                  if AdminBankAccount.sbAccount_Type = sbtProvisional then
+                  begin
+                    baFields.baIs_A_Provisional_Account := True;
+                      //Needed to force client file save so transactions can't be
+                      //altered before audit.
+                    aClient.ClientAuditMgr.ProvisionalAccountAttached := True;
+                  end;
+                  baFields.baCore_Account_ID         := AdminBankAccount.sbCore_Account_ID;
+                  baFields.baSecure_Online_Code      := AdminBankAccount.sbSecure_Online_Code;
+                end;
+
+                if (Assigned(aClientVendors)) and
+                   (aClientID <> '') and
+                   (ProductConfigService.IsExportDataEnabledFoAccount(NewBankAccount)) then
+                begin
+                  ProductConfigService.SaveAccountVendorExports(aClientID,
+                                                                NewBankAccount.baFields.baCore_Account_ID,
+                                                                aClientVendors,
+                                                                True);
+                end;
+
+                Insert(NewBankAccount);
+
+                // Add to client-account map
+                pF := AdminSystem.fdSystem_Client_File_List.FindCode(aClient.clFields.clCode);
+                if Assigned(pF) and (not Assigned(AdminSystem.fdSystem_Client_Account_Map.FindLRN(AdminBankAccount.sbLRN, pF.cfLRN))) then
+                begin
+                  pM := New_Client_Account_Map_Rec;
+                  if Assigned(pM) then
+                  begin
+                    pM.amClient_LRN := pF.cfLRN;
+                    pM.amAccount_LRN := AdminBankAccount.sbLRN;
+                    pM.amLast_Date_Printed := 0;
+                    AdminSystem.fdSystem_Client_Account_Map.Insert(pM);
+                  end;
+                end;
+              end;
+            end; //with MyClient...
+          end
+          else
+            //couldn't find it, might as well continue on
+            LogUtil.LogMsg(lmInfo,UnitName,'Bank Account ' +
+                                           aSelectedAccounts.Strings[AccIndex] +
+                                           ' no longer found in Admin System.  Account will be skipped.');
+        end; {if selected}
+
+        if ChangedAdmin then
+        begin
+          //*** Flag Audit ***
+          SystemAuditMgr.FlagAudit(arAttachBankAccounts);
+
+          SaveAdminSystem;
+        end
+        else
+          UnlockAdmin;  //no changes made
+      end;
+    end  //cycle thru selected items
+    else
+      HelpfulErrorMsg('Unable to Attach Accounts.  Admin System cannot be loaded',0);
+  Finally
+    FreeAndNil(AccountsMsg);
+  End;
 end;
 
 end.

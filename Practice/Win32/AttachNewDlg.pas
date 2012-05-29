@@ -97,7 +97,9 @@ uses
   StStrS,
   MoneyDef,
   Math,
-  syamio, ClientHomePageFrm;
+  syamio,
+  ClientHomePageFrm,
+  ClientUtils;
 
 const
   UnitName = 'ATTACHNEWDLG';
@@ -260,24 +262,16 @@ end;
 //------------------------------------------------------------------------------
 procedure TdlgAttachNew.btnCloseClick(Sender: TObject);
 begin
-   Close;
+  Close;
 end;
 
 //------------------------------------------------------------------------------
 procedure TdlgAttachNew.AttachAccountsToClient;
-const
-   ThisMethodName = 'TdlgAttachNew.AttachAccountsToClient';
 var
   ClientRec : pClient_File_Rec;
-  AdminBankAccount : pSystem_Bank_Account_Rec;
-  NewBankAccount : tBank_Account;
   ToClient : TClientObj;
   i : integer;
-  AccountOK : boolean;
-  ChangedAdmin : boolean;
-  Msg : String;
-  pM: pClient_Account_Map_Rec;
-  pF: pClient_File_Rec;
+  SelectedAccs : TStringList;
 begin
   ClientRec := pClient_File_Rec(lvFiles.Selected.SubItems.Objects[0]);
   if not Assigned(clientRec) then exit;
@@ -287,166 +281,56 @@ begin
   OpenAClient(ClientRec^.cfFile_Code,ToClient,false);
   if not Assigned(ToClient) then exit;
 
-  if not ( ToClient.clFields.clMagic_Number = AdminSystem.fdFields.fdMagic_Number ) then begin
-     HelpfulInfoMsg('This Client File belongs to another Admin system.  '
-        +'You cannot attach Bank Accounts from one Admin system to a Client File from another Admin system.',0);
-     CloseAClient(ToClient);
-     exit;
-  end;
-
-  if not ( ToClient.clFields.clDownload_From = dlAdminSystem ) then begin
-     HelpfulInfoMsg('This is an Off-site Client File.  '+
-        'You cannot attach Bank Accounts from the Admin System to an Off-site Client File.',0);
-
-     CloseAClient(ToClient);
-     exit;
-  end;
-
-  ChangedAdmin := false;
-
-  //first check for passwords needed or if already added
-  for i := 0 to lvBank.items.count -1 do
-     if lvBank.Items[i].Selected then begin
-        AccountOK := true;
-
-        AdminBankAccount := AdminSystem.fdSystem_Bank_Account_List.FindCode(lvBank.Items[i].Caption);
-        if Assigned(AdminBankAccount) then
-        begin
-          //check to see if a password is required
-          if AdminBankAccount^.sbAccount_Password <> '' then
-          begin
-            if not EnterPassword('Attach Account '+AdminBankAccount^.sbAccount_Number,
-                           AdminBankAccount^.sbAccount_Password,0,false,true) then
-            begin
-              HelpfulErrorMsg('Invalid Password.  Permission to attach this account is denied.',0);
-              AccountOK := false;
-            end;
-          end;
-
-          //check if already added
-          with ToClient.clBank_Account_List do
-          begin
-            if ( FindCode( AdminBankAccount^.sbAccount_Number ) <> nil ) then
-            begin
-              Msg := Format( 'BankAccount %s is already attached to this Client',
-                            [ AdminBankAccount^.sbAccount_Number ] );
-              HelpfulErrorMsg( Msg, 0 );
-              AccountOK := false;
-            end;
-          end;
-
-          if ToClient.clExtra.ceBLOSecureCode = '' then
-          begin
-            Msg := 'You cannot attach this bank account to the selected client file ' +
-                   'because the client file does not have a BankLink Online Secure Code. ' +
-                   'Click OK to return and select a different account or client file. ';
-            HelpfulErrorMsg( Msg, 0 );
-            AccountOK := false;
-          end;
-
-          if ToClient.clExtra.ceBLOSecureCode <> AdminBankAccount.sbSecure_Online_Code then
-          begin
-            Msg := 'You cannot attach the selected bank account(s) to the client file ' +
-                   'because the BankLink Online Secure Codes do not match.  Click OK to ' +
-                   'return and select a different account or client file. ';
-            HelpfulErrorMsg( Msg, 0 );
-            AccountOK := false;
-          end;
-        end
-        else
-          AccountOK := false; //could not be found
-
-        lvBank.Items[i].Selected := AccountOK;
-     end;
-
-  //accounts verified, now attach them
-  if LoadAdminSystem(true, ThisMethodName ) then
+  if not ( ToClient.clFields.clMagic_Number = AdminSystem.fdFields.fdMagic_Number ) then
   begin
-    for i := 0 to lvBank.Items.Count-1 do
-    if lvBank.Items[i].Selected then
+    HelpfulInfoMsg('This Client File belongs to another Admin system.  ' +
+                   'You cannot attach Bank Accounts from one Admin system to a Client File from another Admin system.',0);
+    CloseAClient(ToClient);
+    exit;
+  end;
+
+  if not ( ToClient.clFields.clDownload_From = dlAdminSystem ) then
+  begin
+    HelpfulInfoMsg('This is an Off-site Client File.  '+
+                   'You cannot attach Bank Accounts from the Admin System to an Off-site Client File.',0);
+
+    CloseAClient(ToClient);
+    exit;
+  end;
+
+  SelectedAccs := TStringList.Create;
+  Try
+    for i := 0 to lvBank.items.count -1 do
     begin
-      AdminBankAccount := AdminSystem.fdSystem_Bank_Account_List.FindCode(lvBank.Items[i].Caption);
-      if Assigned(AdminBankAccount) then
+      if lvBank.Items[i].Selected then
       begin
-        if DebugMe then
-          LogUtil.LogMsg(lmDebug, UnitName, 'Attach Bank Account '+AdminBankAccount.sbAccount_Number+' to Client '+ ToClient.clFields.clCode);
+        SelectedAccs.Add(lvBank.Items[i].Caption);
+      end;
+    end;
 
-        //update admin and attach bank account
-        AdminBankAccount.sbAttach_Required := false;
-        ChangedAdmin := true;
+    //ClientUtils.AttachAccountsToClient(MyClient, SelectedAccs ,DebugMe);
+  Finally
+    FreeAndNil(SelectedAccs);
+  End;
 
-        with ToClient.clBank_Account_List do
-        begin
-          if ( FindCode(AdminBankAccount.sbAccount_Number) = nil ) then
-          begin
-            {update bankaccount in client file}
-            NewBankAccount := TBank_Account.Create(ToClient);
-
-            with NewBankAccount do
-            begin
-              baFields.baBank_Account_Number     := AdminBankAccount.sbAccount_Number;
-              baFields.baBank_Account_Name       := AdminBankAccount.sbAccount_Name;
-              baFields.baBank_Account_Password   := AdminBankAccount.sbAccount_Password;
-              baFields.baCurrent_Balance         := Unknown; //don't assign balance until have all trx
-              baFields.baBank_Account_Password   := AdminBankAccount.sbAccount_Password;
-              baFields.baCurrency_Code           := AdminBankAccount.sbCurrency_Code;
-              baFields.baApply_Master_Memorised_Entries := true;
-              baFields.baDesktop_Super_Ledger_ID := -1;
-              baFields.baCore_Account_ID         := AdminBankAccount.sbCore_Account_ID;
-              baFields.baSecure_Online_Code      := AdminBankAccount.sbSecure_Online_Code;
-            end;
-
-            Insert(NewBankAccount);
-
-             // Add to client-account map
-             pF := AdminSystem.fdSystem_Client_File_List.FindCode(ToClient.clFields.clCode);
-             if Assigned(pF) and (not Assigned(AdminSystem.fdSystem_Client_Account_Map.FindLRN(AdminBankAccount.sbLRN, pF.cfLRN))) then
-             begin
-               pM := New_Client_Account_Map_Rec;
-               if Assigned(pM) then
-               begin
-                 pM.amClient_LRN := pF.cfLRN;
-                 pM.amAccount_LRN := AdminBankAccount.sbLRN;
-                 pM.amLast_Date_Printed := 0;
-                 AdminSystem.fdSystem_Client_Account_Map.Insert(pM);
-               end;
-             end;
-           end;
-        end; //with ToClient...
-      end
-      else
-        //couldn't find it, might as well continue on
-        LogUtil.LogMsg(lmInfo,UnitName,'Bank Account '+ lvBank.items[i].caption+' no longer found in Admin System.  Account will be skipped.');
-    end; {if selected}
-
-    if ChangedAdmin then begin
-      //*** Flag Audit ***
-      SystemAuditMgr.FlagAudit(arAttachBankAccounts);
-      
-      SaveAdminSystem;
-    end else
-      UnlockAdmin;  //no changes made
-  end  //cycle thru selected items
-  else
-    HelpfulErrorMsg('Unable to Attach Accounts.  Admin System cannot be loaded',0);
-
-   CloseAClient(ToClient);
+  CloseAClient(ToClient);
 end;
 
 //------------------------------------------------------------------------------
 procedure TdlgAttachNew.tbCloseClick(Sender: TObject);
 begin
-   Close;
+  Close;
 end;
 
 //------------------------------------------------------------------------------
 procedure TdlgAttachNew.tbNewClick(Sender: TObject);
 var
-   StoredCode : string;
-   SelectItem : TListItem;
-   WndHandle : HWND;
+  StoredCode : string;
+  SelectItem : TListItem;
+  WndHandle : HWND;
 begin
-  if CreateClient(Self, false) then begin
+  if CreateClient(Self, false) then
+  begin
     StoredCode := MyClient.clFields.clCode;
 
     //if we have just created one then we need to close it so we can attach bank accounts
