@@ -424,6 +424,7 @@ Type
       sbFrequency_Change_Pending         : Byte;       { Stored }
       sbAudit_Record_ID                  : Integer;       { Stored }
       sbCore_Account_ID                  : Integer;
+      sbSecure_Online_Code               : String[ 20 ];
       sbEOR                              : Byte;
    end;
 
