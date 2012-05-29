@@ -44,9 +44,16 @@ type
     procedure tnHelpClick(Sender: TObject);
     procedure lvUsersCustomDrawSubItem(Sender: TCustomListView; Item: TListItem;
       SubItem: Integer; State: TCustomDrawState; var DefaultDraw: Boolean);
+    procedure lvUsersMouseMove(Sender: TObject; Shift: TShiftState; X,
+      Y: Integer);
+    procedure FormDestroy(Sender: TObject);
   private
     { Private declarations }
     SortCol : integer;
+    ShieldLeft, ShieldRight, ShieldTop, ShieldBottom: integer;
+    bmpOnlineAdmin : TBitmap;
+    PrimaryContactHint: THintWindow;
+    Rect: TRect;
     procedure RefreshUserList;
     function DeleteUser(User : PUser_Rec) :boolean;
   public
@@ -95,7 +102,19 @@ procedure TfrmMaintainUsers.FormCreate(Sender: TObject);
 begin
   bkXPThemes.ThemeForm( Self);
   SetUpHelp;
+  ShieldLeft := -1;
+  ShieldRight := -1;
+  ShieldTop := -1;
+  ShieldBottom := -1;
+  PrimaryContactHint := THintWindow.Create(nil);
 end;
+
+procedure TfrmMaintainUsers.FormDestroy(Sender: TObject);
+begin
+  FreeAndNil(PrimaryContactHint);
+end;
+
+
 
 //------------------------------------------------------------------------------
 procedure TfrmMaintainUsers.SetUpHelp;
@@ -135,7 +154,6 @@ begin
   end;
 end;
 
-//------------------------------------------------------------------------------
 function TfrmMaintainUsers.DeleteUser(User: PUser_Rec): boolean;
 const
   ThisMethodName = 'TfrmMaintainUsers.DeleteUser';
@@ -229,7 +247,6 @@ begin
     HelpfulErrorMsg('Could not update User Details at this time. Admin System unavailable.',0);
 end;
 
-//------------------------------------------------------------------------------
 function TfrmMaintainUsers.Execute: boolean;
 begin
   SortCol := 2;
@@ -415,7 +432,6 @@ var
   First : Boolean;
   SubItemLeft : integer;
   SubItemTop  : integer;
-  bmpOnlineAdmin : TBitmap;
   bmpOnline : TBitmap;
   useOnlineAdmin : Boolean;
   useOnline : Boolean;
@@ -475,6 +491,15 @@ begin
         begin
           AppImages.Maintain.GetBitmap(MAINTAIN_ONLINE_ADMIN, bmpOnlineAdmin);
           Sender.Canvas.Draw(SubItemLeft+20, SubItemTop, bmpOnlineAdmin);
+          ShieldLeft := SubItemLeft + 20;
+          ShieldRight := ShieldLeft + bmpOnlineAdmin.Width;
+          ShieldTop := SubItemTop;
+          ShieldBottom := ShieldTop + bmpOnlineAdmin.Height;
+          Rect.Left := Self.Left + ShieldRight;
+          Rect.Top := Self.Top + ShieldBottom + 10;
+          Rect.Right := Rect.Left + Canvas.Textwidth('Primary Contact');
+          Rect.Bottom := Rect.Top + 17;
+          PrimaryContactHint.Color := clWhite;
         end;
 
         if useOnline
@@ -541,6 +566,19 @@ end;
 procedure TfrmMaintainUsers.lvUsersDblClick(Sender: TObject);
 begin
   tbEdit.Click;
+end;
+
+procedure TfrmMaintainUsers.lvUsersMouseMove(Sender: TObject;
+  Shift: TShiftState; X, Y: Integer);
+var
+  HintPoint: TPoint;
+begin
+  if (X >= ShieldLeft) and (X <= ShieldRight) and (Y >= ShieldTop) and (Y <= ShieldBottom) then
+  begin
+    PrimaryContactHint.ActivateHint(Rect, 'Primary Contact');
+    PrimaryContactHint.Show;
+  end else
+    PrimaryContactHint.Hide;
 end;
 
 //------------------------------------------------------------------------------
