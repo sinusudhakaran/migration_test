@@ -9,6 +9,7 @@ object frmChkProgress: TfrmChkProgress
   Color = clBtnFace
   DefaultMonitor = dmMainForm
   ParentFont = True
+  FormStyle = fsStayOnTop
   OldCreateOrder = False
   Position = poOwnerFormCenter
   Scaled = False
