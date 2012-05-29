@@ -1,5 +1,6 @@
 unit SysAccountsfme;
 
+//------------------------------------------------------------------------------
 interface
 
 uses
@@ -7,37 +8,81 @@ uses
   CMFilterForm,
   MoneyDef,
   MoneyUtils,
-  RZGroupbar,VirtualTreeHandler, Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs,syDefs, VirtualTrees, ExtCtrls, StdCtrls, Menus,
-  OsFont, ActnList;
+  RZGroupbar,
+  VirtualTreeHandler,
+  Windows,
+  Messages,
+  SysUtils,
+  Variants,
+  Classes,
+  Graphics,
+  Controls,
+  Forms,
+  Dialogs,
+  syDefs,
+  VirtualTrees,
+  ExtCtrls,
+  StdCtrls,
+  Menus,
+  OsFont,
+  ActnList;
 
+const
+  //CollumnTags
+  // Don't change these, because thats how they where saved
+  cot_ClientCode   = 1;
+  cot_ClientName   = 2;
+  cot_AccNo        = 3;
+  cot_AccName      = 4;
+  cot_AccBal       = 5; //now removed..
+  cot_FirstDate    = 6;
+  cot_LastDate     = 7;
+  cot_Delivered    = 8;
+  cot_CurrencyCode = 9;
+  cot_Status       = 10;
+  cot_NoCharge     = 11;
+  cot_Institution  = 12;
+  cot_Inactive     = 13;
+  cot_Frequency    = 14;
+
+  // Only for Supper user, so no point saving or moving them
+  cot_Offsite      = 101;
+  cot_LRN          = 102;
+  cot_TLRN         = 103;
+
+  //CBFilter index
+  cbf_All        = 0;
+  cbf_Attached   = 1;
+  cbf_New        = 2;
+  cbf_Unattached = 3;
+  cbf_Deleted    = 4;
+  cbf_Inactive   = 5;
+  cbf_Provisional= 6;
 
 type
-    TSABaseItem = class (TTreeBaseItem)
-    private
-       fClientCode: string;
-       fClientName: string;
-       function GetClientCode: string;
-       function GetClientName: string;
+  TSABaseItem = class (TTreeBaseItem)
+  private
+     fClientCode: string;
+     fClientName: string;
+     function GetClientCode: string;
+     function GetClientName: string;
 
-    public
-       SysAccount :PSystem_Bank_Account_Rec;
-       IsOffsite: Boolean;
-       constructor Create(aSysAccount :pSystem_Bank_Account_Rec; AGroup: Integer);
-       function GetTagText(const Tag: Integer): string; override;
-       procedure OnPaintText(const Tag : integer; Canvas: TCanvas;TextType: TVSTTextType );override;
-       function GetNodeHeight (const Value : Integer) : Integer; override;
-       function GetTagHint(const Tag: Integer; Offset : TPoint) : string; override;
-       function CompareGroup(const Tag : integer; WithItem : TTreeBaseItem; SortDirection : TSortDirection) : Integer; override;
-       function CompareTagText(const Tag: integer; WithItem: TTreeBaseItem; SortDirection: TSortDirection) : Integer; override;
-       function GetImageindex: Integer;
-       function GetBalance: Money;
-       property ClientName: string read GetClientName;
-       property ClientCode: string read GetClientCode;
-    end;
+  public
+     SysAccount :PSystem_Bank_Account_Rec;
+     IsOffsite: Boolean;
+     constructor Create(aSysAccount :pSystem_Bank_Account_Rec; AGroup: Integer);
+     function GetTagText(const Tag: Integer): string; override;
+     procedure OnPaintText(const Tag : integer; Canvas: TCanvas;TextType: TVSTTextType );override;
+     function GetNodeHeight (const Value : Integer) : Integer; override;
+     function GetTagHint(const Tag: Integer; Offset : TPoint) : string; override;
+     function CompareGroup(const Tag : integer; WithItem : TTreeBaseItem; SortDirection : TSortDirection) : Integer; override;
+     function CompareTagText(const Tag: integer; WithItem: TTreeBaseItem; SortDirection: TSortDirection) : Integer; override;
+     function GetImageindex: Integer;
+     function GetBalance: Money;
+     property ClientName: string read GetClientName;
+     property ClientCode: string read GetClientCode;
+  end;
 
-
-type
   TfmeSysAccounts = class(TFrame)
     pTop: TPanel;
     AccountTree: TVirtualStringTree;
@@ -84,14 +129,15 @@ type
     FInclude: saFilterSet;
     FSearchText: string;
     procedure SetSelected(const Value: PSystem_Bank_Account_Rec);
-    function GetAccounts(Index: PVirtualNode): TSABaseItem;
     procedure SetAccounts(Index: PVirtualNode; const Value: TSABaseItem);
+    procedure SetSelectedList(const Value: string);
+
+    function GetAccounts(Index: PVirtualNode): TSABaseItem;
     procedure SetInclude(const Value: saFilterSet);
     function GetAccountList: TTreeBaseList;
     procedure SetOnSelectionChanged(const Value: TNotifyEvent);
     function GetOnSelectionChanged: TNotifyEvent;
     function GetSelected: PSystem_Bank_Account_Rec;
-    procedure SetSelectedList(const Value: string);
     function GetSelectedList: string;
     // Column Handeling
     procedure mniShowHideColumnsClick(Sender: TObject);
@@ -126,42 +172,8 @@ type
     { Public declarations }
   end;
 
-const
-  //CollumnTags
-  // Don't change these, because thats how they where saved
-  cot_ClientCode   = 1;
-  cot_ClientName   = 2;
-  cot_AccNo        = 3;
-  cot_AccName      = 4;
-  cot_AccBal       = 5; //now removed..
-  cot_FirstDate    = 6;
-  cot_LastDate     = 7;
-  cot_Delivered    = 8;
-  cot_CurrencyCode = 9;
-  cot_Status       = 10;
-  cot_NoCharge     = 11;
-  cot_Institution  = 12;
-  cot_Inactive     = 13;
-  cot_Frequency    = 14;
-
-  // Only for Supper user, so no point saving or moving them
-  cot_Offsite      = 101;
-  cot_LRN          = 102;
-  cot_TLRN         = 103;
-
-
-const
-  //CBFilter index
-  cbf_All        = 0;
-  cbf_Attached   = 1;
-  cbf_New        = 2;
-  cbf_Unattached = 3;
-  cbf_Deleted    = 4;
-  cbf_Inactive   = 5;
-  cbf_Provisional= 6;
-
+//------------------------------------------------------------------------------
 implementation
-
 {$R *.dfm}
 
 uses
@@ -178,7 +190,6 @@ uses
   Admin32;
 
 const
-
   // The default columns in default order
   DefColumns : array [1..14] of byte =
   (cot_Status, cot_ClientCode, cot_ClientName, cot_AccNo,
@@ -191,9 +202,11 @@ const
   // Columns that are sorted in groups
   GroupColumns = [cot_Status, cot_Delivered, cot_FirstDate,cot_LastDate, cot_Institution, cot_Frequency];
 
+//------------------------------------------------------------------------------
 procedure InitClient(SysAccount: PSystem_Bank_Account_Rec; var ClientCode, ClientName : string) ;
-var acMap: pClient_Account_Map_Rec;
-    Client: pClient_File_Rec;
+var
+  acMap: pClient_Account_Map_Rec;
+  Client: pClient_File_Rec;
 begin
    // see if we can make something up...
    if Assigned(SysAccount) then
@@ -222,7 +235,7 @@ begin
    ClientCode := ' ';
 end;
 
-
+//------------------------------------------------------------------------------
 function TestOffsite(SysAccount: PSystem_Bank_Account_Rec): Boolean;
 begin
   if SysAccount.sbBankLink_Code > '' then
@@ -232,9 +245,7 @@ begin
 end;
 
 { TASBaseItem }
-
-
-
+//------------------------------------------------------------------------------
 function TSABaseItem.CompareGroup(const Tag: integer; WithItem: TTreeBaseItem;
   SortDirection: TSortDirection): Integer;
 begin
@@ -249,9 +260,9 @@ begin
    end;
 end;
 
+//------------------------------------------------------------------------------
 function TSABaseItem.CompareTagText(const Tag: integer; WithItem: TTreeBaseItem;
   SortDirection: TSortDirection): Integer;
-
 begin
    case Tag of
    { This would make it more Numeric.. But it seems is not required..
@@ -272,6 +283,7 @@ begin
    end;
 end;
 
+//------------------------------------------------------------------------------
 constructor TSABaseItem.Create(aSysAccount :pSystem_Bank_Account_Rec; AGroup: Integer);
 begin
 
@@ -284,6 +296,7 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 function TSABaseItem.GetBalance: Money;
 begin
    if assigned(SysAccount)
@@ -293,6 +306,7 @@ begin
       Result := UnKnown
 end;
 
+//------------------------------------------------------------------------------
 function TSABaseItem.GetClientCode: string;
 
 begin
@@ -302,6 +316,7 @@ begin
    Result := fClientCode;
 end;
 
+//------------------------------------------------------------------------------
 function TSABaseItem.GetClientName: string;
 begin
    if fClientName = '' then
@@ -309,7 +324,7 @@ begin
    Result := fClientName;
 end;
 
-
+//------------------------------------------------------------------------------
 function TSABaseItem.GetImageindex: Integer;
 begin
    // Result := -1;
@@ -333,6 +348,7 @@ begin
        Result := Result + 7;
 end;
 
+//------------------------------------------------------------------------------
 function TSABaseItem.GetNodeHeight(const Value: Integer): Integer;
 begin
    if not Assigned(SysAccount) then
@@ -341,6 +357,7 @@ begin
       Result := Value
 end;
 
+//------------------------------------------------------------------------------
 function TSABaseItem.GetTagHint(const Tag: Integer; Offset: TPoint): string;
 begin
   if assigned( SysAccount) then
@@ -350,6 +367,7 @@ begin
     end;
 end;
 
+//------------------------------------------------------------------------------
 function TSABaseItem.GetTagText(const Tag: Integer): string;
 begin
    Result := '';
@@ -357,11 +375,14 @@ begin
      cot_AccNo        : Result := SysAccount.sbAccount_Number;
      cot_AccName      : Result := SysAccount.sbAccount_Name;
      cot_Delivered    : if TestOffsite(SysAccount) then
-                           Result := SysAccount.sbBankLink_Code
-                        else case SysAccount.sbAccount_Type of
-                           sbtProvisional : Result := 'Provisional';
-                           sbtOffsite : Result := SysAccount.sbBankLink_Code;
-                           else Result := '';
+                          Result := SysAccount.sbBankLink_Code
+                        else
+                          case SysAccount.sbAccount_Type of
+                            sbtProvisional  : Result := 'Provisional';
+                            sbtOffsite      : Result := SysAccount.sbBankLink_Code;
+                            sbtOnlineSecure : Result := SysAccount.sbSecure_Online_Code;
+                          else
+                            Result := '';
                         end;
      cot_CurrencyCode : Result := SysAccount.sbCurrency_Code;
      cot_ClientCode   : Result := ClientCode;
@@ -409,8 +430,7 @@ begin
    end;
 end;
 
-
-
+//------------------------------------------------------------------------------
 procedure TSABaseItem.OnPaintText(const Tag: integer; Canvas: TCanvas;
   TextType: TVSTTextType);
 begin
@@ -421,7 +441,7 @@ begin
 end;
 
 { TfmeSysAccounts }
-
+//------------------------------------------------------------------------------
 function TfmeSysAccounts.AccountsHaveFrequencyInfo: Boolean;
 var
   i: integer;
@@ -435,6 +455,7 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfmeSysAccounts.AccountTreeBeforeItemPaint(Sender: TBaseVirtualTree;
   TargetCanvas: TCanvas; Node: PVirtualNode; ItemRect: TRect;
   var CustomDraw: Boolean);
@@ -492,11 +513,13 @@ begin // Could have put it in the list...
     RzGrafx.PaintGradient( TargetCanvas, LRect, gdVerticalCenter, clBtnFace, clHighlight);
 end;
 
+//------------------------------------------------------------------------------
 procedure TfmeSysAccounts.AccountTreeClick(Sender: TObject);
 begin
   OnSelectionChanged(AccountTree);
 end;
 
+//------------------------------------------------------------------------------
 procedure TfmeSysAccounts.AccountTreeGetImageIndex(Sender: TBaseVirtualTree;
   Node: PVirtualNode; Kind: TVTImageKind; Column: TColumnIndex;
   var Ghosted: Boolean; var ImageIndex: Integer);
@@ -507,6 +530,7 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfmeSysAccounts.AccountTreeHeaderClick(Sender: TVTHeader;
   Column: TColumnIndex; Button: TMouseButton; Shift: TShiftState; X,
   Y: Integer);
@@ -544,12 +568,14 @@ begin
    end;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfmeSysAccounts.AccountTreeHeaderDragging(Sender: TVTHeader;
   Column: TColumnIndex; var Allowed: Boolean);
 begin
     Allowed := Column <> 0;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfmeSysAccounts.AccountTreeKeyDown(Sender: TObject; var Key: Word;
   Shift: TShiftState);
 begin
@@ -557,6 +583,7 @@ begin
     OnSelectionChanged(AccountTree);
 end;
 
+//------------------------------------------------------------------------------
 procedure TfmeSysAccounts.AccountTreeKeyPress(Sender: TObject; var Key: Char);
 begin
    if Assigned(OnSelectionChanged) then
@@ -565,6 +592,7 @@ begin
         OnSelectionChanged(AccountTree);
 end;
 
+//------------------------------------------------------------------------------
 procedure TfmeSysAccounts.actFilterExecute(Sender: TObject);
 var P: TPoint;
 
@@ -622,7 +650,7 @@ begin
    end;
 end;
 
-
+//------------------------------------------------------------------------------
 procedure TfmeSysAccounts.actResetExecute(Sender: TObject);
 begin
    fInclude.Clear;
@@ -631,6 +659,7 @@ begin
    ReloadAccounts;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfmeSysAccounts.actRestoreColumnsExecute(Sender: TObject);
 var I: Integer;
 begin
@@ -642,6 +671,7 @@ begin
    DefaultSort;
 end;
 
+//------------------------------------------------------------------------------
 function TfmeSysAccounts.AddColumn(Name: string; Position, Tag, width: Integer):TVirtualTreeColumn;
 begin
    Result := GetColumn(Tag);
@@ -670,22 +700,26 @@ begin
       Result.Position := Position;
 end;
 
+//------------------------------------------------------------------------------
 function TfmeSysAccounts.AddColumn(Position, Tag, width: Integer):TVirtualTreeColumn;
 begin
    Result := AddColumn(ColumnName(Tag),Position,Tag,Width);
 end;
 
+//------------------------------------------------------------------------------
 procedure TfmeSysAccounts.BeginUpdate;
 begin
    AccountTree.BeginUpdate;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfmeSysAccounts.btnSearchClearClick(Sender: TObject);
 begin
    EBFind.Text := '';
    SearchTimerTimer(nil);//Action it..
 end;
 
+//------------------------------------------------------------------------------
 procedure TfmeSysAccounts.cbFilterChange(Sender: TObject);
 begin
    actReset.Enabled := False;
@@ -713,6 +747,7 @@ begin
    ReloadAccounts;
 end;
 
+//------------------------------------------------------------------------------
 function TfmeSysAccounts.ColumnName(Tag: Integer): string;
 begin
    case Tag of
@@ -741,6 +776,7 @@ begin
    end;
 end;
 
+//------------------------------------------------------------------------------
 function TfmeSysAccounts.ColumnVisible(Tag: Integer): Boolean;
 var LCol: TVirtualTreeColumn;
 begin
@@ -750,6 +786,7 @@ begin
        Result := coVisible in LCol.Options;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfmeSysAccounts.DefaultSort;
     procedure SetSortColumn(Defaults : array of integer);
     var C: Integer;
@@ -778,6 +815,7 @@ begin
   SetSortColumn([cot_Status, cot_ClientCode, cot_AccNo]);
 end;
 
+//------------------------------------------------------------------------------
 procedure TfmeSysAccounts.DoCreate(const SavedCols: string);
 var Cols: TStringList;
     I: Integer;
@@ -827,6 +865,7 @@ begin
   DefaultSort;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfmeSysAccounts.DoDestroy(var SaveCols: string);
 var col: Integer;
 begin
@@ -847,6 +886,7 @@ begin
   FInclude.Free;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfmeSysAccounts.EBFindChange(Sender: TObject);
 begin
    //Restart the timer for each Char
@@ -854,17 +894,20 @@ begin
    SearchTimer.Enabled := True;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfmeSysAccounts.EBFindKeyPress(Sender: TObject; var Key: Char);
 begin
    if Ord(Key)=VK_RETURN then
      SearchTimerTimer(nil); //Action straight away
 end;
 
+//------------------------------------------------------------------------------
 procedure TfmeSysAccounts.EndUpdate;
 begin
     AccountTree.EndUpdate;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfmeSysAccounts.FixColumns;
 var I: Integer; // Rather than just having default widths, it fits them to size..
     Col: TVirtualTreeColumn;
@@ -898,6 +941,7 @@ begin
       end;
 end;
 
+//------------------------------------------------------------------------------
 function TfmeSysAccounts.GetAccountList: TTreeBaseList;
 begin
    if fAccountList = nil then
@@ -905,11 +949,13 @@ begin
    Result := fAccountList;
 end;
 
+//------------------------------------------------------------------------------
 function TfmeSysAccounts.GetAccounts(Index: PVirtualNode): TSABaseItem;
 begin
    Result := TSABaseItem(fAccountList.GetNodeItem(Index));
 end;
 
+//------------------------------------------------------------------------------
 function TfmeSysAccounts.GetColumn(Tag: Integer): TVirtualTreeColumn;
 var I: Integer;
 begin
@@ -921,6 +967,7 @@ begin
       end;
 end;
 
+//------------------------------------------------------------------------------
 function TfmeSysAccounts.GetStringList(FromText: string): tStringList;
 begin
    Result := TStringList.Create;
@@ -929,7 +976,7 @@ begin
    Result.DelimitedText := fromtext;
 end;
 
-
+//------------------------------------------------------------------------------
 procedure TfmeSysAccounts.mniShowHideColumnsClick(Sender: TObject);
 var lCol: tVirtualTreeColumn;
     CI: TColumnIndex;
@@ -962,6 +1009,7 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfmeSysAccounts.pmHeaderPopup(Sender: TObject);
 
    procedure AddMenuItem(Caption: string;  OnClick: TNotifyEvent = nil; Tag: Integer = 0; Checked: Boolean = false);
@@ -990,11 +1038,13 @@ begin
     AddMenuItem(actRestoreColumns.Caption , actRestoreColumnsExecute);
 end;
 
+//------------------------------------------------------------------------------
 function TfmeSysAccounts.GetOnSelectionChanged: TNotifyEvent;
 begin
    Result := fAccountList.OnCurBaseItemChange;
 end;
 
+//------------------------------------------------------------------------------
 function TfmeSysAccounts.GetSelected: PSystem_Bank_Account_Rec;
 var lNode: PVirtualNode;
 begin
@@ -1004,6 +1054,7 @@ begin
       Result := Accounts[lNode].SysAccount;
 end;
 
+//------------------------------------------------------------------------------
 function TfmeSysAccounts.GetSelectedList: string;
 var lNode: PVirtualNode;
 begin
@@ -1021,6 +1072,7 @@ begin
    end;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfmeSysAccounts.ReloadAccounts(SelAccount: string = '');
 var
    kc: TCursor;
@@ -1074,6 +1126,7 @@ var
                       or TestInclude(BankAcct.sbFrequency = difDaily, saFreqDay)
                       or TestInclude(BankAcct.sbFrequency = difUnspecified, saFreqUnspecified)
                       or TestInclude(BankAcct.sbAccount_Type = sbtProvisional, saProvisional)
+                      or TestInclude(BankAcct.sbAccount_Type = sbtOnlineSecure, saOnlineSecure)
                 ) then
            Exit; // This node failed
 
@@ -1207,12 +1260,15 @@ var
              CurGroup := 2
           else if BankAcct.sbAccount_Type = sbtProvisional then
              CurGroup := 1
+          else if BankAcct.sbAccount_Type = sbtOnlineSecure then
+             CurGroup := 3
           else
              CurGroup := 0;
 
           NewGroup := TestNewGroup(CurGroup);
           if Assigned(NewGroup) then begin
               case CurGroup of
+              3 : NewGroup.Title := 'Banklink Online Secure Accounts';
               2 : NewGroup.Title := 'Books Secure Accounts';
               1 : NewGroup.Title := 'Provisional Accounts';
               0 : NewGroup.Title := 'Practice Accounts';
@@ -1272,19 +1328,21 @@ begin
       try
       c := 0;
       with AdminSystem.fdSystem_Bank_Account_List do
-         for i := 0 to Pred(itemCount) do begin
-            BankAcct := System_Bank_Account_At(i);
+        for i := 0 to Pred(itemCount) do
+        begin
+          BankAcct := System_Bank_Account_At(i);
 
-            // Check the filter and the search
-            if InFilters then
-            if InSearch then begin
-               CheckGroup;
+          // Check the filter and the search
+          if InFilters then
+          if InSearch then
+          begin
+            CheckGroup;
 
-               Inc(c);
-            end;
-         end;
+            Inc(c);
+          end;
+        end;
       finally
-         lsel.Free;
+        lsel.Free;
       end;
 
       // Apply the sorting
@@ -1298,38 +1356,35 @@ begin
 
       // Update the count lable
       if c = 1 then
-         lblCount.Caption := '1 Account Listed'
+        lblCount.Caption := '1 Account Listed'
       else
-         lblCount.Caption := format('%d Accounts Listed',[c]);
+        lblCount.Caption := format('%d Accounts Listed',[c]);
    finally
-      AccountTree.EndUpdate;
-      Screen.Cursor := kc;
+     AccountTree.EndUpdate;
+     Screen.Cursor := kc;
    end;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfmeSysAccounts.SearchTimerTimer(Sender: TObject);
 begin
    SearchTimer.Enabled := False;
    SearchText := Trim(EBFind.Text);
 end;
 
-procedure TfmeSysAccounts.SetAccounts(Index: PVirtualNode;
-  const Value: TSABaseItem);
-begin
-
-end;
-
+//------------------------------------------------------------------------------
 procedure TfmeSysAccounts.SetInclude(const Value: saFilterSet);
 begin
   FInclude.Assign (Value);
 end;
 
-
+//------------------------------------------------------------------------------
 procedure TfmeSysAccounts.SetOnSelectionChanged(const Value: TNotifyEvent);
 begin
   fAccountList.OnCurBaseItemChange := Value;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfmeSysAccounts.SetSearchText(const Value: string);
 begin
   if not SameText (FSearchText, Value) then begin
@@ -1339,15 +1394,7 @@ begin
   btnSearchClear.Enabled := FSearchText > '';
 end;
 
-procedure TfmeSysAccounts.SetSelected(const Value: PSystem_Bank_Account_Rec);
-begin
-
-end;
-
-procedure TfmeSysAccounts.SetSelectedList(const Value: string);
-begin
-end;
-
+//------------------------------------------------------------------------------
 function TfmeSysAccounts.TestNewGroup(const Value: string; var CurGroup: Integer): TSABaseItem;
 var I: Integer;
 
@@ -1410,7 +1457,6 @@ begin
    FGroupList.Add(Result)
 end;
 
-
 function TfmeSysAccounts.TestNewGroup(const Value: Integer): TSABaseItem;
 var I: Integer;
 begin
@@ -1420,6 +1466,22 @@ begin
          Exit; // Already in the list...
    Result := TSABaseItem.Create(nil,Value);
    FGroupList.Add(Result)
+end;
+
+procedure TfmeSysAccounts.SetSelected(const Value: PSystem_Bank_Account_Rec);
+begin
+
+end;
+
+procedure TfmeSysAccounts.SetAccounts(Index: PVirtualNode;
+  const Value: TSABaseItem);
+begin
+
+end;
+
+procedure TfmeSysAccounts.SetSelectedList(const Value: string);
+begin
+
 end;
 
 end.

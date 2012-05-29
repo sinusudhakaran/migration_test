@@ -4,9 +4,25 @@ unit MaintainPracBankFrm;
 interface
 
 uses
-  Windows, sysaccountsfme, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  ComCtrls, ToolWin, syDefs, StdCtrls, ExtCtrls, Math,
-  ActnList, RzGroupBar, Menus, Globals,
+  Windows,
+  sysaccountsfme,
+  Messages,
+  SysUtils,
+  Classes,
+  Graphics,
+  Controls,
+  Forms,
+  Dialogs,
+  ComCtrls,
+  ToolWin,
+  syDefs,
+  StdCtrls,
+  ExtCtrls,
+  Math,
+  ActnList,
+  RzGroupBar,
+  Menus,
+  Globals,
   OSFont;
 
 type
@@ -80,8 +96,9 @@ const // enum Type..
 
 function MaintainPracticeBankAccounts(Mode: Integer) : boolean;
 
-//******************************************************************************
+//------------------------------------------------------------------------------
 implementation
+{$R *.DFM}
 
 uses
   frmCurrencies,
@@ -113,11 +130,8 @@ uses
   HistoricalDlg,
   AuditMgr;
 
-{$R *.DFM}
-
 //------------------------------------------------------------------------------
 procedure TfrmMaintainPracBank.FormCreate(Sender: TObject);
-
 begin
   bkXPThemes.ThemeForm( Self);
 
@@ -139,167 +153,181 @@ begin
   SetUpHelp;
   fChanged := True;
 end;
+
+//------------------------------------------------------------------------------
 procedure TfrmMaintainPracBank.FormDestroy(Sender: TObject);
 begin
-   SysAccounts.DoDestroy(UserINI_SPA_Columns);
+  SysAccounts.DoDestroy(UserINI_SPA_Columns);
 end;
 
 //------------------------------------------------------------------------------
 procedure TfrmMaintainPracBank.SetUpHelp;
 begin
-   Self.ShowHint    := INI_ShowFormHints;
-   Self.HelpContext := 0;
-   //Components
-   actEdit.Hint      :=
-                    'Edit the details for the selected Bank Account|' +
-                    'Edit the details for the selected Bank Account';
-   actDelete.Hint    :=
-                    'Mark the selected Bank Account as deleted';
-   actRemove.Hint    :=
-                    'Remove the selected Bank Account from the system';
-
+  Self.ShowHint    := INI_ShowFormHints;
+  Self.HelpContext := 0;
+  //Components
+  actEdit.Hint      :=
+                   'Edit the details for the selected Bank Account|' +
+                   'Edit the details for the selected Bank Account';
+  actDelete.Hint    :=
+                   'Mark the selected Bank Account as deleted';
+  actRemove.Hint    :=
+                   'Remove the selected Bank Account from the system';
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmMaintainPracBank.SysAccountsAccountTreeDblClick(Sender: TObject);
-var MousePos : TPoint;
-    Node: PVirtualNode;
-    Column : Integer;
+var
+  MousePos : TPoint;
+  Node: PVirtualNode;
+  Column : Integer;
 begin
-   // Just Check where it was clicked...
-   MousePos := Mouse.CursorPos;
-   MousePos := SysAccounts.AccountTree.ScreenToClient(MousePos);
-   Node := SysAccounts.AccountTree.GetNodeAt(MousePos.x, MousePos.y, True,Column);
+  // Just Check where it was clicked...
+  MousePos := Mouse.CursorPos;
+  MousePos := SysAccounts.AccountTree.ScreenToClient(MousePos);
+  Node := SysAccounts.AccountTree.GetNodeAt(MousePos.x, MousePos.y, True,Column);
 
-   if not assigned(Node) then
-      Exit; // Header??
+  if not assigned(Node) then
+    Exit; // Header??
 
-   if actedit.Enabled then
-      actedit.Execute;
+  if actedit.Enabled then
+    actedit.Execute;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmMaintainPracBank.SysAccountsbtnFilterClick(Sender: TObject);
 begin
   SysAccounts.actFilterExecute(Sender);
-
 end;
 
 //------------------------------------------------------------------------------
 procedure TfrmMaintainPracBank.RefreshBankAccountList(Selected: string = '');
 begin
-   SysAccounts.ReloadAccounts(Selected);
-   fChanged := True;
+  SysAccounts.ReloadAccounts(Selected);
+  fChanged := True;
 end;
+
 //------------------------------------------------------------------------------
-
-
 procedure TfrmMaintainPracBank.actDeleteExecute(Sender: TObject);
 begin
-   HandleDeletes(False);
+  HandleDeletes(False);
 end;
 
-
+//------------------------------------------------------------------------------
 procedure TfrmMaintainPracBank.actEditExecute(Sender: TObject);
-var lSel: string;
+var
+  lSel : string;
 begin
-  if SysAccounts.Selected <> nil then  begin
-     lSel := SysAccounts.Selected.sbAccount_Number;
-     //Have to keep the sell because the edit will reload the admin system
-     if EditPracticeBankAccount(SysAccounts.Selected) then begin
-         RefreshBankAccountList(lSel);
-     end;
+  if SysAccounts.Selected <> nil then
+  begin
+    lSel := SysAccounts.Selected.sbAccount_Number;
+    //Have to keep the sell because the edit will reload the admin system
+    if EditPracticeBankAccount(SysAccounts.Selected) then
+    begin
+      RefreshBankAccountList(lSel);
+    end;
   end;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmMaintainPracBank.actListBankAccountsExecute(Sender: TObject);
 begin
-   DoModalReport(REPORT_ADMIN_ACCOUNTS,rdNone);
-   RefreshBankAccountList; // Would have reloaded Admin System
+  DoModalReport(REPORT_ADMIN_ACCOUNTS,rdNone);
+  RefreshBankAccountList; // Would have reloaded Admin System
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmMaintainPracBank.actListInactiveAccountsExecute(Sender: TObject);
 begin
-   DoModalReport(Report_Admin_Inactive_Accounts,rdNone);
-   RefreshBankAccountList; // Would have reloaded Admin System
+  DoModalReport(Report_Admin_Inactive_Accounts,rdNone);
+  RefreshBankAccountList; // Would have reloaded Admin System
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmMaintainPracBank.actNewExecute(Sender: TObject);
-var lSel: string;
+var
+  lSel: string;
 begin
-   lSel := SysAccounts.SelectedList;
-   if AttachNewBankAccounts then
-      RefreshBankAccountList(LSel);
+  lSel := SysAccounts.SelectedList;
+  if AttachNewBankAccounts then
+    RefreshBankAccountList(LSel);
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmMaintainPracBank.actPrintExecute(Sender: TObject);
 begin
-   DoSysAccount(rdAsk, SysAccounts);
+  DoSysAccount(rdAsk, SysAccounts);
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmMaintainPracBank.actRemoveExecute(Sender: TObject);
 var
-   ba                 : pSystem_Bank_Account_Rec;
-   AcctNo             : String;
-   PassGenCodeEntered : boolean;
+  ba                 : pSystem_Bank_Account_Rec;
+  AcctNo             : String;
+  PassGenCodeEntered : boolean;
 begin
   if SysAccounts.Selected = nil then
-     exit;
+    exit;
   if not SuperUserLoggedIn then
-     exit;
+    exit;
 
   SysAccounts.BeginUpdate;
   try
-     //get passgen password, turn off superuser temporarily so that password is required
-     SuperUserLoggedIn := false;
-     try
-        PassGenCodeEntered := EnterRandomPassword('Delete System Bank Account');
-        if not PassGenCodeEntered then
-           exit;
-     finally
-        SuperUserLoggedIn := true;
-     end;
+    //get passgen password, turn off superuser temporarily so that password is required
+    SuperUserLoggedIn := false;
+    try
+      PassGenCodeEntered := EnterRandomPassword('Delete System Bank Account');
+      if not PassGenCodeEntered then
+        exit;
+    finally
+      SuperUserLoggedIn := true;
+    end;
 
-     ba := SysAccounts.Selected;
-     AcctNo := ba^.sbAccount_Number;
+    ba := SysAccounts.Selected;
+    AcctNo := ba^.sbAccount_Number;
 
-     //confirm delete
-     if YesNoDlg.AskYesNo( 'Delete System Bank Account',
-                        'You are about to delete a system bank account.  This is an '+
-                        'irrecoverable action!'#13#13+
-                        'Delete ' + ba^.sbAccount_Number + ' ' + ba^.sbAccount_Name + '?',
-                        DLG_NO, 0) <> DLG_YES then
-          exit;
+    //confirm delete
+    if YesNoDlg.AskYesNo( 'Delete System Bank Account',
+                          'You are about to delete a system bank account.  This is an '+
+                          'irrecoverable action!'#13#13+
+                          'Delete ' + ba^.sbAccount_Number + ' ' + ba^.sbAccount_Name + '?',
+                          DLG_NO, 0) <> DLG_YES then
+      exit;
 
-     if LoadAdminSystem(true, 'RemoveClick') then begin
-        //find bank account object after reloading the admin system
-        ba := AdminSystem.fdSystem_Bank_Account_List.FindCode( AcctNo);
-        if not Assigned( ba) then begin
-           UnlockAdmin;
-           HelpfulErrorMsg('Bank Account not found' , 0);
-           exit;
-        end;
-        //delete from list
-        AdminSystem.fdSystem_Bank_Account_List.DelFreeItem( ba);
+    if LoadAdminSystem(true, 'RemoveClick') then
+    begin
+      //find bank account object after reloading the admin system
+      ba := AdminSystem.fdSystem_Bank_Account_List.FindCode( AcctNo);
+      if not Assigned( ba) then
+      begin
+        UnlockAdmin;
+        HelpfulErrorMsg('Bank Account not found' , 0);
+        exit;
+      end;
 
-        //*** Flag Audit ***
-        SystemAuditMgr.FlagAudit(arSystemBankAccounts);
+      //delete from list
+      AdminSystem.fdSystem_Bank_Account_List.DelFreeItem( ba);
 
-        SaveAdminSystem;
+      //*** Flag Audit ***
+      SystemAuditMgr.FlagAudit(arSystemBankAccounts);
 
-        LogUtil.LogMsg( lmInfo, 'DELETE_SYSTEM_BANK_ACCOUNT', 'User Deleted System Account ' + AcctNo);
-     end else
-        HelpfulErrorMsg('Admin System unavailable.', 0);
+      SaveAdminSystem;
 
-     RefreshBankAccountList;
+      LogUtil.LogMsg( lmInfo, 'DELETE_SYSTEM_BANK_ACCOUNT', 'User Deleted System Account ' + AcctNo);
+    end
+    else
+      HelpfulErrorMsg('Admin System unavailable.', 0);
+
+    RefreshBankAccountList;
   finally
-     SysAccounts.EndUpdate;
+    SysAccounts.EndUpdate;
   end;
 end;
 
-
+//------------------------------------------------------------------------------
 procedure TfrmMaintainPracBank.acAddProvTransExecute(Sender: TObject);
 var
-   Selected: PSystem_Bank_Account_Rec;
-
+  Selected: PSystem_Bank_Account_Rec;
 begin
   Selected := SysAccounts.Selected;
   if not Assigned(Selected) then
@@ -307,54 +335,61 @@ begin
   ManuallyAddProvTrans(Selected.sbAccount_Number);
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmMaintainPracBank.acCurrenciesExecute(Sender: TObject);
 begin
-   MaintainCurrencies;
-   RefreshBankAccountList;
+  MaintainCurrencies;
+  RefreshBankAccountList;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmMaintainPracBank.acExchangeRatesExecute(Sender: TObject);
 begin
-   MaintainExchangeRates;
+  MaintainExchangeRates;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmMaintainPracBank.actChargeExecute(Sender: TObject);
-var Selected: TStringList;
-    I: integer;
-    ba: pSystem_Bank_Account_Rec;
+var
+  Selected: TStringList;
+  I: integer;
+  ba: pSystem_Bank_Account_Rec;
 begin
 
   Selected := SysAccounts.GetStringList(SysAccounts.SelectedList);
   try
-
-     if LoadAdminSystem(True, 'MaintainPracBank') then begin
-        // The Syssacount list is no longer valid...
-        for i := 0 to Selected.Count-1 do begin
-           ba := AdminSystem.fdSystem_Bank_Account_List.FindCode(Selected[i]);
-           if Assigned(ba) then begin
-
-                 //account found in reloaded admin so update
-               ba^.sbNo_Charge_Account := actCharge.ImageIndex in [Manager_DoubleTick,Manager_SingleTick];
-           end;
+    if LoadAdminSystem(True, 'MaintainPracBank') then
+    begin
+      // The Syssacount list is no longer valid...
+      for i := 0 to Selected.Count-1 do
+      begin
+        ba := AdminSystem.fdSystem_Bank_Account_List.FindCode(Selected[i]);
+        if Assigned(ba) then
+        begin
+          //account found in reloaded admin so update
+          ba^.sbNo_Charge_Account := actCharge.ImageIndex in [Manager_DoubleTick,Manager_SingleTick];
         end;
-
-        //*** Flag Audit ***
-        SystemAuditMgr.FlagAudit(arSystemBankAccounts);
-
-        SaveAdminSystem;
       end;
 
-      RefreshBankAccountList(Selected.DelimitedText);
+      //*** Flag Audit ***
+      SystemAuditMgr.FlagAudit(arSystemBankAccounts);
+
+      SaveAdminSystem;
+    end;
+
+    RefreshBankAccountList(Selected.DelimitedText);
   finally
-     Selected.Free;
+    Selected.Free;
   end;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmMaintainPracBank.actSendDeleteExecute(Sender: TObject);
 begin
-   HandleDeletes(True);
+  HandleDeletes(True);
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmMaintainPracBank.actSendFrequencyRequestExecute(Sender: TObject);
 const
   ThisMethodName = 'actSendFrequencyRequestExecute';
@@ -375,13 +410,15 @@ begin
 
     //Add bank accounts
     lNode := SysAccounts.AccountTree.GetFirstSelected;
-    while Assigned(lNode) do begin
+    while Assigned(lNode) do
+    begin
       lAcc := SysAccounts.Accounts[lNode];
-      if Assigned(lAcc.SysAccount) then begin
+      if Assigned(lAcc.SysAccount) then
+      begin
         if SysAccounts.Accounts[lNode].SysAccount.sbMark_As_Deleted then
           Inc(DeletedCount)
         else
-          FrequencyRequestForm.AddBankAccount(SysAccounts.Accounts[lNode].SysAccount); 
+          FrequencyRequestForm.AddBankAccount(SysAccounts.Accounts[lNode].SysAccount);
       end;
       lNode := SysAccounts.AccountTree.GetNextSelected(lNode);
     end;
@@ -391,23 +428,29 @@ begin
                   FrequencyRequestForm.BankAccountCount;
     //Case 15213
     if (DropCount = 1) and (SysAccounts.AccountTree.SelectedCount >
-                            AdminSystem.fdSystem_Bank_Account_List.ItemCount) then begin
+                            AdminSystem.fdSystem_Bank_Account_List.ItemCount) then
+    begin
       //Select all selects 1 more row than the number visible
       DropCount := 0;
     end;
 
-    if DropCount = SysAccounts.AccountTree.SelectedCount then begin
+    if DropCount = SysAccounts.AccountTree.SelectedCount then
+    begin
       MessageDlg('A change request cannot be sent because the current frequency ' +
                  'is unknown for the selected account(s).',
                  mtInformation, [mbOK], 0);
       Exit;
-    end else if DropCount > 0 then begin
-      if (SysAccounts.AccountTree.SelectedCount = (DeletedCount + DropCount)) then begin
+    end
+    else if DropCount > 0 then
+    begin
+      if (SysAccounts.AccountTree.SelectedCount = (DeletedCount + DropCount)) then
+      begin
         MessageDlg('A change request cannot be sent because the current frequency ' +
                    'is unknown for the selected accounts, or they are marked as deleted.',
                    mtInformation, [mbOK], 0);
         Exit;
-      end else if DropCount = 1 then
+      end
+      else if DropCount = 1 then
         MessageDlg('One of the selected accounts is not included in the ' +
                    'change request because it''s current frequency is unknown.',
                     mtInformation, [mbOK], 0)
@@ -417,13 +460,16 @@ begin
                           'is unknown.',
                           [DropCount]), mtInformation, [mbOK], 0);
     end;
-    if DeletedCount > 0 then begin
-      if (SysAccounts.AccountTree.SelectedCount = DeletedCount) then begin
+    if DeletedCount > 0 then
+    begin
+      if (SysAccounts.AccountTree.SelectedCount = DeletedCount) then
+      begin
         MessageDlg('A change request cannot be sent because ' +
                    'the selected accounts are marked as deleted.',
                    mtInformation, [mbOK], 0);
         Exit;
-      end else if DeletedCount = 1 then
+      end
+      else if DeletedCount = 1 then
         MessageDlg(Format('One of the selected accounts is not included in ' +
                           'the change request because it is marked as deleted.',
                           [DeletedCount]), mtInformation, [mbOK], 0)
@@ -434,7 +480,8 @@ begin
     end;
 
     //*** Show dialog ***
-    if FrequencyRequestForm.ShowModal = mrOk then begin
+    if FrequencyRequestForm.ShowModal = mrOk then
+    begin
       //Send the frequency change request
       case AdminSystem.fdFields.fdCountry of
         whAustralia: Recipient := whClientServicesEmail[whAustralia];
@@ -451,7 +498,8 @@ begin
                                     [AdminSystem.fdFields.fdBankLink_Code,
                                     FREQUENCY_CHANGE_REQUEST]),
                              Body);
-      if MailSent then begin
+      if MailSent then
+      begin
         for i := 0 to FrequencyRequestForm.memoMonthly.Lines.Count - 1 do
           LogUtil.LogMsg( lmInfo, 'REQUEST_FREQUENCY_CHANGE_SYSTEM_BANK_ACCOUNT',
                          'User Request Frequency Change System Account ' +
@@ -487,21 +535,19 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmMaintainPracBank.actSendProvReqExecute(Sender: TObject);
 begin
   SendProvAccRequest;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmMaintainPracBank.btnOKClick(Sender: TObject);
 begin
     ModalResult := mrOK;
 end;
 
-
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-
-
+//------------------------------------------------------------------------------
 procedure TfrmMaintainPracBank.UpdateActions;
 
    procedure AddDetail(const Value: string);
@@ -656,7 +702,7 @@ begin
   end;
 end;
 
-
+//------------------------------------------------------------------------------
 procedure TfrmMaintainPracBank.WMDoRefresh(var message: TMessage);
 begin
   RefreshBankAccountList;
@@ -845,6 +891,7 @@ begin
    end;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmMaintainPracBank.ManuallyAddProvTrans(ForAccount: string);
 begin
    AddProvisionalData(ForAccount);
@@ -871,6 +918,7 @@ begin
    ShowModal;
    Result := true;
 end;
+
 //------------------------------------------------------------------------------
 function MaintainPracticeBankAccounts(Mode: Integer) : boolean;
 var
@@ -885,14 +933,14 @@ begin
     MyDlg.Free;
   end;
 end;
+
 //------------------------------------------------------------------------------
-
-
 procedure TfrmMaintainPracBank.OnSelChange(Sender: TObject);
 begin
    fChanged := true;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmMaintainPracBank.pmGridPopup(Sender: TObject);
 
   procedure AddMenuItem(Value: tAction);
@@ -929,11 +977,13 @@ begin
    AddMenuItem(SysAccounts.actRestoreColumns);
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmMaintainPracBank.tbHelpClick(Sender: TObject);
 begin
   BKHelpShow(Self);
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmMaintainPracBank.SendProvAccRequest;
 var
   SendProvAccRequestForm: TfrmSendProvAccRequest;

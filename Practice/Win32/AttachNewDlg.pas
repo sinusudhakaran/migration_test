@@ -3,8 +3,22 @@ unit AttachNewDlg;
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  ImgList, ComCtrls, StdCtrls, ExtCtrls, Buttons, ToolWin, ActnList, AuditMgr,
+  Windows,
+  Messages,
+  SysUtils,
+  Classes,
+  Graphics,
+  Controls,
+  Forms,
+  Dialogs,
+  ImgList,
+  ComCtrls,
+  StdCtrls,
+  ExtCtrls,
+  Buttons,
+  ToolWin,
+  ActnList,
+  AuditMgr,
   OSFont;
 
 type
@@ -58,7 +72,7 @@ type
 
   function AttachNewBankAccounts : boolean;
 
-//******************************************************************************
+//------------------------------------------------------------------------------
 implementation
 {$R *.DFM}
 uses
@@ -90,7 +104,7 @@ const
 var
   DebugMe : boolean = false;
 
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
 procedure TdlgAttachNew.FormCreate(Sender: TObject);
 begin
   bkXPThemes.ThemeForm( Self);
@@ -104,7 +118,8 @@ begin
   end;
   SetUpHelp;
 end;
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 procedure TdlgAttachNew.SetUpHelp;
 begin
    Self.ShowHint    := INI_ShowFormHints;
@@ -127,7 +142,8 @@ begin
    tbHelp.Visible := bkHelp.BKHelpFileExists;
    tbHelpSep.Visible := tbHelp.Visible;
 end;
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 procedure TdlgAttachNew.FormResize(Sender: TObject);
 begin
   lvFiles.width  := Round(Width *0.45);
@@ -137,7 +153,8 @@ begin
   LVUTILS.SetListViewColWidth(lvFiles,1);
   LVUTILS.SetListViewColWidth(lvBank,1);
 end;
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 procedure TdlgAttachNew.RefreshBankList;
 var
    NewItem   : TListItem;
@@ -199,6 +216,7 @@ begin
    lvBank.AlphaSort;
 end;
 
+//------------------------------------------------------------------------------
 procedure TdlgAttachNew.RefreshClientList;
 var
    NewItem : TListItem;
@@ -238,12 +256,14 @@ begin
       lvFiles.items.EndUpdate;
    end;
 end;
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 procedure TdlgAttachNew.btnCloseClick(Sender: TObject);
 begin
    Close;
 end;
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 procedure TdlgAttachNew.AttachAccountsToClient;
 const
    ThisMethodName = 'TdlgAttachNew.AttachAccountsToClient';
@@ -290,63 +310,93 @@ begin
         AccountOK := true;
 
         AdminBankAccount := AdminSystem.fdSystem_Bank_Account_List.FindCode(lvBank.Items[i].Caption);
-        if Assigned(AdminBankAccount) then begin
-           //check to see if a password is required
-           if AdminBankAccount^.sbAccount_Password <> '' then begin
-              if not EnterPassword('Attach Account '+AdminBankAccount^.sbAccount_Number,
-                             AdminBankAccount^.sbAccount_Password,0,false,true) then
-              begin
-                 HelpfulErrorMsg('Invalid Password.  Permission to attach this account is denied.',0);
-                 AccountOK := false;
-              end;
-           end;
+        if Assigned(AdminBankAccount) then
+        begin
+          //check to see if a password is required
+          if AdminBankAccount^.sbAccount_Password <> '' then
+          begin
+            if not EnterPassword('Attach Account '+AdminBankAccount^.sbAccount_Number,
+                           AdminBankAccount^.sbAccount_Password,0,false,true) then
+            begin
+              HelpfulErrorMsg('Invalid Password.  Permission to attach this account is denied.',0);
+              AccountOK := false;
+            end;
+          end;
 
-           //check if already added
-           with ToClient.clBank_Account_List do begin
-              if ( FindCode( AdminBankAccount^.sbAccount_Number ) <> nil ) then begin
-                 Msg := Format( 'BankAccount %s is already attached to this Client',
-                               [ AdminBankAccount^.sbAccount_Number ] );
-                 HelpfulErrorMsg( Msg, 0 );
-                 AccountOK := false;
-              end;
-           end;
+          //check if already added
+          with ToClient.clBank_Account_List do
+          begin
+            if ( FindCode( AdminBankAccount^.sbAccount_Number ) <> nil ) then
+            begin
+              Msg := Format( 'BankAccount %s is already attached to this Client',
+                            [ AdminBankAccount^.sbAccount_Number ] );
+              HelpfulErrorMsg( Msg, 0 );
+              AccountOK := false;
+            end;
+          end;
+
+          if ToClient.clExtra.ceBLOSecureCode = '' then
+          begin
+            Msg := 'You cannot attach this bank account to the selected client file ' +
+                   'because the client file does not have a BankLink Online Secure Code. ' +
+                   'Click OK to return and select a different account or client file. ';
+            HelpfulErrorMsg( Msg, 0 );
+            AccountOK := false;
+          end;
+
+          if ToClient.clExtra.ceBLOSecureCode <> AdminBankAccount.sbSecure_Online_Code then
+          begin
+            Msg := 'You cannot attach the selected bank account(s) to the client file ' +
+                   'because the BankLink Online Secure Codes do not match.  Click OK to ' +
+                   'return and select a different account or client file. ';
+            HelpfulErrorMsg( Msg, 0 );
+            AccountOK := false;
+          end;
         end
         else
-           AccountOK := false; //could not be found
+          AccountOK := false; //could not be found
 
         lvBank.Items[i].Selected := AccountOK;
      end;
 
   //accounts verified, now attach them
-  if LoadAdminSystem(true, ThisMethodName ) then begin
+  if LoadAdminSystem(true, ThisMethodName ) then
+  begin
     for i := 0 to lvBank.Items.Count-1 do
-    if lvBank.Items[i].Selected then begin
+    if lvBank.Items[i].Selected then
+    begin
       AdminBankAccount := AdminSystem.fdSystem_Bank_Account_List.FindCode(lvBank.Items[i].Caption);
-      if Assigned(AdminBankAccount) then begin
-        if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, 'Attach Bank Account '+AdminBankAccount.sbAccount_Number+' to Client '+ ToClient.clFields.clCode);
+      if Assigned(AdminBankAccount) then
+      begin
+        if DebugMe then
+          LogUtil.LogMsg(lmDebug, UnitName, 'Attach Bank Account '+AdminBankAccount.sbAccount_Number+' to Client '+ ToClient.clFields.clCode);
 
         //update admin and attach bank account
         AdminBankAccount.sbAttach_Required := false;
         ChangedAdmin := true;
 
-        with ToClient.clBank_Account_List do begin
-           if ( FindCode(AdminBankAccount.sbAccount_Number) = nil ) then begin
-              {update bankaccount in client file}
-              NewBankAccount := TBank_Account.Create(ToClient);
+        with ToClient.clBank_Account_List do
+        begin
+          if ( FindCode(AdminBankAccount.sbAccount_Number) = nil ) then
+          begin
+            {update bankaccount in client file}
+            NewBankAccount := TBank_Account.Create(ToClient);
 
-              with NewBankAccount do begin
-                 baFields.baBank_Account_Number     := AdminBankAccount.sbAccount_Number;
-                 baFields.baBank_Account_Name       := AdminBankAccount.sbAccount_Name;
-                 baFields.baBank_Account_Password   := AdminBankAccount.sbAccount_Password;
-                 baFields.baCurrent_Balance         := Unknown; //don't assign balance until have all trx
-                 baFields.baBank_Account_Password   := AdminBankAccount.sbAccount_Password;
-                 baFields.baCurrency_Code           := AdminBankAccount.sbCurrency_Code;
-                 baFields.baApply_Master_Memorised_Entries := true;
-                 baFields.baDesktop_Super_Ledger_ID := -1;
-                 baFields.baCore_Account_ID         := AdminBankAccount.sbCore_Account_ID;
-              end;
+            with NewBankAccount do
+            begin
+              baFields.baBank_Account_Number     := AdminBankAccount.sbAccount_Number;
+              baFields.baBank_Account_Name       := AdminBankAccount.sbAccount_Name;
+              baFields.baBank_Account_Password   := AdminBankAccount.sbAccount_Password;
+              baFields.baCurrent_Balance         := Unknown; //don't assign balance until have all trx
+              baFields.baBank_Account_Password   := AdminBankAccount.sbAccount_Password;
+              baFields.baCurrency_Code           := AdminBankAccount.sbCurrency_Code;
+              baFields.baApply_Master_Memorised_Entries := true;
+              baFields.baDesktop_Super_Ledger_ID := -1;
+              baFields.baCore_Account_ID         := AdminBankAccount.sbCore_Account_ID;
+              baFields.baSecure_Online_Code      := AdminBankAccount.sbSecure_Online_Code;
+            end;
 
-             Insert(NewBankAccount);
+            Insert(NewBankAccount);
 
              // Add to client-account map
              pF := AdminSystem.fdSystem_Client_File_List.FindCode(ToClient.clFields.clCode);
@@ -382,12 +432,14 @@ begin
 
    CloseAClient(ToClient);
 end;
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 procedure TdlgAttachNew.tbCloseClick(Sender: TObject);
 begin
    Close;
 end;
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 procedure TdlgAttachNew.tbNewClick(Sender: TObject);
 var
    StoredCode : string;
@@ -413,7 +465,8 @@ begin
        LVUTILS.SelectListViewItem(lvFiles,SelectItem);
   end;
 end;
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 procedure TdlgAttachNew.FormShortCut(var Msg: TWMKey;
   var Handled: Boolean);
 begin
@@ -425,9 +478,10 @@ begin
     Handled := false;
   end;
 end;
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 procedure TdlgAttachNew.tbAttachClick(Sender: TObject);
-var                              
+var
   PrevBankSelectedIndex : Integer;
   PrevBankTopItemIndex: Integer;
   PrevFilesSelectedIndex : Integer;
@@ -448,14 +502,14 @@ begin
 
 end;
 
-
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
 procedure TdlgAttachNew.RefreshLists;
 begin
    RefreshClientList;
    RefreshBankList;
 end;
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 procedure TdlgAttachNew.lvFilesCompare(Sender: TObject; Item1,
   Item2: TListItem; Data: Integer; var Compare: Integer);
 var
@@ -474,7 +528,8 @@ begin
   end;
   Compare := StStrS.CompStringS(Key1,Key2);
 end;
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 procedure TdlgAttachNew.lvFilesColumnClick(Sender: TObject;
   Column: TListColumn);
 var
@@ -487,7 +542,8 @@ begin
   SortColC := Column.ID;
   lvFiles.AlphaSort;
 end;
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 procedure TdlgAttachNew.lvBankColumnClick(Sender: TObject;
   Column: TListColumn);
 var
@@ -500,7 +556,8 @@ begin
   SortColB := Column.ID;
   lvBank.AlphaSort;
 end;
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 procedure TdlgAttachNew.lvBankCompare(Sender: TObject; Item1,
   Item2: TListItem; Data: Integer; var Compare: Integer);
 var
@@ -508,7 +565,7 @@ var
 begin
   case SortColB of  0:
      begin
-       Key1 := Item1.Caption;                                
+       Key1 := Item1.Caption;
        Key2 := Item2.Caption;
      end;
   else
@@ -519,18 +576,21 @@ begin
   end;
   Compare := StStrs.CompStringS(Key1,Key2);
 end;
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 procedure TdlgAttachNew.Splitter1Moved(Sender: TObject);
 begin
   chkIncludeAttached.left := lvBank.Left;
   chkIncludeDeleted.Left  := chkIncludeAttached.Left + chkIncludeAttached.Width + 50;
 end;
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 procedure TdlgAttachNew.chkIncludeAttachedClick(Sender: TObject);
 begin
    RefreshBankList;
 end;
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 function TdlgAttachNew.Execute: boolean;
 begin
    SortColC := 0;
@@ -545,7 +605,8 @@ begin
    ShowModal;
    result := true;
 end;
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 function AttachNewBankAccounts : boolean;
 var
   Mydlg : tdlgAttachNew;
@@ -558,17 +619,20 @@ begin
     Mydlg.Free;
   end;
 end;
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 procedure TdlgAttachNew.chkIncludeDeletedClick(Sender: TObject);
 begin
    RefreshBankList;
 end;
 
+//------------------------------------------------------------------------------
 procedure TdlgAttachNew.tbHelpClick(Sender: TObject);
 begin
   BKHelpShow(Self);
 end;
 
+//------------------------------------------------------------------------------
 procedure TdlgAttachNew.FormShow(Sender: TObject);
 begin
   lvBankColumnClick(lvBank, lvBank.Columns[0]); // force sort by number

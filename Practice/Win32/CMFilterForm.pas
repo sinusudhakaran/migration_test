@@ -1,14 +1,36 @@
 // Dialog to select a client manager filter
 unit CMFilterForm;
 
+//------------------------------------------------------------------------------
 interface
 
 uses
-  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, ComCtrls, ExtCtrls, ImgList, StdCtrls, bkConst, Menus,
+  Windows,
+  Messages,
+  SysUtils,
+  Variants,
+  Classes,
+  Graphics,
+  Controls,
+  Forms,
+  Dialogs,
+  ComCtrls,
+  ExtCtrls,
+  ImgList,
+  StdCtrls,
+  bkConst,
+  Menus,
   OsFont;
 
 type
+  saFilters = (saAttached, saNew, saDeleted, saInactive, saSecure, saThisYear,
+                saPassword, saCharge, saFreqMonth, saFreqWeek, saFreqDay,
+                saFreqUnspecified, saProvisional, saOnlineSecure);
+
+  saFilter = set of saFilters;
+
+  FiltersTextProc = function (Value: saFilters): string;
+
   TfrmFilter = class(TForm)
     pnlButton: TPanel;
     tvFilter: TTreeView;
@@ -29,93 +51,45 @@ type
     procedure FormShow(Sender: TObject);
     procedure FormCreate(Sender: TObject);
   private
-    { Private declarations }
     procedure SimplifyFilter;
-  public
-    { Public declarations }
   end;
 
-
+  saFilterSet = class(TPersistent)
+  private
+    procedure SetEmpty(const Value: Boolean);
+    function GetEmpty: Boolean;
+  public
+    Nodes: array [safsTopMin .. safsTopMax] of saFilter;
+    NotNodes: array [safsTopMin .. safsTopMax] of saFilter;
+    constructor Create;
+    procedure Assign(Source: TPersistent); override;
+    function IsEqual(Value: saFilterSet): Boolean;
+    property Empty: Boolean read GetEmpty write SetEmpty;
+    procedure Clear;
+    function getFilterText: string;
+  end;
 
 function ChooseCMFilter(P: TPoint; W, H: Integer; CurrentFilter: UInt64;
   var FilterName: string; var UserFilter: TStringList; var GroupFilter: TStringList;
   var ClientTypeFilter: TStringList; const ShowForm: Boolean): UInt64;
-
-type
-   saFilters = (saAttached, saNew, saDeleted, saInactive, saSecure, saThisYear,
-                saPassword, saCharge, saFreqMonth, saFreqWeek, saFreqDay, saFreqUnspecified, saProvisional);
-   saFilter = set of saFilters;
-
-
-   saFilterSet = class(TPersistent)
-   private
-     procedure SetEmpty(const Value: Boolean);
-     function GetEmpty: Boolean;
-   public
-      Nodes: array [safsTopMin .. safsTopMax] of saFilter;
-      NotNodes: array [safsTopMin .. safsTopMax] of saFilter;
-      constructor Create;
-      procedure Assign(Source: TPersistent); override;
-      function IsEqual(Value: saFilterSet): Boolean;
-      property Empty: Boolean read GetEmpty write SetEmpty;
-      procedure Clear;
-      function getFilterText: string;
-   end;
-
-
 function ChooseSAFilter(P: TPoint; W, H: Integer; var Include: saFilterSet ): TModalresult;
-
-type
-  FiltersTextProc = function (Value: saFilters): string;
 function FilterText(Value: saFilters): string;
 function NotFilterText(Value: saFilters): string;
 
+//------------------------------------------------------------------------------
 implementation
+{$R *.dfm}
 
 uses
-UxTheme,AuthorityUtils, WinUtils, Math, Globals, SyDefs, BkHelp, bkXPThemes,
-CountryUtils;
-
- function FilterText(Value: saFilters): string;
- begin
-      case Value of
-         saAttached : Result := 'attached';
-         saNew      : Result := 'new';
-         saDeleted  : Result := 'marked as deleted';
-         saInactive : Result := 'inactive';
-         saSecure   : Result := 'Books secure';
-         saThisYear : Result := 'have transactions this year';
-         saPassword : Result := 'password protected';
-         saCharge   : Result := 'charged';
-         saFreqMonth: Result := 'monthly';
-         saFreqWeek : Result := 'weekly';
-         saFreqDay  : Result := 'daily';
-         saFreqUnspecified: Result := 'unspecified';
-         saProvisional    : Result := 'provisional';
-      end;
- end;
-
- function NotFilterText(Value: saFilters): string;
- begin
-      case Value of
-         saAttached : Result := 'unattached';
-         saNew      : Result := 'not new';
-         saDeleted  : Result := 'not marked as deleted';
-         saInactive : Result := 'active';
-         saSecure   : Result := 'Local';
-         saThisYear : Result := 'without transactions this year';
-         saPassword : Result := 'not password protected';
-         saCharge   : Result := 'not charged';
-         saFreqMonth: Result := 'not monthly';
-         saFreqWeek : Result := 'not weekly';
-         saFreqDay  : Result := 'not daily';
-         saFreqUnspecified: Result := 'not unspecified';
-         saProvisional    : Result := 'not provisional';
-      end;
- end;
-
-
-{$R *.dfm}
+  UxTheme,
+  AuthorityUtils,
+  WinUtils,
+  Math,
+  Globals,
+  SyDefs,
+  BkHelp,
+  bkXPThemes,
+  CountryUtils;
 
 const
   // 0 doesn't work so use a dummy image :S
@@ -124,9 +98,50 @@ const
 //  cFlatRadioUnCheck = 3;
 //  cFlatRadioChecked = 4;
 
+//------------------------------------------------------------------------------
+function FilterText(Value: saFilters): string;
+begin
+  case Value of
+    saAttached : Result := 'attached';
+    saNew      : Result := 'new';
+    saDeleted  : Result := 'marked as deleted';
+    saInactive : Result := 'inactive';
+    saSecure   : Result := 'Books secure';
+    saThisYear : Result := 'have transactions this year';
+    saPassword : Result := 'password protected';
+    saCharge   : Result := 'charged';
+    saFreqMonth: Result := 'monthly';
+    saFreqWeek : Result := 'weekly';
+    saFreqDay  : Result := 'daily';
+    saFreqUnspecified: Result := 'unspecified';
+    saProvisional    : Result := 'provisional';
+    saOnlineSecure   : Result := 'BankLink Online Secure';
+  end;
+end;
+
+//------------------------------------------------------------------------------
+function NotFilterText(Value: saFilters): string;
+begin
+  case Value of
+    saAttached : Result := 'unattached';
+    saNew      : Result := 'not new';
+    saDeleted  : Result := 'not marked as deleted';
+    saInactive : Result := 'active';
+    saSecure   : Result := 'Local';
+    saThisYear : Result := 'without transactions this year';
+    saPassword : Result := 'not password protected';
+    saCharge   : Result := 'not charged';
+    saFreqMonth: Result := 'not monthly';
+    saFreqWeek : Result := 'not weekly';
+    saFreqDay  : Result := 'not daily';
+    saFreqUnspecified: Result := 'not unspecified';
+    saProvisional    : Result := 'not provisional';
+    saOnlineSecure   : Result := 'not BankLink Online Secure';
+  end;
+end;
+
+//------------------------------------------------------------------------------
 procedure ToggleTreeViewCheckBoxes(Node: TTreeNode);
-//var
-//  tmp:TTreeNode;
 begin
   if Assigned(Node) then
   begin
@@ -134,27 +149,11 @@ begin
       Node.StateIndex := cFlatChecked
     else if Node.StateIndex = cFlatChecked then // swap
       Node.StateIndex := cFlatUnCheck
-{    else if Node.StateIndex = cFlatRadioUnCheck then // unselect all others at this level
-    begin
-      tmp := Node.Parent;
-      if not Assigned(tmp) then
-        tmp := TTreeView(Node.TreeView).Items.GetFirstNode
-      else
-        tmp := tmp.GetFirstChild;
-      while Assigned(tmp) do
-      begin
-        if (tmp.StateIndex in [cRadioUnChecked, cFlatRadioChecked]) then
-          tmp.StateIndex := cFlatRadioUnCheck;
-        tmp := tmp.GetNextSibling;
-      end;
-      Node.StateIndex := cFlatRadioChecked;
-    end;}
-    // else already radio checked so do nothing
   end;
 end;
 
-
 // Reset to show all
+//------------------------------------------------------------------------------
 procedure TfrmFilter.btnResetClick(Sender: TObject);
 var
   topn, n: TTreeNode;
@@ -171,16 +170,19 @@ begin
 end;
 
 // Only toggle if clicked on the box itself
+//------------------------------------------------------------------------------
 procedure TfrmFilter.CollapseAll1Click(Sender: TObject);
 begin
   tvFilter.FullCollapse;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmFilter.ExpandAll1Click(Sender: TObject);
 begin
   tvFilter.FullExpand;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmFilter.FormCreate(Sender: TObject);
 begin
   BKHelpSetUp(Self, BKH_Filtering_files_in_the_Clients_page);
@@ -188,11 +190,13 @@ begin
   SetVistaTreeView(tvFilter.Handle);
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmFilter.FormShow(Sender: TObject);
 begin
   btnApply.Setfocus;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmFilter.tvFilterClick(Sender: TObject);
 var
   P:TPoint;
@@ -204,6 +208,7 @@ begin
 end;
 
 // Allow keyboard control
+//------------------------------------------------------------------------------
 procedure TfrmFilter.tvFilterKeyDown(Sender: TObject; var Key: Word;
   Shift: TShiftState);
 begin
@@ -213,6 +218,7 @@ begin
 end;
 
 // Untick everything if all nodes are ticked within a group
+//------------------------------------------------------------------------------
 procedure TfrmFilter.SimplifyFilter;
 var
   topn, n: TTreeNode;
@@ -257,6 +263,7 @@ end;
 // UserFilter - current user filter list
 // GroupFilter - current user filter list
 // ClientTypeFilter - current user filter list
+//------------------------------------------------------------------------------
 function ChooseCMFilter(P: TPoint; W, H: Integer; CurrentFilter: UInt64; var FilterName: string;
   var UserFilter: TStringList; var GroupFilter: TStringList; var ClientTypeFilter: TStringList; const ShowForm: Boolean): UInt64;
 var
@@ -457,7 +464,7 @@ begin
   end;
 end;
 
-
+//------------------------------------------------------------------------------
 function ChooseSAFilter(P: TPoint; W, H: Integer; var Include: saFilterSet ): TModalresult;
 var
    I: Integer;
@@ -540,9 +547,11 @@ begin
                             or CheckNode( tvFilter.Items.AddChild(topn,'Not Password Protected'),saPassword in Include.NotNodes[i])
                           );
          safsTopDeliver :Expand(topn,
-                               CheckNode( tvFilter.Items.AddChild(topn,'Practice Accounts'),saSecure in Include.NotNodes[i])
+                               CheckNode( tvFilter.Items.AddChild(topn,'Practice Accounts'), (saSecure in Include.NotNodes[i]) and
+                                                                                             (saOnlineSecure in Include.NotNodes[i]))
                             or CheckNode( tvFilter.Items.AddChild(topn,'Provisional Accounts'),saProvisional in Include.Nodes[i])
                             or CheckNode( tvFilter.Items.AddChild(topn,'Books Secure Accounts'),saSecure in Include.Nodes[i])
+                            or CheckNode( tvFilter.Items.AddChild(topn,'Banklink Online Secure Accounts'),saOnlineSecure in Include.Nodes[i])
 
                           );
          safsTopFrequency:Expand(topn,
@@ -609,11 +618,13 @@ begin
                   end;
                 safsTopDeliver: if I = 3 then begin
                      if ftNode[0] and (not ftNode[1]) then
-                        LInclude.NotNodes[safsTopDeliver] := LInclude.NotNodes[safsTopDeliver] +[saSecure];
+                        LInclude.NotNodes[safsTopDeliver] := (LInclude.NotNodes[safsTopDeliver] + [saSecure] + [saOnlineSecure]);
                      if ftNode[1] and (not ftNode[0]) then
                         LInclude.Nodes[safsTopDeliver] := LInclude.Nodes[safsTopDeliver] + [saSecure];
                      if ftNode[2] then
                         LInclude.Nodes[safsTopDeliver] := LInclude.Nodes[safsTopDeliver] + [saProvisional];
+                     if ftNode[3] then
+                        LInclude.Nodes[safsTopDeliver] := LInclude.Nodes[safsTopDeliver] + [saOnlineSecure];
                   end;
                 safsTopFrequency: if I = 4 then begin
                      if ftNode[0] then
@@ -643,9 +654,8 @@ begin
    end;
 end;
 
-
 { saFilterSet }
-
+//------------------------------------------------------------------------------
 procedure saFilterSet.Assign(Source: TPersistent);
 var n: Integer;
     Sourcefs:saFilterSet;
@@ -659,6 +669,7 @@ begin
    end;
 end;
 
+//------------------------------------------------------------------------------
 procedure saFilterSet.Clear;
 var n: Integer;
 begin
@@ -668,13 +679,14 @@ begin
    end;
 end;
 
-
+//------------------------------------------------------------------------------
 constructor saFilterSet.Create;
 begin
    inherited;
    Clear;
 end;
 
+//------------------------------------------------------------------------------
 function saFilterSet.GetFilterText: string;
 var n: Integer;
    function NodeText: string;
@@ -715,6 +727,7 @@ begin
    end;
 end;
 
+//------------------------------------------------------------------------------
 function saFilterSet.GetEmpty: Boolean;
 var n: Integer;
 begin
@@ -728,6 +741,7 @@ begin
    Result := True;
 end;
 
+//------------------------------------------------------------------------------
 function saFilterSet.IsEqual(Value: saFilterSet): Boolean;
 var n: Integer;
 begin
@@ -741,6 +755,7 @@ begin
    Result := True;
 end;
 
+//------------------------------------------------------------------------------
 procedure saFilterSet.SetEmpty(const Value: Boolean);
 begin
    if Value then
