@@ -17,11 +17,31 @@ interface
 function GetClientDetailsCacheFilename( const cLRN : integer) : string;
 function GetTaskListFilename( const tLRN : integer) : string;
 function GetClientNotesFilename( const cLRN : integer) :string;
+function AppendFileNameToPath(const FilePath, FileName: String): String;
 
 //******************************************************************************
 implementation
 uses
   GlobalDirectories, SysUtils, bk5except;
+
+function AppendFileNameToPath(const FilePath, FileName: String): String;
+begin
+  if Length(FilePath) > 0 then
+  begin
+    if FilePath[Length(FilePath)] <> '\' then
+    begin
+      Result := FilePath + '\' + FileName;
+    end
+    else
+    begin
+      Result := FilePath + FileName;
+    end;
+  end
+  else
+  begin
+    Result := FileName;
+  end;
+end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure CreateDirIfNotFound( aDir : String);
