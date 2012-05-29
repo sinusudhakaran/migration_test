@@ -13,6 +13,11 @@ unit DownloadEx;
 //------------------------------------------------------------------------------
 
 interface
+
+const
+  ONLINE_OFFSITE_ACCOUNTS_FILE = 'onlineaccounts';
+  ONLINE_OFFSITE_ACCOUNTS_DELIMITER = ',';
+
 type
   TDownloadSource = ( dsFloppy, dsBConnect);
 
@@ -58,11 +63,15 @@ uses
   WinUtils, Windows, Merge32,
   AuditMgr,
   clObj32,
-  Files;
+  Files,
+  DirUtils,
+  CsvParser,
+  SecureOnlineAccounts;
 
 const
   UnitName = 'DownloadEx';
   S_VALIDATE_ERROR = 'Validate Error: Image name = %s but Disk File name = %s';
+  
 var
   DebugMe  : boolean;
 
@@ -212,6 +221,125 @@ begin
 
 end;
 
+procedure ProcessOnlineSecureAccountsFile(const FileName: String);
+
+   function CheckText(Value, Old: string): string;
+   begin
+     // Don't loose info
+     if Value > '' then
+     begin
+       Result := Value;
+     end
+     else
+     begin
+       Result := Old;
+     end;
+   end;
+
+var
+  AccountSource: TSecureOnlineAccounts;
+  Index: Integer;
+  SAccount: pSystem_Bank_Account_Rec;
+begin
+  if FileExists(FileName) then
+  begin
+    AccountSource := TSecureOnlineAccounts.Create;
+
+    try
+      AccountSource.LoadFromFile(FileName);
+
+      while not AccountSource.Eof do
+      begin
+        SAccount := AdminSystem.fdSystem_Bank_Account_List.FindCode(AccountSource.AccountNo);
+
+        if not Assigned(SAccount) then
+        begin
+          SAccount := AdminSystem.NewSystemAccount(AccountSource.AccountNo, False);
+          SAccount.sbAccount_Name  := AccountSource.AccountName;
+          SAccount.sbAccount_Type := sbtOnlineSecure;
+        end;
+
+        SAccount.sbCost_Code := AccountSource.CostCode;
+        SAccount.sbFile_Code := AccountSource.FileCode;
+
+        // Update the rest of the details
+        SAccount.sbCore_Account_ID := StrToIntDef(AccountSource.CoreAccountID, 0);
+
+        SAccount.sbCurrent_Balance := StrToFloatDef(AccountSource.CurrentBalance, 0);
+
+        SAccount.sbLast_Entry_Date :=  DateStringToStDate('dd/mm/yy', AccountSource.LastTransactionDate, Epoch);
+
+        SAccount.sbSecure_Online_Code := AccountSource.SecureCode;
+
+        AccountSource.Next;
+      end;
+    finally
+      AccountSource.Free;
+    end;
+  end;
+end;
+
+procedure ProcessOnlineSecureAccountsFiles;
+const
+  ThisMethodName = 'ProcessOnlineSecureAccountsFiles';
+
+var
+  FailedFiles: Integer;
+  SearchRec: TSearchRec;
+  SourceFile: String;
+begin
+  if SysUtils.FindFirst(AppendFileNameToPath(DownloadInboxDir, '*.csv'), faAnyFile, SearchRec) = 0 then
+  begin
+    try
+      FailedFiles := 0;
+      
+      repeat
+        if CompareText(Copy(SearchRec.Name, 0, Length('OnlineAccounts_')), 'OnlineAccounts_') = 0 then
+        begin
+          try
+            SourceFile := AppendFileNameToPath(DownloadInboxDir, SearchRec.Name);
+            
+            if LoadAdminSystem(True, ThisMethodName) then
+            begin
+              try
+                ProcessOnlineSecureAccountsFile(SourceFile);
+
+                SaveAdminSystem;
+
+                DeleteFile(PChar(SourceFile));
+              except
+                on E:Exception do
+                begin
+                  LogUtil.LogMsg(lmError, UnitName, ThisMethodName + 'Could not import secure online accounts from file ' + SourceFile + '. ' + E.Message);
+
+                  UnlockAdmin;
+
+                  Inc(FailedFiles);
+                end;
+              end;
+            end
+            else
+            begin
+              LogUtil.LogMsg(lmError, UnitName, ThisMethodName + 'Could not import secure online accounts. Could not open the system database.');
+
+              Break;
+            end;
+          except
+            on E:Exception do
+            begin
+              LogUtil.LogMsg(lmError, UnitName, ThisMethodName + 'Could not import secure online accounts. ' + E.Message);
+
+              Break;
+            end;
+          end;
+        end;
+      until FindNext(SearchRec) <> 0;
+    finally
+      SysUtils.FindClose(SearchRec);   
+    end;
+  end;
+end;
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 function ProcessDiskImages: Boolean;
@@ -275,15 +403,20 @@ begin //ProcessDiskImages
     Exit;
 
   //count how many disk images there are to process
-  with AdminSystem.fdFields do begin
-     NumDisksToProcess := NoOfNewFilesToDownload( fdBankLink_Code, DOWNLOADINBOXDIR, fdDisk_Sequence_No);
-     if (NumDisksToProcess < 1)
-     and (StartupParam_Action <> sa_Connect) then
-     begin
-        ProcessChargesFiles;// Still want to try this...
-        HelpfulInfoMsg('There are no files to process.', 0);
-        Exit;
-     end;
+  with AdminSystem.fdFields do
+  begin
+    NumDisksToProcess := NoOfNewFilesToDownload( fdBankLink_Code, DOWNLOADINBOXDIR, fdDisk_Sequence_No);
+
+    if (NumDisksToProcess < 1) and (StartupParam_Action <> sa_Connect) then
+    begin
+      ProcessOnlineSecureAccountsFiles;
+
+      ProcessChargesFiles;// Still want to try this...
+
+      HelpfulInfoMsg('There are no files to process.', 0);
+
+      Exit;
+    end;
   end;
 
   //---------------------------------------------------------------------------
@@ -851,6 +984,8 @@ begin //ProcessDiskImages
 
       UpdateAppStatus( 'Process Charges', '', 95, ProcessMessages_On);
 
+      ProcessOnlineSecureAccountsFiles;
+
       ProcessChargesFiles;
 
       ClearStatus;
@@ -926,7 +1061,6 @@ var
   Index: Integer;
   AdminAccountIndex: Integer;
   Client: TClientObj;
-  IIndex: Integer;
 begin
   for Index := 0 to AdminSystem.fdSystem_Client_File_List.ItemCount  - 1 do
   begin
