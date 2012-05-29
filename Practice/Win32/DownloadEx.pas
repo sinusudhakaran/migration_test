@@ -66,7 +66,8 @@ uses
   Files,
   DirUtils,
   CsvParser,
-  SecureOnlineAccounts;
+  SecureOnlineAccounts,
+  WarningMoreFrm;
 
 const
   UnitName = 'DownloadEx';
@@ -267,8 +268,11 @@ begin
 
         SAccount.sbCurrent_Balance := StrToFloatDef(AccountSource.CurrentBalance, 0);
 
-        SAccount.sbLast_Entry_Date :=  DateStringToStDate('dd/mm/yy', AccountSource.LastTransactionDate, Epoch);
-
+        if AccountSource.LastTransactionDate <> '' then
+        begin
+          SAccount.sbLast_Entry_Date :=  DateStringToStDate('dd/mm/yy', AccountSource.LastTransactionDate, Epoch);
+        end;
+        
         SAccount.sbSecure_Online_Code := AccountSource.SecureCode;
 
         AccountSource.Next;
@@ -279,55 +283,60 @@ begin
   end;
 end;
 
-procedure ProcessOnlineSecureAccountsFiles;
+procedure ProcessOnlineSecureAccountsFiles(out ErrorsOccurred: Boolean);
 const
   ThisMethodName = 'ProcessOnlineSecureAccountsFiles';
 
 var
-  FailedFiles: Integer;
   SearchRec: TSearchRec;
   SourceFile: String;
 begin
+  ErrorsOccurred := False;
+  
   if SysUtils.FindFirst(AppendFileNameToPath(DownloadInboxDir, '*.csv'), faAnyFile, SearchRec) = 0 then
   begin
     try
-      FailedFiles := 0;
-      
       repeat
         if CompareText(Copy(SearchRec.Name, 0, Length('OnlineAccounts_')), 'OnlineAccounts_') = 0 then
         begin
           try
             SourceFile := AppendFileNameToPath(DownloadInboxDir, SearchRec.Name);
-            
+
             if LoadAdminSystem(True, ThisMethodName) then
             begin
               try
-                ProcessOnlineSecureAccountsFile(SourceFile);
+                try
+                  ProcessOnlineSecureAccountsFile(SourceFile);
 
-                SaveAdminSystem;
+                  SaveAdminSystem;
+                except
+                  on E:Exception do
+                  begin
+                    LogUtil.LogMsg(lmError, UnitName, ThisMethodName + ' Could not import secure online accounts from file ' + SourceFile + '. ' + E.Message);
 
-                DeleteFile(PChar(SourceFile));
-              except
-                on E:Exception do
-                begin
-                  LogUtil.LogMsg(lmError, UnitName, ThisMethodName + 'Could not import secure online accounts from file ' + SourceFile + '. ' + E.Message);
+                    UnlockAdmin;
 
-                  UnlockAdmin;
-
-                  Inc(FailedFiles);
+                    ErrorsOccurred := True;
+                  end;
                 end;
+              finally
+                DeleteFile(PChar(SourceFile));
               end;
             end
             else
             begin
-              LogUtil.LogMsg(lmError, UnitName, ThisMethodName + 'Could not import secure online accounts. Could not open the system database.');
+              LogUtil.LogMsg(lmError, UnitName, ThisMethodName + ' Could not import secure online accounts. Could not open the system database.');
+
+              ErrorsOccurred := True;
 
               Break;
             end;
           except
             on E:Exception do
             begin
-              LogUtil.LogMsg(lmError, UnitName, ThisMethodName + 'Could not import secure online accounts. ' + E.Message);
+              LogUtil.LogMsg(lmError, UnitName, ThisMethodName + ' Could not import secure online accounts. ' + E.Message);
+
+              ErrorsOccurred := True;
 
               Break;
             end;
@@ -394,6 +403,7 @@ var
   AttachmentsList   : TStringList;
 
   ClientAccountMap  : pClient_Account_Map_Rec;
+  OnlineSecureAccountsErrors: Boolean;
 begin //ProcessDiskImages
   Result := False;
   LogDebugMsg( ThisMethodName + ' starts');
@@ -402,6 +412,8 @@ begin //ProcessDiskImages
   if not RefreshAdmin then
     Exit;
 
+  OnlineSecureAccountsErrors := False;
+
   //count how many disk images there are to process
   with AdminSystem.fdFields do
   begin
@@ -409,9 +421,14 @@ begin //ProcessDiskImages
 
     if (NumDisksToProcess < 1) and (StartupParam_Action <> sa_Connect) then
     begin
-      ProcessOnlineSecureAccountsFiles;
+      ProcessOnlineSecureAccountsFiles(OnlineSecureAccountsErrors);
 
       ProcessChargesFiles;// Still want to try this...
+
+      if OnlineSecureAccountsErrors then
+      begin
+        HelpfulWarningMsg('One or more errors occured while importing online secure account files.  See the system log for more information.', 0);
+      end;
 
       HelpfulInfoMsg('There are no files to process.', 0);
 
@@ -984,7 +1001,7 @@ begin //ProcessDiskImages
 
       UpdateAppStatus( 'Process Charges', '', 95, ProcessMessages_On);
 
-      ProcessOnlineSecureAccountsFiles;
+      ProcessOnlineSecureAccountsFiles(OnlineSecureAccountsErrors);
 
       ProcessChargesFiles;
 
@@ -1035,6 +1052,11 @@ begin //ProcessDiskImages
     ClearStatus;
   end;
 
+  if OnlineSecureAccountsErrors then
+  begin
+    HelpfulWarningMsg('One or more errors occured while importing online secure account files.  See the system log for more information.', 0);
+  end;
+      
   LogDebugMsg( ThisMethodName + ' ends');
 end;
 
