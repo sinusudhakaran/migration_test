@@ -833,6 +833,7 @@ Type
       baTemp_Include_In_Report           : Boolean;
       baTemp_Balance                     : Money;
       baCore_Account_ID                  : Integer;
+      baSecureOnlineCode                 : String[ 20 ];
       baEOR                              : Byte;
    end;
 
