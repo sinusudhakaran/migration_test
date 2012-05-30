@@ -142,7 +142,12 @@ var
   i: integer;
 begin
   for i := 0 to chkListProducts.Items.Count - 1 do
-    chkListProducts.Checked[i] := true;
+  begin
+    if chkListProducts.ItemEnabled[i]  then
+    begin
+      chkListProducts.Checked[i] := true;
+    end;
+  end;
 end;
 
 procedure TfrmBanklinkOnlineSettings.btnUseClientDetailsClick(Sender: TObject);
@@ -156,7 +161,12 @@ var
   i: integer;
 begin
   for i := 0 to chkListProducts.Items.Count - 1 do
-    chkListProducts.Checked[i] := false;
+  begin
+    if chkListProducts.ItemEnabled[i]  then
+    begin
+      chkListProducts.Checked[i] := false;
+    end;
+  end;
 end;
 
 //------------------------------------------------------------------------------
