@@ -99,7 +99,8 @@ uses
   Math,
   syamio,
   ClientHomePageFrm,
-  ClientUtils;
+  ClientUtils,
+  BankLinkOnlineServices;
 
 const
   UnitName = 'ATTACHNEWDLG';
@@ -272,6 +273,7 @@ var
   ToClient : TClientObj;
   i : integer;
   SelectedAccs : TStringList;
+  ClientVendors : TBloArrayOfGuid;
 begin
   ClientRec := pClient_File_Rec(lvFiles.Selected.SubItems.Objects[0]);
   if not Assigned(clientRec) then exit;
@@ -308,7 +310,7 @@ begin
       end;
     end;
 
-    //ClientUtils.AttachAccountsToClient(MyClient, SelectedAccs ,DebugMe);
+    ClientUtils.AttachAccountsToClient(MyClient, SelectedAccs, ClientVendors, nil, '', DebugMe);
   Finally
     FreeAndNil(SelectedAccs);
   End;

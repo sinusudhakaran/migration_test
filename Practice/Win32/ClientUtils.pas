@@ -34,6 +34,7 @@ procedure PurgeEntriesFromMyClient(const PurgeDate: integer;
 procedure AttachAccountsToClient(aClient           : TClientObj;
                                  aSelectedAccounts : TStringList;
                                  aClientVendors    : TBloArrayOfGuid;
+                                 aVendorNames      : TStringList;
                                  aClientID         : TBloGuid;
                                  aDebugMe          : Boolean);
 
@@ -61,7 +62,8 @@ uses
   EnterPwdDlg,
   MONEYDEF,
   SYamIO,
-  GenUtils;
+  GenUtils,
+  InfoMoreFrm;
 
 // Check to see if a given client code is valid
 function IsABadCode( S : String ): Boolean;
@@ -521,6 +523,7 @@ end;
 procedure AttachAccountsToClient(aClient           : TClientObj;
                                  aSelectedAccounts : TStringList;
                                  aClientVendors    : TBloArrayOfGuid;
+                                 aVendorNames      : TStringList;
                                  aClientID         : TBloGuid;
                                  aDebugMe          : Boolean);
 const
@@ -555,27 +558,23 @@ begin
           HelpfulErrorMsg('Invalid Password.  Permission to attach this account is denied.',0);
           AccountOK := false;
         end;
-      end;
-
-      //check if already added
-      if ( aClient.clBank_Account_List.FindCode( AdminBankAccount^.sbAccount_Number ) <> nil ) then
+      end
+      else if ( aClient.clBank_Account_List.FindCode( AdminBankAccount^.sbAccount_Number ) <> nil ) then
       begin
         Msg := Format( 'BankAccount %s is already attached to this Client',
                        [ AdminBankAccount^.sbAccount_Number ] );
         HelpfulErrorMsg( Msg, 0 );
         AccountOK := false;
-      end;
-
-      if aClient.clExtra.ceBLOSecureCode = '' then
+      end
+      else if aClient.clExtra.ceBLOSecureCode = '' then
       begin
         Msg := 'You cannot attach this bank account to the selected client file ' +
                'because the client file does not have a BankLink Online Secure Code. ' +
                'Click OK to return and select a different account or client file. ';
         HelpfulErrorMsg( Msg, 0 );
         AccountOK := false;
-      end;
-
-      if aClient.clExtra.ceBLOSecureCode <> AdminBankAccount.sbSecure_Online_Code then
+      end
+      else if aClient.clExtra.ceBLOSecureCode <> AdminBankAccount.sbSecure_Online_Code then
       begin
         Msg := 'You cannot attach the selected bank account(s) to the client file ' +
                'because the BankLink Online Secure Codes do not match.  Click OK to ' +
@@ -603,8 +602,6 @@ begin
           AdminBankAccount := AdminSystem.fdSystem_Bank_Account_List.FindCode(aSelectedAccounts.Strings[AccIndex]);
           if Assigned(AdminBankAccount) then
           begin
-            AccountsMsg.Add(AdminBankAccount.sbAccount_Number);
-
             if aDebugMe then
               LogUtil.LogMsg(lmDebug, UnitName, 'Attach Bank Account ' +
                                                 AdminBankAccount.sbAccount_Number +
@@ -648,10 +645,13 @@ begin
                    (aClientID <> '') and
                    (ProductConfigService.IsExportDataEnabledFoAccount(NewBankAccount)) then
                 begin
-                  ProductConfigService.SaveAccountVendorExports(aClientID,
-                                                                NewBankAccount.baFields.baCore_Account_ID,
-                                                                aClientVendors,
-                                                                True);
+                  if ProductConfigService.SaveAccountVendorExports(aClientID,
+                                                                   NewBankAccount.baFields.baCore_Account_ID,
+                                                                   aClientVendors,
+                                                                   True) then
+                  begin
+                    AccountsMsg.Add(NewBankAccount.baFields.baBank_Account_Number);
+                  end;
                 end;
 
                 Insert(NewBankAccount);
@@ -692,6 +692,20 @@ begin
     end  //cycle thru selected items
     else
       HelpfulErrorMsg('Unable to Attach Accounts.  Admin System cannot be loaded',0);
+
+    if (AccountsMsg.Count > 0) and
+       (Assigned(aVendorNames)) then
+    begin
+      Msg := 'You have attached the following bank account(s) to client file ' +
+             aClient.clFields.clName + ' ' + aClient.clFields.clCode + ' : ' +
+             GetCommaSepStrFromList(AccountsMsg) + '. This will enable the export ' +
+             'of data to BankLink Online for ' + GetCommaSepStrFromList(aVendorNames) +
+             '. If you do not want to send transactions to BankLink Online for these ' +
+             'accounts you can deselect them via Other Functions | Bank Accounts.';
+
+      HelpfulInfoMsg(Msg,0);
+    end;
+
   Finally
     FreeAndNil(AccountsMsg);
   End;

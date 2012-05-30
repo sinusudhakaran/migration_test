@@ -55,6 +55,7 @@ type
     SortColA, SortColB : integer;
     fClientVendors : TBloArrayOfGuid;
     fClientID      : TBloGuid;
+    fVendorNames   : TStringList;
 
     procedure RefreshBankAccountList;
     procedure RefreshAdminAccountList;
@@ -65,10 +66,12 @@ type
     function Execute : boolean;
     property ClientID : TBloGuid read fClientID write fClientID;
     property ClientVendors : TBloArrayOfGuid read fClientVendors write fClientVendors;
+    property VendorNames : TStringList read fVendorNames write fVendorNames;
   end;
 
 function AddNewAccountToClient(aClientVendors : TBloArrayOfGuid;
-                               aClientID      : TBloGuid) : boolean;
+                               aClientID      : TBloGuid;
+                               aVendorNames   : TStringList) : boolean;
 
 //******************************************************************************
 implementation
@@ -294,7 +297,7 @@ begin
       end;
     end;
 
-    ClientUtils.AttachAccountsToClient(MyClient, SelectedAccs , fClientVendors, ClientID, DebugMe);
+    ClientUtils.AttachAccountsToClient(MyClient, SelectedAccs, fClientVendors, fVendorNames, ClientID, DebugMe);
   Finally
     FreeAndNil(SelectedAccs);
   End;
@@ -386,7 +389,8 @@ begin
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function AddNewAccountToClient(aClientVendors : TBloArrayOfGuid;
-                               aClientID      : TBloGuid) : boolean;
+                               aClientID      : TBloGuid;
+                               aVendorNames   : TStringList) : boolean;
 var
   MyDlg : TdlgAddNewBank;
 begin
@@ -414,6 +418,7 @@ begin
     begin
       MyDlg.ClientVendors := aClientVendors;
       MyDlg.ClientID      := aClientID;
+      MyDlg.VendorNames   := aVendorNames;
     end;
 
     result := MyDlg.Execute; //returns true if new account added

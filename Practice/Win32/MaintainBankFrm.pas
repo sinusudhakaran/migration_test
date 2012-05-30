@@ -973,33 +973,42 @@ procedure TfrmMaintainBank.actAttachExecute(Sender: TObject);
 var
   ClientVendors : TBloArrayOfGuid;
   VendorIndex : integer;
+  VendorNames : TStringList;
 begin
-  if (CurrUser.CanAccessAdmin) and (not MyClient.clFields.clFile_Read_Only) then
-  begin
-    SetLength(ClientVendors, length(fClientAccVendors.ClientVendors));
-    for VendorIndex := 0 to high(ClientVendors) do
-      ClientVendors[VendorIndex] := fClientAccVendors.ClientVendors[VendorIndex].Id;
-
-    if AddNewAccountToClient(ClientVendors, fClientAccVendors.ClientID) then
+  VendorNames := TStringList.Create;
+  Try
+    if (CurrUser.CanAccessAdmin) and (not MyClient.clFields.clFile_Read_Only) then
     begin
-      UpdateRefNeeded := true;
-      AccountChanged := True;
-      RefreshExportVendors;
-      RefreshBankAccountList;
+      SetLength(ClientVendors, length(fClientAccVendors.ClientVendors));
+      for VendorIndex := 0 to high(ClientVendors) do
+      begin
+        ClientVendors[VendorIndex] := fClientAccVendors.ClientVendors[VendorIndex].Id;
+        VendorNames.Add(fClientAccVendors.ClientVendors[VendorIndex].Name_);
+      end;
 
-      //try to download any new transactions into the client
-      SyncClientToAdmin(MyClient,false);
+      if AddNewAccountToClient(ClientVendors, fClientAccVendors.ClientID, VendorNames) then
+      begin
+        UpdateRefNeeded := true;
+        AccountChanged := True;
+        RefreshExportVendors;
+        RefreshBankAccountList;
 
-      //*** Flag Audit ***
-      MyClient.FClientAuditMgr.FlagAudit(arClientBankAccounts);
-      //Have to save Client file if bank account is provisional so that
-      //transactions cannot be altered before audit.
-      if MyClient.ClientAuditMgr.ProvisionalAccountAttached then begin
-        MyClient.Save;
-        MyClient.ClientAuditMgr.ProvisionalAccountAttached := False;
+        //try to download any new transactions into the client
+        SyncClientToAdmin(MyClient,false);
+
+        //*** Flag Audit ***
+        MyClient.FClientAuditMgr.FlagAudit(arClientBankAccounts);
+        //Have to save Client file if bank account is provisional so that
+        //transactions cannot be altered before audit.
+        if MyClient.ClientAuditMgr.ProvisionalAccountAttached then begin
+          MyClient.Save;
+          MyClient.ClientAuditMgr.ProvisionalAccountAttached := False;
+        end;
       end;
     end;
-  end;
+  Finally
+    FreeAndNil(VendorNames);
+  End;
 end;
 
 //------------------------------------------------------------------------------

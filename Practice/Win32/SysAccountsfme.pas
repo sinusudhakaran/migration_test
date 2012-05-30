@@ -391,9 +391,7 @@ begin
      cot_FirstDate    : Result := bkDate2Str(SysAccount.sbFirst_Available_Date);
      cot_LastDate     : Result := bkDate2str(SysAccount.sbLast_Entry_Date);
      cot_Status       : begin
-                         if SysAccount.sbAccount_Type = sbtOnlineSecure then
-                           Result := 'Online Secure'
-                         else if SysAccount.sbMark_As_Deleted then
+                         if SysAccount.sbMark_As_Deleted then
                             Result := 'Deleted'
                          else if SysAccount.sbInActive then
                             Result := 'Inactive'
@@ -403,7 +401,9 @@ begin
                                else
                                   Result := 'Unattached'
                             end else
-                               if IsOffsite then
+                               if SysAccount.sbAccount_Type = sbtOnlineSecure then
+                                  Result := 'Online Secure'
+                               else if IsOffsite then
                                   Result := 'Secure'
                                else
                                   Result := 'Attached'
@@ -1170,24 +1170,23 @@ var
       procedure StatusGroups;
           function StatusGroup: Integer;
           begin
-             if BankAcct.sbAccount_Type = sbtOnlineSecure then
-               Result := 6 //Online Secure
+             if BankAcct.sbMark_As_Deleted then
+                Result := 5  //Deleted
+             else if BankAcct.sbInActive then
+                Result := 2 //Inactive
              else
-               if BankAcct.sbMark_As_Deleted then
-                  Result := 5  //Deleted
-               else if BankAcct.sbInActive then
-                  Result := 2 //Inactive
-               else
-                  if BankAcct.sbAttach_Required then begin
-                     if BankAcct.sbNew_This_Month then
-                        Result := 0 //New
-                     else
-                        Result := 1; //Unatached
-                  end else
-                     if TestOffsite(BankAcct) then
-                        Result := 4 //Offsite
-                     else
-                        Result := 3;//Local actached
+                if BankAcct.sbAttach_Required then begin
+                   if BankAcct.sbNew_This_Month then
+                      Result := 0 //New
+                   else
+                      Result := 1; //Unatached
+                end else
+                   if BankAcct.sbAccount_Type = sbtOnlineSecure then
+                      Result := 6 //Online Secure
+                   else if TestOffsite(BankAcct) then
+                      Result := 4 //Offsite
+                   else
+                      Result := 3;//Local actached
           end;
 
        begin //StatusGroups
