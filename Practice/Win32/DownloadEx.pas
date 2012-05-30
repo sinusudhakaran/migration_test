@@ -267,16 +267,8 @@ begin
         SystemAccount.sbCost_Code := AccountSource.CostCode;
         SystemAccount.sbFile_Code := AccountSource.FileCode;
 
-        // Update the rest of the details
         SystemAccount.sbCore_Account_ID := StrToIntDef(AccountSource.CoreAccountID, 0);
 
-        SystemAccount.sbCurrent_Balance := StrToFloatDef(AccountSource.CurrentBalance, 0);
-
-        if AccountSource.LastTransactionDate <> '' then
-        begin
-          SystemAccount.sbLast_Entry_Date :=  DateStringToStDate('dd/mm/yy', AccountSource.LastTransactionDate, Epoch);
-        end;
-        
         SystemAccount.sbSecure_Online_Code := AccountSource.SecureCode;
 
         AccountSource.Next;
