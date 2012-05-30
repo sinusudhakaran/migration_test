@@ -75,6 +75,7 @@ type
 //------------------------------------------------------------------------------
 implementation
 {$R *.DFM}
+
 uses
   bkXPThemes,
   bkHelp,
@@ -104,6 +105,7 @@ uses
 
 const
   UnitName = 'ATTACHNEWDLG';
+
 var
   DebugMe : boolean = false;
 
@@ -272,8 +274,12 @@ var
   ClientRec : pClient_File_Rec;
   ToClient : TClientObj;
   i : integer;
-  SelectedAccs : TStringList;
+  VendorIndex : integer;
+  SelectedAccs  : TStringList;
+  VendorNames   : TStringList;
   ClientVendors : TBloArrayOfGuid;
+  ClientExportDataService : TBloDataPlatformSubscription;
+  ClientID                : TBloGuid;
 begin
   ClientRec := pClient_File_Rec(lvFiles.Selected.SubItems.Objects[0]);
   if not Assigned(clientRec) then exit;
@@ -301,6 +307,7 @@ begin
   end;
 
   SelectedAccs := TStringList.Create;
+  VendorNames  := TStringList.Create;
   Try
     for i := 0 to lvBank.items.count -1 do
     begin
@@ -310,8 +317,26 @@ begin
       end;
     end;
 
-    ClientUtils.AttachAccountsToClient(MyClient, SelectedAccs, ClientVendors, nil, '', DebugMe);
+    if ProductConfigService.IsExportDataEnabled then
+    begin
+      if ProductConfigService.GetClientGuid(ToClient.clFields.clCode, ClientID) then
+      begin
+        ClientExportDataService := ProductConfigService.GetClientVendorExports(ClientID);
+        if Assigned(ClientExportDataService) then
+        begin
+          SetLength(ClientVendors, length(ClientExportDataService.Current));
+          for VendorIndex := 0 to high(ClientVendors) do
+          begin
+            ClientVendors[VendorIndex] := ClientExportDataService.Current[VendorIndex].Id;
+            VendorNames.Add(ClientExportDataService.Current[VendorIndex].Name_);
+          end;
+        end;
+      end;
+    end;
+
+    ClientUtils.AttachAccountsToClient(ToClient, SelectedAccs, ClientVendors, VendorNames, ClientID, DebugMe);
   Finally
+    FreeAndNil(VendorNames);
     FreeAndNil(SelectedAccs);
   End;
 
@@ -385,7 +410,6 @@ begin
   RefreshLists;
   ReselectAndScroll(lvBank, PrevBankSelectedIndex, PrevBankTopItemIndex);
   ReselectAndScroll(lvFiles, PrevFilesSelectedIndex, PrevFilesTopItemIndex);
-
 end;
 
 //------------------------------------------------------------------------------

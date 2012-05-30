@@ -674,7 +674,8 @@ begin
     HelpfulErrorMsg('Unable to Delete Bank Account.  Admin System cannot be loaded',0);
 
   if (Result) and
-     (IsExportDataEnabledFoAccount) then
+     (IsExportDataEnabledFoAccount) and
+     (fClientAccVendors.ClientID <> '') then
   begin
     if fRemoveVendorsFromClient then
     begin

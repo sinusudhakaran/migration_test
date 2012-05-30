@@ -297,7 +297,7 @@ begin
       end;
     end;
 
-    ClientUtils.AttachAccountsToClient(MyClient, SelectedAccs, fClientVendors, fVendorNames, ClientID, DebugMe);
+    ClientUtils.AttachAccountsToClient(MyClient, SelectedAccs, fClientVendors, fVendorNames, fClientID, DebugMe);
   Finally
     FreeAndNil(SelectedAccs);
   End;

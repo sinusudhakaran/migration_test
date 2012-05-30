@@ -670,7 +670,7 @@ begin
                   end;
                 end;
               end;
-            end; //with MyClient...
+            end;
           end
           else
             //couldn't find it, might as well continue on
@@ -678,18 +678,18 @@ begin
                                            aSelectedAccounts.Strings[AccIndex] +
                                            ' no longer found in Admin System.  Account will be skipped.');
         end; {if selected}
+      end; {Cycle through Accounts}
 
-        if ChangedAdmin then
-        begin
-          //*** Flag Audit ***
-          SystemAuditMgr.FlagAudit(arAttachBankAccounts);
+      if ChangedAdmin then
+      begin
+        //*** Flag Audit ***
+        SystemAuditMgr.FlagAudit(arAttachBankAccounts);
 
-          SaveAdminSystem;
-        end
-        else
-          UnlockAdmin;  //no changes made
-      end;
-    end  //cycle thru selected items
+        SaveAdminSystem;
+      end
+      else
+        UnlockAdmin;  //no changes made
+    end
     else
       HelpfulErrorMsg('Unable to Attach Accounts.  Admin System cannot be loaded',0);
 
