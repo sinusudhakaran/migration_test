@@ -111,6 +111,8 @@ var
   TransactionIndex: Integer;
   Transaction: pTransaction_Rec;
   TransactionNode: IXMLNode;
+  Dissection: pDissection_Rec;
+  DissectionNode: IXMLNode;
 begin
   Result := 0;
 
@@ -124,8 +126,17 @@ begin
         TransactionNode := Transaction.WriteRecToNode(ParentNode);
 
         CleanXML(TransactionNode);
-        
-        Transaction.txTransfered_To_Online := True;
+
+        Dissection := Transaction.txFirst_Dissection;
+
+        while Dissection <> nil do
+        begin
+          DissectionNode := Dissection.WriteRecToNode(TransactionNode);
+
+          CleanXML(DissectionNode);
+
+          Dissection := Dissection.dsNext;
+        end;
 
         Inc(Result);
       end;
