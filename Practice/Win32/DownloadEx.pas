@@ -287,7 +287,7 @@ begin
   end;
 end;
 
-procedure ProcessOnlineSecureAccountsFiles(out ErrorsOccurred: Boolean);
+procedure ProcessOnlineSecureAccountsFiles(const FilePath: String; out ErrorsOccurred: Boolean);
 const
   ThisMethodName = 'ProcessOnlineSecureAccountsFiles';
 
@@ -297,14 +297,14 @@ var
 begin
   ErrorsOccurred := False;
   
-  if SysUtils.FindFirst(AppendFileNameToPath(DownloadInboxDir, '*.csv'), faAnyFile, SearchRec) = 0 then
+  if SysUtils.FindFirst(AppendFileNameToPath(FilePath, '*.csv'), faAnyFile, SearchRec) = 0 then
   begin
     try
       repeat
         if CompareText(Copy(SearchRec.Name, 0, Length('OnlineAccounts_')), 'OnlineAccounts_') = 0 then
         begin
           try
-            SourceFile := AppendFileNameToPath(DownloadInboxDir, SearchRec.Name);
+            SourceFile := AppendFileNameToPath(FilePath, SearchRec.Name);
 
             if LoadAdminSystem(True, ThisMethodName) then
             begin
@@ -425,14 +425,9 @@ begin //ProcessDiskImages
 
     if (NumDisksToProcess < 1) and (StartupParam_Action <> sa_Connect) then
     begin
-      ProcessOnlineSecureAccountsFiles(OnlineSecureAccountsErrors);
+      ProcessOnlineSecureAccountsFiles(Globals.DownloadWorkDir, OnlineSecureAccountsErrors);
 
       ProcessChargesFiles;// Still want to try this...
-
-      if OnlineSecureAccountsErrors then
-      begin
-        HelpfulWarningMsg('One or more errors occured while importing online secure account files.  See the system log for more information.', 0);
-      end;
 
       HelpfulInfoMsg('There are no files to process.', 0);
 
@@ -1005,7 +1000,7 @@ begin //ProcessDiskImages
 
       UpdateAppStatus( 'Process Charges', '', 95, ProcessMessages_On);
 
-      ProcessOnlineSecureAccountsFiles(OnlineSecureAccountsErrors);
+      ProcessOnlineSecureAccountsFiles(Globals.DownloadWorkDir, OnlineSecureAccountsErrors);
 
       ProcessChargesFiles;
 
