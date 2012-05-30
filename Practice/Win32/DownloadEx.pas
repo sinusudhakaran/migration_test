@@ -257,10 +257,11 @@ begin
         begin
           SystemAccount := AdminSystem.NewSystemAccount(AccountSource.AccountNo, False);
           SystemAccount.sbAccount_Name  := AccountSource.AccountName;
+          SystemAccount.sbAttach_Required := True;
         end;
 
         SystemAccount.sbAccount_Type := sbtOnlineSecure;
-        SystemAccount.sbAttach_Required := True;
+
         SystemAccount.sbWas_On_Latest_Disk := true;
 
         SystemAccount.sbCost_Code := AccountSource.CostCode;
