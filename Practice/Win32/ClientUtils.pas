@@ -36,7 +36,8 @@ procedure AttachAccountsToClient(aClient           : TClientObj;
                                  aClientVendors    : TBloArrayOfGuid;
                                  aVendorNames      : TStringList;
                                  aClientID         : TBloGuid;
-                                 aDebugMe          : Boolean);
+                                 aDebugMe          : Boolean;
+                                 aClientAccScreen  : Boolean);
 
 const
   UnitName = 'ClientUtils';
@@ -525,7 +526,8 @@ procedure AttachAccountsToClient(aClient           : TClientObj;
                                  aClientVendors    : TBloArrayOfGuid;
                                  aVendorNames      : TStringList;
                                  aClientID         : TBloGuid;
-                                 aDebugMe          : Boolean);
+                                 aDebugMe          : Boolean;
+                                 aClientAccScreen  : Boolean);
 const
   ThisMethodName = 'ClientUtils.AttachAccountsToClient';
 var
@@ -570,8 +572,11 @@ begin
               (aClient.clExtra.ceBLOSecureCode = '') then
       begin
         Msg := 'You cannot attach this bank account to the selected client file ' +
-               'because the client file does not have a BankLink Online Secure Code. ' +
-               'Click OK to return and select a different account or client file. ';
+               'because the client file does not have a BankLink Online Secure Code.';
+
+        if not aClientAccScreen then
+           Msg := Msg + ' Click OK to return and select a different account or client file.';
+
         HelpfulErrorMsg( Msg, 0 );
         AccountOK := false;
       end
@@ -579,8 +584,11 @@ begin
               (uppercase(aClient.clExtra.ceBLOSecureCode) <> uppercase(AdminBankAccount.sbSecure_Online_Code)) then
       begin
         Msg := 'You cannot attach the selected bank account(s) to the client file ' +
-               'because the BankLink Online Secure Codes do not match.  Click OK to ' +
-               'return and select a different account or client file. ';
+               'because the BankLink Online Secure Codes do not match.';
+
+        if not aClientAccScreen then
+           Msg := Msg + ' Click OK to return and select a different account or client file.';
+
         HelpfulErrorMsg( Msg, 0 );
         AccountOK := false;
       end;

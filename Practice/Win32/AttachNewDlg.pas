@@ -334,7 +334,7 @@ begin
       end;
     end;
 
-    ClientUtils.AttachAccountsToClient(ToClient, SelectedAccs, ClientVendors, VendorNames, ClientID, DebugMe);
+    ClientUtils.AttachAccountsToClient(ToClient, SelectedAccs, ClientVendors, VendorNames, ClientID, DebugMe, False);
   Finally
     FreeAndNil(VendorNames);
     FreeAndNil(SelectedAccs);
