@@ -1973,8 +1973,9 @@ begin
         end;
       end;
 
-      if CurrUser.Code = User.usCode then
-        CurrUser.AllowBanklinkOnline := User.usAllow_Banklink_Online;
+      if Assigned(CurrUser) and Assigned(User) then      
+        if CurrUser.Code = User.usCode then
+          CurrUser.AllowBanklinkOnline := User.usAllow_Banklink_Online;
     end;
   end;
 end;

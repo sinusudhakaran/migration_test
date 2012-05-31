@@ -817,7 +817,8 @@ begin
 
          ProductConfigService.UpdateUserAllowOnlineSetting;
 
-         RefreshUserControls;
+         if Assigned(CurrUser) then
+           RefreshUserControls;
        end;
      end else if ClientFileOpen then begin
        actSendToFile.Enabled := (MyClient.clExtra.ceFile_Transfer_Method <> ftmOnline);

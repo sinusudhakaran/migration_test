@@ -3932,7 +3932,7 @@ end;
 procedure TfrmMain.RefreshUserControls;
 begin
   mniChangePassword.Visible := (CurrUser.AllowBanklinkOnline
-                           and FAdminSystemFound);
+                               and FAdminSystemFound);
 end;
 procedure TfrmMain.ReloadCustomLogo;
 //loads the correct logo, or makes it invisible
@@ -3957,6 +3957,8 @@ begin
 
   if Assigned( AdminSystem) then begin
     //Display the custom practice logo if user option is on
+    if not Assigned(CurrUser) then
+      Exit;
     if CurrUser.ShowPracticeLogo  then begin
       ShowCustomLogo := LoadCustomLogoFromFile( AdminSystem.fdFields.fdPractice_Logo_Filename);
       if ShowCustomLogo then begin
