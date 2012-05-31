@@ -267,6 +267,7 @@ object frmBanklinkOnlineSettings: TfrmBanklinkOnlineSettings
       Top = 132
       Width = 240
       Height = 21
+      CharCase = ecUpperCase
       TabOrder = 2
       Visible = False
     end

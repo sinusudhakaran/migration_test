@@ -576,7 +576,7 @@ begin
         AccountOK := false;
       end
       else if (AdminBankAccount^.sbAccount_Type = sbtOnlineSecure) and
-              (aClient.clExtra.ceBLOSecureCode <> AdminBankAccount.sbSecure_Online_Code) then
+              (uppercase(aClient.clExtra.ceBLOSecureCode) <> uppercase(AdminBankAccount.sbSecure_Online_Code)) then
       begin
         Msg := 'You cannot attach the selected bank account(s) to the client file ' +
                'because the BankLink Online Secure Codes do not match.  Click OK to ' +
