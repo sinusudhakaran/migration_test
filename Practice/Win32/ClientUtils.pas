@@ -566,7 +566,8 @@ begin
         HelpfulErrorMsg( Msg, 0 );
         AccountOK := false;
       end
-      else if aClient.clExtra.ceBLOSecureCode = '' then
+      else if (AdminBankAccount^.sbAccount_Type = sbtOnlineSecure) and
+              (aClient.clExtra.ceBLOSecureCode = '') then
       begin
         Msg := 'You cannot attach this bank account to the selected client file ' +
                'because the client file does not have a BankLink Online Secure Code. ' +
@@ -574,7 +575,8 @@ begin
         HelpfulErrorMsg( Msg, 0 );
         AccountOK := false;
       end
-      else if aClient.clExtra.ceBLOSecureCode <> AdminBankAccount.sbSecure_Online_Code then
+      else if (AdminBankAccount^.sbAccount_Type = sbtOnlineSecure) and
+              (aClient.clExtra.ceBLOSecureCode <> AdminBankAccount.sbSecure_Online_Code) then
       begin
         Msg := 'You cannot attach the selected bank account(s) to the client file ' +
                'because the BankLink Online Secure Codes do not match.  Click OK to ' +
