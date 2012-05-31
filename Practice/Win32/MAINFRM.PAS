@@ -2440,6 +2440,8 @@ begin
     end;
     UpdateMenus;
   end;
+
+  RefreshHomepage([HPR_Files]);
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmMain.mniOFClientDetailsClick(Sender: TObject);
