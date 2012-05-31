@@ -997,9 +997,7 @@ begin
               end;
 
          dlAdminSystem : if Assigned(AdminSystem) then
-              if (not FtheClient.clFields.clSuppress_Check_for_New_TXns)
-              and (FtheClient.clFields.clMagic_Number = AdminSystem.fdFields.fdMagic_Number)
-              and NewDataAvailable(FtheClient) then
+              if (not FtheClient.clFields.clSuppress_Check_for_New_TXns) and (FtheClient.clFields.clMagic_Number = AdminSystem.fdFields.fdMagic_Number) and NewDataAvailable(FtheClient) and not FTheClient.clExtra.ceDeliverDataDirectToBLO then
               begin { There is new data available }
 //                If FtheClient.HasForeignCurrencyAccounts then
 //                Begin
@@ -1031,10 +1029,12 @@ begin
                 acUpdate.Caption := 'There are new transactions available';
                 acUpdate.Visible := True;
 //                End;
-              end else begin
+              end
+              else
+              begin
                  acUpdate.Visible := False;
               end
-             else // No Admin ??
+              else // No Admin ??
                  acUpdate.Visible := False;
          else //Case.. What then...
              acUpdate.Visible := False;
