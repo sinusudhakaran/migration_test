@@ -255,11 +255,10 @@ begin
 
         if not Assigned(SystemAccount) then
         begin
-          SystemAccount := AdminSystem.NewSystemAccount(AccountSource.AccountNo, False);
+          SystemAccount := AdminSystem.NewSystemAccount(AccountSource.AccountNo, True);
           SystemAccount.sbAccount_Name  := AccountSource.AccountName;
-          SystemAccount.sbAttach_Required := True;
         end;
-
+        
         SystemAccount.sbAccount_Type := sbtOnlineSecure;
 
         SystemAccount.sbWas_On_Latest_Disk := true;
