@@ -616,7 +616,7 @@ begin
                      if ftNode[0] and (not ftNode[1]) then
                         LInclude.Nodes[safsTopPassword] := LInclude.Nodes[safsTopPassword] +  [saPassword];
                   end;
-                safsTopDeliver: if I = 3 then begin
+                safsTopDeliver: if I = 4 then begin
                      if ftNode[0] and (not ftNode[1]) then
                         LInclude.NotNodes[safsTopDeliver] := (LInclude.NotNodes[safsTopDeliver] + [saSecure] + [saOnlineSecure]);
                      if ftNode[1] and (not ftNode[0]) then
