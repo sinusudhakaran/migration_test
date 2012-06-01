@@ -1334,7 +1334,7 @@ begin
 
       cbPrimaryContact.SetFocus;
       
-      HelpfulWarningMsg('You must specify a primary contact before saving.', 0);
+      HelpfulWarningMsg('A primary contact is required for the practice. Please try again', 0);
 
       Exit;
     end;
