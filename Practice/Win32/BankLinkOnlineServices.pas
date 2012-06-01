@@ -1430,7 +1430,6 @@ var
   ErrorMessage: string;
   ErrIndex : integer;
   Details: TStringList;
-  UserDetails: TStringList;
 
   //-------------------------------------------------------------
   procedure AddLine(const aName: string; const aMessage: string);
@@ -1469,26 +1468,9 @@ begin
           AddLine('StackTrace', AMesageresponse.Exceptions[ErrIndex].StackTrace);
         end;
 
-        UserDetails := TStringList.Create;
+        HelpfulErrorMsg(ErrorMessage, 0, False, Details.Text, not SimpleError);
 
-        try
-          for ErrIndex := 0 to high(AMesageresponse.ErrorMessages) do
-          begin
-            if UserDetails.Count > 0 then
-            begin
-              UserDetails.add('');
-            end;
-            
-            UserDetails.Add('Code: ' + AMesageresponse.ErrorMessages[ErrIndex].ErrorCode);
-            UserDetails.Add('Message: ' + AMesageresponse.ErrorMessages[ErrIndex].Message_);
-          end;
-
-          HelpfulErrorMsg(ErrorMessage, 0, False, Details.Text, not SimpleError);
-
-          LogUtil.LogMsg(lmError,'ERRORMOREFRM',Details.Text);
-        finally
-          UserDetails.Free;
-        end;
+        LogUtil.LogMsg(lmError,'ERRORMOREFRM',Details.Text);
       finally
         Details.Free;
       end;
