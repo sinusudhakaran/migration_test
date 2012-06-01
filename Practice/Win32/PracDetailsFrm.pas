@@ -1328,6 +1328,17 @@ begin
       end;
     end;
 
+    if cbPrimaryContact.ItemIndex < 0 then
+    begin
+      PageControl1.ActivePage := tsBankLinkOnline;
+
+      cbPrimaryContact.SetFocus;
+      
+      HelpfulWarningMsg('You must specify a primary contact before saving.', 0);
+
+      Exit;
+    end;
+
     NewProducts := TStringList.Create;
 
     try
