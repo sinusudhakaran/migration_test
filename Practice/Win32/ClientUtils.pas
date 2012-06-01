@@ -710,7 +710,7 @@ begin
              aClient.clFields.clName + ' ' + aClient.clFields.clCode + ' : ' +
              GetCommaSepStrFromList(AccountsMsg) + '. This will enable the export ' +
              'of data to BankLink Online for ' + GetCommaSepStrFromList(aVendorNames) +
-             '. If you do not want to send transactions to BankLink Online for these ' +
+             '. ' + #10#10 + 'If you do not want to send transactions to BankLink Online for these ' +
              'accounts you can deselect them via Other Functions | Bank Accounts.';
 
       HelpfulInfoMsg(Msg,0);
