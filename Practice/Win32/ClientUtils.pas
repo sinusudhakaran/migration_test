@@ -540,64 +540,132 @@ var
   pM: pClient_Account_Map_Rec;
   pF: pClient_File_Rec;
   AccountsMsg : TStringList;
+  AlreadyAttachedList, NoBLOSecureCodeList, BLOCodeDoesNotMatchList,
+  AttachedSuccessfullyList: TStringList;
+  i: integer;
 begin
   ChangedAdmin := false;
 
-  //first check for passwords needed or if already added
-  for AccIndex := 0 to aSelectedAccounts.Count-1 do
-  begin
-    AccountOK := true;
-
-    AdminBankAccount := AdminSystem.fdSystem_Bank_Account_List.FindCode(aSelectedAccounts.Strings[AccIndex]);
-    if Assigned(AdminBankAccount) then
+  try
+    //first check for passwords needed or if already added
+    for AccIndex := 0 to aSelectedAccounts.Count-1 do
     begin
-      //check to see if a password is required
-      if AdminBankAccount^.sbAccount_Password <> '' then
+      AccountOK := true;
+
+      AdminBankAccount := AdminSystem.fdSystem_Bank_Account_List.FindCode(aSelectedAccounts.Strings[AccIndex]);
+      if Assigned(AdminBankAccount) then
       begin
-        if not EnterPassword('Attach Account '+AdminBankAccount^.sbAccount_Number,
-          AdminBankAccount^.sbAccount_Password,0,false,true) then
+        //check to see if a password is required
+        if AdminBankAccount^.sbAccount_Password <> '' then
         begin
-          HelpfulErrorMsg('Invalid Password.  Permission to attach this account is denied.',0);
+          if not EnterPassword('Attach Account '+AdminBankAccount^.sbAccount_Number,
+            AdminBankAccount^.sbAccount_Password,0,false,true) then
+          begin
+            HelpfulErrorMsg('Invalid Password.  Permission to attach this account is denied.',0);
+            AccountOK := false;
+          end;
+        end
+        else if ( aClient.clBank_Account_List.FindCode( AdminBankAccount^.sbAccount_Number ) <> nil ) then
+        begin
+          {
+          Msg := Format( 'BankAccount %s is already attached to this Client',
+                         [ AdminBankAccount^.sbAccount_Number ] );
+          HelpfulErrorMsg( Msg, 0 );
+          }
+          if not Assigned(AlreadyAttachedList) then
+            AlreadyAttachedList := TStringList.Create;
+          AlreadyAttachedList.Add(AdminBankAccount^.sbAccount_Number);
+          AccountOK := false;
+        end
+        else if (AdminBankAccount^.sbAccount_Type = sbtOnlineSecure) and
+                (aClient.clExtra.ceBLOSecureCode = '') then
+        begin
+          {
+          Msg := 'You cannot attach this bank account to the selected client file ' +
+                 'because the client file does not have a BankLink Online Secure Code.';
+
+          if not aClientAccScreen then
+             Msg := Msg + ' Click OK to return and select a different account or client file.';
+
+          HelpfulErrorMsg( Msg, 0 );
+          }
+          if not Assigned(NoBLOSecureCodeList) then
+            NoBLOSecureCodeList := TStringList.Create;
+          NoBLOSecureCodeList.Add(AdminBankAccount^.sbAccount_Number);
+          AccountOK := false;
+        end
+        else if (AdminBankAccount^.sbAccount_Type = sbtOnlineSecure) and
+                (uppercase(aClient.clExtra.ceBLOSecureCode) <> uppercase(AdminBankAccount.sbSecure_Online_Code)) then
+        begin
+          {
+          Msg := 'You cannot attach the selected bank account(s) to the client file ' +
+                 'because the BankLink Online Secure Codes do not match.';
+
+          if not aClientAccScreen then
+             Msg := Msg + ' Click OK to return and select a different account or client file.';
+          HelpfulErrorMsg( Msg, 0 );
+          }
+          if not Assigned(BLOCodeDoesNotMatchList) then
+            BLOCodeDoesNotMatchList := TStringList.Create;
+          BLOCodeDoesNotMatchList.Add(AdminBankAccount^.sbAccount_Number);
           AccountOK := false;
         end;
       end
-      else if ( aClient.clBank_Account_List.FindCode( AdminBankAccount^.sbAccount_Number ) <> nil ) then
-      begin
-        Msg := Format( 'BankAccount %s is already attached to this Client',
-                       [ AdminBankAccount^.sbAccount_Number ] );
-        HelpfulErrorMsg( Msg, 0 );
-        AccountOK := false;
-      end
-      else if (AdminBankAccount^.sbAccount_Type = sbtOnlineSecure) and
-              (aClient.clExtra.ceBLOSecureCode = '') then
-      begin
-        Msg := 'You cannot attach this bank account to the selected client file ' +
-               'because the client file does not have a BankLink Online Secure Code.';
+      else
+        AccountOK := false; //could not be found
 
-        if not aClientAccScreen then
-           Msg := Msg + ' Click OK to return and select a different account or client file.';
+      if not AccountOK then
+        aSelectedAccounts.Strings[AccIndex] := '';
+    end;
 
-        HelpfulErrorMsg( Msg, 0 );
-        AccountOK := false;
-      end
-      else if (AdminBankAccount^.sbAccount_Type = sbtOnlineSecure) and
-              (uppercase(aClient.clExtra.ceBLOSecureCode) <> uppercase(AdminBankAccount.sbSecure_Online_Code)) then
-      begin
-        Msg := 'You cannot attach the selected bank account(s) to the client file ' +
-               'because the BankLink Online Secure Codes do not match.';
+    Msg := '';
+    if Assigned(AlreadyAttachedList) then
+    begin
+      Msg := 'The following bank accounts are already attached to the client:' + #10;
+      for i := 0 to AlreadyAttachedList.Count - 1 do
+        Msg := Msg + AlreadyAttachedList.Strings[i] + #10;
+      Msg := Msg + #10;
+    end;
 
-        if not aClientAccScreen then
-           Msg := Msg + ' Click OK to return and select a different account or client file.';
+    if Assigned(NoBLOSecureCodeList) then
+    begin
+      Msg := Msg + 'The following bank accounts cannot be attached to the selected ' +
+             'client file because the client file does not have a BankLink Online ' +
+             'Secure Code:' + #10;
+      for i := 0 to NoBLOSecureCodeList.Count - 1 do
+        Msg := Msg + NoBLOSecureCodeList.Strings[i] + #10;
+      Msg := Msg + #10;
+    end;
 
-        HelpfulErrorMsg( Msg, 0 );
-        AccountOK := false;
-      end;
-    end
-    else
-      AccountOK := false; //could not be found
+    if Assigned(BLOCodeDoesNotMatchList) then
+    begin
+      Msg := Msg + 'The following bank accounts cannot be attached to the selected ' +
+             'client file because the BankLink Online Secure Codes do not match: ' + #10;
+      for i := 0 to BLOCodeDoesNotMatchList.Count - 1 do
+        Msg := Msg + BLOCodeDoesNotMatchList.Strings[i] + #10;
+      Msg := Msg + #10;
+    end;
 
-    if not AccountOK then
-      aSelectedAccounts.Strings[AccIndex] := '';
+    if Assigned(AttachedSuccessfullyList) then
+    begin
+      Msg := Msg + 'The following bank accounts were successfully attached:' + #10;
+      for i := 0 to AttachedSuccessfullyList.Count - 1 do
+        Msg := Msg + AttachedSuccessfullyList.Strings[i] + #10;
+      Msg := Msg + #10;
+    end;
+
+    Msg := Trim(Msg);
+    HelpfulErrorMsg( Msg, 0 );
+    
+  finally
+    if Assigned(AlreadyAttachedList) then    
+      FreeAndNil(AlreadyAttachedList);
+    if Assigned(NoBLOSecureCodeList) then
+      FreeAndNil(NoBLOSecureCodeList);
+    if Assigned(BLOCodeDoesNotMatchList) then
+      FreeAndNil(BLOCodeDoesNotMatchList);
+    if Assigned(AttachedSuccessfullyList) then
+      FreeAndNil(AttachedSuccessfullyList);
   end;
 
   //accounts verified, now attach them
