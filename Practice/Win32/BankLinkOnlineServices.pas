@@ -416,8 +416,7 @@ uses
   IntfInfo,
   ObjAuto,
   SyDefs,
-  Globals,
-  BankLinkOnlineUserErrors;
+  Globals;
 
 const
   UNIT_NAME = 'BankLinkOnlineServices';
