@@ -156,6 +156,9 @@ type
                                var aNameList : TArrVarTypeData);
     procedure DoBeforeExecute(const MethodName: string;
                               var SOAPRequest: InvString);
+
+    procedure CreateXMLError(Document: IXMLDocument; const MethodName, ErrorCode, ErrorMessage: String);
+
     procedure SetTimeOuts(ConnecTimeout : DWord ;
                           SendTimeout   : DWord ;
                           ReciveTimeout : DWord);
@@ -413,7 +416,8 @@ uses
   IntfInfo,
   ObjAuto,
   SyDefs,
-  Globals;
+  Globals,
+  BankLinkOnlineUserErrors;
 
 const
   UNIT_NAME = 'BankLinkOnlineServices';
@@ -787,8 +791,12 @@ begin
       end;
     end;
   except
-    on E:Exception do HelpfulErrorMsg('Error creating a new client on ' +
-                                      BANKLINK_ONLINE_NAME + ': ' + E.Message, 0);
+    on E:Exception do
+    begin
+      HelpfulErrorMsg(BKPRACTICENAME + ' is unable to create a new client on ' + BANKLINK_ONLINE_NAME + '. Please contact BankLink Support for assistance.', 0);
+
+      LogUtil.LogMsg(lmError, UNIT_NAME, 'Exception running CreateNewClient, Error Message : ' + E.Message);
+    end;
   end;
 end;
 
@@ -810,7 +818,8 @@ begin
     on E : Exception do
     begin
       LogUtil.LogMsg(lmError, UNIT_NAME, 'Exception running CreateNewClientUser, Error Message : ' + E.Message);
-      raise Exception.Create(BKPRACTICENAME + ' was unable to create user ' + NewUser.FullName + '.' + #13#13 + E.Message );
+      
+      raise Exception.Create(BKPRACTICENAME + ' is unable to create a new user ' + BANKLINK_ONLINE_NAME + '. Please contact BankLink Support for assistance.');
     end;
   end;
 
@@ -905,7 +914,12 @@ begin
       end;
     end;
   except
-    on E:Exception do HelpfulErrorMsg('Error getting the iBizz subscriber credentials: ' + E.Message, 0);
+    on E:Exception do
+    begin
+      HelpfulErrorMsg(BKPRACTICENAME + ' is unable to get the iBizz subscriber credentials from ' + BANKLINK_ONLINE_NAME + '. Please contact BankLink Support for assistance.', 0);
+
+      LogUtil.LogMsg(lmError, UNIT_NAME, 'Exception running GetIBizzCredentials, Error Message : ' + E.Message);
+    end;
   end;
 end;
 
@@ -1022,7 +1036,12 @@ begin
       end;
     end;
   except
-    on E:Exception do HelpfulErrorMsg('Error getting client settings: ' + E.Message, 0);
+    on E:Exception do
+    begin
+      HelpfulErrorMsg(BKPRACTICENAME + ' is unable to get the client settings from ' + BANKLINK_ONLINE_NAME + '. Please contact BankLink Support for assistance.', 0);
+
+      LogUtil.LogMsg(lmError, UNIT_NAME, 'Exception running GetClientDetailsWithGuid, Error Message : ' + E.Message);
+    end;
   end;
 end;
 
@@ -1127,7 +1146,9 @@ begin
   except
     on E:Exception do
     begin
-      HelpfulErrorMsg('Error looking up the client from ' + BANKLINK_ONLINE_NAME + '.', 0, True, E.Message, True);
+      HelpfulErrorMsg(BKPRACTICENAME + ' is unable to get the client from ' + BANKLINK_ONLINE_NAME + '. Please contact BankLink Support for assistance.', 0);
+
+      LogUtil.LogMsg(lmError, UNIT_NAME, 'Exception running GetClientGuid, Error Message : ' + E.Message);
     end;
   end;
 end;
@@ -1277,9 +1298,11 @@ begin
           Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finished', 100);
       except
         on E: Exception do
-          HelpfulErrorMsg(BKPRACTICENAME + ' is unable to connect to ' + BANKLINK_ONLINE_NAME + '.',
-                          0, True, E.Message, True);
+        begin
+          HelpfulErrorMsg(BKPRACTICENAME + ' is unable to connect to ' + BANKLINK_ONLINE_NAME + '.  Please contact BankLink Support for assistance.', 0);
 
+          LogUtil.LogMsg(lmError, UNIT_NAME, 'Exception running GetPractice, Error Message : ' + E.Message);
+        end;
       end;
     finally
       if ShowProgress then
@@ -1353,9 +1376,11 @@ begin
       end;
     end;
   except
-    on E:Exception do begin
-      HelpfulErrorMsg('Error getting client list from ' + BANKLINK_ONLINE_NAME + '.',
-                      0, True, E.Message, True);
+    on E:Exception do
+    begin
+      HelpfulErrorMsg(BKPRACTICENAME + ' is unable to get the client list from ' + BANKLINK_ONLINE_NAME + '. Please contact BankLink Support for assistance.', 0);
+      
+      LogUtil.LogMsg(lmError, UNIT_NAME, 'Exception running LoadClientList, Error Message : ' + E.Message);
     end;
   end;
 end;
@@ -1402,6 +1427,7 @@ var
   ErrorMessage: string;
   ErrIndex : integer;
   Details: TStringList;
+  UserDetails: TStringList;
 
   //-------------------------------------------------------------
   procedure AddLine(const aName: string; const aMessage: string);
@@ -1415,6 +1441,8 @@ var
     end;
   end;
 
+var
+  UserMessage: String;
 begin
   Result := False;
   if Assigned(AMesageresponse) then
@@ -1426,18 +1454,36 @@ begin
       ErrorMessage := Format(MAIN_ERROR_MESSAGE, [ErrorText]);
       Details := TStringList.Create;
       try
-        for ErrIndex := 0 to high(AMesageresponse.ErrorMessages) do
-        begin
-          AddLine('Code', AMesageresponse.ErrorMessages[ErrIndex].ErrorCode);
-          AddLine('Message', AMesageresponse.ErrorMessages[ErrIndex].Message_);
+        UserDetails := TStringList.Create;
+
+        try
+          for ErrIndex := 0 to high(AMesageresponse.ErrorMessages) do
+          begin
+            AddLine('Code', AMesageresponse.ErrorMessages[ErrIndex].ErrorCode);
+            AddLine('Message', AMesageresponse.ErrorMessages[ErrIndex].Message_);
+
+            if GetUserErrorMessage(AMesageresponse.ErrorMessages[ErrIndex].ErrorCode, ecSavePractice, UserMessage) then
+            begin
+              UserDetails.Add(UserMessage);
+            end
+            else
+            begin
+              UserDetails.Add(AMesageresponse.ErrorMessages[ErrIndex].Message_);
+            end;
+          end;
+          for ErrIndex := 0 to high(AMesageresponse.Exceptions) do
+          begin
+            AddLine('Message', AMesageresponse.Exceptions[ErrIndex].Message_);
+            AddLine('Source', AMesageresponse.Exceptions[ErrIndex].Source);
+            AddLine('StackTrace', AMesageresponse.Exceptions[ErrIndex].StackTrace);
+          end;
+
+          HelpfulErrorMsg(ErrorMessage, 0, False, UserDetails.Text, not SimpleError);
+
+          LogUtil.LogMsg(lmError,'ERRORMOREFRM',Details.Text);
+        finally
+          UserDetails.Free;
         end;
-        for ErrIndex := 0 to high(AMesageresponse.Exceptions) do
-        begin
-          AddLine('Message', AMesageresponse.Exceptions[ErrIndex].Message_);
-          AddLine('Source', AMesageresponse.Exceptions[ErrIndex].Source);
-          AddLine('StackTrace', AMesageresponse.Exceptions[ErrIndex].StackTrace);
-        end;
-        HelpfulErrorMsg(ErrorMessage, 0, True, Details.Text, not SimpleError);
       finally
         Details.Free;
       end;
@@ -1543,7 +1589,12 @@ begin
       end;
     end;
   except
-    on E:Exception do HelpfulErrorMsg('Error getting the vendor subscribers: ' + E.Message, 0);
+    on E:Exception do
+    begin
+      HelpfulErrorMsg(BKPRACTICENAME + ' is unable to get the vendor export subscribers from ' + BANKLINK_ONLINE_NAME + '. Please contact BankLink Support for assistance.', 0);
+
+      LogUtil.LogMsg(lmError, UNIT_NAME, 'Exception running GetVendorExportClientCount, Error Message : ' + E.Message);
+    end;
   end;
 end;
 
@@ -1783,14 +1834,17 @@ begin
   except
     on E:Exception do
     begin
-      HelpfulErrorMsg('Error getting service agreement from ' + BANKLINK_ONLINE_NAME + '.', 0, True, E.Message, True);
+      HelpfulErrorMsg(BKPRACTICENAME + ' is unable to authenticate the user on ' + BANKLINK_ONLINE_NAME + '. Please contact BankLink Support for assistance.', 0);
 
+      LogUtil.LogMsg(lmError, UNIT_NAME, 'Exception running AuthenticatePracticeUser, Error Message : ' + E.Message);
+      
       Result := paError;
     end;
   end;
 end;
 
 //------------------------------------------------------------------------------
+
 procedure TProductConfigService.DoBeforeExecute(const MethodName: string;
                                                 var SOAPRequest: InvString);
 var
@@ -1883,9 +1937,11 @@ begin
       end;
     end;
   except
-    on E:Exception do begin
-      HelpfulErrorMsg('Error getting service agreement from ' + BANKLINK_ONLINE_NAME + '.',
-                      0, True, E.Message, True);
+    on E:Exception do
+    begin
+      HelpfulErrorMsg(BKPRACTICENAME + ' is unable to get the service agreement from ' + BANKLINK_ONLINE_NAME + '. Please contact BankLink Support for assistance.', 0);
+
+      LogUtil.LogMsg(lmError, UNIT_NAME, 'Exception running GetServiceAgreement, Error Message : ' + E.Message);
     end;
   end;
 end;
@@ -2146,7 +2202,12 @@ begin
                                          XMLStr);
     Result := XMLDoc.XML.Text;
   except
-    on E:Exception do HelpfulErrorMsg('Error converting remotable object to text: ' + E.Message, 0);
+    on E:Exception do
+    begin
+      HelpfulErrorMsg(BKPRACTICENAME + 'encountered an error while connecting to ' + BANKLINK_ONLINE_NAME + '. Please contact BankLink Support for assistance.', 0);
+
+      LogUtil.LogMsg(lmError, UNIT_NAME, 'Exception running RemotableObjectToXML, Error converting remotable object to text: ' + E.Message);
+    end;
   end;
 end;
 
@@ -2321,8 +2382,12 @@ begin
       FPracticeCopy.Subscription := SubArray;
     end;
   except
-    on E: Exception do begin
-      HelpfulErrorMsg('Product could not be removed: ' + E.Message, 0);
+    on E: Exception do
+    begin
+      HelpfulErrorMsg(BKPRACTICENAME + ' is unable to remove the product. Please contact BankLink Support for assistance.', 0);
+
+      LogUtil.LogMsg(lmError, UNIT_NAME, 'Exception running RemoveProduct, Error Message : ' + E.Message);
+      
       Exit;
     end;
   end;
@@ -2374,8 +2439,6 @@ begin
 
         BlopiInterface := GetServiceFacade;
 
-
-
         if Result then
         begin
           if ShowProgress then
@@ -2411,8 +2474,12 @@ begin
       end;
     end;
   except
-    on E: Exception do
-      HelpfulErrorMsg(Msg, 0);
+    on E:Exception do
+    begin
+      HelpfulErrorMsg(BKPRACTICENAME + ' is unable to save the client to ' + BANKLINK_ONLINE_NAME + '. Please contact BankLink Support for assistance.', 0);
+
+      LogUtil.LogMsg(lmError, UNIT_NAME, 'Exception running SaveClient, Error Message : ' + E.Message);
+    end;
   end;
 end;
 
@@ -3278,6 +3345,50 @@ begin
   end;
 end;
 
+procedure TProductConfigService.CreateXMLError(Document: IXMLDocument; const MethodName, ErrorCode, ErrorMessage: String);
+var
+  EnvelopeNode: IXMLNode;
+  HeaderNode: IXMLNode;
+  BodyNode: IXMLNode;
+  ResponseNode: IXMLNode;
+  ResultNode: IXMLNode;
+  ErrorMessageNode: IXMLNode;
+  ServiceErrorMessageNode: IXMLNode;
+  Node: IXMLNode;
+begin
+  EnvelopeNode := Document.AddChild('Envelope');
+
+  EnvelopeNode.Attributes['xmlns'] := '';
+
+  HeaderNode := EnvelopeNode.AddChild('Header');
+
+  Node := HeaderNode.AddChild('ActivityId');
+
+  Node.Attributes['xmlns'] := '';
+  Node.Attributes['CorrelationId'] := '';
+  Node.Text := '';
+
+  BodyNode := EnvelopeNode.AddChild('Body');
+
+  ResponseNode := BodyNode.AddChild(MethodName + 'Response');
+  ResponseNode.Attributes['xmlns'] := '';
+
+  ResultNode := ResponseNode.AddChild(MethodName + 'Result');
+  ResultNode.Attributes['xmlns:a'] := '';
+  ResultNode.Attributes['xmlns:i'] := '';
+
+  ErrorMessageNode := ResultNode.AddChild('ErrorMessage');
+
+  ServiceErrorMessageNode := ErrorMessageNode.AddChild('ServiceErrorMessage');
+
+  ServiceErrorMessageNode.AddChild('ErrorCode').Text := ErrorCode;
+  ServiceErrorMessageNode.AddChild('Message').Text := ErrorMessage;
+
+  ResultNode.AddChild('Exceptions');
+  ResultNode.AddChild('Success').Text := 'false';
+  ResultNode.AddChild('Result');
+end;
+
 //------------------------------------------------------------------------------
 function TProductConfigService.UpdatePracticeUser(const aUserId       : TBloGuid;
                                                   const aFullName     : WideString;
@@ -3581,8 +3692,7 @@ begin
       begin
         LogUtil.LogMsg(lmError, UNIT_NAME, 'Exception running CreateClient, Error Message : ' + E.Message);
 
-        HelpfulErrorMsg(BKPRACTICENAME + ' is unable to connect to ' + BANKLINK_ONLINE_NAME + '.',
-                          0, True, E.Message, True);
+        HelpfulErrorMsg(BKPRACTICENAME + ' is unable to create the client on ' + BANKLINK_ONLINE_NAME + '. Please contact BankLink Support for assistance.', 0);
       end;
     end;
   finally
@@ -3714,10 +3824,9 @@ begin
     except
       on E : Exception do
       begin
+        HelpfulErrorMsg(BKPRACTICENAME + ' is unable to update the client to ' + BANKLINK_ONLINE_NAME + '. Please contact BankLink Support for assistance.', 0);
+        
         LogUtil.LogMsg(lmError, UNIT_NAME, 'Exception running UpdateClient, Error Message : ' + E.Message);
-
-        HelpfulErrorMsg(BKPRACTICENAME + ' is unable to connect to ' + BANKLINK_ONLINE_NAME + '.',
-                          0, True, E.Message, True);
       end;
     end;
   finally
@@ -3841,7 +3950,8 @@ begin
       on E : Exception do
       begin
         LogUtil.LogMsg(lmError, UNIT_NAME, 'Exception running UpdateClient, Error Message : ' + E.Message);
-        raise Exception.Create(BKPRACTICENAME + ' was unable to connect to ' + BANKLINK_ONLINE_NAME + '.' + #13#13 + E.Message );
+
+        raise Exception.Create(BKPRACTICENAME + ' is unable to save the client to ' + BANKLINK_ONLINE_NAME + '. Please contact BankLink Support for assistance.');
       end;
     end;
   finally
@@ -3953,7 +4063,8 @@ begin
       on E : Exception do
       begin
         LogUtil.LogMsg(lmError, UNIT_NAME, 'Exception running AddEditPracUser, Error Message : ' + E.Message);
-        raise Exception.Create(BKPRACTICENAME + ' was unable to connect to ' + BANKLINK_ONLINE_NAME + '.' + #13#13 + E.Message );
+
+        raise Exception.Create(BKPRACTICENAME + ' is unable update the user to ' + BANKLINK_ONLINE_NAME + '. Please contact BankLink Support for assistance.');
       end;
     end;
   finally
@@ -4007,7 +4118,8 @@ begin
       on E : Exception do
       begin
         LogUtil.LogMsg(lmError, UNIT_NAME, 'Exception running DeletePracUser, Error Message : ' + E.Message);
-        raise Exception.Create(BKPRACTICENAME + ' was unable to connect to ' + BANKLINK_ONLINE_NAME + '.' + #13#13 + E.Message );
+        
+        raise Exception.Create(BKPRACTICENAME + ' is unable to delete the user from ' + BANKLINK_ONLINE_NAME + '. Please contact BankLink Support for assistance.');
       end;
     end;
   finally
@@ -4188,7 +4300,12 @@ begin
       end;
     end;
   except
-    on E:Exception do HelpfulErrorMsg('Error getting vendor export types: ' + E.Message, 0);
+    on E:Exception do
+    begin
+      HelpfulErrorMsg(BKPRACTICENAME + ' is unable to get the vendor exports for the Practice from ' + BANKLINK_ONLINE_NAME + '. Please contact BankLink Support for assistance.', 0);
+
+      LogUtil.LogMsg(lmError, UNIT_NAME, 'Exception running GetPracticeVendorExports, Error Message : ' + E.Message);
+    end;
   end;
 end;
 
@@ -4245,7 +4362,12 @@ begin
       end;
     end;
   except
-    on E:Exception do HelpfulErrorMsg('Error getting vendor export types: ' + E.Message, 0);
+    on E:Exception do
+    begin
+      HelpfulErrorMsg(BKPRACTICENAME + ' is unable to get the client vendor exports from ' + BANKLINK_ONLINE_NAME + '. Please contact BankLink Support for assistance.', 0);
+
+      LogUtil.LogMsg(lmError, UNIT_NAME, 'Exception running GetClientVendorExports, Error Message : ' + E.Message);
+    end;
   end;
 end;
 
@@ -4304,7 +4426,12 @@ begin
       end;
     end;
   except
-    on E:Exception do HelpfulErrorMsg('Error getting vendor export types: ' + E.Message, 0);
+    on E:Exception do
+    begin
+      HelpfulErrorMsg(BKPRACTICENAME + ' is unable to get the bank account vendor export types from ' + BANKLINK_ONLINE_NAME + '. Please contact BankLink Support for assistance.', 0);
+
+      LogUtil.LogMsg(lmError, UNIT_NAME, 'Exception running GetAccountVendors, Error Message : ' + E.Message);
+    end;
   end;
 end;
 
@@ -4444,7 +4571,12 @@ begin
       end;
     end;
   except
-    on E:Exception do HelpfulErrorMsg('Error getting client accounts vendors: ' + E.Message, 0);
+    on E:Exception do
+    begin
+      HelpfulErrorMsg(BKPRACTICENAME + ' is unable to get the bank account vendor export types from ' + BANKLINK_ONLINE_NAME + '. Please contact BankLink Support for assistance.', 0);
+
+      LogUtil.LogMsg(lmError, UNIT_NAME, 'Exception running GetClientAccountsVendorss, Error Message : ' + E.Message);
+    end;
   end;
 end;
 
