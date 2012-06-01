@@ -800,7 +800,6 @@ begin
   end;
 end;
 
-
 function TProductConfigService.CreateNewClientUser(NewUser: TBloUserCreate; ClientGUID: string): Guid;
 var
   BlopiInterface: IBlopiServiceFacade;
@@ -1290,14 +1289,18 @@ begin
               end else
                 Msg := 'Unknown error';
               if Msg <> '' then
-                raise Exception.Create(Msg);
+              begin
+                HelpfulErrorMsg(BKPRACTICENAME + ' is unable to get the practice details from ' + BANKLINK_ONLINE_NAME + '.', 0, True, Msg, True);
+
+                Exit;
+              end;
             end;
           end;
         end;
         if ShowProgress then
           Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finished', 100);
       except
-        on E: Exception do
+        on E:Exception do
         begin
           HelpfulErrorMsg(BKPRACTICENAME + ' is unable to get the practice details from ' + BANKLINK_ONLINE_NAME + '.  Please contact BankLink Support for assistance.', 0);
 
@@ -1454,28 +1457,24 @@ begin
       ErrorMessage := Format(MAIN_ERROR_MESSAGE, [ErrorText]);
       Details := TStringList.Create;
       try
+        for ErrIndex := 0 to high(AMesageresponse.ErrorMessages) do
+        begin
+          AddLine('Code', AMesageresponse.ErrorMessages[ErrIndex].ErrorCode);
+          AddLine('Message', AMesageresponse.ErrorMessages[ErrIndex].Message_);
+        end;
+        for ErrIndex := 0 to high(AMesageresponse.Exceptions) do
+        begin
+          AddLine('Message', AMesageresponse.Exceptions[ErrIndex].Message_);
+          AddLine('Source', AMesageresponse.Exceptions[ErrIndex].Source);
+          AddLine('StackTrace', AMesageresponse.Exceptions[ErrIndex].StackTrace);
+        end;
+
         UserDetails := TStringList.Create;
 
         try
           for ErrIndex := 0 to high(AMesageresponse.ErrorMessages) do
           begin
-            AddLine('Code', AMesageresponse.ErrorMessages[ErrIndex].ErrorCode);
-            AddLine('Message', AMesageresponse.ErrorMessages[ErrIndex].Message_);
-
-            if GetUserErrorMessage(AMesageresponse.ErrorMessages[ErrIndex].ErrorCode, ecSavePractice, UserMessage) then
-            begin
-              UserDetails.Add(UserMessage);
-            end
-            else
-            begin
-              UserDetails.Add(AMesageresponse.ErrorMessages[ErrIndex].Message_);
-            end;
-          end;
-          for ErrIndex := 0 to high(AMesageresponse.Exceptions) do
-          begin
-            AddLine('Message', AMesageresponse.Exceptions[ErrIndex].Message_);
-            AddLine('Source', AMesageresponse.Exceptions[ErrIndex].Source);
-            AddLine('StackTrace', AMesageresponse.Exceptions[ErrIndex].StackTrace);
+            UserDetails.Add(AMesageresponse.ErrorMessages[ErrIndex].Message_);
           end;
 
           HelpfulErrorMsg(ErrorMessage, 0, False, UserDetails.Text, not SimpleError);
