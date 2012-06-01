@@ -916,7 +916,7 @@ begin
   except
     on E:Exception do
     begin
-      HelpfulErrorMsg(BKPRACTICENAME + ' is unable to get the iBizz subscriber credentials from ' + BANKLINK_ONLINE_NAME + '. Please contact BankLink Support for assistance.', 0);
+      HelpfulErrorMsg(BKPRACTICENAME + ' is unable to get the iBizz settings from ' + BANKLINK_ONLINE_NAME + '. Please contact BankLink Support for assistance.', 0);
 
       LogUtil.LogMsg(lmError, UNIT_NAME, 'Exception running GetIBizzCredentials, Error Message : ' + E.Message);
     end;
@@ -1299,7 +1299,7 @@ begin
       except
         on E: Exception do
         begin
-          HelpfulErrorMsg(BKPRACTICENAME + ' is unable to connect to ' + BANKLINK_ONLINE_NAME + '.  Please contact BankLink Support for assistance.', 0);
+          HelpfulErrorMsg(BKPRACTICENAME + ' is unable to get the practice details from ' + BANKLINK_ONLINE_NAME + '.  Please contact BankLink Support for assistance.', 0);
 
           LogUtil.LogMsg(lmError, UNIT_NAME, 'Exception running GetPractice, Error Message : ' + E.Message);
         end;
@@ -2204,7 +2204,7 @@ begin
   except
     on E:Exception do
     begin
-      HelpfulErrorMsg(BKPRACTICENAME + 'encountered an error while connecting to ' + BANKLINK_ONLINE_NAME + '. Please contact BankLink Support for assistance.', 0);
+      HelpfulErrorMsg(BKPRACTICENAME + ' encountered an error while connecting to ' + BANKLINK_ONLINE_NAME + '. Please contact BankLink Support for assistance.', 0);
 
       LogUtil.LogMsg(lmError, UNIT_NAME, 'Exception running RemotableObjectToXML, Error converting remotable object to text: ' + E.Message);
     end;
@@ -3690,9 +3690,9 @@ begin
     except
       on E : Exception do
       begin
-        LogUtil.LogMsg(lmError, UNIT_NAME, 'Exception running CreateClient, Error Message : ' + E.Message);
-
         HelpfulErrorMsg(BKPRACTICENAME + ' is unable to create the client on ' + BANKLINK_ONLINE_NAME + '. Please contact BankLink Support for assistance.', 0);
+        
+        LogUtil.LogMsg(lmError, UNIT_NAME, 'Exception running CreateClient, Error Message : ' + E.Message);
       end;
     end;
   finally
@@ -4302,7 +4302,7 @@ begin
   except
     on E:Exception do
     begin
-      HelpfulErrorMsg(BKPRACTICENAME + ' is unable to get the vendor exports for the Practice from ' + BANKLINK_ONLINE_NAME + '. Please contact BankLink Support for assistance.', 0);
+      HelpfulErrorMsg(BKPRACTICENAME + ' is unable to get the vendor export types for the Practice from ' + BANKLINK_ONLINE_NAME + '. Please contact BankLink Support for assistance.', 0);
 
       LogUtil.LogMsg(lmError, UNIT_NAME, 'Exception running GetPracticeVendorExports, Error Message : ' + E.Message);
     end;
@@ -4364,7 +4364,7 @@ begin
   except
     on E:Exception do
     begin
-      HelpfulErrorMsg(BKPRACTICENAME + ' is unable to get the client vendor exports from ' + BANKLINK_ONLINE_NAME + '. Please contact BankLink Support for assistance.', 0);
+      HelpfulErrorMsg(BKPRACTICENAME + ' is unable to get the vendor export types for the client from ' + BANKLINK_ONLINE_NAME + '. Please contact BankLink Support for assistance.', 0);
 
       LogUtil.LogMsg(lmError, UNIT_NAME, 'Exception running GetClientVendorExports, Error Message : ' + E.Message);
     end;
@@ -4428,7 +4428,7 @@ begin
   except
     on E:Exception do
     begin
-      HelpfulErrorMsg(BKPRACTICENAME + ' is unable to get the bank account vendor export types from ' + BANKLINK_ONLINE_NAME + '. Please contact BankLink Support for assistance.', 0);
+      HelpfulErrorMsg(BKPRACTICENAME + ' is unable to get the vendor export types for the bank account from ' + BANKLINK_ONLINE_NAME + '. Please contact BankLink Support for assistance.', 0);
 
       LogUtil.LogMsg(lmError, UNIT_NAME, 'Exception running GetAccountVendors, Error Message : ' + E.Message);
     end;
@@ -4573,7 +4573,7 @@ begin
   except
     on E:Exception do
     begin
-      HelpfulErrorMsg(BKPRACTICENAME + ' is unable to get the bank account vendor export types from ' + BANKLINK_ONLINE_NAME + '. Please contact BankLink Support for assistance.', 0);
+      HelpfulErrorMsg(BKPRACTICENAME + ' is unable to get the vendor export types for the bank account from ' + BANKLINK_ONLINE_NAME + '. Please contact BankLink Support for assistance.', 0);
 
       LogUtil.LogMsg(lmError, UNIT_NAME, 'Exception running GetClientAccountsVendorss, Error Message : ' + E.Message);
     end;
