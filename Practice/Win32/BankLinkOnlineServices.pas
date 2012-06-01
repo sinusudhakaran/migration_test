@@ -1474,10 +1474,16 @@ begin
         try
           for ErrIndex := 0 to high(AMesageresponse.ErrorMessages) do
           begin
-            UserDetails.Add(AMesageresponse.ErrorMessages[ErrIndex].Message_);
+            if UserDetails.Count > 0 then
+            begin
+              UserDetails.add('');
+            end;
+            
+            UserDetails.Add('Code: ' + AMesageresponse.ErrorMessages[ErrIndex].ErrorCode);
+            UserDetails.Add('Message: ' + AMesageresponse.ErrorMessages[ErrIndex].Message_);
           end;
 
-          HelpfulErrorMsg(ErrorMessage, 0, False, UserDetails.Text, not SimpleError);
+          HelpfulErrorMsg(ErrorMessage, 0, False, Details.Text, not SimpleError);
 
           LogUtil.LogMsg(lmError,'ERRORMOREFRM',Details.Text);
         finally
