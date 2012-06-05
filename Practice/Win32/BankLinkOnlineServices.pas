@@ -372,7 +372,8 @@ type
                                       aAccountID : Integer;
                                       aVendorExports: TBloArrayOfGuid;
                                       aShowMessage: Boolean = True;
-                                      ShowProgressBar: Boolean = True): Boolean;
+                                      ShowProgressBar: Boolean = True;
+                                      ShowSuccessMessage: Boolean = True): Boolean;
 
     function GetVendorExportClientCount: TBloArrayOfPracticeDataSubscriberCount;
 
@@ -2708,7 +2709,8 @@ function TProductConfigService.SaveAccountVendorExports(aClientId : TBloGuid;
                                                         aAccountID : Integer;
                                                         aVendorExports: TBloArrayOfGuid;
                                                         aShowMessage: Boolean = True;
-                                                        ShowProgressBar: Boolean = True): Boolean;
+                                                        ShowProgressBar: Boolean = True;
+                                                        ShowSuccessMessage: Boolean = True): Boolean;
 var
   BlopiInterface : IBlopiServiceFacade;
   PracCountryCode : WideString;
@@ -2773,9 +2775,16 @@ begin
       if aShowMessage then
       begin
         if Result then
-          HelpfulInfoMsg('Account data export settings have been successfully updated to BankLink Online.', 0)
+        begin
+          if ShowSuccessMessage then
+          begin
+            HelpfulInfoMsg('Account data export settings have been successfully updated to BankLink Online.', 0);
+          end;
+        end
         else
+        begin
           HelpfulErrorMsg(BKPRACTICENAME + ' is unable to update the Account data export settings to ' + BANKLINK_ONLINE_NAME + '.', 0);
+        end;
       end;
     end;
   end;
