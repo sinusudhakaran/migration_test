@@ -499,7 +499,9 @@ begin
           Rect.Top := Self.Top + ShieldBottom + 10;
           Rect.Right := Rect.Left + Canvas.Textwidth('Primary Contact');
           Rect.Bottom := Rect.Top + 17;
-          PrimaryContactHint.Color := clWhite;
+
+          if assigned(PrimaryContactHint) then
+            PrimaryContactHint.Color := clWhite;
         end;
 
         if useOnline
