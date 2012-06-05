@@ -2145,14 +2145,16 @@ var
 begin
   DisplayMessage := BaseMessage + ' Please contact BankLink Support for assistance.';
 
-  if E is ESOAPHTTPException then
+  if CompareText(LeftStr(E.Message, Length('a connection with the server could not be established')), 'a connection with the server could not be established') = 0 then
   begin
-    if LeftStr(E.Message, Length('A connection with the server could not be established')) = 'A connection with the server could not be established' then
-    begin
-      DisplayMessage :=  Format('%s could not establish a connection to %s. Please contact BankLink Support for assistance.', [BKPRACTICENAME, BANKLINK_ONLINE_NAME]);
-    end;
+    DisplayMessage :=  Format('%s could not establish a connection to %s. Please contact BankLink Support for assistance.', [BKPRACTICENAME, BANKLINK_ONLINE_NAME]);
+  end
+  else
+  if CompareText(LeftStr(E.Message, Length('the operation timed out')), 'the operation timed out') = 0 then
+  begin
+    DisplayMessage :=  Format('%s timed out while trying to connect to %s. Please contact BankLink Support for assistance.', [BKPRACTICENAME, BANKLINK_ONLINE_NAME]);  
   end;
-
+  
   HelpfulErrorMsg(DisplayMessage, 0);
 
   LogUtil.LogMsg(lmError, UNIT_NAME, Format('Exception running %s, Error Message : %s', [MethodName, E.Message]));
