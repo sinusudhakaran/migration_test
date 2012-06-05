@@ -238,6 +238,12 @@ end;
 //------------------------------------------------------------------------------
 function TestOffsite(SysAccount: PSystem_Bank_Account_Rec): Boolean;
 begin
+  if SysAccount.sbAccount_Type = sbtOnlineSecure then
+  begin
+    Result := false;
+    Exit;
+  end;
+
   if SysAccount.sbBankLink_Code > '' then
      Result := not SameText( SysAccount.sbBankLink_Code, AdminSystem.fdFields.fdBankLink_Code)
   else
