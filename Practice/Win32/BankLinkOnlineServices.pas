@@ -1991,6 +1991,7 @@ begin
     begin
       User := AdminSystem.fdSystem_User_List.User_At(AdminUserIndex);
 
+      {This makes it impossible to know in the user edit screen if the user was originally enabled for banklink online or not.  Therefore preventing the appropriate message dialogs from being displayed.
       User.usAllow_Banklink_Online := False;
       for BlopiUserIndex := Low(FPractice.Users) to High(FPractice.Users) do
       begin
@@ -2000,8 +2001,9 @@ begin
           Break;
         end;
       end;
-
-      if Assigned(CurrUser) and Assigned(User) then      
+      }
+      
+      if Assigned(CurrUser) and Assigned(User) then
         if CurrUser.Code = User.usCode then
           CurrUser.AllowBanklinkOnline := User.usAllow_Banklink_Online;
     end;
