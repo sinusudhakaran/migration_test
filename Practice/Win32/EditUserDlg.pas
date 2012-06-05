@@ -502,7 +502,7 @@ begin { TdlgEditUser.OKtoPost }
       exit;
     end; { (Trim(ePass.text) = '') }
 
-    if (CompareText(FOldValues.Password, ePass.Text) = 0) and not FUsingMixedCasePassword then
+    if (FOldValues.Password <> ePass.Text) and not FUsingMixedCasePassword then
     begin
       HelpfulInfoMsg('Your login has been enabled for access to BankLink Online.  Please enter a new password for use in ' +
                      'both BankLink Practice and BankLink Online.' + #10#13#01#13 +
