@@ -655,8 +655,11 @@ begin
     end;
 
     Msg := Trim(Msg);
-    HelpfulErrorMsg( Msg, 0 );
-    
+
+    if Msg <> '' then
+    begin
+      HelpfulErrorMsg( Msg, 0 );
+    end;
   finally
     if Assigned(AlreadyAttachedList) then    
       FreeAndNil(AlreadyAttachedList);
@@ -726,7 +729,9 @@ begin
                   if ProductConfigService.SaveAccountVendorExports(aClientID,
                                                                    NewBankAccount.baFields.baCore_Account_ID,
                                                                    aClientVendors,
-                                                                   True) then
+                                                                   True,
+                                                                   True,
+                                                                   False) then
                   begin
                     AccountsMsg.Add(NewBankAccount.baFields.baBank_Account_Number);
                   end;
