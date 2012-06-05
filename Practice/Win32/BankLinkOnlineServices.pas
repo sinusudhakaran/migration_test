@@ -419,7 +419,8 @@ uses
   ObjAuto,
   SyDefs,
   Globals,
-  SOAPHTTPTrans;
+  SOAPHTTPTrans,
+  xmldom;
 
 const
   UNIT_NAME = 'BankLinkOnlineServices';
@@ -1415,21 +1416,21 @@ end;
 function TProductConfigService.MessageResponseHasError(
   AMesageresponse: MessageResponse; ErrorText: string; SimpleError: boolean = false): Boolean;
 const
-  MAIN_ERROR_MESSAGE = BKPRACTICENAME + ' is unable to %s ' + BANKLINK_ONLINE_NAME + '.';
+  MAIN_ERROR_MESSAGE = BKPRACTICENAME + ' is unable to %s ' + BANKLINK_ONLINE_NAME + '. Please see the details below or contact BankLink Support for assistance.';
 var
   ErrorMessage: string;
   ErrIndex : integer;
   Details: TStringList;
 
   //-------------------------------------------------------------
-  procedure AddLine(const aName: string; const aMessage: string);
+  procedure AddLine(MessageList: TStrings; const aName: string; const aMessage: string);
   begin
     if aMessage = '' then
       Exit;
-    if Assigned(Details) then begin
-      if Details.Count > 0 then
-        Details.add('');
-      Details.Add(aName + ': ' + aMessage);
+    if Assigned(MessageList) then begin
+      if MessageList.Count > 0 then
+        MessageList.add('');
+      MessageList.Add(aName + ': ' + aMessage);
     end;
   end;
 
@@ -1448,19 +1449,18 @@ begin
       try
         for ErrIndex := 0 to high(AMesageresponse.ErrorMessages) do
         begin
-          AddLine('Code', AMesageresponse.ErrorMessages[ErrIndex].ErrorCode);
-          AddLine('Message', AMesageresponse.ErrorMessages[ErrIndex].Message_);
+          AddLine(Details, 'Code', AMesageresponse.ErrorMessages[ErrIndex].ErrorCode);
+          AddLine(Details, 'Message', AMesageresponse.ErrorMessages[ErrIndex].Message_);
         end;
         for ErrIndex := 0 to high(AMesageresponse.Exceptions) do
         begin
-          AddLine('Message', AMesageresponse.Exceptions[ErrIndex].Message_);
-          AddLine('Source', AMesageresponse.Exceptions[ErrIndex].Source);
-          AddLine('StackTrace', AMesageresponse.Exceptions[ErrIndex].StackTrace);
+          AddLine(Details, 'Message', AMesageresponse.Exceptions[ErrIndex].Message_);
+          AddLine(Details, 'Source', AMesageresponse.Exceptions[ErrIndex].Source);
+          AddLine(Details, 'StackTrace', AMesageresponse.Exceptions[ErrIndex].StackTrace);
         end;
+          HelpfulErrorMsg(ErrorMessage, 0, False, Details.Text, not SimpleError);
 
-        HelpfulErrorMsg(ErrorMessage, 0, False, Details.Text, not SimpleError);
-
-        LogUtil.LogMsg(lmError,'ERRORMOREFRM',Details.Text);
+          LogUtil.LogMsg(lmError,'ERRORMOREFRM',Details.Text);
       finally
         Details.Free;
       end;
@@ -2141,19 +2141,32 @@ end;
 //------------------------------------------------------------------------------
 procedure TProductConfigService.HandleException(const MethodName: String; E: Exception);
 var
+  MainMessage: String;
   MessageDetails: String;
+  ShowDetails: Boolean;
 begin
+  MainMessage := Format('%s encountered a problem while connecting to %s. Please see the details below or contact BankLink Support for assistance.', [BKPRACTICENAME, BANKLINK_ONLINE_NAME]);
+  
   MessageDetails := E.Message;
 
+  ShowDetails := True;
+  
   if E is ESOAPHTTPException then
   begin
     if (Pos(' - URL:', E.Message) > 0) then
     begin
       MessageDetails := Copy(MessageDetails, 0, Pos(' - URL:', E.Message) -1) + '.';
     end;
+  end
+  else
+  if E is EDOMParseError then
+  begin
+    MainMessage := Format('%s encountered a problem connecting to %s. Please contact BankLink Support for assistance', [BKPRACTICENAME, BANKLINK_ONLINE_NAME]);
+    
+    ShowDetails := False;
   end;
 
-  HelpfulErrorMsg(Format('%s encountered a problem while connecting to %s. Please see the details below or contact BankLink Support for assistance.', [BKPRACTICENAME, BANKLINK_ONLINE_NAME]), 0, True, MessageDetails, True);
+  HelpfulErrorMsg(MainMessage, 0, True, MessageDetails, ShowDetails);
 
   LogUtil.LogMsg(lmError, UNIT_NAME, Format('Exception running %s, Error Message : %s', [MethodName, E.Message]));
 end;
