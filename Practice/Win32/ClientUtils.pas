@@ -621,7 +621,7 @@ begin
     Msg := '';
     if Assigned(AlreadyAttachedList) then
     begin
-      Msg := 'The following bank accounts are already attached to the client:' + #10;
+      Msg := 'The following bank account(s) are already attached to the client:' + #10;
       for i := 0 to AlreadyAttachedList.Count - 1 do
         Msg := Msg + AlreadyAttachedList.Strings[i] + #10;
       Msg := Msg + #10;
@@ -629,7 +629,7 @@ begin
 
     if Assigned(NoBLOSecureCodeList) then
     begin
-      Msg := Msg + 'The following bank accounts cannot be attached to the selected ' +
+      Msg := Msg + 'The following bank account(s) cannot be attached to the selected ' +
              'client file because the client file does not have a BankLink Online ' +
              'Secure Code:' + #10;
       for i := 0 to NoBLOSecureCodeList.Count - 1 do
@@ -639,7 +639,7 @@ begin
 
     if Assigned(BLOCodeDoesNotMatchList) then
     begin
-      Msg := Msg + 'The following bank accounts cannot be attached to the selected ' +
+      Msg := Msg + 'The following bank account(s) cannot be attached to the selected ' +
              'client file because the BankLink Online Secure Codes do not match: ' + #10;
       for i := 0 to BLOCodeDoesNotMatchList.Count - 1 do
         Msg := Msg + BLOCodeDoesNotMatchList.Strings[i] + #10;
@@ -648,7 +648,7 @@ begin
 
     if Assigned(AttachedSuccessfullyList) then
     begin
-      Msg := Msg + 'The following bank accounts were successfully attached:' + #10;
+      Msg := Msg + 'The following bank account(s) were successfully attached:' + #10;
       for i := 0 to AttachedSuccessfullyList.Count - 1 do
         Msg := Msg + AttachedSuccessfullyList.Strings[i] + #10;
       Msg := Msg + #10;
