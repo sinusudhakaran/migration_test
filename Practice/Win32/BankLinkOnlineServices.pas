@@ -132,7 +132,7 @@ type
     FValidBConnectDetails: Boolean;
     FArrNameSpaceList : Array of TRemRegEntry;
 
-    procedure HandleException(const MethodName, BaseMessage: String; E: Exception);
+    procedure HandleException(const MethodName: String; E: Exception);
     
     procedure SynchronizeClientSettings(BlopiClient: TBloClientReadDetail);
 
@@ -795,7 +795,7 @@ begin
   except
     on E:Exception do
     begin
-      HandleException('CreateNewClient', BKPRACTICENAME + ' is unable to create a new client on ' + BANKLINK_ONLINE_NAME + '.', E);
+      HandleException('CreateNewClient', E);
     end;
   end;
 end;
@@ -915,7 +915,7 @@ begin
   except
     on E:Exception do
     begin
-      HandleException('GetIBizzCredentials', BKPRACTICENAME + ' is unable to get the iBizz settings from ' + BANKLINK_ONLINE_NAME + '.', E);
+      HandleException('GetIBizzCredentials', E);
     end;
   end;
 end;
@@ -1035,7 +1035,7 @@ begin
   except
     on E:Exception do
     begin
-      HandleException('GetClientDetailsWithGuid', BKPRACTICENAME + ' is unable to get the client settings from ' + BANKLINK_ONLINE_NAME + '.', E);
+      HandleException('GetClientDetailsWithGuid', E);
     end;
   end;
 end;
@@ -1141,7 +1141,7 @@ begin
   except
     on E:Exception do
     begin
-      HandleException('GetClientGuid', BKPRACTICENAME + ' is unable to get the client from ' + BANKLINK_ONLINE_NAME + '.', E);
+      HandleException('GetClientGuid', E);
     end;
   end;
 end;
@@ -1296,7 +1296,7 @@ begin
       except
         on E:Exception do
         begin
-          HandleException('GetPractice', BKPRACTICENAME + ' is unable to get the practice details from ' + BANKLINK_ONLINE_NAME + '.', E);
+          HandleException('GetPractice', E);
         end;
       end;
     finally
@@ -1373,7 +1373,7 @@ begin
   except
     on E:Exception do
     begin
-      HandleException('LoadClientList', BKPRACTICENAME + ' is unable to get the client list from ' + BANKLINK_ONLINE_NAME + '.', E);
+      HandleException('LoadClientList', E);
     end;
   end;
 end;
@@ -1568,7 +1568,7 @@ begin
   except
     on E:Exception do
     begin
-      HandleException('GetVendorExportClientCount', BKPRACTICENAME + ' is unable to get the vendor export subscribers from ' + BANKLINK_ONLINE_NAME + '.', E);
+      HandleException('GetVendorExportClientCount', E);
     end;
   end;
 end;
@@ -1809,7 +1809,7 @@ begin
   except
     on E:Exception do
     begin
-      HandleException('AuthenticatePracticeUser', BKPRACTICENAME + ' is unable to authenticate the user on ' + BANKLINK_ONLINE_NAME + '.', E);
+      HandleException('AuthenticatePracticeUser', E);
       
       Result := paError;
     end;
@@ -1912,7 +1912,7 @@ begin
   except
     on E:Exception do
     begin
-      HandleException('GetServiceAgreement', BKPRACTICENAME + ' is unable to get the service agreement from ' + BANKLINK_ONLINE_NAME + '.', E);
+      HandleException('GetServiceAgreement', E);
     end;
   end;
 end;
@@ -2139,23 +2139,21 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TProductConfigService.HandleException(const MethodName, BaseMessage: String; E: Exception);
+procedure TProductConfigService.HandleException(const MethodName: String; E: Exception);
 var
-  DisplayMessage: String;
+  MessageDetails: String;
 begin
-  DisplayMessage := BaseMessage + ' Please contact BankLink Support for assistance.';
+  MessageDetails := E.Message;
 
-  if CompareText(LeftStr(E.Message, Length('a connection with the server could not be established')), 'a connection with the server could not be established') = 0 then
+  if E is ESOAPHTTPException then
   begin
-    DisplayMessage :=  Format('%s could not establish a connection to %s. Please contact BankLink Support for assistance.', [BKPRACTICENAME, BANKLINK_ONLINE_NAME]);
-  end
-  else
-  if CompareText(LeftStr(E.Message, Length('the operation timed out')), 'the operation timed out') = 0 then
-  begin
-    DisplayMessage :=  Format('%s timed out while trying to connect to %s. Please contact BankLink Support for assistance.', [BKPRACTICENAME, BANKLINK_ONLINE_NAME]);  
+    if (Pos(' - URL:', E.Message) > 0) then
+    begin
+      MessageDetails := Copy(MessageDetails, 0, Pos(' - URL:', E.Message) -1) + '.';
+    end;
   end;
-  
-  HelpfulErrorMsg(DisplayMessage, 0);
+
+  HelpfulErrorMsg(Format('%s encountered a problem while connecting to %s. Please see the details below or contact BankLink Support for assistance.', [BKPRACTICENAME, BANKLINK_ONLINE_NAME]), 0, True, MessageDetails, True);
 
   LogUtil.LogMsg(lmError, UNIT_NAME, Format('Exception running %s, Error Message : %s', [MethodName, E.Message]));
 end;
@@ -2196,7 +2194,7 @@ begin
   except
     on E:Exception do
     begin
-      HandleException('RemotableObjectToXML', BKPRACTICENAME + ' encountered an error while connecting to ' + BANKLINK_ONLINE_NAME + '.', E);
+      HandleException('RemotableObjectToXML', E);
     end;
   end;
 end;
@@ -2466,7 +2464,7 @@ begin
   except
     on E:Exception do
     begin
-      HandleException('SaveClient', BKPRACTICENAME + ' is unable to save the client to ' + BANKLINK_ONLINE_NAME + '.', E);
+      HandleException('SaveClient', E);
     end;
   end;
 end;
@@ -4290,7 +4288,7 @@ begin
   except
     on E:Exception do
     begin
-      HandleException('GetPracticeVendorExports', BKPRACTICENAME + ' is unable to get the vendor export types for the Practice from ' + BANKLINK_ONLINE_NAME + '.', E);
+      HandleException('GetPracticeVendorExports', E);
     end;
   end;
 end;
@@ -4350,7 +4348,7 @@ begin
   except
     on E:Exception do
     begin
-      HandleException('GetClientVendorExports', BKPRACTICENAME + ' is unable to get the vendor export types for the client from ' + BANKLINK_ONLINE_NAME + '.', E);
+      HandleException('GetClientVendorExports', E);
     end;
   end;
 end;
@@ -4412,7 +4410,7 @@ begin
   except
     on E:Exception do
     begin
-      HandleException('GetAccountVendors', BKPRACTICENAME + ' is unable to get the vendor export types for the bank account from ' + BANKLINK_ONLINE_NAME + '.', E);
+      HandleException('GetAccountVendors', E);
     end;
   end;
 end;
@@ -4555,7 +4553,7 @@ begin
   except
     on E:Exception do
     begin
-      HandleException('GetClientAccountsVendorss', BKPRACTICENAME + ' is unable to get the vendor export types for the bank account from ' + BANKLINK_ONLINE_NAME + '.', E);
+      HandleException('GetClientAccountsVendorss', E);
     end;
   end;
 end;
