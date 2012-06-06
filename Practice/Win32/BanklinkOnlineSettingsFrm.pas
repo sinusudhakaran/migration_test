@@ -67,12 +67,15 @@ type
     procedure chkDeliverDataClick(Sender: TObject);
     procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure chklistServicesAvailableClickCheck(Sender: TObject);
+    procedure rbActiveMouseDown(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Integer);
     procedure grpDefaultClientAdministratorClick(Sender: TObject);
   private
     fOkPressed : Boolean;
     fBusyKeyPress : Boolean;
     fReadOnly : Boolean;
     fOldEmail : string;
+    fClientStatus : integer;
 
     ClientReadDetail : TBloClientReadDetail;
     AvailableServiceArray : TBloArrayOfDataPlatformSubscriber;
@@ -132,7 +135,8 @@ uses
   BanklinkOnlineTaggingServices,
   ModalProgressFrm,
   RegExprUtils,
-  GenUtils;
+  GenUtils,
+  BlopiServiceFacade;
 
 const
   UnitName = 'BanklinkOnlineSettingsFrm';
@@ -171,13 +175,50 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TfrmBanklinkOnlineSettings.rbSuspendedClick(Sender: TObject);
+procedure TfrmBanklinkOnlineSettings.rbActiveClick(Sender: TObject);
 begin
   CheckClientConnectControls;
 end;
 
+procedure TfrmBanklinkOnlineSettings.rbActiveMouseDown(Sender: TObject;
+  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+var
+  Msg: String;
+  WasSuspended, WasDeactivated: boolean;
+//  ClientReadDetail : TBloClientReadDetail;
+  ClientDetailResponse: MessageResponseOfClientReadDetailMIdCYrSK;
+  BlopiInterface: IBlopiServiceFacade;
+begin
+  WasSuspended := rbSuspended.Checked;
+  WasDeactivated := rbDeactivated.Checked;
+
+  if (ProductConfigService.GetOnlineClientIndex(MyClient.clFields.clCode) > -1) then
+  begin
+    Msg := 'Are you sure you want to link this client file to the ' +
+           'following BankLink Online client? Note that this will overwrite ' +
+           'your local client settings with those from the BankLink Online ' +
+           'client. (%s) - (%s)';
+    if AskYesNo('Activating a client',
+                format(Msg, [MyClient.clFields.clCode, MyClient.clFields.clName]),
+                DLG_NO,
+                0) = DLG_YES then
+    begin
+      ClientReadDetail := ProductConfigService.GetClientDetailsWithCode(MyClient.clFields.clCode);
+      ClientReadDetail.Status := BlopiServiceFacade.Active;
+      LoadClientInfo(True);
+      ProductConfigService.UpdateClientStatus(ClientReadDetail, MyClient.clFields.clCode);
+    end else
+    begin
+      if WasSuspended then
+        rbSuspended.Checked := True;
+      if WasDeactivated then
+        rbDeactivated.Checked := True;
+    end;
+  end;
+end;
+
 //------------------------------------------------------------------------------
-procedure TfrmBanklinkOnlineSettings.rbActiveClick(Sender: TObject);
+procedure TfrmBanklinkOnlineSettings.rbSuspendedClick(Sender: TObject);
 begin
   CheckClientConnectControls;
 end;
@@ -1107,7 +1148,7 @@ begin
         begin
           ProductConfigService.AddItemToArrayGuid(Subscription, CatEntry.id); 
         end;
-      end;  
+      end;
     end;
   end;
 

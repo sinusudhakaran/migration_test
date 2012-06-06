@@ -281,8 +281,9 @@ type
     function GetClientDetailsWithCode(AClientCode: string; SynchronizeBlopi: Boolean = False): TBloClientReadDetail;
     function GetClientDetailsWithGUID(AClientGuid: Guid; SynchronizeBlopi: Boolean = False): TBloClientReadDetail;
     function CreateNewClient(ANewClient: TBloClientCreate): Guid;
-    function SaveClient(AClient: TBloClientReadDetail): Boolean;
+//    function SaveClient(AClient: TBloClientReadDetail): Boolean;
     function CreateNewClientUser(NewUser: TBloUserCreate; ClientGUID: string): Guid;
+    procedure UpdateClientStatus(var ClientReadDetail: TBloClientReadDetail; const ClientCode: WideString);
     property Clients: ClientList read FClientList;
 
     function GetOnlineClientIndex(aClientCode: string) : Integer;
@@ -2395,6 +2396,7 @@ begin
   end;
 end;
 
+{
 function TProductConfigService.SaveClient(AClient: TBloClientReadDetail): Boolean;
 var
   Msg: string;
@@ -2482,6 +2484,7 @@ begin
     end;
   end;
 end;
+}
 
 //------------------------------------------------------------------------------
 function TProductConfigService.SavePractice(aShowMessage : Boolean; ShowSuccessMessage: Boolean = True): Boolean;
@@ -3892,6 +3895,27 @@ begin
     Progress.ClearStatus;
     Screen.Cursor := crDefault;
   end;
+end;
+
+procedure TProductConfigService.UpdateClientStatus(var ClientReadDetail: TBloClientReadDetail; const ClientCode: WideString);
+var
+  BlopiInterface  : IBlopiServiceFacade;
+  ClientDetailResponse: MessageResponseOfClientReadDetailMIdCYrSK;
+  MsgResponse: MessageResponse;
+  ClientGuid: TBloGuid;
+begin
+  ClientGuid := GetClientGuid(ClientCode);
+  BlopiInterface := ProductConfigService.GetServiceFacade;
+  ClientDetailResponse := BlopiInterface.GetClient(CountryText(AdminSystem.fdFields.fdCountry),
+                                                   AdminSystem.fdFields.fdBankLink_Code,
+                                                   AdminSystem.fdFields.fdBankLink_Connect_Password,
+                                                   ClientGuid);
+  ClientReadDetail := ClientDetailResponse.Result;
+  ClientReadDetail.Status := BlopiServiceFacade.Active;
+  ProductConfigService.UpdateClient(ClientReadDetail, ClientReadDetail.BillingFrequency,
+                                    ClientReadDetail.MaxOfflineDays, ClientReadDetail.Status,
+                                    ClientReadDetail.Subscription, ClientReadDetail.Users[0].EMail,
+                                    ClientReadDetail.Users[0].FullName, false);
 end;
 
 //------------------------------------------------------------------------------
