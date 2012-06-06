@@ -108,6 +108,7 @@ object frmBanklinkOnlineSettings: TfrmBanklinkOnlineSettings
     Align = alTop
     Caption = 'Default Client Administrator'
     TabOrder = 3
+    OnClick = grpDefaultClientAdministratorClick
     object lblUserName: TLabel
       Left = 21
       Top = 55

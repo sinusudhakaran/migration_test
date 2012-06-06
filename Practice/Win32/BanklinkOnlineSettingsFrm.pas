@@ -67,6 +67,7 @@ type
     procedure chkDeliverDataClick(Sender: TObject);
     procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure chklistServicesAvailableClickCheck(Sender: TObject);
+    procedure grpDefaultClientAdministratorClick(Sender: TObject);
   private
     fOkPressed : Boolean;
     fBusyKeyPress : Boolean;
@@ -255,8 +256,8 @@ end;
 
 procedure TfrmBanklinkOnlineSettings.chkDeliverDataClick(Sender: TObject);
 begin
-  if chkDeliverData.Checked and (MyClient.clFields.clDownload_From = dlBankLinkConnect) and
-  (MyClient.clFields.clBankLink_Code <> '') then
+  if (chkDeliverData.Checked) and
+     (MyClient.clFields.clDownload_From = dlBankLinkConnect) then
   begin
     { Shouldn't be able to reach here, as the Services Available panel should be invisible
       if the second and third conditions are true, and thus chkDeliverData can't be
@@ -726,6 +727,12 @@ begin
     Result := staSuspended
   else // if rbDeactivated.Checked then
     Result := staDeactivated
+end;
+
+procedure TfrmBanklinkOnlineSettings.grpDefaultClientAdministratorClick(
+  Sender: TObject);
+begin
+
 end;
 
 //------------------------------------------------------------------------------

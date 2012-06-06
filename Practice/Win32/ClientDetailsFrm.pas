@@ -509,7 +509,7 @@ begin
   // Details' is ticked
   MyClient.clFields.clContact_name := econtact.text;
   MyClient.clFields.clClient_EMail_Address := eMail.text;
-  ShowServicesAvailable := ((chkOffSite.Checked = false) or (Trim(eConnectCode.Text) = ''));
+  ShowServicesAvailable := (chkOffSite.Checked = false);
   if EditBanklinkOnlineSettings(Self, MyClient.clFields.clWeb_Export_Format = wfWebNotes,
                                 false, ShowServicesAvailable) then
   begin
