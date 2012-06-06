@@ -224,7 +224,7 @@ begin
     Result := true;
 
     LogUtil.LogMsg(lmInfo, UNITNAME, Format('User %s password was changed.', [fUser_Rec^.usName]));
-    HelpfulInfoMsg('The User Password has been successfully Updated.', 0 );
+    HelpfulInfoMsg('Your password has been successfully updated.', 0 );
   End { LoadAdminSystem(true) }
   Else
   begin
