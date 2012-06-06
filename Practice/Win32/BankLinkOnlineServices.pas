@@ -380,6 +380,8 @@ type
 
     function GetClientGuid(const ClientCode: WideString; out Id: TBloGuid): Boolean; overload;
 
+    function ResetPracticeUserPassword(const EmailAddress: String; UserGuid: TBloGuid): Boolean;
+
     property OnLine: Boolean read FOnLine;
     property Registered: Boolean read GetRegistered;
     property ValidBConnectDetails: Boolean read GetValidBConnectDetails;
@@ -2393,6 +2395,52 @@ begin
       
       Exit;
     end;
+  end;
+end;
+
+function TProductConfigService.ResetPracticeUserPassword(const EmailAddress: String; UserGuid: TBloGuid): Boolean;
+var
+  BlopiInterface: IBlopiServiceFacade;
+  MsgResponse: MessageResponse;
+begin
+  Result := False;
+
+  Screen.Cursor := crHourGlass;
+  Progress.StatusSilent := False;
+  Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Connecting', 10);
+
+  BlopiInterface := GetServiceFacade;
+  try
+    try
+      Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Resetting user password', 70);
+
+      MsgResponse := BlopiInterface.ResetPracticeUserPassword(CountryText(AdminSystem.fdFields.fdCountry),
+                                               AdminSystem.fdFields.fdBankLink_Code,
+                                               AdminSystem.fdFields.fdBankLink_Connect_Password,
+                                               UserGuid);
+                                                   
+      if not MessageResponseHasError(MsgResponse, 'reset user password on') then
+      begin
+        HelpfulInfoMsg(Format('The user password for %s has been successfully reset on %s.',[EMailAddress, BANKLINK_ONLINE_NAME]), 0);
+
+        LogUtil.LogMsg(lmInfo, UNIT_NAME, 'The user password for ' + EMailAddress + ' has been successfully reset on BankLink Online.');
+
+        Result := True;
+      end
+      else
+      begin
+        LogUtil.LogMsg(lmInfo, UNIT_NAME, 'The user password for ' + EMailAddress + ' was not reset on BankLink Online.');
+      end;
+    except
+      on E : Exception do
+      begin
+        HandleException('ResetPracticeUserPassword', E);
+      end;
+    end;
+  finally
+    Progress.StatusSilent := True;
+    Progress.ClearStatus;
+    Screen.Cursor := crDefault;
   end;
 end;
 
