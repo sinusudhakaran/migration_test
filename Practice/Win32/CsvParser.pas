@@ -413,21 +413,24 @@ begin
 
         for Index := ValuesRow to FileLines.Count - 1 do
         begin
-          FileLine.DelimitedText := FileLines[Index];
+          if Trim(FileLines[Index]) <> '' then
+          begin
+            FileLine.DelimitedText := FileLines[Index];
 
-          Row := TRow.Create(FileLine.Count);
+            Row := TRow.Create(FileLine.Count);
 
-          try
-            for IIndex := 0 to FileLine.Count - 1 do
-            begin
-              Row.Values[IIndex] := FileLine[IIndex];
+            try
+              for IIndex := 0 to FileLine.Count - 1 do
+              begin
+                Row.Values[IIndex] := FileLine[IIndex];
+              end;
+
+              FRows.Add(Row);
+            except
+              Row.Free;
+
+              raise;
             end;
-
-            FRows.Add(Row);
-          except
-            Row.Free;
-
-            raise;
           end;
         end;
       finally
