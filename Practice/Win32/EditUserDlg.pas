@@ -177,7 +177,8 @@ uses
   YesNoDlg,
   RegExprUtils,
   PickNewPrimaryUser,
-  progress;
+  progress,
+  AuthenticationFailedFrm;
 
 Const
   UNITNAME = 'EDITUSERDLG';
@@ -669,10 +670,16 @@ begin
           case ProductConfigService.AuthenticatePracticeUser(UserGuid, ePass.Text) of
             paFailed:
             begin
-              HelpfulWarningMsg('The BankLink Practice and BankLink Online passwords do not match - please ask the user to enter and confirm their BankLink Online password in the fields above.', 0);
+              if TfrmAuthenticationFailed.Prompt('The BankLink Practice and BankLink Online passwords do not match - click Reset to request a temporary BankLink Online password, or click Cancel to go back and have the user enter and confirm their BankLink Online password in the fields above.', 0) = mrOK then
+              begin
+                if AskYesNo('BankLink Online user password reset', Format('A temporary password will be sent to %s. Enter and save the temporary password in BankLink Practice before enabling BankLink Online access for the user. Click Yes to reset the password or click No to exit.', [UserEmail]), DLG_YES, 0) = DLG_YES then
+                begin
+                  ProductConfigService.ResetPracticeUserPassword(UserEmail, BloUserRead.Id);
+                end;
+              end;
 
               Result := False;
-              
+
               Exit;
             end;
 
