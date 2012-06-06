@@ -4073,7 +4073,7 @@ begin
       begin
         LogUtil.LogMsg(lmError, UNIT_NAME, 'Exception running AddEditPracUser, Error Message : ' + E.Message);
 
-        raise Exception.Create(BKPRACTICENAME + ' is unable update the user to ' + BANKLINK_ONLINE_NAME + '. Please contact BankLink Support for assistance.');
+        raise Exception.Create(BKPRACTICENAME + ' is unable to update the user to ' + BANKLINK_ONLINE_NAME + '. Please contact BankLink Support for assistance.');
       end;
     end;
   finally
