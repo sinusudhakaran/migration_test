@@ -738,6 +738,11 @@ begin
       case AskYesNo('BankLink Secure Code', 'The BankLink Secure Code for this client has not been set.  Would you like to set it now?', DLG_YES, 0, True) of
         glConst.DLG_CANCEL:
         begin
+          if PageControl1.ActivePage <> tbsOptions then
+          begin
+            PageControl1.ActivePage := tbsOptions;
+          end;
+          
           eConnectCode.SetFocus;
 
           Exit;
@@ -751,6 +756,11 @@ begin
           end
           else
           begin
+            if PageControl1.ActivePage <> tbsOptions then
+            begin
+              PageControl1.ActivePage := tbsOptions;
+            end;
+
             eConnectCode.SetFocus;
 
             Exit;
