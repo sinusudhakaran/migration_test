@@ -642,7 +642,7 @@ begin
     if Assigned(DirectDeliveryNotEnabled) then
     begin
       Msg := Msg + 'The following bank account(s) cannot be attached to the selected ' +
-             'client file because the client file is not enabled for direct data delivery:' + #10;
+             'client file because the client file is not enabled for delivering data directly to BankLink Online:' + #10;
       for i := 0 to DirectDeliveryNotEnabled.Count - 1 do
         Msg := Msg + DirectDeliveryNotEnabled.Strings[i] + #10;
       Msg := Msg + #10;
