@@ -643,8 +643,8 @@ begin
     begin
       Msg := Msg + 'The following bank account(s) cannot be attached to the selected ' +
              'client file because the client file is not enabled for direct data delivery:' + #10;
-      for i := 0 to NoBLOSecureCodeList.Count - 1 do
-        Msg := Msg + NoBLOSecureCodeList.Strings[i] + #10;
+      for i := 0 to DirectDeliveryNotEnabled.Count - 1 do
+        Msg := Msg + DirectDeliveryNotEnabled.Strings[i] + #10;
       Msg := Msg + #10;
     end;
     
@@ -690,6 +690,8 @@ begin
       FreeAndNil(BLOCodeDoesNotMatchList);
     if Assigned(AttachedSuccessfullyList) then
       FreeAndNil(AttachedSuccessfullyList);
+    if Assigned(DirectDeliveryNotEnabled) then
+      FreeAndNil(DirectDeliveryNotEnabled);
   end;
 
   //accounts verified, now attach them
