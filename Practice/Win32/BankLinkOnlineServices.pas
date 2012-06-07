@@ -4096,7 +4096,7 @@ begin
 
           if Result then
           begin
-            if aChangePassword then
+            if aChangePassword and (aOldPassword <> aNewPassword) then
             begin
               Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Sending Data', 88);
 
