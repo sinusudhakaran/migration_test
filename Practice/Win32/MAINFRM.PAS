@@ -1792,7 +1792,7 @@ begin
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 
    if Assigned(Globals.AdminSystem) then
-     System.Exit; // Close Practice
+     Application.ProcessMessages;
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmMain.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
