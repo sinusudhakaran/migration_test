@@ -578,8 +578,7 @@ begin
           AlreadyAttachedList.Add(AdminBankAccount^.sbAccount_Number);
           AccountOK := false;
         end
-        else if (AdminBankAccount^.sbAccount_Type = sbtOnlineSecure) and
-                (aClient.clExtra.ceDeliverDataDirectToBLO) then
+        else if (AdminBankAccount^.sbAccount_Type = sbtOnlineSecure) and not (aClient.clExtra.ceDeliverDataDirectToBLO) then
         begin
           if not Assigned(DirectDeliveryNotEnabled) then
           begin
