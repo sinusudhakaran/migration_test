@@ -541,7 +541,8 @@ var
   pF: pClient_File_Rec;
   AccountsMsg : TStringList;
   AlreadyAttachedList, NoBLOSecureCodeList, BLOCodeDoesNotMatchList,
-  AttachedSuccessfullyList: TStringList;
+  AttachedSuccessfullyList, DirectDeliveryNotEnabled: TStringList;
+
   i: integer;
 begin
   ChangedAdmin := false;
@@ -576,6 +577,18 @@ begin
             AlreadyAttachedList := TStringList.Create;
           AlreadyAttachedList.Add(AdminBankAccount^.sbAccount_Number);
           AccountOK := false;
+        end
+        else if (AdminBankAccount^.sbAccount_Type = sbtOnlineSecure) and
+                (aClient.clExtra.ceDeliverDataDirectToBLO) then
+        begin
+          if not Assigned(DirectDeliveryNotEnabled) then
+          begin
+            DirectDeliveryNotEnabled := TStringList.Create;
+          end;
+
+          DirectDeliveryNotEnabled.Add(AdminBankAccount^.sbAccount_Number);
+
+          AccountOk := False;
         end
         else if (AdminBankAccount^.sbAccount_Type = sbtOnlineSecure) and
                 (aClient.clExtra.ceBLOSecureCode = '') then
@@ -627,6 +640,15 @@ begin
       Msg := Msg + #10;
     end;
 
+    if Assigned(DirectDeliveryNotEnabled) then
+    begin
+      Msg := Msg + 'The following bank account(s) cannot be attached to the selected ' +
+             'client file because the client file is not enabled for direct data delivery:' + #10;
+      for i := 0 to NoBLOSecureCodeList.Count - 1 do
+        Msg := Msg + NoBLOSecureCodeList.Strings[i] + #10;
+      Msg := Msg + #10;
+    end;
+    
     if Assigned(NoBLOSecureCodeList) then
     begin
       Msg := Msg + 'The following bank account(s) cannot be attached to the selected ' +
