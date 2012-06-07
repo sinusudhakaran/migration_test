@@ -261,9 +261,12 @@ begin
           SystemAccount := AdminSystem.NewSystemAccount(AccountSource.AccountNo, True);
           SystemAccount.sbAccount_Name  := AccountSource.AccountName;
         end;
-        
+
         SystemAccount.sbAccount_Type := sbtOnlineSecure;
 
+        {An account cannot be both a secure online account and an secure account}
+        SystemAccount.sbBankLink_Code := '';
+        
         SystemAccount.sbWas_On_Latest_Disk := true;
 
         SystemAccount.sbCost_Code := AccountSource.CostCode;
@@ -712,6 +715,10 @@ begin //ProcessDiskImages
                  SystemAccount.sbAccount_Name    := DiskAccount.dbFields.dbAccount_Name;
                  SystemAccount.sbCore_Account_ID := 0;
               end;
+
+              {An account cannot be both a normal account and an online secure account}
+              SystemAccount.sbSecure_Online_Code := '';
+              
               //This can actualy change, over time, so update regardless.
               SystemAccount.sbInstitution := DiskAccount.dbFields.dbBank_Name;
               // Might have been introduced by the Charges
