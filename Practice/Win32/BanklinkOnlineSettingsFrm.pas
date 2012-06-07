@@ -1233,8 +1233,16 @@ begin
   end;
   
   MyClient.clExtra.ceDeliverDataDirectToBLO := chkDeliverData.Checked;
-  MyClient.clExtra.ceBLOSecureCode := edtSecureCode.Text;
 
+  if MyClient.clExtra.ceDeliverDataDirectToBLO then
+  begin
+    MyClient.clExtra.ceBLOSecureCode := edtSecureCode.Text;
+  end
+  else
+  begin
+    MyClient.clExtra.ceBLOSecureCode := '';
+  end;
+  
   if Result then
   begin
     UpdateClientWebFormat(Subscription);
