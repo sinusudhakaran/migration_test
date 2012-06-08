@@ -156,10 +156,7 @@ begin
             end;
 
             // Update the rest of the details
-            if SAccount.sbAccount_Type = sbtOnlineSecure then
-              SAccount.sbSecure_Online_Code := CheckText(LLine[fcBanklinkCode], SAccount.sbSecure_Online_Code )
-            else
-              SAccount.sbBankLink_Code := CheckText(LLine[fcBanklinkCode], SAccount.sbBankLink_Code);
+            SAccount.sbBankLink_Code := CheckText(LLine[fcBanklinkCode], SAccount.sbBankLink_Code);
 
             if LLine.Count > fcIsActive then
                CheckNo(LLine[fcIsActive],SAccount.sbInActive);
