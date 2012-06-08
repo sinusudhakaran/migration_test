@@ -2110,7 +2110,6 @@ begin
         ShowMessage('BankLink Practice is unable to connect to BankLink Online');
         Exit;
       end;
-      ProductConfigService.LoadClientList;
 
       if not ProductConfigService.Online then
         Exit;
