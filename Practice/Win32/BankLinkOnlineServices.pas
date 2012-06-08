@@ -1445,13 +1445,21 @@ var
   end;
 
 var
-  UserMessage, CustomError: String;
+  UserMessage, CustomMessage, CustomError: String;
 begin
   Result := False;
 
   case ContextMsgInt of
-    0: CustomError := '';
-    1: CustomError := 'This client has been deactivated';
+    0: begin
+         CustomMessage := '';
+         CustomError := '';
+       end;
+    1: begin
+         CustomMessage := 'This client has been deactivated';
+         CustomError := 'BankLink Online is unable to display the Export To ' +
+                        'options for this client. Please see the details ' +
+                        'below or contact BankLink support for assistance';
+       end;
   end;
 
   if Assigned(AMesageresponse) then
@@ -1460,21 +1468,24 @@ begin
     begin
       //Error message returned by BankLink Online
       Result := True;
-      ErrorMessage := Format(MAIN_ERROR_MESSAGE, [ErrorText]);
+      if (CustomError <> '') then
+        ErrorMessage := CustomError
+      else
+        ErrorMessage := Format(MAIN_ERROR_MESSAGE, [ErrorText]);
       Details := TStringList.Create;
       try
         for ErrIndex := 0 to high(AMesageresponse.ErrorMessages) do
         begin
           AddLine(Details, 'Code', AMesageresponse.ErrorMessages[ErrIndex].ErrorCode);
           if (ContextErrorCode = AMesageresponse.ErrorMessages[ErrIndex].ErrorCode) then
-            AddLine(Details, 'Message', CustomError)
+            AddLine(Details, 'Message', CustomMessage)
           else
             AddLine(Details, 'Message', AMesageresponse.ErrorMessages[ErrIndex].Message_);
         end;
         for ErrIndex := 0 to high(AMesageresponse.Exceptions) do
         begin
           if (ContextErrorCode = AMesageresponse.ErrorMessages[ErrIndex].ErrorCode) then
-            AddLine(Details, 'Message', CustomError)
+            AddLine(Details, 'Message', CustomMessage)
           else
             AddLine(Details, 'Message', AMesageresponse.Exceptions[ErrIndex].Message_);
           AddLine(Details, 'Source', AMesageresponse.Exceptions[ErrIndex].Source);
