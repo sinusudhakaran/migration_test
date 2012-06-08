@@ -4537,7 +4537,7 @@ begin
 
         ceCoreTransactionId :
         begin
-           tmpPaintString := IntToStr(CoreTransID);
+           tmpPaintString := ' ' + IntToStr(CoreTransID);
 
            data := PChar(tmpPaintString);
         end;

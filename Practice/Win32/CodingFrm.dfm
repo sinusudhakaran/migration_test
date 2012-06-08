@@ -1116,7 +1116,7 @@ object frmCoding: TfrmCoding
   object celCoreTransactionId: TOvcTCString
     Access = otxReadOnly
     Adjust = otaCenterLeft
-    MaxLength = 20
+    MaxLength = 30
     ShowHint = True
     OnOwnerDraw = celPayeeNameOwnerDraw
     Left = 336
