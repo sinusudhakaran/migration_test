@@ -168,7 +168,8 @@ type
     function GetServiceFacade : IBlopiServiceFacade;
     function GetCachedPractice: TBloPracticeRead;
     function MessageResponseHasError(AMesageresponse: MessageResponse; ErrorText: string;
-                                     SimpleError: boolean = false): Boolean;
+                                     SimpleError: boolean = false; ContextMsgInt: integer = 0;
+                                     ContextErrorCode: string = ''): Boolean;
     function GetProducts : TBloArrayOfGuid;
     function GetRegistered: Boolean;
     function GetValidBConnectDetails: Boolean;
@@ -1417,8 +1418,13 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+// ContextMsgInt and ContextErrorCode have been added to allow custom error messages
+// to be shown to the user rather than the default BLOPI error message. This could be
+// expanded to use arrays, so that multiple codes with a different message selected
+// for each code can be passed through, but I think single values should be enough
 function TProductConfigService.MessageResponseHasError(
-  AMesageresponse: MessageResponse; ErrorText: string; SimpleError: boolean = false): Boolean;
+  AMesageresponse: MessageResponse; ErrorText: string; SimpleError: boolean = false;
+  ContextMsgInt: integer = 0; ContextErrorCode: string = ''): Boolean;
 const
   MAIN_ERROR_MESSAGE = BKPRACTICENAME + ' is unable to %s ' + BANKLINK_ONLINE_NAME + '. Please see the details below or contact BankLink Support for assistance.';
 var
@@ -1439,9 +1445,15 @@ var
   end;
 
 var
-  UserMessage: String;
+  UserMessage, CustomError: String;
 begin
   Result := False;
+
+  case ContextMsgInt of
+    0: CustomError := '';
+    1: CustomError := 'This client has been deactivated';
+  end;
+
   if Assigned(AMesageresponse) then
   begin
     if not AMesageresponse.Success then
@@ -1454,11 +1466,17 @@ begin
         for ErrIndex := 0 to high(AMesageresponse.ErrorMessages) do
         begin
           AddLine(Details, 'Code', AMesageresponse.ErrorMessages[ErrIndex].ErrorCode);
-          AddLine(Details, 'Message', AMesageresponse.ErrorMessages[ErrIndex].Message_);
+          if (ContextErrorCode = AMesageresponse.ErrorMessages[ErrIndex].ErrorCode) then
+            AddLine(Details, 'Message', CustomError)
+          else
+            AddLine(Details, 'Message', AMesageresponse.ErrorMessages[ErrIndex].Message_);
         end;
         for ErrIndex := 0 to high(AMesageresponse.Exceptions) do
         begin
-          AddLine(Details, 'Message', AMesageresponse.Exceptions[ErrIndex].Message_);
+          if (ContextErrorCode = AMesageresponse.ErrorMessages[ErrIndex].ErrorCode) then
+            AddLine(Details, 'Message', CustomError)
+          else
+            AddLine(Details, 'Message', AMesageresponse.Exceptions[ErrIndex].Message_);
           AddLine(Details, 'Source', AMesageresponse.Exceptions[ErrIndex].Source);
           AddLine(Details, 'StackTrace', AMesageresponse.Exceptions[ErrIndex].StackTrace);
         end;
@@ -4426,7 +4444,11 @@ begin
                                                        AdminSystem.fdFields.fdBankLink_Connect_Password,
                                                        aClientGuid);
                                                        
-      if not MessageResponseHasError(MessageResponse(DataPlatformSubscriberResponse), 'get the vendor export types from') then
+      if not MessageResponseHasError(MessageResponse(DataPlatformSubscriberResponse),
+                                     'get the vendor export types from',
+                                     false,
+                                     1,
+                                     '152') then
       begin
         Result := DataPlatformSubscriberResponse.Result;
       end;
