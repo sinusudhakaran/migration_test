@@ -846,10 +846,6 @@ object wizBalancesForward: TwizBalancesForward
       object tbsReports: TTabSheet
         Caption = 'tbsReports'
         ImageIndex = 2
-        ExplicitLeft = 0
-        ExplicitTop = 0
-        ExplicitWidth = 0
-        ExplicitHeight = 0
         object lblReportYearStart: TLabel
           Left = 4
           Top = 9
@@ -890,10 +886,6 @@ object wizBalancesForward: TwizBalancesForward
       object tbsOpeningBalancesFound: TTabSheet
         Caption = 'tbsOpeningBalancesFound'
         ImageIndex = 3
-        ExplicitLeft = 0
-        ExplicitTop = 0
-        ExplicitWidth = 0
-        ExplicitHeight = 0
         object lblOpeningBalancesFound: TLabel
           Left = 3
           Top = 13
@@ -1078,10 +1070,6 @@ object wizBalancesForward: TwizBalancesForward
       object tbsCreateOpening: TTabSheet
         Caption = 'tbsCreateOpening'
         ImageIndex = 5
-        ExplicitLeft = 0
-        ExplicitTop = 0
-        ExplicitWidth = 0
-        ExplicitHeight = 0
         object lblAddOpeningBalances: TLabel
           Left = 7
           Top = 33

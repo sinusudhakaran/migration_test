@@ -545,18 +545,16 @@ object frmClientDetails: TfrmClientDetails
           BevelOuter = bvNone
           TabOrder = 1
           object lblClientBOProducts: TLabel
-            Left = 0
-            Top = 0
+            Left = 6
+            Top = 19
             Width = 401
-            Height = 56
-            Align = alClient
+            Height = 20
             AutoSize = False
             Caption = 
               'This client currently has access to {#} Banklink Online product(' +
               's)'
             Layout = tlCenter
             WordWrap = True
-            ExplicitHeight = 20
           end
         end
       end
