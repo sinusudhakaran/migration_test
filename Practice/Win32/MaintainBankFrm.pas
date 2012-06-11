@@ -573,6 +573,7 @@ var
   fRemoveVendorsFromClientList : TBloArrayOfGuid;
   CurrentVendors : TBloArrayOfGuid;
   IsExportDataEnabledFoAccount : Boolean;
+  CoreAccountID: Integer;
 
   //------------------------------------------------------------------------------
   function AllAccountsHaveOneVendorSelected(aAccVendorIndex : integer;
@@ -691,6 +692,8 @@ begin
   begin
     AcctNo := BankAccount.baFields.baBank_Account_Number;
     AcctName := BankAccount.baFields.baBank_Account_Name;
+    CoreAccountID := BankAccount.baFields.baCore_Account_ID;
+
     MyClient.clBank_Account_List.DelFreeItem(BankAccount);
     // Delete from client-account map
     if not MyClient.clFields.clFile_Read_Only then
@@ -752,7 +755,7 @@ begin
     begin
       SetLength(CurrentVendors, 0);
       Result := ProductConfigService.SaveAccountVendorExports(fClientAccVendors.ClientID,
-                                                              BankAccount.baFields.baCore_Account_ID,
+                                                              CoreAccountID,
                                                               CurrentVendors,
                                                               True);
     end;
