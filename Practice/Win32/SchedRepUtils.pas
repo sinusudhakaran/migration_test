@@ -217,54 +217,65 @@ end;
 
 
 procedure UpdateSRStartDate(AClient: TClientObj; var srOptions : TSchReportOptions);
-var acno: Integer;
-    BA: TBank_Account;
-    AdminBA: pSystem_Bank_Account_Rec;
-    LastDate: Integer;
-    FirstPosibleDate : Integer;
-    T: Integer;
+var
+  acno: Integer;
+  BA: TBank_Account;
+  AdminBA: pSystem_Bank_Account_Rec;
+  LastDate: Integer;
+  FirstPosibleDate : Integer;
+  T: Integer;
+  foundTrx : Boolean;
 begin
+  FirstPosibleDate := MaxInt;
+  for acNo := 0 to Pred( aClient.clBank_Account_List.ItemCount) do
+  begin
+    BA := aClient.clBank_Account_List.Bank_Account_At( acNo);
 
+    if BA.baFields.baAccount_Type in [ btBank] then
+    begin
+      //access the admin system and read date_of_last_transaction_printed.
+      AdminBA := AdminSystem.fdSystem_Bank_Account_List.FindCode( BA.baFields.baBank_Account_Number);
+      if Assigned( AdminBA) then
+      begin
+        if Pos(ba.baFields.baBank_Account_Number + ',', aClient.clFields.clExclude_From_Scheduled_Reports) > 0 then
+          Continue;
 
-      FirstPosibleDate := MaxInt;
-      for acNo := 0 to Pred( aClient.clBank_Account_List.ItemCount) do begin
-         BA := aClient.clBank_Account_List.Bank_Account_At( acNo);
+        LastDate := ClientUtils.GetLastPrintedDate(aClient.clFields.clCode, AdminBA.sbLRN);
 
-         if BA.baFields.baAccount_Type in [ btBank] then begin
+        if LastDate = 0 then
+          continue; // This account can't help us..
 
-            //access the admin system and read date_of_last_transaction_printed.
-            AdminBA := AdminSystem.fdSystem_Bank_Account_List.FindCode( BA.baFields.baBank_Account_Number);
-            if Assigned( AdminBA) then begin
-               if Pos(ba.baFields.baBank_Account_Number + ',', aClient.clFields.clExclude_From_Scheduled_Reports) > 0 then
-                  Continue;
-
-               LastDate := ClientUtils.GetLastPrintedDate(aClient.clFields.clCode, AdminBA.sbLRN);
-
-               if LastDate = 0 then
-                  continue; // This account can't help us..
-
-               if GetMonthsBetween(LastDate, srOptions.srTrxFromDate ) > 1 then
-                  // More than a whole month missing ... Dont go too far back
-                  LastDate := GetFirstDayOfMonth(IncDate(srOptions.srTrxFromDate, 0, -1, 0))
-               else
-                  inc(LastDate);
-               //So LastDate is now the first available new date
-               //Thats fine, but do I actually have any data for that...
-               for T := 0 to BA.baTransaction_List.last do
-                  with ba.baTransaction_List.Transaction_At(T)^ do
-                     if (txDate_Effective >= LastDate)
-                     and(txDate_Effective <= SROptions.srTrxToDate)
-                     and(not IsUPCFromPreviousMonth(txDate_Effective, txUPI_State, srOptions.srDisplayFromDate))
-                     and(txDate_Transferred = 0) then begin
-                        LastDate := txDate_Effective;
-                        Break; // one is enough (They are in date order)..
-                     end;
-               FirstPosibleDate := Min(FirstPosibleDate, LastDate); // For this account
+        if GetMonthsBetween(LastDate, srOptions.srTrxFromDate ) > 1 then
+          // More than a whole month missing ... Dont go too far back
+          LastDate := GetFirstDayOfMonth(IncDate(srOptions.srTrxFromDate, 0, -1, 0))
+        else
+          inc(LastDate);
+        //So LastDate is now the first available new date
+        //Thats fine, but do I actually have any data for that...
+        foundTrx := false;
+        for T := 0 to BA.baTransaction_List.last do
+        begin
+          with ba.baTransaction_List.Transaction_At(T)^ do
+          begin
+            if (txDate_Effective >= LastDate)
+            and(txDate_Effective <= SROptions.srTrxToDate)
+            and(not IsUPCFromPreviousMonth(txDate_Effective, txUPI_State, srOptions.srDisplayFromDate))
+            and(txDate_Transferred = 0) then
+            begin
+              LastDate := txDate_Effective;
+              foundTrx := true;
+              Break; // one is enough (They are in date order)..
             end;
-         end;
+          end;
+        end;
+
+        if foundTrx then
+         FirstPosibleDate := Min(FirstPosibleDate, LastDate); // For this account
       end;
-      if FirstPosibleDate < srOptions.srTrxFromDate then
-          srOptions.srTrxFromDate := FirstPosibleDate;
+    end;
+  end;
+  if FirstPosibleDate < srOptions.srTrxFromDate then
+      srOptions.srTrxFromDate := FirstPosibleDate;
 end;
 
 { TClientEmailInfo }
@@ -279,4 +290,3 @@ begin
 end;
 
 end.
- 
