@@ -18,7 +18,8 @@ uses
   ActnList,
   AuditMgr,
   BankLinkOnlineServices,
-  OsFont;
+  OsFont,
+  Contnrs;
 
 type
   TfrmMaintainBank = class(TForm)
@@ -54,6 +55,7 @@ type
                                       SubItem: Integer;
                                       State: TCustomDrawState;
                                       var DefaultDraw: Boolean);
+    procedure FormDestroy(Sender: TObject);
   private
     fOnlineVendorStartCol : integer;
     fOnlineVendorEndCol : integer;
@@ -62,7 +64,13 @@ type
     SortCol : integer;
     FUpdateRefNeeded: boolean;
     AccountChanged : Boolean;
-    CurrencyColumnShowing: boolean;
+    FVendorColumns: TObjectList;
+
+    FCurrencyColumn: TListColumn;
+
+    procedure UpdateVendorColumnIndexPointers;
+
+    function CurrencyColumnShowing: boolean;
 
     procedure UpdateLastVendorsUsedByAccounts;
     function GetAccountIndexOnVendorList(aAccountId: Integer) : integer;
@@ -137,6 +145,10 @@ procedure TfrmMaintainBank.FormCreate(Sender: TObject);
 var
   ContraColumn: TListColumn;
 begin
+  FCurrencyColumn := nil;
+
+  FVendorColumns := TObjectList.Create(False);
+  
   bkXPThemes.ThemeForm( Self);
 
   tbAttach.Enabled  := Assigned( AdminSystem) and CurrUser.CanAccessAdmin and (not MyClient.clFields.clFile_Read_Only);
@@ -162,6 +174,11 @@ begin
   LVUTILS.SetListViewColWidth(lvBank,1);
   UpdateRefNeeded := false;
   SetUpHelp;
+end;
+
+procedure TfrmMaintainBank.FormDestroy(Sender: TObject);
+begin
+  FVendorColumns.Free;
 end;
 
 //------------------------------------------------------------------------------
@@ -190,15 +207,38 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmMaintainBank.ShowCurrencyColumn;
 begin
+  {
   lvBank.Columns.Items[COL_CURRENCY].Width := 80;
   CurrencyColumnShowing := true;
+  }
+
+  if not Assigned(FCurrencyColumn) then
+  begin
+    FCurrencyColumn := lvBank.Columns.Add;
+
+    FCurrencyColumn.Index := COL_CURRENCY;
+
+    FCurrencyColumn.Caption := 'Currency';
+    FCurrencyColumn.Width := 80;
+
+    UpdateVendorColumnIndexPointers;
+  end;
 end;
 
 //------------------------------------------------------------------------------
 procedure TfrmMaintainBank.HideCurrencyColumn;
 begin
+  {
   lvBank.Columns.Items[COL_CURRENCY].Width := 0;
   CurrencyColumnShowing := false;
+  }
+
+  if Assigned(FCurrencyColumn) then
+  begin
+    FreeAndNil(FCurrencyColumn);
+
+    UpdateVendorColumnIndexPointers;
+  end;
 end;
 
 //------------------------------------------------------------------------------
@@ -216,6 +256,8 @@ var
   BankAccIndex : integer;
   FirstVendorCol: boolean;
 begin
+  FVendorColumns.Clear;
+  
   // Service Call
   RefreshExportVendors;
 
@@ -235,6 +277,8 @@ begin
         if FirstVendorCol then
           fOnlineVendorStartCol := NewColumn.Index;
         FirstVendorCol := False;
+
+        FVendorColumns.Add(NewColumn);
       end;
     end;
     if not FirstVendorCol then // ie. is there at least one vendor    
@@ -257,19 +301,19 @@ var
   AccVendorIndex : integer;
   VendorFirstIndex : integer;
 begin
-  if (MyClient.clFields.clCountry = whUK) and (MyClient.HasForeignCurrencyAccounts) then
-  begin
-    if not CurrencyColumnShowing then
-      ShowCurrencyColumn;
-  end
-  else
-  begin
-    if CurrencyColumnShowing then
-      HideCurrencyColumn;
-  end;
-
   lvBank.Items.beginUpdate;
   try
+    if (MyClient.clFields.clCountry = whUK) and (MyClient.HasForeignCurrencyAccounts) then
+    begin
+      if not CurrencyColumnShowing then
+        ShowCurrencyColumn;
+    end
+    else
+    begin
+      if CurrencyColumnShowing then
+        HideCurrencyColumn;
+    end;
+
     lvBank.Items.Clear;
 
     for i := 0 to Pred(MyClient.clBank_Account_List.itemCount) do
@@ -307,9 +351,13 @@ begin
           end;
         end
         else
+          NewItem.SubItems.Add(BankAcct.baFields.baContra_Account_Code);
+        {
+        else
           NewItem.SubItems.Add(''); // blank currency code
+        }
 
-        NewItem.SubItems.Add(BankAcct.baFields.baContra_Account_Code);
+        
       end;
 
       // For this account Get the Vendor data and updates extra columns
@@ -459,6 +507,7 @@ begin
   else
   begin
     First := true;
+
     OutputText := Item.SubItems[SubItemIndex];
 
     while (Sender.Canvas.TextWidth(OutputText) >= (SubItemRect.Right - SubItemRect.Left)) and
@@ -497,7 +546,7 @@ begin
     lvBank.columns[i].ImageIndex := -1;
   column.ImageIndex := MAINTAIN_COLSORT_BMP;
 
-  SortCol := Column.ID;
+  SortCol := Column.Index;
   LvBank.AlphaSort;
 end;
 
@@ -967,6 +1016,12 @@ begin
       DummyAccount.Free;
    end;
 end;
+
+function TfrmMaintainBank.CurrencyColumnShowing: boolean;
+begin
+  Result := Assigned(FCurrencyColumn);
+end;
+
 {$ENDIF}
 
 //------------------------------------------------------------------------------
@@ -1098,6 +1153,15 @@ begin
     begin
       fClientAccVendors.AccountsVendors[AccSelIndex].IsLastAccForVendors[VendorIndex] := True;
     end;
+  end;
+end;
+
+procedure TfrmMaintainBank.UpdateVendorColumnIndexPointers;
+begin
+  if FVendorColumns.Count > 0 then
+  begin
+    fOnlineVendorStartCol := TListColumn(FVendorColumns[0]).Index;
+    FOnlineVendorEndCol := TListColumn(FVendorColumns[FVendorColumns.Count -1]).Index;
   end;
 end;
 
