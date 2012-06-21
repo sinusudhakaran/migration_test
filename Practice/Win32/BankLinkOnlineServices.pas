@@ -471,7 +471,7 @@ function TProductConfigService.IsExportDataEnabledFoAccount(const aBankAcct : TB
 begin
   Result := IsExportDataEnabled and
             (not aBankAcct.baFields.baIs_A_Manual_Account) and
-            (not (aBankAcct.baFields.baAccount_Type in [sbtProvisional])) and
+            (not (aBankAcct.baFields.baIs_A_Provisional_Account)) and
             (not (aBankAcct.IsAJournalAccount)) and
             (aBankAcct.baFields.baCore_Account_ID > 0);
 end;
@@ -4713,7 +4713,7 @@ begin
             begin
               aClientAccVendors.AccountsVendors[AccountIndex].ExportDataEnabled :=
                 (not BankAcct.baFields.baIs_A_Manual_Account) and
-                (not (BankAcct.baFields.baAccount_Type in [sbtProvisional])) and
+                (not (BankAcct.baFields.baIs_A_Provisional_Account)) and
                 (not (BankAcct.IsAJournalAccount));
             end;
           end;
