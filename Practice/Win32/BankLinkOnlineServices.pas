@@ -218,6 +218,11 @@ type
                         const aUserCode    : WideString) : MessageResponse;
     function IsVendorExportOptionEnabled(ProductId: TBloGuid;
       AUsePracCopy: Boolean): Boolean;
+
+    function IsVendorInPractice(aAvailableServiceArray : TBloArrayOfDataPlatformSubscriber;
+                                aVendorGuid : TBloGuid) : Boolean;
+    function GetVendorsHidingNonPractice(aAvailableServiceArray : TBloArrayOfDataPlatformSubscriber;
+                                         aSubscribers : TBloArrayOfDataPlatformSubscriber) : TBloArrayOfDataPlatformSubscriber;
   public
     function IsExportDataEnabled : Boolean;
     function IsExportDataEnabledFoAccount(const aBankAcct : TBank_Account) : Boolean;
@@ -266,7 +271,7 @@ type
     function OnlineStatus: TBloStatus;
     procedure RemoveProduct(AProductId: TBloGuid);
     procedure SelectAllProducts;
-    
+
     procedure SetPrimaryContact(AUser: TBloUserRead);
     function GetPrimaryContact(AUsePracCopy: Boolean): TBloUserRead;
 
@@ -337,9 +342,9 @@ type
                                 const aUserCode    : WideString;
                                 const aOldPassword : WideString;
                                 const aNewPassword : WideString): Boolean; overload;
-                                
+
     function AuthenticatePracticeUser(UserId: TBloGuid; const Password: String): TPracticeUserAuthentication;
-    
+
     function UpdateClientNotesOption(ClientReadDetail: TBloClientReadDetail; WebExportFormat: Byte): Boolean;
 
     function GetExportDataId: TBloGuid;
@@ -3108,6 +3113,47 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+function TProductConfigService.IsVendorInPractice(aAvailableServiceArray : TBloArrayOfDataPlatformSubscriber;
+                                                  aVendorGuid : TBloGuid) : Boolean;
+var
+  VenIndex : integer;
+begin
+  Result := False;
+  if not Assigned(aAvailableServiceArray) then
+    Exit;
+
+  for VenIndex := 0 to High(aAvailableServiceArray) do
+  begin
+    if (aVendorGuid = aAvailableServiceArray[VenIndex].Id) then
+    begin
+      Result := True;
+      break;
+    end;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+function TProductConfigService.GetVendorsHidingNonPractice(aAvailableServiceArray : TBloArrayOfDataPlatformSubscriber;
+                                                           aSubscribers : TBloArrayOfDataPlatformSubscriber) : TBloArrayOfDataPlatformSubscriber;
+var
+  VenIndex : integer;
+begin
+  SetLength(Result, 0);
+  if Assigned(aSubscribers) then
+  begin
+    for VenIndex := 0 to high(aSubscribers) do
+    begin
+      if IsVendorInPractice(aAvailableServiceArray,
+                            aSubscribers[VenIndex].id) then
+      begin
+        SetLength(Result, Length(Result)+1);
+        Result[High(Result)] := aSubscribers[VenIndex];
+      end;
+    end;
+  end;
+end;
+
+//------------------------------------------------------------------------------
 function TProductConfigService.GetUnLinkedOnlineUsers(aPractice: TBloPracticeRead): TBloArrayOfUserRead;
 var
   PracUserIndex : integer;
@@ -4489,8 +4535,14 @@ var
   DataPlatformSubscriberResponse: MessageResponseOfDataPlatformSubscription6cY85e5k;
   ShowProgress: Boolean;
   BlopiInterface: IBlopiServiceFacade;
+  PracticeExportDataService   : TBloDataPlatformSubscription;
+  AvailableServiceArray : TBloArrayOfDataPlatformSubscriber;
 begin
   Result := nil;
+
+  PracticeExportDataService := GetPracticeVendorExports;
+  if Assigned(PracticeExportDataService) then
+    AvailableServiceArray := PracticeExportDataService.Current;
 
   try
     if not Assigned(AdminSystem) then
@@ -4524,6 +4576,11 @@ begin
       if not MessageResponseHasError(MessageResponse(DataPlatformSubscriberResponse), 'get the vendor export types from') then
       begin
         Result := DataPlatformSubscriberResponse.Result;
+
+        Result.Available := GetVendorsHidingNonPractice(AvailableServiceArray,
+                                                        DataPlatformSubscriberResponse.Result.Available);
+        Result.Current   := GetVendorsHidingNonPractice(AvailableServiceArray,
+                                                        DataPlatformSubscriberResponse.Result.Current);
       end;
 
       if ShowProgress then
@@ -4560,6 +4617,10 @@ var
   Current : ArrayOfDataPlatformSubscriber;
   BankAccountIndex : integer;
   BankAcct : TBank_Account;
+  PracticeExportDataService   : TBloDataPlatformSubscription;
+  AvailableServiceArray : TBloArrayOfDataPlatformSubscriber;
+  VendorCount : integer;
+  CurrVendor : integer;
 
   //----------------------------------------
   function GetClientVendorName(aVendorid : TBloGuid; aClientVendors : TBloArrayOfDataPlatformSubscriber) : string;
@@ -4579,6 +4640,10 @@ var
 
 begin
   Result := false;
+
+  PracticeExportDataService := GetPracticeVendorExports;
+  if Assigned(PracticeExportDataService) then
+    AvailableServiceArray := PracticeExportDataService.Current;
 
   if aClientGuid = '' then
   begin
@@ -4622,7 +4687,8 @@ begin
         // Filling Client Account Vendors Record
         aClientAccVendors.ClientID := ClientGuid;
         aClientAccVendors.ClientCode := aClientCode;
-        aClientAccVendors.ClientVendors := DataPlatformClientSubscriberResponse.Result.Available;
+        aClientAccVendors.ClientVendors := GetVendorsHidingNonPractice(AvailableServiceArray,
+                                                                       DataPlatformClientSubscriberResponse.Result.Available);
 
         Setlength(aClientAccVendors.AccountsVendors, length(DataPlatformClientSubscriberResponse.Result.BankAccounts));
         for AccountIndex := 0 to high(aClientAccVendors.AccountsVendors) do
@@ -4632,7 +4698,8 @@ begin
           aClientAccVendors.AccountsVendors[AccountIndex].AccountVendors := TBloDataPlatformSubscription.Create;
 
           aClientAccVendors.AccountsVendors[AccountIndex].AccountVendors.Available :=
-            DataPlatformClientSubscriberResponse.Result.Available;
+            GetVendorsHidingNonPractice(AvailableServiceArray,
+                                        DataPlatformClientSubscriberResponse.Result.Available);
 
           aClientAccVendors.AccountsVendors[AccountIndex].AccountID := 
             DataPlatformClientSubscriberResponse.Result.BankAccounts[AccountIndex].AccountId;
@@ -4651,18 +4718,30 @@ begin
             end;
           end;
 
-          Setlength(Current, length(DataPlatformClientSubscriberResponse.Result.BankAccounts[AccountIndex].Subscribers));
+          VendorCount := 0;
+          for VendorIndex := 0 to high(DataPlatformClientSubscriberResponse.Result.BankAccounts[AccountIndex].Subscribers) do
+            if IsVendorInPractice(AvailableServiceArray,
+                                  DataPlatformClientSubscriberResponse.Result.BankAccounts[AccountIndex].Subscribers[VendorIndex]) then
+              inc(VendorCount);
+
+          Setlength(Current, VendorCount);
           aClientAccVendors.AccountsVendors[AccountIndex].AccountVendors.Current := Current;
 
-          for VendorIndex := 0 to high(aClientAccVendors.AccountsVendors[AccountIndex].AccountVendors.Current) do
+          CurrVendor := 0;
+          for VendorIndex := 0 to high(DataPlatformClientSubscriberResponse.Result.BankAccounts[AccountIndex].Subscribers) do
           begin
             VendorGuid := DataPlatformClientSubscriberResponse.Result.BankAccounts[AccountIndex].Subscribers[VendorIndex];
 
-            aClientAccVendors.AccountsVendors[AccountIndex].AccountVendors.Current[VendorIndex] := TBloDataPlatformSubscriber.Create;
-            aClientAccVendors.AccountsVendors[AccountIndex].AccountVendors.Current[VendorIndex].Id :=
-              VendorGuid;
-            aClientAccVendors.AccountsVendors[AccountIndex].AccountVendors.Current[VendorIndex].Name_ :=
-              GetClientVendorName(VendorGuid, aClientAccVendors.ClientVendors);
+            if IsVendorInPractice(AvailableServiceArray, VendorGuid) then
+            begin
+              aClientAccVendors.AccountsVendors[AccountIndex].AccountVendors.Current[CurrVendor] := TBloDataPlatformSubscriber.Create;
+              aClientAccVendors.AccountsVendors[AccountIndex].AccountVendors.Current[CurrVendor].Id :=
+                VendorGuid;
+              aClientAccVendors.AccountsVendors[AccountIndex].AccountVendors.Current[CurrVendor].Name_ :=
+                GetClientVendorName(VendorGuid, aClientAccVendors.ClientVendors);
+
+              inc(CurrVendor);
+            end;
           end;
         end;
       end;

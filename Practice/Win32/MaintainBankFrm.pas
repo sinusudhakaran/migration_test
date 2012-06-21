@@ -267,19 +267,16 @@ begin
     FirstVendorCol := True;
     for VendorIndex := 0 to high(fClientAccVendors.ClientVendors) do
     begin
-      if ProductConfigService.VendorEnabledForPractice(fClientAccVendors.ClientVendors[VendorIndex].Id) then
-      begin
-        NewColumn := lvBank.Columns.Add;
-        NewColumn.Caption := fClientAccVendors.ClientVendors[VendorIndex].Name_;
+      NewColumn := lvBank.Columns.Add;
+      NewColumn.Caption := fClientAccVendors.ClientVendors[VendorIndex].Name_;
 
-        NewColumn.Width := 120;
+      NewColumn.Width := 120;
 
-        if FirstVendorCol then
-          fOnlineVendorStartCol := NewColumn.Index;
-        FirstVendorCol := False;
+      if FirstVendorCol then
+        fOnlineVendorStartCol := NewColumn.Index;
+      FirstVendorCol := False;
 
-        FVendorColumns.Add(NewColumn);
-      end;
+      FVendorColumns.Add(NewColumn);
     end;
     if not FirstVendorCol then // ie. is there at least one vendor    
       fOnlineVendorEndCol := NewColumn.Index;
