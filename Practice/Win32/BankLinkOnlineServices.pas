@@ -389,6 +389,8 @@ type
 
     function ResetPracticeUserPassword(const EmailAddress: String; UserGuid: TBloGuid): Boolean;
 
+    function CompareGuidArrays(SubscriptionA, SubscriptionB: TBloArrayOfGuid): Boolean;
+
     property OnLine: Boolean read FOnLine;
     property Registered: Boolean read GetRegistered;
     property ValidBConnectDetails: Boolean read GetValidBConnectDetails;
@@ -2488,6 +2490,20 @@ begin
     Progress.StatusSilent := True;
     Progress.ClearStatus;
     Screen.Cursor := crDefault;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+function TProductConfigService.CompareGuidArrays(SubscriptionA, SubscriptionB: TBloArrayOfGuid): Boolean;
+begin
+  Result := False;
+  
+  if Length(SubscriptionA) = Length(SubscriptionB)  then
+  begin
+    if GuidArraysEqual(SubscriptionA, SubscriptionB) then
+    begin
+      Result := GuidArraysEqual(SubscriptionB, SubscriptionA)
+    end;
   end;
 end;
 
