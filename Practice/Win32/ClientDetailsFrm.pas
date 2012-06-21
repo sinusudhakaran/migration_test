@@ -221,7 +221,8 @@ uses
    BlopiServiceFacade,
    RegExprUtils,
    glConst,
-   BankLinkSecureCodeDlg;
+   BankLinkSecureCodeDlg,
+   GenUtils;
 
 {$R *.DFM}
 
@@ -1323,17 +1324,44 @@ end;
 
 //------------------------------------------------------------------------------
 procedure TfrmClientDetails.chkOffsiteClick(Sender: TObject);
+var
+  ClientExportDataService : TBloDataPlatformSubscription;
+  VendorCount, i: integer;
+  VendorNames: TStringList;
 begin
-   if chkOffsite.Checked and MyClient.clExtra.ceDeliverDataDirectToBLO and
-   (MyClient.clExtra.ceBLOSecureCode <> '') and
-   ProductConfigService.IsPracticeProductEnabled(ProductConfigService.GetExportDataId, False) then
+   if chkOffsite.Checked then
    begin
-     HelpfulWarningMsg('This client is set up for data delivery directly to BankLink Online. ' +
-                       'Please contact BankLink Client Services if you want to change the ' +
-                       'data delivery method to downloading data directly from BankLink to ' +
-                       'the client file.', 0);
-     chkOffsite.Checked := False;
-     Exit;
+     if MyClient.clExtra.ceDeliverDataDirectToBLO and (MyClient.clExtra.ceBLOSecureCode <> '') and
+     ProductConfigService.IsPracticeProductEnabled(ProductConfigService.GetExportDataId, False) then
+     begin
+       HelpfulWarningMsg('This client is set up for data delivery directly to BankLink Online. ' +
+                         'Please contact BankLink Client Services if you want to change the ' +
+                         'data delivery method to downloading data directly from BankLink to ' +
+                         'the client file.', 0);
+       chkOffsite.Checked := False;
+       Exit;
+     end else
+     begin
+       ClientExportDataService :=
+         ProductConfigService.GetClientVendorExports(ProductConfigService.GetClientGuid(MyClient.clFields.clCode));
+       VendorCount := Length(ClientExportDataService.Current);
+       if (VendorCount > 0) then
+       begin
+         try
+           VendorNames := TStringList.Create;
+           VendorNames.QuoteChar := ' ';
+           for i := 0 to VendorCount - 1 do
+             VendorNames.Add(ClientExportDataService.Current[i].Name_);
+           HelpfulWarningMsg('Your changes will allow the client to download data directly from ' +
+                             'BankLink but this client is set up to export data to BankLink Online ' +
+                             'for ' + GetCommaSepStrFromList(VendorNames), 0);
+         finally
+           FreeAndNil(VendorNames);
+         end;
+         chkOffsite.Checked := False;
+         Exit;
+       end;
+     end;
    end;
 
    grpDownloadSettings.visible := chkOffsite.Checked;

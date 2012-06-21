@@ -1181,6 +1181,10 @@ begin
   end;
 end;
 
+// Returns a string containing the elements of a TStringList like so:
+// [a] becomes 'a'
+// [a,b] becomes 'a and b'
+// [a,b,c] becomes 'a, b, and c'
 function GetCommaSepStrFromList(const Items : TStringList) : string;
 var
   ItemArr   : array of string;
