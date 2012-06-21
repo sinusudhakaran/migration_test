@@ -456,11 +456,13 @@ object dlgHistorical: TdlgHistorical
   end
   object celRef: TOvcTCString
     MaxLength = 12
+    Table = tblHist
     Left = 104
     Top = 112
   end
   object celAnalysis: TOvcTCString
     MaxLength = 12
+    Table = tblHist
     Left = 144
     Top = 112
   end
@@ -472,8 +474,10 @@ object dlgHistorical: TdlgHistorical
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
+    Options = [efoCaretToEnd, efoTrimBlanks]
     PictureMask = '999999'
     ShowHint = True
+    Table = tblHist
     OnKeyDown = celPayeeKeyDown
     OnOwnerDraw = celPayeeOwnerDraw
     Left = 488
@@ -490,8 +494,10 @@ object dlgHistorical: TdlgHistorical
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
+    Options = [efoCaretToEnd]
     PictureMask = '#########.##'
     ShowHint = True
+    Table = tblHist
     OnKeyPress = celGstAmtKeyPress
     OnOwnerDraw = celGstAmtOwnerDraw
     Left = 448
@@ -508,8 +514,10 @@ object dlgHistorical: TdlgHistorical
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
+    Options = [efoCaretToEnd]
     PictureMask = '#########.####'
     ShowHint = True
+    Table = tblHist
     OnChange = celQuantityChange
     OnExit = celQuantityExit
     Left = 368
@@ -521,6 +529,7 @@ object dlgHistorical: TdlgHistorical
     Adjust = otaCenterLeft
     MaxLength = 200
     ShowHint = True
+    Table = tblHist
     UseASCIIZStrings = True
     Left = 312
     Top = 114
@@ -529,6 +538,7 @@ object dlgHistorical: TdlgHistorical
     Adjust = otaCenterLeft
     MaxLength = 10
     ShowHint = True
+    Table = tblHist
     OnExit = celAccountExit
     OnKeyDown = celAccountKeyDown
     OnKeyPress = celAccountKeyPress
@@ -615,6 +625,7 @@ object dlgHistorical: TdlgHistorical
     EFColors.Highlight.TextColor = clHighlightText
     Epoch = 1970
     Options = [efoForceOvertype]
+    Table = tblHist
     OnEnter = celDateEnter
     OnExit = celDateExit
     Left = 64
@@ -630,6 +641,7 @@ object dlgHistorical: TdlgHistorical
       'Bank Charges')
     MaxLength = 15
     Style = csDropDownList
+    Table = tblHist
     Left = 528
     Top = 112
   end
@@ -642,8 +654,10 @@ object dlgHistorical: TdlgHistorical
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
+    Options = [efoCaretToEnd]
     PictureMask = '###,###,###.##'
     ShowHint = True
+    Table = tblHist
     OnOwnerDraw = celAmountOwnerDraw
     Left = 224
     Top = 112
@@ -733,6 +747,7 @@ object dlgHistorical: TdlgHistorical
   end
   object celGSTCode: TOvcTCString
     MaxLength = 3
+    Table = tblHist
     OnKeyDown = celGSTCodeKeyDown
     OnOwnerDraw = celGSTCodeOwnerDraw
     Left = 408
@@ -741,6 +756,7 @@ object dlgHistorical: TdlgHistorical
   object celBalance: TOvcTCString
     Access = otxReadOnly
     Adjust = otaCenterRight
+    Table = tblHist
     UseASCIIZStrings = True
     OnOwnerDraw = celBalanceOwnerDraw
     Left = 624
@@ -750,6 +766,7 @@ object dlgHistorical: TdlgHistorical
     Adjust = otaCenterLeft
     MaxLength = 10
     ShowHint = True
+    Table = tblHist
     Left = 216
     Top = 169
   end
@@ -757,6 +774,7 @@ object dlgHistorical: TdlgHistorical
     Adjust = otaCenterLeft
     MaxLength = 10
     ShowHint = True
+    Table = tblHist
     Left = 264
     Top = 169
   end
@@ -824,6 +842,7 @@ object dlgHistorical: TdlgHistorical
       0000000000000000000000000000000000000000000000000000}
     CellGlyphs.GlyphCount = 3
     CellGlyphs.ActiveGlyphCount = 2
+    Table = tblHist
     OnKeyUp = celTaxInvKeyUp
     OnMouseUp = celTaxInvMouseUp
     Left = 356
@@ -843,6 +862,7 @@ object dlgHistorical: TdlgHistorical
     Font.Name = 'Tahoma'
     Font.Style = []
     MaxLength = 8
+    Table = tblHist
     TableFont = False
     OnOwnerDraw = CelJobOwnerDraw
     Left = 312
@@ -855,6 +875,7 @@ object dlgHistorical: TdlgHistorical
     Font.Name = 'Tahoma'
     Font.Style = []
     MaxLength = 200
+    Table = tblHist
     TableFont = False
     OnOwnerDraw = CelJobOwnerDraw
     Left = 312
@@ -868,7 +889,9 @@ object dlgHistorical: TdlgHistorical
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
+    Options = [efoCaretToEnd]
     PictureMask = '##########.##'
+    Table = tblHist
     OnOwnerDraw = celForexAmountOwnerDraw
     Left = 376
     Top = 256
@@ -883,7 +906,9 @@ object dlgHistorical: TdlgHistorical
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
+    Options = [efoCaretToEnd]
     PictureMask = '####.####'
+    Table = tblHist
     Left = 336
     Top = 256
     RangeHigh = {73B2DBB9838916F2FE43}
@@ -897,8 +922,8 @@ object dlgHistorical: TdlgHistorical
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd]
     PictureMask = '##########.##'
+    Table = tblHist
     OnOwnerDraw = celLocalAmountOwnerDraw
     Left = 416
     Top = 256
@@ -907,6 +932,7 @@ object dlgHistorical: TdlgHistorical
   end
   object CelAltChartCode: TOvcTCString
     MaxLength = 12
+    Table = tblHist
     Left = 576
     Top = 168
   end

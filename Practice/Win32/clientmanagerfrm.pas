@@ -2100,6 +2100,7 @@ var
   ClientDet : TBloClientReadDetail;
   ClientCode : String;
   ClientName : String;
+  CatalogueEntry : TBloCatalogueEntry;
 begin
   ClientCode := ClientLookup.FirstSelectedCode;
   ClientName := ClientLookup.FirstSelectedName;
@@ -2145,12 +2146,17 @@ begin
 
       for i := low(ClientDet.Subscription) to high(ClientDet.Subscription) do
       begin
-        DeleteMsgStr := DeleteMsgStr + '  ' +
-          ProductConfigService.GetCatFromSub(ClientDet.Subscription[i]).Description +
-          #13#10;
+        CatalogueEntry := ProductConfigService.GetCatFromSub(ClientDet.Subscription[i]);
 
-        if i = high(ClientDet.Subscription) then
-          DeleteMsgStr := DeleteMsgStr + #13#10;
+        if Assigned(CatalogueEntry) then
+        begin
+          DeleteMsgStr := DeleteMsgStr + '  ' +
+            ProductConfigService.GetCatFromSub(ClientDet.Subscription[i]).Description +
+            #13#10;
+
+          if i = high(ClientDet.Subscription) then
+            DeleteMsgStr := DeleteMsgStr + #13#10;
+        end;
       end;
     end;
 

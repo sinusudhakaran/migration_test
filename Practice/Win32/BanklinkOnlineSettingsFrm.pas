@@ -71,6 +71,16 @@ type
       Shift: TShiftState; X, Y: Integer);
     procedure grpDefaultClientAdministratorClick(Sender: TObject);
   private
+    type
+      TOriginalSettings = record
+        Status: TBloStatus;
+        DeliverDataDirect: Boolean;
+        SecureCode: String;
+        Username: String;
+        EmailAddress: String;
+      end;
+      
+  private
     fOkPressed : Boolean;
     fBusyKeyPress : Boolean;
     fReadOnly : Boolean;
@@ -81,6 +91,8 @@ type
     AvailableServiceArray : TBloArrayOfDataPlatformSubscriber;
     OriginalDataExports: TBloArrayOfGuid;
     ModifiedDataExports: TBloArrayOfGuid;
+
+    FOriginalSettings: TOriginalSettings;
 
     procedure ExportTaggedAccounts(ProgressForm: ISingleProgressForm);
     procedure AdjustControlPositions;
@@ -95,6 +107,8 @@ type
     procedure UpdateClientWebFormat(Subscription: TBloArrayOfGuid);
     procedure SetReadOnly;
     function IsClientOnline : boolean;
+
+    function ClientSettingChanged: Boolean;
 
     procedure AfterShow(var Message: TMessage); message UM_AFTERSHOW;
   public
@@ -204,9 +218,9 @@ begin
                 0) = DLG_YES then
     begin
       ClientReadDetail := ProductConfigService.GetClientDetailsWithCode(MyClient.clFields.clCode);
+      ProductConfigService.UpdateClientStatus(ClientReadDetail, MyClient.clFields.clCode);
       ClientReadDetail.Status := BlopiServiceFacade.Active;
       LoadClientInfo(True);
-      ProductConfigService.UpdateClientStatus(ClientReadDetail, MyClient.clFields.clCode);
     end else
     begin
       if WasSuspended then
@@ -246,12 +260,15 @@ begin
     Exit;
   end;
 
-  CanClose := Validate;
+  if ClientSettingChanged then
+  begin
+    CanClose := Validate;
 
-  if CanClose then
-    CanClose := SaveClientInfo
-  else
-    fOkPressed := false;
+    if CanClose then
+      CanClose := SaveClientInfo
+    else
+      fOkPressed := false;
+  end;
 end;
 
 procedure TfrmBanklinkOnlineSettings.FormDestroy(Sender: TObject);
@@ -321,6 +338,74 @@ begin
     ProductConfigService.AddItemToArrayGuid(ModifiedDataExports, TDataExportOption(chklistServicesAvailable.Items.Objects[chklistServicesAvailable.ItemIndex]).Guid)
   else
     ProductConfigService.RemoveItemFromArrayGuid(ModifiedDataExports, TDataExportOption(chklistServicesAvailable.Items.Objects[chklistServicesAvailable.ItemIndex]).Guid);
+end;
+
+function TfrmBanklinkOnlineSettings.ClientSettingChanged: Boolean;
+var
+  Subscription: TBloArrayOfGuid;
+  Index: Integer;
+begin
+  Result := False;
+
+  if FOriginalSettings.Status <> Status then
+  begin
+    Result := True;
+
+    Exit;
+  end;
+
+  for Index := 0 to chklistProducts.Count - 1 do
+  begin
+    if chklistProducts.Checked[Index] then
+    begin
+      ProductConfigService.AddItemToArrayGuid(Subscription, TBloCatalogueEntry(chklistProducts.Items.Objects[Index]).id);
+    end;
+  end;
+
+  if not ProductConfigService.CompareGuidArrays(Subscription, ClientReadDetail.Subscription) then
+  begin
+    Result := True;
+
+    Exit;
+  end;
+
+  if grpServicesAvailable.Visible then
+  begin
+    if ProductConfigService.CompareGuidArrays(OriginalDataExports, ModifiedDataExports) then
+    begin
+      Result := True;
+
+      Exit;
+    end;
+
+    if FOriginalSettings.DeliverDataDirect <> chkDeliverData.Checked then
+    begin
+      Result := True;
+
+      Exit;
+    end;
+
+    if FOriginalSettings.SecureCode = edtSecureCode.Text then
+    begin
+      Result := True;
+
+      Exit;
+    end;
+  end;
+
+  if FOriginalSettings.Username <> edtUsername.Text then
+  begin
+    Result := True;
+
+    Exit;
+  end;
+
+  if FOriginalSettings.EmailAddress <> edtEmailAddress.Text then
+  begin
+    Result := True;
+
+    Exit;
+  end;
 end;
 
 //------------------------------------------------------------------------------
@@ -813,6 +898,12 @@ begin
 
   if fReadOnly then
     SetReadOnly;
+
+  FOriginalSettings.Status := Status;
+  FOriginalSettings.DeliverDataDirect := chkDeliverData.Checked;
+  FOriginalSettings.SecureCode := edtSecureCode.Text;
+  FOriginalSettings.Username := edtUsername.Text;
+  FOriginalSettings.EmailAddress := edtEmailAddress.Text;
 
   if (ShowModal = mrOk) then
   begin
