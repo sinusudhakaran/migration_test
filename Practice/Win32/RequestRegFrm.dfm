@@ -53,7 +53,7 @@ object RequestregForm: TRequestregForm
     Caption = 
       'When your secure area has been created, a member of the BankLink' +
       ' Support Team will contact the above BankLink Online Administrat' +
-      'or to provide assistance with using the BankLink Online service'
+      'or to provide assistance with using the BankLink Online service.'
     WordWrap = True
   end
   object lblPracticeName: TLabel
@@ -170,7 +170,7 @@ object RequestregForm: TRequestregForm
     Width = 369
     Height = 21
     Style = csDropDownList
-    ItemHeight = 0
+    ItemHeight = 13
     TabOrder = 6
     OnChange = cbAdminNameChange
   end
