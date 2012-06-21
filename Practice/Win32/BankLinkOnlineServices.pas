@@ -324,7 +324,7 @@ type
                              const aChangePassword : Boolean;
                              aOldPassword          : WideString;
                              aNewPassword          : WideString) : Boolean;
-                             
+
     function DeletePracUser(const aUserCode : string;
                             const aUserGuid : string;
                             aPractice : TBloPracticeRead = nil): Boolean;
@@ -354,6 +354,7 @@ type
     function GuidsEqual(GuidA, GuidB: TBloGuid): Boolean;
     function GuidArraysEqual(GuidArrayA, GuidArrayB: TBloArrayOfGuid): Boolean;
 
+    function PracticeHasVendors : Boolean;
     function GetPracticeVendorExports : TBloDataPlatformSubscription;
     function GetClientVendorExports(aClientGuid: TBloGuid) : TBloDataPlatformSubscription;
     function GetAccountVendors(aClientGuid : TBloGuid; aAccountId: Integer;
@@ -1638,6 +1639,17 @@ end;
 function TProductConfigService.GuidsEqual(GuidA, GuidB: TBloGuid): Boolean;
 begin
   Result := CompareText(GuidA, GuidB) = 0;
+end;
+
+//------------------------------------------------------------------------------
+function TProductConfigService.PracticeHasVendors : Boolean;
+var
+  FPracticeVendorExports : TBloDataPlatformSubscription;
+begin
+  Result := false;
+  FPracticeVendorExports := GetPracticeVendorExports;
+  if Assigned(FPracticeVendorExports) then
+    Result := (Length(FPracticeVendorExports.Current) > 0);
 end;
 
 //------------------------------------------------------------------------------
@@ -3763,7 +3775,7 @@ begin
 
       if ClientIndex = -1 then
       begin
-        Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Creating Client', 40);
+        Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Updating Client', 40);
         BloClientCreate := TBloClientCreate.Create;
         try
           FillInClientDetails(BloClientCreate);
@@ -3806,7 +3818,7 @@ begin
 
         if Result then
         begin
-          HelpfulInfoMsg(Format('Settings for %s have been successfully created on ' +
+          HelpfulInfoMsg(Format('Settings for %s have been successfully updated on ' +
                          '%s.',[ClientCode, BANKLINK_ONLINE_NAME]), 0);
           Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finished', 100);
         end;

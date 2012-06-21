@@ -1217,13 +1217,18 @@ begin
   gbClientmanager.BeginUpdateLayout;
   try
     ClientLookup.GetSelectionTypes(ProspectSelected, ActiveSelected, UnsyncSelected);
+
+    actBOSettings.Visible := not ProductConfigService.Registered;
+
     actBOSettings.Enabled := (AdminSystem.fdFields.fdUse_BankLink_Online and
                              ProductConfigService.OnLine and
                              (not ProspectSelected) and
                              (not NoClientSelected) and
                              (not UnsyncSelected) and
                              SingleClientSelected and
-                             not (ProductConfigService.OnlineStatus = staDeactivated));
+                             (not (ProductConfigService.OnlineStatus = staDeactivated))
+                             and actBOSettings.Visible);
+                             
     actScheduled.Enabled := (not ProspectSelected) and (not NoClientSelected) and (not UnsyncSelected);
     actPracticeContact.Enabled := (not ProspectSelected) and (not NoClientSelected) and (not UnsyncSelected);
     actFinancialYear.Enabled := (not ProspectSelected) and (not NoClientSelected) and (not UnsyncSelected);
@@ -1624,6 +1629,9 @@ begin
     try
       ShowServicesAvailable := ((MyClient.clFields.clDownload_From <> dlBankLinkConnect) or
                                 (Trim(MyClient.clFields.clBankLink_Code) = ''));
+      if ProductConfigService.IsExportDataEnabled then
+        ShowServicesAvailable := ShowServicesAvailable and
+                                 ProductConfigService.PracticeHasVendors;
       if EditBanklinkOnlineSettings(Self, false, false, ShowServicesAvailable) then
       begin
         //Need to reload TProductConfigService.Clients after blopi has been updated.  Probably better to update this locally somehow.

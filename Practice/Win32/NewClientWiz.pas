@@ -192,6 +192,9 @@ begin
                end;
                ShowServicesAvailable := ((MyClient.clFields.clDownload_From <> dlBankLinkConnect) or
                                          (Trim(MyClient.clFields.clBankLink_Code) = ''));
+               if ProductConfigService.IsExportDataEnabled then
+                 ShowServicesAvailable := ShowServicesAvailable and
+                                          ProductConfigService.PracticeHasVendors;
                EditBanklinkOnlineSettings(w_PopupParent, true, true, ShowServicesAvailable);
              end
              else

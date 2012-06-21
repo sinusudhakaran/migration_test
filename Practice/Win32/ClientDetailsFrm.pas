@@ -511,6 +511,11 @@ begin
   MyClient.clFields.clContact_name := econtact.text;
   MyClient.clFields.clClient_EMail_Address := eMail.text;
   ShowServicesAvailable := (chkOffSite.Checked = false);
+
+  if ProductConfigService.IsExportDataEnabled then
+    ShowServicesAvailable := ShowServicesAvailable and
+                             ProductConfigService.PracticeHasVendors;
+
   if EditBanklinkOnlineSettings(Self, MyClient.clFields.clWeb_Export_Format = wfWebNotes,
                                 false, ShowServicesAvailable) then
   begin
