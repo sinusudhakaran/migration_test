@@ -137,7 +137,8 @@ uses
   WinUtils,
   DesktopSuper_Utils,
   BankLinkOnlineServices,
-  BlopiServiceFacade;
+  BlopiServiceFacade,
+  BanklinkOnlineSettingsFrm;
 
 const
   UnitName = 'PRACDETAILSFRM';
@@ -645,6 +646,13 @@ begin
           begin
             if MyClient.Opened then
             begin
+              if (not FInWizard) and (clWeb_Export_Format = wfWebNotes) and (OldWebExportFormat <> wfWebNotes) then
+              begin
+                HelpfulInfoMsg('You have selected to use BankLink Notes Online for this client. Please confirm the BankLink Online details for this client', 0);
+
+                EditBanklinkOnlineSettings(Self, True, True, False);
+              end;
+              
               BlopiClientDetails := ProductConfigService.GetClientDetailsWithCode(MyClient.clFields.clCode);
 
               if Assigned(BlopiClientDetails) then

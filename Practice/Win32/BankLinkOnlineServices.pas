@@ -216,8 +216,6 @@ type
                                 const Password      : WideString) : MessageResponse;
     function DeleteUser(const aUserId      : TBloGuid;
                         const aUserCode    : WideString) : MessageResponse;
-    function IsVendorExportOptionEnabled(ProductId: TBloGuid;
-      AUsePracCopy: Boolean): Boolean;
 
     function IsVendorInPractice(aAvailableServiceArray : TBloArrayOfDataPlatformSubscriber;
                                 aVendorGuid : TBloGuid) : Boolean;
@@ -389,7 +387,9 @@ type
 
     function ResetPracticeUserPassword(const EmailAddress: String; UserGuid: TBloGuid): Boolean;
 
-    function CompareGuidArrays(SubscriptionA, SubscriptionB: TBloArrayOfGuid): Boolean;
+    function CompareGuidArrays(SubscriptionA, SubscriptionB: TBloArrayOfGuid): Boolean; 
+
+    function GetOnlineClientUser(const ClientCode: String; out UserFullName, UserEmail: String): Boolean;
 
     property OnLine: Boolean read FOnLine;
     property Registered: Boolean read GetRegistered;
@@ -739,6 +739,19 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+function TProductConfigService.CompareGuidArrays(SubscriptionA, SubscriptionB: TBloArrayOfGuid): Boolean;
+begin
+  Result := False;
+  
+  if Length(SubscriptionA) = Length(SubscriptionB)  then
+  begin
+    if GuidArraysEqual(SubscriptionA, SubscriptionB) then
+    begin
+      Result := GuidArraysEqual(SubscriptionB, SubscriptionA)
+    end;
+  end;
+end;
+
 procedure TProductConfigService.CopyRemotableObject(ASource,
   ATarget: TRemotable);
 var
@@ -1160,6 +1173,33 @@ begin
   end;
 end;
 
+function TProductConfigService.GetOnlineClientUser(const ClientCode: String; out UserFullName, UserEmail: String): Boolean;
+var
+  ClientReadDetail: TBloClientReadDetail;
+begin
+  Result := False;
+
+  if OnLine then
+  begin
+    ClientReadDetail := ProductConfigService.GetClientDetailsWithCode(ClientCode);
+
+    try
+      if Assigned(ClientReadDetail) then
+      begin
+        if Length(ClientReadDetail.Users) > 0 then
+        begin
+          UserFullName := ClientReadDetail.Users[0].FullName;
+          UserEmail := ClientReadDetail.Users[0].EMail;
+
+          Result := True;
+        end;
+      end;
+    finally
+      ClientReadDetail.Free;
+    end;
+  end;
+end;
+
 function TProductConfigService.GetExportDataId: TBloGuid;
 var
   i   : integer;
@@ -1490,6 +1530,7 @@ begin
           else
             AddLine(Details, 'Message', AMesageresponse.ErrorMessages[ErrIndex].Message_);
         end;
+
         for ErrIndex := 0 to high(AMesageresponse.Exceptions) do
         begin
           if (ContextErrorCode = AMesageresponse.ErrorMessages[ErrIndex].ErrorCode) then
@@ -1499,9 +1540,9 @@ begin
           AddLine(Details, 'Source', AMesageresponse.Exceptions[ErrIndex].Source);
           AddLine(Details, 'StackTrace', AMesageresponse.Exceptions[ErrIndex].StackTrace);
         end;
-          HelpfulErrorMsg(ErrorMessage, 0, False, Details.Text, not SimpleError);
 
-          LogUtil.LogMsg(lmError,'ERRORMOREFRM',Details.Text);
+        HelpfulErrorMsg(ErrorMessage, 0, False, Details.Text, not SimpleError);
+        LogUtil.LogMsg(lmError,'ERRORMOREFRM',Details.Text);
       finally
         Details.Free;
       end;
@@ -2493,20 +2534,6 @@ begin
   end;
 end;
 
-//------------------------------------------------------------------------------
-function TProductConfigService.CompareGuidArrays(SubscriptionA, SubscriptionB: TBloArrayOfGuid): Boolean;
-begin
-  Result := False;
-  
-  if Length(SubscriptionA) = Length(SubscriptionB)  then
-  begin
-    if GuidArraysEqual(SubscriptionA, SubscriptionB) then
-    begin
-      Result := GuidArraysEqual(SubscriptionB, SubscriptionA)
-    end;
-  end;
-end;
-
 {
 function TProductConfigService.SaveClient(AClient: TBloClientReadDetail): Boolean;
 var
@@ -3133,11 +3160,6 @@ begin
       Exit;
     end;
   end;
-end;
-
-function TProductConfigService.IsVendorExportOptionEnabled(ProductId: TBloGuid; AUsePracCopy: Boolean): Boolean;
-begin
-  Result := False;
 end;
 
 //------------------------------------------------------------------------------
@@ -3949,7 +3971,7 @@ begin
 
       if ClientDetailsHasChanged then
       begin
-        Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Creating Client', 70);
+        Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Updating Client', 70);
         BloClientUpdate := TBloClientUpdate.Create;
         try
           BloClientUpdate.Id                   := aExistingClient.Id;
@@ -4055,6 +4077,7 @@ var
   ClientDetailResponse: MessageResponseOfClientReadDetailMIdCYrSK;
   MsgResponse: MessageResponse;
   ClientGuid: TBloGuid;
+  NewClientReadDetail: TBloClientReadDetail;
 begin
   ClientGuid := GetClientGuid(ClientCode);
   BlopiInterface := ProductConfigService.GetServiceFacade;
@@ -4062,12 +4085,13 @@ begin
                                                    AdminSystem.fdFields.fdBankLink_Code,
                                                    AdminSystem.fdFields.fdBankLink_Connect_Password,
                                                    ClientGuid);
-  ClientReadDetail := ClientDetailResponse.Result;
-  ClientReadDetail.Status := BlopiServiceFacade.Active;
-  ProductConfigService.UpdateClient(ClientReadDetail, ClientReadDetail.BillingFrequency,
-                                    ClientReadDetail.MaxOfflineDays, ClientReadDetail.Status,
-                                    ClientReadDetail.Subscription, ClientReadDetail.Users[0].EMail,
-                                    ClientReadDetail.Users[0].FullName, false);
+  NewClientReadDetail := ClientDetailResponse.Result;
+  NewClientReadDetail.Status := BlopiServiceFacade.Active;
+  ProductConfigService.UpdateClient(ClientReadDetail, NewClientReadDetail.BillingFrequency,
+                                    NewClientReadDetail.MaxOfflineDays, NewClientReadDetail.Status,
+                                    NewClientReadDetail.Subscription, NewClientReadDetail.Users[0].EMail,
+                                    NewClientReadDetail.Users[0].FullName, false);
+  ClientReadDetail := NewClientReadDetail;
 end;
 
 //------------------------------------------------------------------------------

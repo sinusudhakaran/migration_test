@@ -362,11 +362,21 @@ begin
     end;
   end;
 
-  if not ProductConfigService.CompareGuidArrays(Subscription, ClientReadDetail.Subscription) then
+  if Assigned(ClientReadDetail) then
+  begin
+    if not ProductConfigService.CompareGuidArrays(Subscription, ClientReadDetail.Subscription) then
+    begin
+      Result := True;
+
+      Exit;
+    end;
+  end
+  else
+  if Length(Subscription) > 0 then
   begin
     Result := True;
 
-    Exit;
+    Exit;    
   end;
 
   if grpServicesAvailable.Visible then

@@ -42,7 +42,7 @@ object RequestregForm: TRequestregForm
     AutoSize = False
     Caption = 
       'Please allow three working days for your application to be proce' +
-      'ssed'
+      'ssed.'
   end
   object lblInfo: TLabel
     Left = 80

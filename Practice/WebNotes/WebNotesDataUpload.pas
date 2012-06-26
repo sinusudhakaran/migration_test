@@ -56,6 +56,9 @@ type
     EntriesCount: Integer;
     FReplyURL: string;
     FNotifyClient: Boolean;
+    FUseCustomCompanyContact: Boolean;
+    FCustomCompanyContactName: String;
+    FCustomCompanyContactEmail: String;
     procedure Reset;
     function IncludeTrans(var Account: TBank_Account; Trans: pTransaction_Rec): boolean;
     function IncludeAccount(var Account: TBank_Account): Boolean;
@@ -89,6 +92,10 @@ type
     property ReplyURL: string read FReplyURL write SetReplyURL;
     property NotifyClient: Boolean read FNotifyClient write SetNotifyClient;
 
+    property UseCustomCompanyContact: Boolean read FUseCustomCompanyContact write FUseCustomCompanyContact;
+    property CustomCompanyContactName: String read FCustomCompanyContactName write FCustomCompanyContactName;
+    property CustomCompanyContactEmail: String read FCustomCompanyContactEmail write FCustomCompanyContactEmail;
+    
     function GetBatchXML: string;
 
     function TestReply(Reply: string): Boolean;
@@ -108,7 +115,9 @@ function ExportWebNotesFile(const aClient : TClientObj;
                             const SchdSummaryList : TList;
 
                             const AccountList: TList;
-                            const ReportStartDate: Integer = 0) : boolean;
+                            const ReportStartDate: Integer = 0;
+                            const CustomCompanyContactName: String = '';
+                            const CustomCompanyContactEmail: String = '') : boolean;
 
 //------------------------------------------------------------------------------
 implementation
@@ -153,7 +162,9 @@ function ExportWebNotesFile(const aClient : TClientObj;
                             const SchdSummaryList : TList;
 
                             const AccountList: TList;
-                            const ReportStartDate: Integer = 0) : boolean;
+                            const ReportStartDate: Integer = 0;
+                            const CustomCompanyContactName: String = '';
+                            const CustomCompanyContactEmail: String = '') : boolean;
 var
   WebClient : TWebNotesClient;
   Service: TWebNotesDataUpload;
@@ -206,6 +217,14 @@ begin
       Service.SchdSummaryList := SchdSummaryList;
       Service.IsScheduledReport := IsScheduledReport;
       Service.ScheduledReportPrintAll := ScheduledReportPrintAll;
+
+      if (Trim(CustomCompanyContactName) <> '') and (Trim(CustomCompanyContactEmail) <> '') then
+      begin
+        Service.CustomCompanyContactName := CustomCompanyContactName;
+        Service.CustomCompanyContactEmail := CustomCompanyContactEmail;
+        
+        Service.UseCustomCompanyContact := True;
+      end;
 
       // Build the export data
       Batch := Service.GetBatchXML;
@@ -263,6 +282,11 @@ begin
                                                               Subscription,
                                                               aClient.clExtra.ceOnlineUserEMail,
                                                               aClient.clExtra.ceOnlineUserFullName);
+
+                  if Result then
+                  begin
+                    aClient.clExtra.ceOnlineValuesStored := False;
+                  end;
                 end;
               finally
                 FreeandNil(ClientReadDetail);
@@ -573,13 +597,15 @@ var
           end;
       end;
   end;
-
+  
   //------------------------------------------------
   procedure AddCompany(ANode: IXMLNode);
   var
     lClientRec: pClient_File_Rec;
     lNode: IXMLNode;
-
+    Username: String;
+    EmailAddress: String;
+    
     //------------------------------------------------
     procedure AddPracticeContact(Name, Email: string);
     begin
@@ -595,9 +621,18 @@ var
 
     // Company Contact
     lNode := ANode.AddChild(nContact);
+
+    if FUseCustomCompanyContact then
+    begin
+      SetTextAttr(lNode,nName,FCustomCompanyContactName);
+      SetTextAttr(lNode,nEmail,FCustomCompanyContactEmail);
+    end
+    else
+    begin
       SetTextAttr(lNode,nName,FClient.clFields.clContact_Name);
       SetTextAttr(lNode,nEmail,FClient.clFields.clClient_EMail_Address);
-
+    end;
+    
     lClientRec := AdminSystem.fdSystem_Client_File_List.FindCode(FClient.clFields.clCode);
     if Assigned(lClientRec) then
     begin
@@ -768,6 +803,9 @@ end;
 constructor TWebNotesDataUpload.Create;
 begin
   inherited Create;
+
+  FUseCustomCompanyContact := False;
+  
   Reset;
 end;
 

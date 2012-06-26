@@ -39,7 +39,7 @@ uses
      BNotesInterface, LogUtil, baObj32, GlobalDirectories, Globals,
      PracticeLogo, MailFrm, todoHandler, StDate, Windows,
      ClientHomepagefrm, Forms, Admin32, WebNotesDataUpload, WebNotesImportFrm,
-     ForexHelpers, AuditMgr, Files;
+     ForexHelpers, AuditMgr, Files, BanklinkOnlineServices;
 
 const
    UnitName = 'ECodingUtils';
@@ -572,7 +572,9 @@ var
    AccountList: TList;
    AttachmentSent: Boolean;
    Subject: string;
-   NotifyClient: Boolean;
+   NotifyClient: Boolean;  
+   ClientUserName: String;
+   ClientUserEmail: String;
 begin
    result := false;
 
@@ -675,6 +677,28 @@ begin
       else
         EncodedLogoString := '';
 
+      if (Dest = ecDestWebX) and (aClient.clFields.clWeb_Export_Format = wfWebNotes) then
+      begin
+        if not ProductConfigService.GetOnlineClientUser(aClient.clFields.clCode, ClientUserName, ClientUserEmail) then
+        begin
+          if aClient.clExtra.ceOnlineValuesStored then
+          begin
+            ClientUserName :=  aClient.clExtra.ceOnlineUserFullName;
+            ClientUserEmail := aClient.clExtra.ceOnlineUserEMail;
+          end
+          else
+          begin
+            ClientUserName := aClient.clFields.clContact_Name;
+            ClientUserEmail := aClient.clFields.clClient_EMail_Address;
+          end;
+        end;
+      end
+      else
+      begin
+        ClientUserName := aClient.clFields.clContact_Name;
+        ClientUserEmail := aClient.clFields.clClient_EMail_Address;
+      end;  
+
       try
          try
             if (Dest = ecDestWebX) then
@@ -682,7 +706,7 @@ begin
              
               case aClient.clFields.clWeb_Export_Format of
               wfWebX :  Count := WebXOffice.ExportAccount(aClient, nil, Filename, DateFrom, DateTo, nil, False, nil, False, AccountList);
-              wfWebNotes :  ExportWebNotesFile(aClient, DateFrom, DateTo, Count, Subject, NotifyClient, false, false, nil, AccountList);
+              wfWebNotes :  ExportWebNotesFile(aClient, DateFrom, DateTo, Count, Subject, NotifyClient, false, false, nil, AccountList, 0, ClientUserName, ClientUserEmail);
               end
 
             else
@@ -726,11 +750,12 @@ begin
 
          if (Dest = ecDestWebX)
          and (aClient.clFields.clWeb_Export_Format = wfWebNotes)
-         and (NotifyClient) then begin 
+         and (NotifyClient) then
+         begin 
             // Build The email,
             //Subject should be the URL..
             SendMailTo(Format('Export to %s Notification', [WebnotesName]),
-                       aClient.clFields.clClient_EMail_Address, // Recipients
+                       ClientUserEmail, // Recipients
 
                        Format('Export to %s, notification for %s (%s to %s)', // Subject
                               [wfNames[wfWebNotes],
