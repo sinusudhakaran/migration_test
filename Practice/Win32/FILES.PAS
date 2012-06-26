@@ -723,6 +723,58 @@ begin
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+procedure ResetSentMethod( OpenCode : string; ASendMethod: Byte);
+const
+  ThisMethodname = 'ResetSentmethod';
+  S_RESETERROR = 'Unable to Reset Sent Method for client %s. %s';
+var
+  Client : TClientObj;
+  filename : string;
+  Msg : string;
+begin
+  Assert( not Assigned( AdminSystem), 'ResetSentMethod called when Admin Exists');
+
+  try
+    fileName := DATADIR + OpenCode + FILEEXTN;
+    Client := TClientObj.Create;
+    try
+      //open the client file and clear the read only status
+      Client.Open(OpenCode, FILEEXTN);
+
+      if Client.clExtra.ceFile_Transfer_Method = ftmOnline then
+      begin
+        //Reset file transfer method
+        Client.clExtra.ceFile_Transfer_Method := ASendMethod;
+      end;
+
+      Client.Save;
+    finally
+      Client.Free;
+    end;
+
+  except
+    on e : EInOutError do begin
+      Msg := Format( S_RESETERROR, [ OpenCode, E.Message ] );
+      LogUtil.LogMsg( lmError, UnitName, ThisMethodName + ' : ' + Msg );
+    end;
+
+    on E: EInvalidDataInFile do begin
+      Msg := Format( S_RESETERROR, [ OpenCode, E.Message ] );
+      LogUtil.LogMsg( lmError, UnitName, ThisMethodName + ' : ' + Msg );
+    end;
+
+    on E: EBKFileError do begin
+      Msg := Format( S_RESETERROR, [ OpenCode, E.Message ] );
+      LogUtil.LogMsg( lmError, UnitName, ThisMethodName + ' : ' + Msg );
+    end;
+
+    on E : EIncorrectVersion do begin
+      Msg := Format( S_RESETERROR, [ OpenCode, E.Message ] );
+      LogUtil.LogMsg( lmError, UnitName, ThisMethodName + ' : ' + Msg );
+    end;
+  end;
+end;
+
 procedure ResetReadOnlyFlag( OpenCode : string; ASendMethod: Byte);
 const
   ThisMethodname = 'ResetReadOnlyFlag';
@@ -2479,6 +2531,10 @@ begin
       begin
         ResetReadOnlyFlag( Code, ASendMethod);
         ProgressFrm.mProgress.Lines.Add( 'Read-only flag cleared');
+      end
+      else
+      begin
+        ResetSentMethod( Code, ASendMethod);
       end;
    end;
 

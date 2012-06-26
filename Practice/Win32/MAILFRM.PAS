@@ -894,6 +894,10 @@ begin
                 //store a marker to indicate that file is offsite, this allows
                 //us to set the file status correctly for the admin system
                 bk5Files.Objects[i] := TObject( TempClient.clFields.clDownload_From);
+
+                //Make sure we sent the transfer method to email so that it works correctly when checked into books.
+                TempClient.clExtra.ceFile_Transfer_Method := ftmEmail;
+
                 CloseAClient( TempClient);
                 //file ok, move on to next code
                 i := i + 1;
