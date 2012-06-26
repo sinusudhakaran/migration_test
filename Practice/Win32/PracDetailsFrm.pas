@@ -145,6 +145,7 @@ type
     procedure ckUseBankLinkOnlineClick(Sender: TObject);
     procedure vtProductsFreeNode(Sender: TBaseVirtualTree; Node: PVirtualNode);
     procedure vtProductsChecked(Sender: TBaseVirtualTree; Node: PVirtualNode);
+    function CheckProduct(Sender: TBaseVirtualTree; Node: PVirtualNode; CheckStateAlreadyChanged, ShowWarning: boolean): string;
     procedure tbsInterfacesShow(Sender: TObject);
     procedure cbPrimaryContactClick(Sender: TObject);
     procedure TreeCompare(Sender: TBaseVirtualTree; Node1, Node2: PVirtualNode; Column: TColumnIndex;
@@ -1530,18 +1531,25 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmPracticeDetails.vtProductsChecked(Sender: TBaseVirtualTree;
   Node: PVirtualNode);
+begin
+  CheckProduct(Sender, Node, False, True);
+end;
+
+function TfrmPracticeDetails.CheckProduct(Sender: TBaseVirtualTree;
+  Node: PVirtualNode; CheckStateAlreadyChanged, ShowWarning: boolean): string;
 var
   Data: PTreeData;
   Cat: TBloCatalogueEntry;
   Index: Integer;
   ClientCount: Integer;
 begin
+  Result := '';
   vtProducts.BeginUpdate;
   try
     Data := vtProducts.GetNodeData(Node);
     if Assigned(Data.tdObject) then begin
       Cat := TBloCatalogueEntry(Data.tdObject);
-      if Node.CheckState = csCheckedNormal then
+      if (Node.CheckState = csCheckedNormal) xor CheckStateAlreadyChanged then
       begin
         //Add product
         ProductConfigService.AddProduct(Cat.Id);
@@ -1569,7 +1577,7 @@ begin
             end;
           end;
         end;
-        
+
         if CanShowDataExportSettings then
         begin
           if not tbsDataExport.TabVisible then
@@ -1607,7 +1615,7 @@ begin
 
         //Remove product
         if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, 'Start remove product: ' + Cat.Id);
-        ProductConfigService.RemoveProduct(Cat.Id);
+        Result := ProductConfigService.RemoveProduct(Cat.Id, ShowWarning);
         if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, 'End remove product: ' + Cat.Id);
 
         if ProductConfigService.GuidsEqual(Cat.Id, ProductConfigService.GetExportDataId) and tbsDataExport.TabVisible then
@@ -1935,8 +1943,52 @@ end;
 
 //------------------------------------------------------------------------------
 procedure TfrmPracticeDetails.actClearAllProductsExecute(Sender: TObject);
+var
+  BLOProductsNode, BLOServicesNode, CurrentNode: PVirtualNode;
+  Msg, WarningStr: string;
+
+  procedure AddToMsg;
+  begin
+    if (WarningStr <> '') then
+      Msg := Msg + WarningStr + #10#10;
+  end;
+
+  procedure UncheckNodes;
+  begin
+    if (CurrentNode.CheckState = csCheckedNormal) then
+    begin
+      WarningStr := CheckProduct(vtProducts, CurrentNode, True, False);
+      AddToMsg;
+    end;
+    while (True) do
+    begin
+      CurrentNode := CurrentNode.NextSibling;
+      if not Assigned(CurrentNode) then
+        Break;
+      if (currentNode.CheckState = csCheckedNormal) then
+      begin
+        WarningStr := CheckProduct(vtProducts, CurrentNode, True, False);
+        AddToMsg;
+      end;
+    end;
+  end;
+
 begin
-  ProductConfigService.ClearAllProducts;
+  Msg := '';
+  // Unchecking all BankLink Online Products
+  BLOProductsNode := vtProducts.GetFirst;
+  CurrentNode := BLOProductsNode.FirstChild;
+  UncheckNodes;
+  if (Msg <> '') then
+    HelpfulWarningMsg(Msg, 0);
+
+  // Unchecking all BankLink Online Services
+  BLOServicesNode := BLOProductsNode.NextSibling;
+  CurrentNode := BLOServicesNode.FirstChild;
+  UncheckNodes;
+
+  // ProductConfigService.ClearAllProducts;
+
   vtProducts.Invalidate;
   Refresh;
   if vtProducts.CanFocus then
@@ -1947,8 +1999,34 @@ end;
 
 //------------------------------------------------------------------------------
 procedure TfrmPracticeDetails.actSelectAllProductsExecute(Sender: TObject);
+var
+  BLOProductsNode, BLOServicesNode, CurrentNode: PVirtualNode;
+
+  procedure CheckNodes;
+  begin
+    if (CurrentNode.CheckState = csUncheckedNormal) then
+      CheckProduct(vtProducts, CurrentNode, True, False);
+    while (True) do
+    begin
+      CurrentNode := CurrentNode.NextSibling;
+      if not Assigned(CurrentNode) then
+        Break;
+      if (CurrentNode.CheckState = csUncheckedNormal) then
+        CheckProduct(vtProducts, CurrentNode, True, False);
+    end;
+  end;
+
 begin
-  ProductConfigService.SelectAllProducts;
+  // Checking all BankLink Online Products
+  BLOProductsNode := vtProducts.GetFirst;
+  CurrentNode := BLOProductsNode.FirstChild;
+  CheckNodes;
+
+  // Checking all BankLink Online Services
+  BLOServicesNode := BLOProductsNode.NextSibling;
+  CurrentNode := BLOServicesNode.FirstChild;
+  CheckNodes;
+
   vtProducts.Invalidate;
   Refresh;
   if vtProducts.CanFocus then

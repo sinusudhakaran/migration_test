@@ -267,7 +267,7 @@ type
     procedure AddProduct(AProductId: TBloGuid);
     procedure ClearAllProducts;
     function OnlineStatus: TBloStatus;
-    procedure RemoveProduct(AProductId: TBloGuid);
+    function RemoveProduct(AProductId: TBloGuid; ShowClientWarning: boolean = True): string;
     procedure SelectAllProducts;
 
     procedure SetPrimaryContact(AUser: TBloUserRead);
@@ -728,14 +728,22 @@ procedure TProductConfigService.ClearAllProducts;
 var
   i: integer;
   SubArray: TBloArrayOfGuid;
+  WarningStr, Msg: string;
 begin
   //Copy the subscription array
   SetLength(SubArray, Length(FPracticeCopy.Subscription));
   for i := Low(FPracticeCopy.Subscription) to High(FPracticeCopy.Subscription) do
     SubArray[i] := FPracticeCopy.Subscription[i];
   //Try to remove product
+  Msg := '';
   for i := Low(SubArray) to High(SubArray) do
-    RemoveProduct(SubArray[i]);
+  begin
+    WarningStr := RemoveProduct(SubArray[i], false);
+    if (WarningStr <> '') then
+      Msg := Msg + WarningStr + #10#10;
+  end;
+  if (Msg <> '') then
+    HelpfulWarningMsg(Msg, 0);
 end;
 
 //------------------------------------------------------------------------------
@@ -2412,7 +2420,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TProductConfigService.RemoveProduct(AProductId: TBloGuid);
+function TProductConfigService.RemoveProduct(AProductId: TBloGuid; ShowClientWarning: boolean = True): string;
 var
   i, j: integer;
   SubArray: TBloArrayOfGuid;
@@ -2420,6 +2428,7 @@ var
   Msg: string;
   TempCatalogueEntry: TBloCatalogueEntry;
 begin
+  Result := '';
   try
     if not Assigned(FClientList) then
       LoadClientList;
@@ -2454,7 +2463,10 @@ begin
                         'access for these clients from this product before ' +
                         'disabling it',
                         [ClientsUsingProduct, TempCatalogueEntry.Description]);
-        HelpfulWarningMsg(MSg, 0);
+        if ShowClientWarning then
+          HelpfulWarningMsg(Msg, 0)
+        else
+          Result := Msg; // In this case, the method which calls RemoveProduct will be displaying the message, so that several warnings can be shown together
         Exit;
       end;
     end;
