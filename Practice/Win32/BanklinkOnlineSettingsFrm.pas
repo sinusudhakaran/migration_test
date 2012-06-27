@@ -542,14 +542,14 @@ begin
 
   if not RegExIsEmailValid(edtEmailAddress.Text) then
   begin
-    ShowMessage('You must enter a valid e-mail address. Please try again');
+    ShowMessage('You must enter a valid e-mail address. Please try again.');
     edtEmailAddress.SetFocus;
     Exit;
   end;
 
   if not ProductConfigService.OnLine then
   begin
-    ErrorMsg := 'Banklink Practice is unable to connect to Banklink Online and so ' +
+    ErrorMsg := 'BankLink Practice is unable to connect to BankLink Online and so ' +
                 'cannot update this client''s settings';
     ShowMessage(ErrorMsg);
     LogUtil.LogMsg(lmError, UnitName, ErrorMsg);
@@ -565,7 +565,7 @@ begin
   begin
     if AskYesNo('Resuming client',
                 'You are about to resume this Client on ' +
-                'Banklink Online. They will be able to access BankLink Online as per ' +
+                'BankLink Online. They will be able to access BankLink Online as per ' +
                 'normal.' + #10#10 + 'Are you sure you want to continue?',
                 DLG_YES, 0, false) <> DLG_YES then
     begin

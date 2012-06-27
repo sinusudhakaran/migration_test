@@ -1298,10 +1298,12 @@ begin
           PracticeDetailResponse := BlopiInterface.GetPractice(CountryText(AdminSystem.fdFields.fdCountry),
                                                                AdminSystem.fdFields.fdBankLink_Code,
                                                                AdminSystem.fdFields.fdBankLink_Connect_Password);
-          if Assigned(PracticeDetailResponse) then begin
+
+          if Assigned(PracticeDetailResponse) then
+          begin
             FOnline := True;
 
-            {Moved to after we have retrived the practice data otherwise it could be working with out of date data. 
+            {Moved to after we have retrived the practice data otherwise it could be working with out of date data.
             for i := 1 to Screen.FormCount - 1 do
             begin
               if (Screen.Forms[i].Name = 'frmClientManager') then
@@ -1311,7 +1313,8 @@ begin
               end;
             end;}
 
-            if Assigned(PracticeDetailResponse.Result) then begin
+            if Assigned(PracticeDetailResponse.Result) then
+            begin
               AdminSystem.fdFields.fdLast_BankLink_Online_Update := stDate.CurrentDate;
               FPractice := PracticeDetailResponse.Result;
               FRegistered := True;
@@ -1326,16 +1329,20 @@ begin
                 end;
               end;
 
-            end else begin
+            end else
+            begin
               //Something went wrong
               Msg := '';
-              if Length(PracticeDetailResponse.ErrorMessages) > 0 then begin
+              if Length(PracticeDetailResponse.ErrorMessages) > 0 then
+              begin
                 //Check for non-registered Practice
-                if (PracticeDetailResponse.ErrorMessages[0].ErrorCode = 'BusinessPlusService_GetPracticeIdFailed') then begin
+                if (PracticeDetailResponse.ErrorMessages[0].ErrorCode = 'BusinessPlusService_GetPracticeIdFailed') then
+                begin
                   FRegistered := False;
                   FValidBConnectDetails := True;
                   AdminSystem.fdFields.fdBankLink_Online_Config := '';
-                end else begin
+                end else
+                begin
                   for i := Low(PracticeDetailResponse.ErrorMessages) to High(PracticeDetailResponse.ErrorMessages) do
                     Msg := Msg + ServiceErrorMessage(PracticeDetailResponse.ErrorMessages[i]).Message_;
                   if Msg = 'Invalid BConnect Credentials' then

@@ -170,6 +170,7 @@ type
     FInWizard: Boolean;
 
     FClientReadDetail: TBloClientReadDetail;
+    FLoading: Boolean;
 
     function CountClientProducts(ClientDetails: TBloClientReadDetail): Integer;
     function GetClientSubscriptionCategory(SubscriptionId: TBloGuid): TBloCatalogueEntry;
@@ -233,6 +234,7 @@ const
 //------------------------------------------------------------------------------
 procedure TfrmClientDetails.FormCreate(Sender: TObject);
 begin
+   FLoading := False;
    FEnableClientSettings := true;
    bkXPThemes.ThemeForm( Self);
    lblCountry.Font.Name := Font.Name;
@@ -349,7 +351,7 @@ begin
       if lblClientBOProducts.Visible  then
       begin
         if not FEnableClientSettings then
-          SetProductsCaption('Please save the client to access the Banklink Online settings')
+          SetProductsCaption('Please save the client to access the BankLink Online settings')
         else if not (ProductConfigService.OnlineStatus = staActive) then
           case ProductConfigService.OnlineStatus of
             Suspended:   SetProductsCaption('BankLink Online is currently in suspended ' +
@@ -803,7 +805,7 @@ var
   SecureCode: String;
 begin
    FClientReadDetail := nil;
-   
+
    okPressed := false;
    FileRenamed := false;
    AdminLoaded := RefreshAdmin;  //stored - will be used later too
@@ -812,462 +814,469 @@ begin
 
    with MyClient.clFields do
    begin
-     eCode.text    := clCode;
-     wasClientCode := clCode;    //store for later
-     prospectCode := PCode;
+     FLoading := True;
 
-     eName.Text    := clName;
-     eAddr1.text   := clAddress_L1;
-     eAddr2.text   := clAddress_L2;
-     eAddr3.text   := clAddress_L3;
-     eContact.Text := clContact_Name;
-     ePhone.text   := clPhone_No;
-     eMobile.Text  := clMobile_No;
-     eFax.text     := clFax_No;
-     eSal.Text     := clSalutation;
-
-
-     eFinYear.AsStDate := BKNull2St( clFinancial_Year_Starts );
-     eMail.Text        := clClient_EMail_Address;
-
-     edtLoginURL.Text  := clWeb_Site_Login_URL;
-
-     ePassword.text := clFile_Password;
-     eConfirm.Text  := clFile_Password;
-
-     ChangingDiskID := true;
      try
-       txtLastDiskID.Text    := DownloadUtils.MakeSuffix(clDisk_Sequence_No);
-     finally
-       ChangingDiskID := false;
-     end;
+       eCode.text    := clCode;
+       wasClientCode := clCode;    //store for later
+       prospectCode := PCode;
 
-     chkGenerateFinancial.Visible := AdminLoaded and CurrUser.CanAccessAdmin;
-     chkUnlockEntries.Visible := AdminLoaded and CurrUser.CanAccessAdmin;
-     chkEditChart.Visible := AdminLoaded and CurrUser.CanAccessAdmin;
-     chkEditMems.Visible := AdminLoaded and CurrUser.CanAccessAdmin;
+       eName.Text    := clName;
+       eAddr1.text   := clAddress_L1;
+       eAddr2.text   := clAddress_L2;
+       eAddr3.text   := clAddress_L3;
+       eContact.Text := clContact_Name;
+       ePhone.text   := clPhone_No;
+       eMobile.Text  := clMobile_No;
+       eFax.text     := clFax_No;
+       eSal.Text     := clSalutation;
 
-     if CreatingClient then
-      chkGenerateFinancial.Checked := True
-     else
-      chkGenerateFinancial.checked := MyClient.clExtra.ceBook_Gen_Finance_Reports;
 
-     eConnectCode.Text     := clBankLink_Code;
-     chkNewTrx.Checked     := not clSuppress_Check_for_New_TXns;
-//     chkPurge.Checked      := not clRetain_Entries;
-     chkArchived.Checked    := MyClient.clMoreFields.mcArchived;
-     chkFillNarration.Checked := clCopy_Narration_Dissection;
-     chkForceCheckout.Checked := clForce_Offsite_Check_Out;
-     chkDisableCheckout.Checked := clDisable_Offsite_Check_Out;
-     chkUnlockEntries.Checked := MyClient.clExtra.ceAllow_Client_Unlock_Entries;
-     chkEditChart.Checked := MyClient.clExtra.ceAllow_Client_Edit_Chart;
-     chkEditMems.Checked := not MyClient.clExtra.ceBlock_Client_Edit_Mems;
-     //stored so that can tell what balances to use for Balance Forward Routine
-     OldFinancialYear := clFinancial_Year_Starts;
+       eFinYear.AsStDate := BKNull2St( clFinancial_Year_Starts );
+       eMail.Text        := clClient_EMail_Address;
 
-     //administration tab
-     cmbResponsible.Clear;
-     cmbGroup.Clear;
-     cmbType.Clear;
+       edtLoginURL.Text  := clWeb_Site_Login_URL;
 
-     if AdminLoaded and
-       (AdminSystem.fdFields.fdMagic_Number = clMagic_Number) and
-       (not CurrUser.HasRestrictedAccess) then  
-     begin
-        //admin exists and file is part of admin system
-        StoredIndex := -1;
-        StoredIndexGroup := -1;
-        StoredIndexType := -1;
-        Indx := 0;
-        IndxGroup := 0;
-        IndxType := 0;
+       ePassword.text := clFile_Password;
+       eConfirm.Text  := clFile_Password;
 
-        //load none line
-        cmbResponsible.Items.AddObject( '--- Not Allocated ---', nil);
-        cmbGroup.Items.AddObject( '--- Not Allocated ---', nil);
-        cmbType.Items.AddObject( '--- Not Allocated ---', nil);
+       ChangingDiskID := true;
+       try
+         txtLastDiskID.Text    := DownloadUtils.MakeSuffix(clDisk_Sequence_No);
+       finally
+         ChangingDiskID := false;
+       end;
 
-        //load admin staff with full names
-        with AdminSystem.fdSystem_User_List do
-        begin
-          for i := 0 to Pred(itemCount) do begin
-             User := User_At(i);
+       chkGenerateFinancial.Visible := AdminLoaded and CurrUser.CanAccessAdmin;
+       chkUnlockEntries.Visible := AdminLoaded and CurrUser.CanAccessAdmin;
+       chkEditChart.Visible := AdminLoaded and CurrUser.CanAccessAdmin;
+       chkEditMems.Visible := AdminLoaded and CurrUser.CanAccessAdmin;
 
-             if ( User^.usName <> '' ) then
-                StaffName := User^.usName
+       if CreatingClient then
+        chkGenerateFinancial.Checked := True
+       else
+        chkGenerateFinancial.checked := MyClient.clExtra.ceBook_Gen_Finance_Reports;
+
+       eConnectCode.Text     := clBankLink_Code;
+       chkNewTrx.Checked     := not clSuppress_Check_for_New_TXns;
+  //     chkPurge.Checked      := not clRetain_Entries;
+       chkArchived.Checked    := MyClient.clMoreFields.mcArchived;
+       chkFillNarration.Checked := clCopy_Narration_Dissection;
+       chkForceCheckout.Checked := clForce_Offsite_Check_Out;
+       chkDisableCheckout.Checked := clDisable_Offsite_Check_Out;
+       chkUnlockEntries.Checked := MyClient.clExtra.ceAllow_Client_Unlock_Entries;
+       chkEditChart.Checked := MyClient.clExtra.ceAllow_Client_Edit_Chart;
+       chkEditMems.Checked := not MyClient.clExtra.ceBlock_Client_Edit_Mems;
+       //stored so that can tell what balances to use for Balance Forward Routine
+       OldFinancialYear := clFinancial_Year_Starts;
+
+       //administration tab
+       cmbResponsible.Clear;
+       cmbGroup.Clear;
+       cmbType.Clear;
+
+       if AdminLoaded and
+         (AdminSystem.fdFields.fdMagic_Number = clMagic_Number) and
+         (not CurrUser.HasRestrictedAccess) then  
+       begin
+          //admin exists and file is part of admin system
+          StoredIndex := -1;
+          StoredIndexGroup := -1;
+          StoredIndexType := -1;
+          Indx := 0;
+          IndxGroup := 0;
+          IndxType := 0;
+
+          //load none line
+          cmbResponsible.Items.AddObject( '--- Not Allocated ---', nil);
+          cmbGroup.Items.AddObject( '--- Not Allocated ---', nil);
+          cmbType.Items.AddObject( '--- Not Allocated ---', nil);
+
+          //load admin staff with full names
+          with AdminSystem.fdSystem_User_List do
+          begin
+            for i := 0 to Pred(itemCount) do begin
+               User := User_At(i);
+
+               if ( User^.usName <> '' ) then
+                  StaffName := User^.usName
+               else
+                  StaffName := User^.usCode;
+
+               if ( StaffName <> '' ) then begin
+                  cmbResponsible.Items.AddObject(StaffName,TObject(User));
+                  Inc(indx);
+                  //see if user assigned matches this one
+                  if User^.usLRN = clStaff_Member_LRN then
+                     StoredIndex := indx;
+               end;
+            end;
+          //load groups
+          with AdminSystem.fdSystem_Group_List do
+          begin
+            for i := 0 to Pred(itemCount) do
+            begin
+               Group := Group_At(i);
+               if ( Group.grName <> '' ) then
+               begin
+                  cmbGroup.Items.AddObject(Group.grName,TObject(Group));
+                  Inc(indxGroup);
+                  //see if user assigned matches this one
+                  if Group.grLRN = clGroup_LRN then
+                     StoredIndexGroup := indxGroup;
+               end;
+            end;
+          end;
+          //load client types
+          with AdminSystem.fdSystem_Client_Type_List do
+          begin
+            for i := 0 to Pred(itemCount) do
+            begin
+               ClientType := Client_Type_At(i);
+               if ( ClientType.ctName <> '' ) then
+               begin
+                  cmbType.Items.AddObject(ClientType.ctName,TObject(ClientType));
+                  Inc(indxType);
+                  //see if user assigned matches this one
+                  if ClientType.ctLRN = clClient_Type_LRN then
+                     StoredIndexType := indxType;
+               end;
+            end;
+          end;
+
+          cmbResponsible.Items.AddObject( '--- Unknown User ---', nil);
+          cmbGroup.Items.AddObject( '--- Unknown Group ---', nil);
+          cmbType.Items.AddObject( '--- Unknown Client Type ---', nil);
+
+          if StoredIndex <> - 1 then begin
+             cmbResponsible.ItemIndex := StoredIndex;
+          end
+          else begin
+             if clStaff_Member_LRN = 0 then
+               cmbResponsible.ItemIndex := 0
              else
-                StaffName := User^.usCode;
-
-             if ( StaffName <> '' ) then begin
-                cmbResponsible.Items.AddObject(StaffName,TObject(User));
-                Inc(indx);
-                //see if user assigned matches this one
-                if User^.usLRN = clStaff_Member_LRN then
-                   StoredIndex := indx;
-             end;
+               //no match found, set to unknown
+               cmbResponsible.ItemIndex := Pred( cmbResponsible.Items.Count);
           end;
-        //load groups
-        with AdminSystem.fdSystem_Group_List do
+          if StoredIndexGroup <> - 1 then begin
+             cmbGroup.ItemIndex := StoredIndexGroup;
+          end
+          else begin
+             if clGroup_LRN = 0 then
+               cmbGroup.ItemIndex := 0
+             else
+               //no match found, set to unknown
+               cmbGroup.ItemIndex := Pred( cmbGroup.Items.Count);
+          end;
+          if StoredIndexType <> - 1 then begin
+             cmbType.ItemIndex := StoredIndexType;
+          end
+          else begin
+             if clClient_Type_LRN = 0 then
+               cmbType.ItemIndex := 0
+             else
+               //no match found, set to unknown
+               cmbType.ItemIndex := Pred( cmbType.Items.Count);
+          end;
+        end;
+       end
+       else begin
+          //no admin system or foreign file so disable contact and staff details
+          cmbResponsible.Items.Add( clStaff_Member_Name);
+          cmbResponsible.ItemIndex := 0;
+          cmbResponsible.Enabled := false;
+          cmbGroup.Items.Add( clGroup_Name);
+          cmbGroup.ItemIndex := 0;
+          cmbGroup.Enabled := false;
+          cmbType.Items.Add( clClient_Type_Name);
+          cmbType.ItemIndex := 0;
+          cmbType.Enabled := false;
+
+          pnlContactOptions.Visible := false;
+          pnlContactDetails.Top     := pnlContactOptions.Top;
+
+          pnlWebsiteOptions.Visible := false;
+          pnlWebsiteDetails.Top     := pnlWebsiteOptions.Top;
+       end;
+
+       //set off-site settings
+       chkNewTrx.enabled := ( MyClient.clDisk_Log.ItemCount = 0 );
+
+       if AdminLoaded then
+       begin
+          chkOffsite.enabled := (CurrUser.CanAccessAdmin) and (MyClient.clDisk_Log.ItemCount = 0);
+          //turn off narration edit box unless if foreign file
+          chkFillNarration.Visible := ( AdminSystem.fdFields.fdMagic_Number <> clMagic_Number);
+       end
+       else
+       begin
+          chkOffsite.enabled := false;
+          chkFillNarration.Visible := true;
+          chkForceCheckout.Enabled := false;
+          chkDisableCheckout.Enabled := false;
+  //        chkPurge.Enabled := False;
+       end;
+
+       chkOffsite.checked    := (clDownload_From <> dlAdminSystem);
+
+       if chkOffsite.checked then
+       begin
+         SetComboIndexByIntObject( clDownload_From, cmbOSDMethod);
+         if cmbOSDMethod.ItemIndex = -1 then
+           SetComboIndexByIntObject( dfConnect, cmbOSDMethod);
+       end;
+
+       grpDownloadSettings.visible := chkOffsite.Checked;
+       eConnectCode.text     := clBankLink_Code;
+
+       //set country specific settings                
+       lblCountry.Caption := whShortNames[ clCountry ];
+
+       //load notes field from notes array
+       meNotes.Lines.Clear;
+       S := '';
+       for i := Low( clNotes) to High( clNotes) do
+          S := S + clNotes[i];
+       meNotes.Text := S;
+
+       chkShowOnOpen.checked := clShow_Notes_On_Open;
+
+       edtContactName.Text  := MyClient.clFields.clCustom_Contact_Name;
+       edtContactPhone.Text := MyClient.clFields.clCustom_Contact_Phone;
+       edtContactEmail.Text := MyClient.clFields.clCustom_Contact_EMail_Address;
+
+       edtLoginURL.Text     := MyClient.clFields.clWeb_Site_Login_URL;
+
+  {$IFDEF SmartLink}
+       edtFingertipsClientID.Text := MyClient.clFields.clExternal_ID;
+       edtFingertipsClientID.Enabled := TRUE; //AdminLoaded and (AdminSystem.fdFields.fdMagic_Number = clMagic_Number);
+  {$ENDIF}
+
+
+       AllowClientDirectDownload := chkOffsite.Checked;
+       SecureCode := eConnectCode.Text;
+     
+       //****************************
+    finally
+      FLoading := False;
+    end;
+
+   Self.ShowModal;
+   if okPressed then begin
+      if not CreatingClient then begin
+        if (eCode.text <> clCode) then begin
+          {user has rename'd the client file}
+          clcode := ecode.text;
+          FileRenamed := true;
+        end;
+      end
+      else begin
+        {creating client so must set both of these name markers}
+        clcode := ecode.text;
+        MyClient.clWas_Code := eCode.Text;
+      end;
+
+      eMail.Text := Trim( eMail.Text);
+
+      //set flag to determine if contact details changed, this will force
+      //an update of the details cache when the file is reloaded/saved
+      DetailsChanged := (
+          ( clname <> ename.text) or
+          ( clAddress_l1 <> eAddr1.text) or
+          ( clAddress_l2 <> eAddr2.Text) or
+          ( clAddress_l3 <> eAddr3.text) or
+          ( clContact_name <> econtact.text) or
+          ( clPhone_No <> ePhone.text) or
+          ( clMobile_No <> eMobile.text) or
+          ( clSalutation <> eSal.text) or
+          ( clFax_No <> eFax.text) or
+          ( clClient_EMail_Address <> eMail.text) or
+{$IFDEF Smartlink}
+          ( clExternal_ID <> edtFingertipsClientID.Text) or
+{$ENDIF}
+          ( PCode <> '') // converting prospect to client
+          );
+
+      //update fields
+      clname               := ename.text;
+      clAddress_l1         := eAddr1.text;
+      clAddress_l2         := eAddr2.Text;
+      clAddress_l3         := eAddr3.text;
+      clContact_name       := econtact.text;
+      clPhone_No           := ePhone.text;
+      clMobile_No          := eMobile.text;
+      clSalutation         := eSal.Text;
+      clFax_No             := eFax.text;
+      clFile_password      := epassword.text;
+      clClient_EMail_Address := eMail.text;
+      clWeb_Site_Login_URL := edtLoginURL.Text ;
+
+      if DetailsChanged then
+      begin
+        clContact_Details_Edit_Date := StDate.CurrentDate;
+        clContact_Details_Edit_Time := StDate.CurrentTime;
+      end;
+
+      //log change of last download no!!!
+      LastDiskSequenceNo := SuffixToSequenceNo( txtLastDiskID.Text);
+      if clDisk_Sequence_No <> LastDiskSequenceNo then
+      begin
+        LogUtil.LogMsg(lmInfo, UnitName, 'Last Download No changed from ' +
+                                         inttostr( clDisk_Sequence_No) +
+                                         ' to ' +
+                                         txtLastDiskID.Text);
+      end;
+      clBankLink_Code := eConnectCode.Text;
+      clDisk_Sequence_No := LastDiskSequenceNo;
+      clSuppress_Check_for_New_TXns := not chkNewTrx.Checked;
+//        clRetain_Entries := not chkPurge.Checked;
+      MyClient.clMoreFields.mcArchived := chkArchived.Checked;
+      clCopy_Narration_Dissection := chkFillNarration.Checked;
+      clForce_Offsite_Check_Out := chkForceCheckout.Checked;
+      clDisable_Offsite_Check_Out := chkDisableCheckout.Checked;
+      MyClient.clExtra.ceBook_Gen_Finance_Reports := chkGenerateFinancial.Checked;
+      MyClient.clExtra.ceAllow_Client_Unlock_Entries := chkUnlockEntries.Checked;
+      MyClient.clExtra.ceAllow_Client_Edit_Chart := chkEditChart.Checked;
+      MyClient.clExtra.ceBlock_Client_Edit_Mems := not chkEditMems.Checked;
+      //save memo back to clnotes array, split into 100 char chunks
+      //first clean out existing notes
+      for i := Low( clNotes) to High( clNotes) do
+          clNotes[ i] := '';
+      clShow_Notes_On_Open      := chkShowOnOpen.checked;
+
+      MemoText := meNotes.Text;
+      StartPos := 1;
+      for i := Low( clNotes) to High( clNotes) do begin
+         S := Copy( MemoText, StartPos, 100);
+         if S = '' then break;
+         clNotes[ i] := S;
+         StartPos := StartPos + 100;
+      end;
+
+      //save financial year start, make sure that day = 01
+      clFinancial_Year_Starts := StNull2BK( eFinYear.asStDate );
+      StDateToDMY( clFinancial_Year_Starts, d, m, y);
+      clFinancial_Year_Starts := DMYToStDate( 1, m, y, bkDateEpoch);
+
+      //update reporting year start date
+      if clReporting_Year_Starts <= 0 then
+        clReporting_Year_Starts := clFinancial_Year_Starts;
+
+      //see if fin year start was updated
+      if OldFinancialYear <> clFinancial_Year_Starts then begin
+        clLast_Financial_Year_Start := OldFinancialYear;
+      end;
+
+      //reset last financial year if not set already, or financial year starts has been set back
+      if ( clLast_Financial_Year_Start <= 0) or (clFinancial_Year_Starts < clLast_Financial_Year_Start) then begin
+        clLast_Financial_Year_Start := GetPrevYearStartDate( clFinancial_Year_Starts);
+      end;
+
+      //update person responsible settings
+      if AdminLoaded and ( AdminSystem.fdFields.fdMagic_Number = clMagic_Number )then begin
+         //position 0 is none, -1 is also not assigned
+         if cmbResponsible.ItemIndex > 0 then begin
+            User := pUser_Rec(cmbResponsible.Items.Objects[cmbResponsible.itemindex]);
+            if Assigned(User) then begin //will be nil if user is unknown
+               if User^.usName <> '' then
+                  clStaff_Member_Name := User^.usName
+               else
+                  clStaff_Member_Name := User^.usCode;
+
+               clStaff_Member_LRN           := User^.usLRN;
+               clStaff_Member_EMail_Address := User^.usEMail_Address;
+               clStaff_Member_Direct_Dial   := User^.usDirect_Dial;
+            end;
+         end
+         else begin
+            clStaff_Member_Name          := '';
+            clStaff_Member_LRN           := 0;
+            clStaff_Member_EMail_Address := '';
+            clStaff_Member_Direct_Dial   := '';
+         end;
+         clGroup_LRN := 0;
+         if cmbGroup.ItemIndex > 0 then begin
+            Group := pGroup_Rec(cmbGroup.Items.Objects[cmbGroup.itemindex]);
+            if Assigned(Group) then begin //will be nil if group is unknown
+               clGroup_Name := Group^.grName;
+               clGroup_LRN := Group^.grLRN;
+            end;
+         end;
+         clClient_Type_LRN := 0;
+         if cmbType.ItemIndex > 0 then begin
+            ClientType := pClient_Type_Rec(cmbType.Items.Objects[cmbType.itemindex]);
+            if Assigned(ClientType) then begin //will be nil is user is unknown
+              clClient_Type_Name := ClientType^.ctName;
+              clClient_Type_LRN := ClientType^.ctLRN;
+            end;
+         end
+      end;
+
+      //update off-site settings
+      if chkOffsite.checked then
+      begin
+         if PRACINI_AllowOffsiteDiskDownload or (clTemp_Old_Download_From = dfFloppy) then
+           clDownload_From := GetComboCurrentIntObject( cmbOSDMethod)
+         else
+           clDownload_From := dfConnect;
+
+         clBankLink_Code    := eConnectCode.Text;
+      end
+      else
+      begin
+         clDownload_From    := dlAdminSystem;
+         clBankLink_Code    := '';
+      end;
+        
+      if (radPractice.Checked) then
+        clContact_Details_To_Show := cdtPractice
+      else if (radStaffMember.Checked) then
+        clContact_Details_To_Show := cdtStaffMember
+      else if (radCustom.Checked) then
+      begin
+        clContact_Details_To_Show := cdtCustom;
+        clCustom_Contact_Name := edtContactName.Text;
+        clCustom_Contact_Phone := edtContactPhone.Text;
+        clCustom_Contact_EMail_Address := Trim( edtContactEMail.Text);
+      end;
+
+      if radPracticeWebSite.Checked then
+        clWeb_Site_Login_URL := ''
+      else
+        clWeb_Site_Login_URL := Trim( edtLoginURL.Text);
+
+{$IFDEF Smartlink}
+      if ( clExternal_ID <> edtFingertipsClientID.Text) then
+        LogUtil.LogMsg(lmInfo, UnitName, 'Fingertip ID changed from ' +
+                                         clExternal_ID +
+                                         ' to ' +
+                                         edtFingertipsClientID.Text);
+      clExternal_ID := edtFingertipsClientID.Text;
+{$ENDIF}
+
+      if FileRenamed then begin //force a save immediately
+         //Flag Audit
+         MyClient.ClientAuditMgr.FlagAudit(arClientFiles);
+         SaveClient(false);
+      end;
+        
+      if Assigned(FClientReadDetail) and (SecureCode <> clBankLink_Code) then
+      begin
+        if Length(FClientReadDetail.Users) > 0 then
         begin
-          for i := 0 to Pred(itemCount) do
-          begin
-             Group := Group_At(i);
-             if ( Group.grName <> '' ) then
-             begin
-                cmbGroup.Items.AddObject(Group.grName,TObject(Group));
-                Inc(indxGroup);
-                //see if user assigned matches this one
-                if Group.grLRN = clGroup_LRN then
-                   StoredIndexGroup := indxGroup;
-             end;
-          end;
-        end;
-        //load client types
-        with AdminSystem.fdSystem_Client_Type_List do
-        begin
-          for i := 0 to Pred(itemCount) do
-          begin
-             ClientType := Client_Type_At(i);
-             if ( ClientType.ctName <> '' ) then
-             begin
-                cmbType.Items.AddObject(ClientType.ctName,TObject(ClientType));
-                Inc(indxType);
-                //see if user assigned matches this one
-                if ClientType.ctLRN = clClient_Type_LRN then
-                   StoredIndexType := indxType;
-             end;
-          end;
-        end;
-
-        cmbResponsible.Items.AddObject( '--- Unknown User ---', nil);
-        cmbGroup.Items.AddObject( '--- Unknown Group ---', nil);
-        cmbType.Items.AddObject( '--- Unknown Client Type ---', nil);
-
-        if StoredIndex <> - 1 then begin
-           cmbResponsible.ItemIndex := StoredIndex;
-        end
-        else begin
-           if clStaff_Member_LRN = 0 then
-             cmbResponsible.ItemIndex := 0
-           else
-             //no match found, set to unknown
-             cmbResponsible.ItemIndex := Pred( cmbResponsible.Items.Count);
-        end;
-        if StoredIndexGroup <> - 1 then begin
-           cmbGroup.ItemIndex := StoredIndexGroup;
-        end
-        else begin
-           if clGroup_LRN = 0 then
-             cmbGroup.ItemIndex := 0
-           else
-             //no match found, set to unknown
-             cmbGroup.ItemIndex := Pred( cmbGroup.Items.Count);
-        end;
-        if StoredIndexType <> - 1 then begin
-           cmbType.ItemIndex := StoredIndexType;
-        end
-        else begin
-           if clClient_Type_LRN = 0 then
-             cmbType.ItemIndex := 0
-           else
-             //no match found, set to unknown
-             cmbType.ItemIndex := Pred( cmbType.Items.Count);
+          ProductConfigService.UpdateClient(
+            FClientReadDetail,
+            FClientReadDetail.BillingFrequency,
+            FClientReadDetail.MaxOfflineDays,
+            FClientReadDetail.Status,
+            FClientReadDetail.Subscription,
+            FClientReadDetail.Users[0].EMail,
+            FClientReadDetail.Users[0].FullName);
         end;
       end;
-     end
-     else begin
-        //no admin system or foreign file so disable contact and staff details
-        cmbResponsible.Items.Add( clStaff_Member_Name);
-        cmbResponsible.ItemIndex := 0;
-        cmbResponsible.Enabled := false;
-        cmbGroup.Items.Add( clGroup_Name);
-        cmbGroup.ItemIndex := 0;
-        cmbGroup.Enabled := false;
-        cmbType.Items.Add( clClient_Type_Name);
-        cmbType.ItemIndex := 0;
-        cmbType.Enabled := false;
-
-        pnlContactOptions.Visible := false;
-        pnlContactDetails.Top     := pnlContactOptions.Top;
-
-        pnlWebsiteOptions.Visible := false;
-        pnlWebsiteDetails.Top     := pnlWebsiteOptions.Top;
-     end;
-
-     //set off-site settings
-     chkNewTrx.enabled := ( MyClient.clDisk_Log.ItemCount = 0 );
-
-     if AdminLoaded then
-     begin
-        chkOffsite.enabled := (CurrUser.CanAccessAdmin) and (MyClient.clDisk_Log.ItemCount = 0);
-        //turn off narration edit box unless if foreign file
-        chkFillNarration.Visible := ( AdminSystem.fdFields.fdMagic_Number <> clMagic_Number);
-     end
-     else
-     begin
-        chkOffsite.enabled := false;
-        chkFillNarration.Visible := true;
-        chkForceCheckout.Enabled := false;
-        chkDisableCheckout.Enabled := false;
-//        chkPurge.Enabled := False;
-     end;
-
-     chkOffsite.checked    := (clDownload_From <> dlAdminSystem);
-
-     if chkOffsite.checked then
-     begin
-       SetComboIndexByIntObject( clDownload_From, cmbOSDMethod);
-       if cmbOSDMethod.ItemIndex = -1 then
-         SetComboIndexByIntObject( dfConnect, cmbOSDMethod);
-     end;
-
-     grpDownloadSettings.visible := chkOffsite.Checked;
-     eConnectCode.text     := clBankLink_Code;
-
-     //set country specific settings                
-     lblCountry.Caption := whShortNames[ clCountry ];
-
-     //load notes field from notes array
-     meNotes.Lines.Clear;
-     S := '';
-     for i := Low( clNotes) to High( clNotes) do
-        S := S + clNotes[i];
-     meNotes.Text := S;
-
-     chkShowOnOpen.checked := clShow_Notes_On_Open;
-
-     edtContactName.Text  := MyClient.clFields.clCustom_Contact_Name;
-     edtContactPhone.Text := MyClient.clFields.clCustom_Contact_Phone;
-     edtContactEmail.Text := MyClient.clFields.clCustom_Contact_EMail_Address;
-
-     edtLoginURL.Text     := MyClient.clFields.clWeb_Site_Login_URL;
-
-{$IFDEF SmartLink}
-     edtFingertipsClientID.Text := MyClient.clFields.clExternal_ID;
-     edtFingertipsClientID.Enabled := TRUE; //AdminLoaded and (AdminSystem.fdFields.fdMagic_Number = clMagic_Number);
-{$ENDIF}
-
-
-     AllowClientDirectDownload := chkOffsite.Checked;
-     SecureCode := eConnectCode.Text;
-     
-     //****************************
-     Self.ShowModal;
-     if okPressed then begin
-        if not CreatingClient then begin
-          if (eCode.text <> clCode) then begin
-            {user has rename'd the client file}
-            clcode := ecode.text;
-            FileRenamed := true;
-          end;
-        end
-        else begin
-          {creating client so must set both of these name markers}
-          clcode := ecode.text;
-          MyClient.clWas_Code := eCode.Text;
-        end;
-
-        eMail.Text := Trim( eMail.Text);
-
-        //set flag to determine if contact details changed, this will force
-        //an update of the details cache when the file is reloaded/saved
-        DetailsChanged := (
-            ( clname <> ename.text) or
-            ( clAddress_l1 <> eAddr1.text) or
-            ( clAddress_l2 <> eAddr2.Text) or
-            ( clAddress_l3 <> eAddr3.text) or
-            ( clContact_name <> econtact.text) or
-            ( clPhone_No <> ePhone.text) or
-            ( clMobile_No <> eMobile.text) or
-            ( clSalutation <> eSal.text) or
-            ( clFax_No <> eFax.text) or
-            ( clClient_EMail_Address <> eMail.text) or
-{$IFDEF Smartlink}
-            ( clExternal_ID <> edtFingertipsClientID.Text) or
-{$ENDIF}
-            ( PCode <> '') // converting prospect to client
-            );
-
-        //update fields
-        clname               := ename.text;
-        clAddress_l1         := eAddr1.text;
-        clAddress_l2         := eAddr2.Text;
-        clAddress_l3         := eAddr3.text;
-        clContact_name       := econtact.text;
-        clPhone_No           := ePhone.text;
-        clMobile_No          := eMobile.text;
-        clSalutation         := eSal.Text;
-        clFax_No             := eFax.text;
-        clFile_password      := epassword.text;
-        clClient_EMail_Address := eMail.text;
-        clWeb_Site_Login_URL := edtLoginURL.Text ;
-
-        if DetailsChanged then
-        begin
-          clContact_Details_Edit_Date := StDate.CurrentDate;
-          clContact_Details_Edit_Time := StDate.CurrentTime;
-        end;
-
-        //log change of last download no!!!
-        LastDiskSequenceNo := SuffixToSequenceNo( txtLastDiskID.Text);
-        if clDisk_Sequence_No <> LastDiskSequenceNo then
-        begin
-          LogUtil.LogMsg(lmInfo, UnitName, 'Last Download No changed from ' +
-                                           inttostr( clDisk_Sequence_No) +
-                                           ' to ' +
-                                           txtLastDiskID.Text);
-        end;
-        clBankLink_Code := eConnectCode.Text;
-        clDisk_Sequence_No := LastDiskSequenceNo;
-        clSuppress_Check_for_New_TXns := not chkNewTrx.Checked;
-//        clRetain_Entries := not chkPurge.Checked;
-        MyClient.clMoreFields.mcArchived := chkArchived.Checked;
-        clCopy_Narration_Dissection := chkFillNarration.Checked;
-        clForce_Offsite_Check_Out := chkForceCheckout.Checked;
-        clDisable_Offsite_Check_Out := chkDisableCheckout.Checked;
-        MyClient.clExtra.ceBook_Gen_Finance_Reports := chkGenerateFinancial.Checked;
-        MyClient.clExtra.ceAllow_Client_Unlock_Entries := chkUnlockEntries.Checked;
-        MyClient.clExtra.ceAllow_Client_Edit_Chart := chkEditChart.Checked;
-        MyClient.clExtra.ceBlock_Client_Edit_Mems := not chkEditMems.Checked;
-        //save memo back to clnotes array, split into 100 char chunks
-        //first clean out existing notes
-        for i := Low( clNotes) to High( clNotes) do
-            clNotes[ i] := '';
-        clShow_Notes_On_Open      := chkShowOnOpen.checked;
-
-        MemoText := meNotes.Text;
-        StartPos := 1;
-        for i := Low( clNotes) to High( clNotes) do begin
-           S := Copy( MemoText, StartPos, 100);
-           if S = '' then break;
-           clNotes[ i] := S;
-           StartPos := StartPos + 100;
-        end;
-
-        //save financial year start, make sure that day = 01
-        clFinancial_Year_Starts := StNull2BK( eFinYear.asStDate );
-        StDateToDMY( clFinancial_Year_Starts, d, m, y);
-        clFinancial_Year_Starts := DMYToStDate( 1, m, y, bkDateEpoch);
-
-        //update reporting year start date
-        if clReporting_Year_Starts <= 0 then
-          clReporting_Year_Starts := clFinancial_Year_Starts;
-
-        //see if fin year start was updated
-        if OldFinancialYear <> clFinancial_Year_Starts then begin
-          clLast_Financial_Year_Start := OldFinancialYear;
-        end;
-
-        //reset last financial year if not set already, or financial year starts has been set back
-        if ( clLast_Financial_Year_Start <= 0) or (clFinancial_Year_Starts < clLast_Financial_Year_Start) then begin
-          clLast_Financial_Year_Start := GetPrevYearStartDate( clFinancial_Year_Starts);
-        end;
-
-        //update person responsible settings
-        if AdminLoaded and ( AdminSystem.fdFields.fdMagic_Number = clMagic_Number )then begin
-           //position 0 is none, -1 is also not assigned
-           if cmbResponsible.ItemIndex > 0 then begin
-              User := pUser_Rec(cmbResponsible.Items.Objects[cmbResponsible.itemindex]);
-              if Assigned(User) then begin //will be nil if user is unknown
-                 if User^.usName <> '' then
-                    clStaff_Member_Name := User^.usName
-                 else
-                    clStaff_Member_Name := User^.usCode;
-
-                 clStaff_Member_LRN           := User^.usLRN;
-                 clStaff_Member_EMail_Address := User^.usEMail_Address;
-                 clStaff_Member_Direct_Dial   := User^.usDirect_Dial;
-              end;
-           end
-           else begin
-              clStaff_Member_Name          := '';
-              clStaff_Member_LRN           := 0;
-              clStaff_Member_EMail_Address := '';
-              clStaff_Member_Direct_Dial   := '';
-           end;
-           clGroup_LRN := 0;
-           if cmbGroup.ItemIndex > 0 then begin
-              Group := pGroup_Rec(cmbGroup.Items.Objects[cmbGroup.itemindex]);
-              if Assigned(Group) then begin //will be nil if group is unknown
-                 clGroup_Name := Group^.grName;
-                 clGroup_LRN := Group^.grLRN;
-              end;
-           end;
-           clClient_Type_LRN := 0;
-           if cmbType.ItemIndex > 0 then begin
-              ClientType := pClient_Type_Rec(cmbType.Items.Objects[cmbType.itemindex]);
-              if Assigned(ClientType) then begin //will be nil is user is unknown
-                clClient_Type_Name := ClientType^.ctName;
-                clClient_Type_LRN := ClientType^.ctLRN;
-              end;
-           end
-        end;
-
-        //update off-site settings
-        if chkOffsite.checked then
-        begin
-           if PRACINI_AllowOffsiteDiskDownload or (clTemp_Old_Download_From = dfFloppy) then
-             clDownload_From := GetComboCurrentIntObject( cmbOSDMethod)
-           else
-             clDownload_From := dfConnect;
-
-           clBankLink_Code    := eConnectCode.Text;
-        end
-        else
-        begin
-           clDownload_From    := dlAdminSystem;
-           clBankLink_Code    := '';
-        end;
-        
-        if (radPractice.Checked) then
-          clContact_Details_To_Show := cdtPractice
-        else if (radStaffMember.Checked) then
-          clContact_Details_To_Show := cdtStaffMember
-        else if (radCustom.Checked) then
-        begin
-          clContact_Details_To_Show := cdtCustom;
-          clCustom_Contact_Name := edtContactName.Text;
-          clCustom_Contact_Phone := edtContactPhone.Text;
-          clCustom_Contact_EMail_Address := Trim( edtContactEMail.Text);
-        end;
-
-        if radPracticeWebSite.Checked then
-          clWeb_Site_Login_URL := ''
-        else
-          clWeb_Site_Login_URL := Trim( edtLoginURL.Text);
-
-{$IFDEF Smartlink}
-        if ( clExternal_ID <> edtFingertipsClientID.Text) then
-          LogUtil.LogMsg(lmInfo, UnitName, 'Fingertip ID changed from ' +
-                                           clExternal_ID +
-                                           ' to ' +
-                                           edtFingertipsClientID.Text);
-        clExternal_ID := edtFingertipsClientID.Text;
-{$ENDIF}
-
-        if FileRenamed then begin //force a save immediately
-           //Flag Audit
-           MyClient.ClientAuditMgr.FlagAudit(arClientFiles);
-           SaveClient(false);
-        end;
-        
-        if Assigned(FClientReadDetail) and (SecureCode <> clBankLink_Code) then
-        begin
-          if Length(FClientReadDetail.Users) > 0 then
-          begin
-            ProductConfigService.UpdateClient(
-              FClientReadDetail,
-              FClientReadDetail.BillingFrequency,
-              FClientReadDetail.MaxOfflineDays,
-              FClientReadDetail.Status,
-              FClientReadDetail.Subscription,
-              FClientReadDetail.Users[0].EMail,
-              FClientReadDetail.Users[0].FullName);
-          end;
-        end;
-     end;   // if okPressed
-   end;  //with MyClient
-   result := okPressed;
+   end;   // if okPressed
+ end;  //with MyClient
+  result := okPressed;
 end;
 
 //------------------------------------------------------------------------------
@@ -1345,29 +1354,30 @@ begin
                          'the client file.', 0);
        chkOffsite.Checked := False;
        Exit;
-     end else
+     end
+     else
      begin
-       ClientExportDataService := ProductConfigService.GetClientVendorExports(ProductConfigService.GetClientGuid(MyClient.clFields.clCode));
-
-       if Assigned(ClientExportDataService) then
+       if not FLoading then
        begin
-         VendorCount := Length(ClientExportDataService.Current);
-
-         if (VendorCount > 0) then
+         ClientExportDataService :=
+           ProductConfigService.GetClientVendorExports(ProductConfigService.GetClientGuid(MyClient.clFields.clCode));
+         if Assigned(ClientExportDataService) then
          begin
-           try
-             VendorNames := TStringList.Create;
-             VendorNames.QuoteChar := ' ';
-             for i := 0 to VendorCount - 1 do
-               VendorNames.Add(ClientExportDataService.Current[i].Name_);
-             HelpfulWarningMsg('Your changes will allow the client to download data directly from ' +
-                               'BankLink but this client is set up to export data to BankLink Online ' +
-                               'for ' + GetCommaSepStrFromList(VendorNames), 0);
-           finally
-             FreeAndNil(VendorNames);
+           VendorCount := Length(ClientExportDataService.Current);
+           if (VendorCount > 0) then
+           begin
+             try
+               VendorNames := TStringList.Create;
+               VendorNames.QuoteChar := ' ';
+               for i := 0 to VendorCount - 1 do
+                 VendorNames.Add(ClientExportDataService.Current[i].Name_);
+               HelpfulWarningMsg('Your changes will allow the client to download data directly from ' +
+                                 'BankLink but this client is set up to export data to BankLink Online ' +
+                                 'for ' + GetCommaSepStrFromList(VendorNames), 0);
+             finally
+               FreeAndNil(VendorNames);
+             end;
            end;
-           chkOffsite.Checked := False;
-           Exit;
          end;
        end;
      end;
@@ -1575,7 +1585,7 @@ begin
       NumProducts := '1';
 
     SetProductsCaption('This client currently has access to ' + NumProducts +
-                       ' Banklink Online product(s)');
+                       ' BankLink Online product(s)');
   end;
 end;
 

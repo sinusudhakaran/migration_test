@@ -381,7 +381,7 @@ CONST
          'F/C Amount',
          'Exchange Rate',
          'Alternative Code',
-         'Transaction Id',
+         'Transaction ID',
          'Sent to Banklink'
           );
 
