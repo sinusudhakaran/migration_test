@@ -2845,6 +2845,8 @@ begin
       csByDocumentTitle : DoCodingTBarCommand(ecSortDocumentTitle);
       csByjob         : DoCodingTBarCommand(ecSortJobs);
       csByjobName     : DoCodingTBarCommand(ecSortJobName);
+      csByTransId      : DoCodingTBarCommand(ecSortTransId);
+      csBySentToAndAcc : DoCodingTBarCommand(ecSortSentToAndAcc);
    end;
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

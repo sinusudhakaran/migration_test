@@ -530,7 +530,7 @@ object frmClientDetails: TfrmClientDetails
         Top = 73
         Width = 529
         Height = 67
-        Caption = 'Banklink Online Clients'
+        Caption = 'BankLink Online Clients'
         TabOrder = 4
         object btnClientSettings: TButton
           Left = 20
@@ -555,7 +555,7 @@ object frmClientDetails: TfrmClientDetails
             Height = 20
             AutoSize = False
             Caption = 
-              'This client currently has access to {#} Banklink Online product(' +
+              'This client currently has access to {#} BankLink Online product(' +
               's)'
             Layout = tlCenter
             WordWrap = True

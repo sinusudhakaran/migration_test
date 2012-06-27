@@ -99,6 +99,7 @@ type
     SearchTerm       : string;
     FTaxName         : String;
     FHasAlternativeCode: Boolean;
+    AltCodeModifier: integer;
 
     procedure RefreshChartList;
 
@@ -124,6 +125,7 @@ type
     procedure SortByKey(Key: Char);
     procedure SetHasAlternativeCode(const Value: Boolean);
     property HasAlternativeCode: Boolean read FHasAlternativeCode write SetHasAlternativeCode;
+    function CorrectedColNum(ColNum: integer): integer;
   public
     { Public declarations }
     function Execute : boolean;
@@ -261,7 +263,7 @@ begin
 
    with MyClient, MyClient.clFields do
    if (LockRequired)
-   and (not clChart_Is_Locked)
+   and (not clChart_Is_Locked) 
    and CanRefreshChart( clCountry, clAccounting_System_Used ) then
    begin
       If AskYesNo('Lock Client Chart','You have altered the client''s chart. '+
@@ -670,28 +672,29 @@ Var
    s : string;
 begin
   Item.Caption      := p.chAccount_Code;
-  Item.SubItems[c_Desc -1]  := p.chAccount_Description;
-  Item.SubItems[c_AltCode -1]  := p.chAlternative_Code;
+  Item.SubItems[CorrectedColNum(c_Desc) - 1]  := p.chAccount_Description;
+  if HasAlternativeCode then  
+    Item.SubItems[c_AltCode - 1]  := p.chAlternative_Code;
 
   if p.chAccount_Type in [atMin..atMax] then
-    Item.SubItems[c_Group -1] := Localise(MyClient.clFields.clCountry, atNames[p.chAccount_Type])
+    Item.SubItems[CorrectedColNum(c_Group) - 1] := Localise(MyClient.clFields.clCountry, atNames[p.chAccount_Type])
   else
-    Item.SubItems[c_Group -1] := '';
+    Item.SubItems[CorrectedColNum(c_Group) - 1] := '';
 
   if ( p.chAccount_Type in [atMin..atMax] ) and
      ( p.chSubType in [ 1..Max_SubGroups ] ) then
   Begin
      S := Trim(MyClient.clCustom_Headings_List.Get_SubGroup_Heading( p.chSubType));
-     Item.SubItems[c_SubGroup -1] := Inttostr( p.chSubType) + ': ' + S;
+     Item.SubItems[CorrectedColNum(c_SubGroup) - 1] := Inttostr( p.chSubType) + ': ' + S;
   end
   else
-    Item.SubItems[c_SubGroup -1] := '';
+    Item.SubItems[CorrectedColNum(c_SubGroup) - 1] := '';
 
   with MyClient.clFields do begin
      If ( p.chGST_Class in GST_CLASS_RANGE ) then
-       Item.SubItems[c_GST -1] := clGST_Class_Codes[ p.chGST_Class] {+ ' ' + clGST_Class_Names[p.chGST_Class]}
+       Item.SubItems[CorrectedColNum(c_GST) - 1] := clGST_Class_Codes[ p.chGST_Class] {+ ' ' + clGST_Class_Names[p.chGST_Class]}
      else
-       Item.SubItems[c_GST -1] := '';
+       Item.SubItems[CorrectedColNum(c_GST) - 1] := '';
   end;
 
   S := '';
@@ -703,18 +706,19 @@ begin
          S := S + ', ' + inttostr(j);
      end;
   end;
-  Item.SubItems[c_Division -1] := S;
+  Item.SubItems[CorrectedColNum(c_Division) -1] := S;
 
   if p.chHide_In_Basic_Chart then
-     item.SubItems[c_Basic -1] := ''
+     item.SubItems[CorrectedColNum(c_Basic) -1] := ''
   else
-    Item.SubItems[c_Basic -1] := 'Y';
+    Item.SubItems[CorrectedColNum(c_Basic) -1] := 'Y';
 
   if p.chPosting_Allowed then
-     item.SubItems[c_Post -1] := 'Y'
+     item.SubItems[CorrectedColNum(c_Post) -1] := 'Y'
   else
-    Item.SubItems[c_Post -1] := '';
+    Item.SubItems[CorrectedColNum(c_Post) -1] := '';
 end;
+
 //------------------------------------------------------------------------------
 procedure TfrmMaintainChart.SetDivision(divNo: integer; MoveAfter : boolean);
 var
@@ -906,13 +910,14 @@ begin
      lvChart.Columns[c_AltCode].Caption := lblAltCodeName.Caption;
      lblDesc.Top := 70;
      Label9.Top := 70;
+     AltCodeModifier := 0; 
   end else begin
      lblAltCodeName.Visible := False;
      LblAltCode.Visible := False;
-     lvChart.Columns[c_AltCode].Width := 0;
-     lvChart.Columns[c_AltCode].MaxWidth := 1;
+     lvChart.Columns[c_AltCode].Destroy;
      lblDesc.Top := 62;
      Label9.Top := 62;
+     AltCodeModifier := 1; // we have removed the alternative code column, so some columns need to be adjusted by this amount
   end;
 
 end;
@@ -930,11 +935,13 @@ end;
 procedure TfrmMaintainChart.FormCreate(Sender: TObject);
 begin
   bkXPThemes.ThemeForm( Self);
+  HasAlternativeCode :=
+    HasAlternativeChartCode(MyClient.clFields.clCountry, MyClient.clFields.clAccounting_System_Used);
 
-  lvChart.Column[c_Code].Width := CalcAcctColWidth( lvChart.Canvas, lvChart.Font, 75);
+  lvChart.Column[CorrectedColNum(c_Code)].Width := CalcAcctColWidth( lvChart.Canvas, lvChart.Font, 75);
   SetListViewColWidth(lvChart,1,150);
 
-  lvChartColumnClick( Self, lvChart.Column[c_Code] ); //set down arrow
+  lvChartColumnClick( Self, lvChart.Column[CorrectedColNum(c_Code)] ); //set down arrow
   CurrSortCol     := 0;
   tbMerge.Enabled := Assigned( AdminSystem)
                  and ( not CurrUser.HasRestrictedAccess);
@@ -946,7 +953,7 @@ begin
   KeyBuffer := '';
   CurrShiftState := [];
   FTaxName := MyClient.TaxSystemNameUC;
-  lvChart.Columns[ c_GST ].Caption := FTaxName;
+  lvChart.Columns[ CorrectedColNum(c_GST) ].Caption := FTaxName;
   lblGST.Caption := FTaxName;
   //New, Edit Delete are enabled if in Practice, or if in Books and Allowed to edit Chart.
   tbNew.Enabled := Assigned(AdminSystem)
@@ -963,9 +970,6 @@ begin
     chkPosting.Top := chkBasic.Top;
     lblPosting.Top := lblBasic.Top;
   end;
-
-  HasAlternativeCode :=
-    HasAlternativeChartCode(MyClient.clFields.clCountry, MyClient.clFields.clAccounting_System_Used);
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmMaintainChart.SetUpHelp;
@@ -1495,6 +1499,16 @@ procedure TfrmMaintainChart.cmbSubGroupDropDown(Sender: TObject);
 begin
   //try to set default drop down width
   SendMessage(TComboBox(Sender).Handle, CB_SETDROPPEDWIDTH, cmbSubGroupWidth, 0);
+end;
+
+// If the alternative code column has been removed, references to columns which are
+// to the right of that column need to be adjusted
+function TfrmMaintainChart.CorrectedColNum(ColNum: integer): integer;
+begin
+  if (ColNum > c_AltCode) then
+    Result := ColNum - AltCodeModifier
+  else
+    Result := ColNum;
 end;
 
 procedure TfrmMaintainChart.cmbGSTDropDown(Sender: TObject);

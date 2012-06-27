@@ -1254,6 +1254,10 @@ begin
            LoadWTLNewSort( csByJobName);
         ecNewJournal:
            DoNewJournal;
+        ecSortTransId:
+           LoadWTLNewSort( csByTransId);
+        ecSortSentToAndAcc:
+           LoadWTLNewSort( csBySentToAndAcc);
      end;
    finally
      EnableAutoSave;
@@ -3807,7 +3811,7 @@ begin
 
       if (ProductConfigService.OnLine and ProductConfigService.IsPracticeProductEnabled(ProductConfigService.GetExportDataId, False)) then
       begin
-        InsColDefnRec('Transaction Id', ceCoreTransactionId, celCoreTransactionId, 90, false, true, false, csByTransId);
+        InsColDefnRec('Transaction ID', ceCoreTransactionId, celCoreTransactionId, 90, false, true, false, csByTransId);
         InsColDefnRec('Sent to BankLink Online', ceTransferedToOnline, celTransferedToOnline, 142, false, true, false, csBySentToAndAcc);
       end;
 
@@ -9090,7 +9094,7 @@ begin
      S := PChar( PayeeName);
    end
    else
-     S := PChar( 'split');
+     S := PChar( 'banana');
 
    //paint
    R := CellRect;

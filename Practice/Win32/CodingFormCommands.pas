@@ -84,7 +84,9 @@ type
                   ecQueryUncoded,
                   ecLookupJobs,
 
-                  ecNewJournal
+                  ecNewJournal,
+                  ecSortTransId,
+                  ecSortSentToAndAcc
                   );
 
 implementation

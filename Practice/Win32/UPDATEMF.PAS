@@ -816,15 +816,14 @@ begin
          end;
 
          ProductConfigService.UpdateUserAllowOnlineSetting;
-
-         if Assigned(CurrUser) then
-           RefreshUserControls;
        end;
      end else if ClientFileOpen then begin
        actSendToFile.Enabled := (MyClient.clExtra.ceFile_Transfer_Method <> ftmOnline);
        actSendViaEmail.Enabled := (MyClient.clExtra.ceFile_Transfer_Method <> ftmOnline);
        actSendViaOnline.Enabled := (MyClient.clExtra.ceFile_Transfer_Method = ftmOnline);
      end;
+     if Assigned(CurrUser) then
+       RefreshUserControls;
 
      Batchreports.FillMenu(frmMain.mniBatchReports,ShowFinReports);
      frmMain.MenuCopyToPopUp('mnsReport', popReport);

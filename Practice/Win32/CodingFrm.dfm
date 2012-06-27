@@ -536,12 +536,14 @@ object frmCoding: TfrmCoding
     Top = 160
   end
   object celStatus: TOvcTCBitMap
+    Table = tblCoding
     Left = 48
     Top = 217
   end
   object celDate: TOvcTCString
     Access = otxReadOnly
     MaxLength = 8
+    Table = tblCoding
     UseASCIIZStrings = True
     Left = 112
     Top = 217
@@ -549,6 +551,7 @@ object frmCoding: TfrmCoding
   object celRef: TOvcTCString
     Access = otxReadOnly
     MaxLength = 12
+    Table = tblCoding
     UseASCIIZStrings = True
     OnOwnerDraw = celRefOwnerDraw
     Left = 144
@@ -557,12 +560,14 @@ object frmCoding: TfrmCoding
   object celAnalysis: TOvcTCString
     Access = otxReadOnly
     MaxLength = 100
+    Table = tblCoding
     Left = 176
     Top = 217
   end
   object celAmount: TOvcTCString
     Access = otxReadOnly
     Adjust = otaCenterRight
+    Table = tblCoding
     UseASCIIZStrings = True
     OnExit = celAmountExit
     OnOwnerDraw = celAmountOwnerDraw
@@ -571,18 +576,21 @@ object frmCoding: TfrmCoding
   end
   object celEntryType: TOvcTCString
     Access = otxReadOnly
+    Table = tblCoding
     UseASCIIZStrings = True
     Left = 464
     Top = 217
   end
   object celBSDate: TOvcTCString
     Access = otxReadOnly
+    Table = tblCoding
     UseASCIIZStrings = True
     Left = 496
     Top = 217
   end
   object celCoded: TOvcTCString
     Access = otxReadOnly
+    Table = tblCoding
     Left = 528
     Top = 217
   end
@@ -594,9 +602,9 @@ object frmCoding: TfrmCoding
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd, efoTrimBlanks]
     PictureMask = '999999'
     ShowHint = True
+    Table = tblCoding
     OnKeyDown = celPayeeKeyDown
     OnOwnerDraw = celPayeeOwnerDraw
     Left = 432
@@ -613,9 +621,9 @@ object frmCoding: TfrmCoding
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd]
     PictureMask = '#########.##'
     ShowHint = True
+    Table = tblCoding
     OnChange = celGstAmtChange
     OnKeyPress = celGstAmtKeyPress
     OnOwnerDraw = celGstAmtOwnerDraw
@@ -633,9 +641,9 @@ object frmCoding: TfrmCoding
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd]
     PictureMask = '#########.####'
     ShowHint = True
+    Table = tblCoding
     OnChange = celQuantityChange
     OnExit = celQuantityExit
     Left = 336
@@ -647,6 +655,7 @@ object frmCoding: TfrmCoding
     Adjust = otaCenterLeft
     MaxLength = 12
     ShowHint = True
+    Table = tblCoding
     Left = 304
     Top = 257
   end
@@ -654,6 +663,7 @@ object frmCoding: TfrmCoding
     Adjust = otaCenterLeft
     MaxLength = 200
     ShowHint = True
+    Table = tblCoding
     UseASCIIZStrings = True
     Left = 304
     Top = 165
@@ -662,6 +672,7 @@ object frmCoding: TfrmCoding
     Adjust = otaCenterLeft
     MaxLength = 20
     ShowHint = True
+    Table = tblCoding
     Left = 272
     Top = 257
   end
@@ -669,6 +680,7 @@ object frmCoding: TfrmCoding
     Adjust = otaCenterLeft
     MaxLength = 10
     ShowHint = True
+    Table = tblCoding
     OnExit = celAccountExit
     OnKeyDown = celAccountKeyDown
     OnKeyPress = celAccountKeyPress
@@ -715,6 +727,7 @@ object frmCoding: TfrmCoding
   object celGSTCode: TOvcTCString
     MaxLength = 3
     ShowHint = True
+    Table = tblCoding
     OnKeyDown = celGSTCodeKeyDown
     OnOwnerDraw = celGSTCodeOwnerDraw
     Left = 368
@@ -805,6 +818,7 @@ object frmCoding: TfrmCoding
     Adjust = otaCenterLeft
     MaxLength = 200
     ShowHint = True
+    Table = tblCoding
     UseASCIIZStrings = True
     Left = 304
     Top = 197
@@ -873,6 +887,7 @@ object frmCoding: TfrmCoding
       0000000000000000000000000000000000000000000000000000}
     CellGlyphs.GlyphCount = 3
     CellGlyphs.ActiveGlyphCount = 2
+    Table = tblCoding
     OnKeyUp = celTaxInvKeyUp
     OnMouseUp = celTaxInvMouseUp
     Left = 564
@@ -881,6 +896,7 @@ object frmCoding: TfrmCoding
   object celBalance: TOvcTCString
     Access = otxReadOnly
     Adjust = otaCenterRight
+    Table = tblCoding
     UseASCIIZStrings = True
     OnOwnerDraw = celBalanceOwnerDraw
     Left = 600
@@ -902,6 +918,7 @@ object frmCoding: TfrmCoding
     Adjust = otaCenterLeft
     MaxLength = 10
     ShowHint = True
+    Table = tblCoding
     Left = 240
     Top = 257
   end
@@ -921,6 +938,7 @@ object frmCoding: TfrmCoding
     Adjust = otaCenterLeft
     MaxLength = 10
     ShowHint = True
+    Table = tblCoding
     OnOwnerDraw = celPayeeNameOwnerDraw
     Left = 432
     Top = 289
@@ -928,6 +946,7 @@ object frmCoding: TfrmCoding
   object celDocument: TOvcTCString
     Adjust = otaCenterLeft
     ShowHint = True
+    Table = tblCoding
     UseASCIIZStrings = True
     OnOwnerDraw = celDocumentOwnerDraw
     Left = 639
@@ -946,6 +965,7 @@ object frmCoding: TfrmCoding
     EFColors.Highlight.TextColor = clHighlightText
     Epoch = 1970
     Options = [efoForceOvertype]
+    Table = tblCoding
     OnOwnerDraw = celEditDateOwnerDraw
     Left = 120
     Top = 264
@@ -962,6 +982,7 @@ object frmCoding: TfrmCoding
   object CelJob: TOvcTCString
     MaxLength = 8
     ShowHint = True
+    Table = tblCoding
     OnKeyDown = CelJobKeyDown
     OnOwnerDraw = CelJobOwnerDraw
     Left = 488
@@ -970,16 +991,19 @@ object frmCoding: TfrmCoding
   object CelJobName: TOvcTCString
     MaxLength = 8
     ShowHint = True
+    Table = tblCoding
     OnOwnerDraw = CelJobOwnerDraw
     Left = 528
     Top = 290
   end
   object CelAction: TOvcTCString
     ShowHint = True
+    Table = tblCoding
     Left = 568
     Top = 290
   end
   object celForexAmount: TOvcTCString
+    Table = tblCoding
     OnOwnerDraw = celForexAmountOwnerDraw
     Left = 656
     Top = 48
@@ -992,8 +1016,8 @@ object frmCoding: TfrmCoding
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd]
     PictureMask = '####.####'
+    Table = tblCoding
     Left = 624
     Top = 48
     RangeHigh = {73B2DBB9838916F2FE43}
@@ -1007,8 +1031,8 @@ object frmCoding: TfrmCoding
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd]
     PictureMask = '########.##'
+    Table = tblCoding
     OnChange = celLocalCurrencyAmountChange
     OnExit = celAmountExit
     OnOwnerDraw = celLocalCurrencyAmountOwnerDraw
@@ -1026,6 +1050,7 @@ object frmCoding: TfrmCoding
   object CelAltCode: TOvcTCString
     Access = otxReadOnly
     MaxLength = 100
+    Table = tblCoding
     Left = 608
     Top = 257
   end
@@ -1108,8 +1133,6 @@ object frmCoding: TfrmCoding
     CellGlyphs.GlyphCount = 3
     CellGlyphs.ActiveGlyphCount = 2
     Table = tblCoding
-    OnKeyUp = celTaxInvKeyUp
-    OnMouseUp = celTaxInvMouseUp
     Left = 372
     Top = 314
   end
@@ -1118,7 +1141,7 @@ object frmCoding: TfrmCoding
     Adjust = otaCenterLeft
     MaxLength = 30
     ShowHint = True
-    OnOwnerDraw = celPayeeNameOwnerDraw
+    Table = tblCoding
     Left = 336
     Top = 313
   end

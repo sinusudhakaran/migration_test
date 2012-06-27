@@ -780,7 +780,8 @@ begin
 
     AccIndex := GetAccountIndexOnVendorList(B.baFields.baCore_Account_Id);
     if (B.baFields.baCore_Account_ID > 0) and
-       (fClientAccVendors.ClientId <> '') then
+       (fClientAccVendors.ClientId <> '') and
+       (length(fClientAccVendors.ClientVendors) > 0) then
     begin
       if AccIndex = -1 then
       begin

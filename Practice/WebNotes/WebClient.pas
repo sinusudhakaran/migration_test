@@ -514,6 +514,7 @@ end;
 procedure TWebClient.ClearParams;
 begin
   FHttpRequester.AttachedFile := '';
+  FHttpRequester.URL := '';
 end;
 
 //------------------------------------------------------------------------------

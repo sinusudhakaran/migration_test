@@ -319,6 +319,7 @@ type
     BCode                         : String[3];
     CCode                         : String[3];
     FProvisional: Boolean;
+    DittoLineInProgress: Boolean;
 
     procedure InitController;
     procedure SetupColumnFmtList;
@@ -749,6 +750,7 @@ begin
    lblAcctDetails.Font.Color := bkBranding.TopTitleColor;
 
    imgGraphic.Picture := bkBranding.CodingBanner;
+   DittoLineInProgress := False;
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TdlgHistorical.FormResize(Sender: TObject);
@@ -3582,6 +3584,8 @@ var
   i: Integer;
   pT: pTransaction_Rec;
   Row, Col: Integer;
+const
+  ThisMethodName = 'DoDittoLine';
 Begin
   CopyingLine := True;
   try
@@ -5392,7 +5396,11 @@ end;
 
 procedure TdlgHistorical.tbCopyLineClick(Sender: TObject);
 begin
+  if DittoLineInProgress then
+    Exit; // prevents a race condition if the user decides to press Copy Line really fast for shits and giggles
+  DittoLineInProgress := True;
   DoDittoLine;
+  DittoLineInProgress := False;
 end;
 
 procedure TdlgHistorical.celBalanceOwnerDraw(Sender: TObject;

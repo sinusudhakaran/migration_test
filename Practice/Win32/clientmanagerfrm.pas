@@ -1218,7 +1218,7 @@ begin
   try
     ClientLookup.GetSelectionTypes(ProspectSelected, ActiveSelected, UnsyncSelected);
 
-    actBOSettings.Visible := not ProductConfigService.Registered;
+    actBOSettings.Visible := ProductConfigService.Registered;
 
     actBOSettings.Enabled := (AdminSystem.fdFields.fdUse_BankLink_Online and
                              ProductConfigService.OnLine and

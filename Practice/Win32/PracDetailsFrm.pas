@@ -1979,15 +1979,12 @@ begin
   BLOProductsNode := vtProducts.GetFirst;
   CurrentNode := BLOProductsNode.FirstChild;
   UncheckNodes;
-  if (Msg <> '') then
-    HelpfulWarningMsg(Msg, 0);
-
   // Unchecking all BankLink Online Services
   BLOServicesNode := BLOProductsNode.NextSibling;
   CurrentNode := BLOServicesNode.FirstChild;
   UncheckNodes;
-
-  // ProductConfigService.ClearAllProducts;
+  if (Msg <> '') then
+    HelpfulWarningMsg(Msg, 0);
 
   vtProducts.Invalidate;
   Refresh;

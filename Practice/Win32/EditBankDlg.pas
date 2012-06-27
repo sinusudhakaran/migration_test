@@ -1191,7 +1191,8 @@ begin
     MyDlg.ExportDataEnabled := (ProductConfigService.IsExportDataEnabledFoAccount(aBankAcct)) and
                                (aClientId <> '') and
                                (not CurrUser.HasRestrictedAccess) and
-                               (aBankAcct.baFields.baBank_Account_Number <> '');
+                               (aBankAcct.baFields.baBank_Account_Number <> '') and
+                               (Assigned(aAccountVendors.AccountVendors));
 
     if MyDlg.ExportDataEnabled then
     begin
