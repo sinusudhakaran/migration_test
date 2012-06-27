@@ -3609,9 +3609,11 @@ begin
 
            //if there is only 1 line in the dissection then
            //remove dissection and treat like normal transaction
-           if (Count = 1) then begin
+           if (Count = 1) then
+           begin
              pD := WorkDissect.Items[0];
-             with pTran^, pD^ do begin
+             with pTran^, pD^ do
+             begin
                 txAccount    := dtAccount;
                 txGST_Class  := dtGST_Class;       //GetGSTClassNo( MyClient, Chr( dtGST_Class ));
                 txGST_Amount := dtGST_Amount;      //GenUtils.Double2Money(dtGST_Amount);
@@ -3661,18 +3663,22 @@ begin
                 txCoded_By     := cbManual;
              end;
            end
-           else begin
+           else
+           begin
               // Store dissection lines
               // re-sort - store $ lines first followed by % lines
               Has100 := HasSingle100PercentLine;
-              for j := 0 to 1 do begin
-                for i := 0 to Pred( Count ) do begin
+              for j := 0 to 1 do
+              begin
+                for i := 0 to Pred( Count ) do
+                begin
                   pD := WorkDissect.Items[i];
                   if ((j = 0) and (pD.dtPercent_Amount <> 0))
-                  or ((j = 1) and (pD.dtPercent_Amount = 0)) then
+                    or ((j = 1) and (pD.dtPercent_Amount = 0)) then
                      Continue;
                   pDissection := New_Dissection_Rec;
-                  with pDissection^, pD^ do begin
+                  with pDissection^, pD^ do
+                  begin
                      dsTransaction     := pTran;
                      dsAccount         := dtAccount;
                      dsAmount          := dtAmount;
@@ -3681,7 +3687,8 @@ begin
                      dsQuantity        := dtQuantity;
                      dsPayee_Number    := dtPayee_Number;
                      dsJob_Code         := dtJob;
-                     if dsJob_Code <> pT.txJob_Code then begin
+                     if dsJob_Code <> pT.txJob_Code then
+                     begin
                         //  pT.txJob_LRN can only be the same as ALL disections
                         pT.txJob_Code := '';
                      end;
@@ -3747,22 +3754,24 @@ begin
                        dsPercent_Amount := 0;
                      end;
 
-                     if AuditIDList.Count > 0 then begin
+                     if AuditIDList.Count > 0 then
+                     begin
                        pDissection.dsAudit_Record_ID := integer(AuditIDList.Items[0]);
                        TrxList32.AppendDissection( pTran, pDissection, nil );
                        AuditIDList.Delete(0);
                      end else
                        TrxList32.AppendDissection( pTran, pDissection, MyClient.ClientAuditMgr );
-                  end;
-                end;
-              end;
+                  end; {with}
+                end; {for i}
+              end; {for j}
+
+              pTran^.txCoded_By    := cbManual;
+              pTran^.txAccount     := DISSECT_DESC;
+              //clean up any gst amounts that are left on the transaction
+              ClearGSTFields( pTran);
+              ClearSuperFundFields( pTran);
+              Result := True;
            end;
-           pTran^.txCoded_By    := cbManual;
-           pTran^.txAccount     := DISSECT_DESC;
-           //clean up any gst amounts that are left on the transaction
-           ClearGSTFields( pTran);
-           ClearSuperFundFields( pTran);
-           Result := True;
          finally
            AuditIDList.Free;
          end;

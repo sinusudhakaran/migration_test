@@ -353,7 +353,7 @@ type
     function GuidArraysEqual(GuidArrayA, GuidArrayB: TBloArrayOfGuid): Boolean;
 
     function PracticeHasVendors : Boolean;
-    function GetPracticeVendorExports : TBloDataPlatformSubscription;
+    function GetPracticeVendorExports(ShowProgressBar: boolean = True) : TBloDataPlatformSubscription;
     function GetClientVendorExports(aClientGuid: TBloGuid) : TBloDataPlatformSubscription;
     function GetAccountVendors(aClientGuid : TBloGuid; aAccountId: Integer;
                                ShowProgressBar: boolean): TBloDataPlatformSubscription;
@@ -4476,7 +4476,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TProductConfigService.GetPracticeVendorExports : TBloDataPlatformSubscription;
+function TProductConfigService.GetPracticeVendorExports(ShowProgressBar: boolean = True) : TBloDataPlatformSubscription;
 var
   DataPlatformSubscriberResponse: MessageResponseOfDataPlatformSubscription6cY85e5k;
   ShowProgress: Boolean;
@@ -4492,7 +4492,7 @@ begin
     if not Registered then
       Exit;
 
-    ShowProgress := Progress.StatusSilent;
+    ShowProgress := Progress.StatusSilent and ShowProgressBar;
 
     if ShowProgress then
     begin
@@ -4611,7 +4611,7 @@ var
 begin
   Result := nil;
 
-  PracticeExportDataService := GetPracticeVendorExports;
+  PracticeExportDataService := GetPracticeVendorExports(ShowProgressBar);
   if Assigned(PracticeExportDataService) then
     AvailableServiceArray := PracticeExportDataService.Current;
 

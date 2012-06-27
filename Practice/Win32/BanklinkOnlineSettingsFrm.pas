@@ -381,7 +381,7 @@ begin
 
   if grpServicesAvailable.Visible then
   begin
-    if ProductConfigService.CompareGuidArrays(OriginalDataExports, ModifiedDataExports) then
+    if not ProductConfigService.CompareGuidArrays(OriginalDataExports, ModifiedDataExports) then
     begin
       Result := True;
 
@@ -395,7 +395,7 @@ begin
       Exit;
     end;
 
-    if FOriginalSettings.SecureCode = edtSecureCode.Text then
+    if FOriginalSettings.SecureCode <> edtSecureCode.Text then
     begin
       Result := True;
 

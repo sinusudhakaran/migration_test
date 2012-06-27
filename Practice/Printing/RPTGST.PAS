@@ -778,7 +778,7 @@ begin
        Continue;
      end;
 
-     CalculateAccountTotals.CalculateAccountTotalsForClient( MyClient, False, nil, ToDate);
+     CalculateAccountTotals.CalculateAccountTotalsForClient( MyClient, False, nil, ToDate, True);
 
      //D1 := FromDate;
      //D2 := IncDate(Fromdate, 0, Period, 0);

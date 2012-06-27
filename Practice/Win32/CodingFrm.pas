@@ -9094,7 +9094,7 @@ begin
      S := PChar( PayeeName);
    end
    else
-     S := PChar( 'banana');
+     S := PChar( 'Split');
 
    //paint
    R := CellRect;
