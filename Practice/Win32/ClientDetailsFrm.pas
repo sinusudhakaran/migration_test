@@ -803,6 +803,7 @@ var
   LastDiskSequenceNo : integer;
   AllowClientDirectDownload: Boolean;
   SecureCode: String;
+  PrimaryUser: TBloUserRead;
 begin
    FClientReadDetail := nil;
 
@@ -1262,7 +1263,9 @@ begin
         
       if Assigned(FClientReadDetail) and (SecureCode <> clBankLink_Code) then
       begin
-        if Length(FClientReadDetail.Users) > 0 then
+        PrimaryUser := FClientReadDetail.GetPrimaryUser;
+        
+        if Assigned(PrimaryUser) then
         begin
           ProductConfigService.UpdateClient(
             FClientReadDetail,
@@ -1270,8 +1273,8 @@ begin
             FClientReadDetail.MaxOfflineDays,
             FClientReadDetail.Status,
             FClientReadDetail.Subscription,
-            FClientReadDetail.Users[0].EMail,
-            FClientReadDetail.Users[0].FullName);
+            PrimaryUser.EMail,
+            PrimaryUser.FullName);
         end;
       end;
    end;   // if okPressed
@@ -1493,6 +1496,7 @@ var
   UserEmail : String;
   SubIndex : integer;
   SubscriptionSetToNotes : Boolean;
+  PrimaryUser: TBloUserRead;
 begin
   if Assigned(MyClient) then
   begin
@@ -1514,10 +1518,12 @@ begin
         else
           ProductConfigService.RemoveItemFromArrayGuid(Subscription, NotesId);
 
-        if length(FClientReadDetail.Users) > 0 then
+          PrimaryUser := FClientReadDetail.GetPrimaryUser;
+
+        if Assigned(PrimaryUser) then
         begin
-          UserEmail := FClientReadDetail.Users[0].EMail;
-          UserName  := FClientReadDetail.Users[0].FullName;
+          UserEmail := PrimaryUser.EMail;
+          UserName  := PrimaryUser.FullName;
         end
         else
         begin

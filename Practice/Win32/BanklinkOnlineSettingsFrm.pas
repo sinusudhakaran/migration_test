@@ -22,7 +22,14 @@ const
   UM_AFTERSHOW = WM_USER + 1;
 
 type
-
+  TOriginalSettings = record
+    Status: TBloStatus;
+    DeliverDataDirect: Boolean;
+    SecureCode: String;
+    Username: String;
+    EmailAddress: String;
+  end;
+      
   TfrmBanklinkOnlineSettings = class(TForm)
     grpProductAccess: TGroupBox;
     lblSelectProducts: TLabel;
@@ -70,16 +77,6 @@ type
     procedure rbActiveMouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
     procedure grpDefaultClientAdministratorClick(Sender: TObject);
-  private
-    type
-      TOriginalSettings = record
-        Status: TBloStatus;
-        DeliverDataDirect: Boolean;
-        SecureCode: String;
-        Username: String;
-        EmailAddress: String;
-      end;
-      
   private
     fOkPressed : Boolean;
     fBusyKeyPress : Boolean;
@@ -341,6 +338,30 @@ begin
 end;
 
 function TfrmBanklinkOnlineSettings.ClientSettingChanged: Boolean;
+
+  function OffSiteClientSubscriptionsChanged(Subscriptions: TBloArrayOfGuid): Boolean;
+  var
+    OffSiteSubscriptions: TBloArrayOfGuid;
+    Index: Integer;
+    ProductIndex: Integer;
+  begin
+    ProductIndex := 0;
+    
+    for Index := 0 to Length(MyClient.clExtra.ceOnlineSubscription) - 1 do
+    begin
+      if MyClient.clExtra.ceOnlineSubscription[index] <> '' then
+      begin
+        SetLength(OffSiteSubscriptions, ProductIndex + 1);
+
+        OffSiteSubscriptions[ProductIndex] := MyClient.clExtra.ceOnlineSubscription[index];
+
+        Inc(ProductIndex);
+      end;
+    end;
+
+    Result := not ProductConfigService.CompareGuidArrays(Subscriptions, OffSiteSubscriptions);
+  end;
+
 var
   Subscription: TBloArrayOfGuid;
   Index: Integer;
@@ -374,9 +395,12 @@ begin
   else
   if Length(Subscription) > 0 then
   begin
-    Result := True;
+    if OffSiteClientSubscriptionsChanged(Subscription) then
+    begin
+      Result := True;
 
-    Exit;    
+      Exit;
+    end;   
   end;
 
   if grpServicesAvailable.Visible then
@@ -709,7 +733,10 @@ begin
                          'Activate the following products & services:' + #10 +
                          Trim(NewProducts.Text) + #10#10 + 'Change the Default Client ' +
                          'Administrator Email Address. The new Default Client ' +
-                         'Adminstrator will be sent to ' + edtEmailAddress.Text + '.';
+                         'Adminstrator will be sent to ' + edtEmailAddress.Text + '.' + #10#10 +
+                         'This will not remove access to this client on BankLink Online for ' +
+                         FOriginalSettings.Username + ' - to do that you need to go to ' +
+                         'BankLink Online and update the users associated with this client.';
       
       if AskYesNo('Changing client details',
                   PromptMessage, DLG_YES, 0, false) <> DLG_YES then
@@ -721,7 +748,10 @@ begin
       if AskYesNo('Changing Default Administrator Address',
                   'You have changed the Default Client Administrator Email Address. ' +
                   'The new Default Client Administrator will be set to ' +
-                  edtEmailAddress.Text + #10#10 +
+                  edtEmailAddress.Text + '.' + #10#10 +
+                  'This will not remove access to this client on BankLink Online for ' +
+                  FOriginalSettings.Username + ' - to do that you need to go to ' +
+                  'BankLink Online and update the users associated with this client.' + #10#10 +
                   'Are you sure you want to continue?',
                   DLG_YES, 0, false) <> DLG_YES then
         Exit;
@@ -951,6 +981,7 @@ var
   ClientHasServices    : boolean;
   PracticeExportDataService   : TBloDataPlatformSubscription;
   ExportToSortList: TStringList;
+  PrimaryUser:         TBloUserRead;
   
   function HasCachedSubscription(CachedProdId: TBloGuid): boolean;
   var
@@ -1139,10 +1170,12 @@ begin
     if MyClient.clExtra.ceOnlineValuesStored then
       MyClient.clExtra.ceOnlineValuesStored := false;
 
-    if (Length(ClientReadDetail.Users) > 0) then
+    PrimaryUser := ClientReadDetail.GetPrimaryUser;
+
+    if Assigned(PrimaryUser) then
     begin
-      UserFullName := ClientReadDetail.Users[0].FullName;
-      UserEMail    := ClientReadDetail.Users[0].Email;
+      UserFullName := PrimaryUser.FullName;
+      UserEmail := PrimaryUser.EMail;
     end
     else
     begin
