@@ -603,56 +603,82 @@ begin
 
      if okPressed then
      begin
+        LogUtil.LogMsg( lmError, UnitName, 'Bug 52759: 1' );
         with cmbSystem do begin
            clAccounting_System_Used := Integer( Items.Objects[ ItemIndex ] );
         end;
+        LogUtil.LogMsg( lmError, UnitName, 'Bug 52759: 2' );
         clChart_Is_Locked           := chkLockChart.Checked;
+        LogUtil.LogMsg( lmError, UnitName, 'Bug 52759: 3' );
         clAccount_Code_Mask         := eMask.text;
+        LogUtil.LogMsg( lmError, UnitName, 'Bug 52759: 4' );
         clSave_Client_Files_To      := Trim( eTo.text);
+        LogUtil.LogMsg( lmError, UnitName, 'Bug 52759: 5' );
         clAlternate_Extract_ID      := Trim(edtExtractID.Text);
+        LogUtil.LogMsg( lmError, UnitName, 'Bug 52759: 6' );
         clUse_Alterate_ID_for_extract := chkUseCustomLedgerCode.Checked;
+        LogUtil.LogMsg( lmError, UnitName, 'Bug 52759: 7' );
         clTax_Ledger_Code           := eTaxLedger.Text;
+        LogUtil.LogMsg( lmError, UnitName, 'Bug 52759: 8' );
         if CanRefreshChart( clCountry, clAccounting_System_Used ) then begin
+           LogUtil.LogMsg( lmError, UnitName, 'Bug 52759: 9' );
            clLoad_Client_Files_From := Trim( eFrom.text);
            // Set Dialog Question
+           LogUtil.LogMsg( lmError, UnitName, 'Bug 52759: 10' );
            if ( OldLoadFrom = '' ) then begin
+              LogUtil.LogMsg( lmError, UnitName, 'Bug 52759: 11' );
               S := 'Do you want to Load the Chart Now?';
            end
            else begin
+              LogUtil.LogMsg( lmError, UnitName, 'Bug 52759: 12' );
               S := 'You have changed the Folder where the Chart is Loaded From.'#13+
                    'Do you want to Refresh the Chart Now?';
            end;
+           LogUtil.LogMsg( lmError, UnitName, 'Bug 52759: 13' );
            if ( clLoad_Client_Files_From <> '' ) and
               ( clLoad_Client_Files_From <> OldLoadFrom ) and
               ( AskYesNo( 'Refresh Chart', S, DLG_YES, 0 ) = DLG_YES ) then begin
+              LogUtil.LogMsg( lmError, UnitName, 'Bug 52759: 14' );
               RefreshChart;
+              LogUtil.LogMsg( lmError, UnitName, 'Bug 52759: 15' );
               AutoRefreshFlag := True;
+              LogUtil.LogMsg( lmError, UnitName, 'Bug 52759: 16' );
            end;
         end
         else begin
+           LogUtil.LogMsg( lmError, UnitName, 'Bug 52759: 17' );
            clLoad_Client_Files_From := '';
         end;
 
+        LogUtil.LogMsg( lmError, UnitName, 'Bug 52759: 18' );
         clTax_Interface_Used := ComboUtils.GetComboCurrentIntObject( cmbTaxInterface);
+        LogUtil.LogMsg( lmError, UnitName, 'Bug 52759: 19' );
 
         if clWeb_Export_Format <> ComboUtils.GetComboCurrentIntObject(cmbWebFormats) then
         begin
+          LogUtil.LogMsg( lmError, UnitName, 'Bug 52759: 20' );
           OldWebExportFormat := clWeb_Export_Format;
-          
+          LogUtil.LogMsg( lmError, UnitName, 'Bug 52759: 21' );
+
           clWeb_Export_Format := ComboUtils.GetComboCurrentIntObject(cmbWebFormats);
+          LogUtil.LogMsg( lmError, UnitName, 'Bug 52759: 22' );
 
           //Only update the web export format on blopi, if blopi is available and the client is not read-only.
           if UseBankLinkOnline and not MyClient.clFields.clFile_Read_Only then
           begin
+            LogUtil.LogMsg( lmError, UnitName, 'Bug 52759: 23' );
             if MyClient.Opened then
             begin
+              LogUtil.LogMsg( lmError, UnitName, 'Bug 52759: 24' );
               if (not FInWizard) and (clWeb_Export_Format = wfWebNotes) and (OldWebExportFormat <> wfWebNotes) then
               begin
+                LogUtil.LogMsg( lmError, UnitName, 'Bug 52759: 25' );
                 HelpfulInfoMsg('You have selected to use BankLink Notes Online for this client. Please confirm the BankLink Online details for this client', 0);
+                LogUtil.LogMsg( lmError, UnitName, 'Bug 52759: 26' );
 
                 EditBanklinkOnlineSettings(Self, True, True, False);
               end;
-              
+
               BlopiClientDetails := ProductConfigService.GetClientDetailsWithCode(MyClient.clFields.clCode);
 
               if Assigned(BlopiClientDetails) then
