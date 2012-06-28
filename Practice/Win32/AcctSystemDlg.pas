@@ -670,6 +670,9 @@ begin
             if MyClient.Opened then
             begin
               LogUtil.LogMsg( lmError, UnitName, 'Bug 52759: 24' );
+              LogUtil.LogMsg( lmError, UnitName, 'Bug 52759: 24a: FInWizard = ' + BoolToStr(FInWizard));
+              LogUtil.LogMsg( lmError, UnitName, 'Bug 52759: 24b: clWeb_Export_Format = ' + IntToStr(clWeb_Export_Format));
+              LogUtil.LogMsg( lmError, UnitName, 'Bug 52759: 24c: OldWebExportFormat = ' + IntToStr(OldWebExportFormat));
               if (not FInWizard) and (clWeb_Export_Format = wfWebNotes) and (OldWebExportFormat <> wfWebNotes) then
               begin
                 LogUtil.LogMsg( lmError, UnitName, 'Bug 52759: 25' );
