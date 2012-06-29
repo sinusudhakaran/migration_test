@@ -85,10 +85,10 @@ TYPE
     aNarration             : String[ 40] ; (* Narration *)
     aStatement_Details     : String[ 200];
     aUnique_ID             : LongInt;
-    aSpare                 : Array[1..32] of Byte; (* Spare *)
     aCoreTransactionID     : Integer;
-    aRecord_End_Marker     : LongInt;
     aCoreTransactionIDHigh : Integer;
+    aSpare                 : Array[1..24] of Byte; (* Spare *) //Core transaction id now uses up 8 bytes of the spare field.
+    aRecord_End_Marker     : LongInt;
   End;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
