@@ -60,7 +60,8 @@ uses
   ClientWrapper,
   WinUtils,
   progress,
-  RegExprUtils;
+  RegExprUtils,
+  BankLinkOnlineServices;
 
 const
   UNIT_NAME = 'BankLinkOnline';
@@ -574,6 +575,11 @@ begin
         begin
           if not RegExIsEmailValid(AClientEmail) then
             raise EUploadFailed.Create('A valid client email is required to upload.');
+
+          if ProductConfigService.PracticeUserExists(AClientEmail, False) then
+          begin
+            raise EUploadFailed.Create(Format('The email address %s already exists as a Practice user. Please specify a different email address or contact BankLink Support for assistance.', [AClientEmail]));
+          end;
 
           CiCoClient.UploadFileFromPractice(AClientCode, AClientName, AClientEmail, AClientContact, ServerResponce);
 

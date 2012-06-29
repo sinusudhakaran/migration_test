@@ -2533,12 +2533,17 @@ begin
       SetQuantitySign(False);
       //Log change
       if fIsForex then
+      begin
 //        LogUtil.LogMsg( lmInfo, UnitName, 'Foreign Currency Amount Changed from '+ MakeAmount( OldForexAmount)+' to '+ MakeAmount( txForeign_Currency_Amount )+
         LogUtil.LogMsg( lmInfo, UnitName, 'Foreign Currency Amount Changed from '+ MakeAmount( OldForexAmount)+' to '+ MakeAmount( txAmount )+
                                         ' for trans '+ bkDate2Str(txDate_Effective)+' '+ GetFormattedReference( pT));
-
-      LogUtil.LogMsg( lmInfo, UnitName, 'Amount Changed from '+ MakeAmount( OldAmount)+' to '+ MakeAmount( txAmount)+
+      end
+      else
+      begin
+        LogUtil.LogMsg( lmInfo, UnitName, 'Amount Changed from '+ MakeAmount( OldForexAmount)+' to '+ MakeAmount( txAmount)+
                                         ' for trans '+ bkDate2Str(txDate_Effective)+' '+ GetFormattedReference( pT));
+      end;
+      
       // Update UE List with new amount
       if Assigned( UEList) then
       begin

@@ -1345,6 +1345,7 @@ var
   ClientExportDataService : TBloDataPlatformSubscription;
   VendorCount, i: integer;
   VendorNames: TStringList;
+  ClientGuid: TBloGuid;
 begin
    if chkOffsite.Checked then
    begin
@@ -1362,23 +1363,28 @@ begin
      begin
        if not FLoading then
        begin
-         ClientExportDataService :=
-           ProductConfigService.GetClientVendorExports(ProductConfigService.GetClientGuid(MyClient.clFields.clCode));
-         if Assigned(ClientExportDataService) then
+         ClientGuid := ProductConfigService.GetClientGuid(MyClient.clFields.clCode);
+
+         if Trim(ClientGuid) <> '' then
          begin
-           VendorCount := Length(ClientExportDataService.Current);
-           if (VendorCount > 0) then
+           ClientExportDataService := ProductConfigService.GetClientVendorExports(ClientGuid);
+           
+           if Assigned(ClientExportDataService) then
            begin
-             try
-               VendorNames := TStringList.Create;
-               VendorNames.QuoteChar := ' ';
-               for i := 0 to VendorCount - 1 do
-                 VendorNames.Add(ClientExportDataService.Current[i].Name_);
-               HelpfulWarningMsg('Your changes will allow the client to download data directly from ' +
-                                 'BankLink but this client is set up to export data to BankLink Online ' +
-                                 'for ' + GetCommaSepStrFromList(VendorNames), 0);
-             finally
-               FreeAndNil(VendorNames);
+             VendorCount := Length(ClientExportDataService.Current);
+             if (VendorCount > 0) then
+             begin
+               try
+                 VendorNames := TStringList.Create;
+                 VendorNames.QuoteChar := ' ';
+                 for i := 0 to VendorCount - 1 do
+                   VendorNames.Add(ClientExportDataService.Current[i].Name_);
+                 HelpfulWarningMsg('Your changes will allow the client to download data directly from ' +
+                                   'BankLink but this client is set up to export data to BankLink Online ' +
+                                   'for ' + GetCommaSepStrFromList(VendorNames), 0);
+               finally
+                 FreeAndNil(VendorNames);
+               end;
              end;
            end;
          end;

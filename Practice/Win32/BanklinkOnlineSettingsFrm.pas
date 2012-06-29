@@ -1147,23 +1147,6 @@ begin
     AdjustControlPositions;
   end;
 
-  if TickNotesOnline then
-  begin
-    // Checks the Products that Client Subscribes to
-    for ProdIndex := 0 to chklistProducts.Items.Count - 1 do
-    begin
-      if TBloCatalogueEntry(chklistProducts.Items.Objects[ProdIndex]).id = ProductConfigService.GetNotesId then
-        chklistProducts.Checked[ProdIndex] := True;
-    end;
-
-    if not HasCachedSubscription(ProductConfigService.GetNotesId) then
-    begin
-      MyClient.clExtra.ceOnlineSubscription[MyClient.clExtra.ceOnlineSubscriptionCount + 1] := 
-        ProductConfigService.GetNotesId;  
-      MyClient.clExtra.ceOnlineSubscriptionCount := MyClient.clExtra.ceOnlineSubscriptionCount + 1;
-    end;
-  end;
-
   // Existing Client
   if IsClientOnline then
   begin
@@ -1218,6 +1201,23 @@ begin
     end;
   end;
 
+  if TickNotesOnline then
+  begin
+    // Checks the Products that Client Subscribes to
+    for ProdIndex := 0 to chklistProducts.Items.Count - 1 do
+    begin
+      if TBloCatalogueEntry(chklistProducts.Items.Objects[ProdIndex]).id = ProductConfigService.GetNotesId then
+        chklistProducts.Checked[ProdIndex] := True;
+    end;
+
+    if not HasCachedSubscription(ProductConfigService.GetNotesId) then
+    begin
+      MyClient.clExtra.ceOnlineSubscription[MyClient.clExtra.ceOnlineSubscriptionCount + 1] := 
+        ProductConfigService.GetNotesId;  
+      MyClient.clExtra.ceOnlineSubscriptionCount := MyClient.clExtra.ceOnlineSubscriptionCount + 1;
+    end;
+  end;
+  
   //If the client is opened in read-only mode then disable the notes online product.
   if MyClient.clFields.clFile_Read_Only then
   begin

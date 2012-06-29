@@ -120,6 +120,8 @@ type
     function GetRoleFromPracUserType(aUstNameIndex : integer;
                                      aInstance: PracticeRead) : Role;
     function IsEqual(Instance: PracticeRead): Boolean;
+
+    function FindUser(const EmailAddress: String): TBloUserRead;
   End;
 
   TProductConfigService = class(TObject)
@@ -184,7 +186,9 @@ type
                               const aFullName     : WideString;
                               const aRoleNames    : TBloArrayOfString;
                               const aSubscription : TBloArrayOfGuid;
-                              const aUserCode     : WideString): MessageResponseOfguid;
+                              const aUserCode     : WideString;
+                              out UserId: TBloGuid): Boolean;
+
     function UpdateClientUser(const aClientId     : TBloGuid;
                               const aId           : TBloGuid;
                               const aFullName     : WideString;
@@ -202,20 +206,12 @@ type
                                const EMail      : WideString;
                                const FullName   : WideString;
                                var   UserId     : TBloGuid) : Boolean; overload;
-                               
+
     function AddClientUser(ClientId           : TBloGuid;
                            const UserCode     : String;
                            const EMailAddress : WideString;
                            const FullName     : WideString;
-                           const Subscriptions: TBloArrayOfguid;
-                           const Roles        : TBloArrayOfstring;
-                           var   UserId       : TBloGuid): Boolean; overload;
-                           
-    function AddClientUser(ClientId           : TBloGuid;
-                           const UserCode     : String;
-                           const EMailAddress : WideString;
-                           const FullName     : WideString;
-                           var   UserId       : TBloGuid): Boolean; overload;
+                           var   UserId       : TBloGuid): Boolean;
 
     procedure FillInClientDetails(var aBloClientCreate: TBloClientCreate);
 
@@ -412,6 +408,8 @@ type
     function CompareGuidArrays(SubscriptionA, SubscriptionB: TBloArrayOfGuid): Boolean; 
 
     function GetOnlineClientUser(const ClientCode: String; out UserFullName, UserEmail: String): Boolean;
+
+    function PracticeUserExists(const EmailAddress: String; RefreshPractice: Boolean = True): Boolean;
 
     property OnLine: Boolean read FOnLine;
     property Registered: Boolean read GetRegistered;
@@ -918,18 +916,20 @@ var
   ClientDetailResponse: MessageResponseOfClientReadDetailMIdCYrSK;
   BlopiInterface: IBlopiServiceFacade;
 begin
-    BlopiInterface  := GetServiceFacade;
-    TheGuid := CreateNewClient(aNewClient);
-    MsgResponseOfGuid := BlopiInterface.CreateClientUser(CountryText(AdminSystem.fdFields.fdCountry),
+  BlopiInterface  := GetServiceFacade;
+  TheGuid := CreateNewClient(aNewClient);
+  MsgResponseOfGuid := BlopiInterface.CreateClientUser(CountryText(AdminSystem.fdFields.fdCountry),
                                                          AdminSystem.fdFields.fdBankLink_Code,
                                                          AdminSystem.fdFields.fdBankLink_Connect_Password,
                                                          TheGuid,
                                                          aNewUserCreate);
-    ClientDetailResponse := BlopiInterface.GetClient(CountryText(AdminSystem.fdFields.fdCountry),
+
+
+  ClientDetailResponse := BlopiInterface.GetClient(CountryText(AdminSystem.fdFields.fdCountry),
                                                      AdminSystem.fdFields.fdBankLink_Code,
                                                      AdminSystem.fdFields.fdBankLink_Connect_Password,
                                                      MsgResponseOfGuid.Result);
-    Result := ClientDetailResponse.Result;
+  Result := ClientDetailResponse.Result;
 end;
 
 //------------------------------------------------------------------------------
@@ -1759,6 +1759,26 @@ begin
   FPracticeVendorExports := GetPracticeVendorExports;
   if Assigned(FPracticeVendorExports) then
     Result := (Length(FPracticeVendorExports.Current) > 0);
+end;
+
+function TProductConfigService.PracticeUserExists(const EmailAddress: String; RefreshPractice: Boolean = True): Boolean;
+begin
+  Result := False;
+
+  if RefreshPractice then
+  begin
+    GetPractice;
+  end
+  else
+  if not Assigned(FPractice) then
+  begin
+    GetPractice;
+  end;
+  
+  if Assigned(FPractice) then
+  begin
+    Result := FPractice.FindUser(EmailAddress) <> nil; 
+  end;
 end;
 
 //------------------------------------------------------------------------------
@@ -3397,11 +3417,15 @@ function TProductConfigService.CreateClientUser(const aClientId     : TBloGuid;
                                                 const aFullName     : WideString;
                                                 const aRoleNames    : TBloArrayOfString;
                                                 const aSubscription : TBloArrayOfGuid;
-                                                const aUserCode     : WideString): MessageResponseOfguid;
+                                                const aUserCode     : WideString;
+                                                out UserId: TBloGuid): Boolean;
 var
   BloUserCreate  : TBloUserCreate;
   BlopiInterface : IBlopiServiceFacade;
+  MsgResponceGuid : MessageResponseOfGuid;
 begin
+  Result := False;
+  
   BlopiInterface := GetServiceFacade;
 
   BloUserCreate := TBloUserCreate.Create;
@@ -3412,16 +3436,36 @@ begin
     BloUserCreate.Subscription := aSubscription;
     BloUserCreate.UserCode     := aUserCode;
 
-    Result := BlopiInterface.CreateClientUser(CountryText(AdminSystem.fdFields.fdCountry),
-                                              AdminSystem.fdFields.fdBankLink_Code,
-                                              AdminSystem.fdFields.fdBankLink_Connect_Password,
-                                              aClientId,
-                                              BloUserCreate);
+    if not PracticeUserExists(aEmail) then
+    begin
+      MsgResponceGuid := BlopiInterface.CreateClientUser(CountryText(AdminSystem.fdFields.fdCountry),
+                                                AdminSystem.fdFields.fdBankLink_Code,
+                                                AdminSystem.fdFields.fdBankLink_Connect_Password,
+                                                aClientId,
+                                                BloUserCreate);
 
-    if Result.Success then
-      LogUtil.LogMsg(lmInfo, UNIT_NAME, 'Client User ' + aUserCode + ' has been successfully updated on BankLink Online.')
+
+      if not MessageResponseHasError(MsgResponceGuid, 'create the client user on', true) then
+      begin
+        UserId := MsgResponceGuid.Result;
+
+        LogUtil.LogMsg(lmInfo, UNIT_NAME, 'Client User ' + aUserCode + ' has been successfully updated on BankLink Online.');
+
+        Result := True;
+      end
+      else
+      begin
+        LogUtil.LogMsg(lmInfo, UNIT_NAME, 'Client User ' + aUserCode + ' was not updated on BankLink Online.');
+      end;
+    end
     else
-      LogUtil.LogMsg(lmInfo, UNIT_NAME, 'Client User ' + aUserCode + ' was not updated on BankLink Online.');
+    begin
+      HelpfulErrorMsg(Format('BankLink Practice is unable to create client user ' +
+                             'on BankLink Online. User with email address %s already ' +
+                             'exists as a Practice user. Please specify a different ' +
+                             'email address or contact BankLink Support for assistance.', [aEmail]), 0, False, '', False);
+
+    end;
 
   finally
     FreeAndNil(BloUserCreate);
@@ -3466,30 +3510,6 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TProductConfigService.AddClientUser(ClientId: TBloGuid;
-  const UserCode: String; const EMailAddress, FullName: WideString;
-  const Subscriptions: TBloArrayOfguid; const Roles: TBloArrayOfstring;
-  var UserId: TBloGuid): Boolean;
-var
-  MsgResponceGuid : MessageResponseOfGuid;
-begin
-  Result := False;
-  
-  MsgResponceGuid := CreateClientUser(ClientId,
-                                      EMailAddress,
-                                      FullName,
-                                      Roles,
-                                      Subscriptions,
-                                      UserCode);
-
-  if not MessageResponseHasError(MsgResponceGuid, 'create the client user on', true) then
-  begin
-    UserId := MsgResponceGuid.Result;
-
-    Result := True;
-  end;
-end;
-
 function TProductConfigService.AddEditClientUser(const aExistingClient : TBloClientReadDetail;
                                                  aNewClientId    : TBloGuid;
                                                  aClientCode     : String;
@@ -3503,6 +3523,7 @@ var
   RoleNames       : TBloArrayOfstring;
   Subscription    : TBloArrayOfguid;
   ClientId        : TBloGuid;
+  UserId          : TBloGuid;
 begin
   Result := False;
 
@@ -3548,17 +3569,13 @@ begin
     AddItemToArrayString(RoleNames, 'Client Administrator');
     SetLength(Subscription, 0);
 
-    MsgResponceGuid := CreateClientUser(ClientId,
-                                        aEMail,
-                                        aFullName,
-                                        RoleNames,
-                                        Subscription,
-                                        UserCode);
-
-    Result := not MessageResponseHasError(MsgResponceGuid, 'create the client user on', true);
-    if Result then
-      aUserId := MsgResponceGuid.Result;
-
+    Result := CreateClientUser(ClientId,
+                               aEMail,
+                               aFullName,
+                               RoleNames,
+                               Subscription,
+                               UserCode,
+                               aUserId);
     Exit;
   end;
 
@@ -4338,7 +4355,13 @@ begin
   AddItemToArrayString(Roles, ROLES_CLIENT_ADMINISTRATOR);
   SetLength(Subscriptions, 0);
 
-  Result := AddClientUser(ClientId, UserCode, EmailAddress, FullName, Subscriptions, Roles, UserId);
+  Result := CreateClientUser(ClientId,
+                             EMailAddress,
+                             FullName,
+                             Roles,
+                             Subscriptions,
+                             UserCode,
+                             UserId);
 end;
 
 function TProductConfigService.CheckClientUser(Client: TBloClientReadDetail;
@@ -5126,6 +5149,23 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+function TPracticeHelper.FindUser(const EmailAddress: String): TBloUserRead;
+var
+  Index: Integer;
+begin
+  Result := nil;
+  
+  for Index := 0 to Length(Users) - 1 do
+  begin
+    if CompareText(Trim(Users[Index].EMail), Trim(EmailAddress)) = 0 then
+    begin
+      Result := Users[Index];
+
+      Break;
+    end;
+  end;
+end;
+
 function TPracticeHelper.GetRoleFromPracUserType(aUstNameIndex: integer;
                                                  aInstance: PracticeRead): Role;
 var

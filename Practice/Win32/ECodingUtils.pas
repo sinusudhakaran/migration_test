@@ -692,6 +692,13 @@ begin
             ClientUserEmail := aClient.clFields.clClient_EMail_Address;
           end;
         end;
+
+        if ProductConfigService.PracticeUserExists(ClientUserEmail) then
+        begin
+          HelpfulErrorMsg(Format('BankLink Practice is unable to export the client to BankLink Notes Online. User with email address %s already exists as a Practice user. Please specify a different email address or contact BankLink Support for assistance.', [ClientUserEmail]), 0);
+
+          Exit;
+        end;
       end
       else
       begin
