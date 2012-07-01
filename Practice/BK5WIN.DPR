@@ -4,6 +4,7 @@ program Bk5Win;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 uses
+  Fastmm4,
   madScreenShot,
   madExcept,
   madLinkDisAsm,
@@ -75,6 +76,8 @@ uses
 const
   UnitName = 'BK5WIN';
 begin
+  ReportMemoryLeaksOnShutdown := true;
+
   try //finally
     try //except
       frmSplash := TfrmSplash.Create(Application);

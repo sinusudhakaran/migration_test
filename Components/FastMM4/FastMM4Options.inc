@@ -381,3 +381,5 @@ Set the default options for FastMM here.
     {$endif}
   {$endif}
 {$endif}
+
+{$undef RequireDebuggerPresenceForLeakReporting}
