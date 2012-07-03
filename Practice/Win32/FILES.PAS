@@ -1558,7 +1558,7 @@ begin
                 //Check we have a valid email address for BankLink Online
                 { TODO -oSW : Validate email }
                 if (AClientEmail = '') then
-                  raise EUploadFailed.Create('Invalid email address.');
+                  raise EUploadFailed.Create(Format('A valid email address is required for client files to be sent via BankLink Online. Please update the email address for client ‘%s’ under Other Functions | Client Details.', [Code]));
 
                 BankLinkOnlineMgr.Silent := IsScheduledReport;
                 BankLinkOnlineMgr.UploadClient(Code, ProgressFrm, ClientName,
