@@ -1954,6 +1954,16 @@ begin //SendSceduledEmail
                                             [EmailInfo.ClientCode, Globals.BANKLINK_ONLINE_NAME,
                                              Globals.BANKLINK_ONLINE_NAME]);
 
+                    if EmailInfo.IsFirstPracUpload then
+                    begin
+                      ClientMessage := ClientMessage + #10#10 +
+                         'Subdomain: ' + GetBankLinkOnlineSubDomain +  #10 +
+                         'Username: ' + EmailInfo.EmailAddress + #10#10 +
+                         'If you are new to ' + Globals.BANKLINK_ONLINE_NAME + ', you will receive ' +
+                         'an email shortly which will help you complete the ' +
+                         'setup process. Please wait for this email before continuing.';
+                    end;
+
                     if (fdSched_Rep_Online_Message <> '') then
                                   ClientMessage := ClientMessage + #13#13 + fdSched_Rep_Online_Message;
                 end;

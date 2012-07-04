@@ -1333,14 +1333,26 @@ begin
    if DoExport(Session,ef_AccountStart,AccountText) then begin
       BulkExtractors.LogMessage('Export Account ' + BankAccount.baFields.baBank_Account_Number);
 
-      for I := AnAccount.baTransaction_List.First to AnAccount.baTransaction_List.Last do begin
-         lTrans := AnAccount.baTransaction_List.Transaction_At(I);
-         if IncludeTrans(Session,LTrans,false) then
-            if not ExportTrans(Session,LTrans) then begin
-               Result := False;
-               Break;
-            end;
+      for I := AnAccount.baTransaction_List.First to AnAccount.baTransaction_List.Last do
+      begin
+        lTrans := AnAccount.baTransaction_List.Transaction_At(I);
+
+        if IncludeTrans(Session,LTrans,false) then
+        begin
+          if not ExportTrans(Session,LTrans) then
+          begin
+            Result := False;
+            Break;
+          end;
+        end
+        else
+        //We need to increment the current balance if we skip a transaction otherwise the calculated closing balance of the next exported transaction will be wrong.
+        if (lTrans.txDate_Transferred <> 0) and (lTrans.txDate_Effective >= Session.FromDate) and (FCurrentBal <> Unknown) then
+        begin
+          FCurrentBal := FCurrentBal + lTrans.txAmount;
+        end;
       end;
+
       if FCurrentBal <> Unknown then
          AccountText := AccountToText(anAccount); // Update The 'Closing' Ballance
       if not DoExport(Session,ef_AccountEnd,AccountText) then

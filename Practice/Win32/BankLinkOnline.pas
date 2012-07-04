@@ -20,7 +20,7 @@ type
     function GetBankLinkOnlineErrorString(Response: TServerResponse; ForClient: Boolean): String;
 
     procedure DebugMsg(AMessage: string);
-    procedure CheckBankLinkOnlineStatus(AClientCode: string; AAction: TOnlineAction);
+    procedure CheckBankLinkOnlineStatus(AClientCode: string; AAction: TOnlineAction; var AFirstUpload : Boolean);
     procedure CheckPracticeUploadStatus(AClientCode: string; AStatus: TClientStatusItem);
     procedure CheckPracticeDownloadStatus(AClientCode: string; AStatus: TClientStatusItem);
     procedure CheckBooksUploadStatus(AClientCode: string; AStatus: TClientStatusItem);
@@ -30,7 +30,8 @@ type
     constructor Create;
     destructor Destroy; override;
     function UploadClient(AClientCode: string; AProgressFrm: TfrmChkProgress;
-                          AClientName, AClientEmail, AClientContact: string; IsCopy: Boolean = False;
+                          AClientName, AClientEmail, AClientContact: string; var AFirstUpload : Boolean;
+                          IsCopy: Boolean = False;
                           NotifyPractice: Boolean = False; NotifyEmail: string = ''): boolean;
     function DownloadClient(AClientCode: string; AProgressFrm: TfrmChkProgress;
                             var ARemoteFileName: string): boolean;
@@ -79,7 +80,8 @@ end;
 
 { TBankLinkOnlineManager }
 procedure TBankLinkOnlineManager.CheckBankLinkOnlineStatus(AClientCode: string;
-  AAction: TOnlineAction);
+                                                           AAction: TOnlineAction;
+                                                           var AFirstUpload : Boolean);
 var
   Msg: string;
   StatusList: TClientStatusList;
@@ -98,6 +100,7 @@ var
   end;
 
 begin
+  AFirstUpload := false;
   //Get client status from BankLink Online
   StatusList := TClientStatusList.Create;
   try
@@ -105,7 +108,8 @@ begin
     try
       CiCoClient.GetClientFileStatus(ServerResponce, StatusList, AClientCode);
     except
-      on E: Exception do begin
+      on E: Exception do
+      begin
         //Can't get status - what do we do? Retry?
         Msg := Format('Unable to get client file status for %s: %s', [AClientCode, E.Message]);
         raise EUploadFailed.Create(Msg);
@@ -115,23 +119,31 @@ begin
     Status := nil;
     if StatusList.Count > 0 then
       Status := StatusList.Items[0];
+
     if Assigned(Status) then
-      DoStatusCheck
-    else begin
+    begin
+      DoStatusCheck;
+      AFirstUpload := (Status.StatusCode = cfsNoFile);
+    end
+    else
+    begin
       //Create NoFile status responce
-      if ServerResponce.Status = '105' then begin
+      if ServerResponce.Status = '105' then
+      begin
         Status := TClientStatusItem.Create;
         try
           Status.ClientCode := 'AClientCode';
           Status.ClientName := '';
           Status.StatusCode := cfsNoFile;
+          AFirstUpload := true;
           DoStatusCheck;
-      finally
-        Status.Free;
-      end;
-    end else
-      raise EUploadFailed.CreateFmt('Unable to get client file status for %s',
-                                    [AClientCode]);
+        finally
+          Status.Free;
+        end;
+      end
+      else
+        raise EUploadFailed.CreateFmt('Unable to get client file status for %s',
+                                      [AClientCode]);
     end;
   finally
     StatusList.Free;
@@ -469,13 +481,14 @@ function TBankLinkOnlineManager.DownloadClient(AClientCode: string;
   AProgressFrm: TfrmChkProgress; var ARemoteFileName: string): boolean;
 var
  ServerResponce: TServerResponse;
+ FirstUpload : Boolean;
 begin
   Result := False;
   try
     if Assigned(AdminSystem) then
-      CheckBankLinkOnlineStatus(AClientCode, oaPracticeDownload)
+      CheckBankLinkOnlineStatus(AClientCode, oaPracticeDownload, FirstUpload)
     else
-      CheckBankLinkOnlineStatus(AClientCode, oaBooksDownload);
+      CheckBankLinkOnlineStatus(AClientCode, oaBooksDownload, FirstUpload);
 
     //Download from BankLink Online
     if not Silent then begin
@@ -547,6 +560,7 @@ end;
 
 function TBankLinkOnlineManager.UploadClient(AClientCode: string;
   AProgressFrm: TfrmChkProgress; AClientName, AClientEmail, AClientContact: string;
+  var AFirstUpload : Boolean;
   IsCopy: Boolean = False; NotifyPractice: Boolean = False;
   NotifyEmail: string = ''): boolean;
 const
@@ -558,9 +572,9 @@ begin
   try
     //Check status
     if Assigned(AdminSystem) then
-      CheckBankLinkOnlineStatus(AClientCode, oaPracticeUpload)
+      CheckBankLinkOnlineStatus(AClientCode, oaPracticeUpload, AFirstUpload)
     else
-      CheckBankLinkOnlineStatus(AClientCode, oaBooksUpload);
+      CheckBankLinkOnlineStatus(AClientCode, oaBooksUpload, AFirstUpload);
 
     //Upload to BankLink Online
     if not Silent then begin

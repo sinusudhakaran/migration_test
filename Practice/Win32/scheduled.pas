@@ -1348,6 +1348,8 @@ Var
   pCF: pClient_File_Rec;
   RptPeriodToUse: byte;
   User: Integer;
+  FirstUpload : boolean;
+
   procedure AddAccountsToSummary(aCompleted : boolean);
   var
     i, j : integer;
@@ -1490,7 +1492,8 @@ begin
     else if aClient.clExtra.ceOnline_Scheduled_Reports then
       pCF.cfFile_Transfer_Method := ftmOnline;
 
-    if SendClient(aClient.clFields.clCode, EMailOutboxDir, pCF.cfFile_Transfer_Method) then
+    FirstUpload := false;
+    if SendClient(aClient.clFields.clCode, EMailOutboxDir, FirstUpload, pCF.cfFile_Transfer_Method) then
     begin
       IncUsage('Check Out (Scheduled)');
       Result := True;
@@ -1509,6 +1512,7 @@ begin
         ECodingFilename := aClient.clFields.clCode + FILEEXTN;
         ClientMessage   := aClient.clFields.clScheduled_Client_Note_Message;
         AttachmentList  := aClient.clFields.clScheduled_File_Attachments;
+        IsFirstPracUpload := FirstUpload;
       end;
 
        // Try the Custom Documents

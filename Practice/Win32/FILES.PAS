@@ -9,6 +9,8 @@ uses
   LogUtil, clObj32, ChkProgressFrm, AuditMgr, WebCiCoClient,
   SysObj32;
 
+  function GetBankLinkOnlineSubDomain: string;
+
   {$IFNDEF TESTLOCKING}
   procedure OpenClient(OpenCode : string; IsDDE: Boolean = False);
   function CloseClient( Interactive : boolean = false; DoClientHomePage: Boolean = True): Boolean;
@@ -22,7 +24,9 @@ uses
                       Silent: Boolean = False; AllowMultiplePwdFiles: Boolean = False;
                       ASendMethod: byte = 0; FlagReadOnly: boolean = true;
                       ANotifyPractice: Boolean = False) : Boolean; overload;
-  function SendClient(Code : string; Path : string; ASendMethod: byte = 0;
+  function SendClient(Code : string; Path : string;
+                      var AFirstUpload : Boolean;
+                      ASendMethod: byte = 0;
                       FlagReadOnly: boolean = true): Boolean; overload;
   function CheckInClient(Code : string; Path : string; ProgressFrm : TfrmChkProgress;
                          IsScheduledReports: Boolean = False; ASendMethod: byte = 0) : boolean;
@@ -1435,7 +1439,8 @@ end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function SendPracticeClient(Code: string; Path: string; ProgressFrm: TfrmChkProgress;
-  var AClientEmail: string; IsScheduledReport: Boolean = False; Silent: Boolean = False;
+  var AClientEmail: string; var AFirstUpload : Boolean;
+  IsScheduledReport: Boolean = False; Silent: Boolean = False;
   AllowMultiplePwdFiles: Boolean = False; ASendMethod: byte = 0;
   FlagReadOnly: Boolean = True): Boolean;
 const
@@ -1562,7 +1567,7 @@ begin
 
                 BankLinkOnlineMgr.Silent := IsScheduledReport;
                 BankLinkOnlineMgr.UploadClient(Code, ProgressFrm, ClientName,
-                                               AClientEmail, ClientContact);
+                                               AClientEmail, ClientContact, AFirstUpload);
                 if DebugMe then
                   LogUtil.LogMsg(lmDebug, UnitName, Format('%s : Uploaded to %s',
                                  [ThisMethodName, BankLinkLiveName]));
@@ -1679,6 +1684,7 @@ var
   SendCopy: Boolean;
   NotifyEmailAddress: string;
   ClientStatus: Integer;
+  FirstUpload : Boolean;
 begin
   //Never comes in here for scheduled reports - admin system must exist
   //admin system does not exists so is an off-site client
@@ -1818,7 +1824,7 @@ begin
                 NotifyEmailAddress := Copy(NotifyEmailAddress,
                                            Pos(NAME_EMAIL_SPACER, NotifyEmailAddress) + Length(NAME_EMAIL_SPACER),
                                            Length(NotifyEmailAddress));
-              BankLinkOnlineMgr.UploadClient(Code, ProgressFrm, '', '', '', SendCopy,
+              BankLinkOnlineMgr.UploadClient(Code, ProgressFrm, '', '', '', FirstUpload, SendCopy,
                                              ANotifyPractice, NotifyEmailAddress);
               if DebugMe then
                 LogUtil.LogMsg(lmDebug, UnitName, Format('%s : Uploaded to %s',
@@ -1894,6 +1900,8 @@ function SendClient(Code: string; Path: string; ProgressFrm: TfrmChkProgress;
   FlagReadOnly: boolean = true; ANotifyPractice: Boolean = False): Boolean;
 const
   ThisMethodName = 'SendClient';
+var
+  FirstUpload : Boolean;
 begin
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
 
@@ -1904,7 +1912,7 @@ begin
   if Assigned(AdminSystem) then begin
     //Practice Client File
     ProgressFrm.PracticeCode := AdminSystem.fdFields.fdBankLink_Code;
-    Result := SendPracticeClient(Code, Path, ProgressFrm, AClientEmail,
+    Result := SendPracticeClient(Code, Path, ProgressFrm, AClientEmail, FirstUpload,
                                  IsScheduledReport, Silent,
                                  AllowMultiplePwdFiles, ASendMethod,
                                  FlagReadOnly)
@@ -1923,7 +1931,9 @@ begin
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
 
-function SendClient(Code : string; Path : string; ASendMethod: byte = 0;
+function SendClient(Code : string; Path : string;
+  var AFirstUpload : Boolean;
+  ASendMethod: byte = 0;
   FlagReadOnly: boolean = true) : Boolean;
 const
   ThisMethodName = 'SendClient';
@@ -1937,7 +1947,7 @@ begin
     Exit;
 
   //Send client file for scheduled reports
-  Result := SendPracticeClient(Code, Path, nil, ClientEmail,
+  Result := SendPracticeClient(Code, Path, nil, ClientEmail, AFirstUpload,
                                True, True, False, ASendMethod, True);
 
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );

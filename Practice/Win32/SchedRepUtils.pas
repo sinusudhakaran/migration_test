@@ -91,11 +91,13 @@ type
      ClientCode    : string[10];
      EmailAddress  : string[80];
      CCEmailAddress  : string[255];
-     ECodingFilename : string[ 128];
+     ECodingFilename : string[128];
      ClientMessage  : String;
      AttachmentList : string;
      DateFrom       : integer;
      DateTo         : integer;
+     IsFirstPracUpload : Boolean;
+
      procedure AddAttachment(Value: string);
    end;
 
