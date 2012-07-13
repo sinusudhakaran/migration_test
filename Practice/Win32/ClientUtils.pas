@@ -751,6 +751,8 @@ begin
                 begin
                   if ProductConfigService.SaveAccountVendorExports(aClientID,
                                                                    NewBankAccount.baFields.baCore_Account_ID,
+                                                                   NewBankAccount.baFields.baBank_Account_Name,
+                                                                   NewBankAccount.baFields.baBank_Account_Number,
                                                                    aClientVendors,
                                                                    True,
                                                                    True,

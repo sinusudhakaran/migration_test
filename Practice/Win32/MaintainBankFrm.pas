@@ -753,6 +753,8 @@ begin
       SetLength(CurrentVendors, 0);
       Result := ProductConfigService.SaveAccountVendorExports(fClientAccVendors.ClientID,
                                                               CoreAccountID,
+                                                              AcctName,
+                                                              AcctNo,
                                                               CurrentVendors,
                                                               True);
     end;
@@ -791,6 +793,8 @@ begin
 
         Done := ProductConfigService.SaveAccountVendorExports(fClientAccVendors.ClientID,
                                                               B.baFields.baCore_Account_ID,
+                                                              B.baFields.baBank_Account_Name,
+                                                              B.baFields.baBank_Account_Number, 
                                                               ClientVendors,
                                                               false);
         if Done then

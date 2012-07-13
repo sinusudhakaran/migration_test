@@ -1355,7 +1355,7 @@ begin
           begin
             MemFrom := TMemorisation( lvMemorised.Items.Item[i].SubItems.Objects[0]);
             MemTo := TMemorisation.Create(BATo.AuditMgr);
-            MemTo.mdFields := MemFrom.mdFields;
+            MemTo.mdFields^ := MemFrom.mdFields^;
             for j := MemFrom.mdLines.First to MemFrom.mdLines.Last do
             begin
               MemLineFrom := MemFrom.mdLines.MemorisationLine_At(j);
@@ -1387,7 +1387,7 @@ begin
             begin
               MemFrom := TMemorisation( Item.SubItems.Objects[0]);
               MemTo := TMemorisation.Create(BATo.AuditMgr);
-              MemTo.mdFields := MemFrom.mdFields;
+              MemTo.mdFields^ := MemFrom.mdFields^;
               for j := MemFrom.mdLines.First to MemFrom.mdLines.Last do
               begin
                 MemLineFrom := MemFrom.mdLines.MemorisationLine_At(j);

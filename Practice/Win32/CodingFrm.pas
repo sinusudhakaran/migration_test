@@ -1717,6 +1717,10 @@ begin
             Refresh;
             Msg.CharCode := VK_RIGHT;
             celAccount.SendKeyToTable(Msg);
+
+            //Audit journal add for UK
+            if (JA > 0) and (MyClient.clFields.clCountry = whUK) then
+              SaveClient(false);
          end;
       end;
    end;
@@ -3140,7 +3144,10 @@ begin
      I := WorkTranList.Last;
    if ValidDataRow(I) then
       tblCoding.ActiveRow := Succ(I);
-   
+
+   //Audit journal delete for UK
+   if (MyClient.clFields.clCountry = whUK) then
+     SaveClient(false);
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmCoding.LoadWorkTranList;
@@ -6765,7 +6772,7 @@ end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmCoding.SaveFileClick(Sender: TObject);
 begin
-   SaveClient;
+   SaveClient(false);
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmCoding.ToggleModeClick(Sender: TObject);

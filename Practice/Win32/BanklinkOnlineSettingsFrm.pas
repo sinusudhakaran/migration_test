@@ -1247,6 +1247,7 @@ var
   NumProdTicked : Integer;
   ClientCode : WideString;
   ClientID: TBloGuid;
+  TempClientDetail : TBloClientReadDetail;
 begin
   ClientID := '';
   ShowUpdateMsg := True;
@@ -1392,7 +1393,12 @@ begin
   end
   else
   begin
-    ClientReadDetail := ProductConfigService.GetClientDetailsWithCode(MyClient.clFields.clCode);
+    TempClientDetail := ProductConfigService.GetClientDetailsWithCode(MyClient.clFields.clCode);
+
+    if TempClientDetail <> nil then
+    begin
+      ClientReadDetail := TempClientDetail;
+    end;
   end;
 end;
 

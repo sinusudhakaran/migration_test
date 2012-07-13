@@ -243,14 +243,24 @@ type
   private
     FAccountId: Integer;
     FAccountId_Specified: boolean;
+    FAccountName: WideString;
+    FAccountName_Specified: boolean;
+    FAccountNumber: WideString;
+    FAccountNumber_Specified: boolean;
     FSubscribers: ArrayOfguid;
     FSubscribers_Specified: boolean;
     procedure SetAccountId(Index: Integer; const AInteger: Integer);
     function  AccountId_Specified(Index: Integer): boolean;
+    procedure SetAccountName(Index: Integer; const AWideString: WideString);
+    function  AccountName_Specified(Index: Integer): boolean;
+    procedure SetAccountNumber(Index: Integer; const AWideString: WideString);
+    function  AccountNumber_Specified(Index: Integer): boolean;
     procedure SetSubscribers(Index: Integer; const AArrayOfguid: ArrayOfguid);
     function  Subscribers_Specified(Index: Integer): boolean;
   published
     property AccountId:   Integer      Index (IS_OPTN) read FAccountId write SetAccountId stored AccountId_Specified;
+    property AccountName:   WideString   Index (IS_OPTN) read FAccountName write SetAccountName stored AccountName_Specified;
+    property AccountNumber: WideString   Index (IS_OPTN) read FAccountNumber write SetAccountNumber stored AccountNumber_Specified;
     property Subscribers: ArrayOfguid  Index (IS_OPTN or IS_NLBL) read FSubscribers write SetSubscribers stored Subscribers_Specified;
   end;
 
@@ -1434,10 +1444,8 @@ type
     function  SaveClientDataSubscribers(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const clientId: guid; const subscription: ArrayOfguid): MessageResponse; stdcall;
     function  GetBankAccountDataSubscribers(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const clientId: guid; const accountId: Integer): MessageResponseOfDataPlatformSubscription6cY85e5k; stdcall;
     function  GetBankAccountsDataSubscribers(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const clientId: guid): MessageResponseOfDataPlatformClient6cY85e5k; stdcall;
-    function  SaveBankAccountDataSubscribers(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const clientId: guid; const accountId: Integer; const subscription: ArrayOfguid
-                                             ): MessageResponse; stdcall;
-    function  SaveBankAccountsDataSubscribers(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const clientId: guid; const accountIds: ArrayOfint; const subscription: ArrayOfguid
-                                              ): MessageResponse; stdcall;
+    function  SaveBankAccountDataSubscribers(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const clientId: guid; bankAccountData: DataPlatformBankAccount): MessageResponse; stdcall;
+    function  SaveBankAccountsDataSubscribers(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const clientId: guid; accountDataList: ArrayOfDataPlatformBankAccount): MessageResponse; stdcall;
   end;
 
 function GetIBlopiServiceFacade(UseWSDL: Boolean=System.False; Addr: string=''; HTTPRIO: THTTPRIO = nil): IBlopiServiceFacade;
@@ -1619,10 +1627,34 @@ begin
   Result := FBankAccounts_Specified;
 end;
 
+function DataPlatformBankAccount.AccountName_Specified(Index: Integer): boolean;
+begin
+  Result := FAccountName_Specified;
+end;
+
+function DataPlatformBankAccount.AccountNumber_Specified(Index: Integer): boolean;
+begin
+  Result := FAccountNumber_Specified;
+end;
+
 procedure DataPlatformBankAccount.SetAccountId(Index: Integer; const AInteger: Integer);
 begin
   FAccountId := AInteger;
   FAccountId_Specified := True;
+end;
+
+procedure DataPlatformBankAccount.SetAccountName(Index: Integer;
+  const AWideString: WideString);
+begin
+  FAccountName := AWideString;
+  FAccountName_Specified := True;
+end;
+
+procedure DataPlatformBankAccount.SetAccountNumber(Index: Integer;
+  const AWideString: WideString);
+begin
+  FAccountNumber := AWideString;
+  FAccountNumber_Specified := True;
 end;
 
 function DataPlatformBankAccount.AccountId_Specified(Index: Integer): boolean;

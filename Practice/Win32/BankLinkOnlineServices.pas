@@ -394,6 +394,8 @@ type
 
     function SaveAccountVendorExports(aClientId : TBloGuid;
                                       aAccountID : Integer;
+                                      aAccountName: String;
+                                      aAccountNumber: String;
                                       aVendorExports: TBloArrayOfGuid;
                                       aShowMessage: Boolean = True;
                                       ShowProgressBar: Boolean = True;
@@ -2941,6 +2943,8 @@ end;
 
 function TProductConfigService.SaveAccountVendorExports(aClientId : TBloGuid;
                                                         aAccountID : Integer;
+                                                        aAccountName: String;
+                                                        aAccountNumber: String;
                                                         aVendorExports: TBloArrayOfGuid;
                                                         aShowMessage: Boolean = True;
                                                         ShowProgressBar: Boolean = True;
@@ -2952,6 +2956,7 @@ var
   PracPassHash    : WideString;
   MsgResponce     : MessageResponse;
   PracUpdate      : PracticeUpdate;
+  AccountData     : DataPlatformBankAccount;
 begin
   Result := False;
   if UseBankLinkOnline then
@@ -2982,20 +2987,29 @@ begin
           if ShowProgressBar then
             Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Saving Account data export settings', 33);
 
-          MsgResponce := BlopiInterface.SaveBankAccountDataSubscribers(PracCountryCode,
-                                                                       PracCode,
-                                                                       PracPassHash,
-                                                                       aClientId,
-                                                                       aAccountID,
-                                                                       aVendorExports);
+          AccountData := DataPlatformBankAccount.Create;
 
-          if not MessageResponseHasError(MsgResponce, 'update the Account data export settings to') then
-          begin
-            Result := True;
-            if ShowProgressBar then
-              Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finished', 100);
+          try
+            AccountData.AccountId := aAccountID;
+            AccountData.AccountName := aAccountName;
+            AccountData.AccountNumber := aAccountNumber;
+            AccountData.Subscribers := aVendorExports;
+            
+            MsgResponce := BlopiInterface.SaveBankAccountDataSubscribers(PracCountryCode,
+                                                                         PracCode,
+                                                                         PracPassHash,
+                                                                         aClientId,
+                                                                         AccountData);
+
+            if not MessageResponseHasError(MsgResponce, 'update the Account data export settings to') then
+            begin
+              Result := True;
+              if ShowProgressBar then
+                Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finished', 100);
+            end;
+          finally
+            AccountData.Free;
           end;
-
         finally
           Progress.StatusSilent := True;
           Progress.ClearStatus;
@@ -4168,6 +4182,8 @@ begin
         HelpfulErrorMsg(BKPRACTICENAME + ' is unable to update the client to ' + BANKLINK_ONLINE_NAME + '. Please contact BankLink Support for assistance.', 0);
         
         LogUtil.LogMsg(lmError, UNIT_NAME, 'Exception running UpdateClient, Error Message : ' + E.Message);
+
+        Result := False;
       end;
     end;
   finally

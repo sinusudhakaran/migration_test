@@ -490,6 +490,8 @@ begin
   begin
     Result := ProductConfigService.SaveAccountVendorExports(ClientID,
                                                             BankAcct.baFields.baCore_Account_ID,
+                                                            BankAcct.baFields.baBank_Account_Name,
+                                                            bankAcct.baFields.baBank_Account_Number, 
                                                             CurrentVendors,
                                                             True);
 
