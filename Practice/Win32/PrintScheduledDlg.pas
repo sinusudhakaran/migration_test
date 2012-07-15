@@ -1272,6 +1272,8 @@ begin
 
   if cbToBusinessProducts.Visible then
     msg := msg + ', Business Product Files';
+
+  HelpfulInfoMsg(msg, 0);
 end;
 
 procedure TdlgPrintScheduled.DisableForm;
