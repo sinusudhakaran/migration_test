@@ -621,7 +621,29 @@ begin
             BLOCodeDoesNotMatchList := TStringList.Create;
           BLOCodeDoesNotMatchList.Add(AdminBankAccount^.sbAccount_Number);
           AccountOK := false;
-        end;
+        end
+        else if (aClient.clExtra.ceDeliverDataDirectToBLO) and (trim(aClient.clExtra.ceBLOSecureCode) = '') then
+        begin
+          if not Assigned(NoBLOSecureCodeList) then
+          begin
+            NoBLOSecureCodeList := TStringList.Create;
+          end;
+
+          NoBLOSecureCodeList.Add(AdminBankAccount^.sbAccount_Number);
+
+          AccountOK := false;        
+        end
+        else if (aClient.clExtra.ceDeliverDataDirectToBLO) and (uppercase(aClient.clExtra.ceBLOSecureCode) <> uppercase(AdminBankAccount.sbSecure_Online_Code)) then
+        begin
+          if not Assigned(BLOCodeDoesNotMatchList) then
+          begin
+            BLOCodeDoesNotMatchList := TStringList.Create;
+          end;
+          
+          BLOCodeDoesNotMatchList.Add(AdminBankAccount^.sbAccount_Number);
+
+          AccountOK := false;
+        end
       end
       else
         AccountOK := false; //could not be found
