@@ -10,7 +10,7 @@ function  ComputePWHash(plainText: string;
 implementation
 
 uses
- uTPLb_StreamCipher,
+ //uTPLb_StreamCipher,
  classes, OmniXMLUtils,
  sysutils, Cryptcon,md5Unit;
 
