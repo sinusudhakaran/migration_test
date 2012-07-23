@@ -5,9 +5,12 @@ interface
 function  ComputePWHash(plainText: string;
                       saltbytes: tguid): string;
 
+function Encrypt(value: string): string;
+
 implementation
 
 uses
+ uTPLb_StreamCipher,
  classes, OmniXMLUtils,
  sysutils, Cryptcon,md5Unit;
 
@@ -30,6 +33,18 @@ begin
      FreeandNil(Instream);
      FreeandNil(Outstream);
   end;
+end;
+
+function Encrypt(value: string): string;
+var Cipher: IStreamCipherEx2;
+begin
+
+ Cipher:= IStreamCipherEx2;
+      Cipher.InitStr(KeyStr,TDCP_sha1);         // initialize the cipher with a hash of the passphrase
+      for i:= 0 to Memo1.Lines.Count-1 do       // encrypt the contents of the memo
+        Memo1.Lines[i]:= Cipher.EncryptString(Memo1.Lines[i]);
+      Cipher.Burn;
+      Cipher.Free
 end;
 
 

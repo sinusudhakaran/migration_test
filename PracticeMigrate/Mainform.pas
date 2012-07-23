@@ -7,7 +7,7 @@ uses
   logger,
   LogMigrater, Dialogs, StdCtrls, ExtCtrls, ComCtrls, DB, ADODB, GuidList, sydefs, VirtualTreeHandler,
   VirtualTrees, MigrateActions,ClientMigrater,SystemMigrater, jpeg, ImgList,
-  FMTBcd, SqlExpr;
+  FMTBcd, SqlExpr, dxGDIPlusClasses;
 
 type
    Tprogress = (SelectSource, Selection, Migrate, Done);
@@ -76,7 +76,7 @@ type
     procedure StatusTimerTimer(Sender: TObject);
     procedure btnPrevClick(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
-    procedure FormResize(Sender: TObject);
+   
     procedure CbserversSelect(Sender: TObject);
     procedure btnSQLBrowseClick(Sender: TObject);
     procedure cbUnsyncClick(Sender: TObject);
@@ -128,7 +128,7 @@ type
     procedure LogMessage(const msgType: TLogMsgType; const logMsg: string; ClientCode: string = '');
     procedure SetLogFileName(const Value: string);
     procedure SetPracticeCode(const Value: string);
-
+    procedure RestartSQL;
     { Private declarations }
   protected
     procedure UpdateActions; override;
@@ -206,6 +206,7 @@ type
 
 var
   SystemCritical: TSystemCritical;
+  SingleUser: Boolean = true;
 
 
 const
@@ -537,7 +538,8 @@ begin
          logger.logMessageProc(Info,format('Conneted to: [%s].[%s] , SessionID: (%u)',[ASource,Acatalog,sesionID ]));
          //TMigrater.RunSQL(Connection,MyAction,'DBCC TRACEON (610)', 'Trace on');
          TMigrater.RunSQL(Connection,MyAction,Format('DBCC SHRINKFILE(''%s_Log'',1)',[ACatalog]), 'Shrink Log');
-         TMigrater.RunSQL(Connection,MyAction,format('ALTER DATABASE [%s] SET SINGLE_USER WITH ROLLBACK IMMEDIATE',[ACatalog]),'Single user');
+         if SingleUser then
+            TMigrater.RunSQL(Connection,MyAction,format('ALTER DATABASE [%s] SET SINGLE_USER WITH ROLLBACK IMMEDIATE',[ACatalog]),'Single user');
 
 
          MyAction.Status := Success;
@@ -599,7 +601,8 @@ begin
          // Dont forget, RunSQL already traps exceptions
          //TMigrater.RunSQL(connection,MyAction,'DBCC TRACEOFF (610)', 'Trace Off');
          TMigrater.RunSQL(connection,MyAction,Format('DBCC SHRINKFILE(''%s_Log'',1)',[ACatalog]), 'Shrink log file' );
-         TMigrater.RunSQL(connection,MyAction,format('ALTER DATABASE [%s] SET MULTI_USER WITH ROLLBACK IMMEDIATE',[ACatalog]),'Back to Multi User');
+         if SingleUser then
+            TMigrater.RunSQL(connection,MyAction,format('ALTER DATABASE [%s] SET MULTI_USER WITH ROLLBACK IMMEDIATE',[ACatalog]),'Back to Multi User');
          MyAction.Status := Success;
       except
              // Had a Go..
@@ -616,6 +619,8 @@ begin
      Disconnect(ForAction,FClientMigrater.Connection,'PracticeClient');
   if Assigned(FLogMigrater) then
      Disconnect(ForAction,FLogMigrater.Connection,'PracticeLog');
+
+  RestartSQL;
 end;
 
 procedure TformMain.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
@@ -656,6 +661,7 @@ begin
    FClientMigrater.SystemMirater := FSystemMigrater;
 
    lVersion.Caption := format('Version %s',[VersionInfo.FileVersion]);
+   lbankLink.Caption := VersionInfo.LegalCopyright;
 
    for I := 0 to pcmain.PageCount - 1 do
       pcmain.Pages[I].TabVisible := False;
@@ -675,18 +681,7 @@ begin
    FreeAndNil(AdminSystem);
 end;
 
-procedure TformMain.FormResize(Sender: TObject);
-var B : Integer;
-begin
-   B := PTop.Width - imgHeader.Width;
-   if B > 2  then
-      B := B div 2
-   else
-      B := 0;
 
-   imgHeader.Left := B;
-   LVersion.Left := B + 597;
-end;
 
 procedure TformMain.FormShow(Sender: TObject);
 const
@@ -782,6 +777,13 @@ begin
    FTreeList.AddNodeItem(StatusTree.RootNode ,Result);
 end;
 
+
+procedure TformMain.RestartSQL;
+var SQLInstance: string;
+begin
+   SQLInstance :=  GetDestination;
+
+end;
 
 procedure TformMain.SetFromDir(const Value: string);
 begin
@@ -1176,7 +1178,7 @@ end;
 procedure TSystemCritical.UpdateCritical(Value: Boolean) ;
 begin
   if Value then //Prevent the sleep idle time-out and Power off.
-    SetThreadExecutionState(ES_SYSTEM_REQUIRED or ES_CONTINUOUS)
+    SetThreadExecutionState(ES_DISPLAY_REQUIRED or ES_SYSTEM_REQUIRED or ES_CONTINUOUS)
   else //Clear EXECUTION_STATE flags to disable away mode and allow the system to idle to sleep normally.
     SetThreadExecutionState(ES_CONTINUOUS) ;
 end;

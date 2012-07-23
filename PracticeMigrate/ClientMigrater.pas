@@ -380,7 +380,8 @@ begin
                  Account.baFields.baDIS_Column_Order,
                  Account.baFields.baDIS_Column_Width,
                  Account.baFields.baDIS_Column_Is_Not_Editable,
-                 Account.baFields.baDIS_Column_is_Hidden,
+                 Account.baFields.baDIS_Column_is_Hidden,                 
+
                  Account.baFields.baDIS_Sort_Order)
         else if Account.baFields.baAccount_Type in [ btCashJournals, btAccrualJournals, btGSTJournals,  btStockJournals] then
            // JourNal entry..
@@ -604,12 +605,24 @@ begin
 
       // Now add the rates
       for Rate := 1 to High(FClient.clFields.clGST_Applies_From) do begin
-         if (FClient.clFields.clGST_Applies_From[Rate]) = 0 then
-            Continue;
-         if FClient.clFields.clGST_Rates[ClassNo][Rate] = 0 then
-            Continue;
 
-         TaxRatesTable.Insert
+         if ((FClient.clFields.clGST_Applies_From[Rate]) = 0)
+         or ((FClient.clFields.clGST_Applies_From[Rate]) = -1) then begin
+            // No Date
+            if FClient.clFields.clGST_Rates[ClassNo][Rate] = 0 then
+               Continue //No date and No Rate... nothing to save...
+            else
+               TaxRatesTable.Insert
+             (
+                NewGuid,
+                EntryId,
+                FClient.clFields.clGST_Rates[ClassNo][Rate],
+                141257 // 1-oct-1986
+             );
+
+         end else
+            // Have Date so save rate, even if zero...
+            TaxRatesTable.Insert
              (
                 NewGuid,
                 EntryId,
@@ -646,7 +659,7 @@ begin
    Memorization := TMemorisation(Value.Data);
    if Memorization.mdFields.mdFrom_Master_List then begin
       Result := True;
-      Exit; // this does srew the result...
+      Exit; // this does scew the result...
    end else
       Result := Memorisation_Detail_RecTable.Insert
                 (

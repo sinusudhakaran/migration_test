@@ -8,12 +8,16 @@ uses
 
 type
 
-TCustomDocTable = class (TMigrateTable)
+TSystemBlobTable = class (TMigrateTable)
+
 protected
    procedure SetupTable; override;
+   function LoadFile(path: string): boolean;
 public
-   function Insert(Value: TReportBase; CreatedBy: TGuid): Boolean; overload;
-   function Insert(Text, Name, Description, DocType: string): Boolean; overload;
+   function InsertCustomDoc(Value: TReportBase; CreatedBy: TGuid): Boolean;
+   function InsertMessage(Text, Name, Description, DocType: string): Boolean;
+   function InsertImage(Path, Name, Description, DocType: string): Boolean;
+   function InsertSignature(Path: string): Boolean;
 end;
 
 TCustomDocSceduleTable = class (TMigrateTable)
@@ -35,9 +39,9 @@ uses
 
 (******************************************************************************)
 
-{ TCustomDocTable }
+{ TSystemBlobTable }
 
-function TCustomDocTable.Insert(Value: TReportBase; CreatedBy: TGuid): Boolean;
+function TSystemBlobTable.InsertCustomDoc(Value: TReportBase; CreatedBy: TGuid): Boolean;
 
    procedure GetRTFData;
    var ls: TMemoryStream;
@@ -84,7 +88,43 @@ begin
 end;
  *)
 
-function TCustomDocTable.Insert(Text, Name, Description, DocType: string): Boolean;
+
+function TSystemBlobTable.InsertImage(Path, Name, Description, DocType: string): Boolean;
+
+   function FileType:string;
+   var Ext: string;
+   begin
+      Ext := SysUtils.ExtractFileExt(Path);
+      if SameText(Ext,'.jpg')
+      or SameText(Ext,'.jpeg') then
+         result := 'image/jpeg'
+      else if SameText(Ext,'.bmp') then
+         result := 'image/bmp'
+      
+   end;
+begin
+   result := false;
+   if not LoadFile(path) then
+      Exit;
+   Parameters[0].Value := ToSql(name);
+   Parameters[1].Value := ToSql(FileType);
+
+   Parameters[3].Value := ToSQL(DocType);
+   Parameters[4].Value := ToSQL(Description);
+   
+   Parameters[5].Value := ToSQL('Migrator');
+   Parameters[6].Value := ToSQL(Date);
+   // Run the query
+   try
+      Result := ExecSQL = 1;
+   except
+      on e: exception do begin
+         raise exception.Create(Format('Error : %s in table %s',[e.Message,TableName]));
+      end;
+   end;
+end;
+
+function TSystemBlobTable.InsertMessage(Text, Name, Description, DocType: string): Boolean;
    procedure GetRTFData;
    var ls: TStringStream;
    begin
@@ -120,7 +160,44 @@ begin
    end;
 end;
 
-procedure TCustomDocTable.SetupTable;
+function TSystemBlobTable.InsertSignature(Path: string): Boolean;
+begin
+   result := false;
+   if not LoadFile(path) then
+      Exit;
+   Parameters[0].Value := 'MiratorPracticeSignature';
+   Parameters[1].Value := 'RTF';
+
+   Parameters[3].Value := ToSQL('Signature');
+   Parameters[4].Value := ToSQL('Practice Signature');
+   Parameters[5].Value := ToSQL('Migrator');
+   Parameters[6].Value := ToSQL(Date);
+   // Run the query
+   try
+      Result := ExecSQL = 1;
+   except
+      on e: exception do begin
+         raise exception.Create(Format('Error : %s in table %s',[e.Message,TableName]));
+      end;
+   end;
+end;
+
+function TSystemBlobTable.LoadFile(path: string): boolean;
+var fs: TFileStream;
+begin
+   result := FileExists(path);
+   if not result then
+      Exit;
+   fs := TFileStream.Create(path,fmOpenRead + fmShareDenyWrite);
+   try
+      fs.Position := 0;
+      Parameters[2].LoadFromStream(fs,ftBlob);
+   finally
+      fs.Free;
+   end;
+end;
+
+procedure TSystemBlobTable.SetupTable;
 begin
    TableName := 'SystemBlobs';
              //      0          1             2       3         4            5

@@ -81,7 +81,7 @@ private
     function MigrateWorkFolder(ForAction: TMigrateAction): Boolean;
     function MigrateDisklog(ForAction: TMigrateAction): Boolean;
     function MigrateSystem(ForAction: TMigrateAction): Boolean;
-    function MigrateCustomDocs(ForAction:TMigrateAction): Boolean;
+    function MigrateSystemBlobs(ForAction:TMigrateAction): Boolean;
     function MigrateTax(ForAction: TMigrateAction): Boolean;
 
     function StartRetrieve(ForAction: TMigrateAction): Boolean;
@@ -1090,9 +1090,14 @@ function TSystemMigrater.GetClient(const Value: Integer): tGuid;
 var I: Integer;
 begin
    FillChar(Result, Sizeof(Result), 0);
-   for I := 0 to ClientList.Count - 1 do
-      if(PClient_File_Rec(TGuidObject(ClientList.Items[i]).Data)^.cfLRN = Value) then begin
-         Result := TGuidObject(ClientList.Items[i]).GuidID;
+   for I := 0 to ClientList.Count - 1 do with PClient_File_Rec(TGuidObject(ClientList.Items[i]).Data)^ do
+      if(cfLRN = Value) then begin
+         // May not be/have migrated..
+         if (DoUnsynchronised or (not cfForeign_File))
+         and (DoArchived or (not cfArchived)) then
+            Result := TGuidObject(ClientList.Items[i]).GuidID;
+
+         // Won't find better match
          Exit;
       end;
 end;
@@ -1232,11 +1237,14 @@ begin
 
    ParameterTable.Update('CopyDissectionNarration', System.fdFields.fdCopy_Dissection_Narration);
 
-   ParameterTable.Update('DiskSequenceNo', FileExtensionUtils.MakeSuffix(System.fdFields.fdDisk_Sequence_No),'nvarchar(4)');
+   ParameterTable.Update('DiskSequenceNo', System.fdFields.fdDisk_Sequence_No);
    ParameterTable.Update('HighestDateEverDownloaded', DateTovalue(System.fdFields.fdDate_of_Last_Entry_Received),'datetime');
    //ParameterTable.Update('LastEntryReceived'  fdDate_of_Last_Entry_Received
    ParameterTable.Update('SRDoReportsUpto', DateToValue(System.fdFields.fdPrint_Reports_Up_To),'datetime');
+
    ParameterTable.Update('ExportChargesRemarks', System.fdFields.fdExport_Charges_Remarks,'nvarchar(255)');
+   ParameterTable.Update('LastExportChargesSavedTo', System.fdFields.fdLast_Export_Charges_Saved_To,'nvarchar(255)');
+   ParameterTable.Update('LastChargeFileDate', DateToValue(System.fdFields.fdLast_ChargeFile_Date),'datetime');
 
    ParameterTable.Update('AutoRetrieveNewTransactions',System.fdFields.fdAuto_Retrieve_New_Transactions);
    //ParameterTable.Update('ExportTaxFileTo', System.fdFields);
@@ -1255,8 +1263,6 @@ begin
 
    ParameterTable.Update('LastDiskImageVersion', System.fdFields.fdLast_Disk_Image_Version);
 
-   ParameterTable.Update('LastExportChargesSavedTo', System.fdFields.fdLast_Export_Charges_Saved_To,'nvarchar(255)');
-
 
    ParameterTable.Update('LoadChartFrom', System.fdFields.fdLoad_Client_Files_From,'nvarchar(255)');
    ParameterTable.Update('LoadClientSuperFilesFrom', System.fdFields.fdLoad_Client_Super_Files_From,'nvarchar(255)');
@@ -1271,6 +1277,8 @@ begin
    ParameterTable.Update('PracticePhone', System.fdFields.fdPractice_Phone,'nvarchar(60)');
    ParameterTable.Update('PracticeWebSite', System.fdFields.fdPractice_Web_Site,'nvarchar(255)');
    ParameterTable.Update('PracticeEmail', System.fdFields.fdPractice_EMail_Address,'nvarchar(255)');
+
+   ParameterTable.Update('PracticeLogoFilename',System.fdFields.fdPractice_Logo_Filename,'nvarchar(255)');
 
    ParameterTable.Update('PrintClientTypeHeaderPage', System.fdFields.fdPrint_Client_Type_Header_Page);
    ParameterTable.Update('PrintGroupHeaderPage', System.fdFields.fdPrint_Group_Header_Page);
@@ -1289,6 +1297,7 @@ begin
    //ParameterTable.Update('TaskTrackingPromptType', System.fdFields.fdTask_Tracking_Prompt_Type);
    ParameterTable.Update('TaxInterfaceUsed', GetProviderID(TaxSystem,System.fdFields.fdCountry, System.fdFields.fdTax_Interface_Used));
    ParameterTable.Update('UpdateServerForOffsites', System.fdFields.fdUpdate_Server_For_Offsites,'nvarchar(255)');
+
 
    ParameterTable.Update('UseXlonChartOrder', System.fdFields.fdUse_Xlon_Chart_Order);
    ParameterTable.Update('WebExportFormat',GetProviderID (WebExport,System.fdFields.fdCountry, System.fdFields.fdWeb_Export_Format));
@@ -1364,18 +1373,31 @@ begin
 
       // Now add the rates
       for Rate := 1 to High(FSystem.fdFields.fdGST_Applies_From) do begin
-         if (FSystem.fdFields.fdGST_Applies_From[Rate]) = 0 then
-            Continue;
-         if FSystem.fdFields.fdGST_Rates[ClassNo][Rate] = 0 then
-            Continue;
 
-         TaxRatesTable.Insert
+         if ((FSystem.fdFields.fdGST_Applies_From[Rate]) = 0)
+         or ((FSystem.fdFields.fdGST_Applies_From[Rate]) = -1) then begin
+            // No Date
+            if FSystem.fdFields.fdGST_Rates[ClassNo][Rate] = 0 then
+               Continue //No date and No Rate... nothing to save...
+            else
+               TaxRatesTable.Insert
+             (
+                NewGuid,
+                EntryId,
+                FSystem.fdFields.fdGST_Rates[ClassNo][Rate],
+                141257 // 1-oct-1986
+             );
+
+         end else
+            // Have Date so save rate, even if zero...
+            TaxRatesTable.Insert
              (
                 NewGuid,
                 EntryId,
                 FSystem.fdFields.fdGST_Rates[ClassNo][Rate],
                 FSystem.fdFields.fdGST_Applies_From[Rate]
              );
+
       end;
       except
          on e: exception do
@@ -1569,7 +1591,7 @@ begin
    if MyAction.CheckCanceled then
       Exit;
 
-   MigrateCustomDocs(MyAction);
+   MigrateSystemBlobs(MyAction);
    if MyAction.CheckCanceled then
       Exit;
 
@@ -1607,15 +1629,15 @@ end;
 
 
 
-function TSystemMigrater.MigrateCustomDocs(ForAction: TMigrateAction): Boolean;
+function TSystemMigrater.MigrateSystemBlobs(ForAction: TMigrateAction): Boolean;
 
    var I: Integer;
-    CustomDocTable: TCustomDocTable;
+    SystemBlobTable: TSystemBlobTable;
 
     procedure AddCostomDoc(Doc: TReportBase);
     begin
        try
-          CustomDocTable.Insert(Doc,GetUser(Doc.Createdby));
+          SystemBlobTable.InsertCustomDoc(Doc,GetUser(Doc.Createdby));
        except
           on e: exception  do
              ForAction.Exception(e,'Add Custom document');
@@ -1623,28 +1645,35 @@ function TSystemMigrater.MigrateCustomDocs(ForAction: TMigrateAction): Boolean;
     end;
 begin
 
-   CustomDocTable := TCustomDocTable.Create(Connection);
+   SystemBlobTable := TSystemBlobTable.Create(Connection);
    try
       for I := 0 to CustomDocManager.ReportList.Count - 1 do
          AddCostomDoc(TReportBase(CustomDocManager.ReportList[I]));
 
       // Do The Messages..  (Text, Name, Description, DocType: string)
-      CustomDocTable.Insert(fSystem.fdFields.fdSched_Rep_Email_Subject,      'SREmailSubject', 'Scheduled report Email Subject', 'Subject Line');
-      CustomDocTable.Insert(fSystem.fdFields.fdSched_Rep_Cover_Page_Subject ,'SRFaxSubject',   'Scheduled report Fax Subject', 'Subject Line');
-      CustomDocTable.Insert(fSystem.fdFields.fdSched_Rep_BNotes_Subject ,    'SRNotesSubject', 'Scheduled report Notes Subject', 'Subject Line');
-      CustomDocTable.Insert(fSystem.fdFields.fdSched_Rep_WebNotes_Subject ,  'SRNotesOnlineSubject', 'Scheduled report Notes Online Subject', 'Subject Line');
-      CustomDocTable.Insert(fSystem.fdFields.fdSched_Rep_CheckOut_Subject ,  'SRBooksSubject', 'Scheduled report Books Subject', 'Subject Line');
+      SystemBlobTable.InsertMessage(fSystem.fdFields.fdSched_Rep_Email_Subject,      'SREmailSubject', 'Scheduled report Email Subject', 'Subject Line');
+      SystemBlobTable.InsertMessage(fSystem.fdFields.fdSched_Rep_Cover_Page_Subject ,'SRFaxSubject',   'Scheduled report Fax Subject', 'Subject Line');
+      SystemBlobTable.InsertMessage(fSystem.fdFields.fdSched_Rep_BNotes_Subject ,    'SRNotesSubject', 'Scheduled report Notes Subject', 'Subject Line');
+      SystemBlobTable.InsertMessage(fSystem.fdFields.fdSched_Rep_WebNotes_Subject ,  'SRNotesOnlineSubject', 'Scheduled report Notes Online Subject', 'Subject Line');
+      SystemBlobTable.InsertMessage(fSystem.fdFields.fdSched_Rep_CheckOut_Subject ,  'SRBooksSubject', 'Scheduled report Books Subject', 'Subject Line');
 
-      CustomDocTable.Insert(fSystem.fdFields.fdSched_Rep_Header_Message,     'SRPrintMessage', 'Scheduled report Print Message', 'Message');
-      CustomDocTable.Insert(fSystem.fdFields.fdSched_Rep_Email_Message,      'SREmailMessage', 'Scheduled report Email Message', 'Message');
-      CustomDocTable.Insert(fSystem.fdFields.fdSched_Rep_Cover_Page_Message ,'SRFaxMessage',   'Scheduled report Fax Message', 'Message');
-      CustomDocTable.Insert(fSystem.fdFields.fdSched_Rep_BNotes_Message ,    'SRNotesMessage', 'Scheduled report Notes Message', 'Message');
-      CustomDocTable.Insert(fSystem.fdFields.fdSched_Rep_WebNotes_Message ,  'SRNotesOnlineMessage', 'Scheduled report Notes Online Message', 'Message');
-      CustomDocTable.Insert(fSystem.fdFields.fdSched_Rep_CheckOut_Message ,  'SRBooksMessage', 'Scheduled report Books Message', 'Message');
+      SystemBlobTable.InsertMessage(fSystem.fdFields.fdSched_Rep_Header_Message,     'SRPrintMessage', 'Scheduled report Print Message', 'Message');
+      SystemBlobTable.InsertMessage(fSystem.fdFields.fdSched_Rep_Email_Message,      'SREmailMessage', 'Scheduled report Email Message', 'Message');
+      SystemBlobTable.InsertMessage(fSystem.fdFields.fdSched_Rep_Cover_Page_Message ,'SRFaxMessage',   'Scheduled report Fax Message', 'Message');
+      SystemBlobTable.InsertMessage(fSystem.fdFields.fdSched_Rep_BNotes_Message ,    'SRNotesMessage', 'Scheduled report Notes Message', 'Message');
+      SystemBlobTable.InsertMessage(fSystem.fdFields.fdSched_Rep_WebNotes_Message ,  'SRNotesOnlineMessage', 'Scheduled report Notes Online Message', 'Message');
+      SystemBlobTable.InsertMessage(fSystem.fdFields.fdSched_Rep_CheckOut_Message ,  'SRBooksMessage', 'Scheduled report Books Message', 'Message');
 
+      if SystemBlobTable.InsertImage(fSystem.fdFields.fdPractice_Logo_Filename, 'MigratorPracticeLogo', 'Practice Logo', 'Image') then
+         ParameterTable.Update('PracticeLogoSystemBlobName','MigratorPracticeLogo', 'nvarchar(255)');
+
+
+
+      if SystemBlobTable.InsertSignature(globals.DataDir +'\Email\signature.rtf') then
+         ParameterTable.Update('PracticeSignatureSystemBlobName','MiratorPracticeSignature', 'nvarchar(255)');
       result := true;   
    finally
-      CustomDocTable.Free;
+      SystemBlobTable.Free;
    end;
 end;
 

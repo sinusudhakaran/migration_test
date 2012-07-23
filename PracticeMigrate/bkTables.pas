@@ -625,7 +625,7 @@ procedure TColumnConfigColumnsTable.SetupTable;
 begin
    TableName := 'CodingColumns';
    SetFields(['Id', 'ColumnId', 'Position',  'Width', 'IsVisible',
-   'IsEditable', 'IsSortColumn', 'SortAscending', 'CodingColumnConfiguration_Id' ],[]);
+   'CanBeEdited', 'IsSortColumn', 'SortAscending', 'CodingColumnConfiguration_Id' ],[]);
 
 end;
 
@@ -651,7 +651,7 @@ begin  with Value^ do
 {6}       ,ToSQL(txECoding_Transaction_UID), ToSQL(txGL_Narration), ToSQL(txStatement_Details), ToSQL(txTax_Invoice_Available)
 {7}       ,ToSQL(txExternal_GUID),ToSQl(txDocument_Title),ToSQL(txJob_Code)
 {8}       ,ToSQL(txDocument_Status_Update_Required),ToSQL(txBankLink_UID),ToSQL(txNotes_Read),ToSQL(txImport_Notes_Read)
-{9}       ,ToSQL(IsDissected),ToSQL(IsSplitPayee),ToSQL(IsSplitJob),ToSQL(IsPayeeOverridden),ToSQL(IsJobOverridden)
+{9}       ,ToSQL(IsDissected),ToSQL(IsSplitPayee),ToSQL(IsSplitJob),ToSQL(IsPayeeOverridden),ToSQL(IsJobOverridden), ToSQL(0)
           ],[
 
 {1}       ToSQL(value.txSF_Super_Fields_Edited ), ToSQL(txSF_Franked),ToSQL(txSF_UnFranked),
@@ -686,7 +686,7 @@ begin
 {6}       ,'ECodingTransactionUID','GLNarration','StatementDetails' ,'TaxInvoiceAvailable'
 {7}       ,'ExternalGUID','DocumentTitle','JobCode'
 {8}       ,'DocumentStatusUpdateRequired','BankLinkUID','NotesRead','ImportNotesRead'
-{9}       ,'IsDissected','IsSplitPayee','IsSplitJob','IsPayeeOverridden','IsJobOverridden'
+{9}       ,'IsDissected','IsSplitPayee','IsSplitJob','IsPayeeOverridden','IsJobOverridden', 'ReportStatus'
           ],SFLineFields);
 
 
