@@ -622,7 +622,7 @@ begin
 
     F := tCodeBlock.Create;
     F.fCode := 'BY';
-    F.fReadCode  := format(ArrayRead,[Save, Make]);
+    F.fReadCode  := format(ArrayRead,[Plural, Make]);
     F.fWriteCode := format(ArrayWrite,[Plural, Make]);
     F.fCProperty  :=  format(ArrayField,[Plural,Single,'boolean','bool',save]);
     FieldTypes.Add(F);
