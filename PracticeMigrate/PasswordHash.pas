@@ -5,7 +5,7 @@ interface
 function  ComputePWHash(plainText: string;
                       saltbytes: tguid): string;
 
-function Encrypt(value: string): string;
+//function Encrypt(value: string): string;
 
 implementation
 
@@ -35,6 +35,7 @@ begin
   end;
 end;
 
+(*
 function Encrypt(value: string): string;
 var Cipher: IStreamCipherEx2;
 begin
@@ -46,7 +47,7 @@ begin
       Cipher.Burn;
       Cipher.Free
 end;
-
+ *)
 
 function  ComputePWHash(plainText: string;
                       saltbytes: tguid): string;
