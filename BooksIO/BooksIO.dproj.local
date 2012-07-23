@@ -1,0 +1,36 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<BorlandProject>
+	<Transactions>
+    <Transaction>2011/11/08 09:16:22.240.dproj,C:\Users\Ajoosten\Documents\RAD Studio\Projects\Project1.dproj=C:\DelphiTFS\Practice\Dev\BooksIO\BooksIO.dproj</Transaction>
+    <Transaction>2011/11/08 09:21:26.874.pas,C:\DelphiTFS\Practice\Dev\BooksIO\Unit1.pas=C:\DelphiTFS\Practice\Dev\BooksIO\ImportExport.pas</Transaction>
+    <Transaction>2011/11/08 09:31:55.161.pas,C:\DelphiTFS\Practice\Dev\BooksIO\Unit1.pas=C:\DelphiTFS\Practice\Dev\BooksIO\ProcTypes.pas</Transaction>
+    <Transaction>2011/11/08 12:28:42.219.pas,C:\DelphiTFS\Practice\Dev\BooksIO\Unit1.pas=C:\DelphiTFS\Practice\Dev\BooksIO\XMLNodes.pas</Transaction>
+    <Transaction>2011/11/08 14:14:26.591.pas,C:\DelphiTFS\Practice\Dev\BooksIO\Unit1.pas=C:\DelphiTFS\Practice\Dev\BooksIO\Listhelpers.pas</Transaction>
+    <Transaction>2011/11/09 07:40:57.687.pas,C:\DelphiTFS\Practice\Dev\BooksIO\XMLNodes.pas=</Transaction>
+    <Transaction>2011/11/10 07:30:21.038.PAS,C:\DelphiTFS\Practice\Dev\Common\Database\TAccount_Rec_XMLHelper.PAS=</Transaction>
+    <Transaction>2011/11/10 07:30:21.088.PAS,C:\DelphiTFS\Practice\Dev\Common\Database\TBalances_Rec_XMLHelper.PAS=</Transaction>
+    <Transaction>2011/11/10 07:30:21.090.PAS,C:\DelphiTFS\Practice\Dev\Common\Database\TBank_Account_Rec_XMLHelper.PAS=</Transaction>
+    <Transaction>2011/11/10 07:30:21.091.PAS,C:\DelphiTFS\Practice\Dev\Common\Database\TBudget_Detail_Rec_XMLHelper.PAS=</Transaction>
+    <Transaction>2011/11/10 07:30:21.092.PAS,C:\DelphiTFS\Practice\Dev\Common\Database\TBudget_Header_Rec_XMLHelper.PAS=</Transaction>
+    <Transaction>2011/11/10 07:30:21.093.PAS,C:\DelphiTFS\Practice\Dev\Common\Database\TClientExtra_Rec_XMLHelper.PAS=</Transaction>
+    <Transaction>2011/11/10 07:30:21.113.PAS,C:\DelphiTFS\Practice\Dev\Common\Database\TClient_Rec_XMLHelper.PAS=</Transaction>
+    <Transaction>2011/11/10 07:30:21.114.PAS,C:\DelphiTFS\Practice\Dev\Common\Database\TCustom_Heading_Rec_XMLHelper.PAS=</Transaction>
+    <Transaction>2011/11/10 07:30:21.115.PAS,C:\DelphiTFS\Practice\Dev\Common\Database\TDisk_Log_Rec_XMLHelper.PAS=</Transaction>
+    <Transaction>2011/11/10 07:30:21.116.PAS,C:\DelphiTFS\Practice\Dev\Common\Database\TDissection_Rec_XMLHelper.PAS=</Transaction>
+    <Transaction>2011/11/10 07:30:21.117.PAS,C:\DelphiTFS\Practice\Dev\Common\Database\TDivision_Heading_Rec_XMLHelper.PAS=</Transaction>
+    <Transaction>2011/11/10 07:30:21.119.PAS,C:\DelphiTFS\Practice\Dev\Common\Database\TFuel_Sheet_Rec_XMLHelper.PAS=</Transaction>
+    <Transaction>2011/11/10 07:30:21.120.PAS,C:\DelphiTFS\Practice\Dev\Common\Database\TJob_Heading_Rec_XMLHelper.PAS=</Transaction>
+    <Transaction>2011/11/10 07:30:21.121.PAS,C:\DelphiTFS\Practice\Dev\Common\Database\TMacro_Rec_XMLHelper.PAS=</Transaction>
+    <Transaction>2011/11/10 07:30:21.122.PAS,C:\DelphiTFS\Practice\Dev\Common\Database\TMemorisation_Detail_Rec_XMLHelper.PAS=</Transaction>
+    <Transaction>2011/11/10 07:30:21.123.PAS,C:\DelphiTFS\Practice\Dev\Common\Database\TMemorisation_Line_Rec_XMLHelper.PAS=</Transaction>
+    <Transaction>2011/11/10 07:30:21.124.PAS,C:\DelphiTFS\Practice\Dev\Common\Database\TMemorised_Transaction_Rec_XMLHelper.PAS=</Transaction>
+    <Transaction>2011/11/10 07:30:21.125.PAS,C:\DelphiTFS\Practice\Dev\Common\Database\TMoreClient_Rec_XMLHelper.PAS=</Transaction>
+    <Transaction>2011/11/10 07:30:21.126.PAS,C:\DelphiTFS\Practice\Dev\Common\Database\TOKENS.PAS=</Transaction>
+    <Transaction>2011/11/10 07:30:21.127.PAS,C:\DelphiTFS\Practice\Dev\Common\Database\TPayee_Detail_Rec_XMLHelper.PAS=</Transaction>
+    <Transaction>2011/11/10 07:30:21.128.PAS,C:\DelphiTFS\Practice\Dev\Common\Database\TPayee_Line_Rec_XMLHelper.PAS=</Transaction>
+    <Transaction>2011/11/10 07:30:21.129.PAS,C:\DelphiTFS\Practice\Dev\Common\Database\TPayee_Rec_XMLHelper.PAS=</Transaction>
+    <Transaction>2011/11/10 07:30:21.130.PAS,C:\DelphiTFS\Practice\Dev\Common\Database\TSubGroup_Heading_Rec_XMLHelper.PAS=</Transaction>
+    <Transaction>2011/11/10 07:30:21.131.PAS,C:\DelphiTFS\Practice\Dev\Common\Database\TTransaction_Rec_XMLHelper.PAS=</Transaction>
+    <Transaction>2012/03/16 12:14:53.159.pas,C:\DelphiTFS\Practice\Dev\BooksIO\Unit1.pas=C:\DelphiTFS\Practice\Dev\BooksIO\logger.pas</Transaction>
+  </Transactions>
+</BorlandProject>
