@@ -200,8 +200,11 @@ end;
 //------------------------------------------------------------------------------
 procedure SetInt64Attr(var OnNode: IXMLNode; Name: string; Value: Money);
 begin
-  if Value <> 0 then
-    OnNode.Attributes [Name] := (Value);
+  OnNode.Attributes [Name] := (Trunc(Value))
+  //if Value <> Unknown then
+  //   OnNode.Attributes [Name] := (Value)
+  //else
+  //   OnNode.Attributes [Name] := '9223372036854775807';
 end;
 
 
@@ -576,7 +579,7 @@ begin
     Result := strToFloat(FromNode.Attributes[Name]);
   end
   else
-    Result := 0;
+    Result := Unknown;
 end;
 //------------------------------------------------------------------------------
 function GetQtyAttr(FromNode: IXMLNode; Name : string): Money;
