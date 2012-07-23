@@ -49,9 +49,9 @@ function ObtainLock( const LockType, LockRef : integer; const MaxSecsToWait : In
 function ReleaseLock( const LockType : Integer ): Boolean; overload;
 function ReleaseLock( const LockType, LockRef : integer): Boolean; overload;
 
-{$IFDEF LOOKUPDLL}
+
 procedure SetLockingFileLocation( LockDir : string);
-{$ENDIF}
+
 
 //-----------------------------------------------------------------------------
 implementation
