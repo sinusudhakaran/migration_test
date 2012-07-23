@@ -28,6 +28,12 @@ function EnCodetext(Value: Tstream): string;
 
 implementation
 uses
+
+MoneyDef,
+
+    ErrorLog,
+    LockUtils,
+    windows,
     logger,
     listHelpers,
     CLObj32,
@@ -230,22 +236,17 @@ begin
    LogTrace('procedure ExportBooksFile beginning');
 
    TempStr := string(data);
-
+   //SaveString(TempStr);
 
    try
-
-
      Client := nil;
      Stream := nil;
-
-
-
      XMLHelper := TXML_Helper.Create;
      try
         try
 
            Client := XMLHelper.ReadClient(TempStr);
-            LogDebug('Read Client done');
+           LogDebug('Read Client done');
            try
               try
                LogDebug('Save Client start');
@@ -281,9 +282,34 @@ begin
 end;
 
 
+procedure setPaths;
+
+var
+   DLLFileName: PChar;
+   path: String;
+begin
+  GetMem(DLLFileName, MAX_PATH+1);
+  if (DLLFileName <> nil) then begin
+      GetModuleFileName(hInstance, DLLFileName, MAX_PATH);
+      path := ExtractFilepath(string(DLLFileName));
+      SetLockingFileLocation(path);
+      SysLog.LogPath := Path;
+      SysLog.LogFilename := 'BookIO.log';
+      FreeMem(DLLFileName);
+
+      //path := format('%d',[Trunc(unknown)]);
+      //path := '';
+
+  end;
+
+end;
+
+
 initialization
    FileOutputProc := nil;
    StatusProc := nil;
+   setPaths;
    logger.logMessageProcedure := MyLogMsg;
+
 end.
 

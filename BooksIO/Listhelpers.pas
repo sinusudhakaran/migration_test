@@ -82,7 +82,7 @@ end;
 procedure TXML_Helper.WriteToNode(value: TClientObj; var Node: IXMLNode);
 var I: Integer;
     //BankNode: IXMLNode;
-    lNode : IXMLNode;
+    LNode : IXMLNode;
 begin
 
   value.clFields.WriteRecToNode(Node);
@@ -91,55 +91,51 @@ begin
 
 
   logDebug('Start write Accounts');
-
-  lNode := Node.AddChild('BankAccounts');
+  LNode := Node.AddChild('BankAccounts');
   for I := 0 to value.clBank_Account_List.last do begin
-
-     WriteToNode(value.clBank_Account_List.Bank_Account_At(I),lNode);
+     WriteToNode(value.clBank_Account_List.Bank_Account_At(I),LNode);
   end;
 
-  lNode := Node.AddChild('Chart');
-
   logDebug('Start write Chart');
-
+  LNode := Node.AddChild('Chart');
   for I := 0 to value.clChart.Last do begin
-     value.clChart.Account_At(I).WriteRecToNode(lNode);
+     value.clChart.Account_At(I).WriteRecToNode(LNode);
   end;
 
   logDebug('Start write Payees');
-  lNode := Node.AddChild('Payees');
+  LNode := Node.AddChild('Payees');
   for I := 0 to value.clPayee_List.Last do begin
-     WriteToNode(value.clPayee_List.Payee_At(I) ,lNode);
+     WriteToNode(value.clPayee_List.Payee_At(I) ,LNode);
   end;
 
   logDebug('Start write Jobs');
-  lNode := Node.AddChild('Jobs');
+  LNode := Node.AddChild('Jobs');
   for I := 0 to value.clJobs.Last do begin
-     value.clJobs.Job_At(I).WriteRecToNode(lNode);
+     value.clJobs.Job_At(I).WriteRecToNode(LNode);
   end;
 
   logDebug('Start write Budgets');
-  lNode := Node.AddChild('Budgets');
+  LNode := Node.AddChild('Budgets');
   for I := 0 to value.clBudget_List.Last do begin
-     WriteToNode(value.clBudget_List.Budget_At(I), lNode);
+     WriteToNode(value.clBudget_List.Budget_At(I), LNode);
   end;
 
   logDebug('Start write Balances');
-  lNode := Node.AddChild('Balances');
+  LNode := Node.AddChild('Balances');
   for I := 0 to value.clBalances_List.Last do begin
-     value.clBalances_List.Balances_At(I).WriteRecToNode(lNode);
+     value.clBalances_List.Balances_At(I).WriteRecToNode(LNode);
   end;
 
   logDebug('Start write Headings');
-  lNode := Node.AddChild('Headings');
+  LNode := Node.AddChild('Headings');
   for I := 0 to value.clCustom_Headings_List.Last do begin
-     value.clCustom_Headings_List.Custom_Heading_At(I).WriteRecToNode(lNode); ;
+     value.clCustom_Headings_List.Custom_Heading_At(I).WriteRecToNode(LNode);
   end;
 
   logDebug('Start write DiskLog');
-  lNode := Node.AddChild('DiskLog');
+  LNode := Node.AddChild('DiskLog');
   for I := 0 to value.clDisk_Log.Last do begin
-     value.clDisk_Log.Disk_Log_At(I).WriteRecToNode(lNode); ;
+     value.clDisk_Log.Disk_Log_At(I).WriteRecToNode(LNode); ;
   end;
 
 end;
@@ -151,7 +147,7 @@ end;
 
 procedure TXML_Helper.ReadFromNode(var value: TClientObj; Node: IXMLNode);
 var
-   lNode: IXMLNode;
+   LNode: IXMLNode;
    nAccount: TBank_Account;
    nChart: PAccount_Rec;
    nJob: PJob_Heading_Rec;
@@ -167,17 +163,17 @@ begin
    value.clExtra.ReadRecFromNode(Node);
 
    try
-   lNode := Node.ChildNodes.FindNode('BankAccounts');
+   LNode := Node.ChildNodes.FindNode('BankAccounts');
    value.clBank_Account_List.DeleteAll;
    if Assigned(LNode) then begin
       lnode := lnode.ChildNodes.First;
-      while Assigned(lNode) do begin
+      while Assigned(LNode) do begin
          nAccount := TBank_Account.Create(value);
          ReadFromNode(nAccount,LNode);
          //LogDebug(LNode.XML);
          value.clBank_Account_List.Insert(nAccount);
 
-         lNode := lNode.NextSibling;
+         LNode := LNode.NextSibling;
       end;
    end;
    //value.clBank_Account_List.Sort(BankAccountCompare);
@@ -188,15 +184,15 @@ begin
 
 
    try
-   lNode := Node.ChildNodes.FindNode('Chart');
+   LNode := Node.ChildNodes.FindNode('Chart');
    value.clChart.DeleteAll;
    if Assigned(LNode) then begin
       lnode := lnode.ChildNodes.First;
-      while Assigned(lNode) do begin
+      while Assigned(LNode) do begin
          nChart := New_Account_Rec;
          nChart.ReadRecFromNode(LNode);
          value.clChart.Insert(nChart);
-         lNode := lNode.NextSibling;
+         LNode := LNode.NextSibling;
       end;
    end;
    except
@@ -205,14 +201,14 @@ begin
    end;
 
    try
-   lNode := Node.ChildNodes.FindNode('Payees');
+   LNode := Node.ChildNodes.FindNode('Payees');
    if Assigned(LNode) then begin
       lnode := lnode.ChildNodes.First;
-      while Assigned(lNode) do begin
+      while Assigned(LNode) do begin
          nPayee := tPayee.Create;
          ReadFromNode(nPayee,LNode);
          value.clPayee_List.Insert(nPayee);
-         lNode := lNode.NextSibling;
+         LNode := LNode.NextSibling;
       end
    end;
    except
@@ -221,14 +217,14 @@ begin
    end;
 
    try
-   lNode := Node.ChildNodes.FindNode('Jobs');
+   LNode := Node.ChildNodes.FindNode('Jobs');
    if Assigned(LNode) then begin
       lnode := lnode.ChildNodes.First;
-      while Assigned(lNode) do begin
+      while Assigned(LNode) do begin
          nJob := New_Job_Heading_Rec;
          nJob.ReadRecFromNode(LNode);
          value.clJobs.Insert(nJob);
-         lNode := lNode.NextSibling;
+         LNode := LNode.NextSibling;
       end
    end;
    except
@@ -237,14 +233,14 @@ begin
    end;
 
    try
-   lNode := Node.ChildNodes.FindNode('Budgets');
+   LNode := Node.ChildNodes.FindNode('Budgets');
    if Assigned(LNode) then begin
       lnode := lnode.ChildNodes.First;
-      while Assigned(lNode) do begin
+      while Assigned(LNode) do begin
          nBudget := TBudget.Create;
          ReadFromNode(nBudget, LNode);
          value.clBudget_List.Insert(nBudget);
-         lNode := lNode.NextSibling;
+         LNode := LNode.NextSibling;
       end
    end;
    except
@@ -253,14 +249,14 @@ begin
    end;
 
    try
-   lNode := Node.ChildNodes.FindNode('Balances');
+   LNode := Node.ChildNodes.FindNode('Balances');
    if Assigned(LNode) then begin
       lnode := lnode.ChildNodes.First;
-      while Assigned(lNode) do begin
+      while Assigned(LNode) do begin
          nBalance := New_Balances_rec;
-         nBalance.ReadRecFromNode(lNode);
+         nBalance.ReadRecFromNode(LNode);
          value.clBalances_List.Insert(nBalance);
-         lNode := lNode.NextSibling;
+         LNode := LNode.NextSibling;
       end
    end;
    except
@@ -269,14 +265,14 @@ begin
    end;
 
    try
-   lNode := Node.ChildNodes.FindNode('Headings');
+   LNode := Node.ChildNodes.FindNode('Headings');
    if Assigned(LNode) then begin
       lnode := lnode.ChildNodes.First;
-      while Assigned(lNode) do begin
+      while Assigned(LNode) do begin
          nHeading := New_Custom_Heading_Rec;
-         nHeading.ReadRecFromNode(lNode);
+         nHeading.ReadRecFromNode(LNode);
          value.clCustom_Headings_List.Insert(nHeading);
-         lNode := lNode.NextSibling;
+         LNode := LNode.NextSibling;
       end
    end;
    except
@@ -285,14 +281,14 @@ begin
    end;
 
    try
-   lNode := Node.ChildNodes.FindNode('DiskLog');
+   LNode := Node.ChildNodes.FindNode('DiskLog');
    if Assigned(LNode) then begin
       lnode := lnode.ChildNodes.First;
-      while Assigned(lNode) do begin
+      while Assigned(LNode) do begin
          nLog := New_Disk_Log_Rec;
-         nLog.ReadRecFromNode(lNode);
+         nLog.ReadRecFromNode(LNode);
          value.clDisk_Log.Insert(nLog);
-         lNode := lNode.NextSibling;
+         LNode := LNode.NextSibling;
       end
    end;
    except
@@ -300,7 +296,7 @@ begin
          Reraise(e, 'Reading DiskLog');
    end;
 
-   lNode := nil;
+   LNode := nil;
 end;
 
 
@@ -350,21 +346,21 @@ begin
 end;
 
 procedure TXML_Helper.ReadFromNode(var value: PTransaction_rec; Node: IXMLNode);
-var lNode : IXMLNode;
+var LNode : IXMLNode;
     new: PDissection_Rec;
 begin
-   lNode := value^.ReadRecFromNode(Node);
+   LNode := value^.ReadRecFromNode(Node);
    if not assigned(lnode) then exit;
-   lNode := Node.ChildNodes.FindNode('Dissections');
+   LNode := Node.ChildNodes.FindNode('Dissections');
    if not assigned(lnode) then Exit;
    lnode := lnode.ChildNodes.First;
-   while Assigned(lNode) do begin
+   while Assigned(LNode) do begin
        new := AddDissection(value);
        new.ReadRecFromNode(LNode);
        //pendDissection(value, new);
        LNode := LNode.NextSibling;
    end;
-   lNode := nil;
+   LNode := nil;
 end;
 
 
@@ -386,11 +382,11 @@ begin
       WriteToNode(value.baMemorisations_List.Memorisation_At(I),LNode);
    end;
    MyNode := nil;
-   lNode := nil;
+   LNode := nil;
 end;
 
 procedure TXML_Helper.ReadFromNode(var value: TBank_Account; Node: IXMLNode);
-var lNode : IXMLNode;
+var LNode : IXMLNode;
     new: pTransaction_Rec;
     NMem: Tmemorisation;
 begin
@@ -398,140 +394,141 @@ begin
    LNode := value.baFields.ReadRecFromNode(Node);
    if not assigned(lnode) then exit;
 
-   lNode := Node.ChildNodes.FindNode('Transactions');
+   LNode := Node.ChildNodes.FindNode('Transactions');
    if Assigned(lnode) then begin
       lnode := lnode.ChildNodes.First;
-      while Assigned(lNode) do begin
+      while Assigned(LNode) do begin
          new := new_Transaction_Rec;
          value.baTransaction_List.Insert_Transaction_Rec(new);
-         ReadFromNode(new, lNode);
+         ReadFromNode(new, LNode);
 
          LNode := LNode.NextSibling;
       end;
    end;
 
-   lNode := Node.ChildNodes.FindNode('Memorisations');
+   LNode := Node.ChildNodes.FindNode('Memorisations');
    if Assigned(lnode) then begin
       lnode := lnode.ChildNodes.First;
-      while Assigned(lNode) do begin
+      while Assigned(LNode) do begin
          NMem := Tmemorisation.Create(nil);
          ReadFromNode(NMem,LNode);
          value.baMemorisations_List.Insert_Memorisation(NMem, False);
          LNode := LNode.NextSibling;
       end;
    end;
-   lNode := nil;
+   LNode := nil;
 end;
 
 
 
 //---------------------------  TMemorisation -----------------------------------
 procedure TXML_Helper.WriteToNode(value: TMemorisation; var Node: IXMLNode);
-var lNode : IXMLNode;
+var LNode : IXMLNode;
     I: Integer;
 begin
-   lNode := value.mdFields.WriteRecToNode(Node);
-   lNode := LNode.AddChild('Lines');
+   LNode := value.mdFields.WriteRecToNode(Node);
+   LNode := LNode.AddChild('Lines');
    for I := 0 to value.mdLines.Last do begin
        value.mdLines.MemorisationLine_At(I).WriteRecToNode(LNode);
    end;
-   lNode := nil;
+   LNode := nil;
 end;
 
 procedure TXML_Helper.ReadFromNode(var value: TMemorisation; Node: IXMLNode);
-var lNode : IXMLNode;
+var LNode : IXMLNode;
     new: pMemorisation_Line_Rec;
 begin
-   lNode := value.mdFields.ReadRecFromNode(Node);
-   if not assigned(lnode) then exit;
-   lNode := Node.ChildNodes.FindNode('Lines');
-   if not assigned(lnode) then Exit;
-   lnode := lnode.ChildNodes.First;
-   while Assigned(lNode) do begin
+   LNode := value.mdFields.ReadRecFromNode(Node);
+   if not assigned(LNode) then exit;
+   LNode := LNode.ChildNodes.FindNode('Lines');
+   if not assigned(LNode) then Exit;
+   LNode := LNode.ChildNodes.First;
+   while Assigned(LNode) do begin
        new := new_Memorisation_Line_Rec;
        new.ReadRecFromNode(LNode);
        value.mdLines.Insert(new);
        LNode := LNode.NextSibling;
    end;
-   lNode := nil;
+   LNode := nil;
 end;
 
 
 //---------------------------  TPayee ---------------------------------------
 procedure TXML_Helper.WriteToNode(value: TPayee; var Node: IXMLNode);
-var lNode : IXMLNode;
+var LNode : IXMLNode;
     I: Integer;
 begin
    LNode := value.pdFields.WriteRecToNode(Node);
-   lNode := Node.AddChild('Lines');
+   LNode := LNode.AddChild('Lines');
    for I := 0 to value.pdLines.Last do begin
        value.pdLines.PayeeLine_At(I).WriteRecToNode(LNode);
    end;
-   lNode := nil;
+   LNode := nil;
 end;
 
 procedure TXML_Helper.ReadFromNode(var value: TPayee; Node: IXMLNode);
-var lNode : IXMLNode;
+var LNode : IXMLNode;
     new: pPayee_Line_Rec;
 begin
    LNode := value.pdFields.ReadRecFromNode(Node);
-   if not assigned(lnode) then exit;
-   lNode := LNode.ChildNodes.FindNode('Lines');
-   if not assigned(lnode) then Exit;
+   if not assigned(LNode) then exit;
+   LNode := LNode.ChildNodes.FindNode('Lines');
+   if not assigned(LNode) then Exit;
    lnode := lnode.ChildNodes.First;
-   while Assigned(lNode) do begin
+   while Assigned(LNode) do begin
        new := new_Payee_Line_Rec;
        new.ReadRecFromNode(LNode);
        value.pdLines.Insert(new);
        LNode := LNode.NextSibling;
    end;
-   lNode := nil;
+   LNode := nil;
 end;
 
 
 
 //-----------------------------  TBudget ---------------------------------------
 procedure TXML_Helper.WriteToNode(value: TBudget; var Node: IXMLNode);
-var lNode : IXMLNode;
+var LNode : IXMLNode;
     I: Integer;
 begin
    LNode := value.buFields.WriteRecToNode(Node);
-   lNode := Node.AddChild('Details');
+   LNode := LNode.AddChild('Details');
    for I := 0 to value.buDetail.Last do begin
        value.buDetail.Budget_Detail_At(I).WriteRecToNode(LNode);
    end;
-   lNode := nil;
+   LNode := nil;
 end;
 
 procedure TXML_Helper.ReadFromNode(var value: TBudget; Node: IXMLNode);
-var lNode : IXMLNode;
+var LNode : IXMLNode;
     new: pBudget_Detail_Rec;
 begin
    LNode := value.buFields.ReadRecFromNode(Node);
    if not assigned(lnode) then exit;
-   lNode := LNode.ChildNodes.FindNode('Details');
+   LNode := LNode.ChildNodes.FindNode('Details');
    if not assigned(lnode) then Exit;
    lnode := lnode.ChildNodes.First;
-   while Assigned(lNode) do begin
+   while Assigned(LNode) do begin
        new := new_Budget_Detail_Rec;
        new.ReadRecFromNode(LNode);
        value.buDetail.Insert(new);
        LNode := LNode.NextSibling;
    end;
-   lNode := nil;
+   LNode := nil;
 end;
 
 
-
+//---------------------------  local helper ------------------------------------
 procedure TXML_Helper.Reraise(E: Exception; Doing: string);
 begin
   raise exception.Create( format('Error : %s While : %s',[E.Message, Doing]));
 end;
 
+
 //---------------------------  XML direct --------------------------------------
 function TXML_Helper.MakeXML(value: TClientObj): string;
 var
-  lNode : IXMLNode;
+  LNode : IXMLNode;
   lXMLDoc: IXMLDocument;
 begin
   //setup XML Document
@@ -544,51 +541,57 @@ begin
 
 
    // Build the notes
-  lNode := lXMLDoc.CreateNode('BKClientFile');
-  LNode.Attributes['Version'] := BK_FILE_VERSION_STR;
+  LNode := lXMLDoc.CreateNode('BKClientFile');
+  LNode.Attributes['Version'] := BK_FILE_VERSION;
   //LNode.DeclareNamespace('','BankLink.Practice');
 
-  lXMLDoc.DocumentElement := lNode;
-  //lNode := lNode.AddChild('Client','BankLink.Practice');
+  lXMLDoc.DocumentElement := LNode;
+  //LNode := LNode.AddChild('Client','BankLink.Practice');
 
-  WriteToNode(value,lNode);
+  WriteToNode(value,LNode);
 
 
   // Return the XML String...
   Result := lXMLDoc.XML.Text;
 
   logDebug('Write XML Done');
-  lNode := nil;
+  LNode := nil;
   lXMLDoc := nil;
 end;
 
+
+
 function TXML_Helper.ReadClient(Value: string): TClientObj;
 var
-  lNode: IXMLNode;
+  LNode : IXMLNode;
   lXMLDoc: IXMLDocument;
+  version : string;
 begin
-  //setup XML Document
-    //logDebug('Make doc');
+     Result := nil;
 
-     Result := TClientObj.Create;
-      logDebug('Make Client Done ');
+     lXMLDoc := MakeXMLDoc(value);
+     logDebug('Make doc Done');
 
-  lXMLDoc := MakeXMLDoc(value);
-    logDebug('Make doc Done');
-
-
-
-
-
-  lNode :=  lXMLDoc.ChildNodes.FindNode('BKClientFile');
+     LNode :=  lXMLDoc.ChildNodes.FindNode('BKClientFile');
 
      logDebug('Find Client Done ');
-  if not assigned(Lnode) then
-       raise Exception.Create('No BKClientFile Node found');
+     if not assigned(Lnode) then
+        raise Exception.Create('BKClientFile Node not found');
 
-  ReadFromNode(Result,LNode);
+     if not lnode.HasAttribute('Version') then
+        raise Exception.Create('Version not found');
 
-  lXMLDoc := nil;
+     // This Code may Change over time
+     version := format('%d',[BK_FILE_VERSION]);
+     if not SameText(version,LNode.Attributes['Version']) then
+         raise Exception.Create(format('Versions not the same; XML is %s, Expected %s ',[LNode.Attributes['Version'], version]));
+
+     Result := TClientObj.Create;
+     logDebug('Make Client Done ');
+     // All Good have a Go...
+     ReadFromNode(Result,LNode);
+
+     lXMLDoc := nil;
 end;
 
 
