@@ -1128,7 +1128,7 @@ begin
 	chPosting_Allowed := GetBoolAttr(Result, 'PostingAllowed');
 	chAccount_Type := GetIntAttr(Result, 'AccountType');
 	chEnter_Quantity := GetBoolAttr(Result, 'EnterQuantity');
-	GetArray(Result, 'PrintinDivision', chPrint_in_Division);
+	GetArray(Result, 'PrintinDivisions', chPrint_in_Division);
 	chMoney_Variance_Up := GetInt64Attr(Result, 'MoneyVarianceUp');
 	chMoney_Variance_Down := GetInt64Attr(Result, 'MoneyVarianceDown');
 	chPercent_Variance_Up := GetInt64Attr(Result, 'PercentVarianceUp');
@@ -1221,7 +1221,7 @@ begin
 
 	GetArray(Result, 'Percentages', pyPercentage);
 	GetArray(Result, 'GSTClass', pyGST_Class);
-	GetArray(Result, 'GSTHasBeenEdited', pyGST_Has_Been_Edited);
+	GetArray(Result, 'GSTHasBeenEditeds', pyGST_Has_Been_Edited);
 	
 	PNode := Result.ChildNodes.FindNode('GLNarrations');
 	if Assigned(PNode) then
@@ -1980,6 +1980,9 @@ begin
 	SetTextAttr(Result, 'JobCode', txJob_Code);
 	SetInt64Attr(Result, 'SpareMoney1', txSpare_Money_1);
 	SetInt64Attr(Result, 'SpareMoney2', txSpare_Money_2);
+	SetIntAttr(Result, 'CoreTransactionID', txCore_Transaction_ID);
+	SetBoolAttr(Result, 'TransferedToOnline', txTransfered_To_Online);
+	SetIntAttr(Result, 'CoreTransactionIDHigh', txCore_Transaction_ID_High);
 
 	CNode := nil;
 	CCNode := nil;
@@ -2076,6 +2079,9 @@ begin
 	txJob_Code := GetTextAttr(Result, 'JobCode');
 	txSpare_Money_1 := GetInt64Attr(Result, 'SpareMoney1');
 	txSpare_Money_2 := GetInt64Attr(Result, 'SpareMoney2');
+	txCore_Transaction_ID := GetIntAttr(Result, 'CoreTransactionID');
+	txTransfered_To_Online := GetBoolAttr(Result, 'TransferedToOnline');
+	txCore_Transaction_ID_High := GetIntAttr(Result, 'CoreTransactionIDHigh');
 	except
 		on E: Exception do ReRaise (E, 'Reading TTransaction_Rec');
 	end;
@@ -2594,7 +2600,7 @@ begin
 	GetArray(Result, 'GSTClass', mxGST_Class);
 	mxPayee_Number := GetIntAttr(Result, 'PayeeNumber');
 	mxFrom_Master_List := GetBoolAttr(Result, 'FromMasterList');
-	GetArray(Result, 'GSTHasBeenEdited', mxGST_Has_Been_Edited);
+	GetArray(Result, 'GSTHasBeenEditeds', mxGST_Has_Been_Edited);
 	mxMatch_on_Notes := GetBoolAttr(Result, 'MatchonNotes');
 	mxNotes := GetTextAttr(Result, 'Notes');
 	
@@ -2934,6 +2940,24 @@ begin
 	SetTextAttr(Result, 'SpareString', ceSpare_String);
 	SetBoolAttr(Result, 'OnlineScheduledReports', ceOnline_Scheduled_Reports);
 	SetIntAttr(Result, 'FileTransferMethod', ceFile_Transfer_Method);
+	SetTextAttr(Result, 'OnlineBillingFrequency', ceOnlineBillingFrequency);
+	SetIntAttr(Result, 'OnlineMaxOfflineDays', ceOnlineMaxOfflineDays);
+	SetIntAttr(Result, 'OnlineStatus', ceOnlineStatus);
+	PNode := Result.AddChild('OnlineSubscriptions');
+	M :=  Low(ceOnlineSubscription);
+	for I := Low(ceOnlineSubscription) to High(ceOnlineSubscription) do
+		if  ceOnlineSubscription[I] > '' then
+			M := I;
+	for I := Low(ceOnlineSubscription) to M do begin
+		CNode := PNode.AddChild('OnlineSubscription');
+		CNode.NodeValue := ceOnlineSubscription[I];
+	end;
+	SetTextAttr(Result, 'OnlineUserEMail', ceOnlineUserEMail);
+	SetTextAttr(Result, 'OnlineUserFullName', ceOnlineUserFullName);
+	SetBoolAttr(Result, 'OnlineValuesStored', ceOnlineValuesStored);
+	SetIntAttr(Result, 'OnlineSubscriptionCount', ceOnlineSubscriptionCount);
+	SetBoolAttr(Result, 'DeliverDataDirectToBLO', ceDeliverDataDirectToBLO);
+	SetTextAttr(Result, 'BLOSecureCode', ceBLOSecureCode);
 
 	CNode := nil;
 	CCNode := nil;
@@ -3038,6 +3062,31 @@ begin
 	ceSpare_String := GetTextAttr(Result, 'SpareString');
 	ceOnline_Scheduled_Reports := GetBoolAttr(Result, 'OnlineScheduledReports');
 	ceFile_Transfer_Method := GetIntAttr(Result, 'FileTransferMethod');
+	ceOnlineBillingFrequency := GetTextAttr(Result, 'OnlineBillingFrequency');
+	ceOnlineMaxOfflineDays := GetIntAttr(Result, 'OnlineMaxOfflineDays');
+	ceOnlineStatus := GetIntAttr(Result, 'OnlineStatus');
+	
+	PNode := Result.ChildNodes.FindNode('OnlineSubscriptions');
+	if Assigned(PNode) then
+		CNode := PNode.ChildNodes.FindNode('OnlineSubscription')
+	else
+		CNode := Nil;
+	for I := low(ceOnlineSubscription) to High(ceOnlineSubscription) do begin
+		if Assigned(CNode) then begin
+			if CNode.Nodevalue <> null then 
+				ceOnlineSubscription[I] := CNode.Nodevalue
+			else ceOnlineSubscription[I] := '';
+			CNode := CNode.NextSibling;
+		end else
+			ceOnlineSubscription[I] := ''
+	end;
+
+	ceOnlineUserEMail := GetTextAttr(Result, 'OnlineUserEMail');
+	ceOnlineUserFullName := GetTextAttr(Result, 'OnlineUserFullName');
+	ceOnlineValuesStored := GetBoolAttr(Result, 'OnlineValuesStored');
+	ceOnlineSubscriptionCount := GetIntAttr(Result, 'OnlineSubscriptionCount');
+	ceDeliverDataDirectToBLO := GetBoolAttr(Result, 'DeliverDataDirectToBLO');
+	ceBLOSecureCode := GetTextAttr(Result, 'BLOSecureCode');
 	except
 		on E: Exception do ReRaise (E, 'Reading TClientExtra_Rec');
 	end;
