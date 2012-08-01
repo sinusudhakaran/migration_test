@@ -3503,14 +3503,15 @@ begin
 
   // if the user exist and the email is the same update
   if (Length(aExistingClient.Users) > 0) and
-     (Trim(Uppercase(aExistingClient.Users[0].EMail)) = Trim(Uppercase(aEMail))) then
+     (Trim(Uppercase(aExistingClient.Users[0].EMail)) = Trim(Uppercase(aEMail))) and
+     (CheckGuidArrayEquality(aClientSubscription, aExistingClient.Users[0].Subscription)) then
   begin
     aUserId := aExistingClient.Users[0].Id;
     MsgResponce := UpdateClientUser(aExistingClient.Id,
                                     aUserId,
                                     aFullName,
                                     aExistingClient.Users[0].RoleNames,
-                                    aExistingClient.Users[0].Subscription,
+                                    aClientSubscription,
                                     aExistingClient.Users[0].UserCode);
 
     Result := not MessageResponseHasError(MsgResponce, 'create the client user on');
@@ -4324,13 +4325,14 @@ begin
 
     UserId := PrimaryUser.Id;
 
-    if (CompareText(Trim(PrimaryUser.FullName), Trim(FullName)) <> 0) then
+    if (CompareText(Trim(PrimaryUser.FullName), Trim(FullName)) <> 0) and
+      (not CheckGuidArrayEquality(Client.Subscription, PrimaryUser.Subscription)) then
     begin
       MsgResponce := UpdateClientUser(Client.Id,
                                       UserId,
                                       FullName,
                                       PrimaryUser.RoleNames,
-                                      PrimaryUser.Subscription,
+                                      Client.Subscription,
                                       PrimaryUser.UserCode);
 
       if not MessageResponseHasError(MsgResponce, 'update the client user on') then
