@@ -822,7 +822,7 @@ begin
        actSendViaEmail.Enabled := (MyClient.clExtra.ceFile_Transfer_Method <> ftmOnline);
        actSendViaOnline.Enabled := (MyClient.clExtra.ceFile_Transfer_Method = ftmOnline);
      end;
-     if Assigned(CurrUser) then
+     if Assigned(CurrUser) then // Checking CurrUser in case the Practice window has been closed
        RefreshUserControls;
 
      Batchreports.FillMenu(frmMain.mniBatchReports,ShowFinReports);

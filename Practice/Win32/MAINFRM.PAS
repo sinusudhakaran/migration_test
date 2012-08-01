@@ -1792,7 +1792,7 @@ begin
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 
    if Assigned(Globals.AdminSystem) then
-     Application.ProcessMessages;
+     Application.ProcessMessages; // Prevents critical application error, see bug 51395 in TFS
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmMain.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
@@ -3962,7 +3962,7 @@ begin
 
   if Assigned( AdminSystem) then begin
     //Display the custom practice logo if user option is on
-    if not Assigned(CurrUser) then
+    if not Assigned(CurrUser) then // Checking CurrUser in case the Practice window has been closed
       Exit;
     if CurrUser.ShowPracticeLogo  then begin
       ShowCustomLogo := LoadCustomLogoFromFile( AdminSystem.fdFields.fdPractice_Logo_Filename);

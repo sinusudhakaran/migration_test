@@ -18,7 +18,6 @@ type
   public
     constructor create;
     destructor destroy; override;
-//    function SaveClient(ClientToSave: TBloClientReadDetail = nil): Boolean;
     function GetClientDetail(const AClientCode: string; SynchronizeBlopi: Boolean = False): TBloClientReadDetail;
     property ClientDetail: TBloClientReadDetail read FClientDetail write SetClientDetail;
     property ClientNew: TBloClientCreate read FClientNew write SetClientNew;
@@ -46,24 +45,6 @@ function TBlopiClient.GetClientDetail(const AClientCode: string; SynchronizeBlop
 begin
   Result := ProductConfigService.GetClientDetailsWithCode(AClientCode, SynchronizeBlopi);
 end;
-
-{
-function TBlopiClient.SaveClient(ClientToSave: TBloClientReadDetail = nil): Boolean;
-begin
-  if Assigned(ClientToSave) then
-  begin
-    ProductConfigService.SaveClient(ClientToSave);
-  end else
-  if Assigned(ClientNew) then
-  begin
-    ProductConfigService.CreateNewClient(ClientNew);
-    ProductConfigService.LoadClientList;
-    ClientDetail := ProductConfigService.GetClientDetailsWithCode(ClientNew.ClientCode);
-    ProductConfigService.SaveClient(ClientDetail);
-    FreeAndNil(FClientNew)
-  end;
-end;
-}
 
 procedure TBlopiClient.SetClientDetail(const Value: TBloClientReadDetail);
 begin

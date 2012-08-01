@@ -196,7 +196,6 @@ procedure TfrmBanklinkOnlineSettings.rbActiveMouseDown(Sender: TObject;
 var
   Msg: String;
   WasSuspended, WasDeactivated: boolean;
-//  ClientReadDetail : TBloClientReadDetail;
   ClientDetailResponse: MessageResponseOfClientReadDetailMIdCYrSK;
   BlopiInterface: IBlopiServiceFacade;
 begin

@@ -195,7 +195,9 @@ type
                               const aRoleNames    : TBloArrayOfString;
                               const aSubscription : TBloArrayOfGuid;
                               const aUserCode     : WideString): MessageResponse;
+
     function AddEditClientUser(const aExistingClient : TBloClientReadDetail;
+                               const aClientSubscription : TBloArrayOfGuid;
                                aNewClientId    : TBloGuid;
                                aClientCode     : String;
                                var   aUserId   : TBloGuid;
@@ -207,11 +209,12 @@ type
                                const FullName   : WideString;
                                var   UserId     : TBloGuid) : Boolean; overload;
 
-    function AddClientUser(ClientId           : TBloGuid;
-                           const UserCode     : String;
-                           const EMailAddress : WideString;
-                           const FullName     : WideString;
-                           var   UserId       : TBloGuid): Boolean;
+    function AddClientUser(ClientId             : TBloGuid;
+                           const UserCode       : String;
+                           const EMailAddress   : WideString;
+                           const FullName       : WideString;
+                           const aSubscriptions : TBloArrayOfguid;
+                           var   UserId         : TBloGuid): Boolean;
 
     procedure FillInClientDetails(var aBloClientCreate: TBloClientCreate);
 
@@ -303,7 +306,6 @@ type
     function GetClientDetailsWithCode(AClientCode: string; SynchronizeBlopi: Boolean = False): TBloClientReadDetail;
     function GetClientDetailsWithGUID(AClientGuid: Guid; SynchronizeBlopi: Boolean = False): TBloClientReadDetail;
     function CreateNewClient(ANewClient: TBloClientCreate): Guid;
-//    function SaveClient(AClient: TBloClientReadDetail): Boolean;
     function CreateNewClientUser(NewUser: TBloUserCreate; ClientGUID: string): Guid;
     procedure UpdateClientStatus(var ClientReadDetail: TBloClientReadDetail; const ClientCode: WideString);
     property Clients: ClientList read FClientList;
@@ -1601,10 +1603,7 @@ begin
 
         for ErrIndex := 0 to high(AMesageresponse.Exceptions) do
         begin
-          if (ContextErrorCode = AMesageresponse.ErrorMessages[ErrIndex].ErrorCode) then
-            AddLine(Details, 'Message', CustomMessage)
-          else
-            AddLine(Details, 'Message', AMesageresponse.Exceptions[ErrIndex].Message_);
+          AddLine(Details, 'Message', AMesageresponse.Exceptions[ErrIndex].Message_);
           AddLine(Details, 'Source', AMesageresponse.Exceptions[ErrIndex].Source);
           AddLine(Details, 'StackTrace', AMesageresponse.Exceptions[ErrIndex].StackTrace);
         end;
@@ -2181,7 +2180,7 @@ begin
         end;
       end;
       
-      if Assigned(CurrUser) and Assigned(User) then
+      if Assigned(CurrUser) and Assigned(User) then // Checking CurrUser in case the Practice window has been closed
         if CurrUser.Code = User.usCode then
           CurrUser.AllowBanklinkOnline := User.usAllow_Banklink_Online;
     end;
@@ -2628,96 +2627,6 @@ begin
     Screen.Cursor := crDefault;
   end;
 end;
-
-{
-function TProductConfigService.SaveClient(AClient: TBloClientReadDetail): Boolean;
-var
-  Msg: string;
-  BlopiInterface: IBlopiServiceFacade;
-  MsgResponse: MessageResponse;
-  MsgResponseOfGuid: MessageResponseOfGuid;
-  MyClientUpdate: ClientUpdate;
-  ShowProgress : Boolean;
-  BlankSubscription: TBloArrayOfGuid;
-
-  MyUserRead   : TBloUserRead;
-  MyUserUpdate : TBloUserUpdate;
-  MyUserCreate : TBloUserCreate;
-begin
-  Result := False;
-
-  if not Assigned(AdminSystem) then
-    Exit;
-
-  if not Registered then
-    Exit;
-
-  try
-    ShowProgress := Progress.StatusSilent;
-    if ShowProgress then
-    begin
-      Screen.Cursor := crHourGlass;
-      Progress.StatusSilent := False;
-      Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Connecting', 10);
-    end;
-
-    try
-      MyClientUpdate := ClientUpdate.Create;
-      try
-        //Save client
-        MyClientUpdate.Id := AClient.Id;
-        MyClientUpdate.ClientCode := AClient.ClientCode;
-        MyClientUpdate.Name_ := AClient.Name_;
-        MyClientUpdate.Status := AClient.Status;
-        MyClientUpdate.Subscription := AClient.Subscription;
-        MyClientUpdate.BillingFrequency := AClient.BillingFrequency;
-        MyClientUpdate.MaxOfflineDays := AClient.MaxOfflineDays;
-        MyClientUpdate.PrimaryContactUserId := AClient.Users[0].Id;
-
-        BlopiInterface := GetServiceFacade;
-
-        if Result then
-        begin
-          if ShowProgress then
-            Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Updating Client', 50);
-          MsgResponse := BlopiInterface.SaveClient(CountryText(AdminSystem.fdFields.fdCountry),
-                                                   AdminSystem.fdFields.fdBankLink_Code,
-                                                   AdminSystem.fdFields.fdBankLink_Connect_Password,
-                                                   MyClientUpdate);
-          Result := MsgResponse.Success;
-
-          MessageResponseHasError(MsgResponse, 'update this client''s settings on');
-        end;
-
-        if ShowProgress then
-          Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finished', 100);
-
-        if Result then
-        begin
-          Msg := Format('Settings for %s have been successfully updated to ' +
-                      '%s.',[AClient.ClientCode, BANKLINK_ONLINE_NAME]);
-          HelpfulInfoMsg(Msg, 0);
-          LogUtil.LogMsg(lmInfo, UNIT_NAME, Msg)
-        end;
-      finally
-        FreeAndNil(MyClientUpdate);
-      end;
-    finally
-      if ShowProgress then
-      begin
-        Progress.StatusSilent := True;
-        Progress.ClearStatus;
-        Screen.Cursor := crDefault;
-      end;
-    end;
-  except
-    on E:Exception do
-    begin
-      HandleException('SaveClient', E);
-    end;
-  end;
-end;
-}
 
 //------------------------------------------------------------------------------
 function TProductConfigService.SavePractice(aShowMessage : Boolean; ShowSuccessMessage: Boolean = True): Boolean;
@@ -3525,6 +3434,7 @@ end;
 
 //------------------------------------------------------------------------------
 function TProductConfigService.AddEditClientUser(const aExistingClient : TBloClientReadDetail;
+                                                 const aClientSubscription : TBloArrayOfGuid;
                                                  aNewClientId    : TBloGuid;
                                                  aClientCode     : String;
                                                  var   aUserId   : TBloGuid;
@@ -3535,7 +3445,6 @@ var
   MsgResponceGuid : MessageResponseOfGuid;
   UserCode        : WideString;
   RoleNames       : TBloArrayOfstring;
-  Subscription    : TBloArrayOfguid;
   ClientId        : TBloGuid;
   UserId          : TBloGuid;
 begin
@@ -3581,13 +3490,12 @@ begin
       end;
     end;
     AddItemToArrayString(RoleNames, 'Client Administrator');
-    SetLength(Subscription, 0);
 
     Result := CreateClientUser(ClientId,
                                aEMail,
                                aFullName,
                                RoleNames,
-                               Subscription,
+                               aClientSubscription,
                                UserCode,
                                aUserId);
     Exit;
@@ -4015,6 +3923,7 @@ begin
 
           Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Saving Client User', 70);
           Result := AddEditClientUser(Nil,
+                                      aSubscription,
                                       MsgResponseGuid.Result,
                                       ClientCode,
                                       UserId,
@@ -4302,6 +4211,7 @@ begin
       if High(aExistingClient.Users) = -1 then
       begin
         Result := AddEditClientUser(aExistingClient,
+                                    aExistingClient.Subscription,
                                     '',
                                     '',
                                     UserId,
@@ -4363,19 +4273,18 @@ end;
 //------------------------------------------------------------------------------
 function TProductConfigService.AddClientUser(ClientId: TBloGuid;
   const UserCode: String; const EMailAddress, FullName: WideString;
+  const aSubscriptions: TBloArrayOfguid;
   var UserId: TBloGuid): Boolean;
 var
-  Subscriptions: TBloArrayOfguid;
   Roles: TBloArrayOfString;
 begin
   AddItemToArrayString(Roles, ROLES_CLIENT_ADMINISTRATOR);
-  SetLength(Subscriptions, 0);
 
   Result := CreateClientUser(ClientId,
                              EMailAddress,
                              FullName,
                              Roles,
-                             Subscriptions,
+                             aSubscriptions,
                              UserCode,
                              UserId);
 end;
@@ -4393,7 +4302,7 @@ begin
 
   if (not Assigned(PrimaryUser)) then
   begin
-    Result := AddClientUser(Client.Id, Client.ClientCode, Email, FullName, UserId);
+    Result := AddClientUser(Client.Id, Client.ClientCode, Email, FullName, Client.Subscription, UserId);
   end
   else
   begin
@@ -4403,7 +4312,7 @@ begin
 
       if ClientUser = nil then
       begin
-        Result := AddClientUser(Client.Id, Client.ClientCode, Email, FullName, UserId);
+        Result := AddClientUser(Client.Id, Client.ClientCode, Email, FullName, Client.Subscription, UserId);
 
         Exit;
       end

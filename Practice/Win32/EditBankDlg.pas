@@ -375,6 +375,7 @@ begin
   SetLength(Current, VendorCount);
   fAccountVendors.AccountVendors.Current := Current;
 
+  // Export to checked vendors
   VendorNum := 0;
   for VendorIndex := 0 to chkLstAccVendors.Count - 1 do
   begin
@@ -388,11 +389,6 @@ begin
       inc(VendorNum);
     end;
   end;
-    
-
-  {fAccountVendors.AccountVendors :=
-        ProductConfigService.GetAccountVendors(ClientID,
-                                               AccountVendors.AccountNumber);}
 end;
 
 //------------------------------------------------------------------------------
