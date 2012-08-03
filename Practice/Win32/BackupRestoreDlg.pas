@@ -76,6 +76,12 @@ begin
     Caption := 'Backup Client File ' + ClientCode;
     FClientCode := ClientCode;
 
+    if Assigned(Screen.ActiveForm) then
+    begin
+      PopupParent := Screen.ActiveForm;
+      PopupMode := pmExplicit;
+    end;
+    
     if ShowModal = mrOK then
     begin
       aDir := edtDir.Text;
