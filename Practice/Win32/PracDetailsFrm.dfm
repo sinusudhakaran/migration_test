@@ -701,6 +701,10 @@ object frmPracticeDetails: TfrmPracticeDetails
           TabOrder = 1
           object tbsIBizz: TTabSheet
             Caption = 'iBizz'
+            ExplicitLeft = 0
+            ExplicitTop = 0
+            ExplicitWidth = 0
+            ExplicitHeight = 0
             object lblAcclipseCode: TLabel
               Left = 5
               Top = 21

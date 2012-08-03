@@ -1809,6 +1809,7 @@ begin
       if TVendorExport(VendorSortList.Objects[Index]).Id = ProductConfigService.GetIBizzExportGuid then
       begin
         tbsIBizz.PageIndex := Index;
+        tbsIBizz.Caption := VendorSortList[Index];
       end
       else
       begin
