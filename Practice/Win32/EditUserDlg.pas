@@ -400,7 +400,8 @@ begin
     uimBasic :
     Begin
       pnlOnline.Visible := False;
-      Self.Height := 458;
+      // Show Practice Logo should always be there (for restricted user)
+      Self.Height := 458 + 31;
     End;
     uimOnline :
     Begin
