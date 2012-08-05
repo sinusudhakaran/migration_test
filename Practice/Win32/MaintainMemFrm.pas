@@ -154,12 +154,40 @@ end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmMaintainMem.FormCreate(Sender: TObject);
 var
+   Country : Byte;
    i       : integer;
 begin
   bkXPThemes.ThemeForm( Self);
   StTitle.Font.Name := Font.name;
   width := Min( 1024, Round(Screen.WorkAreawidth * 0.95));
   height := Max( 440, Round( Screen.WorkAreaHeight * 0.7));
+
+  // Determine client's country
+  if Assigned( MyClient ) then
+     Country := MyClient.clFields.clCountry
+  else
+     Country := AdminSystem.fdFields.fdCountry;
+
+  // Adjust columns depending on the country
+  // Note: this needs to be here in addition to LoadMemorisations so that
+  // System.Memorisations also works.
+  case Country of
+     whNewZealand :
+       // Note: Columns for New Zealand are also changed in LoadMemorisations,
+       // but some of these are at the bank account level, so leave "as is" for
+       // now.
+       ;
+     whAustralia, whUK  :
+        Begin
+           lvMemorised.columns[colAnalysis].Caption  := 'Bank Type';  //NZ Analysis Col
+           lvMemorised.Columns[colParticulars].MaxWidth := 1;  //Particulars Col
+           lvMemorised.columns[colParticulars].width    := 0;
+           lvMemorised.columns[colParticulars].Caption  := '';
+           lvMemorised.Columns[colOtherParty].MaxWidth := 1;  //Other Party Col
+           lvMemorised.columns[colOtherParty].width    := 0;
+           lvMemorised.columns[colOtherParty].Caption  := '';
+        end;
+  end;
 
   WorkingOnMasterPrefix := '';
   FMemorisationChanged  := false;
