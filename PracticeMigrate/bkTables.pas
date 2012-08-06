@@ -535,7 +535,7 @@ begin
 {13}    ,'LastUseDate','UseBasicChart','ClientGroupId','ClientTypeId','AllEditModeCES','AllEditModeDIS','TFN'
 {14}    ,'AllowClientUnlockEntries','AllowClientEditChart','BudgetIncludeQuantities','Archived'
 {15}    ,'JournalProcessingDuration','GSTIncludeProvisionalTax','GSTUseRatioOption','GSTRatio'
-{16}    ,'Comments','GenerateFinancialReports','EditMemorisations','Password','IsProspect','CheckedOutTo'],[]);
+{16}    ,'Comments','GenerateFinancialReports','EditMemorisations','Password','IsProspect','CheckedOut'],[]);
 
 end;
 
@@ -1629,7 +1629,7 @@ end;
 
 procedure TReportParameterTable.SetupTable;
 begin
-   TableName := 'ReportParameters';
+   TableName := 'ReportingParameters';
 
 end;
 

@@ -718,7 +718,7 @@ begin
          end;
 
       end;
-      {
+      {}
       if (PW = '')
       and (User = '') then begin
          User := PracticeUser;

@@ -1003,8 +1003,8 @@ begin
 
       ClearParametersTable('Client Parameters','ClientParameters');
 
-      DeleteTable(MyAction,'ReportParameters',True);
-      DeleteTable(MyAction,'ClientReports');
+      DeleteTable(MyAction,'ReportingParameters',True);
+      //DeleteTable(MyAction,'ClientReports');
 
       //ClearParametersTable('Report Parameters','ReportParameters');
 
