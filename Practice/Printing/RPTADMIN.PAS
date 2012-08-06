@@ -111,7 +111,7 @@ uses
    Windows,
    ReportImages,
    ClientSelectFme,
-   AuditMgr, BKTXIO, BKCLIO, ExchangeRateList;
+   AuditMgr, BKTXIO, BKCLIO, ExchangeRateList, GSTCALC32;
 
 type
    //Client status record for whats due list
@@ -3929,8 +3929,19 @@ begin
                 finally
                   TextLines.Free;
                 end;
-              end else
-                Report.RenderTextLine('        ' + AuditFields[j]);
+              end
+              else
+              begin
+                if AuditFields.Names[j] = 'VAT_Class' then
+                begin
+                  Report.RenderTextLine('        VAT_Class=' + GetGSTClassCode(TempClientFile, StrToIntDef(AuditFields.ValueFromIndex[j], 0)));
+                end
+                else
+                begin
+                  Report.RenderTextLine('        ' + AuditFields[j]);
+                end;
+              end;
+              
           Inc(AuditCount);
         end;
       end;
