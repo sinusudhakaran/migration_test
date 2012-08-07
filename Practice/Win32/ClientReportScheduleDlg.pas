@@ -19,13 +19,16 @@ uses
   ECodingExportFme,
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, StdCtrls, ComCtrls,
   bkOKCancelDlg, clObj32, ScheduledCodingReportDlg, ECodingOptionsFrm,
-  AccountSelectorFme, Dialogs, ExtCtrls, ImgList, CodingRepDlg;
+  AccountSelectorFme, Dialogs, ExtCtrls, ImgList, CodingRepDlg, BKDEFS, SYDEFS;
 
 type
   TCrsOption = (
     crsDontUpdateClientSpecificFields     //used when setting at global level
   );
   TCrsOptions = set of TCrsOption;
+
+type
+  string40 = string[40];
 
 type
   TdlgClientReportSchedule = class(TbkOKCancelDlgForm)
@@ -126,7 +129,10 @@ type
   //this routines have been added so that the settings can be read/set in the
   //globals setup routines
   procedure ReadClientSchedule (aClient: TClientObj; MyDlg : TdlgClientReportSchedule);
-  procedure WriteClientSchedule(aClient: TClientObj; MyDlg : TdlgClientReportSchedule);
+  procedure WriteClientSchedule(aClient: TClientObj; MyDlg : TdlgClientReportSchedule;
+                                FirstClientOriginalFields: tClient_Rec;
+                                FirstClientOriginalExtra: TClientExtra_Rec;
+                                FirstClientFileRec: pClient_File_Rec);
 
 //******************************************************************************
 implementation
@@ -146,8 +152,6 @@ uses
   ShellAPI,
   ErrorMoreFrm,
   SysObj32,
-  BKDEFS,
-  SYDEFS,
   BAObj32,
   StDate,
   ReportDefs,
@@ -174,7 +178,7 @@ begin
      ReadClientSchedule(aClient, MyDlg);
      if MyDlg.ShowModal = mrOK then
      begin
-       WriteClientSchedule(aClient, MyDlg);
+       WriteClientSchedule(aClient, MyDlg, aClient.clFields, aClient.clExtra, nil);
        Result := true;
        RefreshHomepage ([HPR_Client]);
      end;
@@ -312,15 +316,57 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure WriteClientSchedule(aClient : TClientObj; MyDlg : TdlgClientReportSchedule);
+procedure WriteClientSchedule(aClient : TClientObj; MyDlg : TdlgClientReportSchedule;
+                              FirstClientOriginalFields: tClient_Rec;
+                              FirstClientOriginalExtra: TClientExtra_Rec;
+                              FirstClientFileRec: pClient_File_Rec);
+const
+   ThisMethodName = 'WriteClientSchedule';
 var
   i, d,m,y : integer;
   TempXMLStr: WideString;
+  NewGuid: string;
+  FirstClientFileRecModified, CurrentClientFileRecModified: pClient_File_Rec;
+
+  function UpdateFieldIfChanged(OldFieldValue, NewFieldValue, FirstClientValue: Boolean): Boolean; overload;
+  begin
+    if (NewFieldValue <> FirstClientValue) then
+      Result := NewFieldValue
+    else
+      Result := OldFieldValue;
+  end;
+
+  function UpdateFieldIfChanged(OldFieldValue, NewFieldValue, FirstClientValue: Integer): Integer; overload;
+  begin
+    if (NewFieldValue <> FirstClientValue) then
+      Result := NewFieldValue
+    else
+      Result := OldFieldValue;
+  end;
+
+  function UpdateFieldIfChanged(OldFieldValue: string; NewFieldValue: String; FirstClientValue: string): string; overload;
+  begin
+    if (NewFieldValue <> FirstClientValue) then
+      Result := NewFieldValue
+    else
+      Result := OldFieldValue;
+  end;
+
+  function UpdateFieldIfChanged(OldFieldValue, NewFieldValue, FirstClientValue: Byte): Byte; overload;
+  begin
+    if (NewFieldValue <> FirstClientValue) then
+      Result := NewFieldValue
+    else
+      Result := OldFieldValue;
+  end;
+
 begin
   with MyDlg, aClient.clFields do begin
     //save settings back
     if cmbPeriod.ItemIndex in [roMin..roMax] then
-      clReporting_Period := cmbPeriod.ItemIndex;
+      clReporting_Period := UpdateFieldIfChanged(clReporting_Period,
+                                                 cmbPeriod.ItemIndex,
+                                                 FirstClientOriginalFields.clReporting_Period);
 
     if (cmbStarts.ItemIndex+1) in [moMin+1..moMax] then
     begin
@@ -330,31 +376,85 @@ begin
       StDateToDMY(  clFinancial_Year_Starts, d, m, y);
       //get the month from the combo
       m := cmbStarts.ItemIndex+1;
-      clReport_Start_Date := DMYtostDate(d,m,y,BKDATEEPOCH);
+      clReport_Start_Date := UpdateFieldIfChanged(clReport_Start_Date,
+                                                  DMYtostDate(d,m,y,BKDATEEPOCH),
+                                                  FirstClientOriginalFields.clReport_Start_Date);
     end;
 
-    clEmail_Report_Format := Integer(cmbEmailFormat.Items.Objects[cmbEmailFormat.ItemIndex]);
-    clBusiness_Products_Report_Format := Integer(cmbBusinessProducts.Items.Objects[cmbBusinessProducts.ItemIndex]);
-    clSend_Coding_report      := chkCodingReport.Checked;
-    clSend_Chart_of_Accounts  := chkChartReport.Checked and chkCodingReport.Checked;
-    clSend_Payee_List         := chkPayeeReport.Checked and chkCodingReport.Checked;
-    aClient.clExtra.ceSend_Job_List := chkJobReport.Checked and chkCodingReport.Checked;
-    aClient.clExtra.ceSend_Custom_Documents := chkUseCustomDoc.Checked and chkCodingReport.Checked;
+    // UpdateFieldIfChanged is used in many places here so that if the user selects
+    // multiple clients in Maintain Clients, only the fields the user has changed
+    // will be updated. UpdateFieldIfChanged has only been used for those fields
+    // which are visible when multiple clients are selected.
+    clEmail_Report_Format :=
+      UpdateFieldIfChanged(clEmail_Report_Format,
+                           Integer(cmbEmailFormat.Items.Objects[cmbEmailFormat.ItemIndex]),
+                           FirstClientOriginalFields.clEmail_Report_Format);
+    clBusiness_Products_Report_Format :=
+      UpdateFieldIfChanged(clBusiness_Products_Report_Format,
+                           Integer(cmbBusinessProducts.Items.Objects[cmbBusinessProducts.ItemIndex]),
+                           FirstClientOriginalFields.clBusiness_Products_Report_Format);
+    clSend_Coding_report :=
+      UpdateFieldIfChanged(clSend_Coding_report,
+                           chkCodingReport.Checked,
+                           FirstClientOriginalFields.clSend_Coding_Report);
+    clSend_Chart_of_Accounts :=
+      UpdateFieldIfChanged(clSend_Chart_of_Accounts,
+                           chkChartReport.Checked and chkCodingReport.Checked,
+                           FirstClientOriginalFields.clSend_Chart_of_Accounts);
+    clSend_Payee_List :=
+      UpdateFieldIfChanged(clSend_Payee_List,
+                           chkPayeeReport.Checked and chkCodingReport.Checked,
+                           FirstClientOriginalFields.clSend_Payee_List);
+    aClient.clExtra.ceSend_Job_List :=
+      UpdateFieldIfChanged(aClient.clExtra.ceSend_Job_List,
+                           chkJobReport.Checked and chkCodingReport.Checked,
+                           FirstClientOriginalExtra.ceSend_Job_List);
+    aClient.clExtra.ceSend_Custom_Documents :=
+      UpdateFieldIfChanged(aClient.clExtra.ceSend_Custom_Documents,
+                           chkUseCustomDoc.Checked and chkCodingReport.Checked,
+                           FirstClientOriginalExtra.ceSend_Custom_Documents);
+
     //Only allow one custom doc for now
-    aClient.clExtra.ceSend_Custom_Documents_List[1] := '';
-    if (cmbCustomDocList.ItemIndex <> -1) and chkCodingReport.Checked then
-      aClient.clExtra.ceSend_Custom_Documents_List[1] :=
-        TReportBase(cmbCustomDocList.Items.Objects[cmbCustomDocList.ItemIndex]).GetGUID;
+    if (cmbCustomDocList.ItemIndex = -1) then
+      NewGuid := ''
+    else
+      NewGuid := TReportBase(cmbCustomDocList.Items.Objects[cmbCustomDocList.ItemIndex]).GetGUID;
+
+    aClient.clExtra.ceSend_Custom_Documents_List[1] :=
+      UpdateFieldIfChanged(aClient.clExtra.ceSend_Custom_Documents_List[1],
+                           NewGuid,
+                           FirstClientOriginalExtra.ceSend_Custom_Documents_List[1]);
 
     //only allow email reports if being sent to client
-    clEmail_Scheduled_Reports := rbToEmail.Checked;
-    clFax_Scheduled_Reports   := rbToFax.checked;
-    clEcoding_Export_Scheduled_Reports := rbToEcoding.checked;
-    clCSV_Export_Scheduled_Reports     := false;
-    clWebX_Export_Scheduled_Reports := rbToWebX.Checked;
-    clCheckOut_Scheduled_Reports := rbCheckOut.Checked;
-    aClient.clExtra.ceOnline_Scheduled_Reports := rbCheckoutOnline.Checked;    
-    clBusiness_Products_Scheduled_Reports := rbBusinessProducts.Checked;
+    clEmail_Scheduled_Reports :=
+      UpdateFieldIfChanged(clEmail_Scheduled_Reports,
+                           rbToEmail.Checked,
+                           FirstClientOriginalFields.clEmail_Scheduled_Reports);
+    clFax_Scheduled_Reports :=
+      UpdateFieldIfChanged(clFax_Scheduled_Reports,
+                           rbToFax.checked,
+                           FirstClientOriginalFields.clFax_Scheduled_Reports);
+    clEcoding_Export_Scheduled_Reports :=
+      UpdateFieldIfChanged(clEcoding_Export_Scheduled_Reports,
+                           rbToEcoding.checked,
+                           FirstClientOriginalFields.clEcoding_Export_Scheduled_Reports);
+    clCSV_Export_Scheduled_Reports := false;
+    clWebX_Export_Scheduled_Reports :=
+      UpdateFieldIfChanged(clWebX_Export_Scheduled_Reports,
+                           rbToWebX.Checked,
+                           FirstClientOriginalFields.clWebX_Export_Scheduled_Reports);
+    clCheckOut_Scheduled_Reports :=
+      UpdateFieldIfChanged(clCheckOut_Scheduled_Reports,
+                           rbCheckOut.Checked,
+                           FirstClientOriginalFields.clCheckOut_Scheduled_Reports);
+    aClient.clExtra.ceOnline_Scheduled_Reports :=
+      UpdateFieldIfChanged(aClient.clExtra.ceOnline_Scheduled_Reports,
+                           rbCheckoutOnline.Checked,
+                           FirstClientOriginalExtra.ceOnline_Scheduled_Reports);
+    clBusiness_Products_Scheduled_Reports :=
+      UpdateFieldIfChanged(clBusiness_Products_Scheduled_Reports,
+                           rbBusinessProducts.Checked,
+                           FirstClientOriginalFields.clBusiness_Products_Scheduled_Reports);
 
     if not ( crsDontUpdateClientSpecificFields in Options) then
     begin
@@ -386,34 +486,113 @@ begin
       if (Style = rsCustom) then begin
         TempXMLStr := '';
         SaveCustomReportXML(TempXMLStr);
-        aClient.clExtra.ceScheduled_Custom_CR_XML := TempXMLStr;
+        aClient.clExtra.ceScheduled_Custom_CR_XML :=
+          UpdateFieldIfChanged(aClient.clExtra.ceScheduled_Custom_CR_XML,
+                               TempXMLStr,
+                               FirstClientOriginalExtra.ceScheduled_Custom_CR_XML);
       end;
-      clScheduled_Coding_Report_Style           := Style;
-      clScheduled_Coding_Report_Sort_Order      := Sort;
-      clScheduled_Coding_Report_Entry_Selection := Include;
-      clScheduled_Coding_Report_Blank_Lines     := Leave;
-      clScheduled_Coding_Report_Rule_Line       := Rule;
-      clScheduled_Coding_Report_Print_TI        := TaxInvoice;
-      clScheduled_Coding_Report_Show_OP         := ShowOtherParty;
-      clScheduled_Coding_Report_Wrap_Narration  := WrapNarration;
-      aClient.clExtra.ceCoding_Report_Column_Line := RuleLineBetweenColumns;
+      clScheduled_Coding_Report_Style :=
+        UpdateFieldIfChanged(clScheduled_Coding_Report_Style,
+                             Style,
+                             FirstClientOriginalFields.clScheduled_Coding_Report_Style);
+      clScheduled_Coding_Report_Sort_Order :=
+        UpdateFieldIfChanged(clScheduled_Coding_Report_Sort_Order,
+                             Sort,
+                             FirstClientOriginalFields.clScheduled_Coding_Report_Sort_Order);
+      clScheduled_Coding_Report_Entry_Selection :=
+        UpdateFieldIfChanged(clScheduled_Coding_Report_Entry_Selection,
+                             Include,
+                             FirstClientOriginalFields.clScheduled_Coding_Report_Entry_Selection);
+      clScheduled_Coding_Report_Blank_Lines :=
+        UpdateFieldIfChanged(clScheduled_Coding_Report_Blank_Lines,
+                             Leave,
+                             FirstClientOriginalFields.clScheduled_Coding_Report_Blank_Lines);
+      clScheduled_Coding_Report_Rule_Line :=
+        UpdateFieldIfChanged(clScheduled_Coding_Report_Rule_Line,
+                             Rule,
+                             FirstClientOriginalFields.clScheduled_Coding_Report_Rule_Line);
+      clScheduled_Coding_Report_Print_TI :=
+        UpdateFieldIfChanged(clScheduled_Coding_Report_Print_TI,
+                             TaxInvoice,
+                             FirstClientOriginalFields.clScheduled_Coding_Report_Print_TI);
+      clScheduled_Coding_Report_Show_OP :=
+        UpdateFieldIfChanged(clScheduled_Coding_Report_Show_OP,
+                             ShowOtherParty,
+                             FirstClientOriginalFields.clScheduled_Coding_Report_Show_OP);
+      clScheduled_Coding_Report_Wrap_Narration :=
+        UpdateFieldIfChanged(clScheduled_Coding_Report_Wrap_Narration,
+                             WrapNarration,
+                             FirstClientOriginalFields.clScheduled_Coding_Report_Wrap_Narration);
+      aClient.clExtra.ceCoding_Report_Column_Line :=
+        UpdateFieldIfChanged(aClient.clExtra.ceCoding_Report_Column_Line,
+                             RuleLineBetweenColumns,
+                             FirstClientOriginalExtra.ceCoding_Report_Column_Line);
     end;
 
     with ECodingOptions do
     begin
-      clECoding_Entry_Selection      := Include;
-      clECoding_Dont_Send_Chart      := not IncludeChart;
-      clECoding_Dont_Send_Payees     := not IncludePayees;
-      aClient.clExtra.ceECoding_Dont_Send_Jobs := not IncludeJobs;
-      clECoding_Dont_Allow_UPIs      := not AllowUPIs;
-      clECoding_Dont_Show_Account    := not ShowAccount;
-      clECoding_Dont_Show_Quantity   := not ShowQuantity;
-      clECoding_Dont_Show_Payees     := not ShowPayees;
-      clECoding_Dont_Show_GST        := not ShowGST;
-      clECoding_Dont_Show_TaxInvoice := not ShowTaxInvoice;
-      clECoding_Send_Superfund       := ShowSuperFields;
-      clTemp_FRS_From_Date           := WebNotify;
+      clECoding_Entry_Selection :=
+        UpdateFieldIfChanged(clECoding_Entry_Selection,
+                             Include,
+                             FirstClientOriginalFields.clECoding_Entry_Selection);
+      clECoding_Dont_Send_Chart :=
+        UpdateFieldIfChanged(clECoding_Dont_Send_Chart,
+                             not IncludeChart,
+                             FirstClientOriginalFields.clECoding_Dont_Send_Chart);
+      clECoding_Dont_Send_Payees :=
+        UpdateFieldIfChanged(clECoding_Dont_Send_Payees,
+                             not IncludePayees,
+                             FirstClientOriginalFields.clECoding_Dont_Send_Payees);
+      aClient.clExtra.ceECoding_Dont_Send_Jobs :=
+        UpdateFieldIfChanged(aClient.clExtra.ceECoding_Dont_Send_Jobs,
+                             not IncludeJobs,
+                             FirstClientOriginalExtra.ceECoding_Dont_Send_Jobs);
+      clECoding_Dont_Allow_UPIs :=
+        UpdateFieldIfChanged(clECoding_Dont_Allow_UPIs,
+                             not AllowUPIs,
+                             FirstClientOriginalFields.clECoding_Dont_Allow_UPIs);
+      clECoding_Dont_Show_Account :=
+        UpdateFieldIfChanged(clECoding_Dont_Allow_UPIs,
+                             not ShowAccount,
+                             FirstClientOriginalFields.clECoding_Dont_Allow_UPIs);
+      clECoding_Dont_Show_Quantity :=
+        UpdateFieldIfChanged(clECoding_Dont_Show_Quantity,
+                             not ShowQuantity,
+                             FirstClientOriginalFields.clECoding_Dont_Show_Quantity);
+      clECoding_Dont_Show_Payees :=
+        UpdateFieldIfChanged(clECoding_Dont_Show_Payees,
+                             not ShowPayees,
+                             FirstClientOriginalFields.clECoding_Dont_Show_Payees);
+      clECoding_Dont_Show_GST :=
+        UpdateFieldIfChanged(clECoding_Dont_Show_GST,
+                             not ShowGST,
+                             FirstClientOriginalFields.clECoding_Dont_Show_GST);
+      clECoding_Dont_Show_TaxInvoice :=
+        UpdateFieldIfChanged(clECoding_Dont_Show_TaxInvoice,
+                             not ShowTaxInvoice,
+                             FirstClientOriginalFields.clECoding_Dont_Show_TaxInvoice);
+      clECoding_Send_Superfund :=
+        UpdateFieldIfChanged(clECoding_Send_Superfund,
+                             ShowSuperFields,
+                             FirstClientOriginalFields.clECoding_Send_Superfund);
 
+      clTemp_FRS_From_Date := WebNotify;
+
+      if Assigned(FirstClientFileRec) and LoadAdminSystem(True, ThisMethodName) then
+      begin
+        FirstClientFileRecModified :=
+          AdminSystem.fdSystem_Client_File_List.FindCode(FirstClientFileRec.cfFile_Code);
+        if (FirstClientFileRec.cfWebNotes_Email_Notifications <>
+            FirstClientFileRecModified.cfWebNotes_Email_Notifications) then
+        begin
+          CurrentClientFileRecModified :=
+            AdminSystem.fdSystem_Client_File_List.FindCode(AClient.clFields.clCode);
+          CurrentClientFileRecModified.cfWebNotes_Email_Notifications :=
+            FirstClientFileRecModified.cfWebNotes_Email_Notifications;
+        end;
+        SaveAdminSystem;
+      end;
+      
       if not ( crsDontUpdateClientSpecificFields in FOptions) then
       begin
         clECoding_Webspace             := Webspace;

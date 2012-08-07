@@ -22,16 +22,12 @@ object dlgCodingRep: TdlgCodingRep
     Top = 0
     Width = 504
     Height = 391
-    ActivePage = tbsColumns
+    ActivePage = tbsOptions
     Align = alClient
     TabOrder = 0
     OnChange = PageControl1Change
     object tbsOptions: TTabSheet
       Caption = '&Options'
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object Panel2: TPanel
         Left = 1
         Top = 0
@@ -194,7 +190,7 @@ object dlgCodingRep: TdlgCodingRep
           Width = 169
           Height = 21
           Style = csDropDownList
-          ItemHeight = 0
+          ItemHeight = 13
           TabOrder = 0
           OnChange = cmbStyleChange
         end
@@ -204,7 +200,7 @@ object dlgCodingRep: TdlgCodingRep
           Width = 169
           Height = 21
           Style = csDropDownList
-          ItemHeight = 0
+          ItemHeight = 13
           TabOrder = 1
         end
         object cmbInclude: TComboBox
@@ -213,7 +209,7 @@ object dlgCodingRep: TdlgCodingRep
           Width = 169
           Height = 21
           Style = csDropDownList
-          ItemHeight = 0
+          ItemHeight = 13
           TabOrder = 2
         end
         object cmbLeave: TComboBox
@@ -236,7 +232,7 @@ object dlgCodingRep: TdlgCodingRep
           Height = 17
           Alignment = taLeftJustify
           Caption = 'chkTaxInvoice'
-          TabOrder = 5
+          TabOrder = 7
         end
         object chkWrap: TCheckBox
           Left = 16
@@ -254,7 +250,7 @@ object dlgCodingRep: TdlgCodingRep
           Height = 17
           Alignment = taLeftJustify
           Caption = 'Rule a line between columns'
-          TabOrder = 7
+          TabOrder = 5
         end
       end
     end

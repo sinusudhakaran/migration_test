@@ -185,9 +185,9 @@ object dlgDelUnCheque: TdlgDelUnCheque
     OnGetCellData = tblFromToGetCellData
     CellData = (
       'dlgDelUnCheque.OvcTCColHead1'
-      'dlgDelUnCheque.OvcTCRowHead1'
+      'dlgDelUnCheque.Col2'
       'dlgDelUnCheque.ColFrom'
-      'dlgDelUnCheque.Col2')
+      'dlgDelUnCheque.OvcTCRowHead1')
     RowData = (
       22)
     ColData = (
@@ -294,7 +294,6 @@ object dlgDelUnCheque: TdlgDelUnCheque
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd, efoTrimBlanks]
     PictureMask = '99999999'
     Table = tblFromTo
     Left = 72
@@ -310,7 +309,6 @@ object dlgDelUnCheque: TdlgDelUnCheque
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd, efoTrimBlanks]
     PictureMask = '99999999'
     Table = tblFromTo
     Left = 104

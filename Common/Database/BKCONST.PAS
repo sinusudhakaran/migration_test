@@ -472,14 +472,15 @@ CONST
    snOFXV2           = 38;
    snMYOB_AO_COM     = 39;
    snQBWN            = 40;
-   snMax = 40;
+   snAcclipse        = 41;
+   snMax = 41;
 
-   snNames : Array[ snMin..snMax ] of String[31] =
+   snNames : Array[ snMin..snMax ] of String[32] =
       //'12345678901234567890123467890'
       ( 'Other'                   ,       //snOther
         'MYOB Accountants Enterprise MAS',//snSolution6MAS4
         'HAPAS Client Accounting' ,       //snHAPAS
-        'MYOB Accountants Office' ,     //snGLMan
+        'MYOB Accountants Office' ,       //snGLMan
         'Global Accounting'       ,       //snGlobal
         'Master 2000'             ,       //snMaster2000
         'Professional Accounting 7',      //snAdvance
@@ -496,7 +497,7 @@ CONST
         'Lotus 1-2-3'             ,       //snLotus123
         'AccPac Plus'             ,       //snAccPac
         'Concept Cash Manager'    ,       //snCCM
-        'MYOB Transaction Journals',       //snMYOB
+        'MYOB Transaction Journals',      //snMYOB
         'AccPac for Windows'      ,       //snAccPacW
         'SmartBooks 2000'         ,       //snSmartBooks
         'Beyond Private Ledger'   ,       //snBeyond
@@ -515,8 +516,9 @@ CONST
         'Business Products - QIF',
         'Business Products - OFX V1',
         'Business Products - OFX V2',
-        'MYOB AO (manual posting)',      //snMYOB_COM
-        'QuickBooks 2008/2009'           // snQBWN
+        'MYOB AO (manual posting)',       //snMYOB_COM
+        'QuickBooks 2008/2009',           // snQBWN
+        'iFirm'                           //snAcclipse
          );
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -1977,6 +1979,13 @@ const
         'Cheque',
         'Other',
         'Self-managed superfund');
+
+   // 'Self-managed superfund' and 'Trust (CMT)' are Australia only
+   AccountTypeExclusionsNZ = [mtTrust, mtSuper]; 
+   AccountTypeExclusionsUK = [mtTrust, mtSuper];
+
+   // No exclusions needed for Australia as of yet
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   // period types for payee report totals
   ptMonthly = 0; ptMin = 0;

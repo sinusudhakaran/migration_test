@@ -475,12 +475,14 @@ begin
               ProductConfigService.IsNotesOnlineEnabled) or
               (MyClient.clFields.clWeb_Export_Format = wfWebNotes) then
           begin
-            cmbWebFormats.Items.AddObject(wfNames[i], TObject(i));
+            if not ExcludeFromWebFormatList(clCountry, i) then
+              cmbWebFormats.Items.AddObject(wfNames[i], TObject(i));
           end;
         end
         else
         begin
-          cmbWebFormats.Items.AddObject(wfNames[i], TObject(i));
+          if not ExcludeFromWebFormatList(clCountry, i) then
+            cmbWebFormats.Items.AddObject(wfNames[i], TObject(i));
         end;
       end;
 
@@ -973,6 +975,11 @@ procedure TdlgAcctSystem.btndefaultClick(Sender: TObject);
     eTo.Text   := AdminSystem.fdFields.fdSave_Client_Files_To;
   end;
 
+  procedure LoadWebFormat;
+  begin
+    cmbWebFormats.ItemIndex := cmbWebFormats.Items.IndexOfObject(TObject(AdminSystem.fdFields.fdWeb_Export_Format));
+  end;
+
 begin
   if not Assigned(AdminSystem) then
     Exit;
@@ -991,6 +998,7 @@ begin
     else
       LoadAccounting
   end;
+  LoadWebFormat;
 
   if CanBulkExtract then
   begin

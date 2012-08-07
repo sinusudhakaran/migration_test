@@ -35,7 +35,6 @@ object frmECodingOptions: TfrmECodingOptions
     Caption = '&OK'
     TabOrder = 1
     OnClick = btnOkClick
-    ExplicitTop = 289
   end
   object btnCancel: TButton
     Left = 416
@@ -47,7 +46,6 @@ object frmECodingOptions: TfrmECodingOptions
     Caption = 'Cancel'
     ModalResult = 2
     TabOrder = 2
-    ExplicitTop = 289
   end
   inline ecExportOptions: TfmeECodingExport
     Left = 5
@@ -64,43 +62,9 @@ object frmECodingOptions: TfrmECodingOptions
     ExplicitLeft = 5
     ExplicitTop = 5
     ExplicitWidth = 484
-    ExplicitHeight = 278
+    ExplicitHeight = 323
     inherited lblPassword: TLabel
       FocusControl = ecExportOptions.edtPassword
-    end
-    inherited cmbInclude: TComboBox
-      TabOrder = 9
-    end
-    inherited chkIncludeChart: TCheckBox
-      TabOrder = 8
-    end
-    inherited chkIncludePayees: TCheckBox
-      TabOrder = 7
-    end
-    inherited chkShowQuantity: TCheckBox
-      TabOrder = 1
-    end
-    inherited chkShowGST: TCheckBox
-      TabOrder = 2
-    end
-    inherited chkShowTaxInv: TCheckBox
-      TabOrder = 0
-    end
-    inherited chkShowAccount: TCheckBox
-      TabOrder = 3
-    end
-    inherited chkAddUPIs: TCheckBox
-      TabOrder = 4
-    end
-    inherited cmbWebSpace: TComboBox
-      Left = 168
-      ExplicitLeft = 168
-    end
-    inherited ChkSuperfund: TCheckBox
-      TabOrder = 5
-    end
-    inherited chkIncludeJobs: TCheckBox
-      TabOrder = 6
     end
   end
 end

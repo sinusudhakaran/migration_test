@@ -906,9 +906,12 @@ function ConfigureScheduledReports( ClientCodes : string) : boolean;
 var
   SelectedList : TStringList;
   i            : integer;
-  Client       : pClient_File_Rec;
+  Client : pClient_File_Rec;
   TempDlgClient   : TClientObj;
   TemplistClient   : TClientObj;
+  FirstClientFields : tClient_Rec;
+  FirstClientExtra : TClientExtra_Rec;
+  FirstClientFileRec : tClient_File_Rec;
   SchdRepDlg        : TdlgClientReportSchedule;
   SuccessCount : Integer;
   CantOpenCount : Integer;
@@ -939,14 +942,14 @@ begin
     else
     begin
       TempDlgClient := nil;
-      TempListClient := nil;      
+      TempListClient := nil;
 
       UseCurrentlyOpenClient := CodeIsMyClient( Client.cfFile_Code);
       //open the first client to get some defaults from
       if not UseCurrentlyOpenClient then
         OpenAClientForRead(Client.cfFile_Code, TempDlgClient)
       else
-        TempDlgClient := MyClient;
+        TempDlgClient := MyClient;                                                          
 
       if Assigned(TempDlgClient) then
       begin
@@ -959,6 +962,7 @@ begin
 
             ReadClientSchedule(TempDlgClient, SchdRepDlg);
 
+            FirstClientFileRec := AdminSystem.fdSystem_Client_File_List.FindCode(SelectedList[0])^;
             //default settings now loaded
             if ( SchdRepDlg.ShowModal = mrOK) then
             begin
@@ -978,7 +982,22 @@ begin
 
                   if Assigned(TempListClient) then
                   begin
-                    WriteClientSchedule(TempListClient, SchdRepDlg);
+                    // FirstClientFields stores a copy of the first clients clFields record, which is then
+                    // passed into WriteClientSchedule where it is used to make sure we are only updating
+                    // fields which have been changed.
+                    // This is to fix the problem where, in cases where multiple clients have been selected,
+                    // the Report Schedule shows the fields as they are currently set for the first client,
+                    // and when OK is pressed will update all the clients to whatever is shown on the form;
+                    // this is not the desired behaviour, we only want to update the fields which have been
+                    // changed.
+                    if (i = 0) then
+                    begin
+                      FirstClientFields := TempListClient.clFields;
+                      FirstClientExtra := TempListClient.clExtra;
+                    end;
+                    WriteClientSchedule(TempListClient, SchdRepDlg, FirstClientFields, FirstClientExtra,
+                                        @FirstClientFileRec);
+
                     if not UseCurrentlyOpenClient then
                       CloseAClient(TempListClient)
                     else

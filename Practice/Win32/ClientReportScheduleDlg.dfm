@@ -9,6 +9,9 @@ inherited dlgClientReportSchedule: TdlgClientReportSchedule
   OnDestroy = FormDestroy
   ExplicitWidth = 638
   ExplicitHeight = 522
+  DesignSize = (
+    632
+    494)
   PixelsPerInch = 96
   TextHeight = 13
   inherited btnOK: TButton

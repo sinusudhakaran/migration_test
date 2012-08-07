@@ -2529,10 +2529,28 @@ end;
 procedure TfrmClientManager.DoMergeDoc;
 var
   Codes: string;
+  Index: Integer;
 begin
   try
-    if owMerge.Connected = False then
+    //Clear any document objects that point to deleted files.
+    if (Pos('Vista', WinUtils.GetWinVer) > 0) then
+    begin
+      if owMerge.Connected then
+      begin
+        owMerge.Connected := False;
+      end;
+
+      owMerge.Documents.Clear;
+
       owMerge.Connected := True;
+    end
+    else
+    if not owMerge.Connected then
+    begin
+      owMerge.Connected := True;
+    end;
+
+
     if not owMerge.Connected then begin
       HelpfulInfoMsg(OfficeFialed, 0);
       Exit;
@@ -2553,10 +2571,27 @@ end;
 procedure TfrmClientManager.DoMergeEMail;
 var
   Codes: string;
+  Index: Integer;
 begin
   try
-    if owMerge.Connected = False then
+    //Clear any document objects that point to deleted files.
+    if (Pos('Vista', WinUtils.GetWinVer) > 0) then
+    begin
+      if owMerge.Connected then
+      begin
+        owMerge.Connected := False;
+      end;
+
+      owMerge.Documents.Clear;
+
       owMerge.Connected := True;
+    end
+    else
+    if not owMerge.Connected then
+    begin
+      owMerge.Connected := True;
+    end;
+
     if not owMerge.Connected then begin
       HelpfulInfoMsg(OfficeFialed, 0);
       Exit;
@@ -2577,10 +2612,27 @@ end;
 procedure TfrmClientManager.DoCreateDoc(var LoseFocus: Boolean);
 var
   Codes: string;
+  Index: Integer;
 begin
   try
-    if owMerge.Connected = False then
+    //Clear any document objects that point to deleted files.
+    if (Pos('Vista', WinUtils.GetWinVer) > 0) then
+    begin
+      if owMerge.Connected then
+      begin
+        owMerge.Connected := False;
+      end;
+
+      owMerge.Documents.Clear;
+
       owMerge.Connected := True;
+    end
+    else
+    if not owMerge.Connected then
+    begin
+      owMerge.Connected := True;
+    end;
+      
     if not owMerge.Connected then begin
       HelpfulInfoMsg(OfficeFialed, 0);
       Exit;
@@ -3224,11 +3276,19 @@ begin
   with aForm do
   begin
     try
-      Height := Application.MainForm.Monitor.WorkareaRect.Bottom - Application.MainForm.Monitor.WorkareaRect.Top - GetTaskBarHeight;
-      if Screen.DesktopWidth < 700 then
+      if IsTaskbarHorizontal then
+      begin
+        Height := Application.MainForm.Monitor.WorkareaRect.Bottom - Application.MainForm.Monitor.WorkareaRect.Top - GetTaskBarHeight;
+      end
+      else
+      begin
+        Height := Application.MainForm.Monitor.WorkareaRect.Bottom - Application.MainForm.Monitor.WorkareaRect.Top - GetTaskBarWidth;
+      end;
+
+      if Screen.DesktopWidth < 720 then
         Width := Screen.DesktopWidth
       else
-        Width := 700;
+        Width := 720;
       Top := 0;
       edtPractice.Text := AdminSystem.fdFields.fdBankLink_Code;
       edtAdvisors.Text := AdminSystem.fdFields.fdPractice_Name_for_Reports;
@@ -3261,7 +3321,15 @@ begin
   with aForm do
   begin
     try
-      Height := Application.MainForm.Monitor.WorkareaRect.Bottom - Application.MainForm.Monitor.WorkareaRect.Top - GetTaskBarHeight;
+      if IsTaskbarHorizontal then
+      begin
+        Height := Application.MainForm.Monitor.WorkareaRect.Bottom - Application.MainForm.Monitor.WorkareaRect.Top - GetTaskBarHeight;
+      end
+      else
+      begin
+        Height := Application.MainForm.Monitor.WorkareaRect.Bottom - Application.MainForm.Monitor.WorkareaRect.Top - GetTaskBarWidth;
+      end;
+
       if Screen.DesktopWidth < 700 then
         Width := Screen.DesktopWidth
       else

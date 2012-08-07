@@ -168,82 +168,126 @@ begin
 end;
 
 procedure TfrmMaintainGroups.lvGroupsKeyPress(Sender: TObject; var Key: Char);
-var SaveSearchKey: Shortstring;
-    ThisSreachTime: tDateTime;
+var
+  SaveSearchKey: Shortstring;
+  ThisSreachTime: tDateTime;
 const
-   TypeAheadTimeout = 1.0 / SecsPerDay; // 1 sec
+    TypeAheadTimeout = 1.0 / SecsPerDay; // 1 sec
 
     procedure DoNewSearch;
-    var StartIndex: Integer;
-        Index: Integer;
-        Looped: Boolean;
+    var
+      StartIndex: Integer;
+      Index: Integer;
+      Looped: Boolean;
     begin
-       Key := #0;//While we are here..
-       if lvGroups.SelCount > 0 then
-          StartIndex := lvGroups.Selected.Index
-       else
-           StartIndex := 0;
-       Index := StartIndex;
-       Looped := False;
-       repeat
-          if Index >= lvGroups.Items.Count then begin
-             Index := 0;
-             Looped := True;
-          end;
-          if Pos(CurrentSearchKey, UpperCase(lvGroups.Items[Index].SubItems[Pred(SortCol)] )) = 1 then begin
-             if (Length(CurrentSearchKey) = 1)
-             and (Index = StartIndex) then begin
-                if Looped then
-                   Exit;
-             end else begin
-                lvGroups.Selected := nil;
-                lvGroups.Selected := lvGroups.Items[Index];
-                Exit;
-             end;
-          end;
+       if (lvGroups.Items.Count = 0) then
+       begin
+         Exit;
+       end;
 
-          Inc(Index);
-       until Index = StartIndex;
+       Key := #0;//While we are here..
+
+       if lvGroups.SelCount > 0 then
+       begin
+         StartIndex := lvGroups.Selected.Index
+       end
+       else
+       begin
+         StartIndex := 0;
+       end;
+
+       Index := StartIndex;
+
+       Looped := False;
+
+       repeat
+         if Index >= lvGroups.Items.Count then
+         begin
+           Index := 0;
+           Looped := True;
+         end;
+
+         if Pos(CurrentSearchKey, UpperCase(lvGroups.Items[Index].SubItems[Pred(SortCol)] )) = 1 then
+         begin
+           if (Length(CurrentSearchKey) = 1) and (Index = StartIndex) then
+           begin
+             if Looped then
+             begin
+               Exit;
+             end;
+           end
+           else
+           begin
+             lvGroups.Selected := nil;
+             lvGroups.Selected := lvGroups.Items[Index];
+
+             Exit;
+           end;
+         end;
+
+         Inc(Index);
+       until Looped and (Index > StartIndex);
     end;
 
 begin
-   case integer(key) of
-    VK_RETURN : if DoSelect then
-             ModalResult := mrOK
-           else
-             tbEdit.Click;
+   case Integer(key) of
+     VK_RETURN:
+     begin
+       if DoSelect then
+       begin
+         ModalResult := mrOK
+       end
+       else
+       begin
+         tbEdit.Click;
+       end;
+     end;
 
-    VK_ESCAPE : ModalResult := mrCancel;
-    VK_INSERT : tbNewClick(nil);
-    else begin
+     VK_ESCAPE:
+     begin
+       ModalResult := mrCancel;
+     end;
+
+     VK_INSERT:
+     begin
+       tbNewClick(nil);
+     end;
+
+     else
+     begin
        if SortCol = 0 then
-          Exit; // works natively
+       begin
+         Exit; // works natively
+       end;
 
        ThisSreachTime := Now;
-       if (LastSearchTime > 0)
-       and ((ThisSreachTime - LastSearchTime) > TypeAheadTimeout) then
-       CurrentSearchKey := ''; // Too Old
+
+       if (LastSearchTime > 0) and ((ThisSreachTime - LastSearchTime) > TypeAheadTimeout) then
+       begin
+         CurrentSearchKey := ''; // Too Old
+       end;
 
        SaveSearchKey := CurrentSearchKey;
        LastSearchTime := ThisSreachTime;
 
-       if ( ( Key = #8 )
-       and ( CurrentSearchKey[0] > #0) ) then Begin
+       if ( ( Key = #8 ) and ( CurrentSearchKey[0] > #0) ) then
+       begin
          CurrentSearchKey[ 0 ] := Pred( CurrentSearchKey[0] );
        end
-       else
-       if Upcase(key) = SaveSearchKey then begin
-          DoNewSearch; // Same key.. Just move on..
-       end else
-       if Key in [ #32..#126 ] then
-       Begin
-          CurrentSearchKey := CurrentSearchKey + UpCase( Key );
+       else if Upcase(key) = SaveSearchKey then
+       begin
+         DoNewSearch; // Same key.. Just move on..
+       end
+       else if Key in [ #32..#126 ] then
+       begin
+         CurrentSearchKey := CurrentSearchKey + UpCase( Key );
        end;
-       if CurrentSearchKey <> SaveSearchKey then begin
-          DoNewSearch;
-       end;
-    end;
 
+       if (CurrentSearchKey <> SaveSearchKey) then
+       begin
+         DoNewSearch;
+       end;
+     end;
    end;
 end;
 

@@ -91,7 +91,7 @@ begin
 
    //Components
    tblFromTo.Hint   :=
-                    'Enter the cheque number range(s) to delete'+
+                    'Enter the cheque number range(s) to delete|'+
                     'Enter the cheque number range(s) to delete of the Unpresented Cheques';
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

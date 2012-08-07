@@ -261,7 +261,8 @@ uses
   ComboUtils,
   StrUtils,
   BKDEFS,
-  AuditMgr;
+  AuditMgr,
+  Themes;
 
 {$R *.DFM}
 
@@ -1630,6 +1631,9 @@ begin
    end;
 
 {$ENDIF}
+  //Ensure tab goes the the first row and not the second one.
+  tblRates.ActiveRow := 0;
+
 //*********************************
    Self.ShowModal;
 //*********************************
@@ -1854,12 +1858,18 @@ procedure TdlgEditGST.pcGSTChange(Sender: TObject);
 var
    i : integer;
 begin
-   if pcGST.ActivePage = pgBASRules then begin
-      //reload descriptions for node with latest gst descriptions
-      with BASTV do begin
-         for i := 0 to Pred( Items.Count) do
-            UpdateBASSlotDesc( Items[ i]);
-      end;
+   if pcGST.ActivePage = pgBASRules then
+   begin
+     //reload descriptions for node with latest gst descriptions
+     with BASTV do
+     begin
+       for i := 0 to Pred( Items.Count) do
+       begin
+         UpdateBASSlotDesc( Items[ i]);
+       end;
+     end;
+
+     ActiveControl := BasTV;
    end;
 end;
 
@@ -2003,8 +2013,14 @@ begin
     //changed. Note also that when DefaultDraw = True, Windows draws the
     //buttons and ignores our font background colors, using instead the
     //TreeView's Color property.
-    if Node.Level = 0 then begin
-       Font.Style := [fsBold];
+    if Node.Level = 0 then
+    begin
+      if ThemeServices.ThemesEnabled then
+      begin
+        Sender.Canvas.Font.Color := clBlack;
+      end;
+
+      Sender.Canvas.Font.Style := [fsBold];
     end;
 
     if (cdsSelected in State) then exit;

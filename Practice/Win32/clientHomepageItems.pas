@@ -1665,12 +1665,10 @@ end;
 
 function TCHGSTPeriodItem.GetGSTPeriod(AnyDate, StartMonth, PeriodType : integer):TDateRange;
 var
-   D,  Y : Integer;
-   Bal: pBalances_Rec;
+  D,  Y : Integer;
+  Bal: pBalances_Rec;
 Begin
-
-
-   if Client.clFields.clCountry = whNewZealand then  // Check the balances first..
+  if Client.clFields.clCountry in [whNewZealand, whUK] then  // Check the balances first..
 
     with Client.clBalances_List do
       for D := First to Last do begin
@@ -1680,7 +1678,7 @@ Begin
          if (Bal.blGST_Period_Starts > AnyDate) then
             Break; // Too Late
          {if not(GetPeriodMonths(Bal.blGST_Period_Starts,Bal.blGST_Period_Ends) in [1,2,6]) then
-            Continue; // Not a valid period} 
+            Continue; // Not a valid period}
          // Basic date must be ok...
          Result.FromDate := Bal.blGST_Period_Starts;
          Result.ToDate := Bal.blGST_Period_Ends;

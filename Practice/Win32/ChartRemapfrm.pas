@@ -55,7 +55,7 @@ public
    destructor Destroy; override;
    property OldCode: string read FOldCode write SetOldCode;
    property NewCode: string read FNewCode write SetNewCode;
-   function Lookup(Code: string; SkipBlank : Boolean = True):TChartItem;
+   function Lookup(Code, Description: string; SkipBlank : Boolean = True):TChartItem;
    function Remap(Code: string; var Count: Integer): string;
    function NewTempCode: string;
    property ChartItems [index: Integer]: TChartItem read GetChartItems write SetChartItems;
@@ -519,7 +519,7 @@ begin
    VK_Return : Key := 0; // Wierd focus problem
 
    VK_Insert : begin
-           ni := FNewChart.Lookup('', False);
+           ni := FNewChart.Lookup('', '', False);
            if Assigned(ni) then begin
               // Already Have a Blank one, Use this first..
               ChartGrid.Selected[ni.ChartNode] := True;
@@ -580,7 +580,7 @@ begin
           //Can only be in the list once...
           if not Sametext(ChartItem[Node].OldCode , NewText) then begin
              // Check if I Have it in the list..
-             lNew := FNewChart.Lookup(NewText);
+             lNew := FNewChart.Lookup(NewText, '');
              if Assigned(lNew) then begin
                 HelpfulInfoMsg(Format('Code "%s" is already in the list',[NewText]) ,0);
                 FChartSel := LNew;
@@ -623,8 +623,6 @@ begin
                        TargetCanvas.Font.Style := TargetCanvas.Font.Style + [fsBold];
 
          ccNewName: if Assigned(OldItem)  // Check if Different
-                    and (NewCode > '')
-                    and (NewCode <>  pAccount_Rec(OldItem).chAccount_Code)
                     and (NewName > '')
                     and (NewName <>  pAccount_Rec(OldItem).chAccount_Description) then
                        TargetCanvas.Font.Style := TargetCanvas.Font.Style + [fsBold];
@@ -933,7 +931,7 @@ begin
     VK_Return : Key := 0;
 
     VK_Insert : begin
-           ni := FNewGST.Lookup('', False);
+           ni := FNewGST.Lookup('', '', False);
            if Assigned(ni) then begin
               // Already Have a Blank one, Use this first..
               GSTGrid.Selected[ni.ChartNode] := True;
@@ -990,7 +988,7 @@ begin
           //Can only be in the list once...
           if not Sametext(GSTItem[Node].OldCode , NewText) then begin
              // Check if I Have it in the list..
-             lNew := FNewGST.Lookup(NewText);
+             lNew := FNewGST.Lookup(NewText, '');
              if Assigned(lNew) then begin
                  HelpfulInfoMsg(Format('ID "%s" is already in the list',[NewText]) ,0);
                  FGstSel := lNew; // see if we can move to it..
@@ -1032,9 +1030,7 @@ begin
 
          cgNewName: if (OldItem <> nil)  // Check if Different
                     and (NewName > '')
-                    and (NewName <>  MyClient.clFields.clGST_Class_Names[Integer(OldItem)])
-                    and (NewCode > '')
-                    and (NewCode <>  MyClient.clFields.clGST_Class_Codes[Integer(OldItem)]) then
+                    and (NewName <>  MyClient.clFields.clGST_Class_Names[Integer(OldItem)]) then
                        TargetCanvas.Font.Style := TargetCanvas.Font.Style + [fsBold];
 
       end;
@@ -1130,6 +1126,24 @@ begin
        // Seems OK ...
        ChartFilename := Value;
 
+       L := 0;
+       
+       while (FNewChart.ItemCount > 0) and (L < FNewChart.ItemCount) do
+       begin
+         nI := FNewChart.Items[L];
+
+         if nI.OldCode = '' then
+         begin
+           FNewChart.Delete(nI);
+
+           nI.Free;
+         end
+         else
+         begin
+           Inc(L);
+         end;
+       end;
+  
        for L := 0 to lFile.Count - 1 do begin
           lLine.DelimitedText := LFile[L];
 
@@ -1138,7 +1152,7 @@ begin
           if Length(lLine[fcOldCode]) < 1 then
              Continue;
 
-          nI := FNewChart.Lookup(LLine[fcOldCode]);
+          nI := FNewChart.Lookup(LLine[fcOldCode], LLine[fcOldName]);
           if not Assigned(nI) then begin
              // Insert a New one...
              nI := TChartItem.Create;
@@ -1169,9 +1183,27 @@ var I: Integer;
     la: pAccount_Rec;
     nI: TChartItem;
 begin
+  I := 0;
+
+  while (FNewChart.ItemCount > 0) and (I < FNewChart.ItemCount) do
+  begin
+    nI := FNewChart.Items[I];
+
+    if nI.OldCode = '' then
+    begin
+      FNewChart.Delete(nI);
+
+      nI.Free;
+    end
+    else
+    begin
+      Inc(I);
+    end;
+  end;
+
    for I := MyClient.clChart.First to MyClient.clChart.Last do begin
       la := MyClient.clChart.Account_At(I);
-      nI := FNewChart.Lookup(la.chAccount_Code);
+      nI := FNewChart.Lookup(la.chAccount_Code, la.chAccount_Description);
       if not Assigned(ni) then begin
          ni := TChartItem.Create;
          ni.OldCode := la.chAccount_Code;
@@ -1186,9 +1218,27 @@ procedure TfrmRemapChart.LoadClientGST;
 var I: Integer;
     nI: TChartItem;
 begin
+  I := 0;
+
+  while (FNewGST.ItemCount > 0) and (I < FNewGST.ItemCount) do
+  begin
+    nI := FNewGST.Items[I];
+
+    if nI.OldCode = '' then
+    begin
+      FNewGST.Delete(nI);
+
+      nI.Free;
+    end
+    else
+    begin
+      Inc(I);
+    end;
+  end;
+  
    for I := low(MyClient.clFields.clGST_Class_Codes) to high(MyClient.clFields.clGST_Class_Codes) do
       if MyClient.clFields.clGST_Class_Codes[I] > '' then begin
-         nI := FNewGST.Lookup(MyClient.clFields.clGST_Class_Codes[I] );
+         nI := FNewGST.Lookup(MyClient.clFields.clGST_Class_Codes[I], MyClient.clFields.clGST_Class_Names[I]);
          if not Assigned(ni) then begin
             ni := TChartItem.Create;
             ni.OldCode := MyClient.clFields.clGST_Class_Codes[I] ;
@@ -1263,6 +1313,24 @@ begin
       //OK Then ..
       GSTFilename := Value;
 
+      L := 0;
+      
+      while (FNewGST.ItemCount > 0) and (L < FNewGST.ItemCount) do
+      begin
+        nI := FNewGST.Items[L];
+
+        if nI.OldCode = '' then
+        begin
+          FNewGST.Delete(nI);
+
+          nI.Free;
+        end
+        else
+        begin
+          Inc(L);
+        end;
+      end;
+  
       for L := 0 to lFile.Count - 1 do begin
          lLine.DelimitedText := LFile[L];
          if lLine.Count < 2 then
@@ -1270,7 +1338,7 @@ begin
          if Length(lLine[fcOldCode]) < 1 then
              Continue;
 
-         nI := FNewGST.Lookup(LLine[0]);
+         nI := FNewGST.Lookup(LLine[0], LLine[1]);
          if not Assigned(nI) then begin
             // Insert a New one...
             nI := TChartItem.Create;
@@ -1422,14 +1490,21 @@ begin
     // Do the chart itself..
     for I := 0 to MyClient.clChart.Last do
        with MyClient.clChart.Account_At(I)^ do begin
-          CI := Value.Lookup(chAccount_Code);
-          if Assigned(CI)
-          and (CI.NewCode > '') then begin
-             chAccount_Code := CI.NewCode;
-             if CI.NewName > '' then
-                chAccount_Description  := CI.NewName;
-             // Posting ??
-             Inc(LCount);
+          CI := Value.Lookup(chAccount_Code, chAccount_Description);
+          if Assigned(CI) and ((CI.NewCode > '') or (CI.NewName > '')) then
+          begin
+            if CI.NewCode > '' then
+            begin
+              chAccount_Code := CI.NewCode;
+            end;
+
+            if CI.NewName > '' then
+            begin
+              chAccount_Description  := CI.NewName;
+            end;
+
+            // Posting ??
+            Inc(LCount);
           end;
           chLinked_Account_OS  := Value.Remap(chLinked_Account_OS,LCountA);
           chLinked_Account_CS  := Value.Remap(chLinked_Account_CS,LCountA);
@@ -1538,7 +1613,7 @@ var
       for I := 0 to fNewChart.ItemCount - 1 do begin
          oI := fNewChart.At(I);
          if oI.OldCode > '' then
-         if Assigned(FNewChart.Lookup (oI.NewCode))
+         if Assigned(FNewChart.Lookup (oI.NewCode, oI.NewName))
          or Assigned(MyClient.clChart.FindCode(oI.NewCode)) then begin
             //New code is in the Old or used agian, have to change to somthing else first
             if not Assigned(Chart2) then
@@ -1562,7 +1637,7 @@ var
       for I := 0 to fNewGST.ItemCount - 1 do begin
          oI := fNewGST.At(I);
          if oI.OldCode > '' then
-         if Assigned(FNewGST.Lookup (oI.NewCode))
+         if Assigned(FNewGST.Lookup (oI.NewCode, oI.NewName))
          or (GSTIndex(oI.NewCode) > 0) then begin
             //New code is in the Old GST Classes, ore used again
             if not Assigned(GST2) then
@@ -1647,12 +1722,23 @@ var
    end; //RemapGSTID
 
 begin //TfrmRemapChart.RemapCharts;
+  if (AdminSystem.fdFields.fdCountry <> whUK) then
+  begin
     if askYesNo('Are you sure','You are about to convert the Chart of Accounts'#13 +
         'and change coding for this client file.'#13 +
         'These changes cannot be undone,'#13 +
         'except by clicking File, Abandon Changes.'#13#13 +
         'Are you sure you want to continue?',DLG_Yes,0) <> DLG_YES then
        Exit;
+  end
+  else
+  begin
+    if askYesNo('Are you sure','You are about to convert the Chart of Accounts'#13 +
+        'and change coding for this client file.'#13 +
+        'These changes cannot be undone.' + #13#13 +
+        'Are you sure you want to continue?',DLG_Yes,0) <> DLG_YES then
+       Exit;
+  end;
 
     fStatString := '';
     Chart2 := nil;
@@ -1905,13 +1991,13 @@ var I: Integer;
 begin
   Result := True;
   for I := 0 to fNewChart.itemCount - 1 do
-     if (fNewChart.ChartItems[I].NewCode > '')
+     if (fNewChart.ChartItems[I].NewCode > '') or (FNewChart.ChartItems[I].NewName > '')
      {or (fNewChart.ChartItems[I].NewName > '')} then
         // ? posting.
         Exit;
 
   for I := 0 to fNewGST.itemCount - 1 do
-     if (fNewGST.ChartItems[I].NewCode > '')
+     if (fNewGST.ChartItems[I].NewCode > '') or (FNewGST.ChartItems[I].NewName > '')
      {or (fNewGST.ChartItems[I].NewName > '')} then
         Exit;
 
@@ -2046,12 +2132,11 @@ begin
 end;
 
 
-function TNewChart.Lookup(Code: string; SkipBlank : Boolean = True): TChartItem;
+function TNewChart.Lookup(Code, Description: string; SkipBlank : Boolean = True): TChartItem;
 var I: Integer;
 begin
    Result := nil;
-   if SkipBlank
-   and (Code = '') then
+   if SkipBlank and (Code = '') and (Description = '') then
       Exit; //Exclude the Blank line that may be in the list
    fLookup.OldCode := Code;
    if Search(flookup,I) then

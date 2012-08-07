@@ -1,6 +1,7 @@
 object dlgAdminOptions: TdlgAdminOptions
   Left = 317
   Top = 231
+  ActiveControl = chkCopyNarrationDissection
   BorderStyle = bsDialog
   Caption = 'System Options'
   ClientHeight = 471
@@ -30,6 +31,7 @@ object dlgAdminOptions: TdlgAdminOptions
       Width = 75
       Height = 25
       Caption = 'OK'
+      Default = True
       ModalResult = 1
       TabOrder = 0
     end
@@ -49,7 +51,7 @@ object dlgAdminOptions: TdlgAdminOptions
     Top = 0
     Width = 618
     Height = 433
-    ActivePage = tsExporting
+    ActivePage = tsGeneral
     Align = alTop
     MultiLine = True
     TabOrder = 1
@@ -175,14 +177,14 @@ object dlgAdminOptions: TdlgAdminOptions
         Caption = 'Automatically retrieve new &transactions when a Client is opened'
         TabOrder = 7
       end
-      object Button2: TButton
+      object btnReset: TButton
         Left = 383
         Top = 308
         Width = 51
         Height = 25
         Caption = 'R&eset'
-        TabOrder = 8
-        OnClick = Button2Click
+        TabOrder = 10
+        OnClick = btnResetClick
       end
       object pnlCESFont: TPanel
         Left = 440
@@ -198,7 +200,7 @@ object dlgAdminOptions: TdlgAdminOptions
         Font.Name = 'MS Sans Serif'
         Font.Style = []
         ParentFont = False
-        TabOrder = 9
+        TabOrder = 11
       end
       object chkReportPwd: TCheckBox
         Left = 24
@@ -206,7 +208,7 @@ object dlgAdminOptions: TdlgAdminOptions
         Width = 361
         Height = 25
         Caption = 'Pass&word protect Statements and Download Documents'
-        TabOrder = 10
+        TabOrder = 12
         OnClick = chkReportPwdClick
       end
       object btnReportPwd: TButton
@@ -216,7 +218,7 @@ object dlgAdminOptions: TdlgAdminOptions
         Height = 25
         Caption = '&Change Password'
         Enabled = False
-        TabOrder = 11
+        TabOrder = 13
         OnClick = btnReportPwdClick
       end
       object cbceFont: TRzFontComboBox
@@ -228,7 +230,7 @@ object dlgAdminOptions: TdlgAdminOptions
         PreviewText = 'Coding Hint'
         DropDownWidth = 200
         ItemHeight = 18
-        TabOrder = 12
+        TabOrder = 8
         OnChange = cbceFontChange
       end
       object cbSize: TRzComboBox
@@ -239,7 +241,7 @@ object dlgAdminOptions: TdlgAdminOptions
         AllowEdit = False
         Style = csDropDownList
         ItemHeight = 13
-        TabOrder = 13
+        TabOrder = 9
         OnChange = cbSizeChange
         Items.Strings = (
           '5'

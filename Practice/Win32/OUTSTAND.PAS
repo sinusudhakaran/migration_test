@@ -692,7 +692,7 @@ begin
   end;
   //confirm deletion
   S := IntToStr( CanDeleteCount) + ' unpresented cheque(s) will be deleted.'#13#13+
-                           'Please confirm want to do this.';
+                           'Please confirm you want to do this.';
   If not (AskYesNo('Delete Unpresented Cheques', S, DLG_NO,0 )=DLG_YES ) then
      exit;
 

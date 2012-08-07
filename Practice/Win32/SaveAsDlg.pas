@@ -156,7 +156,7 @@ begin
   end;
 
   if NameExists then begin
-     HelpfulWarningMsg('A ' + CodeType + ' with this code already exists. Please try a different code', 0 );
+     HelpfulWarningMsg('A ' + CodeType + ' with this code already exists. Please try a different code.', 0 );
      eCode.setfocus;
      exit;
   end;

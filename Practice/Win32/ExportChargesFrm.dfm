@@ -386,8 +386,6 @@ object frmExportCharges: TfrmExportCharges
       OnKeyDown = tgChargesKeyDown
       OnMouseUp = tgChargesMouseUp
       OnRowChanged = tgChargesRowChanged
-      ExplicitLeft = 8
-      ExplicitTop = 6
       ColProperties = <
         item
           DataCol = 1
@@ -509,7 +507,7 @@ object frmExportCharges: TfrmExportCharges
         end
         item
           DataCol = 10
-          Col.Heading = 'Banklink Charges'
+          Col.Heading = 'BankLink Charges'
           Col.MaskName = 'money'
           Col.MaxLength = 20
           Col.ReadOnly = True

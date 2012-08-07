@@ -833,7 +833,7 @@ begin
       RenderAmountLine('Provisional Tax',false,false,LongIDs, '24',Figures.rpt_Tax);
       RenderUnderline;
       if figures.rGST_To_Pay < 0 then begin
-         RenderAmountLine('Refund transfered',false,false,LongIDs, '25',Figures.rpt_RefundUsed );
+         RenderAmountLine('Refund transferred',false,false,LongIDs, '25',Figures.rpt_RefundUsed );
          RenderUnderline;
          RenderAmountLine('Subtract Box 25 from Box 24',false,true,LongIDs, '26',Figures.rpt_Tax - Figures.rpt_RefundUsed);
          RenderUnderline;
@@ -841,7 +841,7 @@ begin
          RenderUnderline;
          RenderAmountLine('GST and/or provisional tax to pay',false,true,LongIDs, '28',Figures.rpt_Tax - Figures.rpt_RefundUsed);
       end else begin
-         RenderAmountLine('Refund transfered',false,true,LongIDs, '25',0 );
+         RenderAmountLine('Refund transferred',false,true,LongIDs, '25',0 );
          RenderUnderline;
          RenderAmountLine('Subtract Box 25 from Box 24',false,false,LongIDs, '26',Figures.rpt_Tax);
          RenderUnderline;

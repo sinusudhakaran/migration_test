@@ -721,6 +721,7 @@ var
   MemDesc   : string;
   CodeType  : string;
   MasterMsg : string;
+  MasterMsgSpace : string;
   ExtraMsg  : string;
   Country   : Byte;
   Item: TListItem;
@@ -776,12 +777,16 @@ begin
      case Country of
         whNewZealand :
            Begin
-              if mem.mdFields.mdMatch_on_Refce then       MemDesc := MemDesc + #13 + 'Reference is ' + mem.mdFields.mdReference;
-              if mem.mdFields.mdMatch_on_Analysis then    MemDesc := MemDesc + #13 + 'Analysis is ' + mem.mdFields.mdAnalysis;
+              if mem.mdFields.mdMatch_on_Refce then        MemDesc := MemDesc + #13 + 'Reference is ' + mem.mdFields.mdReference;
+              if mem.mdFields.mdMatch_on_Analysis then     MemDesc := MemDesc + #13 + 'Analysis is ' + mem.mdFields.mdAnalysis;
               if mem.mdFields.mdMatch_On_Statement_Details then MemDesc := MemDesc + #13 + 'Stmt Details are ' + mem.mdFields.mdStatement_Details;
-              if mem.mdFields.mdMatch_on_Particulars then MemDesc := MemDesc + #13 + 'Particulars are ' + mem.mdFields.mdParticulars;
-              if mem.mdFields.mdMatch_on_Other_Party then MemDesc := MemDesc + #13 + 'Other Party is' + mem.mdFields.mdOther_Party;
-              if mem.mdFields.mdMatch_on_notes then       MemDesc := MemDesc + #13 + 'Notes is ' + mem.mdFields.mdNotes;
+              if mem.mdFields.mdMatch_on_Particulars then  MemDesc := MemDesc + #13 + 'Particulars are ' + mem.mdFields.mdParticulars;
+              if mem.mdFields.mdMatch_on_Other_Party then  MemDesc := MemDesc + #13 + 'Other Party is ' + mem.mdFields.mdOther_Party;
+              if mem.mdFields.mdMatch_on_notes then        MemDesc := MemDesc + #13 + 'Notes is ' + mem.mdFields.mdNotes;
+              if Assigned(BA) then
+                if (mem.mdFields.mdMatch_on_Amount > 0) then MemDesc := MemDesc + #13 + 'Value is ' + mxNames[mem.mdFields.mdMatch_on_Amount] + ' ' + MoneyStr(mem.mdFields.mdAmount, BA.baFields.baCurrency_Code)
+              else
+                if (mem.mdFields.mdMatch_on_Amount > 0) then MemDesc := MemDesc + #13 + 'Value is ' + mxNames[mem.mdFields.mdMatch_on_Amount] + ' ' + MoneyStr(mem.mdFields.mdAmount, whCurrencyCodes[Country])
            end;
         whAustralia, whUK :
            Begin
@@ -789,10 +794,18 @@ begin
               if mem.mdFields.mdMatch_on_Particulars then MemDesc := MemDesc + #13 + 'Bank Type is ' + mem.mdFields.mdParticulars;
               if mem.mdFields.mdMatch_On_Statement_Details then MemDesc := MemDesc + #13 + 'Stmt Details are ' + mem.mdFields.mdStatement_Details;
               if mem.mdFields.mdMatch_on_notes then       MemDesc := MemDesc + #13 + 'Notes is ' + mem.mdFields.mdNotes;
+              if Assigned(BA) then
+                if (mem.mdFields.mdMatch_on_Amount > 0) then MemDesc := MemDesc + #13 + 'Value is ' + mxNames[mem.mdFields.mdMatch_on_Amount] + ' ' + MoneyStr(mem.mdFields.mdAmount, BA.baFields.baCurrency_Code)
+              else
+                if (mem.mdFields.mdMatch_on_Amount > 0) then MemDesc := MemDesc + #13 + 'Value is ' + mxNames[mem.mdFields.mdMatch_on_Amount] + ' ' + MoneyStr(mem.mdFields.mdAmount, whCurrencyCodes[Country])
            end;
      end; { Case clCountry }
 
-     if AskYesNo('Delete Memorisation?','OK to Delete '+MasterMSG+' Memorisation?'+#13+MemDesc+ExtraMsg,DLG_YES,0) <> DLG_YES then exit;
+     if (MasterMSG = '') then
+       MasterMsgSpace := ''
+     else
+       MasterMsgSpace := ' ';
+     if AskYesNo('Delete Memorisation?','OK to Delete '+MasterMSG+MasterMsgSpace+'Memorisation?'+#13+MemDesc+ExtraMsg,DLG_YES,0) <> DLG_YES then exit;
      if Assigned(AdminSystem) and (Prefix <> '') then begin
        //---DELETE MASTER MEM---
        MasterMemInfoRec.AuditID := Mem.mdFields.mdAudit_Record_ID;

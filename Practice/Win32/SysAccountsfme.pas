@@ -99,6 +99,8 @@ type
     actFilter: TAction;
     actReset: TAction;
     actRestoreColumns: TAction;
+    pnlFilter: TPanel;
+    pnlFind: TPanel;
     procedure AccountTreeHeaderClick(Sender: TVTHeader; Column: TColumnIndex;
       Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
     procedure AccountTreeGetImageIndex(Sender: TBaseVirtualTree;
@@ -149,6 +151,7 @@ type
     function TestNewGroup(const Value: Integer):TSABaseItem; overload;
     function TestNewGroup(const Value: string; var CurGroup: Integer):TSABaseItem; overload;
     { Private declarations }
+    procedure MeasureNode(Node: PVirtualNode);
   public
     procedure DoCreate(const SavedCols: string);
     procedure DoDestroy(var SaveCols: string);
@@ -984,6 +987,33 @@ begin
    Result.DelimitedText := fromtext;
 end;
 
+procedure TfmeSysAccounts.MeasureNode(Node: PVirtualNode);
+var
+  Index: Integer;
+  NextNode: PVirtualNode;
+begin
+  NextNode := Node;
+
+  while NextNode <> nil do
+  begin
+    AccountTree.MeasureItemHeight(AccountTree.Canvas, NextNode);
+
+    if NextNode.FirstChild <> nil then
+    begin
+      MeasureNode(NextNode.FirstChild);
+    end;
+
+    if NextNode <> NextNode.NextSibling then
+    begin
+      NextNode := NextNode.NextSibling;
+    end
+    else
+    begin
+      NextNode := nil;
+    end;
+  end;
+end;
+
 //------------------------------------------------------------------------------
 procedure TfmeSysAccounts.mniShowHideColumnsClick(Sender: TObject);
 var lCol: tVirtualTreeColumn;
@@ -1370,6 +1400,9 @@ begin
         lblCount.Caption := '1 Account Listed'
       else
         lblCount.Caption := format('%d Accounts Listed',[c]);
+
+      //Precalculate the node heights so that the vertical scrollbar knows before hand how much it needs to scroll.
+      MeasureNode(AccountTree.RootNode);
    finally
      AccountTree.EndUpdate;
      Screen.Cursor := kc;

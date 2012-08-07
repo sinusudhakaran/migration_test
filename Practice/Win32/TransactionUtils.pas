@@ -17,7 +17,7 @@ unit TransactionUtils;
 //------------------------------------------------------------------------------
 
 interface
-  uses  bkdefs, bkAuditUtils;
+  uses  bkdefs, bkAuditUtils, baObj32, clobj32;
 
 procedure  ClearSuperFundFields( pT : pTransaction_Rec); overload;
 procedure  ClearSuperFundFields( pD : pDissection_Rec); overload;
@@ -61,10 +61,14 @@ procedure GetPayeeInfoForDissection( const pT : pTransaction_Rec;
                                     var AllPayeesTheSame : boolean;
                                     var FirstPayee : integer);
 
+function GetChartDescription(pD: pTransaction_Rec): String;
+function GetPayeeName(pD: pTransaction_Rec; Client: TClientObj): String;
+function GetJobName(pD: pTransaction_Rec; Client: TClientObj): String;
+
 //******************************************************************************
 implementation
 uses
-  bkConst, ComObj, SysUtils, clobj32, Globals;
+  bkConst, ComObj, SysUtils, Globals, bkdateutils, PayeeObj;
 
 function TrimGUID( aGUID : string) : string;
 begin
@@ -431,5 +435,46 @@ begin
       Result :=  GetNarration(pD.dsTransaction,Account_Type);
 end;
 
+function GetChartDescription(pD: pTransaction_Rec): String;
+var
+  pA: pAccount_Rec;
+begin
+  pA := MyClient.clChart.FindCode(pD^.txAccount);
+
+  if Assigned(pA) then
+  begin
+    Result := pA^.chAccount_Description;
+  end;
+end;
+
+function GetPayeeName(pD: pTransaction_Rec; Client: TClientObj): String;
+var
+  APayee: TPayee;
+begin
+  if pD^.txPayee_Number <> 0 then
+  begin
+    APayee := Client.clPayee_List.Find_Payee_Number(pD^.txPayee_Number);
+
+    if Assigned( aPayee ) then
+    begin
+      Result := aPayee.pdName;
+    end;
+  end;
+end;
+
+function GetJobName(pD: pTransaction_Rec; Client: TClientObj): String;
+var
+  Job: pJob_Heading_Rec;
+begin
+  if (pD^.txJob_code > '') then
+  begin
+    Job := Client.clJobs.FindCode (pD^.txJob_code);
+
+    if Assigned(Job) then
+    begin
+      Result := Job.jhHeading;
+    end;
+  end; 
+end;
 
 end.

@@ -1713,10 +1713,13 @@ begin
          and (pT^.txFirst_Dissection = nil) then  //is not already dissected
             Exit;
 
-         if DissectEntry(pT, BankAccount.baFields.baNotes_Always_Visible, True, BankAccount) then begin
+         if DissectEntry(pT, BankAccount.baFields.baNotes_Always_Visible, True, BankAccount) then
+         begin
             Refresh;
-            Msg.CharCode := VK_RIGHT;
-            celAccount.SendKeyToTable(Msg);
+
+            // Replaces the Kepressed Message to the Table with a Cell command since when the Shift state was set,
+            // i.e. Alt Shift Ctrl was pressed this did not work
+            tblCoding.MoveActiveCell(ccRight);
 
             //Audit journal add for UK
             if (JA > 0) and (MyClient.clFields.clCountry = whUK) then
@@ -2513,8 +2516,11 @@ begin
 
       with TdlgNewAmount.Create(Application.MainForm) do begin
          try
-            if not Execute(Amount) then
-               Exit;
+           AllowNegativeValues := not (pT^.txUPI_State in [ upUPC, upUPD, upUPW]);
+           IsCr := (pT^.txUPI_State in [upUPD]);
+
+           if not Execute(Amount) then
+             Exit;
          finally
             Free;
          end;
@@ -9497,12 +9503,13 @@ begin
   and (ColumnFmtList.ColumnDefn_At(tblCoding.ActiveCol)^.cdFieldID in [ceJob, ceReference]) then
      Undo := True;
 
-    
+
 end;
 
 procedure TfrmCoding.tblCodingKeyPress(Sender: TObject; var Key: Char);
 begin
-
+  if (Key = '/') then
+    Key := #0;
 end;
 
 // Reload form if gst calculation method changes - to reload columns

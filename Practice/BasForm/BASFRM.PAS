@@ -1383,7 +1383,10 @@ end;
 
 procedure TfrmBAS.bxfP1A1Click(Sender: TObject);
 begin
-  bxfP1A1.SelectAll;
+  if bxfP1A1.Text = '' then
+  begin
+    bxfP1A1.SelectAll;
+  end;
 end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -2061,11 +2064,11 @@ var
 begin
   Total := 0;
   GridHasValues := false;
-  for i := 1 to Pred(tgFuel.Rows) do
+  for i := 0 to Pred(tgFuel.Rows) do
   begin
-    if tgFuel.Cell[colTotal, i] <> '' then
+    if tgFuel.Cell[colTotal, i + 1] <> '' then
     begin
-      Total := Total + tgFuel.Cell[colTotal, i];
+      Total := Total + tgFuel.Cell[colTotal, i + 1];
       GridHasValues := true;
     end;
   end;

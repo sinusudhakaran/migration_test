@@ -88,7 +88,7 @@ type
     chkRetrieve: TCheckBox;
     Label31: TLabel;
     Label32: TLabel;
-    Button2: TButton;
+    btnReset: TButton;
     pnlCESFont: TPanel;
     chkReportPwd: TCheckBox;
     btnReportPwd: TButton;
@@ -142,7 +142,7 @@ type
     procedure btnReportPwdClick(Sender: TObject);
     procedure chkReportPwdClick(Sender: TObject);
     procedure btnTestreportClick(Sender: TObject);
-    procedure Button2Click(Sender: TObject);
+    procedure btnResetClick(Sender: TObject);
     procedure cbSizeChange(Sender: TObject);
     procedure cbceFontChange(Sender: TObject);
     procedure eDate1Change(Sender: TObject);
@@ -658,7 +658,7 @@ begin
 end;
 
 
-procedure TdlgAdminOptions.Button2Click(Sender: TObject);
+procedure TdlgAdminOptions.btnResetClick(Sender: TObject);
 begin
   StrToFont(DefaultCESFontString,CESFont);
   UpdateFontLabel;

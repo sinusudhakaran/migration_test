@@ -56,7 +56,7 @@ object frmVAT: TfrmVAT
       Height = 25
       Anchors = [akRight, akBottom]
       Caption = '&OK'
-      TabOrder = 2
+      TabOrder = 3
       OnClick = btnOKClick
     end
     object btnCancel: TButton
@@ -67,8 +67,18 @@ object frmVAT: TfrmVAT
       Anchors = [akRight, akBottom]
       Cancel = True
       Caption = 'Cancel'
-      TabOrder = 3
+      TabOrder = 4
       OnClick = btnCancelClick
+    end
+    object btnFile: TButton
+      Left = 169
+      Top = 11
+      Width = 75
+      Height = 25
+      Anchors = [akLeft, akBottom]
+      Caption = '&File'
+      TabOrder = 2
+      OnClick = btnFileClick
     end
   end
   object pgForm: TPageControl

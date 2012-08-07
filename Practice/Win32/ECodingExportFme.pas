@@ -306,8 +306,8 @@ procedure TfmeECodingExport.SetOptions(const Options: TEcOptions);
       lblWebSpace.Visible := Value and (FExportDestination = ecDestWebX);
 
       edtPassword.Visible := Value and (FExportDestination <> ecDestWebX);
-      edtPassword.Visible := Value and (FExportDestination <> ecDestWebX);
       lblPassword.Visible := Value and (FExportDestination <> ecDestWebX);
+      edtConfirm.Visible := Value and (FExportDestination <> ecDestWebX);
       lblConfirm.Visible  := Value and (FExportDestination <> ecDestWebX);
    end;
 

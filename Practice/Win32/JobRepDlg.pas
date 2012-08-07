@@ -418,7 +418,7 @@ begin
       CodeList.Delimiter := #9;
       CodeList.DelimitedText := Code;
 
-      ClearJobGrid(CodeList.Count);
+      {ClearJobGrid(CodeList.Count); - We probably don't need to clear the grid when adding a job}
       for CodeIndex := 0 to CodeList.Count - 1 do
       begin
         tgRanges.CurrentCell.Value := CodeList[CodeIndex];

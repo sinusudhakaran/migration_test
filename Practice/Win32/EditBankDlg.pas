@@ -261,6 +261,16 @@ end;
 procedure TdlgEditBank.FormCreate(Sender: TObject);
 var
   i: Integer;
+
+  function ValidAccountType(i: integer): boolean;
+  begin
+    case MyClient.clFields.clCountry of
+      whNewZealand: Result := not (i in AccountTypeExclusionsNZ);
+      whUK        : Result := not (i in AccountTypeExclusionsUK);
+      else          Result := True; // No Australia exclusions exist yet
+    end;
+  end;
+
 begin
   bkXPThemes.ThemeForm( Self);
   ImagesFrm.AppImages.Coding.GetBitmap(CODING_CHART_BMP,sbtnChart.Glyph);
@@ -268,7 +278,7 @@ begin
   left := (Screen.WorkAreawidth - width) div 2;
   top  := (Screen.WorkAreaHeight - Height) div 2;
   lblClause.Font.Name := font.Name;
-  
+
   gCalc.Visible := false;
   lblContraDesc.Caption := '';
   FAddNew := False;
@@ -277,9 +287,11 @@ begin
   case MyClient.clFields.clCountry of
     //No manual superfund accounts for NZ or UK.
     whNewZealand, whUK: for i := mtMin to mtOther do
-                          cmbType.Items.AddObject(mtNames[i], TObject(i));
+                          if ValidAccountType(i) then
+                            cmbType.Items.AddObject(mtNames[i], TObject(i));
     whAustralia:        for i := mtMin to mtMax do
-                          cmbType.Items.AddObject(mtNames[i], TObject(i));
+                          if ValidAccountType(i) then // Don't need this condition yet, but may as well in case any exclusions get added for Australia later on
+                            cmbType.Items.AddObject(mtNames[i], TObject(i));
   end;
   cmbType.ItemIndex := -1;
 

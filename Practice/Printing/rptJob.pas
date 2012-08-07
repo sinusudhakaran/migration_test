@@ -617,9 +617,9 @@ begin
 
   CLeft  := GcLeft;
 
-  AddColAuto(Report,cLeft, 8.5,Gcgap,'Date', jtLeft);
+  AddColAuto(Report,cLeft, 9.5,Gcgap,'Date', jtLeft);
   AddColAuto(Report,cLeft, 11.5,Gcgap,'Reference', jtLeft);
-  AddColAuto(Report,cLeft, 50.0,Gcgap,'Narration', jtLeft);
+  AddColAuto(Report,cLeft, 49.0,Gcgap,'Narration', jtLeft);
   if Report.Params.ShowGrossGST then begin
      AddFormatColAuto(Report,cLeft, 10.0, Gcgap,'Gross', jtRight,'#,##0.00;(#,##0.00);-',MyClient.FmtMoneyStrBrackets,true);
      AddFormatColAuto(Report,cLeft, 10.0, Gcgap,TaxName,  jtRight,'#,##0.00;(#,##0.00);-',MyClient.FmtMoneyStrBrackets,true);
@@ -653,7 +653,7 @@ begin
   {Add Columns: Report,Left Percent, Width Percent, Caption, Alignment}
   cLeft := GcLeft;
   AddFormatColAuto(Report,cLeft,10,GcGap,'Account',jtLeft,'##','',false);
-  AddColAuto(Report,cLeft, 44,GcGap,'Descrpition', jtLeft);
+  AddColAuto(Report,cLeft, 44,GcGap,'Description', jtLeft);
   if Report.Params.ShowGrossGST then begin
      AddFormatColAuto(Report,cLeft, 10.0, Gcgap,'Gross', jtRight,'#,##0.00;(#,##0.00);-',MyClient.FmtMoneyStrBrackets,true);
      AddFormatColAuto(Report,cLeft, 10.0, Gcgap,TaxName,  jtRight,'#,##0.00;(#,##0.00);-',MyClient.FmtMoneyStrBrackets,true);

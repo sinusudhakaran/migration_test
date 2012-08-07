@@ -29,7 +29,7 @@ object fmeSysAccounts: TfmeSysAccounts
     end
     object lblCount: TLabel
       AlignWithMargins = True
-      Left = 561
+      Left = 652
       Top = 2
       Width = 121
       Height = 21
@@ -43,24 +43,32 @@ object fmeSysAccounts: TfmeSysAccounts
       ExplicitTop = 1
       ExplicitHeight = 23
     end
-    object cbFilter: TComboBox
+    object pnlFilter: TPanel
       Left = 2
       Top = 2
       Width = 121
       Height = 21
       Align = alLeft
-      Style = csDropDownList
-      ItemHeight = 13
+      BevelOuter = bvNone
       TabOrder = 0
-      OnChange = cbFilterChange
-      Items.Strings = (
-        'All'
-        'Attached'
-        'New'
-        'Unattached'
-        'Deleted'
-        'Inactive'
-        'Provisional')
+      object cbFilter: TComboBox
+        Left = 0
+        Top = 1
+        Width = 121
+        Height = 21
+        Style = csDropDownList
+        ItemHeight = 13
+        TabOrder = 0
+        OnChange = cbFilterChange
+        Items.Strings = (
+          'All'
+          'Attached'
+          'New'
+          'Unattached'
+          'Deleted'
+          'Inactive'
+          'Provisional')
+      end
     end
     object btnFilter: TButton
       AlignWithMargins = True
@@ -90,23 +98,32 @@ object fmeSysAccounts: TfmeSysAccounts
       ShowHint = True
       TabOrder = 2
     end
-    object EBFind: TEdit
-      AlignWithMargins = True
-      Left = 383
+    object pnlFind: TPanel
+      Left = 380
       Top = 2
       Width = 91
       Height = 21
-      Margins.Top = 0
-      Margins.Bottom = 0
       Align = alLeft
-      MaxLength = 12
-      TabOrder = 3
-      OnChange = EBFindChange
-      OnKeyPress = EBFindKeyPress
+      BevelOuter = bvNone
+      TabOrder = 5
+      object EBFind: TEdit
+        AlignWithMargins = True
+        Left = 0
+        Top = 1
+        Width = 91
+        Height = 21
+        Margins.Top = 0
+        Margins.Bottom = 0
+        Align = alNone
+        MaxLength = 12
+        TabOrder = 3
+        OnChange = EBFindChange
+        OnKeyPress = EBFindKeyPress
+      end
     end
     object btnSearchClear: TButton
       AlignWithMargins = True
-      Left = 480
+      Left = 571
       Top = 2
       Width = 75
       Height = 21

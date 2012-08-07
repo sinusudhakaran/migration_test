@@ -384,7 +384,7 @@ begin
       end;
     xcMYOBAO:
       begin
-        BKHelpSetup(Self, BKH_Exporting_charges_to_other_practice_management_systems);
+        BKHelpSetup(Self, BKH_Exporting_charges_to_MYOB_Accountants_Office);
         tgCharges.Col[colClientID].Visible := False;
         tgCharges.Col[colMatterID].Visible := False;
         tgCharges.Col[colDisbursement].Visible := False;
@@ -406,7 +406,7 @@ begin
       end;
     xcHandi:
       begin
-        BKHelpSetup(Self, BKH_Exporting_charges_to_other_practice_management_systems);
+        BKHelpSetup(Self, BKH_Exporting_charges_to_HandiSoft_Time_and_Billing);
         tgCharges.Col[colClientID].Visible := False;
         tgCharges.Col[colMatterID].Visible := False;
         tgCharges.Col[colDisbursement].Visible := False;

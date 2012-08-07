@@ -1513,18 +1513,19 @@ begin
                if Assigned(SystemMemorisation) then
                  FMemorisationsList := TMemorisations_List(SystemMemorisation.smMemorisations);
 
-               TempMem.mdFields.mdFrom_Master_List := true;
+               // TempMem.mdFields.mdFrom_Master_List := true;
              end
           else
              FMemorisationsList := SourceBankAccount.baMemorisations_List;
        end else begin
           FMemorisationsList := EditMemorisedList;
        end;
+       TempMem.mdFields.mdFrom_Master_List := chkMaster.Checked;
 
        if Assigned(editMem) then
            TempMem.mdFields.mdType := editMem.mdFields.mdType;
 
-       if Assigned( FMemorisationsList) and Assigned(EditMem) then
+       if Assigned( FMemorisationsList) {and Assigned(EditMem)} then
          if (HasDuplicateMem(TempMem, FMemorisationsList, EditMem)) then begin
            if TempMem.mdFields.mdFrom_Master_List then
              aMsg := 'A Master Memorisation already exists that uses the same Match-On criteria. '+
@@ -2226,6 +2227,7 @@ begin
                //{have enough data to create a memorised entry record
                if chkMaster.Checked and Assigned(AdminSystem) then begin
                  Memorised_Trans := TMemorisation.Create(SystemAuditMgr);
+                 Memorised_Trans.mdFields.mdFrom_Master_List := pM.mdFields.mdFrom_Master_List;
                  SaveToMemRec(Memorised_Trans, nil, chkMaster.Checked);
                  Memorised_Trans.mdFields.mdType := pm.mdFields.mdType;
                  //---COPY MASTER MEM---

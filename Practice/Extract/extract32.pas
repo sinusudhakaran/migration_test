@@ -22,6 +22,7 @@ uses
   ErrorMoreFrm, LogUtil, bkConst, InfoMoreFrm, StDate, S6INI,
   classes, bkDateUtils, SysUtils,
 
+  AcclipseX,
   AccountSoftX,
   AccPacWinX,
   AccPacX,
@@ -172,6 +173,7 @@ begin
                   snHAPAS           : HelpfulInfoMsg( 'Sorry, HAPAS is not supported in '+ShortAppName, 0 );
                   snGLMan           : if NF then GLMANX.ExtractData( FD, TD, Path ) else GLMAN3X.ExtractData( FD, TD, Path );
                   snMYOB_AO_COM     : GLMANX.ExtractData( FD, TD, Path );
+                  snAcclipse        : AcclipseX.ExtractData( FD, TD, Path );
                   snGlobal          : if NF then GlobalNewX.ExtractData( FD, TD, Path ) else GlobalX.ExtractData( FD, TD, Path );
                   snMaster2000      : if NF then M2000X.ExtractData( FD, TD, Path ) else M2000OldX.ExtractData( FD, TD, Path );
                   snAdvance         : if NF then AdvanceX.ExtractData( FD, TD, Path ) else AdvanceXOld.ExtractData( FD, TD, Path );
@@ -269,7 +271,7 @@ begin
                Case clAccounting_System_Used of
                   suOther       : ;
                   suSageLine50  : ;
-                  suQuickBooks  : QuickBooksX.ExtractData( FD, TD,False, Path );
+                  suQuickBooks  : CSVX.ExtractData( FD, TD, Path ); //QuickBooksX.ExtractData( FD, TD,False, Path );
                   suBK5CSV      : CSVX.ExtractData( FD, TD, Path );
                   suQIF         : DoExtractBusinessProduct(FD, TD, Path);
                   suOFXV1       : DoExtractBusinessProduct(FD, TD, Path);

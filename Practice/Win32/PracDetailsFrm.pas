@@ -557,9 +557,11 @@ begin
     if (wfNames[i] = WebNotesName) then begin
       if (UseBankLinkOnline) then
         if (ProductConfigService.IsNotesOnlineEnabled) then
-          cmbWebFormats.Items.AddObject(wfNames[i], TObject(i));
+          if not ExcludeFromWebFormatList(AdminSystem.fdFields.fdCountry, i) then
+            cmbWebFormats.Items.AddObject(wfNames[i], TObject(i));
     end else
-      cmbWebFormats.Items.AddObject(wfNames[i], TObject(i));
+      if not ExcludeFromWebFormatList(AdminSystem.fdFields.fdCountry, i) then
+        cmbWebFormats.Items.AddObject(wfNames[i], TObject(i));
 
   //Set to default if currently Notes Online and Notes Online is disabled
   ComboUtils.SetComboIndexByIntObject(WebExportFormat, cmbWebFormats);

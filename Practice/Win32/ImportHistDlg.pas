@@ -93,6 +93,8 @@ type
     lOutputTitle: TLabel;
     lInFileTitle: TLabel;
     cbChequeNumber: TCheckBox;
+    cbDebitSign: TCheckBox;
+    cbCreditSign: TCheckBox;
     procedure BTNBrowseClick(Sender: TObject);
     procedure chFirstlineClick(Sender: TObject);
     procedure PCFormatChange(Sender: TObject);
@@ -306,6 +308,8 @@ const
   kDebidCol = 'DebitCol';
   kSignCol = 'SignCol';
   kReverseSign = 'ReverseSign';
+  kDebitReverseSign = 'DebitReverseSign';
+  kCreditReverseSign = 'CreditReverseSign';
   kRefCol = 'ReferenceCol';
     kHasCheques = 'HasCheques';
   kAnalCol = 'AnalysisCol';
@@ -389,6 +393,8 @@ begin
        rbDebitCredit.Enabled := true;
 
    SetDefault(GetPrivateProfileText(FBankAccount.baFields.baBank_Account_Number, kReverseSign), cbSign);
+   SetDefault(GetPrivateProfileText(FBankAccount.baFields.baBank_Account_Number, kDebitReverseSign), cbDebitSign);
+   SetDefault(GetPrivateProfileText(FBankAccount.baFields.baBank_Account_Number, kCreditReverseSign), cbCreditSign);
 
 
    // Reference
@@ -498,9 +504,18 @@ var R: Integer;
        Addmessage(DateCount,'date');
        Addmessage(AmountCount,'date and amount');
        Addmessage(ReferenceCount,'date, amount and reference');
-       Addmessage(AnalysisCount,'date, amount, reference and analysis');
-       Addmessage(NarrationCount,'date, amount, reference, analysis and narration');
 
+       if tsAnalysis.TabVisible then
+       begin
+         Addmessage(AnalysisCount,'date, amount, reference and analysis');
+         Addmessage(NarrationCount,'date, amount, reference, analysis and narration');
+       end
+       else
+       begin
+         Addmessage(AnalysisCount,'date, amount and reference');
+         Addmessage(NarrationCount,'date, amount, reference and narration');
+       end;
+       
        if Result > '' then
           Result := Format( 'Some transactions match existing ones:'#13'%s.'#13#13'Are you sure you want to continue?',[Result]);
 
@@ -665,7 +680,8 @@ var R, C, C2: integer;
 
     procedure SetAmount(Value: Money);
     begin
-       if cbSign.Checked then
+       // Reverse Sign only works for Single, and Sign - not for Debit/Credit
+       if (rbSingle.Checked or RBSign.Checked) and cbSign.Checked then
           Value := - Value;
 
        with TOutItem(fOutlist.Items[R]) do begin
@@ -703,26 +719,32 @@ begin
 
               Exit;
           end else if rbDebitCredit.Checked then begin
+              // cbAmount  = Debit (C)
+              // cbAmount2 = Credit (C2)
               C2 := GetComboCurrentIntObject(cbAmount2);
               if C2 >= 0 then begin
                  for R := 0 to fOutlist.Count - 1 do
                  begin
+                    // Credit
                     try
                       Amt1 := StrtoCurr(GetFileText(R,C2))*100;
+                      if cbCreditSign.Checked then
+                        Amt1 := - Amt1;
                     except
                       Amt1 := 0;
                     end;
 
+                    // Debit
                     try
                       Amt2 := StrtoCurr(GetFileText(R,C))*100;
+                      if cbDebitSign.Checked then
+                        Amt2 := - Amt2;
                     except
                       Amt2 := 0;
                     end;
-                    
-                    if (Amt2 < 0) then
-                      SetAmount (Amt2 - Amt1)
-                    else
-                      SetAmount (Amt1 - Amt2);
+
+                    // Credit - Debit
+                    SetAmount(Amt1 - Amt2);
                  end;
 
                  Exit;
@@ -1493,7 +1515,9 @@ var I: Integer;
 begin
    BeginUpdate;
    try
-      cbSign.Enabled := True;
+      cbSign.Visible := True;
+      cbDebitSign.Visible := False;
+      cbCreditSign.Visible := False;
       lbAmount.Caption := 'Amount';
       lbAmount.Visible := True;
       cbAmount.Visible := True;
@@ -1517,7 +1541,9 @@ var I: Integer;
 begin
    BeginUpdate;
    try
-      cbSign.Enabled := False;
+      cbSign.Visible := False;
+      cbDebitSign.Visible := True;
+      cbCreditSign.Visible := True;
       lbAmount.Caption := 'Debit';
       lbAmount.Visible := True;
       cbAmount.Visible := True;
@@ -1544,7 +1570,9 @@ var I: Integer;
 begin
    BeginUpdate;
    try
-      cbSign.Enabled := True;
+      cbSign.Visible := True;
+      cbDebitSign.Visible := False;
+      cbCreditSign.Visible := False;
       lbAmount.Caption := 'Amount';
       lbAmount.Visible := True;
       cbAmount.Visible := True;
@@ -2248,11 +2276,21 @@ begin
        CellText := 'Cannot import, date out of range'
    else
        case TTransMatch(TOutItem(FOutList[Node.Index]).Objects[oiMatch]) of
-          tmDate      : CellText := 'Date matches exsiting transactions';
-          tmAmount    : CellText := 'Date and amount matches exsiting transactions';
-          tmReference : CellText := 'Date, amount and reference matches exsiting transactions';
-          tmAnalysis  : CellText := 'Date, amount, reference and analysis matches exsiting transactions';
-          tmNarration : CellText := 'Matches exsiting transactions';
+          tmDate      : CellText := 'Date matches existing transactions';
+          tmAmount    : CellText := 'Date and amount matches existing transactions';
+          tmReference : CellText := 'Date, amount and reference matches existing transactions';
+          tmAnalysis  :
+          begin
+            if tsAnalysis.TabVisible then
+            begin
+              CellText := 'Date, amount, reference and analysis matches existing transactions';
+            end
+            else
+            begin
+              CellText := 'Date, amount and reference matches existing transactions';
+            end;
+          end;
+          tmNarration : CellText := 'Matches existing transactions';
        end;
 
 end;
@@ -2418,7 +2456,10 @@ begin
       WritePrivateProfileText(FBankAccount.baFields.baBank_Account_Number, kDebidCol, '');
       WritePrivateProfileText(FBankAccount.baFields.baBank_Account_Number, kSignCol, CBAmount.Text);
    end;
+
    WritePrivateProfileText(FBankAccount.baFields.baBank_Account_Number, kReverseSign, BoolToStr(cbSign.Checked, true));
+   WritePrivateProfileText(FBankAccount.baFields.baBank_Account_Number, kDebitReverseSign, BoolToStr(cbDebitSign.Checked, true));
+   WritePrivateProfileText(FBankAccount.baFields.baBank_Account_Number, kCreditReverseSign, BoolToStr(cbCreditSign.Checked, true));
 
    // Reference
    WritePrivateProfileText(FBankAccount.baFields.baBank_Account_Number, kRefCol, cbref.Text);

@@ -190,6 +190,7 @@ type
     Label28: TLabel;
     Label29: TLabel;
     lblFinalise: TLabel;
+    btnFile: TButton;
     procedure btnOKClick(Sender: TObject);
     procedure btnPrintClick(Sender: TObject);
     procedure btnCancelClick(Sender: TObject);
@@ -199,6 +200,7 @@ type
     procedure FormShow(Sender: TObject);
     procedure btnPreviewClick(Sender: TObject);
     procedure CalculateWorksheet(Sender: TObject);
+    procedure btnFileClick(Sender: TObject);
   private
     { Private declarations }
     okPressed : boolean;
@@ -339,6 +341,23 @@ begin
     end;
 {$ENDIF}
 
+end;
+
+procedure TfrmVAT.btnFileClick(Sender: TObject);
+begin
+  Save;
+  if DoVATReturn( rdFile, FVAT_Details, RptParams) then
+
+{$IFNDEF SmartBooks}
+    if (IsLocked( D1, D2 ) <> ltAll) then begin
+       if (AskYesNo('Finalise Accounting Period','You have printed the VAT Return.  Do you want to Finalise this Accounting Period?'+#13+#13+
+           '('+bkdate2Str( D1 )+' - '+bkDate2Str( D2 )+')'
+           ,DLG_YES, BKH_Finalise_accounting_period_for_GST_purposes) = DLG_YES) then
+       begin
+         AutoLockGSTPeriod( D1, D2 );
+       end;
+    end;
+{$ENDIF}
 end;
 
 //------------------------------------------------------------------------------

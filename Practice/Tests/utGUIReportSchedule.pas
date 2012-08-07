@@ -46,7 +46,7 @@ procedure TReportSetupTest.StoreEmail;
 begin
   ClickLeftMouseButtonOn(MyDlg.rbToEMail);
   EnterTextInto(MyDlg.eMail, 'steve.teare@banklink.co.nz');
-  WriteClientSchedule(BK5TestClient, MyDlg);
+  WriteClientSchedule(BK5TestClient, MyDlg, BK5TestClient.clFields, BK5TestClient.clExtra, nil);
   Check(BK5TestClient.clFields.clClient_EMail_Address = 'steve.teare@banklink.co.nz');
   Check(BK5TestClient.clFields.clEmail_Scheduled_Reports);
 end;

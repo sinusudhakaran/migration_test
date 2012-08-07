@@ -617,11 +617,11 @@ begin
                         LInclude.Nodes[safsTopPassword] := LInclude.Nodes[safsTopPassword] +  [saPassword];
                   end;
                 safsTopDeliver: if I = 4 then begin
-                     if ftNode[0] and (not ftNode[1]) then
+                     if ftNode[0] and (not ftNode[2]) then
                         LInclude.NotNodes[safsTopDeliver] := (LInclude.NotNodes[safsTopDeliver] + [saSecure] + [saOnlineSecure]);
-                     if ftNode[1] and (not ftNode[0]) then
+                     if ftNode[2] and (not ftNode[0]) then
                         LInclude.Nodes[safsTopDeliver] := LInclude.Nodes[safsTopDeliver] + [saSecure];
-                     if ftNode[2] then
+                     if ftNode[1] then
                         LInclude.Nodes[safsTopDeliver] := LInclude.Nodes[safsTopDeliver] + [saProvisional];
                      if ftNode[3] then
                         LInclude.Nodes[safsTopDeliver] := LInclude.Nodes[safsTopDeliver] + [saOnlineSecure];

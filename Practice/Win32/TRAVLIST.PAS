@@ -73,6 +73,7 @@ type
       FNoTransactions: boolean;
       FOnEnterEntryExt: TTravEventExt;
       FOnEnterAccountExt: TTravEventExt;
+      FTransactionsTraversed: Boolean;
 
       function MakeSortKey (p : pTransaction_Rec): ShortString;
       function IsValidSelection( p : pTransaction_Rec): boolean;
@@ -131,6 +132,7 @@ type
       property Bank_Account : TBank_Account read CurrAccount write SetCurrAccount;
       property IsLastTransaction: boolean read FIsLastTransaction;
       property NoTransactions: boolean read FNoTransactions;
+      property TransactionsTraversed: Boolean read FTransactionsTraversed;
 
       {procedures }
       procedure TraverseAccount(B : TBank_Account; DateFrom, DateTo : integer);
@@ -542,6 +544,8 @@ Var
 Begin
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
 
+   FTransactionsTraversed := False;
+   
    D1 := DateFrom;
    D2 := DateTo;
 
@@ -562,10 +566,17 @@ Begin
                If ( txDate_Effective >= DateFrom ) and
                   ( txDate_Effective <= DateTo ) then
                Begin
-                  If IsValidSelection(CurrTrans) then TraverseEntry;
+                  If IsValidSelection(CurrTrans) then
+                  begin
+                    TraverseEntry;
+
+                    FTransactionsTraversed := True;
+                  end;
                end;
             end;
-         end
+         end;
+
+         FNoTransactions := ItemCount = 0;
       end
       else With baTransaction_List do
       Begin
@@ -651,6 +662,8 @@ Begin
                  Begin
                     CurrTrans := Ptr;
                     TraverseEntry;
+
+                    FTransactionsTraversed := True;
                  end
                  else
                  Begin

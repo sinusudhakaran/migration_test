@@ -383,6 +383,7 @@ type
     procedure Setup;
     procedure SetProvisional(const Value: Boolean);
     function AccountType: string;
+    procedure UpdatePanelWidth;
   public
     class function CreateAndSetup(aBankAccount: TBank_Account; 
                                   AProvisional: Boolean = false): TdlgHistorical;
@@ -528,6 +529,7 @@ const
 
 const
   NoEntriesBeforeReminder = 100;
+  MinSize = 350;
 
 type
   TMyPanel = class( TPanel)
@@ -702,6 +704,12 @@ begin
          end;
 
       end;// Historical
+
+      // Sets the closing balance to 0.00 with the right currency symbol in
+      // front of it.
+      stClosingBal.Caption := BankAccount.BalanceStr(0);
+
+      // Setup events and help text
       Setup;
    end;
 
@@ -754,18 +762,8 @@ begin
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TdlgHistorical.FormResize(Sender: TObject);
-const
-   MinSize = 350;
-var
-   PanelW : integer;
 begin
-   with stbHistorical do begin
-      PanelW := Self.Width - Panels[PANELLINE].Width - Panels[GSTTEXT].Width;
-      if PanelW < MinSize then
-         Panels[PANELTEXT].Width := MinSize
-      else
-         Panels[PANELTEXT].Width := PanelW;
-  end;
+  UpdatePanelWidth;
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TdlgHistorical.FormCreate(Sender: TObject);
@@ -1705,6 +1703,7 @@ var
    pT            : pTransaction_Rec;
    AcctStatusStr : string;
    GSTStatusStr  : string;
+   TransactionPos: String;
 begin
    AcctStatusStr := '';
    GSTStatusStr  := '';
@@ -1753,8 +1752,13 @@ begin
    end;
 
    //update status info
-   stbHistorical.Panels[PANELLINE].Text := Format('%d of %d', [ tblHist.ActiveRow,
-                                                               (tblHist.Rowlimit-1)]);;
+   TransactionPos := Format('%d of %d', [ tblHist.ActiveRow, (tblHist.Rowlimit-1)]);
+   
+   stbHistorical.Panels[PANELLINE].Width := Max(50, Canvas.TextWidth(TransactionPos) + 1);
+
+   UpdatePanelWidth;
+
+   stbHistorical.Panels[PANELLINE].Text := TransactionPos;
    stbHistorical.Panels[PANELTEXT].text := AcctStatusStr;
    stbHistorical.Panels[GSTTEXT]  .text := GSTStatusStr;
 end;
@@ -4114,18 +4118,28 @@ procedure TdlgHistorical.RemindUserToSave(Imported: Boolean = False);
 var
   Msg: string;
   HowEntered: string;
+  NumberEntered: Integer;
 begin
    HowEntered := 'entered';
    if Imported then
      HowEntered := 'imported';
 
+   if Imported then
+   begin
+     NumberEntered := HistTranList.ItemCount;
+   end
+   else
+   begin
+     NumberEntered := Pred(HistTranList.ItemCount);
+   end;
+
    if ( HistTranList.ItemCount - LastReminderAt) > NoEntriesBeforeReminder then begin
       Msg := Format('You have %s %d %s Transactions.'#13+
                     'It is recommended that you now leave %2:s Data Entry and Save the Client File. (Click File|Save from the menu)',
-                    [HowEntered, Pred(HistTranList.ItemCount), AccountType]);
+                    [HowEntered, NumberEntered, AccountType]);
       if Provisional then
          Msg := Format('You have %s %d %s Transactions.',
-                       [HowEntered, Pred(HistTranList.ItemCount), AccountType]);
+                       [HowEntered, NumberEntered, AccountType]);
       HelpfulInfoMsg(Msg, 0);
       LastReminderAt := HistTranList.ItemCount-1;
    end;
@@ -4195,6 +4209,25 @@ begin
       pT^.txCheque_Number := 0;
    end;
 end;
+procedure TdlgHistorical.UpdatePanelWidth;
+var
+  PanelW: Integer;
+begin
+  with stbHistorical do
+  begin
+    PanelW := Self.Width - Panels[PANELLINE].Width - Panels[GSTTEXT].Width;
+
+    if PanelW < MinSize then
+    begin
+       Panels[PANELTEXT].Width := MinSize
+    end
+    else
+    begin
+       Panels[PANELTEXT].Width := PanelW;
+    end;
+  end;
+end;
+
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TdlgHistorical.celAccountOwnerDraw(Sender: TObject;
   TableCanvas: TCanvas; const CellRect: TRect; RowNum, ColNum: Integer;

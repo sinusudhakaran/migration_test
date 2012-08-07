@@ -107,9 +107,9 @@ begin
     if Trim(eName.Text) = '' then
     begin
        if FClientType = ctProspect then
-         HelpfulWarningMsg('You must enter a prospect name. Please try again',0)
+         HelpfulWarningMsg('You must enter a prospect name. Please try again.',0)
        else
-         HelpfulWarningMsg('You must enter a client name. Please try again',0);
+         HelpfulWarningMsg('You must enter a client name. Please try again.',0);
        eName.setfocus;
        CanClose := False;
        exit;

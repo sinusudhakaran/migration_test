@@ -2,9 +2,10 @@ object dlgImportBNotes: TdlgImportBNotes
   Left = 411
   Top = 361
   BorderIcons = [biSystemMenu]
+  BorderStyle = bsSingle
   Caption = 'Import from ECoding file'
-  ClientHeight = 432
-  ClientWidth = 591
+  ClientHeight = 442
+  ClientWidth = 677
   Color = clBtnFace
   TransparentColorValue = clMaroon
   ParentFont = True
@@ -14,19 +15,24 @@ object dlgImportBNotes: TdlgImportBNotes
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
   DesignSize = (
-    591
-    432)
+    677
+    442)
   PixelsPerInch = 96
   TextHeight = 13
   object pnlSave: TPanel
     Left = 8
     Top = 336
-    Width = 575
+    Width = 661
     Height = 57
+    Anchors = [akLeft, akTop, akRight]
     BevelInner = bvRaised
     BevelOuter = bvLowered
     ParentColor = True
     TabOrder = 1
+    ExplicitWidth = 575
+    DesignSize = (
+      661
+      57)
     object Label6: TLabel
       Left = 16
       Top = 20
@@ -36,11 +42,12 @@ object dlgImportBNotes: TdlgImportBNotes
       FocusControl = edtFrom
     end
     object btnToFolder: TSpeedButton
-      Left = 540
+      Left = 625
       Top = 17
       Width = 25
       Height = 24
       Hint = 'Click to Select a Folder'
+      Anchors = [akTop]
       Glyph.Data = {
         36050000424D3605000000000000360400002800000010000000100000000100
         08000000000000010000C40E0000C40E00000001000000000000000000000000
@@ -85,23 +92,26 @@ object dlgImportBNotes: TdlgImportBNotes
         B6B62D2D2D2D2D2D0606062DF6F6F6BFBF2D000606060606060606062D2D2D2D
         2D00060606060606060606060606060606060606060606060606}
       OnClick = btnToFolderClick
+      ExplicitLeft = 540
     end
     object edtFrom: TEdit
       Left = 72
       Top = 17
-      Width = 462
+      Width = 550
       Height = 19
+      Anchors = [akLeft, akTop, akRight]
       Ctl3D = False
       ParentCtl3D = False
       ParentShowHint = False
       ShowHint = True
       TabOrder = 0
       OnChange = edtFromChange
+      ExplicitWidth = 462
     end
   end
   object btnOk: TButton
-    Left = 427
-    Top = 400
+    Left = 513
+    Top = 410
     Width = 75
     Height = 25
     Anchors = [akRight, akBottom]
@@ -109,10 +119,12 @@ object dlgImportBNotes: TdlgImportBNotes
     Default = True
     ModalResult = 1
     TabOrder = 2
+    ExplicitLeft = 427
+    ExplicitTop = 400
   end
   object btnCancel: TButton
-    Left = 507
-    Top = 400
+    Left = 593
+    Top = 410
     Width = 75
     Height = 25
     Anchors = [akRight, akBottom]
@@ -120,21 +132,30 @@ object dlgImportBNotes: TdlgImportBNotes
     Caption = 'Cancel'
     ModalResult = 2
     TabOrder = 3
+    ExplicitLeft = 507
+    ExplicitTop = 400
   end
   object Panel2: TPanel
     Left = 8
     Top = 16
-    Width = 575
+    Width = 661
     Height = 316
+    Anchors = [akLeft, akTop, akRight]
     BevelInner = bvRaised
     BevelOuter = bvLowered
     TabOrder = 0
+    ExplicitWidth = 575
+    DesignSize = (
+      661
+      316)
     object Bevel2: TBevel
       Left = 1
       Top = 199
-      Width = 576
+      Width = 662
       Height = 9
+      Anchors = [akLeft, akTop, akRight]
       Shape = bsTopLine
+      ExplicitWidth = 576
     end
     object chkShowExample: TCheckBox
       Left = 16
@@ -204,9 +225,9 @@ object dlgImportBNotes: TdlgImportBNotes
       end
       object rbReplace: TRadioButton
         Left = 64
-        Top = 27
+        Top = 25
         Width = 113
-        Height = 13
+        Height = 18
         Caption = 'Replace it'
         Checked = True
         TabOrder = 0
@@ -235,25 +256,34 @@ object dlgImportBNotes: TdlgImportBNotes
     object pnlExample: TPanel
       Left = 8
       Top = 227
-      Width = 561
+      Width = 647
       Height = 82
+      Anchors = [akLeft, akTop, akRight]
       BevelInner = bvLowered
       Color = clWindow
       TabOrder = 6
       Visible = False
+      ExplicitWidth = 561
+      DesignSize = (
+        647
+        82)
       object Shape2: TShape
         Left = 388
         Top = 54
-        Width = 169
+        Width = 255
         Height = 21
+        Anchors = [akLeft, akTop, akRight]
         Brush.Color = clBtnFace
+        ExplicitWidth = 169
       end
       object Shape1: TShape
         Left = 388
         Top = 27
-        Width = 169
+        Width = 255
         Height = 21
+        Anchors = [akLeft, akTop, akRight]
         Brush.Color = clBtnFace
+        ExplicitWidth = 169
       end
       object Label1: TLabel
         Left = 9
@@ -286,9 +316,8 @@ object dlgImportBNotes: TdlgImportBNotes
       object lblNewNarration1: TLabel
         Left = 390
         Top = 30
-        Width = 157
-        Height = 15
-        AutoSize = False
+        Width = 82
+        Height = 13
         Caption = 'lblNewNarration1'
         Transparent = True
       end
@@ -316,18 +345,19 @@ object dlgImportBNotes: TdlgImportBNotes
       object lblNewNarration2: TLabel
         Left = 390
         Top = 56
-        Width = 157
-        Height = 15
-        AutoSize = False
+        Width = 82
+        Height = 13
         Caption = 'lblNewNarration2'
         Transparent = True
       end
       object Bevel1: TBevel
         Left = 8
         Top = 25
-        Width = 553
+        Width = 639
         Height = 7
+        Anchors = [akLeft, akTop, akRight]
         Shape = bsTopLine
+        ExplicitWidth = 553
       end
       object lblExisting2: TLabel
         Left = 9
@@ -339,9 +369,11 @@ object dlgImportBNotes: TdlgImportBNotes
       object Bevel3: TBevel
         Left = 8
         Top = 50
-        Width = 545
+        Width = 631
         Height = 7
+        Anchors = [akLeft, akTop, akRight]
         Shape = bsTopLine
+        ExplicitWidth = 545
       end
     end
   end

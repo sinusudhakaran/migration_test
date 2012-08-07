@@ -65,7 +65,8 @@ uses
   BKAuditValues in 'Win32\BKAuditValues.pas',
   BankLinkOnline in 'Win32\BankLinkOnline.pas',
   BanklinkOnlineSettingsFrm in 'Win32\BanklinkOnlineSettingsFrm.pas' {frmBanklinkOnlineSettings},
-  BlopiClient in 'Win32\BlopiClient.pas';
+  BlopiClient in 'Win32\BlopiClient.pas',
+  AcclipseX in 'Extract\AcclipseX.pas';
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

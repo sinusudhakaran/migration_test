@@ -577,10 +577,14 @@ begin
    Begin
       if Settings.Rule then
 
-        if (Settings.RuleLineBetweenColumns) and not Mgr.NoTransactions then
+      //Only draw the lines if we have actually traversed some transactions
+      if Mgr.TransactionsTraversed then
+      begin
+        if (Settings.RuleLineBetweenColumns) then
           RenderRuledLineWithColLines(0, psSolid, vcTopHalf) //Ruled line after last detail line for account
         else
           RenderRuledLine;
+      end;
 
       if Assigned(Col1) then
         Col1.TotalFormat := Mgr.Bank_Account.FmtMoneyStrBrackets;

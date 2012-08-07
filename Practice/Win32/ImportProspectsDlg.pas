@@ -712,7 +712,7 @@ var
   ImportList, CurrentClient, ImportFailures : TStringList;
   i, NumCols, UserID, TotalCnt: Integer;
   colOrder: array[pfMin..pfMax] of Integer;
-  Errors: string;
+  Errors, InfoMsg: string;
   ImportClient : TImport_Client;
   ErrorReason: string;
 
@@ -865,8 +865,13 @@ begin
     begin
       Result := mrOk;
       if importfailures.Count = 0 then
-        HelpfulInfoMsg(IntToStr(TotalCnt) + GetImportNounStr+' were ' + GetImportVerbStr + ' successfully.', 0)
-      else
+      begin
+        InfoMsg := IntToStr(TotalCnt) + GetImportNounStr+' were ' + GetImportVerbStr + ' successfully.';
+        if (FImportType = itClients) then
+          InfoMsg := InfoMsg + ' Client files that are open or read-only may not be updated until ' +
+                     'updated or closed.';
+        HelpfulInfoMsg(InfoMsg, 0)
+      end else
       begin
         HelpfulErrorMsg('Some'+GetImportNounStr+' could not be ' + GetImportVerbStr + '. Please see log for more details.' + #13#13 +
           IntToStr(TotalCnt) + GetImportNounStr+' were ' + GetImportVerbStr + ' successfully.' + #13 +

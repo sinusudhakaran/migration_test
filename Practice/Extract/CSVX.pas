@@ -27,7 +27,8 @@ uses TransactionUtils,Classes, Traverse, Globals, GenUtils, bkDateUtils, TravUti
      dlgSelect, 
 {$ENDIF}
      BkConst, MoneyDef, SysUtils, StStrS,
-     InfoMoreFrm, BKDefs, glConst;
+     InfoMoreFrm, BKDefs, glConst, ForexHelpers,
+     StrUtils;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -140,6 +141,148 @@ Begin
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
 
+procedure CSVWriteUK(BankAccount: TBank_Account;
+                     AContra         : ShortString;
+ 						         ADate           : TStDate;
+                     ARefce          : ShortString;
+                     AAccount        : ShortString;
+                     AAmount         : Money;
+                     ANarration      : ShortString;
+                     StatementDetails: ShortString;
+                     ForeignAmount   : Money;
+                     ExchangeRate    : Money;
+                     AQuantity	     : Money;
+                     AGSTClass       : Byte;
+                     AGSTAmount      : Money;
+                     PayeeNumber     : Integer;
+                     PayeeName       : ShortString;
+                     JobCode         : ShortString;
+                     JobName         : ShortString;
+                     Balance         : Money;
+                     EntryType       : ShortString;
+                     PresentationDate: ShortString);
+
+   function ChartDescription: Shortstring;
+   var Cr: pAccount_Rec;
+   begin
+      Result := '';
+      if AAccount > '' then begin
+         Cr := MyClient.clChart.FindCode(AAccount);
+         if Assigned(Cr) then
+            Result := CR.chAccount_Description;
+      end;
+   end;
+
+const
+   ThisMethodName = 'CSVWrite';
+Begin
+   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
+   TotalAmount := Totalamount + AAmount;
+   Inc(NoOfLines);
+   if UseGUIDId then begin
+     if (BankAccount.baFields.baBank_Account_Number <> 'CHECKSUM') and (BankAccount.baFields.baBank_Account_Number <> 'BALANCE') then
+       Write( XFile, '"', GetTransactionGUID, '",')
+     else
+       Write (XFile, '"",');
+   end else
+     Write( XFile, NoOfEntries, ',' );
+
+
+   if DoBankAccount then
+      write( XFile, '"', ReplaceCommasAndQuotes(BankAccount.baFields.baBank_Account_Number), '",');
+
+   Write( XFile, '"', ReplaceCommasAndQuotes(AContra), '",' );
+   Write( XFile, '"', Date2Str( ADate, 'dd/mm/yyyy' ),'",' );
+   Write( XFile, '"', ReplaceCommasAndQuotes( StStrS.TrimSpacesS( ARefce )), '",' );
+   Write( XFile, '"', ReplaceCommasAndQuotes(AAccount), '",' );
+
+   write( XFile, '"', ChartDescription, '",');
+
+   write( XFile, AAmount/100:0:2, ',' );
+   write( XFile, '"',Copy(ReplaceCommasAndQuotes( StStrS.TrimSpacesS( ANarration )), 1, GetMaxNarrationLength), '",' );
+
+   write(XFile, '"',ReplaceCommasAndQuotes(StStrS.TrimSpacesS(StatementDetails)), '",');
+
+   if BankAccount.IsAForexAccount and not (BankAccount.IsAJournalAccount or (ForeignAmount = 0)) then
+   begin
+     write(XFile, ForeignAmount/100:0:2, ',');
+   end
+   else
+   begin
+     write(XFile, '', ',');
+   end;
+
+   if BankAccount.IsAForexAccount and not (BankAccount.IsAJournalAccount or (ExchangeRate = 0)) then
+   begin
+     write(XFile, FloatToStrF(ExchangeRate, ffFixed, 4, 4), ',');
+   end
+   else
+   begin
+     write(XFile, '', ',');
+   end;
+
+   if DoQuantity then
+      write( XFile, GetQuantityStringForExtract(AQuantity), ',' )
+   else
+      write( XFile, GetQuantityStringForExtract(0), ',' );
+
+   with MyClient.clFields do
+   begin { Convert our internal representation into the code expected by
+           the accounting software }
+      if ( AGSTClass in [ 1..MAX_GST_CLASS ] ) then begin
+         write( XFile, '"', clGST_Class_Codes[ AGSTClass] , '",' );
+         write( XFile, AGSTAmount/100:0:2, ',');
+      end else begin
+         write( XFile,   '"",' ); { No GST Class }
+         write( XFile, '0.00,' ); { No GST Amount }
+      end;
+   end;
+
+   if PayeeNumber <> 0 then
+   begin
+     write(XFile, '"',PayeeNumber, '",');
+   end
+   else
+   begin
+     write(XFile, '"','', '",');
+   end;
+
+   write(XFile, '"',PayeeName, '",');
+
+   write(XFile, '"',JobCode, '",');
+
+   write(XFile, '"',JobName, '",');
+
+   if not (BankAccount.IsAJournalAccount) then
+   begin
+     write(XFile, '', (Balance * -1)/100:0:2, ',');
+   end
+   else
+   begin
+     write(XFile, '"','', '",');
+   end;
+
+   if not (BankAccount.IsAJournalAccount) then
+   begin
+     write(XFile, '"',ReplaceStr(EntryType, 'E-', ''), '",');
+   end
+   else
+   begin
+     write(XFile, '"','', '",');
+   end;
+
+   if not (BankAccount.IsAJournalAccount) then
+   begin
+     writeln(XFile, '"',PresentationDate, '"');
+   end
+   else
+   begin
+     writeln(XFile, '"','', '"');
+   end;
+
+   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
+end;
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 procedure DoAccountHeader;
@@ -189,6 +332,51 @@ Begin
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
 
+procedure DoTransactionUK;
+const
+  ThisMethodName = 'DoTransactionUK';
+Var
+  S : ShortString;
+Begin
+   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
+
+   With MyClient.clFields, Bank_Account.baFields, Transaction^ do
+   Begin
+      txDate_Transferred := CurrentDate;
+      if SkipZeroAmountExport(Transaction) then
+         Exit; // Im done...
+
+      Inc( NoOfEntries );
+      If ( txFirst_Dissection = NIL ) then
+      Begin
+         S :=  GetNarration(TransAction,Bank_Account.baFields.baAccount_Type);
+         If ( txGST_Class=0 ) then txGST_Amount := 0;
+         CSVWriteUK(Bank_Account,  { ABankAccount : ShortString      }
+                     baContra_Account_Code,  { AContra	   : ShortString      }
+                     txDate_Effective, 	   { ADate        : TStDate;         }
+                     GetReference(Transaction,Bank_Account.baFields.baAccount_Type),      		{ ARefce       : ShortString;     }
+                     txAccount,        		{ AAccount     : ShortString;     }
+                     Local_Amount,         		{ AAmount      : Money;           }
+                     S,                      { ANarration	: ShortString;     }
+                     txStatement_Details,
+                     txAmount,
+                     Bank_Account.Default_Forex_Conversion_Rate(txDate_Effective),
+                     txQuantity,             { AQuantity	   : Money;           }
+                     txGST_Class,            { AGSTClass    : Byte;            }
+                     txGST_Amount,           { AGSTAmount   : Money );       }    
+                     txPayee_Number,
+                     GetPayeeName(Transaction, MyClient),
+                     txJob_Code,
+                     GetJobName(Transaction, MyClient),                     
+                     txTemp_Balance,
+                     GetFormattedEntryType(Transaction),
+                     Date2Str(txDate_Presented, 'dd/mm/yyyy'));
+      end;
+      //For SmartBooks transactions can be exported as many times as the user wanted
+   end;
+   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
+end;
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Procedure DoDissection ;
@@ -213,6 +401,42 @@ Begin
                   dsQuantity,             { AQuantity	 : Money;          }
                   dsGST_Class,            { AGSTClass    : Byte;           }
                   dsGST_Amount );         { AGSTAmount   : Money );        }
+   end;
+   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
+end;
+
+Procedure DoDissectionUK ;
+
+const
+   ThisMethodName = 'DoDissection';
+var
+   s : ShortSTring;
+Begin
+   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
+   With MyClient.clFields, Bank_Account.baFields, Transaction^, Dissection^ do
+   Begin
+      S := dsGL_Narration;
+      If ( dsGST_Class=0 ) then dsGST_Amount := 0;
+      CSVWriteUK(Bank_Account,  { ABankAccount : ShortString      }
+                  baContra_Account_Code,  { AContra	   : ShortString      }
+      				    txDate_Effective, 	   { ADate        : TStDate;         }
+                  getDsctReference(Dissection,Transaction,Traverse.Bank_Account.baFields.baAccount_Type),{ ARefce       : ShortString;     }
+                  dsAccount,        		{ AAccount     : ShortString;     }
+                  dsAmount,         		{ AAmount      : Money;           }
+                  S,                      { ANarration	: ShortString;     }
+                  '',
+                  dsAmount,
+                  Bank_Account.Default_Forex_Conversion_Rate(txDate_Effective),
+                  dsQuantity,             { AQuantity	 : Money;          }
+                  dsGST_Class,            { AGSTClass    : Byte;           }
+                  dsGST_Amount,
+                  dsPayee_Number,
+                  GetPayeeName(Transaction, MyClient),
+                  dsJob_Code,
+                  GetJobName(Transaction, MyClient),
+                  txTemp_Balance,
+                  GetFormattedEntryType(Transaction),
+                  '' );         { AGSTAmount   : Money );        }
    end;
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
@@ -336,7 +560,7 @@ Begin
             else
             begin
                if (MyClient.clFields.clCountry = whUK)
-                 then Writeln( XFile, '"Number","Bank","Date","Reference","Account","Amount","Narration","Quantity","VAT Class","VAT Amount"')
+                 then Writeln( XFile, '"Number","Bank","Date","Reference","Account","A/C Desc","Amount","Narration","Statement Details","Amount(Foreign)","Exchange Rate","Quantity","VAT Class","VAT Amount"' + ',"Payee Number","Payee Name","Job Code","Job Name","Balance","Entry Type","Presentation Date"')
                  else Writeln( XFile, '"Number","Bank","Date","Reference","Account","Amount","Narration","Quantity","GST Class","GST Amount"');
                DoBankAccount := False;
                DoChartDescription := False;
@@ -364,8 +588,20 @@ Begin
                TRAVERSE.SetSortMethod( csDateEffective );
                TRAVERSE.SetSelectionMethod( TRAVERSE.twAllNewEntries );
                TRAVERSE.SetOnAHProc( DoAccountHeader );
-               TRAVERSE.SetOnEHProc( DoTransaction );
-               TRAVERSE.SetOnDSProc( DoDissection );
+
+               if (MyClient.clFields.clCountry = whUK) then
+               begin
+                 TRAVERSE.SetOnEHProc( DoTransactionUK );
+                 TRAVERSE.SetOnDSProc( DoDissectionUK);
+               end
+               else
+               begin
+                 TRAVERSE.SetOnEHProc( DoTransaction );
+                 TRAVERSE.SetOnDSProc( DoDissection );
+               end;
+
+
+
                TRAVERSE.TraverseEntriesForAnAccount( BA, FromDate, ToDate );
 
                if DoBalance then

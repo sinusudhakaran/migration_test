@@ -34,6 +34,7 @@ function CanRefreshChart( aCountry, aType : Byte ) : Boolean;
 function ExtractDataFileNameRequired(aCountry, aType : Byte ) : Boolean;
 
 function ExcludeFromAccSysList( aCountry, aType : byte) : boolean;
+function ExcludeFromWebFormatList( aCountry, aType : byte) : boolean;
 function IsSuperFund( aCountry, aSystem : byte) : boolean;
 function CanUseSuperFundFields( aCountry, aType : byte; sdMode: TSuperDialogMode = sfTrans) : boolean;
 function IsPA7Interface( aCountry, aType : byte) : boolean;
@@ -98,7 +99,7 @@ Begin
                                     snSolution6CLS3, snSolution6CLS4,
                                     snSolution6MAS41, snSolution6MAS42,
                                     snSolution6CLSY2K,
-                                    snCaseWare, snBK5CSV
+                                    snCaseWare, snBK5CSV, snAcclipse
                                      ];
                                      
       whAustralia    :  ContraCodeRequired :=
@@ -359,6 +360,19 @@ begin
       end;
    end;
 end;
+
+// Put web export formats here to remove them from the selection in Maintain Accounting System
+function ExcludeFromWebFormatList( aCountry, aType : byte) : boolean;
+begin
+  Result := False;
+  case aCountry of
+    // Add other countries and types as necessary
+    whUK: begin
+      Result := aType in [wfWebX]; // No Acclipse for UK
+    end;
+  end;
+end;
+
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function IsSuperFund( aCountry, aSystem : byte) : boolean;
 //returns true if the accounting system is for a superfund
@@ -396,7 +410,7 @@ begin
       Result := false
    else
       case aCountry of
-        whUK : Result := not (aType in [suQuickBooks, suTASBooks, suSageLine50])
+        whUK : Result := not (aType in [suTASBooks, suSageLine50])
         else Result := true;
       end;
 end;

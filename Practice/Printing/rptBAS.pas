@@ -317,7 +317,7 @@ begin
 
       BasCanvas.Font.Size := 8;
       BasCanvas.Font.Style := [];
-      RenderText('Document ID', Rect(1200, CurrYPos, 1500, CurrYPos + CurrLineSize), jtLeft);
+      RenderText('Document ID ', Rect(1200, CurrYPos, 1520, CurrYPos + CurrLineSize), jtLeft); // Space added here so the D doesn't look truncated
       BasCanvas.Font.Size := 11;
       BasCanvas.Font.Style := [ fsBold];
       RenderText(DocumentID, Rect(1550, CurrYPos, 2000, CurrYPos + CurrLineSize), jtLeft);
@@ -354,7 +354,7 @@ begin
 
       BasCanvas.Font.Size := 8;
       BasCanvas.Font.Style := [];
-      RenderText('GST accounting method', Rect(1200, CurrYPos, 1500, CurrYPos + CurrLineSize), jtLeft);
+      RenderText('GST accounting method', Rect(1200, CurrYPos, 1520, CurrYPos + CurrLineSize), jtLeft);
       BasCanvas.Font.Size := 11;
       BasCanvas.Font.Style := [ fsBold];
       if MyClient.clFields.clGST_Basis in [ gbMin..gbMax] then
@@ -577,7 +577,7 @@ begin
             BasCanvas.Font.Size  := 8;
             CurrLineSize := GetCurrLineSize;
             RenderTextWrapped( '<b>Go to the summary to report GST on sales at 1A and~'+
-                               '<b>GST on purchases at 1B',
+                               '<b>GST on purchases at 1B ', // added a space here so that the B doesn't look truncated 
                                Rect( ColRightTextLeft + 30, CurrYPos, ColRightAmtTextRight, CurrYPos + 2*CurrLineSize),
                                jtLeft);
             NewLine(3);
@@ -992,10 +992,12 @@ begin
             RenderBasBox('GST on sales or GST instalment', '1A', iGSTPayable_1A, 1, '', WrappedLines);
             NewLine(1);
          end;
+         CurrYPos := CurrYPos + 17; // Need a gap here to match the right hand side, which has a two line label
          if FieldVisible( bf1c, BasFormType, iWineEqlPayable_1C) then begin
-            RenderBasBox('Wine equalisation tax~ ', '1C', iWineEqlPayable_1C, 1, '', WrappedLines);
-            NewLine(2);
+            RenderBasBox('Wine equalisation tax', '1C', iWineEqlPayable_1C, 1, '', WrappedLines);
+            NewLine(1);
          end;
+         CurrYPos := CurrYPos + 17; // Need a gap here to match the right hand side, which has a two line label
          if FieldVisible( bf1e, BasFormType, iLuxCarPayable_1E) then begin
             RenderBasBox('Luxury car tax', '1E', iLuxCarPayable_1E, 1, '', WrappedLines);
             NewLine(1);
@@ -1056,11 +1058,11 @@ begin
             NewLine(1);
          end;
          if FieldVisible( bf5a, BasFormType, iIncomeTaxInstalm_5A) then begin
-            RenderBasBox('PAYG income tax~instalment~ ', '5A', iIncomeTaxInstalm_5A, 1, '', WrappedLines);
+            RenderBasBox('PAYG income tax~instalment ', '5A', iIncomeTaxInstalm_5A, 1, '', WrappedLines);
             NewLine(2);
          end;
          if FieldVisible( bf6a, BasFormType, iFBTInstalm_6A) then begin
-            RenderBasBox('FBT instalment~ ', '6A', iFBTInstalm_6A, 1, '', WrappedLines);
+            RenderBasBox('FBT instalment ', '6A', iFBTInstalm_6A, 1, '', WrappedLines);
             NewLine( 2);
          end;
          if FieldVisible( bf7,  BasFormType, iDeferredInstalm_7) then begin
@@ -1068,7 +1070,7 @@ begin
             NewLine( 2);
          end;
          if FieldVisible( bf7c,  BasFormType) then begin
-            RenderBasBox('Fuel tax credit over claim~(Dot not claim in litres)', '7C', iFuelOverClaim_7C, 1, '', WrappedLines);
+            RenderBasBox('Fuel tax credit over claim~(Do not claim in litres)', '7C', iFuelOverClaim_7C, 1, '', WrappedLines);
             NewLine( 2);
          end;
          SectionBottom := CurrYPos;
@@ -1089,7 +1091,7 @@ begin
             NewLine( 2);
          end;
          if FieldVisible( bf7d,  BasFormType) then begin
-            RenderBasBox('Fuel tax credit~(Dot not claim in litres)', '7D', iFuelCredit_7D, 2, '', WrappedLines);
+            RenderBasBox('Fuel tax credit~(Do not claim in litres)', '7D', iFuelCredit_7D, 2, '', WrappedLines);
             NewLine( 2);
          end;
          //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -1247,7 +1249,7 @@ begin
          RenderLine(ColLeftCurTextRight, CurrYPos-10, ColLeftAmtTextRight + Gap - ColLeftCurTextRight);
          RenderLine(ColRightCurTextRight, CurrYPos-10, ColRightAmtTextRight + Gap - ColRightCurTextRight);
          RenderBasBox('Total sales subject to GST~after adjustments~(G6 + G7)', 'G8', iTotalTaxSuppAdj_G8, 1, '', WrappedLines);
-         RenderBasBox('Total purchases subject to GST~(G12 minus G16)~ ', 'G17', iTotalCreditAcq_G17, 2, '', WrappedLines);
+         RenderBasBox('Total purchases subject to GST~(G12 minus G16) ', 'G17', iTotalCreditAcq_G17, 2, '', WrappedLines);
          NewLine(3);
 
          RenderLine(ColLeftCurTextRight, CurrYPos-30, ColLeftAmtTextRight + Gap - ColLeftCurTextRight);
@@ -1327,11 +1329,11 @@ begin
          CurrXPos := CurrXPos + colDescWidth;
          RenderTextWrapped('Eligible fuel~type', Rect(CurrXPos + 1, Top, CurrXPos + colTypeWidth, Top + (CurrLineSize * 4)),jtLeft);
          CurrXPos := CurrXPos + colTypeWidth;
-         RenderTextWrapped('Total fuel~acquisiations~(litres)', Rect(CurrXPos + 1, Top, CurrXPos + colLitresWidth, Top + (CurrLineSize * 4)),jtLeft);
+         RenderTextWrapped('Total fuel~acquisitions~(litres)', Rect(CurrXPos + 1, Top, CurrXPos + colLitresWidth, Top + (CurrLineSize * 4)),jtLeft);
          CurrXPos := CurrXPos + colLitresWidth;
          RenderTextWrapped('Business fuel use', Rect(CurrXPos + 1, Top, CurrXPos + colUseWidth, Top + (CurrLineSize * 4)),jtLeft);
          CurrXPos := CurrXPos + colUseWidth;
-         RenderTextWrapped('Representitive~percentage~(%)', Rect(CurrXPos + 1, Top, CurrXPos + colPercentWidth, Top + (CurrLineSize * 4)),jtLeft);
+         RenderTextWrapped('Representative~percentage~(%)', Rect(CurrXPos + 1, Top, CurrXPos + colPercentWidth, Top + (CurrLineSize * 4)),jtLeft);
          CurrXPos := CurrXPos + colPercentWidth;
          RenderTextWrapped('Total business~use of eligible~fuel (litres)', Rect(CurrXPos + 1, Top, CurrXPos + colEligibleWidth, Top + (CurrLineSize * 4)),jtLeft);
          CurrXPos := CurrXPos + colEligibleWidth;

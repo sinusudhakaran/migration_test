@@ -597,7 +597,7 @@ begin
       else
       begin
         //no client, guess from users country code
-        if (WinUtils.GetDefaultCountryCode = '61') then
+        if (WinUtils.GetDefaultCountryCode <> '64') then
           MyDlg.tsLinks.TabVisible := false;
       end;
        MyDlg.pnlUIStyle.Visible := ThirdPartyDLLDetected;

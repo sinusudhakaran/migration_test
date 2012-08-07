@@ -108,8 +108,9 @@ begin
                       MemToTest.mdFields.mdFrom_Date, MemToTest.mdFields.mdUntil_Date) then
          Exit;
 
-
-
+      if (MemToTest.mdFields.mdUse_Accounting_System or ExistingMemorisation.mdFields.mdUse_Accounting_System) then
+        if ( ExistingMemorisation.mdFields.mdAccounting_System <> MemToTest.mdFields.mdAccounting_System) then
+          exit;
 
       //no criteria are different
       Result := true;

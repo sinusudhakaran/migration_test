@@ -135,7 +135,7 @@ object fmeECodingExport: TfmeECodingExport
     Left = 280
     Top = 256
     Width = 119
-    Height = 21
+    Height = 19
     Ctl3D = False
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
@@ -172,7 +172,7 @@ object fmeECodingExport: TfmeECodingExport
     Left = 280
     Top = 286
     Width = 119
-    Height = 21
+    Height = 19
     Ctl3D = False
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText

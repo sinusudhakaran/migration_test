@@ -430,7 +430,7 @@ Var
    SortKey           : ShortString;
    OK                : Boolean;
    Item              : pTraverseItem;
-
+   Balance           : Money;
 Begin
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
    
@@ -444,6 +444,33 @@ Begin
 
       If ( SortMethod = csDateEffective ) then
       Begin (* Don't bother sorting them, they are in index order *)
+        Balance := Bank_Account.baFields.baCurrent_Balance;
+
+        for TNo := Last downto First do
+        begin
+          Transaction := Transaction_at(TNo);
+
+          if (Balance <> Unknown) then
+          begin
+            if (Transaction^.txUPI_State in [upUPC,upReversedUPC,upReversalOfUPC, upUPD,upReversedUPD,upReversalOfUPD, upUPW,upReversedUPW,upReversalOfUPW]) then
+            begin
+              Balance := Balance + Transaction.txAmount;
+            end;
+          end;
+        end;
+
+        for TNo := Last downto First do
+        begin
+          Transaction := Transaction_at(TNo);
+
+          Transaction.txTemp_Balance := Balance;
+
+          if (Balance <> Unknown) then
+          begin
+            Balance := Balance - Transaction.txAmount;
+          end;
+        end;
+
          for TNo := 0 to Pred( ItemCount ) do
          Begin
             Transaction := Transaction_At( TNo );

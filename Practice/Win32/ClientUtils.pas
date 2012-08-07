@@ -111,7 +111,7 @@ begin
     if cfRec.cfClient_Type = ctProspect then
       Errors := 'A Prospect with this code already exists.'
     else
-      Errors := 'A Client with this code alredy exists.';
+      Errors := 'A Client with this code already exists.';
     Result := False;
   end
   else if Length(Code) > 8 then

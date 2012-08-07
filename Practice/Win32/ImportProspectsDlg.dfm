@@ -28,7 +28,7 @@ object frmImportProspects: TfrmImportProspects
       Top = 25
       Width = 403
       Height = 251
-      Hint = 'Select the Outlook Contacts to import as propsects'
+      Hint = 'Select the Outlook Contacts to import as prospects'
       Align = alClient
       BevelInner = bvNone
       BevelOuter = bvNone
@@ -168,7 +168,7 @@ object frmImportProspects: TfrmImportProspects
       Height = 21
       Hint = 'Choose where to import from'
       Style = csDropDownList
-      ItemHeight = 0
+      ItemHeight = 13
       ItemIndex = 0
       ParentShowHint = False
       ShowHint = True

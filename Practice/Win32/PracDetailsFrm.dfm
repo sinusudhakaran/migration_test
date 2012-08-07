@@ -47,7 +47,7 @@ object frmPracticeDetails: TfrmPracticeDetails
     Top = 8
     Width = 617
     Height = 387
-    ActivePage = tsBankLinkOnline
+    ActivePage = tbsDetails
     TabOrder = 0
     OnChange = PageControl1Change
     OnChanging = PageControl1Changing
@@ -187,7 +187,7 @@ object frmPracticeDetails: TfrmPracticeDetails
         Width = 377
         Height = 22
         BorderStyle = bsNone
-        TabOrder = 3
+        TabOrder = 4
         Text = 'Web Site'
       end
       object gbxDownLoad: TGroupBox
@@ -195,7 +195,7 @@ object frmPracticeDetails: TfrmPracticeDetails
         Top = 311
         Width = 593
         Height = 45
-        TabOrder = 5
+        TabOrder = 6
         object lblConnect: TLabel
           Left = 11
           Top = 17
@@ -246,7 +246,7 @@ object frmPracticeDetails: TfrmPracticeDetails
         BorderStyle = bsNone
         Ctl3D = True
         ParentCtl3D = False
-        TabOrder = 4
+        TabOrder = 5
         OnChange = edtLogoBitmapFilenameChange
       end
       object btnEdit: TButton
@@ -255,7 +255,7 @@ object frmPracticeDetails: TfrmPracticeDetails
         Width = 91
         Height = 22
         Caption = 'Edit'
-        TabOrder = 6
+        TabOrder = 3
         OnClick = btnEditClick
       end
     end

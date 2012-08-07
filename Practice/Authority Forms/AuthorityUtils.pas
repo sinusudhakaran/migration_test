@@ -12,6 +12,10 @@ uses
    rptGST101;
 
 function GetTaskBarHeight: Integer;
+function GetTaskBarWidth: Integer;
+function IsTaskbarAutoHideOn: Boolean;
+function GetTaskBarRect: TRect;
+function IsTaskbarHorizontal: Boolean;
 
 const // for reporting
    {columns specs in 0.1mm ie. 10=1mm}
@@ -126,6 +130,45 @@ begin
     GetWindowRect( hTaskBarWindow, Rect );
     Result := Rect.Bottom - Rect.Top;
   end;
+end;
+
+function GetTaskBarWidth: Integer;
+var
+  hTaskBarWindow : HWnd;
+  Rect           : TRect;
+begin
+  if IsTaskbarAutoHideOn then
+    Result := 0
+  else
+  begin
+    hTaskBarWindow:=FindWindow('Shell_TrayWnd',nil);
+    GetWindowRect( hTaskBarWindow, Rect );
+    Result := Rect.Right - Rect.Left;
+  end;
+end;
+
+function GetTaskBarRect: TRect;
+var
+  hTaskBarWindow : HWnd;
+  Rect           : TRect;
+begin
+  hTaskBarWindow:=FindWindow('Shell_TrayWnd',nil);
+  GetWindowRect( hTaskBarWindow, Rect );
+  Result := Rect;
+end;
+
+function IsTaskbarHorizontal: Boolean;
+var
+  TaskbarRect: TRect;
+  TaskbarWidth: Integer;
+  TaskbarHeight: Integer;
+begin
+  TaskbarRect := GetTaskbarRect;
+
+  TaskbarWidth := TaskbarRect.Right - TaskbarRect.Left;
+  TaskbarHeight := TaskbarRect.Bottom - TaskbarRect.Top;
+
+  Result := TaskbarWidth > TaskbarHeight;
 end;
 
 // Split up a TLabel into its individual lines and print them

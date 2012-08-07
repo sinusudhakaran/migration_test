@@ -275,10 +275,6 @@ object dlgEditGST: TdlgEditGST
     object tsGSTRates: TTabSheet
       Caption = '&Rates'
       ImageIndex = 2
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object Label5: TLabel
         Left = 176
         Top = 30
@@ -358,7 +354,15 @@ object dlgEditGST: TdlgEditGST
         OnGetCellAttributes = tblRatesGetCellAttributes
         OnUserCommand = tblRatesUserCommand
         CellData = (
-          'dlgEditGST.colHeader')
+          'dlgEditGST.colHeader'
+          'dlgEditGST.ColID'
+          'dlgEditGST.colDesc'
+          'dlgEditGST.celGSTType'
+          'dlgEditGST.colRate1'
+          'dlgEditGST.colRate2'
+          'dlgEditGST.colRate3'
+          'dlgEditGST.colAccount'
+          'dlgEditGST.colNormPercent')
         RowData = (
           22)
         ColData = (
@@ -626,7 +630,7 @@ object dlgEditGST: TdlgEditGST
           Width = 145
           Height = 21
           Style = csDropDownList
-          ItemHeight = 13
+          ItemHeight = 0
           TabOrder = 0
           Items.Strings = (
             'Effective Date'

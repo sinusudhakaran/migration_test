@@ -350,6 +350,7 @@ begin
    Result := nil;
    if value = nil then exit;
    LTreeData := Tree.GetNodeData (Value);
+   if not assigned(LTreeData) then exit;   
    Result := LTreeData^.BaseItem;
 end;
 

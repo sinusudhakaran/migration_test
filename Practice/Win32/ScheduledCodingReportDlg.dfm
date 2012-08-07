@@ -91,7 +91,7 @@ object dlgSchedCodingReportSettings: TdlgSchedCodingReportSettings
         Height = 17
         Alignment = taLeftJustify
         Caption = 'R&ule a line between entries'
-        TabOrder = 0
+        TabOrder = 4
       end
       object cmbStyle: TComboBox
         Left = 176
@@ -100,7 +100,7 @@ object dlgSchedCodingReportSettings: TdlgSchedCodingReportSettings
         Height = 21
         Style = csDropDownList
         ItemHeight = 13
-        TabOrder = 1
+        TabOrder = 0
         OnChange = cmbStyleChange
       end
       object cmbSort: TComboBox
@@ -110,7 +110,7 @@ object dlgSchedCodingReportSettings: TdlgSchedCodingReportSettings
         Height = 21
         Style = csDropDownList
         ItemHeight = 13
-        TabOrder = 2
+        TabOrder = 1
       end
       object cmbInclude: TComboBox
         Left = 176
@@ -119,7 +119,7 @@ object dlgSchedCodingReportSettings: TdlgSchedCodingReportSettings
         Height = 21
         Style = csDropDownList
         ItemHeight = 13
-        TabOrder = 3
+        TabOrder = 2
       end
       object cmbLeave: TComboBox
         Left = 288
@@ -128,7 +128,7 @@ object dlgSchedCodingReportSettings: TdlgSchedCodingReportSettings
         Height = 21
         Style = csDropDownList
         ItemHeight = 13
-        TabOrder = 4
+        TabOrder = 3
         Items.Strings = (
           '0'
           '1'
@@ -141,7 +141,7 @@ object dlgSchedCodingReportSettings: TdlgSchedCodingReportSettings
         Height = 17
         Alignment = taLeftJustify
         Caption = 'chkTaxInvoice'
-        TabOrder = 5
+        TabOrder = 7
       end
       object pnlNZOnly: TPanel
         Left = 19
@@ -149,7 +149,7 @@ object dlgSchedCodingReportSettings: TdlgSchedCodingReportSettings
         Width = 454
         Height = 33
         BevelOuter = bvNone
-        TabOrder = 6
+        TabOrder = 8
         object lblDetailsToShow: TLabel
           Left = 5
           Top = 8
@@ -183,7 +183,7 @@ object dlgSchedCodingReportSettings: TdlgSchedCodingReportSettings
         Height = 17
         Alignment = taLeftJustify
         Caption = '&Wrap Narration and Notes'
-        TabOrder = 7
+        TabOrder = 6
       end
       object chkRuleVerticalLine: TCheckBox
         Left = 24
@@ -192,7 +192,7 @@ object dlgSchedCodingReportSettings: TdlgSchedCodingReportSettings
         Height = 17
         Alignment = taLeftJustify
         Caption = 'Rule a line between columns'
-        TabOrder = 8
+        TabOrder = 5
       end
     end
     object tbsColumns: TTabSheet
