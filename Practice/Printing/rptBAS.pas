@@ -226,6 +226,7 @@ var
    AnnualDatesCaption : string;
    CurrXPos : Integer;
    Total: Double;
+   FuelRow: Integer;
 const
   colCodeWidth = 150;
   colDescWidth = 300;
@@ -1337,34 +1338,36 @@ begin
          RenderTextWrapped('Credit rate~(cents per~litre)', Rect(CurrXPos + 1, Top, CurrXPos + colRateWidth, Top + (CurrLineSize * 4)),jtLeft);
          CurrXPos := CurrXPos + colRateWidth;
          RenderTextWrapped('Fuel tax~credit amount~($)', Rect(CurrXPos + 1, Top, CurrXPos + colTotalWidth, Top + (CurrLineSize * 4)),jtLeft);
-         Top := Top + CurrLineSize * 2;
+         Top := Top + (CurrLineSize div 2);
          BasCanvas.Font.Style := [];
          BasCanvas.Font.Size := 8;
-         for i := 1 to Pred(FuelSheet.Rows) do
+         for i := 0 to Pred(FuelSheet.Rows) do
          begin
-           if (FuelSheet.Cell[colCode, i] <> '') or (FuelSheet.Cell[colTotal, i] <> '') then
+           FuelRow := i + 1;
+           
+           if (FuelSheet.Cell[colCode, FuelRow] <> '') or (FuelSheet.Cell[colTotal, FuelRow] <> '') then
            begin
              CurrXPos := 1;
-             RenderText(FuelSheet.Cell[colCode, i], Rect(CurrXPos, Top, CurrXPos + colCodeWidth, Top + (CurrLineSize * 4)),jtLeft);
+             RenderText(FuelSheet.Cell[colCode, FuelRow], Rect(CurrXPos, Top, CurrXPos + colCodeWidth, Top + (CurrLineSize * 4)),jtLeft);
              CurrXPos := CurrXPos + colCodeWidth;
-             RenderText(FuelSheet.Cell[colDesc, i], Rect(CurrXPos + 1, Top, CurrXPos + colDescWidth, Top + (CurrLineSize * 4)),jtLeft);
+             RenderText(FuelSheet.Cell[colDesc, FuelRow], Rect(CurrXPos + 1, Top, CurrXPos + colDescWidth, Top + (CurrLineSize * 4)),jtLeft);
              CurrXPos := CurrXPos + colDescWidth;
-             RenderText(FuelSheet.Cell[colType, i], Rect(CurrXPos + 1, Top, CurrXPos + colTypeWidth, Top + (CurrLineSize * 4)),jtLeft);
+             RenderText(FuelSheet.Cell[colType, FuelRow], Rect(CurrXPos + 1, Top, CurrXPos + colTypeWidth, Top + (CurrLineSize * 4)),jtLeft);
              CurrXPos := CurrXPos + colTypeWidth;
-             RenderText(FuelSheet.Cell[colLitres, i], Rect(CurrXPos + 1, Top, CurrXPos + colLitresWidth, Top + (CurrLineSize * 4)),jtLeft);
+             RenderText(FuelSheet.Cell[colLitres, FuelRow], Rect(CurrXPos + 1, Top, CurrXPos + colLitresWidth, Top + (CurrLineSize * 4)),jtLeft);
              CurrXPos := CurrXPos + colLitresWidth;
-             RenderText(FuelSheet.Cell[colUse, i], Rect(CurrXPos + 1, Top, CurrXPos + colUseWidth, Top + (CurrLineSize * 4)),jtLeft);
+             RenderText(FuelSheet.Cell[colUse, FuelRow], Rect(CurrXPos + 1, Top, CurrXPos + colUseWidth, Top + (CurrLineSize * 4)),jtLeft);
              CurrXPos := CurrXPos + colUseWidth;
-             RenderText(FuelSheet.Cell[colPercent, i], Rect(CurrXPos + 1, Top, CurrXPos + colPercentWidth, Top + (CurrLineSize * 4)),jtLeft);
+             RenderText(FuelSheet.Cell[colPercent, FuelRow], Rect(CurrXPos + 1, Top, CurrXPos + colPercentWidth, Top + (CurrLineSize * 4)),jtLeft);
              CurrXPos := CurrXPos + colPercentWidth;
-             RenderText(FuelSheet.Cell[colEligible, i], Rect(CurrXPos + 1, Top, CurrXPos + colEligibleWidth, Top + (CurrLineSize * 4)),jtLeft);
+             RenderText(FuelSheet.Cell[colEligible, FuelRow], Rect(CurrXPos + 1, Top, CurrXPos + colEligibleWidth, Top + (CurrLineSize * 4)),jtLeft);
              CurrXPos := CurrXPos + colEligibleWidth;
-             RenderText(FuelSheet.Cell[colRate, i], Rect(CurrXPos + 1, Top, CurrXPos + colRateWidth, Top + (CurrLineSize * 4)),jtLeft);
+             RenderText(FuelSheet.Cell[colRate, FuelRow], Rect(CurrXPos + 1, Top, CurrXPos + colRateWidth, Top + (CurrLineSize * 4)),jtLeft);
              CurrXPos := CurrXPos + colRateWidth;
-             RenderText(FuelSheet.Cell[colTotal, i], Rect(CurrXPos + 1, Top, CurrXPos + colTotalWidth, Top + (CurrLineSize * 4)),jtLeft);
-             if FuelSheet.Cell[colTotal, i] <> '' then
-               Total := Total + FuelSheet.Cell[colTotal, i];
-             Top := Top + CurrLineSize * 2;
+             RenderText(FuelSheet.Cell[colTotal, FuelRow], Rect(CurrXPos + 1, Top, CurrXPos + colTotalWidth, Top + (CurrLineSize * 4)),jtLeft);
+             if FuelSheet.Cell[colTotal, FuelRow] <> '' then
+               Total := Total + FuelSheet.Cell[colTotal, FuelRow];
+             Top := Top + CurrLineSize + 2;
            end;
          end;
          BasCanvas.Font.Style := [ fsBold];

@@ -92,7 +92,7 @@ object ImportHist: TImportHist
         Top = 1
         Width = 1025
         Height = 121
-        ActivePage = TSAmount
+        ActivePage = TSDate
         Align = alTop
         TabOrder = 0
         OnChange = PCFormatChange
@@ -518,12 +518,11 @@ object ImportHist: TImportHist
       object lbFile: TLabel
         Left = 1
         Top = 1
-        Width = 1025
+        Width = 3
         Height = 13
         Align = alTop
         Constraints.MaxHeight = 100
         WordWrap = True
-        ExplicitWidth = 3
       end
       object vsFile: TVirtualStringTree
         Left = 1

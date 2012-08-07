@@ -8646,10 +8646,11 @@ begin
     //strip OD OA characters
     NewNarration := StripReturnCharsFromString( Trim(NewNarration), ' ');
 
+    pT^.txHas_Been_Edited := true;
     pT^.txGL_Narration := Copy( NewNarration, 1, MaxNarrationEditLength);
 
     RedrawRow;
-    
+
   end;
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -8671,6 +8672,7 @@ begin
       else
         NewNarration := pT^.txStatement_Details;
 
+      pT^.txHas_Been_Edited := true;
       pT^.txGL_Narration := Copy( NewNarration, 1, MaxNarrationEditLength);
 
       RedrawRow;

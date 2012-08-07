@@ -1256,7 +1256,7 @@ function TImportHist.IsDate(const Value: Integer): string;
 var I: Integer;
     ResMask,
     S: string;
-    monthNotSwapped: Boolean;
+    monthNotSwapped, ItsADate: Boolean;
 
    procedure BuildMask;
    var D: Integer;
@@ -1377,6 +1377,7 @@ begin
 
 
   BuildMask;
+  ItsADate := False;
   monthNotSwapped := True;
   for I := 0 to fFileList.Count -1 do begin
       S :=  GetFileText(I,Value);
@@ -1384,11 +1385,13 @@ begin
          if Length(ResMask) = 0  then
             BuildMask;
 
-         if IsDate(S,ResMask) then
-         else begin
+         if IsDate(S,ResMask) then begin
+           ItsADate := True;
+         end else begin
             // Have to Check a couple things
             if monthNotSwapped then begin
                if IsDate(S,SwapMonth( ResMask)) then begin
+                  ItsADate := True;
                   ResMask := SwapMonth( ResMask);
                   MonthNotSwapped := false;
                end;
@@ -1397,7 +1400,10 @@ begin
          end;
       end;
   end;
-  Result := ResMask;
+  if ItsADate then  
+    Result := ResMask
+  else
+    Result := ''; // This is not a date
 end;
 
 function TImportHist.IsDebitCredit(const Value: Integer): Boolean;
@@ -2091,6 +2097,8 @@ function TImportHist.StrtoDate(Value,Mask: string): Integer;
 var p, I: Integer;
 
   M,D,Y : Integer;
+  MaxLengthD, MaxLengthM, MaxLengthY: Integer;
+
   function NextMask: Char;
   begin
      Result := #0;
@@ -2109,21 +2117,39 @@ begin
   M := 0;
   D := 0;
   Y := 0;
+  MaxLengthD := GetNumOfSubstringInString('D', Mask);
+  MaxLengthM := GetNumOfSubstringInString('M', Mask);
+  MaxLengthY := GetNumOfSubstringInString('Y', Mask);
   for I := 1 to 3 do
 
   case NextMask of
   'D' : begin
           D := ReadNum(Value);
+          if (Length(IntToStr(D)) > MaxLengthD)  then
+          begin
+            Result := -1; // The day part of the date is too long
+            Exit;
+          end;
           Value := Copy(Value,2,200);
         end;
   'M' : begin
           M := ReadNum(Value);
+          if (Length(IntToStr(M)) > MaxLengthM)  then
+          begin
+            Result := -1; // The month part of the date is too long
+            Exit;
+          end;
           if M = 0 then
              M := ReadMonth(Value);
            Value := Copy(Value,2,200);
         end;
   'Y' : begin
           Y := ReadNum(Value);
+          if (Length(IntToStr(Y)) > MaxLengthY)  then
+          begin
+            Result := -1; // The year part of the date is too long
+            Exit;
+          end;
           Value := Copy(Value,2,200);
         end;
   end;

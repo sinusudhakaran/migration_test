@@ -171,7 +171,7 @@ begin
   //trying to interfer
 
   CustomFormHeight := 624;
-  CustomFormWidth := 766;
+  CustomFormWidth := 840;
 end;
 
 function TFrmGST372.GetCustomsGSTAmount: Double;

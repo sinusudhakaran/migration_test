@@ -19,7 +19,8 @@ Uses
   Controls,
   bkDefs,
   MoneyDef,
-  Graphics;
+  Graphics,
+  Math;
 
 type
   String1 = String[1];
@@ -146,6 +147,8 @@ procedure PopUpCalendar(Owner:TEdit; var aDate : integer);
 
 function GetCommaSepStrFromList(const Items : TStringList) : string; overload;
 function GetCommaSepStrFromList(const Items : array of string) : string; overload;
+
+function GetNumOfSubstringInString(Needle, Haystack: string) : integer; // Returns the number of occurrences of a substring (needle) in a string (haystack)
 
 
 //******************************************************************************
@@ -1222,5 +1225,13 @@ begin
   end;
 end;
 
+// Returns the number of occurrences of a substring (needle) in a string (haystack)
+function GetNumOfSubstringInString(Needle, Haystack: string) : integer;
+var
+  sTmp: String;
+begin
+  sTmp := StringReplace(Haystack, Needle, '', [rfReplaceAll]);
+  Result := Floor((Length(Haystack) - Length(sTmp))/Length(Needle));
+end;
 
 End.

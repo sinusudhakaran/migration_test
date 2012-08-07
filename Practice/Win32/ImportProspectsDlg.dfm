@@ -168,7 +168,7 @@ object frmImportProspects: TfrmImportProspects
       Height = 21
       Hint = 'Choose where to import from'
       Style = csDropDownList
-      ItemHeight = 13
+      ItemHeight = 0
       ItemIndex = 0
       ParentShowHint = False
       ShowHint = True

@@ -274,6 +274,7 @@ type
     procedure tabFuelSheetHide(Sender: TObject);
     procedure rbYes_GSTOption1Click(Sender: TObject);
     procedure rbNo_GSTOption1Click(Sender: TObject);
+    procedure bxfP1A1Click(Sender: TObject);
   private
     { Private declarations }
     BasInfo      : TBasInfo;
@@ -1378,6 +1379,11 @@ begin
     //now update all figures
     ReDisplay;
   end;
+end;
+
+procedure TfrmBAS.bxfP1A1Click(Sender: TObject);
+begin
+  bxfP1A1.SelectAll;
 end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

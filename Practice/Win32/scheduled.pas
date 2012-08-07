@@ -1570,6 +1570,7 @@ Var
   Bank_Account: TBank_Account;
   NextNo: Integer;
   NotifyClient: Boolean;
+  Index: Integer;
 begin
    Assert( OutputDest in [ rdPrinter, rdScreen ], 'ExportToECoding.OutputDest in [ rdPrinter, rdScreen ]');
 
@@ -1728,7 +1729,19 @@ begin
                                                                  EncodedLogoString, nil,
                                                                  srOptions.srDisplayFromDate);
             except
-               on E : Exception do begin
+               on E : Exception do
+               begin
+                 //If the export fails due to an exception make sure we add the accounts to the summary list so that the failure is reported.
+                 for Index := 0 to TempSummaryInfoList.Count - 1 do
+                 begin
+                   //Flag completed to false so that the summary report knows that they go in the failed section.
+                   PSchdRepSummaryRec(TempSummaryInfoList[Index]).Completed := False;
+
+                   srOptions.srSummaryInfoList.Add( TempSummaryInfoList.Items[Index]);
+
+                   TempSummaryInfoList.Items[Index] := nil;
+                 end;
+
                   LogUtil.LogError( unitname, 'Generate failed ' + ecFilename +
                                     ' [' + E.Message + ']');
                   exit;
