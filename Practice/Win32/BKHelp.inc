@@ -632,6 +632,8 @@ const
   BKH_Updating_a_client_file_from_a_folder = 1088;
   BKH_Sending_a_client_file_via_email = 1314;
   BKH_Transferring_transactions_from_BankLink_Practice_to_QuickBooks_Pro = 2137;
+  BKH_Changing_your_password_to_match_BankLink_Online = 2138;
+  BKH_BankLink_Online_client_options = 2139;
 
 var
   //filename of HTML help file

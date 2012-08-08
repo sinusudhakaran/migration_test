@@ -625,3 +625,5 @@
 #define Updating_a_client_file_from_a_folder	1088
 #define Sending_a_client_file_via_email	1314
 #define Transferring_transactions_from_BankLink_Practice_to_QuickBooks_Pro	2137
+#define Changing_your_password_to_match_BankLink_Online	2138
+#define BankLink_Online_client_options	2139

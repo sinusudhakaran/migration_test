@@ -147,7 +147,8 @@ uses
   ModalProgressFrm,
   RegExprUtils,
   GenUtils,
-  BlopiServiceFacade;
+  BlopiServiceFacade,
+  BkHelp;
 
 const
   UnitName = 'BanklinkOnlineSettingsFrm';
@@ -456,6 +457,7 @@ begin
 
   BanklinkOnlineSettings := TfrmBanklinkOnlineSettings.Create(Application.MainForm);
   try
+    BKHelpSetUp(BanklinkOnlineSettings, BKH_BankLink_Online_client_options);
     BanklinkOnlineSettings.PopupParent := w_PopupParent;
     BanklinkOnlineSettings.PopupMode := pmExplicit;
     BanklinkOnlineSettings.grpServicesAvailable.Visible := ShowServicesAvailable;

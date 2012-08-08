@@ -66,7 +66,8 @@ uses
   InfoMoreFrm,
   ErrorMoreFrm,
   Admin32,
-  LogUtil;
+  LogUtil,
+  BKHelp;
 
 const
   UNITNAME = 'EditUserPassword';
@@ -83,7 +84,7 @@ begin
 
   MyDlg := TEditUserPassword.Create(Application.mainForm);
   try
-    //BKHelpSetUp(MyDlg, BKH_Setting_up_BankLink_users);
+    BKHelpSetUp(MyDlg, BKH_Changing_your_password_to_match_BankLink_Online);
     if MyDlg.Initlize then
       MyDlg.ShowModal;
   finally
