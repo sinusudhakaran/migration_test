@@ -28,7 +28,9 @@ uses TransactionUtils,Classes, Traverse, Globals, GenUtils, bkDateUtils, TravUti
 {$ENDIF}
      BkConst, MoneyDef, SysUtils, StStrS,
      InfoMoreFrm, BKDefs, glConst, ForexHelpers,
-     StrUtils;
+     StrUtils,
+     Math,
+     ContraCodeEntryfrm;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -196,7 +198,7 @@ Begin
    Write( XFile, '"', ReplaceCommasAndQuotes( StStrS.TrimSpacesS( ARefce )), '",' );
    Write( XFile, '"', ReplaceCommasAndQuotes(AAccount), '",' );
 
-   write( XFile, '"', ChartDescription, '",');
+   write( XFile, '"', ReplaceCommasAndQuotes(ChartDescription), '",');
 
    write( XFile, AAmount/100:0:2, ',' );
    write( XFile, '"',Copy(ReplaceCommasAndQuotes( StStrS.TrimSpacesS( ANarration )), 1, GetMaxNarrationLength), '",' );
@@ -214,7 +216,7 @@ Begin
 
    if BankAccount.IsAForexAccount and not (BankAccount.IsAJournalAccount or (ExchangeRate = 0)) then
    begin
-     write(XFile, FloatToStrF(ExchangeRate, ffFixed, 4, 4), ',');
+     write(XFile, FloatToStr(RoundTo(ExchangeRate, -4)), ',');
    end
    else
    begin
@@ -247,11 +249,11 @@ Begin
      write(XFile, '"','', '",');
    end;
 
-   write(XFile, '"',PayeeName, '",');
+   write(XFile, '"',ReplaceCommasAndQuotes(PayeeName), '",');
 
-   write(XFile, '"',JobCode, '",');
+   write(XFile, '"',ReplaceCommasAndQuotes(JobCode), '",');
 
-   write(XFile, '"',JobName, '",');
+   write(XFile, '"',ReplaceCommasAndQuotes(JobName), '",');
 
    if not (BankAccount.IsAJournalAccount) then
    begin
@@ -459,6 +461,7 @@ VAR
    OK           : Boolean;
    DoClientDescription: Boolean;
    DoBalance: Boolean;
+   ContraCode: String;
 
 
   function GetClosingBalance(BA: TBank_Account): Money;
@@ -512,9 +515,16 @@ Begin
                begin
                  if BA.baFields.baContra_Account_Code = '' then
                  Begin
-                   HelpfulInfoMsg( 'Before you can extract these entries, you must specify a contra account code for bank account "'+
-                      baBank_Account_Number + '". To do this, go to the Other Functions|Bank Accounts option and edit the account', 0 );
-                   exit;
+                   if TfrmContraCodeEntry.EnterContraCode(ContraCode) then
+                   begin
+                     BA.baFields.baContra_Account_Code := ContraCode; 
+                   end
+                   else
+                   begin
+                     HelpfulInfoMsg( 'Before you can extract these entries, you must specify a contra account code for bank account "'+
+                        baBank_Account_Number + '". To do this, go to the Other Functions|Bank Accounts option and edit the account', 0 );
+                     exit;
+                   end;
                  end;
                end;
 
@@ -560,7 +570,7 @@ Begin
             else
             begin
                if (MyClient.clFields.clCountry = whUK)
-                 then Writeln( XFile, '"Number","Bank","Date","Reference","Account","A/C Desc","Amount","Narration","Statement Details","Amount(Foreign)","Exchange Rate","Quantity","VAT Class","VAT Amount"' + ',"Payee Number","Payee Name","Job Code","Job Name","Balance","Entry Type","Presentation Date"')
+                 then Writeln( XFile, '"Number","Bank","Date","Reference","Account","A/c Desc","Amount","Narration","Statement Details","Amount(Foreign)","Exchange Rate","Quantity","VAT Class","VAT Amount"' + ',"Payee Number","Payee Name","Job Code","Job Name","Balance","Entry Type","Presentation Date"')
                  else Writeln( XFile, '"Number","Bank","Date","Reference","Account","Amount","Narration","Quantity","GST Class","GST Amount"');
                DoBankAccount := False;
                DoChartDescription := False;
