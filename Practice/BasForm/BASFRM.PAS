@@ -1893,7 +1893,10 @@ begin
 end;
 procedure TfrmBAS.rbNo_GSTOption1Click(Sender: TObject);
 begin
-  ReDisplay;
+  if not SettingFields then
+  begin
+    ReDisplay;
+  end;
 end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -1934,7 +1937,10 @@ begin
 end;
 procedure TfrmBAS.rbYes_GSTOption1Click(Sender: TObject);
 begin
-  ReDisplay;
+  if not SettingFields then
+  begin
+    ReDisplay;
+  end;
 end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
