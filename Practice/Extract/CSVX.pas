@@ -152,7 +152,7 @@ procedure CSVWriteUK(BankAccount: TBank_Account;
                      ANarration      : ShortString;
                      StatementDetails: ShortString;
                      ForeignAmount   : Money;
-                     ExchangeRate    : Money;
+                     ExchangeRate    : Double;
                      AQuantity	     : Money;
                      AGSTClass       : Byte;
                      AGSTAmount      : Money;
@@ -344,11 +344,14 @@ Begin
 
    With MyClient.clFields, Bank_Account.baFields, Transaction^ do
    Begin
-      txDate_Transferred := CurrentDate;
       if SkipZeroAmountExport(Transaction) then
+      begin
+         txDate_Transferred := CurrentDate;
          Exit; // Im done...
+      end;
 
       Inc( NoOfEntries );
+
       If ( txFirst_Dissection = NIL ) then
       Begin
          S :=  GetNarration(TransAction,Bank_Account.baFields.baAccount_Type);
@@ -365,15 +368,17 @@ Begin
                      Bank_Account.Default_Forex_Conversion_Rate(txDate_Effective),
                      txQuantity,             { AQuantity	   : Money;           }
                      txGST_Class,            { AGSTClass    : Byte;            }
-                     txGST_Amount,           { AGSTAmount   : Money );       }    
+                     txGST_Amount,           { AGSTAmount   : Money );       }
                      txPayee_Number,
                      GetPayeeName(Transaction, MyClient),
                      txJob_Code,
-                     GetJobName(Transaction, MyClient),                     
+                     GetJobName(Transaction, MyClient),
                      txTemp_Balance,
                      GetFormattedEntryType(Transaction),
                      Date2Str(txDate_Presented, 'dd/mm/yyyy'));
       end;
+
+      txDate_Transferred := CurrentDate;
       //For SmartBooks transactions can be exported as many times as the user wanted
    end;
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
@@ -515,7 +520,7 @@ Begin
                begin
                  if BA.baFields.baContra_Account_Code = '' then
                  Begin
-                   if TfrmContraCodeEntry.EnterContraCode(ContraCode) then
+                   if TfrmContraCodeEntry.EnterContraCode(BA.baFields.baBank_Account_Name, ContraCode) then
                    begin
                      BA.baFields.baContra_Account_Code := ContraCode; 
                    end
