@@ -1391,6 +1391,7 @@ var
   SystemMemorisation: pSystem_Memorisation_List_Rec;
 begin
    Result := false;
+   FMemorisationsList := nil;
 
    if Rowtmr.Enabled then begin
       RowtmrTimer(nil); // execute the prompts
