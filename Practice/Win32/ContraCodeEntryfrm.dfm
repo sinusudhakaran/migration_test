@@ -16,7 +16,7 @@ object frmContraCodeEntry: TfrmContraCodeEntry
   OnCreate = FormCreate
   PixelsPerInch = 96
   TextHeight = 13
-  object Label1: TLabel
+  object lblMessage: TLabel
     Left = 20
     Top = 18
     Width = 409
@@ -24,7 +24,7 @@ object frmContraCodeEntry: TfrmContraCodeEntry
     AutoSize = False
     Caption = 
       'BankLink Practice needs to know the account code in your client'#39 +
-      's chart for the bank account ABC LIMITED.'
+      's chart for the bank account %s'
     WordWrap = True
   end
   object Label2: TLabel

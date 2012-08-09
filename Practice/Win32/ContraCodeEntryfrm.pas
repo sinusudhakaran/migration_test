@@ -8,7 +8,7 @@ uses
 
 type
   TfrmContraCodeEntry = class(TForm)
-    Label1: TLabel;
+    lblMessage: TLabel;
     btnOk: TButton;
     btnCancel: TButton;
     Label2: TLabel;
@@ -20,12 +20,17 @@ type
     procedure edtBankAccountCodeKeyPress(Sender: TObject; var Key: Char);
     procedure edtBankAccountCodeChange(Sender: TObject);
   private
+    FBankAccountName: String;
+    
     procedure LookupContraCode;
     function GetContraCode: String;
+    function GetBankAccountName: String;
+    procedure SetBankAccountName(const Value: String);
   public
-    class function EnterContraCode(out ContraCode: string): Boolean; overload; static;
-    class function EnterContraCode(PopupParent: TCustomForm; out ContraCode: string): Boolean; overload; static;
+    class function EnterContraCode(const BankAccountName: String; out ContraCode: string): Boolean; overload; static;
+    class function EnterContraCode(const bankAccountName: String; PopupParent: TCustomForm; out ContraCode: string): Boolean; overload; static;
 
+    property BankAccountName: String read GetBankAccountName write SetBankAccountName;
     property ContraCode: String read GetContraCode;
   end;
 
@@ -39,7 +44,7 @@ uses
   
 {$R *.dfm}
 
-class function TfrmContraCodeEntry.EnterContraCode(PopupParent: TCustomForm; out ContraCode: string): Boolean;
+class function TfrmContraCodeEntry.EnterContraCode(const BankAccountName: String; PopupParent: TCustomForm; out ContraCode: string): Boolean;
 var
   EntryForm: TfrmContraCodeEntry;
 begin
@@ -49,6 +54,8 @@ begin
     EntryForm.PopupParent := PopupParent;
     EntryForm.PopupMode := pmExplicit;
     
+    EntryForm.BankAccountName := BankAccountName;
+
     if EntryForm.ShowModal = mrOk then
     begin
       ContraCode := EntryForm.ContraCode;
@@ -78,6 +85,11 @@ begin
   sbtnChart.Hint := ChartLookupHint;
 end;
 
+function TfrmContraCodeEntry.GetBankAccountName: String;
+begin
+  Result := FBankAccountName;
+end;
+
 function TfrmContraCodeEntry.GetContraCode: String;
 begin
   Result := edtBankAccountCode.Text;
@@ -100,6 +112,13 @@ end;
 procedure TfrmContraCodeEntry.sbtnChartClick(Sender: TObject);
 begin
   LookupContraCode;
+end;
+
+procedure TfrmContraCodeEntry.SetBankAccountName(const Value: String);
+begin
+  FBankAccountName := Value;
+
+  lblMessage.Caption := Format(lblMessage.Caption, [Value]);
 end;
 
 procedure TfrmContraCodeEntry.edtBankAccountCodeChange(Sender: TObject);
@@ -157,13 +176,15 @@ begin
   end;
 end;
 
-class function TfrmContraCodeEntry.EnterContraCode(out ContraCode: string): Boolean;
+class function TfrmContraCodeEntry.EnterContraCode(const BankAccountName: String; out ContraCode: string): Boolean;
 var
   EntryForm: TfrmContraCodeEntry;
 begin
   EntryForm := TfrmContraCodeEntry.Create(nil);
 
   try
+    EntryForm.BankAccountName := BankAccountName;
+    
     if EntryForm.ShowModal = mrOk then
     begin
       ContraCode := EntryForm.ContraCode;
