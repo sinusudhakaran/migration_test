@@ -1073,9 +1073,8 @@ begin
             stGSTDates.caption := lblPeriod.caption;
 
          if iGSTOptionUsed = 1 then begin
-            if bG1IncludesGST
-              then basG1_GSTOption1.AsInteger := iIncome_G1
-              else basG1_GSTOption1.AsInteger := iIncome_G1 - iGSTPayable_G9;
+            basG1_GSTOption1.AsInteger := iIncome_G1;
+
             basG2_GSTOption1.AsInteger      := iExports_G2;
             basG3_GSTOption3.AsInteger      := iGSTFreeSupplies_G3;
             basG10_GSTOption1.AsInteger     := iCapitalAcq_G10;
@@ -1893,10 +1892,7 @@ begin
 end;
 procedure TfrmBAS.rbNo_GSTOption1Click(Sender: TObject);
 begin
-  if not SettingFields then
-  begin
-    ReDisplay;
-  end;
+
 end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -1937,10 +1933,7 @@ begin
 end;
 procedure TfrmBAS.rbYes_GSTOption1Click(Sender: TObject);
 begin
-  if not SettingFields then
-  begin
-    ReDisplay;
-  end;
+
 end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
