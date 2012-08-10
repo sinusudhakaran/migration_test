@@ -443,7 +443,7 @@ Begin
                   GetJobName(Transaction, MyClient),
                   txTemp_Balance,
                   GetFormattedEntryType(Transaction),
-                  '' );         { AGSTAmount   : Money );        }
+                  Date2Str(txDate_Presented, 'dd/mm/yyyy'));         { AGSTAmount   : Money );        }
    end;
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
