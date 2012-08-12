@@ -346,8 +346,7 @@ Begin
    Begin
       if SkipZeroAmountExport(Transaction) then
       begin
-         txDate_Transferred := CurrentDate;
-         Exit; // Im done...
+        Exit; // Im done...
       end;
 
       Inc( NoOfEntries );
@@ -377,8 +376,7 @@ Begin
                      GetFormattedEntryType(Transaction),
                      Date2Str(txDate_Presented, 'dd/mm/yyyy'));
       end;
-
-      txDate_Transferred := CurrentDate;
+      
       //For SmartBooks transactions can be exported as many times as the user wanted
    end;
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
@@ -429,7 +427,7 @@ Begin
       				    txDate_Effective, 	   { ADate        : TStDate;         }
                   getDsctReference(Dissection,Transaction,Traverse.Bank_Account.baFields.baAccount_Type),{ ARefce       : ShortString;     }
                   dsAccount,        		{ AAccount     : ShortString;     }
-                  dsAmount,         		{ AAmount      : Money;           }
+                  Local_Amount,      		{ AAmount      : Money;           }
                   S,                      { ANarration	: ShortString;     }
                   '',
                   dsAmount,
@@ -446,6 +444,11 @@ Begin
                   Date2Str(txDate_Presented, 'dd/mm/yyyy'));         { AGSTAmount   : Money );        }
    end;
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
+end;
+
+procedure DoUpdateTransactionUK;
+begin
+  Transaction^.txDate_Transferred := CurrentDate;
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -608,6 +611,7 @@ Begin
                begin
                  TRAVERSE.SetOnEHProc( DoTransactionUK );
                  TRAVERSE.SetOnDSProc( DoDissectionUK);
+                 TRAVERSE.SetOnETProc( DoUpdateTransactionUK );
                end
                else
                begin
