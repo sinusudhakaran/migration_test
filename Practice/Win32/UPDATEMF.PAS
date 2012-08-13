@@ -744,8 +744,9 @@ begin
 
         case format of
             wfWebX : begin
-               mniExportwebX.ImageIndex := 19;
-               mniImportwebX.ImageIndex := 19;
+               // Acclipse has been bought by CCH, so we don't want the 'A' icon
+               // mniExportwebX.ImageIndex := 19;
+               // mniImportwebX.ImageIndex := 19;
                mniExportWebX.Caption := 'Export ' + wfNames[format] + ' File';
                mniImportWebX.Caption := 'Import ' + wfNames[format] + ' File';
             end;
