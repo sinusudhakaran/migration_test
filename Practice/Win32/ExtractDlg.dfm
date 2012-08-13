@@ -56,7 +56,7 @@ object dlgExtract: TdlgExtract
     Anchors = [akRight, akBottom]
     Caption = '&OK'
     Default = True
-    TabOrder = 2
+    TabOrder = 3
     OnClick = btnOkClick
   end
   object btnCancel: TButton
@@ -67,7 +67,7 @@ object dlgExtract: TdlgExtract
     Anchors = [akRight, akBottom]
     Cancel = True
     Caption = 'Cancel'
-    TabOrder = 3
+    TabOrder = 4
     OnClick = btnCancelClick
   end
   object chkNewFormat: TCheckBox
@@ -143,7 +143,7 @@ object dlgExtract: TdlgExtract
     Width = 508
     Height = 65
     BevelOuter = bvNone
-    TabOrder = 4
+    TabOrder = 2
     object Label6: TLabel
       Left = 10
       Top = 41
