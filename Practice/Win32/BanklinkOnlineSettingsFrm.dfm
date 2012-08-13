@@ -25,12 +25,13 @@ object frmBanklinkOnlineSettings: TfrmBanklinkOnlineSettings
   TextHeight = 13
   object grpProductAccess: TGroupBox
     Left = 0
-    Top = 105
+    Top = 57
     Width = 480
     Height = 166
     Align = alTop
     Caption = 'Product Access'
     TabOrder = 1
+    ExplicitTop = 105
     object lblSelectProducts: TLabel
       Left = 16
       Top = 20
@@ -72,13 +73,14 @@ object frmBanklinkOnlineSettings: TfrmBanklinkOnlineSettings
   end
   object grpBillingFrequency: TGroupBox
     Left = 0
-    Top = 547
+    Top = 499
     Width = 480
     Height = 53
     Align = alTop
     Caption = 'Billing Frequency'
     TabOrder = 4
     Visible = False
+    ExplicitTop = 547
     object lblNextBillingFrequency: TLabel
       Left = 21
       Top = 22
@@ -102,13 +104,14 @@ object frmBanklinkOnlineSettings: TfrmBanklinkOnlineSettings
   end
   object grpDefaultClientAdministrator: TGroupBox
     Left = 0
-    Top = 433
+    Top = 385
     Width = 480
     Height = 114
     Align = alTop
     Caption = 'Default Client Administrator'
     TabOrder = 3
     OnClick = grpDefaultClientAdministratorClick
+    ExplicitTop = 433
     object lblUserName: TLabel
       Left = 21
       Top = 55
@@ -176,51 +179,54 @@ object frmBanklinkOnlineSettings: TfrmBanklinkOnlineSettings
     Left = 0
     Top = 0
     Width = 480
-    Height = 105
+    Height = 57
     Align = alTop
     Caption = 'Client Access'
     TabOrder = 0
     object lblClientConnect: TLabel
-      Left = 34
-      Top = 37
+      Left = 20
+      Top = 25
       Width = 125
       Height = 13
       Caption = 'Client &must connect every'
       FocusControl = cmbConnectDays
     end
     object rbActive: TRadioButton
-      Left = 16
-      Top = 17
+      Left = 364
+      Top = 9
       Width = 113
       Height = 17
       Caption = 'Ac&tive'
       Checked = True
       TabOrder = 0
       TabStop = True
+      Visible = False
       OnClick = rbActiveClick
       OnMouseDown = rbActiveMouseDown
     end
     object rbSuspended: TRadioButton
-      Left = 16
-      Top = 57
+      Left = 364
+      Top = 24
       Width = 113
       Height = 17
       Caption = '&Suspended'
       TabOrder = 2
+      Visible = False
       OnClick = rbSuspendedClick
     end
     object rbDeactivated: TRadioButton
-      Left = 16
-      Top = 77
+      Left = 364
+      Top = 40
       Width = 113
       Height = 17
       Caption = '&Deactivated'
       TabOrder = 3
+      Visible = False
       OnClick = rbDeactivatedClick
     end
     object cmbConnectDays: TComboBox
-      Left = 197
-      Top = 34
+      Left = 183
+      Top = 22
       Width = 84
       Height = 21
       ItemHeight = 13
@@ -235,12 +241,13 @@ object frmBanklinkOnlineSettings: TfrmBanklinkOnlineSettings
   end
   object grpServicesAvailable: TGroupBox
     Left = 0
-    Top = 271
+    Top = 223
     Width = 480
     Height = 162
     Align = alTop
     Caption = 'Services Available'
     TabOrder = 2
+    ExplicitTop = 271
     object lblExportTo: TLabel
       Left = 9
       Top = 20
