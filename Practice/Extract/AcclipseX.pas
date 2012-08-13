@@ -337,7 +337,7 @@ var
 Begin
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
 
-   Msg := 'Extract data [Acclipse format] from '+BkDate2Str( FromDate ) + ' to ' + bkDate2Str( ToDate );
+   Msg := 'Extract data [CCH format] from '+BkDate2Str( FromDate ) + ' to ' + bkDate2Str( ToDate );
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' ' + Msg );
    
    Selected  := dlgSelect.SelectBankAccountsForExport( FromDate, ToDate );

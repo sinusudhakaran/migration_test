@@ -449,7 +449,7 @@ begin
     cmbCategory.Items := S;
     if cmbCategory.Items.Count = 0 then
       HelpfulWarningMsg('There are no Categories for the selected Secure Area.'#13#13 +
-        'Please use the Acclipse Secure Area Manager to create a Category.' ,0)
+        'Please use the CCH Secure Area Manager to create a Category.' ,0)
     else
       cmbCategory.ItemIndex := -1;
   finally

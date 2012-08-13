@@ -17,7 +17,7 @@ CONST
 
    ECodingDisplayName = 'BankLink Notes';
 
-   WebXDisplayName = 'Acclipse Web Manager';
+   WebXDisplayName = 'CCH Web Manager';
 
    WebNotesName = 'BankLink Notes Online';
    BankLinkLiveName = 'BankLink Online';
@@ -1087,7 +1087,7 @@ CONST
        'Fixed Width Text (TXT)',
        'Microsoft Excel (XLS)',
        'Adobe Acrobat Format (PDF)',
-       'Acclipse Web Manager'{,
+       'CCH Web Manager'{,
        'Rich Text'}
        );
 

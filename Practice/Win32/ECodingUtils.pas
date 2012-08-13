@@ -321,7 +321,7 @@ begin
   if (Dest = ecDestWebX) then
      case aClient.clFields.clWeb_Export_Format of
      wfWebX : begin
-        IncUsage('Acclipse Import');
+        IncUsage('CCH Import');
          // If there is no WebXOffice installed then tell the user
         WebXFile := WebXOffice.GetWebXDataPath;
         if (WebXFile = '') then begin
@@ -598,7 +598,7 @@ begin
    case Dest of
    ecDestWebX: case aClient.clFields.clWeb_Export_Format of
       wfWebX : begin
-      IncUsage('Acclipse Export');
+      IncUsage('CCH Export');
       WebXFile := WebXOffice.GetWebXDataPath;
       if (WebXFile = '') then
       begin
@@ -853,7 +853,7 @@ begin
 
   if aClient.clFields.clECoding_Last_File_No > aClient.clFields.clECoding_Last_File_No_Imported then
   begin
-    if (Application.MessageBox('If you combine the bank accounts you will not be able to import the outstanding Notes or Acclipse file.' +
+    if (Application.MessageBox('If you combine the bank accounts you will not be able to import the outstanding Notes or CCH file.' +
                  ' Are you sure you want to combine the accounts?', 'Confirm Combine Bank Accounts', MB_YESNO) = IDNO) then
         Result := false;
   end;

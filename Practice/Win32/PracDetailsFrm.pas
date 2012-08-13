@@ -1206,7 +1206,7 @@ function TfrmPracticeDetails.VerifyForm: boolean;
 
     if edtAcclipseCode.Text = '' then
     begin
-      HelpfulWarningMsg('To set up this export you must enter the code provided to your practice by Acclipse.  If you do not have a code, please contact Acclipse.', 0);
+      HelpfulWarningMsg('To set up this export you must enter the code provided to your practice by CCH.  If you do not have a code, please contact CCH.', 0);
 
       PageControl1.ActivePage := tbsDataExport;
           
@@ -1217,7 +1217,7 @@ function TfrmPracticeDetails.VerifyForm: boolean;
     else
     if not IsValidVendorCode(edtAcclipseCode.Text) then
     begin
-      HelpfulWarningMsg('The Acclipse code you have entered contains illegal characters. Please try again.', 0);
+      HelpfulWarningMsg('The CCH code you have entered contains illegal characters. Please try again.', 0);
 
       PageControl1.ActivePage := tbsDataExport;
           

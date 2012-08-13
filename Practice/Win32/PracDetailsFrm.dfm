@@ -710,7 +710,7 @@ object frmPracticeDetails: TfrmPracticeDetails
               Top = 21
               Width = 89
               Height = 13
-              Caption = 'Acclipse iBizz Code'
+              Caption = 'CCH iBizz Code'
             end
             object edtAcclipseCode: TEdit
               Left = 145
