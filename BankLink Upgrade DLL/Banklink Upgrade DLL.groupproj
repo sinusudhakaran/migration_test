@@ -1,0 +1,54 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <ProjectGuid>{9f7f7619-8ec3-4cef-ae4b-8a6aebb94b73}</ProjectGuid>
+  </PropertyGroup>
+  <ItemGroup />
+  <ItemGroup>
+    <Projects Include="bkinstall.dproj" />
+    <Projects Include="bkUpg.dproj" />
+    <Projects Include="bkupgcor.dproj" />
+  </ItemGroup>
+  <ProjectExtensions>
+    <Borland.Personality>Default.Personality</Borland.Personality>
+    <Borland.ProjectType />
+    <BorlandProject>
+  <BorlandProject xmlns=""> <Default.Personality> </Default.Personality> </BorlandProject></BorlandProject>
+  </ProjectExtensions>
+  <Target Name="bkupgcor">
+    <MSBuild Projects="bkupgcor.dproj" Targets="" />
+  </Target>
+  <Target Name="bkupgcor:Clean">
+    <MSBuild Projects="bkupgcor.dproj" Targets="Clean" />
+  </Target>
+  <Target Name="bkupgcor:Make">
+    <MSBuild Projects="bkupgcor.dproj" Targets="Make" />
+  </Target>
+  <Target Name="bkinstall">
+    <MSBuild Projects="bkinstall.dproj" Targets="" />
+  </Target>
+  <Target Name="bkinstall:Clean">
+    <MSBuild Projects="bkinstall.dproj" Targets="Clean" />
+  </Target>
+  <Target Name="bkinstall:Make">
+    <MSBuild Projects="bkinstall.dproj" Targets="Make" />
+  </Target>
+  <Target Name="bkUpg">
+    <MSBuild Projects="bkUpg.dproj" Targets="" />
+  </Target>
+  <Target Name="bkUpg:Clean">
+    <MSBuild Projects="bkUpg.dproj" Targets="Clean" />
+  </Target>
+  <Target Name="bkUpg:Make">
+    <MSBuild Projects="bkUpg.dproj" Targets="Make" />
+  </Target>
+  <Target Name="Build">
+    <CallTarget Targets="bkupgcor;bkinstall;bkUpg" />
+  </Target>
+  <Target Name="Clean">
+    <CallTarget Targets="bkupgcor:Clean;bkinstall:Clean;bkUpg:Clean" />
+  </Target>
+  <Target Name="Make">
+    <CallTarget Targets="bkupgcor:Make;bkinstall:Make;bkUpg:Make" />
+  </Target>
+  <Import Condition="Exists('$(MSBuildBinPath)\Borland.Group.Targets')" Project="$(MSBuildBinPath)\Borland.Group.Targets" />
+</Project>

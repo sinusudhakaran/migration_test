@@ -1,0 +1,52 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <ProjectGuid>{d3d9df4c-8c9a-4cb9-a600-3a56d95594cb}</ProjectGuid>
+    <MainSource>bkupgcor.dpr</MainSource>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <DCC_DCCCompiler>DCC32</DCC_DCCCompiler>
+    <DCC_DependencyCheckOutputName>C:\Books\bkupgcor.dll</DCC_DependencyCheckOutputName>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <Version>7.0</Version>
+    <DCC_DebugInformation>False</DCC_DebugInformation>
+    <DCC_LocalDebugSymbols>False</DCC_LocalDebugSymbols>
+    <DCC_SymbolReferenceInfo>0</DCC_SymbolReferenceInfo>
+    <DCC_Define>RELEASE</DCC_Define>
+    <DCC_ExeOutput>C:\Books</DCC_ExeOutput>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <Version>7.0</Version>
+    <DCC_Define>DEBUG;DELPHI7;SSLV6;</DCC_Define>
+    <DCC_ExeOutput>C:\Books</DCC_ExeOutput>
+    <DCC_Optimize>False</DCC_Optimize>
+  </PropertyGroup>
+  <ProjectExtensions>
+    <Borland.Personality>Delphi.Personality</Borland.Personality>
+    <Borland.ProjectType>VCLApplication</Borland.ProjectType>
+    <BorlandProject>
+<BorlandProject><Delphi.Personality><Parameters><Parameters Name="HostApplication">C:\Books\BK5WIN.exe</Parameters><Parameters Name="UseLauncher">False</Parameters><Parameters Name="LoadAllSymbols">True</Parameters><Parameters Name="LoadUnspecifiedSymbols">False</Parameters></Parameters><VersionInfo><VersionInfo Name="IncludeVerInfo">True</VersionInfo><VersionInfo Name="AutoIncBuild">False</VersionInfo><VersionInfo Name="MajorVer">3</VersionInfo><VersionInfo Name="MinorVer">0</VersionInfo><VersionInfo Name="Release">0</VersionInfo><VersionInfo Name="Build">674</VersionInfo><VersionInfo Name="Debug">False</VersionInfo><VersionInfo Name="PreRelease">False</VersionInfo><VersionInfo Name="Special">False</VersionInfo><VersionInfo Name="Private">False</VersionInfo><VersionInfo Name="DLL">False</VersionInfo><VersionInfo Name="Locale">5129</VersionInfo><VersionInfo Name="CodePage">1252</VersionInfo></VersionInfo><VersionInfoKeys><VersionInfoKeys Name="CompanyName">BankLink Ltd</VersionInfoKeys><VersionInfoKeys Name="FileDescription">BankLink Upgrade DLL</VersionInfoKeys><VersionInfoKeys Name="FileVersion">3.0.0.674</VersionInfoKeys><VersionInfoKeys Name="InternalName">BKUpgCor</VersionInfoKeys><VersionInfoKeys Name="LegalCopyright">Copyright (C) BankLink Ltd 2008</VersionInfoKeys><VersionInfoKeys Name="LegalTrademarks"></VersionInfoKeys><VersionInfoKeys Name="OriginalFilename"></VersionInfoKeys><VersionInfoKeys Name="ProductName">BankLink</VersionInfoKeys><VersionInfoKeys Name="ProductVersion">3.0.0.673</VersionInfoKeys><VersionInfoKeys Name="Comments"></VersionInfoKeys><VersionInfoKeys Name="CompileDate">Thursday, 19 April 2007 2:30 a.m.</VersionInfoKeys></VersionInfoKeys><Source><Source Name="MainSource">bkupgcor.dpr</Source></Source></Delphi.Personality></BorlandProject></BorlandProject>
+  </ProjectExtensions>
+  <Import Project="$(MSBuildBinPath)\Borland.Delphi.Targets" />
+  <ItemGroup>
+    <DelphiCompile Include="bkupgcor.dpr">
+      <MainSource>MainSource</MainSource>
+    </DelphiCompile>
+    <DCCReference Include="AppParser.pas" />
+    <DCCReference Include="CRC32.pas" />
+    <DCCReference Include="CRCFileUtils.pas" />
+    <DCCReference Include="upgClientCommon.pas" />
+    <DCCReference Include="upgCommon.pas" />
+    <DCCReference Include="upgConstants.pas" />
+    <DCCReference Include="upgDownloaderService.pas" />
+    <DCCReference Include="upgExceptions.pas" />
+    <DCCReference Include="upgMain.pas" />
+    <DCCReference Include="upgMainFrm.pas">
+      <Form>frmUpdMain</Form>
+    </DCCReference>
+    <DCCReference Include="upgObjects.pas" />
+    <DCCReference Include="upgServiceUpgrader.pas" />
+    <None Include="ModelSupport_bkupgcor\default.txaPackage" />
+  </ItemGroup>
+</Project>
