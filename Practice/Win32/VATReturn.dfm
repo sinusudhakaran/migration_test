@@ -3,7 +3,7 @@ object frmVAT: TfrmVAT
   Top = 189
   BorderIcons = [biSystemMenu, biMaximize]
   Caption = 'VAT Return'
-  ClientHeight = 615
+  ClientHeight = 631
   ClientWidth = 727
   Color = clBtnFace
   Constraints.MaxHeight = 802
@@ -21,7 +21,7 @@ object frmVAT: TfrmVAT
   TextHeight = 13
   object Panel1: TPanel
     Left = 0
-    Top = 567
+    Top = 583
     Width = 727
     Height = 48
     Align = alBottom
@@ -85,8 +85,8 @@ object frmVAT: TfrmVAT
     Left = 0
     Top = 0
     Width = 727
-    Height = 567
-    ActivePage = tsAdjustments
+    Height = 583
+    ActivePage = tsVATCalculation
     Align = alClient
     TabOrder = 1
     object tsVATCalculation: TTabSheet
@@ -95,7 +95,7 @@ object frmVAT: TfrmVAT
         Left = 0
         Top = 0
         Width = 719
-        Height = 539
+        Height = 555
         Align = alClient
         BevelInner = bvNone
         BevelOuter = bvNone
@@ -105,7 +105,7 @@ object frmVAT: TfrmVAT
           Left = 0
           Top = 0
           Width = 716
-          Height = 526
+          Height = 537
           Color = clWhite
           Ctl3D = True
           ParentBackground = False
@@ -202,7 +202,7 @@ object frmVAT: TfrmVAT
           end
           object pnlVAT: TGroupBox
             Left = 6
-            Top = 103
+            Top = 113
             Width = 704
             Height = 417
             Color = 15197925
@@ -708,10 +708,10 @@ object frmVAT: TfrmVAT
             end
           end
           object GBAddress: TGroupBox
-            Left = 3
-            Top = 16
+            Left = 6
+            Top = 20
             Width = 278
-            Height = 81
+            Height = 88
             Color = clWhite
             ParentColor = False
             TabOrder = 0
@@ -719,7 +719,7 @@ object frmVAT: TfrmVAT
               Left = 8
               Top = 8
               Width = 257
-              Height = 14
+              Height = 16
               AutoSize = False
               Caption = 'COMPANY NAME'
               Font.Charset = DEFAULT_CHARSET
@@ -732,9 +732,9 @@ object frmVAT: TfrmVAT
             end
             object lblAddr1: TLabel
               Left = 8
-              Top = 28
+              Top = 30
               Width = 260
-              Height = 14
+              Height = 16
               AutoSize = False
               Caption = 'Address Line 1'
               Font.Charset = DEFAULT_CHARSET
@@ -747,9 +747,9 @@ object frmVAT: TfrmVAT
             end
             object lblAddr2: TLabel
               Left = 8
-              Top = 45
+              Top = 49
               Width = 260
-              Height = 14
+              Height = 16
               AutoSize = False
               Caption = 'Address Line 2'
               Font.Charset = DEFAULT_CHARSET
@@ -762,9 +762,9 @@ object frmVAT: TfrmVAT
             end
             object lblAddr3: TLabel
               Left = 8
-              Top = 61
+              Top = 68
               Width = 260
-              Height = 14
+              Height = 16
               AutoSize = False
               Caption = 'Address Line 3'
               Font.Charset = DEFAULT_CHARSET
@@ -782,6 +782,10 @@ object frmVAT: TfrmVAT
     object tsAdjustments: TTabSheet
       Caption = 'Adjustments'
       ImageIndex = 1
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 539
       object gbDebtors: TGroupBox
         Left = 3
         Top = 0
