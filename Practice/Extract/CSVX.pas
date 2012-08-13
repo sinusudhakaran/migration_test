@@ -578,7 +578,7 @@ Begin
             else
             begin
                if (MyClient.clFields.clCountry = whUK)
-                 then Writeln( XFile, '"Number","Bank","Date","Reference","Account","A/c Desc","Amount","Narration","Statement Details","Amount(Foreign)","Exchange Rate","Quantity","VAT Class","VAT Amount"' + ',"Payee Number","Payee Name","Job Code","Job Name","Balance","Entry Type","Presentation Date"')
+                 then Writeln( XFile, '"Number","Bank","Date","Reference","Account","A/c Desc","Amount","Narration","Statement Details","Amount (Foreign)","Exchange Rate","Quantity","VAT Class","VAT Amount"' + ',"Payee Number","Payee Name","Job Code","Job Name","Balance","Entry Type","Presentation Date"')
                  else Writeln( XFile, '"Number","Bank","Date","Reference","Account","Amount","Narration","Quantity","GST Class","GST Amount"');
                DoBankAccount := False;
                DoChartDescription := False;
