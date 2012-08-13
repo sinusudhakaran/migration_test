@@ -132,6 +132,10 @@ Type
     FIsLoggedIn: Boolean;
     FUsingMixedCasePassword: Boolean;
 
+    // Cache this in SetOnlineUIMode, so it can be used during OKToPost without
+    // retrieving Practice again.
+    fDefaultAdminUserId : TBloGuid;
+
     function UserLoggedInChanged: Boolean;
     
     procedure StoreOldValues;
@@ -231,6 +235,12 @@ var
   end;
 
 begin
+  // Store this for use in OKToPost
+  if Assigned(aPractice) then
+    fDefaultAdminUserId := aPractice.DefaultAdminUserId
+  else
+    fDefaultAdminUserId := '';
+
   // is the user marked as online?
   if chkCanAccessBankLinkOnline.Checked then
   begin
@@ -454,6 +464,7 @@ end;
 Function TdlgEditUser.OKtoPost : boolean;
 Var
   URec : pUser_Rec;
+  LinkedUser : TBloUserRead;
 begin { TdlgEditUser.OKtoPost }
   Result := false;
 
@@ -511,10 +522,10 @@ begin { TdlgEditUser.OKtoPost }
                      'Your new password must be a minimum of 8 and a maximum of 12 characters long, and contain at least ' +
                      '1 alpha (a-z, A-Z) and 1 numeric (0-9) character.' + #10#13#10#13 +
                      'Click OK to enter a new password.', 0);
-                        
+
       pcMain.ActivePage := tsDetails;
       ePass.SetFocus;
-      exit;      
+      exit;
     end;
 
     if (ePass.text <> eConfirmPass.text) then
@@ -541,6 +552,24 @@ begin { TdlgEditUser.OKtoPost }
       pcMain.ActivePage := tsDetails;
       cmbLinkExistingOnlineUser.SetFocus;
       exit;
+    end;
+
+    // Only System users can link to a BLO Primary Contact (Default Admin)
+    if radLinkExistingOnlineUser.Checked and
+      (cmbLinkExistingOnlineUser.ItemIndex <> -1) and
+      (cmbUserType.ItemIndex <> ustSystem) then
+    begin
+      with cmbLinkExistingOnlineUser do
+        LinkedUser := (Items.Objects[ItemIndex] as TBloUserRead);
+
+      // Linked against a primary contact (or default admin user)?
+      if (LinkedUser.Id = fDefaultAdminUserId) then
+      begin
+        HelpfulWarningMsg('Only System users can link to a BankLink Online default Administrator (Primary Contact).', 0);
+        pcMain.ActivePage := tsDetails;
+        cmbLinkExistingOnlineUser.SetFocus;
+        exit;
+      end;
     end;
   end  { IsBankLinkOnlineUser }
   else
