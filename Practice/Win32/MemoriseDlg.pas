@@ -2223,7 +2223,7 @@ begin
                end;
                Result := true;
            end;
-           mrCopy : begin
+                      mrCopy : begin
                SaveToMemRec(pM, nil, chkMaster.Checked);// Save this one..
                //{have enough data to create a memorised entry record
                if chkMaster.Checked and Assigned(AdminSystem) then begin
@@ -2250,6 +2250,7 @@ begin
                      //*** Flag Audit ***
                      SystemAuditMgr.FlagAudit(arMasterMemorisations);
                      SaveAdminSystem;
+                     LoadAdminSystem(true, ThisMethodName);
                      Memorised_Trans.mdFields.mdSequence_No := SaveSeq;
 
                      //Have to get list again after save
@@ -2260,6 +2261,10 @@ begin
                      //Edit copy
                      if Assigned(MemorisedList) then
                        EditMemorisation(ba, MemorisedList, Memorised_Trans, True, Prefix);
+
+                     // Saving again in case the copy fails the duplicate test, in which case
+                     // it will have been deleted, so we need to save the deletion
+                     SaveAdminSystem;
                    end;
                  end else
                    HelpfulErrorMsg('Could not update master memorisation at this time. Admin System unavailable.', 0);
