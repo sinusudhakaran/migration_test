@@ -14,7 +14,8 @@ uses
   ComCtrls,
   clObj32,
   baObj32,
-  SysUtils;
+  SysUtils,
+  P5Auth;
 
 type
   TBloStatus                = BlopiServiceFacade.Status;
@@ -170,6 +171,8 @@ type
                           SendTimeout   : DWord ;
                           ReciveTimeout : DWord);
     function GetServiceFacade : IBlopiServiceFacade;
+    function GetAuthenticationServiceFacade : IP5Auth;
+
     function GetCachedPractice: TBloPracticeRead;
     function MessageResponseHasError(AMesageresponse: MessageResponse; ErrorText: string;
                                      SimpleError: boolean = false; ContextMsgInt: integer = 0;
@@ -402,7 +405,11 @@ type
                                       aShowMessage: Boolean = True;
                                       ShowProgressBar: Boolean = True;
                                       ShowSuccessMessage: Boolean = True): Boolean;
-    
+
+    function GetClientBankAccounts(aClientGuid: TBloGuid;
+                                   out BankAccounts: TBloArrayOfDataPlatformBankAccount;
+                                   aShowProgressBar: Boolean = True): Boolean;
+
     function GetVendorExportClientCount: TBloArrayOfPracticeDataSubscriberCount;
 
     function GetClientGuid(const ClientCode: WideString; out Id: TBloGuid): Boolean; overload;
@@ -414,6 +421,8 @@ type
     function GetOnlineClientUser(const ClientCode: String; out UserFullName, UserEmail: String): Boolean;
 
     function PracticeUserExists(const EmailAddress: String; RefreshPractice: Boolean = True): Boolean;
+
+    function AuthenticateUser(const Domain, Username, Password: String): Boolean;
 
     property OnLine: Boolean read FOnLine;
     property Registered: Boolean read GetRegistered;
@@ -428,6 +437,9 @@ Const
 
   //Product config singleton
   function ProductConfigService: TProductConfigService;
+
+  procedure HandleException(const MethodName: String; E: Exception); overload;
+  procedure HandleException(const MethodName, UnitName: String; E: Exception); overload;
 
 //------------------------------------------------------------------------------
 implementation
@@ -1996,6 +2008,55 @@ begin
   end;
 end;
 
+function TProductConfigService.AuthenticateUser(const Domain, Username, Password: String): Boolean;
+var
+  AuthenticationService : IP5Auth;
+  Response: MessageResponse;
+  ShowProgress: Boolean;
+begin
+  Result := False;
+  
+  try
+    ShowProgress := Progress.StatusSilent;
+
+    if ShowProgress then
+    begin
+      Screen.Cursor := crHourGlass;
+      
+      Progress.StatusSilent := False;
+      Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Connecting', 10);
+    end;
+
+    try
+      if ShowProgress then
+      begin
+        Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Authenticating User', 50);
+      end;
+      
+      AuthenticationService := GetAuthenticationServiceFacade;
+
+      Result := AuthenticationService.AuthenticateUser(Domain, Username, Password);
+
+      if ShowProgress then
+      begin
+        Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finished', 100);
+      end;
+    finally
+      if ShowProgress then
+      begin
+        Progress.StatusSilent := True;
+        Progress.ClearStatus;
+        Screen.Cursor := crDefault;
+      end;
+    end;
+  except
+    on E:Exception do
+    begin
+      HandleException('AuthenticateUser', E);
+    end;
+  end;
+end;
+
 //------------------------------------------------------------------------------
 
 procedure TProductConfigService.DoBeforeExecute(const MethodName: string;
@@ -2051,6 +2112,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+
 function TProductConfigService.GetServiceAgreement : WideString;
 var
   BlopiInterface: IBlopiServiceFacade;
@@ -4827,6 +4889,16 @@ begin
   end;
 end;
 
+function TProductConfigService.GetAuthenticationServiceFacade: IP5Auth;
+var
+  HTTPRIO: THTTPRIO;
+begin
+  HTTPRIO := THTTPRIO.Create(nil);
+  HTTPRIO.OnBeforeExecute := DoBeforeExecute;
+  
+  Result := GetIP5Auth(False, 'https://www.banklinkonline.com/Services/P5auth.svc', HTTPRIO);
+end;
+
 //------------------------------------------------------------------------------
 function TProductConfigService.GetClientAccountsVendors(aClientCode: string;
                                                         aClientGuid: TBloGuid;
@@ -4992,6 +5064,69 @@ begin
   end;
 end;
 
+function TProductConfigService.GetClientBankAccounts(aClientGuid: TBloGuid;
+  out BankAccounts: TBloArrayOfDataPlatformBankAccount;
+  aShowProgressBar: Boolean): Boolean;
+var
+  DataPlatformClientSubscriberResponse: MessageResponseOfDataPlatformClient6cY85e5k;
+  ShowProgress: Boolean;
+  BlopiInterface: IBlopiServiceFacade;
+begin
+  Result := false;
+
+  try
+    if not Assigned(AdminSystem) then
+      Exit;
+
+    if not Registered then
+      Exit;
+
+    ShowProgress := Progress.StatusSilent and aShowProgressBar;
+
+    if ShowProgress then
+    begin
+      Screen.Cursor := crHourGlass;
+      Progress.StatusSilent := False;
+      Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Connecting', 10);
+    end;
+
+    try
+      if ShowProgress then
+        Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Getting Client Accounts Vendors', 50);
+
+      BlopiInterface :=  GetServiceFacade;
+
+      //Get the vendor export types from BankLink Online
+      DataPlatformClientSubscriberResponse := BlopiInterface.GetBankAccountsDataSubscribers(CountryText(AdminSystem.fdFields.fdCountry),
+                                                             AdminSystem.fdFields.fdBankLink_Code,
+                                                             AdminSystem.fdFields.fdBankLink_Connect_Password,
+                                                             aClientGuid);
+
+      if not MessageResponseHasError(MessageResponse(DataPlatformClientSubscriberResponse), 'get the client accounts vendors') then
+      begin
+        BankAccounts := DataPlatformClientSubscriberResponse.Result.BankAccounts;
+
+        Result := True;
+      end;
+
+      if ShowProgress then
+        Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finished', 100);
+    finally
+      if ShowProgress then
+      begin
+        Progress.StatusSilent := True;
+        Progress.ClearStatus;
+        Screen.Cursor := crDefault;
+      end;
+    end;
+  except
+    on E:Exception do
+    begin
+      HandleException('GetClientBankAccounts', E);
+    end;
+  end;
+end;
+
 { TPracticeHelper }
 //------------------------------------------------------------------------------
 function TPracticeHelper.GetUserRoleGuidFromPracUserType(aUstNameIndex: integer;
@@ -5129,6 +5264,43 @@ begin
       Break;
     end;
   end;
+end;
+
+procedure HandleException(const MethodName: String; E: Exception);
+begin
+  HandleException(MethodName, UNIT_NAME, E);
+end;
+
+procedure HandleException(const MethodName, UnitName: String; E: Exception); overload;
+var
+  MainMessage: String;
+  MessageDetails: String;
+  ShowDetails: Boolean;
+begin
+  MainMessage := Format('%s encountered a problem while connecting to %s. Please see the details below or contact BankLink Support for assistance.', [BKPRACTICENAME, BANKLINK_ONLINE_NAME]);
+  
+  MessageDetails := E.Message;
+
+  ShowDetails := True;
+  
+  if E is ESOAPHTTPException then
+  begin
+    if (Pos(' - URL:', E.Message) > 0) then
+    begin
+      MessageDetails := Copy(MessageDetails, 0, Pos(' - URL:', E.Message) -1) + '.';
+    end;
+  end
+  else
+  if E is EDOMParseError then
+  begin
+    MainMessage := Format('%s encountered a problem connecting to %s. Please contact BankLink Support for assistance', [BKPRACTICENAME, BANKLINK_ONLINE_NAME]);
+    
+    ShowDetails := False;
+  end;
+
+  HelpfulErrorMsg(MainMessage, 0, True, MessageDetails, ShowDetails);
+
+  LogUtil.LogMsg(lmError, UnitName, Format('Exception running %s, Error Message : %s', [MethodName, E.Message]));
 end;
 
 initialization
