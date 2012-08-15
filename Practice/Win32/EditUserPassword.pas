@@ -47,11 +47,16 @@ type
     function Validate : boolean;
     function UpdateOnline : Boolean;
     function UpdateSystemAdmin : Boolean;
+    function GetNewPassword: String;
   public
-    function Initlize : Boolean;
+    function Initlize : Boolean; overload;
+    function Initlize(User: pUser_Rec; CurrentPassword: String) : Boolean; overload;
+
+    property NewPassword: String read GetNewPassword;
   end;
 
-function ChangeUserPassword : boolean;
+function ChangeUserPassword : boolean; overload;
+function ChangeUserPassword(User: pUser_Rec; var CurrentPassword: String): Boolean; overload;
 
 //------------------------------------------------------------------------------
 implementation
@@ -92,16 +97,69 @@ begin
   end;
 end;
 
+function ChangeUserPassword(User: pUser_Rec; var CurrentPassword: String): Boolean; overload;
+var
+  MyDlg : TEditUserPassword;
+begin
+  Result := false;
+
+  if not Assigned( AdminSystem) then
+    exit;
+
+  MyDlg := TEditUserPassword.Create(Application.mainForm);
+  try
+    BKHelpSetUp(MyDlg, BKH_Changing_your_password_to_match_BankLink_Online);
+    
+    if MyDlg.Initlize(User, CurrentPassword) then
+    begin
+      if MyDlg.ShowModal = mrOk then
+      begin
+        CurrentPassword := MyDlg.Newpassword;
+
+        Result := True;
+      end;
+    end;
+  finally
+    MyDlg.Free;
+  end;
+end;
+
 //------------------------------------------------------------------------------
 procedure TEditUserPassword.FormCreate(Sender: TObject);
 begin
   bkXPThemes.ThemeForm( Self);
 end;
 
+function TEditUserPassword.GetNewPassword: String;
+begin
+  Result := edtNewPassword.Text;
+end;
+
+function TEditUserPassword.Initlize(User: pUser_Rec; CurrentPassword: String): Boolean;
+begin
+  if Assigned(User) then
+  begin
+    fUser_Rec := User;
+
+    SetPasswordFont(edtOldPassword);
+    SetPasswordFont(edtNewPassword);
+    SetPasswordFont(edtConfirmPassword);
+
+    edtOldPassword.Text := CurrentPassword;
+
+    ActiveControl := edtNewPassword;
+    
+    Result := True;
+  end
+  else
+  begin
+    Result := False;
+  end;
+end;
+
 //------------------------------------------------------------------------------
 procedure TEditUserPassword.btnOkClick(Sender: TObject);
 begin
-  BtnOk.ModalResult := mrNone;
   If Validate Then
   begin
     if not UpdateOnline then
@@ -110,8 +168,7 @@ begin
     if not UpdateSystemAdmin then
       Exit;
 
-    BtnOk.ModalResult := mrOk;
-    Close;
+    ModalResult := mrOk;
   end;
 end;
 
@@ -119,14 +176,7 @@ end;
 function TEditUserPassword.Validate : boolean;
 begin
   Result := false;
-
-  if not ValidateUserPassword(fUser_Rec, Trim(edtOldPassword.Text)) then
-  begin
-    HelpfulWarningMsg('Practice old user password is not correct', 0 );
-    edtOldPassword.SetFocus;
-    exit;
-  end; { (Trim(edtOldPassword.text) <> fUser_Rec.usPassword) }
-
+  
   if (Trim(edtNewPassword.text) = '') then
   begin
     HelpfulWarningMsg('BankLink Online users must have a Password.', 0 );
@@ -182,15 +232,8 @@ var
 begin
   Result := False;
   try
-    if fUser_Rec.usUsing_Mixed_Case_Password then
-    begin
-      OldPassword := edtOldPassword.Text;
-    end
-    else
-    begin
-      OldPassword := Uppercase(edtOldPassword.Text);
-    end;
-    
+    OldPassword := edtOldPassword.Text;
+
     if ProductConfigService.ChangePracUserPass(fUser_Rec.usCode,
                                                Trim(OldPassword),
                                                Trim(edtNewPassword.text)) then
@@ -211,21 +254,33 @@ begin
   Result := false;
   If LoadAdminSystem(true, UNITNAME ) Then
   begin
-    fUser_Rec := AdminSystem.fdSystem_User_List.FindLRN(CurrUser.LRN);
-    If not Assigned(fUser_Rec) Then
+    if Assigned(CurrUser) then
     begin
-      UnlockAdmin;
-      HelpfulErrorMsg('The User ' + CurrUser.FullName + ' can no longer be found in the Admin System.', 0);
-      exit;
-    End;
+      fUser_Rec := AdminSystem.fdSystem_User_List.FindLRN(CurrUser.LRN);
 
-    fUser_Rec.usPassword := edtNewPassword.text;
+      If not Assigned(fUser_Rec) Then
+      begin
+        UnlockAdmin;
+        HelpfulErrorMsg('The User ' + CurrUser.FullName + ' can no longer be found in the Admin System.', 0);
+        exit;
+      End;
+    end;
+
+    if FUser_Rec.usUsing_Secure_Authentication then
+    begin
+      UpdateUserDataBlock(FUser_Rec, edtNewPassword.text);                 
+    end
+    else
+    begin
+      fUser_Rec.usPassword := edtNewPassword.text;
+    end;
 
     SaveAdminSystem;
     Result := true;
 
     LogUtil.LogMsg(lmInfo, UNITNAME, Format('User %s password was changed.', [fUser_Rec^.usName]));
-    HelpfulInfoMsg('Your password has been successfully updated.', 0 );
+    
+    HelpfulInfoMsg(Format('Password for %s has been successfully updated.', [fUser_Rec.usName]), 0 );
   End { LoadAdminSystem(true) }
   Else
   begin
