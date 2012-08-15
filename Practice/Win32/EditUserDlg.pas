@@ -914,7 +914,7 @@ procedure TdlgEditUser.btnResetPasswordClick(Sender: TObject);
 begin
   if (not fIsCreateUser) and (FUserGuid <> '') then
   begin
-    if AskYesNo('Reset User Password', Format('This will reset the password for %s. An email will be sent to their email address %s with a temporary password. ' + #10#13#10#13 + 'Are you sure you want to do this?', [stUserName.Caption, FOldValues.Email]), DLG_YES, 0) = DLG_YES then
+    if AskYesNo('Reset User Password', Format('This will reset the password for %s. An email will be sent to their email address %s with a temporary password. ' + #10#13#10#13 + 'Are you sure you want to do this?', [FOldValues.FullName, FOldValues.Email]), DLG_YES, 0) = DLG_YES then
     begin
       ProductConfigService.ResetPracticeUserPassword(FOldValues.Email, FUserGuid);
     end;
