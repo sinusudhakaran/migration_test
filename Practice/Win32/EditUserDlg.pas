@@ -524,43 +524,6 @@ begin { TdlgEditUser.OKtoPost }
       exit;
     end; { ValidEmail(eMail.text) }
 
-    if (Trim(ePass.text) = '') then
-    begin
-      HelpfulWarningMsg('BankLink Online users must have a Password.', 0 );
-      pcMain.ActivePage := tsDetails;
-      ePass.SetFocus;
-      exit;
-    end; { (Trim(ePass.text) = '') }
-
-    if (FOldValues.Password = ePass.Text) and not FUsingMixedCasePassword then
-    begin
-      HelpfulInfoMsg('Your login has been enabled for access to BankLink Online.  Please enter a new password for use in ' +
-                     'both BankLink Practice and BankLink Online.' + #10#13#01#13 +
-                     'Your new password must be a minimum of 8 and a maximum of 12 characters long, and contain at least ' +
-                     '1 alpha (a-z, A-Z) and 1 numeric (0-9) character.' + #10#13#10#13 +
-                     'Click OK to enter a new password.', 0);
-
-      pcMain.ActivePage := tsDetails;
-      ePass.SetFocus;
-      exit;
-    end;
-
-    if (ePass.text <> eConfirmPass.text) then
-    begin
-      HelpfulWarningMsg('BankLink Online users Password and Confirm Password must be the same.', 0 );
-      pcMain.ActivePage := tsDetails;
-      ePass.SetFocus;
-      exit;
-    end; { (ePass.text <> eConfirmPass.text) }
-
-    if not RegExIsPasswordValid(ePass.text) then
-    begin
-      HelpfulWarningMsg('BankLink Online users must have a Password that contains 8-12 characters, including atleast 1 digit.', 0 );
-      pcMain.ActivePage := tsDetails;
-      ePass.SetFocus;
-      exit;
-    end; { ValidPassword }
-
     if (radLinkExistingOnlineUser.Checked) and
        (cmbLinkExistingOnlineUser.ItemIndex = -1) and
        (fUIMode = uimOnlineUnlinked) then
