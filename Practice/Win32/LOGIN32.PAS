@@ -84,7 +84,8 @@ uses
   YesNoDlg,
   bkconst,
   LicenseDlg, ClientManagerFrm,
-  BanklinkOnlineServices;
+  BanklinkOnlineServices,
+  EditUserPassword;
 
 const
   UnitName = 'LOGIN32';
@@ -335,18 +336,28 @@ begin
   {user found now check password}
   if User.usAllow_Banklink_Online then
   begin
-    PromptPasswordChange := False;
-    
-    if ProductConfigService.AuthenticateUser(AdminSystem.fdFields.fdBankLink_Code, User.usEMail_Address, pass) then
+    if ProductConfigService.AuthenticateUser(AdminSystem.fdFields.fdBankLink_Code, User.usEMail_Address, pass, PromptPasswordChange) then
     begin
       if PromptPasswordChange then
       begin
-
-      end;
-
-      if not User.usUsing_Secure_Authentication then
+        if not ChangeUserPassword then
+        begin
+          Exit;
+        end;
+      end
+      else
       begin
-        User.usUsing_Secure_Authentication := UpdateUserDataBlock(User, Pass);
+        if User.usUsing_Secure_Authentication then
+        begin
+          if not ValidateUserPassword(User, pass) then
+          begin
+            User.usUsing_Secure_Authentication := UpdateUserDataBlock(User, Pass);
+          end;
+        end
+        else
+        begin
+          User.usUsing_Secure_Authentication := UpdateUserDataBlock(User, Pass);
+        end;
       end;
     end
     else
