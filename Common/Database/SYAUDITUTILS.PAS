@@ -32,6 +32,7 @@ type
   TAutomatic_Task_Creation_Flags_Array = Array[ 1..7 ] of Boolean;
   TAutomatic_Task_Reminder_Delay_Array = Array[ 1..7 ] of Integer;
   TAutomatic_Task_Closing_Flags_Array = Array[ 1..7 ] of Boolean;
+  TUser_Data_Block_Array = Array[ 1..128 ] of Byte;
   TCoded_Array = Array[ 1..36 ] of Byte;
   TFinalized_Array = Array[ 1..36 ] of Byte;
   TTransferred_Array = Array[ 1..36 ] of Byte;
@@ -58,6 +59,7 @@ type
  function Automatic_Task_Creation_Flags_Changed(const V1, V2: TAutomatic_Task_Creation_Flags_Array; var V3: TAutomatic_Task_Creation_Flags_Array): boolean;
  function Automatic_Task_Reminder_Delay_Changed(const V1, V2: TAutomatic_Task_Reminder_Delay_Array; var V3: TAutomatic_Task_Reminder_Delay_Array): boolean;
  function Automatic_Task_Closing_Flags_Changed(const V1, V2: TAutomatic_Task_Closing_Flags_Array; var V3: TAutomatic_Task_Closing_Flags_Array): boolean;
+ function User_Data_Block_Changed(const V1, V2: TUser_Data_Block_Array; var V3: TUser_Data_Block_Array): boolean;
  function Coded_Changed(const V1, V2: TCoded_Array; var V3: TCoded_Array): boolean;
  function Finalized_Changed(const V1, V2: TFinalized_Array; var V3: TFinalized_Array): boolean;
  function Transferred_Changed(const V1, V2: TTransferred_Array; var V3: TTransferred_Array): boolean;
@@ -345,6 +347,21 @@ begin
 end;
 
 function Automatic_Task_Closing_Flags_Changed(const V1, V2: TAutomatic_Task_Closing_Flags_Array; var V3: TAutomatic_Task_Closing_Flags_Array): boolean;
+var
+  i: integer;
+begin
+  Result := False;
+  for i := Low(V1) to High(V2) do
+    if V1[i] <> V2[i] then begin
+      Result := True;
+      Break;
+    end;
+  if Result then
+    for i := Low(V1) to High(V1) do
+        V3[i] := V1[i];
+end;
+
+function User_Data_Block_Changed(const V1, V2: TUser_Data_Block_Array; var V3: TUser_Data_Block_Array): boolean;
 var
   i: integer;
 begin

@@ -72,7 +72,9 @@ CONST
    tkusAllow_Banklink_Online            = 85 ;
    tkusPassword                         = 86 ;
    tkusUse_Practice_Password_Online     = 87 ;
-   tkusUsing_Mixed_Case_Password        = 88;
+   tkusUsing_Mixed_Case_Password        = 88 ;
+   tkusUsing_Secure_Authentication      = 89 ;
+   tkusUser_Data_Block                  = 90 ;
 
 {  -------------------------------------------------------------------  }
 
@@ -93,6 +95,9 @@ end;
 {  -------------------------------------------------------------------  }
 
 PROCEDURE Write_User_Rec ( Var O : TUser_Rec ; Var F : TIOStream );
+
+Var
+   I     : Byte;
 
 Begin
    If IsAUser_Rec ( @O ) then With O do
@@ -124,7 +129,9 @@ Begin
       F.WriteBooleanValue( tkusAllow_Banklink_Online , usAllow_Banklink_Online );
       F.WriteStringValue( tkusPassword , usPassword );
       F.WriteBooleanValue( tkusUse_Practice_Password_Online , usUse_Practice_Password_Online );
-      F.WriteBooleanValue(tkusUsing_Mixed_Case_Password, usUsing_Mixed_Case_Password);
+      F.WriteBooleanValue( tkusUsing_Mixed_Case_Password , usUsing_Mixed_Case_Password );
+      F.WriteBooleanValue( tkusUsing_Secure_Authentication , usUsing_Secure_Authentication );
+      For i := 1 to 128 do F.WriteBByteValue( tkusUser_Data_Block , i, usUser_Data_Block[ i ] );
       F.WriteToken( tkEnd_User );
    end;
 end; { of Write_User_Rec }
@@ -135,6 +142,8 @@ PROCEDURE Read_User_Rec ( Var O : TUser_Rec; Var F : TIOStream );
 
 Var
    Token : Byte;
+   I     : Byte;
+   B     : Byte;   
 
 Begin
    FillChar( O, User_Rec_Size, 0 );
@@ -174,6 +183,13 @@ Begin
          tkusPassword                         : usPassword := F.ReadStringValue;
          tkusUse_Practice_Password_Online     : usUse_Practice_Password_Online := F.ReadBooleanValue;
          tkusUsing_Mixed_Case_Password        : usUsing_Mixed_Case_Password := F.ReadBooleanValue;
+         tkusUsing_Secure_Authentication      : usUsing_Secure_Authentication := F.ReadBooleanValue;
+         tkusUser_Data_Block                  : 
+            Begin
+               B := F.ReadBByteValue( I );
+               CheckBounds( I, 1, 128, 'usUser_Data_Block' );
+               usUser_Data_Block[ I ] := B;
+            end;
          else
             Raise ETokenException.CreateFmt( SUnknownToken, [ Token ] );
       end; { of Case }
@@ -221,7 +237,7 @@ begin
   for i := Low(ChangedFields) to High(ChangedFields) do
     ChangedFields[i] := 0;
   j := 0;
-  for i := tkusCode to tkusUsing_Mixed_Case_Password do begin
+  for i := tkusCode to tkusUser_Data_Block do begin
     ChangedFields[j] := i;
     Inc(j);
   end;
@@ -380,6 +396,18 @@ begin
     ChangedFields[i] := tkusUsing_Mixed_Case_Password;
     Inc(i);
   end;
+  if (P1.usUsing_Secure_Authentication <> P2.usUsing_Secure_Authentication) then begin
+    P3.usUsing_Secure_Authentication := P1.usUsing_Secure_Authentication;
+    ChangedFields[i] := tkusUsing_Secure_Authentication;
+    Inc(i);
+  end;
+  if User_Data_Block_Changed(TUser_Data_Block_Array(P1.usUser_Data_Block), 
+                  TUser_Data_Block_Array(P2.usUser_Data_Block), 
+                  TUser_Data_Block_Array(P3.usUser_Data_Block)) then begin
+    ChangedFields[i] := tkusUser_Data_Block;
+    Inc(i);
+  end;
+
   Result := (i > 0);
 end;
 

@@ -117,6 +117,7 @@ $|    5.23.0 (BLOPI)    128   Added Allow Access to Banklink online for a practi
 $|                            Renamed User Password to Redundant Password and created Password of string 12
 $|                            Changed fd Spare Boolean 3 to fd Use BankLink Online
 $|                            Added BankLink Online Config (reused fd Spare Text 14) and Last Online Upadate fields to Practice Details
+$|    5.23.0 (BLOPI)    129   Added User Data Block and Using Secure Password to practice user
 $|*)
 
 N|Practice Details|fd|10
@@ -335,6 +336,9 @@ F|Audit Record ID|L
 F|Allow Banklink Online|Y
 F|Password|S|12
 F|Use Practice Password Online|Y
+F|Using Mixed Case Password|Y
+F|Using Secure Authentication|Y
+F|User Data Block|BB|128
 E
 
 N|System Bank Account|sb|50
@@ -376,6 +380,8 @@ F|BankLink Code|S|8
 F|Frequency|B
 F|Frequency Change Pending|B
 F|Audit Record ID|L
+F|Core Account ID|L
+F|Secure Online Code|S|20
 E
 
 N|Client File|cf|80

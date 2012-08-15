@@ -9,8 +9,8 @@ Interface uses MONEYDEF, DATEDEF;
 {  -------------------------------------------------------------------  }
 
 Const
-   SY_IOLIB_Version : Integer = 407;
-   SY_IOLIB_Date    = '30/11/11';
+   SY_IOLIB_Version : Integer = 100;
+   SY_IOLIB_Date    = '15/08/12';
    SY_FILE_VERSION   = 128;  (* Current Version counter for files
                               Changes if structure or method of storing a value would cause
                               data to be represented incorrectly, or an exception to be raised *)
@@ -130,6 +130,7 @@ Const
                                Renamed User Password to Redundant Password and created Password of string 12
                                Changed fd Spare Boolean 3 to fd Use BankLink Online
                                Added BankLink Online Config (reused fd Spare Text 14) and Last Online Upadate fields to Practice Details
+       5.23.0 (BLOPI)    129   Added User Data Block and Using Secure Password to practice user
    *)
    //Memorisation Detail - 140 Don't reuse token!!! - Record defined in BK.TXT but used in SY for Master Mems
    //Memorisation Line - 145 Don't reuse token!!! - Record defined in BK.TXT but used in SY for Master Mems
@@ -377,7 +378,9 @@ Type
       usAllow_Banklink_Online            : Boolean;       { Stored }
       usPassword                         : String[ 12 ];       { Stored }
       usUse_Practice_Password_Online     : Boolean;       { Stored }
-      usUsing_Mixed_Case_Password        : Boolean;
+      usUsing_Mixed_Case_Password        : Boolean;       { Stored }
+      usUsing_Secure_Authentication      : Boolean;       { Stored }
+      usUser_Data_Block                  : Array[ 1..128 ] of Byte;       { Stored }
       usEOR                              : Byte;
    end;
 
@@ -423,8 +426,8 @@ Type
       sbFrequency                        : Byte;       { Stored }
       sbFrequency_Change_Pending         : Byte;       { Stored }
       sbAudit_Record_ID                  : Integer;       { Stored }
-      sbCore_Account_ID                  : Integer;
-      sbSecure_Online_Code               : String[ 20 ];
+      sbCore_Account_ID                  : Integer;       { Stored }
+      sbSecure_Online_Code               : String[ 20 ];       { Stored }
       sbEOR                              : Byte;
    end;
 

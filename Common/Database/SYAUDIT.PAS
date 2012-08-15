@@ -279,6 +279,9 @@ begin
     FAuditNamesArray[60,85] := 'Allow_Banklink_Online';
     FAuditNamesArray[60,86] := 'Password';
     FAuditNamesArray[60,87] := 'Use_Practice_Password_Online';
+    FAuditNamesArray[60,88] := 'Using_Mixed_Case_Password';
+    FAuditNamesArray[60,89] := 'Using_Secure_Authentication';
+    FAuditNamesArray[60,90] := 'User_Data_Block';
 
    FAuditTableArray[50] := 'System_Bank_Account';
     FAuditNamesArray[50,52] := 'Account_Number';
@@ -319,6 +322,8 @@ begin
     FAuditNamesArray[50,87] := 'Frequency';
     FAuditNamesArray[50,88] := 'Frequency_Change_Pending';
     FAuditNamesArray[50,89] := 'Audit_Record_ID';
+    FAuditNamesArray[50,90] := 'Core_Account_ID';
+    FAuditNamesArray[50,91] := 'Secure_Online_Code';
 
    FAuditTableArray[80] := 'Client_File';
     FAuditNamesArray[80,82] := 'File_Code';

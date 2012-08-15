@@ -85,7 +85,7 @@ CONST
    tksbFrequency_Change_Pending         = 88 ;
    tksbAudit_Record_ID                  = 89 ;
    tksbCore_Account_ID                  = 90 ;
-   tksbSecure_Online_Code               = 91; 
+   tksbSecure_Online_Code               = 91 ;
 
 {  -------------------------------------------------------------------  }
 
@@ -149,8 +149,8 @@ Begin
       F.WriteByteValue( tksbFrequency , sbFrequency );
       F.WriteByteValue( tksbFrequency_Change_Pending , sbFrequency_Change_Pending );
       F.WriteIntegerValue( tksbAudit_Record_ID , sbAudit_Record_ID );
-      F.WriteIntegerValue(tksbCore_Account_ID, sbCore_Account_ID);
-      F.WriteStringValue(tksbSecure_Online_Code, sbSecure_Online_Code);
+      F.WriteIntegerValue( tksbCore_Account_ID , sbCore_Account_ID );
+      F.WriteStringValue( tksbSecure_Online_Code , sbSecure_Online_Code );
       F.WriteToken( tkEnd_System_Bank_Account );
    end;
 end; { of Write_System_Bank_Account_Rec }
@@ -264,7 +264,7 @@ begin
   for i := Low(ChangedFields) to High(ChangedFields) do
     ChangedFields[i] := 0;
   j := 0;
-  for i := tksbAccount_Number to tksbAudit_Record_ID do begin
+  for i := tksbAccount_Number to tksbSecure_Online_Code do begin
     ChangedFields[j] := i;
     Inc(j);
   end;
@@ -478,14 +478,12 @@ begin
     ChangedFields[i] := tksbAudit_Record_ID;
     Inc(i);
   end;
-  if (P1.sbCore_Account_ID <> P2.sbCore_Account_ID) then
-  begin
+  if (P1.sbCore_Account_ID <> P2.sbCore_Account_ID) then begin
     P3.sbCore_Account_ID := P1.sbCore_Account_ID;
     ChangedFields[i] := tksbCore_Account_ID;
     Inc(i);
   end;
-  if (P1.sbCore_Account_ID <> P2.sbCore_Account_ID) then
-  begin
+  if (P1.sbSecure_Online_Code <> P2.sbSecure_Online_Code) then begin
     P3.sbSecure_Online_Code := P1.sbSecure_Online_Code;
     ChangedFields[i] := tksbSecure_Online_Code;
     Inc(i);
