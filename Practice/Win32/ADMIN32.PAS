@@ -21,7 +21,10 @@ interface
 uses
   SYSOBJ32,
   SYDEFS,
-  CLASSES;
+  CLASSES,
+  Blowunit,
+  BlowfishHelper,
+  Cryptutils;
 
 CONST
    LockAdminSystem     : Boolean = True;
@@ -57,6 +60,8 @@ procedure IntegrityCheck;
 procedure DumpClientAccountMapToFile;
 
 function ValidateUserPassword(User: pUser_Rec; const Password: String): Boolean;
+function UpdateUserDataBlock(User: pUser_Rec; const Key: String): Boolean;
+function DecryptUserDataBlock(User: pUser_Rec; const Key: String): String;
 
 //******************************************************************************
 implementation
@@ -94,11 +99,44 @@ var
   AdminDate     : Int64 = 0;
   AdminIsLocked : Boolean = False;
 
+function DecryptUserDataBlock(User: pUser_Rec; const Key: String): String;
+var
+  AuthenticationString: AnsiString;
+  Index: Integer;
+begin  
+  for Index := 1 to Length(User.usUser_Data_Block) do
+  begin
+    AuthenticationString := AuthenticationString + AnsiChar(User.usUser_Data_Block[Index]);
+  end;
+
+  Result := DecryptStr128(Key, AuthenticationString);
+end;
+
+function UpdateUserDataBlock(User: pUser_Rec; const Key: String): Boolean;
+var
+  AuthenticationString: AnsiString;
+  Index: Integer;
+begin
+  Result := False;
+  
+  AuthenticationString := EncryptStr128(Key, User.usCode + AdminSystem.fdFields.fdBankLink_Connect_Password);
+
+  if AuthenticationString <> '' then
+  begin
+    for Index := 1 to Length(AuthenticationString) do
+    begin
+      User.usUser_Data_Block[Index] := Ord(AuthenticationString[Index]);
+    end;
+
+    Result := True;
+  end;
+end;
+
 function ValidateUserPassword(User: pUser_Rec; const Password: String): Boolean;
 begin
-  if User.usUsing_Mixed_Case_Password then
+  if User.usUsing_Secure_Authentication then
   begin
-    Result := Password = User.usPassword;
+    Result := DecryptUserDataBlock(User, Password) = User.usCode;
   end
   else
   begin
