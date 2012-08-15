@@ -83,7 +83,8 @@ uses
   GlobalCache,
   YesNoDlg,
   bkconst,
-  LicenseDlg, ClientManagerFrm;
+  LicenseDlg, ClientManagerFrm,
+  BanklinkOnlineServices;
 
 const
   UnitName = 'LOGIN32';
@@ -293,6 +294,8 @@ begin
 end;
 
 function TfrmLogin.ValidateUser(uName, pass: string): boolean;
+var
+  PromptPasswordChange: Boolean;
 begin
   result := false;
   Inc(Tries);
@@ -329,13 +332,38 @@ begin
      Exit;
    end;
   end;
-
   {user found now check password}
-  if not ValidateUserPassword(User, pass) then
+  if User.usAllow_Banklink_Online then
   begin
-    ErrorSound;
-    HelpfulWarningMsg('Your Username and/or Password is invalid.  Please try again.',0);
-    exit;
+    PromptPasswordChange := False;
+    
+    if ProductConfigService.AuthenticateUser(AdminSystem.fdFields.fdBankLink_Code, User.usEMail_Address, pass) then
+    begin
+      if PromptPasswordChange then
+      begin
+
+      end;
+
+      if not User.usUsing_Secure_Authentication then
+      begin
+        User.usUsing_Secure_Authentication := UpdateUserDataBlock(User, Pass);
+      end;
+    end
+    else
+    begin
+      ErrorSound;
+      HelpfulWarningMsg('Your Username and/or Password is invalid.  Please try again.',0);
+      exit;
+    end;
+  end
+  else
+  begin
+    if not ValidateUserPassword(User, pass) then
+    begin
+      ErrorSound;
+      HelpfulWarningMsg('Your Username and/or Password is invalid.  Please try again.',0);
+      exit;
+    end;
   end;
 
   if AcceptLicense(User, Self) then
