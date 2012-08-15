@@ -422,7 +422,7 @@ type
 
     function PracticeUserExists(const EmailAddress: String; RefreshPractice: Boolean = True): Boolean;
 
-    function AuthenticateUser(const Domain, Username, Password: String): Boolean;
+    function AuthenticateUser(const Domain, Username, Password: String; out ChangePassword: Boolean): Boolean;
 
     property OnLine: Boolean read FOnLine;
     property Registered: Boolean read GetRegistered;
@@ -2008,14 +2008,16 @@ begin
   end;
 end;
 
-function TProductConfigService.AuthenticateUser(const Domain, Username, Password: String): Boolean;
+function TProductConfigService.AuthenticateUser(const Domain, Username, Password: String; out ChangePassword: Boolean): Boolean;
 var
   AuthenticationService : IP5Auth;
-  Response: MessageResponse;
+  Response: P5AuthResponse;
   ShowProgress: Boolean;
 begin
   Result := False;
-  
+
+  ChangePassword := False;
+
   try
     ShowProgress := Progress.StatusSilent;
 
@@ -2035,7 +2037,11 @@ begin
       
       AuthenticationService := GetAuthenticationServiceFacade;
 
-      Result := AuthenticationService.AuthenticateUser(Domain, Username, Password);
+      Response := AuthenticationService.AuthenticateUser(Domain, Username, Password);
+
+      Result := Response.Success;
+
+      ChangePassword := Response.IsPasswordChangeRequired;
 
       if ShowProgress then
       begin
