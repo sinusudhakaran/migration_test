@@ -71,10 +71,6 @@ Type
     Label8: TLabel;
     cmbUserType: TComboBox;
     lblUserType: TLabel;
-    Label5: TLabel;
-    eConfirmPass: TEdit;
-    ePass: TEdit;
-    Label4: TLabel;
     Label9: TLabel;
     eDirectDial: TEdit;
     eMail: TEdit;
@@ -83,7 +79,6 @@ Type
     eFullName: TEdit;
     eUserCode: TEdit;
     Label1: TLabel;
-    LblPasswordValidation: TLabel;
     stUserName: TLabel;
     pnlUserIsLoggedOn: TPanel;
     pnlSpecial: TPanel;
@@ -102,6 +97,18 @@ Type
     Label10: TLabel;
     eOnlineUser: TEdit;
     lblPrimaryContact: TLabel;
+    pnlEnterPassword: TPanel;
+    Label4: TLabel;
+    ePass: TEdit;
+    Label5: TLabel;
+    eConfirmPass: TEdit;
+    LblPasswordValidation: TLabel;
+    pnlResetPassword: TPanel;
+    btnResetPassword: TButton;
+    Label11: TLabel;
+    pnlGeneratedPassword: TPanel;
+    Label12: TLabel;
+    Label13: TLabel;
 
     Procedure btnCancelClick(Sender: TObject);
     Procedure btnOKClick(Sender: TObject);
@@ -118,6 +125,12 @@ Type
     procedure chkCanAccessBankLinkOnlineClick(Sender: TObject);
     procedure radCreateNewOnlineUserClick(Sender: TObject);
     procedure radLinkExistingOnlineUserClick(Sender: TObject);
+    procedure btnResetPasswordClick(Sender: TObject);
+    procedure eFullNameChange(Sender: TObject);
+    procedure eMailChange(Sender: TObject);
+    procedure eDirectDialChange(Sender: TObject);
+    procedure chkMasterClick(Sender: TObject);
+    procedure CBPrintDialogOptionClick(Sender: TObject);
   Private
     fOldValues : TUserValues;
 
@@ -135,6 +148,8 @@ Type
     // Cache this in SetOnlineUIMode, so it can be used during OKToPost without
     // retrieving Practice again.
     fDefaultAdminUserId : TBloGuid;
+
+    FUsingSecureAuthentication: Boolean;
 
     function UserLoggedInChanged: Boolean;
     
@@ -205,6 +220,8 @@ begin
   cmbUserType.Clear;
   for UserTypeIndex := ustmin to ustMax do
     cmbUserType.Items.Add(ustNames[UserTypeIndex]);
+
+  pnlEnterPassword.BringToFront;
 End;
 
 //------------------------------------------------------------------------------
@@ -696,30 +713,6 @@ begin
         begin
           UserEmail := BloUserRead.EMail;
           UserGuid := BloUserRead.Id;
-
-          case ProductConfigService.AuthenticatePracticeUser(UserGuid, ePass.Text) of
-            paFailed:
-            begin
-              if TfrmAuthenticationFailed.Prompt('The BankLink Practice and BankLink Online passwords do not match - click Reset to request a temporary BankLink Online password, or click Cancel to go back and have the user enter and confirm their BankLink Online password in the fields above.', 0) = mrOK then
-              begin
-                if AskYesNo('BankLink Online user password reset', Format('A temporary password will be sent to %s. Enter and save the temporary password in BankLink Practice before enabling BankLink Online access for the user. Click Yes to reset the password or click No to exit.', [UserEmail]), DLG_YES, 0) = DLG_YES then
-                begin
-                  ProductConfigService.ResetPracticeUserPassword(UserEmail, BloUserRead.Id);
-                end;
-              end;
-
-              Result := False;
-
-              Exit;
-            end;
-
-            paError:
-            begin
-              Result := False;
-              
-              Exit;
-            end;
-          end;
         end;
       end
       else
@@ -772,18 +765,16 @@ var
 begin
   If formLoaded Then
   begin
-    If (not chkCanAccessBankLinkOnline.Checked)
-    and (fOldValues.CanAccessBankLinkOnline) then
+    If (not chkCanAccessBankLinkOnline.Checked) and (fOldValues.CanAccessBankLinkOnline) then
     begin
       If AskYesNo('Deleted BankLink User', 'This user will be Deleted on BankLink Online.' + #13
                 + 'Are you sure you want to continue?', DLG_NO, 0) <>
         DLG_YES Then
       begin
         chkCanAccessBankLinkOnline.Checked := Not chkCanAccessBankLinkOnline.Checked;
-      End;
+      end;
     end
-    else If (chkCanAccessBankLinkOnline.Checked)
-        and not (fOldValues.CanAccessBankLinkOnline) then
+    else If (chkCanAccessBankLinkOnline.Checked) and not (fOldValues.CanAccessBankLinkOnline) then
     begin
       if IsCreateUser then
       begin
@@ -801,12 +792,21 @@ begin
         DLG_YES Then
       begin
         chkCanAccessBankLinkOnline.Checked := Not chkCanAccessBankLinkOnline.Checked;
+      end
+      else
+      begin
+        pnlGeneratedPassword.BringToFront;
       end;
-    End;
+    end;
 
     Practice := ProductConfigService.GetPractice;
     SetOnlineUIMode(fUIMode, Practice);
     OnlineControlSetup(fUIMode);
+
+    If fOldValues.CanAccessBankLinkOnline then
+    begin
+      btnResetPassword.Enabled := not HasUserValueChanged;
+    end;
   End; { formLoaded };
 end;
 
@@ -833,6 +833,11 @@ begin { TdlgEditUser.chkLoggedInClick }
        { AskYesNo('Reset User Status', 'This will reset the Users login status and reset the Client File '  };
   End { formLoaded };
 End;
+
+procedure TdlgEditUser.chkMasterClick(Sender: TObject);
+begin
+
+end;
 
 { TdlgEditUser.chkLoggedInClick }
 
@@ -942,6 +947,22 @@ begin
   end;
 end;
 
+procedure TdlgEditUser.btnResetPasswordClick(Sender: TObject);
+begin
+  if (not fIsCreateUser) and (FUserGuid <> '') then
+  begin
+    if AskYesNo('Reset User Password', Format('This will reset the password for %s. An email will be sent to their email address %s with a temporary password. ' + #10#13#10#13 + 'Are you sure you want to do this?', [stUserName.Caption, FOldValues.Email]), DLG_YES, 0) = DLG_YES then
+    begin
+      ProductConfigService.ResetPracticeUserPassword(FOldValues.Email, FUserGuid);
+    end;
+  end;
+end;
+
+procedure TdlgEditUser.CBPrintDialogOptionClick(Sender: TObject);
+begin
+
+end;
+
 //------------------------------------------------------------------------------
 procedure TdlgEditUser.radCreateNewOnlineUserClick(Sender: TObject);
 begin
@@ -1011,6 +1032,35 @@ begin
   else
     lblUserType.Caption := '';
   end;
+
+  if FOldValues.CanAccessBankLinkOnline then
+  begin
+    btnResetPassword.Enabled := not HasUserValueChanged;
+  end;
+end;
+
+procedure TdlgEditUser.eDirectDialChange(Sender: TObject);
+begin
+  if FOldValues.CanAccessBankLinkOnline then
+  begin
+    btnResetPassword.Enabled := not HasUserValueChanged;
+  end;
+end;
+
+procedure TdlgEditUser.eFullNameChange(Sender: TObject);
+begin
+  if FOldValues.CanAccessBankLinkOnline then
+  begin
+    btnResetPassword.Enabled := not HasUserValueChanged;
+  end;
+end;
+
+procedure TdlgEditUser.eMailChange(Sender: TObject);
+begin
+  if FOldValues.CanAccessBankLinkOnline then
+  begin
+    btnResetPassword.Enabled :=  not HasUserValueChanged;
+  end;
 end;
 
 //------------------------------------------------------------------------------
@@ -1035,6 +1085,7 @@ begin { TdlgEditUser.Execute }
   begin
     FIsLoggedIn := User.usLogged_In;
     FUsingMixedCasePassword := User.usUsing_Mixed_Case_Password;
+    FUsingSecureAuthentication := User.usUsing_Secure_Authentication;
     
     //user type
     if (User.usSystem_Access) then
@@ -1159,6 +1210,12 @@ begin { TdlgEditUser.Execute }
   rbAllFiles.Enabled := (cmbUserType.ItemIndex <> ustRestricted);
 
   EditChk := false;
+
+  if chkCanAccessBankLinkOnline.Checked then
+  begin
+    pnlResetPassword.BringToFront;
+  end;
+
   ShowModal;
   Result := okPressed;
 End; { TdlgEditUser.Execute }
@@ -1226,7 +1283,15 @@ begin { EditUser }
           End;
 
           pu.usName           := eFullName.text;
+
+          if not pu.usUsing_Secure_Authentication then
+          begin
+            pu.usPassword:= ePass.text;
+          end;
+
           pu.usPassword       := ePass.text;
+
+
           pu.usEMail_Address  := Trim( eMail.text);
           pu.usDirect_Dial    := eDirectDial.Text;
           pu.usShow_Printer_Choice := cbPrintDialogOption.Checked;
@@ -1374,7 +1439,12 @@ begin { AddUser }
           Inc(AdminSystem.fdFields.fdUser_LRN_Counter);
           pu.usCode           := eUserCode.text;
           pu.usName           := eFullName.text;
-          pu.usPassword       := ePass.text;
+
+          if not pu.usAllow_Banklink_Online then
+          begin
+            pu.usPassword:= ePass.text;
+          end;
+
           pu.usEMail_Address  := Trim( eMail.text);
           pu.usDirect_Dial    := eDirectDial.Text;
           pu.usShow_Printer_Choice := cbPrintDialogOption.Checked;
@@ -1386,11 +1456,6 @@ begin { AddUser }
 
           pu.usShow_Practice_Logo := chkShowPracticeLogo.Checked;
           pu.usAllow_Banklink_Online := chkCanAccessBankLinkOnline.Checked;
-
-          if (ePass.text <> FOldValues.Password) or pu.usAllow_Banklink_Online then
-          begin
-            pu.usUsing_Mixed_Case_Password := True;
-          end;
 
           case cmbUserType.ItemIndex of
            ustRestricted :
