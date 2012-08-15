@@ -50,6 +50,9 @@ type
     Tries     : integer;
     SuperPwd  : string;
 
+    function Login(uName, pass: String; out Cancelled: Boolean): Boolean;
+    function LoginOnline(uName, pass: String; out Cancelled, ConnectionError: Boolean): Boolean;
+    
     function ValidateUser(uName : string; pass : string) : boolean;
     procedure WMQueryEndSession(var Msg : TWMQueryEndSession); message WM_QueryEndSession;
     procedure WMEndSession(var Msg : TWMEndSession); message WM_ENDSESSION;
@@ -264,6 +267,62 @@ begin
     close;
   end;
 end;
+
+function TfrmLogin.Login(uName, pass: String; out Cancelled: Boolean): Boolean;
+var
+  ConnectionError: Boolean;
+begin
+  Result := False;
+
+  Cancelled := False;
+
+  if User.usAllow_Banklink_Online then
+  begin
+    if LoginOnline(uName, pass, Cancelled, ConnectionError) then
+    begin
+      Result := True;
+    end
+    else
+    begin
+      if ConnectionError then
+      begin
+        Result := ValidateUserPassword(User, pass);
+      end;
+    end;
+  end
+  else
+  begin
+    Result := ValidateUserPassword(User, pass);
+  end;
+end;
+
+function TfrmLogin.LoginOnline(uName, pass: String; out Cancelled, ConnectionError: Boolean): Boolean;
+var
+  PromptPasswordChange: Boolean;
+  Password: String;
+begin
+  Result := False;
+
+  Cancelled := False;
+
+  Password := pass;
+  
+  if ProductConfigService.AuthenticateUser(AdminSystem.fdFields.fdBankLink_Code, User.usEMail_Address, Password, PromptPasswordChange, ConnectionError) then
+  begin
+    if PromptPasswordChange then
+    begin
+      Cancelled := not ChangeUserPassword(User, Password);
+    end;
+
+    if not Cancelled then
+    begin
+      User.usUsing_Secure_Authentication := UpdateUserDataBlock(User, Password);
+
+      Result := True;
+    end;
+  end;
+end;
+
 //------------------------------------------------------------------------------
 procedure TfrmLogin.btnCancelClick(Sender: TObject);
 begin
@@ -296,7 +355,7 @@ end;
 
 function TfrmLogin.ValidateUser(uName, pass: string): boolean;
 var
-  PromptPasswordChange: Boolean;
+  Cancelled: Boolean;
 begin
   result := false;
   Inc(Tries);
@@ -334,42 +393,13 @@ begin
    end;
   end;
   {user found now check password}
-  if User.usAllow_Banklink_Online then
+  if not Login(uName, pass, Cancelled) then
   begin
-    if ProductConfigService.AuthenticateUser(AdminSystem.fdFields.fdBankLink_Code, User.usEMail_Address, pass, PromptPasswordChange) then
+    if Cancelled then
     begin
-      if PromptPasswordChange then
-      begin
-        if not ChangeUserPassword then
-        begin
-          Exit;
-        end;
-      end
-      else
-      begin
-        if User.usUsing_Secure_Authentication then
-        begin
-          if not ValidateUserPassword(User, pass) then
-          begin
-            User.usUsing_Secure_Authentication := UpdateUserDataBlock(User, Pass);
-          end;
-        end
-        else
-        begin
-          User.usUsing_Secure_Authentication := UpdateUserDataBlock(User, Pass);
-        end;
-      end;
+      Exit;
     end
     else
-    begin
-      ErrorSound;
-      HelpfulWarningMsg('Your Username and/or Password is invalid.  Please try again.',0);
-      exit;
-    end;
-  end
-  else
-  begin
-    if not ValidateUserPassword(User, pass) then
     begin
       ErrorSound;
       HelpfulWarningMsg('Your Username and/or Password is invalid.  Please try again.',0);
