@@ -24,6 +24,7 @@ const
 type
   TOriginalSettings = record
     Status: TBloStatus;
+    ConnectDays: Integer;
     DeliverDataDirect: Boolean;
     SecureCode: String;
     Username: String;
@@ -369,6 +370,13 @@ begin
   Result := False;
 
   if FOriginalSettings.Status <> Status then
+  begin
+    Result := True;
+
+    Exit;
+  end;
+
+  if (FOriginalSettings.ConnectDays <> cmbConnectDays.ItemIndex) then
   begin
     Result := True;
 
@@ -941,6 +949,7 @@ begin
     SetReadOnly;
 
   FOriginalSettings.Status := Status;
+  FOriginalSettings.ConnectDays := cmbConnectDays.ItemIndex;
   FOriginalSettings.DeliverDataDirect := chkDeliverData.Checked;
   FOriginalSettings.SecureCode := edtSecureCode.Text;
   FOriginalSettings.Username := edtUsername.Text;
