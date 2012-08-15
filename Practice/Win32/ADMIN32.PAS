@@ -23,7 +23,6 @@ uses
   SYDEFS,
   CLASSES,
   Blowunit,
-  BlowfishHelper,
   Cryptutils;
 
 CONST
