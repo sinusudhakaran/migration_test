@@ -21,6 +21,8 @@ type
     fSuppressHeaderFooter : byte;
     fShowPracticeLogo     : boolean;
     fAllowBanklinkOnline  : boolean;
+    FPassword: String;
+    FEmailAddress: String;
   public
     property Code                 : string  read  fCode                 write fCode;
     property FullName             : string  read  fFullName             write fFullName;
@@ -34,6 +36,8 @@ type
     property SuppressHeaderFooter : byte    read  fSuppressHeaderFooter write fSuppressHeaderFooter;
     property ShowPracticeLogo     : boolean read  fShowPracticeLogo     write fShowPracticeLogo;
     property AllowBanklinkOnline  : boolean read  fAllowBanklinkOnline  write fAllowBanklinkOnline;
+    property Password             : String  read  FPassword             write FPassword;
+    property EmailAddress         : String  read  FEmailAddress         write FEmailAddress;
   end;
 
 //------------------------------------------------------------------------------
