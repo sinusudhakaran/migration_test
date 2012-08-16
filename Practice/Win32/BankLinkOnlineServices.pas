@@ -76,8 +76,9 @@ type
   TUserDetailHelper = class helper for BlopiServiceFacade.User
   public
     function AddRoleName(RoleName: string) : Boolean;
+    function IsPracticeAdministrator: Boolean;
   end;
-
+                            
   TClientBaseHelper = class helper for BlopiServiceFacade.Client
   private
     function GetStatusString: string;
@@ -428,6 +429,8 @@ type
     property Registered: Boolean read GetRegistered;
     property ValidBConnectDetails: Boolean read GetValidBConnectDetails;
     property ProductList : TBloArrayOfGuid read GetProducts;
+
+    property Practice: PracticeRead read GetCachedPractice;
   end;
 
 Const
@@ -5311,6 +5314,23 @@ begin
   HelpfulErrorMsg(MainMessage, 0, True, MessageDetails, ShowDetails);
 
   LogUtil.LogMsg(lmError, UnitName, Format('Exception running %s, Error Message : %s', [MethodName, E.Message]));
+end;
+
+function TUserDetailHelper.IsPracticeAdministrator: Boolean;
+var
+  Index: Integer;
+begin
+  Result := False;
+  
+  for Index := 0 to Length(RoleNames) - 1 do
+  begin
+    if CompareText(RoleNames[Index], 'Accountant Practice Administrator') = 0 then
+    begin
+      Result := True;
+
+      Break;
+    end;
+  end;
 end;
 
 initialization
