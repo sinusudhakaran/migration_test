@@ -422,7 +422,7 @@ type
 
     function PracticeUserExists(const EmailAddress: String; RefreshPractice: Boolean = True): Boolean;
 
-    function AuthenticateUser(const Domain, Username, Password: String; out ChangePassword: Boolean): Boolean;
+    function AuthenticateUser(const Domain, Username, Password: String; out ChangePassword, ConnectionError: Boolean): Boolean;
 
     property OnLine: Boolean read FOnLine;
     property Registered: Boolean read GetRegistered;
@@ -2008,7 +2008,7 @@ begin
   end;
 end;
 
-function TProductConfigService.AuthenticateUser(const Domain, Username, Password: String; out ChangePassword: Boolean): Boolean;
+function TProductConfigService.AuthenticateUser(const Domain, Username, Password: String; out ChangePassword, ConnectionError: Boolean): Boolean;
 var
   AuthenticationService : IP5Auth;
   Response: P5AuthResponse;
@@ -2017,6 +2017,7 @@ begin
   Result := False;
 
   ChangePassword := False;
+  ConnectionError := False;
 
   try
     ShowProgress := Progress.StatusSilent;
@@ -2059,6 +2060,8 @@ begin
     on E:Exception do
     begin
       HandleException('AuthenticateUser', E);
+
+      ConnectionError := True;
     end;
   end;
 end;
@@ -2193,6 +2196,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+
 function TProductConfigService.IsCICOEnabled: Boolean;
 var
   i, j: integer;
