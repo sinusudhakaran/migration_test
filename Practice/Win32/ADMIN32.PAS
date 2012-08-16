@@ -48,6 +48,7 @@ function  LockAndLoadAdminSystem( HoldLock : boolean;
 function  RefreshAdmin : boolean;  {dont hold lock}
 
 procedure SaveAdminSystem(IsEncrypted: Boolean = True);  {save and release lock}
+function  LockAdmin( RequestedBy : string ) : Boolean;
 procedure UnlockAdmin;
 
 procedure ReloadAdminAndTakeSnapshot( var aSnapshot : TSystemObj);
@@ -127,7 +128,15 @@ begin
       User.usUser_Data_Block[Index] := Ord(AuthenticationString[Index]);
     end;
 
+    User.usUsing_Secure_Authentication := True;
+    
     Result := True;
+  end
+  else
+  begin
+    FillChar(User.usUser_Data_Block, Length(User.usUser_Data_Block), 0);
+    
+    User.usUsing_Secure_Authentication := False;
   end;
 end;
 
@@ -135,7 +144,7 @@ function ValidateUserPassword(User: pUser_Rec; const Password: String): Boolean;
 begin
   if User.usUsing_Secure_Authentication then
   begin
-    Result := DecryptUserDataBlock(User, Password) = User.usCode;
+    Result := DecryptUserDataBlock(User, Password) = User.usCode + AdminSystem.fdFields.fdBankLink_Connect_Password;
   end
   else
   begin
