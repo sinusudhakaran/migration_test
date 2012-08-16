@@ -151,6 +151,10 @@ Type
 
     FUsingSecureAuthentication: Boolean;
 
+    function AllowResetPassword: Boolean;
+    
+    function UserIsBanklinkOnlineAdmin: Boolean;
+
     function UserLoggedInChanged: Boolean;
     
     procedure StoreOldValues;
@@ -372,8 +376,27 @@ begin { TdlgEditUser.btnOKClick }
 
     if HasUserValueChanged then
     begin
-     if not PosttoBankLinkOnline then
-       Exit;
+      if chkCanAccessBankLinkOnline.Checked and not FOldValues.CanAccessBankLinkOnline then
+      begin
+        if (UserIsBanklinkOnlineAdmin or (CurrUser.Code = GetCurrentCode)) then
+        begin
+          if not PosttoBankLinkOnline then
+          begin
+            Exit;
+          end;
+        end
+        else
+        begin
+          HelpfulWarningMsg('Creating a BankLink Online enabled user requires you to be an administrator on BankLink Online.', 0);
+
+          Exit;
+        end;
+      end
+      else
+      begin
+       if not PosttoBankLinkOnline then
+         Exit;
+      end;
     end;
     
     okPressed := true;
@@ -768,7 +791,7 @@ begin
 
     If fOldValues.CanAccessBankLinkOnline then
     begin
-      btnResetPassword.Enabled := not HasUserValueChanged;
+      btnResetPassword.Enabled := AllowResetPassword;
     end;
   End; { formLoaded };
 end;
@@ -832,6 +855,23 @@ begin
   end;
 end;
 
+function TdlgEditUser.UserIsBanklinkOnlineAdmin: Boolean;
+var
+  User: TBloUserRead;
+begin
+  Result := False;
+
+  if Assigned(ProductConfigService.Practice) then
+  begin  
+    User := ProductConfigService.Practice.FindUser(CurrUser.EmailAddress);
+
+    if User <> nil then
+    begin
+      Result := User.IsPracticeAdministrator;    
+    end;
+  end;
+end;
+
 function TdlgEditUser.UserLoggedInChanged: Boolean;
 begin
   if FIsLoggedIn then
@@ -851,6 +891,11 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+function TdlgEditUser.AllowResetPassword: Boolean;
+begin
+  Result := (UserIsBanklinkOnlineAdmin or (CurrUser.Code = GetCurrentCode)) and not Self.HasUserValueChanged;
+end;
+
 procedure TdlgEditUser.btnAddClick(Sender: TObject);
 Var
   Codes  : TStringList;
@@ -998,7 +1043,7 @@ begin
 
   if FOldValues.CanAccessBankLinkOnline then
   begin
-    btnResetPassword.Enabled := not HasUserValueChanged;
+    btnResetPassword.Enabled := AllowResetPassword;
   end;
 end;
 
@@ -1006,7 +1051,7 @@ procedure TdlgEditUser.eDirectDialChange(Sender: TObject);
 begin
   if FOldValues.CanAccessBankLinkOnline then
   begin
-    btnResetPassword.Enabled := not HasUserValueChanged;
+    btnResetPassword.Enabled := AllowResetPassword;
   end;
 end;
 
@@ -1014,7 +1059,7 @@ procedure TdlgEditUser.eFullNameChange(Sender: TObject);
 begin
   if FOldValues.CanAccessBankLinkOnline then
   begin
-    btnResetPassword.Enabled := not HasUserValueChanged;
+    btnResetPassword.Enabled := AllowResetPassword;
   end;
 end;
 
@@ -1022,7 +1067,7 @@ procedure TdlgEditUser.eMailChange(Sender: TObject);
 begin
   if FOldValues.CanAccessBankLinkOnline then
   begin
-    btnResetPassword.Enabled :=  not HasUserValueChanged;
+    btnResetPassword.Enabled := AllowResetPassword;
   end;
 end;
 
@@ -1177,9 +1222,12 @@ begin { TdlgEditUser.Execute }
   if chkCanAccessBankLinkOnline.Checked then
   begin
     pnlResetPassword.BringToFront;
+    
+    btnResetPassword.Enabled := AllowResetPassword;
   end;
 
   ShowModal;
+
   Result := okPressed;
 End; { TdlgEditUser.Execute }
 
