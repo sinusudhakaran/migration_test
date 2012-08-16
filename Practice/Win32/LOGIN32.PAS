@@ -602,6 +602,7 @@ begin
           SuppressHeaderFooter := User^.usSuppress_HF;
           ShowPracticeLogo     := User^.usShow_Practice_Logo;
           AllowBanklinkOnline  := User^.usAllow_Banklink_Online;
+          EmailAddress         := User^.usEMail_Address;
        end;
      end;
 
