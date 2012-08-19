@@ -9,8 +9,8 @@ Interface uses MONEYDEF, DATEDEF;
 {  -------------------------------------------------------------------  }
 
 Const
-   BK_IOLIB_Version : Integer = 657;
-   BK_IOLIB_Date    = '21/05/12';
+   BK_IOLIB_Version : Integer = 658;
+   BK_IOLIB_Date    = '20/08/12';
    BK_FILE_VERSION  = 170;  (* Current Version counter for files
                               Changes if structure or method of storing a value would cause
                               data to be represented incorrectly, or an exception to be raised *)
@@ -832,8 +832,6 @@ Type
       baTemp_New_Date_Last_Trx_Printed   : Integer;
       baTemp_Include_In_Report           : Boolean;
       baTemp_Balance                     : Money;
-      baCore_Account_ID                  : Integer;
-      baSecure_Online_Code               : String[ 20 ];
       baEOR                              : Byte;
    end;
 

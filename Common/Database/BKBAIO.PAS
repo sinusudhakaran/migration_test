@@ -98,8 +98,6 @@ CONST
    tkbaDefault_Forex_Description        = 201 ;
    tkbaSuperFund_Ledger_Code            = 202 ;
    tkbaAudit_Record_ID                  = 203 ;
-   tkbaCore_Account_ID                  = 204 ;
-   tkbaSecure_Online_Code               = 205 ;
 
 {  -------------------------------------------------------------------  }
 
@@ -180,8 +178,6 @@ Begin
       F.WriteStringValue( tkbaDefault_Forex_Description , baDefault_Forex_Description );
       F.WriteStringValue( tkbaSuperFund_Ledger_Code , baSuperFund_Ledger_Code );
       F.WriteIntegerValue( tkbaAudit_Record_ID , baAudit_Record_ID );
-      F.WriteIntegerValue(tkbaCore_Account_ID, baCore_Account_ID);
-      F.WriteStringValue(tkbaSecure_Online_Code, baSecure_Online_Code);
       F.WriteToken( tkEnd_Bank_Account );
    end;
 end; { of Write_Bank_Account_Rec }
@@ -340,8 +336,6 @@ Begin
          tkbaDefault_Forex_Description        : baDefault_Forex_Description := F.ReadStringValue;
          tkbaSuperFund_Ledger_Code            : baSuperFund_Ledger_Code := F.ReadStringValue;
          tkbaAudit_Record_ID                  : baAudit_Record_ID := F.ReadIntegerValue;
-         tkbaCore_Account_ID                  : baCore_Account_ID := F.ReadIntegerValue;
-         tkbaSecure_Online_Code               : baSecure_Online_Code := F.ReadStringValue;
          else
             Raise ETokenException.CreateFmt( SUnknownToken, [ Token ] );
       end; { of Case }
@@ -687,18 +681,6 @@ begin
   if (P1.baAudit_Record_ID <> P2.baAudit_Record_ID) then begin
     P3.baAudit_Record_ID := P1.baAudit_Record_ID;
     ChangedFields[i] := tkbaAudit_Record_ID;
-    Inc(i);
-  end;
-  if (P1.baCore_Account_ID <> P2.baCore_Account_ID) then
-  begin
-    P3.baCore_Account_ID := P1.baCore_Account_ID;
-    ChangedFields[i] := tkbaCore_Account_ID;
-    Inc(i);
-  end;
-  if (P1.baSecure_Online_Code <> P2.baSecure_Online_Code) then
-  begin
-    P3.baSecure_Online_Code := P1.baSecure_Online_Code;
-    ChangedFields[i] := tkbaSecure_Online_Code;
     Inc(i);
   end;
 
