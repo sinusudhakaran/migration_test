@@ -49,6 +49,7 @@ type
     User      : pUser_Rec;
     Tries     : integer;
     SuperPwd  : string;
+    FPassword: String;
 
     function Login(uName, pass: String; out Cancelled: Boolean): Boolean;
     class procedure UpdateLocalSecurePassword(User: pUser_Rec; const Password: String);
@@ -60,8 +61,10 @@ type
     { Public declarations }
     function Execute : boolean;
 
-    class function LoginOnline(User: pUser_Rec; uName, pass: String; out Cancelled, ConnectionError: Boolean): Boolean; overload;
+    class function LoginOnline(User: pUser_Rec; uName: String; var CurrentPassword: String; out Cancelled, ConnectionError: Boolean): Boolean; overload;
     class function LoginOnline(UserCode, uName, pass: String; out Cancelled, ConnectionError: Boolean): Boolean; overload;
+
+    property Password: String read FPassword;
   end;
 
 function LoginUser(TryUserName : string): boolean;
@@ -296,9 +299,11 @@ begin
 
   Cancelled := False;
 
+  FPassword := pass;
+  
   if User.usAllow_Banklink_Online and Adminsystem.fdFields.fdUse_BankLink_Online then
   begin
-    if LoginOnline(User, uName, pass, Cancelled, ConnectionError) then
+    if LoginOnline(User, uName, FPassword, Cancelled, ConnectionError) then
     begin
       Result := True;
     end
@@ -306,13 +311,13 @@ begin
     begin
       if ConnectionError then
       begin
-        Result := ValidateUserPassword(User, pass);
+        Result := ValidateUserPassword(User, FPassword);
       end;
     end;
   end
   else
   begin
-    Result := ValidateUserPassword(User, pass);
+    Result := ValidateUserPassword(User, FPassword);
   end;
 end;
 
@@ -335,34 +340,31 @@ begin
   end;
 end;
 
-class function TfrmLogin.LoginOnline(User: pUser_Rec; uName, pass: String; out Cancelled, ConnectionError: Boolean): Boolean;
+class function TfrmLogin.LoginOnline(User: pUser_Rec; uName: String; var CurrentPassword: String; out Cancelled, ConnectionError: Boolean): Boolean;
 var
   PromptPasswordChange: Boolean;
-  Password: String;
 begin
   Result := False;
 
   Cancelled := False;
-
-  Password := pass;
   
-  if ProductConfigService.AuthenticateUser(AdminSystem.fdFields.fdBankLink_Code, User.usEMail_Address, Password, PromptPasswordChange, ConnectionError) then
+  if ProductConfigService.AuthenticateUser(AdminSystem.fdFields.fdBankLink_Code, User.usEMail_Address, CurrentPassword, PromptPasswordChange, ConnectionError) then
   begin
     if PromptPasswordChange then
     begin
-      Cancelled := not ChangeUserPassword(User, Password);
+      Cancelled := not ChangeUserPassword(User, CurrentPassword);
     end;
 
     if not Cancelled then
     begin
       if not User.usUsing_Secure_Authentication then
       begin
-        UpdateLocalSecurePassword(User, pass);
+        UpdateLocalSecurePassword(User, CurrentPassword);
       end
       else
-      if not ValidateUserPassword(User, pass) then
+      if not ValidateUserPassword(User, CurrentPassword) then
       begin
-        UpdateLocalSecurePassword(User, pass);
+        UpdateLocalSecurePassword(User, CurrentPassword);
       end;
       
       Result := True;
@@ -553,7 +555,7 @@ begin
    aUser := AdminSystem.fdSystem_User_List.FindLRN( UsersLRN)
 end;
 //------------------------------------------------------------------------------
-function CreateUser(Code : string; Name : string; SysAccess : boolean; LRN : integer; MasterMemorise : boolean; User : pUser_Rec) : boolean;
+function CreateUser(Code : string; Name : string; Password: String; SysAccess : boolean; LRN : integer; MasterMemorise : boolean; User : pUser_Rec) : boolean;
 const
    ThisMethodName = 'CreateUser';
 var
@@ -661,7 +663,7 @@ begin
 //end;
 end;
 //------------------------------------------------------------------------------
-function RequestLogin(var TryUserName : string; var UserRec : pUser_Rec) : boolean;
+function RequestLogin(var TryUserName : string; var UserRec : pUser_Rec; out Password: String) : boolean;
 var
   MyDlg : TfrmLogin;
 begin
@@ -676,6 +678,7 @@ begin
     begin
        UserRec := MyDlg.User;
        TryUserName := UpperCase(MyDlg.eUserName.Text);  {just in case it changed}
+       Password := MyDlg.Password;
        result := true;
     end;
   finally
@@ -690,6 +693,7 @@ var
   User : pUser_Rec;
   ShiftKeyDown : boolean;
   v : integer;
+  Password: String;
 begin
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' begins' );
 
@@ -720,7 +724,7 @@ begin
             //We can log in automatically
             //if they accept the EULA
             if AcceptLicense(User, Application.MainForm)
-            and CreateUser( usCode, usName, usSystem_Access, usLRN, usMASTER_Access, User ) then begin
+            and CreateUser( usCode, usName, usPassword, usSystem_Access, usLRN, usMASTER_Access, User ) then begin
                if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName+' Auto Login no password');
                INISettings.ReadUsersINI(CurrUser.Code);
                MadAddEmailBodyValue('User-Code',CurrUser.Code  );
@@ -734,17 +738,17 @@ begin
      end;
 
      //manual login
-     if RequestLogin(TryUserName, User) then
+     if RequestLogin(TryUserName, User, Password) then
      begin
        if Assigned(User) then begin
          with User^ do begin
-           result := CreateUser(usCode, usName, usSystem_Access, usLRN, usMaster_access, User )
+           result := CreateUser(usCode, usName, Password, usSystem_Access, usLRN, usMaster_access, User )
          end
        end
        else begin
          //the only other way this could success is that the superuser code has been
          //used
-         result := CreateUser( SuperUserCode,'SuperUser',true,0,false,nil);
+         result := CreateUser( SuperUserCode,'SuperUser', '', true,0,false,nil);
        end;
      end;
   end
@@ -754,7 +758,7 @@ begin
     if TryUserName = '' then
        TryUserName := 'USER';
 
-    result := CreateUser(TryUserName,'',false,0,false, nil);
+    result := CreateUser(TryUserName,'', '',false,0,false, nil);
     If assigned(CurrUser) then CurrUser.ShowPrinterDialog := INI_ShowPrintOptions;
   end;
 
