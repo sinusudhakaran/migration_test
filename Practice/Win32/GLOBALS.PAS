@@ -619,6 +619,7 @@ var
     //BankLink Online Books URL
     PRACINI_BankLink_Online_Books_URL  : string = BANKLINK_ONLINE_BOOKS_DEFAULT_URL;
     PRACINI_BankLink_Online_BLOPI_URL  : string;
+    PRACINI_DataPlatform_Services_URL : string;
 
     // Remember email details in case it fails
     Email_Saved: Boolean = False;
