@@ -51,8 +51,7 @@ type
     SuperPwd  : string;
 
     function Login(uName, pass: String; out Cancelled: Boolean): Boolean;
-    function LoginOnline(uName, pass: String; out Cancelled, ConnectionError: Boolean): Boolean;
-    procedure UpdateLocalSecurePassword(const Password: String);
+    class procedure UpdateLocalSecurePassword(User: pUser_Rec; const Password: String);
     
     function ValidateUser(uName : string; pass : string) : boolean;
     procedure WMQueryEndSession(var Msg : TWMQueryEndSession); message WM_QueryEndSession;
@@ -60,6 +59,9 @@ type
   public
     { Public declarations }
     function Execute : boolean;
+
+    class function LoginOnline(User: pUser_Rec; uName, pass: String; out Cancelled, ConnectionError: Boolean): Boolean; overload;
+    class function LoginOnline(UserCode, uName, pass: String; out Cancelled, ConnectionError: Boolean): Boolean; overload;
   end;
 
 function LoginUser(TryUserName : string): boolean;
@@ -235,7 +237,8 @@ begin
                     'Enter your '+SHORTAPPNAME+' Password|' +
                     'Enter the password for your User Code';
 end;
-procedure TfrmLogin.UpdateLocalSecurePassword(const Password: String);
+
+class procedure TfrmLogin.UpdateLocalSecurePassword(User: pUser_Rec; const Password: String);
 begin
   if LockAdmin('LoginOnline') then
   begin
@@ -295,7 +298,7 @@ begin
 
   if User.usAllow_Banklink_Online and Adminsystem.fdFields.fdUse_BankLink_Online then
   begin
-    if LoginOnline(uName, pass, Cancelled, ConnectionError) then
+    if LoginOnline(User, uName, pass, Cancelled, ConnectionError) then
     begin
       Result := True;
     end
@@ -313,7 +316,26 @@ begin
   end;
 end;
 
-function TfrmLogin.LoginOnline(uName, pass: String; out Cancelled, ConnectionError: Boolean): Boolean;
+class function TfrmLogin.LoginOnline(UserCode, uName, pass: String; out Cancelled, ConnectionError: Boolean): Boolean;
+var
+  User: pUser_Rec;
+begin
+  Result := False;
+  Cancelled := False;
+  ConnectionError := False;
+  
+  if Assigned(AdminSystem) then
+  begin
+    User := AdminSystem.fdSystem_User_List.FindCode(UserCode);
+
+    if Assigned(User) then
+    begin
+      Result := LoginOnline(User, uName, pass, Cancelled, ConnectionError);
+    end;
+  end;
+end;
+
+class function TfrmLogin.LoginOnline(User: pUser_Rec; uName, pass: String; out Cancelled, ConnectionError: Boolean): Boolean;
 var
   PromptPasswordChange: Boolean;
   Password: String;
@@ -335,12 +357,12 @@ begin
     begin
       if not User.usUsing_Secure_Authentication then
       begin
-        UpdateLocalSecurePassword(pass);
+        UpdateLocalSecurePassword(User, pass);
       end
       else
       if not ValidateUserPassword(User, pass) then
       begin
-        UpdateLocalSecurePassword(pass);
+        UpdateLocalSecurePassword(User, pass);
       end;
       
       Result := True;
