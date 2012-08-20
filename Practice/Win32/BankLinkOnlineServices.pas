@@ -69,6 +69,8 @@ type
     TypeInfo : PTypeInfo;
   end;
 
+  EAuthenticationException = Exception;
+
   TArrVarTypeData = Array of TVarTypeData;
 
   TPracticeUserAuthentication = (paSuccess, paFailed, paError);
@@ -166,6 +168,8 @@ type
     procedure DoBeforeExecute(const MethodName: string;
                               var SOAPRequest: InvString);
 
+    procedure DoAfterSecureExecute(const MethodName: string; SOAPResponse: TStream);
+    
     procedure CreateXMLError(Document: IXMLDocument; const MethodName, ErrorCode, ErrorMessage: String);
 
     procedure SetTimeOuts(ConnecTimeout : DWord ;
@@ -881,23 +885,26 @@ begin
         Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Creating Client', 50);
 
       BlopiInterface :=  GetSecureServiceFacade;
-      MsgResponse := BlopiInterface.CreateClient(CountryText(AdminSystem.fdFields.fdCountry),
-                                                 AdminSystem.fdFields.fdBankLink_Code,
-                                                 AdminSystem.fdFields.fdBankLink_Connect_Password,
-                                                 ANewClient);
-
-      if not CheckAuthentication(MsgResponse) then
-      begin
-        if ReAuthenticateUser(Cancelled, ConnectionError) and not (Cancelled or ConnectionError) then
+      
+      try
+        MsgResponse := BlopiInterface.CreateClient(CountryText(AdminSystem.fdFields.fdCountry),
+                                                   AdminSystem.fdFields.fdBankLink_Code,
+                                                   AdminSystem.fdFields.fdBankLink_Connect_Password,
+                                                   ANewClient);
+      except
+        on E: EAuthenticationException do
         begin
-          MsgResponse := BlopiInterface.CreateClient(CountryText(AdminSystem.fdFields.fdCountry),
-                                                 AdminSystem.fdFields.fdBankLink_Code,
-                                                 AdminSystem.fdFields.fdBankLink_Connect_Password,
-                                                 ANewClient);
-        end
-        else
-        begin
-          Exit;
+          if ReAuthenticateUser(Cancelled, ConnectionError) and not (Cancelled or ConnectionError) then
+          begin
+            MsgResponse := BlopiInterface.CreateClient(CountryText(AdminSystem.fdFields.fdCountry),
+                                                   AdminSystem.fdFields.fdBankLink_Code,
+                                                   AdminSystem.fdFields.fdBankLink_Connect_Password,
+                                                   ANewClient);
+          end
+          else
+          begin
+            Exit;
+          end;  
         end;
       end;
     
@@ -932,27 +939,31 @@ var
 begin
   try
     BlopiInterface  := GetSecureServiceFacade;
-    MsgResponseOfGuid := BlopiInterface.CreateClientUser(CountryText(AdminSystem.fdFields.fdCountry),
+
+    try
+      MsgResponseOfGuid := BlopiInterface.CreateClientUser(CountryText(AdminSystem.fdFields.fdCountry),
                                                          AdminSystem.fdFields.fdBankLink_Code,
                                                          AdminSystem.fdFields.fdBankLink_Connect_Password,
                                                          ClientGUID,
                                                          NewUser);
-
-    if not CheckAuthentication(MsgResponseOfGuid) then
-    begin
-      if ReAuthenticateUser(Cancelled, ConnectionError) and not (Cancelled or ConnectionError) then
+    except
+      on E: EAuthenticationException do
       begin
-        MsgResponseOfGuid := BlopiInterface.CreateClientUser(CountryText(AdminSystem.fdFields.fdCountry),
-                                                   AdminSystem.fdFields.fdBankLink_Code,
-                                                   AdminSystem.fdFields.fdBankLink_Connect_Password,
-                                                   ClientGUID,
-                                                   NewUser);
-      end
-      else
-      begin
-        Exit;
+        if ReAuthenticateUser(Cancelled, ConnectionError) and not (Cancelled or ConnectionError) then
+        begin
+          MsgResponseOfGuid := BlopiInterface.CreateClientUser(CountryText(AdminSystem.fdFields.fdCountry),
+                                                       AdminSystem.fdFields.fdBankLink_Code,
+                                                       AdminSystem.fdFields.fdBankLink_Connect_Password,
+                                                       ClientGUID,
+                                                       NewUser);
+        end
+        else
+        begin
+          Exit;
+        end;
       end;
     end;
+
       
     Result := MsgResponseOfGuid.Result;
   except
@@ -2113,6 +2124,20 @@ end;
 
 //------------------------------------------------------------------------------
 
+procedure TProductConfigService.DoAfterSecureExecute(const MethodName: string; SOAPResponse: TStream);
+var
+  Buffer: array[0..255] of Char;
+begin
+  SOAPResponse.Position := 0;
+
+  SOAPResponse.Read(Buffer, 256);
+  
+  if Pos('!DOCTYPE html', Buffer) > 0 then
+  begin
+    raise EAuthenticationException.Create('You are not authenticated');
+  end;
+end;
+
 procedure TProductConfigService.DoBeforeExecute(const MethodName: string;
                                                 var SOAPRequest: InvString);
 var
@@ -2175,6 +2200,7 @@ var
 begin
   HTTPRIO := THTTPRIO.Create(nil);
   HTTPRIO.OnBeforeExecute := DoBeforeExecute;
+  HTTPRIO.OnAfterExecute := DoAfterSecureExecute;
   Result := GetIBlopiSecureServiceFacade(False, PRACINI_BankLink_Online_BLOPI_URL + '/services/blopisecureservicefacade.svc', HTTPRIO);
 end;
 
@@ -2496,20 +2522,31 @@ function TProductConfigService.ReAuthenticateUser(out Cancelled, ConnectionError
 begin
   Result := False;
 
-  if TfrmLogin.LoginOnline(Curruser.Code, CurrUser.FullName, CurrUser.Password, Cancelled, ConnectionError) then
-  begin
-    Result := True;
-  end
-  else
-  begin
-    if ConnectionError then
+  try
+    if TfrmLogin.LoginOnline(Curruser.Code, CurrUser.FullName, CurrUser.Password, Cancelled, ConnectionError) then
     begin
-      HelpfulErrorMsg(BKPRACTICENAME + ' is unable to authenticate with ' + BANKLINK_ONLINE_NAME + '. Please contact BankLink Support for assistance.', 0);
+      Result := True;
     end
     else
-    if not Cancelled then
     begin
-      HelpfulErrorMsg(BKPRACTICENAME + ' authenticate with ' + BANKLINK_ONLINE_NAME + ' failed. Please contact BankLink Support for assistance.', 0);
+      if ConnectionError then
+      begin
+        HelpfulErrorMsg(BKPRACTICENAME + ' is unable to authenticate with ' + BANKLINK_ONLINE_NAME + '. Please contact BankLink Support for assistance.', 0);
+
+        LogUtil.LogMsg(lmError, UNIT_NAME, 'An error occured while authenticating with ' + BANKLINK_ONLINE_NAME + '.');
+      end
+      else
+      if not Cancelled then
+      begin
+        HelpfulErrorMsg(BKPRACTICENAME + ' authenticate with ' + BANKLINK_ONLINE_NAME + ' failed. Please contact BankLink Support for assistance.', 0);
+
+        LogUtil.LogMsg(lmError, UNIT_NAME, ' authenticate with ' + BANKLINK_ONLINE_NAME + ' failed.');
+      end;
+    end;
+  except
+    on E:Exception do
+    begin
+      HandleException('ReAuthenticateUser', E);
     end;
   end;
 end;
@@ -2750,25 +2787,29 @@ begin
     try
       Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Resetting user password', 70);
 
-      MsgResponse := BlopiInterface.ResetPracticeUserPassword(CountryText(AdminSystem.fdFields.fdCountry),
+      try
+        MsgResponse := BlopiInterface.ResetPracticeUserPassword(CountryText(AdminSystem.fdFields.fdCountry),
                                                AdminSystem.fdFields.fdBankLink_Code,
                                                AdminSystem.fdFields.fdBankLink_Connect_Password,
                                                UserGuid);
 
-      if not CheckAuthentication(MsgResponse) then
-      begin
-        if ReAuthenticateUser(Cancelled, ConnectionError) and not (Cancelled or ConnectionError) then
+      except
+        on E: EAuthenticationException do
         begin
-          MsgResponse := BlopiInterface.ResetPracticeUserPassword(CountryText(AdminSystem.fdFields.fdCountry),
-                                               AdminSystem.fdFields.fdBankLink_Code,
-                                               AdminSystem.fdFields.fdBankLink_Connect_Password,
-                                               UserGuid);
-        end
-        else
-        begin
-          Exit;
+          if ReAuthenticateUser(Cancelled, ConnectionError) and not (Cancelled or ConnectionError) then
+          begin
+            MsgResponse := BlopiInterface.ResetPracticeUserPassword(CountryText(AdminSystem.fdFields.fdCountry),
+                                             AdminSystem.fdFields.fdBankLink_Code,
+                                             AdminSystem.fdFields.fdBankLink_Connect_Password,
+                                             UserGuid);
+          end
+          else
+          begin
+            Exit;
+          end;
         end;
       end;
+
     
       if not MessageResponseHasError(MsgResponse, 'reset user password on') then
       begin
@@ -3530,25 +3571,28 @@ begin
 
     if not PracticeUserExists(aEmail) then
     begin
-      MsgResponceGuid := BlopiInterface.CreateClientUser(CountryText(AdminSystem.fdFields.fdCountry),
+      try
+        MsgResponceGuid := BlopiInterface.CreateClientUser(CountryText(AdminSystem.fdFields.fdCountry),
                                                 AdminSystem.fdFields.fdBankLink_Code,
                                                 AdminSystem.fdFields.fdBankLink_Connect_Password,
                                                 aClientId,
                                                 BloUserCreate);
 
-      if not CheckAuthentication(MsgResponceGuid) then
-      begin
-        if ReAuthenticateUser(Cancelled, ConnectionError) and not (Cancelled or ConnectionError) then
+      except
+        on E: EAuthenticationException do
         begin
-          MsgResponceGuid := BlopiInterface.CreateClientUser(CountryText(AdminSystem.fdFields.fdCountry),
-                                                AdminSystem.fdFields.fdBankLink_Code,
-                                                AdminSystem.fdFields.fdBankLink_Connect_Password,
-                                                aClientId,
-                                                BloUserCreate);
-        end
-        else
-        begin
-          Exit;
+          if ReAuthenticateUser(Cancelled, ConnectionError) and not (Cancelled or ConnectionError) then
+          begin
+            MsgResponceGuid := BlopiInterface.CreateClientUser(CountryText(AdminSystem.fdFields.fdCountry),
+                                              AdminSystem.fdFields.fdBankLink_Code,
+                                              AdminSystem.fdFields.fdBankLink_Connect_Password,
+                                              aClientId,
+                                              BloUserCreate);
+          end
+          else
+          begin
+            Exit;
+          end;
         end;
       end;
 
@@ -3602,27 +3646,31 @@ begin
     BloUserUpdate.Subscription := aSubscription;
     BloUserUpdate.UserCode     := aUserCode;
 
-    Result := BlopiInterface.SaveClientUser(CountryText(AdminSystem.fdFields.fdCountry),
+    try
+      Result := BlopiInterface.SaveClientUser(CountryText(AdminSystem.fdFields.fdCountry),
                                             AdminSystem.fdFields.fdBankLink_Code,
                                             AdminSystem.fdFields.fdBankLink_Connect_Password,
                                             aClientId,
                                             BloUserUpdate);
 
-    if not CheckAuthentication(Result) then
-    begin
-      if ReAuthenticateUser(Cancelled, ConnectionError) and not (Cancelled or ConnectionError) then
-      begin
-        Result := BlopiInterface.SaveClientUser(CountryText(AdminSystem.fdFields.fdCountry),
-                                            AdminSystem.fdFields.fdBankLink_Code,
-                                            AdminSystem.fdFields.fdBankLink_Connect_Password,
-                                            aClientId,
-                                            BloUserUpdate);
-      end
-      else
-      begin
-        Exit;
+      except
+        on E: EAuthenticationException do
+        begin
+          if ReAuthenticateUser(Cancelled, ConnectionError) and not (Cancelled or ConnectionError) then
+          begin
+            Result := BlopiInterface.SaveClientUser(CountryText(AdminSystem.fdFields.fdCountry),
+                                          AdminSystem.fdFields.fdBankLink_Code,
+                                          AdminSystem.fdFields.fdBankLink_Connect_Password,
+                                          aClientId,
+                                          BloUserUpdate);
+          end
+          else
+          begin
+            Exit;
+          end;      
+        end;
       end;
-    end;
+
 
     if Result.Success then
       LogUtil.LogMsg(lmInfo, UNIT_NAME, 'Client User ' + aUserCode + ' has been successfully updated on BankLink Online.')
@@ -3763,27 +3811,30 @@ var
 begin
   BlopiInterface := GetSecureServiceFacade;
 
-  Result := BlopiInterface.ChangePracticeUserPassword(CountryText(AdminSystem.fdFields.fdCountry),
+  try
+    Result := BlopiInterface.ChangePracticeUserPassword(CountryText(AdminSystem.fdFields.fdCountry),
                                                       AdminSystem.fdFields.fdBankLink_Code,
                                                       AdminSystem.fdFields.fdBankLink_Connect_Password,
                                                       aUserId,
                                                       aOldPassword,
                                                       aNewPassword);
 
-  if not CheckAuthentication(Result) then
-  begin
-    if ReAuthenticateUser(Cancelled, ConnectionError) and not (Cancelled or ConnectionError) then
+  except
+    on E: EAuthenticationException do
     begin
-      Result := BlopiInterface.ChangePracticeUserPassword(CountryText(AdminSystem.fdFields.fdCountry),
-                                                      AdminSystem.fdFields.fdBankLink_Code,
-                                                      AdminSystem.fdFields.fdBankLink_Connect_Password,
-                                                      aUserId,
-                                                      aOldPassword,
-                                                      aNewPassword);
-    end
-    else
-    begin
-      Exit;
+      if ReAuthenticateUser(Cancelled, ConnectionError) and not (Cancelled or ConnectionError) then
+      begin
+        Result := BlopiInterface.ChangePracticeUserPassword(CountryText(AdminSystem.fdFields.fdCountry),
+                                                    AdminSystem.fdFields.fdBankLink_Code,
+                                                    AdminSystem.fdFields.fdBankLink_Connect_Password,
+                                                    aUserId,
+                                                    aOldPassword,
+                                                    aNewPassword);
+      end
+      else
+      begin
+        Exit;
+      end;
     end;
   end;
 
@@ -3817,27 +3868,29 @@ begin
     CreateUser.Subscription := aSubscription;
     CreateUser.Password     := aPassword;
 
-
-    Result := BlopiInterface.CreatePracticeUser(CountryText(AdminSystem.fdFields.fdCountry),
+    try
+      Result := BlopiInterface.CreatePracticeUser(CountryText(AdminSystem.fdFields.fdCountry),
                                                 AdminSystem.fdFields.fdBankLink_Code,
                                                 AdminSystem.fdFields.fdBankLink_Connect_Password,
                                                 CreateUser);
 
 
-    if not CheckAuthentication(Result) then
-    begin
-      if ReAuthenticateUser(Cancelled, ConnectionError) and not (Cancelled or ConnectionError) then
-      begin
-        Result := BlopiInterface.CreatePracticeUser(CountryText(AdminSystem.fdFields.fdCountry),
-                                                AdminSystem.fdFields.fdBankLink_Code,
-                                                AdminSystem.fdFields.fdBankLink_Connect_Password,
-                                                CreateUser);
-      end
-      else
-      begin
-        Exit;
+      except
+        on E: EAuthenticationException do
+        begin
+          if ReAuthenticateUser(Cancelled, ConnectionError) and not (Cancelled or ConnectionError) then
+          begin
+            Result := BlopiInterface.CreatePracticeUser(CountryText(AdminSystem.fdFields.fdCountry),
+                                              AdminSystem.fdFields.fdBankLink_Code,
+                                              AdminSystem.fdFields.fdBankLink_Connect_Password,
+                                              CreateUser);
+          end
+          else
+          begin
+            Exit;
+          end;     
+        end;
       end;
-    end;
 
     if Result.Success then
       LogUtil.LogMsg(lmInfo, UNIT_NAME, 'Practice User ' + aUserCode + ' has been successfully created on BankLink Online.')
@@ -3916,25 +3969,29 @@ begin
     UpdateUser.RoleNames    := aRoleNames;
     UpdateUser.Subscription := aSubscription;
 
-    Result := BlopiInterface.SavePracticeUser(CountryText(AdminSystem.fdFields.fdCountry),
+    try
+      Result := BlopiInterface.SavePracticeUser(CountryText(AdminSystem.fdFields.fdCountry),
                                               AdminSystem.fdFields.fdBankLink_Code,
                                               AdminSystem.fdFields.fdBankLink_Connect_Password,
                                               UpdateUser);
 
-    if not CheckAuthentication(Result) then
-    begin
-      if ReAuthenticateUser(Cancelled, ConnectionError) and not (Cancelled or ConnectionError) then
-      begin
-        Result := BlopiInterface.SavePracticeUser(CountryText(AdminSystem.fdFields.fdCountry),
-                                              AdminSystem.fdFields.fdBankLink_Code,
-                                              AdminSystem.fdFields.fdBankLink_Connect_Password,
-                                              UpdateUser);
-      end
-      else
-      begin
-        Exit;
+      except
+        on E: EAuthenticationException do
+        begin
+          if ReAuthenticateUser(Cancelled, ConnectionError) and not (Cancelled or ConnectionError) then
+          begin
+            Result := BlopiInterface.SavePracticeUser(CountryText(AdminSystem.fdFields.fdCountry),
+                                            AdminSystem.fdFields.fdBankLink_Code,
+                                            AdminSystem.fdFields.fdBankLink_Connect_Password,
+                                            UpdateUser);
+          end
+          else
+          begin
+            Exit;
+          end;     
+        end;
       end;
-    end;
+
     
     if Result.Success then
       LogUtil.LogMsg(lmInfo, UNIT_NAME, 'Practice User ' + aUserCode + ' has been successfully updated to BankLink Online.')
@@ -3956,24 +4013,25 @@ var
 begin
   BlopiInterface := GetSecureServiceFacade;
 
-  Result := BlopiInterface.DeleteUser(CountryText(AdminSystem.fdFields.fdCountry),
+  try
+    Result := BlopiInterface.DeleteUser(CountryText(AdminSystem.fdFields.fdCountry),
                                       AdminSystem.fdFields.fdBankLink_Code,
                                       AdminSystem.fdFields.fdBankLink_Connect_Password,
                                       aUserId);
-
-
-  if not CheckAuthentication(Result) then
-  begin
-    if ReAuthenticateUser(Cancelled, ConnectionError) and not (Cancelled or ConnectionError) then
+  except
+    on E: EAuthenticationException do
     begin
-      Result := BlopiInterface.DeleteUser(CountryText(AdminSystem.fdFields.fdCountry),
-                                      AdminSystem.fdFields.fdBankLink_Code,
-                                      AdminSystem.fdFields.fdBankLink_Connect_Password,
-                                      aUserId);
-    end
-    else
-    begin
-      Exit;
+      if ReAuthenticateUser(Cancelled, ConnectionError) and not (Cancelled or ConnectionError) then
+      begin
+        Result := BlopiInterface.DeleteUser(CountryText(AdminSystem.fdFields.fdCountry),
+                                    AdminSystem.fdFields.fdBankLink_Code,
+                                    AdminSystem.fdFields.fdBankLink_Connect_Password,
+                                    aUserId);
+      end
+      else
+      begin
+        Exit;
+      end;      
     end;
   end;
 
@@ -4180,23 +4238,26 @@ begin
           BloClientCreate.Subscription     := aSubscription;
           BloClientCreate.SecureCode       := MyClient.clFields.clBankLink_Code;
 
-          MsgResponseGuid := BlopiInterface.CreateClient(CountryText(AdminSystem.fdFields.fdCountry),
+          try
+            MsgResponseGuid := BlopiInterface.CreateClient(CountryText(AdminSystem.fdFields.fdCountry),
                                                          AdminSystem.fdFields.fdBankLink_Code,
                                                          AdminSystem.fdFields.fdBankLink_Connect_Password,
                                                          BloClientCreate);
 
-          if not CheckAuthentication(MsgResponseGuid) then
-          begin
-            if ReAuthenticateUser(Cancelled, ConnectionError) and not (Cancelled or ConnectionError) then
+          except
+            on E: EAuthenticationException do
             begin
-              MsgResponseGuid := BlopiInterface.CreateClient(CountryText(AdminSystem.fdFields.fdCountry),
-                                                         AdminSystem.fdFields.fdBankLink_Code,
-                                                         AdminSystem.fdFields.fdBankLink_Connect_Password,
-                                                         BloClientCreate);
-            end
-            else
-            begin
-              Exit;
+              if ReAuthenticateUser(Cancelled, ConnectionError) and not (Cancelled or ConnectionError) then
+              begin
+                MsgResponseGuid := BlopiInterface.CreateClient(CountryText(AdminSystem.fdFields.fdCountry),
+                                                       AdminSystem.fdFields.fdBankLink_Code,
+                                                       AdminSystem.fdFields.fdBankLink_Connect_Password,
+                                                       BloClientCreate);
+              end
+              else
+              begin
+                Exit;
+              end;       
             end;
           end;
       
@@ -4355,24 +4416,25 @@ begin
             BloClientUpdate.Subscription         := aSubscription;
             BloClientUpdate.SecureCode           := MyClient.clFields.clBankLink_Code;
 
-            MsgResponse := BlopiInterface.SaveClient(CountryText(AdminSystem.fdFields.fdCountry),
+            try
+              MsgResponse := BlopiInterface.SaveClient(CountryText(AdminSystem.fdFields.fdCountry),
                                                      AdminSystem.fdFields.fdBankLink_Code,
                                                      AdminSystem.fdFields.fdBankLink_Connect_Password,
                                                      BloClientUpdate);
-
-
-            if not CheckAuthentication(MsgResponse) then
-            begin
-              if ReAuthenticateUser(Cancelled, ConnectionError) and not (Cancelled or ConnectionError) then
+            except
+              on E: EAuthenticationException do
               begin
-                MsgResponse := BlopiInterface.SaveClient(CountryText(AdminSystem.fdFields.fdCountry),
-                                                     AdminSystem.fdFields.fdBankLink_Code,
-                                                     AdminSystem.fdFields.fdBankLink_Connect_Password,
-                                                     BloClientUpdate);
-              end
-              else
-              begin
-                Exit;
+                if ReAuthenticateUser(Cancelled, ConnectionError) and not (Cancelled or ConnectionError) then
+                begin
+                  MsgResponse := BlopiInterface.SaveClient(CountryText(AdminSystem.fdFields.fdCountry),
+                                                   AdminSystem.fdFields.fdBankLink_Code,
+                                                   AdminSystem.fdFields.fdBankLink_Connect_Password,
+                                                   BloClientUpdate);
+                end
+                else
+                begin
+                  Exit;
+                end;     
               end;
             end;
 
@@ -4550,26 +4612,29 @@ begin
         BloClientUpdate.Status               := staDeactivated;
         BloClientUpdate.Subscription         := aExistingClient.Subscription;
 
-        MsgResponse := BlopiInterface.SaveClient(CountryText(AdminSystem.fdFields.fdCountry),
-                                                 AdminSystem.fdFields.fdBankLink_Code,
-                                                 AdminSystem.fdFields.fdBankLink_Connect_Password,
-                                                 BloClientUpdate);
-
-
-      if not CheckAuthentication(MsgResponse) then
-      begin
-        if ReAuthenticateUser(Cancelled, ConnectionError) and not (Cancelled or ConnectionError) then
-        begin
+        try
           MsgResponse := BlopiInterface.SaveClient(CountryText(AdminSystem.fdFields.fdCountry),
                                                  AdminSystem.fdFields.fdBankLink_Code,
                                                  AdminSystem.fdFields.fdBankLink_Connect_Password,
                                                  BloClientUpdate);
-        end
-        else
-        begin
-          Exit;
+
+
+        except
+          on E: EAuthenticationException do
+          begin
+            if ReAuthenticateUser(Cancelled, ConnectionError) and not (Cancelled or ConnectionError) then
+            begin
+              MsgResponse := BlopiInterface.SaveClient(CountryText(AdminSystem.fdFields.fdCountry),
+                                               AdminSystem.fdFields.fdBankLink_Code,
+                                               AdminSystem.fdFields.fdBankLink_Connect_Password,
+                                               BloClientUpdate);
+            end
+            else
+            begin
+              Exit;
+            end;      
+          end;
         end;
-      end;
                                                        
         Result := not MessageResponseHasError(MsgResponse, 'delete client on');
 
