@@ -260,11 +260,7 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmClientDetails.FormShow(Sender: TObject);
 var
-  i, k : Integer;
-  GUID1, GUID2: WideString;
   ClientSynced: boolean;
-  MyNewClient: TBloClientCreate;
-  MyNewClientGuid: TBloGuid;
   CachedPracticeDetail: TBloPracticeRead;
 begin
   PageControl1.ActivePage := tbsClient;
@@ -512,11 +508,19 @@ begin
   // Details' is ticked
   MyClient.clFields.clContact_name := econtact.text;
   MyClient.clFields.clClient_EMail_Address := eMail.text;
-  ShowServicesAvailable := (chkOffSite.Checked = false);
 
+  // Without Data Export nothing will be displayed
   if ProductConfigService.IsExportDataEnabled then
-    ShowServicesAvailable := ShowServicesAvailable and
-                             ProductConfigService.PracticeHasVendors;
+  begin
+    // Display services, provided it has vendors
+    // Note: services are always visible - no matter what chkOffsite is
+    ShowServicesAvailable := ProductConfigService.PracticeHasVendors
+  end
+  else
+  begin
+    // BanklinkOnlineSettingsFrm will determine whether to display services or not
+    ShowServicesAvailable := true;
+  end;
 
   if EditBanklinkOnlineSettings(Self, MyClient.clFields.clWeb_Export_Format = wfWebNotes,
                                 false, ShowServicesAvailable) then
