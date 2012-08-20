@@ -1448,11 +1448,27 @@ type
     function  SaveBankAccountsDataSubscribers(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const clientId: guid; accountDataList: ArrayOfDataPlatformBankAccount): MessageResponse; stdcall;
   end;
 
-function GetIBlopiServiceFacade(UseWSDL: Boolean=System.False; Addr: string=''; HTTPRIO: THTTPRIO = nil): IBlopiServiceFacade;
+  IBlopiSecureServiceFacade = interface(IInvokable)
+  ['{958CF0CB-A3F7-EEBD-CFA2-D2296D3722CD}']
+    function  CreatePracticeUser(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const user: UserCreatePractice): MessageResponseOfguid; stdcall;
+    function  SavePracticeUser(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const user: UserUpdatePractice): MessageResponse; stdcall;
+    function  ResetPracticeUserPassword(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const userId: guid): MessageResponse; stdcall;
+    function  ChangePracticeUserPassword(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const userId: guid; const oldPassword: WideString; const newPassword: WideString
+                                         ): MessageResponse; stdcall;
 
+    function  CreateClient(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const ClientCreate: ClientCreate): MessageResponseOfguid; stdcall;
+    function  DeleteUser(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const userId: guid): MessageResponse; stdcall;
+    function  SaveClient(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const ClientUpdate: ClientUpdate): MessageResponse; stdcall;
+    function  CreateClientUser(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const clientId: guid; const user: UserCreate): MessageResponseOfguid; stdcall;
+    function  SaveClientUser(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const clientId: guid; const user: UserUpdate): MessageResponse; stdcall;
+  end;
+
+function GetIBlopiServiceFacade(UseWSDL: Boolean=System.False; Addr: string=''; HTTPRIO: THTTPRIO = nil): IBlopiServiceFacade;
+function GetIBlopiSecureServiceFacade(UseWSDL: Boolean=System.False; Addr: string=''; HTTPRIO: THTTPRIO = nil): IBlopiSecureServiceFacade;
 
 implementation
-  uses SysUtils;
+
+uses SysUtils;
 
 function GetIBlopiServiceFacade(UseWSDL: Boolean; Addr: string; HTTPRIO: THTTPRIO): IBlopiServiceFacade;
 const
@@ -1490,6 +1506,41 @@ begin
   end;
 end;
 
+function GetIBlopiSecureServiceFacade(UseWSDL: Boolean; Addr: string; HTTPRIO: THTTPRIO): IBlopiSecureServiceFacade;
+const
+  defWSDL = 'https://www.banklinkonline.com/Services/BlopiSecureServiceFacade.svc/mex?wsdl';
+  defURL  = 'https://dmzweb01/Services/BlopiSecureServiceFacade.svc';
+  defSvc  = 'BlopiSecureServiceFacade';
+  defPrt  = 'BasicHttpBinding_IBlopiSecureServiceFacade';
+var
+  RIO: THTTPRIO;
+begin
+  Result := nil;
+  if (Addr = '') then
+  begin
+    if UseWSDL then
+      Addr := defWSDL
+    else
+      Addr := defURL;
+  end;
+  if HTTPRIO = nil then
+    RIO := THTTPRIO.Create(nil)
+  else
+    RIO := HTTPRIO;
+  try
+    Result := (RIO as IBlopiSecureServiceFacade);
+    if UseWSDL then
+    begin
+      RIO.WSDLLocation := Addr;
+      RIO.Service := defSvc;
+      RIO.Port := defPrt;
+    end else
+      RIO.URL := Addr;
+  finally
+    if (Result = nil) and (HTTPRIO = nil) then
+      RIO.Free;
+  end;
+end;
 
 destructor DataPlatformSubscription.Destroy;
 var
@@ -2627,6 +2678,11 @@ initialization
   InvRegistry.RegisterInterface(TypeInfo(IBlopiServiceFacade), 'http://www.banklinkonline.com/2011/11/Blopi', 'utf-8');
   InvRegistry.RegisterDefaultSOAPAction(TypeInfo(IBlopiServiceFacade), 'http://www.banklinkonline.com/2011/11/Blopi/IBlopiServiceFacade/%operationName%');
   InvRegistry.RegisterInvokeOptions(TypeInfo(IBlopiServiceFacade), ioDocument);
+
+  InvRegistry.RegisterInterface(TypeInfo(IBlopiSecureServiceFacade), 'http://www.banklinkonline.com/2011/11/Blopi', 'utf-8');
+  InvRegistry.RegisterDefaultSOAPAction(TypeInfo(IBlopiSecureServiceFacade), 'http://www.banklinkonline.com/2011/11/Blopi/IBlopiSecureServiceFacade/%operationName%');
+  InvRegistry.RegisterInvokeOptions(TypeInfo(IBlopiSecureServiceFacade), ioDocument);
+
   RemClassRegistry.RegisterXSInfo(TypeInfo(guid), 'http://schemas.microsoft.com/2003/10/Serialization/', 'guid');
   RemClassRegistry.RegisterXSInfo(TypeInfo(ArrayOfstring), 'http://schemas.microsoft.com/2003/10/Serialization/Arrays', 'ArrayOfstring');
   RemClassRegistry.RegisterXSInfo(TypeInfo(ArrayOfguid), 'http://schemas.microsoft.com/2003/10/Serialization/Arrays', 'ArrayOfguid');
