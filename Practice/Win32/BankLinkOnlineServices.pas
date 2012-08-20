@@ -172,6 +172,7 @@ type
                           SendTimeout   : DWord ;
                           ReciveTimeout : DWord);
     function GetServiceFacade : IBlopiServiceFacade;
+    function GetSecureServiceFacade : IBlopiSecureServiceFacade;
     function GetAuthenticationServiceFacade : IP5Auth;
 
     function GetCachedPractice: TBloPracticeRead;
@@ -246,6 +247,9 @@ type
                                 aVendorGuid : TBloGuid) : Boolean;
     function GetVendorsHidingNonPractice(aAvailableServiceArray : TBloArrayOfDataPlatformSubscriber;
                                          aSubscribers : TBloArrayOfDataPlatformSubscriber) : TBloArrayOfDataPlatformSubscriber;
+
+    function CheckAuthentication(ServiceResponse: MessageResponse): Boolean;
+    function ReAuthenticateUser(out Cancelled, ConnectionError: Boolean): Boolean;
   public
     function IsExportDataEnabled : Boolean;
     function IsExportDataEnabledFoAccount(const aBankAcct : TBank_Account) : Boolean;
@@ -424,7 +428,7 @@ type
     function PracticeUserExists(const EmailAddress: String; RefreshPractice: Boolean = True): Boolean;
 
     function AuthenticateUser(const Domain, Username, Password: String; out ChangePassword, ConnectionError: Boolean): Boolean;
-
+    
     property OnLine: Boolean read FOnLine;
     property Registered: Boolean read GetRegistered;
     property ValidBConnectDetails: Boolean read GetValidBConnectDetails;
@@ -472,7 +476,8 @@ uses
   SyDefs,
   Globals,
   SOAPHTTPTrans,
-  xmldom;
+  xmldom,
+  Login32;
 
 const
   UNIT_NAME = 'BankLinkOnlineServices';
@@ -902,16 +907,35 @@ end;
 
 function TProductConfigService.CreateNewClientUser(NewUser: TBloUserCreate; ClientGUID: string): Guid;
 var
-  BlopiInterface: IBlopiServiceFacade;
+  BlopiInterface: IBlopiSecureServiceFacade;
   MsgResponseOfGuid: MessageResponseOfGuid;
+  Cancelled: Boolean;
+  ConnectionError: Boolean;
 begin
   try
-    BlopiInterface  := GetServiceFacade;
+    BlopiInterface  := GetSecureServiceFacade;
     MsgResponseOfGuid := BlopiInterface.CreateClientUser(CountryText(AdminSystem.fdFields.fdCountry),
                                                          AdminSystem.fdFields.fdBankLink_Code,
                                                          AdminSystem.fdFields.fdBankLink_Connect_Password,
                                                          ClientGUID,
                                                          NewUser);
+
+    if not CheckAuthentication(MsgResponseOfGuid) then
+    begin
+      if ReAuthenticateUser(Cancelled, ConnectionError) and not (Cancelled or ConnectionError) then
+      begin
+        MsgResponseOfGuid := BlopiInterface.CreateClientUser(CountryText(AdminSystem.fdFields.fdCountry),
+                                                   AdminSystem.fdFields.fdBankLink_Code,
+                                                   AdminSystem.fdFields.fdBankLink_Connect_Password,
+                                                   ClientGUID,
+                                                   NewUser);
+      end
+      else
+      begin
+        Exit;
+      end;
+    end;
+      
     Result := MsgResponseOfGuid.Result;
   except
     on E : Exception do
@@ -2078,6 +2102,8 @@ var
   NameList : TArrVarTypeData;
   LogXmlFile : String;
 begin
+  DebugMe := True;
+
   // Fills the passed Name List Array with all the XML Node Names and thier
   // TypeInfo that are arrays and need thier xml name spaces added
   FindXMLTypeNamesToModify(MethodName, NameList);
@@ -2124,6 +2150,15 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+
+function TProductConfigService.GetSecureServiceFacade: IBlopiSecureServiceFacade;
+var
+  HTTPRIO: THTTPRIO;
+begin
+  HTTPRIO := THTTPRIO.Create(nil);
+  HTTPRIO.OnBeforeExecute := DoBeforeExecute;
+  Result := GetIBlopiSecureServiceFacade(False, PRACINI_BankLink_Online_BLOPI_URL + '/services/blopisecureservicefacade.svc', HTTPRIO);
+end;
 
 function TProductConfigService.GetServiceAgreement : WideString;
 var
@@ -2178,7 +2213,7 @@ var
 begin
   HTTPRIO := THTTPRIO.Create(nil);
   HTTPRIO.OnBeforeExecute := DoBeforeExecute;
-  Result := GetIBlopiServiceFacade(False, PRACINI_BankLink_Online_BLOPI_URL, HTTPRIO);
+  Result := GetIBlopiServiceFacade(False, PRACINI_BankLink_Online_BLOPI_URL + '/Services/BlopiServiceFacade.svc', HTTPRIO);
 end;
 
 //------------------------------------------------------------------------------
@@ -2439,6 +2474,28 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+function TProductConfigService.ReAuthenticateUser(out Cancelled, ConnectionError: Boolean): Boolean;
+begin
+  Result := False;
+
+  if TfrmLogin.LoginOnline(Curruser.Code, CurrUser.FullName, CurrUser.Password, Cancelled, ConnectionError) then
+  begin
+    Result := True;
+  end
+  else
+  begin
+    if ConnectionError then
+    begin
+      HelpfulErrorMsg(BKPRACTICENAME + ' is unable to authenticate with ' + BANKLINK_ONLINE_NAME + '. Please contact BankLink Support for assistance.', 0);
+    end
+    else
+    if not Cancelled then
+    begin
+      HelpfulErrorMsg(BKPRACTICENAME + ' authenticate with ' + BANKLINK_ONLINE_NAME + ' failed. Please contact BankLink Support for assistance.', 0);
+    end;
+  end;
+end;
+
 function TProductConfigService.RemotableObjectToXML(
   ARemotable: TRemotable): string;
 var
@@ -2659,8 +2716,10 @@ end;
 
 function TProductConfigService.ResetPracticeUserPassword(const EmailAddress: String; UserGuid: TBloGuid): Boolean;
 var
-  BlopiInterface: IBlopiServiceFacade;
+  BlopiInterface: IBlopiSecureServiceFacade;
   MsgResponse: MessageResponse;
+  Cancelled: Boolean;
+  ConnectionError: Boolean;
 begin
   Result := False;
 
@@ -2668,7 +2727,7 @@ begin
   Progress.StatusSilent := False;
   Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Connecting', 10);
 
-  BlopiInterface := GetServiceFacade;
+  BlopiInterface := GetSecureServiceFacade;
   try
     try
       Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Resetting user password', 70);
@@ -2677,7 +2736,22 @@ begin
                                                AdminSystem.fdFields.fdBankLink_Code,
                                                AdminSystem.fdFields.fdBankLink_Connect_Password,
                                                UserGuid);
-                                                   
+
+      if not CheckAuthentication(MsgResponse) then
+      begin
+        if ReAuthenticateUser(Cancelled, ConnectionError) and not (Cancelled or ConnectionError) then
+        begin
+          MsgResponse := BlopiInterface.ResetPracticeUserPassword(CountryText(AdminSystem.fdFields.fdCountry),
+                                               AdminSystem.fdFields.fdBankLink_Code,
+                                               AdminSystem.fdFields.fdBankLink_Connect_Password,
+                                               UserGuid);
+        end
+        else
+        begin
+          Exit;
+        end;
+      end;
+    
       if not MessageResponseHasError(MsgResponse, 'reset user password on') then
       begin
         HelpfulInfoMsg(Format('The user password for %s has been successfully reset on %s.',[EMailAddress, BANKLINK_ONLINE_NAME]), 0);
@@ -3479,9 +3553,11 @@ function TProductConfigService.UpdateClientUser(const aClientId     : TBloGuid;
                                                 const aUserCode     : WideString): MessageResponse;
 var
   BloUserUpdate  : TBloUserUpdate;
-  BlopiInterface : IBlopiServiceFacade;
+  BlopiInterface : IBlopiSecureServiceFacade;
+  Cancelled: Boolean;
+  ConnectionError: Boolean;
 begin
-  BlopiInterface := GetServiceFacade;
+  BlopiInterface := GetSecureServiceFacade;
 
   BloUserUpdate := TBloUserUpdate.Create;
   try
@@ -3496,6 +3572,22 @@ begin
                                             AdminSystem.fdFields.fdBankLink_Connect_Password,
                                             aClientId,
                                             BloUserUpdate);
+
+    if not CheckAuthentication(Result) then
+    begin
+      if ReAuthenticateUser(Cancelled, ConnectionError) and not (Cancelled or ConnectionError) then
+      begin
+        Result := BlopiInterface.SaveClientUser(CountryText(AdminSystem.fdFields.fdCountry),
+                                            AdminSystem.fdFields.fdBankLink_Code,
+                                            AdminSystem.fdFields.fdBankLink_Connect_Password,
+                                            aClientId,
+                                            BloUserUpdate);
+      end
+      else
+      begin
+        Exit;
+      end;
+    end;
 
     if Result.Success then
       LogUtil.LogMsg(lmInfo, UNIT_NAME, 'Client User ' + aUserCode + ' has been successfully updated on BankLink Online.')
@@ -3630,9 +3722,11 @@ function TProductConfigService.UpdatePracticeUserPass(const aUserId      : TBloG
                                                       const aOldPassword : WideString;
                                                       const aNewPassword : WideString) : MessageResponse;
 var
-  BlopiInterface : IBlopiServiceFacade;
+  BlopiInterface : IBlopiSecureServiceFacade;
+  Cancelled: Boolean;
+  ConnectionError: Boolean;
 begin
-  BlopiInterface := GetServiceFacade;
+  BlopiInterface := GetSecureServiceFacade;
 
   Result := BlopiInterface.ChangePracticeUserPassword(CountryText(AdminSystem.fdFields.fdCountry),
                                                       AdminSystem.fdFields.fdBankLink_Code,
@@ -3640,6 +3734,23 @@ begin
                                                       aUserId,
                                                       aOldPassword,
                                                       aNewPassword);
+
+  if not CheckAuthentication(Result) then
+  begin
+    if ReAuthenticateUser(Cancelled, ConnectionError) and not (Cancelled or ConnectionError) then
+    begin
+      Result := BlopiInterface.ChangePracticeUserPassword(CountryText(AdminSystem.fdFields.fdCountry),
+                                                      AdminSystem.fdFields.fdBankLink_Code,
+                                                      AdminSystem.fdFields.fdBankLink_Connect_Password,
+                                                      aUserId,
+                                                      aOldPassword,
+                                                      aNewPassword);
+    end
+    else
+    begin
+      Exit;
+    end;
+  end;
 
   if Result.Success then
     LogUtil.LogMsg(lmInfo, UNIT_NAME, 'Practice User ' + aUserCode + ' password has been successfully changed on BankLink Online.')
@@ -3656,9 +3767,11 @@ function TProductConfigService.CreatePracticeUser(const aEmail        : WideStri
                                                   const aPassword     : WideString) : MessageResponseOfGuid;
 var
   CreateUser      : TBloUserCreatePractice;
-  BlopiInterface  : IBlopiServiceFacade;
+  BlopiInterface  : IBlopiSecureServiceFacade;
+  Cancelled: Boolean;
+  ConnectionError: Boolean;
 begin
-  BlopiInterface := GetServiceFacade;
+  BlopiInterface := GetSecureServiceFacade;
 
   CreateUser := TBloUserCreatePractice.Create;
   try
@@ -3669,10 +3782,27 @@ begin
     CreateUser.Subscription := aSubscription;
     CreateUser.Password     := aPassword;
 
+
     Result := BlopiInterface.CreatePracticeUser(CountryText(AdminSystem.fdFields.fdCountry),
                                                 AdminSystem.fdFields.fdBankLink_Code,
                                                 AdminSystem.fdFields.fdBankLink_Connect_Password,
                                                 CreateUser);
+
+
+    if not CheckAuthentication(Result) then
+    begin
+      if ReAuthenticateUser(Cancelled, ConnectionError) and not (Cancelled or ConnectionError) then
+      begin
+        Result := BlopiInterface.CreatePracticeUser(CountryText(AdminSystem.fdFields.fdCountry),
+                                                AdminSystem.fdFields.fdBankLink_Code,
+                                                AdminSystem.fdFields.fdBankLink_Connect_Password,
+                                                CreateUser);
+      end
+      else
+      begin
+        Exit;
+      end;
+    end;
 
     if Result.Success then
       LogUtil.LogMsg(lmInfo, UNIT_NAME, 'Practice User ' + aUserCode + ' has been successfully created on BankLink Online.')
@@ -3737,9 +3867,11 @@ function TProductConfigService.UpdatePracticeUser(const aUserId       : TBloGuid
                                                   const Password      : WideString) : MessageResponse;
 var
   UpdateUser     : TBloUserUpdatePractice;
-  BlopiInterface : IBlopiServiceFacade;
+  BlopiInterface : IBlopiSecureServiceFacade;
+  Cancelled: Boolean;
+  ConnectionError: Boolean;
 begin
-  BlopiInterface := GetServiceFacade;
+  BlopiInterface := GetSecureServiceFacade;
 
   UpdateUser := TBloUserUpdatePractice.Create;
   try
@@ -3754,6 +3886,21 @@ begin
                                               AdminSystem.fdFields.fdBankLink_Connect_Password,
                                               UpdateUser);
 
+    if not CheckAuthentication(Result) then
+    begin
+      if ReAuthenticateUser(Cancelled, ConnectionError) and not (Cancelled or ConnectionError) then
+      begin
+        Result := BlopiInterface.SavePracticeUser(CountryText(AdminSystem.fdFields.fdCountry),
+                                              AdminSystem.fdFields.fdBankLink_Code,
+                                              AdminSystem.fdFields.fdBankLink_Connect_Password,
+                                              UpdateUser);
+      end
+      else
+      begin
+        Exit;
+      end;
+    end;
+    
     if Result.Success then
       LogUtil.LogMsg(lmInfo, UNIT_NAME, 'Practice User ' + aUserCode + ' has been successfully updated to BankLink Online.')
     else
@@ -3768,14 +3915,32 @@ end;
 function TProductConfigService.DeleteUser(const aUserId      : TBloGuid;
                                           const aUserCode    : WideString) : MessageResponse;
 var
-  BlopiInterface : IBlopiServiceFacade;
+  BlopiInterface : IBlopiSecureServiceFacade;
+  Cancelled: Boolean;
+  ConnectionError: Boolean;
 begin
-  BlopiInterface := GetServiceFacade;
+  BlopiInterface := GetSecureServiceFacade;
 
   Result := BlopiInterface.DeleteUser(CountryText(AdminSystem.fdFields.fdCountry),
                                       AdminSystem.fdFields.fdBankLink_Code,
                                       AdminSystem.fdFields.fdBankLink_Connect_Password,
                                       aUserId);
+
+
+  if not CheckAuthentication(Result) then
+  begin
+    if ReAuthenticateUser(Cancelled, ConnectionError) and not (Cancelled or ConnectionError) then
+    begin
+      Result := BlopiInterface.DeleteUser(CountryText(AdminSystem.fdFields.fdCountry),
+                                      AdminSystem.fdFields.fdBankLink_Code,
+                                      AdminSystem.fdFields.fdBankLink_Connect_Password,
+                                      aUserId);
+    end
+    else
+    begin
+      Exit;
+    end;
+  end;
 
   if Result.Success then
     LogUtil.LogMsg(lmInfo, UNIT_NAME, 'User ' + aUserCode + ' has been successfully deleted from BankLink Online.')
@@ -3940,12 +4105,14 @@ function TProductConfigService.CreateClient(const aBillingFrequency : WideString
                                             var ClientID            : TBloGuid) : Boolean;
 var
   BloClientCreate : TBloClientCreate;
-  BlopiInterface  : IBlopiServiceFacade;
+  BlopiInterface  : IBlopiSecureServiceFacade;
   MsgResponseGuid : MessageResponseOfguid;
   UserId : TBloGuid;
   ClientCode : WideString;
   ClientIndex : Integer;
   BloClientReadDetail : TBloClientReadDetail;
+  Cancelled: Boolean;
+  ConnectionError: Boolean;
 begin
   Result := False;
 
@@ -3958,7 +4125,7 @@ begin
   Progress.StatusSilent := False;
   Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Connecting', 10);
 
-  BlopiInterface := GetServiceFacade;
+  BlopiInterface := GetSecureServiceFacade;
   try
     try
       Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Retrieving Info', 25);
@@ -3983,6 +4150,21 @@ begin
                                                          AdminSystem.fdFields.fdBankLink_Connect_Password,
                                                          BloClientCreate);
 
+          if not CheckAuthentication(MsgResponseGuid) then
+          begin
+            if ReAuthenticateUser(Cancelled, ConnectionError) and not (Cancelled or ConnectionError) then
+            begin
+              MsgResponseGuid := BlopiInterface.CreateClient(CountryText(AdminSystem.fdFields.fdCountry),
+                                                         AdminSystem.fdFields.fdBankLink_Code,
+                                                         AdminSystem.fdFields.fdBankLink_Connect_Password,
+                                                         BloClientCreate);
+            end
+            else
+            begin
+              Exit;
+            end;
+          end;
+      
           Result := not MessageResponseHasError(MsgResponseGuid, 'create client on');
 
           if Result then
@@ -4053,7 +4235,7 @@ function TProductConfigService.UpdateClient(const aExistingClient       : TBloCl
                                             aShowUpdateSuccess  : Boolean = true): Boolean;
 var
   BloClientUpdate : TBloClientUpdate;
-  BlopiInterface  : IBlopiServiceFacade;
+  BlopiInterface  : IBlopiSecureServiceFacade;
   MsgResponse     : MessageResponse;
   UserId : TBloGuid;
   ClientName, ClientCode : WideString;
@@ -4099,6 +4281,8 @@ var
 var
   PrimaryUser: TBloUserRead;
   ClientUser: TBloUserRead;
+  Cancelled: Boolean;
+  ConnectionError: Boolean;
 begin
   Result := False;
 
@@ -4112,7 +4296,7 @@ begin
   Progress.StatusSilent := False;
   Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Connecting', 10);
 
-  BlopiInterface := GetServiceFacade;
+  BlopiInterface := GetSecureServiceFacade;
   try
     try
       UserId := '';
@@ -4140,6 +4324,23 @@ begin
                                                      AdminSystem.fdFields.fdBankLink_Code,
                                                      AdminSystem.fdFields.fdBankLink_Connect_Password,
                                                      BloClientUpdate);
+
+
+            if not CheckAuthentication(MsgResponse) then
+            begin
+              if ReAuthenticateUser(Cancelled, ConnectionError) and not (Cancelled or ConnectionError) then
+              begin
+                MsgResponse := BlopiInterface.SaveClient(CountryText(AdminSystem.fdFields.fdCountry),
+                                                     AdminSystem.fdFields.fdBankLink_Code,
+                                                     AdminSystem.fdFields.fdBankLink_Connect_Password,
+                                                     BloClientUpdate);
+              end
+              else
+              begin
+                Exit;
+              end;
+            end;
+
             Result := not MessageResponseHasError(MsgResponse, 'update client on');
 
             if Result then
@@ -4362,6 +4563,22 @@ begin
                              aSubscriptions,
                              UserCode,
                              UserId);
+end;
+
+function TProductConfigService.CheckAuthentication(ServiceResponse: MessageResponse): Boolean;
+var
+  Cancelled: Boolean;
+  ConnectionError: Boolean;
+begin
+  Result := True;
+  
+  if not ServiceResponse.Success then
+  begin
+    if Length(ServiceResponse.Exceptions) > 0 then
+    begin
+      Result := CompareText(ServiceResponse.Exceptions[0].Message_, 'You are not authenticated') <> 0
+    end;
+  end;
 end;
 
 function TProductConfigService.CheckClientUser(Client: TBloClientReadDetail;
@@ -4909,7 +5126,7 @@ begin
   HTTPRIO := THTTPRIO.Create(nil);
   HTTPRIO.OnBeforeExecute := DoBeforeExecute;
   
-  Result := GetIP5Auth(False, 'https://www.banklinkonline.com/Services/P5auth.svc', HTTPRIO);
+  Result := GetIP5Auth(False, PRACINI_BankLink_Online_BLOPI_URL + '/Services/P5auth.svc', HTTPRIO);
 end;
 
 //------------------------------------------------------------------------------
