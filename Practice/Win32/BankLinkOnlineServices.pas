@@ -2538,9 +2538,9 @@ begin
       else
       if not Cancelled then
       begin
-        HelpfulErrorMsg(BKPRACTICENAME + ' authenticate with ' + BANKLINK_ONLINE_NAME + ' failed. Please contact BankLink Support for assistance.', 0);
+        HelpfulErrorMsg(BKPRACTICENAME + ' authentication with ' + BANKLINK_ONLINE_NAME + ' failed. Please contact BankLink Support for assistance.', 0);
 
-        LogUtil.LogMsg(lmError, UNIT_NAME, ' authenticate with ' + BANKLINK_ONLINE_NAME + ' failed.');
+        LogUtil.LogMsg(lmError, UNIT_NAME, ' authentication with ' + BANKLINK_ONLINE_NAME + ' failed.');
       end;
     end;
   except
