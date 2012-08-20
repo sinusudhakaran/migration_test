@@ -555,7 +555,7 @@ begin
    aUser := AdminSystem.fdSystem_User_List.FindLRN( UsersLRN)
 end;
 //------------------------------------------------------------------------------
-function CreateUser(Code : string; Name : string; Password: String; SysAccess : boolean; LRN : integer; MasterMemorise : boolean; User : pUser_Rec) : boolean;
+function CreateUser(Code : string; Name : string; UserPassword: String; SysAccess : boolean; LRN : integer; MasterMemorise : boolean; User : pUser_Rec) : boolean;
 const
    ThisMethodName = 'CreateUser';
 var
@@ -627,6 +627,7 @@ begin
           ShowPracticeLogo     := User^.usShow_Practice_Logo;
           AllowBanklinkOnline  := User^.usAllow_Banklink_Online;
           EmailAddress         := User^.usEMail_Address;
+          Password             := UserPassword;
        end;
      end;
 
