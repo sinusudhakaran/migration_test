@@ -201,6 +201,8 @@ $|  5.24 (2012 Tag) 169    Add Core Trans ID and sent to Online to Transactions
 $|  5.25            170    Added DeliverDataDirectToBLO and BLOSecureCode fields to ClientExtra, to store 
 $|                         tagging additions to the BLO settings form
 $|                         Added Core Trans ID High Integer
+$|                         Added Bank Account Core ID
+$|                         Added Bank Account Online Secure Code
 $|*)
 
 N|Client|cl|20
@@ -750,6 +752,8 @@ C|Temp Date Of Last Trx Printed|D
 C|Temp New Date Last Trx Printed|D
 C|Temp Include In Report|Y
 C|Temp Balance|$
+F|Core_Account_ID|L
+F|Secure_Online_Code|S|20
 E
 
 N|Transaction|tx|160
