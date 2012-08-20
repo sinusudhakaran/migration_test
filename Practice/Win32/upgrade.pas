@@ -1569,6 +1569,18 @@ Procedure DoUpgradeAdminToLatestVersion( var UpgradingToVersion : integer; const
     end;
   end;
 
+  procedure UpgradeAdminToVersion129;
+  var
+    UserIndex: Integer;
+  begin
+    UpgradingToVersion := 129;
+
+    for UserIndex := 0 to AdminSystem.fdSystem_User_List.ItemCount-1 do
+    begin
+      AdminSystem.fdSystem_User_List.User_At(UserIndex).usUsing_Secure_Authentication := False;
+    end;  
+  end;
+
 Const
    ThisMethodName = 'DoUpgradeAdminToLatestVersion';
 Var
@@ -1933,7 +1945,12 @@ Begin
             UpgradeAdminToVersion128;
             LogUtil.LogMsg( lmInfo, ThisMethodName, 'Upgrade completed normally' );
          end;
-
+           // BLOPI Secure - User Password upgrade to 12 characters
+         if ( fdFile_Version < 129) then begin
+            Logutil.LogMsg( lmInfo, ThisMethodName, 'Upgrading to Version 128');
+            UpgradeAdminToVersion129;
+            LogUtil.LogMsg( lmInfo, ThisMethodName, 'Upgrade completed normally' );
+         end;
 
       end;
       // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
