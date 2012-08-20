@@ -853,9 +853,11 @@ end;
 //------------------------------------------------------------------------------
 function TProductConfigService.CreateNewClient(ANewClient: TBloClientCreate): TBloGuid;
 var
-  BlopiInterface: IBlopiServiceFacade;
+  BlopiInterface: IBlopiSecureServiceFacade;
   MsgResponse: MessageResponseOfGuid;
   ShowProgress : Boolean;
+  Cancelled: Boolean;
+  ConnectionError: Boolean;
 begin
   Result := '';
 
@@ -878,11 +880,27 @@ begin
       if ShowProgress then
         Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Creating Client', 50);
 
-      BlopiInterface :=  GetServiceFacade;
+      BlopiInterface :=  GetSecureServiceFacade;
       MsgResponse := BlopiInterface.CreateClient(CountryText(AdminSystem.fdFields.fdCountry),
                                                  AdminSystem.fdFields.fdBankLink_Code,
                                                  AdminSystem.fdFields.fdBankLink_Connect_Password,
                                                  ANewClient);
+
+      if not CheckAuthentication(MsgResponse) then
+      begin
+        if ReAuthenticateUser(Cancelled, ConnectionError) and not (Cancelled or ConnectionError) then
+        begin
+          MsgResponse := BlopiInterface.CreateClient(CountryText(AdminSystem.fdFields.fdCountry),
+                                                 AdminSystem.fdFields.fdBankLink_Code,
+                                                 AdminSystem.fdFields.fdBankLink_Connect_Password,
+                                                 ANewClient);
+        end
+        else
+        begin
+          Exit;
+        end;
+      end;
+    
       if not MessageResponseHasError(MsgResponse, 'create client on') then
         Result := MsgResponse.Result;
 
@@ -3493,12 +3511,14 @@ function TProductConfigService.CreateClientUser(const aClientId     : TBloGuid;
                                                 out UserId: TBloGuid): Boolean;
 var
   BloUserCreate  : TBloUserCreate;
-  BlopiInterface : IBlopiServiceFacade;
+  BlopiInterface : IBlopiSecureServiceFacade;
   MsgResponceGuid : MessageResponseOfGuid;
+  Cancelled: Boolean;
+  ConnectionError: Boolean;
 begin
   Result := False;
   
-  BlopiInterface := GetServiceFacade;
+  BlopiInterface := GetSecureServiceFacade;
 
   BloUserCreate := TBloUserCreate.Create;
   try
@@ -3516,6 +3536,21 @@ begin
                                                 aClientId,
                                                 BloUserCreate);
 
+      if not CheckAuthentication(MsgResponceGuid) then
+      begin
+        if ReAuthenticateUser(Cancelled, ConnectionError) and not (Cancelled or ConnectionError) then
+        begin
+          MsgResponceGuid := BlopiInterface.CreateClientUser(CountryText(AdminSystem.fdFields.fdCountry),
+                                                AdminSystem.fdFields.fdBankLink_Code,
+                                                AdminSystem.fdFields.fdBankLink_Connect_Password,
+                                                aClientId,
+                                                BloUserCreate);
+        end
+        else
+        begin
+          Exit;
+        end;
+      end;
 
       if not MessageResponseHasError(MsgResponceGuid, 'create the client user on', true) then
       begin
@@ -4470,16 +4505,18 @@ end;
 function TProductConfigService.DeleteClient(const aExistingClient : TBloClientReadDetail): Boolean;
 var
   BloClientUpdate : TBloClientUpdate;
-  BlopiInterface  : IBlopiServiceFacade;
+  BlopiInterface  : IBlopiSecureServiceFacade;
   MsgResponse     : MessageResponse;
   UserId          : TBloGuid;
   PrimaryUser     : TBloUserRead;
+  Cancelled: Boolean;
+  ConnectionError: Boolean;
 begin
   Screen.Cursor := crHourGlass;
   Progress.StatusSilent := False;
   Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Connecting', 10);
 
-  BlopiInterface := GetServiceFacade;
+  BlopiInterface := GetSecureServiceFacade;
   try
     try
       Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Deleting Client User', 55);
@@ -4518,6 +4555,22 @@ begin
                                                  AdminSystem.fdFields.fdBankLink_Connect_Password,
                                                  BloClientUpdate);
 
+
+      if not CheckAuthentication(MsgResponse) then
+      begin
+        if ReAuthenticateUser(Cancelled, ConnectionError) and not (Cancelled or ConnectionError) then
+        begin
+          MsgResponse := BlopiInterface.SaveClient(CountryText(AdminSystem.fdFields.fdCountry),
+                                                 AdminSystem.fdFields.fdBankLink_Code,
+                                                 AdminSystem.fdFields.fdBankLink_Connect_Password,
+                                                 BloClientUpdate);
+        end
+        else
+        begin
+          Exit;
+        end;
+      end;
+                                                       
         Result := not MessageResponseHasError(MsgResponse, 'delete client on');
 
         if Result then
