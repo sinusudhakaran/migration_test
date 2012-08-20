@@ -521,6 +521,8 @@ begin
     FAuditNamesArray[150,201] := 'Default_Forex_Description';
     FAuditNamesArray[150,202] := 'SuperFund_Ledger_Code';
     FAuditNamesArray[150,203] := 'Audit_Record_ID';
+    FAuditNamesArray[150,204] := 'Core_Account_ID';
+    FAuditNamesArray[150,205] := 'Secure_Online_Code';
 
    FAuditTableArray[160] := 'Transaction';
     FAuditNamesArray[160,162] := 'Sequence_No';

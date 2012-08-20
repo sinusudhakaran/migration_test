@@ -9,8 +9,8 @@ Interface uses MONEYDEF, DATEDEF;
 {  -------------------------------------------------------------------  }
 
 Const
-   BK_IOLIB_Version : Integer = 658;
-   BK_IOLIB_Date    = '20/08/12';
+   BK_IOLIB_Version : Integer = 659;
+   BK_IOLIB_Date    = '21/08/12';
    BK_FILE_VERSION  = 170;  (* Current Version counter for files
                               Changes if structure or method of storing a value would cause
                               data to be represented incorrectly, or an exception to be raised *)
@@ -214,6 +214,8 @@ Const
      5.25            170    Added DeliverDataDirectToBLO and BLOSecureCode fields to ClientExtra, to store 
                             tagging additions to the BLO settings form
                             Added Core Trans ID High Integer
+                            Added Bank Account Core ID
+                            Added Bank Account Online Secure Code
    *)
    //Audit Trail - 135 Don't reuse token!!! - Record defined in SY.TXT but also used in Client File
 
@@ -832,6 +834,8 @@ Type
       baTemp_New_Date_Last_Trx_Printed   : Integer;
       baTemp_Include_In_Report           : Boolean;
       baTemp_Balance                     : Money;
+      baCore_Account_ID                  : Integer;       { Stored }
+      baSecure_Online_Code               : String[ 20 ];       { Stored }
       baEOR                              : Byte;
    end;
 
