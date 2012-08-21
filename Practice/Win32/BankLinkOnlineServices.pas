@@ -2152,8 +2152,6 @@ var
   NameList : TArrVarTypeData;
   LogXmlFile : String;
 begin
-  DebugMe := True;
-
   // Fills the passed Name List Array with all the XML Node Names and thier
   // TypeInfo that are arrays and need thier xml name spaces added
   FindXMLTypeNamesToModify(MethodName, NameList);
