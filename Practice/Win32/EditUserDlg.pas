@@ -167,6 +167,10 @@ Type
     Function IsBankLinkOnlineUser : Boolean;
     procedure SetOnlineUIMode(var aUIMode : TUI_Modes; aPractice: TBloPracticeRead);
 
+    procedure ShowGeneratedPassword;
+    procedure ShowResetPassword;
+    procedure ShowEnterPassword;
+
     property okPressed  : boolean read fokPressed  write fokPressed;
     property formLoaded : boolean read fformLoaded write fformLoaded;
     property EditChk    : boolean read fEditChk    write fEditChk;
@@ -225,7 +229,7 @@ begin
   for UserTypeIndex := ustmin to ustMax do
     cmbUserType.Items.Add(ustNames[UserTypeIndex]);
 
-  pnlEnterPassword.BringToFront;
+  ShowEnterPassword;
 End;
 
 //------------------------------------------------------------------------------
@@ -337,6 +341,33 @@ begin
   chkShowPracticeLogo.Hint := 'Display the practice logo when this user is logged in';
 
   chkCanAccessBankLinkOnline.Hint := 'Allows a Banklink User to Access Banklink Online';
+end;
+
+procedure TdlgEditUser.ShowEnterPassword;
+begin
+  pnlEnterPassword.BringToFront;
+  pnlEnterPassword.Visible := True;
+
+  pnlGeneratedPassword.Visible := False;
+  pnlResetPassword.Visible := False;
+end;
+
+procedure TdlgEditUser.ShowGeneratedPassword;
+begin
+  pnlGeneratedPassword.BringToFront;
+  pnlGeneratedPassword.Visible := True;
+
+  pnlEnterPassword.Visible := False;
+  pnlResetPassword.Visible := False;
+end;
+
+procedure TdlgEditUser.ShowResetPassword;
+begin
+  pnlResetPassword.BringToFront;
+  pnlResetPassword.Visible := True;
+
+  pnlEnterPassword.Visible := False;
+  pnlGeneratedPassword.Visible := False;
 end;
 
 //------------------------------------------------------------------------------
@@ -781,7 +812,7 @@ begin
       end
       else
       begin
-        pnlGeneratedPassword.BringToFront;
+        ShowGeneratedPassword;
       end;
     end;
 
@@ -1221,7 +1252,7 @@ begin { TdlgEditUser.Execute }
 
   if chkCanAccessBankLinkOnline.Checked then
   begin
-    pnlResetPassword.BringToFront;
+    ShowResetPassword;
     
     btnResetPassword.Enabled := AllowResetPassword;
   end;
