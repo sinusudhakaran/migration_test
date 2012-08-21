@@ -1509,7 +1509,7 @@ end;
 function GetIBlopiSecureServiceFacade(UseWSDL: Boolean; Addr: string; HTTPRIO: THTTPRIO): IBlopiSecureServiceFacade;
 const
   defWSDL = 'https://www.banklinkonline.com/Services/BlopiSecureServiceFacade.svc/mex?wsdl';
-  defURL  = 'https://dmzweb01/Services/BlopiSecureServiceFacade.svc';
+  defURL  = 'https://www.banklinkonline.com/Services/BlopiSecureServiceFacade.svc';
   defSvc  = 'BlopiSecureServiceFacade';
   defPrt  = 'BasicHttpBinding_IBlopiSecureServiceFacade';
 var
