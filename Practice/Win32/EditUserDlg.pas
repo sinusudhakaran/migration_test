@@ -1295,13 +1295,14 @@ begin { EditUser }
 
           pu.usName           := eFullName.text;
 
-          if not pu.usUsing_Secure_Authentication then
+          if pu.usUsing_Secure_Authentication then
+          begin
+            UpdateUserDataBlock(pu, ePass.Text);
+          end
+          else
           begin
             pu.usPassword:= ePass.text;
           end;
-
-          pu.usPassword       := ePass.text;
-
 
           pu.usEMail_Address  := Trim( eMail.text);
           pu.usDirect_Dial    := eDirectDial.Text;
@@ -1451,9 +1452,12 @@ begin { AddUser }
           pu.usCode           := eUserCode.text;
           pu.usName           := eFullName.text;
 
+
           if not pu.usAllow_Banklink_Online then
           begin
-            pu.usPassword:= ePass.text;
+            pu.usPassword := ePass.text;
+            
+            pu.usUsing_Mixed_Case_Password := True;
           end;
 
           pu.usEMail_Address  := Trim( eMail.text);
