@@ -2206,7 +2206,15 @@ begin
   HTTPRIO := THTTPRIO.Create(nil);
   HTTPRIO.OnBeforeExecute := DoBeforeExecute;
   HTTPRIO.OnAfterExecute := DoAfterSecureExecute;
-  Result := GetIBlopiSecureServiceFacade(False, PRACINI_BankLink_Online_BLOPI_URL + '/services/blopisecureservicefacade.svc', HTTPRIO);
+
+  if PRACINI_BankLink_Online_BLOPI_URL <> '' then
+  begin
+    Result := GetIBlopiSecureServiceFacade(False, PRACINI_BankLink_Online_BLOPI_URL + '/services/blopisecureservicefacade.svc', HTTPRIO);
+  end
+  else
+  begin
+    Result := GetIBlopiSecureServiceFacade(False, '', HTTPRIO);
+  end;
 end;
 
 function TProductConfigService.GetServiceAgreement : WideString;
@@ -2262,7 +2270,15 @@ var
 begin
   HTTPRIO := THTTPRIO.Create(nil);
   HTTPRIO.OnBeforeExecute := DoBeforeExecute;
-  Result := GetIBlopiServiceFacade(False, PRACINI_BankLink_Online_BLOPI_URL + '/Services/BlopiServiceFacade.svc', HTTPRIO);
+
+  if PRACINI_BankLink_Online_BLOPI_URL <> '' then
+  begin
+    Result := GetIBlopiServiceFacade(False, PRACINI_BankLink_Online_BLOPI_URL + '/Services/BlopiServiceFacade.svc', HTTPRIO);
+  end
+  else
+  begin
+    Result := GetIBlopiServiceFacade(False, '', HTTPRIO);
+  end;
 end;
 
 //------------------------------------------------------------------------------
@@ -5267,8 +5283,15 @@ var
 begin
   HTTPRIO := THTTPRIO.Create(nil);
   HTTPRIO.OnBeforeExecute := DoBeforeExecute;
-  
-  Result := GetIP5Auth(False, PRACINI_BankLink_Online_BLOPI_URL + '/Services/P5auth.svc', HTTPRIO);
+
+  if PRACINI_BankLink_Online_BLOPI_URL <> '' then
+  begin
+    Result := GetIP5Auth(False, PRACINI_BankLink_Online_BLOPI_URL + '/Services/P5auth.svc', HTTPRIO)
+  end
+  else
+  begin
+    Result := GetIP5Auth(False, '', HTTPRIO);
+  end;
 end;
 
 //------------------------------------------------------------------------------
