@@ -4803,8 +4803,11 @@ begin
                                             CurrPractice.Subscription,
                                             aNewPassword);
 
-          Result := not MessageResponseHasError(MsgResponce, 'update practice user on');
-
+          if Assigned(MsgResponce) then
+          begin
+            Result := not MessageResponseHasError(MsgResponce, 'update practice user on');
+          end;
+          
           if Result then
           begin
             if aChangePassword and (aOldPassword <> aNewPassword) then
@@ -4835,8 +4838,11 @@ begin
                                                 CurrPractice.Subscription,
                                                 aNewPassword);
 
-          Result := not MessageResponseHasError(MessageResponse(MsgResponceGuid), 'create practice user on');
-
+          if Assigned(MsgResponceGuid) then
+          begin
+            Result := not MessageResponseHasError(MessageResponse(MsgResponceGuid), 'create practice user on');
+          end;
+          
           if Result then
           begin
             aUserId := MsgResponceGuid.Result;
