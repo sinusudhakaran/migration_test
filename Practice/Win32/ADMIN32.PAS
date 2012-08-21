@@ -147,6 +147,11 @@ begin
     Result := DecryptUserDataBlock(User, Password) = User.usCode + AdminSystem.fdFields.fdBankLink_Connect_Password;
   end
   else
+  if User.usUsing_Mixed_Case_Password then
+  begin
+    Result := CompareStr(Password, User.usPassword) = 0;
+  end
+  else
   begin
     Result := Uppercase(Password) = User.usPassword;
   end;
