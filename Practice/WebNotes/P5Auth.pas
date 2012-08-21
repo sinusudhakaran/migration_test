@@ -95,7 +95,7 @@ implementation
 function GetIP5Auth(UseWSDL: Boolean; Addr: string; HTTPRIO: THTTPRIO): IP5Auth;
 const
   defWSDL = 'https://www.banklinkonline.com/Services/P5Auth.svc/mex?wsdl';
-  defURL  = 'https://dbserver/Services/P5auth.svc';
+  defURL  = 'https://www.banklinkonline.com/Services/P5auth.svc';
   defSvc  = 'P5Auth';
   defPrt  = 'BasicHttpBinding_IP5Auth';
 var
