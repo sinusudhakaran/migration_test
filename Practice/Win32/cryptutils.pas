@@ -25,12 +25,16 @@ type
   function DecryptPass16(BFKey: string; Encrypted: string) : Str16;
   function EncryptStr128(BFKey: string; PlainText: Str128) : Str128;
   function DecryptStr128(BFKey: string; Encrypted: Str128) : Str128;
+
+  function HashStr(Value: String; IncludeDash: boolean = true): String;
+  function RandomString(Len: Integer): String;
   
 //******************************************************************************
 implementation
 uses
    Blowunit,
-   Cryptcon;
+   Cryptcon,
+   md5unit;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 type
@@ -39,6 +43,7 @@ type
 
 const
    PadChar      = #170;
+
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 Function B2H( B : Byte ): Str2;
 Const
@@ -243,5 +248,59 @@ begin
       S := Copy( S, 0, i - 1);
    result := S;
 end;
+
+Function D2S( Digest : Pointer; IncludeDash: boolean ): String;
+Var
+   DArray : Array[ 0..15 ] of Byte;
+   i  : Byte;
+Begin
+   Result := '';
+   Move( Digest^, DArray, Sizeof( DArray ) );
+   For i := 0 to 15 do
+   Begin
+      Result := Result + B2H( DArray[i] );
+      If IncludeDash and (i < 15) then
+        Result := Result + '-';
+   end;
+   D2S := Result;
+end;
+
+function HashStr(Value: String; IncludeDash: boolean = true): String;
+var
+   md5hash  : TMD5;
+   passmd5,
+   outarray   : array[0..16] of char;
+begin
+   result := '';
+   outarray[16] := #0;
+   passmd5  := '';
+   //apply md5 algorithm to text
+   md5hash := TMD5.Create(nil);
+   try
+       md5hash.InputType    := SourceString;
+       md5hash.InputString  := Value;
+       md5hash.pOutputArray := @outarray;
+       md5hash.MD5_Hash;
+
+       result               := D2S(md5Hash.pOutputArray, IncludeDash);
+   finally
+       md5hash.Free;
+   end;
+end;
+
+function RandomString(Len: Integer): String;
+const
+  Seed: string = '1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  
+begin
+  Randomize;
+
+  Result := '';
+
+  repeat
+    Result := Result + Seed[Random(Length(Seed)) + 1];
+  until (Length(Result) = Len)
+end;
+
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 End.
