@@ -282,6 +282,7 @@ begin
     FAuditNamesArray[60,88] := 'Using_Mixed_Case_Password';
     FAuditNamesArray[60,89] := 'Using_Secure_Authentication';
     FAuditNamesArray[60,90] := 'User_Data_Block';
+    FAuditNamesArray[60,91] := 'Salt';
 
    FAuditTableArray[50] := 'System_Bank_Account';
     FAuditNamesArray[50,52] := 'Account_Number';

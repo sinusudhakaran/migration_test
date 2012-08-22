@@ -9,8 +9,8 @@ Interface uses MONEYDEF, DATEDEF;
 {  -------------------------------------------------------------------  }
 
 Const
-   SY_IOLIB_Version : Integer = 101;
-   SY_IOLIB_Date    = '21/08/12';
+   SY_IOLIB_Version : Integer = 103;
+   SY_IOLIB_Date    = '22/08/12';
    SY_FILE_VERSION   = 129;  (* Current Version counter for files
                               Changes if structure or method of storing a value would cause
                               data to be represented incorrectly, or an exception to be raised *)
@@ -381,6 +381,7 @@ Type
       usUsing_Mixed_Case_Password        : Boolean;       { Stored }
       usUsing_Secure_Authentication      : Boolean;       { Stored }
       usUser_Data_Block                  : Array[ 1..128 ] of Byte;       { Stored }
+      usSalt                             : String[ 64 ];       { Stored }
       usEOR                              : Byte;
    end;
 

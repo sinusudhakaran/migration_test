@@ -75,6 +75,7 @@ CONST
    tkusUsing_Mixed_Case_Password        = 88 ;
    tkusUsing_Secure_Authentication      = 89 ;
    tkusUser_Data_Block                  = 90 ;
+   tkusSalt                             = 91 ;
 
 {  -------------------------------------------------------------------  }
 
@@ -132,6 +133,7 @@ Begin
       F.WriteBooleanValue( tkusUsing_Mixed_Case_Password , usUsing_Mixed_Case_Password );
       F.WriteBooleanValue( tkusUsing_Secure_Authentication , usUsing_Secure_Authentication );
       For i := 1 to 128 do F.WriteBByteValue( tkusUser_Data_Block , i, usUser_Data_Block[ i ] );
+      F.WriteStringValue( tkusSalt , usSalt );
       F.WriteToken( tkEnd_User );
    end;
 end; { of Write_User_Rec }
@@ -190,6 +192,7 @@ Begin
                CheckBounds( I, 1, 128, 'usUser_Data_Block' );
                usUser_Data_Block[ I ] := B;
             end;
+         tkusSalt                             : usSalt := F.ReadStringValue;
          else
             Raise ETokenException.CreateFmt( SUnknownToken, [ Token ] );
       end; { of Case }
@@ -237,7 +240,7 @@ begin
   for i := Low(ChangedFields) to High(ChangedFields) do
     ChangedFields[i] := 0;
   j := 0;
-  for i := tkusCode to tkusUser_Data_Block do begin
+  for i := tkusCode to tkusSalt do begin
     ChangedFields[j] := i;
     Inc(j);
   end;
@@ -405,6 +408,11 @@ begin
                   TUser_Data_Block_Array(P2.usUser_Data_Block), 
                   TUser_Data_Block_Array(P3.usUser_Data_Block)) then begin
     ChangedFields[i] := tkusUser_Data_Block;
+    Inc(i);
+  end;
+  if (P1.usSalt <> P2.usSalt) then begin
+    P3.usSalt := P1.usSalt;
+    ChangedFields[i] := tkusSalt;
     Inc(i);
   end;
 
