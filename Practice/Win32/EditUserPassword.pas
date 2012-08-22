@@ -268,7 +268,9 @@ begin
 
     if FUser_Rec.usUsing_Secure_Authentication then
     begin
-      UpdateUserDataBlock(FUser_Rec, edtNewPassword.text);                 
+      UpdateUserDataBlock(FUser_Rec, edtNewPassword.text);
+
+      CurrUser.Password := edtNewPassword.text;                
     end
     else
     begin
