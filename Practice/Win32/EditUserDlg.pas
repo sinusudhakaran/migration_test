@@ -652,12 +652,15 @@ begin { TdlgEditUser.OKtoPost }
       end;
     ustSystem :
       begin
-        if (ePass.Text = '') then
+        if not IsBankLinkOnlineUser then
         begin
-          HelpfulWarningMsg('Users with System Menu Access MUST have a password.', 0);
-          pcMain.ActivePage := tsDetails;
-          ePass.SetFocus;
-          exit;
+          if (ePass.Text = '') then
+          begin
+            HelpfulWarningMsg('Users with System Menu Access MUST have a password.', 0);
+            pcMain.ActivePage := tsDetails;
+            ePass.SetFocus;
+            exit;
+          end;
         end;
       end;
   end;
