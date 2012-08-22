@@ -15,7 +15,8 @@ uses
   clObj32,
   baObj32,
   SysUtils,
-  P5Auth;
+  P5Auth,
+  OnlinePasswordFrm;
 
 type
   TBloStatus                = BlopiServiceFacade.Status;
@@ -2540,30 +2541,49 @@ end;
 
 //------------------------------------------------------------------------------
 function TProductConfigService.ReAuthenticateUser(out Cancelled, ConnectionError: Boolean): Boolean;
+var
+  Password: String;
 begin
   Result := False;
 
-  try
-    if TfrmLogin.LoginOnline(Curruser.Code, CurrUser.FullName, CurrUser.Password, Cancelled, ConnectionError) then
-    begin
-      Result := True;
-    end
-    else
-    begin
-      if ConnectionError then
-      begin
-        HelpfulErrorMsg(BKPRACTICENAME + ' is unable to authenticate with ' + BANKLINK_ONLINE_NAME + '. Please contact BankLink Support for assistance.', 0);
+  try     
+    Password := CurrUser.Password;
 
-        LogUtil.LogMsg(lmError, UNIT_NAME, 'An error occured while authenticating with ' + BANKLINK_ONLINE_NAME + '.');
+    repeat
+      if TfrmLogin.LoginOnline(Curruser.Code, CurrUser.FullName, Password, Cancelled, ConnectionError) then
+      begin
+        CurrUser.Password := Password;
+        
+        Result := True;
       end
       else
-      if not Cancelled then
       begin
-        HelpfulErrorMsg(BKPRACTICENAME + ' authentication with ' + BANKLINK_ONLINE_NAME + ' failed. Please contact BankLink Support for assistance.', 0);
+        if ConnectionError then
+        begin
+          HelpfulErrorMsg(BKPRACTICENAME + ' is unable to authenticate with ' + BANKLINK_ONLINE_NAME + '. Please contact BankLink Support for assistance.', 0);
 
-        LogUtil.LogMsg(lmError, UNIT_NAME, ' authentication with ' + BANKLINK_ONLINE_NAME + ' failed.');
+          LogUtil.LogMsg(lmError, UNIT_NAME, 'An error occured while authenticating with ' + BANKLINK_ONLINE_NAME + '.');
+
+          Exit;
+        end
+        else
+        if Cancelled then
+        begin
+          Exit;
+        end
+        else
+        begin
+          if not TfrmOnlinePassword.PromptUser(Password) then
+          begin
+            HelpfulErrorMsg(BKPRACTICENAME + ' authentication with ' + BANKLINK_ONLINE_NAME + ' failed. Please contact BankLink Support for assistance.', 0);
+
+            LogUtil.LogMsg(lmError, UNIT_NAME, ' authentication with ' + BANKLINK_ONLINE_NAME + ' failed.');
+
+            Exit;
+          end;
+        end;
       end;
-    end;
+    until Result;
   except
     on E:Exception do
     begin
