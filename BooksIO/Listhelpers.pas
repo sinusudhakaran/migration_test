@@ -399,8 +399,9 @@ begin
       lnode := lnode.ChildNodes.First;
       while Assigned(LNode) do begin
          new := new_Transaction_Rec;
-         value.baTransaction_List.Insert_Transaction_Rec(new);
          ReadFromNode(new, LNode);
+         
+         value.baTransaction_List.Insert_Transaction_Rec(new);
 
          LNode := LNode.NextSibling;
       end;
