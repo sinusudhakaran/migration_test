@@ -103,23 +103,32 @@ function DecryptUserDataBlock(User: pUser_Rec; const Key: String): String;
 var
   AuthenticationString: AnsiString;
   Index: Integer;
+  KeyHash: String;
 begin  
   for Index := 1 to Length(User.usUser_Data_Block) do
   begin
     AuthenticationString := AuthenticationString + AnsiChar(User.usUser_Data_Block[Index]);
   end;
 
-  Result := DecryptStr128(Key, AuthenticationString);
+  KeyHash := HashStr(Key + User.usSalt, False);
+  
+  Result := DecryptStr128(KeyHash, AuthenticationString);
 end;
 
 function UpdateUserDataBlock(User: pUser_Rec; const Key: String): Boolean;
 var
   AuthenticationString: AnsiString;
   Index: Integer;
+  KeyHash: String;
+  Salt: String;
 begin
   Result := False;
+
+  Salt := RandomString(64);
+
+  KeyHash := HashStr(Key + Salt, False);
   
-  AuthenticationString := EncryptStr128(Key, User.usCode + AdminSystem.fdFields.fdBankLink_Connect_Password);
+  AuthenticationString := EncryptStr128(KeyHash, User.usCode);
 
   if AuthenticationString <> '' then
   begin
@@ -128,6 +137,7 @@ begin
       User.usUser_Data_Block[Index] := Ord(AuthenticationString[Index]);
     end;
 
+    User.usSalt := Salt;
     User.usUsing_Secure_Authentication := True;
     
     Result := True;
@@ -144,7 +154,7 @@ function ValidateUserPassword(User: pUser_Rec; const Password: String): Boolean;
 begin
   if User.usUsing_Secure_Authentication then
   begin
-    Result := DecryptUserDataBlock(User, Password) = User.usCode + AdminSystem.fdFields.fdBankLink_Connect_Password;
+    Result := DecryptUserDataBlock(User, Password) = User.usCode;
   end
   else
   if User.usUsing_Mixed_Case_Password then
