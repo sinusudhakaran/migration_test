@@ -115,9 +115,6 @@ type
     pnlExportOptions: TPanel;
     Label6: TLabel;
     pgcVendorExportOptions: TPageControl;
-    tbsIBizz: TTabSheet;
-    lblAcclipseCode: TLabel;
-    edtAcclipseCode: TEdit;
     Label12: TLabel;
     chklistExportTo: TCheckListBox;
     
@@ -167,7 +164,6 @@ type
     FPreviousPage: integer;
     FOnlineSettingsChanged: Boolean;
     FPracticeVendorExports: TBloDataPlatformSubscription;
-    FIBizzCredentials: TBloIBizzCredentials;
     FVendorSubscriberCount: TBloArrayOfPracticeDataSubscriberCount;
 
     procedure SetUpHelp;
@@ -184,7 +180,6 @@ type
 
     function DataExportSettingsChanged: Boolean;
     function VendorExportsChanged: Boolean;
-    function IBizzCredentialsChanged: Boolean;
 
     procedure SetupDataExportSettings;
     procedure ToggleEnableChildControls(ParentControl: TWinControl; Enabled: Boolean);
@@ -272,7 +267,6 @@ var
 //------------------------------------------------------------------------------
 procedure TfrmPracticeDetails.FormCreate(Sender: TObject);
 begin
-  FIBizzCredentials := nil;
   FPracticeVendorExports := nil;
   FVendorSubscriberCount := nil;
 
@@ -338,23 +332,6 @@ begin
   for Index := 0 to pgcVendorExportOptions.PageCount - 1 do
   begin
     pgcvendorExportOptions.Pages[Index].TabVisible := False;
-  end;
-end;
-
-function TfrmPracticeDetails.IBizzCredentialsChanged: Boolean;
-begin
-  Result := False;
-  
-  if ProductConfigService.IsPracticeProductEnabled(ProductConfigService.GetExportDataId, True) and IsVendorSelected(ProductConfigService.GetIBizzExportGuid)  then
-  begin
-    if Assigned(FIBizzCredentials) then
-    begin
-      Result := CompareText(edtAcclipseCode.Text, FIBizzCredentials.ExternalSubscriberId) <> 0;
-    end
-    else
-    begin
-      Result := edtAcclipseCode.Text <> '';
-    end;
   end;
 end;
 
@@ -431,19 +408,12 @@ var
 begin
   chklistExportTo.ReleaseObjects;
   chklistExportTo.Clear;
-
-  edtAcclipseCode.Text := '';
               
   if Assigned(FPracticeVendorExports) then
   begin
     if Length(FPracticeVendorExports.Available) > 0 then
     begin
       LoadDataExports(FPracticeVendorExports);
-
-      if Assigned(FIBizzCredentials) then
-      begin
-        edtAcclipseCode.Text := FIBizzCredentials.ExternalSubscriberId;
-      end;
 
       FirstVisibleTab := GetFirstVisibleTab;
 
@@ -693,14 +663,12 @@ var
   EventHolder : TNotifyEvent;
   Index: Integer;
 begin
-  FIBizzCredentials := nil;
   FPracticeVendorExports := nil;
   FVendorSubscriberCount := nil;
 
   EventHolder := ckUseBankLinkOnline.OnClick;
   ckUseBankLinkOnline.OnClick := nil;
 
-  edtAcclipseCode.Text := '';
   chklistExportTo.Clear;
   
   try
@@ -719,11 +687,6 @@ begin
               if Length(FPracticeVendorExports.Available) > 0 then
               begin
                 FVendorSubscriberCount := ProductConfigService.GetVendorExportClientCount;
-              end;
-              
-              if ProductConfigService.VendorExportExists(FPracticeVendorExports.Current, ProductConfigService.GetIBizzExportGuid) then
-              begin
-                FIBizzCredentials := ProductConfigService.GetIBizzCredentials;
               end;
             end;
           end;
@@ -1181,53 +1144,8 @@ function TfrmPracticeDetails.VerifyForm: boolean;
     if VendorExportsChanged then
     begin
       PopulateSelectedVendorList(SelectedVendors);
-      
-      if IBizzCredentialsChanged then
-      begin
-        if ProductConfigService.SavePracticeVendorExports(SelectedVendors, True) then
-        begin
-          Result := ProductConfigService.SaveIBizzCredentials(edtAcclipseCode.Text, True);
-        end;
-      end
-      else
-      begin
-        Result := ProductConfigService.SavePracticeVendorExports(SelectedVendors, True);
-      end;
-    end
-    else
-    begin
-      Result := ProductConfigService.SaveIBizzCredentials(edtAcclipseCode.Text, True);
-    end;
-  end;
 
-  function ValidateIBizzCredentials: Boolean;
-  begin
-    Result := False;
-
-    if edtAcclipseCode.Text = '' then
-    begin
-      HelpfulWarningMsg('To set up this export you must enter the code provided to your practice by CCH.  If you do not have a code, please contact CCH.', 0);
-
-      PageControl1.ActivePage := tbsDataExport;
-          
-      pgcVendorExportOptions.ActivePage := tbsIBizz;
-
-      edtAcclipseCode.SetFocus;
-    end
-    else
-    if not IsValidVendorCode(edtAcclipseCode.Text) then
-    begin
-      HelpfulWarningMsg('The CCH code you have entered contains illegal characters. Please try again.', 0);
-
-      PageControl1.ActivePage := tbsDataExport;
-          
-      pgcVendorExportOptions.ActivePage := tbsIBizz;
-          
-      edtAcclipseCode.SetFocus;
-    end
-    else
-    begin
-      Result := True;
+      Result := ProductConfigService.SavePracticeVendorExports(SelectedVendors, True);
     end;
   end;
 
@@ -1319,17 +1237,6 @@ begin
       if not (YesNoDlg.AskYesNo('BankLink Online products and services change', aMsg, DLG_YES, 0) = DLG_YES) then
         Exit;
     end;
-    
-    if ProductConfigService.IsPracticeProductEnabled(ProductConfigService.GetExportDataId, True) then
-    begin
-      if IsVendorSelected(ProductConfigService.GetIBizzExportGuid) then
-      begin
-        if not ValidateIBizzCredentials then
-        begin
-          Exit;
-        end;
-      end;
-    end;
 
     if cbPrimaryContact.ItemIndex < 0 then
     begin
@@ -1381,7 +1288,7 @@ begin
               begin
                 //Don't exit dialog if online settings were not updated
                 if UseBankLinkOnline then
-                  Exit;              
+                  Exit;
               end;
             end
             else
@@ -1487,19 +1394,6 @@ begin
     finally
       NewProducts.Free;
     end;
-  end
-  else
-  begin
-    if ProductConfigService.IsPracticeProductEnabled(ProductConfigService.GetExportDataId, True) then
-    begin
-      if IsVendorSelected(ProductConfigService.GetIBizzExportGuid) then
-      begin
-        if not ValidateIBizzCredentials then
-        begin
-          Exit;
-        end;
-      end;
-    end;  
   end;
 
   Result := True;
@@ -1564,11 +1458,6 @@ begin
 
             if Assigned(FPracticeVendorExports) then
             begin
-              if ProductConfigService.VendorExportExists(FPracticeVendorExports.Current, ProductConfigService.GetIBizzExportGuid) then
-              begin
-                FIBizzCredentials := ProductConfigService.GetIBizzCredentials;
-              end;
-
               SetupDataExportSettings;
             end
             else
@@ -1779,7 +1668,7 @@ end;
 
 function TfrmPracticeDetails.DataExportSettingsChanged: Boolean;
 begin
-  Result := VendorExportsChanged or IBizzCredentialsChanged;
+  Result := VendorExportsChanged;
 end;
 
 //------------------------------------------------------------------------------
@@ -1807,17 +1696,9 @@ begin
     for Index := 0 to VendorSortList.Count - 1 do
     begin
       chklistExportTo.Items.AddObject(VendorSortList[Index], VendorSortList.Objects[Index]);
-      
-      if TVendorExport(VendorSortList.Objects[Index]).Id = ProductConfigService.GetIBizzExportGuid then
-      begin
-        tbsIBizz.PageIndex := Index;
-        tbsIBizz.Caption := VendorSortList[Index];
-      end
-      else
-      begin
-        AddVendorSettingsTab(VendorSortList[Index]);
-      end;
-          
+
+      AddVendorSettingsTab(VendorSortList[Index]);
+
       for IIndex := 0 to Length(FPracticeVendorExports.Current) - 1 do
       begin
         if TVendorExport(VendorSortList.Objects[Index]).Id = FPracticeVendorExports.Current[IIndex].Id then
@@ -2250,36 +2131,17 @@ begin
   begin
     VendorExportName := GetVendorExportName(VendorExportGuid, FPracticeVendorExports);
 
-    if ProductConfigService.GuidsEqual(VendorExportGuid, ProductConfigService.GetIBizzExportGuid) then
-    begin
-      if tbsIBizz.TabVisible <> Visible then
-      begin
-        if Visible then
-        begin
-          tbsIBizz.TabVisible := True;
+    VendorSettingsTab := GetVendorSettingsTab(VendorExportName);
 
-          pgcVendorExportOptions.ActivePage := tbsIBizz;
-        end
-        else
-        begin
-          tbsIBizz.TabVisible := False;
-        end;
-      end;
+    if Visible then
+    begin
+      VendorSettingsTab.TabVisible := True;
+
+      pgcVendorExportOptions.ActivePage := VendorSettingsTab;
     end
     else
     begin
-      VendorSettingsTab := GetVendorSettingsTab(VendorExportName);
-
-      if Visible then
-      begin
-        VendorSettingsTab.TabVisible := True;
-
-        pgcVendorExportOptions.ActivePage := VendorSettingsTab;
-      end
-      else
-      begin
-        VendorSettingsTab.TabVisible := False;
-      end;
+      VendorSettingsTab.TabVisible := False;
     end;
   end;
 
