@@ -270,7 +270,10 @@ begin
     begin
       UpdateUserDataBlock(FUser_Rec, edtNewPassword.text);
 
-      CurrUser.Password := edtNewPassword.text;                
+      if Assigned(CurrUser) then
+      begin
+        CurrUser.Password := edtNewPassword.text;
+      end;
     end
     else
     begin
