@@ -2189,6 +2189,7 @@ begin
                if chkMaster.Checked and Assigned(AdminSystem) then begin
                  //---EDIT MASTER MEM---
                  SaveSeq := pM.mdFields.mdSequence_No;
+                 UnlockAdmin;
                  if LoadAdminSystem(true, ThisMethodName) then begin
                    SystemMemorisation := AdminSystem.SystemMemorisationList.FindPrefix(Prefix);
                    if not Assigned(SystemMemorisation) then begin
@@ -2264,6 +2265,7 @@ begin
 
                      // Saving again in case the copy fails the duplicate test, in which case
                      // it will have been deleted, so we need to save the deletion
+                     LockAdmin('MemoriseDlg.EditMemorisation');
                      SaveAdminSystem;
                    end;
                  end else
