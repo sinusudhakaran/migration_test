@@ -80,6 +80,7 @@ type
   public
     function AddRoleName(RoleName: string) : Boolean;
     function IsPracticeAdministrator: Boolean;
+    function HasRoles(const RoleList: array of String): Boolean;
   end;
                             
   TClientBaseHelper = class helper for BlopiServiceFacade.Client
@@ -119,11 +120,15 @@ type
 
   TPracticeHelper = Class helper for PracticeRead
   private
-    function GetUserRoleGuidFromPracUserType(aUstNameIndex : integer;
-                                             aInstance: PracticeRead) : Guid;
+    function GetUserRoleGuidFromPracUserType(aUstNameIndex : integer; aInstance: PracticeRead) : Guid;
+
   public
-    function GetRoleFromPracUserType(aUstNameIndex : integer;
-                                     aInstance: PracticeRead) : Role;
+    function GetRoleFromPracUserType(aUstNameIndex : integer; aInstance: PracticeRead) : Role;
+
+    function GetUserRoleNameFromPracUserType(aUstNameIndex : integer) : String;
+
+    function CheckUserRolesEqual(PracticeRole: Integer; User: TBloUserRead): Boolean;
+
     function IsEqual(Instance: PracticeRead): Boolean;
 
     function FindUser(const EmailAddress: String): TBloUserRead;
@@ -5565,6 +5570,20 @@ begin
   end;
 end;
 
+function TPracticeHelper.GetUserRoleNameFromPracUserType(aUstNameIndex: integer): String;
+begin
+  Result := '';
+
+  case aUstNameIndex of
+                            // Accountant Practice Standard User
+    ustRestricted : Result := Roles[1].RoleName;
+                            // Accountant Practice Standard User
+    ustNormal     : Result := Roles[1].RoleName;
+                            // Accountant Practice Administrator
+    ustSystem     : Result := Roles[0].RoleName;
+  end;
+end;
+
 //------------------------------------------------------------------------------
 function TPracticeHelper.IsEqual(Instance: PracticeRead): Boolean;
 var
@@ -5623,7 +5642,28 @@ begin
   end;
 end;
 
+function TPracticeHelper.CheckUserRolesEqual(PracticeRole: Integer; User: TBloUserRead): Boolean;
+begin
+  Result := False;
+  
+  if PracticeRole = ustSystem then
+  begin
+    if User.HasRoles([GetUserRoleNameFromPracUserType(ustSystem)]) then
+    begin
+      Result := True;
+    end;
+  end
+  else
+  begin
+    if User.HasRoles([GetUserRoleNameFromPracUserType(ustNormal)]) and not User.HasRoles([GetUserRoleNameFromPracUserType(ustSystem)]) then
+    begin
+      Result := True;
+    end;  
+  end;
+end;
+
 //------------------------------------------------------------------------------
+
 function TPracticeHelper.FindUser(const EmailAddress: String): TBloUserRead;
 var
   Index: Integer;
@@ -5716,6 +5756,28 @@ begin
   HelpfulErrorMsg(MainMessage, 0, True, MessageDetails, ShowDetails);
 
   LogUtil.LogMsg(lmError, UnitName, Format('Exception running %s, Error Message : %s', [MethodName, E.Message]));
+end;
+
+function TUserDetailHelper.HasRoles(const RoleList: array of String): Boolean;
+var
+  Index: Integer;
+  IIndex: Integer;
+  RoleCount: Integer;
+begin
+  RoleCount := 0;
+  
+  for Index := 0 to Length(RoleList) - 1 do
+  begin
+    for IIndex := 0 to Length(RoleNames) - 1 do
+    begin
+      if CompareText(RoleList[Index], RoleNames[IIndex]) = 0 then
+      begin
+        Inc(RoleCount);
+      end;
+    end;
+  end;
+
+  Result := RoleCount = Length(RoleList);
 end;
 
 function TUserDetailHelper.IsPracticeAdministrator: Boolean;
