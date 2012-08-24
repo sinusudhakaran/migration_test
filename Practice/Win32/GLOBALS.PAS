@@ -257,6 +257,8 @@ CONST
 
     // BankLink Books Default URL
     BANKLINK_ONLINE_BOOKS_DEFAULT_URL = 'https://www.banklinkonline.com';
+    BANKLINK_ONLINE_BLOPI_DEFAULT_URL = 'https://www.banklinkonline.com';
+
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 var
     //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
