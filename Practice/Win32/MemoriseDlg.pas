@@ -2189,7 +2189,6 @@ begin
                if chkMaster.Checked and Assigned(AdminSystem) then begin
                  //---EDIT MASTER MEM---
                  SaveSeq := pM.mdFields.mdSequence_No;
-                 UnlockAdmin;
                  if LoadAdminSystem(true, ThisMethodName) then begin
                    SystemMemorisation := AdminSystem.SystemMemorisationList.FindPrefix(Prefix);
                    if not Assigned(SystemMemorisation) then begin
@@ -2252,6 +2251,7 @@ begin
                      SystemAuditMgr.FlagAudit(arMasterMemorisations);
                      SaveAdminSystem;
                      LoadAdminSystem(true, ThisMethodName);
+                     UnlockAdmin;              
                      Memorised_Trans.mdFields.mdSequence_No := SaveSeq;
 
                      //Have to get list again after save
