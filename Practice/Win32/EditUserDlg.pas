@@ -16,7 +16,7 @@ Interface
 Uses
   Windows,
   Messages,
-  SysUtils,
+  SysUtils,          
   Classes,
   Graphics,
   Controls,
@@ -131,6 +131,7 @@ Type
     procedure eDirectDialChange(Sender: TObject);
     procedure chkMasterClick(Sender: TObject);
     procedure CBPrintDialogOptionClick(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
   Private
     fOldValues : TUserValues;
 
@@ -145,11 +146,17 @@ Type
     FIsLoggedIn: Boolean;
     FUsingMixedCasePassword: Boolean;
 
+    FUnlinkedUsers: TBloArrayOfUserRead;
+
     // Cache this in SetOnlineUIMode, so it can be used during OKToPost without
     // retrieving Practice again.
     fDefaultAdminUserId : TBloGuid;
 
     FUsingSecureAuthentication: Boolean;
+
+    FCurrentUserTypeIndex: Integer;
+
+    procedure RefreshUnlinkedUserList;
 
     function AllowResetPassword: Boolean;
     
@@ -232,6 +239,10 @@ begin
   ShowEnterPassword;
 End;
 
+procedure TdlgEditUser.FormDestroy(Sender: TObject);
+begin
+end;
+
 //------------------------------------------------------------------------------
 procedure TdlgEditUser.SetOnlineUIMode(var aUIMode : TUI_Modes; aPractice: TBloPracticeRead);
 var
@@ -240,23 +251,20 @@ var
 
   //----------------------------
   procedure CheckForUnlinked;
-  var
-    index : integer;
   begin
-    BloArrayOfUserRead := ProductConfigService.GetUnLinkedOnlineUsers(aPractice);
+    FUnlinkedUsers := ProductConfigService.GetUnLinkedOnlineUsers(aPractice);
+    
     // Are there unlinked online users to link to?
-    if (assigned(BloArrayOfUserRead)) and
-       (high(BloArrayOfUserRead) >= 0) then
+    if (assigned(FUnlinkedUsers)) and (high(FUnlinkedUsers) >= 0) then
     begin
       aUIMode := uimOnlineUnlinked;
-      cmbLinkExistingOnlineUser.Clear;
-      for index := 0 to high(BloArrayOfUserRead) do
-      begin
-        cmbLinkExistingOnlineUser.AddItem(BloArrayOfUserRead[index].EMail, BloArrayOfUserRead[index]);
-      end;
+
+      RefreshUnlinkedUserList;
     end
     else
+    begin
       aUIMode := uimOnline;
+    end;
   end;
 
 begin
@@ -373,6 +381,8 @@ end;
 //------------------------------------------------------------------------------
 Procedure TdlgEditUser.FormShow(Sender: TObject);
 begin
+  FCurrentUserTypeIndex := cmbUserType.ItemIndex;
+  
   formLoaded := true;
 End;
 
@@ -1029,6 +1039,31 @@ begin
   pnlSelected.Visible := rbSelectedFiles.Checked;
 end;
 
+procedure TdlgEditUser.RefreshUnlinkedUserList;
+var
+  Index: Integer;
+  PracUserRole: String;
+  AddUser: Boolean;
+begin
+  cmbLinkExistingOnlineUser.Clear;
+
+  if Assigned(ProductConfigService.CachedPractice) then
+  begin
+    PracUserRole := ProductConfigService.CachedPractice.GetUserRoleNameFromPracUserType(cmbUserType.ItemIndex);
+
+    if PracUserRole <> '' then
+    begin
+      for index := 0 to high(FUnlinkedUsers) do
+      begin
+        if ProductConfigService.CachedPractice.CheckUserRolesEqual(cmbUserType.ItemIndex, FUnlinkedUsers[index]) then
+        begin
+          cmbLinkExistingOnlineUser.AddItem(FUnlinkedUsers[index].EMail, FUnlinkedUsers[index]);
+        end;
+      end;
+    end;
+  end;
+end;
+
 //------------------------------------------------------------------------------
 // cmbUserTypeSelect
 //
@@ -1036,10 +1071,21 @@ end;
 // combobox is updated and the various controls on the form are set.
 //
 procedure TdlgEditUser.cmbUserTypeSelect(Sender: TObject);
+var
+  User: TBloUserRead;
 begin
   case TComboBox(Sender).ItemIndex of
     ustRestricted :
       begin
+        if chkCanAccessbanklinkOnline.Checked then
+        begin
+          HelpfulWarningMsg('BankLink Practice cannot change the user type to Restricted for a user that has access to BankLink Online.', 0);
+
+          TComboBox(Sender).ItemIndex := FCurrentUserTypeIndex;
+
+          Exit;
+        end;
+  
         lblUserType.Caption := 'Limited functionality : Access to selected files only';
         chkMaster.Checked := False;
         chkMaster.Enabled := False;
@@ -1048,9 +1094,27 @@ begin
         rbSelectedFiles.Checked := True;
         rbSelectedFiles.Enabled := True;
         chkShowPracticeLogo.Enabled := True;
+        chkCanAccessBankLinkOnline.Enabled := False;
       end;
     ustNormal :
       begin
+        if chkCanAccessbanklinkOnline.Checked and Assigned(ProductConfigService.CachedPractice) then
+        begin
+          if radLinkExistingOnlineUser.Checked and (cmbLinkExistingOnlineUser.ItemIndex > -1) then
+          begin
+            User := TBloUserRead(cmbLinkExistingOnlineUser.Items.Objects[cmbLinkExistingOnlineUser.ItemIndex]);
+
+            if User.HasRoles([ProductConfigService.CachedPractice.GetUserRoleNameFromPracUserType(ustSystem)]) then
+            begin
+              HelpfulWarningMsg('BankLink Practice cannot link a user with a user type of Normal to an Administrator user on BankLink Online.', 0);
+
+              TComboBox(Sender).ItemIndex := FCurrentUserTypeIndex;
+
+              Exit;
+            end;
+          end;
+        end;
+    
         lblUserType.Caption := 'Standard functionality : Access to all or selected files';
         chkMaster.Enabled := True;
         rbAllFiles.Checked := True;
@@ -1059,9 +1123,27 @@ begin
         rbSelectedFiles.Enabled := True;
         chkShowPracticeLogo.Enabled := False;
         chkShowPracticeLogo.Checked := False;
+        chkCanAccessBankLinkOnline.Enabled := True;
       end;
     ustSystem :
       begin
+        if chkCanAccessbanklinkOnline.Checked and Assigned(ProductConfigService.CachedPractice) then
+        begin
+          if radLinkExistingOnlineUser.Checked and (cmbLinkExistingOnlineUser.ItemIndex > -1) then
+          begin
+            User := TBloUserRead(cmbLinkExistingOnlineUser.Items.Objects[cmbLinkExistingOnlineUser.ItemIndex]);
+            
+            if not User.HasRoles([ProductConfigService.CachedPractice.GetUserRoleNameFromPracUserType(ustSystem)]) then
+            begin
+              HelpfulWarningMsg('BankLink Practice cannot link a user with a user type of System to a Normal user on BankLink Online.', 0);
+
+              TComboBox(Sender).ItemIndex := FCurrentUserTypeIndex;
+
+              Exit;
+            end;
+          end;
+        end;
+        
         lblUserType.Caption := 'Administrator rights : Access to all files';
         chkMaster.Enabled := True;
         rbAllFiles.Checked := True;
@@ -1070,6 +1152,7 @@ begin
         rbSelectedFiles.Enabled := False;
         chkShowPracticeLogo.Enabled := False;
         chkShowPracticeLogo.Checked := False;
+        chkCanAccessBankLinkOnline.Enabled := True;
       end;
   else
     lblUserType.Caption := '';
@@ -1079,6 +1162,8 @@ begin
   begin
     btnResetPassword.Enabled := AllowResetPassword;
   end;
+
+  FCurrentUserTypeIndex := cmbUserType.ItemIndex;
 end;
 
 procedure TdlgEditUser.eDirectDialChange(Sender: TObject);
