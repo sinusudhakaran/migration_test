@@ -1100,11 +1100,11 @@ function TProductConfigService.GetBanklinkOnlineURL: String;
 begin
   if Trim(AdminSystem.fdFields.fdBankLink_Code) <> '' then
   begin
-    Result := ReplaceText(PRACINI_BankLink_Online_BLOPI_URL, 'https://www.', Format('https://%s.', [AdminSystem.fdFields.fdBankLink_Code]));
+    Result := ReplaceText(PRACINI_BankLink_Online_Services_URL, 'https://www.', Format('https://%s.', [AdminSystem.fdFields.fdBankLink_Code]));
   end
   else
   begin
-    Result := PRACINI_BankLink_Online_BLOPI_URL;
+    Result := PRACINI_BankLink_Online_Services_URL;
   end;
 end;
 
