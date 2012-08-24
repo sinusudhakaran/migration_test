@@ -185,6 +185,8 @@ type
     function GetSecureServiceFacade : IBlopiSecureServiceFacade;
     function GetAuthenticationServiceFacade : IP5Auth;
 
+    function GetBanklinkOnlineURL: String;
+
     function GetCachedPractice: TBloPracticeRead;
     function MessageResponseHasError(AMesageresponse: MessageResponse; ErrorText: string;
                                      SimpleError: boolean = false; ContextMsgInt: integer = 0;
@@ -1094,6 +1096,11 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+function TProductConfigService.GetBanklinkOnlineURL: String;
+begin
+  Result := ReplaceText(PRACINI_BankLink_Online_BLOPI_URL, 'https://www.', Format('https://%s.', [AdminSystem.fdFields.fdBankLink_Code]));
+end;
+
 function TProductConfigService.GetBGLExportGuid: TBloGuid;
 begin
   Result := VENDOR_EXPORT_GUID_BGL;
@@ -2213,14 +2220,7 @@ begin
   HTTPRIO.OnBeforeExecute := DoBeforeExecute;
   HTTPRIO.OnAfterExecute := DoAfterSecureExecute;
 
-  if PRACINI_BankLink_Online_BLOPI_URL <> '' then
-  begin
-    Result := GetIBlopiSecureServiceFacade(False, PRACINI_BankLink_Online_BLOPI_URL + '/services/blopisecureservicefacade.svc', HTTPRIO);
-  end
-  else
-  begin
-    Result := GetIBlopiSecureServiceFacade(False, '', HTTPRIO);
-  end;
+  Result := GetIBlopiSecureServiceFacade(False, GetBanklinkOnlineURL + '/services/blopisecureservicefacade.svc', HTTPRIO);
 end;
 
 function TProductConfigService.GetServiceAgreement : WideString;
@@ -2277,14 +2277,7 @@ begin
   HTTPRIO := THTTPRIO.Create(nil);
   HTTPRIO.OnBeforeExecute := DoBeforeExecute;
 
-  if PRACINI_BankLink_Online_BLOPI_URL <> '' then
-  begin
-    Result := GetIBlopiServiceFacade(False, PRACINI_BankLink_Online_BLOPI_URL + '/Services/BlopiServiceFacade.svc', HTTPRIO);
-  end
-  else
-  begin
-    Result := GetIBlopiServiceFacade(False, '', HTTPRIO);
-  end;
+  Result := GetIBlopiServiceFacade(False, GetBanklinkOnlineURL + '/Services/BlopiServiceFacade.svc', HTTPRIO);
 end;
 
 //------------------------------------------------------------------------------
@@ -5309,14 +5302,7 @@ begin
   HTTPRIO := THTTPRIO.Create(nil);
   HTTPRIO.OnBeforeExecute := DoBeforeExecute;
 
-  if PRACINI_BankLink_Online_BLOPI_URL <> '' then
-  begin
-    Result := GetIP5Auth(False, PRACINI_BankLink_Online_BLOPI_URL + '/Services/P5auth.svc', HTTPRIO)
-  end
-  else
-  begin
-    Result := GetIP5Auth(False, '', HTTPRIO);
-  end;
+  Result := GetIP5Auth(False, GetBanklinkOnlineURL + '/Services/P5auth.svc', HTTPRIO)
 end;
 
 //------------------------------------------------------------------------------
