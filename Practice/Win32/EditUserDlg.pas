@@ -802,6 +802,10 @@ begin
         DLG_YES Then
       begin
         chkCanAccessBankLinkOnline.Checked := Not chkCanAccessBankLinkOnline.Checked;
+      end
+      else
+      begin
+        ShowEnterPassword;
       end;
     end
     else If (chkCanAccessBankLinkOnline.Checked) and not (fOldValues.CanAccessBankLinkOnline) then
@@ -827,6 +831,14 @@ begin
       begin
         ShowGeneratedPassword;
       end;
+    end
+    else If (chkCanAccessBankLinkOnline.Checked) and (fOldValues.CanAccessBankLinkOnline) then
+    begin
+      ShowResetPassword;
+    end
+    else if (not chkCanAccessBankLinkOnline.Checked) and not fOldValues.CanAccessBankLinkOnline then
+    begin
+      ShowEnterPassword;
     end;
 
     Practice := ProductConfigService.GetPractice;
@@ -1414,13 +1426,17 @@ begin { EditUser }
 
           pu.usName           := eFullName.text;
 
-          if pu.usUsing_Secure_Authentication then
+          if chkCanAccessBankLinkOnline.Checked then
           begin
             UpdateUserDataBlock(pu, ePass.Text);
+
+            pu.usPassword := '';
           end
           else
           begin
             pu.usPassword:= ePass.text;
+
+            pu.usUsing_Secure_Authentication := False;
           end;
 
           pu.usEMail_Address  := Trim( eMail.text);
