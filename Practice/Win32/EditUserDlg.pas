@@ -258,8 +258,6 @@ var
     if (assigned(FUnlinkedUsers)) and (high(FUnlinkedUsers) >= 0) then
     begin
       aUIMode := uimOnlineUnlinked;
-
-      RefreshUnlinkedUserList;
     end
     else
     begin
@@ -1035,7 +1033,9 @@ end;
 
 //------------------------------------------------------------------------------
 procedure TdlgEditUser.radLinkExistingOnlineUserClick(Sender: TObject);
-begin
+begin                                       
+  RefreshUnlinkedUserList;
+  
   cmbLinkExistingOnlineUser.enabled := true;
 end;
 
@@ -1136,6 +1136,8 @@ begin
         chkShowPracticeLogo.Enabled := False;
         chkShowPracticeLogo.Checked := False;
         chkCanAccessBankLinkOnline.Enabled := True;
+
+        RefreshUnlinkedUserList;
       end;
     ustSystem :
       begin
@@ -1165,11 +1167,13 @@ begin
         chkShowPracticeLogo.Enabled := False;
         chkShowPracticeLogo.Checked := False;
         chkCanAccessBankLinkOnline.Enabled := True;
+
+        RefreshUnlinkedUserList;
       end;
   else
     lblUserType.Caption := '';
   end;
-
+  
   if FOldValues.CanAccessBankLinkOnline then
   begin
     btnResetPassword.Enabled := AllowResetPassword;
