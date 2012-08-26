@@ -250,10 +250,17 @@ end;
 
 //------------------------------------------------------------------------------
 function TEditUserPassword.UpdateSystemAdmin: Boolean;
+var
+  UserCode: String;
 begin
   Result := false;
+
+  UserCode := FUser_Rec.usCode;
+
   If LoadAdminSystem(true, UNITNAME ) Then
   begin
+    FUser_Rec := AdminSystem.fdSystem_User_List.FindCode(UserCode);
+
     if Assigned(CurrUser) then
     begin
       fUser_Rec := AdminSystem.fdSystem_User_List.FindLRN(CurrUser.LRN);
@@ -281,6 +288,7 @@ begin
     end;
 
     SaveAdminSystem;
+
     Result := true;
 
     LogUtil.LogMsg(lmInfo, UNITNAME, Format('User %s password was changed.', [fUser_Rec^.usName]));
