@@ -721,7 +721,8 @@ begin
      If (not ShiftKeyDown) and ( TryUserName <> '' ) and not AdminSystem.fdFields.fdForce_Login then begin
        User := AdminSystem.fdSystem_User_List.FindCode( TryUserName );
        If Assigned( User ) then With User^ do begin
-         If usPassword = '' then begin
+         If (usPassword = '') and not User.usUsing_Secure_Authentication then
+         begin
             //We can log in automatically
             //if they accept the EULA
             if AcceptLicense(User, Application.MainForm)
