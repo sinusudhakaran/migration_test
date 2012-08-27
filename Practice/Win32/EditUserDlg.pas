@@ -1592,7 +1592,7 @@ begin { AddUser }
           pu.usName           := eFullName.text;
 
 
-          if not pu.usAllow_Banklink_Online then
+          if not chkCanAccessBankLinkOnline.Checked then
           begin
             pu.usPassword := ePass.text;
             
