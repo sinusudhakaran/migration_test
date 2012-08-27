@@ -59,9 +59,9 @@ function SetBKAdminLocation( AdminDir : PChar) : LongBool; stdcall;
 procedure IntegrityCheck;
 procedure DumpClientAccountMapToFile;
 
-function ValidateUserPassword(User: pUser_Rec; const Password: String): Boolean;
+function ValidateUserPassword(User: TUser_Rec; const Password: String): Boolean;
 function UpdateUserDataBlock(User: pUser_Rec; const Key: String): Boolean;
-function DecryptUserDataBlock(User: pUser_Rec; const Key: String): String;
+function DecryptUserDataBlock(User: TUser_Rec; const Key: String): String;
 
 //******************************************************************************
 implementation
@@ -99,7 +99,7 @@ var
   AdminDate     : Int64 = 0;
   AdminIsLocked : Boolean = False;
 
-function DecryptUserDataBlock(User: pUser_Rec; const Key: String): String;
+function DecryptUserDataBlock(User: TUser_Rec; const Key: String): String;
 var
   AuthenticationString: AnsiString;
   Index: Integer;
@@ -150,7 +150,7 @@ begin
   end;
 end;
 
-function ValidateUserPassword(User: pUser_Rec; const Password: String): Boolean;
+function ValidateUserPassword(User: TUser_Rec; const Password: String): Boolean;
 begin
   if User.usUsing_Secure_Authentication then
   begin
