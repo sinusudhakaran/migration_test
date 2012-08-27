@@ -239,7 +239,8 @@ begin
 
     if ProductConfigService.ChangePracUserPass(fUser_Rec.usCode,
                                                Trim(OldPassword),
-                                               Trim(edtNewPassword.text)) then
+                                               Trim(edtNewPassword.text),
+                                               fUser_Rec.usEMail_Address) then
     begin
       Result := True;
     end;
