@@ -164,6 +164,7 @@ type
     mniEditBOSettings: TMenuItem;
     pnlFilterA: TPanel;
     pnlLegendA: TPanel;
+    actICAF: TAction;
     procedure FormCreate(Sender: TObject);
     procedure FormShow(Sender: TObject);
 
@@ -247,6 +248,7 @@ type
     procedure ClientLookupvtClientsGetText(Sender: TBaseVirtualTree;
       Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType;
       var CellText: WideString);
+    procedure actICAFExecute(Sender: TObject);
 
   private
 
@@ -395,6 +397,7 @@ uses
   BK5Except,
   AuthorityUtils,
   CAFfrm,
+  NewCAFfrm,
   rptCAF,
   TPAfrm,
   rptTPA,
@@ -410,7 +413,8 @@ uses
   CheckInOutFrm,
   Clipbrd,
   YesNoDlg,
-  WebUtils;
+  WebUtils,
+  SelectInstitutionfrm;
 
 {$R *.dfm}
 
@@ -560,6 +564,7 @@ begin
 
   if not ProductConfigService.OnLine then
     LogUtil.LogMsg(lmError, UnitName, 'Cannot connect to Banklink Online');
+
 end;
 
 //------------------------------------------------------------------------------
@@ -1174,8 +1179,10 @@ begin
       SelectionChanged(nil); // Force GUI update
 
       actCAF.Visible := (AdminSystem.fdFields.fdCountry = whAustralia);
+      if (AdminSystem.fdFields.fdCountry = whUK) then
+        actCAF.Caption := 'Open Customer Authority Form';
       actTPA.Visible := (AdminSystem.fdFields.fdCountry = whNewZealand);
-
+      actICAF.Visible := (AdminSystem.fdFields.fdCountry = whUK);
 
       ShowModal;
 
@@ -2477,6 +2484,11 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+procedure TfrmClientManager.actICAFExecute(Sender: TObject);
+begin
+ // TODO
+end;
+
 procedure TfrmClientManager.actImportClientsExecute(Sender: TObject);
 begin
   ProcessModalCommand(cm_mcImportClients);
@@ -2989,16 +3001,16 @@ begin
         actCheckIn.Visible    := CanSendFilesOffsite;
         if (Assigned(AdminSystem)) then begin
            actCheckOut.Visible := CanSendFilesOffsite;
-           actCAF.Visible := (AdminSystem.fdFields.fdCountry = whAustralia);
+           actCAF.Visible := (AdminSystem.fdFields.fdCountry in [whAustralia, whUK]);
+           actICAF.Visible := (AdminSystem.fdFields.fdCountry = whUK);
            actTPA.Visible := (AdminSystem.fdFields.fdCountry = whNewZealand);
         end else begin
            actCheckOut.Enabled := INI_AllowCheckOut;
            actCAF.Visible := False;
+           actICAF.Visible := False;
            actTPA.Visible := False;
         end;
         actDeleteFile.Visible := false;
-
-
         RzGroupGlobal.Visible := False;
 
         with ClientLookup do begin
@@ -3271,44 +3283,59 @@ end;
 procedure TfrmClientManager.actCAFExecute(Sender: TObject);
 var
   aForm: TfrmCAF;
+  InstitutionForm: TfrmSelectInstitution;
 begin
-  aForm := TfrmCAF.Create(Application.MainForm);
-  with aForm do
-  begin
-    try
-      if IsTaskbarHorizontal then
+  case AdminSystem.fdFields.fdCountry of
+    whAustralia:
       begin
-        Height := Application.MainForm.Monitor.WorkareaRect.Bottom - Application.MainForm.Monitor.WorkareaRect.Top - GetTaskBarHeight;
-      end
-      else
-      begin
-        Height := Application.MainForm.Monitor.WorkareaRect.Bottom - Application.MainForm.Monitor.WorkareaRect.Top - GetTaskBarWidth;
-      end;
+        aForm := TfrmCAF.Create(Application.MainForm);
+        with aForm do
+        begin
+          try
+            if IsTaskbarHorizontal then
+            begin
+              Height := Application.MainForm.Monitor.WorkareaRect.Bottom - Application.MainForm.Monitor.WorkareaRect.Top - GetTaskBarHeight;
+            end
+            else
+            begin
+              Height := Application.MainForm.Monitor.WorkareaRect.Bottom - Application.MainForm.Monitor.WorkareaRect.Top - GetTaskBarWidth;
+            end;
 
-      if Screen.DesktopWidth < 720 then
-        Width := Screen.DesktopWidth
-      else
-        Width := 720;
-      Top := 0;
-      edtPractice.Text := AdminSystem.fdFields.fdBankLink_Code;
-      edtAdvisors.Text := AdminSystem.fdFields.fdPractice_Name_for_Reports;
-      cmbMonth.ItemIndex := 0;
-      repeat
-      begin
-        ShowModal;
-        case ButtonPressed of
-          BTN_PREVIEW: DoCAFReport(aForm, rdScreen,  AFNormal);
-          BTN_FILE   : DoCAFReport(aForm, rdFile,    AFNormal);
-          BTN_PRINT  : DoCAFReport(aForm, rdPrinter, AFNormal);
-          BTN_EMAIL  : DoCAFReport(aForm, rdFile,    AFEmail, GetSelectedEmail);
-          BTN_IMPORT : DoCAFReport(aForm, rdFile,    AFImport);
-          BTN_NONE   : Break;
+            if Screen.DesktopWidth < 720 then
+              Width := Screen.DesktopWidth
+            else
+              Width := 720;
+            Top := 0;
+            edtPractice.Text := AdminSystem.fdFields.fdBankLink_Code;
+            edtAdvisors.Text := AdminSystem.fdFields.fdPractice_Name_for_Reports;
+            cmbMonth.ItemIndex := 0;
+            repeat
+            begin
+              ShowModal;
+              case ButtonPressed of
+                BTN_PREVIEW: DoCAFReport(aForm, rdScreen,  AFNormal);
+                BTN_FILE   : DoCAFReport(aForm, rdFile,    AFNormal);
+                BTN_PRINT  : DoCAFReport(aForm, rdPrinter, AFNormal);
+                BTN_EMAIL  : DoCAFReport(aForm, rdFile,    AFEmail, GetSelectedEmail);
+                BTN_IMPORT : DoCAFReport(aForm, rdFile,    AFImport);
+                BTN_NONE   : Break;
+              end;
+            end;
+            until ButtonPressed = BTN_NONE;
+          finally
+            Free;
+          end;
         end;
       end;
-      until ButtonPressed = BTN_NONE;
-    finally
-      Free;
-    end;
+    whUK:
+      begin
+        InstitutionForm := TfrmSelectInstitution.Create(Application.MainForm);
+        try
+          InstitutionForm.ShowModal;
+        finally
+          Free;
+        end;
+      end;
   end;
 end;
 

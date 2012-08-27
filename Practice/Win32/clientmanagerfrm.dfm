@@ -252,13 +252,16 @@ object frmClientManager: TfrmClientManager
           Action = actCAF
         end
         item
+          Action = actICAF
+        end
+        item
           Action = actTPA
         end
         item
           Action = ActShowInstitutions
         end>
       Opened = True
-      OpenedHeight = 216
+      OpenedHeight = 252
       Caption = 'Contact Clients'
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
@@ -797,6 +800,12 @@ object frmClientManager: TfrmClientManager
       Caption = 'Open Client Authority Form'
       ImageIndex = 17
       OnExecute = actCAFExecute
+    end
+    object actICAF: TAction
+      Category = 'Option Tasks'
+      Caption = 'Import Customer Authority Forms'
+      ImageIndex = 17
+      OnExecute = actICAFExecute
     end
     object actTPA: TAction
       Category = 'Option Tasks'
