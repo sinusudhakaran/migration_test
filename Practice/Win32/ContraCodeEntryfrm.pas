@@ -19,9 +19,13 @@ type
     procedure sbtnChartClick(Sender: TObject);
     procedure edtBankAccountCodeKeyPress(Sender: TObject; var Key: Char);
     procedure edtBankAccountCodeChange(Sender: TObject);
+    procedure edtBankAccountCodeKeyUp(Sender: TObject; var Key: Word;
+      Shift: TShiftState);
+    procedure edtBankAccountCodeExit(Sender: TObject);
   private
     FBankAccountName: String;
-    
+    FRemovingMask : boolean;
+
     procedure LookupContraCode;
     function GetContraCode: String;
     function GetBankAccountName: String;
@@ -40,7 +44,7 @@ var
 implementation
 
 uses
-  AccountLookupFrm, imagesfrm, STDHINTS, bkConst, Globals, BKDEFS;
+  AccountLookupFrm, imagesfrm, STDHINTS, bkConst, Globals, BKDEFS, bkMaskUtils;
   
 {$R *.dfm}
 
@@ -83,6 +87,8 @@ begin
                     'Enter the Contra Account Code from the Chart of Accounts which corresponds to this Bank Account';
 
   sbtnChart.Hint := ChartLookupHint;
+
+  FRemovingMask := False;
 end;
 
 function TfrmContraCodeEntry.GetBankAccountName: String;
@@ -166,6 +172,14 @@ begin
   end;
 end;
 
+procedure TfrmContraCodeEntry.edtBankAccountCodeExit(Sender: TObject);
+begin
+  if not MyClient.clChart.CodeIsThere(edtBankAccountCode.Text) then
+  begin
+    bkMaskUtils.CheckRemoveMaskChar(edtBankAccountCode, FRemovingMask);
+  end;
+end;
+
 procedure TfrmContraCodeEntry.edtBankAccountCodeKeyPress(Sender: TObject; var Key: Char);
 begin
   if ((Key='-') and (myClient.clFields.clUse_Minus_As_Lookup_Key)) then
@@ -173,6 +187,23 @@ begin
     Key := #0;
 
     LookupContraCode;
+  end;
+end;
+
+procedure TfrmContraCodeEntry.edtBankAccountCodeKeyUp(Sender: TObject;
+  var Key: Word; Shift: TShiftState);
+begin
+  if (key = VK_F2) or ((key = VK_DOWN) and (Shift = [ssAlt])) then
+  begin
+    LookupContraCode;
+  end
+  else if (Key = VK_BACK) then
+  begin
+    bkMaskUtils.CheckRemoveMaskChar(edtBankAccountCode, FRemovingMask);
+  end
+  else
+  begin
+    bkMaskUtils.CheckForMaskChar(edtBankAccountCode, FRemovingMask);
   end;
 end;
 

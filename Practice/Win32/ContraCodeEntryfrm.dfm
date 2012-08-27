@@ -78,6 +78,8 @@ object frmContraCodeEntry: TfrmContraCodeEntry
     Height = 21
     TabOrder = 0
     OnChange = edtBankAccountCodeChange
+    OnExit = edtBankAccountCodeExit
     OnKeyPress = edtBankAccountCodeKeyPress
+    OnKeyUp = edtBankAccountCodeKeyUp
   end
 end
