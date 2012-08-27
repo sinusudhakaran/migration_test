@@ -52,7 +52,7 @@ type
     FPassword: String;
 
     function Login(uName, pass: String; out Cancelled: Boolean): Boolean;
-    class procedure UpdateLocalSecurePassword(User: pUser_Rec; const Password: String);
+    class procedure UpdateLocalSecurePassword(UserCode: String; const Password: String);
     
     function ValidateUser(uName : string; pass : string) : boolean;
     procedure WMQueryEndSession(var Msg : TWMQueryEndSession); message WM_QueryEndSession;
@@ -61,7 +61,7 @@ type
     { Public declarations }
     function Execute : boolean;
 
-    class function LoginOnline(User: pUser_Rec; uName: String; var CurrentPassword: String; out Cancelled, ConnectionError: Boolean): Boolean; overload;
+    class function LoginOnline(User: TUser_Rec; uName: String; var CurrentPassword: String; out Cancelled, ConnectionError: Boolean): Boolean; overload;
     class function LoginOnline(UserCode, uName, pass: String; out Cancelled, ConnectionError: Boolean): Boolean; overload;
 
     property Password: String read FPassword;
@@ -241,12 +241,19 @@ begin
                     'Enter the password for your User Code';
 end;
 
-class procedure TfrmLogin.UpdateLocalSecurePassword(User: pUser_Rec; const Password: String);
+class procedure TfrmLogin.UpdateLocalSecurePassword(UserCode: String; const Password: String);
+var
+  User: pUser_Rec;
 begin
   if LockAdmin('LoginOnline') then
   begin
     try
-      UpdateUserDataBlock(User, Password);
+      User := AdminSystem.fdSystem_User_List.FindCode(UserCode);
+
+      if Assigned(User) then
+      begin
+        UpdateUserDataBlock(User, Password);
+      end;
 
       SaveAdminSystem;
     except
@@ -303,7 +310,7 @@ begin
   
   if User.usAllow_Banklink_Online and Adminsystem.fdFields.fdUse_BankLink_Online then
   begin
-    if LoginOnline(User, uName, FPassword, Cancelled, ConnectionError) then
+    if LoginOnline(User^, uName, FPassword, Cancelled, ConnectionError) then
     begin
       Result := True;
     end
@@ -311,13 +318,15 @@ begin
     begin
       if ConnectionError then
       begin
-        Result := ValidateUserPassword(User, FPassword);
+        Result := ValidateUserPassword(User^, FPassword);
       end;
     end;
+
+    User := AdminSystem.fdSystem_User_List.FindCode(uName);
   end
   else
   begin
-    Result := ValidateUserPassword(User, FPassword);
+    Result := ValidateUserPassword(User^, FPassword);
   end;
 end;
 
@@ -335,38 +344,58 @@ begin
 
     if Assigned(User) then
     begin
-      Result := LoginOnline(User, uName, pass, Cancelled, ConnectionError);
+      Result := LoginOnline(User^, uName, pass, Cancelled, ConnectionError);
     end;
   end;
 end;
 
-class function TfrmLogin.LoginOnline(User: pUser_Rec; uName: String; var CurrentPassword: String; out Cancelled, ConnectionError: Boolean): Boolean;
+class function TfrmLogin.LoginOnline(User: TUser_Rec; uName: String; var CurrentPassword: String; out Cancelled, ConnectionError: Boolean): Boolean;
 var
   PromptPasswordChange: Boolean;
+  FullName: String;
+  pUser: pUser_Rec;
 begin
   Result := False;
 
   Cancelled := False;
-  
+
+  FullName := User.usName;
+
   if ProductConfigService.AuthenticateUser(AdminSystem.fdFields.fdBankLink_Code, User.usEMail_Address, CurrentPassword, PromptPasswordChange, ConnectionError) then
   begin
     if PromptPasswordChange then
     begin
-      Cancelled := not ChangeUserPassword(User, CurrentPassword);
+      Cancelled := not ChangeUserPassword(User.usCode, CurrentPassword);
+
+      if not Cancelled then
+      begin
+         pUser := AdminSystem.fdSystem_User_List.FindCode(User.usCode);
+
+        if Assigned( pUser) then
+        begin
+          User := pUser^;
+        end
+        else
+        begin
+          HelpfulErrorMsg('The User ' + User.usCode + ' can no longer be found in the Admin System.', 0);
+
+          Exit;
+        end;
+      end;
     end;
 
     if not Cancelled then
     begin
       if not User.usUsing_Secure_Authentication then
       begin
-        UpdateLocalSecurePassword(User, CurrentPassword);
+        UpdateLocalSecurePassword(User.usCode, CurrentPassword);
       end
       else
       if not ValidateUserPassword(User, CurrentPassword) then
       begin
-        UpdateLocalSecurePassword(User, CurrentPassword);
+        UpdateLocalSecurePassword(User.usCode, CurrentPassword);
       end;
-      
+
       Result := True;
     end;
   end;
