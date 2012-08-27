@@ -244,8 +244,13 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmMaintainBank.RefreshExportVendors;
 begin
-  // Blopi Call
-  ProductConfigService.GetClientAccountsVendors(MyClient.clFields.clCode, '', fClientAccVendors, True);
+  if ProductConfigService.OnLine then
+  begin
+    if ProductConfigService.IsPracticeProductEnabled(ProductConfigService.GetExportDataId, True) then
+    begin
+      ProductConfigService.GetClientAccountsVendors(MyClient.clFields.clCode, '', fClientAccVendors, True);
+    end;
+  end;
 end;
 
 //------------------------------------------------------------------------------
@@ -1051,7 +1056,9 @@ begin
       begin
         UpdateRefNeeded := true;
         AccountChanged := True;
+
         RefreshExportVendors;
+
         RefreshBankAccountList;
 
         //try to download any new transactions into the client
