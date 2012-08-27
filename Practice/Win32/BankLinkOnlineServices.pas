@@ -241,6 +241,7 @@ type
                                     const aUserCode    : WideString;
                                     const aOldPassword : WideString;
                                     const aNewPassword : WideString;
+                                    const UserEmail    : WideString;
                                     const ErrorHandlerMessage: String) : Boolean;
                                     
     function CreatePracticeUser(const aEmail        : WideString;
@@ -381,13 +382,15 @@ type
     function ChangePracUserPass(const aUserCode    : WideString;
                                 const aOldPassword : WideString;
                                 const aNewPassword : WideString;
+                                const UserEmail    : WideString;
                                 aPractice          : TBloPracticeRead = nil;
                                 aLinkedUserGuid    : TBloGuid = '') : Boolean;  overload;
 
     function ChangePracUserPass(const aUserGuid    : TBloGuid;
                                 const aUserCode    : WideString;
                                 const aOldPassword : WideString;
-                                const aNewPassword : WideString): Boolean; overload;
+                                const aNewPassword : WideString;
+                                const UserEmail    : WideString): Boolean; overload;
 
     function AuthenticatePracticeUser(UserId: TBloGuid; const Password: String): TPracticeUserAuthentication;
 
@@ -705,7 +708,7 @@ begin
   Result := True;
 end;
 
-function TProductConfigService.ChangePracUserPass(const aUserGuid: TBloGuid; const aUserCode: WideString; const aOldPassword, aNewPassword: WideString): Boolean;
+function TProductConfigService.ChangePracUserPass(const aUserGuid: TBloGuid; const aUserCode: WideString; const aOldPassword, aNewPassword: WideString; const UserEmail: WideString): Boolean;
 var
   MsgResponce     : MessageResponse;
   ShowProgress    : Boolean;
@@ -728,6 +731,7 @@ begin
                                     aUserCode,
                                     aOldPassword,
                                     aNewPassword,
+                                    UserEmail,
                                     'change practice user password on');
 
     if (Result) and (ShowProgress) then
@@ -3850,12 +3854,14 @@ function TProductConfigService.UpdatePracticeUserPass(const aUserId      : TBloG
                                                       const aUserCode    : WideString;
                                                       const aOldPassword : WideString;
                                                       const aNewPassword : WideString;
+                                                      const UserEmail    : WideString;
                                                       const ErrorHandlerMessage: String) : Boolean;
 var
   BlopiInterface : IBlopiSecureServiceFacade;
   Cancelled: Boolean;
   ConnectionError: Boolean;
   Response: MessageResponse;
+  ChangePasswordTemp: Boolean;
 begin
   Result := False;
   
@@ -3872,7 +3878,7 @@ begin
   except
     on E: EAuthenticationException do
     begin
-      if ReAuthenticateUser(Cancelled, ConnectionError) and not (Cancelled or ConnectionError) then
+      if AuthenticateUser(AdminSystem.fdFields.fdBankLink_Code, UserEmail, aOldPassword, ChangePasswordTemp, ConnectionError) then
       begin
         Response := BlopiInterface.ChangePracticeUserPassword(CountryText(AdminSystem.fdFields.fdCountry),
                                                     AdminSystem.fdFields.fdBankLink_Code,
@@ -4865,12 +4871,12 @@ begin
             aUserId := GetPracUserGuid(aUserCode, CurrPractice);
 
           Result := UpdatePracticeUser(aUserId,
-                                            aFullName,
-                                            aUserCode,
-                                            RoleNames,
-                                            CurrPractice.Subscription,
-                                            aNewPassword,
-                                            'update practice user on');
+                                       aFullName,
+                                       aUserCode,
+                                       RoleNames,
+                                       CurrPractice.Subscription,
+                                       aNewPassword,
+                                       'update practice user on');
 
           if Result then
           begin
@@ -4879,10 +4885,11 @@ begin
               Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Sending Data', 88);
 
               Result := UpdatePracticeUserPass(aUserId,
-                                                    aUserCode,
-                                                    aOldPassword,
-                                                    aNewPassword,
-                                                    'update practice user password on');
+                                               aUserCode,
+                                               aOldPassword,
+                                               aNewPassword,
+                                               aEmail,
+                                               'update practice user password on');
             end;
 
             if Result then
@@ -4895,12 +4902,12 @@ begin
         else
         begin
           UserGuid := CreatePracticeUser(aEmail,
-                                          aFullName,
-                                          aUserCode,
-                                          RoleNames,
-                                          CurrPractice.Subscription,
-                                          aNewPassword,
-                                          'create practice user on');
+                                         aFullName,
+                                         aUserCode,
+                                         RoleNames,
+                                         CurrPractice.Subscription,
+                                         aNewPassword,
+                                         'create practice user on');
 
           Result := UserGuid <> '';
 
@@ -5053,6 +5060,7 @@ end;
 function TProductConfigService.ChangePracUserPass(const aUserCode    : WideString;
                                                   const aOldPassword : WideString;
                                                   const aNewPassword : WideString;
+                                                  const UserEmail    : WideString;
                                                   aPractice          : TBloPracticeRead;
                                                   aLinkedUserGuid    : TBloGuid) : Boolean;
 var
@@ -5090,6 +5098,7 @@ begin
                                           aUserCode,
                                           aOldPassword,
                                           aNewPassword,
+                                          UserEmail,
                                           'change practice user password on');
 
     if (Result) and (ShowProgress) then
