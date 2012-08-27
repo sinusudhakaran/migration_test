@@ -54,5 +54,6 @@ object frmSelectInstitution: TfrmSelectInstitution
     Height = 25
     Caption = 'Cancel'
     TabOrder = 2
+    OnClick = btnCancelClick
   end
 end

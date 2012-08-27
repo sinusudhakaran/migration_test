@@ -3333,7 +3333,7 @@ begin
         try
           InstitutionForm.ShowModal;
         finally
-          Free;
+          InstitutionForm.Free;
         end;
       end;
   end;

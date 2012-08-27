@@ -14,6 +14,7 @@ type
     btnCancel: TButton;
     procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure btnOKClick(Sender: TObject);
+    procedure btnCancelClick(Sender: TObject);
   private
     { Private declarations }
   public
@@ -28,6 +29,11 @@ implementation
 uses NewCAFfrm, Globals;
 
 {$R *.dfm}
+
+procedure TfrmSelectInstitution.btnCancelClick(Sender: TObject);
+begin
+  ModalResult := mrCancel;
+end;
 
 procedure TfrmSelectInstitution.btnOKClick(Sender: TObject);
 var
