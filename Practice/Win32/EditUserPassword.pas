@@ -43,6 +43,7 @@ type
     procedure btnOkClick(Sender: TObject);
   private
     fUser_Rec : pUser_Rec;
+    FUserCode : String;
 
     function Validate : boolean;
     function UpdateOnline : Boolean;
@@ -50,13 +51,13 @@ type
     function GetNewPassword: String;
   public
     function Initlize : Boolean; overload;
-    function Initlize(User: pUser_Rec; CurrentPassword: String) : Boolean; overload;
+    function Initlize(UserCode: String; CurrentPassword: String) : Boolean; overload;
 
     property NewPassword: String read GetNewPassword;
   end;
 
 function ChangeUserPassword : boolean; overload;
-function ChangeUserPassword(User: pUser_Rec; var CurrentPassword: String): Boolean; overload;
+function ChangeUserPassword(UserCode: String; var CurrentPassword: String): Boolean; overload;
 
 //------------------------------------------------------------------------------
 implementation
@@ -97,7 +98,7 @@ begin
   end;
 end;
 
-function ChangeUserPassword(User: pUser_Rec; var CurrentPassword: String): Boolean; overload;
+function ChangeUserPassword(UserCode: String; var CurrentPassword: String): Boolean; overload;
 var
   MyDlg : TEditUserPassword;
 begin
@@ -109,8 +110,8 @@ begin
   MyDlg := TEditUserPassword.Create(Application.mainForm);
   try
     BKHelpSetUp(MyDlg, BKH_Changing_your_password_to_match_BankLink_Online);
-    
-    if MyDlg.Initlize(User, CurrentPassword) then
+
+    if MyDlg.Initlize(UserCode, CurrentPassword) then
     begin
       if MyDlg.ShowModal = mrOk then
       begin
@@ -135,12 +136,14 @@ begin
   Result := edtNewPassword.Text;
 end;
 
-function TEditUserPassword.Initlize(User: pUser_Rec; CurrentPassword: String): Boolean;
+function TEditUserPassword.Initlize(UserCode: String; CurrentPassword: String): Boolean;
 begin
-  if Assigned(User) then
-  begin
-    fUser_Rec := User;
+  FUserCode := UserCode;
+  
+  fUser_Rec := AdminSystem.fdSystem_User_List.FindCode(UserCode);
 
+  if Assigned(fUser_Rec) then
+  begin
     SetPasswordFont(edtOldPassword);
     SetPasswordFont(edtNewPassword);
     SetPasswordFont(edtConfirmPassword);
@@ -148,12 +151,12 @@ begin
     edtOldPassword.Text := CurrentPassword;
 
     ActiveControl := edtNewPassword;
-    
+
     Result := True;
   end
   else
   begin
-    Result := False;
+    HelpfulErrorMsg('The User ' + UserCode + ' can not be found in the Admin System.', 0);
   end;
 end;
 
@@ -250,17 +253,11 @@ end;
 
 //------------------------------------------------------------------------------
 function TEditUserPassword.UpdateSystemAdmin: Boolean;
-var
-  UserCode: String;
 begin
   Result := false;
 
-  UserCode := FUser_Rec.usCode;
-
   If LoadAdminSystem(true, UNITNAME ) Then
   begin
-    FUser_Rec := AdminSystem.fdSystem_User_List.FindCode(UserCode);
-
     if Assigned(CurrUser) then
     begin
       fUser_Rec := AdminSystem.fdSystem_User_List.FindLRN(CurrUser.LRN);
@@ -271,6 +268,17 @@ begin
         HelpfulErrorMsg('The User ' + CurrUser.FullName + ' can no longer be found in the Admin System.', 0);
         exit;
       End;
+    end
+    else
+    begin
+      fUser_Rec := AdminSystem.fdSystem_User_List.FindCode(FUserCode);
+
+      If not Assigned(fUser_Rec) Then
+      begin
+        UnlockAdmin;
+        HelpfulErrorMsg('The User ' + FUserCode + ' can no longer be found in the Admin System.', 0);
+        exit;
+      End;    
     end;
 
     if FUser_Rec.usUsing_Secure_Authentication then
