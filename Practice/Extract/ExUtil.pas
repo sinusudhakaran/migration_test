@@ -162,7 +162,7 @@ Begin
             Case clAccounting_System_Used of
                suOther            : ;
                suSageLine50       : ;
-               suQuickBooks       : Result := DefaultDir + clCode + '.IIF';
+               suQuickBooks       : Result := DefaultDir + clCode + '.CSV';
                suQIF              : Result := DefaultDir + clCode + '\';
                suOFXV1            : Result := DefaultDir + clCode + bpFileExtn[bpOFXV1];
                suOFXV2            : Result := DefaultDir + clCode + bpFileExtn[bpOFXV2];
