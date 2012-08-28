@@ -264,8 +264,6 @@ Begin
 
    if not (BankAccount.IsAJournalAccount) then
    begin
-     Balance := 0;
-     
      if Balance <> UNKNOWN then
      begin
        if Balance <> 0 then
