@@ -541,7 +541,7 @@ var
   pF: pClient_File_Rec;
   AccountsMsg : TStringList;
   AlreadyAttachedList, NoBLOSecureCodeList, BLOCodeDoesNotMatchList,
-  AttachedSuccessfullyList, DirectDeliveryNotEnabled: TStringList;
+  AttachedSuccessfullyList, DirectDeliveryNotEnabled, NonOnlineSecureAccounts: TStringList;
 
   i: integer;
 begin
@@ -633,6 +633,17 @@ begin
 
           AccountOK := false;        
         end
+        else if aClient.clExtra.ceDeliverDataDirectToBLO and (AdminBankAccount^.sbAccount_Type <> sbtOnlineSecure) then
+        begin
+          if not Assigned(NonOnlineSecureAccounts) then
+          begin
+            NonOnlineSecureAccounts := TStringList.Create;
+          end;
+          
+          NonOnlineSecureAccounts.Add(AdminBankAccount^.sbAccount_Number);
+
+          AccountOK := false;          
+        end
         else if (aClient.clExtra.ceDeliverDataDirectToBLO) and (uppercase(aClient.clExtra.ceBLOSecureCode) <> uppercase(AdminBankAccount.sbSecure_Online_Code)) then
         begin
           if not Assigned(BLOCodeDoesNotMatchList) then
@@ -689,6 +700,15 @@ begin
       Msg := Msg + #10;
     end;
 
+    if Assigned(NonOnlineSecureAccounts) then
+    begin
+      Msg := Msg + 'The following bank account(s) cannot be attached to the selected ' +
+             'client file because they are not BankLink Online Secure account(s): ' + #10;
+      for i := 0 to NonOnlineSecureAccounts.Count - 1 do
+        Msg := Msg + NonOnlineSecureAccounts.Strings[i] + #10;
+      Msg := Msg + #10;
+    end;
+    
     if Assigned(AttachedSuccessfullyList) then
     begin
       Msg := Msg + 'The following bank account(s) were successfully attached:' + #10;
@@ -714,6 +734,8 @@ begin
       FreeAndNil(AttachedSuccessfullyList);
     if Assigned(DirectDeliveryNotEnabled) then
       FreeAndNil(DirectDeliveryNotEnabled);
+    if Assigned(NonOnlineSecureAccounts) then
+      FreeAndNil(NonOnlineSecureAccounts);
   end;
 
   //accounts verified, now attach them
