@@ -3095,6 +3095,9 @@ begin
 
           MyClient.clExtra.ceOnlineValuesStored := False;
         end;
+
+        MyClient.clExtra.ceDeliverDataDirectToBLO := False;
+        MyClient.clExtra.ceBLOSecureCode := '';
       end;
 
       SaveClient(OldFileName <> NewFileName);   
