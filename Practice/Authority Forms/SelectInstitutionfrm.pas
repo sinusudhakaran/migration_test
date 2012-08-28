@@ -72,7 +72,7 @@ begin
       CAFForm.lblServiceFrequency.Top := CAFForm.chkSupplyAccount.Top + 29;
       CAFForm.pnlServiceFrequency.Top := CAFForm.chkSupplyAccount.Top + 28;
       CAFForm.pnlBottom.Top := CAFForm.pnlServiceFrequency.Top + 22;
-      CAFForm.Height := CAFForm.Height - 275;
+      CAFForm.Height := CAFForm.Height - 250;
     end;
 
     CAFForm.edtPracticeName.Text := AdminSystem.fdFields.fdPractice_Name_for_Reports;
