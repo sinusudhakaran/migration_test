@@ -62,7 +62,7 @@ type
     function Execute : boolean;
 
     class function LoginOnline(User: TUser_Rec; uName: String; var CurrentPassword: String; out Cancelled, ConnectionError: Boolean): Boolean; overload;
-    class function LoginOnline(UserCode, uName, pass: String; out Cancelled, ConnectionError: Boolean): Boolean; overload;
+    class function LoginOnline(UserCode, uName: String; var CurrentPassword: String; out Cancelled, ConnectionError: Boolean): Boolean; overload;
 
     property Password: String read FPassword;
   end;
@@ -330,7 +330,7 @@ begin
   end;
 end;
 
-class function TfrmLogin.LoginOnline(UserCode, uName, pass: String; out Cancelled, ConnectionError: Boolean): Boolean;
+class function TfrmLogin.LoginOnline(UserCode, uName: String; var CurrentPassword: String; out Cancelled, ConnectionError: Boolean): Boolean;
 var
   User: pUser_Rec;
 begin
@@ -344,7 +344,7 @@ begin
 
     if Assigned(User) then
     begin
-      Result := LoginOnline(User^, uName, pass, Cancelled, ConnectionError);
+      Result := LoginOnline(User^, uName, CurrentPassword, Cancelled, ConnectionError);
     end;
   end;
 end;
