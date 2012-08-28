@@ -42,16 +42,6 @@ begin
   CAFForm := TfrmNewCAF.Create(Application.MainForm);
 
   try
-    if Screen.DesktopHeight < 635 then
-      CAFForm.Height := Screen.DesktopHeight
-    else
-      CAFForm.Height := 635;
-
-    if Screen.DesktopWidth < 560 then
-      CAFForm.Width := Screen.DesktopWidth
-    else
-      CAFForm.Width := 560;
-
     if (cmbInstitution.ItemIndex > 0) then // Anything except 'Other', in which case we expect the user to enter the bank themselves
     begin
       CAFForm.edtBank.Text := cmbInstitution.Items[cmbInstitution.ItemIndex];
@@ -74,6 +64,8 @@ begin
       CAFForm.lblAddressLine4.Visible := True;
       CAFForm.edtPostalCode.Visible := True;
       CAFForm.lblPostalCode.Visible := True;
+      CAFForm.edtBank.Text := 'HSBC';
+      CAFForm.edtBank.Enabled := False;
     end else
     begin
       CAFForm.chkSupplyAccount.Top := CAFForm.edtBank.Top + 50;
@@ -84,11 +76,19 @@ begin
     end;
 
     CAFForm.edtPracticeName.Text := AdminSystem.fdFields.fdPractice_Name_for_Reports;
-    CAFForm.edtPracticeCode.Text := AdminSystem.fdFields.fdBankLink_Code;
+    CAFForm.edtPracticeCode.Text := UpperCase(AdminSystem.fdFields.fdBankLink_Code);
 
     CAFForm.ShowModal;
+    case CAFForm.ButtonPressed of
+      BTN_PREVIEW: ; // TODO
+      BTN_FILE   : ; // TODO
+      BTN_PRINT  : ; // TODO
+      BTN_EMAIL  : ; // TODO
+      BTN_NONE   : ;
+    end;
   finally
-    Free;
+    CAFForm.Free;
+    Close;
   end;
 
 end;
