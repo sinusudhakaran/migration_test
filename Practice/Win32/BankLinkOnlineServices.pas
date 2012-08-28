@@ -122,6 +122,7 @@ type
   private
     function GetUserRoleGuidFromPracUserType(aUstNameIndex : integer; aInstance: PracticeRead) : Guid;
 
+    function GetRoleName(RoleIndex: Integer): String;
   public
     function GetRoleFromPracUserType(aUstNameIndex : integer; aInstance: PracticeRead) : Role;
 
@@ -5578,11 +5579,11 @@ begin
 
   case aUstNameIndex of
                             // Accountant Practice Standard User
-    ustRestricted : Result := Roles[1].RoleName;
+    ustRestricted : Result := GetRoleName(1);
                             // Accountant Practice Standard User
-    ustNormal     : Result := Roles[1].RoleName;
+    ustNormal     : Result := GetRoleName(1);
                             // Accountant Practice Administrator
-    ustSystem     : Result := Roles[0].RoleName;
+    ustSystem     : Result := GetRoleName(0);
   end;
 end;
 
@@ -5702,6 +5703,18 @@ begin
   end;
 
   raise Exception.Create('Practice User Role does not exist on ' + BANKLINK_ONLINE_NAME + '.');
+end;
+
+function TPracticeHelper.GetRoleName(RoleIndex: Integer): String;
+begin
+  if RoleIndex < Length(Roles) then
+  begin
+    Result := Roles[RoleIndex].RoleName;
+  end
+  else
+  begin
+    Result := '';
+  end;
 end;
 
 //------------------------------------------------------------------------------
