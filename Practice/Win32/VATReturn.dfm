@@ -719,7 +719,7 @@ object frmVAT: TfrmVAT
               Left = 8
               Top = 8
               Width = 257
-              Height = 16
+              Height = 17
               AutoSize = False
               Caption = 'COMPANY NAME'
               Font.Charset = DEFAULT_CHARSET
@@ -782,10 +782,6 @@ object frmVAT: TfrmVAT
     object tsAdjustments: TTabSheet
       Caption = 'Adjustments'
       ImageIndex = 1
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 539
       object gbDebtors: TGroupBox
         Left = 3
         Top = 0
