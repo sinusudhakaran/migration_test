@@ -1057,19 +1057,22 @@ var
   PracUserRole: String;
   AddUser: Boolean;
 begin
-  cmbLinkExistingOnlineUser.Clear;
-
-  if Assigned(ProductConfigService.CachedPractice) then
+  if ProductConfigService.OnLine then
   begin
-    PracUserRole := ProductConfigService.CachedPractice.GetUserRoleNameFromPracUserType(cmbUserType.ItemIndex);
+    cmbLinkExistingOnlineUser.Clear;
 
-    if PracUserRole <> '' then
+    if Assigned(ProductConfigService.CachedPractice) then
     begin
-      for index := 0 to high(FUnlinkedUsers) do
+      PracUserRole := ProductConfigService.CachedPractice.GetUserRoleNameFromPracUserType(cmbUserType.ItemIndex);
+
+      if PracUserRole <> '' then
       begin
-        if ProductConfigService.CachedPractice.CheckUserRolesEqual(cmbUserType.ItemIndex, FUnlinkedUsers[index]) then
+        for index := 0 to high(FUnlinkedUsers) do
         begin
-          cmbLinkExistingOnlineUser.AddItem(FUnlinkedUsers[index].EMail, FUnlinkedUsers[index]);
+          if ProductConfigService.CachedPractice.CheckUserRolesEqual(cmbUserType.ItemIndex, FUnlinkedUsers[index]) then
+          begin
+            cmbLinkExistingOnlineUser.AddItem(FUnlinkedUsers[index].EMail, FUnlinkedUsers[index]);
+          end;
         end;
       end;
     end;
