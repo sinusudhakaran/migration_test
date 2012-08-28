@@ -189,7 +189,7 @@ begin
 
   if (edtNewPassword.text <> edtConfirmPassword.text) then
   begin
-    HelpfulWarningMsg('BankLink Online users Password and Confirm Password must be the same.', 0 );
+    HelpfulWarningMsg('The passwords you have entered do not match. Please re-enter them.', 0 );
     edtNewPassword.SetFocus;
     exit;
   end; { (edtNewPassword.text <> edtConfirmPassword.text) }
