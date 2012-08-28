@@ -476,7 +476,7 @@ object frmNewCAF: TfrmNewCAF
       Top = 65
       Width = 75
       Height = 25
-      Caption = 'Cancel'
+      Caption = 'Close'
       ModalResult = 2
       TabOrder = 6
     end

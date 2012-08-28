@@ -81,26 +81,33 @@ var
 implementation
 
 uses
-  ErrorMoreFrm;
+  ErrorMoreFrm, Globals, MailFrm;
 
 {$R *.dfm}
 
 procedure TfrmNewCAF.btnEmailClick(Sender: TObject);
+var
+  EmailAddress: string;
+  AttachmentSent: Boolean;
 begin
-  if not ValidateForm then
-    ModalResult := mrNone;
+  if ValidateForm then
+  begin
+    EmailAddress := AdminSystem.fdFields.fdPractice_EMail_Address;
+    // TODO: Need to include the third party authority PDF (see SendFileTo parameters in MailFrm)
+    MailFrm.SendFileTo('Send Customer Authority Form', 'test', '', '', AttachmentSent, False);
+  end;
 end;
 
 procedure TfrmNewCAF.btnFileClick(Sender: TObject);
 begin
-  if not ValidateForm then
-    ModalResult := mrNone;
+//  if ValidateForm then
+// TODO: File
 end;
 
 procedure TfrmNewCAF.btnPrintClick(Sender: TObject);
 begin
-  if not ValidateForm then
-    ModalResult := mrNone;
+//  if ValidateForm then
+// TODO: Print
 end;
 
 procedure TfrmNewCAF.btnResetFormClick(Sender: TObject);
@@ -188,9 +195,7 @@ begin
     if (Length(edtServiceStartYear.Text) < 2) then
       DateErrorStr := DateErrorStr + 'You must enter a valid starting year';
 
-//  if True then
-
-
+  ErrorStr := '';
 
 
 //  HelpfulErrorMsg(DateErrorStr, 0);
