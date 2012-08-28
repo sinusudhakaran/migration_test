@@ -1743,7 +1743,7 @@ begin
       begin
         AClientEmail := TempClient.clFields.clStaff_Member_Name + NAME_EMAIL_SPACER + TempClient.clFields.clStaff_Member_EMail_Address;
       end
-      else if TempClient.clFields.clCustom_Contact_EMail_Address <> '' then
+      else if (TempClient.clFields.clContact_Details_To_Show = cdtCustom) and (TempClient.clFields.clCustom_Contact_EMail_Address <> '') then
       begin
         AClientEmail := TempClient.clFields.clContact_Name + NAME_EMAIL_SPACER + TempClient.clFields.clCustom_Contact_EMail_Address;
       end;
@@ -1752,7 +1752,7 @@ begin
       begin
         ClientStatus := MyClient.clExtra.ceOnlineStatus;
       end;
-    
+
       CloseAClient(TempClient);
     end else if (ASendMethod = ftmOnline) then begin
       //Need to get email for banklink online
