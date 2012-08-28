@@ -414,7 +414,8 @@ uses
   Clipbrd,
   YesNoDlg,
   WebUtils,
-  SelectInstitutionfrm;
+  SelectInstitutionfrm,
+  ImportCAFfrm;
 
 {$R *.dfm}
 
@@ -2485,8 +2486,15 @@ end;
 
 //------------------------------------------------------------------------------
 procedure TfrmClientManager.actICAFExecute(Sender: TObject);
+var
+  ImportCAFfrm: TfrmImportCAF;
 begin
- // TODO
+  ImportCAFfrm := TfrmImportCAF.Create(Application.MainForm);
+  try
+    ImportCAFfrm.ShowModal;
+  finally
+    ImportCAFfrm.Free;
+  end;
 end;
 
 procedure TfrmClientManager.actImportClientsExecute(Sender: TObject);
