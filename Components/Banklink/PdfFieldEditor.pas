@@ -30,16 +30,21 @@ type
   //----------------------------------------------------------------------------
   TPDFFormFieldItem = class(TCollectionItem)
   private
-    fIndex : integer;
+    fItemIndex : integer;
+    fParentIndex : integer;
   protected
     function GetQuickPDF : TQuickPDF;
     function GetParentWinControl : TWinControl;
-    procedure ScaleControl(const aControl : TControl);
+    function GetCheckboxTickOn : TPicture;
+    function GetCheckboxTickOff : TPicture;
+    function ScaleControl(const aControl : TControl) : double;
 
     function GetTitle : WideString;
     function GetType : integer;
+    function GetTypeName : string;
     function GetFontName : WideString;
     function GetSubCount : integer;
+    function GetTabOrder : integer;
 
     function GetValue : WideString;
     procedure SetValue(Value : WideString);
@@ -65,12 +70,17 @@ type
 
     property QuickPDF : TQuickPDF  read GetQuickPDF;
     property ParentWinControl : TWinControl read GetParentWinControl;
-    property Index    : integer    read fIndex write fIndex;
+    property CheckboxTickOn : TPicture read GetCheckboxTickOn;
+    property CheckboxTickOff : TPicture read GetCheckboxTickOff;
+    property ItemIndex : integer read fItemIndex write fItemIndex;
+    property ParentIndex : integer read fParentIndex write fParentIndex;
 
     property Title : WideString read GetTitle;
     property CompType : integer read GetType;
+    property CompTypeName : string read GetTypeName;
     property FontName : WideString read GetFontName;
     property SubCount : integer read GetSubCount;
+    property TabOrder : integer read GetTabOrder;
 
     property Value : WideString read GetValue write SetValue;
     property Bound : TPDFRect   read GetBound write SetBound;
@@ -96,16 +106,46 @@ type
   //----------------------------------------------------------------------------
   TPDFFormFieldItemCheckBox = class(TPDFFormFieldItem)
   private
-    fCheckBox : TCheckBox;
+    fImage : TImage;
+  protected
+    procedure UpdateCheck;
+
+    procedure SetChecked(aValue : Boolean);
+    function GetChecked : Boolean;
+
+    procedure ImageClick(Sender: TObject);
+  public
+    destructor Destroy; override;
+
+    procedure Draw; override;
+
+    property Checked : Boolean read GetChecked write SetChecked;
+  end;
+
+  //----------------------------------------------------------------------------
+  TPDFFormFieldItemButton = class(TPDFFormFieldItem)
+  private
+    fButton : TButton;
   public
     destructor Destroy; override;
 
     procedure Draw; override;
   end;
 
-  TPDFFormFieldItemButton = class(TPDFFormFieldItem)
+  //----------------------------------------------------------------------------
+  TPDFFormFieldItemRadioButton = class(TPDFFormFieldItem)
   private
-    fButton : TButton;
+    fRadioButton : TRadioButton;
+  public
+    destructor Destroy; override;
+
+    procedure Draw; override;
+  end;
+
+  //----------------------------------------------------------------------------
+  TPDFFormFieldItemComboBox = class(TPDFFormFieldItem)
+  private
+    fComboBox : TComboBox;
   public
     destructor Destroy; override;
 
@@ -131,15 +171,21 @@ type
     fZoom    : Integer;
     fDPI     : integer;
     fHiddenIndex : integer;
+    FCheckBoxTickPicOn : TPicture;
+    FCheckBoxTickPicOff : TPicture;
   protected
-    procedure RefreshFormField(aFieldIndex : integer);
+    procedure SetCheckBoxTickOn(const aValue: TPicture);
+    procedure SetCheckBoxTickOff(const aValue: TPicture);
+    procedure RefreshFormField(aFieldIndex: integer;
+                               aFieldSubIndex: integer);
     procedure RefreshFormFields;
 
     procedure SetQuickPDF(Value : TQuickPDF);
   public
+    destructor Destroy; override;
 
-
-    procedure Draw(Page : integer);
+    procedure Init;
+    procedure Draw(aPage : integer);
     function GetFieldByTitle(aTitle : WideString) : TPDFFormFieldItem;
 
     property QuickPDF : TQuickPDF read fQuickPDF write SetQuickPDF;
@@ -148,6 +194,8 @@ type
     property Zoom    : integer read fZoom    write fZoom;
     property DPI     : integer read fDPI     write fDPI;
     property HiddenIndex : integer read fHiddenIndex write fHiddenIndex;
+    property CheckboxTickOn: TPicture read FCheckBoxTickPicOn write SetCheckBoxTickOn;
+    property CheckboxTickOff: TPicture read FCheckBoxTickPicOff write SetCheckBoxTickOff;
   end;
 
   //----------------------------------------------------------------------------
@@ -161,19 +209,29 @@ type
     fPDFPassword : WideString;
     fActive : boolean;
     fDPI    : integer;
-
     fPDFFormFields : TPDFFormFields;
   protected
     procedure RenderPage;
     procedure SetActive(Value : Boolean);
     procedure SetPage(Value : integer);
     procedure SetZoom(Value : integer);
+    procedure SetCheckBoxTickOn(aValue: TPicture);
+    function GetCheckBoxTickOn : TPicture;
+    procedure SetCheckBoxTickOff(aValue: TPicture);
+    function GetCheckBoxTickOff : TPicture;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
     function LoadPDF(aFilePath: WideString; aPassword : WideString = '') : Boolean;
     procedure Refresh;
+
+    Procedure SaveTofFile(aFilePath : WideString);
+    Procedure Print(PrinterName : Widestring;
+                    StartPage : integer;
+                    EndPage : integer;
+                    Options : integer);
+    Procedure ResetForm;
 
     property PDFFormFields : TPDFFormFields read fPDFFormFields write fPDFFormFields;
   published
@@ -183,6 +241,9 @@ type
     property Page        : integer    read fPage        write SetPage;
     property Zoom        : integer    read fZoom        write SetZoom;
     property DPI         : integer    read fDPI;
+
+    property CheckboxTickOn  : TPicture read GetCheckBoxTickOn write SetCheckBoxTickOn;
+    property CheckboxTickOff : TPicture read GetCheckBoxTickOff write SetCheckBoxTickOff;
   end;
 
 procedure Register;
@@ -198,6 +259,19 @@ const
   FRM_FIELD_BOUND_TOP    = 1;
   FRM_FIELD_BOUND_WIDTH  = 2;
   FRM_FIELD_BOUND_HEIGHT = 3;
+
+  FRM_FIELD_TYPE_UNKNOWN     = 0;
+  FRM_FIELD_TYPE_TEXT        = 1;
+  FRM_FIELD_TYPE_BUTTON      = 2;
+  FRM_FIELD_TYPE_CHECKBOX    = 3;
+  FRM_FIELD_TYPE_RADIOBUTTON = 4;
+  FRM_FIELD_TYPE_CHOICE      = 5;
+  FRM_FIELD_TYPE_SIGNATURE   = 6;
+  FRM_FIELD_TYPE_PARENT      = 7;
+
+  FRM_FIELD_DPI = 71.96;
+
+  QUICK_PDF_LICENCE_KEY = 'j54g79ru33q4xo7gp7wt43j3y';
 
 //------------------------------------------------------------------------------
 procedure Register;
@@ -237,6 +311,24 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+function TPDFFormFieldItem.GetCheckboxTickOn : TPicture;
+begin
+  Result := Nil;
+
+  if Self.Collection is TPDFFormFields then
+    Result := TPDFFormFields(Self.Collection).CheckboxTickOn;
+end;
+
+//------------------------------------------------------------------------------
+function TPDFFormFieldItem.GetCheckboxTickOff : TPicture;
+begin
+  Result := Nil;
+
+  if Self.Collection is TPDFFormFields then
+    Result := TPDFFormFields(Self.Collection).CheckboxTickOff;
+end;
+
+//------------------------------------------------------------------------------
 function TPDFFormFieldItem.GetQuickPDF: TQuickPDF;
 begin
   Result := Nil;
@@ -252,21 +344,20 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TPDFFormFieldItem.ScaleControl(const aControl: TControl);
+function TPDFFormFieldItem.ScaleControl(const aControl: TControl) : double;
 var
-  Scale : double;
   CompTypeStr : string;
   VisibleStr : string;
   ReadOnlyStr : string;
 begin
-  Scale := TPDFFormFields(self.Collection).DPI / 72;
+  Result := TPDFFormFields(self.Collection).DPI / FRM_FIELD_DPI;
 
-  aControl.Left   := round(Bound.Left   * Scale);
-  aControl.Top    := round(Bound.Top    * Scale);
-  aControl.Width  := round(Bound.Width  * Scale);
-  aControl.Height := round(Bound.Height * Scale);
+  aControl.Left   := round(Bound.Left   * Result);
+  aControl.Top    := round(Bound.Top    * Result);
+  aControl.Width  := round(Bound.Width  * Result);
+  aControl.Height := round(Bound.Height * Result);
 
-  if (aControl.Width <= 0) or
+  {if (aControl.Width <= 0) or
      (aControl.Height <= 0) or
      (aControl.Top < 0) or
      (aControl.Left < 0) then
@@ -277,18 +368,9 @@ begin
     aControl.Height := 10;
 
     TPDFFormFields(Collection).HiddenIndex := TPDFFormFields(Collection).HiddenIndex + 1;
-  end;
+  end;}
 
-  case CompType of
-    0 : CompTypeStr := 'Unknown';
-    1 : CompTypeStr := 'Text';
-    2 : CompTypeStr := 'Pushbutton';
-    3 : CompTypeStr := 'Checkbox';
-    4 : CompTypeStr := 'Radiobutton';
-    5 : CompTypeStr := 'Choice';
-    6 : CompTypeStr := 'Signature';
-    7 : CompTypeStr := 'Parent';
-  end;
+  {CompTypeStr := GetTypeName;
 
   if Visible then
     VisibleStr := 'Yes'
@@ -300,7 +382,8 @@ begin
   else
     ReadOnlyStr := 'No';
 
-  aControl.Hint := 'Index       : ' + inttostr(Index) + #10 +
+  aControl.Hint := 'ItemIndex   : ' + inttostr(ItemIndex) + #10 +
+                   'ParentIndex : ' + inttostr(ParentIndex) + #10 +
                    'Sub Count   : ' + inttostr(SubCount) + #10 +
                    'Title       : ' + Title + #10 +
                    'Value       : ' + Value + #10 +
@@ -310,141 +393,162 @@ begin
                    'Description : ' + Description + #10 +
                    'Caption     : ' + Caption;
 
-  aControl.ShowHint := true;
+  aControl.ShowHint := true;}
 end;
 
 //------------------------------------------------------------------------------
 function TPDFFormFieldItem.GetTitle: WideString;
 begin
-  Result := QuickPDF.GetFormFieldTitle(fIndex);
+  Result := QuickPDF.GetFormFieldTitle(fItemIndex);
 end;
 
 //------------------------------------------------------------------------------
 function TPDFFormFieldItem.GetType: Integer;
 begin
-  Result := QuickPDF.GetFormFieldType(fIndex);
+  Result := QuickPDF.GetFormFieldType(fItemIndex);
+end;
+
+//------------------------------------------------------------------------------
+function TPDFFormFieldItem.GetTypeName: string;
+begin
+  case CompType of
+    FRM_FIELD_TYPE_UNKNOWN     : Result := 'Unknown';
+    FRM_FIELD_TYPE_TEXT        : Result := 'Text';
+    FRM_FIELD_TYPE_BUTTON      : Result := 'Pushbutton';
+    FRM_FIELD_TYPE_CHECKBOX    : Result := 'Checkbox';
+    FRM_FIELD_TYPE_RADIOBUTTON : Result := 'Radiobutton';
+    FRM_FIELD_TYPE_CHOICE      : Result := 'Choice';
+    FRM_FIELD_TYPE_SIGNATURE   : Result := 'Signature';
+    FRM_FIELD_TYPE_PARENT      : Result := 'Parent';
+  end;
 end;
 
 //------------------------------------------------------------------------------
 function TPDFFormFieldItem.GetFontName : WideString;
 begin
-  Result := QuickPDF.GetFormFieldFontName(fIndex);
+  Result := QuickPDF.GetFormFieldFontName(fItemIndex);
 end;
 
 //------------------------------------------------------------------------------
 function TPDFFormFieldItem.GetSubCount : integer;
 begin
-  Result := QuickPDF.GetFormFieldSubCount(fIndex);
+  Result := QuickPDF.GetFormFieldSubCount(fItemIndex);
+end;
+
+//------------------------------------------------------------------------------
+function TPDFFormFieldItem.GetTabOrder : integer;
+begin
+  Result := QuickPDF.GetFormFieldTabOrder(fItemIndex);
 end;
 
 //------------------------------------------------------------------------------
 function TPDFFormFieldItem.GetValue: WideString;
 begin
-  Result := QuickPDF.GetFormFieldValue(fIndex);
+  Result := QuickPDF.GetFormFieldValue(fItemIndex);
 end;
 
 //------------------------------------------------------------------------------
 procedure TPDFFormFieldItem.SetValue(Value: WideString);
 begin
-  QuickPDF.SetFormFieldValue(fIndex, Value);
+  QuickPDF.SetFormFieldValue(fItemIndex, Value);
 end;
 
 //------------------------------------------------------------------------------
 function TPDFFormFieldItem.GetBound: TPDFRect;
 begin
-  Result.Left   := Round(QuickPDF.GetFormFieldBound(fIndex, FRM_FIELD_BOUND_LEFT));
-  Result.Top    := Round(QuickPDF.GetFormFieldBound(fIndex, FRM_FIELD_BOUND_TOP));
-  Result.Width  := Round(QuickPDF.GetFormFieldBound(fIndex, FRM_FIELD_BOUND_WIDTH));
-  Result.Height := Round(QuickPDF.GetFormFieldBound(fIndex, FRM_FIELD_BOUND_HEIGHT));
+  Result.Left   := Round(QuickPDF.GetFormFieldBound(fItemIndex, FRM_FIELD_BOUND_LEFT));
+  Result.Top    := Round(QuickPDF.GetFormFieldBound(fItemIndex, FRM_FIELD_BOUND_TOP));
+  Result.Width  := Round(QuickPDF.GetFormFieldBound(fItemIndex, FRM_FIELD_BOUND_WIDTH));
+  Result.Height := Round(QuickPDF.GetFormFieldBound(fItemIndex, FRM_FIELD_BOUND_HEIGHT));
 end;
 
 //------------------------------------------------------------------------------
 procedure TPDFFormFieldItem.SetBound(Value: TPDFRect);
 begin
-  QuickPDF.SetFormFieldBounds(fIndex, Value.Left, Value.Top, Value.Width, Value.Height);
+  QuickPDF.SetFormFieldBounds(fItemIndex, Value.Left, Value.Top, Value.Width, Value.Height);
 end;
 
 //------------------------------------------------------------------------------
 function TPDFFormFieldItem.GetPage: integer;
 begin
-  Result := QuickPDF.GetFormFieldPage(fIndex);
+  Result := QuickPDF.GetFormFieldPage(fItemIndex);
 end;
 
 //------------------------------------------------------------------------------
 procedure TPDFFormFieldItem.SetPage(Value: integer);
 begin
-  QuickPDF.SetFormFieldPage(fIndex, Value);
+  QuickPDF.SetFormFieldPage(fItemIndex, Value);
 end;
 
 //------------------------------------------------------------------------------
 function TPDFFormFieldItem.GetTextSize : integer;
 begin
-  Result := round(QuickPDF.GetFormFieldTextSize(fIndex));
+  Result := round(QuickPDF.GetFormFieldTextSize(fItemIndex));
 end;
 
 //------------------------------------------------------------------------------
 procedure TPDFFormFieldItem.SetTextSize(Value : integer);
 begin
-  QuickPDF.SetFormFieldTextSize(fIndex, Value);
+  QuickPDF.SetFormFieldTextSize(fItemIndex, Value);
 end;
 
 //------------------------------------------------------------------------------
 function TPDFFormFieldItem.GetMaxLen : integer;
 begin
-  Result := QuickPDF.GetFormFieldMaxLen(fIndex);
+  Result := QuickPDF.GetFormFieldMaxLen(fItemIndex);
 end;
 //------------------------------------------------------------------------------
 procedure TPDFFormFieldItem.SetMaxLen(Value : integer);
 begin
-  QuickPDF.SetFormFieldMaxLen(fIndex, Value);
+  QuickPDF.SetFormFieldMaxLen(fItemIndex, Value);
 end;
 
 //------------------------------------------------------------------------------
 function TPDFFormFieldItem.GetReadOnly : boolean;
 begin
-  Result := IntToBool(QuickPDF.GetFormFieldReadOnly(fIndex));
+  Result := IntToBool(QuickPDF.GetFormFieldReadOnly(fItemIndex));
 end;
 
 //------------------------------------------------------------------------------
 procedure TPDFFormFieldItem.SetReadOnly(Value : boolean);
 begin
-  QuickPDF.SetFormFieldReadOnly(fIndex, BooltoInt(Value));
+  QuickPDF.SetFormFieldReadOnly(fItemIndex, BooltoInt(Value));
 end;
 
 //------------------------------------------------------------------------------
 function TPDFFormFieldItem.GetVisible : boolean;
 begin
-  Result := IntToBool(QuickPDF.GetFormFieldVisible(fIndex));
+  Result := IntToBool(QuickPDF.GetFormFieldVisible(fItemIndex));
 end;
 
 //------------------------------------------------------------------------------
 procedure TPDFFormFieldItem.SetVisible(Value : boolean);
 begin
-  QuickPDF.SetFormFieldVisible(fIndex, BooltoInt(Value));
+  QuickPDF.SetFormFieldVisible(fItemIndex, BooltoInt(Value));
 end;
 
 //------------------------------------------------------------------------------
 function TPDFFormFieldItem.GetDescription: WideString;
 begin
-  Result := QuickPDF.GetFormFieldDescription(fIndex);
+  Result := QuickPDF.GetFormFieldDescription(fItemIndex);
 end;
 
 //------------------------------------------------------------------------------
 procedure TPDFFormFieldItem.SetDescription(Value: WideString);
 begin
-  QuickPDF.SetFormFieldDescription(fIndex, Value);
+  QuickPDF.SetFormFieldDescription(fItemIndex, Value);
 end;
 
 //------------------------------------------------------------------------------
 function TPDFFormFieldItem.GetCaption : WideString;
 begin
-  Result := QuickPDF.GetFormFieldCaption(fIndex);
+  Result := QuickPDF.GetFormFieldCaption(fItemIndex);
 end;
 
 //------------------------------------------------------------------------------
 procedure TPDFFormFieldItem.SetCaption(Value : WideString);
 begin
-  QuickPDF.SetFormFieldCaption(fIndex, Value);
+  QuickPDF.SetFormFieldCaption(fItemIndex, Value);
 end;
 
 { TPDFFormFieldItemEdit }
@@ -457,6 +561,11 @@ end;
 
 //------------------------------------------------------------------------------
 procedure TPDFFormFieldItemEdit.Draw;
+var
+  Scale : Double;
+  DPI : double;
+  TextHeight : integer;
+  TextExtra  : integer;
 begin
   inherited;
 
@@ -464,29 +573,88 @@ begin
     fEdit := TEdit.Create(nil);
 
   fEdit.Parent := ParentWinControl;
-  ScaleControl(fEdit);
+  Scale := ScaleControl(fEdit);
   fEdit.Text := Value;
+  fEdit.visible := ((not self.ReadOnly) and (self.Visible));
+  fEdit.BorderStyle := bsNone;
+  DPI := fEdit.Font.PixelsPerInch;
+
+  fEdit.Font.Size := trunc(self.TextSize * ((FRM_FIELD_DPI/DPI)*Scale));
+
+  TextHeight := round(fEdit.Font.Size * 1.5);
+  TextExtra := fEdit.Height - TextHeight;
+
+  fEdit.Top := fEdit.Top + round(TextExtra/2);
+  fEdit.Height := TextHeight;
+  fEdit.Left := fEdit.Left + round(2*Scale);
+  fEdit.Width := fEdit.Width - round(4*Scale);
+
+  fEdit.TabOrder := TabOrder;
 end;
 
 { TPDFFormFieldItemCheckBox }
 //------------------------------------------------------------------------------
+procedure TPDFFormFieldItemCheckBox.SetChecked(aValue : Boolean);
+begin
+  if aValue then
+    Value := 'Yes'
+  else
+    Value := 'Off';
+
+  UpdateCheck;
+end;
+
+//------------------------------------------------------------------------------
+procedure TPDFFormFieldItemCheckBox.UpdateCheck;
+begin
+  if (Value = 'Yes') then
+    fImage.Picture.Assign(GetCheckboxTickOn)
+  else
+    fImage.Picture.Assign(GetCheckboxTickOff);
+end;
+
+//------------------------------------------------------------------------------
+function TPDFFormFieldItemCheckBox.GetChecked : Boolean;
+begin
+  Result := (Value = 'Yes');
+end;
+
+//------------------------------------------------------------------------------
+procedure TPDFFormFieldItemCheckBox.ImageClick(Sender: TObject);
+begin
+  Checked := Not Checked;
+end;
+
+//------------------------------------------------------------------------------
 destructor TPDFFormFieldItemCheckBox.Destroy;
 begin
-  FreeAndNil(fCheckBox);
+  FreeAndNil(fImage);
   inherited;
 end;
 
 //------------------------------------------------------------------------------
 procedure TPDFFormFieldItemCheckBox.Draw;
+var
+  Scale : double;
 begin
   inherited;
 
-  if not assigned(fCheckBox) then
-    fCheckBox := TCheckBox.Create(nil);
+  if not assigned(fImage) then
+  begin
+    fImage := TImage.Create(nil);
+    fImage.OnClick := ImageClick;
+  end;
 
-  fCheckBox.Parent  := ParentWinControl;
-  ScaleControl(fCheckBox);
-  fCheckBox.Caption := Caption;
+  fImage.Parent := ParentWinControl;
+  Scale := ScaleControl(fImage);
+
+  fImage.Top := fImage.Top + round(2*Scale);
+  fImage.Height := fImage.Height - round(4*Scale);
+  fImage.Left := fImage.Left + round(2*Scale);
+  fImage.Width := fImage.Width - round(4*Scale);
+
+  fImage.Stretch := true;
+  UpdateCheck;
 end;
 
 { TPDFFormFieldItemButton }
@@ -508,6 +676,48 @@ begin
   fButton.Parent := ParentWinControl;
   ScaleControl(fButton);
   fButton.Caption := Caption;
+end;
+
+{ TPDFFormFieldItemRadioButton }
+//------------------------------------------------------------------------------
+destructor TPDFFormFieldItemRadioButton.Destroy;
+begin
+  FreeAndNil(fRadioButton);
+  inherited;
+end;
+
+//------------------------------------------------------------------------------
+procedure TPDFFormFieldItemRadioButton.Draw;
+begin
+  inherited;
+
+  if not assigned(fRadioButton) then
+    fRadioButton := TRadioButton.Create(nil);
+
+  fRadioButton.Parent := ParentWinControl;
+  ScaleControl(fRadioButton);
+  fRadioButton.Caption := Caption;
+end;
+
+{ TPDFFormFieldItemButton }
+//------------------------------------------------------------------------------
+destructor TPDFFormFieldItemComboBox.Destroy;
+begin
+  FreeAndNil(fComboBox);
+  inherited;
+end;
+
+//------------------------------------------------------------------------------
+procedure TPDFFormFieldItemComboBox.Draw;
+begin
+  inherited;
+
+  if not assigned(fComboBox) then
+    fComboBox := TComboBox.Create(nil);
+
+  fComboBox.Parent := ParentWinControl;
+  ScaleControl(fComboBox);
+  fComboBox.Text := Caption;
 end;
 
 { TPDFFormFieldItemShape }
@@ -532,18 +742,26 @@ end;
 
 { TPDFFormFields }
 //------------------------------------------------------------------------------
-procedure TPDFFormFields.Draw(Page : integer);
+destructor TPDFFormFields.Destroy;
+begin
+  FreeAndNil(FCheckBoxTickPicOn);
+  FreeAndNil(FCheckBoxTickPicOff);
+  inherited;
+end;
+
+//------------------------------------------------------------------------------
+procedure TPDFFormFields.Draw(aPage : integer);
 var
-  ItemIndex : integer;
+  FormFieldIndex : integer;
   CurrItem  : TPDFFormFieldItem;
 begin
   if Self.Enabled then
   begin
-    for ItemIndex := 0 to Self.Count-1 do
+    for FormFieldIndex := 0 to Self.Count-1 do
     begin
-      CurrItem := TPDFFormFieldItem(Self.Items[ItemIndex]);
+      CurrItem := TPDFFormFieldItem(Self.Items[FormFieldIndex]);
 
-      if CurrItem.Page = Page then
+      if CurrItem.Page = aPage then
         CurrItem.Draw;
     end;
   end;
@@ -566,7 +784,7 @@ begin
     begin
       CurrItem := TPDFFormFieldItem(Self.Items[ItemIndex]);
 
-      if CurrItem.Index = FormFieldIndex then
+      if CurrItem.ItemIndex = FormFieldIndex then
       begin
         Result := CurrItem;
         Exit;
@@ -576,49 +794,99 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TPDFFormFields.RefreshFormField(aFieldIndex: integer);
+procedure TPDFFormFields.Init;
+begin
+  fCheckBoxTickPicOn := TPicture.Create;
+  fCheckBoxTickPicOff := TPicture.Create;
+end;
+
+//------------------------------------------------------------------------------
+procedure TPDFFormFields.SetCheckBoxTickOn(const aValue: TPicture);
+begin
+  FCheckBoxTickPicOn := aValue;
+end;
+
+//------------------------------------------------------------------------------
+procedure TPDFFormFields.SetCheckBoxTickOff(const aValue: TPicture);
+begin
+  FCheckBoxTickPicOff := aValue;
+end;
+
+//------------------------------------------------------------------------------
+procedure TPDFFormFields.RefreshFormField(aFieldIndex: integer;
+                                          aFieldSubIndex: integer);
 var
   FieldType     : integer;
-  FieldVisible  : Boolean;
-  FieldReadonly : Boolean;
 
-  NewPDFFormFieldItemEdit     : TPDFFormFieldItemEdit;
-  NewPDFFormFieldItemCheckBox : TPDFFormFieldItemCheckBox;
-  NewPDFFormFieldItem         : TPDFFormFieldItem;
-  NewPDFFormFieldItemButton   : TPDFFormFieldItemButton;
-  NewPDFFormFieldItemShape    : TPDFFormFieldItemShape;
+  NewPDFFormFieldItemEdit        : TPDFFormFieldItemEdit;
+  NewPDFFormFieldItemButton      : TPDFFormFieldItemButton;
+  NewPDFFormFieldItemCheckBox    : TPDFFormFieldItemCheckBox;
+  NewPDFFormFieldItemRadioButton : TPDFFormFieldItemRadioButton;
+  NewPDFFormFieldItemComboBox    : TPDFFormFieldItemComboBox;
+
+  NewPDFFormFieldItem            : TPDFFormFieldItem;
+
+  ParentIndex : integer;
+  FieldIndex  : integer;
+
+  FieldSubCount  : integer;
+  FieldSubIndex  : integer;
+  TempSubIndex   : integer;
 begin
-  FieldType     := fQuickPDF.GetFormFieldType(aFieldIndex);
-  FieldVisible  := IntToBool(fQuickPDF.GetFormFieldVisible(aFieldIndex));
-  FieldReadonly := IntToBool(fQuickPDF.GetFormFieldReadonly(aFieldIndex));
-
-  if (FieldVisible) and
-     (not FieldReadonly) then
+  if aFieldSubIndex = -1 then
   begin
-    case FieldType of
-      1 : begin
-        NewPDFFormFieldItemEdit := TPDFFormFieldItemEdit.Create(self);
-        NewPDFFormFieldItemEdit.Index := aFieldIndex;
-      end;
-      2 : begin
-        NewPDFFormFieldItemButton := TPDFFormFieldItemButton.Create(self);
-        NewPDFFormFieldItemButton.Index := aFieldIndex;
-      end;
-      3 : begin
-        NewPDFFormFieldItemCheckBox := TPDFFormFieldItemCheckBox.Create(self);
-        NewPDFFormFieldItemCheckBox.Index := aFieldIndex;
-      end;
-      else
-      begin
-        NewPDFFormFieldItemShape := TPDFFormFieldItemShape.Create(self);
-        NewPDFFormFieldItemShape.Index := aFieldIndex;
-      end;
-    end;
+    ParentIndex := -1;
+    FieldIndex  := aFieldIndex;
   end
   else
   begin
-    NewPDFFormFieldItemShape := TPDFFormFieldItemShape.Create(self);
-    NewPDFFormFieldItemShape.Index := aFieldIndex;
+    ParentIndex := aFieldIndex;
+    FieldIndex  := aFieldSubIndex;
+  end;
+
+  FieldType := fQuickPDF.GetFormFieldType(FieldIndex);
+
+  case FieldType of
+    FRM_FIELD_TYPE_TEXT : begin
+      NewPDFFormFieldItemEdit := TPDFFormFieldItemEdit.Create(self);
+      NewPDFFormFieldItemEdit.ItemIndex   := FieldIndex;
+      NewPDFFormFieldItemEdit.ParentIndex := ParentIndex;
+    end;
+    FRM_FIELD_TYPE_BUTTON : begin
+      NewPDFFormFieldItemButton := TPDFFormFieldItemButton.Create(self);
+      NewPDFFormFieldItemButton.ItemIndex   := FieldIndex;
+      NewPDFFormFieldItemButton.ParentIndex := ParentIndex;
+    end;
+    FRM_FIELD_TYPE_CHECKBOX : begin
+      NewPDFFormFieldItemCheckBox := TPDFFormFieldItemCheckBox.Create(self);
+      NewPDFFormFieldItemCheckBox.ItemIndex   := FieldIndex;
+      NewPDFFormFieldItemCheckBox.ParentIndex := ParentIndex;
+    end;
+    FRM_FIELD_TYPE_RADIOBUTTON : begin
+      NewPDFFormFieldItemRadioButton := TPDFFormFieldItemRadioButton.Create(self);
+      NewPDFFormFieldItemRadioButton.ItemIndex   := FieldIndex;
+      NewPDFFormFieldItemRadioButton.ParentIndex := ParentIndex;
+    end;
+    FRM_FIELD_TYPE_CHOICE : begin
+      NewPDFFormFieldItemComboBox := TPDFFormFieldItemComboBox.Create(self);
+      NewPDFFormFieldItemComboBox.ItemIndex   := FieldIndex;
+      NewPDFFormFieldItemComboBox.ParentIndex := ParentIndex;
+    end;
+    else
+    begin
+      NewPDFFormFieldItem := TPDFFormFieldItem.Create(self);
+      NewPDFFormFieldItem.ItemIndex   := FieldIndex;
+      NewPDFFormFieldItem.ParentIndex := ParentIndex;
+    end;
+  end;
+
+  FieldSubCount := fQuickPDF.GetFormFieldSubCount(FieldIndex);
+
+  for FieldSubIndex := 1 to FieldSubCount do
+  begin
+    TempSubIndex := fQuickPDF.GetFormFieldSubTempIndex(FieldIndex, FieldSubIndex);
+
+    RefreshFormField(FieldIndex, TempSubIndex);
   end;
 end;
 
@@ -626,9 +894,6 @@ end;
 procedure TPDFFormFields.RefreshFormFields;
 var
   FormFieldIndex : integer;
-  FieldSubCount  : integer;
-  FieldSubIndex  : integer;
-  TempSubIndex   : integer;
 begin
   HiddenIndex := 0;
   Self.Clear;
@@ -636,18 +901,7 @@ begin
   if Enabled then
   begin
     for FormFieldIndex := 1 to fQuickPDF.FormFieldCount do
-    begin
-      RefreshFormField(FormFieldIndex);
-
-      FieldSubCount := fQuickPDF.GetFormFieldSubCount(FormFieldIndex);
-
-      for FieldSubIndex := 1 to FieldSubCount do
-      begin
-        TempSubIndex := fQuickPDF.GetFormFieldSubTempIndex(FormFieldIndex, FieldSubIndex);
-
-        RefreshFormField(TempSubIndex);
-      end;
-    end;
+      RefreshFormField(FormFieldIndex, -1);
   end;
 end;
 
@@ -667,6 +921,7 @@ begin
   fQuickPDF := TQuickPDF.Create;
   fPDFImage := TImage.Create(nil);
   fPDFFormFields := TPDFFormFields.Create(TPDFFormFieldItem);
+  fPDFFormFields.Init;
   fPDFFormFields.QuickPDF := fQuickPDF;
   fPDFFormFields.Enabled := true;
   fPDFFormFields.fParentWinControl := Self;
@@ -695,7 +950,7 @@ function TPdfFieldEdit.LoadPDF(aFilePath: WideString; aPassword : WideString) : 
 begin
   Result := false;
   Try
-    if fQuickPDF.UnlockKey('j54g79ru33q4xo7gp7wt43j3y') = 1 then
+    if fQuickPDF.UnlockKey(QUICK_PDF_LICENCE_KEY) = 1 then
     begin
       fQuickPDF.SetNeedAppearances(1);
       fQuickPDF.LoadFromFile(aFilePath, aPassword);
@@ -711,12 +966,38 @@ end;
 procedure TPdfFieldEdit.Refresh;
 begin
   fQuickPDF.SetOrigin(1);
-  fQuickPDF.NormalizePage(0);
+  fQuickPDF.NormalizePage(fPage);
 
   RenderPage;
 
   fPDFFormFields.RefreshFormFields;
   fPDFFormFields.Draw(fPage);
+end;
+
+//------------------------------------------------------------------------------
+procedure TPdfFieldEdit.ResetForm;
+begin
+  if not LoadPDF(fPDFFilePath, fPDFPassword) then
+      Exit;
+
+  fPDFImage.Visible := true;
+
+  Refresh;
+end;
+
+//------------------------------------------------------------------------------
+procedure TPdfFieldEdit.SaveTofFile(aFilePath: WideString);
+begin
+  fQuickPDF.SaveToFile(aFilePath);
+end;
+
+//------------------------------------------------------------------------------
+procedure TPdfFieldEdit.Print(PrinterName : Widestring;
+                              StartPage : integer;
+                              EndPage : integer;
+                              Options : integer);
+begin
+  fQuickPDF.PrintDocument(PrinterName, StartPage, EndPage, Options);
 end;
 
 //------------------------------------------------------------------------------
@@ -780,6 +1061,30 @@ begin
   end;
 
   fActive := Value;
+end;
+
+//------------------------------------------------------------------------------
+procedure TPdfFieldEdit.SetCheckBoxTickOn(aValue: TPicture);
+begin
+  PDFFormFields.CheckboxTickOn.Assign(aValue);
+end;
+
+//------------------------------------------------------------------------------
+function TPdfFieldEdit.GetCheckBoxTickOn: TPicture;
+begin
+  Result := PDFFormFields.CheckboxTickOn;
+end;
+
+//------------------------------------------------------------------------------
+procedure TPdfFieldEdit.SetCheckBoxTickOff(aValue: TPicture);
+begin
+  PDFFormFields.CheckboxTickOff.Assign(aValue);
+end;
+
+//------------------------------------------------------------------------------
+function TPdfFieldEdit.GetCheckBoxTickOff: TPicture;
+begin
+  Result := PDFFormFields.CheckboxTickOff;
 end;
 
 //------------------------------------------------------------------------------
