@@ -57,11 +57,18 @@ type
     btnCancel: TButton;
     edtPracticeCode: TEdit;
     pnlBottom: TPanel;
-    procedure btnCancelClick(Sender: TObject);
+    procedure edtClientCodeKeyPress(Sender: TObject; var Key: Char);
+    procedure edtServiceStartYearKeyPress(Sender: TObject; var Key: Char);
+    procedure edtCostCodeKeyPress(Sender: TObject; var Key: Char);
+    procedure cmbServiceStartMonthChange(Sender: TObject);
+    procedure FormShow(Sender: TObject);
+    procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    procedure btnResetFormKeyPress(Sender: TObject; var Key: Char);
   private
+    FButton: Byte;
     function ValidateForm: Boolean;
   public
-    { Public declarations }
+    property ButtonPressed: Byte read FButton;
   end;
 
 var
@@ -71,9 +78,57 @@ implementation
 
 {$R *.dfm}
 
-procedure TfrmNewCAF.btnCancelClick(Sender: TObject);
+procedure TfrmNewCAF.btnResetFormKeyPress(Sender: TObject; var Key: Char);
 begin
-  ModalResult := mrCancel;
+  // TODO
+end;
+
+procedure TfrmNewCAF.cmbServiceStartMonthChange(Sender: TObject);
+begin
+  edtServiceStartYear.Enabled := (cmbServiceStartMonth.Text <> 'ASAP');
+end;
+
+procedure TfrmNewCAF.edtClientCodeKeyPress(Sender: TObject; var Key: Char);
+begin
+  if not (Key in ['a'..'z','A'..'Z','0'..'9',Chr(vk_Back)]) then
+    Key := #0 // Discard the key
+  else
+    Key := UpCase(Key); // Upper case
+end;
+
+procedure TfrmNewCAF.edtCostCodeKeyPress(Sender: TObject; var Key: Char);
+begin
+  if not (Key in ['a'..'z','A'..'Z','0'..'9',Chr(vk_Back)]) then
+    Key := #0 // Discard the key
+  else
+    Key := UpCase(Key); // Upper case
+end;
+
+procedure TfrmNewCAF.edtServiceStartYearKeyPress(Sender: TObject;
+  var Key: Char);
+begin
+  if not (Key in ['0'..'9']) then
+    Key := #0; // Discard the key
+end;
+
+procedure TfrmNewCAF.FormKeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+  if (ssAlt in Shift) then
+  begin
+    case Key of
+      69: btnEmail.Click; // Alt + E
+      70: btnFile.Click; // Alt + F
+      80: btnPrint.Click; // Alt + P
+    end;
+  end;
+  if (Key = VK_ESCAPE) then
+    btnCancel.Click;  
+end;
+
+procedure TfrmNewCAF.FormShow(Sender: TObject);
+begin
+  edtAccountName.SetFocus;
 end;
 
 function TfrmNewCAF.ValidateForm: Boolean;

@@ -12,6 +12,8 @@ object frmNewCAF: TfrmNewCAF
   Font.Style = []
   OldCreateOrder = False
   Position = poScreenCenter
+  OnKeyDown = FormKeyDown
+  OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 13
   object lblCompleteTheDetailsBelow: TLabel
@@ -146,6 +148,10 @@ object frmNewCAF: TfrmNewCAF
     Top = 48
     Width = 337
     Height = 21
+    Hint = 'Enter the account name'
+    MaxLength = 60
+    ParentShowHint = False
+    ShowHint = True
     TabOrder = 18
   end
   object cmbServiceStartMonth: TComboBox
@@ -153,9 +159,14 @@ object frmNewCAF: TfrmNewCAF
     Top = 48
     Width = 112
     Height = 21
+    Hint = 'Enter the month in which you want to start collecting data'
     ItemHeight = 13
-    TabOrder = 1
+    ParentShowHint = False
+    ShowHint = True
+    TabOrder = 0
+    OnChange = cmbServiceStartMonthChange
     Items.Strings = (
+      ''
       'ASAP'
       'January'
       'February'
@@ -175,56 +186,87 @@ object frmNewCAF: TfrmNewCAF
     Top = 48
     Width = 34
     Height = 21
-    TabOrder = 2
+    Hint = 'Enter the year in which you want to start collecting data'
+    ParentShowHint = False
+    ShowHint = True
+    TabOrder = 1
+    OnKeyPress = edtServiceStartYearKeyPress
   end
   object edtSortCode: TEdit
     Left = 8
     Top = 98
     Width = 121
     Height = 21
-    TabOrder = 3
+    Hint = 'Enter the sort code for this account'
+    MaxLength = 8
+    ParentShowHint = False
+    ShowHint = True
+    TabOrder = 2
   end
   object edtAccountNumber: TEdit
     Left = 135
     Top = 98
     Width = 242
     Height = 21
-    TabOrder = 4
+    Hint = 'Enter the account number'
+    MaxLength = 22
+    ParentShowHint = False
+    ShowHint = True
+    TabOrder = 3
   end
   object edtClientCode: TEdit
     Left = 383
     Top = 98
     Width = 74
     Height = 21
-    TabOrder = 5
+    Hint = 'Enter the code your practice uses for this client'
+    MaxLength = 8
+    ParentShowHint = False
+    ShowHint = True
+    TabOrder = 4
+    OnKeyPress = edtClientCodeKeyPress
   end
   object edtCostCode: TEdit
     Left = 463
     Top = 98
     Width = 72
     Height = 21
-    TabOrder = 6
+    Hint = 'Enter the cost code your practice uses for this client'
+    MaxLength = 8
+    ParentShowHint = False
+    ShowHint = True
+    TabOrder = 5
+    OnKeyPress = edtCostCodeKeyPress
   end
   object edtBank: TEdit
     Left = 8
     Top = 148
     Width = 260
     Height = 21
-    TabOrder = 7
+    Hint = 'Enter the name of the bank and branch where the account is held'
+    MaxLength = 60
+    ParentShowHint = False
+    ShowHint = True
+    TabOrder = 6
   end
   object edtBranch: TEdit
     Left = 274
     Top = 148
     Width = 260
     Height = 21
-    TabOrder = 8
+    Hint = 'Enter the name of the bank and branch where the account is held'
+    MaxLength = 60
+    ParentShowHint = False
+    ShowHint = True
+    TabOrder = 7
   end
   object edtAccountSignatory1: TEdit
     Left = 8
     Top = 198
     Width = 260
     Height = 21
-    TabOrder = 9
+    MaxLength = 60
+    TabOrder = 8
     Visible = False
   end
   object edtAccountSignatory2: TEdit
@@ -232,7 +274,8 @@ object frmNewCAF: TfrmNewCAF
     Top = 198
     Width = 260
     Height = 21
-    TabOrder = 10
+    MaxLength = 60
+    TabOrder = 9
     Visible = False
   end
   object chkSupplyAccount: TCheckBox
@@ -240,25 +283,32 @@ object frmNewCAF: TfrmNewCAF
     Top = 248
     Width = 526
     Height = 17
+    Hint = 'Supply Provisional Accounts'
     Caption = 
       'Please supply the account above as a Provisional Account if it i' +
       's not available from the bank'
-    TabOrder = 11
+    ParentShowHint = False
+    ShowHint = True
+    TabOrder = 10
   end
   object pnlServiceFrequency: TPanel
     Left = 111
     Top = 269
     Width = 423
     Height = 26
+    Hint = 
+      'Select Daily, Weekly or Monthly for the data frequency on this a' +
+      'ccount'
     BevelOuter = bvNone
-    TabOrder = 12
+    ParentShowHint = False
+    ShowHint = True
+    TabOrder = 11
     object rbMonthly: TRadioButton
       Left = 8
       Top = 0
       Width = 113
       Height = 17
       Caption = 'Monthly'
-      Checked = True
       TabOrder = 0
       TabStop = True
     end
@@ -277,6 +327,7 @@ object frmNewCAF: TfrmNewCAF
       Width = 145
       Height = 17
       Caption = 'Daily (where available)'
+      Checked = True
       TabOrder = 2
       TabStop = True
     end
@@ -286,7 +337,8 @@ object frmNewCAF: TfrmNewCAF
     Top = 304
     Width = 281
     Height = 21
-    TabOrder = 13
+    MaxLength = 60
+    TabOrder = 12
     Visible = False
   end
   object edtAddressLine2: TEdit
@@ -294,7 +346,8 @@ object frmNewCAF: TfrmNewCAF
     Top = 354
     Width = 281
     Height = 21
-    TabOrder = 14
+    MaxLength = 60
+    TabOrder = 13
     Visible = False
   end
   object edtAddressLine3: TEdit
@@ -302,7 +355,8 @@ object frmNewCAF: TfrmNewCAF
     Top = 404
     Width = 281
     Height = 21
-    TabOrder = 15
+    MaxLength = 60
+    TabOrder = 14
     Visible = False
   end
   object edtAddressLine4: TEdit
@@ -310,7 +364,8 @@ object frmNewCAF: TfrmNewCAF
     Top = 454
     Width = 281
     Height = 21
-    TabOrder = 16
+    MaxLength = 60
+    TabOrder = 15
     Visible = False
   end
   object edtPostalCode: TEdit
@@ -318,7 +373,8 @@ object frmNewCAF: TfrmNewCAF
     Top = 454
     Width = 98
     Height = 21
-    TabOrder = 0
+    MaxLength = 8
+    TabOrder = 16
     Visible = False
   end
   object pnlBottom: TPanel
@@ -327,6 +383,8 @@ object frmNewCAF: TfrmNewCAF
     Width = 544
     Height = 98
     BevelOuter = bvNone
+    ParentShowHint = False
+    ShowHint = False
     TabOrder = 17
     object bevel1: TBevel
       Left = 8
@@ -353,7 +411,11 @@ object frmNewCAF: TfrmNewCAF
       Top = 18
       Width = 385
       Height = 21
+      Hint = 'Enter your practice name'
       Enabled = False
+      MaxLength = 60
+      ParentShowHint = False
+      ShowHint = True
       TabOrder = 0
     end
     object edtPracticeCode: TEdit
@@ -361,7 +423,11 @@ object frmNewCAF: TfrmNewCAF
       Top = 18
       Width = 121
       Height = 21
+      Hint = 'Enter your practice code'
       Enabled = False
+      MaxLength = 8
+      ParentShowHint = False
+      ShowHint = True
       TabOrder = 1
     end
     object btnFile: TButton
@@ -369,7 +435,8 @@ object frmNewCAF: TfrmNewCAF
       Top = 65
       Width = 75
       Height = 25
-      Caption = 'File'
+      Caption = '&File'
+      ModalResult = 1
       TabOrder = 2
     end
     object btnEmail: TButton
@@ -377,7 +444,8 @@ object frmNewCAF: TfrmNewCAF
       Top = 65
       Width = 75
       Height = 25
-      Caption = 'E-mail'
+      Caption = '&E-mail'
+      ModalResult = 1
       TabOrder = 3
     end
     object btnPrint: TButton
@@ -385,7 +453,8 @@ object frmNewCAF: TfrmNewCAF
       Top = 65
       Width = 75
       Height = 25
-      Caption = 'Print'
+      Caption = '&Print'
+      ModalResult = 1
       TabOrder = 4
     end
     object btnResetForm: TButton
@@ -394,7 +463,8 @@ object frmNewCAF: TfrmNewCAF
       Width = 75
       Height = 25
       Caption = 'Reset Form'
-      TabOrder = 6
+      TabOrder = 5
+      OnKeyPress = btnResetFormKeyPress
     end
     object btnCancel: TButton
       Left = 457
@@ -402,8 +472,8 @@ object frmNewCAF: TfrmNewCAF
       Width = 75
       Height = 25
       Caption = 'Cancel'
-      TabOrder = 5
-      OnClick = btnCancelClick
+      ModalResult = 2
+      TabOrder = 6
     end
   end
 end
