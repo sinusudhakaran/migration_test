@@ -1737,11 +1737,16 @@ begin
         Msg := Format(CANNOT_FLAG_READ_ONLY, [CODE]);
         LogUtil.LogMsg(lmInfo,UnitName,ThisMethodName + ' '+Msg);
       end;
-      AClientEmail := TempClient.clFields.clPractice_Name + NAME_EMAIL_SPACER +
-                      TempClient.clFields.clPractice_EMail_Address;
-      if TempClient.clFields.clCustom_Contact_EMail_Address <> '' then
-        AClientEmail := TempClient.clFields.clContact_Name + NAME_EMAIL_SPACER +
-                        TempClient.clFields.clCustom_Contact_EMail_Address;
+      AClientEmail := TempClient.clFields.clPractice_Name + NAME_EMAIL_SPACER + TempClient.clFields.clPractice_EMail_Address;
+
+      if (TempClient.clFields.clContact_Details_To_Show = cdtStaffMember) and (TempClient.clFields.clStaff_Member_EMail_Address <> '') then
+      begin
+        AClientEmail := TempClient.clFields.clStaff_Member_Name + NAME_EMAIL_SPACER + TempClient.clFields.clStaff_Member_EMail_Address;
+      end
+      else if TempClient.clFields.clCustom_Contact_EMail_Address <> '' then
+      begin
+        AClientEmail := TempClient.clFields.clContact_Name + NAME_EMAIL_SPACER + TempClient.clFields.clCustom_Contact_EMail_Address;
+      end;
 
       if MyClient.clExtra.ceOnlineValuesStored then
       begin
