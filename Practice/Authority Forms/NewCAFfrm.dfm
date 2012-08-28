@@ -187,6 +187,7 @@ object frmNewCAF: TfrmNewCAF
     Width = 34
     Height = 21
     Hint = 'Enter the year in which you want to start collecting data'
+    MaxLength = 2
     ParentShowHint = False
     ShowHint = True
     TabOrder = 1
@@ -213,6 +214,7 @@ object frmNewCAF: TfrmNewCAF
     ParentShowHint = False
     ShowHint = True
     TabOrder = 3
+    OnKeyPress = edtAccountNumberKeyPress
   end
   object edtClientCode: TEdit
     Left = 383
@@ -243,7 +245,7 @@ object frmNewCAF: TfrmNewCAF
     Top = 148
     Width = 260
     Height = 21
-    Hint = 'Enter the name of the bank and branch where the account is held'
+    Hint = 'Enter the name of the bank where the account is held'
     MaxLength = 60
     ParentShowHint = False
     ShowHint = True
@@ -254,7 +256,7 @@ object frmNewCAF: TfrmNewCAF
     Top = 148
     Width = 260
     Height = 21
-    Hint = 'Enter the name of the bank and branch where the account is held'
+    Hint = 'Enter the name of the bank branch where the account is held'
     MaxLength = 60
     ParentShowHint = False
     ShowHint = True
@@ -438,6 +440,7 @@ object frmNewCAF: TfrmNewCAF
       Caption = '&File'
       ModalResult = 1
       TabOrder = 2
+      OnClick = btnFileClick
     end
     object btnEmail: TButton
       Left = 97
@@ -447,6 +450,7 @@ object frmNewCAF: TfrmNewCAF
       Caption = '&E-mail'
       ModalResult = 1
       TabOrder = 3
+      OnClick = btnEmailClick
     end
     object btnPrint: TButton
       Left = 283
@@ -456,6 +460,7 @@ object frmNewCAF: TfrmNewCAF
       Caption = '&Print'
       ModalResult = 1
       TabOrder = 4
+      OnClick = btnPrintClick
     end
     object btnResetForm: TButton
       Left = 370
@@ -464,7 +469,7 @@ object frmNewCAF: TfrmNewCAF
       Height = 25
       Caption = 'Reset Form'
       TabOrder = 5
-      OnKeyPress = btnResetFormKeyPress
+      OnClick = btnResetFormClick
     end
     object btnCancel: TButton
       Left = 457

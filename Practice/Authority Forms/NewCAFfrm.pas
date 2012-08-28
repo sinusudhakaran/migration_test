@@ -63,7 +63,11 @@ type
     procedure cmbServiceStartMonthChange(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
-    procedure btnResetFormKeyPress(Sender: TObject; var Key: Char);
+    procedure btnFileClick(Sender: TObject);
+    procedure btnEmailClick(Sender: TObject);
+    procedure btnPrintClick(Sender: TObject);
+    procedure btnResetFormClick(Sender: TObject);
+    procedure edtAccountNumberKeyPress(Sender: TObject; var Key: Char);
   private
     FButton: Byte;
     function ValidateForm: Boolean;
@@ -76,16 +80,54 @@ var
 
 implementation
 
+uses
+  ErrorMoreFrm;
+
 {$R *.dfm}
 
-procedure TfrmNewCAF.btnResetFormKeyPress(Sender: TObject; var Key: Char);
+procedure TfrmNewCAF.btnEmailClick(Sender: TObject);
 begin
-  // TODO
+  if not ValidateForm then
+    ModalResult := mrNone;
+end;
+
+procedure TfrmNewCAF.btnFileClick(Sender: TObject);
+begin
+  if not ValidateForm then
+    ModalResult := mrNone;
+end;
+
+procedure TfrmNewCAF.btnPrintClick(Sender: TObject);
+begin
+  if not ValidateForm then
+    ModalResult := mrNone;
+end;
+
+procedure TfrmNewCAF.btnResetFormClick(Sender: TObject);
+begin
+  edtAccountName.Text := '';
+  edtSortCode.Text := '';
+  edtAccountNumber.Text := '';
+  edtClientCode.Text := '';
+  edtCostCode.Text := '';
+  if edtBank.Enabled then // We don't want to clear this field if this is an HSBC CAF  
+    edtBank.Text := '';
+  edtBranch.Text := '';
+  cmbServiceStartMonth.ItemIndex := -1;
+  edtServiceStartYear.Text := '';
+  chkSupplyAccount.Checked := False;
+  rbDaily.Checked := True;
 end;
 
 procedure TfrmNewCAF.cmbServiceStartMonthChange(Sender: TObject);
 begin
   edtServiceStartYear.Enabled := (cmbServiceStartMonth.Text <> 'ASAP');
+end;
+
+procedure TfrmNewCAF.edtAccountNumberKeyPress(Sender: TObject; var Key: Char);
+begin
+  if not (Key in ['0'..'9','-',Chr(vk_Back)]) then
+    Key := #0; // Discard the key
 end;
 
 procedure TfrmNewCAF.edtClientCodeKeyPress(Sender: TObject; var Key: Char);
@@ -107,7 +149,7 @@ end;
 procedure TfrmNewCAF.edtServiceStartYearKeyPress(Sender: TObject;
   var Key: Char);
 begin
-  if not (Key in ['0'..'9']) then
+  if not (Key in ['0'..'9',Chr(vk_Back)]) then
     Key := #0; // Discard the key
 end;
 
@@ -132,9 +174,28 @@ begin
 end;
 
 function TfrmNewCAF.ValidateForm: Boolean;
+var
+  ErrorStr, DateErrorStr: string;
 begin
-  // TODO
-  Result := True;
+  DateErrorStr := '';
+  if (cmbServiceStartMonth.ItemIndex = -1) then
+  begin
+    if (edtServiceStartYear.Text = '') then
+      DateErrorStr := DateErrorStr + 'You must enter a starting date'
+    else
+      DateErrorStr := DateErrorStr + 'You must choose a starting month';
+  end else
+    if (Length(edtServiceStartYear.Text) < 2) then
+      DateErrorStr := DateErrorStr + 'You must enter a valid starting year';
+
+//  if True then
+
+
+
+
+//  HelpfulErrorMsg(DateErrorStr, 0);
+
+  Result := True;              
 end;
 
 end.
