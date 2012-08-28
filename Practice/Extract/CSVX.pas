@@ -207,7 +207,14 @@ Begin
 
    if BankAccount.IsAForexAccount and not (BankAccount.IsAJournalAccount or (ForeignAmount = 0)) then
    begin
-     write(XFile, ForeignAmount/100:0:2, ',');
+     if ForeignAmount <> UNKNOWN then
+     begin
+       write(XFile, ForeignAmount/100:0:2, ',');
+     end
+     else
+     begin
+       write(XFile, '"','', '",');
+     end;
    end
    else
    begin
@@ -257,7 +264,23 @@ Begin
 
    if not (BankAccount.IsAJournalAccount) then
    begin
-     write(XFile, '', (Balance * -1)/100:0:2, ',');
+     Balance := 0;
+     
+     if Balance <> UNKNOWN then
+     begin
+       if Balance <> 0 then
+       begin
+         write(XFile, '', (Balance * -1)/100:0:2, ',');
+       end
+       else
+       begin
+         write(XFile, '', 0/100:0:2, ',');
+       end;
+     end
+     else
+     begin
+       write(XFile, '"','', '",');
+     end;
    end
    else
    begin
