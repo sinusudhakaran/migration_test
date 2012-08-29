@@ -415,7 +415,8 @@ uses
   YesNoDlg,
   WebUtils,
   SelectInstitutionfrm,
-  ImportCAFfrm;
+  CAFImportSelectorFrm,
+  CAFOutputSelectorFrm;
 
 {$R *.dfm}
 
@@ -2487,13 +2488,17 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmClientManager.actICAFExecute(Sender: TObject);
 var
-  ImportCAFfrm: TfrmImportCAF;
+  ImportType: TCAFImportType;
+  ImportFile: String;
+  FileFormat: TCAFFileFormat;
+  OutputFolder: String;
 begin
-  ImportCAFfrm := TfrmImportCAF.Create(Application.MainForm);
-  try
-    ImportCAFfrm.ShowModal;
-  finally
-    ImportCAFfrm.Free;
+  if TfrmCAFImportSelector.SelectImport(Self, Screen.ActiveForm, ImportType, ImportFile) then
+  begin
+    if TfrmCAFOutputSelector.SelectOutput(Self, Screen.ActiveForm, FileFormat, OutputFolder) then
+    begin
+    
+    end;
   end;
 end;
 
