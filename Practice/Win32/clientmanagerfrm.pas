@@ -414,7 +414,10 @@ uses
   Clipbrd,
   YesNoDlg,
   WebUtils,
-  ImportCAFfrm;
+  SelectInstitutionfrm,
+  CAFImportSelectorFrm,
+  CAFOutputSelectorFrm,
+  CAFImporter;
 
 {$R *.dfm}
 
@@ -2486,13 +2489,31 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmClientManager.actICAFExecute(Sender: TObject);
 var
-  ImportCAFfrm: TfrmImportCAF;
+  ImportType: TCAFImportType;
+  ImportFile: String;
+  FileFormat: TCAFFileFormat;
+  OutputFolder: String;
+  Importer: TCAFImporter;
 begin
-  ImportCAFfrm := TfrmImportCAF.Create(Application.MainForm);
-  try
-    ImportCAFfrm.ShowModal;
-  finally
-    ImportCAFfrm.Free;
+  if TfrmCAFImportSelector.SelectImport(Self, Screen.ActiveForm, ImportType, ImportFile) then
+  begin
+    if TfrmCAFOutputSelector.SelectOutput(Self, Screen.ActiveForm, FileFormat, OutputFolder) then
+    begin
+      if ImportType = cafHSBC then
+      begin
+        Importer := THSBCCAFImporter.Create;
+      end
+      else
+      begin
+        Importer := TCAFImporter.Create;
+      end;
+
+      try
+        Importer.Import(ImportFile, FileFormat, OutputFolder);
+      finally
+        Importer.Free;
+      end;
+    end;
   end;
 end;
 
@@ -3335,7 +3356,7 @@ begin
       end;
     whUK:
       begin
-        OpenCustAuth(Screen.ActiveForm, AdminSystem.fdFields.fdCountry);
+        OpenCustAuth(Screen.ActiveForm, AdminSystem.fdFields.fdCountry, GetSelectedEmail);
       end;
   end;
 end;

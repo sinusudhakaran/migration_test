@@ -38,6 +38,10 @@ type
     procedure edtAccountNumberKeyPress(Sender: TObject; var Key: Char);
   private
     FButton: Byte;
+    FClientEmail: string;
+
+  protected
+    procedure SetClientEmail(value: string);
 
     procedure UpperCaseTextKeyPress(Sender: TObject; var Key: Char);
     procedure NumericDashKeyPress(Sender: TObject; var Key: Char);
@@ -50,10 +54,11 @@ type
   public
     function Execute(aCountry, aInstitution : integer) : boolean;
 
+    property ClientEmail: string read FClientEmail write SetClientEmail;
     property ButtonPressed: Byte read FButton;
   end;
 
-  function OpenCustAuth(w_PopupParent: Forms.TForm; aCountry : integer) : boolean;
+  function OpenCustAuth(w_PopupParent: Forms.TForm; aCountry : integer; aClientEmail : string) : boolean;
 
 //------------------------------------------------------------------------------
 implementation
@@ -61,13 +66,14 @@ implementation
 
 uses
   ErrorMoreFrm,
+  InfoMoreFrm,
   bkConst,
   globals,
   SelectInstitutionfrm,
   MailFrm;
 
 //------------------------------------------------------------------------------
-function OpenCustAuth(w_PopupParent: Forms.TForm; aCountry : integer) : boolean;
+function OpenCustAuth(w_PopupParent: Forms.TForm; aCountry : integer; aClientEmail : string) : boolean;
 var
   frmNewCAF: TfrmNewCAF;
   Institution : integer;
@@ -87,6 +93,7 @@ begin
     //Required for the proper handling of the window z-order so that a modal window does not show-up behind another window
     frmNewCAF.PopupParent := w_PopupParent;
     frmNewCAF.PopupMode := pmExplicit;
+    frmNewCaf.ClientEmail := aClientEmail;
     //Todo  //BKHelpSetUp(frmNewCAF, ----);
 
     Result := frmNewCAF.Execute(aCountry, Institution);
@@ -236,6 +243,12 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+procedure TfrmNewCAF.SetClientEmail(value: string);
+begin
+  FClientEmail := Value;
+end;
+
+//------------------------------------------------------------------------------
 procedure TfrmNewCAF.UpperCaseTextKeyPress(Sender: TObject; var Key: Char);
 begin
   if not (Key in ['a'..'z','A'..'Z','0'..'9',Chr(vk_Back)]) then
@@ -261,22 +274,39 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmNewCAF.btnEmailClick(Sender: TObject);
 var
-  EmailAddress: string;
   AttachmentSent: Boolean;
 begin
   if ValidateForm then
   begin
-    EmailAddress := AdminSystem.fdFields.fdPractice_EMail_Address;
-    // TODO: Need to include the third party authority PDF (see SendFileTo parameters in MailFrm)
-    MailFrm.SendFileTo('Send Customer Authority Form', 'test', '', '', AttachmentSent, False);
+    AttachmentSent := True;
+    // TODO: Need to attach the third party authority PDF (see SendFileTo parameters in MailFrm)
+    try
+      MailFrm.SendFileTo('Send Customer Authority Form', ClientEmail, '', '', AttachmentSent, False);
+    finally
+      HelpfulInfoMsg('Mail has been sent.', 0);
+    end;
   end;
 end;
 
 //------------------------------------------------------------------------------
 procedure TfrmNewCAF.btnFileClick(Sender: TObject);
+var
+  ReportFile, Title, Description, MsgStr: string;
+  WebID, CatID, pdfInt: integer;
 begin
 //  if ValidateForm then
-// TODO: File
+// TODO: generate the report.
+  ReportFile := 'BankLink Customer Authority.PDF';
+  pdfInt := rfPDF;
+  Title := 'Save Report To File';
+  Description := '';
+  {if GenerateReportTo(ReportFile, pdfInt, [ffPDF], Title, Description, WebID, CatID, True) then
+  begin
+    MsgStr := Format('Report saved to "%s".%s%sDo you want to view it now?',
+                    [ReportFile, #13#10, #13#10]); // Need to pass the path of the PDF to this function
+    if (AskYesNo(rfNames[rfPDF], MsgStr, DLG_YES, 0) = DLG_YES) then
+      ShellExecute(0, 'open', PChar(ReportFile), nil, nil, SW_SHOWMAXIMIZED);
+  end; }
 end;
 
 //------------------------------------------------------------------------------
