@@ -785,7 +785,7 @@ CONST
    istUKNames : Array[ istMin..istMax ] of String[ 20 ] =
    ( 'None', 'Other', 'HSBC' );
    istUKTemplateFileNames : Array[ istMin..istMax ] of String[ 20 ] =
-   ( '', 'CAF.pdf', 'HSBC.pdf' );
+   ( '', 'UK_CAF_Template.pdf', 'UK_HSBC_Template.pdf' );
 
    ukCAFNameOfAccount = 'NameOfAccount';
    ukCAFClientCode    = 'ClientCode';
