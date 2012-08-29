@@ -82,7 +82,7 @@ object frmCAFImportSelector: TfrmCAFImportSelector
     TabOrder = 3
   end
   object dlgOpen: TOpenDialog
-    Filter = 'Import File|*.xls'
+    Filter = 'Import File|*.csv'
     Options = [ofHideReadOnly, ofNoChangeDir, ofEnableSizing]
     Left = 376
     Top = 8
