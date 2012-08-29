@@ -96,11 +96,25 @@ type
   //----------------------------------------------------------------------------
   TPDFFormFieldItemEdit = class(TPDFFormFieldItem)
   private
+    fOnChange : TNotifyEvent;
+    fOnKeyPressed : TKeyPressEvent;
+
     fEdit : TEdit;
+  protected
+    procedure EditChanged(Sender: TObject);
+    procedure EditKeyPressed(Sender: TObject; var Key: Char);
+
+    function GetMaxLength : integer;
+    procedure SetMaxLength(aValue : integer);
   public
     destructor Destroy; override;
 
     procedure Draw; override;
+    procedure SetFocus;
+
+    property OnChange : TNotifyEvent read fOnChange write fOnChange;
+    property OnKeyPressed : TKeyPressEvent read fOnKeyPressed write fOnKeyPressed;
+    property MaxLength : integer read GetMaxLength write SetMaxLength;
   end;
 
   //----------------------------------------------------------------------------
@@ -226,7 +240,7 @@ type
     function LoadPDF(aFilePath: WideString; aPassword : WideString = '') : Boolean;
     procedure Refresh;
 
-    Procedure SaveTofFile(aFilePath : WideString);
+    Procedure SaveToFile(aFilePath : WideString);
     Procedure Print(PrinterName : Widestring;
                     StartPage : integer;
                     EndPage : integer;
@@ -553,6 +567,40 @@ end;
 
 { TPDFFormFieldItemEdit }
 //------------------------------------------------------------------------------
+procedure TPDFFormFieldItemEdit.EditChanged(Sender: TObject);
+begin
+  if Assigned(fOnChange) then
+    fOnChange(Sender);
+
+  Value := fEdit.Text;
+end;
+
+//------------------------------------------------------------------------------
+procedure TPDFFormFieldItemEdit.EditKeyPressed(Sender: TObject; var Key: Char);
+begin
+  if Assigned(fOnKeyPressed) then
+    fOnKeyPressed(Sender, Key);
+end;
+
+//------------------------------------------------------------------------------
+function TPDFFormFieldItemEdit.GetMaxLength: integer;
+begin
+  Result := fEdit.MaxLength;
+end;
+
+//------------------------------------------------------------------------------
+procedure TPDFFormFieldItemEdit.SetFocus;
+begin
+  fEdit.SetFocus;
+end;
+
+//------------------------------------------------------------------------------
+procedure TPDFFormFieldItemEdit.SetMaxLength(aValue: integer);
+begin
+  fEdit.MaxLength := aValue;
+end;
+
+//------------------------------------------------------------------------------
 destructor TPDFFormFieldItemEdit.Destroy;
 begin
   FreeAndNil(fEdit);
@@ -570,7 +618,11 @@ begin
   inherited;
 
   if not assigned(fEdit) then
+  begin
     fEdit := TEdit.Create(nil);
+    fEdit.OnChange := EditChanged;
+    fEdit.OnKeyPress := EditKeyPressed;
+  end;
 
   fEdit.Parent := ParentWinControl;
   Scale := ScaleControl(fEdit);
@@ -986,7 +1038,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TPdfFieldEdit.SaveTofFile(aFilePath: WideString);
+procedure TPdfFieldEdit.SaveToFile(aFilePath: WideString);
 begin
   fQuickPDF.SaveToFile(aFilePath);
 end;
