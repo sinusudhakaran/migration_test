@@ -19,7 +19,7 @@ uses
   OvcBase, StdCtrls, OvcTCBEF, OvcTCNum, OvcTCCBx, OvcTCEdt, OvcTCmmn,
   OvcTCell, OvcTCStr, OvcTCHdr, OvcTable, OvcEF, OvcPB, OvcPF, ImgList,
   ComCtrls, OvcTCPic, Buttons,
-  OsFont, ExtCtrls;
+  OsFont, ExtCtrls, VatTemplates;
 
 type
   TdlgEditPracGST = class(TForm)
@@ -62,6 +62,8 @@ type
     ERate2: TOvcPictureField;
     eRate1: TOvcPictureField;
     Label6: TLabel;
+    btnLoadTemplate: TButton;
+    btnSaveTemplate: TButton;
 
     procedure btnOkClick(Sender: TObject);
     procedure btnCancelClick(Sender: TObject);
@@ -87,6 +89,8 @@ type
     procedure colAccountKeyDown(Sender: TObject; var Key: Word;
       Shift: TShiftState);
     procedure eDateT1DblClick(Sender: TObject);
+    procedure btnLoadTemplateClick(Sender: TObject);
+    procedure btnSaveTemplateClick(Sender: TObject);
   private
     okPressed : boolean;
     editMode  : boolean;
@@ -100,6 +104,8 @@ type
     procedure DoDeleteCell;
     procedure SetTaxName(const Value: String);
     procedure SetCountry(const Value: Byte);
+    procedure SetupVatTemplates;
+    procedure ClearRates;
     property TaxName : String read FTaxName write SetTaxName;
     property Country : Byte read FCountry write SetCountry;
   public
@@ -251,6 +257,8 @@ begin
   ColAccount.MaxLength := MaxBk5CodeLen;
   //resize the account col so that longest account code fits
   tblRates.Columns[ AccountCol ].Width := CalcAcctColWidth( tblRates.Canvas, tblRates.Font, 100);
+
+  SetupVatTemplates;
 end;
 //------------------------------------------------------------------------------
 procedure TdlgEditPracGST.DoDeleteCell;
@@ -726,7 +734,150 @@ begin
    end;
 end;
 
+{-------------------------------------------------------------------------------
+  VAT Templates
+-------------------------------------------------------------------------------}
+procedure TdlgEditPracGST.SetupVatTemplates;
+var
+  ExtraHeight: integer;
+begin
+  // Extend grid if buttons are not visible?
+  if not VatSetupButtons(vlPractice, [btnLoadTemplate, btnSaveTemplate]) then
+  begin
+    // Move grid and groupbox down
+    ExtraHeight := (btnLoadTemplate.BoundsRect.Bottom) - (gbxRates.BoundsRect.Bottom);
+    gbxRates.Height := gbxRates.Height + ExtraHeight;
+    tblRates.Height := tblRates.Height + ExtraHeight;
+  end;
+end;
 
+{------------------------------------------------------------------------------}
+procedure TdlgEditPracGST.ClearRates;
+begin
+  eRate1.ClearContents;
+  eRate2.ClearContents;
+  eRate3.ClearContents;
+
+  ZeroMemory(@GST_Table, SizeOf(GST_Table));
+  tblRates.Refresh;
+end;
+
+{------------------------------------------------------------------------------}
+procedure TdlgEditPracGST.btnLoadTemplateClick(Sender: TObject);
+var
+  FileName: string;
+  VatRates: TVatRates;
+  Rate1: integer;
+  Rate2: integer;
+  Rate3: integer;
+  i: integer;
+  Src: ^TVatRatesRow;
+  Dst: ^TGSTInfoRec;
+  iRate: integer;
+begin
+  try
+    // User cancel?
+    if not VatOpenDialog(self, FileName) then
+      exit;
+
+    ClearRates;
+
+    VatLoadFromFile(Filename, Rate1, Rate2, Rate3, VatRates);
+
+    // Copy effective rates
+    eDate1.AsStDate := Rate1;
+    eDate2.AsStDate := Rate2;
+    eDate3.AsStDate := Rate3;
+
+    // Copy rates
+    for i := 1 to MAX_GST_CLASS do
+    begin
+      Src := @VatRates[i];
+      Dst := @GST_Table[i];
+
+      Dst.GST_ID := Src.GST_ID;
+      Dst.GST_Class_Name := Src.GST_Class_Name;
+
+      for iRate := 1 to MAX_VISIBLE_GST_CLASS_RATES do
+      begin
+        Dst.GST_Rates[iRate] := Src.GST_Rates[iRate];
+      end;
+
+      Dst.GST_Account_Code := Src.GST_Account_Code;
+
+      // Convert the VAT Type ID to the combo box index
+      if (Src.GSTClassType <> -1) then
+      begin
+        Dst.GSTClassTypeCmbIndex := celGSTType.Items.IndexOfID(Src.GSTClassType);
+        if (Dst.GSTClassTypeCmbIndex = -1) then
+          raise Exception.CreateFmt('%s type on row %d not recognized', [TaxName, i]);
+      end;
+
+      // BusinessNormPercent is not used at the practice level
+    end;
+
+    // Refresh the display
+    tblRates.Refresh;
+  except
+    on E: Exception do
+    begin
+      ClearRates;
+      VatShowLoadException(E);
+    end;
+  end;
+end;
+
+{------------------------------------------------------------------------------}
+procedure TdlgEditPracGST.btnSaveTemplateClick(Sender: TObject);
+var
+  FileName: string;
+  VatRates: TVatRates;
+  Src: ^TGSTInfoRec;
+  Dst: ^TVatRatesRow;
+  i: integer;
+  iRate: integer;
+begin
+  try
+    // User cancel?
+    if not VatSaveDialog(self, FileName) then
+      exit;
+
+    // Copy rates
+    for i := 1 to MAX_GST_CLASS do
+    begin
+      Src := @GST_Table[i];
+      Dst := @VatRates[i];
+
+      Dst.GST_ID := Src.GST_ID;
+      Dst.GST_Class_Name := Src.GST_Class_Name;
+
+      for iRate := 1 to MAX_VISIBLE_GST_CLASS_RATES do
+      begin
+        Dst.GST_Rates[iRate] := Src.GST_Rates[iRate];
+      end;
+
+      Dst.GST_Account_Code := Src.GST_Account_Code;
+
+      // Copy the VAT Type ID (not the index itself)
+      if (Src.GSTClassTypeCmbIndex = -1) then
+        Dst.GSTClassType := -1 // Save "as is" with no valid selection
+      else
+        Dst.GSTClassType := Integer(celGSTType.Items.Objects[Src.GSTClassTypeCmbIndex]);
+
+      Dst.GST_BusinessNormPercent := 0; // This is not used at the practice level
+    end;
+
+    VatSaveToFile(eDate1.AsStDate, eDate2.AsStDate, eDate3.AsStDate, VatRates,
+      FileName);
+  except
+    on E: Exception do
+    begin
+      VatShowSaveException(E);
+    end;
+  end;
+end;
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 initialization
    debugMe := DebugUnit(UnitName);
 //------------------------------------------------------------------------------

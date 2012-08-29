@@ -3,7 +3,7 @@ object dlgEditPracGST: TdlgEditPracGST
   Top = 112
   BorderStyle = bsDialog
   Caption = 'Practice Tax Defaults'
-  ClientHeight = 416
+  ClientHeight = 456
   ClientWidth = 639
   Color = clBtnFace
   DefaultMonitor = dmMainForm
@@ -19,8 +19,8 @@ object dlgEditPracGST: TdlgEditPracGST
     Left = 0
     Top = 0
     Width = 639
-    Height = 375
-    ActivePage = tsOther
+    Height = 415
+    ActivePage = tsGST
     Align = alClient
     TabOrder = 0
     object tsGST: TTabSheet
@@ -234,6 +234,24 @@ object dlgEditPracGST: TdlgEditPracGST
           RangeHigh = {25600D00000000000000}
           RangeLow = {00000000000000000000}
         end
+      end
+      object btnLoadTemplate: TButton
+        Left = 3
+        Top = 335
+        Width = 108
+        Height = 25
+        Caption = 'Load Template'
+        TabOrder = 1
+        OnClick = btnLoadTemplateClick
+      end
+      object btnSaveTemplate: TButton
+        Left = 117
+        Top = 335
+        Width = 108
+        Height = 25
+        Caption = 'Save Template'
+        TabOrder = 2
+        OnClick = btnSaveTemplateClick
       end
     end
     object tsOther: TTabSheet
@@ -482,7 +500,7 @@ object dlgEditPracGST: TdlgEditPracGST
   end
   object pnlBtn: TPanel
     Left = 0
-    Top = 375
+    Top = 415
     Width = 639
     Height = 41
     Align = alBottom
@@ -527,13 +545,13 @@ object dlgEditPracGST: TdlgEditPracGST
       ())
     Epoch = 1900
     Left = 72
-    Top = 328
+    Top = 384
   end
   object colDesc: TOvcTCString
     MaxLength = 60
     Table = tblRates
     Left = 104
-    Top = 328
+    Top = 384
   end
   object colRate1: TOvcTCNumericField
     Adjust = otaCenterRight
@@ -548,7 +566,7 @@ object dlgEditPracGST: TdlgEditPracGST
     PictureMask = '###.####'
     Table = tblRates
     Left = 168
-    Top = 328
+    Top = 384
     RangeHigh = {73B2DBB9838916F2FE43}
     RangeLow = {73B2DBB9838916F2FEC3}
   end
@@ -565,7 +583,7 @@ object dlgEditPracGST: TdlgEditPracGST
     PictureMask = '###.####'
     Table = tblRates
     Left = 208
-    Top = 328
+    Top = 384
     RangeHigh = {73B2DBB9838916F2FE43}
     RangeLow = {73B2DBB9838916F2FEC3}
   end
@@ -582,7 +600,7 @@ object dlgEditPracGST: TdlgEditPracGST
     PictureMask = '###.####'
     Table = tblRates
     Left = 248
-    Top = 328
+    Top = 384
     RangeHigh = {73B2DBB9838916F2FE43}
     RangeLow = {73B2DBB9838916F2FEC3}
   end
@@ -591,7 +609,7 @@ object dlgEditPracGST: TdlgEditPracGST
     Table = tblRates
     OnKeyDown = colAccountKeyDown
     Left = 288
-    Top = 328
+    Top = 384
   end
   object OvcTCColHead1: TOvcTCColHead
     Headings.Strings = (
@@ -605,13 +623,13 @@ object dlgEditPracGST: TdlgEditPracGST
     ShowLetters = False
     Table = tblRates
     Left = 40
-    Top = 328
+    Top = 384
   end
   object ColID: TOvcTCString
     MaxLength = 3
     Table = tblRates
     Left = 8
-    Top = 328
+    Top = 384
   end
   object celGSTType: TOvcTCComboBox
     DropDownCount = 10
@@ -625,6 +643,6 @@ object dlgEditPracGST: TdlgEditPracGST
     Table = tblRates
     OnDropDown = celGSTTypeDropDown
     Left = 136
-    Top = 328
+    Top = 384
   end
 end
