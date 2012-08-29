@@ -44,6 +44,7 @@ object frmCAFOutputSelector: TfrmCAFOutputSelector
     Top = 21
     Width = 201
     Height = 21
+    Style = csDropDownList
     ItemHeight = 13
     ItemIndex = 0
     TabOrder = 0
