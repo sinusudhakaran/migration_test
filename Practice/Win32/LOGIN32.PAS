@@ -307,6 +307,12 @@ begin
   Cancelled := False;
 
   FPassword := pass;
+
+  //Online enabled users must have a password
+  if User.usAllow_Banklink_Online and (Trim(pass) = '') then
+  begin
+    Exit;
+  end;
   
   if User.usAllow_Banklink_Online and Adminsystem.fdFields.fdUse_BankLink_Online then
   begin
@@ -471,6 +477,7 @@ begin
      Exit;
    end;
   end;
+
   {user found now check password}
   if not Login(uName, pass, Cancelled) then
   begin
