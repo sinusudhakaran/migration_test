@@ -416,7 +416,8 @@ uses
   WebUtils,
   SelectInstitutionfrm,
   CAFImportSelectorFrm,
-  CAFOutputSelectorFrm;
+  CAFOutputSelectorFrm,
+  CAFImporter;
 
 {$R *.dfm}
 
@@ -2492,12 +2493,26 @@ var
   ImportFile: String;
   FileFormat: TCAFFileFormat;
   OutputFolder: String;
+  Importer: TCAFImporter;
 begin
   if TfrmCAFImportSelector.SelectImport(Self, Screen.ActiveForm, ImportType, ImportFile) then
   begin
     if TfrmCAFOutputSelector.SelectOutput(Self, Screen.ActiveForm, FileFormat, OutputFolder) then
     begin
-    
+      if ImportType = cafHSBC then
+      begin
+        Importer := THSBCCAFImporter.Create;
+      end
+      else
+      begin
+        Importer := TCAFImporter.Create;
+      end;
+
+      try
+        Importer.Import(ImportFile, FileFormat, OutputFolder);
+      finally
+        Importer.Free;
+      end;
     end;
   end;
 end;
