@@ -29,7 +29,6 @@ object frmNewCAF: TfrmNewCAF
     ModalResult = 1
     TabOrder = 0
     OnClick = btnFileClick
-    ExplicitTop = 564
   end
   object btnEmail: TButton
     Left = 97
@@ -41,7 +40,6 @@ object frmNewCAF: TfrmNewCAF
     ModalResult = 1
     TabOrder = 1
     OnClick = btnEmailClick
-    ExplicitTop = 564
   end
   object btnPrint: TButton
     Left = 186
@@ -53,7 +51,6 @@ object frmNewCAF: TfrmNewCAF
     ModalResult = 1
     TabOrder = 2
     OnClick = btnPrintClick
-    ExplicitTop = 564
   end
   object btnResetForm: TButton
     Left = 519
@@ -64,8 +61,6 @@ object frmNewCAF: TfrmNewCAF
     Caption = 'Reset Form'
     TabOrder = 3
     OnClick = btnResetFormClick
-    ExplicitLeft = 370
-    ExplicitTop = 564
   end
   object btnCancel: TButton
     Left = 606
@@ -76,8 +71,6 @@ object frmNewCAF: TfrmNewCAF
     Caption = 'Close'
     ModalResult = 2
     TabOrder = 4
-    ExplicitLeft = 457
-    ExplicitTop = 564
   end
   object PdfFieldEdit: TPdfFieldEdit
     Left = 8
@@ -269,7 +262,5 @@ object frmNewCAF: TfrmNewCAF
       FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
       FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
       FFFFFFFFFFFFFFFF0000}
-    ExplicitWidth = 523
-    ExplicitHeight = 550
   end
 end

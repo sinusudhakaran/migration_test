@@ -153,49 +153,80 @@ begin
     PdfFieldEdit.Zoom := 3;
     PdfFieldEdit.Active := true;
 
-    PDFFormFieldItemEdit := GetPDFFormFieldEdit(ukNormNameOfAccount);
+    {ukCAFNameOfAccount = 'NameOfAccount';
+   ukCAFClientCode    = 'ClientCode';
+   ukCAFBankCode      = 'BankCode';
+   ukCAFAccountNumber = 'AccountNumber';
+   ukCAFCostCode      = 'CostCode';
+   ukCAFBankName      = 'BankName';
+   ukCAFBranchName    = 'BranchName';
+   ukCAFStartMonth    = 'cmbStartMonth';
+   ukCAFStartYear     = 'StartYear';
+   ukCAFPracticeName  = 'PracticeName';
+   ukCAFPracticeCode  = 'PracticeCode';
+   ukCAFSupplyProvisionalAccounts = 'chkSupplyProvisionalAccounts';
+   ukCAFMonthly       = 'radMonthly';
+   ukCAFWeekly        = 'radWeekly';
+   ukCAFDaily         = 'radDaily';
+   ukCAFAccountSign1  = 'AccountSignatory1';
+   ukCAFAccountSign1  = 'AccountSignatory2';
+   ukCAFAddressLine1  = 'AddressLine1';
+   ukCAFAddressLine2  = 'AddressLine2';
+   ukCAFAddressLine3  = 'AddressLine3';
+   ukCAFAddressLine4  = 'AddressLine4';
+   ukCAFPostalCode    = 'PostalCode';}
+
+    // Name of Account
+    PDFFormFieldItemEdit := GetPDFFormFieldEdit(ukCAFNameOfAccount);
     if Assigned(PDFFormFieldItemEdit) then
       PDFFormFieldItemEdit.MaxLength := 60;
 
-    PDFFormFieldItemEdit := GetPDFFormFieldEdit(ukNormBankCode);
+    // Client Code
+    PDFFormFieldItemEdit := GetPDFFormFieldEdit(ukCAFClientCode);
+    if Assigned(PDFFormFieldItemEdit) then
+    begin
+      PDFFormFieldItemEdit.MaxLength := 8;
+      PDFFormFieldItemEdit.OnKeyPressed := UpperCaseTextKeyPress;
+    end;
+
+    // Bank Code
+    PDFFormFieldItemEdit := GetPDFFormFieldEdit(ukCAFBankCode);
     if Assigned(PDFFormFieldItemEdit) then
     begin
       PDFFormFieldItemEdit.MaxLength := 8;
       PDFFormFieldItemEdit.OnKeyPressed := NumericDashKeyPress;
     end;
 
-    PDFFormFieldItemEdit := GetPDFFormFieldEdit(ukNormAccountNumber);
+    // Account Number
+    PDFFormFieldItemEdit := GetPDFFormFieldEdit(ukCAFAccountNumber);
     if Assigned(PDFFormFieldItemEdit) then
       PDFFormFieldItemEdit.MaxLength := 22;
 
-    PDFFormFieldItemEdit := GetPDFFormFieldEdit(ukNormClientCode);
+    // Cost Code
+    PDFFormFieldItemEdit := GetPDFFormFieldEdit(ukCAFCostCode);
     if Assigned(PDFFormFieldItemEdit) then
     begin
       PDFFormFieldItemEdit.MaxLength := 8;
       PDFFormFieldItemEdit.OnKeyPressed := UpperCaseTextKeyPress;
     end;
 
-    PDFFormFieldItemEdit := GetPDFFormFieldEdit(ukNormCostCode);
-    if Assigned(PDFFormFieldItemEdit) then
-    begin
-      PDFFormFieldItemEdit.MaxLength := 8;
-      PDFFormFieldItemEdit.OnKeyPressed := UpperCaseTextKeyPress;
-    end;
-
-    PDFFormFieldItemEdit := GetPDFFormFieldEdit(ukNormBankName);
+    // Bank Name
+    PDFFormFieldItemEdit := GetPDFFormFieldEdit(ukCAFBankName);
     if Assigned(PDFFormFieldItemEdit) then
       PDFFormFieldItemEdit.MaxLength := 60;
 
-    PDFFormFieldItemEdit := GetPDFFormFieldEdit(ukNormBranchName);
+    // Branch Name
+    PDFFormFieldItemEdit := GetPDFFormFieldEdit(ukCAFBranchName);
     if Assigned(PDFFormFieldItemEdit) then
       PDFFormFieldItemEdit.MaxLength := 60;
 
-    PDFFormFieldItemEdit := GetPDFFormFieldEdit(ukNormStartYear);
+    // Start Year
+    {PDFFormFieldItemEdit := GetPDFFormFieldEdit(ukCafStartYear);
     if Assigned(PDFFormFieldItemEdit) then
     begin
       PDFFormFieldItemEdit.MaxLength := 2;
       PDFFormFieldItemEdit.OnKeyPressed := NumericKeyPress;
-    end;
+    end; }
 
     Result := True;
   except

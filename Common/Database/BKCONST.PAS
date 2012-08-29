@@ -787,21 +787,28 @@ CONST
    istUKTemplateFileNames : Array[ istMin..istMax ] of String[ 20 ] =
    ( '', 'CAF.pdf', 'HSBC.pdf' );
 
-   ukNormNameOfAccount = 'NameOfAccount';
-   ukNormClientCode    = 'ClientCode';
-   ukNormBankCode      = 'BankCode';
-   ukNormAccountNumber = 'AccountNumber';
-   ukNormCostCode      = 'CostCode';
-   ukNormBankName      = 'BankName';
-   ukNormBranchName    = 'BranchName';
-   ukNormStartMonth    = 'StartMonth';
-   ukNormStartYear     = 'StartYear';
-   ukNormPracticeName  = 'PracticeName';
-   ukNormPracticeCode  = 'PracticeCode';
-   ukNormSupplyProvisionalAccounts = 'chkSupplyProvisionalAccounts';
-   ukNormMonthly       = 'radMonthly';
-   ukNormWeekly        = 'radWeekly';
-   ukNormDaily         = 'radDaily';
+   ukCAFNameOfAccount = 'NameOfAccount';
+   ukCAFClientCode    = 'ClientCode';
+   ukCAFBankCode      = 'BankCode';
+   ukCAFAccountNumber = 'AccountNumber';
+   ukCAFCostCode      = 'CostCode';
+   ukCAFBankName      = 'BankName';
+   ukCAFBranchName    = 'BranchName';
+   ukCAFStartMonth    = 'cmbStartMonth';
+   ukCAFStartYear     = 'StartYear';
+   ukCAFPracticeName  = 'PracticeName';
+   ukCAFPracticeCode  = 'PracticeCode';
+   ukCAFSupplyProvisionalAccounts = 'chkSupplyProvisionalAccounts';
+   ukCAFMonthly       = 'radMonthly';
+   ukCAFWeekly        = 'radWeekly';
+   ukCAFDaily         = 'radDaily';
+   ukCAFHSBCAccountSign1  = 'AccountSignatory1';
+   ukCAFHSBCAccountSign2  = 'AccountSignatory2';
+   ukCAFHSBCAddressLine1  = 'AddressLine1';
+   ukCAFHSBCAddressLine2  = 'AddressLine2';
+   ukCAFHSBCAddressLine3  = 'AddressLine3';
+   ukCAFHSBCAddressLine4  = 'AddressLine4';
+   ukCAFHSBCPostalCode    = 'PostalCode';
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
