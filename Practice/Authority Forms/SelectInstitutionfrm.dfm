@@ -11,6 +11,7 @@ object frmSelectInstitution: TfrmSelectInstitution
   Font.Height = -11
   Font.Name = 'Tahoma'
   Font.Style = []
+  KeyPreview = True
   OldCreateOrder = False
   Position = poMainFormCenter
   OnKeyDown = FormKeyDown

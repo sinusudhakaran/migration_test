@@ -783,7 +783,7 @@ CONST
    istUKHSBC = 2; istMax = 2;
 
    istUKNames : Array[ istMin..istMax ] of String[ 20 ] =
-   ( 'None', 'Normal/Other', 'HSBC' );
+   ( 'None', 'Other', 'HSBC' );
    istUKTemplateFileNames : Array[ istMin..istMax ] of String[ 20 ] =
    ( '', 'CAF.pdf', 'HSBC.pdf' );
 

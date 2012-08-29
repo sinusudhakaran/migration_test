@@ -633,13 +633,15 @@ begin
 
   fEdit.Font.Size := trunc(self.TextSize * ((FRM_FIELD_DPI/DPI)*Scale));
 
-  TextHeight := round(fEdit.Font.Size * 1.5);
+  TextHeight := round(fEdit.Font.Size * 1.7);
   TextExtra := fEdit.Height - TextHeight;
 
   fEdit.Top := fEdit.Top + round(TextExtra/2);
   fEdit.Height := TextHeight;
   fEdit.Left := fEdit.Left + round(2*Scale);
   fEdit.Width := fEdit.Width - round(4*Scale);
+
+  fEdit.Color := $00EEEEDD;
 
   fEdit.TabOrder := TabOrder;
 end;
@@ -761,6 +763,11 @@ end;
 
 //------------------------------------------------------------------------------
 procedure TPDFFormFieldItemComboBox.Draw;
+var
+  Scale : Double;
+  DPI : double;
+  TextHeight : integer;
+  TextExtra  : integer;
 begin
   inherited;
 
@@ -768,8 +775,19 @@ begin
     fComboBox := TComboBox.Create(nil);
 
   fComboBox.Parent := ParentWinControl;
-  ScaleControl(fComboBox);
-  fComboBox.Text := Caption;
+  Scale := ScaleControl(fComboBox);
+
+  DPI := fComboBox.Font.PixelsPerInch;
+
+  fComboBox.Font.Size := trunc(self.TextSize * ((FRM_FIELD_DPI/DPI)*Scale));
+
+  TextHeight := round(fComboBox.Font.Size * 1.5);
+  TextExtra := fComboBox.Height - TextHeight;
+
+  fComboBox.Top := fComboBox.Top + round(TextExtra/2);
+  fComboBox.Height := TextHeight;
+  fComboBox.Left := fComboBox.Left + round(2*Scale);
+  fComboBox.Width := fComboBox.Width - round(4*Scale);
 end;
 
 { TPDFFormFieldItemShape }
