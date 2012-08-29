@@ -4,11 +4,9 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, Buttons, StdCtrls, OSFont;
+  Dialogs, Buttons, StdCtrls, OSFont, CAFImporter;
 
 type
-  TCAFFileFormat = (cafPDF=0);
-   
   TfrmCAFOutputSelector = class(TForm)
     cmbFileFormat: TComboBox;
     Label1: TLabel;
