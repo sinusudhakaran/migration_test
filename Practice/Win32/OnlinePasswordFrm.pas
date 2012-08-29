@@ -13,7 +13,6 @@ type
     edtPassword: TEdit;
     Label1: TLabel;
     Label2: TLabel;
-    Label3: TLabel;
   private
     function GetPassword: String;
     { Private declarations }
