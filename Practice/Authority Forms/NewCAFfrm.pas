@@ -84,7 +84,7 @@ var
 implementation
 
 uses
-  ErrorMoreFrm, Globals, MailFrm, SaveReportToDlg, bkConst, ReportDefs, YesNoDlg, ShellAPI;
+  ErrorMoreFrm, Globals, MailFrm, SaveReportToDlg, bkConst, ReportDefs, YesNoDlg, ShellAPI, InfoMoreFrm;
 
 {$R *.dfm}
 
@@ -96,7 +96,11 @@ begin
   begin
     AttachmentSent := True;
     // TODO: Need to attach the third party authority PDF (see SendFileTo parameters in MailFrm)
-    MailFrm.SendFileTo('Send Customer Authority Form', ClientEmail, '', '', AttachmentSent, False);
+    try
+      MailFrm.SendFileTo('Send Customer Authority Form', ClientEmail, '', '', AttachmentSent, False);
+    finally
+      HelpfulInfoMsg('Mail has been sent.', 0);
+    end;
   end;
 end;
 
