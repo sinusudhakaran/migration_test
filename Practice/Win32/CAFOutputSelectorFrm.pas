@@ -124,20 +124,27 @@ function TfrmCAFOutputSelector.ValidateForm: Boolean;
 begin
   Result := False;
 
-  if Trim(edtSaveTo.Text) <> '' then
+  if Trim(edtSaveTo.Text) = '' then
   begin
     HelpfulErrorMsg('The import file field cannot be blank. Please specify a valid import file.', 0);
 
     edtSaveTo.SetFocus;
-  end
-  else
+
+    Exit;
+  end;
+
+  //This should always be called last
   if not DirectoryExists(edtSaveTo.Text) then
   begin
     if AskYesNo('Create directory', 'The specified directory does not exist. ' + #10#13#10#13 + 'Create the directory automatically?', DLG_NO, 0) <> DLG_YES then
     begin
       edtSaveTo.SetFocus;
+
+      Exit;
     end;
   end;
+
+  Result := True;
 end;
 
 end.
