@@ -135,6 +135,9 @@ function VatSaveDialog(const aOwner: TComponent; var aFileName: string): boolean
 var
   Dlg: TSaveDialog;
 begin
+  // Create this here (similar to BAS templates)
+  ForceDirectories(Globals.TemplateDir);
+
   Dlg := TSaveDialog.Create(aOwner);
   try
     Dlg.DefaultExt := DLG_DEFAULTEXT;
