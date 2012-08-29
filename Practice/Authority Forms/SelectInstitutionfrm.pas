@@ -3,8 +3,16 @@ unit SelectInstitutionfrm;
 interface
 
 uses
-  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls;
+  Windows,
+  Messages,
+  SysUtils,
+  Variants,
+  Classes,
+  Graphics,
+  Controls,
+  Forms,
+  Dialogs,
+  StdCtrls;
 
 type
   TfrmSelectInstitution = class(TForm)
@@ -13,89 +21,87 @@ type
     btnOK: TButton;
     btnCancel: TButton;
     procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
-    procedure btnOKClick(Sender: TObject);
     procedure btnCancelClick(Sender: TObject);
-    procedure FormShow(Sender: TObject);
+    procedure cmbInstitutionChange(Sender: TObject);
   private
-    FClientEmail: string;
+    fSelectedInstitution : integer;
+  protected
+    procedure FillInstCombo;
   public
-    procedure SetClientEmail(value: string);
-    property ClientEmail: string read FClientEmail write SetClientEmail;
+    function Execute : integer;
+
+    property SelectedInstitution : integer read fSelectedInstitution write fSelectedInstitution;
   end;
 
-var
-  frmSelectInstitution: TfrmSelectInstitution;
+  function PickCAFInstitution(w_PopupParent: Forms.TForm; aCountry : integer) : integer;
 
+//------------------------------------------------------------------------------
 implementation
-
-uses NewCAFfrm, Globals;
-
 {$R *.dfm}
 
+uses
+  bkConst;
+
+//------------------------------------------------------------------------------
+function PickCAFInstitution(w_PopupParent: Forms.TForm; aCountry : integer) : integer;
+var
+  frmSelectInstitution: TfrmSelectInstitution;
+begin
+  if not aCountry = whUK then
+    Exit;
+
+  frmSelectInstitution := TfrmSelectInstitution.Create(Application);
+  try
+    //Required for the proper handling of the window z-order so that a modal window does not show-up behind another window
+    frmSelectInstitution.PopupParent := w_PopupParent;
+    frmSelectInstitution.PopupMode := pmExplicit;
+    //BKHelpSetUp(ClientDetails, BKH_Editing_client_details);
+
+    Result := frmSelectInstitution.Execute;
+  finally
+    FreeAndNil(frmSelectInstitution);
+  end;
+end;
+
+//------------------------------------------------------------------------------
+function TfrmSelectInstitution.Execute: integer;
+begin
+  FillInstCombo;
+
+  ShowModal;
+
+  Result := SelectedInstitution;
+end;
+
+//------------------------------------------------------------------------------
+procedure TfrmSelectInstitution.FillInstCombo;
+var
+  InstIndex : integer;
+begin
+  cmbInstitution.Clear;
+
+  // First element is for none so don't show
+  for InstIndex := 1 to istMax do
+    cmbInstitution.AddItem(istUKNames[InstIndex], nil);
+
+  cmbInstitution.ItemIndex := 0;
+  SelectedInstitution := istUKNormal;
+end;
+
+//------------------------------------------------------------------------------
+procedure TfrmSelectInstitution.cmbInstitutionChange(Sender: TObject);
+begin
+  SelectedInstitution := cmbInstitution.ItemIndex+1;
+end;
+
+//------------------------------------------------------------------------------
 procedure TfrmSelectInstitution.btnCancelClick(Sender: TObject);
 begin
+  SelectedInstitution := istUKNone;
   ModalResult := mrCancel;
 end;
 
-procedure TfrmSelectInstitution.btnOKClick(Sender: TObject);
-var
-  CAFForm: TfrmNewCAF;
-begin
-  CAFForm := TfrmNewCAF.Create(Application.MainForm);
-
-  try
-    if (cmbInstitution.ItemIndex > 0) then // Anything except 'Other', in which case we expect the user to enter the bank themselves
-    begin
-      CAFForm.edtBank.Text := cmbInstitution.Items[cmbInstitution.ItemIndex];
-      CAFForm.edtBank.Enabled := False;
-    end;
-
-    if (CAFForm.edtBank.Text = 'HSBC') then
-    begin
-      // Show extra HSBC stuff
-      CAFForm.edtAccountSignatory1.Visible := True;
-      CAFForm.edtAccountSignatory2.Visible := True;
-      CAFForm.lblAccountSignatories.Visible := True;
-      CAFForm.edtAddressLine1.Visible := True;
-      CAFForm.edtAddressLine2.Visible := True;
-      CAFForm.edtAddressLine3.Visible := True;
-      CAFForm.edtAddressLine4.Visible := True;
-      CAFForm.lblAddressLine1.Visible := True;
-      CAFForm.lblAddressLine2.Visible := True;
-      CAFForm.lblAddressLine3.Visible := True;
-      CAFForm.lblAddressLine4.Visible := True;
-      CAFForm.edtPostalCode.Visible := True;
-      CAFForm.lblPostalCode.Visible := True;
-      CAFForm.edtBank.Text := 'HSBC';
-      CAFForm.edtBank.Enabled := False;
-    end else
-    begin
-      CAFForm.chkSupplyAccount.Top := CAFForm.edtBank.Top + 50;
-      CAFForm.lblServiceFrequency.Top := CAFForm.chkSupplyAccount.Top + 29;
-      CAFForm.pnlServiceFrequency.Top := CAFForm.chkSupplyAccount.Top + 28;
-      CAFForm.pnlBottom.Top := CAFForm.pnlServiceFrequency.Top + 22;
-      CAFForm.Height := CAFForm.Height - 250;
-    end;
-
-    CAFForm.edtPracticeName.Text := AdminSystem.fdFields.fdPractice_Name_for_Reports;
-    CAFForm.edtPracticeCode.Text := UpperCase(AdminSystem.fdFields.fdBankLink_Code);
-    CAFForm.ClientEmail := ClientEmail;
-
-    CAFForm.ShowModal;
-    case CAFForm.ButtonPressed of
-      BTN_PREVIEW: ; // TODO
-      BTN_FILE   : ; // TODO
-      BTN_PRINT  : ; // TODO
-      BTN_EMAIL  : ; // TODO
-      BTN_NONE   : ;
-    end;
-  finally
-    CAFForm.Free;
-    Close;
-  end;
-
-end;
-
+//------------------------------------------------------------------------------
 procedure TfrmSelectInstitution.FormKeyDown(Sender: TObject; var Key: Word;
   Shift: TShiftState);
 begin
@@ -105,16 +111,6 @@ begin
     VK_ESCAPE:
       btnCancel.Click;
   end;
-end;
-
-procedure TfrmSelectInstitution.FormShow(Sender: TObject);
-begin
-//
-end;
-
-procedure TfrmSelectInstitution.SetClientEmail(value: string);
-begin
-  FClientEmail := value;
 end;
 
 end.

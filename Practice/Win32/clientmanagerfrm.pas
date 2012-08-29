@@ -414,10 +414,7 @@ uses
   Clipbrd,
   YesNoDlg,
   WebUtils,
-  SelectInstitutionfrm,
-  CAFImportSelectorFrm,
-  CAFOutputSelectorFrm,
-  CAFImporter;
+  ImportCAFfrm;
 
 {$R *.dfm}
 
@@ -2489,31 +2486,13 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmClientManager.actICAFExecute(Sender: TObject);
 var
-  ImportType: TCAFImportType;
-  ImportFile: String;
-  FileFormat: TCAFFileFormat;
-  OutputFolder: String;
-  Importer: TCAFImporter;
+  ImportCAFfrm: TfrmImportCAF;
 begin
-  if TfrmCAFImportSelector.SelectImport(Self, Screen.ActiveForm, ImportType, ImportFile) then
-  begin
-    if TfrmCAFOutputSelector.SelectOutput(Self, Screen.ActiveForm, FileFormat, OutputFolder) then
-    begin
-      if ImportType = cafHSBC then
-      begin
-        Importer := THSBCCAFImporter.Create;
-      end
-      else
-      begin
-        Importer := TCAFImporter.Create;
-      end;
-
-      try
-        Importer.Import(ImportFile, FileFormat, OutputFolder);
-      finally
-        Importer.Free;
-      end;
-    end;
+  ImportCAFfrm := TfrmImportCAF.Create(Application.MainForm);
+  try
+    ImportCAFfrm.ShowModal;
+  finally
+    ImportCAFfrm.Free;
   end;
 end;
 
@@ -3311,7 +3290,6 @@ end;
 procedure TfrmClientManager.actCAFExecute(Sender: TObject);
 var
   aForm: TfrmCAF;
-  InstitutionForm: TfrmSelectInstitution;
 begin
   case AdminSystem.fdFields.fdCountry of
     whAustralia:
@@ -3357,13 +3335,7 @@ begin
       end;
     whUK:
       begin
-        InstitutionForm := TfrmSelectInstitution.Create(Application.MainForm);
-        try
-          InstitutionForm.SetClientEmail(GetSelectedEmail);
-          InstitutionForm.ShowModal;
-        finally
-          InstitutionForm.Free;
-        end;
+        OpenCustAuth(Screen.ActiveForm, AdminSystem.fdFields.fdCountry);
       end;
   end;
 end;

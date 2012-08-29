@@ -4,6 +4,7 @@ program Bk5Win;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 uses
+  madScreenShot,
   madExcept,
   madLinkDisAsm,
   madListHardware,
@@ -65,10 +66,7 @@ uses
   BankLinkOnline in 'Win32\BankLinkOnline.pas',
   BanklinkOnlineSettingsFrm in 'Win32\BanklinkOnlineSettingsFrm.pas' {frmBanklinkOnlineSettings},
   BlopiClient in 'Win32\BlopiClient.pas',
-  AcclipseX in 'Extract\AcclipseX.pas',
-  NewCAFfrm in 'Authority Forms\NewCAFfrm.pas' {frmNewCAF},
-  SelectInstitutionfrm in 'Authority Forms\SelectInstitutionfrm.pas' {frmSelectInstitution},
-  ImportCAFfrm in 'Authority Forms\ImportCAFfrm.pas' {frmImportCAF};
+  AcclipseX in 'Extract\AcclipseX.pas';
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -93,9 +91,6 @@ begin
   Application.CreateForm(TfrmMain, frmMain);
   Application.CreateForm(TAppImages, AppImages);
   Application.CreateForm(TfrmStatus, frmStatus);
-  Application.CreateForm(TfrmNewCAF, frmNewCAF);
-  Application.CreateForm(TfrmSelectInstitution, frmSelectInstitution);
-  Application.CreateForm(TfrmImportCAF, frmImportCAF);
   //********************************************
       ApplicationStartUpAndShutDown.AfterFormCreation;
     except

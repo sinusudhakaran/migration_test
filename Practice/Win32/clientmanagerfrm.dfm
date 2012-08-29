@@ -336,13 +336,12 @@ object frmClientManager: TfrmClientManager
             Left = 23
             Top = 0
             Width = 39
-            Height = 23
+            Height = 13
             Margins.Top = 0
             Margins.Bottom = 0
             Align = alLeft
             Caption = 'Legend:'
             Layout = tlCenter
-            ExplicitHeight = 13
           end
           object tbtnClose: TRzToolButton
             Left = 0

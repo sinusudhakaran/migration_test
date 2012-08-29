@@ -777,7 +777,32 @@ CONST
    whDepositEntryType : Array[ whMin..whMax ] of Byte = ( 50, 10, 10 );
    whAutopaymentEntryType : Array[ whMin..whMax ] of Byte = ( 15, 3, 3 );
    whBankChangesEntryType : Array[ whMin..whMax ] of Byte = ( 13, 8, 8 );
-   
+
+   istUKNone = 0; istMin = 0;
+   istUKNormal = 1;
+   istUKHSBC = 2; istMax = 2;
+
+   istUKNames : Array[ istMin..istMax ] of String[ 20 ] =
+   ( 'None', 'Normal/Other', 'HSBC' );
+   istUKTemplateFileNames : Array[ istMin..istMax ] of String[ 20 ] =
+   ( '', 'CAF.pdf', 'HSBC.pdf' );
+
+   ukNormNameOfAccount = 'NameOfAccount';
+   ukNormClientCode    = 'ClientCode';
+   ukNormBankCode      = 'BankCode';
+   ukNormAccountNumber = 'AccountNumber';
+   ukNormCostCode      = 'CostCode';
+   ukNormBankName      = 'BankName';
+   ukNormBranchName    = 'BranchName';
+   ukNormStartMonth    = 'StartMonth';
+   ukNormStartYear     = 'StartYear';
+   ukNormPracticeName  = 'PracticeName';
+   ukNormPracticeCode  = 'PracticeCode';
+   ukNormSupplyProvisionalAccounts = 'chkSupplyProvisionalAccounts';
+   ukNormMonthly       = 'radMonthly';
+   ukNormWeekly        = 'radWeekly';
+   ukNormDaily         = 'radDaily';
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
    whCurrencySymbols : Array[ whMin..whMax ] of String[1] = ( '$', '$', '£' );

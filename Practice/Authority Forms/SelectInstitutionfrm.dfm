@@ -1,9 +1,10 @@
 object frmSelectInstitution: TfrmSelectInstitution
   Left = 0
   Top = 0
+  BorderStyle = bsSingle
   Caption = 'Select Institution'
-  ClientHeight = 146
-  ClientWidth = 327
+  ClientHeight = 145
+  ClientWidth = 324
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -13,7 +14,6 @@ object frmSelectInstitution: TfrmSelectInstitution
   OldCreateOrder = False
   Position = poMainFormCenter
   OnKeyDown = FormKeyDown
-  OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 13
   object Label1: TLabel
@@ -32,12 +32,10 @@ object frmSelectInstitution: TfrmSelectInstitution
     Width = 291
     Height = 21
     ItemHeight = 13
-    ItemIndex = 0
     TabOrder = 0
-    Text = 'Other'
+    OnChange = cmbInstitutionChange
     Items.Strings = (
-      'Other'
-      'HSBC')
+      '')
   end
   object btnOK: TButton
     Left = 151
@@ -45,8 +43,8 @@ object frmSelectInstitution: TfrmSelectInstitution
     Width = 75
     Height = 25
     Caption = 'OK'
+    ModalResult = 1
     TabOrder = 1
-    OnClick = btnOKClick
   end
   object btnCancel: TButton
     Left = 232
