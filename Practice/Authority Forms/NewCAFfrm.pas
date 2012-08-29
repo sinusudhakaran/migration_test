@@ -84,7 +84,7 @@ var
 implementation
 
 uses
-  ErrorMoreFrm, Globals, MailFrm, SaveReportToDlg, bkConst, ReportDefs;
+  ErrorMoreFrm, Globals, MailFrm, SaveReportToDlg, bkConst, ReportDefs, YesNoDlg, ShellAPI;
 
 {$R *.dfm}
 
@@ -102,17 +102,22 @@ end;
 
 procedure TfrmNewCAF.btnFileClick(Sender: TObject);
 var
-  ReportFile, Title, Description: string;
+  ReportFile, Title, Description, MsgStr: string;
   WebID, CatID, pdfInt: integer;
 begin
 //  if ValidateForm then
-// TODO: generate the report
+// TODO: generate the report.
   ReportFile := 'BankLink Customer Authority.PDF';
   pdfInt := rfPDF;
   Title := 'Save Report To File';
   Description := '';
-  GenerateReportTo(ReportFile, pdfInt, [ffPDF], Title, Description, WebID, CatID, True);
-
+  if GenerateReportTo(ReportFile, pdfInt, [ffPDF], Title, Description, WebID, CatID, True) then
+  begin
+    MsgStr := Format('Report saved to "%s".%s%sDo you want to view it now?',
+                    [ReportFile, #13#10, #13#10]); // Need to pass the path of the PDF to this function
+    if (AskYesNo(rfNames[rfPDF], MsgStr, DLG_YES, 0) = DLG_YES) then
+      ShellExecute(0, 'open', PChar(ReportFile), nil, nil, SW_SHOWMAXIMIZED);
+  end;
 end;
 
 procedure TfrmNewCAF.btnPrintClick(Sender: TObject);
@@ -212,10 +217,6 @@ begin
       DateErrorStr := DateErrorStr + 'You must enter a valid starting year';
 
   ErrorStr := '';
-
-
-//  HelpfulErrorMsg(DateErrorStr, 0);
-
   Result := True;              
 end;
 
