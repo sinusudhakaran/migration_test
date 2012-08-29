@@ -13,6 +13,7 @@ object frmSelectInstitution: TfrmSelectInstitution
   OldCreateOrder = False
   Position = poMainFormCenter
   OnKeyDown = FormKeyDown
+  OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 13
   object Label1: TLabel

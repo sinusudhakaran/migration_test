@@ -15,10 +15,12 @@ type
     procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure btnOKClick(Sender: TObject);
     procedure btnCancelClick(Sender: TObject);
+    procedure FormShow(Sender: TObject);
   private
-    { Private declarations }
+    FClientEmail: string;
   public
-    { Public declarations }
+    procedure SetClientEmail(value: string);
+    property ClientEmail: string read FClientEmail write SetClientEmail;
   end;
 
 var
@@ -77,6 +79,7 @@ begin
 
     CAFForm.edtPracticeName.Text := AdminSystem.fdFields.fdPractice_Name_for_Reports;
     CAFForm.edtPracticeCode.Text := UpperCase(AdminSystem.fdFields.fdBankLink_Code);
+    CAFForm.ClientEmail := ClientEmail;
 
     CAFForm.ShowModal;
     case CAFForm.ButtonPressed of
@@ -102,6 +105,16 @@ begin
     VK_ESCAPE:
       btnCancel.Click;
   end;
+end;
+
+procedure TfrmSelectInstitution.FormShow(Sender: TObject);
+begin
+//
+end;
+
+procedure TfrmSelectInstitution.SetClientEmail(value: string);
+begin
+  FClientEmail := value;
 end;
 
 end.

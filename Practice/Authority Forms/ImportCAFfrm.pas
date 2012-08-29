@@ -18,9 +18,10 @@ type
     procedure btnBrowseClick(Sender: TObject);
     procedure btnImportClick(Sender: TObject);
   private
-    { Private declarations }
+    FClientEmail: string;
   public
-    { Public declarations }
+    procedure SetClientEmail(value: string);
+    property ClientEmail: string read FClientEmail write SetClientEmail;
   end;
 
 var
@@ -46,6 +47,11 @@ end;
 procedure TfrmImportCAF.btnImportClick(Sender: TObject);
 begin
   // TODO
+end;
+
+procedure TfrmImportCAF.SetClientEmail(value: string);
+begin
+  FClientEmail := value;
 end;
 
 end.

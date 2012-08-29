@@ -3339,6 +3339,7 @@ begin
       begin
         InstitutionForm := TfrmSelectInstitution.Create(Application.MainForm);
         try
+          InstitutionForm.SetClientEmail(GetSelectedEmail);
           InstitutionForm.ShowModal;
         finally
           InstitutionForm.Free;

@@ -70,8 +70,11 @@ type
     procedure edtAccountNumberKeyPress(Sender: TObject; var Key: Char);
   private
     FButton: Byte;
+    FClientEmail: string;
     function ValidateForm: Boolean;
   public
+    procedure SetClientEmail(value: string);
+    property ClientEmail: string read FClientEmail write SetClientEmail;
     property ButtonPressed: Byte read FButton;
   end;
 
@@ -87,14 +90,13 @@ uses
 
 procedure TfrmNewCAF.btnEmailClick(Sender: TObject);
 var
-  EmailAddress: string;
   AttachmentSent: Boolean;
 begin
   if ValidateForm then
   begin
-    EmailAddress := AdminSystem.fdFields.fdPractice_EMail_Address;
-    // TODO: Need to include the third party authority PDF (see SendFileTo parameters in MailFrm)
-    MailFrm.SendFileTo('Send Customer Authority Form', 'test', '', '', AttachmentSent, False);
+    AttachmentSent := True;
+    // TODO: Need to attach the third party authority PDF (see SendFileTo parameters in MailFrm)
+    MailFrm.SendFileTo('Send Customer Authority Form', ClientEmail, '', '', AttachmentSent, False);
   end;
 end;
 
@@ -178,6 +180,11 @@ end;
 procedure TfrmNewCAF.FormShow(Sender: TObject);
 begin
   edtAccountName.SetFocus;
+end;
+
+procedure TfrmNewCAF.SetClientEmail(value: string);
+begin
+  FClientEmail := Value;
 end;
 
 function TfrmNewCAF.ValidateForm: Boolean;
