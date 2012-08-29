@@ -438,7 +438,6 @@ object frmNewCAF: TfrmNewCAF
       Width = 75
       Height = 25
       Caption = '&File'
-      ModalResult = 1
       TabOrder = 2
       OnClick = btnFileClick
     end
@@ -448,7 +447,6 @@ object frmNewCAF: TfrmNewCAF
       Width = 75
       Height = 25
       Caption = '&E-mail'
-      ModalResult = 1
       TabOrder = 3
       OnClick = btnEmailClick
     end
@@ -458,7 +456,6 @@ object frmNewCAF: TfrmNewCAF
       Width = 75
       Height = 25
       Caption = '&Print'
-      ModalResult = 1
       TabOrder = 4
       OnClick = btnPrintClick
     end

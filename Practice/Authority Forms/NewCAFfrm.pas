@@ -84,7 +84,7 @@ var
 implementation
 
 uses
-  ErrorMoreFrm, Globals, MailFrm;
+  ErrorMoreFrm, Globals, MailFrm, SaveReportToDlg, bkConst, ReportDefs;
 
 {$R *.dfm}
 
@@ -101,9 +101,18 @@ begin
 end;
 
 procedure TfrmNewCAF.btnFileClick(Sender: TObject);
+var
+  ReportFile, Title, Description: string;
+  WebID, CatID, pdfInt: integer;
 begin
 //  if ValidateForm then
-// TODO: File
+// TODO: generate the report
+  ReportFile := 'BankLink Customer Authority.PDF';
+  pdfInt := rfPDF;
+  Title := 'Save Report To File';
+  Description := '';
+  GenerateReportTo(ReportFile, pdfInt, [ffPDF], Title, Description, WebID, CatID, True);
+
 end;
 
 procedure TfrmNewCAF.btnPrintClick(Sender: TObject);
