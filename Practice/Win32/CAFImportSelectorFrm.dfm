@@ -44,6 +44,7 @@ object frmCAFImportSelector: TfrmCAFImportSelector
     Top = 21
     Width = 204
     Height = 21
+    Style = csDropDownList
     ItemHeight = 13
     ItemIndex = 0
     TabOrder = 0
