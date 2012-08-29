@@ -114,6 +114,9 @@ function VatOpenDialog(const aOwner: TComponent; var aFileName: string): boolean
 var
   Dlg: TOpenDialog;
 begin
+  // Create this here (similar to BAS templates)
+  ForceDirectories(Globals.TemplateDir);
+
   Dlg := TOpenDialog.Create(aOwner);
   try
     Dlg.DefaultExt := DLG_DEFAULTEXT;
