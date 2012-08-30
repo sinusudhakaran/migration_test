@@ -674,19 +674,19 @@ begin
   try
     if ckUseBankLinkOnline.Checked then begin
       UseBankLinkOnline := True;
-      FPrac := ProductConfigService.GetPractice(False);
+      FPrac := ProductConfigService.GetPractice(False, False, ebCode.Text);
       if (FPrac.id <> '') then begin
         if ProductConfigService.Registered  then
         begin
           if ProductConfigService.IsPracticeProductEnabled(ProductConfigService.GetExportDataId, True) then
           begin
-            FPracticeVendorExports := ProductConfigService.GetPracticeVendorExports;
+            FPracticeVendorExports := ProductConfigService.GetPracticeVendorExports(True, ebCode.Text);
 
             if Assigned(FPracticeVendorExports) then
             begin
               if Length(FPracticeVendorExports.Available) > 0 then
               begin
-                FVendorSubscriberCount := ProductConfigService.GetVendorExportClientCount;
+                FVendorSubscriberCount := ProductConfigService.GetVendorExportClientCount(ebCode.Text);
               end;
             end;
           end;
@@ -694,7 +694,7 @@ begin
           //Need the client list for checking if clients are using products before
           //they are removed. Only load if practice details have been received
           //from BankLink Online (not from cache).
-          ProductConfigService.LoadClientList;
+          ProductConfigService.LoadClientList(ebCode.Text);
         end;
       end else
       begin

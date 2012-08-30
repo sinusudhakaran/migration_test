@@ -182,11 +182,11 @@ type
     procedure SetTimeOuts(ConnecTimeout : DWord ;
                           SendTimeout   : DWord ;
                           ReciveTimeout : DWord);
-    function GetServiceFacade : IBlopiServiceFacade;
+    function GetServiceFacade(PracticeCode: string = '') : IBlopiServiceFacade;
     function GetSecureServiceFacade : IBlopiSecureServiceFacade;
     function GetAuthenticationServiceFacade : IP5Auth;
 
-    function GetBanklinkOnlineURL: String;
+    function GetBanklinkOnlineURL(PracticeCode: string = ''): String;
 
     function GetCachedPractice: TBloPracticeRead;
     function MessageResponseHasError(AMesageresponse: MessageResponse; ErrorText: string;
@@ -300,7 +300,7 @@ type
 
     destructor Destroy; override;
     //Practice methods
-    function GetPractice(aUpdateUseOnline: Boolean = True; aForceOnlineCall : Boolean = false): TBloPracticeRead;
+    function GetPractice(aUpdateUseOnline: Boolean = True; aForceOnlineCall : Boolean = false; PracticeCode: string = ''): TBloPracticeRead;
     function IsPracticeActive(aShowWarning: Boolean = true): Boolean;
     function IsPracticeDeactivated(aShowWarning: Boolean = true): boolean;
     function IsPracticeSuspended(aShowWarning: Boolean = true): boolean;
@@ -332,7 +332,7 @@ type
 
     //Client methods
     function CreateNewClientWithUser(aNewClient: TBloClientCreate; aNewUserCreate: TBloUserCreate): TBloClientReadDetail;
-    procedure LoadClientList;
+    procedure LoadClientList(PracticeCode: string = '');
     function GetClientDetailsWithCode(AClientCode: string; SynchronizeBlopi: Boolean = False): TBloClientReadDetail;
     function GetClientDetailsWithGUID(AClientGuid: Guid; SynchronizeBlopi: Boolean = False): TBloClientReadDetail;
     function CreateNewClient(ANewClient: TBloClientCreate): Guid;
@@ -405,7 +405,7 @@ type
     function GuidArraysEqual(GuidArrayA, GuidArrayB: TBloArrayOfGuid): Boolean;
 
     function PracticeHasVendors : Boolean;
-    function GetPracticeVendorExports(ShowProgressBar: boolean = True) : TBloDataPlatformSubscription;
+    function GetPracticeVendorExports(ShowProgressBar: boolean = True; PracticeCode: string = '') : TBloDataPlatformSubscription;
     function GetClientVendorExports(aClientGuid: TBloGuid) : TBloDataPlatformSubscription;
     function GetAccountVendors(aClientGuid : TBloGuid; aAccountId: Integer;
                                ShowProgressBar: boolean): TBloDataPlatformSubscription;
@@ -439,7 +439,7 @@ type
                                    out BankAccounts: TBloArrayOfDataPlatformBankAccount;
                                    aShowProgressBar: Boolean = True): Boolean;
 
-    function GetVendorExportClientCount: TBloArrayOfPracticeDataSubscriberCount;
+    function GetVendorExportClientCount(PracticeCode: string = ''): TBloArrayOfPracticeDataSubscriberCount;
 
     function GetClientGuid(const ClientCode: WideString; out Id: TBloGuid): Boolean; overload;
 
@@ -1101,11 +1101,14 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TProductConfigService.GetBanklinkOnlineURL: String;
+function TProductConfigService.GetBanklinkOnlineURL(PracticeCode: string = ''): String;
 begin
   if Trim(AdminSystem.fdFields.fdBankLink_Code) <> '' then
   begin
-    Result := ReplaceText(PRACINI_BankLink_Online_Services_URL, 'https://www.', Format('https://%s.', [AdminSystem.fdFields.fdBankLink_Code]));
+    if (PracticeCode = '') then
+      PracticeCode := AdminSystem.fdFields.fdBankLink_Code;
+
+    Result := ReplaceText(PRACINI_BankLink_Online_Services_URL, 'https://www.', Format('https://%s.', [PracticeCode]));
   end
   else
   begin
@@ -1387,7 +1390,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TProductConfigService.GetPractice(aUpdateUseOnline: Boolean; aForceOnlineCall : Boolean): TBloPracticeRead;
+function TProductConfigService.GetPractice(aUpdateUseOnline: Boolean; aForceOnlineCall : Boolean; PracticeCode: string): TBloPracticeRead;
 var
   i: integer;
   BlopiInterface: IBlopiServiceFacade;
@@ -1449,9 +1452,11 @@ begin
         or (aForceOnlineCall) then
         begin
           //Reload from BankLink Online
-          BlopiInterface := GetServiceFacade;
+          if (PracticeCode = '') then
+            PracticeCode := AdminSystem.fdFields.fdBankLink_Code;
+          BlopiInterface := GetServiceFacade(PracticeCode);
           PracticeDetailResponse := BlopiInterface.GetPractice(CountryText(AdminSystem.fdFields.fdCountry),
-                                                               AdminSystem.fdFields.fdBankLink_Code,
+                                                               PracticeCode,
                                                                AdminSystem.fdFields.fdBankLink_Connect_Password);
 
           if Assigned(PracticeDetailResponse) then
@@ -1555,7 +1560,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TProductConfigService.LoadClientList;
+procedure TProductConfigService.LoadClientList(PracticeCode: string = '');
 var
   BlopiInterface: IBlopiServiceFacade;
   BlopiClientList: MessageResponseOfClientListMIdCYrSK;
@@ -1575,9 +1580,11 @@ begin
         if ShowProgress then
           Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Getting Client List', 50);
 
-        BlopiInterface := GetServiceFacade;
+        if (PracticeCode = '') then
+          PracticeCode := AdminSystem.fdFields.fdBankLink_Code;
+        BlopiInterface := GetServiceFacade(PracticeCode);
         BlopiClientList := BlopiInterface.GetClientList(CountryText(AdminSystem.fdFields.fdCountry),
-                                                        AdminSystem.fdFields.fdBankLink_Code,
+                                                        PracticeCode,
                                                         AdminSystem.fdFields.fdBankLink_Connect_Password);
         if not MessageResponseHasError(MessageResponse(BlopiClientList), 'load the client list from') then
           if Assigned(BlopiClientList.Result) then
@@ -1763,7 +1770,7 @@ begin
   Result := FValidBConnectDetails;
 end;
 
-function TProductConfigService.GetVendorExportClientCount: TBloArrayOfPracticeDataSubscriberCount;
+function TProductConfigService.GetVendorExportClientCount(PracticeCode: string = ''): TBloArrayOfPracticeDataSubscriberCount;
 var
   DataSubscriberCredentialsResponse: MessageResponseOfArrayOfPracticeDataSubscriberCount6cY85e5k;
   ShowProgress: Boolean;
@@ -1792,11 +1799,13 @@ begin
       if ShowProgress then
         Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Getting Data Export Subscribers', 50);
 
-      BlopiInterface :=  GetServiceFacade;
-      
+      if (PracticeCode = '') then
+        PracticeCode := AdminSystem.fdFields.fdBankLink_Code;
+      BlopiInterface := GetServiceFacade(PracticeCode);
+
       //Get the vendor export types from BankLink Online
       DataSubscriberCredentialsResponse := BlopiInterface.GetPracticeDataSubscriberCount(CountryText(AdminSystem.fdFields.fdCountry),
-                                                       AdminSystem.fdFields.fdBankLink_Code,
+                                                       PracticeCode,
                                                        AdminSystem.fdFields.fdBankLink_Connect_Password);
                                                        
       if not MessageResponseHasError(MessageResponse(DataSubscriberCredentialsResponse), 'get the vendor subscribers') then
@@ -2282,14 +2291,14 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TProductConfigService.GetServiceFacade: IBlopiServiceFacade;
+function TProductConfigService.GetServiceFacade(PracticeCode: string = ''): IBlopiServiceFacade;
 var
   HTTPRIO: THTTPRIO;
 begin
   HTTPRIO := THTTPRIO.Create(nil);
   HTTPRIO.OnBeforeExecute := DoBeforeExecute;
 
-  Result := GetIBlopiServiceFacade(False, GetBanklinkOnlineURL + '/Services/BlopiServiceFacade.svc', HTTPRIO);
+  Result := GetIBlopiServiceFacade(False, GetBanklinkOnlineURL(PracticeCode) + '/Services/BlopiServiceFacade.svc', HTTPRIO);
 end;
 
 //------------------------------------------------------------------------------
@@ -5116,7 +5125,8 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TProductConfigService.GetPracticeVendorExports(ShowProgressBar: boolean = True) : TBloDataPlatformSubscription;
+function TProductConfigService.GetPracticeVendorExports(ShowProgressBar: boolean = True;
+                                                        PracticeCode: string = '') : TBloDataPlatformSubscription;
 var
   DataPlatformSubscriberResponse: MessageResponseOfDataPlatformSubscription6cY85e5k;
   ShowProgress: Boolean;
@@ -5145,11 +5155,12 @@ begin
       if ShowProgress then
         Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Getting Available Data Exports', 50);
 
-      BlopiInterface :=  GetServiceFacade;
-      
+      if (PracticeCode = '') then
+        PracticeCode := AdminSystem.fdFields.fdBankLink_Code;
+      BlopiInterface := GetServiceFacade(PracticeCode);
       //Get the vendor export types from BankLink Online
       DataPlatformSubscriberResponse := BlopiInterface.GetPracticeDataSubscribers(CountryText(AdminSystem.fdFields.fdCountry),
-                                                       AdminSystem.fdFields.fdBankLink_Code,
+                                                       PracticeCode,
                                                        AdminSystem.fdFields.fdBankLink_Connect_Password);
                                                        
       if not MessageResponseHasError(MessageResponse(DataPlatformSubscriberResponse), 'get the vendor export types from') then
