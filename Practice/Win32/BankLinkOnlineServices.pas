@@ -2213,6 +2213,8 @@ begin
                       FormatDateTime('yyyy-mm-dd hh-mm-ss zzz', Now) + '.xml';
 
         Document.SaveToFile(LogXmlFile);
+
+        LogUtil.LogMsg(lmDebug, UNIT_NAME, Format('Call online method: %s', [MethodName]));
       end;
 
     end;
