@@ -787,28 +787,28 @@ CONST
    istUKTemplateFileNames : Array[ istMin..istMax ] of String[ 20 ] =
    ( '', 'UK_CAF_Template.pdf', 'UK_HSBC_Template.pdf' );
 
-   ukCAFNameOfAccount = 'NameOfAccount';
-   ukCAFClientCode    = 'ClientCode';
-   ukCAFBankCode      = 'BankCode';
-   ukCAFAccountNumber = 'AccountNumber';
-   ukCAFCostCode      = 'CostCode';
-   ukCAFBankName      = 'BankName';
-   ukCAFBranchName    = 'BranchName';
-   ukCAFStartMonth    = 'cmbStartMonth';
-   ukCAFStartYear     = 'StartYear';
-   ukCAFPracticeName  = 'PracticeName';
-   ukCAFPracticeCode  = 'PracticeCode';
+   ukCAFNameOfAccount     = 'txtNameOfAccount';
+   ukCAFClientCode        = 'txtClientCode';
+   ukCAFBankCode          = 'txtBankCode';
+   ukCAFAccountNumber     = 'txtAccountNumber';
+   ukCAFCostCode          = 'txtCostCode';
+   ukCAFBankName          = 'txtBankName';
+   ukCAFBranchName        = 'txtBranchName';
+   ukCAFStartMonth        = 'cmbStartMonth';
+   ukCAFStartYear         = 'txtStartYear';
+   ukCAFPracticeName      = 'txtPracticeName';
+   ukCAFPracticeCode      = 'txtPracticeCode';
    ukCAFSupplyProvisionalAccounts = 'chkSupplyProvisionalAccounts';
-   ukCAFMonthly       = 'radMonthly';
-   ukCAFWeekly        = 'radWeekly';
-   ukCAFDaily         = 'radDaily';
-   ukCAFHSBCAccountSign1  = 'AccountSignatory1';
-   ukCAFHSBCAccountSign2  = 'AccountSignatory2';
-   ukCAFHSBCAddressLine1  = 'AddressLine1';
-   ukCAFHSBCAddressLine2  = 'AddressLine2';
-   ukCAFHSBCAddressLine3  = 'AddressLine3';
-   ukCAFHSBCAddressLine4  = 'AddressLine4';
-   ukCAFHSBCPostalCode    = 'PostalCode';
+   ukCAFMonthly           = 'radMonthly';
+   ukCAFWeekly            = 'radWeekly';
+   ukCAFDaily             = 'radDaily';
+   ukCAFHSBCAccountSign1  = 'txtAccountSignatory1';
+   ukCAFHSBCAccountSign2  = 'txtAccountSignatory2';
+   ukCAFHSBCAddressLine1  = 'txtAddressLine1';
+   ukCAFHSBCAddressLine2  = 'txtAddressLine2';
+   ukCAFHSBCAddressLine3  = 'txtAddressLine3';
+   ukCAFHSBCAddressLine4  = 'txtAddressLine4';
+   ukCAFHSBCPostalCode    = 'txtPostalCode';
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
