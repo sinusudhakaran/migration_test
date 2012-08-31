@@ -123,13 +123,13 @@ function TCAFImporter.ContainsSymbols(const Value: String): Boolean;
 var
   ValueChar: Char;
 begin
-  Result := True;
+  Result := False;
   
   for ValueChar in Value do
   begin
     if not (LowerCase(ValueChar)[1] in['a','b','c','d','e','f','g','h','i','j','k','l','m','n','n','o','p','q','r','s','t','u','v','w','x','y','z','0','1','2','3','4','5','6','7','8','9'])  then
     begin
-      Result := False;
+      Result := True;
 
       Break;
     end;
