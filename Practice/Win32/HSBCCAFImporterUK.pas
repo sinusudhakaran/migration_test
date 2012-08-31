@@ -58,8 +58,8 @@ type
     FMultiImport: Boolean;
   protected
     procedure ImportAsPDF(Source: TCAFSource; const OutputFolder: String); override;
-    function ValidateRecord(Source: TCAFSource): Boolean; override;
-    function ValidateFields(Source: TCAFSource): Boolean; override;
+    procedure DoRecordValidation(Source: TCAFSource); override;
+    procedure DoFieldValidation(Source: TCAFSource); override;
     procedure Initialize(Source: TCAFSource); override;
   public
   end;
@@ -168,38 +168,41 @@ begin
   end;
 end;
 
-function THSBCCAFImporterUK.ValidateFields(Source: TCAFSource): Boolean;
+procedure THSBCCAFImporterUK.DoFieldValidation(Source: TCAFSource);
 begin
-  Result := Source.FieldCount >= 18;
+  if Source.FieldCount < 18 then
+  begin
+    AddError('Fields', 'The file does not contain enough fields'); 
+  end;
 end;
 
-function THSBCCAFImporterUK.ValidateRecord(Source: TCAFSource): Boolean;
+procedure THSBCCAFImporterUK.DoRecordValidation(Source: TCAFSource);
 begin
   if (Trim(Source.AccountName) = '') and (Trim(Source.SortCode) = '') and (Trim(Source.AccountNo) = '') then
   begin
-    AddImportError(Source.CurrentRow, 'You must enter the name of the account or the sort code or the account number.'); 
+    AddImportError(Source, 'You must enter the name of the account or the sort code or the account number.');
   end;
 
   if ContainsSymbols(Trim(Source.ClientCode)) then
   begin
-    AddImportError(Source.CurrentRow, 'The client code can only contain alpha numeric characters.');
+    AddImportError(Source, 'The client code can only contain alpha numeric characters.');
   end;
 
   if ContainsSymbols(Trim(Source.CostCode)) then
   begin
-    AddImportError(Source.CurrentRow, 'The cost code can only contain alpha numeric characters.');
+    AddImportError(Source, 'The cost code can only contain alpha numeric characters.');
   end;
 
   if (Trim(Source.Month) = '') and (Trim(Source.Year) <> '') then
   begin
-    AddImportError(Source.CurrentRow, 'You must choose a starting month.');  
+    AddImportError(Source, 'You must choose a starting month.');
   end
   else
   if CompareText(Source.Month, 'ASAP') <> 0 then
   begin
     if not IsLongMonthName(Trim(Source.Month)) then
     begin
-      AddImportError(Source.CurrentRow, 'You must enter a valid starting month.');
+      AddImportError(Source, 'You must enter a valid starting month.');
     end;
   end;
 
@@ -207,7 +210,7 @@ begin
   begin
     if (CompareText(Source.Month, 'ASAP') <> 0) then
     begin
-      AddImportError(Source.CurrentRow, 'You must enter a valid starting year.');
+      AddImportError(Source, 'You must enter a valid starting year.');
     end;
   end
   else
@@ -216,16 +219,14 @@ begin
     begin
       if not IsNumber(Source.Year) then
       begin
-        AddImportError(Source.CurrentRow, 'You must enter a valid starting year.');
+        AddImportError(Source, 'You must enter a valid starting year.');
       end;
     end
     else
     begin
-      AddImportError(Source.CurrentRow, 'You must enter a valid starting year.');
+      AddImportError(Source, 'You must enter a valid starting year.');
     end;
   end;
-
-  Result := True;
 end;
 
 { TCAFSourceHelper }
