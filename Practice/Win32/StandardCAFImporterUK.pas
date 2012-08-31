@@ -45,9 +45,8 @@ type
   protected
     procedure ImportAsPDF(Source: TCAFSource; const OutputFolder: String); override;
     function ValidateRecord(Source: TCAFSource): Boolean; override;
-    procedure Initialize(Source: TCAFSource); override;
-  public
     function ValidateFields(Source: TCAFSource): Boolean; override;
+    procedure Initialize(Source: TCAFSource); override;
   end;
 
 implementation
