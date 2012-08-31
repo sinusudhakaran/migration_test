@@ -9,7 +9,7 @@ Interface uses MONEYDEF, DATEDEF;
 {  -------------------------------------------------------------------  }
 
 Const
-   BK_IOLIB_Version : Integer = 660;
+   BK_IOLIB_Version : Integer = 662;
    BK_IOLIB_Date    = '31/08/12';
    BK_FILE_VERSION  = 170;  (* Current Version counter for files
                               Changes if structure or method of storing a value would cause
@@ -216,6 +216,7 @@ Const
                             Added Core Trans ID High Integer
                             Added Bank Account Core ID
                             Added Bank Account Online Secure Code
+                            Changed Transaction Matched_By from type "Memorised Transaction Rec" to "Memorisation Detail Rec"
    *)
    //Audit Trail - 135 Don't reuse token!!! - Record defined in SY.TXT but also used in Client File
 
@@ -931,7 +932,7 @@ Type
       txLast_Dissection                  : pDissection_Rec;
       txNext_Transaction                 : pTransaction_Rec;
       txNext_Transaction_By_Type         : pTransaction_Rec;
-      txMatched_By                       : pMemorised_Transaction_Rec;
+      txMatched_By                       : ppMemorisation_Detail_Rec;
       txMatched_In_Resync                : Boolean;
       txTemp_Admin_LRN                   : Integer;
       txUPC_Status                       : Byte;

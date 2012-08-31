@@ -203,6 +203,7 @@ $|                         tagging additions to the BLO settings form
 $|                         Added Core Trans ID High Integer
 $|                         Added Bank Account Core ID
 $|                         Added Bank Account Online Secure Code
+$|                         Changed Transaction Matched_By from type "Memorised Transaction Rec" to "Memorisation Detail Rec"
 $|*)
 
 N|Client|cl|20
@@ -845,7 +846,7 @@ C|First Dissection|P|Dissection_Rec
 C|Last Dissection|P|Dissection_Rec
 C|Next Transaction|P|Transaction_Rec
 C|Next Transaction By Type|P|Transaction_Rec
-C|Matched By|P|Memorised Transaction Rec
+C|Matched By|P|pMemorisation_Detail_Rec
 C|Matched In Resync|Y
 C|Temp Admin LRN|L
 C|UPC Status|B
