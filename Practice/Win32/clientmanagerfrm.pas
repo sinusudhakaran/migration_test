@@ -2497,22 +2497,52 @@ var
   FileFormat: TCAFFileFormat;
   OutputFolder: String;
   Importer: TCAFImporter;
+  InstituteName: String;
 begin
   if TfrmCAFImportSelector.SelectImport(Self, Screen.ActiveForm, ImportType, ImportFile) then
   begin
     if TfrmCAFOutputSelector.SelectOutput(Self, Screen.ActiveForm, FileFormat, OutputFolder) then
     begin
-      if ImportType = cafHSBC then
-      begin
-        Importer := THSBCCAFImporter.Create;
-      end
-      else
-      begin
-        Importer := TCAFImporter.Create;
-      end;
+      Importer := TCAFImporter.CreateImporter(ImportType);
 
       try
-        Importer.Import(ImportFile, FileFormat, OutputFolder);
+        try
+          Importer.Import(ImportFile, FileFormat, OutputFolder);
+
+          if (Importer.Statistics.Generated > 0) and (Importer.Statistics.Failed = 0) then
+          begin
+            if AskYesNo('Info', Format('BankLink Practice has generated the following %s' + #10#13 +
+                                  'Customer Authority Forms to %s.' + #10#13#10#13 +
+                                  '%s CAFs were generated.' + #10#13#10#13 +
+                                  'Do you want to view the folder now?',
+                                  [InstituteName, OutputFolder, IntToStr(Importer.Statistics.Generated)]), DLG_YES, 0) = DLG_YES then
+            begin
+              ShellExecute(handle, 'Open', PAnsiChar(OutputFolder), nil, nil, SW_SHOWNORMAL); 
+            end;
+          end
+          else if Importer.Statistics.Failed > 0 then
+          begin
+             if AskYesNo('Info', Format('BankLink Practice has generated the following %s' + #10#13 +
+                                  'Customer Authority Forms to %s.' + #10#13#10#13 +
+                                  '%s CAFs were generated.' + #10#13 +
+                                  '%s CAFs could not be generated due to errors.' + #10#13#10#13 +
+                                  'Do you want to view the folder now?',
+                                  [InstituteName, OutputFolder, IntToStr(Importer.Statistics.Generated), IntToStr(Importer.Statistics.Failed)]), DLG_YES, 0) = DLG_YES then
+            begin
+              ShellExecute(handle, 'Open', PAnsiChar(OutputFolder), nil, nil, SW_SHOWNORMAL); 
+            end;
+          end
+          else
+          begin
+            HelpfulInfoMsg(Format('BankLink Practice could not generate any Customer Authority Forms based on the selected import file %s %s.', [ImportFile, OutputFolder]), 0);
+          end;
+        except
+          on E:Exception do
+          begin
+
+            HelpfulErrorMsg(Format('An error occurred during the Customer Authority Form import process - %s', [E.Message]), 0);
+          end;
+        end;
       finally
         Importer.Free;
       end;
