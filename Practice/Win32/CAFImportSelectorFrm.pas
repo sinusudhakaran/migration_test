@@ -144,19 +144,19 @@ begin
     Importer := TCAFImporter.CreateImporter(ImportType);
 
     try
-      if not Importer.ValidateImportFields(edtImportFile.Text) then
+      if not Importer.ValidateFields(edtImportFile.Text) then
       begin
-        HelpfulErrorMsg('The specified import file does not have the required number of fields. Please specify a valid import file', 0);
+        HelpfulErrorMsg('The specified import file does not have the required number of fields. Please specify a valid import file.', 0);
 
         edtImportFile.SetFocus;       
       end
       else
       begin
-        Importer.ValidateImportRecords(edtImportFile.Text, ValidFields, InvalidFields);
+        Importer.ValidateRecords(edtImportFile.Text, ValidFields, InvalidFields);
 
         if ValidFields = 0 then
         begin
-          HelpfulErrorMsg('The specified import file must contain atleast one valid bank account record. Please specify a valid import file', 0);
+          HelpfulErrorMsg('The specified import file must contain at least one valid bank account record. Please specify a valid import file.', 0);
 
           edtImportFile.SetFocus;
         end
