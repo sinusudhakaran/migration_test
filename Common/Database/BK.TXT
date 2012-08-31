@@ -846,7 +846,7 @@ C|First Dissection|P|Dissection_Rec
 C|Last Dissection|P|Dissection_Rec
 C|Next Transaction|P|Transaction_Rec
 C|Next Transaction By Type|P|Transaction_Rec
-C|Matched By|P|pMemorisation_Detail_Rec
+C|Matched By|P|Memorisation Detail Rec
 C|Matched In Resync|Y
 C|Temp Admin LRN|L
 C|UPC Status|B
