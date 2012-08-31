@@ -4,11 +4,9 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, OSFont, StdCtrls, Buttons;
+  Dialogs, OSFont, StdCtrls, Buttons, CAFImporter;
 
 type
-  TCAFImportType = (cafOther=0, cafHSBC=1);
-  
   TfrmCAFImportSelector = class(TForm)
     cmbInstitution: TComboBox;
     Label1: TLabel;
@@ -39,9 +37,7 @@ var
 implementation
 
 uses
-  ErrorMoreFrm, Imagesfrm, StdHints;
-
-
+  ErrorMoreFrm, Imagesfrm, StdHints, Globals, BKConst;
 
 {$R *.dfm}
 
@@ -122,6 +118,22 @@ begin
 end;
 
 function TfrmCAFImportSelector.ValidateForm: Boolean;
+
+  function ValidateFieldCount(CAFSource: TCAFSource): Boolean;
+  begin
+    Result := True;
+
+    if ImportType = cafHSBC then
+    begin
+      if AdminSystem.fdFields.fdCountry = whUK then
+      begin
+        Result := CAFSource.FieldCount >= 17;
+      end;
+    end;
+  end;
+  
+var
+  CAFSource: TCAFSource;
 begin
   Result := False;
   
@@ -140,7 +152,29 @@ begin
   end
   else
   begin
-    Result := True;
+    CAFSource := TCAFImporter.CreateCAFSource(edtImportFile.Text);
+
+    try
+      if not ValidateFieldCount(CAFSource) then
+      begin
+        HelpfulErrorMsg('The specified import file does not have the required number of fields. Please specify a valid import file', 0);
+
+        edtImportFile.SetFocus;       
+      end
+      else
+      if CAFSource.Count < 1 then
+      begin
+        HelpfulErrorMsg('The specified import file must have atleast one bank record. Please specify a valid import file', 0);
+
+        edtImportFile.SetFocus;       
+      end
+      else
+      begin
+        Result := True;
+      end;
+    finally
+      CAFSource.Free;
+    end;
   end;
 end;
 
