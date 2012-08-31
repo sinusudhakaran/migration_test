@@ -67,7 +67,7 @@ type
     procedure ImportAsPDF(Source: TCAFSource; const OutputFile: String); virtual;
     
     function ValidateRecord(Source: TCAFSource): Boolean; virtual; abstract;
-    function ValidateSource(Source: TCAFSource): Boolean; virtual; abstract;
+    function ValidateFields(Source: TCAFSource): Boolean; virtual; abstract;
 
     function IsNumber(const Value: String): Boolean;
     function ContainsSymbols(const Value: String): Boolean;
@@ -77,14 +77,18 @@ type
     procedure ResetImportStatistics;
     procedure ResetImportErrors;
 
+    function CreateCAFSource(const SourceFile: String): TCAFSource;
+
     procedure Initialize(Source: TCAFSource); virtual;
   public
     constructor Create; virtual;
     destructor Destroy; override;
 
     procedure Import(const ImportFile: String; FileFormat: TCAFFileFormat; const OutputFolder: String);
-    
-    class function CreateCAFSource(const SourceFile: String): TCAFSource;
+
+    procedure ValidateImportRecords(const ImportFile: String; out ValidLines, InvalidLines: Integer);
+    function ValidateImportFields(const ImportFile: String): Boolean;
+
     class function CreateImporter(ImportType: TCAFImportType): TCAFImporter; static;
 
     property Statistics: TCAFImporterStatistics read FStatistics;
@@ -138,7 +142,7 @@ begin
   FErrors := TStringList.Create;
 end;
 
-class function TCAFImporter.CreateCAFSource(const SourceFile: String): TCAFSource;
+function TCAFImporter.CreateCAFSource(const SourceFile: String): TCAFSource;
 begin
   if CompareText(ExtractFileExt(SourceFile), '.xls') = 0 then
   begin
@@ -248,6 +252,51 @@ procedure TCAFImporter.ResetImportStatistics;
 begin
   FStatistics.Generated := 0;
   FStatistics.Failed := 0;
+end;
+
+function TCAFImporter.ValidateImportFields(const ImportFile: String): Boolean;
+var
+  CAFSource: TCAFSource;
+begin
+  CAFSource := CreateCAFSource(ImportFile);
+
+  try
+    Result := ValidateFields(CAFSource); 
+  finally
+    CAFSource.Free;
+  end;
+end;
+
+procedure TCAFImporter.ValidateImportRecords(const ImportFile: String; out ValidLines, InvalidLines: Integer);
+var
+  CAFSource: TCAFSource;
+begin
+  ValidLines := 0;
+  InvalidLines := 0;
+
+  CAFSource := CreateCAFSource(ImportFile);
+
+  try
+    CAFSource.First;
+
+    Initialize(CAFSource);
+
+    while not CAFSource.Eof do
+    begin
+      if ValidateRecord(CAFSource) then
+      begin
+        Inc(ValidLines);
+      end
+      else
+      begin
+        Inc(InvalidLines);
+      end;
+
+      CAFSource.Next;
+    end;
+  finally
+    CAFSource.Free;
+  end;
 end;
 
 { TXLSCAFSource }
