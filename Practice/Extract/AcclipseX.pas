@@ -149,7 +149,7 @@ Begin
                         if s = '' then
                           Write( XFile, '"0",')
                         else
-      { EXT_REF}          Write( XFile, '"', s, '",' );
+      { EXT_REF}          Write( XFile, '"', ReplaceCommasAndQuotes(s), '",' );
 
       { EXT_ACCNO}      Write( XFile, '"', ReplaceCommasAndQuotes(dsAccount), '",' );
 
@@ -215,7 +215,7 @@ Begin
                            if Trim( txReference) = '' then
                              Write( XFile, '"0",')
                            else
-           { EXT_REF}        Write( XFile, '"', txReference, '",' );
+           { EXT_REF}        Write( XFile, '"', ReplaceCommasAndQuotes(txReference), '",' );
 
          { EXT_ACCNO}      Write( XFile, '"",' );
 
