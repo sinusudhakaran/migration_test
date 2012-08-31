@@ -1703,11 +1703,17 @@ begin
   ClientStatus := 0;
   
   if Assigned(MyClient) and (MyClient.clFields.clCode = Code) then begin
-    AClientEmail := MyClient.clFields.clPractice_Name + NAME_EMAIL_SPACER +
-                    MyClient.clFields.clPractice_EMail_Address;
-    if MyClient.clFields.clCustom_Contact_EMail_Address <> '' then
-      AClientEmail := MyClient.clFields.clContact_Name + NAME_EMAIL_SPACER +
-                      MyClient.clFields.clCustom_Contact_EMail_Address;
+    AClientEmail := MyClient.clFields.clPractice_Name + NAME_EMAIL_SPACER + MyClient.clFields.clPractice_EMail_Address;
+
+    if (MyClient.clFields.clContact_Details_To_Show = cdtStaffMember) and (MyClient.clFields.clStaff_Member_EMail_Address <> '') then
+    begin
+      AClientEmail := MyClient.clFields.clStaff_Member_Name + NAME_EMAIL_SPACER + MyClient.clFields.clStaff_Member_EMail_Address;
+    end
+    else if (MyClient.clFields.clContact_Details_To_Show = cdtCustom) and (MyClient.clFields.clCustom_Contact_EMail_Address <> '') then
+    begin
+      AClientEmail := MyClient.clFields.clContact_Name + NAME_EMAIL_SPACER + MyClient.clFields.clCustom_Contact_EMail_Address;
+    end;
+
     SendCopy := (SendCopy or MyClient.clFields.clDisable_Offsite_Check_Out) and
                 (not MyClient.clFields.clForce_Offsite_Check_Out);
     if FlagReadOnly and MyClient.clFields.clDisable_Offsite_Check_Out then begin
@@ -1765,12 +1771,17 @@ begin
           Msg := Format(CANNOT_FLAG_READ_ONLY, [CODE]);
           LogUtil.LogMsg(lmInfo,UnitName,ThisMethodName + ' '+Msg);
         end;
-        AClientEmail := TempClient.clFields.clPractice_Name + NAME_EMAIL_SPACER +
-                        TempClient.clFields.clPractice_EMail_Address;
-        if TempClient.clFields.clCustom_Contact_EMail_Address <> '' then
-          AClientEmail := TempClient.clFields.clContact_Name + NAME_EMAIL_SPACER +
-                          TempClient.clFields.clCustom_Contact_EMail_Address;
+        AClientEmail := TempClient.clFields.clPractice_Name + NAME_EMAIL_SPACER + TempClient.clFields.clPractice_EMail_Address;
 
+        if (TempClient.clFields.clContact_Details_To_Show = cdtStaffMember) and (TempClient.clFields.clStaff_Member_EMail_Address <> '') then
+        begin
+          AClientEmail := TempClient.clFields.clStaff_Member_Name + NAME_EMAIL_SPACER + TempClient.clFields.clStaff_Member_EMail_Address;
+        end
+        else if (TempClient.clFields.clContact_Details_To_Show = cdtCustom) and (TempClient.clFields.clCustom_Contact_EMail_Address <> '') then
+        begin
+          AClientEmail := TempClient.clFields.clContact_Name + NAME_EMAIL_SPACER + TempClient.clFields.clCustom_Contact_EMail_Address;
+        end;
+      
         if MyClient.clExtra.ceOnlineValuesStored then
         begin
           ClientStatus := MyClient.clExtra.ceOnlineStatus;
