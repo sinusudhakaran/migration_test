@@ -134,7 +134,11 @@ begin
   //This should always be called last
   if not DirectoryExists(edtSaveTo.Text) then
   begin
-    if AskYesNo('Create directory', 'The specified directory does not exist. ' + #10#13#10#13 + 'Create the directory automatically?', DLG_NO, 0) <> DLG_YES then
+    if AskYesNo('Create directory', 'The specified directory does not exist. ' + #10#13#10#13 + 'Create the directory automatically?', DLG_NO, 0) = DLG_YES then
+    begin
+      CreateDir(edtSaveTo.Text);
+    end
+    else
     begin
       edtSaveTo.SetFocus;
 
