@@ -65,15 +65,19 @@ type
     FErrors: TStringList;
   protected
     procedure ImportAsPDF(Source: TCAFSource; const OutputFile: String); virtual;
-    
-    function ValidateRecord(Source: TCAFSource): Boolean; virtual; abstract;
-    function ValidateFields(Source: TCAFSource): Boolean; virtual; abstract;
+
+    procedure DoRecordValidation(Source: TCAFSource); virtual; abstract;
+    procedure DoFieldValidation(Source: TCAFSource); virtual; abstract;
+
+    function ValidateRecord(Source: TCAFSource): Boolean; virtual;
 
     function IsNumber(const Value: String): Boolean;
     function ContainsSymbols(const Value: String): Boolean;
     function IsLongMonthName(const Value: String): Boolean;
 
-    procedure AddImportError(Row: Integer; Error: String);
+    procedure AddImportError(Source: TCAFSource; Error: String);
+    procedure AddError(Key, Error: String);
+
     procedure ResetImportStatistics;
     procedure ResetImportErrors;
 
@@ -86,8 +90,8 @@ type
 
     procedure Import(const ImportFile: String; FileFormat: TCAFFileFormat; const OutputFolder: String);
 
-    procedure ValidateImportRecords(const ImportFile: String; out ValidLines, InvalidLines: Integer);
-    function ValidateImportFields(const ImportFile: String): Boolean;
+    procedure ValidateRecords(const ImportFile: String; out ValidLines, InvalidLines: Integer);
+    function ValidateFields(const ImportFile: String): Boolean;
 
     class function CreateImporter(ImportType: TCAFImportType): TCAFImporter; static;
 
@@ -105,9 +109,14 @@ const
 
 { TCAFImporter }
 
-procedure TCAFImporter.AddImportError(Row: Integer; Error: String);
+procedure TCAFImporter.AddError(Key, Error: String);
 begin
-  FErrors.Add(Format('%s|%', [IntToStr(Row), Error]));
+  FErrors.Add(Format('%s=%s', [Key, Error]));
+end;
+
+procedure TCAFImporter.AddImportError(Source: TCAFSource; Error: String);
+begin
+  AddError(IntToStr(Source.CurrentRow), Error);
 end;
 
 function TCAFImporter.ContainsSymbols(const Value: String): Boolean;
@@ -254,20 +263,24 @@ begin
   FStatistics.Failed := 0;
 end;
 
-function TCAFImporter.ValidateImportFields(const ImportFile: String): Boolean;
+function TCAFImporter.ValidateFields(const ImportFile: String): Boolean;
 var
   CAFSource: TCAFSource;
 begin
   CAFSource := CreateCAFSource(ImportFile);
 
   try
-    Result := ValidateFields(CAFSource); 
+    FErrors.Clear;
+    
+    DoFieldValidation(CAFSource);
+
+    Result := FErrors.Count = 0;
   finally
     CAFSource.Free;
   end;
 end;
 
-procedure TCAFImporter.ValidateImportRecords(const ImportFile: String; out ValidLines, InvalidLines: Integer);
+procedure TCAFImporter.ValidateRecords(const ImportFile: String; out ValidLines, InvalidLines: Integer);
 var
   CAFSource: TCAFSource;
 begin
@@ -297,6 +310,15 @@ begin
   finally
     CAFSource.Free;
   end;
+end;
+
+function TCAFImporter.ValidateRecord(Source: TCAFSource): Boolean;
+begin
+  FErrors.Clear;
+  
+  DoRecordValidation(Source);
+  
+  Result := FErrors.Count = 0;
 end;
 
 { TXLSCAFSource }
