@@ -118,22 +118,11 @@ begin
 end;
 
 function TfrmCAFImportSelector.ValidateForm: Boolean;
-
-  function ValidateFieldCount(CAFSource: TCAFSource): Boolean;
-  begin
-    Result := True;
-
-    if ImportType = cafHSBC then
-    begin
-      if AdminSystem.fdFields.fdCountry = whUK then
-      begin
-        Result := CAFSource.FieldCount >= 17;
-      end;
-    end;
-  end;
-  
 var
   CAFSource: TCAFSource;
+  Importer: TCAFImporter;
+  ValidFields: Integer;
+  InvalidFields: Integer;
 begin
   Result := False;
   
@@ -152,28 +141,32 @@ begin
   end
   else
   begin
-    CAFSource := TCAFImporter.CreateCAFSource(edtImportFile.Text);
+    Importer := TCAFImporter.CreateImporter(ImportType);
 
     try
-      if not ValidateFieldCount(CAFSource) then
+      if not Importer.ValidateImportFields(edtImportFile.Text) then
       begin
         HelpfulErrorMsg('The specified import file does not have the required number of fields. Please specify a valid import file', 0);
 
         edtImportFile.SetFocus;       
       end
       else
-      if CAFSource.Count < 1 then
       begin
-        HelpfulErrorMsg('The specified import file must have atleast one bank record. Please specify a valid import file', 0);
+        Importer.ValidateImportRecords(edtImportFile.Text, ValidFields, InvalidFields);
 
-        edtImportFile.SetFocus;       
-      end
-      else
-      begin
-        Result := True;
+        if ValidFields = 0 then
+        begin
+          HelpfulErrorMsg('The specified import file must contain atleast one valid bank account record. Please specify a valid import file', 0);
+
+          edtImportFile.SetFocus;
+        end
+        else
+        begin
+          Result := True;
+        end;
       end;
     finally
-      CAFSource.Free;
+      Importer.Free;
     end;
   end;
 end;
