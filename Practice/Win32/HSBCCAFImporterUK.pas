@@ -59,8 +59,9 @@ type
   protected
     procedure ImportAsPDF(Source: TCAFSource; const OutputFolder: String); override;
     function ValidateRecord(Source: TCAFSource): Boolean; override;
-    function ValidateSource(Source: TCAFSource): Boolean; override;
+    function ValidateFields(Source: TCAFSource): Boolean; override;
     procedure Initialize(Source: TCAFSource); override;
+  public
   end;
 
 implementation
@@ -167,6 +168,11 @@ begin
   end;
 end;
 
+function THSBCCAFImporterUK.ValidateFields(Source: TCAFSource): Boolean;
+begin
+  Result := Source.FieldCount >= 18;
+end;
+
 function THSBCCAFImporterUK.ValidateRecord(Source: TCAFSource): Boolean;
 begin
   if (Trim(Source.AccountName) = '') and (Trim(Source.SortCode) = '') and (Trim(Source.AccountNo) = '') then
@@ -217,27 +223,6 @@ begin
     begin
       AddImportError(Source.CurrentRow, 'You must enter a valid starting year.');
     end;
-  end;
-
-  Result := True;
-end;
-
-function THSBCCAFImporterUK.ValidateSource(Source: TCAFSource): Boolean;
-begin
-  Result := False;
-  
-  if Source.Count < 1 then
-  begin
-    AddImportError(0, 'The file must contain atleast one bank record.');
-
-    Exit;
-  end;
-  
-  if Source.FieldCount < 17 then
-  begin
-    AddImportError(0, 'The file does not have the required number of fields.');
-
-    Exit;
   end;
 
   Result := True;
