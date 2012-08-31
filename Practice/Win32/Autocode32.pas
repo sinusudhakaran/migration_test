@@ -255,6 +255,7 @@ Begin
             txAccount         := '';
             txJob_Code        := '';
             txPayee_Number    := 0;
+            txMatched_By      := nil;
             txCoded_By        := cbNotCoded;
             ClearGSTFields( Transaction);
             ClearSuperFundFields(Transaction);
@@ -310,6 +311,8 @@ Begin
                     else
                       txCoded_By := BKCONST.cbMemorisedC;
 
+                    txMatched_By := MX.mdFields;
+                    
                     mdDate_Last_Applied := txDate_Effective;
 
                     if not Mx.IsDissected then
