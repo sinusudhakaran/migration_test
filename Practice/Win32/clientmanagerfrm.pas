@@ -45,7 +45,9 @@ uses
   Globals,
   BanklinkOnlineSettingsFrm,
   BanklinkOnlineServices,
-  BlopiClient;
+  BlopiClient,
+  CAFImporter,
+  Progress;
 
 type
   TfrmClientManager = class(TForm)
@@ -248,6 +250,7 @@ type
     procedure ClientLookupvtClientsGetText(Sender: TBaseVirtualTree;
       Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType;
       var CellText: WideString);
+    procedure rzgCommunicateItems5Click(Sender: TObject);
     procedure actICAFExecute(Sender: TObject);
 
   private
@@ -261,6 +264,12 @@ type
     FUserSet: Boolean;
     InModal: Boolean;
     FBlopiClient: TBlopiClient;
+
+    FCAFImporter: TCAFImporter;
+    FCAFImportFile: String;
+    FCAFOutputFolder: String;
+    FCAFFileFormat: TCAFFileFormat;
+        
     procedure FillClientDetails;
     procedure ShowSelectedNo( Count : integer);
     procedure UpdateClientDetails(Count: integer);
@@ -328,6 +337,7 @@ type
     procedure CheckBOConnectionLocal;
     function GetBlopiClientNew: TBloClientCreate;
     procedure SetBlopiClientNew(const Value: TBloClientCreate);
+    procedure CreateCustomerAuthorityForms(Sender: ISingleProgressForm; CallbackParams: Pointer);
   protected
     procedure UpdateActions; override;
   public
@@ -340,7 +350,7 @@ type
  TfrmClientMaint = class(TfrmClientManager)
    constructor Create(AOwner: tComponent); override;
  end;
-
+ 
 //------------------------------------------------------------------------------
 function DoClientManager(L, T, H, W: Integer) : boolean;
 procedure CloseClientManager(ProcessMessage: Boolean = True);
@@ -417,7 +427,7 @@ uses
   SelectInstitutionfrm,
   CAFImportSelectorFrm,
   CAFOutputSelectorFrm,
-  CAFImporter;
+  ModalProgressFrm;
 
 {$R *.dfm}
 
@@ -869,6 +879,10 @@ begin
       UserINI_GS_Column_Positions[ i] := -1;
       UserINI_GS_Column_Widths[ i] := -1;
     end;
+end;
+
+procedure TfrmClientManager.rzgCommunicateItems5Click(Sender: TObject);
+begin
 end;
 
 //------------------------------------------------------------------------------
@@ -2498,6 +2512,7 @@ var
   OutputFolder: String;
   Importer: TCAFImporter;
   InstituteName: String;
+  ProgressData: TProgressData;
 begin
   if TfrmCAFImportSelector.SelectImport(Self, Screen.ActiveForm, ImportType, ImportFile) then
   begin
@@ -2506,9 +2521,15 @@ begin
       Importer := TCAFImporter.CreateImporter(ImportType);
 
       try
-        try
-          Importer.Import(ImportFile, FileFormat, OutputFolder);
+        FCAFImporter := Importer;
+        FCAFImportFile := ImportFile;
+        FCAFOutputFolder := OutputFolder;
+        FCAFFileFormat := FileFormat;
 
+        TfrmModalProgress.ShowProgressEx(Self, 'Please wait...', 'Creating Customer Authority Forms', CreateCustomerAuthorityForms, ProgressData);
+
+        if not ProgressData.ExceptionRaised then
+        begin
           if (Importer.Statistics.Generated > 0) and (Importer.Statistics.Failed = 0) then
           begin
             if AskYesNo('Info', Format('BankLink Practice has generated the following %s' + #10#13 +
@@ -2517,7 +2538,7 @@ begin
                                   'Do you want to view the folder now?',
                                   [InstituteName, OutputFolder, IntToStr(Importer.Statistics.Generated)]), DLG_YES, 0) = DLG_YES then
             begin
-              ShellExecute(handle, 'Open', PAnsiChar(OutputFolder), nil, nil, SW_SHOWNORMAL); 
+              ShellExecute(handle, 'Open', PAnsiChar(OutputFolder), nil, nil, SW_SHOWNORMAL);
             end;
           end
           else if Importer.Statistics.Failed > 0 then
@@ -2529,20 +2550,19 @@ begin
                                   'Do you want to view the folder now?',
                                   [InstituteName, OutputFolder, IntToStr(Importer.Statistics.Generated), IntToStr(Importer.Statistics.Failed)]), DLG_YES, 0) = DLG_YES then
             begin
-              ShellExecute(handle, 'Open', PAnsiChar(OutputFolder), nil, nil, SW_SHOWNORMAL); 
+              ShellExecute(handle, 'Open', PAnsiChar(OutputFolder), nil, nil, SW_SHOWNORMAL);
             end;
           end
           else
           begin
             HelpfulInfoMsg(Format('BankLink Practice could not generate any Customer Authority Forms based on the selected import file %s %s.', [ImportFile, OutputFolder]), 0);
           end;
-        except
-          on E:Exception do
-          begin
-
-            HelpfulErrorMsg(Format('An error occurred during the Customer Authority Form import process - %s', [E.Message]), 0);
-          end;
+        end
+        else
+        begin
+          HelpfulErrorMsg(Format('An error occurred during the Customer Authority Form import process - %s', [ProgressData.Exception.Message]), 0);
         end;
+
       finally
         Importer.Free;
       end;
@@ -3443,6 +3463,11 @@ end;
 procedure TfrmClientManager.ColumnMoved(Sender: TVTHeader; Column: TColumnIndex; OldPosition: Integer);
 begin
   BuildHeaderContextMenu;
+end;
+
+procedure TfrmClientManager.CreateCustomerAuthorityForms(Sender: ISingleProgressForm; CallbackParams: Pointer);
+begin
+  FCAFImporter.Import(FCAFImportFile, FCAFFileFormat, FCAFOutputFolder, Sender);
 end;
 
 //------------------------------------------------------------------------------
