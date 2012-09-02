@@ -6,7 +6,7 @@ uses
   Windows, SysUtils, CAFImporter, PDFFieldEditor;
 
 type
-  TCAFSourceHelper = class helper for TCAFSource
+  TStandardCAFSourceHelperUK = class helper for TCAFSource
   strict private
     function GetAccountName: String;
     function GetAccountNo: String;
@@ -40,106 +40,87 @@ type
 
   TStandardCAFImporterUK = class(TCAFImporter)
   private
-    FCAFCount: Integer;
     FMultiImport: Boolean;
   protected
-    procedure ImportAsPDF(Source: TCAFSource; const OutputFolder: String); override;
+    procedure DoImportAsPDF(Source: TCAFSource; Template: TPdfFieldEdit; out OutputFile: String); override;
     procedure DoRecordValidation(Source: TCAFSource); override;
     procedure DoFieldValidation(Source: TCAFSource); override;
+    function GetPDFTemplateFile: String; override;
+
     procedure Initialize(Source: TCAFSource); override;
+    function SupportedFormats: TCAFFileFormats; override;
+    
+    property MultiImport: Boolean read FMultiImport;
   end;
 
 implementation
 
 uses
-  BKConst, Globals, DirUtils;
+  BKConst, Globals;
 
-procedure TStandardCAFImporterUK.ImportAsPDF(Source: TCAFSource; const OutputFolder: String);
-var
-  Document: TPdfFieldEdit;
-  Index: Integer;
-  TemplateFile: String;
-  OutputFile: String;
+procedure TStandardCAFImporterUK.DoImportAsPDF(Source: TCAFSource; Template: TPdfFieldEdit; out OutputFile: String);
 begin
-  TemplateFile := AppendFileNameToPath(TemplateDir, istUKTemplateFileNames[1]);
-
-  if FileExists(TemplateFile) then
-  begin
-    Document := TPdfFieldEdit.Create(nil);
-
-    try
-      Document.LoadPDF(TemplateFile);
-      
-      Document.FieldByTitle(ukCAFPracticeCode).Value := AdminSystem.fdFields.fdBankLink_Code; 
-      Document.FieldByTitle(ukCAFPracticeName).Value := AdminSystem.fdFields.fdPractice_Name_for_Reports;
+  Template.FieldByTitle(ukCAFPracticeCode).Value := AdminSystem.fdFields.fdBankLink_Code;
+  Template.FieldByTitle(ukCAFPracticeName).Value := AdminSystem.fdFields.fdPractice_Name_for_Reports;
                                                                         
-      Document.FieldByTitle(ukCAFClientCode).Value := Source.ClientCode;
+  Template.FieldByTitle(ukCAFClientCode).Value := Source.ClientCode;
 
-      Document.FieldByTitle(ukCAFNameOfAccount).Value := Source.AccountName;
-      Document.FieldByTitle(ukCAFAccountNumber).Value := Source.AccountNo;
-      Document.FieldByTitle(ukCAFBankName).Value := Source.Bank;
-      Document.FieldByTitle(ukCAFBranchName).Value := Source.Branch;
-      Document.FieldByTitle(ukCAFStartMonth).Value := Source.Month;
-      Document.FieldByTitle(ukCAFStartYear).Value := Source.Year;
+  Template.FieldByTitle(ukCAFNameOfAccount).Value := Source.AccountName;
+  Template.FieldByTitle(ukCAFAccountNumber).Value := Source.AccountNo;
+  Template.FieldByTitle(ukCAFBankName).Value := Source.Bank;
+  Template.FieldByTitle(ukCAFBranchName).Value := Source.Branch;
+  Template.FieldByTitle(ukCAFStartMonth).Value := Source.Month;
+  Template.FieldByTitle(ukCAFStartYear).Value := Source.Year;
 
-      Document.FieldByTitle(ukCAFCostCode).Value := Source.CostCode;
+  Template.FieldByTitle(ukCAFCostCode).Value := Source.CostCode;
 
-      if CompareText(Trim(Source.Provisional), 'Y') = 0 then
-      begin
-        Document.FieldByTitle(ukCAFSupplyProvisionalAccounts).Value := '1';
-      end;
+  if CompareText(Trim(Source.Provisional), 'Y') = 0 then
+  begin
+    Template.FieldByTitle(ukCAFSupplyProvisionalAccounts).Value := 'Yes';
+  end;
 
-      if CompareText(Trim(Source.Frequency), 'M') = 0 then
-      begin
-        Document.FieldByTitle(ukCAFMonthly).Value := '1';
-      end
-      else
-      if CompareText(Trim(Source.Frequency), 'W') = 0 then
-      begin
-        Document.FieldByTitle(ukCAFWeekly).Value := '1';
-      end
-      else
-      begin
-        Document.FieldByTitle(ukCAFDaily).Value := '1';
-      end;
-
-      if FMultiImport then
-      begin
-        OutputFile := AppendFileNameToPath(OutputFolder, Format('Customer Authority Form%s.PDF', [FCAFCount + 1]));
-      end
-      else
-      begin
-        OutputFile := AppendFileNameToPath(OutputFolder, 'Customer Authority Form.PDF');
-      end;
-      
-      Document.SaveToFile(OutputFile);
-
-      Inc(FCAFCount);
-    finally
-      Document.Free;
-    end;
+  if CompareText(Trim(Source.Frequency), 'M') = 0 then
+  begin
+    Template.FieldByTitle(ukCAFMonthly).Value := 'Yes';
+  end
+  else
+  if CompareText(Trim(Source.Frequency), 'W') = 0 then
+  begin
+    Template.FieldByTitle(ukCAFWeekly).Value := 'Yes';
   end
   else
   begin
-    raise Exception.Create(Format('Template document %s not found', [TemplateFile]));
+    Template.FieldByTitle(ukCAFDaily).Value := 'Yes';
+  end;
+  
+  if FMultiImport then
+  begin
+    OutputFile := Format('Customer Authority Form%s.PDF', [IntToStr(CAFCount + 1)]);
+  end
+  else
+  begin
+    OutputFile := 'Customer Authority Form.PDF';
   end;
 end;
 
 procedure TStandardCAFImporterUK.Initialize(Source: TCAFSource);
 begin
-  FCAFCount := 0;
-
   //Skip the field names row
   if CompareText(Trim(Source.AccountName), 'Account Name') = 0 then
   begin
     FMultiImport := Source.Count - 1 > 1;
-    
+
     Source.Next;
   end
   else
   begin
     FMultiImport := Source.Count > 1;
   end;
+end;
+
+function TStandardCAFImporterUK.SupportedFormats: TCAFFileFormats;
+begin
+  Result := [cafPDF];
 end;
 
 procedure TStandardCAFImporterUK.DoFieldValidation(Source: TCAFSource);
@@ -203,59 +184,64 @@ begin
   end;
 end;
 
-{ TCAFSourceHelper }
+function TStandardCAFImporterUK.GetPDFTemplateFile: String;
+begin
+  Result := istUKTemplateFileNames[istUKNormal];
+end;
 
-function TCAFSourceHelper.GetAccountName: String;
+{ TStandardCAFSourceHelperUK }
+
+function TStandardCAFSourceHelperUK.GetAccountName: String;
 begin
   Result := ValueByIndex(0);
 end;
 
-function TCAFSourceHelper.GetAccountNo: String;
+function TStandardCAFSourceHelperUK.GetAccountNo: String;
 begin
   Result := ValueByIndex(2);
 end;
 
-function TCAFSourceHelper.GetBank: String;
+function TStandardCAFSourceHelperUK.GetBank: String;
 begin
   Result := ValueByIndex(7);
 end;
 
-function TCAFSourceHelper.GetBranch: String;
+function TStandardCAFSourceHelperUK.GetBranch: String;
 begin
   Result := ValueByIndex(8);
 end;
 
-function TCAFSourceHelper.GetClientCode: String;
+function TStandardCAFSourceHelperUK.GetClientCode: String;
 begin
   Result := ValueByIndex(5);
 end;
 
-function TCAFSourceHelper.GetCostCode: String;
+function TStandardCAFSourceHelperUK.GetCostCode: String;
 begin
   Result := ValueByIndex(6);
 end;
 
-function TCAFSourceHelper.GetFrequency: String;
+function TStandardCAFSourceHelperUK.GetFrequency: String;
 begin
   Result := ValueByIndex(11);
 end;
 
-function TCAFSourceHelper.GetMonth: String;
+function TStandardCAFSourceHelperUK.GetMonth: String;
 begin
   Result := ValueByIndex(9);
 end;
 
-function TCAFSourceHelper.GetProvisional: String;
+function TStandardCAFSourceHelperUK.GetProvisional: String;
 begin
   Result := ValueByIndex(12);
 end;
 
-function TCAFSourceHelper.GetSortCode: String;
+function TStandardCAFSourceHelperUK.GetSortCode: String;
 begin
   Result := ValueByIndex(1);
 end;
 
-function TCAFSourceHelper.GetYear: String;
+function TStandardCAFSourceHelperUK.GetYear: String;
 begin
   Result := ValueByIndex(10);
 end;
