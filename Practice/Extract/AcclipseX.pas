@@ -95,7 +95,7 @@ Begin
                            else
                            begin
                               write( XFile, txGST_Amount/100:0:2, ',' );
-         { EXT_GSTACC }       write( XFile, '"', Copy( clGST_Class_Codes[ txGST_Class ],1,1), '",' );
+         { EXT_GSTACC }       write( XFile, '"', Copy( clGST_Class_Codes[ txGST_Class ],1,GST_CLASS_CODE_LENGTH), '",' );
                            end;
 
          { EXT_GSTDNE }    Write( XFile, ',' );
