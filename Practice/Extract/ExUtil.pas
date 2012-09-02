@@ -104,6 +104,7 @@ Begin
                snQIF              : Result := DefaultDir + clCode + '\';
                snOFXV1            : Result := DefaultDir + clCode + bpFileExtn[bpOFXV1];
                snOFXV2            : Result := DefaultDir + clCode + bpFileExtn[bpOFXV2];
+               snAcclipse         : Result := DefaultDir + clCode + '.TXT';
             end;
          whAustralia :
             Case clAccounting_System_Used of
@@ -155,7 +156,7 @@ Begin
                saQIF              : Result := DefaultDir + clCode + '\';
                saOFXV1            : Result := DefaultDir + clCode + bpFileExtn[bpOFXV1];
                saOFXV2            : Result := DefaultDir + clCode + bpFileExtn[bpOFXV2];
-               saDesktopSuper     : Result := DefaultDir + clCode + '.CSV';
+               saDesktopSuper     : Result := DefaultDir + clCode + '.CSV';   
             end;
 
          whUK :
@@ -168,8 +169,7 @@ Begin
                suOFXV2            : Result := DefaultDir + clCode + bpFileExtn[bpOFXV2];
                suBK5CSV           : Result := DefaultDir + clCode + '.CSV';
                suTASBooks         : ;
-
-
+               snAcclipse         : Result := DefaultDir + clCode + '.TXT'; // iFirm (Acclipse) is currently NZ only, so this is just futureproofing
             end;
 
       end;
