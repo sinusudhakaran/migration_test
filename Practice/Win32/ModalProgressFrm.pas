@@ -13,6 +13,18 @@ type
   TfrmModalProgress = class;
   
   TStartProcessEvent = procedure(Sender: ISingleProgressForm) of object;
+  TStartProcessExEvent = procedure(Sender: ISingleProgressForm; CallbackParams: Pointer) of object;
+
+  TProgressException = record
+    ClassType: TClass;
+    Message: String;
+  end;
+  
+  TProgressData = record
+    CallbackParams: Pointer;
+    ExceptionRaised: Boolean;
+    Exception: TProgressException;
+  end;
 
   TfrmModalProgress = class(TForm, ISingleProgressForm)
     lblProgressTitle: TLabel;
@@ -25,13 +37,19 @@ type
 
     FCancelled: Boolean;
 
+    FProgressData: TProgressData;
+
     FOnStartProcess: TStartProcessEvent;
+    FOnStartProcessEx: TStartProcessExEvent;
+    FRaiseException: Boolean;
 
     procedure StartProcess;
 
     procedure UMStartProcess(var Message: TMessage); message UM_START_PROCESS;
     function GetTitle: String;
     procedure SetTitle(const Value: String);
+    procedure SetProgressData(const Value: TProgressData);
+    procedure SetRaiseException(const Value: Boolean);
   protected
     function GetCancelled: Boolean;
     
@@ -44,10 +62,15 @@ type
     constructor Create(Owner: TComponent); override;
     
     class function ShowProgress(Owner: TCustomForm; Caption, Title: String; OnStartProcessHandler: TStartProcessEvent): TModalResult; static;
+    class function ShowProgressEx(Owner: TCustomForm; Caption, Title: String; OnStartProcessHandlerEx: TStartProcessExEvent; var ProgressData: TProgressData): TModalResult; static;
 
     property Title: String read GetTitle write SetTitle;
-    
+
+    property ProgressData: TProgressData read FProgressData write SetProgressData;
+    property RaiseException: Boolean read FRaiseException write SetRaiseException;
+
     property OnStartProcess: TStartProcessEvent read FOnStartProcess write FOnStartProcess;
+    property OnStartProcessEx: TStartProcessExEvent read FOnStartProcessEx write FOnStartProcessEx;
   end;
   
 var
@@ -72,6 +95,8 @@ end;
 constructor TfrmModalProgress.Create(Owner: TComponent);
 begin
   inherited;
+
+  FRaiseException := True;
 
   lblProgress.Visible := False;
 end;
@@ -144,6 +169,16 @@ begin
   Application.ProcessMessages;
 end;
 
+procedure TfrmModalProgress.SetProgressData(const Value: TProgressData);
+begin
+  FProgressData := Value;
+end;
+
+procedure TfrmModalProgress.SetRaiseException(const Value: Boolean);
+begin
+  FRaiseException := Value;
+end;
+
 procedure TfrmModalProgress.SetTitle(const Value: String);
 begin
   lblProgressTitle.Caption := Value;
@@ -168,25 +203,74 @@ begin
   end;
 end;
 
+class function TfrmModalProgress.ShowProgressEx(Owner: TCustomForm; Caption, Title: String; OnStartProcessHandlerEx: TStartProcessExEvent; var ProgressData: TProgressData): TModalResult;
+var
+  ProgressForm: TfrmModalProgress;
+begin
+  ProgressForm := TfrmModalProgress.Create(Owner);
+
+  try
+    ProgressForm.Caption := Caption;
+    ProgressForm.Title := Title;
+    ProgressForm.ProgressData := ProgressData;
+    ProgressForm.RaiseException := False;
+    ProgressForm.OnStartProcessEx := OnStartProcessHandlerEx;
+    ProgressForm.PopupParent := Owner;
+    ProgressForm.PopupMode := pmExplicit;
+
+    Result := ProgressForm.ShowModal;
+
+    ProgressData := ProgressForm.ProgressData;
+  finally
+    ProgressForm.Free;
+  end;
+end;
+
 procedure TfrmModalProgress.StartProcess;
 begin
   if Assigned(FOnStartProcess) then
   begin
     FOnStartProcess(Self);
+  end
+  else
+  if Assigned(FOnStartProcessEx) then
+  begin
+    FOnStartProcessEx(Self, ProgressData.CallbackParams); 
   end;
 end;
 
 procedure TfrmModalProgress.UMStartProcess(var Message: TMessage);
 begin
-  StartProcess;
+  FProgressData.ExceptionRaised := False;
 
-  if FCancelled then
-  begin
-    ModalResult := mrCancel;
-  end
-  else
-  begin
-    ModalResult := mrOk;
+  try
+    StartProcess;
+
+    if FCancelled then
+    begin
+      ModalResult := mrCancel;
+    end
+    else
+    begin
+      ModalResult := mrOk;
+    end;
+  except
+    on E: Exception do
+    begin
+      ModalResult := mrCancel;
+
+      if not FRaiseException then
+      begin
+        FProgressData.Exception.ClassType := E.ClassType;
+        FProgressData.Exception.Message := E.Message;
+
+        FProgressData.ExceptionRaised := True;
+      end
+      else
+      begin
+        raise;
+      end;
+    end;
   end;
 end;
 
