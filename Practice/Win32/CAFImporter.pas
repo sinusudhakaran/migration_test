@@ -3,7 +3,7 @@ unit CAFImporter;
 interface
 
 uses
-  Classes, SysUtils, XLSFile, XLSWorkbook;
+  Classes, SysUtils, XLSFile, XLSWorkbook, PDFFieldEditor, Progress;
 
 const
   HSBCUK_NUMFIELDS = 18;
@@ -11,6 +11,8 @@ const
 type
   TCAFFileFormat = (cafPDF=0);
   TCAFImportType = (cafStandard=0, cafHSBC=1);
+
+  TCAFFileFormats = set of TCAFFileFormat;
 
   TCAFSource = class
   protected
@@ -63,13 +65,23 @@ type
   private
     FStatistics: TCAFImporterStatistics;
     FErrors: TStringList;
-  protected
-    procedure ImportAsPDF(Source: TCAFSource; const OutputFile: String); virtual;
+    FCAFCount: Integer;
 
+    function GetImportProc(FileFormat: TCAFFileFormat): TCAFImporterFunc;
+  protected
+    function ValidateRecord(Source: TCAFSource): Boolean;
+    procedure ImportAsPDF(Source: TCAFSource; const OutputFolder: String); virtual;
+
+    {$REGION 'Descendants must implement'}
+    procedure DoImportAsPDF(Source: TCAFSource; Template: TPdfFieldEdit; out OutputFile: String); virtual; abstract;
     procedure DoRecordValidation(Source: TCAFSource); virtual; abstract;
     procedure DoFieldValidation(Source: TCAFSource); virtual; abstract;
+    function GetPDFTemplateFile: String; virtual; abstract;
+    function GetPDFOutputFile(Source: TCAFSource): String; virtual; abstract;
+    {$ENDREGION}
 
-    function ValidateRecord(Source: TCAFSource): Boolean; virtual;
+    procedure Initialize(Source: TCAFSource); virtual;
+    function SupportedFormats: TCAFFileFormats; virtual;
 
     function IsNumber(const Value: String): Boolean;
     function ContainsSymbols(const Value: String): Boolean;
@@ -83,12 +95,12 @@ type
 
     function CreateCAFSource(const SourceFile: String): TCAFSource;
 
-    procedure Initialize(Source: TCAFSource); virtual;
+    property CAFCount: Integer read FCAFCount;
   public
     constructor Create; virtual;
     destructor Destroy; override;
 
-    procedure Import(const ImportFile: String; FileFormat: TCAFFileFormat; const OutputFolder: String);
+    procedure Import(const ImportFile: String; FileFormat: TCAFFileFormat; const OutputFolder: String; ProgressForm: ISingleProgressForm);
 
     procedure ValidateRecords(const ImportFile: String; out ValidLines, InvalidLines: Integer);
     function ValidateFields(const ImportFile: String): Boolean;
@@ -102,7 +114,7 @@ type
 implementation
 
 uses
-  DirUtils, HSBCCAFImporterUK, StandardCAFImporterUK;
+  DirUtils, Globals, HSBCCAFImporterUK, StandardCAFImporterUK;
   
 const
   LONG_MONTH_NAMES: array[0..11] of String = ('JANUARY', 'FEBUARY', 'MARCH', 'APRIL', 'MAY', 'JUNE', 'JULY', 'AUGEST', 'SEPTEMBER', 'OCTOBER', 'NOVEMBER', 'DECEMBER');
@@ -136,14 +148,42 @@ begin
   end;
 end;
 
-procedure TCAFImporter.ImportAsPDF(Source: TCAFSource; const OutputFile: String);
+procedure TCAFImporter.ImportAsPDF(Source: TCAFSource; const OutputFolder: String);
+var
+  Document: TPdfFieldEdit;
+  Index: Integer;
+  TemplateFile: String;
+  OutputFile: String;
 begin
+  TemplateFile := AppendFileNameToPath(TemplateDir, GetPDFTemplateFile);
 
+  if FileExists(TemplateFile) then
+  begin
+    Document := TPdfFieldEdit.Create(nil);
+
+    try
+      Document.LoadPDF(TemplateFile);
+      
+      DoImportAsPDF(Source, Document, OutputFile);
+
+      OutputFile := AppendFileNameToPath(OutputFolder, OutputFile);
+      
+      Document.SaveToFile(OutputFile);
+
+      Inc(FCAFCount);
+    finally
+      Document.Free;
+    end;
+  end
+  else
+  begin
+    raise Exception.Create(Format('Template document %s not found', [TemplateFile]));
+  end;
 end;
 
 procedure TCAFImporter.Initialize(Source: TCAFSource);
 begin
-
+  FCAFCount := 0;
 end;
 
 constructor TCAFImporter.Create;
@@ -184,47 +224,68 @@ begin
   inherited;
 end;
 
-procedure TCAFImporter.Import(const ImportFile: String; FileFormat: TCAFFileFormat; const OutputFolder: String);
+function TCAFImporter.GetImportProc(FileFormat: TCAFFileFormat): TCAFImporterFunc;
+begin
+  Result := nil;
+
+  if FileFormat in SupportedFormats then
+  begin
+    case FileFormat of
+      cafPDF: Result := ImportAsPDF;
+    end;
+  end;
+end;
+
+procedure TCAFImporter.Import(const ImportFile: String; FileFormat: TCAFFileFormat; const OutputFolder: String; ProgressForm: ISingleProgressForm);
 var
   CAFSource: TCAFSource;
   ImportFunc: TCAFImporterFunc;
+  ProgressStepSize: Double;
 begin
+  if not DirectoryExists(OutputFolder) then
+  begin
+    raise Exception.Create(Format('Output folder %s does not exist.', [OutputFolder]));
+  end;
+     
   ResetImportStatistics;
-  
-  CAFSource := CreateCAFSource(ImportFile);
 
-  try
-    case FileFormat of
-      cafPDF: ImportFunc := ImportAsPDF;
-    end;
+  ImportFunc := GetImportProc(FileFormat);
 
-    if not DirectoryExists(OutputFolder) then
-    begin
-      CreateDir(OutputFolder);
-    end;
+  if Assigned(ImportFunc) then
+  begin
+    CAFSource := CreateCAFSource(ImportFile);
 
-    CAFSource.First;
+    try
+      CAFSource.First;
 
-    Initialize(CAFSource);
+      Initialize(CAFSource);
 
-    while not CAFSource.Eof do
-    begin
-      if ValidateRecord(CAFSource) then
+      ProgressStepSize := 100 / CAFSource.GetCount;
+      
+      ProgressForm.Initialize;
+
+      ProgressForm.UpdateProgressLabel('Creating customer authority forms');
+
+      while not CAFSource.Eof do
       begin
-        ImportFunc(CAFSource, OutputFolder);
+        if ValidateRecord(CAFSource) then
+        begin
+          ImportFunc(CAFSource, OutputFolder);
 
-        FStatistics.Generated := FStatistics.Generated + 3;
-        FStatistics.Failed := FStatistics.Failed + 1;
-      end
-      else
-      begin
-        FStatistics.Failed := FStatistics.Failed + 1;
+          FStatistics.Generated := FStatistics.Generated + 1;
+        end
+        else
+        begin
+          FStatistics.Failed := FStatistics.Failed + 1;
+        end;
+
+        CAFSource.Next;
+
+        ProgressForm.UpdateProgress(ProgressStepSize); 
       end;
-
-      CAFSource.Next;
+    finally
+      CAFSource.Free;
     end;
-  finally
-    CAFSource.Free;
   end;
 end;
 
@@ -261,6 +322,11 @@ procedure TCAFImporter.ResetImportStatistics;
 begin
   FStatistics.Generated := 0;
   FStatistics.Failed := 0;
+end;
+
+function TCAFImporter.SupportedFormats: TCAFFileFormats;
+begin
+  Result := [];
 end;
 
 function TCAFImporter.ValidateFields(const ImportFile: String): Boolean;
