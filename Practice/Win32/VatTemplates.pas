@@ -79,18 +79,18 @@ const
   COLUMNS_TAX_TABLE  = 9;
 
   // Columns - Effective Rates
-  effRow = 0;
+  effRow  = 0;
   effDate = 1;
 
   // Columns - Rates
-  taxRow = 0;
-  taxID = 1;
-  taxDesc = 2;
-  taxType = 3;
-  taxRate1 = 4;
-  taxRate2 = 5;
-  taxRate3 = 6;
-  taxAccount = 7;
+  taxRow                 = 0;
+  taxID                  = 1;
+  taxDesc                = 2;
+  taxType                = 3;
+  taxRate1               = 4;
+  taxRate2               = 5;
+  taxRate3               = 6;
+  taxAccount             = 7;
   taxBusinessNormPercent = 8;
 
 {------------------------------------------------------------------------------}
@@ -347,7 +347,7 @@ var
 begin
   Line := IntToStr(aRow);
   Line := Line + '|';
-  if aDate <> -1 then
+  if (aDate <> -1) then
     Line := Line + bkDate2Str(aDate);
   aLines.Add(Line);
 end;
