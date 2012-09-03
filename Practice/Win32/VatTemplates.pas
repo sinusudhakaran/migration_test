@@ -97,10 +97,19 @@ const
 function VatSetupButtons(const aLevel: TVatLevel;
   const aButtons: array of TButton): boolean;
 var
+  Country: byte;
   i: integer;
 begin
+  // Country - use AdminSystem for Practice, use MyClient for Books
+  if Assigned(AdminSystem) then
+    Country := AdminSystem.fdFields.fdCountry
+  else if Assigned(MyClient) then
+    Country := MyClient.clFields.clCountry
+  else
+    Country := 0; // If it gets to this, we have no real way to determine the Country
+
   // For the UK only
-  if (AdminSystem.fdFields.fdCountry = whUK) then
+  if (Country = whUK) then
   begin
     // At practice level for the System user only
     if (aLevel = vlPractice) then
