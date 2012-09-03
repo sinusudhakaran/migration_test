@@ -574,7 +574,8 @@ CONST
    saSuperMate = 48;
    saRewardSuper = 49;
    saProSuper = 50;
-   saSageHandisoftSuperfund = 51; saMax = 51;
+   saSageHandisoftSuperfund = 51;
+   saAcclipse = 52; saMax = 52;
 
    saNames : Array[ saMin..saMax ] of String[36] =
       //'123456789012345678901234567890'
@@ -629,7 +630,8 @@ CONST
         'superMate',                                  //saSuperMate
         'RewardSuper',                                //saRewardSuper
         'ProSuper',                                   //saProSuper
-        'Sage HandiSoft SuperFund'                    //saSageHandisoftSuperfund
+        'Sage HandiSoft SuperFund',                   //saSageHandisoftSuperfund
+        'iFirm'                                       //saAcclipse
       );
 
       DESKTOP_SUPER_CHART_FILENAME = 'Desktop Super Chart List.csv';
