@@ -2,7 +2,7 @@ object frmNewCAF: TfrmNewCAF
   Left = 0
   Top = 0
   Caption = 'Customer Authority Form Details'
-  ClientHeight = 593
+  ClientHeight = 590
   ClientWidth = 688
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -10,51 +10,49 @@ object frmNewCAF: TfrmNewCAF
   Font.Height = -11
   Font.Name = 'Tahoma'
   Font.Style = []
+  KeyPreview = True
   OldCreateOrder = False
   Position = poScreenCenter
   OnKeyDown = FormKeyDown
   OnShow = FormShow
   DesignSize = (
     688
-    593)
+    590)
   PixelsPerInch = 96
   TextHeight = 13
   object btnFile: TButton
     Left = 7
-    Top = 561
+    Top = 558
     Width = 75
     Height = 25
     Anchors = [akLeft, akBottom]
     Caption = '&File'
-    ModalResult = 1
     TabOrder = 0
     OnClick = btnFileClick
   end
   object btnEmail: TButton
     Left = 97
-    Top = 561
+    Top = 558
     Width = 75
     Height = 25
     Anchors = [akLeft, akBottom]
     Caption = '&E-mail'
-    ModalResult = 1
     TabOrder = 1
     OnClick = btnEmailClick
   end
   object btnPrint: TButton
     Left = 186
-    Top = 561
+    Top = 558
     Width = 75
     Height = 25
     Anchors = [akLeft, akBottom]
     Caption = '&Print'
-    ModalResult = 1
     TabOrder = 2
     OnClick = btnPrintClick
   end
   object btnResetForm: TButton
     Left = 519
-    Top = 561
+    Top = 558
     Width = 75
     Height = 25
     Anchors = [akRight, akBottom]
@@ -64,7 +62,7 @@ object frmNewCAF: TfrmNewCAF
   end
   object btnCancel: TButton
     Left = 606
-    Top = 561
+    Top = 558
     Width = 75
     Height = 25
     Anchors = [akRight, akBottom]
@@ -76,7 +74,7 @@ object frmNewCAF: TfrmNewCAF
     Left = 8
     Top = 8
     Width = 672
-    Height = 547
+    Height = 544
     Anchors = [akLeft, akTop, akRight, akBottom]
     TabOrder = 5
     Active = False
@@ -262,5 +260,9 @@ object frmNewCAF: TfrmNewCAF
       FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
       FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
       FFFFFFFFFFFFFFFF0000}
+  end
+  object PrintDialog: TPrintDialog
+    Left = 480
+    Top = 560
   end
 end

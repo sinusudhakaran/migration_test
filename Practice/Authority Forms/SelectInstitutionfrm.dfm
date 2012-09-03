@@ -32,6 +32,7 @@ object frmSelectInstitution: TfrmSelectInstitution
     Top = 64
     Width = 291
     Height = 21
+    Style = csDropDownList
     ItemHeight = 13
     TabOrder = 0
     OnChange = cmbInstitutionChange

@@ -149,7 +149,7 @@ function GetCommaSepStrFromList(const Items : TStringList) : string; overload;
 function GetCommaSepStrFromList(const Items : array of string) : string; overload;
 
 function GetNumOfSubstringInString(Needle, Haystack: string) : integer; // Returns the number of occurrences of a substring (needle) in a string (haystack)
-
+function GetMonthName(aMonth : integer) : string;
 
 //******************************************************************************
 Implementation
@@ -1232,6 +1232,11 @@ var
 begin
   sTmp := StringReplace(Haystack, Needle, '', [rfReplaceAll]);
   Result := Floor((Length(Haystack) - Length(sTmp))/Length(Needle));
+end;
+
+function GetMonthName(aMonth : integer) : string;
+begin
+  Result := FormatDateTime('mmmm', EncodeDate(2000,aMonth,1));
 end;
 
 End.
