@@ -59,9 +59,11 @@ type
 implementation
 
 uses
+  Types,
   Dialogs,
-  XMLIntf,
-  XMLDoc,
+  IniFiles,
+  Windows,
+  bkdateutils,
   WarningMoreFrm,
   YesNoDlg;
 
@@ -69,21 +71,27 @@ const
   DLG_DEFAULTEXT = 'vat';
   DLG_FILTER     = 'VAT Templates (*.vat)|*.vat';
 
-  XML_ROOT = 'Root';
+  SECTION_TEMPLATE   = '[Template]';
+  SECTION_TAX_STARTS = '[Tax Starts]';
+  SECTION_TAX_TABLE  = '[Tax Table]';
 
-  XML_EFFECTIVE_RATE1 = 'EffectiveRate_1';
-  XML_EFFECTIVE_RATE2 = 'EffectiveRate_2';
-  XML_EFFECTIVE_RATE3 = 'EffectiveRate_3';
+  COLUMNS_TAX_STARTS = 2;
+  COLUMNS_TAX_TABLE  = 9;
 
-  XML_RATE        = 'Rate_%d';
-  XML_ID          = 'ID';
-  XML_DESC        = 'Desc';
-  XML_GSTTYPE     = 'GSTType';
-  XML_RATE1       = 'Rate1';
-  XML_RATE2       = 'Rate2';
-  XML_RATE3       = 'Rate3';
-  XML_ACCOUNT     = 'Account';
-  XML_NORMPERCENT = 'NormPercent';
+  // Columns - Effective Rates
+  effRow = 0;
+  effDate = 1;
+
+  // Columns - Rates
+  taxRow = 0;
+  taxID = 1;
+  taxDesc = 2;
+  taxType = 3;
+  taxRate1 = 4;
+  taxRate2 = 5;
+  taxRate3 = 6;
+  taxAccount = 7;
+  taxBusinessNormPercent = 8;
 
 {------------------------------------------------------------------------------}
 function VatSetupButtons(const aLevel: TVatLevel;
@@ -183,180 +191,283 @@ begin
 end;
 
 {------------------------------------------------------------------------------}
-function FindNode(const aNode: IXMLNode; const aName: string): IXMLNode;
-begin
-  ASSERT(assigned(aNode));
-
-  result := aNode.ChildNodes.FindNode(aName);
-  if not Assigned(result) then
-    raise Exception.Create('XML node <'+aName+'> not found');
-end;
-
-{------------------------------------------------------------------------------}
-procedure GetEffectiveRate(const aNode: IXMLNode; const aName: string;
-  var aRate: integer);
+procedure GetSectionValues(const aLines: TStringList; const aSection: string;
+  var aValues: TStringList);
 var
-  Node: IXMLNode;
+  i: integer;
+  Line: string;
+  InSection: boolean;
 begin
-  ASSERT(assigned(aNode));
+  aValues.Clear;
+  
+  InSection := false;
+  for i := 0 to aLines.Count-1 do
+  begin
+    Line := aLines[i];
 
-  Node := FindNode(aNode, aName);
-  aRate := StrToInt(Node.Text);
+    if InSection then
+    begin
+      if (Line <> '') then
+        aValues.Add(Line)
+      else
+        exit;
+    end
+    else
+      InSection := SameText(Line, aSection);
+  end;
 end;
 
 {------------------------------------------------------------------------------}
-function GetRateNodeName(const aRow: integer): string;
-begin
-  result := Format(XML_RATE, [aRow]);
-end;
-
-{------------------------------------------------------------------------------}
-procedure GetRate(const aNode: IXMLNode; var aValue: TVatRatesRow);
+procedure ParseLine(const aLine: string; var aValues: TStringDynArray;
+  const aNrColumns: integer);
 var
-  ValueNode: IXMLNode;
+  i: integer;
+  ch: char;
+  NrValues: integer;
 begin
-  ASSERT(assigned(aNode));
+  // Always do this to reset ALL strings back to ''
+  SetLength(aValues, 0);
 
-  ValueNode := FindNode(aNode, XML_ID);
-  aValue.GST_ID := ValueNode.Text;
+  // Something to parse? (We always want to check NrColumns at the end)
+  if (aLine <> '') then
+  begin
+    // Always have one value. This also helps when the first char is a |.
+    // And also helps if the last character is a |.
+    SetLength(aValues, 1);
 
-  ValueNode := FindNode(aNode, XML_DESC);
-  aValue.GST_Class_Name := ValueNode.Text;
+    for i := 1 to Length(aLine) do
+    begin
+      ch := aLine[i];
+      NrValues := Length(aValues);
 
-  ValueNode := FindNode(aNode, XML_GSTTYPE);
-  aValue.GSTClassType := StrToInt(ValueNode.Text);
+      if (ch = '|') then
+        SetLength(aValues, NrValues+1)
+      else
+        aValues[NrValues-1] := aValues[NrValues-1] + ch;
+    end;
+  end;
 
-  ValueNode := FindNode(aNode, XML_RATE1);
-  aValue.GST_Rates[1] := StrToFloat(ValueNode.Text);
+  // Not right number of columns?
+  if (Length(aValues) <> aNrColumns) then
+    raise Exception.CreateFmt('Required number of columns (%d) is incorrect for line <%s>',
+      [aNrColumns, aLine]);
+end;
 
-  ValueNode := FindNode(aNode, XML_RATE2);
-  aValue.GST_Rates[2] := StrToFloat(ValueNode.Text);
+{------------------------------------------------------------------------------}
+procedure LoadEffectiveRates(const aLines: TStringList; var aRate1: integer;
+  var aRate2: integer; var aRate3: integer);
+var
+  Values: TStringDynArray;
+begin
+  if (aLines.Count < 3) then
+    raise Exception.Create('Need at least three tax starts');
 
-  ValueNode := FindNode(aNode, XML_RATE3);
-  aValue.GST_Rates[3] := StrToFloat(ValueNode.Text);
+  ParseLine(aLines[0], Values, COLUMNS_TAX_STARTS);
+  aRate1 := bkStr2Date(Values[effDate]);
 
-  ValueNode := FindNode(aNode, XML_ACCOUNT);
-  aValue.GST_Account_Code := ValueNode.Text;
+  ParseLine(aLines[1], Values, COLUMNS_TAX_STARTS);
+  aRate2 := bkStr2Date(Values[effDate]);
 
-  ValueNode := FindNode(aNode, XML_NORMPERCENT);
-  aValue.GST_BusinessNormPercent := StrToFloat(ValueNode.Text);
+  ParseLine(aLines[2], Values, COLUMNS_TAX_STARTS);
+  aRate3 := bkStr2Date(Values[effDate]);
+end;
+
+{------------------------------------------------------------------------------}
+procedure LoadRate(const aLine: string; var aValue: TVatRatesRow);
+var
+  Values: TStringDynArray;
+begin
+  ParseLine(aLine, Values, COLUMNS_TAX_TABLE);
+
+  // Values[0] - Row, ignore
+
+  aValue.GST_ID := Values[taxID];
+
+  aValue.GST_Class_Name := Values[taxDesc];
+
+  aValue.GSTClassType := StrToInt(Values[taxType]);
+
+  aValue.GST_Rates[1] := StrToFloat(Values[taxRate1]);
+
+  aValue.GST_Rates[2] := StrToFloat(Values[taxRate2]);
+
+  aValue.GST_Rates[3] := StrToFloat(Values[taxRate3]);
+
+  aValue.GST_Account_Code := Values[taxAccount];
+
+  aValue.GST_BusinessNormPercent := StrToFloat(Values[taxBusinessNormPercent]);
 end;
 
 {------------------------------------------------------------------------------}
 procedure VatLoadFromFile(const aFileName: string; var aRate1: integer;
   var aRate2: integer; var aRate3: integer; var aRates: TVatRates);
 var
-  Document: IXMLDocument;
-  Root: IXMLNode;
+  Lines: TStringList;
+  Values: TStringList;
   i: integer;
-  NodeName: string;
-  ValueNode: IXMLNode;
+  ValueIndex: integer;
 begin
   ASSERT(aFileName <> '');
 
-  // Load the XML
-  Document := NewXMLDocument;
-  Document.LoadFromFile(aFileName);
-  Root := FindNode(Document.Node, XML_ROOT);
+  // Make sure everything is erased
+  ZeroMemory(@aRates, SizeOf(aRates));
 
-  // Load effective rates
-  GetEffectiveRate(Root, XML_EFFECTIVE_RATE1, aRate1);
-  GetEffectiveRate(Root, XML_EFFECTIVE_RATE2, aRate2);
-  GetEffectiveRate(Root, XML_EFFECTIVE_RATE3, aRate3);
+  Lines := TStringList.Create;
+  Values := TStringList.Create;
+  try
+    Lines.LoadFromFile(aFileName);
 
-  // Load rates
-  for i := 1 to MAX_GST_CLASS do
-  begin
-    NodeName := GetRateNodeName(i);
-    ValueNode := FindNode(Root, NodeName);
-    GetRate(ValueNode, aRates[i]);
+    // Effective Rates - we only use 3
+    GetSectionValues(Lines, SECTION_TAX_STARTS, Values);
+    LoadEffectiveRates(Values, aRate1, aRate2, aRate3);
+
+    // Rates
+    // Caution: i is 1-based, and ValueIndex is 0-based
+    GetSectionValues(Lines, SECTION_TAX_TABLE, Values);
+    for i := 1 to MAX_GST_CLASS do
+    begin
+      // Valid range?
+      ValueIndex := i - 1;
+      if (ValueIndex < Values.Count) then
+        LoadRate(Values[ValueIndex], aRates[i])
+      else
+        break; // No more data - stop
+    end;
+  finally
+    FreeAndNil(Values);
+    FreeAndNil(Lines);
   end;
 end;
 
 {------------------------------------------------------------------------------}
-procedure AddEffectiveRate(const aNode: IXMLNode; const aName: string;
-  const aValue: integer);
+procedure SaveEffectiveRate(const aRow: integer; const aDate: integer;
+  const aLines: TStringList);
 var
-  Node: IXMLNode;
+  Line: string;
 begin
-  ASSERT(assigned(aNode));
-  ASSERT(aName <> '');
-
-  // Create node
-  Node := aNode.AddChild(aName);
-  ASSERT(assigned(Node));
-
-  // Assign value
-  Node.Text := IntToStr(aValue);
+  Line := IntToStr(aRow);
+  Line := Line + '|';
+  if aDate <> -1 then
+    Line := Line + bkDate2Str(aDate);
+  aLines.Add(Line);
 end;
 
 {------------------------------------------------------------------------------}
-procedure AddRate(const aNode: IXMLNode; const aValue: TVatRatesRow);
-var
-  ValueNode: IXMLNode;
+procedure AddToLine(const aValue: string; var aLine: string);
 begin
-  ValueNode := aNode.AddChild(XML_ID);
-  ASSERT(assigned(ValueNode));
-  ValueNode.Text := aValue.GST_ID;
+  if (Pos('|', aValue) <> 0) then
+    raise Exception.CreateFmt('The value <%s> can not contain the | character', [aValue]);
 
-  ValueNode := aNode.AddChild(XML_DESC);
-  ASSERT(assigned(ValueNode));
-  ValueNode.Text := aValue.GST_Class_Name;
+  if (aLine <> '') then
+    aLine := aLine + '|';
 
-  ValueNode := aNode.AddChild(XML_GSTTYPE);
-  ASSERT(assigned(ValueNode));
-  ValueNode.Text := IntToStr(aValue.GSTClassType);
+  aLine := aLine + aValue;
+end;
 
-  ValueNode := aNode.AddChild(XML_RATE1);
-  ASSERT(assigned(ValueNode));
-  ValueNode.Text := FloatToStr(aValue.GST_Rates[1]);
+{------------------------------------------------------------------------------}
+procedure SaveRate(const aRow: integer; const aValue: TVatRatesRow;
+  const aLines: TStringList);
+var
+  Value: string;
+  Line: string;
+begin
+  Value := IntToStr(aRow);
+  AddToLine(Value, Line);
 
-  ValueNode := aNode.AddChild(XML_RATE2);
-  ASSERT(assigned(ValueNode));
-  ValueNode.Text := FloatToStr(aValue.GST_Rates[2]);
+  Value := aValue.GST_ID;
+  AddToLine(Value, Line);
 
-  ValueNode := aNode.AddChild(XML_RATE3);
-  ASSERT(assigned(ValueNode));
-  ValueNode.Text := FloatToStr(aValue.GST_Rates[3]);
+  Value := aValue.GST_Class_Name;
+  AddToLine(Value, Line);
 
-  ValueNode := aNode.AddChild(XML_ACCOUNT);
-  ASSERT(assigned(ValueNode));
-  ValueNode.Text := aValue.GST_Account_Code;
+  Value := IntToStr(aValue.GSTClassType);
+  AddToLine(Value, Line);
 
-  ValueNode := aNode.AddChild(XML_NORMPERCENT);
-  ASSERT(assigned(ValueNode));
-  ValueNode.Text := FloatToStr(aValue.GST_BusinessNormPercent);
+  Value := FloatToStr(aValue.GST_Rates[1]);
+  AddToLine(Value, Line);
+
+  Value := FloatToStr(aValue.GST_Rates[2]);
+  AddToLine(Value, Line);
+
+  Value := FloatToStr(aValue.GST_Rates[3]);
+  AddToLine(Value, Line);
+
+  Value := aValue.GST_Account_Code;
+  AddToLine(Value, Line);
+
+  Value :=FloatToStr(aValue.GST_BusinessNormPercent);
+  AddToLine(Value, Line);
+
+  aLines.Add(Line);
+end;
+
+{------------------------------------------------------------------------------}
+function DetermineMaxRow(const aRates: TVatRates): integer;
+var
+  i: integer;
+begin
+  result := 0;
+
+  for i := 1 to MAX_GST_CLASS do
+  begin
+    with aRates[i] do
+    begin
+      // Row used?
+      if (GST_ID <> '') or
+         (GST_Class_Name <> '') or
+         (GSTClassType <> 0) or
+         (GST_Rates[1] <> 0) or
+         (GST_Rates[2] <> 0) or
+         (GST_Rates[3] <> 0) or
+         (GST_Account_Code <> '') or
+         (GST_BusinessNormPercent <> 0)
+      then
+        result := i;
+    end;
+  end;
 end;
 
 {------------------------------------------------------------------------------}
 procedure VatSaveToFile(const aRate1: integer; const aRate2: integer;
   const aRate3: integer; const aRates: TVatRates; const aFileName: string);
 var
-  Document: IXMLDocument;
-  Root: IXMLNode;
+  Lines: TStringList;
+  MaxRow: integer;
   i: integer;
-  NodeName: string;
-  ValueNode: IXMLNode;
 begin
   ASSERT(aFileName <> '');
 
-  Document := NewXMLDocument;
-  Root := Document.AddChild(XML_ROOT);
+  Lines := TStringList.Create;
+  try
+    // Template
+    Lines.Add(SECTION_TEMPLATE);
+    // Note: don't use MyClient for Code/Name - MyClient might be nil
+    Lines.Add('Code=VAT');
+    Lines.Add('Name=VAT');
+    Lines.Add('Version=2');
+    Lines.Add('');
 
-  // Save effective rates
-  AddEffectiveRate(Root, XML_EFFECTIVE_RATE1, aRate1);
-  AddEffectiveRate(Root, XML_EFFECTIVE_RATE2, aRate2);
-  AddEffectiveRate(Root, XML_EFFECTIVE_RATE3, aRate3);
+    // Effective Rates
+    Lines.Add(SECTION_TAX_STARTS);
+    SaveEffectiveRate(1, aRate1, Lines);
+    SaveEffectiveRate(2, aRate2, Lines);
+    SaveEffectiveRate(3, aRate3, Lines);
+    SaveEffectiveRate(4, -1, Lines);
+    SaveEffectiveRate(5, -1, Lines);
+    Lines.Add('');
 
-  // Save rates
-  for i := 1 to MAX_GST_CLASS do
-  begin
-    NodeName := GetRateNodeName(i);
-    ValueNode := Root.AddChild(NodeName);
-    AddRate(ValueNode, aRates[i]);
+    // Rates
+    Lines.Add(SECTION_TAX_TABLE);
+    MaxRow := DetermineMaxRow(aRates);
+    for i := 1 to MaxRow do
+    begin
+      SaveRate(i, aRates[i], Lines);
+    end;
+
+    Lines.SaveToFile(aFileName);
+  finally
+    FreeAndNil(Lines);
   end;
-
-  Document.SaveToFile(aFileName);
 end;
 
 
