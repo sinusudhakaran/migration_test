@@ -43,9 +43,11 @@ uses
 procedure THSBCCAFImporterUK.DoImportAsPDF(Source: TCAFSource; Template: TPdfFieldEdit; out OutputFile: String);
 begin
   inherited;
+
+  Template.FieldByTitle(ukCAFBankName).Value := 'HSBC';
   
   Template.FieldByTitle(ukCAFHSBCAccountSign1).Value := Source.AccountSignatory1;
-  Template.FieldByTitle(ukCAFHSBCAccountSign2).Value := Source.AccountSignatory2;                  
+  Template.FieldByTitle(ukCAFHSBCAccountSign2).Value := Source.AccountSignatory2;
                   
   Template.FieldByTitle(ukCAFHSBCAddressLine1).Value := Source.AddressLine1;
   Template.FieldByTitle(ukCAFHSBCAddressLine2).Value := Source.AddressLine2;
