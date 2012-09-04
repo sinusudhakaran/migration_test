@@ -649,7 +649,8 @@ CONST
    suOFXV1                            = 4;
    suOFXV2                            = 5;
    suBK5CSV                           = 6;
-   suTASBooks                         = 7; suMax = 7;
+   suTASBooks                         = 7;
+   suAcclipse                         = 8; suMax = 8;
 
 //UK systems to be added when we get spec for extracts
 //   suDigita                           = ?;
@@ -660,13 +661,14 @@ CONST
    suNames : Array[ suMin..suMax ] of String[36] =
       //'123456789012345678901234567890'
       ( 'Other',
-        'Sage 50 Accounts',                           //suSageLine50
+        'Sage 50 Accounts',                       //suSageLine50
         'QuickBooks',                             //suQuickBooks
         'Business Products - QIF',                //suOIF
         'Business Products - OFX V1',             //suOFXV1
         'Business Products - OFX V2',             //suOFXV2
         'Generic',                                //suBK5CSV
-        'TASBooks'                                //suTASBooks
+        'TASBooks',                               //suTASBooks
+        'iFirm'                                   //suAcclipse
        );
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

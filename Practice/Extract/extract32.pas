@@ -264,6 +264,7 @@ begin
                   saClassSuperIP    : ClassSuperXmlX.ExtractData( FD, TD, Path, True, True );
                   saProSuper        : ProSuperX.ExtractData( FD, TD, Path, True, True );
                   saSageHandisoftSuperfund : SageHandisoftSuperX.ExtractData( FD, TD, Path, True, True );
+                  saAcclipse        : AcclipseX.ExtractData( FD, TD, Path );
                end;
 
 
@@ -276,6 +277,7 @@ begin
                   suQIF         : DoExtractBusinessProduct(FD, TD, Path);
                   suOFXV1       : DoExtractBusinessProduct(FD, TD, Path);
                   suOFXV2       : DoExtractBusinessProduct(FD, TD, Path);
+                  suAcclipse        : AcclipseX.ExtractData( FD, TD, Path );
 
                   suTASBooks   :;
                end;
