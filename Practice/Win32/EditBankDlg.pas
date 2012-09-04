@@ -1230,7 +1230,7 @@ function AddBankAccount : Boolean;
 var
   MyDlg : tdlgEditBank;
 begin
-   MyDlg := tdlgEditBank.Create(Application);
+   MyDlg := tdlgEditBank.Create(Screen.Activeform);
    try
       with MyDlg do begin
          eNumber.Visible  := true;
