@@ -21,7 +21,7 @@ object frmNewCAF: TfrmNewCAF
   PixelsPerInch = 96
   TextHeight = 13
   object btnFile: TButton
-    Left = 7
+    Left = 8
     Top = 558
     Width = 75
     Height = 25

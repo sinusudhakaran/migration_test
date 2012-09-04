@@ -111,7 +111,7 @@ begin
   try
     //Required for the proper handling of the window z-order so that a modal window does not show-up behind another window
     frmNewCAF.PopupParent := w_PopupParent;
-    frmNewCAF.PopupMode := pmExplicit;
+    frmNewCAF.PopupMode   := pmExplicit;
     frmNewCaf.ClientEmail := aClientEmail;
     //Todo  //BKHelpSetUp(frmNewCAF, ----);
 
@@ -357,8 +357,8 @@ begin
   PDFFormFieldItemCheckBox := GetPDFFormFieldCheck(ukCAFSupplyProvisionalAccounts);
   if Assigned(PDFFormFieldItemCheckBox) then
   begin
-    PDFFormFieldItemCheckBox.Image.ShowHint := true;
-    PDFFormFieldItemCheckBox.Image.Hint := 'Supply Provisional Accounts';
+    PDFFormFieldItemCheckBox.Checkbox.ShowHint := true;
+    PDFFormFieldItemCheckBox.Checkbox.Hint := 'Supply Provisional Accounts';
   end;
 
   // Daily
@@ -515,7 +515,7 @@ begin
   // Supply Provisional Accounts
   PDFFormFieldItemCheckBox := GetPDFFormFieldCheck(ukCAFSupplyProvisionalAccounts);
   if Assigned(PDFFormFieldItemCheckBox) then
-    PDFFormFieldItemCheckBox.Checked := false;
+    PDFFormFieldItemCheckBox.Checkbox.Checked := false;
 
   // Daily
   PDFFormFieldItemRadioButton := GetPDFFormFieldRadio(ukCAFDaily);

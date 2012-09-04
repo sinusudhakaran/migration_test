@@ -117,22 +117,14 @@ type
   //----------------------------------------------------------------------------
   TPDFFormFieldItemCheckBox = class(TPDFFormFieldItem)
   private
+    pnlClear : TPanel;
   protected
-    function GetImage : TImage;
-    procedure SetImage(aValue : TImage);
-
-    procedure UpdateCheck;
-
-    procedure SetChecked(aValue : Boolean);
-    function GetChecked : Boolean;
-
-    procedure ImageClick(Sender: TObject);
+    function GetCheckBox : TCheckBox;
+    procedure SetCheckBox(aValue : TCheckBox);
   public
     procedure Draw; override;
 
-    property Checked : Boolean read GetChecked write SetChecked;
-
-    property Image : TImage read GetImage write SetImage;
+    property CheckBox : TCheckBox read GetCheckBox write SetCheckBox;
   end;
 
   //----------------------------------------------------------------------------
@@ -148,6 +140,8 @@ type
 
   //----------------------------------------------------------------------------
   TPDFFormFieldItemRadioButton = class(TPDFFormFieldItem)
+  private
+    shpClear : TShape;
   protected
     function GetRadioButton : TRadioButton;
     procedure SetRadioButton(aValue : TRadioButton);
@@ -579,75 +573,55 @@ begin
   Edit.Width := Edit.Width - round(4*Scale);
 
   Edit.Color := $00EEEEDD;
-
   Edit.TabOrder := TabOrder;
   Edit.OnExit := EditOnExit;
 end;
 
 { TPDFFormFieldItemCheckBox }
 //------------------------------------------------------------------------------
-function TPDFFormFieldItemCheckBox.GetImage: TImage;
+function TPDFFormFieldItemCheckBox.GetCheckBox: TCheckBox;
 begin
   if not Assigned(fControl) then
-    fControl := TImage.create(nil);
+  begin
+    pnlClear := TPanel.Create(nil);
+    fControl := TCheckBox.Create(nil);
+  end;
 
-  Result := TImage(fControl);
+  Result := TCheckBox(fControl);
 end;
 
 //------------------------------------------------------------------------------
-procedure TPDFFormFieldItemCheckBox.SetImage(aValue: TImage);
+procedure TPDFFormFieldItemCheckBox.SetCheckBox(aValue: TCheckBox);
 begin
-  TImage(fControl) := aValue;
-end;
-
-//------------------------------------------------------------------------------
-procedure TPDFFormFieldItemCheckBox.SetChecked(aValue : Boolean);
-begin
-  if aValue then
-    Value := 'Yes'
-  else
-    Value := 'Off';
-
-  UpdateCheck;
-end;
-
-//------------------------------------------------------------------------------
-procedure TPDFFormFieldItemCheckBox.UpdateCheck;
-begin
-  if (Value = 'Yes') then
-    Image.Picture.Assign(GetCheckboxTickOn)
-  else
-    Image.Picture.Assign(GetCheckboxTickOff);
-end;
-
-//------------------------------------------------------------------------------
-function TPDFFormFieldItemCheckBox.GetChecked : Boolean;
-begin
-  Result := (Value = 'Yes');
-end;
-
-//------------------------------------------------------------------------------
-procedure TPDFFormFieldItemCheckBox.ImageClick(Sender: TObject);
-begin
-  Checked := Not Checked;
+  TCheckBox(fControl) := aValue;
 end;
 
 //------------------------------------------------------------------------------
 procedure TPDFFormFieldItemCheckBox.Draw;
 begin
-  Image.Tag := 0;
+  CheckBox.Tag := 0;
 
-  inherited;
+  pnlClear.Parent := ParentWinControl;
+  CheckBox.Parent := pnlClear;
+  pnlClear.ParentBackground := false;
 
-  Image.OnClick := ImageClick;
+  ScaleControl;
 
-  Image.Top := Image.Top + round(2*Scale);
-  Image.Height := Image.Height - round(4*Scale);
-  Image.Left := Image.Left + round(2*Scale);
-  Image.Width := Image.Width - round(4*Scale);
+  pnlClear.Top    := CheckBox.Top - 1;
+  pnlClear.Left   := CheckBox.Left - 1;
+  pnlClear.Width  := CheckBox.Width + 2;
+  pnlClear.Height := CheckBox.Height + 2;
 
-  Image.Stretch := true;
-  UpdateCheck;
+  pnlClear.BevelOuter  := bvNone;
+  pnlClear.BorderStyle := bsNone;
+  pnlClear.Color       := $00FFFFFF;
+
+  CheckBox.TabOrder := TabOrder;
+  CheckBox.Width    := CheckBox.Height;
+
+
+  CheckBox.Top  := 1;
+  CheckBox.Left := 4;
 end;
 
 { TPDFFormFieldItemButton }
@@ -681,7 +655,10 @@ end;
 function TPDFFormFieldItemRadioButton.GetRadioButton: TRadioButton;
 begin
   if not Assigned(fControl) then
-    fControl := TRadioButton.create(nil);
+  begin
+    shpClear := TShape.Create(nil);
+    fControl := TRadioButton.Create(nil);
+  end;
 
   Result := TRadioButton(fControl);
 end;
@@ -699,7 +676,26 @@ begin
 
   inherited;
 
-  RadioButton.Caption := Caption;
+  shpClear.Parent := ParentWinControl;
+  RadioButton.Parent := ParentWinControl;
+  RadioButton.BringToFront;
+
+  ScaleControl;
+
+  shpClear.Top    := RadioButton.Top - 1;
+  shpClear.Left   := RadioButton.Left - 1;
+  shpClear.Width  := RadioButton.Width + 2;
+  shpClear.Height := RadioButton.Height + 2;
+
+  //shpClear.BevelOuter  := bvNone;
+  //shpClear.BorderStyle := bsNone;
+  shpClear.Brush.Color := $00FFFFFF;
+  shpClear.Pen.Color := $00FFFFFF;
+
+  RadioButton.TabOrder := TabOrder;
+  RadioButton.Width    := RadioButton.Height;
+  RadioButton.Top  := 1;
+  RadioButton.Left := 4;
 end;
 
 { TPDFFormFieldItemButton }
@@ -737,17 +733,10 @@ begin
 
   DPI := ComboBox.Font.PixelsPerInch;
 
-  ComboBox.Font.Size := trunc(self.TextSize * ((FRM_FIELD_DPI/DPI)*Scale));
-
-  TextHeight := round(ComboBox.Font.Size * 1.5);
-  TextExtra := ComboBox.Height - TextHeight;
-
-  ComboBox.Top := ComboBox.Top + round(TextExtra/2);
-  ComboBox.Height := TextHeight;
-  ComboBox.Left := ComboBox.Left + round(2*Scale);
-  ComboBox.Width := ComboBox.Width - round(4*Scale);
+  //ComboBox.ScaleBy(trunc(DPI*100),trunc(FRM_FIELD_DPI*100));
 
   ComboBox.OnCloseUp := ComboOnCloseUp;
+  ComboBox.TabOrder := TabOrder;
 end;
 
 { TPDFFormFields }
