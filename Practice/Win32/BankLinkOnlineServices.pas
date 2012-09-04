@@ -3785,7 +3785,6 @@ begin
      (not Assigned(aBloClientCreate)) then
     Exit;
 
-  aBloClientCreate.Abn              := '';
   aBloClientCreate.Address1         := MyClient.clFields.clAddress_L1;
   aBloClientCreate.Address2         := MyClient.clFields.clAddress_L2;
   aBloClientCreate.Address3         := MyClient.clFields.clAddress_L3;
@@ -3803,7 +3802,18 @@ begin
   aBloClientCreate.Mobile           := MyClient.clFields.clMobile_No;
   aBloClientCreate.Phone            := MyClient.clFields.clPhone_No;
   aBloClientCreate.Salutation       := MyClient.clFields.clSalutation;
-  aBloClientCreate.TaxNumber        := MyClient.clFields.clGST_Number;
+
+  if MyClient.clFields.clCountry = whAustralia then
+  begin
+    aBloClientCreate.TaxNumber := '';
+    aBloClientCreate.Abn := MyClient.clFields.clGST_Number;
+  end
+  else
+  begin
+    aBloClientCreate.Abn := '';
+    aBloClientCreate.TaxNumber := MyClient.clFields.clGST_Number;
+  end;
+
   aBloClientCreate.Tfn              := MyClient.clFields.clTFN;
   aBloClientCreate.Name_            := MyClient.clFields.clName;
 end;
