@@ -133,6 +133,7 @@ type
     function IsEqual(Instance: PracticeRead): Boolean;
 
     function FindUser(const EmailAddress: String): TBloUserRead;
+    function FindUserByCode(const UserCode: String): TBloUserRead;
   End;
 
   TProductConfigService = class(TObject)
@@ -5648,6 +5649,23 @@ begin
   for Index := 0 to Length(Users) - 1 do
   begin
     if CompareText(Trim(Users[Index].EMail), Trim(EmailAddress)) = 0 then
+    begin
+      Result := Users[Index];
+
+      Break;
+    end;
+  end;
+end;
+
+function TPracticeHelper.FindUserByCode(const UserCode: String): TBloUserRead;
+var
+  Index: Integer;
+begin
+  Result := nil;
+  
+  for Index := 0 to Length(Users) - 1 do
+  begin
+    if CompareText(Trim(Users[Index].UserCode), Trim(UserCode)) = 0 then
     begin
       Result := Users[Index];
 
