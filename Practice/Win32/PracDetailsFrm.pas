@@ -166,6 +166,8 @@ type
     FPracticeVendorExports: TBloDataPlatformSubscription;
     FVendorSubscriberCount: TBloArrayOfPracticeDataSubscriberCount;
 
+    FEnablingBankLinkOnline: Boolean;
+
     procedure SetUpHelp;
     function AddTreeNode(AVST: TCustomVirtualStringTree; ANode:
                                PVirtualNode; ACaption: widestring;
@@ -289,6 +291,8 @@ begin
   ImagesFrm.AppImages.Misc.GetBitmap(MISC_FINDFOLDER_BMP,btnSuperSaveFolder.Glyph);
 
   FPreviousPage := 0;
+
+  FEnablingBankLinkOnline := False;
 end;
 
 function TfrmPracticeDetails.GetVendorExportName(VendorExportGuid: TBloGuid; PracticeVendorExports: TBloDataPlatformSubscription): String;
@@ -660,94 +664,95 @@ end;
 procedure TfrmPracticeDetails.ckUseBankLinkOnlineClick(Sender: TObject);
 var
   i: integer;
-  EventHolder : TNotifyEvent;
   Index: Integer;
 begin
-  FPracticeVendorExports := nil;
-  FVendorSubscriberCount := nil;
+  if not FEnablingBankLinkOnline then
+  begin
+    FEnablingBankLinkOnline := True;
+    
+    try
+      FPracticeVendorExports := nil;
+      FVendorSubscriberCount := nil;
 
-  EventHolder := ckUseBankLinkOnline.OnClick;
-  ckUseBankLinkOnline.OnClick := nil;
+      chklistExportTo.Clear;
 
-  chklistExportTo.Clear;
-  
-  try
-    if ckUseBankLinkOnline.Checked then begin
-      UseBankLinkOnline := True;
-      FPrac := ProductConfigService.GetPractice(False, False, ebCode.Text);
-      if (FPrac.id <> '') then begin
-        if ProductConfigService.Registered  then
-        begin
-          if ProductConfigService.IsPracticeProductEnabled(ProductConfigService.GetExportDataId, True) then
+      if ckUseBankLinkOnline.Checked then begin
+        UseBankLinkOnline := True;
+        FPrac := ProductConfigService.GetPractice(False, False, ebCode.Text);
+        if (FPrac.id <> '') then begin
+          if ProductConfigService.Registered  then
           begin
-            FPracticeVendorExports := ProductConfigService.GetPracticeVendorExports(True, ebCode.Text);
-
-            if Assigned(FPracticeVendorExports) then
+            if ProductConfigService.IsPracticeProductEnabled(ProductConfigService.GetExportDataId, True) then
             begin
-              if Length(FPracticeVendorExports.Available) > 0 then
+              FPracticeVendorExports := ProductConfigService.GetPracticeVendorExports(True, ebCode.Text);
+
+              if Assigned(FPracticeVendorExports) then
               begin
-                FVendorSubscriberCount := ProductConfigService.GetVendorExportClientCount(ebCode.Text);
+                if Length(FPracticeVendorExports.Available) > 0 then
+                begin
+                  FVendorSubscriberCount := ProductConfigService.GetVendorExportClientCount(ebCode.Text);
+                end;
+              end;
+            end;
+
+            //Need the client list for checking if clients are using products before
+            //they are removed. Only load if practice details have been received
+            //from BankLink Online (not from cache).
+            ProductConfigService.LoadClientList(ebCode.Text);
+          end;
+        end else
+        begin
+          UseBankLinkOnline := False;
+        end;
+      end else
+        UseBankLinkOnline := False;
+
+      LoadPracticeDetails;
+
+      if UsebankLinkOnline then
+      begin
+        SetupDataExportSettings;
+      end;
+
+      if ckUseBankLinkOnline.Checked and ProductConfigService.OnLine then
+      begin
+        //Not registered
+        if (not ProductConfigService.Registered) then
+        begin
+          ckUseBankLinkOnline.Checked := False;
+          edtURL.Text := 'Not registered for BankLink Online';
+          if ProductConfigService.ValidBConnectDetails then
+          begin
+            cbPrimaryContact.Enabled := False;
+            if Visible then
+            begin
+              if YesNoDlg.AskYesNo(Globals.BANKLINK_ONLINE_NAME,
+                                   'You are not currently registered for BankLink Online. ' +
+                                   'Would you like to register now?', dlg_no, 0) = DLG_YES then
+              begin
+                if ServiceAgreementAccepted then
+                  RequestBankLinkOnlineRegistration;
               end;
             end;
           end;
-
-          //Need the client list for checking if clients are using products before
-          //they are removed. Only load if practice details have been received
-          //from BankLink Online (not from cache).
-          ProductConfigService.LoadClientList(ebCode.Text);
+          UseBankLinkOnline := False;        
         end;
-      end else
-      begin
-        UseBankLinkOnline := False;
       end;
-    end else
-      UseBankLinkOnline := False;
 
-    LoadPracticeDetails;
+      for i := 0 to tsBanklinkOnline.ControlCount - 1 do
+        tsBanklinkOnline.Controls[i].Enabled := UseBankLinkOnline and
+                                                ProductConfigService.OnLine and
+                                                ProductConfigService.Registered and
+                                                ProductConfigService.IsPracticeActive(False);
 
-    if UsebankLinkOnline then
-    begin
-      SetupDataExportSettings;
+      tbsDataExport.TabVisible :=
+          UseBankLinkOnline and
+          ProductConfigService.IsExportDataEnabled;
+
+      ckUseBankLinkOnline.Enabled := ProductConfigService.OnLine;
+    finally
+      FEnablingBankLinkOnline := False;
     end;
-
-    if ckUseBankLinkOnline.Checked and ProductConfigService.OnLine then
-    begin
-      //Not registered
-      if (not ProductConfigService.Registered) then
-      begin
-        ckUseBankLinkOnline.Checked := False;
-        edtURL.Text := 'Not registered for BankLink Online';
-        if ProductConfigService.ValidBConnectDetails then
-        begin
-          cbPrimaryContact.Enabled := False;
-          if Visible then
-          begin
-            if YesNoDlg.AskYesNo(Globals.BANKLINK_ONLINE_NAME,
-                                 'You are not currently registered for BankLink Online. ' +
-                                 'Would you like to register now?', dlg_no, 0) = DLG_YES then
-            begin
-              if ServiceAgreementAccepted then
-                RequestBankLinkOnlineRegistration;
-            end;
-          end;
-        end;
-        UseBankLinkOnline := False;        
-      end;
-    end;
-
-    for i := 0 to tsBanklinkOnline.ControlCount - 1 do
-      tsBanklinkOnline.Controls[i].Enabled := UseBankLinkOnline and
-                                              ProductConfigService.OnLine and
-                                              ProductConfigService.Registered and
-                                              ProductConfigService.IsPracticeActive(False);
-
-    tbsDataExport.TabVisible :=
-        UseBankLinkOnline and
-        ProductConfigService.IsExportDataEnabled;
-
-    ckUseBankLinkOnline.Enabled := ProductConfigService.OnLine;
-  finally
-    ckUseBankLinkOnline.OnClick := EventHolder;
   end;
 end;
 
