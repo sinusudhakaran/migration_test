@@ -2616,7 +2616,7 @@ begin
   end
   else
   begin
-    HelpfulErrorMsg('You are not a BankLink Online user. Only BankLink Online users can update BankLink Online. Please contact BankLink Support for assistance.', 0);
+    HelpfulErrorMsg('You are not a BankLink Online enabled user. Only BankLink Online enabled users can update BankLink Online. Please contact BankLink Support for assistance.', 0);
 
     LogUtil.LogMsg(lmError, UNIT_NAME, 'An error occured while authenticating with ' + BANKLINK_ONLINE_NAME + '.');
 
@@ -4533,6 +4533,8 @@ begin
                 end
                 else
                 begin
+                  Result := False;
+                  
                   Exit;
                 end;     
               end;
