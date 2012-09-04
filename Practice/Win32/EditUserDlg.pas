@@ -275,7 +275,7 @@ begin
   // is the user marked as online?
   if chkCanAccessBankLinkOnline.Checked then
   begin
-    If fOldValues.CanAccessBankLinkOnline then
+    If fOldValues.CanAccessBankLinkOnline and UseBankLinkOnline then
     begin
       // Is online user linked to practice user?
       BloUserRead := ProductConfigService.GetOnlineUserLinkedToCode(GetCurrentCode, aPractice);
@@ -1222,8 +1222,9 @@ begin { TdlgEditUser.Execute }
   
   lvFiles.Items.Clear;
 
-  if (UseBankLinkOnline or
-      (Assigned(User) and User.usAllow_Banklink_Online)) then
+//  if (UseBankLinkOnline or
+//     (Assigned(User) and User.usAllow_Banklink_Online)) then
+  if UseBankLinkOnline then
     Practice := ProductConfigService.GetPractice(true);
 
   if Assigned(User) then
@@ -1231,7 +1232,7 @@ begin { TdlgEditUser.Execute }
     FIsLoggedIn := User.usLogged_In;
     FUsingMixedCasePassword := User.usUsing_Mixed_Case_Password;
     FUsingSecureAuthentication := User.usUsing_Secure_Authentication;
-    
+
     //user type
     if (User.usSystem_Access) then
       cmbUserType.ItemIndex := ustSystem
@@ -1282,7 +1283,7 @@ begin { TdlgEditUser.Execute }
     chkShowPracticeLogo.Checked := User.usShow_Practice_Logo;
     chkCanAccessBankLinkOnline.Checked := User.usAllow_Banklink_Online;
 
-    if User.usAllow_Banklink_Online then
+    if UseBankLinkOnline and User.usAllow_Banklink_Online then
     begin
       Screen.Cursor := crHourGlass;
       Progress.StatusSilent := False;
@@ -1345,6 +1346,7 @@ begin { TdlgEditUser.Execute }
   // Checks what User View to show
   // is the view online?
   if (UseBankLinkOnline or chkCanAccessBankLinkOnline.Checked) then
+  // if UseBankLinkOnline then
     SetOnlineUIMode(fUIMode, Practice)
   else
     fUIMode := uimBasic;
