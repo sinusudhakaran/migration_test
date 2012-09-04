@@ -4,7 +4,7 @@ object EditUserPassword: TEditUserPassword
   BorderIcons = [biSystemMenu]
   BorderStyle = bsDialog
   Caption = 'Change Password'
-  ClientHeight = 168
+  ClientHeight = 182
   ClientWidth = 476
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -59,11 +59,11 @@ object EditUserPassword: TEditUserPassword
   object LblPasswordValidation: TLabel
     Left = 19
     Top = 113
-    Width = 449
-    Height = 16
+    Width = 444
+    Height = 32
     Caption = 
-      '(Your password must be 8 to 12 characters long and include at le' +
-      'ast one digit)'
+      '(Your password must be 8 to 12 characters long and include atlea' +
+      'st one digit.'#13'It must not contain the && symbol.)'
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
     Font.Height = -13
@@ -91,7 +91,7 @@ object EditUserPassword: TEditUserPassword
   end
   object btnOk: TButton
     Left = 305
-    Top = 135
+    Top = 153
     Width = 75
     Height = 25
     Caption = 'Ok'
@@ -101,7 +101,7 @@ object EditUserPassword: TEditUserPassword
   end
   object btnCancel: TButton
     Left = 395
-    Top = 135
+    Top = 153
     Width = 75
     Height = 25
     Caption = 'Cancel'
