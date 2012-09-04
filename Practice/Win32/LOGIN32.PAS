@@ -61,8 +61,8 @@ type
     { Public declarations }
     function Execute : boolean;
 
-    class function LoginOnline(User: TUser_Rec; uName: String; var CurrentPassword: String; out Cancelled, ConnectionError: Boolean): Boolean; overload;
-    class function LoginOnline(UserCode, uName: String; var CurrentPassword: String; out Cancelled, ConnectionError: Boolean): Boolean; overload;
+    class function LoginOnline(User: TUser_Rec; uName: String; var CurrentPassword: String; out Cancelled, OfflineAuthentication: Boolean): Boolean; overload;
+    class function LoginOnline(UserCode, uName: String; var CurrentPassword: String; out Cancelled, OfflineAuthentication: Boolean): Boolean; overload;
 
     property Password: String read FPassword;
   end;
@@ -300,7 +300,7 @@ end;
 
 function TfrmLogin.Login(uName, pass: String; out Cancelled: Boolean): Boolean;
 var
-  ConnectionError: Boolean;
+  OfflineAuthentication: Boolean;
 begin
   Result := False;
 
@@ -316,13 +316,13 @@ begin
   
   if User.usAllow_Banklink_Online and Adminsystem.fdFields.fdUse_BankLink_Online then
   begin
-    if LoginOnline(User^, uName, FPassword, Cancelled, ConnectionError) then
+    if LoginOnline(User^, uName, FPassword, Cancelled, OfflineAuthentication) then
     begin
       Result := True;
     end
     else
     begin
-      if ConnectionError then
+      if OfflineAuthentication then
       begin
         Result := ValidateUserPassword(User^, FPassword);
       end;
@@ -336,13 +336,13 @@ begin
   end;
 end;
 
-class function TfrmLogin.LoginOnline(UserCode, uName: String; var CurrentPassword: String; out Cancelled, ConnectionError: Boolean): Boolean;
+class function TfrmLogin.LoginOnline(UserCode, uName: String; var CurrentPassword: String; out Cancelled, OfflineAuthentication: Boolean): Boolean;
 var
   User: pUser_Rec;
 begin
   Result := False;
   Cancelled := False;
-  ConnectionError := False;
+  OfflineAuthentication := False;
   
   if Assigned(AdminSystem) then
   begin
@@ -350,16 +350,17 @@ begin
 
     if Assigned(User) then
     begin
-      Result := LoginOnline(User^, uName, CurrentPassword, Cancelled, ConnectionError);
+      Result := LoginOnline(User^, uName, CurrentPassword, Cancelled, OfflineAuthentication);
     end;
   end;
 end;
 
-class function TfrmLogin.LoginOnline(User: TUser_Rec; uName: String; var CurrentPassword: String; out Cancelled, ConnectionError: Boolean): Boolean;
+class function TfrmLogin.LoginOnline(User: TUser_Rec; uName: String; var CurrentPassword: String; out Cancelled, OfflineAuthentication: Boolean): Boolean;
 var
   PromptPasswordChange: Boolean;
   FullName: String;
   pUser: pUser_Rec;
+  AuthenticationStatus: TAuthenticationStatus;
 begin
   Result := False;
 
@@ -367,9 +368,9 @@ begin
 
   FullName := User.usName;
 
-  if ProductConfigService.AuthenticateUser(AdminSystem.fdFields.fdBankLink_Code, User.usEMail_Address, CurrentPassword, PromptPasswordChange, ConnectionError) then
+  if ProductConfigService.AuthenticateUser(AdminSystem.fdFields.fdBankLink_Code, User.usCode, CurrentPassword, AuthenticationStatus) then
   begin
-    if PromptPasswordChange then
+    if AuthenticationStatus = paChangePassword then
     begin
       Cancelled := not ChangeUserPassword(User.usCode, CurrentPassword);
 
@@ -404,6 +405,11 @@ begin
 
       Result := True;
     end;
+  end
+  else
+  if AuthenticationStatus = paOfflineUser then
+  begin
+    OfflineAuthentication := True;
   end;
 end;
 
