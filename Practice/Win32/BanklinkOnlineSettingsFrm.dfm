@@ -31,7 +31,6 @@ object frmBanklinkOnlineSettings: TfrmBanklinkOnlineSettings
     Align = alTop
     Caption = 'Product Access'
     TabOrder = 1
-    ExplicitTop = 105
     object lblSelectProducts: TLabel
       Left = 16
       Top = 20
@@ -80,7 +79,6 @@ object frmBanklinkOnlineSettings: TfrmBanklinkOnlineSettings
     Caption = 'Billing Frequency'
     TabOrder = 4
     Visible = False
-    ExplicitTop = 547
     object lblNextBillingFrequency: TLabel
       Left = 21
       Top = 22
@@ -111,7 +109,6 @@ object frmBanklinkOnlineSettings: TfrmBanklinkOnlineSettings
     Caption = 'Default Client Administrator'
     TabOrder = 3
     OnClick = grpDefaultClientAdministratorClick
-    ExplicitTop = 433
     object lblUserName: TLabel
       Left = 21
       Top = 55
@@ -247,7 +244,6 @@ object frmBanklinkOnlineSettings: TfrmBanklinkOnlineSettings
     Align = alTop
     Caption = 'Services Available'
     TabOrder = 2
-    ExplicitTop = 271
     object lblExportTo: TLabel
       Left = 9
       Top = 20

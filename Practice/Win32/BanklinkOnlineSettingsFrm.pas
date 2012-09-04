@@ -1308,8 +1308,11 @@ begin
                                                 edtEmailAddress.Text,
                                                 edtUserName.Text,
                                                 false);
-                                                
-    MyClient.clExtra.ceOnlineValuesStored := False;
+
+    if Result then
+    begin
+      MyClient.clExtra.ceOnlineValuesStored := False;
+    end;
   end
   else
   // New Client
@@ -1359,8 +1362,11 @@ begin
                                                     edtEmailAddress.Text,
                                                     edtUserName.Text,
                                                     ClientID);
-        
-        MyClient.clExtra.ceOnlineValuesStored := False;
+
+        if Result then
+        begin
+          MyClient.clExtra.ceOnlineValuesStored := False;
+        end;
         
         ShowUpdateMsg := not Result;
 
