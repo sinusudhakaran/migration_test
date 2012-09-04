@@ -100,13 +100,15 @@ var
   Country: byte;
   i: integer;
 begin
-  // Country - use AdminSystem for Practice, use MyClient for Books
-  if Assigned(AdminSystem) then
-    Country := AdminSystem.fdFields.fdCountry
-  else if Assigned(MyClient) then
-    Country := MyClient.clFields.clCountry
-  else
-    Country := 0; // If it gets to this, we have no real way to determine the Country
+  // Determine country
+  case aLevel of
+    vlPractice:
+      Country := AdminSystem.fdFields.fdCountry;
+    vlClient:
+      Country := MyClient.clFields.clCountry;
+    else
+      Country := 0; // If it gets to this, we have no real way to determine the Country
+  end;
 
   // For the UK only
   if (Country = whUK) then
