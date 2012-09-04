@@ -23,10 +23,8 @@ object dlgEditBank: TdlgEditBank
     ActivePage = tbDetails
     Align = alClient
     TabOrder = 0
-    ExplicitWidth = 592
     object tbDetails: TTabSheet
       Caption = '&Details'
-      ExplicitWidth = 584
       object lblNo: TLabel
         Left = 24
         Top = 12
@@ -52,7 +50,7 @@ object dlgEditBank: TdlgEditBank
       object lblClause: TLabel
         Left = 3
         Top = 373
-        Width = 622
+        Width = 618
         Height = 26
         Caption = 
           '* BankLink wishes to collect the Institution and Account Type in' +
@@ -511,7 +509,10 @@ object dlgEditBank: TdlgEditBank
     object tbAnalysis: TTabSheet
       Caption = '&Analysis Coding'
       ImageIndex = 1
+      ExplicitLeft = 0
+      ExplicitTop = 0
       ExplicitWidth = 584
+      ExplicitHeight = 0
       object Label8: TLabel
         Left = 16
         Top = 16
@@ -557,7 +558,6 @@ object dlgEditBank: TdlgEditBank
     object tbBankLinkOnline: TTabSheet
       Caption = 'BankLink Online'
       ImageIndex = 2
-      ExplicitWidth = 584
       object lblSelectExport: TLabel
         Left = 16
         Top = 11
@@ -605,7 +605,6 @@ object dlgEditBank: TdlgEditBank
     Align = alBottom
     BevelOuter = bvNone
     TabOrder = 1
-    ExplicitWidth = 592
     DesignSize = (
       638
       37)
@@ -629,7 +628,6 @@ object dlgEditBank: TdlgEditBank
       Default = True
       TabOrder = 1
       OnClick = btnOKClick
-      ExplicitLeft = 431
     end
     object btnCancel: TButton
       Left = 558
@@ -641,7 +639,6 @@ object dlgEditBank: TdlgEditBank
       Caption = 'Cancel'
       TabOrder = 2
       OnClick = btnCancelClick
-      ExplicitLeft = 512
     end
   end
   object OvcController1: TOvcController
