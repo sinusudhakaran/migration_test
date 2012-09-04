@@ -916,7 +916,7 @@ begin
 
   if Assigned(ProductConfigService.Practice) then
   begin  
-    User := ProductConfigService.Practice.FindUser(CurrUser.EmailAddress);
+    User := ProductConfigService.Practice.FindUserByCode(CurrUser.Code);
 
     if User <> nil then
     begin
