@@ -271,7 +271,7 @@ type
                                          aSubscribers : TBloArrayOfDataPlatformSubscriber) : TBloArrayOfDataPlatformSubscriber;
 
     function CheckAuthentication(ServiceResponse: MessageResponse): Boolean;
-    function ReAuthenticateUser(out Cancelled, ConnectionError: Boolean): Boolean;
+    function ReAuthenticateUser(out Cancelled, ConnectionError: Boolean; IgnoreOnlineStatus: Boolean = False): Boolean;
   public
     function IsExportDataEnabled : Boolean;
     function IsExportDataEnabledFoAccount(const aBankAcct : TBank_Account) : Boolean;
@@ -2561,55 +2561,66 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TProductConfigService.ReAuthenticateUser(out Cancelled, ConnectionError: Boolean): Boolean;
+function TProductConfigService.ReAuthenticateUser(out Cancelled, ConnectionError: Boolean; IgnoreOnlineStatus: Boolean = False): Boolean;
 var
   Password: String;
 begin
   Result := False;
 
-  try     
-    Password := CurrUser.Password;
+  if CurrUser.AllowBanklinkOnline or IgnoreOnlineStatus then
+  begin
+    try
+      Password := CurrUser.Password;
 
-    repeat
-      if TfrmLogin.LoginOnline(Curruser.Code, CurrUser.FullName, Password, Cancelled, ConnectionError) then
-      begin
-        CurrUser.Password := Password;
-        
-        Result := True;
-      end
-      else
-      begin
-        if ConnectionError then
+      repeat
+        if TfrmLogin.LoginOnline(Curruser.Code, CurrUser.FullName, Password, Cancelled, ConnectionError) then
         begin
-          HelpfulErrorMsg(BKPRACTICENAME + ' is unable to authenticate with ' + BANKLINK_ONLINE_NAME + '. Please contact BankLink Support for assistance.', 0);
+          CurrUser.Password := Password;
 
-          LogUtil.LogMsg(lmError, UNIT_NAME, 'An error occured while authenticating with ' + BANKLINK_ONLINE_NAME + '.');
-
-          Exit;
-        end
-        else
-        if Cancelled then
-        begin
-          Exit;
+          Result := True;
         end
         else
         begin
-          if not TfrmOnlinePassword.PromptUser(Password) then
+          if ConnectionError then
           begin
-            HelpfulErrorMsg(BKPRACTICENAME + ' authentication with ' + BANKLINK_ONLINE_NAME + ' failed. Please contact BankLink Support for assistance.', 0);
+            HelpfulErrorMsg(BKPRACTICENAME + ' is unable to authenticate with ' + BANKLINK_ONLINE_NAME + '. Please contact BankLink Support for assistance.', 0);
 
-            LogUtil.LogMsg(lmError, UNIT_NAME, ' authentication with ' + BANKLINK_ONLINE_NAME + ' failed.');
+            LogUtil.LogMsg(lmError, UNIT_NAME, 'An error occured while authenticating with ' + BANKLINK_ONLINE_NAME + '.');
 
             Exit;
+          end
+          else
+          if Cancelled then
+          begin
+            Exit;
+          end
+          else
+          begin
+            if not TfrmOnlinePassword.PromptUser(Password) then
+            begin
+              HelpfulErrorMsg(BKPRACTICENAME + ' authentication with ' + BANKLINK_ONLINE_NAME + ' failed. Please contact BankLink Support for assistance.', 0);
+
+              LogUtil.LogMsg(lmError, UNIT_NAME, ' authentication with ' + BANKLINK_ONLINE_NAME + ' failed.');
+
+              Exit;
+            end;
           end;
         end;
+      until Result;
+    except
+      on E:Exception do
+      begin
+        HandleException('ReAuthenticateUser', E);
       end;
-    until Result;
-  except
-    on E:Exception do
-    begin
-      HandleException('ReAuthenticateUser', E);
     end;
+  end
+  else
+  begin
+    HelpfulErrorMsg('You are not a BankLink Online user. Only BankLink Online users can update BankLink Online. Please contact BankLink Support for assistance.', 0);
+
+    LogUtil.LogMsg(lmError, UNIT_NAME, 'An error occured while authenticating with ' + BANKLINK_ONLINE_NAME + '.');
+
+    Exit;  
   end;
 end;
 
@@ -4060,7 +4071,7 @@ begin
       except
         on E: EAuthenticationException do
         begin
-          if ReAuthenticateUser(Cancelled, ConnectionError) and not (Cancelled or ConnectionError) then
+          if ReAuthenticateUser(Cancelled, ConnectionError, aUserCode = CurrUser.Code) and not (Cancelled or ConnectionError) then
           begin
             Response := BlopiInterface.SavePracticeUser(CountryText(AdminSystem.fdFields.fdCountry),
                                             AdminSystem.fdFields.fdBankLink_Code,
