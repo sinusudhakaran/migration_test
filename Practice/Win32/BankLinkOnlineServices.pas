@@ -74,7 +74,7 @@ type
 
   TArrVarTypeData = Array of TVarTypeData;
 
-  TPracticeUserAuthentication = (paSuccess, paFailed, paError);
+  TAuthenticationStatus = (paNone, paConnectionError, paOffLineUser, paChangePassword);
 
   TUserDetailHelper = class helper for BlopiServiceFacade.User
   public
@@ -271,7 +271,7 @@ type
                                          aSubscribers : TBloArrayOfDataPlatformSubscriber) : TBloArrayOfDataPlatformSubscriber;
 
     function CheckAuthentication(ServiceResponse: MessageResponse): Boolean;
-    function ReAuthenticateUser(out Cancelled, ConnectionError: Boolean; IgnoreOnlineStatus: Boolean = False): Boolean;
+    function ReAuthenticateUser(out Cancelled, OfflineAuthentication: Boolean; IgnoreOnlineStatus: Boolean = False): Boolean;
   public
     function IsExportDataEnabled : Boolean;
     function IsExportDataEnabledFoAccount(const aBankAcct : TBank_Account) : Boolean;
@@ -300,7 +300,7 @@ type
 
     destructor Destroy; override;
     //Practice methods
-    function GetPractice(aUpdateUseOnline: Boolean = True; aForceOnlineCall : Boolean = false; PracticeCode: string = ''): TBloPracticeRead;
+    function GetPractice(aUpdateUseOnline: Boolean = True; aForceOnlineCall : Boolean = false; PracticeCode: string = ''; AllowProgressBar: Boolean = True): TBloPracticeRead;
     function IsPracticeActive(aShowWarning: Boolean = true): Boolean;
     function IsPracticeDeactivated(aShowWarning: Boolean = true): boolean;
     function IsPracticeSuspended(aShowWarning: Boolean = true): boolean;
@@ -361,7 +361,7 @@ type
 
     //User methods
     function GetUnLinkedOnlineUsers(aPractice : TBloPracticeRead = nil) : TBloArrayOfUserRead;
-    function GetOnlineUserLinkedToCode(aUserCode : String; aPractice: TBloPracticeRead = nil): TBloUserRead;
+    function GetOnlineUserLinkedToCode(aUserCode : String; aPractice: TBloPracticeRead = nil; ShowProgress: Boolean = True): TBloUserRead;
 
     function AddEditPracUser(var   aUserId         : TBloGuid;
                              const aEMail          : WideString;
@@ -392,8 +392,6 @@ type
                                 const aOldPassword : WideString;
                                 const aNewPassword : WideString;
                                 const UserEmail    : WideString): Boolean; overload;
-
-    function AuthenticatePracticeUser(UserId: TBloGuid; const Password: String): TPracticeUserAuthentication;
 
     function UpdateClientNotesOption(ClientReadDetail: TBloClientReadDetail; WebExportFormat: Byte): Boolean;
 
@@ -451,7 +449,7 @@ type
 
     function PracticeUserExists(const EmailAddress: String; RefreshPractice: Boolean = True): Boolean;
 
-    function AuthenticateUser(const Domain, Username, Password: String; out ChangePassword, ConnectionError: Boolean): Boolean;
+    function AuthenticateUser(const Domain, Username, Password: String; out AuthenticationResult: TAuthenticationStatus): Boolean;
     
     property OnLine: Boolean read FOnLine;
     property Registered: Boolean read GetRegistered;
@@ -1390,7 +1388,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TProductConfigService.GetPractice(aUpdateUseOnline: Boolean; aForceOnlineCall : Boolean; PracticeCode: string): TBloPracticeRead;
+function TProductConfigService.GetPractice(aUpdateUseOnline: Boolean; aForceOnlineCall : Boolean; PracticeCode: string; AllowProgressBar: Boolean): TBloPracticeRead;
 var
   i: integer;
   BlopiInterface: IBlopiServiceFacade;
@@ -1423,7 +1421,8 @@ begin
   FreeAndNil(FPracticeCopy);
   FPracticeCopy := TBloPracticeRead.Create;
   try
-    ShowProgress := Progress.StatusSilent;
+    ShowProgress := Progress.StatusSilent and AllowProgressBar;
+
     if ShowProgress then
     begin
       Screen.Cursor := crHourGlass;
@@ -2029,92 +2028,17 @@ begin
   end;
 end;
 
-function TProductConfigService.AuthenticatePracticeUser(UserId: TBloGuid; const Password: String): TPracticeUserAuthentication;
-var
-  BlopiInterface : IBlopiServiceFacade;
-  Response: MessageResponse;
-  ShowProgress: Boolean;
-begin
-  Result := paFailed;
-  
-  try
-    ShowProgress := Progress.StatusSilent;
 
-    if ShowProgress then
-    begin
-      Screen.Cursor := crHourGlass;
-      Progress.StatusSilent := False;
-      Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Connecting', 10);
-    end;
-
-    try
-      if ShowProgress then
-        Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Authenticating user', 50);
-
-
-      BlopiInterface := GetServiceFacade;
-
-      Response := BlopiInterface.AuthenticatePracticeUser(CountryText(AdminSystem.fdFields.fdCountry),
-                                                          AdminSystem.fdFields.fdBankLink_Code,
-                                                          AdminSystem.fdFields.fdBankLink_Connect_Password,
-                                                          UserId,
-                                                          Password);
-
-      if not Response.Success then
-      begin
-        if Length(Response.ErrorMessages) > 0 then
-        begin
-          if Response.ErrorMessages[0].ErrorCode <> '102' then
-          begin
-            MessageResponseHasError(Response, 'authenticate user');
-
-            Result := paError;
-          end;
-        end
-        else
-        begin
-          MessageResponseHasError(Response, 'authenticate user');
-
-          Result := paError;        
-        end;
-      end
-      else
-      begin
-        Result := paSuccess;
-      end;
-
-      if ShowProgress then
-      begin
-        Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finished', 100);
-      end;
-    finally
-      if ShowProgress then
-      begin
-        Progress.StatusSilent := True;
-        Progress.ClearStatus;
-        Screen.Cursor := crDefault;
-      end;
-    end;
-  except
-    on E:Exception do
-    begin
-      HandleException('AuthenticatePracticeUser', E);
-      
-      Result := paError;
-    end;
-  end;
-end;
-
-function TProductConfigService.AuthenticateUser(const Domain, Username, Password: String; out ChangePassword, ConnectionError: Boolean): Boolean;
+function TProductConfigService.AuthenticateUser(const Domain, Username, Password: String; out AuthenticationResult: TAuthenticationStatus): Boolean;
 var
   AuthenticationService : IP5Auth;
   Response: P5AuthResponse;
   ShowProgress: Boolean;
+  OnlineUser: TBloUserRead;
 begin
   Result := False;
 
-  ChangePassword := False;
-  ConnectionError := False;
+  AuthenticationResult := paNone;
 
   try
     ShowProgress := Progress.StatusSilent;
@@ -2133,17 +2057,29 @@ begin
         Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Authenticating User', 50);
       end;
       
-      AuthenticationService := GetAuthenticationServiceFacade;
+      OnlineUser := ProductConfigService.GetOnlineUserLinkedToCode(Username, FPractice, False);
 
-      Response := AuthenticationService.AuthenticateUser(Domain, Username, Password);
-
-      Result := Response.Success;
-
-      ChangePassword := Response.IsPasswordChangeRequired;
-
-      if ShowProgress then
+      if Assigned(OnlineUser) then
       begin
-        Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finished', 100);
+        AuthenticationService := GetAuthenticationServiceFacade;
+
+        Response := AuthenticationService.AuthenticateUser(Domain, OnlineUser.EMail, Password);
+
+        Result := Response.Success;
+
+        if Response.IsPasswordChangeRequired then
+        begin
+          AuthenticationResult := paChangePassword;
+        end;
+
+        if ShowProgress then
+        begin
+          Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finished', 100);
+        end;
+      end
+      else
+      begin
+        AuthenticationResult := paOffLineUser;
       end;
     finally
       if ShowProgress then
@@ -2158,7 +2094,7 @@ begin
     begin
       HandleException('AuthenticateUser', E);
 
-      ConnectionError := True;
+      AuthenticationResult := paConnectionError;
     end;
   end;
 end;
@@ -2561,7 +2497,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TProductConfigService.ReAuthenticateUser(out Cancelled, ConnectionError: Boolean; IgnoreOnlineStatus: Boolean = False): Boolean;
+function TProductConfigService.ReAuthenticateUser(out Cancelled, OfflineAuthentication: Boolean; IgnoreOnlineStatus: Boolean = False): Boolean;
 var
   Password: String;
 begin
@@ -2573,7 +2509,7 @@ begin
       Password := CurrUser.Password;
 
       repeat
-        if TfrmLogin.LoginOnline(Curruser.Code, CurrUser.FullName, Password, Cancelled, ConnectionError) then
+        if TfrmLogin.LoginOnline(Curruser.Code, CurrUser.FullName, Password, Cancelled, OfflineAuthentication) then
         begin
           CurrUser.Password := Password;
 
@@ -2581,7 +2517,7 @@ begin
         end
         else
         begin
-          if ConnectionError then
+          if OfflineAuthentication then
           begin
             HelpfulErrorMsg(BKPRACTICENAME + ' is unable to authenticate with ' + BANKLINK_ONLINE_NAME + '. Please contact BankLink Support for assistance.', 0);
 
@@ -3587,14 +3523,14 @@ begin
 end;
 
 //-----------------------------------------------------------------------------
-function TProductConfigService.GetOnlineUserLinkedToCode(aUserCode : String; aPractice: TBloPracticeRead): TBloUserRead;
+function TProductConfigService.GetOnlineUserLinkedToCode(aUserCode : String; aPractice: TBloPracticeRead; ShowProgress: Boolean): TBloUserRead;
 var
   OnlineUserIndex : integer;
 begin
   Result := Nil;
 
   if not Assigned(aPractice) then
-    aPractice := GetPractice;
+    aPractice := GetPractice(ShowProgress);
 
   if not online then
     Exit;
@@ -3884,7 +3820,7 @@ var
   Cancelled: Boolean;
   ConnectionError: Boolean;
   Response: MessageResponse;
-  ChangePasswordTemp: Boolean;
+  AuthenticationStatus: TAuthenticationStatus;
 begin
   Result := False;
   
@@ -3901,7 +3837,7 @@ begin
   except
     on E: EAuthenticationException do
     begin
-      if AuthenticateUser(AdminSystem.fdFields.fdBankLink_Code, UserEmail, aOldPassword, ChangePasswordTemp, ConnectionError) then
+      if AuthenticateUser(AdminSystem.fdFields.fdBankLink_Code, aUserCode, aOldPassword, AuthenticationStatus) then
       begin
         Response := BlopiInterface.ChangePracticeUserPassword(CountryText(AdminSystem.fdFields.fdCountry),
                                                     AdminSystem.fdFields.fdBankLink_Code,
