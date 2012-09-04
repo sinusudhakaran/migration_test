@@ -960,6 +960,7 @@ begin
     Result := True;
     TfrmModalProgress.ShowProgress(Self, 'Please wait...', 'Sending selected vendors to BankLink Online',
                                    ExportTaggedAccounts);
+    
   end;
 end;
 
