@@ -196,7 +196,7 @@ begin
 
   if not RegExIsPasswordValid(edtNewPassword.text) or (Pos('&', edtNewPassword.Text) > 0) then
   begin
-    HelpfulWarningMsg('BankLink Online users must have a Password that contains 8-12 characters, including atleast 1 digit.', 0 );
+    HelpfulWarningMsg('BankLink Online users must have a Password that contains 8-12 characters, including at least 1 digit. It must not contain the & symbol.', 0 );
     edtNewPassword.SetFocus;
     exit;
   end; { not RegExIsPasswordValid(edtNewPassword.text) }

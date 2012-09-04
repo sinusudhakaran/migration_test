@@ -59,11 +59,11 @@ object EditUserPassword: TEditUserPassword
   object LblPasswordValidation: TLabel
     Left = 19
     Top = 113
-    Width = 444
+    Width = 448
     Height = 32
     Caption = 
-      '(Your password must be 8 to 12 characters long and include atlea' +
-      'st one digit.'#13'It must not contain the && symbol.)'
+      '(Your password must be 8 to 12 characters long and include at le' +
+      'ast one digit.'#13'It must not contain the && symbol.)'
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
     Font.Height = -13
