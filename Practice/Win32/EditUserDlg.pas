@@ -685,7 +685,6 @@ var
   UserEmail         : String;
   BloUserRead       : TBloUserRead;
   OldPassword       : String;
-  AuthenticationResult: TPracticeUserAuthentication;
   UserGuid: TBloGuid;
 begin
   Result := True;
