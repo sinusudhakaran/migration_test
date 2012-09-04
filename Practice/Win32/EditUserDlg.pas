@@ -660,7 +660,7 @@ begin { TdlgEditUser.OKtoPost }
       end;
     ustSystem :
       begin
-        if not IsBankLinkOnlineUser then
+        if not chkCanAccessBankLinkOnline.Checked then
         begin
           if (ePass.Text = '') then
           begin
