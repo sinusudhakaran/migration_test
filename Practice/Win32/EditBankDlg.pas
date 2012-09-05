@@ -1185,7 +1185,8 @@ function EditBankAccount(aBankAcct : TBank_Account;
                          aClientId : TBloGuid;
                          IsNew: Boolean = False) : boolean;
 var
-MsgStr : string;
+  MyDlg : tdlgEditBank;
+  MsgStr : string;
   AssignedStr : string;
   VisibleStr : string;
   FocusedStr : string;
