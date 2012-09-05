@@ -1187,7 +1187,7 @@ function EditBankAccount(aBankAcct : TBank_Account;
 var
   MyDlg : tdlgEditBank;
 begin
-  MyDlg := tdlgEditBank.Create(Application.MainForm);
+  MyDlg := tdlgEditBank.Create(Screen.ActiveForm);
   try
     if aBankAcct.IsManual then
     begin
