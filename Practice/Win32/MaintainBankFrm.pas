@@ -692,78 +692,86 @@ begin
   {do the deletion}
   if LoadAdminSystem(true, 'TfrmMaintainBank.tbDeleteClick' ) then
   begin
+    // Now safe to set to true. Required by delete code below
+    Result := true;
+
+    // Must do this before BankLink Online code below
     AcctNo := BankAccount.baFields.baBank_Account_Number;
     AcctName := BankAccount.baFields.baBank_Account_Name;
     CoreAccountID := BankAccount.baFields.baCore_Account_ID;
 
-    MyClient.clBank_Account_List.DelFreeItem(BankAccount);
-    // Delete from client-account map
-    if not MyClient.clFields.clFile_Read_Only then
+    // Delete on BankLink Online first
+    if (IsExportDataEnabledFoAccount) and
+       (fClientAccVendors.ClientID <> '') then
     begin
-      pS := AdminSystem.fdSystem_Bank_Account_List.FindCode(AcctNo);
-      if Assigned(pS) then
+      if fRemoveVendorsFromClient then
       begin
-        pF := AdminSystem.fdSystem_Client_File_List.FindCode(MyClient.clFields.clCode);
-        if Assigned(pF) then
-        begin
-          i := AdminSystem.fdSystem_Client_Account_Map.FindIndexOf(pS^.sbLRN, pF^.cfLRN);
-          if i > -1 then
-            AdminSystem.fdSystem_Client_Account_Map.AtDelete(i);
-          //Update ISO Code list
-          AdminSystem.HasCurrencyBankAccount('');
+        try
+          Result := ProductConfigService.SaveClientVendorExports(fClientAccVendors.ClientID,
+                                                                 fRemoveVendorsFromClientList,
+                                                                 true,
+                                                                 true,
+                                                                 False);
+        finally
+          fRemoveVendorsFromClient := false;
         end;
-        // Update unattached flag
-        if not Assigned(AdminSystem.fdSystem_Client_Account_Map.FindFirstClient(pS^.sbLRN)) then
-          pS.sbAttach_Required := True;
-      end;
-    end;
 
-    //*** Flag Audit ***
-    SystemAuditMgr.FlagAudit(arAttachBankAccounts);
+        if Result then
+        begin
+          // Remove All Vendor Columns
+          for i := 0 to high(fClientAccVendors.ClientVendors) do
+            lvBank.Columns.Delete(lvBank.Columns.Count-1);
 
-    SaveAdminSystem;
-    result := true;
-  end
-  else
-    HelpfulErrorMsg('Unable to Delete Bank Account.  Admin System cannot be loaded',0);
-
-  if (Result) and
-     (IsExportDataEnabledFoAccount) and
-     (fClientAccVendors.ClientID <> '') then
-  begin
-    if fRemoveVendorsFromClient then
-    begin
-      try
-        Result := ProductConfigService.SaveClientVendorExports(fClientAccVendors.ClientID,
-                                                               fRemoveVendorsFromClientList,
-                                                               true,
-                                                               true,
-                                                               False);
-      finally
-        fRemoveVendorsFromClient := false;
+          AddOnlineExportVendors;
+        end;
       end;
 
       if Result then
       begin
-        // Remove All Vendor Columns
-        for i := 0 to high(fClientAccVendors.ClientVendors) do
-          lvBank.Columns.Delete(lvBank.Columns.Count-1);
-
-        AddOnlineExportVendors;
+        SetLength(CurrentVendors, 0);
+        Result := ProductConfigService.SaveAccountVendorExports(fClientAccVendors.ClientID,
+                                                                CoreAccountID,
+                                                                AcctName,
+                                                                AcctNo,
+                                                                CurrentVendors,
+                                                                True);
       end;
     end;
 
+    // OK to delete locally?
+    // Note: do this last, so we don't end up with orphaned objects
     if Result then
     begin
-      SetLength(CurrentVendors, 0);
-      Result := ProductConfigService.SaveAccountVendorExports(fClientAccVendors.ClientID,
-                                                              CoreAccountID,
-                                                              AcctName,
-                                                              AcctNo,
-                                                              CurrentVendors,
-                                                              True);
+      MyClient.clBank_Account_List.DelFreeItem(BankAccount);
+      // Delete from client-account map
+      if not MyClient.clFields.clFile_Read_Only then
+      begin
+        pS := AdminSystem.fdSystem_Bank_Account_List.FindCode(AcctNo);
+        if Assigned(pS) then
+        begin
+          pF := AdminSystem.fdSystem_Client_File_List.FindCode(MyClient.clFields.clCode);
+          if Assigned(pF) then
+          begin
+            i := AdminSystem.fdSystem_Client_Account_Map.FindIndexOf(pS^.sbLRN, pF^.cfLRN);
+            if i > -1 then
+              AdminSystem.fdSystem_Client_Account_Map.AtDelete(i);
+            //Update ISO Code list
+            AdminSystem.HasCurrencyBankAccount('');
+          end;
+          // Update unattached flag
+          if not Assigned(AdminSystem.fdSystem_Client_Account_Map.FindFirstClient(pS^.sbLRN)) then
+            pS.sbAttach_Required := True;
+        end;
+      end;
+
+      //*** Flag Audit ***
+      SystemAuditMgr.FlagAudit(arAttachBankAccounts);
     end;
-  end;
+
+    SaveAdminSystem;
+  end
+  else
+    HelpfulErrorMsg('Unable to Delete Bank Account.  Admin System cannot be loaded',0);
 
   LogUtil.LogMsg(lmInfo,'MAINTAINBANKFRM','User Delete Bank Account '+AcctNo+' - '+AcctName);
 end;
