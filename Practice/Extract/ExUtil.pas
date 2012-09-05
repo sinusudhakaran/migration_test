@@ -170,7 +170,7 @@ Begin
                suOFXV2            : Result := DefaultDir + clCode + bpFileExtn[bpOFXV2];
                suBK5CSV           : Result := DefaultDir + clCode + '.CSV';
                suTASBooks         : ;
-               suAcclipse         : Result := DefaultDir + clCode + '.TXT'; // iFirm (Acclipse) is currently NZ only, so this is just futureproofing
+               // suAcclipse         : Result := DefaultDir + clCode + '.TXT'; // iFirm (Acclipse) is currently NZ only, so this is just futureproofing
             end;
 
       end;

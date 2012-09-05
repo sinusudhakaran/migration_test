@@ -277,7 +277,7 @@ begin
                   suQIF         : DoExtractBusinessProduct(FD, TD, Path);
                   suOFXV1       : DoExtractBusinessProduct(FD, TD, Path);
                   suOFXV2       : DoExtractBusinessProduct(FD, TD, Path);
-                  suAcclipse        : AcclipseX.ExtractData( FD, TD, Path );
+                  // suAcclipse        : AcclipseX.ExtractData( FD, TD, Path ); Might need this in future if iFirm (Acclipse) is added for UK
 
                   suTASBooks   :;
                end;
