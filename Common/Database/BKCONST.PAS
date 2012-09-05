@@ -649,8 +649,8 @@ CONST
    suOFXV1                            = 4;
    suOFXV2                            = 5;
    suBK5CSV                           = 6;
-   suTASBooks                         = 7;
-   suAcclipse                         = 8; suMax = 8;
+   suTASBooks                         = 7; suMax = 7;
+   // suAcclipse                         = 8; suMax = 8; // Might need this later if we add iFirm (Acclipse) to UK
 
 //UK systems to be added when we get spec for extracts
 //   suDigita                           = ?;
@@ -667,8 +667,8 @@ CONST
         'Business Products - OFX V1',             //suOFXV1
         'Business Products - OFX V2',             //suOFXV2
         'Generic',                                //suBK5CSV
-        'TASBooks',                               //suTASBooks
-        'iFirm'                                   //suAcclipse
+        'TASBooks'                                //suTASBooks
+        // 'iFirm'                                //suAcclipse Might need this later if we add iFirm (Acclipse) to UK
        );
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
