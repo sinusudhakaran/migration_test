@@ -1187,7 +1187,10 @@ function EditBankAccount(aBankAcct : TBank_Account;
 var
   MyDlg : tdlgEditBank;
 begin
-  MyDlg := tdlgEditBank.Create(Screen.ActiveForm);
+  if not Assigned(Application.MainForm) then
+    LogUtil.LogMsg(lmError, UNIT_NAME, 'Application.MainForm not assigned.');
+
+  MyDlg := tdlgEditBank.Create(Application.MainForm);
   try
     if aBankAcct.IsManual then
     begin
