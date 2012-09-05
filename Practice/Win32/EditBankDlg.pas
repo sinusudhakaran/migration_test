@@ -1185,10 +1185,73 @@ function EditBankAccount(aBankAcct : TBank_Account;
                          aClientId : TBloGuid;
                          IsNew: Boolean = False) : boolean;
 var
-  MyDlg : tdlgEditBank;
+MsgStr : string;
+  AssignedStr : string;
+  VisibleStr : string;
+  FocusedStr : string;
+  WinStateStr : string;
+  FormStyleStr : string;
+  FormStateStr : string;
 begin
-  if not Assigned(Application.MainForm) then
-    LogUtil.LogMsg(lmError, UNIT_NAME, 'Application.MainForm not assigned.');
+  if Assigned(Application.MainForm) then
+  begin
+    AssignedStr := 'True';
+    if Application.MainForm.Visible then
+      VisibleStr  := 'True'
+    else
+      VisibleStr  := 'False';
+
+    if Application.MainForm.Focused then
+      FocusedStr  := 'True'
+    else
+      FocusedStr  := 'False';
+
+    case Application.MainForm.WindowState of
+      wsNormal : WinStateStr := 'wsNormal';
+      wsMinimized : WinStateStr := 'wsMinimized';
+      wsMaximized : WinStateStr := 'wsMaximized';
+    end;
+
+    case Application.MainForm.FormStyle of
+      TFormStyle(fsNormal) : FormStyleStr := 'fsNormal';
+      TFormStyle(fsMDIChild) : FormStyleStr := 'fsMDIChild';
+      TFormStyle(fsMDIForm) : FormStyleStr := 'fsMDIForm';
+      TFormStyle(fsStayOnTop) : FormStyleStr := 'fsStayOnTop';
+    end;
+
+    FormStateStr := '[';
+    if fsCreating in Application.MainForm.FormState then
+      FormStateStr := FormStateStr + 'fsCreating, ';
+    if fsVisible in Application.MainForm.FormState then
+      FormStateStr := FormStateStr + 'fsVisible, ';
+    if fsShowing in Application.MainForm.FormState then
+      FormStateStr := FormStateStr + 'fsShowing, ';
+    if fsModal in Application.MainForm.FormState then
+      FormStateStr := FormStateStr + 'fsModal, ';
+    if fsCreatedMDIChild in Application.MainForm.FormState then
+      FormStateStr := FormStateStr + 'fsCreatedMDIChild, ';
+    if fsActivated in Application.MainForm.FormState then
+      FormStateStr := FormStateStr + 'fsActivated, ';
+    FormStateStr := FormStateStr + ']. ';
+  end
+  else
+  begin
+    AssignedStr  := 'False';
+    VisibleStr   := 'False';
+    FocusedStr   := 'False';
+    WinStateStr  := 'None';
+    FormStyleStr := 'None';
+    FormStateStr := 'None';
+  end;
+
+  MsgStr := 'Application.MainForm Assigned - ' + AssignedStr + '.  ' +
+            'Application.MainForm Visible - ' + VisibleStr + '.  ' +
+            'Application.MainForm Win State - ' + WinStateStr + '.  ' +
+            'Application.MainForm Form Style - ' + FormStyleStr + '.  ' +
+            'Application.MainForm Form State - ' + FormStateStr + '.  ' +
+            'Application.MainForm Focused - ' + FocusedStr + '.';
+
+  LogMsg(lmInfo, UnitName, MsgStr);
 
   MyDlg := tdlgEditBank.Create(Application.MainForm);
   try
