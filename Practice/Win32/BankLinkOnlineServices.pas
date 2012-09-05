@@ -450,7 +450,7 @@ type
 
     function PracticeUserExists(const EmailAddress: String; RefreshPractice: Boolean = True): Boolean;
 
-    function AuthenticateUser(const Domain, Username, Password: String; out AuthenticationResult: TAuthenticationStatus): Boolean;
+    function AuthenticateUser(const Domain, Username, Password: String; out AuthenticationResult: TAuthenticationStatus; IgnoreOnlineUser: Boolean = False): Boolean;
     
     property OnLine: Boolean read FOnLine;
     property Registered: Boolean read GetRegistered;
@@ -2030,12 +2030,13 @@ begin
 end;
 
 
-function TProductConfigService.AuthenticateUser(const Domain, Username, Password: String; out AuthenticationResult: TAuthenticationStatus): Boolean;
+function TProductConfigService.AuthenticateUser(const Domain, Username, Password: String; out AuthenticationResult: TAuthenticationStatus; IgnoreOnlineUser: Boolean = False): Boolean;
 var
   AuthenticationService : IP5Auth;
   Response: P5AuthResponse;
   ShowProgress: Boolean;
   OnlineUser: TBloUserRead;
+  EmailAddress: String;
 begin
   Result := False;
 
@@ -2057,15 +2058,21 @@ begin
       begin
         Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Authenticating User', 50);
       end;
-      
+
       OnlineUser := ProductConfigService.GetOnlineUserLinkedToCode(Username, FPractice, False);
 
-      if Assigned(OnlineUser) then
+      if Assigned(OnlineUser) or IgnoreOnlineUser then
       begin
         AuthenticationService := GetAuthenticationServiceFacade;
 
-        Response := AuthenticationService.AuthenticateUser(Domain, OnlineUser.EMail, Password);
-
+        if IgnoreOnlineUser then
+        begin
+          Response := AuthenticationService.AuthenticateUser(Domain, CurrUser.EmailAddress, Password);
+        end
+        else
+        begin
+          Response := AuthenticationService.AuthenticateUser(Domain, OnlineUser.EMail, Password);
+        end;
         Result := Response.Success;
 
         if Response.IsPasswordChangeRequired then
@@ -2510,7 +2517,7 @@ begin
       Password := CurrUser.Password;
 
       repeat
-        if TfrmLogin.LoginOnline(Curruser.Code, CurrUser.FullName, Password, Cancelled, OfflineAuthentication) then
+        if TfrmLogin.LoginOnline(Curruser.Code, CurrUser.FullName, Password, Cancelled, OfflineAuthentication, IgnoreOnlineStatus) then
         begin
           CurrUser.Password := Password;
 
