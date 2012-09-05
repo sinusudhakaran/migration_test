@@ -787,6 +787,9 @@ var
   Done : Boolean;
   TempAccVendors : TAccountVendors;
 begin
+  {Sometimes this is not automatically initialized to nil}
+  TempAccVendors.AccountVendors := nil;
+  
   if lvBank.Selected <> nil then
   begin
     B := TBank_Account(lvBank.Selected.SubItems.Objects[0]);
