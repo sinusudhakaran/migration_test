@@ -17,7 +17,8 @@ unit GlobalClientSetupRoutines;
 interface
 
 uses
-  SyDefs;
+  SyDefs,
+  BankLinkOnlineServices;
 
 function UpdateContactDetails( var ClientCode : string) : boolean;
 function AssignStaffMember( ClientCodes : string) : boolean;
@@ -28,12 +29,14 @@ function CodingScreenLayout( ClientCodes : string) : boolean;
 function AssignPracticeContact( ClientCodes : string) : boolean;
 function ChangeFinancialYear( ClientCodes : string) : boolean;
 
-function DeleteClientFile(ClientCode : string) : boolean;
+function DeleteClientFile(ClientCode : string; OnlineClientDet: TBloClientReadDetail = nil) : boolean;
+
 function UnlockClientFile( ClientCodes : string) : Boolean;
 
 function DeleteProspects(ClientCodes : string; Silent: Boolean = False; KeepFiles: Boolean = False) : boolean;
 
 function ArchiveFiles( ClientCodes : string) : boolean;
+
 //******************************************************************************
 implementation
 
@@ -1503,7 +1506,7 @@ begin
   end;
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function DeleteClientFile(ClientCode : string) : boolean;
+function DeleteClientFile(ClientCode : string; OnlineClientDet: TBloClientReadDetail = nil) : boolean;
 const
   ThisMethodName = 'DeleteClientFile';
 var
@@ -1597,6 +1600,27 @@ begin
          UnlockAdmin;
          HelpfulErrorMsg('The client file for Client Code '+ClientCode+' is in use. (state <> fsNormal).',0);
          exit;
+       end;
+
+       if Assigned(OnlineClientDet) then
+       begin
+         if (OnlineClientDet.Id <> '') and (high(OnlineClientDet.Subscription) > -1) then
+         begin
+           try
+             if not ProductConfigService.DeleteClient(OnlineClientDet) then
+             begin
+               HelpfulErrorMsg('Unable to Connect to BankLink Online.', 0);
+
+               UnlockAdmin;
+
+               Exit;
+             end;
+           except
+             UnlockAdmin;
+             
+             raise;
+           end;
+         end;
        end;
 
        {------------------------------------------------}
