@@ -208,7 +208,7 @@ const
   BAL_INFUNDS = 0;
   BAL_OVERDRAWN = 1;
   BAL_UNKNOWN = 2;
-  UnitName = 'EditBankDlg';
+  Unit_Name = 'EditBankDlg';
 
 //------------------------------------------------------------------------------
 procedure TdlgEditBank.SetAddNew(Value: Boolean);
