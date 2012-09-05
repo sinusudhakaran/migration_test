@@ -61,8 +61,8 @@ type
     { Public declarations }
     function Execute : boolean;
 
-    class function LoginOnline(User: TUser_Rec; uName: String; var CurrentPassword: String; out Cancelled, OfflineAuthentication: Boolean): Boolean; overload;
-    class function LoginOnline(UserCode, uName: String; var CurrentPassword: String; out Cancelled, OfflineAuthentication: Boolean): Boolean; overload;
+    class function LoginOnline(User: TUser_Rec; uName: String; var CurrentPassword: String; out Cancelled, OfflineAuthentication: Boolean; IgnoreOnlineUser: Boolean = False): Boolean; overload;
+    class function LoginOnline(UserCode, uName: String; var CurrentPassword: String; out Cancelled, OfflineAuthentication: Boolean; IgnoreOnlineUser: Boolean = False): Boolean; overload;
 
     property Password: String read FPassword;
   end;
@@ -336,7 +336,7 @@ begin
   end;
 end;
 
-class function TfrmLogin.LoginOnline(UserCode, uName: String; var CurrentPassword: String; out Cancelled, OfflineAuthentication: Boolean): Boolean;
+class function TfrmLogin.LoginOnline(UserCode, uName: String; var CurrentPassword: String; out Cancelled, OfflineAuthentication: Boolean; IgnoreOnlineUser: Boolean = False): Boolean;
 var
   User: pUser_Rec;
 begin
@@ -350,12 +350,12 @@ begin
 
     if Assigned(User) then
     begin
-      Result := LoginOnline(User^, uName, CurrentPassword, Cancelled, OfflineAuthentication);
+      Result := LoginOnline(User^, uName, CurrentPassword, Cancelled, OfflineAuthentication, IgnoreOnlineUser);
     end;
   end;
 end;
 
-class function TfrmLogin.LoginOnline(User: TUser_Rec; uName: String; var CurrentPassword: String; out Cancelled, OfflineAuthentication: Boolean): Boolean;
+class function TfrmLogin.LoginOnline(User: TUser_Rec; uName: String; var CurrentPassword: String; out Cancelled, OfflineAuthentication: Boolean; IgnoreOnlineUser: Boolean = False): Boolean;
 var
   PromptPasswordChange: Boolean;
   FullName: String;
@@ -368,7 +368,7 @@ begin
 
   FullName := User.usName;
 
-  if ProductConfigService.AuthenticateUser(AdminSystem.fdFields.fdBankLink_Code, User.usCode, CurrentPassword, AuthenticationStatus) then
+  if ProductConfigService.AuthenticateUser(AdminSystem.fdFields.fdBankLink_Code, User.usCode, CurrentPassword, AuthenticationStatus, IgnoreOnlineUser) then
   begin
     if AuthenticationStatus = paChangePassword then
     begin
