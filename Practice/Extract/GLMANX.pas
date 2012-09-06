@@ -12,7 +12,7 @@ unit GLMANX;
 interface uses StDate;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-procedure ExtractData( const FromDate, ToDate : TStDate; const SaveTo : string );
+procedure ExtractData( const FromDate, ToDate : TStDate; const SaveTo : string; StripCommasAndQuotes: Boolean = False);
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 implementation
