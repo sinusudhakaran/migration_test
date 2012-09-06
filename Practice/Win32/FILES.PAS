@@ -1453,7 +1453,9 @@ var
   RemoteFileName: string;
   Msg: string;
   ClientName, ClientContact : string;
-  ClientStatus: Integer;
+  ClientStatus: Integer;  
+  ClientUserName: String;
+  ClientUserEmail: String;
 begin
   Result := False;
   TempClient := nil;
@@ -1508,6 +1510,14 @@ begin
   if TempClient.clExtra.ceOnlineValuesStored then
   begin
     ClientStatus := TempClient.clExtra.ceOnlineStatus;
+
+    ClientUserName := TempClient.clExtra.ceOnlineUserFullName;
+    ClientUserEmail := TempClient.clExtra.ceOnlineUserEMail;
+  end
+  else
+  begin
+    ClientUserName := ClientContact;
+    ClientUserEmail := AClientEmail;
   end;
   
   try
@@ -1567,7 +1577,7 @@ begin
 
                 BankLinkOnlineMgr.Silent := IsScheduledReport;
                 BankLinkOnlineMgr.UploadClient(Code, ProgressFrm, ClientName,
-                                               AClientEmail, ClientContact, AFirstUpload);
+                                               ClientUserEmail, ClientUserName, AFirstUpload);
                 if DebugMe then
                   LogUtil.LogMsg(lmDebug, UnitName, Format('%s : Uploaded to %s',
                                  [ThisMethodName, BankLinkLiveName]));
