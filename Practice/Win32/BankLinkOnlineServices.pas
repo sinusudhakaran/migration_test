@@ -464,6 +464,7 @@ Const
   staActive      = BlopiServiceFacade.Active;
   staSuspended   = BlopiServiceFacade.Suspended;
   staDeactivated = BlopiServiceFacade.Deactivated;
+  staDeleted     = BlopiServiceFacade.Deleted;
 
   //Product config singleton
   function ProductConfigService: TProductConfigService;
@@ -4665,7 +4666,7 @@ begin
         BloClientUpdate.ClientCode           := aExistingClient.ClientCode;
         BloClientUpdate.MaxOfflineDays       := aExistingClient.MaxOfflineDays;
         BloClientUpdate.Name_                := aExistingClient.Name_;
-        BloClientUpdate.Status               := staDeactivated;
+        BloClientUpdate.Status               := staDeleted;
         BloClientUpdate.Subscription         := aExistingClient.Subscription;
 
         try
