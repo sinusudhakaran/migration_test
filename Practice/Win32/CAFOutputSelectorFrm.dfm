@@ -3,7 +3,7 @@ object frmCAFOutputSelector: TfrmCAFOutputSelector
   Top = 0
   ActiveControl = edtSaveTo
   BorderStyle = bsDialog
-  Caption = 'Save Reports To Folder'
+  Caption = 'Save Customer Authority Forms To Folder'
   ClientHeight = 127
   ClientWidth = 434
   Color = clBtnFace
@@ -27,7 +27,7 @@ object frmCAFOutputSelector: TfrmCAFOutputSelector
     Caption = 'Format'
   end
   object Label2: TLabel
-    Left = 24
+    Left = 21
     Top = 57
     Width = 39
     Height = 13
@@ -46,6 +46,7 @@ object frmCAFOutputSelector: TfrmCAFOutputSelector
     Top = 21
     Width = 201
     Height = 21
+    Hint = 'Select the format of the Customer Authority Forms.'
     Style = csDropDownList
     ItemHeight = 13
     ItemIndex = 0
@@ -59,6 +60,9 @@ object frmCAFOutputSelector: TfrmCAFOutputSelector
     Top = 54
     Width = 285
     Height = 21
+    Hint = 
+      'Enter the directory path the save the Customer Authority Forms t' +
+      'o.'
     TabOrder = 1
   end
   object btnSave: TButton
