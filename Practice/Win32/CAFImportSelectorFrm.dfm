@@ -38,7 +38,7 @@ object frmCAFImportSelector: TfrmCAFImportSelector
     Top = 53
     Width = 25
     Height = 24
-    Hint = 'Click to Select a Folder'
+    Hint = 'Click to Select an import file'
     OnClick = btnToFolderClick
   end
   object cmbInstitution: TComboBox
@@ -46,6 +46,9 @@ object frmCAFImportSelector: TfrmCAFImportSelector
     Top = 21
     Width = 204
     Height = 21
+    Hint = 
+      'Select the institution to generate the Customer Authority Forms ' +
+      'for'
     Style = csDropDownList
     ItemHeight = 13
     ItemIndex = 0
@@ -60,6 +63,7 @@ object frmCAFImportSelector: TfrmCAFImportSelector
     Top = 54
     Width = 285
     Height = 21
+    Hint = 'Enter the path and name of the import file'
     TabOrder = 1
   end
   object btnImport: TButton
@@ -82,7 +86,7 @@ object frmCAFImportSelector: TfrmCAFImportSelector
     TabOrder = 3
   end
   object dlgOpen: TOpenDialog
-    Filter = 'Import File|*.xls'
+    Filter = 'Microsoft Excel|*.xls'
     Options = [ofHideReadOnly, ofNoChangeDir, ofEnableSizing]
     Left = 376
     Top = 8

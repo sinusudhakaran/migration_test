@@ -60,8 +60,6 @@ end;
 procedure TfrmCAFImportSelector.FormCreate(Sender: TObject);
 begin
   cmbInstitution.ItemIndex := 0;
-
-  ActiveControl := cmbInstitution;
   
   AppImages.Misc.GetBitmap(MISC_FINDFOLDER_BMP, btnToFolder.Glyph);
 
