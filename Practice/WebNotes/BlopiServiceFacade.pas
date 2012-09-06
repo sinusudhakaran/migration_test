@@ -115,7 +115,7 @@ type
   ClientUpdate2        = class;                 { "http://www.banklinkonline.com/2011/11/Blopi"[GblElm] }
 
   { "http://www.banklinkonline.com/2011/11/Blopi"[GblSmpl] }
-  Status = (Active, Suspended, Deactivated);
+  Status = (Active, Suspended, Deactivated, Deleted);
 
   guid            =  type WideString;      { "http://schemas.microsoft.com/2003/10/Serialization/"[GblSmpl] }
   ArrayOfstring = array of WideString;          { "http://schemas.microsoft.com/2003/10/Serialization/Arrays"[GblCplx] }
