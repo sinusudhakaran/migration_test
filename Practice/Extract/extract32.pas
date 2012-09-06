@@ -171,7 +171,7 @@ begin
                   snOther           : ;
                   snSolution6MAS42  : MAS42X.ExtractData( FD, TD, Path );
                   snHAPAS           : HelpfulInfoMsg( 'Sorry, HAPAS is not supported in '+ShortAppName, 0 );
-                  snGLMan           : if NF then GLMANX.ExtractData( FD, TD, Path ) else GLMAN3X.ExtractData( FD, TD, Path );
+                  snGLMan           : if NF then GLMANX.ExtractData( FD, TD, Path, True ) else GLMAN3X.ExtractData( FD, TD, Path );
                   snMYOB_AO_COM     : GLMANX.ExtractData( FD, TD, Path );
                   snAcclipse        : AcclipseX.ExtractData( FD, TD, Path );
                   snGlobal          : if NF then GlobalNewX.ExtractData( FD, TD, Path ) else GlobalX.ExtractData( FD, TD, Path );
@@ -218,7 +218,7 @@ begin
                   saSolution6MAS42  : MAS42X.ExtractData( FD, TD, Path );
                   saHAPAS           : HelpfulInfoMsg( 'Sorry, HAPAS is not supported in '+ShortAppName, 0 );
                   saCeeData         : CeeDataX.ExtractData( FD, TD );
-                  saGLMan           : If NF then GLManX.ExtractData( FD, TD, Path ) else GLMAN3X.ExtractData( FD, TD, Path );
+                  saGLMan           : If NF then GLManX.ExtractData( FD, TD, Path, True ) else GLMAN3X.ExtractData( FD, TD, Path );
                   saOmicom          : if NF then AdvanceX.ExtractData( FD, TD, Path ) else AdvanceXOld.ExtractData( FD, TD, Path );
                   saXPA             : AdvanceX.ExtractData( FD, TD, Path );
                   saASCIICSV        : AsciiXOZ.ExtractData(FD, TD, Path );
