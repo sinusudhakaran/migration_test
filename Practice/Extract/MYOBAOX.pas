@@ -475,7 +475,7 @@ Begin
                Begin
                   Write( XFile,'A,' );
                   Write( XFile,'"',sAccountNo,'",' );
-                  Write( XFile,'"',baBank_Account_Name,'",' );
+                  Write( XFile,'"',ReplaceCommasAndQuotes(baBank_Account_Name),'",' );
                   Write( XFile,'"',baContra_Account_Code,'",' );
                   Write( XFile,'"',clCode,'",' );
                   Write( XFile,'"',Date2Str( FromDate, 'dd/mm/yy' ) ,'",' );
