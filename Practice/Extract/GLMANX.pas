@@ -303,7 +303,7 @@ end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-procedure ExtractDataStd( const FromDate, ToDate : TStDate; const SaveTo : string );
+procedure ExtractDataStd( const FromDate, ToDate : TStDate; const SaveTo : string; StripCommasAndQuotes: Boolean);
 
 VAR
    BA : TBank_Account;
@@ -479,7 +479,16 @@ Begin
                Begin
                   Write( XFile,'A,' );
                   Write( XFile,'"',sAccountNo,'",' );
-                  Write( XFile,'"',baBank_Account_Name,'",' );
+
+                  if StripCommasAndQuotes then
+                  begin
+                    Write( XFile,'"',ReplaceCommasAndQuotes(baBank_Account_Name),'",' );
+                  end
+                  else
+                  begin
+                    Write( XFile,'"',baBank_Account_Name,'",' );
+                  end;
+                  
                   Write( XFile,'"',baContra_Account_Code,'",' );
                   Write( XFile,'"',clCode,'",' );
                   Write( XFile,'"',Date2Str( FromDate, 'dd/mm/yy' ) ,'",' );
@@ -528,14 +537,14 @@ Begin
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-procedure ExtractData( const FromDate, ToDate : TStDate; const SaveTo : string );
+procedure ExtractData( const FromDate, ToDate : TStDate; const SaveTo : string; StripCommasAndQuotes: Boolean = False);
 //determine if bclink interface should be used or existing interface
 begin
 
   if Software.IsMYOBAO_DLL_Interface( MyClient.clFields.clCountry, MyClient.clFields.clAccounting_System_Used ) then
     MYOBAOX_bcLink.ExtractData( FromDate, ToDate, SaveTo)
   else
-    ExtractDataStd( FromDate,ToDate,SaveTo);
+    ExtractDataStd( FromDate,ToDate,SaveTo, StripCommasAndQuotes);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
