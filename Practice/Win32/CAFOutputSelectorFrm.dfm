@@ -1,7 +1,7 @@
 object frmCAFOutputSelector: TfrmCAFOutputSelector
   Left = 0
   Top = 0
-  ActiveControl = cmbFileFormat
+  ActiveControl = edtSaveTo
   BorderStyle = bsDialog
   Caption = 'Save Reports To Folder'
   ClientHeight = 127
@@ -50,9 +50,9 @@ object frmCAFOutputSelector: TfrmCAFOutputSelector
     ItemHeight = 13
     ItemIndex = 0
     TabOrder = 0
-    Text = 'PDF'
+    Text = 'Adobe Acrobat Format (PDF)'
     Items.Strings = (
-      'PDF')
+      'Adobe Acrobat Format (PDF)')
   end
   object edtSaveTo: TEdit
     Left = 111

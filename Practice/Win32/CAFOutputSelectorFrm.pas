@@ -62,7 +62,7 @@ procedure TfrmCAFOutputSelector.FormCreate(Sender: TObject);
 begin
   cmbFileFormat.ItemIndex := 0;
 
-  ActiveControl := cmbFileFormat;
+  ActiveControl := edtSaveTo;
   
   ImagesFrm.AppImages.Misc.GetBitmap(MISC_FINDFOLDER_BMP, btnToFolder.Glyph);
 
