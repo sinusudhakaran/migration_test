@@ -100,28 +100,38 @@ var
   Country: byte;
   i: integer;
 begin
+  // Init (to prevent compiler hints)
+  Country := 0;
+  result := false;
+
   // Determine country
   case aLevel of
     vlPractice:
       Country := AdminSystem.fdFields.fdCountry;
     vlClient:
       Country := MyClient.clFields.clCountry;
-    else
-      Country := 0; // If it gets to this, we have no real way to determine the Country
+  else
+    ASSERT(false);
   end;
 
   // For the UK only
   if (Country = whUK) then
   begin
-    // At practice level for the System user only
-    if (aLevel = vlPractice) then
-      result := CurrUser.CanAccessAdmin
+    case aLevel of
+      vlPractice:
+        // System users only
+        result := CurrUser.CanAccessAdmin;
+      vlClient:
+        // Hide for Books, and Restricted users
+        result := Assigned(AdminSystem) and not CurrUser.HasRestrictedAccess;
     else
-      result := true;
+      ASSERT(false);
+    end;
   end
   else
     result := false;
 
+  // Set visibility for VAT related buttons
   for i := 0 to High(aButtons) do
   begin
     aButtons[i].Visible := result;
