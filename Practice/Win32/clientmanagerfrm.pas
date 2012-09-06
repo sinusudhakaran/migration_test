@@ -807,7 +807,6 @@ begin
   end;
 end;
 
-//------------------------------------------------------------------------------
 procedure TfrmClientManager.CheckBOConnection(var message: TMessage); 
 begin
   CheckBOConnectionLocal;
@@ -2196,8 +2195,8 @@ begin
     if (AskYesNo('Delete Client', DeleteMsgStr, DLG_NO, 0) <> DLG_YES) then
       Exit;
 
-    if not(ClientID = '') and
-      (high(ClientDet.Subscription) > -1) then
+    { Now done inside the DeleteClientFile routinue
+    if not(ClientID = '') and (high(ClientDet.Subscription) > -1) then
     begin
       if not ProductConfigService.DeleteClient(ClientDet) then
       begin
@@ -2205,7 +2204,7 @@ begin
         Exit;
       end;
     end;
-
+    }
   except
     on E : Exception do
     begin
@@ -2214,7 +2213,8 @@ begin
     end;
   end;
 
-  if DeleteClientFile(ClientCode) then
+  
+  if DeleteClientFile(ClientCode, ClientDet) then
   begin
     RefreshLookup(StringCodeToSelect);
     UpdateFilter(Integer(cmbFilter.Items.Objects[cmbFilter.ItemIndex]));
@@ -2222,6 +2222,7 @@ begin
   end
   else
     Exit;
+
 
   DeleteMsgStr := 'Client (' + ClientCode + ' : ' + ClientName + ') has been ' +
                   'removed from Banklink Practice';
@@ -2291,7 +2292,6 @@ begin
   if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Exit Modal Command');
 end;
 
-//------------------------------------------------------------------------------
 procedure TfrmClientManager.DisableForm;
 begin
   if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Disable Form');
