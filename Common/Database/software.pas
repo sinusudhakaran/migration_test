@@ -110,7 +110,7 @@ Begin
                                     saSolution6CLSY2K, saMGL,
                                     saComparto, saCatSoft,
                                     saMYOBAccountantsOffice, saMYOB_AO_COM,
-                                    saXlon, saBK5CSV
+                                    saXlon, saBK5CSV, saAcclipse
                                   ];
    end;
 end;
