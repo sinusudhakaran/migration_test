@@ -2,8 +2,8 @@ object frmNewCAF: TfrmNewCAF
   Left = 0
   Top = 0
   Caption = 'Customer Authority Form Details'
-  ClientHeight = 590
-  ClientWidth = 688
+  ClientHeight = 587
+  ClientWidth = 832
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -13,16 +13,17 @@ object frmNewCAF: TfrmNewCAF
   KeyPreview = True
   OldCreateOrder = False
   Position = poScreenCenter
+  OnCreate = FormCreate
   OnKeyDown = FormKeyDown
   OnShow = FormShow
   DesignSize = (
-    688
-    590)
+    832
+    587)
   PixelsPerInch = 96
   TextHeight = 13
   object btnFile: TButton
     Left = 8
-    Top = 558
+    Top = 555
     Width = 75
     Height = 25
     Anchors = [akLeft, akBottom]
@@ -32,7 +33,7 @@ object frmNewCAF: TfrmNewCAF
   end
   object btnEmail: TButton
     Left = 97
-    Top = 558
+    Top = 555
     Width = 75
     Height = 25
     Anchors = [akLeft, akBottom]
@@ -42,7 +43,7 @@ object frmNewCAF: TfrmNewCAF
   end
   object btnPrint: TButton
     Left = 186
-    Top = 558
+    Top = 555
     Width = 75
     Height = 25
     Anchors = [akLeft, akBottom]
@@ -51,8 +52,8 @@ object frmNewCAF: TfrmNewCAF
     OnClick = btnPrintClick
   end
   object btnResetForm: TButton
-    Left = 519
-    Top = 558
+    Left = 663
+    Top = 555
     Width = 75
     Height = 25
     Anchors = [akRight, akBottom]
@@ -61,8 +62,8 @@ object frmNewCAF: TfrmNewCAF
     OnClick = btnResetFormClick
   end
   object btnCancel: TButton
-    Left = 606
-    Top = 558
+    Left = 750
+    Top = 555
     Width = 75
     Height = 25
     Anchors = [akRight, akBottom]
@@ -73,8 +74,8 @@ object frmNewCAF: TfrmNewCAF
   object PdfFieldEdit: TPdfFieldEdit
     Left = 8
     Top = 8
-    Width = 672
-    Height = 544
+    Width = 816
+    Height = 541
     Anchors = [akLeft, akTop, akRight, akBottom]
     TabOrder = 5
     Active = False
@@ -262,7 +263,7 @@ object frmNewCAF: TfrmNewCAF
       FFFFFFFFFFFFFFFF0000}
   end
   object PrintDialog: TPrintDialog
-    Left = 480
-    Top = 560
+    Left = 624
+    Top = 552
   end
 end

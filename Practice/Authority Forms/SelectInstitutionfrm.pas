@@ -106,8 +106,8 @@ procedure TfrmSelectInstitution.FormKeyDown(Sender: TObject; var Key: Word;
   Shift: TShiftState);
 begin
   case Key of
-    VK_RETURN:
-      btnOK.Click;
+    //VK_RETURN:
+    //  btnOK.Click;
     VK_ESCAPE:
       btnCancel.Click;
   end;

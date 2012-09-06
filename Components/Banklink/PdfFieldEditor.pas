@@ -103,28 +103,39 @@ type
   //----------------------------------------------------------------------------
   TPDFFormFieldItemEdit = class(TPDFFormFieldItem)
   private
+    fshpClear : TShape;
   protected
     Procedure EditOnExit(Sender: TObject);
 
     function GetEdit : TEdit;
     procedure SetEdit(aValue : TEdit);
+    function GetShpClear : TShape;
+    procedure SetShpClear(aValue : TShape);
   public
+    destructor Destroy; override;
+
     procedure Draw; override;
 
     property Edit : TEdit read GetEdit write SetEdit;
+    property ShpClear : TShape read GetShpClear write SetShpClear;
   end;
 
   //----------------------------------------------------------------------------
   TPDFFormFieldItemCheckBox = class(TPDFFormFieldItem)
   private
-    pnlClear : TPanel;
+    fshpClear : TShape;
   protected
+    Procedure CheckBoxClick(Sender: TObject);
+
     function GetCheckBox : TCheckBox;
     procedure SetCheckBox(aValue : TCheckBox);
   public
+    destructor Destroy; override;
+
     procedure Draw; override;
 
     property CheckBox : TCheckBox read GetCheckBox write SetCheckBox;
+    property ShpClear : TShape read fshpClear write fshpClear;
   end;
 
   //----------------------------------------------------------------------------
@@ -141,24 +152,29 @@ type
   //----------------------------------------------------------------------------
   TPDFFormFieldItemRadioButton = class(TPDFFormFieldItem)
   private
-    shpClear : TShape;
+    fshpClear : TShape;
   protected
     function GetRadioButton : TRadioButton;
     procedure SetRadioButton(aValue : TRadioButton);
   public
+    destructor Destroy; override;
     procedure Draw; override;
 
     property RadioButton : TRadioButton read GetRadioButton write SetRadioButton;
+    property ShpClear : TShape read fshpClear write fshpClear;
   end;
 
   //----------------------------------------------------------------------------
   TPDFFormFieldItemComboBox = class(TPDFFormFieldItem)
+  private
+    fshpClear : TShape;
   protected
     Procedure ComboOnCloseUp(Sender: TObject);
 
     function GetComboBox : TComboBox;
     procedure SetComboBox(aValue : TComboBox);
   public
+    destructor Destroy; override;
     procedure Draw; override;
 
     property ComboBox : TComboBox read GetComboBox write SetComboBox;
@@ -239,6 +255,7 @@ type
                           aTitle: WideString): Integer;
     function PageCount : integer;
     Procedure ResetForm;
+    procedure AutoSetControlTabs;
 
     property PDFFormFields : TPDFFormFields read fPDFFormFields write fPDFFormFields;
   published
@@ -547,6 +564,32 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+function TPDFFormFieldItemEdit.GetShpClear : TShape;
+begin
+  if not Assigned(fshpClear) then
+  begin
+    fshpClear := TShape.create(nil);
+    fshpClear.Parent := ParentWinControl;
+  end;
+
+  Result := TShape(fshpClear);
+end;
+
+//------------------------------------------------------------------------------
+procedure TPDFFormFieldItemEdit.SetShpClear(aValue : TShape);
+begin
+  fshpClear := aValue;
+end;
+
+//------------------------------------------------------------------------------
+destructor TPDFFormFieldItemEdit.Destroy;
+begin
+  FreeAndNil(fshpClear);
+
+  inherited;
+end;
+
+//------------------------------------------------------------------------------
 procedure TPDFFormFieldItemEdit.Draw;
 var
   DPI : double;
@@ -556,6 +599,8 @@ begin
   Edit.Tag := 0;
 
   inherited;
+  
+  Edit.BringToFront;
 
   Edit.Text := Value;
   Edit.visible := ((not self.IsReadOnly) and (self.Visible));
@@ -570,7 +615,7 @@ begin
   Edit.Top := Edit.Top + round(TextExtra/2);
   Edit.Height := TextHeight;
   Edit.Left := Edit.Left + round(2*Scale);
-  Edit.Width := Edit.Width - round(4*Scale);
+  Edit.Width := (Edit.Width - round(4*Scale)) - 1;
 
   Edit.Color := $00EEEEDD;
   Edit.TabOrder := TabOrder;
@@ -583,7 +628,7 @@ function TPDFFormFieldItemCheckBox.GetCheckBox: TCheckBox;
 begin
   if not Assigned(fControl) then
   begin
-    pnlClear := TPanel.Create(nil);
+    fshpClear := TShape.Create(nil);
     fControl := TCheckBox.Create(nil);
   end;
 
@@ -597,31 +642,45 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+procedure TPDFFormFieldItemCheckBox.CheckBoxClick(Sender: TObject);
+begin
+  if Checkbox.Checked then
+    Value := 'Yes'
+  else
+    Value := 'Off';
+end;
+
+//------------------------------------------------------------------------------
+destructor TPDFFormFieldItemCheckBox.Destroy;
+begin
+  FreeAndNil(fshpClear);
+
+  inherited;
+end;
+
+//------------------------------------------------------------------------------
 procedure TPDFFormFieldItemCheckBox.Draw;
 begin
   CheckBox.Tag := 0;
 
-  pnlClear.Parent := ParentWinControl;
-  CheckBox.Parent := pnlClear;
-  pnlClear.ParentBackground := false;
+  fshpClear.Parent := ParentWinControl;
+  CheckBox.Parent := ParentWinControl;
+  CheckBox.BringToFront;
 
   ScaleControl;
+  CheckBox.OnClick := CheckBoxClick;
 
-  pnlClear.Top    := CheckBox.Top - 1;
-  pnlClear.Left   := CheckBox.Left - 1;
-  pnlClear.Width  := CheckBox.Width + 2;
-  pnlClear.Height := CheckBox.Height + 2;
+  fshpClear.Top    := CheckBox.Top - 1;
+  fshpClear.Left   := CheckBox.Left - 1;
+  fshpClear.Width  := CheckBox.Width + 2;
+  fshpClear.Height := CheckBox.Height + 2;
 
-  pnlClear.BevelOuter  := bvNone;
-  pnlClear.BorderStyle := bsNone;
-  pnlClear.Color       := $00FFFFFF;
+  fshpClear.Brush.Color := $00FFFFFF;
+  fshpClear.Pen.Color := $00FFFFFF;
 
   CheckBox.TabOrder := TabOrder;
   CheckBox.Width    := CheckBox.Height;
-
-
-  CheckBox.Top  := 1;
-  CheckBox.Left := 4;
+  CheckBox.Left     := CheckBox.Left + 6;
 end;
 
 { TPDFFormFieldItemButton }
@@ -656,7 +715,7 @@ function TPDFFormFieldItemRadioButton.GetRadioButton: TRadioButton;
 begin
   if not Assigned(fControl) then
   begin
-    shpClear := TShape.Create(nil);
+    fshpClear := TShape.Create(nil);
     fControl := TRadioButton.Create(nil);
   end;
 
@@ -670,32 +729,36 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+destructor TPDFFormFieldItemRadioButton.Destroy;
+begin
+  FreeAndNil(fshpClear);
+
+  inherited;
+end;
+
+//------------------------------------------------------------------------------
 procedure TPDFFormFieldItemRadioButton.Draw;
 begin
   RadioButton.Tag := 0;
 
-  inherited;
-
-  shpClear.Parent := ParentWinControl;
+  fshpClear.Parent := ParentWinControl;
   RadioButton.Parent := ParentWinControl;
   RadioButton.BringToFront;
 
   ScaleControl;
 
-  shpClear.Top    := RadioButton.Top - 1;
-  shpClear.Left   := RadioButton.Left - 1;
-  shpClear.Width  := RadioButton.Width + 2;
-  shpClear.Height := RadioButton.Height + 2;
+  fshpClear.Top    := RadioButton.Top - 1;
+  fshpClear.Left   := RadioButton.Left - 1;
+  fshpClear.Width  := RadioButton.Width + 2;
+  fshpClear.Height := RadioButton.Height + 2;
 
-  //shpClear.BevelOuter  := bvNone;
-  //shpClear.BorderStyle := bsNone;
-  shpClear.Brush.Color := $00FFFFFF;
-  shpClear.Pen.Color := $00FFFFFF;
+  fshpClear.Brush.Color := $00FFFFFF;
+  fshpClear.Pen.Color := $00FFFFFF;
 
   RadioButton.TabOrder := TabOrder;
   RadioButton.Width    := RadioButton.Height;
-  RadioButton.Top  := 1;
-  RadioButton.Left := 4;
+  RadioButton.Top  := RadioButton.Top - 2;
+  RadioButton.Left := RadioButton.Left + 8;
 end;
 
 { TPDFFormFieldItemButton }
@@ -709,7 +772,10 @@ end;
 function TPDFFormFieldItemComboBox.GetComboBox: TComboBox;
 begin
   if not Assigned(fControl) then
+  begin
+    fshpClear := TShape.Create(nil);
     fControl := TComboBox.create(nil);
+  end;
 
   Result := TComboBox(fControl);
 end;
@@ -721,6 +787,14 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+destructor TPDFFormFieldItemComboBox.Destroy;
+begin
+  FreeAndNil(fshpClear);
+
+  inherited;
+end;
+
+//------------------------------------------------------------------------------
 procedure TPDFFormFieldItemComboBox.Draw;
 var
   DPI : double;
@@ -729,14 +803,24 @@ var
 begin
   ComboBox.Tag := 0;
 
-  inherited;
+  fshpClear.Parent := ParentWinControl;
+  ComboBox.Parent := ParentWinControl;
+  ComboBox.BringToFront;
 
-  DPI := ComboBox.Font.PixelsPerInch;
+  ScaleControl;
 
-  //ComboBox.ScaleBy(trunc(DPI*100),trunc(FRM_FIELD_DPI*100));
+  fshpClear.Top    := ComboBox.Top - 2;
+  fshpClear.Left   := ComboBox.Left - 2;
+  fshpClear.Width  := ComboBox.Width + 4;
+  fshpClear.Height := round(Bound.Height * fScale) + 4;
 
-  ComboBox.OnCloseUp := ComboOnCloseUp;
+  fshpClear.Brush.Color := $00FFFFFF;
+  fshpClear.Pen.Color := $00FFFFFF;
+
   ComboBox.TabOrder := TabOrder;
+  ComboBox.OnCloseUp := ComboOnCloseUp;
+  ComboBox.Top  := ComboBox.Top + 8;
+  ComboBox.Left := ComboBox.Left + 2;
 end;
 
 { TPDFFormFields }
@@ -913,6 +997,50 @@ begin
 end;
 
 { TPdfFieldEdit }
+//------------------------------------------------------------------------------
+procedure TPdfFieldEdit.AutoSetControlTabs;
+  procedure FixTabOrder(const aParentControl: TWinControl);
+  var
+    CtrlIndex, ListIndex: Integer;
+    List: TList;
+    WinCtrl : TWinControl;
+  begin
+    List := TList.Create;
+    try
+      for CtrlIndex := 0 to aParentControl.ControlCount - 1 do
+      begin
+        if aParentControl.Controls[CtrlIndex] is TWinControl then
+        begin
+          WinCtrl := TWinControl(aParentControl.Controls[CtrlIndex]);
+          if List.Count = 0 then
+            ListIndex := 0
+          else
+          begin
+            for ListIndex := 0 to List.Count - 1 do
+            begin
+              if ((WinCtrl.Top + WinCtrl.Height) < TControl(List[ListIndex]).Top) or
+                 ((WinCtrl.Top <= TControl(List[ListIndex]).Top + TControl(List[ListIndex]).Height) and
+                  ((WinCtrl.Top + WinCtrl.Height) >= TControl(List[ListIndex]).Top) and
+                  (WinCtrl.Left < TControl(List[ListIndex]).Left)) then
+                Break;
+            end;
+          end;
+
+          List.Insert(ListIndex, WinCtrl) ;
+          FixTabOrder(WinCtrl) ;
+        end;
+      end;
+
+      for CtrlIndex := 0 to List.Count - 1 do
+        TWinControl(List[CtrlIndex]).TabOrder := CtrlIndex;
+    finally
+      FreeAndNil(List);
+    end;
+  end;
+begin
+  FixTabOrder(Self);
+end;
+
 //------------------------------------------------------------------------------
 constructor TPdfFieldEdit.Create(AOwner: TComponent);
 begin

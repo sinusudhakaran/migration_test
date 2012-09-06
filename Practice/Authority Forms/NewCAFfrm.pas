@@ -32,6 +32,7 @@ type
     procedure btnEmailClick(Sender: TObject);
     procedure btnPrintClick(Sender: TObject);
     procedure btnResetFormClick(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
   private
     FButton: Byte;
     FClientEmail: string;
@@ -43,6 +44,7 @@ type
     procedure NumericKeyPress(Sender: TObject; var Key: Char);
 
     procedure CostCodeChange(Sender: TObject);
+    procedure WMGetMinMaxInfo( var Message :TWMGetMinMaxInfo ); message WM_GETMINMAXINFO;
   protected
     procedure SetRadioValues(aDaily, aWeekly, aMonthly : boolean);
 
@@ -224,6 +226,8 @@ begin
 
     InitFields;
 
+    PdfFieldEdit.AutoSetControlTabs;
+
     ResetFields;
 
     Result := True;
@@ -237,6 +241,7 @@ end;
 procedure TfrmNewCaf.InitFields;
 var
   MonthIndex : integer;
+  RadButtonTop : integer;
 
   PDFFormFieldItemEdit        : TPDFFormFieldItemEdit;
   PDFFormFieldItemComboBox    : TPDFFormFieldItemComboBox;
@@ -314,8 +319,15 @@ begin
     PDFFormFieldItemComboBox.ComboBox.OnChange := CostCodeChange;
     PDFFormFieldItemComboBox.ComboBox.Style := csDropDownList;
 
-    PDFFormFieldItemEdit.Edit.ShowHint := true;
-    PDFFormFieldItemEdit.Edit.Hint := 'Enter the year in which you want to start collecting data';
+    PDFFormFieldItemComboBox.ComboBox.ShowHint := true;
+    PDFFormFieldItemComboBox.ComboBox.Hint := 'Enter the year in which you want to start collecting data';
+
+    case fInstitution of
+      istUKHSBC : begin
+        PDFFormFieldItemComboBox.ComboBox.Left := PDFFormFieldItemComboBox.ComboBox.Left - 4;
+        PDFFormFieldItemComboBox.ComboBox.Top  := PDFFormFieldItemComboBox.ComboBox.Top - 2;
+      end;
+    end;
   end;
 
   PDFFormFieldItemComboBox := GetPDFFormFieldCombo(ukCAFStartMonthItem);
@@ -332,6 +344,30 @@ begin
     PDFFormFieldItemEdit.Edit.OnKeyPress := NumericKeyPress;
     PDFFormFieldItemEdit.Edit.ShowHint := true;
     PDFFormFieldItemEdit.Edit.Hint := 'Enter the month in which you want to start collecting data';
+
+    PDFFormFieldItemEdit.shpClear.Top    := PDFFormFieldItemEdit.Edit.Top - 7;
+    PDFFormFieldItemEdit.shpClear.Height := PDFFormFieldItemEdit.Edit.Height + 14;
+    PDFFormFieldItemEdit.shpClear.Left   := PDFFormFieldItemEdit.Edit.Left - 4;
+    PDFFormFieldItemEdit.shpClear.Width  := PDFFormFieldItemEdit.Edit.Width + 8;
+
+    PDFFormFieldItemEdit.Edit.Top    := PDFFormFieldItemEdit.Edit.Top + 1;
+    PDFFormFieldItemEdit.Edit.Height := PDFFormFieldItemEdit.Edit.Height + 2;
+    PDFFormFieldItemEdit.Edit.Left   := PDFFormFieldItemEdit.Edit.Left - 1;
+    PDFFormFieldItemEdit.Edit.Width  := PDFFormFieldItemEdit.Edit.Width + 2;
+    PDFFormFieldItemEdit.Edit.BorderStyle := bsSingle;
+
+    PDFFormFieldItemEdit.shpClear.Brush.Color := $00FFFFFF;
+    PDFFormFieldItemEdit.shpClear.Pen.Color := $00FFFFFF;
+
+    case fInstitution of
+      istUKNormal : begin
+        PDFFormFieldItemEdit.Edit.Width  := PDFFormFieldItemEdit.Edit.Width + 4;
+      end;
+      istUKHSBC : begin
+        PDFFormFieldItemEdit.Edit.Left   := PDFFormFieldItemEdit.Edit.Left - 2;
+        PDFFormFieldItemEdit.Edit.Top    := PDFFormFieldItemEdit.Edit.Top - 2;
+      end;
+    end;
   end;
 
   // Practice Name
@@ -359,6 +395,15 @@ begin
   begin
     PDFFormFieldItemCheckBox.Checkbox.ShowHint := true;
     PDFFormFieldItemCheckBox.Checkbox.Hint := 'Supply Provisional Accounts';
+    PDFFormFieldItemCheckBox.ShpClear.Width := PDFFormFieldItemCheckBox.ShpClear.Width + 615;
+    PDFFormFieldItemCheckBox.Checkbox.Width := PDFFormFieldItemCheckBox.Checkbox.Width + 600;
+    PDFFormFieldItemCheckBox.Checkbox.Caption :=
+      'Please supply the account above as a Provisional Account if it is not available from the Bank';
+
+    if fInstitution = istUKNormal then
+      PDFFormFieldItemCheckBox.Checkbox.Font.Size := PDFFormFieldItemCheckBox.Checkbox.Font.Size - 1
+    else if fInstitution = istUKHSBC then
+      PDFFormFieldItemCheckBox.Checkbox.Font.Size := PDFFormFieldItemCheckBox.Checkbox.Font.Size + 1;
   end;
 
   // Daily
@@ -366,38 +411,79 @@ begin
   PDFFormFieldItemRadioButton := GetPDFFormFieldRadio(ukCAFDaily);
   if Assigned(PDFFormFieldItemRadioButton) then
   begin
+    RadButtonTop := PDFFormFieldItemRadioButton.RadioButton.Top;
     PDFFormFieldItemRadioButton.RadioButton.OnClick := RadDailyOnClick;
     PDFFormFieldItemRadioButton.RadioButton.ShowHint := true;
     PDFFormFieldItemRadioButton.RadioButton.Hint := 'Select Daily, Weekly or Monthly for the data frequency on this account';
+    PDFFormFieldItemRadioButton.ShpClear.Width := PDFFormFieldItemRadioButton.ShpClear.Width + 140;
+    PDFFormFieldItemRadioButton.RadioButton.Width := PDFFormFieldItemRadioButton.RadioButton.Width + 125;
+    PDFFormFieldItemRadioButton.RadioButton.Caption := 'Daily (where available)';
+
+    if fInstitution = istUKNormal then
+      PDFFormFieldItemRadioButton.RadioButton.Font.Size := PDFFormFieldItemRadioButton.RadioButton.Font.Size - 1
+    else if fInstitution = istUKHSBC then
+    begin
+      PDFFormFieldItemRadioButton.RadioButton.Font.Size := PDFFormFieldItemRadioButton.RadioButton.Font.Size + 1;
+      PDFFormFieldItemRadioButton.RadioButton.Top := PDFFormFieldItemRadioButton.RadioButton.Top + 2;
+    end;
   end;
 
   // Weekly
   PDFFormFieldItemRadioButton := GetPDFFormFieldRadio(ukCAFWeekly);
   if Assigned(PDFFormFieldItemRadioButton) then
   begin
+    PDFFormFieldItemRadioButton.RadioButton.Top := RadButtonTop;
     PDFFormFieldItemRadioButton.RadioButton.OnClick := RadWeeklyOnClick;
     PDFFormFieldItemRadioButton.RadioButton.ShowHint := true;
     PDFFormFieldItemRadioButton.RadioButton.Hint := 'Select Daily, Weekly or Monthly for the data frequency on this account';
+    PDFFormFieldItemRadioButton.ShpClear.Width := PDFFormFieldItemRadioButton.ShpClear.Width + 170;
+    PDFFormFieldItemRadioButton.RadioButton.Width := PDFFormFieldItemRadioButton.RadioButton.Width + 125;
+    PDFFormFieldItemRadioButton.RadioButton.Caption := 'Weekly (where available)';
+
+    if fInstitution = istUKNormal then
+      PDFFormFieldItemRadioButton.RadioButton.Font.Size := PDFFormFieldItemRadioButton.RadioButton.Font.Size - 1
+    else if fInstitution = istUKHSBC then
+    begin
+      PDFFormFieldItemRadioButton.RadioButton.Font.Size := PDFFormFieldItemRadioButton.RadioButton.Font.Size + 1;
+      PDFFormFieldItemRadioButton.RadioButton.Top := PDFFormFieldItemRadioButton.RadioButton.Top + 2;
+    end;
   end;
 
   // Monthly
   PDFFormFieldItemRadioButton := GetPDFFormFieldRadio(ukCAFMonthly);
   if Assigned(PDFFormFieldItemRadioButton) then
   begin
+    PDFFormFieldItemRadioButton.RadioButton.Top := RadButtonTop;
     PDFFormFieldItemRadioButton.RadioButton.OnClick := RadMonthlyOnClick;
     PDFFormFieldItemRadioButton.RadioButton.ShowHint := true;
     PDFFormFieldItemRadioButton.RadioButton.Hint := 'Select Daily, Weekly or Monthly for the data frequency on this account';
+    PDFFormFieldItemRadioButton.ShpClear.Width := PDFFormFieldItemRadioButton.ShpClear.Width + 140;
+    PDFFormFieldItemRadioButton.RadioButton.Width := PDFFormFieldItemRadioButton.RadioButton.Width + 125;
+    PDFFormFieldItemRadioButton.RadioButton.Caption := 'Monthly';
+
+    if fInstitution = istUKNormal then
+      PDFFormFieldItemRadioButton.RadioButton.Font.Size := PDFFormFieldItemRadioButton.RadioButton.Font.Size - 1
+    else if fInstitution = istUKHSBC then
+    begin
+      PDFFormFieldItemRadioButton.RadioButton.Font.Size := PDFFormFieldItemRadioButton.RadioButton.Font.Size + 1;
+      PDFFormFieldItemRadioButton.RadioButton.Top := PDFFormFieldItemRadioButton.RadioButton.Top + 2;
+    end;
   end;
 
-  case fInstitution of
-    istUKNormal : begin
-      // Bank Name
-      PDFFormFieldItemEdit := GetPDFFormFieldEdit(ukCAFBankName);
-      if Assigned(PDFFormFieldItemEdit) then
-      begin
+
+  // Bank Name
+  PDFFormFieldItemEdit := GetPDFFormFieldEdit(ukCAFBankName);
+  if Assigned(PDFFormFieldItemEdit) then
+  begin
+    case fInstitution of
+      istUKNormal : begin
         PDFFormFieldItemEdit.Edit.MaxLength := 60;
         PDFFormFieldItemEdit.Edit.ShowHint := true;
         PDFFormFieldItemEdit.Edit.Hint := 'Enter the name of the bank and branch where the account is held';
+      end;
+      istUKHSBC : begin
+        PDFFormFieldItemEdit.Edit.Text := 'HSBC';
+        PDFFormFieldItemEdit.Edit.Enabled := false;
       end;
     end;
   end;
@@ -711,12 +797,14 @@ begin
       (Assigned(PDFFormFieldItemComboBox))) then
   begin
     PDFFormFieldItemEdit.Edit.Enabled := not (PDFFormFieldItemComboBox.ComboBox.ItemIndex = 1);
-
-    if PDFFormFieldItemComboBox.ComboBox.ItemIndex = 1 then
-      PDFFormFieldItemEdit.Edit.Text := 'asp'
-    else if PDFFormFieldItemEdit.Edit.Text = 'asp' then
-      PDFFormFieldItemEdit.Edit.Text := '';
   end;
+end;
+
+//------------------------------------------------------------------------------
+procedure TfrmNewCAF.FormCreate(Sender: TObject);
+begin
+  Height := Application.MainForm.ClientHeight;
+  Top    := Application.MainForm.top;
 end;
 
 //------------------------------------------------------------------------------
@@ -837,6 +925,15 @@ begin
         Exit;
     end;
   end;
+end;
+
+//------------------------------------------------------------------------------
+procedure TfrmNewCAF.WMGetMinMaxInfo(var Message: TWMGetMinMaxInfo);
+begin
+  Message.MinMaxInfo^.ptMinTrackSize.X := 457;           {Minimum width}
+
+  Message.Result := 0;                 {Tell windows you have changed minmaxinfo}
+  inherited;
 end;
 
 end.

@@ -1,6 +1,7 @@
 object frmSelectInstitution: TfrmSelectInstitution
   Left = 0
   Top = 0
+  BorderIcons = [biSystemMenu]
   BorderStyle = bsSingle
   Caption = 'Select Institution'
   ClientHeight = 145
@@ -45,6 +46,7 @@ object frmSelectInstitution: TfrmSelectInstitution
     Width = 75
     Height = 25
     Caption = 'OK'
+    Default = True
     ModalResult = 1
     TabOrder = 1
   end
