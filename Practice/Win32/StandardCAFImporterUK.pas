@@ -47,6 +47,7 @@ type
     procedure DoRecordValidation(Source: TCAFSource); override;
     function GetPDFTemplateFile: String; override;
     function GetMinFieldCount: Integer; override;
+    function GetImporterName: String; override;
     
     procedure Initialize(Source: TCAFSource); override;
     function SupportedFormats: TCAFFileFormats; override;
@@ -178,6 +179,11 @@ begin
       AddRecordValidationError(Source, 'You must enter a valid starting year.');
     end;
   end;
+end;
+
+function TStandardCAFImporterUK.GetImporterName: String;
+begin
+  Result := 'Standard/Other UK';
 end;
 
 function TStandardCAFImporterUK.GetMinFieldCount: Integer;
