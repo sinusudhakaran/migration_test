@@ -127,9 +127,7 @@ begin
     else
       ASSERT(false);
     end;
-  end
-  else
-    result := false;
+  end;
 
   // Set visibility for VAT related buttons
   for i := 0 to High(aButtons) do
