@@ -45,9 +45,9 @@ type
   protected
     procedure DoImportAsPDF(Source: TCAFSource; Template: TPdfFieldEdit; out OutputFile: String); override;
     procedure DoRecordValidation(Source: TCAFSource); override;
-    procedure DoFieldValidation(Source: TCAFSource); override;
     function GetPDFTemplateFile: String; override;
-
+    function GetMinFieldCount: Integer; override;
+    
     procedure Initialize(Source: TCAFSource); override;
     function SupportedFormats: TCAFFileFormats; override;
     
@@ -127,41 +127,33 @@ begin
   Result := [cafPDF];
 end;
 
-procedure TStandardCAFImporterUK.DoFieldValidation(Source: TCAFSource);
-begin
-  if Source.FieldCount < 11 then
-  begin
-    AddError('Fields', 'The file does not contain enough fields'); 
-  end;
-end;
-
 procedure TStandardCAFImporterUK.DoRecordValidation(Source: TCAFSource);
 begin
   if (Trim(Source.AccountName) = '') and (Trim(Source.SortCode) = '') and (Trim(Source.AccountNo) = '') then
   begin
-    AddImportError(Source, 'You must enter the name of the account or the sort code or the account number.');
+    AddRecordValidationError(Source, 'You must enter the name of the account or the sort code or the account number.');
   end;
 
   if ContainsSymbols(Trim(Source.ClientCode)) then
   begin
-    AddImportError(Source, 'The client code can only contain alpha numeric characters.');
+    AddRecordValidationError(Source, 'The client code can only contain alpha numeric characters.');
   end;
 
   if ContainsSymbols(Trim(Source.CostCode)) then
   begin
-    AddImportError(Source, 'The cost code can only contain alpha numeric characters.');
+    AddRecordValidationError(Source, 'The cost code can only contain alpha numeric characters.');
   end;
 
   if (Trim(Source.Month) = '') and (Trim(Source.Year) <> '') then
   begin
-    AddImportError(Source, 'You must choose a starting month.');
+    AddRecordValidationError(Source, 'You must choose a starting month.');
   end
   else
   if CompareText(Source.Month, 'ASAP') <> 0 then
   begin
     if not IsLongMonthName(Trim(Source.Month)) then
     begin
-      AddImportError(Source, 'You must enter a valid starting month.');
+      AddRecordValidationError(Source, 'You must enter a valid starting month.');
     end;
   end;
 
@@ -169,7 +161,7 @@ begin
   begin
     if (CompareText(Source.Month, 'ASAP') <> 0) then
     begin
-      AddImportError(Source, 'You must enter a valid starting year.');
+      AddRecordValidationError(Source, 'You must enter a valid starting year.');
     end;
   end
   else
@@ -178,14 +170,19 @@ begin
     begin
       if not IsNumber(Source.Year) then
       begin
-        AddImportError(Source, 'You must enter a valid starting year.');
+        AddRecordValidationError(Source, 'You must enter a valid starting year.');
       end;
     end
     else
     begin
-      AddImportError(Source, 'You must enter a valid starting year.');
+      AddRecordValidationError(Source, 'You must enter a valid starting year.');
     end;
   end;
+end;
+
+function TStandardCAFImporterUK.GetMinFieldCount: Integer;
+begin
+  Result := 11;  
 end;
 
 function TStandardCAFImporterUK.GetPDFTemplateFile: String;
