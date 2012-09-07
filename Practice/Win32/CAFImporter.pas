@@ -6,6 +6,8 @@ uses
   Classes, SysUtils, XLSFile, XLSWorkbook, PDFFieldEditor, Progress;
 
 const
+  UnitName = 'CAFImporter';
+  
   HSBCUK_NUMFIELDS = 18;
 
 type
@@ -74,19 +76,21 @@ type
 
     {$REGION 'Descendants must implement'}
     procedure DoImportAsPDF(Source: TCAFSource; Template: TPdfFieldEdit; out OutputFile: String); virtual; abstract;
-    procedure DoRecordValidation(Source: TCAFSource); virtual; abstract;
-    procedure DoFieldValidation(Source: TCAFSource); virtual; abstract;
     function GetPDFTemplateFile: String; virtual; abstract;
+    function GetMinFieldCount: Integer; virtual; abstract;
     {$ENDREGION}
 
     procedure Initialize(Source: TCAFSource); virtual;
     function SupportedFormats: TCAFFileFormats; virtual;
 
+    procedure DoFieldValidation(Source: TCAFSource); virtual;
+    procedure DoRecordValidation(Source: TCAFSource); virtual;
+     
     function IsNumber(const Value: String): Boolean;
     function ContainsSymbols(const Value: String): Boolean;
     function IsLongMonthName(const Value: String): Boolean;
 
-    procedure AddImportError(Source: TCAFSource; Error: String);
+    procedure AddRecordValidationError(Source: TCAFSource; Error: String);
     procedure AddError(Key, Error: String);
 
     procedure ResetImportStatistics;
@@ -113,7 +117,7 @@ type
 implementation
 
 uses
-  DirUtils, Globals, HSBCCAFImporterUK, StandardCAFImporterUK;
+  DirUtils, Globals, HSBCCAFImporterUK, StandardCAFImporterUK, LogUtil;
   
 const
   LONG_MONTH_NAMES: array[0..11] of String = ('JANUARY', 'FEBUARY', 'MARCH', 'APRIL', 'MAY', 'JUNE', 'JULY', 'AUGEST', 'SEPTEMBER', 'OCTOBER', 'NOVEMBER', 'DECEMBER');
@@ -125,9 +129,11 @@ begin
   FErrors.Add(Format('%s=%s', [Key, Error]));
 end;
 
-procedure TCAFImporter.AddImportError(Source: TCAFSource; Error: String);
+procedure TCAFImporter.AddRecordValidationError(Source: TCAFSource; Error: String);
 begin
   AddError(IntToStr(Source.CurrentRow), Error);
+
+  LogUtil.LogMsg(lmInfo, UnitName, Format('Row %s of the Customer Authority Form import file failed validation: %s.', [IntToStr(Source.CurrentRow), Error]));
 end;
 
 function TCAFImporter.ContainsSymbols(const Value: String): Boolean;
@@ -220,6 +226,16 @@ begin
   FErrors.Free;
   
   inherited;
+end;
+
+procedure TCAFImporter.DoFieldValidation(Source: TCAFSource);
+begin
+
+end;
+
+procedure TCAFImporter.DoRecordValidation(Source: TCAFSource);
+begin
+
 end;
 
 function TCAFImporter.GetImportProc(FileFormat: TCAFFileFormat): TCAFImporterFunc;
@@ -335,9 +351,18 @@ begin
 
   try
     FErrors.Clear;
-    
-    DoFieldValidation(CAFSource);
 
+    if CAFSource.FieldCount < GetMinFieldCount then
+    begin
+      AddError('FieldCount', Format('The number of fields is %s, expected %s', [IntToStr(CAFSource.FieldCount), IntToStr(GetMinFieldCount)]));
+
+      LogUtil.LogMsg(lmInfo, UnitName, Format('The number of fields in the Customer Authority Form import file is %s, expected %s', [IntToStr(CAFSource.FieldCount), IntToStr(GetMinFieldCount)]));
+    end
+    else
+    begin
+      DoFieldValidation(CAFSource);
+    end;
+    
     Result := FErrors.Count = 0;
   finally
     CAFSource.Free;
