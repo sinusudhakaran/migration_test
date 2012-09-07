@@ -840,7 +840,7 @@ CONST
    ukCAFNameOfAccount3     = 'txtNameOfAccount3';
    ukCAFBankCode3          = 'txtBankCode3';
    ukCAFAccountNumber3     = 'txtAccountNumber3';
-   ukCAFBranchName3        = 'ukCAFBranchName3';
+   ukCAFBranchName3        = 'txtBranchName3';
    ukCAFHSBCAccountSign1_3  = 'txtAccountSignatory1_3';
    ukCAFHSBCAccountSign2_3  = 'txtAccountSignatory2_3';
 
