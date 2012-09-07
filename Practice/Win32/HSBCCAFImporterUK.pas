@@ -30,6 +30,7 @@ type
     procedure DoImportAsPDF(Source: TCAFSource; Template: TPdfFieldEdit; out OutputFile: String); override;
     function GetPDFTemplateFile: String; override;
     function GetMinFieldCount: Integer; override;
+    function GetImporterName: String; override;
     
     class procedure SetupLinkedFields(Template: TPdfFieldEdit); static;
   end;
@@ -61,6 +62,11 @@ begin
   begin
     OutputFile := Format('Customer Authority Form%s%s.PDF', [Source.ClientCode, IntToStr(CAFCount + 1)]);
   end;
+end;
+
+function THSBCCAFImporterUK.GetImporterName: String;
+begin
+  Result := 'HSBC UK';
 end;
 
 function THSBCCAFImporterUK.GetMinFieldCount: Integer;
