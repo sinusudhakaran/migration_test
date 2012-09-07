@@ -56,7 +56,7 @@ type
 implementation
 
 uses
-  BKConst, Globals;
+  BKConst, Globals, StrUtils, Math;
 
 procedure TStandardCAFImporterUK.DoImportAsPDF(Source: TCAFSource; Template: TPdfFieldEdit; out OutputFile: String);
 begin
@@ -66,7 +66,10 @@ begin
   Template.FieldByTitle(ukCAFClientCode).Value := Source.ClientCode;
 
   Template.FieldByTitle(ukCAFNameOfAccount).Value := Source.AccountName;
+
+  Template.FieldByTitle(ukCAFBankCode).Value := Source.SortCode;
   Template.FieldByTitle(ukCAFAccountNumber).Value := Source.AccountNo;
+
   Template.FieldByTitle(ukCAFBankName).Value := Source.Bank;
   Template.FieldByTitle(ukCAFBranchName).Value := Source.Branch;
   Template.FieldByTitle(ukCAFStartMonth).Value := Source.Month;
@@ -193,32 +196,32 @@ end;
 
 function TStandardCAFSourceHelperUK.GetAccountName: String;
 begin
-  Result := ValueByIndex(0);
+  Result := LeftStr(ValueByIndex(0), 60);
 end;
 
 function TStandardCAFSourceHelperUK.GetAccountNo: String;
 begin
-  Result := ValueByIndex(2);
+  Result := LeftStr(ValueByIndex(2), 22);
 end;
 
 function TStandardCAFSourceHelperUK.GetBank: String;
 begin
-  Result := ValueByIndex(7);
+  Result := LeftStr(ValueByIndex(7), 60);
 end;
 
 function TStandardCAFSourceHelperUK.GetBranch: String;
 begin
-  Result := ValueByIndex(8);
+  Result := LeftStr(ValueByIndex(8), 60);
 end;
 
 function TStandardCAFSourceHelperUK.GetClientCode: String;
 begin
-  Result := ValueByIndex(5);
+  Result := LeftStr(ValueByIndex(5), 8);
 end;
 
 function TStandardCAFSourceHelperUK.GetCostCode: String;
 begin
-  Result := ValueByIndex(6);
+  Result := LeftStr(ValueByIndex(6), 8);
 end;
 
 function TStandardCAFSourceHelperUK.GetFrequency: String;
@@ -238,7 +241,7 @@ end;
 
 function TStandardCAFSourceHelperUK.GetSortCode: String;
 begin
-  Result := ValueByIndex(1);
+  Result := LeftStr(ValueByIndex(1), 8);
 end;
 
 function TStandardCAFSourceHelperUK.GetYear: String;
