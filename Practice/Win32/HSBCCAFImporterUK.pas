@@ -26,13 +26,12 @@ type
   end;
 
   THSBCCAFImporterUK = class(TStandardCAFImporterUK)
-  private
-    FCAFCount: Integer;
-    FMultiImport: Boolean;
   protected
     procedure DoImportAsPDF(Source: TCAFSource; Template: TPdfFieldEdit; out OutputFile: String); override;
     procedure DoFieldValidation(Source: TCAFSource); override;
     function GetPDFTemplateFile: String; override;
+
+    class procedure SetupLinkedFields(Template: TPdfFieldEdit); static;
   end;
 
 implementation
@@ -42,19 +41,21 @@ uses
   
 procedure THSBCCAFImporterUK.DoImportAsPDF(Source: TCAFSource; Template: TPdfFieldEdit; out OutputFile: String);
 begin
+  SetupLinkedFields(Template);
+  
   inherited;
 
-  Template.FieldByTitle(ukCAFBankName).Value := 'HSBC';
+  Template.SetFieldValue(ukCAFBankName, 'HSBC');
   
-  Template.FieldByTitle(ukCAFHSBCAccountSign1).Value := Source.AccountSignatory1;
-  Template.FieldByTitle(ukCAFHSBCAccountSign2).Value := Source.AccountSignatory2;
+  Template.SetFieldValue(ukCAFHSBCAccountSign1, Source.AccountSignatory1);
+  Template.SetFieldValue(ukCAFHSBCAccountSign2, Source.AccountSignatory2);
                   
-  Template.FieldByTitle(ukCAFHSBCAddressLine1).Value := Source.AddressLine1;
-  Template.FieldByTitle(ukCAFHSBCAddressLine2).Value := Source.AddressLine2;
-  Template.FieldByTitle(ukCAFHSBCAddressLine3).Value := Source.AddressLine3;
-  Template.FieldByTitle(ukCAFHSBCAddressLine4).Value := Source.AddressLine4;
+  Template.SetFieldValue(ukCAFHSBCAddressLine1, Source.AddressLine1);
+  Template.SetFieldValue(ukCAFHSBCAddressLine2, Source.AddressLine2);
+  Template.SetFieldValue(ukCAFHSBCAddressLine3, Source.AddressLine3);
+  Template.SetFieldValue(ukCAFHSBCAddressLine4, Source.AddressLine4);
                          
-  Template.FieldByTitle(ukCAFHSBCPostalCode).Value := Source.PostCode;
+  Template.SetFieldValue(ukCAFHSBCPostalCode, Source.PostCode);
 
   if MultiImport then
   begin
@@ -65,6 +66,59 @@ end;
 function THSBCCAFImporterUK.GetPDFTemplateFile: String;
 begin
   Result := istUKTemplateFileNames[istUKHSBC];
+end;
+
+class procedure THSBCCAFImporterUK.SetupLinkedFields(Template: TPdfFieldEdit);
+begin
+  Template.LinkFieldByTitle(ukCAFNameOfAccount, ukCAFNameOfAccount2);
+  Template.LinkFieldByTitle(ukCAFNameOfAccount, ukCAFNameOfAccount3);
+  Template.LinkFieldByTitle(ukCAFNameOfAccount, ukCAFNameOfAccount4);
+  Template.LinkFieldByTitle(ukCAFNameOfAccount, ukCAFNameOfAccount5);
+
+  Template.LinkFieldByTitle(ukCAFClientCode, ukCAFClientCode2);
+  
+  Template.LinkFieldByTitle(ukCAFBankCode, ukCAFBankCode2);
+  Template.LinkFieldByTitle(ukCAFBankCode, ukCAFBankCode3);
+  
+  Template.LinkFieldByTitle(ukCAFAccountNumber, ukCAFAccountNumber2);
+  Template.LinkFieldByTitle(ukCAFAccountNumber, ukCAFAccountNumber3);
+
+  Template.LinkFieldByTitle(ukCAFCostCode, ukCAFCostCode2);
+  
+  Template.LinkFieldByTitle(ukCAFBankName, ukCAFBankName2);
+
+  Template.LinkFieldByTitle(ukCAFBranchName, ukCAFBranchName2);
+  Template.LinkFieldByTitle(ukCAFBranchName, ukCAFBranchName3);
+
+  Template.LinkFieldByTitle(ukCAFStartMonth, ukCAFStartMonth2);
+  
+  Template.LinkFieldByTitle(ukCAFStartYear, ukCAFStartYear2);
+
+  Template.LinkFieldByTitle(ukCAFPracticeName, ukCAFPracticeName2);
+  
+  Template.LinkFieldByTitle(ukCAFPracticeCode, ukCAFPracticeCode2);
+
+  Template.LinkFieldByTitle(ukCAFSupplyProvisionalAccounts, ukCAFSupplyProvisionalAccounts2);
+
+  Template.LinkFieldByTitle(ukCAFMonthly, ukCAFMonthly2);
+
+
+  Template.LinkFieldByTitle(ukCAFWeekly, ukCAFWeekly2);
+
+  Template.LinkFieldByTitle(ukCAFDaily, ukCAFDaily2);
+
+  Template.LinkFieldByTitle(ukCAFHSBCAccountSign1, ukCAFHSBCAccountSign1_2);
+  Template.LinkFieldByTitle(ukCAFHSBCAccountSign1, ukCAFHSBCAccountSign1_3);
+  
+  Template.LinkFieldByTitle(ukCAFHSBCAccountSign2, ukCAFHSBCAccountSign2_2);
+  Template.LinkFieldByTitle(ukCAFHSBCAccountSign2, ukCAFHSBCAccountSign2_3);
+
+  Template.LinkFieldByTitle(ukCAFHSBCAddressLine1, ukCAFHSBCAddressLine1_2);
+  Template.LinkFieldByTitle(ukCAFHSBCAddressLine2, ukCAFHSBCAddressLine2_2);
+  Template.LinkFieldByTitle(ukCAFHSBCAddressLine3, ukCAFHSBCAddressLine3_2);
+  Template.LinkFieldByTitle(ukCAFHSBCAddressLine4, ukCAFHSBCAddressLine4_2);
+
+  Template.LinkFieldByTitle(ukCAFHSBCPostalCode, ukCAFHSBCPostalCode2);
 end;
 
 procedure THSBCCAFImporterUK.DoFieldValidation(Source: TCAFSource);
