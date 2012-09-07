@@ -12,7 +12,7 @@ const
 
 type
   TCAFFileFormat = (cafPDF=0);
-  TCAFImportType = (cafStandard=0, cafHSBC=1);
+  TCAFImportType = (cafStandardUK=0, cafHSBCUK=1);
 
   TCAFFileFormats = set of TCAFFileFormat;
 
@@ -70,6 +70,7 @@ type
     FCAFCount: Integer;
 
     function GetImportProc(FileFormat: TCAFFileFormat): TCAFImporterFunc;
+    class function ImportTypeToStr(ImportType: TCAFImportType): String; static;
   protected
     function ValidateRecord(Source: TCAFSource): Boolean;
     procedure ImportAsPDF(Source: TCAFSource; const OutputFolder: String); virtual;
@@ -78,6 +79,7 @@ type
     procedure DoImportAsPDF(Source: TCAFSource; Template: TPdfFieldEdit; out OutputFile: String); virtual; abstract;
     function GetPDFTemplateFile: String; virtual; abstract;
     function GetMinFieldCount: Integer; virtual; abstract;
+    function GetImporterName: String; virtual; abstract;
     {$ENDREGION}
 
     procedure Initialize(Source: TCAFSource); virtual;
@@ -109,9 +111,11 @@ type
     function ValidateFields(const ImportFile: String): Boolean;
 
     class function CreateImporter(ImportType: TCAFImportType): TCAFImporter; static;
-
+    
     property Statistics: TCAFImporterStatistics read FStatistics;
     property Errors: TStringList read FErrors;
+
+    property ImporterName: String read GetImporterName;
   end;
   
 implementation
@@ -185,6 +189,19 @@ begin
   end;
 end;
 
+class function TCAFImporter.ImportTypeToStr(ImportType: TCAFImportType): String;
+begin
+  case ImportType of
+    cafStandardUK: Result := 'Standard/Other UK';
+    cafHSBCUK: Result := 'HSBC UK';
+    
+    else
+    begin
+      Result := '';
+    end;
+  end;
+end;
+
 procedure TCAFImporter.Initialize(Source: TCAFSource);
 begin
   FCAFCount := 0;
@@ -210,9 +227,9 @@ end;
 class function TCAFImporter.CreateImporter(ImportType: TCAFImportType): TCAFImporter;
 begin
   case ImportType of
-    cafHSBC: Result := THSBCCAFImporterUK.Create;
-    
-    cafStandard: Result := TStandardCAFImporterUK.Create;
+    cafHSBCUK: Result := THSBCCAFImporterUK.Create;
+
+    cafStandardUK: Result := TStandardCAFImporterUK.Create;
 
     else
     begin
