@@ -44,9 +44,9 @@ type
     function GetCount: Integer; override;
     function GetCurrentRow: Integer; override;
     function GetFieldCount: Integer; override;
-    
-    function ValueByIndex(FieldIndex: Integer): String; override;
   public
+    function ValueByIndex(FieldIndex: Integer): String; override;
+
     constructor Create(const SourceFile: String; IncludesFieldNames: Boolean); virtual;
     destructor Destroy; override;
 
@@ -77,7 +77,6 @@ type
     procedure DoRecordValidation(Source: TCAFSource); virtual; abstract;
     procedure DoFieldValidation(Source: TCAFSource); virtual; abstract;
     function GetPDFTemplateFile: String; virtual; abstract;
-    function GetPDFOutputFile(Source: TCAFSource): String; virtual; abstract;
     {$ENDREGION}
 
     procedure Initialize(Source: TCAFSource); virtual;
@@ -151,7 +150,6 @@ end;
 procedure TCAFImporter.ImportAsPDF(Source: TCAFSource; const OutputFolder: String);
 var
   Document: TPdfFieldEdit;
-  Index: Integer;
   TemplateFile: String;
   OutputFile: String;
 begin
