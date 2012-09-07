@@ -2540,6 +2540,8 @@ begin
             begin
               ShellExecute(handle, 'Open', PAnsiChar(OutputFolder), nil, nil, SW_SHOWNORMAL);
             end;
+
+            LogUtil.LogMsg(lmInfo, UnitName, Format('BankLink Practice has generated the following %s Customer Authority Forms to %s. %s CAFs were generated.', [InstituteName, OutputFolder, IntToStr(Importer.Statistics.Generated)]));
           end
           else if Importer.Statistics.Failed > 0 then
           begin
@@ -2552,15 +2554,21 @@ begin
             begin
               ShellExecute(handle, 'Open', PAnsiChar(OutputFolder), nil, nil, SW_SHOWNORMAL);
             end;
+
+            LogUtil.LogMsg(lmInfo, UnitName, Format('BankLink Practice has generated the following %s Customer Authority Forms to %s. %s CAFs were generated. %s CAFs could not be generated due to errors.', [InstituteName, OutputFolder, IntToStr(Importer.Statistics.Generated), IntToStr(Importer.Statistics.Failed)]));
           end
           else
           begin
             HelpfulInfoMsg(Format('BankLink Practice could not generate any Customer Authority Forms based on the selected import file %s %s.', [ImportFile, OutputFolder]), 0);
+
+            LogUtil.LogMsg(lmInfo, UnitName, Format('BankLink Practice could not generate any Customer Authority Forms based on the selected import file %s %s.', [ImportFile, OutputFolder]));
           end;
         end
         else
         begin
           HelpfulErrorMsg(Format('An error occurred during the Customer Authority Form import process - %s', [ProgressData.Exception.Message]), 0);
+
+          LogUtil.LogMsg(lmError, UnitName, 'Exception creating Customer Authority Forms, Error Message : ' + ProgressData.Exception.Message);
         end;
 
       finally
