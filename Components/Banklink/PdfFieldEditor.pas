@@ -33,6 +33,7 @@ type
     fSelfIndex : integer;
     fParentIndex : integer;
     fScale : Double;
+    fLinkedFields : TList;
   protected
     fControl : TControl;
 
@@ -72,6 +73,8 @@ type
     destructor Destroy; override;
 
     procedure Draw; virtual;
+
+    Procedure AddLinkFieldByTitle(aTitle : Widestring);
 
     property QuickPDF : TQuickPDF  read GetQuickPDF;
     property ParentWinControl : TWinControl read GetParentWinControl;
@@ -246,7 +249,8 @@ type
 
     Procedure SaveToFile(aFilePath : WideString);
     Procedure SaveToFileFlattened(aFilePath : WideString);
-    Procedure Print(PrinterName : Widestring;
+    Procedure Print(aTempFilePath : String;
+                    PrinterName : Widestring;
                     StartPage : integer;
                     EndPage : integer;
                     Options : integer);
@@ -320,14 +324,28 @@ end;
 
 { TPDFFormField }
 //------------------------------------------------------------------------------
+procedure TPDFFormFieldItem.AddLinkFieldByTitle(aTitle: Widestring);
+var
+  FieldToLink : TPDFFormFieldItem;
+begin
+  FieldToLink := TPDFFormFields(Collection).GetFieldByTitle(aTitle);
+  if Assigned(FieldToLink) then
+  begin
+    fLinkedFields.Add(FieldToLink);
+  end;
+end;
+
 constructor TPDFFormFieldItem.Create(Collection: TCollection);
 begin
   inherited;
+
+  fLinkedFields := TList.Create;
 end;
 
 //------------------------------------------------------------------------------
 destructor TPDFFormFieldItem.Destroy;
 begin
+  FreeAndNil(fLinkedFields);
   FreeAndNil(fControl);
   inherited;
 end;
@@ -439,8 +457,19 @@ end;
 
 //------------------------------------------------------------------------------
 procedure TPDFFormFieldItem.SetValue(Value: WideString);
+var
+  LinkIndex : integer;
 begin
   QuickPDF.SetFormFieldValue(fSelfIndex, Value);
+
+  if assigned(fLinkedFields) then
+  begin
+    for LinkIndex := 0 to fLinkedFields.Count - 1 do
+    begin
+      if (Assigned(fLinkedFields.Items[LinkIndex])) then
+        TPDFFormFieldItem(fLinkedFields.Items[LinkIndex]).Value := Value;
+    end;
+  end;
 end;
 
 //------------------------------------------------------------------------------
@@ -1009,7 +1038,7 @@ procedure TPdfFieldEdit.AutoSetControlTabs;
     try
       for CtrlIndex := 0 to aParentControl.ControlCount - 1 do
       begin
-        if aParentControl.Controls[CtrlIndex] is TWinControl then
+        if (aParentControl.Controls[CtrlIndex] is TWinControl) then
         begin
           WinCtrl := TWinControl(aParentControl.Controls[CtrlIndex]);
           if List.Count = 0 then
@@ -1159,12 +1188,51 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TPdfFieldEdit.Print(PrinterName : Widestring;
+procedure TPdfFieldEdit.Print(aTempFilePath : String;
+                              PrinterName : Widestring;
                               StartPage : integer;
                               EndPage : integer;
                               Options : integer);
+var
+  tempQuickPDF : TQuickPDF;
+  FieldIndex : integer;
+  FieldSubCount : integer;
+  TempSubIndex : integer;
+  FieldSubIndex : integer;
 begin
-  fQuickPDF.PrintDocument(PrinterName, StartPage, EndPage, Options);
+  tempQuickPDF := TQuickPDF.Create;
+  try
+    if fQuickPDF.SaveToFile(aTempFilePath) = 1 then
+    begin
+      try
+        if tempQuickPDF.UnlockKey(QUICK_PDF_LICENCE_KEY) = 1 then
+        begin
+          if tempQuickPDF.LoadFromFile(aTempFilePath,'') = 1 then
+          begin
+            for FieldIndex := tempQuickPDF.FormFieldCount downto 1 do
+            begin
+              FieldSubCount := fQuickPDF.GetFormFieldSubCount(FieldIndex);
+
+              for FieldSubIndex := FieldSubCount downto 1 do
+              begin
+                TempSubIndex := fQuickPDF.GetFormFieldSubTempIndex(FieldIndex, FieldSubIndex);
+
+                tempQuickPDF.FlattenFormField(TempSubIndex);
+              end;
+
+              tempQuickPDF.FlattenFormField(FieldIndex);
+            end;
+
+            tempQuickPDF.PrintDocument(PrinterName, StartPage, EndPage, Options);
+          end;
+        end;
+      finally
+        SysUtils.DeleteFile(aTempFilePath);
+      end;
+    end;
+  finally
+    FreeAndNil(tempQuickPDF);
+  end;
 end;
 
 //------------------------------------------------------------------------------

@@ -799,7 +799,6 @@ CONST
    ukCAFBankName          = 'txtBankName';
    ukCAFBranchName        = 'txtBranchName';
    ukCAFStartMonth        = 'cmbStartMonth';
-   ukCAFStartMonthItem    = 'cmbStartMonthItem';
    ukCAFStartYear         = 'txtStartYear';
    ukCAFPracticeName      = 'txtPracticeName';
    ukCAFPracticeCode      = 'txtPracticeCode';
@@ -814,6 +813,40 @@ CONST
    ukCAFHSBCAddressLine3  = 'txtAddressLine3';
    ukCAFHSBCAddressLine4  = 'txtAddressLine4';
    ukCAFHSBCPostalCode    = 'txtPostalCode';
+
+   ukCAFNameOfAccount2     = 'txtNameOfAccount2';
+   ukCAFClientCode2        = 'txtClientCode2';
+   ukCAFBankCode2          = 'txtBankCode2';
+   ukCAFAccountNumber2     = 'txtAccountNumber2';
+   ukCAFCostCode2          = 'txtCostCode2';
+   ukCAFBankName2          = 'txtBankName2';
+   ukCAFBranchName2        = 'txtBranchName2';
+   ukCAFStartMonth2        = 'cmbStartMonth2';
+   ukCAFStartYear2         = 'txtStartYear2';
+   ukCAFPracticeName2      = 'txtPracticeName2';
+   ukCAFPracticeCode2      = 'txtPracticeCode2';
+   ukCAFSupplyProvisionalAccounts2 = 'chkSupplyProvisionalAccounts2';
+   ukCAFMonthly2           = 'radMonthly2';
+   ukCAFWeekly2            = 'radWeekly2';
+   ukCAFDaily2             = 'radDaily2';
+   ukCAFHSBCAccountSign1_2  = 'txtAccountSignatory1_2';
+   ukCAFHSBCAccountSign2_2  = 'txtAccountSignatory2_2';
+   ukCAFHSBCAddressLine1_2  = 'txtAddressLine1_2';
+   ukCAFHSBCAddressLine2_2  = 'txtAddressLine2_2';
+   ukCAFHSBCAddressLine3_2  = 'txtAddressLine3_2';
+   ukCAFHSBCAddressLine4_2  = 'txtAddressLine4_2';
+   ukCAFHSBCPostalCode2     = 'txtPostalCode2';
+
+   ukCAFNameOfAccount3     = 'txtNameOfAccount3';
+   ukCAFBankCode3          = 'txtBankCode3';
+   ukCAFAccountNumber3     = 'txtAccountNumber3';
+   ukCAFBranchName3        = 'ukCAFBranchName3';
+   ukCAFHSBCAccountSign1_3  = 'txtAccountSignatory1_3';
+   ukCAFHSBCAccountSign2_3  = 'txtAccountSignatory2_3';
+
+   ukCAFNameOfAccount4     = 'txtNameOfAccount4';
+   ukCAFNameOfAccount5     = 'txtNameOfAccount5';
+
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
