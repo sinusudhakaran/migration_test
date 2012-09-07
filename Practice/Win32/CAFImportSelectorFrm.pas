@@ -117,7 +117,6 @@ end;
 
 function TfrmCAFImportSelector.ValidateForm: Boolean;
 var
-  CAFSource: TCAFSource;
   Importer: TCAFImporter;
   ValidFields: Integer;
   InvalidFields: Integer;
