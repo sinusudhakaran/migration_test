@@ -168,7 +168,7 @@ begin
 
       OutputFile := AppendFileNameToPath(OutputFolder, OutputFile);
       
-      Document.SaveToFile(OutputFile);
+      Document.SaveToFileFlattened(OutputFile);
 
       Inc(FCAFCount);
     finally
@@ -212,7 +212,7 @@ begin
 
     else
     begin
-      raise Exception.Create('There are currently no importers of tthat support this combination of country and importer type');
+      raise Exception.Create('There are currently no importers of that support this combination of country and importer type');
     end;
   end;
 end;
@@ -497,5 +497,4 @@ begin
     raise Exception.Create('There is no current worksheet');
   end;
 end;
-
 end.
