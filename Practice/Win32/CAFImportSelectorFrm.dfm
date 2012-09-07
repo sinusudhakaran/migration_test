@@ -15,6 +15,7 @@ object frmCAFImportSelector: TfrmCAFImportSelector
   KeyPreview = True
   OldCreateOrder = False
   Position = poOwnerFormCenter
+  ShowHint = True
   OnCreate = FormCreate
   OnKeyDown = FormKeyDown
   PixelsPerInch = 96
