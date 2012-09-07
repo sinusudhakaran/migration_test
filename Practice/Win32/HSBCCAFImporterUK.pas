@@ -28,9 +28,9 @@ type
   THSBCCAFImporterUK = class(TStandardCAFImporterUK)
   protected
     procedure DoImportAsPDF(Source: TCAFSource; Template: TPdfFieldEdit; out OutputFile: String); override;
-    procedure DoFieldValidation(Source: TCAFSource); override;
     function GetPDFTemplateFile: String; override;
-
+    function GetMinFieldCount: Integer; override;
+    
     class procedure SetupLinkedFields(Template: TPdfFieldEdit); static;
   end;
 
@@ -61,6 +61,11 @@ begin
   begin
     OutputFile := Format('Customer Authority Form%s%s.PDF', [Source.ClientCode, IntToStr(CAFCount + 1)]);
   end;
+end;
+
+function THSBCCAFImporterUK.GetMinFieldCount: Integer;
+begin
+  Result := 18;
 end;
 
 function THSBCCAFImporterUK.GetPDFTemplateFile: String;
@@ -119,14 +124,6 @@ begin
   Template.LinkFieldByTitle(ukCAFHSBCAddressLine4, ukCAFHSBCAddressLine4_2);
 
   Template.LinkFieldByTitle(ukCAFHSBCPostalCode, ukCAFHSBCPostalCode2);
-end;
-
-procedure THSBCCAFImporterUK.DoFieldValidation(Source: TCAFSource);
-begin
-  if Source.FieldCount < 18 then
-  begin
-    AddError('Fields', 'The file does not contain enough fields'); 
-  end;
 end;
 
 { TCAFSourceHelper }
