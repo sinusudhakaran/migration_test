@@ -124,7 +124,7 @@ begin
 
   if Trim(edtSaveTo.Text) = '' then
   begin
-    HelpfulErrorMsg('The import file field cannot be blank. Please specify a valid import file.', 0);
+    HelpfulErrorMsg('The Save To field cannot be blank. Please specify Save To path.', 0);
 
     edtSaveTo.SetFocus;
 
@@ -137,6 +137,11 @@ begin
     if AskYesNo('Create directory', 'The specified directory does not exist. ' + #10#13#10#13 + 'Create the directory automatically?', DLG_NO, 0) = DLG_YES then
     begin
       CreateDir(edtSaveTo.Text);
+
+      if not DirectoryExists(edtSaveTo.Text) then
+      begin
+        HelpfulErrorMsg('The specified directory path could not be created. Please make sure you have the required permissions.', 0);
+      end;
     end
     else
     begin
