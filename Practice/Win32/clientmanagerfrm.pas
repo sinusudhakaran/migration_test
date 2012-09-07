@@ -2526,6 +2526,8 @@ begin
         FCAFOutputFolder := OutputFolder;
         FCAFFileFormat := FileFormat;
 
+        LogUtil.LogMsg(lmInfo, UnitName, Format('Creating Customer Authority Forms for %s. Import file: %s; Output Path: %s.', [Importer.ImporterName, ImportFile, OutputFolder]));
+
         TfrmModalProgress.ShowProgressEx(Self, 'Please wait...', 'Creating Customer Authority Forms', CreateCustomerAuthorityForms, ProgressData);
 
         if not ProgressData.ExceptionRaised then
