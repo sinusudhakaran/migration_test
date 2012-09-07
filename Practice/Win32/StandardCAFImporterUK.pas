@@ -35,7 +35,8 @@ type
 
   TPDFEditorHelper = class helper for TPDFFieldEdit
   public
-    function FieldByTitle(const FieldTitle: String): TPDFFormFieldItem;
+    procedure SetFieldValue(const FieldTitle, Value: String);
+    procedure LinkFieldByTitle(const TargetField, LinkField: String);
   end;
 
   TStandardCAFImporterUK = class(TCAFImporter)
@@ -60,42 +61,42 @@ uses
 
 procedure TStandardCAFImporterUK.DoImportAsPDF(Source: TCAFSource; Template: TPdfFieldEdit; out OutputFile: String);
 begin
-  Template.FieldByTitle(ukCAFPracticeCode).Value := AdminSystem.fdFields.fdBankLink_Code;
-  Template.FieldByTitle(ukCAFPracticeName).Value := AdminSystem.fdFields.fdPractice_Name_for_Reports;
-                                                                        
-  Template.FieldByTitle(ukCAFClientCode).Value := Source.ClientCode;
+  Template.SetFieldValue(ukCAFPracticeCode, AdminSystem.fdFields.fdBankLink_Code);
+  Template.SetFieldValue(ukCAFPracticeName, AdminSystem.fdFields.fdPractice_Name_for_Reports);
 
-  Template.FieldByTitle(ukCAFNameOfAccount).Value := Source.AccountName;
+  Template.SetFieldValue(ukCAFClientCode, Source.ClientCode);
 
-  Template.FieldByTitle(ukCAFBankCode).Value := Source.SortCode;
-  Template.FieldByTitle(ukCAFAccountNumber).Value := Source.AccountNo;
+  Template.SetFieldValue(ukCAFNameOfAccount, Source.AccountName);
 
-  Template.FieldByTitle(ukCAFBankName).Value := Source.Bank;
-  Template.FieldByTitle(ukCAFBranchName).Value := Source.Branch;
-  Template.FieldByTitle(ukCAFStartMonth).Value := Source.Month;
-  Template.FieldByTitle(ukCAFStartYear).Value := Source.Year;
+  Template.SetFieldValue(ukCAFBankCode, Source.SortCode);
+  Template.SetFieldValue(ukCAFAccountNumber, Source.AccountNo);
 
-  Template.FieldByTitle(ukCAFCostCode).Value := Source.CostCode;
+  Template.SetFieldValue(ukCAFBankName, Source.Bank);
+  Template.SetFieldValue(ukCAFBranchName, Source.Branch);
+  Template.SetFieldValue(ukCAFStartMonth, Source.Month);
+  Template.SetFieldValue(ukCAFStartYear, Source.Year);
+
+  Template.SetFieldValue(ukCAFCostCode, Source.CostCode);
 
   if CompareText(Trim(Source.Provisional), 'Y') = 0 then
   begin
-    Template.FieldByTitle(ukCAFSupplyProvisionalAccounts).Value := 'Yes';
+    Template.SetFieldValue(ukCAFSupplyProvisionalAccounts, 'Yes');
   end;
 
   if CompareText(Trim(Source.Frequency), 'M') = 0 then
   begin
-    Template.FieldByTitle(ukCAFMonthly).Value := 'Yes';
+    Template.SetFieldValue(ukCAFMonthly, 'Yes');
   end
   else
   if CompareText(Trim(Source.Frequency), 'W') = 0 then
   begin
-    Template.FieldByTitle(ukCAFWeekly).Value := 'Yes';
+    Template.SetFieldValue(ukCAFWeekly, 'Yes');
   end
   else
   begin
-    Template.FieldByTitle(ukCAFDaily).Value := 'Yes';
+    Template.SetFieldValue(ukCAFDaily, 'Yes');
   end;
-  
+
   if FMultiImport then
   begin
     OutputFile := Format('Customer Authority Form%s.PDF', [IntToStr(CAFCount + 1)]);
@@ -251,13 +252,27 @@ end;
 
 { TPDFEditorHelper }
 
-function TPDFEditorHelper.FieldByTitle(const FieldTitle: String): TPDFFormFieldItem;
+procedure TPDFEditorHelper.LinkFieldByTitle(const TargetField, LinkField: String);
+var
+  Field: TPDFFormFieldItem;
 begin
-  Result := PDFFormFields.GetFieldByTitle(FieldTitle);
+  Field := PDFFormFields.GetFieldByTitle(TargetField);
 
-  if Result = nil then
+  if Field <> nil then
   begin
-    raise Exception.Create(Format('Field %s not found', [FieldTitle])); 
+    Field.AddLinkFieldByTitle(LinkField); 
+  end;
+end;
+
+procedure TPDFEditorHelper.SetFieldValue(const FieldTitle, Value: String);
+var
+  Field: TPDFFormFieldItem;
+begin
+  Field := PDFFormFields.GetFieldByTitle(FieldTitle);
+
+  if Field <> nil then
+  begin
+    Field.Value := Value;
   end;
 end;
 
