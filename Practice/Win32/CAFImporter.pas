@@ -166,7 +166,7 @@ begin
 
       OutputFile := AppendFileNameToPath(OutputFolder, OutputFile);
       
-      Document.SaveToFileFlattened(OutputFile);
+      Document.SaveToFile(OutputFile);
 
       Inc(FCAFCount);
     finally
