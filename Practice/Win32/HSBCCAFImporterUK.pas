@@ -38,7 +38,7 @@ type
 implementation
 
 uses
-  BKConst;
+  BKConst, StrUtils;
   
 procedure THSBCCAFImporterUK.DoImportAsPDF(Source: TCAFSource; Template: TPdfFieldEdit; out OutputFile: String);
 begin
@@ -79,37 +79,37 @@ end;
 
 function THSBCCAFSourceHelperUK.GetAccountSignatory1: String;
 begin
-  Result := ValueByIndex(3);
+  Result := LeftStr(ValueByIndex(3), 60);
 end;
 
 function THSBCCAFSourceHelperUK.GetAccountSignatory2: String;
 begin
-  Result := ValueByIndex(4);
+  Result := LeftStr(ValueByIndex(4), 60);
 end;
 
 function THSBCCAFSourceHelperUK.GetAddressLine1: String;
 begin
-  Result := ValueByIndex(13);
+  Result := LeftStr(ValueByIndex(13), 60);
 end;
 
 function THSBCCAFSourceHelperUK.GetAddressLine2: String;
 begin
-  Result := ValueByIndex(14);
+  Result := LeftStr(ValueByIndex(14), 60);
 end;
 
 function THSBCCAFSourceHelperUK.GetAddressLine3: String;
 begin
-  Result := ValueByIndex(15);
+  Result := LeftStr(ValueByIndex(15), 60);
 end;
 
 function THSBCCAFSourceHelperUK.GetAddressLine4: String;
 begin
-  Result := ValueByIndex(16);
+  Result := LeftStr(ValueByIndex(16), 60);
 end;
 
 function THSBCCAFSourceHelperUK.GetPostCode: String;
 begin
-  Result := ValueByIndex(17);
+  Result := LeftStr(ValueByIndex(17), 8);
 end;
 
 end.
