@@ -263,6 +263,7 @@ object frmNewCAF: TfrmNewCAF
       FFFFFFFFFFFFFFFF0000}
   end
   object PrintDialog: TPrintDialog
+    Options = [poPageNums, poSelection]
     Left = 624
     Top = 552
   end

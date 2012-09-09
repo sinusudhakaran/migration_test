@@ -22,12 +22,8 @@ type
     Height : integer;
   end;
 
-  TPDFProperty = class
-    private
-      HasValue : Boolean;
-  end;
-
   //----------------------------------------------------------------------------
+  // Base Form Field Item
   TPDFFormFieldItem = class(TCollectionItem)
   private
     fSelfIndex : integer;
@@ -299,7 +295,7 @@ const
 
   FRM_FIELD_DPI = 71.96;
 
-  QUICK_PDF_LICENCE_KEY = 'j54g79ru33q4xo7gp7wt43j3y';
+  QUICK_PDF_LICENCE_KEY = 'jz8dr7ow7gi4qu7z181e6e39y';
 
 //------------------------------------------------------------------------------
 procedure Register;
@@ -704,8 +700,8 @@ begin
   fshpClear.Width  := CheckBox.Width + 2;
   fshpClear.Height := CheckBox.Height + 2;
 
-  fshpClear.Brush.Color := $00FFFFFF;
-  fshpClear.Pen.Color := $00FFFFFF;
+  fshpClear.Brush.Color := clWhite;
+  fshpClear.Pen.Color := clWhite;
 
   CheckBox.TabOrder := TabOrder;
   CheckBox.Width    := CheckBox.Height;
@@ -781,8 +777,8 @@ begin
   fshpClear.Width  := RadioButton.Width + 2;
   fshpClear.Height := RadioButton.Height + 2;
 
-  fshpClear.Brush.Color := $00FFFFFF;
-  fshpClear.Pen.Color := $00FFFFFF;
+  fshpClear.Brush.Color := clWhite;
+  fshpClear.Pen.Color := clWhite;
 
   RadioButton.TabOrder := TabOrder;
   RadioButton.Width    := RadioButton.Height;
@@ -843,8 +839,8 @@ begin
   fshpClear.Width  := ComboBox.Width + 4;
   fshpClear.Height := round(Bound.Height * fScale) + 4;
 
-  fshpClear.Brush.Color := $00FFFFFF;
-  fshpClear.Pen.Color := $00FFFFFF;
+  fshpClear.Brush.Color := clWhite;
+  fshpClear.Pen.Color := clWhite;
 
   ComboBox.TabOrder := TabOrder;
   ComboBox.OnCloseUp := ComboOnCloseUp;
