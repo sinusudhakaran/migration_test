@@ -383,16 +383,16 @@ begin
     PDFFormFieldItemEdit.Edit.Width  := PDFFormFieldItemEdit.Edit.Width + 2;
     PDFFormFieldItemEdit.Edit.BorderStyle := bsSingle;
 
-    PDFFormFieldItemEdit.shpClear.Brush.Color := $00FFFFFF;
-    PDFFormFieldItemEdit.shpClear.Pen.Color := $00FFFFFF;
+    PDFFormFieldItemEdit.shpClear.Brush.Color := clWhite;
+    PDFFormFieldItemEdit.shpClear.Pen.Color   := clWhite;
 
     case fInstitution of
       istUKNormal : begin
         PDFFormFieldItemEdit.Edit.Width  := PDFFormFieldItemEdit.Edit.Width + 4;
       end;
       istUKHSBC : begin
-        PDFFormFieldItemEdit.Edit.Left   := PDFFormFieldItemEdit.Edit.Left - 2;
-        PDFFormFieldItemEdit.Edit.Top    := PDFFormFieldItemEdit.Edit.Top - 2;
+        PDFFormFieldItemEdit.Edit.Left   := PDFFormFieldItemEdit.Edit.Left - 5;
+        PDFFormFieldItemEdit.Edit.Top    := PDFFormFieldItemEdit.Edit.Top - 4;
         PDFFormFieldItemEdit.AddLinkFieldByTitle(ukCafStartYear2);
       end;
     end;
