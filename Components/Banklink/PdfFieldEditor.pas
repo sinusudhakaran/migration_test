@@ -15,6 +15,7 @@ uses
   QuickPDF;
 
 type
+  //----------------------------------------------------------------------------
   TPDFRect = record
     Left   : integer;
     Top    : integer;
@@ -331,6 +332,7 @@ begin
   end;
 end;
 
+//----------------------------------------------------------------------------
 constructor TPDFFormFieldItem.Create(Collection: TCollection);
 begin
   inherited;
