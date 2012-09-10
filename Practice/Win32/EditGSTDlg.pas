@@ -225,6 +225,7 @@ type
     property TaxName : String read FTaxName write SetTaxName;
     procedure SetupVatTemplates;
     procedure ClearRates;
+    procedure SetEffectiveRate(const aValue: integer; const aField: TOvcPictureField);
   public
     { Public declarations }
     function Execute : boolean;
@@ -2255,6 +2256,16 @@ begin
 end;
 
 {------------------------------------------------------------------------------}
+procedure TdlgEditGST.SetEffectiveRate(const aValue: integer;
+  const aField: TOvcPictureField);
+begin
+  if (aValue > 0) then
+    aField.AsStDate := aValue
+  else
+    aField.ClearContents;
+end;
+
+{------------------------------------------------------------------------------}
 procedure TdlgEditGST.btnLoadTemplateClick(Sender: TObject);
 var
   FileName: string;
@@ -2281,9 +2292,9 @@ begin
       exit;
 
     // Copy effective rates
-    eDate1.AsStDate := Rate1;
-    eDate2.AsStDate := Rate2;
-    eDate3.AsStDate := Rate3;
+    SetEffectiveRate(Rate1, eDate1);
+    SetEffectiveRate(Rate2, eDate2);
+    SetEffectiveRate(Rate3, eDate3);
 
     // Copy rates
     for i := 1 to MAX_GST_CLASS do

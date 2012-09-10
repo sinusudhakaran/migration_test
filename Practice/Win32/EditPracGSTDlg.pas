@@ -106,6 +106,7 @@ type
     procedure SetCountry(const Value: Byte);
     procedure SetupVatTemplates;
     procedure ClearRates;
+    procedure SetEffectiveRate(const aValue: integer; const aField: TOvcPictureField);
     property TaxName : String read FTaxName write SetTaxName;
     property Country : Byte read FCountry write SetCountry;
   public
@@ -687,6 +688,7 @@ begin
   end;
   result := true;
 end;
+
 //------------------------------------------------------------------------------
 procedure TdlgEditPracGST.celGSTTypeDropDown(Sender: TObject);
 begin
@@ -763,6 +765,16 @@ begin
 end;
 
 {------------------------------------------------------------------------------}
+procedure TdlgEditPracGST.SetEffectiveRate(const aValue: integer;
+  const aField: TOvcPictureField);
+begin
+  if (aValue > 0) then
+    aField.AsStDate := aValue
+  else
+    aField.ClearContents;
+end;
+
+{------------------------------------------------------------------------------}
 procedure TdlgEditPracGST.btnLoadTemplateClick(Sender: TObject);
 var
   FileName: string;
@@ -785,9 +797,9 @@ begin
     VatLoadFromFile(Filename, Rate1, Rate2, Rate3, VatRates);
 
     // Copy effective rates
-    eDate1.AsStDate := Rate1;
-    eDate2.AsStDate := Rate2;
-    eDate3.AsStDate := Rate3;
+    SetEffectiveRate(Rate1, eDate1);
+    SetEffectiveRate(Rate2, eDate2);
+    SetEffectiveRate(Rate3, eDate3);
 
     // Copy rates
     for i := 1 to MAX_GST_CLASS do
