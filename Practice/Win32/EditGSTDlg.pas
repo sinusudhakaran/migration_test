@@ -2283,13 +2283,13 @@ begin
     if not VatOpenDialog(self, FileName) then
       exit;
 
-    VatLoadFromFile(Filename, Rate1, Rate2, Rate3, VatRates);
-
     // User cancel?
     if not VatConfirmLoad then
       exit;
 
     ClearRates;
+
+    VatLoadFromFile(Filename, Rate1, Rate2, Rate3, VatRates);
 
     // Copy effective rates
     SetEffectiveRate(Rate1, eDate1);
