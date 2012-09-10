@@ -745,7 +745,7 @@ begin
   if not VatSetupButtons(vlPractice, [btnLoadTemplate, btnSaveTemplate]) then
   begin
     // Move grid and groupbox down
-    ExtraHeight := (btnLoadTemplate.BoundsRect.Bottom) - (gbxRates.BoundsRect.Bottom);
+    ExtraHeight := btnLoadTemplate.BoundsRect.Bottom - gbxRates.BoundsRect.Bottom;
     gbxRates.Height := gbxRates.Height + ExtraHeight;
     tblRates.Height := tblRates.Height + ExtraHeight;
   end;

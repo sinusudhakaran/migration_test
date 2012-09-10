@@ -223,6 +223,7 @@ type
     Procedure AddNodesForBASField( ParentNode : TTreeNode; BASFieldNo : Integer );
     procedure SetTaxName(const Value: String);
     property TaxName : String read FTaxName write SetTaxName;
+    procedure SetupVatTemplates;
     procedure ClearRates;
   public
     { Public declarations }
@@ -727,7 +728,7 @@ begin
   eABN_Division.text := '';
 
   if Assigned( AdminSystem) then begin
-     btnDefaults.Visible := ( Country <> whAustralia);
+     btnDefaults.Visible := ( Country <> whAustralia) and not CurrUser.HasRestrictedAccess;
      //check that client file belong to this admin system
      btnDefaultTax.Enabled := (AdminSystem.fdFields.fdMagic_Number = MyClient.clFields.clMagic_Number);
      btnDefaults.Enabled := (AdminSystem.fdFields.fdMagic_Number = MyClient.clFields.clMagic_Number);
@@ -797,7 +798,7 @@ begin
   //resize the account col so that longest account code fits
   tblRates.Columns[ AccountCol ].Width := CalcAcctColWidth( tblRates.Canvas, tblRates.Font, 100);
 
-  VatSetupButtons(vlClient, [btnLoadTemplate, btnSaveTemplate]);
+  SetupVatTemplates;
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TdlgEditGST.SetUpHelp;
@@ -2222,6 +2223,24 @@ procedure TdlgEditGST.colAccountExit(Sender: TObject);
 begin
   if not MyClient.clChart.CodeIsThere(TEdit(colAccount.CellEditor).Text) then
     bkMaskUtils.CheckRemoveMaskChar(TEdit(colAccount.CellEditor),RemovingMask);
+end;
+
+{------------------------------------------------------------------------------}
+procedure TdlgEditGST.SetupVatTemplates;
+var
+  ExtraHeight: integer;
+begin
+  // Vat buttons visible?
+  if VatSetupButtons(vlClient, [btnLoadTemplate, btnSaveTemplate]) then
+    exit;
+
+  // Defaults button visible? (Call this after VatSetupButtons)
+  if btnDefaults.Visible then
+    exit;
+
+  // Move grid down
+  ExtraHeight := btnDefaults.BoundsRect.Bottom - tblRates.BoundsRect.Bottom;
+  tblRates.Height := tblRates.Height + ExtraHeight;
 end;
 
 {------------------------------------------------------------------------------}

@@ -100,11 +100,10 @@ var
   Country: byte;
   i: integer;
 begin
-  // Init (to prevent compiler hints)
-  Country := 0;
   result := false;
 
   // Determine country
+  Country := 0; // For compiler
   case aLevel of
     vlPractice:
       Country := AdminSystem.fdFields.fdCountry;
