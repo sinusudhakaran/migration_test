@@ -365,8 +365,7 @@ var
 begin
   Line := IntToStr(aRow);
   Line := Line + '|';
-  if (aDate <> -1) then
-    Line := Line + bkDate2Str(aDate);
+  Line := Line + bkDate2Str(aDate);
   aLines.Add(Line);
 end;
 
@@ -470,8 +469,6 @@ begin
     SaveEffectiveRate(1, aRate1, Lines);
     SaveEffectiveRate(2, aRate2, Lines);
     SaveEffectiveRate(3, aRate3, Lines);
-    SaveEffectiveRate(4, -1, Lines);
-    SaveEffectiveRate(5, -1, Lines);
     Lines.Add('');
 
     // Rates

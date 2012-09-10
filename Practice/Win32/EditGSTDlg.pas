@@ -728,7 +728,7 @@ begin
   eABN_Division.text := '';
 
   if Assigned( AdminSystem) then begin
-     btnDefaults.Visible := ( Country <> whAustralia) and not CurrUser.HasRestrictedAccess;
+     btnDefaults.Visible := ( Country <> whAustralia);
      //check that client file belong to this admin system
      btnDefaultTax.Enabled := (AdminSystem.fdFields.fdMagic_Number = MyClient.clFields.clMagic_Number);
      btnDefaults.Enabled := (AdminSystem.fdFields.fdMagic_Number = MyClient.clFields.clMagic_Number);
