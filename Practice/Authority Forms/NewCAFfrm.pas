@@ -693,10 +693,15 @@ begin
   if Assigned(PDFFormFieldItemRadioButton) then
     PDFFormFieldItemRadioButton.RadioButton.Checked := True;
 
+  // Practice Code
+  PDFFormFieldItemEdit := GetPDFFormFieldEdit(ukCAFPracticeCode);
+  if Assigned(PDFFormFieldItemEdit) then
+    PDFFormFieldItemEdit.Edit.Text := Adminsystem.fdFields.fdBankLink_Code;
+
   // Practice Name
   PDFFormFieldItemEdit := GetPDFFormFieldEdit(ukCAFPracticeName);
   if Assigned(PDFFormFieldItemEdit) then
-    PDFFormFieldItemEdit.Edit.Text := '';
+    PDFFormFieldItemEdit.Edit.Text := Adminsystem.fdFields.fdPractice_Name_for_Reports;
 
   case fInstitution of
     istUKNormal : begin
