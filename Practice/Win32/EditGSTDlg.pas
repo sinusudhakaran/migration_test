@@ -44,6 +44,11 @@ uses
   OSFont;
 
 type
+  TEditGSTContext = (
+    gctxNormal,
+    gctxNewClientWizard
+  );
+
   TdlgEditGST = class(TForm)
     OvcController1: TOvcController;
     colDesc: TOvcTCString;
@@ -200,6 +205,8 @@ type
     procedure btnSaveTemplateClick(Sender: TObject);
   private
     { Private declarations }
+    fContext           : TEditGSTContext;
+    
     okPressed          : boolean;
     editMode           : boolean;
     removingMask       : boolean;
@@ -231,7 +238,7 @@ type
     function Execute : boolean;
   end;
 
-function EditGSTDetails(ContextID : Integer) : boolean;
+function EditGSTDetails(ContextID : Integer; const aContext: TEditGSTContext = gctxNormal) : boolean;
 //******************************************************************************
 implementation
 
@@ -2117,7 +2124,7 @@ end;
 //------------------------------------------------------------------------------
 
 //------------------------------------------------------------------------------
-function EditGSTDetails(ContextID : Integer) : boolean;
+function EditGSTDetails(ContextID : Integer; const aContext: TEditGSTContext) : boolean;
 var
   MyDlg : TdlgEditGST;
 begin
@@ -2127,6 +2134,7 @@ begin
   MyDlg := TdlgEditGst.Create(Application.MainForm);
   try
      BKHelpSetUp(MyDlg, ContextID);
+     MyDlg.fContext := aContext;
      MyDlg.pcGST.ActivePage := MyDlg.pgDetails;
      if MyDlg.Execute then begin
         Result := true;
@@ -2284,7 +2292,8 @@ begin
       exit;
 
     // User cancel?
-    if not VatConfirmLoad then
+    // Note: only ask when we're editing a client, not creating a new one
+    if (fContext = gctxNormal) and not VatConfirmLoad then
       exit;
 
     ClearRates;

@@ -494,7 +494,7 @@ begin
              ContextID := BKH_Step_3_GST_set_up_Australia_
            else
              ContextID := BKH_Step_3_GST_set_up_New_Zealand_;
-           if EditGstDetails(ContextID) then begin
+           if EditGstDetails(ContextID, gctxNewClientWizard) then begin
              Option[ opGSTRate ].Complete := True;
            end;
          end;
