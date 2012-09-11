@@ -618,6 +618,34 @@ var
     end;
   end;
 
+  function AccountHasVendors(AccountID: Integer): Boolean;
+  var
+    Index: Integer;
+  begin
+    Result := False;
+    
+    for Index := 0 to Length(FClientAccVendors.AccountsVendors) - 1 do
+    begin
+      if FClientAccVendors.AccountsVendors[Index].AccountID = AccountID then
+      begin
+        if Assigned(FClientAccVendors.AccountsVendors[Index].AccountVendors) then
+        begin
+          Result :=  Length(FClientAccVendors.AccountsVendors[Index].AccountVendors.Current) > 0;
+
+          Exit;
+        end
+        else
+        begin
+          Result := True;
+
+          Exit;
+        end;
+      end;
+    end;
+
+  end;
+
+
 begin
   result := false;
 
@@ -701,8 +729,7 @@ begin
     CoreAccountID := BankAccount.baFields.baCore_Account_ID;
 
     // Delete on BankLink Online first
-    if (IsExportDataEnabledFoAccount) and
-       (fClientAccVendors.ClientID <> '') then
+    if (IsExportDataEnabledFoAccount) and (fClientAccVendors.ClientID <> '') and AccountHasVendors(BankAccount.baFields.baCore_Account_ID) then
     begin
       if fRemoveVendorsFromClient then
       begin
