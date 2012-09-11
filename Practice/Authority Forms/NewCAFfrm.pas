@@ -924,8 +924,6 @@ function TfrmNewCAF.ValidateForm: Boolean;
 var
   PDFFormFieldItemEdit        : TPDFFormFieldItemEdit;
   PDFFormFieldItemComboBox    : TPDFFormFieldItemComboBox;
-  PDFFormFieldItemRadioButton : TPDFFormFieldItemRadioButton;
-  PDFFormFieldItemCheckBox    : TPDFFormFieldItemCheckBox;
 
   procedure ValidateEmptyEditField(aFieldName : widestring; aMessage : string);
   begin
@@ -942,26 +940,6 @@ var
   end;
 begin
   Result := True;
-
-  // Name of Account
-  ValidateEmptyEditField(ukCAFNameOfAccount, 'You must enter the name of the account.');
-  if not Result then
-    Exit;
-
-  // Branch Name
-  ValidateEmptyEditField(ukCAFBranchName, 'You must enter a branch.');
-  if not Result then
-    Exit;
-
-  // Bank Code / Sort Code
-  ValidateEmptyEditField(ukCAFBankCode, 'You must enter a sort code.');
-  if not Result then
-    Exit;
-
-  // Account Number
-  ValidateEmptyEditField(ukCAFAccountNumber, 'You must enter an account number.');
-  if not Result then
-    Exit;
 
   // Practice Name
   ValidateEmptyEditField(ukCAFPracticeName, 'You must enter a practice name.');
@@ -996,31 +974,6 @@ begin
       HelpfulErrorMsg('You must enter a valid starting year.', 0);
       PDFFormFieldItemEdit.Edit.SetFocus;
       Exit;
-    end;
-  end;
-
-  case fInstitution of
-    istUKNormal : begin
-      // Bank Name
-      ValidateEmptyEditField(ukCAFBankName, 'You must enter a bank name.');
-      if not Result then
-        Exit;
-    end;
-    istUKHSBC : begin
-      // Account Signatory 1
-      ValidateEmptyEditField(ukCAFHSBCAccountSign1, 'You must enter an account signatory.');
-      if not Result then
-        Exit;
-
-      // Address Linhe 1
-      ValidateEmptyEditField(ukCAFHSBCAddressLine1, 'You must enter an address.');
-      if not Result then
-        Exit;
-
-      // Postal Code
-      ValidateEmptyEditField(ukCAFHSBCPostalCode, 'You must enter a postal code.');
-      if not Result then
-        Exit;
     end;
   end;
 end;
