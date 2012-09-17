@@ -170,8 +170,7 @@ type
     fshpClear : TShape;
   protected
     Procedure ComboOnCloseUp(Sender: TObject);
-    procedure ComboOnSelect(Sender: TObject);
-
+    
     function GetComboBox : TComboBox;
     procedure SetComboBox(aValue : TComboBox);
   public
@@ -791,11 +790,6 @@ end;
 
 { TPDFFormFieldItemButton }
 //------------------------------------------------------------------------------
-procedure TPDFFormFieldItemComboBox.ComboOnSelect(Sender: TObject);
-begin
-  Value := ComboBox.Text;
-end;
-
 procedure TPDFFormFieldItemComboBox.ComboOnCloseUp(Sender: TObject);
 begin
   Value := ComboBox.Text;
@@ -851,7 +845,7 @@ begin
   fshpClear.Pen.Color := clWhite;
 
   ComboBox.TabOrder := TabOrder;
-  ComboBox.OnSelect := ComboOnSelect;
+  ComboBox.OnCloseUp := ComboOnCloseUp;
   ComboBox.Top  := ComboBox.Top + 8;
   ComboBox.Left := ComboBox.Left + 2;
 end;
