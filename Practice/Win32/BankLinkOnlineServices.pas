@@ -148,6 +148,8 @@ type
     FValidBConnectDetails: Boolean;
     FArrNameSpaceList : Array of TRemRegEntry;
 
+    FSubDomain: String;
+
     procedure HandleException(const MethodName: String; E: Exception);
     
     procedure SynchronizeClientSettings(BlopiClient: TBloClientReadDetail);
@@ -1103,12 +1105,9 @@ end;
 //------------------------------------------------------------------------------
 function TProductConfigService.GetBanklinkOnlineURL(PracticeCode: string = ''): String;
 begin
-  if Trim(AdminSystem.fdFields.fdBankLink_Code) <> '' then
+  if Trim(FSubdomain) <> '' then
   begin
-    if (PracticeCode = '') then
-      PracticeCode := AdminSystem.fdFields.fdBankLink_Code;
-
-    Result := ReplaceText(PRACINI_BankLink_Online_Services_URL, 'https://www.', Format('https://%s.', [PracticeCode]));
+    Result := ReplaceText(PRACINI_BankLink_Online_Services_URL, 'https://www.', Format('https://%s.', [FSubdomain]));
   end
   else
   begin
@@ -1480,6 +1479,8 @@ begin
               FPractice := PracticeDetailResponse.Result;
               FRegistered := True;
               FValidBConnectDetails := True;
+
+              FSubdomain := FPractice.DomainName;
 
               for i := 1 to Screen.FormCount - 1 do
               begin
@@ -2068,11 +2069,11 @@ begin
 
         if IgnoreOnlineUser then
         begin
-          Response := AuthenticationService.AuthenticateUser(Domain, CurrUser.EmailAddress, Password);
+          Response := AuthenticationService.AuthenticateUser(FSubDomain, CurrUser.EmailAddress, Password);
         end
         else
         begin
-          Response := AuthenticationService.AuthenticateUser(Domain, OnlineUser.EMail, Password);
+          Response := AuthenticationService.AuthenticateUser(FSubDomain, OnlineUser.EMail, Password);
         end;
         Result := Response.Success;
 
