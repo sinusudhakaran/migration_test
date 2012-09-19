@@ -297,6 +297,7 @@ var
   PayeeDetail: string;
   lTaxamount: Money;
   DissectionPayee: TPayee;
+  TaxCode: String;
 begin
    DissectionLineNo := 1;
    DNode := GetFirstDissection(FromNode);
@@ -339,9 +340,23 @@ begin
          if BKD^.dsPayee_Number <> 0 then
            DissectionPayee := Client.clPayee_List.Find_Payee_Number(BKD^.dsPayee_Number);
 
-        //Calculate gst using the dissection line's gst class
-        BKD^.dsGST_Class := GetIntAttr(DNode, nTaxCode);
+         {Banklink online returns a tax code rather than a tax code index.
+         //Calculate gst using the dissection line's gst class
+         BKD^.dsGST_Class := GetIntAttr(DNode, nTaxCode);
+         }
 
+         //Get the tax code and then lookup the tax code index
+         TaxCode := GetStringAttr(DNode, nTaxCode);
+
+         if Trim(TaxCode) <> '' then
+         begin
+           BKD^.dsGST_Class := GetGSTClassNo(Client, TaxCode);
+         end
+         else
+         begin
+           BKD^.dsGST_Class := 0;
+         end;
+         
         //gst
         if Assigned(DissectionPayee) then
         begin
