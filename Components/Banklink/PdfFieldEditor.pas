@@ -11,6 +11,7 @@ uses
   Forms,
   ExtCtrls,
   StdCtrls,
+  Mask,
   Graphics,
   QuickPDF;
 
@@ -105,6 +106,7 @@ type
   private
     fshpClear : TShape;
   protected
+    procedure EditOnChange(Sender: TObject);
     Procedure EditOnExit(Sender: TObject);
 
     function GetEdit : TEdit;
@@ -168,9 +170,11 @@ type
   TPDFFormFieldItemComboBox = class(TPDFFormFieldItem)
   private
     fshpClear : TShape;
+    FOnChange: TNotifyEvent;
   protected
     Procedure ComboOnCloseUp(Sender: TObject);
-    
+    procedure ComboOnSelect(Sender: TObject);
+
     function GetComboBox : TComboBox;
     procedure SetComboBox(aValue : TComboBox);
   public
@@ -178,6 +182,8 @@ type
     procedure Draw; override;
 
     property ComboBox : TComboBox read GetComboBox write SetComboBox;
+
+    property OnChange: TNotifyEvent read FOnChange write FOnChange;
   end;
 
   //----------------------------------------------------------------------------
@@ -570,6 +576,16 @@ end;
 
 { TPDFFormFieldItemEdit }
 //------------------------------------------------------------------------------
+procedure TPDFFormFieldItemEdit.EditOnChange(Sender: TObject);
+begin
+  // WORKAROUND:
+  // Use the OnChange event to keep the Value and the Edit.Text in sync. This
+  // solves the problem when an ALT-shortcut is used, and the OnExit is never
+  // called.
+  Value := Edit.Text;
+end;
+
+//------------------------------------------------------------------------------
 procedure TPDFFormFieldItemEdit.EditOnExit(Sender: TObject);
 begin
   Value := Edit.Text;
@@ -646,6 +662,7 @@ begin
 
   Edit.Color := $00EEEEDD;
   Edit.TabOrder := TabOrder;
+  Edit.OnChange := EditOnChange;
   Edit.OnExit := EditOnExit;
 end;
 
@@ -814,6 +831,16 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+procedure TPDFFormFieldItemComboBox.ComboOnSelect(Sender: TObject);
+begin
+  Value := ComboBox.Text;
+
+  if Assigned(FOnChange) then
+  begin
+    FOnChange(Sender);
+  end;
+end;
+
 destructor TPDFFormFieldItemComboBox.Destroy;
 begin
   FreeAndNil(fshpClear);
@@ -823,10 +850,6 @@ end;
 
 //------------------------------------------------------------------------------
 procedure TPDFFormFieldItemComboBox.Draw;
-var
-  DPI : double;
-  TextHeight : integer;
-  TextExtra  : integer;
 begin
   ComboBox.Tag := 0;
 
@@ -845,7 +868,7 @@ begin
   fshpClear.Pen.Color := clWhite;
 
   ComboBox.TabOrder := TabOrder;
-  ComboBox.OnCloseUp := ComboOnCloseUp;
+  ComboBox.OnSelect := ComboOnSelect;
   ComboBox.Top  := ComboBox.Top + 8;
   ComboBox.Left := ComboBox.Left + 2;
 end;

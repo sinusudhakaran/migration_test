@@ -250,7 +250,6 @@ object frmClientManager: TfrmClientManager
         end
         item
           Action = actCAF
-          Caption = 'Open Customer Authority Form'
         end
         item
           Action = actICAF

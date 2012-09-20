@@ -6,8 +6,15 @@ uses
   Windows, SysUtils, CAFImporter, PDFFieldEditor;
 
 type
+   ukCAFBulkImportOrder = (ucfAccName, ucfSortCode, ucfAccNum, ucfClientCode, ucfCostCode,
+                           ucfBank, ucfBranch, ucfMonth, ucfYear, ucfFreq, ucfProv,
+                           ucfAccSig1, ucfAccSig2, ucfAddrLine1, ucfAddrLine2, ucfAddrLine3,
+                           ucfAddrLine4, ucfPostCode);
+
   TStandardCAFSourceHelperUK = class helper for TCAFSource
   strict private
+    function TransformMonthValue(aValue: string): string;
+
     function GetAccountName: String;
     function GetAccountNo: String;
     function GetBank: String;
@@ -48,10 +55,13 @@ type
     function GetPDFTemplateFile: String; override;
     function GetMinFieldCount: Integer; override;
     function GetImporterName: String; override;
-    
+
+    // Override this if you want to use a different OutputFile base
+    function  GetOutputFileBase: string; virtual;
+
     procedure Initialize(Source: TCAFSource); override;
     function SupportedFormats: TCAFFileFormats; override;
-    
+
     property MultiImport: Boolean read FMultiImport;
   end;
 
@@ -60,7 +70,11 @@ implementation
 uses
   BKConst, Globals, StrUtils, Math;
 
+
+
 procedure TStandardCAFImporterUK.DoImportAsPDF(Source: TCAFSource; Template: TPdfFieldEdit; out OutputFile: String);
+var
+  ClientCode: string;
 begin
   Template.SetFieldValue(ukCAFPracticeCode, AdminSystem.fdFields.fdBankLink_Code);
   Template.SetFieldValue(ukCAFPracticeName, AdminSystem.fdFields.fdPractice_Name_for_Reports);
@@ -74,8 +88,17 @@ begin
 
   Template.SetFieldValue(ukCAFBankName, Source.Bank);
   Template.SetFieldValue(ukCAFBranchName, Source.Branch);
+
   Template.SetFieldValue(ukCAFStartMonth, Source.Month);
-  Template.SetFieldValue(ukCAFStartYear, Source.Year);
+
+  if Length(Source.Year) = 4 then
+  begin
+    Template.SetFieldValue(ukCAFStartYear, RightStr(Source.Year, 2));
+  end
+  else
+  begin
+    Template.SetFieldValue(ukCAFStartYear, Source.Year);
+  end;
 
   Template.SetFieldValue(ukCAFCostCode, Source.CostCode);
 
@@ -87,25 +110,33 @@ begin
   if CompareText(Trim(Source.Frequency), 'M') = 0 then
   begin
     Template.SetFieldValue(ukCAFMonthly, 'Yes');
+    Template.SetFieldValue(ukCAFWeekly, 'No');
+    Template.SetFieldValue(ukCAFDaily, 'No');
   end
   else
   if CompareText(Trim(Source.Frequency), 'W') = 0 then
   begin
     Template.SetFieldValue(ukCAFWeekly, 'Yes');
+    Template.SetFieldValue(ukCAFMonthly, 'No');
+    Template.SetFieldValue(ukCAFDaily, 'No');
   end
   else
   begin
     Template.SetFieldValue(ukCAFDaily, 'Yes');
+    Template.SetFieldValue(ukCAFMonthly, 'No');
+    Template.SetFieldValue(ukCAFWeekly, 'No');
   end;
 
-  if FMultiImport then
+  // Determine OutputFile (override GetOutputFileBase for different filenames)
+  OutputFile := GetOutputFileBase;
+  if MultiImport then
   begin
-    OutputFile := Format('Customer Authority Form%s.PDF', [IntToStr(CAFCount + 1)]);
-  end
-  else
-  begin
-    OutputFile := 'Customer Authority Form.PDF';
+    ClientCode := Trim(Source.ClientCode);
+    if (ClientCode <> '') then
+      OutputFile := OutputFile + ' ' + ClientCode;
+    OutputFile := OutputFile + ' ' + IntToStr(CAFCount + 1);
   end;
+  OutputFile := OutputFile + '.PDF';
 end;
 
 procedure TStandardCAFImporterUK.Initialize(Source: TCAFSource);
@@ -167,7 +198,7 @@ begin
   end
   else
   begin
-    if Length(Trim(Source.Year)) = 2 then
+    if Length(Trim(Source.Year)) in[2,4] then
     begin
       if not IsNumber(Source.Year) then
       begin
@@ -188,7 +219,7 @@ end;
 
 function TStandardCAFImporterUK.GetMinFieldCount: Integer;
 begin
-  Result := 11;  
+  Result := 11;
 end;
 
 function TStandardCAFImporterUK.GetPDFTemplateFile: String;
@@ -196,61 +227,111 @@ begin
   Result := istUKTemplateFileNames[istUKNormal];
 end;
 
+function TStandardCAFImporterUK.GetOutputFileBase: string;
+begin
+  Result := 'Customer Authority Form';
+end;
+
 { TStandardCAFSourceHelperUK }
+function TStandardCAFSourceHelperUK.TransformMonthValue(aValue: string): string;
+var
+  ErrorIndex : integer;
+  ValInt : integer;
+  MonthIndex : integer;
+
+  procedure IntegerMonth(Value: Integer);
+  begin
+    if (Value in [1..12]) then
+      Result := LongMonthnames[Value]
+    else
+      Result := '';
+  end;
+begin
+  if (aValue = '') or (Uppercase(aValue) = 'ASAP') then
+  begin
+    Result := aValue;
+    Exit;
+  end;
+
+  Val(aValue,ValInt,ErrorIndex);
+  if (ErrorIndex = 0) then
+  begin
+    // Seems to be a valid number..
+    IntegerMonth(ValInt);
+  end
+  else
+  begin
+    // Test the text..
+    for MonthIndex := 1 to 12 do
+    begin
+      if Sametext(ShortMonthNames[MonthIndex], aValue) then
+      begin
+        Result := LongMonthnames[MonthIndex];
+        Exit;
+      end
+      else if Sametext(LongMonthNames[MonthIndex], aValue) then
+      begin
+        Result := aValue;
+        Exit;
+      end;
+    end;
+    Result := '';
+  end
+end;
 
 function TStandardCAFSourceHelperUK.GetAccountName: String;
 begin
-  Result := LeftStr(ValueByIndex(0), 60);
+  Result := LeftStr(ValueByIndex(ord(ucfAccName)), 60);
 end;
 
 function TStandardCAFSourceHelperUK.GetAccountNo: String;
 begin
-  Result := LeftStr(ValueByIndex(2), 22);
+  Result := LeftStr(ValueByIndex(ord(ucfAccNum)), 22);
 end;
 
 function TStandardCAFSourceHelperUK.GetBank: String;
 begin
-  Result := LeftStr(ValueByIndex(7), 60);
+  Result := LeftStr(ValueByIndex(ord(ucfBank)), 60);
 end;
 
 function TStandardCAFSourceHelperUK.GetBranch: String;
 begin
-  Result := LeftStr(ValueByIndex(8), 60);
+  Result := LeftStr(ValueByIndex(ord(ucfBranch)), 60);
 end;
 
 function TStandardCAFSourceHelperUK.GetClientCode: String;
 begin
-  Result := LeftStr(ValueByIndex(5), 8);
+  Result := LeftStr(ValueByIndex(ord(ucfClientCode)), 8);
 end;
 
 function TStandardCAFSourceHelperUK.GetCostCode: String;
 begin
-  Result := LeftStr(ValueByIndex(6), 8);
+  Result := LeftStr(ValueByIndex(ord(ucfCostCode)), 8);
 end;
 
 function TStandardCAFSourceHelperUK.GetFrequency: String;
 begin
-  Result := ValueByIndex(11);
+  Result := ValueByIndex(ord(ucfFreq));
 end;
 
 function TStandardCAFSourceHelperUK.GetMonth: String;
 begin
-  Result := ValueByIndex(9);
+  Result := TransformMonthValue(ValueByIndex(ord(ucfMonth)));
 end;
 
 function TStandardCAFSourceHelperUK.GetProvisional: String;
 begin
-  Result := ValueByIndex(12);
+  Result := ValueByIndex(ord(ucfProv));
 end;
 
 function TStandardCAFSourceHelperUK.GetSortCode: String;
 begin
-  Result := LeftStr(ValueByIndex(1), 8);
+  Result := LeftStr(ValueByIndex(ord(ucfSortCode)), 8);
 end;
 
 function TStandardCAFSourceHelperUK.GetYear: String;
 begin
-  Result := ValueByIndex(10);
+  Result := ValueByIndex(ord(ucfYear));
 end;
 
 { TPDFEditorHelper }

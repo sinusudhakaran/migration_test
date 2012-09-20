@@ -20,11 +20,13 @@ type
     procedure btnSaveClick(Sender: TObject);
     procedure btnToFolderClick(Sender: TObject);
   private
+    fImportType: TCAFImportType;
+
     function ValidateForm: Boolean;
     function GetFileFormat: TCAFFileFormat;
     function GetOutputFolder: String;
   public
-    class function SelectOutput(Owner: TComponent; PopupParent: TCustomForm; out FileFormat: TCAFFileFormat; out OutputFolder: String): Boolean; static;
+    class function SelectOutput(Owner: TComponent; PopupParent: TCustomForm; out FileFormat: TCAFFileFormat; out OutputFolder: String; aImportType: TCAFImportType): Boolean; static;
 
     property FileFormat: TCAFFileFormat read GetFileFormat;
     property OutputFolder: String read GetOutputFolder;
@@ -36,7 +38,13 @@ var
 implementation
 
 uses
-  YesNoDlg, ShellUtils, Imagesfrm, ErrorMoreFrm, StdHints, Globals;
+  YesNoDlg,
+  ShellUtils,
+  Imagesfrm,
+  ErrorMoreFrm,
+  StdHints,
+  Globals,
+  GenUtils;
 
 {$R *.dfm}
 
@@ -95,11 +103,12 @@ begin
   Result := edtSaveTo.Text;
 end;
 
-class function TfrmCAFOutputSelector.SelectOutput(Owner: TComponent; PopupParent: TCustomForm; out FileFormat: TCAFFileFormat; out OutputFolder: String): Boolean;
+class function TfrmCAFOutputSelector.SelectOutput(Owner: TComponent; PopupParent: TCustomForm; out FileFormat: TCAFFileFormat; out OutputFolder: String; aImportType: TCAFImportType): Boolean;
 var
   OutputSelector: TfrmCAFOutputSelector; 
 begin
   OutputSelector := TfrmCAFOutputSelector.Create(Owner);
+  OutputSelector.fImportType := aImportType;
 
   try
     if OutputSelector.ShowModal = mrOK then
@@ -147,6 +156,16 @@ begin
     begin
       edtSaveTo.SetFocus;
 
+      Exit;
+    end;
+  end;
+
+  if ((fImportType = cafHSBCUK)     and (FindFilesLike(edtSaveTo.Text, 'HSBC Customer Authority*.pdf'))) or
+     ((fImportType = cafStandardUK) and (FindFilesLike(edtSaveTo.Text, 'Customer Authority*.pdf')))      then
+  begin
+    if AskYesNo('Overwrite File', 'This process may overwrite existing Customer Authority Forms in this folder. ' + #10#13#10#13 + 'Are you sure you want to continue?', DLG_NO, 0) = DLG_NO then
+    begin
+      cmbFileFormat.SetFocus;
       Exit;
     end;
   end;

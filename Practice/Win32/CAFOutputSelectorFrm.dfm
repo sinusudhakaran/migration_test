@@ -47,7 +47,7 @@ object frmCAFOutputSelector: TfrmCAFOutputSelector
     Top = 21
     Width = 201
     Height = 21
-    Hint = 'Select the format of the Customer Authority Forms.'
+    Hint = 'Select the format of the Customer Authority Forms'
     Style = csDropDownList
     ItemHeight = 13
     ItemIndex = 0
@@ -61,9 +61,7 @@ object frmCAFOutputSelector: TfrmCAFOutputSelector
     Top = 54
     Width = 285
     Height = 21
-    Hint = 
-      'Enter the directory path the save the Customer Authority Forms t' +
-      'o.'
+    Hint = 'Enter the directory path to save the Customer Authority Forms to'
     TabOrder = 1
   end
   object btnSave: TButton

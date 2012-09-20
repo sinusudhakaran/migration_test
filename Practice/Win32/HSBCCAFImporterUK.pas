@@ -31,6 +31,7 @@ type
     function GetPDFTemplateFile: String; override;
     function GetMinFieldCount: Integer; override;
     function GetImporterName: String; override;
+    function GetOutputFileBase: string; override;
     
     class procedure SetupLinkedFields(Template: TPdfFieldEdit); static;
   end;
@@ -43,25 +44,24 @@ uses
 procedure THSBCCAFImporterUK.DoImportAsPDF(Source: TCAFSource; Template: TPdfFieldEdit; out OutputFile: String);
 begin
   SetupLinkedFields(Template);
-  
+
   inherited;
 
   Template.SetFieldValue(ukCAFBankName, 'HSBC');
-  
-  Template.SetFieldValue(ukCAFHSBCAccountSign1, Source.AccountSignatory1);
-  Template.SetFieldValue(ukCAFHSBCAccountSign2, Source.AccountSignatory2);
-                  
+
+  Template.SetFieldValue(ukCAFHSBCAccountSign1, Uppercase(Source.AccountSignatory1));
+  Template.SetFieldValue(ukCAFHSBCAccountSign2, Uppercase(Source.AccountSignatory2));
+
   Template.SetFieldValue(ukCAFHSBCAddressLine1, Source.AddressLine1);
   Template.SetFieldValue(ukCAFHSBCAddressLine2, Source.AddressLine2);
   Template.SetFieldValue(ukCAFHSBCAddressLine3, Source.AddressLine3);
   Template.SetFieldValue(ukCAFHSBCAddressLine4, Source.AddressLine4);
-                         
+
   Template.SetFieldValue(ukCAFHSBCPostalCode, Source.PostCode);
 
-  if MultiImport then
-  begin
-    OutputFile := Format('Customer Authority Form%s%s.PDF', [Source.ClientCode, IntToStr(CAFCount + 1)]);
-  end;
+  // Note:
+  // The OutputFile is determined in StandardCAFImportedUK
+  // (Also see GetOutputFileBase below)
 end;
 
 function THSBCCAFImporterUK.GetImporterName: String;
@@ -77,6 +77,11 @@ end;
 function THSBCCAFImporterUK.GetPDFTemplateFile: String;
 begin
   Result := istUKTemplateFileNames[istUKHSBC];
+end;
+
+function THSBCCAFImporterUK.GetOutputFileBase: string;
+begin
+  Result := 'HSBC Customer Authority Form';
 end;
 
 class procedure THSBCCAFImporterUK.SetupLinkedFields(Template: TPdfFieldEdit);
@@ -133,40 +138,39 @@ begin
 end;
 
 { TCAFSourceHelper }
-
 function THSBCCAFSourceHelperUK.GetAccountSignatory1: String;
 begin
-  Result := LeftStr(ValueByIndex(3), 60);
+  Result := LeftStr(ValueByIndex(ord(ucfAccSig1)), 60);
 end;
 
 function THSBCCAFSourceHelperUK.GetAccountSignatory2: String;
 begin
-  Result := LeftStr(ValueByIndex(4), 60);
+  Result := LeftStr(ValueByIndex(ord(ucfAccSig2)), 60);
 end;
 
 function THSBCCAFSourceHelperUK.GetAddressLine1: String;
 begin
-  Result := LeftStr(ValueByIndex(13), 60);
+  Result := LeftStr(ValueByIndex(ord(ucfAddrLine1)), 60);
 end;
 
 function THSBCCAFSourceHelperUK.GetAddressLine2: String;
 begin
-  Result := LeftStr(ValueByIndex(14), 60);
+  Result := LeftStr(ValueByIndex(ord(ucfAddrLine2)), 60);
 end;
 
 function THSBCCAFSourceHelperUK.GetAddressLine3: String;
 begin
-  Result := LeftStr(ValueByIndex(15), 60);
+  Result := LeftStr(ValueByIndex(ord(ucfAddrLine3)), 60);
 end;
 
 function THSBCCAFSourceHelperUK.GetAddressLine4: String;
 begin
-  Result := LeftStr(ValueByIndex(16), 60);
+  Result := LeftStr(ValueByIndex(ord(ucfAddrLine4)), 60);
 end;
 
 function THSBCCAFSourceHelperUK.GetPostCode: String;
 begin
-  Result := LeftStr(ValueByIndex(17), 8);
+  Result := LeftStr(ValueByIndex(ord(ucfPostCode)), 8);
 end;
 
 end.

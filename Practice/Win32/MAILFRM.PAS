@@ -2230,9 +2230,18 @@ begin
   if Assigned(lvAttach.Selected) then
   begin
     ext := Lowercase(ExtractFileExt(lvAttach.Selected.Caption));
-    if (ext = '.doc')
-    or (ext = '.pdf') then
-      ShellExecute(0, 'open', PChar(lvAttach.Selected.Caption), nil, nil, SW_NORMAL);
+
+    if (ext = '.doc') or (ext = '.pdf') then
+    begin
+      if lvAttach.Selected.SubItems.Count > 0 then
+      begin
+        ShellExecute(0, 'open', PChar(lvAttach.Selected.SubItems[0]), nil, nil, SW_NORMAL);
+      end
+      else
+      begin
+        ShellExecute(0, 'open', PChar(lvAttach.Selected.Caption), nil, nil, SW_NORMAL);
+      end;
+    end;
   end;
 end;
 

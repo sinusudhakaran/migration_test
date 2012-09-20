@@ -37,7 +37,7 @@ var
 implementation
 
 uses
-  ErrorMoreFrm, Imagesfrm, StdHints, Globals, BKConst;
+  ErrorMoreFrm, WarningMoreFrm, Imagesfrm, StdHints, Globals, BKConst, LOGUTIL;
 
 {$R *.dfm}
 
@@ -141,25 +141,34 @@ begin
     Importer := TCAFImporter.CreateImporter(ImportType);
 
     try
-      if not Importer.ValidateFields(edtImportFile.Text) then
-      begin
-        HelpfulErrorMsg('The specified import file does not have the required number of fields. Please specify a valid import file.', 0);
-
-        edtImportFile.SetFocus;       
-      end
-      else
-      begin
-        Importer.ValidateRecords(edtImportFile.Text, ValidFields, InvalidFields);
-
-        if ValidFields = 0 then
+      try
+        if not Importer.ValidateFields(edtImportFile.Text) then
         begin
-          HelpfulErrorMsg('The specified import file must contain at least one valid bank account record. Please specify a valid import file.', 0);
+          HelpfulErrorMsg('The specified import file does not have the required number of fields. Please specify a valid import file.', 0);
 
           edtImportFile.SetFocus;
         end
         else
         begin
-          Result := True;
+          Importer.ValidateRecords(edtImportFile.Text, ValidFields, InvalidFields);
+
+          if ValidFields = 0 then
+          begin
+            HelpfulErrorMsg('The specified import file must contain at least one valid bank account record. Please specify a valid import file.', 0);
+
+            edtImportFile.SetFocus;
+          end
+          else
+          begin
+            Result := True;
+          end;
+        end;
+      except
+        on E:Exception do
+        begin
+          HelpfulErrorMsg(Format('An error occurred during the Customer Authority Form import process - %s.', [E.Message]), 0);
+
+          LogUtil.LogMsg(lmError, 'CAFImportSelectionFrm', Format('Exception validating Customer Authority Forms, Error Message : %s', [E.Message]));
         end;
       end;
     finally

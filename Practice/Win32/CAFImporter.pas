@@ -117,14 +117,15 @@ type
 
     property ImporterName: String read GetImporterName;
   end;
-  
+
 implementation
 
 uses
-  DirUtils, Globals, HSBCCAFImporterUK, StandardCAFImporterUK, LogUtil;
-  
-const
-  LONG_MONTH_NAMES: array[0..11] of String = ('JANUARY', 'FEBUARY', 'MARCH', 'APRIL', 'MAY', 'JUNE', 'JULY', 'AUGEST', 'SEPTEMBER', 'OCTOBER', 'NOVEMBER', 'DECEMBER');
+  DirUtils,
+  Globals,
+  HSBCCAFImporterUK,
+  StandardCAFImporterUK,
+  LogUtil;
 
 { TCAFImporter }
 
@@ -295,7 +296,7 @@ begin
       
       ProgressForm.Initialize;
 
-      ProgressForm.UpdateProgressLabel('Creating customer authority forms');
+      ProgressForm.UpdateProgressLabel('');
 
       while not CAFSource.Eof do
       begin
@@ -326,9 +327,9 @@ var
 begin
   Result := False;
   
-  for Index := 0 to Length(LONG_MONTH_NAMES) - 1 do
+  for Index := 1 to 12 do
   begin
-    if CompareText(Value, LONG_MONTH_NAMES[Index]) = 0 then
+    if CompareText(Value, LongMonthNames[Index]) = 0 then
     begin
       Result := True;
 

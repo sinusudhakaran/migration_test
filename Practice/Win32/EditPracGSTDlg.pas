@@ -342,6 +342,14 @@ begin
   eRate1.Hint      := S;
   eRate2.Hint      := S;
   eRate3.Hint      := S;
+
+  // HelpContext for form itself
+  case Country of
+    whNewZealand, whAustralia:
+      BKHelpSetUp(self, BKH_Setting_Practice_GST_Defaults);
+    whUK:
+      BKHelpSetUp(self, BKH_Setting_Practice_VAT_defaults);
+  end;
 end;
 //------------------------------------------------------------------------------
 function TdlgEditPracGST.Execute: boolean;
@@ -497,7 +505,6 @@ var
 begin
   MyDlg := TdlgEditPracGst.Create(Application.MainForm);
   try
-    BKHelpSetUp(MyDlg, BKH_Setting_Practice_GST_Defaults);
     result := MyDlg.Execute;
   finally
     MyDlg.Free;

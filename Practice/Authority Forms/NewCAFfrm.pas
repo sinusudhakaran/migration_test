@@ -40,10 +40,12 @@ type
     fInstitution : integer;
 
     procedure UpperCaseTextKeyPress(Sender: TObject; var Key: Char);
+    procedure UpperCaseOnlyTextKeyPress(Sender: TObject; var Key: Char);
+
     procedure NumericDashKeyPress(Sender: TObject; var Key: Char);
     procedure NumericKeyPress(Sender: TObject; var Key: Char);
 
-    procedure CostCodeChange(Sender: TObject);
+    procedure CAFStartMonthChange(Sender: TObject);
     procedure WMGetMinMaxInfo( var Message :TWMGetMinMaxInfo ); message WM_GETMINMAXINFO;
   protected
     procedure SetRadioValues(aDaily, aWeekly, aMonthly : boolean);
@@ -197,11 +199,6 @@ end;
 function TfrmNewCAF.InitPDF : boolean;
 var
   PDFFilePath : Widestring;
-
-  PDFFormFieldItemEdit        : TPDFFormFieldItemEdit;
-  PDFFormFieldItemComboBox    : TPDFFormFieldItemComboBox;
-  PDFFormFieldItemRadioButton : TPDFFormFieldItemRadioButton;
-  PDFFormFieldItemCheckBox    : TPDFFormFieldItemCheckBox;
 begin
   Result := false;
 
@@ -248,6 +245,8 @@ var
   PDFFormFieldItemRadioButton : TPDFFormFieldItemRadioButton;
   PDFFormFieldItemCheckBox    : TPDFFormFieldItemCheckBox;
 begin
+  RadButtonTop := 0; // For the compiler
+
   // Name of Account
   PDFFormFieldItemEdit := GetPDFFormFieldEdit(ukCAFNameOfAccount);
   if Assigned(PDFFormFieldItemEdit) then
@@ -301,6 +300,7 @@ begin
   if Assigned(PDFFormFieldItemEdit) then
   begin
     PDFFormFieldItemEdit.Edit.MaxLength := 8;
+    PDFFormFieldItemEdit.Edit.CharCase := ecUpperCase;
     PDFFormFieldItemEdit.Edit.OnKeyPress := UpperCaseTextKeyPress;
     PDFFormFieldItemEdit.Edit.ShowHint := true;
     PDFFormFieldItemEdit.Edit.Hint := 'Enter the code your practice uses for this client';
@@ -314,6 +314,7 @@ begin
   if Assigned(PDFFormFieldItemEdit) then
   begin
     PDFFormFieldItemEdit.Edit.MaxLength := 8;
+    PDFFormFieldItemEdit.Edit.CharCase := ecUpperCase;
     PDFFormFieldItemEdit.Edit.OnKeyPress := UpperCaseTextKeyPress;
     PDFFormFieldItemEdit.Edit.ShowHint := true;
     PDFFormFieldItemEdit.Edit.Hint := 'Enter the cost code your practice uses for this client';
@@ -348,11 +349,11 @@ begin
       PDFFormFieldItemComboBox.ComboBox.AddItem(GetMonthName(MonthIndex), nil);
     PDFFormFieldItemComboBox.ComboBox.ItemIndex := 0;
 
-    PDFFormFieldItemComboBox.ComboBox.OnChange := CostCodeChange;
+    PDFFormFieldItemComboBox.OnChange := CAFStartMonthChange;
     PDFFormFieldItemComboBox.ComboBox.Style := csDropDownList;
 
     PDFFormFieldItemComboBox.ComboBox.ShowHint := true;
-    PDFFormFieldItemComboBox.ComboBox.Hint := 'Enter the year in which you want to start collecting data';
+    PDFFormFieldItemComboBox.ComboBox.Hint := 'Enter the month in which you want to start collecting data';
 
     case fInstitution of
       istUKHSBC : begin
@@ -370,7 +371,7 @@ begin
     PDFFormFieldItemEdit.Edit.MaxLength := 2;
     PDFFormFieldItemEdit.Edit.OnKeyPress := NumericKeyPress;
     PDFFormFieldItemEdit.Edit.ShowHint := true;
-    PDFFormFieldItemEdit.Edit.Hint := 'Enter the month in which you want to start collecting data';
+    PDFFormFieldItemEdit.Edit.Hint := 'Enter the year in which you want to start collecting data';
 
     PDFFormFieldItemEdit.shpClear.Top    := PDFFormFieldItemEdit.Edit.Top - 7;
     PDFFormFieldItemEdit.shpClear.Height := PDFFormFieldItemEdit.Edit.Height + 14;
@@ -402,12 +403,16 @@ begin
   PDFFormFieldItemEdit := GetPDFFormFieldEdit(ukCAFPracticeName);
   if Assigned(PDFFormFieldItemEdit) then
   begin
-    PDFFormFieldItemEdit.Edit.MaxLength := 80;
+    PDFFormFieldItemEdit.Edit.MaxLength := 60;
     PDFFormFieldItemEdit.Edit.ShowHint := true;
     PDFFormFieldItemEdit.Edit.Hint := 'Enter your practice name';
 
     if fInstitution = istUKHSBC then
       PDFFormFieldItemEdit.AddLinkFieldByTitle(ukCAFPracticeName2);
+
+    // Default value
+    PDFFormFieldItemEdit.Edit.Text := Adminsystem.fdFields.fdPractice_Name_for_Reports;
+    PDFFormFieldItemEdit.Value := PDFFormFieldItemEdit.Edit.Text;
   end;
 
   // Practice Code
@@ -415,12 +420,17 @@ begin
   if Assigned(PDFFormFieldItemEdit) then
   begin
     PDFFormFieldItemEdit.Edit.MaxLength := 8;
+    PDFFormFieldItemEdit.Edit.CharCase := ecUpperCase;
     PDFFormFieldItemEdit.Edit.OnKeyPress := UpperCaseTextKeyPress;
     PDFFormFieldItemEdit.Edit.ShowHint := true;
     PDFFormFieldItemEdit.Edit.Hint := 'Enter your practice code';
 
     if fInstitution = istUKHSBC then
       PDFFormFieldItemEdit.AddLinkFieldByTitle(ukCAFPracticeCode2);
+
+    // Default value
+    PDFFormFieldItemEdit.Edit.Text := Adminsystem.fdFields.fdBankLink_Code;
+    PDFFormFieldItemEdit.Value := PDFFormFieldItemEdit.Edit.Text;
   end;
 
   // Supply Provisional Accounts
@@ -451,7 +461,7 @@ begin
     RadButtonTop := PDFFormFieldItemRadioButton.RadioButton.Top;
     PDFFormFieldItemRadioButton.RadioButton.OnClick := RadDailyOnClick;
     PDFFormFieldItemRadioButton.RadioButton.ShowHint := true;
-    PDFFormFieldItemRadioButton.RadioButton.Hint := 'Select Daily, Weekly or Monthly for the data frequency on this account';
+    PDFFormFieldItemRadioButton.RadioButton.Hint := 'Select Monthly, Weekly or Daily for the data frequency on this account';
     PDFFormFieldItemRadioButton.ShpClear.Width := PDFFormFieldItemRadioButton.ShpClear.Width + 140;
     PDFFormFieldItemRadioButton.RadioButton.Width := PDFFormFieldItemRadioButton.RadioButton.Width + 125;
     PDFFormFieldItemRadioButton.RadioButton.Caption := 'Daily (where available)';
@@ -473,9 +483,9 @@ begin
     PDFFormFieldItemRadioButton.RadioButton.Top := RadButtonTop;
     PDFFormFieldItemRadioButton.RadioButton.OnClick := RadWeeklyOnClick;
     PDFFormFieldItemRadioButton.RadioButton.ShowHint := true;
-    PDFFormFieldItemRadioButton.RadioButton.Hint := 'Select Daily, Weekly or Monthly for the data frequency on this account';
+    PDFFormFieldItemRadioButton.RadioButton.Hint := 'Select Monthly, Weekly or Daily for the data frequency on this account';
     PDFFormFieldItemRadioButton.ShpClear.Width := PDFFormFieldItemRadioButton.ShpClear.Width + 170;
-    PDFFormFieldItemRadioButton.RadioButton.Width := PDFFormFieldItemRadioButton.RadioButton.Width + 125;
+    PDFFormFieldItemRadioButton.RadioButton.Width := PDFFormFieldItemRadioButton.RadioButton.Width + 150;
     PDFFormFieldItemRadioButton.RadioButton.Caption := 'Weekly (where available)';
 
     if fInstitution = istUKNormal then
@@ -495,7 +505,7 @@ begin
     PDFFormFieldItemRadioButton.RadioButton.Top := RadButtonTop;
     PDFFormFieldItemRadioButton.RadioButton.OnClick := RadMonthlyOnClick;
     PDFFormFieldItemRadioButton.RadioButton.ShowHint := true;
-    PDFFormFieldItemRadioButton.RadioButton.Hint := 'Select Daily, Weekly or Monthly for the data frequency on this account';
+    PDFFormFieldItemRadioButton.RadioButton.Hint := 'Select Monthly, Weekly or Daily for the data frequency on this account';
     PDFFormFieldItemRadioButton.ShpClear.Width := PDFFormFieldItemRadioButton.ShpClear.Width + 140;
     PDFFormFieldItemRadioButton.RadioButton.Width := PDFFormFieldItemRadioButton.RadioButton.Width + 125;
     PDFFormFieldItemRadioButton.RadioButton.Caption := 'Monthly';
@@ -535,6 +545,9 @@ begin
     PDFFormFieldItemEdit := GetPDFFormFieldEdit(ukCAFHSBCAccountSign1);
     if Assigned(PDFFormFieldItemEdit) then
     begin
+      PDFFormFieldItemEdit.Edit.MaxLength := 60;
+      PDFFormFieldItemEdit.Edit.CharCase := ecUpperCase;
+      PDFFormFieldItemEdit.Edit.OnKeyPress := UpperCaseOnlyTextKeyPress;
       PDFFormFieldItemEdit.AddLinkFieldByTitle(ukCAFHSBCAccountSign1_2);
       PDFFormFieldItemEdit.AddLinkFieldByTitle(ukCAFHSBCAccountSign1_3);
     end;
@@ -543,6 +556,9 @@ begin
     PDFFormFieldItemEdit := GetPDFFormFieldEdit(ukCAFHSBCAccountSign2);
     if Assigned(PDFFormFieldItemEdit) then
     begin
+      PDFFormFieldItemEdit.Edit.MaxLength := 60;
+      PDFFormFieldItemEdit.Edit.CharCase := ecUpperCase;
+      PDFFormFieldItemEdit.Edit.OnKeyPress := UpperCaseOnlyTextKeyPress;
       PDFFormFieldItemEdit.AddLinkFieldByTitle(ukCAFHSBCAccountSign2_2);
       PDFFormFieldItemEdit.AddLinkFieldByTitle(ukCAFHSBCAccountSign2_3);
     end;
@@ -550,27 +566,42 @@ begin
     // Address Line 1
     PDFFormFieldItemEdit := GetPDFFormFieldEdit(ukCAFHSBCAddressLine1);
     if Assigned(PDFFormFieldItemEdit) then
+    begin
+      PDFFormFieldItemEdit.Edit.MaxLength := 60;
       PDFFormFieldItemEdit.AddLinkFieldByTitle(ukCAFHSBCAddressLine1_2);
+    end;
 
     // Address Line 2
     PDFFormFieldItemEdit := GetPDFFormFieldEdit(ukCAFHSBCAddressLine2);
     if Assigned(PDFFormFieldItemEdit) then
+    begin
+      PDFFormFieldItemEdit.Edit.MaxLength := 60;
       PDFFormFieldItemEdit.AddLinkFieldByTitle(ukCAFHSBCAddressLine2_2);
+    end;
 
     // Address Line 3
     PDFFormFieldItemEdit := GetPDFFormFieldEdit(ukCAFHSBCAddressLine3);
     if Assigned(PDFFormFieldItemEdit) then
+    begin
+      PDFFormFieldItemEdit.Edit.MaxLength := 60;
       PDFFormFieldItemEdit.AddLinkFieldByTitle(ukCAFHSBCAddressLine3_2);
+    end;
 
     // Address Line 4
     PDFFormFieldItemEdit := GetPDFFormFieldEdit(ukCAFHSBCAddressLine4);
     if Assigned(PDFFormFieldItemEdit) then
+    begin
+      PDFFormFieldItemEdit.Edit.MaxLength := 60;
       PDFFormFieldItemEdit.AddLinkFieldByTitle(ukCAFHSBCAddressLine4_2);
+    end;
 
     // Postal Code
     PDFFormFieldItemEdit := GetPDFFormFieldEdit(ukCAFHSBCPostalCode);
     if Assigned(PDFFormFieldItemEdit) then
+    begin
+      PDFFormFieldItemEdit.Edit.MaxLength := 8;
       PDFFormFieldItemEdit.AddLinkFieldByTitle(ukCAFHSBCPostalCode2);
+    end;
   end;
 end;
 
@@ -643,37 +674,58 @@ begin
   // Name of Account
   PDFFormFieldItemEdit := GetPDFFormFieldEdit(ukCAFNameOfAccount);
   if Assigned(PDFFormFieldItemEdit) then
+  begin
     PDFFormFieldItemEdit.Edit.Text := '';
+    PDFFormFieldItemEdit.Value := '';
+  end;
 
   // Bank Code / Sort Code
   PDFFormFieldItemEdit := GetPDFFormFieldEdit(ukCAFBankCode);
   if Assigned(PDFFormFieldItemEdit) then
+  begin
     PDFFormFieldItemEdit.Edit.Text := '';
+    PDFFormFieldItemEdit.Value := '';
+  end;
 
   // Account Number
   PDFFormFieldItemEdit := GetPDFFormFieldEdit(ukCAFAccountNumber);
   if Assigned(PDFFormFieldItemEdit) then
+  begin
     PDFFormFieldItemEdit.Edit.Text := '';
+    PDFFormFieldItemEdit.Value := '';
+  end;
 
   // Client Code
   PDFFormFieldItemEdit := GetPDFFormFieldEdit(ukCAFClientCode);
   if Assigned(PDFFormFieldItemEdit) then
+  begin
     PDFFormFieldItemEdit.Edit.Text := '';
+    PDFFormFieldItemEdit.Value := '';
+  end;
 
   // Cost Code
   PDFFormFieldItemEdit := GetPDFFormFieldEdit(ukCAFCostCode);
   if Assigned(PDFFormFieldItemEdit) then
+  begin
     PDFFormFieldItemEdit.Edit.Text := '';
+    PDFFormFieldItemEdit.Value := '';
+  end;
 
   // Branch Name
   PDFFormFieldItemEdit := GetPDFFormFieldEdit(ukCAFBranchName);
   if Assigned(PDFFormFieldItemEdit) then
+  begin
     PDFFormFieldItemEdit.Edit.Text := '';
+    PDFFormFieldItemEdit.Value := '';
+  end;
 
-  // Cost Code
+  // Start Month
   PDFFormFieldItemComboBox := GetPDFFormFieldCombo(ukCAFStartMonth);
   if Assigned(PDFFormFieldItemComboBox) then
+  begin
     PDFFormFieldItemComboBox.ComboBox.ItemIndex := 0;
+    PDFFormFieldItemComboBox.Value := '';
+  end;
 
   // Start Year
   PDFFormFieldItemEdit := GetPDFFormFieldEdit(ukCafStartYear);
@@ -693,58 +745,76 @@ begin
   if Assigned(PDFFormFieldItemRadioButton) then
     PDFFormFieldItemRadioButton.RadioButton.Checked := True;
 
-  // Practice Code
-  PDFFormFieldItemEdit := GetPDFFormFieldEdit(ukCAFPracticeCode);
-  if Assigned(PDFFormFieldItemEdit) then
-    PDFFormFieldItemEdit.Edit.Text := Adminsystem.fdFields.fdBankLink_Code;
+  // Practice Name - don't reset this
 
-  // Practice Name
-  PDFFormFieldItemEdit := GetPDFFormFieldEdit(ukCAFPracticeName);
-  if Assigned(PDFFormFieldItemEdit) then
-    PDFFormFieldItemEdit.Edit.Text := Adminsystem.fdFields.fdPractice_Name_for_Reports;
+  // Practice Code - don't reset this
 
   case fInstitution of
     istUKNormal : begin
       // Bank Name
       PDFFormFieldItemEdit := GetPDFFormFieldEdit(ukCAFBankName);
       if Assigned(PDFFormFieldItemEdit) then
+      begin
         PDFFormFieldItemEdit.Edit.Text := '';
+        PDFFormFieldItemEdit.Value := '';
+      end;
     end;
     istUKHSBC : begin
       // Account Signatory 1
       PDFFormFieldItemEdit := GetPDFFormFieldEdit(ukCAFHSBCAccountSign1);
       if Assigned(PDFFormFieldItemEdit) then
+      begin
         PDFFormFieldItemEdit.Edit.Text := '';
+        PDFFormFieldItemEdit.Value := '';
+      end;
 
       // Account Signatory 2
       PDFFormFieldItemEdit := GetPDFFormFieldEdit(ukCAFHSBCAccountSign2);
       if Assigned(PDFFormFieldItemEdit) then
+      begin
         PDFFormFieldItemEdit.Edit.Text := '';
+        PDFFormFieldItemEdit.Value := '';
+      end;
 
       // Address Line 1
       PDFFormFieldItemEdit := GetPDFFormFieldEdit(ukCAFHSBCAddressLine1);
       if Assigned(PDFFormFieldItemEdit) then
+      begin
         PDFFormFieldItemEdit.Edit.Text := '';
+        PDFFormFieldItemEdit.Value := '';
+      end;
 
       // Address Line 2
       PDFFormFieldItemEdit := GetPDFFormFieldEdit(ukCAFHSBCAddressLine2);
       if Assigned(PDFFormFieldItemEdit) then
+      begin
         PDFFormFieldItemEdit.Edit.Text := '';
+        PDFFormFieldItemEdit.Value := '';
+      end;
 
       // Address Line 3
       PDFFormFieldItemEdit := GetPDFFormFieldEdit(ukCAFHSBCAddressLine3);
       if Assigned(PDFFormFieldItemEdit) then
+      begin
         PDFFormFieldItemEdit.Edit.Text := '';
+        PDFFormFieldItemEdit.Value := '';
+      end;
 
       // Address Line 4
       PDFFormFieldItemEdit := GetPDFFormFieldEdit(ukCAFHSBCAddressLine4);
       if Assigned(PDFFormFieldItemEdit) then
+      begin
         PDFFormFieldItemEdit.Edit.Text := '';
+        PDFFormFieldItemEdit.Value := '';
+      end;
 
       // Postal Code
       PDFFormFieldItemEdit := GetPDFFormFieldEdit(ukCAFHSBCPostalCode);
       if Assigned(PDFFormFieldItemEdit) then
+      begin
         PDFFormFieldItemEdit.Edit.Text := '';
+        PDFFormFieldItemEdit.Value := '';
+      end;
     end;
   end;
 end;
@@ -780,20 +850,36 @@ procedure TfrmNewCAF.SendPDFViaEmail;
 var
   AttachmentSent: Boolean;
   ReportFile : string;
-  Guid : TGuid;
+  FileCount: Integer;
 begin
   AttachmentSent := True;
 
   try
-    CreateGuid(Guid);
-    ReportFile := DataDir + 'BankLink Customer Authority' + GUIDToString(Guid) + '.PDF';
+    if not DirectoryExists(EmailOutboxDir) then
+    begin
+      if not CreateDir(PChar(EmailOutboxDir)) then
+      begin
+        HelpfulErrorMsg(Format('The email outbox directory %s does not exist and could not be created.', [EmailOutboxDir]), 0);
+
+        Exit;
+      end;
+    end;
+
+    ReportFile := Format('%sBankLink Customer Authority.PDF', [EmailOutboxDir]);
+
+    FileCount := 1;
+    
+    while FileExists(ReportFile) do
+    begin
+      ReportFile := Format('%sBankLink Customer Authority (%s).PDF', [EmailOutboxDir, IntToStr(FileCount)]);
+
+      Inc(FileCount);
+    end;
+
     PdfFieldEdit.SaveToFileFlattened(ReportFile);
     try
       // TODO: Need to attach the third party authority PDF (see SendFileTo parameters in MailFrm)
-      if MailFrm.SendFileTo('Send Customer Authority Form', ClientEmail, '', ReportFile, AttachmentSent, False) then
-      begin
-        HelpfulInfoMsg('Mail has been sent.', 0);
-      end;
+      MailFrm.SendFileTo('Send Customer Authority Form', ClientEmail, '', ReportFile, AttachmentSent, False);
     finally
       SysUtils.DeleteFile(ReportFile);
     end;
@@ -838,6 +924,11 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+procedure TfrmNewCAF.UpperCaseOnlyTextKeyPress(Sender: TObject; var Key: Char);
+begin
+  Key := UpCase(Key);
+end;
+
 procedure TfrmNewCAF.UpperCaseTextKeyPress(Sender: TObject; var Key: Char);
 begin
   if not (Key in ['a'..'z','A'..'Z','0'..'9',Chr(vk_Back)]) then
@@ -849,7 +940,7 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmNewCAF.NumericDashKeyPress(Sender: TObject; var Key: Char);
 begin
-  if not (Key in ['0'..'9','-',Chr(vk_Back)]) then
+  if not (Key in ['0'..'9','-',Chr(vk_Back),Chr(vk_space)]) then
     Key := #0; // Discard the key
 end;
 
@@ -888,7 +979,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TfrmNewCAF.CostCodeChange(Sender: TObject);
+procedure TfrmNewCAF.CAFStartMonthChange(Sender: TObject);
 var
   PDFFormFieldItemEdit : TPDFFormFieldItemEdit;
   PDFFormFieldItemComboBox : TPDFFormFieldItemComboBox;
@@ -900,6 +991,11 @@ begin
       (Assigned(PDFFormFieldItemComboBox))) then
   begin
     PDFFormFieldItemEdit.Edit.Enabled := not (PDFFormFieldItemComboBox.ComboBox.ItemIndex = 1);
+    if not PDFFormFieldItemEdit.Edit.Enabled then
+    begin
+      PDFFormFieldItemEdit.Edit.text := '';
+      PDFFormFieldItemEdit.Value := '';
+    end;
   end;
 end;
 

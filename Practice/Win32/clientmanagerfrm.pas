@@ -1013,6 +1013,7 @@ begin
      end;// GLClientManager
 
   end;
+
   if (not GLClientManager.UserSet)
   and Assigned(CurrUser) then
   begin
@@ -2505,6 +2506,18 @@ end;
 
 //------------------------------------------------------------------------------
 procedure TfrmClientManager.actICAFExecute(Sender: TObject);
+
+  function ImportTypeToInstitueName(ImportType: TCAFImportType): String;
+  begin
+    case ImportType of
+      cafStandardUK: Result := 'standard';
+      cafHSBCUK: Result := 'HSBC';
+
+      else
+        Result := '';
+    end;
+  end;
+
 var
   ImportType: TCAFImportType;
   ImportFile: String;
@@ -2516,7 +2529,7 @@ var
 begin
   if TfrmCAFImportSelector.SelectImport(Self, Screen.ActiveForm, ImportType, ImportFile) then
   begin
-    if TfrmCAFOutputSelector.SelectOutput(Self, Screen.ActiveForm, FileFormat, OutputFolder) then
+    if TfrmCAFOutputSelector.SelectOutput(Self, Screen.ActiveForm, FileFormat, OutputFolder, ImportType) then
     begin
       Importer := TCAFImporter.CreateImporter(ImportType);
 
@@ -2526,6 +2539,8 @@ begin
         FCAFOutputFolder := OutputFolder;
         FCAFFileFormat := FileFormat;
 
+        InstituteName := ImportTypeToInstitueName(ImportType);
+
         LogUtil.LogMsg(lmInfo, UnitName, Format('Creating Customer Authority Forms for %s. Import file: %s; Output Path: %s.', [Importer.ImporterName, ImportFile, OutputFolder]));
 
         TfrmModalProgress.ShowProgressEx(Self, 'Please wait...', 'Creating Customer Authority Forms', CreateCustomerAuthorityForms, ProgressData);
@@ -2534,7 +2549,7 @@ begin
         begin
           if (Importer.Statistics.Generated > 0) and (Importer.Statistics.Failed = 0) then
           begin
-            if AskYesNo('Info', Format('BankLink Practice has generated the following %s' + #10#13 +
+            if AskYesNo('Information', Format('BankLink Practice has generated the following %s' + #10#13 +
                                   'Customer Authority Forms to %s.' + #10#13#10#13 +
                                   '%s CAFs were generated.' + #10#13#10#13 +
                                   'Do you want to view the folder now?',
@@ -2547,7 +2562,7 @@ begin
           end
           else if Importer.Statistics.Failed > 0 then
           begin
-             if AskYesNo('Info', Format('BankLink Practice has generated the following %s' + #10#13 +
+             if AskYesNo('Information', Format('BankLink Practice has generated the following %s' + #10#13 +
                                   'Customer Authority Forms to %s.' + #10#13#10#13 +
                                   '%s CAFs were generated.' + #10#13 +
                                   '%s CAFs could not be generated due to errors.' + #10#13#10#13 +
@@ -2568,7 +2583,7 @@ begin
         end
         else
         begin
-          HelpfulErrorMsg(Format('An error occurred during the Customer Authority Form import process - %s', [ProgressData.Exception.Message]), 0);
+          HelpfulErrorMsg(Format('An error occurred during the Customer Authority Form import process - %s.', [ProgressData.Exception.Message]), 0);
 
           LogUtil.LogMsg(lmError, UnitName, 'Exception creating Customer Authority Forms, Error Message : ' + ProgressData.Exception.Message);
         end;
@@ -3095,6 +3110,11 @@ begin
            actCAF.Visible := (AdminSystem.fdFields.fdCountry in [whAustralia, whUK]);
            actICAF.Visible := (AdminSystem.fdFields.fdCountry = whUK);
            actTPA.Visible := (AdminSystem.fdFields.fdCountry = whNewZealand);
+
+           if (AdminSystem.fdFields.fdCountry = whUK) then
+           begin
+             GLClientManager.actCAF.Caption := 'Open Customer Authority Form';
+           end;
         end else begin
            actCheckOut.Enabled := INI_AllowCheckOut;
            actCAF.Visible := False;

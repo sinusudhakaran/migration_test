@@ -59,6 +59,8 @@ Source: "Practice CD Files\UK Samples\*.BK5"; DestDir: "{app}\SAMPLES"
 
 Source: "AuthorityForms\UK_CAF_Template.pdf"; DestDir: "{app}\TEMPLATE"
 Source: "AuthorityForms\UK_HSBC_Template.pdf"; DestDir: "{app}\TEMPLATE"
+Source: "AuthorityForms\CAF_Generator_HSBC.xlt"; DestDir: "{app}\TEMPLATE"
+Source: "AuthorityForms\CAF_Generator_Standard.xlt"; DestDir: "{app}\TEMPLATE"
 
 [Icons]
 Name: "{group}\BankLink Practice"; Filename: "{app}\BK5WIN.EXE"

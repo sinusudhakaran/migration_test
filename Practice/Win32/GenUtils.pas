@@ -151,6 +151,8 @@ function GetCommaSepStrFromList(const Items : array of string) : string; overloa
 function GetNumOfSubstringInString(Needle, Haystack: string) : integer; // Returns the number of occurrences of a substring (needle) in a string (haystack)
 function GetMonthName(aMonth : integer) : string;
 
+function FindFilesLike(aFilePath : string; aFileSearch : string) : Boolean;
+
 //******************************************************************************
 Implementation
 
@@ -159,6 +161,7 @@ Uses
    ststrs,
    StDate,
    StrUtils,
+   DirUtils,
    bkConst,
    RzPanel,
    Windows,
@@ -1237,6 +1240,23 @@ end;
 function GetMonthName(aMonth : integer) : string;
 begin
   Result := FormatDateTime('mmmm', EncodeDate(2000,aMonth,1));
+end;
+
+function FindFilesLike(aFilePath : string; aFileSearch : string) : Boolean;
+var
+  SearchRec : TSearchRec;
+  FileAttrs: Integer;
+  FullSearch : string;
+begin
+  Result := False;
+  FileAttrs := faAnyFile;
+  FullSearch := AppendFileNameToPath(aFilePath, aFileSearch);
+  try
+    if SysUtils.FindFirst(FullSearch, FileAttrs, SearchRec) = 0 then
+      Result := True;
+  finally
+    SysUtils.FindClose(SearchRec);
+  end;
 end;
 
 End.
