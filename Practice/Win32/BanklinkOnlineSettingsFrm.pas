@@ -125,6 +125,14 @@ type
     property Guid: TBloGuid read FGuid;
   end;
 
+  TProductSubscription = class
+  private
+    FId: TBloGuid;
+  public
+    constructor Create(Guid: TBloGuid);
+    property Id: TBloGuid read FId;
+  end;
+
   function EditBanklinkOnlineSettings(w_PopupParent: TForm; TickNotesOnline, ForceActiveClient,
                                       ShowServicesAvailable: boolean): boolean;
 
@@ -273,11 +281,21 @@ procedure TfrmBanklinkOnlineSettings.FormDestroy(Sender: TObject);
 var
   Index: Integer;
 begin
+  for Index := 0 to chklistProducts.Items.Count - 1 do
+  begin
+    if Assigned(chklistProducts.Items.Objects[Index]) then
+    begin
+      chklistProducts.Items.Objects[Index].Free;
+      chklistProducts.Items.Objects[Index] := nil;
+    end;
+  end;
+
   for Index := 0 to chklistServicesAvailable.Count - 1 do
   begin
     if Assigned(chklistServicesAvailable.Items.Objects[Index]) then
     begin
       chklistServicesAvailable.Items.Objects[Index].Free;
+      chklistServicesAvailable.Items.Objects[Index] := nil;
     end;
   end;
 end;
@@ -387,7 +405,7 @@ begin
   begin
     if chklistProducts.Checked[Index] then
     begin
-      ProductConfigService.AddItemToArrayGuid(Subscription, TBloCatalogueEntry(chklistProducts.Items.Objects[Index]).id);
+      ProductConfigService.AddItemToArrayGuid(Subscription, TProductSubscription(chklistProducts.Items.Objects[Index]).id);
     end;
   end;
 
@@ -653,7 +671,7 @@ begin
       if chklistProducts.Checked[i] then
       begin
         AllProducts.Add(chklistProducts.Items[i]);
-        if TBloCatalogueEntry(chklistProducts.Items.Objects[i]).Id = ProductConfigService.GetNotesId then
+        if TProductSubscription(chklistProducts.Items.Objects[i]).Id = ProductConfigService.GetNotesId then
           NotesOnlineTicked := True;
 
         inc(NumProdTicked);
@@ -662,7 +680,7 @@ begin
       begin
         for j := 0 to High(ClientReadDetail.Subscription) do
         begin
-          if (TBloCatalogueEntry(chklistProducts.Items.Objects[i]).Id = ClientReadDetail.Subscription[j]) then
+          if (TProductSubscription(chklistProducts.Items.Objects[i]).Id = ClientReadDetail.Subscription[j]) then
           begin
             ProductFound := true;
             break
@@ -674,7 +692,7 @@ begin
       begin
         for j := 1 to High(MyClient.clExtra.ceOnlineSubscription) do
         begin
-          if (TBloCatalogueEntry(chklistProducts.Items.Objects[i]).Id =
+          if (TProductSubscription(chklistProducts.Items.Objects[i]).Id =
               MyClient.clExtra.ceOnlineSubscription[j]) then
           begin
             ProductFound := true;
@@ -1039,7 +1057,7 @@ var
       for SubIndex := 0 to High(aSubscription) do
       begin
         ClientSubGuid := aSubscription[SubIndex];
-        ProductGuid   := TBloCatalogueEntry(chklistProducts.Items.Objects[ProdIndex]).id;
+        ProductGuid   := TProductSubscription(chklistProducts.Items.Objects[ProdIndex]).id;
         chklistProducts.Checked[ProdIndex] := (ClientSubGuid = ProductGuid);
         if chklistProducts.Checked[ProdIndex] then
           break;
@@ -1067,9 +1085,13 @@ begin
       if Assigned(CatEntry) then
       begin
         if (CatEntry.CatalogueType <> 'Service') then
-          chklistProducts.AddItem(CatEntry.Description, CatEntry)
+        begin
+          chklistProducts.AddItem(CatEntry.Description, TProductSubscription.Create(CatEntry.Id));
+        end
         else if (CatEntry.Id = ProductConfigService.GetExportDataId) then
+        begin
           DataExportEnabled := True;
+        end;
       end;
     end;
   end else
@@ -1081,7 +1103,7 @@ begin
       if Assigned(CatEntry) then
       begin
         if (CatEntry.CatalogueType <> 'Service') then
-          chklistProducts.AddItem(CatEntry.Description, CatEntry)
+          chklistProducts.AddItem(CatEntry.Description, TProductSubscription.Create(CatEntry.Id))
         else if (CatEntry.Id = ProductConfigService.GetExportDataId) then
           DataExportEnabled := True;
       end;  
@@ -1217,7 +1239,7 @@ begin
     // Checks the Products that Client Subscribes to
     for ProdIndex := 0 to chklistProducts.Items.Count - 1 do
     begin
-      if TBloCatalogueEntry(chklistProducts.Items.Objects[ProdIndex]).id = ProductConfigService.GetNotesId then
+      if TProductSubscription(chklistProducts.Items.Objects[ProdIndex]).id = ProductConfigService.GetNotesId then
         chklistProducts.Checked[ProdIndex] := True;
     end;
 
@@ -1234,7 +1256,7 @@ begin
   begin
     for Index := 0 to chklistProducts.Items.Count - 1 do
     begin
-      if TBloCatalogueEntry(chklistProducts.Items.Objects[Index]).id = ProductConfigService.GetNotesId then
+      if TProductSubscription(chklistProducts.Items.Objects[Index]).id = ProductConfigService.GetNotesId then
       begin
         chklistProducts.ItemEnabled[Index] := False;
 
@@ -1252,6 +1274,7 @@ var
   ProdIndex : integer;
   SubIndex : integer;
   CatEntry  : TBloCatalogueEntry;
+  ProductSubscription: TProductSubscription;
   ConnectDays : string;
   Subscription: TBloArrayOfGuid;
   NotesOnlineTicked, ShowUpdateMsg : Boolean;
@@ -1272,10 +1295,10 @@ begin
   begin
     if chklistProducts.Checked[ProdIndex] then
     begin
-      CatEntry := TBloCatalogueEntry(chklistProducts.Items.Objects[ProdIndex]);
-      ProductConfigService.AddItemToArrayGuid(Subscription, CatEntry.id);
+      ProductSubscription := TProductSubscription(chklistProducts.Items.Objects[ProdIndex]);
+      ProductConfigService.AddItemToArrayGuid(Subscription, ProductSubscription.id);
 
-      if CatEntry.id = ProductConfigService.GetNotesId then
+      if ProductSubscription.id = ProductConfigService.GetNotesId then
         NotesOnlineTicked := True;
 
       Inc(NumProdTicked);
@@ -1438,6 +1461,12 @@ end;
 constructor TDataExportOption.Create(Guid: TBloGuid);
 begin
   FGuid := Guid;
+end;
+{ TProductSubscription }
+
+constructor TProductSubscription.Create(Guid: TBloGuid);
+begin
+  FId := Guid;
 end;
 
 end.
