@@ -2866,60 +2866,59 @@ var
   PracUpdate      : PracticeUpdate;
 begin
   Result := False;
-  if UseBankLinkOnline then begin
-    if Assigned(FPracticeCopy) then begin
-      FPractice.Free;
-      FPractice := PracticeRead.Create;
+  if Assigned(FPracticeCopy) then
+  begin
+    FPractice.Free;
+    FPractice := PracticeRead.Create;
 
-      PracUpdate := PracticeUpdate.Create;
+    PracUpdate := PracticeUpdate.Create;
+    try
+      RemoveInvalidSubscriptions;
+      CopyRemotableObject(FPracticeCopy, FPractice);
+      CopyRemotableObject(FPractice, PracUpdate);
+
+      //Save to the web service
+      Screen.Cursor := crHourGlass;
+      Progress.StatusSilent := False;
+      Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Connecting', 10);
       try
-        RemoveInvalidSubscriptions;
-        CopyRemotableObject(FPracticeCopy, FPractice);
-        CopyRemotableObject(FPractice, PracUpdate);
+        PracCountryCode := CountryText(AdminSystem.fdFields.fdCountry);
+        PracCode        := AdminSystem.fdFields.fdBankLink_Code;
+        PracPassHash    := AdminSystem.fdFields.fdBankLink_Connect_Password;
 
-        //Save to the web service
-        Screen.Cursor := crHourGlass;
-        Progress.StatusSilent := False;
-        Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Connecting', 10);
-        try
-          PracCountryCode := CountryText(AdminSystem.fdFields.fdCountry);
-          PracCode        := AdminSystem.fdFields.fdBankLink_Code;
-          PracPassHash    := AdminSystem.fdFields.fdBankLink_Connect_Password;
+        BlopiInterface := GetServiceFacade;
 
-          BlopiInterface := GetServiceFacade;
+        Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Saving Practice Details', 33);
 
-          Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Saving Practice Details', 33);
-
-          MsgResponce := BlopiInterface.SavePractice(PracCountryCode, PracCode, PracPassHash, PracUpdate);
-          if not MessageResponseHasError(MsgResponce, 'update the Practice settings to') then
-          begin
-            Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Saving Practice Details to System Database', 66);
-            Result := True;
-            Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finished', 100);
-          end;
-
-        finally
-          Progress.StatusSilent := True;
-          Progress.ClearStatus;
-          Screen.Cursor := crDefault;
+        MsgResponce := BlopiInterface.SavePractice(PracCountryCode, PracCode, PracPassHash, PracUpdate);
+        if not MessageResponseHasError(MsgResponce, 'update the Practice settings to') then
+        begin
+          Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Saving Practice Details to System Database', 66);
+          Result := True;
+          Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finished', 100);
         end;
 
       finally
-        FreeandNil(PracUpdate);
+        Progress.StatusSilent := True;
+        Progress.ClearStatus;
+        Screen.Cursor := crDefault;
       end;
 
-      if aShowMessage then
+    finally
+      FreeandNil(PracUpdate);
+    end;
+
+    if aShowMessage then
+    begin
+      if Result then
       begin
-        if Result then
+        if ShowSuccessMessage then
         begin
-          if ShowSuccessMessage then
-          begin
-            HelpfulInfoMsg('Practice Settings have been successfully updated to BankLink Online.', 0);
-          end;
-        end
-        else
-          HelpfulErrorMsg(BKPRACTICENAME + ' is unable to update the Practice settings to ' + BANKLINK_ONLINE_NAME + '.', 0);
-      end;
+          HelpfulInfoMsg('Practice Settings have been successfully updated to BankLink Online.', 0);
+        end;
+      end
+      else
+        HelpfulErrorMsg(BKPRACTICENAME + ' is unable to update the Practice settings to ' + BANKLINK_ONLINE_NAME + '.', 0);
     end;
   end;
 end;
