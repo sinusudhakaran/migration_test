@@ -2139,50 +2139,53 @@ begin
 
   try
     ClientID := '';
-    if UseBankLinkOnline then
+
+    ClientDet := nil;
+    
+    if not ProductConfigService.OnLine then
     begin
-      if not ProductConfigService.OnLine then
-      begin
-        ShowMessage('BankLink Practice is unable to connect to BankLink Online');
+      ShowMessage('BankLink Practice is unable to connect to BankLink Online');
+      Exit;
+    end;
+
+    if not ProductConfigService.Online then
+      Exit;
+
+    ClientDet := ProductConfigService.GetClientDetailsWithCode(ClientCode);
+
+    if Assigned(ClientDet) then
+    begin
+      if not ProductConfigService.IsPracticeActive then
         Exit;
-      end;
 
-      if not ProductConfigService.Online then
-        Exit;
-
-      ClientDet := ProductConfigService.GetClientDetailsWithCode(ClientCode);
-      if Assigned(ClientDet) then
-      begin
-        if not ProductConfigService.IsPracticeActive then
-          Exit;
-
-        ClientID := ClientDet.Id;
-      end;
+      ClientID := ClientDet.Id;
     end;
 
     DeleteMsgStr := 'Deleting this client will remove ALL TRANSACTIONS in the ' +
                     'client file and will REMOVE the client file from the ' +
                     'Administration System.' + #13#10 + #13#10;
 
-    if not(ClientID = '') and
-      (high(ClientDet.Subscription) > -1) then
+    if Assigned(ClientDet) then
     begin
-      DeleteMsgStr := DeleteMsgStr +
-                      'Deleting this client will also, permanently remove ALL CLIENT DATA ' + #13#10 +
-                      '& ACCESS for the following products: ' + #13#10 + #13#10;
-
-      for i := low(ClientDet.Subscription) to high(ClientDet.Subscription) do
+      if not(ClientID = '') and (high(ClientDet.Subscription) > -1) then
       begin
-        CatalogueEntry := ProductConfigService.GetCatFromSub(ClientDet.Subscription[i]);
+        DeleteMsgStr := DeleteMsgStr +
+                        'Deleting this client will also, permanently remove ALL CLIENT DATA ' + #13#10 +
+                        '& ACCESS for the following products: ' + #13#10 + #13#10;
 
-        if Assigned(CatalogueEntry) then
+        for i := low(ClientDet.Subscription) to high(ClientDet.Subscription) do
         begin
-          DeleteMsgStr := DeleteMsgStr + '  ' +
-            ProductConfigService.GetCatFromSub(ClientDet.Subscription[i]).Description +
-            #13#10;
+          CatalogueEntry := ProductConfigService.GetCatFromSub(ClientDet.Subscription[i]);
 
-          if i = high(ClientDet.Subscription) then
-            DeleteMsgStr := DeleteMsgStr + #13#10;
+          if Assigned(CatalogueEntry) then
+          begin
+            DeleteMsgStr := DeleteMsgStr + '  ' +
+              ProductConfigService.GetCatFromSub(ClientDet.Subscription[i]).Description +
+              #13#10;
+
+            if i = high(ClientDet.Subscription) then
+              DeleteMsgStr := DeleteMsgStr + #13#10;
+          end;
         end;
       end;
     end;
@@ -2227,10 +2230,13 @@ begin
 
   DeleteMsgStr := 'Client (' + ClientCode + ' : ' + ClientName + ') has been ' +
                   'removed from Banklink Practice';
-  if not(ClientID = '') and
-    (high(ClientDet.Subscription) > -1) then
-    DeleteMsgStr := DeleteMsgStr + ' and BankLink Online';
 
+  if Assigned(ClientDet) then
+  begin
+    if not(ClientID = '') and (high(ClientDet.Subscription) > -1) then
+      DeleteMsgStr := DeleteMsgStr + ' and BankLink Online';
+  end;
+  
   DeleteMsgStr := DeleteMsgStr + '.';
 
   HelpfulInfoMsg(DeleteMsgStr, 0 );
