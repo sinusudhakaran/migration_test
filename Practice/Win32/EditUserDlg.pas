@@ -1436,9 +1436,12 @@ begin { EditUser }
 
           if chkCanAccessBankLinkOnline.Checked then
           begin
-            UpdateUserDataBlock(pu, ePass.Text);
+            if Trim(ePass.Text) <> '' then
+            begin
+              UpdateUserDataBlock(pu, ePass.Text);
 
-            pu.usPassword := '';
+              pu.usPassword := '';
+            end;
           end
           else
           begin
