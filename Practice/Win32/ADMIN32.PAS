@@ -163,7 +163,7 @@ begin
   end
   else
   begin
-    Result := Uppercase(Password) = User.usPassword;
+    Result := Uppercase(Password) = Uppercase(User.usPassword);
   end;
 end;
 
