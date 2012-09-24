@@ -282,7 +282,7 @@ begin
       End;    
     end;
 
-    if FUser_Rec.usUsing_Secure_Authentication then
+    if FUser_Rec.usUsing_Secure_Authentication or FUser_Rec.usAllow_Banklink_Online then
     begin
       UpdateUserDataBlock(FUser_Rec, edtNewPassword.text);
 
