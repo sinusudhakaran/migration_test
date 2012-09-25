@@ -450,7 +450,7 @@ Begin
                   dsAccount,        		{ AAccount     : ShortString;     }
                   Local_Amount,      		{ AAmount      : Money;           }
                   S,                      { ANarration	: ShortString;     }
-                  '',
+                  txStatement_Details,
                   dsAmount,
                   Bank_Account.Default_Forex_Conversion_Rate(txDate_Effective),
                   dsQuantity,             { AQuantity	 : Money;          }
