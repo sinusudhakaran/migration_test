@@ -457,9 +457,9 @@ Begin
                   dsGST_Class,            { AGSTClass    : Byte;           }
                   dsGST_Amount,
                   dsPayee_Number,
-                  GetPayeeName(Transaction, MyClient),
+                  GetPayeeName(Dissection, MyClient),
                   dsJob_Code,
-                  GetJobName(Transaction, MyClient),
+                  GetJobName(Dissection, MyClient),
                   txTemp_Balance,
                   GetFormattedEntryType(Transaction),
                   Date2Str(txDate_Presented, 'dd/mm/yyyy'));         { AGSTAmount   : Money );        }
