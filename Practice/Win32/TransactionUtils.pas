@@ -62,8 +62,11 @@ procedure GetPayeeInfoForDissection( const pT : pTransaction_Rec;
                                     var FirstPayee : integer);
 
 function GetChartDescription(pD: pTransaction_Rec): String;
-function GetPayeeName(pD: pTransaction_Rec; Client: TClientObj): String;
-function GetJobName(pD: pTransaction_Rec; Client: TClientObj): String;
+function GetPayeeName(pD: pTransaction_Rec; Client: TClientObj): String; overload;
+function GetJobName(pD: pTransaction_Rec; Client: TClientObj): String; overload;
+
+function GetPayeeName(pD: pDissection_Rec; Client: TClientObj): String; overload;
+function GetJobName(pD: pDissection_Rec; Client: TClientObj): String; overload;
 
 //******************************************************************************
 implementation
@@ -474,7 +477,36 @@ begin
     begin
       Result := Job.jhHeading;
     end;
-  end; 
+  end;
 end;
 
+function GetPayeeName(pD: pDissection_Rec; Client: TClientObj): String; overload;
+var
+  APayee: TPayee;
+begin
+  if pD^.dsPayee_Number <> 0 then
+  begin
+    APayee := Client.clPayee_List.Find_Payee_Number(pD^.dsPayee_Number);
+
+    if Assigned( aPayee ) then
+    begin
+      Result := aPayee.pdName;
+    end;
+  end;
+end;
+
+function GetJobName(pD: pDissection_Rec; Client: TClientObj): String; overload;
+var
+  Job: pJob_Heading_Rec;
+begin
+  if (pD^.dsJob_code > '') then
+  begin
+    Job := Client.clJobs.FindCode (pD^.dsJob_Code);
+
+    if Assigned(Job) then
+    begin
+      Result := Job.jhHeading;
+    end;
+  end;
+end;
 end.
