@@ -366,7 +366,7 @@ function TfrmBanklinkOnlineSettings.ClientSettingChanged: Boolean;
   begin
     ProductIndex := 0;
     
-    for Index := 0 to Length(MyClient.clExtra.ceOnlineSubscription) - 1 do
+    for Index := 1 to Length(MyClient.clExtra.ceOnlineSubscription) do
     begin
       if MyClient.clExtra.ceOnlineSubscription[index] <> '' then
       begin
@@ -419,14 +419,11 @@ begin
     end;
   end
   else
-  if Length(Subscription) > 0 then
+  if OffSiteClientSubscriptionsChanged(Subscription) then
   begin
-    if OffSiteClientSubscriptionsChanged(Subscription) then
-    begin
-      Result := True;
+    Result := True;
 
-      Exit;
-    end;   
+    Exit;
   end;
 
   if grpServicesAvailable.Visible then
@@ -1349,6 +1346,11 @@ begin
       MyClient.clExtra.ceOnlineBillingFrequency := AnsiLeftStr(cmbBillingFrequency.Text, 1);
       MyClient.clExtra.ceOnlineMaxOfflineDays   := StrToInt(ConnectDays);
       MyClient.clExtra.ceOnlineStatus           := Ord(Status);
+
+      for SubIndex := 1 to Length(MyClient.clExtra.ceOnlineSubscription) do
+      begin
+        MyClient.clExtra.ceOnlineSubscription[SubIndex] := '';
+      end;
 
       if Length(Subscription) > 64 then
         MyClient.clExtra.ceOnlineSubscriptionCount := 64
