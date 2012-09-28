@@ -189,7 +189,7 @@ type
     function GetSecureServiceFacade : IBlopiSecureServiceFacade;
     function GetAuthenticationServiceFacade : IP5Auth;
 
-    function GetBanklinkOnlineURL(PracticeCode: string = ''): String;
+    function GetBanklinkOnlineURL(Service: string): String;
 
     function GetCachedPractice: TBloPracticeRead;
     function MessageResponseHasError(AMesageresponse: MessageResponse; ErrorText: string;
@@ -1103,7 +1103,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TProductConfigService.GetBanklinkOnlineURL(PracticeCode: string = ''): String;
+function TProductConfigService.GetBanklinkOnlineURL(Service: String): String;
 begin
   if Trim(FSubdomain) <> '' then
   begin
@@ -1112,6 +1112,15 @@ begin
   else
   begin
     Result := PRACINI_BankLink_Online_Services_URL;
+  end;
+
+  if Assigned(AdminSystem) then
+  begin
+    Result := Result + Format('%s?PracticeCode=%s', [Service, AdminSystem.fdFields.fdBankLink_Code]);
+  end
+  else
+  begin
+    Result := Result + Service;
   end;
 end;
 
@@ -2189,7 +2198,7 @@ begin
   HTTPRIO.OnBeforeExecute := DoBeforeExecute;
   HTTPRIO.OnAfterExecute := DoAfterSecureExecute;
 
-  Result := GetIBlopiSecureServiceFacade(False, GetBanklinkOnlineURL + '/services/blopisecureservicefacade.svc', HTTPRIO);
+  Result := GetIBlopiSecureServiceFacade(False, GetBanklinkOnlineURL('/services/blopisecureservicefacade.svc'), HTTPRIO);
 end;
 
 function TProductConfigService.GetServiceAgreement : WideString;
@@ -2246,7 +2255,7 @@ begin
   HTTPRIO := THTTPRIO.Create(nil);
   HTTPRIO.OnBeforeExecute := DoBeforeExecute;
 
-  Result := GetIBlopiServiceFacade(False, GetBanklinkOnlineURL(PracticeCode) + '/Services/BlopiServiceFacade.svc', HTTPRIO);
+  Result := GetIBlopiServiceFacade(False, GetBanklinkOnlineURL('/Services/BlopiServiceFacade.svc'), HTTPRIO);
 end;
 
 //------------------------------------------------------------------------------
@@ -5300,7 +5309,7 @@ begin
   HTTPRIO := THTTPRIO.Create(nil);
   HTTPRIO.OnBeforeExecute := DoBeforeExecute;
 
-  Result := GetIP5Auth(False, GetBanklinkOnlineURL + '/Services/P5auth.svc', HTTPRIO)
+  Result := GetIP5Auth(False, GetBanklinkOnlineURL('/Services/P5auth.svc'), HTTPRIO)
 end;
 
 //------------------------------------------------------------------------------
