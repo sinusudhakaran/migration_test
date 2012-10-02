@@ -473,7 +473,7 @@ begin
   end;
 
   //UK only - don't allow login if the user doesn't have a password
-  if (User.usPassword = '') and not User.usUsing_Secure_Authentication then
+  if (User.usPassword = '') and not User.usAllow_Banklink_Online then
   begin
    if AdminSystem.fdFields.fdCountry = whUK then begin
      ErrorSound;
@@ -764,7 +764,7 @@ begin
      If (not ShiftKeyDown) and ( TryUserName <> '' ) and not AdminSystem.fdFields.fdForce_Login then begin
        User := AdminSystem.fdSystem_User_List.FindCode( TryUserName );
        If Assigned( User ) then With User^ do begin
-         If (usPassword = '') and not User.usUsing_Secure_Authentication then
+         If (usPassword = '') and not User.usAllow_Banklink_Online then
          begin
             //We can log in automatically
             //if they accept the EULA
