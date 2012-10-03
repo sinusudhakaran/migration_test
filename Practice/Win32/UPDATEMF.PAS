@@ -313,8 +313,8 @@ begin
       tbSendClientFiles.enabled := CheckInOutAllowed;
     end else
     begin
-      mniSendClientFiles.Enabled := (INI_AllowCheckOut) and (not PRACINI_DisableCheckInCheckOut);
-      tbSendClientFiles.Enabled := (INI_AllowCheckOut) and (not PRACINI_DisableCheckInCheckOut);
+      mniSendClientFiles.Enabled := (not PRACINI_DisableCheckInCheckOut);
+      tbSendClientFiles.Enabled := (not PRACINI_DisableCheckInCheckOut);
     end;
     mniFileCheckIn.enabled       := CheckInOutAllowed;
     tbGetClientFiles.enabled            := CheckInOutAllowed;
@@ -694,7 +694,7 @@ begin
 
      if (not UsingAdmin) then
      begin
-       mniSendClientFiles.Enabled := (INI_AllowCheckOut) and (not PRACINI_DisableCheckInCheckOut);
+       mniSendClientFiles.Enabled := (not PRACINI_DisableCheckInCheckOut);
      end;
 
      //only show if an admin system exists and allow flag is set
@@ -802,7 +802,7 @@ begin
 
      //Get and send client file menu options
      actSendViaEmail.Enabled := True;
-     actSendToFile.Enabled := True;
+     actSendToFile.Enabled := INI_AllowCheckOut;
      actSendViaOnline.Enabled := True;
      if UsingAdmin then begin
        actSendViaOnline.Visible := False;
@@ -818,11 +818,13 @@ begin
 
          ProductConfigService.UpdateUserAllowOnlineSetting;
        end;
-     end else if ClientFileOpen then begin
-       actSendToFile.Enabled := (MyClient.clExtra.ceFile_Transfer_Method <> ftmOnline);
+     end else if ClientFileOpen then
+     begin
+       actSendToFile.Enabled := (MyClient.clExtra.ceFile_Transfer_Method <> ftmOnline) and INI_AllowCheckOut;
        actSendViaEmail.Enabled := (MyClient.clExtra.ceFile_Transfer_Method <> ftmOnline);
        actSendViaOnline.Enabled := (MyClient.clExtra.ceFile_Transfer_Method = ftmOnline);
      end;
+
      if Assigned(CurrUser) then // Checking CurrUser in case the Practice window has been closed
        RefreshUserControls;
 
