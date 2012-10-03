@@ -25,7 +25,8 @@ const
 
 procedure RefreshChart;
 const
-   ThisMethodName      = 'RefreshChart';
+  ThisMethodName      = 'RefreshChart';
+  STR_BRACKETS = '{}';
 var
    ChartFileName       : string;
    ChartFilePath       : string;
@@ -41,6 +42,7 @@ var
    ADesc, AType        : String[80];
    Msg : string;  
    OK                  : Boolean;
+   FirstLine           : Boolean;
 begin
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
 
@@ -78,9 +80,15 @@ begin
        NewChart := TChart.Create(MyClient.ClientAuditMgr);
        
        try
-
+         FirstLine := true;
          While not EOF( F ) do Begin
             Readln( F, Line );
+
+            if (FirstLine) and (trim(Line) = STR_BRACKETS) then
+            begin
+              FirstLine := false;
+              continue;
+            end;
 
             {get information from this line}
             If Line[1] in ['0'..'9'] then Begin

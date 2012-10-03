@@ -60,7 +60,7 @@ const
   c_reportGroup = 4;
   // Last Cheque number 5
   c_TaxCode   = 6;
-
+  STR_BRACKETS = '{}';
 
 var
   ChartFileName       : string;
@@ -80,6 +80,7 @@ var
   OK                  : Boolean;
   CodeRec: TStringList;
   TemplateFileName: string;
+  FirstLine : Boolean;
 begin
   if DebugMe then LogUtil.LogMsg(lmDebug, UNIT_NAME, THIS_METHOD_NAME + ' Begins');
 
@@ -132,8 +133,15 @@ begin
 //            Reset(F);
 //          end;
 
+          FirstLine := true;
           while not EOF( F ) do begin
             Readln( F, Line );
+
+            if (FirstLine) and (trim(Line) = STR_BRACKETS) then
+            begin
+              FirstLine := false;
+              continue;
+            end;
 
             //Check file format
             p := Pos(FileDelim, Line);
