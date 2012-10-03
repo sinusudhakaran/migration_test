@@ -802,12 +802,24 @@ begin
 
      //Get and send client file menu options
      actSendViaEmail.Enabled := True;
-     actSendToFile.Enabled := INI_AllowCheckOut;
+
+     if UsingAdmin then
+     begin
+       actSendToFile.Enabled := True;
+     end
+     else
+     begin
+       actSendToFile.Enabled := INI_AllowCheckOut;
+     end;
+
      actSendViaOnline.Enabled := True;
-     if UsingAdmin then begin
+
+     if UsingAdmin then
+     begin
        actSendViaOnline.Visible := False;
        actGetFromOnline.Visible := False;
        UseBankLinkOnline := AdminSystem.fdFields.fdUse_BankLink_Online;
+       
        if UseBankLinkOnline then
        begin
          if ProductConfigService.IsCICOEnabled then
@@ -818,7 +830,8 @@ begin
 
          ProductConfigService.UpdateUserAllowOnlineSetting;
        end;
-     end else if ClientFileOpen then
+     end
+     else if ClientFileOpen then
      begin
        actSendToFile.Enabled := (MyClient.clExtra.ceFile_Transfer_Method <> ftmOnline) and INI_AllowCheckOut;
        actSendViaEmail.Enabled := (MyClient.clExtra.ceFile_Transfer_Method <> ftmOnline);
