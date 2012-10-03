@@ -166,7 +166,7 @@ begin
       end else begin
         //Books
         chkAvailOnly.Visible   := True;
-        cbFlagReadOnly.Visible := not (FFileTransferMethod in [ftmFile]);
+        cbFlagReadOnly.Visible := INI_AllowCheckOut and not (FFileTransferMethod in [ftmFile]);
         cbEditEmail.Visible := (FFileTransferMethod = ftmOnline);
         cbSendEmail.Visible := False;
         pnlPassword.Visible := True;
@@ -195,8 +195,16 @@ begin
         AFirstUpload := ClientLookupFrame.FirstUpload;
         //Only change the flag as read-only default if this option is visible (TFS 36509)
         AFlagReadOnly := True;
+
         if cbFlagReadOnly.Visible then
+        begin
           AFlagReadOnly := cbFlagReadOnly.Checked;
+        end
+        else
+        begin
+          AFlagReadOnly := INI_AllowCheckOut;
+        end;
+        
         AEditEmail := cbEditEmail.Checked;
         ASendEmail := cbSendEmail.Checked;
         Result := ClientLookupFrame.SelectedCodes;
