@@ -201,6 +201,7 @@ begin
           AFlagReadOnly := cbFlagReadOnly.Checked;
         end
         else
+        if not Assigned( AdminSystem) then
         begin
           AFlagReadOnly := INI_AllowCheckOut;
         end;
