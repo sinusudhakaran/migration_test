@@ -2141,18 +2141,21 @@ begin
     ClientID := '';
 
     ClientDet := nil;
-    
-    if not ProductConfigService.OnLine then
+
+    if UseBanklinkOnline then
     begin
-      ShowMessage('BankLink Practice is unable to connect to BankLink Online');
-      Exit;
+      if not ProductConfigService.OnLine then
+      begin
+        ShowMessage('BankLink Practice is unable to connect to BankLink Online');
+        Exit;
+      end;
+
+      if not ProductConfigService.Online then
+        Exit;
+
+      ClientDet := ProductConfigService.GetClientDetailsWithCode(ClientCode);
     end;
-
-    if not ProductConfigService.Online then
-      Exit;
-
-    ClientDet := ProductConfigService.GetClientDetailsWithCode(ClientCode);
-
+    
     if Assigned(ClientDet) then
     begin
       if not ProductConfigService.IsPracticeActive then
