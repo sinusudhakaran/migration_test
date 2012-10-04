@@ -1555,12 +1555,17 @@ Procedure DoUpgradeAdminToLatestVersion( var UpgradingToVersion : integer; const
       AdminSystem.fdSystem_User_List.User_At(UserIndex).usUsing_Mixed_Case_Password := False;
     end;
 
-    if (Trim(Globals.PRACINI_OnlineLink) <> '') then begin
+    if (Trim(Globals.PRACINI_OnlineLink) <> '') then
+    begin
       AdminSystem.fdFields.fdUse_BankLink_Online := True;
+      
       //Connect to BankLink Online and get the Practice details
-      Prac := ProductConfigService.GetPractice;
-      if not Assigned(Prac) then
+      Prac := ProductConfigService.GetPractice(True, False, '', True, True);
+      
+      if not ProductConfigService.Registered then
+      begin
         AdminSystem.fdFields.fdUse_BankLink_Online := False;
+      end;
     end;
 
     for Index := 0 to AdminSystem.fdSystem_Bank_Account_List.ItemCount - 1 do
