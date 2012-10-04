@@ -150,7 +150,7 @@ type
 
     FSubDomain: String;
 
-    procedure HandleException(const MethodName: String; E: Exception);
+    procedure HandleException(const MethodName: String; E: Exception; SuppressErrors: Boolean = False);
     
     procedure SynchronizeClientSettings(BlopiClient: TBloClientReadDetail);
 
@@ -303,7 +303,7 @@ type
 
     destructor Destroy; override;
     //Practice methods
-    function GetPractice(aUpdateUseOnline: Boolean = True; aForceOnlineCall : Boolean = false; PracticeCode: string = ''; AllowProgressBar: Boolean = True): TBloPracticeRead;
+    function GetPractice(aUpdateUseOnline: Boolean = True; aForceOnlineCall : Boolean = false; PracticeCode: string = ''; AllowProgressBar: Boolean = True; SuppressErrors: Boolean = False): TBloPracticeRead;
     function IsPracticeActive(aShowWarning: Boolean = true): Boolean;
     function IsPracticeDeactivated(aShowWarning: Boolean = true): boolean;
     function IsPracticeSuspended(aShowWarning: Boolean = true): boolean;
@@ -1398,7 +1398,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TProductConfigService.GetPractice(aUpdateUseOnline: Boolean; aForceOnlineCall : Boolean; PracticeCode: string; AllowProgressBar: Boolean): TBloPracticeRead;
+function TProductConfigService.GetPractice(aUpdateUseOnline: Boolean; aForceOnlineCall : Boolean; PracticeCode: string; AllowProgressBar: Boolean; SuppressErrors: Boolean): TBloPracticeRead;
 var
   i: integer;
   BlopiInterface: IBlopiServiceFacade;
@@ -1524,7 +1524,10 @@ begin
                 Msg := 'Unknown error';
               if Msg <> '' then
               begin
-                HelpfulErrorMsg(BKPRACTICENAME + ' is unable to get the practice details from ' + BANKLINK_ONLINE_NAME + '.', 0, True, Msg, True);
+                if not SuppressErrors then
+                begin
+                  HelpfulErrorMsg(BKPRACTICENAME + ' is unable to get the practice details from ' + BANKLINK_ONLINE_NAME + '.', 0, True, Msg, True);
+                end;
 
                 Exit;
               end;
@@ -1536,7 +1539,7 @@ begin
       except
         on E:Exception do
         begin
-          HandleException('GetPractice', E);
+          HandleException('GetPractice', E, SuppressErrors);
         end;
       end;
     finally
@@ -2471,7 +2474,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TProductConfigService.HandleException(const MethodName: String; E: Exception);
+procedure TProductConfigService.HandleException(const MethodName: String; E: Exception; SuppressErrors: Boolean);
 var
   MainMessage: String;
   MessageDetails: String;
@@ -2498,7 +2501,10 @@ begin
     ShowDetails := False;
   end;
 
-  HelpfulErrorMsg(MainMessage, 0, True, MessageDetails, ShowDetails);
+  if not SuppressErrors then
+  begin
+    HelpfulErrorMsg(MainMessage, 0, True, MessageDetails, ShowDetails);
+  end;
 
   LogUtil.LogMsg(lmError, UNIT_NAME, Format('Exception running %s, Error Message : %s', [MethodName, E.Message]));
 end;
