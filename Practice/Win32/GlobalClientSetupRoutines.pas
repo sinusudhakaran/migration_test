@@ -1582,6 +1582,23 @@ begin
     ClientCode := ClientFile^.cfFile_Code;
     ClientLRN  := ClientFile^.cfLRN;
 
+    if Assigned(OnlineClientDet) then
+    begin
+      if (OnlineClientDet.Id <> '') and (high(OnlineClientDet.Subscription) > -1) then
+      begin
+        try
+          if not ProductConfigService.DeleteClient(OnlineClientDet) then
+          begin
+            HelpfulErrorMsg('Unable to Connect to BankLink Online.', 0);
+
+            Exit;
+          end;
+        except
+          raise;
+        end;
+      end;
+    end;
+
     //now lock the admin system and delete the file, was locked check that status has not changed}
     if LoadAdminSystem(true, ThisMethodName ) then
     begin
@@ -1600,27 +1617,6 @@ begin
          UnlockAdmin;
          HelpfulErrorMsg('The client file for Client Code '+ClientCode+' is in use. (state <> fsNormal).',0);
          exit;
-       end;
-
-       if Assigned(OnlineClientDet) then
-       begin
-         if (OnlineClientDet.Id <> '') and (high(OnlineClientDet.Subscription) > -1) then
-         begin
-           try
-             if not ProductConfigService.DeleteClient(OnlineClientDet) then
-             begin
-               HelpfulErrorMsg('Unable to Connect to BankLink Online.', 0);
-
-               UnlockAdmin;
-
-               Exit;
-             end;
-           except
-             UnlockAdmin;
-             
-             raise;
-           end;
-         end;
        end;
 
        {------------------------------------------------}
