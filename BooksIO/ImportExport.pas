@@ -29,8 +29,8 @@ function EnCodetext(Value: Tstream): string;
 implementation
 uses
 
-MoneyDef,
-
+    SHFolder,
+    MoneyDef,
     ErrorLog,
     LockUtils,
     windows,
@@ -52,8 +52,8 @@ const
 
 var
   FileOutputProc : OutputFileProc;
-  DebugMe : Boolean = false;
-  LogHere : Boolean = false;
+  DebugMe : Boolean = true;
+  LogHere : Boolean = true;
   StatusProc: OutputStatusProc;
 
 
@@ -236,7 +236,7 @@ begin
    LogTrace('procedure ExportBooksFile beginning');
 
    TempStr := string(data);
-   //SaveString(TempStr);
+   SaveString(TempStr);
 
    try
      Client := nil;
@@ -285,21 +285,27 @@ end;
 procedure setPaths;
 
 var
-   DLLFileName: PChar;
+   AppData: PChar;
    path: String;
 begin
-  GetMem(DLLFileName, MAX_PATH+1);
-  if (DLLFileName <> nil) then begin
-      GetModuleFileName(hInstance, DLLFileName, MAX_PATH);
-      path := ExtractFilepath(string(DLLFileName));
+  GetMem(AppData, MAX_PATH+1);
+  if (AppData <> nil) then try
+
+     SHGetFolderPath(0,CSIDL_APPDATA,0 , 0,AppData);
+
+
+
+      path := string(AppData);
+
       SetLockingFileLocation(path);
       SysLog.LogPath := Path;
-      SysLog.LogFilename := 'BookIO.log';
-      FreeMem(DLLFileName);
+      SysLog.LogFilename := '\BooksIO.log';
+
 
       //path := format('%d',[Trunc(unknown)]);
       //path := '';
-
+  finally
+     FreeMem(AppData);
   end;
 
 end;
@@ -310,6 +316,9 @@ initialization
    StatusProc := nil;
    setPaths;
    logger.logMessageProcedure := MyLogMsg;
+
+
+   //  LogError('Ok Then ');
 
 end.
 
