@@ -32,7 +32,7 @@ public
                    More: pMoreClient_Rec;
                    Extra: pClientExtra_Rec;
                    AClient: pClient_File_Rec;
-                   CheckedOutTo: widestring): Boolean;
+                   CheckedOutTo: TGuid): Boolean;
 
     function InsertProspect(MyId: TGuid;
                    UserID: TGuid;
@@ -167,7 +167,8 @@ public
                    AccountID: TGuid;
                    MatchedItemID: TGuid;
                    Value: PTransaction_Rec;
-                   IsSplitPayee, IsDissected, IsSplitJob, IsPayeeOverridden, IsJobOverridden: boolean): Boolean;
+                   IsSplitPayee, IsDissected, IsSplitJob, IsPayeeOverridden, IsJobOverridden: boolean;
+                   memID, MasterMemiD: TGuid): Boolean;
 end;
 
 
@@ -420,9 +421,9 @@ function TClient_RecFieldsTable.Insert(MyId: TGuid;
                    More: pMoreClient_Rec;
                    Extra: pClientExtra_Rec;
                    AClient: pClient_File_Rec;
-                   CheckedOutTo: widestring): Boolean;
-var
-   CheckedOutToGuid: TGuid;
+                   CheckedOutTo: TGuid): Boolean;
+
+
 
    function GetNotes: string;
    var I: Integer;
@@ -443,8 +444,8 @@ var
    end;
 
 begin
-  if (CheckedOutTo <> '') then
-    CheckedOutToGuid := StringToGUID(CheckedOutTo);
+
+
   with Value^, Extra^, More^ do
     Result := RunValues([ToSQL(MyId),ToSQL(clCode),ToSQL(clName),ToSQL(clAddress_L1),ToSQL(clAddress_L2),ToSQL(clAddress_L3)
                  ,ToSQL(clContact_Name),ToSQL(clPhone_No),ToSQL(clFax_No),ToSQL(clClient_EMail_Address)
@@ -461,7 +462,7 @@ begin
   {9}        ,ToSQL(clWeb_Site_Login_URL),ToSQL(clContact_Details_To_Show),ToSQL(clCustom_Contact_Name)
                 ,ToSQL(clCustom_Contact_EMail_Address),ToSQL(clCustom_Contact_Phone)
   {10}       ,ToSQL(clHighest_Manual_Account_No),ToSQL(clCopy_Narration_Dissection),ToSQL(SystemComments)
-  {11}       ,ToSQL(clClient_CC_EMail_Address),ToSQL(clLast_ECoding_Account_UID),ToSQL(WebExportFormat),ToSQL(clMobile_No)
+  {11}       ,ToSQL(clClient_CC_EMail_Address),ToSQL(clLast_ECoding_Account_UID),{ToSQL(WebExportFormat),}ToSQL(clMobile_No)
                 ,ToSQL(clFile_Read_Only),ToSQL(clSalutation),ToSQL(clExternal_ID)
   {12}       ,ToSQL( clForce_Offsite_Check_Out),ToSQL(clDisable_Offsite_Check_Out),ToSQL(clAlternate_Extract_ID),ToSQL(clUse_Alterate_ID_for_extract)
   {13}       ,DateToSQL(AClient.cfDate_Last_Accessed),ToSQL(clUse_Basic_Chart),ToSQL(GroupID),ToSQL(TypeID)
@@ -471,7 +472,7 @@ begin
   {16}       , ToSQL(mcJournal_Processing_Duration),ToSQL( clBAS_Field_Source[bfGSTProvisional] = GSTprovisional)
                 ,ToSql(clBAS_Field_Number[bfGSTProvisional] = GSTRatio),PercentToSQL(GetGSTRatio)
   {17}       , ToSQL(GetNotes),ToSQL(ceBook_Gen_Finance_Reports),ToSQL(not ceBlock_Client_Edit_Mems)
-                ,ToSQL(clFile_Password),ToSQL(False),ToSQL(CheckedOutToGuid)],[]);
+                ,ToSQL(clFile_Password),ToSQL(False),ToSQL(CheckedOutTo)],[]);
 end;
 
 function TClient_RecFieldsTable.InsertProspect(
@@ -503,7 +504,7 @@ with  AClient^, ClientDetailsCache do begin
 {9}        ,null,ToSQL(cfContact_Details_To_Show),null
               ,null,null
 {10}       ,null,null,ToSQL(SystemComments)
-{11}       ,null,null,null,ToSQL(Mobile_No)
+{11}       ,null,null{,null},ToSQL(Mobile_No)
               ,null,ToSQL(Salutation),null
 {12}       ,null,null,null,null
 {13}       ,DateToSQL(cfDate_Last_Accessed),null,ToSQL(GroupID),ToSQL(TypeID)
@@ -530,12 +531,12 @@ begin
 {8}     ,'CflwCashOnHandStyle','LastFinancialYearStart','TaxinterfaceUsed','SaveTaxFilesTo','JournalProcessingPeriod','LastDiskImageVersion'
 {9}     ,'WebSiteLoginURL','ContactDetailsToShow','CustomContactName','CustomContactEMailAddress','CustomContactPhone'
 {10}    ,'HighestManualAccountNo','CopyNarrationDissection','SystemComments'
-{11}    ,'ClientCCEMailAddress','LastECodingAccountUID','WebExportFormat','MobileNo','FileReadOnly','Salutation','ExternalID'
+{11}    ,'ClientCCEMailAddress','LastECodingAccountUID',{'WebExportFormat',}'MobileNo','FileReadOnly','Salutation','ExternalID'
 {12}    ,'ForceOffsiteCheckOut','DisableOffsiteCheckOut','AlternateExtractID','UseAlterateIDforextract'
 {13}    ,'LastUseDate','UseBasicChart','ClientGroupId','ClientTypeId','AllEditModeCES','AllEditModeDIS','TFN'
 {14}    ,'AllowClientUnlockEntries','AllowClientEditChart','BudgetIncludeQuantities','Archived'
 {15}    ,'JournalProcessingDuration','GSTIncludeProvisionalTax','GSTUseRatioOption','GSTRatio'
-{16}    ,'Comments','GenerateFinancialReports','EditMemorisations','Password','IsProspect','CheckedOut'],[]);
+{16}    ,'Comments','GenerateFinancialReports','EditMemorisations','Password','IsProspect','CheckedOutTo'],[]);
 
 end;
 
@@ -573,7 +574,7 @@ begin with value^ do
  {5}     ,ToSQL(baManual_Account_Institution),ToSQL(baManual_Account_Sent_To_Admin)
               ,ToSQL(baHDE_Sort_Order),ToSQL(baMDE_Sort_Order),ToSQL(baDIS_Sort_Order)
  {6}     ,ToSQL(baDesktop_Super_Ledger_ID), ToSQL(Value.baSuperFund_Ledger_Code),ToSql(baCurrency_Code)
-              ,ToSQL(Excluded), LastScheduledReportDate ],[]);
+              ,ToSQL(Excluded or baIs_A_Manual_Account), LastScheduledReportDate ],[]);
 
 end;
 
@@ -585,7 +586,8 @@ begin
  {3}   , 'LastSequenceNo','AccountExpiryDate','HighestMatchedItemID','NotesAlwaysVisible','NotesHeight','LastECodingTransactionUID'
  {4}   , 'ExtendExpiryDate','IsAManualAccount','AnalysisCodingLevel','ECodingAccountUID','CodingSortOrder','ManualAccountType'
  {5}   , 'ManualAccountInstitution','ManualAccountSentToAdmin','HDESortOrder','MDESortOrder','DISSortOrder'
- {6}   , 'SFLedgerID','SFLedgerCode','Currency','ExcludedFromScheduledReports','LastScheduledReportDate'],[]);
+ {6}   , 'SFLedgerID','SFLedgerCode','Currency','ExcludedFromScheduledReports','LastScheduledReportDate'
+       ],  []);
 
 end;
 
@@ -636,7 +638,8 @@ end;
 
 function TTransaction_RecTable.Insert(MyID, AccountID,MatchedItemID: TGuid;
   Value: PTransaction_Rec; IsSplitPayee, IsDissected, IsSplitJob, IsPayeeOverridden,
-  IsJobOverridden: boolean): Boolean;
+  IsJobOverridden: boolean;
+   memID, MasterMemiD: TGuid): Boolean;
 begin  with Value^ do
   Result := RunValues([ ToSQL(MyId),ToSQL(AccountID),ToSQL(txSequence_No)
                   ,ToSQL(txType),ToSQL(txSource),DateToSQL(txDate_Presented),DateToSQL(txDate_Effective)
@@ -652,8 +655,9 @@ begin  with Value^ do
 {7}       ,ToSQL(txExternal_GUID),ToSQl(txDocument_Title),ToSQL(txJob_Code)
 {8}       ,ToSQL(txDocument_Status_Update_Required),ToSQL(txBankLink_UID),ToSQL(txNotes_Read),ToSQL(txImport_Notes_Read)
 {9}       ,ToSQL(IsDissected),ToSQL(IsSplitPayee),ToSQL(IsSplitJob),ToSQL(IsPayeeOverridden),ToSQL(IsJobOverridden), ToSQL(0)
-          ],[
+{10}      ,ToSQL(memID), ToSQL(MasterMemiD) ],[
 
+          // SMSF
 {1}       ToSQL(value.txSF_Super_Fields_Edited ), ToSQL(txSF_Franked),ToSQL(txSF_UnFranked),
 {2}       ToSQL(txSF_Member_ID), ToSQL(txSF_Fund_ID ), ToSQL(txSF_Fund_Code),
 
@@ -687,6 +691,7 @@ begin
 {7}       ,'ExternalGUID','DocumentTitle','JobCode'
 {8}       ,'DocumentStatusUpdateRequired','BankLinkUID','NotesRead','ImportNotesRead'
 {9}       ,'IsDissected','IsSplitPayee','IsSplitJob','IsPayeeOverridden','IsJobOverridden', 'ReportStatus'
+{10}      ,'MemorisationID', 'MasterMemorisationID'
           ],SFLineFields);
 
 
@@ -1124,7 +1129,8 @@ begin with Value^, Extra^ do
                       or clEmail_Scheduled_Reports))
 
 {4}       ,ToSQL(clEmail_Scheduled_Reports), ToSQL(clFax_Scheduled_Reports), ToSQL(clCheckOut_Scheduled_Reports)
-              ,ToSQL(clWebX_Export_Scheduled_Reports), ToSQL(clCSV_Export_Scheduled_Reports) , ToSQL(Value.clECoding_Export_Scheduled_Reports)
+              ,ToSQL(Extra.ceOnline_Scheduled_Reports), ToSQL(clWebX_Export_Scheduled_Reports), ToSQL(clCSV_Export_Scheduled_Reports)
+              ,ToSQL(Value.clECoding_Export_Scheduled_Reports)
               ,ToSQL(clBusiness_Products_Scheduled_Reports), ToSQL(clSend_Coding_Report)
 
 {5}       ,ToSQL(clSend_Chart_of_Accounts), ToSQL(clSend_Payee_List), ToSQL(Extra.ceSend_Job_List)
@@ -1145,7 +1151,7 @@ begin
 
 {3}      ,'CodingReportShowTaxInvoice','CodingReportShowOtherParty','CodingReportWrapNarration','TaskPrint'
 
-{4}      ,'TaskEmail','TaskFax','TaskCheckOut','TaskWebExport','TaskCSVExport','TaskSendNotes','TaskBusinessProduct','SendCoding'
+{4}      ,'TaskEmail','TaskFax','TaskCheckOut','TaskOnlineCheckOut','TaskWebExport','TaskCSVExport','TaskSendNotes','TaskBusinessProduct','SendCoding'
 
 {5}      ,'SendChart','Sendpayees','SendJobs', 'ReportingPeriod' ,'IncludeCustomDocument'
 
@@ -1629,7 +1635,7 @@ end;
 
 procedure TReportParameterTable.SetupTable;
 begin
-   TableName := 'ReportingParameters';
+   TableName := 'ReportParameters';
 
 end;
 

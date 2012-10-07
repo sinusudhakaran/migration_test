@@ -260,8 +260,11 @@ function TMigrateAction.GetTagText(const Tag: Integer): string;
     
     DecodeTime(ForTime,h,m,s,ms);
 
-    if h > 0 then begin
-       Result := format('%dh %dm %ds',[h,m,s]);
+    if ForTime > 1 then begin// More than a Day..
+       ms := trunc(ForTime);
+       Result := format('%dh %dm',[ms * 24 + h, m]);
+    end else if h > 0 then begin
+       Result := format('%dh %dm %ds',[h, m, s]);
     end else if m > 0 then begin
        Result := format('%dm %ds',[m,s]);
 

@@ -22,8 +22,6 @@ object FromBrowse: TFromBrowse
     Height = 41
     Align = alBottom
     TabOrder = 0
-    ExplicitTop = 249
-    ExplicitWidth = 554
     DesignSize = (
       631
       41)
@@ -36,7 +34,6 @@ object FromBrowse: TFromBrowse
       Caption = 'Cancel'
       ModalResult = 2
       TabOrder = 0
-      ExplicitLeft = 505
     end
     object Btnok: TButton
       Left = 468
@@ -47,7 +44,6 @@ object FromBrowse: TFromBrowse
       Caption = 'Ok'
       TabOrder = 1
       OnClick = BtnokClick
-      ExplicitLeft = 426
     end
   end
   object pBottom: TPanel
@@ -57,7 +53,6 @@ object FromBrowse: TFromBrowse
     Height = 82
     Align = alBottom
     TabOrder = 1
-    ExplicitWidth = 607
     DesignSize = (
       631
       82)
@@ -78,7 +73,6 @@ object FromBrowse: TFromBrowse
       Height = 23
       Anchors = [akLeft, akTop, akRight]
       TabOrder = 0
-      ExplicitWidth = 508
     end
     object BtnBrowse: TButton
       Left = 547
@@ -89,7 +83,6 @@ object FromBrowse: TFromBrowse
       Caption = 'Browse'
       TabOrder = 1
       OnClick = BtnBrowseClick
-      ExplicitLeft = 523
     end
   end
   object PTop: TPanel
@@ -100,9 +93,6 @@ object FromBrowse: TFromBrowse
     Align = alClient
     Caption = 'PTop'
     TabOrder = 2
-    ExplicitTop = 16
-    ExplicitWidth = 586
-    ExplicitHeight = 297
     DesignSize = (
       631
       328)
@@ -128,7 +118,8 @@ object FromBrowse: TFromBrowse
     end
   end
   object OpenDlg: TOpenDialog
-    Filter = 'Client Files|*.bk5|Practice|system.db'
+    FileName = 'C:\AU_FREEDMAN\SYSTEM.DB'
+    Filter = 'Practice file|system.db'
     Options = [ofHideReadOnly, ofPathMustExist, ofEnableSizing]
     Title = 'Practice Install'
     Left = 440

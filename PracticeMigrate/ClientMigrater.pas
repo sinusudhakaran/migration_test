@@ -62,6 +62,8 @@ TClientMigrater = class (TMigrater)
     FColumnConfigTable: TColumnConfigTable;
     FColumnConfigColumnsTable: TColumnConfigColumnsTable;
     FMatchIDList: TGuidList;
+    FMemList: TGuidList;
+    FMasterMemList: TGuidList;
     //FUpdateAccountStatus: TADOStoredProc;
     //FUpdateProcessingStatusForAllClients : TADOStoredProc;
     FExcludedFromScheduledReports: TStringList;
@@ -135,6 +137,8 @@ TClientMigrater = class (TMigrater)
     //function GetUpdateProcessingStatusForAllClients: TADOStoredProc;
     function GetReportParameterTable: TReportParameterTable;
     function GetClientReportTable: TClientReportTable;
+    procedure SetMemList(const Value: TGuidList);
+   
   public
    constructor Create(AConnection: string);
    destructor Destroy; override;
@@ -148,7 +152,7 @@ TClientMigrater = class (TMigrater)
                     ATypeID: TGuid;
                     AMagicNumber,
                     ACountry: Integer;
-                    CheckedOutUserID: WideString;
+                    CheckedOutUserID: TGuid;
                     AClient: pClient_File_Rec = nil): Boolean;
 
 
@@ -191,6 +195,8 @@ TClientMigrater = class (TMigrater)
    // Lists
    property DivisionList: TGuidList read GetDivisionList write SetDivisionList;
    property MatchIDList: TGuidList read GetMatchIDList;
+   property MemList: TGuidList read FMemList write SetMemList;
+   property MasterMemList: TGuidList read FMasterMemList write FMasterMemList;
 
    // Stored Procs
   // property UpdateAccountStatus: TADOStoredProc read GetUpdateAccountStatus;
@@ -211,6 +217,8 @@ end;
 
 implementation
 uses
+   mxFiles32,
+   AutoCode32,
    logger,
    STRUtils,
    OmniXML,
@@ -245,6 +253,7 @@ var
    MyAction: TMigrateAction;
    Account: tBank_Account;
    GuidList: TGuidList;
+
    AdminBankAccount: TGuidObject;// pSystem_Bank_Account_Rec;
    Map: TGuidObject; //pClient_Account_Map_Rec;
 
@@ -343,10 +352,33 @@ var
        end;
    end;
 
+   procedure GetMasteMemList;
+   var BankPrefix : string;
+       System: TSystemMigrater;
+   begin
+      if not Assigned(SystemMirater) then
+         Exit;
+      System := SystemMirater as TSystemMigrater;
+
+      FmasterMemList := nil;
+      if (Account.baFields.baApply_Master_Memorised_Entries) and Assigned(AdminSystem) and
+         (FClient.clFields.clMagic_Number = AdminSystem.fdFields.fdMagic_Number) and
+         (FClient.clFields.clDownload_From = dlAdminSystem) then
+      begin
+         BankPrefix := mxFiles32.GetBankPrefix(Account.baFields.baBank_Account_Number);
+         if BankPrefix = '' then
+            exit;
+         masterMemList :=  System.GetMasterMemList(BankPrefix);
+
+      end;
+   end;
 begin
    Result := False;
    Account := tBank_Account(Value.Data);
    GuidList := nil;
+   FreeAndNil(FMemList);
+
+
    MyAction := ForAction.InsertAction (Account.Title,Value);
    try try
       Account_RecTable.Insert
@@ -408,14 +440,20 @@ begin
                  Account.baFields.baHDE_Sort_Order);
                  }
 
+
+       MemList := TGuidList.Create(Account.baMemorisations_List);
+       MemList.reverse;
+       if not RunGuidList(MyAction,'Memorizations',MemList,AddMemorisation) then
+          Exit;
+
+       GetMasteMemList;
+
+       AutoCodeEntries(FClient,Account,AllEntries,0,0);
+
        GuidList := TGuidList.Create(Account.baTransaction_List);
        if not RunGuidList(MyAction,'Transactions',GuidList,AddTransaction) then
           Exit;
 
-       GuidList.CloneList(Account.baMemorisations_List);
-       GuidList.reverse;
-       if not RunGuidList(MyAction,'Memorizations',GuidList,AddMemorisation) then
-          Exit;
 
        MyAction.Status := Success;
 
@@ -429,6 +467,7 @@ begin
    end;
    finally
       FreeAndNil(GuidList);
+      FreeAndNil(FMemList);
    end;
 end;
 
@@ -771,7 +810,7 @@ begin
 end;
 
 
-function TClientMigrater.AddTransaction(ForAction: TMigrateAction; Value: TGuidObject): Boolean;        
+function TClientMigrater.AddTransaction(ForAction: TMigrateAction; Value: TGuidObject): Boolean;
 var
    Diss: PDissection_Rec;
    Transaction: PTransaction_Rec;
@@ -783,6 +822,47 @@ var
    IsPayeeOverridden,
    IsJobOverridden : Boolean;
    DissPayee : integer;
+
+   function FindMem(fromList: TGuidList): TGuid;
+   var I: Integer;
+   begin
+      fillChar(Result,Sizeof(TGuid),0);
+      if not Assigned(fromList) then
+         Exit;
+
+      for I := 0 to fromList.Count - 1 do
+         if TMemorisation(TGuidObject(fromList.Items[I]).Data).mdFields.mdSequence_No = Transaction.txMatched_By.mdSequence_No then begin
+            Result := TGuidObject(fromList.Items[I]).GuidID;
+            Exit;
+         end;
+   end;
+
+   function GetMem: TGuid;
+   begin
+       fillChar(Result,Sizeof(TGuid),0);
+       if Transaction.txCoded_By <> BKCONST.cbMemorisedC then
+          exit;
+
+       if not assigned(Transaction.txMatched_By) then
+          exit;
+
+       if Transaction.txMatched_By.mdFrom_Master_List then
+          exit;
+       Result := FindMem(memList);
+   end;
+
+
+   function GetMasterMem: TGuid;
+   begin
+       fillChar(Result,Sizeof(TGuid),0);
+       if Transaction.txCoded_By <> BKCONST.cbMemorisedM then
+          exit;
+       if not assigned(Transaction.txMatched_By) then
+          exit;
+       if not Transaction.txMatched_By.mdFrom_Master_List then
+          exit;
+       Result := FindMem(MasterMemList);
+   end;
 
 begin
    Transaction := PTransaction_Rec(Value.Data);
@@ -846,6 +926,7 @@ begin
    if IsDissected then
       Transaction.txGST_Amount := GST;
 
+
    Transaction_RecTable.Insert
                        (
                             Value.GuidID,
@@ -856,7 +937,9 @@ begin
                             IsDissected,
                             IsSplitJob,
                             IsPayeeOverridden,
-                            IsJobOverridden
+                            IsJobOverridden,
+                            GetMem,
+                            GetMasterMem
                        );
 
    Diss := Transaction.txFirst_Dissection;
@@ -1003,8 +1086,8 @@ begin
 
       ClearParametersTable('Client Parameters','ClientParameters');
 
-      DeleteTable(MyAction,'ReportingParameters',True);
-      //DeleteTable(MyAction,'ClientReports');
+      DeleteTable(MyAction,'ReportParameters',True);
+      DeleteTable(MyAction,'ClientReports');
 
       //ClearParametersTable('Report Parameters','ReportParameters');
 
@@ -1063,6 +1146,7 @@ begin
    FExcludedFromScheduledReports := nil;
    FReportParameterTable := nil;
    FClientReportTable := nil;
+   MemList := nil;
 end;
 
 destructor TClientMigrater.Destroy;
@@ -1423,7 +1507,7 @@ function TClientMigrater.Migrate(ForAction:TMigrateAction;
                     ATypeID: TGuid;
                     AMagicNumber,
                     ACountry: Integer;
-                    CheckedOutUserID: WideString;
+                    CheckedOutUserID: TGuid;
                     AClient: pClient_File_Rec = nil): Boolean;
 
 
@@ -1848,6 +1932,14 @@ begin
    ClientFinacialReportOptionsTable.DoSuperfund := FDoSuperfund;
    CodingReportOptionsTable.DoSuperfund := FDoSuperfund;
 
+end;
+
+
+
+procedure TClientMigrater.SetMemList(const Value: TGuidList);
+begin
+  FreeAndNil(FMemList);
+  FMemList := Value;
 end;
 
 procedure TClientMigrater.SetSystemMirater(const Value: TMigrater);

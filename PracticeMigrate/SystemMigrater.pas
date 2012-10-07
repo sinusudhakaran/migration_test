@@ -4,6 +4,7 @@ unit SystemMigrater;
 interface
 
 uses
+   Contnrs,
    Classes,
    UBatchBase,
    DB,
@@ -19,6 +20,15 @@ uses
    MigrateActions;
 
 type
+
+
+   // Used for keeping the Master Mems avalaible
+   TMasterMemList = class (Tobject)
+   public
+      MemRec : pSystem_Memorisation_List_Rec;
+      MemList : TGuidList;
+      destructor Destroy; override;
+   end;
 
 TSystemMigrater = class (TMigrater)
 private
@@ -42,6 +52,7 @@ private
     FDoUnsynchronised: Boolean;
     FUserMappingTable: TUserMappingTable;
     FClientAccountMap: tGuidList;
+    FMasterMemLists: TObjectList;
     FMasterMemorisationsTable: TMasterMemorisationsTable;
     FMasterMemlinesTable: TMasterMemlinesTable;
     FChargesTable: TChargesTable;
@@ -113,6 +124,7 @@ private
     function GetParameterTable: TParameterTable;
     function GetTaxEntriesTable: TTaxEntriesTable;
     function GetTaxRatesTable: TTaxRatesTable;
+    function GetMasterMemLists: TObjectList;
 
 protected
     procedure OnConnected; override;
@@ -130,6 +142,7 @@ public
     property UserList: TGuidList read GetUserList;
     property SystemAccountList: TGuidList read GetSystemAccountList;
     property ClientList: TGuidList read GetClientList;
+    property MasterMemLists: TObjectList read GetMasterMemLists;
     property ClientAccountMap: tGuidList read GetClientAccountMap;
     property SystemUsers: TADODataSet read GetSystemUsers;
     function GetSystemAccount(AccountNo: string): TGuidObject;
@@ -166,6 +179,7 @@ public
     function GetUser(const Value: string): TGuid; overload;
     function GetUser(const Value: integer): TGuid; overload;
     function GetClient(const Value: Integer): tGuid;
+    function GetMasterMemList(const Prefix: string): TGuidList;
 
 
     // Work Documents
@@ -194,6 +208,9 @@ uses
    SyHelpers,
    SysUtils,
    LogUtil;
+
+
+
 
 { TSystemMigrater }
 
@@ -323,32 +340,7 @@ var
    Clients: TClientMigrater;
    Clientrec: pClient_File_Rec;
 
-   function GetUserID: WideString;
-   var
-    User: pUser_Rec;
-    UserCode: string;
-    Query: TADOQuery;
-    CheckedOutToStr: WideString;
-   begin
-     if Assigned(AdminSystem) then
-     begin
-       User := AdminSystem.fdSystem_User_List.FindLRN(Clientrec.cfCurrent_User);
-       if Assigned(User) then
-       begin
-         Query := TADOQuery.Create(nil);
-         try
-           Query.Connection := Connection;
-           UserCode := User.usCode;
-           Query.SQL.Add(Format('SELECT Id FROM PracticeSystem.dbo.Users WHERE Code = ''%0:s''', [UserCode]));
-           Query.Open;
-           Result := Query.FieldByName('Id').AsWideString;
-           Query.Close;
-         finally
-           Query.Free;
-         end;
-       end;
-     end;
-   end;
+
 begin
 
    Result := false;
@@ -373,12 +365,12 @@ begin
                             ClientTypeList.FindLrnGuid(Clientrec.cfClient_Type_LRN),
                             Fsystem.fdFields.fdMagic_Number,
                             Fsystem.fdFields.fdCountry,
-                            GetUserID,
+                            GetUser(Clientrec.cfCurrent_User),
                             Clientrec
                        );
         end
-           else ForAction.LogMessage(Format('Archived Client %s Skipped',[Clientrec.cfFile_Code ]))
-      else ForAction.LogMessage(Format('Unsynchronised Client %s Skipped',[Clientrec.cfFile_Code ]));
+           else ForAction.LogMessage(Format('Archived Client: "%s" Skipped',[Clientrec.cfFile_Code ]))
+      else ForAction.LogMessage(Format('Unsynchronised Client: "%s" Skipped',[Clientrec.cfFile_Code ]));
 
 end;
 
@@ -833,6 +825,7 @@ begin
    FbtTable := nil;
    FSystemAccountTable := nil;
    FClientAccountMapTable := nil;
+   FMasterMemLists := nil;
    FSystemClientFileTable := nil;
    FClientTypeTable := nil;
    FUserTable := nil;
@@ -858,6 +851,7 @@ begin
    FreeAndNil(FbtTable);
    FreeAndNil(FSystemAccountTable);
    FreeAndNil(FClientAccountMapTable);
+   FreeAndNil(FMasterMemLists);
    FreeAndNil(FSystemClientFileTable);
    FreeAndNil(FClientTypeTable);
    FreeAndNil(FUserTable);
@@ -969,6 +963,30 @@ begin
   if not Assigned(FMasterMemlinesTable) then
       FMasterMemlinesTable := TMasterMemlinesTable.Create(Connection);
    Result := FMasterMemlinesTable;
+end;
+
+function TSystemMigrater.GetMasterMemList(const Prefix: string): TGuidList;
+var
+  i: integer;
+  System_Memorisation: pSystem_Memorisation_List_Rec;
+begin
+  Result := nil;
+  for i := 0 to Pred(MasterMemLists.Count) do begin
+    System_Memorisation := TMasterMemList(MasterMemLists[i]).MemRec;
+    if Assigned(System_Memorisation) then
+      if System_Memorisation.smBank_Prefix = Prefix then begin
+        Result := TMasterMemList(MasterMemLists[i]).MemList;
+        Break;
+      end;
+  end;
+end;
+
+
+function TSystemMigrater.GetMasterMemLists: TObjectList;
+begin
+   if not Assigned(FMasterMemLists) then
+      FMasterMemLists := TobjectList.Create(true);
+   Result := FMasterMemLists;
 end;
 
 function TSystemMigrater.GetMasterMemorisationsTable: TMasterMemorisationsTable;
@@ -1187,13 +1205,37 @@ end;
  *)
 
  procedure TSystemMigrater.MigrateMasterMems(ForAction: TMigrateAction);
- var lMemlist : TGuidList;
+ var I : Integer;
+    MyAction : TMigrateAction;
+    NewItem : TMasterMemList;
  begin
-   lMemlist := TGuidList.Create(fsystem.fSystem_Memorisation_List);
+   if fsystem.fSystem_Memorisation_List.ItemCount <= 0 then
+      exit;
+
+   MyAction := ForAction.InsertAction('Master Mems');
+   MyAction.Target := fsystem.fSystem_Memorisation_List.Last;
+  
+   try 
    try
-      RunGuidList(ForAction,'Master Mems',lMemlist,AddMasterMemLists);
+
+      for I := 0 to fsystem.fSystem_Memorisation_List.Last do begin
+         if TMemorisations_List(fsystem.fSystem_Memorisation_List.System_Memorisation_At(I).smMemorisations).ItemCount = 0 then
+            continue;
+         NewItem := TMasterMemList.Create;
+         NewItem.MemRec := fsystem.fSystem_Memorisation_List.System_Memorisation_At(I);
+         NewItem.MemList := TGuidList.Create(TMemorisations_List(NewItem.MemRec.smMemorisations));
+         // ReSequence..
+         NewItem.MemList.reverse;
+         RunGuidList(MyAction, NewItem.MemRec.smBank_Prefix, NewItem.MemList, AddMasterMem);
+         MasterMemLists.Add(NewItem);
+         MyAction.Count := I;
+      end;
+      MyAction.Status := Success;
+   except
+      on e: exception do MyAction.Exception(e, 'Migrating Master mems');
+   end;
    finally
-      FreeAndNil(lMemlist);
+
    end;
  end;
 
@@ -1602,6 +1644,8 @@ begin
    ClientList.CheckSpeed := True;
    if not RunGuidList(MyAction,'Client Files',ClientList, AddClientFile, true) then
       Exit;
+
+
    MyAction.Counter := 75;
 
    //TClientMigrater(ClientMigrater).UpdateProcessingStatusAllClients(MyAction);
@@ -1750,5 +1794,13 @@ begin
 end;
 
 
+
+{ TMasterMemList }
+
+destructor TMasterMemList.Destroy;
+begin
+  FreeAndNil(MemList);
+  inherited;
+end;
 
 end.
