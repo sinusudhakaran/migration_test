@@ -1,8 +1,8 @@
-$|BK_FILE_VERSION  = 170;  (* Current Version counter for files
+$|BK_FILE_VERSION  = 171;  (* Current Version counter for files
 $|                           Changes if structure or method of storing a value would cause
 $|                           data to be represented incorrectly, or an exception to be raised *)
 $|
-$|BK_FILE_VERSION_STR = '5.25';   (* Should be changed whenever BK_FILE_VERSION changes. Is used to show user what version they need *)
+$|BK_FILE_VERSION_STR = '5.26';   (* Should be changed whenever BK_FILE_VERSION changes. Is used to show user what version they need *)
 $|
 $|(*
 $|    History  :     31    New format for GST class codes ( delimited string)
@@ -204,6 +204,7 @@ $|                         Added Core Trans ID High Integer
 $|                         Added Bank Account Core ID
 $|                         Added Bank Account Online Secure Code
 $|                         Changed Transaction Matched_By from type "Memorised Transaction Rec" to "Memorisation Detail Rec"
+$|  5.26                   Added fields Contractor..ABN to Payee Detail record
 $|*)
 
 N|Client|cl|20
@@ -536,6 +537,16 @@ N|Payee Detail|pd|90
 F|Number|L
 F|Name|S|40
 F|Audit Record ID|L
+F|Contractor|Y
+F|Surname|S|30
+F|Given Name|S|15
+F|Other Name|S|15
+F|Address|S|38
+F|Town|S|27
+F|State|S|3
+F|Post Code|S|4
+F|Phone Number|S|10
+F|ABN|S|14
 C|Amount|TLB
 C|Total|$
 C|Temp Tag|L

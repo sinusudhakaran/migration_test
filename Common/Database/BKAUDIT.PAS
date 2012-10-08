@@ -337,6 +337,16 @@ begin
     FAuditNamesArray[90,92] := 'Number';
     FAuditNamesArray[90,93] := 'Name';
     FAuditNamesArray[90,94] := 'Audit_Record_ID';
+    FAuditNamesArray[90,95] := 'Contractor';
+    FAuditNamesArray[90,96] := 'Surname';
+    FAuditNamesArray[90,97] := 'Given_Name';
+    FAuditNamesArray[90,98] := 'Other_Name';
+    FAuditNamesArray[90,99] := 'Address';
+    FAuditNamesArray[90,100] := 'Town';
+    FAuditNamesArray[90,101] := 'State';
+    FAuditNamesArray[90,102] := 'Post_Code';
+    FAuditNamesArray[90,103] := 'Phone_Number';
+    FAuditNamesArray[90,104] := 'ABN';
 
    FAuditTableArray[95] := 'Payee_Line';
     FAuditNamesArray[95,97] := 'Account';

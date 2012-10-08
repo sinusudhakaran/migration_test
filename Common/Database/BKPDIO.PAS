@@ -49,6 +49,16 @@ CONST
    tkpdNumber                           = 92 ;
    tkpdName                             = 93 ;
    tkpdAudit_Record_ID                  = 94 ;
+   tkpdContractor                       = 95 ;
+   tkpdSurname                          = 96 ;
+   tkpdGiven_Name                       = 97 ;
+   tkpdOther_Name                       = 98 ;
+   tkpdAddress                          = 99 ;
+   tkpdTown                             = 100 ;
+   tkpdState                            = 101 ;
+   tkpdPost_Code                        = 102 ;
+   tkpdPhone_Number                     = 103 ;
+   tkpdABN                              = 104 ;
 
 {  -------------------------------------------------------------------  }
 
@@ -77,6 +87,16 @@ Begin
       F.WriteIntegerValue( tkpdNumber , pdNumber );
       F.WriteStringValue( tkpdName , pdName );
       F.WriteIntegerValue( tkpdAudit_Record_ID , pdAudit_Record_ID );
+      F.WriteBooleanValue( tkpdContractor , pdContractor );
+      F.WriteStringValue( tkpdSurname , pdSurname );
+      F.WriteStringValue( tkpdGiven_Name , pdGiven_Name );
+      F.WriteStringValue( tkpdOther_Name , pdOther_Name );
+      F.WriteStringValue( tkpdAddress , pdAddress );
+      F.WriteStringValue( tkpdTown , pdTown );
+      F.WriteStringValue( tkpdState , pdState );
+      F.WriteStringValue( tkpdPost_Code , pdPost_Code );
+      F.WriteStringValue( tkpdPhone_Number , pdPhone_Number );
+      F.WriteStringValue( tkpdABN , pdABN );
       F.WriteToken( tkEnd_Payee_Detail );
    end;
 end; { of Write_Payee_Detail_Rec }
@@ -102,6 +122,16 @@ Begin
          tkpdNumber                           : pdNumber := F.ReadIntegerValue;
          tkpdName                             : pdName := F.ReadStringValue;
          tkpdAudit_Record_ID                  : pdAudit_Record_ID := F.ReadIntegerValue;
+         tkpdContractor                       : pdContractor := F.ReadBooleanValue;
+         tkpdSurname                          : pdSurname := F.ReadStringValue;
+         tkpdGiven_Name                       : pdGiven_Name := F.ReadStringValue;
+         tkpdOther_Name                       : pdOther_Name := F.ReadStringValue;
+         tkpdAddress                          : pdAddress := F.ReadStringValue;
+         tkpdTown                             : pdTown := F.ReadStringValue;
+         tkpdState                            : pdState := F.ReadStringValue;
+         tkpdPost_Code                        : pdPost_Code := F.ReadStringValue;
+         tkpdPhone_Number                     : pdPhone_Number := F.ReadStringValue;
+         tkpdABN                              : pdABN := F.ReadStringValue;
          else
             Raise ETokenException.CreateFmt( SUnknownToken, [ Token ] );
       end; { of Case }
@@ -148,7 +178,7 @@ begin
   for i := Low(ChangedFields) to High(ChangedFields) do
     ChangedFields[i] := 0;
   j := 0;
-  for i := tkpdNumber to tkpdAudit_Record_ID do begin
+  for i := tkpdNumber to tkpdABN do begin
     ChangedFields[j] := i;
     Inc(j);
   end;
@@ -185,6 +215,56 @@ begin
   if (P1.pdAudit_Record_ID <> P2.pdAudit_Record_ID) then begin
     P3.pdAudit_Record_ID := P1.pdAudit_Record_ID;
     ChangedFields[i] := tkpdAudit_Record_ID;
+    Inc(i);
+  end;
+  if (P1.pdContractor <> P2.pdContractor) then begin
+    P3.pdContractor := P1.pdContractor;
+    ChangedFields[i] := tkpdContractor;
+    Inc(i);
+  end;
+  if (P1.pdSurname <> P2.pdSurname) then begin
+    P3.pdSurname := P1.pdSurname;
+    ChangedFields[i] := tkpdSurname;
+    Inc(i);
+  end;
+  if (P1.pdGiven_Name <> P2.pdGiven_Name) then begin
+    P3.pdGiven_Name := P1.pdGiven_Name;
+    ChangedFields[i] := tkpdGiven_Name;
+    Inc(i);
+  end;
+  if (P1.pdOther_Name <> P2.pdOther_Name) then begin
+    P3.pdOther_Name := P1.pdOther_Name;
+    ChangedFields[i] := tkpdOther_Name;
+    Inc(i);
+  end;
+  if (P1.pdAddress <> P2.pdAddress) then begin
+    P3.pdAddress := P1.pdAddress;
+    ChangedFields[i] := tkpdAddress;
+    Inc(i);
+  end;
+  if (P1.pdTown <> P2.pdTown) then begin
+    P3.pdTown := P1.pdTown;
+    ChangedFields[i] := tkpdTown;
+    Inc(i);
+  end;
+  if (P1.pdState <> P2.pdState) then begin
+    P3.pdState := P1.pdState;
+    ChangedFields[i] := tkpdState;
+    Inc(i);
+  end;
+  if (P1.pdPost_Code <> P2.pdPost_Code) then begin
+    P3.pdPost_Code := P1.pdPost_Code;
+    ChangedFields[i] := tkpdPost_Code;
+    Inc(i);
+  end;
+  if (P1.pdPhone_Number <> P2.pdPhone_Number) then begin
+    P3.pdPhone_Number := P1.pdPhone_Number;
+    ChangedFields[i] := tkpdPhone_Number;
+    Inc(i);
+  end;
+  if (P1.pdABN <> P2.pdABN) then begin
+    P3.pdABN := P1.pdABN;
+    ChangedFields[i] := tkpdABN;
     Inc(i);
   end;
 

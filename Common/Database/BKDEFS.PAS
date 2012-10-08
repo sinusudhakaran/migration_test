@@ -9,13 +9,13 @@ Interface uses MONEYDEF, DATEDEF;
 {  -------------------------------------------------------------------  }
 
 Const
-   BK_IOLIB_Version : Integer = 663;
-   BK_IOLIB_Date    = '31/08/12';
-   BK_FILE_VERSION  = 170;  (* Current Version counter for files
+   BK_IOLIB_Version : Integer = 669;
+   BK_IOLIB_Date    = '08/10/12';
+   BK_FILE_VERSION  = 171;  (* Current Version counter for files
                               Changes if structure or method of storing a value would cause
                               data to be represented incorrectly, or an exception to be raised *)
    
-   BK_FILE_VERSION_STR = '5.25';   (* Should be changed whenever BK_FILE_VERSION changes. Is used to show user what version they need *)
+   BK_FILE_VERSION_STR = '5.26';   (* Should be changed whenever BK_FILE_VERSION changes. Is used to show user what version they need *)
    
    (*
        History  :     31    New format for GST class codes ( delimited string)
@@ -217,6 +217,7 @@ Const
                             Added Bank Account Core ID
                             Added Bank Account Online Secure Code
                             Changed Transaction Matched_By from type "Memorised Transaction Rec" to "Memorisation Detail Rec"
+     5.26                   Added fields Contractor..ABN to Payee Detail record
    *)
    //Audit Trail - 135 Don't reuse token!!! - Record defined in SY.TXT but also used in Client File
 
@@ -592,6 +593,16 @@ Type
       pdNumber                           : Integer;       { Stored }
       pdName                             : String[ 40 ];       { Stored }
       pdAudit_Record_ID                  : Integer;       { Stored }
+      pdContractor                       : Boolean;       { Stored }
+      pdSurname                          : String[ 30 ];       { Stored }
+      pdGiven_Name                       : String[ 15 ];       { Stored }
+      pdOther_Name                       : String[ 15 ];       { Stored }
+      pdAddress                          : String[ 38 ];       { Stored }
+      pdTown                             : String[ 27 ];       { Stored }
+      pdState                            : String[ 3 ];       { Stored }
+      pdPost_Code                        : String[ 4 ];       { Stored }
+      pdPhone_Number                     : String[ 10 ];       { Stored }
+      pdABN                              : String[ 14 ];       { Stored }
       pdAmount                           : TLBRec;
       pdTotal                            : Money;
       pdTemp_Tag                         : Integer;
