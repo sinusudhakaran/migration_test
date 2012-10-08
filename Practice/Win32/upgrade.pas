@@ -4166,6 +4166,19 @@ const
     aClient.ClientCopyReset;
   end;
 
+  procedure UpgradeToVersion171;
+  var
+    Index: Integer;
+    Payee: TPayee;
+  begin
+    for Index := aClient.clPayee_List.First to aClient.clPayee_List.Last do
+    begin
+      Payee := aClient.clPayee_List.Payee_At(Index);
+
+      Payee.pdFields.pdContractor := False;
+    end;
+  end;
+
 begin
    with aClient.clFields do begin
 
@@ -4504,6 +4517,12 @@ begin
       if (CLFile_Version < 170) then
       begin
         clFile_Version := 170;
+      end;
+      // 2012 Post Tagging
+      if (CLFile_Version < 171) then
+      begin
+        UpgradeToVersion171;
+        clFile_Version := 171;
       end;
    end;
 end;
