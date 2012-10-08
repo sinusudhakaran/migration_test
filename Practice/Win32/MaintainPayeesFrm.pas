@@ -451,6 +451,17 @@ begin
          nPayee.pdFields.pdNumber := SourcePayee.pdNumber;
          nPayee.pdFields.pdName   := SourcePayee.pdName;
 
+         nPayee.pdFields.pdContractor := SourcePayee.pdFields.pdContractor;
+         nPayee.pdFields.pdSurname := SourcePayee.pdFields.pdSurname;
+         nPayee.pdFields.pdGiven_Name := SourcePayee.pdFields.pdGiven_Name;
+         nPayee.pdFields.pdOther_Name := SourcePayee.pdFields.pdOther_Name;
+         nPayee.pdFields.pdAddress := SourcePayee.pdFields.pdAddress;
+         nPayee.pdFields.pdTown := SourcePayee.pdFields.pdTown;
+         nPayee.pdFields.pdState := SourcePayee.pdFields.pdState;
+         nPayee.pdFields.pdPost_Code := SourcePayee.pdFields.pdPost_Code;
+         nPayee.pdFields.pdPhone_Number := SourcePayee.pdFields.pdPhone_Number;
+         nPayee.pdFields.pdABN := SourcePayee.pdFields.pdABN;
+
          for j := SourcePayee.pdLines.First to SourcePayee.pdLines.Last do
          begin
            SourcePayeeLine := SourcePayee.pdLines.PayeeLine_At(j);
