@@ -3,8 +3,8 @@ object dlgPayeeDetail: TdlgPayeeDetail
   Top = 266
   BorderIcons = [biSystemMenu, biMaximize]
   Caption = 'Payee Details'
-  ClientHeight = 316
-  ClientWidth = 622
+  ClientHeight = 370
+  ClientWidth = 1075
   Color = clBtnFace
   Constraints.MinHeight = 350
   Constraints.MinWidth = 630
@@ -21,17 +21,17 @@ object dlgPayeeDetail: TdlgPayeeDetail
   TextHeight = 13
   object pnlMain: TPanel
     Left = 0
-    Top = 84
-    Width = 622
-    Height = 161
+    Top = 137
+    Width = 1075
+    Height = 162
     Align = alClient
     BevelOuter = bvLowered
     TabOrder = 0
     object tblSplit: TOvcTable
       Left = 1
       Top = 30
-      Width = 620
-      Height = 130
+      Width = 1073
+      Height = 131
       RowLimit = 6
       LockedCols = 0
       LeftCol = 0
@@ -73,7 +73,14 @@ object dlgPayeeDetail: TdlgPayeeDetail
       OnMouseDown = tblSplitMouseDown
       OnUserCommand = tblSplitUserCommand
       CellData = (
-        'dlgPayeeDetail.Header')
+        'dlgPayeeDetail.Header'
+        'dlgPayeeDetail.colLineType'
+        'dlgPayeeDetail.colPercent'
+        'dlgPayeeDetail.ColAmount'
+        'dlgPayeeDetail.ColGSTCode'
+        'dlgPayeeDetail.colNarration'
+        'dlgPayeeDetail.ColDesc'
+        'dlgPayeeDetail.ColAcct')
       RowData = (
         21)
       ColData = (
@@ -109,7 +116,7 @@ object dlgPayeeDetail: TdlgPayeeDetail
     object Panel2: TPanel
       Left = 1
       Top = 1
-      Width = 620
+      Width = 1073
       Height = 29
       Align = alTop
       BevelOuter = bvNone
@@ -145,17 +152,17 @@ object dlgPayeeDetail: TdlgPayeeDetail
   end
   object Panel3: TPanel
     Left = 0
-    Top = 245
-    Width = 622
+    Top = 299
+    Width = 1075
     Height = 50
     Align = alBottom
     BevelOuter = bvNone
     TabOrder = 1
     DesignSize = (
-      622
+      1075
       50)
     object btnOK: TButton
-      Left = 460
+      Left = 913
       Top = 20
       Width = 75
       Height = 25
@@ -165,7 +172,7 @@ object dlgPayeeDetail: TdlgPayeeDetail
       OnClick = btnOKClick
     end
     object btnCancel: TButton
-      Left = 544
+      Left = 997
       Top = 20
       Width = 75
       Height = 25
@@ -234,8 +241,8 @@ object dlgPayeeDetail: TdlgPayeeDetail
   object pnlHeader: TPanel
     Left = 0
     Top = 0
-    Width = 622
-    Height = 84
+    Width = 1075
+    Height = 137
     Align = alTop
     BevelOuter = bvNone
     TabOrder = 2
@@ -256,7 +263,7 @@ object dlgPayeeDetail: TdlgPayeeDetail
       FocusControl = eName
     end
     object nPayeeNo: TOvcNumericField
-      Left = 128
+      Left = 127
       Top = 16
       Width = 70
       Height = 21
@@ -278,22 +285,224 @@ object dlgPayeeDetail: TdlgPayeeDetail
       RangeLow = {00000000000000000000}
     end
     object eName: TEdit
-      Left = 128
+      Left = 127
       Top = 48
       Width = 377
       Height = 24
       BorderStyle = bsNone
       MaxLength = 40
-      TabOrder = 1
-      Text = 'eName'
+      TabOrder = 2
       OnChange = eNameChange
       OnEnter = eNameEnter
+    end
+    object pnlPayeeName: TPanel
+      Left = 13
+      Top = 74
+      Width = 495
+      Height = 61
+      BevelOuter = bvNone
+      TabOrder = 3
+      Visible = False
+      object Label3: TLabel
+        Left = 3
+        Top = 6
+        Width = 75
+        Height = 13
+        Caption = 'Payee &Surname'
+        FocusControl = edtPayeeSurname
+      end
+      object Label4: TLabel
+        Left = 3
+        Top = 35
+        Width = 88
+        Height = 13
+        Caption = 'Payee &given name'
+        FocusControl = edtPayeeGivenName
+      end
+      object Label5: TLabel
+        Left = 271
+        Top = 35
+        Width = 57
+        Height = 13
+        Caption = 'Other na&me'
+        FocusControl = edtOtherName
+      end
+      object edtPayeeSurname: TEdit
+        Left = 114
+        Top = 3
+        Width = 377
+        Height = 24
+        BorderStyle = bsNone
+        MaxLength = 30
+        TabOrder = 0
+        OnChange = eNameChange
+        OnEnter = eNameEnter
+      end
+      object edtPayeeGivenName: TEdit
+        Left = 114
+        Top = 32
+        Width = 145
+        Height = 24
+        BorderStyle = bsNone
+        MaxLength = 15
+        TabOrder = 1
+        OnChange = eNameChange
+        OnEnter = eNameEnter
+      end
+      object edtOtherName: TEdit
+        Left = 346
+        Top = 32
+        Width = 145
+        Height = 24
+        BorderStyle = bsNone
+        MaxLength = 15
+        TabOrder = 2
+        OnChange = eNameChange
+        OnEnter = eNameEnter
+      end
+    end
+    object pnlPayeeAddress: TPanel
+      Left = 529
+      Top = 18
+      Width = 374
+      Height = 117
+      BevelOuter = bvNone
+      TabOrder = 4
+      Visible = False
+      object Label6: TLabel
+        Left = 2
+        Top = 5
+        Width = 39
+        Height = 13
+        Caption = '&Address'
+        FocusControl = edtAddress
+      end
+      object Label7: TLabel
+        Left = 2
+        Top = 33
+        Width = 26
+        Height = 13
+        Caption = 'To&wn'
+        FocusControl = edtTown
+      end
+      object Label8: TLabel
+        Left = 2
+        Top = 62
+        Width = 26
+        Height = 13
+        Caption = 'S&tate'
+        FocusControl = edtState
+      end
+      object Label9: TLabel
+        Left = 2
+        Top = 91
+        Width = 70
+        Height = 13
+        Caption = 'P&hone Number'
+      end
+      object Label10: TLabel
+        Left = 215
+        Top = 62
+        Width = 44
+        Height = 13
+        Caption = 'Postco&de'
+        FocusControl = edtPostcode
+      end
+      object edtPostcode: TEdit
+        Left = 271
+        Top = 59
+        Width = 98
+        Height = 24
+        BorderStyle = bsNone
+        MaxLength = 4
+        TabOrder = 3
+        OnChange = eNameChange
+        OnEnter = eNameEnter
+      end
+      object edtAddress: TEdit
+        Left = 96
+        Top = 2
+        Width = 273
+        Height = 24
+        BorderStyle = bsNone
+        MaxLength = 38
+        TabOrder = 0
+        OnChange = eNameChange
+        OnEnter = eNameEnter
+      end
+      object edtState: TEdit
+        Left = 96
+        Top = 59
+        Width = 109
+        Height = 24
+        BorderStyle = bsNone
+        MaxLength = 3
+        TabOrder = 2
+        OnChange = eNameChange
+        OnEnter = eNameEnter
+      end
+      object edtTown: TEdit
+        Left = 96
+        Top = 30
+        Width = 273
+        Height = 24
+        BorderStyle = bsNone
+        MaxLength = 27
+        TabOrder = 1
+        OnChange = eNameChange
+        OnEnter = eNameEnter
+      end
+      object edtPhoneNumber: TBKNumericEdit
+        Left = 96
+        Top = 88
+        Width = 109
+        Height = 21
+        BorderStyle = bsNone
+        MaxLength = 10
+        TabOrder = 4
+      end
+    end
+    object chkContractorPayee: TCheckBox
+      Left = 387
+      Top = 16
+      Width = 117
+      Height = 17
+      Caption = '&Contractor Payee'
+      TabOrder = 1
+      Visible = False
+    end
+    object pnlPayeeABN: TPanel
+      Left = 923
+      Top = 16
+      Width = 151
+      Height = 33
+      BevelOuter = bvNone
+      TabOrder = 5
+      Visible = False
+      object Label11: TLabel
+        Left = 2
+        Top = 7
+        Width = 20
+        Height = 13
+        Caption = 'A&BN'
+        FocusControl = edtABN
+      end
+      object edtABN: TMaskEdit
+        Left = 34
+        Top = 4
+        Width = 113
+        Height = 24
+        BorderStyle = bsNone
+        EditMask = '99\ 999\ 999\ 999;0; '
+        MaxLength = 14
+        TabOrder = 0
+      end
     end
   end
   object sBar: TStatusBar
     Left = 0
-    Top = 295
-    Width = 622
+    Top = 349
+    Width = 1075
     Height = 21
     Panels = <
       item
@@ -315,8 +524,8 @@ object dlgPayeeDetail: TdlgPayeeDetail
       False
       ())
     Epoch = 1900
-    Left = 424
-    Top = 40
+    Left = 784
+    Top = 312
   end
   object Header: TOvcTCColHead
     Headings.Strings = (
@@ -330,8 +539,8 @@ object dlgPayeeDetail: TdlgPayeeDetail
     ShowLetters = False
     Adjust = otaCenterLeft
     Table = tblSplit
-    Left = 312
-    Top = 8
+    Left = 496
+    Top = 312
   end
   object ColAmount: TOvcTCNumericField
     Adjust = otaCenterRight
@@ -343,13 +552,12 @@ object dlgPayeeDetail: TdlgPayeeDetail
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd]
     PictureMask = '###,###,###.##'
     Table = tblSplit
     TableColor = False
     OnKeyPress = ColAmountKeyPress
-    Left = 472
-    Top = 8
+    Left = 752
+    Top = 312
     RangeHigh = {73B2DBB9838916F2FE43}
     RangeLow = {73B2DBB9838916F2FEC3}
   end
@@ -357,8 +565,8 @@ object dlgPayeeDetail: TdlgPayeeDetail
     Color = clWindow
     Table = tblSplit
     TableColor = False
-    Left = 376
-    Top = 8
+    Left = 560
+    Top = 312
   end
   object ColAcct: TOvcTCString
     AutoAdvanceLeftRight = True
@@ -369,21 +577,21 @@ object dlgPayeeDetail: TdlgPayeeDetail
     OnKeyPress = ColAcctKeyPress
     OnKeyUp = ColAcctKeyUp
     OnOwnerDraw = ColAcctOwnerDraw
-    Left = 344
-    Top = 8
+    Left = 528
+    Top = 312
   end
   object ColGSTCode: TOvcTCString
     MaxLength = 3
     Table = tblSplit
     OnOwnerDraw = ColGSTCodeOwnerDraw
-    Left = 440
-    Top = 8
+    Left = 624
+    Top = 312
   end
   object colNarration: TOvcTCString
     MaxLength = 40
     Table = tblSplit
-    Left = 408
-    Top = 8
+    Left = 592
+    Top = 312
   end
   object colLineType: TOvcTCComboBox
     AcceptActivationClick = False
@@ -392,13 +600,13 @@ object dlgPayeeDetail: TdlgPayeeDetail
     MaxLength = 1
     Style = csDropDownList
     Table = tblSplit
-    Left = 536
-    Top = 8
+    Left = 656
+    Top = 312
   end
   object popPayee: TPopupMenu
     Images = AppImages.Coding
-    Left = 576
-    Top = 16
+    Left = 688
+    Top = 312
     object LookupChart1: TMenuItem
       Caption = '&Lookup chart                                       F2'
       ImageIndex = 0
@@ -442,12 +650,13 @@ object dlgPayeeDetail: TdlgPayeeDetail
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
+    Options = [efoCaretToEnd]
     PictureMask = '###,###,###.####'
     Table = tblSplit
     TableColor = False
     OnKeyPress = ColAmountKeyPress
-    Left = 472
-    Top = 40
+    Left = 720
+    Top = 312
     RangeHigh = {73B2DBB9838916F2FE43}
     RangeLow = {73B2DBB9838916F2FEC3}
   end
