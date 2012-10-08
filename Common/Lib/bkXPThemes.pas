@@ -40,7 +40,8 @@ uses
   RZPanel,
   Classes,
   OvcPf,
-  OvcNf;
+  OvcNf,
+  BKNumericEdit;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -90,6 +91,11 @@ begin
     else if aComponent is TRzToolbar then
     begin
       TRzToolbar(aComponent).BorderInner := fsNone;
+    end
+    else if aComponent is TBKNumericEdit then
+    begin
+      TBKNumericEdit(aComponent).BorderStyle := bsSingle;
+      TBKNumericEdit(aComponent).Ctl3D := true;    
     end;
   end;
 end;
