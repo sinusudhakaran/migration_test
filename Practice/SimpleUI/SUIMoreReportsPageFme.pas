@@ -21,6 +21,7 @@ type
     gbtnLists: tbkExGlassButton;
     gbtnBankRec: tbkExGlassButton;
     gbtnGraphs: tbkExGlassButton;
+    gbtnTaxablePayements: tbkExGlassButton;
     procedure CommonButtonKeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure CommonButtonKeyPress(Sender : TObject; var Key : Char);
     procedure gbtnCashflowClick(Sender: TObject);
@@ -34,6 +35,7 @@ type
     procedure gbtnJobsClick(Sender: TObject);
     procedure gbtnGraphsClick(Sender: TObject);
     procedure gbtnTrialBalanceClick(Sender: TObject);
+    procedure gbtnTaxablePayementsClick(Sender: TObject);
   private
     { Private declarations }
   public
@@ -102,6 +104,11 @@ end;
 procedure TfmeSUIMoreReportsPage.gbtnPLClick(Sender: TObject);
 begin
   SimpleUIHomePageFrm.ChangeHomepageFrame( suiProfitReportsPage);
+end;
+
+procedure TfmeSUIMoreReportsPage.gbtnTaxablePayementsClick(Sender: TObject);
+begin
+  SimpleUIHomePageFrm.DoSimpleUICommand( sui_mcTaxablePayments);
 end;
 
 procedure TfmeSUIMoreReportsPage.gbtnTrialBalanceClick(Sender: TObject);

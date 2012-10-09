@@ -1,7 +1,7 @@
 object fmeSUIMoreReportsPage: TfmeSUIMoreReportsPage
   Left = 0
   Top = 0
-  Width = 758
+  Width = 755
   Height = 546
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -11,10 +11,10 @@ object fmeSUIMoreReportsPage: TfmeSUIMoreReportsPage
   ParentFont = False
   TabOrder = 0
   DesignSize = (
-    758
+    755
     546)
   object imgTick: TImage
-    Left = 327
+    Left = 326
     Top = 441
     Width = 24
     Height = 24
@@ -79,11 +79,12 @@ object fmeSUIMoreReportsPage: TfmeSUIMoreReportsPage
       0000000000000000000000000000000000000000000000000000000000000000
       0000}
     Transparent = True
+    ExplicitLeft = 327
   end
   object gpnlButtonHolder: TGridPanel
     Left = 0
     Top = 0
-    Width = 758
+    Width = 755
     Height = 546
     Align = alClient
     Color = 4605510
@@ -118,41 +119,46 @@ object fmeSUIMoreReportsPage: TfmeSUIMoreReportsPage
       end
       item
         Column = 3
-        Control = gbtnJobs
+        Control = gbtnTaxablePayements
         Row = 0
       end
       item
         Column = 0
+        Control = gbtnJobs
+        Row = 1
+      end
+      item
+        Column = 1
         Control = gbtnCashflow
         Row = 1
       end
       item
-        Column = 1
+        Column = 2
         Control = gbtnPL
         Row = 1
       end
       item
-        Column = 2
+        Column = 3
         Control = gbtnTrialBalance
         Row = 1
       end
       item
-        Column = 3
-        Control = gbtnGST
-        Row = 1
-      end
-      item
         Column = 0
-        Control = gbtnLists
+        Control = gbtnGST
         Row = 2
       end
       item
         Column = 1
-        Control = gbtnBankRec
+        Control = gbtnLists
         Row = 2
       end
       item
         Column = 2
+        Control = gbtnBankRec
+        Row = 2
+      end
+      item
+        Column = 3
         Control = gbtnGraphs
         Row = 2
       end>
@@ -169,7 +175,7 @@ object fmeSUIMoreReportsPage: TfmeSUIMoreReportsPage
       end>
     TabOrder = 0
     DesignSize = (
-      758
+      755
       546)
     object gbtnCoding: tbkExGlassButton
       Left = 20
@@ -192,7 +198,7 @@ object fmeSUIMoreReportsPage: TfmeSUIMoreReportsPage
         165)
     end
     object gbtnLedger: tbkExGlassButton
-      Left = 209
+      Left = 208
       Top = 9
       Width = 150
       Height = 165
@@ -212,7 +218,7 @@ object fmeSUIMoreReportsPage: TfmeSUIMoreReportsPage
         165)
     end
     object gbtnPayee: tbkExGlassButton
-      Left = 397
+      Left = 396
       Top = 9
       Width = 150
       Height = 165
@@ -231,9 +237,29 @@ object fmeSUIMoreReportsPage: TfmeSUIMoreReportsPage
         150
         165)
     end
-    object gbtnJobs: tbkExGlassButton
-      Left = 586
+    object gbtnTaxablePayements: tbkExGlassButton
+      Left = 575
       Top = 9
+      Width = 169
+      Height = 165
+      ButtonCaption = 'Taxable Payments'
+      ButtonColor = 33023
+      ButtonFontColor = clWhite
+      ButtonVertMargin = 0
+      ButtonHorizMargin = 0
+      LabelFontSize = 8
+      LabelHeight = 15
+      ParentColor = True
+      TabOrder = 3
+      Anchors = []
+      OnClick = gbtnTaxablePayementsClick
+      DesignSize = (
+        169
+        165)
+    end
+    object gbtnJobs: tbkExGlassButton
+      Left = 20
+      Top = 190
       Width = 150
       Height = 165
       ButtonCaption = 'Jobs report'
@@ -244,7 +270,7 @@ object fmeSUIMoreReportsPage: TfmeSUIMoreReportsPage
       LabelFontSize = 8
       LabelHeight = 15
       ParentColor = True
-      TabOrder = 3
+      TabOrder = 4
       Anchors = []
       OnClick = gbtnJobsClick
       DesignSize = (
@@ -252,7 +278,7 @@ object fmeSUIMoreReportsPage: TfmeSUIMoreReportsPage
         165)
     end
     object gbtnCashflow: tbkExGlassButton
-      Left = 20
+      Left = 208
       Top = 190
       Width = 150
       Height = 165
@@ -264,7 +290,7 @@ object fmeSUIMoreReportsPage: TfmeSUIMoreReportsPage
       LabelFontSize = 8
       LabelHeight = 15
       ParentColor = True
-      TabOrder = 4
+      TabOrder = 5
       Anchors = []
       OnClick = gbtnCashflowClick
       DesignSize = (
@@ -272,7 +298,7 @@ object fmeSUIMoreReportsPage: TfmeSUIMoreReportsPage
         165)
     end
     object gbtnPL: tbkExGlassButton
-      Left = 209
+      Left = 396
       Top = 190
       Width = 150
       Height = 165
@@ -284,7 +310,7 @@ object fmeSUIMoreReportsPage: TfmeSUIMoreReportsPage
       LabelFontSize = 8
       LabelHeight = 15
       ParentColor = True
-      TabOrder = 5
+      TabOrder = 6
       Anchors = []
       OnClick = gbtnPLClick
       DesignSize = (
@@ -292,7 +318,7 @@ object fmeSUIMoreReportsPage: TfmeSUIMoreReportsPage
         165)
     end
     object gbtnTrialBalance: tbkExGlassButton
-      Left = 397
+      Left = 584
       Top = 190
       Width = 150
       Height = 165
@@ -304,7 +330,7 @@ object fmeSUIMoreReportsPage: TfmeSUIMoreReportsPage
       LabelFontSize = 8
       LabelHeight = 15
       ParentColor = True
-      TabOrder = 6
+      TabOrder = 7
       Anchors = []
       OnClick = gbtnTrialBalanceClick
       DesignSize = (
@@ -312,8 +338,8 @@ object fmeSUIMoreReportsPage: TfmeSUIMoreReportsPage
         165)
     end
     object gbtnGST: tbkExGlassButton
-      Left = 586
-      Top = 190
+      Left = 20
+      Top = 371
       Width = 150
       Height = 165
       ButtonCaption = 'GST reports...'
@@ -324,7 +350,7 @@ object fmeSUIMoreReportsPage: TfmeSUIMoreReportsPage
       LabelFontSize = 8
       LabelHeight = 15
       ParentColor = True
-      TabOrder = 7
+      TabOrder = 8
       Anchors = []
       OnClick = gbtnGSTClick
       DesignSize = (
@@ -332,7 +358,7 @@ object fmeSUIMoreReportsPage: TfmeSUIMoreReportsPage
         165)
     end
     object gbtnLists: tbkExGlassButton
-      Left = 20
+      Left = 208
       Top = 371
       Width = 150
       Height = 165
@@ -344,7 +370,7 @@ object fmeSUIMoreReportsPage: TfmeSUIMoreReportsPage
       LabelFontSize = 8
       LabelHeight = 15
       ParentColor = True
-      TabOrder = 8
+      TabOrder = 9
       Anchors = []
       OnClick = gbtnListsClick
       DesignSize = (
@@ -352,7 +378,7 @@ object fmeSUIMoreReportsPage: TfmeSUIMoreReportsPage
         165)
     end
     object gbtnBankRec: tbkExGlassButton
-      Left = 209
+      Left = 396
       Top = 371
       Width = 150
       Height = 165
@@ -364,7 +390,7 @@ object fmeSUIMoreReportsPage: TfmeSUIMoreReportsPage
       LabelFontSize = 8
       LabelHeight = 15
       ParentColor = True
-      TabOrder = 9
+      TabOrder = 10
       Anchors = []
       OnClick = gbtnBankRecClick
       DesignSize = (
@@ -372,7 +398,7 @@ object fmeSUIMoreReportsPage: TfmeSUIMoreReportsPage
         165)
     end
     object gbtnGraphs: tbkExGlassButton
-      Left = 397
+      Left = 584
       Top = 371
       Width = 150
       Height = 165
@@ -384,7 +410,7 @@ object fmeSUIMoreReportsPage: TfmeSUIMoreReportsPage
       LabelFontSize = 8
       LabelHeight = 15
       ParentColor = True
-      TabOrder = 10
+      TabOrder = 11
       Anchors = []
       OnClick = gbtnGraphsClick
       DesignSize = (
