@@ -706,6 +706,10 @@ begin
       Report_ClientHome: ;
       Report_Last: ;
       }
+
+      Report_Taxable_Payments,
+      Report_Taxable_Payments_Detailed: Result := 'Taxable Payments';
+      
       else begin
          Result := Get_ReportText(value);
       end;
