@@ -210,7 +210,9 @@ begin
       [
          Report_List_Payee,
          REPORT_PAYEE_SPENDING,
-         REPORT_PAYEE_SPENDING_DETAILED
+         REPORT_PAYEE_SPENDING_DETAILED,
+         Report_Taxable_Payments,
+         Report_Taxable_Payments_Detailed
       ]
         then if not HasPayees then exit;
 
