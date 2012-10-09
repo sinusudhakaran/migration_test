@@ -31,8 +31,8 @@ object frmTaxablePaymentsRptDlg: TfrmTaxablePaymentsRptDlg
     object Label3: TLabel
       Left = 32
       Top = 24
-      Width = 140
-      Height = 39
+      Width = 139
+      Height = 26
       Caption = 'All Contractor Payees will be reported on.'
       WordWrap = True
     end

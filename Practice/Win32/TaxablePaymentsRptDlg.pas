@@ -387,15 +387,21 @@ procedure TfrmTaxablePaymentsRptDlg.tgRangesCellLoaded(Sender: TObject; DataCol,
   DataRow: Integer; var Value: Variant);
 begin
   if DataCol = 1 then
-    Value := IntToStr( CodesArray[ DataRow -1].FromCode)
+  begin
+    Value := IntToStr( CodesArray[ DataRow -1].FromCode);
+  end
   else
+  begin
     Value := IntToStr( CodesArray[ DataRow -1].ToCode);
+  end;
 
   if Value = '0' then
+  begin
     Value := '';
-
+  end;
+  
   if (StrToIntDef( Trim( Value), 0) > 0) and
-     (not Assigned(MyClient.clPayee_List.Find_Payee_Number(StrToIntDef( Trim( Value), 0)))) then
+     (not Assigned(MyClient.clPayee_List.Find_Contractor_Payee_Number(StrToIntDef( Trim( Value), 0)))) then
     tgRanges.CellColor[DataCol, DataRow] := clRed
   else
     tgRanges.CellColor[DataCol, DataRow] := clNone;
@@ -413,9 +419,12 @@ begin
     CodesArray[ DataRow -1].FromCode := StrToIntDef( Trim( Value), 0);
   end
   else
+  begin
     CodesArray[ DataRow -1].ToCode := StrToIntDef( Trim( Value), 0);
+  end;
+
   if (StrToIntDef( Trim( Value), 0) > 0) and
-     (not Assigned(MyClient.clPayee_List.Find_Payee_Number(StrToIntDef( Trim( Value), 0)))) then
+     (not Assigned(MyClient.clPayee_List.Find_Contractor_Payee_Number(StrToIntDef( Trim( Value), 0)))) then
     tgRanges.CellColor[DataCol, DataRow] := clRed
   else
     tgRanges.CellColor[DataCol, DataRow] := clNone;
@@ -434,14 +443,14 @@ begin
   // If code doesn't exist then guess next one
   if (tgRanges.CurrentDataCol = 2) then
   begin
-    p := MyClient.clPayee_List.Guess_Next_Payee_Number(Code);
+    p := MyClient.clPayee_List.Guess_Next_Contractor_Payee_Number(Code);
     if Assigned(p) then
       Code := p.pdNumber
     else
       Code := 0;
   end;
 
-  if PayeeLookupFrm.PickPayee( Code, True) then
+  if PayeeLookupFrm.PickPayee( Code, pmContractors) then
   begin
     //if get here then have a code which can be posted to from picklist
     tgRanges.CurrentCell.Value := IntToStr(Code);
