@@ -200,6 +200,8 @@ const
   sui_mcAddAccrualJnl           = 181;
   sui_mcViewCashJnl             = 182;
   sui_mcViewAccrualJnl          = 183;
+  sui_mcTaxablePayments         = 184;
+
 
 
 const
@@ -450,6 +452,16 @@ begin
        end;
      end;
 
+     sui_mcTaxablePayments:
+     begin
+       if Assigned(MyClient) then
+       begin
+         if MyClient.clFields.clCountry = whAustralia then
+         begin
+           DoModalReport(REPORT_TAXABLE_PAYMENTS, rdNone);
+         end;
+       end;
+     end;
    else
       ShowMessage('unknown');
    end;
