@@ -1047,6 +1047,10 @@ object frmMain: TfrmMain
         Caption = '&Spending by Payee'
         OnClick = mnsSpendingbyPayeeClick
       end
+      object mmiTaxablePaymentsReport: TMenuItem
+        Caption = 'Taxable Payments Report'
+        OnClick = mmiTaxablePaymentsReportClick
+      end
       object mnsJobReport: TMenuItem
         Caption = 'Coding by &Job'
         OnClick = mnsJobReportClick

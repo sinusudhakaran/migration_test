@@ -430,6 +430,7 @@ type
     actGetFromOnline: TAction;
     mniChangePassword: TMenuItem;
     mniExportdatatoBanklinkOnline: TMenuItem;
+    mmiTaxablePaymentsReport: TMenuItem;
     procedure FormResize(Sender: TObject);
     procedure tmClockTimer(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -710,6 +711,7 @@ type
     procedure actGetFromOnlineExecute(Sender: TObject);
     procedure mniChangePasswordClick(Sender: TObject);
     procedure mniExportdatatoBanklinkOnlineClick(Sender: TObject);
+    procedure mmiTaxablePaymentsReportClick(Sender: TObject);
   private
     { Private declarations }
     FClientInstance,
@@ -1960,7 +1962,7 @@ begin
   ExportOptions.ExportChartOfAccounts := not StartupParam_ExcludeCOA;
 
   try
-    TBankLinkOnlineTaggingServices.ExportTaggedAccounts(ProductConfigService.CachedPractice, ExportOptions, ProgressForm, ExportStatistics, ExportError, ErrorDetails);
+   // TBankLinkOnlineTaggingServices.ExportTaggedAccounts(ProductConfigService.CachedPractice, ExportOptions, ProgressForm, ExportStatistics, ExportError, ErrorDetails);
   except
     on E:Exception do
     begin
@@ -3018,6 +3020,11 @@ procedure TfrmMain.miCFRActualLastYearVarianceClick(Sender: TObject);
 begin
    DoModalReport( Report_Cashflow_ActLastYVar, rdNone);
 end;
+procedure TfrmMain.mmiTaxablePaymentsReportClick(Sender: TObject);
+begin
+  DoModalReport(REPORT_TAXABLE_PAYMENTS,rdNone);
+end;
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmMain.mniListChartofAccountsClick(Sender: TObject);
 begin
