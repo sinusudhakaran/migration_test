@@ -175,11 +175,11 @@ type
     function ValidateForAustralia: Boolean;
   public
     { Public declarations }
-    function Execute : boolean;
+    function Execute(AddContractorPayee: Boolean = False) : boolean;
   end;
 
   function EditPayeeDetail(APayee : TPayee) : boolean;
-  function AddPayee(var APayee : TPayee) : boolean;
+  function AddPayee(var APayee : TPayee; ContractorPayee: Boolean = False) : boolean;
 
 //******************************************************************************
 implementation
@@ -331,21 +331,7 @@ end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TdlgPayeeDetail.FormShow(Sender: TObject);
 begin
-   // Skip Focus on Payee Number
 
-   if MyClient.clFields.clCountry = whAustralia then
-   begin
-     SetupForAustralia;
-   end;
-   
-   if chkContractorPayee.Visible then
-   begin
-     chkContractorPayee.SetFocus;
-   end
-   else
-   begin
-     eName.SetFocus;
-   end;
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TdlgPayeeDetail.SetupForAustralia;
@@ -1294,7 +1280,7 @@ begin
 end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function TdlgPayeeDetail.Execute : boolean;
+function TdlgPayeeDetail.Execute(AddContractorPayee: Boolean = False) : boolean;
 var
   i, SplitIndex : integer;
   NewPayee : integer;
@@ -1342,6 +1328,11 @@ begin
    end;
    SplitData[1].Amount := 100.0;
    SplitData[1].LineType := BKCONST.pltPercentage;
+
+   if MyClient.clFields.clCountry = whAustralia then
+   begin
+     SetupForAustralia;
+   end;
 
    if Assigned(Payee) then
    begin
@@ -1438,6 +1429,11 @@ begin
 
      eName.Text := '';
      nPayeeNo.asInteger := NewPayee;
+
+     if AddContractorPayee and chkContractorPayee.Visible then
+     begin
+       chkContractorPayee.Checked := True;
+     end;
    end;
 
    UpdateTotal;
@@ -1446,6 +1442,17 @@ begin
 
    {show form}
    AltLineColor := BKCOLOR_CREAM;
+
+   // Skip Focus on Payee Number
+   if chkContractorPayee.Visible and not AddContractorPayee then
+   begin
+     ActiveControl := chkContractorPayee;
+   end
+   else
+   begin
+     ActiveControl := eName;
+   end;
+   
    ShowModal;
    result := okPressed;
 end;
@@ -1479,7 +1486,7 @@ begin
 
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function AddPayee(var APayee : TPayee) : boolean;
+function AddPayee(var APayee : TPayee; ContractorPayee: Boolean = False) : boolean;
 var
   MyDlg : TdlgPayeeDetail;
 begin
@@ -1493,7 +1500,7 @@ begin
      MyDlg.Caption := 'Add New Payee';
      MyDlg.Payee := aPayee;
 
-     if MyDlg.execute then
+     if MyDlg.execute(ContractorPayee) then
      with Mydlg do
      begin
        {first create a new payee}
