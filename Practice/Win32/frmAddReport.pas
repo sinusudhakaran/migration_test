@@ -330,6 +330,12 @@ begin
     end;
 
     Addmenu(nil,'Spending by Payee',Ord(Report_Payee_Spending));
+
+    if Country = whAustralia then
+    begin
+      addmenu(nil,'Taxable Payments',ord(Report_Taxable_Payments));
+    end;
+
     Addmenu(nil,'Coding by Job',Ord(Report_Job_Summary));
     Addmenu(nil,'Exception Report',Ord(Report_Exception));
 
