@@ -114,7 +114,8 @@ uses
    WinUtils,
    CustomDocEditorFrm,
    AuditReportOptionsDlg,
-   Files;
+   Files,
+   RptContractorPayee;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const
@@ -443,6 +444,7 @@ begin
          Report_Missing_Cheques     : RptBankRec.DoMissingChequesReport( Destination, RptBatch);
          REPORT_TEST_FAX            : DoTestFax( Destination);
          REPORT_CUSTOM_DOCUMENT     : CustomDocManager.DoCustomDoc(MyClient, RptBatch, Destination);
+         REPORT_TAXABLE_PAYMENTS    : RptContractorPayee.DoTaxablePaymentsReport(Destination, Rptbatch);
       else
          ;
       end;
