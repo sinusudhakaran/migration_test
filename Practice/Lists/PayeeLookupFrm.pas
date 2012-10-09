@@ -20,6 +20,8 @@ uses
   OSFont;
 
 type
+  TPayeeLookupMode = (pmAll, pmContractors);
+  
   TfrmPayeeLookup = class(TForm)
     Grid: TtsGrid;
     Panel1: TPanel;
@@ -58,12 +60,12 @@ type
     CurrentSortOrder  : tPYSSortType;
     PYSListByNo       : tPYSList;
     PYSListByName     : tPYSList;
-    PYContractorsOnly   : Boolean;
+    PYLookupMode      : TPayeeLookupMode;
     { Public declarations }
   end;
 
-function LookUpPayee( Guess : ShortString; ContractorsOnly: Boolean = False): Integer;
-function PickPayee(var PayeeCode : Integer; ContractorsOnly: Boolean = False) : Boolean;
+function LookUpPayee( Guess : ShortString; LookupMode: TPayeeLookupMode = pmAll): Integer;
+function PickPayee(var PayeeCode : Integer; LookupMode: TPayeeLookupMode = pmAll) : Boolean;
 
 //******************************************************************************
 implementation
@@ -96,6 +98,11 @@ Const
 function TfrmPayeeLookup.Execute( Guess : ShortString;
                                   SelectMode : TtsRowSelectMode) : Integer;
 begin
+  if PYLookupMode = pmContractors then
+  begin
+    Caption := 'Select Contractor Payee';
+  end;
+  
   with Grid do
   Begin
      Rows             := PYSListByName.ItemCount;
@@ -530,13 +537,13 @@ begin
 
   ImagesFrm.AppImages.Maintain.GetBitmap(MAINTAIN_INSERT_BMP, sbtnNewPayee.Glyph);
 
-  PYContractorsOnly := False;
+  PYLookupMode := pmAll;
   
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-procedure ReBuildLists( var SortByNoList : tPYSList; var SortByNameList : tPYSList; aClient : TClientObj; ContractorsOnly: Boolean);
+procedure ReBuildLists( var SortByNoList : tPYSList; var SortByNameList : tPYSList; aClient : TClientObj; LookupMode: TPayeeLookupMode);
 //this routine builds the sorted list that are used by the lookup
 //a sorted list must exist for each sort order
 var
@@ -556,7 +563,7 @@ begin
   begin
     for i := First to Last do
     begin
-      if ContractorsOnly then
+      if LookupMode = pmContractors then
       begin
         if Payee_At(i).pdFields.pdContractor then
         begin
@@ -584,7 +591,7 @@ begin
 end;
 //------------------------------------------------------------------------------
 
-function LookUpPayee( Guess : ShortString; ContractorsOnly: Boolean): Integer;
+function LookUpPayee( Guess : ShortString; LookupMode: TPayeeLookupMode): Integer;
 const
   ThisMethodName = 'LookUpPayee';
 var
@@ -599,7 +606,7 @@ begin
   NoList   := nil;
   NameList := nil;
 
-  ReBuildLists( NoList, NameList, MyClient, ContractorsOnly);
+  ReBuildLists( NoList, NameList, MyClient, LookupMode);
 
   //if NameList = nil then Exit; //removed 25/09/2002 [MJF]
 
@@ -607,7 +614,7 @@ begin
   try
     LookUpDlg.PYSListByName := NameList;
     LookUpDlg.PYSListByNo   := NoList;
-    LookupDlg.PYContractorsOnly := ContractorsOnly;
+    LookupDlg.PYLookupMode := LookupMode;
 
     if (LookUpDlg.Execute(Guess, rsSingle) = mrOK) then
     begin
@@ -642,7 +649,7 @@ begin
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 End;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function PickPayee( var PayeeCode : Integer; ContractorsOnly: Boolean) : Boolean;
+function PickPayee( var PayeeCode : Integer; LookupMode: TPayeeLookupMode) : Boolean;
 var
   Guess : ShortString;
   No : Integer;
@@ -652,7 +659,7 @@ begin
   //if not HasPayees then exit; //removed 25/09/2002 [MJF]
 
   Guess := ''; if PayeeCode <> 0 then Str( PayeeCode, Guess );
-  No := PayeeLookupFrm.LookUpPayee( Guess, ContractorsOnly);
+  No := PayeeLookupFrm.LookUpPayee( Guess, LookupMode);
 
   if No > 0 then
   begin
@@ -676,7 +683,7 @@ var
   i        : integer;
 begin
   //fire new payee dialog
-  if AddPayee( NewPayee) then
+  if AddPayee( NewPayee, PYLookupMode = pmContractors) then
   begin
     //freeze current drawing
     Grid.BeginUpdate;
@@ -684,7 +691,7 @@ begin
       //clear rows
       Grid.Rows := 0;
       //reload lists
-      ReBuildLists( Self.PYSListByNo, Self.PYSListByName, MyClient, PYContractorsOnly);
+      ReBuildLists( Self.PYSListByNo, Self.PYSListByName, MyClient, PYLookupMode);
       if Self.PYSListByNo = nil then
       begin
         ModalResult := mrCancel;
