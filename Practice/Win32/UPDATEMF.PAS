@@ -595,6 +595,8 @@ begin
 
      mniOFGSTDetailsAndRates.Caption := '&'+TaxName + ' Set Up';
 
+     mmiTaxablePaymentsReport.Visible := False;
+
      { Override ReportDefs Constants }
 
      REPORT_LIST_NAMES[ Report_GST101                 ]  := TaxName + ' Return';
@@ -640,7 +642,11 @@ begin
                              if PRACINI_PaperSmartBooks then
                                mniGSTAllocationSummary.Visible := True;
                           end;
-           whAustralia  : mniGSTReturn.Caption := '&Business/Instalment Activity Statement';
+           whAustralia  :
+           begin
+             mniGSTReturn.Caption := '&Business/Instalment Activity Statement';
+             mmiTaxablePaymentsReport.Visible := True;
+           end;
            whUK :
              Begin
                mniGSTReturn.Caption := 'VAT &Return';
