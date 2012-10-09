@@ -81,6 +81,10 @@ type
       function  Search_Payee_Name( CONST AName : ShortString ): TPayee;
       function Guess_Next_Payee_Number(const ANumber: Integer): TPayee;
 
+      function Guess_Next_Contractor_Payee_Number(const ANumber: Integer): TPayee;
+      function  Find_Contractor_Payee_Number( CONST ANumber: LongInt ): TPayee;
+      function  Find_Contractor_Payee_Name( CONST AName: String ): TPayee;
+
       procedure SaveToFile( Var S : TIOStream );
       procedure LoadFromFile( Var S : TIOStream );
 
@@ -260,6 +264,44 @@ begin
     end;
 end;
 
+function TPayee_List.Find_Contractor_Payee_Name(const AName: String): TPayee;
+var
+  i : Integer;
+  APayee : TPayee;
+begin
+  Result := nil;
+
+  for i := First to Last do
+  begin
+    APayee := Payee_At(i);
+    if (APayee.pdName = AName) then
+    begin
+      Result := APayee;
+      exit;
+    end;
+  end;
+end;
+
+function TPayee_List.Find_Contractor_Payee_Number(const ANumber: Integer): TPayee;
+var
+  i : Integer;
+  APayee : TPayee;
+begin
+  Result := nil;
+
+  for i := First to Last do
+  begin
+    APayee := Payee_At(i);
+
+    if APayee.pdFields.pdContractor and (APayee.pdNumber = ANumber) then
+    begin
+      Result := APayee;
+      
+      exit;
+    end;
+  end;
+end;
+
 function TPayee_List.Find_Payee_Name(const AName: String): TPayee;
 var
   i : Integer;
@@ -297,6 +339,34 @@ begin
 end;
 
 // Get next number given a number that doesn't exist
+function TPayee_List.Guess_Next_Contractor_Payee_Number(const ANumber: Integer): TPayee;
+var
+  i : Integer;
+  APayee : TPayee;
+  BestMatch: Integer;
+begin
+  Result := Find_Contractor_Payee_Number(ANumber);
+
+  if not Assigned(Result) then
+  begin
+    BestMatch := 999999;
+
+    for I := First to Last do
+    begin
+      APayee := Payee_At(i);
+
+      if APayee.pdFields.pdContractor then
+      begin
+        if (APayee.pdNumber > ANumber) and ((APayee.pdNumber - ANumber) < BestMatch) then
+        begin
+          BestMatch := APayee.pdNumber - ANumber;
+          Result := APayee;
+        end;
+      end;
+    end;
+  end;
+end;
+
 function TPayee_List.Guess_Next_Payee_Number(const ANumber: Integer): TPayee;
 var
   i : Integer;
