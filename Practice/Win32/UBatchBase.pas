@@ -769,6 +769,8 @@ begin
         Result := Report_BalanceSheet_Single
      else if Sametext(Value,'GST Return 101') then // original title
         Result := Report_GST101
+     else if Sametext(Value,'Taxable Payments') then
+       Result := Report_Taxable_Payments
      else if Sametext(Copy(Value, 1, Length(CUSTOM_DOC_TITLE)), CUSTOM_DOC_TITLE) then
         Result := Report_Custom_Document
      else
@@ -2169,6 +2171,9 @@ begin
          Report_Charges: ;
          }
         // Report_Download_Log : DoDownloadLog(rdScreen);
+
+         Report_Taxable_Payments,
+         Report_Taxable_Payments_Detailed: DoReport(Report_Taxable_Payments, rdScreen, 0, Value);
 
         else  DoReport(RptType,rdScreen,0,Value);
       end;
