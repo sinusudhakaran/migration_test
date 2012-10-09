@@ -58,11 +58,12 @@ type
     CurrentSortOrder  : tPYSSortType;
     PYSListByNo       : tPYSList;
     PYSListByName     : tPYSList;
+    PYContractorsOnly   : Boolean;
     { Public declarations }
   end;
 
-function LookUpPayee( Guess : ShortString): Integer;
-function PickPayee(var PayeeCode : Integer) : Boolean;
+function LookUpPayee( Guess : ShortString; ContractorsOnly: Boolean = False): Integer;
+function PickPayee(var PayeeCode : Integer; ContractorsOnly: Boolean = False) : Boolean;
 
 //******************************************************************************
 implementation
@@ -529,11 +530,13 @@ begin
 
   ImagesFrm.AppImages.Maintain.GetBitmap(MAINTAIN_INSERT_BMP, sbtnNewPayee.Glyph);
 
+  PYContractorsOnly := False;
+  
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-procedure ReBuildLists( var SortByNoList : tPYSList; var SortByNameList : tPYSList; aClient : TClientObj);
+procedure ReBuildLists( var SortByNoList : tPYSList; var SortByNameList : tPYSList; aClient : TClientObj; ContractorsOnly: Boolean);
 //this routine builds the sorted list that are used by the lookup
 //a sorted list must exist for each sort order
 var
@@ -549,12 +552,25 @@ begin
 
   SortByNoList := tPYSList.Create( PYSSortByNo );
 
-    with aClient.clPayee_List do
-      for i := First to Last do
+  with aClient.clPayee_List do
+  begin
+    for i := First to Last do
+    begin
+      if ContractorsOnly then
+      begin
+        if Payee_At(i).pdFields.pdContractor then
+        begin
+          SortByNoList.Insert(NewPYSObj(Payee_At(i)));
+          SortByNameList.Insert(NewPYSObj(Payee_At(i)));
+        end;
+      end
+      else
       begin
         SortByNoList.Insert(NewPYSObj(Payee_At(i)));
         SortByNameList.Insert(NewPYSObj(Payee_At(i)));
       end;
+    end;
+  end;
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function IndexOf( const aPayee : TPayee; List : tPYSList) : integer;
@@ -568,7 +584,7 @@ begin
 end;
 //------------------------------------------------------------------------------
 
-function LookUpPayee( Guess : ShortString): Integer;
+function LookUpPayee( Guess : ShortString; ContractorsOnly: Boolean): Integer;
 const
   ThisMethodName = 'LookUpPayee';
 var
@@ -583,7 +599,7 @@ begin
   NoList   := nil;
   NameList := nil;
 
-  ReBuildLists( NoList, NameList, MyClient);
+  ReBuildLists( NoList, NameList, MyClient, ContractorsOnly);
 
   //if NameList = nil then Exit; //removed 25/09/2002 [MJF]
 
@@ -591,6 +607,7 @@ begin
   try
     LookUpDlg.PYSListByName := NameList;
     LookUpDlg.PYSListByNo   := NoList;
+    LookupDlg.PYContractorsOnly := ContractorsOnly;
 
     if (LookUpDlg.Execute(Guess, rsSingle) = mrOK) then
     begin
@@ -625,7 +642,7 @@ begin
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 End;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function PickPayee( var PayeeCode : Integer) : Boolean;
+function PickPayee( var PayeeCode : Integer; ContractorsOnly: Boolean) : Boolean;
 var
   Guess : ShortString;
   No : Integer;
@@ -635,7 +652,7 @@ begin
   //if not HasPayees then exit; //removed 25/09/2002 [MJF]
 
   Guess := ''; if PayeeCode <> 0 then Str( PayeeCode, Guess );
-  No := PayeeLookupFrm.LookUpPayee( Guess);
+  No := PayeeLookupFrm.LookUpPayee( Guess, ContractorsOnly);
 
   if No > 0 then
   begin
@@ -643,6 +660,7 @@ begin
     Result := True;
   end;
 end;
+
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 procedure TfrmPayeeLookup.FormMouseMove(Sender: TObject;
@@ -666,7 +684,7 @@ begin
       //clear rows
       Grid.Rows := 0;
       //reload lists
-      ReBuildLists( Self.PYSListByNo, Self.PYSListByName, MyClient);
+      ReBuildLists( Self.PYSListByNo, Self.PYSListByName, MyClient, PYContractorsOnly);
       if Self.PYSListByNo = nil then
       begin
         ModalResult := mrCancel;
