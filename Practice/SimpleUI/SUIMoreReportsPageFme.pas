@@ -45,7 +45,7 @@ type
 
 implementation
 uses
-  SimpleUIHomepageFrm, SUIFrameHelper;
+  SimpleUIHomepageFrm, SUIFrameHelper, Globals, bkConst;
 
 {$R *.dfm}
 
@@ -53,7 +53,20 @@ uses
 constructor TfmeSUIMoreReportsPage.Create(AOwner: TComponent);
 begin
   inherited;
+
+  gbtnTaxablePayements.Visible := False;
+  
+  if Assigned(MyClient) then
+  begin
+    if MyClient.clFields.clCountry = whAustralia then
+    begin
+      gbtnTaxablePayements.Visible := True;
+    end;
+  end;
+
   SUIFrameHelper.InitButtonsOnGridPanel(gpnlButtonHolder, CommonButtonKeyUp, CommonButtonKeyPress, ImgTick.Picture);
+  
+  SUIFrameHelper.ArrangeButtonsOnGridPanel(gpnlButtonHolder);
 end;
 
 procedure TfmeSUIMoreReportsPage.gbtnBankRecClick(Sender: TObject);
