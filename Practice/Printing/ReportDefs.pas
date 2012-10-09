@@ -141,6 +141,8 @@ type
                        Report_Custom_Document,
                        Report_System_Accounts,
                        Report_Audit,
+                       Report_Taxable_Payments,
+                       Report_Taxable_Payments_Detailed,
                        Report_Last);
 
 const
@@ -267,6 +269,8 @@ const
                         'Custom Document',
                         'System Accounts',
                         'Audit Report',
+                        'Taxable Payments - Summarised',
+                        'Taxable Payments - Detailed',
                         'ZZZ');
    {$ENDIF}
 
