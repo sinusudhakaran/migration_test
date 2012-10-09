@@ -40,9 +40,44 @@ procedure InitButtonsOnGridPanel( ButtonHolder : TGridPanel;
                                   LabelHeight : integer = 15;
                                   LabelFontSize : integer = 12);
 
+procedure ArrangeButtonsOnGridPanel( ButtonHolder : TGridPanel);
+
 implementation
 uses
   SimpleUIHomePageFrm;
+
+procedure ArrangeButtonsOnGridPanel( ButtonHolder : TGridPanel);
+var
+  Index: Integer;  
+  Column: Integer;
+  Row: Integer;
+begin
+  Row := 0;
+  Column := 0;
+  
+  for Index := 0 to ButtonHolder.ControlCollection.Count -1 do
+  begin
+    if ButtonHolder.ControlCollection[Index].Control.Visible then
+    begin
+      ButtonHolder.ControlCollection[Index].Column := Column;
+      ButtonHolder.ControlCollection[Index].Row := Row;
+
+      Inc(Column);
+
+      if Column > ButtonHolder.ColumnCollection.Count -1 then
+      begin
+        Column := 0;
+
+        Inc(Row);
+
+        if Row > ButtonHolder.RowCollection.Count -1 then
+        begin
+          Break;
+        end;
+      end;
+    end;
+  end;
+end;
 
 procedure InitButtonsOnGridPanel( ButtonHolder : TGridPanel;
                                   OnKeyUpEvent : TKeyEvent;
