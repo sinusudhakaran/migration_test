@@ -43,10 +43,13 @@ uses
    windows,
    UserReportSettings,
    Progress,
-   FaxParametersObj;
+   FaxParametersObj,
+   Contnrs;
 
 
 type
+  TWrappedText = array of String;
+
    TRenderToCanvasEng = class( TCustomRenderEngine)
    private
 
@@ -80,6 +83,10 @@ type
       function  GetDetailPixelRect: TRect;
       function RebuildHeaderFooter(HFCollection : THeaderFooterCollection): Integer;
       procedure SetHeightFromImage(HFLine : THeaderFooterLine);
+
+      procedure SplitText(Canvas: TCanvas; const Text: String; ColumnWidth: Integer; var WrappedText: TWrappedText);
+      
+      procedure RenderDetailHeaderWrapped;
    protected
       //RenderText and RenderLine are the only two routines that actually draw onto the canvas
       procedure RenderText(TextValue : string; textRect : TRect; Justify : TJustifyType; RenderStyle :TRenderStyle);
@@ -158,7 +165,8 @@ uses
 
   ReportImagesObj, Types, ECollect,
   SignUtils,
-  Math;
+  Math,
+  StrUtils;
 
 const
      POINT_TO_01MM = 3.514;
@@ -499,7 +507,14 @@ var
   lStyle: TRenderStyle;
 begin
   Report.ItemStyle := siHeading;
-  with Report, PrintJob do begin
+  with Report, PrintJob do
+  begin
+    if Columns.WrapCaptions then
+    begin
+      RenderDetailHeaderWrapped;
+    end
+    else
+    begin
      DoubleLine := Columns.TwoLines;
 
      if Doubleline then {dont underline if there are two lines}
@@ -534,8 +549,87 @@ begin
      end;
 
      NewDetailLine;  //add a blank line before the detail lines
+    end;
   end;
 end;
+
+procedure TRenderToCanvasEng.RenderDetailHeaderWrapped;
+
+  function GetMaxLineCount(const WrappedCaptions: array of TWrappedText): Integer;
+  var
+    Index: Integer;
+  begin
+    Result := 0;
+
+    for Index := 0 to Length(WrappedCaptions) - 1 do
+    begin
+      if Result < Length(WrappedCaptions[Index]) then
+      begin
+        Result := Length(WrappedCaptions[Index]);
+      end;
+    end;
+  end;
+
+var
+  ColumnIndex: Integer;
+  Column: TReportColumn;
+  LineIndex: Integer;
+  MaxLineCount: Integer;
+  FinalLine: Boolean;
+  Style: TRenderStyle;
+  ColumnText: String;
+  TextIndex: Integer;
+  WrappedCaptions: array of TWrappedText;
+  WrappedCaption: TWrappedText;
+begin
+  with Report, PrintJob do
+  begin
+    {Wrap the lines}
+    SetLength(WrappedCaptions, Columns.ItemCount);
+
+    for ColumnIndex := 0 to Columns.ItemCount - 1 do
+    begin
+      Column := Columns.Report_Column_At(ColumnIndex);
+
+      SplitText(Canvas, Column.Caption, Column.Width, WrappedCaptions[ColumnIndex]);
+    end;
+
+    Canvas.Font.Style  := Canvas.Font.Style + [fsUnderLine];
+
+    MaxLineCount := GetMaxLineCount(WrappedCaptions);
+
+    {Render the lines in reverse order so that the text renders down from the first line}
+    for LineIndex := MaxLineCount -1 downto 0 do
+    begin
+      FinalLine := LineIndex = 0;
+      
+      for ColumnIndex := 0 to Columns.ItemCount -1 do
+      begin
+        Column := Columns.Report_Column_At(ColumnIndex);
+
+        WrappedCaption := WrappedCaptions[ColumnIndex];
+        
+        Style := MergeStyles(Report.ReportStyle.Items[Report.ItemStyle], Column.Style);
+
+        try
+          if LineIndex < Length(WrappedCaption) then
+          begin
+            ColumnText := WrappedCaption[Length(WrappedCaption) - LineIndex - 1];
+
+            RenderText(ColumnText, makeRect(Column.Left, CurrY, Column.Width, LineSize), Column.Alignment,Style);
+          end;
+        finally
+          Style.Free;
+        end;
+      end;
+
+      NewDetailLine;
+    end;
+
+    NewDetailLine;
+  end;
+end;
+
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TRenderToCanvasEng.RenderDetailLine;
 begin
@@ -909,6 +1003,83 @@ procedure TRenderToCanvasEng.SingleUnderLine;
 begin
   RequireLines(2);
   RenderTotalLine(false, ttNone);
+end;
+
+procedure TRenderToCanvasEng.SplitText(Canvas: TCanvas; const Text: String; ColumnWidth: Integer; var WrappedText: TWrappedText);
+
+  procedure AddLine(const Line: String);
+  var
+    LineCount: Integer;
+  begin
+    LineCount := Length(WrappedText);
+
+    SetLength(WrappedText, LineCount + 1);
+
+    WrappedText[LineCount] := Line;
+  end;
+
+const
+  MARGIN_MM: integer = 5; // 0.5mm
+
+var
+  Words: TStringList;
+  Line: String;
+  Index: Integer;
+  LastAdded: Boolean;
+  TextSize: TSize;
+  TextLength: Integer;
+  PrintableWidth: Integer;
+  MoreWords: Boolean;
+begin
+  Words := TStringList.Create;
+
+  try
+    Words.Delimiter := ' ';
+    Words.StrictDelimiter := True;
+
+    Words.DelimitedText := Text;
+
+    LastAdded := False;
+
+    Line := '';
+
+    PrintableWidth := ColumnWidth - (MARGIN_MM * 2);
+
+    MoreWords := Words.Count > 0;
+
+    Index := 0;
+    
+    while MoreWords do
+    begin             
+      Line := Trim(Line + ' ' + Words[Index]);
+
+      if Index < Words.Count -1 then
+      begin
+        TextSize := PrintJob.Canvas.TextExtent(Trim(Line + ' ' + Words[Index + 1]));
+
+        TextLength := PrintJob.ConvertToMM(Point(TextSize.cx, TextSize.cy)).X;
+
+        if TextLength > PrintableWidth then
+        begin
+          AddLine(Line);
+
+          Line := '';
+        end;
+      end
+      else
+      begin
+        AddLine(Line);
+
+        Break;
+      end;
+            
+      Inc(Index);
+
+      MoreWords := Index < Words.Count;
+    end;
+  finally
+    Words.Free;
+  end;
 end;
 
 procedure TRenderToCanvasEng.RenderFooter(Band: TRTFBand; atPos: Integer);
@@ -1820,6 +1991,7 @@ begin
       Memo.Free;
    end;
 end;
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TRenderToCanvasEng.RenderDetailSubSectionTotal(
   const TotalName: string);
