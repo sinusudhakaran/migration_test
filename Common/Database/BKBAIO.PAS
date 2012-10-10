@@ -100,6 +100,7 @@ CONST
    tkbaAudit_Record_ID                  = 203 ;
    tkbaCore_Account_ID                  = 204 ;
    tkbaSecure_Online_Code               = 205 ;
+   tkbaExchange_Gain_Loss_Code          = 206 ;
 
 {  -------------------------------------------------------------------  }
 
@@ -182,6 +183,7 @@ Begin
       F.WriteIntegerValue( tkbaAudit_Record_ID , baAudit_Record_ID );
       F.WriteIntegerValue( tkbaCore_Account_ID , baCore_Account_ID );
       F.WriteStringValue( tkbaSecure_Online_Code , baSecure_Online_Code );
+      F.WriteStringValue( tkbaExchange_Gain_Loss_Code , baExchange_Gain_Loss_Code );
       F.WriteToken( tkEnd_Bank_Account );
    end;
 end; { of Write_Bank_Account_Rec }
@@ -342,6 +344,7 @@ Begin
          tkbaAudit_Record_ID                  : baAudit_Record_ID := F.ReadIntegerValue;
          tkbaCore_Account_ID                  : baCore_Account_ID := F.ReadIntegerValue;
          tkbaSecure_Online_Code               : baSecure_Online_Code := F.ReadStringValue;
+         tkbaExchange_Gain_Loss_Code          : baExchange_Gain_Loss_Code := F.ReadStringValue;
          else
             Raise ETokenException.CreateFmt( SUnknownToken, [ Token ] );
       end; { of Case }
@@ -389,7 +392,7 @@ begin
   for i := Low(ChangedFields) to High(ChangedFields) do
     ChangedFields[i] := 0;
   j := 0;
-  for i := tkbaBank_Account_Number to tkbaSecure_Online_Code do begin
+  for i := tkbaBank_Account_Number to tkbaExchange_Gain_Loss_Code do begin
     ChangedFields[j] := i;
     Inc(j);
   end;
@@ -697,6 +700,11 @@ begin
   if (P1.baSecure_Online_Code <> P2.baSecure_Online_Code) then begin
     P3.baSecure_Online_Code := P1.baSecure_Online_Code;
     ChangedFields[i] := tkbaSecure_Online_Code;
+    Inc(i);
+  end;
+  if (P1.baExchange_Gain_Loss_Code <> P2.baExchange_Gain_Loss_Code) then begin
+    P3.baExchange_Gain_Loss_Code := P1.baExchange_Gain_Loss_Code;
+    ChangedFields[i] := tkbaExchange_Gain_Loss_Code;
     Inc(i);
   end;
 

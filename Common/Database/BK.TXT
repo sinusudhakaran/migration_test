@@ -203,8 +203,8 @@ $|                         tagging additions to the BLO settings form
 $|                         Added Core Trans ID High Integer
 $|                         Added Bank Account Core ID
 $|                         Added Bank Account Online Secure Code
-$|                         Changed Transaction Matched_By from type "Memorised Transaction Rec" to "Memorisation Detail Rec"
-$|  5.26                   Added fields Contractor..ABN to Payee Detail record
+$|  5.26            171    Added fields Contractor..ABN to Payee Detail record
+$|                         Added Exchange Gain_Loss_Code
 $|*)
 
 N|Client|cl|20
@@ -766,6 +766,7 @@ C|Temp Include In Report|Y
 C|Temp Balance|$
 F|Core_Account_ID|L
 F|Secure_Online_Code|S|20
+F|Exchange Gain Loss Code|S|20
 E
 
 N|Transaction|tx|160

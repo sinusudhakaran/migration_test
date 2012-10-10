@@ -67,19 +67,21 @@ type
     FVendorColumns: TObjectList;
 
     FCurrencyColumn: TListColumn;
+    FGainLossColumn: TListColumn;
 
-    procedure UpdateVendorColumnIndexPointers;
-
-    function CurrencyColumnShowing: boolean;
-
-    procedure UpdateLastVendorsUsedByAccounts;
-    function GetAccountIndexOnVendorList(aAccountId: Integer) : integer;
+    function  CurrencyColumnShowing: boolean;
     procedure ShowCurrencyColumn;
     procedure HideCurrencyColumn;
+    function  GainLossColumnShowing: boolean;
+    procedure ShowGainLossColumn;
+    procedure UpdateVendorColumnIndexPointers;
+
+    procedure UpdateLastVendorsUsedByAccounts;
+    function  GetAccountIndexOnVendorList(aAccountId: Integer) : integer;
     procedure RefreshExportVendors;
     procedure AddOnlineExportVendors;
     procedure RefreshBankAccountList;
-    function DeleteBankAccount(BankAccount : TBank_Account) :boolean;
+    function  DeleteBankAccount(BankAccount : TBank_Account) :boolean;
     procedure SetUpdateRefNeeded(const Value: boolean);
     procedure UpdateISOCodes;
 
@@ -132,21 +134,22 @@ uses
   CommCtrl,
   strutils,
   genutils,
-  GLConst;
+  GLConst,
+  ForexHelpers;
 
 const
+  // Actual column indices may be different depending on UK/Currency settings
   COL_ACCOUNT_NO    = 0;
   COL_ACCOUNT_NAME  = 1;
-  COL_CURRENCY      = 2;
+  COL_CURRENCY      = 2; // Optional
   COL_CHART_CODE    = 3;
+  COL_GAINLOSS_CODE = 4; // Optional
 
 //------------------------------------------------------------------------------
 procedure TfrmMaintainBank.FormCreate(Sender: TObject);
 var
   ContraColumn: TListColumn;
 begin
-  FCurrencyColumn := nil;
-
   FVendorColumns := TObjectList.Create(False);
   
   bkXPThemes.ThemeForm( Self);
@@ -157,14 +160,21 @@ begin
   actCreate.Enabled := (not MyClient.clFields.clFile_Read_Only) and ((not Assigned(AdminSystem)) or CurrUser.CanAccessAdmin);
 
   //Add currency column for UK multi-currency
-  if (MyClient.clFields.clCountry = whUK) and (MyClient.HasForeignCurrencyAccounts)
-    then ShowCurrencyColumn
-    else HideCurrencyColumn;
+  if (MyClient.clFields.clCountry = whUK) and (MyClient.HasForeignCurrencyAccounts) then
+    ShowCurrencyColumn;
 
   //Contra column
   ContraColumn := lvBank.Columns.Add;
   ContraColumn.Caption := 'Contra';
   ContraColumn.Width := 100;
+
+  // Gain/Loss
+  if IsGainLossClient then
+  begin
+    ShowGainLossColumn;
+    // Add space to the form
+    Width := Width + FGainLossColumn.Width;
+  end;
 
   fExportDataEnabled := ProductConfigService.IsExportDataEnabled;
 
@@ -176,6 +186,14 @@ begin
   SetUpHelp;
 end;
 
+//------------------------------------------------------------------------------
+procedure TfrmMaintainBank.FormClose(Sender: TObject;
+  var Action: TCloseAction);
+begin
+  UpdateMenus;
+end;
+
+//------------------------------------------------------------------------------
 procedure TfrmMaintainBank.FormDestroy(Sender: TObject);
 begin
   FVendorColumns.Free;
@@ -205,13 +223,14 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+function TfrmMaintainBank.CurrencyColumnShowing: boolean;
+begin
+  Result := Assigned(FCurrencyColumn);
+end;
+
+//------------------------------------------------------------------------------
 procedure TfrmMaintainBank.ShowCurrencyColumn;
 begin
-  {
-  lvBank.Columns.Items[COL_CURRENCY].Width := 80;
-  CurrencyColumnShowing := true;
-  }
-
   if not Assigned(FCurrencyColumn) then
   begin
     FCurrencyColumn := lvBank.Columns.Add;
@@ -228,17 +247,42 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmMaintainBank.HideCurrencyColumn;
 begin
-  {
-  lvBank.Columns.Items[COL_CURRENCY].Width := 0;
-  CurrencyColumnShowing := false;
-  }
-
   if Assigned(FCurrencyColumn) then
   begin
     FreeAndNil(FCurrencyColumn);
 
     UpdateVendorColumnIndexPointers;
   end;
+end;
+
+//------------------------------------------------------------------------------
+function TfrmMaintainBank.GainLossColumnShowing: boolean;
+begin
+  result := Assigned(FGainLossColumn);
+end;
+
+//------------------------------------------------------------------------------
+procedure TfrmMaintainBank.ShowGainLossColumn;
+var
+  ColumnIndex: integer;
+begin
+  // Already showing?
+  if GainLossColumnShowing then
+    exit;
+
+  FGainLossColumn := lvBank.Columns.Add;
+
+  // Determine column index (currency is optional)
+  ColumnIndex := COL_GAINLOSS_CODE;
+  if not CurrencyColumnShowing then
+    Dec(ColumnIndex);
+
+  FGainLossColumn.Index := ColumnIndex;
+
+  FGainLossColumn.Caption := 'Exchange Gain/Loss';
+  FGainLossColumn.Width := 140;
+
+  UpdateVendorColumnIndexPointers;
 end;
 
 //------------------------------------------------------------------------------
@@ -258,11 +302,10 @@ procedure TfrmMaintainBank.AddOnlineExportVendors;
 var
   NewColumn    : TListColumn;
   VendorIndex  : integer;
-  BankAccIndex : integer;
   FirstVendorCol: boolean;
 begin
   FVendorColumns.Clear;
-  
+
   // Service Call
   RefreshExportVendors;
 
@@ -283,7 +326,7 @@ begin
 
       FVendorColumns.Add(NewColumn);
     end;
-    if not FirstVendorCol then // ie. is there at least one vendor    
+    if not FirstVendorCol then // ie. is there at least one vendor
       fOnlineVendorEndCol := NewColumn.Index;
   end;
 end;
@@ -294,27 +337,20 @@ var
   NewItem  : TListItem;
   BankAcct : TBank_Account;
   i : integer;
-  CurrencyColumn: TListColumn;
-  ColumnStrings: TStrings;
   ClientVendorIndex : integer;
   AccountVendorIndex : integer;
   Found : Boolean;
-  SubItemIndex : integer;
   AccVendorIndex : integer;
   VendorFirstIndex : integer;
 begin
   lvBank.Items.beginUpdate;
   try
+    // Dynamic columns
+    // When new accounts have been added add the column. When deleted leave "as is"
     if (MyClient.clFields.clCountry = whUK) and (MyClient.HasForeignCurrencyAccounts) then
-    begin
-      if not CurrencyColumnShowing then
-        ShowCurrencyColumn;
-    end
-    else
-    begin
-      if CurrencyColumnShowing then
-        HideCurrencyColumn;
-    end;
+      ShowCurrencyColumn;
+    if IsGainLossClient then
+      ShowGainLossColumn;
 
     lvBank.Items.Clear;
 
@@ -339,27 +375,20 @@ begin
 
         NewItem.SubItems.AddObject(BankAcct.baFields.baBank_Account_Name,BankAcct);
 
-        if (MyClient.clFields.clCountry = whUK) and (MyClient.HasForeignCurrencyAccounts) then
-        begin
-          if CurrencyColumnShowing then
-          begin
+        // Currency column visible?
+        if CurrencyColumnShowing then
             NewItem.SubItems.Add(BankAcct.baFields.baCurrency_Code);
-            NewItem.SubItems.Add(BankAcct.baFields.baContra_Account_Code);
-          end
-          else
-          begin
-            NewItem.SubItems.Add(BankAcct.baFields.baCurrency_Code);
-            NewItem.SubItems.Add(BankAcct.baFields.baContra_Account_Code);
-          end;
-        end
-        else
-          NewItem.SubItems.Add(BankAcct.baFields.baContra_Account_Code);
-        {
-        else
-          NewItem.SubItems.Add(''); // blank currency code
-        }
 
-        
+        NewItem.SubItems.Add(BankAcct.baFields.baContra_Account_Code);
+
+        // Gain/Loss column visible?
+        if GainLossColumnShowing then
+        begin
+          if IsGainLossAccount(BankAcct) then
+            NewItem.SubItems.Add(BankAcct.baFields.baExchange_Gain_Loss_Code)
+          else
+            NewItem.SubItems.Add(''); // Don't show codes that may be irrelevant
+        end;
       end;
 
       // For this account Get the Vendor data and updates extra columns
@@ -582,7 +611,6 @@ var
                                             out aMessage : string) : Boolean;
   var
     VendorIndex : integer;
-    VendorId : TBloGuid;
     VendorNames : Array of String;
     VendorStr : String;
     AccountVendors : TAccountVendors;
@@ -1065,11 +1093,6 @@ begin
    end;
 end;
 
-function TfrmMaintainBank.CurrencyColumnShowing: boolean;
-begin
-  Result := Assigned(FCurrencyColumn);
-end;
-
 {$ENDIF}
 
 //------------------------------------------------------------------------------
@@ -1234,13 +1257,6 @@ begin
       Exit;
     end;
   end;
-end;
-
-//------------------------------------------------------------------------------
-procedure TfrmMaintainBank.FormClose(Sender: TObject;
-  var Action: TCloseAction);
-begin
-  UpdateMenus;
 end;
 
 end.

@@ -52,13 +52,20 @@ type
     property Statement_Amount : Money read GetStatement_Amount;
   end;
 
+  // UK Multi-Currencies
+  function  IsGainLossClient: boolean;
+  function  IsGainLossAccount(const aAccount: TBank_Account): boolean;
+  function  IsValidGainLossCode(const aCode: string): boolean;
+
 
 implementation
 
 uses
    GSTCalc32,
    BKConst,
-   BKDSIO;
+   BKDSIO,
+   Globals,
+   BaList32;
 
 { TTransactionHelper }
 
@@ -84,7 +91,6 @@ end;
 
 function TTransactionHelper.GetDefault_Forex_Rate: Double;
 begin
-  Result := 0;
   if (txDate_Transferred > 0) or (txLocked) then
     Result := txForex_Conversion_Rate
   else
@@ -280,5 +286,69 @@ begin
    Result := dsTransaction.Locked;
 end;
 
+// ----------------------------------------------------------------------------
+function GetCountry: byte;
+begin
+  if Assigned(AdminSystem) then
+    result := AdminSystem.fdFields.fdCountry
+  else
+    result := MyClient.clFields.clCountry;
+end;
+
+// ----------------------------------------------------------------------------
+function IsGainLossClient: boolean;
+var
+  Country: byte;
+  i: integer;
+  Accounts: TBank_Account_List;
+  Account: TBank_Account;
+begin
+  result := false;
+
+  // Must be UK practice
+  Country := GetCountry;
+  if (Country <> whUK) then
+    exit;
+
+  // Any of the accounts is a foreign currency?
+  result := MyClient.HasForeignCurrencyAccounts;
+end;
+
+// ----------------------------------------------------------------------------
+function IsGainLossAccount(const aAccount: TBank_Account): boolean;
+var
+  Country: byte;
+begin
+  ASSERT(assigned(aAccount));
+
+  result := false;
+
+  // Must be UK practice
+  Country := GetCountry;
+  if (Country <> whUK) then
+    exit;
+
+  // Foreign currency?
+  result := aAccount.IsAForexAccount;
+end;
+
+// ----------------------------------------------------------------------------
+function IsValidGainLossCode(const aCode: string): boolean;
+var
+  pAccount: pAccount_Rec;
+begin
+  result := false;
+
+  // Code not in chart?
+  pAccount := MyClient.clChart.FindCode(aCode);
+  if not Assigned(pAccount) then
+    exit;
+
+  // Type not allowed for Gain/Loss?
+  if not (pAccount.chAccount_Type in [atIncome, atExpense, atOtherIncome, atOtherExpense]) then
+    exit;
+
+  result := true;
+end;
 
 end.

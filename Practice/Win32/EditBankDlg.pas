@@ -94,10 +94,16 @@ type
     lblSelectExport: TLabel;
     lblExportTo: TLabel;
     chkLstAccVendors: TCheckListBox;
+    pnlGainLoss: TPanel;
+    Label3: TLabel;
+    sbtnGainLossChart: TSpeedButton;
+    lblGainLossDesc: TLabel;
+    eGainLoss: TEdit;
 
     procedure FormCreate(Sender: TObject);
+    procedure HideGainLoss;
     procedure SetUpHelp;
-    procedure sbtnChartClick(Sender: TObject);
+    procedure sbtnCodeClick(Sender: TObject);
     procedure FormKeyUp(Sender: TObject; var Key: Word;
       Shift: TShiftState);
     procedure btnCancelClick(Sender: TObject);
@@ -112,12 +118,12 @@ type
     procedure nBalanceKeyDown(Sender: TObject; var Key: Word;
       Shift: TShiftState);
     procedure nBalanceChange(Sender: TObject);
-    procedure eContraChange(Sender: TObject);
-    procedure eContraKeyPress(Sender: TObject; var Key: Char);
-    procedure eContraKeyUp(Sender: TObject; var Key: Word;
+    procedure eCodeChange(Sender: TObject);
+    procedure eCodeKeyPress(Sender: TObject; var Key: Char);
+    procedure eCodeKeyUp(Sender: TObject; var Key: Word;
       Shift: TShiftState);
     procedure btnAdvancedClick(Sender: TObject);
-    procedure eContraExit(Sender: TObject);
+    procedure eCodeExit(Sender: TObject);
     procedure eNumberExit(Sender: TObject);
     procedure btnLedgerIDClick(Sender: TObject);
   private
@@ -138,7 +144,7 @@ type
     fRemoveVendorsFromClientList : TBloArrayOfGuid;
 
     procedure SetAddNew(Value: Boolean);
-    procedure DoList;
+    procedure DoList(const aEdit: TEdit);
     function OKtoPost : boolean;
     procedure SetLedgerLabel;
     procedure FillCurrencies;
@@ -151,6 +157,7 @@ type
     function GetVendorIndex(aGuid : TBloGuid) : integer;
   public
     { Public declarations }
+    constructor Create(AOwner: TComponent; const aBankAcct: TBank_Account); reintroduce;
     function Execute : boolean;
     property AddNew: Boolean write SetAddNew;
     property ExportDataEnabled : Boolean read fExportDataEnabled write fExportDataEnabled;
@@ -210,6 +217,16 @@ const
   BAL_UNKNOWN = 2;
   Unit_Name = 'EditBankDlg';
 
+
+//------------------------------------------------------------------------------
+constructor TdlgEditBank.Create(AOwner: TComponent; const aBankAcct: TBank_Account);
+begin
+  inherited Create(AOwner);
+
+  // Need this here before FormCreate
+  BankAcct := aBankAcct;
+end;
+
 //------------------------------------------------------------------------------
 procedure TdlgEditBank.SetAddNew(Value: Boolean);
 begin
@@ -218,15 +235,6 @@ begin
   else
     Caption := 'Edit Bank Account Details';
   FAddNew := Value;
-end;
-
-//------------------------------------------------------------------------------
-procedure TdlgEditBank.DoList;
-var s : string;
-begin
-   s := eContra.text;
-   if PickAccount(s) then eContra.text := s;
-   eContra.Refresh;
 end;
 
 //------------------------------------------------------------------------------
@@ -275,7 +283,8 @@ var
 
 begin
   bkXPThemes.ThemeForm( Self);
-  ImagesFrm.AppImages.Coding.GetBitmap(CODING_CHART_BMP,sbtnChart.Glyph);
+  ImagesFrm.AppImages.Coding.GetBitmap(CODING_CHART_BMP, sbtnChart.Glyph);
+  ImagesFrm.AppImages.Coding.GetBitmap(CODING_CHART_BMP, sbtnGainLossChart.Glyph);
 
   left := (Screen.WorkAreawidth - width) div 2;
   top  := (Screen.WorkAreaHeight - Height) div 2;
@@ -283,7 +292,12 @@ begin
 
   gCalc.Visible := false;
   lblContraDesc.Caption := '';
+  lblGainLossDesc.Caption := '';
   FAddNew := False;
+
+  // Gain/Loss
+  if not IsGainLossAccount(BankAcct) then
+    HideGainLoss;
 
   cmbType.Clear;
   case MyClient.clFields.clCountry of
@@ -300,6 +314,7 @@ begin
   eDateFrom.PictureMask := BKDATEFORMAT;
   eDateFrom.Epoch       := BKDATEEPOCH;
   eContra.MaxLength     := MaxBk5CodeLen;
+  eGainLoss.MaxLength   := MaxBk5CodeLen;
   removingMask          := false;
 
   cmbSign.itemIndex := BAL_INFUNDS;
@@ -307,6 +322,30 @@ begin
   FillCurrencies;
 
   SetUpHelp;
+end;
+
+//------------------------------------------------------------------------------
+procedure TdlgEditBank.HideGainLoss;
+var
+  i: integer;
+  Control: TControl;
+begin
+  pnlGainLoss.Visible := false;
+
+  for i := 0 to tbDetails.ControlCount-1 do
+  begin
+    Control := tbDetails.Controls[i];
+
+    // Above us?
+    if (Control.Top <= pnlGainLoss.Top) then
+      continue;
+
+    // Move it up
+    Control.Top := Control.Top - pnlGainLoss.Height;
+  end;
+
+  // Shorten the form
+  Height := Height - pnlGainLoss.Height;
 end;
 
 //------------------------------------------------------------------------------
@@ -324,11 +363,17 @@ begin
    eName.Hint       :=
                     'Edit the Bank Account name if necessary|' +
                     'Edit the Bank Account name if necessary or use the default name downloaded with the transactions';
+
    eContra.Hint     :=
                     'Enter the Contra Account Code to use for this Bank Account|' +
                     'Enter the Contra Account Code from the Chart of Accounts which corresponds to this Bank Account';
+   eGainLoss.Hint   :=
+                    'Enter the Exchange Gain/Loss Account Code to use for this Bank Account|' +
+                    'Enter the Exchange Gain/Loss Account Code to use for this Bank Account';
 
    sbtnChart.Hint   :=
+                    STDHINTS.ChartLookupHint;
+   sbtnGainLossChart.Hint :=
                     STDHINTS.ChartLookupHint;
 
    chkMaster.Hint   :=
@@ -406,21 +451,6 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TdlgEditBank.sbtnChartClick(Sender: TObject);
-begin
-  DoList;
-  eContra.setFocus;
-end;
-
-//------------------------------------------------------------------------------
-procedure TdlgEditBank.FormKeyUp(Sender: TObject; var Key: Word;
-  Shift: TShiftState);
-begin
-  if (key = 113) or ((key=40) and (Shift = [ssAlt])) then
-     DoList;
-end;
-
-//------------------------------------------------------------------------------
 procedure TdlgEditBank.LoadAcccountVendors;
 var
   ItemIndex : Integer;
@@ -460,7 +490,6 @@ end;
 function TdlgEditBank.SaveAccountVendors: Boolean;
 var
   ItemIndex : integer;
-  VendorID : TBloGuid;
   VendorCount : integer;
   CurrentVendors : TBloArrayOfGuid;
   ClientNeedRefresh : boolean;
@@ -749,6 +778,18 @@ begin
     end;
   end;
 
+  // Gain/Loss
+  if (eGainLoss.Text <> '') and not IsValidGainLossCode(eGainLoss.Text) then
+  begin
+    HelpfulWarningMsg(
+      'The Exchange Gain/Loss Code must be a chart code that has a report group '+
+      'set to ''Income'', ''Expense'', ''Other Income'', or ''Other Expense''.',
+      0);
+    PageControl1.ActivePage := tbDetails;
+    eGainLoss.SetFocus;
+    Exit;
+  end;
+
   if ExportDataEnabled then
   begin
     fVendorDirty := HaveVendorExportsChanged(PromptMessage);
@@ -884,64 +925,6 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TdlgEditBank.eContraChange(Sender: TObject);
-var
-  pAcct   : pAccount_Rec;
-  S       : string;
-  IsValid : boolean;
-begin
-  if MyClient.clChart.ItemCount = 0 then
-    Exit;
-
-  s       := Trim( eContra.Text);
-  pAcct   := MyClient.clChart.FindCode( S);
-  IsValid := Assigned( pAcct) and
-             (pAcct^.chAccount_Type = atBankAccount) and
-             pAcct^.chPosting_Allowed;
-
-  if Assigned( pAcct) then
-    lblContraDesc.Caption := pAcct^.chAccount_Description
-  else
-    lblContraDesc.Caption := '';
-
-  if (S = '') or ( IsValid) then begin
-    eContra.Font.Color := clWindowText;
-    eContra.Color      := clWindow;
-    S := eContra.Text;
-    eContra.BorderStyle := bsNone;
-    eContra.BorderStyle := bsSingle;
-    eContra.Text := S;
-  end
-  else begin
-    eContra.Font.Color := clWhite;
-    eContra.Color      := clRed;
-  end;
-end;
-
-//------------------------------------------------------------------------------
-procedure TdlgEditBank.eContraKeyPress(Sender: TObject; var Key: Char);
-begin
-  if ((key='-') and (myClient.clFields.clUse_Minus_As_Lookup_Key)) then
-  begin
-    key := #0;
-    PickCodeForEdit(Sender);
-  end;
-end;
-
-//------------------------------------------------------------------------------
-procedure TdlgEditBank.eContraKeyUp(Sender: TObject; var Key: Word;
-  Shift: TShiftState);
-begin
-  if (key = 113) or ((key=40) and (Shift = [ssAlt])) then
-     PickCodeForEdit(Sender)
-  else if ( Key = VK_BACK ) then
-    bkMaskUtils.CheckRemoveMaskChar(eContra,RemovingMask)
-  else
-    bkMaskUtils.CheckForMaskChar(eContra,RemovingMask);
-
-end;
-
-//------------------------------------------------------------------------------
 function TdlgEditBank.Execute: boolean;
 var
   Amount : money;
@@ -958,6 +941,7 @@ var
   stNumber.Caption := BankAcct.baFields.baBank_Account_Number;
   eName.Text := BankAcct.baFields.baBank_Account_Name;
   eContra.Text := BankAcct.baFields.baContra_Account_Code;
+  eGainLoss.Text := BankAcct.baFields.baExchange_Gain_Loss_Code;
 
   chkMaster.Checked := BankAcct.baFields.baApply_Master_Memorised_Entries;
   chkMaster.Enabled := MyClient.clFields.clDownload_From = dlAdminSystem;
@@ -1131,6 +1115,7 @@ var
     BankAcct.baFields.baCurrency_Code := cmbCurrency.Items[cmbCurrency.ItemIndex];
     BankAcct.baFields.baBank_Account_Name := eName.Text;
     BankAcct.baFields.baContra_Account_Code := eContra.Text;
+    BankAcct.baFields.baExchange_Gain_Loss_Code := eGainLoss.Text;
     BankAcct.baFields.baApply_Master_Memorised_Entries := chkMaster.Checked;
     BankAcct.baFields.baManual_Account_Institution := eInst.Text;
     BankAcct.baFields.baManual_Account_Type := cmbType.ItemIndex;
@@ -1187,7 +1172,7 @@ function EditBankAccount(aBankAcct : TBank_Account;
 var
   MyDlg : tdlgEditBank;
 begin
-  MyDlg := tdlgEditBank.Create(Application.MainForm);
+  MyDlg := tdlgEditBank.Create(Application.MainForm, aBankAcct);
   try
     if aBankAcct.IsManual then
     begin
@@ -1198,7 +1183,6 @@ begin
     end
     else
       BKHelpSetUp(MyDlg, BKH_Edit_bank_account_details);
-    MyDlg.BankAcct := aBankAcct;
     MyDlg.AddNew   := IsNew;
     MyDlg.ExportDataEnabled := (ProductConfigService.IsExportDataEnabledFoAccount(aBankAcct)) and
                                (aClientId <> '') and
@@ -1238,6 +1222,7 @@ begin
          eNumber.Text     := '';
          eName.Text       := '';
          eContra.Text     := '';
+         eGainLoss.Text   := '';
          pnlManual.Visible := False;
          lblClause.Visible := False;
          eInst.Text := '';
@@ -1304,13 +1289,6 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TdlgEditBank.eContraExit(Sender: TObject);
-begin
-  if not MyClient.clChart.CodeIsThere(eContra.Text) then
-    bkMaskUtils.CheckRemoveMaskChar(eContra,RemovingMask);
-end;
-
-//------------------------------------------------------------------------------
 procedure TdlgEditBank.eNumberExit(Sender: TObject);
 begin
   (Sender as TEdit).Text := Trim((Sender as TEdit).Text);
@@ -1327,6 +1305,128 @@ begin
    if LDesc = '' then
       LDesc := '<none>';
    lblLedgerID.Caption := format('Selected Fund: %s',[LDesc]);
+end;
+
+//------------------------------------------------------------------------------
+procedure TdlgEditBank.eCodeChange(Sender: TObject);
+var
+  Edit      : TEdit;
+  pAcct     : pAccount_Rec;
+  S         : string;
+  IsValid   : boolean;
+  DescLabel : TLabel;
+begin
+  Edit := (Sender as TEdit);
+
+  if MyClient.clChart.ItemCount = 0 then
+    Exit;
+
+  s       := Trim(Edit.Text);
+  pAcct   := MyClient.clChart.FindCode( S);
+  IsValid := Assigned(pAcct) and pAcct.chPosting_Allowed;
+
+  // Specific validation for Contra and Gain/Loss controls
+  ASSERT((Sender = eContra) or (Sender = eGainLoss));
+  if (Sender = eContra) then
+  begin
+    IsValid := IsValid and (pAcct^.chAccount_Type = atBankAccount);
+    DescLabel := lblContraDesc;
+  end
+  else
+  begin
+    IsValid := IsValid and IsValidGainLossCode(s);
+    DescLabel := lblGainLossDesc;
+  end;
+
+  // Set description
+  if Assigned( pAcct) then
+    DescLabel.Caption := pAcct^.chAccount_Description
+  else
+    DescLabel.Caption := '';
+
+  if (S = '') or ( IsValid) then begin
+    Edit.Font.Color := clWindowText;
+    Edit.Color      := clWindow;
+    S := Edit.Text;
+    Edit.BorderStyle := bsNone;
+    Edit.BorderStyle := bsSingle;
+    Edit.Text := S;
+  end
+  else begin
+    Edit.Font.Color := clWhite;
+    Edit.Color      := clRed;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+procedure TdlgEditBank.eCodeKeyPress(Sender: TObject; var Key: Char);
+begin
+  if ((key='-') and (myClient.clFields.clUse_Minus_As_Lookup_Key)) then
+  begin
+    key := #0;
+    PickCodeForEdit(Sender);
+  end;
+end;
+
+//------------------------------------------------------------------------------
+procedure TdlgEditBank.eCodeKeyUp(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+var
+  Edit: TEdit;
+begin
+  Edit := (Sender as TEdit);
+
+  if (key = 113) or ((key=40) and (Shift = [ssAlt])) then
+     PickCodeForEdit(Sender)
+  else if ( Key = VK_BACK ) then
+    bkMaskUtils.CheckRemoveMaskChar(Edit, RemovingMask)
+  else
+    bkMaskUtils.CheckForMaskChar(Edit, RemovingMask);
+end;
+
+//------------------------------------------------------------------------------
+procedure TdlgEditBank.eCodeExit(Sender: TObject);
+var
+  Edit: TEdit;
+begin
+  Edit := (Sender as TEdit);
+
+  if not MyClient.clChart.CodeIsThere(Edit.Text) then
+    bkMaskUtils.CheckRemoveMaskChar(Edit, RemovingMask);
+end;
+
+//------------------------------------------------------------------------------
+procedure TdlgEditBank.FormKeyUp(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+  if (key = 113) or ((key=40) and (Shift = [ssAlt])) then
+    DoList(eContra);
+end;
+
+//------------------------------------------------------------------------------
+procedure TdlgEditBank.sbtnCodeClick(Sender: TObject);
+var
+  Edit: TEdit;
+begin
+  ASSERT((Sender = sbtnChart) or (Sender = sbtnGainLossChart));
+  if (Sender = sbtnChart) then
+    Edit := eContra
+  else
+    Edit := eGainLoss;
+
+  DoList(Edit);
+  Edit.SetFocus;
+end;
+
+//------------------------------------------------------------------------------
+procedure TdlgEditBank.DoList(const aEdit: TEdit);
+var
+  s: string;
+begin
+  s := aEdit.Text;
+  if PickAccount(s) then
+    aEdit.Text := s;
+  aEdit.Refresh;
 end;
 
 end.

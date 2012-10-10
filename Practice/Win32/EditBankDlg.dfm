@@ -3,7 +3,7 @@ object dlgEditBank: TdlgEditBank
   Top = 217
   BorderStyle = bsDialog
   Caption = 'Edit Bank Account Details'
-  ClientHeight = 485
+  ClientHeight = 523
   ClientWidth = 638
   Color = clBtnFace
   ParentFont = True
@@ -19,12 +19,16 @@ object dlgEditBank: TdlgEditBank
     Left = 0
     Top = 0
     Width = 638
-    Height = 448
+    Height = 486
     ActivePage = tbDetails
     Align = alClient
     TabOrder = 0
     object tbDetails: TTabSheet
       Caption = '&Details'
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object lblNo: TLabel
         Left = 24
         Top = 12
@@ -49,7 +53,7 @@ object dlgEditBank: TdlgEditBank
       end
       object lblClause: TLabel
         Left = 3
-        Top = 373
+        Top = 409
         Width = 618
         Height = 26
         Caption = 
@@ -74,7 +78,7 @@ object dlgEditBank: TdlgEditBank
       end
       object lblLedgerID: TLabel
         Left = 159
-        Top = 232
+        Top = 268
         Width = 410
         Height = 16
         AutoSize = False
@@ -90,11 +94,11 @@ object dlgEditBank: TdlgEditBank
       end
       object gCalc: TPanel
         Left = 24
-        Top = 259
+        Top = 295
         Width = 601
         Height = 109
         Color = clInfoBk
-        TabOrder = 7
+        TabOrder = 8
         object lblPeriod: TLabel
           Left = 24
           Top = 86
@@ -224,7 +228,7 @@ object dlgEditBank: TdlgEditBank
           Width = 51
           Height = 21
           Style = csDropDownList
-          ItemHeight = 13
+          ItemHeight = 0
           TabOrder = 1
           Items.Strings = (
             'IF'
@@ -302,13 +306,13 @@ object dlgEditBank: TdlgEditBank
           Width = 24
           Height = 22
           Flat = True
-          OnClick = sbtnChartClick
+          OnClick = sbtnCodeClick
         end
         object lblContraDesc: TLabel
           Left = 331
           Top = 3
           Width = 217
-          Height = 16
+          Height = 20
           Anchors = [akLeft, akTop, akRight]
           AutoSize = False
           Caption = 'lblContraDesc'
@@ -324,19 +328,19 @@ object dlgEditBank: TdlgEditBank
           ParentCtl3D = False
           TabOrder = 0
           Text = '12345678901234567890'
-          OnChange = eContraChange
-          OnExit = eContraExit
-          OnKeyPress = eContraKeyPress
-          OnKeyUp = eContraKeyUp
+          OnChange = eCodeChange
+          OnExit = eCodeExit
+          OnKeyPress = eCodeKeyPress
+          OnKeyUp = eCodeKeyUp
         end
       end
       object pnlBankOnly: TPanel
         Left = 8
-        Top = 106
+        Top = 142
         Width = 561
         Height = 57
         BevelOuter = bvNone
-        TabOrder = 4
+        TabOrder = 5
         object lblBank: TLabel
           Left = 16
           Top = 16
@@ -409,7 +413,7 @@ object dlgEditBank: TdlgEditBank
           Height = 21
           Style = csDropDownList
           Ctl3D = True
-          ItemHeight = 13
+          ItemHeight = 0
           ParentCtl3D = False
           TabOrder = 2
           Items.Strings = (
@@ -420,11 +424,11 @@ object dlgEditBank: TdlgEditBank
       end
       object pnlManual: TPanel
         Left = 24
-        Top = 164
+        Top = 200
         Width = 601
         Height = 61
         BevelOuter = bvNone
-        TabOrder = 5
+        TabOrder = 6
         object lblType: TLabel
           Left = 0
           Top = 37
@@ -448,7 +452,7 @@ object dlgEditBank: TdlgEditBank
           Height = 21
           Style = csDropDownList
           Ctl3D = True
-          ItemHeight = 13
+          ItemHeight = 0
           ParentCtl3D = False
           Sorted = True
           TabOrder = 1
@@ -484,11 +488,11 @@ object dlgEditBank: TdlgEditBank
       end
       object btnLedgerID: TButton
         Left = 24
-        Top = 228
+        Top = 264
         Width = 129
         Height = 25
         Caption = 'Select &Fund'
-        TabOrder = 6
+        TabOrder = 7
         OnClick = btnLedgerIDClick
       end
       object cmbCurrency: TComboBox
@@ -497,7 +501,7 @@ object dlgEditBank: TdlgEditBank
         Width = 92
         Height = 21
         Style = csDropDownList
-        ItemHeight = 13
+        ItemHeight = 0
         TabOrder = 1
         Items.Strings = (
           'GBP'
@@ -505,13 +509,67 @@ object dlgEditBank: TdlgEditBank
           'AUD'
           'USD')
       end
+      object pnlGainLoss: TPanel
+        Left = 0
+        Top = 104
+        Width = 553
+        Height = 34
+        BevelOuter = bvNone
+        TabOrder = 4
+        DesignSize = (
+          553
+          34)
+        object Label3: TLabel
+          Left = 24
+          Top = 1
+          Width = 99
+          Height = 33
+          AutoSize = False
+          Caption = '&Exchange Gain/Loss Code'
+          FocusControl = eGainLoss
+          WordWrap = True
+        end
+        object sbtnGainLossChart: TSpeedButton
+          Left = 297
+          Top = 3
+          Width = 24
+          Height = 22
+          Flat = True
+          OnClick = sbtnCodeClick
+        end
+        object lblGainLossDesc: TLabel
+          Left = 331
+          Top = 3
+          Width = 217
+          Height = 20
+          Anchors = [akLeft, akTop, akRight]
+          AutoSize = False
+          Caption = 'lblGainLossDesc'
+        end
+        object eGainLoss: TEdit
+          Left = 136
+          Top = 2
+          Width = 153
+          Height = 24
+          BorderStyle = bsNone
+          Ctl3D = True
+          MaxLength = 10
+          ParentCtl3D = False
+          TabOrder = 0
+          Text = '12345678901234567890'
+          OnChange = eCodeChange
+          OnExit = eCodeExit
+          OnKeyPress = eCodeKeyPress
+          OnKeyUp = eCodeKeyUp
+        end
+      end
     end
     object tbAnalysis: TTabSheet
       Caption = '&Analysis Coding'
       ImageIndex = 1
       ExplicitLeft = 0
       ExplicitTop = 0
-      ExplicitWidth = 584
+      ExplicitWidth = 0
       ExplicitHeight = 0
       object Label8: TLabel
         Left = 16
@@ -603,7 +661,7 @@ object dlgEditBank: TdlgEditBank
   end
   object pnlFooter: TPanel
     Left = 0
-    Top = 448
+    Top = 486
     Width = 638
     Height = 37
     Align = alBottom

@@ -533,6 +533,7 @@ begin
     FAuditNamesArray[150,203] := 'Audit_Record_ID';
     FAuditNamesArray[150,204] := 'Core_Account_ID';
     FAuditNamesArray[150,205] := 'Secure_Online_Code';
+    FAuditNamesArray[150,206] := 'Exchange_Gain_Loss_Code';
 
    FAuditTableArray[160] := 'Transaction';
     FAuditNamesArray[160,162] := 'Sequence_No';
