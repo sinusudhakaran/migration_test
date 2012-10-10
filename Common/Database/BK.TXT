@@ -203,6 +203,7 @@ $|                         tagging additions to the BLO settings form
 $|                         Added Core Trans ID High Integer
 $|                         Added Bank Account Core ID
 $|                         Added Bank Account Online Secure Code
+$|                         Changed Transaction Matched_By from type "Memorised Transaction Rec" to "Memorisation Detail Rec"
 $|  5.26            171    Added fields Contractor..ABN to Payee Detail record
 $|                         Added Exchange Gain_Loss_Code
 $|*)
