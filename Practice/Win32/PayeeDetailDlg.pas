@@ -1339,6 +1339,7 @@ begin
      eName.Text := Payee.pdName;
      nPayeeNo.asInteger := Payee.pdNumber;
 
+     chkContractorPayee.Checked := Payee.pdFields.pdContractor;
      edtPayeeSurname.Text := Payee.pdFields.pdSurname;
      edtPayeeGivenName.Text := Payee.pdFields.pdGiven_Name;
      edtOtherName.Text := Payee.pdFields.pdOther_Name;

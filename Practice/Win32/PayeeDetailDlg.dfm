@@ -74,13 +74,13 @@ object dlgPayeeDetail: TdlgPayeeDetail
       OnUserCommand = tblSplitUserCommand
       CellData = (
         'dlgPayeeDetail.Header'
-        'dlgPayeeDetail.ColAcct'
-        'dlgPayeeDetail.ColDesc'
-        'dlgPayeeDetail.colNarration'
-        'dlgPayeeDetail.ColGSTCode'
-        'dlgPayeeDetail.ColAmount'
+        'dlgPayeeDetail.colLineType'
         'dlgPayeeDetail.colPercent'
-        'dlgPayeeDetail.colLineType')
+        'dlgPayeeDetail.ColAmount'
+        'dlgPayeeDetail.ColGSTCode'
+        'dlgPayeeDetail.colNarration'
+        'dlgPayeeDetail.ColDesc'
+        'dlgPayeeDetail.ColAcct')
       RowData = (
         21)
       ColData = (
@@ -552,7 +552,6 @@ object dlgPayeeDetail: TdlgPayeeDetail
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd]
     PictureMask = '###,###,###.##'
     Table = tblSplit
     TableColor = False
@@ -651,6 +650,7 @@ object dlgPayeeDetail: TdlgPayeeDetail
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
+    Options = [efoCaretToEnd]
     PictureMask = '###,###,###.####'
     Table = tblSplit
     TableColor = False
