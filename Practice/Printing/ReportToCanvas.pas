@@ -48,8 +48,6 @@ uses
 
 
 type
-  TWrappedText = array of String;
-
    TRenderToCanvasEng = class( TCustomRenderEngine)
    private
 
