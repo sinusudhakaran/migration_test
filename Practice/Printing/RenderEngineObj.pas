@@ -25,6 +25,8 @@ uses
   Graphics;
 
 type
+   TWrappedText = array of String;
+
    TProcedurePtr = procedure(Sender : TObject);
 
    TCustomRenderEngine = class( TObject)
