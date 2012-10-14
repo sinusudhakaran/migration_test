@@ -95,7 +95,7 @@ type
     lblExportTo: TLabel;
     chkLstAccVendors: TCheckListBox;
     pnlGainLoss: TPanel;
-    Label3: TLabel;
+    lblGainLoss: TLabel;
     sbtnGainLossChart: TSpeedButton;
     lblGainLossDesc: TLabel;
     eGainLoss: TEdit;
@@ -126,6 +126,7 @@ type
     procedure eCodeExit(Sender: TObject);
     procedure eNumberExit(Sender: TObject);
     procedure btnLedgerIDClick(Sender: TObject);
+    procedure cmbCurrencyChange(Sender: TObject);
   private
     { Private declarations }
     AutoUpdate : boolean;
@@ -157,7 +158,6 @@ type
     function GetVendorIndex(aGuid : TBloGuid) : integer;
   public
     { Public declarations }
-    constructor Create(AOwner: TComponent; const aBankAcct: TBank_Account); reintroduce;
     function Execute : boolean;
     property AddNew: Boolean write SetAddNew;
     property ExportDataEnabled : Boolean read fExportDataEnabled write fExportDataEnabled;
@@ -219,12 +219,56 @@ const
 
 
 //------------------------------------------------------------------------------
-constructor TdlgEditBank.Create(AOwner: TComponent; const aBankAcct: TBank_Account);
-begin
-  inherited Create(AOwner);
+procedure TdlgEditBank.FormCreate(Sender: TObject);
+var
+  i: Integer;
 
-  // Need this here before FormCreate
-  BankAcct := aBankAcct;
+  function ValidAccountType(i: integer): boolean;
+  begin
+    case MyClient.clFields.clCountry of
+      whNewZealand: Result := not (i in AccountTypeExclusionsNZ);
+      whUK        : Result := not (i in AccountTypeExclusionsUK);
+      else          Result := True; // No Australia exclusions exist yet
+    end;
+  end;
+
+begin
+  bkXPThemes.ThemeForm( Self);
+  ImagesFrm.AppImages.Coding.GetBitmap(CODING_CHART_BMP, sbtnChart.Glyph);
+  ImagesFrm.AppImages.Coding.GetBitmap(CODING_CHART_BMP, sbtnGainLossChart.Glyph);
+
+  left := (Screen.WorkAreawidth - width) div 2;
+  top  := (Screen.WorkAreaHeight - Height) div 2;
+  lblClause.Font.Name := font.Name;
+
+  gCalc.Visible := false;
+  lblContraDesc.Caption := '';
+  lblGainLossDesc.Caption := '';
+  FAddNew := False;
+
+  cmbType.Clear;
+  case MyClient.clFields.clCountry of
+    //No manual superfund accounts for NZ or UK.
+    whNewZealand, whUK: for i := mtMin to mtOther do
+                          if ValidAccountType(i) then
+                            cmbType.Items.AddObject(mtNames[i], TObject(i));
+    whAustralia:        for i := mtMin to mtMax do
+                          if ValidAccountType(i) then // Don't need this condition yet, but may as well in case any exclusions get added for Australia later on
+                            cmbType.Items.AddObject(mtNames[i], TObject(i));
+  end;
+  cmbType.ItemIndex := -1;
+
+  eDateFrom.PictureMask := BKDATEFORMAT;
+  eDateFrom.Epoch       := BKDATEEPOCH;
+  eContra.MaxLength     := MaxBk5CodeLen;
+  eGainLoss.MaxLength   := MaxBk5CodeLen;
+  removingMask          := false;
+
+  cmbSign.itemIndex := BAL_INFUNDS;
+
+  FillCurrencies;
+
+  SetUpHelp;
 end;
 
 //------------------------------------------------------------------------------
@@ -257,71 +301,14 @@ begin
       for i := low(MyClient.ExchangeSource.Header.ehISO_Codes) to high(MyClient.ExchangeSource.Header.ehISO_Codes) do
         if MyClient.ExchangeSource.Header.ehISO_Codes[i] > '' then
           cmbCurrency.Items.Add(MyClient.ExchangeSource.Header.ehISO_Codes[i]);
-        //Must have the base currency
-        if cmbCurrency.Items.Count = 0 then
-          cmbCurrency.Items.Add(MyClient.clExtra.ceLocal_Currency_Code);
+      //Must have the base currency
+      if cmbCurrency.Items.Count = 0 then
+        cmbCurrency.Items.Add(MyClient.clExtra.ceLocal_Currency_Code);
     end;
   finally
     cmbCurrency.Items.EndUpdate;
     Screen.Cursor := Cursor;
   end;
-end;
-
-//------------------------------------------------------------------------------
-procedure TdlgEditBank.FormCreate(Sender: TObject);
-var
-  i: Integer;
-
-  function ValidAccountType(i: integer): boolean;
-  begin
-    case MyClient.clFields.clCountry of
-      whNewZealand: Result := not (i in AccountTypeExclusionsNZ);
-      whUK        : Result := not (i in AccountTypeExclusionsUK);
-      else          Result := True; // No Australia exclusions exist yet
-    end;
-  end;
-
-begin
-  bkXPThemes.ThemeForm( Self);
-  ImagesFrm.AppImages.Coding.GetBitmap(CODING_CHART_BMP, sbtnChart.Glyph);
-  ImagesFrm.AppImages.Coding.GetBitmap(CODING_CHART_BMP, sbtnGainLossChart.Glyph);
-
-  left := (Screen.WorkAreawidth - width) div 2;
-  top  := (Screen.WorkAreaHeight - Height) div 2;
-  lblClause.Font.Name := font.Name;
-
-  gCalc.Visible := false;
-  lblContraDesc.Caption := '';
-  lblGainLossDesc.Caption := '';
-  FAddNew := False;
-
-  // Gain/Loss
-  if not IsGainLossAccount(BankAcct) then
-    HideGainLoss;
-
-  cmbType.Clear;
-  case MyClient.clFields.clCountry of
-    //No manual superfund accounts for NZ or UK.
-    whNewZealand, whUK: for i := mtMin to mtOther do
-                          if ValidAccountType(i) then
-                            cmbType.Items.AddObject(mtNames[i], TObject(i));
-    whAustralia:        for i := mtMin to mtMax do
-                          if ValidAccountType(i) then // Don't need this condition yet, but may as well in case any exclusions get added for Australia later on
-                            cmbType.Items.AddObject(mtNames[i], TObject(i));
-  end;
-  cmbType.ItemIndex := -1;
-
-  eDateFrom.PictureMask := BKDATEFORMAT;
-  eDateFrom.Epoch       := BKDATEEPOCH;
-  eContra.MaxLength     := MaxBk5CodeLen;
-  eGainLoss.MaxLength   := MaxBk5CodeLen;
-  removingMask          := false;
-
-  cmbSign.itemIndex := BAL_INFUNDS;
-
-  FillCurrencies;
-
-  SetUpHelp;
 end;
 
 //------------------------------------------------------------------------------
@@ -783,7 +770,7 @@ begin
   begin
     HelpfulWarningMsg(
       'The Exchange Gain/Loss Code must be a chart code that has a report group '+
-      'set to ''Income'', ''Expense'', ''Other Income'', or ''Other Expense''.',
+      'set to ''Income'', ''Expense'', ''Other Income'' or ''Other Expense''.',
       0);
     PageControl1.ActivePage := tbDetails;
     eGainLoss.SetFocus;
@@ -927,8 +914,9 @@ end;
 //------------------------------------------------------------------------------
 function TdlgEditBank.Execute: boolean;
 var
+  ShowGainLoss: boolean;
   Amount : money;
-  begin
+begin
   result := false;
   okPressed := false;
   fVendorDirty := false;
@@ -977,15 +965,23 @@ var
   end
   else
     eNumber.Text := BankAcct.baFields.baBank_Account_Number;
-
+                            
   //Set currency
-  lblCurrency.Visible := (BankAcct.IsManual)
-                     and (MyClient.clFields.clCountry = whUK);
+  lblCurrency.Visible := (BankAcct.IsManual) and SupportsMultiCurrencies;
 
   cmbCurrency.Visible := lblCurrency.Visible;
   cmbCurrency.Enabled := cmbCurrency.Visible and FAddNew;
   if cmbCurrency.Items.IndexOf(BankAcct.baFields.baCurrency_Code) <> -1 then
     cmbCurrency.ItemIndex := cmbCurrency.Items.IndexOf(BankAcct.baFields.baCurrency_Code);
+  cmbCurrencyChange(cmbCurrency); // Configure the GainLoss controls
+
+  // Gain/Loss
+  ShowGainLoss := IsGainLossAccount(BankAcct);
+  // Maybe it's a NEW manual account (with more than one currency)
+  if not ShowGainLoss then
+    ShowGainLoss := cmbCurrency.Enabled and (cmbCurrency.Items.Count > 1);
+  if not ShowGainLoss then
+    HideGainLoss;
 
   if BankAcct.IsAJournalAccount then
   begin
@@ -1172,7 +1168,7 @@ function EditBankAccount(aBankAcct : TBank_Account;
 var
   MyDlg : tdlgEditBank;
 begin
-  MyDlg := tdlgEditBank.Create(Application.MainForm, aBankAcct);
+  MyDlg := tdlgEditBank.Create(Application.MainForm);
   try
     if aBankAcct.IsManual then
     begin
@@ -1183,6 +1179,8 @@ begin
     end
     else
       BKHelpSetUp(MyDlg, BKH_Edit_bank_account_details);
+
+    MyDlg.BankAcct := aBankAcct;
     MyDlg.AddNew   := IsNew;
     MyDlg.ExportDataEnabled := (ProductConfigService.IsExportDataEnabledFoAccount(aBankAcct)) and
                                (aClientId <> '') and
@@ -1427,6 +1425,26 @@ begin
   if PickAccount(s) then
     aEdit.Text := s;
   aEdit.Refresh;
+end;
+
+//------------------------------------------------------------------------------
+procedure TdlgEditBank.cmbCurrencyChange(Sender: TObject);
+var
+  EnableGainLoss: boolean;
+begin
+  // Only enable Gain/Loss for foreign currencies
+  EnableGainLoss := (cmbCurrency.Text <> MyClient.clExtra.ceLocal_Currency_Code);
+  lblGainLoss.Enabled := EnableGainLoss;
+  eGainLoss.Enabled := EnableGainLoss;
+  sbtnGainLossChart.Enabled := EnableGainLoss;
+  lblGainLossDesc.Enabled := EnableGainLoss;
+
+  // Clear the field for local currencies
+  // Note: if you set a code in say USD, and then switch to GBP, the validation
+  // will prevent the account from saving. It's better to clear the field when
+  // that happens. 
+  if not EnableGainLoss then
+    eGainLoss.Clear;
 end;
 
 end.

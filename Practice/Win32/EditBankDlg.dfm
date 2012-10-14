@@ -503,6 +503,7 @@ object dlgEditBank: TdlgEditBank
         Style = csDropDownList
         ItemHeight = 0
         TabOrder = 1
+        OnChange = cmbCurrencyChange
         Items.Strings = (
           'GBP'
           'NZD'
@@ -519,7 +520,7 @@ object dlgEditBank: TdlgEditBank
         DesignSize = (
           553
           34)
-        object Label3: TLabel
+        object lblGainLoss: TLabel
           Left = 24
           Top = 1
           Width = 99

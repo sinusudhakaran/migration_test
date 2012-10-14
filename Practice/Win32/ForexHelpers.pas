@@ -53,6 +53,8 @@ type
   end;
 
   // UK Multi-Currencies
+  function  GetCountry: byte;
+  function  SupportsMultiCurrencies: boolean;
   function  IsGainLossClient: boolean;
   function  IsGainLossAccount(const aAccount: TBank_Account): boolean;
   function  IsValidGainLossCode(const aCode: string): boolean;
@@ -291,23 +293,29 @@ function GetCountry: byte;
 begin
   if Assigned(AdminSystem) then
     result := AdminSystem.fdFields.fdCountry
+  else if Assigned(MyClient) then
+    result := MyClient.clFields.clCountry
   else
-    result := MyClient.clFields.clCountry;
+    result := whNewZealand; // Default (may be necessary during startup)
+end;
+
+// ----------------------------------------------------------------------------
+function SupportsMultiCurrencies: boolean;
+begin
+  result := (GetCountry = whUK);
 end;
 
 // ----------------------------------------------------------------------------
 function IsGainLossClient: boolean;
-var
-  Country: byte;
-  i: integer;
-  Accounts: TBank_Account_List;
-  Account: TBank_Account;
 begin
   result := false;
 
-  // Must be UK practice
-  Country := GetCountry;
-  if (Country <> whUK) then
+  // Must be UK practice (currently)
+  if not SupportsMultiCurrencies then
+    exit;
+
+  // Could happen during startup
+  if not Assigned(MyClient) then
     exit;
 
   // Any of the accounts is a foreign currency?
@@ -316,19 +324,16 @@ end;
 
 // ----------------------------------------------------------------------------
 function IsGainLossAccount(const aAccount: TBank_Account): boolean;
-var
-  Country: byte;
 begin
   ASSERT(assigned(aAccount));
 
   result := false;
 
-  // Must be UK practice
-  Country := GetCountry;
-  if (Country <> whUK) then
+  // Must be UK practice (currently)
+  if not SupportsMultiCurrencies then
     exit;
 
-  // Foreign currency?
+  // Foreign account
   result := aAccount.IsAForexAccount;
 end;
 
@@ -338,6 +343,13 @@ var
   pAccount: pAccount_Rec;
 begin
   result := false;
+
+  // If the Chart of Accounts is empty, then any code is correct (same as Contra)
+  if (MyClient.clChart.ItemCount = 0) then
+  begin
+    result := true;
+    exit;
+  end;
 
   // Code not in chart?
   pAccount := MyClient.clChart.FindCode(aCode);
