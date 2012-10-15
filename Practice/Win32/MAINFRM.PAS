@@ -798,7 +798,7 @@ type
     procedure ShowExportTransactionsDialog;
     procedure ExportTransactionsToBankLinkOnline;
 
-    procedure ExportTaggedAccounts(ProgressForm: IDualProgressForm);
+    procedure ExportTaggedAccounts(ProgressForm: IDualProgressForm; CallbackParams: Pointer);
     
     //procedure ThreadMessage(var Message: TMessage);	message THREAD_MESSAGE;
   protected
@@ -1951,7 +1951,7 @@ begin
   LogoutUser;
 end;
 
-procedure TfrmMain.ExportTaggedAccounts(ProgressForm: IDualProgressForm);
+procedure TfrmMain.ExportTaggedAccounts(ProgressForm: IDualProgressForm; CallbackParams: Pointer);
 var
   ExportOptions: TExportOptions;
   ExportStatistics: TExportStatistics;
@@ -1972,10 +1972,17 @@ begin
 end;
 
 procedure TfrmMain.ExportTransactionsToBankLinkOnline;
+var
+  ProgressData: TProgressData;
 begin
   if CurrUser.CanAccessAdmin and CurrUser.AllowBanklinkOnline and ProductConfigService.OnLine and ProductConfigService.IsPracticeProductEnabled(ProductConfigService.GetExportDataId, False) then
   begin
-    TfrmModalDualProgress.ShowProgress(Self, 'Please wait...', 'Exporting Client Transactions', ExportTaggedAccounts);
+    TfrmModalDualProgress.ShowProgress(Self, 'Please wait...', 'Exporting Client Transactions', ExportTaggedAccounts, ProgressData);
+
+    if ProgressData.ExceptionRaised then
+    begin
+      LogUtil.LogMsg(lmError, UnitName, 'Exception exporting account transactions, Error Message : ' + ProgressData.Exception.Message);
+    end;
   end
   else
   if not CurrUser.AllowBanklinkOnline then
