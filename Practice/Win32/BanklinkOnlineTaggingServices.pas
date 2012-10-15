@@ -464,8 +464,6 @@ begin
                             begin
                               try
                                 ServiceResponse := SendTransactionData(XMLDocument.XML.Text, 20, ProgressForm.SecondaryProgress);
-
-                                XMLDocument.SaveToFile('C:\Users\kerry.convery\Desktop\Transactions.xml')
                               finally
                                 Free;
                               end;
