@@ -10,8 +10,8 @@ const
   UM_START_PROCESS = WM_USER + 1;
 
 type
-  TStartProcessEvent = procedure(Sender: IDualProgressForm) of object;
-
+  TStartProcessEvent = procedure(Sender: IDualProgressForm; CallbackParams: Pointer) of object;
+  
   TProgressIndicator = class(TInterfacedObject, IProgressControl)
   private
     FProgressBar: TRzProgressBar;
@@ -44,12 +44,16 @@ type
     FCancelled: Boolean;
 
     FOnStartProcess: TStartProcessEvent;
+    FProgressData: TProgressData;
+    FRaiseException: Boolean;
 
     procedure StartProcess;
 
     procedure UMStartProcess(var Message: TMessage); message UM_START_PROCESS;
     function GetTitle: String;
     procedure SetTitle(const Value: String);
+    procedure SetProgressData(const Value: TProgressData);
+    procedure SetRaiseException(const Value: Boolean);
   protected
     function GetCancelled: Boolean;
     
@@ -60,9 +64,12 @@ type
   public
     constructor Create(Owner: TComponent); override;
 
-    class function ShowProgress(Owner: TCustomForm; Caption, Title: String; OnStartProcessHandler: TStartProcessEvent): TModalResult; static;
+    class function ShowProgress(Owner: TCustomForm; Caption, Title: String; OnStartProcessHandler: TStartProcessEvent; var ProgressData: TProgressData): TModalResult; static;
 
     property Title: String read GetTitle write SetTitle;
+
+    property ProgressData: TProgressData read FProgressData write SetProgressData;
+    property RaiseException: Boolean read FRaiseException write SetRaiseException;
 
     property OnStartProcess: TStartProcessEvent read FOnStartProcess write FOnStartProcess;
   end;
@@ -124,12 +131,22 @@ begin
   Application.ProcessMessages;
 end;
 
+procedure TfrmModalDualProgress.SetProgressData(const Value: TProgressData);
+begin
+  FProgressData := Value;
+end;
+
+procedure TfrmModalDualProgress.SetRaiseException(const Value: Boolean);
+begin
+  FRaiseException := Value;
+end;
+
 procedure TfrmModalDualProgress.SetTitle(const Value: String);
 begin
   lblProgressTitle.Caption := Value;
 end;
 
-class function TfrmModalDualProgress.ShowProgress(Owner: TCustomForm; Caption, Title: String; OnStartProcessHandler:  TStartProcessEvent): TModalResult;
+class function TfrmModalDualProgress.ShowProgress(Owner: TCustomForm; Caption, Title: String; OnStartProcessHandler:  TStartProcessEvent; var ProgressData: TProgressData): TModalResult;
 var
   ProgressForm: TfrmModalDualProgress;
 begin
@@ -143,6 +160,8 @@ begin
     ProgressForm.PopupMode := pmExplicit;
 
     Result := ProgressForm.ShowModal;
+
+    ProgressData := ProgressForm.ProgressData;
   finally
     ProgressForm.Free;
   end;
@@ -152,7 +171,7 @@ procedure TfrmModalDualProgress.StartProcess;
 begin
   if Assigned(FOnStartProcess) then
   begin
-    FOnStartProcess(Self);
+    FOnStartProcess(Self, ProgressData.CallbackParams);
   end;
 end;
 
@@ -170,9 +189,22 @@ begin
       ModalResult := mrOk;
     end;
   except
-    ModalResult := mrCancel;
+    on E: Exception do
+    begin
+      ModalResult := mrCancel;
 
-    raise;
+      if not FRaiseException then
+      begin
+        FProgressData.Exception.ClassType := E.ClassType;
+        FProgressData.Exception.Message := E.Message;
+
+        FProgressData.ExceptionRaised := True;
+      end
+      else
+      begin
+        raise;
+      end;
+    end;
   end;
 end;
 
