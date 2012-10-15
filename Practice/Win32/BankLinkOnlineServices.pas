@@ -465,7 +465,7 @@ type
 
     function AuthenticateUser(const Domain, Username, Password: String; out AuthenticationResult: TAuthenticationStatus; IgnoreOnlineUser: Boolean = False): Boolean;
 
-    function ProcessData(const XmlData: String; OnPostingData: TPostingDataEvent = nil): TBloUploadResult;
+    function ProcessData(const XmlData: String; out AuthenticationError: Boolean; OnPostingData: TPostingDataEvent = nil): TBloUploadResult;
     
     property OnLine: Boolean read FOnLine;
     property Registered: Boolean read GetRegistered;
@@ -1921,21 +1921,46 @@ begin
   end;
 end;
 
-function TProductConfigService.ProcessData(const XmlData: String; OnPostingData: TPostingDataEvent = nil): TBloUploadResult;
+function TProductConfigService.ProcessData(const XmlData: String; out AuthenticationError: Boolean; OnPostingData: TPostingDataEvent = nil): TBloUploadResult;
 var
   ServiceProvider: IBlopiSecureServiceFacade;
   HTTPRIO: THTTPRIO;
+  Cancelled: Boolean;
+  ConnectionError: Boolean;
 begin
+  AuthenticationError := False;
+  
   ServiceProvider := GetSecureServiceFacade(HTTPRIO);
 
   HTTPRIO.HTTPWebNode.OnPostingData := OnPostingData;
 
   try
-    Result := ServiceProvider.ProcessData(
-      CountryText(AdminSystem.fdFields.fdCountry),
-      AdminSystem.fdFields.fdBankLink_Code,
-      AdminSystem.fdFields.fdBankLink_Connect_Password,
-      EncodeText(XMLData));
+    try
+      Result := ServiceProvider.ProcessData(
+        CountryText(AdminSystem.fdFields.fdCountry),
+        AdminSystem.fdFields.fdBankLink_Code,
+        AdminSystem.fdFields.fdBankLink_Connect_Password,
+        EncodeText(XMLData));
+
+    except
+      on E: EAuthenticationException do
+      begin
+        if ReAuthenticateUser(Cancelled, ConnectionError) and not (Cancelled or ConnectionError) then
+        begin
+          Result := ServiceProvider.ProcessData(
+            CountryText(AdminSystem.fdFields.fdCountry),
+            AdminSystem.fdFields.fdBankLink_Code,
+            AdminSystem.fdFields.fdBankLink_Connect_Password,
+            EncodeText(XMLData));
+        end
+        else
+        begin
+          AuthenticationError := True;
+          
+          Exit;
+        end;
+      end;
+    end;
   except
     on E: Exception do
     begin
