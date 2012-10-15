@@ -3955,6 +3955,8 @@ procedure TfrmMain.RefreshUserControls;
 begin
   mniChangePassword.Visible := (CurrUser.AllowBanklinkOnline
                                and FAdminSystemFound);
+
+  mniExportdatatoBanklinkOnline.Visible := CurrUser.CanAccessAdmin and CurrUser.AllowBanklinkOnline and ProductConfigService.OnLine and ProductConfigService.IsPracticeProductEnabled(ProductConfigService.GetExportDataId, False);
 end;
 procedure TfrmMain.ReloadCustomLogo;
 //loads the correct logo, or makes it invisible
