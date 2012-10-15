@@ -32,7 +32,7 @@ type
     FErrorDetails: TFatalErrorDetails;
 
     function ValidateFields: Boolean;
-    procedure ExportTaggedAccounts(ProgressForm: ISingleProgressForm);
+    procedure ExportTaggedAccounts(ProgressForm: IDualProgressForm; CallbackParams: Pointer);
     procedure GetMaxExportableDate(ProgressForm: ISingleProgressForm);
   public
     class procedure ShowDialog(Owner: TComponent; PopupParent: TCustomForm); static;
@@ -44,7 +44,7 @@ var
 implementation
 
 uses
-  OvcDate, ImagesFrm, Globals, StDateSt, GenUtils, RzPopups, WarningMoreFrm, YesNoDlg, ModalProgressFrm, BanklinkOnlineServices, InfoMoreFrm, ErrorMoreFrm,
+  OvcDate, ImagesFrm, Globals, StDateSt, GenUtils, RzPopups, WarningMoreFrm, YesNoDlg, ModalProgressFrm, ModalDualProgressFrm, BanklinkOnlineServices, InfoMoreFrm, ErrorMoreFrm,
   LOGUTIL;
 
 {$R *.dfm}
@@ -94,6 +94,8 @@ begin
 end;
 
 procedure TfrmTransactionsToBankLinkOnline.Button1Click(Sender: TObject);
+var
+  ProgressData: TProgressData;
 begin
   if ValidateFields then
   begin
@@ -103,10 +105,11 @@ begin
       begin
         FDataExportError := False;
 
-        try
-          TfrmModalProgress.ShowProgress(Self, 'Please wait...', 'Export data to BankLink Online', ExportTaggedAccounts);
+        TfrmModalDualProgress.ShowProgress(Self, 'Please wait...', 'Export data to BankLink Online', ExportTaggedAccounts, ProgressData);
 
-          if not FDataExportError then
+        if not FDataExportError then
+        begin
+          if not ProgressData.ExceptionRaised then
           begin
             if FExportStatistics.TransactionsExported > 0 then
             begin
@@ -117,19 +120,33 @@ begin
             end
             else
             begin
-              HelpfulInfoMsg('BankLink Practice could not find any data up to ' + StDateToDateString(BKDATEFORMAT, edtTransactionsToDate.AsStDate, False) + ' to export to BankLink Online.', 0);
+              HelpfulInfoMsg('BankLink Practice did not find any transactions up to ' + StDateToDateString(BKDATEFORMAT, edtTransactionsToDate.AsStDate, False) + ' to export to BankLink Online.', 0);
             end;
-          end;
-        except
-          on E:Exception do
+          end
+          else
           begin
-            HelpfulErrorMsg('The following error occurred while exporting transactions to BankLink Online: ' + #10#13#10#13 + '"' + E.Message + '"', 0);
-
-            LogUtil.LogMsg(lmError, 'ExportTaggedAccounts', 'The following error occurred while exporting transactions to BankLink Online: ' + E.Message);
+            HelpfulErrorMsg(Format('Due to the following error, BankLink Practice was unable to complete the transaction export to BankLink Online. - %s.', [ProgressData.Exception.Message]), 0);
+            
+            LogUtil.LogMsg(lmError, 'TransactionsToBankLinkOnlineFrm', 'Exception exporting account transactions, Error Message : ' + ProgressData.Exception.Message);
           end;
-        end;
+        end
+        else
+        begin
+          if FExportStatistics.TransactionsExported > 0 then
+          begin
+            HelpfulInfoMsg('BankLink Practice successfully exported data to BankLink Online up to ' + StDateToDateString(BKDATEFORMAT, edtTransactionsToDate.AsStDate, False) + #10#13 +
+                            IntToStr(FExportStatistics.TransactionsExported) + ' Transaction(s) exported' + #10#13 +
+                            IntToStr(FExportStatistics.AccountsExported) + ' Account(s) exported' + #10#13 +
+                            IntToStr(FExportStatistics.ClientFilesProcessed ) + ' Client files(s) Processed' + #10#13#10#13 +
+                            'Due to an error that has occurred, BankLink Practice may not have exported all transactions to BankLink Online.', 0);
+          end
+          else
+          begin
+            HelpfulInfoMsg('Due to an error that has occurred, BankLink Practice was unable to export transactions to BankLink Online.', 0);
+          end;
 
-        Close;
+          Close;
+        end;
       end
       else
       begin
@@ -144,7 +161,7 @@ begin
   ModalResult := mrCancel;
 end;
 
-procedure TfrmTransactionsToBankLinkOnline.ExportTaggedAccounts(ProgressForm: ISingleProgressForm);
+procedure TfrmTransactionsToBankLinkOnline.ExportTaggedAccounts(ProgressForm: IDualProgressForm; CallbackParams: Pointer);
 var
   ExportOptions: TExportOptions;
 begin
@@ -169,7 +186,11 @@ begin
 
   edtTransactionsToDate.Epoch       := BKDATEEPOCH;
   edtTransactionsToDate.PictureMask := BKDATEFORMAT;
-  
+
+  edtTransactionsToDate.AsStDate := OvcDate.CurrentDate;
+
+  chkExportChartOfAccounts.Checked := True;
+
   TfrmModalProgress.ShowProgress(Self, 'Please wait...', 'Export data to BankLink Online', GetMaxExportableDate);
 
   if FMaxExportableDate > 0 then
@@ -177,13 +198,14 @@ begin
     lblTransactionsExportableTo.Caption := ReplaceText(lblTransactionsExportableTo.Caption, '<exportable>', StDateToDateString(BKDATEFORMAT, FMaxExportableDate, False));
   end
   else
+  if FMaxExportableDate = -1 then
   begin
     lblTransactionsExportableTo.Caption := 'There are no exportable transactions available.';
+  end
+  else
+  begin
+    PostMessage(Handle, WM_CLOSE, 0, 0);
   end;
-
-  edtTransactionsToDate.AsStDate := OvcDate.CurrentDate;
-
-  chkExportChartOfAccounts.Checked := True;
 end;
 
 procedure TfrmTransactionsToBankLinkOnline.GetMaxExportableDate(ProgressForm: ISingleProgressForm);
