@@ -1546,6 +1546,7 @@ begin { EditUser }
               CurrUser.FullName := pu.usName;
               CurrUser.ShowPrinterDialog := pu.usShow_Printer_Choice;
               CurrUser.AllowBanklinkOnline := pu.usAllow_Banklink_Online;
+              CurrUser.CanAccessAdmin := pu.usSystem_Access;
             End; { CurrUser.LRN = pu.usLRN }
           End;
         End { LoadAdminSystem(true) }
