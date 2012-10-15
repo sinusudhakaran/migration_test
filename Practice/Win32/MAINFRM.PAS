@@ -798,7 +798,7 @@ type
     procedure ShowExportTransactionsDialog;
     procedure ExportTransactionsToBankLinkOnline;
 
-    procedure ExportTaggedAccounts(ProgressForm: ISingleProgressForm);
+    procedure ExportTaggedAccounts(ProgressForm: IDualProgressForm);
     
     //procedure ThreadMessage(var Message: TMessage);	message THREAD_MESSAGE;
   protected
@@ -1048,7 +1048,7 @@ uses
   EditUserPassword,
   TransactionsToBankLinkOnlineFrm,
   BankLinkOnlineTaggingServices,
-  ModalProgressFrm;
+  ModalDualProgressFrm;
   //StockBalancesDlg;
 
 const
@@ -1536,7 +1536,7 @@ begin
          mniBalanceExport.Visible := False;
        end;
 
-       mniExportdatatoBanklinkOnline.Visible := False; //CurrUser.CanAccessAdmin and ProductConfigService.OnLine and ProductConfigService.IsPracticeProductEnabled(ProductConfigService.GetExportDataId, False);
+       mniExportdatatoBanklinkOnline.Visible := CurrUser.CanAccessAdmin and CurrUser.AllowBanklinkOnline and ProductConfigService.OnLine and ProductConfigService.IsPracticeProductEnabled(ProductConfigService.GetExportDataId, False);
 
        //test to see if the log file should be archived
        SysLog.MinSize  := PRACINI_MinLogFileSize * 1000; //convert KB to Bytes
@@ -1951,7 +1951,7 @@ begin
   LogoutUser;
 end;
 
-procedure TfrmMain.ExportTaggedAccounts(ProgressForm: ISingleProgressForm);
+procedure TfrmMain.ExportTaggedAccounts(ProgressForm: IDualProgressForm);
 var
   ExportOptions: TExportOptions;
   ExportStatistics: TExportStatistics;
@@ -1962,7 +1962,7 @@ begin
   ExportOptions.ExportChartOfAccounts := not StartupParam_ExcludeCOA;
 
   try
-   // TBankLinkOnlineTaggingServices.ExportTaggedAccounts(ProductConfigService.CachedPractice, ExportOptions, ProgressForm, ExportStatistics, ExportError, ErrorDetails);
+    TBankLinkOnlineTaggingServices.ExportTaggedAccounts(ProductConfigService.CachedPractice, ExportOptions, ProgressForm, ExportStatistics, ExportError, ErrorDetails);
   except
     on E:Exception do
     begin
@@ -1973,11 +1973,14 @@ end;
 
 procedure TfrmMain.ExportTransactionsToBankLinkOnline;
 begin
-  if CurrUser.CanAccessAdmin and ProductConfigService.OnLine and ProductConfigService.IsPracticeProductEnabled(ProductConfigService.GetExportDataId, False) then
+  if CurrUser.CanAccessAdmin and CurrUser.AllowBanklinkOnline and ProductConfigService.OnLine and ProductConfigService.IsPracticeProductEnabled(ProductConfigService.GetExportDataId, False) then
   begin
-    (* Uncomment this once exporting (S05) is finished
-    TfrmModalProgress.ShowProgress(Self, 'Please wait...', 'Exporting Client Transactions', ExportTaggedAccounts);
-    *)
+    TfrmModalDualProgress.ShowProgress(Self, 'Please wait...', 'Exporting Client Transactions', ExportTaggedAccounts);
+  end
+  else
+  if not CurrUser.AllowBanklinkOnline then
+  begin
+    LogUtil.LogMsg(lmError, 'ExportTransactionsToBankLinkOnline', 'Export transactions to BankLink Online could be be performed because the current user is not enabled for BankLink Online.');
   end
   else
   if not CurrUser.CanAccessAdmin then
@@ -2594,7 +2597,7 @@ begin
 
      if UseBankLinkOnline then
      begin
-       mniExportdatatoBanklinkOnline.Visible := False; //ProductConfigService.IsPracticeProductEnabled(ProductConfigService.GetExportDataId, False);
+       mniExportdatatoBanklinkOnline.Visible := CurrUser.CanAccessAdmin and CurrUser.AllowBanklinkOnline and ProductConfigService.OnLine and ProductConfigService.IsPracticeProductEnabled(ProductConfigService.GetExportDataId, False);
      end
      else
      begin
