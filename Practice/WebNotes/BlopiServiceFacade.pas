@@ -117,6 +117,9 @@ type
   { "http://www.banklinkonline.com/2011/11/Blopi"[GblSmpl] }
   Status = (Active, Suspended, Deactivated, Deleted);
 
+  { "http://schemas.datacontract.org/2004/07/BankLink.PracticeIntegration.Contract.DataContracts"[GblSmpl] }
+  ResultCode = (Success, NoFileReceived, InvalidCredentials, InternalError, FileFormatError);
+
   guid            =  type WideString;      { "http://schemas.microsoft.com/2003/10/Serialization/"[GblSmpl] }
   ArrayOfstring = array of WideString;          { "http://schemas.microsoft.com/2003/10/Serialization/Arrays"[GblCplx] }
   ArrayOfguid = array of guid;                  { "http://schemas.microsoft.com/2003/10/Serialization/Arrays"[GblCplx] }
@@ -1400,7 +1403,26 @@ type
   published
   end;
 
-
+  UploadResult = class(TRemotable)
+  private
+    FFileCount: Integer;
+    FFileCount_Specified: boolean;
+    FMessages: ArrayOfstring;
+    FMessages_Specified: boolean;
+    FResult: ResultCode;
+    FResult_Specified: boolean;
+    procedure SetFileCount(Index: Integer; const AInteger: Integer);
+    function  FileCount_Specified(Index: Integer): boolean;
+    procedure SetMessages(Index: Integer; const AArrayOfstring: ArrayOfstring);
+    function  Messages_Specified(Index: Integer): boolean;
+    procedure SetResult(Index: Integer; const AResultCode: ResultCode);
+    function  Result_Specified(Index: Integer): boolean;
+  published
+    property FileCount: Integer        Index (IS_OPTN) read FFileCount write SetFileCount stored FileCount_Specified;
+    property Messages:  ArrayOfstring  Index (IS_OPTN) read FMessages write SetMessages stored Messages_Specified;
+    property Result:    ResultCode     Index (IS_OPTN) read FResult write SetResult stored Result_Specified;
+  end;
+  
   // ************************************************************************ //
   // Namespace : http://www.banklinkonline.com/2011/11/Blopi
   // soapAction: http://www.banklinkonline.com/2011/11/Blopi/IBlopiServiceFacade/%operationName%
@@ -1461,6 +1483,7 @@ type
     function  SaveClient(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const ClientUpdate: ClientUpdate): MessageResponse; stdcall;
     function  CreateClientUser(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const clientId: guid; const user: UserCreate): MessageResponseOfguid; stdcall;
     function  SaveClientUser(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const clientId: guid; const user: UserUpdate): MessageResponse; stdcall;
+    function  ProcessData(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const zipedXmlData: WideString): UploadResult; stdcall;
   end;
 
 function GetIBlopiServiceFacade(UseWSDL: Boolean=System.False; Addr: string=''; HTTPRIO: THTTPRIO = nil): IBlopiServiceFacade;
@@ -2672,6 +2695,42 @@ end;
 function ClientUpdate.PrimaryContactUserId_Specified(Index: Integer): boolean;
 begin
   Result := FPrimaryContactUserId_Specified;
+end;
+
+{ UploadResult }
+
+function UploadResult.FileCount_Specified(Index: Integer): boolean;
+begin
+  Result := FFileCount_Specified;
+end;
+
+function UploadResult.Messages_Specified(Index: Integer): boolean;
+begin
+  Result := FMessages_Specified;
+end;
+
+function UploadResult.Result_Specified(Index: Integer): boolean;
+begin
+  Result := FResult_Specified;
+end;
+
+procedure UploadResult.SetFileCount(Index: Integer; const AInteger: Integer);
+begin
+  FFileCount := AInteger;
+  FFileCount_Specified := True;
+end;
+
+procedure UploadResult.SetMessages(Index: Integer;
+  const AArrayOfstring: ArrayOfstring);
+begin
+  FMessages := AArrayOfstring;
+  FMessages_Specified := True;
+end;
+
+procedure UploadResult.SetResult(Index: Integer; const AResultCode: ResultCode);
+begin
+  FResult := AResultCode;
+  FResult_Specified := True;
 end;
 
 initialization
