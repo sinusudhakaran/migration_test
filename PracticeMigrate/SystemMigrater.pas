@@ -1153,6 +1153,12 @@ begin
    Result := FUserTable;
 end;
 
+
+const
+     csvCharges = 1;
+     htmDoc = 2;
+     rptDoc = 3;
+
 function TSystemMigrater.GetWorkFileList: TStringList;
   var Rec: TSearchRec;
       ext: string;
@@ -1162,13 +1168,13 @@ begin
       repeat
 			     // Exclude directories from the list of files.
 			     ext := ExtractFileExt(rec.Name );
-           if Sametext(Ext,'.csv') then
-              Result.AddObject(DownloadWorkDir + Rec.Name, TObject(1))
-           else if Sametext(Ext,'.htm') then
-              Result.AddObject(DownloadWorkDir + Rec.Name, TObject(2))
-           else if pos('REPORTS',rec.Name) = 1 then
-              Result.AddObject(DownloadWorkDir + Rec.Name, TObject(3))
-
+           if Sametext(ext,'.csv') then
+              Result.AddObject(DownloadWorkDir + Rec.Name, TObject(csvCharges))
+           else if Sametext(ext,'.htm') then
+              Result.AddObject(DownloadWorkDir + Rec.Name, TObject(htmDoc))
+           else if (pos('REPORTS',rec.Name) = 1)
+                and (not Sametext(ext,'.pdf')) then
+              Result.AddObject(DownloadWorkDir + Rec.Name, TObject(rptDoc))
 
       until FindNext(Rec) <> 0;
       FindClose(Rec);
@@ -1471,20 +1477,20 @@ begin
         // Work out the size...
         for I := 0 to Files.Count - 1 do
            case Integer(Files.Objects[I]) of
-              1: MyAction.TotSize := MyAction.TotSize + GetFileSize(Files[I])
+              csvCharges: MyAction.TotSize := MyAction.TotSize + GetFileSize(Files[I])
               else MyAction.TotSize := MyAction.TotSize + sizeWeight;
            end;
 
         for I := 0 to Files.Count - 1 do begin
            case Integer(Files.Objects[I]) of
-              1: AddCharges(MyAction, Files[i]);
-              2: begin
+              csvCharges: AddCharges(MyAction, Files[i]);
+              htmDoc: begin
                     AddHTMFile(MyAction, Files[i]);
                     MyAction.AddRunSize(sizeWeight);
                  end;
-              3: begin
+              rptDoc: begin
                     AddRPTFile(MyAction, Files[i]);
-                     MyAction.AddRunSize(sizeWeight);
+                    MyAction.AddRunSize(sizeWeight);
                  end;
            end;
 
