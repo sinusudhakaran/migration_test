@@ -53,7 +53,7 @@ type
 
         procedure OnSendTransactions(Sent: Integer; Total: Integer);
       public
-        function SendTransactionData(TransactionData: String; ProgressWeight: Double; ProgressControl: IProgressControl): TBloUploadResult;
+        function SendTransactionData(TransactionData: String; ProgressWeight: Double; ProgressControl: IProgressControl; out AuthenticationError: Boolean): TBloUploadResult;
       end;
 
   private
@@ -345,6 +345,7 @@ var
   ServiceResponse: TBloUploadResult;
   ServiceErrors: String;
   ExportTransactionsWeight: Integer;
+  AuthenticationError: Boolean;
 begin
   FatalError := False;
 
@@ -463,45 +464,58 @@ begin
                             with TTransactionExporter.Create do
                             begin
                               try
-                                ServiceResponse := SendTransactionData(XMLDocument.XML.Text, 20, ProgressForm.SecondaryProgress);
+                                ServiceResponse := SendTransactionData(XMLDocument.XML.Text, 20, ProgressForm.SecondaryProgress, AuthenticationError);
                               finally
                                 Free;
                               end;
                             end;
 
-                            if TBloUploadResultCode(ServiceResponse.Result) = Success then
+                            if not AuthenticationError then
                             begin
-                              for IIndex := 0 to TransactionsExported.Count - 1 do
+                              if TBloUploadResultCode(ServiceResponse.Result) = Success then
                               begin
-                                pTransaction_Rec(TransactionsExported[IIndex]).txTransfered_To_Online := True;
-                              end;
-                                         
-                              Statistics.TransactionsExported := Statistics.TransactionsExported + TransactionsExported.Count;
-                              Statistics.AccountsExported := Statistics.AccountsExported + AccountsExported;
-                              Statistics.ClientFilesProcessed := Statistics.ClientFilesProcessed + 1;
-
-                              LogUtil.LogMsg(lmError, 'BankLinkOnlineTaggingService', Format('Client File %s successfully exported to BankLink Online - %s transactions, %s accounts.', [AdminSystem.fdSystem_Client_File_List.Client_File_At(Index).cfFile_Name, IntToStr(AccountsExported), IntToStr(TransactionsExported.Count)]));
-                            end
-                            else
-                            begin
-                              if Length(ServiceResponse.Messages) > 0  then
-                              begin
-                                for IIndex := 0 to Length(ServiceResponse.Messages) - 1 do
+                                for IIndex := 0 to TransactionsExported.Count - 1 do
                                 begin
-                                  ServiceErrors := ServiceErrors + ServiceResponse.Messages[IIndex] + #10#13;
+                                  pTransaction_Rec(TransactionsExported[IIndex]).txTransfered_To_Online := True;
                                 end;
+                                         
+                                Statistics.TransactionsExported := Statistics.TransactionsExported + TransactionsExported.Count;
+                                Statistics.AccountsExported := Statistics.AccountsExported + AccountsExported;
+                                Statistics.ClientFilesProcessed := Statistics.ClientFilesProcessed + 1;
+
+                                LogUtil.LogMsg(lmError, 'BankLinkOnlineTaggingService', Format('Client File %s successfully exported to BankLink Online - %s transactions, %s accounts.', [AdminSystem.fdSystem_Client_File_List.Client_File_At(Index).cfFile_Name, IntToStr(AccountsExported), IntToStr(TransactionsExported.Count)]));
                               end
                               else
                               begin
-                                case TBloUploadResultCode(ServiceResponse.Result)  of
-                                  NoFileReceived: ServiceErrors := 'The service call to BankLink Online did not include any transactions.';
-                                  InvalidCredentials: ServiceErrors := 'BankLink Online did not recognise the practice credentials.';
-                                  InternalError: ServiceErrors := 'BankLink Online encountered an unknown internal error.';
-                                  FileFormatError: ServiceErrors := 'BankLink Online did not recognise the transaction data format.';
-                                end; 
-                              end;
+                                if Length(ServiceResponse.Messages) > 0  then
+                                begin
+                                  for IIndex := 0 to Length(ServiceResponse.Messages) - 1 do
+                                  begin
+                                    ServiceErrors := ServiceErrors + ServiceResponse.Messages[IIndex] + #10#13;
+                                  end;
+                                end
+                                else
+                                begin
+                                  case TBloUploadResultCode(ServiceResponse.Result)  of
+                                    NoFileReceived: ServiceErrors := 'The service call to BankLink Online did not include any transactions.';
+                                    InvalidCredentials: ServiceErrors := 'BankLink Online did not recognise the practice credentials.';
+                                    InternalError: ServiceErrors := 'BankLink Online encountered an unknown internal error.';
+                                    FileFormatError: ServiceErrors := 'BankLink Online did not recognise the transaction data format.';
+                                  end; 
+                                end;
 
-                              raise Exception.Create(ServiceErrors);
+                                raise Exception.Create(ServiceErrors);
+                              end;
+                            end
+                            else
+                            begin
+                              HelpfulErrorMsg('Data export cannot continue because you are not authenticated with BankLink Online.', 0);
+                              
+                              LogUtil.LogMsg(lmInfo, 'BankLinkOnlineTaggingService', 'Data export could export all transactions because the user is not authenticated with Banklink Online.');
+
+                              FatalError := True;
+
+                              Exit;
                             end;
                           end;
                         end;
@@ -840,13 +854,13 @@ begin
   FLastStepSize := StepSize;
 end;
 
-function TBanklinkOnlineTaggingServices.TTransactionExporter.SendTransactionData(TransactionData: String; ProgressWeight: Double; ProgressControl: IProgressControl): TBloUploadResult;
+function TBanklinkOnlineTaggingServices.TTransactionExporter.SendTransactionData(TransactionData: String; ProgressWeight: Double; ProgressControl: IProgressControl; out AuthenticationError: Boolean): TBloUploadResult;
 begin
   FProgressWeight := ProgressWeight;
   FProgressControl := ProgressControl;
   FLastStepSize := 0;
 
-  Result := ProductConfigService.ProcessData(TransactionData, OnSendTransactions);
+  Result := ProductConfigService.ProcessData(TransactionData, AuthenticationError, OnSendTransactions);
 end;
 
 end.
