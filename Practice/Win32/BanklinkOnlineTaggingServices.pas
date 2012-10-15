@@ -88,7 +88,7 @@ type
 implementation
 
 uses
-  Files, Globals, ErrorMoreFrm, LogUtil, StDateSt, SYDEFS, BK_TransactionExportXMLHelper, bkConst, math, WebUtils, GuidEx, DirUtils, TransactionUtils, SoapHTTPClient, InfoMoreFrm;
+  Files, Globals, ErrorMoreFrm, LogUtil, StDateSt, SYDEFS, BK_TransactionExportXMLHelper, bkConst, math, WebUtils, DirUtils, TransactionUtils, SoapHTTPClient, InfoMoreFrm;
 
 { TBanklinkOnlineServices }
 
