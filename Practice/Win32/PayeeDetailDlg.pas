@@ -1,4 +1,4 @@
-unit PayeeDetailDlg;
+ unit PayeeDetailDlg;
 //------------------------------------------------------------------------------
 {
    Title:       Payee Dialog
@@ -1332,6 +1332,10 @@ begin
    if MyClient.clFields.clCountry = whAustralia then
    begin
      SetupForAustralia;
+   end
+   else
+   begin
+     pnlHeader.Height := 84;
    end;
 
    if Assigned(Payee) then
