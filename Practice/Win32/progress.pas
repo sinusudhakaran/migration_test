@@ -26,9 +26,24 @@ Unit progress;
 
 Interface
 
+uses
+  SysUtils;
+
 type
   TUpdateMessageBarEvent = procedure ( aMsg : string; WaitCursor : boolean);
+  TOnExceptionEvent = procedure(Sender: TObject; E: Exception) of object;
 
+  TProgressException = record
+    ClassType: TClass;
+    Message: String;
+  end;
+  
+  TProgressData = record
+    CallbackParams: Pointer;
+    ExceptionRaised: Boolean;
+    Exception: TProgressException;
+  end;
+  
   ISingleProgressForm = interface
   ['{64625C68-46EE-482D-B2FD-1F9B3979075B}']
     function GetCancelled: Boolean;
@@ -38,7 +53,34 @@ type
     procedure UpdateProgress(StepSize: Double); overload;
     procedure CompleteProgress;
 
-    property Cancelled: Boolean read GetCancelled; 
+    property Cancelled: Boolean read GetCancelled;
+  end;
+
+  IProgressControl = interface
+  ['{1EDCDD89-7198-4F0A-AD9B-FA4166E1EBF9}']
+    procedure Initialize;
+
+    procedure CompleteProgress;
+
+    procedure UpdateProgressLabel(const ProgressLabel: String); overload;
+    procedure UpdateProgress(const ProgressLabel: String; StepSize: Double); overload;
+    procedure UpdateProgress(StepSize: Double); overload;
+    procedure SetProgressPosition(Position: Double);
+  end;
+
+  IDualProgressForm = interface
+  ['{F3CE8A8C-CF9D-481B-8CA6-F8E50D9C20C8}']
+    function GetPrimaryProgress: IProgressControl;
+    function GetSecondaryProgress: IProgressControl;
+
+    function GetCancelled: Boolean;
+
+    procedure Initialize;
+
+    property PrimaryProgress: IProgressControl read GetPrimaryProgress;
+    property SecondaryProgress: IProgressControl read GetSecondaryProgress;
+
+    property Cancelled: Boolean read GetCancelled;
   end;
 
 procedure UpdateAppStatus(sMsgLine1: string; sMsgLine2: string; dPercentage: double; ProcessMessages : Boolean = false);
