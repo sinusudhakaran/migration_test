@@ -504,7 +504,7 @@ with  AClient^, ClientDetailsCache do begin
 {9}        ,null,ToSQL(cfContact_Details_To_Show),null
               ,null,null
 {10}       ,null,null,ToSQL(SystemComments)
-{11}       ,null,null{,null},ToSQL(Mobile_No)
+{11}       ,null,null{},null{},ToSQL(Mobile_No)
               ,null,ToSQL(Salutation),null
 {12}       ,null,null,null,null
 {13}       ,DateToSQL(cfDate_Last_Accessed),null,ToSQL(GroupID),ToSQL(TypeID)
@@ -531,7 +531,7 @@ begin
 {8}     ,'CflwCashOnHandStyle','LastFinancialYearStart','TaxinterfaceUsed','SaveTaxFilesTo','JournalProcessingPeriod','LastDiskImageVersion'
 {9}     ,'WebSiteLoginURL','ContactDetailsToShow','CustomContactName','CustomContactEMailAddress','CustomContactPhone'
 {10}    ,'HighestManualAccountNo','CopyNarrationDissection','SystemComments'
-{11}    ,'ClientCCEMailAddress','LastECodingAccountUID',{'WebExportFormat',}'MobileNo','FileReadOnly','Salutation','ExternalID'
+{11}    ,'ClientCCEMailAddress','LastECodingAccountUID',{}'WebExportFormat',{}'MobileNo','FileReadOnly','Salutation','ExternalID'
 {12}    ,'ForceOffsiteCheckOut','DisableOffsiteCheckOut','AlternateExtractID','UseAlterateIDforextract'
 {13}    ,'LastUseDate','UseBasicChart','ClientGroupId','ClientTypeId','AllEditModeCES','AllEditModeDIS','TFN'
 {14}    ,'AllowClientUnlockEntries','AllowClientEditChart','BudgetIncludeQuantities','Archived'
@@ -1360,7 +1360,6 @@ function TBalances_ParamTableNZ.Insert(BalanceID: TGuid;
   value: pBalances_Rec): Boolean;
 begin
 
-
      AddMoney(BalanceID, 'GST_101_Workpaper_LessOpeningDebtors',        value.blOpening_Debtors_Balance );
      AddMoney(BalanceID, 'GST_101_Workpaper_LessOpeningDebtors_Part2',  value.blBAS_F2_GST_Opening_Debtors_BalanceB );
      AddMoney(BalanceID, 'GST_101_Workpaper_PlusClosingDebtors',        value.blBAS_F1_GST_Closing_Debtors_BalanceA );
@@ -1379,35 +1378,46 @@ begin
 
      AddRate(BalanceID, 'GST_103B_ProvisionalTax_Ratio', value.blBAS_5B_PT_Ratio);
 
-     AddMoney(BalanceID, 'GST_372_Adjustments_AssetsKeptAfterCeasing', value.blBAS_7_VAT4_GST_Adj_BAssets);
-     AddMoney(BalanceID, 'GST_372_Adjustments_AssetsKeptAfterCeasing_Part2', value.blGST_Adj_BAssets);
-     AddMoney(BalanceID, 'GST_372_Adjustments_BusinessAssetsUsedPrivately', value.blBAS_6B_GST_Adj_PrivUse);
-     AddMoney(BalanceID, 'GST_372_Adjustments_BusinessAssetsUsedPrivately_Part2', value.blGST_Adj_PrivUse);
-     AddMoney(BalanceID, 'GST_372_Adjustments_ChangeOfAccountingBasis', value.blBAS_W1_GST_Adj_Change);
-     AddMoney(BalanceID, 'GST_372_Adjustments_ChangeOfAccountingBasis_Part2', value.blGST_Adj_Change);
-     AddMoney(BalanceID, 'GST_372_Adjustments_EntertainmentExpenses', value.blBAS_G18_GST_Adj_Entertain );
-     AddMoney(BalanceID, 'GST_372_Adjustments_EntertainmentExpenses_Part2', value.blGST_Adj_Entertain);
+     AddMoney(BalanceID, 'GST_372_Adjustments_PrivateUseGoodsAndServices', value.blGST_Adj_PrivUse);
+     AddMoney(BalanceID, 'GST_372_Adjustments_PrivateUseGoodsAndServices_Part2', value.blBAS_6B_GST_Adj_PrivUse);
 
-     AddMoney(BalanceID, 'GST_372_Adjustments_GoodsAndServicesUsedInMakingExemptSupplies', value.blBAS_W2_GST_Adj_Exempt);
-     AddMoney(BalanceID, 'GST_372_Adjustments_GoodsAndServicesUsedInMakingExemptSupplies_Part2', value.blGST_Adj_Exempt);
-     AddMoney(BalanceID, 'GST_372_Adjustments_Other', value.blBAS_W3_GST_Adj_Other   );
-     AddMoney(BalanceID, 'GST_372_Adjustments_Other_Part2', value.blGST_Adj_Other   );
-     AddMoney(BalanceID, 'GST_372_Adjustments_PrivateUseGoodsAndServices', value.blBAS_6B_GST_Adj_PrivUse);
-     AddMoney(BalanceID, 'GST_372_Adjustments_PrivateUseGoodsAndServices_Part2', value.blGST_Adj_PrivUse );
+     AddMoney(BalanceID, 'GST_372_Adjustments_BusinessAssetsUsedPrivately', value. blGST_Adj_BAssets);
+     AddMoney(BalanceID, 'GST_372_Adjustments_BusinessAssetsUsedPrivately_Part2', value.blBAS_7_VAT4_GST_Adj_BAssets);
+
+     AddMoney(BalanceID, 'GST_372_Adjustments_AssetsKeptAfterCeasing', value.blGST_Adj_Assets);
+     AddMoney(BalanceID, 'GST_372_Adjustments_AssetsKeptAfterCeasing_Part2', value.blBAS_G7_GST_Adj_Assets);
+
+     AddMoney(BalanceID, 'GST_372_Adjustments_EntertainmentExpenses', value.blGST_Adj_Entertain);
+     AddMoney(BalanceID, 'GST_372_Adjustments_EntertainmentExpenses_Part2', value.blBAS_G18_GST_Adj_Entertain);
+
+     AddMoney(BalanceID, 'GST_372_Adjustments_ChangeOfAccountingBasis', value.blGST_Adj_Change);
+     AddMoney(BalanceID, 'GST_372_Adjustments_ChangeOfAccountingBasis_Part2', value.blBAS_W1_GST_Adj_Change);
+
+
+     AddMoney(BalanceID, 'GST_372_Adjustments_GoodsAndServicesUsedInMakingExemptSupplies', value.blGST_Adj_Exempt);
+     AddMoney(BalanceID, 'GST_372_Adjustments_GoodsAndServicesUsedInMakingExemptSupplies_Part2', value.blBAS_W2_GST_Adj_Exempt);
+
+     AddMoney(BalanceID, 'GST_372_Adjustments_Other', value.blGST_Adj_Other);
+     AddMoney(BalanceID, 'GST_372_Adjustments_Other_Part2', value.blBAS_W3_GST_Adj_Other);
 
 
      AddMoney(BalanceID, 'GST_372_Adjustments_Total', value.blOther_Adjustments );
-     //AddMoney(BalanceID, 'GST_372_Adjustments_Total_Part2', value.);
-     AddMoney(BalanceID, 'GST_372_CreditAdjustments_BusinessUseOfExemptGoodsAndServices', value.blBAS_W4_GST_Cdj_BusUse);
-     AddMoney(BalanceID, 'GST_372_CreditAdjustments_BusinessUseOfExemptGoodsAndServices_Part2', value.blGST_Cdj_PAssets);
-     AddMoney(BalanceID, 'GST_372_CreditAdjustments_ChangeOfAccountingBasis', value.blBAS_T2_VAT2_GST_Cdj_Change );
-     AddMoney(BalanceID, 'GST_372_CreditAdjustments_ChangeOfAccountingBasis_Part2', value.blGST_Cdj_BusUse);
-     AddMoney(BalanceID, 'GST_372_CreditAdjustments_Other', value.blBAS_T3_VAT3_GST_Cdj_Other );
+     AddMoney(BalanceID, 'GST_372_Adjustments_Total_Part2', value.blBAS_G23);
+
+     AddMoney(BalanceID, 'GST_372_CreditAdjustments_BusinessUseOfExemptGoodsAndServices', value.blGST_Cdj_BusUse);
+     AddMoney(BalanceID, 'GST_372_CreditAdjustments_BusinessUseOfExemptGoodsAndServices_Part2', value.blBAS_W4_GST_Cdj_BusUse);
+
+     AddMoney(BalanceID, 'GST_372_CreditAdjustments_PrivateAssetsForBusinessCostingLessThan', value.blGST_Cdj_PAssets);
+     AddMoney(BalanceID, 'GST_372_CreditAdjustments_PrivateAssetsForBusinessCostingLessThan_Part2', value.blBAS_T1_VAT1_GST_Cdj_PAssets);
+
+     AddMoney(BalanceID, 'GST_372_CreditAdjustments_ChangeOfAccountingBasis', value.blGST_Cdj_Change );
+     AddMoney(BalanceID, 'GST_372_CreditAdjustments_ChangeOfAccountingBasis_Part2', value.blBAS_T2_VAT2_GST_Cdj_Change);
+
+     AddMoney(BalanceID, 'GST_372_CreditAdjustments_Other', value.blGST_Cdj_Other  );
      AddMoney(BalanceID, 'GST_372_CreditAdjustments_Other_Part2', value.blGST_Cdj_Other);
-     AddMoney(BalanceID, 'GST_372_CreditAdjustments_PrivateAssetsForBusinessCostingLessThan', value.blBAS_W4_GST_Cdj_BusUse );
-     AddMoney(BalanceID, 'GST_372_CreditAdjustments_PrivateAssetsForBusinessCostingLessThan_Part2', value.blGST_Cdj_BusUse);
+
      AddMoney(BalanceID, 'GST_372_CreditAdjustments_Total', value.blCredit_Adjustments);
-     //AddMoney(BalanceID, 'GST_372_CreditAdjustments_Total_Part2', value.);
+     AddMoney(BalanceID, 'GST_372_CreditAdjustments_Total_Part2', value.blBAS_T8_VAT8);
 
 end;
 
