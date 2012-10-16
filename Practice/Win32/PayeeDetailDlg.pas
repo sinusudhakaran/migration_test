@@ -90,7 +90,7 @@ type
     pnlPayeeABN: TPanel;
     Label11: TLabel;
     edtABN: TMaskEdit;
-    edtPhoneNumber: TBKNumericEdit;
+    edtPhoneNumber: TEdit;
 
     procedure tblSplitActiveCellMoving(Sender: TObject; Command: Word;
       var RowNum, ColNum: Integer);

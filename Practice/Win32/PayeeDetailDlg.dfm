@@ -74,13 +74,13 @@ object dlgPayeeDetail: TdlgPayeeDetail
       OnUserCommand = tblSplitUserCommand
       CellData = (
         'dlgPayeeDetail.Header'
-        'dlgPayeeDetail.colLineType'
-        'dlgPayeeDetail.colPercent'
-        'dlgPayeeDetail.ColAmount'
-        'dlgPayeeDetail.ColGSTCode'
-        'dlgPayeeDetail.colNarration'
+        'dlgPayeeDetail.ColAcct'
         'dlgPayeeDetail.ColDesc'
-        'dlgPayeeDetail.ColAcct')
+        'dlgPayeeDetail.colNarration'
+        'dlgPayeeDetail.ColGSTCode'
+        'dlgPayeeDetail.ColAmount'
+        'dlgPayeeDetail.colPercent'
+        'dlgPayeeDetail.colLineType')
       RowData = (
         21)
       ColData = (
@@ -452,13 +452,13 @@ object dlgPayeeDetail: TdlgPayeeDetail
         OnChange = eNameChange
         OnEnter = eNameEnter
       end
-      object edtPhoneNumber: TBKNumericEdit
+      object edtPhoneNumber: TEdit
         Left = 96
         Top = 88
-        Width = 109
-        Height = 21
+        Width = 273
+        Height = 24
         BorderStyle = bsNone
-        MaxLength = 10
+        MaxLength = 60
         TabOrder = 4
       end
     end
@@ -552,6 +552,7 @@ object dlgPayeeDetail: TdlgPayeeDetail
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
+    Options = [efoCaretToEnd]
     PictureMask = '###,###,###.##'
     Table = tblSplit
     TableColor = False
@@ -650,7 +651,6 @@ object dlgPayeeDetail: TdlgPayeeDetail
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd]
     PictureMask = '###,###,###.####'
     Table = tblSplit
     TableColor = False
