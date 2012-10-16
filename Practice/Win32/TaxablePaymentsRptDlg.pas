@@ -61,6 +61,7 @@ type
     tsMaskDefs1: TtsMaskDefs;
     OpenDialog1: TOpenDialog;
     SaveDialog1: TSaveDialog;
+    chkWrapNarration: TCheckBox;
     procedure btnCancelClick(Sender: TObject);
     procedure btnOKClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -82,6 +83,7 @@ type
     procedure btnLoadClick(Sender: TObject);
     procedure btnSaveClick(Sender: TObject);
     procedure tgRangesResize(Sender: TObject);
+    procedure rbDetailedClick(Sender: TObject);
   private
     { Private declarations }
     FDataFrom, FDataTo : integer;
@@ -291,7 +293,8 @@ end;
 
 procedure TfrmTaxablePaymentsRptDlg.rbSummarisedClick(Sender: TObject);
 begin
-
+  chkWrapNarration.Enabled := False;
+  chkWrapNarration.Checked := False;
 end;
 //------------------------------------------------------------------------------
 function TfrmTaxablePaymentsRptDlg.Execute: boolean;
@@ -318,6 +321,7 @@ begin
      MyDlg.rbDetailed.Checked := not SummaryReport;
      MyDlg.rbAllCodes.Checked := ShowAllCodes;
      MyDlg.rbSelectedCodes.Checked := not ShowAllCodes;
+     MyDlg.chkWrapNarration.Checked := WrapNarration;
 
      //populate array
      FillChar( MyDlg.CodesArray, SizeOf( TPayeeRangesArray), #0);
@@ -345,7 +349,7 @@ begin
         ToDate          := StNull2Bk(MyDlg.DateSelector.eDateTo.AsStDate);
         SummaryReport   := MyDlg.rbSummarised.Checked;
         ShowAllCodes := MyDlg.rbAllCodes.Checked;
-        WrapNarration := False;
+        WrapNarration := MyDlg.chkWrapNarration.Checked;
         ShowTotals := -1;
 
         //populate array
@@ -381,6 +385,11 @@ procedure TfrmTaxablePaymentsRptDlg.rbAllCodesClick(Sender: TObject);
 begin
   pnlAllCodes.Visible := true;
   pnlSelectedCodes.Visible := false;
+end;
+
+procedure TfrmTaxablePaymentsRptDlg.rbDetailedClick(Sender: TObject);
+begin
+  chkWrapNarration.Enabled := True;
 end;
 
 procedure TfrmTaxablePaymentsRptDlg.tgRangesCellLoaded(Sender: TObject; DataCol,

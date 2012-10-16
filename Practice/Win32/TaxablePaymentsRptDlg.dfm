@@ -207,6 +207,7 @@ object frmTaxablePaymentsRptDlg: TfrmTaxablePaymentsRptDlg
       Checked = True
       TabOrder = 0
       TabStop = True
+      OnClick = rbDetailedClick
     end
     object rbSummarised: TRadioButton
       Left = 202
@@ -216,6 +217,14 @@ object frmTaxablePaymentsRptDlg: TfrmTaxablePaymentsRptDlg
       Caption = '&Summarised'
       TabOrder = 1
       OnClick = rbSummarisedClick
+    end
+    object chkWrapNarration: TCheckBox
+      Left = 28
+      Top = 42
+      Width = 161
+      Height = 17
+      Caption = 'Wrap Narration'
+      TabOrder = 2
     end
   end
   object pnlSelectedCodes: TPanel
