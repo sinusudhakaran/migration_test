@@ -24,30 +24,593 @@ uses
   PayeeLookupFrm,
   TaxablePaymentsRptDlg, MoneyDef,
   RptParams,
-  PayeeObj, clObj32, balist32, trxList32, bkbaio, bktxio, bkdsio, stdate, bkconst;
+  PayeeObj, clObj32, balist32, trxList32, bkbaio, bktxio, bkdsio, stdate, bkconst,
+  GSTCalc32,
+  ForexHelpers,
+  UserReportSettings,
+  Graphics;
 
 type
   TTaxablePaymentsReport = class(TBKReport)
-  private
-    Bank_Account : TBank_Account;
-    Transaction  : pTransaction_Rec;
-    Payee        : TPayee;
-    Dissection   : pDissection_Rec;
-    Account      : pAccount_Rec;
   public
     params : TPayeeParameters;
 
     function ShowPayeeOnReport( aPayeeNo : integer) : boolean;
   end;
 
-procedure GenerateDetailedTaxablePaymentsReport(Dest: TReportDest; Job: TTaxablePaymentsReport);
-begin
+  PPayeeData = ^TPayeeData;
+  TPayeeData = record
+    Payee: TPayee;
+    NoABNWithholdingTax: Money;
+    TotalGST: Money;
+    GrossAmount: Money;
+  end;
 
+function FindABNAccountCode: String;
+var
+  Index: Integer;
+begin
+  for Index := 0 to Length(MyClient.clFields.clBAS_Field_Number) - 1 do
+  begin
+    if MyClient.clFields.clBAS_Field_Number[Index] = bfW4 then
+    begin
+      Result := MyClient.clFields.clBAS_Field_Account_Code[Index];
+
+      Break; 
+    end;
+  end;
+end;
+  
+procedure SumPayeeTotals(Params: TPayeeParameters; var PayeeDataList: array of TPayeeData);
+
+  function GetPayeeData(PayeeNumber: Integer): PPayeeData;
+  var
+    Index: Integer;
+  begin
+    Result := nil;
+    
+    for Index := 0 to Length(PayeeDataList) - 1 do
+    begin
+      if PayeeDataList[Index].Payee.pdNumber = PayeeNumber then
+      begin
+        Result := @PayeeDataList[Index];
+
+        Break;
+      end;
+    end;
+  end;
+
+var
+  AccountIndex: Integer;
+  TransactionIndex: Integer;
+  BankAccount: TBank_Account;
+  PayeeData: PPayeeData;
+  Transaction: pTransaction_Rec;
+  Dissection: pDissection_Rec;
+  ABNAccount: String;
+begin
+  ABNAccount := FindABNAccountCode;
+
+  for AccountIndex := 0 to MyClient.clBank_Account_List.ItemCount -1 do
+  begin
+    BankAccount := MyClient.clBank_Account_List.Bank_Account_At( AccountIndex );
+
+    for TransactionIndex := 0 to BankAccount.baTransaction_List.ItemCount -1 do
+    begin
+      Transaction := BankAccount.baTransaction_List.Transaction_At(TransactionIndex);
+
+      if (Transaction^.txDate_Effective >= Params.FromDate) and (Transaction^.txDate_Effective <= Params.ToDate ) then
+      begin
+        //is a payee number assigned to the transaction
+        if (Transaction^.txPayee_Number <> 0 ) then
+        begin
+          PayeeData := GetPayeeData(Transaction^.txPayee_Number);
+                
+          if Assigned(PayeeData) then
+          begin
+            if Transaction.txFirst_Dissection = nil then
+            begin
+              PayeeData.TotalGST := PayeeData.TotalGST + Transaction.txGST_Amount;
+            end
+            else
+            begin
+              PayeeData.TotalGST := PayeeData.TotalGST + GetGSTTotalForDissection(Transaction);
+            end;
+            
+            PayeeData.GrossAmount := PayeeData.GrossAmount + Transaction^.Local_Amount;
+          end;
+
+          if (Transaction^.txFirst_Dissection <> nil) then
+          begin
+            //see if dissection lines should be part of total
+            Dissection := Transaction^.txFirst_Dissection;
+
+            while Dissection <> nil do
+            begin
+              if (ABNAccount <> '') and (Dissection.dsAccount = ABNAccount) then
+              begin
+                PayeeData.NoABNWithholdingTax := PayeeData.NoABNWithholdingTax + (Dissection^.dsAmount * -1);
+              end;
+
+              Dissection := Dissection^.dsNext;
+            end;          
+          end;
+        end
+        else
+        begin
+          if (Transaction^.txFirst_Dissection <> nil) then
+          begin
+             //see if dissection lines should be part of total
+            Dissection := Transaction^.txFirst_Dissection;
+
+            while Dissection <> nil do
+            begin
+              if (Dissection^.dsPayee_Number <> 0 ) then
+              begin
+                PayeeData := GetPayeeData(Dissection^.dsPayee_Number);
+                
+                if Assigned(PayeeData) then
+                begin
+                  if (ABNAccount <> '') and (Dissection.dsAccount = ABNAccount) then
+                  begin
+                    PayeeData.NoABNWithholdingTax := PayeeData.NoABNWithholdingTax + (Dissection^.dsAmount * -1);
+                  end
+                  else
+                  begin
+                    PayeeData.TotalGST := PayeeData.TotalGST + Dissection^.dsGST_Amount; 
+                    PayeeData.GrossAmount := PayeeData.GrossAmount + Dissection^.Local_Amount;
+                  end;
+                end;
+              end;
+
+              Dissection := Dissection^.dsNext;
+            end;          
+          end;        
+        end;
+      end;
+    end;
+  end; //with transaction^
+end;
+
+procedure DetailedTaxablePaymentsDetail(Sender : TObject);
+
+  procedure RenderPayeeTransactions(Payee: TPayee);
+    
+    function SumABN(Transaction: pTransaction_Rec; ABNAccountCode: String): Money;
+    var
+      Dissection: pDissection_Rec;
+    begin
+      Result := 0;
+
+      if ABNAccountCode <> '' then
+      begin
+        Dissection := Transaction.txFirst_Dissection;
+
+        while Dissection <> nil do
+        begin
+          if (Dissection.dsAccount = ABNAccountCode) then
+          begin
+            Result := Result + Dissection.dsAmount;
+          end;
+
+          Dissection := Dissection.dsNext;
+        end;
+      end;
+    end;
+
+    procedure PutNarration(Notes: string);
+    const
+      NARRATION_COLUMN = 3;
+
+    var
+      j, ColWidth, OldWidth : Integer;
+      NotesList  : TStringList;
+      MaxNotesLines: Integer;
+    begin
+      with TTaxablePaymentsReport(Sender), params do
+      begin
+       if WrapNarration then
+       begin
+          MaxNotesLines := 10;
+       end
+       else
+       begin
+          MaxNotesLines := 1;
+       end;
+
+       if (Notes = '') then
+       begin
+         SkipColumn;
+       end
+       else
+       begin
+         NotesList := TStringList.Create;
+         
+         try
+           NotesList.Text := Notes;
+           
+           // Remove blank lines
+           j := 0;
+
+           while j < NotesList.Count do
+           begin
+             if NotesList[j] = '' then
+             begin
+               NoteSList.Delete(j);
+             end
+             else
+             begin
+               Inc(j);
+             end;
+           end;
+
+           if NotesList.Count = 0 then
+           begin
+             SkipColumn;
+             
+             Exit;
+           end;
+
+           j := 0;
+
+           repeat
+             ColWidth := RenderEngine.RenderColumnWidth(NARRATION_COLUMN, NotesList[j]);
+
+             if (ColWidth < Length(NotesList[j])) then
+             begin
+               //line needs to be split
+               OldWidth := ColWidth; //store
+
+               while (ColWidth > 0) and (NotesList[j][ColWidth] <> ' ') do
+               begin
+                 Dec(ColWidth);
+               end;
+
+               if (ColWidth = 0) then
+               begin
+                 ColWidth := OldWidth; //unexpected!
+               end;
+               
+               NotesList.Insert(j + 1, Copy(NotesList[j], ColWidth + 1, Length(NotesList[j]) - ColWidth + 1));
+
+               NotesList[j] := Copy(NotesList[j], 1, ColWidth);
+             end;
+
+             PutString(NotesList[ j]);
+
+             Inc(j);
+
+             //decide if need to call renderDetailLine
+             if (j < notesList.Count) and (j < MaxNotesLines) then
+             begin
+               SkipColumn;
+               SkipColumn;
+               SkipColumn;
+
+               RenderDetailLine(False);
+
+               SkipColumn;
+               SkipColumn;
+               SkipColumn;
+             end;
+           until (j >= NotesList.Count) or (j >= MaxNotesLines);
+         finally
+           NotesList.Free;
+         end;
+       end;
+    end;
+  end;
+  
+  var
+    BankAccount: TBank_Account;
+    Transaction: pTransaction_Rec;
+    Dissection: pDissection_Rec;
+    ABNAccountCode: String;
+    BankIndex: Integer;
+    TransactionIndex: Integer;
+    IncludeAllDissectionLines: Boolean;
+    TransGSTAmount: Money;
+    Reference: String;
+    ChartAccount: pAccount_Rec;
+  begin
+    ABNAccountCode := FindABNAccountCode;
+    
+    with TTaxablePaymentsReport(Sender)  do
+    begin
+      for BankIndex := 0 to MyClient.clBank_Account_List.ItemCount - 1 do
+      begin
+        BankAccount := MyClient.clBank_Account_List.Bank_Account_At(BankIndex);
+
+        for TransactionIndex := 0 to BankAccount.baTransaction_List.ItemCount - 1 do
+        begin
+          Transaction := BankAccount.baTransaction_List.Transaction_At(TransactionIndex);
+
+          if (Transaction.txDate_Effective >= Params.FromDate) and (Transaction.txDate_Effective <= Params.ToDate) then
+          begin
+            if Transaction.txFirst_Dissection <> nil then
+            begin
+              IncludeAllDissectionLines := Transaction.txPayee_Number = Payee.pdNumber;
+
+              if IncludeAllDissectionLines then
+              begin
+                PutString(bkDate2Str(Transaction.txDate_Effective));
+                PutString(GetFormattedReference(Transaction));
+                
+                SkipColumn;
+                SkipColumn;
+
+                TransGSTAmount := GetGSTTotalForDissection(Transaction);
+                 
+                PutMoney(SumABN(Transaction, ABNAccountCode));
+                PutMoney(GetGSTTotalForDissection(Transaction));
+                PutMoney(Transaction.Local_Amount + TransGSTAmount);
+
+                RenderDetailLine;
+              end;
+              
+              Dissection := Transaction.txFirst_Dissection;
+
+              while Dissection <> nil do
+              begin
+                if IncludeAllDissectionlines or (Dissection.dsPayee_Number = Payee.pdNumber) then
+                begin
+                  PutString(bkDate2Str(Transaction.txDate_Effective));
+
+                  if Dissection.dsReference <> '' then
+                  begin
+                    Reference := Dissection.dsReference;
+                  end
+                  else
+                  begin
+                    Reference := '/' + IntToStr(Dissection.dsSequence_No);
+                  end;
+
+                  PutString(Reference);
+                  
+                  ChartAccount := MyClient.clChart.FindCode(Dissection.dsAccount);
+
+                  if ChartAccount <> nil then
+                  begin
+                    PutString(ChartAccount.chAccount_Description);
+                  end
+                  else
+                  begin
+                    SkipColumn;
+                  end;
+
+                  PutNarration(Dissection.dsGL_Narration);
+                  
+                  SkipColumn;
+
+                  if IncludeAllDissectionLines then
+                  begin
+                    PutMoneyDontAdd(Dissection.dsGST_Amount);
+                    PutMoneyDontAdd(Dissection.dsAmount + Dissection.dsGST_Amount);
+                  end
+                  else
+                  begin
+                    PutMoney(Dissection.dsGST_Amount);
+                    PutMoney(Dissection.dsAmount + Dissection.dsGST_Amount);                  
+                  end;
+                  
+                  RenderDetailLine;
+                end;
+                
+                Dissection := Dissection.dsNext;
+              end;
+            end
+            else
+            begin
+              if Transaction.txPayee_Number = Payee.pdNumber then
+              begin
+                PutString(bkDate2Str(Transaction.txDate_Effective));
+                PutString(GetFormattedReference(Transaction));
+                
+                ChartAccount := MyClient.clChart.FindCode(Transaction.txAccount);
+
+                if ChartAccount <> nil then
+                begin
+                  PutString(ChartAccount.chAccount_Description);
+                end
+                else
+                begin
+                  SkipColumn;
+                end;
+
+                PutNarration(Transaction.txGL_Narration);
+
+                SkipColumn;
+
+                PutMoney(Transaction.txGST_Amount);
+                PutMoney(Transaction.Local_Amount + Transaction.txGST_Amount);  
+
+                RenderDetailLine;              
+              end;
+            end;
+          end;
+        end;
+      end;
+    end;
+  end;
+  
+var
+  i,b,t : LongInt;
+  Payee: TPayee;
+  Index: Integer;
+begin
+  with TTaxablePaymentsReport(Sender)  do
+  begin
+    //see if this payee should be included on the report
+    for Index := 0 to MyClient.clPayee_List.ItemCount - 1 do
+    begin  
+      Payee := MyClient.clPayee_List.Payee_At(Index); 
+
+      if Payee.pdFields.pdContractor and ShowPayeeOnReport(Payee.pdFields.pdNumber) then
+      begin
+        RenderTitleLine(Payee.pdFields.pdName+ ' (' + IntToStr(Payee.pdFields.pdNumber) + ')');
+
+        RenderPayeeTransactions(Payee);
+
+        RenderDetailSubTotal(Payee.pdName, True, False, 'Total');
+      end;
+    end;
+
+    RenderDetailGrandTotal('Grand Total'); 
+  end; 
+end;
+
+procedure TaxablePaymentsDetail(Sender : TObject);
+var
+  i,b,t : LongInt;
+  PayeeDataList: array of TPayeeData;
+  PayeeData: TPayeeData;
+  Payee: TPayee;
+  Index: Integer;
+Begin
+  with TTaxablePaymentsReport(Sender)  do
+  begin
+    SetLength(PayeeDataList, MyClient.clPayee_List.ItemCount);
+
+    for Index := 0 to MyClient.clPayee_List.ItemCount - 1 do
+    begin
+      PayeeDataList[Index].Payee := MyClient.clPayee_List.Payee_At(Index);
+      PayeeDataList[Index].NoABNWithholdingTax := 0;
+      PayeeDataList[Index].TotalGST := 0;
+      PayeeDataList[Index].GrossAmount := 0; 
+    end;
+
+    SumPayeeTotals(Params, PayeeDataList);
+
+    //see if this payee should be included on the report
+    for i := 0 to Length(PayeeDataList) -1 do
+    begin
+      Payee := PayeeDataList[I].Payee;
+
+      if Payee.pdFields.pdContractor and ShowPayeeOnReport(Payee.pdFields.pdNumber) then
+      begin
+        RequireLines(4);
+         
+        PayeeData := PayeeDataList[I];
+
+        PutString( Payee.pdFields.pdABN);
+        PutString( Payee.pdFields.pdPhone_Number);
+        PutString(Payee.pdFields.pdName);
+        PutString(Payee.pdFields.pdSurname);
+        PutString(Payee.pdFields.pdGiven_Name);
+        PutString(Payee.pdFields.pdOther_Name);
+        PutString(Payee.pdFields.pdAddress);
+        PutMoney(PayeeData.NoABNWithholdingTax);
+        PutMoney(PayeeData.TotalGST);
+        PutMoney(PayeeData.GrossAmount + PayeeData.TotalGST + PayeeData.NoABNWithholdingTax);
+
+        RenderDetailLine;
+
+        {Create the second address line}
+        SkipColumn;
+        SkipColumn;
+        SkipColumn;
+        SkipColumn;
+        SkipColumn;
+        SkipColumn;
+        PutString(Payee.pdFields.pdTown);
+        SkipColumn;
+        SkipColumn;
+        SkipColumn;
+
+        RenderDetailLine;
+
+        {Create the third address line}
+        SkipColumn;
+        SkipColumn;
+        SkipColumn;
+        SkipColumn;
+        SkipColumn;
+        SkipColumn;
+        PutString(Format('%s %s',[Payee.pdFields.pdState, Payee.pdFields.pdPost_Code]));
+        SkipColumn;
+        SkipColumn;
+        SkipColumn;
+
+        RenderDetailLine;
+
+        {Create a seperating blank line}
+        RenderTextLine('');
+      end;
+    end;
+  end;
+end;
+
+procedure GenerateDetailedTaxablePaymentsReport(Dest: TReportDest; Job: TTaxablePaymentsReport);
+var
+  CLeft : Double;
+begin
+  Job.LoadReportSettings(UserPrintSettings,Report_List_Names[Report_Taxable_Payments_Detailed]);
+         
+  Job.UserReportSettings.s7Temp_Font_Scale_Factor := 1.0;
+    
+  //Add Headers
+  AddCommonHeader(Job);
+
+  AddJobHeader(Job,siTitle,'Taxable Payments Report (Detailed)',true);
+  AddjobHeader(Job,siSubTitle, Format('For the period from %s to %s', [bkdate2Str(Job.Params.Fromdate), bkDate2Str(Job.Params.ToDate)]), True);
+  AddjobHeader(Job,siSubTitle,'',True);
+
+  CLeft  := GcLeft;
+
+  AddColAuto(Job,cLeft,      8,Gcgap,'Date', jtLeft);
+  AddColAuto(Job,cLeft,      8,Gcgap,'Reference', jtLeft);
+  AddColAuto(Job,cLeft,      20,Gcgap,'Account', jtLeft);
+  AddColAuto(Job,cLeft,      26,Gcgap,'Narration', jtLeft);
+  AddFormatColAuto(Job,cLeft,12,Gcgap,'No ABN Withholding Tax',jtRight,'#,##0.00;(#,##0.00);-', MyClient.FmtMoneyStrBrackets, true);
+  AddFormatColAuto(Job,cLeft,10,Gcgap,'Total GST',jtRight,'#,##0.00;(#,##0.00);-', MyClient.FmtMoneyStrBrackets, true);
+  AddFormatColAuto(Job,cLeft,16,Gcgap,'Gross Amount(including GST)',jtRight,'#,##0.00;(#,##0.00);-', MyClient.FmtMoneyStrBrackets, true);
+
+  //Add Footers
+  AddCommonFooter(Job);
+
+  Job.OnBKPrint := DetailedTaxablePaymentsDetail;
+
+  Job.Columns.WrapCaptions := True;
+
+  Job.Generate(Dest,Job.params);
 end;
 
 procedure GenerateSummaryTaxablePaymentsReport(Dest: TReportDest; Job: TTaxablePaymentsReport);
+var
+  CLeft : Double;
 begin
+  Job.LoadReportSettings(UserPrintSettings,Report_List_Names[Report_Taxable_Payments]);
+         
+  Job.UserReportSettings.s7Temp_Font_Scale_Factor := 0.9;
+    
+  //Add Headers
+  AddCommonHeader(Job);
 
+  AddJobHeader(Job,siTitle,'Taxable Payments Report (Summarised)',true);
+  AddjobHeader(Job,siSubTitle, Format('For the period from %s to %s', [bkdate2Str(Job.Params.Fromdate), bkDate2Str(Job.Params.ToDate)]), True);
+  AddjobHeader(Job,siSubTitle,'',True);
+
+  CLeft  := GcLeft;
+
+  AddColAuto(Job,cLeft,      9,Gcgap,'ABN', jtLeft);
+  AddColAuto(Job,cLeft,      9,Gcgap,'Payee Phone', jtLeft);
+  AddColAuto(Job,cLeft,      15,Gcgap,'Payee Name', jtLeft);
+  AddColAuto(Job,cLeft,      10,Gcgap,'Payee Surname', jtLeft);
+  AddColAuto(Job,cLeft,      6,Gcgap,'Given Name', jtLeft);
+  AddColAuto(Job,cLeft,      6,Gcgap,'Other Name', jtLeft);
+  AddColAuto(Job,cLeft,      14,Gcgap,'Payee Address', jtLeft);
+  AddFormatColAuto(Job,cLeft,11,Gcgap,'No ABN Withholding Tax',jtRight,'#,##0.00;(#,##0.00);-', MyClient.FmtMoneyStrBrackets, true);
+  AddFormatColAuto(Job,cLeft,7,Gcgap,'Total GST',jtRight,'#,##0.00;(#,##0.00);-', MyClient.FmtMoneyStrBrackets, true);
+  AddFormatColAuto(Job,cLeft,13,Gcgap,'Gross Amount(including GST and any tax withheld)',jtRight,'#,##0.00;(#,##0.00);-', MyClient.FmtMoneyStrBrackets, true);
+
+  //Add Footers
+  AddCommonFooter(Job);
+
+  Job.OnBKPrint := TaxablePaymentsDetail;
+
+  Job.Columns.WrapCaptions := True;
+
+  Job.Generate(Dest,Job.params);
 end;
 
 procedure DoTaxablePaymentsReport(Destination : TReportDest; RptBatch: TReportBase = nil);
@@ -91,11 +654,11 @@ begin
         //Check Forex - this won't stop the report running if there are missing exchange rates
         MyClient.HasExchangeRates(ISOCodes, params.FromDate, params.ToDate, True, True);
 
-        Job := TTaxablePaymentsReport.Create(rptOther);;
+        Job := TTaxablePaymentsReport.Create(rptOther);
         try
           //set parameters
           Job.Params := Params;
-
+                 
           if SummaryReport then
           begin
             GenerateSummaryTaxablePaymentsReport(Destination, Job);
@@ -118,8 +681,45 @@ end;
 { TTaxablePaymentsReport }
 
 function TTaxablePaymentsReport.ShowPayeeOnReport(aPayeeNo: integer): boolean;
+var
+  i : integer;
 begin
+  Result := True;
 
+  if Params.ShowAllCodes then
+  begin
+    Exit;
+  end
+  else
+  begin
+    with params do
+    begin
+      for i := Low( RangesArray) to High( RangesArray) do
+      begin
+        with RangesArray[i] do
+        begin
+          if ( ToCode <> 0) then
+          begin
+            if ( aPayeeNo >= FromCode) and ( aPayeeNo <= ToCode) then
+            begin
+              Exit;
+            end;
+          end
+          else
+          begin
+            if ( FromCode <> 0) and ( FromCode = aPayeeNo) then
+            begin
+              //special case, if only a from code is specified then match
+              //on the specific code
+              Exit;
+            end;
+          end;
+        end;
+      end;
+    end;
+  end;
+
+  Result := False;
 end;
 
 end.
