@@ -200,8 +200,8 @@ implementation
 uses
 	WebUtils,
 	Variants,
-	SysUtils;
-
+	SysUtils,
+  BkDateUtils;
 
 procedure ReRaise(E: Exception; Doing: string);
 begin
@@ -1908,9 +1908,9 @@ begin
 	SetIntAttr(Result, 'LRNNOWUNUSED', txLRN_NOW_UNUSED);
 	SetIntAttr(Result, 'Type', txType);
 	SetIntAttr(Result, 'Source', txSource);
-	SetIntAttr(Result, 'DatePresented', txDate_Presented);
-	SetIntAttr(Result, 'DateEffective', txDate_Effective);
-	SetIntAttr(Result, 'DateTransferred', txDate_Transferred);
+	SetTextAttr(Result, 'DatePresented', BkDate2XSDate(txDate_Presented));
+	SetTextAttr(Result, 'DateEffective', BkDate2XSDate(txDate_Effective));
+	SetTextAttr(Result, 'DateTransferred', BkDate2XSDate(txDate_Transferred));
 	SetInt64Attr(Result, 'Amount', txAmount);
 	SetIntAttr(Result, 'GSTClass', txGST_Class);
 	SetInt64Attr(Result, 'GSTAmount', txGST_Amount);
@@ -1954,7 +1954,7 @@ begin
 	SetBoolAttr(Result, 'SFSuperFieldsEdited', txSF_Super_Fields_Edited);
 	SetInt64Attr(Result, 'SFCapitalGainsOther', txSF_Capital_Gains_Other);
 	SetInt64Attr(Result, 'SFOtherExpenses', txSF_Other_Expenses);
-	SetIntAttr(Result, 'SFCGTDate', txSF_CGT_Date);
+	SetTextAttr(Result, 'SFCGTDate', BkDate2XSDate(txSF_CGT_Date));
 	SetTextAttr(Result, 'ExternalGUID', txExternal_GUID);
 	SetTextAttr(Result, 'DocumentTitle', txDocument_Title);
 	SetBoolAttr(Result, 'DocumentStatusUpdateRequired', txDocument_Status_Update_Required);
@@ -2122,7 +2122,7 @@ begin
 	SetTextAttr(Result, 'Notes', dsNotes);
 	SetTextAttr(Result, 'ECodingImportNotes', dsECoding_Import_Notes);
 	SetTextAttr(Result, 'GLNarration', dsGL_Narration);
-	SetIntAttr(Result, 'LinkedJournalDate', dsLinked_Journal_Date);
+	SetTextAttr(Result, 'LinkedJournalDate', BkDate2XSDate(dsLinked_Journal_Date));
 	SetInt64Attr(Result, 'SFImputedCredit', dsSF_Imputed_Credit);
 	SetInt64Attr(Result, 'SFTaxFreeDist', dsSF_Tax_Free_Dist);
 	SetInt64Attr(Result, 'SFTaxExemptDist', dsSF_Tax_Exempt_Dist);
@@ -2135,7 +2135,7 @@ begin
 	SetBoolAttr(Result, 'SFSuperFieldsEdited', dsSF_Super_Fields_Edited);
 	SetInt64Attr(Result, 'SFCapitalGainsOther', dsSF_Capital_Gains_Other);
 	SetInt64Attr(Result, 'SFOtherExpenses', dsSF_Other_Expenses);
-	SetIntAttr(Result, 'SFCGTDate', dsSF_CGT_Date);
+	SetTextAttr(Result, 'SFCGTDate', BkDate2XSDate(dsSF_CGT_Date));
 	SetTextAttr(Result, 'ExternalGUID', dsExternal_GUID);
 	SetTextAttr(Result, 'DocumentTitle', dsDocument_Title);
 	SetBoolAttr(Result, 'DocumentStatusUpdateRequired', dsDocument_Status_Update_Required);
