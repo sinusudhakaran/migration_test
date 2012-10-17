@@ -9,9 +9,9 @@ Interface uses MONEYDEF, DATEDEF;
 {  -------------------------------------------------------------------  }
 
 Const
-   BK_IOLIB_Version : Integer = 671;
-   BK_IOLIB_Date    = '10/10/12';
-    BK_FILE_VERSION  = 171;  (* Current Version counter for files
+   BK_IOLIB_Version : Integer = 672;
+   BK_IOLIB_Date    = '17/10/12';
+   BK_FILE_VERSION  = 171;  (* Current Version counter for files
                               Changes if structure or method of storing a value would cause
                               data to be represented incorrectly, or an exception to be raised *)
    
@@ -217,9 +217,9 @@ Const
                             Added Bank Account Core ID
                             Added Bank Account Online Secure Code
                             Changed Transaction Matched_By from type "Memorised Transaction Rec" to "Memorisation Detail Rec"
-     5.25            171    Added fields Contractor..ABN to Payee Detail record
-                           Added Exchange Gain_Loss_Code
-  *)
+     5.26            171    Added fields Contractor..ABN to Payee Detail record
+                            Added Exchange Gain_Loss_Code
+   *)
    //Audit Trail - 135 Don't reuse token!!! - Record defined in SY.TXT but also used in Client File
 
 {  -------------------------------------------------------------------  }
@@ -602,7 +602,7 @@ Type
       pdTown                             : String[ 27 ];       { Stored }
       pdState                            : String[ 3 ];       { Stored }
       pdPost_Code                        : String[ 4 ];       { Stored }
-      pdPhone_Number                     : String[ 10 ];       { Stored }
+      pdPhone_Number                     : String[ 60 ];       { Stored }
       pdABN                              : String[ 14 ];       { Stored }
       pdAmount                           : TLBRec;
       pdTotal                            : Money;

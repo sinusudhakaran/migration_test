@@ -546,7 +546,7 @@ F|Address|S|38
 F|Town|S|27
 F|State|S|3
 F|Post Code|S|4
-F|Phone Number|S|10
+F|Phone Number|S|60
 F|ABN|S|14
 C|Amount|TLB
 C|Total|$
