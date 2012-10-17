@@ -236,39 +236,42 @@ var
 begin
   AccountsExported := 0;
 
-  StepSize := ProgressWeight / Client.clBank_Account_List.ItemCount;
-  
-  for Index := 0 to Client.clBank_Account_List.ItemCount - 1 do
+  if Client.clBank_Account_List.ItemCount > 0 then
   begin
-    BankAccount := Client.clBank_Account_List[Index];
+    StepSize := ProgressWeight / Client.clBank_Account_List.ItemCount;
 
-    try
-      //Only delivered accounts can be sent
-      if IsExportableBankAccount(BankAccount, ClientBankAccountVendors) and HasExportableTransactions(BankAccount, MaxTransactionDate) then
-      begin
-        BankAccountNode := ParentNode.OwnerDocument.CreateElement('BKBankAccount', '');
+    for Index := 0 to Client.clBank_Account_List.ItemCount - 1 do
+    begin
+      BankAccount := Client.clBank_Account_List[Index];
 
-        BankAccountNode.Attributes['CoreId'] := BankAccount.baFields.baCore_Account_ID;
-        BankAccountNode.Attributes['BankAccountNumber'] := BankAccount.baFields.baBank_Account_Number;
-        BankAccountNode.Attributes['BankAccountName'] := BankAccount.baFields.baBank_Account_Name;  
-
-        TempTransExported := TransactionsExported.Count;
-        
-        TransactionsToXML(BankAccountNode, Client, BankAccount, MaxTransactionDate, TransactionsExported);
-
-        if TransactionsExported.Count - TempTransExported > 0 then
+      try
+        //Only delivered accounts can be sent
+        if IsExportableBankAccount(BankAccount, ClientBankAccountVendors) and HasExportableTransactions(BankAccount, MaxTransactionDate) then
         begin
-          Inc(AccountsExported);
+          BankAccountNode := ParentNode.OwnerDocument.CreateElement('BKBankAccount', '');
 
-          ParentNode.ChildNodes.Add(BankAccountNode); 
+          BankAccountNode.Attributes['CoreId'] := BankAccount.baFields.baCore_Account_ID;
+          BankAccountNode.Attributes['BankAccountNumber'] := BankAccount.baFields.baBank_Account_Number;
+          BankAccountNode.Attributes['BankAccountName'] := BankAccount.baFields.baBank_Account_Name;  
+
+          TempTransExported := TransactionsExported.Count;
+        
+          TransactionsToXML(BankAccountNode, Client, BankAccount, MaxTransactionDate, TransactionsExported);
+
+          if TransactionsExported.Count - TempTransExported > 0 then
+          begin
+            Inc(AccountsExported);
+
+            ParentNode.ChildNodes.Add(BankAccountNode); 
+          end;
         end;
-      end;
 
-      ProgressControl.UpdateProgress(StepSize); 
-    except
-      on E:Exception do
-      begin
-        LogUtil.LogMsg(lmError, 'BankLinkOnlineTaggingService', 'Bank Account ' + BankAccount.baFields.baBank_Account_Number + ' ' + Client.clFields.clCode + ' could not be exported - ' + E.Message);
+        ProgressControl.UpdateProgress(StepSize); 
+      except
+        on E:Exception do
+        begin
+          LogUtil.LogMsg(lmError, 'BankLinkOnlineTaggingService', 'Bank Account ' + BankAccount.baFields.baBank_Account_Number + ' ' + Client.clFields.clCode + ' could not be exported - ' + E.Message);
+        end;
       end;
     end;
   end;
@@ -478,7 +481,11 @@ begin
                                 begin
                                   pTransaction_Rec(TransactionsExported[IIndex]).txTransfered_To_Online := True;
                                 end;
-                                         
+
+                                Client.clFields.clFile_Save_Required := True;
+
+                                DoClientSave(False, Client, True);
+                                
                                 Statistics.TransactionsExported := Statistics.TransactionsExported + TransactionsExported.Count;
                                 Statistics.AccountsExported := Statistics.AccountsExported + AccountsExported;
                                 Statistics.ClientFilesProcessed := Statistics.ClientFilesProcessed + 1;
@@ -847,7 +854,14 @@ procedure TBanklinkOnlineTaggingServices.TTransactionExporter.OnSendTransactions
 var
   StepSize: Double;
 begin
-  StepSize := FProgressWeight / (Total / Sent);
+  if (Total > 0) and (Sent > 0) then
+  begin
+    StepSize := FProgressWeight / (Total / Sent);
+  end
+  else
+  begin
+    StepSize := 0;
+  end;
   
   FProgressControl.UpdateProgress(StepSize - FLastStepSize);
 
