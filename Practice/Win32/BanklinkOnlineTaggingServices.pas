@@ -127,17 +127,24 @@ var
   Dissection: pDissection_Rec;
   DissectionNode: IXMLNode;
   TransactionGuid: String;
+  IdNode: IXMLNode;
 begin
   for TransactionIndex := 0 to BankAccount.baTransaction_List.ItemCount - 1 do
   begin
     Transaction := BankAccount.baTransaction_List[TransactionIndex];
 
     try
-      if IsExportableTransaction(Transaction, MaxTransactionDate) then    
+      if IsExportableTransaction(Transaction, MaxTransactionDate) then
       begin
         CheckExternalGUID(Transaction);
 
         TransactionNode := Transaction.WriteRecToNode(ParentNode);
+
+        IdNode := TransactionNode.OwnerDocument.CreateNode('Id', ntAttribute, '');
+
+        IdNode.NodeValue := Transaction.txExternal_GUID;
+
+        TransactionNode.AttributeNodes.Add(IdNode);
 
         CleanXML(TransactionNode);
 
@@ -145,9 +152,15 @@ begin
 
         while Dissection <> nil do
         begin
-          CheckExternalGuid(Dissection);         
+          CheckExternalGuid(Dissection);
 
           DissectionNode := Dissection.WriteRecToNode(TransactionNode);
+
+          IdNode := DissectionNode.OwnerDocument.CreateNode('Id', ntAttribute, '');
+
+          IdNode.NodeValue := Transaction.txExternal_GUID;
+
+          DissectionNode.AttributeNodes.Add(IdNode);
 
           CleanXML(DissectionNode);
 
