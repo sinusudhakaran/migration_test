@@ -199,12 +199,6 @@ uses
 	SysUtils,
   BkDateUtils;
 
-
-procedure SetTextAttr(var OnNode: IXMLNode; Name, Value: string);
-begin
-  OnNode.Attributes [Name] := Value;
-end;
-
 procedure ReRaise(E: Exception; Doing: string);
 begin
 	raise exception.Create( format('Error : %s While : %s',[E.Message, Doing]));
