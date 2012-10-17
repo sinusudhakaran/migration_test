@@ -103,7 +103,8 @@ uses
    ReportDefs,
    SimpleUIOpenPageFrm,
    CFHead,
-   BankLinkOnlineServices;
+   BankLinkOnlineServices,
+   ForexHelpers;
 
 var
   ClosingAllMDIForms : boolean = false;
@@ -825,7 +826,7 @@ begin
        actSendViaOnline.Visible := False;
        actGetFromOnline.Visible := False;
        UseBankLinkOnline := AdminSystem.fdFields.fdUse_BankLink_Online;
-       
+
        if UseBankLinkOnline then
        begin
          if ProductConfigService.IsCICOEnabled then
@@ -849,6 +850,8 @@ begin
 
      Batchreports.FillMenu(frmMain.mniBatchReports,ShowFinReports);
      frmMain.MenuCopyToPopUp('mnsReport', popReport);
+
+     mniExchangeGainLossWizard.Visible := IsGainLossClient;
   end;
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

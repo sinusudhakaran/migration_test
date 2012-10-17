@@ -431,6 +431,8 @@ type
     mniChangePassword: TMenuItem;
     mniExportdatatoBanklinkOnline: TMenuItem;
     mmiTaxablePaymentsReport: TMenuItem;
+    mniExchangeGainLossWizard: TMenuItem;
+    N46: TMenuItem;
     procedure FormResize(Sender: TObject);
     procedure tmClockTimer(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -712,6 +714,7 @@ type
     procedure mniChangePasswordClick(Sender: TObject);
     procedure mniExportdatatoBanklinkOnlineClick(Sender: TObject);
     procedure mmiTaxablePaymentsReportClick(Sender: TObject);
+    procedure mniExchangeGainLossWizardClick(Sender: TObject);
   private
     { Private declarations }
     FClientInstance,
@@ -917,6 +920,7 @@ const
   mf_mcSendOnline              = 76;
   mf_mcGetOnline               = 77;
   mf_mcTransactionsToBankLinkOnline = 78;
+  mf_mcExchangeGainLossWizard  = 79;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 var
@@ -964,6 +968,7 @@ uses
   ErrorLog,
   ErrorMoreFrm,
   ExceptH,
+  ExchangeGainLossWiz,
   Extract32,
 {$IFDEF SmartLink}
   FingerTipsInterface,
@@ -3720,6 +3725,12 @@ begin
   DoMainFormCommand( mf_mcYearEnd);
 end;
 
+procedure TfrmMain.mniExchangeGainLossWizardClick(Sender: TObject);
+begin
+  IncUsage('Exchange Gain/Loss Wizard');
+  DoMainFormCommand(mf_mcExchangeGainLossWizard);
+end;
+
 procedure TfrmMain.DownloadReportSummarised1Click(Sender: TObject);
 begin
    //IncUsage('Summarised System Download Report');
@@ -4527,6 +4538,7 @@ begin
         mf_mcViewCashJournals : ViewJournals(btCashJournals);
         mf_mcViewAccrualJournals : ViewJournals(btAccrualJournals);
         mf_mcTransactionsToBankLinkOnline: ShowExportTransactionsDialog;
+        mf_mcExchangeGainLossWizard: RunExchangeGainLossWizard(MyClient);
 
       end;
 

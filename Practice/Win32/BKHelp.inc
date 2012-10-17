@@ -634,6 +634,7 @@ const
   BKH_Transferring_transactions_from_BankLink_Practice_to_QuickBooks_Pro = 2137;
   BKH_Changing_your_password_to_match_BankLink_Online = 2138;
   BKH_BankLink_Online_client_options = 2139;
+  BKH_Calculate_exchange_gain_or_loss = 2143;
 
 var
   //filename of HTML help file

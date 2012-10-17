@@ -4,10 +4,12 @@ unit ForexHelpers;
 interface
 
 uses
-   BKDefs,
-   MoneyDef,
-   clObj32,
-   baObj32;
+  SysUtils,
+  BKDefs,
+  MCDefs,
+  MoneyDef,
+  clObj32,
+  baObj32;
 // ----------------------------------------------------------------------------
 
 type
@@ -58,6 +60,9 @@ type
   function  IsGainLossClient: boolean;
   function  IsGainLossAccount(const aAccount: TBank_Account): boolean;
   function  IsValidGainLossCode(const aCode: string): boolean;
+  function  CurrencyExists(aExchange: pExchange_Rates_Header_Rec;
+              const aCurrency: string): boolean; overload;
+  function  CurrencyExists(const aCurrency: string): boolean; overload;
 
 
 implementation
@@ -339,11 +344,11 @@ end;
 
 // ----------------------------------------------------------------------------
 function IsValidGainLossCode(const aCode: string): boolean;
+const
+  ALLOWED_TYPES = [atIncome, atExpense, atOtherIncome, atOtherExpense];
 var
   pAccount: pAccount_Rec;
 begin
-  result := false;
-
   // If the Chart of Accounts is empty, then any code is correct (same as Contra)
   if (MyClient.clChart.ItemCount = 0) then
   begin
@@ -354,13 +359,65 @@ begin
   // Code not in chart?
   pAccount := MyClient.clChart.FindCode(aCode);
   if not Assigned(pAccount) then
+  begin
+    result := false;
     exit;
+  end;
 
   // Type not allowed for Gain/Loss?
-  if not (pAccount.chAccount_Type in [atIncome, atExpense, atOtherIncome, atOtherExpense]) then
+  if not (pAccount.chAccount_Type in ALLOWED_TYPES) then
+  begin
+    result := false;
     exit;
+  end;
 
   result := true;
 end;
+
+// ----------------------------------------------------------------------------
+function CurrencyExists(aExchange: pExchange_Rates_Header_Rec; const aCurrency: string): boolean;
+var
+  i: integer;
+begin
+  ASSERT(assigned(aExchange));
+  
+  for i := Low(aExchange.ehISO_Codes) to High(aExchange.ehISO_Codes) do
+  begin
+    if SameText(aExchange.ehISO_Codes[i], aCurrency) then
+    begin
+      result := true;
+      exit;
+    end;
+  end;
+
+  result := false;
+end;
+
+// ----------------------------------------------------------------------------
+function CurrencyExists(const aCurrency: string): boolean;
+begin
+  result := true;
+
+  // This is what "Maintain Currencies" uses
+  if Assigned(AdminSystem) then
+  begin
+    AdminSystem.SyncCurrenciesToSystemAccounts;
+    if CurrencyExists(@AdminSystem.fCurrencyList, aCurrency) then
+      exit;
+  end;
+
+  // We need to use this for Books
+  if Assigned(MyClient) then
+  begin
+    if CurrencyExists(@MyClient.ExchangeSource.Header, aCurrency) then
+      exit;
+
+    if (MyClient.clExtra.ceLocal_Currency_Code = aCurrency) then
+      exit;
+  end;
+
+  result := false;
+end;
+
 
 end.

@@ -807,6 +807,13 @@ object frmMain: TfrmMain
         Caption = '&Year End Balances'
         OnClick = mniYearEndClick
       end
+      object N46: TMenuItem
+        Caption = '-'
+      end
+      object mniExchangeGainLossWizard: TMenuItem
+        Caption = 'Calculate &Exchange Gain/Loss'
+        OnClick = mniExchangeGainLossWizardClick
+      end
       object N44: TMenuItem
         Caption = '-'
       end
