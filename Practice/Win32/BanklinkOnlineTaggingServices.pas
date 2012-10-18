@@ -158,7 +158,7 @@ begin
 
           IdNode := DissectionNode.OwnerDocument.CreateNode('Id', ntAttribute, '');
 
-          IdNode.NodeValue := Transaction.txExternal_GUID;
+          IdNode.NodeValue := Dissection.dsExternal_GUID;
 
           DissectionNode.AttributeNodes.Add(IdNode);
 
