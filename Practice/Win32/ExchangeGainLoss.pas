@@ -19,6 +19,7 @@ type
   private
     fClient: TClientObj;
     fErrors: TStringList;
+    fErrorCount: integer;
 
     procedure AddError(const aError: string);
 
@@ -104,9 +105,15 @@ procedure TValidateExchangeGainLoss.AddError(const aError: string);
 var
   sPrefix: string;
 begin
-  if (fErrors.Count <> 0) then
+  // Separator?
+  if (fErrors.Count > 0) then
     fErrors.Add('');
-  sPrefix := Format('%d) ', [fErrors.Count+1]);
+
+  // Determine line prefix (don't use fErrors.Count, because it has empty lines)
+  Inc(fErrorCount);
+  sPrefix := Format('%d) ', [fErrorCount]);
+
+  // Add error
   fErrors.Add(sPrefix + aError);
 end;
 

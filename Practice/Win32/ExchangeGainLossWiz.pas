@@ -47,9 +47,12 @@ type
     lblAmountRemaining: TLabel;
     Label4: TLabel;
     tbsMonth: TTabSheet;
-    lblWellDone: TLabel;
     lblAdjDate: TLabel;
-    lblFinishNote: TLabel;
+    cmbMonth: TComboBox;
+    lblMonthLine1: TLabel;
+    lblMonthLine2: TLabel;
+    lblMonthLine3: TLabel;
+    lblMonth: TLabel;
     procedure btnNextClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure btnBackClick(Sender: TObject);

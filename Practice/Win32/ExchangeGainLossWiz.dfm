@@ -1,6 +1,6 @@
 object wizExchangeGainLoss: TwizExchangeGainLoss
-  Left = 274
-  Top = 231
+  Left = 480
+  Top = 386
   BorderIcons = [biSystemMenu, biMaximize]
   Caption = 'Calculate Exchange Gain/Loss Wizard'
   ClientHeight = 442
@@ -10,7 +10,7 @@ object wizExchangeGainLoss: TwizExchangeGainLoss
   Constraints.MinWidth = 630
   ParentFont = True
   OldCreateOrder = False
-  Position = poDesigned
+  Position = poMainFormCenter
   Scaled = False
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
@@ -38,7 +38,7 @@ object wizExchangeGainLoss: TwizExchangeGainLoss
       Top = 72
       Width = 593
       Height = 312
-      ActivePage = tbsPost
+      ActivePage = tbsMonth
       Align = alClient
       Style = tsButtons
       TabHeight = 5
@@ -46,28 +46,64 @@ object wizExchangeGainLoss: TwizExchangeGainLoss
       TabStop = False
       TabWidth = 5
       object tbsMonth: TTabSheet
-        Caption = 'Page1 - Month'
+        Caption = 'you should'
         ImageIndex = 4
-        DesignSize = (
-          585
-          297)
-        object lblWellDone: TLabel
-          Left = 4
-          Top = 24
-          Width = 297
+        object lblMonthLine1: TLabel
+          Left = 8
+          Top = 64
+          Width = 491
           Height = 13
-          Caption = 'Well done, you have completed the Year End Balances Wizard'
+          Caption = 
+            'You should run this wizard only for months in which you have rec' +
+            'eived all transactions for all accounts.'
         end
-        object lblFinishNote: TLabel
-          Left = 4
-          Top = 48
-          Width = 569
-          Height = 137
-          Anchors = [akLeft, akTop, akBottom]
-          AutoSize = False
-          Caption = 'Finish Note goes here...'
-          ShowAccelChar = False
-          WordWrap = True
+        object lblMonthLine2: TLabel
+          Left = 8
+          Top = 96
+          Width = 548
+          Height = 13
+          Caption = 
+            'Separate difference on exchange postings will be created for eac' +
+            'h foreign currency bank account in this client file.'
+        end
+        object lblMonthLine3: TLabel
+          Left = 8
+          Top = 128
+          Width = 463
+          Height = 13
+          Caption = 
+            'Note: the Exchange Gain/Loss wizard cannot be run for months tha' +
+            't are finalised or transferred.'
+        end
+        object lblMonth: TLabel
+          Left = 8
+          Top = 24
+          Width = 69
+          Height = 13
+          Caption = 'Month Ending:'
+        end
+        object cmbMonth: TComboBox
+          Left = 84
+          Top = 22
+          Width = 217
+          Height = 22
+          Style = csOwnerDrawFixed
+          DropDownCount = 12
+          ItemHeight = 16
+          TabOrder = 0
+          Items.Strings = (
+            '1'
+            '2'
+            '3'
+            '4'
+            '5'
+            '6'
+            '7'
+            '8'
+            '9'
+            '10'
+            '11'
+            '12')
         end
       end
       object tbsPost: TTabSheet
@@ -400,7 +436,6 @@ object wizExchangeGainLoss: TwizExchangeGainLoss
     Align = alBottom
     BevelOuter = bvNone
     TabOrder = 2
-    ExplicitTop = 384
     DesignSize = (
       622
       42)
@@ -457,9 +492,9 @@ object wizExchangeGainLoss: TwizExchangeGainLoss
     object Label1: TLabel
       Left = 168
       Top = 16
-      Width = 210
+      Width = 261
       Height = 13
-      Caption = 'Welcome to the Exchange Gain/Loss Wizard'
+      Caption = 'Welcome to the Calculate Exchange Gain/Loss Wizard.'
     end
     object Label2: TLabel
       Left = 168
@@ -543,7 +578,6 @@ object wizExchangeGainLoss: TwizExchangeGainLoss
       BevelOuter = bvNone
       Color = 4065024
       TabOrder = 0
-      ExplicitHeight = 384
       DesignSize = (
         144
         400)
@@ -775,7 +809,7 @@ object wizExchangeGainLoss: TwizExchangeGainLoss
         Left = 8
         Top = 46
         Width = 441
-        Height = 129
+        Height = 155
         AutoSize = False
         Caption = 'lblWarnings'
         WordWrap = True
