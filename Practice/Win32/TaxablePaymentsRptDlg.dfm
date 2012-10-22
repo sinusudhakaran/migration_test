@@ -218,12 +218,12 @@ object frmTaxablePaymentsRptDlg: TfrmTaxablePaymentsRptDlg
       TabOrder = 1
       OnClick = rbSummarisedClick
     end
-    object chkWrapNarration: TCheckBox
+    object chkWrapColumnText: TCheckBox
       Left = 28
       Top = 42
       Width = 161
       Height = 17
-      Caption = 'Wrap Narration'
+      Caption = 'Wrap Text'
       TabOrder = 2
     end
   end
