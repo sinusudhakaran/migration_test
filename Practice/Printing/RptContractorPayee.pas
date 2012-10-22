@@ -200,7 +200,7 @@ procedure DetailedTaxablePaymentsDetail(Sender : TObject);
 
     procedure PutNarration(Notes: string);
     const
-      NARRATION_COLUMN = 3;
+      NARRATION_COLUMN = 2;
 
     var
       j, ColWidth, OldWidth : Integer;
@@ -291,7 +291,6 @@ procedure DetailedTaxablePaymentsDetail(Sender : TObject);
 
                SkipColumn;
                SkipColumn;
-               SkipColumn;
              end;
            until (j >= NotesList.Count) or (j >= MaxNotesLines);
          finally
@@ -334,9 +333,9 @@ procedure DetailedTaxablePaymentsDetail(Sender : TObject);
               if IncludeAllDissectionLines then
               begin
                 PutString(bkDate2Str(Transaction.txDate_Effective));
-                PutString(GetFormattedReference(Transaction));
-                
-                SkipColumn;
+
+                PutString(Transaction.txAccount);
+
                 SkipColumn;
 
                 TransGSTAmount := GetGSTTotalForDissection(Transaction);
@@ -355,28 +354,7 @@ procedure DetailedTaxablePaymentsDetail(Sender : TObject);
                 if IncludeAllDissectionlines or (Dissection.dsPayee_Number = Payee.pdNumber) then
                 begin
                   PutString(bkDate2Str(Transaction.txDate_Effective));
-
-                  if Dissection.dsReference <> '' then
-                  begin
-                    Reference := Dissection.dsReference;
-                  end
-                  else
-                  begin
-                    Reference := '/' + IntToStr(Dissection.dsSequence_No);
-                  end;
-
-                  PutString(Reference);
-                  
-                  ChartAccount := MyClient.clChart.FindCode(Dissection.dsAccount);
-
-                  if ChartAccount <> nil then
-                  begin
-                    PutString(ChartAccount.chAccount_Description);
-                  end
-                  else
-                  begin
-                    SkipColumn;
-                  end;
+                  PutString(Dissection.dsAccount);
 
                   PutNarration(Dissection.dsGL_Narration);
                   
@@ -404,18 +382,7 @@ procedure DetailedTaxablePaymentsDetail(Sender : TObject);
               if Transaction.txPayee_Number = Payee.pdNumber then
               begin
                 PutString(bkDate2Str(Transaction.txDate_Effective));
-                PutString(GetFormattedReference(Transaction));
-                
-                ChartAccount := MyClient.clChart.FindCode(Transaction.txAccount);
-
-                if ChartAccount <> nil then
-                begin
-                  PutString(ChartAccount.chAccount_Description);
-                end
-                else
-                begin
-                  SkipColumn;
-                end;
+                PutString(Transaction.txAccount);
 
                 PutNarration(Transaction.txGL_Narration);
 
@@ -451,11 +418,11 @@ begin
 
         RenderPayeeTransactions(Payee);
 
-        RenderDetailSubTotal(Payee.pdName, True, False, 'Total');
+        RenderDetailSubTotal('');
       end;
     end;
 
-    RenderDetailGrandTotal('Grand Total'); 
+    RenderDetailGrandTotal(''); 
   end; 
 end;
 
@@ -558,9 +525,8 @@ begin
   CLeft  := GcLeft;
 
   AddColAuto(Job,cLeft,      8,Gcgap,'Date', jtLeft);
-  AddColAuto(Job,cLeft,      8,Gcgap,'Reference', jtLeft);
-  AddColAuto(Job,cLeft,      20,Gcgap,'Account', jtLeft);
-  AddColAuto(Job,cLeft,      26,Gcgap,'Narration', jtLeft);
+  AddColAuto(Job,cLeft,      10,Gcgap,'Account', jtLeft);
+  AddColAuto(Job,cLeft,      44,Gcgap,'Narration', jtLeft);
   AddFormatColAuto(Job,cLeft,12,Gcgap,'No ABN Withholding Tax',jtRight,'#,##0.00;(#,##0.00);-', MyClient.FmtMoneyStrBrackets, true);
   AddFormatColAuto(Job,cLeft,10,Gcgap,'Total GST',jtRight,'#,##0.00;(#,##0.00);-', MyClient.FmtMoneyStrBrackets, true);
   AddFormatColAuto(Job,cLeft,16,Gcgap,'Gross Amount(including GST)',jtRight,'#,##0.00;(#,##0.00);-', MyClient.FmtMoneyStrBrackets, true);
