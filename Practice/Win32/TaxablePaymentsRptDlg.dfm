@@ -207,7 +207,6 @@ object frmTaxablePaymentsRptDlg: TfrmTaxablePaymentsRptDlg
       Checked = True
       TabOrder = 0
       TabStop = True
-      OnClick = rbDetailedClick
     end
     object rbSummarised: TRadioButton
       Left = 202

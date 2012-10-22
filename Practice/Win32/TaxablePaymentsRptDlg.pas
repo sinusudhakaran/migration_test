@@ -82,7 +82,6 @@ type
     procedure btnLoadClick(Sender: TObject);
     procedure btnSaveClick(Sender: TObject);
     procedure tgRangesResize(Sender: TObject);
-    procedure rbDetailedClick(Sender: TObject);
   private
     { Private declarations }
     FDataFrom, FDataTo : integer;
@@ -292,8 +291,6 @@ end;
 
 procedure TfrmTaxablePaymentsRptDlg.rbSummarisedClick(Sender: TObject);
 begin
-  chkWrapColumnText.Enabled := False;
-  chkWrapColumnText.Checked := False;
 end;
 //------------------------------------------------------------------------------
 function TfrmTaxablePaymentsRptDlg.Execute: boolean;
@@ -383,11 +380,6 @@ procedure TfrmTaxablePaymentsRptDlg.rbAllCodesClick(Sender: TObject);
 begin
   pnlAllCodes.Visible := true;
   pnlSelectedCodes.Visible := false;
-end;
-
-procedure TfrmTaxablePaymentsRptDlg.rbDetailedClick(Sender: TObject);
-begin
-  chkWrapColumnText.Enabled := True;
 end;
 
 procedure TfrmTaxablePaymentsRptDlg.tgRangesCellLoaded(Sender: TObject; DataCol,
