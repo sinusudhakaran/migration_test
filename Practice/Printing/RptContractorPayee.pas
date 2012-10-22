@@ -209,7 +209,7 @@ procedure DetailedTaxablePaymentsDetail(Sender : TObject);
     begin
       with TTaxablePaymentsReport(Sender), params do
       begin
-       if WrapNarration then
+       if WrapColumnText then
        begin
           MaxNotesLines := 10;
        end
