@@ -81,8 +81,6 @@ type
       function  GetDetailPixelRect: TRect;
       function RebuildHeaderFooter(HFCollection : THeaderFooterCollection): Integer;
       procedure SetHeightFromImage(HFLine : THeaderFooterLine);
-
-      procedure SplitText(Canvas: TCanvas; const Text: String; ColumnWidth: Integer; var WrappedText: TWrappedText);
       
       procedure RenderDetailHeaderWrapped;
    protected
@@ -142,6 +140,8 @@ type
       function  PrintPDF(Filename : String) : Boolean;
       function  PrintToFax( FaxParam : TFaxParameters) : boolean;
 
+      procedure SplitText(const Text: String; ColumnWidth: Integer; var WrappedText: TWrappedText); override;
+      
       //Provides access to the underlying TBKPrinter object so that all of its
       //public methods are available when printing directly to the canvas
       property  OutputBuilder : TBKPrintJob read PrintJob;
@@ -589,7 +589,7 @@ begin
     begin
       Column := Columns.Report_Column_At(ColumnIndex);
 
-      SplitText(Canvas, Column.Caption, Column.Width, WrappedCaptions[ColumnIndex]);
+      SplitText(Column.Caption, Column.Width, WrappedCaptions[ColumnIndex]);
     end;
 
     Canvas.Font.Style  := Canvas.Font.Style + [fsUnderLine];
@@ -1003,7 +1003,7 @@ begin
   RenderTotalLine(false, ttNone);
 end;
 
-procedure TRenderToCanvasEng.SplitText(Canvas: TCanvas; const Text: String; ColumnWidth: Integer; var WrappedText: TWrappedText);
+procedure TRenderToCanvasEng.SplitText(const Text: String; ColumnWidth: Integer; var WrappedText: TWrappedText);
 
   procedure AddLine(const Line: String);
   var
