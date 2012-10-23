@@ -393,6 +393,7 @@ end;
 implementation
 
 uses
+   GstWorkRec,
    CustomDocEditorFrm,
    STDate,
    Variants,
@@ -462,7 +463,7 @@ begin
   {9}        ,ToSQL(clWeb_Site_Login_URL),ToSQL(clContact_Details_To_Show),ToSQL(clCustom_Contact_Name)
                 ,ToSQL(clCustom_Contact_EMail_Address),ToSQL(clCustom_Contact_Phone)
   {10}       ,ToSQL(clHighest_Manual_Account_No),ToSQL(clCopy_Narration_Dissection),ToSQL(SystemComments)
-  {11}       ,ToSQL(clClient_CC_EMail_Address),ToSQL(clLast_ECoding_Account_UID),{ToSQL(WebExportFormat),}ToSQL(clMobile_No)
+  {11}       ,ToSQL(clClient_CC_EMail_Address),ToSQL(clLast_ECoding_Account_UID),{}ToSQL(WebExportFormat),{}ToSQL(clMobile_No)
                 ,ToSQL(clFile_Read_Only),ToSQL(clSalutation),ToSQL(clExternal_ID)
   {12}       ,ToSQL( clForce_Offsite_Check_Out),ToSQL(clDisable_Offsite_Check_Out),ToSQL(clAlternate_Extract_ID),ToSQL(clUse_Alterate_ID_for_extract)
   {13}       ,DateToSQL(AClient.cfDate_Last_Accessed),ToSQL(clUse_Basic_Chart),ToSQL(GroupID),ToSQL(TypeID)
@@ -1344,7 +1345,7 @@ begin
   if (value = 0)
   or (value = Unknown) then
       Exit; // Don't need to save..
-   RunValues([ToSQL(NewGuid),name,'decimal',FormatFloat('0.0000', Value/10000),ToSql(BalanceID)],[]);
+   RunValues([ToSQL(NewGuid),name,'decimal',FormatFloat('0.0', Value/10),ToSql(BalanceID)],[]);
 end;
 
 procedure TBalances_ParamTable.SetupTable;
@@ -1359,16 +1360,34 @@ end;
 function TBalances_ParamTableNZ.Insert(BalanceID: TGuid;
   value: pBalances_Rec): Boolean;
 begin
+         // Work out Form Period  GSTRateChangeDate = 150023;  // 1/10/2010
+     if (value.blGST_Period_Ends > GSTRateChangeDate)
+     and (value.blGST_Period_Starts < GSTRateChangeDate) then begin
+         // Transitional..
+         // Could move all the Part2 (B) bits here, but is much harder to read / check
+         // Its only the Opening and Closing Debtors and creditors that is a bit odd
+         // Delphi keeps the overall closing ballance in the same place, so you know where to find it as an opening balance default
+
+         AddMoney(BalanceID, 'GST_101_Workpaper_PurchasesFromLedger_PlusClosingCreditors', value.blBAS_G21_GST_Closing_Creditors_BalanceA);
+         AddMoney(BalanceID, 'GST_101_Workpaper_PlusClosingDebtors',  value.blBAS_F1_GST_Closing_Debtors_BalanceA );
+
+
+         AddMoney(BalanceID, 'GST_101_Workpaper_PurchasesFromLedger_PlusClosingCreditors_Part2', value.blClosing_Creditors_Balance);
+         AddMoney(BalanceID, 'GST_101_Workpaper_PlusClosingDebtors_Part2',  value.blClosing_Debtors_Balance);
+     end else begin
+         // Normal
+         AddMoney(BalanceID, 'GST_101_Workpaper_PlusClosingDebtors',  value.blClosing_Debtors_Balance );
+         AddMoney(BalanceID, 'GST_101_Workpaper_PurchasesFromLedger_PlusClosingCreditors', value.blClosing_Creditors_Balance);
+
+     end;
+     // GST 'FromLedger' Invoice basis, Optional Panel
 
      AddMoney(BalanceID, 'GST_101_Workpaper_LessOpeningDebtors',        value.blOpening_Debtors_Balance );
-     AddMoney(BalanceID, 'GST_101_Workpaper_LessOpeningDebtors_Part2',  value.blBAS_F2_GST_Opening_Debtors_BalanceB );
-     AddMoney(BalanceID, 'GST_101_Workpaper_PlusClosingDebtors',        value.blBAS_F1_GST_Closing_Debtors_BalanceA );
-     AddMoney(BalanceID, 'GST_101_Workpaper_PlusClosingDebtors_Part2',  value.blClosing_Debtors_Balance );
+     AddMoney(BalanceID, 'GST_101_Workpaper_LessOpeningDebtors_Part2', Value.blBAS_F2_GST_Opening_Debtors_BalanceB);
 
-     AddMoney(BalanceID, 'GST_101_Workpaper_PurchasesFromLedger_LessOpeningCreditors', value.blOpening_Creditors_Balance  );
-     AddMoney(BalanceID, 'GST_101_Workpaper_PurchasesFromLedger_LessOpeningCreditors_Part2', value.blBAS_F2_GST_Opening_Debtors_BalanceB );
-     AddMoney(BalanceID, 'GST_101_Workpaper_PurchasesFromLedger_PlusClosingCreditors', value.blBAS_G22_GST_Opening_Creditors_BalanceB);
-     AddMoney(BalanceID, 'GST_101_Workpaper_PurchasesFromLedger_PlusClosingCreditors_Part2', value.blClosing_Creditors_Balance);
+     AddMoney(BalanceID, 'GST_101_Workpaper_PurchasesFromLedger_LessOpeningCreditors', value.blOpening_Creditors_Balance);
+     AddMoney(BalanceID, 'GST_101_Workpaper_PurchasesFromLedger_LessOpeningCreditors_Part2', value.blBAS_G22_GST_Opening_Creditors_BalanceB);
+
 
      AddMoney(BalanceID, 'GST_103B_PaymentCalculation_CompulsoryOrVoluntaryTax', value.blBAS_1F_PT_Tax);
      //AddMoney(BalanceID, 'GST_103B_PaymentCalculation_TransferToProvisional', value.);
@@ -1378,6 +1397,7 @@ begin
 
      AddRate(BalanceID, 'GST_103B_ProvisionalTax_Ratio', value.blBAS_5B_PT_Ratio);
 
+     // 372 work sheet
      AddMoney(BalanceID, 'GST_372_Adjustments_PrivateUseGoodsAndServices', value.blGST_Adj_PrivUse);
      AddMoney(BalanceID, 'GST_372_Adjustments_PrivateUseGoodsAndServices_Part2', value.blBAS_6B_GST_Adj_PrivUse);
 
@@ -1414,7 +1434,7 @@ begin
      AddMoney(BalanceID, 'GST_372_CreditAdjustments_ChangeOfAccountingBasis_Part2', value.blBAS_T2_VAT2_GST_Cdj_Change);
 
      AddMoney(BalanceID, 'GST_372_CreditAdjustments_Other', value.blGST_Cdj_Other  );
-     AddMoney(BalanceID, 'GST_372_CreditAdjustments_Other_Part2', value.blGST_Cdj_Other);
+     AddMoney(BalanceID, 'GST_372_CreditAdjustments_Other_Part2', value.blBAS_W3_GST_Adj_Other);
 
      AddMoney(BalanceID, 'GST_372_CreditAdjustments_Total', value.blCredit_Adjustments);
      AddMoney(BalanceID, 'GST_372_CreditAdjustments_Total_Part2', value.blBAS_T8_VAT8);
