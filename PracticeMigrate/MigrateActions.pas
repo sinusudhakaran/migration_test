@@ -92,7 +92,8 @@ type
      property Error: string read FError write SetError;
      function NewAction(Title: string; AItem: TGuidObject = nil):TMigrateAction;
      function InsertAction(Title: string; AItem: TGuidObject = nil):TMigrateAction;
-     procedure AddWarining(E: Exception);
+     procedure AddWarining(E: Exception); overload;
+     procedure AddWarining(const aWarning: string); overload;
      // Uesed for simple Actions, to create a sub action
      function Exception(E: Exception; Action: string = ''):TMigrateAction;
      function GetImageindex: Integer;
@@ -181,10 +182,16 @@ begin
    RunSize := fRunsize + Value;  
 end;
 
+procedure TMigrateAction.AddWarining(const Awarning: string);
+begin
+   Error := Awarning;
+   Warning := True;
+end;
+
 procedure TMigrateAction.AddWarining(E: Exception);
 begin
-   Error := E.Message;
-   Warning := True;
+   AddWarining(E.Message);
+
 end;
 
 procedure TMigrateAction.Changed;
