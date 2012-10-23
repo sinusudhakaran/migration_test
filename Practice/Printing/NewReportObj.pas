@@ -289,8 +289,44 @@ type
     property BlindOn: Boolean read FBlindOn write SetBlindOn;
     procedure BKPrint; virtual;
     procedure AfterNewPage(SavedDetail : Boolean); virtual;
+
+    procedure SplitText(const Text: String; ColumnWidth: Integer; var WrappedText: TWrappedText);
   end;
 
+  TWriteColumnValue = procedure(Report: TBKReport; ColumnId: Integer; Value: Variant);
+
+  {Provides the ability to wrap column text}
+  TBKReportRecordLines = class
+  private
+    type
+      TColumnLineValue = array of Variant;
+      TColumnLines = array of TColumnLineValue;
+
+  private
+    FReport: TBKReport;
+    FColumnLines: TColumnLines;
+    FMaxLines: Integer;
+    FWriteColumnValue: TWriteColumnValue;
+
+    procedure PutLines;
+
+    procedure NewLines(NumLines: Integer);
+
+    procedure Clear;
+    procedure Reset;
+  public
+    constructor Create(Report: TBKReport; WriteColumnValue: TWriteColumnValue);
+    destructor Destroy; override;
+
+    procedure AddColumnText(ColumnId: Integer; const Text: String; Wrap: Boolean = False); overload;
+    procedure AddColumnText(ColumnId: Integer; const TextLines: array of String; Wrap: Boolean = False); overload;
+
+    procedure AddColumnValue(ColumnId: Integer; Value: Variant);
+    
+    procedure BeginUpdate;
+    procedure EndUpdate;
+  end;
+  
 Const
   SKIPFIELD = '<SKIP>';
   DATEFIELD = '<DATE>';
@@ -1090,6 +1126,11 @@ procedure TBKReport.SkipColumn;
 begin
    FCurrDetail.Add('');
 end;
+procedure TBKReport.SplitText(const Text: String; ColumnWidth: Integer; var WrappedText: TWrappedText);
+begin
+  RenderEngine.SplitText(Text, ColumnWidth, WrappedText);
+end;
+
 //******************************************************************************
 procedure TBKReport.RenderDetailGrandTotal(const TotalName : string);
 begin
@@ -1596,6 +1637,181 @@ begin
        TextList.Free;
     end;
   end;
+end;
+
+
+{ TBKReportRecordLines }
+
+procedure TBKReportRecordLines.AddColumnText(ColumnId: Integer; const Text: String; Wrap: Boolean = False);
+begin
+  AddColumnText(ColumnId, [Text], Wrap);
+end;
+
+procedure TBKReportRecordLines.AddColumnText(ColumnId: Integer; const TextLines: array of String; Wrap: Boolean = False);
+
+  function GetFirstUnassigned(ColumnId: Integer): Integer;
+  var
+    Index: Integer;
+  begin
+    Result := 0;
+    
+    for Index := 0 to Length(FColumnLines[ColumnId]) - 1 do
+    begin
+      if VarIsEmpty(FColumnLines[ColumnId][Index]) then
+      begin
+        Result := Index;
+
+        Break;
+      end;
+    end;
+  end;
+  
+var
+  Index: Integer;
+  IIndex: Integer;
+  WrappedText: TWrappedText;
+  StartLine: Integer;
+begin
+  if Wrap then
+  begin
+    StartLine := GetFirstUnassigned(ColumnId);
+      
+    for Index := 0 to Length(TextLines) - 1 do
+    begin
+      FReport.SplitText(TextLines[Index], FReport.Columns.Report_Column_At(ColumnId).Width, WrappedText); 
+            
+      if Length(FColumnLines[ColumnId]) - StartLine < Length(WrappedText) then
+      begin
+        NewLines(Length(WrappedText) - (Length(FColumnLines[ColumnId]) - StartLine));
+      end;
+  
+      for IIndex := 0 to Length(WrappedText) -1 do
+      begin
+        FColumnLines[ColumnId][StartLine + IIndex] := WrappedText[IIndex];
+      end;
+
+      Inc(StartLine, Length(WrappedText));
+
+      SetLength(WrappedText, 0);
+    end;
+  end
+  else
+  begin
+    for Index := 0 to Length(TextLines) - 1 do
+    begin
+      if Length(FColumnLines[ColumnId]) < Length(TextLines) then
+      begin
+        NewLines(Length(TextLines) - Length(FColumnLines[ColumnId]));
+      end;
+      
+      FColumnLines[ColumnId][Index] := TextLines[Index];
+    end;  
+  end;
+end;
+
+procedure TBKReportRecordLines.AddColumnValue(ColumnId: Integer; Value: Variant);
+begin
+  FColumnLines[ColumnId][0] := Value;
+end;
+
+procedure TBKReportRecordLines.BeginUpdate;
+begin
+  Reset;
+  
+  NewLines(1);
+end;
+
+procedure TBKReportRecordLines.Clear;
+var
+  Index: Integer;
+begin
+  for Index := 0 to Length(FColumnLines) - 1 do
+  begin
+    SetLength(FColumnLines[Index], 0);
+  end;
+
+  SetLength(FColumnLines, 0);
+
+  FMaxLines := 0;
+end;
+
+constructor TBKReportRecordLines.Create(Report: TBKReport; WriteColumnValue: TWriteColumnValue);
+begin
+  FReport := Report;
+  FMaxLines := 1;
+
+  FWriteColumnValue := WriteColumnValue;
+  
+  SetLength(FColumnLines, 0);
+end;
+
+destructor TBKReportRecordLines.Destroy;
+begin
+  SetLength(FColumnLines, 0);
+  
+  inherited;
+end;
+
+procedure TBKReportRecordLines.EndUpdate;
+begin
+  PutLines;
+end;
+
+procedure TBKReportRecordLines.NewLines(NumLines: Integer);
+var
+  Index: Integer;
+  IIndex: Integer;
+  StartLine: Integer;
+begin
+  for Index := 0 to FReport.Columns.ItemCount - 1 do
+  begin
+    StartLine := Length(FColumnLines[Index]);
+    
+    SetLength(FColumnLines[Index], Length(FColumnLines[Index]) + NumLines);
+
+    for IIndex := StartLine to Length(FColumnLines[Index]) -1 do
+    begin
+      FColumnLines[Index][IIndex] := Unassigned;
+    end;
+    
+    if Length(FColumnLines[Index]) > FMaxLines then
+    begin
+      FMaxLines := Length(FColumnLines[Index]);
+    end;
+  end;
+end;
+
+procedure TBKReportRecordLines.PutLines;
+var
+  ColumnLineIndex: Integer;
+  ColumnValueIndex: Integer;
+begin
+  if Assigned(FWriteColumnValue) then
+  begin
+    for ColumnValueIndex := 0 to FMaxLines - 1 do
+    begin
+      for ColumnLineIndex := 0 to Length(FColumnLines) - 1 do
+      begin
+        if not VarIsEmpty(FColumnLines[ColumnLineIndex][ColumnValueIndex]) then
+        begin
+          FWriteColumnValue(FReport, ColumnLineIndex, FColumnLines[ColumnLineIndex][ColumnValueIndex]);
+        end
+        else
+        begin
+          FReport.SkipColumn;
+        end;
+      end;
+
+      FReport.RenderDetailLine;
+    end;
+  end;
+end;
+
+procedure TBKReportRecordLines.Reset;
+begin
+  Clear;
+
+  SetLength(FColumnLines, FReport.Columns.ItemCount);
 end;
 
 end.
