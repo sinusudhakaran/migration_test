@@ -28,7 +28,8 @@ uses
   GSTCalc32,
   ForexHelpers,
   UserReportSettings,
-  Graphics;
+  Graphics,
+  Variants;
 
 type
   TTaxablePaymentsReport = class(TBKReport)
@@ -426,6 +427,19 @@ begin
   end; 
 end;
 
+procedure WriteColumnValue(Report: TBKReport; ColumnId: Integer; Value: Variant);
+begin
+  {Column < then 7 are all text columns.  The remaining are money columns}
+  if ColumnId < 7 then
+  begin
+    Report.PutString(Value);
+  end
+  else
+  begin
+    Report.PutMoney(Value, False);
+  end;
+end;
+
 procedure TaxablePaymentsDetail(Sender : TObject);
 var
   i,b,t : LongInt;
@@ -433,6 +447,7 @@ var
   PayeeData: TPayeeData;
   Payee: TPayee;
   Index: Integer;
+  RecordLines: TBKReportRecordLines;
 Begin
   with TTaxablePaymentsReport(Sender)  do
   begin
@@ -448,6 +463,8 @@ Begin
 
     SumPayeeTotals(Params, PayeeDataList);
 
+    RecordLines := TBKReportRecordLines.Create(TTaxablePaymentsReport(Sender), WriteColumnValue);
+
     //see if this payee should be included on the report
     for i := 0 to Length(PayeeDataList) -1 do
     begin
@@ -455,50 +472,22 @@ Begin
 
       if Payee.pdFields.pdContractor and ShowPayeeOnReport(Payee.pdFields.pdNumber) then
       begin
-        RequireLines(4);
-         
         PayeeData := PayeeDataList[I];
 
-        PutString( Payee.pdFields.pdABN);
-        PutString( Payee.pdFields.pdPhone_Number);
-        PutString(Payee.pdFields.pdName);
-        PutString(Payee.pdFields.pdSurname);
-        PutString(Payee.pdFields.pdGiven_Name);
-        PutString(Payee.pdFields.pdOther_Name);
-        PutString(Payee.pdFields.pdAddress);
-        PutMoney(PayeeData.NoABNWithholdingTax);
-        PutMoney(PayeeData.TotalGST);
-        PutMoney(PayeeData.GrossAmount + PayeeData.TotalGST + PayeeData.NoABNWithholdingTax);
+        RecordLines.BeginUpdate;
+                                      
+        RecordLines.AddColumnText(0, Payee.pdFields.pdABN, Params.WrapColumnText);
+        RecordLines.AddColumnText(1, Payee.pdFields.pdPhone_Number, Params.WrapColumnText);
+        RecordLines.AddColumnText(2, Payee.pdFields.pdName, Params.WrapColumnText);
+        RecordLines.AddColumnText(3, Payee.pdFields.pdSurname, Params.WrapColumnText);
+        RecordLines.AddColumnText(4, Payee.pdFields.pdGiven_Name, Params.WrapColumnText);
+        RecordLines.AddColumnText(5, Payee.pdFields.pdOther_Name, Params.WrapColumnText);
+        RecordLines.AddColumnText(6, [Payee.pdFields.pdAddress, Payee.pdFields.pdTown, Format('%s %s',[Payee.pdFields.pdState, Payee.pdFields.pdPost_Code])], Params.WrapColumnText);
+        RecordLines.AddColumnValue(7, PayeeData.NoABNWithholdingTax);
+        RecordLines.AddColumnValue(8, PayeeData.TotalGST);
+        RecordLines.AddColumnValue(9, PayeeData.GrossAmount);
 
-        RenderDetailLine;
-
-        {Create the second address line}
-        SkipColumn;
-        SkipColumn;
-        SkipColumn;
-        SkipColumn;
-        SkipColumn;
-        SkipColumn;
-        PutString(Payee.pdFields.pdTown);
-        SkipColumn;
-        SkipColumn;
-        SkipColumn;
-
-        RenderDetailLine;
-
-        {Create the third address line}
-        SkipColumn;
-        SkipColumn;
-        SkipColumn;
-        SkipColumn;
-        SkipColumn;
-        SkipColumn;
-        PutString(Format('%s %s',[Payee.pdFields.pdState, Payee.pdFields.pdPost_Code]));
-        SkipColumn;
-        SkipColumn;
-        SkipColumn;
-
-        RenderDetailLine;
+        RecordLines.EndUpdate;
 
         {Create a seperating blank line}
         RenderTextLine('');
@@ -548,6 +537,7 @@ begin
   Job.LoadReportSettings(UserPrintSettings,Report_List_Names[Report_Taxable_Payments]);
          
   Job.UserReportSettings.s7Temp_Font_Scale_Factor := 0.9;
+  Job.UserReportSettings.s7Orientation := BK_LANDSCAPE;
     
   //Add Headers
   AddCommonHeader(Job);
@@ -558,16 +548,16 @@ begin
 
   CLeft  := GcLeft;
 
-  AddColAuto(Job,cLeft,      9,Gcgap,'ABN', jtLeft);
-  AddColAuto(Job,cLeft,      9,Gcgap,'Payee Phone', jtLeft);
+  AddColAuto(Job,cLeft,      7,Gcgap,'ABN', jtLeft);
+  AddColAuto(Job,cLeft,      6,Gcgap,'Payee Phone', jtLeft);
   AddColAuto(Job,cLeft,      15,Gcgap,'Payee Name', jtLeft);
-  AddColAuto(Job,cLeft,      10,Gcgap,'Payee Surname', jtLeft);
-  AddColAuto(Job,cLeft,      6,Gcgap,'Given Name', jtLeft);
-  AddColAuto(Job,cLeft,      6,Gcgap,'Other Name', jtLeft);
+  AddColAuto(Job,cLeft,      18,Gcgap,'Payee Surname', jtLeft);
+  AddColAuto(Job,cLeft,      9,Gcgap,'Given Name', jtLeft);
+  AddColAuto(Job,cLeft,      9,Gcgap,'Other Name', jtLeft);
   AddColAuto(Job,cLeft,      14,Gcgap,'Payee Address', jtLeft);
-  AddFormatColAuto(Job,cLeft,11,Gcgap,'No ABN Withholding Tax',jtRight,'#,##0.00;(#,##0.00);-', MyClient.FmtMoneyStrBrackets, true);
+  AddFormatColAuto(Job,cLeft,7,Gcgap,'No ABN Withholding Tax',jtRight,'#,##0.00;(#,##0.00);-', MyClient.FmtMoneyStrBrackets, true);
   AddFormatColAuto(Job,cLeft,7,Gcgap,'Total GST',jtRight,'#,##0.00;(#,##0.00);-', MyClient.FmtMoneyStrBrackets, true);
-  AddFormatColAuto(Job,cLeft,13,Gcgap,'Gross Amount(including GST and any tax withheld)',jtRight,'#,##0.00;(#,##0.00);-', MyClient.FmtMoneyStrBrackets, true);
+  AddFormatColAuto(Job,cLeft,8,Gcgap,'Gross Amount(including GST and any tax withheld)',jtRight,'#,##0.00;(#,##0.00);-', MyClient.FmtMoneyStrBrackets, true);
 
   //Add Footers
   AddCommonFooter(Job);
