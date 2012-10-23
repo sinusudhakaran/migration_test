@@ -34,8 +34,6 @@ type
    TMethodPointer = procedure ( Sender : TObject) of object;
 
 type
-  TWrappedText = array of String;
-
   TRenderToFileBase = class( TCustomRenderEngine)
   protected
       FOnAfterGenerate: TMethodPointer;
@@ -47,8 +45,6 @@ type
       function  GetReportOwner : TBKReport;
       procedure NewDetailLine; virtual;
       procedure RenderTotalLine(double: boolean); virtual; abstract;
-      
-      procedure SplitText(const Text: String; ColumnWidth: Integer; var WrappedText: TWrappedText);
    public
       constructor Create( aOwner : TObject; fName : string); reintroduce; virtual;
       //Routines to build total and header lines, they call RenderDetailLine
@@ -69,6 +65,9 @@ type
       procedure UseDefaultFont; override;
 
       procedure Generate;                         override;
+
+      procedure SplitText(const Text: String; ColumnWidth: Integer; var WrappedText: TWrappedText); override;
+      
       property  Report : TBKReport read GetReportOwner;
       property  OnBeforeGenerate : TMethodPointer read FOnBeforeGen write FOnBeforeGen;
       property  OnAfterGenerate : TMethodPointer read FOnAfterGenerate write SetOnAfterGenerate;
