@@ -606,6 +606,7 @@ begin
       Exit;
 
    // have a go..
+   FillChar(Entry, Sizeof(Entry), 0);
 
    MyAction := nil;
    AssignFile(eFile, eFileName);
@@ -628,11 +629,20 @@ begin
 
       while not EOF(eFile) do begin
          Read(eFile, Entry);
+         // Validate LRN
+         if Entry.aLRN > Account.sbLast_Transaction_LRN then
+            Break;
+
          BTTable.Insert(NewGuid,Value.GuidID,Entry);
 
          inc(Count);
          MyAction.AddCount;
       end;
+
+      if Entry.aLRN > Account.sbLast_Transaction_LRN then
+         MyAction.LogMessage ('Archive has More transactions than the Account')
+      else if Entry.aLRN < Account.sbLast_Transaction_LRN then
+         MyAction.LogMessage('Archive has Less transactions than the Account')
 
    finally
       CloseFile(eFile);
