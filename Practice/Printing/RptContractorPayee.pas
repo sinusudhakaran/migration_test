@@ -130,7 +130,7 @@ begin
             begin
               if (ABNAccount <> '') and (Dissection.dsAccount = ABNAccount) then
               begin
-                PayeeData.NoABNWithholdingTax := PayeeData.NoABNWithholdingTax + (Dissection^.dsAmount * -1);
+                PayeeData.NoABNWithholdingTax := PayeeData.NoABNWithholdingTax + (Dissection^.Local_Amount * -1);
               end;
 
               Dissection := Dissection^.dsNext;
@@ -154,7 +154,7 @@ begin
                 begin
                   if (ABNAccount <> '') and (Dissection.dsAccount = ABNAccount) then
                   begin
-                    PayeeData.NoABNWithholdingTax := PayeeData.NoABNWithholdingTax + (Dissection^.dsAmount * -1);
+                    PayeeData.NoABNWithholdingTax := PayeeData.NoABNWithholdingTax + (Dissection^.Local_Amount * -1);
                   end
                   else
                   begin
@@ -191,7 +191,7 @@ procedure DetailedTaxablePaymentsDetail(Sender : TObject);
         begin
           if (Dissection.dsAccount = ABNAccountCode) then
           begin
-            Result := Result + Dissection.dsAmount;
+            Result := Result + Dissection.Local_Amount;
           end;
 
           Dissection := Dissection.dsNext;
@@ -343,7 +343,7 @@ procedure DetailedTaxablePaymentsDetail(Sender : TObject);
                  
                 PutMoney(SumABN(Transaction, ABNAccountCode));
                 PutMoney(GetGSTTotalForDissection(Transaction));
-                PutMoney(Transaction.Local_Amount + TransGSTAmount);
+                PutMoney(Transaction.Local_Amount);
 
                 RenderDetailLine;
               end;
@@ -364,12 +364,12 @@ procedure DetailedTaxablePaymentsDetail(Sender : TObject);
                   if IncludeAllDissectionLines then
                   begin
                     PutMoneyDontAdd(Dissection.dsGST_Amount);
-                    PutMoneyDontAdd(Dissection.dsAmount + Dissection.dsGST_Amount);
+                    PutMoneyDontAdd(Dissection.Local_Amount);
                   end
                   else
                   begin
                     PutMoney(Dissection.dsGST_Amount);
-                    PutMoney(Dissection.dsAmount + Dissection.dsGST_Amount);                  
+                    PutMoney(Dissection.Local_Amount);                  
                   end;
                   
                   RenderDetailLine;
@@ -390,7 +390,7 @@ procedure DetailedTaxablePaymentsDetail(Sender : TObject);
                 SkipColumn;
 
                 PutMoney(Transaction.txGST_Amount);
-                PutMoney(Transaction.Local_Amount + Transaction.txGST_Amount);  
+                PutMoney(Transaction.Local_Amount);  
 
                 RenderDetailLine;              
               end;
