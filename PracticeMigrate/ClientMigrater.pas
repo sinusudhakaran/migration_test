@@ -254,9 +254,9 @@ var
    Account: tBank_Account;
    GuidList: TGuidList;
 
-   AdminBankAccount: TGuidObject;// pSystem_Bank_Account_Rec;
-   Map: TGuidObject; //pClient_Account_Map_Rec;
-
+   AdminBankAccount: TGuidObject;
+   Map: TGuidObject;
+   MapRec: tClient_Account_Map_Rec;
 
    function AddClientAccountMap: pClient_Account_Map_Rec;
    var System: TSystemMigrater;
@@ -264,7 +264,7 @@ var
        function GetClientMap: TGuidObject;
        var I: Integer;
        begin
-          fillchar(Result, Sizeof(Result), 0);
+          Result := nil;
           for I := 0 to System.ClientAccountMap.Count - 1 do
              with pClient_Account_Map_Rec(TGuidObject(System.ClientAccountMap[I]).Data)^ do
                 if  (amClient_LRN = ClientLRN)
@@ -281,12 +281,18 @@ var
       AdminBankAccount := System.GetSystemAccount(Account.baFields.baBank_Account_Number);
       if not Assigned(AdminBankAccount) then
          Exit;
+
       Map := getClientMap;
-      if not Assigned(Map) then
-         Exit;
-      // Now we can have a go...
-      System.ClientAccountMapTable.Insert(Map.GuidID, ClientID, Value.GuidID, AdminBankAccount.GuidID, pClient_Account_Map_Rec(Map.Data));
-      Result := pClient_Account_Map_Rec(Map.Data);
+      if Assigned(Map) then begin
+         System.ClientAccountMapTable.Insert(Map.GuidID, ClientID, Value.GuidID, AdminBankAccount.GuidID, pClient_Account_Map_Rec(Map.Data));
+         Result := pClient_Account_Map_Rec(Map.Data);
+      end else begin
+         // Have matching accounts ... Need a map entry
+         MyAction.AddWarining (format('No Client Account Map found for Accnount %s: %s',[FClient.clFields.clCode, Account.Title]));
+         fillChar(MapRec, Sizeof(MapRec), 0);
+         System.ClientAccountMapTable.Insert(NewGuid, ClientID, Value.GuidID, AdminBankAccount.GuidID, @MapRec);
+      end;
+
    end;
 
    function ExcludedFromScheduledReports : Boolean;
