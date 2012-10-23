@@ -67,6 +67,8 @@ type
 
       procedure Generate; virtual;
 
+      procedure SplitText(const Text: String; ColumnWidth: Integer; var WrappedText: TWrappedText); virtual;
+
       property  OnAfterNewPage : TProcedurePtr read FOnAfterNewPage write FOnAfterNewPage;
    end;
 
@@ -110,6 +112,13 @@ end;
 procedure TCustomRenderEngine.SetItemStyle(const Value: TStyleTypes);
 begin
 
+end;
+
+procedure TCustomRenderEngine.SplitText(const Text: String; ColumnWidth: Integer; var WrappedText: TWrappedText);
+begin
+  SetLength(WrappedText, 1);
+
+  WrappedText[0] := Text;
 end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
