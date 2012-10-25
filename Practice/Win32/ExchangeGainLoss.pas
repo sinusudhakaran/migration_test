@@ -454,6 +454,8 @@ var
   iMonth: integer;
   i: integer;
 begin
+  ASSERT((aDate <> MinDate) and (aDate <> MaxDate));
+
   dtDate := StDateToDateTime(aDate);
   iYear := YearOf(dtDate);
   iMonth := MonthOf(dtDate);

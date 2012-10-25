@@ -74,6 +74,7 @@ type
     procedure cmbMonthDrawItem(Control: TWinControl; Index: Integer;
       Rect: TRect; State: TOwnerDrawState);
     procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    procedure FormShow(Sender: TObject);
   private
     { Private declarations }
     fClient: TClientObj;
@@ -291,6 +292,16 @@ begin
   }
   iNewItemHeight := 6 + cmbMonth.Canvas.TextHeight('Wg');
   cmbMonth.ItemHeight := Max(cmbMonth.ItemHeight, iNewItemHeight);
+end;
+
+{------------------------------------------------------------------------------}
+procedure TwizExchangeGainLoss.FormShow(Sender: TObject);
+begin
+  // Set focus for first button
+  if btnNext.Enabled and btnNext.CanFocus then
+    btnNext.SetFocus
+  else if btnCancel.Enabled and btnCancel.CanFocus then
+    btnCancel.SetFocus;
 end;
 
 {------------------------------------------------------------------------------}
