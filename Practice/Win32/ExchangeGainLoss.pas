@@ -91,8 +91,10 @@ type
     fExchangeSource: TExchangeSource;
 
     // Helpers
-    function  GetFirstLastPresented(var aFirstPresented: TDateTime; var aLastPresented: TDateTime): boolean;
-    procedure CreateMonthRange(const aFirstPresented: TDateTime; const aLastPresented: TDateTime);
+    function  GetFirstLastEffective(var aFirstEffective: TDateTime;
+                var aLastEffective: TDateTime): boolean;
+    procedure CreateMonthRange(const aFirstEffective: TDateTime;
+                const aLastEffective: TDateTime);
     function  FindMonthEnding(const aDate: TStDate): PMonthEnding;
     procedure SetMonthEnding(const aTransactions: tTransaction_List); overload;
     procedure SetMonthEnding; overload;
@@ -368,16 +370,16 @@ begin
 end;
 
 {------------------------------------------------------------------------------}
-function TMonthEndings.GetFirstLastPresented(var aFirstPresented: TDateTime;
-  var aLastPresented: TDateTime): boolean;
+function TMonthEndings.GetFirstLastEffective(var aFirstEffective: TDateTime;
+  var aLastEffective: TDateTime): boolean;
 var
-  stFirstPresented: TStDate;
-  stLastPresented: TStDate;
+  stFirstEffective: TStDate;
+  stLastEffective: TStDate;
   i: integer;
   BankAccount: TBank_Account;
 begin
-  stFirstPresented := MaxDate;
-  stLastPresented := MinDate;
+  stFirstEffective := MaxDate;
+  stLastEffective := MinDate;
 
   // Determine the month range for all non-base accounts
   for i := 0 to fClient.clBank_Account_List.ItemCount-1 do
@@ -388,26 +390,26 @@ begin
       continue;
 
     // Update the ranges
-    stFirstPresented := Min(stFirstPresented, BankAccount.baTransaction_List.FirstPresDate);
-    stLastPresented := Max(stLastPresented, BankAccount.baTransaction_List.LastPresDate);
+    stFirstEffective := Min(stFirstEffective, BankAccount.baTransaction_List.FirstEffectiveDate);
+    stLastEffective := Max(stLastEffective, BankAccount.baTransaction_List.LastEffectiveDate);
   end;
 
   // Valid range?
-  result := (stFirstPresented <> MinDate) and (stFirstPresented <> MaxDate) and
-            (stLastPresented <> MinDate) and (stLastPresented <> MaxDate);
+  result := (stFirstEffective <> MinDate) and (stFirstEffective <> MaxDate) and
+            (stLastEffective <> MinDate) and (stLastEffective <> MaxDate);
 
   // No range?
   if not result then
     exit;
 
   // Convert to TDateTime
-  aFirstPresented := StDateToDateTime(stFirstPresented);
-  aLastPresented := StDateToDateTime(stLastPresented);
+  aFirstEffective := StDateToDateTime(stFirstEffective);
+  aLastEffective := StDateToDateTime(stLastEffective);
 end;
 
 {------------------------------------------------------------------------------}
-procedure TMonthEndings.CreateMonthRange(const aFirstPresented: TDateTime;
-  const aLastPresented: TDateTime);
+procedure TMonthEndings.CreateMonthRange(const aFirstEffective: TDateTime;
+  const aLastEffective: TDateTime);
 var
   iFirstYear: integer;
   iFirstMonth: integer;
@@ -415,11 +417,11 @@ var
   iLastMonth: integer;
   iCount: integer;
 begin
-  iFirstYear := YearOf(aFirstPresented);
-  iFirstMonth := MonthOf(aFirstPresented);
+  iFirstYear := YearOf(aFirstEffective);
+  iFirstMonth := MonthOf(aFirstEffective);
 
-  iLastYear := YearOf(aLastPresented);
-  iLastMonth := MonthOf(aLastPresented);
+  iLastYear := YearOf(aLastEffective);
+  iLastMonth := MonthOf(aLastEffective);
 
   while true do
   begin
@@ -488,7 +490,7 @@ begin
     Transaction := aTransactions.Transaction_At(i);
 
     // Not within given month?
-    pMonth := FindMonthEnding(Transaction.txDate_Presented);
+    pMonth := FindMonthEnding(Transaction.txDate_Effective);
     ASSERT(assigned(pMonth));
 
     // Transactions
@@ -503,7 +505,7 @@ begin
       Inc(pMonth.NrTransferred);
 
     // Exchange rate missing?
-    Rate := fExchangeSource.GetDateRates(Transaction.txDate_Presented);
+    Rate := fExchangeSource.GetDateRates(Transaction.txDate_Effective);
     if not Assigned(Rate) then
       pMonth.ExchangeRateMissing := true;
   end;
@@ -584,18 +586,18 @@ end;
 {------------------------------------------------------------------------------}
 procedure TMonthEndings.ObtainMonthEndings;
 var
-  dtFirstPresented: TDateTime;
-  dtLastPresented: TDateTime;
+  dtFirstEffective: TDateTime;
+  dtLastEffective: TDateTime;
 begin
   // Clear array of previous data
   SetLength(fMonthEndings, 0);
 
   // Nothing?
-  if not GetFirstLastPresented(dtFirstPresented, dtLastPresented) then
+  if not GetFirstLastEffective(dtFirstEffective, dtLastEffective) then
     exit;
 
-  // Create month range based on the first/last presented dates
-  CreateMonthRange(dtFirstPresented, dtLastPresented);
+  // Create month range based on the first/last Effective dates
+  CreateMonthRange(dtFirstEffective, dtLastEffective);
 
   // Update the month status (Locked, Transferred, Already Run)
   SetMonthEnding;

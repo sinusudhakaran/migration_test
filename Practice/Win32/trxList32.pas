@@ -35,6 +35,12 @@ type
       function  FindTransactionFromMatchId(UID: integer): pTransaction_Rec;
       function New_Transaction : pTransaction_Rec;
 
+      // Effective date
+      // Note: returns 0 zero or first/last date of Effective Date
+      function  FirstEffectiveDate : LongInt;
+      function  LastEffectiveDate : LongInt;
+
+      // Presented date
       function  FirstPresDate : LongInt;
       function  LastPresDate : LongInt;
 
@@ -62,6 +68,7 @@ type
 //******************************************************************************
 implementation
 uses
+   Math,
    TransactionUtils,
    bktxio,
    bkdsio,
@@ -429,6 +436,44 @@ begin
 end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function TTransaction_List.FirstEffectiveDate : LongInt;
+var
+  i: integer;
+  Transaction: TTransaction_Rec;
+begin
+  result := 0;
+
+  for i := 0 to ItemCount-1 do
+  begin
+    Transaction := Transaction_At(i)^;
+
+    if (i = 0) then
+      result := Transaction.txDate_Effective
+    else
+      result := Min(result, Transaction.txDate_Effective);
+  end;
+end;
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function TTransaction_List.LastEffectiveDate : LongInt;
+var
+  i: integer;
+  Transaction: TTransaction_Rec;
+begin
+  result := 0;
+
+  for i := 0 to ItemCount-1 do
+  begin
+    Transaction := Transaction_At(i)^;
+
+    if (i = 0) then
+      result := Transaction.txDate_Effective
+    else
+      result := Max(result, Transaction.txDate_Effective);
+  end;
+end;
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function TTransaction_List.FirstPresDate : LongInt;
 //returns 0 if no transactions or the first Date of Presentation
 const
@@ -577,7 +622,6 @@ end;
 procedure TTransaction_List.DoDissectionAudit(ATransaction,
   ATransactionCopy: pTransaction_Rec; AAccountType: byte; var AAuditTable: TAuditTable);
 var
-  i: integer;
   P1, P2: pDissection_Rec;
   AuditInfo: TAuditInfo;
 begin
