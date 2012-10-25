@@ -7,7 +7,9 @@ uses
   Dialogs, StdCtrls, ExtCtrls, ComCtrls, clObj32, TSMask, Grids_ts, TSGrid,
   BKDEFS, MoneyDef, baObj32, BKConst, Buttons,
   bkXPThemes, chList32,
-  OSFont;
+  Math,
+  OSFont,
+  ExchangeGainLoss;
 
 
 type
@@ -37,7 +39,7 @@ type
     pnlWarnings: TPanel;
     WarningBmp: TImage;
     Label3: TLabel;
-    lblWarnings: TLabel;
+    memWarnings: TMemo;
     imgLine1: TImage;
     imgLine2: TImage;
     tgBalances: TtsGrid;
@@ -53,6 +55,7 @@ type
     lblMonthLine2: TLabel;
     lblMonthLine3: TLabel;
     lblMonth: TLabel;
+    lblNoMonthEndings: TLabel;
     procedure btnNextClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure btnBackClick(Sender: TObject);
@@ -68,10 +71,14 @@ type
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
     procedure tgBalancesKeyDown(Sender: TObject; var Key: Word;
       Shift: TShiftState);
+    procedure cmbMonthDrawItem(Control: TWinControl; Index: Integer;
+      Rect: TRect; State: TOwnerDrawState);
+    procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
   private
     { Private declarations }
     fClient: TClientObj;
     fCurrentStepID: integer;
+    fMonths: TMonthEndings;
 
     // Wizard steps
     function  FindPage(StepID : integer) : TTabSheet;
@@ -89,6 +96,14 @@ type
     procedure UpdateButtons;
   public
     { Public declarations }
+    destructor Destroy; override;
+
+    { The month index as stored in cmbMonth.Items.Objects
+      Note: the month endings are stored in reverse order, so can not use
+      cmbMonth.ItemIndex. }
+    function  GetMonthIndexFrom(const aIndex: integer): integer;
+    function  GetSelectedMonthIndex: integer;
+    property  SelectedMonthIndex: integer read GetSelectedMonthIndex;
   end;
 
   function RunExchangeGainLossWizard(aClient : TClientObj) : boolean;
@@ -106,7 +121,6 @@ uses
   bkDateUtils,
   CalculateAccountTotals,
   ErrorMoreFrm,
-  ExchangeGainLoss,
   GenUtils,
   Globals,
   GSTCalc32,
@@ -120,7 +134,8 @@ uses
   WinUtils,
   YesNoDlg,
   CountryUtils,
-  ForexHelpers;
+  ForexHelpers,
+  WarningMoreFrm;
 
 {$R *.dfm}
 
@@ -149,6 +164,7 @@ const
     stPost
   );
 
+{------------------------------------------------------------------------------}
 function GetOrderArrayPos(ForStepID : integer) : integer;
 var
   sNo : integer;
@@ -161,17 +177,19 @@ begin
   Assert(result > -1, 'GetOrderArrayPos.Step not found in list');
 end;
 
+{------------------------------------------------------------------------------}
 function RunExchangeGainLossWizard(aClient : TClientObj): boolean;
 var
   Wizard : TwizExchangeGainLoss;
   HasWarnings : boolean;
   ErrorMsg : string;
+  i: integer;
 begin
-  Wizard := TwizExchangeGainLoss.Create(Application.MainForm);
+  Wizard := TwizExchangeGainLoss.Create(Application.MainForm); // FormCreate
   try
     with Wizard do
     begin
-       BKHelpSetup(Wizard, BKH_Calculate_exchange_gain_or_loss);
+      BKHelpSetup(Wizard, BKH_Calculate_exchange_gain_or_loss);
 
       fClient := aClient;
 
@@ -179,14 +197,40 @@ begin
       ValidateExchangeGainLoss(fClient, ErrorMsg);
       HasWarnings := (ErrorMsg <> '');
 
+{$IFDEF DEBUG_CURRENCY}
+      HasWarnings := false;
+{$ENDIF}
+
       // Display warnings (if there are any)
       pnlWarnings.Visible := HasWarnings;
-      lblWarnings.Caption := ErrorMsg;
+      memWarnings.Text := ErrorMsg;
       lblContinue.Visible := not HasWarnings;
 
       // Buttons
       btnNext.Enabled := not HasWarnings;
       btnBack.Enabled := false;
+
+      // Obtain month endings
+      if not HasWarnings then
+      begin
+        // Create here because in the constructor/FormCreate there's no fClient yet
+        fMonths := TMonthEndings.Create(fClient);
+        fMonths.ObtainMonthEndings;
+
+        // Add to combo box in REVERSE order
+        for i := fMonths.Count-1 downto 0 do
+        begin
+          cmbMonth.AddItem('', TObject(i));
+        end;
+
+        // Enable/disable month combobox and warnings
+        cmbMonth.Enabled := (fMonths.Count > 0);
+        lblNoMonthEndings.Visible := not cmbMonth.Enabled;
+
+        // Select the earliest month (or last in the list really)
+        if cmbMonth.Enabled then
+          cmbMonth.ItemIndex := cmbMonth.Items.Count-1;
+      end;
 
       // Cancelled?
       result := (ShowModal = mrOK);
@@ -198,15 +242,26 @@ begin
   end;
 end;
 
+{------------------------------------------------------------------------------}
+destructor TwizExchangeGainLoss.Destroy;
+begin
+  FreeAndNil(fMonths);
+
+  inherited; // LAST
+end;
+
+{------------------------------------------------------------------------------}
 procedure TwizExchangeGainLoss.FormCreate(Sender: TObject);
 var
-  i : integer;
+  i: integer;
+  iNewItemHeight: integer;
 begin
   // Setup
   lblAmountRemaining.Font.Style := [fsBold];
   lblTitle.Font.Name := Font.Name;
-  lblWarnings.Font.Style := [fsBold];
+  memWarnings.Font.Style := [fsBold];
   tgbalances.HeadingFont := Font;
+  lblNoMonthEndings.Font.Style := [fsBold];
   bkXPThemes.ThemeForm(Self);
 
   // Start with the welcome screen (which is a panel over the Pages)
@@ -228,9 +283,44 @@ begin
   tbsMonth.Tag := stMonth;
   tbsPost.Tag := stPost;
   for i := 0 to Pred(PageControl1.PageCount) do
-    Assert(PageControl1.Pages[i].Tag <> 0, 'FormCreate Tag value not assigned');
+    Assert(PageControl1.Pages[i].Tag <> 0, 'FormCreate: PageControl.Tag value not assigned');
+
+  { Fonts get resized at runtime, and as a result the OnDrawItem leaves out the
+    bottom bit. The Rect for drawing is also smaller because OnDrawItem takes
+    some pixels off the top/bottom, so we need to compensate for that as well.
+  }
+  iNewItemHeight := 6 + cmbMonth.Canvas.TextHeight('Wg');
+  cmbMonth.ItemHeight := Max(cmbMonth.ItemHeight, iNewItemHeight);
 end;
 
+{------------------------------------------------------------------------------}
+function TwizExchangeGainLoss.GetMonthIndexFrom(const aIndex: integer): integer;
+begin
+  if (aIndex = -1) then
+    result := -1
+  else
+    result := integer(cmbMonth.Items.Objects[aIndex]);
+end;
+
+{------------------------------------------------------------------------------}
+function TwizExchangeGainLoss.GetSelectedMonthIndex: integer;
+begin
+  result := GetMonthIndexFrom(cmbMonth.ItemIndex);
+end;
+
+{------------------------------------------------------------------------------}
+procedure TwizExchangeGainLoss.FormKeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+  // ALT-M
+  if (fCurrentStepID = stMonth) and (Shift = [ssAlt]) and (Key = Ord('M')) then
+  begin
+    if cmbMonth.CanFocus then
+      cmbMonth.SetFocus;
+  end;
+end;
+
+{------------------------------------------------------------------------------}
 procedure TwizExchangeGainLoss.btnNextClick(Sender: TObject);
 begin
   if CanMoveToNextStep(fCurrentStepID) then begin
@@ -240,17 +330,20 @@ begin
   end;
 end;
 
+{------------------------------------------------------------------------------}
 procedure TwizExchangeGainLoss.btnBackClick(Sender: TObject);
 begin
   if HasPreviousStep(fCurrentStepID) then
     MoveToStep(PrevStep(fCurrentStepID));
 end;
 
+{------------------------------------------------------------------------------}
 procedure TwizExchangeGainLoss.MoveToStep(StepID: integer);
 //called from the Back and Next Buttons
 var
   Cancel : boolean;
   NewStepID : integer;
+  ToWelcomePage: boolean;
 begin
   Assert(StepID in [stMin..stMax], 'Step No out of range');
   NewStepID := StepID;
@@ -261,20 +354,17 @@ begin
   if Cancel then
     Exit;
 
-  case NewStepID of
-    stWelcome : begin
-      pnlWizard.Visible := False;
-      pnlWelcome.Visible := True;
-    end;
-  else
-    begin
-      PageControl1.ActivePage := FindPage(NewStepID);
-    end;
-  end;
+  // The welcome page is a special page
+  ToWelcomePage := (NewStepID = stWelcome);
+  pnlWelcome.Visible := ToWelcomePage;
+  pnlWizard.Visible := not ToWelcomePage;
+
+  PageControl1.ActivePage := FindPage(NewStepID);
 
   DoAfterMoveToStep;
 end;
 
+{------------------------------------------------------------------------------}
 function TwizExchangeGainLoss.NextStep(StepID: integer): integer;
 var
   CurrPosInArray : integer;
@@ -299,6 +389,7 @@ begin
     result := StepID;
 end;
 
+{------------------------------------------------------------------------------}
 function TwizExchangeGainLoss.PrevStep(StepID: integer): integer;
 var
   sNo : integer;
@@ -329,15 +420,35 @@ begin
     result := StepID;
 end;
 
+{------------------------------------------------------------------------------}
 procedure TwizExchangeGainLoss.DoBeforeMoveToStep(OldStepID : integer; var NewStepID : integer; var Cancel : boolean);
 //gives us an opportunity to save information on the current tab
 var
   MovingForward : boolean;
+  sErrors: string;
 begin
   Assert(OldStepID in [stMin..stMax], 'DoBeforeMoveToStep.OldStepID out of range');
   Assert(NewStepID in [stMin..stMax], 'DoBeforeMoveToStep.NewStepID out of range');
 
   MovingForward := GetOrderArrayPos(NewStepID) > GetOrderArrayPos(OldStepId);
+
+  if MovingForward then
+  begin
+    case OldStepID of
+      stMonth:
+      begin
+        // Validation error?
+        if not fMonths.ValidateMonthEnding(SelectedMonthIndex, sErrors) then
+        begin
+          HelpfulWarningMsg(sErrors, 0);
+
+          Cancel := true;
+
+          Exit;
+        end;
+      end;
+    end;
+  end;
 
   //save existing
   CompleteStep(OldStepId);
@@ -348,6 +459,7 @@ begin
     InitialiseStep(NewStepId);
 end;
 
+{------------------------------------------------------------------------------}
 procedure TwizExchangeGainLoss.DoAfterMoveToStep;
 var
   IsLastStep : boolean;
@@ -387,16 +499,19 @@ begin
   end;
 end;
 
+{------------------------------------------------------------------------------}
 function TwizExchangeGainLoss.HasNextStep(StepID: integer): boolean;
 begin
   result := NextStep(StepID) <> StepID;
 end;
 
+{------------------------------------------------------------------------------}
 function TwizExchangeGainLoss.HasPreviousStep(StepID: integer): boolean;
 begin
   result := PrevStep(StepID) <> StepID;
 end;
 
+{------------------------------------------------------------------------------}
 function TwizExchangeGainLoss.FindPage(StepID: integer): TTabSheet;
 var
   i : integer;
@@ -408,36 +523,49 @@ begin
       result := PageControl1.Pages[i];
 end;
 
+{------------------------------------------------------------------------------}
 procedure TwizExchangeGainLoss.tgBalancesInvalidMaskValue(Sender: TObject;
   DataCol, DataRow: Integer; var Accept: Boolean);
 begin
   // TODO
 end;
 
+{------------------------------------------------------------------------------}
 procedure TwizExchangeGainLoss.tgBalancesCellLoaded(Sender: TObject;
   DataCol, DataRow: Integer; var Value: Variant);
 begin
   // TODO
 end;
 
+{------------------------------------------------------------------------------}
 procedure TwizExchangeGainLoss.tgBalancesStartCellEdit(Sender: TObject;
   DataCol, DataRow: Integer; var Cancel: Boolean);
 begin
   // TODO
 end;
 
+{------------------------------------------------------------------------------}
 procedure TwizExchangeGainLoss.tgBalancesKeyPress(Sender: TObject;
   var Key: Char);
 begin
   // TODO
 end;
 
+{------------------------------------------------------------------------------}
 procedure TwizExchangeGainLoss.tgBalancesEndCellEdit(Sender: TObject;
   DataCol, DataRow: Integer; var Cancel: Boolean);
 begin
   // TODO
 end;
 
+{------------------------------------------------------------------------------}
+procedure TwizExchangeGainLoss.tgBalancesKeyDown(Sender: TObject;
+  var Key: Word; Shift: TShiftState);
+begin
+  // TODO
+end;
+
+{------------------------------------------------------------------------------}
 procedure TwizExchangeGainLoss.FormCloseQuery(Sender: TObject;
   var CanClose: Boolean);
 begin
@@ -450,49 +578,87 @@ begin
   end;
 end;
 
-procedure TwizExchangeGainLoss.tgBalancesKeyDown(Sender: TObject;
-  var Key: Word; Shift: TShiftState);
-begin
-  // TODO
-end;
-
+{------------------------------------------------------------------------------}
 function TwizExchangeGainLoss.StepAvailable(StepID : integer) : boolean;
 //used by next and prev to determine if this step can be used
 begin
-  // TODO: some sort of check if it's allowed, etc
   result := True;
 end;
 
+{------------------------------------------------------------------------------}
 procedure TwizExchangeGainLoss.InitialiseStep(StepID: integer);
 begin
-  // TODO
 end;
 
+{------------------------------------------------------------------------------}
 function TwizExchangeGainLoss.CompleteStep(StepID: integer): boolean;
 begin
-  // TODO
   result := true;
-  case StepID of
-    stWelcome:
-    begin
-      pnlWelcome.Visible := False;
-      pnlWizard.Visible := True;
-    end;
-  end;
 end;
 
+{------------------------------------------------------------------------------}
 function TwizExchangeGainLoss.CanMoveToNextStep(StepID: integer): boolean;
 begin
-  // TODO
+  // Normally okay
   result := true;
+
+  if (fCurrentStepID = stMonth) and not cmbMonth.Enabled then
+    result := false;
 end;
 
+{------------------------------------------------------------------------------}
 procedure TwizExchangeGainLoss.UpdateButtons;
 begin
-  // TODO
   btnNext.Enabled := CanMoveToNextStep(fCurrentStepID) and HasNextStep(fCurrentStepID);
   btnBack.Enabled := HasPreviousStep(fCurrentStepID);
 end;
+
+{------------------------------------------------------------------------------}
+procedure TwizExchangeGainLoss.cmbMonthDrawItem(Control: TWinControl;
+  Index: Integer; Rect: TRect; State: TOwnerDrawState);
+var
+  iMonthIndex: integer;
+  Image: TImage;
+  sValue: string;
+begin
+  ASSERT((0 <= Index) and (Index < cmbMonth.Items.Count));
+  ASSERT(Assigned(cmbMonth.Canvas));
+
+  // This line draws the actual bitmap
+  iMonthIndex := GetMonthIndexFrom(Index);
+  with fMonths[iMonthIndex], cmbMonth.Canvas do
+  begin
+    // This ensures the correct highlite color is used
+    FillRect(Rect);
+
+    // Month
+    sValue := FormatDateTime('mmm', Date);
+    TextOut(Rect.Left+6, Rect.Top+1, sValue);
+
+    // Year
+    sValue := IntToStr(Year);
+    TextOut(Rect.Left+40, Rect.Top+1, sValue);
+
+    // Locked/Transferred
+    if Finalised and Transferred then
+      Image := AppImages.imgTickLock
+    else if Finalised then
+      Image := AppImages.imgLock
+    else if Transferred then
+      Image := AppImages.imgTick
+    else
+      Image := nil;
+
+    // Month status (optional)
+    if Assigned(Image) then
+      Draw(Rect.Left+80, Rect.Top+1, Image.Picture.Bitmap);
+
+    // Already Run (optional)
+    if AlreadyRun then
+      TextOut(Rect.Left+110, Rect.Top+1, 'Already Run');
+  end;
+end;
+
 
 end.
 

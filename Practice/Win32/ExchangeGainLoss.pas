@@ -4,17 +4,26 @@ interface
 
 uses
   SysUtils,
+  DateUtils,
   Classes,
+  ExtCtrls,
+  Math,
   clObj32,
   baObj32,
+  BKDefs,
+  trxList32,
+  stDate,
   ForexHelpers,
-  MoneyDef;
-
-  function  ValidateExchangeGainLoss(const aClient: TClientObj; var aErrors: string): boolean;
-
-implementation
+  MoneyDef,
+  PeriodUtils,
+  ExchangeRateList,
+  imagesfrm,
+  Globals;
 
 type
+  { ----------------------------------------------------------------------------
+    TValidateExchangeGainLoss
+  ---------------------------------------------------------------------------- }
   TValidateExchangeGainLoss = class
   private
     fClient: TClientObj;
@@ -24,13 +33,104 @@ type
     procedure AddError(const aError: string);
 
   public
+    // Constructors
     constructor Create(const aClient: TClientObj);
     destructor Destroy; override;
 
     function  Validate(var aErrors: string): boolean;
   end;
 
+  
+  { ----------------------------------------------------------------------------
+    TMonthEnding
+  ---------------------------------------------------------------------------- }
+  PMonthEnding = ^TMonthEnding;
+
+  TMonthEnding = record
+  public
+    // Date
+    Date: TDateTime; // Day part is always 1
+
+    { Status
+      Locked      => NrTransactions = NrLocked
+      Transferred => NrTransactions = NrTransferred
+      Note: need to keep track of everything, before we can decided if it's
+      Locked, or Transferred, etc
+    }
+    NrTransactions: integer;
+    NrLocked: integer;
+    NrTransferred: integer;
+    AlreadyRun: boolean; // Gain/Loss in transactions
+
+    // Exchange Rates
+    ExchangeRateMissing: boolean;
+    ExchangeRateMissingPreviousMonth: boolean;
+
+  public
+    // Calculated fields
+    function  GetYear: integer;
+    property  Year: integer read GetYear;
+    function  GetMonth: integer;
+    property  Month: integer read GetMonth;
+    function  GetFinalised: boolean;
+    property  Finalised: boolean read GetFinalised;
+    function  GetTransferred: boolean;
+    property  Transferred: boolean read GetTransferred;
+  end;
+
+  TMonthEndingArray = array of TMonthEnding;
+
+  
+  { ----------------------------------------------------------------------------
+    TMonthEndings
+  ---------------------------------------------------------------------------- }
+  TMonthEndings = class(TObject)
+  private
+    fClient: TClientObj;
+    fMonthEndings: TMonthEndingArray;
+    fExchangeSource: TExchangeSource;
+
+    // Helpers
+    function  GetFirstLastPresented(var aFirstPresented: TDateTime; var aLastPresented: TDateTime): boolean;
+    procedure CreateMonthRange(const aFirstPresented: TDateTime; const aLastPresented: TDateTime);
+    function  FindMonthEnding(const aDate: TStDate): PMonthEnding;
+    procedure SetMonthEnding(const aTransactions: tTransaction_List); overload;
+    procedure SetMonthEnding; overload;
+    procedure DeleteFirstMonth;
+    procedure CulFirstMonths;
+    procedure VerifyExchangeRatePreviousMonth;
+    procedure AddError(const aError: string; var aErrors: string);
+
+  public
+    // Constructors
+    constructor Create(const aClient: TClientObj);
+    destructor Destroy; override;
+
+    procedure ObtainMonthEndings;
+
+    function  GetCount: integer;
+    property  Count: integer read GetCount;
+    function  GetItem(const aIndex: integer): TMonthEnding;
+    property  Items[const aIndex: integer]: TMonthEnding read GetItem; default;
+
+    function  ValidateMonthEnding(const aMonthIndex: integer;
+                var aErrors: string): boolean;
+  end;
+
+
+  { ----------------------------------------------------------------------------
+    Helper functions
+  ---------------------------------------------------------------------------- }
+  function  ValidateExchangeGainLoss(const aClient: TClientObj;
+              var aErrors: string): boolean;
+
+
+implementation
+
 type
+  { ----------------------------------------------------------------------------
+    Helper functions
+  ---------------------------------------------------------------------------- }
   TValidationRule = (
     ruleForeignTransactionsMustExist,
     ruleBankAccountsMustHaveGainLossCode,
@@ -39,7 +139,11 @@ type
     ruleOpeningBalanceMustBeSet
   );
 
+
 const
+  { ----------------------------------------------------------------------------
+    Validation error messages
+  ---------------------------------------------------------------------------- }
   ERR_FOREIGN_TRANSACTIONS_MUST_EXIST =
     'There are no foreign currency transactions available to run the wizard for';
 
@@ -53,7 +157,7 @@ const
     'There are currencies used by this client’s foreign currency Bank Accounts that are not set up in Maintain Currencies';
 
   ERR_ACCOUNTS_MUST_HAVE_OPENING_BALANCE =
-    'Some foreign currency Bank Accounts do not have an Opening Balance set';
+    'Some foreign currency Bank Accounts do not have a Balance set';
 
   RULE_ERRORS: array[TValidationRule] of string = (
     ERR_FOREIGN_TRANSACTIONS_MUST_EXIST,
@@ -62,6 +166,23 @@ const
     ERR_CURRENCIES_MUST_BE_SETUP,
     ERR_ACCOUNTS_MUST_HAVE_OPENING_BALANCE
   );
+
+
+const
+  { ----------------------------------------------------------------------------
+    Month Ending error messages
+  ---------------------------------------------------------------------------- }
+  ERR_FINALISED_OR_TRANSFERRED =
+    'Please select a Month Ending to calculate the Exchange Gains and/or Losses that is not finalised or transferred.';
+
+  ERR_NO_TRANSACTIONS =
+    'Please retrieve all available data before calculating the Exchange Gains and/or Losses for this Month Ending.';
+
+  ERR_MISSING_EXCHANGE_RATE =
+    'Please select a Month Ending to calculate the Exchange Gains and/or Losses that has a complete list of exchange rates available.';
+
+  ERR_MISSING_EXCHANGE_RATE_PREVIOUS_MONTH =
+    'Please select a Month Ending to calculate the Exchange Gains and/or Losses that has all exchange rates available for the last day of the previous month.';
 
 
 {-------------------------------------------------------------------------------
@@ -98,6 +219,7 @@ end;
 destructor TValidateExchangeGainLoss.Destroy;
 begin
   FreeAndNil(fErrors);
+  // Do not free fClient
 end;
 
 {------------------------------------------------------------------------------}
@@ -125,6 +247,16 @@ var
   i: integer;
   BankAccount: TBank_Account;
 begin
+{$IFDEF DEBUG_CURRENCY}
+  AddError('There are no foreign currency transactions available to run the wizard for');
+  AddError('There are no foreign currency transactions available to run the wizard for');
+  AddError('There are no foreign currency transactions available to run the wizard for');
+  AddError('There are no foreign currency transactions available to run the wizard for');
+  aErrors := fErrors.Text;
+  result := false;
+  exit;
+{$ENDIF}
+
   // Init error messages
   for iRule := Low(TValidationRule) to High(TValidationRule) do
   begin
@@ -182,6 +314,337 @@ begin
   // Determine the end result
   aErrors := fErrors.Text;
   result := (fErrors.Count = 0);
+end;
+
+
+{ ------------------------------------------------------------------------------
+  TMonthEnding record helpers (calculated fields)
+------------------------------------------------------------------------------ }
+function TMonthEnding.GetYear: integer;
+begin
+  result := YearOf(Date);
+end;
+
+{------------------------------------------------------------------------------}
+function TMonthEnding.GetMonth: integer;
+begin
+  result := MonthOf(Date);
+end;
+
+{------------------------------------------------------------------------------}
+function TMonthEnding.GetFinalised: boolean;
+begin
+  // All transactions need to be locked
+  result := (NrTransactions = NrLocked);
+end;
+
+{------------------------------------------------------------------------------}
+function TMonthEnding.GetTransferred: boolean;
+begin
+  // ALL transactions need to be transferred
+  result := (NrTransactions = NrTransferred);
+end;
+
+
+{ ------------------------------------------------------------------------------
+  TMonthEndings
+------------------------------------------------------------------------------ }
+constructor TMonthEndings.Create(const aClient: TClientObj);
+begin
+  ASSERT(assigned(aClient));
+
+  fClient := aClient;
+
+  // Cache the exchange rates
+  fExchangeSource := CreateExchangeSource;
+  ASSERT(Assigned(fExchangeSource));
+end;
+
+{------------------------------------------------------------------------------}
+destructor TMonthEndings.Destroy;
+begin
+  FreeAndNil(fExchangeSource);
+  // Do not free fClient
+end;
+
+{------------------------------------------------------------------------------}
+function TMonthEndings.GetFirstLastPresented(var aFirstPresented: TDateTime;
+  var aLastPresented: TDateTime): boolean;
+var
+  stFirstPresented: TStDate;
+  stLastPresented: TStDate;
+  i: integer;
+  BankAccount: TBank_Account;
+begin
+  stFirstPresented := MaxDate;
+  stLastPresented := MinDate;
+
+  // Determine the month range for all non-base accounts
+  for i := 0 to fClient.clBank_Account_List.ItemCount-1 do
+  begin
+    // Not foreign account?
+    BankAccount := fClient.clBank_Account_List.Bank_Account_At(i);
+    if not IsGainLossAccount(BankAccount) then
+      continue;
+
+    // Update the ranges
+    stFirstPresented := Min(stFirstPresented, BankAccount.baTransaction_List.FirstPresDate);
+    stLastPresented := Max(stLastPresented, BankAccount.baTransaction_List.LastPresDate);
+  end;
+
+  // Valid range?
+  result := (stFirstPresented <> MinDate) and (stFirstPresented <> MaxDate) and
+            (stLastPresented <> MinDate) and (stLastPresented <> MaxDate);
+
+  // No range?
+  if not result then
+    exit;
+
+  // Convert to TDateTime
+  aFirstPresented := StDateToDateTime(stFirstPresented);
+  aLastPresented := StDateToDateTime(stLastPresented);
+end;
+
+{------------------------------------------------------------------------------}
+procedure TMonthEndings.CreateMonthRange(const aFirstPresented: TDateTime;
+  const aLastPresented: TDateTime);
+var
+  iFirstYear: integer;
+  iFirstMonth: integer;
+  iLastYear: integer;
+  iLastMonth: integer;
+  iCount: integer;
+begin
+  iFirstYear := YearOf(aFirstPresented);
+  iFirstMonth := MonthOf(aFirstPresented);
+
+  iLastYear := YearOf(aLastPresented);
+  iLastMonth := MonthOf(aLastPresented);
+
+  while true do
+  begin
+    // Create new entry
+    iCount := Length(fMonthEndings);
+    SetLength(fMonthEndings, iCount+1);
+    with fMonthEndings[iCount] do
+    begin
+      Date := EncodeDate(iFirstYear, iFirstMonth, 1);
+    end;
+
+    // Do this before increasing the month component
+    if (iFirstYear = iLastYear) and (iFirstMonth = iLastMonth) then
+      break;
+
+    // Do this last
+    // Note: months go from 1..12
+    Inc(iFirstMonth);
+    if (iFirstMonth > 12) then
+    begin
+      Inc(iFirstYear);
+      iFirstMonth := 1;
+    end;
+  end;
+end;
+
+{------------------------------------------------------------------------------}
+function TMonthEndings.FindMonthEnding(const aDate: TStDate): PMonthEnding;
+var
+  dtDate: TDateTime;
+  iYear: integer;
+  iMonth: integer;
+  i: integer;
+begin
+  dtDate := StDateToDateTime(aDate);
+  iYear := YearOf(dtDate);
+  iMonth := MonthOf(dtDate);
+
+  for i := 0 to High(fMonthEndings) do
+  begin
+    with fMonthEndings[i] do
+    begin
+      if (Year = iYear) and (Month = iMonth) then
+      begin
+        result := @fMonthEndings[i];
+        exit;
+      end;
+    end;
+  end;
+
+  result := nil;
+end;
+
+{------------------------------------------------------------------------------}
+procedure TMonthEndings.SetMonthEnding(const aTransactions: tTransaction_List);
+var
+  i: integer;
+  Transaction: pTransaction_Rec;
+  pMonth: PMonthEnding;
+  Rate: TExchangeRecord;
+begin
+  for i := 0 to aTransactions.ItemCount-1 do
+  begin
+    Transaction := aTransactions.Transaction_At(i);
+
+    // Not within given month?
+    pMonth := FindMonthEnding(Transaction.txDate_Presented);
+    ASSERT(assigned(pMonth));
+
+    // Transactions
+    Inc(pMonth.NrTransactions);
+
+    // Locked
+    if Transaction.txLocked then
+      Inc(pMonth.NrLocked);
+
+    // Transferred
+    if (Transaction.txDate_Transferred <> 0) then
+      Inc(pMonth.NrTransferred);
+
+    // Exchange rate missing?
+    Rate := fExchangeSource.GetDateRates(Transaction.txDate_Presented);
+    if not Assigned(Rate) then
+      pMonth.ExchangeRateMissing := true;
+  end;
+end;
+
+{------------------------------------------------------------------------------}
+procedure TMonthEndings.SetMonthEnding;
+var
+  i: integer;
+  BankAccount: TBank_Account;
+begin
+  for i := 0 to fClient.clBank_Account_List.ItemCount-1 do
+  begin
+    // Not Gain/Loss?
+    BankAccount := fClient.clBank_Account_List.Bank_Account_At(i);
+    if not IsGainLossAccount(BankAccount) then
+      continue;
+
+    // Split the transactions up according to what month they're in
+    SetMonthEnding(BankAccount.baTransaction_List);
+  end;
+end;
+
+{------------------------------------------------------------------------------}
+procedure TMonthEndings.DeleteFirstMonth;
+var
+  i: integer;
+  iCount: integer;
+begin
+  // Move months back one
+  for i := 1 to High(fMonthEndings) do
+  begin
+    fMonthEndings[i-1] := fMonthEndings[i];
+  end;
+
+  // Reduce overall size
+  iCount := Length(fMonthEndings);
+  SetLength(fMonthEndings, iCount-1);
+end;
+
+{------------------------------------------------------------------------------}
+procedure TMonthEndings.CulFirstMonths;
+begin
+  while (Length(fMonthEndings) <> 0) do
+  begin
+    with fMonthEndings[0] do
+    begin
+      // Can we safely get rid of this month?
+      if Finalised or Transferred then
+        DeleteFirstMonth
+      else
+        break;
+    end;
+  end;
+end;
+
+{------------------------------------------------------------------------------}
+procedure TMonthEndings.VerifyExchangeRatePreviousMonth;
+var
+  i: integer;
+  dtDate: TDateTime;
+  stDate: TStDate;
+  Rate: TExchangeRecord;
+begin
+  for i := 0 to Count-1 do
+  begin
+    // Date is already in the format of (1 Month Year")
+    dtDate := IncDay(fMonthEndings[i].Date, -1);
+    stDate := DateTimeToStDate(dtDate);
+
+    // Check we have an exchange rate in the last day of the previous month
+    Rate := fExchangeSource.GetDateRates(stDate);
+    if not Assigned(Rate) then
+      fMonthEndings[i].ExchangeRateMissingPreviousMonth := true;
+  end;
+end;
+
+{------------------------------------------------------------------------------}
+procedure TMonthEndings.ObtainMonthEndings;
+var
+  dtFirstPresented: TDateTime;
+  dtLastPresented: TDateTime;
+begin
+  // Clear array of previous data
+  SetLength(fMonthEndings, 0);
+
+  // Nothing?
+  if not GetFirstLastPresented(dtFirstPresented, dtLastPresented) then
+    exit;
+
+  // Create month range based on the first/last presented dates
+  CreateMonthRange(dtFirstPresented, dtLastPresented);
+
+  // Update the month status (Locked, Transferred, Already Run)
+  SetMonthEnding;
+
+  // Remove the first months that have already been run
+  CulFirstMonths;
+
+  // Verify if there's an exchange rate on the last day of the previous month
+  VerifyExchangeRatePreviousMonth;
+end;
+
+{------------------------------------------------------------------------------}
+function TMonthEndings.GetCount: integer;
+begin
+  result := Length(fMonthEndings);
+end;
+
+{------------------------------------------------------------------------------}
+function TMonthEndings.GetItem(const aIndex: integer): TMonthEnding;
+begin
+  result := fMonthEndings[aIndex];
+end;
+
+{------------------------------------------------------------------------------}
+procedure TMonthEndings.AddError(const aError: string; var aErrors: string);
+begin
+  if (aErrors <> '') then
+    aErrors := aErrors + sLineBreak + sLineBreak;
+  aErrors := aErrors + aError;
+end;
+
+{------------------------------------------------------------------------------}
+function TMonthEndings.ValidateMonthEnding(const aMonthIndex: integer;
+  var aErrors: string): boolean;
+begin
+  aErrors := '';
+
+  // Validation
+  with fMonthEndings[aMonthIndex] do
+  begin
+    if Finalised or Transferred then
+      AddError(ERR_FINALISED_OR_TRANSFERRED, aErrors)
+    else if (NrTransactions = 0) then
+      AddError(ERR_NO_TRANSACTIONS, aErrors)
+    else if ExchangeRateMissing then
+      AddError(ERR_MISSING_EXCHANGE_RATE, aErrors)
+    else if ExchangeRateMissingPreviousMonth then
+      AddError(ERR_MISSING_EXCHANGE_RATE_PREVIOUS_MONTH, aErrors);
+  end;
+
+  result := (aErrors = '');
 end;
 
 

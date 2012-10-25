@@ -9,7 +9,9 @@ uses
   MCDefs,
   MoneyDef,
   clObj32,
-  baObj32;
+  baObj32,
+  ExchangeRateList;
+  
 // ----------------------------------------------------------------------------
 
 type
@@ -63,6 +65,9 @@ type
   function  CurrencyExists(aExchange: pExchange_Rates_Header_Rec;
               const aCurrency: string): boolean; overload;
   function  CurrencyExists(const aCurrency: string): boolean; overload;
+
+  // Exchange Rates
+  function  CreateExchangeSource: TExchangeSource; // Caller must Free
 
 
 implementation
@@ -380,7 +385,7 @@ var
   i: integer;
 begin
   ASSERT(assigned(aExchange));
-  
+
   for i := Low(aExchange.ehISO_Codes) to High(aExchange.ehISO_Codes) do
   begin
     if SameText(aExchange.ehISO_Codes[i], aCurrency) then
@@ -417,6 +422,40 @@ begin
   end;
 
   result := false;
+end;
+
+
+{-------------------------------------------------------------------------------
+  Exchange Rates
+-------------------------------------------------------------------------------}
+function CreateExchangeSource: TExchangeSource;
+var
+  ExchangeRates: TExchangeRateList;
+begin
+  result := nil;
+  
+  // Cache the exchange rates
+  if Assigned(AdminSystem) then
+  begin
+    ExchangeRates := GetExchangeRates;
+    try
+      result := ExchangeRates.GiveMeSource('Master');
+      AdminSystem.SyncCurrenciesToSystemAccounts;
+      result.MapToHeader(AdminSystem.fCurrencyList);
+    finally
+      FreeAndNil(ExchangeRates);
+    end;
+  end
+  else if Assigned(MyClient) then
+  begin
+    if Assigned(MyClient.ExchangeSource) then
+    begin
+      result := TExchangeSource.Create;
+      result.Assign(MyClient.ExchangeSource);
+    end;
+  end;
+
+  ASSERT(Assigned(result));
 end;
 
 
