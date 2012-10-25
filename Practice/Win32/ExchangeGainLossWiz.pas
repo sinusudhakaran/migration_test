@@ -74,7 +74,6 @@ type
     procedure cmbMonthDrawItem(Control: TWinControl; Index: Integer;
       Rect: TRect; State: TOwnerDrawState);
     procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
-    procedure FormShow(Sender: TObject);
   private
     { Private declarations }
     fClient: TClientObj;
@@ -198,10 +197,6 @@ begin
       ValidateExchangeGainLoss(fClient, ErrorMsg);
       HasWarnings := (ErrorMsg <> '');
 
-{$IFDEF DEBUG_CURRENCY}
-      HasWarnings := false;
-{$ENDIF}
-
       // Display warnings (if there are any)
       pnlWarnings.Visible := HasWarnings;
       memWarnings.Text := ErrorMsg;
@@ -292,16 +287,6 @@ begin
   }
   iNewItemHeight := 6 + cmbMonth.Canvas.TextHeight('Wg');
   cmbMonth.ItemHeight := Max(cmbMonth.ItemHeight, iNewItemHeight);
-end;
-
-{------------------------------------------------------------------------------}
-procedure TwizExchangeGainLoss.FormShow(Sender: TObject);
-begin
-  // Set focus for first button
-  if btnNext.Enabled and btnNext.CanFocus then
-    btnNext.SetFocus
-  else if btnCancel.Enabled and btnCancel.CanFocus then
-    btnCancel.SetFocus;
 end;
 
 {------------------------------------------------------------------------------}
@@ -502,10 +487,21 @@ begin
     btnNext.ModalResult := mrNone;
   end;
 
-  //now do after move events for specific steps
+  // Initial focus per page
   case fCurrentStepID of
     stMonth:
+      // If months available
+      if cmbMonth.CanFocus then
+        cmbMonth.SetFocus
+      else if btnCancel.CanFocus then
+        btnCancel.SetFocus; // So we can handle the enter key
+    else
     begin
+      // Set focus for first button
+      if btnNext.CanFocus then
+        btnNext.SetFocus
+      else if btnCancel.CanFocus then
+        btnCancel.SetFocus;
     end;
   end;
 end;
@@ -579,14 +575,30 @@ end;
 {------------------------------------------------------------------------------}
 procedure TwizExchangeGainLoss.FormCloseQuery(Sender: TObject;
   var CanClose: Boolean);
+var
+  iResult: integer;
 begin
-  if (ModalResult <> mrOK) and (fCurrentStepID <> stWelcome) then begin
-    if AskYesNo('Exit ' + Self.Caption,
-                'Are you sure that you want to exit the Exchange Gain/Loss wizard? '#13 +
-                'Any information you have entered will be lost.',
-                Dlg_No, 0) = DLG_No then
-      CanClose := false;
+  // Next/Finish button?
+  if (ModalResult = mrOK) then
+    exit;
+
+  // Specific overrides where there is no "are you sure?" question
+  case fCurrentStepID of
+    stWelcome:
+      exit;
+    stMonth:
+      if not cmbMonth.Enabled then
+        exit;
   end;
+
+  // Not sure?
+  iResult := AskYesNo(
+    'Exit ' + Self.Caption,
+    'Are you sure that you want to exit the Exchange Gain/Loss wizard? '#13 +
+    'Any information you have entered will be lost.',
+    Dlg_No, 0);
+  if (iResult = DLG_No) then
+    CanClose := false;
 end;
 
 {------------------------------------------------------------------------------}

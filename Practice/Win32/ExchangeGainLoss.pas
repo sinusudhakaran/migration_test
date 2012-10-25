@@ -249,16 +249,6 @@ var
   i: integer;
   BankAccount: TBank_Account;
 begin
-{$IFDEF DEBUG_CURRENCY}
-  AddError('There are no foreign currency transactions available to run the wizard for');
-  AddError('There are no foreign currency transactions available to run the wizard for');
-  AddError('There are no foreign currency transactions available to run the wizard for');
-  AddError('There are no foreign currency transactions available to run the wizard for');
-  aErrors := fErrors.Text;
-  result := false;
-  exit;
-{$ENDIF}
-
   // Init error messages
   for iRule := Low(TValidationRule) to High(TValidationRule) do
   begin
