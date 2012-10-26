@@ -587,8 +587,7 @@ begin
     stWelcome:
       exit;
     stMonth:
-      if not cmbMonth.Enabled then
-        exit;
+      exit;
   end;
 
   // Not sure?
