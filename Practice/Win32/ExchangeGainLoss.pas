@@ -289,7 +289,7 @@ begin
       Errors[ruleOpeningBalanceMustBeSet] := true;
   end;
 
-  // Determine the error message
+  // Determine the combined error message
   for iRule := Low(TValidationRule) to High(TValidationRule) do
   begin
     // Not an error?
@@ -327,14 +327,14 @@ end;
 function TMonthEnding.GetFinalised: boolean;
 begin
   // All transactions need to be locked
-  result := (NrTransactions = NrLocked);
+  result := (NrTransactions <> 0) and (NrTransactions = NrLocked);
 end;
 
 {------------------------------------------------------------------------------}
 function TMonthEnding.GetTransferred: boolean;
 begin
   // ALL transactions need to be transferred
-  result := (NrTransactions = NrTransferred);
+  result := (NrTransactions <> 0) and (NrTransactions = NrTransferred);
 end;
 
 
