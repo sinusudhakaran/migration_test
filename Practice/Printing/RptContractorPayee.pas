@@ -312,6 +312,7 @@ procedure DetailedTaxablePaymentsDetail(Sender : TObject);
     TransGSTAmount: Money;
     Reference: String;
     ChartAccount: pAccount_Rec;
+    ABNAmount: Money;
   begin
     ABNAccountCode := FindABNAccountCode;
     
@@ -340,10 +341,12 @@ procedure DetailedTaxablePaymentsDetail(Sender : TObject);
                 SkipColumn;
 
                 TransGSTAmount := GetGSTTotalForDissection(Transaction);
-                 
-                PutMoney(SumABN(Transaction, ABNAccountCode));
+
+                ABNAmount := SumABN(Transaction, ABNAccountCode);
+
+                PutMoney(ABNAmount);
                 PutMoney(GetGSTTotalForDissection(Transaction));
-                PutMoney(Transaction.Local_Amount);
+                PutMoney(Transaction.Local_Amount + (ABNAmount * -1));
 
                 RenderDetailLine;
               end;
@@ -354,7 +357,15 @@ procedure DetailedTaxablePaymentsDetail(Sender : TObject);
               begin
                 if IncludeAllDissectionlines or (Dissection.dsPayee_Number = Payee.pdNumber) then
                 begin
-                  PutString(bkDate2Str(Transaction.txDate_Effective));
+                  if IncludeAllDissectionLines then
+                  begin
+                    SkipColumn;
+                  end
+                  else
+                  begin
+                    PutString(bkDate2Str(Transaction.txDate_Effective));
+                  end;
+
                   PutString(Dissection.dsAccount);
 
                   PutNarration(Dissection.dsGL_Narration);
