@@ -228,7 +228,8 @@ begin
                                    'Select the Sort Order in which the transactions will be reported';
    cmbInclude.Hint                 :=
                                    'Select which transactions to include|' +
-                                   'Include all or uncoded or invalidly coded transactions or transactions with invalid GST Rate';
+                                   'Include all or uncoded or invalidly coded transactions or transactions with invalid ' +
+                                   MyClient.TaxSystemNameUC + ' Rate';
    cmbLeave.Hint                   :=
                                    'Leave this number of blank line(s) between printed lines|' +
                                    'Leave lines to provide room for writing coding information';
