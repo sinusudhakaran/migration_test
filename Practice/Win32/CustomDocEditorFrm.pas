@@ -537,6 +537,8 @@ var
   MsgStr: string;
   tmpFilename: string;
   dummy: Integer;
+  FileExt: String;
+  FileInc: Integer;
 
   function GetUserName : string;
   begin
@@ -579,6 +581,26 @@ begin
                  end;
       rdPrinter,
       rdSetup:  begin
+                  if Destination = rdPrinter then
+                  begin
+                    tmpFileName := LocalReport.RunFilename;
+                         
+                    FileExt := ExtractFileExt(tmpFileName);
+
+                    FileInc := 1;
+                    
+                    while FileExists(tmpFileName) do
+                    begin
+                      tmpFileName := Format('%s(%s)%s',[Copy(LocalReport.RunFilename, 0, Pos(FileExt, LocalReport.RunFilename) -1), IntToStr(FileInc), FileExt]);
+
+                      Inc(FileInc);
+                    end;
+
+                    LocalReport.RunFileName := tmpFileName;
+                    
+                    CreatePDF(TReportBase(LocalReport).GetRTF, LocalReport.RunFileName);
+                  end;
+
                   //may need to keep the file
                   AReport.RunFileName := LocalReport.RunFileName;
                   AReport.RunBtn := Btn_Print;
