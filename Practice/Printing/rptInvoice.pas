@@ -200,6 +200,7 @@ var
 
   NzFooter : string;
   AuFooter : string;
+  UKFooter : string;
   lParams: TRptParameters;
 begin
   result := false;
@@ -241,8 +242,10 @@ begin
       Job.bkHtmlVersion := 1;
       Job.bkHtmlSubVersion := 1;  //1.1
 
-      NzFooter := 'BankLink New Zealand   PO Box 56-354 Dominion Rd Auckland NZ.  Freephone 0800 226 554  Ph 09 377 7790 Fax 09 377 8744  www.banklink.co.nz';
-      AuFooter := 'BankLink Australia      GPO Box 4608 Sydney NSW 2001 Australia.  Freephone 1800 123 242  Freefax 1800 123 807  www.banklink.com.au';
+      NzFooter := 'BankLink New Zealand PO Box 56-354 Dominion Rd Auckland NZ. Freephone 0800 226 554 Fax 09 630 2759 www.banklink.co.nz';
+      AuFooter := 'BankLink Australia GPO Box 4608 Sydney NSW 2001 Australia. Freephone 1800 123 242 Freefax 1800 123 807 www.banklink.com.au';
+      UKFooter := 'BankLink United Kingdom 9 Devonshire Square, London EC2M 4YF. Freephone 0800 500 3084 www.banklink.co.uk';
+
 
       i := 0;
       EndOfHeaderFound := false;
@@ -264,6 +267,13 @@ begin
            //extract text between <!-- AU_Addr=Address goes here -->
            //                     12345678901234
            AUFooter := Copy( s, 14, length(s)-16);
+        end;
+
+        if Pos('<!-- UK_Addr=', s) > 0 then
+        begin
+           //extract text between <!-- UK_Addr=Address goes here -->
+           //                     12345678901234
+           UKFooter := Copy( s, 14, length(s)-16);
         end;
 
         EndOfHeaderFound := (pos( '</head>', s) > 0);
@@ -288,6 +298,7 @@ begin
       //add billing footer
       AddJobFooter( Job, jtCenter, 0.8,  AuFooter, true);
       AddJobFooter( Job, jtCenter, 0.8,  NzFooter, true);
+      AddJobFooter( Job, jtCenter, 0.8,  UKFooter, true);
       //AddJobFooter(Job,jtCenter,0.8,'PAGE  <PAGE>',false);  Already has page numbers
 
       Job.ReportDetail := ReportLines;

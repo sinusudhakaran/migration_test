@@ -2272,6 +2272,7 @@ begin
                    HelpfulErrorMsg('Could not update master memorisation at this time. Admin System unavailable.', 0);
                  //---END COPY MASTER MEM---
                end else begin
+                  UnlockAdmin;
                   Memorised_Trans := TMemorisation.Create(BA.AuditMgr);
                   SaveToMemRec(Memorised_Trans, nil, chkMaster.Checked);
                   Memorised_Trans.mdFields.mdType := pm.mdFields.mdType;

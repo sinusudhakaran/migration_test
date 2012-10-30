@@ -425,6 +425,14 @@ const
 var
    Msg : String;
    NewAdminObj : TSystemObj;
+
+   function CheckHoldLock(LocalHoldLock: boolean): boolean;
+   begin
+     if LocalHoldLock then
+       Result := False
+     else
+       Result := True;
+   end;
 Begin
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
    Result := false;
@@ -487,8 +495,8 @@ Begin
          end;
        end;
      finally
-       If not HoldLock then
-         UnlockAdmin;
+        if CheckHoldLock(HoldLock) then
+          UnlockAdmin;
      end;
    end;
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
