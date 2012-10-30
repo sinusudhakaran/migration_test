@@ -295,7 +295,12 @@ begin
         begin
           if SectionItem.Text = ''
             then FReport.RenderDetailSectionTotal('Total ' + SectionItem.Text, FDefaultSign)
-            else FReport.RenderDetailSectionTotal(GetPRHeading(FClient, phdTotal_COGS), FDefaultSign);
+            else
+            begin
+              if SectionItem.Text = phdNames[phdOther_Direct_Expenses]
+                then FReport.RenderDetailSectionTotal(GetPRHeading(FClient, phdTotal_Other_Direct_Expenses), FDefaultSign)
+                else FReport.RenderDetailSectionTotal(GetPRHeading(FClient, phdTotal_COGS), FDefaultSign)
+            end;
         end;
       end;
     end;
