@@ -557,6 +557,10 @@ begin
   if not Assigned(AReport) then
     Exit;
 
+
+  //Make sure that we have the latest version of the custom doc's
+  Refresh;
+
   // Set the last run details..
   AReport.LastRun := Now;
   AReport.User := GetUserName;
