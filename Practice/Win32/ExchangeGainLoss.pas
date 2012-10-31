@@ -10,14 +10,17 @@ uses
   Math,
   clObj32,
   baObj32,
-  BKDefs,
+  BKDEFS,
+  SYDEFS,
   trxList32,
   stDate,
+  bkDateUtils,
   ForexHelpers,
   MoneyDef,
   PeriodUtils,
   ExchangeRateList,
   imagesfrm,
+  bkConst,
   Globals;
 
 type
@@ -60,6 +63,7 @@ type
     NrTransactions: integer;
     NrLocked: integer;
     NrTransferred: integer;
+    AvailableData: boolean;
     AlreadyRun: boolean; // Gain/Loss in transactions
 
     // Exchange Rates
@@ -91,12 +95,17 @@ type
     fExchangeSource: TExchangeSource;
 
     // Helpers
+    procedure SplitYearMonth(const aDate: TDateTime; var aYear: integer; var aMonth: integer); overload;
+    procedure SplitYearMonth(const aDate: TStDate; var aYear: integer; var aMonth: integer); overload;
+    procedure IncreaseYearMonth(var aYear: integer; var aMonth: integer);
     function  GetFirstLastEffective(var aFirstEffective: TDateTime;
                 var aLastEffective: TDateTime): boolean;
     procedure CreateMonthRange(const aFirstEffective: TDateTime;
                 const aLastEffective: TDateTime);
-    function  FindMonthEnding(const aDate: TStDate): PMonthEnding;
+    function  FindMonthEnding(const aDate: TStDate; var aIndex: integer): boolean; overload;
+    function  FindMonthEnding(const aDate: TStDate): PMonthEnding; overload;
     procedure SetMonthEnding(const aTransactions: tTransaction_List); overload;
+    procedure SetAvailableData(const aFrom: TStDate; const aTo: TStDate);
     procedure SetMonthEnding; overload;
     procedure DeleteFirstMonth;
     procedure CulFirstMonths;
@@ -177,7 +186,7 @@ const
   ERR_FINALISED_OR_TRANSFERRED =
     'Please select a Month Ending to calculate the Exchange Gains and/or Losses that is not finalised or transferred.';
 
-  ERR_NO_TRANSACTIONS =
+  ERR_AVAILABLE_DATA =
     'Please retrieve all available data before calculating the Exchange Gains and/or Losses for this Month Ending.';
 
   ERR_MISSING_EXCHANGE_RATE =
@@ -360,6 +369,35 @@ begin
 end;
 
 {------------------------------------------------------------------------------}
+procedure TMonthEndings.SplitYearMonth(const aDate: TDateTime; var aYear: integer;
+  var aMonth: integer);
+begin
+  aYear := YearOf(aDate);
+  aMonth := MonthOf(aDate);
+end;
+
+{------------------------------------------------------------------------------}
+procedure TMonthEndings.SplitYearMonth(const aDate: TStDate; var aYear: integer;
+  var aMonth: integer);
+var
+  dtDate: TDateTime;
+begin
+  dtDate := StDateToDateTime(aDate);
+  SplitYearMonth(dtDate, aYear, aMonth);
+end;
+
+{------------------------------------------------------------------------------}
+procedure TMonthEndings.IncreaseYearMonth(var aYear: integer; var aMonth: integer);
+begin
+  Inc(aMonth);
+  if (aMonth > 12) then
+  begin
+    Inc(aYear);
+    aMonth := 1;
+  end;
+end;
+
+{------------------------------------------------------------------------------}
 function TMonthEndings.GetFirstLastEffective(var aFirstEffective: TDateTime;
   var aLastEffective: TDateTime): boolean;
 var
@@ -379,8 +417,20 @@ begin
     if not IsGainLossAccount(BankAccount) then
       continue;
 
-    // Update the ranges
+    { No transactions?
+      Note: if there are no transactions, then FirstEffectiveDate and
+      LastEffectiveDate will be 0. Min will therefore wipe the previous
+      EffectiveDate, so we must check for this here.
+    }
+    if (BankAccount.baTransaction_List.ItemCount = 0) then
+      continue;
+
+    // Find lowest First Effective
+    ASSERT(BankAccount.baTransaction_List.FirstEffectiveDate <> 0);
     stFirstEffective := Min(stFirstEffective, BankAccount.baTransaction_List.FirstEffectiveDate);
+
+    // Find highest Last Effective
+    ASSERT(BankAccount.baTransaction_List.LastEffectiveDate <> 0);
     stLastEffective := Max(stLastEffective, BankAccount.baTransaction_List.LastEffectiveDate);
   end;
 
@@ -407,11 +457,8 @@ var
   iLastMonth: integer;
   iCount: integer;
 begin
-  iFirstYear := YearOf(aFirstEffective);
-  iFirstMonth := MonthOf(aFirstEffective);
-
-  iLastYear := YearOf(aLastEffective);
-  iLastMonth := MonthOf(aLastEffective);
+  SplitYearMonth(aFirstEffective, iFirstYear, iFirstMonth);
+  SplitYearMonth(aLastEffective, iLastYear, iLastMonth);
 
   while true do
   begin
@@ -428,18 +475,12 @@ begin
       break;
 
     // Do this last
-    // Note: months go from 1..12
-    Inc(iFirstMonth);
-    if (iFirstMonth > 12) then
-    begin
-      Inc(iFirstYear);
-      iFirstMonth := 1;
-    end;
+    IncreaseYearMonth(iFirstYear, iFirstMonth);
   end;
 end;
 
 {------------------------------------------------------------------------------}
-function TMonthEndings.FindMonthEnding(const aDate: TStDate): PMonthEnding;
+function TMonthEndings.FindMonthEnding(const aDate: TStDate; var aIndex: integer): boolean;
 var
   dtDate: TDateTime;
   iYear: integer;
@@ -458,13 +499,25 @@ begin
     begin
       if (Year = iYear) and (Month = iMonth) then
       begin
-        result := @fMonthEndings[i];
+        aIndex := i;
+        result := true;
         exit;
       end;
     end;
   end;
 
-  result := nil;
+  result := false;
+end;
+
+{------------------------------------------------------------------------------}
+function TMonthEndings.FindMonthEnding(const aDate: TStDate): PMonthEnding;
+var
+  iIndex: integer;
+begin
+  if FindMonthEnding(aDate, iIndex) then
+    result := @fMonthEndings[iIndex]
+  else
+    result := nil;
 end;
 
 {------------------------------------------------------------------------------}
@@ -502,10 +555,41 @@ begin
 end;
 
 {------------------------------------------------------------------------------}
+procedure TMonthEndings.SetAvailableData(const aFrom: TStDate; const aTo: TStDate);
+var
+  iFromYear: integer;
+  iFromMonth: integer;
+  iToYear: integer;
+  iToMonth: integer;
+  dtDate: TStDate;
+  pMonth: PMonthEnding;
+begin
+  SplitYearMonth(aFrom, iFromYear, iFromMonth);
+  SplitYearMonth(aTo, iToYear, iToMonth);
+
+  while true do
+  begin
+    // Do we have this year/month combo?
+    dtDate := DMYtoStDate(1, iFromMonth, iFromYear, BKDATEEPOCH);
+    pMonth := FindMonthEnding(dtDate);
+    if Assigned(pMonth) then
+      pMonth.AvailableData := true;
+
+    // Do this before increasing the month component
+    if (iFromYear = iToYear) and (iFromMonth = iToMonth) then
+      break;
+
+    // Do this last
+    IncreaseYearMonth(iFromYear, iFromMonth);
+  end;
+end;
+
+{------------------------------------------------------------------------------}
 procedure TMonthEndings.SetMonthEnding;
 var
   i: integer;
   BankAccount: TBank_Account;
+  pSystemBankAccount: pSystem_Bank_Account_Rec;
 begin
   for i := 0 to fClient.clBank_Account_List.ItemCount-1 do
   begin
@@ -516,6 +600,27 @@ begin
 
     // Split the transactions up according to what month they're in
     SetMonthEnding(BankAccount.baTransaction_List);
+
+    // No system bank account available?
+    if not Assigned(AdminSystem) then
+      continue;
+    if (BankAccount.baFields.baAccount_Type = sbtOnlineSecure) then
+      continue;
+    if BankAccount.IsManual then
+      continue;
+
+    // No match?
+    pSystemBankAccount := AdminSystem.fdSystem_Bank_Account_List.FindCode(BankAccount.baFields.baBank_Account_Number);
+    if not Assigned(pSystemBankAccount) then
+      continue;
+
+    // No new transactions?
+    if (pSystemBankAccount.sbLast_Transaction_LRN <= BankAccount.baFields.baHighest_LRN) then
+      continue;
+
+    // Mark the relevant month as "Data Available"
+    SetAvailableData(pSystemBankAccount.sbFrom_Date_This_Month,
+      pSystemBankAccount.sbTo_Date_This_Month);
   end;
 end;
 
@@ -543,8 +648,12 @@ begin
   begin
     with fMonthEndings[0] do
     begin
-      // Can we safely get rid of this month?
-      if Finalised or Transferred then
+      { Can we safely get rid of this month?
+        Note: we must also check for empty months, because of situations like
+        FFENN (F=Finalised, E=Empty, N=Normal) which should result in NN, and
+        not in ENN.
+      }
+      if (NrTransactions = 0) or Finalised or Transferred then
         DeleteFirstMonth
       else
         break;
@@ -629,12 +738,12 @@ begin
   with fMonthEndings[aMonthIndex] do
   begin
     if Finalised or Transferred then
-      AddError(ERR_FINALISED_OR_TRANSFERRED, aErrors)
-    else if (NrTransactions = 0) then
-      AddError(ERR_NO_TRANSACTIONS, aErrors)
-    else if ExchangeRateMissing then
-      AddError(ERR_MISSING_EXCHANGE_RATE, aErrors)
-    else if ExchangeRateMissingPreviousMonth then
+      AddError(ERR_FINALISED_OR_TRANSFERRED, aErrors);
+    if AvailableData then
+      AddError(ERR_AVAILABLE_DATA, aErrors);
+    if ExchangeRateMissing then
+      AddError(ERR_MISSING_EXCHANGE_RATE, aErrors);
+    if ExchangeRateMissingPreviousMonth then
       AddError(ERR_MISSING_EXCHANGE_RATE_PREVIOUS_MONTH, aErrors);
   end;
 
