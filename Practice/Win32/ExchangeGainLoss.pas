@@ -734,16 +734,16 @@ function TMonthEndings.ValidateMonthEnding(const aMonthIndex: integer;
 begin
   aErrors := '';
 
-  // Validation
+  // Validation - one error message at the time
   with fMonthEndings[aMonthIndex] do
   begin
     if Finalised or Transferred then
-      AddError(ERR_FINALISED_OR_TRANSFERRED, aErrors);
-    if AvailableData then
-      AddError(ERR_AVAILABLE_DATA, aErrors);
-    if ExchangeRateMissing then
-      AddError(ERR_MISSING_EXCHANGE_RATE, aErrors);
-    if ExchangeRateMissingPreviousMonth then
+      AddError(ERR_FINALISED_OR_TRANSFERRED, aErrors)
+    else if AvailableData then
+      AddError(ERR_AVAILABLE_DATA, aErrors)
+    else if ExchangeRateMissing then
+      AddError(ERR_MISSING_EXCHANGE_RATE, aErrors)
+    else if ExchangeRateMissingPreviousMonth then
       AddError(ERR_MISSING_EXCHANGE_RATE_PREVIOUS_MONTH, aErrors);
   end;
 
