@@ -299,9 +299,11 @@ begin
              ParseRecipients( CCAddresses, CarbonCopy);
 
            Subject := aSubject;
-           Email   := Editor.ERTF; 
-           //Add additional lines with version info and practice/client details
-           if FShowPracDetails then begin
+           Email   := Editor.ERTF;
+           //Add additional lines with version info and practice/client details. If we can find the version
+           //string in the email text then this means we're attempting to resend a message which failed
+           //earlier, which means we don't need to add a signature because it will already have it
+           if FShowPracDetails and (AnsiPos(WinUtils.GetAppVersionStr, MailObj.Email.Text) = 0) then begin
                 AddLine(' ');
                 AddLine(' ');
                 AddLine(APPTITLE + ' ' + WinUtils.GetAppVersionStr);
@@ -1328,6 +1330,7 @@ begin
           try
             A.Text := Email_Attachments;
             lvAttach.Clear;
+            lvClientFiles.Clear;
             for i := 0 to Pred(A.Count) do
             begin
                if ExtractFileExt(A[i]) = FILEEXTN then begin
