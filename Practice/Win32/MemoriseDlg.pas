@@ -253,7 +253,8 @@ type
 
   function MemoriseEntry(BA: TBank_Account; tr: pTransaction_Rec; var IsAMasterMem: boolean): boolean;
   function EditMemorisation(BA: TBank_Account; MemorisedList: TMemorisations_List;
-                            pM: TMemorisation; IsCopy: Boolean = False; Prefix: string = '') : boolean;
+                            pM: TMemorisation; var DeleteSelectedMem: boolean;
+                            IsCopy: Boolean = False; Prefix: string = ''; CopySaveSeq: integer = -1) : boolean;
 
 //******************************************************************************
 implementation
@@ -615,9 +616,7 @@ begin
 end;
 //------------------------------------------------------------------------------
 procedure TdlgMemorise.btnOKClick(Sender: TObject);
-begin
-
-
+begin             
    if OKtoPost then
       Modalresult := mrOk;
 end;
@@ -1389,6 +1388,9 @@ var
   BankPrefix : string;
   ValidLineFound : boolean;
   SystemMemorisation: pSystem_Memorisation_List_Rec;
+
+const
+  ThisMethodName = 'OKtoPost';
 begin
    Result := false;
    FMemorisationsList := nil;
@@ -1502,6 +1504,7 @@ begin
      TempMem := TMemorisation.Create(nil);
      try
        SaveToMemRec( TempMem, SourceTransaction, chkMaster.Checked, True);
+
        if Assigned( SourceBankAccount) then begin
           if chkMaster.Checked and Assigned(AdminSystem) then
              begin
@@ -1945,7 +1948,8 @@ end;
 
 //------------------------------------------------------------------------------
 function EditMemorisation(BA: TBank_Account; MemorisedList: TMemorisations_List;
-  pM: TMemorisation; IsCopy: Boolean = False; Prefix: string = '') : boolean;
+  pM: TMemorisation; var DeleteSelectedMem: boolean;
+  IsCopy: Boolean = False; Prefix: string = ''; CopySaveSeq: integer = -1) : boolean;
 // edits an existing memorisation
 //
 // parameters: pM   Memorisation to edit
@@ -2188,7 +2192,10 @@ begin
                //save new values back
                if chkMaster.Checked and Assigned(AdminSystem) then begin
                  //---EDIT MASTER MEM---
-                 SaveSeq := pM.mdFields.mdSequence_No;
+                 if CopySaveSeq = -1 then                 
+                   SaveSeq := pM.mdFields.mdSequence_No
+                 else
+                   SaveSeq := CopySaveSeq;
                  if LoadAdminSystem(true, ThisMethodName) then begin
                    SystemMemorisation := AdminSystem.SystemMemorisationList.FindPrefix(Prefix);
                    if not Assigned(SystemMemorisation) then begin
@@ -2261,7 +2268,7 @@ begin
 
                      //Edit copy
                      if Assigned(MemorisedList) then
-                       EditMemorisation(ba, MemorisedList, Memorised_Trans, True, Prefix);
+                       EditMemorisation(ba, MemorisedList, Memorised_Trans, DeleteSelectedMem, True, Prefix, pM.mdFields^.mdSequence_No);
 
                      // Saving again in case the copy fails the duplicate test, in which case
                      // it will have been deleted, so we need to save the deletion
@@ -2277,16 +2284,16 @@ begin
                   SaveToMemRec(Memorised_Trans, nil, chkMaster.Checked);
                   Memorised_Trans.mdFields.mdType := pm.mdFields.mdType;
                   MemorisedList.Insert_Memorisation(Memorised_Trans);
-                  EditMemorisation(ba,ba.baMemorisations_List,Memorised_Trans, True);
+                  EditMemorisation(ba,ba.baMemorisations_List,Memorised_Trans, DeleteSelectedMem, True);
                end;
                Result := true;
-
            end;
            else if iscopy then begin
                //need to remove the copy..
                if pm.mdFields.mdFrom_Master_List then begin
                    MemorisedList.DelFreeItem(pm);
-//                   TMaster_Memorisations_List(MemorisedList).SaveToFile;
+                   DeleteSelectedMem := True;
+
                end else begin
                    ba.baMemorisations_List.DelFreeItem(pm);
                end;

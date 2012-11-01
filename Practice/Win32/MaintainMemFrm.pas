@@ -62,7 +62,7 @@ type
     function LoadMemorisations(Bank_Account : TBank_Account): integer;
     procedure LoadMasters( BankPrefix : ShortString);
     function  DeleteMemorised(MemorisedList : TMemorisations_List;
-      Mem : TMemorisation; Multiple : Boolean; Prefix: string = '') : boolean;
+      Mem : TMemorisation; Multiple : Boolean; Prefix: string = ''; ShowPrompt: boolean = true) : boolean;
     procedure MoveItem(MoveItemUp : boolean);
     procedure EditSelectedMemorisation;
   public
@@ -605,9 +605,11 @@ var
   pM            : TMemorisation;
   MemorisedList : TMemorisations_List;
   Accsel        : TTreeNode;
-  I: Integer;
+  I, MasterMemToDelete: Integer;
   SystemMemorisation: pSystem_Memorisation_List_Rec;
   Prefix: string;
+  SystemMem: TMemorisation;
+  DeleteSelectedMem: boolean;
 begin
   if(lvMemorised.Selected = nil) then
      Exit; // nothing selected
@@ -630,15 +632,15 @@ begin
 
   //check that a valid list
   if ( MemorisedList = nil ) then
-     Exit;
-
+     Exit;      
 
   with lvMemorised do begin
      Prefix := '';
      if AccSel.OverlayIndex = 1 then 
        Prefix := AccSel.Text;
      pM := TMemorisation( Selected.SubItems.Objects[0] );
-     if EditMemorisation(BA, MemorisedList, pM, False, Prefix) then begin
+     DeleteSelectedMem := False;
+     if EditMemorisation(BA, MemorisedList, pM, DeleteSelectedMem, False, Prefix) then begin
         //Set changed to true so that CES reloads edited transactions
         FMemorisationChanged := True;
         //if the edit was succesful we need to reload the memorisations to display them
@@ -649,16 +651,33 @@ begin
         end; //case
         // See if we can find the last edited one..
         for I := 0 to lvMemorised.items.Count - 1 do
-           if lvMemorised.Items[I].SubItems.Objects[0] = pM then begin
+           if (TMemorisation(lvMemorised.Items[I].SubItems.Objects[0]).mdFields^.mdSequence_No = pM.mdFields^.mdSequence_No) then
+           begin
               lvMemorised.Selected := nil; //Deselect all..
               lvMemorised.Selected := lvMemorised.Items[I];
               lvMemorised.Selected.Focused := True;
               Break;
            end;
+
+        SystemMemorisation := AdminSystem.SystemMemorisationList.FindPrefix(AccSel.Text);
+        for i := 0 to TMemorisations_List(SystemMemorisation.smMemorisations).ItemCount do
+        begin
+          if (TMemorisation(TMemorisations_List(SystemMemorisation.smMemorisations).Memorisation_At(i)).mdFields.mdSequence_No =
+             pM.mdFields^.mdSequence_No) then
+          begin
+            MasterMemToDelete := i;
+            Break;
+          end;
+        end;
+
+        if (DeleteSelectedMem and (MasterMemToDelete > -1)) then
+        begin
+          SystemMem := TMemorisations_List(SystemMemorisation.smMemorisations).Memorisation_At(MasterMemToDelete);
+          DeleteMemorised(MemorisedList, SystemMem, False, Prefix, False);
+        end;
+        LoadMasters(Prefix);
      end;
-
   end;
-
 end;
 //------------------------------------------------------------------------------
 procedure TfrmMaintainMem.tbDeleteClick(Sender: TObject);
@@ -712,7 +731,7 @@ begin
 end;
 //------------------------------------------------------------------------------
 function TfrmMaintainMem.DeleteMemorised(MemorisedList : TMemorisations_List;
-  Mem: TMemorisation; Multiple : Boolean; Prefix: string = ''): boolean;
+  Mem: TMemorisation; Multiple : Boolean; Prefix: string = ''; ShowPrompt: boolean = true): boolean;
 const
   ThisMethodName = 'DeleteMemorised';
 var
@@ -736,7 +755,8 @@ begin
 
    if (Multiple) then
    begin
-     if AskYesNo('Delete Memorisations?','OK to Delete Multiple Memorisations?',DLG_YES,0) <> DLG_YES then exit;
+     if ShowPrompt then
+       if AskYesNo('Delete Memorisations?','OK to Delete Multiple Memorisations?',DLG_YES,0) <> DLG_YES then exit;
      //delete the multiple entries
      Item := lvMemorised.Selected;
      while Item <> nil do
@@ -805,7 +825,8 @@ begin
        MasterMsgSpace := ''
      else
        MasterMsgSpace := ' ';
-     if AskYesNo('Delete Memorisation?','OK to Delete '+MasterMSG+MasterMsgSpace+'Memorisation?'+#13+MemDesc+ExtraMsg,DLG_YES,0) <> DLG_YES then exit;
+     if ShowPrompt then
+       if AskYesNo('Delete Memorisation?','OK to Delete '+MasterMSG+MasterMsgSpace+'Memorisation?'+#13+MemDesc+ExtraMsg,DLG_YES,0) <> DLG_YES then exit;
      if Assigned(AdminSystem) and (Prefix <> '') then begin
        //---DELETE MASTER MEM---
        MasterMemInfoRec.AuditID := Mem.mdFields.mdAudit_Record_ID;

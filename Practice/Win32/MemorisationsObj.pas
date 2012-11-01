@@ -970,6 +970,8 @@ begin
      result := true;
 
   //set up file names
+  if (FFileName = '') then
+    FFileName := mxFiles32.MasterFilename( FPrefix);
   TempFilename := ChangeFileExt( FFilename, '.bak');
   BakFilename := mxFiles32.MasterFileBackupName( FPrefix);
 
