@@ -45,32 +45,48 @@ type
 
   
   { ----------------------------------------------------------------------------
+    TMonthEndingBankAccount
+  ---------------------------------------------------------------------------- }
+  TMonthEndingBankAccount = record
+    BankAccount: TBank_Account;
+
+    // Room for Gain/Loss codes etc
+  end;
+
+  TMonthEndingBankAccounts = array of TMonthEndingBankAccount;
+
+
+  { ----------------------------------------------------------------------------
     TMonthEnding
   ---------------------------------------------------------------------------- }
   PMonthEnding = ^TMonthEnding;
 
-  TMonthEnding = record
+  TMonthEnding = object
   public
     // Date
     Date: TDateTime; // Day part is always 1
 
-    { Status
-      Locked      => NrTransactions = NrLocked
-      Transferred => NrTransactions = NrTransferred
-      Note: need to keep track of everything, before we can decided if it's
-      Locked, or Transferred, etc
+    // Bank Accounts and additional information for grid, etc
+    BankAccounts: TMonthEndingBankAccounts;
+
+    { Overall Status
+      Locked      => (NrTransactions = NrLocked)
+      Transferred => (NrTransactions = NrTransferred)
     }
     NrTransactions: integer;
     NrLocked: integer;
     NrTransferred: integer;
     AvailableData: boolean;
-    AlreadyRun: boolean; // Gain/Loss in transactions
+    AlreadyRun: boolean; // Gain/Loss record in transactions
 
-    // Exchange Rates
+    // Exchange Rate rules
     ExchangeRateMissing: boolean;
     ExchangeRateMissingPreviousMonth: boolean;
 
   public
+    // Bank Accounts
+    procedure AddBankAccount(const aBankAccount: TBank_Account); // Added only once
+
     // Calculated fields
     function  GetYear: integer;
     property  Year: integer read GetYear;
@@ -80,9 +96,22 @@ type
     property  Finalised: boolean read GetFinalised;
     function  GetTransferred: boolean;
     property  Transferred: boolean read GetTransferred;
+    function  GetMonthEndingDate: TDateTime;
+    property  MonthEndingDate: TDateTime read GetMonthEndingDate;
   end;
 
   TMonthEndingArray = array of TMonthEnding;
+
+
+  { ----------------------------------------------------------------------------
+    TMonthEndingOption
+  ---------------------------------------------------------------------------- }
+  TMonthEndingOption = (
+    // Prevent culling of first months - necessary for client home screen
+    meoDontCullFirstMonths
+  );
+
+  TMonthEndingOptions = set of TMonthEndingOption;
 
   
   { ----------------------------------------------------------------------------
@@ -91,6 +120,7 @@ type
   TMonthEndings = class(TObject)
   private
     fClient: TClientObj;
+    fOptions: TMonthEndingOptions;
     fMonthEndings: TMonthEndingArray;
     fExchangeSource: TExchangeSource;
 
@@ -104,7 +134,7 @@ type
                 const aLastEffective: TDateTime);
     function  FindMonthEnding(const aDate: TStDate; var aIndex: integer): boolean; overload;
     function  FindMonthEnding(const aDate: TStDate): PMonthEnding; overload;
-    procedure SetMonthEnding(const aTransactions: tTransaction_List); overload;
+    procedure SetMonthEnding(const aBankAccount: TBank_Account); overload;
     procedure SetAvailableData(const aFrom: TStDate; const aTo: TStDate);
     procedure SetMonthEnding; overload;
     procedure DeleteFirstMonth;
@@ -117,7 +147,7 @@ type
     constructor Create(const aClient: TClientObj);
     destructor Destroy; override;
 
-    procedure ObtainMonthEndings;
+    procedure Refresh(const aOptions: TMonthEndingOptions = []);
 
     function  GetCount: integer;
     property  Count: integer read GetCount;
@@ -272,7 +302,7 @@ begin
     ASSERT(assigned(BankAccount));
 
     // Not a foreign account?
-    if not IsGainLossAccount(BankAccount) then
+    if not IsForeignCurrencyAccount(BankAccount) then
       continue;
 
     // Transactions exist for this bank account?
@@ -321,6 +351,27 @@ end;
 { ------------------------------------------------------------------------------
   TMonthEnding record helpers (calculated fields)
 ------------------------------------------------------------------------------ }
+procedure TMonthEnding.AddBankAccount(const aBankAccount: TBank_Account);
+var
+  i: integer;
+  iCount: integer;
+begin
+  ASSERT(assigned(aBankAccount));
+
+  // Already there?
+  for i := 0 to High(BankAccounts) do
+  begin
+    if (BankAccounts[i].BankAccount = aBankAccount) then
+      exit;
+  end;
+
+  // Add
+  iCount := Length(BankAccounts);
+  SetLength(BankAccounts, iCount+1);
+  BankAccounts[iCount].BankAccount := aBankAccount;
+end;
+
+{------------------------------------------------------------------------------}
 function TMonthEnding.GetYear: integer;
 begin
   result := YearOf(Date);
@@ -344,6 +395,15 @@ function TMonthEnding.GetTransferred: boolean;
 begin
   // ALL transactions need to be transferred
   result := (NrTransactions <> 0) and (NrTransactions = NrTransferred);
+end;
+
+{------------------------------------------------------------------------------}
+function TMonthEnding.GetMonthEndingDate: TDateTime;
+var
+  iDay: integer;
+begin
+  iDay := DateUtils.DaysInMonth(Date);
+  result := SysUtils.EncodeDate(Year, Month, iDay);
 end;
 
 
@@ -414,7 +474,7 @@ begin
   begin
     // Not foreign account?
     BankAccount := fClient.clBank_Account_List.Bank_Account_At(i);
-    if not IsGainLossAccount(BankAccount) then
+    if not IsForeignCurrencyAccount(BankAccount) then
       continue;
 
     { No transactions?
@@ -521,20 +581,31 @@ begin
 end;
 
 {------------------------------------------------------------------------------}
-procedure TMonthEndings.SetMonthEnding(const aTransactions: tTransaction_List);
+procedure TMonthEndings.SetMonthEnding(const aBankAccount: TBank_Account);
 var
+  iIsoIndex: integer;
   i: integer;
   Transaction: pTransaction_Rec;
   pMonth: PMonthEnding;
   Rate: TExchangeRecord;
+  RateAmount: double;
 begin
-  for i := 0 to aTransactions.ItemCount-1 do
+  ASSERT(assigned(aBankAccount));
+
+  // Cache this before we check all transactions
+  iIsoIndex := fExchangeSource.GetISOIndex(aBankAccount.baFields.baCurrency_Code,
+    fExchangeSource.Header);
+
+  for i := 0 to aBankAccount.baTransaction_List.ItemCount-1 do
   begin
-    Transaction := aTransactions.Transaction_At(i);
+    Transaction := aBankAccount.baTransaction_List.Transaction_At(i);
 
     // Not within given month?
     pMonth := FindMonthEnding(Transaction.txDate_Effective);
     ASSERT(assigned(pMonth));
+
+    // Keep track of what bank accounts we're using in this month
+    pMonth.AddBankAccount(aBankAccount);
 
     // Transactions
     Inc(pMonth.NrTransactions);
@@ -549,7 +620,13 @@ begin
 
     // Exchange rate missing?
     Rate := fExchangeSource.GetDateRates(Transaction.txDate_Effective);
-    if not Assigned(Rate) then
+    if Assigned(Rate) then
+    begin
+      RateAmount := Rate.Rates[iIsoIndex];
+      if (RateAmount = 0) then
+        pMonth.ExchangeRateMissing := true;
+    end
+    else
       pMonth.ExchangeRateMissing := true;
   end;
 end;
@@ -595,11 +672,11 @@ begin
   begin
     // Not Gain/Loss?
     BankAccount := fClient.clBank_Account_List.Bank_Account_At(i);
-    if not IsGainLossAccount(BankAccount) then
+    if not IsForeignCurrencyAccount(BankAccount) then
       continue;
 
     // Split the transactions up according to what month they're in
-    SetMonthEnding(BankAccount.baTransaction_List);
+    SetMonthEnding(BankAccount);
 
     // No system bank account available?
     if not Assigned(AdminSystem) then
@@ -644,6 +721,10 @@ end;
 {------------------------------------------------------------------------------}
 procedure TMonthEndings.CulFirstMonths;
 begin
+  // Don't cull?
+  if (meoDontCullFirstMonths in fOptions) then
+    exit;
+
   while (Length(fMonthEndings) <> 0) do
   begin
     with fMonthEndings[0] do
@@ -683,11 +764,14 @@ begin
 end;
 
 {------------------------------------------------------------------------------}
-procedure TMonthEndings.ObtainMonthEndings;
+procedure TMonthEndings.Refresh(const aOptions: TMonthEndingOptions);
 var
   dtFirstEffective: TDateTime;
   dtLastEffective: TDateTime;
 begin
+  // Store options for later
+  fOptions := aOptions;
+
   // Clear array of previous data
   SetLength(fMonthEndings, 0);
 

@@ -2,9 +2,10 @@ object wizExchangeGainLoss: TwizExchangeGainLoss
   Left = 480
   Top = 386
   BorderIcons = [biSystemMenu, biMaximize]
+  BorderStyle = bsDialog
   Caption = 'Calculate Exchange Gain/Loss Wizard'
-  ClientHeight = 442
-  ClientWidth = 622
+  ClientHeight = 498
+  ClientWidth = 754
   Color = clBtnFace
   Constraints.MinHeight = 476
   Constraints.MinWidth = 630
@@ -21,11 +22,17 @@ object wizExchangeGainLoss: TwizExchangeGainLoss
   object pnlWelcome: TPanel
     Left = 0
     Top = 0
-    Width = 617
-    Height = 400
+    Width = 754
+    Height = 456
+    Align = alClient
     BevelOuter = bvNone
     Color = clWindow
     TabOrder = 0
+    ExplicitWidth = 617
+    ExplicitHeight = 400
+    DesignSize = (
+      754
+      456)
     object Label1: TLabel
       Left = 168
       Top = 16
@@ -65,7 +72,7 @@ object wizExchangeGainLoss: TwizExchangeGainLoss
     end
     object lblContinue: TLabel
       Left = 176
-      Top = 368
+      Top = 432
       Width = 112
       Height = 13
       Caption = 'To continue, click Next.'
@@ -110,14 +117,15 @@ object wizExchangeGainLoss: TwizExchangeGainLoss
       Left = 0
       Top = 0
       Width = 144
-      Height = 400
+      Height = 456
       Align = alLeft
       BevelOuter = bvNone
       Color = 4065024
       TabOrder = 0
+      ExplicitHeight = 400
       DesignSize = (
         144
-        400)
+        456)
       object Image2: TImage
         Left = 73
         Top = 28
@@ -239,9 +247,14 @@ object wizExchangeGainLoss: TwizExchangeGainLoss
     object pnlWarnings: TPanel
       Left = 152
       Top = 166
-      Width = 457
-      Height = 223
+      Width = 489
+      Height = 234
+      Anchors = [akLeft, akTop, akRight, akBottom]
       TabOrder = 1
+      ExplicitHeight = 243
+      DesignSize = (
+        489
+        234)
       object WarningBmp: TImage
         Left = 8
         Top = 4
@@ -345,49 +358,61 @@ object wizExchangeGainLoss: TwizExchangeGainLoss
       object memWarnings: TMemo
         Left = 8
         Top = 46
-        Width = 441
-        Height = 155
+        Width = 465
+        Height = 162
         TabStop = False
+        Anchors = [akLeft, akTop, akRight, akBottom]
         BorderStyle = bsNone
         Color = clBtnFace
         ReadOnly = True
         ScrollBars = ssVertical
         TabOrder = 0
+        ExplicitHeight = 171
       end
     end
   end
   object pnlWizard: TPanel
     Left = 0
     Top = 0
-    Width = 593
-    Height = 384
+    Width = 754
+    Height = 456
+    Align = alClient
     BevelOuter = bvNone
     Caption = 'pnlWizard'
     TabOrder = 1
     Visible = False
+    ExplicitWidth = 593
+    ExplicitHeight = 384
     object Bevel2: TBevel
       Left = 0
       Top = 69
-      Width = 593
+      Width = 754
       Height = 3
       Align = alTop
       Shape = bsTopLine
+      ExplicitWidth = 593
     end
     object PageControl1: TPageControl
       Left = 0
       Top = 72
-      Width = 593
-      Height = 312
-      ActivePage = tbsMonth
+      Width = 754
+      Height = 384
+      ActivePage = tbsPost
       Align = alClient
       Style = tsButtons
       TabHeight = 5
       TabOrder = 2
       TabStop = False
       TabWidth = 5
+      ExplicitWidth = 593
+      ExplicitHeight = 312
       object tbsMonth: TTabSheet
         Caption = 'Page1 -'
         ImageIndex = 4
+        ExplicitLeft = 0
+        ExplicitTop = 0
+        ExplicitWidth = 585
+        ExplicitHeight = 297
         object lblMonthLine1: TLabel
           Left = 8
           Top = 64
@@ -444,17 +469,69 @@ object wizExchangeGainLoss: TwizExchangeGainLoss
       object tbsPost: TTabSheet
         Caption = 'Page2 - Post'
         ImageIndex = 1
-        object tgBalances: TtsGrid
-          Left = 0
-          Top = 43
-          Width = 585
-          Height = 231
-          Align = alClient
+        ExplicitLeft = 0
+        ExplicitTop = 0
+        ExplicitWidth = 585
+        ExplicitHeight = 297
+        object Label4: TLabel
+          Left = 8
+          Top = 85
+          Width = 476
+          Height = 13
+          Caption = 
+            'BankLink Practice will post the calculated Gain or Loss on Excha' +
+            'nge in local currency as listed below.'
+        end
+        object Label5: TLabel
+          Left = 8
+          Top = 48
+          Width = 597
+          Height = 13
+          Caption = 
+            'Note: Calculations are based on the Rates entered for the month ' +
+            'under System | Bank Accounts | Maintain Exchange Rates.'
+        end
+        object lblAdjDate: TLabel
+          Left = 8
+          Top = 1
+          Width = 597
+          Height = 13
+          Caption = 
+            'BankLink Practice has calculated the Gain or Loss on Exchange fo' +
+            'r each foreign currency bank account attached to this client'
+          FocusControl = btnBack
+        end
+        object lblAmountRemText: TLabel
+          Left = 8
+          Top = 302
+          Width = 309
+          Height = 13
+          Caption = 'Click Finish to post the amounts shown and complete the wizard.'
+        end
+        object lblPrefixMonthEnding: TLabel
+          Left = 8
+          Top = 16
+          Width = 121
+          Height = 13
+          Caption = 'file for the month ending '
+        end
+        object lblMonthEnding: TLabel
+          Left = 128
+          Top = 16
+          Width = 72
+          Height = 13
+          Caption = 'lblMonthEnding'
+        end
+        object tgGainLoss: TtsGrid
+          Left = 32
+          Top = 115
+          Width = 576
+          Height = 125
           AlwaysShowScrollBar = ssVertical
           CellSelectMode = cmNone
           CheckBoxStyle = stCheck
           ColMoving = False
-          Cols = 8
+          Cols = 5
           ColSelectMode = csNone
           Ctl3D = True
           DefaultRowHeight = 21
@@ -470,146 +547,129 @@ object wizExchangeGainLoss: TwizExchangeGainLoss
           ParentShowHint = False
           RowBarOn = False
           RowMoving = False
-          Rows = 4
+          Rows = 5
           RowSelectMode = rsNone
           ShowHint = False
-          TabOrder = 1
+          TabOrder = 0
           Version = '2.20.26'
           WantTabs = False
           XMLExport.Version = '1.0'
           XMLExport.DataPacketVersion = '2.0'
-          OnCellLoaded = tgBalancesCellLoaded
-          OnEndCellEdit = tgBalancesEndCellEdit
-          OnInvalidMaskValue = tgBalancesInvalidMaskValue
-          OnKeyDown = tgBalancesKeyDown
-          OnKeyPress = tgBalancesKeyPress
-          OnStartCellEdit = tgBalancesStartCellEdit
+          OnCellLoaded = tgGainLossCellLoaded
           ColProperties = <
             item
               DataCol = 1
-              Col.Heading = 'Account'
+              Col.Font.Charset = DEFAULT_CHARSET
+              Col.Font.Color = clWindowText
+              Col.Font.Height = -11
+              Col.Font.Name = 'MS Sans Serif'
+              Col.Font.Style = []
+              Col.Heading = 'Account Number'
+              Col.HeadingFont.Charset = DEFAULT_CHARSET
+              Col.HeadingFont.Color = clWindowText
+              Col.HeadingFont.Height = -11
+              Col.HeadingFont.Name = 'MS Sans Serif'
+              Col.HeadingFont.Style = [fsBold]
+              Col.HeadingHorzAlignment = htaLeft
+              Col.HeadingParentFont = False
+              Col.ParentFont = False
               Col.ReadOnly = True
-              Col.Width = 94
+              Col.HorzAlignment = htaLeft
+              Col.Width = 120
             end
             item
               DataCol = 2
-              Col.Heading = 'Description'
+              Col.Font.Charset = DEFAULT_CHARSET
+              Col.Font.Color = clWindowText
+              Col.Font.Height = -11
+              Col.Font.Name = 'MS Sans Serif'
+              Col.Font.Style = []
+              Col.Heading = 'Account Name'
+              Col.HeadingFont.Charset = DEFAULT_CHARSET
+              Col.HeadingFont.Color = clWindowText
+              Col.HeadingFont.Height = -11
+              Col.HeadingFont.Name = 'MS Sans Serif'
+              Col.HeadingFont.Style = [fsBold]
               Col.HeadingHorzAlignment = htaLeft
+              Col.HeadingParentFont = False
+              Col.ParentFont = False
               Col.ReadOnly = True
-              Col.Width = 202
+              Col.Width = 200
             end
             item
               DataCol = 3
-              Col.Heading = 'Current Balance  '
-              Col.HeadingHorzAlignment = htaRight
+              Col.Font.Charset = DEFAULT_CHARSET
+              Col.Font.Color = clWindowText
+              Col.Font.Height = -11
+              Col.Font.Name = 'MS Sans Serif'
+              Col.Font.Style = []
+              Col.Heading = 'Account'
+              Col.HeadingFont.Charset = DEFAULT_CHARSET
+              Col.HeadingFont.Color = clWindowText
+              Col.HeadingFont.Height = -11
+              Col.HeadingFont.Name = 'MS Sans Serif'
+              Col.HeadingFont.Style = [fsBold]
+              Col.HeadingHorzAlignment = htaLeft
+              Col.HeadingParentFont = False
               Col.MaskName = 'sysLongDecimal'
-              Col.HorzAlignment = htaRight
-              Col.Width = 120
+              Col.ParentFont = False
+              Col.ReadOnly = True
+              Col.HorzAlignment = htaLeft
+              Col.Width = 80
             end
             item
               DataCol = 4
+              Col.Heading = 'Exchange Gain/Loss'
+              Col.HeadingFont.Charset = DEFAULT_CHARSET
+              Col.HeadingFont.Color = clWindowText
+              Col.HeadingFont.Height = -11
+              Col.HeadingFont.Name = 'MS Sans Serif'
+              Col.HeadingFont.Style = [fsBold]
               Col.HeadingHorzAlignment = htaLeft
+              Col.HeadingParentFont = False
+              Col.MaskName = 'sysLongDecimal'
               Col.ReadOnly = True
-              Col.HorzAlignment = htaLeft
-              Col.Width = 26
+              Col.HorzAlignment = htaRight
+              Col.Width = 130
             end
             item
               DataCol = 5
-              Col.Heading = 'Adjusted Balance  '
-              Col.HeadingHorzAlignment = htaRight
-              Col.MaskName = 'sysLongDecimal'
-              Col.HorzAlignment = htaRight
-              Col.Width = 120
-            end
-            item
-              DataCol = 6
               Col.HeadingHorzAlignment = htaRight
               Col.ReadOnly = True
               Col.HorzAlignment = htaCenter
               Col.Width = 25
-            end
-            item
-              DataCol = 7
-              Col.Heading = 'Adjustment '
-              Col.HeadingHorzAlignment = htaRight
-              Col.MaskName = 'sysLongDecimal'
-              Col.ReadOnly = True
-              Col.HorzAlignment = htaRight
-              Col.Width = 105
-            end
-            item
-              DataCol = 8
-              Col.Heading = 'Report Group'
-              Col.ReadOnly = True
-              Col.Width = 164
             end>
         end
-        object pnlAdjustmentsFooter: TPanel
-          Left = 0
-          Top = 274
-          Width = 585
-          Height = 23
-          Align = alBottom
-          BevelOuter = bvNone
-          TabOrder = 2
-          object lblAmountRemText: TLabel
-            Left = 8
-            Top = 6
-            Width = 166
-            Height = 13
-            Caption = 'Amount remaining to be assigned: '
-          end
-          object lblAmountRemaining: TLabel
-            Left = 248
-            Top = 6
-            Width = 62
-            Height = 13
-            Caption = '$123,456.78'
-          end
+        object Button1: TButton
+          Left = 32
+          Top = 248
+          Width = 193
+          Height = 25
+          Caption = 'Print Foreign Exchange Report'
+          TabOrder = 1
         end
-        object pnlAdjustmentsHeader: TPanel
-          Left = 0
-          Top = 0
-          Width = 585
-          Height = 43
-          Align = alTop
-          BevelOuter = bvNone
-          TabOrder = 0
-          DesignSize = (
-            585
-            43)
-          object Label4: TLabel
-            Left = 6
-            Top = 23
-            Width = 321
-            Height = 13
-            Anchors = [akLeft, akBottom]
-            Caption = 
-              'Note: All balances should normally be entered as positive amount' +
-              's.'
-          end
-          object lblAdjDate: TLabel
-            Left = 6
-            Top = 1
-            Width = 151
-            Height = 13
-            Caption = 'Balances are as at dd/mm/yyyy'
-            FocusControl = btnBack
-          end
+        object CheckBox1: TCheckBox
+          Left = 8
+          Top = 344
+          Width = 449
+          Height = 17
+          Caption = 'Show the Exchange Gains/Losses screen after clicking Finish.'
+          TabOrder = 2
         end
       end
     end
     object pnlTabTitle: TPanel
       Left = 0
       Top = 0
-      Width = 593
+      Width = 754
       Height = 69
       Align = alTop
       BevelOuter = bvNone
       Color = clWindow
       TabOrder = 0
+      ExplicitWidth = 593
       DesignSize = (
-        593
+        754
         69)
       object lblTitle: TLabel
         Left = 8
@@ -628,16 +688,17 @@ object wizExchangeGainLoss: TwizExchangeGainLoss
       object lblDescription: TLabel
         Left = 8
         Top = 29
-        Width = 493
+        Width = 654
         Height = 34
         Anchors = [akLeft, akTop, akRight]
         AutoSize = False
         Caption = 'Description for Page 1'
         ShowAccelChar = False
         WordWrap = True
+        ExplicitWidth = 493
       end
       object Image1: TImage
-        Left = 533
+        Left = 694
         Top = 12
         Width = 48
         Height = 48
@@ -752,6 +813,7 @@ object wizExchangeGainLoss: TwizExchangeGainLoss
           FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
           FFFF}
         Transparent = True
+        ExplicitLeft = 533
       end
     end
     object pnlTabButtonHider: TPanel
@@ -765,25 +827,28 @@ object wizExchangeGainLoss: TwizExchangeGainLoss
   end
   object pnlButtons: TPanel
     Left = 0
-    Top = 400
-    Width = 622
+    Top = 456
+    Width = 754
     Height = 42
     Align = alBottom
     BevelOuter = bvNone
     TabOrder = 2
+    ExplicitTop = 400
+    ExplicitWidth = 622
     DesignSize = (
-      622
+      754
       42)
     object Bevel1: TBevel
       Left = 0
       Top = 0
-      Width = 622
+      Width = 754
       Height = 2
       Align = alTop
       Shape = bsTopLine
+      ExplicitWidth = 622
     end
     object btnBack: TButton
-      Left = 368
+      Left = 500
       Top = 12
       Width = 75
       Height = 25
@@ -792,9 +857,10 @@ object wizExchangeGainLoss: TwizExchangeGainLoss
       Enabled = False
       TabOrder = 0
       OnClick = btnBackClick
+      ExplicitLeft = 368
     end
     object btnNext: TButton
-      Left = 448
+      Left = 580
       Top = 12
       Width = 75
       Height = 25
@@ -803,9 +869,10 @@ object wizExchangeGainLoss: TwizExchangeGainLoss
       Default = True
       TabOrder = 1
       OnClick = btnNextClick
+      ExplicitLeft = 448
     end
     object btnCancel: TButton
-      Left = 536
+      Left = 668
       Top = 12
       Width = 75
       Height = 25
@@ -814,6 +881,7 @@ object wizExchangeGainLoss: TwizExchangeGainLoss
       Caption = 'Cancel'
       ModalResult = 2
       TabOrder = 2
+      ExplicitLeft = 536
     end
   end
 end

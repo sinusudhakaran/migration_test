@@ -967,7 +967,7 @@ begin
     eNumber.Text := BankAcct.baFields.baBank_Account_Number;
                             
   //Set currency
-  lblCurrency.Visible := (BankAcct.IsManual) and SupportsMultiCurrencies;
+  lblCurrency.Visible := (BankAcct.IsManual) and SupportsForeignCurrencies;
 
   cmbCurrency.Visible := lblCurrency.Visible;
   cmbCurrency.Enabled := cmbCurrency.Visible and FAddNew;
@@ -976,7 +976,7 @@ begin
   cmbCurrencyChange(cmbCurrency); // Configure the GainLoss controls
 
   // Gain/Loss
-  ShowGainLoss := IsGainLossAccount(BankAcct);
+  ShowGainLoss := IsForeignCurrencyAccount(BankAcct);
   // Maybe it's a NEW manual account (with more than one currency)
   if not ShowGainLoss then
     ShowGainLoss := cmbCurrency.Enabled and (cmbCurrency.Items.Count > 1);

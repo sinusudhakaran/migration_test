@@ -851,7 +851,7 @@ begin
      Batchreports.FillMenu(frmMain.mniBatchReports,ShowFinReports);
      frmMain.MenuCopyToPopUp('mnsReport', popReport);
 
-     mniExchangeGainLossWizard.Visible := IsGainLossClient;
+     mniExchangeGainLossWizard.Visible := IsForeignCurrencyClient;
   end;
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

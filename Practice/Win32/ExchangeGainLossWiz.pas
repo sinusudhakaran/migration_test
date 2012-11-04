@@ -42,11 +42,8 @@ type
     memWarnings: TMemo;
     imgLine1: TImage;
     imgLine2: TImage;
-    tgBalances: TtsGrid;
-    pnlAdjustmentsFooter: TPanel;
-    pnlAdjustmentsHeader: TPanel;
+    tgGainLoss: TtsGrid;
     lblAmountRemText: TLabel;
-    lblAmountRemaining: TLabel;
     Label4: TLabel;
     tbsMonth: TTabSheet;
     lblAdjDate: TLabel;
@@ -56,24 +53,20 @@ type
     lblMonthLine3: TLabel;
     lblMonth: TLabel;
     lblNoMonthEndings: TLabel;
+    Label5: TLabel;
+    Button1: TButton;
+    CheckBox1: TCheckBox;
+    lblPrefixMonthEnding: TLabel;
+    lblMonthEnding: TLabel;
     procedure btnNextClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure btnBackClick(Sender: TObject);
-    procedure tgBalancesInvalidMaskValue(Sender: TObject; DataCol,
-      DataRow: Integer; var Accept: Boolean);
-    procedure tgBalancesCellLoaded(Sender: TObject; DataCol,
-      DataRow: Integer; var Value: Variant);
-    procedure tgBalancesStartCellEdit(Sender: TObject; DataCol,
-      DataRow: Integer; var Cancel: Boolean);
-    procedure tgBalancesKeyPress(Sender: TObject; var Key: Char);
-    procedure tgBalancesEndCellEdit(Sender: TObject; DataCol,
-      DataRow: Integer; var Cancel: Boolean);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
-    procedure tgBalancesKeyDown(Sender: TObject; var Key: Word;
-      Shift: TShiftState);
     procedure cmbMonthDrawItem(Control: TWinControl; Index: Integer;
       Rect: TRect; State: TOwnerDrawState);
     procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    procedure tgGainLossCellLoaded(Sender: TObject; DataCol, DataRow: Integer;
+      var Value: Variant);
   private
     { Private declarations }
     fClient: TClientObj;
@@ -104,6 +97,9 @@ type
     function  GetMonthIndexFrom(const aIndex: integer): integer;
     function  GetSelectedMonthIndex: integer;
     property  SelectedMonthIndex: integer read GetSelectedMonthIndex;
+
+    // Grid
+    procedure PopulateGrid;
   end;
 
   function RunExchangeGainLossWizard(aClient : TClientObj) : boolean;
@@ -211,7 +207,7 @@ begin
       begin
         // Create here because in the constructor/FormCreate there's no fClient yet
         fMonths := TMonthEndings.Create(fClient);
-        fMonths.ObtainMonthEndings;
+        fMonths.Refresh;
 
         // Add to combo box in REVERSE order
         for i := fMonths.Count-1 downto 0 do
@@ -253,12 +249,16 @@ var
   iNewItemHeight: integer;
 begin
   // Setup
-  lblAmountRemaining.Font.Style := [fsBold];
   lblTitle.Font.Name := Font.Name;
   memWarnings.Font.Style := [fsBold];
-  tgbalances.HeadingFont := Font;
+  tgGainLoss.HeadingFont := Font;
   lblNoMonthEndings.Font.Style := [fsBold];
+  lblMonthEnding.Font.Style := [fsBold];
   bkXPThemes.ThemeForm(Self);
+
+  // Position Month Ending (before changing the fonts)
+  lblMonthEnding.Left := lblPrefixMonthEnding.Left + lblPrefixMonthEnding.Width;
+  lblMonthEnding.Top := lblPrefixMonthEnding.Top;
 
   // Start with the welcome screen (which is a panel over the Pages)
   fCurrentStepID := stWelcome;
@@ -266,10 +266,6 @@ begin
   pnlWizard.Align := alClient;
   pnlWelcome.Visible := true;
   pnlWelcome.Align := alClient;
-
-  // Increase the width if there's space
-  if (Screen.WorkAreaWidth > 640) then
-    Width := 760;
 
   // WORKAROUND: for partially visible tabs (from Year/End balance wizard)
   pnlTabButtonHider.Left := 0;
@@ -437,9 +433,7 @@ begin
         if not fMonths.ValidateMonthEnding(SelectedMonthIndex, sErrors) then
         begin
           HelpfulWarningMsg(sErrors, 0);
-
           Cancel := true;
-
           Exit;
         end;
       end;
@@ -531,48 +525,6 @@ begin
 end;
 
 {------------------------------------------------------------------------------}
-procedure TwizExchangeGainLoss.tgBalancesInvalidMaskValue(Sender: TObject;
-  DataCol, DataRow: Integer; var Accept: Boolean);
-begin
-  // TODO
-end;
-
-{------------------------------------------------------------------------------}
-procedure TwizExchangeGainLoss.tgBalancesCellLoaded(Sender: TObject;
-  DataCol, DataRow: Integer; var Value: Variant);
-begin
-  // TODO
-end;
-
-{------------------------------------------------------------------------------}
-procedure TwizExchangeGainLoss.tgBalancesStartCellEdit(Sender: TObject;
-  DataCol, DataRow: Integer; var Cancel: Boolean);
-begin
-  // TODO
-end;
-
-{------------------------------------------------------------------------------}
-procedure TwizExchangeGainLoss.tgBalancesKeyPress(Sender: TObject;
-  var Key: Char);
-begin
-  // TODO
-end;
-
-{------------------------------------------------------------------------------}
-procedure TwizExchangeGainLoss.tgBalancesEndCellEdit(Sender: TObject;
-  DataCol, DataRow: Integer; var Cancel: Boolean);
-begin
-  // TODO
-end;
-
-{------------------------------------------------------------------------------}
-procedure TwizExchangeGainLoss.tgBalancesKeyDown(Sender: TObject;
-  var Key: Word; Shift: TShiftState);
-begin
-  // TODO
-end;
-
-{------------------------------------------------------------------------------}
 procedure TwizExchangeGainLoss.FormCloseQuery(Sender: TObject;
   var CanClose: Boolean);
 var
@@ -609,7 +561,17 @@ end;
 
 {------------------------------------------------------------------------------}
 procedure TwizExchangeGainLoss.InitialiseStep(StepID: integer);
+var
+  dtMonthEnding: TDateTime;
 begin
+  case StepID of
+    stPost:
+    begin
+      dtMonthEnding := fMonths[SelectedMonthIndex].MonthEndingDate;
+      lblMonthEnding.Caption := FormatDateTime('dd/mm/yyyy', dtMonthEnding) + '.';
+      PopulateGrid;
+    end;
+  end;
 end;
 
 {------------------------------------------------------------------------------}
@@ -678,6 +640,43 @@ begin
     // Already Run (optional)
     if AlreadyRun then
       TextOut(Rect.Left+110, Rect.Top+1, 'Already Run');
+  end;
+end;
+
+{------------------------------------------------------------------------------}
+procedure TwizExchangeGainLoss.PopulateGrid;
+begin
+  tgGainLoss.BeginUpdate;
+  try
+    tgGainLoss.Rows := Length(fMonths[SelectedMonthIndex].BankAccounts);
+  finally
+    tgGainLoss.EndUpdate;
+  end;
+  tgGainLoss.Refresh;
+end;
+
+{------------------------------------------------------------------------------}
+procedure TwizExchangeGainLoss.tgGainLossCellLoaded(Sender: TObject; DataCol,
+  DataRow: Integer; var Value: Variant);
+var
+  MonthEnding: TMonthEnding;
+  MonthEndingBankAccount: TMonthEndingBankAccount;
+  BankAccount: TBank_Account;
+begin
+  // NOTE: DataCol and DataRow are 1-based
+
+  MonthEnding := fMonths[SelectedMonthIndex];
+  MonthEndingBankAccount := MonthEnding.BankAccounts[DataRow-1];
+  BankAccount := MonthEndingBankAccount.BankAccount;
+
+  case DataCol of
+    1: Value := BankAccount.baFields.baBank_Account_Number;
+    2: Value := BankAccount.baFields.baBank_Account_Name;
+    3: Value := BankAccount.baFields.baExchange_Gain_Loss_Code;
+    4: Value := ''; // TODO_JN
+    5: Value := ''; // TODO_JN
+    else
+      ASSERT(false);
   end;
 end;
 

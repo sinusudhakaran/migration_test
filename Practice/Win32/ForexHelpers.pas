@@ -56,11 +56,13 @@ type
     property Statement_Amount : Money read GetStatement_Amount;
   end;
 
-  // UK Multi-Currencies
+  // Foreign Currencies
   function  GetCountry: byte;
-  function  SupportsMultiCurrencies: boolean;
-  function  IsGainLossClient: boolean;
-  function  IsGainLossAccount(const aAccount: TBank_Account): boolean;
+  function  SupportsForeignCurrencies: boolean;
+  function  IsForeignCurrencyClient: boolean;
+  function  IsForeignCurrencyAccount(const aAccount: TBank_Account): boolean;
+
+  // Gain/Loss
   function  IsValidGainLossCode(const aCode: string): boolean;
   function  CurrencyExists(aExchange: pExchange_Rates_Header_Rec;
               const aCurrency: string): boolean; overload;
@@ -310,18 +312,18 @@ begin
 end;
 
 // ----------------------------------------------------------------------------
-function SupportsMultiCurrencies: boolean;
+function SupportsForeignCurrencies: boolean;
 begin
   result := (GetCountry = whUK);
 end;
 
 // ----------------------------------------------------------------------------
-function IsGainLossClient: boolean;
+function IsForeignCurrencyClient: boolean;
 begin
   result := false;
 
   // Must be UK practice (currently)
-  if not SupportsMultiCurrencies then
+  if not SupportsForeignCurrencies then
     exit;
 
   // Could happen during startup
@@ -333,14 +335,14 @@ begin
 end;
 
 // ----------------------------------------------------------------------------
-function IsGainLossAccount(const aAccount: TBank_Account): boolean;
+function IsForeignCurrencyAccount(const aAccount: TBank_Account): boolean;
 begin
   ASSERT(assigned(aAccount));
 
   result := false;
 
   // Must be UK practice (currently)
-  if not SupportsMultiCurrencies then
+  if not SupportsForeignCurrencies then
     exit;
 
   // Foreign account

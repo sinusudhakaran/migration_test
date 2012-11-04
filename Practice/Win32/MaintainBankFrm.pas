@@ -169,7 +169,7 @@ begin
   ContraColumn.Width := 100;
 
   // Gain/Loss
-  if IsGainLossClient then
+  if IsForeignCurrencyClient then
   begin
     ShowGainLossColumn;
     // Add space to the form
@@ -349,7 +349,7 @@ begin
     // When new accounts have been added add the column. When deleted leave "as is"
     if (MyClient.clFields.clCountry = whUK) and (MyClient.HasForeignCurrencyAccounts) then
       ShowCurrencyColumn;
-    if IsGainLossClient then
+    if IsForeignCurrencyClient then
       ShowGainLossColumn;
 
     lvBank.Items.Clear;
@@ -384,7 +384,7 @@ begin
         // Gain/Loss column visible?
         if GainLossColumnShowing then
         begin
-          if IsGainLossAccount(BankAcct) then
+          if IsForeignCurrencyAccount(BankAcct) then
             NewItem.SubItems.Add(BankAcct.baFields.baExchange_Gain_Loss_Code)
           else
             NewItem.SubItems.Add(''); // Don't show codes that may be irrelevant
