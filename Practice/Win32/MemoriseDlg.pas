@@ -2292,7 +2292,6 @@ begin
                //need to remove the copy..
                if pm.mdFields.mdFrom_Master_List then begin
                    MemorisedList.DelFreeItem(pm);
-                   DeleteSelectedMem := True;
 
                end else begin
                    ba.baMemorisations_List.DelFreeItem(pm);
