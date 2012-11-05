@@ -305,7 +305,6 @@ procedure DetailedTaxablePaymentsDetail(Sender : TObject);
     ABNAccountCode: String;
     BankIndex: Integer;
     TransactionIndex: Integer;
-    IncludeAllDissectionLines: Boolean;
     TransGSTAmount: Money;
     Reference: String;
     ChartAccount: pAccount_Rec;
@@ -327,13 +326,11 @@ procedure DetailedTaxablePaymentsDetail(Sender : TObject);
           begin
             if Transaction.txFirst_Dissection <> nil then
             begin
-              IncludeAllDissectionLines := Transaction.txPayee_Number = Payee.pdNumber;
-              
               Dissection := Transaction.txFirst_Dissection;
 
               while Dissection <> nil do
               begin
-                if IncludeAllDissectionlines or (Dissection.dsPayee_Number = Payee.pdNumber) then
+                if (Transaction.txPayee_Number = Payee.pdNumber) or (Dissection.dsPayee_Number = Payee.pdNumber) then
                 begin
                   PutString(bkDate2Str(Transaction.txDate_Effective));
 
@@ -356,18 +353,20 @@ procedure DetailedTaxablePaymentsDetail(Sender : TObject);
                   begin
                     PutString(Dissection.dsGL_Narration);
                   end;
-                  
-                  SkipColumn;
 
-                  if IncludeAllDissectionLines then
+                  if Dissection.dsAccount = ABNAccountCode then
                   begin
-                    PutMoneyDontAdd(Dissection.dsGST_Amount);
-                    PutMoneyDontAdd(Dissection.Local_Amount);
+                    PutMoney(Dissection.Local_Amount * -1);
+                    PutMoney(Dissection.dsGST_Amount);
+
+                    SkipColumn;
                   end
                   else
                   begin
+                    SkipColumn;
+
                     PutMoney(Dissection.dsGST_Amount);
-                    PutMoney(Dissection.Local_Amount);                  
+                    PutMoney(Dissection.Local_Amount);
                   end;
                   
                   RenderDetailLine;
@@ -394,11 +393,21 @@ procedure DetailedTaxablePaymentsDetail(Sender : TObject);
                 begin
                   PutString(Transaction.txGL_Narration);
                 end;
-                  
-                SkipColumn;
 
-                PutMoney(Transaction.txGST_Amount);
-                PutMoney(Transaction.Local_Amount);  
+                if Transaction.txAccount = ABNAccountCode then
+                begin
+                  PutMoney(Transaction.Local_Amount * -1);
+                  PutMoney(Transaction.txGST_Amount);
+                  
+                  SkipColumn;
+                end
+                else
+                begin
+                  SkipColumn;
+
+                  PutMoney(Transaction.txGST_Amount);
+                  PutMoney(Transaction.Local_Amount);
+                end;
 
                 RenderDetailLine;              
               end;
