@@ -328,27 +328,6 @@ procedure DetailedTaxablePaymentsDetail(Sender : TObject);
             if Transaction.txFirst_Dissection <> nil then
             begin
               IncludeAllDissectionLines := Transaction.txPayee_Number = Payee.pdNumber;
-
-              if IncludeAllDissectionLines then
-              begin
-                PutString(bkDate2Str(Transaction.txDate_Effective));
-
-                PutString(GetFormattedReference(Transaction));
-
-                PutString(Transaction.txAccount);
-
-                SkipColumn;
-
-                TransGSTAmount := GetGSTTotalForDissection(Transaction);
-
-                ABNAmount := SumABN(Transaction, ABNAccountCode);
-
-                PutMoney(ABNAmount);
-                PutMoney(GetGSTTotalForDissection(Transaction));
-                PutMoney(Transaction.Local_Amount + (ABNAmount * -1));
-
-                RenderDetailLine;
-              end;
               
               Dissection := Transaction.txFirst_Dissection;
 
