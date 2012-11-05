@@ -199,9 +199,9 @@ procedure DetailedTaxablePaymentsDetail(Sender : TObject);
       end;
     end;
 
-    procedure PutNarration(Notes: string);
+    procedure WrapNarration(Notes: string);
     const
-      NARRATION_COLUMN = 2;
+      NARRATION_COLUMN = 3;
 
     var
       j, ColWidth, OldWidth : Integer;
@@ -213,10 +213,6 @@ procedure DetailedTaxablePaymentsDetail(Sender : TObject);
        if WrapColumnText then
        begin
           MaxNotesLines := 10;
-       end
-       else
-       begin
-          MaxNotesLines := 1;
        end;
 
        if (Notes = '') then
@@ -292,6 +288,7 @@ procedure DetailedTaxablePaymentsDetail(Sender : TObject);
 
                SkipColumn;
                SkipColumn;
+               SkipColumn;
              end;
            until (j >= NotesList.Count) or (j >= MaxNotesLines);
          finally
@@ -336,6 +333,8 @@ procedure DetailedTaxablePaymentsDetail(Sender : TObject);
               begin
                 PutString(bkDate2Str(Transaction.txDate_Effective));
 
+                PutString(GetFormattedReference(Transaction));
+
                 PutString(Transaction.txAccount);
 
                 SkipColumn;
@@ -357,18 +356,27 @@ procedure DetailedTaxablePaymentsDetail(Sender : TObject);
               begin
                 if IncludeAllDissectionlines or (Dissection.dsPayee_Number = Payee.pdNumber) then
                 begin
-                  if IncludeAllDissectionLines then
+                  PutString(bkDate2Str(Transaction.txDate_Effective));
+
+                  if Dissection.dsReference > '' then
                   begin
-                    SkipColumn;
+                    PutString(Dissection.dsReference);
                   end
                   else
                   begin
-                    PutString(bkDate2Str(Transaction.txDate_Effective));
+                    PutString(Format('/%s', [IntToStr(Dissection.dsSequence_No)]));
                   end;
-
+                         
                   PutString(Dissection.dsAccount);
 
-                  PutNarration(Dissection.dsGL_Narration);
+                  if TTaxablePaymentsReport(Sender).Params.WrapColumnText then
+                  begin
+                    WrapNarration(Dissection.dsGL_Narration);
+                  end
+                  else
+                  begin
+                    PutString(Dissection.dsGL_Narration);
+                  end;
                   
                   SkipColumn;
 
@@ -394,10 +402,20 @@ procedure DetailedTaxablePaymentsDetail(Sender : TObject);
               if Transaction.txPayee_Number = Payee.pdNumber then
               begin
                 PutString(bkDate2Str(Transaction.txDate_Effective));
+
+                PutString(GetFormattedReference(Transaction));
+                
                 PutString(Transaction.txAccount);
 
-                PutNarration(Transaction.txGL_Narration);
-
+                if TTaxablePaymentsReport(Sender).Params.WrapColumnText then
+                begin
+                  WrapNarration(Transaction.txGL_Narration);
+                end
+                else
+                begin
+                  PutString(Transaction.txGL_Narration);
+                end;
+                  
                 SkipColumn;
 
                 PutMoney(Transaction.txGST_Amount);
@@ -524,12 +542,13 @@ begin
 
   CLeft  := GcLeft;
 
-  AddColAuto(Job,cLeft,      8,Gcgap,'Date', jtLeft);
-  AddColAuto(Job,cLeft,      10,Gcgap,'Account', jtLeft);
-  AddColAuto(Job,cLeft,      44,Gcgap,'Narration', jtLeft);
-  AddFormatColAuto(Job,cLeft,12,Gcgap,'No ABN Withholding Tax',jtRight,'#,##0.00;(#,##0.00);-', MyClient.FmtMoneyStrBrackets, true);
-  AddFormatColAuto(Job,cLeft,10,Gcgap,'Total GST',jtRight,'#,##0.00;(#,##0.00);-', MyClient.FmtMoneyStrBrackets, true);
-  AddFormatColAuto(Job,cLeft,16,Gcgap,'Gross Amount Paid(including GST and any tax withheld)',jtRight,'#,##0.00;(#,##0.00);-', MyClient.FmtMoneyStrBrackets, true);
+  AddColAuto(Job, cLeft, 8, Gcgap,'Date', jtLeft);
+  AddColAuto(Job, cLeft, 8, Gcgap,'Reference', jtLeft);
+  AddColAuto(Job, cLeft, 10,Gcgap,'Account', jtLeft);
+  AddColAuto(Job, cLeft, 44, Gcgap,'Narration', jtLeft);
+  AddFormatColAuto(Job,cLeft,12, Gcgap,'No ABN Withholding Tax',jtRight,'#,##0.00;(#,##0.00);-', MyClient.FmtMoneyStrBrackets, true);
+  AddFormatColAuto(Job,cLeft,10, Gcgap,'Total GST',jtRight,'#,##0.00;(#,##0.00);-', MyClient.FmtMoneyStrBrackets, true);
+  AddFormatColAuto(Job,cLeft,16, Gcgap,'Gross Amount Paid(including GST and any tax withheld)',jtRight,'#,##0.00;(#,##0.00);-', MyClient.FmtMoneyStrBrackets, true);
 
   //Add Footers
   AddCommonFooter(Job);
