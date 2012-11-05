@@ -529,7 +529,7 @@ begin
   AddColAuto(Job,cLeft,      44,Gcgap,'Narration', jtLeft);
   AddFormatColAuto(Job,cLeft,12,Gcgap,'No ABN Withholding Tax',jtRight,'#,##0.00;(#,##0.00);-', MyClient.FmtMoneyStrBrackets, true);
   AddFormatColAuto(Job,cLeft,10,Gcgap,'Total GST',jtRight,'#,##0.00;(#,##0.00);-', MyClient.FmtMoneyStrBrackets, true);
-  AddFormatColAuto(Job,cLeft,16,Gcgap,'Gross Amount(including GST)',jtRight,'#,##0.00;(#,##0.00);-', MyClient.FmtMoneyStrBrackets, true);
+  AddFormatColAuto(Job,cLeft,16,Gcgap,'Gross Amount Paid(including GST and any tax withheld)',jtRight,'#,##0.00;(#,##0.00);-', MyClient.FmtMoneyStrBrackets, true);
 
   //Add Footers
   AddCommonFooter(Job);
@@ -568,7 +568,7 @@ begin
   AddColAuto(Job,cLeft,      14,Gcgap,'Payee Address', jtLeft);
   AddFormatColAuto(Job,cLeft,7,Gcgap,'No ABN Withholding Tax',jtRight,'#,##0.00;(#,##0.00);-', MyClient.FmtMoneyStrBrackets, true);
   AddFormatColAuto(Job,cLeft,7,Gcgap,'Total GST',jtRight,'#,##0.00;(#,##0.00);-', MyClient.FmtMoneyStrBrackets, true);
-  AddFormatColAuto(Job,cLeft,8,Gcgap,'Gross Amount(including GST and any tax withheld)',jtRight,'#,##0.00;(#,##0.00);-', MyClient.FmtMoneyStrBrackets, true);
+  AddFormatColAuto(Job,cLeft,8,Gcgap,'Gross Amount Paid(including GST and any tax withheld)',jtRight,'#,##0.00;(#,##0.00);-', MyClient.FmtMoneyStrBrackets, true);
 
   //Add Footers
   AddCommonFooter(Job);
