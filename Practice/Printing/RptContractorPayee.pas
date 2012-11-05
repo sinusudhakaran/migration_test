@@ -106,20 +106,6 @@ begin
         if (Transaction^.txPayee_Number <> 0 ) then
         begin
           PayeeData := GetPayeeData(Transaction^.txPayee_Number);
-                
-          if Assigned(PayeeData) then
-          begin
-            if Transaction.txFirst_Dissection = nil then
-            begin
-              PayeeData.TotalGST := PayeeData.TotalGST + Transaction.txGST_Amount;
-            end
-            else
-            begin
-              PayeeData.TotalGST := PayeeData.TotalGST + GetGSTTotalForDissection(Transaction);
-            end;
-            
-            PayeeData.GrossAmount := PayeeData.GrossAmount + Transaction^.Local_Amount;
-          end;
 
           if (Transaction^.txFirst_Dissection <> nil) then
           begin
@@ -128,12 +114,34 @@ begin
 
             while Dissection <> nil do
             begin
+              PayeeData.TotalGST := PayeeData.TotalGST + Dissection.dsGST_Amount;
+
               if (ABNAccount <> '') and (Dissection.dsAccount = ABNAccount) then
               begin
                 PayeeData.NoABNWithholdingTax := PayeeData.NoABNWithholdingTax + (Dissection^.Local_Amount * -1);
+              end
+              else
+              begin
+                PayeeData.GrossAmount := PayeeData.GrossAmount + Dissection^.Local_Amount;
               end;
 
               Dissection := Dissection^.dsNext;
+            end;          
+          end
+          else
+          begin
+            if Assigned(PayeeData) then
+            begin
+              PayeeData.TotalGST := PayeeData.TotalGST + Transaction.txGST_Amount;
+
+              if (ABNAccount <> '') and (Transaction.txAccount = ABNAccount) then
+              begin
+                PayeeData.NoABNWithholdingTax := PayeeData.NoABNWithholdingTax + (Transaction^.Local_Amount * -1);
+              end
+              else
+              begin
+                PayeeData.GrossAmount := PayeeData.GrossAmount + Transaction^.Local_Amount;
+              end;
             end;          
           end;
         end
@@ -152,13 +160,14 @@ begin
                 
                 if Assigned(PayeeData) then
                 begin
+                  PayeeData.TotalGST := PayeeData.TotalGST + Dissection^.dsGST_Amount;
+
                   if (ABNAccount <> '') and (Dissection.dsAccount = ABNAccount) then
                   begin
                     PayeeData.NoABNWithholdingTax := PayeeData.NoABNWithholdingTax + (Dissection^.Local_Amount * -1);
                   end
                   else
                   begin
-                    PayeeData.TotalGST := PayeeData.TotalGST + Dissection^.dsGST_Amount; 
                     PayeeData.GrossAmount := PayeeData.GrossAmount + Dissection^.Local_Amount;
                   end;
                 end;
@@ -359,7 +368,7 @@ procedure DetailedTaxablePaymentsDetail(Sender : TObject);
                     PutMoney(Dissection.Local_Amount * -1);
                     PutMoney(Dissection.dsGST_Amount);
 
-                    SkipColumn;
+                    PutMoney(Dissection.Local_Amount * -1);
                   end
                   else
                   begin
@@ -399,7 +408,7 @@ procedure DetailedTaxablePaymentsDetail(Sender : TObject);
                   PutMoney(Transaction.Local_Amount * -1);
                   PutMoney(Transaction.txGST_Amount);
                   
-                  SkipColumn;
+                  PutMoney(Transaction.Local_Amount * -1);
                 end
                 else
                 begin
@@ -502,7 +511,7 @@ Begin
         RecordLines.AddColumnText(6, [Payee.pdFields.pdAddress, Payee.pdFields.pdTown, Format('%s %s',[Payee.pdFields.pdState, Payee.pdFields.pdPost_Code])], Params.WrapColumnText);
         RecordLines.AddColumnValue(7, PayeeData.NoABNWithholdingTax);
         RecordLines.AddColumnValue(8, PayeeData.TotalGST);
-        RecordLines.AddColumnValue(9, PayeeData.GrossAmount);
+        RecordLines.AddColumnValue(9, PayeeData.GrossAmount + PayeeData.NoABNWithholdingTax);
 
         RecordLines.EndUpdate;
 
