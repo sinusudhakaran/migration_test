@@ -52,6 +52,8 @@ type
   TBloIBizzCredentials               = BlopiServiceFacade.PracticeDataSubscriberCredentials;
   TBloArrayOfPracticeDataSubscriberCount = BlopiServiceFacade.ArrayOfPracticeDataSubscriberCount;
 
+  TBloArrayOfPracticeBankAccount = BlopiServiceFacade.ArrayOfPracticeBankAccount;
+
   TBloUploadResult = BlopiServiceFacade.UploadResult;
 
   TBloUploadResultCode = (Success, NoFileReceived, InvalidCredentials, InternalError, FileFormatError);
@@ -466,7 +468,10 @@ type
     function AuthenticateUser(const Domain, Username, Password: String; out AuthenticationResult: TAuthenticationStatus; IgnoreOnlineUser: Boolean = False): Boolean;
 
     function ProcessData(const XmlData: String; out AuthenticationError: Boolean; OnPostingData: TPostingDataEvent = nil): TBloUploadResult;
-    
+
+    function GetAccountStatusList: TBloArrayOfPracticeBankAccount;
+
+
     property OnLine: Boolean read FOnLine;
     property Registered: Boolean read GetRegistered;
     property ValidBConnectDetails: Boolean read GetValidBConnectDetails;
@@ -5309,6 +5314,80 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+function TProductConfigService.GetAccountStatusList: TBloArrayOfPracticeBankAccount;
+var
+  BlopiInterface: IBlopiServiceFacade;
+  MsgResponse: MessageResponseOfArrayOfPracticeBankAccountrLqac6vj;
+  ShowProgress : Boolean;
+  Cancelled: Boolean;
+  ConnectionError: Boolean;
+begin
+  if not Assigned(AdminSystem) then
+    Exit;
+
+  if not Registered then
+    Exit;
+
+  try
+    ShowProgress := Progress.StatusSilent;
+    if ShowProgress then
+    begin
+      Screen.Cursor := crHourGlass;
+      Progress.StatusSilent := False;
+      Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Connecting', 10);
+    end;
+
+    try
+      if ShowProgress then
+        Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Getting Bank Accounts', 50);
+
+      BlopiInterface :=  GetServiceFacade;
+      
+      try
+        MsgResponse := BlopiInterface.GetBankAccounts(CountryText(AdminSystem.fdFields.fdCountry),
+                                                   AdminSystem.fdFields.fdBankLink_Code,
+                                                   AdminSystem.fdFields.fdBankLink_Connect_Password);
+      except
+        on E: EAuthenticationException do
+        begin
+          if ReAuthenticateUser(Cancelled, ConnectionError) and not (Cancelled or ConnectionError) then
+          begin
+            MsgResponse := BlopiInterface.GetBankAccounts(CountryText(AdminSystem.fdFields.fdCountry),
+                                                   AdminSystem.fdFields.fdBankLink_Code,
+                                                   AdminSystem.fdFields.fdBankLink_Connect_Password);
+          end
+          else
+          begin
+            Exit;
+          end;  
+        end;
+      end;
+    
+      if not MessageResponseHasError(MsgResponse, 'get bank accounts from') then
+      begin
+        Result := MsgResponse.Result;
+      end;
+
+      if ShowProgress then
+      begin
+        Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finished', 100);
+      end;
+    finally
+      if ShowProgress then
+      begin
+        Progress.StatusSilent := True;
+        Progress.ClearStatus;
+        Screen.Cursor := crDefault;
+      end;
+    end;
+  except
+    on E:Exception do
+    begin
+      HandleException('GetAccountStatusList', E);
+    end;
+  end;
+end;
+
 function TProductConfigService.GetAccountVendors(aClientGuid : TBloGuid; aAccountID: Integer;
                                                  ShowProgressBar: boolean): TBloDataPlatformSubscription;
 var
