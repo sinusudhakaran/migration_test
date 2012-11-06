@@ -469,7 +469,7 @@ type
 
     function ProcessData(const XmlData: String; out AuthenticationError: Boolean; OnPostingData: TPostingDataEvent = nil): TBloUploadResult;
 
-    function GetAccountStatusList: TBloArrayOfPracticeBankAccount;
+    function GetAccountStatusList(out Success: Boolean): TBloArrayOfPracticeBankAccount;
 
 
     property OnLine: Boolean read FOnLine;
@@ -5314,7 +5314,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TProductConfigService.GetAccountStatusList: TBloArrayOfPracticeBankAccount;
+function TProductConfigService.GetAccountStatusList(out Success: Boolean): TBloArrayOfPracticeBankAccount;
 var
   BlopiInterface: IBlopiServiceFacade;
   MsgResponse: MessageResponseOfArrayOfPracticeBankAccountrLqac6vj;
@@ -5322,6 +5322,8 @@ var
   Cancelled: Boolean;
   ConnectionError: Boolean;
 begin
+  Success := False;
+  
   if not Assigned(AdminSystem) then
     Exit;
 
@@ -5366,6 +5368,8 @@ begin
       if not MessageResponseHasError(MsgResponse, 'get bank accounts from') then
       begin
         Result := MsgResponse.Result;
+
+        Success := True;
       end;
 
       if ShowProgress then
