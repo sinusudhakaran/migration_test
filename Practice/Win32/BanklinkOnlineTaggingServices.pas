@@ -90,6 +90,9 @@ implementation
 uses
   Files, Globals, ErrorMoreFrm, LogUtil, StDateSt, SYDEFS, BK_TransactionExportXMLHelper, bkConst, math, WebUtils, DirUtils, TransactionUtils, SoapHTTPClient, InfoMoreFrm;
 
+var
+  DebugMe : Boolean = False;
+
 { TBanklinkOnlineServices }
 
 class function TBanklinkOnlineTaggingServices.TestDataService: Boolean;
@@ -480,6 +483,11 @@ begin
                             with TTransactionExporter.Create do
                             begin
                               try
+                                if DebugMe then
+                                begin
+                                  XMLDocument.SaveToFile(Globals.DataDir + 'Tagging_ExportTaggedAccounts' + '_' +  FormatDateTime('yyyy-mm-dd hh-mm-ss zzz', Now) + '.xml');
+                                end;
+
                                 ServiceResponse := SendTransactionData(XMLDocument.XML.Text, 20, ProgressForm.SecondaryProgress, AuthenticationError);
                               finally
                                 Free;
@@ -890,4 +898,7 @@ begin
   Result := ProductConfigService.ProcessData(TransactionData, AuthenticationError, OnSendTransactions);
 end;
 
+initialization
+  DebugMe := DebugUnit('BanklinkOnlineTaggingServices');
+  
 end.
