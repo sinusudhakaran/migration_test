@@ -1,4 +1,4 @@
-// ************************************************************************ //
+ // ************************************************************************ //
 // The types declared in this file were generated from data read from the
 // WSDL File described below:
 // WSDL     : https://www.banklinkonline.com/Services/BlopiServiceFacade.svc?wsdl
@@ -333,10 +333,54 @@ type
   published
   end;
 
+  // ************************************************************************ //
+  // XML       : PracticeBankAccount, global, <complexType>
+  // Namespace : http://schemas.datacontract.org/2004/07/BankLink.PracticeIntegration.Contract.DataContracts
+  // ************************************************************************ //
+  PracticeBankAccount = class(TRemotable)
+  private
+    FAccountId: WideString;
+    FAccountId_Specified: boolean;
+    FAccountName: WideString;
+    FAccountName_Specified: boolean;
+    FAccountNumber: WideString;
+    FAccountNumber_Specified: boolean;
+    FCostCode: WideString;
+    FCostCode_Specified: boolean;
+    FFileNumber: WideString;
+    FFileNumber_Specified: boolean;
+    FRejectionReason: WideString;
+    FRejectionReason_Specified: boolean;
+    FStatus: WideString;
+    FStatus_Specified: boolean;
+    procedure SetAccountId(Index: Integer; const AWideString: WideString);
+    function  AccountId_Specified(Index: Integer): boolean;
+    procedure SetAccountName(Index: Integer; const AWideString: WideString);
+    function  AccountName_Specified(Index: Integer): boolean;
+    procedure SetAccountNumber(Index: Integer; const AWideString: WideString);
+    function  AccountNumber_Specified(Index: Integer): boolean;
+    procedure SetCostCode(Index: Integer; const AWideString: WideString);
+    function  CostCode_Specified(Index: Integer): boolean;
+    procedure SetFileNumber(Index: Integer; const AWideString: WideString);
+    function  FileNumber_Specified(Index: Integer): boolean;
+    procedure SetRejectionReason(Index: Integer; const AWideString: WideString);
+    function  RejectionReason_Specified(Index: Integer): boolean;
+    procedure SetStatus(Index: Integer; const AWideString: WideString);
+    function  Status_Specified(Index: Integer): boolean;
+  published
+    property AccountId:       WideString  Index (IS_OPTN) read FAccountId write SetAccountId stored AccountId_Specified;
+    property AccountName:     WideString  Index (IS_OPTN) read FAccountName write SetAccountName stored AccountName_Specified;
+    property AccountNumber:   WideString  Index (IS_OPTN) read FAccountNumber write SetAccountNumber stored AccountNumber_Specified;
+    property CostCode:        WideString  Index (IS_OPTN) read FCostCode write SetCostCode stored CostCode_Specified;
+    property FileNumber:      WideString  Index (IS_OPTN) read FFileNumber write SetFileNumber stored FileNumber_Specified;
+    property RejectionReason: WideString  Index (IS_OPTN) read FRejectionReason write SetRejectionReason stored RejectionReason_Specified;
+    property Status:          WideString  Index (IS_OPTN) read FStatus write SetStatus stored Status_Specified;
+  end;
+  
   ArrayOfCatalogueEntry = array of CatalogueEntry;   { "http://www.banklinkonline.com/2011/11/Blopi"[GblCplx] }
   ArrayOfServiceErrorMessage = array of ServiceErrorMessage;   { "http://schemas.datacontract.org/2004/07/BankLink.Common.Services"[GblCplx] }
   ArrayOfExceptionDetails = array of ExceptionDetails;   { "http://schemas.datacontract.org/2004/07/BankLink.Common.Services"[GblCplx] }
-
+  ArrayOfPracticeBankAccount = array of PracticeBankAccount;
 
   // ************************************************************************ //
   // XML       : MessageResponse, global, <complexType>
@@ -1422,6 +1466,25 @@ type
     property Messages:  ArrayOfstring  Index (IS_OPTN) read FMessages write SetMessages stored Messages_Specified;
     property Result:    ResultCode     Index (IS_OPTN) read FResult write SetResult stored Result_Specified;
   end;
+
+  
+  // ************************************************************************ //
+  // XML       : MessageResponseOfArrayOfPracticeBankAccountrLqac6vj, global, <complexType>
+  // Namespace : http://schemas.datacontract.org/2004/07/BankLink.Common.Services
+  // ************************************************************************ //
+  MessageResponseOfArrayOfPracticeBankAccountrLqac6vj = class(MessageResponse)
+  private
+    FResult: ArrayOfPracticeBankAccount;
+    FResult_Specified: boolean;
+    
+    procedure SetResult(Index: Integer; const AArrayOfPracticeBankAccount: ArrayOfPracticeBankAccount);
+    function  Result_Specified(Index: Integer): boolean;
+  public
+    destructor Destroy; override;
+  published
+    property Result: ArrayOfPracticeBankAccount  Index (IS_OPTN) read FResult write SetResult stored Result_Specified;
+  end;
+
   
   // ************************************************************************ //
   // Namespace : http://www.banklinkonline.com/2011/11/Blopi
@@ -1468,6 +1531,7 @@ type
     function  GetBankAccountsDataSubscribers(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const clientId: guid): MessageResponseOfDataPlatformClient6cY85e5k; stdcall;
     function  SaveBankAccountDataSubscribers(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const clientId: guid; bankAccountData: DataPlatformBankAccount): MessageResponse; stdcall;
     function  SaveBankAccountsDataSubscribers(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const clientId: guid; accountDataList: ArrayOfDataPlatformBankAccount): MessageResponse; stdcall;
+    function  GetBankAccounts(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString): MessageResponseOfArrayOfPracticeBankAccountrLqac6vj; stdcall;
   end;
 
   IBlopiSecureServiceFacade = interface(IInvokable)
@@ -1563,6 +1627,83 @@ begin
     if (Result = nil) and (HTTPRIO = nil) then
       RIO.Free;
   end;
+end;
+
+procedure PracticeBankAccount.SetAccountId(Index: Integer; const AWideString: WideString);
+begin
+  FAccountId := AWideString;
+  FAccountId_Specified := True;
+end;
+
+function PracticeBankAccount.AccountId_Specified(Index: Integer): boolean;
+begin
+  Result := FAccountId_Specified;
+end;
+
+procedure PracticeBankAccount.SetAccountName(Index: Integer; const AWideString: WideString);
+begin
+  FAccountName := AWideString;
+  FAccountName_Specified := True;
+end;
+
+function PracticeBankAccount.AccountName_Specified(Index: Integer): boolean;
+begin
+  Result := FAccountName_Specified;
+end;
+
+procedure PracticeBankAccount.SetAccountNumber(Index: Integer; const AWideString: WideString);
+begin
+  FAccountNumber := AWideString;
+  FAccountNumber_Specified := True;
+end;
+
+function PracticeBankAccount.AccountNumber_Specified(Index: Integer): boolean;
+begin
+  Result := FAccountNumber_Specified;
+end;
+
+procedure PracticeBankAccount.SetCostCode(Index: Integer; const AWideString: WideString);
+begin
+  FCostCode := AWideString;
+  FCostCode_Specified := True;
+end;
+
+function PracticeBankAccount.CostCode_Specified(Index: Integer): boolean;
+begin
+  Result := FCostCode_Specified;
+end;
+
+procedure PracticeBankAccount.SetFileNumber(Index: Integer; const AWideString: WideString);
+begin
+  FFileNumber := AWideString;
+  FFileNumber_Specified := True;
+end;
+
+function PracticeBankAccount.FileNumber_Specified(Index: Integer): boolean;
+begin
+  Result := FFileNumber_Specified;
+end;
+
+procedure PracticeBankAccount.SetRejectionReason(Index: Integer; const AWideString: WideString);
+begin
+  FRejectionReason := AWideString;
+  FRejectionReason_Specified := True;
+end;
+
+function PracticeBankAccount.RejectionReason_Specified(Index: Integer): boolean;
+begin
+  Result := FRejectionReason_Specified;
+end;
+
+procedure PracticeBankAccount.SetStatus(Index: Integer; const AWideString: WideString);
+begin
+  FStatus := AWideString;
+  FStatus_Specified := True;
+end;
+
+function PracticeBankAccount.Status_Specified(Index: Integer): boolean;
+begin
+  Result := FStatus_Specified;
 end;
 
 destructor DataPlatformSubscription.Destroy;
@@ -2733,6 +2874,29 @@ begin
   FResult_Specified := True;
 end;
 
+{ MessageResponseOfArrayOfPracticeBankAccountrLqac6vj }
+
+destructor MessageResponseOfArrayOfPracticeBankAccountrLqac6vj.Destroy;
+var
+  I: Integer;
+begin
+  for I := 0 to Length(FResult)-1 do
+    FreeAndNil(FResult[I]);
+  SetLength(FResult, 0);
+  inherited Destroy;
+end;
+
+function MessageResponseOfArrayOfPracticeBankAccountrLqac6vj.Result_Specified(Index: Integer): boolean;
+begin
+  Result := FResult_Specified;
+end;
+
+procedure MessageResponseOfArrayOfPracticeBankAccountrLqac6vj.SetResult(Index: Integer; const AArrayOfPracticeBankAccount: ArrayOfPracticeBankAccount);
+begin
+  FResult := AArrayOfPracticeBankAccount;
+  FResult_Specified := True;
+end;
+
 initialization
   InvRegistry.RegisterInterface(TypeInfo(IBlopiServiceFacade), 'http://www.banklinkonline.com/2011/11/Blopi', 'utf-8');
   InvRegistry.RegisterDefaultSOAPAction(TypeInfo(IBlopiServiceFacade), 'http://www.banklinkonline.com/2011/11/Blopi/IBlopiServiceFacade/%operationName%');
@@ -2832,5 +2996,7 @@ initialization
   RemClassRegistry.RegisterXSClass(ClientReadDetail2, 'http://www.banklinkonline.com/2011/11/Blopi', 'ClientReadDetail2', 'ClientReadDetail');
   RemClassRegistry.RegisterXSClass(ClientCreate2, 'http://www.banklinkonline.com/2011/11/Blopi', 'ClientCreate2', 'ClientCreate');
   RemClassRegistry.RegisterXSClass(ClientUpdate2, 'http://www.banklinkonline.com/2011/11/Blopi', 'ClientUpdate2', 'ClientUpdate');
-
+  RemClassRegistry.RegisterXSClass(MessageResponseOfArrayOfPracticeBankAccountrLqac6vj, 'http://schemas.datacontract.org/2004/07/BankLink.Common.Services', 'MessageResponseOfArrayOfPracticeBankAccountrLqac6vj');
+  RemClassRegistry.RegisterXSClass(PracticeBankAccount, 'http://schemas.datacontract.org/2004/07/BankLink.PracticeIntegration.Contract.DataContracts', 'PracticeBankAccount');
+  
 end.
