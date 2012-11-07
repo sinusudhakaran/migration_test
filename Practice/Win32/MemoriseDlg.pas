@@ -1960,7 +1960,7 @@ const
 var
    MemDlg : TdlgMemorise;
    pAcct : pAccount_Rec;
-   i : integer;
+   i     : integer;
    AmountMatchType : byte;
    MemLine : pMemorisation_Line_Rec;
    Memorised_Trans: TMemorisation;
@@ -2230,7 +2230,7 @@ begin
                end;
                Result := true;
            end;
-           mrCopy : begin
+                      mrCopy : begin
                SaveToMemRec(pM, nil, chkMaster.Checked);// Save this one..
                //{have enough data to create a memorised entry record
                if chkMaster.Checked and Assigned(AdminSystem) then begin
@@ -2252,13 +2252,14 @@ begin
                    end else begin
                      Memorised_Trans.mdFields.mdFrom_Master_List := True;
                      EditMemorisedList := TMemorisations_List(SystemMemorisation.smMemorisations);
-                     EditMemorisedList.Insert_Memorisation(Memorised_Trans, True);
-                     SaveSeq := pM.mdFields.mdSequence_No;
+                     EditMemorisedList.Insert_Memorisation(Memorised_Trans);
+                     SaveSeq := Memorised_Trans.mdFields.mdSequence_No;
                      //*** Flag Audit ***
                      SystemAuditMgr.FlagAudit(arMasterMemorisations);
                      SaveAdminSystem;
                      LoadAdminSystem(true, ThisMethodName);
                      UnlockAdmin;              
+                     Memorised_Trans.mdFields.mdSequence_No := SaveSeq;
 
                      //Have to get list again after save
                      SystemMemorisation := AdminSystem.SystemMemorisationList.FindPrefix(Prefix);
@@ -2267,7 +2268,7 @@ begin
 
                      //Edit copy
                      if Assigned(MemorisedList) then
-                       EditMemorisation(ba, MemorisedList, Memorised_Trans, DeleteSelectedMem, True, Prefix);
+                       EditMemorisation(ba, MemorisedList, Memorised_Trans, DeleteSelectedMem, True, Prefix, pM.mdFields^.mdSequence_No);
 
                      // Saving again in case the copy fails the duplicate test, in which case
                      // it will have been deleted, so we need to save the deletion
@@ -2291,8 +2292,6 @@ begin
                //need to remove the copy..
                if pm.mdFields.mdFrom_Master_List then begin
                    MemorisedList.DelFreeItem(pm);
-                   if (ModalResult <> mrCancel) then
-                     DeleteSelectedMem := True;
 
                end else begin
                    ba.baMemorisations_List.DelFreeItem(pm);

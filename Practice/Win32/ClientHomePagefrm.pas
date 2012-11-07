@@ -211,7 +211,7 @@ uses
   Globals,SYDEFS, ToDoListUnit,StDate,Math,MainFrm, BKdateUtils, UpdateMF,baObj32,
   ApplicationUtils, AutoSaveUtils, rptHome, ClientNotesFrm, Files, ClientManagerFrm, BudgetFrm,
   bkXPThemes, ShellAPI, SimpleUIHomepagefrm,
-  ExchangeRateList, frmExchangeRates, GSTUTIL32, ExchangeGainLoss, Dialogs;
+  ExchangeRateList, frmExchangeRates, GSTUTIL32;
 {$R *.dfm}
 
 var
@@ -344,8 +344,6 @@ var
     SelGst : Boolean;
 
     CurParentNode : PVirtualNode;
-    fMonths: TMonthEndings;
-    lr : TRangeCount;
     type TByteSet = set of byte;
 
     procedure AddAccount(Account : TBank_Account; CheckTypes : TByteSet; GroupID : Integer);
@@ -596,35 +594,6 @@ begin //RefreshCoding
             Lbase := TreeList.FindGroupID (grp_Financials);
             if not assigned(lBase) then
                TreeList.AddNodeItem(nil, TCHPBaseItem.Create(FTheClient,'Financial Year',grp_Financials));
-         end;
-
-         // Foreign Exchange
-         {
-         if (FTheClient.clFields.clCountry = whUK) then
-         begin
-           CurParentNode := nil;
-           Lbase := TreeList.FindGroupID (grp_Foreigns);
-           if assigned(lBase) then
-              CurParentNode := Lbase.Node
-           else
-              CurParentNode := TreeList.AddNodeItem(nil, TCHForeignItem.Create(FTheClient,'Foreign Exchange',grp_Foreigns, TMonthEndings));
-         end;
-         }
-
-         if (FTheClient.clFields.clCountry = whUK) then
-         begin
-           Lr := TreeList.TransferMonths;
-//           ShowMessage('FromDate = ' + DateToStr(Lr.Range.FromDate) + ', ToDate = ' + DateToStr(Lr.Range.ToDate));
-           CurParentNode := nil;
-           Lbase := TreeList.FindGroupID (grp_Foreigns);
-           if assigned(lBase) then
-              CurParentNode := Lbase.Node
-           else
-              CurParentNode := TreeList.AddNodeItem(nil, TCHPBaseItem.Create(FTheClient,'Foreign Exchange',grp_Foreigns));
-
-           I := btForeign;
-           if not assigned(TreeList.FindItem(TreeList.TestForeign,i)) then
-             TreeList.AddNodeItem(nil,TCHForeignItem.Create(FTheClient,btNames[I],grp_Foreign, TMonthEndings, TreeList.FillDate));
          end;
 
          RefreshCodingPeriod;

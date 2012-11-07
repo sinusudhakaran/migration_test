@@ -12,8 +12,7 @@ uses //Logutil,
      Contnrs,Controls,bkDateUtils,VirtualTrees, graphics,
      Windows,gstUtil32,clObj32, baObj32,
      ClientCodingStatistics,
-     RzGroupBar,VirtualTreeHandler,
-     ExchangeGainLoss;
+     RzGroupBar,VirtualTreeHandler;
 
 type
   TSelectionArray = array [stFirstPeriod..stLastPeriod] of boolean;
@@ -66,7 +65,6 @@ type
      function  TestGroup    (Item : TTreeBaseItem; var TestFor): Boolean;
      function  TestAccountType (Item : TTreeBaseItem; var TestFor): Boolean;
      function  TestBlanks   (Item : TTreeBaseItem; var TestFor): Boolean;
-     function  TestForeign  (Item : TTreeBaseItem; var TestFor): Boolean;
   end;
 
 
@@ -274,19 +272,7 @@ type
      procedure AfterPaintCell(const Tag: integer; Canvas: TCanvas; CellRect: TRect);override;
   end;
 
-  TCHForeignItem = class (TCHPBaseItem)
-  private
-    FMonthEndings: TMonthEndings;
-    FDateRangeStart: integer;
-    FCodingStats: TClientCodingStatistics;
-  protected
-    function HasAction(Period: Integer): Boolean; override;
-  public
-    constructor Create(AClient: TClientObj; ATitle: string; AGroupID: Integer; MonthEndingsClass: TMonthEndingsClass; DateRangeStart: integer); reintroduce; virtual;
-    procedure AfterPaintCell(const Tag: integer; Canvas: TCanvas; CellRect: TRect); override;
-    procedure OnPaintText(const Tag: Integer; Canvas: TCanvas; TextType: TVSTTextType );override;
-    destructor Destroy; override;
-  end;
+
 
 const
    CHPT_Code = 1;
@@ -310,10 +296,7 @@ const
    grp_Financials  = 7;
    grp_Financial = 8;
 
-   grp_Foreigns = 9;
-   grp_Foreign = 10;
-
-   grpTitles = [grp_Banks, grp_Journals, grp_Taxes, grp_Financials, grp_Foreigns];
+   grpTitles = [grp_Banks, grp_Journals, grp_Taxes, grp_Financials];
 
 
 const
@@ -378,8 +361,7 @@ uses
    //SelectJournalDlg,
    ReportImages,
    AuditMgr,
-   BankLinkOnlineServices,
-   Dialogs;
+   BankLinkOnlineServices;
 
 const
 
@@ -2490,11 +2472,6 @@ begin
    Result := Item is TCHEmptyJournal;
 end;
 
-function TCHPBaseList.TestForeign(Item: TTreeBaseItem; var TestFor): Boolean;
-begin
-  Result := Item is TCHForeignItem;
-end;
-
 function TCHPBaseList.TestGroup(Item: TTreeBaseItem; var TestFor): Boolean;
 begin
    Result := Item.GroupID = Integer(TestFor);
@@ -3090,82 +3067,6 @@ begin
       ShowVATReturn( LInfo.DateRange.Fromdate, LInfo.DateRange.ToDate );
       incUsage(REPORT_LIST_NAMES[Report_VAT] + '(Home Page)');
    end;
-end;
-
-{ TCHForeignItem }
-
-
-{ TCHForeignItem }
-
-constructor TCHForeignItem.Create(AClient: TClientObj; ATitle: string; AGroupID: Integer; MonthEndingsClass: TMonthEndingsClass; DateRangeStart: Integer);
-begin
-  inherited Create(AClient, ATitle, AGroupID);
-  FMonthEndings := TMonthEndingsClass.Create(AClient);
-  FMonthEndings.Refresh([meoDontCullFirstMonths]);
-  FDateRangeStart := DateRangeStart;
-  FCodingStats := TClientCodingStatistics.Create(Client,True,stBlank,Filldate);
-end;
-
-
-procedure TCHForeignItem.AfterPaintCell(const Tag: integer; Canvas: TCanvas;
-  CellRect: TRect);
-var
-  Period, CellPosition: Integer;
-  DateRange: TDateTime;
-  RangeYear, RangeMonth, RangeDay: Word;
-  DR: TDateRange;
-
-  function GetPeriodFillColor(MonthEnding: TMonthEnding): integer;
-  begin
-    if (MonthEnding.Transferred) then
-      Result := bkBranding.ColorTransferred
-    else if (MonthEnding.Finalised) then
-      Result := bkBranding.ColorFinalised
-    else if (MonthEnding.AlreadyRun) then
-      Result := bkBranding.ColorCoded
-    else if (MonthEnding.AvailableData) then
-      Result := bkBranding.ColorUncoded
-    else
-      Result := bkBranding.ColorNoData;
-  end;
-
-begin
-  if (tag = CHPT_Processing) then begin
-    DateRange := StrToDate(DateToStr(FDateRangeStart));
-    DecodeDate(DateRange, RangeYear, RangeMonth, RangeDay);
-
-//    ShowMessage('RangeMonth = ' + IntToStr(RangeMonth));
-//    ShowMessage('DateToStr(FMonthEndings.Items[0].Date = ' + DateToStr(FMonthEndings.Items[0].Date));
-    for Period := 0 to FMonthEndings.Count - 1 do begin
-      // FMonthEndings.Items[Period].GetYear;
-      CellPosition := ((FMonthEndings.Items[Period].GetYear - RangeYear) * 12) +
-                      FMonthEndings.Items[Period].GetMonth - RangeMonth + 12;
-//      ShowMessage('A: ' + IntToStr(FMonthEndings.Items[Period].GetYear) + ', B: ' + IntToStr(RangeYear) +
-//                  ', C: ' + IntToStr(FMonthEndings.Items[Period].GetMonth) + ', D: ' + IntToStr(RangeMonth));
-      DrawCell(CellPosition,GetPeriodFillColor(FMonthEndings.Items[Period]),
-               clBtnShadow, Canvas, CellRect,NodeSelected)
-    end;
-  end;
-  inherited;
-end;
-
-function TCHForeignItem.HasAction(Period: Integer): Boolean;
-begin
-   Result := False;
-end;
-
-procedure TCHForeignItem.OnPaintText(const Tag: Integer; Canvas: TCanvas;
-  TextType: TVSTTextType);
-begin
-  inherited;
-  Canvas.Font.Style := [];
-end;
-
-destructor TCHForeignItem.Destroy;
-begin
-  FMonthEndings.Free;
-
-  inherited;
 end;
 
 end.

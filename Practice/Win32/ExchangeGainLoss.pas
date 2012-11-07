@@ -128,8 +128,6 @@ type
   { ----------------------------------------------------------------------------
     TMonthEndings
   ---------------------------------------------------------------------------- }
-
-
   TMonthEndings = class(TObject)
   private
     fClient: TClientObj;
@@ -186,8 +184,6 @@ type
                 var aErrors: string): boolean;
   end;
 
-  
-  TMonthEndingsClass = class of TMonthEndings;
 
   { ----------------------------------------------------------------------------
     Helper functions
