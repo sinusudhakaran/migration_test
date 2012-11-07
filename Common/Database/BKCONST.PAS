@@ -933,10 +933,11 @@ CONST
    btOpeningBalances = 5;          //non transferring
    btYearEndAdjustments = 6;       //non transferring
    btStockBalances = 7;            //non transferring
+   btForeign = 8;
 
-   btMax = 7;
+   btMax = 8;
 
-   btForeign = btMax + 1; //Not a Direct type, but used in the filter...
+   // btForeign = btMax + 1; //Not a Direct type, but used in the filter...
 
 
 
@@ -950,7 +951,8 @@ CONST
      'Stock/Adjustment Journals',
      'Opening Balances',
      'Year End Adjustments',
-     'Stock Balances' );
+     'Stock Balances',
+     'Exchange Gains/Losses');
 
    btReferences : Array[btMin..btMax ] of String [12] =
    ( '',
@@ -960,7 +962,8 @@ CONST
      'ADJUST JNL',
      'OP BAL JNL',
      'YEAR END JNL',
-     'STOCK JNL'
+     'STOCK JNL',
+     'FOREX JNL'
    );
 
    CashAccountsSet            = [ btBank, btCashJournals];
