@@ -28,8 +28,6 @@ object wizExchangeGainLoss: TwizExchangeGainLoss
     BevelOuter = bvNone
     Color = clWindow
     TabOrder = 0
-    ExplicitWidth = 617
-    ExplicitHeight = 400
     DesignSize = (
       754
       456)
@@ -122,7 +120,6 @@ object wizExchangeGainLoss: TwizExchangeGainLoss
       BevelOuter = bvNone
       Color = 4065024
       TabOrder = 0
-      ExplicitHeight = 400
       DesignSize = (
         144
         456)
@@ -251,7 +248,6 @@ object wizExchangeGainLoss: TwizExchangeGainLoss
       Height = 234
       Anchors = [akLeft, akTop, akRight, akBottom]
       TabOrder = 1
-      ExplicitHeight = 243
       DesignSize = (
         489
         234)
@@ -367,7 +363,6 @@ object wizExchangeGainLoss: TwizExchangeGainLoss
         ReadOnly = True
         ScrollBars = ssVertical
         TabOrder = 0
-        ExplicitHeight = 171
       end
     end
   end
@@ -381,8 +376,6 @@ object wizExchangeGainLoss: TwizExchangeGainLoss
     Caption = 'pnlWizard'
     TabOrder = 1
     Visible = False
-    ExplicitWidth = 593
-    ExplicitHeight = 384
     object Bevel2: TBevel
       Left = 0
       Top = 69
@@ -404,15 +397,9 @@ object wizExchangeGainLoss: TwizExchangeGainLoss
       TabOrder = 2
       TabStop = False
       TabWidth = 5
-      ExplicitWidth = 593
-      ExplicitHeight = 312
       object tbsMonth: TTabSheet
         Caption = 'Page1 -'
         ImageIndex = 4
-        ExplicitLeft = 0
-        ExplicitTop = 0
-        ExplicitWidth = 585
-        ExplicitHeight = 297
         object lblMonthLine1: TLabel
           Left = 8
           Top = 64
@@ -469,10 +456,6 @@ object wizExchangeGainLoss: TwizExchangeGainLoss
       object tbsPost: TTabSheet
         Caption = 'Page2 - Post'
         ImageIndex = 1
-        ExplicitLeft = 0
-        ExplicitTop = 0
-        ExplicitWidth = 585
-        ExplicitHeight = 297
         object Label4: TLabel
           Left = 8
           Top = 85
@@ -559,11 +542,6 @@ object wizExchangeGainLoss: TwizExchangeGainLoss
           ColProperties = <
             item
               DataCol = 1
-              Col.Font.Charset = DEFAULT_CHARSET
-              Col.Font.Color = clWindowText
-              Col.Font.Height = -11
-              Col.Font.Name = 'MS Sans Serif'
-              Col.Font.Style = []
               Col.Heading = 'Account Number'
               Col.HeadingFont.Charset = DEFAULT_CHARSET
               Col.HeadingFont.Color = clWindowText
@@ -572,18 +550,12 @@ object wizExchangeGainLoss: TwizExchangeGainLoss
               Col.HeadingFont.Style = [fsBold]
               Col.HeadingHorzAlignment = htaLeft
               Col.HeadingParentFont = False
-              Col.ParentFont = False
               Col.ReadOnly = True
               Col.HorzAlignment = htaLeft
               Col.Width = 120
             end
             item
               DataCol = 2
-              Col.Font.Charset = DEFAULT_CHARSET
-              Col.Font.Color = clWindowText
-              Col.Font.Height = -11
-              Col.Font.Name = 'MS Sans Serif'
-              Col.Font.Style = []
               Col.Heading = 'Account Name'
               Col.HeadingFont.Charset = DEFAULT_CHARSET
               Col.HeadingFont.Color = clWindowText
@@ -592,17 +564,11 @@ object wizExchangeGainLoss: TwizExchangeGainLoss
               Col.HeadingFont.Style = [fsBold]
               Col.HeadingHorzAlignment = htaLeft
               Col.HeadingParentFont = False
-              Col.ParentFont = False
               Col.ReadOnly = True
               Col.Width = 200
             end
             item
               DataCol = 3
-              Col.Font.Charset = DEFAULT_CHARSET
-              Col.Font.Color = clWindowText
-              Col.Font.Height = -11
-              Col.Font.Name = 'MS Sans Serif'
-              Col.Font.Style = []
               Col.Heading = 'Account'
               Col.HeadingFont.Charset = DEFAULT_CHARSET
               Col.HeadingFont.Color = clWindowText
@@ -611,8 +577,6 @@ object wizExchangeGainLoss: TwizExchangeGainLoss
               Col.HeadingFont.Style = [fsBold]
               Col.HeadingHorzAlignment = htaLeft
               Col.HeadingParentFont = False
-              Col.MaskName = 'sysLongDecimal'
-              Col.ParentFont = False
               Col.ReadOnly = True
               Col.HorzAlignment = htaLeft
               Col.Width = 80
@@ -627,7 +591,6 @@ object wizExchangeGainLoss: TwizExchangeGainLoss
               Col.HeadingFont.Style = [fsBold]
               Col.HeadingHorzAlignment = htaLeft
               Col.HeadingParentFont = False
-              Col.MaskName = 'sysLongDecimal'
               Col.ReadOnly = True
               Col.HorzAlignment = htaRight
               Col.Width = 130
@@ -667,7 +630,6 @@ object wizExchangeGainLoss: TwizExchangeGainLoss
       BevelOuter = bvNone
       Color = clWindow
       TabOrder = 0
-      ExplicitWidth = 593
       DesignSize = (
         754
         69)
@@ -833,8 +795,6 @@ object wizExchangeGainLoss: TwizExchangeGainLoss
     Align = alBottom
     BevelOuter = bvNone
     TabOrder = 2
-    ExplicitTop = 400
-    ExplicitWidth = 622
     DesignSize = (
       754
       42)
@@ -857,7 +817,6 @@ object wizExchangeGainLoss: TwizExchangeGainLoss
       Enabled = False
       TabOrder = 0
       OnClick = btnBackClick
-      ExplicitLeft = 368
     end
     object btnNext: TButton
       Left = 580
@@ -869,7 +828,6 @@ object wizExchangeGainLoss: TwizExchangeGainLoss
       Default = True
       TabOrder = 1
       OnClick = btnNextClick
-      ExplicitLeft = 448
     end
     object btnCancel: TButton
       Left = 668
@@ -881,7 +839,6 @@ object wizExchangeGainLoss: TwizExchangeGainLoss
       Caption = 'Cancel'
       ModalResult = 2
       TabOrder = 2
-      ExplicitLeft = 536
     end
   end
 end

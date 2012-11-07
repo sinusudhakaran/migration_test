@@ -673,8 +673,8 @@ begin
     1: Value := BankAccount.baFields.baBank_Account_Number;
     2: Value := BankAccount.baFields.baBank_Account_Name;
     3: Value := BankAccount.baFields.baExchange_Gain_Loss_Code;
-    4: Value := ''; // TODO_JN
-    5: Value := ''; // TODO_JN
+    4: Value := MonthEndingBankAccount.GainLossCurrency;
+    5: Value := MonthEndingBankAccount.GainLossCrDr;
     else
       ASSERT(false);
   end;

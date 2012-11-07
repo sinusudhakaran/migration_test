@@ -21,7 +21,9 @@ uses
   ExchangeRateList,
   imagesfrm,
   bkConst,
-  Globals;
+  Globals,
+  MoneyUtils,
+  bautils;
 
 type
   { ----------------------------------------------------------------------------
@@ -43,14 +45,22 @@ type
     function  Validate(var aErrors: string): boolean;
   end;
 
-  
+
   { ----------------------------------------------------------------------------
     TMonthEndingBankAccount
   ---------------------------------------------------------------------------- }
-  TMonthEndingBankAccount = record
+  TMonthEndingBankAccount = object
+  public
     BankAccount: TBank_Account;
+    GainLoss: Money;
 
-    // Room for Gain/Loss codes etc
+  public
+    // Gain/Loss with currency symbol
+    function  GetGainLossCurrency: string;
+    property  GainLossCurrency: string read GetGainLossCurrency;
+    // CR/DR
+    function  GetGainLossCrDr: string;
+    property  GainLossCrDr: string read GetGainLossCrDr;
   end;
 
   TMonthEndingBankAccounts = array of TMonthEndingBankAccount;
@@ -81,7 +91,7 @@ type
 
     // Exchange Rate rules
     ExchangeRateMissing: boolean;
-    ExchangeRateMissingPreviousMonth: boolean;
+    ExchangeRateMissingLastDayOfPreviousMonth: boolean;
 
   public
     // Bank Accounts
@@ -98,6 +108,7 @@ type
     property  Transferred: boolean read GetTransferred;
     function  GetMonthEndingDate: TDateTime;
     property  MonthEndingDate: TDateTime read GetMonthEndingDate;
+    procedure DetermineMonthStartEnd(var aStart: TStDate; var aEnd: TStDate);
   end;
 
   TMonthEndingArray = array of TMonthEnding;
@@ -113,7 +124,7 @@ type
 
   TMonthEndingOptions = set of TMonthEndingOption;
 
-  
+
   { ----------------------------------------------------------------------------
     TMonthEndings
   ---------------------------------------------------------------------------- }
@@ -124,10 +135,19 @@ type
     fMonthEndings: TMonthEndingArray;
     fExchangeSource: TExchangeSource;
 
-    // Helpers
+    // Generic helpers
+    procedure AddError(const aError: string; var aErrors: string);
     procedure SplitYearMonth(const aDate: TDateTime; var aYear: integer; var aMonth: integer); overload;
     procedure SplitYearMonth(const aDate: TStDate; var aYear: integer; var aMonth: integer); overload;
     procedure IncreaseYearMonth(var aYear: integer; var aMonth: integer);
+
+    // Exchange helpers
+    function  GetIsoIndex(const aCurrencyCode: string): integer;
+    function  HasExchangeRate(const aDate: TStDate; const aIsoIndex: integer): boolean;
+    function  ApplyExchangeRate(const aDate: TStDate; const aIsoIndex: integer;
+                const aValue: Money): Money;
+
+    // Implementation helpers
     function  GetFirstLastEffective(var aFirstEffective: TDateTime;
                 var aLastEffective: TDateTime): boolean;
     procedure CreateMonthRange(const aFirstEffective: TDateTime;
@@ -140,7 +160,13 @@ type
     procedure DeleteFirstMonth;
     procedure CulFirstMonths;
     procedure VerifyExchangeRatePreviousMonth;
-    procedure AddError(const aError: string; var aErrors: string);
+    procedure GetOpeningClosingBalance(const aStart: TStDate; const aEnd: TStDate;
+                const aBankAccount: TBank_Account; var aOpening: Money;
+                var aClosing: Money);
+    procedure CalculateGainLoss(var aBankAccount: TMonthEndingBankAccount;
+                const aStart: TStDate; const aEnd: TStDate); overload;
+    procedure CalculateGainLoss(var aMonth: TMonthEnding); overload;
+    procedure CalculateGainLoss; overload;
 
   public
     // Constructors
@@ -406,6 +432,36 @@ begin
   result := SysUtils.EncodeDate(Year, Month, iDay);
 end;
 
+{------------------------------------------------------------------------------}
+procedure TMonthEnding.DetermineMonthStartEnd(var aStart: TStDate; var aEnd: TStDate);
+begin
+  aStart := DateTimeToStDate(Date);
+
+  aEnd := DateTimeToStdate(MonthEndingDate);
+end;
+
+
+{ ------------------------------------------------------------------------------
+  TMonthEndings
+------------------------------------------------------------------------------ }
+function TMonthEndingBankAccount.GetGainLossCurrency: string;
+var
+  mAbsGainLoss: Money;
+begin
+  // We're using CR/DR so don't display the sign
+  mAbsGainLoss := Abs(GainLoss);
+  result := MoneyStr(mAbsGainLoss, BankAccount.baFields.baCurrency_Code);
+end;
+
+{------------------------------------------------------------------------------}
+function TMonthEndingBankAccount.GetGainLossCrDr: string;
+begin
+  if (GainLoss >= 0) then
+    result := 'CR'
+  else
+    result := 'DR';
+end;
+
 
 { ------------------------------------------------------------------------------
   TMonthEndings
@@ -426,6 +482,14 @@ destructor TMonthEndings.Destroy;
 begin
   FreeAndNil(fExchangeSource);
   // Do not free fClient
+end;
+
+{------------------------------------------------------------------------------}
+procedure TMonthEndings.AddError(const aError: string; var aErrors: string);
+begin
+  if (aErrors <> '') then
+    aErrors := aErrors + sLineBreak + sLineBreak;
+  aErrors := aErrors + aError;
 end;
 
 {------------------------------------------------------------------------------}
@@ -455,6 +519,51 @@ begin
     Inc(aYear);
     aMonth := 1;
   end;
+end;
+
+{------------------------------------------------------------------------------}
+function TMonthEndings.GetIsoIndex(const aCurrencyCode: string): integer;
+begin
+  result := fExchangeSource.GetISOIndex(aCurrencyCode, fExchangeSource.Header);
+end;
+
+{------------------------------------------------------------------------------}
+function TMonthEndings.HasExchangeRate(const aDate: TStDate;
+  const aIsoIndex: integer): boolean;
+var
+  Rate: TExchangeRecord;
+  RateAmount: Money;
+begin
+  result := false;
+
+  // Now data for this currency?
+  Rate := fExchangeSource.GetDateRates(aDate);
+  if not Assigned(Rate) then
+    exit;
+
+  // No amount?
+  RateAmount := Rate.Rates[aIsoIndex];
+  if (RateAmount = 0) then
+    exit;
+
+  result := true;
+end;
+
+{------------------------------------------------------------------------------}
+function TMonthEndings.ApplyExchangeRate(const aDate: TStDate;
+  const aIsoIndex: integer; const aValue: Money): Money;
+var
+  Rate: TExchangeRecord;
+  RateAmount: Money;
+begin
+  // Exchange rate missing?
+  Rate := fExchangeSource.GetDateRates(aDate);
+  ASSERT(Assigned(Rate), 'Exchange Rate for '+Date2Str(aDate, 'dd/mm/yy')+' not found');
+
+  RateAmount := Rate.Rates[aIsoIndex];
+  ASSERT(RateAmount <> 0);
+
+  result := aValue * RateAmount;
 end;
 
 {------------------------------------------------------------------------------}
@@ -587,18 +696,15 @@ var
   i: integer;
   Transaction: pTransaction_Rec;
   pMonth: PMonthEnding;
-  Rate: TExchangeRecord;
-  RateAmount: double;
 begin
   ASSERT(assigned(aBankAccount));
 
   // Cache this before we check all transactions
-  iIsoIndex := fExchangeSource.GetISOIndex(aBankAccount.baFields.baCurrency_Code,
-    fExchangeSource.Header);
+  iIsoIndex := GetIsoIndex(aBankAccount.baFields.baCurrency_Code);
 
   for i := 0 to aBankAccount.baTransaction_List.ItemCount-1 do
   begin
-    Transaction := aBankAccount.baTransaction_List.Transaction_At(i);
+    Transaction := aBankAccount.baTransaction_List[i];
 
     // Not within given month?
     pMonth := FindMonthEnding(Transaction.txDate_Effective);
@@ -619,14 +725,7 @@ begin
       Inc(pMonth.NrTransferred);
 
     // Exchange rate missing?
-    Rate := fExchangeSource.GetDateRates(Transaction.txDate_Effective);
-    if Assigned(Rate) then
-    begin
-      RateAmount := Rate.Rates[iIsoIndex];
-      if (RateAmount = 0) then
-        pMonth.ExchangeRateMissing := true;
-    end
-    else
+    if not HasExchangeRate(Transaction.txDate_Effective, iIsoIndex) then
       pMonth.ExchangeRateMissing := true;
   end;
 end;
@@ -745,21 +844,127 @@ end;
 {------------------------------------------------------------------------------}
 procedure TMonthEndings.VerifyExchangeRatePreviousMonth;
 var
-  i: integer;
+  iMonth: integer;
+  pMonth: ^TMonthEnding;
   dtDate: TDateTime;
   stDate: TStDate;
-  Rate: TExchangeRecord;
+  iBankAccount: integer;
+  BankAccount: TBank_Account;
+  iIsoIndex: integer;
 begin
-  for i := 0 to Count-1 do
+  for iMonth := 0 to Count-1 do
   begin
-    // Date is already in the format of (1 Month Year")
-    dtDate := IncDay(fMonthEndings[i].Date, -1);
+    pMonth := @fMonthEndings[iMonth];
+
+    { Date is already in the format of (1/<Month>/<Year>), so decrease is enough
+      to get the last day of the previous month }
+    dtDate := IncDay(pMonth.Date, -1);
     stDate := DateTimeToStDate(dtDate);
 
-    // Check we have an exchange rate in the last day of the previous month
-    Rate := fExchangeSource.GetDateRates(stDate);
-    if not Assigned(Rate) then
-      fMonthEndings[i].ExchangeRateMissingPreviousMonth := true;
+    // Examine all bank accounts
+    for iBankAccount := 0 to High(pMonth.BankAccounts) do
+    begin
+      BankAccount := pMonth.BankAccounts[iBankAccount].BankAccount;
+      ASSERT(Assigned(BankAccount));
+
+      // Check we have an exchange rate in the last day of the previous month
+      iIsoIndex := GetIsoIndex(BankAccount.baFields.baCurrency_Code);
+      if not HasExchangeRate(stDate, iIsoIndex) then
+        pMonth.ExchangeRateMissingLastDayOfPreviousMonth := true;
+    end;
+  end;
+end;
+
+{------------------------------------------------------------------------------}
+procedure TMonthEndings.GetOpeningClosingBalance(const aStart: TStDate;
+  const aEnd: TStDate; const aBankAccount: TBank_Account; var aOpening: Money;
+  var aClosing: Money);
+var
+  SystemOpBal: Money; // Dummy
+  SystemClBal: Money; // Dummy
+begin
+  GetBalances(aBankAccount, aStart, aEnd, aOpening, aClosing, SystemOpBal, SystemClBal);
+end;
+
+{------------------------------------------------------------------------------}
+procedure TMonthEndings.CalculateGainLoss(var aBankAccount: TMonthEndingBankAccount;
+  const aStart: TStDate; const aEnd: TStDate);
+var
+  // See spec
+  OB   : Money; // Opening Balance
+  COB  : Money; // Converted Opening Balance
+  CB   : Money; // Closing Balance
+  CCB  : Money; // Converted Closing Balance
+  CSUM : Money; // Converted sum of all transactions
+
+  BankAccount: TBank_Account;
+  Transactions: TTransaction_List;
+  iIsoIndex: integer;
+  i: integer;
+  Transaction: pTransaction_Rec;
+  dtEffective: TStDate;
+  mConvertedAmount: Money;
+begin
+  BankAccount := aBankAccount.BankAccount;
+  ASSERT(Assigned(BankACcount));
+  Transactions := BankAccount.baTransaction_List;
+  ASSERT(assigned(Transactions));
+
+  // Determine currency column for later calculations (ApplyExchangeRate)
+  iIsoIndex := GetIsoIndex(BankAccount.baFields.baCurrency_Code);
+
+  // Opening/Closing Balance
+  GetOpeningClosingBalance(aStart, aEnd, BankAccount, OB, CB);
+  COB := ApplyExchangeRate(aStart, iIsoIndex, OB);
+  CCB := ApplyExchangeRate(aEnd, iIsoIndex, CB);
+
+  // Closing Balance and Sum for transactions
+  CSUM := 0;
+  for i := 0 to Transactions.ItemCount-1 do
+  begin
+    Transaction := Transactions[i];
+    ASSERT(Assigned(Transaction));
+
+    // Not within range?
+    dtEffective := Transaction.txDate_Effective;
+    if not ((aStart <= dtEffective) and (dtEffective <= aEnd)) then
+      continue;
+
+    // CSUM
+    mConvertedAmount := ApplyExchangeRate(dtEffective, iIsoIndex, Transaction.txAmount);
+    CSUM := CSUM + mConvertedAmount;
+  end;
+
+  // Exchange Gain/Loss
+  aBankAccount.GainLoss := (COB - CCB) - CSUM;
+end;
+
+{------------------------------------------------------------------------------}
+procedure TMonthEndings.CalculateGainLoss(var aMonth: TMonthEnding);
+var
+  i: integer;
+  dtStart: TStDate;
+  dtEnd: TStDate;
+begin
+  for i := 0 to High(aMonth.BankAccounts) do
+  begin
+    // If there are errors in the exchange rates, don't calculate the gain/loss
+    if aMonth.ExchangeRateMissing or aMonth.ExchangeRateMissingLastDayOfPreviousMonth then
+      continue;
+
+    aMonth.DetermineMonthStartEnd(dtStart, dtEnd);
+    CalculateGainLoss(aMonth.BankAccounts[i], dtStart, dtEnd);
+  end;
+end;
+
+{------------------------------------------------------------------------------}
+procedure TMonthEndings.CalculateGainLoss;
+var
+  i: integer;
+begin
+  for i := 0 to High(fMonthEndings) do
+  begin
+    CalculateGainLoss(fMonthEndings[i]);
   end;
 end;
 
@@ -772,7 +977,7 @@ begin
   // Store options for later
   fOptions := aOptions;
 
-  // Clear array of previous data
+  // Clear previous months
   SetLength(fMonthEndings, 0);
 
   // Nothing?
@@ -782,7 +987,7 @@ begin
   // Create month range based on the first/last Effective dates
   CreateMonthRange(dtFirstEffective, dtLastEffective);
 
-  // Update the month status (Locked, Transferred, Already Run)
+  // Update the month status (Locked, Transferred, Already Run, Exchange)
   SetMonthEnding;
 
   // Remove the first months that have already been run
@@ -790,6 +995,11 @@ begin
 
   // Verify if there's an exchange rate on the last day of the previous month
   VerifyExchangeRatePreviousMonth;
+
+  { Calculate ALL Gain/Loss amounts
+    Note: we may later need to replace this with an "on-demand" system, where
+    calculations only occur as required. }
+  CalculateGainLoss;
 end;
 
 {------------------------------------------------------------------------------}
@@ -802,14 +1012,6 @@ end;
 function TMonthEndings.GetItem(const aIndex: integer): TMonthEnding;
 begin
   result := fMonthEndings[aIndex];
-end;
-
-{------------------------------------------------------------------------------}
-procedure TMonthEndings.AddError(const aError: string; var aErrors: string);
-begin
-  if (aErrors <> '') then
-    aErrors := aErrors + sLineBreak + sLineBreak;
-  aErrors := aErrors + aError;
 end;
 
 {------------------------------------------------------------------------------}
@@ -827,7 +1029,7 @@ begin
       AddError(ERR_AVAILABLE_DATA, aErrors)
     else if ExchangeRateMissing then
       AddError(ERR_MISSING_EXCHANGE_RATE, aErrors)
-    else if ExchangeRateMissingPreviousMonth then
+    else if ExchangeRateMissingLastDayOfPreviousMonth then
       AddError(ERR_MISSING_EXCHANGE_RATE_PREVIOUS_MONTH, aErrors);
   end;
 
