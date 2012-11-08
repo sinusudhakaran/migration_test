@@ -127,11 +127,7 @@ type
     rsMaxNarration: TRzSpinEdit;
     PZero: TPanel;
     chkZeroAmounts: TCheckBox;
-    Bevel7: TBevel;
-    lblRequestLocking: TLabel;
-    lblGrantLockingRequest: TLabel;
-    lblSMB2Enabled: TLabel;
-    Label3: TLabel;
+    Button1: TButton;
     procedure FormCreate(Sender: TObject);
     procedure btnBackupDirClick(Sender: TObject);
     procedure btnRestoreDefaultsClick(Sender: TObject);
@@ -152,6 +148,7 @@ type
     procedure cbceFontChange(Sender: TObject);
     procedure eDate1Change(Sender: TObject);
     procedure eDate1DblClick(Sender: TObject);
+    procedure Button1Click(Sender: TObject);
   private
 
     HeaderFooterChanged : Boolean;
@@ -172,8 +169,7 @@ type
 
     procedure UpdateFontLabel;
 
-    procedure CheckClientSideOpportunisticLocking;
-    procedure CheckServerSideOpportunisticLocking;
+    procedure CheckOpportunisticLocking;
 
 
     { Private declarations }
@@ -218,7 +214,7 @@ uses
   //ReportStylesDlg,
   ChangePwdDlg, EnterPwdDlg, bkdateutils,
   Registry,
-  StrUtils;
+  StrUtils, LOGUTIL;
 
 {$R *.dfm}
 
@@ -269,8 +265,6 @@ begin
       LoadSettingsFromINI;
       LoadSettingsFromAdmin;
       UpdateControlsOnForm;
-      CheckClientSideOpportunisticLocking;
-      CheckServerSideOpportunisticLocking;
 
       //****************************
       if ShowModal = mrOK then begin
@@ -668,6 +662,11 @@ begin
 end;
 
 
+procedure TdlgAdminOptions.Button1Click(Sender: TObject);
+begin
+  CheckOpportunisticLocking;
+end;
+
 procedure TdlgAdminOptions.btnResetClick(Sender: TObject);
 begin
   StrToFont(DefaultCESFontString,CESFont);
@@ -708,44 +707,66 @@ begin
   UpdateFontLabel;
 end;
 
-procedure TdlgAdminOptions.CheckClientSideOpportunisticLocking;
+procedure TdlgAdminOptions.CheckOpportunisticLocking;
+
+  function AppendMessage(const CurrentMsg, NewMsg: String): String;
+  begin
+    if CurrentMsg <> '' then
+    begin
+      Result := CurrentMsg + #10#13 + NewMsg;
+    end
+    else
+    begin
+      Result := NewMsg;
+    end;
+  end;
+  
+var
+  Msg: String;
 begin
   if GetClientRequestOpsLockEnabled then
   begin
-    lblRequestLocking.Caption := '- Request Opportunistic Locking is enabled.';
+    Msg := AppendMessage(Msg, '- Request Opportunistic Locking is enabled.');
+
+    LogUtil.LogMsg(lmInfo, 'AdminOptionsDlg', 'Request Opportunistic Locking is enabled');
   end
   else
   begin
-    lblRequestLocking.Caption := '- Request Opportunistic Locking is disabled.';
-  end;
-end;
+    Msg := AppendMessage(Msg, '- Request Opportunistic Locking is disabled.');
 
-procedure TdlgAdminOptions.CheckServerSideOpportunisticLocking;
-begin
+    LogUtil.LogMsg(lmInfo, 'AdminOptionsDlg', 'Request Opportunistic Locking is disabled');
+  end;
+
   if GetServerGrantOpsLockEnabled then
   begin
-    lblGrantLockingRequest.Caption := '- Grant Opportunistic Locking is enabled.';
+    Msg := AppendMessage(Msg, '- Grant Opportunistic Locking is enabled.');
+
+    LogUtil.LogMsg(lmInfo, 'AdminOptionsDlg', 'Grant Opportunistic Locking is enabled');
   end
   else
   begin
-    lblGrantLockingRequest.Caption := '- Grant Opportunistic Locking requests is disabled.';
+    Msg := AppendMessage(Msg, '- Grant Opportunistic Locking requests is disabled.');
+
+    LogUtil.LogMsg(lmInfo, 'AdminOptionsDlg', 'Grant Opportunistic Locking requests is disabled');
   end;
 
   if IsWindowsVista then
   begin
     if GetServerSMB2Enabled then
     begin
-      lblSMB2Enabled.Caption := '- SMB2 is enabled.';
+      Msg := AppendMessage(Msg, '- SMB2 is enabled.');
+      
+      LogUtil.LogMsg(lmInfo, 'AdminOptionsDlg', 'SMB2 is enabled');
     end
     else
     begin
-      lblSMB2Enabled.Caption := '- SMB2 is disabled.';
+      Msg := AppendMessage(Msg, '- SMB2 is disabled.');
+
+      LogUtil.LogMsg(lmInfo, 'AdminOptionsDlg', 'SMB2 is disabled');
     end;
-  end
-  else
-  begin
-    lblSMB2Enabled.Visible := False;
   end;
+
+  HelpfulInfoMsg(Msg, 0);
 end;
 
 procedure TdlgAdminOptions.ckBulkExportClick(Sender: TObject);
