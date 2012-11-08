@@ -1130,10 +1130,6 @@ end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 procedure TfrmMain.FormCreate(Sender: TObject);
-var
-  RequestOpsLockMsg: String;
-  GrantOpsLockMsg: String;
-  SMB2Msg: String;
 begin
   ApplicationIsStarting := true;
   Globals.DDE_Macro_To_Process := '';
@@ -1220,42 +1216,6 @@ begin
   UPDATEMF.UpdateSystemMenus;
   Screen.OnActiveFormChange := ActiveFormChange;
   if DebugMe then LogUtil.LogMsg(lmDebug,unitname,'Form Created');
-
-  if GetClientRequestOpsLockEnabled then
-  begin
-    RequestOpsLockMsg := 'Request Opportunistic Locking Enabled';
-  end
-  else
-  begin
-    RequestOpsLockMsg := 'Request Opportunistic Locking Disabled';
-  end;
-
-  if GetServerGrantOpsLockEnabled then
-  begin
-    GrantOpsLockMsg := 'Grant Opportunistic Locking Enabled'
-  end
-  else
-  begin
-    GrantOpsLockMsg := 'Grant Opportunistic Locking Disabled';
-  end;
-
-  if IsWindowsVista then
-  begin
-    if GetServerSMB2Enabled then
-    begin
-      SMB2Msg := 'SMB2 is enabled';
-    end
-    else
-    begin
-      SMB2Msg := 'SMB2 is disabled';
-    end;
-
-    LogUtil.LogMsg(lmInfo, unitname, Format('%s|%s|%s', [RequestOpsLockMsg, GrantOpsLockMsg, SMB2Msg]));
-  end
-  else
-  begin
-    LogUtil.LogMsg(lmInfo, unitname, Format('%s|%s', [RequestOpsLockMsg, GrantOpsLockMsg]));
-  end;
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmMain.actGetFromFolderExecute(Sender: TObject);
