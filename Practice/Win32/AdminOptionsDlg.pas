@@ -127,6 +127,11 @@ type
     rsMaxNarration: TRzSpinEdit;
     PZero: TPanel;
     chkZeroAmounts: TCheckBox;
+    Bevel7: TBevel;
+    lblRequestLocking: TLabel;
+    lblGrantLockingRequest: TLabel;
+    lblSMB2Enabled: TLabel;
+    Label3: TLabel;
     procedure FormCreate(Sender: TObject);
     procedure btnBackupDirClick(Sender: TObject);
     procedure btnRestoreDefaultsClick(Sender: TObject);
@@ -167,7 +172,8 @@ type
 
     procedure UpdateFontLabel;
 
-   
+    procedure CheckClientSideOpportunisticLocking;
+    procedure CheckServerSideOpportunisticLocking;
 
 
     { Private declarations }
@@ -210,7 +216,9 @@ uses
   UpgradeHelper,
   LockUtils,
   //ReportStylesDlg,
-  ChangePwdDlg, EnterPwdDlg, bkdateutils;
+  ChangePwdDlg, EnterPwdDlg, bkdateutils,
+  Registry,
+  StrUtils;
 
 {$R *.dfm}
 
@@ -261,6 +269,8 @@ begin
       LoadSettingsFromINI;
       LoadSettingsFromAdmin;
       UpdateControlsOnForm;
+      CheckClientSideOpportunisticLocking;
+      CheckServerSideOpportunisticLocking;
 
       //****************************
       if ShowModal = mrOK then begin
@@ -696,6 +706,46 @@ begin
   CESFont.Size := StrToInt(cbSize.Text);
   cbCEFont.FontSize := CESFont.Size;
   UpdateFontLabel;
+end;
+
+procedure TdlgAdminOptions.CheckClientSideOpportunisticLocking;
+begin
+  if GetClientRequestOpsLockEnabled then
+  begin
+    lblRequestLocking.Caption := '- Request Opportunistic Locking is enabled.';
+  end
+  else
+  begin
+    lblRequestLocking.Caption := '- Request Opportunistic Locking is disabled.';
+  end;
+end;
+
+procedure TdlgAdminOptions.CheckServerSideOpportunisticLocking;
+begin
+  if GetServerGrantOpsLockEnabled then
+  begin
+    lblGrantLockingRequest.Caption := '- Grant Opportunistic Locking is enabled.';
+  end
+  else
+  begin
+    lblGrantLockingRequest.Caption := '- Grant Opportunistic Locking requests is disabled.';
+  end;
+
+  if IsWindowsVista then
+  begin
+    if GetServerSMB2Enabled then
+    begin
+      lblSMB2Enabled.Caption := '- SMB2 is enabled.';
+    end
+    else
+    begin
+      lblSMB2Enabled.Caption := '- SMB2 is disabled.';
+    end;
+  end
+  else
+  begin
+    lblSMB2Enabled.Visible := False;
+  end;
 end;
 
 procedure TdlgAdminOptions.ckBulkExportClick(Sender: TObject);
