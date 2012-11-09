@@ -68,11 +68,37 @@ function GetJobName(pD: pTransaction_Rec; Client: TClientObj): String; overload;
 function GetPayeeName(pD: pDissection_Rec; Client: TClientObj): String; overload;
 function GetJobName(pD: pDissection_Rec; Client: TClientObj): String; overload;
 
+function IsFullyCodedTransaction(Client: TClientObj; Transaction: pTransaction_Rec): Boolean;
+
 //******************************************************************************
 implementation
 uses
   bkConst, ComObj, SysUtils, Globals, bkdateutils, PayeeObj;
 
+function IsFullyCodedTransaction(Client: TClientObj; Transaction: pTransaction_Rec): Boolean;
+var
+  ChartIndex: Integer;
+  ChartAccount: pAccount_Rec;
+begin
+  if Transaction.txAccount <> '' then
+  begin
+    ChartAccount := Client.clChart.FindCode(Transaction.txAccount);
+
+    if ChartAccount <> nil then
+    begin
+      Result := ChartAccount.chPosting_Allowed;
+    end
+    else
+    begin
+      Result := False;
+    end;
+  end
+  else
+  begin
+    Result := False;
+  end;
+end;
+  
 function TrimGUID( aGUID : string) : string;
 begin
   result := StringReplace( aGUID, '-', '', [rfReplaceAll]);
