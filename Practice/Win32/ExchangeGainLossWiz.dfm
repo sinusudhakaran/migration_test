@@ -519,7 +519,7 @@ object wizExchangeGainLoss: TwizExchangeGainLoss
           Height = 13
           Caption = 
             'BankLink Practice will post the calculated Gain or Loss on Excha' +
-            'nge in local currency as listed below.'
+            'nge in local currency as listed below:'
         end
         object Label5: TLabel
           Left = 8
@@ -667,7 +667,7 @@ object wizExchangeGainLoss: TwizExchangeGainLoss
           Width = 193
           Height = 25
           Anchors = [akLeft, akBottom]
-          Caption = 'Print Foreign Exchange Report'
+          Caption = '&Print Foreign Exchange Report'
           TabOrder = 1
           OnClick = btnPrintForeignCurrencyReportClick
         end
@@ -677,7 +677,7 @@ object wizExchangeGainLoss: TwizExchangeGainLoss
           Width = 449
           Height = 17
           Anchors = [akLeft, akBottom]
-          Caption = 'Show the Exchange Gains/Losses screen after clicking Finish.'
+          Caption = '&Show the Exchange Gains/Losses screen after clicking Finish.'
           TabOrder = 2
         end
       end
