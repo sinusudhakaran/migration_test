@@ -339,7 +339,7 @@ type
   // ************************************************************************ //
   PracticeBankAccount = class(TRemotable)
   private
-    FAccountId: WideString;
+    FAccountId: Integer;
     FAccountId_Specified: boolean;
     FAccountName: WideString;
     FAccountName_Specified: boolean;
@@ -347,13 +347,15 @@ type
     FAccountNumber_Specified: boolean;
     FCostCode: WideString;
     FCostCode_Specified: boolean;
+    FCreatedDate: TXSDateTime;
+    FCreatedDate_Specified: boolean;
     FFileNumber: WideString;
     FFileNumber_Specified: boolean;
     FRejectionReason: WideString;
     FRejectionReason_Specified: boolean;
     FStatus: WideString;
     FStatus_Specified: boolean;
-    procedure SetAccountId(Index: Integer; const AWideString: WideString);
+    procedure SetAccountId(Index: Integer; const AInteger: Integer);
     function  AccountId_Specified(Index: Integer): boolean;
     procedure SetAccountName(Index: Integer; const AWideString: WideString);
     function  AccountName_Specified(Index: Integer): boolean;
@@ -361,20 +363,25 @@ type
     function  AccountNumber_Specified(Index: Integer): boolean;
     procedure SetCostCode(Index: Integer; const AWideString: WideString);
     function  CostCode_Specified(Index: Integer): boolean;
+    procedure SetCreatedDate(Index: Integer; const ATXSDateTime: TXSDateTime);
+    function  CreatedDate_Specified(Index: Integer): boolean;
     procedure SetFileNumber(Index: Integer; const AWideString: WideString);
     function  FileNumber_Specified(Index: Integer): boolean;
     procedure SetRejectionReason(Index: Integer; const AWideString: WideString);
     function  RejectionReason_Specified(Index: Integer): boolean;
     procedure SetStatus(Index: Integer; const AWideString: WideString);
     function  Status_Specified(Index: Integer): boolean;
+  public
+    destructor Destroy; override;
   published
-    property AccountId:       WideString  Index (IS_OPTN) read FAccountId write SetAccountId stored AccountId_Specified;
-    property AccountName:     WideString  Index (IS_OPTN) read FAccountName write SetAccountName stored AccountName_Specified;
-    property AccountNumber:   WideString  Index (IS_OPTN) read FAccountNumber write SetAccountNumber stored AccountNumber_Specified;
-    property CostCode:        WideString  Index (IS_OPTN) read FCostCode write SetCostCode stored CostCode_Specified;
-    property FileNumber:      WideString  Index (IS_OPTN) read FFileNumber write SetFileNumber stored FileNumber_Specified;
-    property RejectionReason: WideString  Index (IS_OPTN) read FRejectionReason write SetRejectionReason stored RejectionReason_Specified;
-    property Status:          WideString  Index (IS_OPTN) read FStatus write SetStatus stored Status_Specified;
+    property AccountId:       Integer      Index (IS_OPTN) read FAccountId write SetAccountId stored AccountId_Specified;
+    property AccountName:     WideString   Index (IS_OPTN) read FAccountName write SetAccountName stored AccountName_Specified;
+    property AccountNumber:   WideString   Index (IS_OPTN) read FAccountNumber write SetAccountNumber stored AccountNumber_Specified;
+    property CostCode:        WideString   Index (IS_OPTN) read FCostCode write SetCostCode stored CostCode_Specified;
+    property CreatedDate:     TXSDateTime  Index (IS_OPTN) read FCreatedDate write SetCreatedDate stored CreatedDate_Specified;
+    property FileNumber:      WideString   Index (IS_OPTN) read FFileNumber write SetFileNumber stored FileNumber_Specified;
+    property RejectionReason: WideString   Index (IS_OPTN) read FRejectionReason write SetRejectionReason stored RejectionReason_Specified;
+    property Status:          WideString   Index (IS_OPTN) read FStatus write SetStatus stored Status_Specified;
   end;
   
   ArrayOfCatalogueEntry = array of CatalogueEntry;   { "http://www.banklinkonline.com/2011/11/Blopi"[GblCplx] }
@@ -1629,9 +1636,9 @@ begin
   end;
 end;
 
-procedure PracticeBankAccount.SetAccountId(Index: Integer; const AWideString: WideString);
+procedure PracticeBankAccount.SetAccountId(Index: Integer; const AInteger: Integer);
 begin
-  FAccountId := AWideString;
+  FAccountId := AInteger;
   FAccountId_Specified := True;
 end;
 
@@ -1668,9 +1675,28 @@ begin
   FCostCode_Specified := True;
 end;
 
+procedure PracticeBankAccount.SetCreatedDate(Index: Integer;
+  const ATXSDateTime: TXSDateTime);
+begin
+  FCreatedDate := ATXSDateTime;
+  FCreatedDate_Specified := True;
+end;
+
 function PracticeBankAccount.CostCode_Specified(Index: Integer): boolean;
 begin
   Result := FCostCode_Specified;
+end;
+
+function PracticeBankAccount.CreatedDate_Specified(Index: Integer): boolean;
+begin
+  Result := FCreatedDate_Specified;
+end;
+
+destructor PracticeBankAccount.Destroy;
+begin
+  FreeAndNil(FCreatedDate);
+
+  inherited;
 end;
 
 procedure PracticeBankAccount.SetFileNumber(Index: Integer; const AWideString: WideString);
