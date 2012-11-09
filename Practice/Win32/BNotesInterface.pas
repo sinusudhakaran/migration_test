@@ -289,8 +289,7 @@ begin
                //check is in date range
                if (( T.txDate_Effective < DateFrom) or ( T.txDate_Effective > DateTo))
                   or
-                  (( aClient.clFields.clECoding_Entry_Selection = esUncodedOnly) and
-                   ( T.txAccount <> '')) then
+                  (( aClient.clFields.clECoding_Entry_Selection = esUncodedOnly) and IsFullyCodedTransaction(aClient, T)) then
                begin
                   SkipTransaction := true;
                end;
