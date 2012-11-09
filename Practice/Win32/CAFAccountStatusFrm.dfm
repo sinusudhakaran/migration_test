@@ -1,6 +1,7 @@
 object frmCAFAccountStatus: TfrmCAFAccountStatus
   Left = 0
   Top = 0
+  ActiveControl = cmbAccountFilter
   Caption = 'Account Status'
   ClientHeight = 481
   ClientWidth = 1013
@@ -10,9 +11,11 @@ object frmCAFAccountStatus: TfrmCAFAccountStatus
   Font.Height = -11
   Font.Name = 'Tahoma'
   Font.Style = []
+  KeyPreview = True
   OldCreateOrder = False
+  Position = poMainFormCenter
   OnCreate = FormCreate
-  OnShow = FormShow
+  OnKeyPress = FormKeyPress
   DesignSize = (
     1013
     481)
@@ -47,7 +50,7 @@ object frmCAFAccountStatus: TfrmCAFAccountStatus
     Header.Font.Height = -11
     Header.Font.Name = 'Tahoma'
     Header.Font.Style = []
-    Header.Options = [hoColumnResize, hoDrag, hoShowSortGlyphs, hoVisible]
+    Header.Options = [hoColumnResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible]
     Header.Style = hsXPStyle
     LineStyle = lsSolid
     ParentBackground = False
@@ -57,8 +60,6 @@ object frmCAFAccountStatus: TfrmCAFAccountStatus
     OnCompareNodes = lvAccountStatusCompareNodes
     OnGetText = lvAccountStatusGetText
     OnHeaderClick = lvAccountStatusHeaderClick
-    ExplicitWidth = 1179
-    ExplicitHeight = 521
     Columns = <
       item
         Options = [coAllowClick, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible]
@@ -103,8 +104,6 @@ object frmCAFAccountStatus: TfrmCAFAccountStatus
     Width = 1013
     Height = 19
     Panels = <>
-    ExplicitTop = 640
-    ExplicitWidth = 1195
   end
   object Button1: TButton
     Left = 930
@@ -113,24 +112,22 @@ object frmCAFAccountStatus: TfrmCAFAccountStatus
     Height = 25
     Anchors = [akRight, akBottom]
     Caption = 'Ok'
+    Default = True
     ModalResult = 1
     TabOrder = 2
-    ExplicitLeft = 1112
-    ExplicitTop = 606
   end
   object cmbAccountFilter: TComboBox
     Left = 100
     Top = 38
-    Width = 169
+    Width = 189
     Height = 21
     Style = csDropDownList
     ItemHeight = 13
     TabOrder = 3
     OnSelect = cmbAccountFilterSelect
     Items.Strings = (
-      'All'
-      'Show me Active'
-      'Show me Deleted'
-      'Show me everything else')
+      'Exclude Active and Deleted'
+      'Active Only'
+      'Deleted Only')
   end
 end

@@ -6,11 +6,8 @@ uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, VirtualTrees, StdCtrls, ComCtrls, OSFont, BankLinkOnlineServices;
 
-const
-  WM_AFTERSHOW = WM_USER + 1;
-  
 type
-  TAccountFilterType = (afAll = 0, afActive = 1, afDeleted = 2, afEverythingElse = 3);
+  TAccountFilterType = (afEverythingElse = 0, afActive = 1, afDeleted = 2);
   
   PNodeData = ^TNodeData;
   TNodeData = record
@@ -26,7 +23,6 @@ type
     Label2: TLabel;
     procedure lvAccountStatusCompareNodes(Sender: TBaseVirtualTree; Node1,
       Node2: PVirtualNode; Column: TColumnIndex; var Result: Integer);
-    procedure FormShow(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure lvAccountStatusGetText(Sender: TBaseVirtualTree;
       Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType;
@@ -35,13 +31,14 @@ type
     procedure lvAccountStatusHeaderClick(Sender: TVTHeader;
       Column: TColumnIndex; Button: TMouseButton; Shift: TShiftState; X,
       Y: Integer);
+    procedure FormKeyPress(Sender: TObject; var Key: Char);
   private
     FAccountList: TBloArrayOfPracticeBankAccount;
 
     FLastSortedColumn: Integer;
     FLastSortDirection: TSortDirection;
     
-    procedure Refresh;
+    function Refresh: Boolean;
     
     function CheckFilter(const AccountStatus: String; FilterType: TAccountFilterType): Boolean;
     
@@ -55,10 +52,10 @@ type
     procedure PopulateAccountStatusList;
     procedure SortAccountStatusList(Column: Integer); overload;
     procedure SortAccountStatusList(Column: Integer; Direction: TSortDirection); overload;
-
-    procedure WMAfterShow(var Message: TMessage); message WM_AFTERSHOW;
   public
-    class procedure Execute(Owner: TComponent; PopupParent: TCustomForm); static;
+    function Execute: Boolean;
+    
+    class procedure ExecuteModal(Owner: TComponent; PopupParent: TCustomForm); static;
   end;
 
 var
@@ -73,10 +70,9 @@ implementation
 function TfrmCAFAccountStatus.CheckFilter(const AccountStatus: String; FilterType: TAccountFilterType): Boolean;
 begin
   case FilterType of
-    afAll: Result := True;
+    afEverythingElse: Result := not (CheckFilter(AccountStatus, afActive) or CheckFilter(AccountStatus, afDeleted));
     afActive: Result := CompareText(AccountStatus, 'Active') = 0;
     afDeleted: Result := CompareText(AccountStatus, 'Deleted') = 0;
-    afEverythingElse: Result := not (CheckFilter(AccountStatus, afActive) or CheckFilter(AccountStatus, afDeleted));
   end;
 end;
 
@@ -93,8 +89,8 @@ end;
 function TfrmCAFAccountStatus.DoAccountNameColumnCompare(NodeData1, NodeData2: PNodeData): Integer;
 begin
   Result := CompareText(
-    FAccountList[NodeData1.Source].AccountName,
-    FAccountList[NodeData2.Source].AccountName);  
+    FAccountList[NodeData1.Source].AccountName + FormatDateTime('yyyymmdd', FAccountList[NodeData1.Source].CreatedDate.AsDateTime),
+    FAccountList[NodeData2.Source].AccountName + FormatDateTime('yyyymmdd', FAccountList[NodeData2.Source].CreatedDate.AsDateTime));
 end;
 
 function TfrmCAFAccountStatus.DoAccountNumberColumnCompare(NodeData1, NodeData2: PNodeData): Integer;
@@ -105,32 +101,42 @@ end;
 function TfrmCAFAccountStatus.DoAdditionalDetailsColumnCompare(NodeData1, NodeData2: PNodeData): Integer;
 begin
   Result := CompareText(
-    FAccountList[NodeData1.Source].RejectionReason + FAccountList[NodeData1.Source].AccountName,
-    FAccountList[NodeData2.Source].RejectionReason + FAccountList[NodeData2.Source].AccountName);
+    FAccountList[NodeData1.Source].RejectionReason + FormatDateTime('yyyymmdd', FAccountList[NodeData1.Source].CreatedDate.AsDateTime) + FAccountList[NodeData1.Source].AccountName,
+    FAccountList[NodeData2.Source].RejectionReason + FormatDateTime('yyyymmdd', FAccountList[NodeData2.Source].CreatedDate.AsDateTime) + FAccountList[NodeData2.Source].AccountName);
 end;
 
 function TfrmCAFAccountStatus.DoClientCodeColumnCompare(NodeData1, NodeData2: PNodeData): Integer;
 begin
   Result := CompareText(
-    FAccountList[NodeData1.Source].CostCode + FAccountList[NodeData1.Source].AccountName,
-    FAccountList[NodeData2.Source].CostCode + FAccountList[NodeData2.Source].AccountName);
+    FAccountList[NodeData1.Source].FileNumber + FormatDateTime('yyyymmdd', FAccountList[NodeData1.Source].CreatedDate.AsDateTime) + FAccountList[NodeData1.Source].AccountName,
+    FAccountList[NodeData2.Source].FileNumber + FormatDateTime('yyyymmdd', FAccountList[NodeData2.Source].CreatedDate.AsDateTime) + FAccountList[NodeData2.Source].AccountName);
 end;
 
 function TfrmCAFAccountStatus.DoDateColumnCompare(NodeData1, NodeData2: PNodeData): Integer;
 begin
   Result := CompareText(
-    FAccountList[NodeData1.Source].AccountName,
-    FAccountList[NodeData2.Source].AccountName);  
+    FormatDateTime('yyyymmdd', FAccountList[NodeData1.Source].CreatedDate.AsDateTime) + FAccountList[NodeData1.Source].AccountName,
+    FormatDateTime('yyyymmdd', FAccountList[NodeData2.Source].CreatedDate.AsDateTime) + FAccountList[NodeData2.Source].AccountName);
 end;
 
 function TfrmCAFAccountStatus.DoStatusColumnCompare(NodeData1, NodeData2: PNodeData): Integer;
 begin
   Result := CompareText(
-    FAccountList[NodeData1.Source].Status + FAccountList[NodeData1.Source].AccountName,
-    FAccountList[NodeData2.Source].Status + FAccountList[NodeData2.Source].AccountName);
+    FAccountList[NodeData1.Source].Status + FormatDateTime('yyyymmdd', FAccountList[NodeData1.Source].CreatedDate.AsDateTime) + FAccountList[NodeData1.Source].AccountName,
+    FAccountList[NodeData2.Source].Status + FormatDateTime('yyyymmdd', FAccountList[NodeData2.Source].CreatedDate.AsDateTime) + FAccountList[NodeData2.Source].AccountName);
 end;
 
-class procedure TfrmCAFAccountStatus.Execute(Owner: TComponent; PopupParent: TCustomForm);
+function TfrmCAFAccountStatus.Execute: Boolean;
+begin
+  Result := Refresh;
+
+  if Result then
+  begin
+    SortAccountStatusList(0);
+  end;
+end;
+
+class procedure TfrmCAFAccountStatus.ExecuteModal(Owner: TComponent; PopupParent: TCustomForm);
 var
   AccountStatusForm: TfrmCAFAccountStatus;
 begin
@@ -139,7 +145,10 @@ begin
   try
     AccountStatusForm.PopupParent := PopupParent;
 
-    AccountStatusForm.ShowModal;
+    if AccountStatusForm.Execute then
+    begin
+      AccountStatusForm.ShowModal;
+    end;
   finally
     AccountStatusForm.Free;
   end;
@@ -149,19 +158,22 @@ procedure TfrmCAFAccountStatus.FormCreate(Sender: TObject);
 begin
   FLastSortedColumn := -1;
   FLastSortDirection := sdAscending;
-  
-  cmbAccountFilter.ItemIndex := 0;
-  
-  lvAccountStatus.NodeDataSize := SizeOf(TNodeData);
-end;
 
-procedure TfrmCAFAccountStatus.FormShow(Sender: TObject);
-begin
   lvAccountStatus.Header.Font := Self.Font;
 
   lvAccountStatus.Header.Height := Abs(lvAccountStatus.Header.Font.Height) * 10 DIV 6;
+
+  lvAccountStatus.NodeDataSize := SizeOf(TNodeData);
   
-  PostMessage(Handle, WM_AFTERSHOW, 0, 0);
+  cmbAccountFilter.ItemIndex := 0;
+end;
+
+procedure TfrmCAFAccountStatus.FormKeyPress(Sender: TObject; var Key: Char);
+begin
+  if Key = Chr(VK_ESCAPE) then
+  begin
+    Close;
+  end;
 end;
 
 procedure TfrmCAFAccountStatus.PopulateAccountStatusList;
@@ -184,11 +196,16 @@ begin
   end;
 end;
 
-procedure TfrmCAFAccountStatus.Refresh;
+function TfrmCAFAccountStatus.Refresh: Boolean;
 begin
-  FAccountList := ProductConfigService.GetAccountStatusList;
+  FAccountList := ProductConfigService.GetAccountStatusList(Result);
 
-  PopulateAccountStatusList;
+  if Result then
+  begin
+    PopulateAccountStatusList;
+
+    Result := True;
+  end;
 end;
 
 procedure TfrmCAFAccountStatus.SortAccountStatusList(Column: Integer; Direction: TSortDirection);
@@ -244,10 +261,10 @@ procedure TfrmCAFAccountStatus.lvAccountStatusGetText(Sender: TBaseVirtualTree;
   var CellText: WideString);
 begin
   case Column of
-    0: CellText := FAccountList[PNodeData(Sender.GetNodeData(Node)^).Source].AccountId;
+    0: CellText := FormatDateTime('dd/mm/yy', FAccountList[PNodeData(Sender.GetNodeData(Node)^).Source].CreatedDate.AsDateTime);
     1: CellText := FAccountList[PNodeData(Sender.GetNodeData(Node)^).Source].AccountName;
     2: CellText := FAccountList[PNodeData(Sender.GetNodeData(Node)^).Source].AccountNumber;
-    3: CellText := FAccountList[PNodeData(Sender.GetNodeData(Node)^).Source].CostCode;
+    3: CellText := FAccountList[PNodeData(Sender.GetNodeData(Node)^).Source].FileNumber;
     4: CellText := FAccountList[PNodeData(Sender.GetNodeData(Node)^).Source].Status;
     5: CellText := FAccountList[PNodeData(Sender.GetNodeData(Node)^).Source].RejectionReason;
   end;
@@ -258,13 +275,6 @@ procedure TfrmCAFAccountStatus.lvAccountStatusHeaderClick(Sender: TVTHeader;
   Y: Integer);
 begin
   SortAccountStatusList(Column);
-end;
-
-procedure TfrmCAFAccountStatus.WMAfterShow(var Message: TMessage);
-begin
-  Refresh;
-
-  SortAccountStatusList(0);
 end;
 
 end.
