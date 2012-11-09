@@ -54,7 +54,7 @@ type
     lblMonth: TLabel;
     lblNoMonthEndings: TLabel;
     Label5: TLabel;
-    Button1: TButton;
+    btnPrintForeignCurrencyReport: TButton;
     CheckBox1: TCheckBox;
     lblPrefixMonthEnding: TLabel;
     lblMonthEnding: TLabel;
@@ -67,6 +67,7 @@ type
     procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure tgGainLossCellLoaded(Sender: TObject; DataCol, DataRow: Integer;
       var Value: Variant);
+    procedure btnPrintForeignCurrencyReportClick(Sender: TObject);
   private
     { Private declarations }
     fClient: TClientObj;
@@ -126,6 +127,8 @@ uses
   TrxList32,
   OpeningBalancesDlg,
   ProfitAndLossOptionsDlg,
+  Reports,
+  ReportDefs,
   SignUtils,
   WinUtils,
   YesNoDlg,
@@ -311,6 +314,12 @@ begin
     if cmbMonth.CanFocus then
       cmbMonth.SetFocus;
   end;
+end;
+
+{------------------------------------------------------------------------------}
+procedure TwizExchangeGainLoss.btnPrintForeignCurrencyReportClick(Sender: TObject);
+begin
+  DoReport(Report_Foreign_Exchange, rdAsk);
 end;
 
 {------------------------------------------------------------------------------}

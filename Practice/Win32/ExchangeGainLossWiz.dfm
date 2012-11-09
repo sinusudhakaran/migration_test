@@ -661,7 +661,7 @@ object wizExchangeGainLoss: TwizExchangeGainLoss
               Col.Width = 25
             end>
         end
-        object Button1: TButton
+        object btnPrintForeignCurrencyReport: TButton
           Left = 32
           Top = 248
           Width = 193
@@ -669,6 +669,7 @@ object wizExchangeGainLoss: TwizExchangeGainLoss
           Anchors = [akLeft, akBottom]
           Caption = 'Print Foreign Exchange Report'
           TabOrder = 1
+          OnClick = btnPrintForeignCurrencyReportClick
         end
         object CheckBox1: TCheckBox
           Left = 8
