@@ -55,7 +55,7 @@ type
     GainLoss: Money;
 
   public
-    // Gain/Loss with currency symbol
+    // Gain/Loss with currency symbol of the practice, NOT the bank account
     function  GetGainLossCurrency: string;
     property  GainLossCurrency: string read GetGainLossCurrency;
     // CR/DR
@@ -106,6 +106,8 @@ type
     property  Finalised: boolean read GetFinalised;
     function  GetTransferred: boolean;
     property  Transferred: boolean read GetTransferred;
+    function  GetCanCalculateGainLoss: boolean;
+    property  CanCalculateGainLoss: boolean read GetCanCalculateGainLoss;
     function  GetMonthEndingDate: TDateTime;
     property  MonthEndingDate: TDateTime read GetMonthEndingDate;
     procedure DetermineMonthStartEnd(var aStart: TStDate; var aEnd: TStDate);
@@ -119,7 +121,7 @@ type
   ---------------------------------------------------------------------------- }
   TMonthEndingOption = (
     // Prevent culling of first months - necessary for client home screen
-    meoDontCullFirstMonths
+    meoCullFirstMonths
   );
 
   TMonthEndingOptions = set of TMonthEndingOption;
@@ -144,7 +146,7 @@ type
     // Exchange helpers
     function  GetIsoIndex(const aCurrencyCode: string): integer;
     function  HasExchangeRate(const aDate: TStDate; const aIsoIndex: integer): boolean;
-    function  ApplyExchangeRate(const aDate: TStDate; const aIsoIndex: integer;
+    function  ApplyExchangeRateForexToBase(const aDate: TStDate; const aIsoIndex: integer;
                 const aValue: Money): Money;
 
     // Implementation helpers
@@ -158,7 +160,7 @@ type
     procedure SetAvailableData(const aFrom: TStDate; const aTo: TStDate);
     procedure SetMonthEnding; overload;
     procedure DeleteFirstMonth;
-    procedure CulFirstMonths;
+    procedure CullFirstMonths;
     procedure VerifyExchangeRatePreviousMonth;
     procedure GetOpeningClosingBalance(const aStart: TStDate; const aEnd: TStDate;
                 const aBankAccount: TBank_Account; var aOpening: Money;
@@ -173,7 +175,10 @@ type
     constructor Create(const aClient: TClientObj);
     destructor Destroy; override;
 
-    procedure Refresh(const aOptions: TMonthEndingOptions = []);
+    // These work during the Refresh
+    property  Options: TMonthEndingOptions read fOptions write fOptions;
+
+    procedure Refresh;
 
     function  GetCount: integer;
     property  Count: integer read GetCount;
@@ -424,6 +429,12 @@ begin
 end;
 
 {------------------------------------------------------------------------------}
+function TMonthEnding.GetCanCalculateGainLoss: boolean;
+begin
+  result := (NrTransactions > 0) and not Finalised and not Transferred;
+end;
+
+{------------------------------------------------------------------------------}
 function TMonthEnding.GetMonthEndingDate: TDateTime;
 var
   iDay: integer;
@@ -447,10 +458,12 @@ end;
 function TMonthEndingBankAccount.GetGainLossCurrency: string;
 var
   mAbsGainLoss: Money;
+  sCurrency: string;
 begin
   // We're using CR/DR so don't display the sign
   mAbsGainLoss := Abs(GainLoss);
-  result := MoneyStr(mAbsGainLoss, BankAccount.baFields.baCurrency_Code);
+  sCurrency := GetCountryCurrency;
+  result := MoneyStr(mAbsGainLoss, sCurrency);
 end;
 
 {------------------------------------------------------------------------------}
@@ -468,20 +481,21 @@ end;
 ------------------------------------------------------------------------------ }
 constructor TMonthEndings.Create(const aClient: TClientObj);
 begin
+  inherited Create; // FIRST
+
   ASSERT(assigned(aClient));
 
   fClient := aClient;
-
-  // Cache the exchange rates
-  fExchangeSource := CreateExchangeSource;
-  ASSERT(Assigned(fExchangeSource));
 end;
 
 {------------------------------------------------------------------------------}
 destructor TMonthEndings.Destroy;
 begin
   FreeAndNil(fExchangeSource);
+
   // Do not free fClient
+
+  inherited; // LAST
 end;
 
 {------------------------------------------------------------------------------}
@@ -550,7 +564,7 @@ begin
 end;
 
 {------------------------------------------------------------------------------}
-function TMonthEndings.ApplyExchangeRate(const aDate: TStDate;
+function TMonthEndings.ApplyExchangeRateForexToBase(const aDate: TStDate;
   const aIsoIndex: integer; const aValue: Money): Money;
 var
   Rate: TExchangeRecord;
@@ -563,7 +577,7 @@ begin
   RateAmount := Rate.Rates[aIsoIndex];
   ASSERT(RateAmount <> 0);
 
-  result := aValue * RateAmount;
+  result := aValue / RateAmount;
 end;
 
 {------------------------------------------------------------------------------}
@@ -818,10 +832,10 @@ begin
 end;
 
 {------------------------------------------------------------------------------}
-procedure TMonthEndings.CulFirstMonths;
+procedure TMonthEndings.CullFirstMonths;
 begin
   // Don't cull?
-  if (meoDontCullFirstMonths in fOptions) then
+  if not (meoCullFirstMonths in fOptions) then
     exit;
 
   while (Length(fMonthEndings) <> 0) do
@@ -900,6 +914,7 @@ var
   BankAccount: TBank_Account;
   Transactions: TTransaction_List;
   iIsoIndex: integer;
+  dtLastDayOfPreviousMonth: TStDate;
   i: integer;
   Transaction: pTransaction_Rec;
   dtEffective: TStDate;
@@ -913,10 +928,15 @@ begin
   // Determine currency column for later calculations (ApplyExchangeRate)
   iIsoIndex := GetIsoIndex(BankAccount.baFields.baCurrency_Code);
 
-  // Opening/Closing Balance
+  // Get Opening/Closing Balance
   GetOpeningClosingBalance(aStart, aEnd, BankAccount, OB, CB);
-  COB := ApplyExchangeRate(aStart, iIsoIndex, OB);
-  CCB := ApplyExchangeRate(aEnd, iIsoIndex, CB);
+
+  // Use last day of previous month for the opening balance exchange rate
+  dtLastDayOfPreviousMonth := IncDate(aStart, -1, 0, 0);
+  COB := ApplyExchangeRateForexToBase(dtLastDayOfPreviousMonth, iIsoIndex, OB);
+
+  // Use last day of the current month for closing balance exchange rate
+  CCB := ApplyExchangeRateForexToBase(aEnd, iIsoIndex, CB);
 
   // Closing Balance and Sum for transactions
   CSUM := 0;
@@ -931,7 +951,7 @@ begin
       continue;
 
     // CSUM
-    mConvertedAmount := ApplyExchangeRate(dtEffective, iIsoIndex, Transaction.txAmount);
+    mConvertedAmount := ApplyExchangeRateForexToBase(dtEffective, iIsoIndex, Transaction.txAmount);
     CSUM := CSUM + mConvertedAmount;
   end;
 
@@ -948,6 +968,10 @@ var
 begin
   for i := 0 to High(aMonth.BankAccounts) do
   begin
+    // Not able to calculate the Gain/Loss?
+    if not aMonth.CanCalculateGainLoss then
+      continue;
+
     // If there are errors in the exchange rates, don't calculate the gain/loss
     if aMonth.ExchangeRateMissing or aMonth.ExchangeRateMissingLastDayOfPreviousMonth then
       continue;
@@ -969,16 +993,17 @@ begin
 end;
 
 {------------------------------------------------------------------------------}
-procedure TMonthEndings.Refresh(const aOptions: TMonthEndingOptions);
+procedure TMonthEndings.Refresh;
 var
   dtFirstEffective: TDateTime;
   dtLastEffective: TDateTime;
 begin
-  // Store options for later
-  fOptions := aOptions;
-
   // Clear previous months
   SetLength(fMonthEndings, 0);
+
+  // Refresh the exchange rates
+  FreeAndNil(fExchangeSource);
+  fExchangeSource := CreateExchangeSource;
 
   // Nothing?
   if not GetFirstLastEffective(dtFirstEffective, dtLastEffective) then
@@ -991,7 +1016,7 @@ begin
   SetMonthEnding;
 
   // Remove the first months that have already been run
-  CulFirstMonths;
+  CullFirstMonths;
 
   // Verify if there's an exchange rate on the last day of the previous month
   VerifyExchangeRatePreviousMonth;

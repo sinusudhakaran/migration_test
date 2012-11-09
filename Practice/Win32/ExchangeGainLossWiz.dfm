@@ -2,13 +2,12 @@ object wizExchangeGainLoss: TwizExchangeGainLoss
   Left = 480
   Top = 386
   BorderIcons = [biSystemMenu, biMaximize]
-  BorderStyle = bsDialog
   Caption = 'Calculate Exchange Gain/Loss Wizard'
-  ClientHeight = 498
-  ClientWidth = 754
+  ClientHeight = 488
+  ClientWidth = 744
   Color = clBtnFace
-  Constraints.MinHeight = 476
-  Constraints.MinWidth = 630
+  Constraints.MinHeight = 526
+  Constraints.MinWidth = 760
   ParentFont = True
   KeyPreview = True
   OldCreateOrder = False
@@ -19,18 +18,72 @@ object wizExchangeGainLoss: TwizExchangeGainLoss
   OnKeyDown = FormKeyDown
   PixelsPerInch = 96
   TextHeight = 13
+  object pnlButtons: TPanel
+    Left = 0
+    Top = 446
+    Width = 744
+    Height = 42
+    Align = alBottom
+    BevelOuter = bvNone
+    TabOrder = 2
+    DesignSize = (
+      744
+      42)
+    object Bevel1: TBevel
+      Left = 0
+      Top = 0
+      Width = 744
+      Height = 2
+      Align = alTop
+      Shape = bsTopLine
+      ExplicitWidth = 622
+    end
+    object btnBack: TButton
+      Left = 490
+      Top = 12
+      Width = 75
+      Height = 25
+      Anchors = [akRight, akBottom]
+      Caption = '< &Back'
+      Enabled = False
+      TabOrder = 0
+      OnClick = btnBackClick
+    end
+    object btnNext: TButton
+      Left = 570
+      Top = 12
+      Width = 75
+      Height = 25
+      Anchors = [akRight, akBottom]
+      Caption = '&Next >'
+      Default = True
+      TabOrder = 1
+      OnClick = btnNextClick
+    end
+    object btnCancel: TButton
+      Left = 658
+      Top = 12
+      Width = 75
+      Height = 25
+      Anchors = [akRight, akBottom]
+      Cancel = True
+      Caption = 'Cancel'
+      ModalResult = 2
+      TabOrder = 2
+    end
+  end
   object pnlWelcome: TPanel
     Left = 0
     Top = 0
-    Width = 754
-    Height = 456
+    Width = 744
+    Height = 446
     Align = alClient
     BevelOuter = bvNone
     Color = clWindow
     TabOrder = 0
     DesignSize = (
-      754
-      456)
+      744
+      446)
     object Label1: TLabel
       Left = 168
       Top = 16
@@ -70,7 +123,7 @@ object wizExchangeGainLoss: TwizExchangeGainLoss
     end
     object lblContinue: TLabel
       Left = 176
-      Top = 432
+      Top = 420
       Width = 112
       Height = 13
       Caption = 'To continue, click Next.'
@@ -115,14 +168,14 @@ object wizExchangeGainLoss: TwizExchangeGainLoss
       Left = 0
       Top = 0
       Width = 144
-      Height = 456
+      Height = 446
       Align = alLeft
       BevelOuter = bvNone
       Color = 4065024
       TabOrder = 0
       DesignSize = (
         144
-        456)
+        446)
       object Image2: TImage
         Left = 73
         Top = 28
@@ -244,13 +297,13 @@ object wizExchangeGainLoss: TwizExchangeGainLoss
     object pnlWarnings: TPanel
       Left = 152
       Top = 166
-      Width = 489
-      Height = 234
+      Width = 479
+      Height = 224
       Anchors = [akLeft, akTop, akRight, akBottom]
       TabOrder = 1
       DesignSize = (
-        489
-        234)
+        479
+        224)
       object WarningBmp: TImage
         Left = 8
         Top = 4
@@ -354,8 +407,8 @@ object wizExchangeGainLoss: TwizExchangeGainLoss
       object memWarnings: TMemo
         Left = 8
         Top = 46
-        Width = 465
-        Height = 162
+        Width = 455
+        Height = 152
         TabStop = False
         Anchors = [akLeft, akTop, akRight, akBottom]
         BorderStyle = bsNone
@@ -369,8 +422,8 @@ object wizExchangeGainLoss: TwizExchangeGainLoss
   object pnlWizard: TPanel
     Left = 0
     Top = 0
-    Width = 754
-    Height = 456
+    Width = 744
+    Height = 446
     Align = alClient
     BevelOuter = bvNone
     Caption = 'pnlWizard'
@@ -379,7 +432,7 @@ object wizExchangeGainLoss: TwizExchangeGainLoss
     object Bevel2: TBevel
       Left = 0
       Top = 69
-      Width = 754
+      Width = 744
       Height = 3
       Align = alTop
       Shape = bsTopLine
@@ -388,8 +441,8 @@ object wizExchangeGainLoss: TwizExchangeGainLoss
     object PageControl1: TPageControl
       Left = 0
       Top = 72
-      Width = 754
-      Height = 384
+      Width = 744
+      Height = 374
       ActivePage = tbsPost
       Align = alClient
       Style = tsButtons
@@ -456,6 +509,9 @@ object wizExchangeGainLoss: TwizExchangeGainLoss
       object tbsPost: TTabSheet
         Caption = 'Page2 - Post'
         ImageIndex = 1
+        DesignSize = (
+          736
+          359)
         object Label4: TLabel
           Left = 8
           Top = 85
@@ -489,6 +545,7 @@ object wizExchangeGainLoss: TwizExchangeGainLoss
           Top = 302
           Width = 309
           Height = 13
+          Anchors = [akLeft, akBottom]
           Caption = 'Click Finish to post the amounts shown and complete the wizard.'
         end
         object lblPrefixMonthEnding: TLabel
@@ -511,6 +568,7 @@ object wizExchangeGainLoss: TwizExchangeGainLoss
           Width = 576
           Height = 125
           AlwaysShowScrollBar = ssVertical
+          Anchors = [akLeft, akTop, akRight, akBottom]
           CellSelectMode = cmNone
           CheckBoxStyle = stCheck
           ColMoving = False
@@ -608,14 +666,16 @@ object wizExchangeGainLoss: TwizExchangeGainLoss
           Top = 248
           Width = 193
           Height = 25
+          Anchors = [akLeft, akBottom]
           Caption = 'Print Foreign Exchange Report'
           TabOrder = 1
         end
         object CheckBox1: TCheckBox
           Left = 8
-          Top = 344
+          Top = 340
           Width = 449
           Height = 17
+          Anchors = [akLeft, akBottom]
           Caption = 'Show the Exchange Gains/Losses screen after clicking Finish.'
           TabOrder = 2
         end
@@ -624,14 +684,14 @@ object wizExchangeGainLoss: TwizExchangeGainLoss
     object pnlTabTitle: TPanel
       Left = 0
       Top = 0
-      Width = 754
+      Width = 744
       Height = 69
       Align = alTop
       BevelOuter = bvNone
       Color = clWindow
       TabOrder = 0
       DesignSize = (
-        754
+        744
         69)
       object lblTitle: TLabel
         Left = 8
@@ -650,7 +710,7 @@ object wizExchangeGainLoss: TwizExchangeGainLoss
       object lblDescription: TLabel
         Left = 8
         Top = 29
-        Width = 654
+        Width = 644
         Height = 34
         Anchors = [akLeft, akTop, akRight]
         AutoSize = False
@@ -660,7 +720,7 @@ object wizExchangeGainLoss: TwizExchangeGainLoss
         ExplicitWidth = 493
       end
       object Image1: TImage
-        Left = 694
+        Left = 684
         Top = 12
         Width = 48
         Height = 48
@@ -785,60 +845,6 @@ object wizExchangeGainLoss: TwizExchangeGainLoss
       Height = 9
       BevelOuter = bvLowered
       TabOrder = 1
-    end
-  end
-  object pnlButtons: TPanel
-    Left = 0
-    Top = 456
-    Width = 754
-    Height = 42
-    Align = alBottom
-    BevelOuter = bvNone
-    TabOrder = 2
-    DesignSize = (
-      754
-      42)
-    object Bevel1: TBevel
-      Left = 0
-      Top = 0
-      Width = 754
-      Height = 2
-      Align = alTop
-      Shape = bsTopLine
-      ExplicitWidth = 622
-    end
-    object btnBack: TButton
-      Left = 500
-      Top = 12
-      Width = 75
-      Height = 25
-      Anchors = [akRight, akBottom]
-      Caption = '< &Back'
-      Enabled = False
-      TabOrder = 0
-      OnClick = btnBackClick
-    end
-    object btnNext: TButton
-      Left = 580
-      Top = 12
-      Width = 75
-      Height = 25
-      Anchors = [akRight, akBottom]
-      Caption = '&Next >'
-      Default = True
-      TabOrder = 1
-      OnClick = btnNextClick
-    end
-    object btnCancel: TButton
-      Left = 668
-      Top = 12
-      Width = 75
-      Height = 25
-      Anchors = [akRight, akBottom]
-      Cancel = True
-      Caption = 'Cancel'
-      ModalResult = 2
-      TabOrder = 2
     end
   end
 end

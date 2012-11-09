@@ -207,6 +207,7 @@ begin
       begin
         // Create here because in the constructor/FormCreate there's no fClient yet
         fMonths := TMonthEndings.Create(fClient);
+        fMonths.Options := [meoCullFirstMonths];
         fMonths.Refresh;
 
         // Add to combo box in REVERSE order

@@ -58,6 +58,7 @@ type
 
   // Foreign Currencies
   function  GetCountry: byte;
+  function  GetCountryCurrency: string;
   function  SupportsForeignCurrencies: boolean;
   function  IsForeignCurrencyClient: boolean;
   function  IsForeignCurrencyAccount(const aAccount: TBank_Account): boolean;
@@ -312,6 +313,12 @@ begin
 end;
 
 // ----------------------------------------------------------------------------
+function GetCountryCurrency: string;
+begin
+  result := whCurrencyCodes[GetCountry];
+end;
+
+// ----------------------------------------------------------------------------
 function SupportsForeignCurrencies: boolean;
 begin
   result := (GetCountry = whUK);
@@ -433,15 +440,19 @@ end;
 function CreateExchangeSource: TExchangeSource;
 var
   ExchangeRates: TExchangeRateList;
+  ExchangeSource: TExchangeSource;
 begin
-  result := nil;
-  
-  // Cache the exchange rates
+  // We're always using a cache version
+  result := TExchangeSource.Create;
+
+  // Copy existing Exchange Source to our cached version
   if Assigned(AdminSystem) then
   begin
     ExchangeRates := GetExchangeRates;
     try
-      result := ExchangeRates.GiveMeSource('Master');
+      ExchangeSource := ExchangeRates.GetSource('Master'); // No need to Free
+      ASSERT(Assigned(ExchangeSource));
+      result.Assign(ExchangeSource);
       AdminSystem.SyncCurrenciesToSystemAccounts;
       result.MapToHeader(AdminSystem.fCurrencyList);
     finally
@@ -450,14 +461,9 @@ begin
   end
   else if Assigned(MyClient) then
   begin
-    if Assigned(MyClient.ExchangeSource) then
-    begin
-      result := TExchangeSource.Create;
-      result.Assign(MyClient.ExchangeSource);
-    end;
+    ASSERT(Assigned(MyClient.ExchangeSource));
+    result.Assign(MyClient.ExchangeSource);
   end;
-
-  ASSERT(Assigned(result));
 end;
 
 
