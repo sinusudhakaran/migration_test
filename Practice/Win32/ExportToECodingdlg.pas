@@ -87,7 +87,8 @@ uses
    bkhelp,
    BKDEFS,
    CountryUtils,
-   WebXOffice;
+   WebXOffice,
+   TransactionUtils;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TdlgExportToECoding.btnCancelClick(Sender: TObject);
@@ -378,7 +379,7 @@ begin
                           (txDate_Transferred = 0) and
                           (not txLocked) and
                           (( Selection = esAllEntries) or
-                           (( Selection = esUncodedOnly) and ( txAccount = '')))
+                           (( Selection = esUncodedOnly) and not IsFullyCodedTransaction(ForClient, Transaction_At(j))))
                        then begin
                           HasEntries := true;
                           Break;
