@@ -519,7 +519,8 @@ uses
   SyDefs,
   Globals,
   xmldom,
-  Login32;
+  Login32,
+  XSBuiltIns;
 
 const
   UNIT_NAME = 'BankLinkOnlineServices';
@@ -5345,26 +5346,10 @@ begin
 
       BlopiInterface :=  GetServiceFacade;
       
-      try
-        MsgResponse := BlopiInterface.GetBankAccounts(CountryText(AdminSystem.fdFields.fdCountry),
+      MsgResponse := BlopiInterface.GetBankAccounts(CountryText(AdminSystem.fdFields.fdCountry),
                                                    AdminSystem.fdFields.fdBankLink_Code,
                                                    AdminSystem.fdFields.fdBankLink_Connect_Password);
-      except
-        on E: EAuthenticationException do
-        begin
-          if ReAuthenticateUser(Cancelled, ConnectionError) and not (Cancelled or ConnectionError) then
-          begin
-            MsgResponse := BlopiInterface.GetBankAccounts(CountryText(AdminSystem.fdFields.fdCountry),
-                                                   AdminSystem.fdFields.fdBankLink_Code,
-                                                   AdminSystem.fdFields.fdBankLink_Connect_Password);
-          end
-          else
-          begin
-            Exit;
-          end;  
-        end;
-      end;
-    
+
       if not MessageResponseHasError(MsgResponse, 'get bank accounts from') then
       begin
         Result := MsgResponse.Result;
