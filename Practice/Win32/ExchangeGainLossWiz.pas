@@ -319,7 +319,7 @@ end;
 {------------------------------------------------------------------------------}
 procedure TwizExchangeGainLoss.btnPrintForeignCurrencyReportClick(Sender: TObject);
 begin
-  DoReport(Report_Foreign_Exchange, rdAsk);
+  DoReport(Report_Foreign_Exchange, rdNone);
 end;
 
 {------------------------------------------------------------------------------}
