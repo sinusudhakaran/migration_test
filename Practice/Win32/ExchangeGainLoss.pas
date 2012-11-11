@@ -568,16 +568,17 @@ function TMonthEndings.ApplyExchangeRateForexToBase(const aDate: TStDate;
   const aIsoIndex: integer; const aValue: Money): Money;
 var
   Rate: TExchangeRecord;
-  RateAmount: Money;
+  RateAmount: double; // Exchange Rates are doubles
 begin
   // Exchange rate missing?
   Rate := fExchangeSource.GetDateRates(aDate);
   ASSERT(Assigned(Rate), 'Exchange Rate for '+Date2Str(aDate, 'dd/mm/yy')+' not found');
 
+  // This is a double
   RateAmount := Rate.Rates[aIsoIndex];
   ASSERT(RateAmount <> 0);
 
-  result := aValue / RateAmount;
+  result := Round(aValue / RateAmount);
 end;
 
 {------------------------------------------------------------------------------}
