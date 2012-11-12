@@ -55,7 +55,7 @@ type
     lblNoMonthEndings: TLabel;
     Label5: TLabel;
     btnPrintForeignCurrencyReport: TButton;
-    CheckBox1: TCheckBox;
+    chkShowGainLossesScreen: TCheckBox;
     lblPrefixMonthEnding: TLabel;
     lblMonthEnding: TLabel;
     procedure btnNextClick(Sender: TObject);
@@ -499,6 +499,9 @@ begin
         cmbMonth.SetFocus
       else if btnCancel.CanFocus then
         btnCancel.SetFocus; // So we can handle the enter key
+    stPost:
+      if chkShowGainLossesScreen.CanFocus then
+        chkShowGainlossesScreen.SetFocus;
     else
     begin
       // Set focus for first button
