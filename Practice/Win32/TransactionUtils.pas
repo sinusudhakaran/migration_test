@@ -82,15 +82,22 @@ var
 begin
   if Transaction.txAccount <> '' then
   begin
-    ChartAccount := Client.clChart.FindCode(Transaction.txAccount);
-
-    if ChartAccount <> nil then
+    if CompareText(Transaction.txAccount, 'DISSECTED') <> 0 then
     begin
-      Result := ChartAccount.chPosting_Allowed;
+      ChartAccount := Client.clChart.FindCode(Transaction.txAccount);
+
+      if ChartAccount <> nil then
+      begin
+        Result := ChartAccount.chPosting_Allowed;
+      end
+      else
+      begin
+        Result := False;
+      end;
     end
     else
     begin
-      Result := False;
+      Result := True;
     end;
   end
   else
