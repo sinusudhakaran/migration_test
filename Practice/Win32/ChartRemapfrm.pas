@@ -863,7 +863,7 @@ procedure TfrmRemapChart.GSTGridCreateEditor(Sender: TBaseVirtualTree;
 begin
     case column of
     cgOldCode : EditLink := fGSTCombo.Link;
-    cgNewCode : EditLink := TTextEditLink.Create(5);
+    cgNewCode : EditLink := TTextEditLink.Create(GST_CLASS_CODE_LENGTH);
     cgNewName : EditLink := TTextEditLink.Create(60);
     else EditLink := nil;
     end;

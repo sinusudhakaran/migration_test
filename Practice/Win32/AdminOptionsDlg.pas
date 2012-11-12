@@ -331,6 +331,13 @@ begin
   chkMultiPA.Caption       := '&Allow multiple accounts to be exported for ''' + BKCONST.saNames[ saOmicom] + ''' clients';
   chkPAJournals.Caption    := '&Extract Journals using Journal Tag for ''' + BKCONST.saNames[ saOmicom] + ''' clients. ( PA 7 or later)';
   tsExporting.TabVisible   := BulkExtractFrm.CouldBulkExtract;
+  // UK is required to enter passwords for all users
+  if (AdminSystem.fdFields.fdCountry = whUK) then
+  begin
+    chkAutoLogin.Visible               := False;
+    chkAutoLogin.Checked               := False;
+    AdminSystem.fdFields.fdForce_Login := False;
+  end;
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TdlgAdminOptions.LoadSettingsFromAdmin;

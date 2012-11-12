@@ -136,7 +136,7 @@ begin
     saFreqDay  : Result := 'not daily';
     saFreqUnspecified: Result := 'not unspecified';
     saProvisional    : Result := 'not provisional';
-    saOnlineSecure   : Result := 'not BankLink Online Secure';
+    saOnlineSecure   : Result := 'not Online Secure';
   end;
 end;
 
@@ -618,7 +618,7 @@ begin
                   end;
                 safsTopDeliver: if I = 4 then begin
                      if ftNode[0] and (not ftNode[2]) then
-                        LInclude.NotNodes[safsTopDeliver] := (LInclude.NotNodes[safsTopDeliver] + [saSecure] + [saOnlineSecure]);
+                        LInclude.NotNodes[safsTopDeliver] := (LInclude.NotNodes[safsTopDeliver] + [saOnlineSecure]);
                      if ftNode[2] and (not ftNode[0]) then
                         LInclude.Nodes[safsTopDeliver] := LInclude.Nodes[safsTopDeliver] + [saSecure];
                      if ftNode[1] then

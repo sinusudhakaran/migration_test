@@ -32,6 +32,7 @@ type
     FLocked: array[ stFirstPeriod..stLastPeriod ] of Integer;
     FUnlocked: array[ stFirstPeriod..stLastPeriod ] of Integer;
     FDownloaded: array[ stFirstPeriod..stLastPeriod ] of Integer;
+    FNonPosting: array[ stFirstPeriod..stLastPeriod ] of Integer;
     FFirstdate,
     FLastDate: Integer;
 //    BLastDate : Integer;
@@ -57,6 +58,7 @@ type
     function GetTransferState( const Index: Integer ): TResultType;
     function GetDownloadedState( const Index: Integer ): TResultType;    
     function NoOfEntries( const Index: Integer ): Integer;
+    function NoOfNonPostingEntries( const Index: Integer ): Integer;
     function NoOfCodedEntries( const Index: Integer ): Integer;
     function NoOfUncodedEntries( const Index: Integer ): Integer;
     function NoOfUnLockedEntries( const Index: Integer ): Integer;
@@ -134,7 +136,7 @@ function TClientCodingStatistics.GetCodingState(
   const Index: Integer ): TResultType;
 begin
   CheckIndex( Index, 'Index out of range in TClientObjCodingStatistics.GetCodingState' );
-  Result := GetResult( NoOfCodedEntries( Index ), FCount[ Index ] );
+  Result := GetResult( NoOfCodedEntries( Index ) - NoOfNonPostingEntries( Index ), FCount[ Index ] );
 end;
 
 function TClientCodingStatistics.GetLockState(
@@ -206,6 +208,13 @@ begin
     Result := 0;
 end;
 
+function TClientCodingStatistics.NoOfNonPostingEntries(
+  const Index: Integer): Integer;
+begin
+  CheckIndex( Index, 'Index out of range in TClientObjCodingStatistics.NoOfNonPostingEntries' );
+  Result := FNonPosting[ Index ];
+end;
+
 function TClientCodingStatistics.NoOfUncodedEntries(
   const Index: Integer ): Integer;
 begin
@@ -229,6 +238,7 @@ begin
     FillChar (FLocked,        Sizeof(FLocked),        0);
     FillChar (FUnlocked,      Sizeof(FUnlocked ),     0);
     FillChar (FDownloaded,    Sizeof(FDownloaded ),   0);
+    FillChar (FNonPosting,    Sizeof(FDownloaded ),   0);
     FFirstdate := MaxInt;
     FLastDate := 0;
     FLastDate := 0;
@@ -301,7 +311,7 @@ begin
          Exit;
       end;
 
-      if FUncodes[Index]> 0 then
+      if (FUncodes[Index]> 0) or (FNonPosting[Index] > 0) then
          Result := bkBranding.ColorUncoded // All i need to know
       else
       // All Coded...
@@ -539,6 +549,10 @@ Var
 //     BLastDate  := Max (BLastDate,  Transaction.txDate_Effective);
      P := GetPeriod( Transaction.txDate_Effective );
      Inc(FCount[p]);
+     if (Transaction.txAccount <> '') then
+       if not Client.clChart.FindCode(Transaction.txAccount)^.chPosting_Allowed then
+         Inc(FNonPosting[p]);
+     
      if (Transaction.txDate_Transferred = 0) then begin
         // Not Transfered..
         Inc(FUnTransferred[P]);
