@@ -550,8 +550,10 @@ Var
      P := GetPeriod( Transaction.txDate_Effective );
      Inc(FCount[p]);
      if (Transaction.txAccount <> '') then
-       if not Client.clChart.FindCode(Transaction.txAccount)^.chPosting_Allowed then
-         Inc(FNonPosting[p]);
+       if (CompareText(Transaction.txAccount, 'DISSECTED') <> 0) and
+       (CompareText(Transaction.txAccount, 'DISSECT') <> 0) then
+         if not Client.clChart.FindCode(Transaction.txAccount)^.chPosting_Allowed then
+           Inc(FNonPosting[p]);
      
      if (Transaction.txDate_Transferred = 0) then begin
         // Not Transfered..
