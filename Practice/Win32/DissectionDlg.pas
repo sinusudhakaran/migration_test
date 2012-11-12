@@ -3661,6 +3661,11 @@ begin
                 txImport_Notes_Read := dtImport_Notes_Read;
 
                 txCoded_By     := cbManual;
+
+                if pD.dtHas_Been_Edited or pD.dtGST_Has_Been_Edited then
+                begin
+                  pT^.txTransfered_To_Online := False;
+                end;
              end;
            end
            else

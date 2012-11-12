@@ -697,6 +697,7 @@ begin
         if BKT.txJob_Code = '' then begin
            BKT.txJob_Code := wnJob;
            BKT.txHas_Been_Edited := true;
+           BKT.txTransfered_To_Online := False;
         end else begin
            //add notes
            if wnJob = '' then //deleted job
@@ -746,6 +747,7 @@ begin
         //set the bk5 payee number from here
         BKT.txPayee_Number         := lInt;
         BKT.txHas_Been_Edited      := True;
+        BKT.txTransfered_To_Online := False;
 
         if bkPayee.IsDissected then
         begin
@@ -882,6 +884,7 @@ begin
         //set the bk5 payee number from here
         BKT.txPayee_Number         := lInt;
         BKT.txHas_Been_Edited      := True;
+        BKT.txTransfered_To_Online := False;
 
         if bkPayee.IsDissected then
         begin
@@ -938,7 +941,6 @@ begin
      ImportDissections(FromNode, BKT, bkPayee)
   else
      ImportDissections(FromNode, BKT);
-
 end;
 
 procedure TWebNotesImportForm.ImportNewTransaction(FromNode: IXMLNode;
@@ -1135,7 +1137,8 @@ begin
          //account is blank so use ecoding account to code the transaction
          BKT.txAccount := LString;
          BKT.txHas_Been_Edited := True;
-
+         BKT.txTransfered_To_Online := False;
+         
          if GetCodeByAttr(FromNode,nCodedBy) in [cbManual] then
             NeedToUpdateGST := true;
       end else begin
@@ -1162,6 +1165,7 @@ begin
                 //set the bk5 payee number from here
                 BKT.txPayee_Number         := Lint;
                 BKT.txHas_Been_Edited      := True;
+                BKT.txTransfered_To_Online := False;
                 NeedToUpdatePayeeDetails   := True;
 
                 if GetCodeByAttr(FromNode,nCodedBy) = cbManualPayee then
@@ -1235,6 +1239,7 @@ begin
 
          BKT.txCoded_By := cbECodingManualPayee;
          BKT.txHas_Been_Edited  := True;
+         BKT.txTransfered_To_Online := False;
       end;
     end;
 
@@ -1338,6 +1343,7 @@ begin
              BKT^.txSF_Super_Fields_Edited := True;
              BKT^.txHas_Been_Edited  := True;
              BKT^.txCoded_By := cbECodingManual;
+             BKT.txTransfered_To_Online := False;
              if FrankingCredit(BKT^.txSF_Franked, BKT^.txDate_Effective) <> BKT^.txSF_Imputed_Credit  then begin
                 aMsg := 'The franking credit amounts do not match the calculated amounts ''Franked: $' + Money2Str( BKT^.txSF_Franked) +
                 ' Unfranked: $' +  Money2Str( BKT^.txSF_UnFranked) +

@@ -636,11 +636,11 @@ class function TBanklinkOnlineTaggingServices.IsExportableTransaction(Transactio
 begin
   if MaxTransactionDate > -1 then
   begin
-    Result := (Transaction.txCore_Transaction_ID <> 0) and (not Transaction.txTransfered_To_Online) and (Transaction.txDate_Transferred <= MaxTransactionDate);
+    Result := ((Transaction.txCore_Transaction_ID <> 0) or (Transaction.txUPI_State in[upUPC, upUPD, upUPW])) and (not Transaction.txTransfered_To_Online) and (Transaction.txDate_Transferred <= MaxTransactionDate);
   end
   else
   begin
-    Result := (Transaction.txCore_Transaction_ID <> 0) and (not Transaction.txTransfered_To_Online);
+    Result := ((Transaction.txCore_Transaction_ID <> 0) or (Transaction.txUPI_State in[upUPC, upUPD, upUPW])) and (not Transaction.txTransfered_To_Online);
   end;
 end;
 

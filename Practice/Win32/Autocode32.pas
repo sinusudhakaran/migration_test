@@ -334,6 +334,7 @@ Begin
                             txGST_Class := MemorisationLine.mlGST_Class;
                             txGST_Amount := CalculateGSTForClass( aClient, txDate_Effective, Local_Amount, txGST_Class );
                             txGST_Has_Been_Edited := true;
+                            txTransfered_To_Online := False;
                           end
                         else
                           begin
@@ -567,6 +568,7 @@ Begin
                                       txGST_Class    := PayeeLine.plGST_Class;
                                       txGST_Amount   := CalculateGSTForClass( aClient, txDate_Effective, Local_Amount, txGST_Class);
                                       txGST_Has_Been_Edited := true;
+                                      txTransfered_To_Online := False;
                                    end
                                    else begin
                                       CalculateGST( aClient, txDate_Effective, txAccount, Local_Amount, txGST_Class, txGST_Amount);

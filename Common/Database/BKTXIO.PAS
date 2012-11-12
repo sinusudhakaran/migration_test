@@ -370,6 +370,7 @@ Begin
    Begin
       FillChar( P^, Transaction_Rec_Size, 0 );
       txRecord_Type := tkBegin_Transaction;
+      txTransfered_To_Online := False;
       txEOR         := tkEnd_Transaction;
    end
    else

@@ -364,7 +364,8 @@ begin
                   ECT.txNotes                 := T.txNotes;
                   ECT.txECoding_ID            := T.txECoding_Transaction_UID;
                   ECT.txTax_Invoice_Available := T.txTax_Invoice_Available;
-                  if ecFile.ecFields.ecSuper_Fund_System <> 0 then begin
+                  if ecFile.ecFields.ecSuper_Fund_System <> 0 then
+                  begin
                      ECT.txSF_Franked            := T.txSF_Franked;
                      ECT.txSF_UnFranked          := T.txSF_UnFranked;
                      ECT.txSF_Franking_Credit    := T.txSF_Imputed_Credit;
@@ -376,6 +377,7 @@ begin
                   //set code lock state
                   ECT.txCode_Locked := (( T.txAccount <> '') or
                                        ( T.txFirst_Dissection <> nil));
+
                   //copy dissections
                   if T.txFirst_Dissection <> nil then begin
                      D := T.txFirst_Dissection;
@@ -403,7 +405,8 @@ begin
                         ECD.dsPayee_Number    := D.dsPayee_Number;
                         ECD.dsJob_Code        := D.dsJob_Code;
                         ECD.dsNotes           := D.dsNotes;
-                        if ecFile.ecFields.ecSuper_Fund_System <> 0 then begin
+                        if ecFile.ecFields.ecSuper_Fund_System <> 0 then
+                        begin
                            ECD.dsSF_Franked         := D.dsSF_Franked;
                            ECD.dsSF_UnFranked       := D.dsSF_UnFranked;
                            ECD.dsSF_Franking_Credit := D.dsSF_Imputed_Credit;
@@ -953,6 +956,8 @@ begin
           BKT^.txGST_Amount := 0
         else
           BKT^.txGST_Amount := CalculateGSTForClass( aClient, BKT^.txDate_Effective, BKT^.Local_Amount, BKT^.txGST_Class);
+
+        BKT.txTransfered_To_Online := False;
       end
       else
       begin
@@ -970,6 +975,7 @@ begin
         //account is blank so use ecoding account to code the transaction
         BKT.txAccount         := ECT.txAccount;
         BKT.txHas_Been_Edited := true;
+        BKT.txTransfered_To_Online := False;
 
         if ECT.txCoded_By = cbManual then
           NeedToUpdateGST     := true;
@@ -1013,6 +1019,7 @@ begin
               //set the bk5 payee number from here
               BKT.txPayee_Number         := ECT^.txPayee_Number;
               BKT.txHas_Been_Edited      := True;
+              BKT.txTransfered_To_Online := False;
               NeedToUpdatePayeeDetails   := True;
 
               if ECT^.txCoded_By = cbManualPayee then
@@ -1067,6 +1074,7 @@ begin
         begin
           BKT^.txJob_Code := ECT^.txJob_Code;
           BKT^.txHas_Been_Edited := true;
+          BKT.txTransfered_To_Online := False;
         end
         else
         begin
@@ -1075,7 +1083,7 @@ begin
             AddToImportNotes(BKT, 'Job Removed', glConst.ECODING_APP_NAME)  //deleted job
           else
             AddToImportNotes(BKT, 'Job ' + bkJob.jhHeading + ' (' + bkJob.jhCode + ')', glConst.ECODING_APP_NAME);
-          
+
         end;
 
       end;
@@ -1118,6 +1126,7 @@ begin
 
         BKT.txCoded_By         := cbECodingManualPayee;
         BKT.txHas_Been_Edited  := True;
+        BKT.txTransfered_To_Online := False;
       end;
     end;
 
@@ -1147,6 +1156,7 @@ begin
       if BKT^.txQuantity = 0 then
       begin
         BKT^.txQuantity := ECT^.txQuantity;
+        BKT.txTransfered_To_Online := False;
       end
       else
          AddToImportNotes( BKT, 'Quantity   ' + FormatFloat('#,##0.####', ECT.txQuantity/10000), glConst.ECODING_APP_NAME);
@@ -1169,6 +1179,7 @@ begin
              BKT^.txSF_Imputed_Credit := ECT^.txSF_Franking_Credit;
              BKT^.txSF_Super_Fields_Edited := True;
              BKT^.txHas_Been_Edited  := True;
+             BKT.txTransfered_To_Online := False;
              BKT^.txCoded_By := cbECodingManual;
              if FrankingCredit(BKT^.txSF_Franked, BKT^.txDate_Effective) <> BKT^.txSF_Imputed_Credit  then begin
                 aMsg := 'The franking credit amounts do not match the calculated amounts ''Franked: $' + Money2Str( BKT^.txSF_Franked) +
@@ -1364,6 +1375,7 @@ begin
       begin
         BKT^.txJob_Code := ECT^.txJob_Code;
         BKT^.txHas_Been_Edited := true;
+        BKT.txTransfered_To_Online := False;
       end
       else
       begin
@@ -1869,6 +1881,7 @@ begin
         //set the bk5 payee number from here
         BKT.txPayee_Number         := ECT^.txPayee_Number;
         BKT.txHas_Been_Edited      := True;
+        BKT.txTransfered_To_Online := False;
 
         if bkPayee.IsDissected then
         begin

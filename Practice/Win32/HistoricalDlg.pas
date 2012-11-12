@@ -2071,6 +2071,7 @@ begin
 //             txGST_Amount   := CalculateGSTForClass( MyClient, txDate_Effective, txAmount, txGST_Class);
              txGST_Amount   := CalculateGSTForClass( MyClient, txDate_Effective, Local_Amount, txGST_Class);
              txGST_Has_Been_Edited := true;
+             txTransfered_To_Online := False;
           end
           else begin
 //             CalculateGST( MyClient, txDate_Effective, txAccount, txAmount, txGST_Class, txGST_Amount);
@@ -2799,6 +2800,7 @@ begin
          end;
       end;
       pT^.txHas_Been_Edited := true;
+      pT^.txTransfered_To_Online := False;
    end;
 
    with tblHist do begin
@@ -2983,6 +2985,7 @@ begin
               if GSTDifferentToDefault( MyClient, pT ) then begin
                  pT^.txHas_Been_Edited     := true;
                  pT^.txGST_Has_Been_Edited := true;
+                 pT^.txTransfered_To_Online := False;
               end
               else
                  pT^.txGST_Has_Been_Edited := false;
@@ -3671,6 +3674,11 @@ begin
          //set to true if validly coded, otherwise set to false
          pT.txHas_Been_Edited := (pT.txCoded_By <> cbNotcoded);
 
+         if pT.txHas_Been_Edited then
+         begin
+           pT^.txTransfered_To_Online := False;
+         end;
+
          //set source
          if Provisional then
             pT.txSource := orProvisional
@@ -3862,7 +3870,10 @@ begin
         OldPayeeNo := pT^.txPayee_Number;
         pT^.txPayee_Number  := tmpPayee;
         if PayeeEdited(pT) then
-          pT^.txHas_Been_Edited := true
+        begin
+          pT^.txHas_Been_Edited := true;
+          pT^.txTransfered_To_Online := False;
+        end
         else
           //restore original value
           pT^.txPayee_Number := OldPayeeNo;
@@ -3993,6 +4004,7 @@ begin
                pT^.txReference := MakeRef( ChequeNo );
                //set has been edited so that is not automatically deleted when cursor moves off line
                pT^.txHas_Been_Edited := true;
+               pT^.txTransfered_To_Online := False;
                Inc( NumCheques );
             end
             else

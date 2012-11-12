@@ -416,6 +416,7 @@ begin
         //account is blank so use ecoding account to code the transaction
         BKT.txAccount         := ECT.txAccount;
         BKT.txHas_Been_Edited := true;
+        BKT.txTransfered_To_Online := False;
         NeedToUpdateGST       := true;
       end
       else begin
@@ -445,6 +446,7 @@ begin
             //set the bk5 payee number from here
             BKT.txPayee_Number         := ECT^.txPayee_Number;
             BKT.txHas_Been_Edited      := True;
+            BKT.txTransfered_To_Online := False;
             NeedToUpdatePayeeDetails   := True;
             NeedToUpdateGST            := True;
           end
@@ -515,6 +517,7 @@ begin
 
         BKT.txCoded_By         := cbCodeIT;
         BKT.txHas_Been_Edited  := True;
+        BKT.txTransfered_To_Online := False;
       end
       else
       begin
@@ -1092,6 +1095,7 @@ begin
       //set the bk5 payee number from here
       BKT.txPayee_Number         := ECT^.txPayee_Number;
       BKT.txHas_Been_Edited      := True;
+      BKT.txTransfered_To_Online := False;
 
       if bkPayee.IsDissected then
       begin
@@ -1562,6 +1566,8 @@ begin
             T^.txECoding_Import_Notes := '';
             // Why are we forcing this to be set???
             T^.txHas_Been_Edited := True;  //See Case 7113
+            T^.txTransfered_To_Online := False;
+
             // Well it would apear it breaks the disection inport if we dont set it
             // May need to revisit ... read the case ...
 

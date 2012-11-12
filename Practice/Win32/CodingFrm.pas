@@ -1442,7 +1442,8 @@ begin
    //check to see that gst col is editable
    GSTClassNotEditable := not ColumnFmtList.FieldIsEditable( ceGSTClass);
 
-   if not ( EditAcctColOnly or GSTClassNotEditable) then begin
+   if not ( EditAcctColOnly or GSTClassNotEditable) then
+   begin
       with tblCoding do begin
          //test if we are in the correct col, if not end any edit and move to
          //correct col
@@ -1470,7 +1471,8 @@ begin
          end;
       end;
    end
-   else begin
+   else
+   begin
       with tblCoding do begin
          //End edit of Account if any
          if not StopEditingState(True) then Exit;
@@ -1485,6 +1487,7 @@ begin
             if GSTDifferentToDefault( MyClient, pT ) then begin
                pT^.txHas_Been_Edited     := true;
                pT^.txGST_Has_Been_Edited := true;
+               pT^.txTransfered_To_Online := False;
             end
             else
                pT^.txGST_Has_Been_Edited := false;
@@ -3120,7 +3123,7 @@ begin
    pT^.txHas_Been_Edited := False;
    pT^.txGST_Has_Been_Edited := False;
    ClearSuperFundFields(pT);
-   
+
    RedrawRow;
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -3934,6 +3937,8 @@ Begin
             txCoded_By := cbManual;
          txHas_Been_Edited := False;
          txGST_Has_Been_Edited := True;
+         pT.txTransfered_To_Online := False;
+
          exit;
       end;
 
@@ -4069,6 +4074,7 @@ begin
 //             txGST_Amount   := CalculateGSTForClass( MyClient, txDate_Effective, txAmount, txGST_Class);
              txGST_Amount   := CalculateGSTForClass( MyClient, txDate_Effective, Local_Amount, txGST_Class);
              txGST_Has_Been_Edited := true;
+             txTransfered_To_Online := False;
           end
           else begin
 //             CalculateGST( MyClient, txDate_Effective, txAccount, txAmount, txGST_Class, txGST_Amount);
@@ -4889,7 +4895,10 @@ begin
             if ( pT^.txAccount <> tmpShortStr ) then begin
                // Edited flag not set if when coded from Blank
                if ( pT^.txAccount <> '' ) then
+               begin
                   pT^.txHas_Been_Edited := true;
+                  pT^.txTransfered_To_Online := False;
+               end;
                pT^.txAccount :=tmpShortStr;
                AccountEdited(pT);
             end;
@@ -4909,9 +4918,11 @@ begin
                pT^.txGST_Class := B;
                GSTClassEdited(pT);
                //check if gst edited
-               if GSTDifferentToDefault( MyClient, pT ) then begin
+               if GSTDifferentToDefault( MyClient, pT ) then
+               begin
                   pT^.txHas_Been_Edited     := true;
                   pT^.txGST_Has_Been_Edited := true;
+                  pT^.txTransfered_To_Online := False;
                end
                else
                   pT^.txGST_Has_Been_Edited := false;
@@ -4924,9 +4935,11 @@ begin
             if ( pT^.txGST_Amount <> M ) then begin
                pT^.txGST_Amount   := M;
                //check if gst edited
-               if GSTDifferentToDefault( MyClient, pT ) then begin
+               if GSTDifferentToDefault( MyClient, pT ) then
+               begin
                   pT^.txHas_Been_Edited     := true;
                   pT^.txGST_Has_Been_Edited := true;
+                  pT^.txTransfered_To_Online := False;
                end
                else
                   pT^.txGST_Has_Been_Edited := false;
@@ -4939,9 +4952,11 @@ begin
 
          ceNarration : begin
            S := PChar( tmpBuffer);  //will have been filled by ReadCellForSave
-           if (pT^.txGL_Narration <> S) then begin
+           if (pT^.txGL_Narration <> S) then
+           begin
               pT^.txGL_Narration    := S;
               pT^.txHas_Been_Edited := true;
+              pT^.txTransfered_To_Online := False;
            end;
          end;
 
@@ -4978,6 +4993,13 @@ begin
       tmrpayee.Tag := FieldId;
       tmrPayee.Enabled := True;
    end;
+
+   {Include transaction in next upload}
+   if pT.txHas_Been_Edited then
+   begin
+     pT.txTransfered_To_Online := False;
+   end;
+        
    UpdateCodedCount;
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -7158,7 +7180,10 @@ begin
            OldPayeeNo := pT^.txPayee_Number;
            pT^.txPayee_Number := tmpPayee;
            if PayeeEdited(pT) then
-              pT^.txHas_Been_Edited := true
+           begin
+              pT^.txHas_Been_Edited := true;
+              pT^.txTransfered_To_Online := False;
+           end
            else
               pT^.txPayee_Number := OldPayeeNo;
         end;
@@ -7166,11 +7191,14 @@ begin
            OldJob  := pT^.txJob_Code;
 
            pT^.txJob_Code := tmpJob;
-           if JobEdited(pT) then begin
+           if JobEdited(pT) then
+           begin
               pT^.txHas_Been_Edited := true;
               if pt^.txCoded_By in [cbMemorisedC,cbMemorisedM] then
                  pT^.txCoded_By := cbManual;
-           end else
+              pT^.txTransfered_To_Online := False;
+           end
+           else
               pT^.txJob_Code := OldJob;
         end;
       ceEffDate : if (PT.txDate_Effective <> TmpDate) then begin
@@ -7214,6 +7242,11 @@ begin
 //                               CalculateGST( myClient, txDate_Effective, txAccount, txAmount, DefaultGSTClass, DefaultGSTAmt);
                                CalculateGST( myClient, txDate_Effective, txAccount, Local_Amount, DefaultGSTClass, DefaultGSTAmt);
                                txGST_Has_Been_Edited := (txGST_Class <> DefaultGSTClass) or (txGST_Amount <> DefaultGSTAmt);
+
+                               if txGST_Has_Been_Edited then
+                               begin
+                                 pT^.txTransfered_To_Online := False;
+                               end;
                             end;
                          end;
 //                      end;
@@ -8654,6 +8687,7 @@ begin
 
     pT^.txHas_Been_Edited := true;
     pT^.txGL_Narration := Copy( NewNarration, 1, MaxNarrationEditLength);
+    pT.txTransfered_To_Online := False;
 
     RedrawRow;
 
@@ -8680,9 +8714,9 @@ begin
 
       pT^.txHas_Been_Edited := true;
       pT^.txGL_Narration := Copy( NewNarration, 1, MaxNarrationEditLength);
+      pT.txTransfered_To_Online := False;
 
       RedrawRow;
-
    end;
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
