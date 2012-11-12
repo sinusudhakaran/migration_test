@@ -62,6 +62,9 @@ object frmClientManager: TfrmClientManager
           Action = actInActive
         end
         item
+          Action = actAccountStatus
+        end
+        item
           Caption = '-'
         end
         item
@@ -98,7 +101,7 @@ object frmClientManager: TfrmClientManager
           Action = actHelp
         end>
       Opened = True
-      OpenedHeight = 396
+      OpenedHeight = 416
       Caption = 'Client Files'
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
@@ -919,6 +922,12 @@ object frmClientManager: TfrmClientManager
       Caption = 'Edit BankLink Online Settings'
       ImageIndex = 17
       OnExecute = actBOSettingsExecute
+    end
+    object actAccountStatus: TAction
+      Category = 'Accounts'
+      Caption = 'Account Status'
+      ImageIndex = 39
+      OnExecute = actAccountStatusExecute
     end
   end
   object tmrUpdateClientDetails: TTimer
