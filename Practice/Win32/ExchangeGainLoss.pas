@@ -993,7 +993,7 @@ begin
 {$ENDIF}
 
   // Exchange Gain/Loss
-  aBankAccount.GainLoss := (COB - CCB) + CSUM;
+  aBankAccount.GainLoss := CCB - COB - CSUM;
 
 {$IFDEF DEBUG_GAINLOSS}
   u_Log.Add('Gain/Loss = '+FloatToStr(aBankAccount.GainLoss / 100));
