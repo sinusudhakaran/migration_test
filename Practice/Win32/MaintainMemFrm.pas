@@ -602,10 +602,10 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmMaintainMem.tbEditClick(Sender: TObject);
 var
-  pM            : TMemorisation;
+  pM, Mem0, Mem1: TMemorisation;
   MemorisedList : TMemorisations_List;
   Accsel        : TTreeNode;
-  I, MasterMemToDelete: Integer;
+  I, MasterMemToDelete, Swap0, Swap1: Integer;
   SystemMemorisation: pSystem_Memorisation_List_Rec;
   Prefix: string;
   SystemMem: TMemorisation;
@@ -632,7 +632,7 @@ begin
 
   //check that a valid list
   if ( MemorisedList = nil ) then
-     Exit;      
+     Exit;
 
   with lvMemorised do begin
      Prefix := '';
@@ -640,7 +640,9 @@ begin
        Prefix := AccSel.Text;
      pM := TMemorisation( Selected.SubItems.Objects[0] );
      DeleteSelectedMem := False;
-     if EditMemorisation(BA, MemorisedList, pM, DeleteSelectedMem, False, Prefix) then begin
+     Swap0 := -1;
+     Swap1 := -1;
+     if EditMemorisation(BA, MemorisedList, pM, DeleteSelectedMem, Swap0, Swap1, False, Prefix, -1) then begin
         //Set changed to true so that CES reloads edited transactions
         FMemorisationChanged := True;
         //if the edit was succesful we need to reload the memorisations to display them
@@ -675,6 +677,23 @@ begin
           SystemMem := TMemorisations_List(SystemMemorisation.smMemorisations).Memorisation_At(MasterMemToDelete);
           DeleteMemorised(MemorisedList, SystemMem, False, Prefix, False);
         end;
+        // Copy should be above the original in the list of memorisations, so we need to swap them around
+        if (Swap0 > -1) and (Swap1 > -1) then
+        begin
+          Mem0 := nil;
+          Mem1 := nil;
+          for I := 0 to lvMemorised.items.Count - 1 do
+          begin
+            if (TMemorisation(lvMemorised.Items[I].SubItems.Objects[0]).mdFields^.mdSequence_No = Swap0) then
+              Mem0 := TMemorisations_List(SystemMemorisation.smMemorisations).Memorisation_At(I)
+            else if (TMemorisation(lvMemorised.Items[I].SubItems.Objects[0]).mdFields^.mdSequence_No = Swap1) then
+              Mem1 := TMemorisations_List(SystemMemorisation.smMemorisations).Memorisation_At(I);
+            if Assigned(Mem0) and Assigned(Mem1) then
+              break; // Found both, no need to keep looking
+          end;
+          TMemorisations_List(SystemMemorisation.smMemorisations).SwapItems(Mem0, Mem1);
+        end;
+
         LoadMasters(Prefix);
      end;
   end;

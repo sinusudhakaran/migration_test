@@ -254,7 +254,9 @@ type
   function MemoriseEntry(BA: TBank_Account; tr: pTransaction_Rec; var IsAMasterMem: boolean): boolean;
   function EditMemorisation(BA: TBank_Account; MemorisedList: TMemorisations_List;
                             pM: TMemorisation; var DeleteSelectedMem: boolean;
-                            IsCopy: Boolean = False; Prefix: string = ''; CopySaveSeq: integer = -1) : boolean;
+                            var Swap0: integer; var Swap1: integer;
+                            IsCopy: Boolean = False; Prefix: string = ''; CopySaveSeq: integer = -1): boolean;
+
 
 //******************************************************************************
 implementation
@@ -1949,7 +1951,8 @@ end;
 //------------------------------------------------------------------------------
 function EditMemorisation(BA: TBank_Account; MemorisedList: TMemorisations_List;
   pM: TMemorisation; var DeleteSelectedMem: boolean;
-  IsCopy: Boolean = False; Prefix: string = ''; CopySaveSeq: integer = -1) : boolean;
+  var Swap0: integer; var Swap1: integer;
+  IsCopy: Boolean = False; Prefix: string = ''; CopySaveSeq: integer = -1): boolean;
 // edits an existing memorisation
 //
 // parameters: pM   Memorisation to edit
@@ -2192,7 +2195,7 @@ begin
                //save new values back
                if chkMaster.Checked and Assigned(AdminSystem) then begin
                  //---EDIT MASTER MEM---
-                 if CopySaveSeq = -1 then                 
+                 if CopySaveSeq = -1 then
                    SaveSeq := pM.mdFields.mdSequence_No
                  else
                    SaveSeq := CopySaveSeq;
@@ -2258,7 +2261,7 @@ begin
                      SystemAuditMgr.FlagAudit(arMasterMemorisations);
                      SaveAdminSystem;
                      LoadAdminSystem(true, ThisMethodName);
-                     UnlockAdmin;              
+                     UnlockAdmin;
 
                      //Have to get list again after save
                      SystemMemorisation := AdminSystem.SystemMemorisationList.FindPrefix(Prefix);
@@ -2267,7 +2270,15 @@ begin
 
                      //Edit copy
                      if Assigned(MemorisedList) then
-                       EditMemorisation(ba, MemorisedList, Memorised_Trans, DeleteSelectedMem, True, Prefix);
+                     begin
+                       EditMemorisation(ba, MemorisedList, Memorised_Trans, DeleteSelectedMem, Swap0, Swap1,
+                                        True, Prefix, pm.mdFields^.mdSequence_No);
+                       if Assigned(Memorised_Trans.mdFields) and Assigned(pM.mdFields) then
+                       begin
+                         Swap0 := Memorised_Trans.mdFields^.mdSequence_No;
+                         Swap1 := pm.mdFields^.mdSequence_No;
+                       end;
+                     end;
 
                      // Saving again in case the copy fails the duplicate test, in which case
                      // it will have been deleted, so we need to save the deletion
@@ -2283,7 +2294,8 @@ begin
                   SaveToMemRec(Memorised_Trans, nil, chkMaster.Checked);
                   Memorised_Trans.mdFields.mdType := pm.mdFields.mdType;
                   MemorisedList.Insert_Memorisation(Memorised_Trans);
-                  EditMemorisation(ba,ba.baMemorisations_List,Memorised_Trans, DeleteSelectedMem, True);
+                  EditMemorisation(ba,ba.baMemorisations_List,Memorised_Trans, DeleteSelectedMem,
+                                   Swap0, Swap1, True);
                end;
                Result := true;
            end;
