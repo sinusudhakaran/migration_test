@@ -1746,7 +1746,6 @@ var
   Amount: Money;
   Narration: string;
   Qty: Money;
-  lb: Boolean;
   LLedger: ShortString;
 begin
 
