@@ -431,7 +431,7 @@ end;
 {------------------------------------------------------------------------------}
 function TMonthEnding.GetCanCalculateGainLoss: boolean;
 begin
-  result := (NrTransactions > 0) and not Finalised and not Transferred;
+  result := (NrTransactions <> 0) and not Finalised and not Transferred;
 end;
 
 {------------------------------------------------------------------------------}
@@ -546,7 +546,7 @@ function TMonthEndings.HasExchangeRate(const aDate: TStDate;
   const aIsoIndex: integer): boolean;
 var
   Rate: TExchangeRecord;
-  RateAmount: Money;
+  RateAmount: double; // Exchange Rates are doubles
 begin
   result := false;
 
@@ -713,6 +713,7 @@ var
   pMonth: PMonthEnding;
 begin
   ASSERT(assigned(aBankAccount));
+  ASSERT(IsForeignCurrencyAccount(aBankAccount));
 
   // Cache this before we check all transactions
   iIsoIndex := GetIsoIndex(aBankAccount.baFields.baCurrency_Code);
@@ -901,11 +902,6 @@ begin
   GetBalances(aBankAccount, aStart, aEnd, aOpening, aClosing, SystemOpBal, SystemClBal);
 end;
 
-{$IFDEF DEBUG_GAINLOSS}
-var
-  u_Log: TStringList;
-{$ENDIF}
-
 {------------------------------------------------------------------------------}
 procedure TMonthEndings.CalculateGainLoss(var aBankAccount: TMonthEndingBankAccount;
   const aStart: TStDate; const aEnd: TStDate);
@@ -932,10 +928,6 @@ begin
   Transactions := BankAccount.baTransaction_List;
   ASSERT(assigned(Transactions));
 
-{$IFDEF DEBUG_GAINLOSS}
-  u_Log.Add('['+BankAccount.baFields.baBank_Account_Name+'] - '+BankAccount.baFields.baBank_Account_Number);
-{$ENDIF}
-
   // Determine currency column for later calculations (ApplyExchangeRate)
   iIsoIndex := GetIsoIndex(BankAccount.baFields.baCurrency_Code);
 
@@ -946,19 +938,8 @@ begin
   dtLastDayOfPreviousMonth := IncDate(aStart, -1, 0, 0);
   COB := ApplyExchangeRateForexToBase(dtLastDayOfPreviousMonth, iIsoIndex, OB);
 
-{$IFDEF DEBUG_GAINLOSS}
-  u_Log.Add('OB  = '+FloatToStr(OB / 100));
-  u_Log.Add('COB = '+FloatToStr(COB / 100));
-{$ENDIF}
-
   // Use last day of the current month for closing balance exchange rate
   CCB := ApplyExchangeRateForexToBase(aEnd, iIsoIndex, CB);
-
-{$IFDEF DEBUG_GAINLOSS}
-  u_Log.Add('CB  = '+FloatToStr(CB / 100));
-  u_Log.Add('CCB = '+FloatToStr(CCB / 100));
-  u_Log.Add('');
-{$ENDIF}
 
   // Closing Balance and Sum for transactions
   SUM := 0;
@@ -979,28 +960,10 @@ begin
     // CSUM
     mConvertedAmount := ApplyExchangeRateForexToBase(dtEffective, iIsoIndex, Transaction.txAmount);
     CSUM := CSUM + mConvertedAmount;
-
-{$IFDEF DEBUG_GAINLOSS}
-    u_Log.Add(Date2Str(dtEffective, 'dd/mm/yyyy')+', '+FloatToStr(Transaction.txAmount / 100)+' => '+FloatToStr(mConvertedAmount / 100));
-{$ENDIF}
   end;
-
-{$IFDEF DEBUG_GAINLOSS}
-  u_Log.Add('');
-  u_Log.Add('SUM  = '+FloatToStr(SUM / 100));
-  u_Log.Add('CSUM = '+FloatToStr(CSUM / 100));
-  u_Log.Add('');
-{$ENDIF}
 
   // Exchange Gain/Loss
   aBankAccount.GainLoss := CCB - COB - CSUM;
-
-{$IFDEF DEBUG_GAINLOSS}
-  u_Log.Add('Gain/Loss = '+FloatToStr(aBankAccount.GainLoss / 100));
-  u_Log.Add('');
-  u_Log.Add(StringOfChar('=', 80));
-  u_Log.Add('');
-{$ENDIF}
 end;
 
 {------------------------------------------------------------------------------}
@@ -1104,14 +1067,6 @@ begin
 
   result := (aErrors = '');
 end;
-
-{$IFDEF DEBUG_GAINLOSS}
-initialization
-  u_Log := TStringList.Create;
-
-finalization
-  u_Log.SaveToFile('c:\temp\currencies.log');
-{$ENDIF}
 
 
 end.

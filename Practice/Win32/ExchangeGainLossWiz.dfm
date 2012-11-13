@@ -453,10 +453,6 @@ object wizExchangeGainLoss: TwizExchangeGainLoss
       object tbsMonth: TTabSheet
         Caption = 'Page1 -'
         ImageIndex = 4
-        ExplicitLeft = 0
-        ExplicitTop = 0
-        ExplicitWidth = 0
-        ExplicitHeight = 0
         object lblMonthLine1: TLabel
           Left = 8
           Top = 64
