@@ -684,7 +684,7 @@ begin
 
   case DataCol of
     1: Value := BankAccount.baFields.baBank_Account_Number;
-    2: Value := BankAccount.baFields.baBank_Account_Name;
+    2: Value := BankAccount.baFields.baBank_Account_Name + ' (' + BankAccount.baFields.baCurrency_Code + ')';
     3: Value := BankAccount.baFields.baExchange_Gain_Loss_Code;
     4: Value := MonthEndingBankAccount.GainLossCurrency;
     5: Value := MonthEndingBankAccount.GainLossCrDr;
