@@ -68,11 +68,12 @@ type
     procedure SendPDFViaEmail;
     procedure SaveToFile;
     procedure PrintPDF;
+    procedure CreateQRCode;
   public
     function Execute(aCountry, aInstitution : integer) : boolean;
 
-    property ClientEmail: string read FClientEmail write SetClientEmail;
-    property ButtonPressed: Byte read FButton;
+    property ClientEmail : string read FClientEmail write SetClientEmail;
+    property ButtonPressed : Byte read FButton;
   end;
 
   function OpenCustAuth(w_PopupParent: Forms.TForm; aCountry : integer; aClientEmail : string) : boolean;
@@ -93,7 +94,9 @@ uses
   SaveReportToDlg,
   ReportDefs,
   YesNoDlg,
-  ShellAPI;
+  ShellAPI,
+  CafQrCode,
+  WebUtils;
 
 //------------------------------------------------------------------------------
 function OpenCustAuth(w_PopupParent: Forms.TForm; aCountry : integer; aClientEmail : string) : boolean;
@@ -199,12 +202,13 @@ end;
 function TfrmNewCAF.InitPDF : boolean;
 var
   PDFFilePath : Widestring;
+  PublicKeyFilePath : Widestring;
 begin
   Result := false;
 
   if not DirectoryExists( GLOBALS.TemplateDir ) then
   begin
-    HelpfulErrorMsg('Can''t find Templates Direcotry - ' + GLOBALS.TemplateDir, 0);
+    HelpfulErrorMsg('Can''t find Templates Directory - ' + GLOBALS.TemplateDir, 0);
     Exit;
   end;
 
@@ -213,6 +217,20 @@ begin
   if not FileExists( PDFFilePath ) then
   begin
     HelpfulErrorMsg('Can''t find Template - ' + PDFFilePath, 0);
+    Exit;
+  end;
+
+  if not DirectoryExists( GLOBALS.PublicKeysDir ) then
+  begin
+    HelpfulErrorMsg('Can''t find Publickeys Directory - ' + GLOBALS.PublicKeysDir, 0);
+    Exit;
+  end;
+
+  PublicKeyFilePath := GLOBALS.PublicKeysDir + PUBLIC_KEY_FILE_CAF_QRCODE;
+
+  if not FileExists( PublicKeyFilePath ) then
+  begin
+    HelpfulErrorMsg('Can''t find CAF QrCode Publickey - ' + PublicKeyFilePath, 0);
     Exit;
   end;
 
@@ -226,6 +244,8 @@ begin
     PdfFieldEdit.AutoSetControlTabs;
 
     ResetFields;
+
+    CreateQRCode;
 
     Result := True;
   except
@@ -900,10 +920,10 @@ begin
   try
     PdfFieldEdit.SaveToFileFlattened(ReportFile);
 
-    PrintDialog.MinPage := 1;
-    PrintDialog.MaxPage := PdfFieldEdit.PageCount;
+    PrintDialog.MinPage  := 1;
+    PrintDialog.MaxPage  := PdfFieldEdit.PageCount;
     PrintDialog.FromPage := 1;
-    PrintDialog.ToPage := PdfFieldEdit.PageCount;
+    PrintDialog.ToPage   := PdfFieldEdit.PageCount;
     if PrintDialog.Execute then
     begin
       PdfFieldEdit.Print(ReportFile,
@@ -955,27 +975,37 @@ end;
 procedure TfrmNewCAF.btnEmailClick(Sender: TObject);
 begin
   if ValidateForm then
+  begin
+    CreateQRCode;
     SendPDFViaEmail;
+  end;
 end;
 
 //------------------------------------------------------------------------------
 procedure TfrmNewCAF.btnFileClick(Sender: TObject);
 begin
   if ValidateForm then
+  begin
+    CreateQRCode;
     SaveToFile;
+  end;
 end;
 
 //------------------------------------------------------------------------------
 procedure TfrmNewCAF.btnPrintClick(Sender: TObject);
 begin
   if ValidateForm then
+  begin
+    CreateQRCode;
     PrintPDF;
+  end;
 end;
 
 //------------------------------------------------------------------------------
 procedure TfrmNewCAF.btnResetFormClick(Sender: TObject);
 begin
   ResetFields;
+  CreateQRCode;
 end;
 
 //------------------------------------------------------------------------------
@@ -1000,10 +1030,69 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+procedure TfrmNewCAF.CreateQRCode;
+const
+  QR_CODE_SIZE = 100;
+  STANDARD_XPOS = 645;
+  STANDARD_YPOS = 760;
+var
+  CafQrCode  : TCafQrCode;
+  CAFQRData  : TCAFQRData;
+  CAFQRDataAccount : TCAFQRDataAccount;
+  QrCodeImage : TImage;
+begin
+  CAFQRData := TCAFQRData.Create(TCAFQRDataAccount);
+  CafQrCode := TCafQrCode.Create;
+  QrCodeImage := TImage.Create(nil);
+  try
+    // Day , Month , Year
+    CAFQRData.SetStartDate(1,
+                           GetPDFFormFieldCombo(ukCAFStartMonth).ComboBox.ItemIndex,
+                           '20' + GetPDFFormFieldEdit(ukCAFStartYear).Edit.Text);
+
+    CAFQRData.PracticeCode        := GetPDFFormFieldEdit(ukCAFPracticeCode).Value;
+    CAFQRData.PracticeCountryCode := CountryText(AdminSystem.fdFields.fdCountry);
+
+    CAFQRData.SetProvisional(GetPDFFormFieldCheck(ukCAFSupplyProvisionalAccounts).CheckBox.Checked);
+
+    CAFQRData.SetFrequency(GetPDFFormFieldRadio(ukCAFMonthly).RadioButton.Checked,
+                           GetPDFFormFieldRadio(ukCAFWeekly).RadioButton.Checked);
+
+    CAFQRData.TimeStamp := Now;
+    CAFQRData.InstitutionCode := GetPDFFormFieldEdit(ukCAFBankCode).Value;
+    CAFQRData.InstitutionCountry := '';
+
+    CAFQRDataAccount := TCAFQRDataAccount.Create(CAFQRData);
+    CAFQRDataAccount.AccountName   := GetPDFFormFieldEdit(ukCAFNameOfAccount).Value;
+    CAFQRDataAccount.AccountNumber := GetPDFFormFieldEdit(ukCAFBankCode).Value +
+                                      GetPDFFormFieldEdit(ukCAFAccountNumber).Value;
+    CAFQRDataAccount.ClientCode    := GetPDFFormFieldEdit(ukCAFClientCode).Value;
+    CAFQRDataAccount.CostCode      := GetPDFFormFieldEdit(ukCAFCostCode).Value;
+    CAFQRDataAccount.SMSF          := 'N'; // AU only
+
+    CafQrCode.BuildQRCode(CAFQRData,
+                          GLOBALS.PublicKeysDir + PUBLIC_KEY_FILE_CAF_QRCODE,
+                          QrCodeImage);
+
+    PdfFieldEdit.SetQRCodeImage(QrCodeImage.Picture.Bitmap);
+
+    if fInstitution = istUKHSBC then
+      PdfFieldEdit.DrawQRCode(STANDARD_XPOS, STANDARD_YPOS, QR_CODE_SIZE, QR_CODE_SIZE, 2)
+    else
+      PdfFieldEdit.DrawQRCode(STANDARD_XPOS, STANDARD_YPOS, QR_CODE_SIZE, QR_CODE_SIZE, 1);
+
+  finally
+    FreeAndNil(QrCodeImage);
+    FreeAndNil(CafQrCode);
+    FreeAndNil(CAFQRData);
+  end;
+end;
+
+//------------------------------------------------------------------------------
 procedure TfrmNewCAF.FormCreate(Sender: TObject);
 begin
   Height := Application.MainForm.ClientHeight;
-  Top    := Application.MainForm.top;
+  Top    := Application.MainForm.Top;
 end;
 
 //------------------------------------------------------------------------------

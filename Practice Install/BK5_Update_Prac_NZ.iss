@@ -52,6 +52,7 @@ Source: "3rd Party\WDDX_License.html"; DestDir: "{app}"
 Source: "3rd Party\wddx_com.dll"; DestDir: "{app}"
 Source: "3rd Party\xmlparse.dll"; DestDir: "{app}"
 Source: "3rd Party\xmltok.dll"; DestDir: "{app}"
+Source: "3rd Party\libeay32.dll"; DestDir: "{app}"
 
 Source: "AuthorityForms\Third Party Authority.pdf"; DestDir: "{app}"
 Source: "AuthorityForms\TPA_Generator.xlt"; DestDir: "{app}"

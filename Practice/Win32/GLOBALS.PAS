@@ -288,6 +288,7 @@ var
     APPTITLE                 : string = '';
     SHORTAPPNAME             : string = '';
     StyleDir                 : string;
+    PublicKeysDir            : string;
 
     //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     // Misc settings
@@ -672,6 +673,7 @@ initialization
    CSVExportDefaultDir       := DataDir + 'EXPORT\';
    UsageDir                  := DataDir + 'USAGE\';
    StyleDir                  := DataDir + 'STYLES\';
+   PublicKeysDir             := DataDir + 'PUBLICKEYS\';
    AppVersionStr             := GetAppVersionStr;
 
 {$ENDIF}

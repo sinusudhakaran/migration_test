@@ -9,7 +9,9 @@ uses
    XLSWorkbook,
    Variants,
    Types,
-   rptGST101;
+   rptGST101,
+   Graphics,
+   ExtCtrls;
 
 function GetTaskBarHeight: Integer;
 function GetTaskBarWidth: Integer;
@@ -76,6 +78,7 @@ type
     procedure DrawCheckbox(aX, aY: integer; Checked: boolean);
     function GetCurrLineSizeNoInflation: Integer; // sometimes requires less line spacing
     function XYPoint(aX, aY: Integer): TPoint;
+    procedure DrawImage(aDestRect : TRect; aImage: TImage);
   end;
 
 
@@ -91,8 +94,7 @@ uses
    ShellAPI,
    Classes,
    SysUtils,
-   RepCols,
-   Graphics;
+   RepCols;
 
 const // Import Column Titles
   ct_AccountName = 'Account Name';
@@ -297,6 +299,11 @@ end;
 function TAuthorityReport.ColumnsFound: Boolean;
 begin
    Result := (fCurRow >= 0) and (fcAccountName >= 0) and (fcAccountNo>= 0) and (fcBank >= 0);
+end;
+
+procedure TAuthorityReport.DrawImage(aDestRect : TRect; aImage: TImage);
+begin
+  CanvasRenderEng.OutputBuilder.Canvas.StretchDraw(aDestRect, aImage.Picture.Graphic);
 end;
 
 procedure TAuthorityReport.DrawCheckbox(aX, aY: integer; Checked: boolean);
