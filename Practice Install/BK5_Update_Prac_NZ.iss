@@ -57,6 +57,8 @@ Source: "3rd Party\libeay32.dll"; DestDir: "{app}"
 Source: "AuthorityForms\Third Party Authority.pdf"; DestDir: "{app}"
 Source: "AuthorityForms\TPA_Generator.xlt"; DestDir: "{app}"
 
+Source: "Publickeys\PublicKeyCafQrCode.pke"; DestDir : "{app}\Publickeys"
+
 [Run]
 Filename: "{app}\BK5WIN.EXE"; Description : "Start BankLink Practice"; WorkingDir: "{app}"; Flags: postinstall nowait;
 

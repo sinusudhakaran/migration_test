@@ -299,59 +299,63 @@ var
   QrCodeImage : TImage;
 begin
   CAFQRData := TCAFQRData.Create(TCAFQRDataAccount);
-
-  CAFQRDataAccount := TCAFQRDataAccount.Create(CAFQRData);
-  CAFQRDataAccount.AccountName   := Values.edtName1.text;
-  CAFQRDataAccount.AccountNumber := Values.edtNumber1.text;
-  CAFQRDataAccount.ClientCode    := Values.edtClient1.Text;
-  CAFQRDataAccount.CostCode      := Values.edtCost1.Text;
-  CAFQRDataAccount.SMSF          := 'N'; // AU only
-
-  CAFQRDataAccount := TCAFQRDataAccount.Create(CAFQRData);
-  CAFQRDataAccount.AccountName   := Values.edtName2.text;
-  CAFQRDataAccount.AccountNumber := Values.edtNumber2.text;
-  CAFQRDataAccount.ClientCode    := Values.edtClient2.Text;
-  CAFQRDataAccount.CostCode      := Values.edtCost2.Text;
-  CAFQRDataAccount.SMSF          := 'N'; // AU only
-
-  CAFQRDataAccount := TCAFQRDataAccount.Create(CAFQRData);
-  CAFQRDataAccount.AccountName   := Values.edtName3.text;
-  CAFQRDataAccount.AccountNumber := Values.edtNumber3.text;
-  CAFQRDataAccount.ClientCode    := Values.edtClient3.Text;
-  CAFQRDataAccount.CostCode      := Values.edtCost3.Text;
-  CAFQRDataAccount.SMSF          := 'N'; // AU only
-
-  // Day , Month , Year
-  CAFQRData.SetStartDate(Values.cmbDay.ItemIndex,
-                         Values.cmbMonth.ItemIndex,
-                         '20' + Values.edtYear.Text);
-
-  CAFQRData.PracticeCode        := Values.edtPractice.text;
-  CAFQRData.PracticeCountryCode := CountryText(AdminSystem.fdFields.fdCountry);
-
-  CAFQRData.SetProvisional(Values.cbProvisional.Checked);
-
-  CAFQRData.SetFrequency(Values.rbMonthly.Checked,
-                         Values.rbWeekly.Checked);
-
-  CAFQRData.TimeStamp := Now;
-  CAFQRData.InstitutionCode := Values.edtBank.Text;
-  CAFQRData.InstitutionCountry := '';
-
-  CafQrCode := TCafQrCode.Create;
-  QrCodeImage := TImage.Create(nil);
   try
-    CafQrCode.BuildQRCode(CAFQRData,
-                          GLOBALS.PublicKeysDir + PUBLIC_KEY_FILE_CAF_QRCODE,
-                          QrCodeImage);
+    CafQrCode := TCafQrCode.Create;
+    try
+      QrCodeImage := TImage.Create(nil);
+      try
+        CAFQRDataAccount := TCAFQRDataAccount.Create(CAFQRData);
+        CAFQRDataAccount.AccountName   := Values.edtName1.text;
+        CAFQRDataAccount.AccountNumber := Values.edtNumber1.text;
+        CAFQRDataAccount.ClientCode    := Values.edtClient1.Text;
+        CAFQRDataAccount.CostCode      := Values.edtCost1.Text;
+        CAFQRDataAccount.SMSF          := 'N'; // AU only
 
-    DrawImage(aDestRect, QrCodeImage);
+        CAFQRDataAccount := TCAFQRDataAccount.Create(CAFQRData);
+        CAFQRDataAccount.AccountName   := Values.edtName2.text;
+        CAFQRDataAccount.AccountNumber := Values.edtNumber2.text;
+        CAFQRDataAccount.ClientCode    := Values.edtClient2.Text;
+        CAFQRDataAccount.CostCode      := Values.edtCost2.Text;
+        CAFQRDataAccount.SMSF          := 'N'; // AU only
 
+        CAFQRDataAccount := TCAFQRDataAccount.Create(CAFQRData);
+        CAFQRDataAccount.AccountName   := Values.edtName3.text;
+        CAFQRDataAccount.AccountNumber := Values.edtNumber3.text;
+        CAFQRDataAccount.ClientCode    := Values.edtClient3.Text;
+        CAFQRDataAccount.CostCode      := Values.edtCost3.Text;
+        CAFQRDataAccount.SMSF          := 'N'; // AU only
+
+        // Day , Month , Year
+        CAFQRData.SetStartDate(Values.cmbDay.ItemIndex,
+                               Values.cmbMonth.ItemIndex,
+                               '20' + Values.edtYear.Text);
+
+        CAFQRData.PracticeCode        := Values.edtPractice.text;
+        CAFQRData.PracticeCountryCode := CountryText(AdminSystem.fdFields.fdCountry);
+
+        CAFQRData.SetProvisional(Values.cbProvisional.Checked);
+
+        CAFQRData.SetFrequency(Values.rbMonthly.Checked,
+                               Values.rbWeekly.Checked);
+
+        CAFQRData.TimeStamp := Now;
+        CAFQRData.InstitutionCode := Values.edtBank.Text;
+        CAFQRData.InstitutionCountry := '';
+
+        CafQrCode.BuildQRCode(CAFQRData,
+                              GLOBALS.PublicKeysDir + PUBLIC_KEY_FILE_CAF_QRCODE,
+                              QrCodeImage);
+
+        DrawImage(aDestRect, QrCodeImage);
+
+      finally
+        FreeAndNil(QrCodeImage);
+      end;
+    finally
+      FreeAndNil(CafQrCode);
+    end;
   finally
-    CAFQRData.Clear;
     FreeAndNil(CAFQRData);
-    FreeAndNil(QrCodeImage);
-    FreeAndNil(CafQrCode);
   end;
 end;
 

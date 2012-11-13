@@ -60,6 +60,8 @@ Source: "AuthorityForms\UK_HSBC_Template.pdf"; DestDir: "{app}\TEMPLATE"
 Source: "AuthorityForms\CAF_Generator_HSBC.xlt"; DestDir: "{app}\TEMPLATE"
 Source: "AuthorityForms\CAF_Generator_Standard.xlt"; DestDir: "{app}\TEMPLATE"
 
+Source: "Publickeys\PublicKeyCafQrCode.pke"; DestDir : "{app}\Publickeys"
+
 [Run]
 Filename: "{app}\BK5WIN.EXE"; Description : "Start BankLink Practice"; WorkingDir: "{app}"; Flags: postinstall nowait;
 

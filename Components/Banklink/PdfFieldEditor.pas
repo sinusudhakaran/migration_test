@@ -1213,9 +1213,6 @@ end;
 
 //------------------------------------------------------------------------------
 destructor TPdfFieldEdit.Destroy;
-var
-  ImageIndex : integer;
-  ImageId : integer;
 begin
   if Assigned(fQrCodeImage) then
     FreeAndNil(fQrCodeImage);

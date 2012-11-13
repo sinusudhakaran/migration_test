@@ -114,60 +114,65 @@ var
   QrCodeImage : TImage;
 begin
   CAFQRData := TCAFQRData.Create(TCAFQRDataAccount);
-  CafQrCode := TCafQrCode.Create;
-  QrCodeImage := TImage.Create(nil);
-
   try
-    CAFQRDataAccount := TCAFQRDataAccount.Create(CAFQRData);
-    CAFQRDataAccount.AccountName   := Values.edtName1.text;
-    CAFQRDataAccount.AccountNumber := Values.edtBSB1.Text +
-                                      Values.edtNumber1.text;
-    CAFQRDataAccount.ClientCode    := Values.edtClient1.Text;
-    CAFQRDataAccount.CostCode      := Values.edtCost1.Text;
-    CAFQRDataAccount.SMSF          := 'N'; // AU only
+    CafQrCode := TCafQrCode.Create;
+    try
+      QrCodeImage := TImage.Create(nil);
+      try
+        CAFQRDataAccount := TCAFQRDataAccount.Create(CAFQRData);
+        CAFQRDataAccount.AccountName   := Values.edtName1.text;
+        CAFQRDataAccount.AccountNumber := Values.edtBSB1.Text +
+                                          Values.edtNumber1.text;
+        CAFQRDataAccount.ClientCode    := Values.edtClient1.Text;
+        CAFQRDataAccount.CostCode      := Values.edtCost1.Text;
+        CAFQRDataAccount.SMSF          := 'N'; // AU only
 
-    CAFQRDataAccount := TCAFQRDataAccount.Create(CAFQRData);
-    CAFQRDataAccount.AccountName   := Values.edtName2.text;
-    CAFQRDataAccount.AccountNumber := Values.edtBSB2.Text +
-                                      Values.edtNumber2.text;
-    CAFQRDataAccount.ClientCode    := Values.edtClient2.Text;
-    CAFQRDataAccount.CostCode      := Values.edtCost2.Text;
-    CAFQRDataAccount.SMSF          := 'N'; // AU only
+        CAFQRDataAccount := TCAFQRDataAccount.Create(CAFQRData);
+        CAFQRDataAccount.AccountName   := Values.edtName2.text;
+        CAFQRDataAccount.AccountNumber := Values.edtBSB2.Text +
+                                          Values.edtNumber2.text;
+        CAFQRDataAccount.ClientCode    := Values.edtClient2.Text;
+        CAFQRDataAccount.CostCode      := Values.edtCost2.Text;
+        CAFQRDataAccount.SMSF          := 'N'; // AU only
 
-    CAFQRDataAccount := TCAFQRDataAccount.Create(CAFQRData);
-    CAFQRDataAccount.AccountName   := Values.edtName3.text;
-    CAFQRDataAccount.AccountNumber := Values.edtBSB3.Text +
-                                      Values.edtNumber3.text;
-    CAFQRDataAccount.ClientCode    := Values.edtClient3.Text;
-    CAFQRDataAccount.CostCode      := Values.edtCost3.Text;
-    CAFQRDataAccount.SMSF          := 'N'; // AU only
+        CAFQRDataAccount := TCAFQRDataAccount.Create(CAFQRData);
+        CAFQRDataAccount.AccountName   := Values.edtName3.text;
+        CAFQRDataAccount.AccountNumber := Values.edtBSB3.Text +
+                                          Values.edtNumber3.text;
+        CAFQRDataAccount.ClientCode    := Values.edtClient3.Text;
+        CAFQRDataAccount.CostCode      := Values.edtCost3.Text;
+        CAFQRDataAccount.SMSF          := 'N'; // AU only
 
-    // Day , Month , Year
-    CAFQRData.SetStartDate(1,
-                           Values.cmbMonth.ItemIndex,
-                           '20' + Values.edtYear.Text);
+        // Day , Month , Year
+        CAFQRData.SetStartDate(1,
+                               Values.cmbMonth.ItemIndex,
+                               '20' + Values.edtYear.Text);
 
-    CAFQRData.PracticeCode        := Values.edtPractice.text;
-    CAFQRData.PracticeCountryCode := CountryText(AdminSystem.fdFields.fdCountry);
+        CAFQRData.PracticeCode        := Values.edtPractice.text;
+        CAFQRData.PracticeCountryCode := CountryText(AdminSystem.fdFields.fdCountry);
 
-    CAFQRData.SetProvisional(Values.cbProvisional.Checked);
+        CAFQRData.SetProvisional(Values.cbProvisional.Checked);
 
-    CAFQRData.SetFrequency(Values.rbMonthly.Checked,
-                           Values.rbWeekly.Checked);
+        CAFQRData.SetFrequency(Values.rbMonthly.Checked,
+                               Values.rbWeekly.Checked);
 
-    CAFQRData.TimeStamp := Now;
-    CAFQRData.InstitutionCode := Values.edtBank.Text;
-    CAFQRData.InstitutionCountry := '';
+        CAFQRData.TimeStamp := Now;
+        CAFQRData.InstitutionCode := Values.edtBank.Text;
+        CAFQRData.InstitutionCountry := '';
 
-    CafQrCode.BuildQRCode(CAFQRData,
-                          GLOBALS.PublicKeysDir + PUBLIC_KEY_FILE_CAF_QRCODE,
-                          QrCodeImage);
+        CafQrCode.BuildQRCode(CAFQRData,
+                              GLOBALS.PublicKeysDir + PUBLIC_KEY_FILE_CAF_QRCODE,
+                              QrCodeImage);
 
-    DrawImage(aDestRect, QrCodeImage);
+        DrawImage(aDestRect, QrCodeImage);
 
+      finally
+        FreeAndNil(QrCodeImage);
+      end;
+    finally
+      FreeAndNil(CafQrCode);
+    end;
   finally
-    FreeAndNil(QrCodeImage);
-    FreeAndNil(CafQrCode);
     FreeAndNil(CAFQRData);
   end;
 end;
