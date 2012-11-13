@@ -11,10 +11,10 @@ Interface uses MONEYDEF, DATEDEF;
 Const
    SY_IOLIB_Version : Integer = 103;
    SY_IOLIB_Date    = '22/08/12';
-   SY_FILE_VERSION   = 130;  (* Current Version counter for files
+   SY_FILE_VERSION   = 129;  (* Current Version counter for files
                               Changes if structure or method of storing a value would cause
                               data to be represented incorrectly, or an exception to be raised *)
-   
+
    (*
         History :     33   GST Class Codes field now stored as delimited
                       36   GST Class Codes now stored in array
