@@ -55,6 +55,9 @@ type
     GainLoss: Money;
 
   public
+    // Name/Currency combination
+    function  GetAccountNameCurrency: string;
+    property  AccountNameCurrency: string read GetAccountNameCurrency;
     // Gain/Loss with currency symbol of the practice, NOT the bank account
     function  GetGainLossCurrency: string;
     property  GainLossCurrency: string read GetGainLossCurrency;
@@ -455,6 +458,12 @@ end;
 { ------------------------------------------------------------------------------
   TMonthEndings
 ------------------------------------------------------------------------------ }
+function TMonthEndingBankAccount.GetAccountNameCurrency: string;
+begin
+  result := BankAccount.baFields.baBank_Account_Name + ' (' + BankAccount.baFields.baCurrency_Code + ')';
+end;
+
+{------------------------------------------------------------------------------}
 function TMonthEndingBankAccount.GetGainLossCurrency: string;
 var
   mAbsGainLoss: Money;
