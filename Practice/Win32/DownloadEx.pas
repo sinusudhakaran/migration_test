@@ -1155,9 +1155,17 @@ begin
       try
         if ProcessDiskImages then
         begin
-          UpdateClientAccounts;
-           // all done - now update processing status to show downloaded months
-           RefreshAllProcessingStatistics(True);
+          //UpdateClientAccounts;
+
+          // all done - now update processing status to show downloaded months
+          if PRACINI_FastDownloadStatsUpdate then
+          begin
+            UpdateSystemDownloadIndicators;
+          end
+          else
+          begin
+            RefreshAllProcessingStatistics(True);
+          end;
         end;
       except
         on E : EDownloadVerify do
