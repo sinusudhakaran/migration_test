@@ -507,13 +507,16 @@ procedure TfrmClientManager.FormActivate(Sender: TObject);
       end;
    end;
 begin
-  try
-     RefreshLookup(''); //Do This first, gets a Admin Snapshot.
-     UpdateActions(Assigned(AdminSystem)
-                   and Assigned(CurrUser)
-                   and CurrUser.CanAccessAdmin);
+  if not (csFreeNotification in ComponentState) then
+  begin
+    try
+       RefreshLookup(''); //Do This first, gets a Admin Snapshot.
+       UpdateActions(Assigned(AdminSystem)
+                     and Assigned(CurrUser)
+                     and CurrUser.CanAccessAdmin);
 
-  except
+    except
+    end;
   end;
 end;
 
