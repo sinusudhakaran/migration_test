@@ -284,11 +284,16 @@ var
 
       Map := getClientMap;
       if Assigned(Map) then begin
+         // Have map.. All ok
          System.ClientAccountMapTable.Insert(Map.GuidID, ClientID, Value.GuidID, AdminBankAccount.GuidID, pClient_Account_Map_Rec(Map.Data));
          Result := pClient_Account_Map_Rec(Map.Data);
-      end else begin
-         // Have matching accounts ... Need a map entry
-         MyAction.AddWarining (format('No Client Account Map found for Accnount %s: %s',[FClient.clFields.clCode, Account.Title]));
+      end else if (Account.baFields.baAccount_Type = btBank)
+               and (FClient.clFields.clMagic_Number = System.System.fdFields.fdMagic_Number)
+               and (not FClient.clFields.clSuppress_Check_for_New_TXns)
+               and (FClient.clFields.clDownload_From = dlAdminSystem)
+               and (PSystem_Bank_Account_Rec(AdminBankAccount.Data).sbAccount_Type <> sbtOnlineSecure) then begin
+         // Have matching accounts No ... Need to add a map entry
+         MyAction.AddWarning (format('Client account map added for Account %s: %s',[FClient.clFields.clCode, Account.Title]));
          fillChar(MapRec, Sizeof(MapRec), 0);
          System.ClientAccountMapTable.Insert(NewGuid, ClientID, Value.GuidID, AdminBankAccount.GuidID, @MapRec);
       end;
@@ -395,7 +400,8 @@ begin
              AddClientAccountMap,
              ExcludedFromScheduledReports
           );
-       if Account.baFields.baAccount_Type = 0 then
+
+       if Account.baFields.baAccount_Type = btBank then
          AddColumnConfiguration(0,
                  Account.baFields.baColumn_Order,
                  Account.baFields.baColumn_Width,
@@ -1015,10 +1021,11 @@ begin
 
    logger.LogMessage(Info,'Clearing All Client data');
 
-   RunSQL(Connection,MyAction,'EXEC sp_msforeachtable "ALTER TABLE ? NOCHECK CONSTRAINT all"', 'Drop Constraints');
+   //RunSQL(Connection,MyAction,'EXEC sp_msforeachtable "ALTER TABLE ? NOCHECK CONSTRAINT all"', 'Drop Constraints');
 
    try try
       Connected := true;
+      EnableIndexes(MyAction,True);
       // Dont use the Table to get the name, Too early and Clear may not work...
 
 
@@ -1109,7 +1116,7 @@ begin
          MyAction.Error := E.Message;
    end;
    finally
-      RunSQL(Connection,MyAction,'EXEC sp_msforeachtable "ALTER TABLE ? WITH CHECK CHECK CONSTRAINT all"', 'Re-instate Constraints');
+      //RunSQL(Connection,MyAction,'EXEC sp_msforeachtable "ALTER TABLE ? WITH CHECK CHECK CONSTRAINT all"', 'Re-instate Constraints');
    end;
 end;
 
@@ -1704,6 +1711,7 @@ begin
 
       DoSuperFund := Software.IsSuperFund(FClient.clFields.clCountry, FClient.clFields.clAccounting_System_Used);
 
+      try
       // Add The Client File record
       Client_RecFieldsTable.Insert
                     ( ClientID,
@@ -1721,6 +1729,11 @@ begin
                       AClient,
                       CheckedOutUserID
                     );
+
+
+      except
+        on E: Exception do MyAction.AddError(E);
+      end;
 
 
       try
@@ -1741,7 +1754,7 @@ begin
 
 
       except
-        on E: Exception do MyAction.AddWarining(E);
+        on E: Exception do MyAction.AddError(E);
       end;
 
 
@@ -1772,7 +1785,7 @@ begin
                       @FClient.clExtra);
 
       except
-        on E: Exception do MyAction.AddWarining(E);
+        on E: Exception do MyAction.AddError(E);
       end;
       if MyAction.CheckCanceled then
          Exit;
@@ -1785,7 +1798,7 @@ begin
                       @FClient.clExtra);
 
       except
-         on E: Exception do MyAction.AddWarining(E);
+         on E: Exception do MyAction.AddError(E);
       end;
       if MyAction.CheckCanceled then
          Exit;
@@ -1803,7 +1816,7 @@ begin
                       I);
 
       except
-         on E: Exception do MyAction.AddWarining(E);
+         on E: Exception do MyAction.AddError(E);
       end;
       if MyAction.CheckCanceled then
          Exit;
@@ -1815,7 +1828,7 @@ begin
                       @FClient.clFields,
                       @FClient.clMoreFields);
          except
-            on E: Exception do MyAction.AddWarining(E);
+            on E: Exception do MyAction.AddError(E);
          end;
          if MyAction.CheckCanceled then
             Exit;

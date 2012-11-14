@@ -38,6 +38,10 @@ public
     function DeleteTable(ForAction: TMigrateAction; Table: TMigrateTable; Truncate: boolean = false):Boolean; overload;
     function InsertTable(ForAction: TMigrateAction; TableName, Fields, Values, Name: string): Boolean;
 
+    function EnableIndexes(ForAction: TMigrateAction; Enable: Boolean): Boolean;
+
+    function EnableConstraints(ForAction: TMigrateAction; Enable: Boolean): Boolean;
+
     // static Data...
     class function GetTaxClassGuid(Country, TaxClass: byte): TGuid; static;
     class function GetProviderID(provider: TProvider; Country,System: byte): Tguid; static;
@@ -116,6 +120,59 @@ begin
   inherited;
 end;
 
+
+function TMigrater.EnableConstraints(ForAction: TMigrateAction;
+  Enable: Boolean): Boolean;
+begin
+    if Enable then
+       RunSQL(Connection,ForAction, 'EXEC sp_msforeachtable "ALTER TABLE ? WITH CHECK CHECK CONSTRAINT all"','Re-instate Constraints')
+    else
+       RunSQL(Connection,ForAction,'EXEC sp_msforeachtable "ALTER TABLE ? NOCHECK CONSTRAINT all"','Drop Constraints');
+end;
+
+function TMigrater.EnableIndexes(ForAction: TMigrateAction; Enable: Boolean): Boolean;
+
+   function Action: string;
+   begin
+      if Enable then
+         result := 'Rebuild'
+      else
+         result := 'Disable';
+   end;
+
+begin
+
+    Result := RunSQL(Connection,ForAction,
+
+format(
+'declare indCursor cursor for SELECT'#13#10 +
+'''Alter index '' +sys.indexes.name + '' on '' + sys.tables.name + '' %s '''#13#10 +
+
+'FROM sys.tables, sys.indexes, sys.index_columns, sys.columns'#13#10 +
+'WHERE (sys.tables.object_id = sys.indexes.object_id AND sys.tables.object_id = sys.index_columns.object_id AND sys.tables.object_id = sys.columns.object_id'#13#10 +
+'AND sys.indexes.index_id = sys.index_columns.index_id AND sys.index_columns.column_id = sys.columns.column_id)'#13#10 +
+
+'declare  @Command varchar(200)'#13#10 +
+
+
+'OPEN indCursor'#13#10 +
+
+'FETCH NEXT FROM indCursor'#13#10 +
+'INTO @Command'#13#10 +
+
+'WHILE @@FETCH_STATUS = 0 begin'#13#10 +
+'   exec(@Command)'#13#10 +
+'   fetch next from indCursor into @Command'#13#10 +
+'END'#13#10 +
+'CLOSE indCursor'#13#10 +
+'DEALLOCATE indCursor',[Action]),
+
+format( '%s Indexes',[Action])
+
+ );
+
+
+end;
 
 class function TMigrater.IsSortColumn(ScreenType, ColumnIndex, SortColumn: Integer): Boolean;
 begin

@@ -4,6 +4,7 @@ unit SystemMigrater;
 interface
 
 uses
+   BankLinkOnlineServices,
    Contnrs,
    Classes,
    UBatchBase,
@@ -94,6 +95,7 @@ private
     function MigrateSystem(ForAction: TMigrateAction): Boolean;
     function MigrateSystemBlobs(ForAction:TMigrateAction): Boolean;
     function MigrateTax(ForAction: TMigrateAction): Boolean;
+    function MigrateBLOPI(ForAction: TMigrateAction): Boolean;
 
     function StartRetrieve(ForAction: TMigrateAction): Boolean;
 
@@ -189,6 +191,7 @@ end;
 implementation
 
 uses
+
    logger,
    FileExtensionUtils,
    CustomDocEditorFrm,
@@ -762,6 +765,7 @@ begin
    try
       Connected := true;
 
+      EnableIndexes(MyAction, True);
       {
       exit;
       {}
@@ -1278,6 +1282,18 @@ function TSystemMigrater.MigrateSystem(ForAction: TMigrateAction): Boolean;
       end;
    end;
 
+   function GetDomain(const value: string):string;
+   var P: Integer;
+   begin
+      result := Value;
+      p := pos('://',value);
+      if P >= 0 then
+         result := copy(Result,p + 3,Length(result));
+      p := pos('.',value);
+      if p > 0 then
+         result := copy(Result,1,p-1);
+
+   end;
 begin
    ParameterTable.Update('Country', whShortNames[ FSystem.fdFields.fdCountry],'nvarchar(2)');
 
@@ -1360,6 +1376,7 @@ begin
    ParameterTable.Update('UseXlonChartOrder', System.fdFields.fdUse_Xlon_Chart_Order);
    ParameterTable.Update('WebExportFormat',GetProviderID (WebExport,System.fdFields.fdCountry, System.fdFields.fdWeb_Export_Format));
 
+   // Scheduled Report Bits
    ParameterTable.Update('SRBooksCustomDocument',System.fdFields.fdSched_Rep_Books_Custom_Doc_GUID,'nvarchar(255)');
    ParameterTable.Update('SREmailCustomDocument',System.fdFields.fdSched_Rep_Email_Custom_Doc_GUID,'nvarchar(255)');
    ParameterTable.Update('SRFaxCustomDocument',System.fdFields.fdSched_Rep_Fax_Custom_Doc_GUID,'nvarchar(255)');
@@ -1377,8 +1394,27 @@ begin
 
    //ParameterTable.Update('SRNewTransactionsOnly', ToSQL(System. ,false));
 
-   //Pracini
+
+     //Pracini
    ReadPracticeINI;
+
+   // BLOPI (BankLink Online Practice Integration}
+   if(System.fdFields.fdUse_BankLink_Online) then begin
+      if (System.fdFields.fdLast_BankLink_Online_Update > 0)
+      or (System.fdFields.fdBankLink_Online_Config > '') then
+         // Been succesfull
+         ParameterTable.Update('PracticeBankLinkOnlineStatus', 1)
+      else
+         // Pending?
+         ParameterTable.Update('PracticeBankLinkOnlineStatus', 2);
+
+       if PRACINI_OnlineLink > '' then
+           ParameterTable.Update('BankLinkPracticeDomain', GetDomain(PRACINI_OnlineLink), 'nvarchar(255)');
+   end else
+      ParameterTable.Update('PracticeBankLinkOnlineStatus', 0);
+
+
+
    case System.fdFields.fdCountry of
       whNewZealand : begin
          ParameterTable.Update('GSTReturnLink', PRACINI_GST101Link,'nvarchar(255)');
@@ -1387,6 +1423,7 @@ begin
       whAustralia : begin
          ParameterTable.Update('Institutionslink',PRACINI_InstListLinkAU,'nvarchar(255)');
       end;
+
    end;
 
    //ParameterTable.Update('ShowCaptions', System.fdFields.fd)
@@ -1529,7 +1566,7 @@ var User: PUser_rec;
     I : Integer;
     RecordNum: integer;
 begin
-
+   Result := false;
    User := PUser_rec(Value.Data);
 
    // See if we have it already
@@ -1581,18 +1618,22 @@ begin
 
    // Check if restricted..
    Restricted := System.fdSystem_File_Access_List.Restricted_User(User.usLRN);
+   try
+      // Add the user..
+      UserTable.Insert(Value.GuidID,user,Restricted);
 
-   // Add the user..
-   UserTable.Insert(Value.GuidID,user,Restricted);
+      // Add the role
+      InsertTable(
+         ForAction,
+         'UserRoles',
+         '[Id],[User_Id],[Role_Id]',
+          ToSql(NewGuid) + ToSQL(Value.GuidID) + ToSQL(GetUserRoleID(User,Restricted),False),
+         'User Role');
+       Result := true;
+   except
+      on e : Exception do ForAction.AddError(e);
+   end;
 
-   // Add the role
-   InsertTable(
-      ForAction,
-      'UserRoles',
-      '[Id],[User_Id],[Role_Id]',
-      ToSql(NewGuid) + ToSQL(Value.GuidID) + ToSQL(GetUserRoleID(User,Restricted),False),
-      'User Role');
-   Result := true;
 end;
 
 function TSystemMigrater.Migrate(ForAction: TMigrateAction): Boolean;
@@ -1689,6 +1730,27 @@ end;
 
 
 
+function TSystemMigrater.MigrateBLOPI(ForAction: TMigrateAction): Boolean;
+var lPrac: TBloPracticeRead;
+begin
+   if(not System.fdFields.fdUse_BankLink_Online)
+   or (not (System.fdFields.fdBankLink_Online_Config > '')) then begin
+       Result := true;
+       Exit; // Nothing to do...All Good...
+   end;
+
+
+   result := false;
+   lprac := ProductConfigService.GetPractice(false,false,'',false,true);
+   if not assigned(lPrac) then
+      Exit;
+
+   //case lPrac.Status of
+     
+   //end;  
+
+end;
+
 function TSystemMigrater.MigrateSystemBlobs(ForAction: TMigrateAction): Boolean;
 
    var I: Integer;
@@ -1740,20 +1802,19 @@ end;
 function TSystemMigrater.StartRetrieve(ForAction: TMigrateAction): Boolean;
 var MyAction : TMigrateAction;
 begin
+   Result := false;
    MyAction := ForAction.InsertAction('Start Retrieve task');
    try
-
 
       RunSQL(connection,ForAction,
       'INSERT INTO dbo.ServerTaskScheduleInstances ( Id, RunAt, [ServerTaskInstanceId], [CreatedDateTime], [ScheduleTypeId],  [Processed], [InProgress] )' +
 	    'VALUES (NEWID(), NULL, ''EAC67CA6-C58A-4FE4-8CE8-D54EACCA3E0E'', GetDate(), ''5A3DD367-91F3-4509-9CE6-E74038F534EB'',  0, 0 )'
           ,'Add ServerTaskScheduleInstances' );
       MyAction.Status := Success;
+      Result := True;
    except
-         on e: Exception do begin
+         on e: Exception do
             MyAction.Exception(e);
-            result := false;
-         end;
    end;
 end;
 

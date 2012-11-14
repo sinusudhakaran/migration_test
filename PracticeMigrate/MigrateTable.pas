@@ -28,7 +28,6 @@ type
     procedure SetFields(FieldList: array of string; SFFieldList: array of string); virtual;
     procedure SetupTable; virtual; abstract;
 
-  published
   public
     constructor Create(AConnection: TAdoConnection);
     function RunValues(values: array of Variant; SFValues: array of Variant):Boolean;overload; virtual;
@@ -461,6 +460,7 @@ function TBatchMigrateTable.RuntxtValues(values,
          result := ',';
    end;
 begin
+   Result := false;
    valuetxt := values[0];
    for I := Low(values) + 1 to High(values) do begin
       valuetxt := valuetxt + Format(',%s',[values[I]]);
@@ -472,11 +472,11 @@ begin
    theValues.Add(format ('%s(%s)',[sep,valuetxt]));
 
    if theValues.Count > 999 then begin
-      PostBatch;
-      BeginBatch;
+      PostBatch; // Post this batch
+      BeginBatch; // start a New one..
    end;
 
-
+   Result := true;
 end;
   {
 procedure TBatchMigrateTable.SetFields(FieldList, SFFieldList: array of string);

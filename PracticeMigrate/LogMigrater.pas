@@ -14,7 +14,7 @@ TLogMigrater = class (TMigrater)
     FUserActionLogTable: TUserActionLogTable;
     function GetUserActionLogTable: TUserActionLogTable;
 
-  published
+  public
    destructor Destroy; override;
    function ClearData(ForAction: TMigrateAction): Boolean; override;
    property UserActionLogTable: TUserActionLogTable read GetUserActionLogTable;
@@ -36,6 +36,7 @@ begin
     MyAction := ForAction.InsertAction('Clear logs');
     try
        Connected := true;
+       EnableIndexes(MyAction,True);
 
        DeleteTable(MyAction,'Logs');
 

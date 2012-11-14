@@ -76,7 +76,7 @@ type
     procedure StatusTimerTimer(Sender: TObject);
     procedure btnPrevClick(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
-   
+
     procedure CbserversSelect(Sender: TObject);
     procedure btnSQLBrowseClick(Sender: TObject);
     procedure cbUnsyncClick(Sender: TObject);
@@ -206,12 +206,17 @@ type
 
 var
   SystemCritical: TSystemCritical;
+
+  // Could used Defines...
   SingleUser: Boolean = true;
+ 
+  DropForeignKeys: Boolean = false;
+
 
 
 const
-   PracticeUser = 'Practice';
-   PracticePw = 'Pr4ct1C#U$er';
+   PracticeUser = 'Practice';      //sa
+   PracticePw = 'Pr4ct1C#U$er';    //Pr@ct1c3!QAZ
 
 procedure TformMain.Setprogress(const Value: Tprogress);
 begin
@@ -360,7 +365,7 @@ var Action: TMigrateAction;
 begin
    FTreeList.Clear;
    FTreeList.Tree.Clear;
-   LProgressImp.Caption := Format('Clear all data  on %s',[Destination]);
+   LProgressImp.Caption := Format('Clear all data on %s',[Destination]);
    progress := Migrate;
    Action := NewAction('Clear All');
 
@@ -383,7 +388,7 @@ begin
          Action.Error := format('Could not connect to [%s]',[Destination]);
 
 
-     // this can only be looged after the fact...
+     // this can only be logged after the fact...
      logger.LogMessage(Audit,'ALL DATA CLEARED BY USER, COMPLETED');
      //ClearPracticeLogs(Action);
      // Cleanup
@@ -435,6 +440,7 @@ var Con : TADOConnection;
     MyAction,ClearAction : TMigrateAction;
     CallStack: TStringList;
 begin
+   Result := False;
    Con := TADOConnection.Create(nil);
    Con.LoginPrompt := false;
    Con.Provider := 'SQLNCLI10.1';
@@ -445,25 +451,14 @@ begin
 
         ClearAction := MyAction.InsertAction('Clearing Logs');
 
-//        TMigrater.RunSQL(con,ClearAction,
-
-//     'IF  EXISTS (SELECT * FROM sys.foreign_keys WHERE object_id = OBJECT_ID(N''[dbo].[FK_CategoryLog_Log]'') AND parent_object_id = OBJECT_ID(N''[dbo].[CategoryLogs]'')) ALTER TABLE [dbo].[CategoryLogs] DROP CONSTRAINT [FK_CategoryLog_Log]'
-//                 ,'Drop foreign keys' );
-       // TMigrater.RunSQL(con,ClearAction,'Delete categorylogs', 'Delete categorylogs');
-
         TMigrater.RunSQL(con,ClearAction,'Delete logs', 'Delete Logs');
-
-//        TMigrater.RunSQL(con,ClearAction,'ALTER TABLE [dbo].[CategoryLogs]  WITH CHECK ADD  CONSTRAINT [FK_CategoryLog_Log] FOREIGN KEY([LogID]) REFERENCES [dbo].[Logs] ([LogID])'
-//        , 'Add foreign keys');
-
-//        TMigrater.RunSQL(con,ClearAction,'ALTER TABLE [dbo].[CategoryLogs] CHECK CONSTRAINT [FK_CategoryLog_Log]'
-//        ,'Check Constraints');
 
         TMigrater.RunSQL(con,ClearAction,'DBCC SHRINKFILE(''PracticeLog_Log'',1)', 'Shrink log');
         ClearAction.Status := Success;
 
         disconnect(MyAction,con,'PracticeLog');
         MyAction.Status := Success;
+        Result := true;
      end;
    except
      on E : Exception do
@@ -490,17 +485,93 @@ var ConnStr:TStringList;
     function sesionID : Integer;
     var data : Recordset;
     begin
-         try try
-             data := connection.Execute('select @@SPID',cmdText);
-             data.MoveFirst;
-             result := data.Fields[0].value;
-         except
+       Result := 0;
+       try try
+           data := connection.Execute('select @@SPID',cmdText);
+           data.MoveFirst;
+           result := data.Fields[0].value;
+       except
 
-         end;
-         finally
-            data := nil;
-         end;
+       end;
+       finally
+          data := nil;
+       end;
     end;
+
+   
+
+    procedure DropForeignKey;
+    begin
+        TMigrater.RunSQL(Connection,MyAction,
+
+'Create Table #FKCtable (' +
+
+   ' RowId INT PRIMARY KEY IDENTITY(1, 1),' +
+   ' ForeignKeyConstraintName NVARCHAR(200),' +
+   ' ForeignKeyConstraintTableSchema NVARCHAR(200),' +
+   ' ForeignKeyConstraintTableName NVARCHAR(200),' +
+   ' ForeignKeyConstraintColumnName NVARCHAR(200),' +
+   ' PrimaryKeyConstraintName NVARCHAR(200),' +
+   ' PrimaryKeyConstraintTableSchema NVARCHAR(200),' +
+   ' PrimaryKeyConstraintTableName NVARCHAR(200),' +
+   ' PrimaryKeyConstraintColumnName NVARCHAR(200)' +
+')' +
+
+' INSERT INTO #FKCtable(ForeignKeyConstraintName, ForeignKeyConstraintTableSchema, ForeignKeyConstraintTableName, ForeignKeyConstraintColumnName)' +
+' SELECT' +
+  ' U.CONSTRAINT_NAME,' +
+  ' U.TABLE_SCHEMA,' +
+  ' U.TABLE_NAME,' +
+  ' U.COLUMN_NAME' +
+' FROM' +
+   ' INFORMATION_SCHEMA.KEY_COLUMN_USAGE U' +
+      ' INNER JOIN INFORMATION_SCHEMA.TABLE_CONSTRAINTS C' +
+      ' ON U.CONSTRAINT_NAME = C.CONSTRAINT_NAME' +
+' WHERE' +
+  ' C.CONSTRAINT_TYPE = ''FOREIGN KEY''' +
+
+' UPDATE #FKCtable SET' +
+'   PrimaryKeyConstraintName = UNIQUE_CONSTRAINT_NAME' +
+' FROM' +
+'   #FKCtable T' +
+'      INNER JOIN INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS R' +
+'         ON T.ForeignKeyConstraintName = R.CONSTRAINT_NAME' +
+
+' UPDATE #FKCtable SET' +
+'   PrimaryKeyConstraintTableSchema  = TABLE_SCHEMA,' +
+'   PrimaryKeyConstraintTableName  = TABLE_NAME' +
+' FROM #FKCtable T ' +
+'   INNER JOIN INFORMATION_SCHEMA.TABLE_CONSTRAINTS C' +
+'      ON T.PrimaryKeyConstraintName = C.CONSTRAINT_NAME' +
+
+' UPDATE #FKCtable SET' +
+'   PrimaryKeyConstraintColumnName = COLUMN_NAME' +
+' FROM #FKCtable T' +
+'   INNER JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE U' +
+'      ON T.PrimaryKeyConstraintName = U.CONSTRAINT_NAME' +
+
+' declare commands cursor for ' +
+
+' SELECT  ''  ALTER TABLE ['' + ForeignKeyConstraintTableSchema + ''].['' + ForeignKeyConstraintTableName + '']  ' +
+'   DROP CONSTRAINT '' + ForeignKeyConstraintName ' +
+' FROM    #FKCtable ' +
+' declare @cmd varchar(max) ' +
+
+' open commands ' +
+' fetch next from commands into @cmd ' +
+' while @@FETCH_STATUS=0 ' +
+' begin ' +
+'   exec(@cmd)  ' +
+'   fetch next from commands into @cmd  ' +
+' end  ' +
+
+' close commands ' +
+' deallocate commands  ', 'Disable Foreign Key Constraint'
+
+        );
+    end;
+
+
 
 begin
    Result := false;
@@ -518,7 +589,7 @@ begin
       Connstr.add(format('Initial Catalog=%s',[ACatalog]));
       Connstr.add(format('Data Source=%s',[ASource]));
       //Connstr.add('Use Procedure for Prepare=1');
-     //Connstr.add('Use Encryption for Data=True');
+      //Connstr.add('Use Encryption for Data=True');
 
       if (AUser = '')
       and (APW = '') then begin
@@ -538,8 +609,16 @@ begin
          logger.logMessageProc(Info,format('Conneted to: [%s].[%s] , SessionID: (%u)',[ASource,Acatalog,sesionID ]));
          //TMigrater.RunSQL(Connection,MyAction,'DBCC TRACEON (610)', 'Trace on');
          TMigrater.RunSQL(Connection,MyAction,Format('DBCC SHRINKFILE(''%s_Log'',1)',[ACatalog]), 'Shrink Log');
+
+
+
+
          if SingleUser then
             TMigrater.RunSQL(Connection,MyAction,format('ALTER DATABASE [%s] SET SINGLE_USER WITH ROLLBACK IMMEDIATE',[ACatalog]),'Single user');
+
+
+         if DropForeignKeys then
+            DropForeignKey;
 
 
          MyAction.Status := Success;
@@ -592,6 +671,40 @@ end;
 
 procedure TformMain.Disconnect(ForAction: TMigrateAction; connection: TADOConnection; ACatalog: string);
 var MyAction :TMigrateAction;
+
+procedure UnDropForeignKey;
+    begin
+        TMigrater.RunSQL(Connection,MyAction,
+
+' declare commands cursor for   ' +
+' SELECT  ' +
+
+'  ''  ALTER TABLE ['' + ForeignKeyConstraintTableSchema + ''].['' + ForeignKeyConstraintTableName + '']  ' +
+'    ADD CONSTRAINT '' + ForeignKeyConstraintName + '' FOREIGN KEY('' + ForeignKeyConstraintColumnName + '') REFERENCES ['' + PrimaryKeyConstraintTableSchema + ''].['' + PrimaryKeyConstraintTableName + '']('' + PrimaryKeyConstraintColumnName + '') '''   +
+
+' FROM  ' +
+'    #FKCtable  ' +
+'    declare @cmd varchar(max)  ' +
+
+' open commands  ' +
+' fetch next from commands into @cmd  ' +
+' while @@FETCH_STATUS=0  ' +
+' begin  ' +
+'   exec(@cmd)  ' +
+'   fetch next from commands into @cmd   ' +
+' end  ' +
+
+' close commands  ' +
+' deallocate commands  '
+
+
+    , 'Enable Foreign Key Constraints'
+
+        );
+    end;
+
+
+
 begin
    if not assigned(connection) then
       exit;
@@ -601,8 +714,14 @@ begin
          // Dont forget, RunSQL already traps exceptions
          //TMigrater.RunSQL(connection,MyAction,'DBCC TRACEOFF (610)', 'Trace Off');
          TMigrater.RunSQL(connection,MyAction,Format('DBCC SHRINKFILE(''%s_Log'',1)',[ACatalog]), 'Shrink log file' );
+
+         if DropForeignKeys then
+            UnDropForeignKey;
+
+
          if SingleUser then
             TMigrater.RunSQL(connection,MyAction,format('ALTER DATABASE [%s] SET MULTI_USER WITH ROLLBACK IMMEDIATE',[ACatalog]),'Back to Multi User');
+
          MyAction.Status := Success;
       except
              // Had a Go..
@@ -614,11 +733,22 @@ end;
 procedure TformMain.DoDisconnects(ForAction: TMigrateAction);
 begin
   if Assigned(FSystemMigrater) then
+  if FSystemMigrater.Connected then begin
+     FSystemMigrater.EnableIndexes(ForAction, True);
      Disconnect(ForAction,FSystemMigrater.Connection,'PracticeSystem');
+  end;
+
   if Assigned(FClientMigrater) then
+  if FClientMigrater.Connected then begin
+     FClientMigrater.EnableIndexes(ForAction, True);
      Disconnect(ForAction,FClientMigrater.Connection,'PracticeClient');
+  end;
+
   if Assigned(FLogMigrater) then
+  if FLogMigrater.Connected then begin
+     FLogMigrater.EnableIndexes(ForAction, True);
      Disconnect(ForAction,FLogMigrater.Connection,'PracticeLog');
+  end;
 
   RestartSQL;
 end;
@@ -665,7 +795,6 @@ begin
 
    for I := 0 to pcmain.PageCount - 1 do
       pcmain.Pages[I].TabVisible := False;
-
 
 
 end;
@@ -1111,19 +1240,23 @@ begin
 
          Logger.LogMessage(info,'Clearing Practice System Database');
 
+
          FSystemMigrater.ClearData(MyAction);
 
          Logger.LogMessage(Info,'Clearing Practice Client database');
+
          FClientMigrater.ClearData(MyAction);
          //FlogMigrater.ClearData(MyAction); // Dont Clear Log...
-               
+
          FSystemMigrater.ClientMigrater := FClientMigrater;
          //FSystemMigrater.System := Adminsystem; already done ??
 
+         FClientMigrater.EnableIndexes(MyAction,False);
          {}
          FSystemMigrater.Migrate(MyAction);
          {}
-         
+
+
          DoDisconnects(MyAction);
          MyAction.Status := Success;
 

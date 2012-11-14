@@ -12,7 +12,7 @@ uses
   GuidList;
 
 type
-  TMigratestatus = (Running, Success, Failed);
+  TMigratestatus = (Running, Success, Failed, HasWarning);
 
   TMigrateList = class (TTreeBaseList)
   private
@@ -63,7 +63,6 @@ type
                                var Handled: Boolean);
 
 
-  published
   public
      constructor Create(Title: string; AItem: TGuidObject = nil);
      function GetTagText(const Tag: Integer): string; override;
@@ -92,8 +91,8 @@ type
      property Error: string read FError write SetError;
      function NewAction(Title: string; AItem: TGuidObject = nil):TMigrateAction;
      function InsertAction(Title: string; AItem: TGuidObject = nil):TMigrateAction;
-     procedure AddWarining(E: Exception); overload;
-     procedure AddWarining(const aWarning: string); overload;
+     procedure AddError(E: Exception);
+     procedure AddWarning(const aWarning: string); overload;
      // Uesed for simple Actions, to create a sub action
      function Exception(E: Exception; Action: string = ''):TMigrateAction;
      function GetImageindex: Integer;
@@ -130,9 +129,10 @@ const
    img_Processing = 0;
    img_success = 0;
 
-   YieldCount = 50;
+   YieldCount = 1;  //50
    //StepSize = 200;
-    StepSize = 20;
+   // StepSize = 20;
+   StepSize = 100;
 var
    ActionCount: Integer;
    FMigrationCanceled: Boolean;
@@ -179,19 +179,21 @@ procedure TMigrateAction.AddRunSize(value: Int64);
 begin
    if Value <= 0 then
      Exit;
-   RunSize := fRunsize + Value;  
+   RunSize := fRunsize + Value;
 end;
 
-procedure TMigrateAction.AddWarining(const Awarning: string);
+procedure TMigrateAction.AddWarning(const Awarning: string);
 begin
    Error := Awarning;
    Warning := True;
+   Status := HasWarning;
 end;
 
-procedure TMigrateAction.AddWarining(E: Exception);
+procedure TMigrateAction.AddError(E: Exception);
 begin
-   AddWarining(E.Message);
-
+   Error := E.Message;
+   Warning := True;
+   Status := Failed;
 end;
 
 procedure TMigrateAction.Changed;
@@ -245,13 +247,14 @@ function TMigrateAction.Exception(E: Exception; Action: string =''): TMigrateAct
 begin
    Result := InsertAction(Format ('Error %s', [Action]));
    Result.Error := E.Message;
+   Result.Status := Failed;//??
 end;
 
 function TMigrateAction.GetImageindex: Integer;
 begin
    Result := ord(Status);
-   if Warning  then
-      Result := 3; 
+   if Warning or (Status = HasWarning) then
+      Result := 3;
 end;
 
 
@@ -289,6 +292,7 @@ begin
    tag_status : case Status of
           Running : Result := 'Running';
           Failed  : Result := 'Failed';
+          HasWarning  : Result := 'Warning';
           Success : Result := 'OK';
      end;
 
@@ -417,7 +421,7 @@ begin
      FError := FError + Value;
   end;
 
-  Status := Failed;//??
+
   Changed;
 end;
 
@@ -438,9 +442,9 @@ begin
 
      if (FRunSize  < FTotSize)
      and (FRunSize > 0) then begin
-        Speed := (StatusTime - fstartTime) / FRunSize;
+        Speed := FRunSize /(StatusTime - fstartTime);
 
-        fTargetTime := (Speed * (fTotSize - FRunSize)) + StatuStime;
+        fTargetTime := ((fTotSize - FRunSize)/ Speed) + StatuStime;
      end;
   end;
 end;
@@ -467,9 +471,14 @@ begin
                 // Let all the parents know..
                 propagateWarning(Self.Node);
              end;
+     HasWarning:  begin
+                ShowMe;
+                // Let all the parents know..
+                propagateWarning(Self.Node);
+             end;
      Success: begin
                 fStopTime := now;
-                if (Fstatus in [Failed]) then
+                if (Fstatus in [Failed, HasWarning]) then
                    Exit // Failed overwrites success
                 else
                    ParentList.Tree.Expanded[Node] := Warning;
