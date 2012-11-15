@@ -28,6 +28,7 @@ Source: "3rd Party\wPDFView01.DLL"; DestDir: "{app}"
 Source: "3rd Party\ipwssl6.dll"; DestDir: "{app}"
 Source: "3rd Party\gdiplus.dll"; DestDir: "{app}"
 Source: "3rd Party\libeay32.dll"; DestDir: "{app}"
+Source: "3rd Party\zint.dll"; DestDir: "{app}"
 
 [Icons]
 Name: "{group}\BankLink Books"; Filename: "{app}\BK5WIN.EXE"

@@ -154,7 +154,9 @@ begin
         CAFQRData.SetProvisional(Values.cbProvisional.Checked);
 
         CAFQRData.SetFrequency(Values.rbMonthly.Checked,
-                               Values.rbWeekly.Checked);
+                               Values.rbWeekly.Checked,
+                               Values.rbDaily.Checked,
+                               0);
 
         CAFQRData.TimeStamp := Now;
         CAFQRData.InstitutionCode := Values.edtBank.Text;

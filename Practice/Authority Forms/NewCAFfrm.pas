@@ -1056,7 +1056,9 @@ begin
     CAFQRData.SetProvisional(GetPDFFormFieldCheck(ukCAFSupplyProvisionalAccounts).CheckBox.Checked);
 
     CAFQRData.SetFrequency(GetPDFFormFieldRadio(ukCAFMonthly).RadioButton.Checked,
-                           GetPDFFormFieldRadio(ukCAFWeekly).RadioButton.Checked);
+                           GetPDFFormFieldRadio(ukCAFWeekly).RadioButton.Checked,
+                           GetPDFFormFieldRadio(ukCAFDaily).RadioButton.Checked,
+                           2);
 
     CAFQRData.TimeStamp := Now;
     CAFQRData.InstitutionCode := GetPDFFormFieldEdit(ukCAFBankCode).Value;

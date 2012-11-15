@@ -53,6 +53,7 @@ Source: "3rd Party\GET4CEE.EXE"; DestDir: "{app}"
 Source: "3rd Party\ACTCHART.EXE"; DestDir: "{app}"
 Source: "3rd Party\S6BNK.COM"; DestDir: "{app}"
 Source: "3rd Party\libeay32.dll"; DestDir: "{app}"
+Source: "3rd Party\zint.dll"; DestDir: "{app}"
 
 ;Source: "AuthorityForms\Client Authority Form.pdf"; DestDir: "{app}"
 

@@ -48,7 +48,7 @@ type
     fInstitutionCountry : String;
   public
     procedure SetProvisional(aChecked : Boolean);
-    procedure SetFrequency(aMonthly, aWeekly : Boolean);
+    procedure SetFrequency(aMonthly, aWeekly, aDaily : Boolean; aDefaultIndex : integer);
     procedure SetStartDate(DayIndex, MonthIndex : integer; YearStr : string);
     function Validate(var aError : string): boolean;
     function BuildDataPacket(const Delimiter: String) : String;
@@ -89,7 +89,7 @@ type
 implementation
 
 uses
-  pQRCode;
+  uZintBarcode;
 
 { TCAFQRData }
 //------------------------------------------------------------------------------
@@ -102,14 +102,22 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TCAFQRData.SetFrequency(aMonthly, aWeekly : Boolean);
+procedure TCAFQRData.SetFrequency(aMonthly, aWeekly, aDaily : Boolean; aDefaultIndex : integer);
 begin
   if aMonthly then
     fFrequency := 'M'
   else if aWeekly then
     fFrequency := 'W'
+  else if aDaily then
+    fFrequency := 'D'
   else
-    fFrequency := 'D';
+  begin
+    case aDefaultIndex of
+      0 : fFrequency := 'M';
+      1 : fFrequency := 'W';
+      2 : fFrequency := 'D';
+    end;
+  end;
 end;
 
 //------------------------------------------------------------------------------
@@ -304,7 +312,7 @@ var
   SHA256Pass : string;
   RSAKey : TRSAKey;
   EncryptedPass: String;
-  QRCode: TBarcode2D_QRCode;
+  QRCode: TZintBarcode;
   BarCodeWidth, BarCodeHeight : integer;
 begin
   if Assigned(aCafQRData) then
@@ -324,21 +332,18 @@ begin
       try
         if OpenSSLEncription.RSAEncrypt(RSAKey, PassPhrase, EncryptedPass, RSA_PKCS1_OAEP_PADDING) > -1 then
         begin
-          QRCode := TBarcode2D_QRCode.Create(nil);
+          QRCode := TZintBarcode.Create;
 
           try
-            QRCode.Barcode := Version       + FDelimiter +
-                              VendorID      + FDelimiter +
-                              EncryptedPass + FDelimiter +
-                              AESPacket     + FDelimiter +
-                              END_OF_PACKET;
-
-            QRCode.Size(BarCodeWidth, BarCodeHeight);
-            QRCodeImage.Width  := BarCodeWidth;
-            QRCodeImage.Height := BarCodeHeight;
-
-            QRCode.Image := QRCodeImage;
-            QRCode.Draw;
+            QRCode.BarcodeType := tBARCODE_QRCODE;
+            QRCode.Data := Version       + FDelimiter +
+                           VendorID      + FDelimiter +
+                           EncryptedPass + FDelimiter +
+                           AESPacket     + FDelimiter +
+                           END_OF_PACKET;
+            QRCodeImage.Width  := QRCode.BarcodeSize.X;
+            QRCodeImage.Height := QRCode.BarcodeSize.Y;
+            QRCode.GetBarcode(QRCodeImage.Picture.Bitmap);
           finally
             FreeAndNil(QRCode);
           end;
