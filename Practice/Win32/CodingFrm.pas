@@ -2033,6 +2033,8 @@ begin
             pUPI^.txMatched_Item_ID                   := pT^.txMatched_Item_ID;
             pUPI^.txOriginal_Forex_Conversion_Rate    := pT^.txOriginal_Forex_Conversion_Rate    ;
 //            pUPI^.txOriginal_Foreign_Currency_Amount  := pT^.txOriginal_Foreign_Currency_Amount  ;
+            pUPI^.txCore_Transaction_ID := pT^.txCore_Transaction_ID;
+            pUPI^.txCore_Transaction_ID_High := pT^.txCore_Transaction_ID_High;
          end
          else begin
             //this is the original transaction so store details
@@ -2043,7 +2045,12 @@ begin
             pUPI^.txOriginal_Amount                   := pT^.txAmount;
             pUPI^.txOriginal_Forex_Conversion_Rate    := pT^.txForex_Conversion_Rate    ;
 //            pUPI^.txOriginal_Foreign_Currency_Amount  := pT^.txForeign_Currency_Amount  ;
+            pUPI^.txCore_Transaction_ID := pT^.txCore_Transaction_ID;
+            pUPI^.txCore_Transaction_ID_High := pT^.txCore_Transaction_ID_High;
          end;
+
+         pUPI^.txTransfered_To_Online := False;
+
          //log info the manual match done
          sMsg := 'Matched ref ' + GetFormattedReference( pT) +
                  ' ' + MakeAmount( pT.Statement_Amount) +
@@ -3038,6 +3045,9 @@ begin
       AuditId := pT^.txAudit_Record_ID;
       AuditType := MyClient.ClientAuditMgr.GetTransactionAuditType(pT^.txSource,
                                                                    BankAccount.baFields.baAccount_Type);
+
+      RecordDeletedTransactionData(pT);
+      
       BankAccount.baTransaction_List.DelFreeItem( pT );
       sMsg := 'Deleted Transaction '+ TransRef+' ' + MakeAmount( TransAmt);
       LogUtil.LogMsg(lmInfo,UnitName, sMsg);
