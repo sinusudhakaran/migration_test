@@ -12,7 +12,8 @@ uses //Logutil,
      Contnrs,Controls,bkDateUtils,VirtualTrees, graphics,
      Windows,gstUtil32,clObj32, baObj32,
      ClientCodingStatistics,
-     RzGroupBar,VirtualTreeHandler;
+     RzGroupBar,VirtualTreeHandler,
+     ExchangeGainLoss;
 
 type
   TSelectionArray = array [stFirstPeriod..stLastPeriod] of boolean;
@@ -65,6 +66,7 @@ type
      function  TestGroup    (Item : TTreeBaseItem; var TestFor): Boolean;
      function  TestAccountType (Item : TTreeBaseItem; var TestFor): Boolean;
      function  TestBlanks   (Item : TTreeBaseItem; var TestFor): Boolean;
+     function  TestForeign  (Item : TTreeBaseItem; var TestFor): Boolean;
   end;
 
 
@@ -244,7 +246,7 @@ type
      function GetTagHint(const Tag : Integer; Offset : TPoint) : string; override;
      procedure AfterPaintCell(const Tag: integer; Canvas: TCanvas; CellRect: TRect);override;
      procedure DoChange(const value: TVirtualNodeStates); override;
-     function GetTagText(const Tag: Integer): string; override;    
+     function GetTagText(const Tag: Integer): string; override;
   end;
 
   TCHBASPeriodItem = class (TCHGSTPeriodItem)
@@ -272,7 +274,26 @@ type
      procedure AfterPaintCell(const Tag: integer; Canvas: TCanvas; CellRect: TRect);override;
   end;
 
-
+  TCHForeignItem = class (TCHPBaseItem)
+  private
+    FMonthEndings: TMonthEndings;
+    FCodingStats: TClientCodingStatistics;
+  protected
+    function HasAction(Period: Integer): Boolean; override;
+    procedure OpenGainLoss(OffsetX: integer);
+  public
+    constructor Create(AClient: TClientObj; ATitle: string; AGroupID: Integer; MonthEndingsClass: TMonthEndingsClass); reintroduce; virtual;
+    property MultiSelect: Boolean read FMultiSelect;
+    procedure AfterPaintCell(const Tag: integer; Canvas: TCanvas; CellRect: TRect); override;
+    procedure OnPaintText(const Tag: Integer; Canvas: TCanvas; TextType: TVSTTextType );override;
+    function GetTagHint(const Tag: Integer; Offset: TPoint) : string; override;
+    function SelectPeriod(const Value:Integer; Shift: TShiftstate): Boolean; override;
+    procedure DoChange(const value: TVirtualNodeStates); override;
+    procedure UpdateMenu(const Tag: Integer; Offset: TPoint; Value: TpopupMenu); override;
+    function GetSelectDateRange : TDateRange;
+    procedure DoubleClickTag(const Tag: Integer; Offset: TPoint ); override;
+    destructor Destroy; override;
+  end;
 
 const
    CHPT_Code = 1;
@@ -296,7 +317,10 @@ const
    grp_Financials  = 7;
    grp_Financial = 8;
 
-   grpTitles = [grp_Banks, grp_Journals, grp_Taxes, grp_Financials];
+   grp_Foreigns = 9;
+   grp_Foreign = 10;
+
+   grpTitles = [grp_Banks, grp_Journals, grp_Taxes, grp_Financials, grp_Foreigns];
 
 
 const
@@ -361,7 +385,8 @@ uses
    //SelectJournalDlg,
    ReportImages,
    AuditMgr,
-   BankLinkOnlineServices;
+   BankLinkOnlineServices,
+   GainLossfrm;
 
 const
 
@@ -1920,8 +1945,7 @@ begin
       ApplicationUtils.MakeMainFormForeground;
     end;
   end;
-end;
-
+end;              
 
 function TCHGSTPeriodItem.SelectPeriod(const Value: Integer; Shift: TShiftstate): Boolean;
 var LInfo :TPeriodInfo;
@@ -2470,6 +2494,11 @@ end;
 function TCHPBaseList.TestBlanks(Item: TTreeBaseItem; var TestFor): Boolean;
 begin
    Result := Item is TCHEmptyJournal;
+end;
+
+function TCHPBaseList.TestForeign(Item: TTreeBaseItem; var TestFor): Boolean;
+begin
+  Result := Item is TCHForeignItem;
 end;
 
 function TCHPBaseList.TestGroup(Item: TTreeBaseItem; var TestFor): Boolean;
@@ -3067,6 +3096,248 @@ begin
       ShowVATReturn( LInfo.DateRange.Fromdate, LInfo.DateRange.ToDate );
       incUsage(REPORT_LIST_NAMES[Report_VAT] + '(Home Page)');
    end;
+end;
+
+{ TCHForeignItem }
+
+
+{ TCHForeignItem }
+
+constructor TCHForeignItem.Create(AClient: TClientObj; ATitle: string; AGroupID: Integer; MonthEndingsClass: TMonthEndingsClass);
+begin
+  inherited Create(AClient, ATitle, AGroupID);
+  FMonthEndings := TMonthEndingsClass.Create(AClient);
+  FMonthEndings.Refresh;
+  FCodingStats := TClientCodingStatistics.Create(Client,True,stBlank,Filldate);
+  FMultiSelect := False;
+end;
+
+
+procedure TCHForeignItem.AfterPaintCell(const Tag: integer; Canvas: TCanvas;
+  CellRect: TRect);
+var
+  Period, CellPosition, CellColor, i: Integer;
+  DateRange: TDateTime;
+  RangeYear, RangeMonth, RangeDay: Word;
+  CellsFilled: array[1..12] of boolean;
+  ExchangeGainOrLossPosted: boolean;
+
+  function GetPeriodFillColor(MonthEnding: TMonthEnding): integer;
+  begin
+    if (MonthEnding.Transferred) then
+      Result := bkBranding.ColorTransferred
+    else if (MonthEnding.Finalised) then
+      Result := bkBranding.ColorFinalised
+    else if (MonthEnding.AlreadyRun) then
+      Result := bkBranding.ColorCoded
+    else if (MonthEnding.AvailableData) then
+      Result := bkBranding.ColorUncoded
+    else
+      Result := bkBranding.ColorNoData;
+  end;
+
+begin
+  if (tag = CHPT_Processing) then begin
+    for i := Low(CellsFilled) to High(CellsFilled) do
+      CellsFilled[i] := False;
+    DateRange := StrToDate(DateToStr(ClientHomePage.GetFillDate));
+    DecodeDate(DateRange, RangeYear, RangeMonth, RangeDay);
+
+    ExchangeGainOrLossPosted := False;
+    for Period := 0 to FMonthEndings.Count - 1 do
+    begin
+      CellPosition := ((FMonthEndings.Items[Period].GetYear - RangeYear) * 12) +
+                      FMonthEndings.Items[Period].GetMonth - RangeMonth + 12;
+      if (CellPosition > 0) then
+      begin
+        CellColor := clRed{GetPeriodFillColor(FMonthEndings.Items[Period])};
+        if (CellColor <> bkBranding.ColorNoData) then
+          ExchangeGainOrLossPosted := True;
+        if (CellPosition < 13) then
+        begin
+          CellsFilled[CellPosition] := True;
+          DrawCell(CellPosition, CellColor, GetPeriodPenColor(CellPosition), Canvas, CellRect, NodeSelected);
+        end;
+      end;
+    end;
+
+    if ExchangeGainOrLossPosted then
+    for i := Low(CellsFilled) to High(CellsFilled) do
+      if not CellsFilled[i] then
+        DrawCell(i, bkBranding.ColorNoData, GetPeriodPenColor(i), Canvas, CellRect, NodeSelected);
+      
+  end;
+  inherited;
+end;
+
+function TCHForeignItem.HasAction(Period: Integer): Boolean;
+begin
+   Result := False;
+end;
+
+procedure TCHForeignItem.OnPaintText(const Tag: Integer; Canvas: TCanvas;
+  TextType: TVSTTextType);
+begin
+  inherited;
+  Canvas.Font.Style := [];
+end;
+
+function TCHForeignItem.SelectPeriod(const Value: Integer; Shift: TShiftstate): Boolean;
+  var
+    PeriodNum,SelectedPeriod : Integer;
+  begin
+    Result := False;
+    if (Value < stFirstPeriod)
+    or (Value > stLastPeriod) then begin
+      for PeriodNum := stFirstPeriod to stLastPeriod do
+         Selected[PeriodNum] := False;
+
+    end else begin
+      if Value = stFirstPeriod then begin
+         SelectedPeriod := 1
+      end else if value = stLastPeriod then begin
+         SelectedPeriod := 12
+      end else begin
+         SelectedPeriod := Value;
+         Result := True;
+      end;
+
+      for PeriodNum := stFirstPeriod to stLastPeriod do
+        Selected[PeriodNum] := (PeriodNum = SelectedPeriod);
+    end;
+    ParentList.Tree.InvalidateColumn(1);
+end;
+
+procedure TCHForeignItem.UpdateMenu(const Tag: Integer; Offset: TPoint; Value: TpopupMenu);
+var
+  Dr: TDateRange;
+  HasData: Boolean;
+  I: Integer;
+
+  function CheckItem(Item: TTreeBaseItem): Boolean;
+
+    {
+    function FailRange : Boolean;
+    var
+      P : Integer;
+    begin
+      with TCHForeignItem(Item) do begin
+        Result := False;
+        for P := stFirstPeriod to stLastPeriod do
+          if Selected[P]
+          and ((FCodingStats.NoOfEntries(P)> 0) or (FCodingStats.NoOfDownloadedEntries(P)> 0)) then
+            Exit;
+         // Still here.. Nothing found
+         Result := True;
+      end;
+    end;
+    }
+
+  begin
+    Result := False;
+    if not Item.NodeSelected then
+       Exit;
+    if not (Item is TCHForeignItem) then
+       Exit;
+    HasData := True;
+    Result := True;
+  end;
+begin
+  if Tag = CHPT_Processing then
+  begin
+    if not (Self is TCHForeignItem) then
+      Exit;
+
+    if Assigned(ParentList) then
+    begin
+      DR := GetSelectDateRange;
+      if DR.ToDate <= DR.FromDate then
+        Exit;
+      HasData := False;
+      with ParentList do
+        for I := 0 to Count - 1 do
+          if CheckItem(TTreeBaseItem(List[i])) then
+            Break;
+
+      if Hasdata then
+        AddMenuItem('View ' + GetDateRangeS(DR),Value.Items{,ContextCode,0});
+    end;
+  end;
+end;
+
+destructor TCHForeignItem.Destroy;
+begin
+  FMonthEndings.Free;
+
+  inherited;
+end;
+
+procedure TCHForeignItem.DoChange(const value: TVirtualNodeStates);
+begin
+  inherited;
+  if vsSelected in Value then begin
+      if toMultiselect in ParentList.Tree.TreeOptions.SelectionOptions  then begin
+        ParentList.Tree.TreeOptions.SelectionOptions :=
+          ParentList.Tree.TreeOptions.SelectionOptions - [toMultiselect];
+        ParentList.Tree.Selected [Node] := True
+      end;
+      SelectPeriod(FirstSelected,[]);
+   end;
+end;
+
+procedure TCHForeignItem.DoubleClickTag(const Tag: Integer; Offset: TPoint);
+begin
+   case tag of
+     CHPT_Processing : OpenGainLoss(Offset.X);
+   end;
+end;
+
+procedure TCHForeignItem.OpenGainLoss(OffsetX: integer);
+var
+  GainLoss: TfrmGainLoss;
+  DR: TDateRange;
+  DT: TDateTime;
+  PeriodInt: integer;
+begin
+  PeriodInt := GetPeriod(OffsetX);
+  DR := FCodingStats.GetDateRange(PeriodInt);
+  // Below is not as pointless as it seems, since DateToStr takes an integer as a parameter, not a date.
+  // ie. int -> string -> date
+  DT := StrToDate(DateToStr(DR.FromDate)); // End of the previous month
+  DT := IncMonth(DT, 1); // End of the period
+  GainLoss := TfrmGainLoss.Create(nil);
+  GainLoss.SetPeriodEndDate(DT);
+  // GainLoss.SetPeriodStartDateStr(DateToStr(DT));
+//  GainLoss.SetPeriodStartDateStr(DR);
+  GainLoss.ShowModal;
+end;
+
+function TCHForeignItem.GetSelectDateRange: TDateRange;
+var
+  p : Integer;
+begin
+  Result.FromDate := 0;
+  Result.ToDate := 0;
+  for p := 1 to 12 do
+    if Selected[p] then begin
+      if Result.FromDate = 0 then
+        Result.FromDate := FCodingStats.GetPeriodStartDate(P);
+      Result.ToDate := FCodingStats.GetPeriodEndDate(P);
+    end;
+end;
+
+function TCHForeignItem.GetTagHint(const Tag: Integer; Offset: TPoint): string;
+var
+  P: integer;
+  PeriodText: string;
+begin
+  FHint := btNames[btForeign];
+  P := GetPeriod(Offset.x);
+  if not (P in [0..13]) then exit;
+  AddHint(FCodingStats.GetDateRangeS(P));
+  PeriodText := FCodingStats.GetPeriodText(P);
+  AddHint(PeriodText);
+  Result := FHint;
 end;
 
 end.
