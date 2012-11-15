@@ -45,6 +45,7 @@ type
     property RefreshRequest : THP_Refresh read GetRefreshRequest write SetRefreshRequest;
     property Abandon: Boolean read GetAbandon write SetAbandon;
 
+    function GetFillDate: integer; virtual; abstract;
     procedure Lock; virtual; abstract;
     procedure Unlock; virtual; abstract;
     procedure ProcessExternalCmd(Command : TExternalCmd); virtual; abstract;
@@ -175,6 +176,7 @@ type
     procedure SetAbandon(const Value: Boolean); override;
 
   public
+    function GetFillDate: integer; override;
     procedure Lock; override;
     procedure Unlock; override;
     procedure ProcessExternalCmd(Command : TExternalCmd); override;
@@ -211,7 +213,7 @@ uses
   Globals,SYDEFS, ToDoListUnit,StDate,Math,MainFrm, BKdateUtils, UpdateMF,baObj32,
   ApplicationUtils, AutoSaveUtils, rptHome, ClientNotesFrm, Files, ClientManagerFrm, BudgetFrm,
   bkXPThemes, ShellAPI, SimpleUIHomepagefrm,
-  ExchangeRateList, frmExchangeRates, GSTUTIL32;
+  ExchangeRateList, frmExchangeRates, GSTUTIL32, ExchangeGainLoss, Dialogs;
 {$R *.dfm}
 
 var
@@ -339,11 +341,19 @@ var
     i : integer;
     lbase : TTreebaseItem;
 
-    SelAccount : Integer;
-    SelJournal : Integer;
-    SelGst : Boolean;
+    SelAccount   : Integer;
+    SelJournal   : Integer;
+    Period       : Integer;
+    CellPosition : Integer;
+    SelGst            : Boolean;
+    ShowForeignHeader : Boolean;
+    DateRange: TDateTime;
+    RangeYear, RangeMonth, RangeDay: Word;
+    ForeignItem: TTreeBaseItem;
 
     CurParentNode : PVirtualNode;
+    fMonths: TMonthEndings;
+    lr : TRangeCount;
     type TByteSet = set of byte;
 
     procedure AddAccount(Account : TBank_Account; CheckTypes : TByteSet; GroupID : Integer);
@@ -359,10 +369,7 @@ var
               TreeList.AddNodeItem(CurParentNode,TCHAccountItem.Create(FTheClient,Account,'',GroupID))
            else
               TreeList.AddNodeItem(CurParentNode,TCHJournalItem.Create(FTheClient,Account,'',GroupID));
-    end;
-
-
-
+    end;  
 
    procedure RefreshCodingPeriod;
    var s : string; // Update the caption once..
@@ -596,6 +603,45 @@ begin //RefreshCoding
                TreeList.AddNodeItem(nil, TCHPBaseItem.Create(FTheClient,'Financial Year',grp_Financials));
          end;
 
+         // Foreign Exchange          
+         if (FTheClient.clFields.clCountry = whUK) then
+         begin
+           Lr := TreeList.TransferMonths;
+
+           ShowForeignHeader := False;
+           fMonths := TMonthEndingsClass.Create(FTheClient);
+           fMonths.Refresh;
+           for Period := 0 to fMonths.Count - 1 do
+           begin
+             DateRange := StrToDate(DateToStr(ClientHomePage.GetFillDate));
+             DecodeDate(DateRange, RangeYear, RangeMonth, RangeDay);
+             CellPosition := ((fMonths.Items[Period].GetYear - RangeYear) * 12) +
+                             fMonths.Items[Period].GetMonth - RangeMonth + 12;
+             if (CellPosition >= 1) then
+             begin
+               ShowForeignHeader := True;
+               break;
+             end;    
+           end;
+
+           CurParentNode := nil;
+           Lbase := TreeList.FindGroupID (grp_Foreigns);
+           if assigned(lBase) then
+              CurParentNode := Lbase.Node
+           else
+              CurParentNode := TreeList.AddNodeItem(nil, TCHPBaseItem.Create(FTheClient,'Foreign Exchange',grp_Foreigns));
+
+           i := btForeign;
+           ForeignItem := TreeList.FindItem(TreeList.TestForeign,i);
+           if ShowForeignHeader and not assigned(ForeignItem) then
+             TreeList.AddNodeItem(nil,TCHForeignItem.Create(FTheClient,btNames[i],grp_Foreign, TMonthEndings))
+           else if not ShowForeignHeader then
+           begin
+             TreeList.RemoveItem(ForeignItem);
+             TreeList.RemoveItem(TreeList.FindGroupID(grp_Foreigns));
+           end;
+         end;
+
          RefreshCodingPeriod;
          {
           // Butget
@@ -616,6 +662,11 @@ begin //RefreshCoding
       ClientTree.EndUpdate;
    end;
     if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Exit RefreshCoding');
+end;
+
+function TfrmClientHomePage.GetFillDate: integer;
+begin
+  Result := TreeList.FillDate;
 end;
 
 procedure TfrmClientHomePage.RefreshExchangeRates;
