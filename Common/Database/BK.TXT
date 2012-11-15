@@ -206,7 +206,9 @@ $|                         Added Bank Account Online Secure Code
 $|                         Changed Transaction Matched_By from type "Memorised Transaction Rec" to "Memorisation Detail Rec"
 $|  5.26            171    Added fields Contractor..ABN to Payee Detail record
 $|                         Added Exchange Gain_Loss_Code
+$|                         Added new structure DeleteTransaction
 $|*)
+
 
 N|Client|cl|20
 F|Code|S|8
@@ -875,6 +877,7 @@ C|Temp Prov Date Time|DT
 F|Core Transaction ID|L
 F|Transfered To Online|Y
 F|Core Transaction ID High|L
+F|IsOnline_Transaction|Y
 E
 
 N|Dissection|ds|180
@@ -1145,4 +1148,21 @@ F|OnlineValuesStored|Y
 F|OnlineSubscriptionCount|L
 F|DeliverDataDirectToBLO|Y
 F|BLOSecureCode|S|20
+E
+
+N|Deleted Transaction|dx|233
+F|Date Deleted|D
+F|Deleted By|S|8
+F|External GUID|AS
+F|Date Effective|D
+F|Date Presented|D
+F|Sequence No|L
+F|Amount|$
+F|GST Amount|$
+F|Quantity|$
+F|Account|S|20
+F|Reference|S|12
+F|Particulars|S|12
+F|Core Transaction ID|L
+F|Core Transaction ID High|L
 E

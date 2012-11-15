@@ -622,6 +622,7 @@ begin
     FAuditNamesArray[160,245] := 'Core_Transaction_ID';
     FAuditNamesArray[160,246] := 'Transfered_To_Online';
     FAuditNamesArray[160,247] := 'Core_Transaction_ID_High';
+    FAuditNamesArray[160,248] := 'IsOnline_Transaction';
 
    FAuditTableArray[180] := 'Dissection';
     FAuditNamesArray[180,182] := 'Sequence_No';
@@ -872,6 +873,22 @@ begin
     FAuditNamesArray[40,88] := 'OnlineSubscriptionCount';
     FAuditNamesArray[40,89] := 'DeliverDataDirectToBLO';
     FAuditNamesArray[40,90] := 'BLOSecureCode';
+
+   FAuditTableArray[233] := 'Deleted_Transaction';
+    FAuditNamesArray[233,235] := 'Date_Deleted';
+    FAuditNamesArray[233,236] := 'Deleted_By';
+    FAuditNamesArray[233,237] := 'External_GUID';
+    FAuditNamesArray[233,238] := 'Date_Effective';
+    FAuditNamesArray[233,239] := 'Date_Presented';
+    FAuditNamesArray[233,240] := 'Sequence_No';
+    FAuditNamesArray[233,241] := 'Amount';
+    FAuditNamesArray[233,242] := 'GST_Amount';
+    FAuditNamesArray[233,243] := 'Quantity';
+    FAuditNamesArray[233,244] := 'Account';
+    FAuditNamesArray[233,245] := 'Reference';
+    FAuditNamesArray[233,246] := 'Particulars';
+    FAuditNamesArray[233,247] := 'Core_Transaction_ID';
+    FAuditNamesArray[233,248] := 'Core_Transaction_ID_High';
 
 end;
 

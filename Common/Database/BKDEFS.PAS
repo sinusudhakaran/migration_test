@@ -9,8 +9,8 @@ Interface uses MONEYDEF, DATEDEF;
 {  -------------------------------------------------------------------  }
 
 Const
-   BK_IOLIB_Version : Integer = 672;
-   BK_IOLIB_Date    = '17/10/12';
+   BK_IOLIB_Version : Integer = 680;
+   BK_IOLIB_Date    = '16/11/12';
    BK_FILE_VERSION  = 171;  (* Current Version counter for files
                               Changes if structure or method of storing a value would cause
                               data to be represented incorrectly, or an exception to be raised *)
@@ -219,6 +219,7 @@ Const
                             Changed Transaction Matched_By from type "Memorised Transaction Rec" to "Memorisation Detail Rec"
      5.26            171    Added fields Contractor..ABN to Payee Detail record
                             Added Exchange Gain_Loss_Code
+                            Added new structure DeleteTransaction
    *)
    //Audit Trail - 135 Don't reuse token!!! - Record defined in SY.TXT but also used in Client File
 
@@ -248,6 +249,7 @@ Type
    pMoreClient_Rec                       = ^tMoreClient_Rec ;
    pJob_Heading_Rec                      = ^tJob_Heading_Rec ;
    pClientExtra_Rec                      = ^tClientExtra_Rec ;
+   pDeleted_Transaction_Rec              = ^tDeleted_Transaction_Rec ;
 
 {  -------------------------------------------------------------------  }
 
@@ -961,6 +963,7 @@ Type
       txCore_Transaction_ID              : Integer;       { Stored }
       txTransfered_To_Online             : Boolean;       { Stored }
       txCore_Transaction_ID_High         : Integer;       { Stored }
+      txIsOnline_Transaction             : Boolean;       { Stored }
       txEOR                              : Byte;
    end;
 
@@ -1278,6 +1281,27 @@ Type
       ceEOR                              : Byte;
    end;
 
+{  -------------------------------------------------------------------  }
+
+   tDeleted_Transaction_Rec = Packed Record
+      dxRecord_Type                      : Byte;
+      dxDate_Deleted                     : Integer;       { Stored }
+      dxDeleted_By                       : String[ 8 ];       { Stored }
+      dxExternal_GUID                    : AnsiString;       { Stored }
+      dxDate_Effective                   : Integer;       { Stored }
+      dxDate_Presented                   : Integer;       { Stored }
+      dxSequence_No                      : Integer;       { Stored }
+      dxAmount                           : Money;       { Stored }
+      dxGST_Amount                       : Money;       { Stored }
+      dxQuantity                         : Money;       { Stored }
+      dxAccount                          : String[ 20 ];       { Stored }
+      dxReference                        : String[ 12 ];       { Stored }
+      dxParticulars                      : String[ 12 ];       { Stored }
+      dxCore_Transaction_ID              : Integer;       { Stored }
+      dxCore_Transaction_ID_High         : Integer;       { Stored }
+      dxEOR                              : Byte;
+   end;
+
 Const
    Client_Rec_Size                           = Sizeof( TClient_Rec ); 
    Account_Rec_Size                          = Sizeof( TAccount_Rec ); 
@@ -1302,6 +1326,7 @@ Const
    MoreClient_Rec_Size                       = Sizeof( TMoreClient_Rec ); 
    Job_Heading_Rec_Size                      = Sizeof( TJob_Heading_Rec ); 
    ClientExtra_Rec_Size                      = Sizeof( TClientExtra_Rec ); 
+   Deleted_Transaction_Rec_Size              = Sizeof( TDeleted_Transaction_Rec ); 
 
 {  -------------------------------------------------------------------  }
 Implementation
