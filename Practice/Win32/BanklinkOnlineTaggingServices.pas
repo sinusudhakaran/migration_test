@@ -60,7 +60,10 @@ type
     class procedure BankAccountsToXML(ParentNode: IXMLNode; Client: TClientObj; MaxTransactionDate: TStDate; ClientBankAccountVendors: TBloArrayOfDataPlatformBankAccount; TransactionsExported: TList; ProgressControl: IProgressControl; ProgressWeight: Double; out AccountsExported: Integer); static;
     class procedure TransactionsToXML(ParentNode: IXMLNode; Client: TClientObj; BankAccount: TBank_Account; MaxTransactionDate: TStDate; TransactionsExported: TList); static;
     class procedure ChartToXML(ParentNode: IXMLNode; ChartOfAccounts: TChart); static;
-
+    class function AddDeletedTransactionsToXML(ParentNode: IXMLNode; Client: TClientObj): Integer; static;
+    class procedure ClearDeletedTransactions(Client: TClientObj); static;
+    class function HasDeletedTransactions(Client: TClientObj): Boolean; static;
+    
     class function IsExportableTransaction(Transaction: pTransaction_Rec; MaxTransactionDate: TStDate = -1): Boolean; static;
     class function IsExportableBankAccount(BankAccount: TBank_Account; ClientBankAccountVendors: TBloArrayOfDataPlatformBankAccount): Boolean; static;
     class function HasExportableTransactions(BankAccount: TBank_Account; MaxTransactionDate: TStDate): Boolean; static;
@@ -241,6 +244,44 @@ begin
   end;
 end;
 
+class procedure TBanklinkOnlineTaggingServices.ClearDeletedTransactions(Client: TClientObj);
+var
+  Index: Integer;
+begin
+  for Index := 0 to Client.clBank_Account_List.ItemCount - 1 do
+  begin
+    Client.clBank_Account_List.Bank_Account_At(Index).baDeleted_Transaction_List.DeleteAll;
+  end;
+end;
+
+class function TBanklinkOnlineTaggingServices.AddDeletedTransactionsToXML(ParentNode: IXMLNode; Client: TClientObj): Integer;
+var
+  Index: Integer;
+  BankAccount: TBank_Account;
+  IIndex: Integer;
+  ChildNode: IXMLNode;
+  DeletedTransaction: pDeleted_Transaction_Rec;
+begin
+  Result := 0;
+  
+  for Index := 0 to Client.clBank_Account_List.ItemCount - 1 do
+  begin
+    BankAccount := Client.clBank_Account_List.Bank_Account_At(Index);
+
+    for IIndex := 0 to BankAccount.baDeleted_Transaction_List.ItemCount - 1 do
+    begin
+      DeletedTransaction := BankAccount.baDeleted_Transaction_List.Transaction_At(IIndex);
+      
+      ChildNode := ParentNode.AddChild('BKDeletedTransaction');
+      ChildNode.Attributes['Id'] := DeletedTransaction.dxExternal_GUID;
+      ChildNode.Attributes[''] := DeletedTransaction.dxCore_Transaction_ID;
+      ChildNode.Attributes[''] := DeletedTransaction.dxCore_Transaction_ID_High;
+
+      Inc(Result);
+    end;
+  end;
+end;
+
 class procedure TBanklinkOnlineTaggingServices.BankAccountsToXML(ParentNode: IXMLNode; Client: TClientObj; MaxTransactionDate: TStDate; ClientBankAccountVendors: TBloArrayOfDataPlatformBankAccount; TransactionsExported: TList; ProgressControl: IProgressControl; ProgressWeight: Double; out AccountsExported: Integer);
 var
   Index: Integer;
@@ -365,6 +406,7 @@ var
   ServiceErrors: String;
   ExportTransactionsWeight: Integer;
   AuthenticationError: Boolean;
+  DeletedTransactions: IXMLNode;
 begin
   FatalError := False;
 
@@ -451,15 +493,15 @@ begin
                       AccountsExported := 0;
                       
                       TransactionsExported := TList.Create;
-                      
+
                       try
                         BankAccountsToXML(ClientNode, Client, ExportOptions.MaxTransactionDate, ClientBankAccountVendors, TransactionsExported, ProgressForm.SecondaryProgress, ExportTransactionsWeight, AccountsExported);
 
-                        if TransactionsExported.Count > 0 then
+                        if (TransactionsExported.Count > 0) or (HasDeletedTransactions(Client)) then
                         begin
                           ExportClient := True;
 
-                          if ExportOptions.ExportChartOfAccounts then
+                          if ExportOptions.ExportChartOfAccounts and (TransactionsExported.Count > 0) then
                           begin
                             try
                               //Add chart of accounts for this client
@@ -474,6 +516,13 @@ begin
                                 ExportClient := False;
                               end;
                             end;
+                          end;
+
+                          DeletedTransactions := XMLDocument.CreateElement('BKDeletedTransactions', ''); 
+
+                          if AddDeletedTransactionsToXML(DeletedTransactions, Client) > 0 then
+                          begin
+                            ClientNode.ChildNodes.Add(DeletedTransactions); 
                           end;
 
                           if ExportClient then
@@ -501,8 +550,11 @@ begin
                                 for IIndex := 0 to TransactionsExported.Count - 1 do
                                 begin
                                   pTransaction_Rec(TransactionsExported[IIndex]).txTransfered_To_Online := True;
+                                  pTransaction_Rec(TransactionsExported[IIndex]).txIsOnline_Transaction := True;
                                 end;
 
+                                ClearDeletedTransactions(Client);
+                                
                                 Client.clFields.clFile_Save_Required := True;
 
                                 DoClientSave(False, Client, True);
@@ -754,6 +806,7 @@ var
   ClientProgressStepSize: Double;
   ClientBankAccountVendors: TBloArrayOfDataPlatformBankAccount;
   ClientGuid: TBloGuid;
+  DeletedTransaction: pDeleted_Transaction_Rec;
 begin
   Result := -1;
 
@@ -810,6 +863,16 @@ begin
                           end;
                         end;
                       end;
+
+                      for TransactionIndex := 0 to BankAccount.baDeleted_Transaction_List.ItemCount -1 do
+                      begin
+                        DeletedTransaction := BankAccount.baDeleted_Transaction_List.Transaction_At(TransactionIndex);
+
+                        if DeletedTransaction.dxDate_Effective > Result then
+                        begin
+                          Result := DeletedTransaction.dxDate_Effective;
+                        end;
+                      end;
                     end;
                   end;
                 end;
@@ -841,6 +904,23 @@ end;
 class procedure TBanklinkOnlineTaggingServices.GetTaggedAccounts(ClientReadDetail: TBloClientReadDetail; out TaggedAccounts: array of TTaggedAccount);
 begin
 
+end;
+
+class function TBanklinkOnlineTaggingServices.HasDeletedTransactions(Client: TClientObj): Boolean;
+var
+  Index: Integer;
+begin
+  Result := False;
+  
+  for Index := 0 to Client.clBank_Account_List.ItemCount - 1 do
+  begin
+    if Client.clBank_Account_List.Bank_Account_At(Index).baDeleted_Transaction_List.ItemCount > 0 then
+    begin
+      Result := True;
+      
+      Break;
+    end;
+  end;
 end;
 
 class function TBanklinkOnlineTaggingServices.HasExportableTransactions(BankAccount: TBank_Account; MaxTransactionDate: TStDate): Boolean;
