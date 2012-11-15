@@ -543,18 +543,23 @@ Var
   procedure GetTransStats (Transaction: pTransaction_Rec);
   var Dissection: pDissection_Rec;
       P: Integer;
+      Account_Rec : pAccount_Rec;
   begin
      FFirstDate := Min (FFirstDate, Transaction.txDate_Effective);
      FLastDate  := Max (FLastDate,  Transaction.txDate_Effective);
 //     BLastDate  := Max (BLastDate,  Transaction.txDate_Effective);
      P := GetPeriod( Transaction.txDate_Effective );
      Inc(FCount[p]);
-     if (Transaction.txAccount <> '') then
-       if (CompareText(Transaction.txAccount, 'DISSECTED') <> 0) and
-       (CompareText(Transaction.txAccount, 'DISSECT') <> 0) then
-         if not Client.clChart.FindCode(Transaction.txAccount)^.chPosting_Allowed then
-           Inc(FNonPosting[p]);
-     
+     if (Transaction.txAccount <> '') and
+        (CompareText(Transaction.txAccount, 'DISSECTED') <> 0) and
+        (CompareText(Transaction.txAccount, 'DISSECT') <> 0) then
+     begin
+       Account_Rec := Client.clChart.FindCode(Transaction.txAccount);
+       if (Assigned(Account_Rec)) and
+          (Account_Rec^.chPosting_Allowed) then
+         Inc(FNonPosting[p]);
+     end;
+
      if (Transaction.txDate_Transferred = 0) then begin
         // Not Transfered..
         Inc(FUnTransferred[P]);
