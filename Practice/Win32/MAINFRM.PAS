@@ -1949,9 +1949,9 @@ procedure TfrmMain.ExitBankLink;
 begin
   Globals.ApplicationIsTerminating := True;
   Screen.OnActiveFormChange := nil;
-  CloseClientManager(False);
   CloseSimpleUIOpen(False);
   DoMainFormCommand(mf_mcCloseFile);
+  CloseClientManager(False);
   LogoutUser;
 end;
 
