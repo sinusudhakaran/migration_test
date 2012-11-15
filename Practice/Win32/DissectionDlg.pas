@@ -3775,6 +3775,12 @@ begin
               //clean up any gst amounts that are left on the transaction
               ClearGSTFields( pTran);
               ClearSuperFundFields( pTran);
+
+              if pD.dtHas_Been_Edited or pD.dtGST_Has_Been_Edited then
+              begin
+                pT^.txTransfered_To_Online := False;
+              end;
+
               Result := True;
            end;
          finally
