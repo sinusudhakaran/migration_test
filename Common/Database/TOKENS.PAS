@@ -56,11 +56,12 @@ CONST
    tkBeginWindows_Report_Setting_List  = 63;
 
    tkBeginCoding_Stats_List            = 70;
+   tkBeginDeleted_Transaction_List     = 71;
 
    tkLastAuditRecordID        = 252;
    tkEndRecord                = 253;
    tkEndSection               = 254;
-   tkEndOfFile                = 255;
+   tkEndOfFile                = 255;      
 
 {  컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴�  }
 IMPLEMENTATION
