@@ -73,6 +73,7 @@ type
     fClient: TClientObj;
     fCurrentStepID: integer;
     fMonths: TMonthEndings;
+    MonthEndStr: string;
 
     // Wizard steps
     function  FindPage(StepID : integer) : TTabSheet;
@@ -253,6 +254,7 @@ var
   iNewItemHeight: integer;
 begin
   // Setup
+  MonthEndStr := '';
   lblTitle.Font.Name := Font.Name;
   memWarnings.Font.Style := [fsBold];
   tgGainLoss.HeadingFont := Font;
@@ -319,7 +321,7 @@ end;
 {------------------------------------------------------------------------------}
 procedure TwizExchangeGainLoss.btnPrintForeignCurrencyReportClick(Sender: TObject);
 begin
-  DoReport(Report_Foreign_Exchange, rdNone);
+  DoReport(Report_Foreign_Exchange, rdNone, 0, nil, MonthEndStr);
 end;
 
 {------------------------------------------------------------------------------}
@@ -581,6 +583,7 @@ begin
     stPost:
     begin
       dtMonthEnding := fMonths[SelectedMonthIndex].MonthEndingDate;
+      MonthEndStr := FormatDateTime('dd/mm/yy', dtMonthEnding);
       lblMonthEnding.Caption := FormatDateTime('dd/mm/yyyy', dtMonthEnding) + '.';
       PopulateGrid;
     end;

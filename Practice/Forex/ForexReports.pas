@@ -9,7 +9,7 @@ uses
     UBatchBase;
 
 procedure DoListForexEntriesReport( Dest: TReportDest; RptBatch: TReportBase =
-  nil ) ;
+  nil; MonthEndStr: string = '') ;
 
 // ----------------------------------------------------------------------------
 implementation
@@ -18,7 +18,7 @@ implementation
 uses
   omniXML, CodeDateAccountDlg, NewReportObj, RepCols, TravList, SysUtils,
   bkConst, baObj32, bkDateUtils, GenUtils, Globals, RptParams, BKHelp, WarningMoreFrm, ReportTypes,
-  NewReportUtils, baUtils, MoneyUtils, ForexHelpers;
+  NewReportUtils, baUtils, MoneyUtils, ForexHelpers, DateUtils;
 
 Const
   NUMBER_FORMAT = '#,##0.00;(#,##0.00);-';
@@ -346,7 +346,8 @@ end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-procedure DoListForexEntriesReport( Dest: TReportDest; RptBatch: TReportBase = nil ) ;
+procedure DoListForexEntriesReport( Dest: TReportDest; RptBatch: TReportBase = nil;
+                                    MonthEndStr: string = '') ;
 var
   Job: TListForexEntriesReport;
   S: string;
@@ -358,8 +359,18 @@ var
   i : Integer;
   Dumy: Boolean;
   LCTitle : String;
+  DT: TDateTime;
+  MonthStartInt, MonthEndInt: integer;
 begin
+  MonthEndInt := bkStr2Date(MonthEndStr);
+  DT := StrToDate(MonthEndStr);
+  DT := IncDay(DT, 1);
+  DT := IncMonth(DT, -1);
+  MonthStartInt := bkStr2Date(DateToStr(DT)); // TDateTime -> String -> Integer
+
   LParams := ForexParams.Create(ord(Report_Foreign_Exchange) , MyClient, RptBatch, dPeriod ) ;
+  LParams.FromDate := MonthStartInt;
+  LParams.ToDate := MonthEndInt;
   try
     LParams.GetBatchAccounts;
     repeat
