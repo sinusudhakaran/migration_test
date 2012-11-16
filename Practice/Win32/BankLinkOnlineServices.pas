@@ -5324,12 +5324,6 @@ var
   ConnectionError: Boolean;
 begin
   Success := False;
-  
-  if not Assigned(AdminSystem) then
-    Exit;
-
-  if not Registered then
-    Exit;
 
   try
     ShowProgress := Progress.StatusSilent;
