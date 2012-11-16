@@ -335,8 +335,8 @@ begin
      else
      begin
        {use default date}
-       MyDlg.DateSelector.eDateFrom.asStDate := BkNull2St(MyClient.clFields.clPeriod_Start_Date);
-       MyDlg.DateSelector.eDateTo.asStDate := BkNull2St(MyClient.clFields.clPeriod_End_Date);
+       MyDlg.DateSelector.eDateFrom.asStDate := MyClient.clFields.clFinancial_Year_Starts;
+       MyDlg.DateSelector.eDateTo.asStDate := GetYearEndDate(MyClient.clFields.clFinancial_Year_Starts);
      end;
 
      if MyDlg.Execute then
