@@ -11,7 +11,8 @@ uses
    AuthorityUtils,
    TPAfrm,
    ReportDefs,
-   windows;
+   windows,
+   Graphics;
 
 type
   TTPAReport = class(TAuthorityReport)
@@ -22,7 +23,7 @@ type
     procedure ResetForm; override;
     procedure FillCollumn(C: TCell); override;
     function HaveNewdata: Boolean; override;
-    procedure CreateQRCode(aDestRect : TRect);
+    procedure CreateQRCode(aCanvas : TCanvas; aDestRect : TRect);
   public
     procedure BKPrint;  override;
     property Values : TfrmTPA read FVAlues write FValues;
@@ -44,8 +45,7 @@ uses
   CafQrCode,
   ExtCtrls,
   Sysutils,
-  webutils,
-  Graphics;
+  webutils;
 
 //------------------------------------------------------------------------------
 function DoTPAReport(Values: TfrmTPA; Destination : TReportDest; Mode: TAFMode; Addr: string = '') : Boolean;
@@ -250,7 +250,7 @@ begin
   RenderSplitText(Values.lblDate.Caption, Col0, True);
   NewLine(4);
 
-  CreateQRCode(XYSizeRect(ColBoxRight-250, CurrYPos-250, ColBoxRight, CurrYPos));
+  CreateQRCode(MyCanvas, XYSizeRect(ColBoxRight-250, CurrYPos-250, ColBoxRight, CurrYPos));
 
   //Name - keep same y pos for signature
   i := CurrYPos;
@@ -291,7 +291,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TTPAReport.CreateQRCode(aDestRect : TRect);
+procedure TTPAReport.CreateQRCode(aCanvas : TCanvas; aDestRect : TRect);
 var
   CafQrCode  : TCafQrCode;
   CAFQRData  : TCAFQRData;
@@ -348,7 +348,9 @@ begin
                               GLOBALS.PublicKeysDir + PUBLIC_KEY_FILE_CAF_QRCODE,
                               QrCodeImage);
 
-        DrawImage(aDestRect, QrCodeImage);
+        aCanvas.StretchDraw(aDestRect, QrCodeImage.Picture.Graphic);
+        if OriginalDestination = rdPrinter then
+          aCanvas.StretchDraw(aDestRect, QrCodeImage.Picture.Graphic);
 
       finally
         FreeAndNil(QrCodeImage);

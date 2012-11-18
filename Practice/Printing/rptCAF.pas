@@ -11,7 +11,8 @@ uses
    AuthorityUtils,
    CAFfrm,
    ReportDefs,
-   Windows;
+   Windows,
+   Graphics;
 
 type
   TCAFReport = class(TAuthorityReport)
@@ -25,7 +26,7 @@ type
   public
     property Values : TfrmCAF read FVAlues write FValues;
     procedure BKPrint;  override;
-    procedure CreateQRCode(aDestRect : TRect);
+    procedure CreateQRCode(aCanvas : TCanvas; aDestRect : TRect);
   end;
 
 function DoCAFReport(Values: TfrmCAF; Destination : TReportDest; Mode: TAFMode; Addr: string = '') : Boolean;
@@ -38,7 +39,6 @@ uses
   Globals,
   MailFrm,
   bkConst,
-  Graphics,
   Types,
   RepCols,
   UserReportSettings,
@@ -106,7 +106,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TCAFReport.CreateQRCode(aDestRect : TRect);
+procedure TCAFReport.CreateQRCode(aCanvas : TCanvas; aDestRect : TRect);
 var
   CafQrCode  : TCafQrCode;
   CAFQRData  : TCAFQRData;
@@ -166,7 +166,9 @@ begin
                               GLOBALS.PublicKeysDir + PUBLIC_KEY_FILE_CAF_QRCODE,
                               QrCodeImage);
 
-        DrawImage(aDestRect, QrCodeImage);
+        aCanvas.StretchDraw(aDestRect, QrCodeImage.Picture.Graphic);
+        if OriginalDestination = rdPrinter then
+          aCanvas.StretchDraw(aDestRect, QrCodeImage.Picture.Graphic);
 
       finally
         FreeAndNil(QrCodeImage);
@@ -282,7 +284,8 @@ begin
    RenderSplitText(Values.lblClause45.Caption, Col0);
    NewLine(2);
 
-   CreateQRCode(XYSizeRect(ColBoxRight-240, CurrYPos-155, ColBoxRight+10, CurrYPos+95));
+   CreateQRCode(myCanvas, XYSizeRect(ColBoxRight-240, CurrYPos-155, ColBoxRight+10, CurrYPos+95));
+   //CreateQRCode(myCanvas, XYSizeRect(10,10,110,110));
 
    RenderSplitText(Values.lblSign.Caption, Col0, True);
    CurrYPos := CurrYPos + CurrLineSize + BoxMargin;
