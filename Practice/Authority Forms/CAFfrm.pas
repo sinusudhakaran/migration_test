@@ -262,6 +262,7 @@ end;
 
 procedure TfrmCAF.FormShow(Sender: TObject);
 begin
+  FButton := BTN_NONE;
   BKHelpSetUp(Self, BKH_Accessing_a_Client_Authority_Form);
   ScrollBox1.ScrollInView(lblTitle); // scroll to top
 end;
