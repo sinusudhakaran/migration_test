@@ -134,6 +134,7 @@ var
   DissectionNode: IXMLNode;
   TransactionGuid: String;
   IdNode: IXMLNode;
+  TransactionCoreId: Int64;
 begin
   for TransactionIndex := 0 to BankAccount.baTransaction_List.ItemCount - 1 do
   begin
@@ -145,6 +146,11 @@ begin
         CheckExternalGUID(Transaction);
 
         TransactionNode := Transaction.WriteRecToNode(ParentNode);
+
+        Int64Rec(TransactionCoreId).Lo := Transaction.txCore_Transaction_ID;
+        Int64Rec(TransactionCoreId).Hi := Transaction.txCore_Transaction_ID_High;
+
+        TransactionNode.Attributes['CoreTransactionId'] := TransactionCoreId; 
 
         IdNode := TransactionNode.OwnerDocument.CreateNode('Id', ntAttribute, '');
 
@@ -201,6 +207,7 @@ class procedure TBanklinkOnlineTaggingServices.CleanXML(Node: IXMLNode);
 var
   NodeIndex: Integer;
   ChildNode: IXMLNode;
+  TempNode: IXMLNode;
 begin
   NodeIndex := 0;
   
@@ -238,6 +245,13 @@ begin
       Node.ChildNodes.Delete(NodeIndex);
     end
     else
+    if Uppercase(ChildNode.NodeName) = 'BKTRANSACTION' then
+    begin
+      TempNode := ChildNode.AttributeNodes.FindNode('CoreTransactionIDHigh');
+
+      ChildNode.AttributeNodes.Remove(TempNode);
+    end
+    else
     begin
       Inc(NodeIndex);
     end;
@@ -261,6 +275,7 @@ var
   IIndex: Integer;
   ChildNode: IXMLNode;
   DeletedTransaction: pDeleted_Transaction_Rec;
+  TransactionCoreId: Int64;
 begin
   Result := 0;
   
@@ -274,8 +289,11 @@ begin
       
       ChildNode := ParentNode.AddChild('BKDeletedTransaction');
       ChildNode.Attributes['Id'] := DeletedTransaction.dxExternal_GUID;
-      ChildNode.Attributes[''] := DeletedTransaction.dxCore_Transaction_ID;
-      ChildNode.Attributes[''] := DeletedTransaction.dxCore_Transaction_ID_High;
+
+      Int64Rec(TransactionCoreId).Lo := DeletedTransaction.dxCore_Transaction_ID;
+      Int64Rec(TransactionCoreId).Hi := DeletedTransaction.dxCore_Transaction_ID_High;
+
+      ChildNode.Attributes['CoreTransactionID'] := TransactionCoreId;
 
       Inc(Result);
     end;
