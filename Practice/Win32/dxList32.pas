@@ -12,14 +12,16 @@ type
    private
       FLoading: boolean;
    public
-      constructor Create;
       function Compare(Item1,Item2 : Pointer): Integer; override;
       procedure LoadFromFile(var S : TIOStream);
       procedure SaveToFile(var S: TIOStream);
       function  Transaction_At(Index : longint) : pDeleted_Transaction_Rec;
       procedure AddTransaction(Transaction: pTransaction_Rec; const DeletedBy: String);
+      function FindByExternalGuid(ExternalGuid: String): pDeleted_Transaction_Rec;
    end;
 
+
+function Create_Deleted_Transaction_Rec(Transaction: pTransaction_Rec; const DeletedBy: String): pDeleted_Transaction_Rec;
 procedure Dispose_Deleted_Transaction_Rec(DeletedTransaction: pDeleted_Transaction_Rec);
 
 implementation
@@ -59,43 +61,50 @@ begin
   end;
 end;
 
+function Create_Deleted_Transaction_Rec(Transaction: pTransaction_Rec; const DeletedBy: String): pDeleted_Transaction_Rec;
+begin
+  Result := New_Deleted_Transaction_Rec;
+
+  Result.dxDate_Deleted := CurrentDate;
+  Result.dxDeleted_By := DeletedBy;
+  Result.dxExternal_GUID := Transaction.txExternal_GUID;
+  Result.dxDate_Effective := Transaction.txDate_Effective;
+  Result.dxSequence_No := Transaction.txSequence_No;
+  Result.dxAmount := Transaction.txAmount;
+  Result.dxGST_Amount := Transaction.txGST_Amount;
+  Result.dxQuantity := Transaction.txQuantity;
+  Result.dxAccount := Transaction.txAccount;
+  Result.dxReference := Transaction.txReference;
+  Result.dxParticulars := Transaction.txParticulars;
+  Result.dxCore_Transaction_ID := Transaction.txCore_Transaction_ID;
+  Result.dxCore_Transaction_ID_High := Transaction.txCore_Transaction_ID_High;  
+end;
+
 { TDeleted_Transaction_List }
 
 procedure TDeleted_Transaction_List.AddTransaction(Transaction: pTransaction_Rec; const DeletedBy: String);
-var
-  DeletedTransaction: pDeleted_Transaction_Rec;
 begin
-  DeletedTransaction := New_Deleted_Transaction_Rec;
-
-  DeletedTransaction.dxDate_Deleted := CurrentDate;
-  DeletedTransaction.dxDeleted_By := DeletedBy;
-  DeletedTransaction.dxExternal_GUID := Transaction.txExternal_GUID;
-  DeletedTransaction.dxDate_Effective := Transaction.txDate_Effective;
-  DeletedTransaction.dxSequence_No := Transaction.txSequence_No;
-  DeletedTransaction.dxAmount := Transaction.txAmount;
-  DeletedTransaction.dxGST_Amount := Transaction.txGST_Amount;
-  DeletedTransaction.dxQuantity := Transaction.txQuantity;
-  DeletedTransaction.dxAccount := Transaction.txAccount;
-  DeletedTransaction.dxReference := Transaction.txReference;
-  DeletedTransaction.dxParticulars := Transaction.txParticulars;
-  DeletedTransaction.dxCore_Transaction_ID := Transaction.txCore_Transaction_ID;
-  DeletedTransaction.dxCore_Transaction_ID_High := Transaction.txCore_Transaction_ID_High;
-
-  Insert(DeletedTransaction);
+  Insert(Create_Deleted_Transaction_Rec(Transaction, DeletedBy));
 end;
 
 function TDeleted_Transaction_List.Compare(Item1, Item2: Pointer): Integer;
 begin
-  if pDeleted_Transaction_Rec(Item1)^.dxDate_Effective < pDeleted_Transaction_Rec(Item2)^.dxDate_Effective then result := -1 else
-  if pDeleted_Transaction_Rec(Item1)^.dxDate_Effective > pDeleted_Transaction_Rec(Item2)^.dxDate_Effective then result := 1 else
-  if pDeleted_Transaction_Rec(Item1)^.dxSequence_No    < pDeleted_Transaction_Rec(Item2)^.dxSequence_No then result := -1 else
-  if pDeleted_Transaction_Rec(Item1)^.dxSequence_No    > pDeleted_Transaction_Rec(Item2)^.dxSequence_No then result := 1 else
-  result := 0;
+  result := CompareText(pDeleted_Transaction_Rec(Item1).dxExternal_GUID, pDeleted_Transaction_Rec(Item2).dxExternal_GUID);
 end;
 
-constructor TDeleted_Transaction_List.Create;
+function TDeleted_Transaction_List.FindByExternalGuid(ExternalGuid: String): pDeleted_Transaction_Rec;
+var
+  Index: Integer;
 begin
-
+  Result := nil;
+  
+  for Index := 0 to ItemCount - 1 do
+  begin
+    if CompareText(ExternalGuid, Transaction_At(Index).dxExternal_GUID) = 0 then
+    begin
+      Result := Transaction_At(Index);
+    end;
+  end;
 end;
 
 procedure TDeleted_Transaction_List.FreeItem(Item: Pointer);
