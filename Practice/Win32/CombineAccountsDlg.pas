@@ -52,7 +52,7 @@ implementation
 uses Globals, bkConst, YesNoDlg, WarningMoreFrm, baObj32, progress, LogUtil,
   InfoMoreFrm, ErrorMoreFrm, baUtils, bkDateUtils, bkDefs, syDefs, Admin32,
   MemorisationsObj, MemUtils, BKMLIO, bkHelp, bkXPThemes, ECodingUtils,
-  AuditMgr;
+  AuditMgr, TransactionUtils, dxList32;
 
 const
    UnitName = 'CombineAccountsDlg';
@@ -152,6 +152,7 @@ var
   pF: pClient_File_Rec;
   MemFrom, MemTo : TMemorisation;
   MemLineFrom, MemLineTo : pMemorisation_Line_Rec;
+  DeletedTrans: pDeleted_Transaction_Rec;
 begin
   if not Assigned( MyClient) then exit;
   //Check if they have outstanding BNotes or Acclipse files, and warn them against continuing. Case 8625
@@ -177,14 +178,38 @@ begin
             with FromBa.baTransaction_List do
               repeat
                 pT := Transaction_At(i);
+                           
                 // Delete from old account
-                FromBa.baTransaction_List.Delete(pT);
+                if RecordDeletedTransactionData(FromBa, pT) then
+                begin
+                  DeletedTrans := Create_Deleted_Transaction_Rec(pT, CurrUser.Code);
+
+                  try
+                    FromBa.baTransaction_List.Delete(pT);
+
+                    FromBa.baDeleted_Transaction_List.Insert(DeletedTrans);
+                  except
+                    Dispose_Deleted_Transaction_Rec(DeletedTrans);
+
+                    raise;
+                  end;
+                end
+                else
+                begin
+                  FromBa.baTransaction_List.Delete(pT);
+                end;
+
                 // Change sequence no to match new bank account - important for sorting!
                 pT^.txBank_Seq := ToBa.baFields.baNumber;
                 // Delete the ecoding id as this is related to a bank account not to a transaction
                 pT^.txECoding_Transaction_UID := 0;
+
+                //Send the transaction to banklink online again
+                pT^.txTransfered_To_Online := False;
+
                 //insert into bank account
                 ToBa.baTransaction_List.Insert_Transaction_Rec( pT);
+
                 Inc(TransferCount);
               until (ItemCount = 0);
           end;
