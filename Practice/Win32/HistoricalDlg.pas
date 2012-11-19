@@ -2071,7 +2071,6 @@ begin
 //             txGST_Amount   := CalculateGSTForClass( MyClient, txDate_Effective, txAmount, txGST_Class);
              txGST_Amount   := CalculateGSTForClass( MyClient, txDate_Effective, Local_Amount, txGST_Class);
              txGST_Has_Been_Edited := true;
-             txTransfered_To_Online := False;
           end
           else begin
 //             CalculateGST( MyClient, txDate_Effective, txAccount, txAmount, txGST_Class, txGST_Amount);
@@ -2697,7 +2696,8 @@ begin
          end;
 
 
-         cePayee : begin
+         cePayee :
+         begin
             // can't popup a dialog in here - case 7255
          end;
 
@@ -2725,6 +2725,7 @@ begin
 
             OD := pT^.txDate_Effective;
             pT^.txDate_Effective := tmpInteger;
+            
             if fIsForex then begin
                OER := pT^.txForex_Conversion_Rate;
                pT^.txForex_Conversion_Rate := BankAccount.Default_Forex_Conversion_Rate(tmpInteger);
@@ -2774,7 +2775,8 @@ begin
 
          ceNarration : begin
            S := PChar( tmpBuffer);  //will have been filled by ReadCellForSave
-           if (pT^.txGL_Narration <> S) then begin
+           if (pT^.txGL_Narration <> S) then
+           begin
               pT^.txGL_Narration    := S;
            end;
          end;
@@ -2800,7 +2802,6 @@ begin
          end;
       end;
       pT^.txHas_Been_Edited := true;
-      pT^.txTransfered_To_Online := False;
    end;
 
    with tblHist do begin
@@ -2985,7 +2986,6 @@ begin
               if GSTDifferentToDefault( MyClient, pT ) then begin
                  pT^.txHas_Been_Edited     := true;
                  pT^.txGST_Has_Been_Edited := true;
-                 pT^.txTransfered_To_Online := False;
               end
               else
                  pT^.txGST_Has_Been_Edited := false;
@@ -3674,11 +3674,6 @@ begin
          //set to true if validly coded, otherwise set to false
          pT.txHas_Been_Edited := (pT.txCoded_By <> cbNotcoded);
 
-         if pT.txHas_Been_Edited then
-         begin
-           pT^.txTransfered_To_Online := False;
-         end;
-
          //set source
          if Provisional then
             pT.txSource := orProvisional
@@ -3872,7 +3867,6 @@ begin
         if PayeeEdited(pT) then
         begin
           pT^.txHas_Been_Edited := true;
-          pT^.txTransfered_To_Online := False;
         end
         else
           //restore original value
@@ -4004,7 +3998,6 @@ begin
                pT^.txReference := MakeRef( ChequeNo );
                //set has been edited so that is not automatically deleted when cursor moves off line
                pT^.txHas_Been_Edited := true;
-               pT^.txTransfered_To_Online := False;
                Inc( NumCheques );
             end
             else
