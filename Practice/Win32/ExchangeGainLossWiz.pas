@@ -68,6 +68,7 @@ type
     procedure tgGainLossCellLoaded(Sender: TObject; DataCol, DataRow: Integer;
       var Value: Variant);
     procedure btnPrintForeignCurrencyReportClick(Sender: TObject);
+
   private
     { Private declarations }
     fClient: TClientObj;
@@ -76,6 +77,7 @@ type
     MonthEndStr: string;
 
     // Wizard steps
+    function  GetOrderArrayPos(ForStepID : integer) : integer;
     function  FindPage(StepID : integer) : TTabSheet;
     procedure MoveToStep(StepID : integer);
     function  NextStep(StepID : integer) : integer;
@@ -88,11 +90,14 @@ type
     procedure InitialiseStep(StepID : integer);
     function  CompleteStep(StepID : integer) : boolean;
     function  CanMoveToNextStep(StepID : integer) : boolean;
+    procedure FinishWizard;
     procedure UpdateButtons;
+
   public
     { Public declarations }
     destructor Destroy; override;
 
+  private
     { The month index as stored in cmbMonth.Items.Objects
       Note: the month endings are stored in reverse order, so can not use
       cmbMonth.ItemIndex. }
@@ -102,6 +107,10 @@ type
 
     // Grid
     procedure PopulateGrid;
+
+    // Final step
+    procedure DisplayPostSuccessMessage;
+    procedure PostGainLossEntries;
   end;
 
   function RunExchangeGainLossWizard(aClient : TClientObj) : boolean;
@@ -164,18 +173,10 @@ const
     stPost
   );
 
-{------------------------------------------------------------------------------}
-function GetOrderArrayPos(ForStepID : integer) : integer;
-var
-  sNo : integer;
-begin
-  result := -1;
-  for sNo := stMin to stMax do
-    if TabOrderArray[sNo] = ForStepID then
-      result := sNo;
+const
+  PostSuccessFmt =
+    'You have successfully posted the gains/losses on exchange entries for each of your foreign currency bank accounts for %s %s';
 
-  Assert(result > -1, 'GetOrderArrayPos.Step not found in list');
-end;
 
 {------------------------------------------------------------------------------}
 function RunExchangeGainLossWizard(aClient : TClientObj): boolean;
@@ -233,6 +234,7 @@ begin
       result := (ShowModal = mrOK);
       if not result then
         exit;
+
     end;
   finally
     FreeAndNil(Wizard);
@@ -330,7 +332,9 @@ begin
   if CanMoveToNextStep(fCurrentStepID) then begin
     CompleteStep(fCurrentStepID);
     if HasNextStep(fCurrentStepID) then
-      MoveToStep(NextStep(fCurrentStepID));
+      MoveToStep(NextStep(fCurrentStepID))
+    else
+      FinishWizard;
   end;
 end;
 
@@ -339,6 +343,19 @@ procedure TwizExchangeGainLoss.btnBackClick(Sender: TObject);
 begin
   if HasPreviousStep(fCurrentStepID) then
     MoveToStep(PrevStep(fCurrentStepID));
+end;
+
+{------------------------------------------------------------------------------}
+function TwizExchangeGainLoss.GetOrderArrayPos(ForStepID : integer) : integer;
+var
+  sNo : integer;
+begin
+  result := -1;
+  for sNo := stMin to stMax do
+    if TabOrderArray[sNo] = ForStepID then
+      result := sNo;
+
+  Assert(result > -1, 'GetOrderArrayPos.Step not found in list');
 end;
 
 {------------------------------------------------------------------------------}
@@ -607,6 +624,12 @@ begin
 end;
 
 {------------------------------------------------------------------------------}
+procedure TwizExchangeGainLoss.FinishWizard;
+begin
+  PostGainlossEntries;
+end;
+
+{------------------------------------------------------------------------------}
 procedure TwizExchangeGainLoss.UpdateButtons;
 begin
   btnNext.Enabled := CanMoveToNextStep(fCurrentStepID) and HasNextStep(fCurrentStepID);
@@ -696,6 +719,26 @@ begin
   end;
 end;
 
+{------------------------------------------------------------------------------}
+procedure TwizExchangeGainLoss.DisplayPostSuccessMessage;
+var
+  Month: TMonthEnding;
+  sMonth: string;
+  sYear: string;
+begin
+  Month := fMonths[SelectedMonthIndex];
+  sMonth := FormatDateTime('mmm', Month.Date);
+  sYear := FormatDateTime('yyyy', Month.Date);
+  ShowMessageFmt(PostSuccessFmt, [sMonth, sYear]);
+end;
+
+{------------------------------------------------------------------------------}
+procedure TwizExchangeGainLoss.PostGainLossEntries;
+begin
+  fMonths.PostGainLossEntries(SelectedMonthIndex);
+
+  DisplayPostSuccessMessage;
+end;
 
 end.
 
