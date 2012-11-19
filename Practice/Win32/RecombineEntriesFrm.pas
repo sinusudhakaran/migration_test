@@ -293,25 +293,7 @@ begin
                AuditID := CurrTrans^.txAudit_Record_ID;
                AuditType := MyClient.ClientAuditMgr.GetTransactionAuditType(CurrTrans^.txSource,
                                                                             BankAccount.baFields.baAccount_Type);
-
-               if RecordDeletedTransactionData(BankAccount, CurrTrans) then
-               begin
-                 DeletedTrans := Create_Deleted_Transaction_Rec(CurrTrans, CurrUser.Code);
-
-                 try
-                   BankAccount.baTransaction_List.DelFreeItem(CurrTrans);
-
-                   BankAccount.baDeleted_Transaction_List.Insert(DeletedTrans);
-                 except
-                   Dispose_Deleted_Transaction_Rec(DeletedTrans);
-
-                   raise;
-                 end;
-               end
-               else
-               begin
-                 BankAccount.baTransaction_List.DelFreeItem(CurrTrans);
-               end;
+               BankAccount.baTransaction_List.DelFreeItem(CurrTrans);
 
                lvEntries.Items[ i].SubItems.Objects[0] := nil;
 
