@@ -707,7 +707,24 @@ begin
         begin
            if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, 'Delete '+ psPtr^.txReference);
 
-           BA.baTransaction_List.DelFreeItem( psPtr );
+           if RecordDeletedTransactionData(BA, psPtr) then
+           begin
+             DeletedTrans := Create_Deleted_Transaction_Rec(psPtr, CurrUser.Code);
+
+             try
+               BA.baTransaction_List.DelFreeItem( psPtr );
+
+               BA.baDeleted_Transaction_List.Insert(DeletedTrans);
+             except
+               Dispose_Deleted_Transaction_Rec(DeletedTrans);
+
+               raise;
+             end;
+           end
+           else
+           begin
+             BA.baTransaction_List.DelFreeItem( psPtr );
+           end;
 
            Inc( DelCount);
         end;
