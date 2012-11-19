@@ -64,9 +64,7 @@ uses
   MONEYDEF,
   SYamIO,
   GenUtils,
-  InfoMoreFrm,
-  TransactionUtils,
-  dxList32;
+  InfoMoreFrm;
 
 // Check to see if a given client code is valid
 function IsABadCode( S : String ): Boolean;
@@ -455,7 +453,6 @@ var
    pT                 : pTransaction_Rec;
    NoDeleted          : integer;
    sMsg               : string;
-   DeletedTrans: pDeleted_Transaction_Rec;
 begin
   TotalDeleted := 0;
   //Get the total for unpresented items that will not be purged
@@ -482,24 +479,7 @@ begin
             //also check to see if has been transfered
             if OkToPurgeTransaction( pT, PurgeDate, DelTransferredOnly) then
             begin
-              if RecordDeletedTransactionData(BankAccount, pT) then
-              begin
-                DeletedTrans := Create_Deleted_Transaction_Rec(pT, CurrUser.Code);
-
-                try
-                  Dispose_Transaction_Rec( pT );
-
-                  BankAccount.baDeleted_Transaction_List.Insert(DeletedTrans);
-                except
-                  Dispose_Deleted_Transaction_Rec(DeletedTrans);
-
-                  raise;
-                end;
-              end
-              else
-              begin
-                Dispose_Transaction_Rec( pT );
-              end;
+              Dispose_Transaction_Rec( pT );
 
               pT := nil;
 
