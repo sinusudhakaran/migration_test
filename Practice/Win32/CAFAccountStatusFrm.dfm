@@ -2,6 +2,7 @@ object frmCAFAccountStatus: TfrmCAFAccountStatus
   Left = 0
   Top = 0
   ActiveControl = cmbAccountFilter
+  BorderIcons = [biSystemMenu, biMaximize]
   Caption = 'Account Status'
   ClientHeight = 481
   ClientWidth = 1013
