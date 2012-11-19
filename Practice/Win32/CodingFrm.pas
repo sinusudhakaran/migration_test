@@ -601,7 +601,8 @@ uses
    SwapUtils, clObj32, pyList32, ECollect, mainfrm,
    PayeeObj, UsageUtils, QueryTx, NewReportUtils,
    CountryUtils, SetClearTransferFlags, ExchangeRateList, AuditMgr,
-   BankLinkOnlineServices;
+   BankLinkOnlineServices,
+   dxList32;
 
 const
    UnitName = 'CODINGFRM';
@@ -1967,6 +1968,7 @@ var
    pU          : pUE;              //Points to entry in UEList
    Diff        : Money;
    sMsg        : String;
+   DeletedTrans: pDeleted_Transaction_Rec;
 begin
    with tblCoding do begin
       if not ValidDataRow(ActiveRow) then exit;
@@ -2075,8 +2077,27 @@ begin
             if ActiveRow > 1 then
                ActiveRow := ActiveRow - 1;
          end;
+         
          //Delete original transaction
-         BankAccount.baTransaction_List.Delete(pT);
+         if RecordDeletedTransactionData(BankAccount, pT) then
+         begin
+           DeletedTrans := Create_Deleted_Transaction_Rec(pT, CurrUser.Code);
+
+           try
+             BankAccount.baTransaction_List.Delete(pT);
+
+             BankAccount.baDeleted_Transaction_List.Insert(DeletedTrans);
+           except
+             Dispose_Deleted_Transaction_Rec(DeletedTrans);
+
+             raise;
+           end;
+         end
+         else
+         begin
+           BankAccount.baTransaction_List.Delete(pT);
+         end;
+         
          //reload transaction
          LoadWTLMaintainPos;
          tblCoding.AllowRedraw := True;
@@ -2633,6 +2654,7 @@ var
    sMsg: string;
    AuditId: integer;
    AuditType: TAuditType;
+   DeletedTrans: pDeleted_Transaction_Rec;
 begin
    with tblCoding do begin
       if not ValidDataRow(ActiveRow) then exit;
@@ -2771,7 +2793,26 @@ begin
                   end;
                   tblCoding.AllowRedraw := False;
                   AuditId := pT^.txAudit_Record_ID;
-                  BankAccount.baTransaction_List.DelFreeItem( pT );
+
+                  if RecordDeletedTransactionData(BankAccount, pT) then
+                  begin
+                    DeletedTrans := Create_Deleted_Transaction_Rec(pT, CurrUser.Code);
+
+                    try
+                      BankAccount.baTransaction_List.DelFreeItem( pT );
+
+                      BankAccount.baDeleted_Transaction_List.Insert(DeletedTrans); 
+                    except
+                      Dispose_Deleted_Transaction_Rec(DeletedTrans);
+          
+                      raise;
+                    end;
+                  end
+                  else
+                  begin
+                    BankAccount.baTransaction_List.DelFreeItem( pT );
+                  end;
+
                   LoadWTLMaintainPos;
                   tblCoding.AllowRedraw := True;
                   sMsg := 'Deleted UPC Transaction ' + TransRef;
@@ -2852,7 +2893,26 @@ begin
             //reinstating transaction
             tblCoding.AllowRedraw := False;
             AuditId := pT^.txAudit_Record_ID;
-            BankAccount.baTransaction_List.Delete( pT );
+
+           //Delete original transaction
+            if RecordDeletedTransactionData(BankAccount, pT) then
+            begin
+              DeletedTrans := Create_Deleted_Transaction_Rec(pT, CurrUser.Code);
+
+              try
+                BankAccount.baTransaction_List.Delete( pT );
+
+                BankAccount.baDeleted_Transaction_List.Insert(DeletedTrans);
+              except
+                Dispose_Deleted_Transaction_Rec(DeletedTrans);
+
+                raise;
+              end;
+            end
+            else
+            begin
+              BankAccount.baTransaction_List.Delete( pT );
+            end;
 
             //*** Flag Audit ***
             MyClient.ClientAuditMgr.FlagAudit(arUnpresentedItems,
@@ -3007,7 +3067,26 @@ begin
             AuditId := pT^.txAudit_Record_ID;
             AuditType := MyClient.ClientAuditMgr.GetTransactionAuditType(pT^.txSource,
                                                                          BankAccount.baFields.baAccount_Type);
-            BankAccount.baTransaction_List.DelFreeItem( pT);
+
+            if RecordDeletedTransactionData(BankAccount, pT) then
+            begin
+              DeletedTrans := Create_Deleted_Transaction_Rec(pT, CurrUser.Code);
+
+              try
+                BankAccount.baTransaction_List.DelFreeItem( pT);
+
+                BankAccount.baDeleted_Transaction_List.Insert(DeletedTrans); 
+              except
+                Dispose_Deleted_Transaction_Rec(DeletedTrans);
+          
+                raise;
+              end;
+            end
+            else
+            begin
+              BankAccount.baTransaction_List.DelFreeItem( pT);
+            end;
+
             //reload and reposition
             LoadWTLMaintainPos;
             tblCoding.AllowRedraw := True;
@@ -3046,9 +3125,25 @@ begin
       AuditType := MyClient.ClientAuditMgr.GetTransactionAuditType(pT^.txSource,
                                                                    BankAccount.baFields.baAccount_Type);
 
-      RecordDeletedTransactionData(pT);
-      
-      BankAccount.baTransaction_List.DelFreeItem( pT );
+      if RecordDeletedTransactionData(BankAccount, pT) then
+      begin
+        DeletedTrans := Create_Deleted_Transaction_Rec(pT, CurrUser.Code);
+
+        try
+          BankAccount.baTransaction_List.DelFreeItem( pT );
+
+          BankAccount.baDeleted_Transaction_List.Insert(DeletedTrans); 
+        except
+          Dispose_Deleted_Transaction_Rec(DeletedTrans);
+          
+          raise;
+        end;
+      end
+      else
+      begin
+        BankAccount.baTransaction_List.DelFreeItem( pT );
+      end;
+
       sMsg := 'Deleted Transaction '+ TransRef+' ' + MakeAmount( TransAmt);
       LogUtil.LogMsg(lmInfo,UnitName, sMsg);
 
@@ -3138,7 +3233,9 @@ begin
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmCoding.DoDeleteJournal(pT: pTransaction_Rec);
-var i: Integer;
+var
+  i: Integer;
+  DeletedTrans: pDeleted_Transaction_Rec;
 begin
    if not assigned(pt) then
       Exit;
@@ -3154,7 +3251,26 @@ begin
 
    I := WorkTranList.IndexOf(pt);
    tblCoding.AllowRedraw := False;
-   BankAccount.baTransaction_List.DelFreeItem( pT );
+
+   if RecordDeletedTransactionData(BankAccount, pT) then
+   begin
+     DeletedTrans := Create_Deleted_Transaction_Rec(pT, CurrUser.Code);
+
+     try
+       BankAccount.baTransaction_List.DelFreeItem( pT );
+
+       BankAccount.baDeleted_Transaction_List.Insert(DeletedTrans);
+     except
+       Dispose_Deleted_Transaction_Rec(DeletedTrans);
+
+       raise;
+     end;
+   end
+   else
+   begin
+     BankAccount.baTransaction_List.DelFreeItem( pT );
+   end;
+
    LoadWorkTranList;
    tblCoding.AllowRedraw := True;
    tblCoding.Refresh;
@@ -7173,6 +7289,7 @@ var
    OER: Double;
    DefaultGSTClass:  byte;
    DefaultGSTAmt: money;
+   DeletedTrans: pDeleted_Transaction_Rec;
 begin
    if tmrPayee.Enabled then
       tmrPayee.Enabled := False// So I Don't  do it agian
@@ -7269,7 +7386,26 @@ begin
                  pNew := BankAccount.baTransaction_List.New_Transaction;
                  Move( pT^, pNew^, SizeOf( TTransaction_Rec));
                  WorkTranList.DelFreeItem(WorkTranList.Transaction_At(tblCoding.ActiveRow-1));
-                 BankAccount.baTransaction_List.Delete(pT);
+
+                 if RecordDeletedTransactionData(BankAccount, pT) then
+                 begin
+                   DeletedTrans := Create_Deleted_Transaction_Rec(pT, CurrUser.Code);
+
+                   try
+                     BankAccount.baTransaction_List.Delete(pT);
+
+                     BankAccount.baDeleted_Transaction_List.Insert(DeletedTrans);
+                   except
+                     Dispose_Deleted_Transaction_Rec(DeletedTrans);
+
+                     raise;
+                   end;
+                 end
+                 else
+                 begin
+                   BankAccount.baTransaction_List.Delete(pT);
+                 end;
+
                  pNew^.txDate_Effective := TmpDate;
                  if not IsJournal then
                     pNew^.txDate_Presented := TmpDate;
