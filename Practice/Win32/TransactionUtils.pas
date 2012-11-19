@@ -70,18 +70,22 @@ function GetJobName(pD: pDissection_Rec; Client: TClientObj): String; overload;
 
 function IsFullyCodedTransaction(Client: TClientObj; Transaction: pTransaction_Rec): Boolean;
 
-procedure RecordDeletedTransactionData(Transaction: pTransaction_Rec);
+function RecordDeletedTransactionData(BankAccount: TBank_Account; Transaction: pTransaction_Rec): Boolean;
 
 //******************************************************************************
 implementation
 uses
   bkConst, ComObj, SysUtils, Globals, bkdateutils, PayeeObj, ForexHelpers;
 
-procedure RecordDeletedTransactionData(Transaction: pTransaction_Rec);
+function RecordDeletedTransactionData(BankAccount: TBank_Account; Transaction: pTransaction_Rec): Boolean;
 begin
-//  if Transaction.txIsOnline_Transaction then
+  if Transaction.txIsOnline_Transaction then
   begin
-    Transaction.Bank_Account.baDeleted_Transaction_List.AddTransaction(Transaction, CurrUser.Code);
+    Result := BankAccount.baDeleted_Transaction_List.FindByExternalGuid(Transaction.txExternal_GUID) = nil;
+  end
+  else
+  begin
+    Result := False;
   end;
 end;
 
