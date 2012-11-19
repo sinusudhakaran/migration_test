@@ -3252,24 +3252,7 @@ begin
    I := WorkTranList.IndexOf(pt);
    tblCoding.AllowRedraw := False;
 
-   if RecordDeletedTransactionData(BankAccount, pT) then
-   begin
-     DeletedTrans := Create_Deleted_Transaction_Rec(pT, CurrUser.Code);
-
-     try
-       BankAccount.baTransaction_List.DelFreeItem( pT );
-
-       BankAccount.baDeleted_Transaction_List.Insert(DeletedTrans);
-     except
-       Dispose_Deleted_Transaction_Rec(DeletedTrans);
-
-       raise;
-     end;
-   end
-   else
-   begin
-     BankAccount.baTransaction_List.DelFreeItem( pT );
-   end;
+   BankAccount.baTransaction_List.DelFreeItem( pT );
 
    LoadWorkTranList;
    tblCoding.AllowRedraw := True;
