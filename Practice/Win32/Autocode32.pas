@@ -334,7 +334,6 @@ Begin
                             txGST_Class := MemorisationLine.mlGST_Class;
                             txGST_Amount := CalculateGSTForClass( aClient, txDate_Effective, Local_Amount, txGST_Class );
                             txGST_Has_Been_Edited := true;
-                            txTransfered_To_Online := False;
                           end
                         else
                           begin
@@ -515,6 +514,8 @@ Begin
                         Dissection := Dissection.dsNext;
                       end;
 
+                    txTransfered_To_Online := False;
+
                     Continue;
                  end;
               end; { Scope of Memorised_Transaction_List^ }
@@ -568,7 +569,6 @@ Begin
                                       txGST_Class    := PayeeLine.plGST_Class;
                                       txGST_Amount   := CalculateGSTForClass( aClient, txDate_Effective, Local_Amount, txGST_Class);
                                       txGST_Has_Been_Edited := true;
-                                      txTransfered_To_Online := False;
                                    end
                                    else begin
                                       CalculateGST( aClient, txDate_Effective, txAccount, Local_Amount, txGST_Class, txGST_Amount);
@@ -640,6 +640,7 @@ Begin
                               Dissection := Dissection.dsNext;
                             end;
 
+                            txTransfered_To_Online := False;
                          end; //matching payee
                       end;
                    end; //if DoAnalysisCoding
@@ -730,6 +731,8 @@ Begin
                           txGST_Has_Been_Edited := false;
                           Continue;
                        end;
+                       
+                       txTransfered_To_Online := False;
                     end;
                  end;
                end;
