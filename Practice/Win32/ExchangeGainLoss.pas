@@ -1164,12 +1164,7 @@ begin
       ]);
     LogMsg(lmInfo, UnitName, sLog);
 
-    // Do an audit an the client bank account level
-    // Reset the starting point
-    fClient.ClientCopyReset;
-    DoSomething;
-    fClient.DoAudit(arManualEntries, fClient.ClientCopy);
-    //BankAccount.DoAudit(nil, arManualEntries);
+    // TODO_JN: Do an audit an the client bank account level
   finally
     FreeAndNil(Transactions);
   end;
