@@ -831,9 +831,14 @@ begin
 
       ClearStyles;
 
-
+      // BLOPI
       DeleteTable(MyAction,'ClientOnlineProductParameter', True);
       DeleteTable(MyAction,'ClientOnlineProduct');
+
+      DeleteTable(MyAction,'PracticeOnlineProductParameter', True);
+      DeleteTable(MyAction,'PracticeOnlineProduct');
+
+      DeleteTable(MyAction,'OnlineProduct');
 
       DeleteTable(MyAction,'PracticeClients');
 
