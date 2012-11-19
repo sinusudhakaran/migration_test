@@ -52,7 +52,7 @@ implementation
 uses Globals, bkConst, YesNoDlg, WarningMoreFrm, baObj32, progress, LogUtil,
   InfoMoreFrm, ErrorMoreFrm, baUtils, bkDateUtils, bkDefs, syDefs, Admin32,
   MemorisationsObj, MemUtils, BKMLIO, bkHelp, bkXPThemes, ECodingUtils,
-  AuditMgr, TransactionUtils, dxList32;
+  AuditMgr;
 
 const
    UnitName = 'CombineAccountsDlg';
@@ -180,24 +180,7 @@ begin
                 pT := Transaction_At(i);
                            
                 // Delete from old account
-                if RecordDeletedTransactionData(FromBa, pT) then
-                begin
-                  DeletedTrans := Create_Deleted_Transaction_Rec(pT, CurrUser.Code);
-
-                  try
-                    FromBa.baTransaction_List.Delete(pT);
-
-                    FromBa.baDeleted_Transaction_List.Insert(DeletedTrans);
-                  except
-                    Dispose_Deleted_Transaction_Rec(DeletedTrans);
-
-                    raise;
-                  end;
-                end
-                else
-                begin
-                  FromBa.baTransaction_List.Delete(pT);
-                end;
+                FromBa.baTransaction_List.Delete(pT);
 
                 // Change sequence no to match new bank account - important for sorting!
                 pT^.txBank_Seq := ToBa.baFields.baNumber;
