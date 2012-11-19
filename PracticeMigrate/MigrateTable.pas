@@ -99,6 +99,7 @@ const SFLineFields : array[0..31] of string = (
 {8}   'SFCGTDate',  'SFCapitalGainsFractionHalf');
 
 
+const MigratorName = 'Migrator'; 
 
 implementation
 uses

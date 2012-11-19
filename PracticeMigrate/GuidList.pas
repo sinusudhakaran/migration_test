@@ -1,7 +1,9 @@
 unit GuidList;
 
 interface
-uses Contnrs,Sysutils,ECollect, MoneyDef;
+uses
+ InvokeRegistry,
+Contnrs,Sysutils,ECollect, MoneyDef;
 
 
 type
@@ -15,14 +17,18 @@ end;
 
 GuidSizeProc = function (Value: TGuidObject): Int64 of object;
 
+ClassArray = Array of pointer;
+
 TGuidList = class(TObjectList)
 private
 
 public
    TotSize: Int64;
    CheckSpeed: Boolean;
-   constructor Create(Source: TExtdCollection = nil);
+   constructor Create(Source: TExtdCollection = nil);overload;
+   constructor Create(Source: ClassArray);overload;
    function CloneList(Source: TExtdCollection; Sizeproc: GuidSizeProc = nil): TGuidList;
+   function CloneArray(Source: ClassArray; Sizeproc: GuidSizeProc = nil): TGuidList;
    function FindLRNObject(Value: Integer): TGuidObject; overload;
    function FindLRNGuid(Value: Integer): TGuid; overload;
    function GetIDGuid(Value: Integer): TGuid; 
@@ -79,6 +85,29 @@ end;
 
 { TGuidList }
 
+function TGuidList.CloneArray(Source: ClassArray; Sizeproc: GuidSizeProc = nil): TGuidList;
+var i: Integer;
+    nItem : TGuidObject;
+begin
+   Result := Self;
+   TotSize := 0;
+   Clear;
+   for I := low(Source) to High(Source) do begin
+      nItem := TGuidObject.Create;
+      CreateGUID(nitem.GuidID);
+      Add(nItem);
+   end;
+
+   Sort(GuidSort);
+
+   for I := low(Source) to High(Source) do with TGuidObject(Items[I]) do begin
+      Data := Source[I];
+      SequenceNo := Succ(I);
+      if Assigned(Sizeproc) then
+         TotSize := TotSize + Sizeproc(TGuidObject(Items[I]));
+   end;
+end;
+
 function TGuidList.CloneList(Source: TExtdCollection; Sizeproc: GuidSizeProc = nil): TGuidList;
 var i: Integer;
     nItem : TGuidObject;
@@ -104,6 +133,12 @@ begin
       if Assigned(Sizeproc) then
          TotSize := TotSize + Sizeproc(TGuidObject(Items[I]));
    end;
+end;
+
+constructor TGuidList.Create(Source: ClassArray);
+begin
+   inherited create(True);
+   CloneArray(Source);
 end;
 
 constructor TGuidList.Create(Source: TExtdCollection);

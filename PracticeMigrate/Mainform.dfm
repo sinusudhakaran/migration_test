@@ -546,16 +546,12 @@ object formMain: TformMain
     Top = 87
     Width = 760
     Height = 424
-    ActivePage = tsSelect
+    ActivePage = tsBrowse
     Align = alClient
     TabOrder = 2
     object tsBrowse: TTabSheet
       Caption = 'tsBrowse'
       ImageIndex = 2
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       DesignSize = (
         752
         394)
@@ -576,11 +572,11 @@ object formMain: TformMain
       object Label3: TLabel
         Left = 16
         Top = 72
-        Width = 496
+        Width = 458
         Height = 30
         Caption = 
-          'Installation Assistant will import data from exsisting Banklink ' +
-          '5 database to a new Banklink Practice installation'
+          'The Installation Assistant will import data from existing BankLi' +
+          'nk 5 location to a new BankLink Practice installation'
         WordWrap = True
       end
       object Label4: TLabel
@@ -605,12 +601,12 @@ object formMain: TformMain
       end
       object Label7: TLabel
         Left = 80
-        Top = 104
-        Width = 312
+        Top = 108
+        Width = 264
         Height = 30
         Caption = 
-          'importing data will overwrite exsisting data in the databse'#13'Prac' +
-          'tice code must match'
+          'Importing data will clear all data in the database.'#13'Practice cod' +
+          'e must match.'
       end
       object Label8: TLabel
         Left = 16
@@ -654,7 +650,7 @@ object formMain: TformMain
         Width = 723
         Height = 23
         Anchors = [akLeft, akTop, akRight]
-        ItemHeight = 0
+        ItemHeight = 15
         TabOrder = 3
         OnDropDown = CbserversDropDown
         OnSelect = CbserversSelect
@@ -829,8 +825,8 @@ object formMain: TformMain
       ImageIndex = 1
       ExplicitLeft = 0
       ExplicitTop = 0
-      ExplicitWidth = 751
-      ExplicitHeight = 390
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object StatusTree: TVirtualStringTree
         Left = 0
         Top = 57
@@ -852,8 +848,6 @@ object formMain: TformMain
         TreeOptions.PaintOptions = [toHideFocusRect, toShowBackground, toShowButtons, toShowDropmark, toShowHorzGridLines, toShowRoot, toShowTreeLines, toShowVertGridLines, toThemeAware, toUseBlendedImages]
         TreeOptions.SelectionOptions = [toExtendedFocus, toFullRowSelect]
         TreeOptions.StringOptions = [toSaveCaptions]
-        ExplicitWidth = 751
-        ExplicitHeight = 333
         Columns = <
           item
             Position = 0
@@ -898,7 +892,6 @@ object formMain: TformMain
         Align = alTop
         BevelOuter = bvNone
         TabOrder = 1
-        ExplicitWidth = 751
         object LProgressImp: TLabel
           Left = 16
           Top = 16
@@ -917,10 +910,6 @@ object formMain: TformMain
     object TabSheet1: TTabSheet
       Caption = 'TabSheet1'
       ImageIndex = 3
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 751
-      ExplicitHeight = 390
       object Panel1: TPanel
         Left = 0
         Top = 0
@@ -929,7 +918,6 @@ object formMain: TformMain
         Align = alTop
         BevelOuter = bvNone
         TabOrder = 0
-        ExplicitWidth = 751
         object LStatsImp: TLabel
           Left = 16
           Top = 16
@@ -965,8 +953,6 @@ object formMain: TformMain
         TreeOptions.PaintOptions = [toHideFocusRect, toShowBackground, toShowButtons, toShowDropmark, toShowHorzGridLines, toShowRoot, toShowTreeLines, toShowVertGridLines, toThemeAware, toUseBlendedImages]
         TreeOptions.SelectionOptions = [toExtendedFocus, toFullRowSelect]
         TreeOptions.StringOptions = [toSaveCaptions]
-        ExplicitWidth = 751
-        ExplicitHeight = 333
         Columns = <
           item
             Position = 0
@@ -1005,7 +991,7 @@ object formMain: TformMain
     Left = 176
     Top = 8
     Bitmap = {
-      494C010104001000E80018001800FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C010104001000F80018001800FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000600000003000000001002000000000000048
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000

@@ -334,7 +334,7 @@ end;
 TBalances_ParamTable = class (TMigrateTable)
 protected
    procedure SetupTable; override;
-   procedure AddMoney(BalanceID: TGuid; Name: string; value: Money);
+   procedure AddMoney(BalanceID: TGuid; Name: string; value: Money; Force: Boolean = false);
    procedure AddRate(BalanceID: TGuid; Name: string; value: Money);
 public
     function Insert(BalanceID: TGuid;
@@ -383,9 +383,9 @@ public
 
    function Update(ParamName, ParamValue, ParamType: string; ClientReportID:TGuid): Boolean; overload;
    function Update(ParamName: string; ParamValue: Boolean; ClientReportID:TGuid): Boolean; overload;
-   function Update(ParamName: string; ParamValue: TGuid; ClientReportID:TGuid): Boolean; overload;
+   //function Update(ParamName: string; ParamValue: TGuid; ClientReportID:TGuid): Boolean; overload;
    function Update(ParamName: string; ParamValue: Integer; ClientReportID:TGuid): Boolean; overload;
-   function Update(ParamName: string; ParamValue: Money; ClientReportID:TGuid): Boolean; overload;
+   //function Update(ParamName: string; ParamValue: Money; ClientReportID:TGuid): Boolean; overload;
 end;
 
 
@@ -463,7 +463,7 @@ begin
   {9}        ,ToSQL(clWeb_Site_Login_URL),ToSQL(clContact_Details_To_Show),ToSQL(clCustom_Contact_Name)
                 ,ToSQL(clCustom_Contact_EMail_Address),ToSQL(clCustom_Contact_Phone)
   {10}       ,ToSQL(clHighest_Manual_Account_No),ToSQL(clCopy_Narration_Dissection),ToSQL(SystemComments)
-  {11}       ,ToSQL(clClient_CC_EMail_Address),ToSQL(clLast_ECoding_Account_UID),{}ToSQL(WebExportFormat),{}ToSQL(clMobile_No)
+  {11}       ,ToSQL(clClient_CC_EMail_Address),ToSQL(clLast_ECoding_Account_UID),{ToSQL(WebExportFormat),{}ToSQL(clMobile_No)
                 ,ToSQL(clFile_Read_Only),ToSQL(clSalutation),ToSQL(clExternal_ID)
   {12}       ,ToSQL( clForce_Offsite_Check_Out),ToSQL(clDisable_Offsite_Check_Out),ToSQL(clAlternate_Extract_ID),ToSQL(clUse_Alterate_ID_for_extract)
   {13}       ,DateToSQL(AClient.cfDate_Last_Accessed),ToSQL(clUse_Basic_Chart),ToSQL(GroupID),ToSQL(TypeID)
@@ -505,7 +505,7 @@ with  AClient^, ClientDetailsCache do begin
 {9}        ,null,ToSQL(cfContact_Details_To_Show),null
               ,null,null
 {10}       ,null,null,ToSQL(SystemComments)
-{11}       ,null,null{},null{},ToSQL(Mobile_No)
+{11}       ,null,null{,null{},ToSQL(Mobile_No)
               ,null,ToSQL(Salutation),null
 {12}       ,null,null,null,null
 {13}       ,DateToSQL(cfDate_Last_Accessed),null,ToSQL(GroupID),ToSQL(TypeID)
@@ -532,7 +532,7 @@ begin
 {8}     ,'CflwCashOnHandStyle','LastFinancialYearStart','TaxinterfaceUsed','SaveTaxFilesTo','JournalProcessingPeriod','LastDiskImageVersion'
 {9}     ,'WebSiteLoginURL','ContactDetailsToShow','CustomContactName','CustomContactEMailAddress','CustomContactPhone'
 {10}    ,'HighestManualAccountNo','CopyNarrationDissection','SystemComments'
-{11}    ,'ClientCCEMailAddress','LastECodingAccountUID',{}'WebExportFormat',{}'MobileNo','FileReadOnly','Salutation','ExternalID'
+{11}    ,'ClientCCEMailAddress','LastECodingAccountUID',{'WebExportFormat',{}'MobileNo','FileReadOnly','Salutation','ExternalID'
 {12}    ,'ForceOffsiteCheckOut','DisableOffsiteCheckOut','AlternateExtractID','UseAlterateIDforextract'
 {13}    ,'LastUseDate','UseBasicChart','ClientGroupId','ClientTypeId','AllEditModeCES','AllEditModeDIS','TFN'
 {14}    ,'AllowClientUnlockEntries','AllowClientEditChart','BudgetIncludeQuantities','Archived'
@@ -641,13 +641,23 @@ function TTransaction_RecTable.Insert(MyID, AccountID,MatchedItemID: TGuid;
   Value: PTransaction_Rec; IsSplitPayee, IsDissected, IsSplitJob, IsPayeeOverridden,
   IsJobOverridden: boolean;
    memID, MasterMemiD: TGuid): Boolean;
+
+   function ChartCode: string;
+   begin
+      if IsDissected then
+         Result := '' // Don't want 'Dissected'
+      else
+         Result := Value^.txAccount
+
+   end;
+
 begin  with Value^ do
   Result := RunValues([ ToSQL(MyId),ToSQL(AccountID),ToSQL(txSequence_No)
                   ,ToSQL(txType),ToSQL(txSource),DateToSQL(txDate_Presented),DateToSQL(txDate_Effective)
 {2}       ,DateToSQL(txDate_Transferred),ToSQL(txAmount) ,ToSQL(txGST_Class),ToSQL(txGST_Amount)
                   ,ToSQL(txHas_Been_Edited),QtyToSQL(txQuantity),ToSQL(txCheque_Number)
 {3}       ,ToSQL(txReference),ToSQL(txParticulars),ToSQL(txAnalysis), ToSQL(txOrigBB), ToSQL(txOther_Party)
-                  ,ToSQL(txAccount), ToSQL(txCoded_By)
+                  ,ToSQL(ChartCode), ToSQL(txCoded_By)
 {4}       ,nullToSQL(txPayee_Number),ToSQL(txLocked),ToSQL(txBankLink_ID),ToSQL(txGST_Has_Been_Edited)
                   ,ToSQL(MatchedItemID), ToSQL(txUPI_State), ToSQL(txOriginal_Reference)
 {5}       ,ToSQL(txOriginal_Source),ToSQL(txOriginal_Type),ToSQL(txOriginal_Cheque_Number),ToSQL(txOriginal_Amount)
@@ -858,6 +868,7 @@ end;
 procedure TMemorisation_Line_RecTable.SetupTable;
 begin
   TableName := 'MemorisationLines';
+
   SetFields([ 'Id','Memorisation_Id','SequenceNo','Percentage','GSTClass','GSTHasBeenEdited'
            ,'PayeeNumber','GLNarration','LineType','Amount','ChartCode','JobCode','Quantity'
 
@@ -1330,12 +1341,24 @@ end;
 { TBalances_ParamTable }
 
 
-procedure TBalances_ParamTable.AddMoney(BalanceID: TGuid; Name: string;
-  value: Money);
+procedure TBalances_ParamTable.AddMoney(BalanceID: TGuid; Name: string; value: Money; Force: Boolean = false);
 begin
-   if (value = 0)
-   or (value = Unknown) then
-      Exit; // Don't need to save..
+   if Force then begin
+      // The force, makes sure the entry is saved, so Practice-7 knows it needs to show the tab..
+      if (value = 0) then begin
+         RunValues([ToSQL(NewGuid),name,'decimal','0.00', ToSql(BalanceID)],[]);
+         exit; // Done..
+      end;
+      if (value = Unknown) then begin
+         RunValues([ToSQL(NewGuid),name,'decimal','null', ToSql(BalanceID)],[]);
+         exit; // Done..
+      end
+
+   end else
+      if (value = 0)
+      or (value = Unknown) then
+        Exit; // Don't need to save..
+
    RunValues([ToSQL(NewGuid),name,'decimal',FormatFloat('0.00', Value/100),ToSql(BalanceID)],[]);
 end;
 
@@ -1360,6 +1383,8 @@ end;
 function TBalances_ParamTableNZ.Insert(BalanceID: TGuid;
   value: pBalances_Rec): Boolean;
 begin
+     Result := True;
+
          // Work out Form Period  GSTRateChangeDate = 150023;  // 1/10/2010
      if (value.blGST_Period_Ends > GSTRateChangeDate)
      and (value.blGST_Period_Starts < GSTRateChangeDate) then begin
@@ -1388,14 +1413,18 @@ begin
      AddMoney(BalanceID, 'GST_101_Workpaper_PurchasesFromLedger_LessOpeningCreditors', value.blOpening_Creditors_Balance);
      AddMoney(BalanceID, 'GST_101_Workpaper_PurchasesFromLedger_LessOpeningCreditors_Part2', value.blBAS_G22_GST_Opening_Creditors_BalanceB);
 
+     // Payment Tab, Need atleast one of these to show the tab..
+     AddMoney(BalanceID, 'GST_103B_PaymentCalculation_CompulsoryOrVoluntaryTax', value.blBAS_1F_PT_Tax, TFormType(Value.blPT_Form_Type) in [GST103Bc, GST103Bv]);
+     AddMoney(BalanceID, 'GST_103B_PaymentCalculation_TransferToProvisional', value.blBAS_1G_PT_Refund_Used, TFormType(Value.blPT_Form_Type) in [GST103Bc, GST103Bv]);
 
-     AddMoney(BalanceID, 'GST_103B_PaymentCalculation_CompulsoryOrVoluntaryTax', value.blBAS_1F_PT_Tax);
-     //AddMoney(BalanceID, 'GST_103B_PaymentCalculation_TransferToProvisional', value.);
-     AddMoney(BalanceID, 'GST_103B_ProvisionalTax_AdjustmentForTheAssetsWorth', value.blBAS_1E_PT_Assets);
-     AddMoney(BalanceID, 'GST_103B_ProvisionalTax_MonthlyTotalSalesAndIncome', value.blBAS_1C_PT_Last_Months_Income);
-     AddMoney(BalanceID, 'GST_103B_ProvisionalTax_OtherBranchesTotalSalesAndIncome', value.blBAS_1D_PT_Branch_Income);
+     // Provisional tab, Need at least one of these to show the tab..
+     AddMoney(BalanceID, 'GST_103B_ProvisionalTax_AdjustmentForTheAssetsWorth', value.blBAS_1E_PT_Assets, TFormType(Value.blPT_Form_Type) in [GST103Bc]);
+     AddMoney(BalanceID, 'GST_103B_ProvisionalTax_MonthlyTotalSalesAndIncome', value.blBAS_1C_PT_Last_Months_Income, TFormType(Value.blPT_Form_Type) in [GST103Bc]);
+     AddMoney(BalanceID, 'GST_103B_ProvisionalTax_OtherBranchesTotalSalesAndIncome', value.blBAS_1D_PT_Branch_Income, TFormType(Value.blPT_Form_Type) in [GST103Bc]);
 
-     AddRate(BalanceID, 'GST_103B_ProvisionalTax_Ratio', value.blBAS_5B_PT_Ratio);
+     AddRate(BalanceID, 'GST_103B_ProvisionalTax_Ratio',Value.blBAS_5B_PT_Ratio);
+
+
 
      // 372 work sheet
      AddMoney(BalanceID, 'GST_372_Adjustments_PrivateUseGoodsAndServices', value.blGST_Adj_PrivUse);
@@ -1704,21 +1733,24 @@ begin
    end;
 end;
 
+{
 function TReportParameterTable.Update(ParamName: string;
   ParamValue: Money; ClientReportID:TGuid): Boolean;
 begin
 
 end;
+}
 
 function TReportParameterTable.Update(ParamName: string; ParamValue: Integer; ClientReportID:TGuid): Boolean;
 begin
     Result := UpDate(ParamName, IntToStr(ParamValue), 'int32',ClientReportID);
 end;
-
+      {
 function TReportParameterTable.Update(ParamName: string; ParamValue: TGuid; ClientReportID:TGuid): Boolean;
 begin
 
 end;
+}
 
 
 

@@ -1104,6 +1104,8 @@ begin
 
       //ClearParametersTable('Report Parameters','ReportParameters');
 
+      DeleteTable(MyAction,'ReportParameters',True);
+
       KeepTime := Connection.CommandTimeout;
       Connection.CommandTimeout := 10 * 60;
       DeleteTable(MyAction,'Clients');

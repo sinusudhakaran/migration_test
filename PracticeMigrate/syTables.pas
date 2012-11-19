@@ -6,6 +6,7 @@ uses
   ADODB,
   MoneyDef,
   MigrateTable,
+  BankLinkOnlineServices,
   bkDefs,// MasterMems
   sydefs;
 
@@ -43,7 +44,7 @@ TUserTable = class (TMigrateTable)
   protected
      procedure SetupTable; override;
   public
-     function Insert(MyId:TGuid; Value: pUser_Rec; Restricted: Boolean): Boolean;
+     function Insert(MyId:TGuid; Value: pUser_Rec; Restricted, CheckBLOPI: Boolean): Boolean;
 end;
 
 TClientAccountMapTable = class (TMigrateTable)
@@ -146,6 +147,34 @@ public
 end;
 
 
+
+TOnlineProductTable = class (TMigrateTable)
+
+   function Status(value: Boolean): integer;
+   procedure SetupTable; override;
+
+public
+   function Insert(MyiD, GroupId: TGuid;
+                   Value: TBloCatalogueEntry;
+                   Modified: TDateTime): Boolean;
+end;
+
+
+TPracticeOnlineProductTable = class (TOnlineProductTable)
+   procedure SetupTable; override;
+public
+   function Insert(MyId, ProductId: TGuid;
+                   Enabled: Boolean;
+                   Modified: TDateTime): Boolean;
+end;
+
+TClientOnlineProductTable = class (TOnlineProductTable)
+   procedure SetupTable; override;
+public
+   function Insert(MyId, ClientId, ProductId: TGuid;
+                   Enabled: Boolean;
+                   Modified: TDateTime): Boolean;
+end;
 
 implementation
 
@@ -261,10 +290,24 @@ begin
 {2}         ,'ReverseMouseButtons','MASTERAccess','IsRemoteUser','DirectDial'
 {3}         ,'ShowCMOnOpen','ShowPrinterChoice','EULAVersion'
 {4}         ,'SuppressHF','ShowPracticeLogo'
-{5}         ,'IsDeleted','CanAccessAllClients','IncorrectLoginCount','IsLockedOut'],[]);
+{5}         ,'IsDeleted','CanAccessAllClients','IncorrectLoginCount','IsLockedOut','BankLinkOnlineEmail'],[]);
 end;
 
-function TUserTable.Insert(MyId: TGuid; Value: pUser_Rec; Restricted: Boolean): Boolean;
+function TUserTable.Insert(MyId:TGuid; Value: pUser_Rec; Restricted, CheckBLOPI: Boolean): Boolean;
+
+   function BLOEmail: string;
+   begin
+       result := '';
+       with Value^ do
+          if usAllow_Banklink_Online
+          and CheckBLOPI then
+              result := value.usEMail_Address
+   end;
+
+   function BLoPW: string;
+   begin
+   end;
+
 begin
     with Value^ do
     Result := RunValues([
@@ -273,7 +316,7 @@ begin
 {2}          ,ToSQL(usReverse_Mouse_Buttons) ,ToSQL(usMASTER_Access) ,ToSQL(usIs_Remote_User) ,ToSQL(usDirect_Dial)
 {3}          ,ToSQL(usShow_CM_on_open) ,ToSQL(usShow_Printer_Choice) ,ToSQL(usEULA_Version)
 {4}          ,ToSQL(usSuppress_HF) ,ToSQL(usShow_Practice_Logo)
-{5}          ,ToSQL(False) ,ToSQL(not Restricted) ,ToSQL(0) ,ToSQL(False)],[]);
+{5}          ,ToSQL(False) ,ToSQL(not Restricted) ,ToSQL(0) ,ToSQL(False), ToSQL(BLOEmail)],[]);
 end;
 
 
@@ -589,5 +632,60 @@ begin
   SetFields(['Id','TaxEntry_Id','Rate','EffectiveDate'],[]);
 end;
 
+
+{ TPracticeOnlineProductTable }
+
+function TPracticeOnlineProductTable.Insert(
+                   MyId, ProductId: TGuid;
+                   Enabled: Boolean;
+                   Modified: TDateTime): Boolean;
+
+
+begin
+    Result := RunValues([ToSQL(MyID),ToSQL(ProductId),ToSQL(Status(Enabled)) ,ToSQL(MigratorName), DateTimeToSQL(Modified)],[]);
+end;
+
+procedure TPracticeOnlineProductTable.SetupTable;
+begin
+   TableName := 'PracticeOnlineProduct';
+   SetFields(['Id','OnlineProductId','Status','ModifiedBy','ModifiedDate'],[]);
+end;
+
+{ TOnlineProductTable }
+
+function TOnlineProductTable.Insert(MyiD, GroupID: TGuid; Value: TBloCatalogueEntry;
+  Modified: TDateTime): Boolean;
+begin
+   Result := RunValues([ToSQL(MyID),ToSQL(format('{%s}',[Value.Id])),ToSQL(Value.Description), ToSQL(GroupID),  ToSQL(MigratorName), DateTimeToSQL(Modified)],[]);
+end;
+
+procedure TOnlineProductTable.SetupTable;
+begin
+   TableName := 'OnlineProduct';
+   SetFields(['Id', 'ProductId', 'ProductName', 'ProductGroupId', 'ModifiedBy', 'ModifiedDate'],[]);
+end;
+
+function TOnlineProductTable.Status(value: Boolean): integer;
+begin
+   if value then
+      Result := 1
+   else
+      Result := 0;
+end;
+
+{ TClientOnlineProduct }
+
+function TClientOnlineProductTable.Insert(MyId, ClientId, ProductId: TGuid;
+  Enabled: Boolean; Modified: TDateTime): Boolean;
+
+begin
+   Result := RunValues([ToSQL(MyID),ToSQL(ProductId), ToSQL(ProductId),ToSQL(Status(Enabled)) ,ToSQL(MigratorName), DateTimeToSQL(Modified)],[]);
+end;
+
+procedure TClientOnlineProductTable.SetupTable;
+begin
+   TableName := 'ClientOnlineProduct';
+   SetFields(['Id','PracticeClientId', 'OnlineProductId', 'Status', 'ModifiedBy', 'ModifiedDate'],[]);
+end;
 
 end.

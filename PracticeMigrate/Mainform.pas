@@ -1251,7 +1251,7 @@ begin
          FSystemMigrater.ClientMigrater := FClientMigrater;
          //FSystemMigrater.System := Adminsystem; already done ??
 
-         FClientMigrater.EnableIndexes(MyAction,False);
+         //FClientMigrater.EnableIndexes(MyAction,False);
          {}
          FSystemMigrater.Migrate(MyAction);
          {}

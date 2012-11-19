@@ -246,6 +246,7 @@ end;
 function TMigrateAction.Exception(E: Exception; Action: string =''): TMigrateAction;
 begin
    Result := InsertAction(Format ('Error %s', [Action]));
+   Status := Failed;
    Result.Error := E.Message;
    Result.Status := Failed;//??
 end;

@@ -63,8 +63,12 @@ private
     FParameterTable: TParameterTable;
     FTaxEntriesTable: TTaxEntriesTable;
     FTaxRatesTable: TTaxRatesTable;
+    FOnlineProductTable: TOnlineProductTable;
+    FPracticeOnlineProductTable: TPracticeOnlineProductTable;
+    FClientOnlineProductTable: TClientOnlineProductTable;
     FDoClients: Boolean;
     FDoDocuments: Boolean;
+    FCreatedOn: TdateTime;
     function GetClientGroupList: TGuidList;
     function GetClientList: TGuidList;
     function GetClientTypeList: TGuidList;
@@ -79,6 +83,8 @@ private
     function AddClientFile(ForAction: TMigrateAction; Value: TGuidObject): Boolean;
     function AddUserMap(ForAction: TMigrateAction; Value: TGuidObject): Boolean;
     function AddDiskLog(ForAction: TMigrateAction; Value: TGuidObject): Boolean;
+
+    function AddOnlineProduct(ForAction: TMigrateAction; Value: TGuidObject): Boolean;
 
     procedure MigrateMasterMems(ForAction: TMigrateAction);
     //function AddMasterMemFile(ForAction: TMigrateAction; Prefix: string): Boolean;
@@ -127,6 +133,9 @@ private
     function GetTaxEntriesTable: TTaxEntriesTable;
     function GetTaxRatesTable: TTaxRatesTable;
     function GetMasterMemLists: TObjectList;
+    function GetOnlineProductTable: TOnlineProductTable;
+    function GetPracticeOnlineProductTable: TPracticeOnlineProductTable;
+    function GetClientOnlineProductTable: TClientOnlineProductTable;
 
 protected
     procedure OnConnected; override;
@@ -166,6 +175,9 @@ public
     property ParameterTable: TParameterTable read GetParameterTable;
     property TaxEntriesTable: TTaxEntriesTable read GetTaxEntriesTable;
     property TaxRatesTable: TTaxRatesTable read GetTaxRatesTable;
+    property OnlineProductTable: TOnlineProductTable read GetOnlineProductTable;
+    property PracticeOnlineProductTable: TPracticeOnlineProductTable read GetPracticeOnlineProductTable;
+    property ClientOnlineProductTable: TClientOnlineProductTable read GetClientOnlineProductTable;
     //Options
     property DoSystemTransactions: Boolean read FDoSystemTransactions write FDoSystemTransactions;
     property DoUsers: Boolean read FDoUsers write FDoUsers;
@@ -180,7 +192,8 @@ public
     // Helper for the Client
     function GetUser(const Value: string): TGuid; overload;
     function GetUser(const Value: integer): TGuid; overload;
-    function GetClient(const Value: Integer): tGuid;
+    function GetClient(const Value: Integer): tGuid; overload;
+    function GetClient(const Value: string): tGuid; overload;
     function GetMasterMemList(const Prefix: string): TGuidList;
 
 
@@ -518,6 +531,27 @@ begin
 end;
 
 
+function TSystemMigrater.AddOnlineProduct(ForAction: TMigrateAction;
+  Value: TGuidObject): Boolean;
+var bc: TBloCatalogueEntry;
+begin
+   bc := Value.Data;
+   try
+   if SameText(bc.CatalogueType,'Application') then begin
+      //Product, 15F1052A-0B05-40F8-97CF-2AA889DAB95F, Static data
+      result := OnlineProductTable.Insert(Value.GuidID, StringToGuid('{15F1052A-0B05-40F8-97CF-2AA889DAB95F}'), bc, FCreatedOn)
+   end else if SameText(bc.CatalogueType,'Service') then begin
+      //Service, 353D0BC7-B413-4356-84B2-C225D09E82E8, static Data
+      Result := OnlineProductTable.Insert(Value.GuidID, StringToGuid('{353D0BC7-B413-4356-84B2-C225D09E82E8}'), bc, FCreatedOn)
+   end;
+   except
+      on e: Exception do begin
+         result := false;
+         raise (e);
+      end;
+   end;
+end;
+
 function TSystemMigrater.AddMasterMemLine(ForAction: TMigrateAction;
   Value: TGuidObject): Boolean;
 begin
@@ -772,7 +806,7 @@ begin
       // Dont use the Table to get the name, Too early and Clear may not work...
       Logger.LogMessage(Info,'Clearing All System Data');
 
-      RunSQL(Connection, MyAction, 'EXEC sp_msforeachtable "ALTER TABLE ? NOCHECK CONSTRAINT all"', 'Drop constraints');
+      //RunSQL(Connection, MyAction, 'EXEC sp_msforeachtable "ALTER TABLE ? NOCHECK CONSTRAINT all"', 'Drop constraints');
       try
 
       //DeleteTable(MyAction,'UserOpenClients');
@@ -797,6 +831,10 @@ begin
 
       ClearStyles;
 
+
+      DeleteTable(MyAction,'ClientOnlineProductParameter', True);
+      DeleteTable(MyAction,'ClientOnlineProduct');
+
       DeleteTable(MyAction,'PracticeClients');
 
       DeleteTable(MyAction,'ClientGroups');
@@ -809,6 +847,7 @@ begin
 
       DeleteTable(MyAction,'FaxBodyFiles');
       DeleteTable(MyAction,'Faxes');
+
       DeleteTable(MyAction,'EmailAttachments');
       DeleteTable(MyAction,'Emails');
 
@@ -819,7 +858,7 @@ begin
       Result := True;
       MyAction.Status := Success;
       finally
-         RunSQL(Connection, MyAction,'EXEC sp_msforeachtable "ALTER TABLE ? WITH CHECK CHECK CONSTRAINT all"', 'Re-instate constraints');
+         //RunSQL(Connection, MyAction,'EXEC sp_msforeachtable "ALTER TABLE ? WITH CHECK CHECK CONSTRAINT all"', 'Re-instate constraints');
       end;
    except
       on E: Exception do
@@ -856,11 +895,11 @@ end;
 
 destructor TSystemMigrater.Destroy;
 begin
-   FreeAndnil(FClientTypeList);
-   FreeAndnil(FClientGroupList);
-   FreeAndnil(FUserList);
-   FreeAndnil(FSystemAccountList);
-   FreeAndnil(FClientList);
+   FreeAndNil(FClientTypeList);
+   FreeAndNil(FClientGroupList);
+   FreeAndNil(FUserList);
+   FreeAndNil(FSystemAccountList);
+   FreeAndNil(FClientList);
    FreeAndNil(FSystemUsers);
    FreeAndNil(FbtTable);
    FreeAndNil(FSystemAccountTable);
@@ -871,13 +910,19 @@ begin
    FreeAndNil(FUserTable);
    FreeAndNil(FGroupTable);
    FreeAndNil(FUserMappingTable);
-   FreeAndnil(FClientAccountMap);
+   FreeAndNil(FClientAccountMap);
    FreeAndNil(FMasterMemorisationsTable);
    FreeAndNil(FMasterMemlinesTable);
    FreeAndNil(FChargesTable);
    FreeAndNil(FDownloadDocumentTable);
    FreeAndNil(FDownloadlogTable);
    FreeAndNil(FParameterTable);
+   FreeAndnil(FTaxEntriesTable);
+   FreeAndNil(FTaxRatesTable);
+   FreeAndNil(FOnlineProductTable);
+   FreeAndNil(FPracticeOnlineProductTable);
+   FreeAndNil(FClientOnlineProductTable);
+
    inherited;
 end;
 
@@ -901,6 +946,13 @@ begin
    if not Assigned(FClientList) then
       FClientList := TGuidList.Create();
    Result := FClientList;
+end;
+
+function TSystemMigrater.GetClientOnlineProductTable: TClientOnlineProductTable;
+begin
+   if not Assigned(FClientOnlineProductTable) then
+      FClientOnlineProductTable := TClientOnlineProductTable.Create(Connection);
+   Result := FClientOnlineProductTable;
 end;
 
 function TSystemMigrater.GetClientTypeList: TGuidList;
@@ -1010,11 +1062,26 @@ begin
    Result := FMasterMemorisationsTable;
 end;
 
+function TSystemMigrater.GetOnlineProductTable: TOnlineProductTable;
+begin
+   if not Assigned(FOnlineProductTable) then
+      FOnlineProductTable := TOnlineProductTable.Create(Connection);
+   Result := FOnlineProductTable;
+end;
+
 function TSystemMigrater.GetParameterTable: TParameterTable;
 begin
    if not Assigned(FParameterTable) then
       FParameterTable := TParameterTable.Create(Connection);
    Result := FParameterTable;
+end;
+
+
+function TSystemMigrater.GetPracticeOnlineProductTable: TPracticeOnlineProductTable;
+begin
+   if not Assigned(FPracticeOnlineProductTable) then
+      FPracticeOnlineProductTable := TPracticeOnlineProductTable.Create(Connection);
+   Result := FPracticeOnlineProductTable;
 end;
 
 function TSystemMigrater.GetChargesTable: TChargesTable;
@@ -1023,6 +1090,8 @@ begin
       FChargesTable := TChargesTable.Create(Connection);
    Result := FChargesTable;
 end;
+
+
 
 function TSystemMigrater.GetClientAccountMap: tGuidList;
 begin
@@ -1117,6 +1186,24 @@ begin
          Exit;
       end;
 end;
+
+
+function TSystemMigrater.GetClient(const Value: string): tGuid;
+var I: Integer;
+begin
+   FillChar(Result, Sizeof(Result), 0);
+   for I := 0 to ClientList.Count - 1 do with PClient_File_Rec(TGuidObject(ClientList.Items[i]).Data)^ do
+      if SameText(cfFile_Code, Value) then begin
+         // May not be/have migrated..
+         if (DoUnsynchronised or (not cfForeign_File))
+         and (DoArchived or (not cfArchived)) then
+            Result := TGuidObject(ClientList.Items[i]).GuidID;
+
+         // Won't find better match
+         Exit;
+      end;
+end;
+
 
 function TSystemMigrater.GetClient(const Value: Integer): tGuid;
 var I: Integer;
@@ -1559,8 +1646,7 @@ begin
   end;
 end;
 
-function TSystemMigrater.MergeUser(ForAction: TMigrateAction;
-  Value: TGuidObject): Boolean;
+function TSystemMigrater.MergeUser(ForAction: TMigrateAction; Value: TGuidObject): Boolean;
 var User: PUser_rec;
     Restricted: Boolean;
     I : Integer;
@@ -1582,7 +1668,7 @@ begin
               format('Delete User Clients for %s ',[User.usCode]));
 
           RunSQL(connection,ForAction,format('Delete from [UserRoles] where [User_Id] = ''%s''',[SystemUsers.Fields[0].AsString]),
-              format('Delete User Clients for %s ',[User.usCode]));
+              format('Delete User Roles for %s ',[User.usCode]));
 
           RunSQL(connection,ForAction,format('Delete from [UserParameters] where [UserId] = ''%s''',[SystemUsers.Fields[0].AsString]),
               format('Delete User Parameters for %s ',[User.usCode]));
@@ -1597,7 +1683,7 @@ begin
           RunSQL(ForAction,format(
         'DELETE uea FROM ( SELECT e.Id as eid FROM  Emails e where e.[UserId] = ''%s'' ) ee INNER JOIN EmailAttachments uea ON ee.eid = uea.EmailId',
          [SystemUsers.Fields[0].AsString]));
-         
+
          RunSQL(ForAction,format('Delete from [Emails] where [UserId] = ''%s''',[SystemUsers.Fields[0].AsString]));
 
          RunSQL(ForAction,format('Delete from [Faxes] where [User_Id] = ''%s''',[SystemUsers.Fields[0].AsString]));
@@ -1620,7 +1706,7 @@ begin
    Restricted := System.fdSystem_File_Access_List.Restricted_User(User.usLRN);
    try
       // Add the user..
-      UserTable.Insert(Value.GuidID,user,Restricted);
+      UserTable.Insert(Value.GuidID, user, Restricted, System.fdFields.fdUse_BankLink_Online);
 
       // Add the role
       InsertTable(
@@ -1708,6 +1794,7 @@ begin
    //TClientMigrater(ClientMigrater).UpdateProcessingStatusAllClients(MyAction);
 
    MigrateSystem(MyAction);
+   MigrateBLOPI(MyAction);
 
    // Do this after all the settings
    StartRetrieve(MyAction);
@@ -1731,8 +1818,29 @@ end;
 
 
 function TSystemMigrater.MigrateBLOPI(ForAction: TMigrateAction): Boolean;
-var lPrac: TBloPracticeRead;
+var lPrac: TBloPracticeRead; // Owned by ProductConfigService..
+    i,c: Integer;
+    nItem: TGuidObject;
+    Catalogs: TGuidList;
+    ClientId: TGuid;
+
+    procedure SaveUser(value: TBloUserRead);
+    begin
+
+    end;
+
+    procedure SavePrimaryContact;
+    var lpc: TBloUserRead;
+    begin
+        lpc := ProductConfigService.GetPrimaryContact(false);
+        if not assigned(lpc) then
+           exit;
+        if lpc.EMail > '' then
+           ParameterTable.Update('BankLinkOnlinePrimaryContact', lpc.EMail, 'nvarchar(255)');
+    end;
+
 begin
+   // Check if we have anything to do..
    if(not System.fdFields.fdUse_BankLink_Online)
    or (not (System.fdFields.fdBankLink_Online_Config > '')) then begin
        Result := true;
@@ -1742,13 +1850,80 @@ begin
 
    result := false;
    lprac := ProductConfigService.GetPractice(false,false,'',false,true);
-   if not assigned(lPrac) then
+   if not Assigned(lPrac) then
       Exit;
 
-   //case lPrac.Status of
-     
-   //end;  
+   Catalogs := nil;
+   // set this once...
+   FCreatedOn := Now;
 
+   case lPrac.Status  of
+     staActive      : begin
+
+                       ParameterTable.Update('PracticeBankLinkOnlineStatus', 1);
+                       // And the rest...
+                       if lPrac.DomainName > '' then
+                          ParameterTable.Update('BankLinkPracticeDomain', lPrac.DomainName, 'nvarchar(255)');
+
+
+                       //for I := high(lprac.Users) to high(lprac.Users) do
+                       //   SaveUser(lprac.Users[i]);
+
+                       SavePrimaryContact;
+
+
+                       Catalogs := TGuidList.Create();
+
+                       for I := low(LPrac.Catalogue) to High(LPrac.Catalogue) do begin
+                          nItem := TGuidObject.Create;
+                          CreateGUID(nitem.GuidID);
+                          nItem.Data := LPrac.Catalogue[I];
+                          Catalogs.Add(nItem);
+                       end;
+
+                       RunGuidList(ForAction,'Online Products',Catalogs, AddOnlineProduct, true);
+
+
+                       //UseBankLinkOnline := true;
+                       //ProductConfigService.LoadClientList();
+
+                       for I := 0 to Catalogs.Count - 1 do begin
+                          // Do The subsriptions
+                         PracticeOnlineProductTable.Insert(NewGuid,
+                             TGuidObject(Catalogs.Items[i]).GuidID,
+                             ProductConfigService.IsPracticeProductEnabled( TBloCatalogueEntry(TGuidObject(Catalogs.Items[i]).data).Id,false),
+                             FCreatedOn);
+
+
+                         // Check The clients (Wont happen at this stage)
+                         if not assigned(ProductConfigService.Clients) then
+                            Continue;
+                         if not assigned(ProductConfigService.Clients.Clients) then
+                            Continue;
+
+                         for c := low(ProductConfigService.Clients.Clients)  to High(ProductConfigService.Clients.Clients) do begin
+                            ClientID := GetClient(ProductConfigService.Clients.Clients[i].ClientCode);
+                            if IsEqualGUID(ClientId,emptyGuid) then
+                               continue; // not found;
+                            ClientOnlineProductTable.Insert(Newguid,ClientID, TGuidObject(Catalogs.Items[i]).GuidID,
+                             ProductConfigService.Clients.Clients[i].HasSubscription(TBloCatalogueEntry(TGuidObject(Catalogs.Items[i]).data).Id),
+                             FCreatedOn
+                             );
+                         end;
+
+
+                       end;
+
+
+
+                    end;
+     staSuspended   : ParameterTable.Update('PracticeBankLinkOnlineStatus', 3);
+     staDeactivated : ParameterTable.Update('PracticeBankLinkOnlineStatus', 4);
+     //staDeleted     : ParameterTable.Update('PracticeBankLinkOnlineStatus', 1);
+   end;
+
+   FreeAndNil(Catalogs);
+   result := true;
 end;
 
 function TSystemMigrater.MigrateSystemBlobs(ForAction: TMigrateAction): Boolean;
