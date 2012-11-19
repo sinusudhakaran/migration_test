@@ -187,9 +187,6 @@ begin
                 // Delete the ecoding id as this is related to a bank account not to a transaction
                 pT^.txECoding_Transaction_UID := 0;
 
-                //Send the transaction to banklink online again
-                pT^.txTransfered_To_Online := False;
-
                 //insert into bank account
                 ToBa.baTransaction_List.Insert_Transaction_Rec( pT);
 
