@@ -979,7 +979,7 @@ var
   SystemOpBal: Money; // Dummy
   SystemClBal: Money; // Dummy
 begin
-  GetGainLossBalances(aBankAccount, aStart, aEnd, aOpening, aClosing, SystemOpBal, SystemClBal);
+  GainLossGetBalances(aBankAccount, aStart, aEnd, aOpening, aClosing, SystemOpBal, SystemClBal);
 end;
 
 {------------------------------------------------------------------------------}
@@ -1119,6 +1119,8 @@ var
 begin
   BankAccount := aBankAccount.BankAccount;
 
+  //fClient.ClientCopyReset;
+
   // Delete previous entry
   DeletePreviousGainLossEntry(aMonth, BankAccount.baTransaction_List);
 
@@ -1167,6 +1169,7 @@ begin
     LogMsg(lmInfo, UnitName, sLog);
 
     // TODO_JN: Do an audit an the client bank account level
+    //fClient.DoAudit(arManualEntries, fClient.ClientCopy);
   finally
     FreeAndNil(Transactions);
   end;
