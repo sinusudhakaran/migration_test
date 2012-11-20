@@ -171,7 +171,6 @@ type
                 const aLastEffective: TDateTime);
     function  FindMonthEnding(const aDate: TStDate; var aIndex: integer): boolean; overload;
     function  FindMonthEnding(const aDate: TStDate): PMonthEnding; overload;
-    function  IsGainLossTransaction(const aTransaction: pTransaction_Rec): boolean;
     procedure SetMonthEnding(const aBankAccount: TBank_Account); overload;
     procedure SetAvailableData(const aFrom: TStDate; const aTo: TStDate);
     procedure SetMonthEnding; overload;
@@ -213,7 +212,7 @@ type
     procedure PostGainLossEntries(const aMonthIndex: integer);
   end;
 
-  
+
   TMonthEndingsClass = class of TMonthEndings;
 
   { ----------------------------------------------------------------------------
@@ -222,6 +221,15 @@ type
   function  ValidateExchangeGainLoss(const aClient: TClientObj;
               var aErrors: string): boolean;
 
+  { The Gain/Loss transaction is posted to the last day of the month with the
+    Gain/Loss amount from the wizard. }
+  function  IsGainLossTransaction(const aTransaction: pTransaction_Rec): boolean;
+
+  { Special baUtils.GetBalances that ignores the Gain/Loss Transaction
+    Note: this is quite important because it distorts the COB/CSUM/CCB
+    calculations. }
+  procedure GainLossGetBalances(b: TBank_Account; d1, d2: tStDate; var BankOpBal,
+              BankClBal, SystemOpBal, SystemClBal: money);
 
 implementation
 
@@ -768,12 +776,6 @@ begin
 end;
 
 {------------------------------------------------------------------------------}
-function TMonthEndings.IsGainLossTransaction(const aTransaction: pTransaction_Rec): boolean;
-begin
-  result := (aTransaction.txSource = orExchangeGainLoss);
-end;
-
-{------------------------------------------------------------------------------}
 procedure TMonthEndings.SetMonthEnding(const aBankAccount: TBank_Account);
 var
   iIsoIndex: integer;
@@ -977,7 +979,7 @@ var
   SystemOpBal: Money; // Dummy
   SystemClBal: Money; // Dummy
 begin
-  GetBalances(aBankAccount, aStart, aEnd, aOpening, aClosing, SystemOpBal, SystemClBal);
+  GetGainLossBalances(aBankAccount, aStart, aEnd, aOpening, aClosing, SystemOpBal, SystemClBal);
 end;
 
 {------------------------------------------------------------------------------}
@@ -1253,6 +1255,95 @@ begin
   end;
 end;
 
+{------------------------------------------------------------------------------}
+function IsGainLossTransaction(const aTransaction: pTransaction_Rec): boolean;
+begin
+  result := (aTransaction.txSource = orExchangeGainLoss);
+end;
+
+{------------------------------------------------------------------------------}
+Procedure GainLossGetBalances( b: TBank_Account; d1, d2: tStDate; Var BankOpBal,
+   BankClBal, SystemOpBal, SystemClBal: money);
+Var
+   E           : Integer;
+   Transaction : pTransaction_Rec;
+   Amount      : Money;
+Begin { GetBalances }
+   With b Do
+   Begin
+      BankOpBal := bafields.baCurrent_Balance;
+      BankClBal := bafields.baCurrent_Balance;
+      SystemOpBal := bafields.baCurrent_Balance;
+      SystemClBal := bafields.baCurrent_Balance;
+
+      If bafields.baCurrent_Balance = Unknown Then
+      Begin
+        exit
+      End { bafields.baCurrent_Balance = Unknown };
+
+
+      With baTransaction_List Do
+      Begin
+         For E := 0 to Pred(ItemCount) Do
+         Begin
+            Transaction := Transaction_At(E);
+            With Transaction^ Do
+            Begin
+
+               // Completely ignore posted gain/loss transactions for our month
+               if IsGainLossTransaction(Transaction) and (txDate_Effective = d2) then
+                  continue;
+
+               Amount := txAmount;
+
+               If txDate_Presented <> 0 Then
+               Begin
+                  Case bkDateUtils.CompareDates(txDate_Presented, d1, d2) Of
+                     Earlier:;
+                     Within:
+                     Begin
+                        BankOpBal := BankOpBal - Amount;
+                     End;
+                     Later:
+                     Begin
+                        BankOpBal := BankOpBal - Amount;
+                        BankClBal := BankClBal - Amount;
+                     End;
+                  End;
+
+                  Case bkDateUtils.CompareDates(txDate_Effective, d1, d2) Of
+                     Earlier:;
+                     Within:
+                     Begin
+                        SystemOpBal := SystemOpBal - Amount;
+                     End;
+                     Later:
+                     Begin
+                        SystemOpBal := SystemOpBal - Amount;
+                        SystemClBal := SystemClBal - Amount;
+                     End;
+                  End
+               End { txDate_Presented <> 0 }
+               Else
+               Begin { Unpresented }
+                  Case bkDateUtils.CompareDates(txDate_Effective, d1, d2) Of
+                     Earlier:
+                     Begin
+                        SystemOpBal := SystemOpBal + Amount;
+                        SystemClBal := SystemClBal + Amount;
+                     End;
+                     Within:
+                     Begin
+                        SystemClBal := SystemClBal + Amount
+                     End;
+                     Later:;
+                     End
+               End { not (txDate_Presented <> 0) };
+            End { with Transaction_At(E)^ }
+         End { for E }
+      End { with baTransaction_List };
+   End { with b };
+End; { GetBalances }
 
 {------------------------------------------------------------------------------}
 initialization
