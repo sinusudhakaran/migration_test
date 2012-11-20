@@ -239,12 +239,6 @@ type
   TMonthEndingsClass = class of TMonthEndings;
 
 
-  // For use with FindGainLossPostedEntry
-  TGainLossEntry = record
-    Amount: Money;
-    Posted: TStDate;
-  end;
-
   { ----------------------------------------------------------------------------
     Helper functions
   ---------------------------------------------------------------------------- }
