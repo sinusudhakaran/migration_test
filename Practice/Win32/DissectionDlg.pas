@@ -318,6 +318,7 @@ type
     procedure celLocalAmountKeyPress(Sender: TObject; var Key: Char);
     procedure celPercentKeyPress(Sender: TObject; var Key: Char);
     procedure ConvertAmount1Click(Sender: TObject);
+    procedure btnPayeeDblClick(Sender: TObject);
   private
     FHint              : tHintWindow;
     FStartedEdit       : boolean;
@@ -1215,12 +1216,15 @@ begin
       //the following fields affect other fields
       ceAccount: begin
          tmpShortStr := Trim( tmpShortStr);
-         if ( pD^.dtAccount <> tmpShortStr ) then begin
+         if ( pD^.dtAccount <> tmpShortStr ) then
+         begin
             // Edited flag not set if when coded from Blank
             if ( pD^.dtAccount <> '' ) then
                pD^.dtHas_Been_Edited := true;
             pD^.dtAccount   := tmpShortStr;
             AccountEdited(pD);
+
+            pTran.txTransfered_To_Online := False;
          end;
       end;
 
@@ -1228,7 +1232,8 @@ begin
          tmpShortStr := Trim( tmpShortStr);
          B := GetGSTClassNo( MyClient, tmpShortStr);
          //update if the gst class is different
-         if pD^.dtGST_Class <> B then begin
+         if pD^.dtGST_Class <> B then
+         begin
             pD^.dtGST_Class    := B;
             GSTClassEdited(pD);
             //see if edited
@@ -1238,6 +1243,8 @@ begin
             end
             else
                pD^.dtGST_Has_Been_Edited := false;
+
+            pTran.txTransfered_To_Online := False;
          end;
       end;
 
@@ -1265,6 +1272,8 @@ begin
             AmountEdited(pD);
             ReCalcPercentAmounts;
            end;
+
+           pTran.txTransfered_To_Online := False;
          end;
       end;
 
@@ -1278,6 +1287,8 @@ begin
            pD^.dtPercent_Amount   := M;
            PercentEdited(pD);
            ReCalcPercentAmounts;
+
+           pTran.txTransfered_To_Online := False;
          end;
       end;
 
@@ -1289,6 +1300,8 @@ begin
             if GSTDifferentToDefault( pD ) then begin
                pD^.dtHas_Been_Edited := true;
                pD^.dtGST_Has_Been_Edited := true;
+
+               pTran.txTransfered_To_Online := False;
             end
             else
                pD^.dtGST_Has_Been_Edited := false;
@@ -1300,25 +1313,51 @@ begin
         if (pD^.dtNarration <> tmpShortStr ) then begin
            pD^.dtHas_Been_Edited := true;
            pD^.dtNarration    := tmpShortStr;
+
+           pTran.txTransfered_To_Online := False;
         end;
       end;
 
       ceTaxInvoice : begin
+        if pD.dtTax_Invoice <> tmpBool then
+        begin
+          pTran.txTransfered_To_Online := False;
+        end;
+
         pD^.dtTax_Invoice := tmpBool;
       end;
 
       ceQuantity : begin
+        if pD.dtQuantity <> tmpDouble * 10000 then
+        begin
+          pTran.txTransfered_To_Online := False;
+        end;
+
          //doesn't set txHas_Been_Edited because not used or affected by AutoCode
          pD^.dtQuantity    := (tmpDouble * 10000);
       end;
 
       cePayee : begin
-         // can't popup a dialog in here - case 7255
+        // can't popup a dialog in here - case 7255
+         
+        if pD.dtPayee_Number <> tmpPayee then
+        begin
+         pTran.txTransfered_To_Online := False;
+        end;
       end;
       ceJob : begin
-          if (pD^.dtJob <> tmpShortStr ) then begin
+          if (pD^.dtJob <> tmpShortStr ) then
+          begin
            pD^.dtHas_Been_Edited := true;
            pD^.dtJob    := tmpShortStr;
+           pTran.txTransfered_To_Online := False;
+        end;
+      end;
+      ceForexRate:
+      begin
+        if tmpDouble <> pD.dtForex_Conversion_Rate then
+        begin
+          pTran.txTransfered_To_Online := False;
         end;
       end;
    end;
@@ -1907,6 +1946,7 @@ procedure TdlgDissection.DoRecalcGST;
 Var
    i : Integer;
    pD : pWorkDissect_Rec;
+   OldGSTAmount: Money;
 Begin
    if not tblDissect.StopEditingState(True) then Exit;
 
@@ -1919,13 +1959,24 @@ Begin
      exit;
    end;
 
-   for i := 0 to Pred( WorkDissect.Count) do begin
+   for i := 0 to Pred( WorkDissect.Count) do
+   begin
       pD := WorkDissect.Items[ i];
-      with pD^ do begin
+
+      OldGSTAmount := pD.dtGST_Amount;
+
+      with pD^ do
+      begin
          CalculateGST( MyClient, pTran.txDate_Effective, dtAccount, dtLocal_Amount, dtGST_Class, dtGST_Amount);
          dtGST_Has_Been_Edited := false;
+
+         if OldGSTAmount <> pD.dtGST_Amount then
+         begin
+           pTran.txTransfered_To_Online := False;
+         end;
       end;
    end;
+
    //force a redraw
    with tblDissect do begin
       AllowRedraw := false;
@@ -3878,6 +3929,8 @@ begin
              if not PayeeEdited(pD,ActiveRow) then
                pD^.dtPayee_Number := OldPayeeNo;
 
+             pTran.txTransfered_To_Online := False;
+             
              InvalidateRow(ActiveRow);  //forces repaint of row
              Msg.CharCode := VK_RIGHT;
              celPayee.SendKeyToTable(Msg);
@@ -4205,6 +4258,11 @@ procedure TdlgDissection.btnPayeeClick(Sender: TObject);
 begin
    DoPayeeLookup;
 end;
+procedure TdlgDissection.btnPayeeDblClick(Sender: TObject);
+begin
+
+end;
+
 //------------------------------------------------------------------------------
 
 procedure TdlgDissection.Insertanewline1Click(Sender: TObject);
@@ -5864,6 +5922,9 @@ begin
             //if get here then have a valid payee from the picklist, so edit
             //the fields in the transaction
             pD^.dtJob := JobCode;
+
+            pTran.txTransfered_To_Online := False;
+
             InvalidateRow(ActiveRow);  //forces repaint of row
             Msg.CharCode := VK_RIGHT;
             celJob.SendKeyToTable(Msg);
