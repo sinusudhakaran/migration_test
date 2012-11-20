@@ -49,11 +49,27 @@ type
   end;
 
 
-  // TPostedEntry
-  TPostedEntry = record
+  { ----------------------------------------------------------------------------
+    TPostedEntry
+  ---------------------------------------------------------------------------- }
+  TPostedEntry = object
+  public
+    GainLoss: Money;
     Date: TStDate; // Zero if not posted. Could be any date.
-    Amount: Money;
+
+  public
+    // Whether anything was posted for this month
+    function  GetPosted: boolean;
+    property  Posted: boolean read GetPosted;
+
+    // Gain/Loss with currency symbol of the practice, NOT the bank account
+    function  GetGainLossCurrency: string;
+    property  GainLossCurrency: string read GetGainLossCurrency;
+    // CR/DR
+    function  GetGainLossCrDr: string;
+    property  GainLossCrDr: string read GetGainLossCrDr;
   end;
+
 
   { ----------------------------------------------------------------------------
     TMonthEndingBankAccount
@@ -543,6 +559,36 @@ end;
 
 
 { ------------------------------------------------------------------------------
+  TPostedEntry
+------------------------------------------------------------------------------ }
+function TPostedEntry.GetPosted: boolean;
+begin
+  result := (Date > 0);
+end;
+
+{------------------------------------------------------------------------------}
+function TPostedEntry.GetGainLossCurrency: string;
+var
+  mAbsGainLoss: Money;
+  sCurrency: string;
+begin
+  // We're using CR/DR so don't display the sign
+  mAbsGainLoss := Abs(GainLoss);
+  sCurrency := GetCountryCurrency;
+  result := MoneyStr(mAbsGainLoss, sCurrency);
+end;
+
+{------------------------------------------------------------------------------}
+function TPostedEntry.GetGainLossCrDr: string;
+begin
+  if (GainLoss >= 0) then
+    result := 'CR'
+  else
+    result := 'DR';
+end;
+
+
+{ ------------------------------------------------------------------------------
   TMonthEndings
 ------------------------------------------------------------------------------ }
 function TMonthEndingBankAccount.GetAccountNameCurrency: string;
@@ -833,7 +879,7 @@ begin
     begin
       Inc(pMonth.NrAlreadyRun);
 
-      pBankAccount.PostedEntry.Amount := pTransaction.txAmount;
+      pBankAccount.PostedEntry.GainLoss := pTransaction.txAmount;
       pBankAccount.PostedEntry.Date := GetGainLossPostedDate(pTransaction);
 
       // Ignore this record completely for our calculations
@@ -1198,8 +1244,8 @@ begin
       ]);
     LogMsg(lmInfo, UnitName, sLog);
 
-    // Do an audit an the client bank account level
-    BankAccount.AuditMgr.DoAudit;
+    // Note: Audits are done automatically when new transactions are inserted
+    
   finally
     FreeAndNil(Transactions);
   end;
