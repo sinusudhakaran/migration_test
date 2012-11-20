@@ -3,7 +3,7 @@ unit WebXUtils;
 
 interface
 
-uses Classes, clobj32, baobj32, baList32, bkdefs;
+uses Classes, clobj32, baobj32, baList32, bkdefs, MoneyDef;
 
 function IsExportFile(const Filename: string): Boolean;
 
@@ -41,8 +41,8 @@ function IsWebFileWaiting: Boolean;
 implementation
 
 uses SysUtils, WDDX_COMLib_TLB, trxList32, bktxio, bkdsio, bkbaio, ECodingUtils,
-  GenUtils, BKDateUtils, BKConst, stDate, glConst, PayeeObj, GSTCalc32, MoneyDef,
-  TransactionUtils, Globals, COMObj, WebXOffice, WinUtils;
+  GenUtils, BKDateUtils, BKConst, stDate, glConst, PayeeObj, GSTCalc32,
+  TransactionUtils, Globals, COMObj, WebXOffice, WinUtils, UTransactionCompare;
 
 // Test to see if the file is an export file - if so we wont allow import
 function IsExportFile(const Filename: string): Boolean;
@@ -371,6 +371,7 @@ var
   NeedToUpdateGST          : boolean;
   trxPayeeDetails    : string;
   aMsg               : string;
+  OldGLNarration: String;
 begin
   //first we need to determine if the bk5 transaction is coded
   //if it is currently uncoded then code the transaction using the information
@@ -399,6 +400,8 @@ begin
         else
           //Assumes that Webx is never Forex and uses txAmount instead of Local_Amount
           BKT^.txGST_Amount := CalculateGSTForClass( aClient, BKT^.txDate_Effective, BKT^.txAmount, BKT^.txGST_Class);
+
+        BKT.txTransfered_To_Online := False;
       end
       else
       begin
@@ -548,16 +551,25 @@ begin
       if BKT^.txQuantity = 0 then
       begin
         BKT^.txQuantity := ECT^.txQuantity;
+
+        BKT.txTransfered_To_Online := False;
       end
       else
          AddToImportNotes( BKT, 'Quantity   ' + FormatFloat('#,##0.####', ECT.txQuantity/10000), WEBX_GENERIC_APP_NAME);
     end;
+
+    OldGLNarration := BKT^.txGL_Narration;
 
     //gl narration
     BKT^.txGL_Narration := UpdateNarration( aClient.clFields.clECoding_Import_Options,
                                             BKT^.txGL_Narration,
                                             trxPayeeDetails,
                                             ECT^.txNotes);
+
+    if BKT^.txGL_Narration <> BKT^.txGL_Narration then
+    begin
+      BKT.txTransfered_To_Online := False;
+    end;
 
     //Notes
     BKT.txNotes := ECT.txNotes;
@@ -1520,6 +1532,7 @@ var
   ECT              : pTransaction_Rec;
   EMsg             : string;
   S                : string;
+  TransactionCompare: TTransactionCompare;
 begin
   //initialise counters
   RejectedCount     := 0;
@@ -1574,10 +1587,41 @@ begin
             S := Copy( Ba.baFields.baBank_Account_Number, 1, 2);
             //the way we import the transaction depends on whether or not the transaction
             //is dissected in WebXOffice
-            if ECT^.txFirst_Dissection = nil then
-              ImportStandardTransaction( ECT, T, aClient, S)
+
+            if T.txTransfered_To_Online then
+            begin
+              TransactionCompare := TDataExportTransactionCompare.Create(T);
+
+              try
+                if ECT^.txFirst_Dissection = nil then
+                begin
+                  ImportStandardTransaction( ECT, T, aClient, S);
+                end
+                else
+                begin
+                  ImportDissectedTransaction( ECT, T, aClient);
+                end;
+
+                if not TransactionCompare.IsEqual(T) then
+                begin
+                  T.txTransfered_To_Online := False;
+                end;
+              finally
+                TransactionCompare.Free;
+              end;
+            end
             else
-              ImportDissectedTransaction( ECT, T, aClient);
+            begin
+              if ECT^.txFirst_Dissection = nil then
+              begin
+                ImportStandardTransaction( ECT, T, aClient, S);
+              end
+              else
+              begin
+                ImportDissectedTransaction( ECT, T, aClient);
+              end;            
+            end;
+
             Inc( ImportedCount);
           end
           else
