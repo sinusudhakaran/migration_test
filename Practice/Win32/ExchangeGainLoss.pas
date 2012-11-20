@@ -49,12 +49,21 @@ type
   end;
 
 
+  // TPostedEntry
+  TPostedEntry = record
+    Date: TStDate; // Zero if not posted. Could be any date.
+    Amount: Money;
+  end;
+
   { ----------------------------------------------------------------------------
     TMonthEndingBankAccount
   ---------------------------------------------------------------------------- }
+  PMonthEndingBankAccount = ^TMonthEndingBankAccount;
+
   TMonthEndingBankAccount = object
   public
     BankAccount: TBank_Account;
+    PostedEntry: TPostedEntry; // As it is currently posted (may not be there)
     GainLoss: Money;
 
   public
@@ -102,7 +111,7 @@ type
 
   public
     // Bank Accounts
-    procedure AddBankAccount(const aBankAccount: TBank_Account); // Added only once
+    function  RegisterBankAccount(const aBankAccount: TBank_Account): PMonthEndingBankAccount;
 
     // Calculated fields
     function  GetDateAsStDate: TStDate;
@@ -143,8 +152,6 @@ type
   { ----------------------------------------------------------------------------
     TMonthEndings
   ---------------------------------------------------------------------------- }
-
-
   TMonthEndings = class(TObject)
   private
     fClient: TClientObj;
@@ -243,10 +250,6 @@ type
   procedure GainLossGetBalances(b: TBank_Account; d1, d2: tStDate; var BankOpBal,
               BankClBal, SystemOpBal, SystemClBal: money);
 
-  { Find the Gain/Loss transaction
-    Note: it's normally posted on the last day of the month }
-  function  FindGainLossPostedEntry(const aBankAccount: TBank_Account;
-              const aGainLossPosted: TStDate; var aEntry: TGainLossentry): boolean;
 
 implementation
 
@@ -445,7 +448,7 @@ end;
 { ------------------------------------------------------------------------------
   TMonthEnding record helpers (calculated fields)
 ------------------------------------------------------------------------------ }
-procedure TMonthEnding.AddBankAccount(const aBankAccount: TBank_Account);
+function TMonthEnding.RegisterBankAccount(const aBankAccount: TBank_Account): PMonthEndingBankAccount;
 var
   i: integer;
   iCount: integer;
@@ -456,13 +459,18 @@ begin
   for i := 0 to High(BankAccounts) do
   begin
     if (BankAccounts[i].BankAccount = aBankAccount) then
+    begin
+      result := @BankAccounts[i];
       exit;
+    end;
   end;
 
   // Add
   iCount := Length(BankAccounts);
   SetLength(BankAccounts, iCount+1);
   BankAccounts[iCount].BankAccount := aBankAccount;
+
+  result := @BankAccounts[iCount];
 end;
 
 {------------------------------------------------------------------------------}
@@ -797,8 +805,9 @@ procedure TMonthEndings.SetMonthEnding(const aBankAccount: TBank_Account);
 var
   iIsoIndex: integer;
   i: integer;
-  Transaction: pTransaction_Rec;
+  pTransaction: pTransaction_Rec;
   pMonth: PMonthEnding;
+  pBankAccount: PMonthEndingBankAccount;
 begin
   ASSERT(assigned(aBankAccount));
   ASSERT(IsForeignCurrencyAccount(aBankAccount));
@@ -808,37 +817,42 @@ begin
 
   for i := 0 to aBankAccount.baTransaction_List.ItemCount-1 do
   begin
-    Transaction := aBankAccount.baTransaction_List[i];
+    pTransaction := aBankAccount.baTransaction_List[i];
 
     // Find month for it
-    pMonth := FindMonthEnding(Transaction.txDate_Effective);
+    pMonth := FindMonthEnding(pTransaction.txDate_Effective);
     ASSERT(assigned(pMonth));
 
+    { Keep track of what bank accounts we're using in this month
+      Note: call this before storing the PostedEntry }
+    pBankAccount := pMonth.RegisterBankAccount(aBankAccount);
+    ASSERT(assigned(pBankAccount));
+
     // Gain/Loss record?
-    if IsGainLossTransaction(Transaction) then
+    if IsGainLossTransaction(pTransaction) then
     begin
       Inc(pMonth.NrAlreadyRun);
+
+      pBankAccount.PostedEntry.Amount := pTransaction.txAmount;
+      pBankAccount.PostedEntry.Date := GetGainLossPostedDate(pTransaction);
 
       // Ignore this record completely for our calculations
       continue;
     end;
 
-    // Keep track of what bank accounts we're using in this month
-    pMonth.AddBankAccount(aBankAccount);
-
     // Transactions
     Inc(pMonth.NrTransactions);
 
     // Locked
-    if Transaction.txLocked then
+    if pTransaction.txLocked then
       Inc(pMonth.NrLocked);
 
     // Transferred
-    if (Transaction.txDate_Transferred <> 0) then
+    if (pTransaction.txDate_Transferred <> 0) then
       Inc(pMonth.NrTransferred);
 
     // Exchange rate missing?
-    if not HasExchangeRate(Transaction.txDate_Effective, iIsoIndex) then
+    if not HasExchangeRate(pTransaction.txDate_Effective, iIsoIndex) then
       pMonth.ExchangeRateMissing := true;
   end;
 end;
@@ -1377,39 +1391,6 @@ Begin { GetBalances }
    End { with b };
 End; { GetBalances }
 
-{------------------------------------------------------------------------------}
-function FindGainLossPostedEntry(const aBankAccount: TBank_Account;
-  const aGainLossPosted: TStDate; var aEntry: TGainLossEntry): boolean;
-var
-  i: integer;
-  Transactions: TTransaction_List;
-  pTransaction: pTransaction_Rec;
-begin
-  ASSERT(assigned(aBankAccount));
-
-  Transactions := aBankAccount.baTransaction_List;
-  for i := 0 to Transactions.ItemCount-1 do
-  begin
-    pTransaction := Transactions[i];
-    ASSERT(assigned(pTransaction));
-
-    // Not Gain/Loss transaction?
-    if not IsGainLossTransaction(pTransaction) then
-      continue;
-
-    // Not the Gain/Loss transaction we're looking for?
-    if (pTransaction.txDate_Effective <> aGainLossPosted) then
-      continue;
-
-    // Stop the search
-    aEntry.Amount := pTransaction.txAmount;
-    aEntry.Posted := GetGainLossPostedDate(pTransaction);
-    result := true;
-    exit;
-  end;
-
-  result := false;
-end;
 
 {------------------------------------------------------------------------------}
 initialization
