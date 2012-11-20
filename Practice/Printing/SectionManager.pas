@@ -37,7 +37,7 @@ type
     ID: integer;
     ParentID: integer;
     SectionType: TSectionType;
-    Text, DefaultText: string;
+    Text, DefaultText, TotalText: string;
     Account: pAccount_Rec;
   end;
 
@@ -81,7 +81,8 @@ type
     FSectionTotalId: integer;
     FLineAfterCtrlAccnt: boolean;
     function AddSectionItem(aParentID: integer; aSectionType: TSectionType;
-                            aText: string; aAccount: pAccount_Rec = nil; aDefaultText: string = ''): integer;
+                            aText: string; aAccount: pAccount_Rec = nil; aDefaultText: string = '';
+                            aTotalText: string = '' ): integer;
     function GetSectionTypeCount(aParentID: integer; aSectionType: TSectionType): integer;
     procedure AddAccountTotals(pAcct: pAccount_Rec); virtual;
     procedure GetAccountCount(aParentID: integer; var AccountCount: integer; Recursive: boolean = True);
@@ -293,20 +294,14 @@ begin
         //Sub section total
         if TotalAccounts > 1 then
         begin
-          if SectionItem.Text = ''
-            then FReport.RenderDetailSectionTotal('Total ' + SectionItem.Text, FDefaultSign)
-            else
-            begin
-              if SectionItem.Text = phdNames[phdOther_Direct_Expenses]
-                then FReport.RenderDetailSectionTotal(GetPRHeading(FClient, phdTotal_Other_Direct_Expenses), FDefaultSign)
-                else FReport.RenderDetailSectionTotal(GetPRHeading(FClient, phdTotal_COGS), FDefaultSign)
-            end;
+          if SectionItem.TotalText = '' then
+            FReport.RenderDetailSectionTotal('Total ' + SectionItem.Text, FDefaultSign)
+          else
+            FReport.RenderDetailSectionTotal(SectionItem.TotalText, FDefaultSign);
         end;
       end;
     end;
   end;
-  SectionItem := TSectionItem(FSectionItems[FSectionItems.Count -1]);
-  FReport.RenderDetailSectionTotal(SectionItem.Text, FDefaultSign);
 end;
 
 procedure TSectionProfitAndLossDirectExpenses.LoadCogSubGroups(
@@ -352,7 +347,8 @@ var
 begin
   if FReport.ReportSectionNeedsPrinting([atOpeningStock, atPurchases, atClosingStock]) then begin
     //Cost of goods sold
-    SubSectionID := AddSectionItem(aParentID, stSubSection, GetPRHeading(FClient, phdCOGS));
+    SubSectionID := AddSectionItem(aParentID, stSubSection, GetPRHeading(FClient, phdCOGS),
+                                   nil, '', GetPRHeading(FClient, phdTotal_COGS));
 
     //COG sub groups
     LoadCogSubGroups(SubSectionID);
@@ -371,7 +367,8 @@ begin
   if FReport.ReportSectionNeedsPrinting([atDirectExpense]) then begin
     //Other direct expenses
     SubSectionID := AddSectionItem(aParentID, stSubSection,
-                                   GetPRHeading(FClient, phdOther_Direct_Expenses));
+                                   GetPRHeading(FClient, phdOther_Direct_Expenses),
+                                   nil, '', GetPRHeading(FClient, phdTotal_Other_Direct_Expenses) );
     FReportGroupsSet := [atDirectExpense];
     LoadSubGroups(SubSectionID);
     LoadAccounts(SubSectionID);
@@ -521,7 +518,8 @@ begin
 end;
 
 function TSectionStandard.AddSectionItem(aParentID: integer;
-  aSectionType: TSectionType; aText: string; aAccount: pAccount_Rec = nil; aDefaultText: string = ''): integer;
+  aSectionType: TSectionType; aText: string; aAccount: pAccount_Rec = nil; aDefaultText: string = '';
+  aTotalText: string = '' ): integer;
 var
   SectionItem: TSectionItem;
 begin
@@ -533,6 +531,7 @@ begin
   if Assigned(aAccount) and FShowChartCodes then
     SectionItem.Text := Format('%s %s', [aAccount.chAccount_Code, SectionItem.Text]);
   SectionItem.Account := aAccount;
+  SectionItem.TotalText := aTotalText;
   SectionItem.ID := FSectionItems.Add(SectionItem);
   Result := SectionItem.ID;
 end;
