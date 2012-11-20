@@ -305,6 +305,7 @@ type
     procedure tbtnCloseClick(Sender: TObject);
     procedure tblCodingKeyPress(Sender: TObject; var Key: Char);
     procedure ConvertVATAmount(Sender: TObject);
+    procedure celAnalysisChange(Sender: TObject);
 
   private
     { Private declarations }
@@ -1488,7 +1489,6 @@ begin
             if GSTDifferentToDefault( MyClient, pT ) then begin
                pT^.txHas_Been_Edited     := true;
                pT^.txGST_Has_Been_Edited := true;
-               pT^.txTransfered_To_Online := False;
             end
             else
                pT^.txGST_Has_Been_Edited := false;
@@ -1569,6 +1569,9 @@ begin
             //if get here then have a valid payee from the picklist, so edit
             //the fields in the transaction
             pT.txJob_Code := JobCode;
+
+            pT.txTransfered_To_Online := False;
+
             {if not PayeeEdited(pT) then
                pT^.txPayee_Number := OldPayeeNo;}
             RedrawRow;
@@ -2558,6 +2561,8 @@ begin
       end;
 
       pT.Statement_Amount := Double2Money( Amount );
+
+      pT.txTransfered_To_Online := False;
 
       if pT.IsDissected then
       begin
@@ -4046,7 +4051,6 @@ Begin
             txCoded_By := cbManual;
          txHas_Been_Edited := False;
          txGST_Has_Been_Edited := True;
-         pT.txTransfered_To_Online := False;
 
          exit;
       end;
@@ -4183,7 +4187,6 @@ begin
 //             txGST_Amount   := CalculateGSTForClass( MyClient, txDate_Effective, txAmount, txGST_Class);
              txGST_Amount   := CalculateGSTForClass( MyClient, txDate_Effective, Local_Amount, txGST_Class);
              txGST_Has_Been_Edited := true;
-             txTransfered_To_Online := False;
           end
           else begin
 //             CalculateGST( MyClient, txDate_Effective, txAccount, txAmount, txGST_Class, txGST_Amount);
@@ -5006,19 +5009,29 @@ begin
                if ( pT^.txAccount <> '' ) then
                begin
                   pT^.txHas_Been_Edited := true;
-                  pT^.txTransfered_To_Online := False;
                end;
                pT^.txAccount :=tmpShortStr;
                AccountEdited(pT);
+
+               pT.txTransfered_To_Online := False;
             end;
          end;
 
          cePayee : begin
             // can't popup a dialog in here - case 7255
+            if pT.txPayee_Number <> tmpPayee  then
+            begin
+              pT.txTransfered_To_Online := False;
+            end;
          end;
 
          ceJob : begin
-             // can't popup a dialog in here - case 7255
+           // can't popup a dialog in here - case 7255
+
+           if pT.txJob_Code <> tmpJob then
+           begin
+             pT.txTransfered_To_Online := False;
+           end;
          end;
 
          ceGSTClass : begin
@@ -5056,6 +5069,11 @@ begin
          end;
 
          ceTaxInvoice : begin
+           if pT^.txTax_Invoice_Available <> tmpBool then
+           begin
+             pT.txTransfered_To_Online := False;
+           end;
+           
            pT^.txTax_Invoice_Available := tmpBool;
          end;
 
@@ -5070,22 +5088,57 @@ begin
          end;
 
          ceQuantity : begin
+            if pT^.txQuantity <> tmpDouble then
+            begin
+              pT.txTransfered_To_Online := False;
+            end;
+            
             //doesn't set txHas_Been_Edited because not used or affected by AutoCode
             pT^.txQuantity    := (tmpDouble * 10000);
          end;
 
          // manual accounts and journal Only:
          ceEffDate: begin
-
+           if pT.txDate_Effective <> tmpInteger then
+           begin
+             pT.txTransfered_To_Online := False;
+           end;
          end;
 
          ceReference:
          begin
+           if pT.txReference <> PChar(tmpBuffer) then
+           begin
+             pT.txTransfered_To_Online := False;
+           end;
+
           pT^.txReference := PChar( tmpBuffer);
+
           if ((pT^.txType = 0) and (MyClient.clFields.clCountry = whNewZealand)) or
              ((pT^.txType = 1) and (MyClient.clFields.clCountry = whAustralia)) or
              ((pT^.txType = 1) and (MyClient.clFields.clCountry = whUK)) then
             pT^.txCheque_Number := StrToInt( PChar(tmpBuffer));
+         end;
+
+         ceAmount:
+         begin
+           if Double2Money(tmpDouble)<> pT^.txAmount then
+           begin
+             pT.txTransfered_To_Online := False;
+           end;
+         end;
+
+         ceEntryType:
+         begin
+           pT.txTransfered_To_Online := False;
+         end;
+
+         ceForexRate:
+         begin
+           if pT.txForex_Conversion_Rate <> tmpDouble then
+           begin
+             pT.txTransfered_To_Online := False;
+           end;
          end;
       end;
 
@@ -5101,12 +5154,6 @@ begin
    if FieldId in [cePayee, ceJob, ceEffDate] then begin
       tmrpayee.Tag := FieldId;
       tmrPayee.Enabled := True;
-   end;
-
-   {Include transaction in next upload}
-   if pT.txHas_Been_Edited then
-   begin
-     pT.txTransfered_To_Online := False;
    end;
         
    UpdateCodedCount;
@@ -5926,6 +5973,10 @@ begin
                         Point( R.Right -1, R.Top + Margin)]);
     end;
 end;
+procedure TfrmCoding.celAnalysisChange(Sender: TObject);
+begin
+end;
+
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmCoding.celGSTCodeOwnerDraw(Sender: TObject;
   TableCanvas: TCanvas; const CellRect: TRect; RowNum, ColNum: Integer;
@@ -7292,7 +7343,6 @@ begin
            if PayeeEdited(pT) then
            begin
               pT^.txHas_Been_Edited := true;
-              pT^.txTransfered_To_Online := False;
            end
            else
               pT^.txPayee_Number := OldPayeeNo;
@@ -7306,7 +7356,6 @@ begin
               pT^.txHas_Been_Edited := true;
               if pt^.txCoded_By in [cbMemorisedC,cbMemorisedM] then
                  pT^.txCoded_By := cbManual;
-              pT^.txTransfered_To_Online := False;
            end
            else
               pT^.txJob_Code := OldJob;
@@ -7352,11 +7401,6 @@ begin
 //                               CalculateGST( myClient, txDate_Effective, txAccount, txAmount, DefaultGSTClass, DefaultGSTAmt);
                                CalculateGST( myClient, txDate_Effective, txAccount, Local_Amount, DefaultGSTClass, DefaultGSTAmt);
                                txGST_Has_Been_Edited := (txGST_Class <> DefaultGSTClass) or (txGST_Amount <> DefaultGSTAmt);
-
-                               if txGST_Has_Been_Edited then
-                               begin
-                                 pT^.txTransfered_To_Online := False;
-                               end;
                             end;
                          end;
 //                      end;
@@ -8245,9 +8289,9 @@ end;
 procedure TfrmCoding.celGstAmtChange(Sender: TObject);
 begin
    //test to see if need to automatically put minus sign
-   if AutoPressMinus then
-       keybd_event(vk_subtract,0,0,0);
-   AutoPressMinus := false;
+  if AutoPressMinus then
+      keybd_event(vk_subtract,0,0,0);
+  AutoPressMinus := false;
 end;
 
 //------------------------------------------------------------------------------

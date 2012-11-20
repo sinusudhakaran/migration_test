@@ -457,28 +457,26 @@ object frmCoding: TfrmCoding
       Left = 31
       Top = 2
       Width = 20
-      Height = 18
+      Height = 13
       Margins.Left = 9
       Margins.Top = 0
       Margins.Bottom = 0
       Align = alLeft
       Caption = 'Find'
       Layout = tlCenter
-      ExplicitHeight = 13
     end
     object lblCount: TLabel
       AlignWithMargins = True
       Left = 305
       Top = 2
       Width = 96
-      Height = 18
+      Height = 13
       Margins.Top = 0
       Margins.Bottom = 0
       Align = alLeft
       Caption = '99999 Clients Listed'
       Layout = tlCenter
       Visible = False
-      ExplicitHeight = 13
     end
     object tbtnClose: TRzToolButton
       Left = 2
@@ -563,6 +561,7 @@ object frmCoding: TfrmCoding
     Access = otxReadOnly
     MaxLength = 100
     Table = tblCoding
+    OnChange = celAnalysisChange
     Left = 176
     Top = 217
   end
