@@ -215,6 +215,13 @@ type
 
   TMonthEndingsClass = class of TMonthEndings;
 
+
+  // For use with FindGainLossPostedEntry
+  TGainLossEntry = record
+    Amount: Money;
+    Posted: TStDate;
+  end;
+
   { ----------------------------------------------------------------------------
     Helper functions
   ---------------------------------------------------------------------------- }
@@ -225,11 +232,21 @@ type
     Gain/Loss amount from the wizard. }
   function  IsGainLossTransaction(const aTransaction: pTransaction_Rec): boolean;
 
+  // Special field in transaction
+  function  GetGainLossPostedDate(const aTransaction: pTransaction_Rec): TStDate;
+  procedure SetGainLossPostedDate(const aTransaction: pTransaction_Rec;
+              const aValue: TStDate);
+
   { Special baUtils.GetBalances that ignores the Gain/Loss Transaction
     Note: this is quite important because it distorts the COB/CSUM/CCB
     calculations. }
   procedure GainLossGetBalances(b: TBank_Account; d1, d2: tStDate; var BankOpBal,
               BankClBal, SystemOpBal, SystemClBal: money);
+
+  { Find the Gain/Loss transaction
+    Note: it's normally posted on the last day of the month }
+  function  FindGainLossPostedEntry(const aBankAccount: TBank_Account;
+              const aGainLossPosted: TStDate; var aEntry: TGainLossentry): boolean;
 
 implementation
 
@@ -1119,8 +1136,6 @@ var
 begin
   BankAccount := aBankAccount.BankAccount;
 
-  //fClient.ClientCopyReset;
-
   // Delete previous entry
   DeletePreviousGainLossEntry(aMonth, BankAccount.baTransaction_List);
 
@@ -1147,6 +1162,7 @@ begin
       txOriginal_Source := txSource;
       txOriginal_Amount := txAmount;
       txGL_Narration := TRANSACTION_DESCRIPTION;
+      SetGainLossPostedDate(pTransaction, CurrentDate); // txLRN_NOW_UNUSED
     end;
 
     // Insert into Transactions list
@@ -1168,8 +1184,8 @@ begin
       ]);
     LogMsg(lmInfo, UnitName, sLog);
 
-    // TODO_JN: Do an audit an the client bank account level
-    //fClient.DoAudit(arManualEntries, fClient.ClientCopy);
+    // Do an audit an the client bank account level
+    BankAccount.AuditMgr.DoAudit;
   finally
     FreeAndNil(Transactions);
   end;
@@ -1265,6 +1281,19 @@ begin
 end;
 
 {------------------------------------------------------------------------------}
+function GetGainLossPostedDate(const aTransaction: pTransaction_Rec): TStDate;
+begin
+  result := aTransaction.txLRN_NOW_UNUSED;
+end;
+
+{------------------------------------------------------------------------------}
+procedure SetGainLossPostedDate(const aTransaction: pTransaction_Rec;
+  const aValue: TStDate);
+begin
+  aTransaction.txLRN_NOW_UNUSED := aValue;
+end;
+
+{------------------------------------------------------------------------------}
 Procedure GainLossGetBalances( b: TBank_Account; d1, d2: tStDate; Var BankOpBal,
    BankClBal, SystemOpBal, SystemClBal: money);
 Var
@@ -1347,6 +1376,40 @@ Begin { GetBalances }
       End { with baTransaction_List };
    End { with b };
 End; { GetBalances }
+
+{------------------------------------------------------------------------------}
+function FindGainLossPostedEntry(const aBankAccount: TBank_Account;
+  const aGainLossPosted: TStDate; var aEntry: TGainLossEntry): boolean;
+var
+  i: integer;
+  Transactions: TTransaction_List;
+  pTransaction: pTransaction_Rec;
+begin
+  ASSERT(assigned(aBankAccount));
+
+  Transactions := aBankAccount.baTransaction_List;
+  for i := 0 to Transactions.ItemCount-1 do
+  begin
+    pTransaction := Transactions[i];
+    ASSERT(assigned(pTransaction));
+
+    // Not Gain/Loss transaction?
+    if not IsGainLossTransaction(pTransaction) then
+      continue;
+
+    // Not the Gain/Loss transaction we're looking for?
+    if (pTransaction.txDate_Effective <> aGainLossPosted) then
+      continue;
+
+    // Stop the search
+    aEntry.Amount := pTransaction.txAmount;
+    aEntry.Posted := GetGainLossPostedDate(pTransaction);
+    result := true;
+    exit;
+  end;
+
+  result := false;
+end;
 
 {------------------------------------------------------------------------------}
 initialization

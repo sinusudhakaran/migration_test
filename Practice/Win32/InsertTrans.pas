@@ -159,8 +159,9 @@ begin
               // Foreign exchange (Gain/Loss)
               txAccount                  := TempTransaction.txAccount;
               txCoded_By                 := TempTransaction.txCoded_By;
+              txLRN_NOW_UNUSED           := TempTransaction.txLRN_NOW_UNUSED; // Posted Date
 
-              txBank_Seq           := BankAccount.baFields.baNumber;  //setbank account sequence no to current bank index
+              txBank_Seq                 := BankAccount.baFields.baNumber;  //setbank account sequence no to current bank index
            end;
 
            with BankAccount do begin
