@@ -93,10 +93,42 @@ function IsFullyCodedTransaction(Client: TClientObj; Transaction: pTransaction_R
 var
   ChartIndex: Integer;
   ChartAccount: pAccount_Rec;
+  Dissection: pDissection_Rec;
 begin
-  if Transaction.txAccount <> '' then
+  if Trim(Transaction.txAccount) <> '' then
   begin
-    if CompareText(Transaction.txAccount, 'DISSECTED') <> 0 then
+    if Transaction.txFirst_Dissection <> nil then
+    begin
+      Dissection := Transaction.txFirst_Dissection;
+      
+      while Dissection <> nil do
+      begin
+        if Trim(Dissection.dsAccount) <> '' then
+        begin 
+          ChartAccount := Client.clChart.FindCode(Dissection.dsAccount);
+
+          if ChartAccount <> nil then
+          begin
+            Result := ChartAccount.chPosting_Allowed;
+          end
+          else
+          begin
+            Result := False;
+
+            Break;
+          end;
+        end
+        else
+        begin
+          Result := False;
+
+          Break;
+        end;
+
+        Dissection := Dissection.dsNext;      
+      end;
+    end
+    else
     begin
       ChartAccount := Client.clChart.FindCode(Transaction.txAccount);
 
@@ -108,10 +140,6 @@ begin
       begin
         Result := False;
       end;
-    end
-    else
-    begin
-      Result := True;
     end;
   end
   else
