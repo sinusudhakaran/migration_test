@@ -279,14 +279,19 @@ type
     FMonthEndings: TMonthEndings;
     FCodingStats: TClientCodingStatistics;
   protected
+    procedure ContextCode (Sender : TObject); virtual;
     function HasAction(Period: Integer): Boolean; override;
-    procedure OpenGainLoss(OffsetX: integer);
+    procedure OpenGainLossFromOffset(OffsetX: integer);
+    procedure OpenGainLoss(Period: integer; DT: TDateTime);
+    procedure YMDFromPeriod(P: integer; var PeriodY, PeriodM, PeriodD: Word);
+    function DateTimeFromPeriod(P: integer): TDateTime;
   public
     constructor Create(AClient: TClientObj; ATitle: string; AGroupID: Integer; MonthEndingsClass: TMonthEndingsClass); reintroduce; virtual;
     property MultiSelect: Boolean read FMultiSelect;
     procedure AfterPaintCell(const Tag: integer; Canvas: TCanvas; CellRect: TRect); override;
     procedure OnPaintText(const Tag: Integer; Canvas: TCanvas; TextType: TVSTTextType );override;
     function GetTagHint(const Tag: Integer; Offset: TPoint) : string; override;
+    function GetTagText(const tag : Integer) : string; override;
     function SelectPeriod(const Value:Integer; Shift: TShiftstate): Boolean; override;
     procedure DoChange(const value: TVirtualNodeStates); override;
     procedure UpdateMenu(const Tag: Integer; Offset: TPoint; Value: TpopupMenu); override;
@@ -386,8 +391,10 @@ uses
    ReportImages,
    AuditMgr,
    BankLinkOnlineServices,
-   GainLossfrm;
-
+   GainLossfrm,
+   Dialogs,
+   LogUtil,
+   DateUtils;
 const
 
   ActionBorderColor   = clLtGray;
@@ -1032,8 +1039,6 @@ begin
   end;
   inherited;
 end;
-
-
 
 procedure TCHAccountItem.ContextCode(Sender: TObject);
 var DR : TDateRange;
@@ -2438,6 +2443,7 @@ begin
      lOldSel := FSelection;
 
      FPEDates := GetMonthEndDates(Value);
+     LogUtil.LogMsg(lmError, 'clientHomepageItems', 'DateToStr(FPEDates[0]) = ' + DateToStr(FPEDates[0]));
      // Redo the selection...
      FillChar(FSelection,Sizeof(FSelection),0);
      for I := 1 to 12 do
@@ -3100,13 +3106,27 @@ end;
 
 { TCHForeignItem }
 
-
-{ TCHForeignItem }
+procedure TCHForeignItem.ContextCode(Sender: TObject);
+var
+  P: integer;
+  DT: TDateTime;
+begin
+  for P := stFirstPeriod to stLastPeriod do
+  begin
+    if Selected[P] then
+    begin
+      DT := DateTimeFromPeriod(P);
+      OpenGainLoss(P, DT);
+      Break;
+    end;
+  end;
+end;
 
 constructor TCHForeignItem.Create(AClient: TClientObj; ATitle: string; AGroupID: Integer; MonthEndingsClass: TMonthEndingsClass);
 begin
   inherited Create(AClient, ATitle, AGroupID);
   FMonthEndings := TMonthEndingsClass.Create(AClient);
+  FMonthEndings.Options := [meoCullFirstMonths];
   FMonthEndings.Refresh;
   FCodingStats := TClientCodingStatistics.Create(Client,True,stBlank,Filldate);
   FMultiSelect := False;
@@ -3150,7 +3170,7 @@ begin
                       FMonthEndings.Items[Period].GetMonth - RangeMonth + 12;
       if (CellPosition > 0) then
       begin
-        CellColor := clRed{GetPeriodFillColor(FMonthEndings.Items[Period])};
+        CellColor := GetPeriodFillColor(FMonthEndings.Items[Period]);
         if (CellColor <> bkBranding.ColorNoData) then
           ExchangeGainOrLossPosted := True;
         if (CellPosition < 13) then
@@ -3215,24 +3235,6 @@ var
   I: Integer;
 
   function CheckItem(Item: TTreeBaseItem): Boolean;
-
-    {
-    function FailRange : Boolean;
-    var
-      P : Integer;
-    begin
-      with TCHForeignItem(Item) do begin
-        Result := False;
-        for P := stFirstPeriod to stLastPeriod do
-          if Selected[P]
-          and ((FCodingStats.NoOfEntries(P)> 0) or (FCodingStats.NoOfDownloadedEntries(P)> 0)) then
-            Exit;
-         // Still here.. Nothing found
-         Result := True;
-      end;
-    end;
-    }
-
   begin
     Result := False;
     if not Item.NodeSelected then
@@ -3242,6 +3244,7 @@ var
     HasData := True;
     Result := True;
   end;
+  
 begin
   if Tag = CHPT_Processing then
   begin
@@ -3260,15 +3263,14 @@ begin
             Break;
 
       if Hasdata then
-        AddMenuItem('View ' + GetDateRangeS(DR),Value.Items{,ContextCode,0});
+        AddMenuItem('View ' + GetDateRangeS(DR),Value.Items,ContextCode,0);
     end;
   end;
 end;
 
 destructor TCHForeignItem.Destroy;
 begin
-  FMonthEndings.Free;
-
+  FreeAndNil(FMonthEndings);    
   inherited;
 end;
 
@@ -3288,56 +3290,129 @@ end;
 procedure TCHForeignItem.DoubleClickTag(const Tag: Integer; Offset: TPoint);
 begin
    case tag of
-     CHPT_Processing : OpenGainLoss(Offset.X);
+     CHPT_Processing : OpenGainLossFromOffset(Offset.X);
    end;
 end;
 
-procedure TCHForeignItem.OpenGainLoss(OffsetX: integer);
+procedure TCHForeignItem.OpenGainLossFromOffset(OffsetX: integer);
 var
-  GainLoss: TfrmGainLoss;
-  DR: TDateRange;
   DT: TDateTime;
-  PeriodInt: integer;
+  Period: integer;
 begin
-  PeriodInt := GetPeriod(OffsetX);
-  DR := FCodingStats.GetDateRange(PeriodInt);
-  // Below is not as pointless as it seems, since DateToStr takes an integer as a parameter, not a date.
-  // ie. int -> string -> date
-  DT := StrToDate(DateToStr(DR.FromDate)); // End of the previous month
-  DT := IncMonth(DT, 1); // End of the period
-  GainLoss := TfrmGainLoss.Create(nil);
-  GainLoss.SetPeriodEndDate(DT);
-  // GainLoss.SetPeriodStartDateStr(DateToStr(DT));
-//  GainLoss.SetPeriodStartDateStr(DR);
-  GainLoss.ShowModal;
+  Period := GetPeriod(OffsetX);
+  DT := DateTimeFromPeriod(Period);
+  OpenGainLoss(Period, DT);
+end;
+
+procedure TCHForeignItem.OpenGainLoss(Period: integer; DT: TDateTime);
+var
+  Y,M,D: Word;
+begin
+  // Getting the end of the month
+  DecodeDate(DT, Y, M, D);
+  DT := EncodeDate(Y, M + 1, 1) - 1;
+  RunGainLoss(Client, DT);
 end;
 
 function TCHForeignItem.GetSelectDateRange: TDateRange;
 var
-  p : Integer;
+  P : Integer;
+  Y, M, D: Word;
 begin
   Result.FromDate := 0;
   Result.ToDate := 0;
   for p := 1 to 12 do
+  begin
     if Selected[p] then begin
-      if Result.FromDate = 0 then
-        Result.FromDate := FCodingStats.GetPeriodStartDate(P);
-      Result.ToDate := FCodingStats.GetPeriodEndDate(P);
+      YMDFromPeriod(P, Y, M, D);
+      Result.FromDate := bkStr2Date(DateToStr(StartOfAMonth(Y, M)));
+      Result.ToDate := bkStr2Date(DateToStr(EndOfAMonth(Y, M)));
+      break;
     end;
+  end;
 end;
 
 function TCHForeignItem.GetTagHint(const Tag: Integer; Offset: TPoint): string;
 var
-  P: integer;
-  PeriodText: string;
+  P, i: integer;
+  PeriodDate, MonthEndingDate: TDateTime;
+  PeriodY, PeriodM, PeriodD, MonthEndingY, MonthEndingM, MonthEndingD: Word;
+
+  function GetProcessingStatus(MonthEnding: TMonthEnding): string;
+  begin
+    if (MonthEnding.Transferred) then
+      Result := 'Transferred'
+    else if (MonthEnding.Finalised) then
+      Result := 'Finalised'
+    else if (MonthEnding.AlreadyRun) then
+      Result := 'Coded'
+    else if (MonthEnding.AvailableData) then
+      Result := 'Uncoded'
+    else
+      Result := '';
+  end;
+
 begin
   FHint := btNames[btForeign];
   P := GetPeriod(Offset.x);
   if not (P in [0..13]) then exit;
-  AddHint(FCodingStats.GetDateRangeS(P));
-  PeriodText := FCodingStats.GetPeriodText(P);
-  AddHint(PeriodText);
+  PeriodDate := DateTimeFromPeriod(P);
+  AddHint(FormatDateTime('mmm yyyy', PeriodDate));
+
+  YMDFromPeriod(P, PeriodY, PeriodM, PeriodD);
+  for i := 0 to FMonthEndings.Count - 1 do
+  begin
+    MonthEndingDate := StrToDate(DateToStr(FMonthEndings[i].Date)); // int -> string -> date
+    DecodeDate(MonthEndingDate, MonthEndingY, MonthEndingM, MonthEndingD);
+    if (CompareDate(StartOfAMonth(PeriodY, PeriodM), StartOfAMonth(MonthEndingY, MonthEndingM)) = 0) then // Same month
+      AddHint(GetProcessingStatus(FMonthEndings[i]));
+  end;
+
   Result := FHint;
+end;
+
+function TCHForeignItem.GetTagText(const tag: Integer): string;
+var
+  Y, M: integer;
+  DT: TDateTime;
+begin
+  case Tag of
+     CHPT_Name,
+     CHPT_Code,
+     CHPT_Text : Result := Title;
+     CHPT_Processing : Result := ' '; //so we get a font...
+     CHPT_Period :
+     begin
+       Y := FMonthEndings[FMonthEndings.Count - 1].Year;
+       M := FMonthEndings[FMonthEndings.Count - 1].Month + 1;
+       DT := EncodeDate(Y, M, 1) - 1;
+       Result := DateToStr(DT);
+       Result := FormatDateTime('dd mmm yyyy', DT);
+     end;
+     else  Result := '';
+   end;
+end;
+
+procedure TCHForeignItem.YMDFromPeriod(P: integer; var PeriodY, PeriodM, PeriodD: Word);
+var
+  DT: TDateTime;
+begin
+  if not (P in [0..13]) then exit;
+  DT := StrToDate(DateToStr(ClientHomePage.GetFillDate));
+  DecodeDate(DT, PeriodY, PeriodM, PeriodD);
+  PeriodM := PeriodM - (12 - P) + 12;
+  if (PeriodM > 12) then
+    dec(PeriodM, 12)
+  else
+    dec(PeriodY);
+end;
+
+function TCHForeignItem.DateTimeFromPeriod(P: integer): TDateTime;
+var
+  Y, M, D: word;
+begin
+  YMDFromPeriod(P, Y, M, D);
+  Result := EncodeDate(Y, M, D);
 end;
 
 end.

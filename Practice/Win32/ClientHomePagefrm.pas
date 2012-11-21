@@ -610,11 +610,13 @@ begin //RefreshCoding
 
            ShowForeignHeader := False;
            fMonths := TMonthEndingsClass.Create(FTheClient);
+           fMonths.Options := [meoCullFirstMonths];
            fMonths.Refresh;
+           
+           DateRange := StrToDate(DateToStr(ClientHomePage.GetFillDate));
+           DecodeDate(DateRange, RangeYear, RangeMonth, RangeDay);
            for Period := 0 to fMonths.Count - 1 do
-           begin
-             DateRange := StrToDate(DateToStr(ClientHomePage.GetFillDate));
-             DecodeDate(DateRange, RangeYear, RangeMonth, RangeDay);
+           begin                                                  
              CellPosition := ((fMonths.Items[Period].GetYear - RangeYear) * 12) +
                              fMonths.Items[Period].GetMonth - RangeMonth + 12;
              if (CellPosition >= 1) then
@@ -634,8 +636,11 @@ begin //RefreshCoding
            i := btForeign;
            ForeignItem := TreeList.FindItem(TreeList.TestForeign,i);
            if ShowForeignHeader and not assigned(ForeignItem) then
-             TreeList.AddNodeItem(nil,TCHForeignItem.Create(FTheClient,btNames[i],grp_Foreign, TMonthEndings))
-           else if not ShowForeignHeader then
+           begin
+             ForeignItem := TCHForeignItem.Create(FTheClient, btNames[i],grp_Foreign, TMonthEndings);
+             TreeList.AddNodeItem(nil, ForeignItem);
+           end else
+           if not ShowForeignHeader then
            begin
              TreeList.RemoveItem(ForeignItem);
              TreeList.RemoveItem(TreeList.FindGroupID(grp_Foreigns));
@@ -660,6 +665,8 @@ begin //RefreshCoding
 
    finally
       ClientTree.EndUpdate;
+      ForeignItem := nil;
+      FreeAndNil(fMonths);
    end;
     if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Exit RefreshCoding');
 end;
