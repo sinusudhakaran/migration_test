@@ -91,7 +91,7 @@ type
 implementation
 
 uses
-  Files, Globals, ErrorMoreFrm, LogUtil, StDateSt, SYDEFS, BK_TransactionExportXMLHelper, bkConst, math, WebUtils, DirUtils, TransactionUtils, SoapHTTPClient, InfoMoreFrm;
+  Files, Globals, ErrorMoreFrm, LogUtil, StDateSt, SYDEFS, BK_TransactionExportXMLHelper, bkConst, math, WebUtils, DirUtils, TransactionUtils, SoapHTTPClient, InfoMoreFrm, BKUTIL32;
 
 var
   DebugMe : Boolean = False;
@@ -147,8 +147,7 @@ begin
 
         TransactionNode := Transaction.WriteRecToNode(ParentNode);
 
-        Int64Rec(TransactionCoreId).Lo := Transaction.txCore_Transaction_ID;
-        Int64Rec(TransactionCoreId).Hi := Transaction.txCore_Transaction_ID_High;
+        TransactionCoreId := GetTransCoreID(Transaction);
 
         TransactionNode.Attributes['CoreTransactionId'] := TransactionCoreId; 
 
