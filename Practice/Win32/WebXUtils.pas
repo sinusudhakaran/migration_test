@@ -400,8 +400,6 @@ begin
         else
           //Assumes that Webx is never Forex and uses txAmount instead of Local_Amount
           BKT^.txGST_Amount := CalculateGSTForClass( aClient, BKT^.txDate_Effective, BKT^.txAmount, BKT^.txGST_Class);
-
-        BKT.txTransfered_To_Online := False;
       end
       else
       begin
@@ -419,7 +417,6 @@ begin
         //account is blank so use ecoding account to code the transaction
         BKT.txAccount         := ECT.txAccount;
         BKT.txHas_Been_Edited := true;
-        BKT.txTransfered_To_Online := False;
         NeedToUpdateGST       := true;
       end
       else begin
@@ -449,7 +446,6 @@ begin
             //set the bk5 payee number from here
             BKT.txPayee_Number         := ECT^.txPayee_Number;
             BKT.txHas_Been_Edited      := True;
-            BKT.txTransfered_To_Online := False;
             NeedToUpdatePayeeDetails   := True;
             NeedToUpdateGST            := True;
           end
@@ -520,7 +516,6 @@ begin
 
         BKT.txCoded_By         := cbCodeIT;
         BKT.txHas_Been_Edited  := True;
-        BKT.txTransfered_To_Online := False;
       end
       else
       begin
@@ -551,8 +546,6 @@ begin
       if BKT^.txQuantity = 0 then
       begin
         BKT^.txQuantity := ECT^.txQuantity;
-
-        BKT.txTransfered_To_Online := False;
       end
       else
          AddToImportNotes( BKT, 'Quantity   ' + FormatFloat('#,##0.####', ECT.txQuantity/10000), WEBX_GENERIC_APP_NAME);
@@ -565,12 +558,6 @@ begin
                                             BKT^.txGL_Narration,
                                             trxPayeeDetails,
                                             ECT^.txNotes);
-
-    if BKT^.txGL_Narration <> BKT^.txGL_Narration then
-    begin
-      BKT.txTransfered_To_Online := False;
-    end;
-
     //Notes
     BKT.txNotes := ECT.txNotes;
   end
@@ -1107,7 +1094,6 @@ begin
       //set the bk5 payee number from here
       BKT.txPayee_Number         := ECT^.txPayee_Number;
       BKT.txHas_Been_Edited      := True;
-      BKT.txTransfered_To_Online := False;
 
       if bkPayee.IsDissected then
       begin
@@ -1579,7 +1565,6 @@ begin
             T^.txECoding_Import_Notes := '';
             // Why are we forcing this to be set???
             T^.txHas_Been_Edited := True;  //See Case 7113
-            T^.txTransfered_To_Online := False;
 
             // Well it would apear it breaks the disection inport if we dont set it
             // May need to revisit ... read the case ...
