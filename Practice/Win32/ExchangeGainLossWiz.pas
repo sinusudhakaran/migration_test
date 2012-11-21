@@ -144,6 +144,7 @@ uses
   YesNoDlg,
   CountryUtils,
   ForexHelpers,
+  InfoMoreFrm,
   WarningMoreFrm;
 
 {$R *.dfm}
@@ -175,7 +176,7 @@ const
 
 const
   PostSuccessFmt =
-    'You have successfully posted the gains/losses on exchange entries for each of your foreign currency bank accounts for %s %s';
+    'Exchange gains/losses entries have been successfully posted for %s %s.';
 
 
 {------------------------------------------------------------------------------}
@@ -725,11 +726,13 @@ var
   Month: TMonthEnding;
   sMonth: string;
   sYear: string;
+  sMsg: string;
 begin
   Month := fMonths[SelectedMonthIndex];
   sMonth := FormatDateTime('mmm', Month.Date);
   sYear := FormatDateTime('yyyy', Month.Date);
-  ShowMessageFmt(PostSuccessFmt, [sMonth, sYear]);
+  sMsg := Format(PostSuccessFmt, [sMonth, sYear]);
+  HelpfulInfoMsg(sMsg, 0);
 end;
 
 {------------------------------------------------------------------------------}
