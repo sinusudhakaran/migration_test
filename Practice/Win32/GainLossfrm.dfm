@@ -14,6 +14,7 @@ object frmGainLoss: TfrmGainLoss
   Font.Style = []
   OldCreateOrder = False
   Position = poOwnerFormCenter
+  OnDestroy = FormDestroy
   OnShow = FormShow
   DesignSize = (
     575
@@ -122,6 +123,7 @@ object frmGainLoss: TfrmGainLoss
     WantTabs = False
     XMLExport.Version = '1.0'
     XMLExport.DataPacketVersion = '2.0'
+    OnCellLoaded = tgGainLossCellLoaded
     ColProperties = <
       item
         DataCol = 1
