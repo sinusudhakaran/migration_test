@@ -39,6 +39,7 @@ type
     SectionType: TSectionType;
     Text, DefaultText, TotalText: string;
     Account: pAccount_Rec;
+    ColTypeID : integer;
   end;
 
   TSection = class(TObject)
@@ -82,7 +83,7 @@ type
     FLineAfterCtrlAccnt: boolean;
     function AddSectionItem(aParentID: integer; aSectionType: TSectionType;
                             aText: string; aAccount: pAccount_Rec = nil; aDefaultText: string = '';
-                            aTotalText: string = '' ): integer;
+                            aTotalText: string = ''; aColTypeID : integer = 0 ): integer;
     function GetSectionTypeCount(aParentID: integer; aSectionType: TSectionType): integer;
     procedure AddAccountTotals(pAcct: pAccount_Rec); virtual;
     procedure GetAccountCount(aParentID: integer; var AccountCount: integer; Recursive: boolean = True);
@@ -250,6 +251,7 @@ var
   CtrlAccntCount, AccountCount, LineCount: integer;
   TotalAccounts: integer;
 begin
+  TotalAccounts := 0;
   GetAccountCount(aSectionItem.ID, TotalAccounts);
   for i := 0 to FSectionItems.Count - 1 do begin
     SectionItem := TSectionItem(FSectionItems[i]);
@@ -292,7 +294,9 @@ begin
             FReport.RenderTextLine('');
         end;
         //Sub section total
-        if TotalAccounts > 1 then
+        // if Cost of Goods show total if there is only 1 row
+        if (TotalAccounts > 1) or
+           (SectionItem.ColTypeID = phdCOGS) then
         begin
           if SectionItem.TotalText = '' then
             FReport.RenderDetailSectionTotal('Total ' + SectionItem.Text, FDefaultSign)
@@ -348,7 +352,7 @@ begin
   if FReport.ReportSectionNeedsPrinting([atOpeningStock, atPurchases, atClosingStock]) then begin
     //Cost of goods sold
     SubSectionID := AddSectionItem(aParentID, stSubSection, GetPRHeading(FClient, phdCOGS),
-                                   nil, '', GetPRHeading(FClient, phdTotal_COGS));
+                                   nil, '', GetPRHeading(FClient, phdTotal_COGS), phdCOGS);
 
     //COG sub groups
     LoadCogSubGroups(SubSectionID);
@@ -519,7 +523,7 @@ end;
 
 function TSectionStandard.AddSectionItem(aParentID: integer;
   aSectionType: TSectionType; aText: string; aAccount: pAccount_Rec = nil; aDefaultText: string = '';
-  aTotalText: string = '' ): integer;
+  aTotalText: string = ''; aColTypeID : integer = 0 ): integer;
 var
   SectionItem: TSectionItem;
 begin
@@ -532,6 +536,7 @@ begin
     SectionItem.Text := Format('%s %s', [aAccount.chAccount_Code, SectionItem.Text]);
   SectionItem.Account := aAccount;
   SectionItem.TotalText := aTotalText;
+  SectionItem.ColTypeID := aColTypeID;
   SectionItem.ID := FSectionItems.Add(SectionItem);
   Result := SectionItem.ID;
 end;
