@@ -41,7 +41,7 @@ type
 implementation
 
 uses
-  baObj32, bkHelp;
+  baObj32, bkHelp, StDate;
 
 {$R *.dfm}
 
@@ -113,6 +113,8 @@ begin
 end;
 
 procedure TfrmGainLoss.PopulateGrid;
+var
+  PostedDate: TStDate;
 begin
   tgGainLoss.BeginUpdate;
   try
@@ -120,6 +122,8 @@ begin
       tgGainLoss.DeleteRows(0, tgGainLoss.Rows)
     else
       tgGainLoss.Rows := Length(fMonths[FSelectedMonthIndex].BankAccounts);
+      PostedDate := fMonths[FSelectedMonthIndex].BankAccounts[0].PostedEntry.Date;
+      lblEntriesCreatedDate.Caption := DateToStr(StDateToDateTime(PostedDate));
   finally
     tgGainLoss.EndUpdate;
   end;

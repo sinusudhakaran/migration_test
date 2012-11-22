@@ -3165,16 +3165,18 @@ begin
     DecodeDate(DateRange, RangeYear, RangeMonth, RangeDay);
 
     ExchangeGainOrLossPosted := False;
+    ThereIsData := True; // remove this line later
+    {
     ThereIsData := False;
     for Period := 0 to FMonthEndings.Count - 1 do
     begin
-      if FMonthEndings.Items[Period].AvailableData then
+      if (FMonthEndings.Items[Period].BankAccounts[0].PostedEntry.Date <> 0) then
       begin
         ThereIsData := True;
         break;
       end;
-    end;
-      
+    end; }
+
     if ThereIsData then
     begin
       for Period := 0 to FMonthEndings.Count - 1 do
