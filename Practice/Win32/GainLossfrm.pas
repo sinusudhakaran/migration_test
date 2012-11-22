@@ -5,24 +5,24 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, RzButton, Grids_ts, TSGrid, DateUtils, ExchangeGainLoss,
-  clObj32;
+  clObj32, OSFont;
 
 type
   TfrmGainLoss = class(TForm)
     tgGainLoss: TtsGrid;
-    Label1: TLabel;
-    lblMonthEndDate: TLabel;
+    lblMonthEndDate1: TLabel;
     tbPrevious: TRzToolButton;
     tbNext: TRzToolButton;
-    Label2: TLabel;
     lblEntriesCreatedDate: TLabel;
     btnClose: TButton;
+    lblMonthEndDate2: TLabel;
     procedure FormShow(Sender: TObject);
     procedure tbPreviousClick(Sender: TObject);
     procedure tbNextClick(Sender: TObject);
     procedure tgGainLossCellLoaded(Sender: TObject; DataCol, DataRow: Integer;
       var Value: Variant);
     procedure FormDestroy(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
   private
     fMonths: TMonthEndings;
     fClient: TClientObj;
@@ -41,7 +41,7 @@ type
 implementation
 
 uses
-  baObj32, bkHelp, StDate;
+  baObj32, bkHelp, StDate, bkXPThemes;
 
 {$R *.dfm}
 
@@ -99,7 +99,16 @@ end;
 
 procedure TfrmGainLoss.UpdatePeriodEndDate;
 begin
-  lblMonthEndDate.Caption := DateToStr(FPeriodEndDate);
+  lblMonthEndDate2.Caption := DateToStr(FPeriodEndDate);
+end;
+
+procedure TfrmGainLoss.FormCreate(Sender: TObject);
+begin
+  bkXPThemes.ThemeForm(Self);
+  lblMonthEndDate2.Font.Style := [fsBold];
+  lblMonthEndDate2.Left := lblMonthEndDate1.Left + lblMonthEndDate1.Width + 5;
+  lblMonthEndDate2.Top := lblMonthEndDate1.Top + 1;
+  lblMonthEndDate2.Font.Size := lblMonthEndDate1.Font.Size;
 end;
 
 procedure TfrmGainLoss.FormDestroy(Sender: TObject);
@@ -119,11 +128,16 @@ begin
   tgGainLoss.BeginUpdate;
   try
     if (FSelectedMonthIndex = -1) then
-      tgGainLoss.DeleteRows(0, tgGainLoss.Rows)
-    else
+    begin
+      tgGainLoss.DeleteRows(0, tgGainLoss.Rows);
+      lblEntriesCreatedDate.Caption := '';
+    end else
+    begin
       tgGainLoss.Rows := Length(fMonths[FSelectedMonthIndex].BankAccounts);
       PostedDate := fMonths[FSelectedMonthIndex].BankAccounts[0].PostedEntry.Date;
-      lblEntriesCreatedDate.Caption := DateToStr(StDateToDateTime(PostedDate));
+      lblEntriesCreatedDate.Caption := 'The above entries were created ' +
+                                       DateToStr(StDateToDateTime(PostedDate));
+    end;
   finally
     tgGainLoss.EndUpdate;
   end;
