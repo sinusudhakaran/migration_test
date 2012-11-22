@@ -176,7 +176,7 @@ const
 
 const
   PostSuccessFmt =
-    'Exchange gains/losses entries have been successfully posted for %s %s.';
+    'Exchange gain/loss entries have been successfully posted for %s %s.';
 
 
 {------------------------------------------------------------------------------}
