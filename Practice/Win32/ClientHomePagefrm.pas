@@ -609,17 +609,18 @@ begin //RefreshCoding
            Lr := TreeList.TransferMonths;
 
            ShowForeignHeader := False;
-           fMonths := TMonthEndingsClass.Create(FTheClient);
+           if not Assigned(fMonths) then
+             fMonths := TMonthEndingsClass.Create(FTheClient);
            fMonths.Options := [meoCullFirstMonths];
            fMonths.Refresh;
            
            DateRange := StrToDate(DateToStr(ClientHomePage.GetFillDate));
            DecodeDate(DateRange, RangeYear, RangeMonth, RangeDay);
            for Period := 0 to fMonths.Count - 1 do
-           begin                                                  
+           begin
              CellPosition := ((fMonths.Items[Period].GetYear - RangeYear) * 12) +
                              fMonths.Items[Period].GetMonth - RangeMonth + 12;
-             if (CellPosition >= 1) then
+             if (CellPosition >= 1) and fMonths.Items[Period].BankAccounts[0].PostedEntry.Posted then
              begin
                ShowForeignHeader := True;
                break;

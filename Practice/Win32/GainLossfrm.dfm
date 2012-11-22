@@ -113,6 +113,8 @@ object frmGainLoss: TfrmGainLoss
     HeadingParentFont = False
     ParentCtl3D = False
     ParentShowHint = False
+    ResizeCols = rcNone
+    ResizeRows = rrNone
     RowBarOn = False
     RowMoving = False
     Rows = 5

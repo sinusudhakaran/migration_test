@@ -57,7 +57,8 @@ begin
     BKHelpSetup(frmGainLoss, BKH_Calculate_exchange_gain_or_loss);
 
     // Create here because in the constructor/FormCreate there's no fClient yet
-    frmGainLoss.fMonths := TMonthEndings.Create(frmGainLoss.fClient);
+    if not Assigned(frmGainLoss.fMonths) then    
+      frmGainLoss.fMonths := TMonthEndings.Create(frmGainLoss.fClient);
     frmGainLoss.fMonths.Options := [meoCullFirstMonths];
     frmGainLoss.fMonths.Refresh;
     frmGainLoss.UpdateGridMonth;
@@ -68,7 +69,7 @@ begin
     if not result then
       exit;
   finally
-    frmGainLoss.fMonths := nil;
+    FreeAndNil(frmGainLoss.fMonths);
     FreeAndNil(frmGainLoss);
   end;
 end;

@@ -3125,6 +3125,7 @@ end;
 constructor TCHForeignItem.Create(AClient: TClientObj; ATitle: string; AGroupID: Integer; MonthEndingsClass: TMonthEndingsClass);
 begin
   inherited Create(AClient, ATitle, AGroupID);
+  if not Assigned(fMonthEndings) then
   FMonthEndings := TMonthEndingsClass.Create(AClient);
   FMonthEndings.Options := [meoCullFirstMonths];
   FMonthEndings.Refresh;
@@ -3140,7 +3141,7 @@ var
   DateRange: TDateTime;
   RangeYear, RangeMonth, RangeDay: Word;
   CellsFilled: array[1..12] of boolean;
-  ExchangeGainOrLossPosted: boolean;
+  ExchangeGainOrLossPosted, ThereIsData: boolean;
 
   function GetPeriodFillColor(MonthEnding: TMonthEnding): integer;
   begin
@@ -3164,19 +3165,32 @@ begin
     DecodeDate(DateRange, RangeYear, RangeMonth, RangeDay);
 
     ExchangeGainOrLossPosted := False;
+    ThereIsData := False;
     for Period := 0 to FMonthEndings.Count - 1 do
     begin
-      CellPosition := ((FMonthEndings.Items[Period].GetYear - RangeYear) * 12) +
-                      FMonthEndings.Items[Period].GetMonth - RangeMonth + 12;
-      if (CellPosition > 0) then
+      if FMonthEndings.Items[Period].AvailableData then
       begin
-        CellColor := GetPeriodFillColor(FMonthEndings.Items[Period]);
-        if (CellColor <> bkBranding.ColorNoData) then
-          ExchangeGainOrLossPosted := True;
-        if (CellPosition < 13) then
+        ThereIsData := True;
+        break;
+      end;
+    end;
+      
+    if ThereIsData then
+    begin
+      for Period := 0 to FMonthEndings.Count - 1 do
+      begin
+        CellPosition := ((FMonthEndings.Items[Period].GetYear - RangeYear) * 12) +
+                        FMonthEndings.Items[Period].GetMonth - RangeMonth + 12;
+        if (CellPosition > 0) then
         begin
-          CellsFilled[CellPosition] := True;
-          DrawCell(CellPosition, CellColor, GetPeriodPenColor(CellPosition), Canvas, CellRect, NodeSelected);
+          CellColor := GetPeriodFillColor(FMonthEndings.Items[Period]);
+          if (CellColor <> bkBranding.ColorNoData) then
+            ExchangeGainOrLossPosted := True;
+          if (CellPosition < 13) then
+          begin
+            CellsFilled[CellPosition] := True;
+            DrawCell(CellPosition, CellColor, GetPeriodPenColor(CellPosition), Canvas, CellRect, NodeSelected);
+          end;
         end;
       end;
     end;
@@ -3270,7 +3284,7 @@ end;
 
 destructor TCHForeignItem.Destroy;
 begin
-  FreeAndNil(FMonthEndings);    
+  FreeAndNil(FMonthEndings);
   inherited;
 end;
 
