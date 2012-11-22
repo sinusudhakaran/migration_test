@@ -550,6 +550,7 @@ uses
    trxList32,
    Files,
    ForexHelpers,
+   ExchangeGainLoss,
    AccountLookupFrm,
    bkMaskUtils,
    PayeeLookupFrm,
@@ -1697,7 +1698,6 @@ procedure TfrmCoding.DoDissection(JA: Integer = -1);
 //cannot dissect an entry that is dissected or transferred and not already dissected
 var
    pT : pTransaction_Rec;
-   Msg          : TWMKey;
 begin
    if not ValidDataRow(tblCoding.ActiveRow) then
       Exit;
@@ -3240,7 +3240,6 @@ end;
 procedure TfrmCoding.DoDeleteJournal(pT: pTransaction_Rec);
 var
   i: Integer;
-  DeletedTrans: pDeleted_Transaction_Rec;
 begin
    if not assigned(pt) then
       Exit;
@@ -3454,6 +3453,10 @@ var
       if FSearchText > '' then
          if not Findtext then
             Exit;
+
+      // Don't display Gain/Loss transactions in the coding screen
+      if IsGainLossTransaction(pT) then
+        Exit;
 
       // Still Here...
       Result := true
@@ -7323,7 +7326,6 @@ var
    OER: Double;
    DefaultGSTClass:  byte;
    DefaultGSTAmt: money;
-   DeletedTrans: pDeleted_Transaction_Rec;
 begin
    if tmrPayee.Enabled then
       tmrPayee.Enabled := False// So I Don't  do it agian
