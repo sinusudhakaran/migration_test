@@ -3728,6 +3728,7 @@ procedure TfrmMain.mniExchangeGainLossWizardClick(Sender: TObject);
 begin
   IncUsage('Exchange Gain/Loss Wizard');
   DoMainFormCommand(mf_mcExchangeGainLossWizard);
+  RefreshHomepage;
 end;
 
 procedure TfrmMain.DownloadReportSummarised1Click(Sender: TObject);
@@ -4537,8 +4538,11 @@ begin
         mf_mcViewCashJournals : ViewJournals(btCashJournals);
         mf_mcViewAccrualJournals : ViewJournals(btAccrualJournals);
         mf_mcTransactionsToBankLinkOnline: ShowExportTransactionsDialog;
-        mf_mcExchangeGainLossWizard: RunExchangeGainLossWizard(MyClient);
-
+        mf_mcExchangeGainLossWizard:
+        begin
+          RunExchangeGainLossWizard(MyClient);
+          RefreshHomepage;
+        end;              
       end;
 
       //reset auto save time after the following actions

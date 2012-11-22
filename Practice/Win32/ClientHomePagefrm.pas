@@ -154,10 +154,10 @@ type
     fBadForexCurrencyCode : String;
     fBadForexAccountCode : String;
 
+    procedure RefreshCoding(RedrawForeign: boolean);
     procedure RefreshClient;
     procedure RefreshTodo;
     procedure RefreshFiles;
-    procedure RefreshCoding;
     procedure RefreshMems;
     procedure RefreshMissingExchangeRateMsg;
     procedure SetShowLegend(const Value: Boolean);
@@ -294,7 +294,10 @@ begin
        Assert((FClientHomePage is TfrmClientHomePage) OR (FClientHomePage is TfrmSimpleUIHomepage), 'Unknown homepage created');
        //special processing depending on version of homepage that was created
        if FClientHomePage is TfrmClientHomePage then
+       begin
          TfrmClientHomePage(FClientHomePage).UpdateTabs(ActionedPage);
+         TfrmClientHomePage(FClientHomePage).RefreshCoding(True);
+       end;
      end;
   end else
      //Should not have a Homepage...
@@ -336,7 +339,7 @@ end;
 { TfrmClientHomePage }
 
 
-procedure TfrmClientHomePage.RefreshCoding;
+procedure TfrmClientHomePage.RefreshCoding(RedrawForeign: boolean);
 var
     i : integer;
     lbase : TTreebaseItem;
@@ -620,7 +623,7 @@ begin //RefreshCoding
            begin
              CellPosition := ((fMonths.Items[Period].GetYear - RangeYear) * 12) +
                              fMonths.Items[Period].GetMonth - RangeMonth + 12;
-             if (CellPosition >= 1) {and fMonths.Items[Period].BankAccounts[0].PostedEntry.Posted} then
+             if (CellPosition >= 1) {and fMonths.Items[Period].BankAccounts[0].PostedEntry.Valid} then
              begin
                ShowForeignHeader := True;
                break;
@@ -628,23 +631,22 @@ begin //RefreshCoding
            end;
 
            CurParentNode := nil;
+
+           i := btForeign;
+           ForeignItem := TreeList.FindItem(TreeList.TestForeign,i);
+           TreeList.RemoveItem(ForeignItem);
+           TreeList.RemoveItem(TreeList.FindGroupID(grp_Foreigns));
+
            Lbase := TreeList.FindGroupID (grp_Foreigns);
            if assigned(lBase) then
               CurParentNode := Lbase.Node
            else
               CurParentNode := TreeList.AddNodeItem(nil, TCHPBaseItem.Create(FTheClient,'Foreign Exchange',grp_Foreigns));
 
-           i := btForeign;
-           ForeignItem := TreeList.FindItem(TreeList.TestForeign,i);
-           if ShowForeignHeader and not assigned(ForeignItem) then
+           if ShowForeignHeader then
            begin
              ForeignItem := TCHForeignItem.Create(FTheClient, btNames[i],grp_Foreign, TMonthEndings);
              TreeList.AddNodeItem(nil, ForeignItem);
-           end else
-           if not ShowForeignHeader then
-           begin
-             TreeList.RemoveItem(ForeignItem);
-             TreeList.RemoveItem(TreeList.FindGroupID(grp_Foreigns));
            end;
          end;
 
@@ -1378,7 +1380,7 @@ begin
    try
       // Something to refresh..
       if ([HRP_Init,HPR_Coding,HPR_Files] * FRefreshRequest) <> [] then
-         RefreshCoding;
+         RefreshCoding(False);
 
       if ([HRP_Init,HPR_Client] * FRefreshRequest) <> [] then
          RefreshClient;

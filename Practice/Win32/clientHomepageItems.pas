@@ -3170,12 +3170,14 @@ begin
     ThereIsData := False;
     for Period := 0 to FMonthEndings.Count - 1 do
     begin
-      if (FMonthEndings.Items[Period].BankAccounts[0].PostedEntry.Date <> 0) then
+      // if (FMonthEndings.Items[Period].BankAccounts[0].PostedEntry.Date <> 0) then
+      if (FMonthEndings.Items[Period].BankAccounts[0].PostedEntry.Valid) then
       begin
         ThereIsData := True;
         break;
       end;
-    end; }
+    end;
+    }
 
     if ThereIsData then
     begin
