@@ -809,7 +809,7 @@ begin
       //RunSQL(Connection, MyAction, 'EXEC sp_msforeachtable "ALTER TABLE ? NOCHECK CONSTRAINT all"', 'Drop constraints');
       try
 
-      //DeleteTable(MyAction,'UserOpenClients');
+      DeleteTable(MyAction,'UserOpenClients');
       DeleteTable(MyAction,'UserClients');
       ClearUserViewConfigurations;
       DeleteTable(MyAction,'UserPrintSettings');
