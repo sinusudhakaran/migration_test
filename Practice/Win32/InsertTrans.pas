@@ -159,7 +159,7 @@ begin
               // Foreign exchange (Gain/Loss)
               txAccount                  := TempTransaction.txAccount;
               txCoded_By                 := TempTransaction.txCoded_By;
-              txLRN_NOW_UNUSED           := TempTransaction.txLRN_NOW_UNUSED; // Posted Date
+              txCore_Transaction_ID      := TempTransaction.txCore_Transaction_ID; // Posted Date
 
               txBank_Seq                 := BankAccount.baFields.baNumber;  //setbank account sequence no to current bank index
            end;

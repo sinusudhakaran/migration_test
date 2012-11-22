@@ -59,8 +59,8 @@ type
 
   public
     // Whether anything was posted for this month
-    function  GetPosted: boolean;
-    property  Posted: boolean read GetPosted;
+    function  GetValid: boolean;
+    property  Valid: boolean read GetValid;
 
     // Gain/Loss with currency symbol of the practice, NOT the bank account
     function  GetGainLossCurrency: string;
@@ -555,7 +555,7 @@ end;
 { ------------------------------------------------------------------------------
   TPostedEntry
 ------------------------------------------------------------------------------ }
-function TPostedEntry.GetPosted: boolean;
+function TPostedEntry.GetValid: boolean;
 begin
   result := (Date > 0);
 end;
@@ -1337,14 +1337,14 @@ end;
 {------------------------------------------------------------------------------}
 function GetGainLossPostedDate(const aTransaction: pTransaction_Rec): TStDate;
 begin
-  result := aTransaction.txLRN_NOW_UNUSED;
+  result := aTransaction.txCore_Transaction_ID;
 end;
 
 {------------------------------------------------------------------------------}
 procedure SetGainLossPostedDate(const aTransaction: pTransaction_Rec;
   const aValue: TStDate);
 begin
-  aTransaction.txLRN_NOW_UNUSED := aValue;
+  aTransaction.txCore_Transaction_ID := aValue;
 end;
 
 {------------------------------------------------------------------------------}
