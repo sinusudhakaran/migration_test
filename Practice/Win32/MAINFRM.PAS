@@ -1981,6 +1981,8 @@ var
 begin
   if CurrUser.CanAccessAdmin and CurrUser.AllowBanklinkOnline and ProductConfigService.OnLine and ProductConfigService.IsPracticeProductEnabled(ProductConfigService.GetExportDataId, False) then
   begin
+    ProductConfigService.LoadClientList;
+    
     TfrmModalDualProgress.ShowProgress(Self, 'Please wait...', 'Exporting Client Transactions', ExportTaggedAccounts, ProgressData);
 
     if ProgressData.ExceptionRaised then
