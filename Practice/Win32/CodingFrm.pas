@@ -2139,8 +2139,10 @@ begin
             pUPI^.txOriginal_Cheque_Number            := pT^.txOriginal_Cheque_Number;
             pUPI^.txOriginal_Amount                   := pT^.txOriginal_Amount;
             pUPI^.txMatched_Item_ID                   := pT^.txMatched_Item_ID;
-            pUPI^.txOriginal_Forex_Conversion_Rate    := pT^.txOriginal_Forex_Conversion_Rate    ;
+            pUPI^.txOriginal_Forex_Conversion_Rate    := pT^.txOriginal_Forex_Conversion_Rate;
 //            pUPI^.txOriginal_Foreign_Currency_Amount  := pT^.txOriginal_Foreign_Currency_Amount  ;
+            pUPI^.txCore_Transaction_ID               := pT^.txCore_Transaction_ID;
+            pUPI^.txCore_Transaction_ID_High          := pT^.txCore_Transaction_ID_High;
          end
          else begin
             //get new matched item id
@@ -2156,6 +2158,8 @@ begin
             pUPI^.txOriginal_Amount                   := pT^.txAmount;
             pUPI^.txOriginal_Forex_Conversion_Rate    := pT^.txForex_Conversion_Rate    ;
 //            pUPI^.txOriginal_Foreign_Currency_Amount  := pT^.txForeign_Currency_Amount  ;
+            pUPI^.txCore_Transaction_ID               := pT^.txCore_Transaction_ID;
+            pUPI^.txCore_Transaction_ID_High          := pT^.txCore_Transaction_ID_High;
 
             // -----------------------------------------------------------------
 
@@ -2737,6 +2741,9 @@ begin
                   pNewTrans^.txSF_Member_Account_ID:= -1;
                   pNewTrans^.txSF_Fund_ID          := -1;
 
+                  pNewTrans^.txCore_Transaction_ID := txCore_Transaction_ID;
+                  pNewTrans^.txCore_Transaction_ID_High := txCore_Transaction_ID_High;
+
                   BankAccount.baTransaction_List.Insert_Transaction_Rec( pNewTrans);
                   sMsg := 'Cancelled UPC Transaction ' + TransRef;
                   LogUtil.LogMsg(lmInfo,UnitName, sMsg);
@@ -2954,6 +2961,10 @@ begin
 //               pNewTrans^.txOriginal_Foreign_Currency_Amount := txOriginal_Foreign_Currency_Amount     ;
                pNewTrans^.txMatched_Item_Id        := txMatched_Item_Id;
             end;
+
+            pNewTrans^.txCore_Transaction_ID := txCore_Transaction_ID;
+            pNewTrans^.txCore_Transaction_ID_High := txCore_Transaction_ID_High;
+
             //update items specific to upc/upd
             if txUPI_State = upMatchedUPC then begin
                //set upi states
