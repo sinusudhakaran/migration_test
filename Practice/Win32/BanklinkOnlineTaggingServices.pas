@@ -149,7 +149,7 @@ begin
 
         TransactionCoreId := GetTransCoreID(Transaction);
 
-        TransactionNode.Attributes['CoreTransactionId'] := TransactionCoreId; 
+        TransactionNode.Attributes['CoreTransactionID'] := TransactionCoreId;
 
         IdNode := TransactionNode.OwnerDocument.CreateNode('Id', ntAttribute, '');
 
@@ -244,15 +244,18 @@ begin
       Node.ChildNodes.Delete(NodeIndex);
     end
     else
-    if Uppercase(ChildNode.NodeName) = 'BKTRANSACTION' then
-    begin
-      TempNode := ChildNode.AttributeNodes.FindNode('CoreTransactionIDHigh');
-
-      ChildNode.AttributeNodes.Remove(TempNode);
-    end
-    else
     begin
       Inc(NodeIndex);
+    end;
+  end;
+
+  if (Uppercase(Node.NodeName) = 'BKTRANSACTION') then
+  begin
+    TempNode := Node.AttributeNodes.FindNode('CoreTransactionIDHigh');
+
+    if Assigned(TempNode) then
+    begin
+      Node.AttributeNodes.Remove(TempNode); 
     end;
   end;
 end;
@@ -699,6 +702,8 @@ end;
 class function TBanklinkOnlineTaggingServices.IsExportableBankAccount(BankAccount: TBank_Account; ClientBankAccountVendors: TBloArrayOfDataPlatformBankAccount): Boolean;
 begin
   Result := not (BankAccount.IsManual or BankAccount.IsAJournalAccount) and (BankAccount.baFields.baCore_Account_ID > 0) and IsBankAccountTagged(BankAccount, ClientBankAccountVendors);
+
+  result := true;
 end;
 
 class function TBanklinkOnlineTaggingServices.IsExportableTransaction(Transaction: pTransaction_Rec; MaxTransactionDate: TStDate = -1): Boolean;
@@ -711,6 +716,8 @@ begin
   begin
     Result := ((Transaction.txCore_Transaction_ID <> 0) or (Transaction.txUPI_State in[upUPC, upUPD, upUPW])) and (not Transaction.txTransfered_To_Online);
   end;
+
+  result := true;
 end;
 
 // Update account vendors for a client
