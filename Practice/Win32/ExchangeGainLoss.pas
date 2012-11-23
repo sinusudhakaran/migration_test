@@ -249,7 +249,7 @@ type
     Gain/Loss amount from the wizard. }
   function  IsGainLossTransaction(const aTransaction: pTransaction_Rec): boolean;
 
-  // Special field in transaction
+  // Special field in transaction (re-using txSF_CGT_Date)
   function  GetGainLossPostedDate(const aTransaction: pTransaction_Rec): TStDate;
   procedure SetGainLossPostedDate(const aTransaction: pTransaction_Rec;
               const aValue: TStDate);
@@ -1183,66 +1183,68 @@ var
   BankAccount: TBank_Account;
   Transactions: TTransaction_List;
   pTransaction: pTransaction_Rec;
-  Dummy1: integer;
-  Dummy2: TStDate;
-  Dummy3: TStDate;
   sLog: string;
 begin
   BankAccount := aBankAccount.BankAccount;
+  Transactions := BankAccount.baTransaction_List;
 
   // Delete previous entry
   DeletePreviousGainLossEntry(aMonth, BankAccount.baTransaction_List);
 
-  // Add new transaction
-  Transactions := TTransaction_List.Create(fClient, BankAccount, fClient.ClientAuditMgr);
-  try
-    // New transaction (FillChar with basic fields set)
-    pTransaction := Transactions.New_Transaction;
-    ASSERT(assigned(pTransaction));
+  // New transaction (FillChar with basic fields set)
+  pTransaction := Transactions.New_Transaction;
+  ASSERT(assigned(pTransaction));
 
-    // Assign default values
-    with pTransaction^ do
-    begin
-      txSource := orExchangeGainLoss; // New source type
-      txDate_Presented := aMonth.MonthEndingDateAsStdate; // Last day of the month
-      txDate_Effective := aMonth.MonthEndingDateAsStdate; // Last day of the month
-      txAmount := aBankAccount.GainLoss;
-      txReference := TRANSACTION_REFERENCE;
-      txOld_Narration := TRANSACTION_DESCRIPTION;
-      txAccount := BankAccount.baFields.baExchange_Gain_Loss_Code;
-      txCoded_By := cbManual;
-      txLocked := true;
-      txOriginal_Reference := txReference;
-      txOriginal_Source := txSource;
-      txOriginal_Amount := txAmount;
-      txGL_Narration := TRANSACTION_DESCRIPTION;
-      SetGainLossPostedDate(pTransaction, CurrentDate); // txLRN_NOW_UNUSED
-    end;
-
-    // Insert into Transactions list
-    Transactions.Insert_Transaction_Rec(pTransaction);
-
-    // Insert the Transactions into the Bank Account
-    InsTranListToBankAcct(fClient, BankAccount, Transactions, {AutoCode=}false,
-      Dummy1, Dummy2, Dummy3);
-
-    // Log?
-    sLog := Format(
-      'Exchange Gain/Loss Entry created for %s/%s (%s), %s %s',
-      [
-      BankAccount.baFields.baBank_Account_Number,
-      BankAccount.baFields.baBank_Account_Name,
-      BankAccount.baFields.baExchange_Gain_Loss_Code,
-      aBankAccount.GetGainLossCurrency,
-      aBankAccount.GainLossCrDr
-      ]);
-    LogMsg(lmInfo, UnitName, sLog);
-
-    // Note: Audits are done automatically when new transactions are inserted
-    
-  finally
-    FreeAndNil(Transactions);
+  // Assign default values
+  with pTransaction^ do
+  begin
+    txSource := orExchangeGainLoss; // New source type
+    txDate_Presented := aMonth.MonthEndingDateAsStdate; // Last day of the month
+    txDate_Effective := aMonth.MonthEndingDateAsStdate; // Last day of the month
+    txAmount := aBankAccount.GainLoss;
+    txReference := TRANSACTION_REFERENCE;
+    txOld_Narration := TRANSACTION_DESCRIPTION;
+    txAccount := BankAccount.baFields.baExchange_Gain_Loss_Code;
+    txCoded_By := cbManual; // Stop the auto-coding process
+    // Note: do not set txLocked to true, as it can be easily unlocked
+    txGL_Narration := TRANSACTION_DESCRIPTION;
+    SetGainLossPostedDate(pTransaction, CurrentDate); // Custom re-used field
   end;
+
+{$IFDEF DEBUG}
+  with pTransaction^ do
+  begin
+    pTransaction.txAmount := 0;
+    pTransaction.txSpare_Money_1 := 5;
+    pTransaction.txSpare_Money_2 := 15;
+  end;
+{$ENDIF}
+
+  // Insert into Transactions list
+  Transactions.Insert_Transaction_Rec(pTransaction);
+
+  {-----------------------------------------------------------------------------
+    Copied from InsertTrans.pas
+  -----------------------------------------------------------------------------}
+  with BankAccount do
+  begin
+    if (baFields.baCurrent_Balance <> Unknown) then
+      baFields.baCurrent_Balance := baFields.baCurrent_Balance + pTransaction.txAmount;
+  end;
+
+  // Log?
+  sLog := Format(
+    'Exchange Gain/Loss Entry created for %s/%s (%s), %s %s',
+    [
+    BankAccount.baFields.baBank_Account_Number,
+    BankAccount.baFields.baBank_Account_Name,
+    BankAccount.baFields.baExchange_Gain_Loss_Code,
+    aBankAccount.GetGainLossCurrency,
+    aBankAccount.GainLossCrDr
+    ]);
+  LogMsg(lmInfo, UnitName, sLog);
+
+  // Note: Audits are done automatically when new transactions are inserted
 end;
 
 {------------------------------------------------------------------------------}
@@ -1337,14 +1339,14 @@ end;
 {------------------------------------------------------------------------------}
 function GetGainLossPostedDate(const aTransaction: pTransaction_Rec): TStDate;
 begin
-  result := aTransaction.txCore_Transaction_ID;
+  result := aTransaction.txSF_CGT_Date;
 end;
 
 {------------------------------------------------------------------------------}
 procedure SetGainLossPostedDate(const aTransaction: pTransaction_Rec;
   const aValue: TStDate);
 begin
-  aTransaction.txCore_Transaction_ID := aValue;
+  aTransaction.txSF_CGT_Date := aValue;
 end;
 
 {------------------------------------------------------------------------------}

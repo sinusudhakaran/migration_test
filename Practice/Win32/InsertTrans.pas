@@ -156,11 +156,6 @@ begin
               txGL_Narration             := TempTransaction.txGL_Narration;
               txStatement_Details        := TempTransaction.txStatement_Details;
 
-              // Foreign exchange (Gain/Loss)
-              txAccount                  := TempTransaction.txAccount;
-              txCoded_By                 := TempTransaction.txCoded_By;
-              txCore_Transaction_ID      := TempTransaction.txCore_Transaction_ID; // Posted Date
-
               txBank_Seq                 := BankAccount.baFields.baNumber;  //setbank account sequence no to current bank index
            end;
 
