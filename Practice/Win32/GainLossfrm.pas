@@ -5,7 +5,7 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, RzButton, Grids_ts, TSGrid, DateUtils, ExchangeGainLoss,
-  clObj32, OSFont;
+  clObj32, OSFont, ExtCtrls;
 
 type
   TfrmGainLoss = class(TForm)
@@ -16,6 +16,7 @@ type
     lblEntriesCreatedDate: TLabel;
     btnClose: TButton;
     lblMonthEndDate2: TLabel;
+    pnlBottom: TPanel;
     procedure FormShow(Sender: TObject);
     procedure tbPreviousClick(Sender: TObject);
     procedure tbNextClick(Sender: TObject);
@@ -41,7 +42,7 @@ type
 implementation
 
 uses
-  baObj32, bkHelp, StDate, bkXPThemes;
+  baObj32, bkHelp, StDate, StDateSt, bkXPThemes;
 
 {$R *.dfm}
 
@@ -124,14 +125,20 @@ end;
 procedure TfrmGainLoss.PopulateGrid;
 var
   PostedDate: TStDate;
+
+  procedure ClearRows;
+  begin
+   tgGainLoss.DeleteRows(0, tgGainLoss.Rows);
+   lblEntriesCreatedDate.Caption := '';
+  end;
 begin
   tgGainLoss.BeginUpdate;
   try
     if (FSelectedMonthIndex = -1) then
-    begin
-      tgGainLoss.DeleteRows(0, tgGainLoss.Rows);
-      lblEntriesCreatedDate.Caption := '';
-    end else
+      ClearRows
+    else if not fMonths[FSelectedMonthIndex].BankAccounts[0].PostedEntry.Valid then
+      ClearRows
+    else
     begin
       tgGainLoss.Rows := Length(fMonths[FSelectedMonthIndex].BankAccounts);
       PostedDate := fMonths[FSelectedMonthIndex].BankAccounts[0].PostedEntry.Date;

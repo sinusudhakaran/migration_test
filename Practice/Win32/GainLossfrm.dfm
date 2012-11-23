@@ -2,10 +2,9 @@ object frmGainLoss: TfrmGainLoss
   Left = 0
   Top = 0
   BorderIcons = [biSystemMenu]
-  BorderStyle = bsDialog
   Caption = 'Exchange Gains/Losses'
-  ClientHeight = 392
-  ClientWidth = 595
+  ClientHeight = 390
+  ClientWidth = 596
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -18,8 +17,8 @@ object frmGainLoss: TfrmGainLoss
   OnDestroy = FormDestroy
   OnShow = FormShow
   DesignSize = (
-    595
-    392)
+    596
+    390)
   PixelsPerInch = 96
   TextHeight = 13
   object lblMonthEndDate1: TLabel
@@ -30,7 +29,7 @@ object frmGainLoss: TfrmGainLoss
     Caption = 'Foreign Exchange Gains or Losses for the month ending'
   end
   object tbPrevious: TRzToolButton
-    Left = 422
+    Left = 423
     Top = 6
     Width = 81
     ImageIndex = 1
@@ -46,7 +45,7 @@ object frmGainLoss: TfrmGainLoss
     ExplicitLeft = 402
   end
   object tbNext: TRzToolButton
-    Left = 510
+    Left = 511
     Top = 6
     Width = 81
     ImageIndex = 2
@@ -61,13 +60,6 @@ object frmGainLoss: TfrmGainLoss
     Caption = '&Forward'
     OnClick = tbNextClick
     ExplicitLeft = 490
-  end
-  object lblEntriesCreatedDate: TLabel
-    Left = 8
-    Top = 353
-    Width = 191
-    Height = 13
-    Caption = 'The above entries were created [DATE]'
   end
   object lblMonthEndDate2: TLabel
     Left = 281
@@ -85,8 +77,8 @@ object frmGainLoss: TfrmGainLoss
   object tgGainLoss: TtsGrid
     Left = 0
     Top = 36
-    Width = 596
-    Height = 305
+    Width = 597
+    Height = 303
     AlwaysShowScrollBar = ssVertical
     Anchors = [akLeft, akTop, akRight, akBottom]
     CellSelectMode = cmNone
@@ -195,13 +187,34 @@ object frmGainLoss: TfrmGainLoss
         Col.Width = 25
       end>
   end
-  object btnClose: TButton
-    Left = 487
-    Top = 352
-    Width = 75
-    Height = 25
-    Caption = 'Close'
-    ModalResult = 1
+  object pnlBottom: TPanel
+    Left = 0
+    Top = 349
+    Width = 596
+    Height = 41
+    Align = alBottom
+    BevelEdges = []
+    BevelOuter = bvNone
     TabOrder = 1
+    VerticalAlignment = taAlignBottom
+    ExplicitLeft = 8
+    ExplicitTop = 345
+    ExplicitWidth = 580
+    object lblEntriesCreatedDate: TLabel
+      Left = 5
+      Top = 10
+      Width = 191
+      Height = 13
+      Caption = 'The above entries were created [DATE]'
+    end
+    object btnClose: TButton
+      Left = 492
+      Top = 7
+      Width = 75
+      Height = 25
+      Caption = 'Close'
+      ModalResult = 1
+      TabOrder = 0
+    end
   end
 end

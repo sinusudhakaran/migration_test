@@ -277,7 +277,6 @@ type
   TCHForeignItem = class (TCHPBaseItem)
   private
     FMonthEndings: TMonthEndings;
-    FCodingStats: TClientCodingStatistics;
   protected
     procedure ContextCode (Sender : TObject); virtual;
     function HasAction(Period: Integer): Boolean; override;
@@ -3126,10 +3125,9 @@ constructor TCHForeignItem.Create(AClient: TClientObj; ATitle: string; AGroupID:
 begin
   inherited Create(AClient, ATitle, AGroupID);
   if not Assigned(fMonthEndings) then
-  FMonthEndings := TMonthEndingsClass.Create(AClient);
+    FMonthEndings := TMonthEndingsClass.Create(AClient);
   FMonthEndings.Options := [meoCullFirstMonths];
   FMonthEndings.Refresh;
-  FCodingStats := TClientCodingStatistics.Create(Client,True,stBlank,Filldate);
   FMultiSelect := False;
 end;
 
@@ -3141,7 +3139,7 @@ var
   DateRange: TDateTime;
   RangeYear, RangeMonth, RangeDay: Word;
   CellsFilled: array[1..12] of boolean;
-  ExchangeGainOrLossPosted, ThereIsData: boolean;
+  ExchangeGainOrLossPosted: boolean;
 
   function GetPeriodFillColor(MonthEnding: TMonthEnding): integer;
   begin
@@ -3165,36 +3163,20 @@ begin
     DecodeDate(DateRange, RangeYear, RangeMonth, RangeDay);
 
     ExchangeGainOrLossPosted := False;
-    ThereIsData := True; // remove this line later
-    {
-    ThereIsData := False;
+
     for Period := 0 to FMonthEndings.Count - 1 do
     begin
-      // if (FMonthEndings.Items[Period].BankAccounts[0].PostedEntry.Date <> 0) then
-      if (FMonthEndings.Items[Period].BankAccounts[0].PostedEntry.Valid) then
+      CellPosition := ((FMonthEndings.Items[Period].GetYear - RangeYear) * 12) +
+                      FMonthEndings.Items[Period].GetMonth - RangeMonth + 12;
+      if (CellPosition > 0) then
       begin
-        ThereIsData := True;
-        break;
-      end;
-    end;
-    }
-
-    if ThereIsData then
-    begin
-      for Period := 0 to FMonthEndings.Count - 1 do
-      begin
-        CellPosition := ((FMonthEndings.Items[Period].GetYear - RangeYear) * 12) +
-                        FMonthEndings.Items[Period].GetMonth - RangeMonth + 12;
-        if (CellPosition > 0) then
+        CellColor := GetPeriodFillColor(FMonthEndings.Items[Period]);
+        if (CellColor <> bkBranding.ColorNoData) then
+          ExchangeGainOrLossPosted := True;
+        if (CellPosition < 13) then
         begin
-          CellColor := GetPeriodFillColor(FMonthEndings.Items[Period]);
-          if (CellColor <> bkBranding.ColorNoData) then
-            ExchangeGainOrLossPosted := True;
-          if (CellPosition < 13) then
-          begin
-            CellsFilled[CellPosition] := True;
-            DrawCell(CellPosition, CellColor, GetPeriodPenColor(CellPosition), Canvas, CellRect, NodeSelected);
-          end;
+          CellsFilled[CellPosition] := True;
+          DrawCell(CellPosition, CellColor, GetPeriodPenColor(CellPosition), Canvas, CellRect, NodeSelected);
         end;
       end;
     end;

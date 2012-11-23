@@ -616,18 +616,18 @@ begin //RefreshCoding
              fMonths := TMonthEndingsClass.Create(FTheClient);
            fMonths.Options := [meoCullFirstMonths];
            fMonths.Refresh;
-           
+
            DateRange := StrToDate(DateToStr(ClientHomePage.GetFillDate));
            DecodeDate(DateRange, RangeYear, RangeMonth, RangeDay);
            for Period := 0 to fMonths.Count - 1 do
            begin
              CellPosition := ((fMonths.Items[Period].GetYear - RangeYear) * 12) +
                              fMonths.Items[Period].GetMonth - RangeMonth + 12;
-             if (CellPosition >= 1) {and fMonths.Items[Period].BankAccounts[0].PostedEntry.Valid} then
+             if (CellPosition >= 1) and fMonths.Items[Period].BankAccounts[0].PostedEntry.Valid then
              begin
                ShowForeignHeader := True;
                break;
-             end;    
+             end;
            end;
 
            CurParentNode := nil;
@@ -640,13 +640,11 @@ begin //RefreshCoding
            Lbase := TreeList.FindGroupID (grp_Foreigns);
            if assigned(lBase) then
               CurParentNode := Lbase.Node
-           else
-              CurParentNode := TreeList.AddNodeItem(nil, TCHPBaseItem.Create(FTheClient,'Foreign Exchange',grp_Foreigns));
-
-           if ShowForeignHeader then
+           else if ShowForeignHeader then
            begin
-             ForeignItem := TCHForeignItem.Create(FTheClient, btNames[i],grp_Foreign, TMonthEndings);
-             TreeList.AddNodeItem(nil, ForeignItem);
+              CurParentNode := TreeList.AddNodeItem(nil, TCHPBaseItem.Create(FTheClient,'Foreign Exchange',grp_Foreigns));
+              ForeignItem := TCHForeignItem.Create(FTheClient, btNames[i],grp_Foreign, TMonthEndings);
+              TreeList.AddNodeItem(nil, ForeignItem);
            end;
          end;
 
