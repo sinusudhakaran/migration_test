@@ -70,15 +70,18 @@ const
   MaxPWLenght = 8;
   ThisMethodName = 'SetCommandLineParameters';
   ExcludeCOASwitch = '/EXCLUDECOA';
-  
 var
   i : integer;
   s : string;
   p : string;
+  CaseSensitiveStr: string;
 begin
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
   for i := 1 to ParamCount do begin
     s := Uppercase( ParamStr(i));
+
+    CaseSensitiveStr := ParamStr(i);
+    
     if Pos( UserSwitch, S) > 0 then begin
        //user specified
        p := Copy( S, Pos( UserSwitch, S) + Length(UserSwitch), MaxUserCodeLength);
@@ -91,7 +94,7 @@ begin
          Globals.StartupParam_ClientToOpen := p;
     end else if Pos( pwSwitch, S) > 0 then begin
       //Password specified
-      p := Copy( S, Pos( pwSwitch, S) + Length(pwSwitch), MaxPWLenght);
+      p := Copy( CaseSensitiveStr, Pos( pwSwitch, CaseSensitiveStr) + Length(pwSwitch), MaxPWLenght);
       if p <> '' then
          Globals.StartupParam_UserPassword := p;
     end
@@ -345,7 +348,10 @@ begin
         end;
       end
     except
-      on e : Exception do ;
+      on e : Exception do
+      begin
+        OutputDebugString(PChar(E.Message));
+      end;
     end;
   end;
 
