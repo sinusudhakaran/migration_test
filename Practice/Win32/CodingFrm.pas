@@ -2168,9 +2168,9 @@ begin
             pT^.txOriginal_Type                       := pT^.txType;
             pT^.txOriginal_Cheque_Number              := pT^.txCheque_Number;
             pT^.txOriginal_Amount                     := pT^.txAmount;
-            pT^.txOriginal_Forex_Conversion_Rate      := pT^.txForex_Conversion_Rate    ;
+            pT^.txOriginal_Forex_Conversion_Rate      := pT^.txForex_Conversion_Rate;
+            
 //            pT^.txOriginal_Foreign_Currency_Amount    := pT^.txForeign_Currency_Amount  ;
-
          end;
          //log info the manual match done and original entry adjusted
          sMsg := 'Matched ref ' + GetFormattedReference( pT) +
@@ -2198,6 +2198,11 @@ begin
          pT.Statement_Amount := Diff;
          pT^.txGST_Class  := 0;
          pT^.txGST_Amount := 0;
+
+
+         pUPI^.txTransfered_To_Online := False;
+         pT^.txTransfered_To_Online := False;
+
          //Details from matched transaction have been transfered to the UE Transaction
          //Amount has been adjusted on matched transaction and call LoadWTLMaintainPos to reload
          //the WorkTranList and reload the UEList
@@ -2744,6 +2749,11 @@ begin
                   pNewTrans^.txCore_Transaction_ID := txCore_Transaction_ID;
                   pNewTrans^.txCore_Transaction_ID_High := txCore_Transaction_ID_High;
 
+                  txCore_Transaction_ID := 0;
+                  txCore_Transaction_ID_High := 0;
+
+                  txTransfered_To_Online := False;
+
                   BankAccount.baTransaction_List.Insert_Transaction_Rec( pNewTrans);
                   sMsg := 'Cancelled UPC Transaction ' + TransRef;
                   LogUtil.LogMsg(lmInfo,UnitName, sMsg);
@@ -2965,6 +2975,9 @@ begin
             pNewTrans^.txCore_Transaction_ID := txCore_Transaction_ID;
             pNewTrans^.txCore_Transaction_ID_High := txCore_Transaction_ID_High;
 
+            txCore_Transaction_ID := 0;
+            txCore_Transaction_ID_High := 0;
+
             //update items specific to upc/upd
             if txUPI_State = upMatchedUPC then begin
                //set upi states
@@ -3005,6 +3018,10 @@ begin
             pT^.txOriginal_Reference     := '';
             pT^.txOriginal_Cheque_Number := 0;
             pT^.txMatched_Item_ID        := 0;
+
+            
+            txTransfered_To_Online := False;
+            pT^.txTransfered_To_Online := False;
 
             //Insert transactions
             BankAccount.baTransaction_List.Insert_Transaction_Rec( pNewTrans);
