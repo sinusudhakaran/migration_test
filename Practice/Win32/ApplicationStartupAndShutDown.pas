@@ -92,11 +92,15 @@ begin
       p := Copy( S, Pos( ClientSwitch, S) + Length(ClientSwitch), MaxClientCodeLength);
       if p <> '' then
          Globals.StartupParam_ClientToOpen := p;
-    end else if Pos( pwSwitch, S) > 0 then begin
+    end else if Pos( pwSwitch, S) > 0 then
+    begin
       //Password specified
-      p := Copy( CaseSensitiveStr, Pos( pwSwitch, CaseSensitiveStr) + Length(pwSwitch), MaxPWLenght);
+      p := Copy( CaseSensitiveStr, Pos(pwSwitch, CaseSensitiveStr) + Length(pwSwitch), MaxPWLenght);
+
       if p <> '' then
-         Globals.StartupParam_UserPassword := p;
+      begin
+        Globals.StartupParam_UserPassword := p;
+      end;
     end
     else if Pos( ActionSwitch, S) > 0 then
     begin
