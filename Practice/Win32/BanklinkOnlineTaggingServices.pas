@@ -902,7 +902,7 @@ begin
                 end;
               end;
             finally
-              FreeAndNil(Client);
+              CloseAClient(Client);
             end;
           end;
         end;
