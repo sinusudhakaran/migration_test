@@ -486,22 +486,27 @@ function TCodingStatsManager.LockAndLoad(const KeepLock: Boolean = False): Boole
 const
   THIS_METHOD_NAME = 'TSystem_Coding_Statistics.LockAndLoad';
 begin
+  Result := false;
   if DEBUG_ME then
      LogUtil.LogMsg(lmDebug, UNIT_NAME, THIS_METHOD_NAME + ' Begins');
 
-  if Lock then begin
-
-     ReadFromFile;
-     if not KeepLock then
+  if Lock then
+  begin
+    try
+      try
+        ReadFromFile;
+        Result := True;
+      except
         UnLock;
-
-     Result := True;
-  end else
-     Result := False;
-
+      end;
+    finally
+      if (FLocked) and (not KeepLock) then
+        UnLock;
+    end;
+  end;
 
   if DEBUG_ME then
-     LogUtil.LogMsg(lmDebug, UNIT_NAME, THIS_METHOD_NAME + ' Ends');
+    LogUtil.LogMsg(lmDebug, UNIT_NAME, THIS_METHOD_NAME + ' Ends');
 end;
 
 function CountsMatch(Rec1, Rec2: pCoding_Statistics_Rec): Boolean;
@@ -569,29 +574,32 @@ const
   THIS_METHOD_NAME = 'TSystem_Coding_Statistics.Save';
 begin
   if DEBUG_ME then
-     LogUtil.LogMsg(lmDebug, UNIT_NAME, THIS_METHOD_NAME + ' Begins');
+    LogUtil.LogMsg(lmDebug, UNIT_NAME, THIS_METHOD_NAME + ' Begins');
 
   Result := False;
   // Check The Locking...
   if not Waslocked then
-     if not Lock then
-        Exit;
+    if not Lock then
+      Exit;
 
-  // Update the Stat fields
-  {$Q-}
-  repeat
-    Inc(fStatFields.sfRead_Version);
-  until fStatFields.sfRead_Version <> 0;
-  {$Q+}
-  FLastReadVersion := fStatFields.sfRead_Version;
-  fStatFields.sfFile_Version := CS_FILE_VERSION;
+  try
+    // Update the Stat fields
+    {$Q-}
+    repeat
+      Inc(fStatFields.sfRead_Version);
+    until fStatFields.sfRead_Version <> 0;
+    {$Q+}
+    FLastReadVersion := fStatFields.sfRead_Version;
+    fStatFields.sfFile_Version := CS_FILE_VERSION;
 
-  SaveToFile;
-
-  Result := Unlock;
+    SaveToFile;
+  finally
+    if not Waslocked then
+      Result := Unlock;
+  end;
 
   if DEBUG_ME then
-     LogUtil.LogMsg(lmDebug, UNIT_NAME, THIS_METHOD_NAME + ' Ends');
+    LogUtil.LogMsg(lmDebug, UNIT_NAME, THIS_METHOD_NAME + ' Ends');
 end;
 
 
@@ -648,12 +656,16 @@ begin
   ClientRec.ClLRN := AClientLRN;
   ClientRec.ClChanged := False;
 
-  if LockAndLoad(True) then begin
-     FTempClientStats.FCodingStatsTree.Iterate(SaveClientCodingStats, True, @ClientRec);
-     if ClientRec.ClChanged then
-        Save
-     else
-        UnLock;
+  if LockAndLoad(True) then
+  begin
+    try
+      FTempClientStats.FCodingStatsTree.Iterate(SaveClientCodingStats, True, @ClientRec);
+
+      if ClientRec.ClChanged then
+        Save(true);
+    finally
+      UnLock;
+    end;
   end;
   // Should not have to do this here
   FTempClientStats.FCodingStatsTree.Clear;
@@ -666,9 +678,9 @@ end;
 
 function TCodingStatsManager.UnLock :Boolean;
 begin
-   Assert(FLocked, 'Coding Stats not locked');
-   FLocked := not LockUtils.ReleaseLock(ltCodingStats);
-   Result := FLocked;
+  Assert(FLocked, 'Coding Stats not locked');
+  FLocked := not LockUtils.ReleaseLock(ltCodingStats);
+  Result := FLocked;
 end;
 
 procedure TCodingStatsManager.UpdateClientStats(AClientLRN: integer;

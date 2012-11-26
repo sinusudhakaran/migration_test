@@ -46,7 +46,7 @@ uses
                         IsDDE: Boolean = False);
   procedure CloseAClient(var Client : TClientObj; AllowReadOnlyToBeSaved : boolean = false);
   procedure SaveAClient(Client :TClientObj); // AJ: Is this ever used (Not in BK5)
-  procedure AbandonAClient(var Client : TClientObj);
+  procedure AbandonAClient(var Client : TClientObj; aProcessStats : Boolean = True);
   function DoClientSave(Closing: Boolean; Client: TClientObj; const Silent: Boolean = False): Boolean;
   function ClientFileExists(ClientCode : string): boolean;
   procedure OpenAClientForRead(OpenCode :string; var Client : TClientObj);
@@ -901,33 +901,40 @@ begin
    DeleteFile(DATADIR + Code + AUTOSAVEEXTN);
 
    //update admin system - must update regardless of whether changed so that file status is set back to fsNormal
-   if Assigned( AdminSystem) then begin
-      if LoadAdminSystem(true, ThisMethodName ) then begin
-         UpdateProcessingStats(Client, True, False);
-         pCF := AdminSystem.fdSystem_Client_File_List.FindCode( Code );
+   if Assigned( AdminSystem) then
+   begin
+      if LoadAdminSystem(true, ThisMethodName ) then
+      begin
+        try
+          UpdateProcessingStats(Client, True, False);
+          pCF := AdminSystem.fdSystem_Client_File_List.FindCode( Code );
 
-         If not Assigned( pCF ) then begin
+          If not Assigned( pCF ) then begin
             Msg := Format( 'Could not find CF Record for %s',[Code]);
             LogUtil.LogMsg(lmError, UnitName, ThisMethodName + ' : ' + Msg );
             Raise EAdminSystem.CreateFmt( '%s - %s : %s', [ UnitName, ThisMethodName, Msg ] );
-         end;
+          end;
 
-         if RenameRequired then begin
+          if RenameRequired then begin
             AdminSystem.fdSystem_Client_File_List.Delete(pCF);
             pCf.cfFile_Code := Client.clFields.clCode;
             AdminSystem.fdSystem_Client_File_List.Insert(pCF);
-         end;
+          end;
 
-         //make sure admin has latest cached details
-         SyncAdminToClient(pCF, Client);
-         RefreshContactDetails( Client, pCF, syncDir_ClientToAdmin);
+          //make sure admin has latest cached details
+          SyncAdminToClient(pCF, Client);
+          RefreshContactDetails( Client, pCF, syncDir_ClientToAdmin);
 
-         if Closing then begin //closing so clear status and curr user
+          if Closing then begin //closing so clear status and curr user
             pCF^.cfCurrent_User        := 0;
             pCF^.cfFile_Status         := fsNormal;
-         end;
-
-         SaveAdminSystem;
+          end;
+          SaveAdminSystem;
+        except
+          if AdminIsLocked then
+            UnlockAdmin;
+          raise;
+        end;
       end;
    end;
 
@@ -982,7 +989,7 @@ begin
   end;
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-procedure AbandonAClient(var Client : TClientObj);
+procedure AbandonAClient(var Client : TClientObj; aProcessStats : Boolean = True);
 //destroy client object without saving
 const
   ThisMethodName = 'AbandonAClient';
@@ -1027,7 +1034,9 @@ begin
         pCF^.cfFile_Status   := fsNormal;
         // processing stats need updating regardless of if it is a syncronised file
         OpenAClientForRead(Code, Client);
-        Merge32.UpdateProcessingStats(Client, True, False);
+
+        if aProcessStats then
+          Merge32.UpdateProcessingStats(Client, True, False);
 
         // Create client-account maps
         // Add deleted ones that were abandoned
