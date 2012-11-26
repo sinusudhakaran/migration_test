@@ -420,7 +420,7 @@ begin
   Close;
 end;
 //------------------------------------------------------------------------------
-function AcceptLicense(User: pUser_Rec; O: TComponent): Boolean;
+function AcceptLicense(User: pUser_Rec; O: TCustomForm): Boolean;
 var
   f: TDlgLicense;
 begin
@@ -430,6 +430,10 @@ begin
   begin
     f := TDlgLicense.Create(O);
     try
+      //Prevent the license agreement window from appearing behind the login screen.
+      f.PopupParent := O;
+      f.PopupMode := pmExplicit;
+      
       if f.ShowModal <> mrYes then
       begin
         ErrorSound;
