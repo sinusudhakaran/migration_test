@@ -3371,9 +3371,10 @@ begin
   Result := FHint;
 end;
 
+// Fills in the 'Last Entry' field for the Exchange Gains/Losses row on the client home page
 function TCHForeignItem.GetTagText(const tag: Integer): string;
 var
-  Y, M: integer;
+  Y, M, i, LastMonthEnding: integer;
   DT: TDateTime;
 begin
   case Tag of
@@ -3383,13 +3384,26 @@ begin
      CHPT_Processing : Result := ' '; //so we get a font...
      CHPT_Period :
      begin
-       Y := FMonthEndings[FMonthEndings.Count - 1].Year;
-       M := FMonthEndings[FMonthEndings.Count - 1].Month + 1;
-       DT := EncodeDate(Y, M, 1) - 1;
-       Result := DateToStr(DT);
-       Result := FormatDateTime('dd mmm yyyy', DT);
+       LastMonthEnding := -1;
+       for i := FMonthEndings.Count - 1 downto 0 do
+       begin
+         if FMonthEndings[i].AlreadyRun then
+         begin
+           LastMonthEnding := i;
+           break;
+         end;
+       end;
+
+       if (LastMonthEnding > -1) then
+       begin
+         Y := FMonthEndings[LastMonthEnding].Year;
+         M := FMonthEndings[LastMonthEnding].Month + 1;
+         DT := EncodeDate(Y, M, 1) - 1;
+         Result := DateToStr(DT);
+         Result := FormatDateTime('dd mmm yyyy', DT);
+       end else
+         Result := '';
      end;
-     else  Result := '';
    end;
 end;
 
