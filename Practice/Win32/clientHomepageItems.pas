@@ -277,6 +277,8 @@ type
   TCHForeignItem = class (TCHPBaseItem)
   private
     FMonthEndings: TMonthEndings;
+    function GetSelectedPeriod: integer;
+    procedure OpenGainLossFromPeriod(Period: integer);
   protected
     procedure ContextCode (Sender : TObject); virtual;
     function HasAction(Period: Integer): Boolean; override;
@@ -296,6 +298,7 @@ type
     procedure UpdateMenu(const Tag: Integer; Offset: TPoint; Value: TpopupMenu); override;
     function GetSelectDateRange : TDateRange;
     procedure DoubleClickTag(const Tag: Integer; Offset: TPoint ); override;
+    procedure OnKeyDown(var Key: Word; Shift: TShiftState); override;
     destructor Destroy; override;
   end;
 
@@ -3195,6 +3198,14 @@ begin
    Result := False;
 end;
 
+procedure TCHForeignItem.OnKeyDown(var Key: Word; Shift: TShiftState);
+begin
+  case Key of
+    VK_Return : OpenGainLossFromPeriod(GetSelectedPeriod);
+    else inherited;
+  end;
+end;
+
 procedure TCHForeignItem.OnPaintText(const Tag: Integer; Canvas: TCanvas;
   TextType: TVSTTextType);
 begin
@@ -3294,12 +3305,33 @@ begin
    end;
 end;
 
+function TCHForeignItem.GetSelectedPeriod: integer;
+var
+  i: integer;
+begin
+  Result := 0;
+  for i := 1 to FMonthEndings.Count do
+  begin
+    if TCHPBaseList(ParentList).FSelection[i] then
+    begin
+      Result := i;
+      break;
+    end;
+  end;
+end;
+
 procedure TCHForeignItem.OpenGainLossFromOffset(OffsetX: integer);
 var
-  DT: TDateTime;
   Period: integer;
 begin
   Period := GetPeriod(OffsetX);
+  OpenGainLossFromPeriod(Period);
+end;
+
+procedure TCHForeignItem.OpenGainLossFromPeriod(Period: integer);
+var
+  DT: TDateTime;
+begin
   DT := DateTimeFromPeriod(Period);
   OpenGainLoss(Period, DT);
 end;
