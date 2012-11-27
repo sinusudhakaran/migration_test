@@ -1025,7 +1025,7 @@ begin
 
    try try
       Connected := true;
-      EnableIndexes(MyAction,True);
+      //EnableIndexes(MyAction,True);
       // Dont use the Table to get the name, Too early and Clear may not work...
 
 

@@ -226,7 +226,7 @@ end;
 function TMigrateAction.CheckCanceled: Boolean;
 begin
   if FMigrationCanceled then begin
-     Error := 'Canceled';
+     AddWarning('Canceled');
      Result := True;
   end else
      Result := False;
@@ -435,6 +435,7 @@ end;
 
 
 procedure TMigrateAction.SetRunSize(const Value: Int64);
+var tmp: Double;
 begin
   if FRunSize <> Value then begin
      StatusTime := now;
@@ -443,8 +444,16 @@ begin
 
      if (FRunSize  < FTotSize)
      and (FRunSize > 0) then begin
-        Speed := FRunSize /(StatusTime - fstartTime);
+        tmp := StatusTime - fstartTime;
+        if tmp <= 0 then
+           exit;// cannot use it..
+        // tmp is the time spend...
 
+        tmp := FRunSize / tmp;
+        if tmp <= 0 then
+           exit;// cannot use it..
+        // tmp now is the speed
+        Speed := tmp;
         fTargetTime := ((fTotSize - FRunSize)/ Speed) + StatuStime;
      end;
   end;

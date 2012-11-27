@@ -799,7 +799,7 @@ begin
    try
       Connected := true;
 
-      EnableIndexes(MyAction, True);
+      //EnableIndexes(MyAction, True);
       {
       exit;
       {}
@@ -1374,6 +1374,23 @@ function TSystemMigrater.MigrateSystem(ForAction: TMigrateAction): Boolean;
       end;
    end;
 
+   function DoCodingFont(const value: string):string;
+   var FontText: TstringList;
+   begin
+       FontText := TstringList.Create;
+       FontText.Delimiter := ',';
+       FontText.StrictDelimiter := true;
+       FontText.DelimitedText := value;
+       if FontText.Count >= 3 then
+          FontText.Delete(1); // Delete the Style (B)
+       while FontText.Count > 2 do
+          FontText.Delete(2); // Delete optional Color
+       
+       Result := FontText.DelimitedText;
+
+       FreeAndNil(FontText);
+   end;
+
    function GetDomain(const value: string):string;
    var P: Integer;
    begin
@@ -1398,7 +1415,7 @@ begin
    ParameterTable.Update('EnableBulkexport', System.fdFields.fdBulk_Export_Enabled);
    ParameterTable.Update('BulkExportFormat', System.fdFields.fdBulk_Export_Code,'nvarchar(20)');
 
-   ParameterTable.Update('CodingFont', System.fdFields.fdCoding_Font,'nvarchar(255)');
+   ParameterTable.Update('CodingFont', DoCodingFont(System.fdFields.fdCoding_Font),'nvarchar(255)');
    ParameterTable.Update('CollectUsageData', System.fdFields.fdCollect_Usage_Data);
 
    ParameterTable.Update('CopyDissectionNarration', System.fdFields.fdCopy_Dissection_Narration);
@@ -1792,17 +1809,24 @@ begin
    ClientList.CheckSpeed := True;
    if not RunGuidList(MyAction,'Client Files',ClientList, AddClientFile, true) then
       Exit;
-
+   if MyAction.CheckCanceled then
+      Exit;
 
    MyAction.Counter := 75;
 
    //TClientMigrater(ClientMigrater).UpdateProcessingStatusAllClients(MyAction);
 
    MigrateSystem(MyAction);
-   MigrateBLOPI(MyAction);
+   if MyAction.CheckCanceled then
+      Exit;
 
+   MigrateBLOPI(MyAction);
+   if MyAction.CheckCanceled then
+      Exit;
    // Do this after all the settings
    StartRetrieve(MyAction);
+   if MyAction.CheckCanceled then
+      Exit;
 
 
    if DoDocuments then begin

@@ -734,19 +734,19 @@ procedure TformMain.DoDisconnects(ForAction: TMigrateAction);
 begin
   if Assigned(FSystemMigrater) then
   if FSystemMigrater.Connected then begin
-     FSystemMigrater.EnableIndexes(ForAction, True);
+     //FSystemMigrater.EnableIndexes(ForAction, True);
      Disconnect(ForAction,FSystemMigrater.Connection,'PracticeSystem');
   end;
 
   if Assigned(FClientMigrater) then
   if FClientMigrater.Connected then begin
-     FClientMigrater.EnableIndexes(ForAction, True);
+     //FClientMigrater.EnableIndexes(ForAction, True);
      Disconnect(ForAction,FClientMigrater.Connection,'PracticeClient');
   end;
 
   if Assigned(FLogMigrater) then
   if FLogMigrater.Connected then begin
-     FLogMigrater.EnableIndexes(ForAction, True);
+     //FLogMigrater.EnableIndexes(ForAction, True);
      Disconnect(ForAction,FLogMigrater.Connection,'PracticeLog');
   end;
 
