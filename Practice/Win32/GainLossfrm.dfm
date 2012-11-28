@@ -1,7 +1,7 @@
 object frmGainLoss: TfrmGainLoss
   Left = 0
   Top = 0
-  BorderIcons = [biSystemMenu]
+  BorderIcons = [biSystemMenu, biMaximize]
   Caption = 'Exchange Gains/Losses'
   ClientHeight = 390
   ClientWidth = 596
@@ -197,9 +197,6 @@ object frmGainLoss: TfrmGainLoss
     BevelOuter = bvNone
     TabOrder = 1
     VerticalAlignment = taAlignBottom
-    ExplicitLeft = 8
-    ExplicitTop = 345
-    ExplicitWidth = 580
     object lblEntriesCreatedDate: TLabel
       Left = 5
       Top = 10

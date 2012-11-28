@@ -3346,7 +3346,10 @@ var
 begin
   // Getting the end of the month
   DecodeDate(DT, Y, M, D);
-  DT := EncodeDate(Y, M + 1, 1) - 1;
+  if (M = 12) then
+    DT := EncodeDate(Y + 1, 1, 1) - 1
+  else
+    DT := EncodeDate(Y, M + 1, 1) - 1;
   RunGainLoss(Client, DT);
 end;
 
