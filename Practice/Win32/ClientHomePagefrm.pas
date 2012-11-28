@@ -644,7 +644,8 @@ begin //RefreshCoding
            begin
               CurParentNode := TreeList.AddNodeItem(nil, TCHPBaseItem.Create(FTheClient,'Foreign Exchange',grp_Foreigns));
               ForeignItem := TCHForeignItem.Create(FTheClient, btNames[i],grp_Foreign, TMonthEndings);
-              TreeList.AddNodeItem(nil, ForeignItem);
+              TreeList.AddNodeItem(CurParentNode, ForeignItem);
+              ClientTree.Expanded[CurParentNode] := True;
            end;
          end;
 

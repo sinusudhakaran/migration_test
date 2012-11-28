@@ -3142,7 +3142,7 @@ var
   DateRange: TDateTime;
   RangeYear, RangeMonth, RangeDay: Word;
   CellsFilled: array[1..12] of boolean;
-  ExchangeGainOrLossPosted: boolean;
+  ExchangeGainOrLossPosted, LSelected: boolean;
 
   function GetPeriodFillColor(MonthEnding: TMonthEnding): integer;
   begin
@@ -3179,7 +3179,8 @@ begin
         if (CellPosition < 13) then
         begin
           CellsFilled[CellPosition] := True;
-          DrawCell(CellPosition, CellColor, GetPeriodPenColor(CellPosition), Canvas, CellRect, NodeSelected);
+          LSelected := Selected[CellPosition];
+          DrawCell(CellPosition, CellColor, GetPeriodPenColor(CellPosition), Canvas, CellRect, NodeSelected and LSelected); // DONT CHECK THIS IN
         end;
       end;
     end;
@@ -3187,8 +3188,10 @@ begin
     if ExchangeGainOrLossPosted then
     for i := Low(CellsFilled) to High(CellsFilled) do
       if not CellsFilled[i] then
-        DrawCell(i, bkBranding.ColorNoData, GetPeriodPenColor(i), Canvas, CellRect, NodeSelected);
-      
+      begin
+        LSelected := Selected[i];
+        DrawCell(i, bkBranding.ColorNoData, GetPeriodPenColor(i), Canvas, CellRect, NodeSelected and LSelected); // DONT CHECK THIS IN
+      end;
   end;
   inherited;
 end;
@@ -3287,15 +3290,16 @@ end;
 
 procedure TCHForeignItem.DoChange(const value: TVirtualNodeStates);
 begin
-  inherited;
-  if vsSelected in Value then begin
-      if toMultiselect in ParentList.Tree.TreeOptions.SelectionOptions  then begin
-        ParentList.Tree.TreeOptions.SelectionOptions :=
-          ParentList.Tree.TreeOptions.SelectionOptions - [toMultiselect];
-        ParentList.Tree.Selected [Node] := True
-      end;
-      SelectPeriod(FirstSelected,[]);
-   end;
+  if vsSelected in Value then
+  begin
+    if toMultiselect in ParentList.Tree.TreeOptions.SelectionOptions  then
+    begin
+      ParentList.Tree.TreeOptions.SelectionOptions :=
+        ParentList.Tree.TreeOptions.SelectionOptions - [toMultiselect];
+      ParentList.Tree.Selected [Node] := True
+    end;
+    SelectPeriod(FirstSelected,[]);
+  end;
 end;
 
 procedure TCHForeignItem.DoubleClickTag(const Tag: Integer; Offset: TPoint);
