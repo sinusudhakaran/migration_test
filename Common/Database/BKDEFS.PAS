@@ -9,13 +9,13 @@ Interface uses MONEYDEF, DATEDEF;
 {  -------------------------------------------------------------------  }
 
 Const
-   BK_IOLIB_Version : Integer = 680;
-   BK_IOLIB_Date    = '16/11/12';
-   BK_FILE_VERSION  = 171;  (* Current Version counter for files
+   BK_IOLIB_Version : Integer = 684;
+   BK_IOLIB_Date    = '29/11/12';
+   BK_FILE_VERSION  = 172;  (* Current Version counter for files
                               Changes if structure or method of storing a value would cause
                               data to be represented incorrectly, or an exception to be raised *)
    
-   BK_FILE_VERSION_STR = '5.26';   (* Should be changed whenever BK_FILE_VERSION changes. Is used to show user what version they need *)
+   BK_FILE_VERSION_STR = '5.27';   (* Should be changed whenever BK_FILE_VERSION changes. Is used to show user what version they need *)
    
    (*
        History  :     31    New format for GST class codes ( delimited string)
@@ -211,7 +211,7 @@ Const
                             Client File GUID not needed. Added field for File Transfer Method
      5.23 (2012BLOPI)168    Add Offline version of Client Settings for a New Client when Notes online is used
      5.24 (2012 Tag) 169    Add Core Trans ID and sent to Online to Transactions
-     5.25            170    Added DeliverDataDirectToBLO and BLOSecureCode fields to ClientExtra, to store 
+     5.25            170    Added DeliverDataDirectToBLO and BLOSecureCode fields to ClientExtra, to store
                             tagging additions to the BLO settings form
                             Added Core Trans ID High Integer
                             Added Bank Account Core ID
@@ -220,6 +220,7 @@ Const
      5.26            171    Added fields Contractor..ABN to Payee Detail record
                             Added Exchange Gain_Loss_Code
                             Added new structure DeleteTransaction
+     5.27            172    Added new structure ExchangeGainLoss
    *)
    //Audit Trail - 135 Don't reuse token!!! - Record defined in SY.TXT but also used in Client File
 
@@ -250,6 +251,7 @@ Type
    pJob_Heading_Rec                      = ^tJob_Heading_Rec ;
    pClientExtra_Rec                      = ^tClientExtra_Rec ;
    pDeleted_Transaction_Rec              = ^tDeleted_Transaction_Rec ;
+   pExchange_Gain_Loss_Rec               = ^tExchange_Gain_Loss_Rec ;
 
 {  -------------------------------------------------------------------  }
 
@@ -1302,6 +1304,18 @@ Type
       dxEOR                              : Byte;
    end;
 
+{  -------------------------------------------------------------------  }
+
+   tExchange_Gain_Loss_Rec = Packed Record
+      glRecord_Type                      : Byte;
+      glDate                             : Integer;       { Stored }
+      glAmount                           : Money;       { Stored }
+      glAccount                          : String[ 20 ];       { Stored }
+      glPosted_Date                      : Integer;       { Stored }
+      glAudit_Record_ID                  : Integer;       { Stored }
+      glEOR                              : Byte;
+   end;
+
 Const
    Client_Rec_Size                           = Sizeof( TClient_Rec ); 
    Account_Rec_Size                          = Sizeof( TAccount_Rec ); 
@@ -1327,6 +1341,7 @@ Const
    Job_Heading_Rec_Size                      = Sizeof( TJob_Heading_Rec ); 
    ClientExtra_Rec_Size                      = Sizeof( TClientExtra_Rec ); 
    Deleted_Transaction_Rec_Size              = Sizeof( TDeleted_Transaction_Rec ); 
+   Exchange_Gain_Loss_Rec_Size               = Sizeof( TExchange_Gain_Loss_Rec ); 
 
 {  -------------------------------------------------------------------  }
 Implementation

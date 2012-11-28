@@ -14,7 +14,7 @@ unit baObj32;
 interface
 uses
   bkdateutils,classes, bkdefs, iostream, trxList32, mxList32, moneydef, MatchedItemsList,
-  MemorisationsObj, AuditMgr, dxList32;
+  MemorisationsObj, AuditMgr, dxList32, glList32;
 
 type
   pDailyBalancesRec = ^tDailyBalancesRec;
@@ -28,6 +28,7 @@ type
     baOld_Memorised_Transaction_List : tMemorised_Transaction_List_V53;
     baMemorisations_List : MemorisationsObj.TMemorisations_List;
     baDeleted_Transaction_List: TDeleted_Transaction_List;
+    baExchange_Gain_Loss_List: TExchange_Gain_Loss_List;
   private
     FMatched_Items_List : tMatched_Items_List;
     FClient : TObject;
@@ -550,6 +551,8 @@ begin
 
    baDeleted_Transaction_List := TDeleted_Transaction_List.Create;
 
+   baExchange_Gain_Loss_List := TExchange_Gain_Loss_List.Create;
+
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
 
@@ -601,6 +604,7 @@ begin
    baOld_Memorised_Transaction_List.Free;
    baMemorisations_List.Free;
    baDeleted_Transaction_List.Free;
+   FreeAndNil(baExchange_Gain_Loss_List);
    FMatched_Items_List.Free;
    BKBAIO.Free_Bank_Account_Rec_Dynamic_Fields( baFields);
 
@@ -699,7 +703,8 @@ Begin
          tkBeginMemorisedEntries : baOld_Memorised_Transaction_List.LoadFromFile( S );
          tkBeginMatchedItems     : FMatched_Items_List.LoadFromFile( S);
          tkBeginMemorisationsList : baMemorisations_List.LoadFromStream(S);
-         tkBeginDeleted_Transaction_List: baDeleted_Transaction_List.LoadFromFile(S);  
+         tkBeginDeleted_Transaction_List: baDeleted_Transaction_List.LoadFromFile(S);
+         tkBeginExchange_Gain_Loss_List: baExchange_Gain_Loss_List.LoadFromFile(S);  
          else
          begin { Should never happen }
             Msg := Format( '%s : Unknown Token %d', [ ThisMethodName, Token ] );
@@ -733,7 +738,8 @@ begin
 
    baTransaction_List.SaveToFile( S );
    baMemorisations_List.SaveToStream( S);
-   baDeleted_Transaction_List.SaveToFile(S); 
+   baDeleted_Transaction_List.SaveToFile(S);
+   baExchange_Gain_Loss_List.SaveToFile(S); 
 
    //as of version 60.5 this list is no longer used.  It should be removed
    //in future version.  It has only been left in to aid in upgrading from version

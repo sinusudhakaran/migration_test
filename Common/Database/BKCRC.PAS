@@ -32,6 +32,7 @@ PROCEDURE UpdateCRC( CONST Rec : TMoreClient_Rec; VAR CRC : LongWord ); OVERLOAD
 PROCEDURE UpdateCRC( CONST Rec : TJob_Heading_Rec; VAR CRC : LongWord ); OVERLOAD;
 PROCEDURE UpdateCRC( CONST Rec : TClientExtra_Rec; VAR CRC : LongWord ); OVERLOAD;
 PROCEDURE UpdateCRC( CONST Rec : TDeleted_Transaction_Rec; VAR CRC : LongWord ); OVERLOAD;
+PROCEDURE UpdateCRC( CONST Rec : TExchange_Gain_Loss_Rec; VAR CRC : LongWord ); OVERLOAD;
 
 // ------------------------------------------------------------------- 
 Implementation uses CRC32, MoneyDef;
@@ -474,6 +475,21 @@ Begin
       CRC32.UpdateCRC( CRC , RS^, Len );
       Len := Length( dxExternal_GUID );
       If ( Len > 0 ) then CRC32.UpdateCRC( CRC, Pointer( dxExternal_GUID )^, Len );
+   end;
+end;
+
+// ------------------------------------------------------------------- 
+
+PROCEDURE UpdateCRC( CONST Rec : TExchange_Gain_Loss_Rec; VAR CRC : LongWord ); OVERLOAD;
+Var
+   Len    : Integer;
+   RS, RE : Pointer;
+Begin
+   With Rec do begin
+      RS    := @glRecord_Type;
+      RE    := @glEOR;
+      Len   := Integer( RE ) - Integer( RS );
+      CRC32.UpdateCRC( CRC , RS^, Len );
    end;
 end;
 

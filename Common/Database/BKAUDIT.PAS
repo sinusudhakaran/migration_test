@@ -890,6 +890,13 @@ begin
     FAuditNamesArray[233,247] := 'Core_Transaction_ID';
     FAuditNamesArray[233,248] := 'Core_Transaction_ID_High';
 
+   FAuditTableArray[202] := 'Exchange_Gain_Loss';
+    FAuditNamesArray[202,204] := 'Date';
+    FAuditNamesArray[202,205] := 'Amount';
+    FAuditNamesArray[202,206] := 'Account';
+    FAuditNamesArray[202,207] := 'Posted_Date';
+    FAuditNamesArray[202,208] := 'Audit_Record_ID';
+
 end;
 
 initialization

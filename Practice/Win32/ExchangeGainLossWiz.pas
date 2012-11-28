@@ -178,6 +178,15 @@ const
   PostSuccessFmt =
     'Exchange gain/loss entries have been successfully posted for %s %s.';
 
+const
+  MonthEndingAlreadyRunTitle = 'Confirmation';
+
+  MonthEndingAlreadyRunWarning =
+    'The Month Ending selected has already had the Exchange Gains and/or Losses calculated. Recalculating the Exchange Gains/Losses will overwrite any existing figures.'+sLineBreak+
+    sLineBreak+
+    'Are you sure you want to continue?';
+
+
 
 {------------------------------------------------------------------------------}
 function RunExchangeGainLossWizard(aClient : TClientObj): boolean;
@@ -186,6 +195,7 @@ var
   HasWarnings : boolean;
   ErrorMsg : string;
   i: integer;
+  iFirstMonth: integer;
 begin
   Wizard := TwizExchangeGainLoss.Create(Application.MainForm); // FormCreate
   try
@@ -217,18 +227,23 @@ begin
         fMonths.Refresh;
 
         // Add to combo box in REVERSE order
+        iFirstMonth := fMonths.Count - fMonths.DetermineFirstMonth - 1;
         for i := fMonths.Count-1 downto 0 do
         begin
           cmbMonth.AddItem('', TObject(i));
+
+          // Select, if suitable
+          if (i = iFirstMonth) then
+            cmbMonth.ItemIndex := iFirstMonth;
         end;
+
+        // Nothing selected?
+        if (cmbMonth.ItemIndex = -1) then
+          cmbMonth.ItemIndex := cmbMonth.Items.Count-1; // Earliest month
 
         // Enable/disable month combobox and warnings
         cmbMonth.Enabled := (fMonths.Count > 0);
         lblNoMonthEndings.Visible := not cmbMonth.Enabled;
-
-        // Select the earliest month (or last in the list really)
-        if cmbMonth.Enabled then
-          cmbMonth.ItemIndex := cmbMonth.Items.Count-1;
       end;
 
       // Cancelled?
@@ -448,6 +463,7 @@ procedure TwizExchangeGainLoss.DoBeforeMoveToStep(OldStepID : integer; var NewSt
 var
   MovingForward : boolean;
   sErrors: string;
+  iContinue: integer;
 begin
   Assert(OldStepID in [stMin..stMax], 'DoBeforeMoveToStep.OldStepID out of range');
   Assert(NewStepID in [stMin..stMax], 'DoBeforeMoveToStep.NewStepID out of range');
@@ -465,6 +481,17 @@ begin
           HelpfulWarningMsg(sErrors, 0);
           Cancel := true;
           Exit;
+        end;
+
+        // Already run?
+        if fMonths[SelectedMonthIndex].AlreadyRun then
+        begin
+          iContinue := AskYesNo(MonthEndingAlreadyRunTitle, MonthEndingAlreadyRunWarning, dlg_Yes, 0);
+          if (iContinue <> dlg_Yes) then
+          begin
+            Cancel := true;
+            Exit;
+          end;
         end;
       end;
     end;

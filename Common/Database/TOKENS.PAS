@@ -58,6 +58,8 @@ CONST
    tkBeginCoding_Stats_List            = 70;
    tkBeginDeleted_Transaction_List     = 71;
 
+   tkBeginExchange_Gain_Loss_List      = 72;
+
    tkLastAuditRecordID        = 252;
    tkEndRecord                = 253;
    tkEndSection               = 254;

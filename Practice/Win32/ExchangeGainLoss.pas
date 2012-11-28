@@ -26,7 +26,8 @@ uses
   bautils,
   InsertTrans,
   AuditMgr,
-  LogUtil;
+  LogUtil,
+  glObj32;
 
 type
   { ----------------------------------------------------------------------------
@@ -149,6 +150,8 @@ type
     function  GetMonthEndingDateAsStDate: TStDate;
     property  MonthEndingDateAsStdate: TStDate read GetMonthEndingDateAsStDate;
     procedure DetermineMonthStartEnd(var aStart: TStDate; var aEnd: TStDate);
+    function  GetCanBeFirstMonth: boolean;
+    property  CanBeFirstMonth: boolean read GetCanBeFirstMonth;
   end;
 
   TMonthEndingArray = array of TMonthEnding;
@@ -209,8 +212,6 @@ type
     procedure CalculateGainLoss(var aMonth: TMonthEnding); overload;
     procedure CalculateGainLoss; overload;
     // Post entries
-    procedure DeletePreviousGainLossEntry(const aMonth: PMonthEnding;
-                const aTransactions: TTransaction_List);
     procedure PostGainLossEntry(const aMonth: PMonthEnding;
                 const aBankAccount: TMonthEndingBankAccount);
 
@@ -229,6 +230,8 @@ type
     function  GetItem(const aIndex: integer): TMonthEnding;
     property  Items[const aIndex: integer]: TMonthEnding read GetItem; default;
 
+    function  DetermineFirstMonth: integer;
+
     function  ValidateMonthEnding(const aMonthIndex: integer;
                 var aErrors: string): boolean;
 
@@ -244,21 +247,6 @@ type
   ---------------------------------------------------------------------------- }
   function  ValidateExchangeGainLoss(const aClient: TClientObj;
               var aErrors: string): boolean;
-
-  { The Gain/Loss transaction is posted to the last day of the month with the
-    Gain/Loss amount from the wizard. }
-  function  IsGainLossTransaction(const aTransaction: pTransaction_Rec): boolean;
-
-  // Special field in transaction (re-using txSF_CGT_Date)
-  function  GetGainLossPostedDate(const aTransaction: pTransaction_Rec): TStDate;
-  procedure SetGainLossPostedDate(const aTransaction: pTransaction_Rec;
-              const aValue: TStDate);
-
-  { Special baUtils.GetBalances that ignores the Gain/Loss Transaction
-    Note: this is quite important because it distorts the COB/CSUM/CCB
-    calculations. }
-  procedure GainLossGetBalances(b: TBank_Account; d1, d2: tStDate; var BankOpBal,
-              BankClBal, SystemOpBal, SystemClBal: money);
 
 
 implementation
@@ -462,6 +450,7 @@ function TMonthEnding.RegisterBankAccount(const aBankAccount: TBank_Account): PM
 var
   i: integer;
   iCount: integer;
+  PostedEntry: TExchange_Gain_Loss;
 begin
   ASSERT(assigned(aBankAccount));
 
@@ -481,6 +470,20 @@ begin
   BankAccounts[iCount].BankAccount := aBankAccount;
 
   result := @BankAccounts[iCount];
+
+  // See if we've run before for this month
+  with aBankAccount.baExchange_Gain_Loss_List do
+    PostedEntry := GetPostedEntry(MonthEndingDateAsStdate);
+
+  // Nothing to record?
+  if not Assigned(PostedEntry) then
+    exit;
+
+  Inc(NrAlreadyRun);
+
+  // Store this locally for backwards compatability
+  result.PostedEntry.Date := PostedEntry.glFields.glDate;
+  result.PostedEntry.GainLoss := PostedEntry.glFields.glAmount;
 end;
 
 {------------------------------------------------------------------------------}
@@ -549,6 +552,17 @@ begin
   aStart := DateTimeToStDate(Date);
 
   aEnd := DateTimeToStdate(MonthEndingDate);
+end;
+
+{------------------------------------------------------------------------------}
+function TMonthEnding.GetCanBeFirstMonth: boolean;
+begin
+  result :=
+    (NrTransactions > 0) and
+    not AlreadyRun and
+    not Transferred and
+    not Finalised and
+    not AvailableData;
 end;
 
 
@@ -868,18 +882,6 @@ begin
     pBankAccount := pMonth.RegisterBankAccount(aBankAccount);
     ASSERT(assigned(pBankAccount));
 
-    // Gain/Loss record?
-    if IsGainLossTransaction(pTransaction) then
-    begin
-      Inc(pMonth.NrAlreadyRun);
-
-      pBankAccount.PostedEntry.GainLoss := pTransaction.txAmount;
-      pBankAccount.PostedEntry.Date := GetGainLossPostedDate(pTransaction);
-
-      // Ignore this record completely for our calculations
-      continue;
-    end;
-
     // Transactions
     Inc(pMonth.NrTransactions);
 
@@ -1050,7 +1052,7 @@ var
   SystemOpBal: Money; // Dummy
   SystemClBal: Money; // Dummy
 begin
-  GainLossGetBalances(aBankAccount, aStart, aEnd, aOpening, aClosing, SystemOpBal, SystemClBal);
+  baUtils.GetBalances(aBankAccount, aStart, aEnd, aOpening, aClosing, SystemOpBal, SystemClBal);
 end;
 
 {------------------------------------------------------------------------------}
@@ -1105,10 +1107,6 @@ begin
     if not ((aStart <= dtEffective) and (dtEffective <= aEnd)) then
       continue;
 
-    // Exclude gain/loss transactions from this calculation (very important)
-    if IsGainLossTransaction(Transaction) then
-      continue;
-
     // SUM
     SUM := SUM + Transaction.txAmount;
 
@@ -1155,82 +1153,18 @@ begin
 end;
 
 {------------------------------------------------------------------------------}
-procedure TMonthEndings.DeletePreviousGainLossEntry(const aMonth: PMonthEnding;
-  const aTransactions: TTransaction_List);
-var
-  i: integer;
-  pTransaction: pTransaction_Rec;
-begin
-  for i := aTransactions.ItemCount-1 downto 0 do
-  begin
-    pTransaction := aTransactions[i];
-
-    // Only delete gain/loss transactions
-    if not IsGainLossTransaction(pTransaction) then
-      continue;
-
-    if (pTransaction.txDate_Effective <> aMonth.MonthEndingDateAsStdate) then
-      continue;
-
-    aTransactions.Delete(pTransaction);
-  end;
-end;
-
-{------------------------------------------------------------------------------}
 procedure TMonthEndings.PostGainLossEntry(const aMonth: PMonthEnding;
   const aBankAccount: TMonthEndingBankAccount);
 var
   BankAccount: TBank_Account;
-  Transactions: TTransaction_List;
-  pTransaction: pTransaction_Rec;
   sLog: string;
 begin
   BankAccount := aBankAccount.BankAccount;
-  Transactions := BankAccount.baTransaction_List;
 
-  // Delete previous entry
-  DeletePreviousGainLossEntry(aMonth, BankAccount.baTransaction_List);
-
-  // New transaction (FillChar with basic fields set)
-  pTransaction := Transactions.New_Transaction;
-  ASSERT(assigned(pTransaction));
-
-  // Assign default values
-  with pTransaction^ do
-  begin
-    txSource := orExchangeGainLoss; // New source type
-    txDate_Presented := aMonth.MonthEndingDateAsStdate; // Last day of the month
-    txDate_Effective := aMonth.MonthEndingDateAsStdate; // Last day of the month
-    txAmount := aBankAccount.GainLoss;
-    txReference := TRANSACTION_REFERENCE;
-    txOld_Narration := TRANSACTION_DESCRIPTION;
-    txAccount := BankAccount.baFields.baExchange_Gain_Loss_Code;
-    txCoded_By := cbManual; // Stop the auto-coding process
-    // Note: do not set txLocked to true, as it can be easily unlocked
-    txGL_Narration := TRANSACTION_DESCRIPTION;
-    SetGainLossPostedDate(pTransaction, CurrentDate); // Custom re-used field
-  end;
-
-{$IFDEF DEBUG}
-  with pTransaction^ do
-  begin
-    pTransaction.txAmount := 0;
-    pTransaction.txSpare_Money_1 := 5;
-    pTransaction.txSpare_Money_2 := 15;
-  end;
-{$ENDIF}
-
-  // Insert into Transactions list
-  Transactions.Insert_Transaction_Rec(pTransaction);
-
-  {-----------------------------------------------------------------------------
-    Copied from InsertTrans.pas
-  -----------------------------------------------------------------------------}
-  with BankAccount do
-  begin
-    if (baFields.baCurrent_Balance <> Unknown) then
-      baFields.baCurrent_Balance := baFields.baCurrent_Balance + pTransaction.txAmount;
-  end;
+  // Post entry with all relevant data from today
+  with BankAccount.baExchange_Gain_Loss_List do
+    PostEntry(aMonth.MonthEndingDateAsStdate, aBankAccount.GainLoss,
+      BankAccount.baFields.baExchange_Gain_Loss_Code);
 
   // Log?
   sLog := Format(
@@ -1295,6 +1229,23 @@ begin
 end;
 
 {------------------------------------------------------------------------------}
+function TMonthEndings.DetermineFirstMonth: integer;
+var
+  i: integer;
+begin
+  for i := 0 to Count-1 do
+  begin
+    if fMonthEndings[i].CanBeFirstMonth then
+    begin
+      result := i;
+      exit;
+    end;
+  end;
+
+  result := -1;
+end;
+
+{------------------------------------------------------------------------------}
 function TMonthEndings.ValidateMonthEnding(const aMonthIndex: integer;
   var aErrors: string): boolean;
 begin
@@ -1329,109 +1280,6 @@ begin
     PostGainLossEntry(pMonth, pMonth.BankAccounts[i]);
   end;
 end;
-
-{------------------------------------------------------------------------------}
-function IsGainLossTransaction(const aTransaction: pTransaction_Rec): boolean;
-begin
-  result := (aTransaction.txSource = orExchangeGainLoss);
-end;
-
-{------------------------------------------------------------------------------}
-function GetGainLossPostedDate(const aTransaction: pTransaction_Rec): TStDate;
-begin
-  result := aTransaction.txSF_CGT_Date;
-end;
-
-{------------------------------------------------------------------------------}
-procedure SetGainLossPostedDate(const aTransaction: pTransaction_Rec;
-  const aValue: TStDate);
-begin
-  aTransaction.txSF_CGT_Date := aValue;
-end;
-
-{------------------------------------------------------------------------------}
-Procedure GainLossGetBalances( b: TBank_Account; d1, d2: tStDate; Var BankOpBal,
-   BankClBal, SystemOpBal, SystemClBal: money);
-Var
-   E           : Integer;
-   Transaction : pTransaction_Rec;
-   Amount      : Money;
-Begin { GetBalances }
-   With b Do
-   Begin
-      BankOpBal := bafields.baCurrent_Balance;
-      BankClBal := bafields.baCurrent_Balance;
-      SystemOpBal := bafields.baCurrent_Balance;
-      SystemClBal := bafields.baCurrent_Balance;
-
-      If bafields.baCurrent_Balance = Unknown Then
-      Begin
-        exit
-      End { bafields.baCurrent_Balance = Unknown };
-
-
-      With baTransaction_List Do
-      Begin
-         For E := 0 to Pred(ItemCount) Do
-         Begin
-            Transaction := Transaction_At(E);
-            With Transaction^ Do
-            Begin
-
-               // Completely ignore posted gain/loss transactions for our month
-               if IsGainLossTransaction(Transaction) and (txDate_Effective = d2) then
-                  continue;
-
-               Amount := txAmount;
-
-               If txDate_Presented <> 0 Then
-               Begin
-                  Case bkDateUtils.CompareDates(txDate_Presented, d1, d2) Of
-                     Earlier:;
-                     Within:
-                     Begin
-                        BankOpBal := BankOpBal - Amount;
-                     End;
-                     Later:
-                     Begin
-                        BankOpBal := BankOpBal - Amount;
-                        BankClBal := BankClBal - Amount;
-                     End;
-                  End;
-
-                  Case bkDateUtils.CompareDates(txDate_Effective, d1, d2) Of
-                     Earlier:;
-                     Within:
-                     Begin
-                        SystemOpBal := SystemOpBal - Amount;
-                     End;
-                     Later:
-                     Begin
-                        SystemOpBal := SystemOpBal - Amount;
-                        SystemClBal := SystemClBal - Amount;
-                     End;
-                  End
-               End { txDate_Presented <> 0 }
-               Else
-               Begin { Unpresented }
-                  Case bkDateUtils.CompareDates(txDate_Effective, d1, d2) Of
-                     Earlier:
-                     Begin
-                        SystemOpBal := SystemOpBal + Amount;
-                        SystemClBal := SystemClBal + Amount;
-                     End;
-                     Within:
-                     Begin
-                        SystemClBal := SystemClBal + Amount
-                     End;
-                     Later:;
-                     End
-               End { not (txDate_Presented <> 0) };
-            End { with Transaction_At(E)^ }
-         End { for E }
-      End { with baTransaction_List };
-   End { with b };
-End; { GetBalances }
 
 
 {------------------------------------------------------------------------------}

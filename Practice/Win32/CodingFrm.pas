@@ -550,7 +550,6 @@ uses
    trxList32,
    Files,
    ForexHelpers,
-   ExchangeGainLoss,
    AccountLookupFrm,
    bkMaskUtils,
    PayeeLookupFrm,
@@ -3481,10 +3480,6 @@ var
       if FSearchText > '' then
          if not Findtext then
             Exit;
-
-      // Don't display Gain/Loss transactions in the coding screen
-      if IsGainLossTransaction(pT) then
-        Exit;
 
       // Still Here...
       Result := true

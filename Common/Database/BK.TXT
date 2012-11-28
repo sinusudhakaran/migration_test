@@ -1,8 +1,8 @@
-$|BK_FILE_VERSION  = 171;  (* Current Version counter for files
+$|BK_FILE_VERSION  = 172;  (* Current Version counter for files
 $|                           Changes if structure or method of storing a value would cause
 $|                           data to be represented incorrectly, or an exception to be raised *)
 $|
-$|BK_FILE_VERSION_STR = '5.26';   (* Should be changed whenever BK_FILE_VERSION changes. Is used to show user what version they need *)
+$|BK_FILE_VERSION_STR = '5.27';   (* Should be changed whenever BK_FILE_VERSION changes. Is used to show user what version they need *)
 $|
 $|(*
 $|    History  :     31    New format for GST class codes ( delimited string)
@@ -198,7 +198,7 @@ $|                  167    Add field for CheckOut Online Scheduled Reports
 $|                         Client File GUID not needed. Added field for File Transfer Method
 $|  5.23 (2012BLOPI)168    Add Offline version of Client Settings for a New Client when Notes online is used
 $|  5.24 (2012 Tag) 169    Add Core Trans ID and sent to Online to Transactions
-$|  5.25            170    Added DeliverDataDirectToBLO and BLOSecureCode fields to ClientExtra, to store 
+$|  5.25            170    Added DeliverDataDirectToBLO and BLOSecureCode fields to ClientExtra, to store
 $|                         tagging additions to the BLO settings form
 $|                         Added Core Trans ID High Integer
 $|                         Added Bank Account Core ID
@@ -207,6 +207,7 @@ $|                         Changed Transaction Matched_By from type "Memorised T
 $|  5.26            171    Added fields Contractor..ABN to Payee Detail record
 $|                         Added Exchange Gain_Loss_Code
 $|                         Added new structure DeleteTransaction
+$|  5.27            172    Added new structure ExchangeGainLoss
 $|*)
 
 
@@ -1165,4 +1166,12 @@ F|Reference|S|12
 F|Particulars|S|12
 F|Core Transaction ID|L
 F|Core Transaction ID High|L
+E
+
+N|Exchange Gain Loss|gl|202
+F|Date|D
+F|Amount|$
+F|Account|S|20
+F|Posted Date|D
+F|Audit Record ID|L
 E

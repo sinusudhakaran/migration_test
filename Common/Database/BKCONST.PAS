@@ -152,8 +152,7 @@ CONST
    orHistorical       = 3;
    orGeneratedRev     = 4;
    orMDE              = 5;     // Manual entry
-   orProvisional      = 6;
-   orExchangeGainLoss = 7;     orMax = 7;
+   orProvisional      = 6;     orMax = 6;
 
    orNames : Array[ orMin..orMax ] of String[20] =
       (  'Bank Data',
@@ -162,8 +161,7 @@ CONST
          'Historical',
          'Generated Reversal',
          'Manual Data Entry',
-         'Provisional Data',
-         'Exchange Gain/Loss');
+         'Provisional Data');
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
