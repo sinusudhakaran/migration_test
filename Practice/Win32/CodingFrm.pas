@@ -603,7 +603,8 @@ uses
    PayeeObj, UsageUtils, QueryTx, NewReportUtils,
    CountryUtils, SetClearTransferFlags, ExchangeRateList, AuditMgr,
    BankLinkOnlineServices,
-   dxList32;
+   dxList32,
+   CAUtils;
 
 const
    UnitName = 'CODINGFRM';
@@ -6020,18 +6021,24 @@ begin
   //check is a data row
   if ValidDataRow(RowNum) then begin
      pT   := WorkTranList.Transaction_At(RowNum-1);
-     if not pT^.txGST_Has_Been_Edited then exit;
+     // if not pT^.txGST_Has_Been_Edited then exit;  Removed this, need to check for invalid GST chart codes
      R := CellRect;
      C := TableCanvas;
      S := ShortString( Data^);
      if S = '' then exit;
      {paint background}
      c.Brush.Color := CellAttr.caColor;
+     if not CASystemsGSTOK(MyClient, pT^.txGST_Class) then
+     begin
+       c.Brush.Color := clRed;
+       C.Font.Color := clWhite;
+     end;
      c.FillRect(R);
      InflateRect( R, -2, -2 );
      {draw data}
      InflateRect( R, -1, -1 );
-     C.Font.Color := bkGSTEditedColor;
+     if pT^.txGST_Has_Been_Edited then
+       C.Font.Color := bkGSTEditedColor;
      DrawText(C.Handle, PChar( S ), StrLen( PChar( S ) ), R, DT_LEFT or DT_VCENTER or DT_SINGLELINE);
      DoneIt := true;
   end;

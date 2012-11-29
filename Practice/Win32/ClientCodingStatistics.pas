@@ -238,7 +238,7 @@ begin
     FillChar (FLocked,        Sizeof(FLocked),        0);
     FillChar (FUnlocked,      Sizeof(FUnlocked ),     0);
     FillChar (FDownloaded,    Sizeof(FDownloaded ),   0);
-    FillChar (FNonPosting,    Sizeof(FDownloaded ),   0);
+    FillChar (FNonPosting,    Sizeof(FNonPosting ),   0);
     FFirstdate := MaxInt;
     FLastDate := 0;
     FLastDate := 0;
@@ -547,17 +547,28 @@ Var
   begin
      FFirstDate := Min (FFirstDate, Transaction.txDate_Effective);
      FLastDate  := Max (FLastDate,  Transaction.txDate_Effective);
-//     BLastDate  := Max (BLastDate,  Transaction.txDate_Effective);
      P := GetPeriod( Transaction.txDate_Effective );
      Inc(FCount[p]);
-     if (Transaction.txAccount <> '') and
-        (CompareText(Transaction.txAccount, 'DISSECTED') <> 0) and
-        (CompareText(Transaction.txAccount, 'DISSECT') <> 0) then
+     // Add the transactions with posting not allowed. Any period with a
+     // transaction that doesn't have posting allowed is not fully coded 
+     if (Transaction.txAccount <> '') then
      begin
-       Account_Rec := Client.clChart.FindCode(Transaction.txAccount);
-       if (Assigned(Account_Rec)) and
-          (Account_Rec^.chPosting_Allowed) then
-         Inc(FNonPosting[p]);
+       Dissection := Transaction.txFirst_Dissection;
+       if Dissection = nil then
+       begin
+         Account_Rec := Client.clChart.FindCode(Transaction.txAccount);
+         if (Assigned(Account_Rec)) and not (Account_Rec^.chPosting_Allowed) then
+           Inc(FNonPosting[p]);
+       end else
+       begin
+         repeat
+           //check the dissections instead...
+           Account_Rec := Client.clChart.FindCode(Dissection.dsAccount);
+           if (Assigned(Account_Rec)) and not (Account_Rec^.chPosting_Allowed) then
+             Inc(FNonPosting[p]);
+           Dissection := Dissection.dsNext;
+         until Dissection = nil;
+       end;
      end;
 
      if (Transaction.txDate_Transferred = 0) then begin
