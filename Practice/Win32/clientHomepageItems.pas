@@ -3331,7 +3331,7 @@ var
   i: integer;
 begin
   Result := 0;
-  for i := 1 to FMonthEndings.Count do
+  for i := 0 to High(TCHPBaseList(ParentList).FSelection) do
   begin
     if TCHPBaseList(ParentList).FSelection[i] then
     begin

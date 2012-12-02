@@ -1729,13 +1729,11 @@ begin
    case Key of
    VK_RIGHT : if Assigned(ClientTree.FocusedNode) then begin
          btnMonthRightClick(nil);
-         //TreeList.OnKeyDown(Key,Shift);
          Key := 0;
       end;
-      
+
    VK_LEFT : if Assigned(ClientTree.FocusedNode) then begin
           btnMonthLeftClick(nil);
-         //TreeList.OnKeyDown(Key,Shift);
          Key := 0;
       end;
    else inherited;
