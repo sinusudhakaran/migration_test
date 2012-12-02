@@ -474,6 +474,9 @@ begin //RefreshCoding
               end else if lbase is TCHAccountItem then begin
                  SelAccount := ClientTree.AbsoluteIndex(CurParentNode);
                  Break;
+              end else if lbase is TCHForeignItem then
+              begin
+                Break;
               end;
             end;
             CurParentNode := ClientTree.GetNextSelected(CurParentNode);
@@ -634,8 +637,11 @@ begin //RefreshCoding
 
            i := btForeign;
            ForeignItem := TreeList.FindItem(TreeList.TestForeign,i);
-           TreeList.RemoveItem(ForeignItem);
-           TreeList.RemoveItem(TreeList.FindGroupID(grp_Foreigns));
+           if not ShowForeignHeader then
+           begin
+             TreeList.RemoveItem(ForeignItem);
+             TreeList.RemoveItem(TreeList.FindGroupID(grp_Foreigns));
+           end;
 
            Lbase := TreeList.FindGroupID (grp_Foreigns);
            if assigned(lBase) then
@@ -1728,7 +1734,7 @@ begin
       end;
       
    VK_LEFT : if Assigned(ClientTree.FocusedNode) then begin
-         btnMonthLeftClick(nil);
+          btnMonthLeftClick(nil);
          //TreeList.OnKeyDown(Key,Shift);
          Key := 0;
       end;

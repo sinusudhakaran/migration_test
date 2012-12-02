@@ -3126,7 +3126,7 @@ end;
 
 constructor TCHForeignItem.Create(AClient: TClientObj; ATitle: string; AGroupID: Integer; MonthEndingsClass: TMonthEndingsClass);
 begin
-  inherited Create(AClient, ATitle, AGroupID);
+  inherited Create(AClient, ATitle, grp_Foreign);
   if not Assigned(fMonthEndings) then
     FMonthEndings := TMonthEndingsClass.Create(AClient);
   FMonthEndings.Options := [meoCullFirstMonths];
@@ -3180,7 +3180,7 @@ begin
         begin
           CellsFilled[CellPosition] := True;
           LSelected := Selected[CellPosition];
-          DrawCell(CellPosition, CellColor, GetPeriodPenColor(CellPosition), Canvas, CellRect, NodeSelected and LSelected); // DONT CHECK THIS IN
+          DrawCell(CellPosition, CellColor, GetPeriodPenColor(CellPosition), Canvas, CellRect, NodeSelected and LSelected);
         end;
       end;
     end;
@@ -3190,7 +3190,7 @@ begin
       if not CellsFilled[i] then
       begin
         LSelected := Selected[i];
-        DrawCell(i, bkBranding.ColorNoData, GetPeriodPenColor(i), Canvas, CellRect, NodeSelected and LSelected); // DONT CHECK THIS IN
+        DrawCell(i, bkBranding.ColorNoData, GetPeriodPenColor(i), Canvas, CellRect, NodeSelected and LSelected);
       end;
   end;
   inherited;
@@ -3205,6 +3205,10 @@ procedure TCHForeignItem.OnKeyDown(var Key: Word; Shift: TShiftState);
 begin
   case Key of
     VK_Return : OpenGainLossFromPeriod(GetSelectedPeriod);
+    VK_Left:
+    begin
+      inherited;
+    end
     else inherited;
   end;
 end;
@@ -3218,26 +3222,39 @@ end;
 
 function TCHForeignItem.SelectPeriod(const Value: Integer; Shift: TShiftstate): Boolean;
   var
-    PeriodNum,SelectedPeriod : Integer;
+    PeriodNum, SelectedPeriod, i : Integer;
   begin
-    Result := False;
-    if (Value < stFirstPeriod)
-    or (Value > stLastPeriod) then begin
+    if (Value < stFirstPeriod) or (Value > stLastPeriod) then
+    begin
       for PeriodNum := stFirstPeriod to stLastPeriod do
          Selected[PeriodNum] := False;
+    end else
+    if (Value > stFirstPeriod) and (Value < stLastPeriod) then
+    begin
+      Result := False;
+      if (Value < stFirstPeriod)
+      or (Value > stLastPeriod) then begin
+        for PeriodNum := stFirstPeriod to stLastPeriod do
+           Selected[PeriodNum] := False;
 
-    end else begin
-      if Value = stFirstPeriod then begin
-         SelectedPeriod := 1
-      end else if value = stLastPeriod then begin
-         SelectedPeriod := 12
       end else begin
-         SelectedPeriod := Value;
-         Result := True;
-      end;
+        if Value = stFirstPeriod then begin
+           SelectedPeriod := 1
+        end else if value = stLastPeriod then begin
+           SelectedPeriod := 12
+        end else begin
+           SelectedPeriod := Value;
+           Result := True;
+        end;
 
-      for PeriodNum := stFirstPeriod to stLastPeriod do
-        Selected[PeriodNum] := (PeriodNum = SelectedPeriod);
+        for PeriodNum := stFirstPeriod to stLastPeriod do
+          Selected[PeriodNum] := (PeriodNum = SelectedPeriod);
+      end;
+    end else // Value = stFirstPeriod or stLastPeriod
+    begin
+      for i := stFirstPeriod to stLastPeriod do
+         Selected[i] := (i = Value);
+       Result := Value in [ (stFirstPeriod + 1) .. (stLastPeriod -1)];
     end;
     ParentList.Tree.InvalidateColumn(1);
 end;
