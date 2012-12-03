@@ -8,8 +8,7 @@ uses
   ReportDefs, PrintMgrObj, FaxParametersObj, OvcDate, moneydef, Classes,
     UBatchBase;
 
-procedure DoListForexEntriesReport( Dest: TReportDest; RptBatch: TReportBase =
-  nil; MonthEndStr: string = '') ;
+procedure DoListForexEntriesReport( Dest: TReportDest; RptBatch: TReportBase = nil) ;
 
 // ----------------------------------------------------------------------------
 implementation
@@ -346,8 +345,7 @@ end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-procedure DoListForexEntriesReport( Dest: TReportDest; RptBatch: TReportBase = nil;
-                                    MonthEndStr: string = '') ;
+procedure DoListForexEntriesReport( Dest: TReportDest; RptBatch: TReportBase = nil) ;
 var
   Job: TListForexEntriesReport;
   S: string;
@@ -359,18 +357,8 @@ var
   i : Integer;
   Dumy: Boolean;
   LCTitle : String;
-  DT: TDateTime;
-  MonthStartInt, MonthEndInt: integer;
 begin
-  MonthEndInt := bkStr2Date(MonthEndStr);
-  DT := StrToDate(MonthEndStr);
-  DT := IncDay(DT, 1);
-  DT := IncMonth(DT, -1);
-  MonthStartInt := bkStr2Date(DateToStr(DT)); // TDateTime -> String -> Integer
-
   LParams := ForexParams.Create(ord(Report_Foreign_Exchange) , MyClient, RptBatch, dPeriod ) ;
-  LParams.FromDate := MonthStartInt;
-  LParams.ToDate := MonthEndInt;
   try
     LParams.GetBatchAccounts;
     repeat
