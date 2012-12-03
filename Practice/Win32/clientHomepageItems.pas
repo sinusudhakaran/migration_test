@@ -279,6 +279,8 @@ type
     FMonthEndings: TMonthEndings;
     function GetSelectedPeriod: integer;
     procedure OpenGainLossFromPeriod(Period: integer);
+    function GetMonthEnding(P: integer): integer;
+    function GetPeriodFillColor(MonthEnding: TMonthEnding): integer;
   protected
     procedure ContextCode (Sender : TObject); virtual;
     function HasAction(Period: Integer): Boolean; override;
@@ -3134,6 +3136,20 @@ begin
   FMultiSelect := False;
 end;
 
+function TCHForeignItem.GetPeriodFillColor(MonthEnding: TMonthEnding): integer;
+begin
+  if (MonthEnding.Transferred) then
+    Result := bkBranding.ColorTransferred
+  else if (MonthEnding.Finalised) then
+    Result := bkBranding.ColorFinalised
+  else if (MonthEnding.AlreadyRun) then
+    Result := bkBranding.ColorCoded
+  else if (MonthEnding.AvailableData) then
+    Result := bkBranding.ColorUncoded
+  else
+    Result := bkBranding.ColorNoData;
+end;
+
 
 procedure TCHForeignItem.AfterPaintCell(const Tag: integer; Canvas: TCanvas;
   CellRect: TRect);
@@ -3143,20 +3159,6 @@ var
   RangeYear, RangeMonth, RangeDay: Word;
   CellsFilled: array[1..12] of boolean;
   ExchangeGainOrLossPosted, LSelected: boolean;
-
-  function GetPeriodFillColor(MonthEnding: TMonthEnding): integer;
-  begin
-    if (MonthEnding.Transferred) then
-      Result := bkBranding.ColorTransferred
-    else if (MonthEnding.Finalised) then
-      Result := bkBranding.ColorFinalised
-    else if (MonthEnding.AlreadyRun) then
-      Result := bkBranding.ColorCoded
-    else if (MonthEnding.AvailableData) then
-      Result := bkBranding.ColorUncoded
-    else
-      Result := bkBranding.ColorNoData;
-  end;
 
 begin
   if (tag = CHPT_Processing) then begin
@@ -3221,61 +3223,48 @@ begin
 end;
 
 function TCHForeignItem.SelectPeriod(const Value: Integer; Shift: TShiftstate): Boolean;
-  var
-    PeriodNum, SelectedPeriod, i : Integer;
+var
+  PeriodNum, SelectedPeriod, i : Integer;
+begin
+  Result := False;
+  if (Value < stFirstPeriod) or (Value > stLastPeriod) then
   begin
-    if (Value < stFirstPeriod) or (Value > stLastPeriod) then
-    begin
+    for PeriodNum := stFirstPeriod to stLastPeriod do
+       Selected[PeriodNum] := False;
+  end else
+  if (Value > stFirstPeriod) and (Value < stLastPeriod) then
+  begin
+    if (Value < stFirstPeriod)
+    or (Value > stLastPeriod) then begin
       for PeriodNum := stFirstPeriod to stLastPeriod do
          Selected[PeriodNum] := False;
-    end else
-    if (Value > stFirstPeriod) and (Value < stLastPeriod) then
-    begin
-      Result := False;
-      if (Value < stFirstPeriod)
-      or (Value > stLastPeriod) then begin
-        for PeriodNum := stFirstPeriod to stLastPeriod do
-           Selected[PeriodNum] := False;
 
+    end else begin
+      if Value = stFirstPeriod then begin
+         SelectedPeriod := 1
+      end else if value = stLastPeriod then begin
+         SelectedPeriod := 12
       end else begin
-        if Value = stFirstPeriod then begin
-           SelectedPeriod := 1
-        end else if value = stLastPeriod then begin
-           SelectedPeriod := 12
-        end else begin
-           SelectedPeriod := Value;
-           Result := True;
-        end;
-
-        for PeriodNum := stFirstPeriod to stLastPeriod do
-          Selected[PeriodNum] := (PeriodNum = SelectedPeriod);
+         SelectedPeriod := Value;
+         Result := True;
       end;
-    end else // Value = stFirstPeriod or stLastPeriod
-    begin
-      for i := stFirstPeriod to stLastPeriod do
-         Selected[i] := (i = Value);
-       Result := Value in [ (stFirstPeriod + 1) .. (stLastPeriod -1)];
+
+      for PeriodNum := stFirstPeriod to stLastPeriod do
+        Selected[PeriodNum] := (PeriodNum = SelectedPeriod);
     end;
-    ParentList.Tree.InvalidateColumn(1);
+  end else // Value = stFirstPeriod or stLastPeriod
+  begin
+    for i := stFirstPeriod to stLastPeriod do
+       Selected[i] := (i = Value);
+     Result := Value in [ (stFirstPeriod + 1) .. (stLastPeriod -1)];
+  end;
+  ParentList.Tree.InvalidateColumn(1);
 end;
 
 procedure TCHForeignItem.UpdateMenu(const Tag: Integer; Offset: TPoint; Value: TpopupMenu);
 var
   Dr: TDateRange;
-  HasData: Boolean;
-  I: Integer;
-
-  function CheckItem(Item: TTreeBaseItem): Boolean;
-  begin
-    Result := False;
-    if not Item.NodeSelected then
-       Exit;
-    if not (Item is TCHForeignItem) then
-       Exit;
-    HasData := True;
-    Result := True;
-  end;
-  
+  Period, MonthEnding: integer;
 begin
   if Tag = CHPT_Processing then
   begin
@@ -3287,14 +3276,20 @@ begin
       DR := GetSelectDateRange;
       if DR.ToDate <= DR.FromDate then
         Exit;
-      HasData := False;
-      with ParentList do
-        for I := 0 to Count - 1 do
-          if CheckItem(TTreeBaseItem(List[i])) then
-            Break;
 
-      if Hasdata then
-        AddMenuItem('View ' + GetDateRangeS(DR),Value.Items,ContextCode,0);
+      // Checking if the selected period has exchange gain/loss entries,
+      // right clicking an empty cell shouldn't bring up anything
+      Period := GetSelectedPeriod;
+      if (Period > -1) then
+      begin
+        MonthEnding := GetMonthEnding(Period);
+        if (MonthEnding > -1) then
+        begin
+          if (GetPeriodFillColor(FMonthEndings.Items[MonthEnding]) <>
+          bkBranding.ColorNoData) then
+            AddMenuItem('View ' + GetDateRangeS(DR),Value.Items,ContextCode,0);
+        end;
+      end;
     end;
   end;
 end;
@@ -3390,9 +3385,8 @@ end;
 
 function TCHForeignItem.GetTagHint(const Tag: Integer; Offset: TPoint): string;
 var
-  P, i: integer;
-  PeriodDate, MonthEndingDate: TDateTime;
-  PeriodY, PeriodM, PeriodD, MonthEndingY, MonthEndingM, MonthEndingD: Word;
+  P, MonthEnding: integer;
+  PeriodDate: TDateTime;
 
   function GetProcessingStatus(MonthEnding: TMonthEnding): string;
   begin
@@ -3415,16 +3409,32 @@ begin
   PeriodDate := DateTimeFromPeriod(P);
   AddHint(FormatDateTime('mmm yyyy', PeriodDate));
 
+  MonthEnding := GetMonthEnding(P);
+  if (MonthEnding > -1) then
+    AddHint(GetProcessingStatus(FMonthEndings[MonthEnding]));
+
+  Result := FHint;
+end;
+
+// Pass in a period, returns the position of the period in the FMonthEndings array, or -1 if it's not in there
+function TCHForeignItem.GetMonthEnding(P: integer): integer;
+var
+  PeriodY, PeriodM, PeriodD, MonthEndingY, MonthEndingM, MonthEndingD: Word;
+  i: integer;
+  MonthEndingDate: TDateTime;
+begin
+  Result := -1;
   YMDFromPeriod(P, PeriodY, PeriodM, PeriodD);
   for i := 0 to FMonthEndings.Count - 1 do
   begin
     MonthEndingDate := StrToDate(DateToStr(FMonthEndings[i].Date)); // int -> string -> date
     DecodeDate(MonthEndingDate, MonthEndingY, MonthEndingM, MonthEndingD);
     if (CompareDate(StartOfAMonth(PeriodY, PeriodM), StartOfAMonth(MonthEndingY, MonthEndingM)) = 0) then // Same month
-      AddHint(GetProcessingStatus(FMonthEndings[i]));
+    begin
+      Result := i;
+      break;
+    end;
   end;
-
-  Result := FHint;
 end;
 
 // Fills in the 'Last Entry' field for the Exchange Gains/Losses row on the client home page
