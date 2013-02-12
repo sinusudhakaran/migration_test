@@ -4424,7 +4424,10 @@ begin
     //Rebuild the table
     BuildTableColumns;
     //Reset the active col in case the col was moved
-    ActiveCol := ColumnFmtList.GetColNumOfField(CurrentFieldID);
+    if (CurrentFieldID > 0) then    
+      ActiveCol := ColumnFmtList.GetColNumOfField(CurrentFieldID)
+    else
+      ActiveCol := 0;
     AllowRedraw := true;
   end;
 end;
