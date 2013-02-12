@@ -430,6 +430,7 @@ type
     actGetFromOnline: TAction;
     mniChangePassword: TMenuItem;
     mniExportdatatoBanklinkOnline: TMenuItem;
+    RzSpacer3: TRzSpacer;
     mmiTaxablePaymentsReport: TMenuItem;
     mniExchangeGainLossWizard: TMenuItem;
     N46: TMenuItem;

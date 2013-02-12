@@ -513,7 +513,8 @@ object frmMain: TfrmMain
         tbBudgetHide
         tbBudgetShow
         tbBudgetHelp
-        tbBudgetClose)
+        tbBudgetClose
+        RzSpacer3)
       object tbZero: TRzToolButton
         Left = 61
         Top = 4
@@ -610,6 +611,10 @@ object frmMain: TfrmMain
         Caption = 'Close'
         Visible = False
         OnClick = tbBudgetCloseClick
+      end
+      object RzSpacer3: TRzSpacer
+        Left = 819
+        Top = 4
       end
     end
   end
