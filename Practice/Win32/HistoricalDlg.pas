@@ -769,6 +769,7 @@ end;
 procedure TdlgHistorical.FormCreate(Sender: TObject);
 begin
   bkXPThemes.ThemeForm( Self);
+  FCountry := MyClient.clFields.clCountry;
  
   lblAcctDetails.Font.Name := Font.Name;
   lblTransRange.Font.Name := Font.Name;
@@ -891,7 +892,7 @@ begin
             InsColDefnRec( 'GST Amount', ceGSTAmount, celGstAmt, 70, true, AllowGSTAmtEditing, AllowGSTAmtEditing, -1  );
          end;
          whUK : begin
-            InsColDefnRec( 'VAT',   ceGSTClass, celGSTCode, 50, true, true, true, -1, 'GST Class ID'  );
+            InsColDefnRec( 'VAT',   ceGSTClass, celGSTCode, 50, true, true, true, -1, 'VAT Class ID'  );
             InsColDefnRec( 'VAT Amount', ceGSTAmount, celGstAmt, 70, true, true, true, -1  );
          end;
          end;

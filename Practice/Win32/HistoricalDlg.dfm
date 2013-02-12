@@ -163,7 +163,7 @@ object dlgHistorical: TdlgHistorical
     Height = 21
     Style = csDropDownList
     Anchors = [akLeft, akBottom]
-    ItemHeight = 13
+    ItemHeight = 0
     TabOrder = 2
     OnChange = cmbSignChange
     Items.Strings = (
