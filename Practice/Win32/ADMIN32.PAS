@@ -63,9 +63,6 @@ function ValidateUserPassword(User: TUser_Rec; const Password: String): Boolean;
 function UpdateUserDataBlock(User: pUser_Rec; const Key: String): Boolean;
 function DecryptUserDataBlock(User: TUser_Rec; const Key: String): String;
 
-var
-  AdminIsLocked : Boolean = False;
-
 //******************************************************************************
 implementation
 uses
@@ -100,6 +97,7 @@ const
 var
   DebugMe       : boolean = false;
   AdminDate     : Int64 = 0;
+  AdminIsLocked : Boolean = False;
 
 function DecryptUserDataBlock(User: TUser_Rec; const Key: String): String;
 var

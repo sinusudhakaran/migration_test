@@ -38,7 +38,9 @@ uses
    SignUtils,
    stDateSt,
    RptParams,
-   sysutils;
+   sysutils,
+   ForexHelpers,
+   ExchangeGainLossReport;
 
 type
    TExceptionsReportEx = class(TBKReport)
@@ -177,7 +179,7 @@ begin
 
            clTemp_FRS_Account_Totals_Cash_Only := false;
 
-           CalculateAccountTotals.CalculateAccountTotalsForClient( Client);
+           CalculateAccountTotals.CalculateAccountTotalsForClient( Client, True, nil, -1, False, False, True);
 
            //check fields that are filled automatically
            Assert( clFRS_Reporting_Period_Type <= MyClient.clFields.clTemp_Periods_This_Year);
@@ -391,17 +393,23 @@ procedure TExceptionsReportEx.BKPrint;
     end;
 
 var
-   I         : LongInt;
-   PrintMe   : Boolean;
-   S         : String;
-   VM, VP : String[40];
-   ECount    : LongInt;
-   Month     : String[6];
-   Account   : pAccount_Rec;
-   AcctSign  : TSign;
-   p         : integer;
-   Actual     : Money;
-   Comparitive : Money;
+   I                   : LongInt;
+   PrintMe             : Boolean;
+   S                   : String;
+   VM, VP              : String[40];
+   ECount              : LongInt;
+   Month               : String[6];
+   Account             : pAccount_Rec;
+   AcctSign            : TSign;
+   p                   : integer;
+   mActualOrBudget     : Money;
+   mLastYear           : Money;
+   mBudget             : Money;
+   mYTD_ActualOrBudget : Money;
+   mYTD_LastYear       : Money;
+   mYTD_Budget         : Money;
+   Actual              : Money;
+   Comparitive         : Money;
 begin
    with ClientForReport, ClientForReport.clFields, ExceptOptions do
    begin
@@ -428,21 +436,63 @@ begin
                ( chPercent_Variance_Up   <> 0 )  OR
                ( chPercent_Variance_Down <> 0 )  Then
             Begin
+               //  This Period
+               mActualOrBudget := AccountInfo.ActualOrBudget(p);
+               // This Period Last Year
+               mLastYear := AccountInfo.LastYear(p);
+               // This Period Budgeted
+               mBudget := AccountInfo.Budget(p);
+
+               // Year to Date
+               mYTD_ActualOrBudget := AccountInfo.YTD_ActualOrBudget(p);
+               // Year to Date Last Year
+               mYTD_LastYear := AccountInfo.YTD_LastYear(p);
+               // Year to Date Budgeted
+               mYTD_Budget := AccountInfo.YTD_Budget(p);
+
+               // Add exchange gain/loss
+               if IsForeignCurrencyClient(ClientForReport) then
+               begin
+                  { Note:
+                    * ActualOrBudget is always Actual, never Budget
+                     (See AccountInfo flags)
+
+                    * Budget can remain as it is because it's retrieved
+                      differently from transactions
+                  }
+
+                  // This Period
+                  AddExchangeGainLossTo(ClientForReport, chAccount_Code,
+                    glpThisPeriod, mActualOrBudget);
+
+                  // This Period Last Year
+                  AddExchangeGainLossTo(ClientForReport, chAccount_Code,
+                    glpThisPeriodLastYear, mLastYear);
+
+                  // Year to Date
+                  AddExchangeGainLossTo(ClientForReport, chAccount_Code,
+                    glpYearToDate, mYTD_ActualOrBudget);
+
+                  // Year to Date Last Year
+                  AddExchangeGainLossTo(ClientForReport, chAccount_Code,
+                    glpYearToDateLastYear, mYTD_LastYear);
+               end;
+
                If ( ( Options and exYTD_vs_BudgetYTD  ) = exYTD_vs_BudgetYTD  ) then
                   PrintMe := PrintMe OR
-                  ( ExceedsBounds( Account, AccountInfo.YTD_ActualOrBudget( p), AccountInfo.YTD_Budget( p)));
+                  ( ExceedsBounds( Account, mYTD_ActualOrBudget, mYTD_Budget));
 
                If ( ( Options and exYTD_vs_LastYrYTD  ) = exYTD_vs_LastYrYTD  ) then
                   PrintMe := PrintMe OR
-                  ( ExceedsBounds( Account, AccountInfo.YTD_ActualOrBudget( p), AccountInfo.YTD_LastYear(p)));
+                  ( ExceedsBounds( Account, mYTD_ActualOrBudget, mYTD_LastYear));
 
                If ( ( Options and exThisPd_vs_Budget ) = exThisPd_vs_Budget ) then
                   PrintMe := PrintMe OR
-                  ( ExceedsBounds( Account, AccountInfo.ActualOrBudget(p), AccountInfo.Budget(p)));
+                  ( ExceedsBounds( Account, mActualOrBudget, mBudget));
 
                If ( ( Options and exThisPd_vs_LastYr ) = exThisPd_vs_LastYr ) then
                   PrintMe := PrintMe OR
-                  ( ExceedsBounds( Account, AccountInfo.ActualOrBudget(p), AccountInfo.LastYear(p)));
+                  ( ExceedsBounds( Account, mActualOrBudget, mLastYear));
 
                If PrintMe then
                Begin
@@ -455,8 +505,8 @@ begin
 
                   {  ------------------------------------------------------  }
                   {  This Period vs This Period Last Year                    }
-                  Actual      := AccountInfo.ActualOrBudget(p);
-                  Comparitive := AccountInfo.LastYear(p);
+                  Actual      := mActualOrBudget;
+                  Comparitive := mLastYear;
 
                   If ( ( Options and exThisPd_vs_LastYr ) = exThisPd_vs_LastYr ) and
                     ( ExceedsBounds( Account, Actual, Comparitive)) then
@@ -466,8 +516,8 @@ begin
 
                   {  ----------------------------------------------------------  }
                   { This Period vs Budgeted this Period                      }
-                  Actual      := AccountInfo.ActualOrBudget(p);
-                  Comparitive := AccountInfo.Budget(p);
+                  Actual      := mActualOrBudget;
+                  Comparitive := mBudget;
 
                   If ( ( Options and exThisPd_vs_Budget ) = exThisPd_vs_Budget ) and
                     ( ExceedsBounds( Account, Actual, Comparitive )) then
@@ -477,8 +527,8 @@ begin
 
                   {  ----------------------------------------------------------  }
                   { Year to Date vs Last Year                                }
-                  Actual      := AccountInfo.YTD_ActualOrBudget(p);
-                  Comparitive := AccountInfo.YTD_LastYear(p);
+                  Actual      := mYTD_ActualOrBudget;
+                  Comparitive := mYTD_LastYear;
 
                   If ( ( Options and exYTD_vs_LastYrYTD ) = exYTD_vs_LastYrYTD ) and
                      ( ExceedsBounds( Account, Actual, Comparitive)) then
@@ -488,8 +538,8 @@ begin
 
                   {  ----------------------------------------------------------  }
                   {  Year to Date vs Budgeted Year to Date                   }
-                  Actual      := AccountInfo.YTD_ActualOrBudget(p);
-                  Comparitive := AccountInfo.YTD_Budget(p);
+                  Actual      := mYTD_ActualOrBudget;
+                  Comparitive := mYTD_Budget;
 
                   If ( ( Options and exYTD_vs_BudgetYTD  ) = exYTD_vs_BudgetYTD  ) and
                      ( ExceedsBounds( Account, Actual, Comparitive ) ) then

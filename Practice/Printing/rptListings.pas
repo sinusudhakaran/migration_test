@@ -104,7 +104,8 @@ uses
    ChartReportDlg,
    CountryUtils,
    SystemMemorisationList,
-   SYDEFS;
+   SYDEFS,
+   ForexHelpers;
 
 const
   NUMBER_FORMAT = '#,##0.00;(#,##0.00);-';
@@ -3218,9 +3219,21 @@ begin
 
           case PayeeLine.plLine_Type of
             pltPercentage :
+            begin
               PutString( FormatFloat( PERCENT_FORMAT, PayeeLine.plPercentage / 10000) + pltNames[PayeeLine.plLine_Type]);
+            end;
+
             pltDollarAmt :
-              PutString( pltNames[PayeeLine.plLine_Type] + FormatFloat( '#.##', PayeeLine.plPercentage / 100));
+            begin
+              if IsForeignCurrencyClient then
+              begin
+                PutString( FormatFloat( '#.##', PayeeLine.plPercentage / 100));
+              end
+              else
+              begin
+                PutString( pltNames[PayeeLine.plLine_Type] + FormatFloat( '#.##', PayeeLine.plPercentage / 100));
+              end;
+            end
           else
             SkipColumn;
           end;

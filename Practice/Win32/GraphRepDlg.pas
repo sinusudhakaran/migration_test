@@ -154,9 +154,7 @@ begin
    cmbStartMonth.Hint := STDHINTS.RptFinYearStartHint;
    spnStartYear.Hint  := STDHINTS.RptFinYearStartHint;
 
-   chkGST.Hint         :=
-                       'Include GST in the graph figures|' +
-                       'Include GST in the graph figures';
+   chkGST.Hint         := Format('Include %s in the graph figures|' + 'Include %s in the graph figures', [MyClient.TaxSystemNameUC, MyClient.TaxSystemNameUC]);
    cmbBudget.Hint      :=
                        'Select a Budget to include in the Graph|' +
                        'Select a Budget to include as a line in the Graph';

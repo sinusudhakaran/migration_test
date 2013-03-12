@@ -407,6 +407,30 @@ namespace BankLink.Practice.BooksIO
 
 
 
+		/// <summary>
+		/// CoreAccountID property
+		/// </summary>
+		[XmlAttribute("CoreAccountID", DataType = "int")]
+		public Int32 CoreAccountID { get; set; }
+
+
+
+		/// <summary>
+		/// SecureOnlineCode property
+		/// </summary>
+		[XmlAttribute("SecureOnlineCode", DataType = "string")]
+		public String SecureOnlineCode { get; set; }
+
+
+
+		/// <summary>
+		/// ExchangeGainLossCode property
+		/// </summary>
+		[XmlAttribute("ExchangeGainLossCode", DataType = "string")]
+		public String ExchangeGainLossCode { get; set; }
+
+
+
 	}
 
 

@@ -897,6 +897,10 @@ begin
     FAuditNamesArray[202,207] := 'Posted_Date';
     FAuditNamesArray[202,208] := 'Audit_Record_ID';
 
+   FAuditTableArray[214] := 'Finalized_Exchange_Rate';
+    FAuditNamesArray[214,216] := 'Date';
+    FAuditNamesArray[214,217] := 'Rate';
+
 end;
 
 initialization

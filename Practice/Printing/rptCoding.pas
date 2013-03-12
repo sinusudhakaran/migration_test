@@ -89,6 +89,7 @@ var
   CRSettings         : TCodingReportSettings;
   FORMAT_AMOUNT      : String;
   FORMAT_AMOUNT2     : String;
+  ShowVatFootnote    : boolean;
 
   function HasNewEntriesToPrint( B : TBank_Account ) : Boolean;
    var
@@ -452,17 +453,20 @@ begin
          // See which column contains notes and narrations
          Job.NarrationColIdx := -1;
          Job.NotesColIdx := -1;
+         ShowVatFootnote := false;
          for i := 0 to Pred(Job.Columns.ItemCount) do
          begin
           if TReportColumn(Job.Columns.Report_Column_At(i)).Caption = 'Notes' then
             Job.NotesColIdx := i
           else if TReportColumn(Job.Columns.Report_Column_At(i)).Caption = 'Transaction Details' then
-            Job.NarrationColIdx := i;
+            Job.NarrationColIdx := i
+          else if TReportColumn(Job.Columns.Report_Column_At(i)).Caption = 'VAT (GBP)*' then
+            ShowVatFootnote := true;
          end;
 
          if TaxInvoice then
            AddJobFooter( Job, siFootNote, '( Tax Inv = Tax Invoice  [x] = Available )', true);
-         if (Client.clFields.clCountry = whUK) and (Client.HasForeignCurrencyAccounts) then
+         if ShowVatFootnote then
            AddJobFooter( Job, siFootNote, '* Please ensure that you indicate a currency for any VAT amounts recorded for this account.', true);
 
          //AddCodingFooter(Job);
@@ -692,10 +696,8 @@ begin
        entry.Free;
      end;
 
-     if IsForex then
-       Amt := dsForeign_Currency_Amount
-     else
-       Amt := dsAmount;
+     // Always use the actual amount, not the base amount
+     Amt := dsAmount;
 
      Case Style of
         rsStandard, rsStandardWithNotes :
@@ -949,11 +951,8 @@ Begin
        entry.Free;
      end;
 
-//     if IsForex then
-//        Amt := txForeign_Currency_Amount
-//     else
-        Amt := txAmount;
-
+      // Always use the actual amount, not the base amount
+      Amt := txAmount;
 
       Case Style of
          rsStandard, rsStandardWithNotes :

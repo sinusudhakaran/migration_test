@@ -88,7 +88,10 @@ uses
   RptParams,
   CountryUtils,
   baUtils,
-  Classes, PeriodUtils, GenUtils;
+  Classes, PeriodUtils, GenUtils,
+  ExchangeGainLoss,
+  DateUtils,
+  ISO_4217;
 
 
 {$IFDEF SmartBooks}
@@ -112,23 +115,34 @@ type
   //account
   TCashflowReportEx = class( TFinancialReportBase)
   protected
-    procedure GetValuesForPeriod(const pAcct : pAccount_Rec; const ForPeriod : integer; var Values : TValuesArray); override;
+    procedure GetValuesForPeriod(const pAcct : pAccount_Rec; const ForPeriod : integer; var Values : TValuesArray; UsePeriodStartEnd: boolean = false); override;
     procedure GetYTD_ValuesForPeriod(const pAcct : pAccount_Rec; const ForPeriod : integer; var Values : TValuesArray); override;
 
     procedure GetOpeningBalancesForPeriod(const pAcct : pAccount_Rec; const ForPeriod : integer; var Values : TValuesArray);
     function GetClosingBalancesForPeriod(const pAcct : pAccount_Rec; const ForPeriod : integer; var Values : TValuesArray): Boolean;
+    procedure GetExchangeGainLossForPeriod(const pAcct: pAccount_Rec; const ForPeriod: Integer; var Values: TValuesArray);
+    procedure SumExchangeGainLoss(const pAcct: pAccount_Rec; const ToPeriod: Integer; var Values: TValuesArray);
+    
     function  AccountNeedsPrinting( pAcct : pAccount_Rec) : boolean; override;
 
     procedure SetupColumnsTypes; override;
-    function NonBaseCurrencyContra(AContraCode: string): boolean;
-    function GetExchangeRateForForexContra(AContraCode: string; ForPeriod: integer; EndOfPerod: Boolean = False; LastYear: Boolean = False): Double;
+    function NonBaseCurrencyContra(AContraCode: string; var ForexLabel: string): boolean;
+    function GetExchangeRateForForexContra(AContraCode: string; ForPeriod: integer; EndOfPerod: Boolean = False;
+                                           LastYear: Boolean = False; GetRateFromEndOfLastMonth: Boolean = False): Double;
     procedure SetBaseAmounts(const pAcct : pAccount_Rec; var BaseAmounts: TBaseAmounts);
   private
-    FClosingBalanceExchangeRate: double;
+    // FClosingBalanceExchangeRate: double;
     FUseBaseAmounts: Boolean;
+    FMonthEndings: TMonthEndings;
+    procedure LoadMonthEndings;
+    function GetOpeningBalanceAmount(Code: string; IsStartOfFinancialYear: boolean;
+                                     PeriodNo: integer): Money;
+    procedure RetrieveGainLossData(pAcct: pAccount_Rec; var BaseAmounts: TBaseAmounts);
   public
     function  GetHeading( No : Integer): string; override;
     procedure PrintCashOnHandSection;
+
+    function GetPrintGainLossSummaryLegend: Boolean;
   end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -1023,12 +1037,94 @@ begin
   end;
 end;
 
+procedure TCashflowReportEx.GetExchangeGainLossForPeriod(const pAcct: pAccount_Rec; const ForPeriod: Integer; var Values: TValuesArray);
+var
+  AccountInfo  : TAccountInformation;
+  i            : integer;
+  ShowLastYear : boolean;
+  PeriodStartDate_TY, PeriodStartDate_LY,
+  PeriodEndDate_TY, PeriodEndDate_LY: integer;
+  MonthEndingNum: Integer;
+  NumberOfAccounts: integer;
+  j: integer;
+  GainLossDate: Integer;
+begin
+  Assert( Length( ColumnTypes) = Length( Values));
+
+  //values for cash flow reports will be in the following order
+  // Actual   Comparitive (Budget or Last Year)   Variance    Quantity
+  for i := Low( Values) to High( Values) do
+     Values[i] := 0;
+
+  ShowLastYear := (ClientForReport.clFields.clFRS_Compare_Type = cflCompare_To_Last_Year);
+
+  //need to check if any movement has occured on this code on or before the
+  //date of this period, if nothing has happened yet then return 0 for balance
+  GetPeriodStartDate( ClientForReport, ForPeriod, PeriodStartDate_TY, PeriodStartDate_LY);
+  GetPeriodEndDate( ClientForReport, ForPeriod, PeriodEndDate_TY, PeriodEndDate_LY);
+
+  for i := Low(Values) to High(Values) do 
+  begin
+    case ColumnTypes[i] of
+      ftActual: 
+      begin
+        for MonthEndingNum := 0 to FMonthEndings.Count - 1 do
+        begin
+          NumberOfAccounts := Length(FMonthEndings.Items[MonthEndingNum].BankAccounts);
+
+          GainLossDate := DateTimeToStDate(FMonthEndings.Items[MonthEndingNum].Date);
+          
+          if (GainLossDate >= PeriodStartDate_TY) and (GainLossDate <= PeriodEndDate_TY) then
+          begin  
+            for j := 0 to NumberOfAccounts - 1 do
+            begin     
+              if (FMonthEndings.Items[MonthEndingNum].BankAccounts[j].BankAccount.baFields.baContra_Account_Code = pAcct.chAccount_Code) then
+              begin
+                Values[i] := Values[i] + FMonthEndings.Items[MonthEndingNum].BankAccounts[j].PostedEntry.GainLoss;
+              end;
+            end;
+          end;
+        end;
+      end;
+      ftComparative:
+      begin
+        if ShowLastYear then
+        begin
+          for MonthEndingNum := 0 to FMonthEndings.Count - 1 do
+          begin
+            NumberOfAccounts := Length(FMonthEndings.Items[MonthEndingNum].BankAccounts);
+
+            GainLossDate := DateTimeToStDate(FMonthEndings.Items[MonthEndingNum].Date);
+            
+            if (GainLossDate >= PeriodStartDate_LY) and (GainLossDate <= PeriodEndDate_LY) then
+            begin  
+              for j := 0 to NumberOfAccounts - 1 do
+              begin     
+                if (FMonthEndings.Items[MonthEndingNum].BankAccounts[j].BankAccount.baFields.baContra_Account_Code = pAcct.chAccount_Code) then
+                begin
+                  Values[i] := Values[i] + FMonthEndings.Items[MonthEndingNum].BankAccounts[j].PostedEntry.GainLoss;
+                end;
+              end;
+            end;
+          end;
+        end;
+      end;
+      ftVariance: 
+      begin
+
+      end;
+    end;
+  end;
+end;
+
 function TCashflowReportEx.GetExchangeRateForForexContra(AContraCode: string; ForPeriod: integer
- ; EndOfPerod: Boolean = False; LastYear: Boolean = False): Double;
+ ; EndOfPerod: Boolean = False; LastYear: Boolean = False; GetRateFromEndOfLastMonth: Boolean = False): Double;
 var
   i: integer;
   ba : TBank_Account;
-  PeriodDate_TY, PeriodDate_LY: integer;
+  PeriodDate_TY, PeriodDate_LY, PeriodDate_TY_Modified: integer;
+  TestStr: string;
+  IsStartOfFinancialYear: boolean;
 begin
   Result := 0;
   for i := 0 to ClientForReport.clBank_Account_List.ItemCount - 1 do begin
@@ -1039,12 +1135,17 @@ begin
           GetPeriodEndDate(ClientForReport, ForPeriod, PeriodDate_TY, PeriodDate_LY)
         else
           GetPeriodStartDate(ClientForReport, ForPeriod, PeriodDate_TY, PeriodDate_LY);
+        TestStr := DateToStr(StDateToDateTime(PeriodDate_TY));
+
+        if GetRateFromEndOfLastMonth then
+          PeriodDate_TY := IncDate(PeriodDate_TY, -1, 0, 0); // We want to get the rate from the last day of the previous month
+        TestStr := DateToStr(StDateToDateTime(PeriodDate_TY));
         Result := ba.Default_Forex_Conversion_Rate(PeriodDate_TY);
         if LastYear then
-          Result := ba.Default_Forex_Conversion_Rate(PeriodDate_LY);        
+          Result := ba.Default_Forex_Conversion_Rate(PeriodDate_LY);
       end;
     end;
-  end;
+  end;                                                                    
 end;
 
 function TCashflowReportEx.GetHeading(No: Integer): string;
@@ -1115,13 +1216,70 @@ begin
   end;
 end;
 
+procedure TCashflowReportEx.SumExchangeGainLoss(const pAcct: pAccount_Rec; const ToPeriod: Integer; var Values: TValuesArray);
+var
+  PeriodValues: TValuesArray;
+  Period: Integer;
+  Index: Integer;
+begin
+  SetLength(PeriodValues, Length(Values));
+
+  for Index := Low(Values) to High(Values) do
+  begin
+    Values[Index] := 0;
+  end;
+  
+  for Period := 1 to ToPeriod do
+  begin
+    GetExchangeGainLossForPeriod(pAcct, Period, PeriodValues);
+
+    for Index := Low(PeriodValues) to High(PeriodValues) do
+    begin
+      Values[Index] := Values[Index] + PeriodValues[Index];
+    end;
+  end;
+end;
+
+function TCashflowReportEx.GetPrintGainLossSummaryLegend: Boolean;
+var
+  Index: Integer;
+  pAcct: pAccount_Rec;
+  ForexLabel: String;
+begin
+  Result := False;
+  
+  if ReportSectionNeedsPrinting( [ atBankAccount]) then
+  begin
+    if ClientForReport.clFields.clCflw_Cash_On_Hand_Style = cflCash_On_Hand_Summarised then
+    begin
+      for Index := 0 to Pred(FRptParameters.Chart.ItemCount) do
+      begin
+        pAcct := FRptParameters.Chart.Account_At(Index);
+
+        if (pAcct^.chAccount_Type in [atBankAccount]) and (pAcct^.chTemp_Include_In_Report) then
+        begin
+          if NonBaseCurrencyContra(pAcct.chAccount_Code, ForexLabel) then
+          begin
+            Result := True;
+
+            Break;
+          end;
+        end;
+      end;
+    end;
+  end;
+end;
+
 procedure TCashflowReportEx.GetValuesForPeriod(const pAcct: pAccount_Rec;
-  const ForPeriod: integer; var Values: TValuesArray);
+  const ForPeriod: integer; var Values: TValuesArray; UsePeriodStartEnd: boolean = false);
 var
   AccountInfo  : TAccountInformation;
-  i            : integer;
+  i, j         : integer;
   ShowLastYear : boolean;
   ShowBudget   : boolean;
+  GainLossFromDate, GainLossToDate: TDateTime;
+  GainLoss, GainLossLastYear: double;
+  GainLossChanged, GainLossLastYearChanged, AddMonthEnding: boolean;
 begin
   Assert( Length( ColumnTypes) = Length( Values));
 
@@ -1140,25 +1298,94 @@ begin
     AccountInfo.LastPeriodOfActualDataToUse := ClientForReport.clFields.clTemp_FRS_Last_Actual_Period_To_Use;
     AccountInfo.AccountCode                 := pAcct.chAccount_Code;
 
+    // Foreign exchange gain/loss
+    LoadMonthEndings;
+
+    GainLoss := 0;
+    GainLossLastYear := 0;
+    GainLossChanged := False;
+    GainLossLastYearChanged := False;
+    GainLossFromDate := StDateToDateTime(ClientForReport.clFields.clTemp_Period_Details_This_Year[ForPeriod].Period_Start_Date);
+    // GainLossToDate := StDateToDateTime(ClientForReport.clFields.clTemp_Period_Details_This_Year[ClientForReport.clFields.clTemp_FRS_Last_Period_To_Show].Period_End_Date);
+    GainLossToDate := StDateToDateTime(ClientForReport.clFields.clTemp_Period_Details_This_Year[ForPeriod].Period_End_Date);
+
+    for i := 0 to FMonthEndings.Count - 1 do
+    begin
+      AddMonthEnding := False;
+
+      if UsePeriodStartEnd then
+        AddMonthEnding := (FMonthEndings[i].Date >= GainLossFromDate) and
+                          (FMonthEndings[i].Date <= GainLossToDate)
+      else
+        AddMonthEnding := (MonthOf(FMonthEndings[i].Date) = MonthOf(GainLossToDate)) and
+                          (YearOf(FMonthEndings[i].Date) = YearOf(GainLossToDate));
+      if AddMonthEnding then
+      begin
+        for j := 0 to Length(FMonthEndings.Items[i].BankAccounts) - 1 do
+        begin
+          if (FMonthEndings.Items[i].BankAccounts[j].PostedEntry.FExchangeGainLossCode =
+              pAcct.chAccount_Code) then
+          begin
+            GainLossChanged := True;
+            GainLoss := GainLoss + FMonthEndings.Items[i].BankAccounts[j].PostedEntry.GainLoss;
+          end;
+        end;
+      end else
+      if (MonthOf(FMonthEndings[i].Date) = MonthOf(GainLossToDate)) and
+         (YearOf(FMonthEndings[i].Date) = YearOf(IncYear(GainLossToDate, -1))) then
+      begin
+        for j := 0 to Length(FMonthEndings.Items[i].BankAccounts) - 1 do
+        begin
+          if (FMonthEndings.Items[i].BankAccounts[j].PostedEntry.FExchangeGainLossCode =
+              pAcct.chAccount_Code) then
+          begin
+            GainLossLastYearChanged := True;
+            GainLossLastYear := GainLossLastYear + FMonthEndings.Items[i].BankAccounts[j].PostedEntry.GainLoss;
+          end;
+        end;
+      end;
+    end;
+
     for i := Low( Values) to High( Values) do begin
       case ColumnTypes[ i] of
-        ftActual : Values[ i]     := AccountInfo.ActualOrBudget( ForPeriod);
+        ftActual :
+        begin
+          if GainLossChanged then
+            Values[ i] := GainLoss
+          else
+            Values[ i] := AccountInfo.ActualOrBudget( ForPeriod);
+        end;
         ftQuantity : Values[ i]   := AccountInfo.QuantityOrBudget( ForPeriod);
         ftBudgetQuantity: Values[ i] := AccountInfo.BudgetQuantity(ForPeriod);
         ftBudgetUnitPrice: Values[ i] := AccountInfo.BudgetUnitPrice(ForPeriod);
         ftComparative : begin
           //does the user want last year or budget
           if ShowLastYear then
-            Values[i]   := AccountInfo.LastYear( ForPeriod);
+          begin
+            if GainLossLastYearChanged then
+              Values[i] := GainLossLastYear
+            else
+              Values[i]   := AccountInfo.LastYear( ForPeriod);
+          end;
           if ShowBudget then
             Values[i]   := AccountInfo.Budget( ForPeriod);
         end;
         ftVariance : begin
           //does the user want last year or budget
           if ShowLastYear then
-            Values[i]   := AccountInfo.Variance_ActualLastYear( ForPeriod);
+          begin
+            if GainLossChanged then
+              Values[i]   := GainLoss - AccountInfo.LastYear( ForPeriod)
+            else
+              Values[i]   := AccountInfo.Variance_ActualLastYear( ForPeriod);
+          end;
           if ShowBudget then
-            Values[i]   := AccountInfo.Variance_ActualBudget( ForPeriod);
+          begin
+            if GainLossChanged then
+              Values[i]   := GainLoss - AccountInfo.Budget( ForPeriod)
+            else
+              Values[i]   := AccountInfo.Variance_ActualBudget( ForPeriod);
+          end;
         end;
       end;
     end;
@@ -1172,9 +1399,12 @@ procedure TCashflowReportEx.GetYTD_ValuesForPeriod( const pAcct: pAccount_Rec;
                                                     var Values: TValuesArray);
 var
   AccountInfo  : TAccountInformation;
-  i            : integer;
+  i,j          : integer;
   ShowLastYear : boolean;
   ShowBudget   : boolean;
+  ToDateGainLoss, StartOfTheReport, EndOfThePeriod, StartOfLastYear, EndOfPeriodLastYear, EndOfLastYearYTD: TDateTime;
+  GainLoss, GainLossLastYear, GainLossYTDLastYear: double;
+  GainLossChanged, GainLossLastYearChanged, GainLossYTDLastYearChanged: boolean;
 begin
   Assert( Length( ColumnTypes) = Length( Values));
 
@@ -1193,28 +1423,107 @@ begin
     AccountInfo.LastPeriodOfActualDataToUse := ClientForReport.clFields.clTemp_FRS_Last_Actual_Period_To_Use;
     AccountInfo.AccountCode                 := pAcct.chAccount_Code;
 
+    // Foreign exchange gain/loss
+    LoadMonthEndings;
+
+    GainLoss := 0;
+    GainLossLastYear := 0;
+    GainLossYTDLastYear := 0;
+    GainLossChanged := False;
+    GainLossLastYearChanged := False;
+    GainLossYTDLastYearChanged := False;
+
+    // Getting dates
+    ToDateGainLoss := StDateToDateTime(ClientForReport.clFields.clTemp_Period_Details_This_Year[ClientForReport.clFields.clTemp_FRS_Last_Period_To_Show].Period_End_Date);
+    StartOfTheReport := StDateToDateTime(ClientForReport.clFields.clReporting_Year_Starts);
+    EndOfThePeriod := EndOfTheMonth(ToDateGainLoss);
+    StartOfLastYear := IncYear(StartOfTheReport, -1);
+    EndOfPeriodLastYear := IncYear(EndOfThePeriod, -1);
+    EndOfLastYearYTD := IncDay(StartOfTheReport, -1);
+
+    // Getting gain/loss values
+    for i := 0 to FMonthEndings.Count - 1 do
+    begin
+      if (FMonthEndings[i].Date >= StartOfTheReport) and (FMonthEndings[i].Date <= EndOfThePeriod) then
+      begin
+        for j := 0 to Length(FMonthEndings.Items[i].BankAccounts) - 1 do
+        begin
+          if (FMonthEndings.Items[i].BankAccounts[j].PostedEntry.FExchangeGainLossCode =
+              pAcct.chAccount_Code) then
+          begin
+            GainLossChanged := True;
+            GainLoss := GainLoss + FMonthEndings.Items[i].BankAccounts[j].PostedEntry.GainLoss;
+          end;
+        end;
+      end else
+      if (FMonthEndings[i].Date >= StartOfLastYear) and (FMonthEndings[i].Date <= EndOfLastYearYTD) then
+      begin
+        for j := 0 to Length(FMonthEndings.Items[i].BankAccounts) - 1 do
+        begin
+          if (FMonthEndings.Items[i].BankAccounts[j].PostedEntry.FExchangeGainLossCode =
+              pAcct.chAccount_Code) then
+          begin
+            GainLossYTDLastYearChanged := True;
+            GainLossYTDLastYear := GainLossYTDLastYear + FMonthEndings.Items[i].BankAccounts[j].PostedEntry.GainLoss;
+            if (FMonthEndings[i].Date <= EndOfPeriodLastYear) then
+            begin
+              GainLossLastYearChanged := True;
+              GainLossLastYear := GainLossLastYear + FMonthEndings.Items[i].BankAccounts[j].PostedEntry.GainLoss;
+            end;
+          end;
+        end;
+      end;
+    end;
+
     for i := Low( Values) to High( Values) do begin
       case ColumnTypes[ i] of
-        ftActual : Values[ i]     := AccountInfo.YTD_ActualOrBudget( ForPeriod);
+        ftActual :
+        begin
+          if GainLossChanged then
+            Values[ i] := GainLoss
+          else
+            Values[ i] := AccountInfo.YTD_ActualOrBudget( ForPeriod);
+        end;
         ftQuantity : Values[ i]   := AccountInfo.YTD_Quantity( ForPeriod);
         ftBudgetQuantity: Values[ i] := AccountInfo.YTD_BudgetQuantity(ForPeriod);
         ftBudgetUnitPrice: Values[ i] := AccountInfo.AVG_BudgetUnitPrice(ForPeriod);
         ftComparative : begin
           //does the user want last year or budget
           if ShowLastYear then
-            Values[i]   := AccountInfo.YTD_LastYear( ForPeriod);
+          begin
+            if GainLossLastYearChanged then
+              Values[i]   := GainLossLastYear
+            else
+              Values[i]   := AccountInfo.YTD_LastYear( ForPeriod);
+          end;
           if ShowBudget then
-            Values[i]   := AccountInfo.YTD_Budget( ForPeriod);
+            Values[i]   := AccountInfo.YTD_Budget( ForPeriod)
         end;
         ftVariance : begin
           //does the user want last year or budget
           if ShowLastYear then
-            Values[i]   := AccountInfo.YTD_Variance_ActualLastYear( ForPeriod);
+          begin
+            if GainLossYTDLastYearChanged then
+              Values[i]   := GainLossYTDLastYear - AccountInfo.YTD_LastYear( ForPeriod)
+            else
+              Values[i]   := AccountInfo.YTD_Variance_ActualLastYear( ForPeriod);
+          end;
           if ShowBudget then
-            Values[i]   := AccountInfo.YTD_Variance_ActualBudget( ForPeriod);
+          begin
+            if GainLossChanged then
+              Values[i]   := GainLoss - AccountInfo.YTD_Budget( ForPeriod)
+            else
+              Values[i]   := AccountInfo.YTD_Variance_ActualBudget( ForPeriod);
+          end;
         end;
         ftFullPeriodBudget : Values[i] := AccountInfo.BudgetRemaining( 0, AccountInfo.HighestPeriod);
-        ftBudgetRemaining  : Values[i] := AccountInfo.BudgetRemaining( ForPeriod, AccountInfo.HighestPeriod);
+        ftBudgetRemaining  :
+        begin
+          if GainLossChanged then
+            Values[i] := AccountInfo.YTD_Budget( ForPeriod) - GainLoss
+          else
+            Values[i] := AccountInfo.BudgetRemaining( ForPeriod, AccountInfo.HighestPeriod);
+        end;
       end;
     end;
   finally
@@ -1222,19 +1531,124 @@ begin
   end;
 end;
 
-function TCashflowReportEx.NonBaseCurrencyContra(AContraCode: string): boolean;
+function TCashflowReportEx.NonBaseCurrencyContra(AContraCode: string; var ForexLabel: string): boolean;
 var
-  i: integer;
+  i, j, k: integer;
   ba : TBank_Account;
+  AccountContraCode, GainLossCode: string;
+  pAcct        : pAccount_Rec;
 begin
+  ForexLabel := '';
+  AccountContraCode := '';
   Result := False;
-  for i := 0 to ClientForReport.clBank_Account_List.ItemCount - 1 do begin
+  for i := 0 to ClientForReport.clBank_Account_List.ItemCount - 1 do
+  begin
     ba := TBank_Account(ClientForReport.clBank_Account_List.Bank_Account_At(i));
-    if Assigned(ba) then begin
-      if (ba.baFields.baContra_Account_Code = AContraCode) then begin
+    if Assigned(ba) then
+    begin
+      AccountContraCode := ba.baFields.baContra_Account_Code;
+      if (AccountContraCode = AContraCode) then begin
         if ba.IsAForexAccount then begin
           Result := True;
-          Break;
+          break;
+        end;
+      end;
+    end;
+  end;
+
+  if Result then
+  begin
+    for i := 0 to FMonthEndings.Count - 1 do
+    begin
+      for j := 0 to Length(FMonthEndings.Items[i].BankAccounts) - 1 do
+      begin
+        if (FMonthEndings.Items[i].BankAccounts[j].BankAccount.baFields.baContra_Account_Code = AContraCode) then
+        begin
+          if (AccountContraCode <> '') then
+          begin
+            GainLossCode := FMonthEndings.Items[i].BankAccounts[j].PostedEntry.FExchangeGainLossCode;
+            for k := 0 to Pred( FRptParameters.Chart.ItemCount) do
+            begin
+              pAcct := FRptParameters.Chart.Account_At(k);
+              if (pAcct^.chAccount_Code = GainLossCode) then
+              begin
+                if ClientForReport.clFields.clFRS_Print_Chart_Codes then
+                  ForexLabel := GainLossCode + ' ';
+                ForexLabel := ForexLabel + pAcct^.chAccount_Description;
+                Exit;
+              end;
+            end;
+          end;
+        end;
+      end;
+    end;
+  end;
+end;
+
+procedure TCashflowReportEx.LoadMonthEndings;
+begin
+  // Retrieving exchange gain/loss data
+  if not Assigned(fMonthEndings) then
+    FMonthEndings := TMonthEndingsClass.Create(ClientForReport);
+  FMonthEndings.Refresh;
+end;
+
+procedure TCashflowReportEx.RetrieveGainLossData(pAcct: pAccount_Rec; var BaseAmounts: TBaseAmounts);
+var
+  PeriodNo, MonthEndingNum, j: integer;
+  ResetGainLoss: boolean;
+  PeriodStartDate: TDateTime;
+  YearStartDbl, YearEndDbl: double;
+  NumberOfAccounts: integer;
+begin
+  LoadMonthEndings;
+       
+  ResetGainLoss := True;
+
+  // NOTE: This function is "buggy" because it mixes TDateTime and TStDate
+  // for range checking. It will need to be addressed during the "Detailed"
+  // cleanup.
+
+  for PeriodNo := 1 to MaxPeriodToShow do
+  begin
+    if PeriodNo <= ClientForReport.clFields.clTemp_FRS_last_Period_To_Show then begin
+      if Assigned(BaseAmounts.ForexGainLoss) then
+      begin
+        SetLength(BaseAmounts.ForexGainLoss[PeriodNo], 2);
+        for MonthEndingNum := 0 to FMonthEndings.Count - 1 do
+        begin
+          PeriodStartDate := ClientForReport.clFields.clTemp_Period_Details_This_Year[ PeriodNo].Period_Start_Date;
+          YearStartDbl := IncMonth(PeriodStartDate, -11);
+          YearEndDbl := ClientForReport.clFields.clTemp_Period_Details_This_Year[ PeriodNo].Period_End_Date;
+          if (DateTimeToStDate(FMonthEndings.Items[MonthEndingNum].Date) >= YearStartDbl) and
+          (DateTimeToStDate(FMonthEndings.Items[MonthEndingNum].Date) < YearEndDbl) then
+          begin
+            NumberOfAccounts := Length(FMonthEndings.Items[MonthEndingNum].BankAccounts);
+            // Loop through all accounts, add the forex amounts for accounts which match the
+            // contra code of the current account (pAcct)
+            for j := 0 to NumberOfAccounts - 1 do
+            begin
+              if (FMonthEndings.Items[MonthEndingNum].BankAccounts[j].BankAccount.baFields.baContra_Account_Code =
+                  pAcct.chAccount_Code) then
+              begin
+                if ResetGainLoss then
+                begin
+                  BaseAmounts.ForexGainLoss[PeriodNo][0] := 0;
+                  ResetGainLoss := False;
+                end;
+                if (DateTimeToStDate(FMonthEndings.Items[MonthEndingNum].Date) =
+                    ClientForReport.clFields.clTemp_Period_Details_This_Year[ PeriodNo].Period_Start_Date) then
+                begin
+                  BaseAmounts.ForexGainLoss[PeriodNo][0] :=
+                    BaseAmounts.ForexGainLoss[PeriodNo][0] +
+                    FMonthEndings.Items[MonthEndingNum].BankAccounts[j].PostedEntry.GainLoss; // this period
+                  BaseAmounts.ForexGainLoss[PeriodNo][1] :=
+                    BaseAmounts.ForexGainLoss[PeriodNo][1] +
+                    FMonthEndings.Items[MonthEndingNum].BankAccounts[j].PostedEntry.GainLoss; // year to date
+                end;
+              end;
+            end;
+          end;
         end;
       end;
     end;
@@ -1255,14 +1669,20 @@ var
   OB_ValuesArray : TValuesArray;
   MV_ValuesArray : TValuesArray;
   CB_ValuesArray : TValuesArray;
-
+  EX_ValuesArray : TValuesArray;
+  EX_PreviousValuesArray: TValuesArray;
+  
   OpeningBalanceTotals : TValuesArray;
   MovementTotals       : TValuesArray;
   ClosingBalanceTotals : TValuesArray;
+  ExchangeGainLossTotals: TValuesArray;
+  ClosingBalanceTotalsIncForex: TValuesArray;
   TotalsArrayPos       : integer;
   NumOfTotals          : integer;
+  OpeningBalance       : Money;
+  ClosingBalance       : Money;
 
-  i,j          : integer;
+  i,j,k,GainLossNum : integer;
   pAcct        : pAccount_Rec;
   Budget       : TBudget;
   BudgetedOpeningBalance : Money;
@@ -1271,6 +1691,15 @@ var
 
   BaseAmounts: TBaseAmounts;
   NonBaseCurrencyAccount: Boolean;
+
+  YearClosingBalance, YTDForex: double;
+  ForexLabel: string;
+  ForexPreviousPeriods: Money;
+  CurrencyFormat: String;
+  CurrencySymbol: String;
+  PrintedYTD: boolean;
+  FoundForexAccount: Boolean;
+  Index: Integer;
 
 //  function GetFormatForBankAccount(AContraCode: string): string;
 //  var
@@ -1305,7 +1734,10 @@ var
 //    end;
 //  end;
 
+
+
 begin
+
   if ClientForReport.clFields.clCflw_Cash_On_Hand_Style = cflCash_On_Hand_None then Exit;
 
   SetLength( ValuesArray, ColumnsPerPeriod);      //no need to nil this afterward
@@ -1318,10 +1750,9 @@ begin
     if sSectionHeading <> '' then
       RenderTitleLine( sSectionHeading);
 
-//    if not HasSubGroups then begin
     for i := 0 to Pred( FRptParameters.Chart.ItemCount) do begin
       pAcct := FRptParameters.Chart.Account_At(i);
-      NonBaseCurrencyAccount := NonBaseCurrencyContra(pAcct.chAccount_Code);
+      NonBaseCurrencyAccount := NonBaseCurrencyContra(pAcct.chAccount_Code, ForexLabel);
       if NonBaseCurrencyAccount then begin
         //Populate all the totals arrays for non-base currency contra accounts
         SetBaseAmounts(pAcct, BaseAmounts);
@@ -1332,10 +1763,22 @@ begin
       end;
 
       //see if should show this account
-      ShowThisAccount := ( pAcct^.chAccount_Type in [ atBankAccount]) and
-                         ( pAcct^.chTemp_Include_In_Report);
+      ShowThisAccount :=  (( pAcct^.chAccount_Type in [ atBankAccount]) and
+                           ( pAcct^.chTemp_Include_In_Report));
 
-      if ShowThisAccount then begin
+      if ShowThisAccount then
+      begin
+        CurrencySymbol := Get_ISO_4217_Symbol(MyClient.clExtra.ceLocal_Currency_Code);
+        
+        if Self.ReportTypeParams.RoundValues then
+        begin
+          CurrencyFormat :=  CurrencySymbol + '#,##0;-' + CurrencySymbol + '#,##0';
+        end
+        else
+        begin
+          CurrencyFormat := MyClient.FmtMoneyStr;
+        end;
+        
         //Print Account Info
         if ClientForReport.clFields.clFRS_Print_Chart_Codes then begin
            sAccountDesc := Trim( pAcct^.chAccount_Code) + ' ' + Trim( pAcct^.chAccount_Description);
@@ -1344,6 +1787,11 @@ begin
            sAccountDesc := Trim( pAcct^.chAccount_Description);
 
         RenderTitleLine( sAccountDesc);
+        // Collecting gain/loss data
+        for PeriodNo := Low(BaseAmounts.ForexGainLoss) to High(BaseAmounts.ForexGainLoss) do
+          for k := 0 to High(BaseAmounts.ForexGainLoss[PeriodNo]) do
+            BaseAmounts.ForexGainLoss[PeriodNo][k] := 0;
+        RetrieveGainLossData(pAcct, BaseAmounts);
 
         //1A. Opening Balance
         PutString( GetHeading( hdOpening_Balance));
@@ -1351,7 +1799,14 @@ begin
         for PeriodNo:= MinPeriodToShow to MaxPeriodToShow do begin
           if PeriodNo <= ClientForReport.clFields.clTemp_FRS_last_Period_To_Show then begin
             if NonBaseCurrencyAccount then begin
-              SetCurrencyFormatForPeriod(BaseAmounts.OpeningBalance[PeriodNo], MyClient.FmtMoneyStr);
+              SetCurrencyFormatForPeriod(BaseAmounts.OpeningBalance[PeriodNo], CurrencyFormat);
+              ForexPreviousPeriods := 0;
+              for k := 1 to PeriodNo - 1 do
+                ForexPreviousPeriods := ForexPreviousPeriods + BaseAmounts.ForexGainLoss[k,1];
+
+              for k := 0 to High(BaseAmounts.OpeningBalance[PeriodNo]) do
+                BaseAmounts.OpeningBalance[PeriodNo, Integer(ftActual)] := BaseAmounts.OpeningBalance[PeriodNo, Integer(ftActual)] - ForexPreviousPeriods;
+                
               //PrintValues
               PrintValuesForPeriod( BaseAmounts.OpeningBalance[PeriodNo], Debit);
             end else begin
@@ -1359,7 +1814,7 @@ begin
               FUseBaseAmounts := False;
               GetOpeningBalancesForPeriod( pAcct, PeriodNo, ValuesArray);
               if MyClient.HasForeignCurrencyAccounts then
-                SetCurrencyFormatForPeriod(ValuesArray, MyClient.FmtMoneyStr);
+                SetCurrencyFormatForPeriod(ValuesArray, CurrencyFormat);
               //PrintValues
               PrintValuesForPeriod( ValuesArray, Debit);
             end;
@@ -1374,7 +1829,7 @@ begin
            GetOpeningBalancesForPeriod( pAcct, 1, ValuesArray);
 
            if MyClient.HasForeignCurrencyAccounts then
-              SetCurrencyFormatForPeriod(ValuesArray, MyClient.FmtMoneyStr);
+              SetCurrencyFormatForPeriod(ValuesArray, CurrencyFormat);
 
            //PrintValues
            PrintValuesForPeriod( ValuesArray, Debit);
@@ -1417,8 +1872,16 @@ begin
         for PeriodNo:= MinPeriodToShow to MaxPeriodToShow do begin
           if PeriodNo <= ClientForReport.clFields.clTemp_FRS_last_Period_To_Show then begin
             if NonBaseCurrencyAccount then begin
-              //PrintValues (OB + Movement)
-              PrintValuesForPeriod( BaseAmounts.ClosingBalance[PeriodNo], Debit);
+              for k := 0 to High(BaseAmounts.ClosingBalance[PeriodNo]) do
+              begin
+                ForexPreviousPeriods := 0;
+                for GainLossNum := 1 to PeriodNo - 1 do
+                  ForexPreviousPeriods := ForexPreviousPeriods + BaseAmounts.ForexGainLoss[GainLossNum,1];
+                BaseAmounts.ClosingBalance[PeriodNo,k] := BaseAmounts.ClosingBalance[PeriodNo,k] -
+                                                          ForexPreviousPeriods;
+              end;
+              ValuesArray[0] := BaseAmounts.ClosingBalance[PeriodNo, 0];
+              PrintValuesForPeriod( ValuesArray, Debit);
             end else begin
               FUseBaseAmounts := False;
               GetClosingBalancesForPeriod( pAcct, PeriodNo, ValuesArray);
@@ -1431,104 +1894,91 @@ begin
         end;
 
         //***** FOREX ACCOUNTS ONLY *****
-        if NonBaseCurrencyContra(pAcct.chAccount_Code) then begin
-
+        if NonBaseCurrencyAccount then 
+        begin
           //3B. YTD Closing Balance Forex
+          YearClosingBalance := 0; // this value will never be used, just here to get rid of a warning
           if ClientForReport.clFields.clFRS_Show_YTD then begin
              //GetYTDValues
              GetClosingBalancesForPeriod( pAcct, ClientForReport.clFields.clTemp_FRS_last_Period_To_Show, ValuesArray);
+
              //PrintValues
              PrintValuesForPeriod( ValuesArray, Debit);
+             YearClosingBalance := ValuesArray[0] - ForexPreviousPeriods;
           end;
 
           RenderDetailLine;
 
           //4A Forex gain/loss
-          PutString('Calculated Forex Gain/Loss');
-          for PeriodNo:= MinPeriodToShow to MaxPeriodToShow do begin
-            if PeriodNo <= ClientForReport.clFields.clTemp_FRS_last_Period_To_Show then begin
-              //PrintValues
-              PrintValuesForPeriod( BaseAmounts.ForexGainLoss[PeriodNo], Debit);
-            end else
-               SkipPeriod;
-          end;
+          PutString(ForexLabel);
 
-          //4B. YTD Forex gain/loss
-          if ClientForReport.clFields.clFRS_Show_YTD then begin
-            //GetYTDValues
-            GetClosingBalancesForPeriod( pAcct, ClientForReport.clFields.clTemp_FRS_last_Period_To_Show, ValuesArrayBase);
-            //GetValues statement
-            FUseBaseAmounts := False;
-            GetClosingBalancesForPeriod( pAcct, ClientForReport.clFields.clTemp_FRS_last_Period_To_Show, ValuesArray);
-            FUseBaseAmounts := True;
-            //Convert statement closing bal
-            for j := Low(ValuesArray) to High(ValuesArray) do begin
-              //Get exchange rate
-              FClosingBalanceExchangeRate := GetExchangeRateForForexContra(pAcct.chAccount_Code, ClientForReport.clFields.clTemp_FRS_last_Period_To_Show, True, (j > 0));
-              //Calculate variance
-              if (j = integer(ftVariance)) then
-                ValuesArray[integer(ftVariance)] := -(ValuesArray[integer(ftComparative)] - ValuesArray[integer(ftActual)])
-              else if FClosingBalanceExchangeRate > 0 then
-                ValuesArray[j] := Double2Money(Money2Double(ValuesArray[j]) / FClosingBalanceExchangeRate);
+          for PeriodNo:= MinPeriodToShow to MaxPeriodToShow do 
+          begin
+            if PeriodNo <= ClientForReport.clFields.clTemp_FRS_last_Period_To_Show then 
+            begin
+              GetExchangeGainLossForPeriod(pAcct, PeriodNo, ValuesArray);
+              
+              PrintValuesForPeriod(ValuesArray, Credit);
+            end 
+            else
+            begin
+              SkipPeriod;
             end;
-            //Calc gain/loss
-            for j := Low(ValuesArray) to High(ValuesArray) do
-              ValuesArray[j] := ValuesArray[j] - ValuesArrayBase[j];
-            //PrintValues
-            PrintValuesForPeriod( ValuesArray, Debit);
+            
+            if (PeriodNo = MaxPeriodToShow) and ClientForReport.clFields.clFRS_Show_YTD then
+            begin
+              ForexPreviousPeriods := 0;
+
+              for k := 1 to ClientForReport.clFields.clTemp_FRS_last_Period_To_Show do
+              begin
+                if (High(BaseAmounts.ForexGainLoss[k]) = 1) then
+                begin
+                  ForexPreviousPeriods := ForexPreviousPeriods + BaseAmounts.ForexGainLoss[k,1];
+                end;
+              end;
+              
+              ValuesArray[0] := ForexPreviousPeriods;
+
+              PrintValuesForPeriod(ValuesArray, Credit);
+            end;
           end;
 
           RenderDetailLine;
+          PutString('Closing Balance');
 
-          //5A. Closing balance actual Forex
-          PutString(GetHeading(hdClosing_Balance));
-          for PeriodNo:= MinPeriodToShow to MaxPeriodToShow do begin
+          for PeriodNo:= MinPeriodToShow to MaxPeriodToShow do 
+          begin
             if PeriodNo <= ClientForReport.clFields.clTemp_FRS_last_Period_To_Show then
-              PrintValuesForPeriod( BaseAmounts.ClosingBalanceWithGainLoss[PeriodNo], Debit)
+            begin
+              ValuesArray[0] := BaseAmounts.ForexGainLoss[PeriodNo][0] - BaseAmounts.ClosingBalance[PeriodNo][0];
+              
+              PrintValuesForPeriod(ValuesArray, Credit);
+            end 
             else
-               SkipPeriod;
-          end;
-
-          //5B. YTD Closing balance actual Forex
-          if ClientForReport.clFields.clFRS_Show_YTD then begin
-            //GetYTDValues          
-            FUseBaseAmounts := False;
-            GetClosingBalancesForPeriod(pAcct, ClientForReport.clFields.clTemp_FRS_last_Period_To_Show, ValuesArray);
-            FUseBaseAmounts := True;
-            //Convert statement closing bal for non-base currency accounts
-            if NonBaseCurrencyContra(pAcct.chAccount_Code) then begin
-              for j := Low(ValuesArray) to High(ValuesArray) do begin
-                //Get exchange rate
-                FClosingBalanceExchangeRate := GetExchangeRateForForexContra(pAcct.chAccount_Code, ClientForReport.clFields.clTemp_FRS_last_Period_To_Show, True, (j > 0));
-                //Calculate variance
-                if (j = integer(ftVariance)) then
-                  ValuesArray[integer(ftVariance)] := -(ValuesArray[integer(ftComparative)] - ValuesArray[integer(ftActual)])
-                else if FClosingBalanceExchangeRate > 0 then
-                  ValuesArray[j] := Double2Money(Money2Double(ValuesArray[j]) / FClosingBalanceExchangeRate);
-              end;
+            begin
+              SkipPeriod;
             end;
-            //PrintValues
-            PrintValuesForPeriod( ValuesArray, Debit);
-          end;
 
-        //***** END FOREX ACCOUNTS ONLY *****
-        end else begin
-          //3B. YTD Closing Balance
-          if ClientForReport.clFields.clFRS_Show_YTD then begin
-            //GetYTDValues
-            FUseBaseAmounts := False;
-            GetClosingBalancesForPeriod(pAcct, ClientForReport.clFields.clTemp_FRS_last_Period_To_Show, ValuesArray);
-            //PrintValues
+            if (PeriodNo = MaxPeriodToShow) and ClientForReport.clFields.clFRS_Show_YTD then
+            begin
+              ValuesArray[0] := BaseAmounts.ForexGainLoss[ClientForReport.clFields.clTemp_FRS_last_Period_To_Show,1] - YearClosingBalance;
+              
+              PrintValuesForPeriod(ValuesArray, Credit);
+            end;
+          end;
+        end
+        else
+        begin
+          if ClientForReport.clFields.clFRS_Show_YTD then
+          begin
             PrintValuesForPeriod( ValuesArray, Debit);
           end;
         end;
 
         RenderDetailLine(True,siSectiontotal);
         DoubleUnderLine;
-
-        //RenderTextLine( '');
-      end;
-    end;
+      end; // if ShowThisAccount then begin
+    end; // for i := 0 to Pred( FRptParameters.Chart.ItemCount) do begin
   end //detailed
   else
   begin
@@ -1539,16 +1989,22 @@ begin
     SetLength( OpeningBalanceTotals, NumOfTotals );
     SetLength( MovementTotals,       NumOfTotals );
     SetLength( ClosingBalanceTotals, NumOfTotals );
+    SetLength(ExchangeGainLossTotals, NumOfTotals);
+    SetLength(ClosingBalanceTotalsIncForex, NumOfTotals);
 
     SetLength( OB_ValuesArray, ColumnsPerPeriod);
     SetLength( MV_ValuesArray, ColumnsPerPeriod);
     SetLength( CB_ValuesArray, ColumnsPerPeriod);
-
+    SetLength( EX_ValuesArray, ColumnsPerPeriod);
+    SetLength( EX_PreviousValuesArray, ColumnsPerPeriod);
+    
     //clear totals
     for i := Low(OpeningBalanceTotals) to High(OpeningBalanceTotals) do begin
        OpeningBalanceTotals[i] := 0;
        MovementTotals[i]       := 0;
        ClosingBalanceTotals[i] := 0;
+       ExchangeGainLossTotals[i] := 0;
+       ClosingBalanceTotalsIncForex[i] := 0;
     end;
 
     RenderTextLine('');
@@ -1556,6 +2012,8 @@ begin
     sSectionHeading := GetHeading( hdCashbook_Balances) + ' Summary';
     if sSectionHeading <> '' then
       RenderTitleLine( sSectionHeading);
+
+    FoundForexAccount := False;
 
     //cycle thru accounts, load values into array
     for i := 0 to Pred( FRptParameters.Chart.ItemCount) do begin
@@ -1569,38 +2027,154 @@ begin
         //add values for this accounts to the totals
         TotalsArrayPos := 0;
 
+        NonBaseCurrencyAccount := NonBaseCurrencyContra(pAcct.chAccount_Code, ForexLabel);
+        
+        if NonBaseCurrencyAccount then
+        begin
+          FoundForexAccount := True;
+
+          SetBaseAmounts(pAcct, BaseAmounts);
+        end;
+
         for PeriodNo := MinPeriodToShow to MaxPeriodToShow do begin
           if PeriodNo <= ClientForReport.clFields.clTemp_FRS_last_Period_To_Show then begin
             //GetValues
             GetOpeningBalancesForPeriod( pAcct, PeriodNo, OB_ValuesArray);
             GetValuesForPeriod(          pAcct, PeriodNo, MV_ValuesArray);
             GetClosingBalancesForPeriod( pAcct, PeriodNo, CB_ValuesArray);
+            GetExchangeGainLossForPeriod(pAcct, PeriodNo, EX_ValuesArray);
 
-            //Add account values to report group total
-            for j := Low( OB_ValuesArray) to High( OB_ValuesArray) do begin
-               OpeningBalanceTotals[ TotalsArrayPos] := OpeningBalanceTotals[ TotalsArrayPos] + OB_ValuesArray[j];
-               MovementTotals[ TotalsArrayPos]       := MovementTotals[ TotalsArrayPos]       + MV_ValuesArray[j];
-               ClosingBalanceTotals[ TotalsArrayPos] := ClosingBalanceTotals[ TotalsArrayPos] + CB_ValuesArray[j];
-               Inc(TotalsArrayPos);
+            ForexPreviousPeriods := 0;
+            if NonBaseCurrencyAccount then
+            begin
+              {Remove
+              for k := 1 to PeriodNo - 1 do
+                ForexPreviousPeriods := ForexPreviousPeriods + BaseAmounts.ForexGainLoss[k,0];
+              }
+              
+              SumExchangeGainLoss(pAcct, PeriodNo -1, EX_PreviousValuesArray);
+                
+              {Remove
+              for j := Low( OB_ValuesArray) to High( OB_ValuesArray) do
+              begin
+                OpeningBalanceTotals[TotalsArrayPos] := OpeningBalanceTotals[TotalsArrayPos] +
+                                                      BaseAmounts.OpeningBalance[PeriodNo][J] -
+                                                      ForexPreviousPeriods;
+                MovementTotals[TotalsArrayPos] := MovementTotals[TotalsArrayPos] +
+                                                 BaseAmounts.Movement[PeriodNo][J];
+                ClosingBalanceTotals[TotalsArrayPos] := OpeningBalanceTotals[TotalsArrayPos] +
+                                                      MovementTotals[TotalsArrayPos];
+                Inc(TotalsArrayPos);
+              end;
+              }
+
+              for j := Low( OB_ValuesArray) to High( OB_ValuesArray) do
+              begin
+                {Remove
+                if ColumnTypes[j] = ftActual then
+                begin
+                  OpeningBalance := OB_ValuesArray[j] - ForexPreviousPeriods;
+                  ClosingBalance := CB_ValuesArray[j] - ForexPreviousPeriods;
+                end
+                else 
+                if ColumnTypes[j] = ftComparative then
+                begin
+                  OpeningBalance := OB_ValuesArray[j] - EX_PreviousValuesArray[j];
+                  ClosingBalance := CB_ValuesArray[j] - EX_PreviousValuesArray[j];                  
+                end
+                else
+                begin
+                  OpeningBalance := OB_ValuesArray[j];
+                  ClosingBalance := CB_ValuesArray[j];
+                end;  
+                 }
+
+                OpeningBalance := OB_ValuesArray[j] - EX_PreviousValuesArray[j];
+                ClosingBalance := CB_ValuesArray[j] - EX_PreviousValuesArray[j];                  
+ 
+                OpeningBalanceTotals[TotalsArrayPos] := OpeningBalanceTotals[TotalsArrayPos] + OpeningBalance;
+
+                MovementTotals[TotalsArrayPos] := MovementTotals[TotalsArrayPos] + MV_ValuesArray[j];
+                   
+                ClosingBalanceTotals[TotalsArrayPos] := ClosingBalanceTotals[ TotalsArrayPos] + ClosingBalance;
+                   
+                ExchangeGainLossTotals[TotalsArrayPos] := ExchangeGainLossTotals[TotalsArrayPos] - EX_ValuesArray[j];
+
+                ClosingBalanceTotalsIncForex[TotalsArrayPos] := ClosingBalanceTotalsIncForex[TotalsArrayPos] + ClosingBalance - EX_ValuesArray[j];
+                
+                Inc(TotalsArrayPos);
+              end;
+            end
+            else
+            begin
+              //Add account values to report group total
+              for j := Low( OB_ValuesArray) to High( OB_ValuesArray) do begin
+                 OpeningBalanceTotals[ TotalsArrayPos] := OpeningBalanceTotals[ TotalsArrayPos] + OB_ValuesArray[j];
+                 MovementTotals[ TotalsArrayPos]       := MovementTotals[ TotalsArrayPos]       + MV_ValuesArray[j];
+                 ClosingBalanceTotals[ TotalsArrayPos] := ClosingBalanceTotals[ TotalsArrayPos] + CB_ValuesArray[j];
+                 ClosingBalanceTotalsIncForex[TotalsArrayPos] := ClosingBalanceTotalsIncForex[TotalsArrayPos] + CB_ValuesArray[j];
+                 Inc(TotalsArrayPos);
+              end;
             end;
           end
           else
             Inc(TotalsArrayPos, ColumnsPerPeriod);
         end;
+
+        {Remove
+        // Calculating YTD Opening Balance
+        GetOpeningBalancesForPeriod( pAcct, 1, OB_ValuesArray);
+        OpeningBalanceTotals[High(OpeningBalanceTotals)] := OpeningBalanceTotals[High(OpeningBalanceTotals)] + OB_ValuesArray[0];
+
+        GetYTD_ValuesForPeriod(pAcct, ClientForReport.clFields.clTemp_FRS_last_Period_To_Show, MV_ValuesArray);
+        if Length(MV_ValuesArray) > 0 then
+        begin
+          MovementTotals[High(MovementTotals)] := MovementTotals[High(MovementTotals)] + MV_ValuesArray[0];
+        end;
+
+        GetClosingBalancesForPeriod( pAcct, ClientForReport.clFields.clTemp_FRS_last_Period_To_Show, CB_ValuesArray);
+        ClosingBalanceTotals[High(ClosingBalanceTotals)] := ClosingBalanceTotals[High(ClosingBalanceTotals)] + CB_ValuesArray[0];
+        }
+
         //add YTD values to totals
         GetOpeningBalancesForPeriod( pAcct, 1, OB_ValuesArray);
         GetYTD_ValuesForPeriod(      pAcct, ClientForReport.clFields.clTemp_FRS_last_Period_To_Show, MV_ValuesArray);
         GetClosingBalancesForPeriod( pAcct, ClientForReport.clFields.clTemp_FRS_last_Period_To_Show, CB_ValuesArray);
+        
         //Add account values to report group total
-        for j := Low( OB_ValuesArray) to High( OB_ValuesArray) do begin
+        for j := Low( OB_ValuesArray) to High( OB_ValuesArray) do
+        begin
            OpeningBalanceTotals[ TotalsArrayPos] := OpeningBalanceTotals[ TotalsArrayPos] + OB_ValuesArray[j];
            MovementTotals[ TotalsArrayPos]       := MovementTotals[ TotalsArrayPos]       + MV_ValuesArray[j];
            ClosingBalanceTotals[ TotalsArrayPos] := ClosingBalanceTotals[ TotalsArrayPos] + CB_ValuesArray[j];
+
+           if NonBaseCurrencyAccount then
+           begin
+             for Index := 1 to ClientForReport.clFields.clTemp_FRS_last_Period_To_Show do
+             begin
+               GetExchangeGainLossForPeriod(pAcct, Index, EX_ValuesArray);
+        
+               ExchangeGainLossTotals[TotalsArrayPos] := ExchangeGainLossTotals[TotalsArrayPos] - EX_ValuesArray[J];
+             end;
+           end;
+           
+           ClosingBalanceTotalsIncForex[TotalsArrayPos] := ClosingBalanceTotals[TotalsArrayPos] + ExchangeGainLossTotals[TotalsArrayPos];
+
            Inc(TotalsArrayPos);
         end;
       end;
     end;
 
+    {Remove
+    // Calculating YTD Closing Balance & Exchange Gain/Loss
+    YTDForex := 0;
+
+    for PeriodNo := Low(BaseAmounts.ForexGainLoss) to High(BaseAmounts.ForexGainLoss) do
+    begin
+      YTDForex := YTDForex + BaseAmounts.ForexGainLoss[PeriodNo, 0];
+    end;
+    }
+          
     //now check to see if budgeted opening balance figures should be used
     //currently the user can only specify one opening balance figures for all
     //bank accounts, therefore this amount must be added into the totals
@@ -1631,6 +2205,7 @@ begin
             or (ColumnTypes[ j] in [ftcomparative]) then begin
               OpeningBalanceTotals[ TotalsArrayPos] := OpeningBalanceTotals[ TotalsArrayPos] - BudgetedOpeningBalance;
               ClosingBalanceTotals[ TotalsArrayPos] := ClosingBalanceTotals[ TotalsArrayPos] - BudgetedOpeningBalance;
+              ClosingBalanceTotalsIncForex[TotalsArrayPos] := ClosingBalanceTotalsIncForex[TotalsArrayPos] - BudgetedOpeningBalance;
             end;
             Inc(TotalsArrayPos);
           end;
@@ -1644,21 +2219,93 @@ begin
         //see if should add to this column
         if ((ColumnTypes[ j] in [ftActual, ftVariance])and (ClientForReport.clFields.clTemp_FRS_Last_Actual_Period_To_Use < 0 ))
         or (ColumnTypes[ j] in [ftcomparative]) then begin
-          OpeningBalanceTotals[ TotalsArrayPos] := OpeningBalanceTotals[ TotalsArrayPos] - BudgetedOpeningBalance;
-          ClosingBalanceTotals[ TotalsArrayPos] := ClosingBalanceTotals[ TotalsArrayPos] - BudgetedOpeningBalance;
+           OpeningBalanceTotals[ TotalsArrayPos] := OpeningBalanceTotals[ TotalsArrayPos] - BudgetedOpeningBalance;
+           ClosingBalanceTotals[ TotalsArrayPos] := ClosingBalanceTotals[ TotalsArrayPos] - BudgetedOpeningBalance;
+           ClosingBalanceTotalsIncForex[TotalsArrayPos] := ClosingBalanceTotalsIncForex[TotalsArrayPos] - BudgetedOpeningBalance;
         end;
         Inc(TotalsArrayPos);
       end;
     end;
 
     //now print results, need to load values back into a value array for printing
-    PrintTotalsArray( GetHeading( hdOpening_Balance), OpeningBalanceTotals, Debit);
-    PrintTotalsArray( GetHeading( hdPlus_Movement), MovementTotals, Debit);
+    PrintTotalsArray( GetHeading( hdOpening_Balance), OpeningBalanceTotals, Debit, siSectionTotal, (ColumnsPerPeriod = 1));
+    PrintTotalsArray( GetHeading( hdPlus_Movement), MovementTotals, Debit, siSectionTotal, (ColumnsPerPeriod = 1));
 
     RequireLines(3);
     SingleUnderline;
-    PrintTotalsArray( GetHeading( hdClosing_Balance), ClosingBalanceTotals, Debit);
+    PrintTotalsArray( GetHeading( hdClosing_Balance), ClosingBalanceTotals, Debit, siSectionTotal, (ColumnsPerPeriod = 1));
+
+    //***** FOREX ACCOUNTS ONLY *****
+    if FoundForexAccount then
+    begin
+      {Remove
+      // Forex gain/loss
+      PutString('Exchange Gain/Loss*');
+
+      PrintedYTD := False;
+      for PeriodNo:= MinPeriodToShow to MaxPeriodToShow do
+      begin
+        if PeriodNo <= ClientForReport.clFields.clTemp_FRS_last_Period_To_Show then
+        begin
+          ValuesArray[0] := BaseAmounts.ForexGainLoss[PeriodNo][0];
+          PrintValuesForPeriod(ValuesArray, Credit);
+        end else
+          for j := 1 to ColumnsPerPeriod do
+            SkipColumn;
+      end;
+
+      if ClientForReport.clFields.clFRS_Show_YTD then
+      begin
+        ValuesArray[0] := YTDForex;
+        PrintValuesForPeriod(ValuesArray, Credit);
+      end else
+        for j := 1 to ColumnsPerPeriod do
+          SkipColumn;
+
+      RenderDetailLine;
+
+     
+      // Closing Balance (including Forex gain/loss)
+      PutString('Closing Balance');
+      
+      PrintedYTD := False;
+      TotalsArrayPos := 0;
+      for PeriodNo:= MinPeriodToShow to MaxPeriodToShow do
+      begin
+        if PeriodNo <= ClientForReport.clFields.clTemp_FRS_last_Period_To_Show then
+        begin
+          ClosingBalanceTotals[TotalsArrayPos] := ClosingBalanceTotals[TotalsArrayPos] -
+                                                  BaseAmounts.ForexGainLoss[PeriodNo][0];
+          ValuesArray[0] := ClosingBalanceTotals[TotalsArrayPos];
+          PrintValuesForPeriod(ValuesArray, Debit);
+          Inc(TotalsArrayPos);
+        end else
+          for j := 1 to ColumnsPerPeriod do
+            SkipColumn;
+      end;
+      if ClientForReport.clFields.clFRS_Show_YTD then
+      begin
+        ValuesArray[0] := ClosingBalanceTotals[ClientForReport.clFields.clTemp_FRS_last_Period_To_Show - MinPeriodToShow];
+
+        PrintValuesForPeriod(ValuesArray, Debit);
+      end else
+        SkipColumn;
+        }
+      PrintTotalsArray( GetHeading( hdExchangeGainLoss), ExchangeGainLossTotals, Debit, siSectionTotal, (ColumnsPerPeriod = 1));
+      PrintTotalsArray( GetHeading( hdClosing_Balance), ClosingBalanceTotalsIncForex, Debit, siSectionTotal, (ColumnsPerPeriod = 1));
+    end // if FoundForexAccount;
+    else
+    begin
+      PrintValuesForPeriod( ValuesArray, Debit);
+    end;
+     {
+    if FoundForexAccount then
+    begin
+      RenderDetailLine(True,siSectiontotal);
+    end;
+      }
     DoubleUnderline;
+
     ClearAllTotals;
   end;
   FUseBaseAmounts := False;
@@ -1708,6 +2355,31 @@ begin
     result := inherited AccountNeedsPrinting( pAcct);
 end;
 
+function TCashflowReportEx.GetOpeningBalanceAmount(Code: string; IsStartOfFinancialYear: boolean;
+                                                   PeriodNo: integer): Money;
+var
+  AccountInfo: TAccountInformation;
+  Bal, ForexBal: Money;
+  i: integer;
+begin
+  AccountInfo := TAccountInformation.Create(ClientForReport);
+  try
+    AccountInfo.UseBudgetIfNoActualData     := False;
+    AccountInfo.LastPeriodOfActualDataToUse := ClientForReport.clFields.clTemp_FRS_Last_Actual_Period_To_Use;
+    AccountInfo.AccountCode := Code;
+    AccountInfo.UseBaseAmounts := True;
+    if (IsStartOfFinancialYear) then // If start date = financial year start then just get opening bal
+      Bal := AccountInfo.OpeningBalanceActualOrBudget(1)
+    else
+    begin
+      Bal := AccountInfo.ClosingBalanceActualOrBudget(1); // else opening bal at last financial year start + movement up to previous day
+    end;
+  finally
+    AccountInfo.Free;
+  end;
+  Result := Bal;
+end;
+
 procedure TCashflowReportEx.SetBaseAmounts(const pAcct : pAccount_Rec; var BaseAmounts: TBaseAmounts);
 var
   i: integer;
@@ -1715,7 +2387,11 @@ var
   PeriodCount: integer;
   ColumnCount: integer;
   OpeningBalanceExchangeRate, ClosingBalanceExchangeRate: double;
-  LastYear: Boolean;
+  LastYear, IsStartOfFinancialYear, NonBaseCurrencyAccount: Boolean;
+  AccountInfo: TAccountInformation;
+  ForexLabel: string;
+  TestStr: string;
+  iVarianceCol: integer;
 begin
   FUseBaseAmounts := True;
   PeriodCount := MaxPeriodToShow + 1; //zero base array but periods start at 1?
@@ -1733,29 +2409,22 @@ begin
       if PeriodNo <= ClientForReport.clFields.clTemp_FRS_last_Period_To_Show then begin
 
         //1. Opening balances
-        FUseBaseAmounts := False;
-        GetOpeningBalancesForPeriod(pAcct, PeriodNo, OpeningBalance[PeriodNo]);
         FUseBaseAmounts := True;
-        LastYear := False;
+        GetOpeningBalancesForPeriod(pAcct, PeriodNo, OpeningBalance[PeriodNo]);
         for i := Low(OpeningBalance[PeriodNo]) to High(OpeningBalance[PeriodNo]) do begin
           //Get opening balance exchange rate for each period
           LastYear := i > 0;
-          OpeningBalanceExchangeRate := GetExchangeRateForForexContra(pAcct.chAccount_Code, PeriodNo, False, LastYear);
-          if (PeriodNo > MinPeriodToShow) then
-            OpeningBalanceExchangeRate := GetExchangeRateForForexContra(pAcct.chAccount_Code, PeriodNo - 1, True, LastYear);
-
-          if (i = integer(ftVariance)) then
-            OpeningBalance[PeriodNo, i] := -(OpeningBalance[PeriodNo, integer(ftComparative)] -
-                                             OpeningBalance[PeriodNo, integer(ftActual)])
-          else if OpeningBalanceExchangeRate > 0 then
-            OpeningBalance[PeriodNo, i] := Double2Money(Money2Double(OpeningBalance[PeriodNo, i]) / OpeningBalanceExchangeRate);
+          IsStartOfFinancialYear :=
+            (ClientForReport.clFields.clTemp_Period_Details_This_Year[PeriodNo].Period_Start_Date =
+             ClientForReport.clFields.clFinancial_Year_Starts);
         end;
 
         //2. Movement
         GetValuesForPeriod( pAcct, PeriodNo, Movement[PeriodNo]);
         //Calculate variance
-        if (High(Movement[PeriodNo]) = Integer(ftVariance)) then
-            Movement[PeriodNo, Integer(ftVariance)] := -(Movement[PeriodNo, integer(ftComparative)] -
+        iVarianceCol := GetIndexFromColumnType(ftVariance);
+        if (iVarianceCol <> -1) then
+            Movement[PeriodNo, iVarianceCol] := -(Movement[PeriodNo, integer(ftComparative)] -
                                                          Movement[PeriodNo, integer(ftActual)]);
 
         //3. Closing balances
@@ -1769,7 +2438,6 @@ begin
         FUseBaseAmounts := False;
         GetClosingBalancesForPeriod( pAcct, PeriodNo, ClosingBalanceWithGainLoss[PeriodNo]);
         FUseBaseAmounts := True;
-        LastYear := False;
         for i := Low(ClosingBalanceWithGainLoss[PeriodNo]) to High(ClosingBalanceWithGainLoss[PeriodNo]) do begin
           //Get closing balance exchange rate for each period
           LastYear := i > 0;
@@ -1780,14 +2448,11 @@ begin
                                                          ClosingBalanceWithGainLoss[PeriodNo, integer(ftActual)])
           else if ClosingBalanceExchangeRate > 0 then
             ClosingBalanceWithGainLoss[PeriodNo, i] := Double2Money(Money2Double(ClosingBalanceWithGainLoss[PeriodNo, i]) / ClosingBalanceExchangeRate);
-        end; 
-
-        //5. Forex gain/loss
-        for i := Low(OpeningBalance[PeriodNo]) to High(OpeningBalance[PeriodNo]) do
-          ForexGainLoss[PeriodNo, i] :=  ClosingBalanceWithGainLoss[PeriodNo, i] - ClosingBalance[PeriodNo, i];
-          
+        end;
       end;
     end;
+    //5. Forex gain/loss
+    RetrieveGainLossData(pAcct, BaseAmounts);
   end;
 end;
 
@@ -1970,10 +2635,14 @@ begin
   //Reset amount column format for printing (may have been changed by SetCurrencyFormatForPeriod)
   SetAmountFormats(CashFlowReport.ReportTypeParams.RoundValues, NumberFormatStr, TotalFormatStr, DescriptionWidth);
   for i := CashFlowReport.Columns.First to  CashFlowReport.Columns.Last do
-     if not (CashFlowReport.FColumnTypes[i] in [ ftQuantity, ftBudgetQuantity,ftPercentage]) then begin
-        CashFlowReport.Columns.Report_Column_At(CashFlowReport.FCurrDetail.Count + i).FormatString := NumberFormatStr;
-        CashFlowReport.Columns.Report_Column_At(CashFlowReport.FCurrDetail.Count + i).TotalFormat := TotalFormatStr;
-     end;
+  begin
+    if (i > High(CashFlowReport.FColumnTypes)) then
+      break;
+    if not (CashFlowReport.FColumnTypes[i] in [ ftQuantity, ftBudgetQuantity,ftPercentage]) then begin
+      CashFlowReport.Columns.Report_Column_At(CashFlowReport.FCurrDetail.Count + i).FormatString := NumberFormatStr;
+      CashFlowReport.Columns.Report_Column_At(CashFlowReport.FCurrDetail.Count + i).TotalFormat := TotalFormatStr;
+    end;
+  end;
 
   lClient := CashFlowReport.ClientForReport;
 
@@ -1989,7 +2658,7 @@ begin
         if DivisionArray[DivisionIdx] then
         begin
           clTemp_FRS_Division_To_Use := DivisionIdx;
-          CalculateAccountTotals.CalculateAccountTotalsForClient( lClient);
+          CalculateAccountTotals.CalculateAccountTotalsForClient( lClient, True, nil, -1, False, True);
           CalculateAccountTotals.EstimateOpeningBalancesForBankAccountContras( MyClient);
           CashFlowReport.ResetControlAccounts;
           CashFlowReport.LoadAccountsToPrint;
@@ -2025,8 +2694,8 @@ var
   begin
     if ADate > 0 then begin
       if (BA.Default_Forex_Conversion_Rate(ADate) = 0) then
-        if MissingDates.IndexOf(BKDateUtils.Date2Str(ADate, 'dd/MM/YYYY')) = -1  then
-          MissingDates.Add(BKDateUtils.Date2Str(ADate, 'dd/MM/YYYY'));
+        if MissingDates.IndexOf(BKDateUtils.Date2Str(ADate, 'dd/mm/YYYY')) = -1  then
+          MissingDates.Add(BKDateUtils.Date2Str(ADate, 'dd/mm/YYYY'));
       Result := Result and (BA.Default_Forex_Conversion_Rate(ADate) > 0);
       if ADate < FromDate then
         FromDate := ADate;
@@ -2182,7 +2851,8 @@ begin
    MyClient.clFields.clTemp_FRS_Account_Totals_Cash_Only := true;
    CalculateAccountTotals.AddAutoContraCodes( MyClient);
    try
-      CalculateAccountTotals.CalculateAccountTotalsForClient( MyClient);
+      CalculateAccountTotals.CalculateAccountTotalsForClient( MyClient, True, nil, -1, False, {True}False, True);
+      // CalculateAccountTotals.CalculateAccountTotalsForClient( MyClient);
       CalculateAccountTotals.EstimateOpeningBalancesForBankAccountContras( MyClient);
       SetDateOfFirstMovement( MyClient);
       
@@ -2369,6 +3039,11 @@ begin
             end;
           end;
 
+          if Job.GetPrintGainLossSummaryLegend then
+          begin
+            AddJobFooter(Job, siFootNote, '* This exchange gain/loss entry has been calculated using the sum of all exchange gain/loss entries for the included accounts', True);
+          end;
+          
           if BudgetedPeriodsUsed then
              AddJobFooter( Job,siFootNote, '** = This period contains budgeted data', true);
 

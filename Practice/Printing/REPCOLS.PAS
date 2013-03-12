@@ -105,19 +105,11 @@ type
   end;
 
   TReportColumns  = class(TExtdCollection)
-  private
-    FWrapCaptions: Boolean;
-    
-    procedure SetWrapCaptions(const Value: Boolean);
   protected
      procedure FreeItem(Item : Pointer); override;
   public
-    constructor Create; override;
-    
-    function  Report_Column_At(Index : integer): TReportColumn;
-    function  TwoLines : boolean;
-
-    property WrapCaptions: Boolean read FWrapCaptions write SetWrapCaptions;
+     function  Report_Column_At(Index : integer): TReportColumn;
+     function  TwoLines : boolean;
   end;
 
   THeaderFooterLineType = ( hftDefault, hftCustom, hftUnwrapped, hftWrapped);
@@ -230,13 +222,6 @@ end;
 {----------------------------------}
 {TReportColumns}
 {----------------------------------}
-constructor TReportColumns.Create;
-begin
-  inherited;
-
-  FWrapCaptions := False;
-end;
-
 procedure TReportColumns.FreeItem(Item : pointer);
 begin
    TReportColumn(Item).Free;
@@ -249,11 +234,6 @@ var
 begin
   P := At(index);
   result := P;
-end;
-
-procedure TReportColumns.SetWrapCaptions(const Value: Boolean);
-begin
-  FWrapCaptions := Value;
 end;
 
 {----------------------------------}

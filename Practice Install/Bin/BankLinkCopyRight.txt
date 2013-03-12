@@ -1,1 +1,1 @@
-AppCopyright=Copyright © 1999-2012 BankLink Limited
+AppCopyright=Copyright © 1999-2013 BankLink Limited

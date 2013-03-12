@@ -388,9 +388,6 @@
 #define What_happens_if_you_do_not_assign_report_groups_	1452
 #define What_is_in_the_Guide_	1453
 #define Year_end_adjustment_journals	1458
-#define Interfacing_with_Acclipse_WebXOffice	1459
-#define Exporting_transactions_from_BankLink_to_Acclipse_WebXOffice	1460
-#define Importing_transactions_from_Acclipse_WebXOffice_to_BankLink	1461
 #define Summary_of_the_interface_with_Solution_6_Superfund	1500
 #define Summary_of_the_interface_with_Supercorp_Supervisor_II	1501
 #define Transferring_transactions_from_BankLink_to_Solution_6_Superfund	1502
@@ -422,7 +419,6 @@
 #define Producing_QIF_files	1529
 #define Producing_OFX_Files_Versions_1_2_	1530
 #define Saving_manual_data	1531
-#define Sending_reports_from_BankLink_to_Acclipse_WebPractice	1532
 #define Setting_up_the_link_to_Praemium	1533
 #define Statements_and_Download_Documents	1534
 #define Summary_of_the_interface_with_CatSoft_LedgerCat	1535
@@ -625,5 +621,13 @@
 #define Updating_a_client_file_from_a_folder	1088
 #define Sending_a_client_file_via_email	1314
 #define Transferring_transactions_from_BankLink_Practice_to_QuickBooks_Pro	2137
-#define Changing_your_password_to_match_BankLink_Online	2138
 #define BankLink_Online_client_options	2139
+#define Step_3_VAT_Set_Up	2140
+#define Exporting_transactions_from_BankLink_to_CCH_WebPractice	1460
+#define Importing_transactions_from_CCH_WebPractice_to_BankLink	1461
+#define Interfacing_with_CCH_WebPractice	1459
+#define Sending_reports_from_BankLink_to_CCH_WebPractice	1532
+#define Accessing_a_Customer_Authority_Form	2141
+#define Importing_bank_account_details_into_a_Customer_Authority_Form	2142
+#define Changing_your_password	2138
+#define Calculate_exchange_gain_or_loss	2143

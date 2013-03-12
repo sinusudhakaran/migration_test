@@ -48,7 +48,8 @@ procedure DoReport(ReportType : Report_List_Type;
                    Destination : TReportDest;
                    HelpCtx : integer = 0;
                    RptBatch : TReportBase = nil;
-                   InfoForReport: string = '');
+                   InfoForReport: string = '';
+                   ExtraReportInfo: Pointer = nil);
 
 {$IFNDEF SmartBooks}
 procedure DoAdminReport(ReportType : Report_List_Type; Destination : TReportDest; HelpCtx : integer = 0);
@@ -128,9 +129,10 @@ var
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure DoReport(ReportType: Report_List_Type; Destination: TReportDest;
                     HelpCtx: integer = 0;
-                    RptBatch: TReportBase = nil; InfoForReport: string = '');
+                    RptBatch: TReportBase = nil; InfoForReport: string = ''; ExtraReportInfo: Pointer = nil);
 var
   RunNow: Boolean;
+  Msg : String;
 
    function LocalAsk(After: Boolean): Boolean;
    var Params: TRPTParameters;
@@ -397,7 +399,7 @@ begin
          REPORT_CASHFLOW_12ACT     : DoCashflow12ActualReport(Destination,RptBatch);
          REPORT_CASHFLOW_12ACTBUD  : DoCashflow12ActualBudgetReport(Destination,RptBatch);
          Report_Cashflow_ActLastYVar: DoCashflowActualLastYearVariance(Destination,RptBatch);
-         Report_Foreign_Exchange   : DoListForexEntriesReport( Destination, RptBatch );
+         Report_Foreign_Exchange   : DoListForexEntriesReport( Destination, RptBatch, InfoForReport, ExtraReportInfo );
          REPORT_BANKREC_SUM        : DoBankRecReport(Destination,false,RptBatch);
          REPORT_BANKREC_DETAIL     : DoBankRecReport(Destination,true,RptBatch);
          REPORT_UNPRESENTED_ITEMS  : RptBankRec.DoUnpresentedItemsReport( Destination,RptBatch);
@@ -1019,5 +1021,4 @@ end;
 
 initialization
   DebugMe := DebugUnit(UnitName);
-end.
-
+end.   

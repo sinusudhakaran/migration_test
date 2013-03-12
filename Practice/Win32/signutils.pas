@@ -9,6 +9,7 @@ Type
    tSign = (Debit, Credit, NNone );
 
 Function SignOf(m: money) : tSign;
+function SignOf_Curr(m: Currency): tSign;
 
 Function SetSign( m : money; sign : TSign) : money;
 Function SetSign_Curr( m : currency; sign : TSign) : currency;
@@ -123,5 +124,18 @@ begin
       Credit : if m > 0 then result := -1 * m;   //result must be -ve
    end;
 end;
+
+function SignOf_Curr(m: Currency): tSign;
+begin
+   If m < 0 Then
+   Begin
+      Result := Credit
+   End
+   Else
+   Begin
+      Result := Debit
+   End;
+end;
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 End.

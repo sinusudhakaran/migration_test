@@ -31,6 +31,86 @@ namespace BankLink.Practice.BooksIO
 
 
 
+		/// <summary>
+		/// Contractor property
+		/// </summary>
+		[XmlAttribute("Contractor", DataType = "boolean")]
+		public bool Contractor { get; set; }
+
+
+
+		/// <summary>
+		/// Surname property
+		/// </summary>
+		[XmlAttribute("Surname", DataType = "string")]
+		public String Surname { get; set; }
+
+
+
+		/// <summary>
+		/// GivenName property
+		/// </summary>
+		[XmlAttribute("GivenName", DataType = "string")]
+		public String GivenName { get; set; }
+
+
+
+		/// <summary>
+		/// OtherName property
+		/// </summary>
+		[XmlAttribute("OtherName", DataType = "string")]
+		public String OtherName { get; set; }
+
+
+
+		/// <summary>
+		/// Address property
+		/// </summary>
+		[XmlAttribute("Address", DataType = "string")]
+		public String Address { get; set; }
+
+
+
+		/// <summary>
+		/// Town property
+		/// </summary>
+		[XmlAttribute("Town", DataType = "string")]
+		public String Town { get; set; }
+
+
+
+		/// <summary>
+		/// State property
+		/// </summary>
+		[XmlAttribute("State", DataType = "string")]
+		public String State { get; set; }
+
+
+
+		/// <summary>
+		/// PostCode property
+		/// </summary>
+		[XmlAttribute("PostCode", DataType = "string")]
+		public String PostCode { get; set; }
+
+
+
+		/// <summary>
+		/// PhoneNumber property
+		/// </summary>
+		[XmlAttribute("PhoneNumber", DataType = "string")]
+		public String PhoneNumber { get; set; }
+
+
+
+		/// <summary>
+		/// ABN property
+		/// </summary>
+		[XmlAttribute("ABN", DataType = "string")]
+		public String ABN { get; set; }
+
+
+
 	}
 
 

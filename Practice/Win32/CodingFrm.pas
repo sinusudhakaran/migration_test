@@ -603,7 +603,6 @@ uses
    PayeeObj, UsageUtils, QueryTx, NewReportUtils,
    CountryUtils, SetClearTransferFlags, ExchangeRateList, AuditMgr,
    BankLinkOnlineServices,
-   dxList32,
    CAUtils;
 
 const
@@ -1966,314 +1965,344 @@ end;
 procedure TfrmCoding.DoMatchUPC;
 //Attempts to match current transaction with an entry in the UEList
 var
-   pT          : pTransaction_Rec; //Points to transaction to match
-   pUPI        : pTransaction_Rec; //Points to UPI transaction
-   pU          : pUE;              //Points to entry in UEList
-   Diff        : Money;
-   sMsg        : String;
-   DeletedTrans: pDeleted_Transaction_Rec;
+  pT          : pTransaction_Rec; //Points to transaction to match
+  pUPI        : pTransaction_Rec; //Points to UPI transaction
+  pU          : pUE;              //Points to entry in UEList
+  Diff        : Money;
+  sMsg        : String;
+  DeletedTrans: pDeleted_Transaction_Rec;
 begin
-   with tblCoding do begin
-      if not ValidDataRow(ActiveRow) then exit;
-      if not StopEditingState(True) then exit;
-      pT := WorkTranList.Transaction_At(ActiveRow-1);
-   end;
-   if pT^.txLocked then exit;
-   //check to see if there are any ue items
-   if not Assigned( UEList) then exit;
-   with pT^ do begin
-      if ( txDate_Transferred <> 0 ) then begin
-         HelpfulInfoMsg( 'You cannot match an entry once it has been transferred into your accounting system', 0 );
-         exit;
-      end;
-      if ( txDate_Presented = 0 ) or ( txUPI_State in [ upUPC, upUPD, upUPW]) then begin
-         HelpfulInfoMsg( 'You cannot match an unpresented entry against another one!', 0 );
-         exit;
-      end;
-      if ( txUPI_State in [ upMatchedUPC, upMatchedUPD, upMatchedUPW, upReversedUPC, upReversedUPD, upReversedUPW]) then begin
-         HelpfulInfoMsg( 'You cannot match an entry that has already been matched or cancelled.', 0);
-         exit;
-      end;
-      if ( txUPI_State in [ upReversalOfUPC, upReversalOfUPD, upReversalOfUPW]) then begin
-         HelpfulInfoMsg( 'You cannot match an unpresented entry against a reversing entry.', 0);
-         exit;
-      end;
+  with tblCoding do
+  begin
+    if not ValidDataRow(ActiveRow) then exit;
+    if not StopEditingState(True) then exit;
+    pT := WorkTranList.Transaction_At(ActiveRow-1);
+  end;
 
-      if ( txFirst_Dissection <> nil ) then
-         HelpfulInfoMsg( 'If you match this entry, any dissections you have entered will be removed', 0 );
+  if pT^.txLocked then
+    exit;
+  //check to see if there are any ue items
+  if not Assigned( UEList) then
+    exit;
 
-      if ( not ( pT^.txUPI_State in [ upNone, upBalanceOfUPC, upBalanceOfUPD, upBalanceOfUPW])) then begin
-         raise EInvalidCall.CreateFmt( UnitName + ': Bad Transaction UPI State %d during match', [ pT^.txUPI_State]);
-      end;
-
-      //show dialog with matchable entries in it.  ( ie UPC's)
-      pU := MatchUnpEntry(pT, UEList ); //Gets pointer to matching entry in UEList if one exists
-      If not Assigned( pU ) then exit;
-      pUPI := pU^.Ptr;
-
-      if ( not (pUPI^.txUPI_State in [ upUPC, upUPD, upUPW])) then begin
-         raise EInvalidCall.CreateFmt( UnitName + ': Bad UPI State %d during match', [ pUPI^.txUPI_State]);
-      end;
-
-      //check to see if there is a difference in the amounts
-      Diff := pT^.Statement_Amount - pUPI^.Statement_Amount;
-      if ( Diff = 0 ) then begin
-         //confirmation question will be asked in MatchDlg
-
-         //The amounts match, so we can flag the Unpresented Entry as being
-         //presented and delete the entry we are sitting on...
-         pUPI^.txDate_Presented := pT^.txDate_Presented;
-         case pUPI^.txUPI_State of
-            upUPC : pUPI^.txUPI_State := upMatchedUPC;
-            upUPD : pUPI^.txUPI_State := upMatchedUPD;
-            upUPW : pUPI^.txUPI_State := upMatchedUPW;
-         end;
-         //see if the original transaction has been matched with anything else
-         if pT^.txMatched_Item_ID <> 0 then begin
-            pUPI^.txOriginal_Reference                := pT^.txOriginal_Reference;
-            pUPI^.txOriginal_Source                   := pT^.txOriginal_Source;
-            pUPI^.txOriginal_Type                     := pT^.txOriginal_Type;
-            pUPI^.txOriginal_Cheque_Number            := pT^.txOriginal_Cheque_Number;
-            pUPI^.txOriginal_Amount                   := pT^.txOriginal_Amount;
-            pUPI^.txMatched_Item_ID                   := pT^.txMatched_Item_ID;
-            pUPI^.txOriginal_Forex_Conversion_Rate    := pT^.txOriginal_Forex_Conversion_Rate    ;
-//            pUPI^.txOriginal_Foreign_Currency_Amount  := pT^.txOriginal_Foreign_Currency_Amount  ;
-            pUPI^.txCore_Transaction_ID := pT^.txCore_Transaction_ID;
-            pUPI^.txCore_Transaction_ID_High := pT^.txCore_Transaction_ID_High;
-         end
-         else begin
-            //this is the original transaction so store details
-            pUPI^.txOriginal_Reference                := pT^.txReference;
-            pUPI^.txOriginal_Source                   := pT^.txSource;
-            pUPI^.txOriginal_Type                     := pT^.txType;
-            pUPI^.txOriginal_Cheque_Number            := pT^.txCheque_Number;
-            pUPI^.txOriginal_Amount                   := pT^.txAmount;
-            pUPI^.txOriginal_Forex_Conversion_Rate    := pT^.txForex_Conversion_Rate    ;
-//            pUPI^.txOriginal_Foreign_Currency_Amount  := pT^.txForeign_Currency_Amount  ;
-            pUPI^.txCore_Transaction_ID := pT^.txCore_Transaction_ID;
-            pUPI^.txCore_Transaction_ID_High := pT^.txCore_Transaction_ID_High;
-         end;
-
-         pUPI^.txTransfered_To_Online := False;
-
-         //log info the manual match done
-         sMsg := 'Matched ref ' + GetFormattedReference( pT) +
-                 ' ' + MakeAmount( pT.Statement_Amount) +
-                 ' on ' + bkDate2Str( pT^.txDate_Effective) +
-                 ' with ' + GetFormattedReference( pUPI) +
-                 ' on ' + bkDate2Str( pT^.txDate_Effective);
-         LogUtil.LogMsg( lmInfo, UnitName, sMsg); 
-
-         //*** Flag Audit ***
-         sMsg := Format('%s (AuditID=%d)',[sMsg, pT.txAudit_Record_ID ]);
-         MyClient.ClientAuditMgr.FlagAudit(arUnpresentedItems,
-                                           pUPI^.txAudit_Record_ID,
-                                           aaNone,
-                                           sMsg);
-
-         //Details from matched transaction have been transfered to the UE Transaction
-         //Now we delete the matched transaction and call LoadWTLMaintainPos to reload
-         //the WorkTranList and reload the UEList
-         tblCoding.AllowRedraw := False; //Prevent paint from accessing deleted item
-         //move off current transaction as it will be deleted
-         with tblCoding do begin
-            if ActiveRow > 1 then
-               ActiveRow := ActiveRow - 1;
-         end;
-         
-         //Delete original transaction
-         if RecordDeletedTransactionData(BankAccount, pT) then
-         begin
-           DeletedTrans := Create_Deleted_Transaction_Rec(pT, CurrUser.Code);
-
-           try
-             BankAccount.baTransaction_List.Delete(pT);
-
-             BankAccount.baDeleted_Transaction_List.Insert(DeletedTrans);
-           except
-             Dispose_Deleted_Transaction_Rec(DeletedTrans);
-
-             raise;
-           end;
-         end
-         else
-         begin
-           BankAccount.baTransaction_List.Delete(pT);
-         end;
-         
-         //reload transaction
-         LoadWTLMaintainPos;
-         tblCoding.AllowRedraw := True;
-         tblCoding.Refresh;
-      end
-      else begin
-         //Amount of original entry and upc being matched against are different
-         //Confirm will have been asked in MatchDlg
-
-         //The amounts don't match, so we will put the difference into the
-         //current entry and flag the original as being presented
-
-         //update unpresented item
-         pUPI^.txDate_Presented := pT^.txDate_Presented;
-         //update upi states
-         case pUPI^.txUPI_State of
-            upUPC : begin
-               pUPI^.txUPI_State := upMatchedUPC;
-               pT^.txUPI_State   := upBalanceOfUPC;
-            end;
-            upUPD : begin
-               pUPI^.txUPI_State := upMatchedUPD;
-               pT^.txUPI_State   := upBalanceOfUPD;
-            end;
-            upUPW : begin
-               pUPI^.txUPI_State := upMatchedUPW;
-               pT^.txUPI_State   := upBalanceOfUPW;
-            end;
-         end;
-
-         //see if the original transaction has been matched with anything else
-         if pT^.txMatched_Item_ID <> 0 then begin
-            pUPI^.txOriginal_Reference                := pT^.txOriginal_Reference;
-            pUPI^.txOriginal_Source                   := pT^.txOriginal_Source;
-            pUPI^.txOriginal_Type                     := pT^.txOriginal_Type;
-            pUPI^.txOriginal_Cheque_Number            := pT^.txOriginal_Cheque_Number;
-            pUPI^.txOriginal_Amount                   := pT^.txOriginal_Amount;
-            pUPI^.txMatched_Item_ID                   := pT^.txMatched_Item_ID;
-            pUPI^.txOriginal_Forex_Conversion_Rate    := pT^.txOriginal_Forex_Conversion_Rate;
-//            pUPI^.txOriginal_Foreign_Currency_Amount  := pT^.txOriginal_Foreign_Currency_Amount  ;
-            pUPI^.txCore_Transaction_ID               := pT^.txCore_Transaction_ID;
-            pUPI^.txCore_Transaction_ID_High          := pT^.txCore_Transaction_ID_High;
-         end
-         else begin
-            //get new matched item id
-            Inc( BankAccount.baFields.baHighest_Matched_Item_ID);
-            pT^.txMatched_Item_ID   := BankAccount.baFields.baHighest_Matched_Item_ID;
-            pUPI^.txMatched_Item_ID := pT^.txMatched_Item_ID;
-
-            //this is the original transaction so store details
-            pUPI^.txOriginal_Reference                := pT^.txReference;
-            pUPI^.txOriginal_Source                   := pT^.txSource;
-            pUPI^.txOriginal_Type                     := pT^.txType;
-            pUPI^.txOriginal_Cheque_Number            := pT^.txCheque_Number;
-            pUPI^.txOriginal_Amount                   := pT^.txAmount;
-            pUPI^.txOriginal_Forex_Conversion_Rate    := pT^.txForex_Conversion_Rate    ;
-//            pUPI^.txOriginal_Foreign_Currency_Amount  := pT^.txForeign_Currency_Amount  ;
-            pUPI^.txCore_Transaction_ID               := pT^.txCore_Transaction_ID;
-            pUPI^.txCore_Transaction_ID_High          := pT^.txCore_Transaction_ID_High;
-
-            // -----------------------------------------------------------------
-
-            pT^.txOriginal_Reference                  := pT^.txReference;
-            pT^.txOriginal_Source                     := pT^.txSource;
-            pT^.txOriginal_Type                       := pT^.txType;
-            pT^.txOriginal_Cheque_Number              := pT^.txCheque_Number;
-            pT^.txOriginal_Amount                     := pT^.txAmount;
-            pT^.txOriginal_Forex_Conversion_Rate      := pT^.txForex_Conversion_Rate;
-            
-//            pT^.txOriginal_Foreign_Currency_Amount    := pT^.txForeign_Currency_Amount  ;
-         end;
-         //log info the manual match done and original entry adjusted
-         sMsg := 'Matched ref ' + GetFormattedReference( pT) +
-                 ' ' +  MakeAmount( pT.Statement_Amount) +
-                 ' on ' + bkDate2Str( pT^.txDate_Effective) +
-                 ' with ' + GetFormattedReference( pUPI) +
-                 ' ' + MakeAmount( pUPI.Statement_Amount) +
-                 ' on ' + bkDate2Str( pUPI^.txDate_Effective)+
-                 ' Original Entry adjusted to ' + BankAccount.CurrencySymbol + MakeAmount( Diff);
-         LogUtil.LogMsg( lmInfo, UnitName, sMsg);
-
-         //*** Flag Audit ***
-         sMsg := Format('%s (AuditID=%d)',[sMsg, pT.txAudit_Record_ID ]);
-         MyClient.ClientAuditMgr.FlagAudit(arUnpresentedItems,
-                                           pUPI^.txAudit_Record_ID,
-                                           aaNone,
-                                           sMsg);
-
-         //update the original transaction
-         //Removes any dissection in transaction
-         Dump_Dissections( pT );
-         //remove any coding information
-         pT^.txAccount    := '';
-         //Adjust amount of matched transaction
-         pT.Statement_Amount := Diff;
-         pT^.txGST_Class  := 0;
-         pT^.txGST_Amount := 0;
-
-
-         pUPI^.txTransfered_To_Online := False;
-         pT^.txTransfered_To_Online := False;
-
-         //Details from matched transaction have been transfered to the UE Transaction
-         //Amount has been adjusted on matched transaction and call LoadWTLMaintainPos to reload
-         //the WorkTranList and reload the UEList
-         LoadWTLMaintainPos;
-         tblCoding.Refresh;
-      end;
+  with pT^ do
+  begin
+    if ( txDate_Transferred <> 0 ) then
+    begin
+      HelpfulInfoMsg( 'You cannot match an entry once it has been transferred into your accounting system', 0 );
+      exit;
     end;
+
+    if ( txDate_Presented = 0 ) or ( txUPI_State in [ upUPC, upUPD, upUPW]) then
+    begin
+      HelpfulInfoMsg( 'You cannot match an unpresented entry against another one!', 0 );
+      exit;
+    end;
+
+    if ( txUPI_State in [ upMatchedUPC, upMatchedUPD, upMatchedUPW, upReversedUPC, upReversedUPD, upReversedUPW]) then
+    begin
+      HelpfulInfoMsg( 'You cannot match an entry that has already been matched or cancelled.', 0);
+      exit;
+    end;
+
+    if ( txUPI_State in [ upReversalOfUPC, upReversalOfUPD, upReversalOfUPW]) then
+    begin
+      HelpfulInfoMsg( 'You cannot match an unpresented entry against a reversing entry.', 0);
+      exit;
+    end;
+
+    if ( txFirst_Dissection <> nil ) then
+       HelpfulInfoMsg( 'If you match this entry, any dissections you have entered will be removed', 0 );
+
+    if ( not ( pT^.txUPI_State in [ upNone, upBalanceOfUPC, upBalanceOfUPD, upBalanceOfUPW])) then
+    begin
+      raise EInvalidCall.CreateFmt( UnitName + ': Bad Transaction UPI State %d during match', [ pT^.txUPI_State]);
+    end;
+
+    //show dialog with matchable entries in it.  ( ie UPC's)
+    pU := MatchUnpEntry(pT, UEList ); //Gets pointer to matching entry in UEList if one exists
+    If not Assigned( pU ) then
+      exit;
+
+    pUPI := pU^.Ptr;
+
+    if ( not (pUPI^.txUPI_State in [ upUPC, upUPD, upUPW])) then
+    begin
+      raise EInvalidCall.CreateFmt( UnitName + ': Bad UPI State %d during match', [ pUPI^.txUPI_State]);
+    end;
+
+    //check to see if there is a difference in the amounts
+    Diff := pT^.Statement_Amount - pUPI^.Statement_Amount;
+    if ( Diff = 0 ) then
+    begin
+       //confirmation question will be asked in MatchDlg
+
+       //The amounts match, so we can flag the Unpresented Entry as being
+       //presented and delete the entry we are sitting on...
+       pUPI^.txDate_Presented := pT^.txDate_Presented;
+       case pUPI^.txUPI_State of
+         upUPC : pUPI^.txUPI_State := upMatchedUPC;
+         upUPD : pUPI^.txUPI_State := upMatchedUPD;
+         upUPW : pUPI^.txUPI_State := upMatchedUPW;
+       end;
+       //see if the original transaction has been matched with anything else
+       if pT^.txMatched_Item_ID <> 0 then
+       begin
+          pUPI^.txOriginal_Reference                := pT^.txOriginal_Reference;
+          pUPI^.txOriginal_Source                   := pT^.txOriginal_Source;
+          pUPI^.txOriginal_Type                     := pT^.txOriginal_Type;
+          pUPI^.txOriginal_Cheque_Number            := pT^.txOriginal_Cheque_Number;
+          pUPI^.txOriginal_Amount                   := pT^.txOriginal_Amount;
+          pUPI^.txMatched_Item_ID                   := pT^.txMatched_Item_ID;
+          pUPI^.txOriginal_Forex_Conversion_Rate    := pT^.txOriginal_Forex_Conversion_Rate    ;
+  //            pUPI^.txOriginal_Foreign_Currency_Amount  := pT^.txOriginal_Foreign_Currency_Amount  ;
+          pUPI^.txCore_Transaction_ID := pT^.txCore_Transaction_ID;
+          pUPI^.txCore_Transaction_ID_High := pT^.txCore_Transaction_ID_High;
+       end
+       else begin
+          //this is the original transaction so store details
+          pUPI^.txOriginal_Reference                := pT^.txReference;
+          pUPI^.txOriginal_Source                   := pT^.txSource;
+          pUPI^.txOriginal_Type                     := pT^.txType;
+          pUPI^.txOriginal_Cheque_Number            := pT^.txCheque_Number;
+          pUPI^.txOriginal_Amount                   := pT^.txAmount;
+          pUPI^.txOriginal_Forex_Conversion_Rate    := pT^.txForex_Conversion_Rate    ;
+  //            pUPI^.txOriginal_Foreign_Currency_Amount  := pT^.txForeign_Currency_Amount  ;
+          pUPI^.txCore_Transaction_ID := pT^.txCore_Transaction_ID;
+          pUPI^.txCore_Transaction_ID_High := pT^.txCore_Transaction_ID_High;
+       end;
+
+       pUPI^.txTransfered_To_Online := False;
+
+       //log info the manual match done
+       sMsg := 'Matched ref ' + GetFormattedReference( pT) +
+               ' ' + MakeAmount( pT.Statement_Amount) +
+               ' on ' + bkDate2Str( pT^.txDate_Effective) +
+               ' with ' + GetFormattedReference( pUPI) +
+               ' on ' + bkDate2Str( pT^.txDate_Effective);
+       LogUtil.LogMsg( lmInfo, UnitName, sMsg);
+
+       //*** Flag Audit ***
+       sMsg := Format('%s (AuditID=%d)',[sMsg, pT.txAudit_Record_ID ]);
+       MyClient.ClientAuditMgr.FlagAudit(arUnpresentedItems,
+                                         pUPI^.txAudit_Record_ID,
+                                         aaNone,
+                                         sMsg);
+
+       //Details from matched transaction have been transfered to the UE Transaction
+       //Now we delete the matched transaction and call LoadWTLMaintainPos to reload
+       //the WorkTranList and reload the UEList
+       tblCoding.AllowRedraw := False; //Prevent paint from accessing deleted item
+       //move off current transaction as it will be deleted
+       with tblCoding do begin
+          if ActiveRow > 1 then
+             ActiveRow := ActiveRow - 1;
+       end;
+
+       //Delete original transaction
+       BankAccount.baTransaction_List.Delete(pT);
+
+       //reload transaction
+       LoadWTLMaintainPos;
+       tblCoding.AllowRedraw := True;
+       tblCoding.Refresh;
+       RefreshHomepage ([HPR_ExchangeGainLoss_Message]);
+    end
+    else begin
+       //Amount of original entry and upc being matched against are different
+       //Confirm will have been asked in MatchDlg
+
+       //The amounts don't match, so we will put the difference into the
+       //current entry and flag the original as being presented
+
+       //update unpresented item
+       pUPI^.txDate_Presented := pT^.txDate_Presented;
+       //update upi states
+       case pUPI^.txUPI_State of
+          upUPC : begin
+             pUPI^.txUPI_State := upMatchedUPC;
+             pT^.txUPI_State   := upBalanceOfUPC;
+          end;
+          upUPD : begin
+             pUPI^.txUPI_State := upMatchedUPD;
+             pT^.txUPI_State   := upBalanceOfUPD;
+          end;
+          upUPW : begin
+             pUPI^.txUPI_State := upMatchedUPW;
+             pT^.txUPI_State   := upBalanceOfUPW;
+          end;
+       end;
+
+       //see if the original transaction has been matched with anything else
+       if pT^.txMatched_Item_ID <> 0 then begin
+          pUPI^.txOriginal_Reference                := pT^.txOriginal_Reference;
+          pUPI^.txOriginal_Source                   := pT^.txOriginal_Source;
+          pUPI^.txOriginal_Type                     := pT^.txOriginal_Type;
+          pUPI^.txOriginal_Cheque_Number            := pT^.txOriginal_Cheque_Number;
+          pUPI^.txOriginal_Amount                   := pT^.txOriginal_Amount;
+          pUPI^.txMatched_Item_ID                   := pT^.txMatched_Item_ID;
+          pUPI^.txOriginal_Forex_Conversion_Rate    := pT^.txOriginal_Forex_Conversion_Rate;
+  //            pUPI^.txOriginal_Foreign_Currency_Amount  := pT^.txOriginal_Foreign_Currency_Amount  ;
+          pUPI^.txCore_Transaction_ID               := pT^.txCore_Transaction_ID;
+          pUPI^.txCore_Transaction_ID_High          := pT^.txCore_Transaction_ID_High;
+       end
+       else begin
+          //get new matched item id
+          Inc( BankAccount.baFields.baHighest_Matched_Item_ID);
+          pT^.txMatched_Item_ID   := BankAccount.baFields.baHighest_Matched_Item_ID;
+          pUPI^.txMatched_Item_ID := pT^.txMatched_Item_ID;
+
+          //this is the original transaction so store details
+          pUPI^.txOriginal_Reference                := pT^.txReference;
+          pUPI^.txOriginal_Source                   := pT^.txSource;
+          pUPI^.txOriginal_Type                     := pT^.txType;
+          pUPI^.txOriginal_Cheque_Number            := pT^.txCheque_Number;
+          pUPI^.txOriginal_Amount                   := pT^.txAmount;
+          pUPI^.txOriginal_Forex_Conversion_Rate    := pT^.txForex_Conversion_Rate    ;
+  //            pUPI^.txOriginal_Foreign_Currency_Amount  := pT^.txForeign_Currency_Amount  ;
+          pUPI^.txCore_Transaction_ID               := pT^.txCore_Transaction_ID;
+          pUPI^.txCore_Transaction_ID_High          := pT^.txCore_Transaction_ID_High;
+
+          // -----------------------------------------------------------------
+
+          pT^.txOriginal_Reference                  := pT^.txReference;
+          pT^.txOriginal_Source                     := pT^.txSource;
+          pT^.txOriginal_Type                       := pT^.txType;
+          pT^.txOriginal_Cheque_Number              := pT^.txCheque_Number;
+          pT^.txOriginal_Amount                     := pT^.txAmount;
+          pT^.txOriginal_Forex_Conversion_Rate      := pT^.txForex_Conversion_Rate;
+
+  //            pT^.txOriginal_Foreign_Currency_Amount    := pT^.txForeign_Currency_Amount  ;
+       end;
+       //log info the manual match done and original entry adjusted
+       sMsg := 'Matched ref ' + GetFormattedReference( pT) +
+               ' ' +  MakeAmount( pT.Statement_Amount) +
+               ' on ' + bkDate2Str( pT^.txDate_Effective) +
+               ' with ' + GetFormattedReference( pUPI) +
+               ' ' + MakeAmount( pUPI.Statement_Amount) +
+               ' on ' + bkDate2Str( pUPI^.txDate_Effective)+
+               ' Original Entry adjusted to ' + BankAccount.CurrencySymbol + MakeAmount( Diff);
+       LogUtil.LogMsg( lmInfo, UnitName, sMsg);
+
+       //*** Flag Audit ***
+       sMsg := Format('%s (AuditID=%d)',[sMsg, pT.txAudit_Record_ID ]);
+       MyClient.ClientAuditMgr.FlagAudit(arUnpresentedItems,
+                                         pUPI^.txAudit_Record_ID,
+                                         aaNone,
+                                         sMsg);
+
+       //update the original transaction
+       //Removes any dissection in transaction
+       Dump_Dissections( pT );
+       //remove any coding information
+       pT^.txAccount    := '';
+       //Adjust amount of matched transaction
+       pT.Statement_Amount := Diff;
+       pT^.txGST_Class  := 0;
+       pT^.txGST_Amount := 0;
+
+
+       pUPI^.txTransfered_To_Online := False;
+       pT^.txTransfered_To_Online := False;
+
+       //Details from matched transaction have been transfered to the UE Transaction
+       //Amount has been adjusted on matched transaction and call LoadWTLMaintainPos to reload
+       //the WorkTranList and reload the UEList
+       LoadWTLMaintainPos;
+       tblCoding.Refresh;
+       RefreshHomepage ([HPR_ExchangeGainLoss_Message]);
+    end;
+  end;
 end;
 //------------------------------------------------------------------------------
 
 procedure TfrmCoding.DoRecombineEntries;
 var
-   pT          : pTransaction_Rec;
-   NewTrans    : pTransaction_Rec;
+  pT          : pTransaction_Rec;
+  NewTrans    : pTransaction_Rec;
 begin
-   with tblCoding do begin
-      if not ValidDataRow(ActiveRow) then exit;
-      if not StopEditingState(True) then exit;
-      pT := WorkTranList.Transaction_At(ActiveRow-1);
-   end;
+  with tblCoding do
+  begin
+    if not ValidDataRow(ActiveRow) then exit;
+    if not StopEditingState(True) then exit;
+    pT := WorkTranList.Transaction_At(ActiveRow-1);
+  end;
 
-   if ( pT^.txLocked) then begin
-      HelpfulInfoMsg( 'You cannot recombine a finalised entry.',0);
-      exit;
-   end;
-   if ( pt^.txDate_Transferred <> 0) then begin
-      HelpfulInfoMsg( 'You cannot recombine an entry which has been transferred.', 0);
-      exit;
-   end;
-   if not( pT^.txUPI_State in [ upBalanceOfUPC, upBalanceOfUPD, upBalanceOfUPW]) then begin
-      HelpfulInfoMsg( 'This is not a valid entry to recombine.  You can only '+
-                      'recombine balancing entries.', 0);
-      exit;
-   end;
+  if ( pT^.txLocked) then
+  begin
+    HelpfulInfoMsg( 'You cannot recombine a finalised entry.',0);
+    exit;
+  end;
 
-   if pT^.txDate_Presented = 0 then
-      raise EInvalidCall.Create(Unitname + ': Trying to recombine entry with pres date = 0');
+  if ( pt^.txDate_Transferred <> 0) then
+  begin
+    HelpfulInfoMsg( 'You cannot recombine an entry which has been transferred.', 0);
+    exit;
+  end;
 
-   NewTrans := RecombineEntriesFrm.RecombineEntry( BankAccount, pT);
-   if Assigned( NewTrans) then begin
-      LoadWorkTranList;
-      RepositionOn( NewTrans);
-      //application updates will have been locked by Recombine
-      LockWindowUpdate( 0);
-      tblCoding.AllowRedraw := True;
-      tblCoding.Refresh;
-   end;
+  if not( pT^.txUPI_State in [ upBalanceOfUPC, upBalanceOfUPD, upBalanceOfUPW]) then
+  begin
+    HelpfulInfoMsg( 'This is not a valid entry to recombine.  You can only '+
+                     'recombine balancing entries.', 0);
+    exit;
+  end;
+
+  if pT^.txDate_Presented = 0 then
+    raise EInvalidCall.Create(Unitname + ': Trying to recombine entry with pres date = 0');
+
+  NewTrans := RecombineEntriesFrm.RecombineEntry( BankAccount, pT);
+  if Assigned( NewTrans) then
+  begin
+    LoadWorkTranList;
+    RepositionOn( NewTrans);
+    //application updates will have been locked by Recombine
+    LockWindowUpdate( 0);
+    tblCoding.AllowRedraw := True;
+    tblCoding.Refresh;
+    RefreshHomepage ([HPR_ExchangeGainLoss_Message]);
+  end;
 end;
+
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmCoding.SetOrClearTransferDate(SetDate : boolean);
 //Sets or clears the Transfer Date according to the SetDate parameter.
 //A non-zero Transfer Date indicates the transaction has been transfered.
 var
    i : Integer;
+   PeriodList: TDateList;
+   Index: Integer;
 begin
    //Show warning if ForEx account
    if Assigned(AdminSystem) or (MyClient.clFields.clDownload_From <> dlAdminSystem) then
      if BankAccount.IsAForexAccount and (not SetDate) and (not UpdateExchangeRates) then exit;
 
-   for i := 0 to Pred( WorkTranList.ItemCount ) do begin
-      with WorkTranList.Transaction_At( i )^ do begin
-        if SetDate then begin
-           if ( txDate_Transferred = 0 ) then begin
-              txDate_Transferred := CurrentDate;
-           end;
-        end
-        else begin //Clears date
-           txDate_Transferred := 0;
-        end;
-      end;
+   for i := 0 to Pred( WorkTranList.ItemCount ) do
+   begin
+     with WorkTranList.Transaction_At( i )^ do
+     begin
+       if SetDate then
+       begin
+         if ( txDate_Transferred = 0 ) then
+         begin
+           txDate_Transferred := CurrentDate;
+           txForex_Conversion_Rate := BankAccount.Default_Forex_Conversion_Rate(txDate_Effective);
+         end;
+       end
+       else
+       begin //Clears date
+         txDate_Transferred := 0;
+         txForex_Conversion_Rate := 0
+       end;
+     end;
    end;
+
+   PeriodList := GetPeriodsBetween(TranDateFrom, TranDateTo, True);
+
+   for Index := 0 to Length(PeriodList) -1 do
+   begin
+     BankAccount.baFinalized_Exchange_Rate_List.AddExchangeRate(PeriodList[Index], BankAccount.Default_Forex_Conversion_Rate(PeriodList[Index]));
+   end;
+
    If not SetDate then AutoCodeEntries( MyClient, BankAccount, AllEntries, TranDateFrom, TranDateTo );
    tblCoding.Refresh;
 end;
@@ -2303,97 +2332,118 @@ end;
 procedure TfrmCoding.DoAddOutstandingCheques;
 //Adds Outstanding Cheques
 begin
-   if IsLocked(TranDateFrom, TranDateTo) in [ltAll, ltSome] then begin
-      HelpfulInfoMsg('This Coding Period contains locked entries.  You cannot add outstanding cheques.',0);
-      exit;
-   end;
-   if AddUnpresentedCheques(BankAccount, TranDateFrom, TranDateTo) then begin
-      LoadWorkTranList;
-      tblCoding.ActiveRow := WorkTranList.ItemCount;
-      tblCoding.Refresh;
-   end;
+  if IsLocked(TranDateFrom, TranDateTo) in [ltAll, ltSome] then
+  begin
+    HelpfulInfoMsg('This Coding Period contains locked entries.  You cannot add outstanding cheques.',0);
+    exit;
+  end;
+  if AddUnpresentedCheques(BankAccount, TranDateFrom, TranDateTo) then
+  begin
+    LoadWorkTranList;
+    tblCoding.ActiveRow := WorkTranList.ItemCount;
+    tblCoding.Refresh;
+    RefreshHomepage ([HPR_ExchangeGainLoss_Message]);
+  end;
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmCoding.DoAddOutstandingDeposits;
 //Adds Outstanding Deposits
 begin
-   if IsLocked(TranDateFrom, TranDateTo) in [ltAll, ltSome] then begin
-     HelpfulInfoMsg('This Coding Period contains locked entries.  You cannot add outstanding deposits.',0);
-     exit;
-   end;
-   if AddOutstandingDeposits(BankAccount, TranDateFrom, TranDateTo) then begin
-      LoadWorkTranList;
-      tblCoding.ActiveRow := WorkTranList.ItemCount;
-      tblCoding.Refresh;
-   end;
+  if IsLocked(TranDateFrom, TranDateTo) in [ltAll, ltSome] then
+  begin
+    HelpfulInfoMsg('This Coding Period contains locked entries.  You cannot add outstanding deposits.',0);
+    exit;
+  end;
+  if AddOutstandingDeposits(BankAccount, TranDateFrom, TranDateTo) then
+  begin
+    LoadWorkTranList;
+    tblCoding.ActiveRow := WorkTranList.ItemCount;
+    tblCoding.Refresh;
+    RefreshHomepage ([HPR_ExchangeGainLoss_Message]);
+  end;
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmCoding.DoAddOutstandingWithdrawals;
 //Adds Outstanding Withdrawals
 begin
-   if IsLocked(TranDateFrom, TranDateTo) in [ltAll, ltSome] then begin
-     HelpfulInfoMsg('This Coding Period contains locked entries.  You cannot add outstanding withdrawals.',0);
-     exit;
-   end;
-   if AddOutstandingWithdrawals(BankAccount, TranDateFrom, TranDateTo) then begin
-      LoadWorkTranList;
-      tblCoding.ActiveRow := WorkTranList.ItemCount;
-      tblCoding.Refresh;
-   end;
+  if IsLocked(TranDateFrom, TranDateTo) in [ltAll, ltSome] then
+  begin
+    HelpfulInfoMsg('This Coding Period contains locked entries.  You cannot add outstanding withdrawals.',0);
+    exit;
+  end;
+  if AddOutstandingWithdrawals(BankAccount, TranDateFrom, TranDateTo) then
+  begin
+    LoadWorkTranList;
+    tblCoding.ActiveRow := WorkTranList.ItemCount;
+    tblCoding.Refresh;
+    RefreshHomepage ([HPR_ExchangeGainLoss_Message]);
+  end;
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmCoding.DoAddInitialCheques;
 //Adds Initial Cheques
 begin
-   if (IsLocked(TranDateFrom, TranDateTo) in [ltAll, ltSome]) then begin
-     HelpfulInfoMsg('This Coding Period contains locked entries.  You cannot add initial cheques.',0);
-     exit;
-   end;
-   if (IsLocked(TranDateFrom - 1, TranDateFrom -1) in [ltAll, ltSome]) then begin
-     HelpfulInfoMsg('You have locked the first accounting period.  You cannot add initial cheques.',0);
-     exit;
-   end;
-   if AddInitialCheques(BankAccount, TranDateFrom, TranDateTo) then begin
-      LoadWorkTranList;
-      tblCoding.ActiveRow := WorkTranList.ItemCount;
-      tblCoding.Refresh;
-   end;
+  if (IsLocked(TranDateFrom, TranDateTo) in [ltAll, ltSome]) then
+  begin
+    HelpfulInfoMsg('This Coding Period contains locked entries.  You cannot add initial cheques.',0);
+    exit;
+  end;
+  if (IsLocked(TranDateFrom - 1, TranDateFrom -1) in [ltAll, ltSome]) then
+  begin
+    HelpfulInfoMsg('You have locked the first accounting period.  You cannot add initial cheques.',0);
+    exit;
+  end;
+  if AddInitialCheques(BankAccount, TranDateFrom, TranDateTo) then
+  begin
+    LoadWorkTranList;
+    tblCoding.ActiveRow := WorkTranList.ItemCount;
+    tblCoding.Refresh;
+    RefreshHomepage ([HPR_ExchangeGainLoss_Message]);
+  end;
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmCoding.DoAddInitialDeposits;
 //Adds Initial Cheques
 begin
-   if (IsLocked(TranDateFrom, TranDateTo) in [ltAll, ltSome]) then begin
-     HelpfulInfoMsg('This Coding Period contains locked entries.  You cannot add initial deposits.',0);
-     exit;
-   end;
-   if (IsLocked(TranDateFrom - 1, TranDateFrom -1) in [ltAll, ltSome]) then begin
-     HelpfulInfoMsg('You have locked the first accounting period.  You cannot add initial deposits.',0);
-     exit;
-   end;
-   if AddOutstandingDeposits(BankAccount, TranDateFrom, TranDateTo, True) then begin
-      LoadWorkTranList;
-      tblCoding.ActiveRow := WorkTranList.ItemCount;
-      tblCoding.Refresh;
-   end;
+  if (IsLocked(TranDateFrom, TranDateTo) in [ltAll, ltSome]) then
+  begin
+    HelpfulInfoMsg('This Coding Period contains locked entries.  You cannot add initial deposits.',0);
+    exit;
+  end;
+  if (IsLocked(TranDateFrom - 1, TranDateFrom -1) in [ltAll, ltSome]) then
+  begin
+    HelpfulInfoMsg('You have locked the first accounting period.  You cannot add initial deposits.',0);
+    exit;
+  end;
+  if AddOutstandingDeposits(BankAccount, TranDateFrom, TranDateTo, True) then
+  begin
+    LoadWorkTranList;
+    tblCoding.ActiveRow := WorkTranList.ItemCount;
+    tblCoding.Refresh;
+    RefreshHomepage ([HPR_ExchangeGainLoss_Message]);
+  end;
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmCoding.DoAddInitialWithdrawals;
 //Adds Initial Cheques
 begin
-   if (IsLocked(TranDateFrom, TranDateTo) in [ltAll, ltSome]) then begin
-     HelpfulInfoMsg('This Coding Period contains locked entries.  You cannot add initial withdrawals.',0);
-     exit;
-   end;
-   if (IsLocked(TranDateFrom - 1, TranDateFrom -1) in [ltAll, ltSome]) then begin
-     HelpfulInfoMsg('You have locked the first accounting period.  You cannot add initial withdrawals.',0);
-     exit;
-   end;
-   if AddOutstandingWithdrawals(BankAccount, TranDateFrom, TranDateTo, True) then begin
-      LoadWorkTranList;
-      tblCoding.ActiveRow := WorkTranList.ItemCount;
-      tblCoding.Refresh;
-   end;
+  if (IsLocked(TranDateFrom, TranDateTo) in [ltAll, ltSome]) then
+  begin
+    HelpfulInfoMsg('This Coding Period contains locked entries.  You cannot add initial withdrawals.',0);
+    exit;
+  end;
+  if (IsLocked(TranDateFrom - 1, TranDateFrom -1) in [ltAll, ltSome]) then
+  begin
+    HelpfulInfoMsg('You have locked the first accounting period.  You cannot add initial withdrawals.',0);
+    exit;
+  end;
+  if AddOutstandingWithdrawals(BankAccount, TranDateFrom, TranDateTo, True) then
+  begin
+    LoadWorkTranList;
+    tblCoding.ActiveRow := WorkTranList.ItemCount;
+    tblCoding.Refresh;
+    RefreshHomepage ([HPR_ExchangeGainLoss_Message]);
+  end;
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -2607,7 +2657,9 @@ begin
       end;
       LoadWTLMaintainPos;
    end;
+
    tblCoding.Refresh;
+   RefreshHomepage([HPR_ExchangeGainLoss_Message]);
 end;
 
 procedure TfrmCoding.DoNewJournal;
@@ -2670,19 +2722,22 @@ var
    AuditType: TAuditType;
    DeletedTrans: pDeleted_Transaction_Rec;
 begin
-   with tblCoding do begin
-      if not ValidDataRow(ActiveRow) then exit;
-      if not StopEditingState(True) then exit;
-      pT := WorkTranList.Transaction_At(ActiveRow-1);
+   with tblCoding do
+   begin
+     if not ValidDataRow(ActiveRow) then exit;
+     if not StopEditingState(True) then exit;
+     pT := WorkTranList.Transaction_At(ActiveRow-1);
    end;
 
-   if isJournal then begin
-      DoDeleteJournal(PT);
-      Exit;
+   if isJournal then
+   begin
+     DoDeleteJournal(PT);
+     Exit;
    end;
 
 
-   with pT^ do begin
+   with pT^ do
+   begin
       //store ref and amount so can use when pT disposed of
       TransRef        := GetFormattedReference( pT);
       TransAmt        := txAmount;
@@ -2690,7 +2745,8 @@ begin
 
       //see if transaction is locked or transferred, if it is a UPC/UPD ask user
       //if the want to cancel it.
-      if txLocked or ( txDate_Transferred <> 0) then begin
+      if txLocked or ( txDate_Transferred <> 0) then
+      begin
          S := 'You cannot delete this transaction because:'#13#13;
          if ( pT^.txDate_Transferred <> 0) then
             S := S + 'It has been transferred to your main accounting system.'#13;
@@ -2698,7 +2754,8 @@ begin
             S := S + 'It belongs to a finalised period.';
 
          case txUPI_State of
-            upUPC, upUPD, upUPW : begin
+            upUPC, upUPD, upUPW :
+            begin
                //deleting a locked unpresented item
                //Ask if want to create a balancing transaction
                S := S + #13#13 + 'Do you want to create a reversing entry and '+
@@ -2769,16 +2826,18 @@ begin
                LoadWTLMaintainPos;
                tblCoding.AllowRedraw := True;
                tblCoding.Refresh;
+               RefreshHomepage ([HPR_ExchangeGainLoss_Message]);
                exit;
             end;
 
-            upMatchedUPC, upMatchedUPD, upMatchedUPW : begin
+            upMatchedUPC, upMatchedUPD, upMatchedUPW :
+            begin
                //item can be handled by normal unmatched code below so do nothing
                ;
             end;
          else
-            HelpfulInfoMsg( S, 0);
-            exit;
+           HelpfulInfoMsg( S, 0);
+           exit;
          end;
       end;  //transferred or locked
 
@@ -2809,31 +2868,15 @@ begin
                   // Changing Active Row triggers table redraw irrespective of
                   // setting of AllowRedraw
                   // If we do this after DelFreeItem ReadCellForPaint will crash
-                  with tblCoding do begin
-                     if ActiveRow > 1 then
-                        ActiveRow := ActiveRow - 1;
+                  with tblCoding do
+                  begin
+                    if ActiveRow > 1 then
+                      ActiveRow := ActiveRow - 1;
                   end;
                   tblCoding.AllowRedraw := False;
                   AuditId := pT^.txAudit_Record_ID;
 
-                  if RecordDeletedTransactionData(BankAccount, pT) then
-                  begin
-                    DeletedTrans := Create_Deleted_Transaction_Rec(pT, CurrUser.Code);
-
-                    try
-                      BankAccount.baTransaction_List.DelFreeItem( pT );
-
-                      BankAccount.baDeleted_Transaction_List.Insert(DeletedTrans); 
-                    except
-                      Dispose_Deleted_Transaction_Rec(DeletedTrans);
-          
-                      raise;
-                    end;
-                  end
-                  else
-                  begin
-                    BankAccount.baTransaction_List.DelFreeItem( pT );
-                  end;
+                  BankAccount.baTransaction_List.DelFreeItem( pT );
 
                   LoadWTLMaintainPos;
                   tblCoding.AllowRedraw := True;
@@ -2846,6 +2889,7 @@ begin
                                                     AuditId,
                                                     aaNone,
                                                     sMsg);
+                  RefreshHomepage ([HPR_ExchangeGainLoss_Message]);
                   exit;
                end;
                DLG_RANGE :  begin
@@ -2866,6 +2910,7 @@ begin
                         finally
                            tblCoding.AllowRedraw := True;
                            tblCoding.Refresh;
+                           RefreshHomepage ([HPR_ExchangeGainLoss_Message]);
                         end;
                      end;
                   finally
@@ -2917,24 +2962,7 @@ begin
             AuditId := pT^.txAudit_Record_ID;
 
            //Delete original transaction
-            if RecordDeletedTransactionData(BankAccount, pT) then
-            begin
-              DeletedTrans := Create_Deleted_Transaction_Rec(pT, CurrUser.Code);
-
-              try
-                BankAccount.baTransaction_List.Delete( pT );
-
-                BankAccount.baDeleted_Transaction_List.Insert(DeletedTrans);
-              except
-                Dispose_Deleted_Transaction_Rec(DeletedTrans);
-
-                raise;
-              end;
-            end
-            else
-            begin
-              BankAccount.baTransaction_List.Delete( pT );
-            end;
+            BankAccount.baTransaction_List.Delete( pT );
 
             //*** Flag Audit ***
             MyClient.ClientAuditMgr.FlagAudit(arUnpresentedItems,
@@ -3044,6 +3072,7 @@ begin
                                               pT.txAudit_Record_ID,
                                               aaNone,
                                               sMsg);
+            RefreshHomepage ([HPR_ExchangeGainLoss_Message]);
 
             exit;
          end;
@@ -3101,24 +3130,7 @@ begin
             AuditType := MyClient.ClientAuditMgr.GetTransactionAuditType(pT^.txSource,
                                                                          BankAccount.baFields.baAccount_Type);
 
-            if RecordDeletedTransactionData(BankAccount, pT) then
-            begin
-              DeletedTrans := Create_Deleted_Transaction_Rec(pT, CurrUser.Code);
-
-              try
-                BankAccount.baTransaction_List.DelFreeItem( pT);
-
-                BankAccount.baDeleted_Transaction_List.Insert(DeletedTrans); 
-              except
-                Dispose_Deleted_Transaction_Rec(DeletedTrans);
-          
-                raise;
-              end;
-            end
-            else
-            begin
-              BankAccount.baTransaction_List.DelFreeItem( pT);
-            end;
+            BankAccount.baTransaction_List.DelFreeItem( pT);
 
             //reload and reposition
             LoadWTLMaintainPos;
@@ -3133,6 +3145,7 @@ begin
                                               AuditId,
                                               aaNone,
                                               sMsg);
+            RefreshHomepage ([HPR_ExchangeGainLoss_Message]);
             exit;
          end;
       else
@@ -3158,24 +3171,7 @@ begin
       AuditType := MyClient.ClientAuditMgr.GetTransactionAuditType(pT^.txSource,
                                                                    BankAccount.baFields.baAccount_Type);
 
-      if RecordDeletedTransactionData(BankAccount, pT) then
-      begin
-        DeletedTrans := Create_Deleted_Transaction_Rec(pT, CurrUser.Code);
-
-        try
-          BankAccount.baTransaction_List.DelFreeItem( pT );
-
-          BankAccount.baDeleted_Transaction_List.Insert(DeletedTrans); 
-        except
-          Dispose_Deleted_Transaction_Rec(DeletedTrans);
-          
-          raise;
-        end;
-      end
-      else
-      begin
-        BankAccount.baTransaction_List.DelFreeItem( pT );
-      end;
+      BankAccount.baTransaction_List.DelFreeItem( pT );
 
       sMsg := 'Deleted Transaction '+ TransRef+' ' + MakeAmount( TransAmt);
       LogUtil.LogMsg(lmInfo,UnitName, sMsg);
@@ -3189,6 +3185,7 @@ begin
       LoadWTLMaintainPos;  //reload and reposition
       tblCoding.AllowRedraw := True;
       tblCoding.Refresh;
+      RefreshHomepage ([HPR_ExchangeGainLoss_Message]);
    end;  //with pT^
 end;
 
@@ -3353,7 +3350,7 @@ var
           for I := 0 to ColumnFmtList.ItemCount - 1 do begin
 
             if not ColumnFmtList.ColumnDefn_At(i).cdHidden then // Only do the columns that show..
-            
+
             case ColumnFmtList.ColumnDefn_At(i).cdFieldID of
             //ceStatus :; Icon
             //ceNotesIcon      :; Not used
@@ -6010,10 +6007,13 @@ procedure TfrmCoding.celGSTCodeOwnerDraw(Sender: TObject;
   const CellAttr: TOvcCellAttributes; Data: Pointer; var DoneIt: Boolean);
 //If gst has been edited show amount in blue
 var
-  R   : TRect;
-  C   : TCanvas;
-  S   : String;
-  pT  : pTransaction_Rec;
+  R                     : TRect;
+  C                     : TCanvas;
+  S                     : String;
+  pT                    : pTransaction_Rec;
+  Dissection            : pDissection_Rec;
+  i                     : integer;
+  InvalidGSTClassFound  : boolean;
 begin
   If ( data = nil ) then exit;
   //if selected dont do anything
@@ -6028,10 +6028,33 @@ begin
      if S = '' then exit;
      {paint background}
      c.Brush.Color := CellAttr.caColor;
-     if not CASystemsGSTOK(MyClient, pT^.txGST_Class) then
+     if IsCASystems(MyClient) then
      begin
-       c.Brush.Color := clRed;
-       C.Font.Color := clWhite;
+       InvalidGSTClassFound := False;
+       Dissection := pT.txFirst_Dissection;
+       if Dissection = nil then
+       begin
+         if not CASystemsGSTOK(MyClient, pT^.txGST_Class) then
+           InvalidGSTClassFound := True;
+       end else
+       begin
+         repeat
+           // Check the dissections instead
+           if not CASystemsGSTOK(MyClient, Dissection.dsGST_Class) then
+           begin
+             InvalidGSTClassFound := True;
+             break;
+           end;
+           Dissection := Dissection.dsNext;
+         until Dissection = nil;
+       end;
+
+       if InvalidGSTClassFound then
+       begin
+         c.Brush.Color := clRed;
+         C.Font.Color := clWhite;
+       end;
+
      end;
      c.FillRect(R);
      InflateRect( R, -2, -2 );

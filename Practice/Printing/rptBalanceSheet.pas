@@ -53,13 +53,15 @@ uses
   SignUtils,
   stDateSt,
   RptParams,
-  CountryUtils;
+  CountryUtils,
+  StDate,
+  ForexHelpers;
 
 type
   //this is the balance sheet report object.  It adds to retrieve values for each account
   TBalanceSheetReport = class( TFinancialReportBase)
   protected
-    procedure GetValuesForPeriod(const pAcct : pAccount_Rec; const ForPeriod : integer; var Values : TValuesArray); override;
+    procedure GetValuesForPeriod(const pAcct : pAccount_Rec; const ForPeriod : integer; var Values : TValuesArray; UsePeriodStartEnd: boolean = false); override;
     procedure GetYTD_ValuesForPeriod(const pAcct : pAccount_Rec; const ForPeriod : integer; var Values : TValuesArray); override;
 
     procedure SetupColumnsTypes; override;
@@ -99,6 +101,17 @@ begin
     //Equity Section
     PrintSection( [atEquity, atCurrentYearsEarnings], bhdEquity, bhdTotal_Equity, Credit,siGrandTotal );
     DoubleUnderLine;
+  end;
+end;
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+procedure GetForexFromAndToDate(var aFromDate: TStDate; var aToDate: TStDate);
+begin
+  with MyClient.clFields do begin
+    // Determine the FromDate (always the period start date for opening balances)
+    aFromDate := clTemp_Period_Details_This_Year[1].Period_Start_Date;
+
+    // ToDate is always the last day of the month ending
+    aToDate := clTemp_Period_Details_This_Year[clTemp_FRS_Last_Period_To_Show].Period_End_Date;
   end;
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -147,8 +160,7 @@ begin
    MyClient.clFields.clTemp_FRS_Account_Totals_Cash_Only := false;
 
    //Check Forex
-   FromDate := MyClient.clFields.clTemp_Period_Details_This_Year[MyClient.clFields.clTemp_FRS_Last_Period_To_Show].Period_Start_Date;
-   ToDate := MyClient.clFields.clTemp_Period_Details_This_Year[MyClient.clFields.clTemp_FRS_Last_Period_To_Show].Period_End_Date;
+   GetForexFromAndToDate(FromDate, ToDate);
    if not MyClient.HasExchangeRates(ISOCodes, FromDate, ToDate, True, True) then begin
      HelpfulInfoMsg('The report could not be run because there are missing exchange rates for ' + ISOCodes + '.',0);
      Exit;
@@ -378,7 +390,7 @@ begin
 end;
 
 procedure TBalanceSheetReport.GetValuesForPeriod(const pAcct: pAccount_Rec;
-  const ForPeriod: integer; var Values: TValuesArray);
+  const ForPeriod: integer; var Values: TValuesArray; UsePeriodStartEnd: boolean = false);
 begin
   GetYTD_ValuesForPeriod( pAcct, ForPeriod, Values);
 end;
@@ -407,6 +419,8 @@ begin
     AccountInfo.UseBudgetIfNoActualData     := ClientForReport.clFields.clTemp_FRS_Use_Budgeted_Data_If_No_Actual;
     AccountInfo.LastPeriodOfActualDataToUse := ClientForReport.clFields.clTemp_FRS_Last_Actual_Period_To_Use;
     AccountInfo.AccountCode                 := pAcct.chAccount_Code;
+    AccountInfo.UseBaseAmounts              := IsForeignCurrencyClient(ClientForReport);
+
     for i := Low( Values) to High( Values) do begin
       case ColumnTypes[ i] of
         ftActual : Values[i] := AccountInfo.ClosingBalanceActualOrBudget(ForPeriod);

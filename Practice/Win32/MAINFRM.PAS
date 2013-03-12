@@ -802,7 +802,7 @@ type
     procedure ShowExportTransactionsDialog;
     procedure ExportTransactionsToBankLinkOnline;
 
-    procedure ExportTaggedAccounts(ProgressForm: IDualProgressForm; CallbackParams: Pointer);
+    procedure ExportTaggedAccounts(ProgressForm: ISingleProgressForm; CallbackParams: Pointer);
     
     //procedure ThreadMessage(var Message: TMessage);	message THREAD_MESSAGE;
   protected
@@ -1054,7 +1054,7 @@ uses
   EditUserPassword,
   TransactionsToBankLinkOnlineFrm,
   BankLinkOnlineTaggingServices,
-  ModalDualProgressFrm;
+  ModalProgressFrm;
   //StockBalancesDlg;
 
 const
@@ -1956,7 +1956,7 @@ begin
   LogoutUser;
 end;
 
-procedure TfrmMain.ExportTaggedAccounts(ProgressForm: IDualProgressForm; CallbackParams: Pointer);
+procedure TfrmMain.ExportTaggedAccounts(ProgressForm: ISingleProgressForm; CallbackParams: Pointer);
 var
   ExportOptions: TExportOptions;
   ExportStatistics: TExportStatistics;
@@ -1977,24 +1977,12 @@ begin
 end;
 
 procedure TfrmMain.ExportTransactionsToBankLinkOnline;
-var
-  ProgressData: TProgressData;
 begin
-  if CurrUser.CanAccessAdmin and CurrUser.AllowBanklinkOnline and ProductConfigService.OnLine and ProductConfigService.IsPracticeProductEnabled(ProductConfigService.GetExportDataId, False) then
+  if CurrUser.CanAccessAdmin and ProductConfigService.OnLine and ProductConfigService.IsPracticeProductEnabled(ProductConfigService.GetExportDataId, False) then
   begin
-    ProductConfigService.LoadClientList;
-    
-    TfrmModalDualProgress.ShowProgress(Self, 'Please wait...', 'Exporting Client Transactions', ExportTaggedAccounts, ProgressData);
-
-    if ProgressData.ExceptionRaised then
-    begin
-      LogUtil.LogMsg(lmError, UnitName, 'Exception exporting account transactions, Error Message : ' + ProgressData.Exception.Message);
-    end;
-  end
-  else
-  if not CurrUser.AllowBanklinkOnline then
-  begin
-    LogUtil.LogMsg(lmError, 'ExportTransactionsToBankLinkOnline', 'Export transactions to BankLink Online could be be performed because the current user is not enabled for BankLink Online.');
+    (* Uncomment this once exporting (S05) is finished
+    TfrmModalProgress.ShowProgress(Self, 'Please wait...', 'Exporting Client Transactions', ExportTaggedAccounts);
+    *)
   end
   else
   if not CurrUser.CanAccessAdmin then
@@ -3441,16 +3429,26 @@ procedure TfrmMain.DoHDE;
 begin
    if not CloseMDIChildren then
      HelpfulErrorMsg( CANNOT_CLOSE_MDI_MSG, 0)
-   else
-     AddHistoricalData;
+   else begin
+     // Posted entries?
+     if AddHistoricalData then begin
+       ASSERT(assigned(MyClient));
+       RefreshHomepage([HPR_ExchangeGainLoss_Message]);
+     end;
+   end;
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmMain.DoMDE;
 begin
    if not CloseMDIChildren then
      HelpfulErrorMsg( CANNOT_CLOSE_MDI_MSG, 0)
-   else
-     AddManualData;
+   else begin
+     // Posted entries?
+     if AddManualData then begin
+       ASSERT(assigned(MyClient));
+       RefreshHomepage([HPR_ExchangeGainLoss_Message]);
+     end;
+   end;
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmMain.mniAddHistoricalClick(Sender: TObject);
@@ -4450,7 +4448,10 @@ begin
         mf_mcSendClientFiles : Files.SendClientFiles('', ftmFile);
         mf_mcSendOnline      : Files.SendClientFiles('', ftmOnline);
         mf_mcAbandon : AbandonChanges(true);
-        mf_mcExchangeRates: MaintainExchangeRates;
+        mf_mcExchangeRates: begin
+          if MaintainExchangeRates then
+            RefreshHomePage([HPR_ExchangeGainLoss_Rates]);
+        end;
         mf_mcCoding : DoCoding;
         mf_mcHDE : DoHDE;
         mf_mcMDE : DoMDE;

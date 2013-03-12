@@ -29,7 +29,8 @@ type
     SummaryReport: Boolean;
     ShowAllCodes: Boolean;
     RangesArray: TPayeeRangesArray;
-    WrapColumnText: Boolean;
+    WrapNarration: Boolean;
+    ShowTotals: Integer;
   end;
  
   TfrmTaxablePaymentsRptDlg = class(TForm)
@@ -60,7 +61,6 @@ type
     tsMaskDefs1: TtsMaskDefs;
     OpenDialog1: TOpenDialog;
     SaveDialog1: TSaveDialog;
-    chkWrapColumnText: TCheckBox;
     procedure btnCancelClick(Sender: TObject);
     procedure btnOKClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -291,6 +291,7 @@ end;
 
 procedure TfrmTaxablePaymentsRptDlg.rbSummarisedClick(Sender: TObject);
 begin
+
 end;
 //------------------------------------------------------------------------------
 function TfrmTaxablePaymentsRptDlg.Execute: boolean;
@@ -317,7 +318,6 @@ begin
      MyDlg.rbDetailed.Checked := not SummaryReport;
      MyDlg.rbAllCodes.Checked := ShowAllCodes;
      MyDlg.rbSelectedCodes.Checked := not ShowAllCodes;
-     MyDlg.chkWrapColumnText.Checked := WrapColumnText;
 
      //populate array
      FillChar( MyDlg.CodesArray, SizeOf( TPayeeRangesArray), #0);
@@ -335,8 +335,8 @@ begin
      else
      begin
        {use default date}
-       MyDlg.DateSelector.eDateFrom.asStDate := MyClient.clFields.clFinancial_Year_Starts;
-       MyDlg.DateSelector.eDateTo.asStDate := GetYearEndDate(MyClient.clFields.clFinancial_Year_Starts);
+       MyDlg.DateSelector.eDateFrom.asStDate := BkNull2St(MyClient.clFields.clPeriod_Start_Date);
+       MyDlg.DateSelector.eDateTo.asStDate := BkNull2St(MyClient.clFields.clPeriod_End_Date);
      end;
 
      if MyDlg.Execute then
@@ -345,7 +345,8 @@ begin
         ToDate          := StNull2Bk(MyDlg.DateSelector.eDateTo.AsStDate);
         SummaryReport   := MyDlg.rbSummarised.Checked;
         ShowAllCodes := MyDlg.rbAllCodes.Checked;
-        WrapColumnText := MyDlg.chkWrapColumnText.Checked;
+        WrapNarration := False;
+        ShowTotals := -1;
 
         //populate array
         FillChar( RangesArray, SizeOf( TPayeeRangesArray), #0);
@@ -583,8 +584,13 @@ var s : string;
 begin
   inherited;
    SummaryReport := GetNodeBool(Value,'Summarised',False);
-   WrapColumnText := GetNodeBool(Value,'Wrap_Column_Text',True);
+   WrapNarration := GetNodeBool(Value,'Wrap_Narration',True);
    ShowAllCodes  :=  NoCodes;
+   s := GetNodeTextStr(Value,'Totals','');
+   if sametext(s,'Monthly')   then ShowTotals := ptMonthly else
+   if sametext(s,'Bi-monthly') then ShowTotals := ptBi else
+   if sametext(s,'Quarterly') then ShowTotals := ptQuart else
+   ShowTotals := -1;
 end;
 
 procedure TPayeeParameters.Reset;
@@ -639,7 +645,13 @@ begin
   inherited;
 
   SetNodeBool(Value,'Summarised',SummaryReport);
-  SetNodeBool(Value,'Wrap_Column_Text',WrapColumnText);
+  SetNodeBool(Value,'Wrap_Narration',WrapNarration);
+
+  case ShowTotals of
+    ptMonthly : SetNodeTextStr(Value,'Totals','Monthly');
+    ptBi      : SetNodeTextStr(Value,'Totals','Bi-monthly');
+    ptQuart   : SetNodeTextStr(Value,'Totals','Quarterly');
+  end;
 
   if NoCodes then
   begin

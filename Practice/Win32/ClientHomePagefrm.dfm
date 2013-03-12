@@ -49,6 +49,10 @@ object frmClientHomePage: TfrmClientHomePage
       GroupController = AppImages.AppGroupController
       Items = <
         item
+          Action = acExchangeGainLoss
+          Visible = False
+        end
+        item
           Action = acUpdate
         end
         item
@@ -529,6 +533,12 @@ object frmClientHomePage: TfrmClientHomePage
         ' [ISO3] '
       ImageIndex = 23
       OnExecute = acForexRatesMissingExecute
+    end
+    object acExchangeGainLoss: TAction
+      Caption = 'There are exchange gain/loss entries that require updating'
+      ImageIndex = 23
+      Visible = False
+      OnExecute = acExchangeGainLossExecute
     end
   end
   object pmNodes: TPopupMenu

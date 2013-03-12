@@ -3,7 +3,7 @@ unit WebXUtils;
 
 interface
 
-uses Classes, clobj32, baobj32, baList32, bkdefs, MoneyDef;
+uses Classes, clobj32, baobj32, baList32, bkdefs;
 
 function IsExportFile(const Filename: string): Boolean;
 
@@ -41,8 +41,8 @@ function IsWebFileWaiting: Boolean;
 implementation
 
 uses SysUtils, WDDX_COMLib_TLB, trxList32, bktxio, bkdsio, bkbaio, ECodingUtils,
-  GenUtils, BKDateUtils, BKConst, stDate, glConst, PayeeObj, GSTCalc32,
-  TransactionUtils, Globals, COMObj, WebXOffice, WinUtils, UTransactionCompare;
+  GenUtils, BKDateUtils, BKConst, stDate, glConst, PayeeObj, GSTCalc32, MoneyDef,
+  TransactionUtils, Globals, COMObj, WebXOffice, WinUtils;
 
 // Test to see if the file is an export file - if so we wont allow import
 function IsExportFile(const Filename: string): Boolean;
@@ -371,7 +371,6 @@ var
   NeedToUpdateGST          : boolean;
   trxPayeeDetails    : string;
   aMsg               : string;
-  OldGLNarration: String;
 begin
   //first we need to determine if the bk5 transaction is coded
   //if it is currently uncoded then code the transaction using the information
@@ -551,13 +550,12 @@ begin
          AddToImportNotes( BKT, 'Quantity   ' + FormatFloat('#,##0.####', ECT.txQuantity/10000), WEBX_GENERIC_APP_NAME);
     end;
 
-    OldGLNarration := BKT^.txGL_Narration;
-
     //gl narration
     BKT^.txGL_Narration := UpdateNarration( aClient.clFields.clECoding_Import_Options,
                                             BKT^.txGL_Narration,
                                             trxPayeeDetails,
                                             ECT^.txNotes);
+
     //Notes
     BKT.txNotes := ECT.txNotes;
   end
@@ -1518,7 +1516,6 @@ var
   ECT              : pTransaction_Rec;
   EMsg             : string;
   S                : string;
-  TransactionCompare: TTransactionCompare;
 begin
   //initialise counters
   RejectedCount     := 0;
@@ -1565,48 +1562,16 @@ begin
             T^.txECoding_Import_Notes := '';
             // Why are we forcing this to be set???
             T^.txHas_Been_Edited := True;  //See Case 7113
-
             // Well it would apear it breaks the disection inport if we dont set it
             // May need to revisit ... read the case ...
 
             S := Copy( Ba.baFields.baBank_Account_Number, 1, 2);
             //the way we import the transaction depends on whether or not the transaction
             //is dissected in WebXOffice
-
-            if T.txTransfered_To_Online then
-            begin
-              TransactionCompare := TDataExportTransactionCompare.Create(T);
-
-              try
-                if ECT^.txFirst_Dissection = nil then
-                begin
-                  ImportStandardTransaction( ECT, T, aClient, S);
-                end
-                else
-                begin
-                  ImportDissectedTransaction( ECT, T, aClient);
-                end;
-
-                if not TransactionCompare.IsEqual(T) then
-                begin
-                  T.txTransfered_To_Online := False;
-                end;
-              finally
-                TransactionCompare.Free;
-              end;
-            end
+            if ECT^.txFirst_Dissection = nil then
+              ImportStandardTransaction( ECT, T, aClient, S)
             else
-            begin
-              if ECT^.txFirst_Dissection = nil then
-              begin
-                ImportStandardTransaction( ECT, T, aClient, S);
-              end
-              else
-              begin
-                ImportDissectedTransaction( ECT, T, aClient);
-              end;            
-            end;
-
+              ImportDissectedTransaction( ECT, T, aClient);
             Inc( ImportedCount);
           end
           else

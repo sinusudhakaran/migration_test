@@ -208,8 +208,8 @@ begin
      try
        if Destination = ecDestWebX then
           case aClient.clFields.clWeb_Export_Format of
-             wfWebX :  BKHelpSetUp(ImportBNotes, BKH_Importing_transactions_from_Acclipse_WebXOffice_to_BankLink)
-             else BKHelpSetUp(ImportBNotes, BKH_Importing_transactions_from_Acclipse_WebXOffice_to_BankLink)
+             wfWebX :  BKHelpSetUp(ImportBNotes, BKH_Importing_transactions_from_CCH_WebPractice_to_BankLink)
+             else BKHelpSetUp(ImportBNotes, BKH_Importing_transactions_from_CCH_WebPractice_to_BankLink)
           end
        else
          BKHelpSetUp(ImportBNotes, BKH_Importing_a_BNotes_file_into_BankLink);

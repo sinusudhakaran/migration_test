@@ -782,6 +782,10 @@ object frmVAT: TfrmVAT
     object tsAdjustments: TTabSheet
       Caption = 'Adjustments'
       ImageIndex = 1
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object gbDebtors: TGroupBox
         Left = 3
         Top = 0

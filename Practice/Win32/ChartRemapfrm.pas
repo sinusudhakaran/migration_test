@@ -1447,11 +1447,14 @@ var
   LCount,
   LCountA,
   LCountT,
-  LCountM: Integer;
+  LCountM,
+  LCountB,
+  LCountC: Integer;
   I, A, J: Integer;
   CI: TChartItem;
   Dis: pDissection_Rec;
   SaveAuditMgr: TClientAuditManager;
+  Index: Integer;
 
   procedure ResortBudget(var bdList: TBudget_Detail_List);
   var LL: PPointerList;
@@ -1528,10 +1531,16 @@ begin
 
     LCountT := 0;
     LCountM := 0;
+    LCountB := 0;
+    LCountC := 0;
+    
     // Do The Accounts
     for A := 0 to MyClient.clBank_Account_List.Last do
-       with MyClient.clBank_Account_List.Bank_Account_At(A) do begin
+       with MyClient.clBank_Account_List.Bank_Account_At(A) do
+       begin
           baFields.baContra_Account_Code := Value.Remap(baFields.baContra_Account_Code,LCountA);
+          baFields.baExchange_Gain_Loss_Code := Value.Remap(baFields.baExchange_Gain_Loss_Code, LCountB);
+           
           // transactions...
           for I := 0 to baTransaction_List.ItemCount - 1 do
              with baTransaction_List.Transaction_At(I)^ do begin
@@ -1558,10 +1567,20 @@ begin
                       mlAccount := Value.Remap(mlAccount,LCountM);
              end;
 
+          for Index := 0 to baExchange_Gain_Loss_list.ItemCount - 1 do
+          begin
+            with baExchange_Gain_Loss_List.Exchange_Gain_Loss_At(Index) do
+            begin
+              glFields.glAccount := Value.Remap(glFields.glAccount, LCountC);
+            end;
+          end;
        end; //account
+
     AddCount(LCountT, 'Transactions');
     AddCount(LCountM, 'Memorisations');
     AddCount(LCountA, 'Contra codes');
+    AddCount(LCountB, 'Exchange Gain/Loss codes');
+    AddCount(LCountC, 'Exchange Gain/Loss entries');
 
     // Payees
     LCount := 0;

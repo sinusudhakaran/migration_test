@@ -26,6 +26,9 @@ type
     function GetStatement_Amount: Money;
     procedure SetGSTClass(const Value: Integer);
     procedure SetStatement_Amount(const Value: Money);
+    function GetGainLossForexDate: Integer;
+    function GetGainLossExchangeRate: Double;
+    function GetGainLossLocalAmount: Money;
   public
     function AddDissection : pDissection_Rec;
     function Bank_Account : TBank_Account;
@@ -38,6 +41,9 @@ type
     property Local_Amount : Money read GetLocal_Amount;
     property Original_Statement_Amount : Money read GetOriginal_Statement_Amount;
     property Statement_Amount : Money read GetStatement_Amount write SetStatement_Amount;
+    property GainLossForexDate: Integer read GetGainLossForexDate;
+    property GainLossExchangeRate: Double read GetGainLossExchangeRate;
+    property GainLossLocalAmount: Money read GetGainLossLocalAmount;
   end;
 
   TDissection_Helper = record helper for TDissection_Rec
@@ -59,8 +65,12 @@ type
   // Foreign Currencies
   function  GetCountry: byte;
   function  GetCountryCurrency: string;
+
   function  SupportsForeignCurrencies: boolean;
-  function  IsForeignCurrencyClient: boolean;
+  function  SupportsVAT: boolean;
+
+  function  IsForeignCurrencyClient: boolean; overload;
+  function  IsForeignCurrencyClient(const aClient: TClientObj): boolean; overload;
   function  IsForeignCurrencyAccount(const aAccount: TBank_Account): boolean;
 
   // Gain/Loss
@@ -94,6 +104,41 @@ begin
   Result := TClientObj( txClient );
 end;
 
+function TTransactionHelper.GetGainLossForexDate: Integer;
+begin
+  if txUPI_State in[upMatchedUPC, upMatchedUPD, upMatchedUPW] then
+  begin
+    Result := txDate_Presented;
+  end
+  else
+  begin
+    Result := txDate_Effective;
+  end;  
+end;
+
+function TTransactionHelper.GetGainLossLocalAmount: Money;
+var
+  ExchangeRate: double;
+begin
+  Result := txAmount;
+
+  if not Assigned(txBank_Account) then Exit;
+
+  if (Bank_Account.IsAForexAccount) then
+  begin
+    ExchangeRate :=  GainLossExchangeRate;
+
+    if ExchangeRate <> 0 then
+    begin
+      Result := (txAmount / ExchangeRate)
+    end
+    else
+    begin
+      Result := 0;
+    end;
+  end;
+end;
+
 function TTransactionHelper.GetAccount: string;
 begin
   Result := txAccount;
@@ -110,6 +155,18 @@ begin
     Result := txForex_Conversion_Rate
   else
     Result := Bank_Account.Default_Forex_Conversion_Rate( txDate_Effective );
+end;
+
+function TTransactionHelper.GetGainLossExchangeRate: Double;
+begin
+  if Locked then
+  begin
+    Result := txForex_Conversion_Rate;
+  end
+  else
+  begin
+    Result := Bank_Account.Default_Forex_Conversion_Rate(GainLossForexDate);
+  end;
 end;
 
 function TTransactionHelper.GetGSTClass: Integer;
@@ -325,7 +382,19 @@ begin
 end;
 
 // ----------------------------------------------------------------------------
+function SupportsVAT: boolean;
+begin
+  result := (GetCountry = whUK);
+end;
+
+// ----------------------------------------------------------------------------
 function IsForeignCurrencyClient: boolean;
+begin
+  result := IsForeignCurrencyClient(MyClient);
+end;
+
+// ----------------------------------------------------------------------------
+function IsForeignCurrencyClient(const aClient: TClientObj): boolean;
 begin
   result := false;
 
@@ -334,11 +403,11 @@ begin
     exit;
 
   // Could happen during startup
-  if not Assigned(MyClient) then
+  if not Assigned(aClient) then
     exit;
 
   // Any of the accounts is a foreign currency?
-  result := MyClient.HasForeignCurrencyAccounts;
+  result := aClient.HasForeignCurrencyAccounts;
 end;
 
 // ----------------------------------------------------------------------------

@@ -753,7 +753,7 @@ begin
       BA := MyClient.clBank_Account_List.Bank_Account_At(i);
       if Assigned(BA) then begin
         if (eContra.Text = BA.baFields.baContra_Account_Code) and
-           (BA.baFields.baCurrency_Code <> BankAcct.baFields.baCurrency_Code) then begin
+           (BA.baFields.baCurrency_Code <> cmbCurrency.Text) then begin
           HelpfulWarningMsg('The Contra Account you have entered cannot be used because ' +
                             'it is already assigned to a bank account with a different currency. ' +
                             'Please choose a different code for the Contra Account.',0);

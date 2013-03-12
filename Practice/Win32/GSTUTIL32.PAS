@@ -376,7 +376,6 @@ begin
                     if pT^.txGST_Amount <> 0 then begin
                       pT^.txGST_Amount := 0;
                       pT^.txGST_Has_Been_Edited := True;
-                      pT^.txTransfered_To_Online := False;
                     end;
                   end;
                end;
@@ -398,7 +397,6 @@ begin
                         pD^.dsGST_Amount := 0;
                         pD^.dsGST_Has_Been_Edited := True;
                         pT^.txGST_Has_Been_Edited := True;
-                        pT^.txTransfered_To_Online := False;
                       end;
                     end;
                   end;

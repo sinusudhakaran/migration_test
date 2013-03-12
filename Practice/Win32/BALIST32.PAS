@@ -8,6 +8,8 @@ uses
    ECollect,Classes, bkDefs, ioStream, sysUtils, baObj32, AuditMgr;
 
 type
+  THasExchangeGainLossCodes = procedure(BankAccount: TBank_Account; var Continue: Boolean);
+
   TBank_Account_List = class(TExtdSortedCollection)
   protected
     procedure FreeItem(Item : Pointer); override;
@@ -33,6 +35,8 @@ type
                       AParentID: integer; var AAuditTable: TAuditTable);
     procedure SetAuditInfo(P1, P2: pBank_Account_Rec; AParentID: integer;
                            var AAuditInfo: TAuditInfo);
+                           
+    function IsExchangeGainLossCode(const Code: String): Boolean;
  end;
 
 //******************************************************************************
@@ -356,6 +360,23 @@ begin
 
   inherited Insert( Item );
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
+end;
+
+function TBank_Account_List.IsExchangeGainLossCode(const Code: String): Boolean;
+var
+  Index: Integer;
+begin
+  Result := False;
+  
+  for Index := 0 to ItemCount - 1 do
+  begin
+    if (Bank_Account_At(Index).baFields.baExchange_Gain_Loss_Code = Code) then
+    begin
+      Result := True;
+
+      Break;
+    end;
+  end;
 end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

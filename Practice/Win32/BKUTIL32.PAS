@@ -79,7 +79,8 @@ uses
    LogUtil,
    classes,
    Math,
-   StStrs, CodeDateDlg, UpdateMF, CodingFormCommands, bkhelp, ForexHelpers;
+   StStrs, CodeDateDlg, UpdateMF, CodingFormCommands, bkhelp, ForexHelpers,
+   BKDateUtils;
 
 Const
    UnitName = 'BKUtil32';
@@ -1022,12 +1023,16 @@ var
    b  : integer;
    BA : TBank_Account;
    lTransferred: Integer;
+   PeriodList: TDateList;
+   PeriodIndex: Integer;
 begin
    HasEntriesInPeriod := false;
    if SetFlags then // Ask only once
       lTransferred := CurrentDate //workout only once
    else
       lTransferred := 0;
+
+   PeriodList := GetPeriodsBetween(FromDate, ToDate, True);
 
    with aClient do begin
       for b:= 0 to Pred( clBank_Account_List.ItemCount) do begin
@@ -1050,6 +1055,14 @@ begin
                   HasEntriesInPeriod := true;
                   pT^.txDate_Transferred := lTransferred;
                end;
+            end;
+
+            if SetFlags then
+            begin
+              for PeriodIndex := 0 to Length(PeriodList) - 1 do
+              begin
+                BA.baFinalized_Exchange_Rate_List.AddExchangeRate(PeriodList[PeriodIndex], Ba.Default_Forex_Conversion_Rate(PeriodList[PeriodIndex]));
+              end;
             end;
          end; //if account type ok
       end;

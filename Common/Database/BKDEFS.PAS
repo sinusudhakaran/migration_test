@@ -9,12 +9,12 @@ Interface uses MONEYDEF, DATEDEF;
 {  -------------------------------------------------------------------  }
 
 Const
-   BK_IOLIB_Version : Integer = 684;
-   BK_IOLIB_Date    = '29/11/12';
-   BK_FILE_VERSION  = 172;  (* Current Version counter for files
+   BK_IOLIB_Version : Integer = 696;
+   BK_IOLIB_Date    = '18/02/13';
+   BK_FILE_VERSION  = 173;  (* Current Version counter for files
                               Changes if structure or method of storing a value would cause
                               data to be represented incorrectly, or an exception to be raised *)
-   
+
    BK_FILE_VERSION_STR = '5.27';   (* Should be changed whenever BK_FILE_VERSION changes. Is used to show user what version they need *)
    
    (*
@@ -252,6 +252,7 @@ Type
    pClientExtra_Rec                      = ^tClientExtra_Rec ;
    pDeleted_Transaction_Rec              = ^tDeleted_Transaction_Rec ;
    pExchange_Gain_Loss_Rec               = ^tExchange_Gain_Loss_Rec ;
+   pFinalized_Exchange_Rate_Rec          = ^tFinalized_Exchange_Rate_Rec ;
 
 {  -------------------------------------------------------------------  }
 
@@ -1313,7 +1314,17 @@ Type
       glAccount                          : String[ 20 ];       { Stored }
       glPosted_Date                      : Integer;       { Stored }
       glAudit_Record_ID                  : Integer;       { Stored }
+      glTemp_Bank_Seq                    : Integer;
       glEOR                              : Byte;
+   end;
+
+{  -------------------------------------------------------------------  }
+
+   tFinalized_Exchange_Rate_Rec = Packed Record
+      frRecord_Type                      : Byte;
+      frDate                             : Integer;       { Stored }
+      frRate                             : Double;       { Stored }
+      frEOR                              : Byte;
    end;
 
 Const
@@ -1342,6 +1353,7 @@ Const
    ClientExtra_Rec_Size                      = Sizeof( TClientExtra_Rec ); 
    Deleted_Transaction_Rec_Size              = Sizeof( TDeleted_Transaction_Rec ); 
    Exchange_Gain_Loss_Rec_Size               = Sizeof( TExchange_Gain_Loss_Rec ); 
+   Finalized_Exchange_Rate_Rec_Size          = Sizeof( TFinalized_Exchange_Rate_Rec ); 
 
 {  -------------------------------------------------------------------  }
 Implementation

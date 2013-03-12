@@ -18,6 +18,9 @@ type
 
     procedure SaveToFile(var S: TIOStream);
     procedure LoadFromFile(var S: TIOStream);
+
+    function  GetAs_pRec: pExchange_Gain_Loss_Rec;
+    property  As_pRec: pExchange_Gain_Loss_Rec read GetAs_pRec;
   end;
 
 
@@ -92,6 +95,11 @@ begin
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends');
 end;
 
+{------------------------------------------------------------------------------}
+function TExchange_Gain_Loss.GetAs_pRec: pExchange_Gain_Loss_Rec;
+begin
+  result := @glFields;
+end;
 
 {------------------------------------------------------------------------------}
 initialization

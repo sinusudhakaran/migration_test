@@ -3,7 +3,7 @@ unit BanklinkOnlineTaggingServices;
 interface
 
 uses
-  Classes, Forms, Contnrs, Controls, SysUtils, baObj32, BKDEFS, clObj32, SysObj32, chList32, XMLDoc, XMLIntf, BanklinkOnlineServices, ZipUtils, Progress, OvcDate;
+  Classes, Forms, Contnrs, Controls, SysUtils, baObj32, BKDEFS, BK_XMLHelper, clObj32, SysObj32, chList32, XMLDoc, XMLIntf, BanklinkOnlineServices, ZipUtils, Progress, OvcDate, DataPlatformPractice;
 
 type
   TExportOptions = record
@@ -25,7 +25,6 @@ type
 
   TFatalErrorDetails = record
     ClientCode: String;
-    ErrorCode: Integer;
     ErrorMessage: String;
   end;
   
@@ -45,30 +44,17 @@ type
         property AccountsExported: Integer read FAccountsExported;
       end;
 
-      TTransactionExporter = class
-      private
-        FProgressControl: IProgressControl;
-        FProgressWeight: Double;
-        FLastStepSize: Double;
-
-        procedure OnSendTransactions(Sent: Integer; Total: Integer);
-      public
-        function SendTransactionData(TransactionData: String; ProgressWeight: Double; ProgressControl: IProgressControl; out AuthenticationError: Boolean): TBloUploadResult;
-      end;
-
-  private
-    class procedure BankAccountsToXML(ParentNode: IXMLNode; Client: TClientObj; MaxTransactionDate: TStDate; ClientBankAccountVendors: TBloArrayOfDataPlatformBankAccount; TransactionsExported: TList; ProgressControl: IProgressControl; ProgressWeight: Double; out AccountsExported: Integer); static;
-    class procedure TransactionsToXML(ParentNode: IXMLNode; Client: TClientObj; BankAccount: TBank_Account; MaxTransactionDate: TStDate; TransactionsExported: TList); static;
+  private   
+    class procedure BankAccountsToXML(ParentNode: IXMLNode; Client: TClientObj; MaxTransactionDate: TStDate; ClientAccountVendors: TClientAccVendors; out AccountsExported, TransactionsExported: Integer); static;
+    class function TransactionsToXML(ParentNode: IXMLNode; Client: TClientObj; BankAccount: TBank_Account; MaxTransactionDate: TStDate): Integer; static;
     class procedure ChartToXML(ParentNode: IXMLNode; ChartOfAccounts: TChart); static;
-    class function AddDeletedTransactionsToXML(ParentNode: IXMLNode; Client: TClientObj): Integer; static;
-    class procedure ClearDeletedTransactions(Client: TClientObj); static;
-    class function HasDeletedTransactions(Client: TClientObj): Boolean; static;
-    
-    class function IsExportableTransaction(Transaction: pTransaction_Rec; MaxTransactionDate: TStDate = -1): Boolean; static;
-    class function IsExportableBankAccount(BankAccount: TBank_Account; ClientBankAccountVendors: TBloArrayOfDataPlatformBankAccount): Boolean; static;
-    class function HasExportableTransactions(BankAccount: TBank_Account; MaxTransactionDate: TStDate): Boolean; static;
-    class function IsBankAccountTagged(BankAccount: TBank_Account; ClientBankAccountVendors: TBloArrayOfDataPlatformBankAccount): Boolean; static;
 
+    class function IsExportableTransaction(Transaction: pTransaction_Rec; MaxTransactionDate: TStDate = -1): Boolean; static;
+    class function IsExportableBankAccount(BankAccount: TBank_Account; ClientAccountVendors: TClientAccVendors): Boolean; static;
+    class function HasExportableTransactions(BankAccount: TBank_Account; MaxTransactionDate: TStDate): Boolean; static;
+    class function IsBankAccountTagged(BankAccount: TBank_Account; ClientAccountVendors: TClientAccVendors): Boolean; static;
+
+    class function GetClientGuid(const ClientCode: String): TBloGuid; static;
     class procedure CleanXML(Node: IXMLNode); static;
   public
     class procedure UpdateAccountVendors(ClientReadDetail: TBloClientReadDetail; Client: TClientObj; OriginalVendors, ModifiedVendors: TBloArrayOfGuid; ProgressForm: ISingleProgressForm); overload; static; // Update vendors for a client
@@ -81,28 +67,26 @@ type
     class procedure ResetTransactionSentFlag(BankAccount: TBank_Account; ProgressFrm: ISingleProgressForm); overload; static;
     class procedure ResetTransactionSentFlag(Client: TClientObj; ProgressFrm: ISingleProgressForm); overload; static;  
     
-    class procedure ExportTaggedAccounts(Practice: TBloPracticeRead; ExportOptions: TExportOptions; ProgressForm: IDualProgressForm; out Statistics: TExportStatistics; out FatalError: Boolean; out FatalErrorDetails: TFatalErrorDetails); static;
+    class procedure ExportTaggedAccounts(Practice: TBloPracticeRead; ExportOptions: TExportOptions; ProgressForm: ISingleProgressForm; out Statistics: TExportStatistics; out FatalError: Boolean; out FatalErrorDetails: TFatalErrorDetails); static;
     
     class function GetMaxExportableTransactionDate(ProgressForm: ISingleProgressForm): TStDate; static;
 
+    class function UploadXMLData(const XmlData: WideString): Boolean; static;
     class function TestDataService: Boolean; static;
   end;
 
 implementation
 
 uses
-  Files, Globals, ErrorMoreFrm, LogUtil, StDateSt, SYDEFS, BK_TransactionExportXMLHelper, bkConst, math, WebUtils, DirUtils, TransactionUtils, SoapHTTPClient, InfoMoreFrm, BKUTIL32;
-
-var
-  DebugMe : Boolean = False;
+  Files, Globals, ErrorMoreFrm, LogUtil, StDateSt, SYDEFS, bkConst, math, WebUtils;
 
 { TBanklinkOnlineServices }
 
 class function TBanklinkOnlineTaggingServices.TestDataService: Boolean;
 var
+  DataPlatformInterface: IDataPlatformPractice;
   Response: WideString;
 begin
-  {
   Result := False;
 
   try
@@ -120,42 +104,26 @@ begin
       HelpfulErrorMsg('Error contacting server: ' + E.Message, 0);
     end;
   end;
-  }
-
-  Result := True;
 end;
 
-class procedure TBanklinkOnlineTaggingServices.TransactionsToXML(ParentNode: IXMLNode; Client: TClientObj; BankAccount: TBank_Account; MaxTransactionDate: TStDate; TransactionsExported: TList);
+class function TBanklinkOnlineTaggingServices.TransactionsToXML(ParentNode: IXMLNode; Client: TClientObj; BankAccount: TBank_Account; MaxTransactionDate: TStDate): Integer;
 var
   TransactionIndex: Integer;
   Transaction: pTransaction_Rec;
   TransactionNode: IXMLNode;
   Dissection: pDissection_Rec;
   DissectionNode: IXMLNode;
-  TransactionGuid: String;
-  IdNode: IXMLNode;
-  TransactionCoreId: Int64;
 begin
+  Result := 0;
+
   for TransactionIndex := 0 to BankAccount.baTransaction_List.ItemCount - 1 do
   begin
     Transaction := BankAccount.baTransaction_List[TransactionIndex];
 
     try
-      if IsExportableTransaction(Transaction, MaxTransactionDate) then
+      if IsExportableTransaction(Transaction, MaxTransactionDate) then    
       begin
-        CheckExternalGUID(Transaction);
-
         TransactionNode := Transaction.WriteRecToNode(ParentNode);
-
-        TransactionCoreId := GetTransCoreID(Transaction);
-
-        TransactionNode.Attributes['CoreTransactionID'] := TransactionCoreId;
-
-        IdNode := TransactionNode.OwnerDocument.CreateNode('Id', ntAttribute, '');
-
-        IdNode.NodeValue := Transaction.txExternal_GUID;
-
-        TransactionNode.AttributeNodes.Add(IdNode);
 
         CleanXML(TransactionNode);
 
@@ -163,22 +131,14 @@ begin
 
         while Dissection <> nil do
         begin
-          CheckExternalGuid(Dissection);
-
           DissectionNode := Dissection.WriteRecToNode(TransactionNode);
-
-          IdNode := DissectionNode.OwnerDocument.CreateNode('Id', ntAttribute, '');
-
-          IdNode.NodeValue := Dissection.dsExternal_GUID;
-
-          DissectionNode.AttributeNodes.Add(IdNode);
 
           CleanXML(DissectionNode);
 
           Dissection := Dissection.dsNext;
         end;
 
-        TransactionsExported.Add(Transaction);
+        Inc(Result);
       end;
     except
       on E:Exception do
@@ -206,7 +166,6 @@ class procedure TBanklinkOnlineTaggingServices.CleanXML(Node: IXMLNode);
 var
   NodeIndex: Integer;
   ChildNode: IXMLNode;
-  TempNode: IXMLNode;
 begin
   NodeIndex := 0;
   
@@ -248,107 +207,44 @@ begin
       Inc(NodeIndex);
     end;
   end;
-
-  if (Uppercase(Node.NodeName) = 'BKTRANSACTION') then
-  begin
-    TempNode := Node.AttributeNodes.FindNode('CoreTransactionIDHigh');
-
-    if Assigned(TempNode) then
-    begin
-      Node.AttributeNodes.Remove(TempNode); 
-    end;
-  end;
 end;
 
-class procedure TBanklinkOnlineTaggingServices.ClearDeletedTransactions(Client: TClientObj);
-var
-  Index: Integer;
-begin
-  for Index := 0 to Client.clBank_Account_List.ItemCount - 1 do
-  begin
-    Client.clBank_Account_List.Bank_Account_At(Index).baDeleted_Transaction_List.DeleteAll;
-  end;
-end;
-
-class function TBanklinkOnlineTaggingServices.AddDeletedTransactionsToXML(ParentNode: IXMLNode; Client: TClientObj): Integer;
-var
-  Index: Integer;
-  BankAccount: TBank_Account;
-  IIndex: Integer;
-  ChildNode: IXMLNode;
-  DeletedTransaction: pDeleted_Transaction_Rec;
-  TransactionCoreId: Int64;
-begin
-  Result := 0;
-  
-  for Index := 0 to Client.clBank_Account_List.ItemCount - 1 do
-  begin
-    BankAccount := Client.clBank_Account_List.Bank_Account_At(Index);
-
-    for IIndex := 0 to BankAccount.baDeleted_Transaction_List.ItemCount - 1 do
-    begin
-      DeletedTransaction := BankAccount.baDeleted_Transaction_List.Transaction_At(IIndex);
-      
-      ChildNode := ParentNode.AddChild('BKDeletedTransaction');
-      ChildNode.Attributes['Id'] := DeletedTransaction.dxExternal_GUID;
-
-      Int64Rec(TransactionCoreId).Lo := DeletedTransaction.dxCore_Transaction_ID;
-      Int64Rec(TransactionCoreId).Hi := DeletedTransaction.dxCore_Transaction_ID_High;
-
-      ChildNode.Attributes['CoreTransactionID'] := TransactionCoreId;
-
-      Inc(Result);
-    end;
-  end;
-end;
-
-class procedure TBanklinkOnlineTaggingServices.BankAccountsToXML(ParentNode: IXMLNode; Client: TClientObj; MaxTransactionDate: TStDate; ClientBankAccountVendors: TBloArrayOfDataPlatformBankAccount; TransactionsExported: TList; ProgressControl: IProgressControl; ProgressWeight: Double; out AccountsExported: Integer);
+class procedure TBanklinkOnlineTaggingServices.BankAccountsToXML(ParentNode: IXMLNode; Client: TClientObj; MaxTransactionDate: TStDate; ClientAccountVendors: TClientAccVendors; out AccountsExported, TransactionsExported: Integer);
 var
   Index: Integer;
   BankAccount: TBank_Account;
   TransactionNode: IXMLNode;
   TempTransExported: Integer;
   BankAccountNode: IXMLNode;
-  StepSize: Double;
 begin
   AccountsExported := 0;
+  TransactionsExported := 0;
 
-  if Client.clBank_Account_List.ItemCount > 0 then
+  for Index := 0 to Client.clBank_Account_List.ItemCount - 1 do
   begin
-    StepSize := ProgressWeight / Client.clBank_Account_List.ItemCount;
+    BankAccount := Client.clBank_Account_List[Index];
 
-    for Index := 0 to Client.clBank_Account_List.ItemCount - 1 do
-    begin
-      BankAccount := Client.clBank_Account_List[Index];
+    try
+      //Only delivered accounts can be sent
+      if IsExportableBankAccount(BankAccount, ClientAccountVendors) and HasExportableTransactions(BankAccount, MaxTransactionDate) then
+      begin
+        BankAccountNode := BankAccount.baFields.WriteRecToNode(ParentNode);
 
-      try
-        //Only delivered accounts can be sent
-        if IsExportableBankAccount(BankAccount, ClientBankAccountVendors) and HasExportableTransactions(BankAccount, MaxTransactionDate) then
-        begin
-          BankAccountNode := ParentNode.OwnerDocument.CreateElement('BKBankAccount', '');
-
-          BankAccountNode.Attributes['CoreId'] := BankAccount.baFields.baCore_Account_ID;
-          BankAccountNode.Attributes['BankAccountNumber'] := BankAccount.baFields.baBank_Account_Number;
-          BankAccountNode.Attributes['BankAccountName'] := BankAccount.baFields.baBank_Account_Name;  
-
-          TempTransExported := TransactionsExported.Count;
+        CleanXML(BankAccountNode);
         
-          TransactionsToXML(BankAccountNode, Client, BankAccount, MaxTransactionDate, TransactionsExported);
+        TempTransExported := TransactionsToXML(BankAccountNode, Client, BankAccount, MaxTransactionDate);
 
-          if TransactionsExported.Count - TempTransExported > 0 then
-          begin
-            Inc(AccountsExported);
-
-            ParentNode.ChildNodes.Add(BankAccountNode); 
-          end;
-        end;
-
-        ProgressControl.UpdateProgress(StepSize); 
-      except
-        on E:Exception do
+        if TempTransExported > 0 then
         begin
-          LogUtil.LogMsg(lmError, 'BankLinkOnlineTaggingService', 'Bank Account ' + BankAccount.baFields.baBank_Account_Number + ' ' + Client.clFields.clCode + ' could not be exported - ' + E.Message);
+          TransactionsExported := TransactionsExported + TempTransExported;
+          
+          Inc(AccountsExported);
         end;
+      end;
+    except
+      on E:Exception do
+      begin
+        LogUtil.LogMsg(lmError, 'BankLinkOnlineTaggingService', 'Bank Account ' + BankAccount.baFields.baBank_Account_Number + ' ' + Client.clFields.clCode + ' could not be exported - ' + E.Message);
       end;
     end;
   end;
@@ -405,45 +301,31 @@ begin
   end;
 end;
 
-class procedure TBanklinkOnlineTaggingServices.ExportTaggedAccounts(Practice: TBloPracticeRead; ExportOptions: TExportOptions; ProgressForm: IDualProgressForm; out Statistics: TExportStatistics; out FatalError: Boolean; out FatalErrorDetails: TFatalErrorDetails);
+class procedure TBanklinkOnlineTaggingServices.ExportTaggedAccounts(Practice: TBloPracticeRead; ExportOptions: TExportOptions; ProgressForm: ISingleProgressForm; out Statistics: TExportStatistics; out FatalError: Boolean; out FatalErrorDetails: TFatalErrorDetails);
 var
   XMLDocument: IXMLDocument;
   RootNode: IXMLNode;
   Index: Integer;
-  IIndex: Integer;
   CompressedXml: String;
   Client: TClientObj;
   ClientProgressSize: Double;
   ExportedClient: TExportedClient;
   ErrorReported: Boolean;
   AccountsExported: Integer;
-  ClientBankAccountVendors: TBloArrayOfDataPlatformBankAccount;
+  TransactionsExported: Integer;
+  ClientAccountVendors: TClientAccVendors;
   ClientGuid: TBloGuid;
   ClientNode: IXMLNode;
   ExportClient: Boolean;
-  TransactionsExported: TList;
-  ServiceResponse: TBloUploadResult;
-  ServiceErrors: String;
-  ExportTransactionsWeight: Integer;
-  AuthenticationError: Boolean;
-  DeletedTransactions: IXMLNode;
 begin
   FatalError := False;
+  
+  Statistics.TransactionsExported := 0;
+  Statistics.AccountsExported := 0;
+  Statistics.ClientFilesProcessed := 0;
 
-  try
-    Statistics.TransactionsExported := 0;
-    Statistics.AccountsExported := 0;
-    Statistics.ClientFilesProcessed := 0;
-
-    if ExportOptions.ExportChartOfAccounts then
-    begin
-      ExportTransactionsWeight := 50;
-    end
-    else
-    begin
-      ExportTransactionsWeight := 60;
-    end;
-
+  if TestDataService then
+  begin
     if AdminSystem.fdSystem_Client_File_List.ItemCount > 0 then
     begin
       ProgressForm.Initialize;
@@ -453,10 +335,8 @@ begin
         ClientProgressSize := 100 / AdminSystem.fdSystem_Client_File_List.ItemCount;
 
         for Index := 0 to AdminSystem.fdSystem_Client_File_List.ItemCount -1 do
-        begin                                                                                                                                                       
-          ProgressForm.SecondaryProgress.Initialize;
-          
-          ProgressForm.PrimaryProgress.UpdateProgressLabel('Exporting transactions for ' + AdminSystem.fdSystem_Client_File_List.Client_File_At(Index).cfFile_Code);
+        begin
+          ProgressForm.UpdateProgressLabel('Exporting transactions for ' + AdminSystem.fdSystem_Client_File_List.Client_File_At(Index).cfFile_Code);
 
           ErrorReported := False;
       
@@ -466,8 +346,6 @@ begin
           begin
             try
               OpenAClient(AdminSystem.fdSystem_Client_File_List.Client_File_At(Index).cfFile_Code, Client, True);
-
-              ProgressForm.SecondaryProgress.UpdateProgress(10);
             except
               on E:Exception do
               begin
@@ -482,7 +360,7 @@ begin
               try
                 if not Client.clFields.clFile_Read_Only then
                 begin
-                  ClientGuid := ProductConfigService.Clients.GetClientGuid(Client.clFields.clCode);
+                  ClientGuid := GetClientGuid(Client.clFields.clCode);
 
                   if ClientGuid <> '' then
                   begin
@@ -496,134 +374,60 @@ begin
                       XMLDocument.Encoding:= 'UTF-8';
 
                       RootNode := XMLDocument.CreateElement('BKClients', '');
+      
+                      AccountsExported := 0;
+                      TransactionsExported := 0;
 
-                      if not (ProductConfigService.GetClientBankAccounts(ClientGuid, ClientBankAccountVendors, False, False) in [bloSuccess, bloFailedNonFatal]) then
+                      if not ProductConfigService.GetClientAccountsVendors(Client.clFields.clCode, ClientGuid, ClientAccountVendors, False) then
                       begin
                         FatalError := True;
 
                         Exit;
                       end;
-                               
-                      ProgressForm.SecondaryProgress.UpdateProgress(10);
+
+                      ClientNode := Client.clFields.WriteRecToNode(RootNode);
+
+                      CleanXML(ClientNode);
+                    
+                      BankAccountsToXML(ClientNode, Client, ExportOptions.MaxTransactionDate, ClientAccountVendors, AccountsExported, TransactionsExported);
+
+                      if TransactionsExported > 0 then
+                      begin
+                        ExportClient := True;
                       
-                      ClientNode := RootNode.AddChild('BKClient');
-
-                      ClientNode.Attributes['Id'] := ClientGuid;
-                                    
-                      AccountsExported := 0;
-                      
-                      TransactionsExported := TList.Create;
-
-                      try
-                        BankAccountsToXML(ClientNode, Client, ExportOptions.MaxTransactionDate, ClientBankAccountVendors, TransactionsExported, ProgressForm.SecondaryProgress, ExportTransactionsWeight, AccountsExported);
-
-                        if (TransactionsExported.Count > 0) or (HasDeletedTransactions(Client)) then
+                        if ExportOptions.ExportChartOfAccounts then
                         begin
-                          ExportClient := True;
-
-                          if ExportOptions.ExportChartOfAccounts and (TransactionsExported.Count > 0) then
-                          begin
-                            try
-                              //Add chart of accounts for this client
-                              ChartToXML(ClientNode, Client.clChart);
-
-                              ProgressForm.SecondaryProgress.UpdateProgress(10);
-                            except
-                              on E:Exception do
-                              begin
-                                LogUtil.LogMsg(lmError, 'BankLinkOnlineTaggingService', 'Client File ' + AdminSystem.fdSystem_Client_File_List.Client_File_At(Index).cfFile_Code + ' could export the Chart of Accounts - ' + E.Message);
-
-                                ExportClient := False;
-                              end;
-                            end;
-                          end;
-
-                          DeletedTransactions := XMLDocument.CreateElement('BKDeletedTransactions', ''); 
-
-                          if AddDeletedTransactionsToXML(DeletedTransactions, Client) > 0 then
-                          begin
-                            ClientNode.ChildNodes.Add(DeletedTransactions); 
-                          end;
-
-                          if ExportClient then
-                          begin
-                            XMLDocument.ChildNodes.Add(RootNode);
-
-                            with TTransactionExporter.Create do
+                          try
+                            //Add chart of accounts for this client
+                            ChartToXML(ClientNode, Client.clChart);
+                          except
+                            on E:Exception do
                             begin
-                              try
-                                if DebugMe then
-                                begin
-                                  XMLDocument.SaveToFile(Globals.DataDir + 'Tagging_ExportTaggedAccounts' + '_' +  FormatDateTime('yyyy-mm-dd hh-mm-ss zzz', Now) + '.xml');
-                                end;
+                              LogUtil.LogMsg(lmError, 'BankLinkOnlineTaggingService', 'Client File ' + AdminSystem.fdSystem_Client_File_List.Client_File_At(Index).cfFile_Code + ' could export the Chart of Accounts - ' + E.Message);
 
-                                ServiceResponse := SendTransactionData(XMLDocument.XML.Text, 20, ProgressForm.SecondaryProgress, AuthenticationError);
-                              finally
-                                Free;
-                              end;
-                            end;
-
-                            if not AuthenticationError then
-                            begin
-                              if TBloUploadResultCode(ServiceResponse.Result) = Success then
-                              begin
-                                for IIndex := 0 to TransactionsExported.Count - 1 do
-                                begin
-                                  pTransaction_Rec(TransactionsExported[IIndex]).txTransfered_To_Online := True;
-                                  pTransaction_Rec(TransactionsExported[IIndex]).txIsOnline_Transaction := True;
-                                end;
-
-                                ClearDeletedTransactions(Client);
-                                
-                                Client.clFields.clFile_Save_Required := True;
-
-                                DoClientSave(False, Client, True);
-                                
-                                Statistics.TransactionsExported := Statistics.TransactionsExported + TransactionsExported.Count;
-                                Statistics.AccountsExported := Statistics.AccountsExported + AccountsExported;
-                                Statistics.ClientFilesProcessed := Statistics.ClientFilesProcessed + 1;
-
-                                LogUtil.LogMsg(lmError, 'BankLinkOnlineTaggingService', Format('Client File %s successfully exported to BankLink Online - %s transactions, %s accounts.', [AdminSystem.fdSystem_Client_File_List.Client_File_At(Index).cfFile_Name, IntToStr(AccountsExported), IntToStr(TransactionsExported.Count)]));
-                              end
-                              else
-                              begin
-                                if Length(ServiceResponse.Messages) > 0  then
-                                begin
-                                  for IIndex := 0 to Length(ServiceResponse.Messages) - 1 do
-                                  begin
-                                    ServiceErrors := ServiceErrors + ServiceResponse.Messages[IIndex] + #10#13;
-                                  end;
-                                end
-                                else
-                                begin
-                                  case TBloUploadResultCode(ServiceResponse.Result)  of
-                                    NoFileReceived: ServiceErrors := 'The service call to BankLink Online did not include any transactions.';
-                                    InvalidCredentials: ServiceErrors := 'BankLink Online did not recognise the practice credentials.';
-                                    InternalError: ServiceErrors := 'BankLink Online encountered an unknown internal error.';
-                                    FileFormatError: ServiceErrors := 'BankLink Online did not recognise the transaction data format.';
-                                  end; 
-                                end;
-
-                                raise Exception.Create(ServiceErrors);
-                              end;
-                            end
-                            else
-                            begin
-                              HelpfulErrorMsg('Data export cannot continue because you are not authenticated with BankLink Online.', 0);
-                              
-                              LogUtil.LogMsg(lmInfo, 'BankLinkOnlineTaggingService', 'Data export could export all transactions because the user is not authenticated with Banklink Online.');
-
-                              FatalError := True;
-
-                              Exit;
+                              ExportClient := False;
                             end;
                           end;
                         end;
-                      finally
-                        XMLDocument.Active := False;
+
+                        if ExportClient then
+                        begin
+                          XMLDocument.ChildNodes.Add(RootNode);
+
+                          //XMLDocument.SaveToFile('C:\Users\kerry.convery\Desktop\ClientAccountTransactions' + IntToStr(Index) + '.xml');
+
+                          if UploadXMLData(XMLDocument.XML.Text) then
+                          begin
+                            DoClientSave(true, Client);
+
+                            Statistics.TransactionsExported := Statistics.TransactionsExported + TransactionsExported;
+                            Statistics.AccountsExported := Statistics.AccountsExported + AccountsExported;
+                            Statistics.ClientFilesProcessed := Statistics.ClientFilesProcessed + 1;
+                          end;
+                        end;
                       end;
                     finally
-                      TransactionsExported.Free;
+                      XMLDocument.Active := False;
                     end;
                   end;
                 end
@@ -632,7 +436,7 @@ begin
                   LogUtil.LogMsg(lmError, 'BankLinkOnlineTaggingService', 'Client File ' + AdminSystem.fdSystem_Client_File_List.Client_File_At(Index).cfFile_Code + ' could not be exported - The client file is read-only.');
                 end;
               finally
-                CloseAClient(Client);
+                FreeAndNil(Client);
               end;
             end
             else
@@ -651,68 +455,69 @@ begin
               bkConst.fsOffsite: LogUtil.LogMsg(lmError, 'BankLinkOnlineTaggingService', 'Client File ' + AdminSystem.fdSystem_Client_File_List.Client_File_At(Index).cfFile_Code + ' could not be exported - The client file is offsite.');
             end;
           end;
-                                                                          
-          ProgressForm.SecondaryProgress.CompleteProgress;
-          
-          ProgressForm.PrimaryProgress.UpdateProgress(ClientProgressSize);
+
+          ProgressForm.UpdateProgress(ClientProgressSize);
         end;
       end;
 
-      ProgressForm.PrimaryProgress.CompleteProgress;
-      ProgressForm.SecondaryProgress.CompleteProgress;
-
-      Application.ProcessMessages;
-
-      if Statistics.TransactionsExported > 0 then
+      if not FatalError then
       begin
-        LogUtil.LogMsg(lmInfo, 'BankLinkOnlineTaggingService', 'BankLink Practice successfully exported data to BankLink Online up to ' + StDateToDateString(BKDATEFORMAT, ExportOptions.MaxTransactionDate, False) + ': ' + IntToStr(Statistics.TransactionsExported) + ' Transaction(s) exported, ' + IntToStr(Statistics.AccountsExported) + ' Account(s) exported ' + IntToStr(Statistics.ClientFilesProcessed) + ' Client file(s) processed.');
+        ProgressForm.CompleteProgress;
+
+        if Statistics.TransactionsExported > 0 then
+        begin
+          LogUtil.LogMsg(lmInfo, 'BankLinkOnlineTaggingService', 'BankLink Practice successfully exported data to BankLink Online up to ' + StDateToDateString(BKDATEFORMAT, ExportOptions.MaxTransactionDate, False) + ': ' + IntToStr(Statistics.TransactionsExported) + ' Transaction(s) exported, ' + IntToStr(Statistics.AccountsExported) + ' Account(s) exported ' + IntToStr(Statistics.ClientFilesProcessed) + ' Client file(s) processed.');
+        end
+        else
+        begin
+          LogUtil.LogMsg(lmInfo, 'BankLinkOnlineTaggingService', 'BankLink Practice could not find any data up to ' + StDateToDateString(BKDATEFORMAT, ExportOptions.MaxTransactionDate, False) + ' to export to BankLink Online.');
+        end;
       end
       else
       begin
-        LogUtil.LogMsg(lmInfo, 'BankLinkOnlineTaggingService', 'BankLink Practice could not find any data up to ' + StDateToDateString(BKDATEFORMAT, ExportOptions.MaxTransactionDate, False) + ' to export to BankLink Online.');
+        LogUtil.LogMsg(lmInfo, 'BankLinkOnlineTaggingService', 'The following error occurred during the export of client ' + FatalErrorDetails.ClientCode + ' : ' + FatalErrorDetails.ErrorMessage + ' BankLink Practice completed the following data export to BankLink Online up to ' + StDateToDateString(BKDATEFORMAT, ExportOptions.MaxTransactionDate, False) + ': ' + IntToStr(Statistics.TransactionsExported) + ' Transaction(s) exported, ' + IntToStr(Statistics.AccountsExported) + ' Account(s) exported ' + IntToStr(Statistics.ClientFilesProcessed) + ' Client file(s) processed.');
       end;
     end;
-  except
-    on E:Exception do
-    begin
-      HandleException('ExportTaggedAccounts', 'BanklinkOnlineTaggingServices', E);
+  end
+  else
+  begin
+    LogUtil.LogMsg(lmInfo, 'BankLinkOnlineTaggingService', 'The BankLink Online data export service did not respond or the response was incorrect.');
 
-      LogUtil.LogMsg(lmInfo, 'BankLinkOnlineTaggingService', 'The following transactions up to ' + StDateToDateString(BKDATEFORMAT, ExportOptions.MaxTransactionDate, False) + ' were exported to BankLink Online: ' + IntToStr(Statistics.TransactionsExported) + ' Transaction(s) exported, ' + IntToStr(Statistics.AccountsExported) + ' Account(s) exported ' + IntToStr(Statistics.ClientFilesProcessed) + ' Client file(s) processed.');
-
-      FatalError := True;
-    end;
+    FatalErrorDetails.ClientCode := '';
+    FatalErrorDetails.ErrorMessage := 'The BankLink Online data export service is not available.';
+    FatalError := True; 
   end;
 end;
 
-class function TBanklinkOnlineTaggingServices.IsBankAccountTagged(BankAccount: TBank_Account; ClientBankAccountVendors: TBloArrayOfDataPlatformBankAccount): Boolean;
+class function TBanklinkOnlineTaggingServices.IsBankAccountTagged(BankAccount: TBank_Account; ClientAccountVendors: TClientAccVendors): Boolean;
 var
   Index: Integer;
 begin
-  for Index := 0 to Length(ClientBankAccountVendors) - 1 do
+  for Index := 0 to Length(ClientAccountVendors.AccountsVendors) - 1 do
   begin
-    if BankAccount.baFields.baCore_Account_ID = ClientBankAccountVendors[Index].AccountId then
+    if BankAccount.baFields.baCore_Account_ID = ClientAccountVendors.AccountsVendors[Index].AccountID then
     begin
-      Result := Length(ClientBankAccountVendors[Index].Subscribers) > 0;
+      Result := Length(ClientAccountVendors.AccountsVendors[Index].AccountVendors.Current) > 0;
 
       Break;
     end;
   end;
 end;
 
-class function TBanklinkOnlineTaggingServices.IsExportableBankAccount(BankAccount: TBank_Account; ClientBankAccountVendors: TBloArrayOfDataPlatformBankAccount): Boolean;
+class function TBanklinkOnlineTaggingServices.IsExportableBankAccount(BankAccount: TBank_Account; ClientAccountVendors: TClientAccVendors): Boolean;
 begin
-  Result := not (BankAccount.IsManual or BankAccount.IsAJournalAccount) and (BankAccount.baFields.baCore_Account_ID > 0) and IsBankAccountTagged(BankAccount, ClientBankAccountVendors);
+  Result := not (BankAccount.IsManual or BankAccount.IsAJournalAccount) and (BankAccount.baFields.baCore_Account_ID > 0) and IsBankAccountTagged(BankAccount, ClientAccountVendors);
 end;
 
 class function TBanklinkOnlineTaggingServices.IsExportableTransaction(Transaction: pTransaction_Rec; MaxTransactionDate: TStDate = -1): Boolean;
 begin
   if MaxTransactionDate > -1 then
   begin
-    Result := ((Transaction.txCore_Transaction_ID <> 0) or (Transaction.txUPI_State in[upUPC, upUPD, upUPW, upReversedUPC, upReversedUPD, upReversedUPW])) and (not Transaction.txTransfered_To_Online) and (Transaction.txDate_Effective <= MaxTransactionDate);
+    Result := (Transaction.txCore_Transaction_ID <> 0) and (not Transaction.txTransfered_To_Online) and (Transaction.txDate_Transferred <= MaxTransactionDate);
   end
   else
   begin
-    Result := ((Transaction.txCore_Transaction_ID <> 0) or (Transaction.txUPI_State in[upUPC, upUPD, upUPW, upReversedUPC, upReversedUPD, upReversedUPW])) and (not Transaction.txTransfered_To_Online);
+    Result := (Transaction.txCore_Transaction_ID <> 0) and (not Transaction.txTransfered_To_Online);
   end;
 end;
 
@@ -810,9 +615,54 @@ begin
                                                 False);
 end;
 
+class function TBanklinkOnlineTaggingServices.UploadXMLData(const XmlData: WideString): Boolean;
+var
+  DataPlatformInterface: IDataPlatformPractice;
+begin
+  Result := False;
+  
+  try
+    if not Assigned(AdminSystem) then
+      Exit;
+
+    DataPlatformInterface :=  GetIDataPlatformPractice;
+      
+    Result := DataPlatformInterface.UploadData(CountryText(AdminSystem.fdFields.fdCountry),
+                                                           AdminSystem.fdFields.fdBankLink_Code,
+                                                           AdminSystem.fdFields.fdBankLink_Connect_Password,
+                                                           XmlData);
+
+  except
+    on E:Exception do
+    begin
+      HelpfulErrorMsg('Error sending xml data: ' + E.Message, 0);
+    end;
+  end;
+end;
+
 class procedure TBanklinkOnlineTaggingServices.GetAccountVendors(BankAccount: TBank_Account; out TaggedAccount: TTaggedAccount);
 begin
 
+end;
+
+class function TBanklinkOnlineTaggingServices.GetClientGuid(const ClientCode: String): TBloGuid;
+var
+  Index: Integer;
+begin
+  Result := '';
+  
+  if Assigned(ProductConfigService.Clients) then
+  begin
+    for Index := 0 to Length(ProductConfigService.Clients.Clients) - 1 do
+    begin
+      if ProductConfigService.Clients.Clients[Index].ClientCode = ClientCode then
+      begin
+        Result := ProductConfigService.Clients.Clients[Index].Id;
+
+        Break;
+      end;
+    end;
+  end;
 end;
 
 class function TBanklinkOnlineTaggingServices.GetMaxExportableTransactionDate(ProgressForm: ISingleProgressForm): TStDate;
@@ -824,94 +674,74 @@ var
   BankAccount: TBank_Account;
   Transaction: pTransaction_Rec;
   ClientProgressStepSize: Double;
-  ClientBankAccountVendors: TBloArrayOfDataPlatformBankAccount;
+  ClientAccountVendors: TClientAccVendors;
   ClientGuid: TBloGuid;
-  DeletedTransaction: pDeleted_Transaction_Rec;
 begin
   Result := -1;
 
-  try
-    if AdminSystem.fdSystem_Client_File_List.ItemCount > 0 then
+  if AdminSystem.fdSystem_Client_File_List.ItemCount > 0 then
+  begin
+    ClientProgressStepSize := 100 / AdminSystem.fdSystem_Client_File_List.ItemCount;
+
+    ProgressForm.UpdateProgressLabel('Checking client files and bank accounts'); 
+
+    for ClientIndex := 0 to AdminSystem.fdSystem_Client_File_List.ItemCount -1 do
     begin
-      ClientProgressStepSize := 100 / AdminSystem.fdSystem_Client_File_List.ItemCount;
-
-      ProgressForm.UpdateProgressLabel('Checking client files and bank accounts'); 
-
-      for ClientIndex := 0 to AdminSystem.fdSystem_Client_File_List.ItemCount -1 do
+      if AdminSystem.fdSystem_Client_File_List.Client_File_At(ClientIndex).cfFile_Status = bkConst.fsNormal then
       begin
-        if AdminSystem.fdSystem_Client_File_List.Client_File_At(ClientIndex).cfFile_Status = bkConst.fsNormal then
+        try
+          OpenAClientForRead(AdminSystem.fdSystem_Client_File_List.Client_File_At(ClientIndex).cfFile_Code, Client);
+        except
+        end;
+
+        if Assigned(Client) then
         begin
           try
-            OpenAClientForRead(AdminSystem.fdSystem_Client_File_List.Client_File_At(ClientIndex).cfFile_Code, Client);
-          except
-          end;
-
-          if Assigned(Client) then
-          begin
-            try
-              if not Client.clFields.clFile_Read_Only then
-              begin
-                ClientGuid := ProductConfigService.Clients.GetClientGuid(Client.clFields.clCode);
+            if not Client.clFields.clFile_Read_Only then
+            begin
+              ClientGuid := TBanklinkOnlineTaggingServices.GetClientGuid(Client.clFields.clCode);
               
-                if ClientGuid <> '' then
+              if ClientGuid <> '' then
+              begin
+                if not ProductConfigService.GetClientAccountsVendors(Client.clFields.clCode, ClientGuid, ClientAccountVendors, False) then
                 begin
-                  if not (ProductConfigService.GetClientBankAccounts(ClientGuid, ClientBankAccountVendors, False, False) in [bloSuccess, bloFailedNonFatal]) then
-                  begin
-                    Result := -2;
+                  Result := -1;
 
-                    Exit;
-                  end;
-
-                  if Length(ClientBankAccountVendors) > 0 then
+                  Exit;
+                end;
+              
+                if Length(ClientAccountVendors.AccountsVendors) > 0 then
+                begin
+                  for AccountIndex := 0 to Client.clBank_Account_List.ItemCount - 1 do
                   begin
-                    for AccountIndex := 0 to Client.clBank_Account_List.ItemCount - 1 do
+                    BankAccount := Client.clBank_Account_List[AccountIndex];
+
+                    if IsExportableBankAccount(BankAccount, ClientAccountVendors) then
                     begin
-                      BankAccount := Client.clBank_Account_List[AccountIndex];
-
-                      if IsExportableBankAccount(BankAccount, ClientBankAccountVendors) then
+                      for TransactionIndex := 0 to BankAccount.baTransaction_List.ItemCount - 1 do
                       begin
-                        for TransactionIndex := 0 to BankAccount.baTransaction_List.ItemCount - 1 do
-                        begin
-                          Transaction := BankAccount.baTransaction_List[TransactionIndex];
+                        Transaction := BankAccount.baTransaction_List[TransactionIndex];
 
-                          if IsExportableTransaction(Transaction) then
+                        if IsExportableTransaction(Transaction) then
+                        begin
+                          if Transaction.txDate_Effective > Result then
                           begin
-                            if Transaction.txDate_Effective > Result then
-                            begin
-                              Result := Transaction.txDate_Effective;
-                            end;
+                            Result := Transaction.txDate_Effective;
                           end;
-                        end;
-                      end;
-
-                      for TransactionIndex := 0 to BankAccount.baDeleted_Transaction_List.ItemCount -1 do
-                      begin
-                        DeletedTransaction := BankAccount.baDeleted_Transaction_List.Transaction_At(TransactionIndex);
-
-                        if DeletedTransaction.dxDate_Effective > Result then
-                        begin
-                          Result := DeletedTransaction.dxDate_Effective;
                         end;
                       end;
                     end;
                   end;
                 end;
               end;
-            finally
-              FreeAndNil(Client);
             end;
+          finally
+            FreeAndNil(Client);
           end;
         end;
-
-        ProgressForm.UpdateProgress(ClientProgressStepSize);
       end;
-    end;
-  except
-    on E:Exception do
-    begin
-      HandleException('GetMaxExportableTransactionDate', 'BanklinkOnlineTaggingServices', E);
 
-      Result := -2;
+      ProgressForm.UpdateProgress(ClientProgressStepSize); 
     end;
   end;
 end;
@@ -924,23 +754,6 @@ end;
 class procedure TBanklinkOnlineTaggingServices.GetTaggedAccounts(ClientReadDetail: TBloClientReadDetail; out TaggedAccounts: array of TTaggedAccount);
 begin
 
-end;
-
-class function TBanklinkOnlineTaggingServices.HasDeletedTransactions(Client: TClientObj): Boolean;
-var
-  Index: Integer;
-begin
-  Result := False;
-  
-  for Index := 0 to Client.clBank_Account_List.ItemCount - 1 do
-  begin
-    if Client.clBank_Account_List.Bank_Account_At(Index).baDeleted_Transaction_List.ItemCount > 0 then
-    begin
-      Result := True;
-      
-      Break;
-    end;
-  end;
 end;
 
 class function TBanklinkOnlineTaggingServices.HasExportableTransactions(BankAccount: TBank_Account; MaxTransactionDate: TStDate): Boolean;
@@ -969,36 +782,4 @@ begin
   FTransactionsExported := ExportedTransactions;
 end;
 
-{ TBanklinkOnlineTaggingServices.TTransactionExporter }
-
-procedure TBanklinkOnlineTaggingServices.TTransactionExporter.OnSendTransactions(Sent, Total: Integer);
-var
-  StepSize: Double;
-begin
-  if (Total > 0) and (Sent > 0) then
-  begin
-    StepSize := FProgressWeight / (Total / Sent);
-  end
-  else
-  begin
-    StepSize := 0;
-  end;
-  
-  FProgressControl.UpdateProgress(StepSize - FLastStepSize);
-
-  FLastStepSize := StepSize;
-end;
-
-function TBanklinkOnlineTaggingServices.TTransactionExporter.SendTransactionData(TransactionData: String; ProgressWeight: Double; ProgressControl: IProgressControl; out AuthenticationError: Boolean): TBloUploadResult;
-begin
-  FProgressWeight := ProgressWeight;
-  FProgressControl := ProgressControl;
-  FLastStepSize := 0;
-
-  Result := ProductConfigService.ProcessData(TransactionData, AuthenticationError, OnSendTransactions);
-end;
-
-initialization
-  DebugMe := DebugUnit('BanklinkOnlineTaggingServices');
-  
 end.

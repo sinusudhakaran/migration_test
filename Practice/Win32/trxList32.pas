@@ -54,6 +54,7 @@ type
                              var AAuditInfo: TAuditInfo);
       procedure SetDissectionAuditInfo(P1, P2: pDissection_Rec; AParentID: integer;
                                        var AAuditInfo: TAuditInfo);
+      
       property LastSeq : integer read FLastSeq;
       property TxnClient: TObject read FClient write SetClient;
       property TxnBankAccount: TObject read FBank_Account write SetBank_Account;

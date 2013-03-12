@@ -84,8 +84,6 @@ object frmDeleteRequest: TfrmDeleteRequest
       Width = 209
       Height = 17
       Caption = 'Mark accounts as deleted'
-      Checked = True
-      State = cbChecked
       TabOrder = 0
       OnClick = CheckBoxClick
     end

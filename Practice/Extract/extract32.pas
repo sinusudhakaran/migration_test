@@ -20,7 +20,7 @@ implementation
 uses
   ExtractDlg, Globals, baobj32, Software, ContraDlg, WarningMoreFrm,
   ErrorMoreFrm, LogUtil, bkConst, InfoMoreFrm, StDate, S6INI,
-  classes, bkDateUtils, SysUtils,
+  classes, bkDateUtils, SysUtils, ClientHomePagefrm,
 
   AcclipseX,
   AccountSoftX,
@@ -113,10 +113,14 @@ var
    i            : integer;
    Contra_Code  : String;
    Msg          : String;
+   PeriodIndex: Integer;
+   PeriodList: TDateList;
+   BankIndex: Integer;
 begin
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
 
    if not Assigned( myClient ) then exit;
+   AssignGlobalRedrawForeign(True);
 
    SysUtils.SetCurrentDir( Globals.DataDir);
    FD := Fromdate;
@@ -282,6 +286,19 @@ begin
                   suTASBooks   :;
                end;
          end; { Case clCountry }
+
+         PeriodList := GetPeriodsBetween(FD, TD, True);
+
+         for BankIndex := 0 to Pred(MyClient.clBank_Account_List.ItemCount) do
+         begin
+           BA := MyClient.clBank_Account_List.Bank_Account_At(BankIndex);
+
+           for PeriodIndex := 0 to Length(PeriodList) - 1 do
+           begin
+             BA.baFinalized_Exchange_Rate_List.AddExchangeRate(PeriodList[PeriodIndex], BA.Default_Forex_Conversion_Rate(PeriodList[PeriodIndex]));  
+           end;
+         end;
+           
 
       except
          on e : EFCreateError do begin

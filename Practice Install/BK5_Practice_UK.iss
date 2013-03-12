@@ -52,8 +52,6 @@ Source: "3rd Party\BKCASYS.EXE"; DestDir: "{app}"
 Source: "3rd Party\GET4CEE.EXE"; DestDir: "{app}"
 Source: "3rd Party\ACTCHART.EXE"; DestDir: "{app}"
 Source: "3rd Party\S6BNK.COM"; DestDir: "{app}"
-Source: "3rd Party\libeay32.dll"; DestDir: "{app}"
-Source: "3rd Party\zint.dll"; DestDir: "{app}"
 
 ;Source: "AuthorityForms\Client Authority Form.pdf"; DestDir: "{app}"
 
@@ -63,8 +61,6 @@ Source: "AuthorityForms\UK_CAF_Template.pdf"; DestDir: "{app}\TEMPLATE"
 Source: "AuthorityForms\UK_HSBC_Template.pdf"; DestDir: "{app}\TEMPLATE"
 Source: "AuthorityForms\CAF_Generator_HSBC.xlt"; DestDir: "{app}\TEMPLATE"
 Source: "AuthorityForms\CAF_Generator_Standard.xlt"; DestDir: "{app}\TEMPLATE"
-
-Source: "Publickeys\PublicKeyCafQrCode.pke"; DestDir : "{app}\Publickeys"
 
 [Icons]
 Name: "{group}\BankLink Practice"; Filename: "{app}\BK5WIN.EXE"

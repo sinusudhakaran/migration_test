@@ -65,6 +65,7 @@ type
     FTransactionsFrom, FTransactionsTo : TstDate;
     FValidAccountTypes: TAccountSet;
     FRptParams: TRptParameters;
+    FForceFullPeriod: Boolean;
 
     procedure SetAllowBlank(const Value: boolean);
     function  CheckClose(Dodates: Boolean= True) : boolean;
@@ -74,6 +75,7 @@ type
     procedure SetRptParams(const Value: TRptParameters);
     procedure SetDateFrom(const Value: TStDate);
     procedure SetDateTo(const Value: TStDate);
+    procedure SetForceFullPeriod(const Value: Boolean);
   public
     { Public declarations }
     property dlgDateFrom : TStDate read FDateFrom write SetDateFrom;
@@ -83,6 +85,7 @@ type
     property Pressed : integer read FPressed write SetPressed;
     property CheckEntries : boolean read FCheckEntries write SetCheckEntries;
     property RptParams: TRptParameters read FRptParams write SetRptParams;
+    property ForceFullPeriod: Boolean read FForceFullPeriod write SetForceFullPeriod;
     function Execute : boolean;
     procedure LoadAccounts;
   end;
@@ -94,7 +97,8 @@ function EnterPrintDateAccountRange( Caption : string;
                                      HelpCtx: integer;
                                      Blank : Boolean;
                                      var WrapNarration: Boolean;
-                                     const ShowNarration: Boolean = False): boolean;
+                                     const ShowNarration: Boolean = False;
+                                     ForceFullPeriod: Boolean = False): boolean;
 
 //function EnterDateAccountRange(Caption : string; Text : string;
 //  var dateFrom,dateTo : TStDate; var AccountList : TStringList;
@@ -140,6 +144,7 @@ begin
   AllowBlank            := false;
   CheckEntries          := false;
   chkWrapNarration.Visible := False;
+  FForceFullPeriod := False;
   SetUpHelp;
 
   gCodingDateFrom := MyClient.clFields.clPeriod_Start_Date;
@@ -225,19 +230,52 @@ var I : Integer;
 
      D1 := stNull2Bk(eDateSelector.eDateFrom.AsStDate);
      D2 := stNull2Bk(eDateSelector.eDateTo.AsStDate);
-     if (((D1=0) and AllowBlank) or DateIsValid(eDateSelector.eDateFrom.AsString)) and
-        (((D2=MaxInt) and AllowBlank) or DateisValid(eDateSelector.eDateTo.AsString)) then
+
+     if (((D1=0) and AllowBlank) or DateIsValid(eDateSelector.eDateFrom.AsString)) and (((D2=MaxInt) and AllowBlank) or DateisValid(eDateSelector.eDateTo.AsString)) then
      begin
-        //dates are valid
-        {validate from after to, first day of mth, last day of mth}
-        if D1 > D2 then
-        begin
+       //dates are valid
+       {validate from after to, first day of mth, last day of mth}
+       if D1 > D2 then
+       begin
+         PageControl1.ActivePage := tbsOptions;
+         eDateSelector.eDateFrom.SetFocus;
+         HelpfulInfoMsg('"From" Date is later than "To" Date.  Please select valid dates.',0);
+         exit;
+       end
+       else
+       if FForceFullPeriod then
+       begin
+         if (not IsTheFirstDayOfTheMonth(D1)) and not IsTheLastDayOfTheMonth(D2) then
+         begin
            PageControl1.ActivePage := tbsOptions;
            eDateSelector.eDateFrom.SetFocus;
-           HelpfulInfoMsg('"From" Date is later than "To" Date.  Please select valid dates.',0);
+           HelpfulInfoMsg('The From and To dates entered must be the first day and last day of the month respectively.',0);
+           eDateSelector.eDateFrom.AsStDate := GetFirstDayOfMonth(D1);
+           eDateSelector.eDateTo.AsStDate := GetLastDayOfMonth(D2);
            exit;
-        end
-     end else begin
+         end
+         else
+         if not IsTheFirstDayOfTheMonth(D1) then
+         begin
+           PageControl1.ActivePage := tbsOptions;
+           eDateSelector.eDateFrom.SetFocus;
+           HelpfulInfoMsg('The From date entered must be the first day of the month.',0);
+           eDateSelector.eDateFrom.AsStDate := GetFirstDayOfMonth(D1);
+           exit;
+         end
+         else
+         if not IsTheLastDayOfTheMonth(D2) then
+         begin
+           PageControl1.ActivePage := tbsOptions;
+           eDateSelector.eDateTo.SetFocus;
+           HelpfulInfoMsg('The To date entered must be the last day of the month.',0);
+           eDateSelector.eDateTo.AsStDate := GetLastDayOfMonth(D2);
+           exit;
+         end;
+       end;
+     end
+     else
+     begin
         HelpfulInfoMsg('The Dates entered are Invalid!' +#13+#13+'Please select valid dates.',0);
         PageControl1.ActivePage := tbsOptions;
         eDateSelector.eDateFrom.SetFocus;
@@ -344,6 +382,11 @@ begin
   eDateSelector.eDateTo.AsStDate := FDateTo;
 end;
 
+procedure TdlgCodeDateAccount.SetForceFullPeriod(const Value: Boolean);
+begin
+  FForceFullPeriod := Value;
+end;
+
 //------------------------------------------------------------------------------
 function TdlgCodeDateAccount.Execute: boolean;
 begin
@@ -360,7 +403,8 @@ function EnterPrintDateAccountRange( Caption : string;
                                      HelpCtx: integer;
                                      Blank : Boolean;
                                      var WrapNarration: Boolean;
-                                     const ShowNarration: Boolean = False): boolean;
+                                     const ShowNarration: Boolean = False;
+                                     ForceFullPeriod: Boolean = False): boolean;
 var
   MyCodeDate : TdlgCodeDateAccount;
   i : Integer;
@@ -376,6 +420,7 @@ begin
     MyCodeDate.ValidAccountTypes := ValidAccounts;
     MyCodeDate.chkWrapNarration.Visible := ShowNarration;
     MyCodeDate.chkWrapNarration.Checked := WrapNarration;
+    MyCodeDate.ForceFullPeriod := ForceFullPeriod;
     //fill the accounts list
     MyCodeDate.LoadAccounts;
 

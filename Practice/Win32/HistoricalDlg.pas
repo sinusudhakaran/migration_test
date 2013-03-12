@@ -2697,8 +2697,7 @@ begin
          end;
 
 
-         cePayee :
-         begin
+         cePayee : begin
             // can't popup a dialog in here - case 7255
          end;
 
@@ -2726,7 +2725,6 @@ begin
 
             OD := pT^.txDate_Effective;
             pT^.txDate_Effective := tmpInteger;
-            
             if fIsForex then begin
                OER := pT^.txForex_Conversion_Rate;
                pT^.txForex_Conversion_Rate := BankAccount.Default_Forex_Conversion_Rate(tmpInteger);
@@ -2776,8 +2774,7 @@ begin
 
          ceNarration : begin
            S := PChar( tmpBuffer);  //will have been filled by ReadCellForSave
-           if (pT^.txGL_Narration <> S) then
-           begin
+           if (pT^.txGL_Narration <> S) then begin
               pT^.txGL_Narration    := S;
            end;
          end;
@@ -3866,9 +3863,7 @@ begin
         OldPayeeNo := pT^.txPayee_Number;
         pT^.txPayee_Number  := tmpPayee;
         if PayeeEdited(pT) then
-        begin
-          pT^.txHas_Been_Edited := true;
-        end
+          pT^.txHas_Been_Edited := true
         else
           //restore original value
           pT^.txPayee_Number := OldPayeeNo;
@@ -4669,6 +4664,7 @@ var
   Historical : TdlgHistorical;
 begin
    result := false;
+   AssignGlobalRedrawForeign(True);
 
    //See if client file has any bank accounts attached to it
    if BKUTIL32.CountDeliveredBankAccounts = 0 then begin
@@ -4720,6 +4716,7 @@ var
   DummyAccVendor : TAccountVendors;
 begin
    Result := false;
+   AssignGlobalRedrawForeign(True);
 
    //See if client file has any bank accounts attached to it
    if BKUTIL32.CountManualBankAccounts = 0 then begin
@@ -4815,6 +4812,7 @@ var
      FirstProvisionalLRN, LastProvisionalLRN: integer;
   begin
      Result := False;
+     AssignGlobalRedrawForeign(True);
      LoadAdminSystem(True,'Save Provisional');
 
      SelectedBA := Adminsystem.fdSystem_Bank_Account_List.FindCode(ForAccount);

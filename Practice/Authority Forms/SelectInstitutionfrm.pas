@@ -40,7 +40,8 @@ implementation
 {$R *.dfm}
 
 uses
-  bkConst;
+  bkConst,
+  BKHelp;
 
 //------------------------------------------------------------------------------
 function PickCAFInstitution(w_PopupParent: Forms.TForm; aCountry : integer) : integer;
@@ -55,7 +56,7 @@ begin
     //Required for the proper handling of the window z-order so that a modal window does not show-up behind another window
     frmSelectInstitution.PopupParent := w_PopupParent;
     frmSelectInstitution.PopupMode := pmExplicit;
-    //BKHelpSetUp(ClientDetails, BKH_Editing_client_details);
+    BKHelpSetUp(frmSelectInstitution, BKH_Accessing_a_Customer_Authority_Form);
 
     Result := frmSelectInstitution.Execute;
   finally

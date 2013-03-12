@@ -41,6 +41,9 @@ TYPE
    end;
 
 CONST
+   { This value gets replaced at runtime with $7FFFFFFF, approximately 9.22e18.
+     It's to simulate a NaN value for Money. See implementation below.
+   }
    Unknown : Money = 0;
 
 procedure DBR_SetLength( var Rec : TDynamic_Balances_Rec; Value : integer);

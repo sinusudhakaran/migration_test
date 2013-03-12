@@ -78,6 +78,8 @@ type
     procedure SetLastBackupSucceeded(const Value: boolean);
 
   protected
+    function GetGlobalRedrawForeign: boolean; override;
+    procedure SetGlobalRedrawForeign(Value: boolean); override;
     function GetTheClient : TClientObj; override;
     procedure SetTheClient(const Value: TClientObj); override;
     function GetRefreshRequest : THP_Refresh; override;
@@ -97,6 +99,7 @@ type
     property LastBackupDateTime : TDateTime read FLastBackupDateTime write SetLastBackupDateTime;
     property LastBackupSucceeded : boolean read FLastBackupSucceeded write SetLastBackupSucceeded;
     function CheckFinished : boolean;
+    function GetFillDate: integer; override;
   end;
 
   procedure DoSimpleUICommand( command : byte);
@@ -740,6 +743,27 @@ end;
 function TfrmSimpleUIHomePage.GetAbandon: boolean;
 begin
   Result := FAbandon;
+end;
+
+// Have only created this to override the abstract function
+// and thus remove a warning, shouldn't ever get called
+function TfrmSimpleUIHomePage.GetFillDate: integer;
+begin
+  Result := -1;
+end;
+
+// Have only created this to override the abstract function
+// and thus remove a warning, shouldn't ever get called
+function TfrmSimpleUIHomePage.GetGlobalRedrawForeign: boolean;
+begin
+  Result := False;
+end;
+
+// Have only created this to override the abstract function
+// and thus remove a warning, shouldn't ever get called
+procedure TfrmSimpleUIHomePage.SetGlobalRedrawForeign(Value: boolean);
+begin
+  //
 end;
 
 function TfrmSimpleUIHomePage.GetLastDownloadedDate: integer;

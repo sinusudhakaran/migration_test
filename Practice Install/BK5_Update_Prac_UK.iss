@@ -51,8 +51,6 @@ Source: "3rd Party\WDDX_License.html"; DestDir: "{app}"
 Source: "3rd Party\wddx_com.dll"; DestDir: "{app}"
 Source: "3rd Party\xmlparse.dll"; DestDir: "{app}"
 Source: "3rd Party\xmltok.dll"; DestDir: "{app}"
-Source: "3rd Party\libeay32.dll"; DestDir: "{app}"
-Source: "3rd Party\zint.dll"; DestDir: "{app}"
 
 ;Source: "AuthorityForms\Client Authority Form.pdf"; DestDir: "{app}"
 
@@ -60,8 +58,6 @@ Source: "AuthorityForms\UK_CAF_Template.pdf"; DestDir: "{app}\TEMPLATE"
 Source: "AuthorityForms\UK_HSBC_Template.pdf"; DestDir: "{app}\TEMPLATE"
 Source: "AuthorityForms\CAF_Generator_HSBC.xlt"; DestDir: "{app}\TEMPLATE"
 Source: "AuthorityForms\CAF_Generator_Standard.xlt"; DestDir: "{app}\TEMPLATE"
-
-Source: "Publickeys\PublicKeyCafQrCode.pke"; DestDir : "{app}\Publickeys"
 
 [Run]
 Filename: "{app}\BK5WIN.EXE"; Description : "Start BankLink Practice"; WorkingDir: "{app}"; Flags: postinstall nowait;

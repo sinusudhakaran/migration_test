@@ -25,6 +25,8 @@ Procedure UnLockEntries( D1, D2 : LongInt );
 function FinaliseAccountingPeriod : boolean;
 function UnlockAccountingPeriod : boolean;
 
+// "Check" function so we do this check before anything else
+function CheckAutoLockGSTPeriod(FromDate, ToDate: integer): boolean;
 function AutoLockGSTPeriod(FromDate, ToDate : integer): boolean;
 
 function Istransferred( D1, D2 : LongInt ): tLockInfo;
@@ -44,7 +46,9 @@ uses
   CodeDateDlg,
   baObj32,
   YesNoDlg,
-  BKUTIL32;
+  BKUTIL32,
+  ClientHomePagefrm,
+  ForexHelpers;
 
 Function IsLocked( D1, D2 : LongInt ): tLockInfo;
 
@@ -88,8 +92,13 @@ Procedure   LockEntries( D1, D2 : LongInt );
 Var
    B, T : LongInt;
    BA : TBank_Account;
+   PeriodList: TDateList;
+   Index: Integer;
 Begin
    If not Assigned( MyClient ) then exit;
+
+   PeriodList := GetPeriodsBetween(D1, D2, True);
+
    With MyClient.clBank_Account_List do
       For B := 0 to Pred( itemCount ) do begin
          BA := Bank_Account_At( B );
@@ -102,6 +111,11 @@ Begin
                        txForex_Conversion_Rate := BA.Default_Forex_Conversion_Rate( txDate_Effective );
                      txLocked := TRUE;
                   end;
+
+         for Index := 0 to Length(PeriodList) -1 do
+         begin
+           BA.baFinalized_Exchange_Rate_List.AddExchangeRate(PeriodList[Index], BA.Default_Forex_Conversion_Rate(PeriodList[Index])); 
+         end;
       end;
 end;
 
@@ -128,7 +142,6 @@ function HasUnCodedGSTEntries(D1, D2: LongInt): Boolean;
 var
   CodedCount, UnCodedCount: integer;
 begin
-  Result := False;
   CodedCount := 0;
   UnCodedCount := 0;
   BKUTIL32.CountCodedGSTTrans(MyClient, d1, d2, CodedCount, UnCodedCount,
@@ -144,6 +157,7 @@ Var
 Begin
    result := false;
    If not Assigned( MyClient ) then exit;
+   AssignGlobalRedrawForeign(True);
    With MyClient do
    Begin
       D1 := clFields.clPeriod_Start_Date;
@@ -208,6 +222,7 @@ Var
 Begin
    result := false;
    If not Assigned( MyClient ) then exit;
+   AssignGlobalRedrawForeign(True);
    With MyClient do
    Begin
       //Show warning if ForEx account
@@ -259,26 +274,43 @@ Begin
    end;
 end;
 
+function CheckAutoLockGSTPeriod(FromDate, ToDate: integer): boolean;
+begin
+  // No VAT?
+  if not SupportsVAT then
+  begin
+    result := true;
+    exit;
+  end;
+
+  // Uncoded entries?
+  if HasUnCodedGSTEntries(FromDate, ToDate) then
+  begin
+    HelpfulInfoMsg( 'There are uncoded entries in this period which prevents ' +
+                    'the VAT Return period from being finalised.', 0 );
+
+    result := false;
+    exit;
+  end;
+
+  result := true;
+end;
 
 function AutoLockGSTPeriod(FromDate, ToDate : integer): boolean;
 Var
    D1, D2 : LongInt;
-   CodedCount, UnCodedCount: integer;
 Begin
    result := false;
    If not Assigned( MyClient ) then exit;
+   AssignGlobalRedrawForeign(True);
    With MyClient do
    Begin
       d1 := fromDate;
       d2 := toDate;
 
       //Check that all transactions are coded for the UK
-      if MyClient.clFields.clCountry = whUK then
-        if HasUnCodedGSTEntries(D1, D2) then begin
-          HelpfulInfoMsg( 'There are uncoded entries in this period which prevents ' +
-                          'the VAT Return period from being finalised.', 0 );
-          Exit;
-        end;
+      if not CheckAutoLockGSTPeriod(D1, D2) then
+        Exit;
 
       Case IsLocked( D1, D2 ) of
          ltAll    :

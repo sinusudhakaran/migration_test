@@ -514,8 +514,6 @@ Begin
                         Dissection := Dissection.dsNext;
                       end;
 
-                    txTransfered_To_Online := False;
-
                     Continue;
                  end;
               end; { Scope of Memorised_Transaction_List^ }
@@ -640,7 +638,6 @@ Begin
                               Dissection := Dissection.dsNext;
                             end;
 
-                            txTransfered_To_Online := False;
                          end; //matching payee
                       end;
                    end; //if DoAnalysisCoding
@@ -731,8 +728,6 @@ Begin
                           txGST_Has_Been_Edited := false;
                           Continue;
                        end;
-                       
-                       txTransfered_To_Online := False;
                     end;
                  end;
                end;

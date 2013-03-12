@@ -57,16 +57,17 @@ type
     FRptParameters       : TRptParameters;
     procedure AddColumnTypeToArray( NewType : TFinancialValueType);
     procedure ClearColumnTypeArray;
+    function  GetIndexFromColumnType(const aValue: TFinancialValueType): integer; // -1 if not available
     function  ReportGroupNeedsPrinting( ReportGroup : byte) : boolean;
     function  AccountNeedsPrinting( pAcct : pAccount_Rec) : boolean; virtual;
     procedure PrintControlAccountTitle( aAccount: pAccount_Rec);
-    procedure PrintValuesForPeriod( const Values : TValuesArray; DefaultSign : TSign);
+    procedure PrintValuesForPeriod( const Values : TValuesArray; DefaultSign : TSign; PrintQuantities: boolean = True);
     procedure SetCurrencyFormatForPeriod(const Values : TValuesArray; NewFormat: string);
     procedure SkipPeriod;
 
     function  GetHeading( No : Integer): string; virtual; abstract;
 
-    procedure GetValuesForPeriod(const pAcct : pAccount_Rec; const ForPeriod : integer; var Values : TValuesArray); virtual; abstract;
+    procedure GetValuesForPeriod(const pAcct : pAccount_Rec; const ForPeriod : integer; var Values : TValuesArray; UsePeriodStartEnd: boolean = false); virtual; abstract;
     procedure GetYTD_ValuesForPeriod(const pAcct : pAccount_Rec; const ForPeriod : integer; var Values : TValuesArray); virtual; abstract;
     procedure SetupColumnsTypes; virtual; abstract;
   public
@@ -91,7 +92,8 @@ type
                            );
     procedure PrintTotalsArray( const Title : string;
                                 TotalsArray : TValuesArray; DefaultSign : TSign;
-                                Style: TStyleTypes = siSectionTotal);
+                                Style: TStyleTypes = siSectionTotal;
+                                PrintQuantities: boolean = True);
     procedure PrintSectionWithControlAccnt(ReportGroupsSet: ATTypeSet;
       SectionHeadingId: integer; SectionTotalId: Integer; DefaultSign: TSign;
       Style: TStyleTypes = siSectionTotal);
@@ -169,6 +171,7 @@ var
   i           : integer;
   ValuesArray : TValuesArray;
   PeriodNo    : integer;
+  UseWholeDateRange: boolean;
 begin
   result := false;
   SetLength( ValuesArray, ColumnsPerPeriod);
@@ -176,8 +179,9 @@ begin
   //see if anything in periodic columns
   for PeriodNo:= MinPeriodToShow to MaxPeriodToShow do begin
     if PeriodNo <= ClientForReport.clFields.clTemp_FRS_last_Period_To_Show then begin
+      UseWholeDateRange := (FRptParameters.ReportType = Integer(Report_Cashflow_Date));
       //GetValues
-      GetValuesForPeriod( pAcct, PeriodNo, ValuesArray);
+      GetValuesForPeriod( pAcct, PeriodNo, ValuesArray, UseWholeDateRange);
       //see if anything there
       for i := Low( ValuesArray) to High( ValuesArray) do
         if ValuesArray[i] <> 0 then begin
@@ -218,6 +222,22 @@ end;
 procedure TFinancialReportBase.ClearColumnTypeArray;
 begin
   FColumnTypes := nil;
+end;
+
+function TFinancialReportBase.GetIndexFromColumnType(const aValue: TFinancialValueType): integer;
+var
+  i: integer;
+begin
+  for i := 0 to High(FColumnTypes) do
+  begin
+    if (FColumnTypes[i] = aValue) then
+    begin
+      result := i;
+      exit;
+    end;
+  end;
+
+  result := -1;
 end;
 
 constructor TFinancialReportBase.Create( aClient : TClientObj; aRptParameters: TRptParameters);
@@ -457,6 +477,7 @@ var
   sAccountDesc : string;
   PeriodNo     : integer;
   ValuesArray  : TValuesArray;
+  UseWholeDateRange: boolean;
 begin
   if ClientForReport.clExtra.ceFRS_Print_NP_Chart_Code_Titles then
     PrintControlAccountTitle(pAcct);
@@ -476,7 +497,10 @@ begin
   for PeriodNo:= MinPeriodToShow to MaxPeriodToShow do begin
     if PeriodNo <= ClientForReport.clFields.clTemp_FRS_last_Period_To_Show then begin
       //GetValues
-      GetValuesForPeriod( pAcct, PeriodNo, ValuesArray);
+      // If this is a date to date report, we need the foreign exchange for the whole range, not just
+      // the last month, so we pass in true for the UsePeriodStartEnd parameter of GetValuesForPeriod
+      UseWholeDateRange := (FRptParameters.ReportType = Integer(Report_Cashflow_Date));
+      GetValuesForPeriod( pAcct, PeriodNo, ValuesArray, UseWholeDateRange);
       //PrintValues
       PrintValuesForPeriod( ValuesArray, DefaultSignForSection);
     end
@@ -983,7 +1007,8 @@ end;
 procedure TFinancialReportBase.PrintTotalsArray( const Title: string;
                                                  TotalsArray: TValuesArray;
                                                  DefaultSign: TSign;
-                                                 Style: TStyleTypes = siSectionTotal);
+                                                 Style: TStyleTypes = siSectionTotal;
+                                                 PrintQuantities: boolean = True);
 
 var
   PeriodNo    : integer;
@@ -1026,11 +1051,13 @@ begin
 end;
 
 procedure TFinancialReportBase.PrintValuesForPeriod( const Values: TValuesArray;
-                                                     DefaultSign : TSign);
+                                                     DefaultSign : TSign;
+                                                     PrintQuantities: boolean = True);
 var
   i : integer;
 begin
-  Assert( Length( FColumnTypes) = Length( Values), 'PrintValuesForPeriod : failed Length( ColumnTypes) = Length( Values)');
+  if PrintQuantities then  
+    Assert( Length( FColumnTypes) = Length( Values), 'PrintValuesForPeriod : failed Length( ColumnTypes) = Length( Values)');
 
   for i := Low(Values) to High(Values) do begin
      if FColumnTypes[i] in [ ftQuantity, ftBudgetQuantity] then
@@ -1043,6 +1070,8 @@ begin
      else
         PutMoney(Values[i], DefaultSign);
   end;
+  if (PrintQuantities = False) then
+    SkipColumn;
 end;
 
 function TFinancialReportBase.ReportGroupNeedsPrinting(

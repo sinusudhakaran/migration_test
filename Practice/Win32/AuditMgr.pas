@@ -2,6 +2,37 @@ unit AuditMgr;
 
 interface
 
+{ Notes:
+  By no means complete, but a quick overview of what I've learned.
+
+  Audits normally happen during a Save.
+
+  For an idea of how this works, please follow the work of Exchange Gain/Loss
+  in baObj32:DoAudit, glList32:DoAudit (and relevant methods), AuditMgr (both
+  the System and the Client class), and SYAuditValues/BKAuditValues.
+
+  The Audit system figures out, by comparing two copies, which records have been
+  added/deleted and which fields have changed (mostly in DoAudit and
+  SetAuditInfo).
+
+  For new audit report types, please add a new Audit Report Type (below). This
+  will break other places you need to change. The Audit Report should now have a
+  new category it can search on.
+
+  You will then need to add generic Read/Write/etc (on records from the DB
+  Manager) calls in ALL case statement in this file.
+
+  You will also need to write a method in SYAuditValues and BKAuditValues for
+  this. (See Gain/Loss examples)
+
+  When adding a new record, you can call the statement below on it:
+    Audit_Record_ID := fAuditMgr.NextAuditRecordID;
+  (Make sure your new record has an Audit_Record_ID field)
+
+  The Audit Manager will now write the changes in its database, and they
+  should be visible in the System.Reports.Audit Report.
+}
+
 uses
   Windows, SysUtils, Classes, IOStream, SYAuditUtils, stTree,
   SYDEFS, BKDEFS, MCDEFS,
@@ -43,7 +74,8 @@ const
   arBankLinkNotes                 = 29;
   arBankLinkNotesOnline           = 30;
   arBankLinkBooks                 = 31;
-  arExchangeRates                 = 32; arMax = 32;
+  arExchangeRates                 = 32;
+  arExchangeGainLoss              = 33;  arMax = 33;
   arAll = 254;
 
   //Audit actions
@@ -259,7 +291,7 @@ uses
   bkdateutils, TOKENS,  BKDbExcept, CountryUtils,
   SYAUDIT, SYATIO, SYUSIO, SYFDIO, SYDLIO, SYSBIO, SYAMIO, SYCFIO, SYSMIO,
   BKAUDIT, BKPDIO, BKCLIO, BKCEIO, BKBAIO, BKCHIO, BKTXIO, BKMDIO, BKMLIO,
-  BKPLIO, BKHDIO, BKDSIO,
+  BKPLIO, BKHDIO, BKDSIO, BKglIO,
   MCAUDIT, MCEHIO, MCERIO;
 
 const
@@ -297,7 +329,8 @@ const
      'BankLink Notes',
      'BankLink Notes Online',
      'BankLink Books',
-     'Exchange Rates');
+     'Exchange Rates',
+     'Exchange Gain/Loss entries');
 
   atNameTable : array[ arMin..arMax ] of array[0..1] of byte =
     ((tkBegin_Practice_Details, dbSystem),    //Practice Setup
@@ -334,7 +367,10 @@ const
      (tkBegin_Client, dbClient),         //BankLink Notes Online
      (tkBegin_Client, dbClient),         //BankLink Books
 
-     (tkBegin_Exchange_Rates_Header, dbExchangeRates)); //Exchange Rate Source
+     (tkBegin_Exchange_Rates_Header, dbExchangeRates), //Exchange Rate Source
+
+     (tkBegin_Exchange_Gain_Loss, dbClient)   //Exchange Gain/Loss
+   );
 {$ENDIF}
 
 
@@ -689,6 +725,11 @@ begin
         P2 := New_Memorisation_Line_Rec;
         Copy_Memorisation_Line_Rec(P1, P2);
       end;
+    tkBegin_Exchange_Gain_Loss:
+      begin
+        P2 := New_Exchange_Gain_Loss_Rec;
+        Copy_Exchange_Gain_Loss_Rec(P1, P2);
+      end;
   end;
 {$ENDIF}
 end;
@@ -754,6 +795,7 @@ begin
                                                              AdminSystem.fAuditTable);
         tkBegin_Memorisation_Detail: ; //Do nothing - sub list (TSystem_Memorisation_List - TMemorisations_List)
         tkBegin_Memorisation_Line: ;   //Do nothing - sub list (TSystem_Memorisation_List - TMemorisations_List - TMemorisation)
+        tkBegin_Exchange_Gain_Loss: ;   //Do nothing - sub list of Bank Account
       end;
     end;
   end;
@@ -782,6 +824,7 @@ begin
     tkBegin_System_Memorisation_List: Free_System_Memorisation_List_Rec_Dynamic_Fields(TSystem_Memorisation_List_Rec(AuditRec.atAudit_Record^));
     tkBegin_Memorisation_Detail     : Free_Memorisation_Detail_Rec_Dynamic_Fields(TMemorisation_Detail_Rec(AuditRec.atAudit_Record^));
     tkBegin_Memorisation_Line       : Free_Memorisation_Line_Rec_Dynamic_Fields(TMemorisation_Line_Rec(AuditRec.atAudit_Record^));
+    tkBegin_Exchange_Gain_Loss      : Free_Exchange_Gain_Loss_Rec_Dynamic_Fields(TExchange_Gain_Loss_Rec(AuditRec.atAudit_Record^));
   end;
 {$ENDIF}  
 end;
@@ -799,6 +842,7 @@ begin
     tkBegin_System_Memorisation_List: Result := AdminSystem.fdFields.fdAudit_Record_ID;
     tkBegin_Memorisation_Detail: Result := 0; //Should be ID of system master mem list
     tkBegin_Memorisation_Line: Result := 0; //Should be ID of mem list
+    tkBegin_Exchange_Gain_Loss: Result := 0; //Should be ID of exchange gain/loss
   end;
 {$ENDIF}
 end;
@@ -818,6 +862,7 @@ begin
         tkBegin_System_Memorisation_List: Result := System_Memorisation_List_Rec_Size;
         tkBegin_Memorisation_Detail     : Result := Memorisation_Detail_Rec_Size;
         tkBegin_Memorisation_Line       : Result := Memorisation_Line_Rec_Size;
+        tkBegin_Exchange_Gain_Loss      : Result := Exchange_Gain_Loss_Rec_Size;
       end;
     //System DB can also contain an exchange rate DB
     dbExchangeRates:
@@ -857,6 +902,7 @@ begin
     tkBegin_System_Memorisation_List,
     tkBegin_Memorisation_Detail,
     tkBegin_Memorisation_Line   : AddMasterMemorisationAuditValues(AAuditRecord, AuditInfo);
+    tkBegin_Exchange_Gain_Loss  : AddExchangeGainLossAuditValues(AAuditRecord, AuditInfo);
   end;
 
   //Put it together - if there is no audit information then values will be
@@ -922,6 +968,11 @@ begin
         ARecord := New_Memorisation_Line_Rec;
         Read_Memorisation_Line_Rec(TMemorisation_Line_Rec(ARecord^), AStream);
       end;
+    tkBegin_Exchange_Gain_Loss:
+      begin
+        ARecord := New_Exchange_Gain_Loss_Rec;
+        Read_Exchange_Gain_Loss_Rec(TExchange_Gain_Loss_Rec(ARecord^), AStream);
+      end;
   end;
 {$ENDIF}
 end;
@@ -939,6 +990,7 @@ begin
     tkBegin_System_Memorisation_List: Write_System_Memorisation_List_Rec(TSystem_Memorisation_List_Rec(ARecord^), AStream);
     tkBegin_Memorisation_Detail : Write_Memorisation_Detail_Rec(TMemorisation_Detail_Rec(ARecord^), AStream);
     tkBegin_Memorisation_Line   : Write_Memorisation_Line_Rec(TMemorisation_Line_Rec(ARecord^), AStream);
+    tkBegin_Exchange_Gain_Loss  : Write_Exchange_Gain_Loss_Rec(TExchange_Gain_Loss_Rec(ARecord^), AStream);
   end;
 {$ENDIF}
 end;
@@ -1005,6 +1057,11 @@ begin
         P2 := New_Memorisation_Line_Rec;
         Copy_Memorisation_Line_Rec(P1, P2);
       end;
+    tkBegin_Exchange_Gain_Loss:
+      begin
+        P2 := New_Exchange_Gain_Loss_Rec;
+        Copy_Exchange_Gain_Loss_Rec(P1, P2);
+      end;
   end;
 {$ENDIF}
 end;
@@ -1065,6 +1122,7 @@ begin
           tkBegin_Custom_Heading: clCustom_Headings_List.DoAudit(PScopeInfo(FAuditScope.Items[i]).AuditType,
                                                                  ClientCopy.clCustom_Headings_List,
                                                                  0, fAuditTable);
+          tkBegin_Exchange_Gain_Loss:   ;//Done in bank account
         end;
       end;
     end;
@@ -1097,6 +1155,7 @@ begin
     tkBegin_Custom_Heading      : Free_Custom_Heading_Rec_Dynamic_Fields(TCustom_Heading_Rec(AuditRec.atAudit_Record^));
     tkBegin_Memorisation_Detail : Free_Memorisation_Detail_Rec_Dynamic_Fields(TMemorisation_Detail_Rec(AuditRec.atAudit_Record^));
     tkBegin_Memorisation_Line   : Free_Memorisation_Line_Rec_Dynamic_Fields(TMemorisation_Line_Rec(AuditRec.atAudit_Record^));
+    tkBegin_Exchange_Gain_Loss  : Free_Exchange_Gain_Loss_Rec_Dynamic_Fields(TExchange_Gain_Loss_Rec(AuditRec.atAudit_Record^));
   end;
 {$ENDIF}
 end;
@@ -1138,6 +1197,7 @@ begin
     tkBegin_Custom_Heading      : Result := Custom_Heading_Rec_Size;
     tkBegin_Memorisation_Detail : Result := Memorisation_Detail_Rec_Size;
     tkBegin_Memorisation_Line   : Result := Memorisation_Line_Rec_Size;
+    tkBegin_Exchange_Gain_Loss  : Result := Exchange_Gain_Loss_Rec_Size;
   else
     Result := 0;
   end;
@@ -1202,6 +1262,7 @@ begin
       tkBegin_Custom_Heading: BKAuditValues.AddCustomHeadingValues(AAuditRecord, Self, AuditInfo);
       tkBegin_Memorisation_Line,
       tkBegin_Memorisation_Detail: BKAuditValues.AddMemorisationValues(AAuditRecord, Self, AuditInfo);
+      tkBegin_Exchange_Gain_Loss: BKAuditValues.AddExchangeGainLossAuditValues(AAuditRecord, Self, AuditInfo);
     else
       AuditInfo := Format('%s%sAUDIT RECORD TYPE UNKNOWN',[Values, VALUES_DELIMITER]);
     end;
@@ -1285,6 +1346,11 @@ begin
         ARecord := New_Memorisation_Line_Rec;
         Read_Memorisation_Line_Rec(TMemorisation_Line_Rec(ARecord^), AStream);
       end;
+    tkBegin_Exchange_Gain_Loss:
+      begin
+        ARecord := New_Exchange_Gain_Loss_Rec;
+        Read_Exchange_Gain_Loss_Rec(TExchange_Gain_Loss_Rec(ARecord^), AStream);
+      end;
   end;
 {$ENDIF}
 end;
@@ -1311,6 +1377,7 @@ begin
     tkBegin_Custom_Heading: Write_Custom_Heading_Rec(TCustom_Heading_Rec(ARecord^), AStream);
     tkBegin_Memorisation_Detail: Write_Memorisation_Detail_Rec(TMemorisation_Detail_Rec(ARecord^), AStream);
     tkBegin_Memorisation_Line: Write_Memorisation_Line_Rec(TMemorisation_Line_Rec(ARecord^), AStream);
+    tkBegin_Exchange_Gain_Loss: Write_Exchange_Gain_Loss_Rec(TExchange_Gain_Loss_Rec(ARecord^), AStream);
   end;
 {$ENDIF}
 end;

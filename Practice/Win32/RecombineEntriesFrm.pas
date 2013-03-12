@@ -85,9 +85,7 @@ uses
   LogUtil,
   ForexHelpers,
   Globals,
-  AuditMgr,
-  dxList32,
-  TransactionUtils;
+  AuditMgr;
 {$R *.DFM}
 
 CONST
@@ -112,7 +110,6 @@ var
    sMsg, AuditIDs: string;
    AuditID: integer;
    AuditType: TAuditType;
-   DeletedTrans: pDeleted_Transaction_Rec;
 begin
   Result := nil;
 
@@ -222,10 +219,7 @@ begin
                txBank_Seq              := pT^.txBank_Seq;
                txUPI_State             := upNone;
 
-               txCore_Transaction_ID := pT.txCore_Transaction_ID;
-               txCore_Transaction_ID_High := pT.txCore_Transaction_ID_High;
             end;
-            
             BankAccount.baTransaction_List.Insert_Transaction_Rec( NewTrans);
             //log event
             sMsg := 'Original entry recreated ' +
@@ -269,9 +263,6 @@ begin
                txOriginal_Amount        := pT^.txOriginal_Amount;
                txOriginal_Forex_Conversion_Rate    := pT^.txOriginal_Forex_Conversion_Rate    ;
 
-               txCore_Transaction_ID := pT.txCore_Transaction_ID;
-               txCore_Transaction_ID_High := pT.txCore_Transaction_ID_High;
-
                txSF_Member_Account_ID:= -1;
                txSF_Fund_ID          := -1;
             end;
@@ -299,27 +290,7 @@ begin
                AuditID := CurrTrans^.txAudit_Record_ID;
                AuditType := MyClient.ClientAuditMgr.GetTransactionAuditType(CurrTrans^.txSource,
                                                                             BankAccount.baFields.baAccount_Type);
-
-
-               if RecordDeletedTransactionData(BankAccount, CurrTrans) then
-               begin
-                 DeletedTrans := Create_Deleted_Transaction_Rec(CurrTrans, CurrUser.Code);
-
-                 try
-                   BankAccount.baTransaction_List.DelFreeItem(CurrTrans);
-
-                   BankAccount.baDeleted_Transaction_List.Insert(DeletedTrans);
-                 except
-                   Dispose_Deleted_Transaction_Rec(DeletedTrans);
-
-                   raise;
-                 end;
-               end
-               else
-               begin
-                 BankAccount.baTransaction_List.DelFreeItem(CurrTrans);
-               end;
-
+               BankAccount.baTransaction_List.DelFreeItem( CurrTrans);
                lvEntries.Items[ i].SubItems.Objects[0] := nil;
 
                //*** Flag Audit ***

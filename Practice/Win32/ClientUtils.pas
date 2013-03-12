@@ -477,14 +477,11 @@ begin
             pT := baTransaction_List.Transaction_At(i);
             //delete transaction and set the pointer to nil if before purge date
             //also check to see if has been transfered
-            if OkToPurgeTransaction( pT, PurgeDate, DelTransferredOnly) then
-            begin
-              Dispose_Transaction_Rec( pT );
-
-              pT := nil;
-
-              Inc( NoDeleted );
-              Inc( TotalDeleted );
+            if OkToPurgeTransaction( pT, PurgeDate, DelTransferredOnly) then begin
+               Dispose_Transaction_Rec( pT );
+               pT := nil;
+               Inc( NoDeleted );
+               Inc( TotalDeleted );
             end
             else
             begin

@@ -60,6 +60,8 @@ CONST
 
    tkBeginExchange_Gain_Loss_List      = 72;
 
+   tkBeginFinalized_Exchange_Rate_List = 73;
+
    tkLastAuditRecordID        = 252;
    tkEndRecord                = 253;
    tkEndSection               = 254;

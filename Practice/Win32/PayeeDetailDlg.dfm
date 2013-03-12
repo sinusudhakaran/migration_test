@@ -314,17 +314,17 @@ object dlgPayeeDetail: TdlgPayeeDetail
       object Label4: TLabel
         Left = 3
         Top = 35
-        Width = 90
+        Width = 88
         Height = 13
-        Caption = 'Payee &Given Name'
+        Caption = 'Payee &given name'
         FocusControl = edtPayeeGivenName
       end
       object Label5: TLabel
         Left = 271
         Top = 35
-        Width = 58
+        Width = 57
         Height = 13
-        Caption = 'Other Na&me'
+        Caption = 'Other na&me'
         FocusControl = edtOtherName
       end
       object edtPayeeSurname: TEdit
@@ -452,13 +452,13 @@ object dlgPayeeDetail: TdlgPayeeDetail
         OnChange = eNameChange
         OnEnter = eNameEnter
       end
-      object edtPhoneNumber: TEdit
+      object edtPhoneNumber: TBKNumericEdit
         Left = 96
         Top = 88
-        Width = 273
-        Height = 24
+        Width = 109
+        Height = 21
         BorderStyle = bsNone
-        MaxLength = 60
+        MaxLength = 10
         TabOrder = 4
       end
     end

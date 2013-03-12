@@ -161,6 +161,9 @@ begin
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
 
    with MyClient.clFields, Bank_Account.baFields, Transaction^ do begin
+
+      txForex_Conversion_Rate := Bank_Account.Default_Forex_Conversion_Rate(txDate_Effective);
+
       txDate_Transferred := CurrentDate;
       if SkipZeroAmountExport(Transaction) then
          Exit; // Im done...

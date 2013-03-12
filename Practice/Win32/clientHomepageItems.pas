@@ -39,7 +39,13 @@ type
     procedure SetLEDWidth(const Value: Integer);
     procedure SetClient(const Value: TClientObj);
     function GetCodingMonths: TRangeCount;
-    function GetTransferMonths: TRangeCount;
+    function GetGSTMonths: TRangeCount;
+    function GetCodingAndGSTMonths: TRangeCount;
+    function GetMonths(RetrieveCodingMonths: boolean; RetrieveInvalidGST: boolean): TRangeCount;
+    // Had to overload GetTransferMonths, as reads for propertys won't take parameters
+    function GetTransferMonths: TRangeCount; overload;
+    function GetTransferMonths(CheckValidity: boolean = False): TRangeCount; overload;
+    function GetTransferMonthsValidOnly: TRangeCount;
     procedure TreeBeforeCellPaint(Sender: TBaseVirtualTree;
       TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
       CellRect: TRect); override;
@@ -56,7 +62,10 @@ type
      property LEDHeight : Integer read FLEDHeight write SetLEDHeight;
      property FillDate : Integer read FFillDate write SetFillDate;
      property CodingMonths: TRangeCount read getCodingMonths;
+     property GSTMonths: TRangeCount read getGSTMonths;
+     property CodingAndGSTMonths: TRangeCount read getCodingAndGSTMonths;
      property TransferMonths: TRangeCount read GetTransferMonths;
+     property TransferMonthsValidGST: TRangeCount read GetTransferMonthsValidOnly;
      property DateRangeStr: string read GetDateRangeStr;
      // Find..
      function  TestAccount  (Item : TTreeBaseItem; var TestFor): Boolean;
@@ -281,7 +290,9 @@ type
     procedure OpenGainLossFromPeriod(Period: integer);
     function GetMonthEnding(P: integer): integer;
     function GetPeriodFillColor(MonthEnding: TMonthEnding): integer;
+    function GetCellPosition(Period: integer): integer;
   protected
+    FCodingStats : TClientCodingStatistics;
     procedure ContextCode (Sender : TObject); virtual;
     function HasAction(Period: Integer): Boolean; override;
     procedure OpenGainLossFromOffset(OffsetX: integer);
@@ -398,7 +409,8 @@ uses
    GainLossfrm,
    Dialogs,
    LogUtil,
-   DateUtils;
+   DateUtils,
+   ForexHelpers;
 const
 
   ActionBorderColor   = clLtGray;
@@ -943,22 +955,29 @@ procedure TCHAccountItem.DoubleClickTag(const Tag: Integer; Offset: TPoint);
 var Retrieved: Boolean;
 
     procedure RetrieveRange;
-      var P : Integer;
-      begin
-         if (not Assigned(AdminSystem)) then
-            Exit;
-         if Client.clFields.clMagic_Number <> AdminSystem.fdFields.fdMagic_Number then
-            Exit;  //Case #9341
-         for P := stFirstPeriod to stLastPeriod do
-           if Selected[P]
-           and (FCodingStats.NoOfDownloadedEntries(P)> 0) then begin
-              MergeNewDataYN(Client, False, False, False, True);
-              Retrieved := True;
-              // One is enough.
-              Exit;
-           end;
+    var
+      P : Integer;
+    begin
+      if (not Assigned(AdminSystem)) then
+        Exit;
 
+      if Client.clFields.clMagic_Number <> AdminSystem.fdFields.fdMagic_Number then
+        Exit;  //Case #9341
+
+      for P := stFirstPeriod to stLastPeriod do
+      begin
+        if Selected[P] and (FCodingStats.NoOfDownloadedEntries(P)> 0) then
+        begin
+          MergeNewDataYN(Client, False, False, False, True);
+
+          RefreshHomepage ([HPR_ExchangeGainLoss_NewData]);
+
+          Retrieved := True;
+          // One is enough.
+          Exit;
+        end;
       end;
+    end;
 
     function FailRange : Boolean;
       var P : Integer;
@@ -981,9 +1000,8 @@ begin
               exit;
 
            incUsage('Do Coding(Homepage)');
+
            Coderange(GetSelectDateRange,BankAccount,[]);
-
-
         finally
            if Retrieved then
              RefreshHomepage([HPR_Files, HPR_Coding]);
@@ -1099,6 +1117,10 @@ begin
          exit;
       Retrieved := False;
       RetrieveRange;
+
+      // Note: do this before we enter the coding screens
+      if Retrieved then
+        RefreshHomePage([HPR_ExchangeGainLoss_NewData]);
 
       CloseAllCodingForms;
       NoData := True;
@@ -2310,7 +2332,9 @@ begin
       with TCHAccountItem(Items[I]) do
          if GroupID = grp_Bank then
          for P := 1 to 12 do
-           if (FCodingStats.NoOfUncodedEntries(P) > 0)
+           if ((FCodingStats.NoOfUncodedEntries(P) > 0) or
+               (FCodingStats.NoOfNonPostingEntries(P) > 0) or
+               (FCodingStats.NoOfInvalidGSTEntries(P) > 0))
            and (FCodingStats.GetPeriodStartDate(P) >= Value.Range.Fromdate)
            and (FCodingStats.GetPeriodEndDate(P) <= Value.Range.Todate) then begin
               incUsage('Do Coding(Homepage)');
@@ -2325,8 +2349,7 @@ begin
    FClient := AClient;
 end;
 
-
-function TCHPBaseList.GetCodingMonths: TRangeCount;
+function TCHPBaseList.GetMonths(RetrieveCodingMonths: boolean; RetrieveInvalidGST: boolean): TRangeCount;
 var lSel: array [1..12] of integer;
     I, P : Integer;
 begin
@@ -2339,7 +2362,15 @@ begin
       with TCHPCodingStatItem(Items[I]) do
          if GroupID = grp_Bank then
             for P := 1 to 12 do
-              inc(Lsel[P],FCodingStats.NoOfUncodedEntries(P));
+            begin
+              if RetrieveCodingMonths then
+              begin
+                inc(Lsel[P],FCodingStats.NoOfUncodedEntries(P));
+                inc(Lsel[P],FCodingStats.NoOfNonPostingEntries(P));
+              end;
+              if RetrieveInvalidGST then
+                inc(Lsel[P],FCodingStats.NoOfInvalidGSTEntries(P));
+            end;
 
    for P := 12 downto 1 do
      if Lsel[P] > 0 then begin
@@ -2357,10 +2388,33 @@ begin
         Result.Range.FromDate := FPEDates[0] + 1;
 end;
 
+function TCHPBaseList.GetCodingAndGSTMonths: TRangeCount;
+begin
+  Result := GetMonths(True, True);
+end;
 
+function TCHPBaseList.GetCodingMonths: TRangeCount;
+begin
+  Result := GetMonths(True, False);
+end;
 
+function TCHPBaseList.GetGSTMonths: TRangeCount;
+begin
+  Result := GetMonths(False, True);
+end;
 
 function TCHPBaseList.GetTransferMonths: TRangeCount;
+begin
+  Result := GetTransferMonths(False);
+end;
+
+// Skips transactions with non posting chart codes, or invalid GST classes
+function TCHPBaseList.GetTransferMonthsValidOnly: TRangeCount;
+begin
+  Result := GetTransferMonths(True);
+end;
+
+function TCHPBaseList.GetTransferMonths(CheckValidity: boolean = False): TRangeCount;
 var lSel: array [1..12] of integer;
     I, P : Integer;
 begin
@@ -2374,9 +2428,11 @@ begin
         for P := 1 to 12 do
            if LSel[P] >= 0 then begin // else turned off
               if FCodingStats.NoOfUncodedEntries(P) = 0 then
-                 inc(Lsel[P],FCodingStats.NoOfEntriesReadyToTransfer(P))
+                if ((FCodingStats.NoOfInvalidGSTEntries(P) = 0) and (FCodingStats.NoOfNonPostingEntries(P) = 0))
+                or (CheckValidity = False) then
+                  inc(Lsel[P],FCodingStats.NoOfEntriesReadyToTransfer(P))
               else
-                 Lsel[P] := -1; // Only one needs to be uncoded..
+                Lsel[P] := -1; // Only one needs to be uncoded..
            end;
 
    for P := 12 downto 1 do
@@ -2395,7 +2451,6 @@ begin
         Result.Range.FromDate := FPEDates[0] + 1;
 
 end;
-
 
 procedure TCHPBaseList.OnKeyDown(var Key: Word; Shift: TShiftState);
 var lNode: PVirtualNode;
@@ -2447,7 +2502,6 @@ begin
      lOldSel := FSelection;
 
      FPEDates := GetMonthEndDates(Value);
-     LogUtil.LogMsg(lmError, 'clientHomepageItems', 'DateToStr(FPEDates[0]) = ' + DateToStr(FPEDates[0]));
      // Redo the selection...
      FillChar(FSelection,Sizeof(FSelection),0);
      for I := 1 to 12 do
@@ -3131,23 +3185,45 @@ begin
   inherited Create(AClient, ATitle, grp_Foreign);
   if not Assigned(fMonthEndings) then
     FMonthEndings := TMonthEndingsClass.Create(AClient);
-  FMonthEndings.Options := [meoCullFirstMonths];
   FMonthEndings.Refresh;
   FMultiSelect := False;
 end;
 
 function TCHForeignItem.GetPeriodFillColor(MonthEnding: TMonthEnding): integer;
+var
+  i: integer;
+  ValidGainLossCode: boolean;
 begin
-  if (MonthEnding.Transferred) then
-    Result := bkBranding.ColorTransferred
-  else if (MonthEnding.Finalised) then
-    Result := bkBranding.ColorFinalised
-  else if (MonthEnding.AlreadyRun) then
-    Result := bkBranding.ColorCoded
-  else if (MonthEnding.AvailableData) then
-    Result := bkBranding.ColorUncoded
-  else
-    Result := bkBranding.ColorNoData;
+  ValidGainLossCode := False;
+  
+  for i := 0 to High(MonthEnding.BankAccounts) do
+  begin
+    ValidGainLossCode := IsValidGainLossCode(MonthEnding.BankAccounts[i].PostedEntry.ExchangeGainLossCode);
+
+    if ValidGainLossCode then
+      break;
+  end;
+
+  if ValidGainLossCode then
+  begin
+    if (MonthEnding.Transferred) then
+      Result := bkBranding.ColorTransferred
+    else if (MonthEnding.Finalised) then
+      Result := bkBranding.ColorFinalised
+    else if (MonthEnding.AlreadyRun) then
+      Result := bkBranding.ColorCoded
+    else if (MonthEnding.NrAlreadyRun > 0) then
+      Result := bkBranding.ColorUncoded // Show as uncoded if some but not all foreign accounts have gain/loss entries
+    else
+      Result := bkBranding.ColorNoData;
+  end else
+  begin
+    if MonthEnding.Transferred or MonthEnding.Finalised or
+    MonthEnding.AlreadyRun or MonthEnding.AvailableData then
+      Result := bkBranding.ColorUncoded
+    else
+      Result := bkBranding.ColorNoData;
+  end;
 end;
 
 
@@ -3155,8 +3231,6 @@ procedure TCHForeignItem.AfterPaintCell(const Tag: integer; Canvas: TCanvas;
   CellRect: TRect);
 var
   Period, CellPosition, CellColor, i: Integer;
-  DateRange: TDateTime;
-  RangeYear, RangeMonth, RangeDay: Word;
   CellsFilled: array[1..12] of boolean;
   ExchangeGainOrLossPosted, LSelected: boolean;
 
@@ -3164,15 +3238,12 @@ begin
   if (tag = CHPT_Processing) then begin
     for i := Low(CellsFilled) to High(CellsFilled) do
       CellsFilled[i] := False;
-    DateRange := StrToDate(DateToStr(ClientHomePage.GetFillDate));
-    DecodeDate(DateRange, RangeYear, RangeMonth, RangeDay);
 
     ExchangeGainOrLossPosted := False;
 
     for Period := 0 to FMonthEndings.Count - 1 do
     begin
-      CellPosition := ((FMonthEndings.Items[Period].GetYear - RangeYear) * 12) +
-                      FMonthEndings.Items[Period].GetMonth - RangeMonth + 12;
+      CellPosition := GetCellPosition(Period);
       if (CellPosition > 0) then
       begin
         CellColor := GetPeriodFillColor(FMonthEndings.Items[Period]);
@@ -3376,8 +3447,8 @@ begin
   begin
     if Selected[p] then begin
       YMDFromPeriod(P, Y, M, D);
-      Result.FromDate := bkStr2Date(DateToStr(StartOfAMonth(Y, M)));
-      Result.ToDate := bkStr2Date(DateToStr(EndOfAMonth(Y, M)));
+      Result.FromDate := DateTimeToStDate(StartOfAMonth(Y, M));
+      Result.ToDate := DateTimeToStDate(EndOfAMonth(Y, M));
       break;
     end;
   end;
@@ -3389,31 +3460,58 @@ var
   PeriodDate: TDateTime;
 
   function GetProcessingStatus(MonthEnding: TMonthEnding): string;
+  var
+    i, NumValid, NumInvalid: integer;
   begin
     if (MonthEnding.Transferred) then
       Result := 'Transferred'
     else if (MonthEnding.Finalised) then
       Result := 'Finalised'
-    else if (MonthEnding.AlreadyRun) then
-      Result := 'Coded'
-    else if (MonthEnding.AvailableData) then
-      Result := 'Uncoded'
     else
-      Result := '';
+    begin
+      NumValid := 0;
+      NumInvalid := 0;
+      for i := 0 to High(MonthEnding.BankAccounts) do
+        if IsValidGainLossCode(MonthEnding.BankAccounts[i].PostedEntry.ExchangeGainLossCode) then
+          inc(NumValid)
+        else
+          inc(NumInvalid);
+
+      if (NumInvalid > 0) then
+      begin
+        if (NumValid = 0) then
+          Result := 'All Uncoded'
+        else
+        begin
+          Result := 'Uncoded: ' + IntToStr(NumInvalid) + #10 +
+                    'Coded: ' + IntToStr(NumValid);
+        end;
+      end else
+      if (MonthEnding.NrAlreadyRun < Length(MonthEnding.BankAccounts)) then
+        Result := 'Uncoded'
+      else if (NumValid > 0) then
+        Result := 'All Coded'
+      else
+        Result := '';
+    end;
   end;
 
 begin
   FHint := btNames[btForeign];
-  P := GetPeriod(Offset.x);
-  if not (P in [0..13]) then exit;
-  PeriodDate := DateTimeFromPeriod(P);
-  AddHint(FormatDateTime('mmm yyyy', PeriodDate));
+  if (Tag = 4) then // 3 is the tag for the Account/Name column, 4 is the tag for the column with the indicators
+  begin
+    P := GetPeriod(Offset.x);
+    if not (P in [1..12]) then exit;
+    PeriodDate := DateTimeFromPeriod(P);
+    AddHint(FormatDateTime('mmm yyyy', PeriodDate));
 
-  MonthEnding := GetMonthEnding(P);
-  if (MonthEnding > -1) then
-    AddHint(GetProcessingStatus(FMonthEndings[MonthEnding]));
+    MonthEnding := GetMonthEnding(P);
+    if (MonthEnding > -1) then
+      if FMonthEndings[MonthEnding].NrAlreadyRun > 0 then
+        AddHint(GetProcessingStatus(FMonthEndings[MonthEnding]));
+  end;
 
-  Result := FHint;
+  Result := FHint
 end;
 
 // Pass in a period, returns the position of the period in the FMonthEndings array, or -1 if it's not in there
@@ -3427,7 +3525,7 @@ begin
   YMDFromPeriod(P, PeriodY, PeriodM, PeriodD);
   for i := 0 to FMonthEndings.Count - 1 do
   begin
-    MonthEndingDate := StrToDate(DateToStr(FMonthEndings[i].Date)); // int -> string -> date
+    MonthEndingDate := FMonthEndings[i].Date;
     DecodeDate(MonthEndingDate, MonthEndingY, MonthEndingM, MonthEndingD);
     if (CompareDate(StartOfAMonth(PeriodY, PeriodM), StartOfAMonth(MonthEndingY, MonthEndingM)) = 0) then // Same month
     begin
@@ -3437,17 +3535,59 @@ begin
   end;
 end;
 
+function TCHForeignItem.GetCellPosition(Period: integer): integer;
+var
+  DateRange: TDateTime;
+  RangeYear, RangeMonth, RangeDay: Word;
+begin
+  DateRange := StDateToDateTime(ClientHomePage.GetFillDate);
+  DecodeDate(DateRange, RangeYear, RangeMonth, RangeDay);
+  Result := ((FMonthEndings.Items[Period].GetYear - RangeYear) * 12) +
+            FMonthEndings.Items[Period].GetMonth - RangeMonth + 12;
+end;
+
 // Fills in the 'Last Entry' field for the Exchange Gains/Losses row on the client home page
 function TCHForeignItem.GetTagText(const tag: Integer): string;
 var
-  Y, M, i, LastMonthEnding: integer;
+  Y, M, i, LastMonthEnding, Period, CellPosition, CellColor: integer;
   DT: TDateTime;
+  PeriodCells: array[1..12] of string;
 begin
   case Tag of
      CHPT_Name,
      CHPT_Code,
      CHPT_Text : Result := Title;
      CHPT_Processing : Result := ' '; //so we get a font...
+     CHPT_Report_Processing:
+     begin
+       // Any period which isn't in the FMonthEndings array is uncoded
+       for Period := 1 to 12 do
+         PeriodCells[Period] := bkBranding.TextNoData;
+       for Period := 0 to FMonthEndings.Count - 1 do
+       begin
+         CellPosition := GetCellPosition(Period);
+         if (CellPosition > 0) and (CellPosition < 13) then
+         begin
+           CellColor := GetPeriodFillColor(FMonthEndings.Items[Period]);
+           if CellColor = bkBranding.ColorTransferred then
+             PeriodCells[CellPosition] := bkBranding.TextTransferred
+           else if CellColor = bkBranding.ColorFinalised then
+             PeriodCells[CellPosition] := bkBranding.TextFinalised
+           else if CellColor = bkBranding.ColorUncoded then
+             PeriodCells[CellPosition] := bkBranding.TextUncoded
+           else if CellColor = bkBranding.ColorCoded then
+             PeriodCells[CellPosition] := bkBranding.TextCoded
+           else if CellColor = bkBranding.ColorDownloaded then
+             PeriodCells[CellPosition] := bkBranding.TextDownloaded
+           else
+             PeriodCells[CellPosition] := bkBranding.TextNoData;
+         end;
+       end;
+       // Making a string out of the array elements
+       Result := '';
+       for Period := 1 to 12 do
+         Result := Concat(Result, PeriodCells[Period]);
+     end;
      CHPT_Period :
      begin
        LastMonthEnding := -1;
@@ -3463,8 +3603,11 @@ begin
        if (LastMonthEnding > -1) then
        begin
          Y := FMonthEndings[LastMonthEnding].Year;
-         M := FMonthEndings[LastMonthEnding].Month + 1;
-         DT := EncodeDate(Y, M, 1) - 1;
+         M := FMonthEndings[LastMonthEnding].Month;
+         if (M = 12) then
+           DT := EncodeDate(Y + 1, 1, 1) - 1
+         else
+           DT := EncodeDate(Y, M + 1, 1) - 1;
          Result := DateToStr(DT);
          Result := FormatDateTime('dd mmm yyyy', DT);
        end else
@@ -3476,15 +3619,19 @@ end;
 procedure TCHForeignItem.YMDFromPeriod(P: integer; var PeriodY, PeriodM, PeriodD: Word);
 var
   DT: TDateTime;
+  DayTable: PDayTable;
 begin
   if not (P in [0..13]) then exit;
-  DT := StrToDate(DateToStr(ClientHomePage.GetFillDate));
+  DT := StrToDate(bkDate2Str(ClientHomePage.GetFillDate));
   DecodeDate(DT, PeriodY, PeriodM, PeriodD);
   PeriodM := PeriodM - (12 - P) + 12;
   if (PeriodM > 12) then
     dec(PeriodM, 12)
   else
     dec(PeriodY);
+  DayTable := @MonthDays[IsLeapYear(PeriodY)];
+  if PeriodD > DayTable^[PeriodM] then
+    PeriodD := DayTable^[PeriodM]
 end;
 
 function TCHForeignItem.DateTimeFromPeriod(P: integer): TDateTime;

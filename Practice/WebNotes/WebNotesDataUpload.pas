@@ -28,8 +28,7 @@ uses
   BaObj32,
   classes,
   clObj32,
-  sysobj32,
-  TransactionUtils;
+  sysobj32;
 
 type
   //----------------------------------------------------------------------------
@@ -975,7 +974,8 @@ begin
     Exit;
 
 
-  if (Client.clFields.clECoding_Entry_Selection = esUncodedOnly) and IsFullyCodedTransaction(Client, Trans) then
+  if (Client.clFields.clECoding_Entry_Selection = esUncodedOnly) and
+     (Trans.txAccount > '') then
     Exit;
 
   //check date of last transaction sent if scheduled reports run

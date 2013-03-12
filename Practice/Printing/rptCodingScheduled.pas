@@ -30,13 +30,14 @@ unit rptCodingScheduled;
 interface
 uses
    ReportDefs, PrintMgrObj, Scheduled, FaxParametersObj, SchedRepUtils,
-   NewReportObj, RepCols, BAObj32, CodingRepDlg, Classes, SysUtils, TravList;
+   NewReportObj, RepCols, BAObj32, CodingRepDlg, Classes, SysUtils, TravList,
+   BKReportColumnManager;
 
 type
    TScheduledCodingReport = class(TBKReport)
    private
      D1,D2,D3           : integer;
-     Col1,Col2          : TReportColumn;
+     ColAmt,Col1,Col2   : TReportColumn;
      Style,
      SortMethod,
      Include,
@@ -52,12 +53,12 @@ type
      NarrationColIdx, NotesColIdx: Integer;
      FSettings: TCodingReportSettings;
    protected
-      procedure BKPrint;  override;
-      procedure AfterNewPage(DetailPending : Boolean);  override;
       procedure PutNotes( Notes : string);
       procedure PutNarrationNotes(Narration, Notes : string);
       function SplitLine(ColIdx: Integer; var TextList: TStringList) : Integer;
    public
+      procedure BKPrint;  override;
+      procedure AfterNewPage(DetailPending : Boolean);  override;
       property ReportSettings: TCodingReportSettings read FSettings;
    end;
 
@@ -111,10 +112,13 @@ const
 procedure CR_EnterAccount(Sender : TObject);
 var
   Mgr : TTravManagerWithNewReport;
-  s :string;
+  Rpt : TScheduledCodingReport;
+  s : string;
 begin
    Mgr := TTravManagerWithNewReport(Sender);
-   With MyClient, MyClient.clFields, Mgr, Mgr.ReportJob, Mgr.Bank_Account do
+   Rpt := TScheduledCodingReport( Mgr.ReportJob );
+
+   With MyClient, MyClient.clFields, Mgr, Rpt, Mgr.ReportJob, Mgr.Bank_Account do
    Begin
       //exit if dont need to print this account
       if (not baFields.baTemp_Include_In_Scheduled_Coding_Report) or
@@ -138,6 +142,14 @@ begin
         TScheduledCodingReport(Mgr.ReportJob).AccountTitle := True;
       end;
 
+      // Set the currency symbol
+      if Assigned(Col1) then
+        Col1.TotalFormat := Mgr.Bank_Account.FmtMoneyStrBrackets;
+      if Assigned(Col2) then
+        Col2.TotalFormat := Mgr.Bank_Account.FmtMoneyStrBrackets;
+      if Assigned(ColAmt) then
+        ColAmt.TotalFormat := Mgr.Bank_Account.FmtMoneyStrBrackets;
+
       CRTotal := 0;
       DRTotal := 0;
    end;
@@ -147,11 +159,14 @@ end;
 procedure CR_ExitAccount(Sender : TObject);
 //on exit bank account
 var
-   Mgr : TTravManagerWithNewReport;
-   NettTotal : Currency;
+  Mgr : TTravManagerWithNewReport;
+  Rpt : TScheduledCodingReport;
+  NettTotal : Currency;
 begin
    Mgr := TTravManagerWithNewReport(Sender);
-   With MyClient, MyClient.clFields, Mgr, Mgr.ReportJob, Mgr.Bank_Account do
+   Rpt := TScheduledCodingReport( Mgr.ReportJob );
+
+   With MyClient, MyClient.clFields, Mgr, Rpt, Mgr.ReportJob, Mgr.Bank_Account do
    Begin
       //exit if dont need to print this account
       if (not baFields.baTemp_Include_In_Scheduled_Coding_Report) or
@@ -159,6 +174,11 @@ begin
 
       if clScheduled_Coding_Report_Rule_Line then
         RenderRuledLine;
+
+      // Set the currency symbol
+      if Assigned(ColAmt) then
+        ColAmt.TotalFormat := Mgr.Bank_Account.FmtMoneyStrBrackets;
+
       RenderDetailSubTotal('');
       If clScheduled_Coding_Report_Style in [ rsTwoColumn, rsTwoColumnWithNotes] then
       Begin
@@ -258,11 +278,9 @@ begin
                      PutString( dsAccount );
 
                      if SortType = csAccountCode then
-//                       PutMoney( dsAmount)
-                       PutMoney( dsTemp_Base_Amount)
+                       PutMoney( dsAmount)
                      else
-//                       PutMoneyDontAdd( dsAmount );
-                       PutMoneyDontAdd( dsTemp_Base_Amount );
+                       PutMoneyDontAdd( dsAmount );
 
                       if clScheduled_Coding_Report_Print_TI then
                       begin
@@ -288,11 +306,9 @@ begin
                      PutString( dsAccount );
 
                      if SortType = csAccountCode then
-//                       PutMoney( dsAmount)
-                       PutMoney( dsTemp_Base_Amount)
+                       PutMoney( dsAmount)
                      else
-//                       PutMoneyDontAdd( dsAmount );
-                       PutMoneyDontAdd( dsTemp_Base_Amount );
+                       PutMoneyDontAdd( dsAmount );
 
                      if clScheduled_Coding_Report_Print_TI then begin
                        if txTax_Invoice_Available then
@@ -321,26 +337,21 @@ begin
                      PutString(' /'+inttostr(dsSequence_No));
                      SkipColumn;
                      PutString( dsAccount );
-//                     If dsAmount >= 0 then
-                     If dsTemp_Base_Amount >= 0 then
+                     If dsAmount >= 0 then
                      Begin
                         if SortType = csAccountCode then
-//                          PutMoney( dsAmount)
-                          PutMoney( dsTemp_Base_Amount)
+                          PutMoney( dsAmount)
                         else
-//                          PutMoneyDontAdd( dsAmount );
-                          PutMoneyDontAdd( dsTemp_Base_Amount );
+                          PutMoneyDontAdd( dsAmount );
                         SkipColumn;
                      end
                      else
                      Begin
                         SkipColumn;
                         if SortType = csAccountCode then
-//                          PutMoney( dsAmount)
-                          PutMoney( dsTemp_Base_Amount)
+                          PutMoney( dsAmount)
                         else
-//                          PutMoneyDontAdd( dsAmount );
-                          PutMoneyDontAdd( dsTemp_Base_Amount );
+                          PutMoneyDontAdd( dsAmount );
                      end;
                      if clScheduled_Coding_Report_Print_TI then
                      begin
@@ -363,26 +374,21 @@ begin
                      PutString(bkDate2Str(txDate_Effective));
                      PutString(' /'+inttostr(dsSequence_No));
                      PutString( dsAccount );
-//                     If dsAmount >= 0 then
-                     If dsTemp_Base_Amount >= 0 then
+                     If dsAmount >= 0 then
                      Begin
                         if SortType = csAccountCode then
-//                          PutMoney( dsAmount)
-                          PutMoney( dsTemp_Base_Amount)
+                          PutMoney( dsAmount)
                         else
-//                           PutMoneyDontAdd( dsAmount );
-                           PutMoneyDontAdd( dsTemp_Base_Amount );
+                           PutMoneyDontAdd( dsAmount );
                         SkipColumn;
                      end
                      else
                      Begin
                         SkipColumn;
                         if SortType = csAccountCode then
-//                          PutMoney( dsAmount)
-                          PutMoney( dsTemp_Base_Amount)
+                          PutMoney( dsAmount)
                         else
-//                          PutMoneyDontAdd( dsAmount );
-                          PutMoneyDontAdd( dsTemp_Base_Amount );
+                          PutMoneyDontAdd( dsAmount );
                      end;
 
                      if clScheduled_Coding_Report_Print_TI then begin
@@ -414,13 +420,10 @@ begin
       //enter entry routine not called for dissection entries if sort order
       //is csAccountCode
       if SortType = csAccountCode then begin
-//        if dsAmount >=0 then
-        if dsTemp_Base_Amount >=0 then
-//           DRTotal := DRTotal + dsAmount
-           DRTotal := DRTotal + dsTemp_Base_Amount
+        if dsAmount >=0 then
+           DRTotal := DRTotal + dsAmount
         else
-//           CRTotal := CRTotal + dsAmount;
-           CRTotal := CRTotal + dsTemp_Base_Amount;
+           CRTotal := CRTotal + dsAmount;
       end;
    end; {with}
 end;
@@ -506,8 +509,7 @@ begin
                      PutString( GetFormattedReference( Mgr.Transaction));
                      PutString(trim(txAnalysis));
                      PutString( txAccount );
-//                     PutMoney( txAmount );
-                     PutMoney( txTemp_Base_Amount );
+                     PutMoney( txAmount );
                      if clScheduled_Coding_Report_Print_TI then
                      begin
                        if txTax_Invoice_Available then
@@ -546,8 +548,7 @@ begin
                      PutString(bkDate2Str(txDate_Effective));
                      PutString( GetFormattedReference( Mgr.Transaction));
                      PutString( txAccount );
-//                     PutMoney( txAmount );
-                     PutMoney( txTemp_Base_Amount );
+                     PutMoney( txAmount );
 
                      if clScheduled_Coding_Report_Print_TI then begin
                         if txTax_Invoice_Available then
@@ -576,17 +577,15 @@ begin
                      PutString( GetFormattedReference( Mgr.Transaction));
                      PutString(Trim(txAnalysis));
                      PutString( txAccount );
-//                     If txAmount >= 0 then
-                     if txTemp_Base_Amount >= 0 then
+                     If txAmount >= 0 then
                      Begin
-                        PutMoney( txTemp_Base_Amount );
+                        PutMoney( txAmount );
                         SkipColumn;
                      end
                      else
                      Begin
                         SkipColumn;
-//                        PutMoney( txAmount );
-                        PutMoney( txTemp_Base_Amount );
+                        PutMoney( txAmount );
                      end;
                      if clScheduled_Coding_Report_Print_TI then
                      begin
@@ -625,18 +624,15 @@ begin
                      PutString(bkDate2Str(txDate_Effective));
                      PutString( GetFormattedReference( Mgr.Transaction));
                      PutString( txAccount );
-//                     If txAmount >= 0 then
-                     If txTemp_Base_Amount >= 0 then
+                     If txAmount >= 0 then
                      Begin
-//                        PutMoney( txAmount );
-                        PutMoney( txTemp_Base_Amount );
+                        PutMoney( txAmount );
                         SkipColumn;
                      end
                      else
                      Begin
                         SkipColumn;
-//                        PutMoney( txAmount );
-                        PutMoney( txTemp_Base_Amount );
+                        PutMoney( txAmount );
                      end;
 
                      if clScheduled_Coding_Report_Print_TI then begin
@@ -661,13 +657,10 @@ begin
             TScheduledCodingReport(Mgr.ReportJob).FSettings.ColManager.OutputColumns(Mgr.ReportJob, Mgr);
       end; { of Case clScheduled_Coding_Report_Style }
 
-//      If txAmount >=0 then
-      If txTemp_Base_Amount >=0 then
-//         DRTotal := DRTotal + txAmount
-         DRTotal := DRTotal + txTemp_Base_Amount
+      If txAmount >=0 then
+         DRTotal := DRTotal + txAmount
       else
-//         CRTotal := CRTotal + txAmount;
-         CRTotal := CRTotal + txTemp_Base_Amount;
+         CRTotal := CRTotal + txAmount;
 
       if Params.RuleLineBetweenColumns then
         RenderAllVerticalColumnLines; //detail line          
@@ -1132,6 +1125,8 @@ var
    Params: TCodingReportSettings;
    FORMAT_AMOUNT : String;
    FORMAT_AMOUNT2 : String;
+   j : integer;
+   ShowVatFootnote : boolean;
 begin
    result := false;
 
@@ -1210,10 +1205,11 @@ begin
        FORMAT_AMOUNT2 := MyClient.FmtMoneyStrBrackets;
 
        {Add Columns: Job,Left Percent, Width Percent, Caption, Alignment}
-       CLeft    := GcLeft;
-       CGap     := GcGap;
-       Job.Col1 := nil;
-       Job.Col2 := nil;
+       CLeft      := GcLeft;
+       CGap       := GcGap;
+       Job.ColAmt := nil;
+       Job.Col1   := nil;
+       Job.Col2   := nil;
 
        //make sure report style is in range
        if not clScheduled_Coding_Report_Style in [ rsMin..rsMax] then
@@ -1230,7 +1226,7 @@ begin
                       AddColAuto(Job,cleft,13.0 ,cGap,'Reference',jtLeft);
                       AddColAuto(Job,cleft,12.0 ,cGap,'Analysis',jtLeft);
                       AddColAuto(Job,cleft,9.0  ,cGap,'Code To',jtLeft);
-                      AddFormatColAuto(Job,cleft,12,cGap,'Amount',jtRight,FORMAT_AMOUNT,FORMAT_AMOUNT2,true);
+                      Job.ColAmt := AddFormatColAuto(Job,cleft,12,cGap,'Amount',jtRight,FORMAT_AMOUNT,FORMAT_AMOUNT2,true);
                       if clScheduled_Coding_Report_Print_TI then
                         AddColAuto(Job, cLeft, 6.0, cGap, 'Tax Inv', jtCenter);
                       if clScheduled_Coding_Report_Show_OP then begin
@@ -1244,8 +1240,8 @@ begin
                    Begin
                       AddColAuto(Job,cleft,7.0 ,cGap,'Date', jtLeft);
                       AddColAuto(Job,cleft,13.0 ,cGap,'Reference',jtLeft);
-                      AddColAuto(Job,cleft,8.0,cGap,'Code To',jtLeft);
-                      AddFormatColAuto(Job,cleft,12,cGap,'Amount',jtRight,FORMAT_AMOUNT,FORMAT_AMOUNT2,true);
+                      AddColAuto(Job,cleft,9.0,cGap,'Code To',jtLeft);
+                      Job.ColAmt := AddFormatColAuto(Job,cleft,12,cGap,'Amount',jtRight,FORMAT_AMOUNT,FORMAT_AMOUNT2,true);
                       if clScheduled_Coding_Report_Print_TI then begin
                          AddColAuto(Job, cLeft, 6.0, cGap, 'Tax Inv', jtCenter);
                          AddFormatColAuto( Job, cLeft, 9, cGap, 'GST Amt', jtRight,FORMAT_AMOUNT,FORMAT_AMOUNT2, false);
@@ -1256,11 +1252,14 @@ begin
                    Begin
                       AddColAuto(Job,cleft,7.0 ,cGap,'Date', jtLeft);
                       AddColAuto(Job,cleft,13.0 ,cGap,'Reference',jtLeft);
-                      AddColAuto(Job,cleft,8.0,cGap,'Code To',jtLeft);
-                      AddFormatColAuto(Job,cleft,12,cGap,'Amount',jtRight,FORMAT_AMOUNT,FORMAT_AMOUNT2,true);
+                      AddColAuto(Job,cleft,9.0,cGap,'Code To',jtLeft);
+                      Job.ColAmt := AddFormatColAuto(Job,cleft,12,cGap,'Amount',jtRight,FORMAT_AMOUNT,FORMAT_AMOUNT2,true);
                       if clScheduled_Coding_Report_Print_TI then begin
                          AddColAuto(Job, cLeft, 6.0, cGap, 'Tax Inv', jtCenter);
-                         AddFormatColAuto( Job, cLeft, 9, cGap, 'VAT Amt', jtRight,FORMAT_AMOUNT,FORMAT_AMOUNT2, false);
+                         if MyClient.HasForeignCurrencyAccounts then
+                           AddFormatColAuto( Job, cLeft, 9, cGap, 'VAT (GBP)*', jtRight,FORMAT_AMOUNT,FORMAT_AMOUNT2, false)
+                         else
+                           AddFormatColAuto( Job, cLeft, 9, cGap, 'VAT Amt', jtRight,FORMAT_AMOUNT,FORMAT_AMOUNT2, false);
                       end;
                       AddColAuto(Job,cLeft,36,cGap, 'Transaction Details',jtLeft);
                    end;
@@ -1278,7 +1277,7 @@ begin
                       AddColAuto(Job,cleft,9.75 ,cGap,'Reference',jtLeft);
                       AddColAuto(Job,cleft,9.0 ,cGap,'Analysis',jtLeft);
                       AddColAuto(Job,cleft,6.0  ,cGap,'Code To',jtLeft);
-                      AddFormatColAuto(Job,cleft,9,cGap,'Amount',jtRight,FORMAT_AMOUNT,FORMAT_AMOUNT2,true);
+                      Job.ColAmt := AddFormatColAuto(Job,cleft,9,cGap,'Amount',jtRight,FORMAT_AMOUNT,FORMAT_AMOUNT2,true);
                       if clScheduled_Coding_Report_Print_TI then
                         AddColAuto(Job, cLeft, 6.0, cGap, 'Tax Inv', jtCenter);
                       if clScheduled_Coding_Report_Show_OP then begin
@@ -1294,7 +1293,7 @@ begin
                       AddColAuto(Job,cleft,7.0 ,cGap,'Date', jtLeft);
                       AddColAuto(Job,cleft,9.75 ,cGap,'Reference',jtLeft);
                       AddColAuto(Job,cleft,6.0,cGap,'Code To',jtLeft);
-                      AddFormatColAuto(Job,cleft,9,cGap,'Amount',jtRight,FORMAT_AMOUNT,FORMAT_AMOUNT2,true);
+                      Job.ColAmt := AddFormatColAuto(Job,cleft,9,cGap,'Amount',jtRight,FORMAT_AMOUNT,FORMAT_AMOUNT2,true);
                       if clScheduled_Coding_Report_Print_TI then begin
                          AddColAuto(Job, cLeft, 5.5, cGap, 'Tax Inv', jtCenter);
                          AddFormatColAuto( Job, cLeft, 6.75, cGap, 'GST Amt', jtRight,FORMAT_AMOUNT,FORMAT_AMOUNT2, false);
@@ -1307,10 +1306,13 @@ begin
                       AddColAuto(Job,cleft,7.0 ,cGap,'Date', jtLeft);
                       AddColAuto(Job,cleft,9.75 ,cGap,'Reference',jtLeft);
                       AddColAuto(Job,cleft,6.0,cGap,'Code To',jtLeft);
-                      AddFormatColAuto(Job,cleft,9,cGap,'Amount',jtRight,FORMAT_AMOUNT,FORMAT_AMOUNT2,true);
+                      Job.ColAmt := AddFormatColAuto(Job,cleft,9,cGap,'Amount',jtRight,FORMAT_AMOUNT,FORMAT_AMOUNT2,true);
                       if clScheduled_Coding_Report_Print_TI then begin
                          AddColAuto(Job, cLeft, 5.5, cGap, 'Tax Inv', jtCenter);
-                         AddFormatColAuto( Job, cLeft, 6.75, cGap, 'VAT Amt', jtRight,FORMAT_AMOUNT,FORMAT_AMOUNT2, false);
+                         if MyClient.HasForeignCurrencyAccounts then
+                           AddFormatColAuto( Job, cLeft, 6.75, cGap, 'VAT (GBP)*', jtRight,FORMAT_AMOUNT,FORMAT_AMOUNT2, false)
+                         else
+                           AddFormatColAuto( Job, cLeft, 6.75, cGap, 'VAT Amt', jtRight,FORMAT_AMOUNT,FORMAT_AMOUNT2, false);
                       end;
                       AddColAuto(Job,cLeft,23,cGap, 'Narration',jtLeft);
                       AddColAuto( Job, cLeft, 27, cGap, 'Notes', jtLeft);
@@ -1344,7 +1346,7 @@ begin
                    Begin
                       AddColAuto(Job,cleft,8.0 ,cGap,'Date', jtLeft);
                       AddColAuto(Job,cleft,14.0 ,cGap,'Reference',jtLeft);
-                      AddColAuto(Job,cleft,8,cGap,'Code To',jtLeft);
+                      AddColAuto(Job,cleft,9,cGap,'Code To',jtLeft);
                       Job.Col1 := AddFormatColAuto(Job,cLeft,11,cGap,'Withdrawals',jtRight,FORMAT_AMOUNT,FORMAT_AMOUNT2,true);
                       Job.Col2 := AddFormatColAuto(Job,cLeft,11,cGap,'Deposits',jtRight,FORMAT_AMOUNT,FORMAT_AMOUNT2,true);
                       if clScheduled_Coding_Report_Print_TI then begin
@@ -1357,12 +1359,15 @@ begin
                    Begin
                       AddColAuto(Job,cleft,8.0 ,cGap,'Date', jtLeft);
                       AddColAuto(Job,cleft,14.0 ,cGap,'Reference',jtLeft);
-                      AddColAuto(Job,cleft,8,cGap,'Code To',jtLeft);
+                      AddColAuto(Job,cleft,9,cGap,'Code To',jtLeft);
                       Job.Col1 := AddFormatColAuto(Job,cLeft,11,cGap,'Withdrawals',jtRight,FORMAT_AMOUNT,FORMAT_AMOUNT2,true);
                       Job.Col2 := AddFormatColAuto(Job,cLeft,11,cGap,'Deposits',jtRight,FORMAT_AMOUNT,FORMAT_AMOUNT2,true);
                       if clScheduled_Coding_Report_Print_TI then begin
-                         AddColAuto(Job, cLeft, 6.0, cGap, 'Tax Inv', jtCenter);
-                         AddFormatColAuto( Job, cLeft, 9, cGap, 'VAT Amt', jtRight,FORMAT_AMOUNT,FORMAT_AMOUNT2, false);
+                        AddColAuto(Job, cLeft, 6.0, cGap, 'Tax Inv', jtCenter);
+                        if MyClient.HasForeignCurrencyAccounts then
+                          AddFormatColAuto( Job, cLeft, 9, cGap, 'VAT (GBP)*', jtRight,FORMAT_AMOUNT,FORMAT_AMOUNT2, false)
+                        else
+                          AddFormatColAuto( Job, cLeft, 9, cGap, 'VAT Amt', jtRight,FORMAT_AMOUNT,FORMAT_AMOUNT2, false);
                       end;
                       AddColAuto(Job,cLeft,26 ,cGap, 'Narration',jtLeft);
                    end;
@@ -1414,8 +1419,11 @@ begin
                       Job.Col1 := AddFormatColAuto(Job,cLeft,8.25,cGap,'Withdrawals',jtRight,FORMAT_AMOUNT,FORMAT_AMOUNT2,true);
                       Job.Col2 := AddFormatColAuto(Job,cLeft,8.25,cGap,'Deposits',jtRight,FORMAT_AMOUNT,FORMAT_AMOUNT2,true);
                       if clScheduled_Coding_Report_Print_TI then begin
-                         AddColAuto(Job, cLeft, 5.5, cGap, 'Tax Inv', jtCenter);
-                         AddFormatColAuto( Job, cLeft, 6.7, cGap, 'VAT Amt', jtRight,FORMAT_AMOUNT,FORMAT_AMOUNT2, false);
+                        AddColAuto(Job, cLeft, 5.5, cGap, 'Tax Inv', jtCenter);
+                        if MyClient.HasForeignCurrencyAccounts then
+                          AddFormatColAuto( Job, cLeft, 6.7, cGap, 'VAT (GBP)*', jtRight,FORMAT_AMOUNT,FORMAT_AMOUNT2, false)
+                        else
+                          AddFormatColAuto( Job, cLeft, 6.7, cGap, 'VAT Amt', jtRight,FORMAT_AMOUNT,FORMAT_AMOUNT2, false);
                       end;
                       AddColAuto(Job,cLeft,19.5 ,cGap, 'Transaction Details',jtLeft);
                       AddColAuto( Job, cLeft,22, cGap, 'Notes', jtLeft);
@@ -1432,22 +1440,41 @@ begin
             Job.UserReportSettings.s7Orientation := Job.FSettings.ColManager.Orientation;
             //Finally add columns to the report
             Params.ColManager.AddReportColumns(Job);
+
+            // Find the amount column (similar code from rptCoding)
+            j := -1;
+            for i := 0 to Pred(Job.FSettings.ColManager.Count) do begin
+              if Job.FSettings.ColManager.Columns[i].OutputCol then begin
+                Inc(j); // is in the report..
+                case Job.FSettings.ColManager.Columns[i].DataToken of
+                  tktxAmount:
+                    Job.ColAmt := Job.Columns.Report_Column_At(j);
+                end;
+              end;
+            end;
+
           end;
        end; { of Case clScheduled_Coding_Report_Style }
 
        // See which column contains notes and narrations
        Job.NarrationColIdx := -1;
        Job.NotesColIdx := -1;
+       ShowVatFootnote := false;
        for i := 0 to Pred(Job.Columns.ItemCount) do
        begin
         if TReportColumn(Job.Columns.Report_Column_At(i)).Caption = 'Notes' then
           Job.NotesColIdx := i
         else if TReportColumn(Job.Columns.Report_Column_At(i)).Caption = 'Transaction Details' then
-          Job.NarrationColIdx := i;
+          Job.NarrationColIdx := i
+        else if TReportColumn(Job.Columns.Report_Column_At(i)).Caption = 'VAT (GBP)*' then
+          ShowVatFootnote := true;
        end;
 
        if clScheduled_Coding_Report_Print_TI then
          AddJobFooter( Job,siFootNote, '( Tax Inv = Tax Invoice  [x] = Available )', true);
+
+       if ShowVatFootnote then
+         AddJobFooter( Job, siFootNote, '* Please ensure that you indicate a currency for any VAT amounts recorded for this account.', true);
 
        //AddCodingFooter(Job);
        //Add Footers

@@ -1,4 +1,4 @@
- unit PayeeDetailDlg;
+unit PayeeDetailDlg;
 //------------------------------------------------------------------------------
 {
    Title:       Payee Dialog
@@ -90,7 +90,7 @@ type
     pnlPayeeABN: TPanel;
     Label11: TLabel;
     edtABN: TMaskEdit;
-    edtPhoneNumber: TEdit;
+    edtPhoneNumber: TBKNumericEdit;
 
     procedure tblSplitActiveCellMoving(Sender: TObject; Command: Word;
       var RowNum, ColNum: Integer);
@@ -1332,10 +1332,6 @@ begin
    if MyClient.clFields.clCountry = whAustralia then
    begin
      SetupForAustralia;
-   end
-   else
-   begin
-     pnlHeader.Height := 84;
    end;
 
    if Assigned(Payee) then
@@ -1343,7 +1339,6 @@ begin
      eName.Text := Payee.pdName;
      nPayeeNo.asInteger := Payee.pdNumber;
 
-     chkContractorPayee.Checked := Payee.pdFields.pdContractor;
      edtPayeeSurname.Text := Payee.pdFields.pdSurname;
      edtPayeeGivenName.Text := Payee.pdFields.pdGiven_Name;
      edtOtherName.Text := Payee.pdFields.pdOther_Name;

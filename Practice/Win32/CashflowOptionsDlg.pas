@@ -1131,7 +1131,7 @@ begin
     end;
 
     //summarised cash is available if chkInclude is checked
-    rbSummarisedCash.enabled := ( chkIncludeCash.Checked) and ( chkIncludeCash.Enabled) and AllAccountsSelected and (not ThisClient.HasForeignCurrencyAccounts);
+    rbSummarisedCash.enabled := ( chkIncludeCash.Checked) and ( chkIncludeCash.Enabled) and AllAccountsSelected;
     if (not rbSummarisedCash.Enabled) and rbSummarisedCash.Checked and rbDetailedCash.Enabled then
       rbDetailedCash.Checked := True;
 

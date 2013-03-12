@@ -234,9 +234,6 @@ type
     fActive : boolean;
     fDPI    : integer;
     fPDFFormFields : TPDFFormFields;
-    fImagePage : integer;
-
-    fQrCodeImage : TImage;
   protected
     procedure RenderPage;
     procedure SetActive(Value : Boolean);
@@ -246,7 +243,8 @@ type
     function GetCheckBoxTickOn : TPicture;
     procedure SetCheckBoxTickOff(aValue: TPicture);
     function GetCheckBoxTickOff : TPicture;
-    procedure DrawQRCodeOnPDF(aQuickPDF : TQuickPDF);
+
+    procedure FlattenField(aQuickPDF : TQuickPDF; aFieldIndex : integer);
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -267,10 +265,8 @@ type
     function PageCount : integer;
     Procedure ResetForm;
     procedure AutoSetControlTabs;
-    procedure ScaleScreenToPDF(aInXPos, aInYPos, aInWidth, aInHeight : integer;
-                               var aOutXPos, aOutYPos, aOutWidth, aOutHeight : double);
-    procedure SetQrCodeImage(const aValue : TBitmap);
-    procedure DrawQRCode(aXPos, aYPos, aWidth, aHeight, aPage : integer);
+
+    procedure SetInformation(Key: Integer; Value: String);
 
     property PDFFormFields : TPDFFormFields read fPDFFormFields write fPDFFormFields;
   published
@@ -1100,96 +1096,6 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TPdfFieldEdit.ScaleScreenToPDF(aInXPos, aInYPos, aInWidth, aInHeight : integer;
-                                         var aOutXPos, aOutYPos, aOutWidth, aOutHeight : double);
-var
-  Scale : double;
-begin
-  Scale := DPI / FRM_FIELD_DPI;
-
-  aOutXPos   := aInXPos   / Scale;
-  aOutYPos   := aInYPos   / Scale;
-  aOutWidth  := aInWidth  / Scale;
-  aOutHeight := aInHeight / Scale;
-end;
-
-//------------------------------------------------------------------------------
-procedure TPdfFieldEdit.SetQRCodeImage(const aValue: TBitmap);
-var
-  MemStream : TMemoryStream;
-begin
-  MemStream := TMemoryStream.Create;
-
-  try
-    aValue.SaveToStream(MemStream);
-    MemStream.Position := 0;
-
-    if not Assigned(fQrCodeImage) then
-    begin
-      fQrCodeImage := TImage.Create(nil);
-      fQrCodeImage.Parent := self;
-      fQrCodeImage.Stretch := true;
-    end;
-    fQrCodeImage.Picture.Bitmap.LoadFromStream(MemStream);
-
-  finally
-    FreeAndNil(MemStream);
-  end;
-end;
-
-//------------------------------------------------------------------------------
-procedure TPdfFieldEdit.DrawQRCode(aXPos, aYPos, aWidth, aHeight, aPage : integer);
-begin
-  fQrCodeImage.Stretch := false;
-  fQrCodeImage.Left   := aXPos - self.HorzScrollBar.Position;
-  fQrCodeImage.Top    := aYPos - self.VertScrollBar.Position;
-  fQrCodeImage.Width  := aWidth;
-  fQrCodeImage.Height := aHeight;
-  fImagePage := aPage;
-  fQrCodeImage.Visible := (fImagePage = 1);
-  fQrCodeImage.Stretch := true;
-end;
-
-//------------------------------------------------------------------------------
-procedure TPdfFieldEdit.DrawQRCodeOnPDF(aQuickPDF : TQuickPDF);
-var
-  MemStream : TMemoryStream;
-  ImageId : integer;
-  OutXPos, OutYPos, OutWidth, OutHeight : double;
-begin
-  if not Assigned(fQrCodeImage.Picture.Bitmap) then
-    Exit;
-
-  aQuickPDF.SetOrigin(1);
-  MemStream := TMemoryStream.Create;
-  try
-    fQrCodeImage.Picture.Bitmap.SaveToStream(MemStream);
-    MemStream.Position := 0;
-    ImageId := aQuickPDF.AddImageFromStream(MemStream, 0);
-
-    ScaleScreenToPDF(fQrCodeImage.left + Self.HorzScrollBar.Position,
-                     fQrCodeImage.top  + Self.VertScrollBar.Position,
-                     fQrCodeImage.Width,
-                     fQrCodeImage.Height,
-                     OutXPos,
-                     OutYPos,
-                     OutWidth,
-                     OutHeight);
-
-    if aQuickPDF.SelectImage(ImageId) = 1 then
-    begin
-      if fImagePage > 1 then
-        aQuickPDF.SelectPage(fImagePage);
-
-      aQuickPDF.DrawImage(OutXPos, OutYPos, OutWidth, OutHeight);
-    end;
-
-  finally
-    FreeAndNil(MemStream);
-  end;
-end;
-
-//------------------------------------------------------------------------------
 constructor TPdfFieldEdit.Create(AOwner: TComponent);
 begin
   inherited;
@@ -1214,9 +1120,6 @@ end;
 //------------------------------------------------------------------------------
 destructor TPdfFieldEdit.Destroy;
 begin
-  if Assigned(fQrCodeImage) then
-    FreeAndNil(fQrCodeImage);
-
   FreeAndNil(fPDFFormFields);
   FreeAndNil(fPDFImage);
   FreeAndNil(fQuickPDF);
@@ -1265,39 +1168,34 @@ end;
 
 //------------------------------------------------------------------------------
 procedure TPdfFieldEdit.SaveToFile(aFilePath: WideString);
-var
-  tempQuickPDF : TQuickPDF;
 begin
-  tempQuickPDF := TQuickPDF.Create;
-  try
-    if fQuickPDF.SaveToFile(aFilePath) = 1 then
-    begin
-      if tempQuickPDF.UnlockKey(QUICK_PDF_LICENCE_KEY) = 1 then
-      begin
-        if tempQuickPDF.LoadFromFile(aFilePath,'') = 1 then
-        begin
-          if Assigned(fQrCodeImage) then
-          begin
-            DrawQRCodeOnPDF(tempQuickPDF);
-          end;
-
-          tempQuickPDF.SaveToFile(aFilePath);
-        end;
-      end;
-    end;
-  finally
-    FreeAndNil(tempQuickPDF);
-  end;
+  fQuickPDF.SaveToFile(aFilePath);
 end;
 
 //------------------------------------------------------------------------------
 procedure TPdfFieldEdit.SaveToFileFlattened(aFilePath : WideString);
+const
+  ANNOTATION_LEFT   = 105;
+  ANNOTATION_TOP    = 106;
+  ANNOTATION_WIDTH  = 107;
+  ANNOTATION_HEIGHT = 108;
+  ANNOTATION_BORDER_WIDTH = 132;
+  ANNOTATION_TYPE = 101;
+  ANNOTATION_POPUP = 'Popup';
+  ANNOTATION_SQUARE = 'Square';
 var
   tempQuickPDF : TQuickPDF;
+  AnnotIndex : integer;
   FieldIndex : integer;
-  FieldSubCount : integer;
   TempSubIndex : integer;
   FieldSubIndex : integer;
+
+  AnnotLeft : double;
+  AnnotTop : double;
+  AnnotWidth : double;
+  AnnotRight : double;
+  AnnotBorderWidth : Double;
+  AnnotStrPro : string;
 begin
   tempQuickPDF := TQuickPDF.Create;
   try
@@ -1307,23 +1205,43 @@ begin
       begin
         if tempQuickPDF.LoadFromFile(aFilePath,'') = 1 then
         begin
+          // Bug 75692 HSBC CAF issue fix
+          tempQuickPDF.SelectPage(1);
+          for AnnotIndex := tempQuickPDF.AnnotationCount downto 1 do
+          begin
+            // Gets the string Annotatation Type
+            AnnotStrPro := tempQuickPDF.GetAnnotStrProperty(AnnotIndex, ANNOTATION_TYPE);
+
+            // If popup Delete else if Square draw replacement and delete
+            if AnnotStrPro = ANNOTATION_POPUP then
+            begin
+              tempQuickPDF.DeleteAnnotation(AnnotIndex);
+            end
+            else if AnnotStrPro = ANNOTATION_SQUARE then
+            begin
+              AnnotLeft := tempQuickPDF.GetAnnotDblProperty(AnnotIndex, ANNOTATION_LEFT);
+              AnnotTop := tempQuickPDF.GetAnnotDblProperty(AnnotIndex, ANNOTATION_TOP);
+              AnnotWidth := tempQuickPDF.GetAnnotDblProperty(AnnotIndex, ANNOTATION_WIDTH);
+              AnnotRight := tempQuickPDF.GetAnnotDblProperty(AnnotIndex, ANNOTATION_HEIGHT);
+              AnnotBorderWidth := tempQuickPDF.GetAnnotDblProperty(AnnotIndex, ANNOTATION_BORDER_WIDTH);
+
+              tempQuickPDF.SetLineColor(0,0,0);
+              tempQuickPDF.SetLineWidth(AnnotBorderWidth);
+              tempQuickPDF.DrawBox(AnnotLeft, AnnotTop, AnnotWidth, AnnotRight, 0);
+              tempQuickPDF.DeleteAnnotation(AnnotIndex);
+            end;
+          end;
+
           for FieldIndex := tempQuickPDF.FormFieldCount downto 1 do
           begin
-            FieldSubCount := tempQuickPDF.GetFormFieldSubCount(FieldIndex);
-
-            for FieldSubIndex := FieldSubCount downto 1 do
+            for FieldSubIndex := fQuickPDF.GetFormFieldSubCount(FieldIndex) downto 1 do
             begin
-              TempSubIndex := tempQuickPDF.GetFormFieldSubTempIndex(FieldIndex, FieldSubIndex);
+              TempSubIndex := fQuickPDF.GetFormFieldSubTempIndex(FieldIndex, FieldSubIndex);
 
               tempQuickPDF.FlattenFormField(TempSubIndex);
             end;
 
             tempQuickPDF.FlattenFormField(FieldIndex);
-          end;
-
-          if Assigned(fQrCodeImage) then
-          begin
-            DrawQRCodeOnPDF(tempQuickPDF);
           end;
 
           tempQuickPDF.SaveToFile(aFilePath);
@@ -1359,21 +1277,16 @@ begin
           begin
             for FieldIndex := tempQuickPDF.FormFieldCount downto 1 do
             begin
-              FieldSubCount := tempQuickPDF.GetFormFieldSubCount(FieldIndex);
+              FieldSubCount := fQuickPDF.GetFormFieldSubCount(FieldIndex);
 
               for FieldSubIndex := FieldSubCount downto 1 do
               begin
-                TempSubIndex := tempQuickPDF.GetFormFieldSubTempIndex(FieldIndex, FieldSubIndex);
+                TempSubIndex := fQuickPDF.GetFormFieldSubTempIndex(FieldIndex, FieldSubIndex);
 
                 tempQuickPDF.FlattenFormField(TempSubIndex);
               end;
 
               tempQuickPDF.FlattenFormField(FieldIndex);
-            end;
-
-            if Assigned(fQrCodeImage) then
-            begin
-              DrawQRCodeOnPDF(tempQuickPDF);
             end;
 
             tempQuickPDF.PrintDocument(PrinterName, StartPage, EndPage, Options);
@@ -1442,6 +1355,7 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 procedure TPdfFieldEdit.SetActive(Value: Boolean);
 begin
   if (Value) and (not fActive) then
@@ -1470,6 +1384,11 @@ begin
   PDFFormFields.CheckboxTickOn.Assign(aValue);
 end;
 
+procedure TPdfFieldEdit.SetInformation(Key: Integer; Value: String);
+begin
+  fQuickPDF.SetInformation(Key, Value);
+end;
+
 //------------------------------------------------------------------------------
 function TPdfFieldEdit.GetCheckBoxTickOn: TPicture;
 begin
@@ -1487,6 +1406,33 @@ function TPdfFieldEdit.GetCheckBoxTickOff: TPicture;
 begin
   Result := PDFFormFields.CheckboxTickOff;
 end;
+
+//------------------------------------------------------------------------------
+procedure TPdfFieldEdit.FlattenField(aQuickPDF : TQuickPDF; aFieldIndex : integer);
+begin
+  if Assigned(aQuickPDF) then
+  begin
+    aQuickPDF.DeleteFormField(aFieldIndex);
+    {if (aQuickPDF.GetFormFieldPage(aFieldIndex) = 1) and
+       ((aQuickPDF.GetFormFieldType(aFieldIndex) = FRM_FIELD_TYPE_UNKNOWN) or
+        (aQuickPDF.GetFormFieldType(aFieldIndex) = FRM_FIELD_TYPE_SIGNATURE) or
+        (aQuickPDF.GetFormFieldType(aFieldIndex) = FRM_FIELD_TYPE_PARENT)) then
+    begin
+      aQuickPDF.SetLineColor(1,1,1);
+      aQuickPDF.SetLineWidth(1);
+      aQuickPDF.DrawBox(aQuickPDF.GetFormFieldBound(aFieldIndex, FRM_FIELD_BOUND_LEFT),
+                        aQuickPDF.GetFormFieldBound(aFieldIndex, FRM_FIELD_BOUND_TOP),
+                        aQuickPDF.GetFormFieldBound(aFieldIndex, FRM_FIELD_BOUND_WIDTH),
+                        aQuickPDF.GetFormFieldBound(aFieldIndex, FRM_FIELD_BOUND_HEIGHT), 0);
+      aQuickPDF.DeleteFormField(aFieldIndex);
+    end
+    else
+    begin
+      aQuickPDF.FlattenFormField(aFieldIndex);
+    end; }
+  end;
+end;
+
 
 //------------------------------------------------------------------------------
 procedure TPdfFieldEdit.SetPage(Value: integer);

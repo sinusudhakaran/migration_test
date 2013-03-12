@@ -47,8 +47,7 @@ uses
   BanklinkOnlineServices,
   BlopiClient,
   CAFImporter,
-  Progress,
-  CAFAccountStatusFrm;
+  Progress;
 
 type
   TfrmClientManager = class(TForm)
@@ -168,7 +167,6 @@ type
     pnlFilterA: TPanel;
     pnlLegendA: TPanel;
     actICAF: TAction;
-    actAccountStatus: TAction;
     procedure FormCreate(Sender: TObject);
     procedure FormShow(Sender: TObject);
 
@@ -254,7 +252,6 @@ type
       var CellText: WideString);
     procedure rzgCommunicateItems5Click(Sender: TObject);
     procedure actICAFExecute(Sender: TObject);
-    procedure actAccountStatusExecute(Sender: TObject);
 
   private
 
@@ -465,7 +462,6 @@ const
   cm_mcPrintAllTasks      = 27;
   cm_mcAssignBulkExport   = 28;
   cm_mcSendOnline         = 29;
-  cm_mcCAFAccountStatus   = 30; 
 
   md_ClientManager   = 0;
   md_GlobalSetup     = 1;
@@ -1630,11 +1626,6 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TfrmClientManager.actAccountStatusExecute(Sender: TObject);
-begin
-  ProcessModalCommand(cm_mcCAFAccountStatus);
-end;
-
 procedure TfrmClientManager.actArchiveExecute(Sender: TObject);
 begin
   ProcessModalCommand( cm_mcArchive);
@@ -2301,7 +2292,6 @@ begin
        cm_mcImportClients : DoImportClientsProspects(itClients);
        cm_mcAssignBulkExport : DoAssignBulkExport;
        cm_mcSendOnline: DoSendViaOnline;
-       cm_mcCAFAccountStatus: TfrmCAFAccountStatus.ExecuteModal(Application, Self);
      end;
      finally
         EnableForm(LoseFocus);
@@ -3129,7 +3119,6 @@ begin
            actCAF.Visible := (AdminSystem.fdFields.fdCountry in [whAustralia, whUK]);
            actICAF.Visible := (AdminSystem.fdFields.fdCountry = whUK);
            actTPA.Visible := (AdminSystem.fdFields.fdCountry = whNewZealand);
-           actAccountStatus.Visible := AdminSystem.fdFields.fdUse_BankLink_Online and not CurrUser.HasRestrictedAccess;
 
            if (AdminSystem.fdFields.fdCountry = whUK) then
            begin
@@ -3140,7 +3129,6 @@ begin
            actCAF.Visible := False;
            actICAF.Visible := False;
            actTPA.Visible := False;
-           actAccountStatus.Visible := False;
         end;
         actDeleteFile.Visible := false;
         RzGroupGlobal.Visible := False;

@@ -48,7 +48,8 @@ uses
   moneydef,
   gstcalc32,
   SageHandisoftSuperConst,
-  ForexHelpers;
+  ForexHelpers,
+  MoneyUtils;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 CONST
@@ -321,7 +322,7 @@ begin
             FCS := FCS + ' ';
           if Length( FCS ) > MaxFCLen then MaxFCLen := Length( FCS ) ;
 
-          RS := Format( '%0.5f', [ dsForex_Conversion_Rate ] );
+          RS := ForexRate2Str(dsForex_Conversion_Rate);
           if Length( RS ) > MaxCRLen then MaxCRLen := Length( RS ) ;
 
           VS := MyClient.MoneyStrBrackets( Abs( D.Local_Amount ) ) ;
@@ -356,7 +357,7 @@ begin
             FCS := FCS + ' ';
           FCS := LeftPadS( FCS, MaxFCLen );
 
-          RS := Format( '%0.5f', [ T^.Default_Forex_Rate ] );
+          RS := ForexRate2Str(T^.Default_Forex_Rate);
           RS:= LeftPadS( RS, MaxCRLen );
 
           VS := MyClient.MoneyStrBrackets( D.Local_Amount ) ;

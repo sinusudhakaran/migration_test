@@ -46,7 +46,9 @@ uses
   SignUtils,
   stDateSt,
   sysUtils,
-  InfoMoreFrm;
+  InfoMoreFrm,
+  glObj32,
+  ForexHelpers;
 
 type
   TTrialBalanceReport = class( TBKReport)
@@ -56,6 +58,24 @@ type
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TrialBalanceDetail(Sender : TObject);
+
+  function FindBankAccountByExchangeGainLossCode(const AccountCode: String): TBank_Account;
+  var
+    Index: Integer;
+  begin
+    Result := nil;
+    
+    for Index := 0 to MyClient.clBank_Account_List.ItemCount - 1 do
+    begin
+      if MyClient.clBank_Account_List.Bank_Account_At(Index).baFields.baExchange_Gain_Loss_Code = AccountCode then
+      begin
+        Result := MyClient.clBank_Account_List.Bank_Account_At(Index);
+
+        Exit;
+      end;
+    end;
+  end;
+  
 var
   i             : integer;
   pAcct         : pAccount_Rec;
@@ -69,11 +89,17 @@ begin
     try
       AccountInfo.UseBudgetIfNoActualData     := False;
       AccountInfo.LastPeriodOfActualDataToUse := clFields.clTemp_FRS_Last_Actual_Period_To_Use;
+      AccountInfo.UseBaseAmounts              := IsForeignCurrencyClient;
 
-      for i := 0 to Pred( RptParameters.Chart.ItemCount) do begin
+      for i := 0 to Pred( RptParameters.Chart.ItemCount) do
+      begin
+        mYTD := 0;
+
         pAcct := RptParameters.Chart.Account_At( i);
+
         AccountInfo.AccountCode   := pAcct.chAccount_Code;
         mYTD  := AccountInfo.ClosingBalanceActualOrBudget( clTemp_FRS_Last_Period_To_Show );
+
         if ( mYTD <> 0) then begin
           if clFRS_Print_Chart_Codes then
             s := pAcct^.chAccount_Code + ' ' + pAcct^.chAccount_Description
@@ -153,7 +179,7 @@ begin
   end;
 
   //Check Forex
-  FromDate := MyClient.clFields.clTemp_Period_Details_This_Year[MyClient.clFields.clTemp_FRS_Last_Period_To_Show].Period_Start_Date;
+  FromDate := MyClient.clFields.clTemp_Period_Details_This_Year[1].Period_Start_Date;
   ToDate := MyClient.clFields.clTemp_Period_Details_This_Year[MyClient.clFields.clTemp_FRS_Last_Period_To_Show].Period_End_Date;
   if not MyClient.HasExchangeRates(ISOCodes, FromDate, ToDate, True, True) then begin
     HelpfulInfoMsg('The report could not be run because there are missing exchange rates for ' + ISOCodes + '.',0);
@@ -164,8 +190,12 @@ begin
   CalculateAccountTotals.AddAutoContraCodes( MyClient);
   try
     FlagAllAccountsForUse(MyClient);
-    CalculateAccountTotals.CalculateAccountTotalsForClient( MyClient);
+    CalculateAccountTotals.CalculateAccountTotalsForClient(MyClient, True, nil, -1, False, True);
     Params := TRptParameters.Create(ord(Report_TrialBalance),MyClient,RptBatch,dPeriod);
+
+    Params.FromDate := FromDate;
+    Params.ToDate := ToDate;
+
     Job := TTrialBalanceReport.Create(rptOther);
     try
       Job.RptParameters := Params;

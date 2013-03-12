@@ -211,6 +211,8 @@ Begin
 
    With MyClient.clFields, Bank_Account.baFields, Transaction^ do
    Begin
+      txForex_Conversion_Rate := Bank_Account.Default_Forex_Conversion_Rate(txDate_Effective);
+
       txDate_Transferred := CurrentDate;
       if SkipZeroAmountExport(Transaction) then
          Exit; // Im done...
@@ -304,6 +306,8 @@ Begin
 
    With MyClient.clFields, Bank_Account.baFields, Transaction^ do
    Begin
+      txForex_Conversion_Rate := Bank_Account.Default_Forex_Conversion_Rate(txDate_Effective);
+
       txDate_Transferred := CurrentDate;
       if SkipZeroAmountExport(Transaction) then
          Exit; // Im done...

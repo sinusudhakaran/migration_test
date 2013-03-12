@@ -23,6 +23,7 @@ uses
 
 Procedure UpgradeAdminToLatestVersion;
 Procedure UpgradeClientToLatestVersion( aClient : TClientObj );
+procedure UpgradeClientTypes;
 Procedure UpgradeExchangeRatesToLatestVersion;
 
 // ----------------------------------------------------------------------------
@@ -1585,33 +1586,6 @@ Procedure DoUpgradeAdminToLatestVersion( var UpgradingToVersion : integer; const
     end;  
   end;
 
-  procedure UpgradeAdminToVersion130;
-
-    procedure AddNewClientType(Name: string);
-    var
-      pc: pClient_Type_Rec;
-    begin
-      pc := New_Client_Type_Rec;
-      Inc(AdminSystem.fdFields.fdClient_Type_LRN_Counter);
-      pc.ctLRN := AdminSystem.fdFields.fdClient_Type_LRN_Counter;
-      pc.ctName := Name;
-      AdminSystem.fdSystem_Client_Type_List.Insert(pc);
-    end;
-    
-  var
-    NewClientTypeName: string;
-  begin
-    UpgradingToVersion := 130;
-    
-    NewClientTypeName := 'Books via BankLink Online';
-
-    //For many sites this would have been done already so only do it if it doesn't exist.
-    if (AdminSystem.fdSystem_Client_Type_List.FindName(NewClientTypeName) = nil) then
-    begin
-      AddNewClientType(NewClientTypeName);
-    end;
-  end;
-  
 Const
    ThisMethodName = 'DoUpgradeAdminToLatestVersion';
 Var
@@ -1982,12 +1956,7 @@ Begin
             UpgradeAdminToVersion129;
             LogUtil.LogMsg( lmInfo, ThisMethodName, 'Upgrade completed normally' );
          end;
-         //BLOPI Added in new client type
-         if ( fdFile_Version < 130) then begin
-            Logutil.LogMsg( lmInfo, ThisMethodName, 'Upgrading to Version 130');
-            UpgradeAdminToVersion130;
-            LogUtil.LogMsg( lmInfo, ThisMethodName, 'Upgrade completed normally' );
-         end; 
+
       end;
       // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
       //  FIELDS AND FILES UPGRADED, NOW SAVE NEW ADMIN SYSTEM
@@ -4624,6 +4593,32 @@ begin
       LogMsg(lmError, Unitname, Msg);
     end;
   end;
+end;
+
+procedure UpgradeClientTypes;
+var
+  NewClientTypeName: string;
+const
+  ThisMethodName = 'UpgradeClientTypes';
+
+  procedure AddNewClientType(Name: string);
+  var
+    pc: pClient_Type_Rec;
+  begin
+    pc := New_Client_Type_Rec;
+    Inc(AdminSystem.fdFields.fdClient_Type_LRN_Counter);
+    pc.ctLRN := AdminSystem.fdFields.fdClient_Type_LRN_Counter;
+    pc.ctName := Name;
+    AdminSystem.fdSystem_Client_Type_List.Insert(pc);
+//    ShowMessage('3');
+  end;
+
+begin
+//  ShowMessage('2');
+  NewClientTypeName := 'Books via BankLink Online';
+  if (AdminSystem.fdSystem_Client_Type_List.FindName(NewClientTypeName) = nil) then
+    AddNewClientType(NewClientTypeName);
+  AdminSystem.Save;
 end;
 
 procedure UpgradeExchangeRatesToLatestVersion;

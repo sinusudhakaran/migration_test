@@ -19,6 +19,8 @@ Type
      ToDate   : Integer;
    end;
 
+   TDateList = array of Integer;
+
 Function  GetYearEndDate( CONST YearStartDate: Integer ) : Integer;
 Function  GetPrevYearStartDate( CONST ThisYearStartDate: Integer) : Integer;
 Function  GetPrevYearEndDate( CONST ThisYearStartDate: Integer) : Integer;
@@ -28,6 +30,7 @@ Function  GetPeriodNo( CONST ADate: Integer; CONST PEDates: tPeriod_End_Dates) :
 Function  bkStr2Date( CONST DateStr: string) : Integer;
 Function  bkDate2Str( CONST ADate: Integer) : string;
 Function  IsTheLastDayofTheMonth( CONST ADate: Integer) : boolean;
+Function  IsTheFirstDayOfTheMonth( CONST ADate: Integer) : boolean;
 Function  GetLastDayOfMonth( CONST ADate: Integer) : Integer;
 Function  GetFirstDayOfMonth( CONST ADate: Integer) : Integer;
 function  GetMonthDateRange(const ADate: Integer): TDateRange;
@@ -52,31 +55,16 @@ Function MakeDateRange( Const StartDate, EndDate : Integer ): TDateRange;
 Function GetMonthEndDates( Const YSD : Integer ): TMonthEndDates;
 Function GetDateRangeS( CONST FromDate, ToDate: Integer ) : ShortString; overload;
 function GetDateRangeS( const DR : TDateRange): ShortString; overload;
-
-function BkDate2XSDate(ADate: Integer): String;
+function GetPeriodsBetween(FromDate, ToDate: Integer; ReturnLastDay: Boolean = False): TDateList;
+function GetLastDayOfLastMonth(Date: TStDate): TStDate;
 
 // -----------------------------------------------------------------------------
 Implementation
 // -----------------------------------------------------------------------------
 uses
-  SysUtils, Holidays, XSBuiltIns;  // <- Only links to StDate
+  SysUtils, Holidays;  // <- Only links to StDate
 
 {19xx will be applied to dates until more than 30years less that today}
-
-function BkDate2XSDate(ADate: Integer): String;
-var
-  XSDate: TXSDate;
-begin
-  XSDate := TXSDate.Create;
-
-  try
-    XSDate.AsDate := StDateToDateTime(ADate);
-
-    Result := XSDate.NativeToXS;
-  finally
-    XSDate.Free;
-  end;
-end;
 
 Function GetYearEndDate( CONST YearStartDate: Integer) : Integer;
 Var
@@ -243,6 +231,16 @@ Begin
   Result := ( Day = DaysInMonth( Month, Year, Epoch ) );
 end;
 
+function  IsTheFirstDayOfTheMonth( CONST ADate: Integer) : boolean;
+Var
+  Day   : Integer;
+  Month : Integer;
+  Year  : Integer;
+Begin
+  StDatetoDMY( ADate, Day, Month, Year );
+  
+  Result := ( Day = 1 );
+end;
 // -----------------------------------------------------------------------------
 
 Function GetLastDayOfMonth( CONST ADate: Integer) : Integer;
@@ -502,6 +500,57 @@ begin
    result := GetDateRangeS(DR.Fromdate, DR.Todate);
 end;
 
+function GetPeriodsBetween(FromDate, ToDate: Integer; ReturnLastDay: Boolean): TDateList;
+var
+  MonthsBetween: Integer;
+  FromMonth: Integer;
+  FromYear: Integer;
+  TempDay: Integer;
+  Month: Integer;
+begin
+  MonthsBetween := GetMonthsBetween(FromDate, ToDate);
+
+  SetLength(Result, MonthsBetween + 1);
+
+  StDateToDMY(FromDate, TempDay, FromMonth, FromYear);
+
+  for Month := 0 to MonthsBetween do
+  begin
+    if ReturnLastDay then
+    begin
+      Result[Month] := DMYToStDate(DaysInMonth(FromMonth, FromYear, Epoch), FromMonth, FromYear, Epoch);
+    end
+    else
+    begin
+      Result[Month] := DMYToStDate(1, FromMonth, FromYear, Epoch);
+    end;
+    
+    Inc(FromMonth, 1);
+
+    if FromMonth > 12 then
+    begin
+      Inc(FromYear, 1);
+
+      FromMonth := 1;
+    end;
+  end;
+end;
+
+function GetLastDayOfLastMonth(Date: TStDate): TStDate;
+var
+  Day: Integer;
+  Month: Integer;
+  Year: Integer;
+  MaxDays: TStDate;
+begin
+  StDateToDMY(Date, Day, Month, Year);
+
+  DecMY(Month, Year, 1);
+
+  MaxDays := DaysInMonth(Month, Year, Epoch);
+
+  Result := DMYToStDate(MaxDays, Month, Year, Epoch);
+end;
 
 {$IFDEF DATE_UTILS_TEST}
 Var

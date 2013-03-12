@@ -1,4 +1,4 @@
-$|BK_FILE_VERSION  = 172;  (* Current Version counter for files
+$|BK_FILE_VERSION  = 173;  (* Current Version counter for files
 $|                           Changes if structure or method of storing a value would cause
 $|                           data to be represented incorrectly, or an exception to be raised *)
 $|
@@ -1174,4 +1174,10 @@ F|Amount|$
 F|Account|S|20
 F|Posted Date|D
 F|Audit Record ID|L
+C|Temp Bank Seq|L
+E
+
+N|Finalized Exchange Rate|fr|214
+F|Date|D
+F|Rate|R
 E

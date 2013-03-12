@@ -141,6 +141,7 @@ var
   pT: pTransaction_Rec;
   MemFrom, MemTo : TMemorisation;
   MemLineFrom, MemLineTo : pMemorisation_Line_Rec;
+  Dissection: pDissection_Rec;
 begin
   if not Assigned( MyClient) then exit;
   //Check if they have outstanding BNotes or Acclipse files, and warn them against continuing. Case 8625
@@ -174,6 +175,16 @@ begin
                 pT^.txECoding_Transaction_UID := 0;
                 //insert into bank account
                 ToBa.baTransaction_List.Insert_Transaction_Rec( pT);
+
+                Dissection := pT^.txFirst_Dissection;
+
+                while Dissection <> nil do
+                begin
+                  Dissection.dsBank_Account := pT^.txBank_Account;
+                  Dissection.dsClient := pT^.txClient;
+                  Dissection := Dissection.dsNext;
+                end;
+
                 Inc(TransferCount);
               until (ItemCount = 0);
           end;

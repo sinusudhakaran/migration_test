@@ -29,7 +29,8 @@ uses
    CodingFormCommands,
    UpdateMF,
    Globals,
-   YesNoDlg;
+   YesNoDlg,
+   ClientHomePageFrm;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -51,6 +52,7 @@ Var
 Begin
    result := false;
    If not Assigned( MyClient ) then exit;
+   AssignGlobalRedrawForeign(True);
    With MyClient do
    Begin
       D1 := clFields.clPeriod_Start_Date;
@@ -102,6 +104,7 @@ Begin
    if not Assigned(MyClient) then
       Exit;
 
+   AssignGlobalRedrawForeign(True);
    With MyClient do begin
       D1 := clFields.clPeriod_Start_Date;
       D2 := clFields.clPeriod_End_Date;

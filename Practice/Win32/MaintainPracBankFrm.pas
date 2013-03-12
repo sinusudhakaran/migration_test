@@ -128,7 +128,8 @@ uses
   FrequencyRequestFrm,
   SendProvAccRequestFrm,
   HistoricalDlg,
-  AuditMgr;
+  AuditMgr,
+  ClientHomePageFrm;
 
 //------------------------------------------------------------------------------
 procedure TfrmMaintainPracBank.FormCreate(Sender: TObject);
@@ -345,7 +346,11 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmMaintainPracBank.acExchangeRatesExecute(Sender: TObject);
 begin
-  MaintainExchangeRates;
+  if MaintainExchangeRates then
+  begin
+    if assigned(MyClient) then
+      RefreshHomePage([HPR_ExchangeGainLoss_Rates]);
+  end;
 end;
 
 //------------------------------------------------------------------------------

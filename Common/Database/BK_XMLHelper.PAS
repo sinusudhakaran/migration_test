@@ -195,6 +195,30 @@ public
 end;
 
 
+TDeleted_Transaction_RecHelper = record helper for TDeleted_Transaction_Rec
+public
+	function WriteRecToNode(var Node: IXMLNode): IXMLNode;
+	function ReadRecFromNode(Node: IXMLNode): IXMLNode;
+	class function GetXMLNodeName: string; static;
+end;
+
+
+TExchange_Gain_Loss_RecHelper = record helper for TExchange_Gain_Loss_Rec
+public
+	function WriteRecToNode(var Node: IXMLNode): IXMLNode;
+	function ReadRecFromNode(Node: IXMLNode): IXMLNode;
+	class function GetXMLNodeName: string; static;
+end;
+
+
+TFinalized_Exchange_Rate_RecHelper = record helper for TFinalized_Exchange_Rate_Rec
+public
+	function WriteRecToNode(var Node: IXMLNode): IXMLNode;
+	function ReadRecFromNode(Node: IXMLNode): IXMLNode;
+	class function GetXMLNodeName: string; static;
+end;
+
+
 // ----------------------------------------------------------------------------
 implementation
 uses
@@ -1262,6 +1286,16 @@ begin
 	Result := Node.AddChild(GetXMLNodeName);
 	SetIntAttr(Result, 'Number', pdNumber);
 	SetTextAttr(Result, 'Name', pdName);
+	SetBoolAttr(Result, 'Contractor', pdContractor);
+	SetTextAttr(Result, 'Surname', pdSurname);
+	SetTextAttr(Result, 'GivenName', pdGiven_Name);
+	SetTextAttr(Result, 'OtherName', pdOther_Name);
+	SetTextAttr(Result, 'Address', pdAddress);
+	SetTextAttr(Result, 'Town', pdTown);
+	SetTextAttr(Result, 'State', pdState);
+	SetTextAttr(Result, 'PostCode', pdPost_Code);
+	SetTextAttr(Result, 'PhoneNumber', pdPhone_Number);
+	SetTextAttr(Result, 'ABN', pdABN);
 
 	CNode := nil;
 	CCNode := nil;
@@ -1280,6 +1314,16 @@ begin
 	try
 	pdNumber := GetIntAttr(Result, 'Number');
 	pdName := GetTextAttr(Result, 'Name');
+	pdContractor := GetBoolAttr(Result, 'Contractor');
+	pdSurname := GetTextAttr(Result, 'Surname');
+	pdGiven_Name := GetTextAttr(Result, 'GivenName');
+	pdOther_Name := GetTextAttr(Result, 'OtherName');
+	pdAddress := GetTextAttr(Result, 'Address');
+	pdTown := GetTextAttr(Result, 'Town');
+	pdState := GetTextAttr(Result, 'State');
+	pdPost_Code := GetTextAttr(Result, 'PostCode');
+	pdPhone_Number := GetTextAttr(Result, 'PhoneNumber');
+	pdABN := GetTextAttr(Result, 'ABN');
 	except
 		on E: Exception do ReRaise (E, 'Reading TPayee_Detail_Rec');
 	end;
@@ -1811,6 +1855,9 @@ begin
 	SetTextAttr(Result, 'DefaultForexSource', baDefault_Forex_Source);
 	SetTextAttr(Result, 'DefaultForexDescription', baDefault_Forex_Description);
 	SetTextAttr(Result, 'SuperFundLedgerCode', baSuperFund_Ledger_Code);
+	SetIntAttr(Result, 'CoreAccountID', baCore_Account_ID);
+	SetTextAttr(Result, 'SecureOnlineCode', baSecure_Online_Code);
+	SetTextAttr(Result, 'ExchangeGainLossCode', baExchange_Gain_Loss_Code);
 
 	CNode := nil;
 	CCNode := nil;
@@ -1878,6 +1925,9 @@ begin
 	baDefault_Forex_Source := GetTextAttr(Result, 'DefaultForexSource');
 	baDefault_Forex_Description := GetTextAttr(Result, 'DefaultForexDescription');
 	baSuperFund_Ledger_Code := GetTextAttr(Result, 'SuperFundLedgerCode');
+	baCore_Account_ID := GetIntAttr(Result, 'CoreAccountID');
+	baSecure_Online_Code := GetTextAttr(Result, 'SecureOnlineCode');
+	baExchange_Gain_Loss_Code := GetTextAttr(Result, 'ExchangeGainLossCode');
 	except
 		on E: Exception do ReRaise (E, 'Reading TBank_Account_Rec');
 	end;
@@ -1983,6 +2033,7 @@ begin
 	SetIntAttr(Result, 'CoreTransactionID', txCore_Transaction_ID);
 	SetBoolAttr(Result, 'TransferedToOnline', txTransfered_To_Online);
 	SetIntAttr(Result, 'CoreTransactionIDHigh', txCore_Transaction_ID_High);
+	SetBoolAttr(Result, 'IsOnlineTransaction', txIsOnline_Transaction);
 
 	CNode := nil;
 	CCNode := nil;
@@ -2082,6 +2133,7 @@ begin
 	txCore_Transaction_ID := GetIntAttr(Result, 'CoreTransactionID');
 	txTransfered_To_Online := GetBoolAttr(Result, 'TransferedToOnline');
 	txCore_Transaction_ID_High := GetIntAttr(Result, 'CoreTransactionIDHigh');
+	txIsOnline_Transaction := GetBoolAttr(Result, 'IsOnlineTransaction');
 	except
 		on E: Exception do ReRaise (E, 'Reading TTransaction_Rec');
 	end;
@@ -3089,6 +3141,158 @@ begin
 	ceBLOSecureCode := GetTextAttr(Result, 'BLOSecureCode');
 	except
 		on E: Exception do ReRaise (E, 'Reading TClientExtra_Rec');
+	end;
+
+	CNode := nil;
+	CCNode := nil;
+	PNode := nil;
+end;
+
+// ----------------------------------------------------------------------------
+
+class function TDeleted_Transaction_RecHelper.GetXMLNodeName: string;
+begin
+	result := 'BKDeletedTransaction';
+end;
+
+
+function TDeleted_Transaction_RecHelper.WriteRecToNode(var Node: IXMLNode): IXMLNode;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J, M: Integer;
+begin
+	Result := Node.AddChild(GetXMLNodeName);
+	SetIntAttr(Result, 'DateDeleted', dxDate_Deleted);
+	SetTextAttr(Result, 'DeletedBy', dxDeleted_By);
+	SetTextAttr(Result, 'ExternalGUID', dxExternal_GUID);
+	SetIntAttr(Result, 'DateEffective', dxDate_Effective);
+	SetIntAttr(Result, 'DatePresented', dxDate_Presented);
+	SetIntAttr(Result, 'SequenceNo', dxSequence_No);
+	SetInt64Attr(Result, 'Amount', dxAmount);
+	SetInt64Attr(Result, 'GSTAmount', dxGST_Amount);
+	SetInt64Attr(Result, 'Quantity', dxQuantity);
+	SetTextAttr(Result, 'Account', dxAccount);
+	SetTextAttr(Result, 'Reference', dxReference);
+	SetTextAttr(Result, 'Particulars', dxParticulars);
+	SetIntAttr(Result, 'CoreTransactionID', dxCore_Transaction_ID);
+	SetIntAttr(Result, 'CoreTransactionIDHigh', dxCore_Transaction_ID_High);
+
+	CNode := nil;
+	CCNode := nil;
+	PNode := nil;
+end;
+
+
+function TDeleted_Transaction_RecHelper.ReadRecFromNode(Node :IXMLNode): IXMLNode;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J: Integer;
+begin
+	if Node.NodeName = GetXMLNodeName then Result := Node
+	else
+	Result := Node.ChildNodes.FindNode(GetXMLNodeName);
+	if not assigned(Result) then exit;
+	try
+	dxDate_Deleted := GetIntAttr(Result, 'DateDeleted');
+	dxDeleted_By := GetTextAttr(Result, 'DeletedBy');
+	dxExternal_GUID := GetTextAttr(Result, 'ExternalGUID');
+	dxDate_Effective := GetIntAttr(Result, 'DateEffective');
+	dxDate_Presented := GetIntAttr(Result, 'DatePresented');
+	dxSequence_No := GetIntAttr(Result, 'SequenceNo');
+	dxAmount := GetInt64Attr(Result, 'Amount');
+	dxGST_Amount := GetInt64Attr(Result, 'GSTAmount');
+	dxQuantity := GetInt64Attr(Result, 'Quantity');
+	dxAccount := GetTextAttr(Result, 'Account');
+	dxReference := GetTextAttr(Result, 'Reference');
+	dxParticulars := GetTextAttr(Result, 'Particulars');
+	dxCore_Transaction_ID := GetIntAttr(Result, 'CoreTransactionID');
+	dxCore_Transaction_ID_High := GetIntAttr(Result, 'CoreTransactionIDHigh');
+	except
+		on E: Exception do ReRaise (E, 'Reading TDeleted_Transaction_Rec');
+	end;
+
+	CNode := nil;
+	CCNode := nil;
+	PNode := nil;
+end;
+
+// ----------------------------------------------------------------------------
+
+class function TExchange_Gain_Loss_RecHelper.GetXMLNodeName: string;
+begin
+	result := 'BKExchangeGainLoss';
+end;
+
+
+function TExchange_Gain_Loss_RecHelper.WriteRecToNode(var Node: IXMLNode): IXMLNode;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J, M: Integer;
+begin
+	Result := Node.AddChild(GetXMLNodeName);
+	SetIntAttr(Result, 'Date', glDate);
+	SetInt64Attr(Result, 'Amount', glAmount);
+	SetTextAttr(Result, 'Account', glAccount);
+	SetIntAttr(Result, 'PostedDate', glPosted_Date);
+
+	CNode := nil;
+	CCNode := nil;
+	PNode := nil;
+end;
+
+
+function TExchange_Gain_Loss_RecHelper.ReadRecFromNode(Node :IXMLNode): IXMLNode;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J: Integer;
+begin
+	if Node.NodeName = GetXMLNodeName then Result := Node
+	else
+	Result := Node.ChildNodes.FindNode(GetXMLNodeName);
+	if not assigned(Result) then exit;
+	try
+	glDate := GetIntAttr(Result, 'Date');
+	glAmount := GetInt64Attr(Result, 'Amount');
+	glAccount := GetTextAttr(Result, 'Account');
+	glPosted_Date := GetIntAttr(Result, 'PostedDate');
+	except
+		on E: Exception do ReRaise (E, 'Reading TExchange_Gain_Loss_Rec');
+	end;
+
+	CNode := nil;
+	CCNode := nil;
+	PNode := nil;
+end;
+
+// ----------------------------------------------------------------------------
+
+class function TFinalized_Exchange_Rate_RecHelper.GetXMLNodeName: string;
+begin
+	result := 'BKFinalizedExchangeRate';
+end;
+
+
+function TFinalized_Exchange_Rate_RecHelper.WriteRecToNode(var Node: IXMLNode): IXMLNode;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J, M: Integer;
+begin
+	Result := Node.AddChild(GetXMLNodeName);
+	SetIntAttr(Result, 'Date', frDate);
+
+	CNode := nil;
+	CCNode := nil;
+	PNode := nil;
+end;
+
+
+function TFinalized_Exchange_Rate_RecHelper.ReadRecFromNode(Node :IXMLNode): IXMLNode;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J: Integer;
+begin
+	if Node.NodeName = GetXMLNodeName then Result := Node
+	else
+	Result := Node.ChildNodes.FindNode(GetXMLNodeName);
+	if not assigned(Result) then exit;
+	try
+	frDate := GetIntAttr(Result, 'Date');
+	except
+		on E: Exception do ReRaise (E, 'Reading TFinalized_Exchange_Rate_Rec');
 	end;
 
 	CNode := nil;

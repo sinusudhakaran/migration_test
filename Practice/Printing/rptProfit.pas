@@ -80,7 +80,7 @@ type
   TProfitAndLossReportEx = class( TFinancialReportBase)
   protected
 
-    procedure GetValuesForPeriod(const pAcct : pAccount_Rec; const ForPeriod : integer; var Values : TValuesArray); override;
+    procedure GetValuesForPeriod(const pAcct : pAccount_Rec; const ForPeriod : integer; var Values : TValuesArray; UsePeriodStartEnd: boolean = false); override;
     procedure GetYTD_ValuesForPeriod(const pAcct : pAccount_Rec; const ForPeriod : integer; var Values : TValuesArray); override;
 
     procedure SetupColumnsTypes; override;
@@ -552,7 +552,7 @@ end;
 
 procedure TProfitAndLossReportEx.GetValuesForPeriod(
   const pAcct: pAccount_Rec; const ForPeriod: integer;
-  var Values: TValuesArray);
+  var Values: TValuesArray; UsePeriodStartEnd: boolean = false);
 var
   AccountInfo  : TProfitAndLossAccountInfo;
   i            : integer;
@@ -1147,7 +1147,7 @@ begin
       for DivisionIdx := 0 to Length(DivisionArray) - 1 do begin
         if DivisionArray[DivisionIdx] then begin
           clTemp_FRS_Division_To_Use := DivisionIdx;
-          CalculateAccountTotals.CalculateAccountTotalsForClient( lClient);
+          CalculateAccountTotals.CalculateAccountTotalsForClient( lClient, True, nil, -1, False, True, True);
           ProfitAndLossReport.ResetControlAccounts;
           ProfitAndLossReport.LoadAccountsToPrint;
           ProfitAndLossReport.ClearRunningTotals;
@@ -1216,7 +1216,7 @@ begin
 
    CalculateAccountTotals.AddAutoContraCodes( MyClient);
    try
-      CalculateAccountTotals.CalculateAccountTotalsForClient( MyClient);
+      CalculateAccountTotals.CalculateAccountTotalsForClient( MyClient, True, nil, -1, False, True, True);
 
       //build the report
       With MyClient, clFields do
@@ -1595,7 +1595,7 @@ begin
   MyClient.clFields.clTemp_FRS_Account_Totals_Cash_Only := False;
   CalculateAccountTotals.AddAutoContraCodes( MyClient);
   try
-    CalculateAccountTotals.CalculateAccountTotalsForClient( MyClient);
+    CalculateAccountTotals.CalculateAccountTotalsForClient( MyClient, True, nil, -1, False, True, True);
 
     MyDataModule := TDataModuleOffice.Create( nil);
 

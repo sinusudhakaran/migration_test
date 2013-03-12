@@ -612,41 +612,46 @@ begin
   ZipStream := TBigMemoryStream.Create;
   try
     GetZipStreamFromFile( bk5filename, ZipStream);
+
     DataStream := self.GetDataStreamFromZipStream(FileCode,ZipStream);
-    //read values from data stream
-    ReadFromDataStream( DataStream );
-{$IFNDEF ParserDll}
-    ClientCopyReload(DataStream);
-{$ENDIF}
+
+    try
+      //read values from data stream
+      ReadFromDataStream( DataStream );
+  {$IFNDEF ParserDll}
+      ClientCopyReload(DataStream);
+  {$ENDIF}
 
 
-{$IFDEF ParserDll}
-      // Realy only interested in
-      // Practice Name and Code
-{$ELSE}
-      UpdateRefs;
-      UpgradeClientToLatestVersion( Self);
-      //Update local country code to the base currency if it's not already set
-      if clExtra.ceLocal_Currency_Code = '' then
-        clExtra.ceLocal_Currency_Code := whCurrencyCodes[clFields.clCountry];
-      //update temporary fields
-      With clFields do
-      Begin
-         clFile_Save_Required       := FALSE;
-         clTime_of_Last_Save        := CurrentTime;
-         clUse_Minus_As_Lookup_Key  := clChart.UseMinusAsLookup;
-         clUppercase_Codes          := not clChart.AllowLowerCase;
-         clCurrent_CRC              := GetCurrentCRC;
-         clCRC_After_Loading        := clCurrent_CRC;
-         clCRC_at_Last_Save         := clCurrent_CRC;
-         clLast_Auto_Save_CRC       := clCurrent_CRC;
-         clTemp_Old_Download_From   := clDownload_From;
-      end;
-      FOpened := true;
-{$ENDIF}
+  {$IFDEF ParserDll}
+        // Realy only interested in
+        // Practice Name and Code
+  {$ELSE}
+        UpdateRefs;
+        UpgradeClientToLatestVersion( Self);
+        //Update local country code to the base currency if it's not already set
+        if clExtra.ceLocal_Currency_Code = '' then
+          clExtra.ceLocal_Currency_Code := whCurrencyCodes[clFields.clCountry];
+        //update temporary fields
+        With clFields do
+        Begin
+           clFile_Save_Required       := FALSE;
+           clTime_of_Last_Save        := CurrentTime;
+           clUse_Minus_As_Lookup_Key  := clChart.UseMinusAsLookup;
+           clUppercase_Codes          := not clChart.AllowLowerCase;
+           clCurrent_CRC              := GetCurrentCRC;
+           clCRC_After_Loading        := clCurrent_CRC;
+           clCRC_at_Last_Save         := clCurrent_CRC;
+           clLast_Auto_Save_CRC       := clCurrent_CRC;
+           clTemp_Old_Download_From   := clDownload_From;
+        end;
+        FOpened := true;
+  {$ENDIF}
+    finally
+      FreeAndNil( DataStream);
+    end;
   finally
     FreeAndNil( ZipStream);
-    FreeAndNil( DataStream);
   end;
 
   LogDebugMsg( ThisMethodName + ' ends');
@@ -682,31 +687,34 @@ begin
   ZipStream := TBigMemoryStream.Create;
   try
     GetZipStreamFromStream( FileCode,Stream, ZipStream);
+
     DataStream := self.GetDataStreamFromZipStream(FileCode,ZipStream);
-    //read values from data stream
-    ReadFromDataStream( DataStream );
-    UpdateRefs;
-    UpgradeClientToLatestVersion( Self);
+    try
+      //read values from data stream
+      ReadFromDataStream( DataStream );
+      UpdateRefs;
+      UpgradeClientToLatestVersion( Self);
       //Update local country code to the base currency if it's not already set
       if clExtra.ceLocal_Currency_Code = '' then
         clExtra.ceLocal_Currency_Code := whCurrencyCodes[clFields.clCountry];
       //update temporary fields
       With clFields do
       Begin
-         clFile_Save_Required       := FALSE;
-         clTime_of_Last_Save        := CurrentTime;
-         clUse_Minus_As_Lookup_Key  := clChart.UseMinusAsLookup;
-         clUppercase_Codes          := not clChart.AllowLowerCase;
-         clCurrent_CRC              := GetCurrentCRC;
-         clCRC_After_Loading        := clCurrent_CRC;
-         clCRC_at_Last_Save         := clCurrent_CRC;
-         clLast_Auto_Save_CRC       := clCurrent_CRC;
-         clTemp_Old_Download_From   := clDownload_From;
+        clFile_Save_Required       := FALSE;
+        clTime_of_Last_Save        := CurrentTime;
+        clUse_Minus_As_Lookup_Key  := clChart.UseMinusAsLookup;
+        clUppercase_Codes          := not clChart.AllowLowerCase;
+        clCurrent_CRC              := GetCurrentCRC;
+        clCRC_After_Loading        := clCurrent_CRC;
+        clCRC_at_Last_Save         := clCurrent_CRC;
+        clLast_Auto_Save_CRC       := clCurrent_CRC;
+        clTemp_Old_Download_From   := clDownload_From;
       end;
-
+    finally
+      FreeAndNil(DataStream);
+    end;
   finally
     FreeAndNil(ZipStream);
-    FreeAndNil(DataStream);
   end;
 end;
 

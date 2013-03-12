@@ -147,6 +147,7 @@ const
   ThisMethodName = 'DoTransaction';
 begin
   if DEBUG_ME then LogUtil.LogMsg(lmDebug, UNIT_NAME, ThisMethodName + ' Begins');
+
   Transaction.txDate_Transferred := CurrentDate;
   if SkipZeroAmountExport(Transaction) then
      Exit; // Im done...
@@ -192,7 +193,11 @@ begin
     if Transaction^.txSF_Member_Component > 0 then
       AddFieldNode(FTransactionNode, 'Member_Component', IntToStr(Transaction^.txSF_Member_Component));
   end;
+
+  Transaction.txForex_Conversion_Rate := Bank_Account.Default_Forex_Conversion_Rate(Transaction.txDate_Effective);
+
   Transaction^.txDate_Transferred := CurrentDate;
+
   Inc(FNoOfEntries);
 
   if DEBUG_ME then LogUtil.LogMsg(lmDebug, UNIT_NAME, ThisMethodName + ' Ends');

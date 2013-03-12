@@ -33,6 +33,7 @@ type
     FUnlocked: array[ stFirstPeriod..stLastPeriod ] of Integer;
     FDownloaded: array[ stFirstPeriod..stLastPeriod ] of Integer;
     FNonPosting: array[ stFirstPeriod..stLastPeriod ] of Integer;
+    FInvalidGST: array[ stFirstPeriod..stLastPeriod ] of Integer;
     FFirstdate,
     FLastDate: Integer;
 //    BLastDate : Integer;
@@ -59,6 +60,7 @@ type
     function GetDownloadedState( const Index: Integer ): TResultType;    
     function NoOfEntries( const Index: Integer ): Integer;
     function NoOfNonPostingEntries( const Index: Integer ): Integer;
+    function NoOfInvalidGSTEntries( const Index: Integer ): Integer;
     function NoOfCodedEntries( const Index: Integer ): Integer;
     function NoOfUncodedEntries( const Index: Integer ): Integer;
     function NoOfUnLockedEntries( const Index: Integer ): Integer;
@@ -80,7 +82,7 @@ type
 implementation
 
 uses
- SysUtils, Math, BKDefs, BkConst, StDate, BKBranding, Globals, CodingStatsList32;
+ SysUtils, Math, BKDefs, BkConst, StDate, BKBranding, Globals, CodingStatsList32, CAUtils;
 
 { TClientObjCodingStatistics }
 
@@ -136,7 +138,8 @@ function TClientCodingStatistics.GetCodingState(
   const Index: Integer ): TResultType;
 begin
   CheckIndex( Index, 'Index out of range in TClientObjCodingStatistics.GetCodingState' );
-  Result := GetResult( NoOfCodedEntries( Index ) - NoOfNonPostingEntries( Index ), FCount[ Index ] );
+  Result := GetResult( NoOfCodedEntries( Index ) - (NoOfNonPostingEntries( Index ) +
+            NoOfInvalidGSTEntries( Index )), FCount[ Index ] );
 end;
 
 function TClientCodingStatistics.GetLockState(
@@ -215,6 +218,13 @@ begin
   Result := FNonPosting[ Index ];
 end;
 
+function TClientCodingStatistics.NoOfInvalidGSTEntries(
+  const Index: Integer): Integer;
+begin
+  CheckIndex( Index, 'Index out of range in TClientObjCodingStatistics.NoOfInvalidGSTEntries' );
+  Result := FInvalidGST[ Index ];
+end;
+
 function TClientCodingStatistics.NoOfUncodedEntries(
   const Index: Integer ): Integer;
 begin
@@ -239,6 +249,7 @@ begin
     FillChar (FUnlocked,      Sizeof(FUnlocked ),     0);
     FillChar (FDownloaded,    Sizeof(FDownloaded ),   0);
     FillChar (FNonPosting,    Sizeof(FNonPosting ),   0);
+    FillChar (FInvalidGST,    Sizeof(FInvalidGST ),   0);
     FFirstdate := MaxInt;
     FLastDate := 0;
     FLastDate := 0;
@@ -311,7 +322,7 @@ begin
          Exit;
       end;
 
-      if (FUncodes[Index]> 0) or (FNonPosting[Index] > 0) then
+      if (FUncodes[Index]> 0) or (FNonPosting[Index] > 0) or (FInvalidGST[Index] > 0) then
          Result := bkBranding.ColorUncoded // All i need to know
       else
       // All Coded...
@@ -348,19 +359,27 @@ begin
          Exit;
       end;
 
-      if FUncodes[Index]> 0 then begin
+      if (FUncodes[Index] > 0) or (FInvalidGST[Index] > 0) or (FNonPosting[Index] > 0) then begin
          if NoOfCodedEntries(Index) = 0 then
            Result := 'All Uncoded'
+         else if (NoOfUncodedEntries(Index) + NoOfNonPostingEntries(Index)) = 0 then
+           Result := 'All Coded'
          else begin
-           Result := 'Uncoded: ' + intToStr(NoOfUncodedEntries (Index));
+           Result := 'Uncoded: ' + intToStr(NoOfUncodedEntries (Index) + NoOfNonPostingEntries(Index));
            if MultiLine then
               Result := Result + #10;
 
-           Result := Result + ('Coded: ' + intToStr(NoOfCodedEntries (Index)));
-        end
+           Result := Result + ('Coded: ' + intToStr(NoOfCodedEntries (Index) - NoOfNonPostingEntries(Index)));
+         end;
+         if FInvalidGST[Index] > 0 then
+         begin
+           if MultiLine then
+             Result := Result + #10;
+           Result := Result + 'Invalid GST class: ' + intToStr(NoOfInvalidGSTEntries (Index));
+         end;
       end else
       // All Coded...
-         Result := 'All Coded'
+        Result := 'All Coded'
 
    end
    else if FDownloaded[Index] > 0 then
@@ -541,16 +560,19 @@ Var
   T  : Integer;
 
   procedure GetTransStats (Transaction: pTransaction_Rec);
-  var Dissection: pDissection_Rec;
-      P: Integer;
-      Account_Rec : pAccount_Rec;
+  var
+    Dissection: pDissection_Rec;
+    P: Integer;
+    Account_Rec : pAccount_Rec;
+    NonPostingFound: boolean;
   begin
+     NonPostingFound := False;
      FFirstDate := Min (FFirstDate, Transaction.txDate_Effective);
      FLastDate  := Max (FLastDate,  Transaction.txDate_Effective);
      P := GetPeriod( Transaction.txDate_Effective );
      Inc(FCount[p]);
      // Add the transactions with posting not allowed. Any period with a
-     // transaction that doesn't have posting allowed is not fully coded 
+     // transaction that doesn't have posting allowed is not fully coded
      if (Transaction.txAccount <> '') then
      begin
        Dissection := Transaction.txFirst_Dissection;
@@ -565,9 +587,40 @@ Var
            //check the dissections instead...
            Account_Rec := Client.clChart.FindCode(Dissection.dsAccount);
            if (Assigned(Account_Rec)) and not (Account_Rec^.chPosting_Allowed) then
+           begin
+             // This may get cancelled out below when we check for Uncodes, as we don't want to
+             // add to this stat if there is another transaction in the dissection which is uncoded
              Inc(FNonPosting[p]);
+             NonPostingFound := True;
+             break;
+           end;
            Dissection := Dissection.dsNext;
          until Dissection = nil;
+       end;
+     end;
+
+     // Transactions with invalid GST codes
+     if IsCASystems(Client) then
+     begin
+       if (Transaction.txAccount <> '') then
+       begin
+         Dissection := Transaction.txFirst_Dissection;
+         if Dissection = nil then
+         begin
+           if not CASystemsGSTOK(Client, Transaction^.txGST_Class) then
+             inc(FInvalidGST[p]);
+         end else
+         begin
+           repeat
+             //check the dissections instead...
+             if not CASystemsGSTOK(Client, Dissection.dsGST_Class) then
+             begin
+               inc(FInvalidGST[p]);
+               break;
+             end;
+             Dissection := Dissection.dsNext;
+           until Dissection = nil;
+         end;
        end;
      end;
 
@@ -605,6 +658,10 @@ Var
                 //Inc(FCount[p]);
                 if Client.clChart.FindCode( Dissection.dsAccount ) = nil then begin
                    Inc(FUncodes[p]);
+                   if NonPostingFound then
+                     // We don't want to count this dissection as non posted
+                     // if one of its child transactions is uncoded
+                     Dec(FNonPosting[p]);
                    Exit; // One is enough
                    //FFirstUncodeDate := Min ( FFirstUncodeDate, Transaction.txDate_Effective);
                    //FLastUncodedDate := Max ( FLastUncodedDate, Transaction.txDate_Effective);

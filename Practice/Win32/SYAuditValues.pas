@@ -19,6 +19,8 @@ uses
   procedure AddClientAccountMapAuditValues(AAuditRecord: TAudit_Trail_Rec; var Values: string);
   procedure AddClientFileAuditValues(AAuditRecord: TAudit_Trail_Rec; var Values: string);
   procedure AddMasterMemorisationAuditValues(AAuditRecord: TAudit_Trail_Rec; var Values: string);
+  procedure AddExchangeGainLossAuditValues(const AAuditRecord: TAudit_Trail_Rec;
+              var Values: string);
 
   //Not used because the system disk log is an audit!
 //  procedure AddSystemDiskLogAuditValues(AAuditRecord: TAudit_Trail_Rec; var Values: string);
@@ -28,7 +30,7 @@ implementation
 uses
   SYAUDIT, BKAUDIT, SYDEFS, BKCONST, MoneyDef, bkdateutils, GenUtils, SysUtils, CountryUtils,
   SYATIO, SYUSIO, SYFDIO, SYDLIO, SYSBIO, SYAMIO, SYCFIO, SYSMIO,
-  BKMDIO, BKMLIO;
+  BKMDIO, BKMLIO, BKglIO;
 
 const
   BANK_ACCOUNT = 'Bank Account';
@@ -890,5 +892,49 @@ end;
 //    Token := AAuditRecord.atChanged_Fields[idx];
 //  end;
 //end;
+
+procedure AddExchangeGainLossAuditValues(const AAuditRecord: TAudit_Trail_Rec;
+  var Values: string);
+var
+  Token, Idx: byte;
+  ARecord: Pointer;
+begin
+  ARecord := AAuditRecord.atAudit_Record;
+
+  if ARecord = nil then begin
+    Values := AAuditRecord.atOther_Info;
+    Exit;
+  end;
+
+  case AAuditRecord.atAudit_Record_Type of
+    tkBegin_Exchange_Gain_Loss:
+      begin
+        Idx := 0;
+        Token := AAuditRecord.atChanged_Fields[idx];
+
+        while Token <> 0 do begin
+          case Token of
+            { Note: the token values are declared in the implementation section
+              of BKglIO, so we can't use them.
+            }
+            204: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_Exchange_Gain_Loss, Token),
+                                              BKDate2Str(TExchange_Gain_Loss_Rec(ARecord^).glDate), Values);
+
+            205: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_Exchange_Gain_Loss, Token),
+                                              Money2Str(TExchange_Gain_Loss_Rec(ARecord^).glAmount), Values);
+
+            206: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_Exchange_Gain_Loss, Token),
+                                              TExchange_Gain_Loss_Rec(ARecord^).glAccount, Values);
+
+            207: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_Exchange_Gain_Loss, Token),
+                                              BKDate2Str(TExchange_Gain_Loss_Rec(ARecord^).glPosted_Date), Values);
+        end;
+
+        Inc(Idx);
+        Token := AAuditRecord.atChanged_Fields[idx];
+      end;
+    end;
+  end;
+end;
 
 end.

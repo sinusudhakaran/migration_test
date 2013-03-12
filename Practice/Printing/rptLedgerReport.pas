@@ -102,7 +102,9 @@ uses
    BKUtil32,
    calculateAccountTotals,
    WarningMoreFrm,
-   ForexHelpers;
+   ForexHelpers,
+   glList32,
+   glObj32;
 
 const
   QUANTITY_FORMAT = '#,##0.0000;(#,##0.0000);-';
@@ -118,6 +120,32 @@ const
 
 Var
   NET_AMOUNT_CAPTION : String;
+
+function HasExchangeGainLossEntries(const Code: String; Params: TLRParameters): Boolean;
+var
+  Index: Integer;
+  BankAccount: TBank_Account;
+begin
+  Result := False;
+
+  if IsForeignCurrencyClient then
+  begin
+    for Index := 0 to MyClient.clBank_Account_List.ItemCount - 1 do
+    begin
+      BankAccount := MyClient.clBank_Account_List.Bank_Account_At(Index);
+
+      if BankAccount.baFields.baExchange_Gain_Loss_Code = Code then
+      begin
+        if Length(BankAccount.baExchange_Gain_Loss_List.GetEntriesPostedBetween(Params.FromDate, Params.ToDate)) > 0  then
+        begin
+          Result := True;
+
+          Exit;
+        end;
+      end;
+    end;
+  end;
+end;
 
 // Takes a value and quantity and returns a unit price
 function CalcAverage(v,q : currency) : currency;
@@ -335,7 +363,7 @@ begin
                 while Curr_Dissect <> nil do
                 begin
                   if Curr_Dissect.dsAccount = Code then
-                    Result := Result + ( Curr_Dissect.dsAmount - Curr_Dissect.dsGST_Amount);
+                    Result := Result + ( Curr_Dissect.dsTemp_Base_Amount - Curr_Dissect.dsGST_Amount);
                   Curr_Dissect := Curr_Dissect.dsNext;
                 end;
               end;
@@ -354,6 +382,7 @@ begin
     AccountInfo.UseBudgetIfNoActualData     := False;
     AccountInfo.LastPeriodOfActualDataToUse := Client.clFields.clTemp_FRS_Last_Actual_Period_To_Use;
     AccountInfo.AccountCode := Code;
+    AccountInfo.UseBaseAmounts := True;
     StDatetoDMY(Client.clFields.clFinancial_Year_Starts, Df, Mf, Yf);
     StDatetoDMY(Client.clFields.clTemp_FRS_To_Date, Dp, Mp, Yp);
     if (Df = Dp) and (Mf = Mp) then // If start date = financial year start then just get opening bal
@@ -597,9 +626,9 @@ begin
       if (Mgr.BankContraType = Byte(bcTotal)) and
          (Mgr.ContraCodePrinted = Mgr.Bank_Account.baFields.baContra_Account_Code) and
          (not (Mgr.Bank_Account.baFields.baAccount_Type in LedgerNoContrasJournalSet)) and         
-         (dsAmount <> 0) and (not SummaryReport) then
+         (dsTemp_Base_Amount <> 0) and (not SummaryReport) then
       begin
-        Mgr.AccountTotalGross := Mgr.AccountTotalGross + (-dsAmount);
+        Mgr.AccountTotalGross := Mgr.AccountTotalGross + (-dsTemp_Base_Amount);
         Mgr.AccountHasActivity := True;
       end;
 
@@ -621,11 +650,11 @@ begin
       begin
         if SummaryReport then
         begin
-          Mgr.AccountTotalGross    := Mgr.AccountTotalGross + dsAmount;
+          Mgr.AccountTotalGross    := Mgr.AccountTotalGross + dsTemp_Base_Amount;
           Mgr.AccountTotalTax      := Mgr.AccountTotalTax   + dsGST_Amount;
-          Mgr.AccountTotalNet      := Mgr.AccountTotalNet   + ( dsAmount - dsGST_Amount);
+          Mgr.AccountTotalNet      := Mgr.AccountTotalNet   + ( dsTemp_Base_Amount - dsGST_Amount);
           Mgr.AccountTotalQuantity := Mgr.AccountTotalQuantity + dsQuantity;
-          Mgr.AccountHasActivity := (dsAmount <> 0) or (dsGST_Amount <> 0);
+          Mgr.AccountHasActivity := (dsTemp_Base_Amount <> 0) or (dsGST_Amount <> 0);
         end
         else
         begin
@@ -642,7 +671,7 @@ begin
           If Quantities then
           begin
             //qty is shown as +ve as long as signs match
-            Net := dsAmount - dsGST_Amount;
+            Net := dsTemp_Base_Amount - dsGST_Amount;
             Qty := dsQuantity;
             Avg := calcAverage(Net/100,Qty/10000);
           end
@@ -662,7 +691,7 @@ begin
 
 
           TListLedgerReport(ReportJob).PutWrapped(Narration, dsGST_Class,
-            dsAmount, dsGST_Amount, dsAmount - dsGST_Amount, Qty, Avg, Notes);
+            dsTemp_Base_Amount, dsGST_Amount, dsTemp_Base_Amount - dsGST_Amount, Qty, Avg, Notes);
 
           RenderDetailLine;
         end;
@@ -675,9 +704,9 @@ begin
       begin
         if SummaryReport then
         begin
-          AccountTotalGross    := AccountTotalGross + (-dsAmount);
-          AccountTotalNet      := AccountTotalNet + (-dsAmount);
-          Mgr.AccountHasActivity := dsAmount <> 0;
+          AccountTotalGross    := AccountTotalGross + (-dsTemp_Base_Amount);
+          AccountTotalNet      := AccountTotalNet + (-dsTemp_Base_Amount);
+          Mgr.AccountHasActivity := dsTemp_Base_Amount <> 0;
         end
         else if (Mgr.BankContraType = Byte(bcAll)) then
         begin
@@ -699,7 +728,7 @@ begin
           Narration :=  GetNarration(Mgr.Dissection, Mgr.Bank_Account.baFields.baAccount_Type);
 
           TListLedgerReport(ReportJob).PutWrapped(Narration, dsGST_Class,
-            -dsAmount, 0, -dsAmount, 0, 0, Notes);
+            -dsTemp_Base_Amount, 0, -dsTemp_Base_Amount, 0, 0, Notes);
 
           RenderDetailLine;
           Mgr.AccountHasActivity := True;
@@ -741,9 +770,70 @@ begin
    end;
 end;
 
+procedure LGR_Contra_PrintExchangeGainLoss(Sender:TObject);
+Var
+   Code  : Bk5CodeStr;
+   RS    : string[20];
+   Mgr : TListLedgerTMgr;
+   Avg : Currency;
+   Net : Money;
+   Qty : Money;
+   GSTControlAccount, Notes: string;
+   Account: pAccount_Rec;
+   //IsSummary: Boolean;
+begin
+   Mgr := TListLedgerTMgr(Sender);
+
+   With Mgr, Mgr.ReportJob, TListLedgerReport(Mgr.ReportJob).Params do
+   Begin
+      //is bank account included in this report?
+      if not IsBankAccountIncluded(ReportJob, Mgr) then Exit;
+
+      Code := ExchangeGainLossEntry.glAccount;
+
+      //print contra entries if requested
+      //note: txn may be printed twice (actual entry and contra) if its coded to this account
+      if (Mgr.BankContraType = Byte(bcTotal)) and
+         (Mgr.ContraCodePrinted = Mgr.Bank_Account.baFields.baContra_Account_Code) and
+         (not (Mgr.Bank_Account.baFields.baAccount_Type in LedgerNoContrasJournalSet)) and
+         (ExchangeGainLossEntry.glAmount <> 0) and (not SummaryReport) then
+      begin
+        Mgr.AccountTotalGross := Mgr.AccountTotalGross + (-ExchangeGainLossEntry.glAmount);
+        Mgr.AccountHasActivity := True;
+      end;
+
+      //bank contra
+      if (Mgr.ContraCodePrinted = Mgr.Bank_Account.baFields.baContra_Account_Code) and (not (Mgr.Bank_Account.baFields.baAccount_Type in LedgerNoContrasJournalSet)) then
+      begin
+        Account := Chart.FindCode(Code);
+
+        if Assigned(Account) then
+        begin
+          if SummaryReport then
+          begin
+            AccountTotalGross    := AccountTotalGross + (-ExchangeGainLossEntry.glAmount);
+            AccountTotalNet    := AccountTotalNet + (-ExchangeGainLossEntry.glAmount);
+            Mgr.AccountHasActivity := ExchangeGainLossEntry.glAmount <> 0;
+          end
+          else if (Mgr.BankContraType = Byte(bcAll)) then
+          begin
+            PutString( bkDate2Str ( ExchangeGainLossEntry.glDate ));
+
+            PutString(Account.chAccount_Code);
+
+            TListLedgerReport(ReportJob).PutWrapped(Account.chAccount_Description, 0, -ExchangeGainLossEntry.glAmount, 0, -ExchangeGainLossEntry.glAmount, 0, 0, Notes);
+
+            RenderDetailLine;
+
+            Mgr.AccountHasActivity := True;
+          end;
+        end;
+      end;
+   end;
+end;
+
 procedure PrintSummaryListLedgerLine( Mgr : TListLedgerTMgr; Code : BK5CodeStr; Job: TBKReport);
 var
-  i: integer;
   P     : pAccount_Rec;
   Avg   : Currency;
   Report: TListLedgerReport;
@@ -804,7 +894,8 @@ var
   IsBankContra, IsGSTContra: Boolean;
   BC, GC: Integer;
   BCType, GCType: Byte;
-begin with TListLedgerReport(ReportJob).Params do begin
+begin
+  with TListLedgerReport(ReportJob).Params do begin
   result := false;
 
   //are bank contras needed in this report for this code
@@ -840,6 +931,7 @@ begin with TListLedgerReport(ReportJob).Params do begin
       ContraTravMgr.GSTContraType        := GCType;
       ContraTravMgr.OnEnterEntry      := LGR_Contra_PrintEntry;
       ContraTravMgr.OnEnterDissection := LGR_Contra_PrintDissect;
+      ContraTravMgr.OnEnterExchangeGainLoss := LGR_Contra_PrintExchangeGainLoss;
 
       ContraTravMgr.TraverseAllEntries(fromdate ,Todate);
 
@@ -1475,11 +1567,11 @@ begin
          end;
       end;
       //store values
-      AccountTotalGross    := AccountTotalGross + dsAmount;
+      AccountTotalGross    := AccountTotalGross + dsTemp_Base_Amount;
       AccountTotalTax      := AccountTotalTax   + dsGST_Amount;
-      AccountTotalNet      := AccountTotalNet   + ( dsAmount - dsGST_Amount);
+      AccountTotalNet      := AccountTotalNet   + ( dsTemp_Base_Amount - dsGST_Amount);
       AccountTotalQuantity := AccountTotalQuantity + dsQuantity;
-      if ( dsAmount <> 0) or ( dsGST_Amount <> 0) then
+      if ( dsTemp_Base_Amount <> 0) or ( dsGST_Amount <> 0) then
          AccountHasActivity := true;
 
       //Super
@@ -1524,7 +1616,7 @@ Var
 begin
    Mgr := TListLedgerTMgr(Sender);
 
-   With Mgr, ReportJob,TListLedgerReport(ReportJob).Params, Transaction^ do
+   With Mgr, ReportJob, ReportJob, TListLedgerReport(ReportJob).Params, Transaction^ do
    Begin
       //is bank account included in this report?
       if not IsBankAccountIncluded(ReportJob, Mgr) then
@@ -1575,7 +1667,9 @@ begin
            P := Chart.FindNextCode(LastCodePrinted, False);
          // Some conditions to handle invalid codes
          OKToPrint := ((not IsValidCode) and Assigned(P) and (P^.chAccount_Code < Code)) or // this code is invalid but next valid code is less than this one - need to show it
-                      ((not IsValidCode) and (LastCodePrinted = LastValidCode) and (LastCodePrinted <> NULLCODE)); // this code is invalid but last was valid - need to show any between last and this
+                      ((not IsValidCode) and (LastCodePrinted = LastValidCode) and (LastCodePrinted <> NULLCODE)) and // this code is invalid but last was valid - need to show any between last and this
+                      (not Client.clBank_Account_List.IsExchangeGainLossCode(p.chAccount_Code));
+                      
          if Assigned(P) and (IsValidCode or OKToPrint) then
            while (Code <> '') and (P^.chAccount_Code <> Code) and (P^.chAccount_Code < Code) do
            begin                      
@@ -1583,19 +1677,25 @@ begin
              if TListLedgerReport(ReportJob).ShowCodeOnReport( P^.chAccount_Code) then
              begin
                With P^ do S := chAccount_Code + '  ' + chAccount_Description;
+
                IsContras := IsThisAContraCode(P^.chAccount_Code, ReportJob);
+               
                // show if contra or showing empty posting codes or showing non-posting codes with a balance
-               if (IsContras or (PrintEmptyCodes and
-                     (P^.chPosting_Allowed or (ShowBalances and (GetOpeningBalanceAmount(Client,P^.chAccount_Code) <> 0))))) then
+               if (IsContras or (PrintEmptyCodes and (P^.chPosting_Allowed or (ShowBalances and (GetOpeningBalanceAmount(Client,P^.chAccount_Code) <> 0))))) then
                begin
                  RenderTitleLine(S);
+
                  TListLedgerReport(ReportJob).SplitCode := S + ' (continued)';
+
                  if ShowBalances and (P^.chAccount_Code <> '') then
                    ReportLedgerOpeningBalance(P^.chAccount_Code, ReportJob, True);
+
                  if IsContras then
                    DoContras(ReportJob, P^.chAccount_Code);
+
                  if ShowBalances and (P^.chAccount_Code <> '') then
                    ReportLedgerClosingBalance(P^.chAccount_Code, ReportJob, IsContras);
+
                  TListLedgerReport(ReportJob).DoneSubTotal := False;
                  TListLedgerReport(ReportJob).SplitCode := '';
                  TListLedgerReport(ReportJob).ClearSubTotals;
@@ -1684,7 +1784,7 @@ Var
    IsContras, IsValidCode, OKToPrint: Boolean;
 begin
    Mgr := TListLedgerTMgr(Sender);
-   With Mgr, ReportJob,TListLedgerReport(ReportJob).Params, Transaction^, Dissection^ do
+   With Mgr, ReportJob, TListLedgerReport(ReportJob).Params, Transaction^, Dissection^ do
    Begin
       //is bank account included in this report?
       if not IsBankAccountIncluded(ReportJob, Mgr) then
@@ -1729,8 +1829,9 @@ begin
 
          // Some conditions to handle invalid codes
          OKToPrint := ((not IsValidCode) and Assigned(P) and (P^.chAccount_Code < Code)) or // this code is invalid but next valid code is less than this one - need to show it
-                      ((not IsValidCode) and (LastCodePrinted = LastValidCode) and (LastCodePrinted <> NULLCODE)); // this code is invalid but last was valid - need to show any between last and this
-
+                      ((not IsValidCode) and (LastCodePrinted = LastValidCode) and (LastCodePrinted <> NULLCODE)) and // this code is invalid but last was valid - need to show any between last and this
+                      (not Client.clBank_Account_List.IsExchangeGainLossCode(p.chAccount_Code));
+                      
          if Assigned(P) and (IsValidCode or OKToPrint) then
            while (Code <> '') and (P^.chAccount_Code <> Code) and (P^.chAccount_Code < Code) do
            begin
@@ -1809,7 +1910,7 @@ begin
       If Quantities then
       begin
         //qty is shown as +ve as long as signs match
-        Net := dsAmount - dsGST_Amount;
+        Net := dsTemp_Base_Amount - dsGST_Amount;
         Qty := dsQuantity;
         Avg := calcAverage(Net/100,Qty/10000);
       end
@@ -1829,10 +1930,385 @@ begin
       Narration := GetNarration( Mgr.Dissection, Mgr.Bank_Account.baFields.baAccount_Type);
 
       TListLedgerReport(ReportJob).PutWrapped(Narration, dsGST_Class,
-        dsAmount, dsGST_Amount, dsAmount - dsGST_Amount, Qty, Avg, Notes);
+        dsTemp_Base_Amount, dsGST_Amount, dsTemp_Base_Amount - dsGST_Amount, Qty, Avg, Notes);
 
       RenderDetailLine;
       AccountHasActivity := True;
+   end;
+end;
+
+procedure LGR_PrintExchangeGainLoss(Sender: TObject);
+var
+  BankAccount: TBank_Account;
+  BankIndex: Integer;
+  CodeIndex: Integer;
+  EntryIndex: Integer;
+  GainLossEntryList: TExchangeGainLossEntryList;
+  GainLossEntry: TExchange_Gain_Loss;
+  CodeList: TStringList;
+  Account: pAccount_Rec;
+  P: pAccount_Rec;
+  Title: String;
+  TitleLineRendered: Boolean;
+  DetailLinesRendered: Boolean;
+  Mgr : TListLedgerTMgr;
+  Code  : Bk5CodeStr;
+  S, Notes : String;
+  IsContras, IsValidCode, OKToPrint: Boolean;
+begin
+   Mgr := TListLedgerTMgr(Sender);
+
+   With Mgr, ReportJob, TListLedgerReport(ReportJob) do
+   Begin
+     //is bank account included in this report?
+     if not IsBankAccountIncluded(ReportJob, Mgr) then Exit;
+                        
+     Code := ExchangeGainLossEntry.glAccount;
+
+      //is code in range?
+     if not TListLedgerReport(ReportJob).ShowCodeOnReport(ExchangeGainLossEntry.glAccount) then Exit;
+
+     IsValidCode := Assigned(Params.Chart.FindCode(Code));
+
+     if Code <> LastCodePrinted then // its a new code
+     begin
+       // end last code
+       if LastCodePrinted <> NullCode then
+       begin
+         if not TListLedgerReport(ReportJob).DoneSubTotal then // avoid duplicate subtotals
+         begin
+           RenderDetailSubTotal('', False, True);
+         end;
+         
+         // Show closing balance if requested
+         if Params.ShowBalances and (LastCodePrinted <> '') then
+         begin
+           ReportLedgerClosingBalance(LastCodePrinted, ReportJob, AccountHasActivity, LastCodePrinted = LastValidCode);
+         end;
+
+         // Need subtotals to calculate closing bal so do not clear during the subtotal printing
+         // only safe to clear once closing balances have been printed
+         TListLedgerReport(ReportJob).ClearSubTotals;
+         TListLedgerReport(ReportJob).DoneSubTotal := False;
+       end;
+
+       TListLedgerReport(ReportJob).SplitCode := '';
+
+       if (LastCodePrinted = NullCode) or (LastValidCode = NullCode) then
+       begin
+         P := Params.Chart.FindNextCode('', False); // finds first code
+       end
+       else if LastCodePrinted <> LastValidCode then
+       begin
+         P := Params.Chart.FindNextCode(LastValidCode, False);
+       end
+       else
+       begin
+         P := Params.Chart.FindNextCode(LastCodePrinted, False);
+       end;
+
+       // Some conditions to handle invalid codes
+       OKToPrint := ((not IsValidCode) and Assigned(P) and (P^.chAccount_Code < Code)) or // this code is invalid but next valid code is less than this one - need to show it
+                    ((not IsValidCode) and (LastCodePrinted = LastValidCode) and (LastCodePrinted <> NULLCODE)); // this code is invalid but last was valid - need to show any between last and this
+
+       if Assigned(P) and (IsValidCode or OKToPrint) then
+       begin
+         while (Code <> '') and (P^.chAccount_Code <> Code) and (P^.chAccount_Code < Code) do
+         begin
+           //is code in range?
+           if TListLedgerReport(ReportJob).ShowCodeOnReport( P^.chAccount_Code) then
+           begin
+             with P^ do
+             begin
+               S := chAccount_Code + '  ' + chAccount_Description;
+             end;
+
+             IsContras := IsThisAContraCode(P^.chAccount_Code, ReportJob);
+             
+             // show if contra or showing empty posting codes or showing non-posting codes with a balance
+             if (IsContras or (Params.PrintEmptyCodes and Params.Client.clBank_Account_List.IsExchangeGainLossCode(p.chAccount_Code) and (P^.chPosting_Allowed or (Params.ShowBalances and (GetOpeningBalanceAmount(Params.Client, P^.chAccount_Code) <> 0))))) then
+             begin
+               RenderTitleLine(S);
+
+               TListLedgerReport(ReportJob).SplitCode := S + ' (continued)';
+
+               if Params.ShowBalances and (P^.chAccount_Code <> '') then
+               begin
+                 ReportLedgerOpeningBalance(P^.chAccount_Code, ReportJob, True);
+               end;
+
+               if IsContras then
+               begin
+                 DoContras(ReportJob, P^.chAccount_Code);
+               end;
+               
+               if Params.ShowBalances and (P^.chAccount_Code <> '') then
+               begin
+                 ReportLedgerClosingBalance(P^.chAccount_Code, ReportJob, False);
+               end;
+
+               TListLedgerReport(ReportJob).DoneSubTotal := False;
+               TListLedgerReport(ReportJob).SplitCode := '';
+               TListLedgerReport(ReportJob).ClearSubTotals;
+
+               LastValidCode := P^.chAccount_Code;
+             end;
+           end;
+
+           P := Params.Chart.FindNextCode(P^.chAccount_Code, False);
+           
+           if not Assigned(P) then
+           begin
+             Break;
+           end;
+         end;
+       end;
+
+       //Now we start to print the new code
+       if Code = '' then
+       begin
+         S := 'Uncoded';
+       end
+       else
+       begin
+         Account := Params.Chart.FindCode( Code );
+
+         If Assigned( Account ) then
+         begin
+           with Account^ do
+           begin
+             S := Code + '  ' + chAccount_Description;
+           end
+         end
+         else
+         begin
+           S := Code + '  INVALID CODE!';
+         end;
+       end;
+
+       RenderTitleLine (S);
+
+       TListLedgerReport(ReportJob).SplitCode := S + ' (continued)';
+
+       LastCodePrinted := Code;
+
+       if IsValidCode then
+       begin
+         LastValidCode := Code;
+       end;
+       
+       // Show opening balance if requested
+       if Params.ShowBalances and (Code <> '') then
+       begin
+         ReportLedgerOpeningBalance(Code, ReportJob, True, Assigned(Account));
+       end;
+
+       // Show contras for this code - this will display ALL transactions
+       // for this code (so that they display in date order)
+       // so after this we need to move onto next code (as per skipping txns earlier in this proc)
+       if IsThisAContraCode(Code, ReportJob) then
+       begin
+         AccountHasActivity := DoContras(ReportJob, Code);
+         ContraCodePrinted := Code;
+         Exit;
+       end;
+     end;
+
+     PutString(bkDate2Str(ExchangeGainLossEntry.glDate));
+
+     SkipColumn;
+     SkipColumn;
+
+     PutMoney(ExchangeGainLossEntry.glAmount);
+
+     RenderDetailLine;
+   end;
+end;
+
+procedure SummaryListLedger_PrintExchangeGainLoss(Sender: TObject);
+Var
+   Code  : Bk5CodeStr;
+   Mgr   : TListLedgerTMgr;
+   P     : pAccount_Rec;
+   S     : string;
+   IsContras, IsEmpty, IsValidCode, OKToPrint: Boolean;
+begin
+   Mgr := TListLedgerTMgr(Sender);
+   
+   with Mgr, ReportJob,TListLedgerReport(ReportJob).Params, Mgr.Transaction^ do
+   begin
+      if not IsBankAccountIncluded(ReportJob, Mgr) then Exit;
+
+      Code := ExchangeGainLossEntry.glAccount;
+
+      //is code in range?
+      if not TListLedgerReport(ReportJob).ShowCodeOnReport( Code) then Exit;
+      
+      IsValidCode := Assigned(Chart.FindCode(Code));
+
+      //code has changed
+      if (Code <> LastCodePrinted) then
+      begin
+        if (LastCodePrinted <> NullCode) then
+        begin
+          //code has changed so print totals
+          if (AccountHasActivity or PrintEmptyCodes) and (not TListLedgerReport(ReportJob).DoneSubTotal) then
+          begin
+            PrintSummaryListLedgerLine(Mgr, LastCodePrinted, TListLedgerReport(ReportJob));
+          end;
+
+          // Show closing balance if requested
+          if ShowBalances and (LastCodePrinted <> '') then
+          begin
+            ReportLedgerClosingBalance(LastCodePrinted, ReportJob, False, LastCodePrinted = LastValidCode);
+
+            TListLedgerReport(ReportJob).SplitCode := '';
+
+            RenderTextLine('');
+          end;
+        end;
+
+         //clear temp information
+         AccountHasActivity := false;
+         AccountTotalGross  := 0;
+         AccountTotalTax    := 0;
+         AccountTotalNet    := 0;
+         AccountTotalQuantity:= 0;
+         TListLedgerReport(ReportJob).DoneSubTotal := False;
+         TListLedgerReport(ReportJob).SplitCode := '';
+         TListLedgerReport(ReportJob).ClearSubTotals;
+
+         //Clear Super
+         ClearSuper;
+
+         //request to show all codes regardless of any activity
+         //look for all codes in between last (valid) one printed and next to be printed
+
+         if (LastCodePrinted = NullCode) or (LastValidCode = NullCode) then
+         begin
+           P := Chart.FindNextCode('', False);
+         end
+         else if LastCodePrinted <> LastValidCode then
+         begin
+           P := Chart.FindNextCode(LastValidCode, False);
+         end
+         else
+         begin
+           P := Chart.FindNextCode(LastCodePrinted, False);
+         end;
+         
+         // Some conditions to handle invalid codes
+         OKToPrint := ((not IsValidCode) and Assigned(P) and (P^.chAccount_Code < Code)) or // this code is invalid but next valid code is less than this one - need to show it
+                      ((not IsValidCode) and (LastCodePrinted = LastValidCode) and (LastCodePrinted <> NULLCODE)); // this code is invalid but last was valid - need to show any between last and this
+
+         if Assigned(P) and (IsValidCode or OKToPrint) then
+         begin
+           while (Code <> '') and (P^.chAccount_Code <> Code) and (P^.chAccount_Code < Code) do
+           begin
+             //is code in range?
+             if TListLedgerReport(ReportJob).ShowCodeOnReport( P^.chAccount_Code) then
+             begin
+               IsContras := IsThisAContraCode(P^.chAccount_Code, ReportJob);
+               IsEmpty := PrintEmptyCodes and (P^.chPosting_Allowed or (ShowBalances and (GetOpeningBalanceAmount(Client,P^.chAccount_Code) <> 0)));
+
+               if IsContras or IsEmpty then
+               begin
+                 if ShowBalances and (P^.chAccount_Code <> '') then
+                 begin
+                   RenderTitleLine(P^.chAccount_Code + ' ' + P^.chAccount_Description);
+
+                   TListLedgerReport(ReportJob).SplitCode := P^.chAccount_Code + ' ' + P^.chAccount_Description + ' (continued)';
+
+                   ReportLedgerOpeningBalance(P^.chAccount_Code, ReportJob, False);
+                 end;
+
+                 if IsContras then
+                 begin
+                   TListLedgerReport(ReportJob).SplitCode := P^.chAccount_Code + ' ' + P^.chAccount_Description + ' (continued)';
+
+                   DoContras(ReportJob, P^.chAccount_Code)
+                 end
+                 else
+                 begin
+                   PrintSummaryListLedgerLine( Mgr, P^.chAccount_Code, TListLedgerReport(ReportJob));
+                 end;
+                 
+                 if ShowBalances and (P^.chAccount_Code <> '') then
+                 begin
+                   ReportLedgerClosingBalance(P^.chAccount_Code, ReportJob, False);
+
+                   TListLedgerReport(ReportJob).SplitCode := '';
+
+                   RenderTextLine('');
+                 end
+                 else
+                 begin
+                   TListLedgerReport(ReportJob).SplitCode := '';
+                 end;
+
+                 LastValidCode := P^.chAccount_Code;
+               end;
+             end;
+
+             P := Chart.FindNextCode(P^.chAccount_Code, False);
+
+             TListLedgerReport(ReportJob).ClearSubTotals;
+
+             if not Assigned(P) then Break;
+           end;
+         end;
+
+         // starting a new code
+
+         LastCodePrinted := Code;
+         if IsValidCode then
+         begin
+           LastValidCode := Code;
+         end;
+         
+         TListLedgerReport(ReportJob).DoneSubTotal := False;
+         TListLedgerReport(ReportJob).SplitCode := '';
+
+         // Show opening balance if requested
+         if ShowBalances and (Code <> '') then
+         begin
+           P := Chart.FindCode( Code );
+
+           If Assigned( P ) then
+           begin
+              with P^ do S := Code + '  ' + chAccount_Description;
+           end
+           else
+           begin
+              S := Code + '  INVALID CODE!';
+           end;
+
+           RenderTitleLine(S);
+
+           TListLedgerReport(ReportJob).SplitCode := S + ' (continued)';
+
+           ReportLedgerOpeningBalance(Code, ReportJob, False, Assigned(P));
+         end;
+
+         // Show contras for this code - this will display ALL transactions
+         // for this code (so that they display in date order)
+         // so after this we need to move onto next code
+         if IsThisAContraCode(Code, ReportJob) then
+         begin
+           AccountHasActivity := DoContras(ReportJob, Code);
+           ContraCodePrinted := Code;
+
+           Exit;
+         end;
+      end;
+
+      //store values
+      AccountTotalNet    := AccountTotalNet + ExchangeGainLossEntry.glAmount;
+
+      if ExchangeGainLossEntry.glAmount <> 0 then
+      begin
+        AccountHasActivity := True;
+      end;
    end;
 end;
 
@@ -2042,10 +2518,20 @@ begin
      end else if Params.SummaryReport then begin
        TravMgr.OnEnterEntry       := SummaryListLedger_PrintEntry;
        TravMgr.OnEnterDissection  := SummaryListLedger_PrintDissect;
+
+       if IsForeignCurrencyClient then
+       begin
+         TravMgr.OnEnterExchangeGainLoss := SummaryListLedger_PrintExchangeGainLoss;
+       end;
      end
      else begin
         TravMgr.OnEnterEntry      := LGR_PrintEntry;
         TravMgr.OnEnterDissection := LGR_PrintDissect;
+
+        if IsForeignCurrencyClient then
+        begin
+          TravMgr.OnEnterExchangeGainLoss := LGR_PrintExchangeGainLoss;
+        end;
      end;
 
      DoneSubTotal := False;
@@ -2056,8 +2542,6 @@ begin
        TravMgr.TraverseAllEntries(Params.Fromdate,Params.Todate)
      else
        TravMgr.TraverseAllEntries(Params.Fromdate, Params.ToDate, BKCONST.TransferringJournalsSet);
-
-
 
      //need to print final figures for last code
      if Params.Summaryreport then
@@ -2117,7 +2601,7 @@ begin
          begin
            With P^ do S := chAccount_Code + '  ' + chAccount_Description;
            IsContras := IsThisAContraCode(P^.chAccount_Code, Self);
-           if IsContras or (Params.PrintEmptyCodes and (P^.chPosting_Allowed or (Params.ShowBalances and (GetOpeningBalanceAmount(Params.Client,P^.chAccount_Code) <> 0)))) then
+           if IsContras or (Params.PrintEmptyCodes and (P^.chPosting_Allowed or (Params.ShowBalances and (GetOpeningBalanceAmount(Params.Client,P^.chAccount_Code) <> 0)))) and not HasExchangeGainLossEntries(P^.chAccount_Code, Params) then
            begin
              if (not Params.SummaryReport) or Params.ShowBalances then
              begin
@@ -2174,14 +2658,16 @@ var
   KeepGST: Boolean;
   CSym : String;
   TaxName : String;
-begin;
+begin
+  NET_AMOUNT_CAPTION := Job.Params.Client.CurrencySymbol + ' Net';
+
   CSym := job.params.Client.CurrencySymbol;
   TaxName := job.params.Client.TaxSystemNameUC;
 
   KeepGST := job.params.Client.clFields.clGST_Inclusive_Cashflow;
   job.params.Client.clFields.clGST_Inclusive_Cashflow := False;
 
-  CalculateAccountTotalsForClient(job.params.Client, True, Job.Params.AccountList);
+  CalculateAccountTotalsForClient(job.params.Client, True, Job.Params.AccountList, -1, False, True);
   job.params.Client.clFields.clGST_Inclusive_Cashflow := KeepGST;
 
 
@@ -2259,7 +2745,7 @@ begin;
 
   KeepGST := job.params.Client.clFields.clGST_Inclusive_Cashflow;
   job.params.Client.clFields.clGST_Inclusive_Cashflow := False;
-  CalculateAccountTotalsForClient(job.params.Client, True, Job.Params.AccountList);
+  CalculateAccountTotalsForClient(job.params.Client, True, Job.Params.AccountList, -1, False, True);
   job.params.Client.clFields.clGST_Inclusive_Cashflow := KeepGST;
 
   Job.LoadReportSettings(UserPrintSettings,job.params.MakeRptName(Report_List_Names[REPORT_LIST_LEDGER]));
@@ -2411,6 +2897,12 @@ var
    Params : TLRParameters;
    Previewed : Boolean;
    ISOCodes: string;
+   FromDate: TStDate;
+   ToDate: TStDate;
+   This_Year_Starts : TStDate;
+   This_Year_Ends : TStDate;
+   Last_Year_Starts : TStDate;
+   Last_Year_Ends : TStDate;
 begin
    Previewed := False;
    Params := TLRParameters.Create(ord(Report_List_Ledger),MyClient,RptBatch,DPeriod);
@@ -2430,8 +2922,20 @@ begin
          Dest := rdAsk;
        end;
 
+       FromDate := Params.FromDate;
+       ToDate := Params.ToDate;
+
+       // Opening/Closing balances require a broader date range for Forex
+       if Params.ShowBalances then
+       begin
+         CalculateAccountTotals.CalcYearStartEndDates(MyClient, This_Year_Starts,
+           This_Year_Ends, Last_Year_Starts, Last_Year_Ends);
+
+         FromDate := This_Year_Starts;
+       end;
+
        //Check Forex
-       if not MyClient.HasExchangeRates(ISOCodes, Params.FromDate, Params.ToDate, True) then begin
+       if not MyClient.HasExchangeRates(ISOCodes, FromDate, ToDate, {ForReport=}True, {AllBankAccounts=}False) then begin
          HelpfulInfoMsg('The report could not be run because there are missing exchange rates for ' + ISOCodes + '.',0);
          Exit;
        end;

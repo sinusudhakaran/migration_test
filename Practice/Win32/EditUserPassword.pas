@@ -90,7 +90,7 @@ begin
 
   MyDlg := TEditUserPassword.Create(Application.mainForm);
   try
-    BKHelpSetUp(MyDlg, BKH_Changing_your_password_to_match_BankLink_Online);
+    BKHelpSetUp(MyDlg, BKH_Changing_your_password);
     if MyDlg.Initlize then
       MyDlg.ShowModal;
   finally
@@ -109,7 +109,7 @@ begin
 
   MyDlg := TEditUserPassword.Create(Application.mainForm);
   try
-    BKHelpSetUp(MyDlg, BKH_Changing_your_password_to_match_BankLink_Online);
+    BKHelpSetUp(MyDlg, BKH_Changing_your_password);
 
     if MyDlg.Initlize(UserCode, CurrentPassword) then
     begin

@@ -2437,7 +2437,8 @@ const
   difFrequencyNames : array[difMin..difMax] of string[10] = ('', 'Monthly', 'Weekly', '', 'Daily');
 
 Const
-  ForexDP : Integer = 5;
+  // Should be 4 (same as ExchangeRatesFrm)
+  ForexDP : Integer = 4;
 
   //Client file transfer methods
   ftmNone   = 0;  ftmMin = 0;

@@ -9,7 +9,8 @@ uses
   bkXPThemes, chList32,
   Math,
   OSFont,
-  ExchangeGainLoss;
+  ExchangeGainLoss,
+  GainLossFrm;
 
 
 type
@@ -44,7 +45,7 @@ type
     imgLine2: TImage;
     tgGainLoss: TtsGrid;
     lblAmountRemText: TLabel;
-    Label4: TLabel;
+    lblPostCalculated: TLabel;
     tbsMonth: TTabSheet;
     lblAdjDate: TLabel;
     cmbMonth: TComboBox;
@@ -189,7 +190,7 @@ const
 
 
 {------------------------------------------------------------------------------}
-function RunExchangeGainLossWizard(aClient : TClientObj): boolean;
+function RunExchangeGainLossWizard(aClient: TClientObj): boolean;
 var
   Wizard : TwizExchangeGainLoss;
   HasWarnings : boolean;
@@ -223,18 +224,22 @@ begin
       begin
         // Create here because in the constructor/FormCreate there's no fClient yet
         fMonths := TMonthEndings.Create(fClient);
-        fMonths.Options := [meoCullFirstMonths];
+        fMonths.Options := [meoCullMonths, meoCalculateGainLoss];
         fMonths.Refresh;
 
         // Add to combo box in REVERSE order
-        iFirstMonth := fMonths.Count - fMonths.DetermineFirstMonth - 1;
         for i := fMonths.Count-1 downto 0 do
         begin
           cmbMonth.AddItem('', TObject(i));
+        end;
 
-          // Select, if suitable
-          if (i = iFirstMonth) then
-            cmbMonth.ItemIndex := iFirstMonth;
+        // Select the earliest suitable month
+        if (fMonths.Count <> 0) then
+        begin
+          // Select in REVERSE
+          iFirstMonth := fMonths.DetermineFirstMonth;
+          if (iFirstMonth <> -1) then
+            cmbMonth.ItemIndex := fMonths.Count - iFirstMonth - 1;
         end;
 
         // Nothing selected?
@@ -251,6 +256,9 @@ begin
       if not result then
         exit;
 
+      // Show gain loss screen at the current date
+      if chkShowGainLossesScreen.Checked then
+        RunGainLoss(aClient, fMonths[SelectedMonthIndex].MonthEndingDate);
     end;
   finally
     FreeAndNil(Wizard);
@@ -307,6 +315,9 @@ begin
   }
   iNewItemHeight := 6 + cmbMonth.Canvas.TextHeight('Wg');
   cmbMonth.ItemHeight := Max(cmbMonth.ItemHeight, iNewItemHeight);
+
+  lblAdjDate.Caption := Format(lblAdjDate.Caption, [ShortAppName]);
+  lblPostCalculated.Caption := Format(lblPostCalculated.Caption, [ShortAppName]);
 end;
 
 {------------------------------------------------------------------------------}
@@ -339,7 +350,7 @@ end;
 {------------------------------------------------------------------------------}
 procedure TwizExchangeGainLoss.btnPrintForeignCurrencyReportClick(Sender: TObject);
 begin
-  DoReport(Report_Foreign_Exchange, rdNone, 0, nil, MonthEndStr);
+  DoReport(Report_Foreign_Exchange, rdNone, 0, nil, MonthEndStr, fMonths);
 end;
 
 {------------------------------------------------------------------------------}

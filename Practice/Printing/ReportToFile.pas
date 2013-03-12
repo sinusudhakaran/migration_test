@@ -27,14 +27,13 @@ uses
    ReportTypes,
    Graphics,
    RenderEngineObj,
-   NewReportObj,
-   Classes;
+   NewReportObj;
 
 type
    TMethodPointer = procedure ( Sender : TObject) of object;
 
 type
-  TRenderToFileBase = class( TCustomRenderEngine)
+   TRenderToFileBase = class( TCustomRenderEngine)
   protected
       FOnAfterGenerate: TMethodPointer;
       FOutputFile : TextFile;
@@ -65,9 +64,6 @@ type
       procedure UseDefaultFont; override;
 
       procedure Generate;                         override;
-
-      procedure SplitText(const Text: String; ColumnWidth: Integer; var WrappedText: TWrappedText); override;
-      
       property  Report : TBKReport read GetReportOwner;
       property  OnBeforeGenerate : TMethodPointer read FOnBeforeGen write FOnBeforeGen;
       property  OnAfterGenerate : TMethodPointer read FOnAfterGenerate write SetOnAfterGenerate;
@@ -94,13 +90,10 @@ type
    protected
       procedure RenderTotalLine(double: boolean); override;
       procedure CalculateColWidths( Sender : TObject);
-
-      procedure RenderDetailHeaderWrapped; virtual;
    public
       MaxLineWidth : integer;
       constructor Create( aOwner : TObject; fName : string); override;
 
-      procedure RenderDetailHeader; override;
       procedure RenderDetailLine;                 override;
       procedure RenderTitleLine(Text : string);   override;
       procedure RenderTextLine(Text:string; Underlined : boolean; AddLineIfUnderlined: boolean = True);      override;
@@ -237,7 +230,6 @@ begin
    end;
    NewDetailLine;  //add a blank line before the detail lines
 end;
-
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TRenderToFileBase.RenderDetailSubSectionTotal(
   const TotalName: string);
@@ -464,81 +456,6 @@ begin
    //draw a single line under each columns that is a total col
    RenderTotalLine( false);
 end;
-
-procedure TRenderToFileBase.SplitText(const Text: String; ColumnWidth: Integer; var WrappedText: TWrappedText);
-
-  procedure AddLine(const Line: String);
-  var
-    LineCount: Integer;
-  begin
-    LineCount := Length(WrappedText);
-
-    SetLength(WrappedText, LineCount + 1);
-
-    WrappedText[LineCount] := Line;
-  end;
-
-const
-  MARGIN_MM: integer = 5; // 0.5mm
-
-var
-  Words: TStringList;
-  Line: String;
-  Index: Integer;
-  LastAdded: Boolean;
-  TextLength: Integer;
-  PrintableWidth: Integer;
-  MoreWords: Boolean;
-begin
-  Words := TStringList.Create;
-
-  try
-    Words.Delimiter := ' ';
-    Words.StrictDelimiter := True;
-
-    Words.DelimitedText := Text;
-
-    LastAdded := False;
-
-    Line := '';
-
-    PrintableWidth := ColumnWidth;
-
-    MoreWords := Words.Count > 0;
-
-    Index := 0;
-    
-    while MoreWords do
-    begin             
-      Line := Trim(Line + ' ' + Words[Index]);
-
-      if Index < Words.Count -1 then
-      begin
-        TextLength := Length(Trim(Line + ' ' + Words[Index + 1]));
-
-        if TextLength > PrintableWidth then
-        begin
-          AddLine(Line);
-
-          Line := '';
-        end;
-      end
-      else
-      begin
-        AddLine(Line);
-
-        Break;
-      end;
-            
-      Inc(Index);
-
-      MoreWords := Index < Words.Count;
-    end;
-  finally
-    Words.Free;
-  end;
-end;
-
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TRenderToFileBase.DoubleUnderLine;
 begin
@@ -720,100 +637,6 @@ begin
    OnBeforeGenerate := CalculateColWidths;
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-procedure TRenderToFileFixed.RenderDetailHeader;
-begin
-  with Report do
-  begin
-    if Columns.WrapCaptions then
-    begin
-      RenderDetailHeaderWrapped;
-    end
-    else
-    begin
-      inherited;
-    end;
-  end;
-end;
-
-procedure TRenderToFileFixed.RenderDetailHeaderWrapped;
-
-  function GetMaxLineCount(const WrappedCaptions: array of TWrappedText): Integer;
-  var
-    Index: Integer;
-  begin
-    Result := 0;
-
-    for Index := 0 to Length(WrappedCaptions) - 1 do
-    begin
-      if Result < Length(WrappedCaptions[Index]) then
-      begin
-        Result := Length(WrappedCaptions[Index]);
-      end;
-    end;
-  end;
-
-var
-  ColumnIndex: Integer;
-  Column: TReportColumn;
-  LineIndex: Integer;
-  MaxLineCount: Integer;
-  FinalLine: Boolean;
-  Style: TRenderStyle;
-  ColumnText: String;
-  TextIndex: Integer;
-  WrappedCaptions: array of TWrappedText;
-  WrappedCaption: TWrappedText;
-begin
-  with Report do
-  begin
-    {Wrap the lines}
-    SetLength(WrappedCaptions, Columns.ItemCount);
-
-    for ColumnIndex := 0 to Columns.ItemCount - 1 do
-    begin
-      Column := Columns.Report_Column_At(ColumnIndex);
-
-      SplitText(Column.Caption, Column.Width, WrappedCaptions[ColumnIndex]);
-    end;
-
-    MaxLineCount := GetMaxLineCount(WrappedCaptions);
-
-    {Render the lines in reverse order so that the text renders down from the first line}
-    for LineIndex := MaxLineCount -1 downto 0 do
-    begin
-      FinalLine := LineIndex = 0;
-      
-      for ColumnIndex := 0 to Columns.ItemCount -1 do
-      begin
-        Column := Columns.Report_Column_At(ColumnIndex);
-
-        WrappedCaption := WrappedCaptions[ColumnIndex];
-        
-        Style := MergeStyles(Report.ReportStyle.Items[Report.ItemStyle], Column.Style);
-
-        try
-          if LineIndex < Length(WrappedCaption) then
-          begin
-            ColumnText := WrappedCaption[Length(WrappedCaption) - LineIndex - 1];
-
-            CurrDetail.Add(ColumnText); 
-          end
-          else
-          begin
-            CurrDetail.Add('');
-          end;
-        finally
-          Style.Free;
-        end;
-      end;
-
-      RenderDetailLine;
-    end;
-
-    NewDetailLine;
-  end;
-end;
-
 procedure TRenderToFileFixed.RenderDetailLine;
 var
    i :integer;

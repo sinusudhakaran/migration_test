@@ -1,7 +1,7 @@
 object dlgAdminOptions: TdlgAdminOptions
   Left = 317
   Top = 231
-  ActiveControl = rsMinLogSize
+  ActiveControl = chkCopyNarrationDissection
   BorderStyle = bsDialog
   Caption = 'System Options'
   ClientHeight = 471
@@ -51,7 +51,7 @@ object dlgAdminOptions: TdlgAdminOptions
     Top = 0
     Width = 618
     Height = 433
-    ActivePage = tsAdvanced
+    ActivePage = tsGeneral
     Align = alTop
     MultiLine = True
     TabOrder = 1
@@ -79,51 +79,173 @@ object dlgAdminOptions: TdlgAdminOptions
         Height = 8
         Shape = bsTopLine
       end
-      object Label18: TLabel
-        Left = 24
-        Top = 203
-        Width = 80
-        Height = 13
-        Caption = 'Auto &save every'
-        FocusControl = rsAutoSaveTime
-      end
-      object lblAutoSaveTime: TLabel
-        Left = 192
-        Top = 204
-        Width = 37
-        Height = 13
-        Caption = 'minutes'
-      end
-      object Label31: TLabel
-        Left = 24
-        Top = 311
-        Width = 77
-        Height = 13
-        Caption = 'Coding hint font'
-      end
       object Label32: TLabel
         Left = 361
         Top = 311
         Width = 3
         Height = 13
       end
+      object Panel1: TPanel
+        Left = 3
+        Top = 120
+        Width = 590
+        Height = 364
+        BevelEdges = []
+        BevelOuter = bvNone
+        TabOrder = 3
+        object lblAutoSaveTime: TLabel
+          Left = 193
+          Top = 65
+          Width = 37
+          Height = 13
+          Caption = 'minutes'
+        end
+        object Label18: TLabel
+          Left = 21
+          Top = 65
+          Width = 80
+          Height = 13
+          Caption = 'Auto &save every'
+        end
+        object Label31: TLabel
+          Left = 21
+          Top = 171
+          Width = 77
+          Height = 13
+          Caption = 'Coding hint font'
+        end
+        object btnReportPwd: TButton
+          Left = 385
+          Top = 203
+          Width = 145
+          Height = 25
+          Caption = '&Change Password'
+          Enabled = False
+          TabOrder = 9
+          OnClick = btnReportPwdClick
+        end
+        object chkReportPwd: TCheckBox
+          Left = 22
+          Top = 199
+          Width = 361
+          Height = 25
+          Caption = 'Pass&word protect Statements and Download Documents'
+          TabOrder = 8
+          OnClick = chkReportPwdClick
+        end
+        object pnlCESFont: TPanel
+          Left = 442
+          Top = 158
+          Width = 161
+          Height = 39
+          Alignment = taLeftJustify
+          BevelOuter = bvNone
+          Caption = 'Coding hint'
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -13
+          Font.Name = 'MS Sans Serif'
+          Font.Style = []
+          ParentFont = False
+          TabOrder = 10
+        end
+        object btnReset: TButton
+          Left = 385
+          Top = 168
+          Width = 51
+          Height = 25
+          Caption = 'R&eset'
+          TabOrder = 7
+          OnClick = btnResetClick
+        end
+        object cbSize: TRzComboBox
+          Left = 328
+          Top = 168
+          Width = 42
+          Height = 21
+          AllowEdit = False
+          Style = csDropDownList
+          ItemHeight = 13
+          TabOrder = 6
+          OnChange = cbSizeChange
+          Items.Strings = (
+            '5'
+            '6'
+            '7'
+            '8'
+            '9'
+            '10'
+            '11'
+            '12'
+            '13'
+            '14'
+            '15'
+            '16')
+        end
+        object cbceFont: TRzFontComboBox
+          Left = 121
+          Top = 168
+          Width = 201
+          Height = 24
+          PreviewFontSize = 8
+          PreviewText = 'Coding Hint'
+          DropDownWidth = 200
+          ItemHeight = 18
+          TabOrder = 5
+          OnChange = cbceFontChange
+        end
+        object chkRetrieve: TCheckBox
+          Left = 22
+          Top = 123
+          Width = 417
+          Height = 17
+          Caption = 'Automatically retrieve new &transactions when a Client is opened'
+          TabOrder = 4
+        end
+        object chkUsage: TCheckBox
+          Left = 21
+          Top = 94
+          Width = 385
+          Height = 17
+          Caption = 'Allow BankLink to collect software &usage information'
+          Checked = True
+          State = cbChecked
+          TabOrder = 3
+        end
+        object rsAutoSaveTime: TRzSpinEdit
+          Left = 130
+          Top = 63
+          Width = 49
+          Height = 21
+          AllowKeyEdit = True
+          Max = 30.000000000000000000
+          TabOrder = 2
+          OnChange = rsAutoSaveTimeChange
+        end
+        object chkDissectedNarration: TCheckBox
+          Left = 21
+          Top = 36
+          Width = 385
+          Height = 17
+          Caption = '&Replace Narration with Payee Name for Dissected Payees'
+          TabOrder = 1
+        end
+        object chkIgnoreQuantity: TCheckBox
+          Left = 21
+          Top = 7
+          Width = 217
+          Height = 17
+          Caption = '&Ignore quantity in downloads'
+          TabOrder = 0
+        end
+      end
       object chkAutoPrintSchRepSummary: TCheckBox
         Left = 24
-        Top = 72
+        Top = 69
         Width = 533
         Height = 17
         Caption = '&Automatically print the Scheduled Reports summary'
         TabOrder = 1
-      end
-      object rsAutoSaveTime: TRzSpinEdit
-        Left = 136
-        Top = 200
-        Width = 49
-        Height = 21
-        AllowKeyEdit = True
-        Max = 30.000000000000000000
-        TabOrder = 5
-        OnChange = rsAutoSaveTimeChange
       end
       object chkCopyNarrationDissection: TCheckBox
         Left = 24
@@ -135,7 +257,7 @@ object dlgAdminOptions: TdlgAdminOptions
       end
       object chkAutoLogin: TCheckBox
         Left = 24
-        Top = 104
+        Top = 98
         Width = 161
         Height = 17
         Caption = 'Allow automatic &login'
@@ -143,123 +265,13 @@ object dlgAdminOptions: TdlgAdminOptions
         State = cbChecked
         TabOrder = 2
       end
-      object chkIgnoreQuantity: TCheckBox
-        Left = 24
-        Top = 136
-        Width = 217
-        Height = 17
-        Caption = '&Ignore quantity in downloads'
-        TabOrder = 3
-      end
-      object chkDissectedNarration: TCheckBox
-        Left = 24
-        Top = 168
-        Width = 385
-        Height = 17
-        Caption = '&Replace Narration with Payee Name for Dissected Payees'
-        TabOrder = 4
-      end
-      object chkUsage: TCheckBox
-        Left = 24
-        Top = 240
-        Width = 385
-        Height = 17
-        Caption = 'Allow BankLink to collect software &usage information'
-        Checked = True
-        State = cbChecked
-        TabOrder = 6
-      end
-      object chkRetrieve: TCheckBox
-        Left = 24
-        Top = 271
-        Width = 417
-        Height = 17
-        Caption = 'Automatically retrieve new &transactions when a Client is opened'
-        TabOrder = 7
-      end
-      object btnReset: TButton
-        Left = 383
-        Top = 308
-        Width = 51
-        Height = 25
-        Caption = 'R&eset'
-        TabOrder = 10
-        OnClick = btnResetClick
-      end
-      object pnlCESFont: TPanel
-        Left = 440
-        Top = 300
-        Width = 161
-        Height = 39
-        Alignment = taLeftJustify
-        BevelOuter = bvNone
-        Caption = 'Coding hint'
-        Font.Charset = DEFAULT_CHARSET
-        Font.Color = clWindowText
-        Font.Height = -13
-        Font.Name = 'MS Sans Serif'
-        Font.Style = []
-        ParentFont = False
-        TabOrder = 11
-      end
-      object chkReportPwd: TCheckBox
-        Left = 24
-        Top = 342
-        Width = 361
-        Height = 25
-        Caption = 'Pass&word protect Statements and Download Documents'
-        TabOrder = 12
-        OnClick = chkReportPwdClick
-      end
-      object btnReportPwd: TButton
-        Left = 382
-        Top = 345
-        Width = 145
-        Height = 25
-        Caption = '&Change Password'
-        Enabled = False
-        TabOrder = 13
-        OnClick = btnReportPwdClick
-      end
-      object cbceFont: TRzFontComboBox
-        Left = 136
-        Top = 309
-        Width = 201
-        Height = 24
-        PreviewFontSize = 8
-        PreviewText = 'Coding Hint'
-        DropDownWidth = 200
-        ItemHeight = 18
-        TabOrder = 8
-        OnChange = cbceFontChange
-      end
-      object cbSize: TRzComboBox
-        Left = 335
-        Top = 309
-        Width = 42
-        Height = 21
-        AllowEdit = False
-        Style = csDropDownList
-        ItemHeight = 13
-        TabOrder = 9
-        OnChange = cbSizeChange
-        Items.Strings = (
-          '5'
-          '6'
-          '7'
-          '8'
-          '9'
-          '10'
-          '11'
-          '12'
-          '13'
-          '14'
-          '15'
-          '16')
-      end
     end
     object tsExporting: TTabSheet
       Caption = 'Exporting'
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object lh2: TLabel
         Left = 16
         Top = 3
@@ -302,7 +314,7 @@ object dlgAdminOptions: TdlgAdminOptions
           Width = 145
           Height = 21
           Style = csDropDownList
-          ItemHeight = 13
+          ItemHeight = 0
           TabOrder = 0
         end
       end
@@ -319,6 +331,10 @@ object dlgAdminOptions: TdlgAdminOptions
     object tsAdvanced: TTabSheet
       Caption = 'Advanced'
       ImageIndex = 2
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object lh3: TLabel
         Left = 16
         Top = 3
@@ -508,19 +524,14 @@ object dlgAdminOptions: TdlgAdminOptions
         Height = 21
         TabOrder = 4
       end
-      object Button1: TButton
-        Left = 146
-        Top = 373
-        Width = 137
-        Height = 25
-        Caption = 'Check Oplocks'
-        TabOrder = 6
-        OnClick = Button1Click
-      end
     end
     object tsInterfaces: TTabSheet
       Caption = 'Interfaces'
       ImageIndex = 3
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object PInterfaceOptions: TPanel
         Left = 0
         Top = 0
@@ -696,6 +707,10 @@ object dlgAdminOptions: TdlgAdminOptions
     object tsSmartLink: TTabSheet
       Caption = 'SmartLink'
       ImageIndex = 6
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object lh7: TLabel
         Left = 16
         Top = 3
@@ -766,6 +781,10 @@ object dlgAdminOptions: TdlgAdminOptions
     object tsUpdates: TTabSheet
       Caption = 'Updates'
       ImageIndex = 7
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object lh8: TLabel
         Left = 16
         Top = 3
@@ -808,6 +827,10 @@ object dlgAdminOptions: TdlgAdminOptions
     object tsLinks: TTabSheet
       Caption = 'Links'
       ImageIndex = 8
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object pInstitute: TPanel
         Left = 0
         Top = 30

@@ -6,21 +6,33 @@ uses
   eCollect, BKDEFS, BKglIO, glObj32, IOSTREAM, Math, SysUtils, TOKENS, LogUtil,
   BKDbExcept,
   StDate,
-  MoneyDef;
+  bkDateUtils,
+  MoneyDef,
+  AuditMgr,
+  bkConst;
 
 type
   { ----------------------------------------------------------------------------
     TExchange_Gain_Loss_List
   ---------------------------------------------------------------------------- }
+  TExchange_Gain_Loss_List = class;
+
+  TExchangeGainLossEntryList = array of TExchange_Gain_Loss;
+
   TExchange_Gain_Loss_List = class(TExtdSortedCollection)
-  public
-    constructor Create;
-    function  Compare(Item1, Item2: Pointer) : integer; override;
   private
-    function  GetItem(const P: Pointer): TExchange_Gain_Loss;
+    fAuditMgr: TClientAuditManager;
+
+  public
+    constructor Create(const aAuditMgr: TClientAuditManager);
+
   protected
     procedure FreeItem(Item: Pointer); override;
+    function  FindRecordID(const aRecordID: integer): TExchange_Gain_Loss;
+
   public
+    function  Compare(Item1, Item2: Pointer) : integer; override;
+
     procedure SaveToFile(var S: TIOStream);
     procedure LoadFromFile(var S: TIOStream);
 
@@ -40,6 +52,20 @@ type
       value will be nil.
     }
     function  GetPostedEntry(const aDate: TStDate): TExchange_Gain_Loss;
+
+    function  HasEntryIn(const aMonth: TStDate): boolean;
+
+    function GetEntriesPostedBetween(FromDate, ToDate: TStDate): TExchangeGainLossEntryList;
+
+    // Auditing
+    procedure Insert(Item: Pointer); override;
+    procedure DoAudit(AGainLossListCopy: TExchange_Gain_Loss_List;
+                      AParentID: integer;
+                      var AAuditTable: TAuditTable);
+    procedure SetAuditInfo(aP1, aP2: TExchange_Gain_Loss; AParentID: integer;
+                           var AAuditInfo: TAuditInfo);
+    // Item can be nil
+    function  GetAs_pRec(Item: TExchange_Gain_Loss): pExchange_Gain_Loss_Rec;
   end;
 
 
@@ -52,17 +78,13 @@ const
 { ------------------------------------------------------------------------------
   TExchange_Gain_Loss_List
 ------------------------------------------------------------------------------ }
-constructor TExchange_Gain_Loss_List.Create;
+constructor TExchange_Gain_Loss_List.Create(const aAuditMgr: TClientAuditManager);
 begin
-  inherited Create;
-  Duplicates := false;
-end;
+  fAuditMgr := aAuditMgr;
 
-{------------------------------------------------------------------------------}
-function TExchange_Gain_Loss_List.GetItem(const P: Pointer): TExchange_Gain_Loss;
-begin
-  result := TExchange_Gain_Loss(P);
-  ASSERT(result is TExchange_Gain_Loss);
+  inherited Create;
+
+  Duplicates := false;
 end;
 
 {------------------------------------------------------------------------------}
@@ -71,9 +93,9 @@ var
   Exchange1: TExchange_Gain_Loss;
   Exchange2: TExchange_Gain_Loss;
 begin
-  Exchange1 := GetItem(Item1);
+  Exchange1 := TExchange_Gain_Loss(Item1);
   ASSERT(Assigned(Exchange1));
-  Exchange2 := GetItem(Item2);
+  Exchange2 := TExchange_Gain_Loss(Item2);
   ASSERT(Assigned(Exchange2));
 
   result := CompareValue(Exchange1.glFields.glDate, Exchange2.glFields.glDate);
@@ -87,6 +109,24 @@ begin
   P := TExchange_Gain_Loss(Item);
   if Assigned(P) then
     P.Free;
+end;
+
+{------------------------------------------------------------------------------}
+function TExchange_Gain_Loss_List.FindRecordID(const aRecordID: integer
+  ): TExchange_Gain_Loss;
+var
+  i: integer;
+begin
+  for i := 0 to ItemCount-1 do
+  begin
+    result := Exchange_Gain_Loss_At(i);
+
+    // Found?
+    if (result.glFields.glAudit_Record_ID = aRecordID) then
+      exit;
+  end;
+
+  result := nil;
 end;
 
 {------------------------------------------------------------------------------}
@@ -162,7 +202,7 @@ var
 Begin
   P := At(Index);
 
-  result := GetItem(P);
+  result := TExchange_Gain_Loss(P);
 end;
 
 {------------------------------------------------------------------------------}
@@ -179,8 +219,11 @@ begin
     Item := TExchange_Gain_Loss.Create;
     Insert(Item);
   end;
+  ASSERT(assigned(Item));
 
-  ASSERT(Assigned(Item));
+  // Increase the ID (only from here, not Insert)
+  if Assigned(fAuditMgr) then
+    Item.glFields.glAudit_Record_ID := fAuditMgr.NextAuditRecordID;
 
   // Set fields
   with Item.glFields do
@@ -189,6 +232,32 @@ begin
     glAmount := aAmount;
     glAccount := aAccount;
     glPosted_Date := CurrentDate;
+  end;
+end;
+
+{------------------------------------------------------------------------------}
+function TExchange_Gain_Loss_List.GetEntriesPostedBetween(FromDate, ToDate: TStDate): TExchangeGainLossEntryList;
+var
+  Index: Integer;
+  Entry: TExchange_Gain_Loss;
+  Count: Integer;
+begin
+  SetLength(Result, 0);
+
+  Count := 0;
+  
+  for Index := 0 to ItemCount - 1 do
+  begin
+    Entry := Exchange_Gain_Loss_At(Index);
+
+    if (Entry.glFields.glDate >= FromDate) and (Entry.glFields.glDate <= ToDate) then
+    begin
+      SetLength(Result, Count + 1);
+
+      Result[Count] := Entry;
+
+      Inc(Count);
+    end;
   end;
 end;
 
@@ -211,6 +280,116 @@ begin
   result := nil;
 end;
 
+{------------------------------------------------------------------------------}
+function TExchange_Gain_Loss_List.HasEntryIn(const aMonth: TStDate): boolean;
+var
+  dtLastDay: TStDate;
+  Entry: TExchange_Gain_Loss;
+begin
+  dtLastDay := GetLastDayOfMonth(aMonth);
+  Entry := GetPostedEntry(dtLastDay);
+  result := assigned(Entry);
+end;
+
+{------------------------------------------------------------------------------}
+procedure TExchange_Gain_Loss_List.Insert(Item: Pointer);
+begin
+  // Note: do not change the Audit Record ID from here
+
+  inherited Insert(Item);
+end;
+
+{------------------------------------------------------------------------------}
+procedure TExchange_Gain_Loss_List.DoAudit(
+  AGainLossListCopy: TExchange_Gain_Loss_List; AParentID: integer;
+  var AAuditTable: TAuditTable);
+var
+  i: integer;
+  P1, P2: TExchange_Gain_Loss;
+  AuditInfo: TAuditInfo;
+begin
+  AuditInfo.AuditType := arExchangeGainLoss;
+  AuditInfo.AuditUser := fAuditMgr.CurrentUserCode;
+  AuditInfo.AuditRecordType := tkBegin_Exchange_Gain_Loss;
+
+  //Adds, changes
+  for I := 0 to Pred(ItemCount) do
+  begin
+    P1 := Items[i];
+    P2 := AGainLossListCopy.FindRecordID(P1.glFields.glAudit_Record_ID);
+    AuditInfo.AuditRecord := New_Exchange_Gain_Loss_Rec;
+    try
+      SetAuditInfo(P1, P2, AParentID, AuditInfo);
+      if AuditInfo.AuditAction in [aaAdd, aaChange] then
+        AAuditTable.AddAuditRec(AuditInfo);
+      finally
+        Dispose(AuditInfo.AuditRecord);
+      end;
+  end;
+
+  //Deletes
+  if Assigned(AGainLossListCopy) then
+  begin
+    for i := 0 to AGainLossListCopy.ItemCount - 1 do
+    begin
+      P2 := AGainLossListCopy.Items[i];
+      P1 := FindRecordID(P2.glFields.glAudit_Record_ID);
+      AuditInfo.AuditRecord := New_Exchange_Gain_Loss_Rec;
+      try
+        SetAuditInfo(P1, P2, AParentID, AuditInfo);
+        if (AuditInfo.AuditAction = aaDelete) then
+          AAuditTable.AddAuditRec(AuditInfo);
+      finally
+        Dispose(AuditInfo.AuditRecord);
+      end;
+    end;
+  end;
+end;
+
+{------------------------------------------------------------------------------}
+procedure TExchange_Gain_Loss_List.SetAuditInfo(aP1, aP2: TExchange_Gain_Loss;
+  AParentID: integer; var AAuditInfo: TAuditInfo);
+var
+  P1, P2: pExchange_Gain_Loss_Rec;
+begin
+  P1 := GetAs_pRec(aP1);
+  P2 := GetAs_pRec(aP2);
+
+  AAuditInfo.AuditAction := aaNone;
+  AAuditInfo.AuditOtherInfo :=
+    Format('%s=%s', ['Record Type', 'Exchange Gain/Loss']) +
+    VALUES_DELIMITER +
+    Format('%s=%d', ['ParentID', AParentID]);
+  AAuditInfo.AuditParentID := AParentID;
+
+  if not Assigned(P1) then begin
+    //Delete
+    AAuditInfo.AuditAction := aaDelete;
+    AAuditInfo.AuditRecordID := P2.glAudit_Record_ID;
+  end else if Assigned(P2) then begin
+    //Change
+    AAuditInfo.AuditRecordID := P1.glAudit_Record_ID;
+    if Exchange_Gain_Loss_Rec_Delta(P1, P2, AAuditInfo.AuditRecord, AAuditInfo.AuditChangedFields) then
+      AAuditInfo.AuditAction := aaChange;
+  end else begin
+    //Add
+    AAuditInfo.AuditAction := aaAdd;
+    AAuditInfo.AuditRecordID := P1.glAudit_Record_ID;
+    P1.glAudit_Record_ID := AAuditInfo.AuditRecordID;
+    BKGLIO.SetAllFieldsChanged(AAuditInfo.AuditChangedFields);
+    Copy_Exchange_Gain_Loss_Rec(P1, AAuditInfo.AuditRecord);
+  end;
+end;
+
+{------------------------------------------------------------------------------}
+function TExchange_Gain_Loss_List.GetAs_pRec(Item: TExchange_Gain_Loss
+  ): pExchange_Gain_Loss_Rec;
+begin
+  if Assigned(Item) then
+    result := Item.As_pRec
+  else
+    result := nil;
+end;
 
 {------------------------------------------------------------------------------}
 initialization

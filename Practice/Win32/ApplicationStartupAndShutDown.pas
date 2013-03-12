@@ -70,18 +70,15 @@ const
   MaxPWLenght = 8;
   ThisMethodName = 'SetCommandLineParameters';
   ExcludeCOASwitch = '/EXCLUDECOA';
+  
 var
   i : integer;
   s : string;
   p : string;
-  CaseSensitiveStr: string;
 begin
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
   for i := 1 to ParamCount do begin
     s := Uppercase( ParamStr(i));
-
-    CaseSensitiveStr := ParamStr(i);
-    
     if Pos( UserSwitch, S) > 0 then begin
        //user specified
        p := Copy( S, Pos( UserSwitch, S) + Length(UserSwitch), MaxUserCodeLength);
@@ -92,15 +89,11 @@ begin
       p := Copy( S, Pos( ClientSwitch, S) + Length(ClientSwitch), MaxClientCodeLength);
       if p <> '' then
          Globals.StartupParam_ClientToOpen := p;
-    end else if Pos( pwSwitch, S) > 0 then
-    begin
+    end else if Pos( pwSwitch, S) > 0 then begin
       //Password specified
-      p := Copy( CaseSensitiveStr, Pos(pwSwitch, CaseSensitiveStr) + Length(pwSwitch), MaxPWLenght);
-
+      p := Copy( S, Pos( pwSwitch, S) + Length(pwSwitch), MaxPWLenght);
       if p <> '' then
-      begin
-        Globals.StartupParam_UserPassword := p;
-      end;
+         Globals.StartupParam_UserPassword := p;
     end
     else if Pos( ActionSwitch, S) > 0 then
     begin
@@ -333,6 +326,8 @@ begin
     StartUpStep := 'Checking for admin upgrade';
     Upgrade.UpgradeAdminToLatestVersion;
     Upgrade.UpgradeExchangeRatesToLatestVersion;
+//    ShowMessage('1');
+    Upgrade.UpgradeClientTypes;
   end;
 
   StartUpStep := 'Checking for custom bitmap';
@@ -352,10 +347,7 @@ begin
         end;
       end
     except
-      on e : Exception do
-      begin
-        OutputDebugString(PChar(E.Message));
-      end;
+      on e : Exception do ;
     end;
   end;
 

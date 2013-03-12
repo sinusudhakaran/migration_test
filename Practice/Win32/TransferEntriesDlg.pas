@@ -358,6 +358,7 @@ var
    aMsg          : String;
 
    TrxIndex     : integer;
+   Dissection: pDissection_Rec;
 begin
    if not Assigned( MyClient) then exit;
 
@@ -494,6 +495,16 @@ begin
                         pT^.txECoding_Transaction_UID := 0;
                         //insert into bank account
                         BankBa.baTransaction_List.Insert_Transaction_Rec( pT);
+
+                        Dissection := pT^.txFirst_Dissection;
+
+                        while Dissection <> nil do
+                        begin
+                          Dissection.dsBank_Account := pT^.txBank_Account;
+                          Dissection.dsClient := pT^.txClient;
+                          Dissection := Dissection.dsNext;
+                        end;
+                
                         Inc( TransferCount);
                      end;
                   until ( TrxIndex >= ItemCount) or ( pT^.txDate_Effective > TempToDate);

@@ -63,6 +63,10 @@ type
     FChangeCount: integer;
     FBooksSecure: boolean;
     FColumnOrderLoaded: Boolean;
+
+    function GetFullMonthEditedDeletedCount: Integer;
+
+    function GetEditedDeletedCount: Integer;
     function GetChangeCount: integer;
     procedure SetFromDate(const Value: tstDate);
     procedure SetToDate(const Value: tstDate);
@@ -111,7 +115,9 @@ uses
   InfoMoreFrm,
   DateUtils,
   IniSettings,
-  BKHelp;
+  BKHelp,
+  ForexHelpers,
+  ExchangeGainLoss;
 
 
 {$R *.dfm}
@@ -296,10 +302,32 @@ end;
 
 procedure TExchangeRatesfrm.BtnoKClick(Sender: TObject);
 var
+  sMsg: string;
+  iResult: integer;
   LExchangeRates: TExchangeRateList;
+  FullMonthCount: Integer;
 begin
    //Get change count
    FChangeCount := GetChangeCount;
+
+   // Confirm changes for exchange gain/loss
+   if SupportsForeignCurrencies then
+   begin
+     FullMonthCount := GetFullMonthEditedDeletedCount;
+
+     if FullMonthCount > 0 then
+     begin
+       if (FullMonthCount = 1) then
+         sMsg := '1 exchange rate has been edited which may affect clients with existing exchange gain/loss entries.' + #10#13#10#13 + 'Are you sure you want to continue?'
+       else
+         sMsg := Format('%d exchange rates have been edited which may affect clients with existing exchange gain/loss entries.' + #10#13#10#13 + 'Are you sure you want to continue?', [FullMonthCount]);
+
+       // User cancel?
+       iResult := AskYesNo('Confirmation', sMsg, DLG_YES, 0);
+       if (iResult <> DLG_YES) then
+         exit;
+     end;
+   end;
 
    if BooksSecure then begin
      //Save
@@ -550,6 +578,66 @@ begin
         Inc(TChangeCountRec(OtherData^).ChangeCount);
 end;
 
+function FullPeriodCount(Container: TstContainer; Node: TstNode; OtherData: Pointer): Boolean; far;
+var
+  i: integer;
+  ER1, ER2: TExchangeRecord;
+  RateChange: boolean;
+begin
+  Result := true;
+
+  ER1 := TExchangeRecord(Node.Data);
+  ER2 := TChangeCountRec(OtherData^).ExchangeSource.GetDateRates(ER1.FDate);
+
+  if Assigned(ER2) then
+  begin
+    RateChange := False;
+
+    for i := 1 to ER2.Width do
+    begin
+      if ER2.Rates[i] <> ER1.Rates[i] then
+      begin
+        //Rate edited
+
+        if not IsPartialPeriod(ER2.Date) then
+        begin
+          Inc(TChangeCountRec(OtherData^).ChangeCount);
+        end;
+
+        RateChange := True;
+      end;
+    end;
+    
+    if not RateChange then
+    begin
+      if ER2.Locked <> ER1.Locked then
+      begin
+        //Lock changed
+        
+        if not IsPartialPeriod(ER2.Date) then
+        begin
+          Inc(TChangeCountRec(OtherData^).ChangeCount);
+        end;
+      end;
+    end;
+  end
+  else
+  begin
+    for i := 1 to ER1.Width do
+    begin
+      if (ER1.Rates[i] <> 0) then //Base rate should always be 0
+      begin
+        //Delete
+        
+        if not IsPartialPeriod(ER1.Date) then
+        begin
+          Inc(TChangeCountRec(OtherData^).ChangeCount);
+        end;
+      end;
+    end;
+  end;
+end;
+
 function TExchangeRatesfrm.GetChangeCount: integer;
 var
   ExchangeRates: TExchangeRateList;
@@ -584,9 +672,67 @@ begin
   end;
 end;
 
+function TExchangeRatesfrm.GetEditedDeletedCount: Integer;
+var
+  ExchangeRates: TExchangeRateList;
+  ExchangeSource: TExchangeSource;
+  ChangeCountRec: TChangeCountRec;
+begin
+  Result := 0;
+
+  ExchangeRates := GetExchangeRates;
+  try
+    if BooksSecure then
+      ExchangeSource := MyClient.ExchangeSource
+    else
+      ExchangeSource := ExchangeRates.GetSource(FSource.Header.ehName);
+
+    if Assigned(ExchangeSource) then begin
+      ChangeCountRec.ChangeCount := 0;
+
+      //Change and delete count
+      ChangeCountRec.ExchangeSource := FSource;
+      ExchangeSource.Iterate(ChangeDeleteCount, true, @ChangeCountRec);
+      
+      Result := ChangeCountRec.ChangeCount;
+    end;
+
+  finally
+    ExchangeRates.Free;
+  end;
+end;
+
 function TExchangeRatesfrm.GetFromDate: tstDate;
 begin
    Result := eDateFrom.AsStDate;
+end;
+
+function TExchangeRatesfrm.GetFullMonthEditedDeletedCount: Integer;
+var
+  ExchangeRates: TExchangeRateList;
+  ExchangeSource: TExchangeSource;
+  ChangeCountRec: TChangeCountRec;
+begin
+  Result := 0;
+
+  ExchangeRates := GetExchangeRates;
+  try
+    if BooksSecure then
+      ExchangeSource := MyClient.ExchangeSource
+    else
+      ExchangeSource := ExchangeRates.GetSource(FSource.Header.ehName);
+
+    if Assigned(ExchangeSource) then begin
+      ChangeCountRec.ChangeCount := 0;
+
+      ChangeCountRec.ExchangeSource := FSource;
+      ExchangeSource.Iterate(FullPeriodCount, true, @ChangeCountRec);
+
+      Result := ChangeCountRec.ChangeCount;
+    end;
+  finally
+    ExchangeRates.Free;
+  end;
 end;
 
 function TExchangeRatesfrm.GetToDate: tstDate;

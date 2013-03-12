@@ -5,7 +5,7 @@ unit TravList;
 interface
 uses
   bkdefs, glConst, ecollect, bkconst, baObj32, moneydef, repCols,
-  TextStream, NewReportObj;
+  TextStream, NewReportObj, glObj32, glList32;
 
 const
    twAllEntries            = 0;  twMin = 0;
@@ -22,11 +22,13 @@ type
 
 
 type
+  TTransType = (ttTransaction, ttDissection, ttExchangeGainLoss);
+  
   pTravItem = ^TTravItem;
   TTravItem = packed record
-      Ptr   : Pointer;
-      IsTrx : Boolean;
-      Key   : ShortString;
+      Ptr       : Pointer;
+      TransType : TTransType;
+      Key       : ShortString;
    end;
 
   TTravList = class( TExtdSortedCollection )
@@ -35,7 +37,7 @@ type
     protected
       procedure   FreeItem( Item : Pointer ); override;
     public
-      function    InsertTransItem(p : pointer; b : boolean; k : shortString) : boolean;
+      function    InsertTransItem(p : pointer; TransType : TTransType; k : shortString) : boolean;
   end;
 
    TTravEvent = procedure(Sender : TObject);
@@ -65,6 +67,7 @@ type
       CurrTrans     : pTransaction_Rec;
       CurrAccount   : TBank_Account;
       CurrDissect   : pDissection_Rec;
+      CurrExchangeGainLossEntry: pExchange_Gain_Loss_Rec;
       FD1: integer;
       FD2: integer;
       FLastCodePrinted: string;
@@ -74,9 +77,11 @@ type
       FOnEnterEntryExt: TTravEventExt;
       FOnEnterAccountExt: TTravEventExt;
       FTransactionsTraversed: Boolean;
+      FOnEnterExchangeGainLoss: TTravEvent;
 
       function MakeSortKey (p : pTransaction_Rec): ShortString;
       function IsValidSelection( p : pTransaction_Rec): boolean;
+      function MakeGainLossSortKey(GainLossEntry: TExchange_Gain_Loss): String;
 
       procedure SetNumOfAccounts(const Value: integer);
       procedure SetNumOfEntries(const Value: integer);
@@ -99,6 +104,7 @@ type
       procedure SetSortMethod(const Value: byte);
       procedure SetOnEnterEntryExt(const Value: TTravEventExt);
       procedure SetOnEnterAccountExt(const Value: TTravEventExt);
+      procedure SetOnEnterExchangeGainLoss(const Value: TTravEvent);
     public
       property D1: integer read FD1 write SetD1;
       property D2: integer read FD2 write SetD2;
@@ -113,6 +119,7 @@ type
       property OnEnterEntryExt : TTravEventExt read FOnEnterEntryExt write SetOnEnterEntryExt;
       property OnExitEntry    : TTravEvent read FOnExitEntry write SetOnExitEntry;
       property OnEnterDissection : TTravEvent read FOnEnterDissection write SetOnEnterDissection;
+      property OnEnterExchangeGainLoss: TTravEvent read FOnEnterExchangeGainLoss write SetOnEnterExchangeGainLoss;
 
       {sorting}
       property OnBeforeSort   : TTravEvent read FOnBeforeSort write SetOnBeforeSort;
@@ -129,6 +136,7 @@ type
       property NumOfDissect : integer read FNumOfDissect write SetNumOfDissect;
       property Transaction  : pTransaction_Rec read CurrTrans;
       property Dissection   : pDissection_Rec read CurrDissect;
+      property ExchangeGainLossEntry: pExchange_Gain_Loss_Rec read CurrExchangeGainLossEntry;
       property Bank_Account : TBank_Account read CurrAccount write SetCurrAccount;
       property IsLastTransaction: boolean read FIsLastTransaction;
       property NoTransactions: boolean read FNoTransactions;
@@ -246,8 +254,7 @@ Begin
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function TTravList.InsertTransItem(p: pointer; b: boolean;
-  k: shortString) : boolean;
+function TTravList.InsertTransItem(p: pointer; TransType: TTransType; k: shortString) : boolean;
 const
   ThisMethodName = 'TTravList.InsertTransItem';
 Var
@@ -258,13 +265,13 @@ Begin
 
    result := false;
 
-   Len := Ord(K[0]) + Sizeof(Char) + Sizeof(Boolean) + Sizeof(Pointer);
+   Len := Ord(K[0]) + Sizeof(Char) + Sizeof(TTransType) + Sizeof(Pointer);
    SafeGetMem( Pt , Len );
 
    If Pt<>NIL then
    Begin
       Pt^.Ptr   := P;
-      Pt^.IsTrx := B;
+      Pt^.TransType := TransType;
       Pt^.Key   := K;
       Insert(Pt);
       result := true;
@@ -318,6 +325,7 @@ begin
    LastCodePrinted := '';
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
+
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 destructor TTravManager.Destroy;
 begin
@@ -342,6 +350,37 @@ Begin
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function TTravManager.MakeGainLossSortKey(GainLossEntry: TExchange_Gain_Loss): String;
+var
+  Key: String;
+begin
+  if SortMethod = csDateEffective then
+  begin
+    Result := LongToKey(GainLossEntry.glFields.glDate) +
+              LongToKey(GainLossEntry.glFields.glTemp_Bank_Seq) +
+              LongToKey(TransList.ItemCount + 1);
+  end
+  else
+  begin
+    Key := GainLossEntry.glFields.glAccount;
+
+    if UseXlonSort then
+    begin
+      Key := FormatCodeForXlonSort(Key);
+    end;
+
+    while Length(Key) < MaxBK5CodeLen do
+    begin
+      Key := Key + ' ';
+    end;
+
+    Result :=
+      Key +
+      LongToKey(GainLossEntry.glFields.glDate) +
+      LongToKey(TransList.ItemCount + 1);
+  end;
+end;
+
 function TTravManager.MakeSortKey(p: pTransaction_Rec): ShortString;
 { Can now return a String up to 32 characters long }
 const
@@ -519,6 +558,11 @@ procedure TTravManager.SetOnEnterEntryExt(const Value: TTravEventExt);
 begin
   FOnEnterEntryExt := Value;
 end;
+procedure TTravManager.SetOnEnterExchangeGainLoss(const Value: TTravEvent);
+begin
+  FOnEnterExchangeGainLoss := Value;
+end;
+
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TTravManager.SetOnExitAccount(const Value: TTravEvent);
 begin
@@ -632,7 +676,7 @@ Begin
                                 LogUtil.LogMsg( lmDebug, UnitName, ThisMethodName + ' Adding Dissection SortKey' + SortKey);
                              end;
 
-                             TransList.InsertTransItem(CurrDissect, false, SortKey);
+                             TransList.InsertTransItem(CurrDissect, ttDissection, SortKey);
 
                              CurrDissect := CurrDissect^.dsNext;
                           end;
@@ -644,7 +688,7 @@ Begin
                           begin
                              LogUtil.LogMsg( lmDebug, UnitName, ThisMethodName + ' Adding Transaction SortKey'  + SortKey);
                           end;
-                          TransList.InsertTransItem(CurrTrans,true,SortKey);
+                          TransList.InsertTransItem(CurrTrans,ttTransaction,SortKey);
                        end;
                     end; { of SelectMe( Transaction ) }
                  end; { Date Within Range }
@@ -658,18 +702,21 @@ Begin
               FIsLastTransaction := (i = Pred(TransList.ItemCount));
               With PTravItem(TransList.At(i))^ do
               Begin
-                 If IsTrx then
-                 Begin
-                    CurrTrans := Ptr;
-                    TraverseEntry;
+                 case TransType of
+                   ttTransaction:
+                   Begin
+                      CurrTrans := Ptr;
+                      TraverseEntry;
 
-                    FTransactionsTraversed := True;
-                 end
-                 else
-                 Begin
-                    CurrDissect := Ptr;
-                    CurrTrans   := CurrDissect^.dsTransaction;
-                    FOnEnterDissection(Self);
+                      FTransactionsTraversed := True;
+                   end;
+
+                   ttDissection:
+                   Begin
+                      CurrDissect := Ptr;
+                      CurrTrans   := CurrDissect^.dsTransaction;
+                      FOnEnterDissection(Self);
+                   end;
                  end;
               end;
            end;
@@ -677,7 +724,14 @@ Begin
            TransList.Free;
          end;
       end;
+
+      if Assigned(FOnEnterExchangeGainLoss) then
+      begin
+        FOnEnterExchangeGainLoss(Self);
+      end;
+
       Inc(FNumOfAccounts );
+
       If (Assigned(FOnExitAccount)) then FOnExitAccount(Self);
    end;
 
@@ -794,6 +848,9 @@ Var
    B, T, I     : LongInt;
    SortKey     : String[40];
    Key         : Bk5CodeStr;
+   ExchangeGainLossEntries: TExchangeGainLossEntryList;
+   GainLossIndex: Integer;
+   GainLossEntry: TExchange_Gain_Loss;
 Begin
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
    MyClient.UpdateRefs; { Update our reference numbers }
@@ -851,17 +908,30 @@ Begin
                                end;
                          end; { of Case }
 
-                         TransList.InsertTransItem(CurrDissect,false,SortKey);
+                         TransList.InsertTransItem(CurrDissect,ttDissection,SortKey);
                          CurrDissect := dsNext;
                       end;
                    end
                    else
                    Begin
-                      SortKey := MakeSortKey(CurrTrans);
-                      TransList.InsertTransItem(CurrTrans,true,SortKey);
+                     SortKey := MakeSortKey(CurrTrans);
+                     TransList.InsertTransItem(CurrTrans,ttTransaction,SortKey);
                    end;
                 end;
              end;
+
+             ExchangeGainLossEntries := Bank_Account.baExchange_Gain_Loss_List.GetEntriesPostedBetween(DateFrom, DateTo);
+
+             for GainLossIndex := 0 to Length(ExchangeGainLossEntries) - 1 do
+             begin
+               GainLossEntry := ExchangeGainLossEntries[GainLossIndex];
+
+               GainLossEntry.glFields.glTemp_Bank_Seq := Bank_Account.baFields.baNumber;
+
+               SortKey := MakeGainLossSortKey(GainLossEntry);
+
+               TransList.InsertTransItem(GainLossEntry.As_pRec, ttExchangeGainLoss, SortKey); 
+             end;             
           end;
         end;  //if account in selection
      end;
@@ -870,39 +940,63 @@ Begin
      Begin
         With PTravItem(At(I))^ do
         Begin
-           If IsTrx then
-           Begin
-              CurrTrans := pTransaction_Rec( Ptr );
+           case TransType of
+             ttTransaction:
+             Begin
+                CurrTrans := pTransaction_Rec( Ptr );
 
-              Bank_Account := NIL;
-              With MyClient.clBank_Account_List do For B := 0 to Pred(ItemCount) do
-                With Bank_Account_At( B ) do begin
-                  If ( baFields.baNumber = CurrTrans^.txBank_Seq) and
-                     (( AccountTypeSet = [] ) or ( baFields.baAccount_Type in AccountTypeSet)) then
-                  Begin
-                    Bank_Account := Bank_Account_At( B );
-                    Break;
+                Bank_Account := NIL;
+                With MyClient.clBank_Account_List do For B := 0 to Pred(ItemCount) do
+                  With Bank_Account_At( B ) do begin
+                    If ( baFields.baNumber = CurrTrans^.txBank_Seq) and
+                       (( AccountTypeSet = [] ) or ( baFields.baAccount_Type in AccountTypeSet)) then
+                    Begin
+                      Bank_Account := Bank_Account_At( B );
+                      Break;
+                    end;
                   end;
-                end;
 
-              TraverseEntry;
-           end
-           else
-           Begin
-              CurrDissect := pDissection_Rec( Ptr );
-              CurrTrans   := CurrDissect^.dsTransaction;
-              Bank_Account := NIL;
-              With MyClient.clBank_Account_List do For B := 0 to Pred( itemCount ) do
-                With Bank_Account_At( B ) do begin
-                  If ( baFields.baNumber = CurrTrans^.txBank_Seq) and
-                     (( AccountTypeSet = []) or ( baFields.baAccount_Type in AccountTypeSet)) then
-                  Begin
-                    Bank_Account := Bank_Account_At( B );
-                    Break;
+                TraverseEntry;
+             end;
+
+             ttDissection:
+             Begin
+                CurrDissect := pDissection_Rec( Ptr );
+                CurrTrans   := CurrDissect^.dsTransaction;
+                Bank_Account := NIL;
+                With MyClient.clBank_Account_List do For B := 0 to Pred( itemCount ) do
+                  With Bank_Account_At( B ) do begin
+                    If ( baFields.baNumber = CurrTrans^.txBank_Seq) and
+                       (( AccountTypeSet = []) or ( baFields.baAccount_Type in AccountTypeSet)) then
+                    Begin
+                      Bank_Account := Bank_Account_At( B );
+                      Break;
+                    end;
                   end;
-                end;
 
-              FOnEnterDissection(Self);
+                FOnEnterDissection(Self);
+             end;
+
+             ttExchangeGainLoss:
+             begin
+               CurrExchangeGainLossEntry := pExchange_Gain_Loss_Rec(Ptr);
+
+               Bank_Account := NIL;
+               With MyClient.clBank_Account_List do For B := 0 to Pred( itemCount ) do
+                 With Bank_Account_At( B ) do begin
+                   If ( baFields.baNumber = CurrExchangeGainLossEntry.glTemp_Bank_Seq ) and
+                      (( AccountTypeSet = []) or ( baFields.baAccount_Type in AccountTypeSet)) then
+                   Begin
+                     Bank_Account := Bank_Account_At( B );
+                     Break;
+                   end;
+                 end;
+
+               if Assigned(FOnEnterExchangeGainLoss) then
+               begin
+                 FOnEnterExchangeGainLoss(Self);
+               end;             
+             end;
            end;
         end;
      end;

@@ -104,11 +104,11 @@ begin
       else
         Exit;
 
-      if NoOverlap (ExistingMemorisation.mdFields.mdFrom_Date, ExistingMemorisation.mdFields.mdUntil_Date,
-                    MemToTest.mdFields.mdFrom_Date, MemToTest.mdFields.mdUntil_Date) or
-         ((ExistingMemorisation.mdFields.mdFrom_Date = 0) and (ExistingMemorisation.mdFields.mdUntil_Date = 0)) or
-         ((MemToTest.mdFields.mdFrom_Date = 0) and (MemToTest.mdFields.mdUntil_Date = 0)) then
-         Exit;
+      if NoOverlap(ExistingMemorisation.mdFields.mdFrom_Date, ExistingMemorisation.mdFields.mdUntil_Date,
+                   MemToTest.mdFields.mdFrom_Date, MemToTest.mdFields.mdUntil_Date) or
+      (((ExistingMemorisation.mdFields.mdFrom_Date = 0) and (ExistingMemorisation.mdFields.mdUntil_Date = 0)) xor
+      ((MemToTest.mdFields.mdFrom_Date = 0) and (MemToTest.mdFields.mdUntil_Date = 0))) then
+        Exit;
 
       if (MemToTest.mdFields.mdUse_Accounting_System <> ExistingMemorisation.mdFields.mdUse_Accounting_System) then
         exit;

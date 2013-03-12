@@ -46,9 +46,7 @@ uses
    DelUnCheqdlg,
    GenUtils,
    BaUtils,
-   LogUtil,
-   dxList32,
-   TransactionUtils;
+   LogUtil;
 
 const
    UnitName = 'OUTSTAND';
@@ -638,7 +636,6 @@ var
    TransOrLockedCount : integer;
    Transaction        : pTransaction_Rec;
    DelCount           : integer;
-   DeletedTrans: pDeleted_Transaction_Rec;
 begin
   result := false;
 
@@ -703,29 +700,11 @@ begin
   DelCount := 0;
   With DeleteList do For j := 0 to Pred( ItemCount ) do begin
      With DeleteList.SeqInfo_At(j)^ do begin
-        If ( psPtr <> nil) and ( ppDate=0) and ( not ( psTransferred or psPtr^.txLocked)) then
-        begin
+        If ( psPtr <> nil) and ( ppDate=0)
+                           and ( not ( psTransferred or psPtr^.txLocked)) then begin
+
            if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, 'Delete '+ psPtr^.txReference);
-
-           if RecordDeletedTransactionData(BA, psPtr) then
-           begin
-             DeletedTrans := Create_Deleted_Transaction_Rec(psPtr, CurrUser.Code);
-
-             try
-               BA.baTransaction_List.DelFreeItem( psPtr );
-
-               BA.baDeleted_Transaction_List.Insert(DeletedTrans);
-             except
-               Dispose_Deleted_Transaction_Rec(DeletedTrans);
-
-               raise;
-             end;
-           end
-           else
-           begin
-             BA.baTransaction_List.DelFreeItem( psPtr );
-           end;
-
+           BA.baTransaction_List.DelFreeItem( psPtr );
            Inc( DelCount);
         end;
      end;

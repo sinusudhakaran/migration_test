@@ -46,7 +46,7 @@ uses
                         IsDDE: Boolean = False);
   procedure CloseAClient(var Client : TClientObj; AllowReadOnlyToBeSaved : boolean = false);
   procedure SaveAClient(Client :TClientObj); // AJ: Is this ever used (Not in BK5)
-  procedure AbandonAClient(var Client : TClientObj; aProcessStats : Boolean = True);
+  procedure AbandonAClient(var Client : TClientObj);
   function DoClientSave(Closing: Boolean; Client: TClientObj; const Silent: Boolean = False): Boolean;
   function ClientFileExists(ClientCode : string): boolean;
   procedure OpenAClientForRead(OpenCode :string; var Client : TClientObj);
@@ -101,7 +101,9 @@ uses
   ECodingUtils, BKUtil32, baObj32, baUtils, bkDateUtils,
   UpgradeHelper, ClientManagerFrm, ClientUtils, ExchangeRateList,
   MailFrm, ClientDetailCacheObj, BankLinkOnline, BankLinkOnlineServices,
-  BlopiServiceFacade;
+  BlopiServiceFacade,
+  ForexHelpers,
+  ExchangeGainLoss;
 
 const
   UnitName = 'FILES';
@@ -734,7 +736,7 @@ const
 var
   Client : TClientObj;
   filename : string;
-  Msg : string;
+  Msg: String;
 begin
   Assert( not Assigned( AdminSystem), 'ResetSentMethod called when Admin Exists');
 
@@ -786,7 +788,7 @@ const
 var
   Client : TClientObj;
   filename : string;
-  Msg : string;
+  Msg: String;
 begin
   Assert( not Assigned( AdminSystem), 'ResetReadOnly called when Admin Exists');
 
@@ -901,40 +903,33 @@ begin
    DeleteFile(DATADIR + Code + AUTOSAVEEXTN);
 
    //update admin system - must update regardless of whether changed so that file status is set back to fsNormal
-   if Assigned( AdminSystem) then
-   begin
-      if LoadAdminSystem(true, ThisMethodName ) then
-      begin
-        try
-          UpdateProcessingStats(Client, True, False);
-          pCF := AdminSystem.fdSystem_Client_File_List.FindCode( Code );
+   if Assigned( AdminSystem) then begin
+      if LoadAdminSystem(true, ThisMethodName ) then begin
+         UpdateProcessingStats(Client, True, False);
+         pCF := AdminSystem.fdSystem_Client_File_List.FindCode( Code );
 
-          If not Assigned( pCF ) then begin
+         If not Assigned( pCF ) then begin
             Msg := Format( 'Could not find CF Record for %s',[Code]);
             LogUtil.LogMsg(lmError, UnitName, ThisMethodName + ' : ' + Msg );
             Raise EAdminSystem.CreateFmt( '%s - %s : %s', [ UnitName, ThisMethodName, Msg ] );
-          end;
+         end;
 
-          if RenameRequired then begin
+         if RenameRequired then begin
             AdminSystem.fdSystem_Client_File_List.Delete(pCF);
             pCf.cfFile_Code := Client.clFields.clCode;
             AdminSystem.fdSystem_Client_File_List.Insert(pCF);
-          end;
+         end;
 
-          //make sure admin has latest cached details
-          SyncAdminToClient(pCF, Client);
-          RefreshContactDetails( Client, pCF, syncDir_ClientToAdmin);
+         //make sure admin has latest cached details
+         SyncAdminToClient(pCF, Client);
+         RefreshContactDetails( Client, pCF, syncDir_ClientToAdmin);
 
-          if Closing then begin //closing so clear status and curr user
+         if Closing then begin //closing so clear status and curr user
             pCF^.cfCurrent_User        := 0;
             pCF^.cfFile_Status         := fsNormal;
-          end;
-          SaveAdminSystem;
-        except
-          if AdminIsLocked then
-            UnlockAdmin;
-          raise;
-        end;
+         end;
+
+         SaveAdminSystem;
       end;
    end;
 
@@ -989,7 +984,7 @@ begin
   end;
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-procedure AbandonAClient(var Client : TClientObj; aProcessStats : Boolean = True);
+procedure AbandonAClient(var Client : TClientObj);
 //destroy client object without saving
 const
   ThisMethodName = 'AbandonAClient';
@@ -1034,9 +1029,7 @@ begin
         pCF^.cfFile_Status   := fsNormal;
         // processing stats need updating regardless of if it is a syncronised file
         OpenAClientForRead(Code, Client);
-
-        if aProcessStats then
-          Merge32.UpdateProcessingStats(Client, True, False);
+        Merge32.UpdateProcessingStats(Client, True, False);
 
         // Create client-account maps
         // Add deleted ones that were abandoned
@@ -1106,6 +1099,7 @@ var
   {PurgeDate: integer;
   EntriesBefore, TotalDeleted: integer;
   sMsg: string; }
+  Snapshot: ITransactionSnapshot;
 begin
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
   try
@@ -1137,7 +1131,16 @@ begin
        with MyClient.clFields do
          AddToMRU( clCode, clName );
 
+       // Keep track of the AutoMerge changes, so we can display the gain/loss
+       // warning in the ClientHomePageFrm.
+       if IsForeignCurrencyClient then
+         Snapshot := CreateTransactionSnapshot(MyClient);
+
        SyncClientToAdmin(MyClient,False,False,False,False,Assigned(AdminSystem) and AdminSystem.fdFields.fdAuto_Retrieve_New_Transactions);
+
+       // Pass the AutoMerge result onto the ClientHomePageFrm
+       if IsForeignCurrencyClient(MyClient) then
+         SetAutoMergeResult(Snapshot.HasChanges);
 
        //Apply fix for invalid GST Apply Dates
        FixClientInvalidGSTRateAppliesDates;
@@ -1151,7 +1154,7 @@ begin
            RefreshContactDetails( MyClient, pCF, syncDir_AdminToClient);
          end;
        end;
-       BatchReports.XMLString := MyClient.clFields.clFavourite_Report_XML; 
+       BatchReports.XMLString := MyClient.clFields.clFavourite_Report_XML;
     end;
 
   finally
@@ -2224,6 +2227,7 @@ var
    BlankSubscription : TBloArrayOfGuid;
 begin
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
+
    CFRec := nil;
    RemapAccounts := False;
    Result := False;
@@ -2575,6 +2579,7 @@ begin
       if Wrapper.wRead_Only then
       begin
         ResetReadOnlyFlag( Code, ASendMethod);
+
         ProgressFrm.mProgress.Lines.Add( 'Read-only flag cleared');
       end
       else
@@ -2587,11 +2592,12 @@ begin
      Msg := Format('Update %s from %s succeeded',[Code, BANKLINK_ONLINE_NAME])
    else
      Msg := Format('Update %s from %s succeeded',[Code, RemoteFileName]);
+
    LogUtil.LogMsg(lmInfo,unitname,ThisMethodName+' '+Msg);
 
    if not IsScheduledReports and Assigned( AdminSystem) then
    begin
-     if Assigned(CFRec) then     
+     if Assigned(CFRec) then
        CloseCheckOutTask(CFRec);
      AddAutomaticToDoItem(Code, ttyCheckIn, Format(ToDoMsg_CheckIn, [bkDate2Str(CurrentDate)]), 0, 0, true);
    end;
@@ -2706,6 +2712,7 @@ var
    Code: string;
 begin
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
+
    RemapAccounts := False;
    Result := False;
    RemoteFilename := filename;
@@ -2963,7 +2970,7 @@ begin
 
    if Assigned( AdminSystem) then
    begin
-     if Assigned(CFRec) then     
+     if Assigned(CFRec) then
        CloseCheckOutTask(CFRec);
      AddAutomaticToDoItem(Code, ttyCheckIn, Format(ToDoMsg_CheckIn, [bkDate2Str(CurrentDate)]), 0, 0, true);
    end;

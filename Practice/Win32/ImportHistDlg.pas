@@ -339,7 +339,9 @@ begin
       Ldlg.HDEForm := HDEForm;
       Ldlg.BankAccount := BankAccount;
       Ldlg.HistTranList := HistTranList;
-      Ldlg.SetBounds(HDEForm.Left + 20,HDEForm.Top + 20, HDEForm.Width - 40, HDEForm.Height - 40);
+      // Only adjust the height, not the width
+      Ldlg.Top := HDEForm.Top + 20;
+      Ldlg.Height := HDEForm.Height - 40;
       Ldlg.SetUpHelp;
       
       Result := ldlg.ShowModal = mrOK;

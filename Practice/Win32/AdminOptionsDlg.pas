@@ -62,12 +62,8 @@ type
     lh5: TLabel;
     Bevel6: TBevel;
     btnBrowseLOBitmap: TSpeedButton;
-    Label18: TLabel;
-    rsAutoSaveTime: TRzSpinEdit;
-    lblAutoSaveTime: TLabel;
     chkCopyNarrationDissection: TCheckBox;
     chkAutoLogin: TCheckBox;
-    chkIgnoreQuantity: TCheckBox;
     tsSmartLink: TTabSheet;
     lh7: TLabel;
     Bevel10: TBevel;
@@ -77,24 +73,14 @@ type
     edtSQL_IP: TEdit;
     Label25: TLabel;
     rsFingertipsTimeout: TRzSpinEdit;
-    chkDissectedNarration: TCheckBox;
     tsUpdates: TTabSheet;
     btnCheckForUpdates: TButton;
     tsLinks: TTabSheet;
     lh8: TLabel;
     Bevel12: TBevel;
     btnInstallUpdates: TButton;
-    chkUsage: TCheckBox;
-    chkRetrieve: TCheckBox;
-    Label31: TLabel;
     Label32: TLabel;
-    btnReset: TButton;
-    pnlCESFont: TPanel;
-    chkReportPwd: TCheckBox;
-    btnReportPwd: TButton;
     OpenPictureDlg: TOpenPictureDialog;
-    cbceFont: TRzFontComboBox;
-    cbSize: TRzComboBox;
     cbBulkExport: TComboBox;
     pInstitute: TPanel;
     edtInstListLink: TEdit;
@@ -127,7 +113,21 @@ type
     rsMaxNarration: TRzSpinEdit;
     PZero: TPanel;
     chkZeroAmounts: TCheckBox;
-    Button1: TButton;
+    Panel1: TPanel;
+    btnReportPwd: TButton;
+    chkReportPwd: TCheckBox;
+    pnlCESFont: TPanel;
+    btnReset: TButton;
+    cbSize: TRzComboBox;
+    cbceFont: TRzFontComboBox;
+    chkRetrieve: TCheckBox;
+    chkUsage: TCheckBox;
+    rsAutoSaveTime: TRzSpinEdit;
+    chkDissectedNarration: TCheckBox;
+    chkIgnoreQuantity: TCheckBox;
+    lblAutoSaveTime: TLabel;
+    Label18: TLabel;
+    Label31: TLabel;
     procedure FormCreate(Sender: TObject);
     procedure btnBackupDirClick(Sender: TObject);
     procedure btnRestoreDefaultsClick(Sender: TObject);
@@ -148,7 +148,6 @@ type
     procedure cbceFontChange(Sender: TObject);
     procedure eDate1Change(Sender: TObject);
     procedure eDate1DblClick(Sender: TObject);
-    procedure Button1Click(Sender: TObject);
   private
 
     HeaderFooterChanged : Boolean;
@@ -169,7 +168,7 @@ type
 
     procedure UpdateFontLabel;
 
-    procedure CheckOpportunisticLocking;
+   
 
 
     { Private declarations }
@@ -212,9 +211,7 @@ uses
   UpgradeHelper,
   LockUtils,
   //ReportStylesDlg,
-  ChangePwdDlg, EnterPwdDlg, bkdateutils,
-  Registry,
-  StrUtils, LOGUTIL;
+  ChangePwdDlg, EnterPwdDlg, bkdateutils;
 
 {$R *.dfm}
 
@@ -336,7 +333,8 @@ begin
   begin
     chkAutoLogin.Visible               := False;
     chkAutoLogin.Checked               := False;
-    AdminSystem.fdFields.fdForce_Login := False;
+    Panel1.Top                         := Panel1.Top - 29;
+    AdminSystem.fdFields.fdForce_Login := True;
   end;
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -669,11 +667,6 @@ begin
 end;
 
 
-procedure TdlgAdminOptions.Button1Click(Sender: TObject);
-begin
-  CheckOpportunisticLocking;
-end;
-
 procedure TdlgAdminOptions.btnResetClick(Sender: TObject);
 begin
   StrToFont(DefaultCESFontString,CESFont);
@@ -712,68 +705,6 @@ begin
   CESFont.Size := StrToInt(cbSize.Text);
   cbCEFont.FontSize := CESFont.Size;
   UpdateFontLabel;
-end;
-
-procedure TdlgAdminOptions.CheckOpportunisticLocking;
-
-  function AppendMessage(const CurrentMsg, NewMsg: String): String;
-  begin
-    if CurrentMsg <> '' then
-    begin
-      Result := CurrentMsg + #10#13 + NewMsg;
-    end
-    else
-    begin
-      Result := NewMsg;
-    end;
-  end;
-  
-var
-  Msg: String;
-begin
-  if GetClientRequestOpsLockEnabled then
-  begin
-    Msg := AppendMessage(Msg, '- Request Opportunistic Locking is enabled.');
-
-    LogUtil.LogMsg(lmInfo, 'AdminOptionsDlg', 'Request Opportunistic Locking is enabled');
-  end
-  else
-  begin
-    Msg := AppendMessage(Msg, '- Request Opportunistic Locking is disabled.');
-
-    LogUtil.LogMsg(lmInfo, 'AdminOptionsDlg', 'Request Opportunistic Locking is disabled');
-  end;
-
-  if GetServerGrantOpsLockEnabled then
-  begin
-    Msg := AppendMessage(Msg, '- Grant Opportunistic Locking is enabled.');
-
-    LogUtil.LogMsg(lmInfo, 'AdminOptionsDlg', 'Grant Opportunistic Locking is enabled');
-  end
-  else
-  begin
-    Msg := AppendMessage(Msg, '- Grant Opportunistic Locking requests is disabled.');
-
-    LogUtil.LogMsg(lmInfo, 'AdminOptionsDlg', 'Grant Opportunistic Locking requests is disabled');
-  end;
-
-  if IsWindowsVista then
-  begin
-    if GetServerSMB2Enabled then
-    begin
-      Msg := AppendMessage(Msg, '- SMB2 is enabled.');
-      
-      LogUtil.LogMsg(lmInfo, 'AdminOptionsDlg', 'SMB2 is enabled');
-    end
-    else
-    begin
-      Msg := AppendMessage(Msg, '- SMB2 is disabled.');
-
-      LogUtil.LogMsg(lmInfo, 'AdminOptionsDlg', 'SMB2 is disabled');
-    end;
-  end;
-
-  HelpfulInfoMsg(Msg, 0);
 end;
 
 procedure TdlgAdminOptions.ckBulkExportClick(Sender: TObject);

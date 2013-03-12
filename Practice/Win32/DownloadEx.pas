@@ -1105,79 +1105,62 @@ procedure DownloadDiskImages( Source : TDownloadSource);
 //Note: Application Process Messages will be called during this procedure
 var
   NumImagesFound : integer;
-  OldStatusSilent: Boolean;
 begin
-  OldStatusSilent := StatusSilent;
+  if (StartupParam_Action = 0) then
+     if not (AskYesNo('Download data',
+                   'You should back up your '+SHORTAPPNAME+' System before you download new data.'#13#13+
+                   'Do you want to download now?',DLG_YES, BKH_The_download_process) = DLG_YES) then
+        Exit;
 
-  StatusSilent := False;
-
-  try
-    if (StartupParam_Action = 0) then
-       if not (AskYesNo('Download data',
-                     'You should back up your '+SHORTAPPNAME+' System before you download new data.'#13#13+
-                     'Do you want to download now?',DLG_YES, BKH_The_download_process) = DLG_YES) then
-          Exit;
-
-    if not RefreshAdmin then
-      Exit;
-    //Check integrity of the admin system before doing anything
-    Admin32.IntegrityCheck;
-    //check that test has not been disabled in the prac ini
-    if PRACINI_ValidateArchive then
-    begin
-      //ensure that file LRN's match admin system LRN
-      //will raise an exception if it fails
-      CheckArchiveDirSynchronised;
-    end;                          
-    //images found may return the following
-    // -1 : user cancelled copy from floppy or bconnect
-    //  0 : no new disks downloaded, user may be processing disks that are
-    //      already in the directory
-    //  n : number of new disks
-    case Source of
-      dsFloppy : begin
-        with AdminSystem.fdFields do
-        begin
-          NumImagesFound := DoCopyFloppy(fdBankLink_Code,fdDisk_Sequence_No);
-        end;
-      end;
-
-      dsBConnect :
+  if not RefreshAdmin then
+    Exit;
+  //Check integrity of the admin system before doing anything
+  Admin32.IntegrityCheck;
+  //check that test has not been disabled in the prac ini
+  if PRACINI_ValidateArchive then
+  begin
+    //ensure that file LRN's match admin system LRN
+    //will raise an exception if it fails
+    CheckArchiveDirSynchronised;
+  end;                          
+  //images found may return the following
+  // -1 : user cancelled copy from floppy or bconnect
+  //  0 : no new disks downloaded, user may be processing disks that are
+  //      already in the directory
+  //  n : number of new disks
+  case Source of
+    dsFloppy : begin
+      with AdminSystem.fdFields do
       begin
-        NumImagesFound := DoBankLinkConnect;
+        NumImagesFound := DoCopyFloppy(fdBankLink_Code,fdDisk_Sequence_No);
       end;
-    else
-      NumImagesFound := -1;
     end;
-    //process disk images unless user pressed cancel
-    if NumImagesFound <> -1 then
-    begin
-      try
-        if ProcessDiskImages then
-        begin
-          //UpdateClientAccounts;
 
-          // all done - now update processing status to show downloaded months
-          if PRACINI_FastDownloadStatsUpdate then
-          begin
-            UpdateSystemDownloadIndicators;
-          end
-          else
-          begin
-            RefreshAllProcessingStatistics(True);
-          end;
-        end;
-      except
-        on E : EDownloadVerify do
-        begin
-           HelpfulErrorMsg('An error occured while verifying the downloaded data.'+#13+#13+
-                           E.Message+ #13+#13+
-                           'Please contact '+SHORTAPPNAME+' support.',0);
-        end;
+    dsBConnect :
+    begin
+      NumImagesFound := DoBankLinkConnect;
+    end;
+  else
+    NumImagesFound := -1;
+  end;
+  //process disk images unless user pressed cancel
+  if NumImagesFound <> -1 then
+  begin
+    try
+      if ProcessDiskImages then
+      begin
+        UpdateClientAccounts;
+         // all done - now update processing status to show downloaded months
+         RefreshAllProcessingStatistics(True);
+      end;
+    except
+      on E : EDownloadVerify do
+      begin
+         HelpfulErrorMsg('An error occured while verifying the downloaded data.'+#13+#13+
+                         E.Message+ #13+#13+
+                         'Please contact '+SHORTAPPNAME+' support.',0);
       end;
     end;
-  finally
-    StatusSilent := OldStatusSilent;
   end;
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

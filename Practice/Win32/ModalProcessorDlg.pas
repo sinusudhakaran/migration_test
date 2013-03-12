@@ -123,6 +123,14 @@ begin
     mpcDoReport : DoReport(ReportType, Destination, FHelpID);
     mpcDoAdminReport : DoAdminReport( ReportType, Destination, FHelpID);
   end;
+
+  if CommandToProcess = mpcDoReport then
+  begin
+    if ReportToProcess = REPORT_FOREIGN_EXCHANGE then
+    begin
+      RefreshHomepage([HPR_ExchangeGainLoss_NewData]);
+    end;
+  end;
 end;
 
 procedure DoModalReport(ReportType : Report_List_Type; Destination : TReportDest; HelpCtx : integer = 0);

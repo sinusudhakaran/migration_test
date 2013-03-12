@@ -1165,6 +1165,8 @@ var
                       or TestInclude(BankAcct.sbFrequency = difUnspecified, saFreqUnspecified)
                       or TestInclude(BankAcct.sbAccount_Type = sbtProvisional, saProvisional)
                       or TestInclude(BankAcct.sbAccount_Type = sbtOnlineSecure, saOnlineSecure)
+                      or ((TestInclude(TestOffsite(BankAcct), saSecureAndOnlineSecure) = True) and
+                          (TestInclude(BankAcct.sbAccount_Type = sbtOnlineSecure, saSecureAndOnlineSecure) = True))
                 ) then
            Exit; // This node failed
 
@@ -1236,7 +1238,7 @@ var
               3 : NewGroup.Title := 'Attached Accounts';
               4 : NewGroup.Title := 'Books Secure Accounts';
               5 : NewGroup.Title := 'Deleted Accounts';
-              6 : NewGroup.Title := 'Banklink Online Secure Accounts';
+              6 : NewGroup.Title := 'BankLink Online Secure Accounts';
               end;
               lnode := fAccountList.AddNodeItem(nil, NewGroup);
            end;
@@ -1309,7 +1311,7 @@ var
           NewGroup := TestNewGroup(CurGroup);
           if Assigned(NewGroup) then begin
               case CurGroup of
-              3 : NewGroup.Title := 'Banklink Online Secure Accounts';
+              3 : NewGroup.Title := 'BankLink Online Secure Accounts';
               2 : NewGroup.Title := 'Books Secure Accounts';
               1 : NewGroup.Title := 'Provisional Accounts';
               0 : NewGroup.Title := 'Practice Accounts';

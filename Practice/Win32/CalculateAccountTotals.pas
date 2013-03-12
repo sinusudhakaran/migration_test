@@ -77,7 +77,7 @@ const
   Tag_Budget_Movement     = 8;
 
 
-procedure CalculateAccountTotalsForClient( aClient : TClientObj; AddContras : boolean = true; AccountList: TList = nil; MaxDate: integer = -1; UseMaxDate: Boolean = False);
+procedure CalculateAccountTotalsForClient( aClient : TClientObj; AddContras : boolean = true; AccountList: TList = nil; MaxDate: integer = -1; UseMaxDate: Boolean = False; IncludeExchangeGainLoss: Boolean = False; UseLocalAmountAsBase: Boolean = False);
 
 procedure AddAutoContraCodes( aClient : TClientObj);
 procedure RemoveAutoContraCodes( aClient : TClientObj);
@@ -113,7 +113,18 @@ uses
   sysUtils,
   stDate,
   ForexHelpers,
-  GenUtils;
+  GenUtils,
+  glObj32;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+procedure AddTo( var TheSum : Money; AnAmount : Money );
+begin
+  if AnAmount = Unknown then
+    TheSum := UnKnown
+  else
+    if TheSum <> Unknown then
+      TheSum := TheSum + AnAmount;
+end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function DivisionInReport(const aClient : TClientObj; aAccountRec: TAccount_Rec): Boolean;
@@ -238,7 +249,7 @@ begin
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-procedure CalculateAccountTotalsForClient( aClient : TClientObj; AddContras : boolean = true; AccountList: TList = nil; MaxDate: integer = -1; UseMaxDate: Boolean = False);
+procedure CalculateAccountTotalsForClient( aClient : TClientObj; AddContras : boolean = true; AccountList: TList = nil; MaxDate: integer = -1; UseMaxDate: Boolean = False; IncludeExchangeGainLoss: Boolean = False; UseLocalAmountAsBase: Boolean = False);
 //note add contras will only be false for when generating budget figures
 type
    TWhichYear = ( wyThisYear, wyLastYear);
@@ -257,15 +268,6 @@ var
    GST_Posting_Accounts       : Array[ 1..MAX_GST_CLASS] of pAccount_Rec;
    Budget_Movement_Account    : pAccount_Rec;
 
-   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-   procedure AddTo( var TheSum : Money; AnAmount : Money );
-   begin
-     if AnAmount = Unknown then
-       TheSum := UnKnown
-     else
-       if TheSum <> Unknown then
-         TheSum := TheSum + AnAmount;
-   end;
    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    procedure CheckGSTFields( var P : pTransaction_Rec );
    //makes sure that we don't have any stray gst classes
@@ -291,7 +293,7 @@ var
            dThis := dsNext;
          end;
      end;
-   end;
+   end;   
    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    procedure AddOpeningBalanceItem( WhichYear  : TWhichYear;
                                     Code       : string;
@@ -331,8 +333,10 @@ var
                  //post net and gst amounts separately
                  AddTo( chTemp_Amount.This_Year[ 0 ], Amount - GST_Amount );
                  AddTo( chTemp_Base_Amount.This_Year[ 0 ], Amount_Base - GST_Amount);
-                 if PostToGSTContra and ( Assigned( G)) then
+                 if PostToGSTContra and ( Assigned( G)) then begin
                     AddTo( G^.chTemp_Amount.This_Year[0], GST_Amount);
+                    AddTo( G^.chTemp_Base_Amount.This_Year[0], GST_Amount);
+                 end;
                end;
              end
              else begin //last year
@@ -343,8 +347,10 @@ var
                  //post net and gst amounts separately
                  AddTo( chTemp_Amount.Last_Year[ 0 ], Amount - GST_Amount );
                  AddTo( chTemp_Base_Amount.Last_Year[ 0 ], Amount_Base - GST_Amount);
-                 if PostToGSTContra and ( Assigned( G)) then
+                 if PostToGSTContra and ( Assigned( G)) then begin
                     AddTo( G^.chTemp_Amount.This_Year[0], GST_Amount);
+                    AddTo( G^.chTemp_Base_Amount.This_Year[0], GST_Amount);
+                 end;
                end;
              end;
           end;
@@ -352,70 +358,6 @@ var
      end; //with aClient, clFields...
    end;
    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-   procedure AddOpeningBalances;
-   //if the calculation should be cash only then we only need the opening balances
-   //for the atCashOnHand type accounts
-   var
-      ba         : TBank_Account;
-      i          : integer;
-      t          : integer;
-      pT         : pTransaction_Rec;
-      pD         : pDissection_Rec;
-      WhichYear  : TWhichYear;
-      ExchangeRate: Double;
-      OpenBalAmt: Money;
-   begin
-      with aClient.clBank_Account_List do
-         for i := 0 to Pred( ItemCount) do begin
-            Ba := Bank_Account_At(i);
-            if ( Ba.baFields.baAccount_Type = btOpeningBalances) then begin
-               for t := 0 to Pred(ba.baTransaction_List.ItemCount) do begin
-                  pT := ba.baTransaction_List.Transaction_At(t);
-                  if ( pT^.txDate_Effective = This_Year_Starts) or ( pT^.txDate_Effective = Last_Year_Starts) then begin
-                     if ( pT^.txDate_Effective = This_Year_Starts) then
-                        WhichYear := wyThisYear
-                     else
-                        WhichYear := wyLastYear;
-
-                     CheckGSTFields( pT);
-
-                     if pT^.txFirst_Dissection = nil then begin
-                        //Just add
-                        if (aclient.clFields.clTemp_FRS_Job_To_Use = '')
-                        or SameText(aclient.clFields.clTemp_FRS_Job_To_Use, pt^.txJob_Code) then
-                           AddOpeningBalanceItem( WhichYear, pT.txAccount, pT^.txAmount, pT^.txTemp_Base_Amount, pT.txGST_Class, pT.txGST_Amount);
-                     end else begin
-                        //iterate disections
-                        pD := pT.txFirst_Dissection;
-                        while (pD <> nil) do begin
-                           if (aclient.clFields.clTemp_FRS_Job_To_Use = '')
-                           or SameText(aclient.clFields.clTemp_FRS_Job_To_Use, pd.dsJob_Code) then begin
-                              OpenBalAmt := pD^.dsAmount;
-                              if pD^.dsOpening_Balance_Currency <> '' then
-                                OpenBalAmt := pD^.dsForeign_Currency_Amount
-                              else begin
-                                //If an opening balance has not been entered as a forex amount then
-                                //it needs to be converted to get the forex amount.
-                                ba.baFields.baCurrency_Code := aClient.GetForexISOCodeForContra(pD^.dsAccount);
-                                if ba.baFields.baCurrency_Code <> '' then begin
-                                  ExchangeRate := ba.Default_Forex_Conversion_Rate(pT^.txDate_Effective);
-                                  OpenBalAmt := Double2Money(Money2Double(pD^.dsAmount) * ExchangeRate);
-                                end;
-                              end;
-                              AddOpeningBalanceItem( WhichYear, pD^.dsAccount, OpenBalAmt, pD^.dsAmount, pD^.dsGST_Class, pD^.dsGST_Amount);
-                              ba.baFields.baCurrency_Code := aClient.clExtra.ceLocal_Currency_Code;
-                           end;
-                           pD := pD^.dsNext;
-                        end;
-                     end;
-                     //no need to record contras in this case because they are
-                     //not specified for an opening balance account
-                  end;
-               end; //for t
-            end;
-         end;
-   end;
-   //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    procedure AddItem( WhichYear : TWhichYear; Period : Byte;  Code : string;
                       Amount : Money;  GST_Class : Byte; GST_Amount : Money;
                       Quantity : Money );
@@ -460,8 +402,10 @@ var
              else begin
                AddTo( chTotal, Amount - GST_Amount );
                AddTo( chTemp_Amount.This_Year[ Period ], Amount - GST_Amount );
-               if PostToGSTContra and Assigned( G) then
+               if PostToGSTContra and Assigned( G) then begin
                    AddTo( G^.chTemp_Amount.This_Year[ Period ], GST_Amount );
+                   AddTo( G^.chTemp_Base_Amount.This_Year[ Period ], GST_Amount );
+               end;
              end;
              //Set base amount
              P^.chTemp_Base_Amount.This_Year[ Period ] := chTemp_Amount.This_Year[ Period ];
@@ -473,8 +417,10 @@ var
              end
              else begin
                AddTo( chTemp_Amount.Last_Year[ Period ], Amount - GST_Amount );
-               if PostToGSTContra and Assigned( G) then
+               if PostToGSTContra and Assigned( G) then begin
                   AddTo( G^.chTemp_Amount.Last_Year[ Period ], GST_Amount );
+                  AddTo( G^.chTemp_Base_Amount.Last_Year[ Period ], GST_Amount );
+               end;
              end;
              //Set base amount
              chTemp_Base_Amount.Last_Year[ Period ] := chTemp_Amount.Last_Year[ Period ];
@@ -483,6 +429,76 @@ var
          end;
        end; //with p^
      end;
+   end;
+   //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+   procedure AddOpeningBalances;
+   //if the calculation should be cash only then we only need the opening balances
+   //for the atCashOnHand type accounts
+   var
+      ba         : TBank_Account;
+      i          : integer;
+      t          : integer;
+      pT         : pTransaction_Rec;
+      pD         : pDissection_Rec;
+      WhichYear  : TWhichYear;
+      ExchangeRate: Double;
+      OpenBalAmt: Money;
+      TestStr: string;
+
+      Index, PeriodNo: integer;
+      GainLossEntry: TExchange_Gain_Loss;
+      Contra: pAccount_Rec;
+   begin
+      with aClient.clBank_Account_List do
+         for i := 0 to Pred( ItemCount) do begin
+            Ba := Bank_Account_At(i);
+            if ( Ba.baFields.baAccount_Type = btOpeningBalances) then begin
+               for t := 0 to Pred(ba.baTransaction_List.ItemCount) do begin
+                  pT := ba.baTransaction_List.Transaction_At(t);
+                  if ( pT^.txDate_Effective = This_Year_Starts) or ( pT^.txDate_Effective = Last_Year_Starts) then begin
+                     if ( pT^.txDate_Effective = This_Year_Starts) then
+                        WhichYear := wyThisYear
+                     else
+                        WhichYear := wyLastYear;
+
+                     CheckGSTFields( pT);
+
+                     if pT^.txFirst_Dissection = nil then begin
+                        //Just add
+                        if (aclient.clFields.clTemp_FRS_Job_To_Use = '')
+                        or SameText(aclient.clFields.clTemp_FRS_Job_To_Use, pt^.txJob_Code) then
+                           AddOpeningBalanceItem( WhichYear, pT.txAccount, pT^.txAmount, pT^.txTemp_Base_Amount, pT.txGST_Class, pT.txGST_Amount);
+                     end else begin
+                        //iterate disections
+                        pD := pT.txFirst_Dissection;
+                        while (pD <> nil) do begin
+                           if (aclient.clFields.clTemp_FRS_Job_To_Use = '')
+                           or SameText(aclient.clFields.clTemp_FRS_Job_To_Use, pd.dsJob_Code) then begin
+                              OpenBalAmt := pD^.dsAmount;
+                              if pD^.dsOpening_Balance_Currency <> '' then
+                                OpenBalAmt := pD^.dsForeign_Currency_Amount
+                              else begin
+                                //If an opening balance has not been entered as a forex amount then
+                                //it needs to be converted to get the forex amount.
+                                ba.baFields.baCurrency_Code := aClient.GetForexISOCodeForContra(pD^.dsAccount);
+                                if ba.baFields.baCurrency_Code <> '' then begin
+                                  ExchangeRate := ba.Default_Forex_Conversion_Rate(pT^.txDate_Effective);
+                                  OpenBalAmt := Double2Money(Money2Double(pD^.dsAmount) * ExchangeRate);
+                                  TestStr := '';
+                                end;
+                              end;
+                              AddOpeningBalanceItem( WhichYear, pD^.dsAccount, OpenBalAmt, pD^.dsAmount, pD^.dsGST_Class, pD^.dsGST_Amount);
+                              ba.baFields.baCurrency_Code := aClient.clExtra.ceLocal_Currency_Code;
+                           end;
+                           pD := pD^.dsNext;
+                        end;
+                     end;
+                     //no need to record contras in this case because they are
+                     //not specified for an opening balance account
+                  end;
+               end; //for t
+            end;
+         end;
    end;
 
    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -498,6 +514,8 @@ var
       PeriodNo   : integer;
       SkipAccount : boolean;
       IsForex     : boolean;
+      GainLossEntry: TExchange_Gain_Loss;
+      Index: Integer;
    begin
       with aClient.clBank_Account_List do
          for i := 0 to Pred( ItemCount) do begin
@@ -531,7 +549,7 @@ var
 
             if not( SkipAccount) then begin
                if AddContras then
-                 Contra := aClient.clChart.FindCode( ba.baFields.baContra_Account_Code)       
+                 Contra := aClient.clChart.FindCode( ba.baFields.baContra_Account_Code)
                else
                  Contra := nil;
 
@@ -558,7 +576,15 @@ var
                               or SameText(aclient.clFields.clTemp_FRS_Job_To_Use, pt^.txJob_Code) then
                               begin
                                   AddTo(Contra^.chTemp_Amount.This_Year[ PeriodNo], -pt^.txAmount);
-                                  AddTo(Contra^.chTemp_Base_Amount.This_Year[ PeriodNo], -pt^.txTemp_Base_Amount);
+
+                                  if IsForex and UseLocalAmountAsBase then
+                                  begin
+                                    AddTo(Contra^.chTemp_Base_Amount.This_Year[ PeriodNo], -pt^.Local_Amount);
+                                  end
+                                  else
+                                  begin
+                                    AddTo(Contra^.chTemp_Base_Amount.This_Year[ PeriodNo], -pt^.txTemp_Base_Amount);
+                                  end;
                               end;
                             end else begin
                               pD := pT^.txFirst_Dissection;
@@ -567,7 +593,15 @@ var
                                  or SameText(aclient.clFields.clTemp_FRS_Job_To_Use, pd.dsJob_Code) then
                                  begin
                                     AddTo(Contra^.chTemp_Amount.This_Year[ PeriodNo], -pD^.dsAmount);
-                                    AddTo(Contra^.chTemp_Base_Amount.This_Year[ PeriodNo], -pD^.dsTemp_Base_Amount);
+
+                                    if IsForex and UseLocalAmountAsBase then
+                                    begin
+                                      AddTo(Contra^.chTemp_Base_Amount.This_Year[ PeriodNo], -pD^.Local_Amount);
+                                    end
+                                    else
+                                    begin
+                                      AddTo(Contra^.chTemp_Base_Amount.This_Year[ PeriodNo], -pD^.dsTemp_Base_Amount);
+                                    end;
                                  end;
                                  pD := pD^.dsNext;
                               end;
@@ -582,7 +616,15 @@ var
                               or SameText(aclient.clFields.clTemp_FRS_Job_To_Use, pt^.txJob_Code) then
                               begin
                                   AddTo(Contra^.chTemp_Amount.Last_Year[ PeriodNo], -pt^.txAmount);
-                                  AddTo(Contra^.chTemp_Base_Amount.Last_Year[ PeriodNo], -pt^.txTemp_Base_Amount);
+
+                                  if IsForex and UseLocalAmountAsBase then
+                                  begin
+                                    AddTo(Contra^.chTemp_Base_Amount.Last_Year[ PeriodNo], -pt^.Local_Amount);
+                                  end
+                                  else
+                                  begin
+                                    AddTo(Contra^.chTemp_Base_Amount.Last_Year[ PeriodNo], -pt^.txTemp_Base_Amount);
+                                  end;
                               end;
                             end else begin
                               pD := pT^.txFirst_Dissection;
@@ -591,7 +633,15 @@ var
                                  or SameText(aclient.clFields.clTemp_FRS_Job_To_Use, pd.dsJob_Code) then
                                  begin
                                    AddTo(Contra^.chTemp_Amount.Last_Year[ PeriodNo], -pD^.dsAmount);
-                                   AddTo(Contra^.chTemp_Base_Amount.Last_Year[ PeriodNo], -pD^.dsTemp_Base_Amount);
+
+                                   if IsForex and UseLocalAmountAsBase then
+                                   begin
+                                     AddTo(Contra^.chTemp_Base_Amount.Last_Year[ PeriodNo], -pD^.Local_Amount);
+                                   end
+                                   else
+                                   begin
+                                     AddTo(Contra^.chTemp_Base_Amount.Last_Year[ PeriodNo], -pD^.dsTemp_Base_Amount);
+                                   end;
                                  end;
                                  pD := pD^.dsNext;
                               end;
@@ -607,9 +657,20 @@ var
                            if (aclient.clFields.clTemp_FRS_Job_To_Use = '')
                            or SameText(aclient.clFields.clTemp_FRS_Job_To_Use, pt^.txJob_Code) then begin
                               if IsForex then
-                                AddItem( WhichYear, PeriodNo, pT^.txAccount, pt^.txTemp_Base_Amount, pt^.txGST_Class, pT^.txGST_Amount, pT^.txQuantity)
+                              begin
+                                if UseLocalAmountAsBase then
+                                begin
+                                  AddItem( WhichYear, PeriodNo, pT^.txAccount, pt^.Local_Amount, pt^.txGST_Class, pT^.txGST_Amount, pT^.txQuantity);
+                                end
+                                else
+                                begin
+                                  AddItem( WhichYear, PeriodNo, pT^.txAccount, pt^.txTemp_base_Amount, pt^.txGST_Class, pT^.txGST_Amount, pT^.txQuantity);
+                                end;
+                              end
                               else
+                              begin
                                 AddItem( WhichYear, PeriodNo, pT^.txAccount, pt^.txAmount, pt^.txGST_Class, pT^.txGST_Amount, pT^.txQuantity);
+                              end;
                            end;
                        end else begin
                           pD := pT^.txFirst_Dissection;
@@ -617,9 +678,20 @@ var
                              if (aclient.clFields.clTemp_FRS_Job_To_Use = '')
                              or SameText(aclient.clFields.clTemp_FRS_Job_To_Use, pd.dsJob_Code) then begin
                                 if IsForex then
-                                  AddItem(WhichYear, PeriodNo, pD^.dsAccount, pD^.dsTemp_Base_Amount, pD^.dsGST_Class, pD^.dsGST_Amount, pD^.dsQuantity)
+                                begin
+                                  if UseLocalAmountAsBase then
+                                  begin
+                                    AddItem(WhichYear, PeriodNo, pD^.dsAccount, pD^.Local_Amount, pD^.dsGST_Class, pD^.dsGST_Amount, pD^.dsQuantity);
+                                  end
+                                  else
+                                  begin
+                                    AddItem(WhichYear, PeriodNo, pD^.dsAccount, pD^.dsTemp_Base_Amount, pD^.dsGST_Class, pD^.dsGST_Amount, pD^.dsQuantity);
+                                  end;
+                                end
                                 else
+                                begin
                                   AddItem(WhichYear, PeriodNo, pD^.dsAccount, pD^.dsAmount, pD^.dsGST_Class, pD^.dsGST_Amount, pD^.dsQuantity);
+                                end;
                              end;
                              pD := pD^.dsNext;
                           end;
@@ -627,6 +699,56 @@ var
                      end;
                   end;
                end; //for t
+
+               //Add the gain/loss amounts
+               if IncludeExchangeGainLoss then
+               begin
+                 for Index := 0 to BA.baExchange_Gain_Loss_List.ItemCount - 1 do
+                 begin
+                   GainLossEntry := BA.baExchange_Gain_Loss_List.Exchange_Gain_Loss_At(Index);
+
+                   if (GainLossEntry.glFields.glDate >= Last_Year_Starts) and (GainLossEntry.glFields.glDate <= This_Year_Ends) and ((GainLossEntry.glFields.glDate <= MaxDate) or not UseMaxDate) then
+                   begin
+                     if CompareDates(GainLossEntry.glFields.glDate, This_Year_Starts, This_Year_Ends) = Within then
+                     begin
+                       WhichYear := wyThisYear
+                     end
+                     else
+                     begin
+                       WhichYear := wyLastYear;
+                     end;
+
+                     if WhichYear = wyThisYear then
+                     begin
+                       PeriodNo := GetPeriodNo(GainLossEntry.glFields.glDate, aClient.clFields.clTemp_Period_Details_This_Year);
+
+                       if (PeriodNo <> -1) then
+                       begin
+                         if Assigned(Contra) then
+                         begin
+                           AddTo(Contra^.chTemp_Base_Amount.This_Year[PeriodNo], -GainLossEntry.glFields.glAmount);
+                         end;
+
+                         AddItem(WhichYear, PeriodNo, GainLossEntry.glFields.glAccount, GainLossEntry.glFields.glAmount, 0, 0, 0);
+                       end;
+                     end
+                     else
+                     begin
+                       PeriodNo := GetPeriodNo(GainLossEntry.glFields.glDate, aClient.clFields.clTemp_Period_Details_Last_Year);
+
+                       if (PeriodNo <> -1) then
+                       begin
+                         if Assigned(Contra) then
+                         begin
+                           AddTo(Contra^.chTemp_Base_Amount.Last_Year[PeriodNo], -GainLossEntry.glFields.glAmount);
+                         end;
+
+                         AddItem(WhichYear, PeriodNo, GainLossEntry.glFields.glAccount, GainLossEntry.glFields.glAmount, 0, 0, 0);
+                       end;
+                     end;
+                   end;
+                 end;
+               end;
             end;
          end;
    end;
@@ -765,16 +887,19 @@ var
 
                               //add gst amount to appropriate section of report
                               if clFields.clGST_Inclusive_Cashflow then begin
-                                 AddTo( pAcct^.chTemp_Amount.Budget[ DestPeriod], NetAmount + GSTAmount)
+                                 AddTo( pAcct^.chTemp_Amount.Budget[ DestPeriod], NetAmount + GSTAmount);
+                                 AddTo( pAcct^.chTemp_Base_Amount.Budget[ DestPeriod], NetAmount + GSTAmount);
                               end
                               else begin
                                  AddTo( pAcct^.chTemp_Amount.Budget[ DestPeriod], NetAmount);
+                                 AddTo( pAcct^.chTemp_Base_Amount.Budget[ DestPeriod], NetAmount);
                                  //post gst component to the GST contra
                                  if pAcct^.chGST_Class in [ 1..MAX_GST_CLASS] then begin
                                    G := GST_Posting_Accounts[ pAcct^.chGST_Class];
                                    if Assigned( G) and AddContras then begin
                                       Inc( G^.chHits);
                                       AddTo( G^.chTemp_Amount.Budget[ DestPeriod], GSTAmount);
+                                      AddTo( G^.chTemp_Base_Amount.Budget[ DestPeriod], GSTAmount);
                                    end;
                                  end;
                               end;
@@ -790,10 +915,12 @@ var
 
                               AddTo(PAcct^.chTemp_Quantity.Budget[ DestPeriod], BudgetQuantity);
                               AddTo(Pacct^.chTemp_Amount.Budget_Unit_Price[DestPeriod], BudgetUnitPrice);
+                              AddTo(Pacct^.chTemp_Base_Amount.Budget_Unit_Price[DestPeriod], BudgetUnitPrice);
 
                               //add contra amount to the budgeted movement account
                               if Assigned( Budget_Movement_Account) then begin
                                 AddTo( Budget_Movement_Account^.chTemp_Amount.Budget[ DestPeriod], -( NetAmount + GSTAmount));
+                                AddTo( Budget_Movement_Account^.chTemp_Base_Amount.Budget[ DestPeriod], -( NetAmount + GSTAmount));
                               end;
                            end;
                         end;
@@ -1151,12 +1278,13 @@ begin
 
         if AccountInfo.Account.chAccount_Type in  ProfitAndLossReportGroupsSet then begin
           for PeriodNo := AccountInfo.LowestPeriod to AccountInfo.HighestPeriod do begin
-            pCurrentEarnings.chTemp_Amount.This_Year[ PeriodNo] := pCurrentEarnings.chTemp_Amount.This_Year[ PeriodNo]
-                                                              + AccountInfo.ActualOrBudget( PeriodNo);
-            pCurrentEarnings.chTemp_Amount.Last_Year[ PeriodNo] := pCurrentEarnings.chTemp_Amount.Last_Year[ PeriodNo]
-                                                              + AccountInfo.LastYear( PeriodNo);
-            pCurrentEarnings.chTemp_Amount.Budget[ PeriodNo]    := pCurrentEarnings.chTemp_Amount.Budget[ PeriodNo]
-                                                              + AccountInfo.Budget( PeriodNo);
+            AddTo(pCurrentEarnings.chTemp_Amount.This_Year[ PeriodNo], AccountInfo.ActualOrBudget( PeriodNo) );
+            AddTo(pCurrentEarnings.chTemp_Amount.Last_Year[ PeriodNo], AccountInfo.LastYear( PeriodNo) );
+            AddTo(pCurrentEarnings.chTemp_Amount.Budget[ PeriodNo], AccountInfo.Budget( PeriodNo) );
+
+            AddTo(pCurrentEarnings.chTemp_Base_Amount.This_Year[ PeriodNo], AccountInfo.ActualOrBudget( PeriodNo) );
+            AddTo(pCurrentEarnings.chTemp_Base_Amount.Last_Year[ PeriodNo], AccountInfo.LastYear( PeriodNo) );
+            AddTo(pCurrentEarnings.chTemp_Base_Amount.Budget[ PeriodNo], AccountInfo.Budget( PeriodNo) );
           end;
         end;
       end;
@@ -1239,28 +1367,30 @@ begin
 
             BankAccount.CalculatePDBalances( This_Year_Starts, This_Year_Ends, m1, m2, NewBalance, m3);
 
-            if NewBalance <> Unknown then
+            // Valid new balance?
+            if NewBalance <> Unknown then begin
               OB_ThisYear := OB_ThisYear + NewBalance;
 
-            //Convert to base currency
-            if BankAccount.IsAForexAccount then begin
-              NewBalance := Double2Money(Money2Double(NewBalance) / BankAccount.Default_Forex_Conversion_Rate(This_Year_Starts));
-              if NewBalance <> Unknown then
+              //Convert to base currency
+              if BankAccount.IsAForexAccount then begin
+                NewBalance := Double2Money(Money2Double(NewBalance) / BankAccount.Default_Forex_Conversion_Rate(This_Year_Starts));
                 OB_BaseThisYear := OB_BaseThisYear + NewBalance;
+              end;
             end;
 
             //total last year
             BankAccount.CalculatePDBalances( Last_Year_Starts, Last_Year_Ends, m1, m2, NewBalance, m3);
 
-            if NewBalance <> Unknown then
+            // Valid new balance?
+            if NewBalance <> Unknown then begin
               OB_LastYear := OB_LastYear + NewBalance;
 
-            //Convert to base currency
-            if (BankAccount.IsAForexAccount) and (BankAccount.Default_Forex_Conversion_Rate(Last_Year_Starts)  > 0) then begin
-              //May not have an exchange rate for last year if no using budget figures
-              NewBalance := Double2Money(Money2Double(NewBalance) / BankAccount.Default_Forex_Conversion_Rate(Last_Year_Starts));
-              if NewBalance <> Unknown then
+              //Convert to base currency
+              if (BankAccount.IsAForexAccount) and (BankAccount.Default_Forex_Conversion_Rate(Last_Year_Starts)  > 0) then begin
+                //May not have an exchange rate for last year if no using budget figures
+                NewBalance := Double2Money(Money2Double(NewBalance) / BankAccount.Default_Forex_Conversion_Rate(Last_Year_Starts));
                 OB_BaseLastYear := OB_BaseLastYear + NewBalance;
+              end;
             end;
 
           end;

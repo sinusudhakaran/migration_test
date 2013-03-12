@@ -25,10 +25,6 @@ object dlgEditBank: TdlgEditBank
     TabOrder = 0
     object tbDetails: TTabSheet
       Caption = '&Details'
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object lblNo: TLabel
         Left = 24
         Top = 12
@@ -228,7 +224,7 @@ object dlgEditBank: TdlgEditBank
           Width = 51
           Height = 21
           Style = csDropDownList
-          ItemHeight = 0
+          ItemHeight = 13
           TabOrder = 1
           Items.Strings = (
             'IF'
@@ -413,7 +409,7 @@ object dlgEditBank: TdlgEditBank
           Height = 21
           Style = csDropDownList
           Ctl3D = True
-          ItemHeight = 0
+          ItemHeight = 13
           ParentCtl3D = False
           TabOrder = 2
           Items.Strings = (
@@ -452,7 +448,7 @@ object dlgEditBank: TdlgEditBank
           Height = 21
           Style = csDropDownList
           Ctl3D = True
-          ItemHeight = 0
+          ItemHeight = 13
           ParentCtl3D = False
           Sorted = True
           TabOrder = 1
@@ -501,7 +497,7 @@ object dlgEditBank: TdlgEditBank
         Width = 92
         Height = 21
         Style = csDropDownList
-        ItemHeight = 0
+        ItemHeight = 13
         TabOrder = 1
         OnChange = cmbCurrencyChange
         Items.Strings = (
@@ -568,10 +564,6 @@ object dlgEditBank: TdlgEditBank
     object tbAnalysis: TTabSheet
       Caption = '&Analysis Coding'
       ImageIndex = 1
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object Label8: TLabel
         Left = 16
         Top = 16
@@ -617,10 +609,6 @@ object dlgEditBank: TdlgEditBank
     object tbBankLinkOnline: TTabSheet
       Caption = 'BankLink Online'
       ImageIndex = 2
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object lblSelectExport: TLabel
         Left = 16
         Top = 11

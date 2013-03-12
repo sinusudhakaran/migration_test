@@ -21,19 +21,34 @@ uses
   ActnList, StdCtrls, Menus, Grids, RzButton,
   CheckWebNotesData,
   RzTabs,
-  OSFont;
+  OSFont,
+  ExchangeGainLoss;
 
 type
-  THP_RefreshItem = (HRP_Init, HPR_Client, HPR_Coding, HPR_Tasks, HPR_Files, HPR_Status);
+  THP_RefreshItem = (
+    HRP_Init,
+    HPR_Client,
+    HPR_Coding,
+    HPR_Tasks,
+    HPR_Files,
+    HPR_Status,
+    HPR_ExchangeGainLoss_NewData, // New data only
+    HPR_ExchangeGainLoss_Rates,   // Exchange Rates only
+    HPR_ExchangeGainLoss_Message   // Only Show Message
+    );
   THP_Refresh = set of THP_RefreshItem;
 const
   THP_RefreshAll = [low(THP_RefreshItem) .. High(THP_RefreshItem)];
 
+  UM_REFRESH_EXCHANGE_GAIN_LOSS = WM_USER;
+
 type
   TBaseClientHomepage = class(TForm)
   private
-    //
+  //
   protected
+    function GetGlobalRedrawForeign: boolean; virtual; abstract;
+    procedure SetGlobalRedrawForeign(Value: boolean); virtual; abstract;
     function GetTheClient : TClientObj; virtual; abstract;
     procedure SetTheClient(const Value: TClientObj); virtual; abstract;
     function GetRefreshRequest : THP_Refresh; virtual; abstract;
@@ -41,6 +56,7 @@ type
     function GetAbandon : boolean; virtual; abstract;
     procedure SetAbandon(const Value: Boolean); virtual; abstract;
   public
+    property GlobalRedrawForeign : Boolean read GetGlobalRedrawForeign write SetGlobalRedrawForeign;
     property TheClient: TClientObj read GetTheClient write SetTheClient;
     property RefreshRequest : THP_Refresh read GetRefreshRequest write SetRefreshRequest;
     property Abandon: Boolean read GetAbandon write SetAbandon;
@@ -95,6 +111,7 @@ type
     NotesTimer: TTimer;
     acForexRatesMissing: TAction;
     pnlLegendA: TPanel;
+    acExchangeGainLoss: TAction;
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormDestroy(Sender: TObject);
@@ -140,6 +157,7 @@ type
     procedure UpdateWebNotes(var Msg: TMessage); message WEBNOTES_MESSAGE;
     procedure acForexRatesMissingExecute(Sender: TObject);
     procedure RefreshExchangeRates;
+    procedure acExchangeGainLossExecute(Sender: TObject);
   private
     FTheClient: TClientObj;
     TreeList: TCHPBaseList;
@@ -153,20 +171,31 @@ type
     FBadForexFileName : String;
     fBadForexCurrencyCode : String;
     fBadForexAccountCode : String;
+    fGlobalRedrawForeign: Boolean;
 
+    fRefreshRequestRecursionLevel: integer;
+    FInRefreshExchangeGainLoss: Boolean;
+    fSuppressExchangeGainLoss: boolean;
+    
     procedure RefreshCoding(RedrawForeign: boolean);
     procedure RefreshClient;
     procedure RefreshTodo;
     procedure RefreshFiles;
     procedure RefreshMems;
     procedure RefreshMissingExchangeRateMsg;
+    procedure RefreshExchangeGainLoss;
+    procedure RefreshExchangeGainLossRates;
+    procedure RefreshExchangeGainLossDelete;
     procedure SetShowLegend(const Value: Boolean);
     property ShowLegend : Boolean read FShowLegend write SetShowLegend;
     procedure UpdateRefresh;
     { Private declarations }
     procedure wmsyscommand( var msg: TWMSyscommand ); message wm_syscommand;
     procedure UpdateTabs(ActionedPage: string = '');
+    procedure UMRefreshExchangeGainLoss(var Msg: TMessage); message UM_REFRESH_EXCHANGE_GAIN_LOSS;
   protected
+    function GetGlobalRedrawForeign: boolean; override;
+    procedure SetGlobalRedrawForeign(Value: boolean); override;
     procedure UpdateActions; override;
     function GetTheClient : TClientObj; override;
     procedure SetTheClient(const Value: TClientObj); override;
@@ -174,7 +203,6 @@ type
     procedure SetRefreshRequest(const Value: THP_Refresh); override;
     function GetAbandon : boolean; override;
     procedure SetAbandon(const Value: Boolean); override;
-
   public
     function GetFillDate: integer; override;
     procedure Lock; override;
@@ -190,6 +218,10 @@ procedure RefreshHomepage (Value : THP_Refresh = THP_RefreshAll; ActionedPage: s
 
 procedure CloseClientHomepage;
 procedure AbandonClientHomePage;
+
+procedure AssignGlobalRedrawForeign(Value: boolean);
+
+procedure SetAutoMergeResult(const aValue: boolean);
 
 implementation
 
@@ -213,12 +245,16 @@ uses
   Globals,SYDEFS, ToDoListUnit,StDate,Math,MainFrm, BKdateUtils, UpdateMF,baObj32,
   ApplicationUtils, AutoSaveUtils, rptHome, ClientNotesFrm, Files, ClientManagerFrm, BudgetFrm,
   bkXPThemes, ShellAPI, SimpleUIHomepagefrm,
-  ExchangeRateList, frmExchangeRates, GSTUTIL32, ExchangeGainLoss, Dialogs;
+  ExchangeRateList, frmExchangeRates, GSTUTIL32, Dialogs,
+  ForexHelpers,
+  YesNoDlg,
+  ExchangeGainLossWiz;
 {$R *.dfm}
 
 var
   FClientHomePage: TBaseClientHomePage;
   DebugMe : boolean = false;
+  u_AutoMergeResult: boolean;
 
 const
   UnitName = 'CLIENTHOME';
@@ -269,6 +305,12 @@ begin
    FClientHomePage := nil;
 end;
 
+procedure AssignGlobalRedrawForeign(Value: boolean);
+begin
+  if Assigned(FClientHomePage) then
+    FClientHomePage.GlobalRedrawForeign := Value;
+end;
+
 procedure RefreshHomepage (Value : THP_Refresh = THP_RefreshAll; ActionedPage: string = '');
 begin
   if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Enter RefreshHomepage');
@@ -312,9 +354,8 @@ begin
   if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Enter CloseHomepage');
   if assigned(FClientHomePage) then begin
      Temp := FClientHomePage;
-     FClientHomePage := NIL;
      Temp.Close;
-     Temp.Free;
+     FreeAndNil(Temp);
   end;
   if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Exit CloseHomepage');
 end;
@@ -375,42 +416,79 @@ var
     end;  
 
    procedure RefreshCodingPeriod;
-   var s : string; // Update the caption once..
-       lr : TRangeCount;
+   var
+     s : string; // Update the caption once..
+     lr, lrGST, RangeForBoth : TRangeCount;
    begin
-       Lr := TreeList.CodingMonths;
-       if Lr.Count > 0 then begin
-          AcRunCoding.Enabled := True;
-          AcRunCoding.Visible := True;
-          if Lr.Count = 1 then
-             s :=  'There is 1 uncoded entry'
-          else
-             s := 'There are ' + IntToStr(Lr.Count) +' uncoded entries';
-          AcRunCoding.Caption := s + #10'in '+
-                                    GetDateRangeS(Lr.Range);
-       end else begin
-          AcRunCoding.Enabled := False;
-          AcRunCoding.Visible := False;
-       end;
+     Lr := TreeList.CodingMonths;
+     LrGST := TreeList.GSTMonths;
+     if (Lr.Count > 0) or (LrGST.Count > 0) then begin
+        AcRunCoding.Enabled := True;
+        AcRunCoding.Visible := True;
 
-       Lr := TreeList.TransferMonths;
-       if (not Globals.CurrUser.HasRestrictedAccess)
-       and (Lr.Count > 0)
-       and (FTheClient.clFields.clAccounting_System_Used <> snOther)
-       and (not FTheClient.clFields.clFile_Read_Only)
-       and (Assigned(AdminSystem) or INI_BooksExtact) then begin
-          if Lr.Count = 1 then
-             s := 'There is 1 entry ready to transfer'
-          else
-             s := 'There are ' + intToStr(Lr.Count) + ' entries ready to transfer,';
-          AcTransfer.Caption := s + #10'in ' + GetDateRangeS(Lr.Range);
+        if Lr.Count = 1 then
+           s :=  'There is 1 uncoded entry'
+        else if Lr.Count > 1 then             
+           s := 'There are ' + IntToStr(Lr.Count) + ' uncoded entries';
 
-          AcTransfer.Enabled := True;
-          AcTransfer.Visible := True;
-       end else begin
-          AcTransfer.Enabled := False;
-          AcTransfer.Visible := False;
-       end;
+        if LrGST.Count = 1 then
+        begin
+          if (Lr.Count > 0) then
+            s := s + ' and 1 entry with an invalid GST code'
+          else
+            s := 'There is 1 entry with an invalid GST code'
+        end else
+        if LrGST.Count > 1 then
+        begin
+          if (Lr.Count > 0) then          
+            s := s + ' and ' + IntToStr(LrGST.Count) + ' entries with invalid GST codes'
+          else
+            s := 'There are ' + IntToStr(LrGST.Count) + ' entries with invalid GST codes'
+        end;
+
+        // Date range for both uncoded transactions and invalid GST classes
+        if (Lr.Count > 0) and (LrGST.Count > 0) then
+        begin
+          RangeForBoth.Range.FromDate := Min(Lr.Range.FromDate, LrGST.Range.FromDate);
+          RangeForBoth.Range.ToDate := Max(Lr.Range.ToDate, LrGST.Range.ToDate);
+        end else
+        if Lr.Count > 0 then
+        begin
+          RangeForBoth.Range.FromDate := Lr.Range.FromDate;
+          RangeForBoth.Range.ToDate := Lr.Range.ToDate;
+        end else
+        begin
+          RangeForBoth.Range.FromDate := LrGST.Range.FromDate;
+          RangeForBoth.Range.ToDate := LrGST.Range.ToDate;
+        end;
+
+        AcRunCoding.Caption := s + #10'in '+
+                                  GetDateRangeS(RangeForBoth.Range);
+     end else begin
+        AcRunCoding.Enabled := False;
+        AcRunCoding.Visible := False;
+     end;
+
+     Lr := TreeList.TransferMonthsValidGST;
+     if (not Globals.CurrUser.HasRestrictedAccess)
+     and (Lr.Count > 0)
+     and (FTheClient.clFields.clAccounting_System_Used <> snOther)
+     and (not FTheClient.clFields.clFile_Read_Only)
+     and (Assigned(AdminSystem) or INI_BooksExtact) then begin
+        if Lr.Count = 1 then
+           s := 'There is 1 entry ready to transfer'
+        else
+           s := 'There are ' + intToStr(Lr.Count) + ' entries ready to transfer,';
+        // Can't get to this line unless RangeForBoth.Range has been filled in,
+        // due to the Lr.Count > 0 condition 
+        AcTransfer.Caption := s + #10'in ' + GetDateRangeS(Lr.Range);
+
+        AcTransfer.Enabled := True;
+        AcTransfer.Visible := True;
+     end else begin
+        AcTransfer.Enabled := False;
+        AcTransfer.Visible := False;
+     end;
    end;
 
    procedure AddAUGst;
@@ -617,19 +695,21 @@ begin //RefreshCoding
            ShowForeignHeader := False;
            if not Assigned(fMonths) then
              fMonths := TMonthEndingsClass.Create(FTheClient);
-           fMonths.Options := [meoCullFirstMonths];
            fMonths.Refresh;
 
-           DateRange := StrToDate(DateToStr(ClientHomePage.GetFillDate));
+           DateRange := StDateToDateTime(ClientHomePage.GetFillDate);
            DecodeDate(DateRange, RangeYear, RangeMonth, RangeDay);
            for Period := 0 to fMonths.Count - 1 do
            begin
              CellPosition := ((fMonths.Items[Period].GetYear - RangeYear) * 12) +
                              fMonths.Items[Period].GetMonth - RangeMonth + 12;
-             if (CellPosition >= 1) and fMonths.Items[Period].BankAccounts[0].PostedEntry.Valid then
+             if (fMonths.Items[Period].NrTransactions > 0) then
              begin
-               ShowForeignHeader := True;
-               break;
+               if (CellPosition >= 1) and fMonths.Items[Period].BankAccounts[0].PostedEntry.Valid then
+               begin
+                 ShowForeignHeader := True;
+                 break;
+               end;
              end;
            end;
 
@@ -637,10 +717,11 @@ begin //RefreshCoding
 
            i := btForeign;
            ForeignItem := TreeList.FindItem(TreeList.TestForeign,i);
-           if not ShowForeignHeader then
+           if RedrawForeign or fGlobalRedrawForeign or not ShowForeignHeader then
            begin
              TreeList.RemoveItem(ForeignItem);
              TreeList.RemoveItem(TreeList.FindGroupID(grp_Foreigns));
+             GlobalRedrawForeign := False; // Won't need to refresh the indicators twice
            end;
 
            Lbase := TreeList.FindGroupID (grp_Foreigns);
@@ -682,6 +763,11 @@ end;
 function TfrmClientHomePage.GetFillDate: integer;
 begin
   Result := TreeList.FillDate;
+end;
+
+function TfrmClientHomePage.GetGlobalRedrawForeign: boolean;
+begin
+  Result := fGlobalRedrawForeign;
 end;
 
 procedure TfrmClientHomePage.RefreshExchangeRates;
@@ -750,8 +836,11 @@ const
 
 
 begin
+   FInRefreshExchangeGainLoss := False;
+   
    bkXPThemes.ThemeForm(Self);
    BKHelpSetUp(self, BKH_The_Client_Home_Page);
+   SetGlobalRedrawForeign(False);
    FClosing := True;
    FClosingClient := False;
    FShowLegend := True; // Visible by default..
@@ -867,6 +956,12 @@ end;
 
 procedure TfrmClientHomePage.NotesTimerTimer(Sender: TObject);
 begin
+  // Note: wait till we're out of a refresh request, in case it is showing
+  // popup messages. Using the refresh request recursion level for calls
+  // coming in recursively from FormActivate.
+  if (fRefreshRequestRecursionLevel > 0) then
+    exit;
+
   if ShowClientNotesOnOpen then begin
      // Turn it all off ...
      ShowClientNotesOnOpen := False;
@@ -1172,7 +1267,7 @@ begin
    if MemsWrong then begin
       acMems.Visible := True;
    end else begin
-      acMems.Visible := False;   
+      acMems.Visible := False;
    end;
    if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Exit RefreshMems');
 end;
@@ -1237,9 +1332,133 @@ begin
    if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Exit RefreshToDo');
 end;
 
+procedure TfrmClientHomePage.RefreshExchangeGainLoss;
+var
+  bShowWarningMessage: boolean;
+  sMsg: string;
+  iResult: integer;
+begin
+  // Note: This function can become recursive (FormActivate, etc), so we must
+  // make sure there's only one running at the time.
+  if FInRefreshExchangeGainLoss then
+    exit;
+
+  FInRefreshExchangeGainLoss := true;
+  try
+    // Delay the check? (Mainly because of paint issues when showing the dialog)
+    if (HRP_Init in RefreshRequest) then
+    begin
+      PostMessage(Handle, UM_REFRESH_EXCHANGE_GAIN_LOSS, 0, 0);
+      exit;
+    end;
+
+    bShowWarningMessage := HasInvalidGainLossEntries(MyClient);
+
+    // Already showing?
+    if bShowWarningMessage and acExchangeGainLoss.Visible then
+      exit;
+
+    // Always suppress the message at this point
+    acExchangeGainLoss.Visible := false;
+
+    // Nothing to show?
+    if not bShowWarningMessage then
+      exit;
+
+    // Only show warning message? (Not the Confirmation dialog)
+    if fSuppressExchangeGainLoss then
+    begin
+      acExchangeGainLoss.Visible := true;
+      exit;
+    end;
+
+    // Dialog: launch the Wizard?
+    sMsg :=
+      'Data has been retrieved for a foreign currency Bank Account into a period that has already had its Exchange Gain/Loss entry posted. The Exchange Gain/Loss entry is now incorrect.' + sLineBreak +
+      sLineBreak +
+      'Would you like to re-run the Exchange Gain/Loss wizard now?';
+    iResult := AskYesNo('Confirmation', sMsg, DLG_YES, 0);
+
+    // Run the wizard?
+    if (iResult = DLG_YES) then
+      RunExchangeGainLossWizard(TheClient)
+    else
+      acExchangeGainLoss.Visible := true;
+  finally
+    FInRefreshExchangeGainLoss := false;
+  end;
+end;
+
+procedure TfrmClientHomePage.RefreshExchangeGainLossDelete;
+begin
+  // Leave initial status of warning up to RefreshExchangeGainLoss
+  if (HRP_Init in RefreshRequest) then
+    exit;
+
+  // Transaction exchange rates are correct?
+  if not HasInvalidGainLossEntries(MyClient) then
+    exit;
+
+  // Already showing?
+  if acExchangeGainLoss.Visible then
+    exit;
+
+  // Show message (same as Gain/Loss warning message)
+  acExchangeGainLoss.Visible := true;
+end;
+
+procedure TfrmClientHomePage.UMRefreshExchangeGainLoss(var Msg: TMessage);
+begin
+  // Note: don't show the Confirmation dialog when a client is being re-opened
+  fSuppressExchangeGainLoss := true;
+
+  // If an AutoMerge has taken place, we don't suppress the confirmation/warning
+  if u_AutoMergeResult then
+    fSuppressExchangeGainLoss := false;
+
+  // Update the screen
+  try
+    RefreshRequest := [HPR_ExchangeGainLoss_NewData];
+  finally
+    fSuppressExchangeGainloss := false;
+  end;
+end;
+
+procedure SetAutoMergeResult(const aValue: boolean);
+begin
+  u_AutoMergeResult := aValue;
+end;
+
+procedure TfrmClientHomePage.RefreshExchangeGainLossRates;
+begin
+  // Leave initial status of warning up to RefreshExchangeGainLoss
+  if (HRP_Init in RefreshRequest) then
+    exit;
+
+  { Has invalid gain/loss entries
+    Note: This is not quite the same as checking for invalid exchange rates
+    in the transactions, but will provide the same validation as other areas
+    are using, e.g. re-opening the client, etc.
+  }
+  if not HasInvalidGainLossEntries(MyClient) then
+    exit;
+
+  // Already showing?
+  if acExchangeGainLoss.Visible then
+    exit;
+
+  // Show message (same as Gain/Loss warning message)
+  acExchangeGainLoss.Visible := true;
+end;
+
 procedure TfrmClientHomePage.SetAbandon(const Value: Boolean);
 begin
   FAbandon := Value;
+end;
+
+procedure TfrmClientHomePage.SetGlobalRedrawForeign(Value: boolean);
+begin
+  fGlobalRedrawForeign := Value;
 end;
 
 procedure TfrmClientHomePage.SetRefreshRequest(const Value: THP_Refresh);
@@ -1381,6 +1600,8 @@ begin
    kc := Screen.Cursor;
    KeepTop := GrpAction.Top;
    gbGroupBar.BeginUpdateLayout;
+
+   Inc(fRefreshRequestRecursionLevel);
    Screen.Cursor := crHourGlass;
    try
       // Something to refresh..
@@ -1396,6 +1617,15 @@ begin
       if ([HRP_Init,HPR_Files] * FRefreshRequest) <> [] then
          RefreshFiles;
 
+      if ([HRP_Init, HPR_ExchangeGainLoss_NewData] * FRefreshRequest) <> [] then
+        RefreshExchangeGainLoss;
+
+      if ([HRP_Init, HPR_ExchangeGainLoss_Rates] * FRefreshRequest) <> [] then
+        RefreshExchangeGainLossRates;
+
+      if ([HRP_Init, HPR_ExchangeGainLoss_Message] * FRefreshRequest) <> [] then
+        RefreshExchangeGainLossDelete;
+
       if HRP_Init in FRefreshRequest then begin
          if (Self.WindowState = wsMinimized) then
             ShowWindow(Self.Handle, SW_RESTORE);
@@ -1404,6 +1634,7 @@ begin
 
       FRefreshRequest := [];
    finally
+      Dec(fRefreshRequestRecursionLevel);
       Screen.Cursor := kc;
 
       gbGroupBar.EndUpdateLayout;
@@ -1414,7 +1645,8 @@ begin
 end;
 
 procedure TfrmClientHomePage.acRunCodingExecute(Sender: TObject);
-var DR : TRangeCount;
+var
+  Dr : TRangeCount;
 begin
    Lock;
    frmMain.Enabled := False;
@@ -1422,7 +1654,7 @@ begin
    try
       Show;
       CloseAllCodingForms;
-      Dr := TreeList.CodingMonths;
+      Dr := TreeList.CodingAndGSTMonths;
       if Dr.Range.FromDate <> Dr.Range.ToDate then
          TreeList.CodeRange(Dr);
    finally
@@ -1462,6 +1694,13 @@ begin
    end;
 end;
 
+procedure TfrmClientHomePage.acExchangeGainLossExecute(Sender: TObject);
+begin
+  // Successful run of the wizard?
+  if RunExchangeGainLossWizard(TheClient) then
+    acExchangeGainLoss.Visible := false;
+end;
+
 procedure TfrmClientHomePage.acForexRatesMissingExecute(Sender: TObject);
 begin
   ApplicationUtils.DisableMainForm;
@@ -1476,6 +1715,7 @@ begin
           RefreshExchangeRates;
           //Reload transactions
           SendCmdToAllCodingWindows(ecReloadTrans);
+          RefreshRequest := [HPR_ExchangeGainLoss_Rates];
         end;
       finally
         UnLock;
@@ -1574,6 +1814,9 @@ begin
              RefreshRequest := [HPR_Files, HPR_Coding];
           end;
        end;
+
+      // Could affect the gain/loss entries, so we must refresh
+      RefreshRequest := [HPR_ExchangeGainLoss_NewData];
     finally
        Unlock;
     end;

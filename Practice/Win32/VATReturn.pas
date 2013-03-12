@@ -332,6 +332,10 @@ begin
 
 {$IFNDEF SmartBooks}
     if (IsLocked( D1, D2 ) <> ltAll) then begin
+       //Check that all transactions are coded for the UK (before anything else)
+       if not CheckAutoLockGSTPeriod(D1, D2) then
+         Exit;
+
        if (AskYesNo('Finalise Accounting Period','You have printed the VAT Return.  Do you want to Finalise this Accounting Period?'+#13+#13+
            '('+bkdate2Str( D1 )+' - '+bkDate2Str( D2 )+')'
            ,DLG_YES, BKH_Finalise_accounting_period_for_GST_purposes) = DLG_YES) then
@@ -350,7 +354,11 @@ begin
 
 {$IFNDEF SmartBooks}
     if (IsLocked( D1, D2 ) <> ltAll) then begin
-       if (AskYesNo('Finalise Accounting Period','You have printed the VAT Return.  Do you want to Finalise this Accounting Period?'+#13+#13+
+       //Check that all transactions are coded for the UK (before anything else)
+       if not CheckAutoLockGSTPeriod(D1, D2) then
+         Exit;
+
+       if (AskYesNo('Finalise Accounting Period','You have produced a PDF of the VAT Return.  Do you want to Finalise this Accounting Period?'+#13+#13+
            '('+bkdate2Str( D1 )+' - '+bkDate2Str( D2 )+')'
            ,DLG_YES, BKH_Finalise_accounting_period_for_GST_purposes) = DLG_YES) then
        begin
@@ -370,6 +378,10 @@ begin
 
 {$IFNDEF SmartBooks}
     if (IsLocked( D1, D2 ) <> ltAll) then begin
+       //Check that all transactions are coded for the UK (before anything else)
+       if not CheckAutoLockGSTPeriod(D1, D2) then
+         Exit;
+
        if (AskYesNo('Finalise Accounting Period','You have printed the VAT Return.  Do you want to Finalise this Accounting Period?'+#13+#13+
            '('+bkdate2Str( D1 )+' - '+bkDate2Str( D2 )+')'
            ,DLG_YES, BKH_Finalise_accounting_period_for_GST_purposes) = DLG_YES) then
@@ -704,8 +716,6 @@ end;
 procedure TfrmVAT.Save;
 Var
   P : pBalances_Rec;
-  Balances : pBalances_Rec;
-  B : Integer;
 begin
   P := GetBalancesRec(D1, D2);
   if P = NIL then

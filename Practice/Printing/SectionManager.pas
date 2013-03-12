@@ -200,39 +200,61 @@ var
   AccountCount: integer;
 begin
   SectionItem := TSectionItem(FSectionItems[0]);
-  //Title
-  FReport.RenderTitleLine(SectionItem.Text);
-  if FDetailed then begin
+  if FDetailed then
+  begin
+    //Title
+    FReport.RenderTitleLine(SectionItem.Text);
+
     //Sub sections
     PrintSubSections(SectionItem);
     //Total
     FReport.RenderDetailSubTotal(GetPRHeading(FClient, phdTotal_Direct_Expenses), FDefaultSign);
-  end else begin
+  end
+  else
+  begin
     SubSectionCount := GetSectionTypeCount(SectionItem.ID, stSubSection);
-    if (SubSectionCount = 1) then begin
+    
+    if (SubSectionCount = 1) then
+    begin
       SubGroupCount := 0;
-      for i := 0 to FSectionItems.Count - 1 do begin
+
+      for i := 0 to FSectionItems.Count - 1 do
+      begin
         if (TSectionItem(FSectionItems[i]).SectionType = stSubSection) then
           SubGroupCount := SubGroupCount + GetSectionTypeCount(TSectionItem(FSectionItems[i]).ID, stSubGroup);
       end;
-      if (SubGroupCount > 0) then begin
+
+      if (SubGroupCount > 0) then
+      begin
+        //Title
+        FReport.RenderTitleLine(SectionItem.Text);
+
         //Sub section summaries
         PrintSubSectionSummaries(SectionItem);
         //Total
         FReport.RenderDetailSubTotal(GetPRHeading(FClient, phdTotal_Direct_Expenses), FDefaultSign);
-      end else begin
+      end
+      else
+      begin
        //One line summary
         ClearTotalsArray;
         SetLength(FValuesArray, FColumnsPerPeriod);
         //Summarise accounts
         AccountCount := 0;
         SummariseAccounts(SectionItem.ID, AccountCount);
+
+        FReport.RenderTextLine('');
+        
         //Print section total
-        FReport.PrintTotalsArray(GetPRHeading(FClient, phdTotal_Direct_Expenses),
-                                              FTotalsArray, FDefaultSign, FStyle);
+        FReport.PrintTotalsArray(GetPRHeading(FClient, phdLess_Direct_Expenses), FTotalsArray, FDefaultSign, FStyle);
       end;
     //Sub section summary
-    end else if (SubSectionCount > 1) then begin
+    end
+    else if (SubSectionCount > 1) then
+    begin
+      //Title
+      FReport.RenderTitleLine(SectionItem.Text);
+
       //Sub section summaries
       PrintSubSectionSummaries(SectionItem);
       //Total
@@ -296,7 +318,8 @@ begin
         //Sub section total
         // if Cost of Goods show total if there is only 1 row
         if (TotalAccounts > 1) or
-           (SectionItem.ColTypeID = phdCOGS) then
+           (SectionItem.ColTypeID = phdCOGS) or
+           (SectionItem.ColTypeID = phdOther_Direct_Expenses) then
         begin
           if SectionItem.TotalText = '' then
             FReport.RenderDetailSectionTotal('Total ' + SectionItem.Text, FDefaultSign)
@@ -349,7 +372,8 @@ procedure TSectionProfitAndLossDirectExpenses.LoadSubSections(
 var
   SubSectionID: integer;
 begin
-  if FReport.ReportSectionNeedsPrinting([atOpeningStock, atPurchases, atClosingStock]) then begin
+  if FReport.ReportSectionNeedsPrinting([atOpeningStock, atPurchases, atClosingStock]) then
+  begin
     //Cost of goods sold
     SubSectionID := AddSectionItem(aParentID, stSubSection, GetPRHeading(FClient, phdCOGS),
                                    nil, '', GetPRHeading(FClient, phdTotal_COGS), phdCOGS);
@@ -372,7 +396,7 @@ begin
     //Other direct expenses
     SubSectionID := AddSectionItem(aParentID, stSubSection,
                                    GetPRHeading(FClient, phdOther_Direct_Expenses),
-                                   nil, '', GetPRHeading(FClient, phdTotal_Other_Direct_Expenses) );
+                                   nil, '', GetPRHeading(FClient, phdTotal_Other_Direct_Expenses), phdOther_Direct_Expenses );
     FReportGroupsSet := [atDirectExpense];
     LoadSubGroups(SubSectionID);
     LoadAccounts(SubSectionID);

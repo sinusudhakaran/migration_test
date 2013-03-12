@@ -15,8 +15,6 @@ uses
   clObj32,
   baObj32,
   SysUtils,
-  SOAPHTTPClient,
-  SOAPHTTPTrans,
   P5Auth,
   OnlinePasswordFrm;
 
@@ -52,12 +50,6 @@ type
   TBloIBizzCredentials               = BlopiServiceFacade.PracticeDataSubscriberCredentials;
   TBloArrayOfPracticeDataSubscriberCount = BlopiServiceFacade.ArrayOfPracticeDataSubscriberCount;
 
-  TBloArrayOfPracticeBankAccount = BlopiServiceFacade.ArrayOfPracticeBankAccount;
-
-  TBloUploadResult = BlopiServiceFacade.UploadResult;
-
-  TBloUploadResultCode = (Success, NoFileReceived, InvalidCredentials, InternalError, FileFormatError);
-
   TAccountVendors = record
     AccountVendors : TBloDataPlatformSubscription;
     IsLastAccForVendors : Array of Boolean;
@@ -83,8 +75,6 @@ type
   TArrVarTypeData = Array of TVarTypeData;
 
   TAuthenticationStatus = (paNone, paConnectionError, paOffLineUser, paChangePassword);
-
-  TBloResult = (bloSuccess, bloFailedNonFatal, bloFailedFatal);
 
   TUserDetailHelper = class helper for BlopiServiceFacade.User
   public
@@ -196,8 +186,7 @@ type
                           SendTimeout   : DWord ;
                           ReciveTimeout : DWord);
     function GetServiceFacade(PracticeCode: string = '') : IBlopiServiceFacade;
-    function GetSecureServiceFacade : IBlopiSecureServiceFacade; overload;
-    function GetSecureServiceFacade(out HTTPRIO: THTTPRIO) : IBlopiSecureServiceFacade; overload;
+    function GetSecureServiceFacade : IBlopiSecureServiceFacade;
     function GetAuthenticationServiceFacade : IP5Auth;
 
     function GetBanklinkOnlineURL(Service: string): String;
@@ -205,8 +194,7 @@ type
     function GetCachedPractice: TBloPracticeRead;
     function MessageResponseHasError(AMesageresponse: MessageResponse; ErrorText: string;
                                      SimpleError: boolean = false; ContextMsgInt: integer = 0;
-                                     ContextErrorCode: string = ''; ReportResponseErrors: Boolean = True): Boolean;
-
+                                     ContextErrorCode: string = ''): Boolean;
     function GetProducts : TBloArrayOfGuid;
     function GetRegistered: Boolean;
     function GetValidBConnectDetails: Boolean;
@@ -450,8 +438,7 @@ type
 
     function GetClientBankAccounts(aClientGuid: TBloGuid;
                                    out BankAccounts: TBloArrayOfDataPlatformBankAccount;
-                                   aShowProgressBar: Boolean = True;
-                                   ReportResponseErrors: Boolean = True): TBloResult;
+                                   aShowProgressBar: Boolean = True): Boolean;
 
     function GetVendorExportClientCount(PracticeCode: string = ''): TBloArrayOfPracticeDataSubscriberCount;
 
@@ -466,12 +453,7 @@ type
     function PracticeUserExists(const EmailAddress: String; RefreshPractice: Boolean = True): Boolean;
 
     function AuthenticateUser(const Domain, Username, Password: String; out AuthenticationResult: TAuthenticationStatus; IgnoreOnlineUser: Boolean = False): Boolean;
-
-    function ProcessData(const XmlData: String; out AuthenticationError: Boolean; OnPostingData: TPostingDataEvent = nil): TBloUploadResult;
-
-    function GetAccountStatusList(out Success: Boolean): TBloArrayOfPracticeBankAccount;
-
-
+    
     property OnLine: Boolean read FOnLine;
     property Registered: Boolean read GetRegistered;
     property ValidBConnectDetails: Boolean read GetValidBConnectDetails;
@@ -510,6 +492,7 @@ uses
   Progress,
   BkConst,
   WinINet,
+  SOAPHTTPClient,
   OpConvert,
   strUtils,
   WideStrUtils,
@@ -518,9 +501,9 @@ uses
   ObjAuto,
   SyDefs,
   Globals,
+  SOAPHTTPTrans,
   xmldom,
-  Login32,
-  XSBuiltIns;
+  Login32;
 
 const
   UNIT_NAME = 'BankLinkOnlineServices';
@@ -1680,7 +1663,7 @@ end;
 // for each code can be passed through, but I think single values should be enough
 function TProductConfigService.MessageResponseHasError(
   AMesageresponse: MessageResponse; ErrorText: string; SimpleError: boolean = false;
-  ContextMsgInt: integer = 0; ContextErrorCode: string = ''; ReportResponseErrors: Boolean = True): Boolean;
+  ContextMsgInt: integer = 0; ContextErrorCode: string = ''): Boolean;
 const
   MAIN_ERROR_MESSAGE = BKPRACTICENAME + ' is unable to %s ' + BANKLINK_ONLINE_NAME + '. Please see the details below or contact BankLink Support for assistance.';
 var
@@ -1746,11 +1729,7 @@ begin
           AddLine(Details, 'StackTrace', AMesageresponse.Exceptions[ErrIndex].StackTrace);
         end;
 
-        if ReportResponseErrors or (Length(AMesageresponse.Exceptions) > 0) then
-        begin
-          HelpfulErrorMsg(ErrorMessage, 0, False, Details.Text, not SimpleError);
-        end;
-        
+        HelpfulErrorMsg(ErrorMessage, 0, False, Details.Text, not SimpleError);
         LogUtil.LogMsg(lmError,'ERRORMOREFRM',Details.Text);
       finally
         Details.Free;
@@ -1774,7 +1753,6 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-
 function TProductConfigService.PracticeChanged: Boolean;
 begin
   if not Assigned(FPracticeCopy) then
@@ -1924,54 +1902,6 @@ begin
   if Assigned(FPractice) then
   begin
     Result := FPractice.FindUser(EmailAddress) <> nil; 
-  end;
-end;
-
-function TProductConfigService.ProcessData(const XmlData: String; out AuthenticationError: Boolean; OnPostingData: TPostingDataEvent = nil): TBloUploadResult;
-var
-  ServiceProvider: IBlopiSecureServiceFacade;
-  HTTPRIO: THTTPRIO;
-  Cancelled: Boolean;
-  ConnectionError: Boolean;
-begin
-  AuthenticationError := False;
-  
-  ServiceProvider := GetSecureServiceFacade(HTTPRIO);
-
-  HTTPRIO.HTTPWebNode.OnPostingData := OnPostingData;
-
-  try
-    try
-      Result := ServiceProvider.ProcessData(
-        CountryText(AdminSystem.fdFields.fdCountry),
-        AdminSystem.fdFields.fdBankLink_Code,
-        AdminSystem.fdFields.fdBankLink_Connect_Password,
-        EncodeText(XMLData));
-
-    except
-      on E: EAuthenticationException do
-      begin
-        if ReAuthenticateUser(Cancelled, ConnectionError) and not (Cancelled or ConnectionError) then
-        begin
-          Result := ServiceProvider.ProcessData(
-            CountryText(AdminSystem.fdFields.fdCountry),
-            AdminSystem.fdFields.fdBankLink_Code,
-            AdminSystem.fdFields.fdBankLink_Connect_Password,
-            EncodeText(XMLData));
-        end
-        else
-        begin
-          AuthenticationError := True;
-          
-          Exit;
-        end;
-      end;
-    end;
-  except
-    on E: Exception do
-    begin
-      HandleException('ProcessData', E);
-    end;
   end;
 end;
 
@@ -2266,15 +2196,6 @@ end;
 function TProductConfigService.GetSecureServiceFacade: IBlopiSecureServiceFacade;
 var
   HTTPRIO: THTTPRIO;
-begin
-  HTTPRIO := THTTPRIO.Create(nil);
-  HTTPRIO.OnBeforeExecute := DoBeforeExecute;
-  HTTPRIO.OnAfterExecute := DoAfterSecureExecute;
-
-  Result := GetIBlopiSecureServiceFacade(False, GetBanklinkOnlineURL('/services/blopisecureservicefacade.svc'), HTTPRIO);
-end;
-
-function TProductConfigService.GetSecureServiceFacade(out HTTPRIO: THTTPRIO): IBlopiSecureServiceFacade;
 begin
   HTTPRIO := THTTPRIO.Create(nil);
   HTTPRIO.OnBeforeExecute := DoBeforeExecute;
@@ -5315,62 +5236,6 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TProductConfigService.GetAccountStatusList(out Success: Boolean): TBloArrayOfPracticeBankAccount;
-var
-  BlopiInterface: IBlopiServiceFacade;
-  MsgResponse: MessageResponseOfArrayOfPracticeBankAccountrLqac6vj;
-  ShowProgress : Boolean;
-  Cancelled: Boolean;
-  ConnectionError: Boolean;
-begin
-  Success := False;
-
-  try
-    ShowProgress := Progress.StatusSilent;
-    if ShowProgress then
-    begin
-      Screen.Cursor := crHourGlass;
-      Progress.StatusSilent := False;
-      Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Connecting', 10);
-    end;
-
-    try
-      if ShowProgress then
-        Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Getting Bank Accounts', 50);
-
-      BlopiInterface :=  GetServiceFacade;
-      
-      MsgResponse := BlopiInterface.GetBankAccounts(CountryText(AdminSystem.fdFields.fdCountry),
-                                                   AdminSystem.fdFields.fdBankLink_Code,
-                                                   AdminSystem.fdFields.fdBankLink_Connect_Password);
-
-      if not MessageResponseHasError(MsgResponse, 'get bank accounts from') then
-      begin
-        Result := MsgResponse.Result;
-
-        Success := True;
-      end;
-
-      if ShowProgress then
-      begin
-        Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finished', 100);
-      end;
-    finally
-      if ShowProgress then
-      begin
-        Progress.StatusSilent := True;
-        Progress.ClearStatus;
-        Screen.Cursor := crDefault;
-      end;
-    end;
-  except
-    on E:Exception do
-    begin
-      HandleException('GetAccountStatusList', E);
-    end;
-  end;
-end;
-
 function TProductConfigService.GetAccountVendors(aClientGuid : TBloGuid; aAccountID: Integer;
                                                  ShowProgressBar: boolean): TBloDataPlatformSubscription;
 var
@@ -5620,14 +5485,13 @@ end;
 
 function TProductConfigService.GetClientBankAccounts(aClientGuid: TBloGuid;
   out BankAccounts: TBloArrayOfDataPlatformBankAccount;
-  aShowProgressBar: Boolean;
-  ReportResponseErrors: Boolean): TBloResult;
+  aShowProgressBar: Boolean): Boolean;
 var
   DataPlatformClientSubscriberResponse: MessageResponseOfDataPlatformClient6cY85e5k;
   ShowProgress: Boolean;
   BlopiInterface: IBlopiServiceFacade;
 begin
-  Result := bloFailedNonFatal;
+  Result := false;
 
   try
     if not Assigned(AdminSystem) then
@@ -5657,23 +5521,11 @@ begin
                                                              AdminSystem.fdFields.fdBankLink_Connect_Password,
                                                              aClientGuid);
 
-      if not MessageResponseHasError(MessageResponse(DataPlatformClientSubscriberResponse), 'get the client accounts vendors', False, 0, '', ReportResponseErrors) then
+      if not MessageResponseHasError(MessageResponse(DataPlatformClientSubscriberResponse), 'get the client accounts vendors') then
       begin
         BankAccounts := DataPlatformClientSubscriberResponse.Result.BankAccounts;
 
-        Result := bloSuccess;
-      end
-      else
-      begin
-        if not Assigned(DataPlatformClientSubscriberResponse) then
-        begin
-          Result := bloFailedFatal;
-        end
-        else
-        if Length(DataPlatformClientSubscriberResponse.Exceptions) > 0 then
-        begin
-          Result := bloFailedFatal;
-        end;
+        Result := True;
       end;
 
       if ShowProgress then
@@ -5690,8 +5542,6 @@ begin
     on E:Exception do
     begin
       HandleException('GetClientBankAccounts', E);
-
-      Result := bloFailedFatal;
     end;
   end;
 end;

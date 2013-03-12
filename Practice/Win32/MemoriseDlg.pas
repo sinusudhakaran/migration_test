@@ -254,7 +254,6 @@ type
   function MemoriseEntry(BA: TBank_Account; tr: pTransaction_Rec; var IsAMasterMem: boolean): boolean;
   function EditMemorisation(BA: TBank_Account; MemorisedList: TMemorisations_List;
                             pM: TMemorisation; var DeleteSelectedMem: boolean;
-                            var Swap0: integer; var Swap1: integer;
                             IsCopy: Boolean = False; Prefix: string = ''; CopySaveSeq: integer = -1): boolean;
 
 
@@ -1951,7 +1950,6 @@ end;
 //------------------------------------------------------------------------------
 function EditMemorisation(BA: TBank_Account; MemorisedList: TMemorisations_List;
   pM: TMemorisation; var DeleteSelectedMem: boolean;
-  var Swap0: integer; var Swap1: integer;
   IsCopy: Boolean = False; Prefix: string = ''; CopySaveSeq: integer = -1): boolean;
 // edits an existing memorisation
 //
@@ -2234,11 +2232,16 @@ begin
                Result := true;
            end;
            mrCopy : begin
-               SaveToMemRec(pM, nil, chkMaster.Checked);// Save this one..
                //{have enough data to create a memorised entry record
                if chkMaster.Checked and Assigned(AdminSystem) then begin
                  Memorised_Trans := TMemorisation.Create(SystemAuditMgr);
                  Memorised_Trans.mdFields.mdFrom_Master_List := pM.mdFields.mdFrom_Master_List;
+
+                 // Saving any changes made to the original memorisation
+                 SaveToMemRec(pM, nil, chkMaster.Checked);// Save this one..
+                 LockAdmin('MemoriseDlg.EditMemorisation');
+                 SaveAdminSystem;
+
                  SaveToMemRec(Memorised_Trans, nil, chkMaster.Checked);
                  Memorised_Trans.mdFields.mdType := pm.mdFields.mdType;
                  //---COPY MASTER MEM---
@@ -2256,7 +2259,6 @@ begin
                      Memorised_Trans.mdFields.mdFrom_Master_List := True;
                      EditMemorisedList := TMemorisations_List(SystemMemorisation.smMemorisations);
                      EditMemorisedList.Insert_Memorisation(Memorised_Trans, True);
-                     SaveSeq := pM.mdFields.mdSequence_No;
                      //*** Flag Audit ***
                      SystemAuditMgr.FlagAudit(arMasterMemorisations);
                      SaveAdminSystem;
@@ -2271,13 +2273,8 @@ begin
                      //Edit copy
                      if Assigned(MemorisedList) then
                      begin
-                       EditMemorisation(ba, MemorisedList, Memorised_Trans, DeleteSelectedMem, Swap0, Swap1,
-                                        True, Prefix, pm.mdFields^.mdSequence_No);
-                       if Assigned(Memorised_Trans.mdFields) and Assigned(pM.mdFields) then
-                       begin
-                         Swap0 := Memorised_Trans.mdFields^.mdSequence_No;
-                         Swap1 := pm.mdFields^.mdSequence_No;
-                       end;
+                       EditMemorisation(ba, MemorisedList, Memorised_Trans, DeleteSelectedMem,
+                                        True, Prefix, {pm}Memorised_Trans.mdFields^.mdSequence_No);
                      end;
 
                      // Saving again in case the copy fails the duplicate test, in which case
@@ -2288,15 +2285,18 @@ begin
                  end else
                    HelpfulErrorMsg('Could not update master memorisation at this time. Admin System unavailable.', 0);
                  //---END COPY MASTER MEM---
-               end else begin
-                  UnlockAdmin;
-                  Memorised_Trans := TMemorisation.Create(BA.AuditMgr);
-                  SaveToMemRec(Memorised_Trans, nil, chkMaster.Checked);
-                  Memorised_Trans.mdFields.mdType := pm.mdFields.mdType;
-                  MemorisedList.Insert_Memorisation(Memorised_Trans);
-                  EditMemorisation(ba,ba.baMemorisations_List,Memorised_Trans, DeleteSelectedMem,
-                                   Swap0, Swap1, True);
+               end
+               else
+               begin  
+                 SaveToMemRec(pM, nil, chkMaster.Checked);// Save this one..
+
+                 Memorised_Trans := TMemorisation.Create(BA.AuditMgr);
+                 SaveToMemRec(Memorised_Trans, nil, chkMaster.Checked);
+                 Memorised_Trans.mdFields.mdType := pm.mdFields.mdType;
+                 MemorisedList.Insert_Memorisation(Memorised_Trans);
+                 EditMemorisation(ba,ba.baMemorisations_List,Memorised_Trans, DeleteSelectedMem, True);
                end;
+
                Result := true;
            end;
            else if iscopy then begin

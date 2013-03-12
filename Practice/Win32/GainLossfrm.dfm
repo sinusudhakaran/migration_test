@@ -4,20 +4,25 @@ object frmGainLoss: TfrmGainLoss
   BorderIcons = [biSystemMenu, biMaximize]
   Caption = 'Exchange Gains/Losses'
   ClientHeight = 390
-  ClientWidth = 596
+  ClientWidth = 595
   Color = clBtnFace
+  Constraints.MinHeight = 300
+  Constraints.MinWidth = 611
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
   Font.Height = -11
   Font.Name = 'Tahoma'
   Font.Style = []
+  KeyPreview = True
   OldCreateOrder = False
   Position = poOwnerFormCenter
   OnCreate = FormCreate
   OnDestroy = FormDestroy
+  OnKeyPress = FormKeyPress
+  OnResize = FormResize
   OnShow = FormShow
   DesignSize = (
-    596
+    595
     390)
   PixelsPerInch = 96
   TextHeight = 13
@@ -29,13 +34,12 @@ object frmGainLoss: TfrmGainLoss
     Caption = 'Foreign Exchange Gains or Losses for the month ending'
   end
   object tbPrevious: TRzToolButton
-    Left = 423
+    Left = 422
     Top = 6
     Width = 81
     ImageIndex = 1
     Images = AppImages.Misc
     ShowCaption = True
-    Transparent = False
     UseToolbarButtonLayout = False
     UseToolbarButtonSize = False
     UseToolbarShowCaption = False
@@ -45,14 +49,13 @@ object frmGainLoss: TfrmGainLoss
     ExplicitLeft = 402
   end
   object tbNext: TRzToolButton
-    Left = 511
+    Left = 510
     Top = 6
     Width = 81
     ImageIndex = 2
     Images = AppImages.Misc
     Layout = blGlyphRight
     ShowCaption = True
-    Transparent = False
     UseToolbarButtonLayout = False
     UseToolbarButtonSize = False
     UseToolbarShowCaption = False
@@ -77,7 +80,7 @@ object frmGainLoss: TfrmGainLoss
   object tgGainLoss: TtsGrid
     Left = 0
     Top = 36
-    Width = 597
+    Width = 596
     Height = 303
     AlwaysShowScrollBar = ssVertical
     Anchors = [akLeft, akTop, akRight, akBottom]
@@ -106,7 +109,6 @@ object frmGainLoss: TfrmGainLoss
     ParentCtl3D = False
     ParentFont = False
     ParentShowHint = False
-    ResizeCols = rcNone
     ResizeRows = rrNone
     RowBarOn = False
     RowMoving = False
@@ -116,6 +118,7 @@ object frmGainLoss: TfrmGainLoss
     TabOrder = 0
     Version = '2.20.26'
     WantTabs = False
+    WordWrap = wwOff
     XMLExport.Version = '1.0'
     XMLExport.DataPacketVersion = '2.0'
     OnCellLoaded = tgGainLossCellLoaded
@@ -163,6 +166,7 @@ object frmGainLoss: TfrmGainLoss
         Col.ReadOnly = True
         Col.HorzAlignment = htaLeft
         Col.Width = 80
+        Col.WordWrap = wwOff
       end
       item
         DataCol = 4
@@ -190,7 +194,7 @@ object frmGainLoss: TfrmGainLoss
   object pnlBottom: TPanel
     Left = 0
     Top = 349
-    Width = 596
+    Width = 595
     Height = 41
     Align = alBottom
     BevelEdges = []
@@ -210,6 +214,7 @@ object frmGainLoss: TfrmGainLoss
       Width = 75
       Height = 25
       Caption = 'Close'
+      Default = True
       ModalResult = 1
       TabOrder = 0
     end

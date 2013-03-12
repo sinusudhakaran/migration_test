@@ -276,7 +276,9 @@ uses
    StStrS,
    BudgetUnitPriceEntry,
    Math,
-   Dialogs;
+   Dialogs,
+   ExchangeGainLoss,
+   baObj32;
 
 const
    {status panel constants}
@@ -1566,7 +1568,7 @@ end;
 procedure TfrmBudget.DoGenerate;
 {updates complete table}
 var
-  i,j : integer;
+  i,j,k,l : integer;
   AccountInfo : TAccountInformation;
   Account   : pAccount_Rec;
   Amount    : Money;
@@ -1575,6 +1577,12 @@ var
   WasInclusive : boolean;
   WasRepYearStart : integer;
   HideRowsAfter : boolean;
+  FMonthEndings: TMonthEndings;
+  b: TBank_Account;
+  GainLossCode: string;
+  GainLossCodes: TStringList;
+  YearStartDate, StartDate, EndDate: TStDate;
+  D1,D2,M1,M2,Y1,Y2: integer; 
 begin
   if not DataAssigned then exit;
 
@@ -1597,7 +1605,7 @@ begin
 
     CalculateAccountTotals.FlagAllAccountsForUse( MyClient);
     //dont added contra amounts into the total
-    CalculateAccountTotals.CalculateAccountTotalsForClient( MyClient, False);
+    CalculateAccountTotals.CalculateAccountTotalsForClient( MyClient, False, nil, -1, False, False, True);
   finally
     MyClient.clFields.clGST_Inclusive_Cashflow := WasInclusive;
     MyClient.clFields.clReporting_Year_Starts  := WasRepYearStart;
@@ -1611,8 +1619,34 @@ begin
 
   try
     AccountInfo.UseBudgetIfNoActualData     := False;
+
     HideRowsAfter := not AllRowsShowing;
     DoShowAll;
+
+    FMonthEndings := TMonthEndings.Create(MyClient);
+    FMonthEndings.Refresh;
+
+    // Get list of exchange gain/loss codes
+    GainLossCodes := TStringList.Create;
+    for i := 0 to MyClient.clBank_Account_List.ItemCount - 1 do
+    begin
+      b := MyClient.clBank_Account_List.Bank_Account_At(i);
+      GainLossCode := b.baFields.baExchange_Gain_Loss_Code;
+      if (GainLossCodes.IndexOf(GainLossCode) = -1) and (GainLossCode <> '') then
+        GainLossCodes.Add(GainLossCode);
+    end;
+
+    // Getting the start of the financial year
+    YearStartDate := MyClient.clFields.clReporting_Year_Starts;
+    StDateToDMY(YearStartDate, D1, M1, Y1);
+    StDateToDMY(CurrentDate, D2, M2, Y2);
+    YearStartDate := DMYToStDate(D1, M1, Y2, BKDATEEPOCH);
+    if (YearStartDate > CurrentDate) then
+      YearStartDate := IncDate(YearStartDate, 0, 0, -1);
+
+    if Year = ytLastYear then
+      YearStartDate := IncDate(YearStartDate, 0, 0, -1);
+
     with tblBudget do begin
       AllowRedraw := false;
       try
@@ -1633,10 +1667,27 @@ begin
                ((BudgetType = GenBudgetDlg.btProfit) and (Account.chAccount_Type in ProfitAndLossReportGroupsSet)) then
             begin
               for j := 1 to 12 do begin
+                if (GainLossCodes.IndexOf(AccountInfo.AccountCode) <> -1) then // Is this an exchange gain/loss code?
+                begin
+                  // Assign exchange gain/loss amount
+                  StartDate := IncDate(YearStartDate, 0, j - 1, 0);
+                  EndDate := IncDate(StartDate, -1, 1, 0);
+                  Amount := 0;
+                  for k := 0 to FMonthEndings.Count - 1 do
+                  begin
+                    for l := 0 to Length(FMonthEndings.Items[k].BankAccounts) - 1 do
+                    begin
+                      if (DateTimeToStDate(FMonthEndings.Items[k].Date) >= StartDate) and
+                         (DateTimeToStDate(FMonthEndings.Items[k].Date) <= EndDate) and
+                         (FMonthEndings.Items[k].BankAccounts[l].PostedEntry.FExchangeGainLossCode = AccountInfo.AccountCode) then
+                        Amount := Amount + FMonthEndings.Items[k].BankAccounts[l].PostedEntry.GainLoss;
+                    end;
+                  end;
+                end else
                 if Year = ytLastYear then
-                   Amount := AccountInfo.LastYear( j)
+                  Amount := AccountInfo.LastYear( j)
                 else
-                   Amount := AccountInfo.ActualOrBudget( j);
+                  Amount := AccountInfo.ActualOrBudget( j);
 
                 //check to see what the expected sign if for this account.  If the sign
                 //is the same represent the amount as a +ve number, otherwise represent it

@@ -25,7 +25,7 @@ uses
 type
   saFilters = (saAttached, saNew, saDeleted, saInactive, saSecure, saThisYear,
                 saPassword, saCharge, saFreqMonth, saFreqWeek, saFreqDay,
-                saFreqUnspecified, saProvisional, saOnlineSecure);
+                saFreqUnspecified, saProvisional, saOnlineSecure, saSecureAndOnlineSecure);
 
   saFilter = set of saFilters;
 
@@ -106,7 +106,7 @@ begin
     saNew      : Result := 'new';
     saDeleted  : Result := 'marked as deleted';
     saInactive : Result := 'inactive';
-    saSecure   : Result := 'Books secure';
+    saSecure   : Result := 'Books Secure';
     saThisYear : Result := 'have transactions this year';
     saPassword : Result := 'password protected';
     saCharge   : Result := 'charged';
@@ -137,6 +137,7 @@ begin
     saFreqUnspecified: Result := 'not unspecified';
     saProvisional    : Result := 'not provisional';
     saOnlineSecure   : Result := 'not Online Secure';
+    saSecureAndOnlineSecure : Result := 'Local';
   end;
 end;
 
@@ -547,11 +548,10 @@ begin
                             or CheckNode( tvFilter.Items.AddChild(topn,'Not Password Protected'),saPassword in Include.NotNodes[i])
                           );
          safsTopDeliver :Expand(topn,
-                               CheckNode( tvFilter.Items.AddChild(topn,'Practice Accounts'), (saSecure in Include.NotNodes[i]) and
-                                                                                             (saOnlineSecure in Include.NotNodes[i]))
+                               CheckNode( tvFilter.Items.AddChild(topn,'Practice Accounts'), (saSecureAndOnlineSecure in Include.NotNodes[i]))
                             or CheckNode( tvFilter.Items.AddChild(topn,'Provisional Accounts'),saProvisional in Include.Nodes[i])
                             or CheckNode( tvFilter.Items.AddChild(topn,'Books Secure Accounts'),saSecure in Include.Nodes[i])
-                            or CheckNode( tvFilter.Items.AddChild(topn,'Banklink Online Secure Accounts'),saOnlineSecure in Include.Nodes[i])
+                            or CheckNode( tvFilter.Items.AddChild(topn,'BankLink Online Secure Accounts'),saOnlineSecure in Include.Nodes[i])
 
                           );
          safsTopFrequency:Expand(topn,
@@ -576,7 +576,7 @@ begin
              I := GetBoolArray(topn);
              case Integer(topn.Data) of
                safsTopStatus: if I = 4 then begin
-                     if ftNode[0] then
+                     if ftNode[0] then                                                                 
                         LInclude.Nodes[safsTopStatus] := LInclude.Nodes[safsTopStatus] + [sanew];
                      if ftNode[1] and (not ftNode[3]) then
                         LInclude.NotNodes[safsTopStatus] := LInclude.NotNodes[safsTopStatus] +  [saAttached];
@@ -617,14 +617,23 @@ begin
                         LInclude.Nodes[safsTopPassword] := LInclude.Nodes[safsTopPassword] +  [saPassword];
                   end;
                 safsTopDeliver: if I = 4 then begin
-                     if ftNode[0] and (not ftNode[2]) then
-                        LInclude.NotNodes[safsTopDeliver] := (LInclude.NotNodes[safsTopDeliver] + [saOnlineSecure]);
-                     if ftNode[2] and (not ftNode[0]) then
-                        LInclude.Nodes[safsTopDeliver] := LInclude.Nodes[safsTopDeliver] + [saSecure];
-                     if ftNode[1] then
-                        LInclude.Nodes[safsTopDeliver] := LInclude.Nodes[safsTopDeliver] + [saProvisional];
-                     if ftNode[3] then
-                        LInclude.Nodes[safsTopDeliver] := LInclude.Nodes[safsTopDeliver] + [saOnlineSecure];
+                     // if Practice, Books Secure, and BankLink Online Secure Accounts are all selected,
+                     // this is equivalent to having nothing selected
+                     if not (ftNode[0] and ftNode[2] and ftNode[3]) then
+                     begin
+                       if ftNode[0] then
+                       begin
+                         LInclude.NotNodes[safsTopDeliver] := (LInclude.NotNodes[safsTopDeliver] + [saSecureAndOnlineSecure]);
+                         if ftNode[2] then
+                           LInclude.Nodes[safsTopDeliver] := (LInclude.Nodes[safsTopDeliver] + [saSecure]);
+                       end;
+                       if ftNode[2] and (not ftNode[0]) then
+                          LInclude.Nodes[safsTopDeliver] := LInclude.Nodes[safsTopDeliver] + [saSecure];
+                       if ftNode[1] then
+                          LInclude.Nodes[safsTopDeliver] := LInclude.Nodes[safsTopDeliver] + [saProvisional];
+                       if ftNode[3] then
+                          LInclude.Nodes[safsTopDeliver] := LInclude.Nodes[safsTopDeliver] + [saOnlineSecure];
+                     end;
                   end;
                 safsTopFrequency: if I = 4 then begin
                      if ftNode[0] then
@@ -724,6 +733,12 @@ begin
          end;
       end;
       Result := 'Accounts that are ' + Result;
+
+      // There can be cases where we want a different header from what is normally generated,
+      // so we override them here
+      if (Nodes[safsTopDeliver] = [saSecure]) and
+      (NotNodes[safsTopDeliver] = [saSecureAndOnlineSecure]) then
+        Result := 'Accounts that are not Online Secure';
    end;
 end;
 

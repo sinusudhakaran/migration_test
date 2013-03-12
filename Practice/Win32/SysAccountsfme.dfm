@@ -29,7 +29,7 @@ object fmeSysAccounts: TfmeSysAccounts
     end
     object lblCount: TLabel
       AlignWithMargins = True
-      Left = 652
+      Left = 555
       Top = 2
       Width = 121
       Height = 21
@@ -105,7 +105,7 @@ object fmeSysAccounts: TfmeSysAccounts
       Height = 21
       Align = alLeft
       BevelOuter = bvNone
-      TabOrder = 5
+      TabOrder = 3
       object EBFind: TEdit
         AlignWithMargins = True
         Left = 0
@@ -114,16 +114,15 @@ object fmeSysAccounts: TfmeSysAccounts
         Height = 21
         Margins.Top = 0
         Margins.Bottom = 0
-        Align = alNone
         MaxLength = 12
-        TabOrder = 3
+        TabOrder = 0
         OnChange = EBFindChange
         OnKeyPress = EBFindKeyPress
       end
     end
     object btnSearchClear: TButton
       AlignWithMargins = True
-      Left = 571
+      Left = 474
       Top = 2
       Width = 75
       Height = 21

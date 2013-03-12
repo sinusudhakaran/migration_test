@@ -40,6 +40,9 @@ uses
   procedure AddMemorisationValues(const AAuditRecord: TAudit_Trail_Rec;
                                    AAuditMgr: TClientAuditManager;
                                    var Values: string);
+  procedure AddExchangeGainLossAuditValues(const AAuditRecord: TAudit_Trail_Rec;
+                                      AAuditMgr: TClientAuditManager;
+                                      var Values: string);
 
 implementation
 
@@ -56,7 +59,8 @@ uses
   BKHDIO,
   BKMDIO,
   BKMLIO,
-  BKDSIO;
+  BKDSIO,
+  BKglIO;
 
 procedure SetGST_Applies_From_Array(ACountry: byte; V1: TGST_Applies_From_Array;
   Token: byte; var Values: string);
@@ -722,6 +726,10 @@ begin
             //Currency_Code
             199: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Bank_Account, Token),
                                          tBank_Account_Rec(ARecord^).baCurrency_Code, Values);
+
+            {tkbaExchange_Gain_Loss_Code from BKbaIO.pas}
+            206: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Bank_Account, Token),
+                                         tBank_Account_Rec(ARecord^).baExchange_Gain_Loss_Code, Values);
           end;
 
           Inc(Idx);
@@ -1412,5 +1420,48 @@ begin
   end;
 end;
 
+procedure AddExchangeGainLossAuditValues(const AAuditRecord: TAudit_Trail_Rec;
+  AAuditMgr: TClientAuditManager; var Values: string);
+var
+  Token, Idx: byte;
+  ARecord: Pointer;
+begin
+  ARecord := AAuditRecord.atAudit_Record;
+
+  if ARecord = nil then begin
+    Values := AAuditRecord.atOther_Info;
+    Exit;
+  end;
+
+  case AAuditRecord.atAudit_Record_Type of
+    tkBegin_Exchange_Gain_Loss:
+      begin
+        Idx := 0;
+        Token := AAuditRecord.atChanged_Fields[idx];
+
+        while Token <> 0 do begin
+          case Token of
+            { Note: the token values are declared in the implementation section
+              of BKglIO, so we can't use them.
+            }
+            204: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Exchange_Gain_Loss, Token),
+                                         BKDate2Str(TExchange_Gain_Loss_Rec(ARecord^).glDate), Values);
+
+            205: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Exchange_Gain_Loss, Token),
+                                         Money2Str(TExchange_Gain_Loss_Rec(ARecord^).glAmount), Values);
+
+            206: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Exchange_Gain_Loss, Token),
+                                         TExchange_Gain_Loss_Rec(ARecord^).glAccount, Values);
+
+            207: AAuditMgr.AddAuditValue(BKAuditNames.GetAuditFieldName(tkBegin_Exchange_Gain_Loss, Token),
+                                         BKDate2Str(TExchange_Gain_Loss_Rec(ARecord^).glPosted_Date), Values);
+        end;
+
+        Inc(Idx);
+        Token := AAuditRecord.atChanged_Fields[idx];
+      end;
+    end;
+  end;
+end;
 
 end.

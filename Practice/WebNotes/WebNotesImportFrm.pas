@@ -146,8 +146,7 @@ uses
   ForexHelpers,
   AuditMgr,
   Files,
-  WebUtils,
-  UTransactionCompare;
+  WebUtils;
 
 const
    UnitName = 'WebNotesDataUpload';
@@ -939,6 +938,7 @@ begin
      ImportDissections(FromNode, BKT, bkPayee)
   else
      ImportDissections(FromNode, BKT);
+
 end;
 
 procedure TWebNotesImportForm.ImportNewTransaction(FromNode: IXMLNode;
@@ -1135,7 +1135,7 @@ begin
          //account is blank so use ecoding account to code the transaction
          BKT.txAccount := LString;
          BKT.txHas_Been_Edited := True;
-         
+
          if GetCodeByAttr(FromNode,nCodedBy) in [cbManual] then
             NeedToUpdateGST := true;
       end else begin
@@ -1405,7 +1405,6 @@ var AccountNo: string;
     var
        bkId: Integer;
        Trans : pTransaction_Rec;
-       TransactionCompare: TTransactionCompare;
 
        function FindTrans: pTransaction_Rec;
        var bkT: Integer;
@@ -1459,58 +1458,21 @@ var AccountNo: string;
           Exit; // Not a valid node..
 
        bkId := GetIntAttr(FromNode,nExternalID);
-       
-       if bkID > 0 then
-       begin
+       if bkID > 0 then begin
+
           Trans := FindTrans;
-
-          if ValidateTransactionForImport(Trans, msg) then
-          begin
-            if Trans.txTransfered_To_Online then
-            begin
-              TransactionCompare := TDataExportTransactionCompare.Create(Trans);
-
-              try
-                if Assigned(GetFirstDissection(FromNode)) then
-                begin
-                  ImportDissectedTransaction(FromNode,Trans)
-                end
-                else
-                begin
-                  ImportStandardTransaction(FromNode,Trans,Prefix);
-                end;
-
-                if not TransactionCompare.IsEqual(Trans) then
-                begin
-                  Trans.txTransfered_To_Online := False;
-                end; 
-              finally
-                TransactionCompare.Free;
-              end;
-            end
-            else
-            begin
-              if Assigned(GetFirstDissection(FromNode)) then
-              begin
+          if ValidateTransactionForImport(Trans, msg) then begin
+             if assigned(GetFirstDissection(FromNode)) then
                 ImportDissectedTransaction(FromNode,Trans)
-              end
-              else
-              begin
+             else
                 ImportStandardTransaction(FromNode,Trans,Prefix);
-              end;            
-            end;
-
-             Inc(ImportedCount);
-          end
-          else
-          begin
-            inc(RejectedCount);
-            // ? Log the msg
+             inc(ImportedCount);
+          end else  begin
+             inc(RejectedCount);
+             // ? Log the msg
           end;
-       end
-       else
-       begin
-         ImportNewTransaction(FromNode, ba);
+       end else begin
+          ImportNewTransaction(FromNode, ba);
        end;
     end; //MergeTransaction
 

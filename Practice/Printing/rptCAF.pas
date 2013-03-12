@@ -1,18 +1,13 @@
 // Print the CAF in a form as close as possible to the PDF
 unit rptCAF;
 
-//------------------------------------------------------------------------------
 interface
 
 uses
    XLSFile,
    XLSWorkbook,
    Variants,
-   AuthorityUtils,
-   CAFfrm,
-   ReportDefs,
-   Windows,
-   Graphics;
+   AuthorityUtils, CAFfrm, ReportDefs;
 
 type
   TCAFReport = class(TAuthorityReport)
@@ -26,30 +21,18 @@ type
   public
     property Values : TfrmCAF read FVAlues write FValues;
     procedure BKPrint;  override;
-    procedure CreateQRCode(aCanvas : TCanvas; aDestRect : TRect);
   end;
+
+
 
 function DoCAFReport(Values: TfrmCAF; Destination : TReportDest; Mode: TAFMode; Addr: string = '') : Boolean;
 
-//------------------------------------------------------------------------------
 implementation
 
 uses
-  ReportTypes,
-  Globals,
-  MailFrm,
-  bkConst,
-  Types,
-  RepCols,
-  UserReportSettings,
-  BKPrintJob,
-  Printers,
-  CafQrCode,
-  ExtCtrls,
-  Sysutils,
-  webutils;
+  ReportTypes, 
+  Windows, Globals, MailFrm, bkConst, Graphics, Types, RepCols, UserReportSettings, BKPrintJob, Printers;
 
-//------------------------------------------------------------------------------
 function DoCAFReport(Values: TfrmCAF; Destination : TReportDest;  Mode: TAFMode; Addr: string = '') : Boolean;
 var
    Job : TCAFReport;
@@ -96,7 +79,8 @@ begin
    end;
 end;
 
-//------------------------------------------------------------------------------
+
+
 procedure TCAFReport.BKPrint;
 begin
   if ImportMode then
@@ -105,83 +89,6 @@ begin
      PrintForm;
 end;
 
-//------------------------------------------------------------------------------
-procedure TCAFReport.CreateQRCode(aCanvas : TCanvas; aDestRect : TRect);
-var
-  CafQrCode  : TCafQrCode;
-  CAFQRData  : TCAFQRData;
-  CAFQRDataAccount : TCAFQRDataAccount;
-  QrCodeImage : TImage;
-begin
-  CAFQRData := TCAFQRData.Create(TCAFQRDataAccount);
-  try
-    CafQrCode := TCafQrCode.Create;
-    try
-      QrCodeImage := TImage.Create(nil);
-      try
-        CAFQRDataAccount := TCAFQRDataAccount.Create(CAFQRData);
-        CAFQRDataAccount.AccountName   := Values.edtName1.text;
-        CAFQRDataAccount.AccountNumber := Values.edtBSB1.Text +
-                                          Values.edtNumber1.text;
-        CAFQRDataAccount.ClientCode    := Values.edtClient1.Text;
-        CAFQRDataAccount.CostCode      := Values.edtCost1.Text;
-        CAFQRDataAccount.SMSF          := 'N'; // AU only
-
-        CAFQRDataAccount := TCAFQRDataAccount.Create(CAFQRData);
-        CAFQRDataAccount.AccountName   := Values.edtName2.text;
-        CAFQRDataAccount.AccountNumber := Values.edtBSB2.Text +
-                                          Values.edtNumber2.text;
-        CAFQRDataAccount.ClientCode    := Values.edtClient2.Text;
-        CAFQRDataAccount.CostCode      := Values.edtCost2.Text;
-        CAFQRDataAccount.SMSF          := 'N'; // AU only
-
-        CAFQRDataAccount := TCAFQRDataAccount.Create(CAFQRData);
-        CAFQRDataAccount.AccountName   := Values.edtName3.text;
-        CAFQRDataAccount.AccountNumber := Values.edtBSB3.Text +
-                                          Values.edtNumber3.text;
-        CAFQRDataAccount.ClientCode    := Values.edtClient3.Text;
-        CAFQRDataAccount.CostCode      := Values.edtCost3.Text;
-        CAFQRDataAccount.SMSF          := 'N'; // AU only
-
-        // Day , Month , Year
-        CAFQRData.SetStartDate(1,
-                               Values.cmbMonth.ItemIndex,
-                               '20' + Values.edtYear.Text);
-
-        CAFQRData.PracticeCode        := Values.edtPractice.text;
-        CAFQRData.PracticeCountryCode := CountryText(AdminSystem.fdFields.fdCountry);
-
-        CAFQRData.SetProvisional(Values.cbProvisional.Checked);
-
-        CAFQRData.SetFrequency(Values.rbMonthly.Checked,
-                               Values.rbWeekly.Checked,
-                               Values.rbDaily.Checked,
-                               0);
-
-        CAFQRData.TimeStamp := Now;
-        CAFQRData.InstitutionCode := Values.edtBank.Text;
-        CAFQRData.InstitutionCountry := '';
-
-        CafQrCode.BuildQRCode(CAFQRData,
-                              GLOBALS.PublicKeysDir + PUBLIC_KEY_FILE_CAF_QRCODE,
-                              QrCodeImage);
-
-        aCanvas.StretchDraw(aDestRect, QrCodeImage.Picture.Graphic);
-        if OriginalDestination = rdPrinter then
-          aCanvas.StretchDraw(aDestRect, QrCodeImage.Picture.Graphic);
-
-      finally
-        FreeAndNil(QrCodeImage);
-      end;
-    finally
-      FreeAndNil(CafQrCode);
-    end;
-  finally
-    FreeAndNil(CAFQRData);
-  end;
-end;
-
-//------------------------------------------------------------------------------
 procedure TCAFReport.PrintForm;
 var
    myCanvas : TCanvas;
@@ -283,10 +190,6 @@ begin
    NewLine;
    RenderSplitText(Values.lblClause45.Caption, Col0);
    NewLine(2);
-
-   CreateQRCode(myCanvas, XYSizeRect(ColBoxRight-240, CurrYPos-155, ColBoxRight+10, CurrYPos+95));
-   //CreateQRCode(myCanvas, XYSizeRect(10,10,110,110));
-
    RenderSplitText(Values.lblSign.Caption, Col0, True);
    CurrYPos := CurrYPos + CurrLineSize + BoxMargin;
    //Additional information to assist BankLink
@@ -307,17 +210,15 @@ begin
    DrawRadio(MyCanvas, XYSizeRect(Col1 + 1300, CurrYPos, Col1 + 1800, CurrYPos+CurrLineSize), ' ' + Values.rbDaily.Caption, True, Values.rbDaily.Checked);
    RenderText(Values.lblServiceFrequency.Caption, Rect(Col1, CurrYPos, Col1 + 250, CurrYPos + CurrLineSize), jtLeft);
    NewLine(5);
-
    WasPrinted := True;
 end;
 
-//------------------------------------------------------------------------------
+
 procedure TCAFReport.ResetForm;
 begin
    Values.btnClearClick(nil);
 end;
 
-//------------------------------------------------------------------------------
 procedure TCAFReport.FillCollumn(C: TCell);
 begin
    if C.Col = fcAccountName then
@@ -348,7 +249,6 @@ begin
    end;
 end;
 
-//------------------------------------------------------------------------------
 function TCAFReport.HaveNewdata: Boolean;
 begin
    Result := (Values.edtName1.Text > '')

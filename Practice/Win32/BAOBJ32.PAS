@@ -14,7 +14,7 @@ unit baObj32;
 interface
 uses
   bkdateutils,classes, bkdefs, iostream, trxList32, mxList32, moneydef, MatchedItemsList,
-  MemorisationsObj, AuditMgr, dxList32, glList32;
+  MemorisationsObj, AuditMgr, glList32, frList32;
 
 type
   pDailyBalancesRec = ^tDailyBalancesRec;
@@ -27,8 +27,8 @@ type
     baTransaction_List : tTransaction_List;
     baOld_Memorised_Transaction_List : tMemorised_Transaction_List_V53;
     baMemorisations_List : MemorisationsObj.TMemorisations_List;
-    baDeleted_Transaction_List: TDeleted_Transaction_List;
     baExchange_Gain_Loss_List: TExchange_Gain_Loss_List;
+    baFinalized_Exchange_Rate_List: TFinalized_Exchange_Rate_List;
   private
     FMatched_Items_List : tMatched_Items_List;
     FClient : TObject;
@@ -66,7 +66,7 @@ type
     function FmtMoneyStr : String;
     function FmtMoneyStrBrackets : String;
     function CurrencySymbol : String;
-    function HasTransactionsWithin( StartDate, EndDate : Integer ): Boolean;
+    function HasTransactionsWithin( StartDate, EndDate : Integer; SkipFinalizedOrTransferred: Boolean = False): Boolean;
     function IsAForexAccount : Boolean;
     function IsManual: Boolean;
     function CanEditTransactions: Boolean;
@@ -77,9 +77,15 @@ type
     function Title : String;
     function AccountName: string;
     function ValidPayeeCode(PayeeNumber: integer): Boolean;
-    function HasExchangeRates(StartDate, EndDate: Integer; StoreRates: boolean = false): Boolean;
+    function HasExchangeRates(StartDate, EndDate: Integer; StoreRates: boolean = false; SkipFinalizedOrTransferred: Boolean = False): Boolean;
     procedure DoAudit(ABankAccountCopy: TBank_Account;
                       var AAuditTable: TAuditTable);
+
+    function LastTransactionFinalizedOrTransferred(FirstDayOfMonth: Integer): Boolean;
+    function AllFinalizedOrTransferred(StartDate, EndDate: Integer): Boolean;
+
+    function FindTransaction(TransactionDate: Integer; out Transaction: pTransaction_Rec): Boolean;
+
     property AuditMgr: TAuditManager read GetAuditMgr;                  
   end;
 
@@ -549,9 +555,9 @@ begin
    baMemorisations_List := TMemorisations_List.Create(AuditMgr);
    baOld_Memorised_Transaction_List := TMemorised_Transaction_List_V53.Create;
 
-   baDeleted_Transaction_List := TDeleted_Transaction_List.Create;
+   baExchange_Gain_Loss_List := TExchange_Gain_Loss_List.Create(AuditMgr);
 
-   baExchange_Gain_Loss_List := TExchange_Gain_Loss_List.Create;
+   baFinalized_Exchange_Rate_List := TFinalized_Exchange_Rate_List.Create;
 
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
@@ -603,8 +609,8 @@ begin
    baTransaction_List.Free;
    baOld_Memorised_Transaction_List.Free;
    baMemorisations_List.Free;
-   baDeleted_Transaction_List.Free;
    FreeAndNil(baExchange_Gain_Loss_List);
+   FreeAndNil(baFinalized_Exchange_Rate_List);
    FMatched_Items_List.Free;
    BKBAIO.Free_Bank_Account_Rec_Dynamic_Fields( baFields);
 
@@ -616,7 +622,8 @@ procedure TBank_Account.DoAudit(ABankAccountCopy: TBank_Account;
   var AAuditTable: TAuditTable);
 var
   TransactionList: TTransaction_List;
-  MemorisationsList: TMemorisations_List;  
+  MemorisationsList: TMemorisations_List;
+  GainLossList: TExchange_Gain_Loss_List;
 begin
   //Audit transactions
   TransactionList := nil;
@@ -633,6 +640,14 @@ begin
   baMemorisations_List.DoAudit(MemorisationsList,
                                baFields.baAudit_Record_ID,
                                AAuditTable);
+
+  //Exchange Gain/Loss
+  GainLossList := nil;
+  if Assigned(ABankAccountCopy) then
+    GainLossList := ABankAccountCopy.baExchange_Gain_Loss_List;
+  baExchange_Gain_Loss_List.DoAudit(GainLossList,
+                                    baFields.baAudit_Record_ID,
+                                    AAuditTable);
 end;
 
 function TBank_Account.DrCrStr(const Amount: Money): String;
@@ -652,7 +667,9 @@ begin
   if FClient = NIL then
      Result := False
   else
-     Result := TClientObj(FClient).clExtra.ceLocal_Currency_Code <> baFields.baCurrency_Code;
+  begin
+    Result := TClientObj(FClient).clExtra.ceLocal_Currency_Code <> baFields.baCurrency_Code;
+  end;
 end;
 
 function TBank_Account.IsAJournalAccount: boolean;
@@ -684,6 +701,37 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+function TBank_Account.LastTransactionFinalizedOrTransferred(FirstDayOfMonth: Integer): Boolean;
+var
+  LastDayOfMonth: Integer;
+  Index: Integer;
+  Transaction: pTransaction_Rec;
+begin
+  Result := False;
+  
+  LastDayOfMonth := GetLastDayOfMonth(FirstDayOfMonth);
+
+  for Index := 0 to baTransaction_List.ItemCount - 1 do
+  begin
+    Transaction := baTransaction_List.Transaction_At(Index);
+
+    if Transaction.txDate_Effective >= FirstDayOfMonth then
+    begin
+      if Index + 1 < baTransaction_List.ItemCount then
+      begin
+        if baTransaction_List.Transaction_At(Index + 1).txDate_Effective > LastDayOfMonth then
+        begin
+          Result := Transaction.Locked;
+        end;
+      end
+      else
+      begin
+        Result := Transaction.Locked;
+      end;
+    end;
+  end;
+end;
+
 procedure TBank_Account.LoadFromFile(var s : TIOStream);
 const
   ThisMethodName = 'TBank_Account.LoadFromFile';
@@ -703,8 +751,8 @@ Begin
          tkBeginMemorisedEntries : baOld_Memorised_Transaction_List.LoadFromFile( S );
          tkBeginMatchedItems     : FMatched_Items_List.LoadFromFile( S);
          tkBeginMemorisationsList : baMemorisations_List.LoadFromStream(S);
-         tkBeginDeleted_Transaction_List: baDeleted_Transaction_List.LoadFromFile(S);
-         tkBeginExchange_Gain_Loss_List: baExchange_Gain_Loss_List.LoadFromFile(S);  
+         tkBeginExchange_Gain_Loss_List: baExchange_Gain_Loss_List.LoadFromFile(S);
+         tkBeginFinalized_Exchange_Rate_List: baFinalized_Exchange_Rate_List.LoadFromFile(S);  
          else
          begin { Should never happen }
             Msg := Format( '%s : Unknown Token %d', [ ThisMethodName, Token ] );
@@ -738,8 +786,8 @@ begin
 
    baTransaction_List.SaveToFile( S );
    baMemorisations_List.SaveToStream( S);
-   baDeleted_Transaction_List.SaveToFile(S);
    baExchange_Gain_Loss_List.SaveToFile(S); 
+   baFinalized_Exchange_Rate_List.SaveToFile(S);
 
    //as of version 60.5 this list is no longer used.  It should be removed
    //in future version.  It has only been left in to aid in upgrading from version
@@ -863,6 +911,27 @@ begin
       end;
    end;
 end;
+
+function TBank_Account.FindTransaction(TransactionDate: Integer; out Transaction: pTransaction_Rec): Boolean;
+var
+  Index: Integer;
+  Trans: pTransaction_Rec;
+begin
+  Result := False;
+  
+  for Index := 0 to baTransaction_List.ItemCount - 1 do
+  begin
+    Trans := baTransaction_List.Transaction_At(Index);
+
+    if (Trans.txDate_Effective = TransactionDate) then
+    begin            
+      Transaction := Trans;
+      
+      Result := True;
+    end;
+  end;
+end;
+
 function TBank_Account.FmtBalanceStr: String;
 begin
   Result := MoneyUtils.FmtBalanceStr( baFields.baCurrency_Code );
@@ -883,6 +952,31 @@ begin
   Result := nil;
   if Assigned(FClient) then
     Result := TClientObj(FClient).ClientAuditMgr;
+end;
+
+function TBank_Account.AllFinalizedOrTransferred(StartDate, EndDate: Integer): Boolean;
+var
+  Index: Integer;
+  Trans: pTransaction_Rec;
+begin
+  Result := False;
+
+  for Index := 0 to baTransaction_List.ItemCount - 1 do
+  begin
+    Trans := baTransaction_List.Transaction_At(Index);
+
+    if (Trans.txDate_Effective >= StartDate) and (Trans.txDate_Effective <= EndDate) then
+    begin
+      if not Trans.Locked then
+      begin
+        Result := False;
+
+        Exit;
+      end;
+
+      Result := True;
+    end;
+  end;
 end;
 
 procedure TBank_Account.ApplyDefaultGST(pT: pTransaction_Rec);
@@ -933,7 +1027,7 @@ begin
 end;
 
 function TBank_Account.HasExchangeRates(StartDate,
-  EndDate: Integer; StoreRates: boolean): Boolean;
+  EndDate: Integer; StoreRates: boolean; SkipFinalizedOrTransferred: Boolean): Boolean;
 var
   i: Integer;
   Rate: double;
@@ -947,36 +1041,39 @@ begin
     T := baTransaction_List.Transaction_At(i);
     T.txTemp_Base_Amount := 0;
     T.txTemp_Forex_Rate := 0;
-    if (T.txDate_Effective >= StartDate) and
-       (T.txDate_Effective <= EndDate) then
+
+    if (T.txDate_Effective >= StartDate) and (T.txDate_Effective <= EndDate) then
     begin
-      T.txTemp_Base_Amount := T.Local_Amount;
-      //Store base amounts in dissection
-      if StoreRates and (T.txFirst_Dissection <> nil) then begin
-        D := T.txFirst_Dissection;
-        while D <> nil do begin
-          D.dsTemp_Base_Amount := D.Local_Amount;
-          D := D.dsNext;
+      if (not SkipFinalizedOrTransferred) or not T.Locked then
+      begin
+        T.txTemp_Base_Amount := T.Local_Amount;
+        //Store base amounts in dissection
+        if StoreRates and (T.txFirst_Dissection <> nil) then begin
+          D := T.txFirst_Dissection;
+          while D <> nil do begin
+            D.dsTemp_Base_Amount := D.Local_Amount;
+            D := D.dsNext;
+          end;
         end;
-      end;
-      //Store base amounts in transaction
-      if IsAForexAccount then begin
-        Rate := T.Default_Forex_Rate;
-        T.txTemp_Forex_Rate := Rate;
-        if (Rate = 0) then begin
-          Result := False;
-          if not StoreRates then
-            Break; //No need to carry on if not storing rates
+        //Store base amounts in transaction
+        if IsAForexAccount then begin
+          Rate := T.Default_Forex_Rate;
+          T.txTemp_Forex_Rate := Rate;
+          if (Rate = 0) then begin
+            Result := False;
+            if not StoreRates then
+              Break; //No need to carry on if not storing rates
+          end;
+          //This needs to be done before reports are run incase the exchange rate
+          //has changed and the base GST amount has not been updated.
+          ApplyDefaultGST(T);
         end;
-        //This needs to be done before reports are run incase the exchange rate
-        //has changed and the base GST amount has not been updated.
-        ApplyDefaultGST(T);
       end;
     end;
   end;
 end;
 
-function TBank_Account.HasTransactionsWithin(StartDate, EndDate: Integer): Boolean;
+function TBank_Account.HasTransactionsWithin(StartDate, EndDate: Integer; SkipFinalizedOrTransferred: Boolean): Boolean;
 Var
   i: Integer;
   T: pTransaction_Rec;
@@ -984,11 +1081,15 @@ begin
   for i := 0 to Pred( baTransaction_List.ItemCount ) do
   begin
     T := baTransaction_List.Transaction_At(i);
-    if (T.txDate_Effective >= StartDate) and
-       (T.txDate_Effective <= EndDate) then
+
+    if (T.txDate_Effective >= StartDate) and (T.txDate_Effective <= EndDate) then
     begin
-      Result := True;
-      Exit;
+      if (not SkipFinalizedOrTransferred) or not T.Locked then
+      begin
+        Result := True;
+
+        Exit;
+      end;
     end;
   end;
   Result := False;

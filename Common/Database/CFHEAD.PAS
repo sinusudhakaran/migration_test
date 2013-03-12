@@ -32,9 +32,10 @@ CONST
    hdLess_Equity                 = 25;
    hdTotal_Equity                = 26;
    hdCash_Flow                  = 27;
+   hdExchangeGainLoss           = 28;
 
-   hdBlank                      = 28;
-   hdMax = 28;
+   hdBlank                      = 29;
+   hdMax = 29;
 
    { Maximum no is 40 in the client record }
 
@@ -67,6 +68,7 @@ CONST
          'Less: Equity',
          'Total Equity',
          'Cash Flow',
+         'Exchange Gain/Loss*',
          ''
    );
 

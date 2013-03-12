@@ -110,7 +110,8 @@ const
                      hdCashbook_Balances,
                      hdOpening_Balance,
                      hdPlus_Movement,
-                     hdClosing_Balance
+                     hdClosing_Balance,
+                     hdExchangeGainLoss
                     );
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

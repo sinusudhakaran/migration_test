@@ -150,7 +150,11 @@ const
   ThisMethodName = 'DoRewardSuperTransaction';
 begin
   if DEBUG_ME then LogUtil.LogMsg(lmDebug, UNIT_NAME, ThisMethodName + ' Begins');
+
+  Transaction.txForex_Conversion_Rate := Bank_Account.Default_Forex_Conversion_Rate(Transaction.txDate_Effective);
+
   Transaction.txDate_Transferred := CurrentDate;
+
   if SkipZeroAmountExport(Transaction) then
      Exit; // Im done...
 

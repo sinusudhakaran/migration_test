@@ -105,8 +105,12 @@ begin
    begin
     {if MyClient.clFields.clUpdate_Server <> '' then
       lblServer.Caption := 'Update server is ' + MyClient.clFields.clUpdate_Server
-    else }if MyClient.clFields.clCountry = whAustralia then
+    else }
+    if MyClient.clFields.clCountry = whAustralia then
       lblServer.Caption := Format('Update Server: %s', [upgConstants.DefaultAUCatalogServer])
+    else
+    if MyClient.clFields.clCountry = whUK then
+      lblServer.Caption := Format('Update Server: %s', [upgConstants.DefaultUKCatalogServer])
     else
       lblServer.Caption := Format('Update Server: %s', [upgConstants.DefaultNZCatalogServer]);
    end

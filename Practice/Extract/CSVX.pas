@@ -330,6 +330,8 @@ Begin
 
    With MyClient.clFields, Bank_Account.baFields, Transaction^ do
    Begin
+      txForex_Conversion_Rate := Bank_Account.Default_Forex_Conversion_Rate(txDate_Effective);
+      
       txDate_Transferred := CurrentDate;
       if SkipZeroAmountExport(Transaction) then
          Exit; // Im done...
@@ -469,6 +471,8 @@ end;
 
 procedure DoUpdateTransactionUK;
 begin
+  Transaction.txForex_Conversion_Rate := Bank_Account.Default_Forex_Conversion_Rate(Transaction.txDate_Effective);
+      
   Transaction^.txDate_Transferred := CurrentDate;
 end;
 

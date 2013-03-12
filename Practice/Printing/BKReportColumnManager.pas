@@ -1159,10 +1159,8 @@ begin
       tktxDate_Effective        : FBkReport.PutString(bkDate2Str(Transaction_Rec.txDate_Effective));
       tktxAmount                :
         begin
-          if FTravManager.Bank_Account.IsAForexAccount then
-             Amt := Dissection_Rec.dsForeign_Currency_Amount
-          else
-             Amt := Dissection_Rec.dsAmount;
+          // Always the amount, not the base amount
+          Amt := Dissection_Rec.dsAmount;
 
           if FTravManager.SortType = csAccountCode then
             FBkReport.PutMoney(Amt)
@@ -1171,16 +1169,18 @@ begin
         end;
 
       tktxForex_Conversion_Rate :
+            // Always use the default forex rate (helper function), as the forex
+            // rate on the dissection is not used.
             if FTravManager.Bank_Account.IsAForexAccount
-            and (Dissection_Rec.dsForex_Conversion_Rate <> 0.0) then
-               FBkReport.PutString(ForexRate2Str(Dissection_Rec.dsForex_Conversion_Rate))
+            and (Dissection_Rec.Default_Forex_Rate <> 0.0) then
+               FBkReport.PutString(ForexRate2Str(Dissection_Rec.Default_Forex_Rate))
             else
                FBkReport.SkipColumn;
 
       tktxForeign_Currency_Amount : begin
-          // Is actually local amount..
           if FTravManager.Bank_Account.IsAForexAccount then
-             Amt := Dissection_Rec.dsAmount
+             // Always the base amount, not the amount
+             Amt := Dissection_Rec.dsTemp_Base_Amount
           else begin
              FBkReport.SkipColumn;
              Exit;

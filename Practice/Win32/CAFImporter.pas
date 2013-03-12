@@ -176,8 +176,12 @@ begin
       DoImportAsPDF(Source, Document, OutputFile);
 
       OutputFile := AppendFileNameToPath(OutputFolder, OutputFile);
-      
-      Document.SaveToFile(OutputFile);
+
+      Document.SetInformation(1, ''); //Author
+      Document.SetInformation(5, ''); //Creator
+      Document.SetInformation(6, ''); //Producer
+
+      Document.SaveToFileFlattened(OutputFile);
 
       Inc(FCAFCount);
     finally

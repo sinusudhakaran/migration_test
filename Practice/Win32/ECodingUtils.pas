@@ -73,7 +73,6 @@ begin
           txGST_Amount  := 0;
           txCoded_By    := CodedBy;
           txGST_Has_Been_Edited := true;
-          pT^.txTransfered_To_Online := False;
        end;
     end
     else begin

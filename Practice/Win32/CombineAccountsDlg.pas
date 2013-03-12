@@ -152,7 +152,7 @@ var
   pF: pClient_File_Rec;
   MemFrom, MemTo : TMemorisation;
   MemLineFrom, MemLineTo : pMemorisation_Line_Rec;
-  DeletedTrans: pDeleted_Transaction_Rec;
+  Dissection: pDissection_Rec;
 begin
   if not Assigned( MyClient) then exit;
   //Check if they have outstanding BNotes or Acclipse files, and warn them against continuing. Case 8625
@@ -178,18 +178,24 @@ begin
             with FromBa.baTransaction_List do
               repeat
                 pT := Transaction_At(i);
-                           
                 // Delete from old account
                 FromBa.baTransaction_List.Delete(pT);
-
                 // Change sequence no to match new bank account - important for sorting!
                 pT^.txBank_Seq := ToBa.baFields.baNumber;
                 // Delete the ecoding id as this is related to a bank account not to a transaction
                 pT^.txECoding_Transaction_UID := 0;
-
                 //insert into bank account
                 ToBa.baTransaction_List.Insert_Transaction_Rec( pT);
 
+                Dissection := pT^.txFirst_Dissection;
+
+                while Dissection <> nil do
+                begin
+                  Dissection.dsBank_Account := pT^.txBank_Account;
+                  Dissection.dsClient := pT^.txClient;
+                  Dissection := Dissection.dsNext;
+                end;
+                
                 Inc(TransferCount);
               until (ItemCount = 0);
           end;

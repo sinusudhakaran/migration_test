@@ -143,6 +143,8 @@ end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure FlagTransactionAsTransferred;
 begin
+  Transaction.txForex_Conversion_Rate := Bank_Account.Default_Forex_Conversion_Rate(Transaction.txDate_Effective);
+
   Transaction^.txDate_Transferred := CurrentDate;
 end;
 

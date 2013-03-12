@@ -512,14 +512,14 @@ object wizExchangeGainLoss: TwizExchangeGainLoss
         DesignSize = (
           736
           359)
-        object Label4: TLabel
+        object lblPostCalculated: TLabel
           Left = 8
           Top = 85
-          Width = 476
+          Width = 410
           Height = 13
           Caption = 
-            'BankLink Practice will post the calculated Gain or Loss on Excha' +
-            'nge in local currency as listed below:'
+            '%s will post the calculated Gain or Loss on Exchange in local cu' +
+            'rrency as listed below:'
         end
         object Label5: TLabel
           Left = 8
@@ -533,11 +533,11 @@ object wizExchangeGainLoss: TwizExchangeGainLoss
         object lblAdjDate: TLabel
           Left = 8
           Top = 1
-          Width = 597
+          Width = 531
           Height = 13
           Caption = 
-            'BankLink Practice has calculated the Gain or Loss on Exchange fo' +
-            'r each foreign currency bank account attached to this client'
+            '%s has calculated the Gain or Loss on Exchange for each foreign ' +
+            'currency bank account attached to this client'
           FocusControl = btnBack
         end
         object lblAmountRemText: TLabel

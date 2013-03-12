@@ -54,10 +54,13 @@ begin
         else if NodeData is TCHBASPeriodItem then
           s := TCHBASPeriodItem(NodeData).GetTagText(CHPT_Text)
         else if NodeData is TCHGSTPeriodItem then
-          s := TCHGSTPeriodItem(NodeData).GetTagText(CHPT_Text);
+          s := TCHGSTPeriodItem(NodeData).GetTagText(CHPT_Text)
+        else if NodeData is TCHForeignItem then
+          s := TCHForeignItem(NodeData).GetTagText(CHPT_Text);
+             
         MaxN := Max(MaxN, RenderEngine.GetTextLength(s));
       end;
-      NameW := MaxN + 10;
+      NameW := MaxN + 20;
     end;
   end;
 end;
@@ -111,6 +114,12 @@ begin
               PutString(TCHGSTPeriodItem(NodeData).GetTagText(CHPT_Text));
               PutString(TCHGSTPeriodItem(NodeData).GetTagText(CHPT_Report_Processing));
               SkipColumn;
+              SkipColumn;
+           end else if NodeData is TCHForeignItem then begin
+              // Foreign Exchange
+              PutString(TCHForeignItem(NodeData).GetTagText(CHPT_Text));
+              PutString(TCHForeignItem(NodeData).GetTagText(CHPT_Report_Processing));
+              PutString(TCHForeignItem(NodeData).GetTagText(CHPT_Period));
               SkipColumn;
            end else if NodeData is TCHYearItem then
               // not currently showing (Used for the header)

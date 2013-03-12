@@ -679,6 +679,14 @@ namespace BankLink.Practice.BooksIO
 
 
 
+		/// <summary>
+		/// IsOnlineTransaction property
+		/// </summary>
+		[XmlAttribute("IsOnlineTransaction", DataType = "boolean")]
+		public bool IsOnlineTransaction { get; set; }
+
+
+
 	}
 
 

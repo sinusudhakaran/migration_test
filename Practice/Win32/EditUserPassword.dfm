@@ -94,7 +94,7 @@ object EditUserPassword: TEditUserPassword
     Top = 153
     Width = 75
     Height = 25
-    Caption = 'OK'
+    Caption = 'Ok'
     Default = True
     TabOrder = 3
     OnClick = btnOkClick
