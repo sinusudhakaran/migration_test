@@ -1541,33 +1541,6 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TPdfFieldEdit.FlattenField(aQuickPDF : TQuickPDF; aFieldIndex : integer);
-begin
-  if Assigned(aQuickPDF) then
-  begin
-    aQuickPDF.DeleteFormField(aFieldIndex);
-    {if (aQuickPDF.GetFormFieldPage(aFieldIndex) = 1) and
-       ((aQuickPDF.GetFormFieldType(aFieldIndex) = FRM_FIELD_TYPE_UNKNOWN) or
-        (aQuickPDF.GetFormFieldType(aFieldIndex) = FRM_FIELD_TYPE_SIGNATURE) or
-        (aQuickPDF.GetFormFieldType(aFieldIndex) = FRM_FIELD_TYPE_PARENT)) then
-    begin
-      aQuickPDF.SetLineColor(1,1,1);
-      aQuickPDF.SetLineWidth(1);
-      aQuickPDF.DrawBox(aQuickPDF.GetFormFieldBound(aFieldIndex, FRM_FIELD_BOUND_LEFT),
-                        aQuickPDF.GetFormFieldBound(aFieldIndex, FRM_FIELD_BOUND_TOP),
-                        aQuickPDF.GetFormFieldBound(aFieldIndex, FRM_FIELD_BOUND_WIDTH),
-                        aQuickPDF.GetFormFieldBound(aFieldIndex, FRM_FIELD_BOUND_HEIGHT), 0);
-      aQuickPDF.DeleteFormField(aFieldIndex);
-    end
-    else
-    begin
-      aQuickPDF.FlattenFormField(aFieldIndex);
-    end; }
-  end;
-end;
-
-
-//------------------------------------------------------------------------------
 procedure TPdfFieldEdit.SetPage(Value: integer);
 begin
   if (Value <> fPage) then
