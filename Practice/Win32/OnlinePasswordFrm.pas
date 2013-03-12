@@ -1,42 +1,73 @@
 unit OnlinePasswordFrm;
 
+//------------------------------------------------------------------------------
 interface
 
 uses
-  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, OSFont, StdCtrls;
+  Windows,
+  Messages,
+  SysUtils,
+  Variants,
+  Classes,
+  Graphics,
+  Controls,
+  Forms,
+  Dialogs,
+  OSFont,
+  StdCtrls;
 
 type
+  //----------------------------------------------------------------------------
   TfrmOnlinePassword = class(TForm)
-    Button1: TButton;
-    Button2: TButton;
+    btnOk: TButton;
+    btnCancel: TButton;
     edtPassword: TEdit;
     Label1: TLabel;
-    Label2: TLabel;
+    lblOnlineCaption01: TLabel;
+    lblOnlineCaption02: TLabel;
+    btnResetPassword: TButton;
+    procedure btnResetPasswordClick(Sender: TObject);
   private
+    fEmail : String;
+    fPasswordReset : boolean;
     function GetPassword: String;
-    { Private declarations }
   public
-    class function PromptUser(out Password: String): Boolean;
+    class function PromptUser(out Password: String; aUserEmail : string; out aPasswordReset : Boolean): Boolean;
 
+    procedure SetEmail(aEmail : string);
     property Password: String read GetPassword;
+    property PasswordReset : Boolean read fPasswordReset write fPasswordReset;
   end;
 
 var
   frmOnlinePassword: TfrmOnlinePassword;
 
+//------------------------------------------------------------------------------
 implementation
-
 {$R *.dfm}
 
-{ TfrmBankLinkOnlinePassword }
+uses
+  BankLinkOnlineServices;
 
+{ TfrmBankLinkOnlinePassword }
+//------------------------------------------------------------------------------
+procedure TfrmOnlinePassword.btnResetPasswordClick(Sender: TObject);
+begin
+  if ProductConfigService.ResetPracticeUserPasswordUnSecure(fEmail) then
+  begin
+    PasswordReset := true;
+    btnResetPassword.ModalResult := mrok;
+  end;
+end;
+
+//------------------------------------------------------------------------------
 function TfrmOnlinePassword.GetPassword: String;
 begin
   Result := edtPassword.Text;
 end;
 
-class function TfrmOnlinePassword.PromptUser(out Password: String): Boolean;
+//------------------------------------------------------------------------------
+class function TfrmOnlinePassword.PromptUser(out Password: String; aUserEmail : string; out aPasswordReset : Boolean): Boolean;
 var
   PasswordPrompt: TfrmOnlinePassword;
 begin
@@ -48,8 +79,12 @@ begin
     PasswordPrompt.PopupMode := pmExplicit;
   end;
 
+  PasswordPrompt.SetEmail(aUserEmail);
+  PasswordPrompt.PasswordReset := false;
+
   if PasswordPrompt.ShowModal = mrOk then
   begin
+    aPasswordReset := PasswordPrompt.PasswordReset;
     Password := PasswordPrompt.Password;
     Result := True;
   end
@@ -57,6 +92,13 @@ begin
   begin
     Result := False;
   end;
+end;
+
+//------------------------------------------------------------------------------
+procedure TfrmOnlinePassword.SetEmail(aEmail: string);
+begin
+  lblOnlineCaption02.Caption := Format(lblOnlineCaption02.Caption, [aEmail]);
+  fEmail := aEmail;
 end;
 
 end.

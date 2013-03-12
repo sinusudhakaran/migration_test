@@ -1023,6 +1023,9 @@ begin
              fdSched_Rep_Books_Custom_Doc   := Byte(MyDlg.ckCDBooks.Checked);
              fdSched_Rep_Books_Custom_Doc_GUID := GetCDGuid(MyDlg.cbCDBooks);
 
+             fdSched_Rep_Online_Custom_Doc   := Byte(MyDlg.ckCDOnline.Checked);
+             fdSched_Rep_Online_Custom_Doc_GUID := GetCDGuid(MyDlg.cbCDOnline);
+
              fdSched_Rep_Notes_Custom_Doc   := Byte(MyDlg.ckCDNotes.Checked);
              fdSched_Rep_Notes_Custom_Doc_GUID := GetCDGuid(MyDlg.cbCDNotes);
 
@@ -1615,43 +1618,46 @@ begin
   cbCDBooks.Clear;
   cbCDNotes.Clear;
   cbCDWebNotes.Clear;
-  for i := 0 to Pred(CustomDocManager.ReportList.Count) do begin
-     CustomDoc := TReportBase(CustomDocManager.ReportList.Items[i]);
-     cbCDPrint.Items.AddObject(CustomDoc.Name, CustomDoc);
-     cbCDFax.Items.AddObject(CustomDoc.Name, CustomDoc);
-     cbCDEmail.Items.AddObject(CustomDoc.Name, CustomDoc);
-     cbCDBooks.Items.AddObject(CustomDoc.Name, CustomDoc);
-     cbCDNotes.Items.AddObject(CustomDoc.Name, CustomDoc);
-     cbCDWebNotes.Items.AddObject(CustomDoc.Name, CustomDoc);
+  cbCDOnline.Clear;
+  for i := 0 to Pred(CustomDocManager.ReportList.Count) do
+  begin
+    CustomDoc := TReportBase(CustomDocManager.ReportList.Items[i]);
+    cbCDPrint.Items.AddObject(CustomDoc.Name, CustomDoc);
+    cbCDFax.Items.AddObject(CustomDoc.Name, CustomDoc);
+    cbCDEmail.Items.AddObject(CustomDoc.Name, CustomDoc);
+    cbCDBooks.Items.AddObject(CustomDoc.Name, CustomDoc);
+    cbCDNotes.Items.AddObject(CustomDoc.Name, CustomDoc);
+    cbCDWebNotes.Items.AddObject(CustomDoc.Name, CustomDoc);
+    cbCDOnline.Items.AddObject(CustomDoc.Name, CustomDoc);
   end;
 end;
 
 procedure TdlgPrintScheduled.LoadLookupBitmaps;
 begin
-    if rbClient.Checked then
-    begin
-      btnFromLookup.Glyph := ImagesFrm.AppImages.imgLookupClient.Picture.Bitmap;
-      btnToLookup.Glyph := ImagesFrm.AppImages.imgLookupClient.Picture.Bitmap;
-      btnSelect.Glyph := ImagesFrm.AppImages.imgLookupClient.Picture.Bitmap;
-    end
-    else if rbStaffMember.Checked then
-    begin
-      btnFromLookup.Glyph := ImagesFrm.AppImages.imgLookupUser.Picture.Bitmap;
-      btnToLookup.Glyph := ImagesFrm.AppImages.imgLookupUser.Picture.Bitmap;
-      btnSelect.Glyph := ImagesFrm.AppImages.imgLookupUser.Picture.Bitmap;
-    end
-    else if rbGroup.Checked then
-    begin
-      btnFromLookup.Glyph := ImagesFrm.AppImages.imgLookupGroup.Picture.Bitmap;
-      btnToLookup.Glyph := ImagesFrm.AppImages.imgLookupGroup.Picture.Bitmap;
-      btnSelect.Glyph := ImagesFrm.AppImages.imgLookupGroup.Picture.Bitmap;
-    end
-    else if rbClientType.Checked then
-    begin
-      btnFromLookup.Glyph := ImagesFrm.AppImages.imgLookupClientType.Picture.Bitmap;
-      btnToLookup.Glyph := ImagesFrm.AppImages.imgLookupClientType.Picture.Bitmap;
-      btnSelect.Glyph := ImagesFrm.AppImages.imgLookupClientType.Picture.Bitmap;
-    end;
+  if rbClient.Checked then
+  begin
+    btnFromLookup.Glyph := ImagesFrm.AppImages.imgLookupClient.Picture.Bitmap;
+    btnToLookup.Glyph := ImagesFrm.AppImages.imgLookupClient.Picture.Bitmap;
+    btnSelect.Glyph := ImagesFrm.AppImages.imgLookupClient.Picture.Bitmap;
+  end
+  else if rbStaffMember.Checked then
+  begin
+    btnFromLookup.Glyph := ImagesFrm.AppImages.imgLookupUser.Picture.Bitmap;
+    btnToLookup.Glyph := ImagesFrm.AppImages.imgLookupUser.Picture.Bitmap;
+    btnSelect.Glyph := ImagesFrm.AppImages.imgLookupUser.Picture.Bitmap;
+  end
+  else if rbGroup.Checked then
+  begin
+    btnFromLookup.Glyph := ImagesFrm.AppImages.imgLookupGroup.Picture.Bitmap;
+    btnToLookup.Glyph := ImagesFrm.AppImages.imgLookupGroup.Picture.Bitmap;
+    btnSelect.Glyph := ImagesFrm.AppImages.imgLookupGroup.Picture.Bitmap;
+  end
+  else if rbClientType.Checked then
+  begin
+    btnFromLookup.Glyph := ImagesFrm.AppImages.imgLookupClientType.Picture.Bitmap;
+    btnToLookup.Glyph := ImagesFrm.AppImages.imgLookupClientType.Picture.Bitmap;
+    btnSelect.Glyph := ImagesFrm.AppImages.imgLookupClientType.Picture.Bitmap;
+  end;
 end;
 
 procedure TdlgPrintScheduled.DoClientLookup(edt: TEdit; Op: string; Multiple: Boolean);

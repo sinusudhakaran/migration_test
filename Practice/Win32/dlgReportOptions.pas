@@ -170,12 +170,14 @@ procedure TReportOptionDlg.btnOkClick(Sender: TObject);
 begin
    // Save...
    GetHeaderFooter(RptHeaderFooters[FReportType]);
-   if ObtainLock(ltPracHeaderFooterImg, TimeToWaitForPracLogo) then try
+   if FileLocking.ObtainLock(ltPracHeaderFooterImg, TimeToWaitForPracLogo) then
+   begin
+     try
+       SaveReportTypes;
 
-      SaveReportTypes;
-
-   finally
-      ReleaseLock(ltPracHeaderFooterImg);
+     finally
+       FileLocking.ReleaseLock(ltPracHeaderFooterImg);
+     end;
    end;
    ModalResult := mroK;
 end;
@@ -396,13 +398,15 @@ begin
       lh1.Font.name := Font.name;
       lh2.Font.name := Font.Name;
 
-      if ObtainLock(ltPracHeaderFooterImg, TimeToWaitForPracLogo) then try
-         GetStyles;
-
-         FillStyleList(cbStyles.Items);
-         cbStyles.Items.Add(' '+ NoStyle);
-      finally
-         ReleaseLock(ltPracHeaderFooterImg);
+      if FileLocking.ObtainLock(ltPracHeaderFooterImg, TimeToWaitForPracLogo) then
+      begin
+        try
+          GetStyles;
+          FillStyleList(cbStyles.Items);
+          cbStyles.Items.Add(' '+ NoStyle);
+        finally
+          FileLocking.ReleaseLock(ltPracHeaderFooterImg);
+        end;
       end;
       BKHelpSetUp(Self, BKH_Report_and_Graph_Options);
 

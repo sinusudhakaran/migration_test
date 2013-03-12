@@ -51,6 +51,7 @@ uses
   function ClientFileExists(ClientCode : string): boolean;
   procedure OpenAClientForRead(OpenCode :string; var Client : TClientObj);
   procedure UpdateCoreAccountIds(Client: TClientObj; AdminSystem: TSystemObj);
+  function GetCoreAccountId(const BankAccountNumber: String): Integer;
 //******************************************************************************
 implementation
 
@@ -168,25 +169,24 @@ begin
    end;
 end;
 
-procedure UpdateCoreAccountIds(Client: TClientObj; AdminSystem: TSystemObj);
+function FindSystemAccount(const BankAccountNumber: String): pSystem_Bank_Account_Rec;
+var
+  Index: Integer;
+begin
+  Result := nil;
 
-  function FindSystemAccount(const BankAccountNumber: String): pSystem_Bank_Account_Rec;
-  var
-    Index: Integer;
+  for Index := 0 to AdminSystem.fdSystem_Bank_Account_List.ItemCount -1  - 1 do
   begin
-    Result := nil;
-
-    for Index := 0 to AdminSystem.fdSystem_Bank_Account_List.ItemCount -1  - 1 do
+    if CompareText(AdminSystem.fdSystem_Bank_Account_List.System_Bank_Account_At(Index).sbAccount_Number, BankAccountNumber) = 0 then
     begin
-      if CompareText(AdminSystem.fdSystem_Bank_Account_List.System_Bank_Account_At(Index).sbAccount_Number, BankAccountNumber) = 0 then
-      begin
-        Result := AdminSystem.fdSystem_Bank_Account_List.System_Bank_Account_At(Index);
+      Result := AdminSystem.fdSystem_Bank_Account_List.System_Bank_Account_At(Index);
 
-        Break;
-      end;
+      Break;
     end;
   end;
+end;
   
+procedure UpdateCoreAccountIds(Client: TClientObj; AdminSystem: TSystemObj);
 var
   Index: Integer;
   SystemAccount: pSystem_Bank_Account_Rec;
@@ -199,6 +199,20 @@ begin
     begin
       Client.clBank_Account_List.Bank_Account_At(Index).baFields.baCore_Account_ID := SystemAccount.sbCore_Account_ID;
     end;
+  end;
+end;
+
+function GetCoreAccountId(const BankAccountNumber: String): Integer;
+var
+  SystemAccount: pSystem_Bank_Account_Rec;
+begin
+  Result := 0;
+  
+  SystemAccount := FindSystemAccount(BankAccountNumber);
+
+  if SystemAccount <> nil then
+  begin
+    Result := SystemAccount.sbCore_Account_ID;
   end;
 end;
 

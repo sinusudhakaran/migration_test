@@ -50,7 +50,8 @@ uses
   bkBranding,
   MadUtils,
   UsageUtils, BKHelp,
-  ThirdPartyHelper;
+  ThirdPartyHelper,
+  IPClientLocking;
 
 const
   UnitName = 'AppStartupShutDown';
@@ -70,15 +71,18 @@ const
   MaxPWLenght = 8;
   ThisMethodName = 'SetCommandLineParameters';
   ExcludeCOASwitch = '/EXCLUDECOA';
-  
 var
   i : integer;
   s : string;
   p : string;
+  CaseSensitiveStr: string;
 begin
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
   for i := 1 to ParamCount do begin
     s := Uppercase( ParamStr(i));
+
+    CaseSensitiveStr := ParamStr(i);
+    
     if Pos( UserSwitch, S) > 0 then begin
        //user specified
        p := Copy( S, Pos( UserSwitch, S) + Length(UserSwitch), MaxUserCodeLength);
@@ -89,11 +93,15 @@ begin
       p := Copy( S, Pos( ClientSwitch, S) + Length(ClientSwitch), MaxClientCodeLength);
       if p <> '' then
          Globals.StartupParam_ClientToOpen := p;
-    end else if Pos( pwSwitch, S) > 0 then begin
+    end else if Pos( pwSwitch, S) > 0 then
+    begin
       //Password specified
-      p := Copy( S, Pos( pwSwitch, S) + Length(pwSwitch), MaxPWLenght);
+      p := Copy( CaseSensitiveStr, Pos(pwSwitch, CaseSensitiveStr) + Length(pwSwitch), MaxPWLenght);
+
       if p <> '' then
-         Globals.StartupParam_UserPassword := p;
+      begin
+        Globals.StartupParam_UserPassword := p;
+      end;
     end
     else if Pos( ActionSwitch, S) > 0 then
     begin
@@ -132,9 +140,12 @@ procedure BeforeAppInitialize;
 const
   ThisMethodName = 'BeforeAppInitialize';
 
-  Var v1, v2, v3, v4: Word;
+  Var
+    v1, v2, v3, v4: Word;
+    Connected : boolean;
 
 begin
+  Connected := false;
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
   AdminSystem := nil;
 
@@ -146,32 +157,40 @@ begin
   ThirdPartyHelper.CheckForThirdPartyDLL;
 
   StartUpStep := 'Reading practice settings';
+
   //Read Practice INI settings
-  LockUtils.ObtainLock( ltPracIni, TimeToWaitForPracINI );
-  try
-    ReadPracticeINI;
-    //Check if version no has changed, if it has write a new line in the log file
-    if PRACINI_CurrentVersion <> WINUTILS.GetAppVersionStr then begin
-       PRACINI_CurrentVersion := WINUTILS.GetAppVersionStr;
-       LogUtil.LogMsg(lmDebug, UnitName, 'New Version Detected '+PRACINI_CurrentVersion, ERRORLOG.stat_ResetStatsFile);
-       //Update the practice ini file with new version str
-       GetBuildInfo(v1, v2, v3, v4);
-       if (v1 = 5)
-       and (v2 = 14)
-       and (v3 = 0) then begin // I have moved to 5.14.0...
-          if Pos('19.0715',PRACINI_FuelCreditRates) = 0 then
-             PRACINI_FuelCreditRates := PRACINI_FuelCreditRates + ',19.0715';
-       end;
-       if (v1 = 5)
-       and (v2 = 16)
-       {and (v3 < 2)} then begin // I have moved to 5.16.x...
-          if Pos('16.443',PRACINI_FuelCreditRates) = 0 then
-             PRACINI_FuelCreditRates := PRACINI_FuelCreditRates + ',16.443';
-       end;
-       WritePracticeINI;
+  ReadPracticeINI;
+
+  //Check if version no has changed, if it has write a new line in the log file
+  if PRACINI_CurrentVersion <> WINUTILS.GetAppVersionStr then
+  begin
+    PRACINI_CurrentVersion := WINUTILS.GetAppVersionStr;
+
+    LogUtil.LogMsg(lmDebug, UnitName, 'New Version Detected '+PRACINI_CurrentVersion, ERRORLOG.stat_ResetStatsFile);
+    //Update the practice ini file with new version str
+    GetBuildInfo(v1, v2, v3, v4);
+    if (v1 = 5) and
+       (v2 = 14) and
+       (v3 = 0) then
+    begin // I have moved to 5.14.0...
+      if Pos('19.0715',PRACINI_FuelCreditRates) = 0 then
+        PRACINI_FuelCreditRates := PRACINI_FuelCreditRates + ',19.0715';
     end;
-  finally
-    LockUtils.ReleaseLock( ltPracINI)
+
+    if (v1 = 5) and
+       (v2 = 16) then
+       {and (v3 < 2)}
+    begin  // I have moved to 5.16.x...
+      if Pos('16.443',PRACINI_FuelCreditRates) = 0 then
+        PRACINI_FuelCreditRates := PRACINI_FuelCreditRates + ',16.443';
+    end;
+
+    FileLocking.ObtainLock( ltPracIni, TimeToWaitForPracINI );
+    try
+      WritePracticeINI;
+    finally
+      FileLocking.ReleaseLock( ltPracINI);
+    end;
   end;
 
   // Why Wait...
@@ -326,8 +345,6 @@ begin
     StartUpStep := 'Checking for admin upgrade';
     Upgrade.UpgradeAdminToLatestVersion;
     Upgrade.UpgradeExchangeRatesToLatestVersion;
-//    ShowMessage('1');
-    Upgrade.UpgradeClientTypes;
   end;
 
   StartUpStep := 'Checking for custom bitmap';
@@ -347,7 +364,10 @@ begin
         end;
       end
     except
-      on e : Exception do ;
+      on e : Exception do
+      begin
+        OutputDebugString(PChar(E.Message));
+      end;
     end;
   end;
 
@@ -404,6 +424,8 @@ begin
     FreeLibrary(FaxHandle);
   if ThirdPartyDLLDetected then
     FreeThirdPartyObjects;
+  if Assigned(FileLocking) then
+    FreeandNil(FileLocking);
 end;
 
 initialization

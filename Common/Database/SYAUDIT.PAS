@@ -243,6 +243,8 @@ begin
     FAuditNamesArray[10,186] := 'Sched_Rep_Online_Custom_Doc_GUID';
     FAuditNamesArray[10,187] := 'Sched_Rep_Online_Custom_Doc';
     FAuditNamesArray[10,188] := 'Last_BankLink_Online_Update';
+    FAuditNamesArray[10,189] := 'Last_Agreed_To_BLOSA';
+    FAuditNamesArray[10,190] := 'Banklink_Online_Suspended';
 
    FAuditTableArray[40] := 'System_Disk_Log';
     FAuditNamesArray[40,42] := 'Disk_ID';

@@ -196,7 +196,8 @@ begin
                          snAttacheBP,
                          snQBWO,
                          snQBWN,
-                         snCashManager ] ) then
+                         snCashManager,
+                         snAcclipse ] ) then
             Result := True;
       end;
       whAustralia    : begin
@@ -237,7 +238,8 @@ begin
                          saIRESSXplan,
                          saSuperMate,
                          saProSuper,
-                         saClassSuperIP      ] ) then
+                         saClassSuperIP,
+                         saAcclipse      ] ) then
             Result := True;
       end;
       whUK    : begin

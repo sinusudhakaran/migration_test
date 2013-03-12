@@ -1,6 +1,7 @@
 program bk5testconsole;
 
 uses
+  LockUtils,
   TestFrameWork,
   TextTestRunner,
   utFileExtensionUtils in '..\Tests\utFileExtensionUtils.pas',
@@ -16,6 +17,7 @@ uses
 {$R *.res}
 
 begin
+  InitLocking;
   TextTestRunner.RunRegisteredTests(rxbHaltOnFailures);
 
 end.

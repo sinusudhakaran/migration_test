@@ -2081,7 +2081,7 @@ const
     ('<None>',
     'Other System',
     'APS Advance',
-    'MYOB Viztopia',
+    'MYOB AE Practice Manager',
     'MYOB Accountants Office',
     'HandiSoft Time and Billing');
 

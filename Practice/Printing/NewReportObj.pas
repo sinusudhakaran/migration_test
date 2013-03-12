@@ -289,8 +289,44 @@ type
     property BlindOn: Boolean read FBlindOn write SetBlindOn;
     procedure BKPrint; virtual;
     procedure AfterNewPage(SavedDetail : Boolean); virtual;
+
+    procedure SplitText(const Text: String; ColumnWidth: Integer; var WrappedText: TWrappedText);
   end;
 
+  TWriteColumnValue = procedure(Report: TBKReport; ColumnId: Integer; Value: Variant);
+
+  {Provides the ability to wrap column text}
+  TBKReportRecordLines = class
+  private
+    type
+      TColumnLineValue = array of Variant;
+      TColumnLines = array of TColumnLineValue;
+
+  private
+    FReport: TBKReport;
+    FColumnLines: TColumnLines;
+    FMaxLines: Integer;
+    FWriteColumnValue: TWriteColumnValue;
+
+    procedure PutLines;
+
+    procedure NewLines(NumLines: Integer);
+
+    procedure Clear;
+    procedure Reset;
+  public
+    constructor Create(Report: TBKReport; WriteColumnValue: TWriteColumnValue);
+    destructor Destroy; override;
+
+    procedure AddColumnText(ColumnId: Integer; const Text: String; Wrap: Boolean = False); overload;
+    procedure AddColumnText(ColumnId: Integer; const TextLines: array of String; Wrap: Boolean = False); overload;
+
+    procedure AddColumnValue(ColumnId: Integer; Value: Variant);
+    
+    procedure BeginUpdate;
+    procedure EndUpdate;
+  end;
+  
 Const
   SKIPFIELD = '<SKIP>';
   DATEFIELD = '<DATE>';
@@ -469,11 +505,15 @@ var
      and Params.BatchSetup then begin
 
         FileFormat := Params.GetBatchInteger('_FileType',rfExcel);
-        FileName := Params.RptBatch.RunFileLocation + FUserReportSettings.s7Report_Name+ rfFileExtn[ FileFormat];
+
+        if Params.RptBatch.RunFileLocation = '' then
+          FileName := UserDir + FUserReportSettings.s7Report_Name+ rfFileExtn[ FileFormat]
+        else
+          FileName := Params.RptBatch.RunFileLocation + FUserReportSettings.s7Report_Name+ rfFileExtn[ FileFormat];
      end else begin
         //Set default filename
         FileFormat := rfExcel;
-        FileName := FUserReportSettings.s7Report_Name+ rfFileExtn[ FileFormat];
+        FileName := UserDir + FUserReportSettings.s7Report_Name+ rfFileExtn[ FileFormat];
      end;
 
      Result := GenerateReportTo( Filename, FileFormat, FileFormats, Title, Desc, WebID, CatID, FIsAdmin);
@@ -610,25 +650,27 @@ begin
                  FileFormat := FFileDest;
                  if not FileIsSet then
                  begin
-                   FileName := DataDir + FUserReportSettings.s7Report_Name+ rfFileExtn[ FileFormat];
+                   Filename := UserDir + FUserReportSettings.s7Report_Name + rfFileExtn[ FileFormat];
                    // generate unique filename
                    i := 1;
                    while BKFileExists(FileName) do
                    begin
-                    FileName := DataDir + FUserReportSettings.s7Report_Name + IntToStr(i) + rfFileExtn[ FileFormat];
+                    FileName := UserDir + FUserReportSettings.s7Report_Name + IntToStr(i) + rfFileExtn[ FileFormat];
                     Inc(i);
                    end;
                  end
                  else
-                  FileName := ReportFile;
+                   FileName := ReportFile;
                end
                else
-                 FileName := FUserReportSettings.s7Report_Name+ rfFileExtn[ rfCSV];
+                 FileName := UserDir + FUserReportSettings.s7Report_Name + rfFileExtn[ rfCSV];
+
                DestinationPreChosen := FFileDest <> -1;
                //Ask for format and filename
-               if FileIsSet
-               or DestinationPreChosen
-               or GetFileType then begin
+               if FileIsSet or
+                 DestinationPreChosen or
+                 GetFileType then
+               begin
                   UpdateAppStatus( 'Generating Report',  Self.ReportTitle, 50);
                   if not Preview then
                   begin
@@ -873,7 +915,7 @@ end;
 procedure TBKReport.SetReportType(const Value: TReportType);
 begin
    FReportType := Value;
-   if ObtainLock(ltPracHeaderFooterImg, TimeToWaitForPracLogo) then try
+   if FileLocking.ObtainLock(ltPracHeaderFooterImg, TimeToWaitForPracLogo) then try
       ReadReportParams(FReportTypeParams, FReportType);
       AddReportTypeToList(FReportType, FReportTypeParams);
 
@@ -881,7 +923,7 @@ begin
          FReportStyle := TStyleItems.Create(FReportTypeParams.HF_Style);
 
    finally
-      ReleaseLock(ltPracHeaderFooterImg);
+     FileLocking.ReleaseLock(ltPracHeaderFooterImg);
    end;
 end;
 
@@ -1090,6 +1132,11 @@ procedure TBKReport.SkipColumn;
 begin
    FCurrDetail.Add('');
 end;
+procedure TBKReport.SplitText(const Text: String; ColumnWidth: Integer; var WrappedText: TWrappedText);
+begin
+  RenderEngine.SplitText(Text, ColumnWidth, WrappedText);
+end;
+
 //******************************************************************************
 procedure TBKReport.RenderDetailGrandTotal(const TotalName : string);
 begin
@@ -1190,7 +1237,7 @@ begin
        NewAmount := ReportCol.SectionTotal;
        if DefaultSign in [Credit, Debit] then begin
          NewAmount := Abs( ReportCol.SectionTotal );
-         If SignOf_Curr( ReportCol.SectionTotal) <> DefaultSign then
+         If SignOf( ReportCol.SectionTotal) <> DefaultSign then
             NewAmount := -NewAmount;
        end;
        ReportCol.SectionTotal := NewAmount;
@@ -1221,7 +1268,7 @@ begin
        NewAmount := ReportCol.SubTotal;
        if DefaultSign in [Credit, Debit] then begin
          NewAmount := Abs( ReportCol.SubTotal );
-         If SignOf_Curr( ReportCol.SubTotal) <> DefaultSign then
+         If SignOf( ReportCol.SubTotal) <> DefaultSign then
             NewAmount := -NewAmount;
        end;
        ReportCol.SubTotal := NewAmount;
@@ -1596,6 +1643,181 @@ begin
        TextList.Free;
     end;
   end;
+end;
+
+
+{ TBKReportRecordLines }
+
+procedure TBKReportRecordLines.AddColumnText(ColumnId: Integer; const Text: String; Wrap: Boolean = False);
+begin
+  AddColumnText(ColumnId, [Text], Wrap);
+end;
+
+procedure TBKReportRecordLines.AddColumnText(ColumnId: Integer; const TextLines: array of String; Wrap: Boolean = False);
+
+  function GetFirstUnassigned(ColumnId: Integer): Integer;
+  var
+    Index: Integer;
+  begin
+    Result := 0;
+    
+    for Index := 0 to Length(FColumnLines[ColumnId]) - 1 do
+    begin
+      if VarIsEmpty(FColumnLines[ColumnId][Index]) then
+      begin
+        Result := Index;
+
+        Break;
+      end;
+    end;
+  end;
+  
+var
+  Index: Integer;
+  IIndex: Integer;
+  WrappedText: TWrappedText;
+  StartLine: Integer;
+begin
+  if Wrap then
+  begin
+    StartLine := GetFirstUnassigned(ColumnId);
+      
+    for Index := 0 to Length(TextLines) - 1 do
+    begin
+      FReport.SplitText(TextLines[Index], FReport.Columns.Report_Column_At(ColumnId).Width, WrappedText); 
+            
+      if Length(FColumnLines[ColumnId]) - StartLine < Length(WrappedText) then
+      begin
+        NewLines(Length(WrappedText) - (Length(FColumnLines[ColumnId]) - StartLine));
+      end;
+  
+      for IIndex := 0 to Length(WrappedText) -1 do
+      begin
+        FColumnLines[ColumnId][StartLine + IIndex] := WrappedText[IIndex];
+      end;
+
+      Inc(StartLine, Length(WrappedText));
+
+      SetLength(WrappedText, 0);
+    end;
+  end
+  else
+  begin
+    for Index := 0 to Length(TextLines) - 1 do
+    begin
+      if Length(FColumnLines[ColumnId]) < Length(TextLines) then
+      begin
+        NewLines(Length(TextLines) - Length(FColumnLines[ColumnId]));
+      end;
+      
+      FColumnLines[ColumnId][Index] := TextLines[Index];
+    end;  
+  end;
+end;
+
+procedure TBKReportRecordLines.AddColumnValue(ColumnId: Integer; Value: Variant);
+begin
+  FColumnLines[ColumnId][0] := Value;
+end;
+
+procedure TBKReportRecordLines.BeginUpdate;
+begin
+  Reset;
+  
+  NewLines(1);
+end;
+
+procedure TBKReportRecordLines.Clear;
+var
+  Index: Integer;
+begin
+  for Index := 0 to Length(FColumnLines) - 1 do
+  begin
+    SetLength(FColumnLines[Index], 0);
+  end;
+
+  SetLength(FColumnLines, 0);
+
+  FMaxLines := 0;
+end;
+
+constructor TBKReportRecordLines.Create(Report: TBKReport; WriteColumnValue: TWriteColumnValue);
+begin
+  FReport := Report;
+  FMaxLines := 1;
+
+  FWriteColumnValue := WriteColumnValue;
+  
+  SetLength(FColumnLines, 0);
+end;
+
+destructor TBKReportRecordLines.Destroy;
+begin
+  SetLength(FColumnLines, 0);
+  
+  inherited;
+end;
+
+procedure TBKReportRecordLines.EndUpdate;
+begin
+  PutLines;
+end;
+
+procedure TBKReportRecordLines.NewLines(NumLines: Integer);
+var
+  Index: Integer;
+  IIndex: Integer;
+  StartLine: Integer;
+begin
+  for Index := 0 to FReport.Columns.ItemCount - 1 do
+  begin
+    StartLine := Length(FColumnLines[Index]);
+    
+    SetLength(FColumnLines[Index], Length(FColumnLines[Index]) + NumLines);
+
+    for IIndex := StartLine to Length(FColumnLines[Index]) -1 do
+    begin
+      FColumnLines[Index][IIndex] := Unassigned;
+    end;
+    
+    if Length(FColumnLines[Index]) > FMaxLines then
+    begin
+      FMaxLines := Length(FColumnLines[Index]);
+    end;
+  end;
+end;
+
+procedure TBKReportRecordLines.PutLines;
+var
+  ColumnLineIndex: Integer;
+  ColumnValueIndex: Integer;
+begin
+  if Assigned(FWriteColumnValue) then
+  begin
+    for ColumnValueIndex := 0 to FMaxLines - 1 do
+    begin
+      for ColumnLineIndex := 0 to Length(FColumnLines) - 1 do
+      begin
+        if not VarIsEmpty(FColumnLines[ColumnLineIndex][ColumnValueIndex]) then
+        begin
+          FWriteColumnValue(FReport, ColumnLineIndex, FColumnLines[ColumnLineIndex][ColumnValueIndex]);
+        end
+        else
+        begin
+          FReport.SkipColumn;
+        end;
+      end;
+
+      FReport.RenderDetailLine;
+    end;
+  end;
+end;
+
+procedure TBKReportRecordLines.Reset;
+begin
+  Clear;
+
+  SetLength(FColumnLines, FReport.Columns.ItemCount);
 end;
 
 end.

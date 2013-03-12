@@ -903,7 +903,7 @@ end;
 function TExchangeRateList.Lock: Boolean;
 begin
    Assert(not FLocked, 'Exchange Rates already locked');
-   FLocked := LockUtils.ObtainLock(ltExchangeRates,PRACINI_TicksToWaitForAdmin div 1000);
+   FLocked := FileLocking.ObtainLock(ltExchangeRates,PRACINI_TicksToWaitForAdmin div 1000);
    Result := FLocked;
 end;
 
@@ -1020,7 +1020,7 @@ end;
 function TExchangeRateList.Unlock: Boolean;
 begin
    Assert(FLocked, 'Exchange Rates not locked');
-   FLocked := not LockUtils.ReleaseLock(ltExchangeRates);
+   FLocked := not FileLocking.ReleaseLock(ltExchangeRates);
    Result := FLocked;
 end;
 

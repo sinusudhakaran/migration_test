@@ -153,6 +153,10 @@ function GetMonthName(aMonth : integer) : string;
 
 function FindFilesLike(aFilePath : string; aFileSearch : string) : Boolean;
 
+function ReplaceIllegalFileChars(aInstr : string; aReplaceChar : char) : string;
+
+
+
 //******************************************************************************
 Implementation
 
@@ -1256,6 +1260,33 @@ begin
       Result := True;
   finally
     SysUtils.FindClose(SearchRec);
+  end;
+end;
+
+function ReplaceIllegalFileChars(aInstr : string; aReplaceChar : char) : string;
+const
+  ILLEGAL_CHARS = '<>:"/\|?*';
+var
+  CharIndex, StrIndex : integer;
+  Found : boolean;
+begin
+  Result := '';
+  for StrIndex := 1 to length(aInstr) do
+  begin
+    Found := false;
+    for CharIndex := 1 to length(ILLEGAL_CHARS) do
+    begin
+      if aInstr[StrIndex] = ILLEGAL_CHARS[CharIndex] then
+      begin
+        Found := true;
+        break;
+      end;
+    end;
+
+    if Found then
+      Result := Result + aReplaceChar
+    else
+      Result := Result + aInstr[StrIndex];
   end;
 end;
 

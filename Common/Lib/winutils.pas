@@ -99,6 +99,11 @@ type
   //Singleton
   function VersionInfo: TVersionInfo;
 
+  function GetClientRequestOpsLockEnabled: Boolean;
+  function GetServerGrantOpsLockEnabled: Boolean;
+  function GetServerSMB2Enabled: Boolean;
+
+
 //******************************************************************************
 implementation
 uses
@@ -128,6 +133,88 @@ begin
     _VersionInfo := TVersionInfo.Create;
   Result := _VersionInfo;
 end;
+
+function GetClientRequestOpsLockEnabled: Boolean;
+const
+  CLIENT_OPSLOCK_KEY: String = 'System\CurrentControlSet\Services\MRXSmb\Parameters';
+    
+var
+  Registry: TRegistry;
+begin
+  Result := True;
+    
+  Registry := TRegistry.Create;
+
+  try
+    Registry.RootKey := HKEY_LOCAL_MACHINE;
+
+    if Registry.OpenKeyReadOnly(CLIENT_OPSLOCK_KEY) then
+    begin
+      try
+        Result := Registry.ReadInteger('OplocksDisabled') = 0;
+      except
+        //do nothing
+      end;
+    end;
+  finally
+    Registry.Free;
+  end;
+end;
+
+function GetServerGrantOpsLockEnabled: Boolean;
+const
+  SERVER_OPSLOCK_KEY: String = 'SYSTEM\CurrentControlSet\services\LanmanServer\Parameters';
+
+var
+  Registry: TRegistry;
+begin
+  Result := True;
+
+  Registry := TRegistry.Create;
+
+  try
+    Registry.RootKey := HKEY_LOCAL_MACHINE;
+
+    if Registry.OpenKeyReadOnly(SERVER_OPSLOCK_KEY) then
+    begin
+      try
+        Result := Registry.ReadInteger('EnableOplocks') = 1;
+      except
+        //do nothing
+      end;
+    end;
+  finally
+    Registry.Free;
+  end;
+end;
+
+function GetServerSMB2Enabled: Boolean;
+const
+  SERVER_OPSLOCK_KEY: String = 'SYSTEM\CurrentControlSet\services\LanmanServer\Parameters';
+
+var
+  Registry: TRegistry;
+begin
+  Result := True;
+
+  Registry := TRegistry.Create;
+
+  try
+    Registry.RootKey := HKEY_LOCAL_MACHINE;
+
+    if Registry.OpenKeyReadOnly(SERVER_OPSLOCK_KEY) then
+    begin
+      try
+        Result := Registry.ReadInteger('SMB2') = 1;
+      except
+        //do nothing
+      end;
+    end;
+  finally
+    Registry.Free;
+  end;
+end;
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function GetScreenColors( CanvasHandle : hDC): Int64;
 var

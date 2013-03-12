@@ -109,6 +109,7 @@ procedure RefreshChart;
          snAttacheBP      : AttacheNZ.RefreshChart;
          snSolution6CLSY2K: Solution6.RefreshChart;
          snConceptCash2000 : ConceptCashManager2000.RefreshChart;
+         snAcclipse,
          snBK5CSV         : CSVChart.RefreshChart( '*.CSV', '', iText );
          snQBWN,
          snQBWO           : QuickBooks.RefreshChart;
@@ -153,6 +154,7 @@ procedure RefreshChart;
          saBCSAccounting  : BCSAccounting.RefreshChart;
          saMYOBAccountantsOffice,
          saMYOB_AO_COM : MYOBAO.RefreshChart;
+         saAcclipse,
          saBK5CSV         : CSVChart.RefreshChart( '*.CSV', 'GENERIC.TPM', iText );
          saTaxAssistant   : CSVChart.RefreshChart( '*.CSV', 'TAXASST.TPM', iText );
          saElite          : CSVChart.RefreshChart( '*.CSV', 'ELITE.TPM', iText);

@@ -16,7 +16,7 @@ interface
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
   ExtCtrls, StdCtrls, sydefs, pwdSeed, Mask, jpeg,osFont;
-
+  
 type
   TfrmLogin = class(TForm)
     pnlBackground: TPanel;
@@ -92,12 +92,16 @@ uses
   GlobalCache,
   YesNoDlg,
   bkconst,
-  LicenseDlg, ClientManagerFrm,
+  LicenseDlg,
+  ClientManagerFrm,
   BanklinkOnlineServices,
-  EditUserPassword;
+  EditUserPassword,
+  LockUtils,
+  GenUtils;
 
 const
   UnitName = 'LOGIN32';
+  DIR_USERS = 'Users\';
 
 var
   DebugMe : boolean = false;
@@ -314,7 +318,7 @@ begin
     Exit;
   end;
   
-  if User.usAllow_Banklink_Online and Adminsystem.fdFields.fdUse_BankLink_Online then
+  if User.usAllow_Banklink_Online and ProductConfigService.ServiceActive then
   begin
     if LoginOnline(User^, uName, FPassword, Cancelled, OfflineAuthentication) then
     begin
@@ -420,7 +424,7 @@ begin
   Close;
 end;
 //------------------------------------------------------------------------------
-function AcceptLicense(User: pUser_Rec; O: TComponent): Boolean;
+function AcceptLicense(User: pUser_Rec; O: TCustomForm): Boolean;
 var
   f: TDlgLicense;
 begin
@@ -430,6 +434,10 @@ begin
   begin
     f := TDlgLicense.Create(O);
     try
+      //Prevent the license agreement window from appearing behind the login screen.
+      f.PopupParent := O;
+      f.PopupMode := pmExplicit;
+      
       if f.ShowModal <> mrYes then
       begin
         ErrorSound;
@@ -604,6 +612,7 @@ const
 var
   pUser : pUser_Rec;
   CurrentWorkstation : string[20];
+  UserDirNoSlash : string;
 begin
   result := false;
   CurrentWorkStation := WinUtils.ReadComputerName;
@@ -682,20 +691,31 @@ begin
 {$ENDIF}
 
      //tell admin that user is logged in
-     if Assigned( AdminSystem) then begin
-        if LoadAdminSystem(true, ThisMethodName ) then begin
-           pUser := AdminSystem.fdSystem_User_List.FindCode(Code);
-           if Assigned(pUser) then begin
-             pUser.usLogged_In := true;
-             pUser.usWorkstation_Logged_In_At := WinUtils.ReadComputerName;
-             pUser.usEULA_Version := WinUtils.GetAppVersionStr;
-             Inc(pUser.usLogin_Count);
-             SaveAdminSystem;
-           end
-           else
-             UnlockAdmin;
-        end;
+     if Assigned( AdminSystem) then
+     begin
+       if LoadAdminSystem(true, ThisMethodName ) then
+       begin
+         pUser := AdminSystem.fdSystem_User_List.FindCode(Code);
+         if Assigned(pUser) then
+         begin
+           pUser.usLogged_In := true;
+           pUser.usWorkstation_Logged_In_At := WinUtils.ReadComputerName;
+           pUser.usEULA_Version := WinUtils.GetAppVersionStr;
+           Inc(pUser.usLogin_Count);
+           SaveAdminSystem;
+         end
+         else
+           UnlockAdmin;
+       end;
      end;
+
+     UserDirNoSlash := DATADIR + DIR_USERS + ReplaceIllegalFileChars(Code, '_');
+     UserDir := UserDirNoSlash + '\';
+     if not DirectoryExists(UserDirNoSlash) then
+       ForceDirectories(UserDirNoSlash);
+
+     if FileLocking.NetLockingOn then
+       TNetworkFileLocking(FileLocking).ClientIPLoginUser(Code, CurrentWorkStation);
 
      //everything completed ok
      result := true;

@@ -42,11 +42,11 @@ begin
     exit;
 
   try
-    LockUtils.ObtainLock( ltPracLogo, TimeToWaitForPracLogo );
+    FileLocking.ObtainLock( ltPracLogo, TimeToWaitForPracLogo );
     try
       result := EncodeImageToString( filename);
     finally
-      LockUtils.ReleaseLock( ltPracLogo)
+      FileLocking.ReleaseLock( ltPracLogo)
     end;
   except
     on E : Exception do

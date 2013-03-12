@@ -18,6 +18,7 @@ unit Admin32;
 }
 //------------------------------------------------------------------------------
 interface
+
 uses
   SYSOBJ32,
   SYDEFS,
@@ -25,35 +26,33 @@ uses
   Blowunit,
   Cryptutils;
 
-CONST
-   LockAdminSystem     : Boolean = True;
-   DontLockAdminSystem : Boolean = False;
+const
+  LockAdminSystem     : Boolean = True;
+  DontLockAdminSystem : Boolean = False;
+  ExceptionUnlock     : Boolean = False;
 
-function  AdminExists : Boolean;
+function AdminExists : Boolean;
 
-//function  AdminHasChanged : Boolean;
-//function  AdminSystemOK : boolean;  {must exist AND be assigned}
-
-//there are now two calls to load admin system, one handles all of the existing
-//call in the system so that we do not have to edit everywhre.  This is not
-//ideal but a the time this change was made I (MH) was nervous about making
-//large scale changes this close to a release  ( Apr 2003)
-function  LoadAdminSystem( HoldLock : Boolean; RequestedBy : string; IsEncrypted: Boolean = True) : boolean;
-function  LockAndLoadAdminSystem( HoldLock : boolean;
+// there are now two calls to load admin system, one handles all of the existing
+// call in the system so that we do not have to edit everywhre.  This is not
+// ideal but a the time this change was made I (MH) was nervous about making
+// large scale changes this close to a release  ( Apr 2003)
+function LoadAdminSystem( HoldLock : Boolean; RequestedBy : string; IsEncrypted: Boolean = True) : boolean;
+function LockAndLoadAdminSystem( HoldLock : boolean;
                            RequestedBy : string;
                            UpdateSnapshot : boolean;
                            var aSnapshot : TSystemObj;
                            IsEncrypted: Boolean = True) : boolean;
 
-function  RefreshAdmin : boolean;  {dont hold lock}
+function RefreshAdmin : boolean;  // dont hold lock
 
-procedure SaveAdminSystem(IsEncrypted: Boolean = True);  {save and release lock}
-function  LockAdmin( RequestedBy : string ) : Boolean;
+procedure SaveAdminSystem(IsEncrypted: Boolean = True);  // save and release lock
+function LockAdmin( RequestedBy : string ) : Boolean;
 procedure UnlockAdmin;
 
 procedure ReloadAdminAndTakeSnapshot( var aSnapshot : TSystemObj);
 {$IFDEF LOOKUPDLL}
-function SetBKAdminLocation( AdminDir : PChar) : LongBool; stdcall;
+function SetBKAdminLocation( aAdminDir : PChar) : LongBool; stdcall;
 {$ENDIF}
 
 procedure IntegrityCheck;
@@ -63,33 +62,40 @@ function ValidateUserPassword(User: TUser_Rec; const Password: String): Boolean;
 function UpdateUserDataBlock(User: pUser_Rec; const Key: String): Boolean;
 function DecryptUserDataBlock(User: TUser_Rec; const Key: String): String;
 
-//******************************************************************************
+var
+  AdminIsLocked : Boolean = False;
+
+//------------------------------------------------------------------------------
 implementation
+
 uses
-   sysutils,
-   progress,
-   windows,
-   forms,
-   LogUtil,
+  sysutils,
+  progress,
+  windows,
+  forms,
+  LogUtil,
 {$IFDEF LOOKUPDLL}
-   dialogs,
+  dialogs,
 {$ENDIF}
-   bkdbexcept,
-   bk5except,
+  bkdbexcept,
+  bk5except,
 {$IF not (Defined(TESTLOCKING) or Defined(LOOKUPDLL))}
-   bugfixes,
+  bugfixes,
 {$IFEND}
-   WinUtils,
-   syfdio,
-   usrList32,
-   cflist32,
-   sysDList32,
-   sbaList32,
-   globals,
-   GlobalCache,
-   bkConst,
-   StBits,
-   LockUtils, TimeUtils, bkdateutils;
+  WinUtils,
+  syfdio,
+  usrList32,
+  cflist32,
+  sysDList32,
+  sbaList32,
+  globals,
+  GlobalCache,
+  bkConst,
+  StBits,
+  LockUtils,
+  TimeUtils,
+  bkdateutils,
+  StackTracing;
 
 const
   UnitName = 'ADMIN32';
@@ -97,24 +103,23 @@ const
 var
   DebugMe       : boolean = false;
   AdminDate     : Int64 = 0;
-  AdminIsLocked : Boolean = False;
 
+//------------------------------------------------------------------------------
 function DecryptUserDataBlock(User: TUser_Rec; const Key: String): String;
 var
   AuthenticationString: AnsiString;
   Index: Integer;
   KeyHash: String;
-begin  
+begin
   for Index := 1 to Length(User.usUser_Data_Block) do
-  begin
     AuthenticationString := AuthenticationString + AnsiChar(User.usUser_Data_Block[Index]);
-  end;
 
   KeyHash := HashStr(Key + User.usSalt, False);
-  
+
   Result := DecryptStr128(KeyHash, AuthenticationString);
 end;
 
+//------------------------------------------------------------------------------
 function UpdateUserDataBlock(User: pUser_Rec; const Key: String): Boolean;
 var
   AuthenticationString: AnsiString;
@@ -127,117 +132,144 @@ begin
   Salt := RandomString(64);
 
   KeyHash := HashStr(Key + Salt, False);
-  
+
   AuthenticationString := EncryptStr128(KeyHash, User.usCode);
 
   if AuthenticationString <> '' then
   begin
     for Index := 1 to Length(AuthenticationString) do
-    begin
       User.usUser_Data_Block[Index] := Ord(AuthenticationString[Index]);
-    end;
 
     User.usSalt := Salt;
     User.usUsing_Secure_Authentication := True;
-    
+
     Result := True;
   end
   else
   begin
     FillChar(User.usUser_Data_Block, Length(User.usUser_Data_Block), 0);
-    
+
     User.usUsing_Secure_Authentication := False;
   end;
 end;
 
+//------------------------------------------------------------------------------
 function ValidateUserPassword(User: TUser_Rec; const Password: String): Boolean;
 begin
   if User.usUsing_Secure_Authentication then
-  begin
-    Result := DecryptUserDataBlock(User, Password) = User.usCode;
-  end
+    Result := DecryptUserDataBlock(User, Password) = User.usCode
+  else if User.usUsing_Mixed_Case_Password then
+    Result := CompareStr(Password, User.usPassword) = 0
   else
-  if User.usUsing_Mixed_Case_Password then
-  begin
-    Result := CompareStr(Password, User.usPassword) = 0;
-  end
-  else
-  begin
     Result := Uppercase(Password) = Uppercase(User.usPassword);
+end;
+
+//------------------------------------------------------------------------------
+// called internally only!
+function LockAdmin( RequestedBy : string ) : Boolean;
+const
+  ThisMethodName = 'LockAdmin';
+var
+  LockMsgFile     : TextFile;
+  LockMsgFileName : String;
+  strAdminLocked  : string;
+begin
+  try
+    ExceptionUnlock := False;
+
+    if AdminIsLocked then
+      LogUtil.LogMsg(lmError, UnitName, ThisMethodName + 'The Admin System was already locked by me!' );
+
+    //PracINI_TicksToWait is badly names.  It actually represented milliseconds not ticks!
+    AdminIsLocked := FileLocking.ObtainLock( ltAdminSystem, PRACINI_TicksToWaitForAdmin div 1000 );
+
+    If AdminIsLocked then
+    begin
+      if not FileLocking.NetLockingOn then
+      begin
+        //Check for existence of system.$$$ file.  If it still exists this will
+        //indicate a crash occured.  File region locking only works while application
+        //is active.  Once terminated the lock disappears.
+        if BKFileExists( DATADIR + SYSLOCKNAME) then
+           Raise EAdminSystem.Create( 'Admin Lock File already exists');
+
+        // Write the user information into the SYSTEM.$$$ file.
+        LockMsgFileName := DATADIR + SYSLOCKNAME;
+        Assign( LockMsgFile, LockMsgFileName );
+        Rewrite( LockMsgFile );
+        Writeln( LockMsgFile, Format( 'Admin Locked by [%s] - Requested by %s', [ GlobalCache.cache_Current_Username , RequestedBy ] ) );
+        CloseFile( LockMsgFile );
+      end;
+
+      Result := True;
+    end
+    else
+      Raise EAdminSystem.Create( 'Unable to lock the Admin System' );
+  except
+    on E : Exception do
+    begin
+      LogUtil.LogMsg(lmError, UnitName, ThisMethodName + ' Error ' + E.Message);
+      if DebugMe then
+        GetAndLogStackTrace(UnitName, ThisMethodName);
+
+      raise;
+    end;
   end;
 end;
 
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function  LockAdmin( RequestedBy : string ) : Boolean;
-{called internally only!}
+//------------------------------------------------------------------------------
+procedure UnlockAdmin;
 const
-   ThisMethodName = 'LockAdmin';
-Var
-   LockMsgFile     : TextFile;
-   LockMsgFileName : String;
-Begin
-   Assert( not AdminIsLocked, 'The Admin System was already locked by me!' );
+  ThisMethodName = 'UnlockAdmin';
+var
+  LockMsgFileName  : String;
+  Msg              : String;
+  OK               : Boolean;
+  strAdminUnLocked : string;
+begin
+  try
+    if not ExceptionUnlock then
+    begin
+      if not AdminIsLocked then
+        LogUtil.LogMsg(lmError, UnitName, ThisMethodName + Format( 'Admin Unlock when not Locked by [%s]', [ GlobalCache.cache_Current_Username ] ) );
 
-   //PracINI_TicksToWait is badly names.  It actually represented milliseconds not ticks!
-   AdminIsLocked := ObtainLock( ltAdminSystem, PRACINI_TicksToWaitForAdmin div 1000 );
-
-   If AdminIsLocked then Begin
-      //Check for existence of system.$$$ file.  If it still exists this will
-      //indicate a crash occured.  File region locking only works while application
-      //is active.  Once terminated the lock disappears.
-      if BKFileExists( DATADIR + SYSLOCKNAME) then begin
-         Raise EAdminSystem.Create( 'Admin Lock File already exists');
+      if not FileLocking.NetLockingOn then
+      begin
+        // Delete the message file SYSTEM.$$$
+        LockMsgFileName := DATADIR + SYSLOCKNAME;
+        SysUtils.DeleteFile( LockMsgFileName );
       end;
 
-      // Write the user information into the SYSTEM.$$$ file.
-      LockMsgFileName := DATADIR + SYSLOCKNAME;
-      Assign( LockMsgFile, LockMsgFileName );
-      Rewrite( LockMsgFile );
-      Writeln( LockMsgFile, Format( 'Admin Locked by [%s] - Requested by %s', [ GlobalCache.cache_Current_Username , RequestedBy ] ) );
-      CloseFile( LockMsgFile );
-      Result := True;
-   end
-   else
-      Raise EAdminSystem.Create( 'Unable to lock the Admin System' );
+      OK := FileLocking.ReleaseLock( ltAdminSystem );
+      AdminIsLocked := Not OK;
+
+      If AdminIsLocked then
+      begin
+        Msg := Format( 'Unable to unlock the Admin System by [%s]', [ GlobalCache.cache_Current_Username ] );
+        Raise EAdminSystem.CreateFmt( '%s - %s : %s', [ UnitName, ThisMethodName, Msg ] );
+      end;
+    end
+    else
+    begin
+      ExceptionUnlock := False;
+    end;
+
+  except
+    on E : Exception do
+    begin
+      LogUtil.LogMsg(lmError, UnitName, ThisMethodName + ' Error ' + E.Message);
+      if DebugMe then
+        GetAndLogStackTrace(UnitName, ThisMethodName);
+
+      raise;
+    end;
+  end;
 end;
 
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-procedure UnlockAdmin;
-
-Const
-   ThisMethodName = 'UnlockAdmin';
-
-Var
-   LockMsgFileName : String;
-   Msg             : String;
-   OK              : Boolean;
-begin
-   Assert( AdminIsLocked, Format( 'Admin Unlock when not Locked by [%s]', [ GlobalCache.cache_Current_Username ] ) );
-
-   { Delete the message file SYSTEM.$$$ }
-   LockMsgFileName := DATADIR + SYSLOCKNAME;
-   SysUtils.DeleteFile( LockMsgFileName );
-
-   OK := ReleaseLock( ltAdminSystem );
-
-   If OK then
-      AdminIsLocked := False
-   else
-   Begin
-      Msg := Format( 'Unable to unlock the Admin System by [%s]', [ GlobalCache.cache_Current_Username ] );
-      Raise EAdminSystem.CreateFmt( '%s - %s : %s', [ UnitName, ThisMethodName, Msg ] );
-   end;
-end;
-
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-function  AdminHasChanged : Boolean;
-//tells us if the date on the system.db file is different to the last
-//version we loaded.
-//
+//------------------------------------------------------------------------------
+// tells us if the date on the system.db file is different to the last version we loaded.
 // is called by  Admin32.RefreshAdmin
-//
+function AdminHasChanged : Boolean;
 var
   TimeNow : Int64;
 begin
@@ -250,261 +282,304 @@ begin
   end;
 end;
 
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-function  AdminExists : Boolean;
+//------------------------------------------------------------------------------
+function AdminExists : Boolean;
 begin
-   LockAdmin( 'AdminExists');
-   try
-     AdminExists := BKFileExists(DATADIR + SYSFILENAME);
-   finally
-     UnlockAdmin;
-   end;
+  LockAdmin( 'AdminExists');
+  try
+    AdminExists := BKFileExists(DATADIR + SYSFILENAME);
+  finally
+    UnlockAdmin;
+  end;
 end;
 
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-//function AdminSystemOK : boolean;
-//begin
-//   result := AdminExists and Assigned(AdminSystem);
-//end;
-
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
 procedure SaveAdminSystem(IsEncrypted: Boolean = True);
 const
-   ThisMethodName = 'SaveAdminSystem';
+  ThisMethodName = 'SaveAdminSystem';
 var
-   Msg : String;
+  Msg : String;
 begin
-   IntegrityCheck;
-   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
-   If not Assigned( AdminSystem ) then begin
+  try
+    IntegrityCheck;
+
+    if DebugMe then
+      LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
+
+    If not Assigned( AdminSystem ) then
+    begin
       Msg := 'Admin System not Assigned';
       LogUtil.LogMsg(lmError, UnitName, ThisMethodName + ' : ' + Msg );
       Raise EAdminSystem.CreateFmt( '%s - %s : %s', [ UnitName, ThisMethodName, Msg ] );
-   end;
-   If not AdminIsLocked then  Begin
+    end;
+
+    If not AdminIsLocked then
+    begin
       Msg := 'Admin System not locked.  Cannot Save';
       LogUtil.LogMsg(lmError, UnitName, ThisMethodName + ' : ' + Msg );
       Raise EAdminSystem.CreateFmt( '%s - %s : %s', [ UnitName, ThisMethodName, Msg ] );
-   end;
-   AdminSystem.Save(IsEncrypted);
-   AdminDate := GetFileTimeAsInt64( DATADIR + SYSFILENAME );
-//   Sleep( 100);
-   UnlockAdmin;
-   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
+    end;
+
+    AdminSystem.Save(IsEncrypted);
+    AdminDate := GetFileTimeAsInt64( DATADIR + SYSFILENAME );
+
+    UnlockAdmin;
+
+    if DebugMe then
+      LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
+  except
+    on E : Exception do
+    begin
+      LogUtil.LogMsg(lmError, UnitName, ThisMethodName + ' Error ' + E.Message);
+      if DebugMe then
+        GetAndLogStackTrace(UnitName, ThisMethodName);
+
+      raise;
+    end;
+  end;
 end;
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
+// returns true if we have a valid adminsystem after calling
+// note: this could fail for one of two reasons:
+//   1)  Admin system doesnt exist;
+//   2)  Admin systems exists but couldnt be loaded;
 function RefreshAdmin : boolean;
-{returns true if we have a valid adminsystem after calling
-
- note: this could fail for one of two reasons:
-   1)  Admin system doesnt exist;
-   2)  Admin systems exists but couldnt be loaded;
-}
 const
-   ThisMethodName = 'RefreshAdmin';
+  ThisMethodName = 'RefreshAdmin';
 begin
-   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
-   Result := false;
+  if DebugMe then
+    LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
 
-   if Assigned( AdminSystem) then
-   begin
-     if not AdminHasChanged then {have an adminsystem and it is up to date}
-       Result := true
-     else
-       Result := LoadAdminSystem(false, ThisMethodName );
-   end;
+  Result := false;
 
-   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
+  if Assigned( AdminSystem) then
+  begin
+    // have an adminsystem and it is up to date
+    if not AdminHasChanged then
+      Result := true
+    else
+      Result := LoadAdminSystem(false, ThisMethodName );
+  end;
+
+  if DebugMe then
+    LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 procedure IntegrityCheck;
 const
-   ThisMethodName = 'IntegrityCheck';
+  ThisMethodName = 'IntegrityCheck';
 
-   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-   procedure RaiseIntegrityException( FailureReason : string );
-   var Msg : string;
-   begin
-      Msg := 'Failure '+ FailureReason;
-      LogUtil.LogMsg(lmError, UnitName, ThisMethodName + ' : ' + Msg );
-      Raise EDataIntegrity.CreateFmt( '%s - %s : %s', [ UnitName, ThisMethodName, Msg ] );
-   end;
+  //----------------------------------------------------------------------------
+  procedure RaiseIntegrityException( FailureReason : string );
+  var
+    Msg : string;
+  begin
+    Msg := 'Failure '+ FailureReason;
+    LogUtil.LogMsg(lmError, UnitName, ThisMethodName + ' : ' + Msg );
+    Raise EDataIntegrity.CreateFmt( '%s - %s : %s', [ UnitName, ThisMethodName, Msg ] );
+  end;
 
-Var
-   i        : Integer;
-   LastCode : string[30];
-   sbLRNS   : TStBits;
+var
+  Index    : Integer;
+  LastCode : string[30];
+  sbLRNS   : TStBits;
+  SysBankAccRec : pSystem_Bank_Account_Rec;
 begin
-   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
-   if Assigned( AdminSystem ) then begin
-      with AdminSystem do begin
-         // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-         if fdFields.fdRecord_Type <> tkBegin_Practice_Details then begin
-            RaiseIntegrityException('fdRecord_Type');
-         end;
-         // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-         if fdFields.fdEOR <> tkEnd_Practice_Details then begin
-            RaiseIntegrityException('fdEOR');
-         end;
-         // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-         LastCode := '';
-         with fdSystem_User_List do Begin
-            for i := 0 to Pred( ItemCount ) do with User_At( i )^ do Begin
-               if ( usCode < LastCode ) then Begin
-                  RaiseIntegrityException('User Code Sequence');
-               end;
-               LastCode := usCode;
-            end;
-         end;
-         // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-         LastCode := '';
-         with fdSystem_Client_File_List do Begin
-            for i := 0 to Pred( ItemCount ) do with Client_File_At( i )^ do Begin
-               if ( cfFile_Code < LastCode ) then Begin
-                  RaiseIntegrityException('Client File Code Sequence');
-               end;
-               LastCode := cfFile_Code;
-            end;
-         end;
+  if DebugMe then
+    LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
 
-         // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-         with fdSystem_Disk_Log do for i := 0 to Pred( ItemCount ) do with Disk_Log_At( i )^ do;
-         // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  if Assigned( AdminSystem ) then
+  begin
+    if AdminSystem.fdFields.fdRecord_Type <> tkBegin_Practice_Details then
+      RaiseIntegrityException('fdRecord_Type');
 
-         sbLRNS   := TStBits.Create( AdminSystem.fdFields.fdBank_Account_LRN_Counter );
-         LastCode := '';
-         with fdSystem_Bank_Account_List do Begin
-            for i := 0 to Pred( ItemCount ) do with System_Bank_Account_At( i )^ do
-            Begin
-               if ( sbAccount_Number < LastCode ) then
-                 RaiseIntegrityException('Bank Account Number Sequence');
+    if AdminSystem.fdFields.fdEOR <> tkEnd_Practice_Details then
+      RaiseIntegrityException('fdEOR');
 
-               //check that there are no duplicated LRN numbers or any out of range.
-               //This check can be disabled so that user can login to banklink.
-               //This check will be also be done before a download
-               if not Globals.PRACINI_DisableBankLRNCheck then begin
-                  If ( sbLRN < 1 ) or ( sbLRN > AdminSystem.fdFields.fdBank_Account_LRN_Counter ) then
-                    RaiseIntegrityException('Bank Account LRN out of range');
-                  If sbLRNS.BitIsSet( sbLRN ) then
-                    RaiseIntegrityException('Duplicate Bank Account LRN');
-                  sbLRNS.SetBit( sbLRN );
-               end;
-               LastCode := sbAccount_Number;
-            end;
-         end;
+    LastCode := '';
+    for Index := 0 to Pred(AdminSystem.fdSystem_User_List.ItemCount) do
+    begin
+      if ( AdminSystem.fdSystem_User_List.User_At(Index)^.usCode < LastCode ) then
+        RaiseIntegrityException('User Code Sequence');
 
-         sbLRNS.Free;
+      LastCode := AdminSystem.fdSystem_User_List.User_At(Index)^.usCode;
+    end;
 
-         // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    LastCode := '';
+    for Index := 0 to Pred( AdminSystem.fdSystem_Client_File_List.ItemCount) do
+    begin
+      if AdminSystem.fdSystem_Client_File_List.Client_File_At(Index)^.cfFile_Code < LastCode then
+        RaiseIntegrityException('Client File Code Sequence');
 
+      LastCode := AdminSystem.fdSystem_Client_File_List.Client_File_At(Index)^.cfFile_Code;
+    end;
+
+    sbLRNS := TStBits.Create( AdminSystem.fdFields.fdBank_Account_LRN_Counter );
+    try
+      LastCode := '';
+
+      for Index := 0 to Pred( AdminSystem.fdSystem_Bank_Account_List.ItemCount ) do
+      begin
+        SysBankAccRec := AdminSystem.fdSystem_Bank_Account_List.System_Bank_Account_At(Index);
+
+        if (SysBankAccRec^.sbAccount_Number < LastCode ) then
+          RaiseIntegrityException('Bank Account Number Sequence');
+
+        //check that there are no duplicated LRN numbers or any out of range.
+        //This check can be disabled so that user can login to banklink.
+        //This check will be also be done before a download
+        if not Globals.PRACINI_DisableBankLRNCheck then
+        begin
+          If (SysBankAccRec^.sbLRN < 1 ) or
+             (SysBankAccRec^.sbLRN > AdminSystem.fdFields.fdBank_Account_LRN_Counter ) then
+            RaiseIntegrityException('Bank Account LRN out of range');
+
+          If sbLRNS.BitIsSet( SysBankAccRec^.sbLRN ) then
+            RaiseIntegrityException('Duplicate Bank Account LRN');
+
+          sbLRNS.SetBit(SysBankAccRec^.sbLRN);
+        end;
+        LastCode := SysBankAccRec^.sbAccount_Number;
       end;
-   end;
-   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
+    finally
+      FreeAndNil(sbLRNS);
+    end;
+  end;
+
+  if DebugMe then
+    LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 function LoadAdminSystem( HoldLock : Boolean; RequestedBy : string; IsEncrypted: Boolean = True ) :boolean;
 var
-  O : TSystemObj;
+  SysObj : TSystemObj;
 begin
-  O := nil;
-  result := LockAndLoadAdminSystem( HoldLock, RequestedBy, false, O, IsEncrypted);
+  SysObj := nil;
+  result := LockAndLoadAdminSystem( HoldLock, RequestedBy, false, SysObj, IsEncrypted);
 end;
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function  LockAndLoadAdminSystem( HoldLock : boolean;
-                                  RequestedBy : string;
-                                  UpdateSnapshot : boolean;
-                                  var aSnapshot : TSystemObj;
-                                  IsEncrypted: Boolean = True) : boolean;
+
+//------------------------------------------------------------------------------
+function LockAndLoadAdminSystem( HoldLock : boolean;
+                                 RequestedBy : string;
+                                 UpdateSnapshot : boolean;
+                                 var aSnapshot : TSystemObj;
+                                 IsEncrypted: Boolean = True) : boolean;
 const
-   ThisMethodName = 'LoadAdminSystem';
+  ThisMethodName = 'LoadAdminSystem';
 var
-   Msg : String;
-   NewAdminObj : TSystemObj;
+  Msg : String;
+  NewAdminObj : TSystemObj;
+begin
+  try
+    if DebugMe then
+      LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
 
-   function CheckHoldLock(LocalHoldLock: boolean): boolean;
-   begin
-     if LocalHoldLock then
-       Result := False
-     else
-       Result := True;
-   end;
-Begin
-   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
-   Result := false;
+    Result := false;
 
-   if LockAdmin(RequestedBy) then begin
-     try
-       If not BKFileExists(DATADIR + SYSFILENAME) then begin
+    if LockAdmin(RequestedBy) then
+    begin
+      try
+        If not BKFileExists(DATADIR + SYSFILENAME) then
+        begin
           Msg := 'Unable to find Admin System';
           Raise EAdminSystem.CreateFmt( '%s - %s : %s', [ UnitName, ThisMethodName, Msg ] );
-       end;
+        end;
 
-       //create a new admin system object before freeing the old object
-       //to avoid using the same memory
-       Msg := 'Creating New Admin System';
-       NewAdminObj := TSystemObj.Create;
+        // create a new admin system object before freeing the old object
+        // to avoid using the same memory
+        Msg := 'Creating New Admin System';
+        NewAdminObj := TSystemObj.Create;
 
-       Msg := 'Free old Admin System';
-       if Assigned( AdminSystem) then
-         FreeAndNil( AdminSystem);
+        Msg := 'Free old Admin System';
+        if Assigned( AdminSystem) then
+          FreeAndNil( AdminSystem);
 
-       //Assign new memory
-       AdminSystem := NewAdminObj;
-       try
-         //see if we need to load a snapshot of the admin system
-         if UpdateSnapshot then
-         begin
-           Msg := 'OpenAndSnapshot';
-           try
-             AdminSystem.OpenAndSnapshot( TObject( aSnapshot), IsEncrypted);
-           except on E: EInvalidPointer do                      
-             Raise EAdminSystem.Create( 'Sharing Violation: the system.db file is in use by another process' );
-           end;
-         end
-         else
-         begin
-           Msg := 'Open';
-           try
-             AdminSystem.Open(IsEncrypted);
-           except on E: EInvalidPointer do           
-             Raise EAdminSystem.Create( 'Sharing Violation: the system.db file is in use by another process' );
-           end;
-         end;
+        // Assign new memory
+        AdminSystem := NewAdminObj;
+        try
+          // see if we need to load a snapshot of the admin system
+          if UpdateSnapshot then
+          begin
+            Msg := 'OpenAndSnapshot';
+            try
+              AdminSystem.OpenAndSnapshot( TObject( aSnapshot), IsEncrypted);
+            except on E: EInvalidPointer do
+              Raise EAdminSystem.Create( 'Sharing Violation: the system.db file is in use by another process' );
+            end;
+          end
+          else
+          begin
+            Msg := 'Open';
+            try
+              AdminSystem.Open(IsEncrypted);
+            except on E: EInvalidPointer do
+              Raise EAdminSystem.Create( 'Sharing Violation: the system.db file is in use by another process' );
+            end;
+          end;
 
-         Msg := 'Read Admin TimeStamp';
-         AdminDate := GetFileTimeAsInt64( DATADIR + SYSFILENAME );
-         Msg := 'New Admin System Created';
-         {$IF not (Defined(TESTLOCKING) or Defined(LOOKUPDLL))}
-           //Fix bug in GST Effective Dates
-           FixAdminInvalidGSTRateAppliesDates;
-         {$IFEND}
-         Result := true;
-         if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' : ' + Msg );
-       except
-         On E : EInvalidDataInFile do begin
-            Raise EAdminSystem.CreateFmt( '%s - %s : ' + E.ClassName + ' %s', [ UnitName, ThisMethodName, E.Message ] );
-         end;
-         //catch all other errors, reraise as admin system
-         On E : Exception do begin
-            Raise EAdminSystem.CreateFmt( '%s - %s : %s [%s]', [ UnitName, ThisMethodName, E.Message, Msg ] );
-         end;
-       end;
-     finally
-        if CheckHoldLock(HoldLock) then
+          Msg := 'Read Admin TimeStamp';
+          AdminDate := GetFileTimeAsInt64( DATADIR + SYSFILENAME );
+          Msg := 'New Admin System Created';
+          {$IF not (Defined(TESTLOCKING) or Defined(LOOKUPDLL))}
+          // Fix bug in GST Effective Dates
+          FixAdminInvalidGSTRateAppliesDates;
+          {$IFEND}
+          Result := true;
+
+          if DebugMe then
+            LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' : ' + Msg );
+        except
+          on E : EInvalidDataInFile do
+          begin
+            // If an exception occurs while the admin system is locked then lock it and
+            // set the flag so that we don't try to unlock it twice.
+            if HoldLock then
+            begin
+              UnlockAdmin;
+              ExceptionUnlock := True;
+            end;
+
+            raise EAdminSystem.CreateFmt( '%s - %s : ' + E.ClassName + ' %s', [ UnitName, ThisMethodName, E.Message ] );
+          end;
+          // catch all other errors, reraise as admin system
+          on E : Exception do
+          begin
+            if HoldLock then
+            begin
+              UnlockAdmin;
+              ExceptionUnlock := True;
+            end;
+
+            raise EAdminSystem.CreateFmt( '%s - %s : %s [%s]', [ UnitName, ThisMethodName, E.Message, Msg ] );
+          end;
+        end;
+      finally
+        If not HoldLock then
           UnlockAdmin;
-     end;
-   end;
-   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
+      end;
+    end;
+    if DebugMe then
+      LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
+
+  except
+    on E : Exception do
+    begin
+      LogUtil.LogMsg(lmError, UnitName, ThisMethodName + ' Error ' + E.Message);
+      if DebugMe then
+        GetAndLogStackTrace(UnitName, ThisMethodName);
+
+      raise;
+    end;
+  end;
 end;
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
+// reloads admin system with the latest copy on disk, loads a copy of the
+// admin system into the snapshot
 procedure ReloadAdminAndTakeSnapshot( var aSnapshot : TSystemObj);
-//reloads admin system with the latest copy on disk, loads a copy of the
-//admin system into the snapshot
 const
   ThisMethodName = 'ReloadAdminAndTakeSnapshot';
 begin
@@ -513,36 +588,41 @@ begin
                           true,    //get new snapshot
                           aSnapshot );
 end;
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 {$IFDEF LOOKUPDLL}
-function SetBKAdminLocation( AdminDir : PChar) : LongBool; stdcall;
-//parameters:
+//------------------------------------------------------------------------------
+// parameters:
 //  AdminDir  : pchar representing the directory to look in for the system.db
 //              Cannot be blank, must be a valid directory path,
 //              Must include a trailing backslash
 //  Returns true if the path is set correctly
+function SetBKAdminLocation( aAdminDir : PChar) : LongBool; stdcall;
 var
-  aDir : string;
+  Dir : string;
 begin
   result := false;
   try
-    aDir := AdminDir;
+    Dir := aAdminDir;
 
-    if (aDir <> '') and DirectoryExists( aDir) then
+    if (Dir <> '') and DirectoryExists( Dir) then
     begin
-      Globals.DataDir := aDir;
-      SetLockingFileLocation( aDir);
+      Globals.DataDir := Dir;
+
+      if not FileLocking.NetLockingOn then
+        TWindowsFileLocking(FileLocking).SetLockingFileLocation( Dir);
+
       result := true;
     end
     else
-      raise EAdminSystem.Create( 'Invalid Admin Location (' + aDir + ')');
+      raise EAdminSystem.Create( 'Invalid Admin Location (' + Dir + ')');
   except
     on e : exception do
       MessageDlg('Error retrieving client list: ' + E.Message, mtError, [mbOK], 0);
   end;
 end;
 {$ENDIF}
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 // Write the account/client map to a text file (only if debugging)
 procedure DumpClientAccountMapToFile;
 var
@@ -553,7 +633,9 @@ var
   sb: pSystem_Bank_Account_Rec;
   code, bank, srdate: string;
 begin
-  if not DebugMe then exit;                    
+  if not DebugMe then
+    exit;
+
   try
     AssignFile(F, Globals.DataDir + 'ca_map.txt');
     ReWrite(F);
@@ -593,12 +675,13 @@ begin
       WriteLn(F, srdate);
 
       WriteLn(F, '*********************************************************************************');
-     end;
-     CloseFile(F);
+    end;
+    CloseFile(F);
   except
   end;
 end;
 
+//------------------------------------------------------------------------------
 initialization
-   DebugMe        := DebugUnit( UnitName );
+  DebugMe := DebugUnit( UnitName );
 end.

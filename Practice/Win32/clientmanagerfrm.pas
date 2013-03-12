@@ -47,7 +47,8 @@ uses
   BanklinkOnlineServices,
   BlopiClient,
   CAFImporter,
-  Progress;
+  Progress,
+  CAFAccountStatusFrm;
 
 type
   TfrmClientManager = class(TForm)
@@ -167,6 +168,7 @@ type
     pnlFilterA: TPanel;
     pnlLegendA: TPanel;
     actICAF: TAction;
+    actAccountStatus: TAction;
     procedure FormCreate(Sender: TObject);
     procedure FormShow(Sender: TObject);
 
@@ -252,9 +254,10 @@ type
       var CellText: WideString);
     procedure rzgCommunicateItems5Click(Sender: TObject);
     procedure actICAFExecute(Sender: TObject);
+    procedure actAccountStatusExecute(Sender: TObject);
 
   private
-
+    fDoNotRefreshLookup : boolean;
     FScreenLockCount  : integer;
     FMode             : byte;
     FIsGlobal         : Boolean;
@@ -427,7 +430,9 @@ uses
   SelectInstitutionfrm,
   CAFImportSelectorFrm,
   CAFOutputSelectorFrm,
-  ModalProgressFrm;
+  ModalProgressFrm,
+  LockUtils,  
+  InstitutionCol;
 
 {$R *.dfm}
 
@@ -462,6 +467,7 @@ const
   cm_mcPrintAllTasks      = 27;
   cm_mcAssignBulkExport   = 28;
   cm_mcSendOnline         = 29;
+  cm_mcCAFAccountStatus   = 30; 
 
   md_ClientManager   = 0;
   md_GlobalSetup     = 1;
@@ -503,14 +509,12 @@ procedure TfrmClientManager.FormActivate(Sender: TObject);
       end;
    end;
 begin
-  try
-     RefreshLookup(''); //Do This first, gets a Admin Snapshot.
-     UpdateActions(Assigned(AdminSystem)
-                   and Assigned(CurrUser)
-                   and CurrUser.CanAccessAdmin);
+  if (not FileLocking.LockMessageDisplaying) then
+    RefreshLookup('');  //Do This first, gets a Admin Snapshot.
 
-  except
-  end;
+  UpdateActions(Assigned(AdminSystem)
+                and Assigned(CurrUser)
+                and CurrUser.CanAccessAdmin);
 end;
 
 //------------------------------------------------------------------------------
@@ -536,6 +540,8 @@ procedure TfrmClientManager.FormCreate(Sender: TObject);
 
 begin
   //check max columns
+  fDoNotRefreshLookup := false;
+
   GBClientmanager.GradientColorStop := bkBranding.GroupBackGroundStopColor;
   GBClientmanager.GradientColorStart := bkBranding.GroupBackGroundStartColor;
 
@@ -820,7 +826,7 @@ begin
   BOOnline := ProductConfigService.OnLine;
   if BOOnline then
     PracticeOnline := ProductConfigService.IsPracticeActive;
-  imgCannotConnect.Visible := (AdminSystem.fdFields.fdUse_BankLink_Online and
+  imgCannotConnect.Visible := (ProductConfigService.ServiceActive and
                               ((BOOnline = false) or (PracticeOnline = false)));
   lblCannotConnect.Visible := imgCannotConnect.Visible;
   if not BOOnline then
@@ -1089,7 +1095,7 @@ begin
 
         NumColumns := 12;
 
-        if (ProductConfigService.OnLine and AdminSystem.fdFields.fdUse_BankLink_Online) then
+        if (ProductConfigService.OnLine and ProductConfigService.ServiceActive) then
         begin
           ProductConfigService.LoadClientList;
 
@@ -1242,12 +1248,12 @@ begin
   try
     ClientLookup.GetSelectionTypes(ProspectSelected, ActiveSelected, UnsyncSelected);
 
-    if not AdminSystem.fdFields.fdUse_BankLink_Online then
+    if not ProductConfigService.ServiceActive then
       actBOSettings.Visible := False
     else
       actBOSettings.Visible := ProductConfigService.Registered;
 
-    actBOSettings.Enabled := (AdminSystem.fdFields.fdUse_BankLink_Online and
+    actBOSettings.Enabled := (ProductConfigService.ServiceActive and
                              ProductConfigService.OnLine and
                              (not ProspectSelected) and
                              (not NoClientSelected) and
@@ -1578,16 +1584,24 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmClientManager.RefreshLookup(CodeToSelect: string);
 begin
-  //reload list
-  BeginUpdate;
-  try
-    ReloadAdminAndTakeSnapshot(ClientLookup.AdminSnapshot);
-    ClientLookup.Reload;
+  if fDoNotRefreshLookup then
+    Exit;
 
-    if CodeToSelect <> '' then
-      ClientLookup.LocateCode(CodeToSelect);
+  fDoNotRefreshLookup := true;
+  try
+    //reload list
+    BeginUpdate;
+    try
+      ReloadAdminAndTakeSnapshot(ClientLookup.AdminSnapshot);
+      ClientLookup.Reload;
+
+      if CodeToSelect <> '' then
+        ClientLookup.LocateCode(CodeToSelect);
+    finally
+      EndUpdate;
+    end;
   finally
-    EndUpdate;
+    fDoNotRefreshLookup := false;
   end;
 end;
 
@@ -1626,6 +1640,11 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+procedure TfrmClientManager.actAccountStatusExecute(Sender: TObject);
+begin
+  ProcessModalCommand(cm_mcCAFAccountStatus);
+end;
+
 procedure TfrmClientManager.actArchiveExecute(Sender: TObject);
 begin
   ProcessModalCommand( cm_mcArchive);
@@ -1817,7 +1836,12 @@ begin
      if Assigned(MyClient) then
       CloseClientHomePage;
 
-     Files.OpenClient(Code);
+     fDoNotRefreshLookup := True;
+     try
+       Files.OpenClient(Code);
+     finally
+       fDoNotRefreshLookup := false;
+     end;
      RefreshLookup(Code);
   end;
 
@@ -2292,6 +2316,7 @@ begin
        cm_mcImportClients : DoImportClientsProspects(itClients);
        cm_mcAssignBulkExport : DoAssignBulkExport;
        cm_mcSendOnline: DoSendViaOnline;
+       cm_mcCAFAccountStatus: TfrmCAFAccountStatus.ExecuteModal(Application, Self);
      end;
      finally
         EnableForm(LoseFocus);
@@ -3119,6 +3144,7 @@ begin
            actCAF.Visible := (AdminSystem.fdFields.fdCountry in [whAustralia, whUK]);
            actICAF.Visible := (AdminSystem.fdFields.fdCountry = whUK);
            actTPA.Visible := (AdminSystem.fdFields.fdCountry = whNewZealand);
+           actAccountStatus.Visible := ProductConfigService.ServiceActive and not CurrUser.HasRestrictedAccess;
 
            if (AdminSystem.fdFields.fdCountry = whUK) then
            begin
@@ -3129,6 +3155,7 @@ begin
            actCAF.Visible := False;
            actICAF.Visible := False;
            actTPA.Visible := False;
+           actAccountStatus.Visible := False;
         end;
         actDeleteFile.Visible := false;
         RzGroupGlobal.Visible := False;
@@ -3403,7 +3430,24 @@ end;
 procedure TfrmClientManager.actCAFExecute(Sender: TObject);
 var
   aForm: TfrmCAF;
+  Loaded : boolean;
+  Msg : string;
 begin
+  try
+    Loaded := Institutions.Load;
+  except
+    on E : Exception do
+    begin
+      Msg := 'Unable to load the Institution File - ' + #10 + E.Message;
+      HelpfulErrorMsg(Msg,0);
+      LogUtil.LogMsg(lmError, UnitName, Msg);
+      Loaded := false;
+    end;
+  end;
+
+  if Not Loaded then
+    Exit;
+
   case AdminSystem.fdFields.fdCountry of
     whAustralia:
       begin
@@ -3457,7 +3501,24 @@ end;
 procedure TfrmClientManager.actTPAExecute(Sender: TObject);
 var
   aForm: TfrmTPA;
+  Loaded : boolean;
+  Msg : string;
 begin
+  try
+    Loaded := Institutions.Load;
+  except
+    on E : Exception do
+    begin
+      Msg := 'Unable to load the Institution File - ' + #10 + E.Message;
+      HelpfulErrorMsg(Msg,0);
+      LogUtil.LogMsg(lmError, UnitName, Msg);
+      Loaded := false;
+    end;
+  end;
+
+  if Not Loaded then
+    Exit;
+
   aForm := TfrmTPA.Create(Application.MainForm);
   with aForm do
   begin

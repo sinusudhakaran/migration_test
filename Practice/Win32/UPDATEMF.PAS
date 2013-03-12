@@ -103,8 +103,7 @@ uses
    ReportDefs,
    SimpleUIOpenPageFrm,
    CFHead,
-   BankLinkOnlineServices,
-   ForexHelpers;
+   BankLinkOnlineServices;
 
 var
   ClosingAllMDIForms : boolean = false;
@@ -366,8 +365,17 @@ begin
     mnsImportBNotes.Visible         := NotRestrictedUser;
     n17.Visible                     := NotRestrictedUser;
     mnsOFHouseKeeping.Visible       := NotRestrictedUser;
-    mniExportWebX.Visible           := NotRestrictedUser;
-    mniImportWebX.Visible           := NotRestrictedUser;
+
+    if Assigned(AdminSystem) then
+    begin
+      mniExportWebX.Visible           := NotRestrictedUser and not ProductConfigService.ServiceSuspended;
+      mniImportWebX.Visible           := NotRestrictedUser and not ProductConfigService.ServiceSuspended;
+    end
+    else
+    begin
+      mniExportWebX.Visible           := NotRestrictedUser;
+      mniImportWebX.Visible           := NotRestrictedUser;
+    end;
 
     //About Menu
     n4.Visible                      := NotRestrictedUser;
@@ -629,9 +637,18 @@ begin
         begin
           mniOFExtractData.Enabled   := CanExtractData(MyClient.clFields.clCountry, MyClient.clFields.clAccounting_System_Used);
           mnsExportBNoteFile.Enabled := True;
-          mniExportWebX.Enabled      := True;
           mniRemapChart.Enabled      := True;
-          mniImportWebX.Enabled      := True;
+
+          if Assigned(AdminSystem) then
+          begin
+            mniExportWebX.Enabled      := not ProductConfigService.ServiceSuspended;
+            mniImportWebX.Enabled      := not ProductConfigService.ServiceSuspended;
+          end
+          else
+          begin
+            mniExportWebX.Enabled      := True;
+            mniImportWebX.Enabled      := True;         
+          end;
         end;
 
         mniOFMemorisedEntries.Visible := UsingAdmin or (not  MyClient.clExtra.ceBlock_Client_Edit_Mems);
@@ -742,9 +759,19 @@ begin
         if (MyClient.clFields.clWeb_Export_Format = wfNone) then begin
            mniExportWebX.Visible := False;
            mniImportWebX.Visible := False;
-        end else begin
-           mniExportWebX.Visible := not RestrictedUser;
-           mniImportWebX.Visible := not RestrictedUser;
+        end
+        else
+        begin
+           if Assigned(AdminSystem) then
+           begin
+             mniExportWebX.Visible := (not RestrictedUser) and not ProductConfigService.ServiceSuspended;
+             mniImportWebX.Visible := (not RestrictedUser) and not ProductConfigService.ServiceSuspended;
+           end
+           else
+           begin
+             mniExportWebX.Visible := (not RestrictedUser);
+             mniImportWebX.Visible := (not RestrictedUser);
+           end;
         end;
         // Change name depending on export format selected
         format := MyClient.clFields.clWeb_Export_Format;
@@ -825,8 +852,9 @@ begin
      begin
        actSendViaOnline.Visible := False;
        actGetFromOnline.Visible := False;
-       UseBankLinkOnline := AdminSystem.fdFields.fdUse_BankLink_Online;
-
+       
+       UseBankLinkOnline := ProductConfigService.ServiceActive;
+       
        if UseBankLinkOnline then
        begin
          if ProductConfigService.IsCICOEnabled then
@@ -850,8 +878,6 @@ begin
 
      Batchreports.FillMenu(frmMain.mniBatchReports,ShowFinReports);
      frmMain.MenuCopyToPopUp('mnsReport', popReport);
-
-     mniExchangeGainLossWizard.Visible := IsForeignCurrencyClient;
   end;
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

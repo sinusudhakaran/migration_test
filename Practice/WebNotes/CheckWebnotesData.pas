@@ -377,7 +377,7 @@ begin
   if FHaveLocks[FLock] then
     Exit;
 
-  if LockUtils.ObtainLock(FLock, SecsTowaitForLock ) then
+  if FileLocking.ObtainLock(FLock, SecsTowaitForLock ) then
     FHaveLocks[FLock] := true;
 end;
 
@@ -429,7 +429,7 @@ procedure WebNotesCheckThread.ReleaseLock;
 begin
   if FhaveLocks[FLock] then
   begin
-    LockUtils.ReleaseLock(FLock);
+    FileLocking.ReleaseLock(FLock);
     FHavelocks[FLock] := False;
   end;
 end;
@@ -547,11 +547,11 @@ begin
   try
     try
       lXmlDoc.Active := true;
-      if LockUtils.ObtainLock(ltWebNotesdata, SecsTowaitForLock ) then
+      if FileLocking.ObtainLock(ltWebNotesdata, SecsTowaitForLock ) then
         try
           lXMLDoc.LoadFromFile(Datadir + WEBNOTESUPDATE_Data);
         finally
-          LockUtils.ReleaseLock(ltWebNotesdata);
+          FileLocking.ReleaseLock(ltWebNotesdata);
         end
       else
          Exit;
@@ -622,11 +622,11 @@ begin
   try
     try
       lXmlDoc.Active := true;
-      if LockUtils.ObtainLock(ltWebNotesdata, SecsTowaitForLock ) then
+      if FileLocking.ObtainLock(ltWebNotesdata, SecsTowaitForLock ) then
         try
           lXMLDoc.LoadFromFile(Datadir + WEBNOTESUPDATE_Data);
         finally
-          LockUtils.ReleaseLock(ltWebNotesdata);
+          FileLocking.ReleaseLock(ltWebNotesdata);
         end
       else
         Exit;

@@ -234,6 +234,9 @@ type
     fActive : boolean;
     fDPI    : integer;
     fPDFFormFields : TPDFFormFields;
+    fImagePage : integer;
+
+    fQrCodeImage : TImage;
   protected
     procedure RenderPage;
     procedure SetActive(Value : Boolean);
@@ -268,7 +271,13 @@ type
 
     procedure SetInformation(Key: Integer; Value: String);
 
+    procedure ScaleScreenToPDF(aInXPos, aInYPos, aInWidth, aInHeight : integer;
+                               var aOutXPos, aOutYPos, aOutWidth, aOutHeight : double);
+    procedure SetQrCodeImage(const aValue : TBitmap);
+    procedure DrawQRCode(aXPos, aYPos, aWidth, aHeight, aPage : integer);
+
     property PDFFormFields : TPDFFormFields read fPDFFormFields write fPDFFormFields;
+    property QrCodeImage : TImage read fQrCodeImage write fQrCodeImage;
   published
     property PDFFilePath : WideString read fPDFFilePath write fPDFFilePath;
     property PDFPassword : WideString read fPDFPassword write fPDFPassword;
@@ -1096,6 +1105,97 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+procedure TPdfFieldEdit.ScaleScreenToPDF(aInXPos, aInYPos, aInWidth, aInHeight : integer;
+                                         var aOutXPos, aOutYPos, aOutWidth, aOutHeight : double);
+var
+  Scale : double;
+begin
+  Scale := DPI / FRM_FIELD_DPI;
+
+  aOutXPos   := aInXPos   / Scale;
+  aOutYPos   := aInYPos   / Scale;
+  aOutWidth  := aInWidth  / Scale;
+  aOutHeight := aInHeight / Scale;
+end;
+
+//------------------------------------------------------------------------------
+procedure TPdfFieldEdit.SetQRCodeImage(const aValue: TBitmap);
+var
+  MemStream : TMemoryStream;
+begin
+  MemStream := TMemoryStream.Create;
+
+  try
+    aValue.SaveToStream(MemStream);
+    MemStream.Position := 0;
+
+    if not Assigned(fQrCodeImage) then
+    begin
+      fQrCodeImage := TImage.Create(nil);
+      fQrCodeImage.Parent := self;
+      fQrCodeImage.Stretch := true;
+    end;
+    fQrCodeImage.Picture.Bitmap.LoadFromStream(MemStream);
+
+  finally
+    FreeAndNil(MemStream);
+  end;
+end;
+
+//------------------------------------------------------------------------------
+procedure TPdfFieldEdit.DrawQRCode(aXPos, aYPos, aWidth, aHeight, aPage : integer);
+begin
+  fQrCodeImage.Stretch := false;
+  fQrCodeImage.Left   := aXPos - self.HorzScrollBar.Position;
+  fQrCodeImage.Top    := aYPos - self.VertScrollBar.Position;
+  fQrCodeImage.Width  := aWidth;
+  fQrCodeImage.Height := aHeight;
+  fImagePage := aPage;
+  fQrCodeImage.Visible := false;
+  //fQrCodeImage.Visible := (fImagePage = 1);
+  fQrCodeImage.Stretch := true;
+end;
+
+//------------------------------------------------------------------------------
+procedure TPdfFieldEdit.DrawQRCodeOnPDF(aQuickPDF : TQuickPDF);
+var
+  MemStream : TMemoryStream;
+  ImageId : integer;
+  OutXPos, OutYPos, OutWidth, OutHeight : double;
+begin
+  if not Assigned(fQrCodeImage.Picture.Bitmap) then
+    Exit;
+
+  aQuickPDF.SetOrigin(1);
+  MemStream := TMemoryStream.Create;
+  try
+    fQrCodeImage.Picture.Bitmap.SaveToStream(MemStream);
+    MemStream.Position := 0;
+    ImageId := aQuickPDF.AddImageFromStream(MemStream, 0);
+
+    ScaleScreenToPDF(fQrCodeImage.left + Self.HorzScrollBar.Position,
+                     fQrCodeImage.top  + Self.VertScrollBar.Position,
+                     fQrCodeImage.Width,
+                     fQrCodeImage.Height,
+                     OutXPos,
+                     OutYPos,
+                     OutWidth,
+                     OutHeight);
+
+    if aQuickPDF.SelectImage(ImageId) = 1 then
+    begin
+      if fImagePage > 1 then
+        aQuickPDF.SelectPage(fImagePage);
+
+      aQuickPDF.DrawImage(OutXPos, OutYPos, OutWidth, OutHeight);
+    end;
+
+  finally
+    FreeAndNil(MemStream);
+  end;
+end;
+
+//------------------------------------------------------------------------------
 constructor TPdfFieldEdit.Create(AOwner: TComponent);
 begin
   inherited;
@@ -1120,6 +1220,9 @@ end;
 //------------------------------------------------------------------------------
 destructor TPdfFieldEdit.Destroy;
 begin
+  if Assigned(fQrCodeImage) then
+    FreeAndNil(fQrCodeImage);
+
   FreeAndNil(fPDFFormFields);
   FreeAndNil(fPDFImage);
   FreeAndNil(fQuickPDF);
@@ -1168,8 +1271,29 @@ end;
 
 //------------------------------------------------------------------------------
 procedure TPdfFieldEdit.SaveToFile(aFilePath: WideString);
+var
+  tempQuickPDF : TQuickPDF;
 begin
-  fQuickPDF.SaveToFile(aFilePath);
+  tempQuickPDF := TQuickPDF.Create;
+  try
+    if fQuickPDF.SaveToFile(aFilePath) = 1 then
+    begin
+      if tempQuickPDF.UnlockKey(QUICK_PDF_LICENCE_KEY) = 1 then
+      begin
+        if tempQuickPDF.LoadFromFile(aFilePath,'') = 1 then
+        begin
+          if Assigned(fQrCodeImage) then
+          begin
+            DrawQRCodeOnPDF(tempQuickPDF);
+          end;
+
+          tempQuickPDF.SaveToFile(aFilePath);
+        end;
+      end;
+    end;
+  finally
+    FreeAndNil(tempQuickPDF);
+  end;
 end;
 
 //------------------------------------------------------------------------------
@@ -1244,6 +1368,11 @@ begin
             tempQuickPDF.FlattenFormField(FieldIndex);
           end;
 
+          if Assigned(fQrCodeImage) then
+          begin
+            DrawQRCodeOnPDF(tempQuickPDF);
+          end;
+
           tempQuickPDF.SaveToFile(aFilePath);
         end;
       end;
@@ -1277,16 +1406,21 @@ begin
           begin
             for FieldIndex := tempQuickPDF.FormFieldCount downto 1 do
             begin
-              FieldSubCount := fQuickPDF.GetFormFieldSubCount(FieldIndex);
+              FieldSubCount := tempQuickPDF.GetFormFieldSubCount(FieldIndex);
 
               for FieldSubIndex := FieldSubCount downto 1 do
               begin
-                TempSubIndex := fQuickPDF.GetFormFieldSubTempIndex(FieldIndex, FieldSubIndex);
+                TempSubIndex := tempQuickPDF.GetFormFieldSubTempIndex(FieldIndex, FieldSubIndex);
 
                 tempQuickPDF.FlattenFormField(TempSubIndex);
               end;
 
               tempQuickPDF.FlattenFormField(FieldIndex);
+            end;
+
+            if Assigned(fQrCodeImage) then
+            begin
+              DrawQRCodeOnPDF(tempQuickPDF);
             end;
 
             tempQuickPDF.PrintDocument(PrinterName, StartPage, EndPage, Options);

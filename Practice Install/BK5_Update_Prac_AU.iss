@@ -28,6 +28,7 @@ Source: "Bin\bkExtMapi.dll"; DestDir: "{app}"
 Source: "Bin\BK5WIN.EXE.Manifest"; DestDir: "{app}"
 Source: "Bin\bkinstall.exe"; DestDir: "{app}"
 Source: "Bin\bkupgcor.dll"; DestDir: "{app}"
+Source: "Bin\Institutions.dat"; DestDir: "{app}"
 
 Source: "Fixes\bkNetHelpFix.exe"; DestDir: "{app}"
 
@@ -51,6 +52,8 @@ Source: "3rd Party\WDDX_License.html"; DestDir: "{app}"
 Source: "3rd Party\wddx_com.dll"; DestDir: "{app}"
 Source: "3rd Party\xmlparse.dll"; DestDir: "{app}"
 Source: "3rd Party\xmltok.dll"; DestDir: "{app}"
+Source: "3rd Party\libeay32.dll"; DestDir: "{app}"
+Source: "3rd Party\zint.dll"; DestDir: "{app}"
 
 Source: "Practice CD Files\Templates\BGL.TPM"; DestDir: "{app}\TEMPLATE"
 Source: "Practice CD Files\Templates\GENERIC.TPM"; DestDir : "{app}\TEMPLATE"
@@ -60,6 +63,8 @@ Source: "Practice CD Files\Templates\CLASS.TPM"; DestDir : "{app}\TEMPLATE"
 
 Source: "AuthorityForms\Client Authority Form.pdf"; DestDir: "{app}"
 Source: "AuthorityForms\CAF_Generator.xlt"; DestDir: "{app}"
+
+Source: "Publickeys\PublicKeyCafQrCode.pke"; DestDir : "{app}\Publickeys"
 
 [Run]
 Filename: "{app}\BK5WIN.EXE"; Description : "Start BankLink Practice"; WorkingDir: "{app}"; Flags: postinstall nowait;

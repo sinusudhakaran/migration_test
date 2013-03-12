@@ -26,6 +26,7 @@ Source: "Bin\bkExtMapi.dll"; DestDir: "{app}"
 Source: "Bin\BK5WIN.EXE.Manifest.Books"; DestDir: "{app}"; DestName: "BK5WIN.EXE.Manifest"
 Source: "Bin\bkinstall.exe"; DestDir: "{app}"
 Source: "Bin\bkupgcor.dll"; DestDir: "{app}"
+Source: "Bin\Institutions.dat"; DestDir: "{app}"
 
 Source: "Books Files\guide_uk.chm"; DestDir: "{app}"; DestName: "guide.chm"
 
@@ -34,6 +35,8 @@ Source: "3rd Party\wPDFView01.DLL"; DestDir: "{app}"
 Source: "3rd Party\BKCASYS.EXE"; DestDir: "{app}"
 Source: "3rd Party\ipwssl6.dll"; DestDir: "{app}"
 Source: "3rd Party\gdiplus.dll"; DestDir: "{app}"
+Source: "3rd Party\libeay32.dll"; DestDir: "{app}"
+Source: "3rd Party\zint.dll"; DestDir: "{app}"
 
 [Registry]
 Root: HKCR; Subkey: ".bk5"; ValueType: string; ValueName: ""; ValueData: "BankLink.bkHandlr"; Flags: uninsdeletevalue

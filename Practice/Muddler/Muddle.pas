@@ -232,9 +232,24 @@ uses
 
 const
   MIN_NUM_REPLACE_LENGTH = 4;
-  FILE_EXT_LIST : Array[0..17] of string =
+  FILE_EXT_LIST : Array[0..21] of string =
     ('bk5','Exe','Inf','rsm','html','db','dat','ini','chm','dll','map','prs',
-     'ovl','current','Txn','tpm','bk!','xml');
+     'ovl','current','Txn','tpm','bk!','xml','manifest','com','pke','htm');
+  FILE_NAME_LIST : Array[0..12] of string =
+    ('Client Authority Form.pdf',
+     'Expat_License.txt',
+     'CAF_Generator.xlt',
+     'Third Party Authority.pdf',
+     'TPA_Generator.xlt',
+     'bkupgcor.dll.shadow',
+     'BKPrintMerge.doc',
+     'BKEmailMerge.doc',
+     'BKDataSource.csv',
+     'UK_HSBC_Template.pdf',
+     'UK_CAF_Template.pdf',
+     'CAF_Generator_Standard.xlt',
+     'CAF_Generator_HSBC.xlt'
+     );
   ACC_TYPE_NOT_MUDDLED = [btCashJournals,
                           btAccrualJournals,
                           btGSTJournals,
@@ -428,13 +443,33 @@ var
       end;
     end;
   end;
+
+  //- - - - - - - - - - - - - - - - - - - - - -
+  function FileNameUsed : Boolean;
+  var
+    ExtIndex : integer;
+  begin
+    Result := false;
+    for ExtIndex := Low(FILE_NAME_LIST) to High(FILE_NAME_LIST) do
+    begin
+      if Uppercase(FILE_NAME_LIST[ExtIndex]) = uppercase(FileName) then
+      begin
+        Result := true;
+        Exit;
+      end;
+    end;
+  end;
+
+
 begin
   Result := false;
 
   FileExt := GetFileExt(FileName);
 
   if FileExtUsed then
-    Result := true;
+    Result := true
+  else
+    Result := FileNameUsed;
 
   if (Length(FileExt) = 3) and
     (trystrtoint(FileExt, Value)) then
@@ -1199,6 +1234,7 @@ begin
       RenameFile(PChar(fArrFileOldNew[FileIndex].NewName),
                  PChar(fArrFileOldNew[FileIndex].OldName));
     end;
+    SetLength(fArrFileOldNew, 0);
 
   finally
     SysUtils.FindClose(SearchRec);

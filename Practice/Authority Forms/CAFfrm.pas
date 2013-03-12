@@ -1,11 +1,21 @@
 // Client Authority Form for AU accounts
 unit CAFfrm;
 
+//------------------------------------------------------------------------------
 interface
 
 uses
-  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, ExtCtrls,
+  Windows,
+  Messages,
+  SysUtils,
+  Variants,
+  Classes,
+  Graphics,
+  Controls,
+  Forms,
+  Dialogs,
+  StdCtrls,
+  ExtCtrls,
   OSFont;
 
 type
@@ -15,7 +25,6 @@ type
     lblManager: TLabel;
     lblBankLink: TLabel;
     lblPos: TLabel;
-    lblPos1: TLabel;
     lblClause1: TLabel;
     lblPos2: TLabel;
     lblSign: TLabel;
@@ -88,6 +97,11 @@ type
     rbWeekly: TRadioButton;
     rbDaily: TRadioButton;
     cbProvisional: TCheckBox;
+    cmbInstitutionCountry: TComboBox;
+    Label1: TLabel;
+    edtInstitutionName: TEdit;
+    lblPos1: TLabel;
+    cmbInstitutionName: TComboBox;
     procedure btnPreviewClick(Sender: TObject);
     procedure btnFileClick(Sender: TObject);
     procedure btnPrintClick(Sender: TObject);
@@ -100,6 +114,8 @@ type
     procedure edtKeyPress(Sender: TObject; var Key: Char);
     procedure btnClearClick(Sender: TObject);
     procedure btnImportClick(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
+    procedure cmbInstitutionNameChange(Sender: TObject);
   private
     { Private declarations }
     FButton: Byte;
@@ -112,14 +128,57 @@ type
     property ImportFile: string read FImportFile write SetImportFile;
   end;
 
-
-
+//------------------------------------------------------------------------------
 implementation
-
-uses ErrorMoreFrm,bkConst, Globals, AuthorityUtils, WinUtils, InfoMoreFrm, ShellAPI, bkHelp;
-
 {$R *.dfm}
 
+uses
+  ErrorMoreFrm,
+  bkConst,
+  Globals,
+  AuthorityUtils,
+  WinUtils,
+  InfoMoreFrm,
+  ShellAPI,
+  bkHelp,
+  InstitutionCol;
+
+Const
+  UNIT_NAME = 'TPAfrm';
+  COUNTY_CODE = 'OZ';
+  SET_BANK_WIDTH = 437;
+  OTHER_BANK_WIDTH = 129;
+
+//------------------------------------------------------------------------------
+procedure TfrmCAF.FormCreate(Sender: TObject);
+var
+  Index : integer;
+  CountryIndex : integer;
+begin
+  // Institution Country Names
+  for Index := 0 to Institutions.CountryCodes.Count-1 do
+  begin
+    if Institutions.CountryCodes.Strings[Index] = COUNTY_CODE then
+      CountryIndex := Index;
+
+    cmbInstitutionCountry.AddItem(Institutions.CountryNames.Strings[Index],nil);
+  end;
+  cmbInstitutionCountry.itemindex := CountryIndex;
+  cmbInstitutionCountry.Enabled := false;
+
+  // Institution Names
+  cmbInstitutionName.AddItem('Other', nil);
+  for Index := 0 to Institutions.Count-1 do
+  begin
+    if TInstitutionItem(Institutions.Items[Index]).CountryCode = COUNTY_CODE then
+      cmbInstitutionName.AddItem(TInstitutionItem(Institutions.Items[Index]).Name ,Institutions.Items[Index]);
+  end;
+
+  cmbInstitutionName.Width := SET_BANK_WIDTH;
+  edtInstitutionName.Enabled := false;
+end;
+
+//------------------------------------------------------------------------------
 function TfrmCAF.ValidateForm: Boolean;
 var
   y: string;
@@ -162,8 +221,25 @@ begin
     edtPractice.SetFocus;
     Result := False;
   end;
+
+    // Institution Name
+  if Result and (cmbInstitutionName.ItemIndex = -1) then
+  begin
+    HelpfulErrorMsg('You must choose a Bank Name.', 0);
+    cmbInstitutionName.SetFocus;
+    Result := False;
+  end;
+
+  // Institution Other Name
+  if Result and (cmbInstitutionName.ItemIndex = 0) and (edtInstitutionName.text = '') then
+  begin
+    HelpfulErrorMsg('You must enter a Bank Name.', 0);
+    edtInstitutionName.SetFocus;
+    Result := False;
+  end;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmCAF.btnPreviewClick(Sender: TObject);
 begin
   if ValidateForm then
@@ -173,6 +249,7 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmCAF.btnClearClick(Sender: TObject);
 begin
   edtName1.Clear;
@@ -200,6 +277,7 @@ begin
   cbProvisional.Checked := False;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmCAF.btnEmailClick(Sender: TObject);
 begin
   if ValidateForm then
@@ -209,6 +287,7 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmCAF.btnFileClick(Sender: TObject);
 begin
   if ValidateForm then
@@ -218,16 +297,19 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmCAF.btnImportClick(Sender: TObject);
 begin
-   OpenDlg.FileName := ImportFile;
-   if OpenDlg.Execute then begin
-       ImportFile := OpenDlg.FileName;
-       FButton := BTN_IMPORT;
-       ModalResult := mrOk;
-   end;
+  OpenDlg.FileName := ImportFile;
+  if OpenDlg.Execute then
+  begin
+    ImportFile := OpenDlg.FileName;
+    FButton := BTN_IMPORT;
+    ModalResult := mrOk;
+  end;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmCAF.btnPrintClick(Sender: TObject);
 begin
   if ValidateForm then
@@ -237,6 +319,23 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
+procedure TfrmCAF.cmbInstitutionNameChange(Sender: TObject);
+begin
+  if cmbInstitutionName.ItemIndex = 0 then
+  begin
+    cmbInstitutionName.Width := OTHER_BANK_WIDTH;
+    edtInstitutionName.text := '';
+    edtInstitutionName.Enabled := true;
+  end
+  else
+  begin
+    cmbInstitutionName.Width := SET_BANK_WIDTH;
+    edtInstitutionName.Enabled := false;
+  end;
+end;
+
+//------------------------------------------------------------------------------
 procedure TfrmCAF.cmbMonthChange(Sender: TObject);
 begin
   if cmbMonth.ItemIndex = 1 then
@@ -248,30 +347,34 @@ begin
     edtYear.Enabled := True;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmCAF.btnCancelClick(Sender: TObject);
 begin
   FButton := BTN_NONE;
   ModalResult := mrCancel;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmCAF.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
   if ModalResult = mrCancel then
     FButton := BTN_NONE;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmCAF.FormShow(Sender: TObject);
 begin
   BKHelpSetUp(Self, BKH_Accessing_a_Client_Authority_Form);
   ScrollBox1.ScrollInView(lblTitle); // scroll to top
 end;
 
-
+//------------------------------------------------------------------------------
 procedure TfrmCAF.SetImportFile(const Value: string);
 begin
   FImportFile := Value;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmCAF.edtKeyPress(Sender: TObject; var Key: Char);
 begin
   if ((Key < 'a') or (Key >'z')) and
@@ -281,6 +384,7 @@ begin
     Key := #0;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmCAF.edtExit(Sender: TObject);
 var
   e: TEdit;

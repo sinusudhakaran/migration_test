@@ -172,6 +172,7 @@ type
     fBadForexCurrencyCode : String;
     fBadForexAccountCode : String;
     fGlobalRedrawForeign: Boolean;
+    fDoNotRefresh : boolean;
 
     fRefreshRequestRecursionLevel: integer;
     FInRefreshExchangeGainLoss: Boolean;
@@ -248,7 +249,8 @@ uses
   ExchangeRateList, frmExchangeRates, GSTUTIL32, Dialogs,
   ForexHelpers,
   YesNoDlg,
-  ExchangeGainLossWiz;
+  ExchangeGainLossWiz,
+  LockUtils;
 {$R *.dfm}
 
 var
@@ -793,8 +795,10 @@ end;
 
 procedure TfrmClientHomePage.FormActivate(Sender: TObject);
 begin
-   if not FClosing then
-       RefreshRequest := [HPR_Coding];
+  if (not FClosing) and
+     (not FileLocking.LockMessageDisplaying) then
+    RefreshRequest := [HPR_Coding];
+
   EnableMenuItem( GetSystemMenu( handle, False ),
                   SC_MINIMIZE,
                   MF_BYCOMMAND or MFS_GRAYED );
@@ -838,6 +842,7 @@ const
 begin
    FInRefreshExchangeGainLoss := False;
    
+   fDoNotRefresh := false;
    bkXPThemes.ThemeForm(Self);
    BKHelpSetUp(self, BKH_The_Client_Home_Page);
    SetGlobalRedrawForeign(False);
@@ -1591,55 +1596,64 @@ var kc: TCursor;
        KeepTop: Integer;
 begin
    if not Assigned(FTheClient) then
-      Exit;
+     Exit;
    if FClosing then
-      Exit;
+     Exit;
    if FRefreshRequest = [] then
-      Exit;
-   if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Enter UpdateRefresh');
-   kc := Screen.Cursor;
-   KeepTop := GrpAction.Top;
-   gbGroupBar.BeginUpdateLayout;
+     Exit;
+   if fDoNotRefresh then
+     Exit;
 
-   Inc(fRefreshRequestRecursionLevel);
-   Screen.Cursor := crHourGlass;
+   fDoNotRefresh := true;
+
    try
-      // Something to refresh..
-      if ([HRP_Init,HPR_Coding,HPR_Files] * FRefreshRequest) <> [] then
-         RefreshCoding(False);
+     if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Enter UpdateRefresh');
+     kc := Screen.Cursor;
+     KeepTop := GrpAction.Top;
+     gbGroupBar.BeginUpdateLayout;
+     Inc(fRefreshRequestRecursionLevel);
+     Screen.Cursor := crHourGlass;
+     try
+        // Something to refresh..
+        if ([HRP_Init,HPR_Coding,HPR_Files] * FRefreshRequest) <> [] then
+           RefreshCoding;
 
-      if ([HRP_Init,HPR_Client] * FRefreshRequest) <> [] then
-         RefreshClient;
+        if ([HRP_Init,HPR_Client] * FRefreshRequest) <> [] then
+           RefreshClient;
 
-      if ([HRP_Init,HPR_Tasks] * FRefreshRequest) <> [] then
-         RefreshToDo;
+        if ([HRP_Init,HPR_Tasks] * FRefreshRequest) <> [] then
+           RefreshToDo;
 
-      if ([HRP_Init,HPR_Files] * FRefreshRequest) <> [] then
-         RefreshFiles;
+        if ([HRP_Init,HPR_Files] * FRefreshRequest) <> [] then
+           RefreshFiles;
 
-      if ([HRP_Init, HPR_ExchangeGainLoss_NewData] * FRefreshRequest) <> [] then
-        RefreshExchangeGainLoss;
+        if ([HRP_Init, HPR_ExchangeGainLoss_NewData] * FRefreshRequest) <> [] then
+          RefreshExchangeGainLoss;
 
-      if ([HRP_Init, HPR_ExchangeGainLoss_Rates] * FRefreshRequest) <> [] then
-        RefreshExchangeGainLossRates;
+        if ([HRP_Init, HPR_ExchangeGainLoss_Rates] * FRefreshRequest) <> [] then
+          RefreshExchangeGainLossRates;
 
-      if ([HRP_Init, HPR_ExchangeGainLoss_Message] * FRefreshRequest) <> [] then
-        RefreshExchangeGainLossDelete;
+        if ([HRP_Init, HPR_ExchangeGainLoss_Message] * FRefreshRequest) <> [] then
+          RefreshExchangeGainLossDelete;
 
-      if HRP_Init in FRefreshRequest then begin
-         if (Self.WindowState = wsMinimized) then
-            ShowWindow(Self.Handle, SW_RESTORE);
-         Self.BringToFront;
-      end;
+        if HRP_Init in FRefreshRequest then begin
+           if (Self.WindowState = wsMinimized) then
+              ShowWindow(Self.Handle, SW_RESTORE);
+           Self.BringToFront;
+        end;
 
-      FRefreshRequest := [];
+        FRefreshRequest := [];
+     finally
+        Dec(fRefreshRequestRecursionLevel);
+        Screen.Cursor := kc;
+
+        gbGroupBar.EndUpdateLayout;
+        if KeepTop <> GrpAction.Top then
+           gbGroupBar.ScrollPosition := gbGroupBar.ScrollPosition + ( GrpAction.Top - KeepTop)
+     end;
+     if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Exit UpdateRefresh');
    finally
-      Dec(fRefreshRequestRecursionLevel);
-      Screen.Cursor := kc;
-
-      gbGroupBar.EndUpdateLayout;
-      if KeepTop <> GrpAction.Top then
-         gbGroupBar.ScrollPosition := gbGroupBar.ScrollPosition + ( GrpAction.Top - KeepTop)
+     fDoNotRefresh := false;
    end;
    if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Exit UpdateRefresh');
 end;

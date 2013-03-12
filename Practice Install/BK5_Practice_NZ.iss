@@ -28,6 +28,7 @@ Source: "Bin\bkinstall.exe"; DestDir: "{app}"
 Source: "Bin\bkupgcor.dll"; DestDir: "{app}"
 Source: "Bin\NZ.INF"; DestDir: "{app}"
 Source: "Bin\OZ.INF"; DestDir: "{app}"
+Source: "Bin\Institutions.dat"; DestDir: "{app}"
 
 Source: "Practice Help\guide_nz.chm"; DestDir: "{app}"; DestName: "guide.chm"
 
@@ -53,6 +54,8 @@ Source: "3rd Party\BKCASYS.EXE"; DestDir: "{app}"
 Source: "3rd Party\GET4CEE.EXE"; DestDir: "{app}"
 Source: "3rd Party\ACTCHART.EXE"; DestDir: "{app}"
 Source: "3rd Party\S6BNK.COM"; DestDir: "{app}"
+Source: "3rd Party\libeay32.dll"; DestDir: "{app}"
+Source: "3rd Party\zint.dll"; DestDir: "{app}"
 
 Source: "AuthorityForms\Third Party Authority.pdf"; DestDir: "{app}"
 Source: "AuthorityForms\TPA_Generator.xlt"; DestDir: "{app}"
@@ -61,6 +64,8 @@ Source: "Practice CD Files\NZ Samples\NZCODED.BK5"; DestDir: "{app}\SAMPLES"
 Source: "Practice CD Files\NZ Samples\JO.BK5"; DestDir: "{app}\SAMPLES"
 Source: "Practice CD Files\NZ Samples\JOCODED.BK5"; DestDir: "{app}\SAMPLES"
 Source: "Practice CD Files\NZ Samples\NZUNCODE.BK5"; DestDir: "{app}\SAMPLES"
+
+Source: "Publickeys\PublicKeyCafQrCode.pke"; DestDir : "{app}\Publickeys"
 
 [Icons]
 Name: "{group}\BankLink Practice"; Filename: "{app}\BK5WIN.EXE"

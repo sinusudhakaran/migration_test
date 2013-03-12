@@ -16,6 +16,7 @@ object frmTPA: TfrmTPA
   OldCreateOrder = False
   Position = poScreenCenter
   OnClose = FormClose
+  OnCreate = FormCreate
   OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 13
@@ -24,7 +25,7 @@ object frmTPA: TfrmTPA
     Top = 0
     Width = 692
     Height = 657
-    VertScrollBar.Position = 221
+    VertScrollBar.Position = 213
     Align = alClient
     BevelOuter = bvNone
     Font.Charset = DEFAULT_CHARSET
@@ -36,7 +37,7 @@ object frmTPA: TfrmTPA
     TabOrder = 0
     object pnlHeader: TPanel
       Left = 0
-      Top = -221
+      Top = -213
       Width = 671
       Height = 49
       Align = alTop
@@ -83,7 +84,7 @@ object frmTPA: TfrmTPA
     end
     object pnlAccount3: TPanel
       Left = 0
-      Top = -44
+      Top = -36
       Width = 671
       Height = 64
       Align = alTop
@@ -173,7 +174,7 @@ object frmTPA: TfrmTPA
     end
     object pnlAccount2: TPanel
       Left = 0
-      Top = -108
+      Top = -100
       Width = 671
       Height = 64
       Align = alTop
@@ -263,7 +264,7 @@ object frmTPA: TfrmTPA
     end
     object pnlFooter: TPanel
       Left = 0
-      Top = 20
+      Top = 28
       Width = 671
       Height = 41
       Align = alTop
@@ -284,7 +285,7 @@ object frmTPA: TfrmTPA
     end
     object pnlAccount1: TPanel
       Left = 0
-      Top = -172
+      Top = -164
       Width = 671
       Height = 64
       Align = alTop
@@ -374,9 +375,9 @@ object frmTPA: TfrmTPA
     end
     object pnlBank: TPanel
       Left = 0
-      Top = 61
+      Top = 69
       Width = 671
-      Height = 119
+      Height = 111
       Align = alTop
       BevelOuter = bvNone
       TabOrder = 3
@@ -388,34 +389,76 @@ object frmTPA: TfrmTPA
         Caption = 'To:  The Manager,'
       end
       object lblPos: TLabel
-        Left = 8
-        Top = 51
-        Width = 159
+        Left = 374
+        Top = 92
+        Width = 71
         Height = 13
-        Caption = '(Insert name of Bank and Branch)'
+        Caption = '(Branch Name)'
       end
       object lblPos1: TLabel
-        Left = 8
-        Top = 76
+        Left = 498
+        Top = 6
         Width = 157
         Height = 39
         Caption = 
           'And:'#13'To:   The General Manager,'#13'        Media Transfer Services ' +
           'Ltd'
       end
+      object Label1: TLabel
+        Left = 381
+        Top = 49
+        Width = 62
+        Height = 13
+        Caption = '(Bank Name)'
+      end
       object edtBank: TEdit
         Left = 8
-        Top = 29
-        Width = 387
+        Top = 68
+        Width = 437
         Height = 21
-        Hint = 
-          'Enter the name of the bank and branch where the account(s) are h' +
-          'eld'
+        Hint = 'Enter the name of the branch where the account(s) are held'
         MaxLength = 50
         ParentShowHint = False
         ShowHint = True
-        TabOrder = 0
+        TabOrder = 2
         OnExit = edtExit
+      end
+      object cmbInstitutionCountry: TComboBox
+        Left = 8
+        Top = 27
+        Width = 97
+        Height = 21
+        Hint = 'Choose the month in which you want data collection to start'
+        Style = csDropDownList
+        ItemHeight = 13
+        ParentShowHint = False
+        ShowHint = True
+        TabOrder = 3
+        OnChange = cmbMonthChange
+      end
+      object edtInstitutionName: TEdit
+        Left = 143
+        Top = 27
+        Width = 302
+        Height = 21
+        Hint = 'Enter the bank where the account(s) are held'
+        MaxLength = 40
+        ParentShowHint = False
+        ShowHint = True
+        TabOrder = 1
+      end
+      object cmbInstitutionName: TComboBox
+        Left = 8
+        Top = 27
+        Width = 129
+        Height = 21
+        Hint = 'Select the bank where the account(s) are held'
+        Style = csDropDownList
+        ItemHeight = 13
+        ParentShowHint = False
+        ShowHint = True
+        TabOrder = 0
+        OnChange = cmbInstitutionNameChange
       end
     end
     object pnl1: TPanel
@@ -678,11 +721,10 @@ object frmTPA: TfrmTPA
           Width = 113
           Height = 17
           Hint = 'Click to select monthly (default) data delivery'
-          Caption = 'Monthly (default)'
+          Caption = 'Monthly'
           ParentShowHint = False
           ShowHint = True
           TabOrder = 0
-          TabStop = True
         end
         object rbWeekly: TRadioButton
           Left = 140
@@ -703,6 +745,7 @@ object frmTPA: TfrmTPA
           Height = 17
           Hint = 'Click to select daily data delivery'
           Caption = 'Daily (where available)'
+          Checked = True
           ParentShowHint = False
           ShowHint = True
           TabOrder = 2
@@ -853,7 +896,7 @@ object frmTPA: TfrmTPA
   end
   object Opendlg: TOpenDialog
     Filter = 'Excel file*.xls|*.xls'
-    Left = 320
-    Top = 16
+    Left = 392
+    Top = 8
   end
 end

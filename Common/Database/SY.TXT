@@ -1,4 +1,4 @@
-$|SY_FILE_VERSION   = 129;  (* Current Version counter for files
+$|SY_FILE_VERSION   = 131;  (* Current Version counter for files
 $|                           Changes if structure or method of storing a value would cause
 $|                           data to be represented incorrectly, or an exception to be raised *)
 $|
@@ -118,6 +118,8 @@ $|                            Renamed User Password to Redundant Password and cr
 $|                            Changed fd Spare Boolean 3 to fd Use BankLink Online
 $|                            Added BankLink Online Config (reused fd Spare Text 14) and Last Online Upadate fields to Practice Details
 $|    5.23.0 (BLOPI)    129   Added User Data Block and Using Secure Password to practice user
+$|    5.24.0 (BLOPI)    130   Added field for storing the last agreed to banklink online service agreement version
+$|    5.24.0 (BLOPI)    130   Added field for suspending banklink online
 $|*)
 
 N|Practice Details|fd|10
@@ -298,6 +300,8 @@ F|Sched Rep Online Message|AS
 F|Sched Rep Online Custom Doc GUID|AS
 F|Sched Rep Online Custom Doc|B
 F|Last BankLink Online Update|D
+F|Last Agreed To BLOSA|S|32
+F|Banklink Online Suspended|Y
 E
 
 N|System Disk Log|dl|40

@@ -332,7 +332,7 @@ begin
   begin
     ClientSynced := AdminSystem.fdFields.fdMagic_Number = MyClient.clFields.clMagic_Number;
 
-    if UseBankLinkOnline then begin
+    if ProductConfigService.ServiceActive then begin
       lblClientBOProducts.Visible := ClientSynced;
 
       btnClientSettings.Enabled := ClientSynced and
@@ -702,7 +702,7 @@ begin
   BlankEmailIsValid := false;
   // Cico valid Email
   if (Assigned(AdminSystem)) and
-     (AdminSystem.fdFields.fdUse_BankLink_Online) and
+     (ProductConfigService.ServiceActive) and
      (ProductConfigService.IsCICOEnabled) and
      (not RegExIsEmailValid(EMail.Text)) then
   begin

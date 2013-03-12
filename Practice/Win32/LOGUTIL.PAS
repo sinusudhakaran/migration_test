@@ -24,16 +24,18 @@ unit LogUtil;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 interface
+
 type
   TMessageType = (lmError,lmDebug,lmInfo);
 
-procedure LogMsg( MsgType : TMessageType; UnitName, msg : string; Stat_ID : byte = 0);
+procedure LogMsg( MsgType : TMessageType; UnitName, msg : string; Stat_ID : byte = 0; LockLog: Boolean = True);
 function  DebugUnit( unitname:string) :boolean;
+
 
 //******************************************************************************
 implementation
 
-procedure LogMsg( MsgType : TMessageType; UnitName, msg : string; Stat_ID : byte = 0);
+procedure LogMsg( MsgType : TMessageType; UnitName, msg : string; Stat_ID : byte = 0; LockLog: Boolean = True);
 begin
   //
 end;
@@ -50,11 +52,11 @@ end;
 //----------------------------------------------------------------------------
 
 interface
-
+   
 type
   TMessageType = (lmError,lmDebug,lmInfo);
 
-procedure LogMsg( MsgType : TMessageType; UnitName, msg : string; Stat_ID : byte = 0);
+procedure LogMsg( MsgType : TMessageType; UnitName, msg : string; Stat_ID : byte = 0; LockLog: Boolean = True);
 procedure LogError (Unitname, msg: string);
 function  DebugUnit( unitname:string) :boolean;
 function  TokenToStr( b : byte):string;
@@ -63,10 +65,9 @@ function  LogFileName : string;
 implementation
 {----------------------------------}
 uses
-   ErrorLog;
-
+   ErrorLog, SysUtils;
 {----------------------------------}
-procedure LogMsg( MsgType : TMessageType; UnitName, msg : string; Stat_ID : byte = 0);
+procedure LogMsg( MsgType : TMessageType; UnitName, msg : string; Stat_ID : byte = 0; LockLog: Boolean = True);
 var
    SysLogType : TSysLogType;
 begin
@@ -79,7 +80,16 @@ begin
    end;
 
    if Assigned(SysLog) then
-      SysLog.SysLogMessage(sysLogType,unitName,msg, Stat_ID);
+   begin
+     if LockLog then
+     begin
+       SysLog.SysLogMessage(sysLogType,unitName,msg, Stat_ID);
+     end
+     else
+     begin
+       SysLog.SysLogMessageNoLock(sysLogType,unitName,msg, Stat_ID);
+     end;
+   end;
 end;
 
 {----------------------------------}

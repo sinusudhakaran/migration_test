@@ -6,7 +6,7 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <DCC_DCCCompiler>DCC32</DCC_DCCCompiler>
-    <DCC_DependencyCheckOutputName>C:\Practices\B73064_BTMAN2_5.24.0.4746\BK5WIN.exe</DCC_DependencyCheckOutputName>
+    <DCC_DependencyCheckOutputName>C:\Testing\06 Online\NZ Prac\BK5WIN.exe</DCC_DependencyCheckOutputName>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <Version>7.0</Version>
@@ -46,12 +46,10 @@
     <DCC_WriteableConstants>True</DCC_WriteableConstants>
     <DCC_BplOutput>..\Binaries</DCC_BplOutput>
     <DCC_SymbolReferenceInfo>2</DCC_SymbolReferenceInfo>
-    <DCC_ExeOutput>C:\Practices\B73064_BTMAN2_5.24.0.4746</DCC_ExeOutput>
+    <DCC_ExeOutput>C:\Testing\06 Online\NZ Prac</DCC_ExeOutput>
     <DCC_DebugInfoInExe>True</DCC_DebugInfoInExe>
     <DCC_DebugVN>True</DCC_DebugVN>
     <DCC_Optimize>False</DCC_Optimize>
-    <DCC_IntegerOverflowCheck>True</DCC_IntegerOverflowCheck>
-    <DCC_RangeChecking>True</DCC_RangeChecking>
     <DCC_RemoteDebug>True</DCC_RemoteDebug>
   </PropertyGroup>
   <ProjectExtensions>
@@ -81,8 +79,19 @@
       
       
       
-      <Excluded_Packages Name="C:\components\RC4\Bin\RaizeComponentsVclDB_Design100.bpl">Raize Components 4.3.2 (Data-Aware)</Excluded_Packages>
+      
+      
+      
+      
+      
+      
+      
+      
+      <Excluded_Packages Name="$(BDS)\bin\bcboffice2k100.bpl">CodeGear C++Builder Office 2000 Servers Package</Excluded_Packages>
+      <Excluded_Packages Name="$(BDS)\bin\bcbofficexp100.bpl">CodeGear C++Builder Office XP Servers Package</Excluded_Packages>
       <Excluded_Packages Name="$(BDS)\bin\dcloffice2k100.bpl">Microsoft Office 2000 Sample Automation Server Wrapper Components</Excluded_Packages>
+      <Excluded_Packages Name="$(BDS)\bin\dclofficexp100.bpl">Microsoft Office XP Sample Automation Server Wrapper Components</Excluded_Packages>
+      <Excluded_Packages Name="C:\Program Files (x86)\Gnostice\PDFtoolkit VCL\Lib\RAD2007\DCLgtPDFkitD2007ProP.bpl">File C:\Program Files (x86)\Gnostice\PDFtoolkit VCL\Lib\RAD2007\DCLgtPDFkitD2007ProP.bpl not found</Excluded_Packages>
     </Excluded_Packages><Source><Source Name="MainSource">BK5WIN.DPR</Source></Source></Delphi.Personality></BorlandProject></BorlandProject>
   </ProjectExtensions>
   <Import Project="$(MSBuildBinPath)\Borland.Delphi.Targets" />

@@ -326,7 +326,7 @@ begin
                     'Set the maximum number of characters to extract from the narration|'+
                     'Set the maximum number of characters to extract from the narration';
 
-   eGST101.Hint := 'URL for the IRD''s online GST101 form';
+   eGST101.Hint := 'URL for the IRD''s Website';
 
    edtPortNo.Hint := 'Enter Port Number|Enter Port Number';
 

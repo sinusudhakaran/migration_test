@@ -37,7 +37,7 @@ begin
   result := '';
 
   Filename := GetClientNotesFilename( cLRN);
-  LockUtils.ObtainLock( ltClientNotes, cLRN, Globals.PRACINI_TicksToWaitForAdmin div 1000);
+  FileLocking.ObtainLock( ltClientNotes, cLRN, Globals.PRACINI_TicksToWaitForAdmin div 1000);
   try
     if BKFileExists( Filename) then
     begin
@@ -50,7 +50,7 @@ begin
       end;
     end;
   finally
-    LockUtils.ReleaseLock( ltClientNotes, cLRN);
+    FileLocking.ReleaseLock( ltClientNotes, cLRN);
   end;
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -60,7 +60,7 @@ var
   Notes    : TStringList;
 begin
   Filename := GetClientNotesFilename( cLRN);
-  LockUtils.ObtainLock( ltClientNotes, cLRN, Globals.PRACINI_TicksToWaitForAdmin div 1000);
+  FileLocking.ObtainLock( ltClientNotes, cLRN, Globals.PRACINI_TicksToWaitForAdmin div 1000);
   try
     Notes := TStringList.Create;
     try
@@ -70,7 +70,7 @@ begin
       Notes.Free;
     end;
   finally
-    LockUtils.ReleaseLock( ltClientNotes, cLRN);
+    FileLocking.ReleaseLock( ltClientNotes, cLRN);
   end;
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

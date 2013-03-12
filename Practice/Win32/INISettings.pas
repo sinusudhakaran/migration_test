@@ -44,7 +44,8 @@ uses
   WinUtils,
   ThirdPartyHelper,
   Classes,
-  Windows, SHFolder;
+  Windows,
+  SHFolder;
 
 const
    GrpMainForm = 'MainForm';
@@ -61,6 +62,7 @@ const
    GrpInfo       = 'Info';
    GrpMAPI       = 'MAPI';
    GrpSysAccounts = 'SystemAccounts';
+   GrpLocking    = 'Locking';
 
    GrpClientMgr  = 'ClientMgr';
    GrpGlobalSetup = 'GlobalSetup';
@@ -86,6 +88,7 @@ const
 
    DefLinkGST101 = 'https://www.ird.govt.nz/cgi-bin/form.cgi?form=gst101';
    DefLinkGST103 = 'https://www.ird.govt.nz/cgi-bin/form.cgi?form=gst103';
+   DefLinkGST_Books = 'https://www.ird.govt.nz';
    DefInstListLinkNZ = 'http://www.banklink.co.nz/about_institutions.html';
    DefInstListLinkAU = 'http://www.banklink.com.au/about_institutions.html';
    DefInstListLinkUK = 'http://www.banklink.co.uk/institutions.html';
@@ -99,7 +102,7 @@ const
       5.2.0.47     1: Introduced versioning of ini file
    *)
 
-   PRAC_INI_Version = 2;
+   PRAC_INI_Version = 3;
 
    (* History
       5.2.0.47     1: Introduced versioning of ini file
@@ -328,7 +331,8 @@ begin
       'ColorA=0,ColorB=0,ColorC=0,ColorD=0,ColorE=0,ColorF=0,ColorG=0,ColorH=0,ColorI=0,ColorJ=0,ColorK=0,ColorL=0,ColorM=0,ColorN=0,ColorO=0,ColorP=0');
 
       Orig_Version                := IniFile.ReadInteger( GrpInfo, 'INIVersion', BK5_INI_VERSION);
-      if Orig_Version < BK5_INI_VERSION then begin
+      if Orig_Version < BK5_INI_VERSION then
+      begin
         //upgrade fields as required
       end;
 
@@ -592,7 +596,11 @@ begin
         PRACINI_InstListLinkAU := ReadString(GrpPracLinks,'InstitutionListAU',DefInstListLinkAU);
         PRACINI_InstListLinkUK := ReadString(GrpPracLinks,'InstitutionListUK',DefInstListLinkUK);
 
-        PRACINI_GST101Link := ReadString(GrpPracLinks ,'Gst101',DefLinkGST103);
+        if Assigned(AdminSystem) then
+          PRACINI_GST101Link := ReadString(GrpPracLinks ,'Gst101',DefLinkGST103)
+        else
+          PRACINI_GST101Link := ReadString(GrpPracLinks ,'Gst101',DefLinkGST_Books);
+
         if Sametext(PRACINI_GST101Link,DefLinkGST101) then  // Case 8815
            PRACINI_GST101Link := DefLinkGST103;
 
@@ -644,7 +652,30 @@ begin
         PRACINI_DataPlatform_Services_URL := ReadString( GrpPracEnv, 'DataPlatformServicesURL', '');
 
         PRACINI_BankLink_Online_Services_URL := ReadString( GrpPracEnv, 'BankLinkOnlineServicesURL', BANKLINK_ONLINE_SERVICES_DEFAULT_URL);
-        
+
+        PRACINI_IPClientLocking_SwitchedOn  := ReadBool( GrpLocking, 'IPClientLockingSwitchedOn', false);
+        PRACINI_IPClientLocking_UDP_Server_IP := ReadString( GrpLocking, 'IPClientLockingUDPServerIP', '');
+        PRACINI_IPClientLocking_UDP_Server_Port := ReadInteger( GrpLocking, 'IPClientLockingUDPServerPort', -1);
+
+        PRACINI_IPClientLocking_UDP_Client_Port := ReadInteger( GrpLocking, 'IPClientLockingUDPClientPort', 4323);
+        PRACINI_IPClientLocking_UDP_BuffInitSize := ReadInteger( GrpLocking, 'IPClientLockingUDPBuffInitSize', 1024);
+        PRACINI_IPClientLocking_DiscoveryTimeOut := ReadInteger( GrpLocking, 'IPClientLockingDiscoveryTimeOut', 60000);
+        PRACINI_IPClientLocking_UDPTimeOut := ReadInteger( GrpLocking, 'IPClientLockingUDPTimeOut', 100);
+        PRACINI_IPClientLocking_LockTimeOut := ReadInteger( GrpLocking, 'IPClientLockingLockTimeOut', 60000);
+        PRACINI_IPClientLocking_TCPTimeOut := ReadInteger( GrpLocking, 'IPClientLockingTCPTimeOut', 100);
+        PRACINI_IPClientLocking_ProcessMessageDelay := ReadInteger( GrpLocking, 'IPClientLockingProcessMessageDelay', 250);
+
+        InitLocking(PRACINI_IPClientLocking_SwitchedOn,
+                    PRACINI_IPClientLocking_UDP_Client_Port,
+                    PRACINI_IPClientLocking_UDP_BuffInitSize,
+                    PRACINI_IPClientLocking_DiscoveryTimeOut,
+                    PRACINI_IPClientLocking_UDPTimeOut,
+                    PRACINI_IPClientLocking_LockTimeOut,
+                    PRACINI_IPClientLocking_TCPTimeOut,
+                    PRACINI_IPClientLocking_ProcessMessageDelay,
+                    PRACINI_IPClientLocking_UDP_Server_IP,
+                    PRACINI_IPClientLocking_UDP_Server_Port);
+
         if Orig_Version < PRAC_INI_VERSION then begin
           // moved to db
           DeleteKey(GrpPracEnv, 'ForceLogin');
@@ -655,14 +686,29 @@ begin
         end;
       end;
    finally
-      if SaveRequired then
-        PracIniFile.UpdateFile;
-      PracIniFile.Free;
+     if SaveRequired then
+     begin
+       FileLocking.ObtainLock( ltPracIni, TimeToWaitForPracINI );
+       try
+         PracIniFile.UpdateFile;
+       finally
+         FileLocking.ReleaseLock( ltPracINI);
+       end;
+     end;
+
+     PracIniFile.Free;
    end;
 
    //immediately save ini if fields upgraded
    if SaveRequired then
-     WritePracticeINI;
+   begin
+     FileLocking.ObtainLock( ltPracIni, TimeToWaitForPracINI );
+     try
+       WritePracticeINI;
+     finally
+       FileLocking.ReleaseLock( ltPracINI);
+     end;
+   end;
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure WritePracticeINI;
@@ -750,6 +796,18 @@ begin
                WriteInteger( GrpExchangeRates, 'ColPos' + inttostr( i), PRACINI_ER_Column_Positions[i]);
            end;
 
+           WriteBool(GrpLocking, 'IPClientLockingSwitchedOn', PRACINI_IPClientLocking_SwitchedOn);
+           WriteString(GrpLocking, 'IPClientLockingUDPServerIP', PRACINI_IPClientLocking_UDP_Server_IP);
+           WriteInteger(GrpLocking, 'IPClientLockingUDPServerPort', PRACINI_IPClientLocking_UDP_Server_Port);  //#1556
+
+           WriteInteger(GrpLocking, 'IPClientLockingUDPClientPort', PRACINI_IPClientLocking_UDP_Client_Port);
+           WriteInteger(GrpLocking, 'IPClientLockingUDPBuffInitSize', PRACINI_IPClientLocking_UDP_BuffInitSize);
+           WriteInteger(GrpLocking, 'IPClientLockingDiscoveryTimeOut', PRACINI_IPClientLocking_DiscoveryTimeOut);
+           WriteInteger(GrpLocking, 'IPClientLockingUDPTimeOut', PRACINI_IPClientLocking_UDPTimeOut);
+           WriteInteger(GrpLocking, 'IPClientLockingLockTimeOut', PRACINI_IPClientLocking_LockTimeOut);
+           WriteInteger(GrpLocking, 'IPClientLockingTCPTimeOut', PRACINI_IPClientLocking_TCPTimeOut);
+           WriteInteger(GrpLocking, 'IPClientLockingProcessMessageDelay', PRACINI_IPClientLocking_ProcessMessageDelay);
+
            WriteInteger( GrpPracInfo, 'IniVersion', PRAC_INI_VERSION);
          end;
       finally
@@ -766,11 +824,11 @@ end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure WritePracticeINI_WithLock;
 begin
-  LockUtils.ObtainLock( ltPracIni, TimeToWaitForPracINI );
+  FileLocking.ObtainLock( ltPracIni, TimeToWaitForPracINI );
   try
     WritePracticeINI;
   finally
-    LockUtils.ReleaseLock( ltPracIni );
+    FileLocking.ReleaseLock( ltPracIni );
   end;
 end;
 {$ENDIF}

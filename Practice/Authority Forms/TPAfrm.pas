@@ -1,11 +1,22 @@
 // Third Party Authority Form for NZ accounts
 unit TPAfrm;
 
+//------------------------------------------------------------------------------
 interface
 
 uses
-  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, ExtCtrls, Mask,
+  Windows,
+  Messages,
+  SysUtils,
+  Variants,
+  Classes,
+  Graphics,
+  Controls,
+  Forms,
+  Dialogs,
+  StdCtrls,
+  ExtCtrls,
+  Mask,
   OSFont;
 
 type
@@ -85,6 +96,10 @@ type
     lblName: TLabel;
     lblSign: TLabel;
     cbProvisional: TCheckBox;
+    cmbInstitutionCountry: TComboBox;
+    Label1: TLabel;
+    edtInstitutionName: TEdit;
+    cmbInstitutionName: TComboBox;
     procedure btnPreviewClick(Sender: TObject);
     procedure btnFileClick(Sender: TObject);
     procedure btnPrintClick(Sender: TObject);
@@ -97,6 +112,8 @@ type
     procedure edtKeyPress(Sender: TObject; var Key: Char);
     procedure btnClearClick(Sender: TObject);
     procedure btnImportClick(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
+    procedure cmbInstitutionNameChange(Sender: TObject);
   private
     FButton: Byte;
     FImportFile: string;
@@ -109,13 +126,56 @@ type
   end;
 
 
-
+//------------------------------------------------------------------------------
 implementation
-
-uses ErrorMoreFrm, Globals, AuthorityUtils, WinUtils, InfoMoreFrm, ShellAPI, bkHelp;
-
 {$R *.dfm}
 
+uses
+  ErrorMoreFrm,
+  Globals,
+  AuthorityUtils,
+  WinUtils,
+  InfoMoreFrm,
+  ShellAPI,
+  bkHelp,
+  InstitutionCol;
+
+Const
+  UNIT_NAME = 'TPAfrm';
+  COUNTY_CODE = 'NZ';
+  SET_BANK_WIDTH = 437;
+  OTHER_BANK_WIDTH = 129;
+
+//------------------------------------------------------------------------------
+procedure TfrmTPA.FormCreate(Sender: TObject);
+var
+  Index : integer;
+  CountryIndex : integer;
+begin
+  // Institution Country Names
+  for Index := 0 to Institutions.CountryCodes.Count-1 do
+  begin
+    if Institutions.CountryCodes.Strings[Index] = COUNTY_CODE then
+      CountryIndex := Index;
+
+    cmbInstitutionCountry.AddItem(Institutions.CountryNames.Strings[Index],nil);
+  end;
+  cmbInstitutionCountry.itemindex := CountryIndex;
+  cmbInstitutionCountry.Enabled := false;
+
+  // Institution Names
+  cmbInstitutionName.AddItem('Other', nil);
+  for Index := 0 to Institutions.Count-1 do
+  begin
+    if TInstitutionItem(Institutions.Items[Index]).CountryCode = COUNTY_CODE then
+      cmbInstitutionName.AddItem(TInstitutionItem(Institutions.Items[Index]).Name ,Institutions.Items[Index]);
+  end;
+
+  cmbInstitutionName.Width := SET_BANK_WIDTH;
+  edtInstitutionName.Enabled := false;
+end;
+
+//------------------------------------------------------------------------------
 function TfrmTPA.ValidateForm: Boolean;
 var
   y: string;
@@ -180,8 +240,25 @@ begin
       end;
     end;
   end;
+
+  // Institution Name
+  if Result and (cmbInstitutionName.ItemIndex = -1) then
+  begin
+    HelpfulErrorMsg('You must choose a Bank Name.', 0);
+    cmbInstitutionName.SetFocus;
+    Result := False;
+  end;
+
+  // Institution Other Name
+  if Result and (cmbInstitutionName.ItemIndex = 0) and (edtInstitutionName.text = '') then
+  begin
+    HelpfulErrorMsg('You must enter a Bank Name.', 0);
+    edtInstitutionName.SetFocus;
+    Result := False;
+  end;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmTPA.btnPreviewClick(Sender: TObject);
 begin
   if ValidateForm then
@@ -191,6 +268,7 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmTPA.btnClearClick(Sender: TObject);
 begin
   edtName1.Clear;
@@ -218,6 +296,7 @@ begin
   cbProvisional.Checked := False;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmTPA.btnEmailClick(Sender: TObject);
 begin
   if ValidateForm then
@@ -227,6 +306,7 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmTPA.btnFileClick(Sender: TObject);
 begin
   if ValidateForm then
@@ -236,6 +316,7 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmTPA.btnImportClick(Sender: TObject);
 begin
    OpenDlg.FileName := ImportFile;
@@ -246,6 +327,7 @@ begin
    end;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmTPA.btnPrintClick(Sender: TObject);
 begin
   if ValidateForm then
@@ -255,6 +337,23 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
+procedure TfrmTPA.cmbInstitutionNameChange(Sender: TObject);
+begin
+  if cmbInstitutionName.ItemIndex = 0 then
+  begin
+    cmbInstitutionName.Width := OTHER_BANK_WIDTH;
+    edtInstitutionName.Enabled := true;
+    edtInstitutionName.Text := '';
+  end
+  else
+  begin
+    cmbInstitutionName.Width := SET_BANK_WIDTH;
+    edtInstitutionName.Enabled := false;
+  end;
+end;
+
+//------------------------------------------------------------------------------
 procedure TfrmTPA.cmbMonthChange(Sender: TObject);
 begin
   if cmbMonth.ItemIndex = 1 then
@@ -271,29 +370,34 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmTPA.btnCancelClick(Sender: TObject);
 begin
   FButton := BTN_NONE;
   ModalResult := mrCancel;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmTPA.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
   if ModalResult = mrCancel then
     FButton := BTN_NONE;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmTPA.FormShow(Sender: TObject);
 begin
   BKHelpSetUp(Self, BKH_Accessing_a_Third_Party_Authority_form);
   ScrollBox1.ScrollInView(lblTitle); // scroll to top
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmTPA.SetImportFile(const Value: string);
 begin
   FImportFile := Value;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmTPA.edtKeyPress(Sender: TObject; var Key: Char);
 begin
   if ((Key < 'a') or (Key >'z')) and
@@ -303,6 +407,7 @@ begin
     Key := #0;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmTPA.edtExit(Sender: TObject);
 var
   e: TEdit;

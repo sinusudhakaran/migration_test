@@ -1054,7 +1054,8 @@ uses
   EditUserPassword,
   TransactionsToBankLinkOnlineFrm,
   BankLinkOnlineTaggingServices,
-  ModalProgressFrm;
+  ModalDualProgressFrm,
+  BlopiServiceAgreement;
   //StockBalancesDlg;
 
 const
@@ -1132,6 +1133,7 @@ end;
 
 procedure TfrmMain.FormCreate(Sender: TObject);
 begin
+  Randomize;
   ApplicationIsStarting := true;
   Globals.DDE_Macro_To_Process := '';
 
@@ -1497,6 +1499,37 @@ begin
     begin
        //Self.Tag := 0; case 7071 - everything now goes screen center
 
+       if Assigned(AdminSystem) then
+       begin
+         if AdminSystem.fdFields.fdUse_BankLink_Online then
+         begin
+           if not Assigned(ProductConfigService.Practice) then
+           begin
+             ProductConfigService.GetPractice(True);
+           end;
+
+           if ProductConfigService.OnLine and ProductConfigService.Registered then
+           begin
+             if TBlopiServiceAgreement.EnterServiceAgreement then
+             begin
+               try
+                 if TBlopiServiceAgreement.NewVersionAvailable then
+                 begin
+                   // Suspend when new version is available and then on Resume when ok is clicked
+                   ProductConfigService.SuspendService;
+                   if TBlopiServiceAgreement.SignServiceAgreement then
+                   begin
+                     ProductConfigService.ResumeService;
+                   end;
+                 end;
+               finally
+                 TBlopiServiceAgreement.LeaveServiceAgreement;
+               end;
+             end;
+           end;
+         end;
+       end;
+
        ReloadCustomLogo;
 
        Image1Top := Image1.Top;
@@ -1541,7 +1574,11 @@ begin
          mniBalanceExport.Visible := False;
        end;
 
-       mniExportdatatoBanklinkOnline.Visible := CurrUser.CanAccessAdmin and CurrUser.AllowBanklinkOnline and ProductConfigService.OnLine and ProductConfigService.IsPracticeProductEnabled(ProductConfigService.GetExportDataId, False);
+       mniExportdatatoBanklinkOnline.Visible := ProductConfigService.ServiceActive and 
+                                                CurrUser.CanAccessAdmin and 
+                                                CurrUser.AllowBanklinkOnline and 
+                                                ProductConfigService.OnLine and 
+                                                ProductConfigService.IsPracticeProductEnabled(ProductConfigService.GetExportDataId, False);
 
        //test to see if the log file should be archived
        SysLog.MinSize  := PRACINI_MinLogFileSize * 1000; //convert KB to Bytes
@@ -1956,7 +1993,7 @@ begin
   LogoutUser;
 end;
 
-procedure TfrmMain.ExportTaggedAccounts(ProgressForm: ISingleProgressForm; CallbackParams: Pointer);
+procedure TfrmMain.ExportTaggedAccounts(ProgressForm: IDualProgressForm; CallbackParams: Pointer);
 var
   ExportOptions: TExportOptions;
   ExportStatistics: TExportStatistics;
@@ -1977,12 +2014,24 @@ begin
 end;
 
 procedure TfrmMain.ExportTransactionsToBankLinkOnline;
+var
+  ProgressData: TProgressData;
 begin
   if CurrUser.CanAccessAdmin and ProductConfigService.OnLine and ProductConfigService.IsPracticeProductEnabled(ProductConfigService.GetExportDataId, False) then
   begin
-    (* Uncomment this once exporting (S05) is finished
-    TfrmModalProgress.ShowProgress(Self, 'Please wait...', 'Exporting Client Transactions', ExportTaggedAccounts);
-    *)
+    ProductConfigService.LoadClientList;
+    
+    TfrmModalDualProgress.ShowProgress(Self, 'Please wait...', 'Exporting Client Transactions', ExportTaggedAccounts, ProgressData);
+
+    if ProgressData.ExceptionRaised then
+    begin
+      LogUtil.LogMsg(lmError, UnitName, 'Exception exporting account transactions, Error Message : ' + ProgressData.Exception.Message);
+    end;
+  end
+  else
+  if not CurrUser.AllowBanklinkOnline then
+  begin
+    LogUtil.LogMsg(lmError, 'ExportTransactionsToBankLinkOnline', 'Export transactions to BankLink Online could be be performed because the current user is not enabled for BankLink Online.');
   end
   else
   if not CurrUser.CanAccessAdmin then
@@ -4053,7 +4102,8 @@ begin
     Exit;
 
   //get the handle for the top most window for this application
-  TopHandle := GetLastActivePopup(Application.Handle);
+  TopHandle := Application.MainFormHandle;
+  TopHandle := GetLastActivePopup(TopHandle);
   if (TopHandle <> 0) then
   begin
     //get class name for form
@@ -4166,9 +4216,14 @@ end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmMain.TryAutoSave;
 //attempts an auto save after checking that we can do one now
+const
+  INTERVAL_RANGE = 10;
+  INTERVAL_MIN   = 30;
+  SECOND_MUTLIPLIER = 1000;
 var
   ActiveForm: Forms.TForm;
   Saved: Boolean;
+  Random_Interval : integer;
 begin
   if Assigned(myClient) then begin
      if Self.CanAutoSaveNow then begin
@@ -4195,9 +4250,13 @@ begin
      end else begin
         //set shorter auto save period so auto save triggered as soon as possible
         AutoSaveOutstanding := true;
-        tmAutoSave.Interval := 5000; //5 seconds
+
+        Random_Interval := (INTERVAL_MIN * SECOND_MUTLIPLIER) + Random(INTERVAL_RANGE * SECOND_MUTLIPLIER);
+
+        tmAutoSave.Interval := Random_Interval;
         if DebugAutoSave then
-           LogUtil.LogMsg(lmDebug,AutoSaveUnit,'Cannot save, try in 5 Sec');
+           LogUtil.LogMsg(lmDebug,AutoSaveUnit,'Cannot save, try in ' +
+                                               inttostr(trunc(Random_Interval/SECOND_MUTLIPLIER)) + ' Sec');
      end;
   end else begin
     // No Client.. Just reset the timer
@@ -5101,6 +5160,27 @@ procedure TfrmMain.bk5winExecuteMacro(Sender: TObject; Msg: TStrings);
 var
   MacroCommand : string;
   SaveStatus: integer;
+  Animation: Boolean;
+
+  function GetAnimation: Boolean;
+  var
+    Info: TAnimationInfo;
+  begin
+    Info.cbSize := SizeOf(TAnimationInfo);
+    if SystemParametersInfo(SPI_GETANIMATION, SizeOf(Info), @Info, 0) then
+      Result := Info.iMinAnimate <> 0 else
+      Result := False;
+  end;
+
+  procedure SetAnimation(Value: Boolean);
+  var
+    Info: TAnimationInfo;
+  begin
+    ZeroMemory(@Info,SizeOf(Info));
+    Info.cbSize := SizeOf(TAnimationInfo);
+    BOOL(Info.iMinAnimate) := Value;
+    SystemParametersInfo(SPI_SETANIMATION, SizeOf(Info), @Info, 0);
+  end;
 begin
   if Msg.Text = '' then
     exit;
@@ -5113,10 +5193,23 @@ begin
   begin
     //INI_mfStatus gets reset on Application.Restore
     SaveStatus := INI_mfStatus;
-    Application.Restore;
+
+    if (Length(Msg[0]) > 0) and
+       (Application.MainFormOnTaskBar) then
+    begin
+      Animation := GetAnimation;
+      if Animation then SetAnimation(False);
+      ShowWindow(Application.Mainform.Handle, CmdShow);
+      if Animation then SetAnimation(True);
+
+      Application.MainForm.Show;
+    end
+    else
+      Application.Restore;
+
     INI_mfStatus := SaveStatus;
     if INI_mfStatus = 3 then
-      Application.MainForm.WindowState  := wsMaximized;
+      Application.MainForm.WindowState := wsMaximized;
   end;
 
   MacroCommand := Msg[0];

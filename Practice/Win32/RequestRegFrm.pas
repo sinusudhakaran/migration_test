@@ -43,15 +43,18 @@ type
     procedure cbAdminNameChange(Sender: TObject);
     procedure FormShow(Sender: TObject);
   private
-    { Private declarations }
+    m_ServiceAgreementVersion: String;
+    m_ServiceAgreementSignee: String;
+    m_ServiceAgreementSigneeTitle: String;
+    
     function VerifyForm: Boolean;
-    procedure SetupForm;
-    procedure SendEmail;
+    procedure SetupForm(ServiceAgreementVersion, ServiceAgreementSignee, ServiceAgreementSigneeTitle: String);
+    function SendEmail: Boolean;
   public
     { Public declarations }
   end;
 
-  function RequestBankLinkOnlineregistration: Boolean;
+  function RequestBankLinkOnlineregistration(ServiceAgreementVersion, ServiceAgreementSignee, ServiceAgreementSigneeTitle: String) : Boolean;
 
 //------------------------------------------------------------------------------
 implementation
@@ -60,17 +63,20 @@ uses
   Globals,
   SYDEFS,
   WarningMoreFrm,
-  MailFrm;
+  MailFrm,
+  LogUtil,
+  Admin32;
 
 {$R *.dfm}
 //------------------------------------------------------------------------------
-function RequestBankLinkOnlineregistration: Boolean;
+function RequestBankLinkOnlineregistration(ServiceAgreementVersion, ServiceAgreementSignee, ServiceAgreementSigneeTitle: String): Boolean;
 var
   RequestRegForm: TRequestregForm;
 begin
   RequestRegForm := TRequestregForm.Create(Application.MainForm);
   try
-    RequestRegForm.SetupForm;
+    RequestRegForm.SetupForm(ServiceAgreementVersion, ServiceAgreementSignee, ServiceAgreementSigneeTitle);
+    
     Result := (RequestRegForm.ShowModal = mrOK);
   finally
     RequestRegForm.Free;
@@ -100,7 +106,28 @@ begin
   begin
     CanClose := VerifyForm;
     if CanClose then
-      SendEmail;
+    begin
+      if SendEmail then
+      begin
+        if LoadAdminSystem(True, 'RequestRegForm') then
+        begin
+          try
+            AdminSystem.fdFields.fdLast_Agreed_To_BLOSA := m_ServiceAgreementVersion;
+
+            SaveAdminSystem;
+
+            LogUtil.LogMsg(lmInfo, 'ServiceAgreementDlg', Format('BankLink Online service agreement accepted by - SigneeName: %s; SigneeTile: %s; Service Agreement Version: %s', [m_ServiceAgreementSignee, m_ServiceAgreementSigneeTitle, m_ServiceAgreementVersion]), 0);
+          except
+            if AdminIsLocked then
+            begin
+              UnLockAdmin;
+            end;
+
+            raise;
+          end;
+        end;
+      end;
+    end;
   end;
 end;
 
@@ -112,7 +139,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TRequestregForm.SendEmail;
+function TRequestregForm.SendEmail: Boolean;
 const
   ONE_LINE = #10;
   TWO_LINES = #10#10;
@@ -125,20 +152,28 @@ begin
                 'The BankLink Online Administrator (Primary Contact) for the practice%s' +
                 'Name: %s%s' +
                 'Phone Number: %s%s' +
-                'Email Address: %s%s',
+                'Email Address: %s%s' +
+                'I confirm that I am authorised to bind the Customer to this Service Agreement (including the terms and conditions), I have read the Service Agreement and terms and conditions and I confirm the Customer’s acceptance of them. %s' +
+                'Signee Name: %s%s' +
+                'Signee Title: %s%s' +
+                'Service Agreement Version: %s%s', 
                 [TWO_LINES,
                  edtPracticeName.Text, ONE_LINE,
                  edtSecureCode.Text, TWO_LINES, TWO_LINES,
                  cbAdminName.Items[cbAdminName.ItemIndex], ONE_LINE,
                  edtPh.Text, ONE_LINE,
-                 edtEmail.Text, TWO_LINES]);
+                 edtEmail.Text, TWO_LINES,
+                 ONE_LINE,
+                 m_ServiceAgreementSignee, ONE_LINE,
+                 m_ServiceAgreementSigneeTitle, ONE_LINE,
+                 m_ServiceAgreementVersion, TWO_LINES]);
 
-  SendMailTo('BankLink Online Registration', GetSupportEmailAddress,
+  Result := SendMailTo('BankLink Online Registration', GetSupportEmailAddress,
              'BankLink Online Registration', Msg);
 end;
 
 //------------------------------------------------------------------------------
-procedure TRequestregForm.SetupForm;
+procedure TRequestregForm.SetupForm(ServiceAgreementVersion, ServiceAgreementSignee, ServiceAgreementSigneeTitle: String);
 var
   i: integer;
   User: pUser_Rec;
@@ -160,6 +195,10 @@ begin
       cbAdminName.Items.AddObject(User.usName, TObject(User));
   end;
   cbAdminName.ItemIndex := 0;
+
+  m_ServiceAgreementVersion := ServiceAgreementVersion;
+  m_ServiceAgreementSignee := ServiceAgreementSignee;
+  m_ServiceAgreementSigneeTitle := ServiceAgreementSigneeTitle;
 end;
 
 //------------------------------------------------------------------------------

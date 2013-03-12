@@ -529,7 +529,7 @@ begin
   cmbWebFormats.Clear;
   for i := wfMin to wfMax do
     if (wfNames[i] = WebNotesName) then begin
-      if (UseBankLinkOnline) then
+      if (UseBankLinkOnline and not ProductConfigService.ServiceSuspended) then
         if (ProductConfigService.IsNotesOnlineEnabled) then
           if not ExcludeFromWebFormatList(AdminSystem.fdFields.fdCountry, i) then
             cmbWebFormats.Items.AddObject(wfNames[i], TObject(i));
@@ -539,7 +539,7 @@ begin
 
   //Set to default if currently Notes Online and Notes Online is disabled
   ComboUtils.SetComboIndexByIntObject(WebExportFormat, cmbWebFormats);
-  if UseBankLinkOnline then begin
+  if UseBankLinkOnline and not ProductConfigService.ServiceSuspended then begin
     //If web export format currently WebNotes and product not enabled then set to None
     if (wfNames[WebExportFormat] = WebNotesName) and (not ProductConfigService.IsNotesOnlineEnabled) then
       ComboUtils.SetComboIndexByIntObject(wfDefault, cmbWebFormats);
@@ -665,6 +665,9 @@ procedure TfrmPracticeDetails.ckUseBankLinkOnlineClick(Sender: TObject);
 var
   i: integer;
   Index: Integer;
+  ServiceAgreementVersion: String;
+  SigneeName: String;
+  SigneeTitle: String;
 begin
   if not FEnablingBankLinkOnline then
   begin
@@ -676,66 +679,95 @@ begin
 
       chklistExportTo.Clear;
 
-      if ckUseBankLinkOnline.Checked then begin
-        UseBankLinkOnline := True;
-        FPrac := ProductConfigService.GetPractice(False, False, ebCode.Text);
-        if (FPrac.id <> '') then begin
-          if ProductConfigService.Registered  then
-          begin
-            if ProductConfigService.IsPracticeProductEnabled(ProductConfigService.GetExportDataId, True) then
-            begin
-              FPracticeVendorExports := ProductConfigService.GetPracticeVendorExports(True, ebCode.Text);
+      if not ProductConfigService.ServiceSuspended then
+      begin
+        if ckUseBankLinkOnline.Checked then
+        begin
+          UseBankLinkOnline := True;
 
-              if Assigned(FPracticeVendorExports) then
+          FPrac := ProductConfigService.GetPractice(False, False, ebCode.Text);
+
+          if (FPrac.id <> '') then
+          begin
+            if ProductConfigService.Registered then
+            begin
+              if ProductConfigService.IsPracticeProductEnabled(ProductConfigService.GetExportDataId, True) then
               begin
-                if Length(FPracticeVendorExports.Available) > 0 then
+                FPracticeVendorExports := ProductConfigService.GetPracticeVendorExports(True, ebCode.Text);
+
+                if Assigned(FPracticeVendorExports) then
                 begin
-                  FVendorSubscriberCount := ProductConfigService.GetVendorExportClientCount(ebCode.Text);
+                  if Length(FPracticeVendorExports.Available) > 0 then
+                  begin
+                    FVendorSubscriberCount := ProductConfigService.GetVendorExportClientCount(ebCode.Text);
+                  end;
                 end;
               end;
-            end;
 
-            //Need the client list for checking if clients are using products before
-            //they are removed. Only load if practice details have been received
-            //from BankLink Online (not from cache).
-            ProductConfigService.LoadClientList(ebCode.Text);
+              //Need the client list for checking if clients are using products before
+              //they are removed. Only load if practice details have been received
+              //from BankLink Online (not from cache).
+              ProductConfigService.LoadClientList(ebCode.Text);
+            end;
+          end
+          else
+          begin
+            UseBankLinkOnline := False;
           end;
-        end else
+        end
+        else
         begin
           UseBankLinkOnline := False;
         end;
-      end else
-        UseBankLinkOnline := False;
 
-      LoadPracticeDetails;
+        LoadPracticeDetails;
 
-      if UsebankLinkOnline then
-      begin
-        SetupDataExportSettings;
-      end;
-
-      if ckUseBankLinkOnline.Checked and ProductConfigService.OnLine then
-      begin
-        //Not registered
-        if (not ProductConfigService.Registered) then
+        if UsebankLinkOnline then
         begin
-          ckUseBankLinkOnline.Checked := False;
-          edtURL.Text := 'Not registered for BankLink Online';
-          if ProductConfigService.ValidBConnectDetails then
+          SetupDataExportSettings;
+        end;
+
+        if ckUseBankLinkOnline.Checked and ProductConfigService.OnLine then
+        begin
+          //Not registered
+          if (not ProductConfigService.Registered) then
           begin
-            cbPrimaryContact.Enabled := False;
-            if Visible then
+            ckUseBankLinkOnline.Checked := False;
+            edtURL.Text := 'Not registered for BankLink Online';
+            if ProductConfigService.ValidBConnectDetails then
             begin
-              if YesNoDlg.AskYesNo(Globals.BANKLINK_ONLINE_NAME,
-                                   'You are not currently registered for BankLink Online. ' +
-                                   'Would you like to register now?', dlg_no, 0) = DLG_YES then
+              cbPrimaryContact.Enabled := False;
+              if Visible then
               begin
-                if ServiceAgreementAccepted then
-                  RequestBankLinkOnlineRegistration;
+                if YesNoDlg.AskYesNo(Globals.BANKLINK_ONLINE_NAME,
+                                     'You are not currently registered for BankLink Online. ' +
+                                     'Would you like to register now?', dlg_no, 0) = DLG_YES then
+                begin
+                  if ServiceAgreementAccepted(ServiceAgreementVersion, SigneeName, SigneeTitle) then
+                  begin
+                    if LoadAdminSystem(True, 'BlopiServiceAgreement') then
+                    begin
+                      try
+                        AdminSystem.fdFields.fdLast_Agreed_To_BLOSA := ServiceAgreementVersion;
+
+                        SaveAdminSystem;
+
+                        RequestBankLinkOnlineRegistration(ServiceAgreementVersion, SigneeName, SigneeTitle);
+                      except
+                        if AdminIsLocked then
+                        begin
+                          UnLockAdmin;
+                        end;
+
+                        raise;
+                      end;
+                    end;
+                  end;
+                end;
               end;
             end;
+            UseBankLinkOnline := False;        
           end;
-          UseBankLinkOnline := False;        
         end;
       end;
 
@@ -743,11 +775,13 @@ begin
         tsBanklinkOnline.Controls[i].Enabled := UseBankLinkOnline and
                                                 ProductConfigService.OnLine and
                                                 ProductConfigService.Registered and
-                                                ProductConfigService.IsPracticeActive(False);
+                                                ProductConfigService.IsPracticeActive(False) and
+                                                not ProductConfigService.ServiceSuspended;
 
       tbsDataExport.TabVisible :=
           UseBankLinkOnline and
-          ProductConfigService.IsExportDataEnabled;
+          ProductConfigService.IsExportDataEnabled and
+          not ProductConfigService.ServiceSuspended;
 
       ckUseBankLinkOnline.Enabled := ProductConfigService.OnLine;
     finally
@@ -841,7 +875,9 @@ begin
       tsBanklinkOnline.Controls[i].Enabled := UseBankLinkOnline and
                                               ProductConfigService.OnLine and
                                               ProductConfigService.Registered and
-                                              ProductConfigService.IsPracticeActive(False);
+                                              ProductConfigService.IsPracticeActive(False) and
+                                              not ProductConfigService.ServiceSuspended;
+                                              
     ckUseBankLinkOnline.Enabled := ProductConfigService.OnLine or (not UseBankLinkOnline);
 
 
@@ -1013,7 +1049,7 @@ begin
        //Saved to BankLink Online in VerifyForm - form can't be closed unless online changes are saved
        AdminSystem.fdFields.fdUse_BankLink_Online := UseBankLinkOnline;
        //Saved a copy of BankLink Online settings locally for display when offline
-       if UseBankLinkOnline and ProductConfigService.OnLine then
+       if UseBankLinkOnline and ProductConfigService.OnLine and not ProductConfigService.ServiceSuspended then
          ProductConfigService.SavePracticeDetailsToSystemDB(FPrac);
 
        //Web
@@ -1227,7 +1263,7 @@ begin
   //Save BankLink Online settings
   UseBankLinkOnline := ckUseBankLinkOnline.Checked;
 
-  if UseBankLinkOnline and (ProductConfigService.PracticeChanged or DataExportSettingsChanged) then
+  if UseBankLinkOnline and not ProductConfigService.ServiceSuspended and (ProductConfigService.PracticeChanged or DataExportSettingsChanged) then
   begin
     if ProductConfigService.PracticeChanged then
     begin

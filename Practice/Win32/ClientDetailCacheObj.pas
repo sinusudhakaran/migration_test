@@ -95,12 +95,7 @@ var
   Filename : string;
 begin
   Filename := GetClientDetailsCacheFilename( cLRN);
-  LockUtils.ObtainLock( ltClientDetailsCache, cLRN, Globals.PRACINI_TicksToWaitForAdmin div 1000);
-  try
-    result := BKFileExists( Filename);
-  finally
-    ReleaseLock( ltClientDetailsCache, cLRN);
-  end;
+  result := BKFileExists( Filename);
 end;
 
 procedure TClientDetailsCache.Clear;
@@ -142,13 +137,11 @@ begin
   begin
     Self.Clear;
     Filename := GetClientDetailsCacheFilename( cLRN);
-    LockUtils.ObtainLock( ltClientDetailsCache, cLRN, Globals.PRACINI_TicksToWaitForAdmin div 1000);
-    try
       if BKFileExists( Filename) then
       begin
         CacheFile := TMemIniFile.Create( Filename);
         try
-          FCode          := CacheFile.ReadString( 'Details',  'Code'     , '');        
+          FCode          := CacheFile.ReadString( 'Details',  'Code'     , '');
           FName          := CacheFile.ReadString( 'Details',  'Name'     , '');
           FContact_Name  := CacheFile.ReadString( 'Details',  'Contact'  , '');
           FAddress_L1    := CacheFile.ReadString( 'Details',  'Address1' ,'');
@@ -167,9 +160,6 @@ begin
       else
         //no record found
         result := false;
-    finally
-      LockUtils.ReleaseLock( ltClientDetailsCache, cLRN);
-    end;
     FLastLRN := cLRN;
   end;
 end;
@@ -180,29 +170,31 @@ var
   CacheFile : TMemIniFile;
 begin
   Filename := GetClientDetailsCacheFilename( cLRN);
-  LockUtils.ObtainLock( ltClientDetailsCache, cLRN, Globals.PRACINI_TicksToWaitForAdmin div 1000);
+  CacheFile := TMemIniFile.Create( Filename);
   try
-    CacheFile := TMemIniFile.Create( Filename);
+    FLastEditDate := StDate.CurrentDate;
+    CacheFile.WriteString( 'Details',  'Code'     ,FCode);
+    CacheFile.WriteString( 'Details',  'Name'     ,FName);
+    CacheFile.WriteString( 'Details',  'Contact'  ,FContact_Name);
+    CacheFile.WriteString( 'Details',  'Address1' ,FAddress_L1);
+    CacheFile.WriteString( 'Details',  'Address2' ,FAddress_L2);
+    CacheFile.WriteString( 'Details',  'Address3' ,FAddress_L3);
+    CacheFile.WriteString( 'Details',  'Phone'    ,FPhone_No);
+    CacheFile.WriteString( 'Details',  'Mobile'   ,FMobile_No);
+    CacheFile.WriteString( 'Details',  'Email'    ,FEmail_Address);
+    CacheFile.WriteString( 'Details',  'Fax'      ,FFax_No);
+    CacheFile.WriteInteger( 'Details',  'LastEdit', FLastEditDate);
+    CacheFile.WriteString( 'Details',  'Salutation', FSalutation);
+
+    FileLocking.ObtainLock( ltClientDetailsCache, cLRN, Globals.PRACINI_TicksToWaitForAdmin div 1000);
     try
-      FLastEditDate := StDate.CurrentDate;
-      CacheFile.WriteString( 'Details',  'Code'     ,FCode);
-      CacheFile.WriteString( 'Details',  'Name'     ,FName);
-      CacheFile.WriteString( 'Details',  'Contact'  ,FContact_Name);
-      CacheFile.WriteString( 'Details',  'Address1' ,FAddress_L1);
-      CacheFile.WriteString( 'Details',  'Address2' ,FAddress_L2);
-      CacheFile.WriteString( 'Details',  'Address3' ,FAddress_L3);
-      CacheFile.WriteString( 'Details',  'Phone'    ,FPhone_No);
-      CacheFile.WriteString( 'Details',  'Mobile'   ,FMobile_No);
-      CacheFile.WriteString( 'Details',  'Email'    ,FEmail_Address);
-      CacheFile.WriteString( 'Details',  'Fax'      ,FFax_No);
-      CacheFile.WriteInteger( 'Details',  'LastEdit', FLastEditDate);
-      CacheFile.WriteString( 'Details',  'Salutation', FSalutation);
-    finally
       CacheFile.UpdateFile;
-      CacheFile.Free;
+    finally
+      FileLocking.ReleaseLock( ltClientDetailsCache, cLRN);
     end;
+
   finally
-    LockUtils.ReleaseLock( ltClientDetailsCache, cLRN);
+    FreeAndNil(CacheFile);
   end;
 end;
 

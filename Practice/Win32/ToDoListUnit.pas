@@ -302,7 +302,7 @@ procedure TClientToDoList.Lock;
 begin
   Assert( FLocked = false, 'ToDo List already locked');
 
-  ObtainLock( ltClientToDoList, FClientLRN, Globals.PRACINI_TicksToWaitForAdmin div 1000);
+  FileLocking.ObtainLock( ltClientToDoList, FClientLRN, Globals.PRACINI_TicksToWaitForAdmin div 1000);
   FLocked := true;
 end;
 
@@ -464,19 +464,19 @@ function ToDoListExists( cLRN : integer) : boolean;
 var
   filename : string;
 begin
-  ObtainLock( ltClientToDoList, cLRN, Globals.PRACINI_TicksToWaitForAdmin div 1000);
+  FileLocking.ObtainLock( ltClientToDoList, cLRN, Globals.PRACINI_TicksToWaitForAdmin div 1000);
   try
     Filename := DirUtils.GetTaskListFilename( cLRN);
     result := BKFileExists( filename);
   finally
-    ReleaseLock( ltClientToDoList, cLRN);
+    FileLocking.ReleaseLock( ltClientToDoList, cLRN);
   end;
 end;
 
 procedure TClientToDoList.Unlock;
 begin
   Assert( FLocked = true, 'ToDo List not locked on unlock');
-  ReleaseLock( ltClientToDoList, FClientLRN);
+  FileLocking.ReleaseLock( ltClientToDoList, FClientLRN);
   FLocked := false;
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

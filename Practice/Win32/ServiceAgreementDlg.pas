@@ -13,30 +13,40 @@ type
     Label1: TLabel;
     Label2: TLabel;
     memServiceAgreement: TBKRichEdit;
+    Label3: TLabel;
+    chkConfirmation: TCheckBox;
+    edtSigneeTitle: TEdit;
+    edtSigneeName: TEdit;
+    Label4: TLabel;
+    Label5: TLabel;
     procedure FormResize(Sender: TObject);
+    procedure chkConfirmationClick(Sender: TObject);
+    procedure btnOKClick(Sender: TObject);
   private
     { Private declarations }
-    function Execute: Boolean;
+    function Execute(out Version, SigneeName, SigneeTitle: String): Boolean;
+
+    function ValidateSignature: Boolean;
   public
     { Public declarations }
   end;
 
-function ServiceAgreementAccepted: Boolean;
+function ServiceAgreementAccepted(out Version, SigneeName, SigneeTitle: String): Boolean;
 
 implementation
 
 {$R *.dfm}
 
 uses
-  BankLinkOnlineServices;
+  BankLinkOnlineServices, LogUtil, ErrorMoreFrm;
 
-function ServiceAgreementAccepted: Boolean;
+function ServiceAgreementAccepted(out Version, SigneeName, SigneeTitle: String): Boolean;
 var
   ServiceAgreementForm: TfrmServiceAgreement;
 begin
   ServiceAgreementForm := TfrmServiceAgreement.Create(Application.MainForm);
   try
-    Result := ServiceAgreementForm.Execute;
+    Result := ServiceAgreementForm.Execute(Version, SigneeName, SigneeTitle);
   finally
     ServiceAgreementForm.Free;
   end;
@@ -45,14 +55,56 @@ end;
 { TfrmServiceAgreement }
 
 
-function TfrmServiceAgreement.Execute: Boolean;
+function TfrmServiceAgreement.ValidateSignature: Boolean;
+begin
+  if (Trim(edtSigneeName.Text) = '') or (Trim(edtSigneeTitle.Text) = '') then
+  begin
+    HelpfulErrorMsg('The Name and Title fields are required to complete the registration process. Please try again.', 0);
+
+    if (Trim(edtSigneeName.Text) = '') then
+    begin
+      edtSigneeName.SetFocus;
+    end
+    else
+    begin
+      edtSigneeTitle.SetFocus;
+    end;
+    
+    Result := False;
+  end
+  else
+  begin
+    Result := True;
+  end;
+end;
+
+procedure TfrmServiceAgreement.btnOKClick(Sender: TObject);
+begin
+  if ValidateSignature then
+  begin
+    ModalResult := mrYes;
+  end;
+end;
+
+procedure TfrmServiceAgreement.chkConfirmationClick(Sender: TObject);
+begin
+  btnOk.Enabled := chkConfirmation.Checked;
+end;
+
+function TfrmServiceAgreement.Execute(out Version, SigneeName, SigneeTitle: String): Boolean;
 begin
   Result := False;
   //Get text for service agreement
-  memServiceAgreement.Text := ProductConfigService.GetServiceAgreement;
+  Version := ProductConfigService.GetServiceAgreementVersion();
+  memServiceAgreement.Text := ProductConfigService.GetServiceAgreement();
 
   if ShowModal = mrYes then
+  begin
+    SigneeName := edtSigneeName.Text;
+    SigneeTitle := edtSigneeTitle.Text;
+    
     Result := True;
+  end;
 end;
 
 procedure TfrmServiceAgreement.FormResize(Sender: TObject);

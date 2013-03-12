@@ -297,7 +297,7 @@ begin
 
       path := string(AppData);
 
-      SetLockingFileLocation(path);
+      TWindowsFileLocking(FileLocking).SetLockingFileLocation(path);
       SysLog.LogPath := Path;
       SysLog.LogFilename := '\BooksIO.log';
 
@@ -316,7 +316,10 @@ initialization
    StatusProc := nil;
    setPaths;
    logger.logMessageProcedure := MyLogMsg;
+   InitLocking;
 
+Finalization
+   FreeAndNil(FileLocking);
 
    //  LogError('Ok Then ');
 

@@ -237,13 +237,16 @@ procedure TReportStylesDlg.BtnoKClick(Sender: TObject);
          TStyleTreeItem(TStyleTreeItem(FTreeList[I])).Style.Save
   end;
 begin
-   if ObtainLock(ltPracHeaderFooterImg, TimeToWaitForPracLogo) then try
+  if FileLocking.ObtainLock(ltPracHeaderFooterImg, TimeToWaitForPracLogo) then
+  begin
+    try
       ClearStyles;
       SaveReportStyles;
-   finally
-       ReleaseLock(ltPracHeaderFooterImg);
-   end;
-   ModalResult := mroK;
+    finally
+      FileLocking.ReleaseLock(ltPracHeaderFooterImg);
+    end;
+  end;
+  ModalResult := mroK;
 end;
 
 function TReportStylesDlg.FindName(value: string; Select: Boolean = False): Boolean;

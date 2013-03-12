@@ -537,6 +537,8 @@ var
   MsgStr: string;
   tmpFilename: string;
   dummy: Integer;
+  FileExt: String;
+  FileInc: Integer;
 
   function GetUserName : string;
   begin
@@ -554,6 +556,10 @@ var
 begin
   if not Assigned(AReport) then
     Exit;
+
+
+  //Make sure that we have the latest version of the custom doc's
+  Refresh;
 
   // Set the last run details..
   AReport.LastRun := Now;
@@ -579,6 +585,26 @@ begin
                  end;
       rdPrinter,
       rdSetup:  begin
+                  if Destination = rdPrinter then
+                  begin
+                    tmpFileName := LocalReport.RunFilename;
+                         
+                    FileExt := ExtractFileExt(tmpFileName);
+
+                    FileInc := 1;
+                    
+                    while FileExists(tmpFileName) do
+                    begin
+                      tmpFileName := Format('%s(%s)%s',[Copy(LocalReport.RunFilename, 0, Pos(FileExt, LocalReport.RunFilename) -1), IntToStr(FileInc), FileExt]);
+
+                      Inc(FileInc);
+                    end;
+
+                    LocalReport.RunFileName := tmpFileName;
+                    
+                    CreatePDF(TReportBase(LocalReport).GetRTF, LocalReport.RunFileName);
+                  end;
+
                   //may need to keep the file
                   AReport.RunFileName := LocalReport.RunFileName;
                   AReport.RunBtn := Btn_Print;
@@ -1443,7 +1469,7 @@ var
   DoSave: Boolean;
   MemDoc, FileDoc: TReportBase;
 begin
-  ObtainLock(ltCustomDocument, PRACINI_TicksToWaitForAdmin div 1000);
+  FileLocking.ObtainLock(ltCustomDocument, PRACINI_TicksToWaitForAdmin div 1000);
   try
     DoSave := False;
     TempDocList := TObjectList.Create(True);
@@ -1499,7 +1525,7 @@ begin
       UpdateMenus;
     end;
   finally
-    ReleaseLock(ltCustomDocument);
+    FileLocking.ReleaseLock(ltCustomDocument);
   end;
 
 end;

@@ -823,6 +823,7 @@ begin { DoScheduledReportsForClient }
                     end else
                        AddSummaryRec(clCode, srOptions, ClientDest, False, CUSTOM_DOCUMENT);
                 end;
+
          //rdECoding :  handled separate
          //rdCheckOut:
       end;
@@ -1528,6 +1529,15 @@ begin
        if Boolean(AdminSystem.fdFields.fdSched_Rep_Books_Custom_Doc)
        and (AdminSystem.fdFields.fdSched_Rep_Books_Custom_Doc_GUID > '') then begin
           srOptions.srCustomDocGUID := AdminSystem.fdFields.fdSched_Rep_Books_Custom_Doc_GUID;
+          if DoScheduledReport(REPORT_CUSTOM_DOCUMENT, rdEmail, srOptions) then
+             EmailInfo.AddAttachment(srOptions.srAttachment)
+          else
+             AddSummaryRec(aClient.clFields.clCode, srOptions, rdEcoding, False, CUSTOM_DOCUMENT);
+       end;
+
+       if Boolean(AdminSystem.fdFields.fdSched_Rep_Online_Custom_Doc)
+       and (AdminSystem.fdFields.fdSched_Rep_Online_Custom_Doc_GUID > '') then begin
+          srOptions.srCustomDocGUID := AdminSystem.fdFields.fdSched_Rep_Online_Custom_Doc_GUID;
           if DoScheduledReport(REPORT_CUSTOM_DOCUMENT, rdEmail, srOptions) then
              EmailInfo.AddAttachment(srOptions.srAttachment)
           else
@@ -2711,7 +2721,7 @@ begin
 
    LockFileInfo := TStringList.Create;
    try
-      if not LockUtils.ObtainLock(ltScheduledReport, PRACINI_TicksToWaitForAdmin div 1000) then
+      if not FileLocking.ObtainLock(ltScheduledReport, PRACINI_TicksToWaitForAdmin div 1000) then
       begin
          try
             LockFileInfo.LoadFromFile(Globals.DataDir + SCHEDULED_LOCK);
@@ -3028,7 +3038,7 @@ begin
      LogUtil.LogMsg( lmInfo, UnitName, Uppercase( aMsg));
    finally
      FreeAndNil(ReportOptions.srCodeSelection);
-     LockUtils.ReleaseLock(ltScheduledReport);
+     FileLocking.ReleaseLock(ltScheduledReport);
      Sysutils.DeleteFile(Globals.DataDir + SCHEDULED_LOCK);
    end;
 end; { PrintScheduledReports }

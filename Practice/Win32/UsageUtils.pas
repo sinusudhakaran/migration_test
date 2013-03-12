@@ -402,7 +402,7 @@ begin
     end;
 
     //LogFileName := UsageDir + 'USAGE.LOG';
-    ObtainLock( ltUsageStatistics, Globals.PRACINI_TicksToWaitForAdmin div 1000 ) ;
+    FileLocking.ObtainLock( ltUsageStatistics, Globals.PRACINI_TicksToWaitForAdmin div 1000 ) ;
     try
 
       // Monthly Totals
@@ -464,7 +464,7 @@ begin
       end;}
 
     finally
-      ReleaseLock( ltUsageStatistics ) ;
+      FileLocking.ReleaseLock( ltUsageStatistics ) ;
     end;
   end;
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, 'SaveUsage Ends');

@@ -223,6 +223,8 @@ CONST
    tkfdSched_Rep_Online_Custom_Doc_GUID = 186 ;
    tkfdSched_Rep_Online_Custom_Doc      = 187 ;
    tkfdLast_BankLink_Online_Update      = 188 ;
+   tkfdLast_Agreed_To_BLOSA             = 189 ;
+   tkfdBanklink_Online_Suspended        = 190 ;
 
 {  -------------------------------------------------------------------  }
 
@@ -437,6 +439,8 @@ Begin
       F.WriteAnsiStringValue( tkfdSched_Rep_Online_Custom_Doc_GUID , fdSched_Rep_Online_Custom_Doc_GUID );
       F.WriteByteValue( tkfdSched_Rep_Online_Custom_Doc , fdSched_Rep_Online_Custom_Doc );
       F.WriteDateValue( tkfdLast_BankLink_Online_Update , fdLast_BankLink_Online_Update );
+      F.WriteStringValue( tkfdLast_Agreed_To_BLOSA , fdLast_Agreed_To_BLOSA );
+      F.WriteBooleanValue( tkfdBanklink_Online_Suspended , fdBanklink_Online_Suspended );
       F.WriteToken( tkEnd_Practice_Details );
    end;
 end; { of Write_Practice_Details_Rec }
@@ -743,6 +747,8 @@ Begin
          tkfdSched_Rep_Online_Custom_Doc_GUID : fdSched_Rep_Online_Custom_Doc_GUID := F.ReadAnsiStringValue;
          tkfdSched_Rep_Online_Custom_Doc      : fdSched_Rep_Online_Custom_Doc := F.ReadByteValue;
          tkfdLast_BankLink_Online_Update      : fdLast_BankLink_Online_Update := F.ReadDateValue;
+         tkfdLast_Agreed_To_BLOSA             : fdLast_Agreed_To_BLOSA := F.ReadStringValue;
+         tkfdBanklink_Online_Suspended        : fdBanklink_Online_Suspended := F.ReadBooleanValue;
          else
             Raise ETokenException.CreateFmt( SUnknownToken, [ Token ] );
       end; { of Case }
@@ -823,7 +829,7 @@ begin
   for i := Low(ChangedFields) to High(ChangedFields) do
     ChangedFields[i] := 0;
   j := 0;
-  for i := tkfdPractice_Name_for_Reports to tkfdLast_BankLink_Online_Update do begin
+  for i := tkfdPractice_Name_for_Reports to tkfdBanklink_Online_Suspended do begin
     ChangedFields[j] := i;
     Inc(j);
   end;
@@ -1749,6 +1755,16 @@ begin
   if (P1.fdLast_BankLink_Online_Update <> P2.fdLast_BankLink_Online_Update) then begin
     P3.fdLast_BankLink_Online_Update := P1.fdLast_BankLink_Online_Update;
     ChangedFields[i] := tkfdLast_BankLink_Online_Update;
+    Inc(i);
+  end;
+  if (P1.fdLast_Agreed_To_BLOSA <> P2.fdLast_Agreed_To_BLOSA) then begin
+    P3.fdLast_Agreed_To_BLOSA := P1.fdLast_Agreed_To_BLOSA;
+    ChangedFields[i] := tkfdLast_Agreed_To_BLOSA;
+    Inc(i);
+  end;
+  if (P1.fdBanklink_Online_Suspended <> P2.fdBanklink_Online_Suspended) then begin
+    P3.fdBanklink_Online_Suspended := P1.fdBanklink_Online_Suspended;
+    ChangedFields[i] := tkfdBanklink_Online_Suspended;
     Inc(i);
   end;
 

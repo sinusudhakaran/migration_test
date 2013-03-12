@@ -17,6 +17,7 @@ object frmCAF: TfrmCAF
   Position = poScreenCenter
   Scaled = False
   OnClose = FormClose
+  OnCreate = FormCreate
   OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 13
@@ -25,7 +26,7 @@ object frmCAF: TfrmCAF
     Top = 0
     Width = 709
     Height = 707
-    VertScrollBar.Position = 246
+    VertScrollBar.Position = 277
     Align = alClient
     BevelOuter = bvNone
     Font.Charset = DEFAULT_CHARSET
@@ -37,7 +38,7 @@ object frmCAF: TfrmCAF
     TabOrder = 0
     object pnlHeader: TPanel
       Left = 0
-      Top = -246
+      Top = -277
       Width = 688
       Height = 49
       Align = alTop
@@ -80,7 +81,7 @@ object frmCAF: TfrmCAF
     end
     object pnlAccount3: TPanel
       Left = 0
-      Top = -69
+      Top = -100
       Width = 688
       Height = 64
       Align = alTop
@@ -180,7 +181,7 @@ object frmCAF: TfrmCAF
     end
     object pnlAccount2: TPanel
       Left = 0
-      Top = -133
+      Top = -164
       Width = 688
       Height = 64
       Align = alTop
@@ -280,7 +281,7 @@ object frmCAF: TfrmCAF
     end
     object pnlFooter: TPanel
       Left = 0
-      Top = -5
+      Top = -36
       Width = 688
       Height = 41
       Align = alTop
@@ -301,7 +302,7 @@ object frmCAF: TfrmCAF
     end
     object pnlAccount1: TPanel
       Left = 0
-      Top = -197
+      Top = -228
       Width = 688
       Height = 64
       Align = alTop
@@ -401,9 +402,9 @@ object frmCAF: TfrmCAF
     end
     object pnlBank: TPanel
       Left = 0
-      Top = 36
+      Top = 5
       Width = 688
-      Height = 88
+      Height = 119
       Align = alTop
       BevelOuter = bvNone
       TabOrder = 3
@@ -432,20 +433,11 @@ object frmCAF: TfrmCAF
         Caption = 'Media Transfer Services Limited'#13'("BankLink")'
       end
       object lblPos: TLabel
-        Left = 32
-        Top = 55
-        Width = 242
+        Left = 374
+        Top = 100
+        Width = 71
         Height = 13
-        Caption = 
-          '(Bank)                                                         (' +
-          'Branch)'
-      end
-      object lblPos1: TLabel
-        Left = 32
-        Top = 68
-        Width = 59
-        Height = 13
-        Caption = '("the Bank")'
+        Caption = '(Branch Name)'
       end
       object lblTheGeneralManager: TLabel
         Left = 524
@@ -454,19 +446,69 @@ object frmCAF: TfrmCAF
         Height = 13
         Caption = 'The General Manager,'
       end
+      object Label1: TLabel
+        Left = 383
+        Top = 57
+        Width = 62
+        Height = 13
+        Caption = '(Bank Name)'
+      end
+      object lblPos1: TLabel
+        Left = 374
+        Top = 100
+        Width = 71
+        Height = 13
+        Caption = '(Branch Name)'
+      end
       object edtBank: TEdit
-        Left = 32
-        Top = 28
-        Width = 455
+        Left = 8
+        Top = 76
+        Width = 437
         Height = 21
-        Hint = 
-          'Enter the name of the bank and branch where the account(s) are h' +
-          'eld'
+        Hint = 'Enter the name of the branch where the account(s) are held'
         MaxLength = 50
         ParentShowHint = False
         ShowHint = True
-        TabOrder = 0
+        TabOrder = 2
         OnExit = edtExit
+      end
+      object cmbInstitutionCountry: TComboBox
+        Left = 13
+        Top = 34
+        Width = 97
+        Height = 21
+        Hint = 'Choose the month in which you want data collection to start'
+        Style = csDropDownList
+        ItemHeight = 13
+        ParentShowHint = False
+        ShowHint = True
+        TabOrder = 3
+        OnChange = cmbMonthChange
+      end
+      object edtInstitutionName: TEdit
+        Left = 143
+        Top = 34
+        Width = 302
+        Height = 21
+        Hint = 'Enter the bank where the account(s) are held'
+        MaxLength = 40
+        ParentShowHint = False
+        ShowHint = True
+        TabOrder = 1
+        OnExit = edtExit
+      end
+      object cmbInstitutionName: TComboBox
+        Left = 8
+        Top = 34
+        Width = 129
+        Height = 21
+        Hint = 'Select the bank where the account(s) are held'
+        Style = csDropDownList
+        ItemHeight = 13
+        ParentShowHint = False
+        ShowHint = True
+        TabOrder = 0
+        OnChange = cmbInstitutionNameChange
       end
     end
     object pnl1: TPanel
@@ -723,9 +765,8 @@ object frmCAF: TfrmCAF
           Width = 113
           Height = 17
           Hint = 'Click to select monthly data delivery'
-          Caption = 'Monthly (default)'
+          Caption = 'Monthly'
           TabOrder = 0
-          TabStop = True
         end
         object rbWeekly: TRadioButton
           Left = 271
@@ -744,6 +785,7 @@ object frmCAF: TfrmCAF
           Height = 17
           Hint = 'Click to select daily data delivery'
           Caption = 'Daily (where available)'
+          Checked = True
           TabOrder = 2
           TabStop = True
         end

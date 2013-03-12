@@ -8,6 +8,9 @@ inherited dlgPrintScheduled: TdlgPrintScheduled
   OnDestroy = FormDestroy
   ExplicitWidth = 638
   ExplicitHeight = 624
+  DesignSize = (
+    632
+    596)
   PixelsPerInch = 96
   TextHeight = 13
   object Bevel1: TBevel [0]
@@ -59,7 +62,7 @@ inherited dlgPrintScheduled: TdlgPrintScheduled
     Top = 0
     Width = 632
     Height = 559
-    ActivePage = tbsOptions
+    ActivePage = tsMessages
     Align = alClient
     TabOrder = 0
     object tbsOptions: TTabSheet

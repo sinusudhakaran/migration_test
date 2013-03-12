@@ -182,10 +182,10 @@ var
   imgImage : TPicture;
 begin
   if not Assigned(ReportImageList) then
-     Exit;
+    Exit;
   if ReportImageList.HasName(Name) then
-     Exit;
-  if ObtainLock(ltPracHeaderFooterImg, TimeToWaitForPracLogo) then
+    Exit;
+  if FileLocking.ObtainLock(ltPracHeaderFooterImg, TimeToWaitForPracLogo) then
   begin
     imgImage := TPicture.Create;
     try
@@ -193,7 +193,7 @@ begin
       ReportImageList.Add(Name,imgImage, Width, Height);
     except
     end;
-    ReleaseLock( ltPracHeaderFooterImg)
+    FileLocking.ReleaseLock( ltPracHeaderFooterImg)
   end;
 end;
 

@@ -17,7 +17,7 @@ unit Globals;
 {$IFDEF LOOKUPDLL}
 interface
 uses
-  sysobj32, appuserobj, sysUtils, Forms;
+  sysobj32, appuserobj, sysUtils, Forms, IPClientLocking;
 const
 
   SHORTAPPNAME        = 'BankLink';
@@ -40,6 +40,18 @@ var
   DataDir : string;
   AdminSystem              : TSystemObj       = nil;
   GlobalAdminSnapshot      : TSystemObj       = nil;
+
+  PRACINI_IPClientLocking_SwitchedOn : Boolean;
+  PRACINI_IPClientLocking_UDP_Server_IP : string;
+  PRACINI_IPClientLocking_UDP_Server_Port : integer;
+
+  PRACINI_IPClientLocking_UDP_Client_Port : integer;
+  PRACINI_IPClientLocking_UDP_BuffInitSize : integer;
+  PRACINI_IPClientLocking_DiscoveryTimeOut : integer;
+  PRACINI_IPClientLocking_UDPTimeOut : integer;
+  PRACINI_IPClientLocking_LockTimeOut : integer;
+  PRACINI_IPClientLocking_TCPTimeOut : integer;
+  PRACINI_IPClientLocking_ProcessMessageDelay : integer;
 
 
 implementation
@@ -73,7 +85,8 @@ uses
    OneInst,
 {$ENDIF}
    Classes,
-   Messages;
+   Messages,
+   IPClientLocking;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 CONST
@@ -115,6 +128,7 @@ CONST
     WEBNOTESUPDATE_Data = 'webnotesdata.xml';
     TPA_FILENAME = 'Third Party Authority.pdf';
     CAF_FILENAME = 'Client Authority Form.pdf';
+    INSTITUTIONS_FILENAME = 'Institutions.dat';
 
 
     FILEEXTN            = '.BK5';
@@ -288,6 +302,8 @@ var
     APPTITLE                 : string = '';
     SHORTAPPNAME             : string = '';
     StyleDir                 : string;
+    PublicKeysDir            : string;
+    UserDir                  : string;
 
     //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     // Misc settings
@@ -624,6 +640,18 @@ var
     PRACINI_DataPlatform_Services_URL : string;
     PRACINI_Banklink_Online_Services_URL: string;
 
+    PRACINI_IPClientLocking_SwitchedOn : Boolean;
+    PRACINI_IPClientLocking_UDP_Server_IP : string;
+    PRACINI_IPClientLocking_UDP_Server_Port : integer;
+
+    PRACINI_IPClientLocking_UDP_Client_Port : integer;
+    PRACINI_IPClientLocking_UDP_BuffInitSize : integer;
+    PRACINI_IPClientLocking_DiscoveryTimeOut : integer;
+    PRACINI_IPClientLocking_UDPTimeOut : integer;
+    PRACINI_IPClientLocking_LockTimeOut : integer;
+    PRACINI_IPClientLocking_TCPTimeOut : integer;
+    PRACINI_IPClientLocking_ProcessMessageDelay : integer;
+
     // Remember email details in case it fails
     Email_Saved: Boolean = False;
     Email_To: string = '';
@@ -672,7 +700,9 @@ initialization
    CSVExportDefaultDir       := DataDir + 'EXPORT\';
    UsageDir                  := DataDir + 'USAGE\';
    StyleDir                  := DataDir + 'STYLES\';
+   PublicKeysDir             := DataDir + 'PUBLICKEYS\';
    AppVersionStr             := GetAppVersionStr;
+   UserDir                   := DataDir;
 
 {$ENDIF}
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

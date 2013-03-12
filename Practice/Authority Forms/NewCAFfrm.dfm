@@ -52,7 +52,7 @@ object frmNewCAF: TfrmNewCAF
     OnClick = btnPrintClick
   end
   object btnResetForm: TButton
-    Left = 663
+    Left = 669
     Top = 555
     Width = 75
     Height = 25

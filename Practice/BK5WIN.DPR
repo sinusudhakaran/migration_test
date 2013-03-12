@@ -85,6 +85,7 @@ begin
       ApplicationStartUpAndShutDown.BeforeAppInitialize;
       Application.Initialize;
       ApplicationStartUpAndShutDown.AfterAppInitialize;
+      Application.MainFormOnTaskBar := true;
 
       //********************************************
       //delphi generated code

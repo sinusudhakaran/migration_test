@@ -1,13 +1,18 @@
 // Print the CAF in a form as close as possible to the PDF
 unit rptCAF;
 
+//------------------------------------------------------------------------------
 interface
 
 uses
    XLSFile,
    XLSWorkbook,
    Variants,
-   AuthorityUtils, CAFfrm, ReportDefs;
+   AuthorityUtils,
+   CAFfrm,
+   ReportDefs,
+   Windows,
+   Graphics;
 
 type
   TCAFReport = class(TAuthorityReport)
@@ -21,18 +26,31 @@ type
   public
     property Values : TfrmCAF read FVAlues write FValues;
     procedure BKPrint;  override;
+    procedure CreateQRCode(aCanvas : TCanvas; aDestRect : TRect);
   end;
-
-
 
 function DoCAFReport(Values: TfrmCAF; Destination : TReportDest; Mode: TAFMode; Addr: string = '') : Boolean;
 
+//------------------------------------------------------------------------------
 implementation
 
 uses
-  ReportTypes, 
-  Windows, Globals, MailFrm, bkConst, Graphics, Types, RepCols, UserReportSettings, BKPrintJob, Printers;
+  ReportTypes,
+  Globals,
+  MailFrm,
+  bkConst,
+  Types,
+  RepCols,
+  UserReportSettings,
+  BKPrintJob,
+  Printers,
+  CafQrCode,
+  ExtCtrls,
+  Sysutils,
+  webutils,
+  InstitutionCol;
 
+//------------------------------------------------------------------------------
 function DoCAFReport(Values: TfrmCAF; Destination : TReportDest;  Mode: TAFMode; Addr: string = '') : Boolean;
 var
    Job : TCAFReport;
@@ -79,8 +97,7 @@ begin
    end;
 end;
 
-
-
+//------------------------------------------------------------------------------
 procedure TCAFReport.BKPrint;
 begin
   if ImportMode then
@@ -89,10 +106,100 @@ begin
      PrintForm;
 end;
 
+//------------------------------------------------------------------------------
+procedure TCAFReport.CreateQRCode(aCanvas : TCanvas; aDestRect : TRect);
+var
+  CafQrCode  : TCafQrCode;
+  CAFQRData  : TCAFQRData;
+  CAFQRDataAccount : TCAFQRDataAccount;
+  QrCodeImage : TImage;
+  InstIndex : integer;
+begin
+  // don't draw QRCode if institution is set to other or not set
+  if Values.cmbInstitutionName.ItemIndex < 1 then
+    Exit;
+
+  CAFQRData := TCAFQRData.Create(TCAFQRDataAccount);
+  try
+    CafQrCode := TCafQrCode.Create;
+    try
+      QrCodeImage := TImage.Create(nil);
+      try
+        CAFQRDataAccount := TCAFQRDataAccount.Create(CAFQRData);
+        CAFQRDataAccount.AccountName   := Values.edtName1.text;
+        CAFQRDataAccount.AccountNumber := Values.edtBSB1.Text +
+                                          Values.edtNumber1.text;
+        CAFQRDataAccount.ClientCode    := Values.edtClient1.Text;
+        CAFQRDataAccount.CostCode      := Values.edtCost1.Text;
+        CAFQRDataAccount.SMSF          := 'N'; // AU only
+
+        CAFQRDataAccount := TCAFQRDataAccount.Create(CAFQRData);
+        CAFQRDataAccount.AccountName   := Values.edtName2.text;
+        CAFQRDataAccount.AccountNumber := Values.edtBSB2.Text +
+                                          Values.edtNumber2.text;
+        CAFQRDataAccount.ClientCode    := Values.edtClient2.Text;
+        CAFQRDataAccount.CostCode      := Values.edtCost2.Text;
+        CAFQRDataAccount.SMSF          := 'N'; // AU only
+
+        CAFQRDataAccount := TCAFQRDataAccount.Create(CAFQRData);
+        CAFQRDataAccount.AccountName   := Values.edtName3.text;
+        CAFQRDataAccount.AccountNumber := Values.edtBSB3.Text +
+                                          Values.edtNumber3.text;
+        CAFQRDataAccount.ClientCode    := Values.edtClient3.Text;
+        CAFQRDataAccount.CostCode      := Values.edtCost3.Text;
+        CAFQRDataAccount.SMSF          := 'N'; // AU only
+
+        // Day , Month , Year
+        CAFQRData.SetStartDate(1,
+                               Values.cmbMonth.ItemIndex,
+                               '20' + Values.edtYear.Text);
+
+        CAFQRData.PracticeCode        := Values.edtPractice.text;
+        CAFQRData.PracticeCountryCode := CountryText(AdminSystem.fdFields.fdCountry);
+
+        CAFQRData.SetProvisional(Values.cbProvisional.Checked);
+
+        CAFQRData.SetFrequency(Values.rbMonthly.Checked,
+                               Values.rbWeekly.Checked,
+                               Values.rbDaily.Checked,
+                               0);
+
+        CAFQRData.TimeStamp := Now;
+
+        // Institution Code and Country
+        InstIndex := Values.cmbInstitutionName.ItemIndex;
+        CAFQRData.InstitutionCode := TInstitutionItem(Values.cmbInstitutionName.Items.Objects[InstIndex]).Code;
+        
+        CAFQRData.InstitutionCountry := TInstitutionItem(Values.cmbInstitutionName.Items.Objects[InstIndex]).CountryCode;
+
+        CafQrCode.BuildQRCode(CAFQRData,
+                              GLOBALS.PublicKeysDir + PUBLIC_KEY_FILE_CAF_QRCODE,
+                              QrCodeImage);
+
+        aCanvas.StretchDraw(aDestRect, QrCodeImage.Picture.Graphic);
+        if OriginalDestination = rdPrinter then
+          aCanvas.StretchDraw(aDestRect, QrCodeImage.Picture.Graphic);
+
+      finally
+        FreeAndNil(QrCodeImage);
+      end;
+    finally
+      FreeAndNil(CafQrCode);
+    end;
+  finally
+    FreeAndNil(CAFQRData);
+  end;
+end;
+
+//------------------------------------------------------------------------------
 procedure TCAFReport.PrintForm;
 var
    myCanvas : TCanvas;
    i : integer;
+   BankText : string;
+   DateYTop : integer;
+   YearXleft : integer;
+   MonthXLeft : integer;
 begin
    {assume we have a canvas of A4 proportions as per GST forms}
 
@@ -148,29 +255,43 @@ begin
    RenderText(Values.lblTheGeneralManager.Caption, Rect(Col2+75, CurrYPos, ColBoxRight, CurrYPos+CurrLineSize), jtLeft);
    NewLine;
    myCanvas.Font.Size := myCanvas.Font.Size + 1;
-   RenderText(Values.edtBank.Text, Rect(Col1+BoxMargin, CurrYPos+BoxMargin, 1250, CurrYPos+CurrLineSize+(BoxMargin*2)), jtLeft);
+
+   if Values.cmbInstitutionName.itemindex = 0 then
+     BankText := Values.edtInstitutionName.text + '   ' + Values.edtBank.Text
+   else
+     BankText := Values.cmbInstitutionName.text + '   ' + Values.edtBank.Text;
+
+   RenderText(BankText, Rect(Col1+BoxMargin, CurrYPos+BoxMargin, 1250, CurrYPos+CurrLineSize+(BoxMargin*2)), jtLeft);
    myCanvas.Font.Size := myCanvas.Font.Size - 1;
    // manager box
    DrawBox(XYSizeRect(Col1, CurrYPos, 1250, CurrYPos + BoxHeight));
    RenderSplitText(Values.lblBankLink.Caption, Col2 + 75);
    NewLine;
-   RenderText(Values.lblPos.Caption, Rect(Col1, CurrYPos, ColBoxRight, CurrYPos+CurrLineSize), jtLeft);
+   RenderText('(Bank)                                                         (Branch)', Rect(Col1, CurrYPos, ColBoxRight, CurrYPos+CurrLineSize), jtLeft);
    NewLine;
-   RenderText(Values.lblPos1.Caption, Rect(Col1, CurrYPos, ColBoxRight, CurrYPos+CurrLineSize), jtLeft);
+   RenderText('("the Bank")', Rect(Col1, CurrYPos, ColBoxRight, CurrYPos+CurrLineSize), jtLeft);
    NewLine(3);
    //*** Clauses and space for signatures
    i := CurrYPos - CurrLineSize;
    RenderSplitText(Values.lblClause1.Caption, Col0);
    CurrYPos := CurrYPos - CurrLineSize*2 - BoxMargin;
    myCanvas.Font.Size := myCanvas.Font.Size + 1;
-   RenderText(Values.cmbMonth.Text, Rect(Col2 - 250, i, Col2 + 500, CurrYPos), jtLeft);
-   RenderText(Values.edtYear.Text, Rect(Col2+15, i, Col2 + 105, CurrYPos), jtLeft);
+
+   DateYTop   := CurrYPos - 39;
+   MonthXLeft := Col2 - 220;
+   YearXleft  := Col2 + 50;
+
+   // month box
+   DrawBox(XYSizeRect(MonthXLeft - 25, DateYTop - 25, MonthXLeft + 170, DateYTop - 25 + BoxHeight));
+   RenderText(Values.cmbMonth.Text, Rect(MonthXLeft, DateYTop - 5, MonthXLeft + 165, DateYTop + 35), jtLeft);
+
+   // year box
+   DrawBox(XYSizeRect(YearXleft - 20, DateYTop - 25 , YearXleft + 60, DateYTop - 25 + BoxHeight));
+   RenderText(Values.edtYear.Text, Rect(YearXleft, DateYTop - 5, YearXleft + 50, DateYTop + 35), jtLeft);
+
    myCanvas.Font.Size := myCanvas.Font.Size - 1;
    CurrYPos := CurrYPos + 61;
-   // month box
-   DrawBox(XYSizeRect(Col2 - 255, CurrYPos-CurrLineSize*4, Col2 - 75, CurrYPos + BoxHeight - CurrLineSize*4));
-   // year box
-   DrawBox(XYSizeRect(Col2 + 5, CurrYPos-CurrLineSize*4, Col2 + 95, CurrYPos + BoxHeight - CurrLineSize*4));
+
    NewLine;
    // advisors box
    DrawBox(XYSizeRect(Col1, CurrYPos, 1250, CurrYPos + BoxHeight));
@@ -190,6 +311,10 @@ begin
    NewLine;
    RenderSplitText(Values.lblClause45.Caption, Col0);
    NewLine(2);
+
+   CreateQRCode(myCanvas, XYSizeRect(ColBoxRight-240, CurrYPos-155, ColBoxRight+10, CurrYPos+95));
+   //CreateQRCode(myCanvas, XYSizeRect(10,10,110,110));
+
    RenderSplitText(Values.lblSign.Caption, Col0, True);
    CurrYPos := CurrYPos + CurrLineSize + BoxMargin;
    //Additional information to assist BankLink
@@ -210,15 +335,17 @@ begin
    DrawRadio(MyCanvas, XYSizeRect(Col1 + 1300, CurrYPos, Col1 + 1800, CurrYPos+CurrLineSize), ' ' + Values.rbDaily.Caption, True, Values.rbDaily.Checked);
    RenderText(Values.lblServiceFrequency.Caption, Rect(Col1, CurrYPos, Col1 + 250, CurrYPos + CurrLineSize), jtLeft);
    NewLine(5);
+
    WasPrinted := True;
 end;
 
-
+//------------------------------------------------------------------------------
 procedure TCAFReport.ResetForm;
 begin
    Values.btnClearClick(nil);
 end;
 
+//------------------------------------------------------------------------------
 procedure TCAFReport.FillCollumn(C: TCell);
 begin
    if C.Col = fcAccountName then
@@ -249,6 +376,7 @@ begin
    end;
 end;
 
+//------------------------------------------------------------------------------
 function TCAFReport.HaveNewdata: Boolean;
 begin
    Result := (Values.edtName1.Text > '')

@@ -748,9 +748,25 @@ begin
 end;
 //------------------------------------------------------------------------------
 procedure TdlgClientReportSchedule.cmbCustomDocListDropDown(Sender: TObject);
+var
+  Index : integer;
+  MinLength : integer;
+  CurrLength : integer;
 begin
+  MinLength := cmbCustomDocList.Width;
+  for Index := 0 to cmbCustomDocList.Items.Count - 1 do
+  begin
+    CurrLength := trunc(cmbCustomDocList.Canvas.TextWidth(cmbCustomDocList.Items.Strings[Index])*1.3);
+
+    if MinLength < CurrLength  then
+      MinLength := CurrLength;
+  end;
+
+  if MinLength > 300 then
+    MinLength := 300;
+
   //Set the width of the list to 300
-  cmbCustomDocList.Perform(CB_SETDROPPEDWIDTH, 300, 0);
+  cmbCustomDocList.Perform(CB_SETDROPPEDWIDTH, MinLength, 0);
 end;
 
 procedure TdlgClientReportSchedule.cmbPeriodChange(Sender: TObject);
@@ -1104,6 +1120,9 @@ procedure TdlgClientReportSchedule.chkUseCustomDocClick(Sender: TObject);
 begin
   cmbCustomDocList.Enabled := chkUseCustomDoc.Checked
                            and chkUseCustomDoc.Enabled; // How could it not be..
+
+  if not cmbCustomDocList.Enabled then
+    cmbCustomDocList.ItemIndex := -1;
 end;
 
 end.

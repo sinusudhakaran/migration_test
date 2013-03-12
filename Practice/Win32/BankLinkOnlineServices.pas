@@ -15,6 +15,8 @@ uses
   clObj32,
   baObj32,
   SysUtils,
+  SOAPHTTPClient,
+  SOAPHTTPTrans,
   P5Auth,
   OnlinePasswordFrm;
 
@@ -50,6 +52,14 @@ type
   TBloIBizzCredentials               = BlopiServiceFacade.PracticeDataSubscriberCredentials;
   TBloArrayOfPracticeDataSubscriberCount = BlopiServiceFacade.ArrayOfPracticeDataSubscriberCount;
 
+  TBloArrayOfPracticeBankAccount = BlopiServiceFacade.ArrayOfPracticeBankAccount;
+
+  TBloUploadResult = BlopiServiceFacade.UploadResult;
+
+  TBloUploadResultCode = (Success, NoFileReceived, InvalidCredentials, InternalError, FileFormatError);
+
+  TServiceStatus = (ssActive, ssSuspended, ssDisabled);
+
   TAccountVendors = record
     AccountVendors : TBloDataPlatformSubscription;
     IsLastAccForVendors : Array of Boolean;
@@ -75,6 +85,8 @@ type
   TArrVarTypeData = Array of TVarTypeData;
 
   TAuthenticationStatus = (paNone, paConnectionError, paOffLineUser, paChangePassword);
+
+  TBloResult = (bloSuccess, bloFailedNonFatal, bloFailedFatal);
 
   TUserDetailHelper = class helper for BlopiServiceFacade.User
   public
@@ -151,7 +163,7 @@ type
     FSubDomain: String;
 
     procedure HandleException(const MethodName: String; E: Exception; SuppressErrors: Boolean = False);
-    
+
     procedure SynchronizeClientSettings(BlopiClient: TBloClientReadDetail);
 
     procedure CopyRemotableObject(ASource, ATarget: TRemotable);
@@ -186,7 +198,8 @@ type
                           SendTimeout   : DWord ;
                           ReciveTimeout : DWord);
     function GetServiceFacade(PracticeCode: string = '') : IBlopiServiceFacade;
-    function GetSecureServiceFacade : IBlopiSecureServiceFacade;
+    function GetSecureServiceFacade : IBlopiSecureServiceFacade; overload;
+    function GetSecureServiceFacade(out HTTPRIO: THTTPRIO) : IBlopiSecureServiceFacade; overload;
     function GetAuthenticationServiceFacade : IP5Auth;
 
     function GetBanklinkOnlineURL(Service: string): String;
@@ -194,7 +207,8 @@ type
     function GetCachedPractice: TBloPracticeRead;
     function MessageResponseHasError(AMesageresponse: MessageResponse; ErrorText: string;
                                      SimpleError: boolean = false; ContextMsgInt: integer = 0;
-                                     ContextErrorCode: string = ''): Boolean;
+                                     ContextErrorCode: string = ''; ReportResponseErrors: Boolean = True): Boolean;
+
     function GetProducts : TBloArrayOfGuid;
     function GetRegistered: Boolean;
     function GetValidBConnectDetails: Boolean;
@@ -226,10 +240,11 @@ type
                                const aEMail    : WideString;
                                const aFullName : WideString) : Boolean; overload;
                                
-    function CheckClientUser(Client             : TBloClientReadDetail;
-                               const EMail      : WideString;
-                               const FullName   : WideString;
-                               var   UserId     : TBloGuid) : Boolean; overload;
+    function CheckClientUser(Client              : TBloClientReadDetail;
+                             const EMail         : WideString;
+                             const FullName      : WideString;
+                             var   UserId        : TBloGuid;
+                             const aSubscription : TBloArrayOfGuid) : Boolean; overload;
 
     function AddClientUser(ClientId             : TBloGuid;
                            const UserCode       : String;
@@ -275,6 +290,9 @@ type
 
     function CheckAuthentication(ServiceResponse: MessageResponse): Boolean;
     function ReAuthenticateUser(out Cancelled, OfflineAuthentication: Boolean; IgnoreOnlineStatus: Boolean = False): Boolean;
+    function GetServiceStatus: TServiceStatus;
+    function GetServiceActive: Boolean;
+    function GetServiceSuspended: Boolean;
   public
     function IsExportDataEnabled : Boolean;
     function IsExportDataEnabledFoAccount(const aBankAcct : TBank_Account) : Boolean;
@@ -329,7 +347,8 @@ type
 
     function GetCatFromSub(aSubGuid : Guid): CatalogueEntry;
     property CachedPractice: PracticeRead read GetCachedPractice;
-    function GetServiceAgreement : WideString;
+    function GetServiceAgreementVersion(): WideString;
+    function GetServiceAgreement() : WideString;
     procedure SavePracticeDetailsToSystemDB(ARemotable: TRemotable);
     function VendorEnabledForPractice(ClientVendorGuid: TBloGuid): boolean;
 
@@ -438,28 +457,41 @@ type
 
     function GetClientBankAccounts(aClientGuid: TBloGuid;
                                    out BankAccounts: TBloArrayOfDataPlatformBankAccount;
-                                   aShowProgressBar: Boolean = True): Boolean;
+                                   aShowProgressBar: Boolean = True;
+                                   ReportResponseErrors: Boolean = True): TBloResult;
 
     function GetVendorExportClientCount(PracticeCode: string = ''): TBloArrayOfPracticeDataSubscriberCount;
 
     function GetClientGuid(const ClientCode: WideString; out Id: TBloGuid): Boolean; overload;
 
     function ResetPracticeUserPassword(const EmailAddress: String; UserGuid: TBloGuid): Boolean;
+    function ResetPracticeUserPasswordUnSecure(const aEmailAddress: String): Boolean;
 
-    function CompareGuidArrays(SubscriptionA, SubscriptionB: TBloArrayOfGuid): Boolean; 
+    function CompareGuidArrays(SubscriptionA, SubscriptionB: TBloArrayOfGuid): Boolean;
 
     function GetOnlineClientUser(const ClientCode: String; out UserFullName, UserEmail: String): Boolean;
 
     function PracticeUserExists(const EmailAddress: String; RefreshPractice: Boolean = True): Boolean;
 
     function AuthenticateUser(const Domain, Username, Password: String; out AuthenticationResult: TAuthenticationStatus; IgnoreOnlineUser: Boolean = False): Boolean;
-    
+
+    function ProcessData(const XmlData: String; out AuthenticationError: Boolean; OnPostingData: TPostingDataEvent = nil): TBloUploadResult;
+
+    function GetAccountStatusList(out Success: Boolean): TBloArrayOfPracticeBankAccount;
+
+    procedure SuspendService;
+    procedure ResumeService;
+
     property OnLine: Boolean read FOnLine;
     property Registered: Boolean read GetRegistered;
     property ValidBConnectDetails: Boolean read GetValidBConnectDetails;
     property ProductList : TBloArrayOfGuid read GetProducts;
 
     property Practice: PracticeRead read GetCachedPractice;
+
+    property ServiceStatus: TServiceStatus read GetServiceStatus;
+    property ServiceActive: Boolean read GetServiceActive;
+    property ServiceSuspended: Boolean read GetServiceSuspended;
   end;
 
 Const
@@ -492,7 +524,6 @@ uses
   Progress,
   BkConst,
   WinINet,
-  SOAPHTTPClient,
   OpConvert,
   strUtils,
   WideStrUtils,
@@ -501,9 +532,10 @@ uses
   ObjAuto,
   SyDefs,
   Globals,
-  SOAPHTTPTrans,
   xmldom,
-  Login32;
+  Login32,
+  XSBuiltIns,
+  Admin32;
 
 const
   UNIT_NAME = 'BankLinkOnlineServices';
@@ -512,7 +544,7 @@ const
   PRODUCT_GUID_CICO = '6D700B31-DAEE-4847-8CB2-82C21328AC33';
   PRODUCT_GUID_NOTES_ONLINE = '6D700B31-DAEE-4847-8CB2-82C21328AC30';
   PRODUCT_GUID_EXPORT_DATA = '6D700B31-DAEE-4847-8CB2-82C21328AC34';
-  
+
   VENDOR_EXPORT_GUID_IBIZZ = '00ed4b6e-4c2b-4219-a102-c239d11a6ee8';
   VENDOR_EXPORT_GUID_BGL = '5fc52936-cfb0-4c19-85ea-d048a5b3440c';
 
@@ -531,7 +563,6 @@ begin
 end;
 
 { TProductConfigService }
-
 //------------------------------------------------------------------------------
 function TProductConfigService.IsExportDataEnabled : Boolean;
 begin
@@ -711,6 +742,7 @@ begin
   Result := True;
 end;
 
+//------------------------------------------------------------------------------
 function TProductConfigService.ChangePracUserPass(const aUserGuid: TBloGuid; const aUserCode: WideString; const aOldPassword, aNewPassword: WideString; const UserEmail: WideString): Boolean;
 var
   MsgResponce     : MessageResponse;
@@ -750,6 +782,7 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 function TProductConfigService.CheckGuidArrayEquality(GuidArray1, GuidArray2: TBloArrayOfGuid): boolean;
 var
   i, j: integer;
@@ -856,6 +889,7 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 procedure TProductConfigService.CopyRemotableObject(ASource,
   ATarget: TRemotable);
 var
@@ -952,6 +986,7 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 function TProductConfigService.CreateNewClientUser(NewUser: TBloUserCreate; ClientGUID: string): Guid;
 var
   BlopiInterface: IBlopiSecureServiceFacade;
@@ -1003,6 +1038,7 @@ begin
     LogUtil.LogMsg(lmInfo, UNIT_NAME, 'User ' + NewUser.FullName + ' was not created on BankLink Online.');
 end;
 
+//------------------------------------------------------------------------------
 function TProductConfigService.CreateNewClientWithUser(aNewClient: TBloClientCreate; aNewUserCreate: TBloUserCreate): TBloClientReadDetail;
 var
   TheGuid: TBloGuid;
@@ -1097,6 +1133,7 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 function TProductConfigService.GetIBizzExportGuid: TBloGuid;
 begin
   Result := VENDOR_EXPORT_GUID_IBIZZ;
@@ -1124,11 +1161,13 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 function TProductConfigService.GetBGLExportGuid: TBloGuid;
 begin
   Result := VENDOR_EXPORT_GUID_BGL;
 end;
 
+//------------------------------------------------------------------------------
 function TProductConfigService.GetCachedPractice: TBloPracticeRead;
 begin
   Result := FPractice;
@@ -1149,6 +1188,7 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 function TProductConfigService.GetClientDetailsWithCode(AClientCode: string; SynchronizeBlopi: Boolean = False): TBloClientReadDetail;
 var
   ClientGuid: WideString;
@@ -1252,8 +1292,8 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 function TProductConfigService.GetClientGuid(const ClientCode: WideString; out Id: TBloGuid): Boolean;
-
 type
   TResponseType = (rtClientFound, ctClientNotFound, rtError);
   
@@ -1344,6 +1384,7 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 function TProductConfigService.GetOnlineClientUser(const ClientCode: String; out UserFullName, UserEmail: String): Boolean;
 var
   ClientReadDetail: TBloClientReadDetail;
@@ -1374,6 +1415,7 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 function TProductConfigService.GetExportDataId: TBloGuid;
 var
   i   : integer;
@@ -1452,7 +1494,7 @@ begin
         //UseBankLinkOnline is updated by the user when the practice details
         //dialog is open - so dont't reload it from the system db.
         if aUpdateUseOnline then
-          UseBankLinkOnline := AdminSystem.fdFields.fdUse_BankLink_Online;
+          UseBankLinkOnline := ServiceActive;
 
         //Try to load practice details from BankLink Online
         FOnLine := False;
@@ -1663,7 +1705,7 @@ end;
 // for each code can be passed through, but I think single values should be enough
 function TProductConfigService.MessageResponseHasError(
   AMesageresponse: MessageResponse; ErrorText: string; SimpleError: boolean = false;
-  ContextMsgInt: integer = 0; ContextErrorCode: string = ''): Boolean;
+  ContextMsgInt: integer = 0; ContextErrorCode: string = ''; ReportResponseErrors: Boolean = True): Boolean;
 const
   MAIN_ERROR_MESSAGE = BKPRACTICENAME + ' is unable to %s ' + BANKLINK_ONLINE_NAME + '. Please see the details below or contact BankLink Support for assistance.';
 var
@@ -1729,7 +1771,11 @@ begin
           AddLine(Details, 'StackTrace', AMesageresponse.Exceptions[ErrIndex].StackTrace);
         end;
 
-        HelpfulErrorMsg(ErrorMessage, 0, False, Details.Text, not SimpleError);
+        if ReportResponseErrors or (Length(AMesageresponse.Exceptions) > 0) then
+        begin
+          HelpfulErrorMsg(ErrorMessage, 0, False, Details.Text, not SimpleError);
+        end;
+        
         LogUtil.LogMsg(lmError,'ERRORMOREFRM',Details.Text);
       finally
         Details.Free;
@@ -1753,6 +1799,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+
 function TProductConfigService.PracticeChanged: Boolean;
 begin
   if not Assigned(FPracticeCopy) then
@@ -1845,6 +1892,7 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 function TProductConfigService.GuidArraysEqual(GuidArrayA, GuidArrayB: TBloArrayOfGuid): Boolean;
 var
   Index: Integer;
@@ -1869,6 +1917,7 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 function TProductConfigService.GuidsEqual(GuidA, GuidB: TBloGuid): Boolean;
 begin
   Result := CompareText(GuidA, GuidB) = 0;
@@ -1885,6 +1934,7 @@ begin
     Result := (Length(FPracticeVendorExports.Current) > 0);
 end;
 
+//------------------------------------------------------------------------------
 function TProductConfigService.PracticeUserExists(const EmailAddress: String; RefreshPractice: Boolean = True): Boolean;
 begin
   Result := False;
@@ -1902,6 +1952,55 @@ begin
   if Assigned(FPractice) then
   begin
     Result := FPractice.FindUser(EmailAddress) <> nil; 
+  end;
+end;
+
+//------------------------------------------------------------------------------
+function TProductConfigService.ProcessData(const XmlData: String; out AuthenticationError: Boolean; OnPostingData: TPostingDataEvent = nil): TBloUploadResult;
+var
+  ServiceProvider: IBlopiSecureServiceFacade;
+  HTTPRIO: THTTPRIO;
+  Cancelled: Boolean;
+  ConnectionError: Boolean;
+begin
+  AuthenticationError := False;
+  
+  ServiceProvider := GetSecureServiceFacade(HTTPRIO);
+
+  HTTPRIO.HTTPWebNode.OnPostingData := OnPostingData;
+
+  try
+    try
+      Result := ServiceProvider.ProcessData(
+        CountryText(AdminSystem.fdFields.fdCountry),
+        AdminSystem.fdFields.fdBankLink_Code,
+        AdminSystem.fdFields.fdBankLink_Connect_Password,
+        EncodeText(XMLData));
+
+    except
+      on E: EAuthenticationException do
+      begin
+        if ReAuthenticateUser(Cancelled, ConnectionError) and not (Cancelled or ConnectionError) then
+        begin
+          Result := ServiceProvider.ProcessData(
+            CountryText(AdminSystem.fdFields.fdCountry),
+            AdminSystem.fdFields.fdBankLink_Code,
+            AdminSystem.fdFields.fdBankLink_Connect_Password,
+            EncodeText(XMLData));
+        end
+        else
+        begin
+          AuthenticationError := True;
+          
+          Exit;
+        end;
+      end;
+    end;
+  except
+    on E: Exception do
+    begin
+      HandleException('ProcessData', E);
+    end;
   end;
 end;
 
@@ -2043,7 +2142,7 @@ begin
   end;
 end;
 
-
+//------------------------------------------------------------------------------
 function TProductConfigService.AuthenticateUser(const Domain, Username, Password: String; out AuthenticationResult: TAuthenticationStatus; IgnoreOnlineUser: Boolean = False): Boolean;
 var
   AuthenticationService : IP5Auth;
@@ -2079,7 +2178,7 @@ begin
       begin
         AuthenticationService := GetAuthenticationServiceFacade;
 
-        if IgnoreOnlineUser then
+        if (IgnoreOnlineUser) and (not Assigned(OnlineUser)) then
         begin
           Response := AuthenticationService.AuthenticateUser(FSubDomain, CurrUser.EmailAddress, Password);
         end
@@ -2122,7 +2221,6 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-
 procedure TProductConfigService.DoAfterSecureExecute(const MethodName: string; SOAPResponse: TStream);
 var
   Buffer: array[0..255] of Char;
@@ -2137,6 +2235,7 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 procedure TProductConfigService.DoBeforeExecute(const MethodName: string;
                                                 var SOAPRequest: InvString);
 var
@@ -2192,7 +2291,6 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-
 function TProductConfigService.GetSecureServiceFacade: IBlopiSecureServiceFacade;
 var
   HTTPRIO: THTTPRIO;
@@ -2204,13 +2302,74 @@ begin
   Result := GetIBlopiSecureServiceFacade(False, GetBanklinkOnlineURL('/services/blopisecureservicefacade.svc'), HTTPRIO);
 end;
 
-function TProductConfigService.GetServiceAgreement : WideString;
+//------------------------------------------------------------------------------
+function TProductConfigService.GetSecureServiceFacade(out HTTPRIO: THTTPRIO): IBlopiSecureServiceFacade;
+begin
+  HTTPRIO := THTTPRIO.Create(nil);
+  HTTPRIO.OnBeforeExecute := DoBeforeExecute;
+  HTTPRIO.OnAfterExecute := DoAfterSecureExecute;
+
+  Result := GetIBlopiSecureServiceFacade(False, GetBanklinkOnlineURL('/services/blopisecureservicefacade.svc'), HTTPRIO);
+end;
+
+//------------------------------------------------------------------------------
+function TProductConfigService.GetServiceActive: Boolean;
+begin
+  Result := GetServiceStatus = ssActive;
+end;
+
+//------------------------------------------------------------------------------
+function TProductConfigService.GetServiceAgreementVersion(): WideString;
 var
   BlopiInterface: IBlopiServiceFacade;
   ReturnMsg: MessageResponseOfstring;
   ShowProgress : Boolean;
+begin
+  try
+    ShowProgress := Progress.StatusSilent;
+    if ShowProgress then
+    begin
+      Screen.Cursor := crHourGlass;
+      Progress.StatusSilent := False;
+      Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Connecting', 10);
+    end;
+    try
+      if ShowProgress then
+        Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Getting Service Agreement Version', 50);
 
-  FileTxt : Textfile;
+      BlopiInterface := GetServiceFacade;
+      ReturnMsg := BlopiInterface.GetTermsConditionsVersion(CountryText(AdminSystem.fdFields.fdCountry),
+                                                            AdminSystem.fdFields.fdBankLink_Code,
+                                                            AdminSystem.fdFields.fdBankLink_Connect_Password);
+      if not MessageResponseHasError(MessageResponse(ReturnMsg), 'get the service agreement version from') then
+      begin
+        Result := ReturnMsg.Result;
+      end;
+
+      if ShowProgress then
+        Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finished', 100);
+    finally
+      if ShowProgress then
+      begin
+        Progress.StatusSilent := True;
+        Progress.ClearStatus;
+        Screen.Cursor := crDefault;
+      end;
+    end;
+  except
+    on E:Exception do
+    begin
+      HandleException('GetServiceAgreementVersion', E);
+    end;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+function TProductConfigService.GetServiceAgreement(): WideString;
+var
+  BlopiInterface: IBlopiServiceFacade;
+  ReturnMsg: MessageResponseOfstring;
+  ShowProgress : Boolean;
 begin
   try
     ShowProgress := Progress.StatusSilent;
@@ -2229,8 +2388,9 @@ begin
                                                         AdminSystem.fdFields.fdBankLink_Code,
                                                         AdminSystem.fdFields.fdBankLink_Connect_Password);
       if not MessageResponseHasError(MessageResponse(ReturnMsg), 'get the service agreement from') then
-        if ReturnMsg.Result <> '' then
-          Result := ReturnMsg.Result;
+      begin
+        Result := ReturnMsg.Result;
+      end;
 
       if ShowProgress then
         Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finished', 100);
@@ -2262,6 +2422,39 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+function TProductConfigService.GetServiceStatus: TServiceStatus;
+begin
+  if Assigned(AdminSystem) then
+  begin
+    if AdminSystem.fdFields.fdUse_BankLink_Online then
+    begin
+      if AdminSystem.fdFields.fdBanklink_Online_Suspended then
+      begin
+        Result := ssSuspended;
+      end
+      else
+      begin
+        Result := ssActive;
+      end;
+    end
+    else
+    begin
+      Result := ssDisabled;
+    end;
+  end
+  else
+  begin
+    Result := ssDisabled;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+function TProductConfigService.GetServiceSuspended: Boolean;
+begin
+  Result := AdminSystem.fdFields.fdBanklink_Online_Suspended;
+end;
+
+//------------------------------------------------------------------------------
 function TProductConfigService.GetCatFromSub(aSubGuid : TBloGuid): TBloCatalogueEntry;
 var
   i: integer;
@@ -2279,7 +2472,6 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-
 function TProductConfigService.IsCICOEnabled: Boolean;
 var
   i, j: integer;
@@ -2343,6 +2535,7 @@ begin
 end;
 
 // Get list of vendors enabled for the practice
+//------------------------------------------------------------------------------
 function TProductConfigService.VendorEnabledForPractice(ClientVendorGuid: TBloGuid): boolean;
 var
   PracticeExportDataService   : TBloDataPlatformSubscription;
@@ -2364,6 +2557,7 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 function TProductConfigService.VendorExportExists(VendorExports: ArrayOfDataPlatformSubscriber; VendorExportGuid: TBloGuid): Boolean;
 var
   Index: Integer;
@@ -2509,11 +2703,13 @@ begin
   LogUtil.LogMsg(lmError, UNIT_NAME, Format('Exception running %s, Error Message : %s', [MethodName, E.Message]));
 end;
 
+//------------------------------------------------------------------------------
 function TProductConfigService.HasProductJustBeenTicked(AProductId: TBloGuid): Boolean;
 begin
   Result := (not IsPracticeProductEnabled(AProductID, False)) and IsPracticeProductEnabled(AProductID, True); 
 end;
 
+//------------------------------------------------------------------------------
 function TProductConfigService.HasProductJustBeenUnTicked(AProductId: TBloGuid): Boolean;
 begin
   // Was the Product Ticked and is it currently unticked
@@ -2525,6 +2721,7 @@ end;
 function TProductConfigService.ReAuthenticateUser(out Cancelled, OfflineAuthentication: Boolean; IgnoreOnlineStatus: Boolean = False): Boolean;
 var
   Password: String;
+  PasswordReset : boolean;
 begin
   Result := False;
 
@@ -2557,7 +2754,7 @@ begin
           end
           else
           begin
-            if not TfrmOnlinePassword.PromptUser(Password) then
+            if not TfrmOnlinePassword.PromptUser(Password, CurrUser.EmailAddress, PasswordReset) then
             begin
               HelpfulErrorMsg(BKPRACTICENAME + ' authentication with ' + BANKLINK_ONLINE_NAME + ' failed. Please contact BankLink Support for assistance.', 0);
 
@@ -2565,6 +2762,9 @@ begin
 
               Exit;
             end;
+
+            if PasswordReset then
+              Exit;
           end;
         end;
       until Result;
@@ -2585,6 +2785,7 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 function TProductConfigService.RemotableObjectToXML(
   ARemotable: TRemotable): string;
 var
@@ -2652,6 +2853,27 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
+procedure TProductConfigService.SuspendService;
+begin
+  if LoadAdminSystem(True, 'BankLinkOnlineServices') then
+  begin
+    try
+      AdminSystem.fdFields.fdBanklink_Online_Suspended := True;
+
+      SaveAdminSystem;
+    except
+      if AdminIsLocked then
+      begin
+        UnlockAdmin;
+      end;
+      
+      raise;
+    end;
+  end;
+end;
+
+//------------------------------------------------------------------------------
 procedure TProductConfigService.SynchronizeClientSettings(BlopiClient: TBloClientReadDetail);
 var
   UserEmail: String;
@@ -2797,12 +3019,13 @@ begin
       HelpfulErrorMsg(BKPRACTICENAME + ' is unable to remove the product. Please contact BankLink Support for assistance.', 0);
 
       LogUtil.LogMsg(lmError, UNIT_NAME, 'Exception running RemoveProduct, Error Message : ' + E.Message);
-      
+
       Exit;
     end;
   end;
 end;
 
+//------------------------------------------------------------------------------
 function TProductConfigService.ResetPracticeUserPassword(const EmailAddress: String; UserGuid: TBloGuid): Boolean;
 var
   BlopiInterface: IBlopiSecureServiceFacade;
@@ -2844,7 +3067,7 @@ begin
         end;
       end;
 
-    
+
       if not MessageResponseHasError(MsgResponse, 'reset user password on') then
       begin
         HelpfulInfoMsg(Format('The user password for %s has been successfully reset on %s.',[EMailAddress, BANKLINK_ONLINE_NAME]), 0);
@@ -2867,6 +3090,74 @@ begin
     Progress.StatusSilent := True;
     Progress.ClearStatus;
     Screen.Cursor := crDefault;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+function TProductConfigService.ResetPracticeUserPasswordUnSecure(const aEmailAddress: String): Boolean;
+var
+  BlopiInterface: IBlopiServiceFacade;
+  MsgResponse: MessageResponse;
+  Cancelled: Boolean;
+  ConnectionError: Boolean;
+begin
+  Result := False;
+
+  Screen.Cursor := crHourGlass;
+  Progress.StatusSilent := False;
+  Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Connecting', 10);
+
+  BlopiInterface := GetServiceFacade;
+  try
+    try
+      Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Resetting user password', 70);
+
+      MsgResponse := BlopiInterface.ResetUserPassword(CountryText(AdminSystem.fdFields.fdCountry),
+                                                      AdminSystem.fdFields.fdBankLink_Code,
+                                                      aEmailAddress);
+
+      if not MessageResponseHasError(MsgResponse, 'reset user password on') then
+      begin
+        HelpfulInfoMsg(Format('A temporary password has been sent to %s.',[aEMailAddress]), 0);
+
+        LogUtil.LogMsg(lmInfo, UNIT_NAME, 'The user password for ' + aEMailAddress + ' has been successfully unsecure reset on BankLink Online.');
+
+        Result := True;
+      end
+      else
+      begin
+        LogUtil.LogMsg(lmInfo, UNIT_NAME, 'The user password for ' + aEMailAddress + ' was not unsecurely reset on BankLink Online.');
+      end;
+    except
+      on E : Exception do
+      begin
+        HandleException('ResetPracticeUserPassword', E);
+      end;
+    end;
+  finally
+    Progress.StatusSilent := True;
+    Progress.ClearStatus;
+    Screen.Cursor := crDefault;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+procedure TProductConfigService.ResumeService;
+begin
+  if LoadAdminSystem(True, 'BankLinkOnlineServices') then
+  begin
+    try
+      AdminSystem.fdFields.fdBanklink_Online_Suspended := False;
+
+      SaveAdminSystem;
+    except
+      if AdminIsLocked then
+      begin
+        UnlockAdmin;
+      end;
+      
+      raise;
+    end;
   end;
 end;
 
@@ -2947,6 +3238,7 @@ begin
   AdminSystem.fdFields.fdBankLink_Online_Config := RemotableObjectToXML(ARemotable);
 end;
 
+//------------------------------------------------------------------------------
 function TProductConfigService.SavePracticeVendorExports(VendorExports: TBloArrayOfGuid; aShowMessage: Boolean): Boolean;
 var
   BlopiInterface : IBlopiServiceFacade;
@@ -3009,6 +3301,7 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 function TProductConfigService.SaveClientVendorExports(aClientId : TBloGuid;
                                                        aVendorExports: TBloArrayOfGuid;
                                                        aShowMessage: Boolean = True;
@@ -3091,6 +3384,7 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 function TProductConfigService.SaveAccountVendorExports(aClientId : TBloGuid;
                                                         aAccountID : Integer;
                                                         aAccountName: String;
@@ -3242,6 +3536,7 @@ begin
   Result := StrToDate('31/12/2011');
 end;
 
+//------------------------------------------------------------------------------
 function TClientHelper.GetPrimaryUser: TBloUserRead;
 var
   Index: Integer;
@@ -3389,7 +3684,6 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-
 function TClientBaseHelper.GetStatusString: string;
 begin
   case self.Status of
@@ -3434,6 +3728,7 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 function TClientHelper.GetBillingEndDate: TDateTime;
 begin
   Result := StrToDate('31/12/2011');
@@ -3961,6 +4256,7 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 procedure TProductConfigService.CreateXMLError(Document: IXMLDocument; const MethodName, ErrorCode, ErrorMessage: String);
 var
   EnvelopeNode: IXMLNode;
@@ -4187,6 +4483,7 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 function TProductConfigService.SaveIBizzCredentials(const AcclipseCode: WideString; aShowMessage: Boolean): Boolean;
 var
   BlopiInterface : IBlopiServiceFacade;
@@ -4467,7 +4764,7 @@ begin
     try
       UserId := '';
       
-      if CheckClientUser(aExistingClient, aUserEmail, aUserFullName, UserId) then
+      if CheckClientUser(aExistingClient, aUserEmail, aUserFullName, UserId, aSubscription) then
       begin
         Result := True;
 
@@ -4547,6 +4844,7 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 function TProductConfigService.UpdateClientNotesOption(ClientReadDetail: TBloClientReadDetail; WebExportFormat: Byte): Boolean;
 var
   Changed : Boolean;
@@ -4599,6 +4897,7 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 procedure TProductConfigService.UpdateClientStatus(var ClientReadDetail: TBloClientReadDetail; const ClientCode: WideString);
 var
   BlopiInterface  : IBlopiServiceFacade;
@@ -4755,6 +5054,7 @@ begin
                              UserId);
 end;
 
+//------------------------------------------------------------------------------
 function TProductConfigService.CheckAuthentication(ServiceResponse: MessageResponse): Boolean;
 var
   Cancelled: Boolean;
@@ -4771,8 +5071,11 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 function TProductConfigService.CheckClientUser(Client: TBloClientReadDetail;
-  const EMail, FullName: WideString; var UserId: TBloGuid): Boolean;
+                                               const EMail, FullName: WideString;
+                                               var UserId: TBloGuid;
+                                               const aSubscription : TBloArrayOfGuid): Boolean;
 var
   MsgResponce     : MessageResponse;
   PrimaryUser     : TBloUserRead;
@@ -4784,7 +5087,7 @@ begin
 
   if (not Assigned(PrimaryUser)) then
   begin
-    Result := AddClientUser(Client.Id, Client.ClientCode, Email, FullName, Client.Subscription, UserId);
+    Result := AddClientUser(Client.Id, Client.ClientCode, Email, FullName, aSubscription, UserId);
   end
   else
   begin
@@ -4794,7 +5097,7 @@ begin
 
       if ClientUser = nil then
       begin
-        Result := AddClientUser(Client.Id, Client.ClientCode, Email, FullName, Client.Subscription, UserId);
+        Result := AddClientUser(Client.Id, Client.ClientCode, Email, FullName, aSubscription, UserId);
 
         Exit;
       end
@@ -4806,15 +5109,16 @@ begin
 
     UserId := PrimaryUser.Id;
 
-    if (CompareText(Trim(PrimaryUser.FullName), Trim(FullName)) <> 0) then
+    if (CompareText(Trim(PrimaryUser.FullName), Trim(FullName)) <> 0) or
+       (CheckGuidArrayEquality(PrimaryUser.Subscription, aSubscription) = false) then
     begin
       Result := UpdateClientUser(Client.Id,
-                                      UserId,
-                                      FullName,
-                                      PrimaryUser.RoleNames,
-                                      PrimaryUser.Subscription,
-                                      PrimaryUser.UserCode,
-                                      'update the client user on');
+                                 UserId,
+                                 FullName,
+                                 PrimaryUser.RoleNames,
+                                 aSubscription,
+                                 PrimaryUser.UserCode,
+                                 'update the client user on');
     end
     else
     begin
@@ -4823,6 +5127,7 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 function TProductConfigService.AddEditPracUser(var   aUserId         : TBloGuid;
                                                const aEMail          : WideString;
                                                const aFullName       : WideString;
@@ -5025,6 +5330,7 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 function TProductConfigService.GetPrimaryContact(AUsePracCopy: Boolean): TBloUserRead;
 var
   TempPractice: TBloPracticeRead;
@@ -5236,6 +5542,63 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+function TProductConfigService.GetAccountStatusList(out Success: Boolean): TBloArrayOfPracticeBankAccount;
+var
+  BlopiInterface: IBlopiServiceFacade;
+  MsgResponse: MessageResponseOfArrayOfPracticeBankAccountrLqac6vj;
+  ShowProgress : Boolean;
+  Cancelled: Boolean;
+  ConnectionError: Boolean;
+begin
+  Success := False;
+
+  try
+    ShowProgress := Progress.StatusSilent;
+    if ShowProgress then
+    begin
+      Screen.Cursor := crHourGlass;
+      Progress.StatusSilent := False;
+      Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Connecting', 10);
+    end;
+
+    try
+      if ShowProgress then
+        Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Getting Bank Accounts', 50);
+
+      BlopiInterface :=  GetServiceFacade;
+      
+      MsgResponse := BlopiInterface.GetBankAccounts(CountryText(AdminSystem.fdFields.fdCountry),
+                                                   AdminSystem.fdFields.fdBankLink_Code,
+                                                   AdminSystem.fdFields.fdBankLink_Connect_Password);
+
+      if not MessageResponseHasError(MsgResponse, 'get bank accounts from') then
+      begin
+        Result := MsgResponse.Result;
+
+        Success := True;
+      end;
+
+      if ShowProgress then
+      begin
+        Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finished', 100);
+      end;
+    finally
+      if ShowProgress then
+      begin
+        Progress.StatusSilent := True;
+        Progress.ClearStatus;
+        Screen.Cursor := crDefault;
+      end;
+    end;
+  except
+    on E:Exception do
+    begin
+      HandleException('GetAccountStatusList', E);
+    end;
+  end;
+end;
+
+//------------------------------------------------------------------------------
 function TProductConfigService.GetAccountVendors(aClientGuid : TBloGuid; aAccountID: Integer;
                                                  ShowProgressBar: boolean): TBloDataPlatformSubscription;
 var
@@ -5308,6 +5671,7 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 function TProductConfigService.GetAuthenticationServiceFacade: IP5Auth;
 var
   HTTPRIO: THTTPRIO;
@@ -5483,15 +5847,17 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 function TProductConfigService.GetClientBankAccounts(aClientGuid: TBloGuid;
   out BankAccounts: TBloArrayOfDataPlatformBankAccount;
-  aShowProgressBar: Boolean): Boolean;
+  aShowProgressBar: Boolean;
+  ReportResponseErrors: Boolean): TBloResult;
 var
   DataPlatformClientSubscriberResponse: MessageResponseOfDataPlatformClient6cY85e5k;
   ShowProgress: Boolean;
   BlopiInterface: IBlopiServiceFacade;
 begin
-  Result := false;
+  Result := bloFailedNonFatal;
 
   try
     if not Assigned(AdminSystem) then
@@ -5521,11 +5887,23 @@ begin
                                                              AdminSystem.fdFields.fdBankLink_Connect_Password,
                                                              aClientGuid);
 
-      if not MessageResponseHasError(MessageResponse(DataPlatformClientSubscriberResponse), 'get the client accounts vendors') then
+      if not MessageResponseHasError(MessageResponse(DataPlatformClientSubscriberResponse), 'get the client accounts vendors', False, 0, '', ReportResponseErrors) then
       begin
         BankAccounts := DataPlatformClientSubscriberResponse.Result.BankAccounts;
 
-        Result := True;
+        Result := bloSuccess;
+      end
+      else
+      begin
+        if not Assigned(DataPlatformClientSubscriberResponse) then
+        begin
+          Result := bloFailedFatal;
+        end
+        else
+        if Length(DataPlatformClientSubscriberResponse.Exceptions) > 0 then
+        begin
+          Result := bloFailedFatal;
+        end;
       end;
 
       if ShowProgress then
@@ -5542,6 +5920,8 @@ begin
     on E:Exception do
     begin
       HandleException('GetClientBankAccounts', E);
+
+      Result := bloFailedFatal;
     end;
   end;
 end;
@@ -5569,6 +5949,7 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 function TPracticeHelper.GetUserRoleNameFromPracUserType(aUstNameIndex: integer): String;
 begin
   Result := '';
@@ -5641,6 +6022,7 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 function TPracticeHelper.CheckUserRolesEqual(PracticeRole: Integer; User: TBloUserRead): Boolean;
 begin
   Result := False;
@@ -5662,7 +6044,6 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-
 function TPracticeHelper.FindUser(const EmailAddress: String): TBloUserRead;
 var
   Index: Integer;
@@ -5680,6 +6061,7 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 function TPracticeHelper.FindUserByCode(const UserCode: String): TBloUserRead;
 var
   Index: Integer;
@@ -5697,6 +6079,7 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 function TPracticeHelper.GetRoleFromPracUserType(aUstNameIndex: integer;
                                                  aInstance: PracticeRead): Role;
 var
@@ -5718,6 +6101,7 @@ begin
   raise Exception.Create('Practice User Role does not exist on ' + BANKLINK_ONLINE_NAME + '.');
 end;
 
+//------------------------------------------------------------------------------
 function TPracticeHelper.GetRoleName(RoleIndex: Integer): String;
 begin
   if RoleIndex < Length(Roles) then
@@ -5731,9 +6115,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-
 { TClientListHelper }
-
 function TClientListHelper.GetClientGuid(const ClientCode: WideString): TBloGuid;
 var
   Index: Integer;
@@ -5749,11 +6131,13 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 procedure HandleException(const MethodName: String; E: Exception);
 begin
   HandleException(MethodName, UNIT_NAME, E);
 end;
 
+//------------------------------------------------------------------------------
 procedure HandleException(const MethodName, UnitName: String; E: Exception); overload;
 var
   MainMessage: String;
@@ -5786,6 +6170,7 @@ begin
   LogUtil.LogMsg(lmError, UnitName, Format('Exception running %s, Error Message : %s', [MethodName, E.Message]));
 end;
 
+//------------------------------------------------------------------------------
 function TUserDetailHelper.HasRoles(const RoleList: array of String): Boolean;
 var
   Index: Integer;
@@ -5808,6 +6193,7 @@ begin
   Result := RoleCount = Length(RoleList);
 end;
 
+//------------------------------------------------------------------------------
 function TUserDetailHelper.IsPracticeAdministrator: Boolean;
 var
   Index: Integer;
@@ -5825,9 +6211,12 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 initialization
   DebugMe := DebugUnit(UNIT_NAME);
   __BankLinkOnlineServiceMgr := nil;
+
+//------------------------------------------------------------------------------
 finalization
  FreeAndNil(__BankLinkOnlineServiceMgr);
 end.

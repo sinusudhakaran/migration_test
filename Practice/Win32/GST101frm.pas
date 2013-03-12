@@ -1913,17 +1913,21 @@ begin
     link := LblSubmit.Caption;
     if length(link) = 0 then exit;
     { See what we can fill in..}
-    link := link + '&name=' + EncodeHTML(lblName.Caption) +
-                   '&irdnum=' + lblGSTno.Caption +
-                   '&gstperiodstarting_day=' + Date2Str( D1, 'dd' ) +
-                   '&gstperiodstarting_month=' + Date2Str( D1, 'mm' ) +
-                   '&gstperiodstarting_year=' + Date2Str( D1, 'yyyy' ) +
-                   '&gstperiodending_day=' + Date2Str( D2, 'dd' ) +
-                   '&gstperiodending_month=' + Date2Str( D2, 'mm' ) +
-                   '&gstperiodending_year=' + Date2Str( D2, 'yyyy' ) +
-                   '&duedate_day=' + Date2Str( DueDate, 'dd' ) +
-                   '&duedate_month=' + Date2Str( DueDate, 'mm' ) +
-                   '&duedate_year=' + Date2Str( DueDate, 'yyyy' );
+
+    if Assigned(AdminSystem) then
+    begin
+      link := link + '&name=' + EncodeHTML(lblName.Caption) +
+                     '&irdnum=' + lblGSTno.Caption +
+                     '&gstperiodstarting_day=' + Date2Str( D1, 'dd' ) +
+                     '&gstperiodstarting_month=' + Date2Str( D1, 'mm' ) +
+                     '&gstperiodstarting_year=' + Date2Str( D1, 'yyyy' ) +
+                     '&gstperiodending_day=' + Date2Str( D2, 'dd' ) +
+                     '&gstperiodending_month=' + Date2Str( D2, 'mm' ) +
+                     '&gstperiodending_year=' + Date2Str( D2, 'yyyy' ) +
+                     '&duedate_day=' + Date2Str( DueDate, 'dd' ) +
+                     '&duedate_month=' + Date2Str( DueDate, 'mm' ) +
+                     '&duedate_year=' + Date2Str( DueDate, 'yyyy' );
+    end;
 
     {}
     ShellExecute(0, 'open', PChar(link), nil, nil, SW_NORMAL);

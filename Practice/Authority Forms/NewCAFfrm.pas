@@ -1,3 +1,4 @@
+// Client Authority Form for UK accounts
 unit NewCAFfrm;
 
 //------------------------------------------------------------------------------
@@ -38,6 +39,7 @@ type
     FClientEmail: string;
     fCountry : integer;
     fInstitution : integer;
+    cmbBankName : TComboBox;
 
     procedure UpperCaseTextKeyPress(Sender: TObject; var Key: Char);
     procedure UpperCaseOnlyTextKeyPress(Sender: TObject; var Key: Char);
@@ -47,6 +49,7 @@ type
 
     procedure CAFStartMonthChange(Sender: TObject);
     procedure WMGetMinMaxInfo( var Message :TWMGetMinMaxInfo ); message WM_GETMINMAXINFO;
+    procedure cmbBankNameChange(Sender: TObject);
   protected
     procedure SetRadioValues(aDaily, aWeekly, aMonthly : boolean);
 
@@ -68,6 +71,7 @@ type
     procedure SendPDFViaEmail;
     procedure SaveToFile;
     procedure PrintPDF;
+    procedure CreateQRCode;
   public
     function Execute(aCountry, aInstitution : integer) : boolean;
 
@@ -94,7 +98,16 @@ uses
   ReportDefs,
   YesNoDlg,
   ShellAPI,
-  BKHelp;
+  BKHelp,
+  CafQrCode,
+  WebUtils,
+  InstitutionCol;
+
+const
+  COUNTRY_CODE = 'UK';
+  SET_BANK_WIDTH = 457;
+  OTHER_BANK_WIDTH = 129;
+  SET_BRANCH_WIDTH_HSBC = 250;
 
 //------------------------------------------------------------------------------
 function OpenCustAuth(w_PopupParent: Forms.TForm; aCountry : integer; aClientEmail : string) : boolean;
@@ -200,6 +213,7 @@ end;
 function TfrmNewCAF.InitPDF : boolean;
 var
   PDFFilePath : Widestring;
+  PublicKeyFilePath : Widestring;
 begin
   Result := false;
 
@@ -217,6 +231,20 @@ begin
     Exit;
   end;
 
+  if not DirectoryExists( GLOBALS.PublicKeysDir ) then
+  begin
+    HelpfulErrorMsg('Can''t find Publickeys Directory - ' + GLOBALS.PublicKeysDir, 0);
+    Exit;
+  end;
+
+  PublicKeyFilePath := GLOBALS.PublicKeysDir + PUBLIC_KEY_FILE_CAF_QRCODE;
+
+  if not FileExists( PublicKeyFilePath ) then
+  begin
+    HelpfulErrorMsg('Can''t find CAF QrCode Publickey - ' + PublicKeyFilePath, 0);
+    Exit;
+  end;
+
   try
     PdfFieldEdit.PDFFilePath := PDFFilePath;
     PdfFieldEdit.Zoom := 3;
@@ -228,6 +256,8 @@ begin
 
     ResetFields;
 
+    CreateQRCode;
+
     Result := True;
   except
     on E : Exception do
@@ -236,15 +266,43 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+procedure TfrmNewCAF.cmbBankNameChange(Sender: TObject);
+var
+  PDFFormFieldItemEdit : TPDFFormFieldItemEdit;
+begin
+  PDFFormFieldItemEdit := GetPDFFormFieldEdit(ukCAFBankName);
+  if Assigned(PDFFormFieldItemEdit) then
+  begin
+
+    if cmbBankName.ItemIndex = 0 then
+    begin
+      cmbBankName.Width := OTHER_BANK_WIDTH;
+      PDFFormFieldItemEdit.Edit.text := '';
+      PDFFormFieldItemEdit.Edit.Enabled := true;
+    end
+    else
+    begin
+      cmbBankName.Width := SET_BANK_WIDTH;
+      PDFFormFieldItemEdit.Edit.text := cmbBankName.Text;
+      PDFFormFieldItemEdit.Edit.Enabled := false;
+    end;
+  end;
+end;
+
+//------------------------------------------------------------------------------
 procedure TfrmNewCaf.InitFields;
 var
   MonthIndex : integer;
   RadButtonTop : integer;
+  NewBankLabel : TLabel;
 
+  BankIndex : integer;
+  shpNewBankDetails           : TShape;
   PDFFormFieldItemEdit        : TPDFFormFieldItemEdit;
   PDFFormFieldItemComboBox    : TPDFFormFieldItemComboBox;
   PDFFormFieldItemRadioButton : TPDFFormFieldItemRadioButton;
   PDFFormFieldItemCheckBox    : TPDFFormFieldItemCheckBox;
+  BankNameFieldItem: TPDFFormFieldItemEdit;
 begin
   RadButtonTop := 0; // For the compiler
 
@@ -324,21 +382,106 @@ begin
       PDFFormFieldItemEdit.AddLinkFieldByTitle(ukCAFCostCode2);
   end;
 
+  // Bank Name
+  PDFFormFieldItemEdit := GetPDFFormFieldEdit(ukCAFBankName);
+  if Assigned(PDFFormFieldItemEdit) then
+  begin
+    case fInstitution of
+      istUKNormal : begin
+        // Clear out a section for the controls
+        shpNewBankDetails := TShape.Create(nil);
+        shpNewBankDetails.Parent := PdfFieldEdit;
+        shpNewBankDetails.Pen.Color := $00FFFFFF;
+        shpNewBankDetails.Top    := PDFFormFieldItemEdit.Edit.Top - 20;
+        shpNewBankDetails.Left   := PDFFormFieldItemEdit.Edit.Left - 20;
+        shpNewBankDetails.Height := PDFFormFieldItemEdit.Edit.Height + 60;
+        shpNewBankDetails.Width  := 474;
+
+        // New Drop down
+        cmbBankName := TComboBox.Create(nil);
+        cmbBankName.Parent := PdfFieldEdit;
+        cmbBankName.Style := csDropDownList;
+        cmbBankName.Top    := shpNewBankDetails.Top + 5;
+        cmbBankName.Left   := shpNewBankDetails.Left + 5;
+        cmbBankName.Height := 20;
+        cmbBankName.ShowHint := true;
+        cmbBankName.Hint := 'Select the name of the bank where the account is held';
+        cmbBankName.OnChange := cmbBankNameChange;
+
+        // Bank Name Label
+        NewBankLabel := TLabel.Create(nil);
+        NewBankLabel.Parent := PdfFieldEdit;
+        NewBankLabel.Caption := '(Bank Name)';
+        NewBankLabel.Top := shpNewBankDetails.Top + 27;
+        NewBankLabel.Left := shpNewBankDetails.Left + 10;
+        NewBankLabel.Font.Size := 7;
+        NewBankLabel.Font.Color := $00444444;
+
+        // Branch Name Label
+        NewBankLabel := TLabel.Create(nil);
+        NewBankLabel.Parent := PdfFieldEdit;
+        NewBankLabel.Caption := '(Branch Name)';
+        NewBankLabel.Top := shpNewBankDetails.Top + 59;
+        NewBankLabel.Left := shpNewBankDetails.Left + 10;
+        NewBankLabel.Font.Size := 7;
+        NewBankLabel.Font.Color := $00444444;
+
+        // Load the Institution Names
+        cmbBankName.AddItem('Other', nil);
+        for BankIndex := 0 to Institutions.Count-1 do
+        begin
+          if (TInstitutionItem(Institutions.Items[BankIndex]).CountryCode = COUNTRY_CODE) and
+             (TInstitutionItem(Institutions.Items[BankIndex]).Code <> 'HSBC') then
+            cmbBankName.AddItem(TInstitutionItem(Institutions.Items[BankIndex]).Name ,Institutions.Items[BankIndex]);
+        end;
+        cmbBankName.Width := SET_BANK_WIDTH;
+
+        PDFFormFieldItemEdit.Edit.MaxLength := 60;
+        PDFFormFieldItemEdit.Edit.ShowHint := true;
+        PDFFormFieldItemEdit.Edit.Top   := shpNewBankDetails.Top + 5;
+        PDFFormFieldItemEdit.Edit.Left  := shpNewBankDetails.Left + 139;
+        PDFFormFieldItemEdit.Edit.Width := 322;
+        PDFFormFieldItemEdit.Edit.Hint := 'Enter the name of the bank where the account is held';
+        PDFFormFieldItemEdit.Edit.Enabled := false;
+      end;
+      istUKHSBC : begin
+        PDFFormFieldItemEdit.Edit.Text := 'HSBC';
+        PDFFormFieldItemEdit.Edit.Enabled := false;
+        PDFFormFieldItemEdit.AddLinkFieldByTitle(ukCAFBankName2);
+      end;
+    end;
+  end;
+
   // Branch Name
   PDFFormFieldItemEdit := GetPDFFormFieldEdit(ukCAFBranchName);
+
   if Assigned(PDFFormFieldItemEdit) then
   begin
     PDFFormFieldItemEdit.Edit.MaxLength := 60;
     PDFFormFieldItemEdit.Edit.ShowHint := true;
-    PDFFormFieldItemEdit.Edit.Hint := 'Enter the name of the bank and branch where the account is held';
+    PDFFormFieldItemEdit.Edit.Hint := 'Enter the name of the branch where the account is held';
 
     if fInstitution = istUKHSBC then
-    begin
+    begin                        
+      BankNameFieldItem := GetPDFFormFieldEdit(ukCAFBankName);
+
+      PDFFormFieldItemEdit.Edit.Top   := BankNameFieldItem.Edit.Top;
+      PDFFormFieldItemEdit.Edit.Left  := BankNameFieldItem.Edit.Left + BankNameFieldItem.Edit.Width + 15;
+
+      PDFFormFieldItemEdit.Edit.Width := SET_BRANCH_WIDTH_HSBC;
+      
       PDFFormFieldItemEdit.AddLinkFieldByTitle(ukCAFBranchName2);
       PDFFormFieldItemEdit.AddLinkFieldByTitle(ukCAFBranchName3);
+    end
+    else
+    begin
+      PDFFormFieldItemEdit.Edit.Top   := shpNewBankDetails.Top + 40;
+      PDFFormFieldItemEdit.Edit.Left  := shpNewBankDetails.Left + 5;
+
+      PDFFormFieldItemEdit.Edit.Width := SET_BANK_WIDTH;
     end;
   end;
-
+  
   // Start Month
   PDFFormFieldItemComboBox := GetPDFFormFieldCombo(ukCAFStartMonth);
   if Assigned(PDFFormFieldItemComboBox) then
@@ -520,7 +663,6 @@ begin
       PDFFormFieldItemRadioButton.AddLinkFieldByTitle(ukCAFMonthly2);
     end;
   end;
-
 
   // Bank Name
   PDFFormFieldItemEdit := GetPDFFormFieldEdit(ukCAFBankName);
@@ -758,6 +900,9 @@ begin
       begin
         PDFFormFieldItemEdit.Edit.Text := '';
         PDFFormFieldItemEdit.Value := '';
+        PDFFormFieldItemEdit.Edit.Enabled := false;
+        cmbBankName.ItemIndex := -1;
+        cmbBankName.Width := SET_BANK_WIDTH;
       end;
     end;
     istUKHSBC : begin
@@ -869,7 +1014,7 @@ begin
     ReportFile := Format('%sBankLink Customer Authority.PDF', [EmailOutboxDir]);
 
     FileCount := 1;
-    
+
     while FileExists(ReportFile) do
     begin
       ReportFile := Format('%sBankLink Customer Authority (%s).PDF', [EmailOutboxDir, IntToStr(FileCount)]);
@@ -901,10 +1046,10 @@ begin
   try
     PdfFieldEdit.SaveToFileFlattened(ReportFile);
 
-    PrintDialog.MinPage := 1;
-    PrintDialog.MaxPage := PdfFieldEdit.PageCount;
+    PrintDialog.MinPage  := 1;
+    PrintDialog.MaxPage  := PdfFieldEdit.PageCount;
     PrintDialog.FromPage := 1;
-    PrintDialog.ToPage := PdfFieldEdit.PageCount;
+    PrintDialog.ToPage   := PdfFieldEdit.PageCount;
     if PrintDialog.Execute then
     begin
       PdfFieldEdit.Print(ReportFile,
@@ -1001,6 +1146,82 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+procedure TfrmNewCAF.CreateQRCode;
+const
+  QR_CODE_SIZE = 100;
+  STANDARD_XPOS = 645;
+  STANDARD_YPOS = 760;
+var
+  CafQrCode  : TCafQrCode;
+  CAFQRData  : TCAFQRData;
+  CAFQRDataAccount : TCAFQRDataAccount;
+  QrCodeImage : TImage;
+  InstIndex : integer;
+begin
+  if (Assigned(cmbBankName)) and
+     (cmbBankName.ItemIndex < 1) then
+    Exit;
+
+  CAFQRData := TCAFQRData.Create(TCAFQRDataAccount);
+  CafQrCode := TCafQrCode.Create;
+  QrCodeImage := TImage.Create(nil);
+  try
+    // Day , Month , Year
+    CAFQRData.SetStartDate(1,
+                           GetPDFFormFieldCombo(ukCAFStartMonth).ComboBox.ItemIndex,
+                           '20' + GetPDFFormFieldEdit(ukCAFStartYear).Edit.Text);
+
+    CAFQRData.PracticeCode        := GetPDFFormFieldEdit(ukCAFPracticeCode).Value;
+    CAFQRData.PracticeCountryCode := CountryText(AdminSystem.fdFields.fdCountry);
+
+    CAFQRData.SetProvisional(GetPDFFormFieldCheck(ukCAFSupplyProvisionalAccounts).CheckBox.Checked);
+
+    CAFQRData.SetFrequency(GetPDFFormFieldRadio(ukCAFMonthly).RadioButton.Checked,
+                           GetPDFFormFieldRadio(ukCAFWeekly).RadioButton.Checked,
+                           GetPDFFormFieldRadio(ukCAFDaily).RadioButton.Checked,
+                           2);
+
+    CAFQRData.TimeStamp := Now;
+
+    if fInstitution = istUKHSBC then
+    begin
+      CAFQRData.InstitutionCode := 'HSBC';
+      CAFQRData.InstitutionCountry := COUNTRY_CODE;
+    end
+    else
+    begin
+      InstIndex := cmbBankName.ItemIndex;
+      CAFQRData.InstitutionCode := TInstitutionItem(cmbBankName.Items.Objects[InstIndex]).Code;
+      CAFQRData.InstitutionCountry := TInstitutionItem(cmbBankName.Items.Objects[InstIndex]).CountryCode;
+    end;
+
+    CAFQRDataAccount := TCAFQRDataAccount.Create(CAFQRData);
+    CAFQRDataAccount.AccountName   := GetPDFFormFieldEdit(ukCAFNameOfAccount).Value;
+    CAFQRDataAccount.AccountNumber := GetPDFFormFieldEdit(ukCAFBankCode).Value +
+                                      GetPDFFormFieldEdit(ukCAFAccountNumber).Value;
+    CAFQRDataAccount.ClientCode    := GetPDFFormFieldEdit(ukCAFClientCode).Value;
+    CAFQRDataAccount.CostCode      := GetPDFFormFieldEdit(ukCAFCostCode).Value;
+    CAFQRDataAccount.SMSF          := 'N'; // AU only
+
+    CafQrCode.BuildQRCode(CAFQRData,
+                          GLOBALS.PublicKeysDir + PUBLIC_KEY_FILE_CAF_QRCODE,
+                          QrCodeImage);
+
+    PdfFieldEdit.SetQRCodeImage(QrCodeImage.Picture.Bitmap);
+
+    if fInstitution = istUKHSBC then
+      PdfFieldEdit.DrawQRCode(STANDARD_XPOS, STANDARD_YPOS, QR_CODE_SIZE, QR_CODE_SIZE, 2)
+    else
+      PdfFieldEdit.DrawQRCode(STANDARD_XPOS, STANDARD_YPOS, QR_CODE_SIZE, QR_CODE_SIZE, 1);
+
+  finally
+    FreeAndNil(QrCodeImage);
+    FreeAndNil(CafQrCode);
+    FreeAndNil(CAFQRData);
+  end;
+end;
+
+//------------------------------------------------------------------------------
 procedure TfrmNewCAF.FormCreate(Sender: TObject);
 begin
   Height := Application.MainForm.ClientHeight;
@@ -1076,6 +1297,29 @@ begin
       HelpfulErrorMsg('You must enter a valid starting year.', 0);
       PDFFormFieldItemEdit.Edit.SetFocus;
       Exit;
+    end;
+  end;
+
+  // Institution Name
+  if Assigned(cmbBankName) then
+  begin
+    if Result and (cmbBankName.ItemIndex = -1) then
+    begin
+      HelpfulErrorMsg('You must choose a Bank Name.', 0);
+      cmbBankName.SetFocus;
+      Result := False;
+    end;
+
+    // Institution Other Name
+    PDFFormFieldItemEdit := GetPDFFormFieldEdit(ukCAFBankName);
+    if Assigned(PDFFormFieldItemEdit) then
+    begin
+      if Result and (cmbBankName.ItemIndex = 0) and (PDFFormFieldItemEdit.edit.text = '') then
+      begin
+        HelpfulErrorMsg('You must enter a Bank Name.', 0);
+        PDFFormFieldItemEdit.edit.SetFocus;
+        Result := False;
+      end;
     end;
   end;
 end;

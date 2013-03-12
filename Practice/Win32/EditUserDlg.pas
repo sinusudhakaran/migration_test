@@ -265,6 +265,27 @@ var
     end;
   end;
 
+  procedure SetOnlineShowUser;
+  begin
+    // Is online user linked to practice user?
+    BloUserRead := ProductConfigService.GetOnlineUserLinkedToCode(GetCurrentCode, aPractice);
+
+    if Assigned(BloUserRead) then
+    begin
+      // Linked
+      if Trim(Uppercase(BloUserRead.EMail)) = Trim(Uppercase(eMail.text)) then
+        aUIMode := uimOnline
+      else
+      begin
+        // Differant user name to email
+        aUIMode := uimOnlineShowUser;
+        eOnlineUser.text := BloUserRead.EMail;
+      end;
+    end
+    else
+      CheckForUnlinked;
+  end;
+
 begin
   // Store this for use in OKToPost
   if Assigned(aPractice) then
@@ -277,26 +298,15 @@ begin
   begin
     If fOldValues.CanAccessBankLinkOnline and UseBankLinkOnline then
     begin
-      // Is online user linked to practice user?
-      BloUserRead := ProductConfigService.GetOnlineUserLinkedToCode(GetCurrentCode, aPractice);
-
-      if Assigned(BloUserRead) then
-      begin
-        // Linked
-        if Trim(Uppercase(BloUserRead.EMail)) = Trim(Uppercase(eMail.text)) then
-          aUIMode := uimOnline
-        else
-        begin
-          // Differant user name to email
-          aUIMode := uimOnlineShowUser;
-          eOnlineUser.text := BloUserRead.EMail;
-        end;
-      end
-      else
-        CheckForUnlinked;
+      SetOnlineShowUser;
     end
     else
-      CheckForUnlinked;
+    begin
+      if fOldValues.CanAccessBankLinkOnline then
+        SetOnlineShowUser
+      else
+        CheckForUnlinked;
+    end;
   end
   else
     fUIMode := uimOnline;
@@ -541,9 +551,31 @@ end;
 
 //------------------------------------------------------------------------------
 Function TdlgEditUser.OKtoPost : boolean;
+
+type
+  TCharSet = set of Char;
+  
+  function StringContainsOnlyChars(Value: String; Chars: TCharSet; out InvalidCharsFound: String): Boolean;
+  var
+    CharValue: Char;
+  begin
+    InvalidCharsFound := '';
+    
+    for CharValue in Value do
+    begin
+      if not (CharValue in Chars) then
+      begin
+        InvalidCharsFound := InvalidCharsFound + CharValue;
+      end;
+    end;
+
+    Result := InvalidCharsFound = '';
+  end;
+
 Var
   URec : pUser_Rec;
   LinkedUser : TBloUserRead;
+  InvalidChars: String;
 begin { TdlgEditUser.OKtoPost }
   Result := false;
 
@@ -566,6 +598,14 @@ begin { TdlgEditUser.OKtoPost }
       eUserCode.SetFocus;
       exit;
     End; { Assigned(URec) or (eUserCode.text = SUPERUSER) };
+
+    if not StringContainsOnlyChars(eUserCode.Text, ['a'..'z', 'A'..'Z', '0'..'9', '-', '_', '.'], InvalidChars) then
+    begin
+      HelpfulWarningMsg(Format('The user code "%s" contains invalid character(s): "%s"', [eUserCode.Text, InvalidChars]), 0);
+      pcMain.ActivePage := tsDetails;
+      eUserCode.SetFocus;
+      Exit;
+    end;
   End; { eUserCode.visible };
 
   if IsBankLinkOnlineUser then
@@ -743,7 +783,12 @@ begin
         end;
       end
       else
-        UserEmail := eMail.Text;
+      begin
+        if fUIMode = uimOnlineShowUser then
+          UserEmail := eOnlineUser.Text
+        else
+          UserEmail := eMail.Text;
+      end;
 
       Result := ProductConfigService.AddEditPracUser(UserGuid,
                                                      UserEmail,
@@ -1546,6 +1591,7 @@ begin { EditUser }
               CurrUser.FullName := pu.usName;
               CurrUser.ShowPrinterDialog := pu.usShow_Printer_Choice;
               CurrUser.AllowBanklinkOnline := pu.usAllow_Banklink_Online;
+              CurrUser.CanAccessAdmin := pu.usSystem_Access;
             End; { CurrUser.LRN = pu.usLRN }
           End;
         End { LoadAdminSystem(true) }
