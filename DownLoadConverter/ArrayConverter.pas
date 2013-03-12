@@ -43,6 +43,7 @@ const
   rptFile = $00000002;
   binFile = $00000003;
   ChargesFile = $00000004;
+  OnLineAccountsFile = $00000005;
 
   FileCorrupt = $00000001;
   DiskInvalid = $00000002;
@@ -348,27 +349,38 @@ procedure TArrayConverter.Extract(const FileName: string; filestream: TStream);
          Stream.Free;
       end;
    end;
-
+var lFilename: string;
 begin
    // Check the filename..
+   lFilename := lowerCase(Filename);
 
    if Pos('DISK_INF', FileName) > 0 then
       Exit; // Don't need it
 
-   if (pos('.htm', lowerCase(Filename)) > 0) then begin
-      DoOutputFile(htmFile,pChar(Filename), PChar(StreamToString));
+   if (pos('.htm',lFilename) > 0) then begin
+      DoOutputFile(htmFile, pChar(Filename), PChar(StreamToString));
       Exit;
    end;
 
-   if (pos('report', LowerCase(Filename)) = 1) then begin
-      DoOutputFile(rptFile,pChar(ReNameFile(Filename,'rpt')), PChar(StreamToString));
+   if (pos('report', lFilename) = 1) then begin
+      DoOutputFile(rptFile, pChar(ReNameFile(Filename,'rpt')), PChar(StreamToString));
       Exit;
    end;
 
-   if (pos('.csv', LowerCase(Filename)) > 0) then begin
-      DoOutputFile(ChargesFile,pChar(Filename), PChar(StreamToString));
+
+   if (pos('.csv', lFilename) > 0) then begin
+       // Check this first because its a .csv file as well
+      if (pos('onlineaccounts_', lFilename) = 1) then begin
+         DoOutputFile(OnLineAccountsFile, pChar(Filename), PChar(StreamToString));
+         Exit;
+      end;
+
+      // Still here Must be Charges File
+      DoOutputFile(ChargesFile, pChar(Filename), PChar(StreamToString));
       Exit;
    end;
+
+
 
    // Still here...
    DoOutputFile(binFile,pChar(Filename), PChar(EnCodetext(FileStream)));
