@@ -25,7 +25,6 @@ public
                    TaxSystemID: TGuid;
                    GroupID: TGuid;
                    TypeID: TGuid;
-                   WebExportFormat: TGuid;
                    Archived: Boolean;
                    SystemComments: string;
                    Value: pClient_Rec;
@@ -393,6 +392,7 @@ end;
 implementation
 
 uses
+   Math,
    GstWorkRec,
    CustomDocEditorFrm,
    STDate,
@@ -415,7 +415,6 @@ function TClient_RecFieldsTable.Insert(MyId: TGuid;
                    TaxSystemID: TGuid;
                    GroupID: TGuid;
                    TypeID: TGuid;
-                   WebExportFormat: TGuid;
                    Archived: Boolean;
                    SystemComments: string;
                    Value: pClient_Rec;
@@ -470,10 +469,10 @@ begin
                 ,ToSQL(clAll_EditMode_CES),ToSQL(clAll_EditMode_DIS),ToSQL(clTFN)
   {14}       , ToSql(ceAllow_Client_Unlock_Entries),ToSQL(ceAllow_Client_Edit_Chart)
                 ,ToSQL(ceBudget_Include_Quantities),ToSQL(Archived)
-  {16}       , ToSQL(mcJournal_Processing_Duration),ToSQL( clBAS_Field_Source[bfGSTProvisional] = GSTprovisional)
+  {15}       , ToSQL(mcJournal_Processing_Duration),ToSQL( clBAS_Field_Source[bfGSTProvisional] = GSTprovisional)
                 ,ToSql(clBAS_Field_Number[bfGSTProvisional] = GSTRatio),PercentToSQL(GetGSTRatio)
-  {17}       , ToSQL(GetNotes),ToSQL(ceBook_Gen_Finance_Reports),ToSQL(not ceBlock_Client_Edit_Mems)
-                ,ToSQL(clFile_Password),ToSQL(False),ToSQL(CheckedOutTo)],[]);
+  {16}       , ToSQL(GetNotes),ToSQL(ceBook_Gen_Finance_Reports),ToSQL(not ceBlock_Client_Edit_Mems)
+                ,ToSQL(LowerCase(clFile_Password)),ToSQL(False),ToSQL(CheckedOutTo)],[]);
 end;
 
 function TClient_RecFieldsTable.InsertProspect(
@@ -512,10 +511,10 @@ with  AClient^, ClientDetailsCache do begin
               ,null,null,null
 {14}       , null,null
               ,null,ToSQL(Archived)
-{16}       , null,null
+{15}       , null,null
               ,null,null
-{17}       , null,null,null
-              ,ToSQL(ComputePWHash(cfFile_Password,MyId)),ToSQL(True)],[]);
+{16}       , null,null,null
+              ,ToSQL(LowerCase(cfFile_Password)),ToSQL(True),null],[]);
 end;
 end;
 
@@ -565,7 +564,7 @@ function TAccount_RecTable.Insert(MyID: TGuid;
 
 begin with value^ do
   Result := RunValues([ ToSQL(MyId),ToSQL(ClientID),ToSQL(baBank_Account_Number),ToSQL(baBank_Account_Name)
-              ,ToSQL(baBank_Account_Password),ToSQL(baContra_Account_Code)
+              ,ToSQL(LowerCase(baBank_Account_Password)),ToSQL(baContra_Account_Code)
  {2}     ,ToSQL(baCurrent_Balance),ToSQL(baApply_Master_Memorised_Entries),ToSQL(baAccount_Type)
               ,ToSQL(baPreferred_View),ToSQL(baHighest_BankLink_ID)
  {3}     ,ToSQL(baHighest_LRN),DateToSQL(baAccount_Expiry_Date),ToSQL(baHighest_Matched_Item_ID)
@@ -628,7 +627,7 @@ procedure TColumnConfigColumnsTable.SetupTable;
 begin
    TableName := 'CodingColumns';
    SetFields(['Id', 'ColumnId', 'Position',  'Width', 'IsVisible',
-   'CanBeEdited', 'IsSortColumn', 'SortAscending', 'CodingColumnConfiguration_Id' ],[]);
+   'IsEditable', 'IsSortColumn', 'SortAscending', 'CodingColumnConfiguration_Id' ],[]);
 
 end;
 
@@ -1037,9 +1036,28 @@ end;
 
 function TBudget_Detail_RecTable.Insert(MyID, BudgetID: TGuid; Period: Integer;
   Value: pBudget_Detail_Rec): Boolean;
+  // Have to work out the what's set...
+  // Budgets have a different scale, see BudgetUnitPriceEntry
+
+  function RemakeQty: Money;
+  begin
+     result := Value^.bdQty_Budget[Period];
+     if (result = 0)
+     or (result = Unknown) then
+        result := 10000;
+  end;
+
+  function RemakeEach : Money;
+  begin
+     result := Value^.bdEach_Budget[Period];
+     if (result = 0)
+     or (result = Unknown) then
+        result := Value^.bdBudget[Period] * 10000;
+  end;
+
 begin with Value^ do
   Result := RunValues([ ToSQL(MyID),ToSQL(BudgetID),ToSQL(bdAccount_Code),ToSQL(Period),
-                   ToSQL(bdBudget[Period]),QtyToSQL(bdQty_Budget[Period]),ToSQL(bdEach_Budget[Period])],[]);
+                   ToSQL(Trunc(RoundTo(bdBudget[Period],0))),QtyToSQL(RemakeQty),QtyToSQL(RemakeEach)],[]);
 end;
 
 procedure TBudget_Detail_RecTable.SetupTable;

@@ -1,7 +1,7 @@
 object FromBrowse: TFromBrowse
   Left = 0
   Top = 0
-  Caption = 'Select Practice System To Migrate From'
+  Caption = 'Select BankLink Practice 5 Location to Migrate From'
   ClientHeight = 451
   ClientWidth = 631
   Color = clBtnFace
@@ -57,17 +57,14 @@ object FromBrowse: TFromBrowse
       631
       82)
     object Label1: TLabel
-      Left = 280
+      Left = 8
       Top = 16
-      Width = 342
+      Width = 287
       Height = 15
-      Alignment = taRightJustify
-      Anchors = [akTop, akRight]
-      Caption = 'Or; browse to a different BankLink Practice 5 database location'
-      ExplicitLeft = 269
+      Caption = 'Or; browse to a different BankLink Practice 5 location'
     end
     object EResult: TEdit
-      Left = 9
+      Left = 8
       Top = 37
       Width = 532
       Height = 23
@@ -98,12 +95,12 @@ object FromBrowse: TFromBrowse
       328)
     object LExsiting: TLabel
       Left = 8
-      Top = -8
-      Width = 322
-      Height = 45
+      Top = 4
+      Width = 259
+      Height = 30
       Caption = 
-        #13'Select an existing instalation BankLink Practice 5 database'#13'run' +
-        ' on this machine before '
+        'Select an existing BankLink Practice 5 location, '#13'run on this ma' +
+        'chine before'
     end
     object EExststing: TListBox
       Left = 8
@@ -118,10 +115,9 @@ object FromBrowse: TFromBrowse
     end
   end
   object OpenDlg: TOpenDialog
-    FileName = 'C:\AU_FREEDMAN\SYSTEM.DB'
-    Filter = 'Practice file|system.db'
+    Filter = 'BankLink Practice Database file|system.db'
     Options = [ofHideReadOnly, ofPathMustExist, ofEnableSizing]
-    Title = 'Practice Install'
+    Title = 'BankLink Practice 5 Location'
     Left = 440
   end
 end

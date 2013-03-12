@@ -13,9 +13,12 @@ TSystemBlobTable = class (TMigrateTable)
 protected
    procedure SetupTable; override;
    function LoadFile(path: string): boolean;
+   function LoadRTF(value: string): Boolean;
+
 public
    function InsertCustomDoc(Value: TReportBase; CreatedBy: TGuid): Boolean;
    function InsertMessage(Text, Name, Description, DocType: string): Boolean;
+   function InsertHeaderFooter(Text, Name: string): Boolean;
    function InsertImage(Path, Name, Description, DocType: string): Boolean;
    function InsertSignature(Path: string): Boolean;
 end;
@@ -37,6 +40,16 @@ uses
   classes,
   sysutils;
 
+
+  const
+  cBlobName = 0;
+  cContentType = 1;
+  cBlobValue = 2;
+  cType = 3;
+  cDescription = 4;
+  cCreatedBy = 5;
+  cCreatedOn = 6;
+
 (******************************************************************************)
 
 { TSystemBlobTable }
@@ -50,7 +63,7 @@ function TSystemBlobTable.InsertCustomDoc(Value: TReportBase; CreatedBy: TGuid):
       try
          if GetNodeTextBinary(Value.Settings,'ReportRTF',ls) then begin
             ls.position := 0;
-            Parameters[2].LoadFromStream(ls,ftBlob);
+            Parameters[cBlobValue].LoadFromStream(ls,ftBlob);
          end;
       finally
         ls.Free;
@@ -58,14 +71,14 @@ function TSystemBlobTable.InsertCustomDoc(Value: TReportBase; CreatedBy: TGuid):
    end;
 
 begin
-   Parameters[0].Value := ToSQL(Value.GetGUID);
-   Parameters[1].Value := 'RTF';
+   Parameters[cBlobName].Value := ToSQL(Value.GetGUID);
+   Parameters[cContentType].Value := 'RTF';
 
    GetRTFData;
-   Parameters[3].Value := ToSQL('CustomDocument');
-   Parameters[4].Value := ToSQL(Value.Name);
-   Parameters[5].Value := ToSQL(Createdby);
-   Parameters[6].Value := Value.Createdon;
+   Parameters[cType].Value := ToSQL('CustomDocument');
+   Parameters[cDescription].Value := ToSQL(Value.Name);
+   Parameters[cCreatedBy].Value := ToSQL(Createdby);
+   Parameters[cCreatedOn].Value := Value.Createdon;
 
    // Run the query
    try
@@ -89,6 +102,35 @@ end;
  *)
 
 
+function TSystemBlobTable.InsertHeaderFooter(Text, Name: string): Boolean;
+begin
+
+   if not (Text > '') then begin
+      result := True;
+      Exit;
+   end;
+   result := false;
+
+   LoadRTF(Text);
+
+   Parameters[cBlobName].Value := ToSql(name);
+   Parameters[cContentType].Value := ToSql('RTF');
+
+   Parameters[cType].Value := ToSQL('ReportHeaderFooter');
+   Parameters[cDescription].Value := ToSQL('Report Header Footer');
+
+   Parameters[cCreatedBy].Value := ToSQL('Migrator');
+   Parameters[cCreatedOn].Value := DateTimeToSQL(Date);
+   // Run the query
+   try
+      Result := ExecSQL = 1;
+   except
+      on e: exception do begin
+         raise exception.Create(Format('Error : %s in table %s',[e.Message,TableName]));
+      end;
+   end;
+end;
+
 function TSystemBlobTable.InsertImage(Path, Name, Description, DocType: string): Boolean;
 
    function FileType:string;
@@ -106,14 +148,14 @@ begin
    result := false;
    if not LoadFile(path) then
       Exit;
-   Parameters[0].Value := ToSql(name);
-   Parameters[1].Value := ToSql(FileType);
+   Parameters[cBlobName].Value := ToSql(name);
+   Parameters[cContentType].Value := ToSql(FileType);
 
-   Parameters[3].Value := ToSQL(DocType);
-   Parameters[4].Value := ToSQL(Description);
-   
-   Parameters[5].Value := ToSQL('Migrator');
-   Parameters[6].Value := ToSQL(Date);
+   Parameters[cType].Value := ToSQL(DocType);
+   Parameters[cDescription].Value := ToSQL(Description);
+
+   Parameters[cCreatedBy].Value := ToSQL('Migrator');
+   Parameters[cCreatedOn].Value := DateTimeToSQL(Date);
    // Run the query
    try
       Result := ExecSQL = 1;
@@ -125,30 +167,20 @@ begin
 end;
 
 function TSystemBlobTable.InsertMessage(Text, Name, Description, DocType: string): Boolean;
-   procedure GetRTFData;
-   var ls: TStringStream;
-   begin
-      ls := TStringStream.Create(Text);
-      try
-         ls.position := 0;
-         Parameters[2].LoadFromStream(ls,ftBlob);
-      finally
-        ls.Free;
-      end;
-   end;
+
 begin
    if Length(Text) = 0 then begin
       Result := true;
       Exit;
    end;
 
-   Parameters[0].Value := ToSQL(Name);
-   Parameters[1].Value := 'Text';
-   GetRTFData;
-   Parameters[3].Value := ToSQL(DocType);
-   Parameters[4].Value := ToSQL(Description);
-   Parameters[5].Value := ToSQL('Migrator');
-   Parameters[6].Value := ToSQL(Date);
+   Parameters[cBlobName].Value := ToSQL(Name);
+   Parameters[cContentType].Value := 'Text';
+   LoadRTF(Text);
+   Parameters[cType].Value := ToSQL(DocType);
+   Parameters[cDescription].Value := ToSQL(Description);
+   Parameters[cCreatedBy].Value := ToSQL('Migrator');
+   Parameters[cCreatedOn].Value := DateTimeToSQL(Date);
 
    // Run the query
    try
@@ -165,13 +197,13 @@ begin
    result := false;
    if not LoadFile(path) then
       Exit;
-   Parameters[0].Value := 'MiratorPracticeSignature';
-   Parameters[1].Value := 'RTF';
+   Parameters[cBlobName].Value := 'MiratorPracticeSignature';
+   Parameters[cContentType].Value := 'RTF';
 
-   Parameters[3].Value := ToSQL('Signature');
-   Parameters[4].Value := ToSQL('Practice Signature');
-   Parameters[5].Value := ToSQL('Migrator');
-   Parameters[6].Value := ToSQL(Date);
+   Parameters[cType].Value := ToSQL('Signature');
+   Parameters[cDescription].Value := ToSQL('Practice Signature');
+   Parameters[cCreatedBy].Value := ToSQL('Migrator');
+   Parameters[cCreatedOn].Value := DateTimeToSQL(Date);
    // Run the query
    try
       Result := ExecSQL = 1;
@@ -196,6 +228,19 @@ begin
       fs.Free;
    end;
 end;
+
+function TSystemBlobTable.LoadRTF(value: string): Boolean;
+var ls: TStringStream;
+begin
+     ls := TStringStream.Create(value);
+     try
+         ls.position := 0;
+         Parameters[cBlobValue].LoadFromStream(ls,ftBlob);
+     finally
+        ls.Free;
+     end;
+end;
+
 
 procedure TSystemBlobTable.SetupTable;
 begin

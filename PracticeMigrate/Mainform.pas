@@ -88,7 +88,8 @@ type
     procedure cbClientsClick(Sender: TObject);
     procedure cbDocumentsClick(Sender: TObject);
 
-     procedure WMPOWERBROADCAST(var Msg: Tmessage ); message WM_POWERBROADCAST;
+    procedure WMPOWERBROADCAST(var Msg: Tmessage ); message WM_POWERBROADCAST;
+    procedure cbStylesClick(Sender: TObject);
   private
     Fprogress: Tprogress;
 
@@ -217,6 +218,8 @@ var
 const
    PracticeUser = 'Practice';      //sa
    PracticePw = 'Pr4ct1C#U$er';    //Pr@ct1c3!QAZ
+
+   BaseCommandTimeout =  2 * 60; // sec
 
 procedure TformMain.Setprogress(const Value: Tprogress);
 begin
@@ -420,6 +423,11 @@ begin
    Destination := CBServers.text;
 end;
 
+procedure TformMain.cbStylesClick(Sender: TObject);
+begin
+  FSystemMigrater.DoStyles := cbStyles.Checked;
+end;
+
 procedure TformMain.cbSysTransClick(Sender: TObject);
 begin
   FSystemMigrater.DoSystemTransactions := cbSysTrans.Checked;
@@ -606,11 +614,11 @@ begin
 
       Connection.Connected := true;
       try
+         Connection.CommandTimeout := BaseCommandTimeout;
+
          logger.logMessageProc(Info,format('Conneted to: [%s].[%s] , SessionID: (%u)',[ASource,Acatalog,sesionID ]));
          //TMigrater.RunSQL(Connection,MyAction,'DBCC TRACEON (610)', 'Trace on');
          TMigrater.RunSQL(Connection,MyAction,Format('DBCC SHRINKFILE(''%s_Log'',1)',[ACatalog]), 'Shrink Log');
-
-
 
 
          if SingleUser then
@@ -1037,7 +1045,7 @@ function TformMain.TestSystem: boolean;
      ll := TStringList.Create;
       try
          FillStyleList(ll);
-          SetCheckBox(cbStyles,'Styles %s',ll.Count);
+         SetCheckBox(cbStyles,'Styles %s',ll.Count);
       finally
         ll.Free
       end;

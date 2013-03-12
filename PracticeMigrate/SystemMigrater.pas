@@ -9,6 +9,7 @@ uses
    Classes,
    UBatchBase,
    DB,
+   cdTables,
    SysObj32,
    Sydefs,
    ADODB,
@@ -22,7 +23,7 @@ uses
 
 type
 
-
+                                                                    
    // Used for keeping the Master Mems avalaible
    TMasterMemList = class (Tobject)
    public
@@ -38,6 +39,7 @@ private
     FUserList,
     FSystemAccountList,
     FClientList: TGuidList;
+    FBLOPIProducs: TGuidList;
     FSystemUsers: TADODataSet;
     FSystem: TSystemObj;
     FbtTable: TbtTable;
@@ -61,18 +63,29 @@ private
     FDownloadDocumentTable: TDownloadDocumentTable;
     FDownloadlogTable: TDownloadlogTable;
     FParameterTable: TParameterTable;
+    FReportOptionsTable: TReportOptionsTable;
     FTaxEntriesTable: TTaxEntriesTable;
     FTaxRatesTable: TTaxRatesTable;
     FOnlineProductTable: TOnlineProductTable;
     FPracticeOnlineProductTable: TPracticeOnlineProductTable;
     FClientOnlineProductTable: TClientOnlineProductTable;
+    FReportStylesItemsTable: TReportStylesItemsTable;
+    FReportStylesTable: TReportStylesTable;
+    FSystemBlobTable: TSystemBlobTable;
     FDoClients: Boolean;
     FDoDocuments: Boolean;
+    FDoStyles: Boolean;
     FCreatedOn: TdateTime;
+    FUseBLOPI: Boolean;
+
+
+
+    function CreatedOn: TdateTime;
     function GetClientGroupList: TGuidList;
     function GetClientList: TGuidList;
     function GetClientTypeList: TGuidList;
     function GetSystemAccountList: TGuidList;
+    function GetBLOPIProducs: TGuidList;
 
     // Add Items
     function MergeUser(ForAction: TMigrateAction; Value: TGuidObject): Boolean;
@@ -97,14 +110,15 @@ private
     function AddHTMFile(ForAction: TMigrateAction; Value: string): Boolean;
     function AddRPTFile(ForAction: TMigrateAction; Value: string): Boolean;
     function MigrateWorkFolder(ForAction: TMigrateAction): Boolean;
+    function MigrateStyles(ForAction: TMigrateAction): Boolean;
     function MigrateDisklog(ForAction: TMigrateAction): Boolean;
     function MigrateSystem(ForAction: TMigrateAction): Boolean;
     function MigrateSystemBlobs(ForAction:TMigrateAction): Boolean;
+    function MigrateReportOptions(ForAction:TMigrateAction): Boolean;
     function MigrateTax(ForAction: TMigrateAction): Boolean;
     function MigrateBLOPI(ForAction: TMigrateAction): Boolean;
 
     function StartRetrieve(ForAction: TMigrateAction): Boolean;
-
 
     // Size Items
     function SizeSystemAccount(Value: TGuidObject): Int64;
@@ -130,12 +144,16 @@ private
     function GetDownloadDocumentTable: TDownloadDocumentTable;
     function GetDownloadlogTable: TDownloadlogTable;
     function GetParameterTable: TParameterTable;
+    function GetReportOptionsTable: TReportOptionsTable;
     function GetTaxEntriesTable: TTaxEntriesTable;
     function GetTaxRatesTable: TTaxRatesTable;
     function GetMasterMemLists: TObjectList;
     function GetOnlineProductTable: TOnlineProductTable;
+    function GetSystemBlobTable: TSystemBlobTable;
     function GetPracticeOnlineProductTable: TPracticeOnlineProductTable;
     function GetClientOnlineProductTable: TClientOnlineProductTable;
+    function GetTReportStylesItemsTable: TReportStylesItemsTable;
+    function GetTReportStylesTable: TReportStylesTable;
 
 protected
     procedure OnConnected; override;
@@ -173,11 +191,15 @@ public
     property DownloadDocumentTable: TDownloadDocumentTable read GetDownloadDocumentTable;
     property DownloadlogTable: TDownloadlogTable read GetDownloadlogTable;
     property ParameterTable: TParameterTable read GetParameterTable;
+    property ReportOptionsTable: TReportOptionsTable read GetReportOptionsTable;
+    property SystemBlobTable: TSystemBlobTable read GetSystemBlobTable;
     property TaxEntriesTable: TTaxEntriesTable read GetTaxEntriesTable;
     property TaxRatesTable: TTaxRatesTable read GetTaxRatesTable;
     property OnlineProductTable: TOnlineProductTable read GetOnlineProductTable;
     property PracticeOnlineProductTable: TPracticeOnlineProductTable read GetPracticeOnlineProductTable;
     property ClientOnlineProductTable: TClientOnlineProductTable read GetClientOnlineProductTable;
+    property ReportStylesTable: TReportStylesTable read GetTReportStylesTable;
+    property ReportStylesItemsTable: TReportStylesItemsTable read GetTReportStylesItemsTable;
     //Options
     property DoSystemTransactions: Boolean read FDoSystemTransactions write FDoSystemTransactions;
     property DoUsers: Boolean read FDoUsers write FDoUsers;
@@ -185,6 +207,8 @@ public
     property DoUnsynchronised: Boolean read FDoUnsynchronised write FDoUnsynchronised;
     property DoClients: Boolean read FDoClients write FDoClients;
     property DoDocuments: Boolean read FDoDocuments write FDoDocuments;
+    property DoStyles: Boolean read FDoStyles write FDoStyles;
+
     //Migrate functions ..
     property ClientMigrater: TMigrater read FClientMigrater write SetClientMigrater;
     function Migrate(ForAction:TMigrateAction): Boolean;
@@ -192,8 +216,10 @@ public
     // Helper for the Client
     function GetUser(const Value: string): TGuid; overload;
     function GetUser(const Value: integer): TGuid; overload;
-    function GetClient(const Value: Integer): tGuid; overload;
-    function GetClient(const Value: string): tGuid; overload;
+    // Local Helpers
+    function GetClient(const Value: Integer): TGuid; overload;
+    function GetClient(const Value: string): TGuid; overload;
+    procedure AddClientBLOPIProduct(const Client: TGuid; Value: TBLOPIProduct);
     function GetMasterMemList(const Prefix: string): TGuidList;
 
 
@@ -204,7 +230,7 @@ end;
 implementation
 
 uses
-
+   reportTypes,
    logger,
    FileExtensionUtils,
    CustomDocEditorFrm,
@@ -215,7 +241,6 @@ uses
    Globals,
    StDateSt,
    bkDefs,
-   cdTables,
    MemorisationsObj,
    GLConst,
    bkconst,
@@ -393,19 +418,61 @@ end;
 function TSystemMigrater.AddClientGroup(ForAction: TMigrateAction;
   Value: TGuidObject): Boolean;
 begin
-   Result := GroupTable.Insert(Value.GuidID, pGroup_Rec(Value.Data))
+   try
+      Result := GroupTable.Insert(Value.GuidID, pGroup_Rec(Value.Data))
+   except
+      on e: exception do begin
+         ForAction.AddError(e);
+         raise;
+      end;
+   end;
+end;
+
+procedure TSystemMigrater.AddClientBLOPIProduct(const Client: TGuid; Value: TBLOPIProduct);
+var I: Integer;
+    pg : string;
+begin
+   if not FUseBLOPI then
+      Exit;
+   if IsEqualGUID(Client,emptyGuid) then
+      Exit;
+
+   pg := GetBLOPIProduct(Value);
+   for I := 0 to GetBLOPIProducs.Count - 1 do begin
+      // Find Our id for the Product ID
+      if SameText(TBloCatalogueEntry(TGuidObject(GetBLOPIProducs.Items[i]).data).Id,pg) then begin
+         ClientOnlineProductTable.Insert(NewGuid,Client,TGuidObject(GetBLOPIProducs.Items[i]).GuidID, true, CreatedOn);
+         break;
+      end;
+   end;
+
+
 end;
 
 function TSystemMigrater.AddClientType(ForAction: TMigrateAction;
   Value: TGuidObject): Boolean;
 begin
-  Result := ClientTypeTable.Insert(Value.GuidID, pClient_Type_Rec(Value.Data), whShortNames[ FSystem.fdFields.fdCountry])
+  try
+     Result := ClientTypeTable.Insert(Value.GuidID, pClient_Type_Rec(Value.Data), whShortNames[ FSystem.fdFields.fdCountry])
+  except
+      on e: exception do begin
+         ForAction.AddError(e);
+         raise;
+      end;
+   end;
 end;
 
 function TSystemMigrater.AddDiskLog(ForAction: TMigrateAction;
   Value: TGuidObject): Boolean;
 begin
-  Result := DownloadLogTable.Insert(Value.GuidID, pSystem_Disk_Log_Rec(Value.Data))
+  try
+     Result := DownloadLogTable.Insert(Value.GuidID, pSystem_Disk_Log_Rec(Value.Data))
+  except
+      on e: exception do begin
+         ForAction.AddError(e);
+         raise;
+      end;
+   end;
 end;
 
 function TSystemMigrater.AddHTMFile(ForAction: TMigrateAction; Value: string): Boolean;
@@ -539,15 +606,15 @@ begin
    try
    if SameText(bc.CatalogueType,'Application') then begin
       //Product, 15F1052A-0B05-40F8-97CF-2AA889DAB95F, Static data
-      result := OnlineProductTable.Insert(Value.GuidID, StringToGuid('{15F1052A-0B05-40F8-97CF-2AA889DAB95F}'), bc, FCreatedOn)
+      result := OnlineProductTable.Insert(Value.GuidID, StringToGuid('{15F1052A-0B05-40F8-97CF-2AA889DAB95F}'), bc, CreatedOn)
    end else if SameText(bc.CatalogueType,'Service') then begin
       //Service, 353D0BC7-B413-4356-84B2-C225D09E82E8, static Data
-      Result := OnlineProductTable.Insert(Value.GuidID, StringToGuid('{353D0BC7-B413-4356-84B2-C225D09E82E8}'), bc, FCreatedOn)
+      Result := OnlineProductTable.Insert(Value.GuidID, StringToGuid('{353D0BC7-B413-4356-84B2-C225D09E82E8}'), bc, CreatedOn)
    end;
    except
       on e: Exception do begin
          result := false;
-         raise (e);
+         raise;
       end;
    end;
 end;
@@ -632,19 +699,32 @@ var
 begin
    Account := pSystem_Bank_Account_Rec(Value.Data);
    // Do the record
-   Result := SystemAccountTable.Insert(Value.GuidID, Account);
+   try
+      Result := SystemAccountTable.Insert(Value.GuidID, Account);
+   except
+      on e: exception do begin
+         ForAction.AddError(e);
+         raise;
+      end;
+   end;
 
    if not FDoSystemTransactions then
       Exit;
 
    // find the transactions
    eFileName := ArchiveFileName( Account.sbLRN );
-   if not BKFileExists(eFileName)then
+   if not BKFileExists(eFileName)then begin
+      if Account.sbLast_Transaction_LRN > 0 then
+          ForAction.AddWarning(format('Account %s; archive file %s not found',[ Account.sbAccount_Number, eFileName]));
+      // else... Did not realy need one...
       Exit;
+   end;
 
    // have a go..
    FillChar(Entry, Sizeof(Entry), 0);
 
+
+   // Setup
    MyAction := nil;
    AssignFile(eFile, eFileName);
    Count := FileMode;
@@ -655,31 +735,34 @@ begin
 
    //BTTable.BeginBatch;
    try
-      Count := FileSize(eFile);
-      if Count = 0 then
-         Exit // Nothing in the file.
-      else begin
-         MyAction := ForAction.InsertAction(format('%s %s',[Account.sbAccount_Number, Account.sbAccount_Name]));
-         MyAction.Target := Count;
-         Count := 0;
-      end;
+
+      MyAction := ForAction.InsertAction(format('%s %s',[Account.sbAccount_Number, Account.sbAccount_Name]));
+      MyAction.Target := FileSize(eFile);
+      Count := 0;
+
 
       while not EOF(eFile) do begin
          Read(eFile, Entry);
          // Validate LRN
          if Entry.aLRN > Account.sbLast_Transaction_LRN then
             Break;
-
-         BTTable.Insert(NewGuid,Value.GuidID,Entry);
+         try
+            BTTable.Insert(NewGuid,Value.GuidID,Entry);
+         except
+             on e: exception do begin
+                MyAction.AddError(e);
+                raise;
+             end;
+         end;
 
          inc(Count);
          MyAction.AddCount;
       end;
 
       if Entry.aLRN > Account.sbLast_Transaction_LRN then
-         MyAction.LogMessage ('Archive has More transactions than the Account')
+         MyAction.AddWarning('Archive has More transactions than the Account')
       else if Entry.aLRN < Account.sbLast_Transaction_LRN then
-         MyAction.LogMessage('Archive has Less transactions than the Account')
+         MyAction.AddWarning('Archive has Less transactions than the Account')
 
    finally
       CloseFile(eFile);
@@ -698,14 +781,21 @@ begin
    Clientrec := pClient_File_Rec(Value.Data);
    if (DoUnsynchronised or (not Clientrec.cfForeign_File))
    and (DoArchived or (not Clientrec.cfArchived)) then
-      Result := SystemClientFileTable.Insert
-        (
-          Value.GuidID,
-          'PracticeClient',
-          Clientrec
-        )
+      try
+         Result := SystemClientFileTable.Insert
+           (
+                Value.GuidID,
+                'PracticeClient',
+                Clientrec
+           )
+      except
+        on e: exception do begin
+           ForAction.AddError(e);
+           raise;
+        end;
+      end
     else
-       Result := false;
+       Result := false; //?? True?
 end;
 
 function TSystemMigrater.AddUserMap(ForAction: TMigrateAction; Value: TGuidObject): Boolean;
@@ -847,6 +937,7 @@ begin
 
       DeleteTable(MyAction,'SystemBlobs');
 
+
       DeleteTable(MyAction,'MasterMemorisationLines', true);
       DeleteTable(MyAction,'MasterMemorisations');
 
@@ -890,12 +981,27 @@ begin
    FGroupTable := nil;
    FUserMappingTable := nil;
    FClientAccountMap := nil;
+   FReportStylesTable := nil;
+   FReportStylesItemsTable := nil;
    FMasterMemorisationsTable := nil;
    FMasterMemlinesTable := nil;
    FChargesTable := nil;
    FDownloadDocumentTable := nil;
    FDownloadlogTable := nil;
    FParameterTable := nil;
+   FReportOptionsTable := nil;
+   FOnlineProductTable := nil;
+   FPracticeOnlineProductTable := nil;
+   FClientOnlineProductTable := nil;
+   FSystemBlobTable := nil;
+   FBLOPIProducs := nil;
+end;
+
+function TSystemMigrater.CreatedOn: TdateTime;
+begin
+   if FCreatedOn = 0 then
+      FCreatedOn := now; // Do this only once...
+   result := FCreatedOn;
 end;
 
 destructor TSystemMigrater.Destroy;
@@ -924,13 +1030,24 @@ begin
    FreeAndNil(FParameterTable);
    FreeAndnil(FTaxEntriesTable);
    FreeAndNil(FTaxRatesTable);
+   FreeAndNil(FReportStylesTable);
+   FreeAndNil(FReportStylesItemsTable);
    FreeAndNil(FOnlineProductTable);
    FreeAndNil(FPracticeOnlineProductTable);
    FreeAndNil(FClientOnlineProductTable);
-
+   FreeAndNil(FReportOptionsTable);
+   FreeAndNil(FSystemBlobTable);
+   FreeAndNil(FBLOPIProducs);
    inherited;
 end;
 
+
+function TSystemMigrater.GetBLOPIProducs: TGuidList;
+begin
+   if not Assigned(FBLOPIProducs) then
+      FBLOPIProducs := TGuidList.Create();
+   Result := FBLOPIProducs;
+end;
 
 function TSystemMigrater.GetbtTable: TbtTable;
 begin
@@ -1081,6 +1198,13 @@ begin
    Result := FParameterTable;
 end;
 
+function TSystemMigrater.GetReportOptionsTable: TReportOptionsTable;
+begin
+   if not Assigned(FReportOptionsTable) then
+      FReportOptionsTable := TReportOptionsTable.Create(Connection);
+   Result := FReportOptionsTable;
+end;
+
 
 function TSystemMigrater.GetPracticeOnlineProductTable: TPracticeOnlineProductTable;
 begin
@@ -1138,6 +1262,13 @@ begin
    Result := FSystemAccountTable;
 end;
 
+function TSystemMigrater.GetSystemBlobTable: TSystemBlobTable;
+begin
+    if not Assigned(FSystemBlobTable) then
+      FSystemBlobTable := TSystemBlobTable.Create(Connection);
+   Result := FSystemBlobTable;
+end;
+
 function TSystemMigrater.GetSystemClientFileTable: TSystemClientFileTable;
 begin
    if not Assigned(FSystemClientFileTable) then
@@ -1168,6 +1299,20 @@ begin
    if not Assigned(FTaxRatesTable) then
       FTaxRatesTable := TTaxRatesTable.Create(Connection);
    Result := FTaxRatesTable;
+end;
+
+function TSystemMigrater.GetTReportStylesItemsTable: TReportStylesItemsTable;
+begin
+   if not Assigned(FReportStylesItemsTable) then
+      FReportStylesItemsTable := TReportStylesItemsTable.Create(Connection);
+   Result := FReportStylesItemsTable;
+end;
+
+function TSystemMigrater.GetTReportStylesTable: TReportStylesTable;
+begin
+   if not Assigned(FReportStylesTable) then
+      FReportStylesTable := TReportStylesTable.Create(Connection);
+   Result := FReportStylesTable;
 end;
 
 function TSystemMigrater.GetUser(const Value: string): TGuid;
@@ -1340,7 +1485,7 @@ end;
          NewItem.MemList.reverse;
          RunGuidList(MyAction, NewItem.MemRec.smBank_Prefix, NewItem.MemList, AddMasterMem);
          MasterMemLists.Add(NewItem);
-         MyAction.Count := I;
+         MyAction.Count := I + 1;
       end;
       MyAction.Status := Success;
    except
@@ -1351,6 +1496,128 @@ end;
    end;
  end;
 
+
+function TSystemMigrater.MigrateReportOptions(
+  ForAction: TMigrateAction): Boolean;
+var
+   MyAction: TMigrateAction;
+   curT : TReportType;
+
+   procedure MigrateType(curT: TReportType);
+   var Prefix: string;
+       Options: TReportTypeParams;
+
+       // Add The Prefix to the name..
+       function ParameterName(value: string): string;
+       begin
+         result := Prefix + Value;
+       end;
+
+
+   begin //MigrateReportOptions
+      case curt of  // Make the Prefix
+        rptFinancial: Prefix := 'Frs';
+        rptCoding:    Prefix := 'Cod';
+        rptLedger:    Prefix := 'Led';
+        rptGst:       Prefix := 'Tax';
+        rptListings:  Prefix := 'Lst';
+        rptOther:     Prefix := 'Oth';
+        rptGraph:     Prefix := 'Gra';
+      end;
+
+      // get the Report options..
+      Options := TReportTypeParams.Read(curT);
+      try
+         // Save to the Reportoption table..
+         ReportOptionsTable.Update(ParameterName('ShowClientCode'),  fiClientCode in Options.FooterItems);
+         ReportOptionsTable.Update(ParameterName('ShowPageNumbers'), fiPageNumbers in Options.FooterItems);
+         ReportOptionsTable.Update(ParameterName('ShowPrintedDate'), fiPrinted in Options.FooterItems);
+         ReportOptionsTable.Update(ParameterName('ShowTime'),        fiTime in Options.FooterItems);
+         ReportOptionsTable.Update(ParameterName('ShowUser'),        fiUser in Options.FooterItems);
+         ReportOptionsTable.Update(ParameterName('UseByDefault'),    Options.HF_Enabled);  // Odd Naming ??
+
+         case curT of
+            rptFinancial: begin
+               ReportOptionsTable.Update(ParameterName('RoundValues'),Options.RoundValues);
+            end;
+            rptCoding,
+            rptGst,
+            rptOther: begin
+               ReportOptionsTable.Update(ParameterName('StartNewPage'),Options.NewPageforAccounts);
+            end;
+         end;
+         if Options.HF_Style > '' then // Don't override 'None'
+            ReportOptionsTable.Update(ParameterName('SelectedStyle'),Options.HF_Style,'NVarChar(20)');
+
+         // Do the Headers and footers
+         SystemBlobTable.InsertHeaderFooter(Options.HF_Sections[hf_HeaderFirst], ParameterName('DifferentHeader'));
+         SystemBlobTable.InsertHeaderFooter(Options.HF_Sections[hf_HeaderAll],   ParameterName('Header'));
+         SystemBlobTable.InsertHeaderFooter(Options.HF_Sections[hf_FooterAll],   ParameterName('Footer'));
+         SystemBlobTable.InsertHeaderFooter(Options.HF_Sections[hf_FooterLast],  ParameterName('DifferentFooter'));
+
+      finally
+        FreeAndNil(Options);
+      end;
+   end;
+begin
+   MyAction := ForAction.InsertAction('Report Options');
+   MyAction.Target := ord(High(TReportType)) + 1;
+   try
+      // Save all the report Types
+      for CurT := Low(TReportType) to High(TReportType) do begin
+         MigrateType(CurT);
+         MyAction.Count := ord(Curt) +1;
+      end;
+      Result := true;
+      MyAction.Status := Success;
+   except
+      on e: exception do
+         Myaction.AddError(e);
+   end;
+end;
+
+function TSystemMigrater.MigrateStyles(ForAction: TMigrateAction): Boolean;
+var
+   ll: TStringList;
+   MyAction: TMigrateAction;
+   I: Integer;
+   SI: TStyleItems;
+   StyleID: TGuid;
+   ST: TStyleTypes;
+begin
+   result := true;
+   ll := TStringList.Create;
+   try try
+      FillStyleList(ll);
+      if ll.Count <= 0 then
+         Exit;
+       MyAction := ForAction.InsertAction('Report Styles');
+       MyAction.Target := ll.Count;
+
+       for I := 0 to LL.Count - 1 do begin
+         SI := TStyleItems.Create(ll[I]);
+         try
+           StyleID := NewGuid;
+           ReportStylesTable.Insert(StyleID, ll[I]);
+
+           for ST := low(SI.Items) to High(SI.Items) do
+              ReportStylesItemsTable.Insert(NewGuid,StyleID,ST,SI.Items[ST]);
+
+         finally
+           SI.Free;
+         end;
+         MyAction.Count := I + 1;
+       end;
+       MyAction.Status := Success;
+       
+   except
+      on e: exception do MyAction.Exception(e, 'Migrating Report Styles');
+   end;
+
+   finally
+      ll.Free
+   end;
+end;
 
 function TSystemMigrater.MigrateSystem(ForAction: TMigrateAction): Boolean;
 
@@ -1401,9 +1668,15 @@ function TSystemMigrater.MigrateSystem(ForAction: TMigrateAction): Boolean;
       p := pos('.',value);
       if p > 0 then
          result := copy(Result,1,p-1);
+   end;
+
+   Procedure GetFaxSetings;
+   begin
 
    end;
+
 begin
+   // Should we realy update this... Yes i guess so if its different it has to work as per P5
    ParameterTable.Update('Country', whShortNames[ FSystem.fdFields.fdCountry],'nvarchar(2)');
 
    ParameterTable.Update('AccountCodeMask', System.fdFields.fdAccount_Code_Mask,'nvarchar(20)');
@@ -1499,12 +1772,20 @@ begin
    ParameterTable.Update('SRDoSendNotes', System.fdFields.fdSched_Rep_Include_ECoding);
    ParameterTable.Update('SRDoSendNotesOnline', System.fdFields.fdSched_Rep_Include_WebX);
    ParameterTable.Update('SRDoPrintedReports', System.fdFields.fdSched_Rep_Include_Printer);
-   ParameterTable.Update('SRSortBy', SortByText(System.fdFields.fdSort_Reports_By),'nvarchar(20)' );
+   ParameterTable.Update('SRSortBy', SortByText(System.fdFields.fdSort_Reports_By), 'nvarchar(20)' );
+   if System.fdFields.fdSched_Rep_Fax_Transport <> fxtNone then begin
+      // Try Use the Fax...
+      ParameterTable.Update('FaxTransport', 'Client Fax Service', 'nvarchar(20)');
+      // Se if we have a cover page...
+      ParameterTable.Update('SRFaxCoverPage',System.fdFields.fdSched_Rep_Cover_Page_Name,  'nvarchar(255)');
+      // Can have a Go at Fax Printer Settings
+   end;
+
 
    //ParameterTable.Update('SRNewTransactionsOnly', ToSQL(System. ,false));
 
 
-     //Pracini
+   //Pracini
    ReadPracticeINI;
 
    // BLOPI (BankLink Online Practice Integration}
@@ -1806,6 +2087,17 @@ begin
    if MyAction.CheckCanceled then
       Exit;
 
+   // Do this before BLOPI, because Blopi has more detail
+   MigrateSystem(MyAction);
+   if MyAction.CheckCanceled then
+      Exit;
+
+   // Do This before the Clients, so we can add the Client products..
+   MigrateBLOPI(MyAction);
+   if MyAction.CheckCanceled then
+      Exit;
+
+
    ClientList.CheckSpeed := True;
    if not RunGuidList(MyAction,'Client Files',ClientList, AddClientFile, true) then
       Exit;
@@ -1816,18 +2108,22 @@ begin
 
    //TClientMigrater(ClientMigrater).UpdateProcessingStatusAllClients(MyAction);
 
-   MigrateSystem(MyAction);
-   if MyAction.CheckCanceled then
-      Exit;
-
-   MigrateBLOPI(MyAction);
-   if MyAction.CheckCanceled then
-      Exit;
    // Do this after all the settings
    StartRetrieve(MyAction);
    if MyAction.CheckCanceled then
       Exit;
 
+
+   if DoStyles then begin
+      MigrateStyles(MyAction);
+      if MyAction.CheckCanceled then
+         Exit;
+
+   end;
+
+   MigrateReportOptions(MyAction);
+   if MyAction.CheckCanceled then
+     Exit;
 
    if DoDocuments then begin
       MigrateWorkFolder(MyAction);
@@ -1850,7 +2146,7 @@ function TSystemMigrater.MigrateBLOPI(ForAction: TMigrateAction): Boolean;
 var lPrac: TBloPracticeRead; // Owned by ProductConfigService..
     i,c: Integer;
     nItem: TGuidObject;
-    Catalogs: TGuidList;
+
     ClientId: TGuid;
 
     procedure SaveUser(value: TBloUserRead);
@@ -1869,6 +2165,7 @@ var lPrac: TBloPracticeRead; // Owned by ProductConfigService..
     end;
 
 begin
+   FUseBLOPI := False;
    // Check if we have anything to do..
    if(not System.fdFields.fdUse_BankLink_Online)
    or (not (System.fdFields.fdBankLink_Online_Config > '')) then begin
@@ -1882,9 +2179,6 @@ begin
    if not Assigned(lPrac) then
       Exit;
 
-   Catalogs := nil;
-   // set this once...
-   FCreatedOn := Now;
 
    case lPrac.Status  of
      staActive      : begin
@@ -1901,27 +2195,28 @@ begin
                        SavePrimaryContact;
 
 
-                       Catalogs := TGuidList.Create();
+
 
                        for I := low(LPrac.Catalogue) to High(LPrac.Catalogue) do begin
                           nItem := TGuidObject.Create;
                           CreateGUID(nitem.GuidID);
                           nItem.Data := LPrac.Catalogue[I];
-                          Catalogs.Add(nItem);
+                          GetBLOPIProducs.Add(nItem);
                        end;
 
-                       RunGuidList(ForAction,'Online Products',Catalogs, AddOnlineProduct, true);
+                       RunGuidList(ForAction,'Online Products',GetBLOPIProducs, AddOnlineProduct, true);
+                       FUseBLOPI := true; // Can usume this
 
-
+                       //** This will try to get the data from blopi; Disabled fot now***
                        //UseBankLinkOnline := true;
                        //ProductConfigService.LoadClientList();
 
-                       for I := 0 to Catalogs.Count - 1 do begin
+                       for I := 0 to GetBLOPIProducs.Count - 1 do begin
                           // Do The subsriptions
                          PracticeOnlineProductTable.Insert(NewGuid,
-                             TGuidObject(Catalogs.Items[i]).GuidID,
-                             ProductConfigService.IsPracticeProductEnabled( TBloCatalogueEntry(TGuidObject(Catalogs.Items[i]).data).Id,false),
-                             FCreatedOn);
+                             TGuidObject(GetBLOPIProducs.Items[i]).GuidID,
+                             ProductConfigService.IsPracticeProductEnabled( TBloCatalogueEntry(TGuidObject(GetBLOPIProducs.Items[i]).data).Id,false),
+                             CreatedOn);
 
 
                          // Check The clients (Wont happen at this stage)
@@ -1934,9 +2229,9 @@ begin
                             ClientID := GetClient(ProductConfigService.Clients.Clients[i].ClientCode);
                             if IsEqualGUID(ClientId,emptyGuid) then
                                continue; // not found;
-                            ClientOnlineProductTable.Insert(Newguid,ClientID, TGuidObject(Catalogs.Items[i]).GuidID,
-                             ProductConfigService.Clients.Clients[i].HasSubscription(TBloCatalogueEntry(TGuidObject(Catalogs.Items[i]).data).Id),
-                             FCreatedOn
+                            ClientOnlineProductTable.Insert(Newguid,ClientID, TGuidObject(GetBLOPIProducs.Items[i]).GuidID,
+                             ProductConfigService.Clients.Clients[i].HasSubscription(TBloCatalogueEntry(TGuidObject(GetBLOPIProducs.Items[i]).data).Id),
+                             CreatedOn
                              );
                          end;
 
@@ -1951,14 +2246,13 @@ begin
      //staDeleted     : ParameterTable.Update('PracticeBankLinkOnlineStatus', 1);
    end;
 
-   FreeAndNil(Catalogs);
    result := true;
 end;
 
 function TSystemMigrater.MigrateSystemBlobs(ForAction: TMigrateAction): Boolean;
 
    var I: Integer;
-    SystemBlobTable: TSystemBlobTable;
+
 
     procedure AddCostomDoc(Doc: TReportBase);
     begin
@@ -1971,8 +2265,8 @@ function TSystemMigrater.MigrateSystemBlobs(ForAction: TMigrateAction): Boolean;
     end;
 begin
 
-   SystemBlobTable := TSystemBlobTable.Create(Connection);
-   try
+
+
       for I := 0 to CustomDocManager.ReportList.Count - 1 do
          AddCostomDoc(TReportBase(CustomDocManager.ReportList[I]));
 
@@ -1998,9 +2292,7 @@ begin
       if SystemBlobTable.InsertSignature(globals.DataDir +'\Email\signature.rtf') then
          ParameterTable.Update('PracticeSignatureSystemBlobName','MiratorPracticeSignature', 'nvarchar(255)');
       result := true;   
-   finally
-      SystemBlobTable.Free;
-   end;
+
 end;
 
 function TSystemMigrater.StartRetrieve(ForAction: TMigrateAction): Boolean;

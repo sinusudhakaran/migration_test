@@ -12,6 +12,7 @@ uses
 type
 
 TProvider = (AccountingSystem, TaxSystem, ManagementSystem, WebExport);
+TBLOPIProduct = (Wages, Notes, DataExport, ECFH);
 
 GuidProc = function (ForAction: TMigrateAction; Value: TGuidObject): boolean of object;
 
@@ -47,6 +48,7 @@ public
     class function GetProviderID(provider: TProvider; Country,System: byte): Tguid; static;
     class function GetColumnName(Country, ScreenType, ColumnIndex: byte): string; static;
     class function IsSortColumn(ScreenType, ColumnIndex, SortColumn: Integer): Boolean; static;
+    class function GetBLOPIProduct(Value: TBLOPIProduct): string; static;
 
     //helpers
     function GetMasterMemList(ForCountry: byte; List: TStrings): Integer;
@@ -266,12 +268,23 @@ case screentype of
 end;
 end;
 
+class function TMigrater.GetBLOPIProduct(Value: TBLOPIProduct): string;
+begin
+   result := '';
+   case Value of
+     Wages: result      := '6D700B31-DAEE-4847-8CB2-82C21328AC29';
+     Notes: result      := '6D700B31-DAEE-4847-8CB2-82C21328AC30';
+     DataExport: result := '6D700B31-DAEE-4847-8CB2-82C21328AC34';
+     ECFH: result       := '6D700B31-DAEE-4847-8CB2-82C21328AC33';
+   end;
+end;
+
 class function TMigrater.GetColumnName(Country, ScreenType,  ColumnIndex: Byte): string;
 begin
    Result := '';
 
    case ScreenType  of
-      0, 3 : begin
+      0, 3 : begin  // CodeEntry / ListJournal
                         {
             case Country  of
                  whNewZealand : if not (ColumnIndex in DefaultColumnOrderNZ) then
@@ -516,16 +529,15 @@ begin
                             : result := StringToGuid('{D78426F0-C34F-4815-B5E8-32F6B5B11570}');
      end;
     whUK : case system of
-          suOther           : result := StringToGuid('{422074AD-B5D8-487D-A874-C7060157EAFC}');
-          //suPA7           : result := StringToGuid('{29830BE7-5745-4E2B-AA83-2C87049C1E1B}');
-          //suXPA           : result := StringToGuid('{ADCAEDBD-5717-43B2-BA21-D532DFCC8EBF}');
-          suQIF             : result := StringToGuid('{15A617EB-ABFB-4F42-B6E2-9E52BA2E574E}');
-          suOFXV1           : result := StringToGuid('{DAC0F0B0-A686-4971-BDAA-F26E00D81F9D}');
-          suOFXV2           : result := StringToGuid('{0EF6D347-7275-493A-B98E-19341B97511B}');
-          suBK5CSV          : result := StringToGuid('{EAD167CC-86FB-436E-A47B-1644B83AA25E}');
-          // suSolution6MAS42 : result := StringToGuid('{554D5BBB-EC02-4167-A65A-F2C8E06F637E}');
-          //suMYOBAccountantsOffice : result := StringToGuid('{7B6C02BD-BE2C-40C1-8A63-9ADD08A53C5F}');
-          // suMYOB_AO_COM : result := StringToGuid('{5CBF6424-55A0-48FC-B5E8-6F020304DF07}');
+
+         suQuickBooks       : result := StringToGuid('{5DE9CD9F-B1BB-4E14-8AD9-3EF36FA2A45C}');
+         suSageLine50       : result := StringToGuid('{A0D26C37-306A-4F6E-BBD9-9C209027C7B1}');
+         suTASBooks         : result := StringToGuid('{2CC9986D-59BC-4CB6-9323-2058ED11D94D}');
+         // suQIF             : result := StringToGuid('{15A617EB-ABFB-4F42-B6E2-9E52BA2E574E}');
+         // suOFXV1           : result := StringToGuid('{DAC0F0B0-A686-4971-BDAA-F26E00D81F9D}');
+         // suOFXV2           : result := StringToGuid('{0EF6D347-7275-493A-B98E-19341B97511B}');
+         // suBK5CSV          : result := StringToGuid('{EAD167CC-86FB-436E-A47B-1644B83AA25E}');
+         else result := StringToGuid('{ff49c59d-6cff-46c6-b180-35cd533b8ac7}'); // Other
      end;
 
    end;
@@ -682,7 +694,7 @@ begin
 
    if (Name > '') then
       // Make my own action
-      MyAction := Foraction.InsertAction (Name,ForAction.Item)
+      MyAction := ForAction.InsertAction (Name, ForAction.Item)
    else
       MyAction := ForAction;
 
@@ -706,11 +718,14 @@ begin
       end;
       MyAction.Count := I;
       if doLog then
-        MyAction.LogMessage(format( 'Completed %d',[MyAction.Count]) );
+         MyAction.LogMessage(format( 'Completed %d',[MyAction.Count]) );
 
    except
-      on E: Exception do
+      on E: Exception do begin
+         Result := False;
+         Myaction.Status := failed;
          Myaction.Error := format('Incomplete :%s', [E.Message]);
+      end;
    end;
 end;
 
@@ -725,7 +740,7 @@ begin
          if Assigned(ForAction) then
             ForAction.Exception(E,Action)
          else
-            raise exception.Create(E.Message);
+            raise 
      end;
   end;
 end;

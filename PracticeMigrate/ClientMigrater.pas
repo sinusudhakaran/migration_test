@@ -327,14 +327,27 @@ var
         ScreenType: Integer; // the screen type we are saving
         Positions: array of byte;
         Widths: array of integer;
-        IsEdtiables: array of Boolean;
-        IsVisibles: array of Boolean;
+        IsNotEdtiables: array of Boolean;
+        IsNotVisibles: array of Boolean;
         SortColumn: Integer);
 
    var ConfigID: TGuid;
        I: Integer;
        Name: string;
        NoData : boolean;
+
+       function IsEditable: boolean;
+       begin
+          // this is a bit of a Hack.. but it looks like the refrence column can be set to editable...
+          // See bug
+          Result :=  not IsNotEdtiables[i];
+          if (ScreenType = 0)
+          and (I = 2) then
+             Result := False;
+
+          if IsNotVisibles[I] then // Double negative
+             Result := False; // Seems Odd but delphi resolves much of it in the UI Practice 7 Needs the data to be consitant
+       end;
    begin
        // Test First....
        NoData := true;
@@ -353,12 +366,15 @@ var
           Name := GetColumnName(FClient.clFields.clCountry,ScreenType,I);
           if (Name = '')
           or (Widths[i] = 0) then
-             Continue;
+             Continue; // Nothing much to save...
+
+
+          
           ColumnConfigColumnsTable.Insert(NewGuid, ConfigID, Name,
               Positions[i],
               Widths[i],
-              not IsEdtiables[i],
-              not IsVisibles[i],
+              IsEditable,
+              not IsNotVisibles[i],
               IsSortColumn(ScreenType,I, SortColumn) ); // This is the sort column
        end;
    end;
@@ -372,8 +388,8 @@ var
       System := SystemMirater as TSystemMigrater;
 
       FmasterMemList := nil;
-      if (Account.baFields.baApply_Master_Memorised_Entries) and Assigned(AdminSystem) and
-         (FClient.clFields.clMagic_Number = AdminSystem.fdFields.fdMagic_Number) and
+      if (Account.baFields.baApply_Master_Memorised_Entries) and Assigned(system.System) and
+         (FClient.clFields.clMagic_Number = system.System.fdFields.fdMagic_Number) and
          (FClient.clFields.clDownload_From = dlAdminSystem) then
       begin
          BankPrefix := mxFiles32.GetBankPrefix(Account.baFields.baBank_Account_Number);
@@ -383,7 +399,7 @@ var
 
       end;
    end;
-begin
+begin //Add account
    Result := False;
    Account := tBank_Account(Value.Data);
    GuidList := nil;
@@ -401,16 +417,9 @@ begin
              ExcludedFromScheduledReports
           );
 
-       if Account.baFields.baAccount_Type = btBank then
-         AddColumnConfiguration(0,
-                 Account.baFields.baColumn_Order,
-                 Account.baFields.baColumn_Width,
-                 Account.baFields.baColumn_Is_Not_Editable,
-                 Account.baFields.baColumn_is_Hidden,
-                 Account.baFields.baCoding_Sort_Order)
-       else if Account.baFields.baAccount_Type in [ btCashJournals, btAccrualJournals, btGSTJournals,  btStockJournals] then
-          // List journals
-          AddColumnConfiguration(3,
+       if Account.baFields.baAccount_Type = btBank then begin
+
+         AddColumnConfiguration(0, // Coding Screen
                  Account.baFields.baColumn_Order,
                  Account.baFields.baColumn_Width,
                  Account.baFields.baColumn_Is_Not_Editable,
@@ -418,39 +427,48 @@ begin
                  Account.baFields.baCoding_Sort_Order);
 
 
-       if Account.baFields.baAccount_Type = 0 then
-           // Dissections..
-          AddColumnConfiguration(1,
-                 Account.baFields.baDIS_Column_Order,
-                 Account.baFields.baDIS_Column_Width,
-                 Account.baFields.baDIS_Column_Is_Not_Editable,
-                 Account.baFields.baDIS_Column_is_Hidden,                 
-
-                 Account.baFields.baDIS_Sort_Order)
-        else if Account.baFields.baAccount_Type in [ btCashJournals, btAccrualJournals, btGSTJournals,  btStockJournals] then
-           // JourNal entry..
-          AddColumnConfiguration(4,
+          AddColumnConfiguration(1,// Dissections..
                  Account.baFields.baDIS_Column_Order,
                  Account.baFields.baDIS_Column_Width,
                  Account.baFields.baDIS_Column_Is_Not_Editable,
                  Account.baFields.baDIS_Column_is_Hidden,
                  Account.baFields.baDIS_Sort_Order);
 
-       AddColumnConfiguration(2,
+
+          AddColumnConfiguration(2, //Manual And Historical
                  Account.baFields.baMDE_Column_Order,
                  Account.baFields.baMDE_Column_Width,
                  Account.baFields.baMDE_Column_Is_Not_Editable,
                  Account.baFields.baMDE_Column_is_Hidden,
                  Account.baFields.baMDE_Sort_Order);
 
-        {
-        AddColumnConfiguration(3,
+          {
+          AddColumnConfiguration(2, // Cannot do both...
                  Account.baFields.baHDE_Column_Order,
                  Account.baFields.baHDE_Column_Width,
                  Account.baFields.baHDE_Column_Is_Not_Editable,
                  Account.baFields.baHDE_Column_is_Hidden,
                  Account.baFields.baHDE_Sort_Order);
                  }
+
+       end else if Account.baFields.baAccount_Type in [ btCashJournals, btAccrualJournals, btGSTJournals,  btStockJournals] then begin
+
+          AddColumnConfiguration(3, // List Journals
+                 Account.baFields.baColumn_Order,
+                 Account.baFields.baColumn_Width,
+                 Account.baFields.baColumn_Is_Not_Editable,
+                 Account.baFields.baColumn_is_Hidden,
+                 Account.baFields.baCoding_Sort_Order);
+
+          //   Saved in the Client....
+          AddColumnConfiguration(4,  // Journal entry
+                 Account.baFields.baDIS_Column_Order,
+                 Account.baFields.baDIS_Column_Width,
+                 Account.baFields.baDIS_Column_Is_Not_Editable,
+                 Account.baFields.baDIS_Column_is_Hidden,
+                 Account.baFields.baDIS_Sort_Order);
+       end;
+
 
 
        MemList := TGuidList.Create(Account.baMemorisations_List);
@@ -474,8 +492,10 @@ begin
 
        Result := True;
    except
-      on E: Exception do
-         MyAction.Error := E.Message;
+      on e: exception do begin
+         MyAction.AddError(e);
+         raise;
+      end;
    end;
    finally
       FreeAndNil(GuidList);
@@ -590,7 +610,14 @@ end;
 function TClientMigrater.AddDiskLog(ForAction: TMigrateAction;
   Value: TGuidObject): Boolean;
 begin
-  Result := DownloadLogTable.Insert(Value.GuidID, ClientID, pDisk_Log_Rec(Value.Data))
+  try
+     Result := DownloadLogTable.Insert(Value.GuidID, ClientID, pDisk_Log_Rec(Value.Data))
+  except
+      on e: exception do begin
+         ForAction.AddError(e);
+         raise;
+      end;
+   end;
 end;
 
 procedure TClientMigrater.AddDivisions(ForAction: TMigrateAction);
@@ -938,8 +965,8 @@ begin
    if IsDissected then
       Transaction.txGST_Amount := GST;
 
-
-   Transaction_RecTable.Insert
+   try
+      Transaction_RecTable.Insert
                        (
                             Value.GuidID,
                             ForAction.Item.GuidID,
@@ -954,15 +981,27 @@ begin
                             GetMasterMem
                        );
 
+   except
+      on e: exception do begin
+         ForAction.AddError(e);
+         raise;
+      end;
+   end;
    Diss := Transaction.txFirst_Dissection;
    while Assigned(Diss) do begin
-
-      Dissection_RecTable.Insert
+      try
+         Dissection_RecTable.Insert
                        (
                             NewGuid,
                             Value.GuidID,
                             Diss
                        );
+      except
+         on e: exception do begin
+            ForAction.AddError(e);
+            raise;
+         end;
+      end;
       inc(DissectionCount);
       Diss := Diss.dsNext;
    end;
@@ -1659,8 +1698,21 @@ var
 
    end;
 
+   procedure AddClientPLOPI;
+   var System: TSystemMigrater;
+   begin
+      if not Assigned(SystemMirater) then
+         Exit;
+      System := SystemMirater as TSystemMigrater;
+      if not Assigned(System) then
+         Exit;
+      // May need expanding, but sofar only Webnote forces a Online product
+      if FClient.clFields.clWeb_Export_Format = wfWebNotes then
+         System.AddClientBLOPIProduct(ClientID, Notes);
+   end;
 
-begin
+
+begin // Migrate
    Result := False;
    Reset;
    // set some global bits
@@ -1675,6 +1727,7 @@ begin
       if Assigned(AClient) then begin
          ClientLRN := AClient.cfLRN;
          if AClient.cfClient_Type = ctProspect then begin
+            // Is a Prospect Only...
             if ClientDetailsCache.Load(ClientLRN) then
                 Client_RecFieldsTable.InsertProspect
                     (
@@ -1695,6 +1748,7 @@ begin
       end else
          ClientLRN := 0;
 
+      // Still here must be a Client..
       files.OpenAClientForRead(Code, FClient);
       if not Assigned(FClient) then
          raise exception.Create('Could not open File');
@@ -1710,7 +1764,7 @@ begin
       end else
          FreeAndNil(FExcludedFromScheduledReports);
 
-
+      // 'Global' flag for Superfund data
       DoSuperFund := Software.IsSuperFund(FClient.clFields.clCountry, FClient.clFields.clAccounting_System_Used);
 
       try
@@ -1722,7 +1776,6 @@ begin
                       GetProviderID(TaxSystem, FClient.clFields.clCountry, FClient.clFields.clTax_Interface_Used ),
                       AGroupID,
                       ATypeID,
-                      GetProviderID(WebExport, FClient.clFields.clCountry, FClient.clFields.clWeb_Export_Format ),
                       Acrchived,
                       GetNotesForClient(ClientLRN),
                       @FClient.clFields,
@@ -1737,6 +1790,7 @@ begin
         on E: Exception do MyAction.AddError(E);
       end;
 
+      AddClientPLOPI; //AddClientPLOPI details
 
       try
          LID := NewGuid;

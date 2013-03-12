@@ -53,6 +53,7 @@ type
     function AddAction(Title: string; Insert: Boolean; AItem: TGuidObject = nil):TMigrateAction;
     procedure SetWarning(const Value: Boolean);
     procedure propagateWarning(FromNode:PVirtualNode);
+    procedure propagateFailed(FromNode:PVirtualNode);
     procedure SetRunSize(const Value: Int64);
     procedure SetTotSize(const Value: Int64);
     procedure SetCount(const Value: Integer);
@@ -69,6 +70,7 @@ type
 
      procedure OnPaintText(const Tag: integer; Canvas: TCanvas;
                              TextType: TVSTTextType); override;
+     function GetTagHint(const Tag: Integer; Offset : TPoint) : string; override;
 
      property Status: TMigratestatus read FStatus write SetStatus;
      property Item: TGuidObject read FItem write SetItem;
@@ -192,7 +194,7 @@ end;
 procedure TMigrateAction.AddError(E: Exception);
 begin
    Error := E.Message;
-   Warning := True;
+   //Warning := True;
    Status := Failed;
 end;
 
@@ -254,11 +256,64 @@ end;
 function TMigrateAction.GetImageindex: Integer;
 begin
    Result := ord(Status);
-   if Warning or (Status = HasWarning) then
-      Result := 3;
+   if Result <>  2 then // if not Failed, Check Warning...
+      if Warning or (Status = HasWarning) then
+         Result := 3;
 end;
 
 
+
+function TMigrateAction.GetTagHint(const Tag: Integer; Offset: TPoint): string;
+   procedure addNode(forNode : PVirtualNode);
+   var
+      MyText: string;
+      next: PVirtualNode;
+      me: TTreeBaseItem;
+   begin
+      if not Assigned(forNode) then
+         Exit; // Not much I can do....
+
+      me := self.ParentList.GetNodeItem(forNode);
+      if Assigned(me) then
+         // add my stuff
+         MyText := me.GetTagText(tag_Error);
+      if MyText > '' then
+         if Result > '' then
+            result := format('%s'#13#10'%s',[Result,MyText])
+         else
+            result := MyText;
+
+      // to the rest of the tree...
+      next := forNode.FirstChild;
+      while assigned(next) do begin
+         addNode(next);
+         next := next.NextSibling;
+      end;
+   end;
+begin
+  // Error not always visible...
+  result := GetTagText(tag_Error);
+  if result = '' then
+     // No Error
+     case Tag of
+          tag_Error :
+                    // No Point, is blank...
+                    result := GetTagText(tag_title);
+
+          tag_status,
+          tag_Title :// Icon also..
+            if (status in [Failed, Haswarning]) or FWarning then begin
+                // Try and get the Children...
+                addNode(self.Node);
+            end else
+                 // Just show the text...
+               result := GetTagText(Tag);
+          else
+             result := GetTagText(Tag);
+     end;
+
+
+end;
 
 function TMigrateAction.GetTagText(const Tag: Integer): string;
 
@@ -290,7 +345,9 @@ begin
   Result := '';
   case tag of
    tag_Title : Result := Title;
-   tag_status : case Status of
+   tag_status : if FWarning then
+          Result := 'Warning'
+     else case Status of
           Running : Result := 'Running';
           Failed  : Result := 'Failed';
           HasWarning  : Result := 'Warning';
@@ -379,6 +436,17 @@ begin
 
     TargetCanvas.Brush.Color :=  RGB(195,225,150);
     TargetCanvas.FillRect(R);
+end;
+
+procedure TMigrateAction.propagateFailed(FromNode: PVirtualNode);
+var pn: PVirtualNode;
+begin
+   pn := FromNode.Parent;
+   while Assigned(pn)
+   and (Parentlist.Tree.RootNode <> pn) do begin
+      TMigrateAction(ParentList.GetNodeItem(pn)).Status := Failed;
+      pn := pn.Parent;
+   end;
 end;
 
 procedure TMigrateAction.propagateWarning(FromNode: PVirtualNode);
@@ -479,12 +547,15 @@ begin
                 fStopTime := now;
                 ShowMe;
                 // Let all the parents know..
-                propagateWarning(Self.Node);
+                propagateFailed(Self.Node);
              end;
      HasWarning:  begin
                 ShowMe;
                 // Let all the parents know..
+
                 propagateWarning(Self.Node);
+                if (Fstatus in [Failed]) then
+                   Exit;  // Dont overwtite failed
              end;
      Success: begin
                 fStopTime := now;

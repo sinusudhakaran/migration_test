@@ -8,6 +8,7 @@ uses
   MigrateTable,
   BankLinkOnlineServices,
   bkDefs,// MasterMems
+  reportTypes,
   sydefs;
 
 type
@@ -146,7 +147,10 @@ public
    function Update(ParamName: string; ParamValue: Money): Boolean; overload;
 end;
 
-
+TReportOptionsTable = class (TParameterTable)
+protected
+   procedure SetupTable; override;
+end;
 
 TOnlineProductTable = class (TMigrateTable)
 
@@ -176,9 +180,30 @@ public
                    Modified: TDateTime): Boolean;
 end;
 
+
+
+TReportStylesTable = class (TMigrateTable)
+   procedure SetupTable; override;
+public
+   function Insert(MyId: TGuid;
+                   Name: string): Boolean;
+end;
+
+TReportStylesItemsTable = class (TMigrateTable)
+   procedure SetupTable; override;
+public
+   function Insert(MyId, StyleId: TGuid;
+                   ItemType: TStyleTypes;
+                   Item: TStyleItem): Boolean;
+end;
+
+
 implementation
 
 uses
+  WinDows,
+  Classes,
+  Graphics,
   Variants,
   SysUtils,
   bkConst,
@@ -199,11 +224,13 @@ begin
 {3}   ,'OpeningBalanceFromDisk','ClosingBalanceFromDisk','WasOnLatestDisk','LastEntryDate'
 {4}   ,'DateOfLastEntryPrinted','MarkAsDeleted','FileCode','MatterID','AssignmentID','DisbursementID','AccountType'
 {5}   ,'JobCode','ActivityCode','FirstAvailableDate','NoChargeAccount','CurrencyCode','InstitutionName','SecureCode','Inactive'
-{6}   ,'Frequency','FrequencyChangePending','LastBankLink_ID'],[]);
+{6}   ,'Frequency','FrequencyChangePending','LastBankLink_ID'
+{7}   ,'CoreID'],[]);
 
 end;
 
 function TSystemBankAccountTable.Insert(MyId: TGuid; Value: pSystem_Bank_Account_Rec): Boolean;
+
    function FrequencyDate(value: Boolean): tdateTime;
    begin
       if value then
@@ -211,8 +238,20 @@ function TSystemBankAccountTable.Insert(MyId: TGuid; Value: pSystem_Bank_Account
       else
          result := 0; //12/30/1899
    end;
+
+   function SecureCode: string;
+   begin
+      // Only save the real ones
+      case Value.sbAccount_Type of
+         sbtOffsite : result := Value.sbBankLink_Code; // Need to keep it..
+         sbtOnlineSecure : result := Value.sbSecure_Online_Code; // Its in the other column
+         // sbtData, sbtProvisional ..
+         else result := ''; // Don't save if it just the Practice Code
+      end;
+   end;
+
 begin with Value^ do
-   result := RunValues([ToSQL(MyId) ,ToSQL(Value.sbAccount_Number) ,ToSQL(Value.sbAccount_Name) ,ToSQL(Value.sbAccount_Password)
+   result := RunValues([ToSQL(MyId) ,ToSQL(Value.sbAccount_Number) ,ToSQL(Value.sbAccount_Name) ,ToSQL(Lowercase(Value.sbAccount_Password))
               ,ToSQL(Value.sbCurrent_Balance) ,toSQL(Value.sbLast_Transaction_LRN)
 
 {2}         ,ToSQL(Value.sbNew_This_Month) ,ToSQL(Value.sbNo_of_Entries_This_Month) ,DateToSQL(Value.sbFrom_Date_This_Month)
@@ -225,9 +264,10 @@ begin with Value^ do
               ,ToSQL(Value.sbAssignment_ID) ,ToSQL(Value.sbDisbursement_ID) ,ToSQL(Value.sbAccount_Type)
 
 {5}         ,ToSQL(Value.sbJob_Code) ,ToSQL(Value.sbActivity_Code) , DateToSQL(Value.sbFirst_Available_Date) ,ToSQL(Value.sbNo_Charge_Account)
-              ,ToSQL(Value.sbCurrency_Code) ,ToSQL(Value.sbInstitution) ,ToSQL(Value.sbBankLink_Code) ,toSQL(value.sbInActive)
+              ,ToSQL(Value.sbCurrency_Code) ,ToSQL(Value.sbInstitution) ,ToSQL(SecureCode) ,toSQL(value.sbInActive)
 
-{6}         ,ToSQL(Value.sbFrequency) ,FrequencyDate(Boolean(Value.sbFrequency_Change_Pending)), ToSQL(0)],[]);
+{6}         ,ToSQL(Value.sbFrequency) ,FrequencyDate(Boolean(Value.sbFrequency_Change_Pending)), ToSQL(0)
+{7}         ,ToSQL(sbCore_Account_ID) ],[]);
 end;
 
 (******************************************************************************)
@@ -590,7 +630,12 @@ begin
   Result := UpDate(ParamName, FormatFloat('0.00', ParamValue/100), 'decimal' );
 end;
 
+{ TReportOptionsTable }
 
+procedure TReportOptionsTable.SetupTable;
+begin
+   TableName := 'ReportOptions';
+end;
 
 
 (******************************************************************************)
@@ -679,7 +724,7 @@ function TClientOnlineProductTable.Insert(MyId, ClientId, ProductId: TGuid;
   Enabled: Boolean; Modified: TDateTime): Boolean;
 
 begin
-   Result := RunValues([ToSQL(MyID),ToSQL(ProductId), ToSQL(ProductId),ToSQL(Status(Enabled)) ,ToSQL(MigratorName), DateTimeToSQL(Modified)],[]);
+   Result := RunValues([ToSQL(MyID),ToSQL(ClientId), ToSQL(ProductId),ToSQL(Status(Enabled)) ,ToSQL(MigratorName), DateTimeToSQL(Modified)],[]);
 end;
 
 procedure TClientOnlineProductTable.SetupTable;
@@ -687,5 +732,115 @@ begin
    TableName := 'ClientOnlineProduct';
    SetFields(['Id','PracticeClientId', 'OnlineProductId', 'Status', 'ModifiedBy', 'ModifiedDate'],[]);
 end;
+
+{ TreportStylesTable }
+
+function TreportStylesTable.Insert(MyId: TGuid; Name: string): Boolean;
+begin
+    Result := RunValues([ToSQL(MyID),ToSQL(Name)],[]);
+end;
+
+procedure TreportStylesTable.SetupTable;
+begin
+   TableName := 'ReportStyles';
+   SetFields(['Id','ReportStyleName'],[]);
+end;
+
+{ TReportStylesItemsTable }
+
+function TReportStylesItemsTable.Insert(MyId, StyleId: TGuid;
+                   ItemType: TStyleTypes;
+                   Item: TStyleItem): Boolean;
+
+    function TypeName: string;
+    begin
+      case ItemType of
+        siClientName: result := 'ClientName';
+        siTitle: result := 'ReportTitle';
+        siSubTitle: result := 'SubTitle';
+        siHeading: result := 'ColumnHeading';
+        siSectionTitle: result := 'SectionTitle';
+        siSectionTotal: result := 'SectionTotal';
+        siNormal: result := 'OtherText';
+        siDetail: result := 'DetailLine';
+        siGrandTotal: result := 'GrandTotal';
+        siFootNote: result := 'FootNote';
+        siFooter: result := 'CommonFooter';
+      end;
+    end;
+
+    function Bold: string;
+    begin
+      result := 'Default';
+      if fsBold in Item.Style then
+         result := 'Bold'
+    end;
+
+    function Italic: string;
+    begin
+      result := 'Default';
+      if fsItalic in Item.Style then
+         result := 'Italic'
+    end;
+
+    function Underline: string;
+    begin
+      result := 'Default';
+      if fsUnderline in Item.Style then
+         result := 'Underline'
+    end;
+
+    function Alignment: string;
+    begin
+       case Item.Alignment of
+         taLeftJustify: result := 'Left';
+         taRightJustify: result := 'Right';
+         taCenter: result := 'Center';
+       end;
+    end;
+
+    function ColorText (value:tcolor): string;
+    var RGB:LongInt;
+        R,G,B : Integer;
+
+    begin
+       if (value = clNone)
+       or (value = clWhite)
+       or (value = clWindow) then
+          result := 'White'
+       else
+       if (value = clBlack)
+       or (value = clWindowText) then
+          result := 'Black'
+       else begin
+          RGB  := ColorToRGB(value); // Make sure its not a System Colour
+          R := GetRValue(RGB);
+          G := GetGValue(RGB);
+          B := GetBValue(RGB);
+          result := Format('#%.2x%.2x%.2x',[R,G,B]);
+       end;
+    end;
+
+    function FontSize: string;
+    begin
+      result := format('%dpt',[abs(Item.Size)]);
+    end;
+
+begin
+   Result := RunValues([ToSQL(MyID),ToSQL(TypeName), ToSQL(Item.FontName), ToSQL(FontSize), ToSQL(Bold),
+     ToSQL(Italic),ToSQL(Underline), ToSQL(ColorText(Item.Color)), ToSQL(ColorText(Item.Background)), ToSQL(Alignment),
+     ToSQL(StyleId) ],[]);
+end;
+
+procedure TReportStylesItemsTable.SetupTable;
+begin
+  TableName := 'ReportItems';
+   SetFields(['Id','ReportItemName', 'Font', 'FontSize', 'Bold'
+{2}      ,'Italic', 'Underline', 'FgColor', 'BgColor', 'Alignment'
+{3}      ,'ReportStyles_Id'],[]);
+
+end;
+
+
 
 end.

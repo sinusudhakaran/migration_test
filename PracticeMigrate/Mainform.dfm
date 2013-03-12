@@ -14,6 +14,7 @@ object formMain: TformMain
   Font.Style = []
   OldCreateOrder = False
   Position = poScreenCenter
+  ShowHint = True
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
   OnDestroy = FormDestroy
@@ -546,16 +547,12 @@ object formMain: TformMain
     Top = 87
     Width = 760
     Height = 424
-    ActivePage = tsBrowse
+    ActivePage = tsSelect
     Align = alClient
     TabOrder = 2
     object tsBrowse: TTabSheet
       Caption = 'tsBrowse'
       ImageIndex = 2
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       DesignSize = (
         752
         394)
@@ -654,7 +651,7 @@ object formMain: TformMain
         Width = 723
         Height = 23
         Anchors = [akLeft, akTop, akRight]
-        ItemHeight = 0
+        ItemHeight = 15
         TabOrder = 3
         OnDropDown = CbserversDropDown
         OnSelect = CbserversSelect
@@ -672,10 +669,6 @@ object formMain: TformMain
     end
     object tsSelect: TTabSheet
       Caption = 'Select options'
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       DesignSize = (
         752
         394)
@@ -802,6 +795,7 @@ object formMain: TformMain
         Height = 17
         Caption = 'Styles'
         TabOrder = 6
+        OnClick = cbStylesClick
       end
       object cbSysTrans: TCheckBox
         Left = 208
@@ -827,10 +821,6 @@ object formMain: TformMain
     object TsProgress: TTabSheet
       Caption = 'Progress'
       ImageIndex = 1
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object StatusTree: TVirtualStringTree
         Left = 0
         Top = 57
@@ -845,6 +835,7 @@ object formMain: TformMain
         Header.Font.Style = []
         Header.Options = [hoAutoResize, hoColumnResize, hoDrag, hoVisible]
         Header.Style = hsXPStyle
+        HintMode = hmHint
         Images = ilActions
         ParentBackground = False
         StateImages = ilActions
@@ -885,7 +876,7 @@ object formMain: TformMain
           item
             Position = 5
             Tag = 4
-            Width = 42
+            Width = 38
           end>
       end
       object pTitle: TPanel
@@ -914,10 +905,6 @@ object formMain: TformMain
     object TabSheet1: TTabSheet
       Caption = 'TabSheet1'
       ImageIndex = 3
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object Panel1: TPanel
         Left = 0
         Top = 0
@@ -999,7 +986,7 @@ object formMain: TformMain
     Left = 176
     Top = 8
     Bitmap = {
-      494C010104001000FC0018001800FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C010104001000080118001800FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000600000003000000001002000000000000048
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000

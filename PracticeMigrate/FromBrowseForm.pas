@@ -96,7 +96,7 @@ begin
        end;
 
        if List.Count = 0 then begin
-          List.Add('<no BankLink Practice 5 database locations found>');
+          List.Add('<no BankLink Practice 5 locations found>');
           EExststing.Enabled := false;
        end;
        EExststing.Items.Text := list.Text;
