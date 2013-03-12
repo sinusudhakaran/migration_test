@@ -1,0 +1,3101 @@
+Unit BK_TransactionExportXMLHelper;
+// Do not auto generate this file.
+// ----------------------------------------------------------------------------
+interface
+uses
+	XMLIntf,
+	BKdefs;
+
+type
+
+TClient_RecHelper = record helper for TClient_Rec
+public
+	function WriteRecToNode(var Node: IXMLNode): IXMLNode;
+	function ReadRecFromNode(Node: IXMLNode): IXMLNode;
+	class function GetXMLNodeName: string; static;
+end;
+
+
+TAccount_RecHelper = record helper for TAccount_Rec
+public
+	function WriteRecToNode(var Node: IXMLNode): IXMLNode;
+	function ReadRecFromNode(Node: IXMLNode): IXMLNode;
+	class function GetXMLNodeName: string; static;
+end;
+
+
+TPayee_RecHelper = record helper for TPayee_Rec
+public
+	function WriteRecToNode(var Node: IXMLNode): IXMLNode;
+	function ReadRecFromNode(Node: IXMLNode): IXMLNode;
+	class function GetXMLNodeName: string; static;
+end;
+
+
+TPayee_Detail_RecHelper = record helper for TPayee_Detail_Rec
+public
+	function WriteRecToNode(var Node: IXMLNode): IXMLNode;
+	function ReadRecFromNode(Node: IXMLNode): IXMLNode;
+	class function GetXMLNodeName: string; static;
+end;
+
+
+TPayee_Line_RecHelper = record helper for TPayee_Line_Rec
+public
+	function WriteRecToNode(var Node: IXMLNode): IXMLNode;
+	function ReadRecFromNode(Node: IXMLNode): IXMLNode;
+	class function GetXMLNodeName: string; static;
+end;
+
+
+TBudget_Header_RecHelper = record helper for TBudget_Header_Rec
+public
+	function WriteRecToNode(var Node: IXMLNode): IXMLNode;
+	function ReadRecFromNode(Node: IXMLNode): IXMLNode;
+	class function GetXMLNodeName: string; static;
+end;
+
+
+TBudget_Detail_RecHelper = record helper for TBudget_Detail_Rec
+public
+	function WriteRecToNode(var Node: IXMLNode): IXMLNode;
+	function ReadRecFromNode(Node: IXMLNode): IXMLNode;
+	class function GetXMLNodeName: string; static;
+end;
+
+
+TDisk_Log_RecHelper = record helper for TDisk_Log_Rec
+public
+	function WriteRecToNode(var Node: IXMLNode): IXMLNode;
+	function ReadRecFromNode(Node: IXMLNode): IXMLNode;
+	class function GetXMLNodeName: string; static;
+end;
+
+
+TMemorisation_Detail_RecHelper = record helper for TMemorisation_Detail_Rec
+public
+	function WriteRecToNode(var Node: IXMLNode): IXMLNode;
+	function ReadRecFromNode(Node: IXMLNode): IXMLNode;
+	class function GetXMLNodeName: string; static;
+end;
+
+
+TMemorisation_Line_RecHelper = record helper for TMemorisation_Line_Rec
+public
+	function WriteRecToNode(var Node: IXMLNode): IXMLNode;
+	function ReadRecFromNode(Node: IXMLNode): IXMLNode;
+	class function GetXMLNodeName: string; static;
+end;
+
+
+TBank_Account_RecHelper = record helper for TBank_Account_Rec
+public
+	function WriteRecToNode(var Node: IXMLNode): IXMLNode;
+	function ReadRecFromNode(Node: IXMLNode): IXMLNode;
+	class function GetXMLNodeName: string; static;
+end;
+
+
+TTransaction_RecHelper = record helper for TTransaction_Rec
+public
+	function WriteRecToNode(var Node: IXMLNode): IXMLNode;
+	function ReadRecFromNode(Node: IXMLNode): IXMLNode;
+	class function GetXMLNodeName: string; static;
+end;
+
+
+TDissection_RecHelper = record helper for TDissection_Rec
+public
+	function WriteRecToNode(var Node: IXMLNode): IXMLNode;
+	function ReadRecFromNode(Node: IXMLNode): IXMLNode;
+	class function GetXMLNodeName: string; static;
+end;
+
+
+TBalances_RecHelper = record helper for TBalances_Rec
+public
+	function WriteRecToNode(var Node: IXMLNode): IXMLNode;
+	function ReadRecFromNode(Node: IXMLNode): IXMLNode;
+	class function GetXMLNodeName: string; static;
+end;
+
+
+TSubGroup_Heading_RecHelper = record helper for TSubGroup_Heading_Rec
+public
+	function WriteRecToNode(var Node: IXMLNode): IXMLNode;
+	function ReadRecFromNode(Node: IXMLNode): IXMLNode;
+	class function GetXMLNodeName: string; static;
+end;
+
+
+TDivision_Heading_RecHelper = record helper for TDivision_Heading_Rec
+public
+	function WriteRecToNode(var Node: IXMLNode): IXMLNode;
+	function ReadRecFromNode(Node: IXMLNode): IXMLNode;
+	class function GetXMLNodeName: string; static;
+end;
+
+
+TMemorised_Transaction_RecHelper = record helper for TMemorised_Transaction_Rec
+public
+	function WriteRecToNode(var Node: IXMLNode): IXMLNode;
+	function ReadRecFromNode(Node: IXMLNode): IXMLNode;
+	class function GetXMLNodeName: string; static;
+end;
+
+
+TCustom_Heading_RecHelper = record helper for TCustom_Heading_Rec
+public
+	function WriteRecToNode(var Node: IXMLNode): IXMLNode;
+	function ReadRecFromNode(Node: IXMLNode): IXMLNode;
+	class function GetXMLNodeName: string; static;
+end;
+
+
+TMacro_RecHelper = record helper for TMacro_Rec
+public
+	function WriteRecToNode(var Node: IXMLNode): IXMLNode;
+	function ReadRecFromNode(Node: IXMLNode): IXMLNode;
+	class function GetXMLNodeName: string; static;
+end;
+
+
+TFuel_Sheet_RecHelper = record helper for TFuel_Sheet_Rec
+public
+	function WriteRecToNode(var Node: IXMLNode): IXMLNode;
+	function ReadRecFromNode(Node: IXMLNode): IXMLNode;
+	class function GetXMLNodeName: string; static;
+end;
+
+
+TMoreClient_RecHelper = record helper for TMoreClient_Rec
+public
+	function WriteRecToNode(var Node: IXMLNode): IXMLNode;
+	function ReadRecFromNode(Node: IXMLNode): IXMLNode;
+	class function GetXMLNodeName: string; static;
+end;
+
+
+TJob_Heading_RecHelper = record helper for TJob_Heading_Rec
+public
+	function WriteRecToNode(var Node: IXMLNode): IXMLNode;
+	function ReadRecFromNode(Node: IXMLNode): IXMLNode;
+	class function GetXMLNodeName: string; static;
+end;
+
+
+TClientExtra_RecHelper = record helper for TClientExtra_Rec
+public
+	function WriteRecToNode(var Node: IXMLNode): IXMLNode;
+	function ReadRecFromNode(Node: IXMLNode): IXMLNode;
+	class function GetXMLNodeName: string; static;
+end;
+
+// ----------------------------------------------------------------------------
+implementation
+uses
+	WebUtils,
+	Variants,
+	SysUtils,
+  BkDateUtils;
+
+procedure ReRaise(E: Exception; Doing: string);
+begin
+	raise exception.Create( format('Error : %s While : %s',[E.Message, Doing]));
+end;
+
+
+// ----------------------------------------------------------------------------
+
+class function TClient_RecHelper.GetXMLNodeName: string;
+begin
+	result := 'BKClient';
+end;
+
+
+function TClient_RecHelper.WriteRecToNode(var Node: IXMLNode): IXMLNode;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J, M: Integer;
+begin
+	Result := Node.AddChild(GetXMLNodeName);
+	SetTextAttr(Result, 'Code', clCode);
+	SetTextAttr(Result, 'Name', clName);
+	SetTextAttr(Result, 'AddressL1', clAddress_L1);
+	SetTextAttr(Result, 'AddressL2', clAddress_L2);
+	SetTextAttr(Result, 'AddressL3', clAddress_L3);
+	SetTextAttr(Result, 'ContactName', clContact_Name);
+	SetTextAttr(Result, 'PhoneNo', clPhone_No);
+	SetTextAttr(Result, 'FaxNo', clFax_No);
+	SetTextAttr(Result, 'FilePassword', clFile_Password);
+	SetTextAttr(Result, 'PracticeName', clPractice_Name);
+	SetTextAttr(Result, 'StaffMemberName', clStaff_Member_Name);
+	SetTextAttr(Result, 'PracticeEMailAddress', clPractice_EMail_Address);
+	SetTextAttr(Result, 'StaffMemberEMailAddress', clStaff_Member_EMail_Address);
+	SetTextAttr(Result, 'ClientEMailAddress', clClient_EMail_Address);
+	SetIntAttr(Result, 'Country', clCountry);
+	SetTextAttr(Result, 'FileName', clFile_Name);
+	SetIntAttr(Result, 'FileType', clFile_Type);
+	SetIntAttr(Result, 'FileVersion', clFile_Version);
+	SetIntAttr(Result, 'FileSaveCount', clFile_Save_Count);
+	SetTextAttr(Result, 'BankLinkConnectPassword', clBankLink_Connect_Password);
+	SetIntAttr(Result, 'PINNumber', clPIN_Number);
+	SetBoolAttr(Result, 'OldRestrictAnalysisCodes', clOld_Restrict_Analysis_Codes);
+	SetIntAttr(Result, 'FinancialYearStarts', clFinancial_Year_Starts);
+	SetIntAttr(Result, 'ReportStartDate', clReport_Start_Date);
+	SetIntAttr(Result, 'ReportingPeriod', clReporting_Period);
+	SetIntAttr(Result, 'OldSendReportsTo', clOld_Send_Reports_To);
+	SetBoolAttr(Result, 'SendCodingReport', clSend_Coding_Report);
+	SetBoolAttr(Result, 'SendChartofAccounts', clSend_Chart_of_Accounts);
+	SetBoolAttr(Result, 'SendUnpresentedChequeList', clSend_Unpresented_Cheque_List);
+	SetBoolAttr(Result, 'SendPayeeList', clSend_Payee_List);
+	SetBoolAttr(Result, 'SendPayeeReport', clSend_Payee_Report);
+	PNode := Result.AddChild('ShortNames');
+	M :=  Low(clShort_Name);
+	for I := Low(clShort_Name) to High(clShort_Name) do
+		if  clShort_Name[I] > '' then
+			M := I;
+	for I := Low(clShort_Name) to M do begin
+		CNode := PNode.AddChild('ShortName');
+		CNode.NodeValue := clShort_Name[I];
+	end;
+	PNode := Result.AddChild('LongNames');
+	M :=  Low(clLong_Name);
+	for I := Low(clLong_Name) to High(clLong_Name) do
+		if  clLong_Name[I] > '' then
+			M := I;
+	for I := Low(clLong_Name) to M do begin
+		CNode := PNode.AddChild('LongName');
+		CNode.NodeValue := clLong_Name[I];
+	end;
+	SetTextAttr(Result, 'GSTNumber', clGST_Number);
+	SetIntAttr(Result, 'GSTPeriod', clGST_Period);
+	SetIntAttr(Result, 'GSTStartMonth', clGST_Start_Month);
+	SetArray(Result, 'GSTAppliesFroms', clGST_Applies_From);
+	PNode := Result.AddChild('GSTClassNames');
+	M :=  Low(clGST_Class_Names);
+	for I := Low(clGST_Class_Names) to High(clGST_Class_Names) do
+		if  clGST_Class_Names[I] > '' then
+			M := I;
+	for I := Low(clGST_Class_Names) to M do begin
+		CNode := PNode.AddChild('GSTClassName');
+		CNode.NodeValue := clGST_Class_Names[I];
+	end;
+	SetArray(Result, 'GSTClassTypes', clGST_Class_Types);
+	PNode := Result.AddChild('GSTAccountCodes');
+	M :=  Low(clGST_Account_Codes);
+	for I := Low(clGST_Account_Codes) to High(clGST_Account_Codes) do
+		if  clGST_Account_Codes[I] > '' then
+			M := I;
+	for I := Low(clGST_Account_Codes) to M do begin
+		CNode := PNode.AddChild('GSTAccountCode');
+		CNode.NodeValue := clGST_Account_Codes[I];
+	end;
+	PNode := result.AddChild('GSTRates');
+	M :=  Low(clGST_Rates);
+	for I := Low(clGST_Rates) to High(clGST_Rates) do
+		for J := Low(clGST_Rates[I]) to High(clGST_Rates[I]) do
+			if clGST_Rates[I,J] > 0 then begin
+				M := I;
+				Break;
+			end;
+	for I := low(clGST_Rates) to M do begin
+		CNode := PNode.AddChild('GSTRates');
+		CNode := CNode.AddChild('GSTRates');
+		for J := Low(clGST_Rates[I]) to High(clGST_Rates[I]) do begin
+			CCNode := CNode.AddChild('GSTRate');
+			CCNode.NodeValue := (clGST_Rates[I,J]);
+		end;
+	end;
+	SetIntAttr(Result, 'GSTBasis', clGST_Basis);
+	SetBoolAttr(Result, 'GSTonPresentationDate', clGST_on_Presentation_Date);
+	SetBoolAttr(Result, 'GSTExcludesAccruals', clGST_Excludes_Accruals);
+	SetBoolAttr(Result, 'GSTInclusiveCashflow', clGST_Inclusive_Cashflow);
+	SetIntAttr(Result, 'AccountingSystemUsed', clAccounting_System_Used);
+	SetTextAttr(Result, 'AccountCodeMask', clAccount_Code_Mask);
+	SetTextAttr(Result, 'LoadClientFilesFrom', clLoad_Client_Files_From);
+	SetTextAttr(Result, 'SaveClientFilesTo', clSave_Client_Files_To);
+	SetBoolAttr(Result, 'ChartIsLocked', clChart_Is_Locked);
+	SetIntAttr(Result, 'ChartLastUpdated', clChart_Last_Updated);
+	SetIntAttr(Result, 'CodingReportStyle', clCoding_Report_Style);
+	SetIntAttr(Result, 'CodingReportSortOrder', clCoding_Report_Sort_Order);
+	SetIntAttr(Result, 'CodingReportEntrySelection', clCoding_Report_Entry_Selection);
+	SetIntAttr(Result, 'CodingReportBlankLines', clCoding_Report_Blank_Lines);
+	SetBoolAttr(Result, 'CodingReportRuleLine', clCoding_Report_Rule_Line);
+	SetBoolAttr(Result, 'CodingReportNewPage', clCoding_Report_New_Page);
+	PNode := Result.AddChild('OldDivisionNames');
+	M :=  Low(clOld_Division_Names);
+	for I := Low(clOld_Division_Names) to High(clOld_Division_Names) do
+		if  clOld_Division_Names[I] > '' then
+			M := I;
+	for I := Low(clOld_Division_Names) to M do begin
+		CNode := PNode.AddChild('OldDivisionName');
+		CNode.NodeValue := clOld_Division_Names[I];
+	end;
+	PNode := Result.AddChild('CFHeadings');
+	M :=  Low(clCF_Headings);
+	for I := Low(clCF_Headings) to High(clCF_Headings) do
+		if  clCF_Headings[I] > '' then
+			M := I;
+	for I := Low(clCF_Headings) to M do begin
+		CNode := PNode.AddChild('CFHeading');
+		CNode.NodeValue := clCF_Headings[I];
+	end;
+	PNode := Result.AddChild('PRHeadings');
+	M :=  Low(clPR_Headings);
+	for I := Low(clPR_Headings) to High(clPR_Headings) do
+		if  clPR_Headings[I] > '' then
+			M := I;
+	for I := Low(clPR_Headings) to M do begin
+		CNode := PNode.AddChild('PRHeading');
+		CNode.NodeValue := clPR_Headings[I];
+	end;
+	SetIntAttr(Result, 'MagicNumber', clMagic_Number);
+	SetIntAttr(Result, 'ExceptionOptions', clException_Options);
+	SetIntAttr(Result, 'PeriodStartDate', clPeriod_Start_Date);
+	SetIntAttr(Result, 'PeriodEndDate', clPeriod_End_Date);
+	SetBoolAttr(Result, 'FRSPrintChartCodes', clFRS_Print_Chart_Codes);
+	SetTextAttr(Result, 'BankLinkCode', clBankLink_Code);
+	SetIntAttr(Result, 'DiskSequenceNo', clDisk_Sequence_No);
+	SetIntAttr(Result, 'StaffMemberLRN', clStaff_Member_LRN);
+	SetBoolAttr(Result, 'SuppressCheckforNewTXns', clSuppress_Check_for_New_TXns);
+	SetIntAttr(Result, 'DownloadFrom', clDownload_From);
+	SetIntAttr(Result, 'LastBatchNumber', clLast_Batch_Number);
+	SetTextAttr(Result, 'OldGSTClassCodes', clOld_GST_Class_Codes);
+	PNode := Result.AddChild('DivisionCodeLists');
+	M :=  Low(clDivision_Code_List);
+	for I := Low(clDivision_Code_List) to High(clDivision_Code_List) do
+		if  clDivision_Code_List[I] > '' then
+			M := I;
+	for I := Low(clDivision_Code_List) to M do begin
+		CNode := PNode.AddChild('DivisionCodeList');
+		CNode.NodeValue := clDivision_Code_List[I];
+	end;
+	SetIntAttr(Result, 'SBExportAs', clSB_Export_As);
+	SetIntAttr(Result, 'SBUploadTo', clSB_Upload_To);
+	SetBoolAttr(Result, 'CodingReportPrintTI', clCoding_Report_Print_TI);
+	SetBoolAttr(Result, 'V31GSTFormatUsed', clV31_GST_Format_Used);
+	SetBoolAttr(Result, 'EmailScheduledReports', clEmail_Scheduled_Reports);
+	PNode := Result.AddChild('OLDBASSpecialAccounts');
+	M :=  Low(clOLD_BAS_Special_Accounts);
+	for I := Low(clOLD_BAS_Special_Accounts) to High(clOLD_BAS_Special_Accounts) do
+		if  clOLD_BAS_Special_Accounts[I] > '' then
+			M := I;
+	for I := Low(clOLD_BAS_Special_Accounts) to M do begin
+		CNode := PNode.AddChild('OLDBASSpecialAccount');
+		CNode.NodeValue := clOLD_BAS_Special_Accounts[I];
+	end;
+	PNode := Result.AddChild('GSTClassCodes');
+	M :=  Low(clGST_Class_Codes);
+	for I := Low(clGST_Class_Codes) to High(clGST_Class_Codes) do
+		if  clGST_Class_Codes[I] > '' then
+			M := I;
+	for I := Low(clGST_Class_Codes) to M do begin
+		CNode := PNode.AddChild('GSTClassCode');
+		CNode.NodeValue := clGST_Class_Codes[I];
+	end;
+	SetTextAttr(Result, 'TaxLedgerCode', clTax_Ledger_Code);
+	SetBoolAttr(Result, 'EOYLockedSBOnly', clEOY_Locked_SB_Only);
+	SetArray(Result, 'BASFieldNumbers', clBAS_Field_Number);
+	SetArray(Result, 'BASFieldSources', clBAS_Field_Source);
+	PNode := Result.AddChild('BASFieldAccountCodes');
+	M :=  Low(clBAS_Field_Account_Code);
+	for I := Low(clBAS_Field_Account_Code) to High(clBAS_Field_Account_Code) do
+		if  clBAS_Field_Account_Code[I] > '' then
+			M := I;
+	for I := Low(clBAS_Field_Account_Code) to M do begin
+		CNode := PNode.AddChild('BASFieldAccountCode');
+		CNode.NodeValue := clBAS_Field_Account_Code[I];
+	end;
+	SetArray(Result, 'BASFieldBalanceTypes', clBAS_Field_Balance_Type);
+	SetArray(Result, 'BASFieldPercents', clBAS_Field_Percent);
+	SetArray(Result, 'GSTBusinessPercents', clGST_Business_Percent);
+	SetIntAttr(Result, 'BASCalculationMethod', clBAS_Calculation_Method);
+	SetBoolAttr(Result, 'BASDontPrintCalcSheet', clBAS_Dont_Print_Calc_Sheet);
+	SetIntAttr(Result, 'BASPAYGWithheldPeriod', clBAS_PAYG_Withheld_Period);
+	SetBoolAttr(Result, 'FaxScheduledReports', clFax_Scheduled_Reports);
+	PNode := Result.AddChild('GraphHeadings');
+	M :=  Low(clGraph_Headings);
+	for I := Low(clGraph_Headings) to High(clGraph_Headings) do
+		if  clGraph_Headings[I] > '' then
+			M := I;
+	for I := Low(clGraph_Headings) to M do begin
+		CNode := PNode.AddChild('GraphHeading');
+		CNode.NodeValue := clGraph_Headings[I];
+	end;
+	PNode := Result.AddChild('Notes');
+	M :=  Low(clNotes);
+	for I := Low(clNotes) to High(clNotes) do
+		if  clNotes[I] > '' then
+			M := I;
+	for I := Low(clNotes) to M do begin
+		CNode := PNode.AddChild('Note');
+		CNode.NodeValue := clNotes[I];
+	end;
+	SetIntAttr(Result, 'ChequesExpireWhen', clCheques_Expire_When);
+	SetBoolAttr(Result, 'ShowNotesOnOpen', clShow_Notes_On_Open);
+	SetIntAttr(Result, 'ECodingEntrySelection', clECoding_Entry_Selection);
+	SetBoolAttr(Result, 'ECodingDontSendChart', clECoding_Dont_Send_Chart);
+	SetBoolAttr(Result, 'ECodingDontSendPayees', clECoding_Dont_Send_Payees);
+	SetBoolAttr(Result, 'ECodingDontShowQuantity', clECoding_Dont_Show_Quantity);
+	SetIntAttr(Result, 'ECodingLastFileNo', clECoding_Last_File_No);
+	SetIntAttr(Result, 'ECodingLastFileNoImported', clECoding_Last_File_No_Imported);
+	SetBoolAttr(Result, 'ECodingExportScheduledReports', clECoding_Export_Scheduled_Reports);
+	SetIntAttr(Result, 'EmailReportFormat', clEmail_Report_Format);
+	SetIntAttr(Result, 'BASPAYGInstalmentPeriod', clBAS_PAYG_Instalment_Period);
+	SetBoolAttr(Result, 'BASIncludeFBTWETLCT', clBAS_Include_FBT_WET_LCT);
+	SetIntAttr(Result, 'BASLastGSTOption', clBAS_Last_GST_Option);
+	SetIntAttr(Result, 'BASLastPAYGInstalmentOption', clBAS_Last_PAYG_Instalment_Option);
+	SetTextAttr(Result, 'ECodingDefaultPassword', clECoding_Default_Password);
+	SetIntAttr(Result, 'ECodingImportOptions', clECoding_Import_Options);
+	SetTextAttr(Result, 'ECodingLastImportDir', clECoding_Last_Import_Dir);
+	SetTextAttr(Result, 'ECodingLastExportDir', clECoding_Last_Export_Dir);
+	SetBoolAttr(Result, 'CodingReportShowOP', clCoding_Report_Show_OP);
+	SetBoolAttr(Result, 'FRSShowQuantity', clFRS_Show_Quantity);
+	SetIntAttr(Result, 'CflwCashOnHandStyle', clCflw_Cash_On_Hand_Style);
+	SetBoolAttr(Result, 'CSVExportScheduledReports', clCSV_Export_Scheduled_Reports);
+	SetBoolAttr(Result, 'FRSShowYTD', clFRS_Show_YTD);
+	SetBoolAttr(Result, 'FRSShowVariance', clFRS_Show_Variance);
+	SetIntAttr(Result, 'FRSCompareType', clFRS_Compare_Type);
+	SetIntAttr(Result, 'FRSReportingPeriodType', clFRS_Reporting_Period_Type);
+	SetIntAttr(Result, 'FRSReportStyle', clFRS_Report_Style);
+	SetIntAttr(Result, 'ReportingYearStarts', clReporting_Year_Starts);
+	SetIntAttr(Result, 'FRSReportDetailType', clFRS_Report_Detail_Type);
+	SetBoolAttr(Result, 'FRSPromptUsertouseBudgetedfigures', clFRS_Prompt_User_to_use_Budgeted_figures);
+	PNode := Result.AddChild('BalanceSheetHeadings');
+	M :=  Low(clBalance_Sheet_Headings);
+	for I := Low(clBalance_Sheet_Headings) to High(clBalance_Sheet_Headings) do
+		if  clBalance_Sheet_Headings[I] > '' then
+			M := I;
+	for I := Low(clBalance_Sheet_Headings) to M do begin
+		CNode := PNode.AddChild('BalanceSheetHeading');
+		CNode.NodeValue := clBalance_Sheet_Headings[I];
+	end;
+	SetIntAttr(Result, 'LastFinancialYearStart', clLast_Financial_Year_Start);
+	SetBoolAttr(Result, 'N520ReferenceFixRun', cl520_Reference_Fix_Run);
+	SetIntAttr(Result, 'TaxInterfaceUsed', clTax_Interface_Used);
+	SetTextAttr(Result, 'SaveTaxFilesTo', clSave_Tax_Files_To);
+	SetIntAttr(Result, 'JournalProcessingPeriod', clJournal_Processing_Period);
+	SetIntAttr(Result, 'LastDiskImageVersion', clLast_Disk_Image_Version);
+	SetTextAttr(Result, 'PracticeWebSite', clPractice_Web_Site);
+	SetTextAttr(Result, 'PracticePhone', clPractice_Phone);
+	SetTextAttr(Result, 'PracticeLogo', clPractice_Logo);
+	SetTextAttr(Result, 'WebSiteLoginURL', clWeb_Site_Login_URL);
+	SetTextAttr(Result, 'StaffMemberDirectDial', clStaff_Member_Direct_Dial);
+	SetIntAttr(Result, 'ContactDetailsToShow', clContact_Details_To_Show);
+	SetBoolAttr(Result, 'ECodingDontAllowUPIs', clECoding_Dont_Allow_UPIs);
+	SetBoolAttr(Result, 'ECodingDontShowAccount', clECoding_Dont_Show_Account);
+	SetBoolAttr(Result, 'ECodingDontShowPayees', clECoding_Dont_Show_Payees);
+	SetBoolAttr(Result, 'ECodingDontShowGST', clECoding_Dont_Show_GST);
+	SetBoolAttr(Result, 'ECodingDontShowTaxInvoice', clECoding_Dont_Show_TaxInvoice);
+	SetTextAttr(Result, 'ScheduledFileAttachments', clScheduled_File_Attachments);
+	SetIntAttr(Result, 'ScheduledCodingReportStyle', clScheduled_Coding_Report_Style);
+	SetIntAttr(Result, 'ScheduledCodingReportSortOrder', clScheduled_Coding_Report_Sort_Order);
+	SetIntAttr(Result, 'ScheduledCodingReportEntrySelection', clScheduled_Coding_Report_Entry_Selection);
+	SetIntAttr(Result, 'ScheduledCodingReportBlankLines', clScheduled_Coding_Report_Blank_Lines);
+	SetBoolAttr(Result, 'ScheduledCodingReportRuleLine', clScheduled_Coding_Report_Rule_Line);
+	SetBoolAttr(Result, 'ScheduledCodingReportNewPage', clScheduled_Coding_Report_New_Page);
+	SetBoolAttr(Result, 'ScheduledCodingReportPrintTI', clScheduled_Coding_Report_Print_TI);
+	SetBoolAttr(Result, 'ScheduledCodingReportShowOP', clScheduled_Coding_Report_Show_OP);
+	SetTextAttr(Result, 'ScheduledClientNoteMessage', clScheduled_Client_Note_Message);
+	SetTextAttr(Result, 'CustomContactName', clCustom_Contact_Name);
+	SetTextAttr(Result, 'CustomContactEMailAddress', clCustom_Contact_EMail_Address);
+	SetTextAttr(Result, 'CustomContactPhone', clCustom_Contact_Phone);
+	SetBoolAttr(Result, 'EmptyJournalsRemoved', clEmpty_Journals_Removed);
+	SetIntAttr(Result, 'HighestManualAccountNo', clHighest_Manual_Account_No);
+	SetIntAttr(Result, 'ContactDetailsEditDate', clContact_Details_Edit_Date);
+	SetIntAttr(Result, 'ContactDetailsEditTime', clContact_Details_Edit_Time);
+	SetBoolAttr(Result, 'CopyNarrationDissection', clCopy_Narration_Dissection);
+	SetTextAttr(Result, 'ClientCCEMailAddress', clClient_CC_EMail_Address);
+	SetIntAttr(Result, 'BASReportFormat', clBAS_Report_Format);
+	SetBoolAttr(Result, 'WebXExportScheduledReports', clWebX_Export_Scheduled_Reports);
+	SetIntAttr(Result, 'ECodingWebSpace', clECoding_WebSpace);
+	SetIntAttr(Result, 'LastECodingAccountUID', clLast_ECoding_Account_UID);
+	SetIntAttr(Result, 'WebExportFormat', clWeb_Export_Format);
+	SetTextAttr(Result, 'MobileNo', clMobile_No);
+	SetBoolAttr(Result, 'LedgerReportSummary', clLedger_Report_Summary);
+	SetBoolAttr(Result, 'LedgerReportShowNotes', clLedger_Report_Show_Notes);
+	SetBoolAttr(Result, 'LedgerReportShowQuantities', clLedger_Report_Show_Quantities);
+	SetBoolAttr(Result, 'LedgerReportShowNonTrf', clLedger_Report_Show_Non_Trf);
+	SetBoolAttr(Result, 'LedgerReportShowInactiveCodes', clLedger_Report_Show_Inactive_Codes);
+	SetIntAttr(Result, 'LedgerReportBankContra', clLedger_Report_Bank_Contra);
+	SetIntAttr(Result, 'LedgerReportGSTContra', clLedger_Report_GST_Contra);
+	SetBoolAttr(Result, 'LedgerReportShowBalances', clLedger_Report_Show_Balances);
+	SetBoolAttr(Result, 'FileReadOnly', clFile_Read_Only);
+	SetBoolAttr(Result, 'CheckOutScheduledReports', clCheckOut_Scheduled_Reports);
+	SetTextAttr(Result, 'ExcludeFromScheduledReports', clExclude_From_Scheduled_Reports);
+	SetBoolAttr(Result, 'LedgerReportShowGrossAndGST', clLedger_Report_Show_Gross_And_GST);
+	SetTextAttr(Result, 'Salutation', clSalutation);
+	SetTextAttr(Result, 'ExternalID', clExternal_ID);
+	SetIntAttr(Result, 'SystemLRN', clSystem_LRN);
+	SetBoolAttr(Result, 'BusinessProductsScheduledReports', clBusiness_Products_Scheduled_Reports);
+	SetIntAttr(Result, 'BusinessProductsReportFormat', clBusiness_Products_Report_Format);
+	SetBoolAttr(Result, 'CodingReportWrapNarration', clCoding_Report_Wrap_Narration);
+	SetBoolAttr(Result, 'LedgerReportWrapNarration', clLedger_Report_Wrap_Narration);
+	SetBoolAttr(Result, 'ScheduledCodingReportWrapNarration', clScheduled_Coding_Report_Wrap_Narration);
+	SetBoolAttr(Result, 'ForceOffsiteCheckOut', clForce_Offsite_Check_Out);
+	SetBoolAttr(Result, 'DisableOffsiteCheckOut', clDisable_Offsite_Check_Out);
+	SetTextAttr(Result, 'AlternateExtractID', clAlternate_Extract_ID);
+	SetBoolAttr(Result, 'UseAlterateIDforextract', clUse_Alterate_ID_for_extract);
+	SetIntAttr(Result, 'LastUseDate', clLast_Use_Date);
+	SetBoolAttr(Result, 'UseBasicChart', clUse_Basic_Chart);
+	SetTextAttr(Result, 'GroupName', clGroup_Name);
+	SetTextAttr(Result, 'ClientTypeName', clClient_Type_Name);
+	SetBoolAttr(Result, 'BASIncludeFuel', clBAS_Include_Fuel);
+	SetBoolAttr(Result, 'ProfitReportShowPercentage', clProfit_Report_Show_Percentage);
+	SetBoolAttr(Result, 'ECodingSendSuperfund', clECoding_Send_Superfund);
+	SetIntAttr(Result, 'GroupLRN', clGroup_LRN);
+	SetIntAttr(Result, 'ClientTypeLRN', clClient_Type_LRN);
+	SetIntAttr(Result, 'SpareByte1', clSpare_Byte_1);
+	SetIntAttr(Result, 'SpareByte2', clSpare_Byte_2);
+	SetTextAttr(Result, 'PracticeCode', clPractice_Code);
+	SetArray(Result, 'CashJColumnOrders', clCashJ_Column_Order);
+	SetArray(Result, 'CashJColumnWidths', clCashJ_Column_Width);
+	SetArray(Result, 'CashJColumnisHiddens', clCashJ_Column_is_Hidden);
+	SetArray(Result, 'CashJColumnisNotEditables', clCashJ_Column_is_Not_Editable);
+	SetIntAttr(Result, 'CashJSortOrder', clCashJ_Sort_Order);
+	SetArray(Result, 'AcrlJColumnOrders', clAcrlJ_Column_Order);
+	SetArray(Result, 'AcrlJColumnWidths', clAcrlJ_Column_Width);
+	SetArray(Result, 'AcrlJColumnisHiddens', clAcrlJ_Column_is_Hidden);
+	SetArray(Result, 'AcrlJColumnisNotEditables', clAcrlJ_Column_is_Not_Editable);
+	SetIntAttr(Result, 'AcrlJSortOrder', clAcrlJ_Sort_Order);
+	SetArray(Result, 'StockJColumnOrders', clStockJ_Column_Order);
+	SetArray(Result, 'StockJColumnWidths', clStockJ_Column_Width);
+	SetArray(Result, 'StockJColumnisHiddens', clStockJ_Column_is_Hidden);
+	SetArray(Result, 'StockJColumnisNotEditables', clStockJ_Column_is_Not_Editable);
+	SetIntAttr(Result, 'StockJSortOrder', clStockJ_Sort_Order);
+	SetArray(Result, 'YrEJColumnOrders', clYrEJ_Column_Order);
+	SetArray(Result, 'YrEJColumnWidths', clYrEJ_Column_Width);
+	SetArray(Result, 'YrEJColumnisHiddens', clYrEJ_Column_is_Hidden);
+	SetArray(Result, 'YrEJColumnisNotEditables', clYrEJ_Column_is_Not_Editable);
+	SetIntAttr(Result, 'YrEJSortOrder', clYrEJ_Sort_Order);
+	SetArray(Result, 'gstJColumnOrders', clgstJ_Column_Order);
+	SetArray(Result, 'gstJColumnWidths', clgstJ_Column_Width);
+	SetArray(Result, 'gstJColumnisHiddens', clgstJ_Column_is_Hidden);
+	SetArray(Result, 'gstJColumnisNotEditables', clgstJ_Column_is_Not_Editable);
+	SetIntAttr(Result, 'gstJSortOrder', clgstJ_Sort_Order);
+	SetTextAttr(Result, 'FavouriteReportXML', clFavourite_Report_XML);
+	SetBoolAttr(Result, 'AllEditModeCES', clAll_EditMode_CES);
+	SetBoolAttr(Result, 'AllEditModeDIS', clAll_EditMode_DIS);
+	SetTextAttr(Result, 'TFN', clTFN);
+	SetArray(Result, 'AllEditModeJournals', clAll_EditMode_Journals);
+	SetArray(Result, 'BudgetColumnWidths', clBudget_Column_Width);
+
+	CNode := nil;
+	CCNode := nil;
+	PNode := nil;
+end;
+
+
+function TClient_RecHelper.ReadRecFromNode(Node :IXMLNode): IXMLNode;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J: Integer;
+begin
+	if Node.NodeName = GetXMLNodeName then Result := Node
+	else
+	Result := Node.ChildNodes.FindNode(GetXMLNodeName);
+	if not assigned(Result) then exit;
+	try
+	clCode := GetTextAttr(Result, 'Code');
+	clName := GetTextAttr(Result, 'Name');
+	clAddress_L1 := GetTextAttr(Result, 'AddressL1');
+	clAddress_L2 := GetTextAttr(Result, 'AddressL2');
+	clAddress_L3 := GetTextAttr(Result, 'AddressL3');
+	clContact_Name := GetTextAttr(Result, 'ContactName');
+	clPhone_No := GetTextAttr(Result, 'PhoneNo');
+	clFax_No := GetTextAttr(Result, 'FaxNo');
+	clFile_Password := GetTextAttr(Result, 'FilePassword');
+	clPractice_Name := GetTextAttr(Result, 'PracticeName');
+	clStaff_Member_Name := GetTextAttr(Result, 'StaffMemberName');
+	clPractice_EMail_Address := GetTextAttr(Result, 'PracticeEMailAddress');
+	clStaff_Member_EMail_Address := GetTextAttr(Result, 'StaffMemberEMailAddress');
+	clClient_EMail_Address := GetTextAttr(Result, 'ClientEMailAddress');
+	clCountry := GetIntAttr(Result, 'Country');
+	clFile_Name := GetTextAttr(Result, 'FileName');
+	clFile_Type := GetIntAttr(Result, 'FileType');
+	clFile_Version := GetIntAttr(Result, 'FileVersion');
+	clFile_Save_Count := GetIntAttr(Result, 'FileSaveCount');
+	clBankLink_Connect_Password := GetTextAttr(Result, 'BankLinkConnectPassword');
+	clPIN_Number := GetIntAttr(Result, 'PINNumber');
+	clOld_Restrict_Analysis_Codes := GetBoolAttr(Result, 'OldRestrictAnalysisCodes');
+	clFinancial_Year_Starts := GetIntAttr(Result, 'FinancialYearStarts');
+	clReport_Start_Date := GetIntAttr(Result, 'ReportStartDate');
+	clReporting_Period := GetIntAttr(Result, 'ReportingPeriod');
+	clOld_Send_Reports_To := GetIntAttr(Result, 'OldSendReportsTo');
+	clSend_Coding_Report := GetBoolAttr(Result, 'SendCodingReport');
+	clSend_Chart_of_Accounts := GetBoolAttr(Result, 'SendChartofAccounts');
+	clSend_Unpresented_Cheque_List := GetBoolAttr(Result, 'SendUnpresentedChequeList');
+	clSend_Payee_List := GetBoolAttr(Result, 'SendPayeeList');
+	clSend_Payee_Report := GetBoolAttr(Result, 'SendPayeeReport');
+	
+	PNode := Result.ChildNodes.FindNode('ShortNames');
+	if Assigned(PNode) then
+		CNode := PNode.ChildNodes.FindNode('ShortName')
+	else
+		CNode := Nil;
+	for I := low(clShort_Name) to High(clShort_Name) do begin
+		if Assigned(CNode) then begin
+			if CNode.Nodevalue <> null then 
+				clShort_Name[I] := CNode.Nodevalue
+			else clShort_Name[I] := '';
+			CNode := CNode.NextSibling;
+		end else
+			clShort_Name[I] := ''
+	end;
+
+	
+	PNode := Result.ChildNodes.FindNode('LongNames');
+	if Assigned(PNode) then
+		CNode := PNode.ChildNodes.FindNode('LongName')
+	else
+		CNode := Nil;
+	for I := low(clLong_Name) to High(clLong_Name) do begin
+		if Assigned(CNode) then begin
+			if CNode.Nodevalue <> null then 
+				clLong_Name[I] := CNode.Nodevalue
+			else clLong_Name[I] := '';
+			CNode := CNode.NextSibling;
+		end else
+			clLong_Name[I] := ''
+	end;
+
+	clGST_Number := GetTextAttr(Result, 'GSTNumber');
+	clGST_Period := GetIntAttr(Result, 'GSTPeriod');
+	clGST_Start_Month := GetIntAttr(Result, 'GSTStartMonth');
+	GetArray(Result, 'GSTAppliesFroms', clGST_Applies_From);
+	
+	PNode := Result.ChildNodes.FindNode('GSTClassNames');
+	if Assigned(PNode) then
+		CNode := PNode.ChildNodes.FindNode('GSTClassName')
+	else
+		CNode := Nil;
+	for I := low(clGST_Class_Names) to High(clGST_Class_Names) do begin
+		if Assigned(CNode) then begin
+			if CNode.Nodevalue <> null then 
+				clGST_Class_Names[I] := CNode.Nodevalue
+			else clGST_Class_Names[I] := '';
+			CNode := CNode.NextSibling;
+		end else
+			clGST_Class_Names[I] := ''
+	end;
+
+	GetArray(Result, 'GSTClassTypes', clGST_Class_Types);
+	
+	PNode := Result.ChildNodes.FindNode('GSTAccountCodes');
+	if Assigned(PNode) then
+		CNode := PNode.ChildNodes.FindNode('GSTAccountCode')
+	else
+		CNode := Nil;
+	for I := low(clGST_Account_Codes) to High(clGST_Account_Codes) do begin
+		if Assigned(CNode) then begin
+			if CNode.Nodevalue <> null then 
+				clGST_Account_Codes[I] := CNode.Nodevalue
+			else clGST_Account_Codes[I] := '';
+			CNode := CNode.NextSibling;
+		end else
+			clGST_Account_Codes[I] := ''
+	end;
+
+		PNode := Result.ChildNodes.FindNode('GSTRates');
+	if Assigned(PNode) then begin
+		PNode := PNode.ChildNodes.FindNode('GSTRates');
+	end;
+	for I := low(clGST_Rates) to High(clGST_Rates) do begin
+		if Assigned(PNode) then begin
+			CNode := PNode.ChildNodes.FindNode('GSTRates');
+			if Assigned(CNode) then
+				CCNode := CNode.ChildNodes.FindNode('GSTRate')
+			else CCNode := Nil;
+		end else
+			CNode := Nil;
+		for J := Low(clGST_Rates[I]) to High(clGST_Rates[I]) do begin
+			if Assigned(CCNode) then begin
+				clGST_Rates[I,J] := CCNode.Nodevalue;
+				CCNode := CCNode.NextSibling;
+			end else
+				clGST_Rates[I,J] := 0;
+		end;
+			if Assigned(PNode) then
+				PNode := PNode.NextSibling;
+	end;
+	clGST_Basis := GetIntAttr(Result, 'GSTBasis');
+	clGST_on_Presentation_Date := GetBoolAttr(Result, 'GSTonPresentationDate');
+	clGST_Excludes_Accruals := GetBoolAttr(Result, 'GSTExcludesAccruals');
+	clGST_Inclusive_Cashflow := GetBoolAttr(Result, 'GSTInclusiveCashflow');
+	clAccounting_System_Used := GetIntAttr(Result, 'AccountingSystemUsed');
+	clAccount_Code_Mask := GetTextAttr(Result, 'AccountCodeMask');
+	clLoad_Client_Files_From := GetTextAttr(Result, 'LoadClientFilesFrom');
+	clSave_Client_Files_To := GetTextAttr(Result, 'SaveClientFilesTo');
+	clChart_Is_Locked := GetBoolAttr(Result, 'ChartIsLocked');
+	clChart_Last_Updated := GetIntAttr(Result, 'ChartLastUpdated');
+	clCoding_Report_Style := GetIntAttr(Result, 'CodingReportStyle');
+	clCoding_Report_Sort_Order := GetIntAttr(Result, 'CodingReportSortOrder');
+	clCoding_Report_Entry_Selection := GetIntAttr(Result, 'CodingReportEntrySelection');
+	clCoding_Report_Blank_Lines := GetIntAttr(Result, 'CodingReportBlankLines');
+	clCoding_Report_Rule_Line := GetBoolAttr(Result, 'CodingReportRuleLine');
+	clCoding_Report_New_Page := GetBoolAttr(Result, 'CodingReportNewPage');
+	
+	PNode := Result.ChildNodes.FindNode('OldDivisionNames');
+	if Assigned(PNode) then
+		CNode := PNode.ChildNodes.FindNode('OldDivisionName')
+	else
+		CNode := Nil;
+	for I := low(clOld_Division_Names) to High(clOld_Division_Names) do begin
+		if Assigned(CNode) then begin
+			if CNode.Nodevalue <> null then 
+				clOld_Division_Names[I] := CNode.Nodevalue
+			else clOld_Division_Names[I] := '';
+			CNode := CNode.NextSibling;
+		end else
+			clOld_Division_Names[I] := ''
+	end;
+
+	
+	PNode := Result.ChildNodes.FindNode('CFHeadings');
+	if Assigned(PNode) then
+		CNode := PNode.ChildNodes.FindNode('CFHeading')
+	else
+		CNode := Nil;
+	for I := low(clCF_Headings) to High(clCF_Headings) do begin
+		if Assigned(CNode) then begin
+			if CNode.Nodevalue <> null then 
+				clCF_Headings[I] := CNode.Nodevalue
+			else clCF_Headings[I] := '';
+			CNode := CNode.NextSibling;
+		end else
+			clCF_Headings[I] := ''
+	end;
+
+	
+	PNode := Result.ChildNodes.FindNode('PRHeadings');
+	if Assigned(PNode) then
+		CNode := PNode.ChildNodes.FindNode('PRHeading')
+	else
+		CNode := Nil;
+	for I := low(clPR_Headings) to High(clPR_Headings) do begin
+		if Assigned(CNode) then begin
+			if CNode.Nodevalue <> null then 
+				clPR_Headings[I] := CNode.Nodevalue
+			else clPR_Headings[I] := '';
+			CNode := CNode.NextSibling;
+		end else
+			clPR_Headings[I] := ''
+	end;
+
+	clMagic_Number := GetIntAttr(Result, 'MagicNumber');
+	clException_Options := GetIntAttr(Result, 'ExceptionOptions');
+	clPeriod_Start_Date := GetIntAttr(Result, 'PeriodStartDate');
+	clPeriod_End_Date := GetIntAttr(Result, 'PeriodEndDate');
+	clFRS_Print_Chart_Codes := GetBoolAttr(Result, 'FRSPrintChartCodes');
+	clBankLink_Code := GetTextAttr(Result, 'BankLinkCode');
+	clDisk_Sequence_No := GetIntAttr(Result, 'DiskSequenceNo');
+	clStaff_Member_LRN := GetIntAttr(Result, 'StaffMemberLRN');
+	clSuppress_Check_for_New_TXns := GetBoolAttr(Result, 'SuppressCheckforNewTXns');
+	clDownload_From := GetIntAttr(Result, 'DownloadFrom');
+	clLast_Batch_Number := GetIntAttr(Result, 'LastBatchNumber');
+	clOld_GST_Class_Codes := GetTextAttr(Result, 'OldGSTClassCodes');
+	
+	PNode := Result.ChildNodes.FindNode('DivisionCodeLists');
+	if Assigned(PNode) then
+		CNode := PNode.ChildNodes.FindNode('DivisionCodeList')
+	else
+		CNode := Nil;
+	for I := low(clDivision_Code_List) to High(clDivision_Code_List) do begin
+		if Assigned(CNode) then begin
+			if CNode.Nodevalue <> null then 
+				clDivision_Code_List[I] := CNode.Nodevalue
+			else clDivision_Code_List[I] := '';
+			CNode := CNode.NextSibling;
+		end else
+			clDivision_Code_List[I] := ''
+	end;
+
+	clSB_Export_As := GetIntAttr(Result, 'SBExportAs');
+	clSB_Upload_To := GetIntAttr(Result, 'SBUploadTo');
+	clCoding_Report_Print_TI := GetBoolAttr(Result, 'CodingReportPrintTI');
+	clV31_GST_Format_Used := GetBoolAttr(Result, 'V31GSTFormatUsed');
+	clEmail_Scheduled_Reports := GetBoolAttr(Result, 'EmailScheduledReports');
+	
+	PNode := Result.ChildNodes.FindNode('OLDBASSpecialAccounts');
+	if Assigned(PNode) then
+		CNode := PNode.ChildNodes.FindNode('OLDBASSpecialAccount')
+	else
+		CNode := Nil;
+	for I := low(clOLD_BAS_Special_Accounts) to High(clOLD_BAS_Special_Accounts) do begin
+		if Assigned(CNode) then begin
+			if CNode.Nodevalue <> null then 
+				clOLD_BAS_Special_Accounts[I] := CNode.Nodevalue
+			else clOLD_BAS_Special_Accounts[I] := '';
+			CNode := CNode.NextSibling;
+		end else
+			clOLD_BAS_Special_Accounts[I] := ''
+	end;
+
+	
+	PNode := Result.ChildNodes.FindNode('GSTClassCodes');
+	if Assigned(PNode) then
+		CNode := PNode.ChildNodes.FindNode('GSTClassCode')
+	else
+		CNode := Nil;
+	for I := low(clGST_Class_Codes) to High(clGST_Class_Codes) do begin
+		if Assigned(CNode) then begin
+			if CNode.Nodevalue <> null then 
+				clGST_Class_Codes[I] := CNode.Nodevalue
+			else clGST_Class_Codes[I] := '';
+			CNode := CNode.NextSibling;
+		end else
+			clGST_Class_Codes[I] := ''
+	end;
+
+	clTax_Ledger_Code := GetTextAttr(Result, 'TaxLedgerCode');
+	clEOY_Locked_SB_Only := GetBoolAttr(Result, 'EOYLockedSBOnly');
+	GetArray(Result, 'BASFieldNumbers', clBAS_Field_Number);
+	GetArray(Result, 'BASFieldSources', clBAS_Field_Source);
+	
+	PNode := Result.ChildNodes.FindNode('BASFieldAccountCodes');
+	if Assigned(PNode) then
+		CNode := PNode.ChildNodes.FindNode('BASFieldAccountCode')
+	else
+		CNode := Nil;
+	for I := low(clBAS_Field_Account_Code) to High(clBAS_Field_Account_Code) do begin
+		if Assigned(CNode) then begin
+			if CNode.Nodevalue <> null then 
+				clBAS_Field_Account_Code[I] := CNode.Nodevalue
+			else clBAS_Field_Account_Code[I] := '';
+			CNode := CNode.NextSibling;
+		end else
+			clBAS_Field_Account_Code[I] := ''
+	end;
+
+	GetArray(Result, 'BASFieldBalanceTypes', clBAS_Field_Balance_Type);
+	GetArray(Result, 'BASFieldPercents', clBAS_Field_Percent);
+	GetArray(Result, 'GSTBusinessPercents', clGST_Business_Percent);
+	clBAS_Calculation_Method := GetIntAttr(Result, 'BASCalculationMethod');
+	clBAS_Dont_Print_Calc_Sheet := GetBoolAttr(Result, 'BASDontPrintCalcSheet');
+	clBAS_PAYG_Withheld_Period := GetIntAttr(Result, 'BASPAYGWithheldPeriod');
+	clFax_Scheduled_Reports := GetBoolAttr(Result, 'FaxScheduledReports');
+	
+	PNode := Result.ChildNodes.FindNode('GraphHeadings');
+	if Assigned(PNode) then
+		CNode := PNode.ChildNodes.FindNode('GraphHeading')
+	else
+		CNode := Nil;
+	for I := low(clGraph_Headings) to High(clGraph_Headings) do begin
+		if Assigned(CNode) then begin
+			if CNode.Nodevalue <> null then 
+				clGraph_Headings[I] := CNode.Nodevalue
+			else clGraph_Headings[I] := '';
+			CNode := CNode.NextSibling;
+		end else
+			clGraph_Headings[I] := ''
+	end;
+
+	
+	PNode := Result.ChildNodes.FindNode('Notes');
+	if Assigned(PNode) then
+		CNode := PNode.ChildNodes.FindNode('Note')
+	else
+		CNode := Nil;
+	for I := low(clNotes) to High(clNotes) do begin
+		if Assigned(CNode) then begin
+			if CNode.Nodevalue <> null then 
+				clNotes[I] := CNode.Nodevalue
+			else clNotes[I] := '';
+			CNode := CNode.NextSibling;
+		end else
+			clNotes[I] := ''
+	end;
+
+	clCheques_Expire_When := GetIntAttr(Result, 'ChequesExpireWhen');
+	clShow_Notes_On_Open := GetBoolAttr(Result, 'ShowNotesOnOpen');
+	clECoding_Entry_Selection := GetIntAttr(Result, 'ECodingEntrySelection');
+	clECoding_Dont_Send_Chart := GetBoolAttr(Result, 'ECodingDontSendChart');
+	clECoding_Dont_Send_Payees := GetBoolAttr(Result, 'ECodingDontSendPayees');
+	clECoding_Dont_Show_Quantity := GetBoolAttr(Result, 'ECodingDontShowQuantity');
+	clECoding_Last_File_No := GetIntAttr(Result, 'ECodingLastFileNo');
+	clECoding_Last_File_No_Imported := GetIntAttr(Result, 'ECodingLastFileNoImported');
+	clECoding_Export_Scheduled_Reports := GetBoolAttr(Result, 'ECodingExportScheduledReports');
+	clEmail_Report_Format := GetIntAttr(Result, 'EmailReportFormat');
+	clBAS_PAYG_Instalment_Period := GetIntAttr(Result, 'BASPAYGInstalmentPeriod');
+	clBAS_Include_FBT_WET_LCT := GetBoolAttr(Result, 'BASIncludeFBTWETLCT');
+	clBAS_Last_GST_Option := GetIntAttr(Result, 'BASLastGSTOption');
+	clBAS_Last_PAYG_Instalment_Option := GetIntAttr(Result, 'BASLastPAYGInstalmentOption');
+	clECoding_Default_Password := GetTextAttr(Result, 'ECodingDefaultPassword');
+	clECoding_Import_Options := GetIntAttr(Result, 'ECodingImportOptions');
+	clECoding_Last_Import_Dir := GetTextAttr(Result, 'ECodingLastImportDir');
+	clECoding_Last_Export_Dir := GetTextAttr(Result, 'ECodingLastExportDir');
+	clCoding_Report_Show_OP := GetBoolAttr(Result, 'CodingReportShowOP');
+	clFRS_Show_Quantity := GetBoolAttr(Result, 'FRSShowQuantity');
+	clCflw_Cash_On_Hand_Style := GetIntAttr(Result, 'CflwCashOnHandStyle');
+	clCSV_Export_Scheduled_Reports := GetBoolAttr(Result, 'CSVExportScheduledReports');
+	clFRS_Show_YTD := GetBoolAttr(Result, 'FRSShowYTD');
+	clFRS_Show_Variance := GetBoolAttr(Result, 'FRSShowVariance');
+	clFRS_Compare_Type := GetIntAttr(Result, 'FRSCompareType');
+	clFRS_Reporting_Period_Type := GetIntAttr(Result, 'FRSReportingPeriodType');
+	clFRS_Report_Style := GetIntAttr(Result, 'FRSReportStyle');
+	clReporting_Year_Starts := GetIntAttr(Result, 'ReportingYearStarts');
+	clFRS_Report_Detail_Type := GetIntAttr(Result, 'FRSReportDetailType');
+	clFRS_Prompt_User_to_use_Budgeted_figures := GetBoolAttr(Result, 'FRSPromptUsertouseBudgetedfigures');
+	
+	PNode := Result.ChildNodes.FindNode('BalanceSheetHeadings');
+	if Assigned(PNode) then
+		CNode := PNode.ChildNodes.FindNode('BalanceSheetHeading')
+	else
+		CNode := Nil;
+	for I := low(clBalance_Sheet_Headings) to High(clBalance_Sheet_Headings) do begin
+		if Assigned(CNode) then begin
+			if CNode.Nodevalue <> null then 
+				clBalance_Sheet_Headings[I] := CNode.Nodevalue
+			else clBalance_Sheet_Headings[I] := '';
+			CNode := CNode.NextSibling;
+		end else
+			clBalance_Sheet_Headings[I] := ''
+	end;
+
+	clLast_Financial_Year_Start := GetIntAttr(Result, 'LastFinancialYearStart');
+	cl520_Reference_Fix_Run := GetBoolAttr(Result, 'N520ReferenceFixRun');
+	clTax_Interface_Used := GetIntAttr(Result, 'TaxInterfaceUsed');
+	clSave_Tax_Files_To := GetTextAttr(Result, 'SaveTaxFilesTo');
+	clJournal_Processing_Period := GetIntAttr(Result, 'JournalProcessingPeriod');
+	clLast_Disk_Image_Version := GetIntAttr(Result, 'LastDiskImageVersion');
+	clPractice_Web_Site := GetTextAttr(Result, 'PracticeWebSite');
+	clPractice_Phone := GetTextAttr(Result, 'PracticePhone');
+	clPractice_Logo := GetTextAttr(Result, 'PracticeLogo');
+	clWeb_Site_Login_URL := GetTextAttr(Result, 'WebSiteLoginURL');
+	clStaff_Member_Direct_Dial := GetTextAttr(Result, 'StaffMemberDirectDial');
+	clContact_Details_To_Show := GetIntAttr(Result, 'ContactDetailsToShow');
+	clECoding_Dont_Allow_UPIs := GetBoolAttr(Result, 'ECodingDontAllowUPIs');
+	clECoding_Dont_Show_Account := GetBoolAttr(Result, 'ECodingDontShowAccount');
+	clECoding_Dont_Show_Payees := GetBoolAttr(Result, 'ECodingDontShowPayees');
+	clECoding_Dont_Show_GST := GetBoolAttr(Result, 'ECodingDontShowGST');
+	clECoding_Dont_Show_TaxInvoice := GetBoolAttr(Result, 'ECodingDontShowTaxInvoice');
+	clScheduled_File_Attachments := GetTextAttr(Result, 'ScheduledFileAttachments');
+	clScheduled_Coding_Report_Style := GetIntAttr(Result, 'ScheduledCodingReportStyle');
+	clScheduled_Coding_Report_Sort_Order := GetIntAttr(Result, 'ScheduledCodingReportSortOrder');
+	clScheduled_Coding_Report_Entry_Selection := GetIntAttr(Result, 'ScheduledCodingReportEntrySelection');
+	clScheduled_Coding_Report_Blank_Lines := GetIntAttr(Result, 'ScheduledCodingReportBlankLines');
+	clScheduled_Coding_Report_Rule_Line := GetBoolAttr(Result, 'ScheduledCodingReportRuleLine');
+	clScheduled_Coding_Report_New_Page := GetBoolAttr(Result, 'ScheduledCodingReportNewPage');
+	clScheduled_Coding_Report_Print_TI := GetBoolAttr(Result, 'ScheduledCodingReportPrintTI');
+	clScheduled_Coding_Report_Show_OP := GetBoolAttr(Result, 'ScheduledCodingReportShowOP');
+	clScheduled_Client_Note_Message := GetTextAttr(Result, 'ScheduledClientNoteMessage');
+	clCustom_Contact_Name := GetTextAttr(Result, 'CustomContactName');
+	clCustom_Contact_EMail_Address := GetTextAttr(Result, 'CustomContactEMailAddress');
+	clCustom_Contact_Phone := GetTextAttr(Result, 'CustomContactPhone');
+	clEmpty_Journals_Removed := GetBoolAttr(Result, 'EmptyJournalsRemoved');
+	clHighest_Manual_Account_No := GetIntAttr(Result, 'HighestManualAccountNo');
+	clContact_Details_Edit_Date := GetIntAttr(Result, 'ContactDetailsEditDate');
+	clContact_Details_Edit_Time := GetIntAttr(Result, 'ContactDetailsEditTime');
+	clCopy_Narration_Dissection := GetBoolAttr(Result, 'CopyNarrationDissection');
+	clClient_CC_EMail_Address := GetTextAttr(Result, 'ClientCCEMailAddress');
+	clBAS_Report_Format := GetIntAttr(Result, 'BASReportFormat');
+	clWebX_Export_Scheduled_Reports := GetBoolAttr(Result, 'WebXExportScheduledReports');
+	clECoding_WebSpace := GetIntAttr(Result, 'ECodingWebSpace');
+	clLast_ECoding_Account_UID := GetIntAttr(Result, 'LastECodingAccountUID');
+	clWeb_Export_Format := GetIntAttr(Result, 'WebExportFormat');
+	clMobile_No := GetTextAttr(Result, 'MobileNo');
+	clLedger_Report_Summary := GetBoolAttr(Result, 'LedgerReportSummary');
+	clLedger_Report_Show_Notes := GetBoolAttr(Result, 'LedgerReportShowNotes');
+	clLedger_Report_Show_Quantities := GetBoolAttr(Result, 'LedgerReportShowQuantities');
+	clLedger_Report_Show_Non_Trf := GetBoolAttr(Result, 'LedgerReportShowNonTrf');
+	clLedger_Report_Show_Inactive_Codes := GetBoolAttr(Result, 'LedgerReportShowInactiveCodes');
+	clLedger_Report_Bank_Contra := GetIntAttr(Result, 'LedgerReportBankContra');
+	clLedger_Report_GST_Contra := GetIntAttr(Result, 'LedgerReportGSTContra');
+	clLedger_Report_Show_Balances := GetBoolAttr(Result, 'LedgerReportShowBalances');
+	clFile_Read_Only := GetBoolAttr(Result, 'FileReadOnly');
+	clCheckOut_Scheduled_Reports := GetBoolAttr(Result, 'CheckOutScheduledReports');
+	clExclude_From_Scheduled_Reports := GetTextAttr(Result, 'ExcludeFromScheduledReports');
+	clLedger_Report_Show_Gross_And_GST := GetBoolAttr(Result, 'LedgerReportShowGrossAndGST');
+	clSalutation := GetTextAttr(Result, 'Salutation');
+	clExternal_ID := GetTextAttr(Result, 'ExternalID');
+	clSystem_LRN := GetIntAttr(Result, 'SystemLRN');
+	clBusiness_Products_Scheduled_Reports := GetBoolAttr(Result, 'BusinessProductsScheduledReports');
+	clBusiness_Products_Report_Format := GetIntAttr(Result, 'BusinessProductsReportFormat');
+	clCoding_Report_Wrap_Narration := GetBoolAttr(Result, 'CodingReportWrapNarration');
+	clLedger_Report_Wrap_Narration := GetBoolAttr(Result, 'LedgerReportWrapNarration');
+	clScheduled_Coding_Report_Wrap_Narration := GetBoolAttr(Result, 'ScheduledCodingReportWrapNarration');
+	clForce_Offsite_Check_Out := GetBoolAttr(Result, 'ForceOffsiteCheckOut');
+	clDisable_Offsite_Check_Out := GetBoolAttr(Result, 'DisableOffsiteCheckOut');
+	clAlternate_Extract_ID := GetTextAttr(Result, 'AlternateExtractID');
+	clUse_Alterate_ID_for_extract := GetBoolAttr(Result, 'UseAlterateIDforextract');
+	clLast_Use_Date := GetIntAttr(Result, 'LastUseDate');
+	clUse_Basic_Chart := GetBoolAttr(Result, 'UseBasicChart');
+	clGroup_Name := GetTextAttr(Result, 'GroupName');
+	clClient_Type_Name := GetTextAttr(Result, 'ClientTypeName');
+	clBAS_Include_Fuel := GetBoolAttr(Result, 'BASIncludeFuel');
+	clProfit_Report_Show_Percentage := GetBoolAttr(Result, 'ProfitReportShowPercentage');
+	clECoding_Send_Superfund := GetBoolAttr(Result, 'ECodingSendSuperfund');
+	clGroup_LRN := GetIntAttr(Result, 'GroupLRN');
+	clClient_Type_LRN := GetIntAttr(Result, 'ClientTypeLRN');
+	clSpare_Byte_1 := GetIntAttr(Result, 'SpareByte1');
+	clSpare_Byte_2 := GetIntAttr(Result, 'SpareByte2');
+	clPractice_Code := GetTextAttr(Result, 'PracticeCode');
+	GetArray(Result, 'CashJColumnOrders', clCashJ_Column_Order);
+	GetArray(Result, 'CashJColumnWidths', clCashJ_Column_Width);
+	GetArray(Result, 'CashJColumnisHiddens', clCashJ_Column_is_Hidden);
+	GetArray(Result, 'CashJColumnisNotEditables', clCashJ_Column_is_Not_Editable);
+	clCashJ_Sort_Order := GetIntAttr(Result, 'CashJSortOrder');
+	GetArray(Result, 'AcrlJColumnOrders', clAcrlJ_Column_Order);
+	GetArray(Result, 'AcrlJColumnWidths', clAcrlJ_Column_Width);
+	GetArray(Result, 'AcrlJColumnisHiddens', clAcrlJ_Column_is_Hidden);
+	GetArray(Result, 'AcrlJColumnisNotEditables', clAcrlJ_Column_is_Not_Editable);
+	clAcrlJ_Sort_Order := GetIntAttr(Result, 'AcrlJSortOrder');
+	GetArray(Result, 'StockJColumnOrders', clStockJ_Column_Order);
+	GetArray(Result, 'StockJColumnWidths', clStockJ_Column_Width);
+	GetArray(Result, 'StockJColumnisHiddens', clStockJ_Column_is_Hidden);
+	GetArray(Result, 'StockJColumnisNotEditables', clStockJ_Column_is_Not_Editable);
+	clStockJ_Sort_Order := GetIntAttr(Result, 'StockJSortOrder');
+	GetArray(Result, 'YrEJColumnOrders', clYrEJ_Column_Order);
+	GetArray(Result, 'YrEJColumnWidths', clYrEJ_Column_Width);
+	GetArray(Result, 'YrEJColumnisHiddens', clYrEJ_Column_is_Hidden);
+	GetArray(Result, 'YrEJColumnisNotEditables', clYrEJ_Column_is_Not_Editable);
+	clYrEJ_Sort_Order := GetIntAttr(Result, 'YrEJSortOrder');
+	GetArray(Result, 'gstJColumnOrders', clgstJ_Column_Order);
+	GetArray(Result, 'gstJColumnWidths', clgstJ_Column_Width);
+	GetArray(Result, 'gstJColumnisHiddens', clgstJ_Column_is_Hidden);
+	GetArray(Result, 'gstJColumnisNotEditables', clgstJ_Column_is_Not_Editable);
+	clgstJ_Sort_Order := GetIntAttr(Result, 'gstJSortOrder');
+	clFavourite_Report_XML := GetTextAttr(Result, 'FavouriteReportXML');
+	clAll_EditMode_CES := GetBoolAttr(Result, 'AllEditModeCES');
+	clAll_EditMode_DIS := GetBoolAttr(Result, 'AllEditModeDIS');
+	clTFN := GetTextAttr(Result, 'TFN');
+	GetArray(Result, 'AllEditModeJournals', clAll_EditMode_Journals);
+	GetArray(Result, 'BudgetColumnWidths', clBudget_Column_Width);
+	except
+		on E: Exception do ReRaise (E, 'Reading TClient_Rec');
+	end;
+
+	CNode := nil;
+	CCNode := nil;
+	PNode := nil;
+end;
+
+// ----------------------------------------------------------------------------
+
+class function TAccount_RecHelper.GetXMLNodeName: string;
+begin
+	result := 'BKAccount';
+end;
+
+
+function TAccount_RecHelper.WriteRecToNode(var Node: IXMLNode): IXMLNode;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J, M: Integer;
+begin
+	Result := Node.AddChild(GetXMLNodeName);
+	SetTextAttr(Result, 'AccountCode', chAccount_Code);
+	SetTextAttr(Result, 'ChartID', chChart_ID);
+	SetTextAttr(Result, 'AccountDescription', chAccount_Description);
+	SetIntAttr(Result, 'GSTClass', chGST_Class);
+	SetBoolAttr(Result, 'PostingAllowed', chPosting_Allowed);
+	SetIntAttr(Result, 'AccountType', chAccount_Type);
+	SetBoolAttr(Result, 'EnterQuantity', chEnter_Quantity);
+	SetArray(Result, 'PrintinDivisions', chPrint_in_Division);
+	SetInt64Attr(Result, 'MoneyVarianceUp', chMoney_Variance_Up);
+	SetInt64Attr(Result, 'MoneyVarianceDown', chMoney_Variance_Down);
+	SetInt64Attr(Result, 'PercentVarianceUp', chPercent_Variance_Up);
+	SetInt64Attr(Result, 'PercentVarianceDown', chPercent_Variance_Down);
+	SetArray(Result, 'LastYearsTotalsSBOnlys', chLast_Years_Totals_SB_Only);
+	SetInt64Attr(Result, 'OpeningBalanceSBOnly', chOpening_Balance_SB_Only);
+	SetIntAttr(Result, 'Subtype', chSubtype);
+	SetTextAttr(Result, 'AlternativeCode', chAlternative_Code);
+	SetTextAttr(Result, 'LinkedAccountOS', chLinked_Account_OS);
+	SetTextAttr(Result, 'LinkedAccountCS', chLinked_Account_CS);
+	SetBoolAttr(Result, 'HideInBasicChart', chHide_In_Basic_Chart);
+
+	CNode := nil;
+	CCNode := nil;
+	PNode := nil;
+end;
+
+
+function TAccount_RecHelper.ReadRecFromNode(Node :IXMLNode): IXMLNode;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J: Integer;
+begin
+	if Node.NodeName = GetXMLNodeName then Result := Node
+	else
+	Result := Node.ChildNodes.FindNode(GetXMLNodeName);
+	if not assigned(Result) then exit;
+	try
+	chAccount_Code := GetTextAttr(Result, 'AccountCode');
+	chChart_ID := GetTextAttr(Result, 'ChartID');
+	chAccount_Description := GetTextAttr(Result, 'AccountDescription');
+	chGST_Class := GetIntAttr(Result, 'GSTClass');
+	chPosting_Allowed := GetBoolAttr(Result, 'PostingAllowed');
+	chAccount_Type := GetIntAttr(Result, 'AccountType');
+	chEnter_Quantity := GetBoolAttr(Result, 'EnterQuantity');
+	GetArray(Result, 'PrintinDivision', chPrint_in_Division);
+	chMoney_Variance_Up := GetInt64Attr(Result, 'MoneyVarianceUp');
+	chMoney_Variance_Down := GetInt64Attr(Result, 'MoneyVarianceDown');
+	chPercent_Variance_Up := GetInt64Attr(Result, 'PercentVarianceUp');
+	chPercent_Variance_Down := GetInt64Attr(Result, 'PercentVarianceDown');
+	GetArray(Result, 'LastYearsTotalsSBOnlys', chLast_Years_Totals_SB_Only);
+	chOpening_Balance_SB_Only := GetInt64Attr(Result, 'OpeningBalanceSBOnly');
+	chSubtype := GetIntAttr(Result, 'Subtype');
+	chAlternative_Code := GetTextAttr(Result, 'AlternativeCode');
+	chLinked_Account_OS := GetTextAttr(Result, 'LinkedAccountOS');
+	chLinked_Account_CS := GetTextAttr(Result, 'LinkedAccountCS');
+	chHide_In_Basic_Chart := GetBoolAttr(Result, 'HideInBasicChart');
+	except
+		on E: Exception do ReRaise (E, 'Reading TAccount_Rec');
+	end;
+
+	CNode := nil;
+	CCNode := nil;
+	PNode := nil;
+end;
+
+// ----------------------------------------------------------------------------
+
+class function TPayee_RecHelper.GetXMLNodeName: string;
+begin
+	result := 'BKPayee';
+end;
+
+
+function TPayee_RecHelper.WriteRecToNode(var Node: IXMLNode): IXMLNode;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J, M: Integer;
+begin
+	Result := Node.AddChild(GetXMLNodeName);
+	SetIntAttr(Result, 'Number', pyNumber);
+	SetTextAttr(Result, 'Name', pyName);
+	PNode := Result.AddChild('Accounts');
+	M :=  Low(pyAccount);
+	for I := Low(pyAccount) to High(pyAccount) do
+		if  pyAccount[I] > '' then
+			M := I;
+	for I := Low(pyAccount) to M do begin
+		CNode := PNode.AddChild('Account');
+		CNode.NodeValue := pyAccount[I];
+	end;
+	SetArray(Result, 'Percentages', pyPercentage);
+	SetArray(Result, 'GSTClass', pyGST_Class);
+	SetArray(Result, 'GSTHasBeenEditeds', pyGST_Has_Been_Edited);
+	PNode := Result.AddChild('GLNarrations');
+	M :=  Low(pyGL_Narration);
+	for I := Low(pyGL_Narration) to High(pyGL_Narration) do
+		if  pyGL_Narration[I] > '' then
+			M := I;
+	for I := Low(pyGL_Narration) to M do begin
+		CNode := PNode.AddChild('GLNarration');
+		CNode.NodeValue := pyGL_Narration[I];
+	end;
+
+	CNode := nil;
+	CCNode := nil;
+	PNode := nil;
+end;
+
+
+function TPayee_RecHelper.ReadRecFromNode(Node :IXMLNode): IXMLNode;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J: Integer;
+begin
+	if Node.NodeName = GetXMLNodeName then Result := Node
+	else
+	Result := Node.ChildNodes.FindNode(GetXMLNodeName);
+	if not assigned(Result) then exit;
+	try
+	pyNumber := GetIntAttr(Result, 'Number');
+	pyName := GetTextAttr(Result, 'Name');
+	
+	PNode := Result.ChildNodes.FindNode('Accounts');
+	if Assigned(PNode) then
+		CNode := PNode.ChildNodes.FindNode('Account')
+	else
+		CNode := Nil;
+	for I := low(pyAccount) to High(pyAccount) do begin
+		if Assigned(CNode) then begin
+			if CNode.Nodevalue <> null then 
+				pyAccount[I] := CNode.Nodevalue
+			else pyAccount[I] := '';
+			CNode := CNode.NextSibling;
+		end else
+			pyAccount[I] := ''
+	end;
+
+	GetArray(Result, 'Percentages', pyPercentage);
+	GetArray(Result, 'GSTClass', pyGST_Class);
+	GetArray(Result, 'GSTHasBeenEdited', pyGST_Has_Been_Edited);
+	
+	PNode := Result.ChildNodes.FindNode('GLNarrations');
+	if Assigned(PNode) then
+		CNode := PNode.ChildNodes.FindNode('GLNarration')
+	else
+		CNode := Nil;
+	for I := low(pyGL_Narration) to High(pyGL_Narration) do begin
+		if Assigned(CNode) then begin
+			if CNode.Nodevalue <> null then 
+				pyGL_Narration[I] := CNode.Nodevalue
+			else pyGL_Narration[I] := '';
+			CNode := CNode.NextSibling;
+		end else
+			pyGL_Narration[I] := ''
+	end;
+
+	except
+		on E: Exception do ReRaise (E, 'Reading TPayee_Rec');
+	end;
+
+	CNode := nil;
+	CCNode := nil;
+	PNode := nil;
+end;
+
+// ----------------------------------------------------------------------------
+
+class function TPayee_Detail_RecHelper.GetXMLNodeName: string;
+begin
+	result := 'BKPayeeDetail';
+end;
+
+
+function TPayee_Detail_RecHelper.WriteRecToNode(var Node: IXMLNode): IXMLNode;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J, M: Integer;
+begin
+	Result := Node.AddChild(GetXMLNodeName);
+	SetIntAttr(Result, 'Number', pdNumber);
+	SetTextAttr(Result, 'Name', pdName);
+
+	CNode := nil;
+	CCNode := nil;
+	PNode := nil;
+end;
+
+
+function TPayee_Detail_RecHelper.ReadRecFromNode(Node :IXMLNode): IXMLNode;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J: Integer;
+begin
+	if Node.NodeName = GetXMLNodeName then Result := Node
+	else
+	Result := Node.ChildNodes.FindNode(GetXMLNodeName);
+	if not assigned(Result) then exit;
+	try
+	pdNumber := GetIntAttr(Result, 'Number');
+	pdName := GetTextAttr(Result, 'Name');
+	except
+		on E: Exception do ReRaise (E, 'Reading TPayee_Detail_Rec');
+	end;
+
+	CNode := nil;
+	CCNode := nil;
+	PNode := nil;
+end;
+
+// ----------------------------------------------------------------------------
+
+class function TPayee_Line_RecHelper.GetXMLNodeName: string;
+begin
+	result := 'BKPayeeLine';
+end;
+
+
+function TPayee_Line_RecHelper.WriteRecToNode(var Node: IXMLNode): IXMLNode;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J, M: Integer;
+begin
+	Result := Node.AddChild(GetXMLNodeName);
+	SetTextAttr(Result, 'Account', plAccount);
+	SetInt64Attr(Result, 'Percentage', plPercentage);
+	SetIntAttr(Result, 'GSTClass', plGST_Class);
+	SetBoolAttr(Result, 'GSTHasBeenEdited', plGST_Has_Been_Edited);
+	SetTextAttr(Result, 'GLNarration', plGL_Narration);
+	SetIntAttr(Result, 'LineType', plLine_Type);
+	SetInt64Attr(Result, 'GSTAmount', plGST_Amount);
+	SetInt64Attr(Result, 'SFPCFranked', plSF_PCFranked);
+	SetTextAttr(Result, 'SFMemberID', plSF_Member_ID);
+	SetIntAttr(Result, 'SFFundID', plSF_Fund_ID);
+	SetTextAttr(Result, 'SFFundCode', plSF_Fund_Code);
+	SetIntAttr(Result, 'SFTransID', plSF_Trans_ID);
+	SetTextAttr(Result, 'SFTransCode', plSF_Trans_Code);
+	SetIntAttr(Result, 'SFMemberAccountID', plSF_Member_Account_ID);
+	SetTextAttr(Result, 'SFMemberAccountCode', plSF_Member_Account_Code);
+	SetBoolAttr(Result, 'SFEdited', plSF_Edited);
+	SetIntAttr(Result, 'SFMemberComponent', plSF_Member_Component);
+	SetInt64Attr(Result, 'SFPCUnFranked', plSF_PCUnFranked);
+	SetInt64Attr(Result, 'Quantity', plQuantity);
+	SetIntAttr(Result, 'SFGDTDate', plSF_GDT_Date);
+	SetInt64Attr(Result, 'SFTaxFreeDist', plSF_Tax_Free_Dist);
+	SetInt64Attr(Result, 'SFTaxExemptDist', plSF_Tax_Exempt_Dist);
+	SetInt64Attr(Result, 'SFTaxDeferredDist', plSF_Tax_Deferred_Dist);
+	SetInt64Attr(Result, 'SFTFNCredits', plSF_TFN_Credits);
+	SetInt64Attr(Result, 'SFForeignIncome', plSF_Foreign_Income);
+	SetInt64Attr(Result, 'SFForeignTaxCredits', plSF_Foreign_Tax_Credits);
+	SetInt64Attr(Result, 'SFCapitalGainsIndexed', plSF_Capital_Gains_Indexed);
+	SetInt64Attr(Result, 'SFCapitalGainsDisc', plSF_Capital_Gains_Disc);
+	SetInt64Attr(Result, 'SFCapitalGainsOther', plSF_Capital_Gains_Other);
+	SetInt64Attr(Result, 'SFOtherExpenses', plSF_Other_Expenses);
+	SetInt64Attr(Result, 'SFInterest', plSF_Interest);
+	SetInt64Attr(Result, 'SFCapitalGainsForeignDisc', plSF_Capital_Gains_Foreign_Disc);
+	SetInt64Attr(Result, 'SFRent', plSF_Rent);
+	SetInt64Attr(Result, 'SFSpecialIncome', plSF_Special_Income);
+	SetInt64Attr(Result, 'SFOtherTaxCredit', plSF_Other_Tax_Credit);
+	SetInt64Attr(Result, 'SFNonResidentTax', plSF_Non_Resident_Tax);
+	SetInt64Attr(Result, 'SFForeignCapitalGainsCredit', plSF_Foreign_Capital_Gains_Credit);
+	SetBoolAttr(Result, 'SFCapitalGainsFractionHalf', plSF_Capital_Gains_Fraction_Half);
+	SetIntAttr(Result, 'SFLedgerID', plSF_Ledger_ID);
+	SetTextAttr(Result, 'SFLedgerName', plSF_Ledger_Name);
+
+	CNode := nil;
+	CCNode := nil;
+	PNode := nil;
+end;
+
+
+function TPayee_Line_RecHelper.ReadRecFromNode(Node :IXMLNode): IXMLNode;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J: Integer;
+begin
+	if Node.NodeName = GetXMLNodeName then Result := Node
+	else
+	Result := Node.ChildNodes.FindNode(GetXMLNodeName);
+	if not assigned(Result) then exit;
+	try
+	plAccount := GetTextAttr(Result, 'Account');
+	plPercentage := GetInt64Attr(Result, 'Percentage');
+	plGST_Class := GetIntAttr(Result, 'GSTClass');
+	plGST_Has_Been_Edited := GetBoolAttr(Result, 'GSTHasBeenEdited');
+	plGL_Narration := GetTextAttr(Result, 'GLNarration');
+	plLine_Type := GetIntAttr(Result, 'LineType');
+	plGST_Amount := GetInt64Attr(Result, 'GSTAmount');
+	plSF_PCFranked := GetInt64Attr(Result, 'SFPCFranked');
+	plSF_Member_ID := GetTextAttr(Result, 'SFMemberID');
+	plSF_Fund_ID := GetIntAttr(Result, 'SFFundID');
+	plSF_Fund_Code := GetTextAttr(Result, 'SFFundCode');
+	plSF_Trans_ID := GetIntAttr(Result, 'SFTransID');
+	plSF_Trans_Code := GetTextAttr(Result, 'SFTransCode');
+	plSF_Member_Account_ID := GetIntAttr(Result, 'SFMemberAccountID');
+	plSF_Member_Account_Code := GetTextAttr(Result, 'SFMemberAccountCode');
+	plSF_Edited := GetBoolAttr(Result, 'SFEdited');
+	plSF_Member_Component := GetIntAttr(Result, 'SFMemberComponent');
+	plSF_PCUnFranked := GetInt64Attr(Result, 'SFPCUnFranked');
+	plQuantity := GetInt64Attr(Result, 'Quantity');
+	plSF_GDT_Date := GetIntAttr(Result, 'SFGDTDate');
+	plSF_Tax_Free_Dist := GetInt64Attr(Result, 'SFTaxFreeDist');
+	plSF_Tax_Exempt_Dist := GetInt64Attr(Result, 'SFTaxExemptDist');
+	plSF_Tax_Deferred_Dist := GetInt64Attr(Result, 'SFTaxDeferredDist');
+	plSF_TFN_Credits := GetInt64Attr(Result, 'SFTFNCredits');
+	plSF_Foreign_Income := GetInt64Attr(Result, 'SFForeignIncome');
+	plSF_Foreign_Tax_Credits := GetInt64Attr(Result, 'SFForeignTaxCredits');
+	plSF_Capital_Gains_Indexed := GetInt64Attr(Result, 'SFCapitalGainsIndexed');
+	plSF_Capital_Gains_Disc := GetInt64Attr(Result, 'SFCapitalGainsDisc');
+	plSF_Capital_Gains_Other := GetInt64Attr(Result, 'SFCapitalGainsOther');
+	plSF_Other_Expenses := GetInt64Attr(Result, 'SFOtherExpenses');
+	plSF_Interest := GetInt64Attr(Result, 'SFInterest');
+	plSF_Capital_Gains_Foreign_Disc := GetInt64Attr(Result, 'SFCapitalGainsForeignDisc');
+	plSF_Rent := GetInt64Attr(Result, 'SFRent');
+	plSF_Special_Income := GetInt64Attr(Result, 'SFSpecialIncome');
+	plSF_Other_Tax_Credit := GetInt64Attr(Result, 'SFOtherTaxCredit');
+	plSF_Non_Resident_Tax := GetInt64Attr(Result, 'SFNonResidentTax');
+	plSF_Foreign_Capital_Gains_Credit := GetInt64Attr(Result, 'SFForeignCapitalGainsCredit');
+	plSF_Capital_Gains_Fraction_Half := GetBoolAttr(Result, 'SFCapitalGainsFractionHalf');
+	plSF_Ledger_ID := GetIntAttr(Result, 'SFLedgerID');
+	plSF_Ledger_Name := GetTextAttr(Result, 'SFLedgerName');
+	except
+		on E: Exception do ReRaise (E, 'Reading TPayee_Line_Rec');
+	end;
+
+	CNode := nil;
+	CCNode := nil;
+	PNode := nil;
+end;
+
+// ----------------------------------------------------------------------------
+
+class function TBudget_Header_RecHelper.GetXMLNodeName: string;
+begin
+	result := 'BKBudgetHeader';
+end;
+
+
+function TBudget_Header_RecHelper.WriteRecToNode(var Node: IXMLNode): IXMLNode;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J, M: Integer;
+begin
+	Result := Node.AddChild(GetXMLNodeName);
+	SetIntAttr(Result, 'StartDate', buStart_Date);
+	SetTextAttr(Result, 'Name', buName);
+	SetInt64Attr(Result, 'EstimatedOpeningBankBalance', buEstimated_Opening_Bank_Balance);
+	SetBoolAttr(Result, 'IsInclusive', buIs_Inclusive);
+
+	CNode := nil;
+	CCNode := nil;
+	PNode := nil;
+end;
+
+
+function TBudget_Header_RecHelper.ReadRecFromNode(Node :IXMLNode): IXMLNode;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J: Integer;
+begin
+	if Node.NodeName = GetXMLNodeName then Result := Node
+	else
+	Result := Node.ChildNodes.FindNode(GetXMLNodeName);
+	if not assigned(Result) then exit;
+	try
+	buStart_Date := GetIntAttr(Result, 'StartDate');
+	buName := GetTextAttr(Result, 'Name');
+	buEstimated_Opening_Bank_Balance := GetInt64Attr(Result, 'EstimatedOpeningBankBalance');
+	buIs_Inclusive := GetBoolAttr(Result, 'IsInclusive');
+	except
+		on E: Exception do ReRaise (E, 'Reading TBudget_Header_Rec');
+	end;
+
+	CNode := nil;
+	CCNode := nil;
+	PNode := nil;
+end;
+
+// ----------------------------------------------------------------------------
+
+class function TBudget_Detail_RecHelper.GetXMLNodeName: string;
+begin
+	result := 'BKBudgetDetail';
+end;
+
+
+function TBudget_Detail_RecHelper.WriteRecToNode(var Node: IXMLNode): IXMLNode;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J, M: Integer;
+begin
+	Result := Node.AddChild(GetXMLNodeName);
+	SetTextAttr(Result, 'AccountCode', bdAccount_Code);
+	SetArray(Result, 'Budgets', bdBudget);
+	SetArray(Result, 'QtyBudgets', bdQty_Budget);
+	SetArray(Result, 'EachBudgets', bdEach_Budget);
+
+	CNode := nil;
+	CCNode := nil;
+	PNode := nil;
+end;
+
+
+function TBudget_Detail_RecHelper.ReadRecFromNode(Node :IXMLNode): IXMLNode;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J: Integer;
+begin
+	if Node.NodeName = GetXMLNodeName then Result := Node
+	else
+	Result := Node.ChildNodes.FindNode(GetXMLNodeName);
+	if not assigned(Result) then exit;
+	try
+	bdAccount_Code := GetTextAttr(Result, 'AccountCode');
+	GetArray(Result, 'Budgets', bdBudget);
+	GetArray(Result, 'QtyBudgets', bdQty_Budget);
+	GetArray(Result, 'EachBudgets', bdEach_Budget);
+	except
+		on E: Exception do ReRaise (E, 'Reading TBudget_Detail_Rec');
+	end;
+
+	CNode := nil;
+	CCNode := nil;
+	PNode := nil;
+end;
+
+// ----------------------------------------------------------------------------
+
+class function TDisk_Log_RecHelper.GetXMLNodeName: string;
+begin
+	result := 'BKDiskLog';
+end;
+
+
+function TDisk_Log_RecHelper.WriteRecToNode(var Node: IXMLNode): IXMLNode;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J, M: Integer;
+begin
+	Result := Node.AddChild(GetXMLNodeName);
+	SetTextAttr(Result, 'DiskID', dlDisk_ID);
+	SetIntAttr(Result, 'DateDownloaded', dlDate_Downloaded);
+	SetIntAttr(Result, 'NoofAccounts', dlNo_of_Accounts);
+	SetIntAttr(Result, 'NoofEntries', dlNo_of_Entries);
+
+	CNode := nil;
+	CCNode := nil;
+	PNode := nil;
+end;
+
+
+function TDisk_Log_RecHelper.ReadRecFromNode(Node :IXMLNode): IXMLNode;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J: Integer;
+begin
+	if Node.NodeName = GetXMLNodeName then Result := Node
+	else
+	Result := Node.ChildNodes.FindNode(GetXMLNodeName);
+	if not assigned(Result) then exit;
+	try
+	dlDisk_ID := GetTextAttr(Result, 'DiskID');
+	dlDate_Downloaded := GetIntAttr(Result, 'DateDownloaded');
+	dlNo_of_Accounts := GetIntAttr(Result, 'NoofAccounts');
+	dlNo_of_Entries := GetIntAttr(Result, 'NoofEntries');
+	except
+		on E: Exception do ReRaise (E, 'Reading TDisk_Log_Rec');
+	end;
+
+	CNode := nil;
+	CCNode := nil;
+	PNode := nil;
+end;
+
+// ----------------------------------------------------------------------------
+
+class function TMemorisation_Detail_RecHelper.GetXMLNodeName: string;
+begin
+	result := 'BKMemorisationDetail';
+end;
+
+
+function TMemorisation_Detail_RecHelper.WriteRecToNode(var Node: IXMLNode): IXMLNode;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J, M: Integer;
+begin
+	Result := Node.AddChild(GetXMLNodeName);
+	SetIntAttr(Result, 'SequenceNo', mdSequence_No);
+	SetIntAttr(Result, 'Type', mdType);
+	SetInt64Attr(Result, 'Amount', mdAmount);
+	SetTextAttr(Result, 'Reference', mdReference);
+	SetTextAttr(Result, 'Particulars', mdParticulars);
+	SetTextAttr(Result, 'Analysis', mdAnalysis);
+	SetTextAttr(Result, 'OtherParty', mdOther_Party);
+	SetTextAttr(Result, 'StatementDetails', mdStatement_Details);
+	SetIntAttr(Result, 'MatchonAmount', mdMatch_on_Amount);
+	SetBoolAttr(Result, 'MatchonAnalysis', mdMatch_on_Analysis);
+	SetBoolAttr(Result, 'MatchonOtherParty', mdMatch_on_Other_Party);
+	SetBoolAttr(Result, 'MatchonNotes', mdMatch_on_Notes);
+	SetBoolAttr(Result, 'MatchonParticulars', mdMatch_on_Particulars);
+	SetBoolAttr(Result, 'MatchonRefce', mdMatch_on_Refce);
+	SetBoolAttr(Result, 'MatchOnStatementDetails', mdMatch_On_Statement_Details);
+	SetIntAttr(Result, 'PayeeNumber', mdPayee_Number);
+	SetBoolAttr(Result, 'FromMasterList', mdFrom_Master_List);
+	SetTextAttr(Result, 'Notes', mdNotes);
+	SetIntAttr(Result, 'DateLastApplied', mdDate_Last_Applied);
+	SetBoolAttr(Result, 'UseAccountingSystem', mdUse_Accounting_System);
+	SetIntAttr(Result, 'AccountingSystem', mdAccounting_System);
+	SetIntAttr(Result, 'FromDate', mdFrom_Date);
+	SetIntAttr(Result, 'UntilDate', mdUntil_Date);
+
+	CNode := nil;
+	CCNode := nil;
+	PNode := nil;
+end;
+
+
+function TMemorisation_Detail_RecHelper.ReadRecFromNode(Node :IXMLNode): IXMLNode;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J: Integer;
+begin
+	if Node.NodeName = GetXMLNodeName then Result := Node
+	else
+	Result := Node.ChildNodes.FindNode(GetXMLNodeName);
+	if not assigned(Result) then exit;
+	try
+	mdSequence_No := GetIntAttr(Result, 'SequenceNo');
+	mdType := GetIntAttr(Result, 'Type');
+	mdAmount := GetInt64Attr(Result, 'Amount');
+	mdReference := GetTextAttr(Result, 'Reference');
+	mdParticulars := GetTextAttr(Result, 'Particulars');
+	mdAnalysis := GetTextAttr(Result, 'Analysis');
+	mdOther_Party := GetTextAttr(Result, 'OtherParty');
+	mdStatement_Details := GetTextAttr(Result, 'StatementDetails');
+	mdMatch_on_Amount := GetIntAttr(Result, 'MatchonAmount');
+	mdMatch_on_Analysis := GetBoolAttr(Result, 'MatchonAnalysis');
+	mdMatch_on_Other_Party := GetBoolAttr(Result, 'MatchonOtherParty');
+	mdMatch_on_Notes := GetBoolAttr(Result, 'MatchonNotes');
+	mdMatch_on_Particulars := GetBoolAttr(Result, 'MatchonParticulars');
+	mdMatch_on_Refce := GetBoolAttr(Result, 'MatchonRefce');
+	mdMatch_On_Statement_Details := GetBoolAttr(Result, 'MatchOnStatementDetails');
+	mdPayee_Number := GetIntAttr(Result, 'PayeeNumber');
+	mdFrom_Master_List := GetBoolAttr(Result, 'FromMasterList');
+	mdNotes := GetTextAttr(Result, 'Notes');
+	mdDate_Last_Applied := GetIntAttr(Result, 'DateLastApplied');
+	mdUse_Accounting_System := GetBoolAttr(Result, 'UseAccountingSystem');
+	mdAccounting_System := GetIntAttr(Result, 'AccountingSystem');
+	mdFrom_Date := GetIntAttr(Result, 'FromDate');
+	mdUntil_Date := GetIntAttr(Result, 'UntilDate');
+	except
+		on E: Exception do ReRaise (E, 'Reading TMemorisation_Detail_Rec');
+	end;
+
+	CNode := nil;
+	CCNode := nil;
+	PNode := nil;
+end;
+
+// ----------------------------------------------------------------------------
+
+class function TMemorisation_Line_RecHelper.GetXMLNodeName: string;
+begin
+	result := 'BKMemorisationLine';
+end;
+
+
+function TMemorisation_Line_RecHelper.WriteRecToNode(var Node: IXMLNode): IXMLNode;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J, M: Integer;
+begin
+	Result := Node.AddChild(GetXMLNodeName);
+	SetTextAttr(Result, 'Account', mlAccount);
+	SetInt64Attr(Result, 'Percentage', mlPercentage);
+	SetIntAttr(Result, 'GSTClass', mlGST_Class);
+	SetBoolAttr(Result, 'GSTHasBeenEdited', mlGST_Has_Been_Edited);
+	SetTextAttr(Result, 'GLNarration', mlGL_Narration);
+	SetIntAttr(Result, 'LineType', mlLine_Type);
+	SetInt64Attr(Result, 'GSTAmount', mlGST_Amount);
+	SetIntAttr(Result, 'Payee', mlPayee);
+	SetInt64Attr(Result, 'SFPCFranked', mlSF_PCFranked);
+	SetTextAttr(Result, 'SFMemberID', mlSF_Member_ID);
+	SetIntAttr(Result, 'SFFundID', mlSF_Fund_ID);
+	SetTextAttr(Result, 'SFFundCode', mlSF_Fund_Code);
+	SetIntAttr(Result, 'SFTransID', mlSF_Trans_ID);
+	SetTextAttr(Result, 'SFTransCode', mlSF_Trans_Code);
+	SetIntAttr(Result, 'SFMemberAccountID', mlSF_Member_Account_ID);
+	SetTextAttr(Result, 'SFMemberAccountCode', mlSF_Member_Account_Code);
+	SetBoolAttr(Result, 'SFEdited', mlSF_Edited);
+	SetIntAttr(Result, 'SFMemberComponent', mlSF_Member_Component);
+	SetInt64Attr(Result, 'SFPCUnFranked', mlSF_PCUnFranked);
+	SetTextAttr(Result, 'JobCode', mlJob_Code);
+	SetInt64Attr(Result, 'Quantity', mlQuantity);
+	SetIntAttr(Result, 'SFGDTDate', mlSF_GDT_Date);
+	SetInt64Attr(Result, 'SFTaxFreeDist', mlSF_Tax_Free_Dist);
+	SetInt64Attr(Result, 'SFTaxExemptDist', mlSF_Tax_Exempt_Dist);
+	SetInt64Attr(Result, 'SFTaxDeferredDist', mlSF_Tax_Deferred_Dist);
+	SetInt64Attr(Result, 'SFTFNCredits', mlSF_TFN_Credits);
+	SetInt64Attr(Result, 'SFForeignIncome', mlSF_Foreign_Income);
+	SetInt64Attr(Result, 'SFForeignTaxCredits', mlSF_Foreign_Tax_Credits);
+	SetInt64Attr(Result, 'SFCapitalGainsIndexed', mlSF_Capital_Gains_Indexed);
+	SetInt64Attr(Result, 'SFCapitalGainsDisc', mlSF_Capital_Gains_Disc);
+	SetInt64Attr(Result, 'SFCapitalGainsOther', mlSF_Capital_Gains_Other);
+	SetInt64Attr(Result, 'SFOtherExpenses', mlSF_Other_Expenses);
+	SetInt64Attr(Result, 'SFInterest', mlSF_Interest);
+	SetInt64Attr(Result, 'SFCapitalGainsForeignDisc', mlSF_Capital_Gains_Foreign_Disc);
+	SetInt64Attr(Result, 'SFRent', mlSF_Rent);
+	SetInt64Attr(Result, 'SFSpecialIncome', mlSF_Special_Income);
+	SetInt64Attr(Result, 'SFOtherTaxCredit', mlSF_Other_Tax_Credit);
+	SetInt64Attr(Result, 'SFNonResidentTax', mlSF_Non_Resident_Tax);
+	SetInt64Attr(Result, 'SFForeignCapitalGainsCredit', mlSF_Foreign_Capital_Gains_Credit);
+	SetBoolAttr(Result, 'SFCapitalGainsFractionHalf', mlSF_Capital_Gains_Fraction_Half);
+
+	CNode := nil;
+	CCNode := nil;
+	PNode := nil;
+end;
+
+
+function TMemorisation_Line_RecHelper.ReadRecFromNode(Node :IXMLNode): IXMLNode;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J: Integer;
+begin
+	if Node.NodeName = GetXMLNodeName then Result := Node
+	else
+	Result := Node.ChildNodes.FindNode(GetXMLNodeName);
+	if not assigned(Result) then exit;
+	try
+	mlAccount := GetTextAttr(Result, 'Account');
+	mlPercentage := GetInt64Attr(Result, 'Percentage');
+	mlGST_Class := GetIntAttr(Result, 'GSTClass');
+	mlGST_Has_Been_Edited := GetBoolAttr(Result, 'GSTHasBeenEdited');
+	mlGL_Narration := GetTextAttr(Result, 'GLNarration');
+	mlLine_Type := GetIntAttr(Result, 'LineType');
+	mlGST_Amount := GetInt64Attr(Result, 'GSTAmount');
+	mlPayee := GetIntAttr(Result, 'Payee');
+	mlSF_PCFranked := GetInt64Attr(Result, 'SFPCFranked');
+	mlSF_Member_ID := GetTextAttr(Result, 'SFMemberID');
+	mlSF_Fund_ID := GetIntAttr(Result, 'SFFundID');
+	mlSF_Fund_Code := GetTextAttr(Result, 'SFFundCode');
+	mlSF_Trans_ID := GetIntAttr(Result, 'SFTransID');
+	mlSF_Trans_Code := GetTextAttr(Result, 'SFTransCode');
+	mlSF_Member_Account_ID := GetIntAttr(Result, 'SFMemberAccountID');
+	mlSF_Member_Account_Code := GetTextAttr(Result, 'SFMemberAccountCode');
+	mlSF_Edited := GetBoolAttr(Result, 'SFEdited');
+	mlSF_Member_Component := GetIntAttr(Result, 'SFMemberComponent');
+	mlSF_PCUnFranked := GetInt64Attr(Result, 'SFPCUnFranked');
+	mlJob_Code := GetTextAttr(Result, 'JobCode');
+	mlQuantity := GetInt64Attr(Result, 'Quantity');
+	mlSF_GDT_Date := GetIntAttr(Result, 'SFGDTDate');
+	mlSF_Tax_Free_Dist := GetInt64Attr(Result, 'SFTaxFreeDist');
+	mlSF_Tax_Exempt_Dist := GetInt64Attr(Result, 'SFTaxExemptDist');
+	mlSF_Tax_Deferred_Dist := GetInt64Attr(Result, 'SFTaxDeferredDist');
+	mlSF_TFN_Credits := GetInt64Attr(Result, 'SFTFNCredits');
+	mlSF_Foreign_Income := GetInt64Attr(Result, 'SFForeignIncome');
+	mlSF_Foreign_Tax_Credits := GetInt64Attr(Result, 'SFForeignTaxCredits');
+	mlSF_Capital_Gains_Indexed := GetInt64Attr(Result, 'SFCapitalGainsIndexed');
+	mlSF_Capital_Gains_Disc := GetInt64Attr(Result, 'SFCapitalGainsDisc');
+	mlSF_Capital_Gains_Other := GetInt64Attr(Result, 'SFCapitalGainsOther');
+	mlSF_Other_Expenses := GetInt64Attr(Result, 'SFOtherExpenses');
+	mlSF_Interest := GetInt64Attr(Result, 'SFInterest');
+	mlSF_Capital_Gains_Foreign_Disc := GetInt64Attr(Result, 'SFCapitalGainsForeignDisc');
+	mlSF_Rent := GetInt64Attr(Result, 'SFRent');
+	mlSF_Special_Income := GetInt64Attr(Result, 'SFSpecialIncome');
+	mlSF_Other_Tax_Credit := GetInt64Attr(Result, 'SFOtherTaxCredit');
+	mlSF_Non_Resident_Tax := GetInt64Attr(Result, 'SFNonResidentTax');
+	mlSF_Foreign_Capital_Gains_Credit := GetInt64Attr(Result, 'SFForeignCapitalGainsCredit');
+	mlSF_Capital_Gains_Fraction_Half := GetBoolAttr(Result, 'SFCapitalGainsFractionHalf');
+	except
+		on E: Exception do ReRaise (E, 'Reading TMemorisation_Line_Rec');
+	end;
+
+	CNode := nil;
+	CCNode := nil;
+	PNode := nil;
+end;
+
+// ----------------------------------------------------------------------------
+
+class function TBank_Account_RecHelper.GetXMLNodeName: string;
+begin
+	result := 'BKBankAccount';
+end;
+
+
+function TBank_Account_RecHelper.WriteRecToNode(var Node: IXMLNode): IXMLNode;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J, M: Integer;
+begin
+	Result := Node.AddChild(GetXMLNodeName);
+	SetTextAttr(Result, 'BankAccountNumber', baBank_Account_Number);
+	SetTextAttr(Result, 'BankAccountName', baBank_Account_Name);
+	SetTextAttr(Result, 'BankAccountPassword', baBank_Account_Password);
+	SetTextAttr(Result, 'ContraAccountCode', baContra_Account_Code);
+	SetInt64Attr(Result, 'CurrentBalance', baCurrent_Balance);
+	SetBoolAttr(Result, 'ApplyMasterMemorisedEntries', baApply_Master_Memorised_Entries);
+	SetIntAttr(Result, 'AccountType', baAccount_Type);
+	SetArray(Result, 'ColumnOrders', baColumn_Order);
+	SetArray(Result, 'ColumnWidths', baColumn_Width);
+	SetIntAttr(Result, 'PreferredView', baPreferred_View);
+	SetIntAttr(Result, 'HighestBankLinkID', baHighest_BankLink_ID);
+	SetIntAttr(Result, 'HighestLRN', baHighest_LRN);
+	SetArray(Result, 'ColumnisHiddens', baColumn_is_Hidden);
+	SetIntAttr(Result, 'AccountExpiryDate', baAccount_Expiry_Date);
+	SetIntAttr(Result, 'HighestMatchedItemID', baHighest_Matched_Item_ID);
+	SetBoolAttr(Result, 'NotesAlwaysVisible', baNotes_Always_Visible);
+	SetIntAttr(Result, 'NotesHeight', baNotes_Height);
+	SetIntAttr(Result, 'LastECodingTransactionUID', baLast_ECoding_Transaction_UID);
+	SetArray(Result, 'ColumnIsNotEditables', baColumn_Is_Not_Editable);
+	SetBoolAttr(Result, 'ExtendExpiryDate', baExtend_Expiry_Date);
+	SetBoolAttr(Result, 'IsAManualAccount', baIs_A_Manual_Account);
+	SetIntAttr(Result, 'AnalysisCodingLevel', baAnalysis_Coding_Level);
+	SetIntAttr(Result, 'ECodingAccountUID', baECoding_Account_UID);
+	SetIntAttr(Result, 'CodingSortOrder', baCoding_Sort_Order);
+	SetIntAttr(Result, 'ManualAccountType', baManual_Account_Type);
+	SetTextAttr(Result, 'ManualAccountInstitution', baManual_Account_Institution);
+	SetBoolAttr(Result, 'ManualAccountSentToAdmin', baManual_Account_Sent_To_Admin);
+	SetTextAttr(Result, 'SpareString', baSpare_String);
+	SetBoolAttr(Result, 'IsAProvisionalAccount', baIs_A_Provisional_Account);
+	SetIntAttr(Result, 'SpareNumber', baSpare_Number);
+	SetIntAttr(Result, 'SpareByte', baSpare_Byte);
+	SetArray(Result, 'HDEColumnOrders', baHDE_Column_Order);
+	SetArray(Result, 'HDEColumnWidths', baHDE_Column_Width);
+	SetArray(Result, 'HDEColumnisHiddens', baHDE_Column_is_Hidden);
+	SetArray(Result, 'HDEColumnisNotEditables', baHDE_Column_is_Not_Editable);
+	SetIntAttr(Result, 'HDESortOrder', baHDE_Sort_Order);
+	SetArray(Result, 'MDEColumnOrders', baMDE_Column_Order);
+	SetArray(Result, 'MDEColumnWidths', baMDE_Column_Width);
+	SetArray(Result, 'MDEColumnisHiddens', baMDE_Column_is_Hidden);
+	SetArray(Result, 'MDEColumnisNotEditables', baMDE_Column_is_Not_Editable);
+	SetIntAttr(Result, 'MDESortOrder', baMDE_Sort_Order);
+	SetArray(Result, 'DISColumnOrders', baDIS_Column_Order);
+	SetArray(Result, 'DISColumnWidths', baDIS_Column_Width);
+	SetArray(Result, 'DISColumnisHiddens', baDIS_Column_is_Hidden);
+	SetArray(Result, 'DISColumnisNotEditables', baDIS_Column_is_Not_Editable);
+	SetIntAttr(Result, 'DISSortOrder', baDIS_Sort_Order);
+	SetIntAttr(Result, 'DesktopSuperLedgerID', baDesktop_Super_Ledger_ID);
+	SetTextAttr(Result, 'CurrencyCode', baCurrency_Code);
+	SetTextAttr(Result, 'DefaultForexSource', baDefault_Forex_Source);
+	SetTextAttr(Result, 'DefaultForexDescription', baDefault_Forex_Description);
+	SetTextAttr(Result, 'SuperFundLedgerCode', baSuperFund_Ledger_Code);
+	SetIntAttr(Result, 'CoreAccountID', baCore_Account_ID);
+	SetTextAttr(Result, 'SecureOnlineCode', baSecure_Online_Code);
+
+	CNode := nil;
+	CCNode := nil;
+	PNode := nil;
+end;
+
+
+function TBank_Account_RecHelper.ReadRecFromNode(Node :IXMLNode): IXMLNode;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J: Integer;
+begin
+	if Node.NodeName = GetXMLNodeName then Result := Node
+	else
+	Result := Node.ChildNodes.FindNode(GetXMLNodeName);
+	if not assigned(Result) then exit;
+	try
+	baBank_Account_Number := GetTextAttr(Result, 'BankAccountNumber');
+	baBank_Account_Name := GetTextAttr(Result, 'BankAccountName');
+	baBank_Account_Password := GetTextAttr(Result, 'BankAccountPassword');
+	baContra_Account_Code := GetTextAttr(Result, 'ContraAccountCode');
+	baCurrent_Balance := GetInt64Attr(Result, 'CurrentBalance');
+	baApply_Master_Memorised_Entries := GetBoolAttr(Result, 'ApplyMasterMemorisedEntries');
+	baAccount_Type := GetIntAttr(Result, 'AccountType');
+	GetArray(Result, 'ColumnOrders', baColumn_Order);
+	GetArray(Result, 'ColumnWidths', baColumn_Width);
+	baPreferred_View := GetIntAttr(Result, 'PreferredView');
+	baHighest_BankLink_ID := GetIntAttr(Result, 'HighestBankLinkID');
+	baHighest_LRN := GetIntAttr(Result, 'HighestLRN');
+	GetArray(Result, 'ColumnisHiddens', baColumn_is_Hidden);
+	baAccount_Expiry_Date := GetIntAttr(Result, 'AccountExpiryDate');
+	baHighest_Matched_Item_ID := GetIntAttr(Result, 'HighestMatchedItemID');
+	baNotes_Always_Visible := GetBoolAttr(Result, 'NotesAlwaysVisible');
+	baNotes_Height := GetIntAttr(Result, 'NotesHeight');
+	baLast_ECoding_Transaction_UID := GetIntAttr(Result, 'LastECodingTransactionUID');
+	GetArray(Result, 'ColumnIsNotEditables', baColumn_Is_Not_Editable);
+	baExtend_Expiry_Date := GetBoolAttr(Result, 'ExtendExpiryDate');
+	baIs_A_Manual_Account := GetBoolAttr(Result, 'IsAManualAccount');
+	baAnalysis_Coding_Level := GetIntAttr(Result, 'AnalysisCodingLevel');
+	baECoding_Account_UID := GetIntAttr(Result, 'ECodingAccountUID');
+	baCoding_Sort_Order := GetIntAttr(Result, 'CodingSortOrder');
+	baManual_Account_Type := GetIntAttr(Result, 'ManualAccountType');
+	baManual_Account_Institution := GetTextAttr(Result, 'ManualAccountInstitution');
+	baManual_Account_Sent_To_Admin := GetBoolAttr(Result, 'ManualAccountSentToAdmin');
+	baSpare_String := GetTextAttr(Result, 'SpareString');
+	baIs_A_Provisional_Account := GetBoolAttr(Result, 'IsAProvisionalAccount');
+	baSpare_Number := GetIntAttr(Result, 'SpareNumber');
+	baSpare_Byte := GetIntAttr(Result, 'SpareByte');
+	GetArray(Result, 'HDEColumnOrders', baHDE_Column_Order);
+	GetArray(Result, 'HDEColumnWidths', baHDE_Column_Width);
+	GetArray(Result, 'HDEColumnisHiddens', baHDE_Column_is_Hidden);
+	GetArray(Result, 'HDEColumnisNotEditables', baHDE_Column_is_Not_Editable);
+	baHDE_Sort_Order := GetIntAttr(Result, 'HDESortOrder');
+	GetArray(Result, 'MDEColumnOrders', baMDE_Column_Order);
+	GetArray(Result, 'MDEColumnWidths', baMDE_Column_Width);
+	GetArray(Result, 'MDEColumnisHiddens', baMDE_Column_is_Hidden);
+	GetArray(Result, 'MDEColumnisNotEditables', baMDE_Column_is_Not_Editable);
+	baMDE_Sort_Order := GetIntAttr(Result, 'MDESortOrder');
+	GetArray(Result, 'DISColumnOrders', baDIS_Column_Order);
+	GetArray(Result, 'DISColumnWidths', baDIS_Column_Width);
+	GetArray(Result, 'DISColumnisHiddens', baDIS_Column_is_Hidden);
+	GetArray(Result, 'DISColumnisNotEditables', baDIS_Column_is_Not_Editable);
+	baDIS_Sort_Order := GetIntAttr(Result, 'DISSortOrder');
+	baDesktop_Super_Ledger_ID := GetIntAttr(Result, 'DesktopSuperLedgerID');
+	baCurrency_Code := GetTextAttr(Result, 'CurrencyCode');
+	baDefault_Forex_Source := GetTextAttr(Result, 'DefaultForexSource');
+	baDefault_Forex_Description := GetTextAttr(Result, 'DefaultForexDescription');
+	baSuperFund_Ledger_Code := GetTextAttr(Result, 'SuperFundLedgerCode');
+	baCore_Account_ID := GetIntAttr(Result, 'CoreAccountID');
+	baSecure_Online_Code := GetTextAttr(Result, 'SecureOnlineCode');
+	except
+		on E: Exception do ReRaise (E, 'Reading TBank_Account_Rec');
+	end;
+
+	CNode := nil;
+	CCNode := nil;
+	PNode := nil;
+end;
+
+// ----------------------------------------------------------------------------
+
+class function TTransaction_RecHelper.GetXMLNodeName: string;
+begin
+	result := 'BKTransaction';
+end;
+
+
+function TTransaction_RecHelper.WriteRecToNode(var Node: IXMLNode): IXMLNode;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J, M: Integer;
+begin
+	Result := Node.AddChild(GetXMLNodeName);
+	SetIntAttr(Result, 'SequenceNo', txSequence_No);
+	SetIntAttr(Result, 'LRNNOWUNUSED', txLRN_NOW_UNUSED);
+	SetIntAttr(Result, 'Type', txType);
+	SetIntAttr(Result, 'Source', txSource);
+	SetTextAttr(Result, 'DatePresented', BkDate2XSDate(txDate_Presented));
+	SetTextAttr(Result, 'DateEffective', BkDate2XSDate(txDate_Effective));
+	SetTextAttr(Result, 'DateTransferred', BkDate2XSDate(txDate_Transferred));
+	SetInt64Attr(Result, 'Amount', txAmount);
+	SetIntAttr(Result, 'GSTClass', txGST_Class);
+	SetInt64Attr(Result, 'GSTAmount', txGST_Amount);
+	SetBoolAttr(Result, 'HasBeenEdited', txHas_Been_Edited);
+	SetInt64Attr(Result, 'Quantity', txQuantity);
+	SetIntAttr(Result, 'ChequeNumber', txCheque_Number);
+	SetTextAttr(Result, 'Reference', txReference);
+	SetTextAttr(Result, 'Particulars', txParticulars);
+	SetTextAttr(Result, 'Analysis', txAnalysis);
+	SetTextAttr(Result, 'OrigBB', txOrigBB);
+	SetTextAttr(Result, 'OtherParty', txOther_Party);
+	SetTextAttr(Result, 'OldNarration', txOld_Narration);
+	SetTextAttr(Result, 'Account', txAccount);
+	SetIntAttr(Result, 'CodedBy', txCoded_By);
+	SetIntAttr(Result, 'PayeeNumber', txPayee_Number);
+	SetBoolAttr(Result, 'Locked', txLocked);
+	SetIntAttr(Result, 'BankLinkID', txBankLink_ID);
+	SetBoolAttr(Result, 'GSTHasBeenEdited', txGST_Has_Been_Edited);
+	SetIntAttr(Result, 'MatchedItemID', txMatched_Item_ID);
+	SetIntAttr(Result, 'UPIState', txUPI_State);
+	SetTextAttr(Result, 'OriginalReference', txOriginal_Reference);
+	SetIntAttr(Result, 'OriginalSource', txOriginal_Source);
+	SetIntAttr(Result, 'OriginalType', txOriginal_Type);
+	SetIntAttr(Result, 'OriginalChequeNumber', txOriginal_Cheque_Number);
+	SetInt64Attr(Result, 'OriginalAmount', txOriginal_Amount);
+	SetTextAttr(Result, 'Notes', txNotes);
+	SetTextAttr(Result, 'ECodingImportNotes', txECoding_Import_Notes);
+	SetIntAttr(Result, 'ECodingTransactionUID', txECoding_Transaction_UID);
+	SetTextAttr(Result, 'GLNarration', txGL_Narration);
+	SetTextAttr(Result, 'StatementDetails', txStatement_Details);
+	SetBoolAttr(Result, 'TaxInvoiceAvailable', txTax_Invoice_Available);
+	SetInt64Attr(Result, 'SFImputedCredit', txSF_Imputed_Credit);
+	SetInt64Attr(Result, 'SFTaxFreeDist', txSF_Tax_Free_Dist);
+	SetInt64Attr(Result, 'SFTaxExemptDist', txSF_Tax_Exempt_Dist);
+	SetInt64Attr(Result, 'SFTaxDeferredDist', txSF_Tax_Deferred_Dist);
+	SetInt64Attr(Result, 'SFTFNCredits', txSF_TFN_Credits);
+	SetInt64Attr(Result, 'SFForeignIncome', txSF_Foreign_Income);
+	SetInt64Attr(Result, 'SFForeignTaxCredits', txSF_Foreign_Tax_Credits);
+	SetInt64Attr(Result, 'SFCapitalGainsIndexed', txSF_Capital_Gains_Indexed);
+	SetInt64Attr(Result, 'SFCapitalGainsDisc', txSF_Capital_Gains_Disc);
+	SetBoolAttr(Result, 'SFSuperFieldsEdited', txSF_Super_Fields_Edited);
+	SetInt64Attr(Result, 'SFCapitalGainsOther', txSF_Capital_Gains_Other);
+	SetInt64Attr(Result, 'SFOtherExpenses', txSF_Other_Expenses);
+	SetTextAttr(Result, 'SFCGTDate', BkDate2XSDate(txSF_CGT_Date));
+	SetTextAttr(Result, 'ExternalGUID', txExternal_GUID);
+	SetTextAttr(Result, 'DocumentTitle', txDocument_Title);
+	SetBoolAttr(Result, 'DocumentStatusUpdateRequired', txDocument_Status_Update_Required);
+	SetTextAttr(Result, 'BankLinkUID', txBankLink_UID);
+	SetBoolAttr(Result, 'NotesRead', txNotes_Read);
+	SetBoolAttr(Result, 'ImportNotesRead', txImport_Notes_Read);
+	SetTextAttr(Result, 'SpareString', txSpare_String);
+	SetBoolAttr(Result, 'SpareBoolean', txSpare_Boolean);
+	SetInt64Attr(Result, 'SFFranked', txSF_Franked);
+	SetInt64Attr(Result, 'SFUnfranked', txSF_Unfranked);
+	SetInt64Attr(Result, 'SFInterest', txSF_Interest);
+	SetInt64Attr(Result, 'SFCapitalGainsForeignDisc', txSF_Capital_Gains_Foreign_Disc);
+	SetInt64Attr(Result, 'SFRent', txSF_Rent);
+	SetInt64Attr(Result, 'SFSpecialIncome', txSF_Special_Income);
+	SetInt64Attr(Result, 'SFOtherTaxCredit', txSF_Other_Tax_Credit);
+	SetInt64Attr(Result, 'SFNonResidentTax', txSF_Non_Resident_Tax);
+	SetTextAttr(Result, 'SFMemberID', txSF_Member_ID);
+	SetInt64Attr(Result, 'SFForeignCapitalGainsCredit', txSF_Foreign_Capital_Gains_Credit);
+	SetIntAttr(Result, 'SFMemberComponent', txSF_Member_Component);
+	SetIntAttr(Result, 'SFFundID', txSF_Fund_ID);
+	SetIntAttr(Result, 'SFMemberAccountID', txSF_Member_Account_ID);
+	SetTextAttr(Result, 'SFFundCode', txSF_Fund_Code);
+	SetTextAttr(Result, 'SFMemberAccountCode', txSF_Member_Account_Code);
+	SetIntAttr(Result, 'SFTransactionID', txSF_Transaction_ID);
+	SetTextAttr(Result, 'SFTransactionCode', txSF_Transaction_Code);
+	SetBoolAttr(Result, 'SFCapitalGainsFractionHalf', txSF_Capital_Gains_Fraction_Half);
+	SetTextAttr(Result, 'JobCode', txJob_Code);
+	SetInt64Attr(Result, 'SpareMoney1', txSpare_Money_1);
+	SetInt64Attr(Result, 'SpareMoney2', txSpare_Money_2);
+	SetIntAttr(Result, 'CoreTransactionID', txCore_Transaction_ID);
+	SetBoolAttr(Result, 'TransferedToOnline', txTransfered_To_Online);
+	SetIntAttr(Result, 'CoreTransactionIDHigh', txCore_Transaction_ID_High);
+
+	CNode := nil;
+	CCNode := nil;
+	PNode := nil;
+end;
+
+
+function TTransaction_RecHelper.ReadRecFromNode(Node :IXMLNode): IXMLNode;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J: Integer;
+begin
+	if Node.NodeName = GetXMLNodeName then Result := Node
+	else
+	Result := Node.ChildNodes.FindNode(GetXMLNodeName);
+	if not assigned(Result) then exit;
+	try
+	txSequence_No := GetIntAttr(Result, 'SequenceNo');
+	txLRN_NOW_UNUSED := GetIntAttr(Result, 'LRNNOWUNUSED');
+	txType := GetIntAttr(Result, 'Type');
+	txSource := GetIntAttr(Result, 'Source');
+	txDate_Presented := GetIntAttr(Result, 'DatePresented');
+	txDate_Effective := GetIntAttr(Result, 'DateEffective');
+	txDate_Transferred := GetIntAttr(Result, 'DateTransferred');
+	txAmount := GetInt64Attr(Result, 'Amount');
+	txGST_Class := GetIntAttr(Result, 'GSTClass');
+	txGST_Amount := GetInt64Attr(Result, 'GSTAmount');
+	txHas_Been_Edited := GetBoolAttr(Result, 'HasBeenEdited');
+	txQuantity := GetInt64Attr(Result, 'Quantity');
+	txCheque_Number := GetIntAttr(Result, 'ChequeNumber');
+	txReference := GetTextAttr(Result, 'Reference');
+	txParticulars := GetTextAttr(Result, 'Particulars');
+	txAnalysis := GetTextAttr(Result, 'Analysis');
+	txOrigBB := GetTextAttr(Result, 'OrigBB');
+	txOther_Party := GetTextAttr(Result, 'OtherParty');
+	txOld_Narration := GetTextAttr(Result, 'OldNarration');
+	txAccount := GetTextAttr(Result, 'Account');
+	txCoded_By := GetIntAttr(Result, 'CodedBy');
+	txPayee_Number := GetIntAttr(Result, 'PayeeNumber');
+	txLocked := GetBoolAttr(Result, 'Locked');
+	txBankLink_ID := GetIntAttr(Result, 'BankLinkID');
+	txGST_Has_Been_Edited := GetBoolAttr(Result, 'GSTHasBeenEdited');
+	txMatched_Item_ID := GetIntAttr(Result, 'MatchedItemID');
+	txUPI_State := GetIntAttr(Result, 'UPIState');
+	txOriginal_Reference := GetTextAttr(Result, 'OriginalReference');
+	txOriginal_Source := GetIntAttr(Result, 'OriginalSource');
+	txOriginal_Type := GetIntAttr(Result, 'OriginalType');
+	txOriginal_Cheque_Number := GetIntAttr(Result, 'OriginalChequeNumber');
+	txOriginal_Amount := GetInt64Attr(Result, 'OriginalAmount');
+	txNotes := GetTextAttr(Result, 'Notes');
+	txECoding_Import_Notes := GetTextAttr(Result, 'ECodingImportNotes');
+	txECoding_Transaction_UID := GetIntAttr(Result, 'ECodingTransactionUID');
+	txGL_Narration := GetTextAttr(Result, 'GLNarration');
+	txStatement_Details := GetTextAttr(Result, 'StatementDetails');
+	txTax_Invoice_Available := GetBoolAttr(Result, 'TaxInvoiceAvailable');
+	txSF_Imputed_Credit := GetInt64Attr(Result, 'SFImputedCredit');
+	txSF_Tax_Free_Dist := GetInt64Attr(Result, 'SFTaxFreeDist');
+	txSF_Tax_Exempt_Dist := GetInt64Attr(Result, 'SFTaxExemptDist');
+	txSF_Tax_Deferred_Dist := GetInt64Attr(Result, 'SFTaxDeferredDist');
+	txSF_TFN_Credits := GetInt64Attr(Result, 'SFTFNCredits');
+	txSF_Foreign_Income := GetInt64Attr(Result, 'SFForeignIncome');
+	txSF_Foreign_Tax_Credits := GetInt64Attr(Result, 'SFForeignTaxCredits');
+	txSF_Capital_Gains_Indexed := GetInt64Attr(Result, 'SFCapitalGainsIndexed');
+	txSF_Capital_Gains_Disc := GetInt64Attr(Result, 'SFCapitalGainsDisc');
+	txSF_Super_Fields_Edited := GetBoolAttr(Result, 'SFSuperFieldsEdited');
+	txSF_Capital_Gains_Other := GetInt64Attr(Result, 'SFCapitalGainsOther');
+	txSF_Other_Expenses := GetInt64Attr(Result, 'SFOtherExpenses');
+	txSF_CGT_Date := GetIntAttr(Result, 'SFCGTDate');
+	txExternal_GUID := GetTextAttr(Result, 'ExternalGUID');
+	txDocument_Title := GetTextAttr(Result, 'DocumentTitle');
+	txDocument_Status_Update_Required := GetBoolAttr(Result, 'DocumentStatusUpdateRequired');
+	txBankLink_UID := GetTextAttr(Result, 'BankLinkUID');
+	txNotes_Read := GetBoolAttr(Result, 'NotesRead');
+	txImport_Notes_Read := GetBoolAttr(Result, 'ImportNotesRead');
+	txSpare_String := GetTextAttr(Result, 'SpareString');
+	txSpare_Boolean := GetBoolAttr(Result, 'SpareBoolean');
+	txSF_Franked := GetInt64Attr(Result, 'SFFranked');
+	txSF_Unfranked := GetInt64Attr(Result, 'SFUnfranked');
+	txSF_Interest := GetInt64Attr(Result, 'SFInterest');
+	txSF_Capital_Gains_Foreign_Disc := GetInt64Attr(Result, 'SFCapitalGainsForeignDisc');
+	txSF_Rent := GetInt64Attr(Result, 'SFRent');
+	txSF_Special_Income := GetInt64Attr(Result, 'SFSpecialIncome');
+	txSF_Other_Tax_Credit := GetInt64Attr(Result, 'SFOtherTaxCredit');
+	txSF_Non_Resident_Tax := GetInt64Attr(Result, 'SFNonResidentTax');
+	txSF_Member_ID := GetTextAttr(Result, 'SFMemberID');
+	txSF_Foreign_Capital_Gains_Credit := GetInt64Attr(Result, 'SFForeignCapitalGainsCredit');
+	txSF_Member_Component := GetIntAttr(Result, 'SFMemberComponent');
+	txSF_Fund_ID := GetIntAttr(Result, 'SFFundID');
+	txSF_Member_Account_ID := GetIntAttr(Result, 'SFMemberAccountID');
+	txSF_Fund_Code := GetTextAttr(Result, 'SFFundCode');
+	txSF_Member_Account_Code := GetTextAttr(Result, 'SFMemberAccountCode');
+	txSF_Transaction_ID := GetIntAttr(Result, 'SFTransactionID');
+	txSF_Transaction_Code := GetTextAttr(Result, 'SFTransactionCode');
+	txSF_Capital_Gains_Fraction_Half := GetBoolAttr(Result, 'SFCapitalGainsFractionHalf');
+	txJob_Code := GetTextAttr(Result, 'JobCode');
+	txSpare_Money_1 := GetInt64Attr(Result, 'SpareMoney1');
+	txSpare_Money_2 := GetInt64Attr(Result, 'SpareMoney2');
+	txCore_Transaction_ID := GetIntAttr(Result, 'CoreTransactionID');
+	txTransfered_To_Online := GetBoolAttr(Result, 'TransferedToOnline');
+	txCore_Transaction_ID_High := GetIntAttr(Result, 'CoreTransactionIDHigh');
+	except
+		on E: Exception do ReRaise (E, 'Reading TTransaction_Rec');
+	end;
+
+	CNode := nil;
+	CCNode := nil;
+	PNode := nil;
+end;
+
+// ----------------------------------------------------------------------------
+
+class function TDissection_RecHelper.GetXMLNodeName: string;
+begin
+	result := 'BKDissection';
+end;
+
+
+function TDissection_RecHelper.WriteRecToNode(var Node: IXMLNode): IXMLNode;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J, M: Integer;
+begin
+	Result := Node.AddChild(GetXMLNodeName);
+	SetIntAttr(Result, 'SequenceNo', dsSequence_No);
+	SetTextAttr(Result, 'Account', dsAccount);
+	SetInt64Attr(Result, 'Amount', dsAmount);
+	SetIntAttr(Result, 'GSTClass', dsGST_Class);
+	SetInt64Attr(Result, 'GSTAmount', dsGST_Amount);
+	SetInt64Attr(Result, 'Quantity', dsQuantity);
+	SetTextAttr(Result, 'OldNarration', dsOld_Narration);
+	SetBoolAttr(Result, 'HasBeenEdited', dsHas_Been_Edited);
+	SetIntAttr(Result, 'JournalType', dsJournal_Type);
+	SetBoolAttr(Result, 'GSTHasBeenEdited', dsGST_Has_Been_Edited);
+	SetIntAttr(Result, 'PayeeNumber', dsPayee_Number);
+	SetTextAttr(Result, 'Notes', dsNotes);
+	SetTextAttr(Result, 'ECodingImportNotes', dsECoding_Import_Notes);
+	SetTextAttr(Result, 'GLNarration', dsGL_Narration);
+	SetTextAttr(Result, 'LinkedJournalDate', BkDate2XSDate(dsLinked_Journal_Date));
+	SetInt64Attr(Result, 'SFImputedCredit', dsSF_Imputed_Credit);
+	SetInt64Attr(Result, 'SFTaxFreeDist', dsSF_Tax_Free_Dist);
+	SetInt64Attr(Result, 'SFTaxExemptDist', dsSF_Tax_Exempt_Dist);
+	SetInt64Attr(Result, 'SFTaxDeferredDist', dsSF_Tax_Deferred_Dist);
+	SetInt64Attr(Result, 'SFTFNCredits', dsSF_TFN_Credits);
+	SetInt64Attr(Result, 'SFForeignIncome', dsSF_Foreign_Income);
+	SetInt64Attr(Result, 'SFForeignTaxCredits', dsSF_Foreign_Tax_Credits);
+	SetInt64Attr(Result, 'SFCapitalGainsIndexed', dsSF_Capital_Gains_Indexed);
+	SetInt64Attr(Result, 'SFCapitalGainsDisc', dsSF_Capital_Gains_Disc);
+	SetBoolAttr(Result, 'SFSuperFieldsEdited', dsSF_Super_Fields_Edited);
+	SetInt64Attr(Result, 'SFCapitalGainsOther', dsSF_Capital_Gains_Other);
+	SetInt64Attr(Result, 'SFOtherExpenses', dsSF_Other_Expenses);
+	SetTextAttr(Result, 'SFCGTDate', BkDate2XSDate(dsSF_CGT_Date));
+	SetTextAttr(Result, 'ExternalGUID', dsExternal_GUID);
+	SetTextAttr(Result, 'DocumentTitle', dsDocument_Title);
+	SetBoolAttr(Result, 'DocumentStatusUpdateRequired', dsDocument_Status_Update_Required);
+	SetBoolAttr(Result, 'NotesRead', dsNotes_Read);
+	SetBoolAttr(Result, 'ImportNotesRead', dsImport_Notes_Read);
+	SetTextAttr(Result, 'Reference', dsReference);
+	SetInt64Attr(Result, 'SFFranked', dsSF_Franked);
+	SetInt64Attr(Result, 'SFUnfranked', dsSF_Unfranked);
+	SetInt64Attr(Result, 'SFInterest', dsSF_Interest);
+	SetInt64Attr(Result, 'SFCapitalGainsForeignDisc', dsSF_Capital_Gains_Foreign_Disc);
+	SetInt64Attr(Result, 'SFRent', dsSF_Rent);
+	SetInt64Attr(Result, 'SFSpecialIncome', dsSF_Special_Income);
+	SetInt64Attr(Result, 'SFOtherTaxCredit', dsSF_Other_Tax_Credit);
+	SetInt64Attr(Result, 'SFNonResidentTax', dsSF_Non_Resident_Tax);
+	SetTextAttr(Result, 'SFMemberID', dsSF_Member_ID);
+	SetInt64Attr(Result, 'SFForeignCapitalGainsCredit', dsSF_Foreign_Capital_Gains_Credit);
+	SetIntAttr(Result, 'SFMemberComponent', dsSF_Member_Component);
+	SetInt64Attr(Result, 'PercentAmount', dsPercent_Amount);
+	SetBoolAttr(Result, 'AmountTypeIsPercent', dsAmount_Type_Is_Percent);
+	SetIntAttr(Result, 'SFFundID', dsSF_Fund_ID);
+	SetIntAttr(Result, 'SFMemberAccountID', dsSF_Member_Account_ID);
+	SetTextAttr(Result, 'SFFundCode', dsSF_Fund_Code);
+	SetTextAttr(Result, 'SFMemberAccountCode', dsSF_Member_Account_Code);
+	SetIntAttr(Result, 'SFTransactionID', dsSF_Transaction_ID);
+	SetTextAttr(Result, 'SFTransactionCode', dsSF_Transaction_Code);
+	SetBoolAttr(Result, 'SFCapitalGainsFractionHalf', dsSF_Capital_Gains_Fraction_Half);
+	SetTextAttr(Result, 'JobCode', dsJob_Code);
+	SetBoolAttr(Result, 'TaxInvoice', dsTax_Invoice);
+	SetInt64Attr(Result, 'ForeignCurrencyAmount', dsForeign_Currency_Amount);
+	SetIntAttr(Result, 'ForexDocumentDate', dsForex_Document_Date);
+	SetTextAttr(Result, 'OpeningBalanceCurrency', dsOpening_Balance_Currency);
+
+	CNode := nil;
+	CCNode := nil;
+	PNode := nil;
+end;
+
+
+function TDissection_RecHelper.ReadRecFromNode(Node :IXMLNode): IXMLNode;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J: Integer;
+begin
+	if Node.NodeName = GetXMLNodeName then Result := Node
+	else
+	Result := Node.ChildNodes.FindNode(GetXMLNodeName);
+	if not assigned(Result) then exit;
+	try
+	dsSequence_No := GetIntAttr(Result, 'SequenceNo');
+	dsAccount := GetTextAttr(Result, 'Account');
+	dsAmount := GetInt64Attr(Result, 'Amount');
+	dsGST_Class := GetIntAttr(Result, 'GSTClass');
+	dsGST_Amount := GetInt64Attr(Result, 'GSTAmount');
+	dsQuantity := GetInt64Attr(Result, 'Quantity');
+	dsOld_Narration := GetTextAttr(Result, 'OldNarration');
+	dsHas_Been_Edited := GetBoolAttr(Result, 'HasBeenEdited');
+	dsJournal_Type := GetIntAttr(Result, 'JournalType');
+	dsGST_Has_Been_Edited := GetBoolAttr(Result, 'GSTHasBeenEdited');
+	dsPayee_Number := GetIntAttr(Result, 'PayeeNumber');
+	dsNotes := GetTextAttr(Result, 'Notes');
+	dsECoding_Import_Notes := GetTextAttr(Result, 'ECodingImportNotes');
+	dsGL_Narration := GetTextAttr(Result, 'GLNarration');
+	dsLinked_Journal_Date := GetIntAttr(Result, 'LinkedJournalDate');
+	dsSF_Imputed_Credit := GetInt64Attr(Result, 'SFImputedCredit');
+	dsSF_Tax_Free_Dist := GetInt64Attr(Result, 'SFTaxFreeDist');
+	dsSF_Tax_Exempt_Dist := GetInt64Attr(Result, 'SFTaxExemptDist');
+	dsSF_Tax_Deferred_Dist := GetInt64Attr(Result, 'SFTaxDeferredDist');
+	dsSF_TFN_Credits := GetInt64Attr(Result, 'SFTFNCredits');
+	dsSF_Foreign_Income := GetInt64Attr(Result, 'SFForeignIncome');
+	dsSF_Foreign_Tax_Credits := GetInt64Attr(Result, 'SFForeignTaxCredits');
+	dsSF_Capital_Gains_Indexed := GetInt64Attr(Result, 'SFCapitalGainsIndexed');
+	dsSF_Capital_Gains_Disc := GetInt64Attr(Result, 'SFCapitalGainsDisc');
+	dsSF_Super_Fields_Edited := GetBoolAttr(Result, 'SFSuperFieldsEdited');
+	dsSF_Capital_Gains_Other := GetInt64Attr(Result, 'SFCapitalGainsOther');
+	dsSF_Other_Expenses := GetInt64Attr(Result, 'SFOtherExpenses');
+	dsSF_CGT_Date := GetIntAttr(Result, 'SFCGTDate');
+	dsExternal_GUID := GetTextAttr(Result, 'ExternalGUID');
+	dsDocument_Title := GetTextAttr(Result, 'DocumentTitle');
+	dsDocument_Status_Update_Required := GetBoolAttr(Result, 'DocumentStatusUpdateRequired');
+	dsNotes_Read := GetBoolAttr(Result, 'NotesRead');
+	dsImport_Notes_Read := GetBoolAttr(Result, 'ImportNotesRead');
+	dsReference := GetTextAttr(Result, 'Reference');
+	dsSF_Franked := GetInt64Attr(Result, 'SFFranked');
+	dsSF_Unfranked := GetInt64Attr(Result, 'SFUnfranked');
+	dsSF_Interest := GetInt64Attr(Result, 'SFInterest');
+	dsSF_Capital_Gains_Foreign_Disc := GetInt64Attr(Result, 'SFCapitalGainsForeignDisc');
+	dsSF_Rent := GetInt64Attr(Result, 'SFRent');
+	dsSF_Special_Income := GetInt64Attr(Result, 'SFSpecialIncome');
+	dsSF_Other_Tax_Credit := GetInt64Attr(Result, 'SFOtherTaxCredit');
+	dsSF_Non_Resident_Tax := GetInt64Attr(Result, 'SFNonResidentTax');
+	dsSF_Member_ID := GetTextAttr(Result, 'SFMemberID');
+	dsSF_Foreign_Capital_Gains_Credit := GetInt64Attr(Result, 'SFForeignCapitalGainsCredit');
+	dsSF_Member_Component := GetIntAttr(Result, 'SFMemberComponent');
+	dsPercent_Amount := GetInt64Attr(Result, 'PercentAmount');
+	dsAmount_Type_Is_Percent := GetBoolAttr(Result, 'AmountTypeIsPercent');
+	dsSF_Fund_ID := GetIntAttr(Result, 'SFFundID');
+	dsSF_Member_Account_ID := GetIntAttr(Result, 'SFMemberAccountID');
+	dsSF_Fund_Code := GetTextAttr(Result, 'SFFundCode');
+	dsSF_Member_Account_Code := GetTextAttr(Result, 'SFMemberAccountCode');
+	dsSF_Transaction_ID := GetIntAttr(Result, 'SFTransactionID');
+	dsSF_Transaction_Code := GetTextAttr(Result, 'SFTransactionCode');
+	dsSF_Capital_Gains_Fraction_Half := GetBoolAttr(Result, 'SFCapitalGainsFractionHalf');
+	dsJob_Code := GetTextAttr(Result, 'JobCode');
+	dsTax_Invoice := GetBoolAttr(Result, 'TaxInvoice');
+	dsForeign_Currency_Amount := GetInt64Attr(Result, 'ForeignCurrencyAmount');
+	dsForex_Document_Date := GetIntAttr(Result, 'ForexDocumentDate');
+	dsOpening_Balance_Currency := GetTextAttr(Result, 'OpeningBalanceCurrency');
+	except
+		on E: Exception do ReRaise (E, 'Reading TDissection_Rec');
+	end;
+
+	CNode := nil;
+	CCNode := nil;
+	PNode := nil;
+end;
+
+// ----------------------------------------------------------------------------
+
+class function TBalances_RecHelper.GetXMLNodeName: string;
+begin
+	result := 'BKBalances';
+end;
+
+
+function TBalances_RecHelper.WriteRecToNode(var Node: IXMLNode): IXMLNode;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J, M: Integer;
+begin
+	Result := Node.AddChild(GetXMLNodeName);
+	SetIntAttr(Result, 'GSTPeriodStarts', blGST_Period_Starts);
+	SetIntAttr(Result, 'GSTPeriodEnds', blGST_Period_Ends);
+	SetInt64Attr(Result, 'ClosingDebtorsBalance', blClosing_Debtors_Balance);
+	SetInt64Attr(Result, 'OpeningDebtorsBalance', blOpening_Debtors_Balance);
+	SetInt64Attr(Result, 'FBTAdjustments', blFBT_Adjustments);
+	SetInt64Attr(Result, 'OtherAdjustments', blOther_Adjustments);
+	SetInt64Attr(Result, 'ClosingCreditorsBalance', blClosing_Creditors_Balance);
+	SetInt64Attr(Result, 'OpeningCreditorsBalance', blOpening_Creditors_Balance);
+	SetInt64Attr(Result, 'CreditAdjustments', blCredit_Adjustments);
+	SetTextAttr(Result, 'BASDocumentID', blBAS_Document_ID);
+	SetInt64Attr(Result, 'BAS1CPTLastMonthsIncome', blBAS_1C_PT_Last_Months_Income);
+	SetInt64Attr(Result, 'BAS1DPTBranchIncome', blBAS_1D_PT_Branch_Income);
+	SetInt64Attr(Result, 'BAS1EPTAssets', blBAS_1E_PT_Assets);
+	SetInt64Attr(Result, 'BAS1FPTTax', blBAS_1F_PT_Tax);
+	SetInt64Attr(Result, 'BAS1GPTRefundUsed', blBAS_1G_PT_Refund_Used);
+	SetInt64Attr(Result, 'BAS5BPTRatio', blBAS_5B_PT_Ratio);
+	SetInt64Attr(Result, 'BAS6BGSTAdjPrivUse', blBAS_6B_GST_Adj_PrivUse);
+	SetInt64Attr(Result, 'BAS7VAT4GSTAdjBAssets', blBAS_7_VAT4_GST_Adj_BAssets);
+	SetInt64Attr(Result, 'BASG7GSTAdjAssets', blBAS_G7_GST_Adj_Assets);
+	SetInt64Attr(Result, 'BASG18GSTAdjEntertain', blBAS_G18_GST_Adj_Entertain);
+	SetInt64Attr(Result, 'BASW1GSTAdjChange', blBAS_W1_GST_Adj_Change);
+	SetInt64Attr(Result, 'BASW2GSTAdjExempt', blBAS_W2_GST_Adj_Exempt);
+	SetInt64Attr(Result, 'BASW3GSTAdjOther', blBAS_W3_GST_Adj_Other);
+	SetInt64Attr(Result, 'BASW4GSTCdjBusUse', blBAS_W4_GST_Cdj_BusUse);
+	SetInt64Attr(Result, 'BAST1VAT1GSTCdjPAssets', blBAS_T1_VAT1_GST_Cdj_PAssets);
+	SetInt64Attr(Result, 'BAST2VAT2GSTCdjChange', blBAS_T2_VAT2_GST_Cdj_Change);
+	SetInt64Attr(Result, 'BAST3VAT3GSTCdjOther', blBAS_T3_VAT3_GST_Cdj_Other);
+	SetIntAttr(Result, 'BAST4', blBAS_T4);
+	SetInt64Attr(Result, 'BASF1GSTClosingDebtorsBalanceA', blBAS_F1_GST_Closing_Debtors_BalanceA);
+	SetInt64Attr(Result, 'BASF2GSTOpeningDebtorsBalanceB', blBAS_F2_GST_Opening_Debtors_BalanceB);
+	SetInt64Attr(Result, 'BASF3', blBAS_F3);
+	SetIntAttr(Result, 'BASF4', blBAS_F4);
+	SetIntAttr(Result, 'BASFormUsed', blBAS_Form_Used);
+	SetIntAttr(Result, 'BASGSTOption', blBAS_GST_Option);
+	SetBoolAttr(Result, 'BASGSTIncluded', blBAS_GST_Included);
+	SetInt64Attr(Result, 'BASG21GSTClosingCreditorsBalanceA', blBAS_G21_GST_Closing_Creditors_BalanceA);
+	SetInt64Attr(Result, 'BASG22GSTOpeningCreditorsBalanceB', blBAS_G22_GST_Opening_Creditors_BalanceB);
+	SetInt64Attr(Result, 'BASG23', blBAS_G23);
+	SetIntAttr(Result, 'BASG24', blBAS_G24);
+	SetIntAttr(Result, 'BASPAYGInstalmentOption', blBAS_PAYG_Instalment_Option);
+	SetInt64Attr(Result, 'BAST7VAT7', blBAS_T7_VAT7);
+	SetInt64Attr(Result, 'BAST8VAT8', blBAS_T8_VAT8);
+	SetInt64Attr(Result, 'BAST9VAT9', blBAS_T9_VAT9);
+	SetInt64Attr(Result, 'BAS1H', blBAS_1H);
+	SetInt64Attr(Result, 'GSTAdjPrivUse', blGST_Adj_PrivUse);
+	SetInt64Attr(Result, 'GSTAdjBAssets', blGST_Adj_BAssets);
+	SetInt64Attr(Result, 'GSTAdjAssets', blGST_Adj_Assets);
+	SetInt64Attr(Result, 'GSTAdjEntertain', blGST_Adj_Entertain);
+	SetInt64Attr(Result, 'GSTAdjChange', blGST_Adj_Change);
+	SetInt64Attr(Result, 'GSTAdjExempt', blGST_Adj_Exempt);
+	SetInt64Attr(Result, 'GSTAdjOther', blGST_Adj_Other);
+	SetInt64Attr(Result, 'GSTCdjBusUse', blGST_Cdj_BusUse);
+	SetInt64Attr(Result, 'GSTCdjPAssets', blGST_Cdj_PAssets);
+	SetInt64Attr(Result, 'GSTCdjChange', blGST_Cdj_Change);
+	SetInt64Attr(Result, 'GSTCdjOther', blGST_Cdj_Other);
+	SetInt64Attr(Result, 'BAS7C', blBAS_7C);
+	SetInt64Attr(Result, 'BAS7D', blBAS_7D);
+	SetInt64Attr(Result, 'BAST6VAT6', blBAS_T6_VAT6);
+	SetInt64Attr(Result, 'BAST5VAT5', blBAS_T5_VAT5);
+	SetBoolAttr(Result, 'UsingFuelPercentMethod', blUsing_Fuel_Percent_Method);
+	SetIntAttr(Result, 'PTFormType', blPT_Form_Type);
+	SetInt64Attr(Result, 'GSTCdjCustoms', blGST_Cdj_Customs);
+	SetArray(Result, 'VATAdjustments', blVAT_Adjustments);
+
+	CNode := nil;
+	CCNode := nil;
+	PNode := nil;
+end;
+
+
+function TBalances_RecHelper.ReadRecFromNode(Node :IXMLNode): IXMLNode;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J: Integer;
+begin
+	if Node.NodeName = GetXMLNodeName then Result := Node
+	else
+	Result := Node.ChildNodes.FindNode(GetXMLNodeName);
+	if not assigned(Result) then exit;
+	try
+	blGST_Period_Starts := GetIntAttr(Result, 'GSTPeriodStarts');
+	blGST_Period_Ends := GetIntAttr(Result, 'GSTPeriodEnds');
+	blClosing_Debtors_Balance := GetInt64Attr(Result, 'ClosingDebtorsBalance');
+	blOpening_Debtors_Balance := GetInt64Attr(Result, 'OpeningDebtorsBalance');
+	blFBT_Adjustments := GetInt64Attr(Result, 'FBTAdjustments');
+	blOther_Adjustments := GetInt64Attr(Result, 'OtherAdjustments');
+	blClosing_Creditors_Balance := GetInt64Attr(Result, 'ClosingCreditorsBalance');
+	blOpening_Creditors_Balance := GetInt64Attr(Result, 'OpeningCreditorsBalance');
+	blCredit_Adjustments := GetInt64Attr(Result, 'CreditAdjustments');
+	blBAS_Document_ID := GetTextAttr(Result, 'BASDocumentID');
+	blBAS_1C_PT_Last_Months_Income := GetInt64Attr(Result, 'BAS1CPTLastMonthsIncome');
+	blBAS_1D_PT_Branch_Income := GetInt64Attr(Result, 'BAS1DPTBranchIncome');
+	blBAS_1E_PT_Assets := GetInt64Attr(Result, 'BAS1EPTAssets');
+	blBAS_1F_PT_Tax := GetInt64Attr(Result, 'BAS1FPTTax');
+	blBAS_1G_PT_Refund_Used := GetInt64Attr(Result, 'BAS1GPTRefundUsed');
+	blBAS_5B_PT_Ratio := GetInt64Attr(Result, 'BAS5BPTRatio');
+	blBAS_6B_GST_Adj_PrivUse := GetInt64Attr(Result, 'BAS6BGSTAdjPrivUse');
+	blBAS_7_VAT4_GST_Adj_BAssets := GetInt64Attr(Result, 'BAS7VAT4GSTAdjBAssets');
+	blBAS_G7_GST_Adj_Assets := GetInt64Attr(Result, 'BASG7GSTAdjAssets');
+	blBAS_G18_GST_Adj_Entertain := GetInt64Attr(Result, 'BASG18GSTAdjEntertain');
+	blBAS_W1_GST_Adj_Change := GetInt64Attr(Result, 'BASW1GSTAdjChange');
+	blBAS_W2_GST_Adj_Exempt := GetInt64Attr(Result, 'BASW2GSTAdjExempt');
+	blBAS_W3_GST_Adj_Other := GetInt64Attr(Result, 'BASW3GSTAdjOther');
+	blBAS_W4_GST_Cdj_BusUse := GetInt64Attr(Result, 'BASW4GSTCdjBusUse');
+	blBAS_T1_VAT1_GST_Cdj_PAssets := GetInt64Attr(Result, 'BAST1VAT1GSTCdjPAssets');
+	blBAS_T2_VAT2_GST_Cdj_Change := GetInt64Attr(Result, 'BAST2VAT2GSTCdjChange');
+	blBAS_T3_VAT3_GST_Cdj_Other := GetInt64Attr(Result, 'BAST3VAT3GSTCdjOther');
+	blBAS_T4 := GetIntAttr(Result, 'BAST4');
+	blBAS_F1_GST_Closing_Debtors_BalanceA := GetInt64Attr(Result, 'BASF1GSTClosingDebtorsBalanceA');
+	blBAS_F2_GST_Opening_Debtors_BalanceB := GetInt64Attr(Result, 'BASF2GSTOpeningDebtorsBalanceB');
+	blBAS_F3 := GetInt64Attr(Result, 'BASF3');
+	blBAS_F4 := GetIntAttr(Result, 'BASF4');
+	blBAS_Form_Used := GetIntAttr(Result, 'BASFormUsed');
+	blBAS_GST_Option := GetIntAttr(Result, 'BASGSTOption');
+	blBAS_GST_Included := GetBoolAttr(Result, 'BASGSTIncluded');
+	blBAS_G21_GST_Closing_Creditors_BalanceA := GetInt64Attr(Result, 'BASG21GSTClosingCreditorsBalanceA');
+	blBAS_G22_GST_Opening_Creditors_BalanceB := GetInt64Attr(Result, 'BASG22GSTOpeningCreditorsBalanceB');
+	blBAS_G23 := GetInt64Attr(Result, 'BASG23');
+	blBAS_G24 := GetIntAttr(Result, 'BASG24');
+	blBAS_PAYG_Instalment_Option := GetIntAttr(Result, 'BASPAYGInstalmentOption');
+	blBAS_T7_VAT7 := GetInt64Attr(Result, 'BAST7VAT7');
+	blBAS_T8_VAT8 := GetInt64Attr(Result, 'BAST8VAT8');
+	blBAS_T9_VAT9 := GetInt64Attr(Result, 'BAST9VAT9');
+	blBAS_1H := GetInt64Attr(Result, 'BAS1H');
+	blGST_Adj_PrivUse := GetInt64Attr(Result, 'GSTAdjPrivUse');
+	blGST_Adj_BAssets := GetInt64Attr(Result, 'GSTAdjBAssets');
+	blGST_Adj_Assets := GetInt64Attr(Result, 'GSTAdjAssets');
+	blGST_Adj_Entertain := GetInt64Attr(Result, 'GSTAdjEntertain');
+	blGST_Adj_Change := GetInt64Attr(Result, 'GSTAdjChange');
+	blGST_Adj_Exempt := GetInt64Attr(Result, 'GSTAdjExempt');
+	blGST_Adj_Other := GetInt64Attr(Result, 'GSTAdjOther');
+	blGST_Cdj_BusUse := GetInt64Attr(Result, 'GSTCdjBusUse');
+	blGST_Cdj_PAssets := GetInt64Attr(Result, 'GSTCdjPAssets');
+	blGST_Cdj_Change := GetInt64Attr(Result, 'GSTCdjChange');
+	blGST_Cdj_Other := GetInt64Attr(Result, 'GSTCdjOther');
+	blBAS_7C := GetInt64Attr(Result, 'BAS7C');
+	blBAS_7D := GetInt64Attr(Result, 'BAS7D');
+	blBAS_T6_VAT6 := GetInt64Attr(Result, 'BAST6VAT6');
+	blBAS_T5_VAT5 := GetInt64Attr(Result, 'BAST5VAT5');
+	blUsing_Fuel_Percent_Method := GetBoolAttr(Result, 'UsingFuelPercentMethod');
+	blPT_Form_Type := GetIntAttr(Result, 'PTFormType');
+	blGST_Cdj_Customs := GetInt64Attr(Result, 'GSTCdjCustoms');
+	GetArray(Result, 'VATAdjustments', blVAT_Adjustments);
+	except
+		on E: Exception do ReRaise (E, 'Reading TBalances_Rec');
+	end;
+
+	CNode := nil;
+	CCNode := nil;
+	PNode := nil;
+end;
+
+// ----------------------------------------------------------------------------
+
+class function TSubGroup_Heading_RecHelper.GetXMLNodeName: string;
+begin
+	result := 'BKSubGroupHeading';
+end;
+
+
+function TSubGroup_Heading_RecHelper.WriteRecToNode(var Node: IXMLNode): IXMLNode;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J, M: Integer;
+begin
+	Result := Node.AddChild(GetXMLNodeName);
+	SetTextAttr(Result, 'Heading', shHeading);
+	SetIntAttr(Result, 'ReportGroupNo', shReport_Group_No);
+	SetIntAttr(Result, 'SubGroupNo', shSub_Group_No);
+
+	CNode := nil;
+	CCNode := nil;
+	PNode := nil;
+end;
+
+
+function TSubGroup_Heading_RecHelper.ReadRecFromNode(Node :IXMLNode): IXMLNode;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J: Integer;
+begin
+	if Node.NodeName = GetXMLNodeName then Result := Node
+	else
+	Result := Node.ChildNodes.FindNode(GetXMLNodeName);
+	if not assigned(Result) then exit;
+	try
+	shHeading := GetTextAttr(Result, 'Heading');
+	shReport_Group_No := GetIntAttr(Result, 'ReportGroupNo');
+	shSub_Group_No := GetIntAttr(Result, 'SubGroupNo');
+	except
+		on E: Exception do ReRaise (E, 'Reading TSubGroup_Heading_Rec');
+	end;
+
+	CNode := nil;
+	CCNode := nil;
+	PNode := nil;
+end;
+
+// ----------------------------------------------------------------------------
+
+class function TDivision_Heading_RecHelper.GetXMLNodeName: string;
+begin
+	result := 'BKDivisionHeading';
+end;
+
+
+function TDivision_Heading_RecHelper.WriteRecToNode(var Node: IXMLNode): IXMLNode;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J, M: Integer;
+begin
+	Result := Node.AddChild(GetXMLNodeName);
+	SetTextAttr(Result, 'Heading', dhHeading);
+	SetIntAttr(Result, 'DivisionNo', dhDivision_No);
+
+	CNode := nil;
+	CCNode := nil;
+	PNode := nil;
+end;
+
+
+function TDivision_Heading_RecHelper.ReadRecFromNode(Node :IXMLNode): IXMLNode;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J: Integer;
+begin
+	if Node.NodeName = GetXMLNodeName then Result := Node
+	else
+	Result := Node.ChildNodes.FindNode(GetXMLNodeName);
+	if not assigned(Result) then exit;
+	try
+	dhHeading := GetTextAttr(Result, 'Heading');
+	dhDivision_No := GetIntAttr(Result, 'DivisionNo');
+	except
+		on E: Exception do ReRaise (E, 'Reading TDivision_Heading_Rec');
+	end;
+
+	CNode := nil;
+	CCNode := nil;
+	PNode := nil;
+end;
+
+// ----------------------------------------------------------------------------
+
+class function TMemorised_Transaction_RecHelper.GetXMLNodeName: string;
+begin
+	result := 'BKMemorisedTransaction';
+end;
+
+
+function TMemorised_Transaction_RecHelper.WriteRecToNode(var Node: IXMLNode): IXMLNode;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J, M: Integer;
+begin
+	Result := Node.AddChild(GetXMLNodeName);
+	SetIntAttr(Result, 'SequenceNo', mxSequence_No);
+	SetIntAttr(Result, 'Type', mxType);
+	SetInt64Attr(Result, 'Amount', mxAmount);
+	SetTextAttr(Result, 'Reference', mxReference);
+	SetTextAttr(Result, 'Particulars', mxParticulars);
+	SetTextAttr(Result, 'Analysis', mxAnalysis);
+	SetTextAttr(Result, 'OtherParty', mxOther_Party);
+	SetTextAttr(Result, 'StatementDetails', mxStatement_Details);
+	SetIntAttr(Result, 'MatchonAmount', mxMatch_on_Amount);
+	SetBoolAttr(Result, 'MatchonRefce', mxMatch_on_Refce);
+	SetBoolAttr(Result, 'MatchonParticulars', mxMatch_on_Particulars);
+	SetBoolAttr(Result, 'MatchonAnalysis', mxMatch_on_Analysis);
+	SetBoolAttr(Result, 'MatchonOtherParty', mxMatch_on_Other_Party);
+	SetBoolAttr(Result, 'MatchOnStatementDetails', mxMatch_On_Statement_Details);
+	PNode := Result.AddChild('Accounts');
+	M :=  Low(mxAccount);
+	for I := Low(mxAccount) to High(mxAccount) do
+		if  mxAccount[I] > '' then
+			M := I;
+	for I := Low(mxAccount) to M do begin
+		CNode := PNode.AddChild('Account');
+		CNode.NodeValue := mxAccount[I];
+	end;
+	SetArray(Result, 'Percentages', mxPercentage);
+	SetArray(Result, 'GSTClass', mxGST_Class);
+	SetIntAttr(Result, 'PayeeNumber', mxPayee_Number);
+	SetBoolAttr(Result, 'FromMasterList', mxFrom_Master_List);
+	SetArray(Result, 'GSTHasBeenEditeds', mxGST_Has_Been_Edited);
+	SetBoolAttr(Result, 'MatchonNotes', mxMatch_on_Notes);
+	SetTextAttr(Result, 'Notes', mxNotes);
+	PNode := Result.AddChild('GLNarrations');
+	M :=  Low(mxGL_Narration);
+	for I := Low(mxGL_Narration) to High(mxGL_Narration) do
+		if  mxGL_Narration[I] > '' then
+			M := I;
+	for I := Low(mxGL_Narration) to M do begin
+		CNode := PNode.AddChild('GLNarration');
+		CNode.NodeValue := mxGL_Narration[I];
+	end;
+	SetArray(Result, 'LineTypes', mxLine_Type);
+
+	CNode := nil;
+	CCNode := nil;
+	PNode := nil;
+end;
+
+
+function TMemorised_Transaction_RecHelper.ReadRecFromNode(Node :IXMLNode): IXMLNode;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J: Integer;
+begin
+	if Node.NodeName = GetXMLNodeName then Result := Node
+	else
+	Result := Node.ChildNodes.FindNode(GetXMLNodeName);
+	if not assigned(Result) then exit;
+	try
+	mxSequence_No := GetIntAttr(Result, 'SequenceNo');
+	mxType := GetIntAttr(Result, 'Type');
+	mxAmount := GetInt64Attr(Result, 'Amount');
+	mxReference := GetTextAttr(Result, 'Reference');
+	mxParticulars := GetTextAttr(Result, 'Particulars');
+	mxAnalysis := GetTextAttr(Result, 'Analysis');
+	mxOther_Party := GetTextAttr(Result, 'OtherParty');
+	mxStatement_Details := GetTextAttr(Result, 'StatementDetails');
+	mxMatch_on_Amount := GetIntAttr(Result, 'MatchonAmount');
+	mxMatch_on_Refce := GetBoolAttr(Result, 'MatchonRefce');
+	mxMatch_on_Particulars := GetBoolAttr(Result, 'MatchonParticulars');
+	mxMatch_on_Analysis := GetBoolAttr(Result, 'MatchonAnalysis');
+	mxMatch_on_Other_Party := GetBoolAttr(Result, 'MatchonOtherParty');
+	mxMatch_On_Statement_Details := GetBoolAttr(Result, 'MatchOnStatementDetails');
+	
+	PNode := Result.ChildNodes.FindNode('Accounts');
+	if Assigned(PNode) then
+		CNode := PNode.ChildNodes.FindNode('Account')
+	else
+		CNode := Nil;
+	for I := low(mxAccount) to High(mxAccount) do begin
+		if Assigned(CNode) then begin
+			if CNode.Nodevalue <> null then 
+				mxAccount[I] := CNode.Nodevalue
+			else mxAccount[I] := '';
+			CNode := CNode.NextSibling;
+		end else
+			mxAccount[I] := ''
+	end;
+
+	GetArray(Result, 'Percentages', mxPercentage);
+	GetArray(Result, 'GSTClass', mxGST_Class);
+	mxPayee_Number := GetIntAttr(Result, 'PayeeNumber');
+	mxFrom_Master_List := GetBoolAttr(Result, 'FromMasterList');
+	GetArray(Result, 'GSTHasBeenEdited', mxGST_Has_Been_Edited);
+	mxMatch_on_Notes := GetBoolAttr(Result, 'MatchonNotes');
+	mxNotes := GetTextAttr(Result, 'Notes');
+	
+	PNode := Result.ChildNodes.FindNode('GLNarrations');
+	if Assigned(PNode) then
+		CNode := PNode.ChildNodes.FindNode('GLNarration')
+	else
+		CNode := Nil;
+	for I := low(mxGL_Narration) to High(mxGL_Narration) do begin
+		if Assigned(CNode) then begin
+			if CNode.Nodevalue <> null then 
+				mxGL_Narration[I] := CNode.Nodevalue
+			else mxGL_Narration[I] := '';
+			CNode := CNode.NextSibling;
+		end else
+			mxGL_Narration[I] := ''
+	end;
+
+	GetArray(Result, 'LineTypes', mxLine_Type);
+	except
+		on E: Exception do ReRaise (E, 'Reading TMemorised_Transaction_Rec');
+	end;
+
+	CNode := nil;
+	CCNode := nil;
+	PNode := nil;
+end;
+
+// ----------------------------------------------------------------------------
+
+class function TCustom_Heading_RecHelper.GetXMLNodeName: string;
+begin
+	result := 'BKCustomHeading';
+end;
+
+
+function TCustom_Heading_RecHelper.WriteRecToNode(var Node: IXMLNode): IXMLNode;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J, M: Integer;
+begin
+	Result := Node.AddChild(GetXMLNodeName);
+	SetIntAttr(Result, 'HeadingType', hdHeading_Type);
+	SetTextAttr(Result, 'Heading', hdHeading);
+	SetIntAttr(Result, 'MajorID', hdMajor_ID);
+	SetIntAttr(Result, 'MinorID', hdMinor_ID);
+
+	CNode := nil;
+	CCNode := nil;
+	PNode := nil;
+end;
+
+
+function TCustom_Heading_RecHelper.ReadRecFromNode(Node :IXMLNode): IXMLNode;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J: Integer;
+begin
+	if Node.NodeName = GetXMLNodeName then Result := Node
+	else
+	Result := Node.ChildNodes.FindNode(GetXMLNodeName);
+	if not assigned(Result) then exit;
+	try
+	hdHeading_Type := GetIntAttr(Result, 'HeadingType');
+	hdHeading := GetTextAttr(Result, 'Heading');
+	hdMajor_ID := GetIntAttr(Result, 'MajorID');
+	hdMinor_ID := GetIntAttr(Result, 'MinorID');
+	except
+		on E: Exception do ReRaise (E, 'Reading TCustom_Heading_Rec');
+	end;
+
+	CNode := nil;
+	CCNode := nil;
+	PNode := nil;
+end;
+
+// ----------------------------------------------------------------------------
+
+class function TMacro_RecHelper.GetXMLNodeName: string;
+begin
+	result := 'BKMacro';
+end;
+
+
+function TMacro_RecHelper.WriteRecToNode(var Node: IXMLNode): IXMLNode;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J, M: Integer;
+begin
+	Result := Node.AddChild(GetXMLNodeName);
+	SetTextAttr(Result, 'Code', maCode);
+	SetTextAttr(Result, 'Description', maDescription);
+
+	CNode := nil;
+	CCNode := nil;
+	PNode := nil;
+end;
+
+
+function TMacro_RecHelper.ReadRecFromNode(Node :IXMLNode): IXMLNode;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J: Integer;
+begin
+	if Node.NodeName = GetXMLNodeName then Result := Node
+	else
+	Result := Node.ChildNodes.FindNode(GetXMLNodeName);
+	if not assigned(Result) then exit;
+	try
+	maCode := GetTextAttr(Result, 'Code');
+	maDescription := GetTextAttr(Result, 'Description');
+	except
+		on E: Exception do ReRaise (E, 'Reading TMacro_Rec');
+	end;
+
+	CNode := nil;
+	CCNode := nil;
+	PNode := nil;
+end;
+
+// ----------------------------------------------------------------------------
+
+class function TFuel_Sheet_RecHelper.GetXMLNodeName: string;
+begin
+	result := 'BKFuelSheet';
+end;
+
+
+function TFuel_Sheet_RecHelper.WriteRecToNode(var Node: IXMLNode): IXMLNode;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J, M: Integer;
+begin
+	Result := Node.AddChild(GetXMLNodeName);
+	SetTextAttr(Result, 'Account', fsAccount);
+	SetTextAttr(Result, 'FuelType', fsFuel_Type);
+	SetInt64Attr(Result, 'FuelLitres', fsFuel_Litres);
+	SetTextAttr(Result, 'FuelUse', fsFuel_Use);
+	SetInt64Attr(Result, 'Percentage', fsPercentage);
+	SetInt64Attr(Result, 'FuelEligible', fsFuel_Eligible);
+	SetInt64Attr(Result, 'CreditRate', fsCredit_Rate);
+
+	CNode := nil;
+	CCNode := nil;
+	PNode := nil;
+end;
+
+
+function TFuel_Sheet_RecHelper.ReadRecFromNode(Node :IXMLNode): IXMLNode;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J: Integer;
+begin
+	if Node.NodeName = GetXMLNodeName then Result := Node
+	else
+	Result := Node.ChildNodes.FindNode(GetXMLNodeName);
+	if not assigned(Result) then exit;
+	try
+	fsAccount := GetTextAttr(Result, 'Account');
+	fsFuel_Type := GetTextAttr(Result, 'FuelType');
+	fsFuel_Litres := GetInt64Attr(Result, 'FuelLitres');
+	fsFuel_Use := GetTextAttr(Result, 'FuelUse');
+	fsPercentage := GetInt64Attr(Result, 'Percentage');
+	fsFuel_Eligible := GetInt64Attr(Result, 'FuelEligible');
+	fsCredit_Rate := GetInt64Attr(Result, 'CreditRate');
+	except
+		on E: Exception do ReRaise (E, 'Reading TFuel_Sheet_Rec');
+	end;
+
+	CNode := nil;
+	CCNode := nil;
+	PNode := nil;
+end;
+
+// ----------------------------------------------------------------------------
+
+class function TMoreClient_RecHelper.GetXMLNodeName: string;
+begin
+	result := 'BKMoreClient';
+end;
+
+
+function TMoreClient_RecHelper.WriteRecToNode(var Node: IXMLNode): IXMLNode;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J, M: Integer;
+begin
+	Result := Node.AddChild(GetXMLNodeName);
+	SetBoolAttr(Result, 'BASDontPrintFuelSheet', mcBAS_Dont_Print_Fuel_Sheet);
+	SetBoolAttr(Result, 'Archived', mcArchived);
+	SetIntAttr(Result, 'JournalProcessingDuration', mcJournal_Processing_Duration);
+
+	CNode := nil;
+	CCNode := nil;
+	PNode := nil;
+end;
+
+
+function TMoreClient_RecHelper.ReadRecFromNode(Node :IXMLNode): IXMLNode;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J: Integer;
+begin
+	if Node.NodeName = GetXMLNodeName then Result := Node
+	else
+	Result := Node.ChildNodes.FindNode(GetXMLNodeName);
+	if not assigned(Result) then exit;
+	try
+	mcBAS_Dont_Print_Fuel_Sheet := GetBoolAttr(Result, 'BASDontPrintFuelSheet');
+	mcArchived := GetBoolAttr(Result, 'Archived');
+	mcJournal_Processing_Duration := GetIntAttr(Result, 'JournalProcessingDuration');
+	except
+		on E: Exception do ReRaise (E, 'Reading TMoreClient_Rec');
+	end;
+
+	CNode := nil;
+	CCNode := nil;
+	PNode := nil;
+end;
+
+// ----------------------------------------------------------------------------
+
+class function TJob_Heading_RecHelper.GetXMLNodeName: string;
+begin
+	result := 'BKJobHeading';
+end;
+
+
+function TJob_Heading_RecHelper.WriteRecToNode(var Node: IXMLNode): IXMLNode;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J, M: Integer;
+begin
+	Result := Node.AddChild(GetXMLNodeName);
+	SetTextAttr(Result, 'Heading', jhHeading);
+	SetIntAttr(Result, 'LRN', jhLRN);
+	SetIntAttr(Result, 'DateCompleted', jhDate_Completed);
+	SetTextAttr(Result, 'Code', jhCode);
+
+	CNode := nil;
+	CCNode := nil;
+	PNode := nil;
+end;
+
+
+function TJob_Heading_RecHelper.ReadRecFromNode(Node :IXMLNode): IXMLNode;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J: Integer;
+begin
+	if Node.NodeName = GetXMLNodeName then Result := Node
+	else
+	Result := Node.ChildNodes.FindNode(GetXMLNodeName);
+	if not assigned(Result) then exit;
+	try
+	jhHeading := GetTextAttr(Result, 'Heading');
+	jhLRN := GetIntAttr(Result, 'LRN');
+	jhDate_Completed := GetIntAttr(Result, 'DateCompleted');
+	jhCode := GetTextAttr(Result, 'Code');
+	except
+		on E: Exception do ReRaise (E, 'Reading TJob_Heading_Rec');
+	end;
+
+	CNode := nil;
+	CCNode := nil;
+	PNode := nil;
+end;
+
+// ----------------------------------------------------------------------------
+
+class function TClientExtra_RecHelper.GetXMLNodeName: string;
+begin
+	result := 'BKClientExtra';
+end;
+
+
+function TClientExtra_RecHelper.WriteRecToNode(var Node: IXMLNode): IXMLNode;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J, M: Integer;
+begin
+	Result := Node.AddChild(GetXMLNodeName);
+	PNode := result.AddChild('TAXRates');
+	M :=  Low(ceTAX_Rates);
+	for I := Low(ceTAX_Rates) to High(ceTAX_Rates) do
+		for J := Low(ceTAX_Rates[I]) to High(ceTAX_Rates[I]) do
+			if ceTAX_Rates[I,J] > 0 then begin
+				M := I;
+				Break;
+			end;
+	for I := low(ceTAX_Rates) to M do begin
+		CNode := PNode.AddChild('TAXRates');
+		CNode := CNode.AddChild('TAXRates');
+		for J := Low(ceTAX_Rates[I]) to High(ceTAX_Rates[I]) do begin
+			CCNode := CNode.AddChild('TAXRate');
+			CCNode.NodeValue := (ceTAX_Rates[I,J]);
+		end;
+	end;
+	SetIntAttr(Result, 'ListEntriesSortOrder', ceList_Entries_Sort_Order);
+	SetIntAttr(Result, 'ListEntriesInclude', ceList_Entries_Include);
+	SetBoolAttr(Result, 'ListEntriesTwoColumn', ceList_Entries_Two_Column);
+	SetBoolAttr(Result, 'ListEntriesShowBalance', ceList_Entries_Show_Balance);
+	SetBoolAttr(Result, 'ListEntriesShowNotes', ceList_Entries_Show_Notes);
+	SetBoolAttr(Result, 'ListEntriesWrapNarration', ceList_Entries_Wrap_Narration);
+	SetBoolAttr(Result, 'ListEntriesShowOtherParty', ceList_Entries_Show_Other_Party);
+	SetBoolAttr(Result, 'BookGenFinanceReports', ceBook_Gen_Finance_Reports);
+	SetBoolAttr(Result, 'FRSPrintNPChartCodeTitles', ceFRS_Print_NP_Chart_Code_Titles);
+	SetIntAttr(Result, 'FRSNPChartCodeDetailType', ceFRS_NP_Chart_Code_Detail_Type);
+	SetBoolAttr(Result, 'AllowClientUnlockEntries', ceAllow_Client_Unlock_Entries);
+	SetBoolAttr(Result, 'AllowClientEditChart', ceAllow_Client_Edit_Chart);
+	SetBoolAttr(Result, 'ECodingDontSendJobs', ceECoding_Dont_Send_Jobs);
+	SetTextAttr(Result, 'CustomCodingReportXML', ceCustom_Coding_Report_XML);
+	SetBoolAttr(Result, 'CustomCodingReport', ceCustom_Coding_Report);
+	SetBoolAttr(Result, 'CodingReportColumnLine', ceCoding_Report_Column_Line);
+	SetTextAttr(Result, 'ScheduledCustomCRXML', ceScheduled_Custom_CR_XML);
+	SetBoolAttr(Result, 'BudgetIncludeQuantities', ceBudget_Include_Quantities);
+	SetBoolAttr(Result, 'ScheduledCRColumnLine', ceScheduled_CR_Column_Line);
+	SetBoolAttr(Result, 'CustomLedgerReport', ceCustom_Ledger_Report);
+	SetTextAttr(Result, 'CustomLedgerReportXML', ceCustom_Ledger_Report_XML);
+	SetTextAttr(Result, 'LocalCurrencyCode', ceLocal_Currency_Code);
+	SetBoolAttr(Result, 'BlockClientEditMems', ceBlock_Client_Edit_Mems);
+	SetBoolAttr(Result, 'SendCustomDocuments', ceSend_Custom_Documents);
+	PNode := Result.AddChild('SendCustomDocumentsLists');
+	M :=  Low(ceSend_Custom_Documents_List);
+	for I := Low(ceSend_Custom_Documents_List) to High(ceSend_Custom_Documents_List) do
+		if  ceSend_Custom_Documents_List[I] > '' then
+			M := I;
+	for I := Low(ceSend_Custom_Documents_List) to M do begin
+		CNode := PNode.AddChild('SendCustomDocumentsList');
+		CNode.NodeValue := ceSend_Custom_Documents_List[I];
+	end;
+	SetBoolAttr(Result, 'ListPayeesDetailed', ceList_Payees_Detailed);
+	SetIntAttr(Result, 'ListPayeesSortBy', ceList_Payees_SortBy);
+	SetBoolAttr(Result, 'ListPayeesRuleLine', ceList_Payees_Rule_Line);
+	PNode := Result.AddChild('CustomSFLedgerTitles');
+	M :=  Low(ceCustom_SFLedger_Titles);
+	for I := Low(ceCustom_SFLedger_Titles) to High(ceCustom_SFLedger_Titles) do
+		if  ceCustom_SFLedger_Titles[I] > '' then
+			M := I;
+	for I := Low(ceCustom_SFLedger_Titles) to M do begin
+		CNode := PNode.AddChild('CustomSFLedgerTitle');
+		CNode.NodeValue := ceCustom_SFLedger_Titles[I];
+	end;
+	SetIntAttr(Result, 'SUIPeriodStart', ceSUI_Period_Start);
+	SetIntAttr(Result, 'SUIPeriodEnd', ceSUI_Period_End);
+	SetArray(Result, 'SUIStepDones', ceSUI_Step_Done);
+	SetBoolAttr(Result, 'SendJobList', ceSend_Job_List);
+	SetTextAttr(Result, 'SpareString', ceSpare_String);
+	SetBoolAttr(Result, 'OnlineScheduledReports', ceOnline_Scheduled_Reports);
+	SetIntAttr(Result, 'FileTransferMethod', ceFile_Transfer_Method);
+	SetTextAttr(Result, 'OnlineBillingFrequency', ceOnlineBillingFrequency);
+	SetIntAttr(Result, 'OnlineMaxOfflineDays', ceOnlineMaxOfflineDays);
+	SetIntAttr(Result, 'OnlineStatus', ceOnlineStatus);
+	PNode := Result.AddChild('OnlineSubscriptions');
+	M :=  Low(ceOnlineSubscription);
+	for I := Low(ceOnlineSubscription) to High(ceOnlineSubscription) do
+		if  ceOnlineSubscription[I] > '' then
+			M := I;
+	for I := Low(ceOnlineSubscription) to M do begin
+		CNode := PNode.AddChild('OnlineSubscription');
+		CNode.NodeValue := ceOnlineSubscription[I];
+	end;
+	SetTextAttr(Result, 'OnlineUserEMail', ceOnlineUserEMail);
+	SetTextAttr(Result, 'OnlineUserFullName', ceOnlineUserFullName);
+	SetBoolAttr(Result, 'OnlineValuesStored', ceOnlineValuesStored);
+	SetIntAttr(Result, 'OnlineSubscriptionCount', ceOnlineSubscriptionCount);
+	SetBoolAttr(Result, 'DeliverDataDirectToBLO', ceDeliverDataDirectToBLO);
+	SetTextAttr(Result, 'BLOSecureCode', ceBLOSecureCode);
+
+	CNode := nil;
+	CCNode := nil;
+	PNode := nil;
+end;
+
+
+function TClientExtra_RecHelper.ReadRecFromNode(Node :IXMLNode): IXMLNode;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J: Integer;
+begin
+	if Node.NodeName = GetXMLNodeName then Result := Node
+	else
+	Result := Node.ChildNodes.FindNode(GetXMLNodeName);
+	if not assigned(Result) then exit;
+	try
+		PNode := Result.ChildNodes.FindNode('TAXRates');
+	if Assigned(PNode) then begin
+		PNode := PNode.ChildNodes.FindNode('TAXRates');
+	end;
+	for I := low(ceTAX_Rates) to High(ceTAX_Rates) do begin
+		if Assigned(PNode) then begin
+			CNode := PNode.ChildNodes.FindNode('TAXRates');
+			if Assigned(CNode) then
+				CCNode := CNode.ChildNodes.FindNode('TAXRate')
+			else CCNode := Nil;
+		end else
+			CNode := Nil;
+		for J := Low(ceTAX_Rates[I]) to High(ceTAX_Rates[I]) do begin
+			if Assigned(CCNode) then begin
+				ceTAX_Rates[I,J] := CCNode.Nodevalue;
+				CCNode := CCNode.NextSibling;
+			end else
+				ceTAX_Rates[I,J] := 0;
+		end;
+			if Assigned(PNode) then
+				PNode := PNode.NextSibling;
+	end;
+	ceList_Entries_Sort_Order := GetIntAttr(Result, 'ListEntriesSortOrder');
+	ceList_Entries_Include := GetIntAttr(Result, 'ListEntriesInclude');
+	ceList_Entries_Two_Column := GetBoolAttr(Result, 'ListEntriesTwoColumn');
+	ceList_Entries_Show_Balance := GetBoolAttr(Result, 'ListEntriesShowBalance');
+	ceList_Entries_Show_Notes := GetBoolAttr(Result, 'ListEntriesShowNotes');
+	ceList_Entries_Wrap_Narration := GetBoolAttr(Result, 'ListEntriesWrapNarration');
+	ceList_Entries_Show_Other_Party := GetBoolAttr(Result, 'ListEntriesShowOtherParty');
+	ceBook_Gen_Finance_Reports := GetBoolAttr(Result, 'BookGenFinanceReports');
+	ceFRS_Print_NP_Chart_Code_Titles := GetBoolAttr(Result, 'FRSPrintNPChartCodeTitles');
+	ceFRS_NP_Chart_Code_Detail_Type := GetIntAttr(Result, 'FRSNPChartCodeDetailType');
+	ceAllow_Client_Unlock_Entries := GetBoolAttr(Result, 'AllowClientUnlockEntries');
+	ceAllow_Client_Edit_Chart := GetBoolAttr(Result, 'AllowClientEditChart');
+	ceECoding_Dont_Send_Jobs := GetBoolAttr(Result, 'ECodingDontSendJobs');
+	ceCustom_Coding_Report_XML := GetTextAttr(Result, 'CustomCodingReportXML');
+	ceCustom_Coding_Report := GetBoolAttr(Result, 'CustomCodingReport');
+	ceCoding_Report_Column_Line := GetBoolAttr(Result, 'CodingReportColumnLine');
+	ceScheduled_Custom_CR_XML := GetTextAttr(Result, 'ScheduledCustomCRXML');
+	ceBudget_Include_Quantities := GetBoolAttr(Result, 'BudgetIncludeQuantities');
+	ceScheduled_CR_Column_Line := GetBoolAttr(Result, 'ScheduledCRColumnLine');
+	ceCustom_Ledger_Report := GetBoolAttr(Result, 'CustomLedgerReport');
+	ceCustom_Ledger_Report_XML := GetTextAttr(Result, 'CustomLedgerReportXML');
+	ceLocal_Currency_Code := GetTextAttr(Result, 'LocalCurrencyCode');
+	ceBlock_Client_Edit_Mems := GetBoolAttr(Result, 'BlockClientEditMems');
+	ceSend_Custom_Documents := GetBoolAttr(Result, 'SendCustomDocuments');
+	
+	PNode := Result.ChildNodes.FindNode('SendCustomDocumentsLists');
+	if Assigned(PNode) then
+		CNode := PNode.ChildNodes.FindNode('SendCustomDocumentsList')
+	else
+		CNode := Nil;
+	for I := low(ceSend_Custom_Documents_List) to High(ceSend_Custom_Documents_List) do begin
+		if Assigned(CNode) then begin
+			if CNode.Nodevalue <> null then 
+				ceSend_Custom_Documents_List[I] := CNode.Nodevalue
+			else ceSend_Custom_Documents_List[I] := '';
+			CNode := CNode.NextSibling;
+		end else
+			ceSend_Custom_Documents_List[I] := ''
+	end;
+
+	ceList_Payees_Detailed := GetBoolAttr(Result, 'ListPayeesDetailed');
+	ceList_Payees_SortBy := GetIntAttr(Result, 'ListPayeesSortBy');
+	ceList_Payees_Rule_Line := GetBoolAttr(Result, 'ListPayeesRuleLine');
+	
+	PNode := Result.ChildNodes.FindNode('CustomSFLedgerTitles');
+	if Assigned(PNode) then
+		CNode := PNode.ChildNodes.FindNode('CustomSFLedgerTitle')
+	else
+		CNode := Nil;
+	for I := low(ceCustom_SFLedger_Titles) to High(ceCustom_SFLedger_Titles) do begin
+		if Assigned(CNode) then begin
+			if CNode.Nodevalue <> null then 
+				ceCustom_SFLedger_Titles[I] := CNode.Nodevalue
+			else ceCustom_SFLedger_Titles[I] := '';
+			CNode := CNode.NextSibling;
+		end else
+			ceCustom_SFLedger_Titles[I] := ''
+	end;
+
+	ceSUI_Period_Start := GetIntAttr(Result, 'SUIPeriodStart');
+	ceSUI_Period_End := GetIntAttr(Result, 'SUIPeriodEnd');
+	GetArray(Result, 'SUIStepDones', ceSUI_Step_Done);
+	ceSend_Job_List := GetBoolAttr(Result, 'SendJobList');
+	ceSpare_String := GetTextAttr(Result, 'SpareString');
+	ceOnline_Scheduled_Reports := GetBoolAttr(Result, 'OnlineScheduledReports');
+	ceFile_Transfer_Method := GetIntAttr(Result, 'FileTransferMethod');
+	ceOnlineBillingFrequency := GetTextAttr(Result, 'OnlineBillingFrequency');
+	ceOnlineMaxOfflineDays := GetIntAttr(Result, 'OnlineMaxOfflineDays');
+	ceOnlineStatus := GetIntAttr(Result, 'OnlineStatus');
+	
+	PNode := Result.ChildNodes.FindNode('OnlineSubscriptions');
+	if Assigned(PNode) then
+		CNode := PNode.ChildNodes.FindNode('OnlineSubscription')
+	else
+		CNode := Nil;
+	for I := low(ceOnlineSubscription) to High(ceOnlineSubscription) do begin
+		if Assigned(CNode) then begin
+			if CNode.Nodevalue <> null then 
+				ceOnlineSubscription[I] := CNode.Nodevalue
+			else ceOnlineSubscription[I] := '';
+			CNode := CNode.NextSibling;
+		end else
+			ceOnlineSubscription[I] := ''
+	end;
+
+	ceOnlineUserEMail := GetTextAttr(Result, 'OnlineUserEMail');
+	ceOnlineUserFullName := GetTextAttr(Result, 'OnlineUserFullName');
+	ceOnlineValuesStored := GetBoolAttr(Result, 'OnlineValuesStored');
+	ceOnlineSubscriptionCount := GetIntAttr(Result, 'OnlineSubscriptionCount');
+	ceDeliverDataDirectToBLO := GetBoolAttr(Result, 'DeliverDataDirectToBLO');
+	ceBLOSecureCode := GetTextAttr(Result, 'BLOSecureCode');
+	except
+		on E: Exception do ReRaise (E, 'Reading TClientExtra_Rec');
+	end;
+
+	CNode := nil;
+	CCNode := nil;
+	PNode := nil;
+end;
+
+
+end.
+
