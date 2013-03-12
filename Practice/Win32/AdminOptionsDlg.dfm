@@ -524,6 +524,15 @@ object dlgAdminOptions: TdlgAdminOptions
         Height = 21
         TabOrder = 4
       end
+      object Button1: TButton
+        Left = 146
+        Top = 373
+        Width = 137
+        Height = 25
+        Caption = 'Check Oplocks'
+        TabOrder = 6
+        OnClick = Button1Click
+      end
     end
     object tsInterfaces: TTabSheet
       Caption = 'Interfaces'

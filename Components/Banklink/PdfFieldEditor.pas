@@ -246,8 +246,7 @@ type
     function GetCheckBoxTickOn : TPicture;
     procedure SetCheckBoxTickOff(aValue: TPicture);
     function GetCheckBoxTickOff : TPicture;
-
-    procedure FlattenField(aQuickPDF : TQuickPDF; aFieldIndex : integer);
+    procedure DrawQRCodeOnPDF(aQuickPDF : TQuickPDF);
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;

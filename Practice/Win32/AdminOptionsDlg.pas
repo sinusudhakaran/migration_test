@@ -117,6 +117,7 @@ type
     btnReportPwd: TButton;
     chkReportPwd: TCheckBox;
     pnlCESFont: TPanel;
+    Button1: TButton;
     btnReset: TButton;
     cbSize: TRzComboBox;
     cbceFont: TRzFontComboBox;
@@ -169,7 +170,7 @@ type
 
     procedure UpdateFontLabel;
 
-   
+    procedure CheckOpportunisticLocking;
 
 
     { Private declarations }
@@ -212,7 +213,9 @@ uses
   UpgradeHelper,
   LockUtils,
   //ReportStylesDlg,
-  ChangePwdDlg, EnterPwdDlg, bkdateutils;
+  ChangePwdDlg, EnterPwdDlg, bkdateutils,
+  Registry,
+  StrUtils, LOGUTIL;
 
 {$R *.dfm}
 
