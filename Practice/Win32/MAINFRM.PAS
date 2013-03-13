@@ -802,8 +802,8 @@ type
     procedure ShowExportTransactionsDialog;
     procedure ExportTransactionsToBankLinkOnline;
 
-    procedure ExportTaggedAccounts(ProgressForm: ISingleProgressForm; CallbackParams: Pointer);
-    
+    procedure ExportTaggedAccounts(ProgressForm: IDualProgressForm; CallbackParams: Pointer);
+
     //procedure ThreadMessage(var Message: TMessage);	message THREAD_MESSAGE;
   protected
     procedure UpdateActions; override;

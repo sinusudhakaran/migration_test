@@ -14,7 +14,7 @@ unit baObj32;
 interface
 uses
   bkdateutils,classes, bkdefs, iostream, trxList32, mxList32, moneydef, MatchedItemsList,
-  MemorisationsObj, AuditMgr, glList32, frList32;
+  MemorisationsObj, AuditMgr, glList32, frList32, dxList32;
 
 type
   pDailyBalancesRec = ^tDailyBalancesRec;
@@ -28,6 +28,7 @@ type
     baOld_Memorised_Transaction_List : tMemorised_Transaction_List_V53;
     baMemorisations_List : MemorisationsObj.TMemorisations_List;
     baExchange_Gain_Loss_List: TExchange_Gain_Loss_List;
+    baDeleted_Transaction_List: TDeleted_Transaction_List;
     baFinalized_Exchange_Rate_List: TFinalized_Exchange_Rate_List;
   private
     FMatched_Items_List : tMatched_Items_List;
@@ -557,6 +558,7 @@ begin
 
    baExchange_Gain_Loss_List := TExchange_Gain_Loss_List.Create(AuditMgr);
 
+   baDeleted_Transaction_List := TDeleted_Transaction_List.Create;
    baFinalized_Exchange_Rate_List := TFinalized_Exchange_Rate_List.Create;
 
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
@@ -609,6 +611,7 @@ begin
    baTransaction_List.Free;
    baOld_Memorised_Transaction_List.Free;
    baMemorisations_List.Free;
+   baDeleted_Transaction_List.Free;
    FreeAndNil(baExchange_Gain_Loss_List);
    FreeAndNil(baFinalized_Exchange_Rate_List);
    FMatched_Items_List.Free;
@@ -752,6 +755,7 @@ Begin
          tkBeginMatchedItems     : FMatched_Items_List.LoadFromFile( S);
          tkBeginMemorisationsList : baMemorisations_List.LoadFromStream(S);
          tkBeginExchange_Gain_Loss_List: baExchange_Gain_Loss_List.LoadFromFile(S);
+         tkBeginDeleted_Transaction_List: baDeleted_Transaction_List.LoadFromFile(S);  
          tkBeginFinalized_Exchange_Rate_List: baFinalized_Exchange_Rate_List.LoadFromFile(S);  
          else
          begin { Should never happen }
@@ -787,6 +791,7 @@ begin
    baTransaction_List.SaveToFile( S );
    baMemorisations_List.SaveToStream( S);
    baExchange_Gain_Loss_List.SaveToFile(S); 
+   baDeleted_Transaction_List.SaveToFile(S); 
    baFinalized_Exchange_Rate_List.SaveToFile(S);
 
    //as of version 60.5 this list is no longer used.  It should be removed

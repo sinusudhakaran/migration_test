@@ -217,6 +217,14 @@ object frmTaxablePaymentsRptDlg: TfrmTaxablePaymentsRptDlg
       TabOrder = 1
       OnClick = rbSummarisedClick
     end
+    object chkWrapColumnText: TCheckBox
+      Left = 28
+      Top = 42
+      Width = 161
+      Height = 17
+      Caption = 'Wrap Text'
+      TabOrder = 2
+    end
   end
   object pnlSelectedCodes: TPanel
     Left = 344

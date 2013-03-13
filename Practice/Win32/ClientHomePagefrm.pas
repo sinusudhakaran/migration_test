@@ -1616,7 +1616,7 @@ begin
      try
         // Something to refresh..
         if ([HRP_Init,HPR_Coding,HPR_Files] * FRefreshRequest) <> [] then
-           RefreshCoding;
+           RefreshCoding(False);
 
         if ([HRP_Init,HPR_Client] * FRefreshRequest) <> [] then
            RefreshClient;

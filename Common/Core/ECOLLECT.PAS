@@ -40,7 +40,7 @@ type
     procedure SetLimit( NewLimit : integer ); virtual;
     procedure SetCount( NewCount : integer );
   public
-    constructor create;
+    constructor create; virtual;
     destructor Destroy; override;
 
     procedure AtInsert( Index : integer; Item : Pointer );

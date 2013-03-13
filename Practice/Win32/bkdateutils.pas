@@ -56,15 +56,31 @@ Function GetMonthEndDates( Const YSD : Integer ): TMonthEndDates;
 Function GetDateRangeS( CONST FromDate, ToDate: Integer ) : ShortString; overload;
 function GetDateRangeS( const DR : TDateRange): ShortString; overload;
 function GetPeriodsBetween(FromDate, ToDate: Integer; ReturnLastDay: Boolean = False): TDateList;
+function BkDate2XSDate(ADate: Integer): String;
 function GetLastDayOfLastMonth(Date: TStDate): TStDate;
 
 // -----------------------------------------------------------------------------
 Implementation
 // -----------------------------------------------------------------------------
 uses
-  SysUtils, Holidays;  // <- Only links to StDate
+  SysUtils, Holidays, XSBuiltIns;  // <- Only links to StDate
 
 {19xx will be applied to dates until more than 30years less that today}
+
+function BkDate2XSDate(ADate: Integer): String;
+var
+  XSDate: TXSDate;
+begin
+  XSDate := TXSDate.Create;
+
+  try
+    XSDate.AsDate := StDateToDateTime(ADate);
+
+    Result := XSDate.NativeToXS;
+  finally
+    XSDate.Free;
+  end;
+end;
 
 Function GetYearEndDate( CONST YearStartDate: Integer) : Integer;
 Var

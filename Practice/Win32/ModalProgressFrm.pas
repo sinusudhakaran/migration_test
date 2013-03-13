@@ -15,17 +15,6 @@ type
   TStartProcessEvent = procedure(Sender: ISingleProgressForm) of object;
   TStartProcessExEvent = procedure(Sender: ISingleProgressForm; CallbackParams: Pointer) of object;
 
-  TProgressException = record
-    ClassType: TClass;
-    Message: String;
-  end;
-  
-  TProgressData = record
-    CallbackParams: Pointer;
-    ExceptionRaised: Boolean;
-    Exception: TProgressException;
-  end;
-
   TfrmModalProgress = class(TForm, ISingleProgressForm)
     lblProgressTitle: TLabel;
     prgProgress: TRzProgressBar;

@@ -68,11 +68,86 @@ function GetJobName(pD: pTransaction_Rec; Client: TClientObj): String; overload;
 function GetPayeeName(pD: pDissection_Rec; Client: TClientObj): String; overload;
 function GetJobName(pD: pDissection_Rec; Client: TClientObj): String; overload;
 
+function IsFullyCodedTransaction(Client: TClientObj; Transaction: pTransaction_Rec): Boolean;
+
+function RecordDeletedTransactionData(BankAccount: TBank_Account; Transaction: pTransaction_Rec): Boolean;
+
 //******************************************************************************
 implementation
 uses
-  bkConst, ComObj, SysUtils, Globals, bkdateutils, PayeeObj;
+  bkConst, ComObj, SysUtils, Globals, bkdateutils, PayeeObj, ForexHelpers;
 
+function RecordDeletedTransactionData(BankAccount: TBank_Account; Transaction: pTransaction_Rec): Boolean;
+begin
+  if Transaction.txIsOnline_Transaction then
+  begin
+    Result := BankAccount.baDeleted_Transaction_List.FindByExternalGuid(Transaction.txExternal_GUID) = nil;
+  end
+  else
+  begin
+    Result := False;
+  end;
+end;
+
+function IsFullyCodedTransaction(Client: TClientObj; Transaction: pTransaction_Rec): Boolean;
+var
+  ChartIndex: Integer;
+  ChartAccount: pAccount_Rec;
+  Dissection: pDissection_Rec;
+begin
+  if Trim(Transaction.txAccount) <> '' then
+  begin
+    if Transaction.txFirst_Dissection <> nil then
+    begin
+      Dissection := Transaction.txFirst_Dissection;
+      
+      while Dissection <> nil do
+      begin
+        if Trim(Dissection.dsAccount) <> '' then
+        begin 
+          ChartAccount := Client.clChart.FindCode(Dissection.dsAccount);
+
+          if ChartAccount <> nil then
+          begin
+            Result := ChartAccount.chPosting_Allowed;
+          end
+          else
+          begin
+            Result := False;
+
+            Break;
+          end;
+        end
+        else
+        begin
+          Result := False;
+
+          Break;
+        end;
+
+        Dissection := Dissection.dsNext;      
+      end;
+    end
+    else
+    begin
+      ChartAccount := Client.clChart.FindCode(Transaction.txAccount);
+
+      if ChartAccount <> nil then
+      begin
+        Result := ChartAccount.chPosting_Allowed;
+      end
+      else
+      begin
+        Result := False;
+      end;
+    end;
+  end
+  else
+  begin
+    Result := False;
+  end;
+end;
+  
 function TrimGUID( aGUID : string) : string;
 begin
   result := StringReplace( aGUID, '-', '', [rfReplaceAll]);
