@@ -219,7 +219,7 @@ begin
 
   if not DirectoryExists( GLOBALS.TemplateDir ) then
   begin
-    HelpfulErrorMsg('Can''t find Templates Direcotry - ' + GLOBALS.TemplateDir, 0);
+    HelpfulErrorMsg('Can''t find Templates Directory - ' + GLOBALS.TemplateDir, 0);
     Exit;
   end;
 
@@ -255,8 +255,6 @@ begin
     PdfFieldEdit.AutoSetControlTabs;
 
     ResetFields;
-
-    CreateQRCode;
 
     Result := True;
   except
@@ -1101,27 +1099,37 @@ end;
 procedure TfrmNewCAF.btnEmailClick(Sender: TObject);
 begin
   if ValidateForm then
+  begin
+    CreateQRCode;
     SendPDFViaEmail;
+  end;
 end;
 
 //------------------------------------------------------------------------------
 procedure TfrmNewCAF.btnFileClick(Sender: TObject);
 begin
   if ValidateForm then
+  begin
+    CreateQRCode;
     SaveToFile;
+  end;
 end;
 
 //------------------------------------------------------------------------------
 procedure TfrmNewCAF.btnPrintClick(Sender: TObject);
 begin
   if ValidateForm then
+  begin
+    CreateQRCode;
     PrintPDF;
+  end;
 end;
 
 //------------------------------------------------------------------------------
 procedure TfrmNewCAF.btnResetFormClick(Sender: TObject);
 begin
   ResetFields;
+  CreateQRCode;
 end;
 
 //------------------------------------------------------------------------------

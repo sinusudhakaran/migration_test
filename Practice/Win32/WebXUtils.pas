@@ -42,7 +42,7 @@ implementation
 
 uses SysUtils, WDDX_COMLib_TLB, trxList32, bktxio, bkdsio, bkbaio, ECodingUtils,
   GenUtils, BKDateUtils, BKConst, stDate, glConst, PayeeObj, GSTCalc32, MoneyDef,
-  TransactionUtils, Globals, COMObj, WebXOffice, WinUtils;
+  TransactionUtils, Globals, COMObj, WebXOffice, WinUtils, UTransactionCompare;
 
 // Test to see if the file is an export file - if so we wont allow import
 function IsExportFile(const Filename: string): Boolean;
@@ -1516,6 +1516,7 @@ var
   ECT              : pTransaction_Rec;
   EMsg             : string;
   S                : string;
+  TransactionCompare: TTransactionCompare;
 begin
   //initialise counters
   RejectedCount     := 0;
@@ -1568,10 +1569,41 @@ begin
             S := Copy( Ba.baFields.baBank_Account_Number, 1, 2);
             //the way we import the transaction depends on whether or not the transaction
             //is dissected in WebXOffice
-            if ECT^.txFirst_Dissection = nil then
-              ImportStandardTransaction( ECT, T, aClient, S)
+
+            if T.txTransfered_To_Online then
+            begin
+              TransactionCompare := TDataExportTransactionCompare.Create(T);
+
+              try
+                if ECT^.txFirst_Dissection = nil then
+                begin
+                  ImportStandardTransaction( ECT, T, aClient, S);
+                end
+                else
+                begin
+                  ImportDissectedTransaction( ECT, T, aClient);
+                end;
+
+                if not TransactionCompare.IsEqual(T) then
+                begin
+                  T.txTransfered_To_Online := False;
+                end;
+              finally
+                TransactionCompare.Free;
+              end;
+            end
             else
-              ImportDissectedTransaction( ECT, T, aClient);
+            begin
+              if ECT^.txFirst_Dissection = nil then
+              begin
+                ImportStandardTransaction( ECT, T, aClient, S);
+              end
+              else
+              begin
+                ImportDissectedTransaction( ECT, T, aClient);
+              end;            
+            end;
+
             Inc( ImportedCount);
           end
           else
