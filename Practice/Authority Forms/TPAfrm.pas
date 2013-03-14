@@ -387,6 +387,7 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmTPA.FormShow(Sender: TObject);
 begin
+  FButton := BTN_NONE;
   BKHelpSetUp(Self, BKH_Accessing_a_Third_Party_Authority_form);
   ScrollBox1.ScrollInView(lblTitle); // scroll to top
 end;
