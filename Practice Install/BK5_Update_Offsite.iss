@@ -30,6 +30,8 @@ Source: "3rd Party\wPDF200a.DLL"; DestDir: "{app}"
 Source: "3rd Party\wPDFView01.DLL"; DestDir: "{app}"
 Source: "3rd Party\ipwssl6.dll"; DestDir: "{app}"
 Source: "3rd Party\gdiplus.dll"; DestDir: "{app}"
+Source: "3rd Party\libeay32.dll"; DestDir: "{app}"
+Source: "3rd Party\zint.dll"; DestDir: "{app}"
 
 [Registry]
 Root: HKCR; Subkey: ".bk5"; ValueType: string; ValueName: ""; ValueData: "BankLink.bkHandlr"; Flags: uninsdeletevalue
