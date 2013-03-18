@@ -15,6 +15,7 @@ type
   TIpAddress = array[0..14] of Char;
   TUserCode = array[0..7] of Char;
   TWorkstation = array[0..19] of Char;
+  TGroupId = array[0..35] of Char;
 
   TRequestType = (rtLockRequest, rtLoggingRequest, rtStatisticsRequest, rtUserLogin, rtClearLockQueue, rtReleaseAllLocks, rtRemoveLock, rtDisconnectAllUsers, rtDisconnectUser, rtSettingsRequest);
 
@@ -27,11 +28,13 @@ type
   TUserLoginCommand = record
     UserCode : TUserCode;
     Workstation : TWorkstation;
+    GroupId: TGroupId;
   end;
 
   TLockCommand = record
     RequestType: TLockRequestType;
     LockType: DWORD;
+    GroupId: TGroupId;
   end;
 
   TDisconnectUserCommand = record
@@ -86,6 +89,7 @@ type
     IpAddress: TIpAddress;
     UserCode: TUserCode;
     WorkstationName: TWorkstation;
+    GroupId: TGroupId;
   end;
 
   TLockInfo = record
@@ -96,6 +100,7 @@ type
     LockStatus: TLockStatus;
     TimeCreated: TDateTime;
     TimeAquired: TDateTime;
+    GroupId: TGroupId;
   end;
 
 function PackageRequest(RequestId: DWord; Request: TRequest): TRequestHeader;

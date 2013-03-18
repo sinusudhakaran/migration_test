@@ -15,9 +15,11 @@ type
     FUserCode: String;
     FWorkstation: String;
     FIPAddress: String;
+    FGroupId: TGroupId;
 
     procedure SetUserCode(const Value: String);
     procedure SetWorkstation(const Value: String);
+    procedure SetGroupId(const Value: TGroupId);
   public
     constructor Create(AID: ULongLong; AContext: TIdContext);
 
@@ -30,6 +32,8 @@ type
     property IPAddress: String read FIPAddress;
 
     property TimeConnected: TDateTime read FTimeConnected;
+
+    property GroupId: TGroupId read FGroupId write SetGroupId;
   end;
 
   TLockRecord = class
@@ -42,11 +46,12 @@ type
     FTimeCreated: TDateTime;
     FTimeAquired: TDateTime;
     FIPAddress: String;
+    FGroupId: TGroupId;
         
     procedure SetStatus(const Value: TLockStatus);
     procedure SetTimeAquired(const Value: TDateTime);
   public
-    constructor Create(AID: ULongLong; AToken: DWord; AContext: TIdContext; ALockType: DWord; AStatus: TLockStatus);
+    constructor Create(AID: ULongLong; AToken: DWord; AContext: TIdContext; ALockType: DWord; AStatus: TLockStatus; AGroupId: TGroupId);
 
     property ID: ULongLong read FID;
     
@@ -60,6 +65,8 @@ type
 
     property TimeCreated: TDateTime read FTimeCreated;
     property TimeAquired: TDateTime read FTimeAquired write SetTimeAquired;
+
+    property GroupId: TGroupId read FGroupId;
   end;
   
 implementation
@@ -77,6 +84,11 @@ begin
   FTimeConnected := Now;
 end;
 
+procedure TConnectionRecord.SetGroupId(const Value: TGroupId);
+begin
+  FGroupId := Value;
+end;
+
 procedure TConnectionRecord.SetUserCode(const Value: String);
 begin
   FUserCode := Value;
@@ -89,7 +101,7 @@ end;
 
 { TLockRecord }
 
-constructor TLockRecord.Create(AID: ULongLong; AToken: DWord; AContext: TIdContext; ALockType: DWord; AStatus: TLockStatus);
+constructor TLockRecord.Create(AID: ULongLong; AToken: DWord; AContext: TIdContext; ALockType: DWord; AStatus: TLockStatus; AGroupId: TGroupId);
 begin
   FID := AID;
   
@@ -107,12 +119,14 @@ begin
 
   if AStatus = lsAquired then
   begin
-    FTimeAquired := Now;
+    FTimeAquired := FTimeCreated;
   end
   else
   begin
     FTimeAquired := 0;
   end;
+
+  FGroupId := AGroupId;
 end;
 
 procedure TLockRecord.SetStatus(const Value: TLockStatus);

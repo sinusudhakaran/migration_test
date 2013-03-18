@@ -193,6 +193,33 @@ begin
     end;
   end;
 
+  if GetClientRequestOpsLockEnabled then
+  begin
+    LogUtil.LogMsg(lmInfo, 'ApplicationStartupAndShutDown', 'Request opportunistic Locking is enabled. This only applies when Practice is run on the client.');
+  end
+  else
+  begin
+    LogUtil.LogMsg(lmInfo, 'ApplicationStartupAndShutDown', 'Request opportunistic Locking is disabled. This only applies when Practice is run on the client.');
+  end;
+
+  if GetServerGrantOpsLockEnabled then
+  begin
+    LogUtil.LogMsg(lmInfo, 'ApplicationStartupAndShutDown', 'Grant Opportunistic Locking is enabled. This only applies when Practice is run on the server.');
+  end
+  else
+  begin
+    LogUtil.LogMsg(lmInfo, 'ApplicationStartupAndShutDown', 'Grant Opportunistic Locking is disabled. This only applies when Practice is run on the server.');
+  end;
+
+  if GetServerSMB2Enabled then
+  begin
+    LogUtil.LogMsg(lmInfo, 'ApplicationStartupAndShutDown', 'SMB2 is enabled. This only applies to the machine Practice is running on.');
+  end
+  else
+  begin
+    LogUtil.LogMsg(lmInfo, 'ApplicationStartupAndShutDown', 'SMB2 is disabled. This only applies to the machine Practice is running on.');
+  end;
+
   // Why Wait...
   ReportMemoryLeaksOnShutdown := PRACINI_ReportMemoryLeak;
 

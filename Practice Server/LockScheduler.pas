@@ -18,15 +18,15 @@ type
     constructor Create; virtual;
     destructor Destroy; override;
 
-    function RequestLock(Identifier: ULongLong; LockToken: DWord; Context: TIdContext; LockType: DWORD): TLockStatus;
-    function ReleaseLock(Context: TIdContext; LockType: DWord): TLockStatus; overload;
+    function RequestLock(Identifier: ULongLong; LockToken: DWord; Context: TIdContext; LockType: DWORD; GroupId: TGroupId): TLockStatus;
+    function ReleaseLock(Context: TIdContext; LockType: DWord; GroupId: TGroupId): TLockStatus; overload;
     function ReleaseLock(LockRecord: TLockRecord): TLockStatus; overload;
 
     procedure ReleaseAllLocks(Context: TIdContext; out ReleasedLocks: TReleasedLocks);
 
     procedure ClearQueue;
 
-    function AquireReleasedLock(LockType: DWord; out AquiredLock: TLockRecord): Boolean;
+    function AquireReleasedLock(LockType: DWord; GroupId: TGroupId; out AquiredLock: TLockRecord): Boolean;
 
     property QueueCount: Integer read GetQueueCount;
     property QueueRecord[Index: Integer]: TLockRecord read GetQueueRecord;
@@ -36,15 +36,15 @@ implementation
 
 { TLockScheduler }
 
-function TLockScheduler.RequestLock(Identifier: ULongLong; LockToken: DWord; Context: TIdContext; LockType: DWORD): TLockStatus;
+function TLockScheduler.RequestLock(Identifier: ULongLong; LockToken: DWord; Context: TIdContext; LockType: DWORD; GroupId: TGroupId): TLockStatus;
 var
   LockRecord: TLockRecord;
 begin
-  LockRecord := FLockQueue.Find(Context, LockType);
+  LockRecord := FLockQueue.Find(Context, LockType, GroupId);
 
   if LockRecord = nil then
   begin
-    if FLockQueue.FindAquired(LockType) = nil then
+    if FLockQueue.FindAquired(LockType, GroupId) = nil then
     begin
       Result := lsAquired;
     end
@@ -53,7 +53,7 @@ begin
       Result := lsWaiting;
     end;
 
-    FLockQueue.Add(Identifier, LockToken, Context, LockType, Result);
+    FLockQueue.Add(Identifier, LockToken, Context, LockType, Result, GroupId);
   end
   else
   begin
@@ -95,11 +95,11 @@ begin
   Result := FLockQueue[Index];
 end;
 
-function TLockScheduler.AquireReleasedLock(LockType: DWord; out AquiredLock: TLockRecord): Boolean;
+function TLockScheduler.AquireReleasedLock(LockType: DWord; GroupId: TGroupId; out AquiredLock: TLockRecord): Boolean;
 var
   LockRecord: TLockRecord;
 begin
-  LockRecord := FLockQueue.FindFirstWaiting(LockType);
+  LockRecord := FLockQueue.FindFirstWaiting(LockType, GroupId);
 
   if LockRecord <> nil then
   begin
@@ -139,11 +139,11 @@ begin
   end;
 end;
 
-function TLockScheduler.ReleaseLock(Context: TIdContext; LockType: DWord): TLockStatus;
+function TLockScheduler.ReleaseLock(Context: TIdContext; LockType: DWord; GroupId: TGroupId): TLockStatus;
 var
   LockRecord: TLockRecord;
 begin
-  LockRecord := FLockQueue.Find(Context, LockType);
+  LockRecord := FLockQueue.Find(Context, LockType, GroupId);
 
   if LockRecord <> nil then
   begin

@@ -45,7 +45,8 @@ uses
   ThirdPartyHelper,
   Classes,
   Windows,
-  SHFolder;
+  SHFolder,
+  GenUtils;
 
 const
    GrpMainForm = 'MainForm';
@@ -102,7 +103,7 @@ const
       5.2.0.47     1: Introduced versioning of ini file
    *)
 
-   PRAC_INI_Version = 3;
+   PRAC_INI_Version = 4;
 
    (* History
       5.2.0.47     1: Introduced versioning of ini file
@@ -505,6 +506,8 @@ var
   Orig_Version : integer;
 
   SaveRequired : boolean;
+  StrGuid : string;
+  Guid : TGuid;
 begin
    SaveRequired := false;
 
@@ -665,6 +668,10 @@ begin
         PRACINI_IPClientLocking_TCPTimeOut := ReadInteger( GrpLocking, 'IPClientLockingTCPTimeOut', 100);
         PRACINI_IPClientLocking_ProcessMessageDelay := ReadInteger( GrpLocking, 'IPClientLockingProcessMessageDelay', 250);
 
+        CreateGuid(Guid);
+        StrGuid := TrimedGuid(Guid);
+        PRACINI_IPClientLocking_GROUP_ID := ReadString( GrpLocking, 'IPClientLockingGroupID', StrGuid);
+
         InitLocking(PRACINI_IPClientLocking_SwitchedOn,
                     PRACINI_IPClientLocking_UDP_Client_Port,
                     PRACINI_IPClientLocking_UDP_BuffInitSize,
@@ -674,7 +681,8 @@ begin
                     PRACINI_IPClientLocking_TCPTimeOut,
                     PRACINI_IPClientLocking_ProcessMessageDelay,
                     PRACINI_IPClientLocking_UDP_Server_IP,
-                    PRACINI_IPClientLocking_UDP_Server_Port);
+                    PRACINI_IPClientLocking_UDP_Server_Port,
+                    PRACINI_IPClientLocking_GROUP_ID);
 
         if Orig_Version < PRAC_INI_VERSION then begin
           // moved to db
@@ -807,6 +815,7 @@ begin
            WriteInteger(GrpLocking, 'IPClientLockingLockTimeOut', PRACINI_IPClientLocking_LockTimeOut);
            WriteInteger(GrpLocking, 'IPClientLockingTCPTimeOut', PRACINI_IPClientLocking_TCPTimeOut);
            WriteInteger(GrpLocking, 'IPClientLockingProcessMessageDelay', PRACINI_IPClientLocking_ProcessMessageDelay);
+           WriteString(GrpLocking,  'IPClientLockingGroupID', PRACINI_IPClientLocking_GROUP_ID);
 
            WriteInteger( GrpPracInfo, 'IniVersion', PRAC_INI_VERSION);
          end;

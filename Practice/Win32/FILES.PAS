@@ -917,10 +917,13 @@ begin
    DeleteFile(DATADIR + Code + AUTOSAVEEXTN);
 
    //update admin system - must update regardless of whether changed so that file status is set back to fsNormal
-   if Assigned( AdminSystem) then begin
-      if LoadAdminSystem(true, ThisMethodName ) then begin
-         UpdateProcessingStats(Client, True, False);
-         pCF := AdminSystem.fdSystem_Client_File_List.FindCode( Code );
+   if Assigned( AdminSystem) then
+   begin
+      if LoadAdminSystem(true, ThisMethodName ) then
+      begin
+        try
+          UpdateProcessingStats(Client, True, False);
+          pCF := AdminSystem.fdSystem_Client_File_List.FindCode( Code );
 
          If not Assigned( pCF ) then begin
             Msg := Format( 'Could not find CF Record for %s',[Code]);
@@ -941,9 +944,13 @@ begin
          if Closing then begin //closing so clear status and curr user
             pCF^.cfCurrent_User        := 0;
             pCF^.cfFile_Status         := fsNormal;
-         end;
-
-         SaveAdminSystem;
+          end;
+          SaveAdminSystem;
+        except
+          if AdminIsLocked then
+            UnlockAdmin;
+          raise;
+        end;
       end;
    end;
 

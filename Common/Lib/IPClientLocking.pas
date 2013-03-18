@@ -46,6 +46,7 @@ type
     fRequestId : dword;
 
     fDebugMe : boolean;
+    fGroupID : TGroupID;
 
     procedure ParseDelimited(const aStrLst : TStrings; const aSearchStr : string; const aDelimiter : string);
   protected
@@ -74,6 +75,7 @@ type
     function RecieveLock(aLockType: word; aRequestId : dword): boolean;
     function RecieveUnLock(aLockType: word; aRequestId : dword): boolean;
     function IncRequestID : dword;
+    procedure setGroupID(aGroupid : string);
 
     property AppVersion : string read fAppVersion write fAppVersion;
     property UDPPort : integer read fUDPPort write fUDPPort;
@@ -304,6 +306,7 @@ begin
     RequestHeader.Request.RequestType := rtLockRequest;
     RequestHeader.Request.LockCommand.RequestType := aRequestType;
     RequestHeader.Request.LockCommand.LockType    := aLockType;
+    RequestHeader.Request.LockCommand.GroupId     := fGroupID;
 
     RequestHeader.Checksum := GetCRC_LW(RequestHeader.Request, Sizeof(RequestHeader.Request));
     RequestHeader.RequestId := IncRequestID;
@@ -512,6 +515,26 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+procedure TIPClientLocking.setGroupID(aGroupid: string);
+var
+  Index: Integer;
+begin
+  FillChar(fGroupID, Length(fGroupID), #0);
+
+  for Index := 1 to Length(aGroupid) do
+  begin
+    if Index < Length(fGroupID) then
+    begin
+      fGroupID[Index -1] := aGroupid[Index];
+    end
+    else
+    begin
+      Break;
+    end;
+  end;
+end;
+
+//------------------------------------------------------------------------------
 function TIPClientLocking.RequestAbandonLock(aLockType: word): boolean;
 begin
   Result := LockingRequest(ltAbandoned, aLockType);
@@ -535,6 +558,7 @@ begin
     RequestHeader.Request.RequestType := rtUserLogin;
     RequestHeader.Request.UserLoginCommand.UserCode    := aUserCode;
     RequestHeader.Request.UserLoginCommand.Workstation := aWorkstation;
+    RequestHeader.Request.UserLoginCommand.GroupID     := fGroupID;
 
     RequestHeader.Checksum := GetCRC_LW(RequestHeader.Request, Sizeof(RequestHeader.Request));
     RequestHeader.RequestId := IncRequestID;

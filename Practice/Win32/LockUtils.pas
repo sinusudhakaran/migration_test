@@ -139,7 +139,8 @@ Type
                                  aTCPTimeOut : dword;
                                  aProcessMessageDelay : dword;
                                  aServer_IP : string;
-                                 aServer_Port : integer);
+                                 aServer_Port : integer;
+                                 aGroup_ID : string);
 
     procedure ClientIPLoginUser(aUserCode : string; aWorkstation : string);
 
@@ -157,7 +158,8 @@ procedure InitLocking(aNetLockingOn : Boolean = false;
                       aTCPTimeOut : dword = 0;
                       aProcessMessageDelay : dword = 0;
                       aServer_IP : string = '';
-                      aServer_Port : integer = 0);
+                      aServer_Port : integer = 0;
+                      aGroupId : string = '' );
 
 var
   FileLocking : TFileLocking;
@@ -216,7 +218,8 @@ procedure InitLocking(aNetLockingOn : Boolean;
                       aTCPTimeOut : dword;
                       aProcessMessageDelay : dword;
                       aServer_IP : string;
-                      aServer_Port : integer);
+                      aServer_Port : integer;
+                      aGroupId : string);
 begin
   DebugMe := DebugUnit( UnitName );
 
@@ -231,7 +234,8 @@ begin
                                                         aTCPTimeOut,
                                                         aProcessMessageDelay,
                                                         aServer_IP,
-                                                        aServer_Port);
+                                                        aServer_Port,
+                                                        aGroupId);
   end
   else
     FileLocking := TWindowsFileLocking.Create;
@@ -608,7 +612,8 @@ procedure TNetworkFileLocking.InitilizeIPLocking(aUDP_Client_Port : integer;
                                                  aTCPTimeOut : dword;
                                                  aProcessMessageDelay : dword;
                                                  aServer_IP : string;
-                                                 aServer_Port : integer);
+                                                 aServer_Port : integer;
+                                                 aGroup_ID : string);
 var
   Connected : boolean;
 begin
@@ -623,6 +628,8 @@ begin
 
   fIPClientLock.LockTimeOut      := aLockTimeOut;
   fIPClientLock.TCPTimeOut       := aTCPTimeOut;
+
+  fIPClientLock.setGroupID(aGroup_ID);
 
   fIPClientLock.ProcessMessageDelay := aProcessMessageDelay;
 

@@ -155,6 +155,8 @@ function FindFilesLike(aFilePath : string; aFileSearch : string) : Boolean;
 
 function ReplaceIllegalFileChars(aInstr : string; aReplaceChar : char) : string;
 
+function TrimedGuid(AGuid: TGuid): String;
+
 
 
 //******************************************************************************
@@ -176,7 +178,13 @@ Uses
    CountryUtils;
 
 //------------------------------------------------------------------------------
+function TrimedGuid(AGuid: TGuid): String;
+begin
+  // Trims the { and } off the ends of the Guid to pass to the server
+  Result := midstr(GuidToString(AGuid),2,length(GuidToString(AGuid))-2);
+end;
 
+//------------------------------------------------------------------------------
 Function StrToIntSafe(S: string) : Integer;
 Begin { StrToIntSafe }
    Result := StrToIntDef(S, 0);

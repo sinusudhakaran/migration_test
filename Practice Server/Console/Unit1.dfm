@@ -3,7 +3,7 @@ object Form1: TForm1
   Top = 0
   Caption = 'Practice Server Administrator'
   ClientHeight = 503
-  ClientWidth = 1039
+  ClientWidth = 1235
   Color = clBtnFace
   Constraints.MinHeight = 233
   Constraints.MinWidth = 343
@@ -20,7 +20,7 @@ object Form1: TForm1
   PixelsPerInch = 96
   TextHeight = 13
   object Splitter1: TSplitter
-    Left = 641
+    Left = 745
     Top = 0
     Height = 484
     ExplicitLeft = 527
@@ -30,7 +30,7 @@ object Form1: TForm1
   object StatusBar: TStatusBar
     Left = 0
     Top = 484
-    Width = 1039
+    Width = 1235
     Height = 19
     Panels = <
       item
@@ -45,6 +45,7 @@ object Form1: TForm1
         Text = 'Connection Count: 0'
         Width = 50
       end>
+    ExplicitWidth = 1039
   end
   object Panel1: TPanel
     Left = 0
@@ -128,17 +129,19 @@ object Form1: TForm1
     end
   end
   object Panel2: TPanel
-    Left = 644
+    Left = 748
     Top = 0
-    Width = 395
+    Width = 487
     Height = 484
     Align = alClient
     TabOrder = 2
+    ExplicitLeft = 644
+    ExplicitWidth = 395
     DesignSize = (
-      395
+      487
       484)
     object Label5: TLabel
-      Left = 156
+      Left = 202
       Top = 2
       Width = 86
       Height = 13
@@ -150,11 +153,12 @@ object Form1: TForm1
       Font.Name = 'Tahoma'
       Font.Style = [fsBold]
       ParentFont = False
+      ExplicitLeft = 156
     end
     object lvConnectionList: TListView
       Left = 5
       Top = 26
-      Width = 384
+      Width = 476
       Height = 452
       Anchors = [akLeft, akTop, akRight, akBottom]
       Columns = <
@@ -169,25 +173,30 @@ object Form1: TForm1
         item
           Caption = 'Workstation Name'
           Width = 150
+        end
+        item
+          Caption = 'Group Id'
+          Width = 100
         end>
       RowSelect = True
       PopupMenu = PopupMenu2
       TabOrder = 0
       ViewStyle = vsReport
+      ExplicitWidth = 384
     end
   end
   object Panel3: TPanel
     Left = 159
     Top = 0
-    Width = 482
+    Width = 586
     Height = 484
     Align = alLeft
     TabOrder = 3
     DesignSize = (
-      482
+      586
       484)
     object Label4: TLabel
-      Left = 201
+      Left = 251
       Top = 2
       Width = 65
       Height = 13
@@ -199,16 +208,21 @@ object Form1: TForm1
       Font.Name = 'Tahoma'
       Font.Style = [fsBold]
       ParentFont = False
+      ExplicitLeft = 201
     end
     object lvLockQueue: TListView
       Left = 4
       Top = 26
-      Width = 471
+      Width = 576
       Height = 452
       Anchors = [akLeft, akTop, akRight, akBottom]
       Columns = <
         item
           Caption = 'Ip Address'
+          Width = 100
+        end
+        item
+          Caption = 'Group Id'
           Width = 100
         end
         item
@@ -227,6 +241,7 @@ object Form1: TForm1
       PopupMenu = PopupMenu1
       TabOrder = 0
       ViewStyle = vsReport
+      ExplicitWidth = 472
     end
   end
   object Timer1: TTimer

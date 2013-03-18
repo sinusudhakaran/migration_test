@@ -52,6 +52,7 @@ var
   PRACINI_IPClientLocking_LockTimeOut : integer;
   PRACINI_IPClientLocking_TCPTimeOut : integer;
   PRACINI_IPClientLocking_ProcessMessageDelay : integer;
+  PRACINI_IPClientLocking_GROUP_ID : string;
 
 
 implementation
@@ -651,6 +652,7 @@ var
     PRACINI_IPClientLocking_LockTimeOut : integer;
     PRACINI_IPClientLocking_TCPTimeOut : integer;
     PRACINI_IPClientLocking_ProcessMessageDelay : integer;
+    PRACINI_IPClientLocking_GROUP_ID : string;
 
     // Remember email details in case it fails
     Email_Saved: Boolean = False;

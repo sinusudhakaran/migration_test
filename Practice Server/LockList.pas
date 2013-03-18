@@ -9,6 +9,7 @@ type
   THeldLock = record
     LockToken: DWord;
     LockType: DWord;
+    GroupId: TGroupId;
   end;
 
   TLocksHeld = array of THeldLock;
@@ -25,22 +26,22 @@ type
     constructor Create;
     destructor Destroy; override;
 
-    procedure Add(Identifier: ULongLong; LockToken: DWord; Context: TIdContext; LockType: DWord; Status: TLockStatus);
+    procedure Add(Identifier: ULongLong; LockToken: DWord; Context: TIdContext; LockType: DWord; Status: TLockStatus; GroupId: TGroupId);
 
     procedure Remove(LockRecord: TLockRecord); overload;
     procedure Remove(Context: TIdContext; out LocksHeld: TLocksHeld); overload;
 
-    function Find(Context: TIdContext; LockType: DWord; LockStatus: TLockStatus): TLockRecord; overload;
-    function Find(Context: TIdContext; LockType: DWord): TLockRecord; overload;
+    function Find(Context: TIdContext; LockType: DWord; LockStatus: TLockStatus; GroupId: TGroupId): TLockRecord; overload;
+    function Find(Context: TIdContext; LockType: DWord; GroupId: TGroupId): TLockRecord; overload;
 
-    function FindFirst(LockType: DWord): TLockRecord;
-    function FindNext(StartIndex: Integer; LockType: DWord): TLockRecord;
-    function FindNextWaiting(StartIndex: Integer; LockType: DWord): TLockRecord;
+    function FindFirst(LockType: DWord; GroupId: TGroupId): TLockRecord;
+    function FindNext(StartIndex: Integer; LockType: DWord; GroupId: TGroupId): TLockRecord;
+    function FindNextWaiting(StartIndex: Integer; LockType: DWord; GroupId: TGroupId): TLockRecord;
     
-    function FindAquired(Context: TIdContext; LockType: DWord): TLockRecord; overload;
-    function FindAquired(LockType: DWord): TLockRecord; overload;
+    function FindAquired(Context: TIdContext; LockType: DWord; GroupId: TGroupId): TLockRecord; overload;
+    function FindAquired(LockType: DWord; GroupId: TGroupId): TLockRecord; overload;
 
-    function FindFirstWaiting(LockType: DWord): TLockRecord;
+    function FindFirstWaiting(LockType: DWord; GroupId: TGroupId): TLockRecord;
 
     procedure Clear;
     
@@ -53,9 +54,9 @@ implementation
 
 { TFIFOQueue }
 
-procedure TLockList.Add(Identifier: ULongLong; LockToken: DWord; Context: TIdContext; LockType: DWord; Status: TLockStatus);
+procedure TLockList.Add(Identifier: ULongLong; LockToken: DWord; Context: TIdContext; LockType: DWord; Status: TLockStatus; GroupId: TGroupId);
 begin
-  FItems.Add(TLockRecord.Create(Identifier, LockToken, Context, LockType, Status));
+  FItems.Add(TLockRecord.Create(Identifier, LockToken, Context, LockType, Status, GroupId));
 end;
 
 procedure TLockList.Clear;
@@ -79,7 +80,7 @@ begin
   inherited;
 end;
 
-function TLockList.Find(Context: TIdContext; LockType: DWord; LockStatus: TLockStatus): TLockRecord;
+function TLockList.Find(Context: TIdContext; LockType: DWord; LockStatus: TLockStatus; GroupId: TGroupId): TLockRecord;
 var
   Index: Integer;
   LockRecord: TLockRecord;
@@ -90,7 +91,7 @@ begin
   begin
     LockRecord := TLockRecord(FItems[Index]);
 
-    if (LockRecord.Context = Context) and (LockRecord.LockType = LockType) and (LockRecord.Status = LockStatus) then
+    if (LockRecord.Context = Context) and (LockRecord.LockType = LockType) and (LockRecord.Status = LockStatus) and (CompareText(LockRecord.GroupId, GroupId) = 0) then
     begin
       Result := LockRecord;
 
@@ -99,47 +100,7 @@ begin
   end;
 end;
 
-function TLockList.FindFirst(LockType: DWord): TLockRecord;
-var
-  Index: Integer;
-  LockRecord: TLockRecord;
-begin
-  Result := nil;
-  
-  for Index := 0 to FItems.Count - 1 do
-  begin
-    LockRecord := TLockRecord(FItems[Index]);
-    
-    if LockRecord.LockType = LockType then
-    begin
-      Result := LockRecord;
-
-      Break;
-    end;
-  end;
-end;
-
-function TLockList.Find(Context: TIdContext; LockType: DWord): TLockRecord;
-var
-  Index: Integer;
-  LockRecord: TLockRecord;
-begin
-  Result := nil;
-  
-  for Index := 0 to FItems.Count - 1 do
-  begin
-    LockRecord := TLockRecord(FItems[Index]);
-
-    if (LockRecord.Context = Context) and (LockRecord.LockType = LockType) then
-    begin
-      Result := LockRecord;
-
-      Break;
-    end;
-  end;
-end;
-
-function TLockList.FindAquired(LockType: DWord): TLockRecord;
+function TLockList.FindFirst(LockType: DWord; GroupId: TGroupId): TLockRecord;
 var
   Index: Integer;
   LockRecord: TLockRecord;
@@ -150,7 +111,7 @@ begin
   begin
     LockRecord := TLockRecord(FItems[Index]);
     
-    if (LockRecord.LockType = LockType) and (LockRecord.Status = lsAquired) then
+    if (LockRecord.LockType = LockType) and (CompareText(LockRecord.GroupId, GroupId) = 0) then
     begin
       Result := LockRecord;
 
@@ -159,7 +120,27 @@ begin
   end;
 end;
 
-function TLockList.FindAquired(Context: TIdContext; LockType: DWord): TLockRecord;
+function TLockList.Find(Context: TIdContext; LockType: DWord; GroupId: TGroupId): TLockRecord;
+var
+  Index: Integer;
+  LockRecord: TLockRecord;
+begin
+  Result := nil;
+  
+  for Index := 0 to FItems.Count - 1 do
+  begin
+    LockRecord := TLockRecord(FItems[Index]);
+
+    if (LockRecord.Context = Context) and (LockRecord.LockType = LockType) and (CompareText(LockRecord.GroupId, GroupId) = 0) then
+    begin
+      Result := LockRecord;
+
+      Break;
+    end;
+  end;
+end;
+
+function TLockList.FindAquired(LockType: DWord; GroupId: TGroupId): TLockRecord;
 var
   Index: Integer;
   LockRecord: TLockRecord;
@@ -170,7 +151,7 @@ begin
   begin
     LockRecord := TLockRecord(FItems[Index]);
     
-    if (LockRecord.Context = Context) and (LockRecord.LockType = LockType) and (LockRecord.Status = lsAquired) then
+    if (LockRecord.LockType = LockType) and (LockRecord.Status = lsAquired) and (CompareText(LockRecord.GroupId, GroupId) = 0) then
     begin
       Result := LockRecord;
 
@@ -179,7 +160,27 @@ begin
   end;
 end;
 
-function TLockList.FindFirstWaiting(LockType: DWord): TLockRecord;
+function TLockList.FindAquired(Context: TIdContext; LockType: DWord; GroupId: TGroupId): TLockRecord;
+var
+  Index: Integer;
+  LockRecord: TLockRecord;
+begin
+  Result := nil;
+  
+  for Index := 0 to FItems.Count - 1 do
+  begin
+    LockRecord := TLockRecord(FItems[Index]);
+    
+    if (LockRecord.Context = Context) and (LockRecord.LockType = LockType) and (LockRecord.Status = lsAquired) and (CompareText(LockRecord.GroupId, GroupId) = 0) then
+    begin
+      Result := LockRecord;
+
+      Break;
+    end;
+  end;
+end;
+
+function TLockList.FindFirstWaiting(LockType: DWord; GroupId: TGroupId): TLockRecord;
 var
   LockRecord: TLockRecord;
   Index: Integer;
@@ -190,7 +191,7 @@ begin
   begin
     LockRecord := TLockRecord(FItems[Index]);
     
-    if (LockRecord.LockType = LockType) and (TLockRecord(FItems[Index]).Status = lsWaiting) then
+    if (LockRecord.LockType = LockType) and (TLockRecord(FItems[Index]).Status = lsWaiting) and (CompareText(TLockRecord(FItems[Index]).GroupId, GroupId) = 0) then
     begin
       Result := LockRecord;
 
@@ -199,7 +200,7 @@ begin
   end;
 end;
 
-function TLockList.FindNext(StartIndex: Integer; LockType: DWord): TLockRecord;
+function TLockList.FindNext(StartIndex: Integer; LockType: DWord; GroupId: TGroupId): TLockRecord;
 var
   Index: Integer;
   LockRecord: TLockRecord;
@@ -210,7 +211,7 @@ begin
   begin
     LockRecord := TLockRecord(FItems[Index]);
     
-    if LockRecord.LockType = LockType then
+    if (LockRecord.LockType = LockType) and (CompareText(LockRecord.GroupId, GroupId) = 0) then
     begin
       Result := LockRecord;
 
@@ -219,7 +220,7 @@ begin
   end;
 end;
 
-function TLockList.FindNextWaiting(StartIndex: Integer; LockType: DWord): TLockRecord;
+function TLockList.FindNextWaiting(StartIndex: Integer; LockType: DWord; GroupId: TGroupId): TLockRecord;
 var
   Index: Integer;
   LockRecord: TLockRecord;
@@ -230,7 +231,7 @@ begin
   begin
     LockRecord := TLockRecord(FItems[Index]);
     
-    if (LockRecord.LockType = LockType) and (LockRecord.Status = lsWaiting) then
+    if (LockRecord.LockType = LockType) and (LockRecord.Status = lsWaiting) and (CompareText(LockRecord.GroupId, GroupId) = 0) then
     begin
       Result := LockRecord;
 
@@ -272,6 +273,7 @@ begin
 
         LocksHeld[Count].LockToken := LockRecord.Token;
         LocksHeld[Count].LockType := LockRecord.LockType;
+        LocksHeld[Count].GroupId := LockRecord.GroupId;
 
         Inc(Count);
       end;

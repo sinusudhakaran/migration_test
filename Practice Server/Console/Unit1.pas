@@ -30,7 +30,7 @@ type
     chkEnableLogging: TCheckBox;
     edtStatsInterval: TEdit;
     edtDiscoveryPort: TEdit;
-    Timer1: TTimer;
+    Timer1: TTimer;                   
     Panel2: TPanel;
     lvConnectionList: TListView;
     Label1: TLabel;
@@ -533,6 +533,7 @@ begin
 
                     Item.SubItems.Add(ConnectionInfo.UserCode);
                     Item.SubItems.Add(ConnectionInfo.WorkstationName);
+                    Item.SubItems.Add(ConnectionInfo.GroupId); 
 
                     ConnectionList[Index] := ConnectionInfo.Identifier;
                   end;
@@ -570,7 +571,8 @@ begin
                   end;
 
                   Item.SubItems.Clear;
-            
+
+                  Item.SubItems.Add(LockInfo.GroupId); 
                   Item.SubItems.Add(IntToStr(LockInfo.LockType));
                   Item.SubItems.Add(GetEnumName(TypeInfo(TLockStatus), Integer(LockInfo.LockStatus)));
 
