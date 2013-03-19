@@ -168,7 +168,7 @@ begin
 
    CalculateAccountTotals.AddAutoContraCodes( MyClient);
    try
-      CalculateAccountTotals.CalculateAccountTotalsForClient( MyClient);
+      CalculateAccountTotals.CalculateAccountTotalsForClient( MyClient, True, nil, -1, False, True, False);
       CalculateAccountTotals.CalculateCurrentEarnings( MyClient);
 
       //build the report
@@ -626,7 +626,7 @@ begin
 
   CalculateAccountTotals.AddAutoContraCodes( MyClient);
   try
-    CalculateAccountTotals.CalculateAccountTotalsForClient( MyClient);
+    CalculateAccountTotals.CalculateAccountTotalsForClient( MyClient, True, nil, -1, False, True, False);
 
     MyDataModule := TDataModuleOffice.Create( nil);
 

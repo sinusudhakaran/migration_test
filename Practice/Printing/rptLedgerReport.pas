@@ -2103,7 +2103,7 @@ begin
          ReportLedgerOpeningBalance(Code, ReportJob, True, Assigned(Account));
        end;
 
-       // Show contras for this code - this will display ALL transactions
+       // Show contras for  this code - this will display ALL transactions
        // for this code (so that they display in date order)
        // so after this we need to move onto next code (as per skipping txns earlier in this proc)
        if IsThisAContraCode(Code, ReportJob) then
@@ -2117,9 +2117,8 @@ begin
      PutString(bkDate2Str(ExchangeGainLossEntry.glDate));
 
      SkipColumn;
-     SkipColumn;
 
-     PutMoney(ExchangeGainLossEntry.glAmount);
+     TListLedgerReport(ReportJob).PutWrapped('', 0, ExchangeGainLossEntry.glAmount, 0, ExchangeGainLossEntry.glAmount, 0, 0, Notes);
 
      RenderDetailLine;
    end;
@@ -2303,6 +2302,7 @@ begin
       end;
 
       //store values
+      AccountTotalGross    := AccountTotalGross + ExchangeGainLossEntry.glAmount;
       AccountTotalNet    := AccountTotalNet + ExchangeGainLossEntry.glAmount;
 
       if ExchangeGainLossEntry.glAmount <> 0 then

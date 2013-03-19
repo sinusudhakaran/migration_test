@@ -67,6 +67,7 @@ type
     function FmtMoneyStr : String;
     function FmtMoneyStrBrackets : String;
     function CurrencySymbol : String;
+    function GetNrTransactions(const aStart: integer; const aEnd: integer): integer;
     function HasTransactionsWithin( StartDate, EndDate : Integer; SkipFinalizedOrTransferred: Boolean = False): Boolean;
     function IsAForexAccount : Boolean;
     function IsManual: Boolean;
@@ -1074,6 +1075,24 @@ begin
           ApplyDefaultGST(T);
         end;
       end;
+    end;
+  end;
+end;
+
+function TBank_Account.GetNrTransactions(const aStart: integer; const aEnd: integer): integer;
+var
+  i: integer;
+  Transaction: pTransaction_Rec;
+begin
+  result := 0;
+
+  for i := 0 to baTransaction_List.ItemCount-1 do
+  begin
+    Transaction := baTransaction_List.Transaction_At(i);
+
+    if (aStart <= Transaction.txDate_Effective ) and (Transaction.txDate_Effective <= aEnd) then
+    begin
+      Inc(result);
     end;
   end;
 end;

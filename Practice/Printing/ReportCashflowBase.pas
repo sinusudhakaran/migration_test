@@ -48,20 +48,22 @@ type
     procedure SetClientForReport(const Value: TClientObj);
     function  GetColumnsPerPeriod: integer;
     procedure SetReportScaleFactor(const Value: double);
-    function GetPercentColumnsPerPeriod: integer;
+    function  GetPercentColumnsPerPeriod: integer;
+    function  IncludeGainLossCode(aAccountCode : string): boolean;
   protected
     FColumnTypes          : TColumnTypeArray;
     FControlAccountsToPrint: TStringList;
     FDoPercentage         : Boolean;
     FSuppressPercentage   : Boolean;
     FRptParameters       : TRptParameters;
+    FIncludeGainLossCode : boolean;
     procedure AddColumnTypeToArray( NewType : TFinancialValueType);
     procedure ClearColumnTypeArray;
     function  GetIndexFromColumnType(const aValue: TFinancialValueType): integer; // -1 if not available
     function  ReportGroupNeedsPrinting( ReportGroup : byte) : boolean;
     function  AccountNeedsPrinting( pAcct : pAccount_Rec) : boolean; virtual;
     procedure PrintControlAccountTitle( aAccount: pAccount_Rec);
-    procedure PrintValuesForPeriod( const Values : TValuesArray; DefaultSign : TSign; PrintQuantities: boolean = True);
+    procedure PrintValuesForPeriod( const Values : TValuesArray; DefaultSign : TSign);
     procedure SetCurrencyFormatForPeriod(const Values : TValuesArray; NewFormat: string);
     procedure SkipPeriod;
 
@@ -92,8 +94,7 @@ type
                            );
     procedure PrintTotalsArray( const Title : string;
                                 TotalsArray : TValuesArray; DefaultSign : TSign;
-                                Style: TStyleTypes = siSectionTotal;
-                                PrintQuantities: boolean = True);
+                                Style: TStyleTypes = siSectionTotal);
     procedure PrintSectionWithControlAccnt(ReportGroupsSet: ATTypeSet;
       SectionHeadingId: integer; SectionTotalId: Integer; DefaultSign: TSign;
       Style: TStyleTypes = siSectionTotal);
@@ -251,6 +252,9 @@ begin
 
   FReportScaleFactor := 1.0;
 
+  // True for most reports (except cash flow, etc)
+  FIncludeGainLossCode := true;
+
   //The following values can be loaded from the client
   SetupColumnsTypes;
   SetMinAndMaxPeriods;
@@ -341,6 +345,19 @@ begin
    for i := Low(FColumnTypes) to High(FColumnTypes) do
      if FColumnTypes[i] = ftPercentage then
        inc(Result)
+end;
+
+function TFinancialReportBase.IncludeGainLossCode(aAccountCode : string): boolean;
+begin
+  { Note: most reports will want to include the gain/loss code, e.g. profile &
+    loss. The cash flow report on the other hand will want to exclude it }
+  if FIncludeGainLossCode then
+    result := true
+  else
+  begin
+    ASSERT(assigned(ClientForReport));
+    result := not ClientForReport.clBank_Account_List.IsExchangeGainLossCode(aAccountCode);
+  end;
 end;
 
 procedure TFinancialReportBase.LoadAccountsToPrint;
@@ -579,10 +596,14 @@ begin
         iLinesPrinted := 0;
         LastControlAcct := nil;
         ControlAcct := nil;
-        for i := 0 to Pred( FRptParameters.Chart.ItemCount) do begin
+        for i := 0 to Pred( FRptParameters.Chart.ItemCount) do
+        begin
           pAcct := FRptParameters.Chart.Account_At(i);
-          if ( pAcct^.chAccount_Type in ReportGroupsSet) and ( pAcct^.chTemp_Include_In_Report) then begin
-            if ClientForReport.clExtra.ceFRS_Print_NP_Chart_Code_Titles then begin
+
+          if ( pAcct^.chAccount_Type in ReportGroupsSet) and ( pAcct^.chTemp_Include_In_Report) and IncludeGainLossCode(pAcct.chAccount_Code) then
+          begin
+            if ClientForReport.clExtra.ceFRS_Print_NP_Chart_Code_Titles then
+            begin
               ControlAcct := GetControlAccount(pAcct);
               //Add extra line after control acct group
               if (ControlAcct = nil) and (LastControlAcct <> nil) then begin
@@ -617,8 +638,8 @@ begin
     else begin
       if (ClientForReport.clExtra.ceFRS_NP_Chart_Code_Detail_Type = cflReport_Summarised) then begin
         //3. DETAILED, SUB GROUPS, SUMMARISED CONTROL ACCOUNTS
-        PrintSectionWithSubGroupAndControlAccnt(ReportGroupsSet, SectionHeadingId, 
-                                                SectionTotalId, DefaultSign, Style); 
+        PrintSectionWithSubGroupAndControlAccnt(ReportGroupsSet, SectionHeadingId,
+                                                SectionTotalId, DefaultSign, Style);
       end else begin
         //4. DETAILED, SUB GROUPS, DETAILED CONTROL ACCOUNTS
         //Has Sub Groups.  Print sub groups within each report group
@@ -658,9 +679,11 @@ begin
             ControlAcct := nil;
             for i := 0 to Pred( FRptParameters.Chart.ItemCount) do begin
               pAcct := FRptParameters.Chart.Account_At(i);
+
               if ( pAcct^.chAccount_Type in ReportGroupsSet)
                 and ( pAcct^.chSubtype   = SubGroupNo)
-                and ( pAcct^.chTemp_Include_In_Report) then
+                and ( pAcct^.chTemp_Include_In_Report)
+                and IncludeGainLossCode(pAcct.chAccount_Code) then
               begin
                 if ClientForReport.clExtra.ceFRS_Print_NP_Chart_Code_Titles then begin
                   //Add extra line after control acct group
@@ -734,7 +757,7 @@ begin
       //cycle thru accounts, load values into array
       for i := 0 to Pred( FRptParameters.Chart.ItemCount) do begin
         pAcct := FRptParameters.Chart.Account_At(i);
-        if ( pAcct^.chAccount_Type in ReportGroupsSet) and ( pAcct^.chTemp_Include_In_Report) then begin
+        if ( pAcct^.chAccount_Type in ReportGroupsSet) and ( pAcct^.chTemp_Include_In_Report) and IncludeGainLossCode(pAcct.chAccount_Code) then begin
           //add values for this accounts to the totals
           TotalsArrayPos := 0;
 
@@ -792,7 +815,8 @@ begin
             pAcct := FRptParameters.Chart.Account_At(i);
             if ( pAcct^.chAccount_Type in ReportGroupsSet)
                and ( pAcct^.chSubtype  = SubGroupNo)
-               and ( pAcct^.chTemp_Include_In_Report) then
+               and ( pAcct^.chTemp_Include_In_Report)
+               and IncludeGainLossCode(pAcct.chAccount_Code) then
             begin
               //add values for this accounts to the totals
               TotalsArrayPos := 0;
@@ -1007,8 +1031,7 @@ end;
 procedure TFinancialReportBase.PrintTotalsArray( const Title: string;
                                                  TotalsArray: TValuesArray;
                                                  DefaultSign: TSign;
-                                                 Style: TStyleTypes = siSectionTotal;
-                                                 PrintQuantities: boolean = True);
+                                                 Style: TStyleTypes = siSectionTotal);
 
 var
   PeriodNo    : integer;
@@ -1051,13 +1074,11 @@ begin
 end;
 
 procedure TFinancialReportBase.PrintValuesForPeriod( const Values: TValuesArray;
-                                                     DefaultSign : TSign;
-                                                     PrintQuantities: boolean = True);
+                                                     DefaultSign : TSign);
 var
   i : integer;
 begin
-  if PrintQuantities then  
-    Assert( Length( FColumnTypes) = Length( Values), 'PrintValuesForPeriod : failed Length( ColumnTypes) = Length( Values)');
+  Assert( Length( FColumnTypes) = Length( Values), 'PrintValuesForPeriod : failed Length( ColumnTypes) = Length( Values)');
 
   for i := Low(Values) to High(Values) do begin
      if FColumnTypes[i] in [ ftQuantity, ftBudgetQuantity] then
@@ -1070,8 +1091,6 @@ begin
      else
         PutMoney(Values[i], DefaultSign);
   end;
-  if (PrintQuantities = False) then
-    SkipColumn;
 end;
 
 function TFinancialReportBase.ReportGroupNeedsPrinting(

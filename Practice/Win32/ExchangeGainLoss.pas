@@ -323,6 +323,7 @@ type
   procedure SplitYearMonth(const aDate: TStDate; var aYear: integer; var aMonth: integer); overload;
   procedure IncreaseYearMonth(var aYear: integer; var aMonth: integer);
 
+  function  GetLocalCurrencyAmount(const aValue: Money): string;
   function  GetCrDr(const aValue: Money): string;
 
   procedure GetOpeningClosingBalance(const aStart: TStDate; const aEnd: TStDate;
@@ -461,8 +462,20 @@ end;
 
 
 {-------------------------------------------------------------------------------
-  GetCrDr
+  Amount helpers
 -------------------------------------------------------------------------------}
+function GetLocalCurrencyAmount(const aValue: Money): string;
+var
+  mAbsGainLoss: Money;
+  sCurrency: string;
+begin
+  // We're using CR/DR so don't display the sign
+  mAbsGainLoss := Abs(aValue);
+  sCurrency := GetCountryCurrency;
+  result := MoneyStr(mAbsGainLoss, sCurrency);
+end;
+
+{------------------------------------------------------------------------------}
 function GetCrDr(const aValue: Money): string;
 begin
   if (aValue <= 0) then
@@ -470,6 +483,7 @@ begin
   else
     result := 'DR';
 end;
+
 
 {-------------------------------------------------------------------------------
   GetOpeningClosingBalance
@@ -536,43 +550,94 @@ end;
 
 
 {-------------------------------------------------------------------------------
-  PostGainLossEntries
+  PostGainLossEntries (Silent Wizard)
 -------------------------------------------------------------------------------}
-function PostGainLossEntries(const aClient: TClientObj;
-  const aFrom: TStDate; const aTo: TStDate): boolean;
+procedure PostGainLossEntry(const aBankAccount: TBank_Account;
+  const aDate: TStDate; const aAmount: Money);
 var
-  Months: TMonthEndings;
-  dtFrom: TStDate;
-  dtTo: TStDate;
-  iMonth: integer;
-  dtDate: TStDate;
+  sLog: string;
 begin
-  ASSERT(aTo >= aFrom);
+  // Post entry with all relevant data from today
+  with aBankAccount, baFields, baExchange_Gain_Loss_List do
+  begin
+    // Post Entry into Exchange Gain/Loss list
+    PostEntry(aDate, aAmount, baExchange_Gain_Loss_Code);
 
-  Months := TMonthEndings.Create(aClient);
-  try
-    Months.Options := [meoCullMonths, meoCalculateGainLoss];
-    Months.Refresh;
-
-    // Expand range (for comparing)
-    dtFrom := GetFirstDayOfMonth(aFrom);
-    dtTo := GetLastDayOfMonth(aTo);
-
-    for iMonth := 0 to Months.Count-1 do
-    begin
-      dtDate := Months[iMonth].DateAsStDate;
-      if (dtDate < dtFrom) then
-        continue;
-      if (dtDate > dtTo) then
-        continue;
-      Months.PostGainLossEntries(iMonth);
-    end;
-  finally
-    FreeAndNil(Months);
+    // Log?
+    sLog := Format(
+      'Exchange Gain/Loss Entry created for %s/%s (%s), %s %s',
+      [
+      baBank_Account_Number,
+      baBank_Account_Name,
+      baExchange_Gain_Loss_Code,
+      GetLocalCurrencyAmount(aAmount),
+      GetCrDr(aAmount)
+      ]);
+    LogMsg(lmInfo, UnitName, sLog);
   end;
 
-  // Always return true for now
+  // Note: Audits are done automatically when new transactions are inserted
+end;
+
+{------------------------------------------------------------------------------}
+function PostGainLossEntriesRange(const aBankAccount: TBank_Account;
+  const aFrom: TStDate; const aTo: TStDate): boolean;
+var
+  dtMonth: TStDate;
+  mGainLoss: Money;
+  dtDate: TStDate;
+  sError: string;
+begin
+  ASSERT(assigned(aBankAccount));
+  ASSERT(IsForeignCurrencyAccount(aBankAccount));
+
   result := true;
+
+  dtMonth := GetFirstDayOfMonth(aFrom);
+
+  while true do
+  begin
+    // Post entry?
+    if CalculateGainLoss(aBankAccount, dtMonth, mGainLoss, sError) then
+    begin
+      dtDate := GetLastDayOfMonth(dtMonth);
+      PostGainLossEntry(aBankAccount, dtDate, mGainLoss);
+    end
+    else
+      result := false;
+
+    dtMonth := IncDate(dtMonth, 0, 1, 0);
+
+    if (dtMonth > aTo) then
+      break;
+  end;
+end;
+
+{------------------------------------------------------------------------------}
+function PostGainLossEntries(const aClient: TClientObj; const aFrom: TStDate;
+  const aTo: TStDate): boolean;
+var
+  iBankAccount: integer;
+  BankAccount: TBank_Account;
+begin
+  ASSERT(assigned(aClient));
+
+  result := true;
+
+  for iBankAccount := 0 to aClient.clBank_Account_List.ItemCount-1 do
+  begin
+    // Not foreign currency account?
+    BankAccount := aClient.clBank_Account_List.Bank_Account_At(iBankAccount);
+    if not IsForeignCurrencyAccount(BankAccount) then
+      continue;
+
+    // Continue with other entries
+    if not PostGainLossEntriesRange(BankAccount, aFrom, aTo) then
+    begin
+      result := false;
+      continue;
+    end;
+  end;
 end;
 
 
@@ -1028,14 +1093,8 @@ end;
 
 {------------------------------------------------------------------------------}
 function TPostedEntry.GetGainLossCurrency: string;
-var
-  mAbsGainLoss: Money;
-  sCurrency: string;
 begin
-  // We're using CR/DR so don't display the sign
-  mAbsGainLoss := Abs(GainLoss);
-  sCurrency := GetCountryCurrency;
-  result := MoneyStr(mAbsGainLoss, sCurrency);
+  result := GetLocalCurrencyAmount(GainLoss);
 end;
 
 {------------------------------------------------------------------------------}
@@ -1055,14 +1114,8 @@ end;
 
 {------------------------------------------------------------------------------}
 function TMonthEndingBankAccount.GetGainLossCurrency: string;
-var
-  mAbsGainLoss: Money;
-  sCurrency: string;
 begin
-  // We're using CR/DR so don't display the sign
-  mAbsGainLoss := Abs(GainLoss);
-  sCurrency := GetCountryCurrency;
-  result := MoneyStr(mAbsGainLoss, sCurrency);
+  result := GetLocalCurrencyAmount(GainLoss);
 end;
 
 {------------------------------------------------------------------------------}
@@ -1580,30 +1633,9 @@ end;
 {------------------------------------------------------------------------------}
 procedure TMonthEndings.PostGainLossEntry(const aMonth: PMonthEnding;
   const aBankAccount: TMonthEndingBankAccount);
-var
-  BankAccount: TBank_Account;
-  sLog: string;
 begin
-  BankAccount := aBankAccount.BankAccount;
-
-  // Post entry with all relevant data from today
-  with BankAccount.baExchange_Gain_Loss_List do
-    PostEntry(aMonth.MonthEndingDateAsStdate, aBankAccount.GainLoss,
-      BankAccount.baFields.baExchange_Gain_Loss_Code);
-
-  // Log?
-  sLog := Format(
-    'Exchange Gain/Loss Entry created for %s/%s (%s), %s %s',
-    [
-    BankAccount.baFields.baBank_Account_Number,
-    BankAccount.baFields.baBank_Account_Name,
-    BankAccount.baFields.baExchange_Gain_Loss_Code,
-    aBankAccount.GetGainLossCurrency,
-    aBankAccount.GainLossCrDr
-    ]);
-  LogMsg(lmInfo, UnitName, sLog);
-
-  // Note: Audits are done automatically when new transactions are inserted
+  ExchangeGainLoss.PostGainLossEntry(aBankAccount.BankAccount,
+    aMonth.MonthEndingDateAsStdate, aBankAccount.GainLoss);
 end;
 
 {------------------------------------------------------------------------------}

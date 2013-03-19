@@ -77,7 +77,7 @@ const
   Tag_Budget_Movement     = 8;
 
 
-procedure CalculateAccountTotalsForClient( aClient : TClientObj; AddContras : boolean = true; AccountList: TList = nil; MaxDate: integer = -1; UseMaxDate: Boolean = False; IncludeExchangeGainLoss: Boolean = False; UseLocalAmountAsBase: Boolean = False);
+procedure CalculateAccountTotalsForClient( aClient : TClientObj; AddContras : boolean = true; AccountList: TList = nil; MaxDate: integer = -1; UseMaxDate: Boolean = False; IncludeExchangeGainLoss: Boolean = False; UseLocalAmountAsBase: Boolean = False; ExcludeGainLossFromBudget: Boolean = False);
 
 procedure AddAutoContraCodes( aClient : TClientObj);
 procedure RemoveAutoContraCodes( aClient : TClientObj);
@@ -249,7 +249,7 @@ begin
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-procedure CalculateAccountTotalsForClient( aClient : TClientObj; AddContras : boolean = true; AccountList: TList = nil; MaxDate: integer = -1; UseMaxDate: Boolean = False; IncludeExchangeGainLoss: Boolean = False; UseLocalAmountAsBase: Boolean = False);
+procedure CalculateAccountTotalsForClient( aClient : TClientObj; AddContras : boolean = true; AccountList: TList = nil; MaxDate: integer = -1; UseMaxDate: Boolean = False; IncludeExchangeGainLoss: Boolean = False; UseLocalAmountAsBase: Boolean = False; ExcludeGainLossFromBudget: Boolean = False);
 //note add contras will only be false for when generating budget figures
 type
    TWhichYear = ( wyThisYear, wyLastYear);
@@ -847,6 +847,14 @@ var
                      if DivisionInReport(AClient, pAcct^)
                      and ( pAcct^.chAccount_Type <> atBankAccount)  then
                      begin
+                       if ExcludeGainLossFromBudget then
+                       begin
+                         if aClient.clBank_Account_List.IsExchangeGainLossCode(pAcct.chAccount_Code) then
+                         begin
+                           Continue;
+                         end;
+                       end;
+                                        
                         //add the budgeted figure for each period into the chart accumulators
                         Assert( MaxPeriods < Length( Detail.bdBudget));
 
@@ -1372,8 +1380,18 @@ begin
               OB_ThisYear := OB_ThisYear + NewBalance;
 
               //Convert to base currency
-              if BankAccount.IsAForexAccount then begin
-                NewBalance := Double2Money(Money2Double(NewBalance) / BankAccount.Default_Forex_Conversion_Rate(This_Year_Starts));
+              if BankAccount.IsAForexAccount then
+              begin
+                if BankAccount.Default_Forex_Conversion_Rate(This_Year_Starts-1) <> 0 then //Divide by zero
+                begin
+                  // Opening balances are calculated at the last day of the previous month
+                  NewBalance := Double2Money(Money2Double(NewBalance) / BankAccount.Default_Forex_Conversion_Rate(This_Year_Starts-1));
+
+                  OB_BaseThisYear := OB_BaseThisYear + NewBalance;
+                end;
+              end
+              else
+              begin
                 OB_BaseThisYear := OB_BaseThisYear + NewBalance;
               end;
             end;
@@ -1384,11 +1402,21 @@ begin
             // Valid new balance?
             if NewBalance <> Unknown then begin
               OB_LastYear := OB_LastYear + NewBalance;
-
+                                                                        
               //Convert to base currency
-              if (BankAccount.IsAForexAccount) and (BankAccount.Default_Forex_Conversion_Rate(Last_Year_Starts)  > 0) then begin
-                //May not have an exchange rate for last year if no using budget figures
-                NewBalance := Double2Money(Money2Double(NewBalance) / BankAccount.Default_Forex_Conversion_Rate(Last_Year_Starts));
+              if (BankAccount.IsAForexAccount) then
+              begin
+                if (BankAccount.Default_Forex_Conversion_Rate(Last_Year_Starts-1)  > 0) then
+                begin
+                  //May not have an exchange rate for last year if no using budget figures
+                  // Opening balances are calculated at the last day of the previous month
+                  NewBalance := Double2Money(Money2Double(NewBalance) / BankAccount.Default_Forex_Conversion_Rate(Last_Year_Starts-1));
+            
+                  OB_BaseLastYear := OB_BaseLastYear + NewBalance;
+                end;
+              end
+              else
+              begin
                 OB_BaseLastYear := OB_BaseLastYear + NewBalance;
               end;
             end;

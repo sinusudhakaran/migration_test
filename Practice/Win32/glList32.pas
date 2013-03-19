@@ -56,6 +56,7 @@ type
     function  HasEntryIn(const aMonth: TStDate): boolean;
 
     function GetEntriesPostedBetween(FromDate, ToDate: TStDate): TExchangeGainLossEntryList;
+    function HasEntriesPostedBetween(FromDate, ToDate: TStDate): Boolean;
 
     // Auditing
     procedure Insert(Item: Pointer); override;
@@ -281,6 +282,27 @@ begin
 end;
 
 {------------------------------------------------------------------------------}
+function TExchange_Gain_Loss_List.HasEntriesPostedBetween(FromDate, ToDate: TStDate): Boolean;
+var
+  Index: Integer;
+  Entry: TExchange_Gain_Loss;
+begin
+  Result := False;
+  
+  for Index := 0 to ItemCount - 1 do
+  begin
+    Entry := Exchange_Gain_Loss_At(Index);
+
+    if (Entry.glFields.glDate >= FromDate) and (Entry.glFields.glDate <= ToDate) then
+    begin
+      Result := True;
+
+      Break;
+    end;
+  end;
+
+end;
+
 function TExchange_Gain_Loss_List.HasEntryIn(const aMonth: TStDate): boolean;
 var
   dtLastDay: TStDate;

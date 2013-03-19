@@ -132,7 +132,7 @@ begin
        exit;
     If not Bank_Account.IsAForexAccount then
        exit;
-    if not Bank_Account.HasTransactionsWithin( Fromdate, Todate ) then
+    if (not Bank_Account.HasTransactionsWithin(Fromdate, Todate)) and not Bank_Account.baExchange_Gain_Loss_List.HasEntriesPostedBetween(FromDate, ToDate) then
        exit;
 
     With Client.clFields, Bank_Account.baFields do
@@ -224,7 +224,7 @@ begin
        exit;
     if not LE_IsBankAccountIncluded( ReportJob, Mgr ) then
        exit;
-    if not Bank_Account.HasTransactionsWithin( Fromdate, Todate ) then
+    if (not Bank_Account.HasTransactionsWithin( Fromdate, Todate )) and not Bank_Account.baExchange_Gain_Loss_List.HasEntriesPostedBetween(FromDate, ToDate)  then
        exit;
     if Mgr.Transaction^.txUPI_State in [upUPC, upUPD, upUPW, upReversedUPC, upReversalOfUPC, upReversedUPD, upReversalOfUPD, upReversedUPW, upReversalOfUPW] then
        exit;
@@ -328,7 +328,7 @@ begin
          exit;
       if not LE_IsBankAccountIncluded( ReportJob, Mgr ) then
          exit;
-      if not Bank_Account.HasTransactionsWithin( Fromdate, Todate ) then
+      if (not Bank_Account.HasTransactionsWithin(Fromdate, Todate)) and not Bank_Account.baExchange_Gain_Loss_List.HasEntriesPostedBetween(FromDate, ToDate) then
          exit;
 
       ForexAmountCol.TotalFormat  := Bank_Account.FmtMoneyStr;
@@ -646,7 +646,8 @@ begin
         begin
           LastDayOfPeriod := GetLastDayOfMonth(PeriodsBetween[PeriodIndex]);
           
-          if BankAccount.HasTransactionsWithin(PeriodsBetween[PeriodIndex], LastDayOfPeriod, True) then
+          if (BankAccount.GetNrTransactions(PeriodsBetween[PeriodIndex], LastDayOfPeriod) = 0) or
+             BankAccount.HasTransactionsWithin(PeriodsBetween[PeriodIndex], LastDayOfPeriod, True) then
           begin
             if not BankAccount.LastTransactionFinalizedOrTransferred(PeriodsBetween[PeriodIndex]) then
             begin
