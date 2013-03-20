@@ -87,7 +87,8 @@ uses
    bkhelp,
    BKDEFS,
    CountryUtils,
-   WebXOffice;
+   WebXOffice,
+   TransactionUtils;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TdlgExportToECoding.btnCancelClick(Sender: TObject);
@@ -378,7 +379,7 @@ begin
                           (txDate_Transferred = 0) and
                           (not txLocked) and
                           (( Selection = esAllEntries) or
-                           (( Selection = esUncodedOnly) and ( txAccount = '')))
+                           (( Selection = esUncodedOnly) and not IsFullyCodedTransaction(ForClient, Transaction_At(j))))
                        then begin
                           HasEntries := true;
                           Break;
@@ -444,7 +445,7 @@ procedure TdlgExportToECoding.FormShow(Sender: TObject);
 begin
   if FExportDestination = ecDestWebX then
      case ForClient.clFields.clWeb_Export_Format of
-        wfWebX:  BKHelpSetUp( Self, BKH_Exporting_transactions_from_BankLink_to_CCH_WebPractice);
+        wfWebX:  BKHelpSetUp( Self, BKH_Exporting_transactions_from_BankLink_to_Acclipse_WebXOffice);
         wfWebNotes:  BKHelpSetUp( Self, BKH_Creating_a_BankLink_Notes_Online_file_for_a_client_to_access);
      end
   else
