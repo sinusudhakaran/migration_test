@@ -49,7 +49,8 @@ uses
   bkHelp,
   glConst,
   LogUtil,
-  imagesfrm;
+  imagesfrm,
+  GenUtils;
 
 const
    UnitName =  'YESNODLG';
@@ -136,7 +137,8 @@ end;
 function AskYesNo(Title : string; Msg: string; defButton : integer; HelpCtx : word; ShowCancel: Boolean = False) : integer;
 {just wraps everything up to make it easier to call}
 const
-  Margin=10;
+  MarginWidth = 25;
+  MarginHeight = 10;
 var
   MyDlg : TdlgYesNo;
   CapHeight: integer;
@@ -154,7 +156,7 @@ begin
       MyDlg.btnNo.Cancel := False;
     end;
     MyDlg.Caption     := Title;
-    MyDlg.lblText.caption := Msg;
+    MyDlg.lblText.caption := WrapText(Msg, (MyDlg.lblText.width div 5));
     MyDlg.CheckBox1.Visible := false;
 
     bkHelp.BKHelpSetUp( MyDlg, HelpCtx);
@@ -163,10 +165,13 @@ begin
     CapHeight := GetSystemMetrics(SM_CYCAPTION)+ GetSystemMetrics(SM_CYEDGE);
     with MyDlg do
     begin
-      lblText.Left := Image1.Left + Image1.Width + Margin;
-      lblText.Width := Width - lblText.Left - Margin;
-      Height     := CapHeight+ lblText.Height + btnYes.Height + 4*Margin;
-      btnYes.Top := lblText.Height+3*Margin;
+      lblText.Left := Image1.Left + Image1.Width + MarginWidth;
+      if lblText.Width > Width - lblText.Left - MarginWidth then
+        Width := lblText.Width + lblText.Left + MarginWidth;
+      lblText.Width := Width - lblText.Left - MarginWidth;
+
+      Height     := CapHeight+ lblText.Height + btnYes.Height + 4*MarginHeight;
+      btnYes.Top := lblText.Height+3*MarginHeight;
       btnNo.Top  := btnYes.Top;
       btnCancel.Top := btnYes.Top;
     end;
@@ -182,7 +187,8 @@ function AskYesNoCheck(Title : string; Msg: string; CheckMsg: string; var CheckS
                          defButton : integer; HelpCtx : word) : integer;
 {just wraps everything up to make it easier to call}
 const
-  Margin=10;
+  MarginWidth = 25;
+  MarginHeight = 10;
 var
   MyDlg : TdlgYesNo;
   CapHeight: integer;
@@ -193,19 +199,22 @@ begin
     MyDlg.lblText.caption := Msg;
 
     MyDlg.CheckBox1.Visible := true;
-    MyDlg.CheckBox1.Caption := CheckMsg;
+    MyDlg.CheckBox1.Caption := WrapText(CheckMsg, (MyDlg.lblText.width div 5));
     MyDlg.CheckBox1.Checked := CheckState;
 
     {set up the size of the form}
     CapHeight := GetSystemMetrics(SM_CYCAPTION)+ GetSystemMetrics(SM_CYEDGE);
     with MyDlg do
     begin
-      lblText.Left := Image1.Left + Image1.Width + Margin;
-      lblText.Width := Width - lblText.Left - Margin;
-      Height     := CapHeight+ lblText.Height + btnYes.Height + 4*Margin+ CheckBox1.Height;
-      btnYes.Top := lblText.Height+3*Margin;
+      lblText.Left := Image1.Left + Image1.Width + MarginWidth;
+      if lblText.Width > Width - lblText.Left - MarginWidth then
+        Width := lblText.Width + lblText.Left + MarginWidth;
+      lblText.Width := Width - lblText.Left - MarginWidth;
+
+      Height     := CapHeight+ lblText.Height + btnYes.Height + 4*MarginHeight+ CheckBox1.Height;
+      btnYes.Top := lblText.Height+3*MarginHeight;
       btnNo.Top  := btnYes.Top;
-//      CheckBox1.Top := btnYes.Top + btnYes.Height+2;        
+//      CheckBox1.Top := btnYes.Top + btnYes.Height+2;
     end;
     MyDlg.DefButton   := defButton;
     MyDlg.HelpContext := HelpCtx;
