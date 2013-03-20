@@ -395,6 +395,9 @@ const
   BKH_What_happens_if_you_do_not_assign_report_groups_ = 1452;
   BKH_What_is_in_the_Guide_ = 1453;
   BKH_Year_end_adjustment_journals = 1458;
+  BKH_Interfacing_with_Acclipse_WebXOffice = 1459;
+  BKH_Exporting_transactions_from_BankLink_to_Acclipse_WebXOffice = 1460;
+  BKH_Importing_transactions_from_Acclipse_WebXOffice_to_BankLink = 1461;
   BKH_Summary_of_the_interface_with_Solution_6_Superfund = 1500;
   BKH_Summary_of_the_interface_with_Supercorp_Supervisor_II = 1501;
   BKH_Transferring_transactions_from_BankLink_to_Solution_6_Superfund = 1502;
@@ -426,6 +429,7 @@ const
   BKH_Producing_QIF_files = 1529;
   BKH_Producing_OFX_Files_Versions_1_2_ = 1530;
   BKH_Saving_manual_data = 1531;
+  BKH_Sending_reports_from_BankLink_to_Acclipse_WebPractice = 1532;
   BKH_Setting_up_the_link_to_Praemium = 1533;
   BKH_Statements_and_Download_Documents = 1534;
   BKH_Summary_of_the_interface_with_CatSoft_LedgerCat = 1535;
@@ -628,6 +632,7 @@ const
   BKH_Updating_a_client_file_from_a_folder = 1088;
   BKH_Sending_a_client_file_via_email = 1314;
   BKH_Transferring_transactions_from_BankLink_Practice_to_QuickBooks_Pro = 2137;
+  BKH_Changing_your_password_to_match_BankLink_Online = 2138;
   BKH_BankLink_Online_client_options = 2139;
   BKH_Step_3_VAT_Set_Up = 2140;
   BKH_Exporting_transactions_from_BankLink_to_CCH_WebPractice = 1460;
