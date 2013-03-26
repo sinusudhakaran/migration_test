@@ -1662,23 +1662,25 @@ procedure TfrmClientHomePage.acRunCodingExecute(Sender: TObject);
 var
   Dr : TRangeCount;
 begin
-   Lock;
-   frmMain.Enabled := False;
-   with TdlgModalProcessor.Create(nil)do
-   try
-      Show;
-      CloseAllCodingForms;
-      Dr := TreeList.CodingAndGSTMonths;
-      if Dr.Range.FromDate <> Dr.Range.ToDate then
-         TreeList.CodeRange(Dr);
-   finally
-      Free;
-      frmMain.Enabled := True;
-      Unlock;
-   end;
-   frmMain.ActiveFormChange(self); // Should not need this...
-                                   // But somehow when there is only one.
-                                   // the toolbar is not instep..
+  Lock;
+  frmMain.Enabled := False;
+  with TdlgModalProcessor.Create(nil)do
+  try
+    Show;
+    CloseAllCodingForms;
+    Dr := TreeList.CodingAndGSTMonths;
+    if Dr.Range.FromDate <> Dr.Range.ToDate then
+      TreeList.CodeRange(Dr);
+  finally
+    frmMain.Enabled := True;
+    Unlock;
+    Free;
+
+    // Should not need this...
+    // But somehow when there is only one.
+    // the toolbar is not instep..
+    frmMain.ActiveFormChange(self);
+  end;
 end;
 
 procedure TfrmClientHomePage.acScheduleExecute(Sender: TObject);
