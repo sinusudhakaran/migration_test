@@ -1081,8 +1081,18 @@ begin
       case ColumnTypes[ i] of
         ftActual : begin
           if IncludeBalance(PeriodStartDate_TY, PeriodEndDate_TY, pAcct^.chTemp_Date_First_Movement) then
+          begin
             Values[ i]  := AccountInfo.ClosingBalanceActualOrBudget( ForPeriod);
-          Result := AccountInfo.YTD_ActualOrBudget(ForPeriod) <> 0;
+
+             if AccountInfo.YTD_ActualOrBudget(ForPeriod) = 0 then
+             begin
+               Result := AccountInfo.OpeningBalanceActualOrBudget(ForPeriod) <> 0;
+             end
+             else
+             begin
+               Result := True;
+             end;
+          end;
         end;
         ftComparative : begin
           //does the user want last year or budget
