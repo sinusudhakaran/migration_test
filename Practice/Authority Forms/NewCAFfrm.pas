@@ -99,7 +99,9 @@ uses
   YesNoDlg,
   ShellAPI,
   BKHelp,
+  {$IFNDEF PRACTICE-7}
   CafQrCode,
+  {$EndIf}
   WebUtils,
   InstitutionCol;
 
@@ -216,7 +218,7 @@ var
   PublicKeyFilePath : Widestring;
 begin
   Result := false;
-
+  {$IfNdef PRACTICE-7}
   if not DirectoryExists( GLOBALS.TemplateDir ) then
   begin
     HelpfulErrorMsg('Can''t find Templates Directory - ' + GLOBALS.TemplateDir, 0);
@@ -261,6 +263,7 @@ begin
     on E : Exception do
       HelpfulErrorMsg('Error loading Customer Authority form - ' +  e.Message , 0);
   end;
+  {$EndIf}
 end;
 
 //------------------------------------------------------------------------------
@@ -1159,13 +1162,17 @@ const
   QR_CODE_SIZE = 100;
   STANDARD_XPOS = 645;
   STANDARD_YPOS = 760;
+   {$IFNDEF PRACTICE-7}
 var
+
   CafQrCode  : TCafQrCode;
   CAFQRData  : TCAFQRData;
   CAFQRDataAccount : TCAFQRDataAccount;
   QrCodeImage : TImage;
   InstIndex : integer;
+   {$ENDIF }
 begin
+  {$IFNDEF PRACTICE-7}
   if (Assigned(cmbBankName)) and
      (cmbBankName.ItemIndex < 1) then
     Exit;
@@ -1227,6 +1234,7 @@ begin
     FreeAndNil(CafQrCode);
     FreeAndNil(CAFQRData);
   end;
+   {$ENDIF}
 end;
 
 //------------------------------------------------------------------------------

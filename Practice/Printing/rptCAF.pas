@@ -44,7 +44,9 @@ uses
   UserReportSettings,
   BKPrintJob,
   Printers,
+  {$IFNDEF PRACTICE-7}
   CafQrCode,
+  {$ENDIF}
   ExtCtrls,
   Sysutils,
   webutils,
@@ -108,17 +110,19 @@ end;
 
 //------------------------------------------------------------------------------
 procedure TCAFReport.CreateQRCode(aCanvas : TCanvas; aDestRect : TRect);
+ {$IFNDEF PRACTICE-7}
 var
   CafQrCode  : TCafQrCode;
   CAFQRData  : TCAFQRData;
   CAFQRDataAccount : TCAFQRDataAccount;
   QrCodeImage : TImage;
   InstIndex : integer;
+  {$ENDIF}
 begin
   // don't draw QRCode if institution is set to other or not set
   if Values.cmbInstitutionName.ItemIndex < 1 then
     Exit;
-
+  {$IFNDEF PRACTICE-7}
   CAFQRData := TCAFQRData.Create(TCAFQRDataAccount);
   try
     CafQrCode := TCafQrCode.Create;
@@ -189,6 +193,7 @@ begin
   finally
     FreeAndNil(CAFQRData);
   end;
+  {$ENDIF}
 end;
 
 //------------------------------------------------------------------------------
