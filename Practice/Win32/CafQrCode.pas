@@ -6,11 +6,13 @@ interface
 uses
   Windows,
   Classes,
-  EncryptOpenSSL,
   ExtCtrls,
   Sysutils,
-  bkdateutils,
-  Libeay32;
+  {$IFNDEF Practice-7}
+  Libeay32,
+  EncryptOpenSSL,
+  {$ENDIF}
+  bkdateutils;
 
 const
   PUBLIC_KEY_FILE_CAF_QRCODE = 'PublicKeyCafQrCode.pke';
@@ -76,6 +78,7 @@ type
     procedure SetVersion(const Value: String);
   public
     constructor Create;
+
     procedure BuildQRCode(aCafQRData : TCAFQRData; KeyFile : string; QRCodeImage: TImage);
 
     property Version: String read FVersion write SetVersion;
@@ -88,8 +91,10 @@ type
 //------------------------------------------------------------------------------
 implementation
 
+{$IFNDEF Practice-7}
 uses
   uZintBarcode;
+{$ENDIF}
 
 { TCAFQRData }
 //------------------------------------------------------------------------------
@@ -298,6 +303,12 @@ begin
   FVersion := Value;
 end;
 
+{$IFDEF Practice-7}
+//------------------------------------------------------------------------------
+procedure TCafQrCode.BuildQRCode(aCafQRData : TCAFQRData; KeyFile : string; QRCodeImage: TImage);
+begin
+end;
+{$ELSE}
 //------------------------------------------------------------------------------
 procedure TCafQrCode.BuildQRCode(aCafQRData : TCAFQRData; KeyFile : string; QRCodeImage: TImage);
 const
@@ -354,5 +365,6 @@ begin
     end;
   end;
 end;
+{$ENDIF}
 
 end.
