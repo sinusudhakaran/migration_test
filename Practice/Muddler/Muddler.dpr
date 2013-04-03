@@ -5,7 +5,8 @@ uses
   Mainform in 'Mainform.pas' {formMain},
   Muddle in 'Muddle.pas',
   DataGenerator in 'DataGenerator.pas',
-  SysUtils;
+  SysUtils,
+  LockUtils;
 
 var
   MuddlerTemp : TMuddler;
@@ -26,6 +27,7 @@ begin
     Exit;
   end;
 
+  InitLocking;
   Application.Initialize;
   Application.MainFormOnTaskbar := True;
   Application.Title := 'Practice Data Muddler';
