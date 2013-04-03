@@ -3149,15 +3149,11 @@ begin
           clWeb_Export_Format := wfNone;
 
         //Make sure we clear the extra cached settings as well
-        if MyClient.clExtra.ceOnlineValuesStored then
-        begin
-          for Index := 1 to MyClient.clExtra.ceOnlineSubscriptionCount do
-          begin
-            MyClient.clExtra.ceOnlineSubscription[Index] := '';
-          end;
+        MyClient.clExtra.ceOnlineValuesStored := False;
+        MyClient.clExtra.ceOnlineSubscriptionCount := 0;
+        for Index := 1 to 64 do
+          MyClient.clExtra.ceOnlineSubscription[Index] := '';
 
-          MyClient.clExtra.ceOnlineValuesStored := False;
-        end;
 
         MyClient.clExtra.ceDeliverDataDirectToBLO := False;
         MyClient.clExtra.ceBLOSecureCode := '';
