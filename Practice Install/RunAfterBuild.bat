@@ -58,6 +58,7 @@ xcopy "Migrator.exe" "%DirTesting%" /i /y
 xcopy "BooksIO.dll" "%DirTesting%" /i /y
 xcopy "ByteArrayConverter.dll" "%DirTesting%" /i /y
 xcopy "Muddler.*" "%DirTesting%" /i /y
+xcopy "ResetPractice.exe" "%DirTesting%" /i /y
 GOTO MAINMENU
 
 
@@ -70,6 +71,7 @@ xcopy "Migrator.exe" "%DirTesting%" /i /y
 xcopy "BooksIO.dll" "%DirTesting%" /i /y
 xcopy "ByteArrayConverter.dll" "%DirTesting%" /i /y
 xcopy "Muddler.*" "%DirTesting%" /i /y
+xcopy "ResetPractice.*" "%DirTesting%" /i /y
 xcopy "Books_Update_AU\*" "%DirTesting%\Books_Update_AU" /i /y /e
 xcopy "Books_Update_NZ\*" "%DirTesting%\Books_Update_NZ" /i /y /e
 xcopy "Books_Update_UK\*" "%DirTesting%\Books_Update_UK" /i /y /e
