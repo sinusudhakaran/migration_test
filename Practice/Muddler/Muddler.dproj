@@ -5,7 +5,7 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <DCC_DCCCompiler>DCC32</DCC_DCCCompiler>
-    <DCC_DependencyCheckOutputName>Muddler.exe</DCC_DependencyCheckOutputName>
+    <DCC_DependencyCheckOutputName>c:\testing\Muddler.exe</DCC_DependencyCheckOutputName>
     <MainSource>Muddler.dpr</MainSource>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
@@ -25,12 +25,25 @@
     <DCC_IncludePath>$(COMMON);$(COMMON)\BNotes;$(COMMON)\BNotes\Database;$(COMMON)\Core;$(COMMON)\Core\Download;$(COMMON)\Database;$(COMMON)\Lib;..\Authority Forms\;..\BASForm\;..\Bconnect\;..\Component\;..\Extended MAPI\;..\Extract\;..\Forex\;..\Graphs\;..\Import\;..\Lists\;..\Orpheus\;..\WebNotes\;..\Printing\;..\Win32\;..\SimpleUI\</DCC_IncludePath>
     <DCC_MapFile>3</DCC_MapFile>
     <DCC_SymbolReferenceInfo>2</DCC_SymbolReferenceInfo>
+    <DCC_ExeOutput>c:\testing</DCC_ExeOutput>
   </PropertyGroup>
   <ProjectExtensions>
     <Borland.Personality>Delphi.Personality</Borland.Personality>
     <Borland.ProjectType />
     <BorlandProject>
 <BorlandProject><Delphi.Personality><Parameters><Parameters Name="UseLauncher">False</Parameters><Parameters Name="LoadAllSymbols">True</Parameters><Parameters Name="LoadUnspecifiedSymbols">False</Parameters></Parameters><VersionInfo><VersionInfo Name="IncludeVerInfo">True</VersionInfo><VersionInfo Name="AutoIncBuild">False</VersionInfo><VersionInfo Name="MajorVer">1</VersionInfo><VersionInfo Name="MinorVer">0</VersionInfo><VersionInfo Name="Release">0</VersionInfo><VersionInfo Name="Build">0</VersionInfo><VersionInfo Name="Debug">False</VersionInfo><VersionInfo Name="PreRelease">False</VersionInfo><VersionInfo Name="Special">False</VersionInfo><VersionInfo Name="Private">False</VersionInfo><VersionInfo Name="DLL">False</VersionInfo><VersionInfo Name="Locale">5129</VersionInfo><VersionInfo Name="CodePage">1252</VersionInfo></VersionInfo><VersionInfoKeys><VersionInfoKeys Name="CompanyName"></VersionInfoKeys><VersionInfoKeys Name="FileDescription"></VersionInfoKeys><VersionInfoKeys Name="FileVersion">1.0.0.0</VersionInfoKeys><VersionInfoKeys Name="InternalName"></VersionInfoKeys><VersionInfoKeys Name="LegalCopyright"></VersionInfoKeys><VersionInfoKeys Name="LegalTrademarks"></VersionInfoKeys><VersionInfoKeys Name="OriginalFilename"></VersionInfoKeys><VersionInfoKeys Name="ProductName"></VersionInfoKeys><VersionInfoKeys Name="ProductVersion">1.0.0.0</VersionInfoKeys><VersionInfoKeys Name="Comments"></VersionInfoKeys></VersionInfoKeys><Excluded_Packages>
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
       
       
       
@@ -65,9 +78,16 @@
     
     
     
+    
+    
+    
+    
+    
+    
     <DebugEnvironmentVariables>
       <DebugEnvironmentVariables Name="ComponentsDir">'..\..\Components'</DebugEnvironmentVariables>
       <DebugEnvironmentVariables Name="LOGONSERVER">'\\BANKLINK-DC'</DebugEnvironmentVariables>
+      <DebugEnvironmentVariables Name="Path">'C:\Program Files (x86)\CodeGear\RAD Studio\5.0\bin;C:\Users\Public\Documents\RAD Studio\5.0\Bpl;C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0\;c:\Program Files\Intel\DMIX;C:\Program Files (x86)\Intel\Services\IPT\;C:\Program Files\Developer Express.VCL\Library\Delphi11;c:\Program Files (x86)\Microsoft SQL Server\100\Tools\Binn\;c:\Program Files\Microsoft SQL Server\100\Tools\Binn\;c:\Program Files\Microsoft SQL Server\100\DTS\Binn\;C:\Users\Public\Documents\RAD Studio\5.0\Bpl'</DebugEnvironmentVariables>
     </DebugEnvironmentVariables>
     <DebugSysEnvironmentVariables>
       <DebugSysEnvironmentVariables Name="ALLUSERSPROFILE">'C:\ProgramData'</DebugSysEnvironmentVariables>
@@ -76,6 +96,7 @@
       <DebugSysEnvironmentVariables Name="BDSCOMMONDIR">'C:\Users\Public\Documents\RAD Studio\5.0'</DebugSysEnvironmentVariables>
       <DebugSysEnvironmentVariables Name="BDSPROJECTSDIR">'C:\Users\ralph.austen\Documents\RAD Studio\Projects'</DebugSysEnvironmentVariables>
       <DebugSysEnvironmentVariables Name="BDSUSERDIR">'C:\Users\ralph.austen\Documents\RAD Studio\5.0'</DebugSysEnvironmentVariables>
+      <DebugSysEnvironmentVariables Name="BPADir">'C:\Program Files (x86)\Microsoft Team Foundation Server 2010 Power Tools\Best Practices Analyzer\'</DebugSysEnvironmentVariables>
       <DebugSysEnvironmentVariables Name="CommonProgramFiles(x86)">'C:\Program Files (x86)\Common Files'</DebugSysEnvironmentVariables>
       <DebugSysEnvironmentVariables Name="CommonProgramFiles">'C:\Program Files (x86)\Common Files'</DebugSysEnvironmentVariables>
       <DebugSysEnvironmentVariables Name="CommonProgramW6432">'C:\Program Files\Common Files'</DebugSysEnvironmentVariables>
@@ -92,8 +113,8 @@
       <DebugSysEnvironmentVariables Name="NUMBER_OF_PROCESSORS">'8'</DebugSysEnvironmentVariables>
       <DebugSysEnvironmentVariables Name="OnlineServices">'Online Services'</DebugSysEnvironmentVariables>
       <DebugSysEnvironmentVariables Name="OOBEUILang">'en-US'</DebugSysEnvironmentVariables>
+      <DebugSysEnvironmentVariables Name="OPENSSL_CONF">'C:\Components\OpenSSL-Win32\bin\openssl.cfg'</DebugSysEnvironmentVariables>
       <DebugSysEnvironmentVariables Name="OS">'Windows_NT'</DebugSysEnvironmentVariables>
-      <DebugSysEnvironmentVariables Name="Path">'C:\Program Files (x86)\CodeGear\RAD Studio\5.0\bin;C:\Users\Public\Documents\RAD Studio\5.0\Bpl;C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0\;c:\Program Files\Intel\DMIX;C:\Program Files (x86)\Intel\Services\IPT\;C:\Program Files\Developer Express.VCL\Library\Delphi11;c:\Program Files (x86)\Microsoft SQL Server\100\Tools\Binn\;c:\Program Files\Microsoft SQL Server\100\Tools\Binn\;c:\Program Files\Microsoft SQL Server\100\DTS\Binn\;C:\Users\Public\Documents\RAD Studio\5.0\Bpl'</DebugSysEnvironmentVariables>
       <DebugSysEnvironmentVariables Name="PATHEXT">'.COM;.EXE;.BAT;.CMD;.VBS;.VBE;.JS;.JSE;.WSF;.WSH;.MSC'</DebugSysEnvironmentVariables>
       <DebugSysEnvironmentVariables Name="Platform">'BPC'</DebugSysEnvironmentVariables>
       <DebugSysEnvironmentVariables Name="PROCESSOR_ARCHITECTURE">'x86'</DebugSysEnvironmentVariables>
@@ -112,6 +133,7 @@
       <DebugSysEnvironmentVariables Name="SystemDrive">'C:'</DebugSysEnvironmentVariables>
       <DebugSysEnvironmentVariables Name="SystemRoot">'C:\Windows'</DebugSysEnvironmentVariables>
       <DebugSysEnvironmentVariables Name="TEMP">'C:\Users\RALPH~1.AUS\AppData\Local\Temp'</DebugSysEnvironmentVariables>
+      <DebugSysEnvironmentVariables Name="TFSPowerToolDir">'C:\Program Files (x86)\Microsoft Team Foundation Server 2010 Power Tools\'</DebugSysEnvironmentVariables>
       <DebugSysEnvironmentVariables Name="TMP">'C:\Users\RALPH~1.AUS\AppData\Local\Temp'</DebugSysEnvironmentVariables>
       <DebugSysEnvironmentVariables Name="USERDNSDOMAIN">'BANKLINK.CO.NZ'</DebugSysEnvironmentVariables>
       <DebugSysEnvironmentVariables Name="USERDOMAIN">'BANKLINK'</DebugSysEnvironmentVariables>

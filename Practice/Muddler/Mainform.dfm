@@ -474,7 +474,6 @@ object formMain: TformMain
     Hint = 'Enter in the practice folder '
     Anchors = [akLeft, akTop, akRight]
     TabOrder = 0
-    ExplicitWidth = 442
   end
   object edtDestinationDirectory: TEdit
     Left = 122
@@ -484,7 +483,6 @@ object formMain: TformMain
     Hint = 'Enter the Output/Muddled Pactice Folder'
     Anchors = [akLeft, akTop, akRight]
     TabOrder = 1
-    ExplicitWidth = 442
   end
   object btnGo: TButton
     Left = 396
@@ -495,8 +493,6 @@ object formMain: TformMain
     Action = actExecute
     Anchors = [akRight, akBottom]
     TabOrder = 2
-    ExplicitLeft = 439
-    ExplicitTop = 120
   end
   object btnExit: TButton
     Left = 477
@@ -507,8 +503,6 @@ object formMain: TformMain
     Action = actExit
     Anchors = [akRight, akBottom]
     TabOrder = 3
-    ExplicitLeft = 520
-    ExplicitTop = 120
   end
   object ProgressBar: TProgressBar
     Left = 15
@@ -518,8 +512,6 @@ object formMain: TformMain
     Anchors = [akLeft, akRight, akBottom]
     Position = 100
     TabOrder = 4
-    ExplicitTop = 123
-    ExplicitWidth = 410
   end
   object grpOptions: TGroupBox
     Left = 15
@@ -529,8 +521,6 @@ object formMain: TformMain
     Anchors = [akLeft, akTop, akRight, akBottom]
     Caption = 'Options'
     TabOrder = 5
-    ExplicitWidth = 570
-    ExplicitHeight = 46
     DesignSize = (
       536
       69)
@@ -545,16 +535,16 @@ object formMain: TformMain
     object chkSetAllEmailsToOne: TCheckBox
       Left = 16
       Top = 41
-      Width = 217
+      Width = 162
       Height = 17
-      Caption = 'Don'#39't Muddle Emails rather set them all to :'
+      Caption = 'Set all emails to the following'
       TabOrder = 1
       OnClick = chkSetAllEmailsToOneClick
     end
     object edtGlobalEmail: TEdit
-      Left = 241
+      Left = 184
       Top = 39
-      Width = 280
+      Width = 337
       Height = 21
       Anchors = [akLeft, akTop, akRight]
       Enabled = False

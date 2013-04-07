@@ -36,6 +36,9 @@ Const
 Type
   TProgressEvent = procedure (ProgressPercent : single) of object;
 
+  TStringCode = String[8];
+  TStringName = String[60];
+
   TAccountOldNew = record
     OldAccNumber : string;
     NewAccNumber : string;
@@ -66,21 +69,23 @@ Type
   //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   TClientItem = class
   private
-    fClientObj     : TClientObj;
     fFileName      : string;
     fDone          : boolean;
     fOldClientCode : string;
+    fclCode        : TStringCode;
+    fclName        : TStringName;
+    fclSystem_LRN  : Integer;
+
   public
     constructor Create;
     destructor Destroy; override;
 
-    procedure Open;
-    procedure Save;
-
-    property ClientObj     : TClientObj read fClientObj     write fClientObj;
-    property FileName      : string     read fFileName      write fFileName;
-    property Done          : Boolean    read fDone          write fDone;
-    property OldClientCode : string     read fOldClientCode write fOldClientCode;
+    property FileName      : string      read fFileName      write fFileName;
+    property Done          : Boolean     read fDone          write fDone;
+    property OldClientCode : string      read fOldClientCode write fOldClientCode;
+    property clCode        : TStringCode read fclCode        write fclCode;
+    property clName        : TStringName read fclName        write fclName;
+    property clSystem_LRN  : Integer     read fclSystem_LRN  write fclSystem_LRN;
   end;
 
   //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -262,27 +267,13 @@ const
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 constructor TClientItem.Create;
 begin
-  fClientObj := TClientObj.Create;
   fDone := false;
 end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 destructor TClientItem.Destroy;
 begin
-  FreeAndNil(fClientObj);
   inherited;
-end;
-
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-procedure TClientItem.Open;
-begin
-  fClientObj.Open(fFileName, FILEEXTN);
-end;
-
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-procedure TClientItem.Save;
-begin
-  fClientObj.Save;
 end;
 
 { TClientList }
@@ -300,8 +291,8 @@ begin
   Result := nil;
   for ClientIndex := 0 to Count-1 do
   begin
-    if (Self.Items[ClientIndex].ClientObj.clFields.clCode = ClientCode) and
-       (Self.Items[ClientIndex].ClientObj.clFields.clSystem_LRN = LRN) and
+    if (Self.Items[ClientIndex].clCode = ClientCode) and
+       (Self.Items[ClientIndex].clSystem_LRN = LRN) and
        (Self.Items[ClientIndex].Done = False) then
     begin
       Result := Self.Items[ClientIndex];
@@ -758,7 +749,7 @@ begin
   Result := False;
   for ClientIndex := 0 to fClientList.Count - 1 do
   begin
-    if fClientList[ClientIndex].ClientObj.clFields.clCode = FileName then
+    if fClientList[ClientIndex].clCode = FileName then
     begin
       Result := True;
       Exit;
@@ -1282,8 +1273,8 @@ begin
       ClientItem := fClientList.GetClientFromOldClientCode(DiskImage.dhFields.dhClient_Code);
       if Assigned(ClientItem) then
       begin
-        DiskImage.dhFields.dhClient_Code := ClientItem.ClientObj.clFields.clCode;
-        DiskImage.dhFields.dhClient_Name := ClientItem.ClientObj.clFields.clName;
+        DiskImage.dhFields.dhClient_Code := ClientItem.clCode;
+        DiskImage.dhFields.dhClient_Name := ClientItem.clName;
       end
       else
       begin
@@ -1404,6 +1395,7 @@ var
   NewClient  : TClientItem;
   FileCount  : integer;
   FileIndex  : integer;
+  ClientObj  : TClientObj;
 begin
   // Upgrade DB
   LoadAdminSystem(false, 'StartUp');
@@ -1432,14 +1424,26 @@ begin
 
     while FindResult = 0 do
     begin
-      NewClient := TClientItem.Create;
-      NewClient.FileName := LeftStr(SearchRec.Name,Pos('.',SearchRec.Name)-1);
-      NewClient.Open;
-      fClientList.Add(NewClient);
-      inc(FileIndex);
+      ClientObj := TClientObj.Create;
 
-      SetProgressUpdate(35 + ((FileIndex/FileCount) * 15));
-      FindResult := FindNext(SearchRec);
+      try
+        NewClient := TClientItem.Create;
+        NewClient.FileName := LeftStr(SearchRec.Name,Pos('.',SearchRec.Name)-1);
+
+        ClientObj.Open(NewClient.FileName, FILEEXTN);
+        NewClient.clCode := ClientObj.clFields.clCode;
+        NewClient.clName := ClientObj.clFields.clName;
+        NewClient.clSystem_LRN := ClientObj.clFields.clSystem_LRN;
+
+        fClientList.Add(NewClient);
+        inc(FileIndex);
+
+        SetProgressUpdate(35 + ((FileIndex/FileCount) * 15));
+        FindResult := FindNext(SearchRec);
+      finally
+        //ClientObj.Save;
+        FreeAndNil(ClientObj);
+      end;
     end;
   finally
     SysUtils.FindClose(SearchRec);
@@ -1476,6 +1480,7 @@ var
 
   MemorizationIndex : integer;
   SuperVisExists : boolean;
+  ItemCount : integer;
 begin
   PracticeName       := fDataGenerator.GenerateCompanyName('Accountants');
   PracticePersonName := fDataGenerator.GeneratePersonName(1,2);
@@ -1514,8 +1519,11 @@ begin
     AddSuperVisUser;
 
   // Clients in Database
-  for ClientIndex := 0 to AdminSystem.fdSystem_Client_File_List.ItemCount-1 do
+  ItemCount := AdminSystem.fdSystem_Client_File_List.ItemCount;
+  for ClientIndex := 0 to ItemCount-1 do
   begin
+    SetProgressUpdate(50 + ((ClientIndex/ItemCount) * 30));
+
     ClientDBItem := AdminSystem.fdSystem_Client_File_List.Client_File_At(ClientIndex);
     // Look for Client File with the Same Code
     ClientFileBase := fClientList.GetClientFromCodeandLRN(ClientDBItem.cfFile_Code,
@@ -1530,23 +1538,31 @@ begin
 
     if Assigned(ClientFileBase) then
     begin
-      ClientObj := ClientFileBase.ClientObj;
+      ClientObj := TClientObj.Create;
+      try
+        ClientObj.Open(ClientFileBase.FileName, FILEEXTN);
 
-      MuddleClientBk5(ClientObj,
-                      PracticeName,
-                      PracticeEmail,
-                      PracticeWebSite,
-                      PracticePhone,
-                      PracticeCode,
-                      BankLinkCode,
-                      ClientCode,
-                      ClientName,
-                      True);
+        MuddleClientBk5(ClientObj,
+                        PracticeName,
+                        PracticeEmail,
+                        PracticeWebSite,
+                        PracticePhone,
+                        PracticeCode,
+                        BankLinkCode,
+                        ClientCode,
+                        ClientName,
+                        True);
 
-      ClientFileBase.Done := True;
+        ClientObj.Save;
+
+        ClientFileBase.Done := True;
+      finally
+        FreeAndNil(ClientObj);
+      end;
     end;
   end;
 
+  SetProgressUpdate(80);
   // Go through any Clients that could not be matched above
   for ClientIndex := 0 to fClientList.Count - 1 do
   begin
@@ -1563,18 +1579,29 @@ begin
 
       PracticeWebSite    := fDataGenerator.GenerateWebSite(PracticeName,'co','nz');
 
-      MuddleClientBk5(fClientList[ClientIndex].ClientObj,
-                      PracticeName,
-                      PracticeEmail,
-                      PracticeWebSite,
-                      fDataGenerator.GeneratePhoneNumber,
-                      'Prac' + fDataGenerator.GenerateCode(4),
-                      'Bank' + fDataGenerator.GenerateCode(4),
-                      'Cl' + fDataGenerator.GenerateCode(6),
-                      fDataGenerator.GenerateCompanyName,
-                      False);
+      ClientObj := TClientObj.Create;
+      try
+        ClientObj.Open(fClientList[ClientIndex].FileName, FILEEXTN);
+
+        MuddleClientBk5(ClientObj,
+                        PracticeName,
+                        PracticeEmail,
+                        PracticeWebSite,
+                        fDataGenerator.GeneratePhoneNumber,
+                        'Prac' + fDataGenerator.GenerateCode(4),
+                        'Bank' + fDataGenerator.GenerateCode(4),
+                        'Cl' + fDataGenerator.GenerateCode(6),
+                        fDataGenerator.GenerateCompanyName,
+                        False);
+
+        ClientObj.Save;
+      finally
+        FreeAndNil(ClientObj);
+      end;
     end;
   end;
+
+  SetProgressUpdate(85);
 
   // System Bank Accounts
   if not fOnlyMuddleEmails then
@@ -1619,7 +1646,7 @@ begin
   if not fOnlyMuddleEmails then
     CreateWorkCsvFile;
 
-  SetProgressUpdate(75);
+  SetProgressUpdate(90);
 end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -1630,13 +1657,11 @@ begin
   // Save Admin DB
   AdminSystem.Save;
   FreeAndNil(AdminSystem);
-  SetProgressUpdate(85);
 
   // Save Client Files
   for ClientIndex := 0 to fClientList.Count-1 do
   begin
-    fClientList[ClientIndex].Save;
-    SetProgressUpdate(85 + (((ClientIndex+1)/fClientList.Count) * 15));
+    SetProgressUpdate(90 + (((ClientIndex+1)/fClientList.Count) * 10));
 
     if not IsClientFileNameUsed(fClientList[ClientIndex].FileName) then
       DeleteFile(PCHar(DataDir + fClientList[ClientIndex].FileName + FILEEXTN));

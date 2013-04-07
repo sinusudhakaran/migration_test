@@ -1,5 +1,7 @@
 program Muddler;
 
+{$DEFINE Practice-7}
+
 uses
   Forms,
   Mainform in 'Mainform.pas' {formMain},
