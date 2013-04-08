@@ -2705,6 +2705,7 @@ begin
       DivisionArray := clTemp_FRS_Divisions;
       for DivisionIdx := 0 to Length(DivisionArray) - 1 do
       begin
+        TCashflowReportEx(Sender).ClearSubTotals;
         if DivisionArray[DivisionIdx] then
         begin
           clTemp_FRS_Division_To_Use := DivisionIdx;
