@@ -13,7 +13,7 @@ For /F "tokens=1 delims=/" %%A in ('Date /t') do Set Day=%%A
 For /F "tokens=2 delims=/" %%A in ('Date /t') do Set Month=%%A
 For /F "tokens=3 delims=/" %%A in ('Date /t') do Set Year=%%A
 
-set DirTesting=\\banklink-fp\Product\BK5\Testing\%VersionText% TPR
+set DirTesting=\\banklink-fp\Product\BK5\Testing\%VersionText%
 Set ReleaseFolder=BK%Year%Release %VersionText% (%Year%Dev) 
 set DirRelease=\\banklink-fp\Product\BK5\%ReleaseFolder%
 
