@@ -67,6 +67,10 @@ Source: "AuthorityForms\CAF_Generator_Standard.xlt"; DestDir: "{app}\TEMPLATE"
 
 Source: "Publickeys\PublicKeyCafQrCode.pke"; DestDir : "{app}\Publickeys"
 
+Source: "Practice Server\PracticeApplicationService.exe"; DestDir: "{app}\Practice Server"
+Source: "Practice Server\PracticeApplicationService.ini"; DestDir: "{app}\Practice Server"
+Source: "Practice Server\PracticeServerConsole.exe";      DestDir: "{app}\Practice Server"
+
 [Icons]
 Name: "{group}\BankLink Practice"; Filename: "{app}\BK5WIN.EXE"
 Name: "{group}\Create Initial Database"; Filename: "{app}\BK5WIN.EXE"; Parameters: "/dbcreate";
