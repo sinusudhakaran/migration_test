@@ -66,9 +66,9 @@ Source: "AuthorityForms\CAF_Generator.xlt"; DestDir: "{app}"
 
 Source: "Publickeys\PublicKeyCafQrCode.pke"; DestDir : "{app}\Publickeys"
 
-Source: "Practice Server\PracticeApplicationService.exe"; DestDir: "{app}\Practice Server"
-Source: "Practice Server\PracticeApplicationService.ini"; DestDir: "{app}\Practice Server"
-Source: "Practice Server\PracticeServerConsole.exe";      DestDir: "{app}\Practice Server"
+Source: "..\Binaries\PracticeApplicationService.exe"; DestDir: "{app}\Practice Server"
+Source: "..\Binaries\PracticeServerConsole.exe"; DestDir: "{app}\Practice Server"
+Source: "..\Practice Server\Service\PracticeApplicationService.ini"; DestDir: "{app}\Practice Server"
 
 [Run]
 Filename: "{app}\BK5WIN.EXE"; Description : "Start BankLink Practice"; WorkingDir: "{app}"; Flags: postinstall nowait;
