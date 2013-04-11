@@ -359,7 +359,7 @@ begin
       end;
     xcMYOB:
       begin
-        BKHelpSetup(Self, BKH_Exporting_charges_to_MYOB_Viztopia);
+        BKHelpSetup(Self, BKH_Exporting_charges_to_MYOB_AE_Practice_Manager);
         tgCharges.Col[colClientID].Visible := False;
         tgCharges.Col[colMatterID].Visible := False;
         tgCharges.Col[colAcctNo].Width := tgCharges.Col[colAcctNo].Width - 15;

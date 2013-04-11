@@ -445,7 +445,7 @@ procedure TdlgExportToECoding.FormShow(Sender: TObject);
 begin
   if FExportDestination = ecDestWebX then
      case ForClient.clFields.clWeb_Export_Format of
-        wfWebX:  BKHelpSetUp( Self, BKH_Exporting_transactions_from_BankLink_to_Acclipse_WebXOffice);
+        wfWebX:  BKHelpSetUp( Self, BKH_Exporting_transactions_from_BankLink_to_CCH_WebPractice);
         wfWebNotes:  BKHelpSetUp( Self, BKH_Creating_a_BankLink_Notes_Online_file_for_a_client_to_access);
      end
   else

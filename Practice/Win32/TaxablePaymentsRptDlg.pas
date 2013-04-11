@@ -158,7 +158,7 @@ begin
 
   SetUpHelp;
 
-  bkHelpSetup( Self, BKH_Spending_by_payee_reports);
+  bkHelpSetup( Self, BKH_Taxable_Payments_Report);
 
   //favorite reports functionality is disabled in simpleUI
   if Active_UI_Style = UIS_Simple then
