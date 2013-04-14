@@ -76,6 +76,7 @@ type
     chkOnlyMuddleEmails: TCheckBox;
     chkSetAllEmailsToOne: TCheckBox;
     edtGlobalEmail: TEdit;
+    lblStatus: TLabel;
     procedure btnSourceDirectoryClick(Sender: TObject);
     procedure btnDestinationDirectoryClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -94,10 +95,11 @@ type
     procedure actSaveBk5ExeExecute(Sender: TObject);
     procedure chkSetAllEmailsToOneClick(Sender: TObject);
   private
+    fLastMessage : string;
     fMuddler : TMuddler;
     fMuddleDatFileName : string;
 
-    procedure DoProgress(ProgressPercent : single);
+    procedure DoProgress(ProgressPercent : single; MessageStr : String);
     procedure ResetControls;
     function Validate : boolean;
     procedure EnableControls(Enable : boolean);
@@ -111,7 +113,9 @@ implementation
 {$R *.dfm}
 
 uses
-  ShellUtils;
+  ShellUtils,
+  LogUtil,
+  StackTracing;
 
 Const
   MSG_SELECT_FOLDER         = 'Select a %S directory';
@@ -126,6 +130,8 @@ Const
   FILE_EXT_DATA_FILTER = 'Muddler Data File|*.dat';
   FILE_EXT_TEXT_FILTER = 'Text File|*.txt';
   FILE_EXT_EXE_FILTER  = 'Bk5 Exe File|*.exe';
+
+  UNITNAME = 'MainForm';
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TformMain.btnSourceDirectoryClick(Sender: TObject);
@@ -169,8 +175,9 @@ procedure TformMain.FormCreate(Sender: TObject);
 begin
   fMuddler := TMuddler.Create;
   // Link Call Back Procedure
+  fMuddler.AppFolder := ExtractFilePath(ParamStr(0));
   fMuddler.OnProgressUpdate := DoProgress;
-  fMuddleDatFileName := ExtractFilePath(ParamStr(0)) + FILENAME_MUDDLE_DAT;
+  fMuddleDatFileName := fMuddler.AppFolder + FILENAME_MUDDLE_DAT;
 
   if FileExists(fMuddleDatFileName) then
     fMuddler.DataGenerator.Load(fMuddleDatFileName)
@@ -192,12 +199,20 @@ begin
 end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-procedure TformMain.DoProgress(ProgressPercent : single);
+procedure TformMain.DoProgress(ProgressPercent : single; MessageStr : String);
 var
   Progress : integer;
 begin
   Progress := round((ProgressPercent/100) * ProgressBar.Max);
   ProgressBar.Position := Progress;
+  lblStatus.Caption := MessageStr;
+
+  if fLastMessage <> MessageStr then
+  begin
+    LogUtil.LogMsg(lmInfo, 'MainForm', MessageStr);
+    fLastMessage := MessageStr;
+  end;
+
   Application.ProcessMessages;
 end;
 
@@ -244,6 +259,9 @@ begin
   btnGo.Enabled := Enable;
   btnExit.Enabled := Enable;
   mnuFile.Enabled := Enable;
+  chkOnlyMuddleEmails.Enabled := Enable;
+  chkSetAllEmailsToOne.Enabled := Enable;
+  edtGlobalEmail.Enabled := Enable;
 end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -356,9 +374,25 @@ end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TformMain.actExecuteExecute(Sender: TObject);
+var
+  Msg : string;
 begin
   if not Validate then
     Exit;
+
+  fLastMessage := '';
+  LogUtil.LogMsg(lmInfo, UNITNAME, '-------------------------------------------------');
+  LogUtil.LogMsg(lmInfo, UNITNAME, 'Source Folder : ' + edtSourceDirectory.Text);
+  LogUtil.LogMsg(lmInfo, UNITNAME, 'Destination Folder : ' + edtDestinationDirectory.Text);
+  if chkOnlyMuddleEmails.Checked then
+    LogUtil.LogMsg(lmInfo, UNITNAME, 'Only Muddle Emails : On')
+  else
+    LogUtil.LogMsg(lmInfo, UNITNAME, 'Only Muddle Emails : Off');
+  if chkSetAllEmailsToOne.Checked then
+    LogUtil.LogMsg(lmInfo, UNITNAME, 'Set All Emails To One : On, Email : ' + edtGlobalEmail.text)
+  else
+    LogUtil.LogMsg(lmInfo, UNITNAME, 'Set All Emails To One : Off');
+  LogUtil.LogMsg(lmInfo, UNITNAME, '-------------------------------------------------');
 
   ResetControls;
   Self.Cursor := crHourGlass;
@@ -374,7 +408,12 @@ begin
       Messagedlg(MSG_FINISHED, mtInformation, [mbOk], 0);
     except
       On E : Exception do
-        Messagedlg(format(MSG_ERROR_OCCURED,[E.Message]), mtError, [mbOk], 0);
+      begin
+        Msg := format(MSG_ERROR_OCCURED,[E.Message]);
+        LogUtil.LogError(UNITNAME, Msg);
+        GetAndLogStackTrace(UNITNAME, 'actExecuteExecute');
+        Messagedlg(Msg, mtError, [mbOk], 0);
+      end;
     end;
   finally
     Self.Cursor := crDefault;

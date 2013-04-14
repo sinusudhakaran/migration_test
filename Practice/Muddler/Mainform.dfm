@@ -2,8 +2,8 @@ object formMain: TformMain
   Left = 0
   Top = 0
   Caption = 'Practice Data Muddler'
-  ClientHeight = 174
-  ClientWidth = 562
+  ClientHeight = 175
+  ClientWidth = 575
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -318,8 +318,8 @@ object formMain: TformMain
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   DesignSize = (
-    562
-    174)
+    575
+    175)
   PixelsPerInch = 96
   TextHeight = 13
   object lblSourceDirectory: TLabel
@@ -331,7 +331,7 @@ object formMain: TformMain
     FocusControl = edtSourceDirectory
   end
   object btnSourceDirectory: TSpeedButton
-    Left = 527
+    Left = 540
     Top = 8
     Width = 25
     Height = 22
@@ -395,7 +395,7 @@ object formMain: TformMain
     ExplicitLeft = 580
   end
   object btnDestinationDirectory: TSpeedButton
-    Left = 527
+    Left = 540
     Top = 36
     Width = 25
     Height = 22
@@ -466,10 +466,20 @@ object formMain: TformMain
     Caption = 'Destination Directory'
     FocusControl = edtDestinationDirectory
   end
+  object lblStatus: TLabel
+    Left = 15
+    Top = 132
+    Width = 3
+    Height = 13
+    Alignment = taCenter
+    Anchors = [akLeft, akRight, akBottom]
+    FocusControl = edtDestinationDirectory
+    ExplicitTop = 131
+  end
   object edtSourceDirectory: TEdit
     Left = 122
     Top = 9
-    Width = 399
+    Width = 412
     Height = 21
     Hint = 'Enter in the practice folder '
     Anchors = [akLeft, akTop, akRight]
@@ -478,52 +488,56 @@ object formMain: TformMain
   object edtDestinationDirectory: TEdit
     Left = 122
     Top = 37
-    Width = 399
+    Width = 412
     Height = 21
     Hint = 'Enter the Output/Muddled Pactice Folder'
     Anchors = [akLeft, akTop, akRight]
     TabOrder = 1
   end
   object btnGo: TButton
-    Left = 396
-    Top = 142
+    Left = 409
+    Top = 143
     Width = 75
     Height = 25
     Hint = 'Starts the Muddle Process'
     Action = actExecute
     Anchors = [akRight, akBottom]
     TabOrder = 2
+    ExplicitTop = 142
   end
   object btnExit: TButton
-    Left = 477
-    Top = 142
+    Left = 490
+    Top = 143
     Width = 75
     Height = 25
     Hint = 'Exits the Application'
     Action = actExit
     Anchors = [akRight, akBottom]
     TabOrder = 3
+    ExplicitTop = 142
   end
   object ProgressBar: TProgressBar
     Left = 15
-    Top = 145
-    Width = 367
+    Top = 146
+    Width = 380
     Height = 18
     Anchors = [akLeft, akRight, akBottom]
     Position = 100
     TabOrder = 4
+    ExplicitTop = 145
   end
   object grpOptions: TGroupBox
     Left = 15
     Top = 64
-    Width = 536
-    Height = 69
+    Width = 549
+    Height = 70
     Anchors = [akLeft, akTop, akRight, akBottom]
     Caption = 'Options'
     TabOrder = 5
+    ExplicitHeight = 69
     DesignSize = (
-      536
-      69)
+      549
+      70)
     object chkOnlyMuddleEmails: TCheckBox
       Left = 16
       Top = 18
@@ -544,7 +558,7 @@ object formMain: TformMain
     object edtGlobalEmail: TEdit
       Left = 184
       Top = 39
-      Width = 337
+      Width = 350
       Height = 21
       Anchors = [akLeft, akTop, akRight]
       Enabled = False

@@ -32,9 +32,10 @@ uses
 
 Const
   FILENAME_MUDDLE_DAT  = 'Muddler.dat';
+  FILENAME_MUDDLE_MAP  = 'MuddlerMap';
 
 Type
-  TProgressEvent = procedure (ProgressPercent : single) of object;
+  TProgressEvent = procedure (ProgressPercent : single; MessageStr : String) of object;
 
   TStringCode = String[8];
   TStringName = String[60];
@@ -69,6 +70,7 @@ Type
   //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   TClientItem = class
   private
+    fIgnore        : boolean;
     fFileName      : string;
     fDone          : boolean;
     fOldClientCode : string;
@@ -80,6 +82,7 @@ Type
     constructor Create;
     destructor Destroy; override;
 
+    property Ignore        : boolean     read fIgnore        write fIgnore;
     property FileName      : string      read fFileName      write fFileName;
     property Done          : Boolean     read fDone          write fDone;
     property OldClientCode : string      read fOldClientCode write fOldClientCode;
@@ -105,7 +108,8 @@ Type
   //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   TMuddler = class
   private
-
+    fMapFile              : TextFile;
+    fAppFolder            : string;
     fClientList           : TClientList;
     fOnProgressUpdate     : TProgressEvent;
     fSourceDirectory      : string;
@@ -119,7 +123,7 @@ Type
     fSetAllEmailToOne     : Boolean;
     fGlobalEmail          : String;
 
-    procedure SetProgressUpdate(ProgressPercent : single);
+    procedure SetProgressUpdate(ProgressPercent : single; MessageStr : String);
     procedure CopyFolder(SourceDirectory, DestinationDirectory: string; FileCount : integer; var FileIndex : integer);
     procedure CountItemsInFolder(SourceDirectory : string; var FileCount : integer);
     procedure ClearFilesInFolder(Directory : string; var FileCount : integer; var FileIndex : integer);
@@ -207,6 +211,7 @@ Type
     property OnlyMuddleEmails : Boolean read fOnlyMuddleEmails write fOnlyMuddleEmails;
     property SetAllEmailToOne : Boolean read fSetAllEmailToOne write fSetAllEmailToOne;
     property GlobalEmail : String read fGlobalEmail write fGlobalEmail;
+    property AppFolder : String read fAppFolder write fAppFolder;
   end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -233,7 +238,9 @@ uses
   DateUtils,
   stDate,
   SYusIO,
-  BkConst;
+  BkConst,
+  WinUtils,
+  LogUtil;
 
 const
   MIN_NUM_REPLACE_LENGTH = 4;
@@ -339,10 +346,10 @@ end;
 
 { TMuddler }
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-procedure TMuddler.SetProgressUpdate(ProgressPercent : single);
+procedure TMuddler.SetProgressUpdate(ProgressPercent : single; MessageStr : String);
 begin
   if assigned(fOnProgressUpdate) then
-    fOnProgressUpdate(ProgressPercent);
+    fOnProgressUpdate(ProgressPercent, MessageStr);
 end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -502,6 +509,7 @@ var
   ArrIndex  : integer;
   LoopLength : integer;
   Balance : Currency;
+  Filename : String;
 
   //- - - - - - - - - - - - - - - - - - - - - - - -
   function GetFirstDate : TDateTime;
@@ -555,7 +563,8 @@ begin
 
   for FileIndex := 1 to 3 do
   begin
-    AssignFile(WorkFile, DataDir + 'Work\' + FormatDateTime('mmmyyyy', FirstDate) + rfFileExtn[rfCSV]);
+    Filename := DataDir + 'Work\' + FormatDateTime('mmmyyyy', FirstDate) + rfFileExtn[rfCSV];
+    AssignFile(WorkFile, Filename);
     ReWrite(WorkFile);
 
     Try
@@ -648,7 +657,7 @@ begin
                          DestinationDirectory + '\' + SearchRec.Name);
 
           inc(FileIndex);
-          SetProgressUpdate(((FileIndex/FileCount) * 15) + 10);
+          SetProgressUpdate(((FileIndex/FileCount) * 25) + 10, 'Copying files from Source to Muddle folder');
         end;
       end;
       FindResult := FindNext(SearchRec);
@@ -705,7 +714,7 @@ begin
       begin
         DeleteFile(PChar(Directory + '\' + SearchRec.Name));
         inc(FileIndex);
-        SetProgressUpdate(((FileIndex/FileCount) * 10));
+        SetProgressUpdate(((FileIndex/FileCount) * 10), 'Clearing files in Muddled Folder');
       end;
 
       FindResult := FindNext(SearchRec);
@@ -819,6 +828,10 @@ procedure TMuddler.MuddlePracticeSys(var PracticeFields : tPractice_Details_Rec;
 begin
   if not fOnlyMuddleEmails then
   begin
+    WriteLn(fMapFile, 'Practice Mapping');
+    WriteLn(fMapFile, 'Name , ' + PracticeFields.fdPractice_Name_for_Reports + ',  ' +  Name );
+    WriteLn(fMapFile, 'Code , ' + PracticeFields.fdBankLink_Code  + ',  ' +  BankLinkCode );
+
     PracticeFields.fdPractice_Name_for_Reports := Name;
     PracticeFields.fdPractice_Phone            := Phone;
     PracticeFields.fdPractice_Web_Site         := WebSite;
@@ -860,6 +873,9 @@ begin
     RenameFile(fDestinationDirectory + '\' + UserFields.usCode + '.ini' ,
                fDestinationDirectory + '\' + Code + '.ini' );
 
+    WriteLn(fMapFile, 'Name , ' + UserFields.usName  + ',  ' +  Name );
+    WriteLn(fMapFile, 'Code , ' + UserFields.usCode  + ',  ' +  Code );
+
     UserFields.usCode          := Code;
     UserFields.usName          := Name;
     UserFields.usPassword      := Password;
@@ -881,6 +897,9 @@ procedure TMuddler.MuddleClientSys(ClientField : pClient_File_Rec;
 begin
   if not fOnlyMuddleEmails then
   begin
+    WriteLn(fMapFile, 'Name , ' + ClientField.cfFile_Name  + ',  ' +  Name );
+    WriteLn(fMapFile, 'Code , ' + ClientField.cfFile_Code  + ',  ' +  Code );
+
     ClientField.cfFile_Code         := Code;
     ClientField.cfFile_Name         := Name;
     ClientField.cfFile_Password     := '';
@@ -1406,7 +1425,7 @@ begin
   UpgradeAdminToLatestVersion;
   UpgradeExchangeRatesToLatestVersion;
 
-  SetProgressUpdate(35);
+  SetProgressUpdate(35, 'Retrieving Client Info');
 
   FileCount := 0;
   FindResult := FindFirst(DataDir + '*' + FILEEXTN, faAnyfile, SearchRec);
@@ -1438,7 +1457,7 @@ begin
         fClientList.Add(NewClient);
         inc(FileIndex);
 
-        SetProgressUpdate(35 + ((FileIndex/FileCount) * 15));
+        SetProgressUpdate(35 + ((FileIndex/FileCount) * 15), 'Retrieving Client Info');
         FindResult := FindNext(SearchRec);
       finally
         //ClientObj.Save;
@@ -1481,6 +1500,8 @@ var
   MemorizationIndex : integer;
   SuperVisExists : boolean;
   ItemCount : integer;
+  ArrIndex : integer;
+  Msg : string;
 begin
   PracticeName       := fDataGenerator.GenerateCompanyName('Accountants');
   PracticePersonName := fDataGenerator.GeneratePersonName(1,2);
@@ -1496,6 +1517,7 @@ begin
   PracticeCode       := 'Prac0001';
   BankLinkCode       := UpperCase('Bank0001');
 
+  SetProgressUpdate(60, 'Muddling System Practice Info');
   MuddlePracticeSys(AdminSystem.fdFields,
                     PracticeName,
                     PracticePhone,
@@ -1505,8 +1527,16 @@ begin
 
   //  Users in Database
   SuperVisExists := false;
+
+  if not fOnlyMuddleEmails then
+  begin
+    WriteLn(fMapFile, '');
+    WriteLn(fMapFile, 'User Mapping');
+  end;
+
   for UserIndex := 0 to AdminSystem.fdSystem_User_List.ItemCount-1 do
   begin
+    SetProgressUpdate(62 + ((UserIndex/AdminSystem.fdSystem_User_List.ItemCount) * 3), 'Muddling System User Info');
     UserDBItem := AdminSystem.fdSystem_User_List.User_At(UserIndex);
 
     MuddleUserSys(AdminSystem.fdSystem_User_List.User_At(UserIndex),
@@ -1518,11 +1548,17 @@ begin
   if not SuperVisExists then
     AddSuperVisUser;
 
+  if not fOnlyMuddleEmails then
+  begin
+    WriteLn(fMapFile, '');
+    WriteLn(fMapFile, 'Client Mapping');
+  end;
+
   // Clients in Database
   ItemCount := AdminSystem.fdSystem_Client_File_List.ItemCount;
   for ClientIndex := 0 to ItemCount-1 do
   begin
-    SetProgressUpdate(50 + ((ClientIndex/ItemCount) * 30));
+    SetProgressUpdate(65 + ((ClientIndex/ItemCount) * 20), 'Muddling Client Info');
 
     ClientDBItem := AdminSystem.fdSystem_Client_File_List.Client_File_At(ClientIndex);
     // Look for Client File with the Same Code
@@ -1562,10 +1598,11 @@ begin
     end;
   end;
 
-  SetProgressUpdate(80);
   // Go through any Clients that could not be matched above
   for ClientIndex := 0 to fClientList.Count - 1 do
   begin
+    SetProgressUpdate(85 + ((ClientIndex/fClientList.Count) * 5), 'Muddling Unlinked Client Info');
+
     if fClientList[ClientIndex].fDone = false then
     begin
       PracticeName       := fDataGenerator.GenerateCompanyName('Accountants');
@@ -1601,13 +1638,16 @@ begin
     end;
   end;
 
-  SetProgressUpdate(85);
-
   // System Bank Accounts
   if not fOnlyMuddleEmails then
   begin
+    WriteLn(fMapFile, '');
+    WriteLn(fMapFile, 'Account Mapping');
+
     for AccountIndex := 0 to AdminSystem.fdSystem_Bank_Account_List.ItemCount-1 do
     begin
+      SetProgressUpdate(90 + ((AccountIndex/AdminSystem.fdSystem_Bank_Account_List.ItemCount) * 5), 'Muddling System Bank Account Info');
+
       SysBankAccItem := AdminSystem.fdSystem_Bank_Account_List.System_Bank_Account_At(AccountIndex);
 
       if not (SysBankAccItem.sbAccount_Type in ACC_TYPE_NOT_MUDDLED) then
@@ -1633,9 +1673,17 @@ begin
     end;
   end;
 
+
+  for ArrIndex := 0 to Length(fArrAccOldNew)-1 do
+  begin
+    WriteLn(fMapFile, 'AccNum , ' + fArrAccOldNew[ArrIndex].OldAccNumber  + ',  ' +  fArrAccOldNew[ArrIndex].NewAccNumber );
+  end;
+
   // Admin Memorizations
   for MemorizationIndex := 0 to AdminSystem.fSystem_Memorisation_List.ItemCount - 1 do
   begin
+    SetProgressUpdate(95 + ((MemorizationIndex/AdminSystem.fSystem_Memorisation_List.ItemCount) * 2), 'Muddling Memorization Info');
+
     MuddleMemorizationSys(AdminSystem.fSystem_Memorisation_List.System_Memorisation_At(MemorizationIndex));
   end;
 
@@ -1645,8 +1693,6 @@ begin
   // Billing csv files in work Directory
   if not fOnlyMuddleEmails then
     CreateWorkCsvFile;
-
-  SetProgressUpdate(90);
 end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -1661,7 +1707,7 @@ begin
   // Save Client Files
   for ClientIndex := 0 to fClientList.Count-1 do
   begin
-    SetProgressUpdate(90 + (((ClientIndex+1)/fClientList.Count) * 10));
+    SetProgressUpdate(97 + (((ClientIndex+1)/fClientList.Count) * 3), 'Saving Changes');
 
     if not IsClientFileNameUsed(fClientList[ClientIndex].FileName) then
       DeleteFile(PCHar(DataDir + fClientList[ClientIndex].FileName + FILEEXTN));
@@ -1671,7 +1717,7 @@ begin
   if fDataGenerator.Bk5Exe.Size > 0 then
     fDataGenerator.Bk5Exe.SaveToFile(fDestinationDirectory + '\BK5WIN.EXE');
 
-  SetProgressUpdate(100);
+  SetProgressUpdate(100, '');
 end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -1714,7 +1760,18 @@ begin
 
   CopyPractice;
   Open;
-  Muddle;
+
+  Assignfile(fMapFile, fAppFolder + FILENAME_MUDDLE_MAP + '_' + AdminSystem.fdFields.fdBankLink_Code + '.txt');
+  rewrite(fMapFile);
+  try
+    WriteLn(fMapFile, 'Muddle Map File');
+    WriteLn(fMapFile, '');
+
+    Muddle;
+  finally
+    close(fMapFile);
+  end;
+
   Save;
 end;
 
