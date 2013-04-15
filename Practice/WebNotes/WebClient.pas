@@ -454,24 +454,23 @@ begin
   except
     on E : EIpsSOAPS do
     begin
-      if ATriedAllServers then
+      if DebugMe then
+        LogUtil.LogMsg(lmDebug, UnitName, format('Exception %s ',[ E.Message]));
+
+      inc(fSoapURLIndex);
+
+      if SoapURLIndex > (SoapURLList.Count-1) then
+        SoapURLIndex := 0;
+
+      SetSoapURL;
+
+      {We have tried all servers and failed so raise the exception}
+      if SoapURLIndex = AFirstSoapURLIndex then
       begin
         RaiseSoapErrors(E);
       end
       else
       begin
-        if DebugMe then
-          LogUtil.LogMsg(lmDebug, UnitName, format('Exception %s ',[ E.Message]));
-
-        inc(fSoapURLIndex);
-        if SoapURLIndex > (SoapURLList.Count-1) then
-          SoapURLIndex := 0;
-
-        SetSoapURL;
-
-        if SoapURLIndex = AFirstSoapURLIndex then
-          ATriedAllServers := True;
-
         // Recalls it self to try with the next Server Settings
         SendSoapRequest(ATriedAllServers, AFirstSoapURLIndex);
       end;
