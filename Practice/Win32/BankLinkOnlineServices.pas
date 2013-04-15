@@ -161,6 +161,8 @@ type
     FArrNameSpaceList : Array of TRemRegEntry;
 
     FSubDomain: String;
+    FErrorOccurred: Boolean;
+    FExceptionRaised: Boolean;
 
     procedure HandleException(const MethodName: String; E: Exception; SuppressErrors: Boolean = False);
 
@@ -293,6 +295,7 @@ type
     function GetServiceStatus: TServiceStatus;
     function GetServiceActive: Boolean;
     function GetServiceSuspended: Boolean;
+    function ErrorOccurred: Boolean;
   public
     function IsExportDataEnabled : Boolean;
     function IsExportDataEnabledFoAccount(const aBankAcct : TBank_Account) : Boolean;
@@ -482,6 +485,8 @@ type
     procedure SuspendService;
     procedure ResumeService;
 
+    procedure ResetExceptionTest;
+
     property OnLine: Boolean read FOnLine;
     property Registered: Boolean read GetRegistered;
     property ValidBConnectDetails: Boolean read GetValidBConnectDetails;
@@ -492,6 +497,8 @@ type
     property ServiceStatus: TServiceStatus read GetServiceStatus;
     property ServiceActive: Boolean read GetServiceActive;
     property ServiceSuspended: Boolean read GetServiceSuspended;
+
+    property ExceptionRaised: Boolean read FExceptionRaised;
   end;
 
 Const
@@ -1396,9 +1403,9 @@ begin
   begin
     ClientReadDetail := ProductConfigService.GetClientDetailsWithCode(ClientCode);
 
-    try
-      if Assigned(ClientReadDetail) then
-      begin
+    if Assigned(ClientReadDetail) then
+    begin
+      try
         PrimaryUser := ClientReadDetail.GetPrimaryUser;
 
         if Assigned(PrimaryUser) then
@@ -1408,9 +1415,9 @@ begin
 
           Result := True;
         end;
+      finally
+        ClientReadDetail.Free;
       end;
-    finally
-      ClientReadDetail.Free;
     end;
   end;
 end;
@@ -2280,6 +2287,11 @@ begin
   end;
 end;
 
+function TProductConfigService.ErrorOccurred: Boolean;
+begin
+
+end;
+
 //------------------------------------------------------------------------------
 procedure TProductConfigService.SetTimeOuts(ConnecTimeout : DWord ;
                                             SendTimeout   : DWord ;
@@ -2701,6 +2713,8 @@ begin
   end;
 
   LogUtil.LogMsg(lmError, UNIT_NAME, Format('Exception running %s, Error Message : %s', [MethodName, E.Message]));
+
+  FExceptionRaised := True;
 end;
 
 //------------------------------------------------------------------------------
@@ -3026,6 +3040,11 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+procedure TProductConfigService.ResetExceptionTest;
+begin
+  FExceptionRaised := False;
+end;
+
 function TProductConfigService.ResetPracticeUserPassword(const EmailAddress: String; UserGuid: TBloGuid): Boolean;
 var
   BlopiInterface: IBlopiSecureServiceFacade;
