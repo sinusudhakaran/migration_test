@@ -41,7 +41,7 @@ object FromBrowse: TFromBrowse
       Width = 75
       Height = 25
       Anchors = [akTop, akRight]
-      Caption = 'Ok'
+      Caption = 'OK'
       TabOrder = 1
       OnClick = BtnokClick
     end

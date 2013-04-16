@@ -613,7 +613,8 @@ end;
 
 class function TMigrater.GetTaxClassGuid(Country, TaxClass: byte): TGuid;
 begin
-  fillchar(result,SizeOf(TGuid), 0);
+  fillchar(result,SizeOf(TGuid), 0); // Null guid by default...
+
   case Country of
      whNewZealand : begin
         case TaxClass of
@@ -628,22 +629,23 @@ begin
      whUK: begin
        case TaxClass of
         //vtNoVAT                : Result := StringToGuid('{99991C52-22BF-462C-81C8-006D22A09CD8}');
-        vtSalesStandard        : Result := StringToGuid('{2781E33A-5409-4B13-9D5E-00768C4956A6}');
-        vtSalesReduced         : Result := StringToGuid('{A60B11F8-6300-4261-B8B4-008E5B2A1E6E}');
-        vtSalesZeroRated       : Result := StringToGuid('{DAEF3463-6208-464F-8BCE-0095E1C6F986}');
-        vtSalesExempt          : Result := StringToGuid('{81D35314-0898-429A-87C6-00AA57F9AEA8}');
-        vtSalesECStandard      : Result := StringToGuid('{44204C0C-5AA9-4247-A83C-00B96E4FA5E9}');
-        vtSalesECReduced       : Result := StringToGuid('{89E58AAC-F109-4893-B1F7-00C4867E67F2}');
-        vtSalesECZeroRated     : Result := StringToGuid('{CD59C725-D523-45B3-81DA-00D517E401FC}');
-        vtSalesECExempt        : Result := StringToGuid('{1FEB07C1-3204-4B81-A738-00E7A8BBEE11}');
-        vtPurchasesStandard    : Result := StringToGuid('{4EA484E6-C3C9-45E8-84A3-00F97331AF33}');
-        vtPurchasesReduced     : Result := StringToGuid('{89E58AAC-F109-4893-B1F7-0104867E67F2}');
-        vtPurchasesZeroRated   : Result := StringToGuid('{3D2A5782-F2CA-4502-9F7B-011669099DE4}');
-        vtPurchasesExempt      : Result := StringToGuid('{B1AD3B1E-0942-4088-92B2-012EDC240E7D}');
-        vtPurchasesECStandard  : Result := StringToGuid('{0E68182A-24C3-422B-B857-0136AF24153F}');
-        vtPurchasesECReduced   : Result := StringToGuid('{158AFB49-8E46-4481-B113-014C9794E21A}');
-        vtPurchasesECZeroRated : Result := StringToGuid('{D25ADBD0-8A7B-4B09-BA75-015A2B1773AB}');
-        vtPurchasesECExempt    : Result := StringToGuid('{8FDC1A37-F62A-48B3-BD19-01636D9A7D44}');
+        vtSalesStandard         : Result := StringToGuid('{2781E33A-5409-4B13-9D5E-00768C4956A6}');
+        vtSalesReduced          : Result := StringToGuid('{A60B11F8-6300-4261-B8B4-008E5B2A1E6E}');
+        vtSalesZeroRated        : Result := StringToGuid('{DAEF3463-6208-464F-8BCE-0095E1C6F986}');
+        vtSalesExempt           : Result := StringToGuid('{81D35314-0898-429A-87C6-00AA57F9AEA8}');
+        vtSalesECStandard       : Result := StringToGuid('{44204C0C-5AA9-4247-A83C-00B96E4FA5E9}');
+        vtSalesECReduced        : Result := StringToGuid('{89E58AAC-F109-4893-B1F7-00C4867E67F2}');
+        vtSalesECZeroRated      : Result := StringToGuid('{CD59C725-D523-45B3-81DA-00D517E401FC}');
+        vtSalesECExempt         : Result := StringToGuid('{1FEB07C1-3204-4B81-A738-00E7A8BBEE11}');
+        vtPurchasesStandard     : Result := StringToGuid('{4EA484E6-C3C9-45E8-84A3-00F97331AF33}');
+        vtPurchasesReduced      : Result := StringToGuid('{89E58AAC-F109-4893-B1F7-0104867E67F2}');
+        vtPurchasesZeroRated    : Result := StringToGuid('{3D2A5782-F2CA-4502-9F7B-011669099DE4}');
+        vtPurchasesExempt       : Result := StringToGuid('{B1AD3B1E-0942-4088-92B2-012EDC240E7D}');
+        vtPurchasesECStandard   : Result := StringToGuid('{0E68182A-24C3-422B-B857-0136AF24153F}');
+        vtPurchasesECReduced    : Result := StringToGuid('{158AFB49-8E46-4481-B113-014C9794E21A}');
+        vtPurchasesECZeroRated  : Result := StringToGuid('{D25ADBD0-8A7B-4B09-BA75-015A2B1773AB}');
+        vtPurchasesECExempt     : Result := StringToGuid('{8FDC1A37-F62A-48B3-BD19-01636D9A7D44}');
+        vtPurchasesOutsideScope : Result := StringToGuid('{C86CE8C3-57F4-4669-B7C7-20AFD405116A}');
        end;
      end;
      whAustralia: begin

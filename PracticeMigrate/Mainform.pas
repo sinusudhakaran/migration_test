@@ -12,10 +12,11 @@ uses
 type
    Tprogress = (SelectSource, Selection, Migrate, Done);
 
+
    TProvider = (AccountingSystem, TaxSystem);
 
 type
-  TformMain = class(TForm)
+  TformMain = class(TForm)                                
     pTop: TPanel;
     pBottom: TPanel;
     BtnCancel: TButton;
@@ -152,42 +153,47 @@ var
 implementation
 
 uses
-ADOInt,
-EnterPwdDlg,
-Migraters,
-ErrorLog,
-Progress,
-Upgrade,
-ReportTypes,
-CustomDocEditorFrm,
-GlobalDirectories,
-AvailableSQLServers,
-ErrorMorefrm,
-YesNoDlg,
-PasswordHash,
-bkConst,
-BUDOBJ32,
-MemorisationsObj,
-PayeeObj,
-math,
-GLConst,
-Software,
-sysObj32,
-baObj32,
-admin32,
-Archutil32,
-WinUtils,
-Globals,
-FromBrowseForm,
-clobj32,
-bkDefs,
-files,
-SQLHelpers,
-bthelpers,
-bkHelpers,
-syhelpers
-,LogUtil
-;
+    IniSettings,
+    Imagesfrm,
+    ArchiveCheck,
+    ADOInt,
+    bk5Except,
+    BKDbExcept,
+    EnterPwdDlg,
+    Migraters,
+    ErrorLog,
+    Progress,
+    Upgrade,
+    ReportTypes,
+    CustomDocEditorFrm,
+    GlobalDirectories,
+    AvailableSQLServers,
+    ErrorMorefrm,
+    YesNoDlg,
+    PasswordHash,
+    bkConst,
+    BUDOBJ32,
+    MemorisationsObj,
+    PayeeObj,
+    math,
+    GLConst,
+    Software,
+    sysObj32,
+    baObj32,
+    admin32,
+    Archutil32,
+    WinUtils,
+    Globals,
+    FromBrowseForm,
+    clobj32,
+    bkDefs,
+    files,
+    SQLHelpers,
+    bthelpers,
+    bkHelpers,
+    syhelpers
+    ,LogUtil
+    ;
 
 {$R *.dfm}
 
@@ -260,7 +266,7 @@ begin
         tsSelect.Update;
      end;
    Migrate :begin
-
+        ExitCode := 0;
         btnDef.Visible := False;
 
         btnPrev.Visible := True;
@@ -798,6 +804,8 @@ begin
 
    FClientMigrater.SystemMirater := FSystemMigrater;
 
+   //Pracini
+   ReadPracticeINI;
    lVersion.Caption := format('Version %s',[VersionInfo.FileVersion]);
    lbankLink.Caption := VersionInfo.LegalCopyright;
 
@@ -866,6 +874,7 @@ begin
       fromDir := '';
 
       progress := SelectSource;
+      Application.CreateForm(TAppImages, AppImages);
    finally
       screen.Cursor := kc
    end;
@@ -1113,11 +1122,33 @@ begin
 
 
          FSystemMigrater.System := AdminSystem;
+
+         CheckArchiveDirSynchronised;
+
          Result := true;
 
          except
+
+            on e: EAdminSystem do begin
+               logger.LogMessage(Warning,format('%s : reading %s ',[e.Message, DATADIR + SYSFILENAME ]));
+               HelpfulErrorMsg(format('Could not open %s :'#13'%s',[DATADIR + SYSFILENAME, e.Message]), 0,false);
+               FreeAndnil(AdminSystem);
+               Exit;
+            end;
+            on e: ETokenException do begin
+               logger.LogMessage(Warning,format('%s : reading %s ',[e.Message, DATADIR + SYSFILENAME ]));
+               HelpfulErrorMsg(format('Could not open %s :'#13'%s',[DATADIR + SYSFILENAME, e.Message]), 0,false);
+               FreeAndnil(AdminSystem);
+               Exit;
+            end;
+            on e: EIncorrectVersion do begin
+               logger.LogMessage(Warning,format('%s : reading %s ',[e.Message, DATADIR + SYSFILENAME ]));
+               HelpfulErrorMsg(format('Could not open %s :'#13'%s',[DATADIR + SYSFILENAME, e.Message]), 0,false);
+               FreeAndnil(AdminSystem);
+               Exit;
+            end;
             on e: Exception do begin
-               logger.LogMessage(Warning,format('%s : reading %s ',[e.Message,DATADIR + SYSFILENAME ]));
+               logger.LogMessage(Warning,format('%s : reading %s ',[e.Message, DATADIR + SYSFILENAME ]));
                HelpfulErrorMsg(format('Could not open %s'#13'Please select a valid location',[DATADIR + SYSFILENAME]), 0,false);
                FreeAndnil(AdminSystem);
                Exit;
@@ -1127,9 +1158,9 @@ begin
 
          LPractice.Caption := Format('%s: %s',[Adminsystem.fdFields.fdBankLink_Code, Adminsystem.fdFields.fdPractice_Name_for_Reports]);
 
-         if SetCheckBox(cbAccounts,'System Accounts %s,',SysAccounts, true) then begin
+         if SetCheckBox(cbAccounts,'System Accounts %s ',SysAccounts, true) then begin
              SysAccounts := FSystemMigrater.SystemAccountList.TotSize div sizeof(tArchived_Transaction);
-             SetCheckBox(cbSysTrans,'&&Transactions %s',SysAccounts,false);
+             SetCheckBox(cbSysTrans,'Transactions %s',SysAccounts,false);
          end;
 
          cbSysTransClick(nil);
@@ -1148,7 +1179,7 @@ begin
 
 
          SetCheckBox(CBSync,'Synchronised %s',ClientFiles - (ForeignCount + ArchiveCount), True);
-         SetCheckBox(cbUnsync,'Unynchronised %s',ForeignCount, false, true);
+         SetCheckBox(cbUnsync,'Unsynchronised %s',ForeignCount, false, true);
          SetCheckBox(CBArchive,'Archived %s',ArchiveCount, false, true);
 
          SetCheckBox(cbusers,'User Profiles %s',UserProfiles);
@@ -1247,17 +1278,23 @@ begin
       and ConnectClient(MyAction) then begin
 
          Logger.LogMessage(info,'Clearing Practice System Database');
-
-
-         FSystemMigrater.ClearData(MyAction);
+         if not FSystemMigrater.ClearData(MyAction) then begin
+            MyAction.Status := failed;
+            ExitCode := -1;
+            Exit;
+         end;
 
          Logger.LogMessage(Info,'Clearing Practice Client database');
+         if not FClientMigrater.ClearData(MyAction) then begin
+            MyAction.Status := failed;
+            ExitCode := -1;
+            Exit;
+         end;
 
-         FClientMigrater.ClearData(MyAction);
          //FlogMigrater.ClearData(MyAction); // Dont Clear Log...
 
          FSystemMigrater.ClientMigrater := FClientMigrater;
-         //FSystemMigrater.System := Adminsystem; already done ??
+
 
          //FClientMigrater.EnableIndexes(MyAction,False);
          {}

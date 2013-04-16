@@ -26,6 +26,8 @@ public
                    GroupID: TGuid;
                    TypeID: TGuid;
                    Archived: Boolean;
+                   FromMagicNumber: integer;
+                   ToMagicNumber: integer;
                    SystemComments: string;
                    Value: pClient_Rec;
                    More: pMoreClient_Rec;
@@ -387,6 +389,12 @@ public
    //function Update(ParamName: string; ParamValue: Money; ClientReportID:TGuid): Boolean; overload;
 end;
 
+TClientParameterTable = class (TMigrateTable)
+protected
+   procedure SetupTable; override;
+public
+   function Update(ParameterGroup, ParamName, ParamValue, ParamType: string; ClientID:TGuid): Boolean; //overload;
+end;
 
 
 implementation
@@ -416,6 +424,8 @@ function TClient_RecFieldsTable.Insert(MyId: TGuid;
                    GroupID: TGuid;
                    TypeID: TGuid;
                    Archived: Boolean;
+                   FromMagicNumber: integer;
+                   ToMagicNumber: integer;
                    SystemComments: string;
                    Value: pClient_Rec;
                    More: pMoreClient_Rec;
@@ -443,6 +453,14 @@ function TClient_RecFieldsTable.Insert(MyId: TGuid;
          Result := Unknown;
    end;
 
+   function MagicNumber: integer;
+   begin
+      if value.clMagic_Number = fromMagicNumber then
+         result :=  ToMagicNumber
+      else
+         result := value.clMagic_Number;
+   end;
+
 begin
 
 
@@ -454,7 +472,7 @@ begin
                 ,ToSQL(clGST_Inclusive_Cashflow)
   {4}        ,ToSQL(AccountingSystemID),ToSQL(clAccount_Code_Mask),ToSQL(clLoad_Client_Files_From),ToSQL(clSave_Client_Files_To)
                  ,ToSQL(clChart_Is_Locked),DateToSQL(clChart_Last_Updated)
-  {5}        ,ToSQL(clMagic_Number),ToSQL(clException_Options),DateToSQL(clPeriod_Start_Date),DateToSQL(clPeriod_End_Date),ToSQL(clBankLink_Code)
+  {5}        ,ToSQL(MagicNumber),ToSQL(clException_Options),DateToSQL(clPeriod_Start_Date),DateToSQL(clPeriod_End_Date),ToSQL(clBankLink_Code)
   {6}        ,ToSQL(clDisk_Sequence_No),ToSQL(UserID),ToSQL(clSuppress_Check_for_New_TXns),ToSQL(clDownload_From),ToSQL(clLast_Batch_Number)
   {7}        ,ToSQL(clTax_Ledger_Code),ToSQL(clCheques_Expire_When),ToSQL(clShow_Notes_On_Open)
   {8}        ,ToSQL(clCflw_Cash_On_Hand_Style), DateToSQL(clLast_Financial_Year_Start),ToSQL(TaxSystemID),ToSQL(clSave_Tax_Files_To)
@@ -472,7 +490,7 @@ begin
   {15}       , ToSQL(mcJournal_Processing_Duration),ToSQL( clBAS_Field_Source[bfGSTProvisional] = GSTprovisional)
                 ,ToSql(clBAS_Field_Number[bfGSTProvisional] = GSTRatio),PercentToSQL(GetGSTRatio)
   {16}       , ToSQL(GetNotes),ToSQL(ceBook_Gen_Finance_Reports),ToSQL(not ceBlock_Client_Edit_Mems)
-                ,ToSQL(LowerCase(clFile_Password)),ToSQL(False),ToSQL(CheckedOutTo)],[]);
+                ,PWToSQL(LowerCase(clFile_Password)),ToSQL(False),ToSQL(CheckedOutTo)],[]);
 end;
 
 function TClient_RecFieldsTable.InsertProspect(
@@ -514,7 +532,7 @@ with  AClient^, ClientDetailsCache do begin
 {15}       , null,null
               ,null,null
 {16}       , null,null,null
-              ,ToSQL(LowerCase(cfFile_Password)),ToSQL(True),null],[]);
+              ,PWToSQL(LowerCase(cfFile_Password)),ToSQL(True),null],[]);
 end;
 end;
 
@@ -564,7 +582,7 @@ function TAccount_RecTable.Insert(MyID: TGuid;
 
 begin with value^ do
   Result := RunValues([ ToSQL(MyId),ToSQL(ClientID),ToSQL(baBank_Account_Number),ToSQL(baBank_Account_Name)
-              ,ToSQL(LowerCase(baBank_Account_Password)),ToSQL(baContra_Account_Code)
+              ,PWToSQL(LowerCase(baBank_Account_Password)),ToSQL(baContra_Account_Code)
  {2}     ,ToSQL(baCurrent_Balance),ToSQL(baApply_Master_Memorised_Entries),ToSQL(baAccount_Type)
               ,ToSQL(baPreferred_View),ToSQL(baHighest_BankLink_ID)
  {3}     ,ToSQL(baHighest_LRN),DateToSQL(baAccount_Expiry_Date),ToSQL(baHighest_Matched_Item_ID)
@@ -1608,7 +1626,7 @@ function TNotesOptionsTable.Insert(MyId: TGuid;
 begin with Value^ do
    Result := RunValues([ToSQL(MyID), ToSQL(ClientID), ToSQL(not clECoding_Dont_Allow_UPIs), ToSQL(not clECoding_Dont_Show_Account)
                  ,ToSQL(not value.clECoding_Dont_Show_Payees), ToSQL(not clECoding_Dont_Show_GST), ToSQL(not clECoding_Dont_Show_TaxInvoice)
-{2}          ,ToSQL(clECoding_WebSpace), ToSQL(clECoding_Default_Password), ToSQL(clECoding_Import_Options), ToSQL(clECoding_Last_Import_Dir)
+{2}          ,ToSQL(clECoding_WebSpace), PWToSQL(clECoding_Default_Password), ToSQL(clECoding_Import_Options), ToSQL(clECoding_Last_Import_Dir)
                   ,ToSQL(Value.clECoding_Last_Export_Dir)
 {3}          ,ToSQL(clECoding_Entry_Selection), ToSQL(not clECoding_Dont_Send_Chart), ToSQL(not clECoding_Dont_Send_Payees), ToSQL(not clECoding_Dont_Show_Quantity)
                  ,ToSQL(clECoding_Last_File_No), ToSQL(clECoding_Last_File_No_Imported)
@@ -1795,6 +1813,35 @@ begin
       ,'LastRunForDates', 'LastRunDestination', 'LastRunDate', 'LastRunBy_Id', 'LastRunBy', 'SequenceNo'
       ,'Report', 'Client_Id'],[]);
 
+end;
+
+{ TClientParameterTable }
+
+procedure TClientParameterTable.SetupTable;
+begin
+   TableName := 'ClientParameters';
+end;
+
+function TClientParameterTable.Update(ParameterGroup, ParamName, ParamValue, ParamType: string; ClientID:TGuid): Boolean;
+  var sql : string;
+
+begin
+   Result := false;
+   try
+   sql :=  format('if (exists (select * from  [%0:s] as t1 where t1.ParameterName = ''%1:s'' and t1.Client_Id = ''%4:s'' and t1.[ParameterGroup] = ''%6:s''))'   +
+   ' begin update [%0:s] set [ParameterValue] = ''%2:s'' where [ParameterName] = ''%1:s''  and [Client_Id] = ''%4:s'' and [ParameterGroup] = ''%6:s'' end else begin' +
+   ' insert into [%0:s] ([ParameterName], [ParameterType], [ParameterValue],  [Client_Id], [ID], [ParameterGroup] ) values '+
+                        '(''%1:s'', ''%3:s'', ''%2:s'', ''%4:s'', ''%5:s'', ''%6:s'') end',
+     // 0     1         2          3               4                     5         6
+   [TableName,ParamName,Paramvalue,Paramtype,ToSQL(ClientID), ToSQL(NewGuid), ParameterGroup]);
+
+      connection.Execute( sql );
+      Result := true;
+   except
+      on e: exception do begin
+         raise exception.Create(Format('Error : %s in table %s',[e.Message,TableName]));
+      end;
+   end;
 end;
 
 end.

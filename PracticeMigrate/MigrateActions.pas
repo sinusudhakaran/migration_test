@@ -485,6 +485,9 @@ begin
      if FError > ''  then
         FError := FError + '; ';
 
+     if ExitCode >= 0 then
+        ExitCode := -1;
+
      Logger.LogMessage(logger.Warning, format ('%s Failed with Error: %s', [Title, Value]));
 
      FError := FError + Value;
@@ -530,7 +533,7 @@ end;
 procedure TMigrateAction.SetSpeed(const Value: Double);
 begin
   FSpeed := Value;
-  LogMessage(Format('%s speed %e',[title,fSpeed]));
+  //LogMessage(Format('%s speed %e',[title,fSpeed]));  Too much noise
 end;
 
 procedure TMigrateAction.SetStatus(const Value: TMigratestatus);
@@ -587,8 +590,13 @@ end;
 procedure TMigrateAction.SetWarning(const Value: Boolean);
 begin
    FWarning := Value;
-   if FWarning then
+   if FWarning then begin
+
+      if ExitCode = 0 then
+         ExitCode := 1;
+
       propagateWarning(Self.Node);
+   end;
 end;
 
 procedure TMigrateAction.ShowMe;

@@ -2,6 +2,10 @@ unit CDTables;
 
 interface
 uses
+ WPRTEDefs,
+  WPRTEPaint,
+  WPCTRRich,
+  WPCTRMemo,
    MigrateTable,
    UBatchBase,
    CustomDocEditorFrm;
@@ -9,11 +13,19 @@ uses
 type
 
 TSystemBlobTable = class (TMigrateTable)
+private
+
+   procedure MailMergeGetText(Sender: TObject; const inspname: string;
+  Contents: TWPMMInsertTextContents);
+
+  procedure PrepareImageforSaving(RTFData: TWPRTFDataCollection;
+  Writer: TWPCustomTextWriter; TextObject: TWPTextObj; var DontSave: Boolean);
 
 protected
    procedure SetupTable; override;
    function LoadFile(path: string): boolean;
-   function LoadRTF(value: string): Boolean;
+   function LoadRTF(value: string; KeepDoc: Boolean): Boolean;
+   function LoadText(value: string): Boolean;
 
 public
    function InsertCustomDoc(Value: TReportBase; CreatedBy: TGuid): Boolean;
@@ -35,7 +47,9 @@ end;
 implementation
 
 uses
+
   OmniXMLUtils,
+  GlobalMergeFields,
   DB,
   classes,
   sysutils;
@@ -57,13 +71,13 @@ uses
 function TSystemBlobTable.InsertCustomDoc(Value: TReportBase; CreatedBy: TGuid): Boolean;
 
    procedure GetRTFData;
-   var ls: TMemoryStream;
+   var ls: TStringStream;
    begin
-      ls := TMemoryStream.Create;
+      ls := TStringStream.Create('');
       try
          if GetNodeTextBinary(Value.Settings,'ReportRTF',ls) then begin
             ls.position := 0;
-            Parameters[cBlobValue].LoadFromStream(ls,ftBlob);
+            LoadRTF(ls.DataString, true);
          end;
       finally
         ls.Free;
@@ -111,7 +125,7 @@ begin
    end;
    result := false;
 
-   LoadRTF(Text);
+   LoadRTF(Text, false);
 
    Parameters[cBlobName].Value := ToSql(name);
    Parameters[cContentType].Value := ToSql('RTF');
@@ -146,6 +160,7 @@ function TSystemBlobTable.InsertImage(Path, Name, Description, DocType: string):
    end;
 begin
    result := false;
+
    if not LoadFile(path) then
       Exit;
    Parameters[cBlobName].Value := ToSql(name);
@@ -176,7 +191,7 @@ begin
 
    Parameters[cBlobName].Value := ToSQL(Name);
    Parameters[cContentType].Value := 'Text';
-   LoadRTF(Text);
+   LoadText(Text);
    Parameters[cType].Value := ToSQL(DocType);
    Parameters[cDescription].Value := ToSQL(Description);
    Parameters[cCreatedBy].Value := ToSQL('Migrator');
@@ -193,11 +208,26 @@ begin
 end;
 
 function TSystemBlobTable.InsertSignature(Path: string): Boolean;
+var fs: TFileStream;
+    ls: String;
 begin
-   result := false;
-   if not LoadFile(path) then
+
+   result := FileExists(path);
+   if not result then
       Exit;
-   Parameters[cBlobName].Value := 'MiratorPracticeSignature';
+   // Get the file..
+   fs := TFileStream.Create(path,fmOpenRead + fmShareDenyWrite);
+   try
+      fs.Position := 0;
+      SetLength(ls, fs.Size);
+      fs.Read(ls[1], fs.Size);
+   finally
+      fs.Free;
+   end;
+   LoadRTF(ls, false);
+
+   // Fill in the other details
+   Parameters[cBlobName].Value := 'MigratorPracticeSignature';
    Parameters[cContentType].Value := 'RTF';
 
    Parameters[cType].Value := ToSQL('Signature');
@@ -217,27 +247,101 @@ end;
 function TSystemBlobTable.LoadFile(path: string): boolean;
 var fs: TFileStream;
 begin
-   result := FileExists(path);
-   if not result then
-      Exit;
-   fs := TFileStream.Create(path,fmOpenRead + fmShareDenyWrite);
-   try
-      fs.Position := 0;
-      Parameters[2].LoadFromStream(fs,ftBlob);
-   finally
-      fs.Free;
-   end;
+
 end;
 
-function TSystemBlobTable.LoadRTF(value: string): Boolean;
+
+procedure TSystemBlobTable.MailMergeGetText(Sender: TObject; const inspname: string;
+  Contents: TWPMMInsertTextContents);
+
+  var I: TMergeFieldType;
+begin
+    for I := low(MergeFieldNames) to High(MergeFieldNames) do
+       if MergeFieldNames[i] = inspname then
+          Contents.StringValue := format('*<%s>*',[MergeFieldNames[i]]);
+             
+end;
+
+
+procedure TSystemBlobTable.PrepareImageforSaving(RTFData: TWPRTFDataCollection;
+  Writer: TWPCustomTextWriter; TextObject: TWPTextObj; var DontSave: Boolean);
+var lName: string;
+
+   function NewImagesFilename: string;
+   var I: Integer;
+   begin
+   {
+      I := 0;
+      repeat
+         Inc(I);
+         Result := EmailDir + Format( 'Picture%d.', [I] ) + TextObject.ObjRef.FileExtension;
+      until not BKFileExists(Result);
+      }
+   end;
+
+
+begin
+  // We clear Source and StreamName to make sure the embedded data is saved to file
+  TextObject.Source := '';
+  if TextObject.ObjRef <> nil then begin
+
+     TextObject.ObjRef.StreamName := '';
+     lName := NewImagesFilename;
+     //TextObject.ObjRef.SaveToFile('', LName, '' );
+
+     //TextObject.ObjRef.FileName := ExtractFileName( LName);
+
+     //ImagesList.Add(LName);
+  end;
+  DontSave := true;
+end;
+
+
+
+function TSystemBlobTable.LoadRTF(value: string; KeepDoc: Boolean): Boolean;
+var
+     RichText: TWPRichText;
+begin
+
+     RichText := TWPRichText.Create(nil);
+     try
+        RichText.LoadFromString(value);
+        RichText.OnMailMergeGetText := MailMergeGetText;
+        RichText.MergeText();
+        RichText.ReformatAll(True,True);
+        RichText.OnPrepareImageforSaving := PrepareImageforSaving;
+
+        if not KeepDoc then  begin
+           RichText.Header.LeftMargin := 1;
+           RichText.Header.RightMargin := 1;
+           RichText.Header.TopMargin := 1;
+           RichText.Header.BottomMargin := 1;
+
+           RichText.Header.defaultLeftMargin := 1;
+           RichText.Header.defaultRightMargin := 1;
+           RichText.Header.defaultTopMargin := 1;
+           RichText.Header.defaultBottomMargin := 1;
+
+        end;
+
+
+        result := LoadText(RichText.AsString);
+     finally
+
+        freeandnil(RichText);
+     end;
+end;
+
+function TSystemBlobTable.LoadText(value: string): Boolean;
 var ls: TStringStream;
 begin
-     ls := TStringStream.Create(value);
+     ls := nil;
      try
-         ls.position := 0;
-         Parameters[cBlobValue].LoadFromStream(ls,ftBlob);
+        ls := TStringStream.Create(value);
+        ls.position := 0;
+        Parameters[cBlobValue].LoadFromStream(ls,ftBlob);
      finally
-        ls.Free;
+        freeandNil(ls);
      end;
 end;
 

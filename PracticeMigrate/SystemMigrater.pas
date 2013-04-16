@@ -77,8 +77,8 @@ private
     FDoStyles: Boolean;
     FCreatedOn: TdateTime;
     FUseBLOPI: Boolean;
-
-
+    FAdminUser: string;
+    FMagicNumber: Integer;
 
     function CreatedOn: TdateTime;
     function GetClientGroupList: TGuidList;
@@ -154,6 +154,7 @@ private
     function GetClientOnlineProductTable: TClientOnlineProductTable;
     function GetTReportStylesItemsTable: TReportStylesItemsTable;
     function GetTReportStylesTable: TReportStylesTable;
+    function UseMagicNumber: Integer;
 
 protected
     procedure OnConnected; override;
@@ -230,11 +231,12 @@ end;
 implementation
 
 uses
+   Windows,
    reportTypes,
    logger,
    FileExtensionUtils,
    CustomDocEditorFrm,
-   INISettings,
+   //INISettings,
    PassWordHash,
    Stdate,
    Moneydef,
@@ -381,6 +383,21 @@ var
    Clients: TClientMigrater;
    Clientrec: pClient_File_Rec;
 
+   function ClientGroupGuid: TGuid;
+   begin
+      fillchar(result, Sizeof(result), 0);
+      if Clientrec.cfForeign_File then
+         exit; //May have a valid LRN by default
+      result := ClientGroupList.FindLrnGuid(Clientrec.cfGroup_LRN)
+   end;
+
+   function ClientTypeGuid: TGuid;
+   begin
+      fillchar(result, Sizeof(result), 0);
+      if Clientrec.cfForeign_File then
+         exit; //May have a valid LRN by default
+      result := ClientTypeList.FindLrnGuid(Clientrec.cfClient_Type_LRN)
+   end;
 
 begin
 
@@ -402,9 +419,10 @@ begin
                             Clientrec.cfFile_Code,
                             Value.GuidID,
                             GetUser(Clientrec.cfUser_Responsible),
-                            ClientGroupList.FindLrnGuid(Clientrec.cfGroup_LRN),
-                            ClientTypeList.FindLrnGuid(Clientrec.cfClient_Type_LRN),
+                            ClientGroupGuid,
+                            ClientTypeGuid,
                             Fsystem.fdFields.fdMagic_Number,
+                            UseMagicNumber,
                             Fsystem.fdFields.fdCountry,
                             GetUser(Clientrec.cfCurrent_User),
                             Clientrec
@@ -818,18 +836,25 @@ end;
 function TSystemMigrater.ClearData(ForAction: TMigrateAction): Boolean;
 var MyAction: TMigrateAction;
 
+    procedure SetResult(Value: Boolean);
+    begin
+       if not value then
+          result := false;
+    end;
+
     procedure ClearStyles ;
     var ClearAction: TMigrateAction;
     begin
 
        ClearAction := MyAction.InsertAction('Clear report styles');
        try
-       RunSQL(connection,MyAction,
+       SetResult(RunSQL(connection,MyAction,
       'DELETE FROM [dbo].[ReportItems] WHERE [ReportStyles_Id] <> ''1330918F-862E-428A-B5FE-A1F13E553FCA''',
-             'Delete ReportItems');
-        RunSQL(connection,MyAction,
+             'Delete ReportItems'));
+
+      SetResult(RunSQL(connection,MyAction,
       'DELETE FROM [dbo].[ReportStyles] WHERE [Id] <> ''1330918F-862E-428A-B5FE-A1F13E553FCA''',
-             'Delete ReportStyles');
+             'Delete ReportStyles'));
 
          ClearAction.Status := Success;
        except
@@ -840,26 +865,54 @@ var MyAction: TMigrateAction;
        end;
     end;
 
+    procedure ClearUsers;
+    var ClearAction: TMigrateAction;
+    const delFmrt = 'Delete uuu from (select u.id from [users] u where isnull(u.IsDefaultAdmin, 0) = 0) uu inner join [%s] uuu on uuu.[%s] = uu.id';
+    begin
+       ClearAction := MyAction.InsertAction('Clear Users');
+
+          SetResult(RunSQL(connection,ClearAction,Format(delFmrt, ['UserRoles', 'User_ID']),
+              'Delete User Roles' ));
+
+          SetResult(RunSQL(connection,ClearAction,Format(delFmrt, ['UserClients', 'User_ID']),
+              'Delete User Clients' ));
+
+          SetResult(RunSQL(connection,ClearAction,Format(delFmrt, ['UserParameters', 'UserID']),
+              'Delete User Parameters' ));
+
+          SetResult(RunSQL(connection,ClearAction,Format(delFmrt, ['UserPrintSettings', 'User_ID']),
+             'Delete User Print Settings' ));
+
+          SetResult(RunSQL(connection,ClearAction,Format(delFmrt, ['ServerTaskScheduleInstances', 'UserID']),
+              'Delete User Server Task Schedule' ));
+
+          SetResult(RunSQL(connection,ClearAction,
+              'Delete from [users] where isnull(IsDefaultAdmin, 0) = 0',
+              'Delete Users' ));
+
+        ClearAction.Status := Success;
+
+    end;
+
     procedure ClearUserViewConfigurations;
     var ClearAction: TMigrateAction;
     begin
          result := true;
        ClearAction := MyAction.InsertAction('Clear user view configurations');
        try
-          RunSQL(connection,MyAction,
+          SetResult(RunSQL(connection,MyAction,
           'DELETE vc FROM  ( SELECT v.Id as vid FROM  UserViewConfigurations v where v.[User_ID] is not null ) vv ' +
                   'INNER JOIN UserViewConfigurationColumns vc ON vv.vid = vc.UserViewConfiguration_Id'
                   ,
-             'Delete UserViewConfigurationColumns');
+             'Delete UserViewConfigurationColumns'));
 
-          RunSQL(connection,MyAction,
+          SetResult(RunSQL(connection,MyAction,
           'DELETE FROM UserViewConfigurations where [User_ID] is not null' ,
-             'Delete UserViewConfigurations');
+             'Delete UserViewConfigurations'));
            ClearAction.Status := Success;
        except
            on e: Exception do begin
               ClearAction.Exception(e);
-
            end;
        end;
     end;
@@ -871,9 +924,9 @@ var MyAction: TMigrateAction;
        ClearAction := MyAction.InsertAction('Clear Server Task Schedule Instances');
        try
           // ?? Not sure if this is what we want
-          RunSQL(connection,MyAction,
-          'DELETE FROM ServerTaskScheduleInstances where [UserID] = ''00000000-0000-0000-0000-000000000000''' ,
-             'Clear Server Task Schedule Instances');
+          SetResult(RunSQL(connection,MyAction,
+          'DELETE FROM ServerTaskScheduleInstances where [UserID] = null' ,
+             'Clear Server Task Schedule Instances'));
            ClearAction.Status := Success;
        except
            on e: Exception do begin
@@ -883,9 +936,10 @@ var MyAction: TMigrateAction;
        end;
     end;
 
+
 begin
-   Result := false;
-   MyAction := ForAction.InsertAction('Clear System');
+   Result := True;
+   MyAction := ForAction.InsertAction('Clear System');                    
    try
       Connected := true;
 
@@ -899,66 +953,77 @@ begin
       //RunSQL(Connection, MyAction, 'EXEC sp_msforeachtable "ALTER TABLE ? NOCHECK CONSTRAINT all"', 'Drop constraints');
       try
 
-      DeleteTable(MyAction,'UserOpenClients');
-      DeleteTable(MyAction,'UserClients');
+      // The Online Cach (BLOPI)
+      SetResult(DeleteTable(MyAction,'ClientAccountExportProvider'));
+      SetResult(DeleteTable(MyAction,'ClientOnlineProductParameter', True));
+      SetResult(DeleteTable(MyAction,'PracticeOnlineProductParameter', True));
+      SetResult(DeleteTable(MyAction,'PracticeOnlineProduct'));
+      SetResult(DeleteTable(MyAction,'ClientOnlineProduct'));
+      SetResult(DeleteTable(MyAction,'OnlineProduct'));
+
+
+
+      // system stuff with users
+      // do this before clear users
+      SetResult(DeleteTable(MyAction,'FaxBodyFiles'));
+      SetResult(DeleteTable(MyAction,'Faxes'));
+
+      SetResult(DeleteTable(MyAction,'EmailAttachments'));
+      SetResult(DeleteTable(MyAction,'Emails'));
+
+      SetResult(DeleteTable(MyAction,'UserOpenClients'));
+      SetResult(DeleteTable(MyAction,'UserClients'));
+
       ClearUserViewConfigurations;
-      DeleteTable(MyAction,'UserPrintSettings');
-      DeleteTable(MyAction,'UserParameters');
+      SetResult(DeleteTable(MyAction,'UserPrintSettings'));
+      SetResult(DeleteTable(MyAction,'UserParameters'));
+      SetResult(DeleteTable(MyAction,'ServerTaskMessages'));
 
-      DeleteTable(MyAction,'GenericParameters');
+      
+      SetResult(DeleteTable(MyAction,'BankLinkBooksExports'));
+      ClearServerTaskScheduleInstances;
+      // Now can do the users
+      ClearUsers;
 
-      DeleteTable(MyAction,'AccountCharges',True);
-      DeleteTable(MyAction,'DownloadDocuments', True);
-      DeleteTable(MyAction,'BankTransactions', True);
+      SetResult(DeleteTable(MyAction,'GenericParameters'));
 
-      DeleteTable(MyAction,'SysTaxRates');
-      DeleteTable(MyAction,'SysTaxEntries');
+      SetResult(DeleteTable(MyAction,'AccountCharges',True));
+      SetResult(DeleteTable(MyAction,'DownloadDocuments', True));
+      SetResult(DeleteTable(MyAction,'BankTransactions', True));
 
-      DeleteTable(MyAction,'Tasks');
+      SetResult(DeleteTable(MyAction,'SysTaxRates'));
+      SetResult(DeleteTable(MyAction,'SysTaxEntries'));
 
-      DeleteTable(MyAction,'ClientSystemAccounts');;
-      DeleteTable(MyAction,'SystemBankAccounts');
+      SetResult(DeleteTable(MyAction,'Tasks'));
+
+      SetResult(DeleteTable(MyAction,'ClientSystemAccounts'));
+      SetResult(DeleteTable(MyAction,'SystemBankAccounts'));
 
       ClearStyles;
 
-      // BLOPI
-      DeleteTable(MyAction,'ClientOnlineProductParameter', True);
-      DeleteTable(MyAction,'ClientOnlineProduct');
+      SetResult(DeleteTable(MyAction,'PracticeClients'));
 
-      DeleteTable(MyAction,'PracticeOnlineProductParameter', True);
-      DeleteTable(MyAction,'PracticeOnlineProduct');
+      SetResult(DeleteTable(MyAction,'ClientGroups'));
+      SetResult(DeleteTable(MyAction,'ClientTypes'));
 
-      DeleteTable(MyAction,'OnlineProduct');
-
-      DeleteTable(MyAction,'PracticeClients');
-
-      DeleteTable(MyAction,'ClientGroups');
-      DeleteTable(MyAction,'ClientTypes');
-
-      DeleteTable(MyAction,'SystemBlobs');
+      SetResult(DeleteTable(MyAction,'SystemBlobs'));
 
 
-      DeleteTable(MyAction,'MasterMemorisationLines', true);
-      DeleteTable(MyAction,'MasterMemorisations');
+      SetResult(DeleteTable(MyAction,'MasterMemorisationLines', true));
+      SetResult(DeleteTable(MyAction,'MasterMemorisations'));
 
-      DeleteTable(MyAction,'FaxBodyFiles');
-      DeleteTable(MyAction,'Faxes');
 
-      DeleteTable(MyAction,'EmailAttachments');
-      DeleteTable(MyAction,'Emails');
 
-      DeleteTable(MyAction,'ServerTaskMessages');
-      DeleteTable(MyAction,'BankLinkBooksExports');
-      ClearServerTaskScheduleInstances;
 
-      Result := True;
       MyAction.Status := Success;
       finally
          //RunSQL(Connection, MyAction,'EXEC sp_msforeachtable "ALTER TABLE ? WITH CHECK CHECK CONSTRAINT all"', 'Re-instate constraints');
       end;
    except
-      on E: Exception do
-         MyAction.Error := E.Message;
+      on E: Exception do  begin
+         MyAction.AddError (E);
+         result := false;
+      end;
    end;
 end;
 
@@ -1282,7 +1347,7 @@ begin
       FSystemUsers := TADODataSet.Create(nil);
       FSystemUsers.ParamCheck := True;
       FSystemUsers.Connection := Connection;
-      FSystemUsers.CommandText := 'Select [Id] from [users] where [code] = :Code';
+      FSystemUsers.CommandText := 'Select [Code], [ID] from [users] where isnull(IsDefaultAdmin, 0) = 1';
    end;
    Result := FSystemUsers;
 end;
@@ -1546,8 +1611,10 @@ var
                ReportOptionsTable.Update(ParameterName('StartNewPage'),Options.NewPageforAccounts);
             end;
          end;
-         if Options.HF_Style > '' then // Don't override 'None'
-            ReportOptionsTable.Update(ParameterName('SelectedStyle'),Options.HF_Style,'NVarChar(20)');
+         if Options.HF_Style > '' then
+            ReportOptionsTable.Update(ParameterName('SelectedStyle'),Options.HF_Style,'NVarChar(20)')
+         else
+            ReportOptionsTable.Update(ParameterName('SelectedStyle'),'[None]','NVarChar(20)');   
 
          // Do the Headers and footers
          SystemBlobTable.InsertHeaderFooter(Options.HF_Sections[hf_HeaderFirst], ParameterName('DifferentHeader'));
@@ -1727,7 +1794,7 @@ begin
    ParameterTable.Update('PracticeManagementSystem', GetProviderID(ManagementSystem,System.fdFields.fdCountry, System.fdFields.fdPractice_Management_System));
 
    ParameterTable.Update('PINNumber', System.fdFields.fdPIN_Number);
-   ParameterTable.Update('MagicNumber', System.fdFields.fdMagic_Number);
+   //ParameterTable.Update('MagicNumber', System.fdFields.fdMagic_Number);
 
    ParameterTable.Update('PracticeName', System.fdFields.fdPractice_Name_for_Reports,'nvarchar(60)');
    ParameterTable.Update('PracticePhone', System.fdFields.fdPractice_Phone,'nvarchar(60)');
@@ -1785,8 +1852,6 @@ begin
    //ParameterTable.Update('SRNewTransactionsOnly', ToSQL(System. ,false));
 
 
-   //Pracini
-   ReadPracticeINI;
 
    // BLOPI (BankLink Online Practice Integration}
    if(System.fdFields.fdUse_BankLink_Online) then begin
@@ -1954,52 +2019,22 @@ var User: PUser_rec;
     Restricted: Boolean;
     I : Integer;
     RecordNum: integer;
+
+   function BLOEmail: string;
+   var bloUser :TBloUserRead;
+   begin
+       result := '';
+       with User^ do
+          bloUser := ProductConfigService.Practice.FindUserByCode(User.usCode);
+       if assigned(blouser) then
+          result := bloUser.EMail;
+
+   end;
+
 begin
-   Result := false;
+   result := false;
    User := PUser_rec(Value.Data);
 
-   // See if we have it already
-   Systemusers.Active := false;
-   Systemusers.Parameters.ParamValues['Code']:= User.usCode;
-   Systemusers.Active := True;
-   RecordNum := 0;
-   if Systemusers.RecordCount > 0 then begin
-
-      repeat
-          inc(RecordNum);
-          RunSQL(connection,ForAction,format('Delete from [UserClients] where [User_Id] = ''%s''',[SystemUsers.Fields[0].AsString]),
-              format('Delete User Clients for %s ',[User.usCode]));
-
-          RunSQL(connection,ForAction,format('Delete from [UserRoles] where [User_Id] = ''%s''',[SystemUsers.Fields[0].AsString]),
-              format('Delete User Roles for %s ',[User.usCode]));
-
-          RunSQL(connection,ForAction,format('Delete from [UserParameters] where [UserId] = ''%s''',[SystemUsers.Fields[0].AsString]),
-              format('Delete User Parameters for %s ',[User.usCode]));
-
-          RunSQL(connection,ForAction,format('Delete from [UserPrintSettings] where [User_Id] = ''%s''',[SystemUsers.Fields[0].AsString]),
-              format('Delete User Print Settings for %s ',[User.usCode]));
-
-          RunSQL(connection,ForAction,format('Delete from [ServerTaskScheduleInstances] where [UserId] = ''%s''',[SystemUsers.Fields[0].AsString]),
-              format('Delete User Server Task Schedule for %s ',[User.usCode]));
-
-          {   // deleted
-          RunSQL(ForAction,format(
-        'DELETE uea FROM ( SELECT e.Id as eid FROM  Emails e where e.[UserId] = ''%s'' ) ee INNER JOIN EmailAttachments uea ON ee.eid = uea.EmailId',
-         [SystemUsers.Fields[0].AsString]));
-
-         RunSQL(ForAction,format('Delete from [Emails] where [UserId] = ''%s''',[SystemUsers.Fields[0].AsString]));
-
-         RunSQL(ForAction,format('Delete from [Faxes] where [User_Id] = ''%s''',[SystemUsers.Fields[0].AsString]));
-         }
-         if RecordNum >= SystemUsers.RecordCount then
-           break;
-      until not Systemusers.FindNext;
-
-
-      RunSQL(connection,ForAction,format('Delete from [Users] where [Code] = ''%s''',[User.usCode]), format('Delete User %s',[User.usCode]));
-
-           //Exit; // Merge....
-   end;
 
    // Need a user name..
    if User.usName = '' then
@@ -2008,8 +2043,28 @@ begin
    // Check if restricted..
    Restricted := System.fdSystem_File_Access_List.Restricted_User(User.usLRN);
    try
-      // Add the user..
-      UserTable.Insert(Value.GuidID, user, Restricted, System.fdFields.fdUse_BankLink_Online);
+
+      if SameText(FAdminUser, User.usCode) then begin
+          with User^ do RunSql(connection, ForAction, ' Update [users] set MASTERAccess=' +  ToSQL(usMASTER_Access)  +
+             //' IsRemoteUser=' +  ToSQL(usIs_Remote_User) +
+             ' DirectDial=' +  ToSQL(usDirect_Dial) +
+             //' ShowCMOnOpen=' + ToSQL(usShow_CM_on_open) +
+             ' ShowPrinterChoice=' + ToSQL(usShow_Printer_Choice) +
+             ' EULAVersion=' +  ToSQL(usEULA_Version) +  // Do we need this ?
+             ' SuppressHF=' +   ToSQL(usSuppress_HF) +
+             ' ShowPracticeLogo=' + ToSQL(usShow_Practice_Logo) +
+             ' CanAccessAllClients=' + ToSQL(not Restricted) +
+             ' BankLinkOnlineEmail=' +  toSQL(BLOEmail, false) +
+             ' Where [Code] = ' + ToSQL(FAdminUser, false),
+
+             'Update User');
+
+             // Update the Guid from the DB
+             Value.GuidID := StringToGuid (SystemUsers.Fields[1].AsString);
+
+      end else
+         // Add the user..
+         UserTable.Insert(Value.GuidID, user, Restricted, true);
 
       // Add the role
       InsertTable(
@@ -2029,6 +2084,13 @@ function TSystemMigrater.Migrate(ForAction: TMigrateAction): Boolean;
 var
    MyAction: TMigrateAction;
    lList: TGuidList;
+
+   procedure TestOnline;
+   begin
+      ProductConfigService.GetPractice(true,true,'',false,true);
+      ProductConfigService.UpdateUserAllowOnlineSetting;
+   end;
+
 begin
    result := false;
    if not Assigned(System) then
@@ -2039,9 +2101,24 @@ begin
 
    MyAction.LogMessage('Migration Start');
 
-   if DoUsers then
+   TestOnline;
+
+   if DoUsers then begin
+
+      // Find the Installed Default Admin user
+      Systemusers.Active := false;
+
+      Systemusers.Active := True;
+      if Systemusers.RecordCount > 0 then
+         FAdminUser := Systemusers.Fields[0].AsString
+      else
+         FAdminUser := '';
+
+      // Check if we have anything to do..
+
       if not RunGuidList(MyAction,'Users',UserList,MergeUser, true) then
          exit;
+   end;
 
    if not RunGuidList(MyAction,'Client Groups',ClientGroupList, AddClientGroup) then
       Exit;
@@ -2109,7 +2186,7 @@ begin
    //TClientMigrater(ClientMigrater).UpdateProcessingStatusAllClients(MyAction);
 
    // Do this after all the settings
-   StartRetrieve(MyAction);
+   //StartRetrieve(MyAction);   not used for now..
    if MyAction.CheckCanceled then
       Exit;
 
@@ -2143,20 +2220,18 @@ end;
 
 
 function TSystemMigrater.MigrateBLOPI(ForAction: TMigrateAction): Boolean;
-var lPrac: TBloPracticeRead; // Owned by ProductConfigService..
+var
     i,c: Integer;
     nItem: TGuidObject;
 
     ClientId: TGuid;
 
-    procedure SaveUser(value: TBloUserRead);
-    begin
-
-    end;
-
     procedure SavePrimaryContact;
     var lpc: TBloUserRead;
     begin
+       // if not System.fdFields.fdUse_BankLink_Online then
+        //   exit;
+
         lpc := ProductConfigService.GetPrimaryContact(false);
         if not assigned(lpc) then
            exit;
@@ -2167,40 +2242,32 @@ var lPrac: TBloPracticeRead; // Owned by ProductConfigService..
 begin
    FUseBLOPI := False;
    // Check if we have anything to do..
-   if(not System.fdFields.fdUse_BankLink_Online)
-   or (not (System.fdFields.fdBankLink_Online_Config > '')) then begin
-       Result := true;
-       Exit; // Nothing to do...All Good...
-   end;
-
 
    result := false;
-   lprac := ProductConfigService.GetPractice(false,false,'',false,true);
-   if not Assigned(lPrac) then
-      Exit;
 
 
-   case lPrac.Status  of
+   SavePrimaryContact;
+
+   case ProductConfigService.Practice.Status  of
      staActive      : begin
+                       if(System.fdFields.fdUse_BankLink_Online) then
+                          ParameterTable.Update('PracticeBankLinkOnlineStatus', 1);
 
-                       ParameterTable.Update('PracticeBankLinkOnlineStatus', 1);
                        // And the rest...
-                       if lPrac.DomainName > '' then
-                          ParameterTable.Update('BankLinkPracticeDomain', lPrac.DomainName, 'nvarchar(255)');
+                       if ProductConfigService.Practice.DomainName > '' then
+                          ParameterTable.Update('BankLinkPracticeDomain', ProductConfigService.Practice.DomainName, 'nvarchar(255)');
 
 
                        //for I := high(lprac.Users) to high(lprac.Users) do
                        //   SaveUser(lprac.Users[i]);
 
-                       SavePrimaryContact;
 
 
 
-
-                       for I := low(LPrac.Catalogue) to High(LPrac.Catalogue) do begin
+                       for I := low(ProductConfigService.Practice.Catalogue) to High(ProductConfigService.Practice.Catalogue) do begin
                           nItem := TGuidObject.Create;
                           CreateGUID(nitem.GuidID);
-                          nItem.Data := LPrac.Catalogue[I];
+                          nItem.Data :=ProductConfigService.Practice.Catalogue[I];
                           GetBLOPIProducs.Add(nItem);
                        end;
 
@@ -2290,7 +2357,7 @@ begin
 
 
       if SystemBlobTable.InsertSignature(globals.DataDir +'\Email\signature.rtf') then
-         ParameterTable.Update('PracticeSignatureSystemBlobName','MiratorPracticeSignature', 'nvarchar(255)');
+         ParameterTable.Update('PracticeSignatureSystemBlobName','MigratorPracticeSignature', 'nvarchar(255)');
       result := true;   
 
 end;
@@ -2314,6 +2381,39 @@ begin
    end;
 end;
 
+
+function TSystemMigrater.UseMagicNumber: Integer;
+   var params: TADODataSet;
+begin
+   result := FMagicNumber;
+   if result <> 0 then
+      Exit; // Done...
+
+   params := TADODataSet.Create(nil);
+   try
+      params.ParamCheck := True;
+      params.Connection := Connection;
+      params.CommandText := 'SELECT [ParameterValue] FROM [SystemParameters] where [ParameterName] = ''MagicNumber'' ';
+      params.Active := true;
+
+      if params.RecordCount > 0 then try
+         result :=  strtoint(params.Fields[0].AsString);
+      except
+         result := 0;
+      end;
+
+      if (result = 0)
+      or (result = FSystem.fdFields.fdMagic_Number) then begin
+          // Migrated before? make a new one...
+          result := GetTickCount mod LongWord(MaxInt); //As per DBCreate
+          // Save it
+          ParameterTable.Update('MagicNumber', result);
+      end; 
+      FMagicNumber := result;
+   finally
+      freeAndNil(params);
+   end;
+end;
 
 function TSystemMigrater.MigrateDisklog(ForAction: TMigrateAction): Boolean;
 var lList: TGuidList;

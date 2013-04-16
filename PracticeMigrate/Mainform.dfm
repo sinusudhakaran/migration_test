@@ -547,7 +547,7 @@ object formMain: TformMain
     Top = 87
     Width = 760
     Height = 424
-    ActivePage = tsSelect
+    ActivePage = TsProgress
     Align = alClient
     TabOrder = 2
     object tsBrowse: TTabSheet
@@ -596,9 +596,9 @@ object formMain: TformMain
       object Label6: TLabel
         Left = 16
         Top = 104
-        Width = 44
+        Width = 32
         Height = 15
-        Caption = 'Note: ....'
+        Caption = 'Note: '
       end
       object Label7: TLabel
         Left = 80
@@ -669,6 +669,10 @@ object formMain: TformMain
     end
     object tsSelect: TTabSheet
       Caption = 'Select options'
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       DesignSize = (
         752
         394)
@@ -986,7 +990,7 @@ object formMain: TformMain
     Left = 176
     Top = 8
     Bitmap = {
-      494C010104001000080118001800FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C010104001000180118001800FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000600000003000000001002000000000000048
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000

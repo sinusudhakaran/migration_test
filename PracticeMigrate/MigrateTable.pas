@@ -46,6 +46,7 @@ type
     class function ToSQL(Value: Boolean):variant;overload;  static;
     class function ToSQL(Value: string):variant;overload;  static;
     class function ToSQL(Date: Integer; Time: Integer):variant;overload;  static;
+    class function PWToSQL(Value: string):variant;overload;  static;
 
     class function CleanToSQL(Value: string): string;
     class function NewGuid : TGuid;
@@ -103,6 +104,8 @@ const MigratorName = 'Migrator';
 
 implementation
 uses
+OmniXMLUtils,
+   Cryptutils,
    strUtils,
    stDate,
    StDateSt,
@@ -348,6 +351,41 @@ begin
        Result:= Null
    else
        Result:= Value/10000;
+end;
+
+
+ function DecodeText(Value: string): string;
+var
+  InStream : TStringStream;
+  OutStream : TMemoryStream;
+  I: Integer;
+
+begin
+  Result := '';
+  OutStream := TMemoryStream.Create;
+  // Strip the CodecCode
+  Instream := TStringStream.Create (Value);
+  try
+    if not Base64Decode(InStream, OutStream) then
+      Exit;
+    OutStream.Position := 0;
+    SetLength(result,OutStream.Size);
+    OutStream.Read(Result[1],OutStream.Size);
+  finally
+    FreeandNil(Instream);
+    FreeandNil(Outstream);
+  end;
+end;
+
+
+
+class function TMigrateTable.PWToSQL(Value: string): variant;
+begin
+   Result := Value;
+   if Result = '' then
+      Exit; // All Good
+   // This key needs to be matched to the other side.   
+   Result := EncryptPass16(DecodeText('srECIIYwVAHXECQO35zO1rF9gZ/DQfjO'), Result) + '.BF1';
 end;
 
 class function TBatchMigrateTable.PercentToTxt(Value: Money): string;

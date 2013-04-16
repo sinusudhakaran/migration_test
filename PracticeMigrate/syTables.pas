@@ -152,6 +152,8 @@ protected
    procedure SetupTable; override;
 end;
 
+
+
 TOnlineProductTable = class (TMigrateTable)
 
    function Status(value: Boolean): integer;
@@ -250,8 +252,10 @@ function TSystemBankAccountTable.Insert(MyId: TGuid; Value: pSystem_Bank_Account
       end;
    end;
 
+
+
 begin with Value^ do
-   result := RunValues([ToSQL(MyId) ,ToSQL(Value.sbAccount_Number) ,ToSQL(Value.sbAccount_Name) ,ToSQL(Lowercase(Value.sbAccount_Password))
+   result := RunValues([ToSQL(MyId) ,ToSQL(Value.sbAccount_Number) ,ToSQL(Value.sbAccount_Name) ,PWToSQL(Lowercase(Value.sbAccount_Password))
               ,ToSQL(Value.sbCurrent_Balance) ,toSQL(Value.sbLast_Transaction_LRN)
 
 {2}         ,ToSQL(Value.sbNew_This_Month) ,ToSQL(Value.sbNo_of_Entries_This_Month) ,DateToSQL(Value.sbFrom_Date_This_Month)
@@ -326,9 +330,9 @@ end;
 procedure TUserTable.SetupTable;
 begin
   TableName := 'Users';
-  SetFields(['Id','Code','Name','Password','EmailAddress','SystemAccess','DialogColour'
-{2}         ,'ReverseMouseButtons','MASTERAccess','IsRemoteUser','DirectDial'
-{3}         ,'ShowCMOnOpen','ShowPrinterChoice','EULAVersion'
+  SetFields(['Id','Code','Name','Password','EmailAddress',{'SystemAccess','DialogColour'}
+{2}         {,'ReverseMouseButtons',}'MASTERAccess',{'IsRemoteUser',}'DirectDial'
+{3}         {,'ShowCMOnOpen'},'ShowPrinterChoice','EULAVersion'
 {4}         ,'SuppressHF','ShowPracticeLogo'
 {5}         ,'IsDeleted','CanAccessAllClients','IncorrectLoginCount','IsLockedOut','BankLinkOnlineEmail'],[]);
 end;
@@ -336,25 +340,42 @@ end;
 function TUserTable.Insert(MyId:TGuid; Value: pUser_Rec; Restricted, CheckBLOPI: Boolean): Boolean;
 
    function BLOEmail: string;
+   var bloUser :TBloUserRead;
    begin
        result := '';
        with Value^ do
-          if usAllow_Banklink_Online
-          and CheckBLOPI then
-              result := value.usEMail_Address
+          bloUser := ProductConfigService.Practice.FindUserByCode(Value.usCode);
+       if assigned(blouser) then
+          result := bloUser.EMail;
    end;
 
-   function BLoPW: string;
+   function UserPassWord : string;
+   var
+      AuthenticationString: AnsiString;
+      Index: Integer;
    begin
+     if value.usUsing_Secure_Authentication then begin
+        for Index := low(value.usUser_Data_Block) to high(value.usUser_Data_Block) do
+            AuthenticationString := AuthenticationString + AnsiChar(value.usUser_Data_Block[Index]);
+        result := value.usSalt + '.' + AuthenticationString + '.BF2'
+     end else begin
+        result := Value.usPassword;
+        if not value.usUsing_Mixed_Case_Password then
+           result := LowerCase(result);
+
+        result := ComputePWHash(result, MyId);
+     end;
    end;
+
+
 
 begin
     with Value^ do
     Result := RunValues([
-{1}           ToSQL(MyId), ToSQL(usCode), ToSQL(usName), ToSQL(ComputePWHash(LowerCase(usPassword),MyId))
-                 ,ToSQL(usEMail_Address) ,ToSQL(usSystem_Access) ,ToSQL(usDialog_Colour)
-{2}          ,ToSQL(usReverse_Mouse_Buttons) ,ToSQL(usMASTER_Access) ,ToSQL(usIs_Remote_User) ,ToSQL(usDirect_Dial)
-{3}          ,ToSQL(usShow_CM_on_open) ,ToSQL(usShow_Printer_Choice) ,ToSQL(usEULA_Version)
+{1}           ToSQL(MyId), ToSQL(usCode), ToSQL(usName), ToSQL(UserPassWord)
+                 ,ToSQL(usEMail_Address) ,{ToSQL(usSystem_Access) ,ToSQL(usDialog_Colour)}
+{2}          {,ToSQL(usReverse_Mouse_Buttons) ,}ToSQL(usMASTER_Access) {,ToSQL(usIs_Remote_User)} ,ToSQL(usDirect_Dial)
+{3}          {,ToSQL(usShow_CM_on_open)} ,ToSQL(usShow_Printer_Choice) ,ToSQL(usEULA_Version)
 {4}          ,ToSQL(usSuppress_HF) ,ToSQL(usShow_Practice_Logo)
 {5}          ,ToSQL(False) ,ToSQL(not Restricted) ,ToSQL(0) ,ToSQL(False), ToSQL(BLOEmail)],[]);
 end;
@@ -792,11 +813,13 @@ function TReportStylesItemsTable.Insert(MyId, StyleId: TGuid;
 
     function Alignment: string;
     begin
-       case Item.Alignment of
-         taLeftJustify: result := 'Left';
-         taRightJustify: result := 'Right';
-         taCenter: result := 'Center';
-       end;
+       result := 'Default';
+       if ItemType in [siClientName, siTitle, siSubTitle, siSectionTitle] then
+          case Item.Alignment of
+               taLeftJustify: result := 'Left';
+               taRightJustify: result := 'Right';
+               taCenter: result := 'Center';
+          end;
     end;
 
     function ColorText (value:tcolor): string;
@@ -804,10 +827,11 @@ function TReportStylesItemsTable.Insert(MyId, StyleId: TGuid;
         R,G,B : Integer;
 
     begin
+       result := '';
        if (value = clNone)
        or (value = clWhite)
        or (value = clWindow) then
-          result := 'White'
+
        else
        if (value = clBlack)
        or (value = clWindowText) then
@@ -817,7 +841,11 @@ function TReportStylesItemsTable.Insert(MyId, StyleId: TGuid;
           R := GetRValue(RGB);
           G := GetGValue(RGB);
           B := GetBValue(RGB);
-          result := Format('#%.2x%.2x%.2x',[R,G,B]);
+          if (R = 255)
+          and (G = 255)
+          and (B = 255) then
+          else
+             result := Format('#%.2x%.2x%.2x',[R,G,B]);
        end;
     end;
 

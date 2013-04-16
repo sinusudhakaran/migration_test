@@ -61,6 +61,7 @@ TClientMigrater = class (TMigrater)
     FNotesOptionsTable: TNotesOptionsTable;
     FColumnConfigTable: TColumnConfigTable;
     FColumnConfigColumnsTable: TColumnConfigColumnsTable;
+    FClientParameterTable: TClientParameterTable;
     FMatchIDList: TGuidList;
     FMemList: TGuidList;
     FMasterMemList: TGuidList;
@@ -114,6 +115,7 @@ TClientMigrater = class (TMigrater)
     function GetClient_ScheduleTable: TClient_ScheduleTable;
     function GetColumnConfigTable: TColumnConfigTable;
     function GetColumnConfigColumnsTable: TColumnConfigColumnsTable;
+    function GetClientParameterTable: TClientParameterTable;
     function GetSubGroupTable: TSubGroupTable;
     //function GetClient_ReportOptionsTable: TClient_ReportOptionsTable;
     function GetClientFinacialReportOptionsTable: TClientFinacialReportOptionsTable;
@@ -150,7 +152,8 @@ TClientMigrater = class (TMigrater)
                     AUserID,
                     AGroupID,
                     ATypeID: TGuid;
-                    AMagicNumber,
+                    FromMagicNumber,
+                    ToMagicNumber,
                     ACountry: Integer;
                     CheckedOutUserID: TGuid;
                     AClient: pClient_File_Rec = nil): Boolean;
@@ -191,6 +194,7 @@ TClientMigrater = class (TMigrater)
    property ClientReportTable: TClientReportTable read GetClientReportTable;
    property ColumnConfigTable: TColumnConfigTable read GetColumnConfigTable;
    property ColumnConfigColumnsTable: TColumnConfigColumnsTable read GetColumnConfigColumnsTable;
+   property ClientParameterTable: TClientParameterTable read GetClientParameterTable;
 
    // Lists
    property DivisionList: TGuidList read GetDivisionList write SetDivisionList;
@@ -1012,19 +1016,26 @@ function TClientMigrater.ClearData(ForAction: TMigrateAction): Boolean;
 var myAction: TMigrateAction;
     KeepTime: Integer;
 
+    procedure SetResult(Value: Boolean);
+    begin
+       if not value then
+          result := false;
+    end;
+
+
     function ClearConfig : Boolean;
     var ClearAction: TMigrateAction;
     begin
        result := true;
        ClearAction := MyAction.InsertAction('Clear Column configuration');
        try
-       RunSQL(connection,MyAction,
+       SetResult(RunSQL(connection,MyAction,
        'DELETE ccc FROM ( SELECT c.Id as confid FROM  CodingColumnConfigurations c where c.IsDefault = 0) cc INNER JOIN Codingcolumns ccc ON cc.confid = ccc.CodingColumnConfiguration_Id'
-            ,'Clear Codingcolumns' );
-        RunSQL(connection,MyAction,
+            ,'Clear Codingcolumns' ));
+       SetResult(RunSQL(connection,MyAction,
        'DELETE c FROM CodingColumnConfigurations c where c.IsDefault = 0',
         'Clear CodingColumnConfigurations'
-             );
+             ));
 
          ClearAction.Status := Success;
        except
@@ -1043,7 +1054,7 @@ var myAction: TMigrateAction;
 
        ClearAction := MyAction.InsertAction(format('Clear %s',[Name]));
        try
-           RunSQL(connection,MyAction, format('DELETE rp FROM [%s] rp where rp.[Client_ID] is not null',[Table]),'Clear Parameters' );
+            SetResult(RunSQL(connection,MyAction, format('DELETE rp FROM [%s] rp where rp.[Client_ID] is not null',[Table]),'Clear Parameters' ));
             ClearAction.Status := Success;
           except
            on e: Exception do begin
@@ -1055,7 +1066,7 @@ var myAction: TMigrateAction;
 
 
 begin
-   Result := false;
+   Result := true;
    MyAction := ForAction.InsertAction('Clear Clients');
 
    logger.LogMessage(Info,'Clearing All Client data');
@@ -1070,91 +1081,93 @@ begin
 
       //DeleteTable(MyAction,'ClientBankAccountsProcessingStatus',True); Gone...
       
-      DeleteTable(MyAction,Job_Heading_RecTable, True);
+      SetResult(DeleteTable(MyAction,Job_Heading_RecTable, True));
 
-      DeleteTable(MYAction,'ClientDownloads', True);
+      SetResult(DeleteTable(MYAction,'ClientDownloads', True));
 
-      DeleteTable(MyAction,'FuelSheets', True);
+      SetResult(DeleteTable(MyAction,'FuelSheets', True));
       //DeleteTable(MyAction,'Balances');
-      DeleteTable(MyAction,'TaxReturnParameters', True);
-      DeleteTable(MyAction,'TaxReturns');
+      SetResult(DeleteTable(MyAction,'TaxReturnParameters', True));
+      SetResult(DeleteTable(MyAction,'TaxReturns'));
 
 
-      DeleteTable(MyAction,NotesOptionsTable, True);
-      DeleteTable(MyAction,BAS_OptionsTable, True);
+      SetResult(DeleteTable(MyAction,NotesOptionsTable, True));
+      SetResult(DeleteTable(MyAction,BAS_OptionsTable, True));
 
-      DeleteTable(MyAction,'Headings');
+      SetResult(DeleteTable(MyAction,'Headings'));
 
-      DeleteTable(MyAction,CustomDocSceduleTable);
+      SetResult(DeleteTable(MyAction,CustomDocSceduleTable));
       //DeleteTable(MyAction,'CustomDocuments');
 
-      DeleteTable(MyAction,'ScheduledTaskValues');
+      SetResult(DeleteTable(MyAction,'ScheduledTaskValues'));
 
-      DeleteTable(MyAction,'PayeeLines', True);
-      DeleteTable(MyAction,'Payees');
+      SetResult(DeleteTable(MyAction,'PayeeLines', True));
+      SetResult(DeleteTable(MyAction,'Payees'));
 
-      DeleteTable(MyAction,'BudgetLines', True);
-      DeleteTable(MyAction,'Budgets');
+      SetResult(DeleteTable(MyAction,'BudgetLines', True));
+      SetResult(DeleteTable(MyAction,'Budgets'));
 
-      DeleteTable(MyAction,'TaxRates', True);
+      SetResult(DeleteTable(MyAction,'TaxRates', True));
       DeleteTable(MyAction,'TaxEntries');
 
-      DeleteTable(MyAction,'MemorisationLines', True);
-      DeleteTable(MyAction,'Memorisations');
-      DeleteTable(MyAction,'Dissections', True);
+      SetResult(DeleteTable(MyAction,'MemorisationLines', True));
+      SetResult(DeleteTable(MyAction,'Memorisations'));
+      SetResult(DeleteTable(MyAction,'Dissections', True));
 
       //
       RunSQL(Connection,MyAction,Format('DBCC SHRINKFILE(''%s_Log'',1)',['PracticeClient']), 'Shrink Log');
       KeepTime := Connection.CommandTimeout;
       Connection.CommandTimeout := 20 * 60;
-      DeleteTable(MyAction,'Transactions');
+      SetResult(DeleteTable(MyAction,'Transactions'));
       Connection.CommandTimeout := KeepTime;
 
       ClearConfig;
 
       //DeleteTable(MyAction,'ProcessingStatuses'); Gone...
 
-      DeleteTable(MyAction,'BankAccounts');
-      DeleteTable(MyAction,'CodingReportOptions');
+      SetResult(DeleteTable(MyAction,'BankAccounts'));
+      SetResult(DeleteTable(MyAction,'CodingReportOptions'));
       //DeleteTable(MyAction,'ReportingOptions');
-      DeleteTable(MyAction,'ReportSubGroups');
+      SetResult(DeleteTable(MyAction,'ReportSubGroups'));
 
-      DeleteTable(MyAction,'ClientReportDivisionCharts');
-      DeleteTable(MyAction,Chart_RecTable);
-      DeleteTable(MyAction,'ReportClientDivisions');
+      SetResult(DeleteTable(MyAction,'ClientReportDivisionCharts'));
+      SetResult(DeleteTable(MyAction,Chart_RecTable));
+      SetResult(DeleteTable(MyAction,'ReportClientDivisions'));
 
-      DeleteTable(MyAction,'Reminders');
+      SetResult(DeleteTable(MyAction,'Reminders'));
 
-      DeleteTable(MyAction,ClientFinacialReportOptionsTable, True);
+      SetResult(DeleteTable(MyAction,ClientFinacialReportOptionsTable, True));
 
       // Still To do..
-      DeleteTable(MyAction,'TaxReturnParameters', True);
-      DeleteTable(MyAction,'TaxReturns');
+      SetResult(DeleteTable(MyAction,'TaxReturnParameters', True));
+      SetResult(DeleteTable(MyAction,'TaxReturns'));
 
       //DeleteTable(MyAction,'FavouriteReports', True);
-      DeleteTable(MyAction,'ClientAttachments', True);
+      SetResult(DeleteTable(MyAction,'ClientAttachments', True));
 
-      DeleteTable(MyAction,'ClientTasks');
+      SetResult(DeleteTable(MyAction,'ClientTasks'));
+
+      SetResult(DeleteTable(MyAction,'SortOrders'));
 
       ClearParametersTable('Client Parameters','ClientParameters');
 
-      DeleteTable(MyAction,'ReportParameters',True);
-      DeleteTable(MyAction,'ClientReports');
+      SetResult(DeleteTable(MyAction,'ReportParameters',True));
+      SetResult(DeleteTable(MyAction,'ClientReports'));
 
       //ClearParametersTable('Report Parameters','ReportParameters');
 
-      DeleteTable(MyAction,'ReportParameters',True);
+      SetResult(DeleteTable(MyAction,'ReportParameters',True));
 
       KeepTime := Connection.CommandTimeout;
       Connection.CommandTimeout := 10 * 60;
-      DeleteTable(MyAction,'Clients');
+      SetResult(DeleteTable(MyAction,'Clients'));
       Connection.CommandTimeout := KeepTime;
 
-      Result := True;
+
       MyAction.Status := Success;
    except
       on E: Exception do
-         MyAction.Error := E.Message;
+         MyAction.AddError(E);
    end;
    finally
       //RunSQL(Connection,MyAction,'EXEC sp_msforeachtable "ALTER TABLE ? WITH CHECK CHECK CONSTRAINT all"', 'Re-instate Constraints');
@@ -1190,6 +1203,7 @@ begin
    FClient_ScheduleTable := nil;
    //FClient_ReportOptionsTable := nil;
    FClientFinacialReportOptionsTable := nil;
+   FColumnConfigColumnsTable := nil;
    FCodingReportOptionsTable := nil;
    FChartDivisionTable := nil;
    FReminderTable := nil;
@@ -1199,6 +1213,7 @@ begin
    FNotesOptionsTable := nil;
    FExcludedFromScheduledReports := nil;
    FReportParameterTable := nil;
+   FClientParameterTable := nil;
    FClientReportTable := nil;
    MemList := nil;
 end;
@@ -1241,6 +1256,7 @@ begin
   FreeAndNil(FClientReportTable);
   FreeAndNil(FColumnConfigTable);
   FreeAndNil(FColumnConfigColumnsTable);
+  FreeAndNil(FClientParameterTable);
   inherited;
 end;
 
@@ -1349,6 +1365,13 @@ begin
    if not Assigned(FColumnConfigColumnsTable) then
       FColumnConfigColumnsTable := TColumnConfigColumnsTable.Create(Connection);
    Result := FColumnConfigColumnsTable;
+end;
+
+function TClientMigrater.GetClientParameterTable: TClientParameterTable;
+begin
+   if not Assigned(FClientParameterTable) then
+      FClientParameterTable := TClientParameterTable.Create(Connection);
+   Result := FClientParameterTable;
 end;
 
 function TClientMigrater.GetColumnConfigTable: TColumnConfigTable;
@@ -1559,7 +1582,8 @@ function TClientMigrater.Migrate(ForAction:TMigrateAction;
                     AUserID,
                     AGroupID,
                     ATypeID: TGuid;
-                    AMagicNumber,
+                    FromMagicNumber,
+                    ToMagicNumber,
                     ACountry: Integer;
                     CheckedOutUserID: TGuid;
                     AClient: pClient_File_Rec = nil): Boolean;
@@ -1706,9 +1730,18 @@ var
       System := SystemMirater as TSystemMigrater;
       if not Assigned(System) then
          Exit;
+
       // May need expanding, but sofar only Webnote forces a Online product
       if FClient.clFields.clWeb_Export_Format = wfWebNotes then
          System.AddClientBLOPIProduct(ClientID, Notes);
+
+      if not System.System.fdFields.fdUse_BankLink_Online then
+         Exit; // Should this move up...
+
+      if FClient.clExtra.ceDeliverDataDirectToBLO
+      and (FClient.clExtra.ceBLOSecureCode > '') then
+         ClientParameterTable.Update('BankLinkOnline', 'BLOSecureCode',FClient.clExtra.ceBLOSecureCode,  'nvarchar(20)', ClientID);
+
    end;
 
 
@@ -1720,8 +1753,8 @@ begin // Migrate
    ClientID := AClientID;
    GuidList := nil;
    MyAction := ForAction.InsertAction(Code);
-   MyAction.LogMessage('TClientMigrater.Migrate Start');
-   logger.LogMessage(Info,format('Start Client : %s',[Code]),Code );
+   //MyAction.LogMessage('TClientMigrater.Migrate Start');
+   //logger.LogMessage(Info,format('Start Client : %s',[Code]),Code );
 
    try try
       if Assigned(AClient) then begin
@@ -1736,7 +1769,7 @@ begin // Migrate
                       AGroupID,
                       ATypeID,
                       Acrchived,
-                      AMagicNumber,
+                      ToMagicNumber,
                       ACountry,
                       GetNotesForClient(ClientLRN),
                       ClientDetailsCache,
@@ -1777,6 +1810,8 @@ begin // Migrate
                       AGroupID,
                       ATypeID,
                       Acrchived,
+                      FromMagicNumber,
+                      ToMagicNumber,
                       GetNotesForClient(ClientLRN),
                       @FClient.clFields,
                       @FClient.clMoreFields,
@@ -1937,13 +1972,13 @@ begin // Migrate
       Result := true;
    except
       on E: Exception do begin
-         MyAction.Error := E.Message;
+         MyAction.AddError(E)
       end;
    end;
    finally
       FreeAndNil(FClient);
       FreeAndNil(GuidList);
-      logger.LogMessage(Info,format('Completed Client : %s',[Code]),Code );
+      //logger.LogMessage(Info,format('Completed Client : %s',[Code]),Code );
    end;
 end;
 
