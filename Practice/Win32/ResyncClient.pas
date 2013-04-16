@@ -282,7 +282,7 @@ begin
 
    //Build temporary transaction list of client transactions on the pres date only
    //Temp resync date is set for all accounts before calling this routine
-   TempTransList := TTransaction_List.Create( NIL, NIL, NIL );
+   TempTransList := TTransaction_List.Create( NIL, ClientBankAccount, NIL );
    try
       for i := 0 to Pred ( ClientBankAccount.baTransaction_List.ItemCount ) do begin
          Transaction := ClientBankAccount.baTransaction_List.Transaction_At(i);
