@@ -586,7 +586,7 @@ begin
   //calculate closing balances
   //all of the client parameters will have been loaded already so we should just
   //be able to call the calculate routine
-  CalculateAccountTotals.CalculateAccountTotalsForClient( ThisClient);
+  CalculateAccountTotals.CalculateAccountTotalsForClient( ThisClient, True, nil, -1, False, True, True);
 
   //now load actual values into the array
   AccountInfo := TAccountInformation.Create( ThisClient);
@@ -596,6 +596,8 @@ begin
     for i := Low(AdjustmentInfoArray) to High(AdjustmentInfoArray) do begin
       AccountInfo.AccountCode := AdjustmentInfoArray[i].Account.chAccount_Code;
       AccountInfo.LastPeriodOfActualDataToUse := AccountInfo.HighestPeriod;
+
+      AccountInfo.UseBaseAmounts := IsForeignCurrencyClient(ThisClient);
 
       AdjustmentInfoArray[i].CurrentBal := AccountInfo.ClosingBalanceActualOrBudget(AccountInfo.HighestPeriod);
     end;
@@ -746,7 +748,7 @@ begin
   //for doing the balance forward is that all contras are specified by the user
   CalculateAccountTotals.AddAutoContraCodes( ThisClient);
   try
-    CalculateAccountTotals.CalculateAccountTotalsForClient( ThisClient);
+    CalculateAccountTotals.CalculateAccountTotalsForClient( ThisClient, True, nil, -1, False, True, True);
     //calculate retained p & l
     CalculateAccountTotals.CalculateCurrentEarnings( ThisClient);
 
@@ -1687,7 +1689,7 @@ begin
   //when the reports were being printed
   BalancesForward.SetupParameters( ThisClient);
   //recalculate account totals
-  CalculateAccountTotals.CalculateAccountTotalsForClient( ThisClient);
+  CalculateAccountTotals.CalculateAccountTotalsForClient( ThisClient, True, nil, -1, False, True, True);
   for i := 0 to Pred( ThisClient.clChart.ItemCount) do begin
     pAcct := ThisClient.clChart.Account_At(i);
     if pAcct.chAccount_Type in BKConst.BalanceSheetReportGroupsSet then begin
