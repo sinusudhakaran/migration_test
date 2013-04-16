@@ -521,6 +521,11 @@ var
   i                  : integer;
   AccountInfo        : TAccountInformation;
   FChart: TCustomSortChart;
+  This_Year_Starts         : integer;
+  This_Year_Ends           : integer;
+  Last_Year_Starts         : integer;
+  Last_Year_Ends           : integer;
+  ISOCodes: string;
 begin
   //set up temp array
   SetLength( AdjustmentInfoArray, ThisClient.clChart.ItemCount);
@@ -582,6 +587,10 @@ begin
   if Assigned( YE_Journal_Account) and Assigned( Existing_YE_Adjustment) then begin
     YE_Journal_Account.baTransaction_List.Delete( Existing_YE_Adjustment);
   end;
+
+  CalcYearStartEndDates(ThisClient, This_Year_Starts, This_Year_Ends, Last_Year_Starts, Last_Year_Ends);
+
+  ThisClient.HasExchangeRates(ISOCodes, Last_Year_Starts, This_Year_Ends, True, True);
 
   //calculate closing balances
   //all of the client parameters will have been loaded already so we should just
