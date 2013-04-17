@@ -2229,8 +2229,8 @@ var
     procedure SavePrimaryContact;
     var lpc: TBloUserRead;
     begin
-       // if not System.fdFields.fdUse_BankLink_Online then
-        //   exit;
+        if not System.fdFields.fdUse_BankLink_Online then
+           exit;
 
         lpc := ProductConfigService.GetPrimaryContact(false);
         if not assigned(lpc) then
