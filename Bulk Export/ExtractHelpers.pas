@@ -20,6 +20,7 @@ interface
 
 uses
    SysUtils,
+   StrUtils,
    Classes,
    Controls,
    Windows;
@@ -41,6 +42,7 @@ type
      function GetMoney(const Value: string): currency;
 
      // Some extra helpers
+     function SwapNegAndPosAmounts(Value: string): string;
      function ReplaceQuotesAndCommas(Value: string): string;
      function ForceQuotes(const Value: string): string;
      function RemoveQuotes(const Value: string): string;
@@ -142,6 +144,23 @@ procedure TExtractFieldHelper.SetFields(const Value: string);
 begin
    FFields.Clear;
    FFields.DelimitedText := Value;
+end;
+
+function TExtractFieldHelper.SwapNegAndPosAmounts(Value: string): string;
+var
+  OutValue : Extended;
+begin
+  if TryStrToFloat(Value, OutValue) then
+  begin
+    if OutValue > 0 then
+      Result := '-' + Value
+    else if OutValue < 0 then
+      Result := RightStr(Value, Length(Value)-1)
+    else
+      Result := Value;
+  end
+  else
+    Result := Value;
 end;
 
 function MakeFilePath(const Path, Filename: string):string;
