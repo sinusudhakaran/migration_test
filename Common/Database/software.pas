@@ -197,7 +197,8 @@ begin
                          snQBWO,
                          snQBWN,
                          snCashManager,
-                         snAcclipse ] ) then
+                         snAcclipse,
+                         snMYOBAccRight ] ) then
             Result := True;
       end;
       whAustralia    : begin
@@ -239,7 +240,8 @@ begin
                          saSuperMate,
                          saProSuper,
                          saClassSuperIP,
-                         saAcclipse      ] ) then
+                         saAcclipse,
+                         saMYOBAccRight      ] ) then
             Result := True;
       end;
       whUK    : begin

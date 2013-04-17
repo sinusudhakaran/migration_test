@@ -113,6 +113,7 @@ procedure RefreshChart;
          snBK5CSV         : CSVChart.RefreshChart( '*.CSV', '', iText );
          snQBWN,
          snQBWO           : QuickBooks.RefreshChart;
+         snMYOBAccRight   : MYOBGen.RefreshChart;
       end; { of Case }
    end; { NZRefreshChart }
 
@@ -165,6 +166,7 @@ procedure RefreshChart;
          saDesktopSuper   : DesktopSuper.RefreshChart('*.CSV');
          saClassSuperIP   : ClassSuperIP.RefreshChart;
          saProSuper       : ProSuper.RefreshChart('*.CSV');
+         saMYOBAccRight   : MYOBGen.RefreshChart;
       end; { of Case }
    end; { OZRefreshChart }
 

@@ -473,7 +473,8 @@ CONST
    snMYOB_AO_COM     = 39;
    snQBWN            = 40;
    snAcclipse        = 41;
-   snMax = 41;
+   snMYOBAccRight    = 42;
+   snMax = 42;
 
    snNames : Array[ snMin..snMax ] of String[32] =
       //'12345678901234567890123467890'
@@ -517,8 +518,9 @@ CONST
         'Business Products - OFX V1',
         'Business Products - OFX V2',
         'MYOB AO (manual posting)',       //snMYOB_COM
-        'QuickBooks 2008/2009',           // snQBWN
-        'iFirm'                           //snAcclipse
+        'QuickBooks 2008/2009',           //snQBWN
+        'iFirm',                          //snAcclipse
+        'MYOB General Journals (2012)'    //snMYOBAccRight
          );
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -575,7 +577,9 @@ CONST
    saRewardSuper = 49;
    saProSuper = 50;
    saSageHandisoftSuperfund = 51;
-   saAcclipse = 52; saMax = 52;
+   saAcclipse = 52;
+   saMYOBAccRight = 53;
+   saMax = 53;
 
    saNames : Array[ saMin..saMax ] of String[36] =
       //'123456789012345678901234567890'
@@ -631,7 +635,8 @@ CONST
         'RewardSuper',                                //saRewardSuper
         'ProSuper',                                   //saProSuper
         'Sage HandiSoft SuperFund',                   //saSageHandisoftSuperfund
-        'iFirm'                                       //saAcclipse
+        'iFirm',                                      //saAcclipse
+        'MYOB General Journals (2012)'                //snMYOBAccRight
       );
 
       DESKTOP_SUPER_CHART_FILENAME = 'Desktop Super Chart List.csv';

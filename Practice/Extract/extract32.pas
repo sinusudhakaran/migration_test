@@ -74,7 +74,8 @@ uses
   BusinessProductsExport,
   ComObj, bk5Except,
   SupervisorX, DesktopSuperX, ProSuperX, SageHandisoftSuperX,
-  RewardSuperXmlX, ClassSuperXmlX;
+  RewardSuperXmlX, ClassSuperXmlX,
+  MYOBAccRightX;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -214,6 +215,7 @@ begin
                   snQIF             : DoExtractBusinessProduct(FD, TD, Path);
                   snOFXV1           : DoExtractBusinessProduct(FD, TD, Path);
                   snOFXV2           : DoExtractBusinessProduct(FD, TD, Path);
+                  snMYOBAccRight    : MYOBAccRightX.ExtractData( FD, TD, Path );
                end; { of Case }
 
             whAustralia :
@@ -269,6 +271,7 @@ begin
                   saProSuper        : ProSuperX.ExtractData( FD, TD, Path, True, True );
                   saSageHandisoftSuperfund : SageHandisoftSuperX.ExtractData( FD, TD, Path, True, True );
                   saAcclipse        : AcclipseX.ExtractData( FD, TD, Path );
+                  saMYOBAccRight    : MYOBAccRightX.ExtractData( FD, TD, Path );
                end;
 
 
