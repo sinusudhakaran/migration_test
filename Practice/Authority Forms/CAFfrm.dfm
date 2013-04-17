@@ -26,7 +26,6 @@ object frmCAF: TfrmCAF
     Top = 0
     Width = 709
     Height = 707
-    VertScrollBar.Position = 277
     Align = alClient
     BevelOuter = bvNone
     Font.Charset = DEFAULT_CHARSET
@@ -38,7 +37,7 @@ object frmCAF: TfrmCAF
     TabOrder = 0
     object pnlHeader: TPanel
       Left = 0
-      Top = -277
+      Top = 0
       Width = 688
       Height = 49
       Align = alTop
@@ -81,7 +80,7 @@ object frmCAF: TfrmCAF
     end
     object pnlAccount3: TPanel
       Left = 0
-      Top = -100
+      Top = 177
       Width = 688
       Height = 64
       Align = alTop
@@ -181,7 +180,7 @@ object frmCAF: TfrmCAF
     end
     object pnlAccount2: TPanel
       Left = 0
-      Top = -164
+      Top = 113
       Width = 688
       Height = 64
       Align = alTop
@@ -281,7 +280,7 @@ object frmCAF: TfrmCAF
     end
     object pnlFooter: TPanel
       Left = 0
-      Top = -36
+      Top = 241
       Width = 688
       Height = 41
       Align = alTop
@@ -302,7 +301,7 @@ object frmCAF: TfrmCAF
     end
     object pnlAccount1: TPanel
       Left = 0
-      Top = -228
+      Top = 49
       Width = 688
       Height = 64
       Align = alTop
@@ -402,7 +401,7 @@ object frmCAF: TfrmCAF
     end
     object pnlBank: TPanel
       Left = 0
-      Top = 5
+      Top = 282
       Width = 688
       Height = 119
       Align = alTop
@@ -513,7 +512,7 @@ object frmCAF: TfrmCAF
     end
     object pnl1: TPanel
       Left = 0
-      Top = 124
+      Top = 401
       Width = 688
       Height = 99
       Align = alTop
@@ -614,7 +613,7 @@ object frmCAF: TfrmCAF
     end
     object pnl2: TPanel
       Left = 0
-      Top = 223
+      Top = 500
       Width = 688
       Height = 113
       Align = alTop
@@ -645,7 +644,7 @@ object frmCAF: TfrmCAF
     end
     object pnl3: TPanel
       Left = 0
-      Top = 336
+      Top = 613
       Width = 688
       Height = 48
       Align = alTop
@@ -666,7 +665,7 @@ object frmCAF: TfrmCAF
     end
     object pnl4: TPanel
       Left = 0
-      Top = 384
+      Top = 661
       Width = 688
       Height = 74
       Align = alTop
@@ -689,7 +688,7 @@ object frmCAF: TfrmCAF
     end
     object pnlSign: TPanel
       Left = 0
-      Top = 458
+      Top = 735
       Width = 688
       Height = 161
       Align = alTop
@@ -721,7 +720,7 @@ object frmCAF: TfrmCAF
     end
     object pnlFrequency: TPanel
       Left = 0
-      Top = 619
+      Top = 896
       Width = 688
       Height = 84
       Align = alBottom

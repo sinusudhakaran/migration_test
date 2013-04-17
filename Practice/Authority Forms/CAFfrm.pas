@@ -273,8 +273,9 @@ begin
   cmbMonthChange(Sender);
   rbMonthly.Checked := False;
   rbWeekly.Checked := False;
-  rbDaily.Checked := False;
+  rbDaily.Checked := True;
   cbProvisional.Checked := False;
+  cmbInstitutionName.ItemIndex := -1;
 end;
 
 //------------------------------------------------------------------------------
