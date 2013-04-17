@@ -1,311 +1,114 @@
-Software End-User Licence Agreement for Media Transfer Services Limited and Media Transfer Services UK Limited 
+Software End-User Licence Agreement 
 
 IMPORTANT NOTICE PLEASE READ CAREFULLY BEFORE INSTALLING OR USING THE SOFTWARE:
 
-1	Agreement
-
-1.1	This Software End-User Licence Agreement ('Agreement') is between 
-	you and BankLink. 
-
-1.2	If you acquired this software in the United Kingdom, Australia or 
-	New Zealand, 'BankLink' means Media Transfer Services Limited. 
-
-1.3	This computer software, together with any supporting documentation 
-	and any modifications or amendments made by BankLink (‘the 
-	Software’), is owned by Media Transfer Services Limited and may be 
-	sub-licensed by Media Transfer Services UK Limited.  Provided your 
-	copy of the Software has been lawfully obtained, and in relation 
-	to InvoicePlus and PayablesPlus, provided you are a registered 
-	user of BankLink's services, you are authorised to use the 
-	Software in accordance with this Agreement.
-
-1.4	By proceeding to install, store, load, execute and display 
-	(individually or collectively, ‘Use’) the Software, you agree to 
-	be bound by the terms of this Agreement.  If your copy of the 
-	Software has not been legally obtained or you do not agree to the 
-	terms of this Agreement, BankLink is not willing to licence the 
-	Software to you and you must not Use the Software.
-
-
-2	Grant of licence
-
-2.1	In consideration of you agreeing to abide by the terms of this 
-	Agreement BankLink hereby grants you a non-exclusive, non-
-	transferable licence to Use the Software in accordance with this 
-	Agreement.
-
-2.2	The licence is perpetual unless terminated in accordance with 
-	clause 7.  
-
-2.3	With regard to the InvoicePlus and PayablesPlus products, you may 
-	Use one copy of the Software on a single computer.
-
-
-3	Limitations on Use
-
-3.1	The Software licence is personal to you; you cannot sell, 
-	sub-licence, assign, transfer, charge, lend the Software to any 
-	other person or entity or otherwise dispose of the rights or 
-	obligations under this Agreement without the written consent of
-	BankLink.  
-
-3.2	You cannot copy, alter, modify or reproduce the Software, but 
-	you may make one copy of the Software for backup purposes only.  
-	Except as otherwise permitted at law, you cannot reverse assemble 
-	or reverse compile or directly or indirectly allow or cause a 
-	third party to reverse assemble or reverse compile the whole or 
-	any part of the Software.
-
-3.3	BankLink may sell, sub-licence, assign, transfer, charge or 
-	lend the Software to any other person or entity or otherwise 
-	dispose of the rights or obligations under this Agreement at 
-	any time without your consent.
-
-
-4	Title
-
-4.1	All title and intellectual property rights in the Software 
-	remain with BankLink (or its Licensors).  You acknowledge 
-	that rights in the Software are licensed (not sold) to you, 
-	and that you have no rights in, or to, the Software other than 
-	the right to Use the Software in accordance with the terms of 
-	this Agreement. You acknowledge that you have no right to have 
-	access to the Software in source code form or in unlocked 
-	coding or with comments.
-
-4.2	You will notify BankLink as soon as you become aware of any 
-	infringement, suspected infringement or alleged infringement of 
-	BankLink’s intellectual property rights in the Software.
-
-
-5	Warranties
-
-5.1	Except as otherwise agreed, BankLink is not obliged to support the
-	Software, whether by providing advice, training, error-correction,
-	modification, new releases or enhancements or otherwise.
-
-5.2	If you acquired this Software in the UK, to the extent permitted 
-	by law, BankLink excludes and disclaims all and any guarantees 
-	and/or warranties whether express, implied, statutory or 
-	otherwise in respect of the Software and in particular, to the 
-	extent that they are applicable, expressly excludes the 
-	provisions of the Sale of Goods Act 1979 and the Supply of Goods 
-	and Services Act 1982. 
-
-5.3	If you acquired this Software in New Zealand, to the extent 
-	permitted by law, BankLink excludes and disclaims all and any
-	guarantees and/or warranties whether express, implied, statutory 
-	or otherwise in respect of the Software and in particular, to 
-	the extent that they are applicable, expressly excludes the 
-	provisions of the New Zealand Consumer Guarantees Act 1993 
-	pursuant to clause 43(2) thereof and the provisions of the 
-	New Zealand Sale of Goods Act 1908 pursuant to clause 56 thereof.  
-	You confirm that you have acquired the Software for business
-	purposes.  
-
-5.4	If you acquired this Software in Australia, to the extent 
-	permitted by law, BankLink excludes and disclaims all and any
-	guarantees and/or warranties whether express, implied, statutory 
-	or otherwise in respect of the Software, except for any condition,
-	warranty, guarantee right or remedy under a mandatory law. Nothing 
-	in this clause 5 excludes, restricts or modifies any condition,
-	warranty, guarantee, right or remedy under a mandatory law.
-
-5.5	You acknowledge that BankLink does not warrant or promise that 
-	the Software will meet your requirements and that you have solely
-	exercised and relied upon your own skill and judgment in 
-	determining whether the Software meets your particular 
-	requirements, and have not relied on any statement or 
-	representation by or on behalf of BankLink (unless made
-	fraudulently).
-
-5.6	BankLink is providing this Software to you "AS IS" and you 
-	acknowledge that risk of loss or of damage to your computer 
-	system or data at all times remains with you.
-
-5.7	BankLink does not warrant that:
-
-	5.7.1	Any of the data provided by or on behalf of BankLink and 
-		received by you for use with the Software will be accurate 
-		or virus free;
-
-	5.7.2	The Software will operate without interruption or errors; or 
-
-	5.7.3	That the Software will not affect the operation of other 
-		installed applications.
-
-	
-6	Liability
-
-6.1	If you acquired this Software in the UK, then subject only to
-	BankLink's liability for death or personal injury resulting from
-	BankLink's negligence, fraud or fraudulent misrepresentation (for
-	which there shall be no limitation or exclusions):
-
-	6.1.1	Except as otherwise set out in this agreement, BankLink 
-		will not be liable to you for any loss or damage of any kind
-		arising out of or in connection with this agreement whether
-		arising in contract, tort (including negligence),
-		misrepresentation or otherwise, including, without limitation,: 
-
-		(a)	any indirect or consequential loss or damage of any 
-			kind; or
-		(b)	any loss of income, loss of profits, loss of savings, 
-			loss of goodwill, loss of contracts, business 
-			interruption, cost of cover or loss of data arising 
-			from your use of or inability to use the Software 
-			or from errors or deficiencies in the Software.
-
-	This limitation will apply even if BankLink has been advised of the 
-	possibility of such damages.
-
-	6.1.2	The liability of BankLink for any loss arising as a result 
-		of or in relation to the supply by BankLink of the Software,
-		including any economic or consequential loss which may be
-		sustained or incurred, shall be limited to (at BankLink's
-		option):
-
-		(a)	The replacement of the Software or the supply of 
-			equivalent Software;
-		(b)	The repair of the Software;
-		(c)	The payment of the cost of replacing the Software 
-			or acquiring equivalent Software; or
-		(d)	The payment of the cost of having the Software 
-			replaced.
-
-	6.1.3	Nothing in this Agreement shall limit or exclude the 
-		liability of BankLink for death or personal injury resulting
-		from BankLink's negligence, fraud or fraudulent 
-		misrepresentation.
-
-6.2	If you acquired this Software in Australia or New Zealand, BankLink
-	will not be liable to you for any loss or damage (including, 
-	without limitation, consequential loss or damage) suffered by you
-	whether arising directly or indirectly from the Use of the 
-	Software or any data provided by or on behalf of BankLink under 
-	this Agreement or from any failure or omission on the part of 
-	BankLink or otherwise.
-
-6.3	In no event will BankLink be liable for any remote, indirect,
-	consequential, punitive, special or incidental damages, including
-	without limitation, damages resulting from loss of any data, loss 
-	of income or profits or business interruption, or cost of cover
-	whether based in contract, tort (including negligence), at law, in
-	equity, under statute or otherwise.  This limitation will apply 
-	even if BankLink has been advised of the possibility of such 
-	damages.
-
-6.4	Where the Australian mandatory consumer protection legislation
-	applies, then the liability of BankLink for any loss arising as a
-	result of or in relation to the supply by BankLink of the Software,
-	including any economic or consequential loss which may be 
-	sustained or incurred, shall be limited to:
-	
-	6.4.1	The replacement of the Software or the supply of equivalent
-		Software;
-
-	6.4.2	The repair of the Software;
-
-	6.4.3	The payment of the cost of repairing or replacing the 
-		Software or acquiring equivalent Software;
-
-	6.4.4	The payment of the cost of having the Software replaced;
-
-	6.4.5	The payment for the reduction in value of the Software; or
-
-	6.4.6	The cost of the refund of the Software license fee, if any,
-		paid by you.  However, nothing in this clause 6 excludes,
-		restricts or modifies any condition, warranty, guarantee, 
-		right or remedy under a mandatory law.
-
-
-7	Termination
-
-7.1	Without prejudice to any other rights, BankLink may terminate this
-	Agreement by written notice to you with immediate effect if you 
-	fail to comply with the terms and conditions of this Agreement 
-	or if you become bankrupt or insolvent (or suffer any similar
-	circumstances anywhere in the world).  
-
-7.2	Upon termination for any reason:
-
-	7.2.1	All rights granted to you under this Agreement shall cease;
-
-	7.2.2	You must cease all Use of the Software and any other 
-		activities authorised by this Agreement; and
-
-	7.2.3	You must immediately uninstall the Software and destroy 
-		all copies of the Software in your possession and all its 
-		component parts.
-
-
-8	Miscellaneous
-
-	Entire Agreement
-
-8.1	This Agreement contains everything the parties have agreed in 
-	relation to the subject matter it deals with.  No party can rely 
-	on an earlier written document or anything said or done by or on
-	behalf of another party before this agreement was executed.  
-	Variation
-
-8.2	No variation of this agreement will be of any force or effect 
-	unless it is in writing and signed by each party to this 
-	agreement.  
-
-	Privity of contract
-
-8.3	A party who is not you or BankLink shall have no right to enforce 
-	any term under this Agreement whether under the Contracts (Rights 
-	of Third Parties) Act 1999 (if you acquired this Software in 
-	the UK), the Contracts (Privity) Act 1982 (if you acquired this
-	Software in New Zealand) or any other local Act or provision.  
-	This clause does not affect any right or remedy of any person 
-	which exists, or is available, other than pursuant to the relevant
-	Act.
-
-	Governing law
-
-8.4	If you acquired this Software in the UK, this Agreement and any
-	dispute or non-contractual obligation arising out of or in 
-	connection with it shall be governed by and construed in 
-	accordance with the law of England, and each party hereby submits 
-	to the exclusive jurisdiction of the courts of England over any
-	dispute arising out of or in connection with this Agreement.
-
-8.5	If you acquired this Software in Australia, this Agreement and 
-	any dispute or non-contractual obligation arising out of or in
-	connection with it shall be governed by and construed in 
-	accordance with the laws of New South Wales, and each party hereby
-	submits to the exclusive jurisdiction of the courts of New South 
-	Wales over any dispute arising out of or in connection with this
-	Agreement.
-
-8.6	If you acquired this Software in New Zealand, this Agreement and 
-	any dispute or non-contractual obligation arising out of or in
-	connection with it shall be governed by and construed in accordance
-	with the laws of New Zealand, and each party hereby submits to the
-	exclusive jurisdiction of the courts of New Zealand over any 
-	dispute arising out of or in connection with this Agreement.
-
-
-9	Collection of Usage Information
-
-	You agree that Banklink shall have the right to use, copy, 
-	store,transfer, transmit, display and analyse any electronic 
-	data, information or material, including the menus you select, 
-	the number of times each menu is selected and the number of 
-	client files involved, which is sourced by or through Use of the
-	Software. 
-
-	You also agree that BankLink may record personal data provided 
-	by you to BankLink (including, without limitation your name and 
-	user code). BankLink will protect the information collected 
-	against unauthorised access, use and disclosure and shall 
-	process the same only in accordance with BankLink's privacy policy.
-
-	BankLink's privacy policy for New Zealand can be viewed at
-	http://www.banklink.co.nz/docs/privacy.pdf or for Australia at
-	http://www.banklink.com.au/docs/privacy.pdf or for the 
-	United Kingdom at
-	http://www.banklink.co.uk/docs/BankLink_UK_Privacy_Policy.pdf
+1       Agreement
+
+This Software End-User Licence Agreement ('Agreement') is between you and Media Transfer Services Limited (‘BankLink’). 
+
+This computer software, together with any supporting documentation and any modifications, amendments or updates made or authorised by BankLink (‘the Software’), is owned by BankLink.  Provided you are a registered user of BankLink's services and your copy of the Software has been lawfully obtained, you are authorised to use the Software in accordance with this Agreement.
+
+By proceeding to access, download, install, store, load, register, execute and/or display (individually or collectively, ‘Use’) the Software, you agree to be bound by the terms of this Agreement.  If your copy of or access to the Software has not been legally obtained or you do not agree to the terms of this Agreement, BankLink is not willing to licence the Software to you and you must not Use the Software.
+
+
+2       Grant of licence
+
+In consideration of you agreeing to abide by the terms of this Agreement and the benefit you and others derive from the Software, BankLink hereby grants you a non-exclusive, non-transferable licence to Use the Software in accordance with this Agreement.  The licence will be perpetual unless terminated in accordance with clause 8.  You will be issued with a user name and password which you must keep secure. 
+
+BankLink may sell, sub-licence, assign, transfer, charge or lend the Software to any other person or entity or otherwise dispose of the rights or obligations under this Agreement at any time without your consent. BankLink may at any time restrict your access to the Software to "read only" and withhold rights to edit or input information.
+
+
+3       Limitations on Use
+
+The Software licence is personal to you, you cannot sell, sub-licence, assign, transfer or lend the Software to any other person or entity or otherwise dispose of the rights or obligations under this Agreement without the written consent of BankLink. Except as otherwise permitted at law you cannot reverse assemble or reverse compile or directly or indirectly allow or cause a third party to reverse assemble or reverse compile the whole or any part of the Software. 
+
+4       Title
+
+All title and intellectual property rights in the Software remain with BankLink (or its licensors).  You acknowledge that rights in the Software are licensed (not sold) to you, and that you have no rights in, or to, the Software other than the right to Use them in accordance with the terms of this Agreement. You acknowledge that you have no right to have access to the Software in source code form or in unlocked coding or with comments. You will notify BankLink as soon as you become aware of any infringement, suspected infringement or alleged infringement of BankLink’s intellectual property rights in the Software.
+
+
+5       BankLink warranties
+
+Except as otherwise agreed, BankLink is not obliged to support the Software, whether by providing advice, training, error-correction, modification, maintenance, new releases or enhancements or otherwise.  
+
+To the extent permitted by law, BankLink excludes and disclaims all and any guarantees and/or warranties whether express, implied, statutory or otherwise in respect of the Software and in particular, to the extent that they are applicable, expressly excludes the provisions of the Sale of Goods Act 1979 and the Supply of Goods and Services Act 1982 (if you acquired this Software in the UK) or the New Zealand Consumer Guarantees Act 1993 pursuant to clause 43(2) thereof and the provisions of the New Zealand Sale of Goods Act 1908 pursuant to clause 56 thereof (if you acquired this Software in New Zealand).  Where the Australian Consumer Law (‘ACL’) applies, nothing in this agreement shall be taken to exclude, restrict or modify any mandatory condition, warranty, guarantee or remedy under the ACL.
+
+You acknowledge that BankLink does not warrant or promise that the Software will meet your requirements and that you have solely exercised and relied upon your own skill and judgment in determining whether the Software meets your particular requirements, and have not relied on any statement or representation by or on behalf of BankLink (unless made fraudulently). BankLink is providing this Software to you 'AS IS' and you acknowledge that risk of loss or of damage to your computer system or data at all times remains with you. 
+
+Other than as required pursuant to mandatory law, BankLink does not warrant that:
+•       Any of the data, whether provided by or on behalf of BankLink or another person, and received by you for use with the Software will be accurate or virus free;
+•       The Software (including any embedded tax formula or release notes on updates of legislation) is free from error or defects;
+•       The Software will operate without interruption or errors; 
+	Any output, reports or results produced by the Software will be accurate or error free; or
+•	That the Software will not affect the operation of other installed applications.
+
+6.	Your warranties and indemnity
+
+You warrant or promise to BankLink that:
+
+•	You have the relevant authority or consent to provide or otherwise upload data or information (including personal information as defined under the New Zealand Privacy Act 1993, UK Data Protection Act 1998 or under the Australian Privacy Act 1988, as the case may be) to BankLink's server using the Software and the provision or disclosure of such information on BankLink's server will not constitute a breach of any agreement or arrangement that you are a party to, or any applicable law; and
+•	You will ensure that the data or information provided to, or otherwise uploaded onto, BankLink's server is true, correct and up to date.
+
+You agree to indemnify BankLink and keep BankLink indemnified from and against any loss or damage that BankLink may suffer as a result of your breach of any of the warranties in this clause 6.
+
+7       Liability
+
+If you acquired the Software in the UK, except in respect of liability which cannot be limited, BankLink will not be liable to you whether arising in contract, tort (including negligence or breach of statutory duty), misrepresentation or otherwise for any loss or damage of any kind arising out of or in connection with this Agreement including, without limitation: 
+
+• Any indirect or consequential loss or damage of any kind; or
+• Any loss of income, loss of profits, loss of savings, loss of goodwill, loss of contracts, business interruption, costs of cover or loss of data arising from your Use of or inability to Use the Software or from errors of deficiencies in the Software.
+
+Except in respect of liability which cannot be limited, this limitation will apply even if BankLink has been advised of the possibility of such damages.
+
+Except in respect of liability which cannot be limited the liability of BankLink for any loss arising as a result of or in relation to the supply by BankLink of the Software, including any economic or consequential loss which may be sustained or incurred, shall be limited to (at BankLink's option):
+
+
+•       The replacement of the Software or the supply of equivalent software;
+•       The repair of the Software;
+•       The payment of the cost of replacing the Software or acquiring equivalent Software; or
+•       The payment of the cost of having the Software replaced by a third party.
+
+Nothing in this Agreement shall limit or exclude the liability of BankLink for death or personal injury resulting from BankLink's negligence, fraud or fraudulent misrepresentation.
+
+If you acquired this Software in Australia or NZ, BankLink will not be liable to you for any loss or damage (including, without limitation, consequential loss or damage) suffered by you whether arising directly or indirectly from the Use of the Software or any data provided by or on behalf of BankLink under this agreement or from any failure or omission on the part of BankLink or otherwise.
+
+In no event will BankLink be liable for any remote, indirect, consequential, special or incidental damages, including without limitation, damages resulting from loss of any data, loss of profits or business interruption, or cost of cover.  This limitation will apply even if BankLink has been advised of the possibility of such damages.
+
+Where the Australian Trade Practices Act 1974 applies, then the liability of BankLink for any loss arising as a result of or in relation to the supply by BankLink of the Software, including any economic or consequential loss which may be sustained or incurred, shall be limited to:
+
+(a) The replacement of the Software or the supply of equivalent Software;
+(b) The repair of the Software;
+(c) The payment of the cost of replacing the Software or acquiring equivalent Software; or
+(d) The payment of the cost of having the Software replaced by a third party.
+
+8       Termination
+
+Without prejudice to any other rights, BankLink may terminate this Agreement by giving not less than one month's notice to you. Without prejudice to BankLink's other rights or remedies, if you fail to comply with the terms and conditions of this Agreement, or if you become bankrupt or insolvent (or suffer any similar circumstances anywhere in the world) BankLink may terminate this Agreement immediately.  
+
+Upon termination or expiry of this Agreement for any reason: 
+
+• All rights granted to you under this Agreement shall cease;
+• You must immediately cease all activities authorised by this Agreement; and
+• You must immediately destroy all copies of the Software in your possession and all its component parts.  
+
+9       Other agreements
+
+This Agreement may be modified by the terms of another written agreement entered into by you and BankLink.
+
+10	Third Parties
+No party other than you or BankLink shall have the right to enforce any term under this Agreement whether under the Contracts (Rights of Third Parties) Act 1999 (if you acquired this Software in the UK) or the Contracts (Privity) Act 1982 (if you acquired this Software in New Zealand) or any other local Act or provision.  This clause does not affect any right or remedy of any person which exists, or is available, other than pursuant to the relevant Act.
+
+
+11      Governing law
+
+If you acquired this Software in the UK, this Agreement and any dispute or non-contractual obligation arising out of or in connection with it shall be governed by and construed in accordance with the law of England and Wales and each party hereby submits to the exclusive jurisdiction of the courts of England and Wales over any dispute arising out of or in connection with this Agreement.
+
+If you acquired this Software in Australia, this Agreement and any dispute or non-contractual obligation arising out of or in connection with it shall be governed by and construed in accordance with the laws of New South Wales and each party hereby submits to the exclusive jurisdiction of the courts of New South Wales over any dispute arising out of or in connection with this Agreement.
+
+If you acquired this Software in New Zealand, this Agreement and any dispute or non-contractual obligation arising out of or in connection with it shall be governed by and construed in accordance with the laws of New Zealand and each party hereby submits to the exclusive jurisdiction of the courts of New Zealand over any dispute arising out of or in connection with this Agreement.
+
+12      Collection of email address and personal information
+
+You agree that BankLink is free to collect and record personal information provided by you to BankLink, including, without limitation, the email address which you supply as part of the registration process for this Software for the purpose of monitoring your Use of this Software.  You acknowledge that BankLink is a company registered and operated in New Zealand and as such any personal information collected and recorded by BankLink may be stored and used outside of the European Economic Area.  You agree that the collection, access, use or storage of your and your employees' personal information, if any, will be governed by BankLink's privacy policy which is available on, and can be accessed from, BankLink's website. The Privacy Policy for New Zealand is located at http://www.banklink.co.nz/index.php/privacy 
+,the Privacy Policy for Australia is located at http://www.banklink.com.au/index.php/privacy and the Privacy Policy for the United Kingdom is located at http://www.banklink.co.uk/index.php/privacy
+
