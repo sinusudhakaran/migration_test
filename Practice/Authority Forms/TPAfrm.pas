@@ -290,10 +290,11 @@ begin
   cmbMonthChange(Sender);
   rbMonthly.Checked := False;
   rbWeekly.Checked := False;
-  rbDaily.Checked := False;
+  rbDaily.Checked := True;
   rbReDate.Checked := False;
   rbDate.Checked := False;
   cbProvisional.Checked := False;
+  cmbInstitutionName.ItemIndex := -1;
 end;
 
 //------------------------------------------------------------------------------
