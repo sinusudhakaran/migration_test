@@ -2121,6 +2121,7 @@ begin
      TListLedgerReport(ReportJob).PutWrapped('', 0, ExchangeGainLossEntry.glAmount, 0, ExchangeGainLossEntry.glAmount, 0, 0, Notes);
 
      RenderDetailLine;
+     AccountHasActivity := True;
    end;
 end;
 
