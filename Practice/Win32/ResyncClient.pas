@@ -215,7 +215,8 @@ Begin
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function MatchClientToAdmin( ClientBankAccount : TBank_Account;
+function MatchClientToAdmin( Client            : TClientObj;
+                             ClientBankAccount : TBank_Account;
                              AdminBankAccount  : TBank_Account;
 
                              AccountSeqNo      : integer;
@@ -282,7 +283,7 @@ begin
 
    //Build temporary transaction list of client transactions on the pres date only
    //Temp resync date is set for all accounts before calling this routine
-   TempTransList := TTransaction_List.Create( NIL, ClientBankAccount, NIL );
+   TempTransList := TTransaction_List.Create( Client, ClientBankAccount, NIL );
    try
       for i := 0 to Pred ( ClientBankAccount.baTransaction_List.ItemCount ) do begin
          Transaction := ClientBankAccount.baTransaction_List.Transaction_At(i);
@@ -777,7 +778,7 @@ begin
             and ( AdminBankAccount = nil) then
               AccountsMatchedOK := true
             else
-              AccountsMatchedOK := MatchClientToAdmin( ClientBankAccount, AdminBankAccount,
+              AccountsMatchedOK := MatchClientToAdmin( aClient, ClientBankAccount, AdminBankAccount,
                                                      i, Pred( ItemCount ), aClient.clFields.clCode );
 
             if not AccountsMatchedOK then begin
