@@ -276,6 +276,9 @@ begin
   rbDaily.Checked := True;
   cbProvisional.Checked := False;
   cmbInstitutionName.ItemIndex := -1;
+  cmbInstitutionName.Width := SET_BANK_WIDTH;
+  edtInstitutionName.Clear;
+  edtInstitutionName.Enabled := false;
 end;
 
 //------------------------------------------------------------------------------
