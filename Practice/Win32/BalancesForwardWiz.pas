@@ -605,7 +605,6 @@ begin
     for i := Low(AdjustmentInfoArray) to High(AdjustmentInfoArray) do begin
       AccountInfo.AccountCode := AdjustmentInfoArray[i].Account.chAccount_Code;
       AccountInfo.LastPeriodOfActualDataToUse := AccountInfo.HighestPeriod;
-
       AccountInfo.UseBaseAmounts := IsForeignCurrencyClient(ThisClient);
 
       AdjustmentInfoArray[i].CurrentBal := AccountInfo.ClosingBalanceActualOrBudget(AccountInfo.HighestPeriod);
@@ -748,6 +747,11 @@ var
   pAcct : pAccount_Rec;
   i     : integer;
   AccountInfo : TAccountInformation;
+    This_Year_Starts         : integer;
+  This_Year_Ends           : integer;
+  Last_Year_Starts         : integer;
+  Last_Year_Ends           : integer;
+  ISOCodes: string;
 begin
   //need to reset all of the financial parameters as these may have changed
   //when the reports were being printed
@@ -755,6 +759,7 @@ begin
   //recalculate account totals, calling add contras will add the contra code
   //for retained p&l.  No other contras should be added as one of the preconditions
   //for doing the balance forward is that all contras are specified by the user
+
   CalculateAccountTotals.AddAutoContraCodes( ThisClient);
   try
     CalculateAccountTotals.CalculateAccountTotalsForClient( ThisClient, True, nil, -1, False, True, True);
@@ -772,6 +777,7 @@ begin
           AccountInfo.UseBudgetIfNoActualData     := False;
           AccountInfo.AccountCode                 := pAcct.chAccount_Code;
           AccountInfo.LastPeriodOfActualDataToUse := AccountInfo.HighestPeriod;
+          AccountInfo.UseBaseAmounts := IsForeignCurrencyClient(ThisClient);
 
           CurrentYearsEarnings := CurrentYearsEarnings + AccountInfo.YTD_ActualOrBudget( AccountInfo.HighestPeriod);
         finally
@@ -1656,6 +1662,11 @@ var
   AccountInfo            : TAccountInformation;
   Total                  : Money;
   Amount                 : Money;
+    This_Year_Starts         : integer;
+  This_Year_Ends           : integer;
+  Last_Year_Starts         : integer;
+  Last_Year_Ends           : integer;
+  ISOCodes: string;
 begin
   //clear any existing opening balance
   //find the open balance journal account
@@ -1697,6 +1708,7 @@ begin
   //need to reset all of the financial parameters as these may have changed
   //when the reports were being printed
   BalancesForward.SetupParameters( ThisClient);
+
   //recalculate account totals
   CalculateAccountTotals.CalculateAccountTotalsForClient( ThisClient, True, nil, -1, False, True, True);
   for i := 0 to Pred( ThisClient.clChart.ItemCount) do begin
@@ -1708,6 +1720,8 @@ begin
         AccountInfo.UseBudgetIfNoActualData     := False;
         AccountInfo.AccountCode                 := pAcct.chAccount_Code;
         AccountInfo.LastPeriodOfActualDataToUse := AccountInfo.HighestPeriod;
+        AccountInfo.UseBaseAmounts := IsForeignCurrencyClient(ThisClient);
+
         // Question: why not use .YTD_ActualOrBudget as per calculation in CalculateCurrentYearsEarnings
         pAcct.chTemp_Money_Value := AccountInfo.ClosingBalanceActualOrBudget(AccountInfo.HighestPeriod);
         Total := Total + pAcct.chTemp_Money_Value;
