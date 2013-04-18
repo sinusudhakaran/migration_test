@@ -139,12 +139,12 @@ begin
   Write(XFile, AmountStr, TAB); // Credit exc tax
 
   Write( XFile, RefAndNarration, TAB ); //Allocation Memo - Ref and Narration
-  Writeln(XFile); //Category (Blank)
+  Write(XFile); //Category (Blank)
 
   if IsYearEndAdj then  //Is Year End Adjustment
-    Write( XFile, 'Y', TAB )
+    Writeln( XFile, 'Y', TAB )
   else
-    Write( XFile, 'N', TAB );
+    Writeln( XFile, 'N', TAB );
 
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
