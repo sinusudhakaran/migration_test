@@ -339,7 +339,10 @@ type
 
   // Automatically post gain/loss entries ('Silent Wizard')
   function  PostGainLossEntries(const aClient: TClientObj;
-              const aFrom: TStDate; const aTo: TStDate): boolean;
+              const aFrom: TStDate; const aTo: TStDate): boolean; overload;
+              
+  function  PostGainLossEntries(const aBankAccount: TBank_Account;
+              const aFrom: TStDate; const aTo: TStDate): boolean; overload;
 
   // Compare the posted entry with the most recent calculated entry
   function  HasInvalidGainLossEntries(const aClient: TClientObj): boolean; overload;
@@ -640,6 +643,19 @@ begin
   end;
 end;
 
+function  PostGainLossEntries(const aBankAccount: TBank_Account; const aFrom: TStDate; const aTo: TStDate): boolean; overload;
+begin
+  ASSERT(assigned(aBankAccount));
+
+  if IsForeignCurrencyAccount(aBankAccount) then
+  begin
+    Result := PostGainLossEntriesRange(aBankAccount, aFrom, aTo);
+  end
+  else
+  begin
+    Result := True;
+  end;
+end;
 
 {-------------------------------------------------------------------------------
   HasInvalidGainLossEntries
