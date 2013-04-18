@@ -904,6 +904,7 @@ var
   PeriodList: TDateList;
   PeriodIndex: Integer;
   ExchangeSource: TExchangeSource;
+  Index: Integer;
 begin
   ExchangeSource := CreateExchangeSource;
 
@@ -1050,9 +1051,12 @@ begin
 
                 for PeriodIndex := 0 to Length(PeriodList) - 1 do
                 begin
-                  if not PostGainLossEntries(LParams.Client, PeriodList[PeriodIndex], GetLastDayOfMonth(PeriodList[PeriodIndex])) then
+                  for Index := 0 to LParams.AccountList.Count - 1 do
                   begin
-                    Exit;
+                    if not PostGainLossEntries(TBank_Account(LParams.AccountList[Index]), PeriodList[PeriodIndex], GetLastDayOfMonth(PeriodList[PeriodIndex])) then
+                    begin
+                      Exit;
+                    end;
                   end;
                 end;
               end
