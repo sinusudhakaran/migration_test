@@ -228,6 +228,7 @@ const                   // 12345678
   superMateXml          = 'SprMtXml';
   BBTechBasicCode       = 'BBTech';
   ClassSuperBasicCode   = 'ClssSupr';
+  IDSSuper              = 'IDSSuper';
 
 implementation
 
