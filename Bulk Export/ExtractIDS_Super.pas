@@ -129,7 +129,7 @@ begin
    Result := '';
    if Session.IniFile <> nil then
      case Session.Index of
-     0 : Result :=  GetPrivateProfileText(CSVSimple,'ExtractPath', '', string(Session.IniFile));
+     0 : Result :=  GetPrivateProfileText(IDSSuper,'ExtractPath', '', string(Session.IniFile));
      end;
 end;
 
@@ -155,10 +155,10 @@ begin
       end;
       ldlg.Caption :='IDS Super Setup';
       ldlg.eFilename.Text := GetExtractPath(Session);
-      ldlg.ckSeparate.Checked := Bool(GetPrivateProfileInt(CSVSimple,keySeparateClientFiles,0,Session.IniFile));
+      ldlg.ckSeparate.Checked := Bool(GetPrivateProfileInt(IDSSuper,keySeparateClientFiles,0,Session.IniFile));
       if ldlg.ShowModal = mrOK then begin
-         WritePrivateProfileString(CSVSimple,keyExtractPath,pchar(ldlg.eFilename.Text), Session.IniFile);
-         WritePrivateProfilestring(CSVSimple,keySeparateClientFiles,pchar(intToStr(Integer(ldlg.ckSeparate.Checked))),Session.IniFile);
+         WritePrivateProfileString(IDSSuper,keyExtractPath,pchar(ldlg.eFilename.Text), Session.IniFile);
+         WritePrivateProfilestring(IDSSuper,keySeparateClientFiles,pchar(intToStr(Integer(ldlg.ckSeparate.Checked))),Session.IniFile);
          Result := er_OK; // Extract path is set..
       end;
    finally
@@ -208,7 +208,7 @@ begin
    end;
 
    if OutputFileName > '' then begin
-      FilePerClient := Bool(GetPrivateProfileInt(CSVSimple,keySeparateClientFiles,0,Session.IniFile));
+      FilePerClient := Bool(GetPrivateProfileInt(IDSSuper,keySeparateClientFiles,0,Session.IniFile));
       if not FilePerClient then
          // Open it for the Whole session..
          OpenFile(OutputFileName);
