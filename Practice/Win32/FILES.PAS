@@ -1797,9 +1797,9 @@ begin
         AClientEmail := TempClient.clFields.clContact_Name + NAME_EMAIL_SPACER + TempClient.clFields.clCustom_Contact_EMail_Address;
       end;
 
-      if MyClient.clExtra.ceOnlineValuesStored then
+      if TempClient.clExtra.ceOnlineValuesStored then
       begin
-        ClientStatus := MyClient.clExtra.ceOnlineStatus;
+        ClientStatus := TempClient.clExtra.ceOnlineStatus;
       end;
 
       CloseAClient(TempClient);
@@ -1824,12 +1824,12 @@ begin
         begin
           AClientEmail := TempClient.clFields.clContact_Name + NAME_EMAIL_SPACER + TempClient.clFields.clCustom_Contact_EMail_Address;
         end;
-      
-        if MyClient.clExtra.ceOnlineValuesStored then
+
+        if TempClient.clExtra.ceOnlineValuesStored then
         begin
-          ClientStatus := MyClient.clExtra.ceOnlineStatus;
+          ClientStatus := TempClient.clExtra.ceOnlineStatus;
         end;
-    
+
         CloseAClient(TempClient);
       end;
     end;
