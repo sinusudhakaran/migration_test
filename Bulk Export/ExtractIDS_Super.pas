@@ -71,8 +71,8 @@ begin
    case Index of
    BasicCSV : begin
           EType.Index := BasicCSV;
-          EType.Code  := CSVSimple;
-          EType.Description := 'Simple CSV';
+          EType.Code  := IDSSuper;
+          EType.Description := 'IDS Super';
           EType.ExtractClass := ClassBase;
           Result := True;
       end;
@@ -153,7 +153,7 @@ begin
       if Assigned(MyFont) then begin
          ldlg.Font.Assign(MyFont);
       end;
-      ldlg.Caption :='Simple CSV Setup';
+      ldlg.Caption :='IDS Super Setup';
       ldlg.eFilename.Text := GetExtractPath(Session);
       ldlg.ckSeparate.Checked := Bool(GetPrivateProfileInt(CSVSimple,keySeparateClientFiles,0,Session.IniFile));
       if ldlg.ShowModal = mrOK then begin
