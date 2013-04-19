@@ -132,19 +132,19 @@ begin
   AmountStr := FormatAmount((Abs(AAmount) - Abs(AGST))/100.0);
    Write(XFile, AmountStr, TAB); // Amount
 
-  Write(XFile, TAB); //Job
+  Write(XFile, JobCode , TAB); // Job
   Write(XFile, AGSTClass, TAB); // Tax Code
 
   AmountStr := FormatAmount(AGST/100.0);
   Write(XFile, AmountStr, TAB); // Credit exc tax
 
-  Write( XFile, RefAndNarration, TAB ); //Allocation Memo - Ref and Narration
-  Write(XFile); //Category (Blank)
+  Write(XFile, RefAndNarration, TAB ); //Allocation Memo - Ref and Narration
+  Write(XFile, TAB); //Category (Blank)
 
   if IsYearEndAdj then  //Is Year End Adjustment
-    Writeln( XFile, 'Y', TAB )
+    Writeln( XFile, 'Y')
   else
-    Writeln( XFile, 'N', TAB );
+    Writeln( XFile, 'N');
 
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
