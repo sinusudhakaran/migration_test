@@ -264,14 +264,13 @@ begin
   // NOTE: DataCol and DataRow are 1-based
   MonthEndingBankAccount := FGridMonthEndingBankAccounts[DataRow-1];
   BankAccount := MonthEndingBankAccount.BankAccount;
-  TestStr := DateToStr(MonthEnding.Date); // REMOVE THIS LINE, it's here so I can see what the date is in the debugger
   // Check that the account has at least one exchange gain/loss entry
   (*
   if BankAccount.baExchange_Gain_Loss_List.ItemCount = 0 then
     ShowRow := False
   else
     // Check that the account has at least one exchange gain/loss entry in the current period
-    ShowRow := CheckGainLossDates(BankAccount, MonthEnding);
+    ShowRow := CheckGainLossDates(BankAccount, Mont hEnding);
 
   if not ShowRow then
     Exit; // Don't add rows for accounts lacking exchange gain loss entries for this period
