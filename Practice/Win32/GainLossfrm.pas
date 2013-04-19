@@ -265,7 +265,7 @@ begin
   MonthEndingBankAccount := FGridMonthEndingBankAccounts[DataRow-1];
   BankAccount := MonthEndingBankAccount.BankAccount;
   // Check that the account has at least one exchange gain/loss entry
-  (*
+  (*  We don't need this because the accounts in the list are already known to contain gain/loss entries
   if BankAccount.baExchange_Gain_Loss_List.ItemCount = 0 then
     ShowRow := False
   else
