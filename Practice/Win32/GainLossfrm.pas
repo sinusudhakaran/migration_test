@@ -29,6 +29,11 @@ type
   private
     fMonths: TMonthEndings;
     fClient: TClientObj;
+    FGridMonthEndingBankAccounts:  array of TMonthEndingBankAccount;
+
+    procedure AddGridMonthEndingBankAccount(MonthEndingBankAccount: TMonthEndingBankAccount);
+    procedure ClearGridMonthEndingBankAccount;
+
     function UpdateGridMonth(LeaveGridOpen: boolean): boolean;
     function CheckGainLossDates(BankAccount: TBank_Account; MonthEnding: TMonthEnding): boolean;
   public
@@ -119,6 +124,8 @@ end;
 
 procedure TfrmGainLoss.FormCreate(Sender: TObject);
 begin
+  ClearGridMonthEndingBankAccount;
+  
   bkXPThemes.ThemeForm(Self);
   lblMonthEndDate2.Font.Style := [fsBold];
   lblMonthEndDate2.Left := lblMonthEndDate1.Left + lblMonthEndDate1.Width + 5;
@@ -128,6 +135,8 @@ end;
 
 procedure TfrmGainLoss.FormDestroy(Sender: TObject);
 begin
+  ClearGridMonthEndingBankAccount;
+
   FreeAndNil(fMonths);
 end;
 
@@ -161,6 +170,8 @@ var
   PostedEntry: TExchange_Gain_Loss;
   RowsCleared: boolean;
   i, NumAccountsGainLossNotRun: integer;
+  Index: Integer;
+  MonthEndingBankAccount: TMonthEndingBankAccount;
 
   procedure ClearRows;
   begin
@@ -171,36 +182,68 @@ begin
   Result := False;
   tgGainLoss.BeginUpdate;
   try
+    ClearGridMonthEndingBankAccount;
+
     if (FSelectedMonthIndex = -1) or (fMonths[FSelectedMonthIndex].NrTransactions = 0) then
-      ClearRows
+    begin
+      ClearRows;
+    end
     else if Assigned(fMonths[FSelectedMonthIndex].BankAccounts) then
     begin
-      RowsCleared := False;
-      if not fMonths[FSelectedMonthIndex].BankAccounts[0].PostedEntry.Valid then
+      RowsCleared := True;
+
+      for Index := 0 to Length(FMonths[FSelectedMonthindex].BankAccounts) - 1 do
+      begin
+        if fMonths[FSelectedMonthIndex].BankAccounts[Index].PostedEntry.Valid then
+        begin
+          RowsCleared := False;
+
+          Break;
+        end;
+      end;
+
+      if RowsCleared then
       begin
         ClearRows;
-        RowsCleared := True;
       end;
+      
       if (fMonths[FSelectedMonthIndex].NrAlreadyRun > 0) then
       begin
         Result := True;
         if not RowsCleared then
         begin
-          NumAccountsGainLossNotRun := 0;
           for i := 0 to High(fMonths[FSelectedMonthIndex].BankAccounts) do
           begin
             BankAccount := fMonths[FSelectedMonthIndex].BankAccounts[i].BankAccount;
-            if (BankAccount.baExchange_Gain_Loss_List.ItemCount = 0) then
-              inc(NumAccountsGainLossNotRun) // This account has no exchange gain/loss entries
-            else if not CheckGainLossDates(BankAccount, fMonths[FSelectedMonthIndex]) then
-              inc(NumAccountsGainLossNotRun); // This account has no exchange gain/loss entries in the given period
+
+            if (BankAccount.baExchange_Gain_Loss_List.ItemCount <> 0) then
+            begin
+              if CheckGainLossDates(BankAccount, fMonths[FSelectedMonthIndex]) then
+              begin
+                AddGridMonthEndingBankAccount(fMonths[FSelectedMonthIndex].BankAccounts[i]);
+              end;
+            end;
           end;
-          tgGainLoss.Rows := Length(fMonths[FSelectedMonthIndex].BankAccounts) - NumAccountsGainLossNotRun;
-          PostedDate := fMonths[FSelectedMonthIndex].BankAccounts[0].PostedEntry.Date;
-          BankAccount := fMonths[FSelectedMonthIndex].BankAccounts[0].BankAccount;
-          PostedEntry := BankAccount.baExchange_Gain_Loss_List.GetPostedEntry(PostedDate);
-          EntriesCreatedDateStr := bkDate2Str(PostedEntry.glFields.glPosted_Date);
-          lblEntriesCreatedDate.Caption := 'The above entries were created ' + EntriesCreatedDateStr;
+
+          if Length(FGridMonthEndingBankAccounts) > 0 then
+          begin
+            tgGainLoss.Rows := Length(FGridMonthEndingBankAccounts);
+
+            MonthEndingBankAccount := FGridMonthEndingBankAccounts[0];
+            
+            PostedDate := MonthEndingBankAccount.PostedEntry.Date;
+            BankAccount := MonthEndingBankAccount.BankAccount;
+
+            PostedEntry := BankAccount.baExchange_Gain_Loss_List.GetPostedEntry(PostedDate);
+
+            EntriesCreatedDateStr := bkDate2Str(PostedEntry.glFields.glPosted_Date);
+
+            lblEntriesCreatedDate.Caption := 'The above entries were created ' + EntriesCreatedDateStr;
+          end;
+        end
+        else
+        begin
+          tgGainLoss.Rows := 0;
         end;
       end;
     end;
@@ -217,23 +260,23 @@ var
   MonthEndingBankAccount: TMonthEndingBankAccount;
   BankAccount: TBank_Account;
   ShowRow: boolean;
-  TestStr: string;
 begin
   // NOTE: DataCol and DataRow are 1-based
-  MonthEnding := fMonths[FSelectedMonthIndex];
-  MonthEndingBankAccount := MonthEnding.BankAccounts[DataRow-1];
+  MonthEndingBankAccount := FGridMonthEndingBankAccounts[DataRow-1];
   BankAccount := MonthEndingBankAccount.BankAccount;
   TestStr := DateToStr(MonthEnding.Date); // REMOVE THIS LINE, it's here so I can see what the date is in the debugger
   // Check that the account has at least one exchange gain/loss entry
+  (*
   if BankAccount.baExchange_Gain_Loss_List.ItemCount = 0 then
     ShowRow := False
   else
     // Check that the account has at least one exchange gain/loss entry in the current period
     ShowRow := CheckGainLossDates(BankAccount, MonthEnding);
-    
+
   if not ShowRow then
     Exit; // Don't add rows for accounts lacking exchange gain loss entries for this period
-
+  *)
+  
   case DataCol of
     1: Value := BankAccount.baFields.baBank_Account_Number;
     2: Value := MonthEndingBankAccount.GetAccountNameCurrency;
@@ -259,6 +302,17 @@ begin
 end;
 
 // Check that the account has at least one exchange gain/loss entry in the current period
+procedure TfrmGainLoss.AddGridMonthEndingBankAccount(MonthEndingBankAccount: TMonthEndingBankAccount);
+var
+  Count: Integer;
+begin
+  Count := Length(FGridMonthEndingBankAccounts);
+
+  SetLength(FGridMonthEndingBankAccounts, Count + 1);
+  
+  FGridMonthEndingBankAccounts[Count] := MonthEndingBankAccount;
+end;
+
 function TfrmGainLoss.CheckGainLossDates(BankAccount: TBank_Account; MonthEnding: TMonthEnding): boolean;
 var
   i: integer;
@@ -273,6 +327,11 @@ begin
     if Result then
       break; // Only need to check that there's at least one valid entry
   end;
+end;
+
+procedure TfrmGainLoss.ClearGridMonthEndingBankAccount;
+begin
+  SetLength(FGridMonthEndingBankAccounts, 0);
 end;
 
 procedure TfrmGainLoss.tbPreviousClick(Sender: TObject);
