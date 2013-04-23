@@ -103,7 +103,8 @@ uses
    ReportDefs,
    SimpleUIOpenPageFrm,
    CFHead,
-   BankLinkOnlineServices;
+   BankLinkOnlineServices,
+   ForexHelpers;
 
 var
   ClosingAllMDIForms : boolean = false;
@@ -878,6 +879,8 @@ begin
 
      Batchreports.FillMenu(frmMain.mniBatchReports,ShowFinReports);
      frmMain.MenuCopyToPopUp('mnsReport', popReport);
+
+     mniExchangeGainLossWizard.Visible := IsForeignCurrencyClient;
   end;
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
