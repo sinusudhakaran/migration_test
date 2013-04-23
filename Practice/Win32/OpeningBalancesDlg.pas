@@ -493,7 +493,7 @@ begin
 
   if not Assigned(ExchangeRec) then Exit;
 
-  for i := 0 to ExchangeRec.Width - 1 do begin
+  for i := 0 to ExchangeRec.Width do begin
     if (ExchangeRec.Rates[i] <> 0) and (i <> BaseCurrencyIdx)then begin
       HasExchangeRate := True;
       Break;
