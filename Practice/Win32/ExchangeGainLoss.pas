@@ -1289,6 +1289,8 @@ var
   iMonth: integer;
   i: integer;
 begin
+  ASSERT((aDate <> MinDate) and (aDate <> MaxDate));
+
   dtDate := StDateToDateTime(aDate);
   iYear := YearOf(dtDate);
   iMonth := MonthOf(dtDate);
@@ -1454,6 +1456,10 @@ begin
     // No match?
     pSystemBankAccount := AdminSystem.fdSystem_Bank_Account_List.FindCode(BankAccount.baFields.baBank_Account_Number);
     if not Assigned(pSystemBankAccount) then
+      continue;
+
+    // No transactions, e.g. no date range?
+    if (pSystemBankAccount.sbNo_of_Entries_This_Month = 0) then
       continue;
 
     // No new transactions?
