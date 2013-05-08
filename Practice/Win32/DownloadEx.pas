@@ -1086,6 +1086,7 @@ begin
     if AdminSystem.fdSystem_Client_File_List.Client_File_At(Index).cfFile_Status = bkConst.fsNormal then
     begin
       try
+        Client := nil;
         OpenAClient(AdminSystem.fdSystem_Client_File_List.Client_File_At(Index).cfFile_Code, Client, True);
 
         if Assigned(Client) then
