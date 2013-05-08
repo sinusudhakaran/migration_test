@@ -837,18 +837,23 @@ begin
       Exit;
 
    C := 0;
-   for i := 1 to Max_SubGroups do begin
+   for i := 0 to Max_SubGroups do begin
       SubGroupName := Trim(FClient.clCustom_Headings_List.Get_SubGroup_Heading(i));
-      if SubGroupName > '' then begin
-         if SubGroupTable.Insert(NewGuid,ClientID, i, SubGroupName) then
-            inc(C);
+
+      if SubGroupName = '' then begin
+         if i <> 0 then
+            continue;
+         // Make sure we have this default one..
+         SubGroupName := 'Unallocated';
       end;
+
+      if SubGroupTable.Insert(NewGuid,ClientID, i, SubGroupName) then
+         inc(C);
+
    end;
 
    if C > 0 then begin
       ForAction.InsertAction('Subgroups').Count := C;
-   end else begin
-      SubGroupTable.Insert(NewGuid,ClientID, 0, 'Unallocated');
    end;
 end;
 
