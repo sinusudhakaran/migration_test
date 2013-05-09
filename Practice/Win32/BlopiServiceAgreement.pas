@@ -47,7 +47,32 @@ begin
 
   if Trim(Version) <> '' then
   begin
-    Result := AdminSystem.fdFields.fdLast_Agreed_To_BLOSA <> Version;
+    if Trim(AdminSystem.fdFields.fdLast_Agreed_To_BLOSA) <> '' then
+    begin
+      Result := AdminSystem.fdFields.fdLast_Agreed_To_BLOSA <> Version;
+    end
+    else
+    begin
+      if LoadAdminSystem(True, 'BlopiServiceAgreement') then
+      begin
+        try
+          AdminSystem.fdFields.fdLast_Agreed_To_BLOSA := Version;
+
+          SaveAdminSystem;
+
+          LogUtil.LogMsg(lmInfo, 'BlopiServiceAgreement', Format('Local BankLink Online service agreement version is currently blank - updated to version %s', [Version]), 0);
+
+          Result := False;
+        except
+          if AdminIsLocked then
+          begin
+            UnLockAdmin;
+          end;
+        
+          raise;
+        end;
+      end;
+    end;
   end
   else
   begin
