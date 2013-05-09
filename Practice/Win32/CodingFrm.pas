@@ -6113,6 +6113,8 @@ begin
      if S = '' then exit;
      {paint background}
      c.Brush.Color := CellAttr.caColor;
+     C.Font.Color  := CellAttr.caFontColor;
+     
      if IsCASystems(MyClient) then
      begin
        InvalidGSTClassFound := False;
