@@ -70,9 +70,23 @@ implementation
 function TfrmCAFAccountStatus.CheckFilter(const AccountStatus: String; FilterType: TAccountFilterType): Boolean;
 begin
   case FilterType of
-    afEverythingElse: Result := not (CheckFilter(AccountStatus, afActive) or CheckFilter(AccountStatus, afDeleted));
-    afActive: Result := CompareText(AccountStatus, 'Active') = 0;
-    afDeleted: Result := CompareText(AccountStatus, 'Deleted') = 0;
+    afEverythingElse:
+    begin
+      Result := not (CheckFilter(AccountStatus, afActive) or CheckFilter(AccountStatus, afDeleted));
+    end;
+
+    afActive:
+    begin
+      Result :=
+        (CompareText(AccountStatus, 'ACTIVE') = 0) or
+        (CompareText(AccountStatus, 'ACTIVEB') = 0) or
+        (CompareText(AccountStatus, 'PROVISIONAL') = 0);
+    end;
+
+    afDeleted:
+    begin
+      Result := CompareText(AccountStatus, 'DELETED') = 0;
+    end;
   end;
 end;
 

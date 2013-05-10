@@ -63,8 +63,6 @@ object frmCAFAccountStatus: TfrmCAFAccountStatus
     OnCompareNodes = lvAccountStatusCompareNodes
     OnGetText = lvAccountStatusGetText
     OnHeaderClick = lvAccountStatusHeaderClick
-    ExplicitWidth = 997
-    ExplicitHeight = 343
     Columns = <
       item
         Options = [coAllowClick, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible]
@@ -109,8 +107,6 @@ object frmCAFAccountStatus: TfrmCAFAccountStatus
     Width = 1001
     Height = 19
     Panels = <>
-    ExplicitTop = 462
-    ExplicitWidth = 1013
   end
   object Button1: TButton
     Left = 918
@@ -122,8 +118,6 @@ object frmCAFAccountStatus: TfrmCAFAccountStatus
     Default = True
     ModalResult = 1
     TabOrder = 2
-    ExplicitLeft = 930
-    ExplicitTop = 428
   end
   object cmbAccountFilter: TComboBox
     Left = 100
