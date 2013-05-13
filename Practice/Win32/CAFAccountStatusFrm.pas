@@ -78,14 +78,14 @@ begin
     afActive:
     begin
       Result :=
-        (CompareText(AccountStatus, 'ACTIVE') = 0) or
-        (CompareText(AccountStatus, 'ACTIVEB') = 0) or
-        (CompareText(AccountStatus, 'PROVISIONAL') = 0);
+        (CompareText(AccountStatus, 'Active') = 0) or
+        (CompareText(AccountStatus, 'Active (balance only)') = 0) or
+        (CompareText(AccountStatus, 'Provisional') = 0);
     end;
 
     afDeleted:
     begin
-      Result := CompareText(AccountStatus, 'DELETED') = 0;
+      Result := CompareText(AccountStatus, 'Deleted') = 0;
     end;
   end;
 end;
