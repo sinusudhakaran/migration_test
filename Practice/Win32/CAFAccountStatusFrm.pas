@@ -79,8 +79,7 @@ begin
     begin
       Result :=
         (CompareText(AccountStatus, 'Active') = 0) or
-        (CompareText(AccountStatus, 'Active (balance only)') = 0) or
-        (CompareText(AccountStatus, 'Provisional') = 0);
+        (CompareText(AccountStatus, 'Active (balance only)') = 0);
     end;
 
     afDeleted:
