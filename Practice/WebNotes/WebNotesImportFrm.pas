@@ -330,8 +330,10 @@ begin
          //the payee was specified at the transaction level, the dissection
          //and the payee match so use the details from the payee for the
          //payee detail
-
-         PayeeDetail := bkPayee.pdName;
+         PayeeDetail := bkPayee.pdLines.PayeeLine_At( DissectionLineNo - 1).plGL_Narration;
+         // if blank then use payee name
+         if Trim(PayeeDetail) = '' then
+             PayeeDetail := bkPayee.pdName;
       end else begin
          // Check the disection for Payee
          DissectionPayee := nil;
@@ -360,9 +362,10 @@ begin
         if Assigned(DissectionPayee) then
         begin
           BKD^.dsGST_Amount := CalculateGSTForClass(Client, BKT^.txDate_Effective, BKD^.Local_Amount, BKD^.dsGST_Class);
-
-          PayeeDetail := DissectionPayee.pdName;
-
+          PayeeDetail := GetStringAttr(DNode, nNarration);
+          // if blank then use payee name
+          if Trim(PayeeDetail) = '' then
+            PayeeDetail := DissectionPayee.pdName;
           BKD^.dsGST_Has_Been_Edited := GetBoolAttr(DNode, nTaxEdited);
         end
         else
@@ -398,7 +401,7 @@ begin
 
       //Narration
       BKD.dsGL_Narration := UpdateNarration( Client.clFields.clECoding_Import_Options,
-                                           GetStringAttr(DNode, nNarration),
+                                           BKD.dsGL_Narration,
                                            PayeeDetail,
                                            BKD.dsNotes);
 
