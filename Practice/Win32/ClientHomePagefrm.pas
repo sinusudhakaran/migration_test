@@ -886,7 +886,7 @@ begin
    PnlTitle.GradientColorStart := bkBranding.TobBarStartColor;
    PnlTitle.GradientColorStop  := bkBranding.TopBarStopColor;
    lblClientName.Font.Color :=  TopTitleColor;
-   imgLeft.Picture := AppImages.ImgLogo.Picture;
+   imgLeft.Picture := TopBannerImage;
 
    if frmMain.UsingCustomPracticeLogo then begin
       imgRight.AutoSize := False;

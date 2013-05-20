@@ -74,16 +74,17 @@ uses
    bkXPThemes,
    admin32,
    Imagesfrm,
-   syDefs,
-   bkConst, SysObj32, cfList32;
+   syDefs,                                           
+   bkConst, SysObj32, cfList32,
+   bkBranding;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmCinfo.FormCreate(Sender: TObject);
 begin
   bkXPThemes.ThemeForm( Self);
   lblForeign.Font.Style := [fsBold];
-  image1.Picture := AppImages.imgBankLinkB.Picture;
-  image2.Picture := AppImages.imgBankLinkB.Picture;
+  image1.Picture := BankstreamLogo;
+  image2.Picture := BankstreamLogo;
   SetUpHelp;
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

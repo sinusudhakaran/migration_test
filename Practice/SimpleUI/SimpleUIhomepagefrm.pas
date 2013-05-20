@@ -706,7 +706,7 @@ begin
    pnlNavigator.Color := clGray;                   //bkBranding.TopBarStopColor;
    lblClientName.Font.Color := $00494949;          //bkBranding.TopTitleColor;
 
-   imgLeft.Picture := AppImages.ImgLogo.Picture;
+   imgLeft.Picture := bkBranding.TopBannerImage;    
    imgRight.Picture := bkBranding.ClientBanner;
    pnlExtraTitleBar.Height := imgRight.Picture.Height;
    lblClientName.Left := imgLeft.Width + 10;

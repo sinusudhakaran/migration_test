@@ -32,13 +32,14 @@ interface
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, 
   StdCtrls, ExtCtrls, jpeg,
-  OsFont;
+  OsFont, dxGDIPlusClasses;
 
 type
   TfrmSplash = class(TForm)
     Panel1: TPanel;
     Label1: TLabel;
-    imgHeader: TImage;
+    imgBankstreamSplash: TImage;
+    imgBankLinkSplash: TImage;
     procedure FormCreate(Sender: TObject);
   private
     { Private declarations }
@@ -50,11 +51,25 @@ var
   frmSplash: TfrmSplash;
 
 implementation
+
+uses
+  bkBranding, bkConst;
+  
 {$R *.DFM}
 
 procedure TfrmSplash.FormCreate(Sender: TObject);
 begin
    Label1.Font.Name := Font.Name;
+
+   if bkBranding.GetCountry = whUK then
+   begin
+     Self.imgBankLinkSplash.Visible := False;
+   end
+   else
+   begin
+     Self.imgBankstreamSplash.Visible := False;
+   end;
+
    // Not Themed.. But no controls..
 end;
 

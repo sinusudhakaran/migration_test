@@ -548,7 +548,7 @@ begin
   PnlLogo.GradientColorStart := bkBranding.TobBarStartColor;
   PnlLogo.GradientColorStop  := bkBranding.TopBarStopColor;
 
-  imgLogo.Picture := AppImages.ImgLogo.Picture;
+  imgLogo.Picture := TopBannerImage;
 
   imgRight.Transparent := True;
   imgRight.Picture := bkBranding.CodingBanner;

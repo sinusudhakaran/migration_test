@@ -138,7 +138,7 @@ procedure TfrmSimpleUIOpen.FormCreate(Sender: TObject);
 var
   s  : string;
 begin
-   imgLeft.Picture := AppImages.ImgLogo.Picture;
+   imgLeft.Picture := bkBranding.TopBannerImage;   
    imgRight.Transparent := True;
    imgRight.Picture := bkBranding.ClientBanner;
    pnlExtraTitleBar.Height := imgRight.Picture.Height + 5;

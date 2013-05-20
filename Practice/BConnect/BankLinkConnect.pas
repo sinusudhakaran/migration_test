@@ -21,6 +21,7 @@ function EncryptPassword( const PlainPassword : string; IncludeDash: boolean = t
 //******************************************************************************
 implementation
 uses
+   Graphics,
    FormBConnect,       //https
    bkconst,
    Dialogs,
@@ -43,7 +44,8 @@ uses
    baUtils,
    UsageUtils,
    FileExtensionUtils,
-   WebCiCoClient;
+   WebCiCoClient,
+   bkBranding;
 
 const
    Unitname = 'BConnect';
@@ -186,18 +188,11 @@ var
    NewPassword     : string;
    VerString       : string;
    StatsString     : string;
-   ImageToUse      : TImage;
+   ImageToUse      : TPicture;
 begin
    LogMsg( lmInfo, Unitname, ThisMethodName + ' for ' + AdminSystem.fdFields.fdBankLink_Code);
 
-   if ColorsDepthIs256 then
-   begin
-     ImageToUse := AppImages.imgBankLinkLogo256;
-   end
-   else
-   begin
-     ImageToUse := AppImages.imgBankLinkLogoHiColor;
-   end;
+   ImageToUse := bkBranding.DownloadDiskImageBanner;
 
    VerString := Globals.ShortAppName + ' ' + WinUtils.GetShortAppVersionStr;
    StatsString := BuildStatsString;
@@ -225,7 +220,7 @@ begin
                               INI_BCFirewallUsername,
                               INI_BCFirewallPassword,
                               BCONNECTNAME,
-                              ImageToUse.Picture,
+                              ImageToUse,
                               AdminSystem.fdFields.fdBankLink_Code,
                               AdminSystem.fdFields.fdBankLink_Connect_Password,
                               AdminSystem.fdFields.fdCountry,
@@ -312,7 +307,7 @@ const
 var
    VerString : string;
    StatsString : string;
-   ImageToUse : TImage;
+   ImageToUse : TPicture;
    i: Integer;
    b: TBank_Account;
    ManualString: string;
@@ -322,14 +317,7 @@ begin
    VerString := Globals.ShortAppName + ' ' + WinUtils.GetShortAppVersionStr;
    StatsString := BuildStatsString;
 
-   if ColorsDepthIs256 then
-   begin
-     ImageToUse := AppImages.imgBankLinkLogo256;
-   end
-   else
-   begin
-     ImageToUse := AppImages.imgBankLinkLogoHiColor;
-   end;
+   ImageToUse := bkBranding.DownloadDiskImageBanner;
 
    // See if this client has manual account info to send
    // Do not reset flag until we know its been sent
@@ -366,7 +354,7 @@ begin
                               INI_BCFirewallUsername,
                               INI_BCFirewallPassword,
                               BCONNECTNAME,
-                              ImageToUse.Picture,
+                              ImageToUse,
                               MyClient.clFields.clBankLink_Code,
                               MyClient.clFields.clBankLink_Connect_Password,
                               MyClient.clFields.clCountry,

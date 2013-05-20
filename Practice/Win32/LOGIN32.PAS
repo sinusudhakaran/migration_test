@@ -97,7 +97,8 @@ uses
   BanklinkOnlineServices,
   EditUserPassword,
   LockUtils,
-  GenUtils;
+  GenUtils,
+  bkBranding;
 
 const
   UnitName = 'LOGIN32';
@@ -149,7 +150,7 @@ begin
     pnlStandardLogin.Visible := true;
     pnlImageBorder.Visible := false;
 
-    image1.Picture := AppImages.imgLogin.Picture;
+    image1.Picture := LoginScreenBanner;
   end
   else
   begin

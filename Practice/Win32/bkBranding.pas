@@ -60,6 +60,17 @@ var
 
   procedure InitialiseGraphicsAndColors( CanvasHandleToTest : hDC);
 
+  function LoginScreenBanner: TPicture;
+  function SplashScreenBanner: TPicture;
+  function TopBannerImage: TPicture;
+  function DownloadDiskImageBanner: TPicture;
+  function BankstreamLogo: TPicture;
+
+  function ProductTitle: String;
+
+
+  function GetCountry: Byte;
+  
 const
 
   // From Banklink Brandiguide.pdf
@@ -78,7 +89,7 @@ const
 implementation
 
 uses
-  WinUtils, ImagesFrm, ThirdPartyHelper;
+  WinUtils, ImagesFrm, ThirdPartyHelper, Globals, bkConst;
 
 const
   BKHICOLOR_BLUE      = $00F5EDDE;  //alt line col for coding, dissect etc
@@ -95,6 +106,17 @@ const
   BKCOLOR_FINANCIAL   = $00FBF2A0;
   BKHICOLOR_FINANCIAL = $00FBF2A0;
 
+function GetCountry: Byte;
+begin
+  if Assigned(AdminSystem) then
+  begin
+    Result := whUK; //AdminSystem.fdFields.fdCountry;
+  end
+  else
+  begin
+    Result := whUK;
+  end;
+end;
 
 procedure InitialiseGraphicsAndColors( CanvasHandleToTest : hDC);
 begin
@@ -174,10 +196,17 @@ end;
 
 function BannerLogo : TPicture;
 begin
-  if Is256Color then
-    result := AppImages.imgBankLinkLogo256.Picture
+  if GetCountry = whUK then
+  begin
+   Result := AppImages.imgBankstreamBackgroundBanner.Picture;
+  end
   else
-    result := AppImages.imgBankLinkLogoHiColor.Picture;
+  begin
+    if Is256Color then
+      result := AppImages.imgBankLinkLogo256.Picture
+    else
+      result := AppImages.imgBankLinkLogoHiColor.Picture;
+  end;
 end;
 
 function BackgroundImage : TPicture;
@@ -339,6 +368,91 @@ begin
       Result := BKHICOLOR_TEAL;
 end;
 
+function LoginScreenBanner: TPicture;
+begin
+  if GetCountry = whUK then
+  begin
+    Result := AppImages.imgBankstreamLogin.Picture;
+  end
+  else
+  begin
+    Result := AppImages.imgLogin.Picture;
+  end;
+end;
+
+function SplashScreenBanner: TPicture;
+begin
+  if GetCountry = whUK then
+  begin
+    Result := AppImages.imgBankstreamLogin.Picture;
+  end
+  else
+  begin
+    Result := AppImages.imgBankstreamLogin.Picture;
+  end;
+end;
+
+function TopBannerImage: TPicture;
+begin
+  if GetCountry = whUK then
+  begin
+    Result := AppImages.imgClientHomePageLogo.Picture;
+  end
+  else
+  begin
+    Result := AppImages.imgLogo.Picture;
+  end;
+end;
+
+function DownloadDiskImageBanner: TPicture;
+begin
+  if GetCountry = whUK then
+  begin
+    if Is256Color then
+    begin
+      Result := AppImages.imgDownloadBankstreamLogo.Picture;
+    end
+    else
+    begin
+      Result := AppImages.imgDownloadBankstreamLogo.Picture;
+    end;
+  end
+  else
+  begin
+    if Is256Color then
+    begin
+      Result := AppImages.imgBankLinkLogo256.Picture;
+    end
+    else
+    begin
+      Result := AppImages.imgBankLinkLogoHiColor.Picture;
+    end;
+  end;
+end;
+
+function BankstreamLogo: TPicture;
+begin
+  if GetCountry = whUK then
+  begin
+    Result := AppImages.imgBankstreamIcon.Picture;
+  end
+  else
+  begin
+    Result := AppImages.imgBankLinkB.Picture;
+  end;
+end;
+
+function ProductTitle: String;
+begin
+  if GetCountry = whUK then
+  begin
+    Result := 'Bankstream';
+  end
+  else
+  begin
+    Result := 'BankLink';
+  end;
+end;
 initialization
   Is256Color := false;
   BrandingImageSet := imOther;

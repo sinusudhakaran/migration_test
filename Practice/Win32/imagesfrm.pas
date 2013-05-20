@@ -9,7 +9,7 @@ interface
 uses   
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
   ImgList, ExtCtrls, StdCtrls, jpeg, RzGroupBar, RzCommon,
-  OsFont;
+  OsFont, dxGDIPlusClasses;
                                                                             
 type
   TAppImages = class(TForm)  {toolbar icons}
@@ -65,10 +65,17 @@ type
     GlCustomColors: TRzCustomColors;
     imgLookupGroup: TImage;
     imgLookupClientType: TImage;
+    imgBankstreamLogin: TImage;
+    imgClientHomepageLogo: TImage;
+    imgBankstreamLogoHiColor: TImage;
+    imgBankstreamLogo256: TImage;
+    imgDownloadBankstreamLogo: TImage;
+    imgBankstreamIcon: TImage;
+    imgBankstreamBackgroundBanner: TImage;
     procedure FormCreate(Sender: TObject);
   private
 
-  public
+  public                              
     { Public declarations }
     CustomLoginBitmapLoaded : boolean;
   end;

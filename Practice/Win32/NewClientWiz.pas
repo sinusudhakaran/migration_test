@@ -79,7 +79,8 @@ uses
   MaintainBankFrm, imagesfrm, Import32, glConst, LogUtil, baobj32,
   ClientReportScheduleDlg, ClientDetailCacheObj, GlobalClientSetupRoutines,
   ToDoHandler, ToDoListUnit, syamio, ClientManagerFrm,
-  BanklinkOnlineSettingsFrm, BankLinkOnlineServices, InfoMoreFrm;
+  BanklinkOnlineSettingsFrm, BankLinkOnlineServices, InfoMoreFrm,
+  bkBranding;
 
 {$R *.DFM}
 
@@ -755,7 +756,7 @@ end;
 
 procedure TwizNewClient.FormShow(Sender: TObject);
 begin
-  Image1.Picture := imagesfrm.AppImages.imgBankLinkB.Picture;
+  Image1.Picture := bkBranding.BankstreamLogo;
 end;
 
 procedure TwizNewClient.FormCloseQuery(Sender: TObject;
