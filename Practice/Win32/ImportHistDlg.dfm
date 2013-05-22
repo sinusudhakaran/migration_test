@@ -92,16 +92,12 @@ object ImportHist: TImportHist
         Top = 1
         Width = 1025
         Height = 121
-        ActivePage = tsAnalysis
+        ActivePage = TSAmount
         Align = alTop
         TabOrder = 0
         OnChange = PCFormatChange
         object TSDate: TTabSheet
           Caption = '&Date'
-          ExplicitLeft = 0
-          ExplicitTop = 0
-          ExplicitWidth = 0
-          ExplicitHeight = 0
           object Label2: TLabel
             Left = 15
             Top = 10
@@ -132,7 +128,7 @@ object ImportHist: TImportHist
             Width = 300
             Height = 21
             Style = csDropDownList
-            ItemHeight = 0
+            ItemHeight = 13
             TabOrder = 1
             OnChange = cbDateChange
           end
@@ -140,10 +136,6 @@ object ImportHist: TImportHist
         object TSAmount: TTabSheet
           Caption = '&Amount'
           ImageIndex = 1
-          ExplicitLeft = 0
-          ExplicitTop = 0
-          ExplicitWidth = 0
-          ExplicitHeight = 0
           object lbAmount: TLabel
             Left = 216
             Top = 10
@@ -166,7 +158,7 @@ object ImportHist: TImportHist
             Width = 300
             Height = 21
             Style = csDropDownList
-            ItemHeight = 0
+            ItemHeight = 13
             TabOrder = 3
             Visible = False
             OnChange = cbAmountChange
@@ -177,7 +169,7 @@ object ImportHist: TImportHist
             Width = 300
             Height = 21
             Style = csDropDownList
-            ItemHeight = 0
+            ItemHeight = 13
             TabOrder = 4
             Visible = False
             OnChange = cbAmountChange
@@ -242,10 +234,6 @@ object ImportHist: TImportHist
         object TSReference: TTabSheet
           Caption = '&Reference'
           ImageIndex = 2
-          ExplicitLeft = 0
-          ExplicitTop = 0
-          ExplicitWidth = 0
-          ExplicitHeight = 0
           object LColumns: TLabel
             Left = 15
             Top = 10
@@ -268,7 +256,7 @@ object ImportHist: TImportHist
             Width = 300
             Height = 21
             Style = csDropDownList
-            ItemHeight = 0
+            ItemHeight = 13
             TabOrder = 0
             OnChange = cbRefChange
           end
@@ -315,10 +303,6 @@ object ImportHist: TImportHist
         object TSNarration: TTabSheet
           Caption = 'Narra&tion'
           ImageIndex = 4
-          ExplicitLeft = 0
-          ExplicitTop = 0
-          ExplicitWidth = 0
-          ExplicitHeight = 0
           object Label5: TLabel
             Left = 15
             Top = 10
@@ -346,7 +330,7 @@ object ImportHist: TImportHist
             Width = 300
             Height = 21
             Style = csDropDownList
-            ItemHeight = 0
+            ItemHeight = 13
             TabOrder = 0
             OnChange = cbNar1Change
           end
@@ -356,7 +340,7 @@ object ImportHist: TImportHist
             Width = 300
             Height = 21
             Style = csDropDownList
-            ItemHeight = 0
+            ItemHeight = 13
             TabOrder = 1
             OnChange = cbNar1Change
           end
@@ -366,7 +350,7 @@ object ImportHist: TImportHist
             Width = 300
             Height = 21
             Style = csDropDownList
-            ItemHeight = 0
+            ItemHeight = 13
             TabOrder = 2
             OnChange = cbNar1Change
           end

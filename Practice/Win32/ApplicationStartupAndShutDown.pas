@@ -203,24 +203,24 @@ begin
     SHORTAPPNAME        := 'SmartLink';
   {$ELSE}
     {$IFDEF BKMAP}
-      APPTITLE            = 'BankLink Map Utility';
+      APPTITLE            = Format('%s Map Utility', [bkBranding.ProductName]);
       SHORTAPPNAME        = 'BKMAP';
     {$ELSE}
       {$IFDEF BKCRYPT}
-        APPTITLE            = 'BankLink Decryption Utility';
+        APPTITLE            = Format('%s Decryption Utility', [bkBranding.ProductName]);
         SHORTAPPNAME        = 'BKCRYPT';
       {$ELSE}
          if AdminExists or CheckDBCreateParam or CheckDBCreateParamNoRun then
          begin
-           APPTITLE := 'BankLink Practice';
-           SHORTAPPNAME := 'BankLink Practice';
+           APPTITLE := Format('%s Practice', [bkBranding.ProductName]);
+           SHORTAPPNAME := Format('%s Practice', [bkBranding.ProductName]);
            bkBranding.BrandingImageSet := imPractice;
          end
          else
          begin
            //default to books
-           APPTITLE := 'BankLink Books';
-           SHORTAPPNAME := 'BankLink Books';
+           APPTITLE := Format('%s Books', [bkBranding.ProductName]);
+           SHORTAPPNAME := Format('%s Books', [bkBranding.ProductName]);
            bkBranding.BrandingImageSet := imBooks;
 
            if ThirdPartyHelper.ThirdPartyDLLDetected then
@@ -228,7 +228,7 @@ begin
              if (ThirdPartyBannerLogo <> nil) then
                 bkBranding.BrandingImageSet := imDLL;
              if (ThirdPartyName <> '') then
-                APPTITLE := 'BankLink Books provided by ' + ThirdPartyName;
+                APPTITLE := Format('%s Books provided by ' + ThirdPartyName, [bkBranding.ProductName]);
            end;
          end;
       {$ENDIF}

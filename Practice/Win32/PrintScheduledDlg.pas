@@ -254,7 +254,7 @@ uses
   PrntInfo,
   LADEFS, UserReportSettings, NewReportUtils, UsageUtils, CheckInOutFrm,
   SelectListDlg, bkXPThemes, UsrList32, grpList32, ctypelist32,
-  CustomDocEditorFrm, UBatchBase;
+  CustomDocEditorFrm, UBatchBase, bkBranding;
 
 {$R *.DFM}
 
@@ -275,15 +275,29 @@ begin
   ButtonPressed := btn_none;
   FaxPrinter := '';
 
-  cbToECoding.caption := '&' + glConst.ECODING_APP_NAME + ' Files';
+  cbToECoding.caption := '&' + bkBranding.ECodingDisplayName + ' Files';
 
   ImagesFrm.AppImages.Misc.GetBitmap(MISC_FINDFOLDER_BMP,btnOpenDialog.Glyph);
-  btnBNotesMsg.Caption := '&' + glConst.ECoding_App_Name + ' Message';
+  btnBNotesMsg.Caption := '&' + bkBranding.ECodingDisplayName + ' Message';
 
-  gbNotes.Caption := format('Send %s files',[glConst.ECODING_APP_NAME]);
+  gbNotes.Caption := format('Send %s files',[bkBranding.ECodingDisplayName]);
 
-  gbWebNotes.Caption := format('Send %s transactions',[bkconst.WebNotesName]);
-  btnWebNotesMsg.Caption := format('&%s Message',[bkconst.WebNotesName]);
+  gbWebNotes.Caption := format('Send %s transactions',[bkBranding.NotesOnlineProductName]);
+  btnWebNotesMsg.Caption := format('&%s Message',[bkBranding.NotesOnlineProductName]);
+
+  cbToECoding.Hint := bkBranding.Rebrand(cbToECoding.Hint);
+
+  gbBooks.Caption := bkBranding.Rebrand(gbBooks.Caption);
+  btnCheckOutMsg.Caption := bkBranding.Rebrand(btnCheckOutMsg.Caption);
+
+  GroupBox5.Caption := bkBranding.Rebrand(GroupBox5.Caption);
+  btnOnlineMsg.Caption := bkBranding.Rebrand(btnOnlineMsg.Caption);
+
+  cbCheckout.Caption := bkbranding.Rebrand(cbCheckOut.Caption);
+  cbCheckout.Hint := bkbranding.Rebrand(cbCheckOut.Hint);
+
+  cbOnline.Caption := bkBranding.Rebrand(cbOnline.Caption);
+  cbOnline.Hint := bkBranding.Rebrand(cbOnline.Hint);
 
   LoadLookupBitmaps;
   SetUpHelp;

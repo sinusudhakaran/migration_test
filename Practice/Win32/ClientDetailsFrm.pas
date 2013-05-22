@@ -223,7 +223,8 @@ uses
    RegExprUtils,
    glConst,
    BankLinkSecureCodeDlg,
-   GenUtils;
+   GenUtils,
+   bkBranding;
 
 {$R *.DFM}
 
@@ -254,7 +255,9 @@ begin
    cmbOSDMethod.Items.AddObject( bkConst.dfNames[ dfFloppy], TObject( dfFloppy));
 
    ChangingDiskID := false;
-   grpBooks.Caption := BKBOOKSNAME + ' Clients';
+   grpBooks.Caption := bkBranding.BKBooksProductName + ' Clients';
+
+   grpBOClients.Caption := bkBranding.Rebrand(grpBOClients.Caption);
 end;
 
 //------------------------------------------------------------------------------
@@ -399,7 +402,7 @@ end;
 
 procedure TfrmClientDetails.SetProductsCaption(NewCaption: string);
 begin
-  lblClientBOProducts.Caption := NewCaption;
+  lblClientBOProducts.Caption := bkBranding.Rebrand(NewCaption);
 end;
 
 procedure TfrmClientDetails.SetUpHelp;

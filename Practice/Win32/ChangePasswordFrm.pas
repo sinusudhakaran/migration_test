@@ -34,6 +34,7 @@ type
     procedure eNewKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
     procedure FormShow(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
   private
     { Private declarations }
     FLoginState: TBankLinkOnlineLoginState;    
@@ -64,7 +65,7 @@ uses
   InfoMoreFrm,
   progress,
   Globals,
-  IniSettings;
+  IniSettings, bkBranding;
 
 {$R *.dfm}
 
@@ -159,6 +160,11 @@ begin
     end;
     CanClose := ValidateLoginDetails;
   end;
+end;
+
+procedure TChangePasswordForm.FormCreate(Sender: TObject);
+begin
+  lblNote.Caption := bkBranding.Rebrand(lblNote.Caption);
 end;
 
 procedure TChangePasswordForm.FormShow(Sender: TObject);

@@ -15,6 +15,7 @@ object frmTransactionsToBankLinkOnline: TfrmTransactionsToBankLinkOnline
   KeyPreview = True
   OldCreateOrder = False
   Position = poOwnerFormCenter
+  OnCreate = FormCreate
   OnKeyPress = FormKeyPress
   OnShow = FormShow
   PixelsPerInch = 96

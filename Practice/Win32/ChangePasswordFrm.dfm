@@ -14,6 +14,7 @@ object ChangePasswordForm: TChangePasswordForm
   OldCreateOrder = False
   Position = poScreenCenter
   OnCloseQuery = FormCloseQuery
+  OnCreate = FormCreate
   OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 13
@@ -25,10 +26,6 @@ object ChangePasswordForm: TChangePasswordForm
     Align = alClient
     BevelOuter = bvNone
     TabOrder = 3
-    ExplicitLeft = 8
-    ExplicitTop = 248
-    ExplicitWidth = 475
-    ExplicitHeight = 49
     DesignSize = (
       482
       62)
@@ -63,7 +60,6 @@ object ChangePasswordForm: TChangePasswordForm
     Align = alTop
     BevelOuter = bvNone
     TabOrder = 1
-    ExplicitWidth = 491
     object lblCurrent: TLabel
       Left = 16
       Top = 11
@@ -89,7 +85,6 @@ object ChangePasswordForm: TChangePasswordForm
     Align = alTop
     BevelOuter = bvNone
     TabOrder = 0
-    ExplicitWidth = 491
     object lblSubdomain: TLabel
       Left = 16
       Top = 19
@@ -127,7 +122,6 @@ object ChangePasswordForm: TChangePasswordForm
     Align = alTop
     BevelOuter = bvNone
     TabOrder = 2
-    ExplicitWidth = 491
     object lblNew: TLabel
       Left = 16
       Top = 11
@@ -184,8 +178,6 @@ object ChangePasswordForm: TChangePasswordForm
       Default = True
       ModalResult = 1
       TabOrder = 0
-      ExplicitLeft = 319
-      ExplicitTop = 14
     end
     object btnCancel: TButton
       Left = 399
@@ -197,8 +189,6 @@ object ChangePasswordForm: TChangePasswordForm
       Caption = 'Cancel'
       ModalResult = 2
       TabOrder = 1
-      ExplicitLeft = 408
-      ExplicitTop = 14
     end
   end
 end

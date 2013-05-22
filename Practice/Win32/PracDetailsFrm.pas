@@ -248,7 +248,7 @@ uses
   RequestRegFrm,
   ServiceAgreementDlg,
   UpdateMF,
-  commctrl;
+  commctrl, bkBranding;
 
 const
   UnitName = 'PRACDETAILSFRM';
@@ -274,15 +274,15 @@ begin
 
   bkXPThemes.ThemeForm( Self);
 
-  lblConnect.caption := BCONNECTNAME+' &Code';
+  lblConnect.caption := bkBranding.BConnectName +' &Code';
 
   // btnLoadFolder.Glyph := ImagesFrm.AppImages.imgFindStates.Picture.Bitmap;
   ImagesFrm.AppImages.Misc.GetBitmap(MISC_FINDFOLDER_BMP,btnLoadFolder.Glyph);
   ImagesFrm.AppImages.Misc.GetBitmap(MISC_FINDFOLDER_BMP,btnSaveFolder.Glyph);
   ImagesFrm.AppImages.Misc.GetBitmap(MISC_FINDFOLDER_BMP,btnTaxFolder.Glyph);
   SetUpHelp;
-  lblLogoBitmapNote.Caption   := 'Note: This image will be added to ' + glConst.ECODING_APP_NAME + ' files and ' +
-                               BKBOOKSNAME + ' files';
+  lblLogoBitmapNote.Caption   := 'Note: This image will be added to ' + bkBranding.ECodingDisplayName + ' files and ' +
+                               bkBranding.BKBooksProductName + ' files';
 
   ImagesFrm.AppImages.Maintain.GetBitmap(MAINTAIN_PREVIEW_BMP,btnBrowseLogoBitmap.Glyph);
   ChangingDiskID := false;
@@ -293,6 +293,10 @@ begin
   FPreviousPage := 0;
 
   FEnablingBankLinkOnline := False;
+
+  tsBankLinkOnline.Caption := bkBranding.Rebrand(tsBankLinkOnline.Caption);
+  lblSelectProducts.Caption := bkBranding.Rebrand(lblSelectProducts.Caption);
+  ckUseBankLinkOnline.Caption := bkBranding.Rebrand(ckUseBankLinkOnline.Caption);
 end;
 
 function TfrmPracticeDetails.GetVendorExportName(VendorExportGuid: TBloGuid; PracticeVendorExports: TBloDataPlatformSubscription): String;

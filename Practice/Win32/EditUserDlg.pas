@@ -212,7 +212,7 @@ uses
   RegExprUtils,
   PickNewPrimaryUser,
   progress,
-  AuthenticationFailedFrm;
+  AuthenticationFailedFrm, bkBranding;
 
 Const
   UNITNAME = 'EDITUSERDLG';
@@ -237,6 +237,11 @@ begin
     cmbUserType.Items.Add(ustNames[UserTypeIndex]);
 
   ShowEnterPassword;
+
+  Label13.Caption := bkBranding.Rebrand(Label13.Caption);
+  chkCanAccessBankLinkOnline.Caption := bkBranding.Rebrand(chkCanAccessBankLinkOnline.Caption);
+  radCreateNewOnlineUser.Caption := bkBranding.Rebrand(radCreateNewOnlineUser.Caption);
+  radLinkExistingOnlineUser.Caption := bkBranding.Rebrand(radLinkExistingOnlineUser.Caption);
 End;
 
 procedure TdlgEditUser.FormDestroy(Sender: TObject);

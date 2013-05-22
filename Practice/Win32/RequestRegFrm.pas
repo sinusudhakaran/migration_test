@@ -42,6 +42,7 @@ type
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
     procedure cbAdminNameChange(Sender: TObject);
     procedure FormShow(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
   private
     m_ServiceAgreementVersion: String;
     m_ServiceAgreementSignee: String;
@@ -65,7 +66,7 @@ uses
   WarningMoreFrm,
   MailFrm,
   LogUtil,
-  Admin32;
+  Admin32, bkBranding;
 
 {$R *.dfm}
 //------------------------------------------------------------------------------
@@ -129,6 +130,13 @@ begin
       end;
     end;
   end;
+end;
+
+procedure TRequestregForm.FormCreate(Sender: TObject);
+begin
+  Caption := bkBranding.Rebrand(Caption);
+  lblSecureCode.Caption := bkBranding.Rebrand(lblSecureCode.Caption);
+  lblInfo.Caption := bkBranding.Rebrand(lblInfo.Caption);
 end;
 
 //------------------------------------------------------------------------------

@@ -123,7 +123,6 @@ type
     actUpdateProcessing: TAction;
     PnlLogo: TRzPanel;
     imgLogo: TImage;
-    imgRight: TImage;
     lblCount: TLabel;
     pnlClose: TPanel;
     btnClose: TButton;
@@ -169,6 +168,7 @@ type
     pnlLegendA: TPanel;
     actICAF: TAction;
     actAccountStatus: TAction;
+    imgRight: TImage;
     procedure FormCreate(Sender: TObject);
     procedure FormShow(Sender: TObject);
 
@@ -584,6 +584,14 @@ begin
   if not ProductConfigService.OnLine then
     LogUtil.LogMsg(lmError, UnitName, 'Cannot connect to Banklink Online');
 
+
+  imgCannotConnect.Hint := bkBranding.Rebrand(imgCannotConnect.Hint);
+  lblCannotConnect.Hint := bkBranding.Rebrand(lblCannotConnect.Hint);
+  lblCannotConnect.Caption := bkBranding.Rebrand(lblCannotConnect.Caption);
+  actDataAvailable.Caption := bkBranding.Rebrand(actDataAvailable.Caption);
+  actBOSettings.Caption := bkBranding.Rebrand(actBOSettings.Caption);
+
+  PnlLogo.GradientColorStop := RGB(0,171,197);
 end;
 
 //------------------------------------------------------------------------------

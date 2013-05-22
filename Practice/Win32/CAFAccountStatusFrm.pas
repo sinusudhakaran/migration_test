@@ -63,6 +63,8 @@ var
 
 implementation
 
+uses bkBranding;
+
 {$R *.dfm}
 
 { TForm1 }
@@ -179,6 +181,8 @@ begin
   lvAccountStatus.NodeDataSize := SizeOf(TNodeData);
   
   cmbAccountFilter.ItemIndex := 0;
+
+  Label1.Caption := bkBranding.Rebrand(Label1.Caption);
 end;
 
 procedure TfrmCAFAccountStatus.FormKeyPress(Sender: TObject; var Key: Char);

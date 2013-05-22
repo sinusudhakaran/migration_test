@@ -55,7 +55,8 @@ procedure PerformDocCreation(WordObj: TOpWord; var LoseFocus: Boolean);
 implementation
 
 uses ImagesFrm, WarningMoreFrm, ErrorMoreFrm, InfoMoreFrm, YesNoDlg, Globals, WinUtils,
-  GlobalDirectories, bkXPThemes, progress, LogUtil, bkHelp, ShellAPI;
+  GlobalDirectories, bkXPThemes, progress, LogUtil, bkHelp, ShellAPI,
+  bkBranding;
 
 {$R *.dfm}
 
@@ -234,6 +235,8 @@ begin
   bkXPThemes.ThemeForm(Self);
   btnFromFile.Glyph := ImagesFrm.AppImages.imgFindStates.Picture.Bitmap;
   ImagesFrm.AppImages.Misc.GetBitmap(MISC_FINDFOLDER_BMP,btnToFile.Glyph);
+
+  Label5.Caption := bkBranding.Rebrand(Label5.Caption);
 end;
 
 // Browse for saved doc

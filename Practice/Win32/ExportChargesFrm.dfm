@@ -83,7 +83,7 @@ object frmExportCharges: TfrmExportCharges
       Height = 21
       Hint = 'Choose the charges month to export'
       Style = csDropDownList
-      ItemHeight = 0
+      ItemHeight = 13
       TabOrder = 0
       OnChange = cmbMonthsChange
     end

@@ -44,7 +44,8 @@ var
 implementation
 
 uses
-  AccountLookupFrm, imagesfrm, STDHINTS, bkConst, Globals, BKDEFS, bkMaskUtils;
+  AccountLookupFrm, imagesfrm, STDHINTS, bkConst, Globals, BKDEFS, bkMaskUtils,
+  bkBranding;
   
 {$R *.dfm}
 
@@ -89,6 +90,8 @@ begin
   sbtnChart.Hint := ChartLookupHint;
 
   FRemovingMask := False;
+
+  lblMessage.Caption := bkBranding.Rebrand(lblMessage.Caption);
 end;
 
 function TfrmContraCodeEntry.GetBankAccountName: String;

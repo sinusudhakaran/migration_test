@@ -78,6 +78,7 @@ type
     procedure rbActiveMouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
     procedure grpDefaultClientAdministratorClick(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
   private
     fOkPressed : Boolean;
     fBusyKeyPress : Boolean;
@@ -157,7 +158,8 @@ uses
   RegExprUtils,
   GenUtils,
   BlopiServiceFacade,
-  BkHelp;
+  BkHelp,
+  bkBranding;
 
 const
   UnitName = 'BanklinkOnlineSettingsFrm';
@@ -275,6 +277,14 @@ begin
     else
       fOkPressed := false;
   end;
+end;
+
+procedure TfrmBanklinkOnlineSettings.FormCreate(Sender: TObject);
+begin
+  Caption := bkBranding.Rebrand(Caption);
+  chkDeliverData.Caption := bkBranding.Rebrand(chkDeliverData.Caption);
+  lblSecureCode.Caption := bkBranding.Rebrand(lblSecureCode.Caption);
+  lblSelectProducts.Caption := bkBranding.Rebrand(lblSelectProducts.Caption);
 end;
 
 procedure TfrmBanklinkOnlineSettings.FormDestroy(Sender: TObject);

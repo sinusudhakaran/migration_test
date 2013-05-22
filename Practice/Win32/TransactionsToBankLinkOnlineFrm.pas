@@ -24,6 +24,7 @@ type
     procedure BtnCalClick(Sender: TObject);
     procedure FormKeyPress(Sender: TObject; var Key: Char);
     procedure FormShow(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
   private
     FMaxExportableDate: TStDate;
     
@@ -45,7 +46,7 @@ implementation
 
 uses
   OvcDate, ImagesFrm, Globals, StDateSt, GenUtils, RzPopups, WarningMoreFrm, YesNoDlg, ModalProgressFrm, ModalDualProgressFrm, BanklinkOnlineServices, InfoMoreFrm, ErrorMoreFrm,
-  LOGUTIL;
+  LOGUTIL, bkBranding;
 
 {$R *.dfm}
 
@@ -169,6 +170,12 @@ begin
   ExportOptions.ExportChartOfAccounts := chkExportChartOfAccounts.Checked;
 
   TBankLinkOnlineTaggingServices.ExportTaggedAccounts(ProductConfigService.CachedPractice, ExportOptions, ProgressForm, FExportStatistics, FDataExportError, FErrorDetails);
+end;
+
+procedure TfrmTransactionsToBankLinkOnline.FormCreate(Sender: TObject);
+begin
+  Caption := bkBranding.Rebrand(Caption);
+  Label1.Caption := bkBranding.Rebrand(Label1.Caption);
 end;
 
 procedure TfrmTransactionsToBankLinkOnline.FormKeyPress(Sender: TObject;

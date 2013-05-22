@@ -202,7 +202,8 @@ uses
   ImagesFrm, Globals, bkConst, YesNoDlg, WarningMoreFrm, ErrorMoreFrm, ComObj,
   InfoMoreFrm, WinUtils, GenUtils, bkXPThemes, ShellUtils, Admin32,
   NewReportUtils, NewReportObj, RepCols, LogUtil, sysbio, RptAdmin, bkHelp,
-  BillingdocReaderFrm, bkDateUtils, StDate, EnterPwdDlg, glConst;
+  BillingdocReaderFrm, bkDateUtils, StDate, EnterPwdDlg, glConst,
+  bkBranding;
 
 {$R *.dfm}
 
@@ -500,6 +501,8 @@ begin
   eSetFixed.AsFloat := Money2Double(AdminSystem.fdFields.fdSet_Fixed_Dollar_Amount);
   rbSetFixed.Checked := eSetFixed.AsFloat <> 0.0;
   chkFixed.Checked := (eDistribute.AsFloat <> 0.0) or (eAddFixed.AsFloat <> 0.0) or (eSetFixed.AsFloat <> 0.0);
+
+  tgCharges.Col[colOriginalCharge].Heading := bkBranding.Rebrand(tgCharges.Col[colOriginalCharge].Heading);
 end;
 
 procedure TfrmExportCharges.FormDestroy(Sender: TObject);

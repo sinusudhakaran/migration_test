@@ -53,7 +53,7 @@ uses
    BKHelp,
    bkXPThemes,
    GenUtils,
-   stDate;
+   stDate, bkBranding;
 
 
 procedure TfrmDeleteRequest.btnOKClick(Sender: TObject);
@@ -94,6 +94,8 @@ begin
    bkXPThemes.ThemeForm(Self);
    EDate.AsStDate := CurrentDate;
     Image1.Picture := AppImages.InfoBmp.Picture;
+
+   LDelete.Caption := bkBranding.Rebrand(LDelete.Caption);
 end;
 
 procedure TfrmDeleteRequest.SetDoRequest(const Value: boolean);

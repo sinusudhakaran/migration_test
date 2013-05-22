@@ -13,6 +13,7 @@ type
     Label1: TLabel;
     edtSecureCode: TEdit;
     procedure Button1Click(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
   private
     function GetSecureCode: String;
     { Private declarations }
@@ -28,7 +29,7 @@ var
 implementation
 
 uses
-  WarningMoreFrm;
+  WarningMoreFrm, bkBranding;
   
 {$R *.dfm}
 
@@ -46,6 +47,12 @@ begin
 
     edtSecureCode.SetFocus;
   end;
+end;
+
+procedure TfrmBankLinkSecureCode.FormCreate(Sender: TObject);
+begin
+  Caption := bkBranding.Rebrand(Caption);
+  Label1.Caption := bkBranding.Rebrand(Label1.Caption);
 end;
 
 function TfrmBankLinkSecureCode.GetSecureCode: String;

@@ -47,13 +47,15 @@ implementation
 {$R *.DFM}
 
 uses
-  bkXPThemes;
+  bkXPThemes, bkBranding;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TdlgSchedReportEmail.FormCreate(Sender: TObject);
 begin
   inherited;
   //bkXPThemes.ThemeForm( Self); in OKCancel
+
+  edtSubject.Text := bkBranding.Rebrand(edtSubject.Text);
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function EditScheduledReportsMessage( Title : string;

@@ -155,7 +155,8 @@ uses
   BAObj32,
   StDate,
   ReportDefs,
-  CustomDocEditorFrm, UBatchBase;
+  CustomDocEditorFrm, UBatchBase,
+  bkBranding;
 
 {$R *.DFM}
 
@@ -673,8 +674,8 @@ begin
   if cmbPeriod.Items.Count > 0 then cmbPeriod.ItemIndex := 0;
   SetUpHelp;
 
-  rbToEcoding.Caption := '&' + glConst.ECODING_APP_NAME;
-  btnECodingSetup.caption  := glConst.ECODING_APP_NAME + ' Op&tions';
+  rbToEcoding.Caption := '&' + bkBranding.ECodingDisplayName;
+  btnECodingSetup.caption  := bkBranding.ECodingDisplayName + ' Op&tions';
 
   rbToWebX.Caption := '&' + glConst.WEBX_GENERIC_APP_NAME + ' File';
   btnWebXSetup.Caption :=  glConst.WEBX_GENERIC_APP_NAME + ' Opt&ions';
@@ -684,6 +685,9 @@ begin
 
   ClientToUse := nil;
   LoadCustomDocuments;
+
+  rbCheckOut.Caption := bkBranding.Rebrand(rbCheckOut.Caption);
+  rbCheckoutOnline.Caption := bkbranding.Rebrand(rbCheckoutOnline.Caption);
 end;
 
 //------------------------------------------------------------------------------

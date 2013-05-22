@@ -48,7 +48,7 @@ implementation
 {$R *.dfm}
 
 uses
-  bkConst, Globals, ShellAPI;
+  bkConst, Globals, ShellAPI, bkBranding;
 
 procedure TfrmSendProvAccRequest.btnSubmitClick(Sender: TObject);
 begin
@@ -123,6 +123,7 @@ begin
     lblCurrencyWarning.Visible := true;
   end;
 
+  chkReadTerms.Caption := bkBranding.Rebrand(chkReadTerms.Caption);
 end;
 
 procedure TfrmSendProvAccRequest.FormShow(Sender: TObject);

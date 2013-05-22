@@ -52,7 +52,8 @@ var
 implementation
 
 uses
-  AccountLookupFrm, imagesfrm, STDHINTS, bkConst, Globals, BKDEFS, bkMaskUtils, ForexHelpers, WarningMoreFrm;
+  AccountLookupFrm, imagesfrm, STDHINTS, bkConst, Globals, BKDEFS, bkMaskUtils, ForexHelpers, WarningMoreFrm,
+  bkBranding;
   
 {$R *.dfm}
 
@@ -99,6 +100,8 @@ begin
   sbtnChart.Hint := ChartLookupHint;
 
   FRemovingMask := False;
+
+  lblMessage.Caption := bkBranding.Rebrand(lblMessage.Caption);
 end;
 
 procedure TfrmExchangeGainLossCodeEntry.FormKeyDown(Sender: TObject;

@@ -27,6 +27,7 @@ type
     lblOnlineCaption02: TLabel;
     btnResetPassword: TButton;
     procedure btnResetPasswordClick(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
   private
     fEmail : String;
     fPasswordReset : boolean;
@@ -47,7 +48,7 @@ implementation
 {$R *.dfm}
 
 uses
-  BankLinkOnlineServices;
+  BankLinkOnlineServices, bkBranding;
 
 { TfrmBankLinkOnlinePassword }
 //------------------------------------------------------------------------------
@@ -61,6 +62,13 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+procedure TfrmOnlinePassword.FormCreate(Sender: TObject);
+begin
+  Caption := bkBranding.Rebrand(Caption);
+  lblOnlineCaption01.Caption := bkBranding.Rebrand(lblOnlineCaption01.Caption);
+  lblOnlineCaption02.Caption := bkBranding.Rebrand(lblOnlineCaption02.Caption);
+end;
+
 function TfrmOnlinePassword.GetPassword: String;
 begin
   Result := edtPassword.Text;

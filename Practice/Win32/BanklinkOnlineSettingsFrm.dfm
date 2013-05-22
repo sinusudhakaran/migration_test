@@ -18,6 +18,7 @@ object frmBanklinkOnlineSettings: TfrmBanklinkOnlineSettings
   Scaled = False
   ShowHint = True
   OnCloseQuery = FormCloseQuery
+  OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnKeyDown = FormKeyDown
   OnShow = FormShow

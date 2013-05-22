@@ -14,6 +14,7 @@ object RequestregForm: TRequestregForm
   OldCreateOrder = False
   Position = poScreenCenter
   OnCloseQuery = FormCloseQuery
+  OnCreate = FormCreate
   OnShow = FormShow
   DesignSize = (
     549

@@ -215,7 +215,7 @@ uses
   //ReportStylesDlg,
   ChangePwdDlg, EnterPwdDlg, bkdateutils,
   Registry,
-  StrUtils, LOGUTIL;
+  StrUtils, LOGUTIL, bkBranding;
 
 {$R *.dfm}
 
@@ -340,6 +340,9 @@ begin
     Panel1.Top                         := Panel1.Top - 29;
     AdminSystem.fdFields.fdForce_Login := True;
   end;
+
+  chkUsage.Caption := bkBranding.Rebrand(chkUsage.Caption);
+  lOnline.Caption := bkBranding.Rebrand(lOnline.Caption);
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TdlgAdminOptions.LoadSettingsFromAdmin;
@@ -414,7 +417,7 @@ begin
   end;
 
    // Could hide and or make disabled, Comes from Webservice...
-  lOnline.Caption := format('&%s',[BankLinkLiveName]);
+  lOnline.Caption := bkBranding.Rebrand(format('&%s',[BankLinkLiveName]));
   EOnlineLink.Text := PRACINI_OnlineLink;
 
 

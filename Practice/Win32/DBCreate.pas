@@ -58,7 +58,7 @@ uses
    WarningMoreFrm,
    InfoMoreFrm,
    ErrorMoreFrm,
-   WinUtils;
+   WinUtils, bkBranding;
 
 const
    DBCreateCLP = '/DBCREATE';             //Command Line Parameter
@@ -83,6 +83,9 @@ begin
       Caption := Format( Caption,[ JustPathnameL( Application.ExeName ) ] );
    end;
    SetUpHelp;
+
+   Caption := bkBranding.Rebrand(Caption);
+   Label3.Caption := bkBranding.Rebrand(Label3.Caption);
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmDBCreate.SetUpHelp;

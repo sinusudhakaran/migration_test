@@ -138,7 +138,8 @@ uses
   DesktopSuper_Utils,
   BankLinkOnlineServices,
   BlopiServiceFacade,
-  BanklinkOnlineSettingsFrm;
+  BanklinkOnlineSettingsFrm,
+  bkBranding;
 
 const
   UnitName = 'PRACDETAILSFRM';
@@ -160,6 +161,8 @@ begin
    //btnCheckBankManID.Left := eTo.Left;
 
    eMask.MaxLength := BKCONST.MaxBK5CodeLen;
+
+   btnCheckBankManID.Caption := bkBranding.Rebrand(btnCheckBankManID.Caption);
 
    SetUpHelp;
 end;

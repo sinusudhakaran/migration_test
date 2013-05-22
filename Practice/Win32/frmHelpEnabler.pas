@@ -119,6 +119,8 @@ begin
   path := GetCurrentExePath;
   edtFilename.Text := Path + 'guide.chm';
   opendialog1.InitialDir := Path;
+
+  Caption := bkBranding.Rebrand(Caption);
 end;
 
 end.

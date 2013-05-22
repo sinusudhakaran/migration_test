@@ -17,7 +17,7 @@ unit bkBranding;
 
 interface
 uses
-  Windows, Graphics;
+  Windows, Graphics, StrUtils, SysUtils;
 
 type
   TImageSet = ( imPractice, imBooks, imOther, imDLL);
@@ -66,7 +66,13 @@ var
   function DownloadDiskImageBanner: TPicture;
   function BankstreamLogo: TPicture;
 
-  function ProductTitle: String;
+  function ProductName: String;
+  function BKBooksProductName: String;
+  function ECodingDisplayName: String;
+  function NotesOnlineProductName: String;
+  function BConnectName: String;
+
+  function Rebrand(Value: String): String;
 
 
   function GetCountry: Byte;
@@ -442,7 +448,7 @@ begin
   end;
 end;
 
-function ProductTitle: String;
+function ProductName: String;
 begin
   if GetCountry = whUK then
   begin
@@ -453,6 +459,31 @@ begin
     Result := 'BankLink';
   end;
 end;
+
+function BKBooksProductName: String;
+begin
+  Result := Format('%s Books', [ProductName]);
+end;
+
+function ECodingDisplayName: String;
+begin
+  Result := Format('%s Notes', [ProductName]);
+end;
+
+function NotesOnlineProductName: String;
+begin
+  Result := Format('%s Notes Online', [ProductName]);
+end;
+function Rebrand(Value: String): String;
+begin
+  Result := AnsiReplaceText(Value, 'BankLink', ProductName);
+end;
+
+function BConnectName: String;
+begin
+  Result := Format('%s Secure', [ProductName]);
+end;
+
 initialization
   Is256Color := false;
   BrandingImageSet := imOther;

@@ -1217,6 +1217,13 @@ begin
 
   UPDATEMF.UpdateMenus;
   UPDATEMF.UpdateSystemMenus;
+
+  tbOnline.Caption := bkBranding.Rebrand(tbOnline.Caption);
+  mnsSystemStartNewMonth.Caption := bkBranding.Rebrand(mnsSystemStartNewMonth.Caption);
+  mniExportdatatoBanklinkOnline.Caption := bkBranding.Rebrand(mniExportdatatoBanklinkOnline.Caption);
+  actSendViaOnline.Caption := bkBranding.Rebrand(actSendViaOnline.Caption);
+  actGetFromOnline.Caption := bkBranding.Rebrand(actGetFromOnline.Caption); 
+
   Screen.OnActiveFormChange := ActiveFormChange;
   if DebugMe then LogUtil.LogMsg(lmDebug,unitname,'Form Created');
 end;

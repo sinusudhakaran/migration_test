@@ -22,6 +22,7 @@ type
     procedure FormResize(Sender: TObject);
     procedure chkConfirmationClick(Sender: TObject);
     procedure btnOKClick(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
   private
     { Private declarations }
     function Execute(out Version, SigneeName, SigneeTitle: String): Boolean;
@@ -38,7 +39,7 @@ implementation
 {$R *.dfm}
 
 uses
-  BankLinkOnlineServices, LogUtil, ErrorMoreFrm;
+  BankLinkOnlineServices, LogUtil, ErrorMoreFrm, bkBranding;
 
 function ServiceAgreementAccepted(out Version, SigneeName, SigneeTitle: String): Boolean;
 var
@@ -105,6 +106,11 @@ begin
     
     Result := True;
   end;
+end;
+
+procedure TfrmServiceAgreement.FormCreate(Sender: TObject);
+begin
+  Label2.Caption := bkBranding.Rebrand(Label2.Caption);
 end;
 
 procedure TfrmServiceAgreement.FormResize(Sender: TObject);
