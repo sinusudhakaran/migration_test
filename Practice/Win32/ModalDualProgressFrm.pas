@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, RzPrgres, ExtCtrls, OSFont, Progress;
+  Dialogs, StdCtrls, RzPrgres, ExtCtrls, OSFont, Progress, bkBranding;
 
 const
   UM_START_PROCESS = WM_USER + 1;
@@ -153,8 +153,8 @@ begin
   ProgressForm := TfrmModalDualProgress.Create(Owner);
 
   try
-    ProgressForm.Caption := Caption;
-    ProgressForm.Title := Title;
+    ProgressForm.Caption := bkBranding.Rebrand(Caption);
+    ProgressForm.Title := bkBranding.Rebrand(Title);
     ProgressForm.OnStartProcess := OnStartProcessHandler;
     ProgressForm.PopupParent := Owner;
     ProgressForm.PopupMode := pmExplicit;
@@ -270,7 +270,7 @@ procedure TProgressIndicator.UpdateProgress(const ProgressLabel: String; StepSiz
 var
   Remainder: Double;
 begin
-  FProgressLabel.Caption := ProgressLabel;
+  FProgressLabel.Caption := bkBranding.Rebrand(ProgressLabel);
 
   if not FProgressLabel.Visible then
   begin
@@ -295,7 +295,7 @@ procedure TProgressIndicator.UpdateProgressLabel(const ProgressLabel: String);
 begin
   if Assigned(FProgressLabel) then
   begin
-    FProgressLabel.Caption := ProgressLabel;
+    FProgressLabel.Caption := bkBranding.Rebrand(ProgressLabel);
 
     if not FProgressLabel.Visible then
     begin
