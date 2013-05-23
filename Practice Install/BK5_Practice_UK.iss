@@ -28,7 +28,6 @@ Source: "Bin\bkinstall.exe"; DestDir: "{app}"
 Source: "Bin\bkupgcor.dll"; DestDir: "{app}"
 Source: "Bin\*.INF"; DestDir: "{app}"
 Source: "Bin\Institutions.dat"; DestDir: "{app}"
-Source: "Bin\app_uk.ini; DestDir: "{app}"; DestName: "app.ini"
 
 Source: "Practice Help\guide_uk.chm"; DestDir: "{app}"; DestName: "guide.chm"
 
