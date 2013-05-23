@@ -18,7 +18,8 @@ uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
   ComCtrls, StdCtrls, ExtCtrls, RzPrgres,
   bkXPThemes,
-  OSFont;
+  OSFont,
+  bkBranding;
 
 type
   TfrmStatus = class(TForm)
@@ -97,8 +98,8 @@ begin
      Self.Hide;
    end;
 
-   lblLine1.caption  := Msg1;
-   lblLine2.caption  := Msg2;
+   lblLine1.caption  := bkBranding.Rebrand(Msg1);
+   lblLine2.caption  := bkBranding.Rebrand(Msg2);
 
    if (Perc >= 0) and (Perc <= 100) then begin
      pbarAppStatus.percent := round(Perc);
