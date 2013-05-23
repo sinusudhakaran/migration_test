@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, RzPrgres, ExtCtrls, OSFont, Progress;
+  Dialogs, StdCtrls, RzPrgres, ExtCtrls, OSFont, Progress, bkBranding;
 
 const
   UM_START_PROCESS = WM_USER + 1;
@@ -135,7 +135,7 @@ end;
 
 procedure TfrmModalProgress.UpdateProgressLabel(const ProgressLabel: String);
 begin
-  lblProgress.Caption := ProgressLabel;
+  lblProgress.Caption := bkBranding.Rebrand(ProgressLabel);
 
   if not lblProgress.Visible then
   begin
@@ -180,8 +180,8 @@ begin
   ProgressForm := TfrmModalProgress.Create(Owner);
 
   try
-    ProgressForm.Caption := Caption;
-    ProgressForm.Title := Title;
+    ProgressForm.Caption := bkBranding.Rebrand(Caption);
+    ProgressForm.Title := bkBranding.Rebrand(Title);
     ProgressForm.OnStartProcess := OnStartProcessHandler;
     ProgressForm.PopupParent := Owner;
     ProgressForm.PopupMode := pmExplicit;
@@ -199,8 +199,8 @@ begin
   ProgressForm := TfrmModalProgress.Create(Owner);
 
   try
-    ProgressForm.Caption := Caption;
-    ProgressForm.Title := Title;
+    ProgressForm.Caption := bkBranding.Rebrand(Caption);
+    ProgressForm.Title := bkBranding.Rebrand(Title);
     ProgressForm.ProgressData := ProgressData;
     ProgressForm.RaiseException := False;
     ProgressForm.OnStartProcessEx := OnStartProcessHandlerEx;
@@ -267,7 +267,7 @@ procedure TfrmModalProgress.UpdateProgress(const ProgressLabel: String; StepSize
 var
   Remainder: Double;
 begin
-  lblProgress.Caption := ProgressLabel;
+  lblProgress.Caption := bkBranding.Rebrand(ProgressLabel);
 
   if not lblProgress.Visible then
   begin
