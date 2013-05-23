@@ -1758,7 +1758,12 @@ begin
 {$else}
     Top := imgLogo.Top - (lblVersion.Height + 2);
 {$endif}
-    Left := TForm(Sender).ClientWidth - (lblVersion.Width + GetSystemMetrics( SM_CXVSCROLL ) + 8);
+   if bkBranding.GetProductBrand = btBankstream then
+   begin
+     Top := imgLogo.Top + 2;
+   end;
+   
+   Left := TForm(Sender).ClientWidth - (lblVersion.Width + GetSystemMetrics( SM_CXVSCROLL ) + 8);
   end;
 
   if not bkBranding.Is256Color then
