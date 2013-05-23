@@ -701,16 +701,33 @@ begin
    lblNavLevel2.Top := lblHome.Top;
    lblNavLevel3.Top := lblHome.Top;
 
-   pnlExtraTitleBar.GradientColorStart := clWhite; //bkBranding.TobBarStartColor;
-   pnlExtraTitleBar.GradientColorStop  := clGray;  //bkBranding.TopBarStopColor;
+   bkBranding.StyleTopLeftImage(imgLeft); 
+   bkBranding.StyleSimpleUIRightBannerImage(imgRight); 
+   bkBranding.StyleSimpleUIBannerPanel(pnlExtraTitleBar);
+   
    pnlNavigator.Color := clGray;                   //bkBranding.TopBarStopColor;
    lblClientName.Font.Color := $00494949;          //bkBranding.TopTitleColor;
 
-   imgLeft.Picture := bkBranding.TopBannerImage;    
-   imgRight.Picture := bkBranding.ClientBanner;
-   pnlExtraTitleBar.Height := imgRight.Picture.Height;
-   lblClientName.Left := imgLeft.Width + 10;
-   lblCurrentPeriod.Left := imgLeft.Width + 10;
+   if bkBranding.GetCountry = whUK then
+   begin
+     pnlExtraTitleBar.Height := imgLeft.Picture.Height;
+   end
+   else
+   begin
+     pnlExtraTitleBar.Height := imgRight.Picture.Height;
+   end;
+
+   if bkBranding.GetCountry = whUK then
+   begin
+     lblClientName.Font.Color := clWhite;
+     lblClientName.Left := 10;
+     lblCurrentPeriod.Left := 10;
+   end
+   else
+   begin
+     lblClientName.Left := imgLeft.Width + 10;
+     lblCurrentPeriod.Left := imgLeft.Width + 10;
+   end;
 
    //see if a practice logo file has been loaded from the books file
    if frmMain.UsingCustomPracticeLogo then begin
@@ -723,7 +740,12 @@ begin
       imgRight.Transparent := True;
       imgRight.Picture := bkBranding.ClientBanner;
    end;
-   pnlExtraTitlebar.Height := Max( 45, imgRight.Height);
+
+   if bkBranding.GetCountry <> whUK then
+   begin
+     pnlExtraTitlebar.Height := Max( 45, imgRight.Height);
+   end;
+   
    //now center the clientname and current period labels
    hDiff := (pnlExtraTitlebar.height - lblClientName.Height - lblCurrentPeriod.Height - 4) div 2;
    lblClientName.Top := hDiff;

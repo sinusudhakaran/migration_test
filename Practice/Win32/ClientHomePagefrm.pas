@@ -883,10 +883,14 @@ begin
    //ClientTree.StateImages := AppImages.Maintain;
    //imgLeft.Picture := frmMain.imgLogo.Picture;
 
-   PnlTitle.GradientColorStart := bkBranding.TobBarStartColor;
-   PnlTitle.GradientColorStop  := bkBranding.TopBarStopColor;
-   lblClientName.Font.Color :=  TopTitleColor;
-   imgLeft.Picture := TopBannerImage;
+   if bkBranding.GetCountry = whUK then
+   begin
+     lblClientName.Font.Color := clWhite;
+   end
+   else
+   begin
+     lblClientName.Font.Color :=  TopTitleColor;
+   end;
 
    if frmMain.UsingCustomPracticeLogo then begin
       imgRight.AutoSize := False;
@@ -896,9 +900,9 @@ begin
       imgRight.Width := frmMain.imgPracticeLogo.Width;
       PnlTitle.Height := Max (imgLeft.Height ,  frmMain.imgPracticeLogo.Height);
    end else begin
-      imgRight.Transparent := True;
-      imgRight.Picture := bkBranding.ClientBanner;
-      PnlTitle.Height := bkBranding.ClientBanner.Height;
+     bkBranding.StyleMainBannerPanel(PnlTitle);
+     bkBranding.StyleTopLeftImage(imgLeft);
+     bkbranding.StyleTopRightImage(imgRight);
    end;
 
    lblClientName.Font.Name := Self.Font.Name;

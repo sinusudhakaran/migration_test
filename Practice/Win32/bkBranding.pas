@@ -17,7 +17,7 @@ unit bkBranding;
 
 interface
 uses
-  Windows, Graphics, StrUtils, SysUtils;
+  Windows, Graphics, StrUtils, SysUtils, ExtCtrls, RzPanel, RzCommon, Controls, StdCtrls;
 
 type
   TImageSet = ( imPractice, imBooks, imOther, imDLL);
@@ -32,7 +32,6 @@ var
 
   function ClientBanner : TPicture;
   function CodingBanner : TPicture;
-  function BannerLogo : TPicture;
   function BackgroundImage : TPicture;
   function AboutImage : TPicture;
 
@@ -54,10 +53,11 @@ var
   function GroupBackGroundStartColor: Integer;
   function GroupBackGroundStopColor: Integer;
 
+  function BannerColor: Integer;
   function TobBarStartColor: Integer;
   function TopBarStopColor: Integer;
   function TopTitleColor: Integer;
-
+  
   procedure InitialiseGraphicsAndColors( CanvasHandleToTest : hDC);
 
   function LoginScreenBanner: TPicture;
@@ -66,7 +66,20 @@ var
   function DownloadDiskImageBanner: TPicture;
   function BankstreamLogo: TPicture;
 
+  procedure StyleTopLeftImage(Image: TImage);
+  procedure StyleTopRightImage(Image: TImage);
+  procedure StyleMainBannerPanel(Panel: TRzPanel);
+  procedure StyleLoginImage(Image: TImage);
+  procedure StyleLoginBannerPanel(Panel: TPanel);
+  procedure StyleLoginVersionText(VersionLabel: TLabel);
+  procedure StyleBConnectBannerPanel(Panel: TPanel);
+  procedure StyleBConnectBannerImage(Image: TImage);
+  procedure StyleBooksBackgroundLogo(Image: TImage);
+  procedure StyleSimpleUIBannerPanel(Panel: TRzPanel);
+  procedure StyleSimpleUIRightBannerImage(Image: TImage);
+  
   function ProductName: String;
+  function ProductLiveName: String;
   function BKBooksProductName: String;
   function ECodingDisplayName: String;
   function NotesOnlineProductName: String;
@@ -120,7 +133,7 @@ begin
   end
   else
   begin
-    Result := whUK;
+    Result := whUK; //whNewZealand;
   end;
 end;
 
@@ -198,21 +211,6 @@ begin
     result := AppImages.imgBooksBanner_256.Picture
   else
     result := AppImages.imgBooksBanner_HiColor.Picture;
-end;
-
-function BannerLogo : TPicture;
-begin
-  if GetCountry = whUK then
-  begin
-   Result := AppImages.imgBankstreamBackgroundBanner.Picture;
-  end
-  else
-  begin
-    if Is256Color then
-      result := AppImages.imgBankLinkLogo256.Picture
-    else
-      result := AppImages.imgBankLinkLogoHiColor.Picture;
-  end;
 end;
 
 function BackgroundImage : TPicture;
@@ -335,17 +333,43 @@ begin
     Result := BKHICOLOR_FINANCIAL;
 end;
 
+function BannerColor: Integer;
+begin
+  if GetCountry = whUK then
+  begin
+    Result := RGB(0,55,122);
+  end
+  else
+  begin
+    Result := MainFormBackgroundColor;
+  end;
+end;
+
 function TobBarStartColor: Integer;
 begin
-  if Is256Color then
-    Result := MainFormBackgroundColor
+  if GetCountry = whUK then
+  begin
+    Result := BannerColor;
+  end
   else
-    Result := clWhite;
+  begin
+    if Is256Color then
+      Result := MainFormBackgroundColor
+    else
+      Result := clWhite;
+  end;
 end;
 
 function TopBarStopColor: Integer;
 begin
-   Result := MainFormBackgroundColor;
+  if GetCountry = whUK then
+  begin
+    Result := BannerColor;
+  end
+  else
+  begin
+    Result := MainFormBackgroundColor;
+  end;
 end;
 
 function TopTitleColor: Integer;
@@ -355,7 +379,6 @@ begin
    else
       Result :=  BKCOLOR_LOGOBLUE {BKHICOLOR_LOGOBLUE};
 end;
-
 
 function GroupBackGroundStartColor: Integer;
 begin
@@ -448,6 +471,40 @@ begin
   end;
 end;
 
+procedure StyleTopLeftImage(Image: TImage);
+begin
+  if GetCountry = whUK then
+  begin
+    Image.Margins.Top := 0;
+    Image.Margins.Bottom := 0;
+    Image.Margins.Left := 0;
+    Image.Margins.Right := 0;
+    Image.Proportional := False;
+    Image.Center := True;
+    Image.Visible := True;
+    Image.Align := alRight;
+  end;
+
+  Image.Picture := TopBannerImage;
+end;
+
+procedure StyleTopRightImage(Image: TImage);
+begin
+  if GetCountry = whUK then
+  begin
+    Image.Visible := False;
+    Image.Margins.Top := 0;
+    Image.Margins.Bottom := 0;
+    Image.Center := True;
+    Image.Align := alLeft;
+  end
+  else
+  begin
+    Image.Transparent := True;
+    Image.Picture := CodingBanner;
+  end;
+end;
+
 function ProductName: String;
 begin
   if GetCountry = whUK then
@@ -457,6 +514,118 @@ begin
   else
   begin
     Result := 'BankLink';
+  end;
+end;
+
+function ProductLiveName: String;
+begin
+  Result := Format('%s Online', [ProductName]);
+end;
+
+procedure StyleMainBannerPanel(Panel: TRzPanel);
+begin
+  if GetCountry = whUK then
+  begin
+    Panel.Color := BannerColor;
+    Panel.VisualStyle := vsClassic;
+  end
+  else
+  begin
+    Panel.Height := CodingBanner.Height;
+    Panel.GradientColorStart := clWhite;
+    Panel.GradientColorStop := BannerColor;
+  end;
+end;
+
+procedure StyleLoginImage(Image: TImage);
+begin
+  if GetCountry = whUK then
+  begin
+    Image.AutoSize := True;
+    Image.Align := alRight;
+  end;
+
+  Image.Picture := LoginScreenBanner;
+end;
+
+procedure StyleLoginBannerPanel(Panel: TPanel);
+begin
+  if GetCountry = whUK then
+  begin
+    Panel.ParentBackground := False;
+    Panel.Color := BannerColor;
+  end;
+end;
+
+procedure StyleLoginVersionText(VersionLabel: TLabel);
+begin
+  if GetCountry = whUK then
+  begin
+    VersionLabel.Align := alLeft;
+  end;
+end;
+
+procedure StyleBConnectBannerPanel(Panel: TPanel);
+begin
+  if GetCountry = whUK then
+  begin
+    StyleLoginBannerPanel(Panel);
+  end;
+end;
+
+procedure StyleBConnectBannerImage(Image: TImage);
+begin
+  if GetCountry = whUK then
+  begin
+    Image.Margins.Top := 0;
+    Image.Margins.Bottom := 0;
+    Image.Margins.Left := 0;
+    Image.Margins.Right := 0;
+    Image.Proportional := False;
+    Image.Center := True;
+    Image.Visible := True;
+    Image.Align := alRight;
+  end;
+end;
+
+procedure StyleBooksBackgroundLogo(Image: TImage);
+begin
+  if GetCountry = whUK then
+  begin
+   Image.Picture := AppImages.imgMainBackgroundLogo.Picture;
+  end
+  else
+  begin
+    if Is256Color then
+      Image.Picture := AppImages.imgBankLinkLogo256.Picture
+    else
+      Image.Picture := AppImages.imgBankLinkLogoHiColor.Picture;
+  end;  
+end;
+
+procedure StyleSimpleUIBannerPanel(Panel: TRzPanel);
+begin
+  if GetCountry = whUK then
+  begin
+    StyleMainBannerPanel(Panel);
+  end
+  else
+  begin
+    Panel.GradientColorStart := clWhite;
+    Panel.GradientColorStop  := clGray;
+  end;
+end;
+
+procedure StyleSimpleUIRightBannerImage(Image: TImage);
+begin
+  if GetCountry = whUK then
+  begin
+    bkBranding.StyleTopRightImage(Image);
+  end
+  else
+  begin
+   Image.Transparent := True;
+   Image.Picture := ClientBanner;
   end;
 end;
 

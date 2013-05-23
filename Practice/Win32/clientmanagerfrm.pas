@@ -545,14 +545,9 @@ begin
   GBClientmanager.GradientColorStop := bkBranding.GroupBackGroundStopColor;
   GBClientmanager.GradientColorStart := bkBranding.GroupBackGroundStartColor;
 
-  PnlLogo.GradientColorStart := bkBranding.TobBarStartColor;
-  PnlLogo.GradientColorStop  := bkBranding.TopBarStopColor;
-
-  imgLogo.Picture := TopBannerImage;
-
-  imgRight.Transparent := True;
-  imgRight.Picture := bkBranding.CodingBanner;
-  PnlLogo.Height := bkBranding.CodingBanner.Height;
+  bkBranding.StyleTopLeftImage(imgLogo);
+  bkBranding.StyleTopRightImage(imgRight);
+  bkBranding.StyleMainBannerPanel(PnlLogo);
 
   pnlFilter.Height := cmbFilter.ClientHeight + 7;
   Assert( icid_Max <= Globals.MAX_CLIENT_MANAGER_COLUMNS, 'icid_Max <= Globals.MAX_CLIENT_MANAGER_COLUMNS');
@@ -590,8 +585,6 @@ begin
   lblCannotConnect.Caption := bkBranding.Rebrand(lblCannotConnect.Caption);
   actDataAvailable.Caption := bkBranding.Rebrand(actDataAvailable.Caption);
   actBOSettings.Caption := bkBranding.Rebrand(actBOSettings.Caption);
-
-  PnlLogo.GradientColorStop := RGB(0,171,197);
 end;
 
 //------------------------------------------------------------------------------

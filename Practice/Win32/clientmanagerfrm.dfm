@@ -589,15 +589,16 @@ object frmClientManager: TfrmClientManager
     Align = alTop
     BorderOuter = fsNone
     BorderSides = []
+    Color = 8009472
     GradientColorStyle = gcsCustom
-    GradientColorStop = 8009472
+    GradientColorStop = 7829248
     TabOrder = 3
     VisualStyle = vsGradient
     object imgLogo: TImage
       AlignWithMargins = True
       Left = 8
       Top = 8
-      Width = 99
+      Width = 125
       Height = 17
       Margins.Left = 8
       Margins.Top = 8
@@ -607,19 +608,18 @@ object frmClientManager: TfrmClientManager
       Center = True
       Proportional = True
       Transparent = True
-      ExplicitLeft = 7
-      ExplicitTop = 7
-      ExplicitHeight = 20
+      ExplicitTop = 0
+      ExplicitHeight = 40
     end
     object imgRight: TImage
-      Left = 1119
+      Left = 1080
       Top = 0
-      Width = 86
+      Width = 125
       Height = 33
       Align = alRight
       AutoSize = True
       Transparent = True
-      ExplicitLeft = 618
+      ExplicitHeight = 40
     end
   end
   object pnlClose: TPanel

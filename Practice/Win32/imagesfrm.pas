@@ -72,6 +72,7 @@ type
     imgDownloadBankstreamLogo: TImage;
     imgBankstreamIcon: TImage;
     imgBankstreamBackgroundBanner: TImage;
+    imgMainBackgroundLogo: TImage;
     procedure FormCreate(Sender: TObject);
   private
 

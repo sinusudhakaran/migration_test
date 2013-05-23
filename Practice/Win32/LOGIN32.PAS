@@ -145,12 +145,15 @@ begin
   SuperPwd := '';
   SetUpHelp;
 
-  if not AppImages.CustomLoginBitmapLoaded then
+  StyleLoginVersionText(lblVersion);
+  
+  if (not AppImages.CustomLoginBitmapLoaded) then
   begin
     pnlStandardLogin.Visible := true;
     pnlImageBorder.Visible := false;
 
-    image1.Picture := LoginScreenBanner;
+    bkBranding.StyleLoginImage(image1);
+    bkBranding.StyleLoginBannerPanel(pnlStandardLogin);
   end
   else
   begin

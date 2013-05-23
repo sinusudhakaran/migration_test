@@ -1207,7 +1207,7 @@ begin
   rztCoding.Visible := false;
   rztBudget.Visible := false;
 
-  tbOnline.Caption := BankLinkLiveName;
+  tbOnline.Caption := bkBranding.ProductLiveName;
 
   mnsExportBNoteFile.Caption := 'Export ' + glConst.ECoding_App_Name + ' File';
   mnsImportBNotes.Caption    := 'Import ' + glConst.ECoding_App_Name + ' File';
@@ -1218,7 +1218,6 @@ begin
   UPDATEMF.UpdateMenus;
   UPDATEMF.UpdateSystemMenus;
 
-  tbOnline.Caption := bkBranding.Rebrand(tbOnline.Caption);
   mnsSystemStartNewMonth.Caption := bkBranding.Rebrand(mnsSystemStartNewMonth.Caption);
   mniExportdatatoBanklinkOnline.Caption := bkBranding.Rebrand(mniExportdatatoBanklinkOnline.Caption);
   actSendViaOnline.Caption := bkBranding.Rebrand(actSendViaOnline.Caption);
@@ -1463,8 +1462,9 @@ begin
   else
   begin
     Self.Color := bkBranding.MainFormBackgroundColor;
-    if ( bkBranding.BannerLogo <> nil) then
-      imgLogo.Picture := bkBranding.BannerLogo;
+
+    bkBranding.StyleBooksBackgroundLogo(imgLogo);
+
     if ( bkBranding.BackgroundImage <> nil) then
       image1.Picture := bkBranding.BackgroundImage;
   end;

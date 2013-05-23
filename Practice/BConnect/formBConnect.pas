@@ -97,7 +97,6 @@ type
     imgError: TImage;
     ilStep: TImageList;
     tmrProcess: TTimer;
-    imgHeader: TImage;
     RzPanel2: TRzPanel;
     btnSettings: TButton;
     btnConnect: TButton;
@@ -128,6 +127,8 @@ type
     pnlError2: TPanel;
     lblError: TLabel;
     lbErrors: TRzListBox;
+    pnlBanner: TPanel;
+    imgHeader: TImage;
 
     procedure actConnectExecute(Sender: TObject);
     procedure actCloseExecute(Sender: TObject);
@@ -374,7 +375,8 @@ uses
 {$IFEND}
    DlgSettings,
    formPassword,
-   UsageUtils;
+   UsageUtils,
+   bkBranding;
 
 {$R *.DFM}
 
@@ -467,6 +469,9 @@ begin
   Caption := ACaption;
   imgHeader.Picture := APicture;
   RzPanel1.Color    := APicture.Bitmap.TransparentColor;
+
+  bkBranding.StyleBConnectBannerPanel(pnlBanner);
+  bkBranding.StyleBConnectBannerImage(imgHeader); 
 
   FLog := TStringList.Create;
   FHeaders := TStringList.Create;

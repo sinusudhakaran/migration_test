@@ -5,7 +5,7 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, AdvGlassButton, ExtCtrls, RzPanel, OsFont, BkExGlassButton,
-  menus;
+  menus, bkConst;
 
 type
   TfrmSimpleUIOpen = class(TForm)
@@ -138,10 +138,19 @@ procedure TfrmSimpleUIOpen.FormCreate(Sender: TObject);
 var
   s  : string;
 begin
-   imgLeft.Picture := bkBranding.TopBannerImage;   
-   imgRight.Transparent := True;
-   imgRight.Picture := bkBranding.ClientBanner;
-   pnlExtraTitleBar.Height := imgRight.Picture.Height + 5;
+   bkBranding.StyleSimpleUIBannerPanel(pnlExtraTitleBar);
+   bkBranding.StyleTopLeftImage(imgLeft);
+   bkBranding.StyleSimpleUIRightBannerImage(imgRight);
+
+   if bkBranding.GetCountry = whUK then
+   begin
+     pnlExtraTitleBar.Height := imgLeft.Picture.Height;
+   end
+   else
+   begin
+     pnlExtraTitleBar.Height := imgRight.Picture.Height + 5;
+   end;
+
    SUIFrameHelper.InitButtonsOnGridPanel( gpnlButtonHolder, CommonButtonKeyUp, nil, nil,
                                           150,   //buttonsize
                                           30,    //horiz

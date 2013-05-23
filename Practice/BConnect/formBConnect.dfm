@@ -118,15 +118,6 @@ object frmBConnectHTTPS: TfrmBConnectHTTPS
     Align = alClient
     BorderOuter = fsNone
     TabOrder = 1
-    object imgHeader: TImage
-      Left = 0
-      Top = 0
-      Width = 582
-      Height = 103
-      Align = alTop
-      AutoSize = True
-      Transparent = True
-    end
     object pnlMessages: TPanel
       Left = 0
       Top = 103
@@ -137,6 +128,8 @@ object frmBConnectHTTPS: TfrmBConnectHTTPS
       Color = clWindow
       ParentBackground = False
       TabOrder = 0
+      ExplicitTop = 184
+      ExplicitHeight = 159
       object pnlInformation: TPanel
         Left = 2
         Top = 2
@@ -225,7 +218,7 @@ object frmBConnectHTTPS: TfrmBConnectHTTPS
           Left = 0
           Top = 0
           Width = 40
-          Height = 40
+          Height = 98
           Align = alLeft
           AutoSize = True
           Picture.Data = {
@@ -315,7 +308,6 @@ object frmBConnectHTTPS: TfrmBConnectHTTPS
             0707070707070707070707070707070707070707070707070707070707070707
             0707}
           Transparent = True
-          ExplicitHeight = 98
         end
         object pnlError2: TPanel
           Left = 40
@@ -361,6 +353,8 @@ object frmBConnectHTTPS: TfrmBConnectHTTPS
       ParentBackground = False
       ParentCtl3D = False
       TabOrder = 1
+      ExplicitTop = 184
+      ExplicitHeight = 159
       object lblStep1: TLabel
         Left = 34
         Top = 16
@@ -442,6 +436,25 @@ object frmBConnectHTTPS: TfrmBConnectHTTPS
         Delay = 500
       end
     end
+    object pnlBanner: TPanel
+      Left = 0
+      Top = 0
+      Width = 582
+      Height = 103
+      Align = alTop
+      BevelOuter = bvNone
+      TabOrder = 2
+      object imgHeader: TImage
+        Left = 0
+        Top = 0
+        Width = 582
+        Height = 103
+        Align = alClient
+        AutoSize = True
+        Transparent = True
+        ExplicitHeight = 97
+      end
+    end
   end
   object RzPanel2: TRzPanel
     Left = 0
@@ -506,8 +519,8 @@ object frmBConnectHTTPS: TfrmBConnectHTTPS
     end
   end
   object alstMainActions: TActionList
-    Left = 304
-    Top = 98
+    Left = 296
+    Top = 138
     object actConnect: TAction
       Caption = 'Connect'
       Hint = 'Connect to server'
@@ -540,7 +553,7 @@ object frmBConnectHTTPS: TfrmBConnectHTTPS
     Left = 240
     Top = 98
     Bitmap = {
-      494C010103000400040010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C010103000400080010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000001000000001002000000000000010
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
@@ -683,8 +696,8 @@ object frmBConnectHTTPS: TfrmBConnectHTTPS
     Enabled = False
     Interval = 500
     OnTimer = tmrProcessTimer
-    Left = 272
-    Top = 98
+    Left = 264
+    Top = 138
   end
   object tmrElapsed: TTimer
     Enabled = False
