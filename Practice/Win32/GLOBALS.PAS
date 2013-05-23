@@ -54,7 +54,12 @@ var
   PRACINI_IPClientLocking_ProcessMessageDelay : integer;
   PRACINI_IPClientLocking_GROUP_ID : string;
 
+type
+  TBrandType = (btBankLink, btBankstream);
 
+var
+  ProductBrand: TBrandType = btBankLink;
+  
 implementation
 
 initialization
