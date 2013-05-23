@@ -27,6 +27,7 @@ Source: "Bin\bkinstall.exe"; DestDir: "{app}"
 Source: "Bin\bkupgcor.dll"; DestDir: "{app}"
 Source: "Bin\bkExtMapi.dll"; DestDir: "{app}"
 Source: "Bin\Institutions.dat"; DestDir: "{app}"
+Source: "Bin\app_au.ini"; DestDir: "{app}"; DestName: "app.ini"
 
 Source: "Books Files\guide_au.chm"; DestDir: "{app}"; DestName: "guide.chm"
 

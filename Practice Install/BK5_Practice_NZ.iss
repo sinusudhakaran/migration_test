@@ -29,6 +29,7 @@ Source: "Bin\bkupgcor.dll"; DestDir: "{app}"
 Source: "Bin\NZ.INF"; DestDir: "{app}"
 Source: "Bin\OZ.INF"; DestDir: "{app}"
 Source: "Bin\Institutions.dat"; DestDir: "{app}"
+Source: "Bin\app_nz.ini"; DestDir: "{app}"; DestName: "app.ini"
 
 Source: "Practice Help\guide_nz.chm"; DestDir: "{app}"; DestName: "guide.chm"
 

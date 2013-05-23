@@ -30,6 +30,7 @@ Source: "Bin\BK5WIN.EXE.Manifest"; DestDir: "{app}"
 Source: "Bin\bkinstall.exe"; DestDir: "{app}"
 Source: "Bin\bkupgcor.dll"; DestDir: "{app}"
 Source: "Bin\Institutions.dat"; DestDir: "{app}"
+Source: "Bin\app_nz.ini"; DestDir: "{app}"; DestName: "app.ini"
 
 Source: "Fixes\bkNetHelpFix.exe"; DestDir: "{app}"
 
