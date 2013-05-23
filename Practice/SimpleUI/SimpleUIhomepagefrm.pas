@@ -708,7 +708,7 @@ begin
    pnlNavigator.Color := clGray;                   //bkBranding.TopBarStopColor;
    lblClientName.Font.Color := $00494949;          //bkBranding.TopTitleColor;
 
-   if bkBranding.GetCountry = whUK then
+   if bkBranding.GetProductBrand = btBankstream then
    begin
      pnlExtraTitleBar.Height := imgLeft.Picture.Height;
    end
@@ -717,7 +717,7 @@ begin
      pnlExtraTitleBar.Height := imgRight.Picture.Height;
    end;
 
-   if bkBranding.GetCountry = whUK then
+   if bkBranding.GetProductBrand = btBankstream then
    begin
      lblClientName.Font.Color := clWhite;
      lblClientName.Left := 10;
@@ -741,7 +741,7 @@ begin
       imgRight.Picture := bkBranding.ClientBanner;
    end;
 
-   if bkBranding.GetCountry <> whUK then
+   if bkBranding.GetProductBrand = btBankstream then
    begin
      pnlExtraTitlebar.Height := Max( 45, imgRight.Height);
    end;

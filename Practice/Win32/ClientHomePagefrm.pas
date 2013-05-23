@@ -883,7 +883,7 @@ begin
    //ClientTree.StateImages := AppImages.Maintain;
    //imgLeft.Picture := frmMain.imgLogo.Picture;
 
-   if bkBranding.GetCountry = whUK then
+   if bkBranding.GetProductBrand = btBankstream then
    begin
      lblClientName.Font.Color := clWhite;
    end

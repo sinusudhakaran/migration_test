@@ -17,7 +17,8 @@ unit bkBranding;
 
 interface
 uses
-  Windows, Graphics, StrUtils, SysUtils, ExtCtrls, RzPanel, RzCommon, Controls, StdCtrls;
+  Windows, Graphics, StrUtils, SysUtils, ExtCtrls, RzPanel, RzCommon,
+  Controls, StdCtrls, Globals, RzButton, Menus;
 
 type
   TImageSet = ( imPractice, imBooks, imOther, imDLL);
@@ -75,9 +76,15 @@ var
   procedure StyleBConnectBannerPanel(Panel: TPanel);
   procedure StyleBConnectBannerImage(Image: TImage);
   procedure StyleBooksBackgroundLogo(Image: TImage);
+  procedure StyleBooksBackgroundImage(Image: TImage);
+  procedure StyleBooksClientName(ClientName: TLabel);
+  procedure StyleBooksVersionLabel(VersionLabel: TLabel);
   procedure StyleSimpleUIBannerPanel(Panel: TRzPanel);
   procedure StyleSimpleUIRightBannerImage(Image: TImage);
-  
+  procedure StyleBankLinkButton(Button: TRzToolButton);
+  procedure StyleECFHOnlineMenuItem(MenuItem: TMenuItem);
+
+
   function ProductName: String;
   function ProductLiveName: String;
   function BKBooksProductName: String;
@@ -87,8 +94,7 @@ var
 
   function Rebrand(Value: String): String;
 
-
-  function GetCountry: Byte;
+  function GetProductBrand: TBrandType;
   
 const
 
@@ -108,7 +114,7 @@ const
 implementation
 
 uses
-  WinUtils, ImagesFrm, ThirdPartyHelper, Globals, bkConst;
+  WinUtils, ImagesFrm, ThirdPartyHelper, bkConst;
 
 const
   BKHICOLOR_BLUE      = $00F5EDDE;  //alt line col for coding, dissect etc
@@ -125,16 +131,9 @@ const
   BKCOLOR_FINANCIAL   = $00FBF2A0;
   BKHICOLOR_FINANCIAL = $00FBF2A0;
 
-function GetCountry: Byte;
+function GetProductBrand: TBrandType;
 begin
-  if Assigned(AdminSystem) then
-  begin
-    Result := whUK; //AdminSystem.fdFields.fdCountry;
-  end
-  else
-  begin
-    Result := whUK; //whNewZealand;
-  end;
+  Result := ProductBrand;
 end;
 
 procedure InitialiseGraphicsAndColors( CanvasHandleToTest : hDC);
@@ -335,7 +334,7 @@ end;
 
 function BannerColor: Integer;
 begin
-  if GetCountry = whUK then
+  if GetProductBrand = btBankstream then
   begin
     Result := RGB(0,55,122);
   end
@@ -347,7 +346,7 @@ end;
 
 function TobBarStartColor: Integer;
 begin
-  if GetCountry = whUK then
+  if GetProductBrand = btBankstream then
   begin
     Result := BannerColor;
   end
@@ -362,7 +361,7 @@ end;
 
 function TopBarStopColor: Integer;
 begin
-  if GetCountry = whUK then
+  if GetProductBrand = btBankstream then
   begin
     Result := BannerColor;
   end
@@ -399,7 +398,7 @@ end;
 
 function LoginScreenBanner: TPicture;
 begin
-  if GetCountry = whUK then
+  if GetProductBrand = btBankstream then
   begin
     Result := AppImages.imgBankstreamLogin.Picture;
   end
@@ -411,7 +410,7 @@ end;
 
 function SplashScreenBanner: TPicture;
 begin
-  if GetCountry = whUK then
+  if GetProductBrand = btBankstream then
   begin
     Result := AppImages.imgBankstreamLogin.Picture;
   end
@@ -423,7 +422,7 @@ end;
 
 function TopBannerImage: TPicture;
 begin
-  if GetCountry = whUK then
+  if GetProductBrand = btBankstream then
   begin
     Result := AppImages.imgClientHomePageLogo.Picture;
   end
@@ -435,7 +434,7 @@ end;
 
 function DownloadDiskImageBanner: TPicture;
 begin
-  if GetCountry = whUK then
+  if GetProductBrand = btBankstream then
   begin
     if Is256Color then
     begin
@@ -461,7 +460,7 @@ end;
 
 function BankstreamLogo: TPicture;
 begin
-  if GetCountry = whUK then
+  if GetProductBrand = btBankstream then
   begin
     Result := AppImages.imgBankstreamIcon.Picture;
   end
@@ -473,7 +472,7 @@ end;
 
 procedure StyleTopLeftImage(Image: TImage);
 begin
-  if GetCountry = whUK then
+  if GetProductBrand = btBankstream then
   begin
     Image.Margins.Top := 0;
     Image.Margins.Bottom := 0;
@@ -490,7 +489,7 @@ end;
 
 procedure StyleTopRightImage(Image: TImage);
 begin
-  if GetCountry = whUK then
+  if GetProductBrand = btBankstream then
   begin
     Image.Visible := False;
     Image.Margins.Top := 0;
@@ -507,7 +506,7 @@ end;
 
 function ProductName: String;
 begin
-  if GetCountry = whUK then
+  if GetProductBrand = btBankstream then
   begin
     Result := 'Bankstream';
   end
@@ -524,7 +523,7 @@ end;
 
 procedure StyleMainBannerPanel(Panel: TRzPanel);
 begin
-  if GetCountry = whUK then
+  if GetProductBrand = btBankstream then
   begin
     Panel.Color := BannerColor;
     Panel.VisualStyle := vsClassic;
@@ -539,7 +538,7 @@ end;
 
 procedure StyleLoginImage(Image: TImage);
 begin
-  if GetCountry = whUK then
+  if GetProductBrand = btBankstream then
   begin
     Image.AutoSize := True;
     Image.Align := alRight;
@@ -550,7 +549,7 @@ end;
 
 procedure StyleLoginBannerPanel(Panel: TPanel);
 begin
-  if GetCountry = whUK then
+  if GetProductBrand = btBankstream then
   begin
     Panel.ParentBackground := False;
     Panel.Color := BannerColor;
@@ -559,7 +558,7 @@ end;
 
 procedure StyleLoginVersionText(VersionLabel: TLabel);
 begin
-  if GetCountry = whUK then
+  if GetProductBrand = btBankstream then
   begin
     VersionLabel.Align := alLeft;
   end;
@@ -567,7 +566,7 @@ end;
 
 procedure StyleBConnectBannerPanel(Panel: TPanel);
 begin
-  if GetCountry = whUK then
+  if GetProductBrand = btBankstream then
   begin
     StyleLoginBannerPanel(Panel);
   end;
@@ -575,7 +574,7 @@ end;
 
 procedure StyleBConnectBannerImage(Image: TImage);
 begin
-  if GetCountry = whUK then
+  if GetProductBrand = btBankstream then
   begin
     Image.Margins.Top := 0;
     Image.Margins.Bottom := 0;
@@ -590,9 +589,9 @@ end;
 
 procedure StyleBooksBackgroundLogo(Image: TImage);
 begin
-  if GetCountry = whUK then
+  if GetProductBrand = btBankstream then
   begin
-   Image.Picture := AppImages.imgMainBackgroundLogo.Picture;
+    Image.Picture := AppImages.imgMainBackgroundLogo.Picture;
   end
   else
   begin
@@ -603,9 +602,40 @@ begin
   end;  
 end;
 
+procedure StyleBooksBackgroundImage(Image: TImage);
+begin
+  if GetProductBrand = btBankstream then
+  begin
+    Image.Visible := False;
+  end
+  else
+  begin
+    if ( bkBranding.BackgroundImage <> nil) then
+    begin
+      Image.Picture := BackgroundImage;
+    end;
+  end;
+end;
+
+procedure StyleBooksClientName(ClientName: TLabel);
+begin
+  if GetProductBrand = btBankstream then
+  begin
+    ClientName.Color := BannerColor;
+  end;
+end;
+
+procedure StyleBooksVersionLabel(VersionLabel: TLabel);
+begin
+  if GetProductBrand = btBankstream then
+  begin
+    VersionLabel.Font.Color := BannerColor;
+  end;
+end;
+
 procedure StyleSimpleUIBannerPanel(Panel: TRzPanel);
 begin
-  if GetCountry = whUK then
+  if GetProductBrand = btBankstream then
   begin
     StyleMainBannerPanel(Panel);
   end
@@ -618,7 +648,7 @@ end;
 
 procedure StyleSimpleUIRightBannerImage(Image: TImage);
 begin
-  if GetCountry = whUK then
+  if GetProductBrand = btBankstream then
   begin
     bkBranding.StyleTopRightImage(Image);
   end
@@ -626,6 +656,24 @@ begin
   begin
    Image.Transparent := True;
    Image.Picture := ClientBanner;
+  end;
+end;
+
+procedure StyleBankLinkButton(Button: TRzToolButton);
+begin
+  Button.Caption := ProductName;
+
+  if GetProductBrand = btBankstream then
+  begin
+    Button.ImageIndex := 34;
+  end;
+end;
+
+procedure StyleECFHOnlineMenuItem(MenuItem: TMenuItem);
+begin
+  if GetProductBrand = btBankstream then
+  begin
+    MenuItem.ImageIndex := 34;
   end;
 end;
 

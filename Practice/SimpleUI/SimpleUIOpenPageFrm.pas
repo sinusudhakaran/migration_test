@@ -142,7 +142,7 @@ begin
    bkBranding.StyleTopLeftImage(imgLeft);
    bkBranding.StyleSimpleUIRightBannerImage(imgRight);
 
-   if bkBranding.GetCountry = whUK then
+   if bkBranding.GetProductBrand = btBankstream then
    begin
      pnlExtraTitleBar.Height := imgLeft.Picture.Height;
    end

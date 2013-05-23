@@ -157,7 +157,7 @@ begin
   ThirdPartyHelper.CheckForThirdPartyDLL;
 
   StartUpStep := 'Reading practice settings';
-
+  
   //Read Practice INI settings
   ReadPracticeINI;
 

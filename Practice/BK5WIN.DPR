@@ -66,7 +66,8 @@ uses
   BankLinkOnline in 'Win32\BankLinkOnline.pas',
   BanklinkOnlineSettingsFrm in 'Win32\BanklinkOnlineSettingsFrm.pas' {frmBanklinkOnlineSettings},
   BlopiClient in 'Win32\BlopiClient.pas',
-  AcclipseX in 'Extract\AcclipseX.pas';
+  AcclipseX in 'Extract\AcclipseX.pas',
+  IniSettings in 'Win32\INISettings.pas';
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -78,6 +79,8 @@ const
 begin
   try //finally
     try //except
+      ReadAppINI;
+
       frmSplash := TfrmSplash.Create(Application);
       frmSplash.show;
       frmSplash.Update;

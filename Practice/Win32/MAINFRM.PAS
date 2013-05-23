@@ -1207,7 +1207,11 @@ begin
   rztCoding.Visible := false;
   rztBudget.Visible := false;
 
-  tbOnline.Caption := bkBranding.ProductLiveName;
+  bkBranding.StyleBankLinkButton(tbOnline);
+  bkBranding.StyleECFHOnlineMenuItem(viaBankLinkOnline3);
+  bkBranding.StyleECFHOnlineMenuItem(viaBankLinkOnline2);
+  bkBranding.StyleECFHOnlineMenuItem(fromBankLinkOnline1);
+  bkBranding.StyleECFHOnlineMenuItem(viaBankLinkOnline1);
 
   mnsExportBNoteFile.Caption := 'Export ' + glConst.ECoding_App_Name + ' File';
   mnsImportBNotes.Caption    := 'Import ' + glConst.ECoding_App_Name + ' File';
@@ -1464,9 +1468,13 @@ begin
     Self.Color := bkBranding.MainFormBackgroundColor;
 
     bkBranding.StyleBooksBackgroundLogo(imgLogo);
+    bkBranding.StyleBooksBackgroundImage(Image1);
+    bkBranding.StyleBooksClientName(lblClientName); 
 
-    if ( bkBranding.BackgroundImage <> nil) then
-      image1.Picture := bkBranding.BackgroundImage;
+    if bkBranding.GetProductBrand = btBankstream then
+    begin
+      Color := clWhite;
+    end;
   end;
 
   AutoSaveInProgress  := False;
@@ -1481,6 +1489,8 @@ begin
     Caption := ShortAppName + ' ' + WinUtils.GetAppYearVersionStr;
   end;
 
+  bkBranding.StyleBooksVersionLabel(lblVersion);
+    
   //form is about to be shown, get user details, use ini setting if specified
   if INI_Default_User_Code <> '' then
      UserNameToTry := INI_Default_User_Code

@@ -29,6 +29,8 @@ procedure WritePracticeINI_WithLock;
 procedure WriteUsersINI( UserCode : string);
 procedure ReadUsersINI( UserCode : string);
 
+procedure ReadAppINI;
+
 //******************************************************************************
 implementation
 uses
@@ -1100,5 +1102,33 @@ begin
     IniFile.Free;
   end;
 end;
+
+procedure ReadAppINI;
+var
+  Filename: String;
+  IniFile: TMemIniFile;
+  CountryStr: String;
+begin
+  ProductBrand := btBankLink;
+
+  Filename := ExecDir + 'app.ini';
+
+  if FileExists(Filename) then
+  begin
+    IniFile := TMemIniFile.Create(Filename);
+
+    try
+      CountryStr := IniFile.ReadString('Installer', 'Country', '');
+
+      if CountryStr = 'UK' then
+      begin
+        ProductBrand := btBankstream;
+      end;
+    finally
+      IniFile.Free;
+    end;
+  end;
+end;
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 end.

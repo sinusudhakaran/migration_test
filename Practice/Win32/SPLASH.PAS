@@ -32,7 +32,7 @@ interface
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, 
   StdCtrls, ExtCtrls, jpeg,
-  OsFont, dxGDIPlusClasses;
+  OsFont, dxGDIPlusClasses, Globals;
 
 type
   TfrmSplash = class(TForm)
@@ -61,7 +61,7 @@ procedure TfrmSplash.FormCreate(Sender: TObject);
 begin
    Label1.Font.Name := Font.Name;
 
-   if bkBranding.GetCountry = whUK then
+   if bkBranding.GetProductBrand = btBankstream then
    begin
      Self.imgBankLinkSplash.Visible := False;
    end
