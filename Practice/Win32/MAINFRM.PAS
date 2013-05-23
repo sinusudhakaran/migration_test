@@ -1709,12 +1709,20 @@ var
 begin
   with imgLogo do
   begin
-{$ifdef DELPHI7}
+  {$ifdef DELPHI7}
     Top := rzToolbars.Height + 2;
-{$else}
+  {$else}
     Top := 16;
-{$endif}
-    Left := 0;
+  {$endif}
+    if bkBranding.GetProductBrand = btBankstream then
+    begin
+      Top := rzToolbars.Height + 2;
+      Left := 10;
+    end
+    else
+    begin
+      Left := 0;
+    end;
   end;
 
   if imgPracticeLogo.Visible then
