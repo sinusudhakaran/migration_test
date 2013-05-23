@@ -27,6 +27,8 @@ uses
       fReadCode  : String;
       fWriteCode : string;
       fCProperty : string;
+      fCRead     : string;
+      fCWrite    : string;
       fCArrayClass : string;
    end;
 
@@ -98,7 +100,7 @@ var
 
    FieldName      : String[60];
    CodeBlock : tCodeBlock;
-   B1,B2          : Byte;
+   B1,B2,tk, Btk  : Byte;
    I: integer;
    // Internal buffers
    InterfacePart: TStringList;
@@ -107,18 +109,25 @@ var
    WritePart: TStringList;
 
    CPart: TStringList;
+   CReadPart: TStringList;
+   CWritePart: TStringList;
    CArrayClasses: TStringList;
 
-   procedure WriteLines(FieldCode: tCodeBlock; Name: string);
+   procedure WriteLines(FieldCode: tCodeBlock; Name: string; tk:Byte);
       function MakeCode(value:string): string ;
       begin
-         result := format(value,[prefix + Makename(Name), MakeCleanName(Name), MakeSaveName(Name), B1, B2,MakePluralName(Name), MakeSingleName(Name) ])
+         if Value > '' then
+         
+         result := format(value,[prefix + Makename(Name), MakeCleanName(Name), MakeSaveName(Name), B1, B2,MakePluralName(Name), MakeSingleName(Name), tk ])
       end;
    begin
         if not Assigned(FieldCode) then  exit;
         
          ReadPart.Add(MakeCode(FieldCode.fReadCode));
          WritePart.Add(MakeCode(FieldCode.fWriteCode));
+
+         CReadPart.Add(MakeCode(FieldCode.fCRead));
+         CWritePart.Add(MakeCode(FieldCode.fCWrite));
 
          cPart.Add('');
          cPart.Add(#09#09'/// <summary>');
@@ -140,6 +149,8 @@ begin
    ReadPart:= TStringList.Create;
    WritePart:= TStringList.Create;
    CPart:= TStringList.Create;
+   CReadPart:= TStringList.Create;
+   CWritePart:= TStringList.Create;
    InterfacePart := TStringList.Create;
    ImplementationPart := TStringList.Create;
    CArrayClasses := TStringList.Create;
@@ -164,11 +175,14 @@ begin
                Writeln( 'Error: Too Few Fields on line ', LineNumber );
                Halt;
             end;
-            Name     := GetAField(2) ;
-            Prefix   := GetAField(3);
-
+            Name    := GetAField(2) ;
+            Prefix  := GetAField(3);
+            Btk     := GetBField(4);
+            tk      := Btk+1;
             // Clear the Class/Type Buffers
             CPart.Clear;
+            CReadPart.Clear;
+            CWritePart.Clear;
             ReadPart.Clear;
             WritePart.Clear;
             CArrayClasses.Clear;
@@ -178,15 +192,16 @@ begin
          end  else  If LineType='F' then  Begin
             // Individual  Fields
             FieldName := GetAField(2);
-            
-            if Sametext(Fieldname, 'Audit Record ID') then
-               Continue;
+            inc(tk);
+
+            //if Sametext(Fieldname, 'Audit Record ID') then
+            //  Continue;
 
             FieldCode := GetAField(3);
             CodeBlock := FieldTypes.FindCode( FieldCode, prefix + MakeName(FieldName) );
             B1 := GetBField( 4 );
             B2 := GetBField( 5 );
-            WriteLines(CodeBlock, FieldName);
+            WriteLines(CodeBlock, FieldName, tk);
 
          end else If LineType='E' then Begin
            // End of the Type..
@@ -271,6 +286,7 @@ begin
             //WriteLn(WriteCFile,'using System.Collections.Generic;');
             //WriteLn(WriteCFile,'using System.Linq;');
             //WriteLn(WriteCFile,'using System.Text;');
+            writeln(WriteCFile,'using BankLink.Practice.Common.Entities;');
             WriteLn(WriteCFile,'using System.Xml.Serialization;');
 
             WriteLn(WriteCFile,'');
@@ -282,13 +298,83 @@ begin
             WriteLn(WriteCFile,#09'/// <summary>');
             WriteLn(WriteCFile,Format(#09'/// %s - %s class',[SysName,MakeCleanName(Name)]));
             WriteLn(WriteCFile,#09'/// </summary>');
-            WriteLn(WriteCFile,format(#09'public partial class %s%s',[SysName,MakeCleanName(Name)]));
+            WriteLn(WriteCFile,format(#09'public partial class %s%s ',[SysName,MakeCleanName(Name)]));
             WriteLn(WriteCFile,#09'{');
             WriteLn(WriteCFile,'');
 
             for I := 0 to CPart.Count - 1 do
                WriteLn(WriteCFile, CPart[I]);
 
+
+            WriteLn(WriteCFile,#09#09'/// <summary>');
+            WriteLn(WriteCFile,#09#09'/// Class Begin Token');
+            WriteLn(WriteCFile,#09#09'/// </summary>');
+            WriteLn(WriteCFile,format(#09#09'public const byte BeginToken = %d;',[Btk]));
+            WriteLn(WriteCFile,#09#09'/// <summary>');
+            WriteLn(WriteCFile,#09#09'/// Class End Token');
+            WriteLn(WriteCFile,#09#09'/// </summary>');
+            WriteLn(WriteCFile,format(#09#09'public const byte EndToken = %d;',[Btk+ 1]));
+
+            if CWritePart.Count > 0 then begin
+                WriteLn(WriteCFile,#09#09'/// <summary>');
+                WriteLn(WriteCFile,#09#09'/// Write to BKStream');
+                WriteLn(WriteCFile,#09#09'/// </summary>');
+                WriteLn(WriteCFile,#09#09'public void WriteBKStream(BankLinkTokenStreamWriter s)');
+                WriteLn(WriteCFile,#09#09'{');
+                WriteLn(WriteCFile,(format( #9#9#9's.WriteToken(%d);',[Btk]) ));
+
+                for I := 0 to CWritePart.Count - 1 do
+                   WriteLn(WriteCFile, CWritePart[I]);
+
+                WriteLn(WriteCFile,(format( #9#9#9's.WriteToken(%d);',[Btk+1]) ));
+                WriteLn(WriteCFile,#09#09'}');
+                WriteLn(WriteCFile,'');
+            end;
+
+            WriteLn(WriteCFile,#09#09'/// <summary>');
+            WriteLn(WriteCFile,#09#09'/// Default Constructor ');
+            WriteLn(WriteCFile,#09#09'/// </summary>');
+            WriteLn(WriteCFile,format(#09#09'public %s%s ()',[SysName,MakeCleanName(Name)]));
+            WriteLn(WriteCFile,#09#09'{}');
+
+            if CReadPart.Count > 0 then begin
+                WriteLn(WriteCFile,#09#09'/// <summary>');
+                WriteLn(WriteCFile,#09#09'/// Construct from BKStreamReader');
+                WriteLn(WriteCFile,#09#09'/// </summary>');
+                WriteLn(WriteCFile,format(#09#09'public %s%s (BankLinkTokenStreamReader s)',[SysName,MakeCleanName(Name)]));
+                WriteLn(WriteCFile,#09#09'{');
+
+                WriteLn(WriteCFile,#09#09#09'var token = BeginToken;');
+
+                WriteLn(WriteCFile,#09#09#09'while (token != EndToken)');
+
+                WriteLn(WriteCFile,#09#09#09'{');
+
+                WriteLn(WriteCFile,#09#09#09#09'switch (token)');
+                WriteLn(WriteCFile,#09#09#09#09'{');
+
+
+                for I := 0 to CreadPart.Count - 1 do
+                   WriteLn(WriteCFile, CreadPart[I]);
+
+                WriteLn(WriteCFile,#09#09#09'case BeginToken :');
+                WriteLn(WriteCFile,#09#09#09'case EndToken :');
+                WriteLn(WriteCFile,#09#09#09#09'break;');
+
+                WriteLn(WriteCFile,#09#09#09'default:');
+                WriteLn(WriteCFile,Format(#09#09#09#09'throw new Exception(string.Format("unexpected Code: {0} reading %s",token) );',[MakeCleanName(Name)]));
+                //WriteLn(WriteCFile,#09#09#09#09'break;');
+
+                WriteLn(WriteCFile,#09#09#09#09'}');
+                WriteLn(WriteCFile,#09#09#09'token = s.ReadToken();');
+                WriteLn(WriteCFile,#09#09#09'}');
+                //WriteLn(WriteCFile,#09#09#09'');
+                //WriteLn(WriteCFile,#09#09#09'');
+                //WriteLn(WriteCFile,#09#09#09'');
+
+                WriteLn(WriteCFile,#09#09'}');
+                WriteLn(WriteCFile,'');
+            end;
 
             WriteLn(WriteCFile,'');
             WriteLn(WriteCFile,#09'}'); // Class end
@@ -306,9 +392,6 @@ begin
 
             WriteLn(WriteCFile,'');
             WriteLn(WriteCFile,'');
-
-
-
            
             Close(WriteCFile);
          end;
@@ -370,6 +453,8 @@ begin
    FreeAndNil(ReadPart);
    FreeAndNil(WritePart);
    FreeAndNil(CPart);
+   FreeAndNil(CReadPart);
+   FreeAndNil(CWritePart);
    FreeAndNil(InterfacePart);
    FreeAndNil(ImplementationPart);
    FreeAndNil(CArrayClasses);
@@ -405,7 +490,7 @@ procedure AddFieldTypes;
 
 const
    // These are the second level Format fields, in the order they are filled in the last format
-   Make = '%0:s';   Clean = '%1:s';  Save = '%2:s';    B1 = '%3:d'; B2 = '%4:d'; plural = '%5:s';  Single = '%6:s';
+   Make = '%0:s';   Clean = '%1:s';  Save = '%2:s';    B1 = '%3:d'; B2 = '%4:d'; plural = '%5:s';  Single = '%6:s'; Token = '%7:d';
 
    baseRead =  '%s := Get%sAttr(Result, ''%s'');';
    NulbaseRead =  '%s := Get%sElement(Result, ''%s'');';
@@ -503,9 +588,39 @@ const
    #09#09'[XmlArray("%s"),XmlArrayItem("%s", DataType = "%s")]'#13#10 +
    #09#09'public %s[] %s { get; set; }';
 
+   (*
    MArrayField =
    #09#09'[XmlArray("%s"),XmlArrayItem("%s")]'#13#10 +
    #09#09'public %s[] %s { get; set; }';
+    *)
+
+   MArrayField =
+   #09#09'[XmlArray("%s"),XmlArrayItem("%s")]'#13#10 +
+   #09#09'public %s[,] %s { get; set; }';
+
+   CWrite =
+   #09#09#09's.Write%sValue(%s, %s);';
+
+   CArrayWrite =
+   #09#09#09's.Write%sArray(%s, %s, %s);';
+
+   CMArrayWrite =
+   #09#09#09's.WriteM%sArray(%s, %s, %s);';
+
+   CRead=
+   #09#09#09'case %s :'#13#10+
+   #09#09#09#09'%s = s.Read%SValue("%s");'#13#10+
+   #09#09#09#09'break;';
+
+   CArrayRead =
+   #09#09#09'case %s :'#13#10+
+   #09#09#09#09'%s = s.Read%sArray("%s", %s, %s, %s);'#13#10+
+   #09#09#09#09'break;';
+
+   CMArrayRead =
+   #09#09#09'case %s :'#13#10+
+   #09#09#09#09'%s = s.ReadM%sArray("%s", %s, %s, %s, %s);'#13#10+
+   #09#09#09#09'break;';
 
    ArrayClass =
    #9'/// <summary>'#13#10 +
@@ -529,6 +644,8 @@ begin
     F.fReadCode  := format(baseRead,[make, 'Text', save]);
     F.fWriteCode := format(baseWrite,['Text',save, Make]);
     F.fCProperty  :=  format(baseField,[Clean,'string','String',save]);
+    F.fCRead := format(CRead,[token,save,'ShortString',save]);
+    F.fCWrite := format(CWrite,['ShortString',token,save]);
     FieldTypes.Add(F);
 
     F := tCodeBlock.Create;
@@ -536,6 +653,9 @@ begin
     F.fReadCode  := format(SArrayRead,[Plural,Single,Make, Make, make, Make, make, make]);
     F.fWriteCode := format(SArrayWrite,[Plural, make, make, make,make,make, Single, Make]);
     F.fCProperty  :=  format(ArrayField,[Plural,Single,'string','String',save]);
+    F.fCRead := format(CArrayRead,[token,save,'ShortString',save,Token,B1,'false']);
+    F.fCWrite := format(CArrayWrite,['ShortString',Token,save,'false']);
+
     FieldTypes.Add(F);
 
     F := tCodeBlock.Create;
@@ -543,6 +663,9 @@ begin
     F.fReadCode  := format(SArrayRead,[Plural,Single,Make, Make, make, Make, make, make]);
     F.fWriteCode := format(SArrayWrite,[Plural, make, make, make,make,make, Single, Make]);
     F.fCProperty  :=  format(ArrayField,[Plural,Single,'string','String',save]);
+    F.fCRead := format(CArrayRead,[token,save,'ShortString',save,Token,B1,'true']);
+    F.fCWrite := format(CArrayWrite,['ShortString',Token,save,'true']);
+
     FieldTypes.Add(F);
 
 
@@ -551,6 +674,8 @@ begin
     F.fReadCode  := format(baseRead,[make, 'Text', save]);
     F.fWriteCode := format(baseWrite,['Text',save, Make]);
     F.fCProperty  :=  format(baseField,[Clean,'string','String',save]);
+    F.fCRead := format(CRead,[token,save,'AnsiString',save]);
+    F.fCWrite := format(CWrite,['AnsiString',token,save]);
     FieldTypes.Add(F);
 
     F := tCodeBlock.Create;
@@ -558,6 +683,8 @@ begin
     F.fReadCode  := format(baseRead,[make, 'Int', save]);
     F.fWriteCode := format(baseWrite,['Int',save, Make]);
     F.fCProperty  :=  format(baseField,[save,'int','Int32',save]);
+    F.fCRead := format(CRead,[token,save,'JulDate',save]);
+    F.fCWrite := format(CWrite,['JulDate',token,save]);
     FieldTypes.Add(F);
 
     F := tCodeBlock.Create;
@@ -565,6 +692,8 @@ begin
     F.fReadCode  := format(baseRead,[make, 'Int', save]);
     F.fWriteCode := format(baseWrite,['Int',save, Make]);
     F.fCProperty  :=  format(baseField,[save,'int','Int32',save]);
+    F.fCRead := format(CRead,[token,save,'Int32',save]);
+    F.fCWrite := format(CWrite,['Int32',token,save]);
     FieldTypes.Add(F);
 
     F := tCodeBlock.Create;
@@ -572,6 +701,8 @@ begin
     F.fReadCode  := format(ArrayRead,[Plural, Make]);
     F.fWriteCode := format(ArrayWrite,[Plural, Make]);
     F.fCProperty  :=  format(ArrayField,[Plural,Single,'int','Int32',save]);
+    F.fCRead := format(CArrayRead,[token,save,'Int32',save,Token,B1,'false']);
+    F.fCWrite := format(CArrayWrite,['Int32',Token,save,'false']);
     FieldTypes.Add(F);
 
     F := tCodeBlock.Create;
@@ -579,6 +710,8 @@ begin
     F.fReadCode  := format(ArrayRead,[Plural, Make]);
     F.fWriteCode := format(ArrayWrite,[Plural, Make]);
     F.fCProperty  :=  format(ArrayField,[Plural,Single,'int','Int32',save]);
+    F.fCRead := format(CArrayRead,[token,save,'JulDate',save,Token,B1,'false']);
+    F.fCWrite := format(CArrayWrite,['JulDate',Token,save,'false']);
     FieldTypes.Add(F);
 
     F := tCodeBlock.Create;
@@ -586,13 +719,28 @@ begin
     F.fReadCode  := format(ArrayRead,[Plural, Make]);
     F.fWriteCode := format(ArrayWrite,[Plural, Make]);
     F.fCProperty  :=  format(ArrayField,[Plural,Single,'int','Int32',save]);
+    F.fCRead := format(CArrayRead,[token,save,'JulDate',save,Token,B1,'true']);
+    F.fCWrite := format(CArrayWrite,['JulDate',Token,save,'true']);
     FieldTypes.Add(F);
+
+    F := tCodeBlock.Create;
+    F.fCode := 'BBD';
+    F.fReadCode  := format(MArrayRead, [Plural, Plural, Make, Make,Plural,Single, Make,Make,Make, Make]);
+    F.fWriteCode := format(MArrayWrite,[Plural,Make,Make,Make,Make,Make,Make,Make,Plural,Plural,Make, Make,Single, Make]);
+    F.fCProperty  :=  format(MarrayField,[Plural,Plural,'Int32',save]);
+    F.fCRead := format(CMArrayRead,[token,save,'JulDate',save,Token,B1, B2,'false']);
+    F.fCWrite := format(CMArrayWrite,['JulDate',Token,save,'false']);
+    FieldTypes.Add(F);
+
 
     F := tCodeBlock.Create;
     F.fCode := 'BL0';
     F.fReadCode  := format(ArrayRead,[Plural, Make]);
     F.fWriteCode := format(ArrayWrite,[Plural, Make]);
     F.fCProperty  :=  format(ArrayField,[Plural,Single,'int','Int32',save]);
+    F.fCRead := format(CArrayRead,[token,save,'Int32',save,Token,B1,'true']);
+    F.fCWrite := format(CArrayWrite,['Int32',Token,save,'true']);
+
     FieldTypes.Add(F);
 
 
@@ -601,6 +749,8 @@ begin
     F.fReadCode  := format(baseRead,[make, 'Int', save]);
     F.fWriteCode := format(baseWrite,['Int',save, Make]);
     F.fCProperty  :=  format(baseField,[save,'int','Int32',save]);
+    F.fCRead := format(CRead,[token,save,'Int32',save]);
+    F.fCWrite := format(CWrite,['Int32',token,save]);
     FieldTypes.Add(F);
 
 
@@ -609,6 +759,8 @@ begin
     F.fReadCode  := format(ArrayRead,[Save, Make]);
     F.fWriteCode := format(ArrayWrite,[Plural, Make]);
     F.fCProperty  :=  format(ArrayField,[Plural,Single,'int','Int32',save]);
+    F.fCRead := format(CArrayRead,[token,save,'Int32',save,Token,B1,'false']);
+    F.fCWrite := format(CArrayWrite,['Int32',Token,save,'false']);
     FieldTypes.Add(F);
 
 
@@ -618,6 +770,8 @@ begin
     F.fReadCode  := format(baseRead,[make, 'Bool', save]);
     F.fWriteCode := format(baseWrite,['Bool',save, Make]);
     F.fCProperty  :=  format(baseField,[save,'boolean','bool',save]);
+    F.fCRead := format(CRead,[token,save,'Boolean',save]);
+    F.fCWrite := format(CWrite,['Boolean',token,save]);
     FieldTypes.Add(F);
 
     F := tCodeBlock.Create;
@@ -625,6 +779,8 @@ begin
     F.fReadCode  := format(ArrayRead,[Plural, Make]);
     F.fWriteCode := format(ArrayWrite,[Plural, Make]);
     F.fCProperty  :=  format(ArrayField,[Plural,Single,'boolean','bool',save]);
+    F.fCRead := format(CArrayRead,[token,save,'Boolean',save,Token,B1,'false']);
+    F.fCWrite := format(CArrayWrite,['Boolean',Token,save,'false']);
     FieldTypes.Add(F);
 
     F := tCodeBlock.Create;
@@ -632,6 +788,9 @@ begin
     F.fReadCode  := format(ArrayRead,[Plural, Make]);
     F.fWriteCode := format(ArrayWrite,[Plural, Make]);
     F.fCProperty  :=  format(ArrayField,[Plural,Single,'boolean','bool',save]);
+    F.fCRead := format(CArrayRead,[token,save,'Boolean',save,Token,B1,'true']);
+     F.fCWrite := format(CArrayWrite,['Boolean',Token,save,'true']);
+
     FieldTypes.Add(F);
 
     F := tCodeBlock.Create;
@@ -639,6 +798,9 @@ begin
     F.fReadCode  := format(baseRead,[make, 'Int', save]);
     F.fWriteCode := format(baseWrite,['Int',save, Make]);
     F.fCProperty  :=  format(baseField,[save,'unsignedByte','byte',save]);
+    F.fCRead := format(CRead,[token,save,'Byte',save]);
+    F.fCWrite := format(CWrite,['Byte',token,save]);
+
     FieldTypes.Add(F);
 
     
@@ -647,6 +809,8 @@ begin
     F.fReadCode  := format(ArrayRead,[Plural, Make]);
     F.fWriteCode := format(ArrayWrite,[Plural, Make]);
     F.fCProperty  :=  format(ArrayField,[Plural,Single,'unsignedByte','byte',save]);
+    F.fCRead := format(CArrayRead,[token,save,'Byte',save,Token,B1,'true']);
+    F.fCWrite := format(CArrayWrite,['Byte',Token,save,'true']);
     FieldTypes.Add(F);
 
     F := tCodeBlock.Create;
@@ -654,6 +818,8 @@ begin
     F.fReadCode  := format(ArrayRead,[Plural, Make]);
     F.fWriteCode := format(ArrayWrite,[Plural, Make]);
     F.fCProperty  :=  format(ArrayField,[Plural,Single,'unsignedByte','byte',save]);
+    F.fCRead := format(CArrayRead,[token,save,'Byte',save,Token,B1,'false']);
+    F.fCWrite := format(CArrayWrite,['Byte',Token,save,'false']);
     FieldTypes.Add(F);
 
 
@@ -663,6 +829,8 @@ begin
     F.fWriteCode := format(baseWrite,['Int64',save, Make]);
     //F.FCClass  :=  format(NulbaseField,[save,'decimal','Decimal',save]);
     F.fCProperty  :=  format(baseField,[save,'long','Int64',save]);
+    F.fCRead := format(CRead,[token,save,'Money',save]);
+    F.fCWrite := format(CWrite,['Money',token,save]);
     FieldTypes.Add(F);
 
     F := tCodeBlock.Create;
@@ -671,6 +839,8 @@ begin
     F.fWriteCode := format(ArrayWrite,[Plural, Make]);
     //F.FCClass  :=  format(arrayField,[Plural,Single,'decimal','Decimal',save]);
     F.fCProperty  :=  format(arrayField,[Plural,Single,'long','Int64',save]);
+    F.fCRead := format(CArrayRead,[token,save,'Money',save,Token,B1,'false']);
+    F.fCWrite := format(CArrayWrite,['Money',Token,save,'false']);
     FieldTypes.Add(F);
 
     F := tCodeBlock.Create;
@@ -678,8 +848,11 @@ begin
     F.fReadCode  := format(MArrayRead, [Plural, Plural, Make, Make,Plural,Single, Make,Make,Make, Make]);
     F.fWriteCode := format(MArrayWrite,[Plural,Make,Make,Make,Make,Make,Make,Make,Plural,Plural,Make, Make,Single, Make]);
     //F.FCClass  :=  format(arrayField,[Plural,Single,'decimal','Decimal',save]);
-    F.fCProperty  :=  format(MarrayField,[Plural,Plural,Plural,save]);
-    F.fCArrayClass :=  format(ArrayClass,[Plural,Plural,Plural,Single,'long','Int64',Single,save]);
+    //F.fCProperty  :=  format(MarrayField,[Plural,Plural,Plural,save]);
+    F.fCProperty  :=  format(MarrayField,[Plural,Plural,'Int64',save]);
+    F.fCRead := format(CMArrayRead,[token,save,'Money',save,Token,B1, B2,'false']);
+    F.fCWrite := format(CMArrayWrite,['Money',Token,save,'false']);
+    //F.fCArrayClass :=  format(ArrayClass,[Plural,Plural,Plural,Single,'long','Int64',Single,save]);
     FieldTypes.Add(F);
 
     F := tCodeBlock.Create;
@@ -688,16 +861,12 @@ begin
     F.fWriteCode := format(ArrayWrite,[Plural, Make]);
     //F.FCClass  :=  format(arrayField,[Plural,Single,'decimal','Decimal',save]);
     F.fCProperty  :=  format(arrayField,[Plural,Single,'long','Int64',save]);
+    F.fCRead := format(CArrayRead,[token,save,'Money',save,Token,B1,'true']);
+    F.fCWrite := format(CArrayWrite,['Money',Token,save,'true']);
+
     FieldTypes.Add(F);
 
-    {
-    F := tCodeBlock.Create;
-    F.fCode := 'Qty';
-    F.fReadCode  := format(NulbaseRead,[make, 'Qty', save]);
-    F.fWriteCode := format(NulbaseWrite,['Qty',save, Make]);
-    F.FCClass  :=  format(NulbaseField,[save,'decimal','Decimal',save]);
-    FieldTypes.Add(F);
-    }
+
 
 end;
 
