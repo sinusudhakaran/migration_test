@@ -757,7 +757,8 @@ begin
    pnlExtraTitleBar.GradientColorStop   := bkBranding.TopBarStopColor;
    lblAcctDetails.Font.Color := bkBranding.TopTitleColor;
 
-   imgGraphic.Picture := bkBranding.CodingBanner;
+   bkBranding.StyleTopRightImage(imgGraphic);
+
    DittoLineInProgress := False;
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

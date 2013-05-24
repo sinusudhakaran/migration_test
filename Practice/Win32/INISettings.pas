@@ -48,7 +48,8 @@ uses
   Classes,
   Windows,
   SHFolder,
-  GenUtils;
+  GenUtils,
+  bkUrls;
 
 const
    GrpMainForm = 'MainForm';
@@ -278,8 +279,8 @@ begin
       INI_DontShowMe_NoOpeningBalances := IniFile.ReadBool( GrpDontShowMe, 'OpeningBalancesWarning', false);
 
       //New BConnect Settings
-      INI_BCPrimaryHost           := IniFile.ReadString ( GrpBConnect, 'BCPrimaryHost',  Default_BConnect_Primary_Host);
-      INI_BCSecondaryHost         := IniFile.ReadString ( GrpBConnect, 'BCSecondardHost', Default_BConnect_Secondary_Host);
+      INI_BCPrimaryHost           := IniFile.ReadString ( GrpBConnect, 'BCPrimaryHost',  TUrls.DefaultBConnectPrimaryHost);
+      INI_BCSecondaryHost         := IniFile.ReadString ( GrpBConnect, 'BCSecondardHost', TUrls.DefaultBConnectSecondaryHost);
       INI_BCPrimaryPort           := IniFile.ReadInteger( GrpBConnect, 'BCPrimaryPort', 443 );
       INI_BCSecondaryPort         := IniFile.ReadInteger( GrpBConnect, 'BCSecondaryPort', 443 );
       INI_BCTimeout               := IniFile.ReadInteger( GrpBConnect, 'Timeout', DefaultBConnectHTTPTimeout);
@@ -597,9 +598,9 @@ begin
 
         PRACINI_RestrictFileFormats := ReadBool( GrpPracEnv,'RestrictFF', True);
 
-        PRACINI_InstListLinkNZ := ReadString(GrpPracLinks,'InstitutionListNZ',DefInstListLinkNZ);
-        PRACINI_InstListLinkAU := ReadString(GrpPracLinks,'InstitutionListAU',DefInstListLinkAU);
-        PRACINI_InstListLinkUK := ReadString(GrpPracLinks,'InstitutionListUK',DefInstListLinkUK);
+        PRACINI_InstListLinkNZ := ReadString(GrpPracLinks,'InstitutionListNZ', TUrls.DefInstListLinkNZ);
+        PRACINI_InstListLinkAU := ReadString(GrpPracLinks,'InstitutionListAU', TUrls.DefInstListLinkAU);
+        PRACINI_InstListLinkUK := ReadString(GrpPracLinks,'InstitutionListUK', TUrls.DefInstListLinkUK);
 
         if Assigned(AdminSystem) then
           PRACINI_GST101Link := ReadString(GrpPracLinks ,'Gst101',DefLinkGST103)
@@ -651,12 +652,12 @@ begin
         PRACINI_FastDownloadStatsUpdate := ReadBool( GrpPracEnv,'FastDownloadStatsUpdate', PRACINI_FastDownloadStatsUpdate);
 
         //Overwrite BankLink Online URL
-        PRACINI_BankLink_Online_Books_URL := ReadString( GrpPracEnv, 'BankLinkOnlineBooksURL', BANKLINK_ONLINE_BOOKS_DEFAULT_URL);
+        PRACINI_BankLink_Online_Books_URL := ReadString( GrpPracEnv, 'BankLinkOnlineBooksURL', TUrls.BooksOnlineDefaultUrl);
         //Overwrite BankLink Online BLOPI URL
         PRACINI_BankLink_Online_BLOPI_URL := ReadString( GrpPracEnv, 'BankLinkOnlineBlopiUrl', '');
         PRACINI_DataPlatform_Services_URL := ReadString( GrpPracEnv, 'DataPlatformServicesURL', '');
 
-        PRACINI_BankLink_Online_Services_URL := ReadString( GrpPracEnv, 'BankLinkOnlineServicesURL', BANKLINK_ONLINE_SERVICES_DEFAULT_URL);
+        PRACINI_BankLink_Online_Services_URL := ReadString( GrpPracEnv, 'BankLinkOnlineServicesURL', TUrls.OnlineServicesDefaultUrl);
 
         PRACINI_IPClientLocking_SwitchedOn  := ReadBool( GrpLocking, 'IPClientLockingSwitchedOn', false);
         PRACINI_IPClientLocking_UDP_Server_IP := ReadString( GrpLocking, 'IPClientLockingUDPServerIP', '');

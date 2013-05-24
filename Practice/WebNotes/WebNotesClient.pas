@@ -21,7 +21,8 @@ uses
   IpsSoaps,
   Classes,
   SysUtils,
-  WebClient;
+  WebClient,
+  bkUrls;
 
 {$M+}
 type
@@ -235,7 +236,7 @@ begin
   if IniURL1 <> '' then
     SoapURLList.Add(IniURL1)
   else
-    SoapURLList.Add(DefaultWebNotesURL);
+    SoapURLList.Add(TUrls.DefaultWebNotesURL);
 
   if IniURL2 <> '' then
     SoapURLList.Add(IniURL2);
@@ -243,7 +244,7 @@ begin
   if IniMethodURI <> '' then
     SOAPRequester.MethodURI := IniMethodURI
   else
-    SOAPRequester.MethodURI := DefaultWebNotesMethodURI;
+    SOAPRequester.MethodURI := TUrls.DefaultWebNotesMethodURI;
 
   SoapURLIndex := 0;
   SetSoapURL;

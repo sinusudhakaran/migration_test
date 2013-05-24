@@ -248,7 +248,8 @@ uses
   RequestRegFrm,
   ServiceAgreementDlg,
   UpdateMF,
-  commctrl, bkBranding;
+  commctrl, bkBranding,
+  bkUrls;
 
 const
   UnitName = 'PRACDETAILSFRM';
@@ -1786,8 +1787,8 @@ begin
        ((FPrac.Id <> '') and (not ProductConfigService.OnLine)) then begin
       //URL
       edtURL.Text := 'https://' + FPrac.DomainName + '.' +
-                     Copy(Globals.BANKLINK_ONLINE_BOOKS_DEFAULT_URL, 13 ,
-                          Length(Globals.BANKLINK_ONLINE_BOOKS_DEFAULT_URL));
+                     Copy(TUrls.BooksOnlineDefaultUrl, 13 ,
+                          Length(TUrls.BooksOnlineDefaultUrl));
       //Primary Contacts
       cbPrimaryContact.Enabled := True;
       AdminRollName := FPrac.GetRoleFromPracUserType(ustSystem, FPrac).RoleName;

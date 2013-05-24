@@ -73,6 +73,7 @@ var
   procedure StyleLoginImage(Image: TImage);
   procedure StyleLoginBannerPanel(Panel: TPanel);
   procedure StyleLoginVersionText(VersionLabel: TLabel);
+  procedure StyleBannerText(Text: TLabel);
   procedure StyleBConnectBannerPanel(Panel: TPanel);
   procedure StyleBConnectBannerImage(Image: TImage);
   procedure StyleBooksBackgroundLogo(Image: TImage);
@@ -373,10 +374,17 @@ end;
 
 function TopTitleColor: Integer;
 begin
+  if GetProductBrand = btBankstream then
+  begin
+    Result := clWhite;
+  end
+  else
+  begin
    if Is256Color then
       Result := clWhite
    else
       Result :=  BKCOLOR_LOGOBLUE {BKHICOLOR_LOGOBLUE};
+  end;
 end;
 
 function GroupBackGroundStartColor: Integer;
@@ -474,28 +482,23 @@ procedure StyleTopLeftImage(Image: TImage);
 begin
   if GetProductBrand = btBankstream then
   begin
-    Image.Margins.Top := 0;
-    Image.Margins.Bottom := 0;
-    Image.Margins.Left := 0;
-    Image.Margins.Right := 0;
-    Image.Proportional := False;
-    Image.Center := True;
-    Image.Visible := True;
-    Image.Align := alRight;
+    Image.Visible := False;
+  end
+  else
+  begin
+    Image.Picture := TopBannerImage;
   end;
-
-  Image.Picture := TopBannerImage;
 end;
 
 procedure StyleTopRightImage(Image: TImage);
 begin
   if GetProductBrand = btBankstream then
   begin
-    Image.Visible := False;
+    Image.Visible := True;
     Image.Margins.Top := 0;
     Image.Margins.Bottom := 0;
     Image.Center := True;
-    Image.Align := alLeft;
+    Image.Picture := TopBannerImage;
   end
   else
   begin
@@ -570,6 +573,14 @@ begin
   begin
     StyleLoginBannerPanel(Panel);
   end;
+end;
+
+procedure StyleBannerText(Text: TLabel);
+begin
+  if GetProductBrand = btBankstream then
+  begin
+    Text.Font.Color := clWhite;
+  end;  
 end;
 
 procedure StyleBConnectBannerImage(Image: TImage);

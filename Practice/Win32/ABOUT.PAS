@@ -62,7 +62,8 @@ uses
    winutils,
    mimeUtils,
    bkUtil32,
-   BKDEFS, upgConstants, LicenseDlg, ThirdPartyHelper;
+   BKDEFS, upgConstants, LicenseDlg, ThirdPartyHelper,
+   bkUrls;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmAbout.FormCreate(Sender: TObject);
@@ -107,12 +108,12 @@ begin
       lblServer.Caption := 'Update server is ' + MyClient.clFields.clUpdate_Server
     else }
     if MyClient.clFields.clCountry = whAustralia then
-      lblServer.Caption := Format('Update Server: %s', [upgConstants.DefaultAUCatalogServer])
+      lblServer.Caption := Format('Update Server: %s', [TUrls.DefaultAUCatalogServer])
     else
     if MyClient.clFields.clCountry = whUK then
-      lblServer.Caption := Format('Update Server: %s', [upgConstants.DefaultUKCatalogServer])
+      lblServer.Caption := Format('Update Server: %s', [TUrls.DefaultUKCatalogServer])
     else
-      lblServer.Caption := Format('Update Server: %s', [upgConstants.DefaultNZCatalogServer]);
+      lblServer.Caption := Format('Update Server: %s', [TUrls.DefaultNZCatalogServer]);
    end
    else
     lblServer.Visible := False;

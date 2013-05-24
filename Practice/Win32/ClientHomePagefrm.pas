@@ -883,14 +883,7 @@ begin
    //ClientTree.StateImages := AppImages.Maintain;
    //imgLeft.Picture := frmMain.imgLogo.Picture;
 
-   if bkBranding.GetProductBrand = btBankstream then
-   begin
-     lblClientName.Font.Color := clWhite;
-   end
-   else
-   begin
-     lblClientName.Font.Color :=  TopTitleColor;
-   end;
+   lblClientName.Font.Color :=  TopTitleColor;
 
    if frmMain.UsingCustomPracticeLogo then begin
       imgRight.AutoSize := False;
