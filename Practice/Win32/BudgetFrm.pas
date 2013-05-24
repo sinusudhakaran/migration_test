@@ -747,7 +747,9 @@ begin
    ExtraTitleBar.GradientColorStop  := bkbranding.TopBarStopColor;
    lblDetails.Font.Color := bkBranding.TopTitleColor;
    lblName.Font.Color := bkBranding.TopTitleColor;
-   imgGraphic.Picture := bkBranding.CodingBanner;
+
+   bkBranding.StyleTopRightImage(imgGraphic);
+   
    mniLockLeftmostClick(Sender);
 
    //ExtraTitleBar.Color    := bkBranding.HeaderBackgroundColor;
