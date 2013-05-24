@@ -444,7 +444,7 @@ object dlgEditBank: TdlgEditBank
         object cmbType: TComboBox
           Left = 112
           Top = 33
-          Width = 169
+          Width = 162
           Height = 21
           Style = csDropDownList
           Ctl3D = True
@@ -471,9 +471,9 @@ object dlgEditBank: TdlgEditBank
           OnExit = eNumberExit
         end
         object chkPrivacy: TCheckBox
-          Left = 287
+          Left = 280
           Top = 30
-          Width = 306
+          Width = 317
           Height = 27
           Caption = '&Send Institution and Account Type to BankLink *'
           Checked = True
@@ -564,10 +564,6 @@ object dlgEditBank: TdlgEditBank
     object tbAnalysis: TTabSheet
       Caption = '&Analysis Coding'
       ImageIndex = 1
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object Label8: TLabel
         Left = 16
         Top = 16
