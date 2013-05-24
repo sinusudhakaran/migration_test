@@ -1212,6 +1212,10 @@ begin
   bkBranding.StyleECFHOnlineMenuItem(viaBankLinkOnline2);
   bkBranding.StyleECFHOnlineMenuItem(fromBankLinkOnline1);
   bkBranding.StyleECFHOnlineMenuItem(viaBankLinkOnline1);
+  bkBranding.StyleECFHOnlineMenuItem(mniCodingReport);
+  bkBranding.StyleECFHOnlineMenuItem(mnsExportBNoteFile);
+  bkBranding.StyleECFHOnlineMenuItem(mnsImportBNotes);
+
 
   mnsExportBNoteFile.Caption := 'Export ' + glConst.ECoding_App_Name + ' File';
   mnsImportBNotes.Caption    := 'Import ' + glConst.ECoding_App_Name + ' File';
