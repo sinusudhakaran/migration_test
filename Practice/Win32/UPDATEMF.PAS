@@ -104,7 +104,8 @@ uses
    SimpleUIOpenPageFrm,
    CFHead,
    BankLinkOnlineServices,
-   ForexHelpers;
+   ForexHelpers,
+   bkBranding;
 
 var
   ClosingAllMDIForms : boolean = false;
@@ -788,6 +789,10 @@ begin
             wfWebNotes : begin
                mniExportwebX.ImageIndex := 20;//31 not approved
                mniImportwebX.ImageIndex := 20;
+
+               bkBranding.StyleECFHOnlineMenuItem(mniExportwebX);
+               bkBranding.StyleECFHOnlineMenuItem(mniImportwebX);
+               
                mniExportWebX.Caption := 'Export to ' + WebnotesName;
                mniImportWebX.Caption := 'Import from ' + WebnotesName;
             end;
