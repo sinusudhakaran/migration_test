@@ -1088,8 +1088,8 @@ begin
   pnlExtraTitleBar.GradientColorStart := bkBranding.TobBarStartColor;
   pnlExtraTitleBar.GradientColorStop  := bkBranding.TopBarStopColor;
 
+  bkBranding.StyleTopRightImage(imgRight);
 
-  imgRight.Picture := bkBranding.CodingBanner;
   pnlExtraTitleBar.Height := imgRight.Picture.Height;
 
   lblAcctDetails.Font.Color := bkBranding.TopTitleColor;
