@@ -1215,6 +1215,8 @@ begin
   bkBranding.StyleECFHOnlineMenuItem(mniCodingReport);
   bkBranding.StyleECFHOnlineMenuItem(mnsExportBNoteFile);
   bkBranding.StyleECFHOnlineMenuItem(mnsImportBNotes);
+  bkBranding.StyleECFHOnlineMenuItem(mniExportWebX);
+  bkBranding.StyleECFHOnlineMenuItem(mniImportWebX);
 
 
   mnsExportBNoteFile.Caption := 'Export ' + glConst.ECoding_App_Name + ' File';
