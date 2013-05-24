@@ -21,8 +21,7 @@ uses
   IpsSoaps,
   Classes,
   SysUtils,
-  WebClient,
-  bkUrls;
+  WebClient;
 
 {$M+}
 type
@@ -93,7 +92,8 @@ uses
   LogUtil,
   IniFiles,
   StrUtils,
-  WebUtils;
+  WebUtils,
+  bkUrls;
 
 const
   //UnitName = 'WebNotesService';
