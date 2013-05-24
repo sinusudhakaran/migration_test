@@ -277,7 +277,7 @@ inherited dlgClientReportSchedule: TdlgClientReportSchedule
         object rbCheckoutOnline: TRadioButton
           Left = 6
           Top = 192
-          Width = 259
+          Width = 299
           Height = 17
           Caption = 'BankLink Books File via BankLink Online'
           TabOrder = 11
@@ -377,10 +377,6 @@ inherited dlgClientReportSchedule: TdlgClientReportSchedule
     object tbsMessage: TTabSheet
       Caption = 'Messa&ge'
       ImageIndex = 1
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       DesignSize = (
         624
         421)
@@ -397,10 +393,6 @@ inherited dlgClientReportSchedule: TdlgClientReportSchedule
     object tbsAttachments: TTabSheet
       Caption = 'A&ttachments'
       ImageIndex = 3
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       DesignSize = (
         624
         421)
