@@ -632,7 +632,7 @@ procedure StyleBooksClientName(ClientName: TLabel);
 begin
   if GetProductBrand = btBankstream then
   begin
-    ClientName.Color := BannerColor;
+    ClientName.Font.Color := BannerColor;
   end;
 end;
 
