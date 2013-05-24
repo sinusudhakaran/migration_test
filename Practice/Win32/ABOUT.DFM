@@ -220,6 +220,17 @@ object frmAbout: TfrmAbout
         Caption = 'Email:'
       end
     end
+    object btnEULA2: TButton
+      Left = 184
+      Top = 417
+      Width = 96
+      Height = 25
+      Anchors = [akTop]
+      Caption = 'View Licence'
+      TabOrder = 2
+      Visible = False
+      OnClick = btnEULAClick
+    end
   end
   object pnlGraphic: TPanel
     Left = 0

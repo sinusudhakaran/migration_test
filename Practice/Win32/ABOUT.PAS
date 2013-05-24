@@ -35,6 +35,7 @@ type
     Panel1: TPanel;
     pnlDetails: TPanel;
     pnlGraphic: TPanel;
+    btnEULA2: TButton;
     procedure btnCloseClick(Sender: TObject);
     procedure btnEULAClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -209,6 +210,14 @@ begin
    DebugLabel.Caption := 'SafeMM DEBUG MODE';
 {$ENDIF}
   lblForSupport.Font.Style := lblForSupport.Font.Style + [fsBold];
+
+  if bkBranding.GetProductBrand = btBankstream then
+  begin
+    btnEULA2.Visible := True;
+    pnlGraphic.Visible := False;
+    Width := Width - pnlGraphic.Width;
+  end;
+
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmAbout.btnCloseClick(Sender: TObject);
