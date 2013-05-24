@@ -62,7 +62,7 @@ inherited dlgPrintScheduled: TdlgPrintScheduled
     Top = 0
     Width = 632
     Height = 559
-    ActivePage = tsMessages
+    ActivePage = tbsOptions
     Align = alClient
     TabOrder = 0
     object tbsOptions: TTabSheet
@@ -303,7 +303,7 @@ inherited dlgPrintScheduled: TdlgPrintScheduled
         object cbOnline: TCheckBox
           Left = 300
           Top = 71
-          Width = 277
+          Width = 314
           Height = 17
           Hint = 'Include reports to be sent via a checked out file'
           Caption = 'BankLink Books Files via BankLink &Online'
