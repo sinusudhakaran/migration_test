@@ -1065,7 +1065,7 @@ const
 
 const
   ToolBarButtonGlyphOnlyWidth = 26;
-  ToolBarButtonWithTextWidth  = 32;
+  ToolBarButtonWithTextWidth  = 35;
   ToolbarButtonDropArrowWidth = 12;
   ToolbarFontSize             = 4;
 
