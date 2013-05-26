@@ -42,7 +42,14 @@ end;
 
 class function TUrls.DefaultAUCatalogServer: String;
 begin
-  Result := bkBranding.Rebrand(DefaultAUCatalogServer);
+  if bkBranding.GetProductBrand = btBankstream then
+  begin
+    Result := 'www.bankstream.com.au';
+  end
+  else
+  begin
+    Result := 'www.banklink.com.au';
+  end;
 end;
 
 class function TUrls.DefaultBConnectPrimaryHost: String;
@@ -71,22 +78,50 @@ end;
 
 class function TUrls.DefaultDownloaderURL: String;
 begin
-  Result := bkBranding.Rebrand(DefaultDownloaderURL);
+  if bkBranding.GetProductBrand = btBankstream then
+  begin
+    Result := 'https://secure2.bankstream.co.nz/DownloaderService/DownloaderService.svc';
+  end
+  else
+  begin
+    Result := 'https://secure2.banklink.co.nz/DownloaderService/DownloaderService.svc';
+  end;
 end;
 
 class function TUrls.DefaultDownloaderURL2: String;
 begin
-  Result := bkBranding.Rebrand(DefaultDownloaderURL2);
+  if bkBranding.GetProductBrand = btBankstream then
+  begin
+    Result := 'https://secure1.bankstream.co.nz/DownloaderService/DownloaderService.svc';
+  end
+  else
+  begin
+    Result := 'https://secure1.banklink.co.nz/DownloaderService/DownloaderService.svc';
+  end;
 end;
 
 class function TUrls.DefaultNZCatalogServer: String;
 begin
-  Result := bkBranding.Rebrand(DefaultNZCatalogServer);
+  if bkBranding.GetProductBrand = btBankstream then
+  begin
+    Result := 'www.bankstream.co.nz'
+  end
+  else
+  begin
+    Result := 'www.banklink.co.nz'
+  end;
 end;
 
 class function TUrls.DefaultUKCatalogServer: String;
 begin
-  Result := bkBranding.Rebrand(DefaultUKCatalogServer);
+  if bkBranding.GetProductBrand = btBankstream then
+  begin
+    Result := 'www.bankstream.co.uk';
+  end
+  else
+  begin
+    Result := 'www.banklink.co.uk';
+  end;
 end;
 
 class function TUrls.DefaultWebNotesMethodURI: String;
@@ -151,12 +186,26 @@ end;
 
 class function TUrls.GetBankLinkWebSites(Index: Integer): String;
 begin
-  Result := bkBranding.Rebrand(whBankLinkWebSites[Index]);
+  if bkbranding.GetProductBrand = btBankstream then
+  begin
+    Result := 'www.bankstream.co.uk'
+  end
+  else
+  begin
+    Result := whBankLinkWebSites[Index];
+  end;
 end;
 
 class function TUrls.GetBankLinkWebSiteURLs(Index: Integer): String;
 begin
-  Result := whBankLinkWebSiteURLs[Index]; //bkBranding.Rebrand(whBankLinkWebSiteURLs[Index]);
+  if bkBranding.GetProductBrand = btBankstream then
+  begin
+    Result := 'http://www.bankstream.co.uk';
+  end
+  else
+  begin
+    Result := whBankLinkWebSiteURLs[Index];
+  end;
 end;
 
 class function TUrls.OnlineServicesDefaultUrl: String;
