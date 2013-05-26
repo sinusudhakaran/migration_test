@@ -129,7 +129,8 @@ uses
   SendProvAccRequestFrm,
   HistoricalDlg,
   AuditMgr,
-  ClientHomePageFrm;
+  ClientHomePageFrm,
+  bkUrls;
 
 //------------------------------------------------------------------------------
 procedure TfrmMaintainPracBank.FormCreate(Sender: TObject);
@@ -411,7 +412,7 @@ begin
   DropCount := 0;
   FrequencyRequestForm := TfrmFrequencyRequest.Create(Self);
   try
-    FrequencyRequestForm.WebSite := whBankLinkWebSites[Globals.AdminSystem.fdFields.fdCountry];
+    FrequencyRequestForm.WebSite := TUrls.BankLinkWebSites[Globals.AdminSystem.fdFields.fdCountry];
 
     //Add bank accounts
     lNode := SysAccounts.AccountTree.GetFirstSelected;

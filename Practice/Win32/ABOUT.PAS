@@ -64,7 +64,8 @@ uses
    mimeUtils,
    bkUtil32,
    BKDEFS, upgConstants, LicenseDlg, ThirdPartyHelper,
-   bkUrls;
+   bkUrls,
+   bkContactInformation;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmAbout.FormCreate(Sender: TObject);
@@ -143,10 +144,10 @@ begin
       if AdminSystem.fdFields.fdCountry in [ whMin..whMax ] then
       Begin
         lblCountry.Caption  := whShortNames[ AdminSystem.fdFields.fdCountry ];
-        lblWebPage.Caption  := whBankLinkWebSites[ AdminSystem.fdFields.fdCountry ];
-        ShellCommand_Web    := whBankLinkWebSiteURLs[ AdminSystem.fdFields.fdCountry ];
+        lblWebPage.Caption  := TUrls.BankLinkWebSites[ AdminSystem.fdFields.fdCountry ];
+        ShellCommand_Web    := TUrls.BankLinkWebSiteURLs[ AdminSystem.fdFields.fdCountry ];
         lblCountry1.caption := whNames[ AdminSystem.fdFields.fdCountry ];
-        lblPh1.caption      := whSupportPhoneNo[ AdminSystem.fdFields.fdCountry ];
+        lblPh1.caption      := TContactInformation.SupportPhoneNo[ AdminSystem.fdFields.fdCountry ];
       end
       else
       begin
