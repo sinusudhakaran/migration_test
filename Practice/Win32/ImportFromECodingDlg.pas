@@ -71,7 +71,7 @@ uses
   glConst,
   GlobalDirectories,
   WarningMoreFrm,
-  BKCONST;
+  BKCONST, bkBranding;
 
 {$R *.dfm}
 
@@ -276,7 +276,7 @@ begin
      if ForClient.clFields.clWeb_Export_Format = 255 then
         ForClient.clFields.clWeb_Export_Format := wfdefault;
 
-     Self.caption := 'Import ' + wfNames[ForClient.clFields.clWeb_Export_Format] + ' File';
+     Self.caption := bkBranding.Rebrand('Import ' + wfNames[ForClient.clFields.clWeb_Export_Format] + ' File');
      case ForClient.clFields.clWeb_Export_Format of
         wfWebX : begin
             label2.caption := glConst.WEBX_GENERIC_APP_NAME + ' Payee';
@@ -289,7 +289,7 @@ begin
             OpenDialog.Title   := 'Import from ' + glConst.WEBX_GENERIC_APP_NAME + ' File';
         end;
         wfWebNotes : begin
-            label2.caption := glConst.ECODING_APP_NAME + ' Payee';
+            label2.caption := bkBranding.NotesProductName + ' Payee';
             label5.caption := 'Notes';
             btnToFolder.Visible := false;
             label6.Caption := 'File';
@@ -300,15 +300,15 @@ begin
   end
   else
   begin
-    Self.caption := 'Import from ' + glConst.ECODING_APP_NAME + ' file';
-    label2.caption := glConst.ECODING_APP_NAME + ' Payee';
+    Self.caption := 'Import from ' + bkBranding.NotesProductName + ' file';
+    label2.caption := bkBranding.NotesProductName + ' Payee';
     label5.caption := 'Notes';
-    OpenDialog.Filter := glConst.ECODING_APP_NAME + ' file (*.' +
+    OpenDialog.Filter := bkBranding.NotesProductName + ' file (*.' +
                          glConst.ECODING_DEFAULT_EXTN + ')|*.' +
                          glConst.ECODING_DEFAULT_EXTN + '|' +
                          'All files (*.*)|*.*';
     OpenDialog.DefaultExt := glConst.ECODING_DEFAULT_EXTN;
-    OpenDialog.Title   := 'Import ' + glConst.ECODING_APP_NAME + ' file';
+    OpenDialog.Title   := 'Import ' + bkBranding.NotesProductName + ' file';
   end;
   FImportDestination := Value;
 end;

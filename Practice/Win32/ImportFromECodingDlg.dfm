@@ -29,7 +29,6 @@ object dlgImportBNotes: TdlgImportBNotes
     BevelOuter = bvLowered
     ParentColor = True
     TabOrder = 1
-    ExplicitWidth = 575
     DesignSize = (
       661
       57)
@@ -144,7 +143,6 @@ object dlgImportBNotes: TdlgImportBNotes
     BevelInner = bvRaised
     BevelOuter = bvLowered
     TabOrder = 0
-    ExplicitWidth = 575
     DesignSize = (
       661
       316)
@@ -263,7 +261,6 @@ object dlgImportBNotes: TdlgImportBNotes
       Color = clWindow
       TabOrder = 6
       Visible = False
-      ExplicitWidth = 561
       DesignSize = (
         647
         82)
