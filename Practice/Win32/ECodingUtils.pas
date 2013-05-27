@@ -39,7 +39,8 @@ uses
      BNotesInterface, LogUtil, baObj32, GlobalDirectories, Globals,
      PracticeLogo, MailFrm, todoHandler, StDate, Windows,
      ClientHomepagefrm, Forms, Admin32, WebNotesDataUpload, WebNotesImportFrm,
-     ForexHelpers, AuditMgr, Files, BanklinkOnlineServices;
+     ForexHelpers, AuditMgr, Files, BanklinkOnlineServices,
+     bkBranding;
 
 const
    UnitName = 'ECodingUtils';
@@ -779,12 +780,12 @@ begin
 
             //file created succesfully, now send to client
 
-               Subject := Format('BankLink Notes File for %s (%s to %s)',
+               Subject := Format(bkBranding.NotesProductName + ' File for %s (%s to %s)',
                               [aClient.clFields.clCode,
                                bkDate2Str(DateFrom),
                                bkDate2Str(DateTo)]);
 
-            if MailFrm.SendFileTo( 'Send ' + glConst.ECODING_APP_NAME + ' file',
+            if MailFrm.SendFileTo( 'Send ' + bkBranding.NotesProductName + ' file',
                                    aClient.clFields.clClient_EMail_Address,
                                    Subject, filename, AttachmentSent, false) then
             begin
