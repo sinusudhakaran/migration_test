@@ -88,7 +88,7 @@ uses
    BKDEFS,
    CountryUtils,
    WebXOffice,
-   TransactionUtils;
+   TransactionUtils, bkBranding;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TdlgExportToECoding.btnCancelClick(Sender: TObject);
@@ -466,8 +466,8 @@ begin
        ForClient.clFields.clWeb_Export_Format := wfDefault;
 
     case ForClient.clFields.clWeb_Export_Format  of
-      wfWebX : Self.Caption := 'Export ' + wfNames[wfWebX] + ' File';
-      wfWebNotes : Self.Caption := 'Export to ' + wfNames[wfWebNotes];
+      wfWebX : Self.Caption := bkBranding.Rebrand('Export ' + wfNames[wfWebX] + ' File');
+      wfWebNotes : Self.Caption := bkBranding.Rebrand('Export to ' + wfNames[wfWebNotes]);
     end;
     
 
@@ -486,7 +486,7 @@ begin
   end
   else
   begin
-    Self.Caption := 'Export ' + glConst.ECODING_APP_NAME + ' Entries ';
+    Self.Caption := 'Export ' + bkBranding.NotesProductName + ' Entries ';
     case Value of
       ecDestFile:
         Caption := Caption + 'to file';
@@ -494,7 +494,7 @@ begin
         Caption := Caption + 'via email';
     end;
 
-    SaveDialog1.Filter := glConst.ECODING_APP_NAME + ' file (*.' +
+    SaveDialog1.Filter := bkBranding.NotesProductName + ' file (*.' +
                           glConst.ECODING_DEFAULT_EXTN + ')|*.' +
                           glConst.ECODING_DEFAULT_EXTN + '|' +
                           'All files (*.*)|*.*';
