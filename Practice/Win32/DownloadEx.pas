@@ -1150,7 +1150,11 @@ begin
     try
       if ProcessDiskImages then
       begin
-        UpdateClientAccounts;
+        //UpdateClientAccounts is used for update the core account id's for data upload however this causes a memory leak (because the client files are not freed
+        //after being saved) as well as performance issues.  The core account id's are also updated when opening a client file and then performing the data
+        //upload so this shouldnt be required anymore.
+        //UpdateClientAccounts;
+        
          // all done - now update processing status to show downloaded months
          RefreshAllProcessingStatistics(True);
       end;
