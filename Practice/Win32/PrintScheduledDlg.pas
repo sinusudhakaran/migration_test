@@ -275,12 +275,12 @@ begin
   ButtonPressed := btn_none;
   FaxPrinter := '';
 
-  cbToECoding.caption := '&' + bkBranding.ECodingDisplayName + ' Files';
+  cbToECoding.caption := '&' + bkBranding.NotesProductName + ' Files';
 
   ImagesFrm.AppImages.Misc.GetBitmap(MISC_FINDFOLDER_BMP,btnOpenDialog.Glyph);
-  btnBNotesMsg.Caption := '&' + bkBranding.ECodingDisplayName + ' Message';
+  btnBNotesMsg.Caption := '&' + bkBranding.NotesProductName + ' Message';
 
-  gbNotes.Caption := format('Send %s files',[bkBranding.ECodingDisplayName]);
+  gbNotes.Caption := format('Send %s files',[bkBranding.NotesProductName]);
 
   gbWebNotes.Caption := format('Send %s transactions',[bkBranding.NotesOnlineProductName]);
   btnWebNotesMsg.Caption := format('&%s Message',[bkBranding.NotesOnlineProductName]);
@@ -361,7 +361,7 @@ begin
    btnBNotesMsg.Hint :=
       'Setup the ' + glConst.ECoding_App_Name + ' E-mail message that the Reports will be attached to';
    btnCheckOutMsg.Hint :=
-      'Setup the BankLink Books E-mail message that the Reports will be attached to';
+      'Setup the ' + bkBranding.BooksProductName + ' E-mail message that the Reports will be attached to';
    {btnBusinessProductsMsg.Hint :=
       'Setup the Business Products E-mail message that the Reports will be attached to';}
    rbNew.Hint := 'Transactions received in selected month which have not been sent yet|' +
@@ -523,7 +523,7 @@ end;
 
 procedure TdlgPrintScheduled.btnOnlineMsgClick(Sender: TObject);
 begin
-  EditScheduledReportsMessage( 'BankLink Books Message',
+  EditScheduledReportsMessage(bkBranding.BooksProductName + ' Message',
                                'Type a subject and a message which will be added to all ' +
                                BKBOOKSNAME + ' files sent via ' + BANKLINK_ONLINE_NAME +
                                ' when Scheduled Reports are generated.',
@@ -1266,9 +1266,9 @@ end;
 
 procedure TdlgPrintScheduled.btnCheckOutMsgClick(Sender: TObject);
 begin
-  EditScheduledReportsMessage( 'BankLink Books Message',
+  EditScheduledReportsMessage(bkBranding.BooksProductName + ' Message',
                                'Type a subject and a message which will be added to all ' +
-                               'BankLink Books files sent when Scheduled Reports are generated.',
+                               bkBranding.BooksProductName  + ' files sent when Scheduled Reports are generated.',
                                CheckOutSubject,
                                CheckOutMessage)
 end;
@@ -1284,8 +1284,8 @@ begin
   if cbToWebX.Visible then
     msg := msg + ', ' + glConst.WEBX_GENERIC_APP_NAME + ' Files';
 
-  msg := msg + ', BankLink Books Files, ' +
-    'BankLink Books Files via ' + bkConst.BankLinkLiveName;
+  msg := msg + ', ' + bkBranding.BooksProductName  + ', ' +
+    bkBranding.BooksProductName + ' Files via ' + bkConst.BankLinkLiveName;
 
   if cbToBusinessProducts.Visible then
     msg := msg + ', Business Product Files';

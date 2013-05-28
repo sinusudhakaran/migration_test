@@ -276,7 +276,7 @@ begin
  try
   if not BKFileExists(glDataDir + MAIL_MERGE_DATASOURCE_FILENAME) then
   begin
-    HelpfulErrorMsg('The BankLink Mail Merge Data Source cannot be found.'#13#13 +
+    HelpfulErrorMsg('The ' + bkBranding.ProductName + ' Mail Merge Data Source cannot be found.'#13#13 +
       'Filename:' + glDataDir + MAIL_MERGE_DATASOURCE_FILENAME, 0);
     Exit;
   end;
@@ -286,7 +286,7 @@ begin
   CopyFile(PChar(glDataDir + MAIL_MERGE_DATASOURCE_FILENAME), PChar(TempPath + MAIL_MERGE_DATASOURCE_FILENAME), False);
   if (not BKFileExists(TempPath + MAIL_MERGE_DATASOURCE_FILENAME)) then
   begin
-    HelpfulErrorMsg('The BankLink Mail Merge Data Source cannot be copied onto your computer.'#13#13 +
+    HelpfulErrorMsg('The ' + bkBranding.ProductName + ' Mail Merge Data Source cannot be copied onto your computer.'#13#13 +
       'Please make sure the following file exists: ' + glDataDir + MAIL_MERGE_DATASOURCE_FILENAME, 0);
     Exit;
   end;

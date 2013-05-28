@@ -212,7 +212,8 @@ Uses
   bkconst,
   LogUtil,
   WinUtils,
-  BKDEFS, StDate, bkDateUtils, ClientHomePageFrm, ThirdPartyHelper;
+  BKDEFS, StDate, bkDateUtils, ClientHomePageFrm, ThirdPartyHelper,
+  bkBranding;
 
 {$R *.DFM}
 
@@ -1486,11 +1487,11 @@ begin
         //Default email subject
         if (CodeList.Count > 0) then begin
           if (CodeList.Count > 1) then
-            txtSubject.Text := Format('BankLink Books Files for %s', [CodeList.CommaText])
+            txtSubject.Text := Format(bkBranding.BooksProductName + ' Files for %s', [CodeList.CommaText])
           else
-            txtSubject.Text := Format('BankLink Books File for %s', [CodeList.CommaText]);
+            txtSubject.Text := Format(bkBranding.BooksProductName + ' File for %s', [CodeList.CommaText]);
         end else if Assigned( MyClient) then
-          txtSubject.Text := Format('BankLink Books File for %s',[MyClient.clFields.clCode]);
+          txtSubject.Text := Format(bkBranding.BooksProductName + ' File for %s',[MyClient.clFields.clCode]);
 
         //Default message
         if (fBodyText.Text = '') and (CodesToSend <> '') then
@@ -1812,7 +1813,7 @@ begin
                                end;
       EMAIL_BUSINESS_PRODUCT : Result := BUSINESS_FILE;
     end;
-    Result := Format('BankLink %s for %s',
+    Result := Format(bkBranding.ProductName + ' %s for %s',
                      [Result,
                       EmailInfo.ClientCode]);
     if (EmailInfo.DateFrom <> 0) and (EmailInfo.DateTo <> 0) then

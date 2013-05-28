@@ -25,7 +25,7 @@ type
 implementation
 
 uses
-  ServiceAgreementDlg, Globals, Admin32, LogUtil, Mailfrm;
+  ServiceAgreementDlg, Globals, Admin32, LogUtil, Mailfrm, bkBranding;
 
 { TBlopiServiceAgreement }
 
@@ -106,8 +106,8 @@ begin
                  aSigneeTitle, ONE_LINE,
                  aServiceAgreementVersion, TWO_LINES]);
 
-  Result := SendMailTo('BankLink Online Service Agreement', GetSupportEmailAddress,
-             'BankLink Online Service Agreement', Msg);
+  Result := SendMailTo(bkBranding.ProductOnlineName + ' Service Agreement', GetSupportEmailAddress,
+             bkBranding.ProductOnlineName + ' Service Agreement', Msg);
 end;
 
 class function TBlopiServiceAgreement.SignServiceAgreement: Boolean;

@@ -104,7 +104,8 @@ uses
   MailFrm, ClientDetailCacheObj, BankLinkOnline, BankLinkOnlineServices,
   BlopiServiceFacade,
   ForexHelpers,
-  ExchangeGainLoss;
+  ExchangeGainLoss,
+  bkBranding;
 
 const
   UnitName = 'FILES';
@@ -503,7 +504,7 @@ begin
              if IntegrityCheckClientWrapper(AutoSaveWrapper) then
              begin
                //there is an auto-saved file on disc for this client
-               S := 'BankLink has detected a later version of the client file ' + Code + ' that was auto-saved ';
+               S := bkBranding.ProductName + ' has detected a later version of the client file ' + Code + ' that was auto-saved ';
                VarDateTime := AutoSaveDateTime;
                if (Trunc(VarDateTime) = Date) then
                  S := S + 'Today'
@@ -1428,8 +1429,8 @@ begin
     if (not MyClient.clFields.clFile_Read_Only) then
     begin
       if ProductConfigService.OnLine and CopyWarning then
-        ShowMessage('BankLink Practice will not copy the BankLink Online settings for ' +
-                    'this client. To set BankLink Online access, please click ‘Other ' +
+        ShowMessage(bkBranding.PracticeProductName  + ' will not copy the ' + bkBranding.ProductOnlineName + ' settings for ' +
+                    'this client. To set ' + bkBranding.ProductOnlineName + ' access, please click ‘Other ' +
                     'Functions | Client Details | Client Settings’');
 
       MyClient.clFields.clFavourite_Report_XML := BatchReports.XMLString;
@@ -1606,7 +1607,7 @@ begin
                 //Check we have a valid email address for BankLink Online
                 { TODO -oSW : Validate email }
                 if (AClientEmail = '') then
-                  raise EUploadFailed.Create(Format('A valid email address is required for client files to be sent via BankLink Online. Please update the email address for client ‘%s’ under Other Functions | Client Details.', [Code]));
+                  raise EUploadFailed.Create(Format('A valid email address is required for client files to be sent via ' + bkBranding.ProductOnlineName + '. Please update the email address for client ‘%s’ under Other Functions | Client Details.', [Code]));
 
                 BankLinkOnlineMgr.Silent := IsScheduledReport;
                 BankLinkOnlineMgr.UploadClient(Code, ProgressFrm, ClientName,
@@ -1837,7 +1838,7 @@ begin
 
   if (ClientStatus > 0) and (ASendMethod = ftmOnline) then
   begin
-    Msg := CICOERRORSTR_CLIENT_CLIENTDEACTIVATED;
+    Msg := bkBranding.Rebrand(CICOERRORSTR_CLIENT_CLIENTDEACTIVATED);
     
     LogUtil.LogMsg(lmInfo, UnitName, ThisMethodName + ' : ' + Msg);
 
@@ -2178,8 +2179,8 @@ begin
           EmailBody := Format('The following Client File(s) are now available ' +
                               'via %s: %s.' + #10 + 'To access the ' +
                               'client file(s) select ‘Get Client Files | from ' +
-                              'BankLink Online’.',
-                              [BANKLINK_ONLINE_NAME, SentClientCodes]);
+                              bkBranding.ProductOnlineName + '’.',
+                              [bkBranding.ProductOnlineName, SentClientCodes]);
           if AFirstUpload then
             EmailBody := EmailBody + #10#10 +
                          'Subdomain: ' + GetBankLinkOnlineSubDomain +  #10 +
@@ -2187,9 +2188,9 @@ begin
                          'If you are new to ' + BANKLINK_ONLINE_NAME + ', you will receive ' +
                          'an email shortly which will help you complete the ' +
                          'setup process. Please wait for this email before continuing.';
-          SendMailTo('Send Client File(s) via ' + BankLinkLiveName,
+          SendMailTo('Send Client File(s) via ' + bkBranding.ProductOnlineName,
                      GetEmailAddress(CodeList),
-                     'BankLink Books File for ' + SentClientCodes,
+                     bkBranding.BooksProductName + ' File for ' + SentClientCodes,
                      EmailBody, '', False);
         end;
 
@@ -2207,9 +2208,9 @@ begin
             PracticeEmail := '';
           //Send email
           EmailBody := '';
-          SendMailTo('Send Client File(s) via ' + BankLinkLiveName,
+          SendMailTo('Send Client File(s) via ' + bkBranding.ProductOnlineName,
                      PracticeEmail,
-                     'BankLink Books File for ' + SentClientCodes,
+                     bkBranding.BooksProductName + ' File for ' + SentClientCodes,
                      EmailBody, '', False, PracticeEmailList);
         end;
 

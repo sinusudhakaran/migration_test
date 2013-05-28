@@ -393,7 +393,7 @@ begin
                         'again or contact your accountant for assistance.', 0);
         Exit;
       end else if (FServerResponse.Status = '106') then begin
-        HelpfulErrorMsg(Format('BankLink Online could not find user %s. ' +
+        HelpfulErrorMsg(Format(bkBranding.ProductOnlineName + ' could not find user %s. ' +
                                'Please try again or contact your accountant ' +
                                'for assistance.',
                                [Globals.INI_BankLink_Online_Username]), 0);

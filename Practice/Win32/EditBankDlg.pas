@@ -591,13 +591,13 @@ begin
       else
         aMessage := aMessage + 'Disabled ';
 
-      aMessage := aMessage + 'the export to BankLink Online for ' +
+      aMessage := aMessage + 'the export to ' + bkBranding.ProductOnlineName + ' for ' +
                   chkLstAccVendors.Items.Strings[VendorIndex] + #10;
     end;
   end;
 
   aMessage := aMessage + #10 +
-              'Click OK to confirm that you want to update this bank account’s BankLink Online Export settings.';
+              'Click OK to confirm that you want to update this bank account’s ' + bkBranding.ProductOnlineName + ' Export settings.';
 end;
 
 //------------------------------------------------------------------------------
@@ -638,7 +638,7 @@ begin
   if Length(VendorNames) > 0 then
   begin
     aMessage := 'Client ' + MyClient.clFields.clCode + ' no longer has any bank accounts using ' + VendorStr + '.' + #10 +
-                'Would you like BankLink Practice to remove ' + VendorStr + ' for this client?';
+                'Would you like ' + bkBranding.PracticeProductName + ' to remove ' + VendorStr + ' for this client?';
     Result := True;
   end;
 end;

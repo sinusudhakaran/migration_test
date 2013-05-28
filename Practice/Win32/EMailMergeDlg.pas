@@ -98,7 +98,7 @@ uses ImagesFrm, WarningMoreFrm, ErrorMoreFrm, YesNoDlg, glConst, WinUtils,
   GlobalDirectories, bkXPThemes, Globals, SYDefs, ClientDetailCacheObj,
   progress, GenUtils, ToDoHandler, stDate, rptMailMerge, RzPopups, Admin32,
   bkDateUtils, ReportDefs, EMailMergePreview, LogUtil, ClientUtils, bkHelp,
-  bkConst;
+  bkConst, bkBranding;
 
 {$R *.dfm}
 
@@ -514,7 +514,7 @@ begin
  try
   if not BKFileExists(glDataDir + MAIL_MERGE_DATASOURCE_FILENAME) then
   begin
-    HelpfulErrorMsg('The BankLink Mail Merge Data Source cannot be found.'#13#13 +
+    HelpfulErrorMsg('The ' + bkBranding.ProductName + ' Mail Merge Data Source cannot be found.'#13#13 +
       'Filename:' + glDataDir + MAIL_MERGE_DATASOURCE_FILENAME, 0);
     Result := False;
     Exit;

@@ -674,8 +674,8 @@ begin
   if cmbPeriod.Items.Count > 0 then cmbPeriod.ItemIndex := 0;
   SetUpHelp;
 
-  rbToEcoding.Caption := '&' + bkBranding.ECodingDisplayName;
-  btnECodingSetup.caption  := bkBranding.ECodingDisplayName + ' Op&tions';
+  rbToEcoding.Caption := '&' + bkBranding.NotesProductName;
+  btnECodingSetup.caption  := bkBranding.NotesProductName + ' Op&tions';
 
   rbToWebX.Caption := '&' + glConst.WEBX_GENERIC_APP_NAME + ' File';
   btnWebXSetup.Caption :=  glConst.WEBX_GENERIC_APP_NAME + ' Opt&ions';

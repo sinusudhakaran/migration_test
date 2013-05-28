@@ -114,7 +114,7 @@ procedure TfrmDBCreate.btnOkClick(Sender: TObject);
 begin
    with sflBankLinkCode do begin
       if Text = '' then begin
-         HelpfulWarningMsg('You must enter a BankLink Code.', 0 );
+         HelpfulWarningMsg('You must enter a ' + bkBranding.ProductName + ' Code.', 0 );
          SetFocus;
          ModalResult := 0;
          Exit;

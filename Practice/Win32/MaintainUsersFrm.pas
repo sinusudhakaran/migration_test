@@ -183,7 +183,7 @@ begin
 
   DelMsg := '';
   if User^.usAllow_Banklink_Online then
-    DelMsg := 'This user will be deleted from both Banklink Practice and Banklink Online.' + #13;
+    DelMsg := 'This user will be deleted from both ' + bkBranding.PracticeProductName + ' and ' + bkBranding.ProductOnlineName + '.' + #13;
 
   DelMsg := DelMsg + 'OK to Delete User %s ?';
 
@@ -202,7 +202,7 @@ begin
 
       if not ProductConfigService.DeletePracUser(User^.usCode, '', aPractice) then
       begin
-        HelpfulInfoMsg('BankLink Practice was unable to remove this user from BankLink Online', 0);
+        HelpfulInfoMsg(bkBranding.PracticeProductName + ' was unable to remove this user from ' + bkbranding.ProductOnlineName, 0);
         exit;
       end;
 
@@ -240,7 +240,7 @@ begin
     SaveAdminSystem;
     result := true;
     if HasDelOnline then
-      HelpfulInfoMsg(Format('%s has been successfully deleted from BankLink Practice and BankLink Online.', [Name]), 0 );
+      HelpfulInfoMsg(Format('%s has been successfully deleted from ' + bkBranding.PracticeProductName + ' and ' + bkBranding.ProductOnlineName + '.', [Name]), 0 );
     LogUtil.LogMsg(lmDebug,'EDITUSERDLG','Deleted User : ' + Code);
   end
   else

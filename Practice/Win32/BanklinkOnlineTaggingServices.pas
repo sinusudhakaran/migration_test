@@ -91,7 +91,7 @@ type
 implementation
 
 uses
-  Files, Globals, ErrorMoreFrm, LogUtil, StDateSt, SYDEFS, BK_TransactionExportXMLHelper, bkConst, math, WebUtils, DirUtils, TransactionUtils, SoapHTTPClient, InfoMoreFrm, BKUTIL32;
+  Files, Globals, ErrorMoreFrm, LogUtil, StDateSt, SYDEFS, BK_TransactionExportXMLHelper, bkConst, math, WebUtils, DirUtils, TransactionUtils, SoapHTTPClient, InfoMoreFrm, BKUTIL32, bkBranding;
 
 var
   DebugMe : Boolean = False;
@@ -370,7 +370,7 @@ begin
   begin
     ClientProgressSize := 100 / BankAccount.baTransaction_List.ItemCount;
 
-    ProgressFrm.UpdateProgressLabel('Clearing sent to BankLink Online');
+    ProgressFrm.UpdateProgressLabel('Clearing sent to ' + bkBranding.ProductOnlineName);
 
     for Index := 0 to BankAccount.baTransaction_List.ItemCount - 1 do
     begin
@@ -394,7 +394,7 @@ begin
   begin
     ClientProgressSize := 100 / Client.clBank_Account_List.ItemCount;
 
-    ProgressFrm.UpdateProgressLabel('Clearing sent to BankLink Online');
+    ProgressFrm.UpdateProgressLabel('Clearing sent to ' + bkBranding.ProductOnlineName);
 
     for Index := 0 to Client.clBank_Account_List.ItemCount - 1 do
     begin
@@ -602,10 +602,10 @@ begin
                                 else
                                 begin
                                   case TBloUploadResultCode(ServiceResponse.Result)  of
-                                    NoFileReceived: ServiceErrors := 'The service call to BankLink Online did not include any transactions.';
-                                    InvalidCredentials: ServiceErrors := 'BankLink Online did not recognise the practice credentials.';
-                                    InternalError: ServiceErrors := 'BankLink Online encountered an unknown internal error.';
-                                    FileFormatError: ServiceErrors := 'BankLink Online did not recognise the transaction data format.';
+                                    NoFileReceived: ServiceErrors := 'The service call to ' + bkBranding.ProductOnlineName + ' did not include any transactions.';
+                                    InvalidCredentials: ServiceErrors := bkBranding.ProductOnlineName + ' did not recognise the practice credentials.';
+                                    InternalError: ServiceErrors := bkBranding.ProductOnlineName + ' encountered an unknown internal error.';
+                                    FileFormatError: ServiceErrors := bkBranding.ProductOnlineName + ' did not recognise the transaction data format.';
                                   end; 
                                 end;
 
@@ -614,7 +614,7 @@ begin
                             end
                             else
                             begin
-                              HelpfulErrorMsg('Data export cannot continue because you are not authenticated with BankLink Online.', 0);
+                              HelpfulErrorMsg('Data export cannot continue because you are not authenticated with ' + bkBranding.ProductOnlineName + '.', 0);
                               
                               LogUtil.LogMsg(lmInfo, 'BankLinkOnlineTaggingService', 'Data export could export all transactions because the user is not authenticated with Banklink Online.');
 

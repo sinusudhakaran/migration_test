@@ -190,7 +190,7 @@ uses
   bkConst,
   imagesfrm,
   Globals,
-  Admin32;
+  Admin32, bkBranding;
 
 const
   // The default columns in default order
@@ -1238,7 +1238,7 @@ var
               3 : NewGroup.Title := 'Attached Accounts';
               4 : NewGroup.Title := 'Books Secure Accounts';
               5 : NewGroup.Title := 'Deleted Accounts';
-              6 : NewGroup.Title := 'BankLink Online Secure Accounts';
+              6 : NewGroup.Title := bkBranding.ProductOnlineName + ' Secure Accounts';
               end;
               lnode := fAccountList.AddNodeItem(nil, NewGroup);
            end;
@@ -1311,7 +1311,7 @@ var
           NewGroup := TestNewGroup(CurGroup);
           if Assigned(NewGroup) then begin
               case CurGroup of
-              3 : NewGroup.Title := 'BankLink Online Secure Accounts';
+              3 : NewGroup.Title := bkBranding.ProductOnlineName + ' Secure Accounts';
               2 : NewGroup.Title := 'Books Secure Accounts';
               1 : NewGroup.Title := 'Provisional Accounts';
               0 : NewGroup.Title := 'Practice Accounts';

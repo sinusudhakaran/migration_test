@@ -361,7 +361,7 @@ begin
 
   chkShowPracticeLogo.Hint := 'Display the practice logo when this user is logged in';
 
-  chkCanAccessBankLinkOnline.Hint := 'Allows a Banklink User to Access Banklink Online';
+  chkCanAccessBankLinkOnline.Hint := 'Allows a ' + bkBranding.ProductName + ' User to Access ' + bkBranding.ProductOnlineName;
 end;
 
 procedure TdlgEditUser.ShowEnterPassword;
@@ -423,7 +423,7 @@ begin { TdlgEditUser.btnOKClick }
        (chkCanAccessBankLinkOnline.Checked = true)) then
     begin
       If AskYesNo('User Details Changed', 'The details for this user have changed ' +
-                  'and will be updated to BankLink Online.' + #13#10 + #13#10 +
+                  'and will be updated to ' + bkBranding.ProductOnlineName + '.' + #13#10 + #13#10 +
                   'Are you sure you want to continue?', DLG_NO, 0) <> DLG_YES Then
         Exit;
     end;
@@ -441,7 +441,7 @@ begin { TdlgEditUser.btnOKClick }
         end
         else
         begin
-          HelpfulWarningMsg('Creating a BankLink Online enabled user requires you to be an administrator on BankLink Online.', 0);
+          HelpfulWarningMsg('Creating a ' + bkBranding.ProductOnlineName + ' enabled user requires you to be an administrator on ' + bkBranding.ProductOnlineName + '.', 0);
 
           Exit;
         end;
@@ -617,7 +617,7 @@ begin { TdlgEditUser.OKtoPost }
   begin
     if (Trim(eFullName.text) = '') Then
     begin
-      HelpfulWarningMsg('BankLink Online users must have a User Name.', 0);
+      HelpfulWarningMsg(bkBranding.ProductOnlineName + ' users must have a User Name.', 0);
       pcMain.ActivePage := tsDetails;
       eFullName.SetFocus;
       exit;
@@ -625,7 +625,7 @@ begin { TdlgEditUser.OKtoPost }
 
     If not RegExIsEmailValid(eMail.text) Then
     begin
-      HelpfulWarningMsg('BankLink Online users must have a valid Email Address.', 0 );
+      HelpfulWarningMsg(bkBranding.ProductOnlineName + ' users must have a valid Email Address.', 0 );
       pcMain.ActivePage := tsDetails;
       eMail.SetFocus;
       exit;
@@ -635,7 +635,7 @@ begin { TdlgEditUser.OKtoPost }
        (cmbLinkExistingOnlineUser.ItemIndex = -1) and
        (fUIMode = uimOnlineUnlinked) then
     begin
-      HelpfulWarningMsg('An existing user on BankLink Online must be selected.', 0 );
+      HelpfulWarningMsg('An existing user on ' + bkBranding.ProductOnlineName + ' must be selected.', 0 );
       pcMain.ActivePage := tsDetails;
       cmbLinkExistingOnlineUser.SetFocus;
       exit;
@@ -652,7 +652,7 @@ begin { TdlgEditUser.OKtoPost }
       // Linked against a primary contact (or default admin user)?
       if (LinkedUser.Id = fDefaultAdminUserId) then
       begin
-        HelpfulWarningMsg('Only System users can link to a BankLink Online default Administrator (Primary Contact).', 0);
+        HelpfulWarningMsg('Only System users can link to a ' + bkBranding.ProductOnlineName + ' default Administrator (Primary Contact).', 0);
         pcMain.ActivePage := tsDetails;
         cmbLinkExistingOnlineUser.SetFocus;
         exit;
@@ -758,9 +758,9 @@ begin
       end;
 
       if Result then
-        HelpfulInfoMsg(Format('%s has been successfully deleted from BankLink Online.', [eFullName.Text]), 0 )
+        HelpfulInfoMsg(Format('%s has been successfully deleted from ' + bkBranding.ProductOnlineName + '.', [eFullName.Text]), 0 )
       else
-        HelpfulInfoMsg('BankLink Practice was unable to remove this user from BankLink Online', 0);
+        HelpfulInfoMsg(bkBranding.PracticeProductName + ' was unable to remove this user from ' + bkBranding.ProductOnlineName, 0);
     end;
 
     if  (chkCanAccessBankLinkOnline.Checked) and (chkCanAccessBankLinkOnline.Visible) then
@@ -814,14 +814,14 @@ begin
         else
           MsgCreateorUpdate := 'updated to';
 
-        HelpfulInfoMsg(Format('%s has been successfully %s BankLink Online.', [eFullName.Text, MsgCreateorUpdate]), 0 );
+        HelpfulInfoMsg(Format('%s has been successfully %s ' + bkBranding.ProductOnlineName + '.', [eFullName.Text, MsgCreateorUpdate]), 0 );
       end
       else
       begin
         if fIsCreateUser then
-          HelpfulInfoMsg(Format('BankLink Practice was unable to create %s on BankLink Online', [eFullName.Text]), 0)
+          HelpfulInfoMsg(Format(bkBranding.PracticeProductName + ' was unable to create %s on ' + bkBranding.ProductOnlineName, [eFullName.Text]), 0)
         else
-          HelpfulInfoMsg(Format('BankLink Practice was unable to update %s on BankLink Online', [eFullName.Text]), 0);
+          HelpfulInfoMsg(Format(bkBranding.PracticeProductName + ' was unable to update %s on ' + bkBranding.ProductOnlineName, [eFullName.Text]), 0);
       end;
     end;
   Except
@@ -844,7 +844,7 @@ begin
   begin
     If (not chkCanAccessBankLinkOnline.Checked) and (fOldValues.CanAccessBankLinkOnline) then
     begin
-      If AskYesNo('Deleted BankLink User', 'This user will be Deleted on BankLink Online.' + #13
+      If AskYesNo('Deleted ' + bkBranding.ProductName + ' User', 'This user will be Deleted on ' + bkBranding.ProductOnlineName + '.' + #13
                 + 'Are you sure you want to continue?', DLG_NO, 0) <>
         DLG_YES Then
       begin
@@ -868,7 +868,7 @@ begin
         MsgAddorUpdate := 'Update'
       end;
 
-      If AskYesNo(MsgAddorUpdate + ' BankLink User', 'This user will be ' + MsgCreateorUpdate + ' BankLink Online.' + #13
+      If AskYesNo(MsgAddorUpdate + ' ' + bkBranding.ProductName + ' User', 'This user will be ' + MsgCreateorUpdate + ' ' + bkBranding.ProductOnlineName + '.' + #13
                 + 'Are you sure you want to do this?', DLG_NO, 0) <>
         DLG_YES Then
       begin
@@ -1143,7 +1143,7 @@ begin
       begin
         if chkCanAccessbanklinkOnline.Checked then
         begin
-          HelpfulWarningMsg('BankLink Practice cannot change the user type to Restricted for a user that has access to BankLink Online.', 0);
+          HelpfulWarningMsg(bkBranding.ProductOnlineName + ' cannot change the user type to Restricted for a user that has access to ' + bkBranding.ProductOnlineName + '.', 0);
 
           TComboBox(Sender).ItemIndex := FCurrentUserTypeIndex;
 
@@ -1170,7 +1170,7 @@ begin
 
             if User.HasRoles([ProductConfigService.CachedPractice.GetUserRoleNameFromPracUserType(ustSystem)]) then
             begin
-              HelpfulWarningMsg('BankLink Practice cannot link a user with a user type of Normal to an Administrator user on BankLink Online.', 0);
+              HelpfulWarningMsg(bkBranding.PracticeProductName + 'BankLink Practice cannot link a user with a user type of Normal to an Administrator user on ' + bkBranding.ProductOnlineName + '.', 0);
 
               TComboBox(Sender).ItemIndex := FCurrentUserTypeIndex;
 
@@ -1201,7 +1201,7 @@ begin
             
             if not User.HasRoles([ProductConfigService.CachedPractice.GetUserRoleNameFromPracUserType(ustSystem)]) then
             begin
-              HelpfulWarningMsg('BankLink Practice cannot link a user with a user type of System to a Normal user on BankLink Online.', 0);
+              HelpfulWarningMsg(bkBranding.PracticeProductName + ' cannot link a user with a user type of System to a Normal user on ' + bkBranding.ProductOnlineName + '.', 0);
 
               TComboBox(Sender).ItemIndex := FCurrentUserTypeIndex;
 

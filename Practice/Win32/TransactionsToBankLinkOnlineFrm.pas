@@ -100,13 +100,13 @@ var
 begin
   if ValidateFields then
   begin
-    if AskYesNo('Export data to BankLink Online', 'Are you sure you want to send unsent client transactions to Banklink Online?', Dlg_Yes, 0) = DLG_YES then
+    if AskYesNo('Export data to ' + bkBranding.ProductOnlineName, 'Are you sure you want to send unsent client transactions to ' + bkBranding.ProductOnlineName + '?', Dlg_Yes, 0) = DLG_YES then
     begin
       if Assigned(ProductConfigService.Clients) then
       begin
         FDataExportError := False;
 
-        TfrmModalDualProgress.ShowProgress(Self, 'Please wait...', 'Export data to BankLink Online', ExportTaggedAccounts, ProgressData);
+        TfrmModalDualProgress.ShowProgress(Self, 'Please wait...', 'Export data to ' + bkBranding.ProductOnlineName, ExportTaggedAccounts, ProgressData);
 
         if not FDataExportError then
         begin
@@ -114,19 +114,19 @@ begin
           begin
             if FExportStatistics.TransactionsExported > 0 then
             begin
-              HelpfulInfoMsg('BankLink Practice successfully exported data to BankLink Online up to ' + StDateToDateString(BKDATEFORMAT, edtTransactionsToDate.AsStDate, False) + #10#13 +
+              HelpfulInfoMsg(bkBranding.PracticeProductName + ' successfully exported data to ' + bkBranding.ProductOnlineName + ' up to ' + StDateToDateString(BKDATEFORMAT, edtTransactionsToDate.AsStDate, False) + #10#13 +
                               IntToStr(FExportStatistics.TransactionsExported) + ' Transaction(s) exported' + #10#13 +
                               IntToStr(FExportStatistics.AccountsExported) + ' Account(s) exported' + #10#13 +
                               IntToStr(FExportStatistics.ClientFilesProcessed ) + ' Client files(s) Processed', 0);
             end
             else
             begin
-              HelpfulInfoMsg('BankLink Practice did not find any transactions up to ' + StDateToDateString(BKDATEFORMAT, edtTransactionsToDate.AsStDate, False) + ' to export to BankLink Online.', 0);
+              HelpfulInfoMsg(bkBranding.PracticeProductName + ' did not find any transactions up to ' + StDateToDateString(BKDATEFORMAT, edtTransactionsToDate.AsStDate, False) + ' to export to BankLink Online.', 0);
             end;
           end
           else
           begin
-            HelpfulErrorMsg(Format('Due to the following error, BankLink Practice was unable to complete the transaction export to BankLink Online. - %s.', [ProgressData.Exception.Message]), 0);
+            HelpfulErrorMsg(Format('Due to the following error, ' + bkBranding.PracticeProductName + ' was unable to complete the transaction export to ' + bkBranding.ProductOnlineName + '. - %s.', [ProgressData.Exception.Message]), 0);
             
             LogUtil.LogMsg(lmError, 'TransactionsToBankLinkOnlineFrm', 'Exception exporting account transactions, Error Message : ' + ProgressData.Exception.Message);
           end;
@@ -135,15 +135,15 @@ begin
         begin
           if FExportStatistics.TransactionsExported > 0 then
           begin
-            HelpfulInfoMsg('BankLink Practice successfully exported data to BankLink Online up to ' + StDateToDateString(BKDATEFORMAT, edtTransactionsToDate.AsStDate, False) + #10#13 +
+            HelpfulInfoMsg(bkBranding.PracticeProductName + ' successfully exported data to ' + bkBranding.ProductOnlineName + ' up to ' + StDateToDateString(BKDATEFORMAT, edtTransactionsToDate.AsStDate, False) + #10#13 +
                             IntToStr(FExportStatistics.TransactionsExported) + ' Transaction(s) exported' + #10#13 +
                             IntToStr(FExportStatistics.AccountsExported) + ' Account(s) exported' + #10#13 +
                             IntToStr(FExportStatistics.ClientFilesProcessed ) + ' Client files(s) Processed' + #10#13#10#13 +
-                            'Due to an error that has occurred, BankLink Practice may not have exported all transactions to BankLink Online.', 0);
+                            'Due to an error that has occurred, ' + bkBranding.PracticeProductName + ' may not have exported all transactions to ' + bkBranding.ProductOnlineName + '.', 0);
           end
           else
           begin
-            HelpfulInfoMsg('Due to an error that has occurred, BankLink Practice was unable to export transactions to BankLink Online.', 0);
+            HelpfulInfoMsg('Due to an error that has occurred, ' + bkBranding.PracticeProductName + ' was unable to export transactions to ' + bkBranding.ProductOnlineName + '.', 0);
           end;
 
           Close;

@@ -154,10 +154,10 @@ const
 var
   Msg: string;
 begin
-  Msg := Format('Please register this practice on BankLink Online%s' +
+  Msg := Format('Please register this practice on ' + bkBranding.ProductOnlineName + '%s' +
                 'Practice Name: %s%s' +
                 'Practice Code: %s%s' +
-                'The BankLink Online Administrator (Primary Contact) for the practice%s' +
+                'The ' + bkBranding.ProductOnlineName + ' Administrator (Primary Contact) for the practice%s' +
                 'Name: %s%s' +
                 'Phone Number: %s%s' +
                 'Email Address: %s%s' +
@@ -176,8 +176,7 @@ begin
                  m_ServiceAgreementSigneeTitle, ONE_LINE,
                  m_ServiceAgreementVersion, TWO_LINES]);
 
-  Result := SendMailTo('BankLink Online Registration', GetSupportEmailAddress,
-             'BankLink Online Registration', Msg);
+  Result := SendMailTo(bkBranding.ProductOnlineName + ' Registration', GetSupportEmailAddress, bkBranding.ProductOnlineName +  ' Registration', Msg);
 end;
 
 //------------------------------------------------------------------------------

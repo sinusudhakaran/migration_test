@@ -62,7 +62,8 @@ uses
   WinUtils,
   progress,
   RegExprUtils,
-  BankLinkOnlineServices;
+  BankLinkOnlineServices,
+  bkBranding;
 
 const
   UNIT_NAME = 'BankLinkOnline';
@@ -200,9 +201,10 @@ begin
       cfsUploadedPractice:
         begin
           Msg := Format('The client file %s has been updated by your accountant. '+
-                        'Would you like to overwrite the client file in BankLink Books ' +
-                        'with the client file on %s?', [AClientCode, BANKLINK_ONLINE_NAME]);
-          if (Silent) or (AskYesNo('Update from ' + BANKLINK_ONLINE_NAME, Msg, DLG_YES, 0) <> DLG_YES) then
+                        'Would you like to overwrite the client file in %s ' +
+                        'with the client file on %s?', [AClientCode, bkBranding.BooksProductName, bkBranding.ProductOnlineName]);
+
+          if (Silent) or (AskYesNo('Update from ' + bkBranding.ProductOnlineName, Msg, DLG_YES, 0) <> DLG_YES) then
             raise EDownloadFailed.CreateFmt('The client file %s has been updated by your accountant.',
                                           [AClientCode]);
         end;
@@ -210,7 +212,8 @@ begin
       cfsUploadedBooks:
         begin
           Msg := Format('The client file %s on %s has already been ' +
-                        'updated to BankLink Books.', [AClientCode, BANKLINK_ONLINE_NAME]);
+                        'updated to %s.', [AClientCode, bkBranding.ProductOnlineName, bkBranding.BooksProductName]);
+                        
           raise EDownloadFailed.Create(Msg);
         end;
       cfsCopyUploadedBooks: ; //OK
@@ -218,7 +221,7 @@ begin
         begin
           Msg := Format('The client file %s on %s is currently with ' +
                         'your accountant. Please contact your accountant.',
-                        [AClientCode, BANKLINK_ONLINE_NAME]);
+                        [AClientCode, bkBranding.ProductOnlineName]);
           raise EDownloadFailed.Create(Msg);
         end;
     end;
@@ -352,7 +355,7 @@ begin
       cfsNoFile:
         begin
           Msg := Format('The client file %s is not available via %s.',
-                        [AClientCode, BANKLINK_ONLINE_NAME]);
+                        [AClientCode, bkBranding.ProductOnlineName]);
           raise EDownloadFailed.Create(Msg);
         end;
       cfsUploadedPractice:
@@ -360,11 +363,12 @@ begin
           Msg := Format('The client file %s on %s is older than the file ' +
                         'currently available. You may lose some data if you update ' +
                         'this client. Are you sure you want to continue?',
-                        [AClientCode, BANKLINK_ONLINE_NAME]);
-          if (Silent) or (AskYesNo('Update from ' + BANKLINK_ONLINE_NAME, Msg, DLG_YES, 0) <> DLG_YES) then
+                        [AClientCode, bkBranding.ProductOnlineName]);
+                        
+          if (Silent) or (AskYesNo('Update from ' + bkBranding.ProductOnlineName, Msg, DLG_YES, 0) <> DLG_YES) then
             raise EDownloadFailed.CreateFmt('The client file %s on %s is older ' +
                                             'than the file currently available.',
-                                            [AClientCode, BANKLINK_ONLINE_NAME]);
+                                            [AClientCode, bkBranding.ProductOnlineName]);
         end;
       cfsDownloadedBooks:
         begin
@@ -376,17 +380,18 @@ begin
         begin
           Msg := Format('The client file %s on %s has been updated by ' +
                         'your client. Would you like to overwrite the client file ' +
-                        'in BankLink Practice with the client file from %s?',
-                        [AClientCode, BANKLINK_ONLINE_NAME, BANKLINK_ONLINE_NAME]);
-          if (Silent) or (AskYesNo('Update from ' + BANKLINK_ONLINE_NAME, Msg, DLG_YES, 0) <> DLG_YES) then
+                        'in %s with the client file from %s?',
+                        [AClientCode, bkBranding.ProductOnlineName, bkBranding.PracticeProductName, bkBranding.ProductOnlineName]);
+                        
+          if (Silent) or (AskYesNo('Update from ' + bkBranding.ProductOnlineName, Msg, DLG_YES, 0) <> DLG_YES) then
             raise EDownloadFailed.CreateFmt('The client file %s on %s '+
                                             'has been updated by your client.',
-                                            [AClientCode, BANKLINK_ONLINE_NAME]);
+                                            [AClientCode, bkBranding.ProductOnlineName]);
         end;
       cfsDownloadedPractice:
         begin
           Msg := Format('The client file %s on %s has already been ' +
-                        'updated to BankLink Practice.',
+                        'updated to ' + bkBranding.PracticeProductName + '.',
                         [AClientCode, BANKLINK_ONLINE_NAME]);
           raise EDownloadFailed.Create(Msg);
         end;
@@ -539,16 +544,16 @@ begin
   begin
     if ForClient then
     begin
-      Result := CICOERRORSTR_CLIENT_CLIENTDEACTIVATED;
+      Result := bkBranding.Rebrand(CICOERRORSTR_CLIENT_CLIENTDEACTIVATED);
     end
     else
     begin
-      Result := CICOERRORSTR_PRACTICE_CLIENTDEACTIVATED;
+      Result := bkBranding.Rebrand(CICOERRORSTR_PRACTICE_CLIENTDEACTIVATED);
     end;
   end
   else
   begin
-    Result := Response.Description;
+    Result := bkBranding.Rebrand(Response.Description);
   end;
 end;
 
@@ -592,7 +597,7 @@ begin
 
           if ProductConfigService.PracticeUserExists(AClientEmail, False) then
           begin
-            raise EUploadFailed.Create(Format('The email address %s already exists as a Practice user. Please specify a different email address or contact BankLink Support for assistance.', [AClientEmail]));
+            raise EUploadFailed.Create(Format('The email address %s already exists as a Practice user. Please specify a different email address or contact %s Support for assistance.', [AClientEmail, bkBranding.ProductName]));
           end;
 
           CiCoClient.UploadFileFromPractice(AClientCode, AClientName, AClientEmail, AClientContact, ServerResponce);

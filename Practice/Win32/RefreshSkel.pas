@@ -95,7 +95,7 @@ Begin
    Begin
       AChart.Free;
       AChart := nil;
-      Msg := FormatStr( 'BankLink couldn''t find any accounts in the file %s', [ FileName ] );
+      Msg := FormatStr(bkBranding.ProductName + ' couldn''t find any accounts in the file %s', [ FileName ] );
       LogUtil.LogMsg( lmError, UnitName, ThisMethodName + ' : ' + Msg );
       Raise ERefreshFailed.Create( Msg );
    end;      

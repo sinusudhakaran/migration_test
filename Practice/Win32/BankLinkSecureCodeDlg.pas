@@ -43,7 +43,7 @@ begin
   end
   else
   begin
-    HelpfulWarningMsg('The BankLink Online Secure Code cannot be blank.', 0);
+    HelpfulWarningMsg('The ' + bkBranding.ProductOnlineName + ' Secure Code cannot be blank.', 0);
 
     edtSecureCode.SetFocus;
   end;

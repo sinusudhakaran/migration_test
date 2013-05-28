@@ -80,7 +80,8 @@ uses
   SystemMemorisationList, IOStream, AuditMgr, CountryUtils,
   ExchangeRateList, MCDEFS, stTree, stBase,
   BankLinkOnlineServices,
-  SYctIO;
+  SYctIO,
+  bkBranding;
 // ----------------------------------------------------------------------------
 
 Const
@@ -1603,7 +1604,7 @@ Procedure DoUpgradeAdminToLatestVersion( var UpgradingToVersion : integer; const
   begin
     UpgradingToVersion := 130;
     
-    NewClientTypeName := 'Books via BankLink Online';
+    NewClientTypeName := 'Books via ' + bkBranding.ProductOnlineName;
 
     //For many sites this would have been done already so only do it if it doesn't exist.
     if (AdminSystem.fdSystem_Client_Type_List.FindName(NewClientTypeName) = nil) then

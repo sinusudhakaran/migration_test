@@ -22,7 +22,9 @@ unit rptInvoice;
 interface
 uses
   ReportDefs,
-  ReportTypes;
+  ReportTypes,
+  bkBranding,
+  bkUrls;
 
 function DoInvoiceReport( Dest : TReportDest; Doc: string; SourceFilename : string; DestFilename : string = '') : boolean;
 //convert a reports.000 file into a document
@@ -244,7 +246,7 @@ begin
 
       NzFooter := 'BankLink New Zealand PO Box 56-354 Dominion Rd Auckland NZ. Freephone 0800 226 554 Fax 09 630 2759 www.banklink.co.nz';
       AuFooter := 'BankLink Australia GPO Box 4608 Sydney NSW 2001 Australia. Freephone 1800 123 242 Freefax 1800 123 807 www.banklink.com.au';
-      UKFooter := 'BankLink United Kingdom 9 Devonshire Square, London EC2M 4YF. Freephone 0800 500 3084 www.banklink.co.uk';
+      UKFooter := bkBranding.ProductName + ' United Kingdom 9 Devonshire Square, London EC2M 4YF. Freephone 0800 500 3084 ' + TUrls.BankLinkWebSites[whUK];
 
 
       i := 0;

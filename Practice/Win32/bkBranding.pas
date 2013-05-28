@@ -87,11 +87,12 @@ var
 
 
   function ProductName: String;
-  function ProductLiveName: String;
-  function BKBooksProductName: String;
-  function ECodingDisplayName: String;
+  function ProductOnlineName: String;
+  function BooksProductName: String;
+  function NotesProductName: String;
   function NotesOnlineProductName: String;
   function BConnectName: String;
+  function PracticeProductName: String;
 
   function Rebrand(Value: String): String;
 
@@ -519,9 +520,14 @@ begin
   end;
 end;
 
-function ProductLiveName: String;
+function ProductOnlineName: String;
 begin
   Result := Format('%s Online', [ProductName]);
+end;
+
+function PracticeProductName: String;
+begin
+  Result := Format('%s Practice', [ProductName]);
 end;
 
 procedure StyleMainBannerPanel(Panel: TRzPanel);
@@ -672,7 +678,7 @@ end;
 
 procedure StyleBankLinkButton(Button: TRzToolButton);
 begin
-  Button.Caption := ProductName;
+  Button.Caption := ProductOnlineName;
 
   if GetProductBrand = btBankstream then
   begin
@@ -688,12 +694,12 @@ begin
   end;
 end;
 
-function BKBooksProductName: String;
+function BooksProductName: String;
 begin
   Result := Format('%s Books', [ProductName]);
 end;
 
-function ECodingDisplayName: String;
+function NotesProductName: String;
 begin
   Result := Format('%s Notes', [ProductName]);
 end;

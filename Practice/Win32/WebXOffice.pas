@@ -24,7 +24,7 @@ implementation
 uses Windows, SysUtils, Registry, glConst, Globals, WebXUtils, StStrS, StStrL,
   BkDateUtils, PayeeObj, syDefs, bkDefs, scheduled, LogUtil, BkConst, ReportDefs,
   baList32, InfoMoreFrm, YesNoDlg, GlobalDirectories, ErrorMoreFrm, ECodingImportResultsFrm,
-  AutoCode32, WinUtils, ClientUtils, SchedRepUtils, bkUtil32, StDate;
+  AutoCode32, WinUtils, ClientUtils, SchedRepUtils, bkUtil32, StDate, bkBranding;
 
 var
   DebugMe: Boolean = false;
@@ -977,12 +977,12 @@ begin
      end;
   end;
   finally
-    IncludedAccountList.Free;
+    IncludedAccountList.Free;                     
     Result := txCount;
     CloseFile( F );
     aClient.clFields.clWeb_Export_Format := wfWebX;
-    NotifyQueue(Filename, IntToStr(aClient.clFields.clECoding_WebSpace), '0', 'Banklink Transactions',
-      'Banklink Transactions for ' + aClient.clFields.clName);
+    NotifyQueue(Filename, IntToStr(aClient.clFields.clECoding_WebSpace), '0', bkBranding.ProductName + ' Transactions',
+      bkBranding.ProductName + ' Transactions for ' + aClient.clFields.clName);
     if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
   end;
 end;

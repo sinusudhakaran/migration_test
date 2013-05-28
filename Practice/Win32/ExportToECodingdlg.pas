@@ -256,7 +256,7 @@ var
       end;
       // check not trying to call bk5
       if Uppercase( ExtractFileExt( eTo.Text )) = '.BK5' then begin
-         HelpfulWarningMsg('You cannot use this name because the .BK5 extension is used by BankLink', 0 );
+         HelpfulWarningMsg('You cannot use this name because the .BK5 extension is used by ' + bkBranding.ProductName, 0 );
          exit;
       end;
 

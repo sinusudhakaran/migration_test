@@ -184,10 +184,10 @@ begin
              begin
                if TOptionRec(Option[opAccountSys]).Complete = false then
                begin
-                 Msg := 'You have selected to use BankLink Notes Online for this client. ' +
-                        'Please confirm the BankLink Online details for this client. ' +
+                 Msg := 'You have selected to use ' + bkBranding.NotesOnlineProductName + ' for this client. ' +
+                        'Please confirm the ' + bkBranding.ProductOnlineName + ' details for this client. ' +
                         #13#10 + #13#10 +
-                        'The BankLink Online settings for this client will be displayed ' +
+                        'The ' + bkBranding.ProductOnlineName + ' settings for this client will be displayed ' +
                         'at the end of this wizard.';
                  HelpfulInfoMsg(Msg, 0);
                end;
@@ -207,7 +207,7 @@ begin
                else if (ProductConfigService.IsPracticeDeactivated(false)) then
                  PraticeState := 'deactivated';
 
-               Msg := 'BankLink Online is currently %s. The Web Export Format ' +
+               Msg := bkBranding.ProductOnlineName + ' is currently %s. The Web Export Format ' +
                       ' will be set to ''None''.';
 
                HelpfulInfoMsg(format(Msg,[PraticeState]), 0);
@@ -530,8 +530,8 @@ begin
    with ( Sender as TBitBtn ) do begin
       if not ( TOptions( Tag ) = MouseStep ) then begin
          MouseStep := TOptions( Tag );
-         lblTitle.Caption := Option[ MouseStep ].Title;
-         lblNotes.Caption := Option[ MouseStep ].Notes;
+         lblTitle.Caption := bkBranding.Rebrand(Option[ MouseStep ].Title);
+         lblNotes.Caption := bkBranding.Rebrand(Option[ MouseStep ].Notes);
       end;
    end;
 end;
@@ -774,10 +774,10 @@ begin
      (UseBankLinkOnline) and
      (ProductConfigService.GetOnlineClientIndex(MyClient.clFields.clCode) > -1) then
   begin
-    Msg := 'A BankLink Online client with this client code already exists. ' +
-           'Linking the BankLink Practice and BankLink Online clients cannot ' +
+    Msg := 'A ' + bkBranding.ProductOnlineName + ' client with this client code already exists. ' +
+           'Linking the ' + bkBranding.PracticeProductName + ' and ' + bkBranding.ProductOnlineName + ' clients cannot ' +
            'be undone. Are you sure you want to link this client file to the ' +
-           'following BankLink Online client? (%s) - (%s)';
+           'following ' + bkBranding.ProductOnlineName + ' client? (%s) - (%s)';
 
     if AskYesNo('New Client Wizard',
                 format(Msg, [MyClient.clFields.clCode, MyClient.clFields.clName]),

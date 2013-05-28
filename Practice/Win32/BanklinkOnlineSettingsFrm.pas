@@ -217,8 +217,8 @@ begin
   if (ProductConfigService.GetOnlineClientIndex(MyClient.clFields.clCode) > -1) then
   begin
     Msg := 'Are you sure you want to link this client file to the ' +
-           'following BankLink Online client? Note that this will overwrite ' +
-           'your local client settings with those from the BankLink Online ' +
+           'following ' + bkBranding.ProductOnlineName + ' client? Note that this will overwrite ' +
+           'your local client settings with those from the ' + bkBranding.ProductOnlineName + ' ' +
            'client. (%s) - (%s)';
     if AskYesNo('Activating a client',
                 format(Msg, [MyClient.clFields.clCode, MyClient.clFields.clName]),
@@ -346,9 +346,9 @@ begin
     { Shouldn't be able to reach here, as the Services Available panel should be invisible
       if the second and third conditions are true, and thus chkDeliverData can't be
       checked }
-    ShowMessage('This client is set up to download data directly from BankLink to the ' +
-                'client file. Please contact BankLink Client Services if you want to ' +
-                'change the data delivery method to BankLink Online');
+    ShowMessage('This client is set up to download data directly from ' + bkBranding.ProductName + ' to the ' +
+                'client file. Please contact ' + bkBranding.ProductName + ' Client Services if you want to ' +
+                'change the data delivery method to ' + bkBranding.ProductOnlineName);
     chkDeliverData.Checked := False;
     Exit;
   end;
@@ -607,7 +607,7 @@ begin
 
   if not ProductConfigService.OnLine then
   begin
-    ErrorMsg := 'BankLink Practice is unable to connect to BankLink Online and so ' +
+    ErrorMsg := bkBranding.PracticeProductName + ' is unable to connect to ' + bkBranding.ProductOnlineName + ' and so ' +
                 'cannot update this client''s settings';
     ShowMessage(ErrorMsg);
     LogUtil.LogMsg(lmError, UnitName, ErrorMsg);
@@ -623,7 +623,7 @@ begin
   begin
     if AskYesNo('Resuming client',
                 'You are about to resume this Client on ' +
-                'BankLink Online. They will be able to access BankLink Online as per ' +
+                bkBranding.ProductOnlineName + '. They will be able to access ' + bkBranding.ProductOnlineName + ' as per ' +
                 'normal.' + #10#10 + 'Are you sure you want to continue?',
                 DLG_YES, 0, false) <> DLG_YES then
     begin
@@ -638,8 +638,8 @@ begin
   if (ClientStatus <> staSuspended) and (rbSuspended.Checked) then
   begin
     if AskYesNo('Suspending client',
-                'You are about to suspend this Client from BankLink ' +
-                'Online. They will be able to access BankLink Online in read-only mode.' +
+                'You are about to suspend this Client from ' + bkBranding.ProductOnlineName + '. ' +
+                'They will be able to access ' + bkBranding.ProductOnlineName + ' in read-only mode.' +
                 #10#10 + 'Are you sure you want to continue?',
                 DLG_YES, 0, false) <> DLG_YES then
     begin
@@ -654,8 +654,8 @@ begin
   if (ClientStatus <> staDeactivated) and (rbDeactivated.Checked) then
   begin
     if AskYesNo('Deactivating client',
-                'You are about to deactivate this Client from BankLink ' +
-                'Online. All user log-ins will be disabled.' + #10#10 +
+                'You are about to deactivate this Client from ' + bkBranding.ProductOnlineName + '. ' +
+                'All user log-ins will be disabled.' + #10#10 +
                 'Are you sure you want to continue?',
                 DLG_YES, 0, false) <> DLG_YES then
     begin
@@ -748,8 +748,8 @@ begin
        (NotesOnlineTicked) and
        (NumProdTicked > 1) then
     begin
-      PromptMessage := 'BankLink Practice will create this client with the following ' +
-                       'details onto BankLink Online: ' + #10#10 +
+      PromptMessage := bkBranding.PracticeProductName + ' will create this client with the following ' +
+                       'details onto ' + bkBranding.ProductOnlineName + ': ' + #10#10 +
                        'Name: ' + edtUserName.text + #10 +
                        'Email Address: ' + edtEmailAddress.text + #10#10 +
                        'Products: ' + #10 +
@@ -768,9 +768,9 @@ begin
                          Trim(NewProducts.Text) + #10#10 + 'Change the Default Client ' +
                          'Administrator Email Address. The new Default Client ' +
                          'Adminstrator will be sent to ' + edtEmailAddress.Text + '.' + #10#10 +
-                         'This will not remove access to this client on BankLink Online for ' +
+                         'This will not remove access to this client on ' + bkBranding.ProductOnlineName + ' for ' +
                          FOriginalSettings.Username + ' - to do that you need to go to ' +
-                         'BankLink Online and update the users associated with this client.';
+                         bkBranding.ProductOnlineName + ' and update the users associated with this client.';
       
       if AskYesNo('Changing client details',
                   PromptMessage, DLG_YES, 0, false) <> DLG_YES then
@@ -783,9 +783,9 @@ begin
                   'You have changed the Default Client Administrator Email Address. ' +
                   'The new Default Client Administrator will be set to ' +
                   edtEmailAddress.Text + '.' + #10#10 +
-                  'This will not remove access to this client on BankLink Online for ' +
+                  'This will not remove access to this client on ' + bkBranding.ProductOnlineName + ' for ' +
                   FOriginalSettings.Username + ' - to do that you need to go to ' +
-                  'BankLink Online and update the users associated with this client.' + #10#10 +
+                  bkBranding.ProductOnlineName + ' and update the users associated with this client.' + #10#10 +
                   'Are you sure you want to continue?',
                   DLG_YES, 0, false) <> DLG_YES then
         Exit;
@@ -805,9 +805,9 @@ begin
     begin
       if not RegExIsAlphaNumeric(Trim(edtSecureCode.Text), false) then
       begin
-        ShowMessage('You must enter a BankLink Online Secure Code if you want data for this ' +
-                    'client to be sent direct to BankLink Online.  Click OK to return and enter ' +
-                    'the code, or remove the tick from the Deliver data direct to BankLink Online ' +
+        ShowMessage('You must enter a ' + bkBranding.ProductOnlineName + ' Secure Code if you want data for this ' +
+                    'client to be sent direct to ' + bkBranding.ProductOnlineName + '.  Click OK to return and enter ' +
+                    'the code, or remove the tick from the Deliver data direct to ' + bkBranding.ProductOnlineName + ' ' +
                     'checkbox before saving your changes.');
         Exit;
       end;
@@ -846,7 +846,7 @@ begin
     begin
       NewExportsStr := GetCommaSepStrFromList(NewExports);
 
-      ShowMessage('You have enabled the export of data to BankLink Online for ' +
+      ShowMessage('You have enabled the export of data to ' + bkBranding.ProductOnlineName + ' for ' +
                   NewExportsStr + ' for all the Bank Accounts currently attached to ' +
                   'this client file. If there are Bank Accounts that you do not ' +
                   'want to send to ' + NewExportsStr + ' you can deselect them via ' +
@@ -983,7 +983,7 @@ begin
   if (ShowModal = mrOk) then
   begin
     Result := True;
-    TfrmModalProgress.ShowProgress(Self, 'Please wait...', 'Sending selected vendors to BankLink Online',
+    TfrmModalProgress.ShowProgress(Self, 'Please wait...', 'Sending selected vendors to ' + bkBranding.ProductOnlineName,
                                    ExportTaggedAccounts);
     
   end;

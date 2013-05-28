@@ -73,7 +73,7 @@ uses
   ErrorMoreFrm,
   Admin32,
   LogUtil,
-  BKHelp;
+  BKHelp, bkBranding;
 
 const
   UNITNAME = 'EditUserPassword';
@@ -182,7 +182,7 @@ begin
   
   if (Trim(edtNewPassword.text) = '') then
   begin
-    HelpfulWarningMsg('BankLink Online users must have a Password.', 0 );
+    HelpfulWarningMsg(bkBranding.ProductOnlineName + ' users must have a Password.', 0 );
     edtNewPassword.SetFocus;
     exit;
   end; { (Trim(edtNewPassword.text) = '') }
@@ -196,7 +196,7 @@ begin
 
   if not RegExIsPasswordValid(edtNewPassword.text) or (Pos('&', edtNewPassword.Text) > 0) then
   begin
-    HelpfulWarningMsg('BankLink Online users must have a Password that contains 8-12 characters, including at least 1 digit. It must not contain the & symbol.', 0 );
+    HelpfulWarningMsg(bkBranding.ProductOnlineName + ' users must have a Password that contains 8-12 characters, including at least 1 digit. It must not contain the & symbol.', 0 );
     edtNewPassword.SetFocus;
     exit;
   end; { not RegExIsPasswordValid(edtNewPassword.text) }
@@ -210,7 +210,7 @@ begin
   Result := Assigned(CurrUser);
   if not Result then
   begin
-    HelpfulErrorMsg('There is no User logged onto BankLink Practice', 0);
+    HelpfulErrorMsg('There is no User logged onto ' + bkBranding.PracticeProductName, 0);
     Exit;
   end;
 

@@ -64,7 +64,8 @@ uses
   MONEYDEF,
   SYamIO,
   GenUtils,
-  InfoMoreFrm;
+  InfoMoreFrm,
+  bkBranding;
 
 // Check to see if a given client code is valid
 function IsABadCode( S : String ): Boolean;
@@ -675,7 +676,7 @@ begin
     if Assigned(DirectDeliveryNotEnabled) then
     begin
       Msg := Msg + 'The following bank account(s) cannot be attached to the selected ' +
-             'client file because the client file is not enabled for delivering data directly to BankLink Online:' + #10;
+             'client file because the client file is not enabled for delivering data directly to '+ bkBranding.ProductOnlineName + ':' + #10;
       for i := 0 to DirectDeliveryNotEnabled.Count - 1 do
         Msg := Msg + DirectDeliveryNotEnabled.Strings[i] + #10;
       Msg := Msg + #10;
@@ -684,7 +685,7 @@ begin
     if Assigned(NoBLOSecureCodeList) then
     begin
       Msg := Msg + 'The following bank account(s) cannot be attached to the selected ' +
-             'client file because the client file does not have a BankLink Online ' +
+             'client file because the client file does not have a ' + bkBranding.ProductOnlineName +
              'Secure Code:' + #10;
       for i := 0 to NoBLOSecureCodeList.Count - 1 do
         Msg := Msg + NoBLOSecureCodeList.Strings[i] + #10;
@@ -694,7 +695,7 @@ begin
     if Assigned(BLOCodeDoesNotMatchList) then
     begin
       Msg := Msg + 'The following bank account(s) cannot be attached to the selected ' +
-             'client file because the BankLink Online Secure Codes do not match: ' + #10;
+             'client file because the ' + bkBranding.ProductOnlineName + ' Secure Codes do not match: ' + #10;
       for i := 0 to BLOCodeDoesNotMatchList.Count - 1 do
         Msg := Msg + BLOCodeDoesNotMatchList.Strings[i] + #10;
       Msg := Msg + #10;
@@ -703,7 +704,7 @@ begin
     if Assigned(NonOnlineSecureAccounts) then
     begin
       Msg := Msg + 'The following bank account(s) cannot be attached to the selected ' +
-             'client file because they are not BankLink Online Secure account(s): ' + #10;
+             'client file because they are not ' + bkBranding.ProductOnlineName + ' Secure account(s): ' + #10;
       for i := 0 to NonOnlineSecureAccounts.Count - 1 do
         Msg := Msg + NonOnlineSecureAccounts.Strings[i] + #10;
       Msg := Msg + #10;
@@ -851,8 +852,8 @@ begin
       Msg := 'You have attached the following bank account(s) to client file ' +
              aClient.clFields.clName + ' ' + aClient.clFields.clCode + ' : ' +
              GetCommaSepStrFromList(AccountsMsg) + '. This will enable the export ' +
-             'of data to BankLink Online for ' + GetCommaSepStrFromList(aVendorNames) +
-             '. ' + #10#10 + 'If you do not want to send transactions to BankLink Online for these ' +
+             'of data to ' + bkBranding.ProductOnlineName + ' for ' + GetCommaSepStrFromList(aVendorNames) +
+             '. ' + #10#10 + 'If you do not want to send transactions to ' + bkBranding.ProductOnlineName + ' for these ' +
              'accounts you can deselect them via Other Functions | Bank Accounts.';
 
       HelpfulInfoMsg(Msg,0);

@@ -35,7 +35,7 @@ object frmBanklinkOnlineSettings: TfrmBanklinkOnlineSettings
     object lblSelectProducts: TLabel
       Left = 16
       Top = 20
-      Width = 305
+      Width = 281
       Height = 26
       Caption = 
         'Select the BankLink Online products that you wish to have availa' +

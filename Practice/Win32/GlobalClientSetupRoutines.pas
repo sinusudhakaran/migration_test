@@ -82,7 +82,8 @@ uses
   Windows,
   ToDoHandler,
   AuditMgr,
-  SYAUDIT;
+  SYAUDIT,
+  bkBranding;
 
 procedure NotSynchronizedMsg;
 begin
@@ -1589,7 +1590,7 @@ begin
         try
           if not ProductConfigService.DeleteClient(OnlineClientDet) then
           begin
-            HelpfulErrorMsg('Unable to Connect to BankLink Online.', 0);
+            HelpfulErrorMsg('Unable to Connect to ' + bkBranding.ProductOnlineName + '.', 0);
 
             Exit;
           end;

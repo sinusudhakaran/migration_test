@@ -135,7 +135,7 @@ uses
   strutils,
   genutils,
   GLConst,
-  ForexHelpers;
+  ForexHelpers, bkBranding;
 
 const
   // Actual column indices may be different depending on UK/Currency settings
@@ -641,7 +641,7 @@ var
     if Length(VendorNames) > 0 then
     begin
       aMessage := 'Client ' + MyClient.clFields.clCode + ' no longer has any bank accounts using ' + VendorStr + '.' + #10 +
-                  'Would you like BankLink Practice to remove ' + VendorStr + ' for this client?';
+                  'Would you like ' + bkBranding.PracticeProductName + ' to remove ' + VendorStr + ' for this client?';
       Result := True;
     end;
   end;

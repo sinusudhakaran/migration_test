@@ -76,7 +76,8 @@ uses
    ExUtil,
    ClDateUtils,
    StdHints,
-   WinUtils, clObj32, BKDEFS, BusinessProductsExport, DesktopSuper_Utils;
+   WinUtils, clObj32, BKDEFS, BusinessProductsExport, DesktopSuper_Utils,
+  bkBranding;
 
 {$R *.DFM}
 
@@ -332,7 +333,7 @@ begin
 
         if ExtractFileExt( eTo.Text ) = '.BK5' then
         Begin
-          HelpfulWarningMsg('You can''t use this name because the .BK5 extension is used by BankLink', 0 );
+          HelpfulWarningMsg('You can''t use this name because the .BK5 extension is used by ' + bkBranding.ProductName, 0 );
           exit;
         end;
 

@@ -46,7 +46,8 @@ uses
    syDefs,
    bkDefs,
    bkconst,
-   SysUtils, SysObj32, usrlist32;
+   SysUtils, SysObj32, usrlist32,
+   bkBranding;
 
 type
    THeaderReport = class(TBKReport)
@@ -500,7 +501,7 @@ var
                rdScreen          : PutString( 'Preview');
                rdFax             : PutString( 'Fax');
                rdCSVExport       : PutString( 'CSV Export');
-               rdCheckOut        : PutString( 'BankLink Books');
+               rdCheckOut        : PutString( bkBranding.BooksProductName);
                rdBusinessProduct : PutString( 'Business Prod');
             else
                SkipColumn;
@@ -671,11 +672,11 @@ begin
              rptNoCustDoc :
                SchSumRpt.RenderTitleLine('Custom documents for the following clients were not generated because they no longer exist');
              rpsNotesOnlineError :
-               SchSumRpt.RenderTitleLine('BankLink Notes Online data for the following clients were not generated due to errors');
+               SchSumRpt.RenderTitleLine(bkBranding.NotesOnlineProductName + ' data for the following clients were not generated due to errors');
              rpsCiCoOnlineError  :
-               SchSumRpt.RenderTitleLine('BankLink Books files to be sent via BankLink Online for the following clients were not generated due to errors');
+               SchSumRpt.RenderTitleLine(bkBranding.BooksProductName + ' files to be sent via BankLink Online for the following clients were not generated due to errors');
              rptEmailOnlineError :
-               SchSumRpt.RenderTitleLine('Emails for the following BankLink Online clients were not generated due to errors');
+               SchSumRpt.RenderTitleLine('Emails for the following ' + bkBranding.ProductOnlineName + ' clients were not generated due to errors');
            end;
          end;
 
@@ -742,8 +743,8 @@ begin
                 rdScreen          : SchSumRpt.PutString('Preview');
                 rdFax             : SchSumRpt.PutString('Fax');
                 rdCSVExport       : SchSumRpt.PutString('CSV Export');
-                rdCheckOut        : SchSumRpt.PutString('BankLink Books (Email)');
-                rdBankLinkOnline  : SchSumRpt.PutString('BankLink Books (via Online)');
+                rdCheckOut        : SchSumRpt.PutString(bkBranding.BooksProductName + ' (Email)');
+                rdBankLinkOnline  : SchSumRpt.PutString(bkBranding.BooksProductName + ' (via Online)');
                 rdBusinessProduct : SchSumRpt.PutString('Business Prod');
              else
                 SchSumRpt.SkipColumn;

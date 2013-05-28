@@ -117,7 +117,8 @@ uses
   syamio,
   BankLinkOnlineServices,
   BlopiServiceFacade,
-  ErrorMoreFrm;
+  ErrorMoreFrm,
+  bkBranding;
 
 const
    UnitName = 'RESYNCCLIENT';
@@ -554,7 +555,7 @@ begin
             end
             else
             begin
-              HelpfulErrorMsg('Client banklink online web export format could not be reset to none', 0);
+              HelpfulErrorMsg('Client ' + bkBranding.ProductOnlineName + ' web export format could not be reset to none', 0);
             end;
           finally
             ClientReadDetail.Free;

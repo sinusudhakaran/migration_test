@@ -1689,7 +1689,7 @@ begin
           if Wrapper.wSignature = ERROR_SIGNATURE then
             pIDRec^.imName := Wrapper.wName
           else
-            pIDRec^.imName    := 'ERROR: This is not a BankLink file!';
+            pIDRec^.imName    := 'ERROR: This is not a ' + bkBranding.ProductName + ' file!';
 
           pIDRec^.imGroupID := 0;
           pIDRec^.imData    := nil;
@@ -1961,7 +1961,7 @@ begin
     ntGroup :
     begin
       if Column = 0 then
-        CellText := gidNames[ NodeData.tdFolderID]
+        CellText := bkBranding.Rebrand(gidNames[ NodeData.tdFolderID])
       else
         Exit;
     end;
@@ -3318,7 +3318,7 @@ begin
     TargetCanvas.Font := appimages.Font;
     TargetCanvas.Font.Style := [fsBold];
 
-    S := gidNames[ NodeData.tdFolderID];
+    S := bkBranding.Rebrand(gidNames[ NodeData.tdFolderID]);
 
     InflateRect( ItemRect, -6, -2 );
     DrawText( TargetCanvas.Handle, PChar( S ), StrLen( PChar( S ) ), ItemRect, DT_LEFT or DT_VCENTER or DT_SINGLELINE);

@@ -652,7 +652,8 @@ begin
             begin
               if (not FInWizard) and (clWeb_Export_Format = wfWebNotes) and (OldWebExportFormat <> wfWebNotes) then
               begin
-                HelpfulInfoMsg('You have selected to use BankLink Notes Online for this client. Please confirm the BankLink Online details for this client', 0);
+                HelpfulInfoMsg('You have selected to use ' + bkBranding.NotesProductName + ' Online for this client. Please confirm the ' + bkBranding.ProductOnlineName + ' details for this client', 0);
+
                 EditBanklinkOnlineSettings(Self, True, True, True);
               end;
 
@@ -787,11 +788,12 @@ var
 begin
   if not MyClient.Opened then
   begin
-    aMsg := 'You have selected to use BankLink Notes Online for this client. ' +
-            'Please confirm the BankLink Online details for this client. ' +
+    aMsg := 'You have selected to use ' + bkBranding.NotesProductName + ' Online for this client. ' +
+            'Please confirm the ' + bkBranding.ProductOnlineName + ' details for this client. ' +
             #13#10 + #13#10 +
-            'The BankLink Online settings for this client will be displayed ' +
+            'The ' + bkBranding.ProductOnlineName + ' settings for this client will be displayed ' +
             'at the end of this wizard.';
+
     HelpfulInfoMsg(aMsg, 0);
   end;
 end;

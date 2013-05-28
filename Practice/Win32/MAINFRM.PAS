@@ -1219,8 +1219,8 @@ begin
   bkBranding.StyleECFHOnlineMenuItem(mniImportWebX);
 
 
-  mnsExportBNoteFile.Caption := 'Export ' + glConst.ECoding_App_Name + ' File';
-  mnsImportBNotes.Caption    := 'Import ' + glConst.ECoding_App_Name + ' File';
+  mnsExportBNoteFile.Caption := 'Export ' + bkBranding.NotesProductName + ' File';
+  mnsImportBNotes.Caption    := 'Import ' + bkBranding.NotesProductName + ' File';
 
   mniExportWebX.Caption := 'Export ' + glConst.WEBX_GENERIC_APP_NAME  + ' File';
   mniImportWebX.Caption := 'Import ' + glConst.WEBX_GENERIC_APP_NAME + ' File';
@@ -5071,7 +5071,7 @@ const
       Filename : string;
       procedure FailImport (Reason : String);
       begin
-         HelpfulInfoMsg('Banklink can not import the file at this stage'#13'because '+ Reason,0);
+         HelpfulInfoMsg(bkBranding.ProductName + ' can not import the file at this stage'#13'because '+ Reason,0);
       end;
   begin
      Result := False;
@@ -5154,7 +5154,7 @@ begin
         UPDATEMF.UpdateMenus;
         UPDATEMF.UpdateSystemMenus;
         HelpfulErrorMsg( 'You do not have sufficient rights to Update a file,' + #13 +
-         'please see your BankLink Administrator.',0);
+         'please see your' + bkBranding.ProductName + ' Administrator.',0);
         if Assigned(AdminSystem) then
           DoClientManager(0,0,0,0);
       end;
@@ -5172,7 +5172,7 @@ begin
          ImportOK := DoImportTRF
        else
          HelpfulErrorMsg( 'You do not have sufficient rights to Import a ' + ECodingDisplayName + ' file,' + #13 +
-          'please see your BankLink Administrator.',0);
+          'please see your ' + bkBranding.ProductName + ' Administrator.',0);
        if Assigned(AdminSystem) then
          DoClientManager(0,0,0,0);
        if (not (F is TfrmClientManager)) or ImportOK then

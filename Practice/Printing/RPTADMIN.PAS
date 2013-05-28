@@ -111,7 +111,8 @@ uses
    Windows,
    ReportImages,
    ClientSelectFme,
-   AuditMgr, BKTXIO, BKCLIO, ExchangeRateList, GSTCALC32;
+   AuditMgr, BKTXIO, BKCLIO, ExchangeRateList, GSTCALC32,
+   bkBranding;
 
 type
    //Client status record for whats due list
@@ -852,8 +853,8 @@ const
           srdECoding: PutString( glConst.ECODING_APP_NAME);
           srdCSVExport: PutString( 'CSV Export');
           srdWebX: PutString(glConst.WEBX_GENERIC_APP_NAME);
-          srdCheckOut: PutString('BankLink Books (Email)');
-          srdOnline  : PutString('BankLink Books (Online)');
+          srdCheckOut: PutString(bkBranding.BooksProductName +  ' (Email)');
+          srdOnline  : PutString(bkBranding.BooksProductName + ' (Online)');
           srdBusinessProducts: PutString('Business Prod');
         else
           SkipColumn;

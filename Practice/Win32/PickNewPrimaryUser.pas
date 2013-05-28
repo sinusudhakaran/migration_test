@@ -59,7 +59,7 @@ uses
   bkXPThemes,
   WarningMoreFrm,
   BkConst,
-  Globals;
+  Globals, bkBranding;
 
 const
   UNIT_NAME = 'PickNewPrimaryUser';
@@ -135,7 +135,8 @@ begin
           puaRoleChange : UserActionMsg := WARNING_ROLE_CHANGE_MSG;
         end;
 
-        HelpfulWarningMsg(format(WARNING_MESSAGE,[UserActionMsg, PracticeCode]), 0 );
+        HelpfulWarningMsg(format(bkBranding.PracticeProductName + ' is unable to %s as it is the primary contact user ' +
+                    'for this practice. (%s)', [UserActionMsg, PracticeCode]), 0 );
         Exit;
       end;
 
@@ -157,7 +158,7 @@ begin
   except
     on E : Exception do
     begin
-      raise Exception.Create('BankLink Practice was unable to connect to BankLink Online. ' + #13#13 + E.Message );
+      raise Exception.Create(bkBranding.PracticeProductName + ' was unable to connect to ' + bkBranding.ProductOnlineName + '. ' + #13#13 + E.Message );
     end;
   end;
 end;

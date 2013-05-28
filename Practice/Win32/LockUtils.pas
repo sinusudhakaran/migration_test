@@ -178,7 +178,8 @@ uses
   MadStackTrace,
   LogUtil,
   ErrorLog,
-  SyncObjs;
+  SyncObjs,
+  bkBranding;
 
 const
   TICKS_PER_SECOND = 1000;
@@ -252,13 +253,13 @@ begin
 
   case fLockState of
     lsLocking   : fDelayForm.lblDelay.Caption := 'Waiting for access to the ' +
-                                                 ltNames[ fLockType ] +
+                                                 bkBranding.Rebrand(ltNames[ fLockType ]) +
                                                  '... (' +
                                                  IntToStr( aTicksToWait div TICKS_PER_SECOND) +
                                                  's)';
 
     lsUnlocking : fDelayForm.lblDelay.Caption := 'Unlocking the ' +
-                                                 ltNames[ fLockType ];
+                                                 bkBranding.Rebrand(ltNames[ fLockType ]);
   end;
 
   fWindowList := DisableTaskWindows( fDelayForm.Handle );

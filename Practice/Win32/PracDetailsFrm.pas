@@ -282,8 +282,8 @@ begin
   ImagesFrm.AppImages.Misc.GetBitmap(MISC_FINDFOLDER_BMP,btnSaveFolder.Glyph);
   ImagesFrm.AppImages.Misc.GetBitmap(MISC_FINDFOLDER_BMP,btnTaxFolder.Glyph);
   SetUpHelp;
-  lblLogoBitmapNote.Caption   := 'Note: This image will be added to ' + bkBranding.ECodingDisplayName + ' files and ' +
-                               bkBranding.BKBooksProductName + ' files';
+  lblLogoBitmapNote.Caption   := 'Note: This image will be added to ' + bkBranding.NotesProductName + ' files and ' +
+                               bkBranding.BooksProductName + ' files';
 
   ImagesFrm.AppImages.Maintain.GetBitmap(MAINTAIN_PREVIEW_BMP,btnBrowseLogoBitmap.Glyph);
   ChangingDiskID := false;
@@ -645,7 +645,7 @@ begin
 
     if ClientCount > 0 then
     begin
-      if AskYesNo('Banklink Online Export To', 'There are currently ' + IntToStr(ClientCount) + ' client(s) using the Export To ' + chklistExportTo.Items[chklistExportTo.ItemIndex] + ' service. ' +
+      if AskYesNo(bkBranding.ProductOnlineName + ' Export To', 'There are currently ' + IntToStr(ClientCount) + ' client(s) using the Export To ' + chklistExportTo.Items[chklistExportTo.ItemIndex] + ' service. ' +
         'Removing access for this service will prevent any transaction data from being exported to ' + chklistExportTo.Items[chklistExportTo.ItemIndex] + '. Are you sure you want to continue?',
         DLG_YES, 0) = DLG_NO then
       begin
@@ -738,14 +738,14 @@ begin
           if (not ProductConfigService.Registered) then
           begin
             ckUseBankLinkOnline.Checked := False;
-            edtURL.Text := 'Not registered for BankLink Online';
+            edtURL.Text := 'Not registered for ' + bkBranding.ProductOnlineName;
             if ProductConfigService.ValidBConnectDetails then
             begin
               cbPrimaryContact.Enabled := False;
               if Visible then
               begin
                 if YesNoDlg.AskYesNo(Globals.BANKLINK_ONLINE_NAME,
-                                     'You are not currently registered for BankLink Online. ' +
+                                     'You are not currently registered for ' + bkBranding.ProductOnlineName + '. ' +
                                      'Would you like to register now?', dlg_no, 0) = DLG_YES then
                 begin
                   if ServiceAgreementAccepted(ServiceAgreementVersion, SigneeName, SigneeTitle) then
@@ -1272,15 +1272,15 @@ begin
   begin
     if ProductConfigService.PracticeChanged then
     begin
-      aMsg := 'Changing the BankLink Online products and services that are available ' +
+      aMsg := 'Changing the ' + bkBranding.ProductOnlineName + ' products and services that are available ' +
               'for this practice will affect how client files can be individually setup ' +
               'for these products and services. Such products and services may incur ' +
               'charges per client use.' + #13#10 + #13#10 +
-              'Please contact BankLink Client Services if you require further charges ' +
+              'Please contact ' + bkBranding.ProductName + ' Client Services if you require further charges ' +
               'information.' + #13#10 + #13#10 +
               'Are you sure you want to continue?';
 
-      if not (YesNoDlg.AskYesNo('BankLink Online products and services change', aMsg, DLG_YES, 0) = DLG_YES) then
+      if not (YesNoDlg.AskYesNo(bkBranding.ProductOnlineName + ' products and services change', aMsg, DLG_YES, 0) = DLG_YES) then
         Exit;
     end;
 
@@ -1328,7 +1328,7 @@ begin
             begin
               if SaveDataExportSettings then
               begin
-                HelpfulInfoMsg('Practice Settings have been successfully updated to BankLink Online.', 0); 
+                HelpfulInfoMsg('Practice Settings have been successfully updated to ' + bkBranding.ProductOnlineName + '.', 0); 
               end
               else
               begin
@@ -1357,7 +1357,7 @@ begin
         begin
           if SaveDataExportSettings then
           begin
-            HelpfulInfoMsg('Practice Settings have been successfully updated to BankLink Online.', 0);
+            HelpfulInfoMsg('Practice Settings have been successfully updated to ' + bkBranding.ProductOnlineName + '.', 0);
           end
           else
           begin
@@ -1372,7 +1372,7 @@ begin
         begin
           MailTo := whSupportEmail[AdminSystem.fdFields.fdCountry];
 
-          MailSubject := 'Banklink Online product and service updates (' + AdminSystem.fdFields.fdBankLink_Code + ')';
+          MailSubject := bkBranding.ProductOnlineName + ' product and service updates (' + AdminSystem.fdFields.fdBankLink_Code + ')';
 
           PrimaryContact := ProductConfigService.GetPrimaryContact(False);
 
@@ -1382,10 +1382,10 @@ begin
             ContactEmail := PrimaryContact.Email;
           end;
 
-          MailBody := 'This practice has changed its Banklink Online product and service settings' + #10#10 +
+          MailBody := 'This practice has changed its ' + bkBranding.ProductOnlineName + ' product and service settings' + #10#10 +
                       'Practice Name: ' + AdminSystem.fdFields.fdPractice_Name_for_Reports + #10 +
                       'Practice Code: ' + AdminSystem.fdFields.fdBankLink_Code + #10#10 +
-                      'The BankLink Online Administrator (Primary Contact) for the practice' + #10 +
+                      'The ' + bkBranding.ProductOnlineName + ' Administrator (Primary Contact) for the practice' + #10 +
                       'Name: ' + ContactName + #10 +
                       // Can't find phone number... do we have this at all for the practice administrator?
                       'Email Address: ' + ContactEmail + #10#10 +

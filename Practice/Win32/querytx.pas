@@ -18,7 +18,7 @@ uses
   MoneyUtils,
   Windows, Classes, sysUtils, Globals, AccsDlg, BKUtil32, InfoMoreFrm,
   BKDefs, BKDateUtils, GenUtils, MailFrm, StDate, caUtils, ComObj, WinUtils,
-  MainFrm, CodingFrm, bkConst, ToDoHandler;
+  MainFrm, CodingFrm, bkConst, ToDoHandler, bkBranding;
 
 const
 {$IFDEF USEWORD}
@@ -325,10 +325,10 @@ begin
       WordEndDoc(wrdApp, wrdDoc);
 
       // Now send the mail with to, from, subject and body filled in
-      if MailFrm.SendMailTo('Query Uncoded Transactions', MyClient.clFields.clClient_EMail_Address, 'BankLink Transaction Query',
+      if MailFrm.SendMailTo('Query Uncoded Transactions', MyClient.clFields.clClient_EMail_Address, bkBranding.ProductName + ' Transaction Query',
            'Please view the attached Word document from your accountant', Globals.DataDir + FILENAME, False) then
 {$ELSE}
-      if MailFrm.SendMailTo('Query Uncoded Transactions', MyClient.clFields.clClient_EMail_Address, 'BankLink Transaction Query', s, '', False) then
+      if MailFrm.SendMailTo('Query Uncoded Transactions', MyClient.clFields.clClient_EMail_Address, bkBranding.ProductName + ' Transaction Query', s, '', False) then
 {$ENDIF}
       begin
         // Sent OK - Add notes to all sent transactions

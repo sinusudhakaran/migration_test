@@ -89,7 +89,7 @@ uses
   SyDefs,
   BkHelp,
   bkXPThemes,
-  CountryUtils;
+  CountryUtils, bkBranding;
 
 const
   // 0 doesn't work so use a dummy image :S
@@ -115,7 +115,7 @@ begin
     saFreqDay  : Result := 'daily';
     saFreqUnspecified: Result := 'unspecified';
     saProvisional    : Result := 'provisional';
-    saOnlineSecure   : Result := 'BankLink Online Secure';
+    saOnlineSecure   : Result := bkBranding.ProductOnlineName + ' Secure';
   end;
 end;
 
@@ -551,7 +551,7 @@ begin
                                CheckNode( tvFilter.Items.AddChild(topn,'Practice Accounts'), (saSecureAndOnlineSecure in Include.NotNodes[i]))
                             or CheckNode( tvFilter.Items.AddChild(topn,'Provisional Accounts'),saProvisional in Include.Nodes[i])
                             or CheckNode( tvFilter.Items.AddChild(topn,'Books Secure Accounts'),saSecure in Include.Nodes[i])
-                            or CheckNode( tvFilter.Items.AddChild(topn,'BankLink Online Secure Accounts'),saOnlineSecure in Include.Nodes[i])
+                            or CheckNode( tvFilter.Items.AddChild(topn, bkBranding.ProductOnlineName + ' Secure Accounts'),saOnlineSecure in Include.Nodes[i])
 
                           );
          safsTopFrequency:Expand(topn,

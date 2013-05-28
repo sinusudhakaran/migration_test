@@ -387,6 +387,10 @@ inherited dlgPrintScheduled: TdlgPrintScheduled
     object tsMessages: TTabSheet
       Caption = '&Message Setup'
       ImageIndex = 3
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object GroupBox6: TGroupBox
         Left = 0
         Top = 6
@@ -453,7 +457,7 @@ inherited dlgPrintScheduled: TdlgPrintScheduled
           Height = 21
           Style = csDropDownList
           Enabled = False
-          ItemHeight = 13
+          ItemHeight = 0
           TabOrder = 6
         end
       end
@@ -492,7 +496,7 @@ inherited dlgPrintScheduled: TdlgPrintScheduled
           Height = 21
           Style = csDropDownList
           Enabled = False
-          ItemHeight = 13
+          ItemHeight = 0
           TabOrder = 2
         end
       end
@@ -519,7 +523,7 @@ inherited dlgPrintScheduled: TdlgPrintScheduled
           Height = 21
           Style = csDropDownList
           Enabled = False
-          ItemHeight = 13
+          ItemHeight = 0
           TabOrder = 1
         end
         object ckCDEmail: TCheckBox
@@ -564,7 +568,7 @@ inherited dlgPrintScheduled: TdlgPrintScheduled
           Height = 21
           Style = csDropDownList
           Enabled = False
-          ItemHeight = 13
+          ItemHeight = 0
           TabOrder = 2
         end
       end
@@ -591,7 +595,7 @@ inherited dlgPrintScheduled: TdlgPrintScheduled
           Height = 21
           Style = csDropDownList
           Enabled = False
-          ItemHeight = 13
+          ItemHeight = 0
           TabOrder = 1
         end
         object ckCDBooks: TCheckBox
@@ -636,7 +640,7 @@ inherited dlgPrintScheduled: TdlgPrintScheduled
           Height = 21
           Style = csDropDownList
           Enabled = False
-          ItemHeight = 13
+          ItemHeight = 0
           TabOrder = 2
         end
       end
@@ -663,7 +667,7 @@ inherited dlgPrintScheduled: TdlgPrintScheduled
           Height = 21
           Style = csDropDownList
           Enabled = False
-          ItemHeight = 13
+          ItemHeight = 0
           TabOrder = 1
         end
         object ckCDOnline: TCheckBox
@@ -680,6 +684,10 @@ inherited dlgPrintScheduled: TdlgPrintScheduled
     object tbsReportSetup: TTabSheet
       Caption = '&Report Setup'
       ImageIndex = 1
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object GroupBox2: TGroupBox
         Left = 0
         Top = 6
@@ -755,6 +763,10 @@ inherited dlgPrintScheduled: TdlgPrintScheduled
     object TabSheet1: TTabSheet
       Caption = 'Fa&x Setup'
       ImageIndex = 2
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object GroupBox3: TGroupBox
         Left = 0
         Top = 253
@@ -923,7 +935,7 @@ inherited dlgPrintScheduled: TdlgPrintScheduled
           Height = 21
           Hint = 'Select the Fax Transport'
           Style = csDropDownList
-          ItemHeight = 13
+          ItemHeight = 0
           TabOrder = 0
           OnChange = cmbFaxTransportChange
           Items.Strings = (
@@ -939,7 +951,7 @@ inherited dlgPrintScheduled: TdlgPrintScheduled
           Hint = 'Select the fax printer'
           Style = csDropDownList
           Ctl3D = True
-          ItemHeight = 13
+          ItemHeight = 0
           ParentCtl3D = False
           Sorted = True
           TabOrder = 1

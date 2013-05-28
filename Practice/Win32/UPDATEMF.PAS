@@ -783,8 +783,8 @@ begin
                // Acclipse has been bought by CCH, so we don't want the 'A' icon
                // mniExportwebX.ImageIndex := 19;
                // mniImportwebX.ImageIndex := 19;
-               mniExportWebX.Caption := 'Export ' + wfNames[format] + ' File';
-               mniImportWebX.Caption := 'Import ' + wfNames[format] + ' File';
+               mniExportWebX.Caption := bkBranding.Rebrand('Export ' + wfNames[format] + ' File');
+               mniImportWebX.Caption := bkBranding.Rebrand('Import ' + wfNames[format] + ' File');
             end;
             wfWebNotes : begin
                mniExportwebX.ImageIndex := 20;//31 not approved
@@ -793,8 +793,8 @@ begin
                bkBranding.StyleECFHOnlineMenuItem(mniExportwebX);
                bkBranding.StyleECFHOnlineMenuItem(mniImportwebX);
                
-               mniExportWebX.Caption := 'Export to ' + WebnotesName;
-               mniImportWebX.Caption := 'Import from ' + WebnotesName;
+               mniExportWebX.Caption := 'Export to ' + bkBranding.NotesOnlineProductName;
+               mniImportWebX.Caption := 'Import from ' + bkBranding.NotesOnlineProductName;
             end;
             else begin
                mniExportwebX.ImageIndex := -1;

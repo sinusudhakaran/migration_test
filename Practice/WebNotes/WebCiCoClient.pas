@@ -250,7 +250,8 @@ uses
   Windows,
   LogUtil,
   CSDEFS,
-  UsageUtils;
+  UsageUtils,
+  bkBranding;
 
 const
   // XML Server packet Names
@@ -505,7 +506,7 @@ procedure TWebCiCoClient.RaiseHttpError(AErrMessage : String;
 begin
   logutil.LogError(UNIT_NAME, format('%s Error:<%s>',[InttoStr(AErrCode), AErrMessage] ));
 
-  raise EWebHttpCiCoClientError.Create('Unable to connect to BankLink Online. (' + inttostr(AErrCode) + ')', AErrCode);
+  raise EWebHttpCiCoClientError.Create('Unable to connect to ' + bkBranding.ProductOnlineName + '. (' + inttostr(AErrCode) + ')', AErrCode);
 end;
 
 //------------------------------------------------------------------------------

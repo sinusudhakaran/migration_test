@@ -103,7 +103,8 @@ uses
   CafQrCode,
   {$EndIf}
   WebUtils,
-  InstitutionCol;
+  InstitutionCol,
+  bkBranding;
 
 const
   COUNTRY_CODE = 'UK';
@@ -972,7 +973,8 @@ var
   ReportFile, Title, Description, MsgStr: string;
   WebID, CatID, pdfInt: integer;
 begin
-  ReportFile := 'BankLink Customer Authority.PDF';
+  ReportFile := bkBranding.ProductName + ' Customer Authority.PDF';
+  
   pdfInt := rfPDF;
   Title := 'Save Report To File';
   Description := '';
@@ -987,7 +989,7 @@ begin
       if (AskYesNo(rfNames[rfPDF], MsgStr, DLG_YES, 0) = DLG_YES) then
         ShellExecute(0, 'open', PChar(ReportFile), nil, nil, SW_SHOWMAXIMIZED);
     except
-      HelpfulErrorMsg('Error Saving BankLink Customer Authority Form to - ' + ReportFile, 0);
+      HelpfulErrorMsg('Error Saving ' + bkBranding.ProductName + ' Customer Authority Form to - ' + ReportFile, 0);
     end;
   end;
 end;
@@ -1031,7 +1033,7 @@ begin
       SysUtils.DeleteFile(ReportFile);
     end;
   except
-    HelpfulErrorMsg('Error Sending BankLink Customer Authority Form via Email.', 0);
+    HelpfulErrorMsg('Error Sending ' + bkBranding.ProductName + ' Customer Authority Form via Email.', 0);
   end;
 end;
 
@@ -1042,7 +1044,7 @@ var
   Guid : TGuid;
 begin
   CreateGuid(Guid);
-  ReportFile := DataDir + 'BankLink Customer Authority' + GUIDToString(Guid) + '.PDF';
+  ReportFile := DataDir + bkBranding.ProductName + ' Customer Authority' + GUIDToString(Guid) + '.PDF';
 
   try
     PdfFieldEdit.SaveToFileFlattened(ReportFile);
@@ -1057,10 +1059,10 @@ begin
                          Printer.Printers[Printer.PrinterIndex],
                          PrintDialog.FromPage,
                          PrintDialog.ToPage,
-                         PdfFieldEdit.PrintOptions(0, 1, 'BankLink Practice'));
+                         PdfFieldEdit.PrintOptions(0, 1, bkBranding.PracticeProductName));
     end;
   except
-    HelpfulErrorMsg('Error Printing BankLink Customer Authority Form.', 0);
+    HelpfulErrorMsg('Error Printing ' + bkBranding.ProductName + ' Customer Authority Form.', 0);
   end;
 end;
 

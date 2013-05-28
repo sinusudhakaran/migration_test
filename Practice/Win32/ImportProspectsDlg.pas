@@ -126,7 +126,7 @@ implementation
 uses bkXPThemes, GlobalDirectories, ErrorMoreFrm, BKConst, ImagesFrm,
   ClientDetailCacheObj, ClientUtils, SyDefs, Globals, InfoMoreFrm, LogUtil,
   MAPIDefs, MAPIUtil, COMObj, ECodingImportResultsFrm, progress, WinUtils,
-  bkHelp, Admin32;
+  bkHelp, Admin32, bkBranding;
 
 {$R *.dfm}
 
@@ -403,7 +403,7 @@ begin
      except
        HelpfulInfoMsg('Outlook cannot be accessed.' + #13#13 +
          'If Outlook asked the security question "Do you want to allow access"' +
-         ' then please select Yes. It is suggested that you allow 10 minutes access to allow BankLink' +
+         ' then please select Yes. It is suggested that you allow 10 minutes access to allow ' + bkBranding.ProductName +
          ' to complete the import process.', 0);
        exit;
      end;
@@ -473,7 +473,7 @@ begin
      clbContacts.Clear;
      HelpfulInfoMsg('Outlook cannot be accessed.' + #13#13 +
        'If Outlook asked the security question "Do you want to allow access"' +
-       ' then please select Yes. It is suggested that you allow 10 minutes access to allow BankLink' +
+       ' then please select Yes. It is suggested that you allow 10 minutes access to allow ' + bkBranding.ProductName +
        ' to complete the import process.', 0);
      exit;
    end;
@@ -630,7 +630,7 @@ begin
     if colOrder[i] = -1 then
     begin
       HelpfulErrorMsg('The column "' + CurrentClient[i] + '" is not a valid column name.' + #13#13 +
-        'Please see BankLink Help for information on the required import CSV fields.', 0);
+        'Please see ' + bkBranding.ProductName + ' Help for information on the required import CSV fields.', 0);
       Result := False
     end
     else if ColOrder[i] = pfClientName then
@@ -640,7 +640,7 @@ begin
   if not ClientNameColumnExists then
   begin
     HelpfulErrorMsg('The column "ClientName" is a mandatory column, please add it to your import data.' + #13#13 +
-      'Please see BankLink Help for information on the required import CSV fields.', 0);
+      'Please see ' + bkBranding.ProductName + ' Help for information on the required import CSV fields.', 0);
     Result := False;
   end;
 end;
