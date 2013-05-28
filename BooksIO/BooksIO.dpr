@@ -15,9 +15,9 @@ uses
   Classes,
   ImportExport in 'ImportExport.pas',
   ProcTypes in 'ProcTypes.pas',
-  WebUtils in '..\Practice\WebNotes\WebUtils.pas',
+
   Listhelpers in 'Listhelpers.pas',
-  BK_XMLHelper in '..\Common\Database\BK_XMLHelper.PAS',
+
   logger in 'logger.pas';
 
 {$R *.res}

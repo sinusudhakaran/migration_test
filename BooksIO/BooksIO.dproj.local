@@ -32,5 +32,7 @@
     <Transaction>2011/11/10 07:30:21.130.PAS,C:\DelphiTFS\Practice\Dev\Common\Database\TSubGroup_Heading_Rec_XMLHelper.PAS=</Transaction>
     <Transaction>2011/11/10 07:30:21.131.PAS,C:\DelphiTFS\Practice\Dev\Common\Database\TTransaction_Rec_XMLHelper.PAS=</Transaction>
     <Transaction>2012/03/16 12:14:53.159.pas,C:\DelphiTFS\Practice\Dev\BooksIO\Unit1.pas=C:\DelphiTFS\Practice\Dev\BooksIO\logger.pas</Transaction>
+    <Transaction>2013/05/06 13:14:22.304.pas,C:\TFS\Practice\Dev\Practice\WebNotes\WebUtils.pas=</Transaction>
+    <Transaction>2013/05/06 13:14:26.345.PAS,C:\TFS\Practice\Dev\Common\Database\BK_XMLHelper.PAS=</Transaction>
   </Transactions>
 </BorlandProject>

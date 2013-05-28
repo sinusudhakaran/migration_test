@@ -21,7 +21,6 @@ procedure ImportBooksFile(data: pchar)export; stdcall;
 procedure ExportBooksFile(data: PChar)export; stdcall;
 
 
-
 // Theres are only exposed for the Debug EXE
 function DecodeText(Value: PChar): TIOStream;
 function EnCodetext(Value: Tstream): string;
@@ -52,8 +51,8 @@ const
 
 var
   FileOutputProc : OutputFileProc;
-  DebugMe : Boolean = true;
-  LogHere : Boolean = true;
+  DebugMe: Boolean = false;
+  LogHere: Boolean = false;
   StatusProc: OutputStatusProc;
 
 
@@ -157,13 +156,24 @@ end;
 
 
 
+procedure SaveString(value, name: string);
+var f: Text;
+begin
+   AssignFile(F,'C:\booksiotest\' + name );
+   Rewrite(F);
+   WriteLn(F,value);
+   Close(F);
+end;
+
+
 
 procedure ImportBooksFile(data: pchar);
 // The incomming blob is the actual Client file stream...
 var
-   ClientStream : TIostream;
+   ClientStream: TIostream;
    Client: TClientObj;
    XML:  TXML_Helper;
+   outs: string;
 begin
    logTrace( 'procedure ImportBooksFile beginning');
    ClientStream := nil;
@@ -195,7 +205,13 @@ begin
       XML := TXML_Helper.Create;
       try
          LogDebug('Make XML Start');
-         DoOutputData(XMLData,pchar( string(Client.clFields.clCode)), PChar(xml.MakeXML(Client)));
+         outS := xml.MakeXML(Client);
+
+         {****
+         SaveString(outS, 'out.XML');
+         {****}
+
+         DoOutputData(XMLData,pchar( string(Client.clFields.clCode)), PChar(outS));
          LogDebug('Import done');
       except
          on E: exception do  logException(E,'Serialising XML');
@@ -215,14 +231,7 @@ begin
 end;
 
 
-procedure SaveString(value: string);
-var f: Text;
-begin
-   AssignFile(F,'C:\booksiotest\test2.xml');
-   Rewrite(F);
-   WriteLn(F,value);
-   Close(F);
-end;
+
 
 procedure ExportBooksFile(data: pchar);
 // The incomming blob is expected to be the XML stream
@@ -231,12 +240,16 @@ var
    Client: TClientObj;
    Stream : TBigMemoryStream;
    EncodedBK5: string;
-   TempStr: string;
+   TempS: string;
+   //TempWs: widestring;
 begin
    LogTrace('procedure ExportBooksFile beginning');
 
-   TempStr := string(data);
-   SaveString(TempStr);
+   TempS :=  string(data);
+
+   {***
+   SaveString(TempS,'test.xml');
+   {***}
 
    try
      Client := nil;
@@ -244,8 +257,7 @@ begin
      XMLHelper := TXML_Helper.Create;
      try
         try
-
-           Client := XMLHelper.ReadClient(TempStr);
+           Client := XMLHelper.ReadClient(Temps);
            LogDebug('Read Client done');
            try
               try
@@ -291,13 +303,13 @@ begin
   GetMem(AppData, MAX_PATH+1);
   if (AppData <> nil) then try
 
-     SHGetFolderPath(0,CSIDL_APPDATA,0 , 0,AppData);
+      SHGetFolderPath(0,CSIDL_APPDATA,0 , 0,AppData);
 
 
 
       path := string(AppData);
 
-      TWindowsFileLocking(FileLocking).SetLockingFileLocation(path);
+      //TWindowsFileLocking(FileLocking).SetLockingFileLocation(path);
       SysLog.LogPath := Path;
       SysLog.LogFilename := '\BooksIO.log';
 
@@ -314,12 +326,13 @@ end;
 initialization
    FileOutputProc := nil;
    StatusProc := nil;
+
    setPaths;
    logger.logMessageProcedure := MyLogMsg;
-   InitLocking;
+   //InitLocking;
 
-Finalization
-   FreeAndNil(FileLocking);
+finalization
+   //FreeAndNil(FileLocking);
 
    //  LogError('Ok Then ');
 

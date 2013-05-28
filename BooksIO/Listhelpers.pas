@@ -538,7 +538,7 @@ begin
   lXMLDoc.Active := true;
   lXMLDoc.Options := [doNodeAutoIndent,doAttrNull,doNamespaceDecl];
   lXMLDoc.version:= '1.0';
-  lXMLDoc.encoding:= 'UTF-8'; // Have no choice for now, its not a WideString
+  lXMLDoc.encoding:= 'ISO-8859-1'; //
 
 
    // Build the notes
