@@ -507,8 +507,8 @@ begin
   DefaultDraw := false;
 
   SetBkMode(lvBank.Canvas.Handle, TRANSPARENT);
-  ListView_SetTextBkColor(lvBank.Handle, CLR_NONE);
-  ListView_SetBKColor(lvBank.Handle, CLR_NONE);
+  ListView_SetTextBkColor(lvBank.Handle, ColorToRGB(clWindow));
+  ListView_SetBKColor(lvBank.Handle, ColorToRGB(clWindow));
 
   ItemRect := Item.DisplayRect(drBounds);
   SubItemRect := ItemRect;
