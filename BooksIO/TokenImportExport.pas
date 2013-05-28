@@ -33,21 +33,34 @@ const
 
 
 var
+  DllInit: boolean = false;
   FileOutputProc: OutputFileProc;
   DebugMe: Boolean = false;
   LogHere: Boolean = false;
   StatusProc: OutputStatusProc;
 
-// Export versions
-procedure SetOutputFileProc (Value: OutputFileProc);export; stdcall;
+
+procedure setPaths;
+// Set Paths to a safe location
+var
+   AppData: PChar;
+   path: String;
 begin
-   FileOutputProc := Value;
+
+  GetMem(AppData, MAX_PATH+1);
+  if (AppData <> nil) then try
+
+      SHGetFolderPath(0,CSIDL_APPDATA,0 , 0,AppData);
+      path := string(AppData);
+      InitLocking(false);
+      (LockUtils.FileLocking as TWindowsFileLocking).SetLockingFileLocation(path);
+      SysLog.LogPath := Path;
+      SysLog.LogFilename := '\BooksTokenIO.log';
+  finally
+     FreeMem(AppData);
+  end;
 end;
 
-procedure SetStatusProc (Value: OutputStatusProc);export; stdcall;
-begin
-   StatusProc := Value;
-end;
 
 // Local version we call
 procedure DoStatus(Status: LogMsgType; StatusText: pChar);
@@ -88,6 +101,33 @@ begin
    end;
 end;
 
+procedure CheckInit;
+begin
+   if DllInit then
+     Exit; // all Done..
+
+   DllInit := true;
+   setPaths;
+   logger.logMessageProcedure := MyLogMsg;
+
+end;
+
+
+// Export versions
+procedure SetOutputFileProc (Value: OutputFileProc);export; stdcall;
+begin
+   CheckInit;
+   FileOutputProc := Value;
+end;
+
+procedure SetStatusProc (Value: OutputStatusProc);export; stdcall;
+begin
+   CheckInit;
+   StatusProc := Value;
+end;
+
+
+
 
 // The incomming is the actual byte stream of the (disk) file
 procedure ImportBooksFile(dataType: integer; aByteArray: PByteArray; size: integer)export; stdcall;
@@ -96,6 +136,7 @@ var
     Client: TClientObj;
     outArray : PByteArray;
 begin
+    CheckInit;
     clStream := TIOStream.Create;
     clstream.WriteBuffer(aByteArray^, size);
     clstream.Position := 0;
@@ -153,6 +194,7 @@ var
     Client: TClientObj;
     outArray : PByteArray;
 begin
+    CheckInit;
     bigStream := nil;
     clStream := TIOStream.Create;
     clstream.WriteBuffer(aByteArray^, size);
@@ -205,29 +247,11 @@ begin
 end;
 
 
-procedure setPaths;
-// Set Paths to a safe location
-var
-   AppData: PChar;
-   path: String;
-begin
-  GetMem(AppData, MAX_PATH+1);
-  if (AppData <> nil) then try
 
-      SHGetFolderPath(0,CSIDL_APPDATA,0 , 0,AppData);
-      path := string(AppData);
-      SetLockingFileLocation(path);
-      SysLog.LogPath := Path;
-      SysLog.LogFilename := '\BooksTokenIO.log';
-  finally
-     FreeMem(AppData);
-  end;
-end;
+
+
 
 initialization
    FileOutputProc := nil;
    StatusProc := nil;
-   setPaths;
-   logger.logMessageProcedure := MyLogMsg;
-
 end.
