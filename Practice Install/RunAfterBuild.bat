@@ -55,7 +55,7 @@ if exist "%DirTesting%" goto TESTFOLDERERROR
 xcopy "bk*" "%DirTesting%" /i /y
 xcopy "Debug\*" "%DirTesting%\Debug" /i /y
 xcopy "Migrator.exe" "%DirTesting%" /i /y
-xcopy "BooksIO.dll" "%DirTesting%" /i /y
+xcopy "BooksTokenIO.dll" "%DirTesting%" /i /y
 xcopy "ByteArrayConverter.dll" "%DirTesting%" /i /y
 xcopy "Muddler.*" "%DirTesting%" /i /y
 xcopy "ResetPractice.exe" "%DirTesting%" /i /y
@@ -68,7 +68,7 @@ if exist "%DirTesting%" goto TESTFOLDERERROR
 xcopy "bk*" "%DirTesting%" /i /y
 xcopy "Debug\*" "%DirTesting%\Debug" /i /y
 xcopy "Migrator.exe" "%DirTesting%" /i /y
-xcopy "BooksIO.dll" "%DirTesting%" /i /y
+xcopy "BooksTokenIO.dll" "%DirTesting%" /i /y
 xcopy "ByteArrayConverter.dll" "%DirTesting%" /i /y
 xcopy "Muddler.*" "%DirTesting%" /i /y
 xcopy "ResetPractice.*" "%DirTesting%" /i /y
