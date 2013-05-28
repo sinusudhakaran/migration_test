@@ -576,10 +576,6 @@ begin
   actHelp.Visible := bkHelp.BKHelpFileExists;
   //StartFocus := True;
 
-  if not ProductConfigService.OnLine then
-    LogUtil.LogMsg(lmError, UnitName, 'Cannot connect to Banklink Online');
-
-
   imgCannotConnect.Hint := bkBranding.Rebrand(imgCannotConnect.Hint);
   lblCannotConnect.Hint := bkBranding.Rebrand(lblCannotConnect.Hint);
   lblCannotConnect.Caption := bkBranding.Rebrand(lblCannotConnect.Caption);
