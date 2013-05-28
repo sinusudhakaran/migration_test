@@ -589,9 +589,8 @@ object frmClientManager: TfrmClientManager
     Align = alTop
     BorderOuter = fsNone
     BorderSides = []
-    Color = 8009472
     GradientColorStyle = gcsCustom
-    GradientColorStop = 7829248
+    GradientColorStop = 11183616
     TabOrder = 3
     VisualStyle = vsGradient
     object imgLogo: TImage

@@ -831,13 +831,13 @@ begin
                               ((BOOnline = false) or (PracticeOnline = false)));
   lblCannotConnect.Visible := imgCannotConnect.Visible;
   if not BOOnline then
-    lblCannotConnect.Caption := 'Cannot connect to Banklink Online'
+    lblCannotConnect.Caption := 'Cannot connect to ' + bkBranding.ProductOnlineName
   else if (ProductConfigService.OnlineStatus = staDeactivated) then
-    lblCannotConnect.Caption := 'BankLink Online is currently deactivated. Please ' +
-                                'contact BankLink Support for further assistance'
+    lblCannotConnect.Caption := bkBranding.ProductOnlineName + ' is currently deactivated. Please ' +
+                                'contact ' + bkBranding.ProductName + ' Support for further assistance'
   else if (ProductConfigService.OnlineStatus = staSuspended) then
-    lblCannotConnect.Caption := 'BankLink Online is currently in suspended (read-only) ' +
-                                'mode. Please contact BankLink Support for further assistance';
+    lblCannotConnect.Caption := bkBranding.ProductOnlineName + ' is currently in suspended (read-only) ' +
+                                'mode. Please contact ' + bkBranding.ProductName + ' Support for further assistance';
 end;
 
 //------------------------------------------------------------------------------
@@ -1158,10 +1158,10 @@ begin
               SetLength(UserINI_CM_Var_Col_Guid,      UserINI_CM_Var_Col_Count);
             end;
 
-            AddCustomColumn( 'User Admin',
+            AddCustomColumn('User Admin',
               trunc(vtClients.Canvas.TextWidth(trim('User Admin')) * 2), NumColumns, cluBOUserAdmin);
-            AddCustomColumn( 'Banklink Online Access',
-              trunc(vtClients.Canvas.TextWidth(trim('Banklink Online Access')) * 2), NumColumns + 1, cluBOAccess);
+            AddCustomColumn( bkBranding.ProductOnlineName + ' Access',
+              trunc(vtClients.Canvas.TextWidth(trim(bkBranding.ProductOnlineName + ' Access')) * 2), NumColumns + 1, cluBOAccess);
           end;
         end;
 
@@ -2171,7 +2171,7 @@ begin
     begin
       if not ProductConfigService.OnLine then
       begin
-        ShowMessage('BankLink Practice is unable to connect to BankLink Online');
+        ShowMessage(bkBranding.PracticeProductName + ' is unable to connect to ' + bkBranding.ProductOnlineName);
         Exit;
       end;
 
@@ -2221,7 +2221,7 @@ begin
     DeleteMsgStr := DeleteMsgStr + 'Are you sure you want to delete Client (' +
                     ClientCode + ' : ' + ClientName + ')';
     if not(ClientID = '') then
-      DeleteMsgStr := DeleteMsgStr + ' from BankLink Pratice';
+      DeleteMsgStr := DeleteMsgStr + ' from ' + bkBranding.PracticeProductName;
     DeleteMsgStr := DeleteMsgStr + '?';
 
     if (AskYesNo('Delete Client', DeleteMsgStr, DLG_NO, 0) <> DLG_YES) then
@@ -2257,12 +2257,12 @@ begin
 
 
   DeleteMsgStr := 'Client (' + ClientCode + ' : ' + ClientName + ') has been ' +
-                  'removed from Banklink Practice';
+                  'removed from ' + bkBranding.PracticeProductName;
 
   if Assigned(ClientDet) then
   begin
     if not(ClientID = '') and (high(ClientDet.Subscription) > -1) then
-      DeleteMsgStr := DeleteMsgStr + ' and BankLink Online';
+      DeleteMsgStr := DeleteMsgStr + ' and ' + bkBranding.ProductOnlineName;
   end;
   
   DeleteMsgStr := DeleteMsgStr + '.';
@@ -2584,7 +2584,7 @@ begin
         begin
           if (Importer.Statistics.Generated > 0) and (Importer.Statistics.Failed = 0) then
           begin
-            if AskYesNo('Information', Format('BankLink Practice has generated the following %s' + #10#13 +
+            if AskYesNo('Information', Format(bkBranding.PracticeProductName + ' has generated the following %s' + #10#13 +
                                   'Customer Authority Forms to %s.' + #10#13#10#13 +
                                   '%s CAFs were generated.' + #10#13#10#13 +
                                   'Do you want to view the folder now?',
@@ -2593,11 +2593,11 @@ begin
               ShellExecute(handle, 'Open', PAnsiChar(OutputFolder), nil, nil, SW_SHOWNORMAL);
             end;
 
-            LogUtil.LogMsg(lmInfo, UnitName, Format('BankLink Practice has generated the following %s Customer Authority Forms to %s. %s CAFs were generated.', [InstituteName, OutputFolder, IntToStr(Importer.Statistics.Generated)]));
+            LogUtil.LogMsg(lmInfo, UnitName, Format(bkBranding.PracticeProductName + ' has generated the following %s Customer Authority Forms to %s. %s CAFs were generated.', [InstituteName, OutputFolder, IntToStr(Importer.Statistics.Generated)]));
           end
           else if Importer.Statistics.Failed > 0 then
           begin
-             if AskYesNo('Information', Format('BankLink Practice has generated the following %s' + #10#13 +
+             if AskYesNo('Information', Format(bkBranding.PracticeProductName + ' has generated the following %s' + #10#13 +
                                   'Customer Authority Forms to %s.' + #10#13#10#13 +
                                   '%s CAFs were generated.' + #10#13 +
                                   '%s CAFs could not be generated due to errors.' + #10#13#10#13 +
@@ -2611,7 +2611,7 @@ begin
           end
           else
           begin
-            HelpfulInfoMsg(Format('BankLink Practice could not generate any Customer Authority Forms based on the selected import file %s %s.', [ImportFile, OutputFolder]), 0);
+            HelpfulInfoMsg(Format(bkBranding.PracticeProductName + ' could not generate any Customer Authority Forms based on the selected import file %s %s.', [ImportFile, OutputFolder]), 0);
 
             LogUtil.LogMsg(lmInfo, UnitName, Format('BankLink Practice could not generate any Customer Authority Forms based on the selected import file %s %s.', [ImportFile, OutputFolder]));
           end;
