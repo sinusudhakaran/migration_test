@@ -44,6 +44,7 @@ type
     destructor Destroy; override;
   private
 {$IFDEF ParserDll}
+    procedure ReadFromDataStream( var S : TIOStream);
 {$ELSE}
     FExchangeSource: TExchangeSource;
     FLastAuditRecordID: integer;
@@ -72,6 +73,7 @@ type
 {$ENDIF}
   public
     procedure Open(FileCode, FileExtension : String);
+
 {$IFDEF ParserDll}
 {$ELSE}
     // Used for Books TokenIO
