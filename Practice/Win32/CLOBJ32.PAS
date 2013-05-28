@@ -53,12 +53,12 @@ type
     procedure GetZipStreamFromFile(var Filename : String; const ZipStream : TBigMemoryStream);
     procedure GetZipStreamFromStream(var Filename: String;  const stream: TStream; const ZipStream : TBigMemoryStream);
     function GetDataStreamFromZipStream(const FileCode: String; const ZipStream : TBigMemoryStream): TIOStream;
-    procedure ReadFromDataStream( var S : TIOStream);
+
     procedure LogDebugMsg(S: string; Error: Boolean = false);
 {$IFDEF ParserDll}
 {$ELSE}
     function  GetLongName  : string;
-    procedure SaveToDataStream( var S : TIOStream; DefaultSize : integer = 0);
+
     procedure SaveToStream (var s:TIOStream);
     procedure ClientCopyReload(var S: TIOStream);
 
@@ -74,9 +74,13 @@ type
     procedure Open(FileCode, FileExtension : String);
 {$IFDEF ParserDll}
 {$ELSE}
+    // Used for Books TokenIO
+    procedure SaveToDataStream( var S : TIOStream; DefaultSize : integer = 0);
+    procedure ReadFromDataStream( var S : TIOStream);
     procedure SimpleRead(FileCode: string; Stream: TStream);
-    function SaveClientToStream: TBigMemoryStream;
 
+
+    function SaveClientToStream: TBigMemoryStream;
     property ExchangeSource: TExchangeSource read FExchangeSource;
     property  clExtendedName : string read GetLongName;   //used in reports
     property  clAccountingSystemName : string read GetAccountingSystemName;
