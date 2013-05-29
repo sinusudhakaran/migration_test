@@ -736,6 +736,8 @@ type
     FAdminSystemFound: boolean;
     //DataThread: TDataThread;
 
+    procedure SetExportdatatoBanklinkOnlineVisiblility();
+
     procedure ClientWndProc(var WinMsg: TMessage);
 
     procedure AddMenuItem( OwnerMenu : TPopUpMenu; Source : TMenuItem; Dest : TMenuItem );
@@ -922,6 +924,9 @@ const
   mf_mcGetOnline               = 77;
   mf_mcTransactionsToBankLinkOnline = 78;
   mf_mcExchangeGainLossWizard  = 79;
+
+  // Data Export Menu item has been disabled until at a later date the code has been completed
+  DATA_EXPORT_MENU_ITEM_ENABLED = false;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 var
@@ -1597,11 +1602,7 @@ begin
          mniBalanceExport.Visible := False;
        end;
 
-       mniExportdatatoBanklinkOnline.Visible := ProductConfigService.ServiceActive and 
-                                                CurrUser.CanAccessAdmin and 
-                                                CurrUser.AllowBanklinkOnline and 
-                                                ProductConfigService.OnLine and 
-                                                ProductConfigService.IsPracticeProductEnabled(ProductConfigService.GetExportDataId, False);
+       SetExportdatatoBanklinkOnlineVisiblility();
 
        //test to see if the log file should be archived
        SysLog.MinSize  := PRACINI_MinLogFileSize * 1000; //convert KB to Bytes
@@ -2259,6 +2260,16 @@ begin
   end;
 end;
 
+procedure TfrmMain.SetExportdatatoBanklinkOnlineVisiblility();
+begin
+  mniExportdatatoBanklinkOnline.Visible := ProductConfigService.ServiceActive and
+                                           CurrUser.CanAccessAdmin and
+                                           CurrUser.AllowBanklinkOnline and
+                                           ProductConfigService.OnLine and
+                                           ProductConfigService.IsPracticeProductEnabled(ProductConfigService.GetExportDataId, False) and
+                                           DATA_EXPORT_MENU_ITEM_ENABLED;
+end;
+
 procedure TfrmMain.SetLastActiveMDIChild(const Value: Forms.TForm);
 begin
    FLastActiveMDIChild := Value;
@@ -2684,7 +2695,7 @@ begin
 
      if UseBankLinkOnline then
      begin
-       mniExportdatatoBanklinkOnline.Visible := CurrUser.CanAccessAdmin and CurrUser.AllowBanklinkOnline and ProductConfigService.OnLine and ProductConfigService.IsPracticeProductEnabled(ProductConfigService.GetExportDataId, False);
+       SetExportdatatoBanklinkOnlineVisiblility();
      end
      else
      begin
@@ -4053,8 +4064,9 @@ begin
   mniChangePassword.Visible := (CurrUser.AllowBanklinkOnline
                                and FAdminSystemFound);
 
-  mniExportdatatoBanklinkOnline.Visible := CurrUser.CanAccessAdmin and CurrUser.AllowBanklinkOnline and ProductConfigService.OnLine and ProductConfigService.IsPracticeProductEnabled(ProductConfigService.GetExportDataId, False);
+  SetExportdatatoBanklinkOnlineVisiblility();
 end;
+
 procedure TfrmMain.ReloadCustomLogo;
 //loads the correct logo, or makes it invisible
 //load the practice logo if admin system is present
