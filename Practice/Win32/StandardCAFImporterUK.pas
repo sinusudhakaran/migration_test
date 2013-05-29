@@ -68,7 +68,7 @@ type
 implementation
 
 uses
-  BKConst, Globals, StrUtils, Math;
+  BKConst, Globals, StrUtils, Math, bkTemplates;
 
 
 
@@ -224,7 +224,7 @@ end;
 
 function TStandardCAFImporterUK.GetPDFTemplateFile: String;
 begin
-  Result := istUKTemplateFileNames[istUKNormal];
+  Result := TTemplates.UKCafTemplates[istUKNormal];
 end;
 
 function TStandardCAFImporterUK.GetOutputFileBase: string;
