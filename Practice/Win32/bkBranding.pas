@@ -85,6 +85,7 @@ var
   procedure StyleSimpleUIRightBannerImage(Image: TImage);
   procedure StyleBankLinkButton(Button: TRzToolButton);
   procedure StyleECFHOnlineMenuItem(MenuItem: TMenuItem);
+  procedure StyleNewClientWizardLogo(Image: TImage);
 
 
   function ProductName: String;
@@ -697,6 +698,17 @@ begin
   if GetProductBrand = btBankstream then
   begin
     MenuItem.ImageIndex := 34;
+  end;
+end;
+
+procedure StyleNewClientWizardLogo(Image: TImage);
+begin
+  Image.Picture := BankstreamLogo;
+
+  if GetProductBrand = btBankstream then
+  begin
+    Image.Width := 32;
+    Image.Height := 32;
   end;
 end;
 
