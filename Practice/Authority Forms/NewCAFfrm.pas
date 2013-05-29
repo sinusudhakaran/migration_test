@@ -104,7 +104,8 @@ uses
   {$EndIf}
   WebUtils,
   InstitutionCol,
-  bkBranding;
+  bkBranding,
+  bkTemplates;
 
 const
   COUNTRY_CODE = 'UK';
@@ -226,7 +227,7 @@ begin
     Exit;
   end;
 
-  PDFFilePath := GLOBALS.TemplateDir + istUKTemplateFileNames[fInstitution];
+  PDFFilePath := GLOBALS.TemplateDir + TTemplates.UKCafTemplates[fInstitution];
 
   if not FileExists( PDFFilePath ) then
   begin
