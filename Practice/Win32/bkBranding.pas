@@ -55,6 +55,7 @@ var
   function GroupBackGroundStopColor: Integer;
 
   function BannerColor: Integer;
+  function BannerTextColor: Integer;
   function TobBarStartColor: Integer;
   function TopBarStopColor: Integer;
   function TopTitleColor: Integer;
@@ -338,12 +339,17 @@ function BannerColor: Integer;
 begin
   if GetProductBrand = btBankstream then
   begin
-    Result := RGB(0,55,122);
+    Result := clWhite;
   end
   else
   begin
     Result := MainFormBackgroundColor;
   end;
+end;
+
+function BannerTextColor: Integer;
+begin
+  Result := RGB(0, 55, 122);
 end;
 
 function TobBarStartColor: Integer;
@@ -550,7 +556,7 @@ begin
   if GetProductBrand = btBankstream then
   begin
     Image.AutoSize := True;
-    Image.Align := alRight;
+    Image.Align := alLeft;
   end;
 
   Image.Picture := LoginScreenBanner;
@@ -600,7 +606,7 @@ begin
     Image.Proportional := False;
     Image.Center := True;
     Image.Visible := True;
-    Image.Align := alRight;
+    Image.Align := alLeft;
   end;
 end;
 
@@ -638,7 +644,7 @@ procedure StyleBooksClientName(ClientName: TLabel);
 begin
   if GetProductBrand = btBankstream then
   begin
-    ClientName.Font.Color := BannerColor;
+    ClientName.Font.Color := BannerTextColor;
   end;
 end;
 
@@ -646,7 +652,7 @@ procedure StyleBooksVersionLabel(VersionLabel: TLabel);
 begin
   if GetProductBrand = btBankstream then
   begin
-    VersionLabel.Font.Color := BannerColor;
+    VersionLabel.Font.Color := BannerTextColor;
   end;
 end;
 
