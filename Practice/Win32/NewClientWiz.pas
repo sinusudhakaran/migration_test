@@ -756,7 +756,7 @@ end;
 
 procedure TwizNewClient.FormShow(Sender: TObject);
 begin
-  Image1.Picture := bkBranding.BankstreamLogo;
+  StyleNewClientWizardLogo(Image1);
 end;
 
 procedure TwizNewClient.FormCloseQuery(Sender: TObject;
