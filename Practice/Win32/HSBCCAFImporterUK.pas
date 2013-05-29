@@ -39,7 +39,7 @@ type
 implementation
 
 uses
-  BKConst, StrUtils;
+  BKConst, StrUtils, bkTemplates;
   
 procedure THSBCCAFImporterUK.DoImportAsPDF(Source: TCAFSource; Template: TPdfFieldEdit; out OutputFile: String);
 begin
@@ -76,7 +76,7 @@ end;
 
 function THSBCCAFImporterUK.GetPDFTemplateFile: String;
 begin
-  Result := istUKTemplateFileNames[istUKHSBC];
+  Result := TTemplates.UKCafTemplates[istUKHSBC];
 end;
 
 function THSBCCAFImporterUK.GetOutputFileBase: string;
