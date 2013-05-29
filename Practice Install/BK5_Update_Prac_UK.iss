@@ -60,6 +60,8 @@ Source: "3rd Party\zint.dll"; DestDir: "{app}"
 
 Source: "AuthorityForms\UK_CAF_Template.pdf"; DestDir: "{app}\TEMPLATE"
 Source: "AuthorityForms\UK_HSBC_Template.pdf"; DestDir: "{app}\TEMPLATE"
+Source: "AuthorityForms\Bankstream_UK_CAF_Template.pdf"; DestDir: "{app}\TEMPLATE"
+Source: "AuthorityForms\Bankstream_UK_HSBC_Template.pdf"; DestDir: "{app}\TEMPLATE"
 Source: "AuthorityForms\CAF_Generator_HSBC.xlt"; DestDir: "{app}\TEMPLATE"
 Source: "AuthorityForms\CAF_Generator_Standard.xlt"; DestDir: "{app}\TEMPLATE"
 
