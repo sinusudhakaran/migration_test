@@ -156,7 +156,7 @@ uses
   StDate,
   ReportDefs,
   CustomDocEditorFrm, UBatchBase,
-  bkBranding;
+  bkBranding, bkProduct;
 
 {$R *.DFM}
 
@@ -686,8 +686,8 @@ begin
   ClientToUse := nil;
   LoadCustomDocuments;
 
-  rbCheckOut.Caption := bkBranding.Rebrand(rbCheckOut.Caption);
-  rbCheckoutOnline.Caption := bkbranding.Rebrand(rbCheckoutOnline.Caption);
+  rbCheckOut.Caption := TProduct.Rebrand(rbCheckOut.Caption);
+  rbCheckoutOnline.Caption := TProduct.Rebrand(rbCheckoutOnline.Caption);
 end;
 
 //------------------------------------------------------------------------------

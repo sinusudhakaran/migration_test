@@ -29,7 +29,7 @@ var
 implementation
 
 uses
-  WarningMoreFrm, bkBranding;
+  WarningMoreFrm, bkBranding, bkProduct;
   
 {$R *.dfm}
 
@@ -51,8 +51,8 @@ end;
 
 procedure TfrmBankLinkSecureCode.FormCreate(Sender: TObject);
 begin
-  Caption := bkBranding.Rebrand(Caption);
-  Label1.Caption := bkBranding.Rebrand(Label1.Caption);
+  Caption := TProduct.Rebrand(Caption);
+  Label1.Caption := TProduct.Rebrand(Label1.Caption);
 end;
 
 function TfrmBankLinkSecureCode.GetSecureCode: String;

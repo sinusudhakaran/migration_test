@@ -105,6 +105,7 @@ uses
    CFHead,
    BankLinkOnlineServices,
    ForexHelpers,
+   bkProduct,
    bkBranding;
 
 var
@@ -783,8 +784,8 @@ begin
                // Acclipse has been bought by CCH, so we don't want the 'A' icon
                // mniExportwebX.ImageIndex := 19;
                // mniImportwebX.ImageIndex := 19;
-               mniExportWebX.Caption := bkBranding.Rebrand('Export ' + wfNames[format] + ' File');
-               mniImportWebX.Caption := bkBranding.Rebrand('Import ' + wfNames[format] + ' File');
+               mniExportWebX.Caption := TProduct.Rebrand('Export ' + wfNames[format] + ' File');
+               mniImportWebX.Caption := TProduct.Rebrand('Import ' + wfNames[format] + ' File');
             end;
             wfWebNotes : begin
                mniExportwebX.ImageIndex := 20;//31 not approved

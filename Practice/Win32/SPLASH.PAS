@@ -53,7 +53,7 @@ var
 implementation
 
 uses
-  bkBranding, bkConst;
+  bkBranding, bkConst, bkProduct;
   
 {$R *.DFM}
 
@@ -61,7 +61,7 @@ procedure TfrmSplash.FormCreate(Sender: TObject);
 begin
    Label1.Font.Name := Font.Name;
 
-   if bkBranding.GetProductBrand = btBankstream then
+   if TProduct.ProductBrand = btBankstream then
    begin
      Self.imgBankLinkSplash.Visible := False;
    end

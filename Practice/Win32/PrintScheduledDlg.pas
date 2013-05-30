@@ -254,7 +254,7 @@ uses
   PrntInfo,
   LADEFS, UserReportSettings, NewReportUtils, UsageUtils, CheckInOutFrm,
   SelectListDlg, bkXPThemes, UsrList32, grpList32, ctypelist32,
-  CustomDocEditorFrm, UBatchBase, bkBranding;
+  CustomDocEditorFrm, UBatchBase, bkProduct, bkBranding;
 
 {$R *.DFM}
 
@@ -285,19 +285,19 @@ begin
   gbWebNotes.Caption := format('Send %s transactions',[bkBranding.NotesOnlineProductName]);
   btnWebNotesMsg.Caption := format('&%s Message',[bkBranding.NotesOnlineProductName]);
 
-  cbToECoding.Hint := bkBranding.Rebrand(cbToECoding.Hint);
+  cbToECoding.Hint := TProduct.Rebrand(cbToECoding.Hint);
 
-  gbBooks.Caption := bkBranding.Rebrand(gbBooks.Caption);
-  btnCheckOutMsg.Caption := bkBranding.Rebrand(btnCheckOutMsg.Caption);
+  gbBooks.Caption := TProduct.Rebrand(gbBooks.Caption);
+  btnCheckOutMsg.Caption := TProduct.Rebrand(btnCheckOutMsg.Caption);
 
-  GroupBox5.Caption := bkBranding.Rebrand(GroupBox5.Caption);
-  btnOnlineMsg.Caption := bkBranding.Rebrand(btnOnlineMsg.Caption);
+  GroupBox5.Caption := TProduct.Rebrand(GroupBox5.Caption);
+  btnOnlineMsg.Caption := TProduct.Rebrand(btnOnlineMsg.Caption);
 
-  cbCheckout.Caption := bkbranding.Rebrand(cbCheckOut.Caption);
-  cbCheckout.Hint := bkbranding.Rebrand(cbCheckOut.Hint);
+  cbCheckout.Caption := TProduct.Rebrand(cbCheckOut.Caption);
+  cbCheckout.Hint := TProduct.Rebrand(cbCheckOut.Hint);
 
-  cbOnline.Caption := bkBranding.Rebrand(cbOnline.Caption);
-  cbOnline.Hint := bkBranding.Rebrand(cbOnline.Hint);
+  cbOnline.Caption := TProduct.Rebrand(cbOnline.Caption);
+  cbOnline.Hint := TProduct.Rebrand(cbOnline.Hint);
 
   LoadLookupBitmaps;
   SetUpHelp;

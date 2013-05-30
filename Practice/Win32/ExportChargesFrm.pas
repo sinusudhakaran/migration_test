@@ -203,7 +203,7 @@ uses
   InfoMoreFrm, WinUtils, GenUtils, bkXPThemes, ShellUtils, Admin32,
   NewReportUtils, NewReportObj, RepCols, LogUtil, sysbio, RptAdmin, bkHelp,
   BillingdocReaderFrm, bkDateUtils, StDate, EnterPwdDlg, glConst,
-  bkBranding;
+  bkProduct;
 
 {$R *.dfm}
 
@@ -367,7 +367,7 @@ begin
         tgCharges.Col[colDisbursement].Width := tgCharges.Col[colDisbursement].Width - 15;
         tgCharges.Col[colAssignment].Width := tgCharges.Col[colAssignment].Width - 15;
         if ExtractFileName(AdminSystem.fdFields.fdLast_Export_Charges_Saved_To) = '' then
-          eTo.Text := eTo.Text + Lowercase(bkBranding.ProductName);
+          eTo.Text := eTo.Text + Lowercase(TProduct.BrandName);
         eTo.Text := ChangeFileExt(eTo.Text, xcFilenames[Value]);
       end;
     xcOther:
@@ -380,7 +380,7 @@ begin
         tgCharges.Col[colAcctNo].Width := tgCharges.Col[colAcctNo].Width + 25;
         tgCharges.Col[colAcctName].Width := tgCharges.Col[colAcctName].Width + 100;
         if ExtractFileName(AdminSystem.fdFields.fdLast_Export_Charges_Saved_To) = '' then
-          eTo.Text := eTo.Text + Lowercase(bkBranding.ProductName);
+          eTo.Text := eTo.Text + Lowercase(TProduct.BrandName);
         eTo.Text := ChangeFileExt(eTo.Text, xcFilenames[Value]);
       end;
     xcMYOBAO:
@@ -402,7 +402,7 @@ begin
         eRemarks.Visible := True;
         lblRemarks.Visible := True;
         if ExtractFileName(AdminSystem.fdFields.fdLast_Export_Charges_Saved_To) = '' then
-          eTo.Text := eTo.Text + Lowercase(bkBranding.ProductName);
+          eTo.Text := eTo.Text + Lowercase(TProduct.BrandName);
         eTo.Text := ChangeFileExt(eTo.Text, xcFilenames[Value]);
       end;
     xcHandi:
@@ -426,7 +426,7 @@ begin
         lblRemarks.Visible := True;
         lblRemarks.Caption := 'Desc&ription';
         if ExtractFileName(AdminSystem.fdFields.fdLast_Export_Charges_Saved_To) = '' then
-          eTo.Text := eTo.Text + Lowercase(bkBranding.ProductName);
+          eTo.Text := eTo.Text + Lowercase(TProduct.BrandName);
         eTo.Text := ChangeFileExt(eTo.Text, xcFilenames[Value]);
       end;
     end;
@@ -502,7 +502,7 @@ begin
   rbSetFixed.Checked := eSetFixed.AsFloat <> 0.0;
   chkFixed.Checked := (eDistribute.AsFloat <> 0.0) or (eAddFixed.AsFloat <> 0.0) or (eSetFixed.AsFloat <> 0.0);
 
-  tgCharges.Col[colOriginalCharge].Heading := bkBranding.Rebrand(tgCharges.Col[colOriginalCharge].Heading);
+  tgCharges.Col[colOriginalCharge].Heading := TProduct.Rebrand(tgCharges.Col[colOriginalCharge].Heading);
 end;
 
 procedure TfrmExportCharges.FormDestroy(Sender: TObject);
@@ -537,7 +537,7 @@ begin
         pnlGrid.Visible := False;
         lblHeading.Caption := 'Export Charges Options';
         if xcHasFixedFilename[ExportType] then
-          lblTitle.Caption := 'Please select the month to export and the folder to save to. The charges will be exported to the file ' + Lowercase(bkBranding.ProductName) + '.csv in the selected folder.'
+          lblTitle.Caption := 'Please select the month to export and the folder to save to. The charges will be exported to the file ' + Lowercase(TProduct.BrandName) + '.csv in the selected folder.'
         else
           lblTitle.Caption := 'Please select the month to export and the file to save to.';
         if FexportType in [xcMYOBAO, xcHandi] then
@@ -682,7 +682,7 @@ begin
           end;
           if ExtractFileExt(eTo.Text) = '.BK5' then
           Begin
-            HelpfulWarningMsg('You can''t use this filename because the .BK5 extension is used by ' + bkBranding.ProductName + '.', 0);
+            HelpfulWarningMsg('You can''t use this filename because the .BK5 extension is used by ' + TProduct.BrandName + '.', 0);
             eTo.SetFocus;
             exit;
           end;
@@ -703,7 +703,7 @@ begin
 
         if Lowercase(DirPath) = Lowercase(DownloadWorkDir) then
         begin
-          HelpfulWarningMsg('You cannot save to the BK5 Work folder because it is reserved for use by ' + bkBranding.ProductName + '.', 0);
+          HelpfulWarningMsg('You cannot save to the BK5 Work folder because it is reserved for use by ' + TProduct.BrandName + '.', 0);
           eTo.SetFocus;
           exit;
         end;
@@ -1700,7 +1700,7 @@ begin
           '0' + #9 +
           '0' + #9 +
           FloatToStr(RoundTo(Cell[colIncreasedCharge, iRow], -2)) + #9 +
-          '"Imported ' + bkBranding.ProductName + ' Charge, File Code=' + Cell[colFileCode, iRow] + ', Cost Code=' + Cell[colCostCode, iRow] + '"';
+          '"Imported ' + TProduct.BrandName + ' Charge, File Code=' + Cell[colFileCode, iRow] + ', Cost Code=' + Cell[colCostCode, iRow] + '"';
         exportFile.Add(sRowText);
         Inc(iRow);
       end;

@@ -105,6 +105,7 @@ uses
   BlopiServiceFacade,
   ForexHelpers,
   ExchangeGainLoss,
+  bkProduct,
   bkBranding;
 
 const
@@ -504,7 +505,7 @@ begin
              if IntegrityCheckClientWrapper(AutoSaveWrapper) then
              begin
                //there is an auto-saved file on disc for this client
-               S := bkBranding.ProductName + ' has detected a later version of the client file ' + Code + ' that was auto-saved ';
+               S := TProduct.BrandName + ' has detected a later version of the client file ' + Code + ' that was auto-saved ';
                VarDateTime := AutoSaveDateTime;
                if (Trunc(VarDateTime) = Date) then
                  S := S + 'Today'
@@ -1838,7 +1839,7 @@ begin
 
   if (ClientStatus > 0) and (ASendMethod = ftmOnline) then
   begin
-    Msg := bkBranding.Rebrand(CICOERRORSTR_CLIENT_CLIENTDEACTIVATED);
+    Msg := TProduct.Rebrand(CICOERRORSTR_CLIENT_CLIENTDEACTIVATED);
     
     LogUtil.LogMsg(lmInfo, UnitName, ThisMethodName + ' : ' + Msg);
 

@@ -40,7 +40,8 @@ type
 
 implementation
 uses
-   Globals, logutil, MainFrm, SUIFrameHelper, Math, bkBranding, imagesfrm;
+   Globals, logutil, MainFrm, SUIFrameHelper, Math, bkBranding, imagesfrm,
+   bkProduct;
 {$R *.dfm}
 
 const
@@ -142,7 +143,7 @@ begin
    bkBranding.StyleTopLeftImage(imgLeft);
    bkBranding.StyleSimpleUIRightBannerImage(imgRight);
 
-   if bkBranding.GetProductBrand = btBankstream then
+   if TProduct.ProductBrand = btBankstream then
    begin
      pnlExtraTitleBar.Height := imgLeft.Picture.Height;
    end

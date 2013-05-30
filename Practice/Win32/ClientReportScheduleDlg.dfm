@@ -40,6 +40,10 @@ inherited dlgClientReportSchedule: TdlgClientReportSchedule
     OnChange = PageControl1Change
     object tbsOptions: TTabSheet
       Caption = '&Options'
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object Label1: TLabel
         Left = 5
         Top = 2
@@ -75,7 +79,7 @@ inherited dlgClientReportSchedule: TdlgClientReportSchedule
         Width = 305
         Height = 21
         Style = csDropDownList
-        ItemHeight = 13
+        ItemHeight = 0
         TabOrder = 0
         OnChange = cmbPeriodChange
       end
@@ -85,7 +89,7 @@ inherited dlgClientReportSchedule: TdlgClientReportSchedule
         Width = 305
         Height = 21
         Style = csDropDownList
-        ItemHeight = 13
+        ItemHeight = 0
         TabOrder = 1
         OnChange = cmbPeriodChange
       end
@@ -368,7 +372,7 @@ inherited dlgClientReportSchedule: TdlgClientReportSchedule
           Width = 143
           Height = 21
           Style = csDropDownList
-          ItemHeight = 13
+          ItemHeight = 0
           TabOrder = 1
           OnDropDown = cmbCustomDocListDropDown
         end

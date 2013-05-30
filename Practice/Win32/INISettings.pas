@@ -49,7 +49,8 @@ uses
   Windows,
   SHFolder,
   GenUtils,
-  bkUrls;
+  bkUrls,
+  bkProduct;
 
 const
    GrpMainForm = 'MainForm';
@@ -1110,7 +1111,7 @@ var
   IniFile: TMemIniFile;
   CountryStr: String;
 begin
-  ProductBrand := btBankLink;
+  TProduct.ProductBrand := btBankLink;
 
   Filename := ExecDir + 'app.ini';
 
@@ -1123,7 +1124,7 @@ begin
 
       if CountryStr = 'UK' then
       begin
-        ProductBrand := btBankstream;
+        TProduct.ProductBrand := btBankstream;
       end;
     finally
       IniFile.Free;

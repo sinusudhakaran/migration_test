@@ -159,7 +159,7 @@ uses
   GenUtils,
   BlopiServiceFacade,
   BkHelp,
-  bkBranding;
+  bkBranding, bkProduct;
 
 const
   UnitName = 'BanklinkOnlineSettingsFrm';
@@ -281,10 +281,10 @@ end;
 
 procedure TfrmBanklinkOnlineSettings.FormCreate(Sender: TObject);
 begin
-  Caption := bkBranding.Rebrand(Caption);
-  chkDeliverData.Caption := bkBranding.Rebrand(chkDeliverData.Caption);
-  lblSecureCode.Caption := bkBranding.Rebrand(lblSecureCode.Caption);
-  lblSelectProducts.Caption := bkBranding.Rebrand(lblSelectProducts.Caption);
+  Caption := TProduct.Rebrand(Caption);
+  chkDeliverData.Caption := TProduct.Rebrand(chkDeliverData.Caption);
+  lblSecureCode.Caption := TProduct.Rebrand(lblSecureCode.Caption);
+  lblSelectProducts.Caption := TProduct.Rebrand(lblSelectProducts.Caption);
 end;
 
 procedure TfrmBanklinkOnlineSettings.FormDestroy(Sender: TObject);
@@ -346,8 +346,8 @@ begin
     { Shouldn't be able to reach here, as the Services Available panel should be invisible
       if the second and third conditions are true, and thus chkDeliverData can't be
       checked }
-    ShowMessage('This client is set up to download data directly from ' + bkBranding.ProductName + ' to the ' +
-                'client file. Please contact ' + bkBranding.ProductName + ' Client Services if you want to ' +
+    ShowMessage('This client is set up to download data directly from ' + TProduct.BrandName + ' to the ' +
+                'client file. Please contact ' + TProduct.BrandName + ' Client Services if you want to ' +
                 'change the data delivery method to ' + bkBranding.ProductOnlineName);
     chkDeliverData.Checked := False;
     Exit;

@@ -1060,7 +1060,8 @@ uses
   TransactionsToBankLinkOnlineFrm,
   BankLinkOnlineTaggingServices,
   ModalDualProgressFrm,
-  BlopiServiceAgreement;
+  BlopiServiceAgreement,
+  bkProduct;
   //StockBalancesDlg;
 
 const
@@ -1233,10 +1234,10 @@ begin
   UPDATEMF.UpdateMenus;
   UPDATEMF.UpdateSystemMenus;
 
-  mnsSystemStartNewMonth.Caption := bkBranding.Rebrand(mnsSystemStartNewMonth.Caption);
-  mniExportdatatoBanklinkOnline.Caption := bkBranding.Rebrand(mniExportdatatoBanklinkOnline.Caption);
-  actSendViaOnline.Caption := bkBranding.Rebrand(actSendViaOnline.Caption);
-  actGetFromOnline.Caption := bkBranding.Rebrand(actGetFromOnline.Caption); 
+  mnsSystemStartNewMonth.Caption := TProduct.Rebrand(mnsSystemStartNewMonth.Caption);
+  mniExportdatatoBanklinkOnline.Caption := TProduct.Rebrand(mniExportdatatoBanklinkOnline.Caption);
+  actSendViaOnline.Caption := TProduct.Rebrand(actSendViaOnline.Caption);
+  actGetFromOnline.Caption := TProduct.Rebrand(actGetFromOnline.Caption); 
 
   Screen.OnActiveFormChange := ActiveFormChange;
   if DebugMe then LogUtil.LogMsg(lmDebug,unitname,'Form Created');
@@ -1482,7 +1483,7 @@ begin
     bkBranding.StyleBooksBackgroundImage(Image1);
     bkBranding.StyleBooksClientName(lblClientName); 
 
-    if bkBranding.GetProductBrand = btBankstream then
+    if TProduct.ProductBrand = btBankstream then
     begin
       Color := clWhite;
     end;
@@ -1721,7 +1722,7 @@ begin
   {$else}
     Top := 16;
   {$endif}
-    if bkBranding.GetProductBrand = btBankstream then
+    if TProduct.ProductBrand = btBankstream then
     begin
       Top := rzToolbars.Height + 2;
       Left := 10;
@@ -1765,7 +1766,7 @@ begin
 {$else}
     Top := imgLogo.Top - (lblVersion.Height + 2);
 {$endif}
-   if bkBranding.GetProductBrand = btBankstream then
+   if TProduct.ProductBrand = btBankstream then
    begin
      Top := imgLogo.Top + 2;
    end;
@@ -5083,7 +5084,7 @@ const
       Filename : string;
       procedure FailImport (Reason : String);
       begin
-         HelpfulInfoMsg(bkBranding.ProductName + ' can not import the file at this stage'#13'because '+ Reason,0);
+         HelpfulInfoMsg(TProduct.BrandName + ' can not import the file at this stage'#13'because '+ Reason,0);
       end;
   begin
      Result := False;
@@ -5166,7 +5167,7 @@ begin
         UPDATEMF.UpdateMenus;
         UPDATEMF.UpdateSystemMenus;
         HelpfulErrorMsg( 'You do not have sufficient rights to Update a file,' + #13 +
-         'please see your' + bkBranding.ProductName + ' Administrator.',0);
+         'please see your' + TProduct.BrandName + ' Administrator.',0);
         if Assigned(AdminSystem) then
           DoClientManager(0,0,0,0);
       end;
@@ -5184,7 +5185,7 @@ begin
          ImportOK := DoImportTRF
        else
          HelpfulErrorMsg( 'You do not have sufficient rights to Import a ' + ECodingDisplayName + ' file,' + #13 +
-          'please see your ' + bkBranding.ProductName + ' Administrator.',0);
+          'please see your ' + TProduct.BrandName + ' Administrator.',0);
        if Assigned(AdminSystem) then
          DoClientManager(0,0,0,0);
        if (not (F is TfrmClientManager)) or ImportOK then

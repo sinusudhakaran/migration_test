@@ -224,7 +224,7 @@ uses
    glConst,
    BankLinkSecureCodeDlg,
    GenUtils,
-   bkBranding;
+   bkBranding, bkProduct;
 
 {$R *.DFM}
 
@@ -257,7 +257,7 @@ begin
    ChangingDiskID := false;
    grpBooks.Caption := bkBranding.BooksProductName + ' Clients';
 
-   grpBOClients.Caption := bkBranding.Rebrand(grpBOClients.Caption);
+   grpBOClients.Caption := TProduct.Rebrand(grpBOClients.Caption);
 end;
 
 //------------------------------------------------------------------------------
@@ -354,10 +354,10 @@ begin
         else if not (ProductConfigService.OnlineStatus = staActive) then
           case ProductConfigService.OnlineStatus of
             Suspended:   SetProductsCaption(bkBranding.ProductOnlineName + ' is currently in suspended ' +
-                                            '(read-only) mode. Please contact ' + bkBranding.ProductName +
+                                            '(read-only) mode. Please contact ' + TProduct.BrandName +
                                             'Support for further assistance');
             Deactivated: SetProductsCaption(bkBranding.ProductOnlineName + ' is currently deactivated. Please ' +
-                                            'contact ' + bkBranding.ProductName + ' Support for further assistance');
+                                            'contact ' + TProduct.BrandName + ' Support for further assistance');
           end
         else
         begin
@@ -402,7 +402,7 @@ end;
 
 procedure TfrmClientDetails.SetProductsCaption(NewCaption: string);
 begin
-  lblClientBOProducts.Caption := bkBranding.Rebrand(NewCaption);
+  lblClientBOProducts.Caption := TProduct.Rebrand(NewCaption);
 end;
 
 procedure TfrmClientDetails.SetUpHelp;
@@ -750,7 +750,7 @@ begin
   begin
     if Trim(eConnectCode.Text) = '' then
     begin
-      case AskYesNo(bkBranding.ProductName + ' Secure Code', 'The ' + bkBranding.ProductName + ' Secure Code for this client has not been set.  Would you like to set it now?', DLG_YES, 0, True) of
+      case AskYesNo(TProduct.BrandName + ' Secure Code', 'The ' + TProduct.BrandName + ' Secure Code for this client has not been set.  Would you like to set it now?', DLG_YES, 0, True) of
         glConst.DLG_CANCEL:
         begin
           if PageControl1.ActivePage <> tbsOptions then
@@ -1360,8 +1360,8 @@ begin
      ProductConfigService.IsPracticeProductEnabled(ProductConfigService.GetExportDataId, False) then
      begin
        HelpfulWarningMsg('This client is set up for data delivery directly to ' + bkBranding.ProductOnlineName + '. ' +
-                         'Please contact ' + bkBranding.ProductName + ' Client Services if you want to change the ' +
-                         'data delivery method to downloading data directly from ' + bkBranding.ProductName + ' to ' +
+                         'Please contact ' + TProduct.BrandName + ' Client Services if you want to change the ' +
+                         'data delivery method to downloading data directly from ' + TProduct.BrandName + ' to ' +
                          'the client file.', 0);
        chkOffsite.Checked := False;
        Exit;
@@ -1387,7 +1387,7 @@ begin
                  for i := 0 to VendorCount - 1 do
                    VendorNames.Add(ClientExportDataService.Current[i].Name_);
                  HelpfulWarningMsg('Your changes will allow the client to download data directly from ' +
-                                   bkBranding.ProductName + ' but this client is set up to export data to ' + bkBranding.ProductOnlineName +
+                                   TProduct.BrandName + ' but this client is set up to export data to ' + bkBranding.ProductOnlineName +
                                    'for ' + GetCommaSepStrFromList(VendorNames) + '.' +
                                    ' This means that data can be exported to ' + GetCommaSepStrFromList(VendorNames) +
                                    ' only when the file is available in ' + bkBranding.PracticeProductName + '.', 0);

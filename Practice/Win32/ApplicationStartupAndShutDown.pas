@@ -51,7 +51,8 @@ uses
   MadUtils,
   UsageUtils, BKHelp,
   ThirdPartyHelper,
-  IPClientLocking;
+  IPClientLocking,
+  bkProduct;
 
 const
   UnitName = 'AppStartupShutDown';
@@ -203,24 +204,24 @@ begin
     SHORTAPPNAME        := 'SmartLink';
   {$ELSE}
     {$IFDEF BKMAP}
-      APPTITLE            = Format('%s Map Utility', [bkBranding.ProductName]);
+      APPTITLE            = Format('%s Map Utility', [TProduct.BrandName]);
       SHORTAPPNAME        = 'BKMAP';
     {$ELSE}
       {$IFDEF BKCRYPT}
-        APPTITLE            = Format('%s Decryption Utility', [bkBranding.ProductName]);
+        APPTITLE            = Format('%s Decryption Utility', [TProduct.BrandName]);
         SHORTAPPNAME        = 'BKCRYPT';
       {$ELSE}
          if AdminExists or CheckDBCreateParam or CheckDBCreateParamNoRun then
          begin
-           APPTITLE := Format('%s Practice', [bkBranding.ProductName]);
-           SHORTAPPNAME := Format('%s Practice', [bkBranding.ProductName]);
+           APPTITLE := Format('%s Practice', [TProduct.BrandName]);
+           SHORTAPPNAME := Format('%s Practice', [TProduct.BrandName]);
            bkBranding.BrandingImageSet := imPractice;
          end
          else
          begin
            //default to books
-           APPTITLE := Format('%s Books', [bkBranding.ProductName]);
-           SHORTAPPNAME := Format('%s Books', [bkBranding.ProductName]);
+           APPTITLE := Format('%s Books', [TProduct.BrandName]);
+           SHORTAPPNAME := Format('%s Books', [TProduct.BrandName]);
            bkBranding.BrandingImageSet := imBooks;
 
            if ThirdPartyHelper.ThirdPartyDLLDetected then
@@ -228,7 +229,7 @@ begin
              if (ThirdPartyBannerLogo <> nil) then
                 bkBranding.BrandingImageSet := imDLL;
              if (ThirdPartyName <> '') then
-                APPTITLE := Format('%s Books provided by ' + ThirdPartyName, [bkBranding.ProductName]);
+                APPTITLE := Format('%s Books provided by ' + ThirdPartyName, [TProduct.BrandName]);
            end;
          end;
       {$ENDIF}

@@ -63,7 +63,7 @@ uses
   progress,
   RegExprUtils,
   BankLinkOnlineServices,
-  bkBranding;
+  bkBranding, bkProduct;
 
 const
   UNIT_NAME = 'BankLinkOnline';
@@ -544,16 +544,16 @@ begin
   begin
     if ForClient then
     begin
-      Result := bkBranding.Rebrand(CICOERRORSTR_CLIENT_CLIENTDEACTIVATED);
+      Result := TProduct.Rebrand(CICOERRORSTR_CLIENT_CLIENTDEACTIVATED);
     end
     else
     begin
-      Result := bkBranding.Rebrand(CICOERRORSTR_PRACTICE_CLIENTDEACTIVATED);
+      Result := TProduct.Rebrand(CICOERRORSTR_PRACTICE_CLIENTDEACTIVATED);
     end;
   end
   else
   begin
-    Result := bkBranding.Rebrand(Response.Description);
+    Result := TProduct.Rebrand(Response.Description);
   end;
 end;
 
@@ -597,7 +597,7 @@ begin
 
           if ProductConfigService.PracticeUserExists(AClientEmail, False) then
           begin
-            raise EUploadFailed.Create(Format('The email address %s already exists as a Practice user. Please specify a different email address or contact %s Support for assistance.', [AClientEmail, bkBranding.ProductName]));
+            raise EUploadFailed.Create(Format('The email address %s already exists as a Practice user. Please specify a different email address or contact %s Support for assistance.', [AClientEmail, TProduct.BrandName]));
           end;
 
           CiCoClient.UploadFileFromPractice(AClientCode, AClientName, AClientEmail, AClientContact, ServerResponce);

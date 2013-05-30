@@ -74,7 +74,8 @@ uses
    InfoMoreFrm, YesNoDlg, EnterPwdDlg,
    ipscore, ipshttps,
    glConst, Globals, Winutils,
-   SageHandisoftSuperConst, bkBranding;
+   SageHandisoftSuperConst,
+   bkProduct;
 
 
 
@@ -719,7 +720,7 @@ begin
              // Need to ask..
              if AskYesNo('Information',
                         'Cannot authenticate access to this feature.'#13
-                      + 'You must contact ' + bkBranding.ProductName + ' Support to continue.'#13#13
+                      + 'You must contact ' + TProduct.BrandName + ' Support to continue.'#13#13
                       + 'Do you wish to cotinue?',DLG_NO,0) = DLG_No then begin
                 LogMessage('Support Password Canceled');
                 Exit; //Canceled
@@ -729,7 +730,7 @@ begin
              if not EnterPwdDlg.EnterRandomPassword('Bulk Export') then begin
                 LogMessage('Support Password Failed');
                 HelpfulInfoMsg( 'Cannot authenticate access to this feature.'#13
-                           +'Please contact ' + bkBranding.ProductName + ' Support for futher information.', 0 );
+                           +'Please contact ' + TProduct.BrandName + ' Support for futher information.', 0 );
                 Exit;
              end;
 
@@ -740,7 +741,7 @@ begin
             // Just Need to prompt
             LogMessage('Export attempted');
             HelpfulInfoMsg( 'Cannot authenticate access to this feature.'#13
-                           +'Please contact ' + bkBranding.ProductName + ' Support for futher information.', 0 );
+                           +'Please contact ' + TProduct.BrandName + ' Support for futher information.', 0 );
             Exit;
          end;
 

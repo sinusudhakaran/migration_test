@@ -543,7 +543,8 @@ uses
   Login32,
   XSBuiltIns,
   Admin32,
-  bkBranding;
+  bkBranding,
+  bkProduct;
 
 const
   UNIT_NAME = 'BankLinkOnlineServices';
@@ -1036,7 +1037,7 @@ begin
     begin
       LogUtil.LogMsg(lmError, UNIT_NAME, 'Exception running CreateNewClientUser, Error Message : ' + E.Message);
       
-      raise Exception.Create(bkBranding.PracticeProductName + ' is unable to create a new user ' + bkBranding.ProductOnlineName + '. Please contact' + bkBranding.ProductName + ' Support for assistance.');
+      raise Exception.Create(bkBranding.PracticeProductName + ' is unable to create a new user ' + bkBranding.ProductOnlineName + '. Please contact' + TProduct.BrandName + ' Support for assistance.');
     end;
   end;
 
@@ -1462,7 +1463,7 @@ begin
 
   //Check that BConnect secure code has been assigned
   if AdminSystem.fdFields.fdBankLink_Code = '' then begin
-    HelpfulErrorMsg('The ' + bkBranding.ProductName + ' Secure Code for this practice has not been set. ' +
+    HelpfulErrorMsg('The ' + TProduct.BrandName + ' Secure Code for this practice has not been set. ' +
                     'Please set this before attempting to use ' + BANKLINK_ONLINE_NAME +
                     '.', 0);
     Exit;
@@ -2687,7 +2688,7 @@ var
   MessageDetails: String;
   ShowDetails: Boolean;
 begin
-  MainMessage := Format('%s encountered a problem while connecting to %s. Please see the details below or contact ' + bkBranding.ProductName + '  Support for assistance.', [BKPRACTICENAME, BANKLINK_ONLINE_NAME]);
+  MainMessage := Format('%s encountered a problem while connecting to %s. Please see the details below or contact ' + TProduct.BrandName + '  Support for assistance.', [BKPRACTICENAME, BANKLINK_ONLINE_NAME]);
 
   MessageDetails := E.Message;
 
@@ -2703,7 +2704,7 @@ begin
   else
   if E is EDOMParseError then
   begin
-    MainMessage := Format('%s encountered a problem connecting to %s. Please contact ' + bkBranding.ProductName + ' Support for assistance', [BKPRACTICENAME, BANKLINK_ONLINE_NAME]);
+    MainMessage := Format('%s encountered a problem connecting to %s. Please contact ' + TProduct.BrandName + ' Support for assistance', [BKPRACTICENAME, BANKLINK_ONLINE_NAME]);
     
     ShowDetails := False;
   end;
@@ -2756,7 +2757,7 @@ begin
         begin
           if OfflineAuthentication then
           begin
-            HelpfulErrorMsg(BKPRACTICENAME + ' is unable to authenticate with ' + bkBranding.ProductOnlineName + '. Please contact ' + bkBranding.ProductName + ' Support for assistance.', 0);
+            HelpfulErrorMsg(BKPRACTICENAME + ' is unable to authenticate with ' + bkBranding.ProductOnlineName + '. Please contact ' + TProduct.BrandName + ' Support for assistance.', 0);
 
             LogUtil.LogMsg(lmError, UNIT_NAME, 'An error occured while authenticating with BankLink Online.');
 
@@ -2771,7 +2772,7 @@ begin
           begin
             if not TfrmOnlinePassword.PromptUser(Password, CurrUser.EmailAddress, PasswordReset) then
             begin
-              HelpfulErrorMsg(BKPRACTICENAME + ' authentication with ' + bkBranding.ProductOnlineName + ' failed. Please contact ' + bkBranding.ProductName + ' Support for assistance.', 0);
+              HelpfulErrorMsg(BKPRACTICENAME + ' authentication with ' + bkBranding.ProductOnlineName + ' failed. Please contact ' + TProduct.BrandName + ' Support for assistance.', 0);
 
               LogUtil.LogMsg(lmError, UNIT_NAME, ' authentication with BankLink Online failed.');
 
@@ -2792,7 +2793,7 @@ begin
   end
   else
   begin
-    HelpfulErrorMsg('You are not a ' + bkBRanding.ProductOnlineName + ' enabled user. Only ' + bkBranding.ProductOnlineName + ' enabled users can update ' + bkBranding.ProductOnlineName + '. Please contact ' + bkBranding.ProductName + ' Support for assistance.', 0);
+    HelpfulErrorMsg('You are not a ' + bkBRanding.ProductOnlineName + ' enabled user. Only ' + bkBranding.ProductOnlineName + ' enabled users can update ' + bkBranding.ProductOnlineName + '. Please contact ' + TProduct.BrandName + ' Support for assistance.', 0);
 
     LogUtil.LogMsg(lmError, UNIT_NAME, 'An error occured while authenticating with ' + BANKLINK_ONLINE_NAME + '.');
 
@@ -2860,10 +2861,10 @@ procedure TProductConfigService.ShowSuspendDeactiveWarning;
 begin
   case OnlineStatus of
     Suspended: HelpfulWarningMsg(BANKLINK_ONLINE_NAME + ' is currently in suspended ' +
-                                 '(read-only) mode. Please contact ' + bkBranding.ProductName + ' ' +
+                                 '(read-only) mode. Please contact ' + TProduct.BrandName + ' ' +
                                  'Support for further assistance.', 0);
     Deactivated: HelpfulWarningMsg(BANKLINK_ONLINE_NAME + ' is currently deactivated. ' +
-                                   'Please contact ' + bkBranding.ProductName + ' Support for further ' +
+                                   'Please contact ' + TProduct.BrandName + ' Support for further ' +
                                    'assistance.', 0);
   end;
 end;
@@ -3031,7 +3032,7 @@ begin
   except
     on E: Exception do
     begin
-      HelpfulErrorMsg(BKPRACTICENAME + ' is unable to remove the product. Please contact ' + bkBranding.ProductName + ' Support for assistance.', 0);
+      HelpfulErrorMsg(BKPRACTICENAME + ' is unable to remove the product. Please contact ' + TProduct.BrandName + ' Support for assistance.', 0);
 
       LogUtil.LogMsg(lmError, UNIT_NAME, 'Exception running RemoveProduct, Error Message : ' + E.Message);
 
@@ -3962,7 +3963,7 @@ begin
       HelpfulErrorMsg(Format(bkBranding.PracticeProductName + ' is unable to create client user ' +
                              'on ' + bkBranding.ProductOnlineName + '. User with email address %s already ' +
                              'exists as a Practice user. Please specify a different ' +
-                             'email address or contact ' + bkBranding.ProductName + ' Support for assistance.', [aEmail]), 0, False, '', False);
+                             'email address or contact ' + TProduct.BrandName + ' Support for assistance.', [aEmail]), 0, False, '', False);
 
     end;
 
@@ -4695,7 +4696,7 @@ begin
     except
       on E : Exception do
       begin
-        HelpfulErrorMsg(BKPRACTICENAME + ' is unable to create the client on ' + BANKLINK_ONLINE_NAME + '. Please contact ' + bkBranding.ProductName + ' Support for assistance.', 0);
+        HelpfulErrorMsg(BKPRACTICENAME + ' is unable to create the client on ' + BANKLINK_ONLINE_NAME + '. Please contact ' + TProduct.BrandName + ' Support for assistance.', 0);
         
         LogUtil.LogMsg(lmError, UNIT_NAME, 'Exception running CreateClient, Error Message : ' + E.Message);
       end;
@@ -4850,7 +4851,7 @@ begin
     except
       on E : Exception do
       begin
-        HelpfulErrorMsg(BKPRACTICENAME + ' is unable to update the client to ' + BANKLINK_ONLINE_NAME + '. Please contact ' + bkBranding.ProductName + ' Support for assistance.', 0);
+        HelpfulErrorMsg(BKPRACTICENAME + ' is unable to update the client to ' + BANKLINK_ONLINE_NAME + '. Please contact ' + TProduct.BrandName + ' Support for assistance.', 0);
         
         LogUtil.LogMsg(lmError, UNIT_NAME, 'Exception running UpdateClient, Error Message : ' + E.Message);
 
@@ -5251,7 +5252,7 @@ begin
       begin
         LogUtil.LogMsg(lmError, UNIT_NAME, 'Exception running AddEditPracUser, Error Message : ' + E.Message);
 
-        raise Exception.Create(BKPRACTICENAME + ' is unable to update the user to ' + BANKLINK_ONLINE_NAME + '. Please contact ' + bkBranding.ProductName + ' Support for assistance.');
+        raise Exception.Create(BKPRACTICENAME + ' is unable to update the user to ' + BANKLINK_ONLINE_NAME + '. Please contact ' + TProduct.BrandName + ' Support for assistance.');
       end;
     end;
   finally
@@ -5305,7 +5306,7 @@ begin
       begin
         LogUtil.LogMsg(lmError, UNIT_NAME, 'Exception running DeletePracUser, Error Message : ' + E.Message);
         
-        raise Exception.Create(BKPRACTICENAME + ' is unable to delete the user from ' + BANKLINK_ONLINE_NAME + '. Please contact ' + bkBranding.ProductName + ' Support for assistance.');
+        raise Exception.Create(BKPRACTICENAME + ' is unable to delete the user from ' + BANKLINK_ONLINE_NAME + '. Please contact ' + TProduct.BrandName + ' Support for assistance.');
       end;
     end;
   finally
@@ -6164,7 +6165,7 @@ var
   MessageDetails: String;
   ShowDetails: Boolean;
 begin
-  MainMessage := Format('%s encountered a problem while connecting to %s. Please see the details below or contact ' + bkBranding.ProductName + ' Support for assistance.', [BKPRACTICENAME, BANKLINK_ONLINE_NAME]);
+  MainMessage := Format('%s encountered a problem while connecting to %s. Please see the details below or contact ' + TProduct.BrandName + ' Support for assistance.', [BKPRACTICENAME, BANKLINK_ONLINE_NAME]);
   
   MessageDetails := E.Message;
 
@@ -6180,7 +6181,7 @@ begin
   else
   if E is EDOMParseError then
   begin
-    MainMessage := Format('%s encountered a problem connecting to %s. Please contact ' + bkBranding.ProductName + ' Support for assistance', [BKPRACTICENAME, BANKLINK_ONLINE_NAME]);
+    MainMessage := Format('%s encountered a problem connecting to %s. Please contact ' + TProduct.BrandName + ' Support for assistance', [BKPRACTICENAME, BANKLINK_ONLINE_NAME]);
     
     ShowDetails := False;
   end;

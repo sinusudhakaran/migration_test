@@ -63,7 +63,7 @@ var
 
 implementation
 
-uses bkBranding;
+uses bkBranding, bkProduct;
 
 {$R *.dfm}
 
@@ -182,7 +182,7 @@ begin
   
   cmbAccountFilter.ItemIndex := 0;
 
-  Label1.Caption := bkBranding.Rebrand(Label1.Caption);
+  Label1.Caption := TProduct.Rebrand(Label1.Caption);
 end;
 
 procedure TfrmCAFAccountStatus.FormKeyPress(Sender: TObject; var Key: Char);

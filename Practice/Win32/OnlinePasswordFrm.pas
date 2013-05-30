@@ -48,7 +48,7 @@ implementation
 {$R *.dfm}
 
 uses
-  BankLinkOnlineServices, bkBranding;
+  BankLinkOnlineServices, bkProduct;
 
 { TfrmBankLinkOnlinePassword }
 //------------------------------------------------------------------------------
@@ -64,9 +64,9 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmOnlinePassword.FormCreate(Sender: TObject);
 begin
-  Caption := bkBranding.Rebrand(Caption);
-  lblOnlineCaption01.Caption := bkBranding.Rebrand(lblOnlineCaption01.Caption);
-  lblOnlineCaption02.Caption := bkBranding.Rebrand(lblOnlineCaption02.Caption);
+  Caption := TProduct.Rebrand(Caption);
+  lblOnlineCaption01.Caption := TProduct.Rebrand(lblOnlineCaption01.Caption);
+  lblOnlineCaption02.Caption := TProduct.Rebrand(lblOnlineCaption02.Caption);
 end;
 
 function TfrmOnlinePassword.GetPassword: String;

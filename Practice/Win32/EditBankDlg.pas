@@ -208,7 +208,7 @@ uses
   OkCancelDlg,
   DesktopSuper_Utils,
   glConst,
-  LogUtil, bkBranding;
+  LogUtil, bkBranding, bkProduct;
 
 const
   GMargin = 10;
@@ -270,9 +270,9 @@ begin
 
   SetUpHelp;
 
-  lblClause.Caption := bkBranding.Rebrand(lblClause.Caption);
-  chkPrivacy.Caption := bkBranding.Rebrand(chkPrivacy.Caption);
-  tbBankLinkOnline.Caption := bkBranding.Rebrand(tbBankLinkOnline.Caption);
+  lblClause.Caption := TProduct.Rebrand(lblClause.Caption);
+  chkPrivacy.Caption := TProduct.Rebrand(chkPrivacy.Caption);
+  tbBankLinkOnline.Caption := TProduct.Rebrand(tbBankLinkOnline.Caption);
 end;
 
 //------------------------------------------------------------------------------

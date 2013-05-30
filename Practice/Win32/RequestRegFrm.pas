@@ -66,7 +66,7 @@ uses
   WarningMoreFrm,
   MailFrm,
   LogUtil,
-  Admin32, bkBranding;
+  Admin32, bkProduct, bkBranding;
 
 {$R *.dfm}
 //------------------------------------------------------------------------------
@@ -134,9 +134,9 @@ end;
 
 procedure TRequestregForm.FormCreate(Sender: TObject);
 begin
-  Caption := bkBranding.Rebrand(Caption);
-  lblSecureCode.Caption := bkBranding.Rebrand(lblSecureCode.Caption);
-  lblInfo.Caption := bkBranding.Rebrand(lblInfo.Caption);
+  Caption := TProduct.Rebrand(Caption);
+  lblSecureCode.Caption := TProduct.Rebrand(lblSecureCode.Caption);
+  lblInfo.Caption := TProduct.Rebrand(lblInfo.Caption);
 end;
 
 //------------------------------------------------------------------------------

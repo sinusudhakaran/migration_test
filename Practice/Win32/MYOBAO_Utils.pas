@@ -70,7 +70,7 @@ uses
   glConst, classes,
   OmniXml, xmlUtils,
   errormorefrm, warningmorefrm, infoMorefrm, yesnodlg, GlobalDirectories,
-  Registry, windows, WinUtils, Globals, bkBranding;
+  Registry, windows, WinUtils, Globals, bkProduct;
 
 const
   bcLinkComID = 'bclink.bclink';
@@ -328,10 +328,10 @@ begin
               //                              ' but found ' + bmid);
 
               if bmid = '' then
-                aMsg := 'The ' + bkBranding.ProductName + ' ID for the selected ledger path is not set.'#13#13 +
+                aMsg := 'The ' + TProduct.BrandName + ' ID for the selected ledger path is not set.'#13#13 +
                         'Do you still want to refresh the chart?'
               else
-              aMsg := 'The ' + bkBranding.ProductName + ' ID for the selected ledger path is set to ' + bmid +'. '#13#13 +
+              aMsg := 'The ' + TProduct.BrandName + ' ID for the selected ledger path is set to ' + bmid +'. '#13#13 +
                       'This does not match your current ' + ShortAppName + ' client code (' + bkClientCode + ') '+
                       'do you still want to refresh the chart?';
 
@@ -529,14 +529,14 @@ begin
     begin
       result := true;
       if not NoMsgIfOK then
-        HelpfulInfoMsg( 'The ' + bkBranding.ProductName + ' ID is set correctly for ledger path ' + LedgerPath, 0);
+        HelpfulInfoMsg( 'The ' + TProduct.BrandName + ' ID is set correctly for ledger path ' + LedgerPath, 0);
     end
     else
     begin
       if bmid = '' then
       begin
         //is blank, ask user if they want to set it to current code
-        aMsg := 'The ' + bkBranding.ProductName + ' ID in ledger path ' + LedgerPath + ' is not currently set.'#13#13+
+        aMsg := 'The ' + TProduct.BrandName + ' ID in ledger path ' + LedgerPath + ' is not currently set.'#13#13+
                 'Do you want to set it to "' + bkCode + '"?';
       end
       else
@@ -544,20 +544,20 @@ begin
         if AllowUpdateIfDiff then
         begin
           //is set already to something else
-          aMsg := 'The ' + bkBranding.ProductName + ' ID in ledger path ' + LedgerPath + ' is currently set to "' +
+          aMsg := 'The ' + TProduct.BrandName + ' ID in ledger path ' + LedgerPath + ' is currently set to "' +
                 bmid + '"."'#13#13 +
                 'Do you want to change it to "'+ bkCode + '"?';
         end
         else
         begin
           //is set already but user is not allowed to update it
-          aMsg := 'The ' + bkBranding.ProductName + ' ID in ledger path ' + LedgerPath + ' does not match your existing client code.';
+          aMsg := 'The ' + TProduct.BrandName + ' ID in ledger path ' + LedgerPath + ' does not match your existing client code.';
           HelpfulErrorMsg( aMSg, 0);
           exit;
         end;
       end;
 
-      if AskYesNo( 'Set ' + bkBranding.ProductName + ' ID', aMsg, dlg_Yes, 0) = dlg_Yes then
+      if AskYesNo( 'Set ' + TProduct.BrandName + ' ID', aMsg, dlg_Yes, 0) = dlg_Yes then
       begin
         try
           SetBankManID( LedgerPath, bkCode);
@@ -566,7 +566,7 @@ begin
           Result := true;
         except
           On e : exception do
-            HelpfulErrorMsg( 'The ' + bkBranding.ProductName + ' ID could not be set due to the following error:'#13#13+
+            HelpfulErrorMsg( 'The ' + TProduct.BrandName + ' ID could not be set due to the following error:'#13#13+
                              E.Message + '.', 0);
         end;
       end;
@@ -575,9 +575,9 @@ begin
   else
   begin
     if myobao_utils.GetLastMYOBErrorNo = 67 then
-      aMsg := 'Unable to check ' + bkBranding.ProductName + ' ID. ' + LedgerPath + ' may not be a valid ledger path.'
+      aMsg := 'Unable to check ' + TProduct.BrandName + ' ID. ' + LedgerPath + ' may not be a valid ledger path.'
     else
-      aMsg := 'Unable to check ' + bkBranding.ProductName + ' ID. ' + GetLastMYOBError + '.';
+      aMsg := 'Unable to check ' + TProduct.BrandName + ' ID. ' + GetLastMYOBError + '.';
 
     HelpfulWarningMsg( aMsg, 0);
   end;

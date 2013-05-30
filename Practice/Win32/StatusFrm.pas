@@ -19,7 +19,7 @@ uses
   ComCtrls, StdCtrls, ExtCtrls, RzPrgres,
   bkXPThemes,
   OSFont,
-  bkBranding;
+  bkProduct;
 
 type
   TfrmStatus = class(TForm)
@@ -98,8 +98,8 @@ begin
      Self.Hide;
    end;
 
-   lblLine1.caption  := bkBranding.Rebrand(Msg1);
-   lblLine2.caption  := bkBranding.Rebrand(Msg2);
+   lblLine1.caption  := TProduct.Rebrand(Msg1);
+   lblLine2.caption  := TProduct.Rebrand(Msg2);
 
    if (Perc >= 0) and (Perc <= 100) then begin
      pbarAppStatus.percent := round(Perc);

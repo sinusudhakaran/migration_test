@@ -107,7 +107,7 @@ type
 //******************************************************************************
 implementation
 uses
-  SysUtils, TSUtils, Registry, Messages, SHFolder;
+  SysUtils, TSUtils, Registry, Messages, SHFolder, bkProduct;
 
 const
   UnitName = 'FILES';
@@ -812,9 +812,9 @@ begin
           if VerQueryValue(VerBuf, PChar(ResName + SUB_BLOCK_COMMENTS), Pointer(Data), VerSize) then
             FComments := Data;
           if VerQueryValue(VerBuf, PChar(ResName + SUB_BLOCK_COMPANY_NAME), Pointer(Data), VerSize) then
-            FCompanyName := Data;
+            FCompanyName := TProduct.Rebrand(Data);
           if VerQueryValue(VerBuf, PChar(ResName + SUB_BLOCK_FILEDESCRIPTION), Pointer(Data), VerSize) then
-            FFileDescription := Data;
+            FFileDescription := TProduct.Rebrand(Data);
           if VerQueryValue(VerBuf, Pchar(ResName + SUB_BLOCK_FILEVERSION), Pointer(Data), VerSize) then
             FFileVersion := Data;
           if VerQueryValue(VerBuf, '\', Pointer(VSFixedFileInfo), VerSize) then begin
@@ -828,13 +828,13 @@ begin
           if VerQueryValue(VerBuf, PChar(ResName + SUB_BLOCK_PRODUCTVERSION), Pointer(Data), VerSize) then
             FProductVersion := Data;
           if VerQueryValue(VerBuf, PChar(ResName + SUB_BLOCK_LEGALCOPYRIGHT), Pointer(Data), VerSize) then
-            FLegalCopyright := Data;
+            FLegalCopyright := TProduct.Rebrand(Data);
           if VerQueryValue(VerBuf, PChar(ResName + SUB_BLOCK_LEGALTRADEMARKS), Pointer(Data), VerSize) then
             FLegalTrademarks := Data;
           if VerQueryValue(VerBuf, PChar(ResName + SUB_BLOCK_ORIGINALFILENAME), Pointer(Data), VerSize) then
             FOriginalFilename := Data;
           if VerQueryValue(VerBuf, PChar(ResName + SUB_BLOCK_PRODUCTNAME), Pointer(Data), VerSize) then
-            FProductName := Data;
+            FProductName := TProduct.Rebrand(Data);
         end;
       end;
     finally

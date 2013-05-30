@@ -672,12 +672,6 @@ var
     //BankLink Online - Pracice global setting
     UseBankLinkOnline: Boolean = False;
 
-type
-  TBrandType = (btBankLink, btBankstream);
-
-var
-  ProductBrand: TBrandType = btBankLink;
-
 //******************************************************************************
 implementation
 

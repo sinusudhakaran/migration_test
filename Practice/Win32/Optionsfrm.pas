@@ -137,7 +137,7 @@ uses
   WinUtils,
   ErrorMorefrm,
   UpdateMF,
-  UpgradeHelper, BKDEFS, GenUtils, NewReportUtils, bkBranding;
+  UpgradeHelper, BKDEFS, GenUtils, NewReportUtils, bkProduct;
 
 const
   Unitname = 'OptionsFrm';
@@ -161,7 +161,7 @@ begin
       tsEmail.TabVisible := not CurrUser.HasRestrictedAccess;
    end;
 
-   rbOpenTRFwithHandler.Caption := bkBranding.Rebrand(rbOpenTRFwithHandler.Caption);
+   rbOpenTRFwithHandler.Caption := TProduct.Rebrand(rbOpenTRFwithHandler.Caption);
 end;
 
 procedure TfrmOptions.FormDestroy(Sender: TObject);

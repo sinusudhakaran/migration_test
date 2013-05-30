@@ -935,7 +935,7 @@ inherited dlgPrintScheduled: TdlgPrintScheduled
           Height = 21
           Hint = 'Select the Fax Transport'
           Style = csDropDownList
-          ItemHeight = 0
+          ItemHeight = 13
           TabOrder = 0
           OnChange = cmbFaxTransportChange
           Items.Strings = (

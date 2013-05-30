@@ -89,7 +89,9 @@ uses
   BankLinkOnlineServices,
   PickNewPrimaryUser,
   CommCtrl,
-  strutils, bkBranding;
+  strutils,
+  bkProduct,
+  bkBranding;
 
 const
   UNITNAME = 'MaintainUsersFrm';
@@ -290,7 +292,7 @@ begin
       if ProductConfigService.Online then
         ProductConfigService.UpdateUserAllowOnlineSetting;
 
-      lvUsers.Column[4].Caption := bkBranding.Rebrand(lvUsers.Column[4].Caption);
+      lvUsers.Column[4].Caption := TProduct.Rebrand(lvUsers.Column[4].Caption);
     end;
 
     with AdminSystem, fdSystem_User_List do

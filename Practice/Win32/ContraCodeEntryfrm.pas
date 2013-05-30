@@ -45,7 +45,7 @@ implementation
 
 uses
   AccountLookupFrm, imagesfrm, STDHINTS, bkConst, Globals, BKDEFS, bkMaskUtils,
-  bkBranding;
+  bkBranding, bkProduct;
   
 {$R *.dfm}
 
@@ -91,7 +91,7 @@ begin
 
   FRemovingMask := False;
 
-  lblMessage.Caption := bkBranding.Rebrand(lblMessage.Caption);
+  lblMessage.Caption := TProduct.Rebrand(lblMessage.Caption);
 end;
 
 function TfrmContraCodeEntry.GetBankAccountName: String;

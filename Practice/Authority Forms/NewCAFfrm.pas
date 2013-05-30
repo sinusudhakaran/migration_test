@@ -105,7 +105,8 @@ uses
   WebUtils,
   InstitutionCol,
   bkBranding,
-  bkTemplates;
+  bkTemplates,
+  bkProduct;
 
 const
   COUNTRY_CODE = 'UK';
@@ -974,7 +975,7 @@ var
   ReportFile, Title, Description, MsgStr: string;
   WebID, CatID, pdfInt: integer;
 begin
-  ReportFile := bkBranding.ProductName + ' Customer Authority.PDF';
+  ReportFile := TProduct.BrandName + ' Customer Authority.PDF';
   
   pdfInt := rfPDF;
   Title := 'Save Report To File';
@@ -990,7 +991,7 @@ begin
       if (AskYesNo(rfNames[rfPDF], MsgStr, DLG_YES, 0) = DLG_YES) then
         ShellExecute(0, 'open', PChar(ReportFile), nil, nil, SW_SHOWMAXIMIZED);
     except
-      HelpfulErrorMsg('Error Saving ' + bkBranding.ProductName + ' Customer Authority Form to - ' + ReportFile, 0);
+      HelpfulErrorMsg('Error Saving ' + TProduct.BrandName + ' Customer Authority Form to - ' + ReportFile, 0);
     end;
   end;
 end;
@@ -1034,7 +1035,7 @@ begin
       SysUtils.DeleteFile(ReportFile);
     end;
   except
-    HelpfulErrorMsg('Error Sending ' + bkBranding.ProductName + ' Customer Authority Form via Email.', 0);
+    HelpfulErrorMsg('Error Sending ' + TProduct.BrandName + ' Customer Authority Form via Email.', 0);
   end;
 end;
 
@@ -1045,7 +1046,7 @@ var
   Guid : TGuid;
 begin
   CreateGuid(Guid);
-  ReportFile := DataDir + bkBranding.ProductName + ' Customer Authority' + GUIDToString(Guid) + '.PDF';
+  ReportFile := DataDir + TProduct.BrandName + ' Customer Authority' + GUIDToString(Guid) + '.PDF';
 
   try
     PdfFieldEdit.SaveToFileFlattened(ReportFile);
@@ -1063,7 +1064,7 @@ begin
                          PdfFieldEdit.PrintOptions(0, 1, bkBranding.PracticeProductName));
     end;
   except
-    HelpfulErrorMsg('Error Printing ' + bkBranding.ProductName + ' Customer Authority Form.', 0);
+    HelpfulErrorMsg('Error Printing ' + TProduct.BrandName + ' Customer Authority Form.', 0);
   end;
 end;
 

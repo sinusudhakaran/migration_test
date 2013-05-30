@@ -263,7 +263,7 @@ uses
   stDate,
   ComBoUtils,
   UsageUtils,
-  stDatest, bkBranding;
+  stDatest, bkProduct;
 
 const
   tNone = ' ';
@@ -1071,9 +1071,9 @@ begin
    vsOut.SyncView := vsFile;
    PCFormatChange(nil);
 
-   cbDebitSign.Caption := bkbranding.Rebrand(cbDebitSign.Caption);
-   cbCreditSign.Caption := bkbranding.Rebrand(cbCreditSign.Caption);
-   cbSign.Caption := bkbranding.Rebrand(cbSign.Caption);
+   cbDebitSign.Caption := TProduct.Rebrand(cbDebitSign.Caption);
+   cbCreditSign.Caption := TProduct.Rebrand(cbCreditSign.Caption);
+   cbSign.Caption := TProduct.Rebrand(cbSign.Caption);
 end;
 
 

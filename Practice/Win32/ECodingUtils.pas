@@ -40,7 +40,7 @@ uses
      PracticeLogo, MailFrm, todoHandler, StDate, Windows,
      ClientHomepagefrm, Forms, Admin32, WebNotesDataUpload, WebNotesImportFrm,
      ForexHelpers, AuditMgr, Files, BanklinkOnlineServices,
-     bkBranding;
+     bkBranding, bkProduct;
 
 const
    UnitName = 'ECodingUtils';
@@ -697,7 +697,7 @@ begin
 
         if ProductConfigService.PracticeUserExists(ClientUserEmail) then
         begin
-          HelpfulErrorMsg(Format(bkBranding.PracticeProductName + ' is unable to export the client to ' + bkBranding.NotesOnlineProductName + '. User with email address %s already exists as a Practice user. Please specify a different email address or contact ' + bkBranding.ProductName +  ' Support for assistance.', [ClientUserEmail]), 0);
+          HelpfulErrorMsg(Format(bkBranding.PracticeProductName + ' is unable to export the client to ' + bkBranding.NotesOnlineProductName + '. User with email address %s already exists as a Practice user. Please specify a different email address or contact ' + TProduct.BrandName +  ' Support for assistance.', [ClientUserEmail]), 0);
 
           Exit;
         end;

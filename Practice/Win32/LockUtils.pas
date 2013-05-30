@@ -179,7 +179,7 @@ uses
   LogUtil,
   ErrorLog,
   SyncObjs,
-  bkBranding;
+  bkProduct;
 
 const
   TICKS_PER_SECOND = 1000;
@@ -253,13 +253,13 @@ begin
 
   case fLockState of
     lsLocking   : fDelayForm.lblDelay.Caption := 'Waiting for access to the ' +
-                                                 bkBranding.Rebrand(ltNames[ fLockType ]) +
+                                                 TProduct.Rebrand(ltNames[ fLockType ]) +
                                                  '... (' +
                                                  IntToStr( aTicksToWait div TICKS_PER_SECOND) +
                                                  's)';
 
     lsUnlocking : fDelayForm.lblDelay.Caption := 'Unlocking the ' +
-                                                 bkBranding.Rebrand(ltNames[ fLockType ]);
+                                                 TProduct.Rebrand(ltNames[ fLockType ]);
   end;
 
   fWindowList := DisableTaskWindows( fDelayForm.Handle );

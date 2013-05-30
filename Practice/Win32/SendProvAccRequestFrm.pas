@@ -48,7 +48,7 @@ implementation
 {$R *.dfm}
 
 uses
-  bkConst, Globals, ShellAPI, bkBranding;
+  bkConst, Globals, ShellAPI, bkProduct;
 
 procedure TfrmSendProvAccRequest.btnSubmitClick(Sender: TObject);
 begin
@@ -94,7 +94,7 @@ begin
 
   if not chkReadTerms.Checked then
   begin
-    ShowMessage('You must agree to ' + bkBranding.ProductName + '''s Terms and conditions to successfully submit your request. ' +
+    ShowMessage('You must agree to ' + TProduct.BrandName + '''s Terms and conditions to successfully submit your request. ' +
                 'Please enable the checkbox and click Submit to continue, or click Cancel to exit');
     Exit;
   end;
@@ -123,7 +123,7 @@ begin
     lblCurrencyWarning.Visible := true;
   end;
 
-  chkReadTerms.Caption := bkBranding.Rebrand(chkReadTerms.Caption);
+  chkReadTerms.Caption := TProduct.Rebrand(chkReadTerms.Caption);
 end;
 
 procedure TfrmSendProvAccRequest.FormShow(Sender: TObject);

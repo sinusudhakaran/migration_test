@@ -39,7 +39,7 @@ implementation
 {$R *.dfm}
 
 uses
-  BankLinkOnlineServices, LogUtil, ErrorMoreFrm, bkBranding;
+  BankLinkOnlineServices, LogUtil, ErrorMoreFrm, bkProduct;
 
 function ServiceAgreementAccepted(out Version, SigneeName, SigneeTitle: String): Boolean;
 var
@@ -110,7 +110,7 @@ end;
 
 procedure TfrmServiceAgreement.FormCreate(Sender: TObject);
 begin
-  Label2.Caption := bkBranding.Rebrand(Label2.Caption);
+  Label2.Caption := TProduct.Rebrand(Label2.Caption);
 end;
 
 procedure TfrmServiceAgreement.FormResize(Sender: TObject);

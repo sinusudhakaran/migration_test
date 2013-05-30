@@ -212,7 +212,7 @@ uses
   RegExprUtils,
   PickNewPrimaryUser,
   progress,
-  AuthenticationFailedFrm, bkBranding;
+  AuthenticationFailedFrm, bkBranding, bkProduct;
 
 Const
   UNITNAME = 'EDITUSERDLG';
@@ -238,10 +238,10 @@ begin
 
   ShowEnterPassword;
 
-  Label13.Caption := bkBranding.Rebrand(Label13.Caption);
-  chkCanAccessBankLinkOnline.Caption := bkBranding.Rebrand(chkCanAccessBankLinkOnline.Caption);
-  radCreateNewOnlineUser.Caption := bkBranding.Rebrand(radCreateNewOnlineUser.Caption);
-  radLinkExistingOnlineUser.Caption := bkBranding.Rebrand(radLinkExistingOnlineUser.Caption);
+  Label13.Caption := TProduct.Rebrand(Label13.Caption);
+  chkCanAccessBankLinkOnline.Caption := TProduct.Rebrand(chkCanAccessBankLinkOnline.Caption);
+  radCreateNewOnlineUser.Caption := TProduct.Rebrand(radCreateNewOnlineUser.Caption);
+  radLinkExistingOnlineUser.Caption := TProduct.Rebrand(radLinkExistingOnlineUser.Caption);
 End;
 
 procedure TdlgEditUser.FormDestroy(Sender: TObject);
@@ -361,7 +361,7 @@ begin
 
   chkShowPracticeLogo.Hint := 'Display the practice logo when this user is logged in';
 
-  chkCanAccessBankLinkOnline.Hint := 'Allows a ' + bkBranding.ProductName + ' User to Access ' + bkBranding.ProductOnlineName;
+  chkCanAccessBankLinkOnline.Hint := 'Allows a ' + TProduct.BrandName + ' User to Access ' + bkBranding.ProductOnlineName;
 end;
 
 procedure TdlgEditUser.ShowEnterPassword;
@@ -844,7 +844,7 @@ begin
   begin
     If (not chkCanAccessBankLinkOnline.Checked) and (fOldValues.CanAccessBankLinkOnline) then
     begin
-      If AskYesNo('Deleted ' + bkBranding.ProductName + ' User', 'This user will be Deleted on ' + bkBranding.ProductOnlineName + '.' + #13
+      If AskYesNo('Deleted ' + TProduct.BrandName + ' User', 'This user will be Deleted on ' + bkBranding.ProductOnlineName + '.' + #13
                 + 'Are you sure you want to continue?', DLG_NO, 0) <>
         DLG_YES Then
       begin
@@ -868,7 +868,7 @@ begin
         MsgAddorUpdate := 'Update'
       end;
 
-      If AskYesNo(MsgAddorUpdate + ' ' + bkBranding.ProductName + ' User', 'This user will be ' + MsgCreateorUpdate + ' ' + bkBranding.ProductOnlineName + '.' + #13
+      If AskYesNo(MsgAddorUpdate + ' ' + TProduct.BrandName + ' User', 'This user will be ' + MsgCreateorUpdate + ' ' + bkBranding.ProductOnlineName + '.' + #13
                 + 'Are you sure you want to do this?', DLG_NO, 0) <>
         DLG_YES Then
       begin

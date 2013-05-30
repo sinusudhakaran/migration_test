@@ -46,7 +46,7 @@ implementation
 
 uses
   OvcDate, ImagesFrm, Globals, StDateSt, GenUtils, RzPopups, WarningMoreFrm, YesNoDlg, ModalProgressFrm, ModalDualProgressFrm, BanklinkOnlineServices, InfoMoreFrm, ErrorMoreFrm,
-  LOGUTIL, bkBranding;
+  LOGUTIL, bkProduct, bkBranding;
 
 {$R *.dfm}
 
@@ -174,8 +174,8 @@ end;
 
 procedure TfrmTransactionsToBankLinkOnline.FormCreate(Sender: TObject);
 begin
-  Caption := bkBranding.Rebrand(Caption);
-  Label1.Caption := bkBranding.Rebrand(Label1.Caption);
+  Caption := TProduct.Rebrand(Caption);
+  Label1.Caption := TProduct.Rebrand(Label1.Caption);
 end;
 
 procedure TfrmTransactionsToBankLinkOnline.FormKeyPress(Sender: TObject;

@@ -32,7 +32,8 @@ var
 
 implementation
 uses
-  Registry;
+  Registry,
+  bkProduct;
 
 const
   regKey_BK5Software = '\Software\Banklink';
@@ -120,7 +121,7 @@ begin
   edtFilename.Text := Path + 'guide.chm';
   opendialog1.InitialDir := Path;
 
-  Caption := bkBranding.Rebrand(Caption);
+  Caption := TProduct.Rebrand(Caption);
 end;
 
 end.

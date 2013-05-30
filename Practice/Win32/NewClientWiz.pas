@@ -80,7 +80,7 @@ uses
   ClientReportScheduleDlg, ClientDetailCacheObj, GlobalClientSetupRoutines,
   ToDoHandler, ToDoListUnit, syamio, ClientManagerFrm,
   BanklinkOnlineSettingsFrm, BankLinkOnlineServices, InfoMoreFrm,
-  bkBranding;
+  bkBranding, bkProduct;
 
 {$R *.DFM}
 
@@ -530,8 +530,8 @@ begin
    with ( Sender as TBitBtn ) do begin
       if not ( TOptions( Tag ) = MouseStep ) then begin
          MouseStep := TOptions( Tag );
-         lblTitle.Caption := bkBranding.Rebrand(Option[ MouseStep ].Title);
-         lblNotes.Caption := bkBranding.Rebrand(Option[ MouseStep ].Notes);
+         lblTitle.Caption := TProduct.Rebrand(Option[ MouseStep ].Title);
+         lblNotes.Caption := TProduct.Rebrand(Option[ MouseStep ].Notes);
       end;
    end;
 end;

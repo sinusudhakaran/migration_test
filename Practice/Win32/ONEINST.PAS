@@ -28,7 +28,7 @@ uses
    Windows,
    Dialogs,
    Forms,
-   bkBranding;
+   bkProduct;
 var
    hMutex  : THandle;
 
@@ -45,7 +45,7 @@ begin
      CloseHandle( hMutex );
      hMutex := 0;
 {$IFNDEF SmartLink}
-     ShowMessage( bkBranding.ProductName + ' is already running, you cannot run more than one copy at a time.');
+     ShowMessage( TProduct.BrandName + ' is already running, you cannot run more than one copy at a time.');
 {$ELSE}
      ShowMessage( 'SmartLink is already running, you cannot run more than one copy at a time.');
 {$ENDIF}

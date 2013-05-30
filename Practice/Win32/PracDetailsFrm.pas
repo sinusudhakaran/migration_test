@@ -248,8 +248,8 @@ uses
   RequestRegFrm,
   ServiceAgreementDlg,
   UpdateMF,
-  commctrl, bkBranding,
-  bkUrls;
+  commctrl, bkProduct,
+  bkUrls, bkBranding;
 
 const
   UnitName = 'PRACDETAILSFRM';
@@ -295,9 +295,9 @@ begin
 
   FEnablingBankLinkOnline := False;
 
-  tsBankLinkOnline.Caption := bkBranding.Rebrand(tsBankLinkOnline.Caption);
-  lblSelectProducts.Caption := bkBranding.Rebrand(lblSelectProducts.Caption);
-  ckUseBankLinkOnline.Caption := bkBranding.Rebrand(ckUseBankLinkOnline.Caption);
+  tsBankLinkOnline.Caption := TProduct.Rebrand(tsBankLinkOnline.Caption);
+  lblSelectProducts.Caption := TProduct.Rebrand(lblSelectProducts.Caption);
+  ckUseBankLinkOnline.Caption := TProduct.Rebrand(ckUseBankLinkOnline.Caption);
 end;
 
 function TfrmPracticeDetails.GetVendorExportName(VendorExportGuid: TBloGuid; PracticeVendorExports: TBloDataPlatformSubscription): String;
@@ -1276,7 +1276,7 @@ begin
               'for this practice will affect how client files can be individually setup ' +
               'for these products and services. Such products and services may incur ' +
               'charges per client use.' + #13#10 + #13#10 +
-              'Please contact ' + bkBranding.ProductName + ' Client Services if you require further charges ' +
+              'Please contact ' + TProduct.BrandName + ' Client Services if you require further charges ' +
               'information.' + #13#10 + #13#10 +
               'Are you sure you want to continue?';
 

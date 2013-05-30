@@ -96,7 +96,7 @@ uses
   IniSettings,
   BankLinkOnline,
   ErrorMoreFrm,
-  InfoMoreFrm, bkBranding;
+  InfoMoreFrm, bkBranding, bkProduct;
 
 const
 //  MIN_STANDARD_WIDTH = 615; //Original dialog width
@@ -112,8 +112,8 @@ begin
   ClientLookupFrame.DoCreate;
   ImagesFrm.AppImages.Misc.GetBitmap(MISC_FINDFOLDER_BMP,btnFolder.Glyph);
 
-  lblBankLinkOnline.Caption := bkBranding.Rebrand(lblBankLinkOnline.Caption);
-  cbSendEmail.Caption := bkBranding.Rebrand(cbSendEmail.Caption);
+  lblBankLinkOnline.Caption := TProduct.Rebrand(lblBankLinkOnline.Caption);
+  cbSendEmail.Caption := TProduct.Rebrand(cbSendEmail.Caption);
 end;
 
 procedure TfrmCheckInOut.FormKeyUp(Sender: TObject; var Key: Word;

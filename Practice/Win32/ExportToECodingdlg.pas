@@ -88,7 +88,7 @@ uses
    BKDEFS,
    CountryUtils,
    WebXOffice,
-   TransactionUtils, bkBranding;
+   TransactionUtils, bkProduct, bkBranding;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TdlgExportToECoding.btnCancelClick(Sender: TObject);
@@ -256,7 +256,7 @@ var
       end;
       // check not trying to call bk5
       if Uppercase( ExtractFileExt( eTo.Text )) = '.BK5' then begin
-         HelpfulWarningMsg('You cannot use this name because the .BK5 extension is used by ' + bkBranding.ProductName, 0 );
+         HelpfulWarningMsg('You cannot use this name because the .BK5 extension is used by ' + TProduct.BrandName, 0 );
          exit;
       end;
 
@@ -466,8 +466,8 @@ begin
        ForClient.clFields.clWeb_Export_Format := wfDefault;
 
     case ForClient.clFields.clWeb_Export_Format  of
-      wfWebX : Self.Caption := bkBranding.Rebrand('Export ' + wfNames[wfWebX] + ' File');
-      wfWebNotes : Self.Caption := bkBranding.Rebrand('Export to ' + wfNames[wfWebNotes]);
+      wfWebX : Self.Caption := TProduct.Rebrand('Export ' + wfNames[wfWebX] + ' File');
+      wfWebNotes : Self.Caption := TProduct.Rebrand('Export to ' + wfNames[wfWebNotes]);
     end;
     
 

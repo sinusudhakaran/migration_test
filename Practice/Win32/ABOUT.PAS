@@ -56,7 +56,7 @@ var
 implementation
 {$R *.DFM}
 uses
-   bkBranding,
+   bkProduct,
    bkConst,
    GlobalCache,
    Globals,
@@ -65,7 +65,7 @@ uses
    bkUtil32,
    BKDEFS, upgConstants, LicenseDlg, ThirdPartyHelper,
    bkUrls,
-   bkContactInformation;
+   bkContactInformation, bkBranding;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmAbout.FormCreate(Sender: TObject);
@@ -212,7 +212,7 @@ begin
 {$ENDIF}
   lblForSupport.Font.Style := lblForSupport.Font.Style + [fsBold];
 
-  if bkBranding.GetProductBrand = btBankstream then
+  if TProduct.ProductBrand = btBankstream then
   begin
     btnEULA2.Visible := True;
     pnlGraphic.Visible := False;

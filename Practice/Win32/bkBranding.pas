@@ -18,7 +18,7 @@ unit bkBranding;
 interface
 uses
   Windows, Graphics, StrUtils, SysUtils, ExtCtrls, RzPanel, RzCommon,
-  Controls, StdCtrls, Globals, RzButton, Menus;
+  Controls, StdCtrls, Globals, RzButton, Menus, bkProduct;
 
 type
   TImageSet = ( imPractice, imBooks, imOther, imDLL);
@@ -96,10 +96,6 @@ var
   function BConnectName: String;
   function PracticeProductName: String;
 
-  function Rebrand(Value: String): String;
-
-  function GetProductBrand: TBrandType;
-  
 const
 
   // From Banklink Brandiguide.pdf
@@ -134,11 +130,6 @@ const
 
   BKCOLOR_FINANCIAL   = $00FBF2A0;
   BKHICOLOR_FINANCIAL = $00FBF2A0;
-
-function GetProductBrand: TBrandType;
-begin
-  Result := ProductBrand;
-end;
 
 procedure InitialiseGraphicsAndColors( CanvasHandleToTest : hDC);
 begin
@@ -338,7 +329,7 @@ end;
 
 function BannerColor: Integer;
 begin
-  if GetProductBrand = btBankstream then
+  if TProduct.ProductBrand = btBankstream then
   begin
     Result := clWhite;
   end
@@ -355,7 +346,7 @@ end;
 
 function TobBarStartColor: Integer;
 begin
-  if GetProductBrand = btBankstream then
+  if TProduct.ProductBrand = btBankstream then
   begin
     Result := BannerColor;
   end
@@ -370,7 +361,7 @@ end;
 
 function TopBarStopColor: Integer;
 begin
-  if GetProductBrand = btBankstream then
+  if TProduct.ProductBrand = btBankstream then
   begin
     Result := BannerColor;
   end
@@ -382,7 +373,7 @@ end;
 
 function TopTitleColor: Integer;
 begin
-  if GetProductBrand = btBankstream then
+  if TProduct.ProductBrand = btBankstream then
   begin
     Result := clWhite;
   end
@@ -414,7 +405,7 @@ end;
 
 function LoginScreenBanner: TPicture;
 begin
-  if GetProductBrand = btBankstream then
+  if TProduct.ProductBrand = btBankstream then
   begin
     Result := AppImages.imgBankstreamLogin.Picture;
   end
@@ -426,7 +417,7 @@ end;
 
 function SplashScreenBanner: TPicture;
 begin
-  if GetProductBrand = btBankstream then
+  if TProduct.ProductBrand = btBankstream then
   begin
     Result := AppImages.imgBankstreamLogin.Picture;
   end
@@ -438,7 +429,7 @@ end;
 
 function TopBannerImage: TPicture;
 begin
-  if GetProductBrand = btBankstream then
+  if TProduct.ProductBrand = btBankstream then
   begin
     Result := AppImages.imgClientHomePageLogo.Picture;
   end
@@ -450,7 +441,7 @@ end;
 
 function DownloadDiskImageBanner: TPicture;
 begin
-  if GetProductBrand = btBankstream then
+  if TProduct.ProductBrand = btBankstream then
   begin
     if Is256Color then
     begin
@@ -476,7 +467,7 @@ end;
 
 function BankstreamLogo: TPicture;
 begin
-  if GetProductBrand = btBankstream then
+  if TProduct.ProductBrand = btBankstream then
   begin
     Result := AppImages.imgBankstreamIcon.Picture;
   end
@@ -488,7 +479,7 @@ end;
 
 procedure StyleTopLeftImage(Image: TImage);
 begin
-  if GetProductBrand = btBankstream then
+  if TProduct.ProductBrand = btBankstream then
   begin
     Image.Visible := False;
   end
@@ -500,7 +491,7 @@ end;
 
 procedure StyleTopRightImage(Image: TImage);
 begin
-  if GetProductBrand = btBankstream then
+  if TProduct.ProductBrand = btBankstream then
   begin
     Image.Visible := True;
     Image.Margins.Top := 0;
@@ -517,14 +508,7 @@ end;
 
 function ProductName: String;
 begin
-  if GetProductBrand = btBankstream then
-  begin
-    Result := 'Bankstream';
-  end
-  else
-  begin
-    Result := 'BankLink';
-  end;
+  Result := TProduct.BrandName;
 end;
 
 function ProductOnlineName: String;
@@ -539,7 +523,7 @@ end;
 
 procedure StyleMainBannerPanel(Panel: TRzPanel);
 begin
-  if GetProductBrand = btBankstream then
+  if TProduct.ProductBrand = btBankstream then
   begin
     Panel.Color := BannerColor;
     Panel.VisualStyle := vsClassic;
@@ -554,7 +538,7 @@ end;
 
 procedure StyleLoginImage(Image: TImage);
 begin
-  if GetProductBrand = btBankstream then
+  if TProduct.ProductBrand = btBankstream then
   begin
     Image.AutoSize := True;
     Image.Align := alLeft;
@@ -565,7 +549,7 @@ end;
 
 procedure StyleLoginBannerPanel(Panel: TPanel);
 begin
-  if GetProductBrand = btBankstream then
+  if TProduct.ProductBrand = btBankstream then
   begin
     Panel.ParentBackground := False;
     Panel.Color := BannerColor;
@@ -574,7 +558,7 @@ end;
 
 procedure StyleLoginVersionText(VersionLabel: TLabel);
 begin
-  if GetProductBrand = btBankstream then
+  if TProduct.ProductBrand = btBankstream then
   begin
     VersionLabel.Align := alLeft;
   end;
@@ -582,7 +566,7 @@ end;
 
 procedure StyleBConnectBannerPanel(Panel: TPanel);
 begin
-  if GetProductBrand = btBankstream then
+  if TProduct.ProductBrand = btBankstream then
   begin
     StyleLoginBannerPanel(Panel);
   end;
@@ -590,7 +574,7 @@ end;
 
 procedure StyleBannerText(Text: TLabel);
 begin
-  if GetProductBrand = btBankstream then
+  if TProduct.ProductBrand = btBankstream then
   begin
     Text.Font.Color := clWhite;
   end;  
@@ -598,7 +582,7 @@ end;
 
 procedure StyleBConnectBannerImage(Image: TImage);
 begin
-  if GetProductBrand = btBankstream then
+  if TProduct.ProductBrand = btBankstream then
   begin
     Image.Margins.Top := 0;
     Image.Margins.Bottom := 0;
@@ -613,7 +597,7 @@ end;
 
 procedure StyleBooksBackgroundLogo(Image: TImage);
 begin
-  if GetProductBrand = btBankstream then
+  if TProduct.ProductBrand = btBankstream then
   begin
     Image.Picture := AppImages.imgMainBackgroundLogo.Picture;
   end
@@ -628,7 +612,7 @@ end;
 
 procedure StyleBooksBackgroundImage(Image: TImage);
 begin
-  if GetProductBrand = btBankstream then
+  if TProduct.ProductBrand = btBankstream then
   begin
     Image.Visible := False;
   end
@@ -643,7 +627,7 @@ end;
 
 procedure StyleBooksClientName(ClientName: TLabel);
 begin
-  if GetProductBrand = btBankstream then
+  if TProduct.ProductBrand = btBankstream then
   begin
     ClientName.Font.Color := BannerTextColor;
   end;
@@ -651,7 +635,7 @@ end;
 
 procedure StyleBooksVersionLabel(VersionLabel: TLabel);
 begin
-  if GetProductBrand = btBankstream then
+  if TProduct.ProductBrand = btBankstream then
   begin
     VersionLabel.Font.Color := BannerTextColor;
   end;
@@ -659,7 +643,7 @@ end;
 
 procedure StyleSimpleUIBannerPanel(Panel: TRzPanel);
 begin
-  if GetProductBrand = btBankstream then
+  if TProduct.ProductBrand = btBankstream then
   begin
     StyleMainBannerPanel(Panel);
   end
@@ -672,7 +656,7 @@ end;
 
 procedure StyleSimpleUIRightBannerImage(Image: TImage);
 begin
-  if GetProductBrand = btBankstream then
+  if TProduct.ProductBrand = btBankstream then
   begin
     bkBranding.StyleTopRightImage(Image);
   end
@@ -687,7 +671,7 @@ procedure StyleBankLinkButton(Button: TRzToolButton);
 begin
   Button.Caption := ProductOnlineName;
 
-  if GetProductBrand = btBankstream then
+  if TProduct.ProductBrand = btBankstream then
   begin
     Button.ImageIndex := 34;
   end;
@@ -695,7 +679,7 @@ end;
 
 procedure StyleECFHOnlineMenuItem(MenuItem: TMenuItem);
 begin
-  if GetProductBrand = btBankstream then
+  if TProduct.ProductBrand = btBankstream then
   begin
     MenuItem.ImageIndex := 34;
   end;
@@ -705,7 +689,7 @@ procedure StyleNewClientWizardLogo(Image: TImage);
 begin
   Image.Picture := BankstreamLogo;
 
-  if GetProductBrand = btBankstream then
+  if TProduct.ProductBrand = btBankstream then
   begin
     Image.Width := 32;
     Image.Height := 32;
@@ -725,10 +709,6 @@ end;
 function NotesOnlineProductName: String;
 begin
   Result := Format('%s Notes Online', [ProductName]);
-end;
-function Rebrand(Value: String): String;
-begin
-  Result := AnsiReplaceText(Value, 'BankLink', ProductName);
 end;
 
 function BConnectName: String;

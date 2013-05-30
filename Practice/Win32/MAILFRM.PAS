@@ -213,7 +213,7 @@ Uses
   LogUtil,
   WinUtils,
   BKDEFS, StDate, bkDateUtils, ClientHomePageFrm, ThirdPartyHelper,
-  bkBranding;
+  bkBranding, bkProduct;
 
 {$R *.DFM}
 
@@ -1813,7 +1813,7 @@ begin
                                end;
       EMAIL_BUSINESS_PRODUCT : Result := BUSINESS_FILE;
     end;
-    Result := Format(bkBranding.ProductName + ' %s for %s',
+    Result := Format(TProduct.BrandName + ' %s for %s',
                      [Result,
                       EmailInfo.ClientCode]);
     if (EmailInfo.DateFrom <> 0) and (EmailInfo.DateTo <> 0) then

@@ -432,7 +432,7 @@ uses
   CAFOutputSelectorFrm,
   ModalProgressFrm,
   LockUtils,  
-  InstitutionCol;
+  InstitutionCol, bkProduct;
 
 {$R *.dfm}
 
@@ -576,11 +576,11 @@ begin
   actHelp.Visible := bkHelp.BKHelpFileExists;
   //StartFocus := True;
 
-  imgCannotConnect.Hint := bkBranding.Rebrand(imgCannotConnect.Hint);
-  lblCannotConnect.Hint := bkBranding.Rebrand(lblCannotConnect.Hint);
-  lblCannotConnect.Caption := bkBranding.Rebrand(lblCannotConnect.Caption);
-  actDataAvailable.Caption := bkBranding.Rebrand(actDataAvailable.Caption);
-  actBOSettings.Caption := bkBranding.Rebrand(actBOSettings.Caption);
+  imgCannotConnect.Hint := TProduct.Rebrand(imgCannotConnect.Hint);
+  lblCannotConnect.Hint := TProduct.Rebrand(lblCannotConnect.Hint);
+  lblCannotConnect.Caption := TProduct.Rebrand(lblCannotConnect.Caption);
+  actDataAvailable.Caption := TProduct.Rebrand(actDataAvailable.Caption);
+  actBOSettings.Caption := TProduct.Rebrand(actBOSettings.Caption);
 end;
 
 //------------------------------------------------------------------------------
@@ -830,10 +830,10 @@ begin
     lblCannotConnect.Caption := 'Cannot connect to ' + bkBranding.ProductOnlineName
   else if (ProductConfigService.OnlineStatus = staDeactivated) then
     lblCannotConnect.Caption := bkBranding.ProductOnlineName + ' is currently deactivated. Please ' +
-                                'contact ' + bkBranding.ProductName + ' Support for further assistance'
+                                'contact ' + TProduct.BrandName + ' Support for further assistance'
   else if (ProductConfigService.OnlineStatus = staSuspended) then
     lblCannotConnect.Caption := bkBranding.ProductOnlineName + ' is currently in suspended (read-only) ' +
-                                'mode. Please contact ' + bkBranding.ProductName + ' Support for further assistance';
+                                'mode. Please contact ' + TProduct.BrandName + ' Support for further assistance';
 end;
 
 //------------------------------------------------------------------------------

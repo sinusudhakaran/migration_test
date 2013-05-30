@@ -95,7 +95,7 @@ uses
   SYDEFS,
   usrlist32,
   bkXPThemes,
-  glConst, bkBranding;
+  glConst, bkBranding, bkProduct;
 
 {$R *.dfm}
 
@@ -192,7 +192,7 @@ begin
 
   lblWillAdd.Caption := Globals.ShortAppName + ' will add a task to the client when you:';
 
-  chkBNotes.Caption := bkBranding.Rebrand(chkBNotes.Caption);
+  chkBNotes.Caption := TProduct.Rebrand(chkBNotes.Caption);
 end;
 
 //------------------------------------------------------------------------------

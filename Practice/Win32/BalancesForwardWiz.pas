@@ -242,7 +242,7 @@ uses
   WinUtils,
   YesNoDlg,
   CountryUtils,
-  ForexHelpers, bkBranding;
+  ForexHelpers, bkBranding, bkProduct;
 
 {$R *.dfm}
 
@@ -487,7 +487,7 @@ begin
   TempYEAdjustment   := nil;
   YE_Journal_Account := nil;
 
-  lblCurrentYearsEarningsAmt.Caption := bkBranding.Rebrand(lblCurrentYearsEarningsAmt.Caption);
+  lblCurrentYearsEarningsAmt.Caption := TProduct.Rebrand(lblCurrentYearsEarningsAmt.Caption);
 end;
 
 procedure TwizBalancesForward.Button1Click(Sender: TObject);

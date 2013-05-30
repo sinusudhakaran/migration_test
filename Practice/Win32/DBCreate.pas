@@ -58,7 +58,7 @@ uses
    WarningMoreFrm,
    InfoMoreFrm,
    ErrorMoreFrm,
-   WinUtils, bkBranding;
+   WinUtils, bkBranding, bkProduct;
 
 const
    DBCreateCLP = '/DBCREATE';             //Command Line Parameter
@@ -84,8 +84,8 @@ begin
    end;
    SetUpHelp;
 
-   Caption := bkBranding.Rebrand(Caption);
-   Label3.Caption := bkBranding.Rebrand(Label3.Caption);
+   Caption := TProduct.Rebrand(Caption);
+   Label3.Caption := TProduct.Rebrand(Label3.Caption);
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmDBCreate.SetUpHelp;
@@ -114,7 +114,7 @@ procedure TfrmDBCreate.btnOkClick(Sender: TObject);
 begin
    with sflBankLinkCode do begin
       if Text = '' then begin
-         HelpfulWarningMsg('You must enter a ' + bkBranding.ProductName + ' Code.', 0 );
+         HelpfulWarningMsg('You must enter a ' + TProduct.BrandName + ' Code.', 0 );
          SetFocus;
          ModalResult := 0;
          Exit;

@@ -58,6 +58,10 @@ object dlgAdminOptions: TdlgAdminOptions
     object tsGeneral: TTabSheet
       Caption = 'General'
       ImageIndex = 1
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object lh1: TLabel
         Left = 16
         Top = 3
@@ -186,7 +190,7 @@ object dlgAdminOptions: TdlgAdminOptions
           Left = 121
           Top = 168
           Width = 201
-          Height = 24
+          Height = 22
           PreviewFontSize = 8
           PreviewText = 'Coding Hint'
           DropDownWidth = 200

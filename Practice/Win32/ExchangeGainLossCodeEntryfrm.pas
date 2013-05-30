@@ -53,7 +53,7 @@ implementation
 
 uses
   AccountLookupFrm, imagesfrm, STDHINTS, bkConst, Globals, BKDEFS, bkMaskUtils, ForexHelpers, WarningMoreFrm,
-  bkBranding;
+  bkProduct;
   
 {$R *.dfm}
 
@@ -101,7 +101,7 @@ begin
 
   FRemovingMask := False;
 
-  lblMessage.Caption := bkBranding.Rebrand(lblMessage.Caption);
+  lblMessage.Caption := TProduct.Rebrand(lblMessage.Caption);
 end;
 
 procedure TfrmExchangeGainLossCodeEntry.FormKeyDown(Sender: TObject;

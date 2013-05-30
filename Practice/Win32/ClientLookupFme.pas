@@ -393,7 +393,7 @@ uses
   WinUtils, YesNoDlg, ErrorMoreFrm,  ClientDetailCacheObj,
   stDateSt, bkBranding, PDDATES32,
   progress, formPassword, BankLinkConnect, Admin32,
-  ChangePasswordFrm, INISettings, TypInfo;
+  ChangePasswordFrm, INISettings, TypInfo, bkProduct;
 
 {$R *.dfm}
 
@@ -1689,7 +1689,7 @@ begin
           if Wrapper.wSignature = ERROR_SIGNATURE then
             pIDRec^.imName := Wrapper.wName
           else
-            pIDRec^.imName    := 'ERROR: This is not a ' + bkBranding.ProductName + ' file!';
+            pIDRec^.imName    := 'ERROR: This is not a ' + TProduct.BrandName + ' file!';
 
           pIDRec^.imGroupID := 0;
           pIDRec^.imData    := nil;
@@ -1961,7 +1961,7 @@ begin
     ntGroup :
     begin
       if Column = 0 then
-        CellText := bkBranding.Rebrand(gidNames[ NodeData.tdFolderID])
+        CellText := TProduct.Rebrand(gidNames[ NodeData.tdFolderID])
       else
         Exit;
     end;
@@ -3318,7 +3318,7 @@ begin
     TargetCanvas.Font := appimages.Font;
     TargetCanvas.Font.Style := [fsBold];
 
-    S := bkBranding.Rebrand(gidNames[ NodeData.tdFolderID]);
+    S := TProduct.Rebrand(gidNames[ NodeData.tdFolderID]);
 
     InflateRect( ItemRect, -6, -2 );
     DrawText( TargetCanvas.Handle, PChar( S ), StrLen( PChar( S ) ), ItemRect, DT_LEFT or DT_VCENTER or DT_SINGLELINE);

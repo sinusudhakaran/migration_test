@@ -52,7 +52,7 @@ begin
    left := 10;
    top  := 10;
 
-   Caption := bkBranding.Rebrand(Caption);
+   Caption := TProduct.Rebrand(Caption);
 
 {$IFDEF SmartBooks}
    Self.Caption := 'SmartBooks Password Utility';

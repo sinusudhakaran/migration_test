@@ -65,7 +65,7 @@ uses
   InfoMoreFrm,
   progress,
   Globals,
-  IniSettings, bkBranding;
+  IniSettings, bkBranding, bkProduct;
 
 {$R *.dfm}
 
@@ -164,7 +164,7 @@ end;
 
 procedure TChangePasswordForm.FormCreate(Sender: TObject);
 begin
-  lblNote.Caption := bkBranding.Rebrand(lblNote.Caption);
+  lblNote.Caption := TProduct.Rebrand(lblNote.Caption);
 end;
 
 procedure TChangePasswordForm.FormShow(Sender: TObject);
