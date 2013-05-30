@@ -763,7 +763,6 @@ object DlgLicense: TDlgLicense
     ScrollBars = ssVertical
     TabOrder = 0
     WordWrap = False
-    ExplicitWidth = 504
   end
   object mmoBankstream: TMemo
     AlignWithMargins = True
@@ -833,6 +832,7 @@ object DlgLicense: TDlgLicense
         '          not willing to licence the Software to you and you mus' +
         't not Use the Software.'
       ''
+      ''
       '2        Grant of licence'
       ''
       
@@ -851,6 +851,7 @@ object DlgLicense: TDlgLicense
         '2.3     With regard to the [InvoicePlus and PayablesPlus] produc' +
         'ts, you may Use one'
       '          copy of the Software on a single computer.'
+      ''
       ''
       '3        Limitations on Use'
       ''
@@ -889,6 +890,7 @@ object DlgLicense: TDlgLicense
         '          or obligations under this Agreement at any time withou' +
         't your consent.'
       ''
+      ''
       '4        Intellectual Property Rights'
       ''
       
@@ -919,6 +921,7 @@ object DlgLicense: TDlgLicense
         'stream'#8217's intellectual'
       '          property rights in the Software.'
       ''
+      ''
       '5        Warranties'
       ''
       
@@ -946,7 +949,6 @@ object DlgLicense: TDlgLicense
       
         '          Goods Act 1979 and the Supply of Goods and Services Ac' +
         't 1982.'
-      '5.3'
       ''
       
         '5.4     You acknowledge that Bankstream does not warrant or prom' +
@@ -990,6 +992,7 @@ object DlgLicense: TDlgLicense
         '         5.6.3     That the Software will not affect the operati' +
         'on of other installed'
       '                      applications.'
+      ''
       ''
       '6       Liability'
       ''
@@ -1081,6 +1084,7 @@ object DlgLicense: TDlgLicense
         '                       negligence, fraud or fraudulent misrepres' +
         'entation.'
       ''
+      ''
       '7        Termination'
       ''
       
@@ -1114,6 +1118,7 @@ object DlgLicense: TDlgLicense
       
         '                       of the Software in your possession and al' +
         'l its component parts.'
+      ''
       ''
       '8        Miscellaneous'
       ''
@@ -1171,7 +1176,6 @@ object DlgLicense: TDlgLicense
         '          over any dispute arising out of or in connection with ' +
         'this Agreement.'
       ''
-      '8.5'
       ''
       '9        Collection of Usage Information'
       ''
@@ -1210,8 +1214,6 @@ object DlgLicense: TDlgLicense
     ScrollBars = ssVertical
     TabOrder = 2
     WordWrap = False
-    ExplicitLeft = 32
-    ExplicitWidth = 504
   end
   object pBtn: TPanel
     Left = 0
@@ -1221,7 +1223,6 @@ object DlgLicense: TDlgLicense
     Align = alBottom
     BevelOuter = bvNone
     TabOrder = 1
-    ExplicitWidth = 536
     object btnNo: TButton
       Left = 458
       Top = 10
