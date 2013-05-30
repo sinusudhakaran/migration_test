@@ -2688,7 +2688,7 @@ var
   MessageDetails: String;
   ShowDetails: Boolean;
 begin
-  MainMessage := Format('%s encountered a problem while connecting to %s. Please see the details below or contact ' + TProduct.BrandName + '  Support for assistance.', [bkBranding.PracticeProductName, bkBranding.ProductOnlineName]);
+  MainMessage := Format('%s encountered a problem while connecting to %s. Please see the details below or contact ' + TProduct.BrandName + ' Support for assistance.', [bkBranding.PracticeProductName, bkBranding.ProductOnlineName]);
 
   MessageDetails := E.Message;
 
