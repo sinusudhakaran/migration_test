@@ -41,19 +41,23 @@ type
     FAppVerMajor: integer;
     FAppVerBuild: integer;
     procedure LoadVersionInfo;
+    function GetCompanyName: string;
+    function GetFileDescription: string;
+    function GetLegalCopyright: string;
+    function GetProductName: string;
   public
     constructor Create;
     function GetAppVersionStr: string;
     property Comments: string read FComments;
-    property CompanyName: string read FCompanyName;
-    property FileDescription: string read FFileDescription;
+    property CompanyName: string read GetCompanyName;
+    property FileDescription: string read GetFileDescription;
     property FileVersion: string read FFileVersion;
     property InternalName: string read FInternalName;
-    property LegalCopyright: string read FLegalCopyright;
+    property LegalCopyright: string read GetLegalCopyright;
     property LegalTrademarks: string read FLegalTrademarks;
     property OriginalFilename: string read FOriginalFilename;
     property PrivateBuild: string read FPrivateBuild;
-    property ProductName: string read FProductName;
+    property ProductName: string read GetProductName;
     property ProductVersion: string read FProductVersion;
     property SpecialBuild: string read FSpecialBuild;
     property AppVerMajor: integer read FAppVerMajor;
@@ -766,6 +770,26 @@ begin
   Result := Format('%d.%d.%d Build %d',
                    [FAppVerMajor, FAppVerMinor, FAppVerRelease, FAppVerBuild]);
 end;
+function TVersionInfo.GetCompanyName: string;
+begin
+  Result := TProduct.Rebrand(FCompanyName);
+end;
+
+function TVersionInfo.GetFileDescription: string;
+begin
+  Result := TProduct.Rebrand(FFileDescription);
+end;
+
+function TVersionInfo.GetLegalCopyright: string;
+begin
+  Result := TProduct.Rebrand(FLegalCopyright);
+end;
+
+function TVersionInfo.GetProductName: string;
+begin
+  Result := TProduct.Rebrand(FProductName);
+end;
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TVersionInfo.LoadVersionInfo;
 const
@@ -812,9 +836,9 @@ begin
           if VerQueryValue(VerBuf, PChar(ResName + SUB_BLOCK_COMMENTS), Pointer(Data), VerSize) then
             FComments := Data;
           if VerQueryValue(VerBuf, PChar(ResName + SUB_BLOCK_COMPANY_NAME), Pointer(Data), VerSize) then
-            FCompanyName := TProduct.Rebrand(Data);
+            FCompanyName := Data;
           if VerQueryValue(VerBuf, PChar(ResName + SUB_BLOCK_FILEDESCRIPTION), Pointer(Data), VerSize) then
-            FFileDescription := TProduct.Rebrand(Data);
+            FFileDescription := Data;
           if VerQueryValue(VerBuf, Pchar(ResName + SUB_BLOCK_FILEVERSION), Pointer(Data), VerSize) then
             FFileVersion := Data;
           if VerQueryValue(VerBuf, '\', Pointer(VSFixedFileInfo), VerSize) then begin
@@ -828,13 +852,13 @@ begin
           if VerQueryValue(VerBuf, PChar(ResName + SUB_BLOCK_PRODUCTVERSION), Pointer(Data), VerSize) then
             FProductVersion := Data;
           if VerQueryValue(VerBuf, PChar(ResName + SUB_BLOCK_LEGALCOPYRIGHT), Pointer(Data), VerSize) then
-            FLegalCopyright := TProduct.Rebrand(Data);
+            FLegalCopyright := Data;
           if VerQueryValue(VerBuf, PChar(ResName + SUB_BLOCK_LEGALTRADEMARKS), Pointer(Data), VerSize) then
             FLegalTrademarks := Data;
           if VerQueryValue(VerBuf, PChar(ResName + SUB_BLOCK_ORIGINALFILENAME), Pointer(Data), VerSize) then
             FOriginalFilename := Data;
           if VerQueryValue(VerBuf, PChar(ResName + SUB_BLOCK_PRODUCTNAME), Pointer(Data), VerSize) then
-            FProductName := TProduct.Rebrand(Data);
+            FProductName := Data;
         end;
       end;
     finally
