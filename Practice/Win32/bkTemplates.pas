@@ -2,6 +2,9 @@ unit bkTemplates;
 
 interface
 
+uses
+  bkProduct;
+  
 type
   TTemplates = class
   private
@@ -24,7 +27,7 @@ const
 
 class function TTemplates.GetUKCafTemplate(Index: Integer): String;
 begin
-  if bkBranding.GetProductBrand = btBankstream then
+  if TProduct.ProductBrand = btBankstream then
   begin
     Result := istBankstreamUKTemplateFileNames[Index];
   end

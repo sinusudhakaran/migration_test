@@ -2,6 +2,9 @@ unit bkContactInformation;
 
 interface
 
+uses
+  bkProduct;
+
 type
   TContactInformation = class
   private
@@ -30,7 +33,7 @@ var
 
 class function TContactInformation.GetClientServicesEmail(Index: Integer): String;
 begin
-  if bkBranding.GetProductBrand = btbankstream then
+  if TProduct.ProductBrand = btbankstream then
   begin
     Result := BankstreamSupportPhoneNo[Index];
   end
@@ -42,7 +45,7 @@ end;
 
 class function TContactInformation.GetSupportEmail(Index: Integer): String;
 begin
-  if bkBranding.GetProductBrand = btbankstream then
+  if TProduct.ProductBrand = btbankstream then
   begin
     Result := BankstreamSupportEmail[Index];
   end
@@ -54,7 +57,7 @@ end;
 
 class function TContactInformation.GetSupportPhoneNo(Index: Integer): String;
 begin
-  if bkBranding.GetProductBrand = btbankstream then
+  if TProduct.ProductBrand = btbankstream then
   begin
     Result := BankstreamSupportPhoneNo[Index];
   end

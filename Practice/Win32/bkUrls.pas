@@ -1,6 +1,9 @@
 unit bkUrls;
 
 interface
+
+uses
+  bkProduct;
   
 type
   TUrls = class
@@ -42,7 +45,7 @@ end;
 
 class function TUrls.DefaultAUCatalogServer: String;
 begin
-  if bkBranding.GetProductBrand = btBankstream then
+  if TProduct.ProductBrand = btBankstream then
   begin
     Result := 'www.bankstream.com.au';
   end
@@ -54,7 +57,7 @@ end;
 
 class function TUrls.DefaultBConnectPrimaryHost: String;
 begin
-  if bkBranding.GetProductBrand = btBankstream then
+  if TProduct.ProductBrand = btBankstream then
   begin
     Result := 'secure1.bankstream.co.nz';
   end
@@ -66,7 +69,7 @@ end;
 
 class function TUrls.DefaultBConnectSecondaryHost: String;
 begin
-  if bkBranding.GetProductBrand = btBankstream then
+  if TProduct.ProductBrand = btBankstream then
   begin
     Result := 'secure2.bankstream.co.nz';
   end
@@ -78,7 +81,7 @@ end;
 
 class function TUrls.DefaultDownloaderURL: String;
 begin
-  if bkBranding.GetProductBrand = btBankstream then
+  if TProduct.ProductBrand = btBankstream then
   begin
     Result := 'https://secure2.bankstream.co.nz/DownloaderService/DownloaderService.svc';
   end
@@ -90,7 +93,7 @@ end;
 
 class function TUrls.DefaultDownloaderURL2: String;
 begin
-  if bkBranding.GetProductBrand = btBankstream then
+  if TProduct.ProductBrand = btBankstream then
   begin
     Result := 'https://secure1.bankstream.co.nz/DownloaderService/DownloaderService.svc';
   end
@@ -102,7 +105,7 @@ end;
 
 class function TUrls.DefaultNZCatalogServer: String;
 begin
-  if bkBranding.GetProductBrand = btBankstream then
+  if TProduct.ProductBrand = btBankstream then
   begin
     Result := 'www.bankstream.co.nz'
   end
@@ -114,7 +117,7 @@ end;
 
 class function TUrls.DefaultUKCatalogServer: String;
 begin
-  if bkBranding.GetProductBrand = btBankstream then
+  if TProduct.ProductBrand = btBankstream then
   begin
     Result := 'www.bankstream.co.uk';
   end
@@ -126,7 +129,7 @@ end;
 
 class function TUrls.DefaultWebNotesMethodURI: String;
 begin
-  if bkBranding.GetProductBrand = btBankstream then
+  if TProduct.ProductBrand = btBankstream then
   begin
     Result := 'http://Bankstream.WebNotes.Interfaces/IPracticeIntegrationFacade';
   end
@@ -138,7 +141,7 @@ end;
 
 class function TUrls.DefaultWebNotesURL: String;
 begin
-  if bkBranding.GetProductBrand = btBankstream then
+  if TProduct.ProductBrand = btBankstream then
   begin
     Result := 'https://www.bankstreamonline.com/services/practiceintegrationfacade.svc';
   end
@@ -150,7 +153,7 @@ end;
 
 class function TUrls.DefInstListLinkAU: String;
 begin
-  if bkBranding.GetProductBrand = btBankstream then
+  if TProduct.ProductBrand = btBankstream then
   begin
     Result := 'http://www.bankstream.com.au/about_institutions.html';
   end
@@ -162,7 +165,7 @@ end;
 
 class function TUrls.DefInstListLinkNZ: String;
 begin
-  if bkBranding.GetProductBrand = btBankstream then
+  if TProduct.ProductBrand = btBankstream then
   begin
     Result := 'http://www.bankstream.co.nz/about_institutions.html';
   end
@@ -174,7 +177,7 @@ end;
 
 class function TUrls.DefInstListLinkUK: String;
 begin
-  if bkBranding.GetProductBrand = btBankstream then
+  if TProduct.ProductBrand = btBankstream then
   begin
     Result := 'http://www.bankstream.co.uk/about_institutions.html';
   end
@@ -186,7 +189,7 @@ end;
 
 class function TUrls.GetBankLinkWebSites(Index: Integer): String;
 begin
-  if bkbranding.GetProductBrand = btBankstream then
+  if TProduct.ProductBrand = btBankstream then
   begin
     Result := 'www.bankstream.co.uk'
   end
@@ -198,7 +201,7 @@ end;
 
 class function TUrls.GetBankLinkWebSiteURLs(Index: Integer): String;
 begin
-  if bkBranding.GetProductBrand = btBankstream then
+  if TProduct.ProductBrand = btBankstream then
   begin
     Result := 'http://www.bankstream.co.uk';
   end
@@ -210,7 +213,7 @@ end;
 
 class function TUrls.OnlineServicesDefaultUrl: String;
 begin
-  if bkBranding.GetProductBrand = btBankstream then
+  if TProduct.ProductBrand = btBankstream then
   begin
     Result := 'https://www.bankstreamonline.com';
   end
@@ -222,7 +225,7 @@ end;
 
 class function TUrls.ProvisionalAccountUrl: String;
 begin
-  if bkBranding.GetProductBrand = btBankstream then
+  if TProduct.ProductBrand = btBankstream then
   begin
     Result := 'http://www.bankstream.co.nz';
   end
