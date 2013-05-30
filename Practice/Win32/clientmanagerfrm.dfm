@@ -339,12 +339,13 @@ object frmClientManager: TfrmClientManager
             Left = 23
             Top = 0
             Width = 39
-            Height = 13
+            Height = 23
             Margins.Top = 0
             Margins.Bottom = 0
             Align = alLeft
             Caption = 'Legend:'
             Layout = tlCenter
+            ExplicitHeight = 13
           end
           object tbtnClose: TRzToolButton
             Left = 0
@@ -403,10 +404,69 @@ object frmClientManager: TfrmClientManager
         ExplicitWidth = 1001
         ExplicitHeight = 434
         inherited vtClients: TVirtualStringTree
+          Left = 0
+          Top = 0
           Width = 1001
           Height = 434
+          Align = alClient
+          Background.Data = {00}
+          BevelInner = bvNone
+          ButtonStyle = bsTriangle
+          ClipboardFormats.Strings = ()
+          Color = clWhite
+          DefaultNodeHeight = 20
+          DefaultPasteMode = amNoWhere
+          Header.AutoSizeIndex = -1
+          Header.Font.Charset = DEFAULT_CHARSET
+          Header.Font.Color = clWindowText
+          Header.Font.Height = -11
+          Header.Font.Name = 'Tahoma'
+          Header.Font.Style = []
+          Header.Height = 18
+          Header.Options = [hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoOwnerDraw, hoShowSortGlyphs, hoVisible]
+          Header.ParentFont = True
+          Header.Style = hsXPStyle
+          HintMode = hmHint
+          IncrementalSearchStart = ssLastHit
+          IncrementalSearchTimeout = 2000
+          LineMode = lmBands
+          LineStyle = lsSolid
+          ParentBackground = False
+          ParentShowHint = False
+          ShowHint = True
+          TabOrder = 0
+          TreeOptions.MiscOptions = [toFullRepaintOnResize, toInitOnSave, toToggleOnDblClick, toWheelPanning]
+          TreeOptions.PaintOptions = [toHideFocusRect, toShowBackground, toShowRoot, toThemeAware, toUseBlendedImages]
+          TreeOptions.SelectionOptions = [toExtendedFocus, toFullRowSelect, toMultiSelect, toRightClickSelect, toCenterScrollIntoView]
+          TreeOptions.StringOptions = [toSaveCaptions]
           ExplicitWidth = 1001
           ExplicitHeight = 434
+        end
+        inherited BtnLeft: TButton
+          Left = 208
+          Top = 40
+          Width = 75
+          Height = 25
+          Caption = '<'
+          TabOrder = 1
+          Visible = False
+        end
+        inherited BtnRight: TButton
+          Left = 208
+          Top = 71
+          Width = 75
+          Height = 25
+          HelpType = htKeyword
+          HelpKeyword = '>'
+          Caption = '>'
+          TabOrder = 2
+          Visible = False
+        end
+        inherited popDelete: TPopupMenu
+          inherited mniDelete: TMenuItem
+            Bitmap.Data = {00000000}
+            Caption = 'Delete Client File'
+          end
         end
       end
     end
@@ -432,26 +492,28 @@ object frmClientManager: TfrmClientManager
           Left = 630
           Top = 0
           Width = 96
-          Height = 13
+          Height = 18
           Margins.Top = 0
           Margins.Bottom = 0
           Align = alLeft
           Caption = '99999 Clients Listed'
           Layout = tlCenter
           Visible = False
+          ExplicitHeight = 13
         end
         object Label1: TLabel
           AlignWithMargins = True
           Left = 343
           Top = 0
           Width = 33
-          Height = 13
+          Height = 18
           Margins.Left = 9
           Margins.Top = 0
           Margins.Bottom = 0
           Align = alLeft
           Caption = 'Search'
           Layout = tlCenter
+          ExplicitHeight = 13
         end
         object imgCannotConnect: TImage
           AlignWithMargins = True
@@ -489,7 +551,7 @@ object frmClientManager: TfrmClientManager
           Left = 754
           Top = 0
           Width = 163
-          Height = 13
+          Height = 18
           Hint = 
             'BankLink Practice will not display any BankLink Online related s' +
             'ettings or functions'
@@ -501,6 +563,7 @@ object frmClientManager: TfrmClientManager
           ShowHint = True
           Layout = tlCenter
           Visible = False
+          ExplicitHeight = 13
         end
         object cmbFilter: TComboBox
           AlignWithMargins = True
@@ -512,7 +575,7 @@ object frmClientManager: TfrmClientManager
           Margins.Bottom = 0
           Align = alLeft
           Style = csDropDownList
-          ItemHeight = 0
+          ItemHeight = 13
           TabOrder = 0
           OnChange = cmbFilterChange
         end

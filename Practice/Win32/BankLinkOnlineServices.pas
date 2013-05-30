@@ -764,12 +764,12 @@ begin
   begin
     Screen.Cursor := crHourGlass;
     Progress.StatusSilent := False;
-    Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Connecting', 10);
+    Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Connecting', 10);
   end;
 
   try
     if ShowProgress then
-      Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Sending Data', 60);
+      Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Sending Data', 60);
 
     Result := UpdatePracticeUserPass(aUserGuid,
                                     aUserCode,
@@ -779,7 +779,7 @@ begin
                                     'change practice user password on');
 
     if (Result) and (ShowProgress) then
-      Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finished', 100);
+      Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Finished', 100);
 
   finally
     if ShowProgress then
@@ -942,12 +942,12 @@ begin
     begin
       Screen.Cursor := crHourGlass;
       Progress.StatusSilent := False;
-      Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Connecting', 10);
+      Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Connecting', 10);
     end;
 
     try
       if ShowProgress then
-        Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Creating Client', 50);
+        Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Creating Client', 50);
 
       BlopiInterface :=  GetSecureServiceFacade;
       
@@ -977,7 +977,7 @@ begin
         Result := MsgResponse.Result;
 
       if ShowProgress then
-        Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finished', 100);
+        Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Finished', 100);
 
     finally
       if ShowProgress then
@@ -1104,12 +1104,12 @@ begin
     begin
       Screen.Cursor := crHourGlass;
       Progress.StatusSilent := False;
-      Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Connecting', 10);
+      Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Connecting', 10);
     end;
 
     try
       if ShowProgress then
-        Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Getting iBizz Subscriber Credentials', 50);
+        Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Getting iBizz Subscriber Credentials', 50);
 
       BlopiInterface :=  GetServiceFacade;
       
@@ -1125,7 +1125,7 @@ begin
       end;
 
       if ShowProgress then
-        Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finished', 100);
+        Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Finished', 100);
     finally
       if ShowProgress then
       begin
@@ -1236,12 +1236,12 @@ begin
     begin
       Screen.Cursor := crHourGlass;
       Progress.StatusSilent := False;
-      Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Connecting', 10);
+      Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Connecting', 10);
     end;
 
     try
       if ShowProgress then
-        Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Getting Client Details', 50);
+        Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Getting Client Details', 50);
 
       BlopiInterface :=  GetServiceFacade;
       //Get the client from BankLink Online
@@ -1270,7 +1270,7 @@ begin
       end;
 
       if ShowProgress then
-        Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finished', 100);
+        Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Finished', 100);
     finally
       if ShowProgress then
       begin
@@ -1340,7 +1340,7 @@ begin
     begin
       Screen.Cursor := crHourGlass;
       Progress.StatusSilent := False;
-      Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Connecting', 10);
+      Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Connecting', 10);
     end;
 
     try
@@ -1348,7 +1348,7 @@ begin
       begin
         if ShowProgress then
         begin
-          Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Looking Up Client', 50);
+          Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Looking Up Client', 50);
         end;
 
         BlopiInterface := GetServiceFacade;
@@ -1374,7 +1374,7 @@ begin
 
         if ShowProgress then
         begin
-          Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finished', 100);
+          Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Finished', 100);
         end;
       end;
     finally
@@ -1464,7 +1464,7 @@ begin
   //Check that BConnect secure code has been assigned
   if AdminSystem.fdFields.fdBankLink_Code = '' then begin
     HelpfulErrorMsg('The ' + TProduct.BrandName + ' Secure Code for this practice has not been set. ' +
-                    'Please set this before attempting to use ' + BANKLINK_ONLINE_NAME +
+                    'Please set this before attempting to use ' + bkBranding.ProductOnlineName +
                     '.', 0);
     Exit;
   end;
@@ -1488,13 +1488,13 @@ begin
     begin
       Screen.Cursor := crHourGlass;
       Progress.StatusSilent := False;
-      Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Connecting', 10);
+      Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Connecting', 10);
     end;
 
     try
       try
         if ShowProgress then
-          Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Getting Practice Details', 50);
+          Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Getting Practice Details', 50);
 
         //Load cached practice details if they are registered or not
         if AdminSystem.fdFields.fdBankLink_Online_Config <> '' then
@@ -1577,7 +1577,7 @@ begin
               begin
                 if not SuppressErrors then
                 begin
-                  HelpfulErrorMsg(BKPRACTICENAME + ' is unable to get the practice details from ' + BANKLINK_ONLINE_NAME + '.', 0, True, Msg, True);
+                  HelpfulErrorMsg(bkBranding.PracticeProductName + ' is unable to get the practice details from ' + bkBranding.ProductOnlineName + '.', 0, True, Msg, True);
                 end;
 
                 Exit;
@@ -1586,7 +1586,7 @@ begin
           end;
         end;
         if ShowProgress then
-          Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finished', 100);
+          Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Finished', 100);
       except
         on E:Exception do
         begin
@@ -1637,13 +1637,13 @@ begin
     begin
       Screen.Cursor := crHourGlass;
       Progress.StatusSilent := False;
-      Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Connecting', 10);
+      Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Connecting', 10);
     end;
     try
       FreeAndNil(FClientList);
       if UseBankLinkOnline then begin
         if ShowProgress then
-          Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Getting Client List', 50);
+          Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Getting Client List', 50);
 
         if (PracticeCode = '') then
           PracticeCode := AdminSystem.fdFields.fdBankLink_Code;
@@ -1656,7 +1656,7 @@ begin
             FClientList := BlopiClientList.Result;
 
         if ShowProgress then
-          Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finished', 100);
+          Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Finished', 100);
       end;
     finally
       if ShowProgress then
@@ -1716,7 +1716,7 @@ function TProductConfigService.MessageResponseHasError(
   AMesageresponse: MessageResponse; ErrorText: string; SimpleError: boolean = false;
   ContextMsgInt: integer = 0; ContextErrorCode: string = ''; ReportResponseErrors: Boolean = True): Boolean;
 const
-  MAIN_ERROR_MESSAGE = BKPRACTICENAME + ' is unable to %s BankLink Online. Please see the details below or contact BankLink Support for assistance.';
+  MAIN_ERROR_MESSAGE =  BKPRACTICENAME + ' is unable to %s BankLink Online. Please see the details below or contact BankLink Support for assistance.';
 var
   ErrorMessage: string;
   ErrIndex : integer;
@@ -1761,7 +1761,7 @@ begin
       if (CustomError <> '') then
         ErrorMessage := CustomError
       else
-        ErrorMessage := Format(MAIN_ERROR_MESSAGE, [ErrorText]);
+        ErrorMessage := TProduct.Rebrand(Format(MAIN_ERROR_MESSAGE, [ErrorText]));
       Details := TStringList.Create;
       try
         for ErrIndex := 0 to high(AMesageresponse.ErrorMessages) do
@@ -1794,7 +1794,7 @@ begin
   else
   begin
     //No response from BankLink Online
-    ErrorMessage := Format(MAIN_ERROR_MESSAGE, ['connect to']);
+    ErrorMessage := TProduct.Rebrand(Format(MAIN_ERROR_MESSAGE, ['connect to']));
     HelpfulErrorMsg(ErrorMessage, 0);
   end;
 end;
@@ -1862,12 +1862,12 @@ begin
     begin
       Screen.Cursor := crHourGlass;
       Progress.StatusSilent := False;
-      Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Connecting', 10);
+      Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Connecting', 10);
     end;
 
     try
       if ShowProgress then
-        Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Getting Data Export Subscribers', 50);
+        Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Getting Data Export Subscribers', 50);
 
       if (PracticeCode = '') then
         PracticeCode := AdminSystem.fdFields.fdBankLink_Code;
@@ -1884,7 +1884,7 @@ begin
       end;
 
       if ShowProgress then
-        Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finished', 100);
+        Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Finished', 100);
     finally
       if ShowProgress then
       begin
@@ -2172,13 +2172,13 @@ begin
       Screen.Cursor := crHourGlass;
       
       Progress.StatusSilent := False;
-      Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Connecting', 10);
+      Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Connecting', 10);
     end;
 
     try
       if ShowProgress then
       begin
-        Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Authenticating User', 50);
+        Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Authenticating User', 50);
       end;
 
       OnlineUser := ProductConfigService.GetOnlineUserLinkedToCode(Username, FPractice, False);
@@ -2204,7 +2204,7 @@ begin
 
         if ShowProgress then
         begin
-          Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finished', 100);
+          Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Finished', 100);
         end;
       end
       else
@@ -2345,11 +2345,11 @@ begin
     begin
       Screen.Cursor := crHourGlass;
       Progress.StatusSilent := False;
-      Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Connecting', 10);
+      Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Connecting', 10);
     end;
     try
       if ShowProgress then
-        Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Getting Service Agreement Version', 50);
+        Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Getting Service Agreement Version', 50);
 
       BlopiInterface := GetServiceFacade;
       ReturnMsg := BlopiInterface.GetTermsConditionsVersion(CountryText(AdminSystem.fdFields.fdCountry),
@@ -2361,7 +2361,7 @@ begin
       end;
 
       if ShowProgress then
-        Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finished', 100);
+        Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Finished', 100);
     finally
       if ShowProgress then
       begin
@@ -2391,11 +2391,11 @@ begin
     begin
       Screen.Cursor := crHourGlass;
       Progress.StatusSilent := False;
-      Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Connecting', 10);
+      Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Connecting', 10);
     end;
     try
       if ShowProgress then
-        Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Getting Service Agreement', 50);
+        Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Getting Service Agreement', 50);
 
       BlopiInterface := GetServiceFacade;
       ReturnMsg := BlopiInterface.GetTermsAndConditions(CountryText(AdminSystem.fdFields.fdCountry),
@@ -2407,7 +2407,7 @@ begin
       end;
 
       if ShowProgress then
-        Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finished', 100);
+        Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Finished', 100);
     finally
       if ShowProgress then
       begin
@@ -2688,7 +2688,7 @@ var
   MessageDetails: String;
   ShowDetails: Boolean;
 begin
-  MainMessage := Format('%s encountered a problem while connecting to %s. Please see the details below or contact ' + TProduct.BrandName + '  Support for assistance.', [BKPRACTICENAME, BANKLINK_ONLINE_NAME]);
+  MainMessage := Format('%s encountered a problem while connecting to %s. Please see the details below or contact ' + TProduct.BrandName + '  Support for assistance.', [bkBranding.PracticeProductName, bkBranding.ProductOnlineName]);
 
   MessageDetails := E.Message;
 
@@ -2704,7 +2704,7 @@ begin
   else
   if E is EDOMParseError then
   begin
-    MainMessage := Format('%s encountered a problem connecting to %s. Please contact ' + TProduct.BrandName + ' Support for assistance', [BKPRACTICENAME, BANKLINK_ONLINE_NAME]);
+    MainMessage := Format('%s encountered a problem connecting to %s. Please contact ' + TProduct.BrandName + ' Support for assistance', [bkBranding.PracticeProductName, bkBranding.ProductOnlineName]);
     
     ShowDetails := False;
   end;
@@ -2757,7 +2757,7 @@ begin
         begin
           if OfflineAuthentication then
           begin
-            HelpfulErrorMsg(BKPRACTICENAME + ' is unable to authenticate with ' + bkBranding.ProductOnlineName + '. Please contact ' + TProduct.BrandName + ' Support for assistance.', 0);
+            HelpfulErrorMsg(bkBranding.PracticeProductName + ' is unable to authenticate with ' + bkBranding.ProductOnlineName + '. Please contact ' + TProduct.BrandName + ' Support for assistance.', 0);
 
             LogUtil.LogMsg(lmError, UNIT_NAME, 'An error occured while authenticating with BankLink Online.');
 
@@ -2772,7 +2772,7 @@ begin
           begin
             if not TfrmOnlinePassword.PromptUser(Password, CurrUser.EmailAddress, PasswordReset) then
             begin
-              HelpfulErrorMsg(BKPRACTICENAME + ' authentication with ' + bkBranding.ProductOnlineName + ' failed. Please contact ' + TProduct.BrandName + ' Support for assistance.', 0);
+              HelpfulErrorMsg(bkBranding.PracticeProductName + ' authentication with ' + bkBranding.ProductOnlineName + ' failed. Please contact ' + TProduct.BrandName + ' Support for assistance.', 0);
 
               LogUtil.LogMsg(lmError, UNIT_NAME, ' authentication with BankLink Online failed.');
 
@@ -2795,7 +2795,7 @@ begin
   begin
     HelpfulErrorMsg('You are not a ' + bkBRanding.ProductOnlineName + ' enabled user. Only ' + bkBranding.ProductOnlineName + ' enabled users can update ' + bkBranding.ProductOnlineName + '. Please contact ' + TProduct.BrandName + ' Support for assistance.', 0);
 
-    LogUtil.LogMsg(lmError, UNIT_NAME, 'An error occured while authenticating with ' + BANKLINK_ONLINE_NAME + '.');
+    LogUtil.LogMsg(lmError, UNIT_NAME, 'An error occured while authenticating with ' + bkBranding.ProductOnlineName + '.');
 
     Exit;  
   end;
@@ -2860,10 +2860,10 @@ end;
 procedure TProductConfigService.ShowSuspendDeactiveWarning;
 begin
   case OnlineStatus of
-    Suspended: HelpfulWarningMsg(BANKLINK_ONLINE_NAME + ' is currently in suspended ' +
+    Suspended: HelpfulWarningMsg(bkBranding.ProductOnlineName + ' is currently in suspended ' +
                                  '(read-only) mode. Please contact ' + TProduct.BrandName + ' ' +
                                  'Support for further assistance.', 0);
-    Deactivated: HelpfulWarningMsg(BANKLINK_ONLINE_NAME + ' is currently deactivated. ' +
+    Deactivated: HelpfulWarningMsg(bkBranding.ProductOnlineName + ' is currently deactivated. ' +
                                    'Please contact ' + TProduct.BrandName + ' Support for further ' +
                                    'assistance.', 0);
   end;
@@ -2975,7 +2975,7 @@ begin
       LoadClientList;
 
     if not Assigned(FClientList) then
-      raise Exception.Create('Error getting client detials from ' + BANKLINK_ONLINE_NAME);
+      raise Exception.Create('Error getting client detials from ' + bkBranding.ProductOnlineName);
 
     ClientsUsingProduct := 0;
     //Check if any clients are using the product
@@ -3032,7 +3032,7 @@ begin
   except
     on E: Exception do
     begin
-      HelpfulErrorMsg(BKPRACTICENAME + ' is unable to remove the product. Please contact ' + TProduct.BrandName + ' Support for assistance.', 0);
+      HelpfulErrorMsg(bkBranding.PracticeProductName + ' is unable to remove the product. Please contact ' + TProduct.BrandName + ' Support for assistance.', 0);
 
       LogUtil.LogMsg(lmError, UNIT_NAME, 'Exception running RemoveProduct, Error Message : ' + E.Message);
 
@@ -3058,12 +3058,12 @@ begin
 
   Screen.Cursor := crHourGlass;
   Progress.StatusSilent := False;
-  Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Connecting', 10);
+  Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Connecting', 10);
 
   BlopiInterface := GetSecureServiceFacade;
   try
     try
-      Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Resetting user password', 70);
+      Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Resetting user password', 70);
 
       try
         MsgResponse := BlopiInterface.ResetPracticeUserPassword(CountryText(AdminSystem.fdFields.fdCountry),
@@ -3091,7 +3091,7 @@ begin
 
       if not MessageResponseHasError(MsgResponse, 'reset user password on') then
       begin
-        HelpfulInfoMsg(Format('The user password for %s has been successfully reset on %s.',[EMailAddress, BANKLINK_ONLINE_NAME]), 0);
+        HelpfulInfoMsg(Format('The user password for %s has been successfully reset on %s.',[EMailAddress, bkBranding.ProductOnlineName]), 0);
 
         LogUtil.LogMsg(lmInfo, UNIT_NAME, 'The user password for ' + EMailAddress + ' has been successfully reset on BankLink Online.');
 
@@ -3126,12 +3126,12 @@ begin
 
   Screen.Cursor := crHourGlass;
   Progress.StatusSilent := False;
-  Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Connecting', 10);
+  Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Connecting', 10);
 
   BlopiInterface := GetServiceFacade;
   try
     try
-      Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Resetting user password', 70);
+      Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Resetting user password', 70);
 
       MsgResponse := BlopiInterface.ResetUserPassword(CountryText(AdminSystem.fdFields.fdCountry),
                                                       AdminSystem.fdFields.fdBankLink_Code,
@@ -3207,7 +3207,7 @@ begin
       //Save to the web service
       Screen.Cursor := crHourGlass;
       Progress.StatusSilent := False;
-      Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Connecting', 10);
+      Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Connecting', 10);
       try
         PracCountryCode := CountryText(AdminSystem.fdFields.fdCountry);
         PracCode        := AdminSystem.fdFields.fdBankLink_Code;
@@ -3215,14 +3215,14 @@ begin
 
         BlopiInterface := GetServiceFacade;
 
-        Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Saving Practice Details', 33);
+        Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Saving Practice Details', 33);
 
         MsgResponce := BlopiInterface.SavePractice(PracCountryCode, PracCode, PracPassHash, PracUpdate);
         if not MessageResponseHasError(MsgResponce, 'update the Practice settings to') then
         begin
-          Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Saving Practice Details to System Database', 66);
+          Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Saving Practice Details to System Database', 66);
           Result := True;
-          Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finished', 100);
+          Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Finished', 100);
         end;
 
       finally
@@ -3245,7 +3245,7 @@ begin
         end;
       end
       else
-        HelpfulErrorMsg(BKPRACTICENAME + ' is unable to update the Practice settings to ' + BANKLINK_ONLINE_NAME + '.', 0);
+        HelpfulErrorMsg(bkBranding.PracticeProductName + ' is unable to update the Practice settings to ' + bkBranding.ProductOnlineName + '.', 0);
     end;
   end;
 end;
@@ -3286,7 +3286,7 @@ begin
         //Save to the web service
         Screen.Cursor := crHourGlass;
         Progress.StatusSilent := False;
-        Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Connecting', 10);
+        Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Connecting', 10);
         try
           PracCountryCode := CountryText(AdminSystem.fdFields.fdCountry);
           PracCode        := AdminSystem.fdFields.fdBankLink_Code;
@@ -3294,14 +3294,14 @@ begin
 
           BlopiInterface := GetServiceFacade;
 
-          Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Saving Practice data export settings', 33);
+          Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Saving Practice data export settings', 33);
 
           MsgResponce := BlopiInterface.SavePracticeDataSubscribers(PracCountryCode, PracCode, PracPassHash, VendorExports);
 
           if not MessageResponseHasError(MsgResponce, 'update the Practice data export settings to') then
           begin
             Result := True;
-            Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finished', 100);
+            Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Finished', 100);
           end;
 
         finally
@@ -3316,7 +3316,7 @@ begin
 
       if not Result and aShowMessage then
       begin
-        HelpfulErrorMsg(BKPRACTICENAME + ' is unable to update the Practice data export settings to ' + BANKLINK_ONLINE_NAME + '.', 0);
+        HelpfulErrorMsg(bkBranding.PracticeProductName + ' is unable to update the Practice data export settings to ' + bkBranding.ProductOnlineName + '.', 0);
       end;
     end;
   end;
@@ -3354,7 +3354,7 @@ begin
         Screen.Cursor := crHourGlass;
         Progress.StatusSilent := False;
         if ShowProgressBar then
-          Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Connecting', 10);
+          Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Connecting', 10);
         try
           PracCountryCode := CountryText(AdminSystem.fdFields.fdCountry);
           PracCode        := AdminSystem.fdFields.fdBankLink_Code;
@@ -3362,7 +3362,7 @@ begin
 
           BlopiInterface := GetServiceFacade;
           if ShowProgressBar then
-            Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Saving Client data export settings', 33);
+            Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Saving Client data export settings', 33);
 
           MsgResponce := BlopiInterface.SaveClientDataSubscribers(PracCountryCode,
                                                                   PracCode,
@@ -3374,7 +3374,7 @@ begin
           begin
             Result := True;
             if ShowProgressBar then                 
-              Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finished', 100);
+              Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Finished', 100);
           end;
 
         finally
@@ -3398,7 +3398,7 @@ begin
         end
         else
         begin
-          HelpfulErrorMsg(BKPRACTICENAME + ' is unable to update the Client data export settings to ' + BANKLINK_ONLINE_NAME + '.', 0);
+          HelpfulErrorMsg(bkBranding.PracticeProductName + ' is unable to update the Client data export settings to ' + bkBranding.ProductOnlineName + '.', 0);
         end;
       end;
     end;
@@ -3441,7 +3441,7 @@ begin
         Screen.Cursor := crHourGlass;
         Progress.StatusSilent := False;
         if ShowProgressBar then
-          Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Connecting', 10);
+          Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Connecting', 10);
         try
           PracCountryCode := CountryText(AdminSystem.fdFields.fdCountry);
           PracCode        := AdminSystem.fdFields.fdBankLink_Code;
@@ -3450,7 +3450,7 @@ begin
           BlopiInterface := GetServiceFacade;
 
           if ShowProgressBar then
-            Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Saving Account data export settings', 33);
+            Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Saving Account data export settings', 33);
 
           AccountData := DataPlatformBankAccount.Create;
 
@@ -3470,7 +3470,7 @@ begin
             begin
               Result := True;
               if ShowProgressBar then
-                Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finished', 100);
+                Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Finished', 100);
             end;
           finally
             AccountData.Free;
@@ -3496,7 +3496,7 @@ begin
         end
         else
         begin
-          HelpfulErrorMsg(BKPRACTICENAME + ' is unable to update the Account data export settings to ' + BANKLINK_ONLINE_NAME + '.', 0);
+          HelpfulErrorMsg(bkBranding.PracticeProductName + ' is unable to update the Account data export settings to ' + bkBranding.ProductOnlineName + '.', 0);
         end;
       end;
     end;
@@ -4460,7 +4460,7 @@ var
 begin
   Screen.Cursor := crHourGlass;
   Progress.StatusSilent := False;
-  Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Connecting', 10);
+  Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Connecting', 10);
 
   try
     //Get client list (so that we can lookup the client code)
@@ -4532,7 +4532,7 @@ begin
         //Save to the web service
         Screen.Cursor := crHourGlass;
         Progress.StatusSilent := False;
-        Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Connecting', 10);
+        Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Connecting', 10);
         try
           PracCountryCode := CountryText(AdminSystem.fdFields.fdCountry);
           PracCode        := AdminSystem.fdFields.fdBankLink_Code;
@@ -4540,7 +4540,7 @@ begin
 
           BlopiInterface := GetServiceFacade;
 
-          Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Saving iBizz subscriber credentials', 33);
+          Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Saving iBizz subscriber credentials', 33);
 
           IBizzCredentials := TBloIBizzCredentials.Create;
 
@@ -4552,7 +4552,7 @@ begin
             if not MessageResponseHasError(MsgResponce, 'update the iBizz subscriber credentials to') then
             begin
               Result := True;
-              Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finished', 100);
+              Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Finished', 100);
             end;
           finally
             IBizzCredentials.Free;
@@ -4570,7 +4570,7 @@ begin
 
       if not Result and aShowMessage then
       begin
-        HelpfulErrorMsg(BKPRACTICENAME + ' is unable to update the iBizz subscriber credentials ' + BANKLINK_ONLINE_NAME + '.', 0);
+        HelpfulErrorMsg(bkBranding.PracticeProductName + ' is unable to update the iBizz subscriber credentials ' + bkBranding.ProductOnlineName + '.', 0);
       end;
     end;
   end;
@@ -4604,17 +4604,17 @@ begin
 
   Screen.Cursor := crHourGlass;
   Progress.StatusSilent := False;
-  Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Connecting', 10);
+  Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Connecting', 10);
 
   BlopiInterface := GetSecureServiceFacade;
   try
     try
-      Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Retrieving Info', 25);
+      Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Retrieving Info', 25);
       ClientIndex := GetOnlineClientIndex(ClientCode);
 
       if ClientIndex = -1 then
       begin
-        Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Updating Client', 40);
+        Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Updating Client', 40);
         BloClientCreate := TBloClientCreate.Create;
         try
           FillInClientDetails(BloClientCreate);
@@ -4662,7 +4662,7 @@ begin
         begin
           LogUtil.LogMsg(lmInfo, UNIT_NAME, 'Client ' + ClientCode + ' has been successfully created on BankLink Online.');
 
-          Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Saving Client User', 70);
+          Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Saving Client User', 70);
           Result := AddEditClientUser(Nil,
                                       aSubscription,
                                       MsgResponseGuid.Result,
@@ -4677,8 +4677,8 @@ begin
         if Result then
         begin
           HelpfulInfoMsg(Format('Settings for %s have been successfully updated on ' +
-                         '%s.',[ClientCode, BANKLINK_ONLINE_NAME]), 0);
-          Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finished', 100);
+                         '%s.',[ClientCode, bkBranding.ProductOnlineName]), 0);
+          Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Finished', 100);
         end;
       end
       else
@@ -4696,7 +4696,7 @@ begin
     except
       on E : Exception do
       begin
-        HelpfulErrorMsg(BKPRACTICENAME + ' is unable to create the client on ' + BANKLINK_ONLINE_NAME + '. Please contact ' + TProduct.BrandName + ' Support for assistance.', 0);
+        HelpfulErrorMsg(bkBranding.PracticeProductName + ' is unable to create the client on ' + bkBranding.ProductOnlineName + '. Please contact ' + TProduct.BrandName + ' Support for assistance.', 0);
         
         LogUtil.LogMsg(lmError, UNIT_NAME, 'Exception running CreateClient, Error Message : ' + E.Message);
       end;
@@ -4778,7 +4778,7 @@ begin
 
   Screen.Cursor := crHourGlass;
   Progress.StatusSilent := False;
-  Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Connecting', 10);
+  Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Connecting', 10);
 
   BlopiInterface := GetSecureServiceFacade;
   try
@@ -4791,7 +4791,7 @@ begin
 
         if ClientDetailsHasChanged or (aExistingClient.PrimaryContactUserId <> UserId) then
         begin
-          Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Updating Client', 70);
+          Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Updating Client', 70);
           BloClientUpdate := TBloClientUpdate.Create;
           try
             BloClientUpdate.Id                   := aExistingClient.Id;
@@ -4844,14 +4844,14 @@ begin
         begin
           if aShowUpdateSuccess then
             HelpfulInfoMsg(Format('Settings for %s have been successfully updated to ' +
-                                  '%s.',[ClientCode, BANKLINK_ONLINE_NAME]), 0);
-          Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finished', 100);
+                                  '%s.',[ClientCode, bkBranding.ProductOnlineName]), 0);
+          Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Finished', 100);
         end;
       end;
     except
       on E : Exception do
       begin
-        HelpfulErrorMsg(BKPRACTICENAME + ' is unable to update the client to ' + BANKLINK_ONLINE_NAME + '. Please contact ' + TProduct.BrandName + ' Support for assistance.', 0);
+        HelpfulErrorMsg(bkBranding.PracticeProductName + ' is unable to update the client to ' + bkBranding.ProductOnlineName + '. Please contact ' + TProduct.BrandName + ' Support for assistance.', 0);
         
         LogUtil.LogMsg(lmError, UNIT_NAME, 'Exception running UpdateClient, Error Message : ' + E.Message);
 
@@ -4876,7 +4876,7 @@ var
 begin
   Screen.Cursor := crHourGlass;
   Progress.StatusSilent := False;
-  Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Connecting', 10);
+  Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Connecting', 10);
 
   try
     Subscription := ClientReadDetail.Subscription;
@@ -4968,12 +4968,12 @@ var
 begin
   Screen.Cursor := crHourGlass;
   Progress.StatusSilent := False;
-  Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Connecting', 10);
+  Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Connecting', 10);
 
   BlopiInterface := GetSecureServiceFacade;
   try
     try
-      Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Deleting Client User', 55);
+      Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Deleting Client User', 55);
 
       if High(aExistingClient.Users) = -1 then
       begin
@@ -5040,13 +5040,13 @@ begin
       end;
 
       if Result then
-        Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finished', 100);
+        Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Finished', 100);
     except
       on E : Exception do
       begin
         LogUtil.LogMsg(lmError, UNIT_NAME, 'Exception running UpdateClient, Error Message : ' + E.Message);
 
-        raise Exception.Create(BKPRACTICENAME + ' is unable to save the client to ' + BANKLINK_ONLINE_NAME + '. Please contact BankLink Support for assistance.');
+        raise Exception.Create(bkBranding.PracticeProductName + ' is unable to save the client to ' + bkBranding.ProductOnlineName + '. Please contact BankLink Support for assistance.');
       end;
     end;
   finally
@@ -5170,12 +5170,12 @@ begin
 
   Screen.Cursor := crHourGlass;
   Progress.StatusSilent := False;
-  Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Connecting', 10);
+  Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Connecting', 10);
 
   try
     try
       // Does the User Already Exist on BankLink Online?
-      Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Receiving Data', 33);
+      Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Receiving Data', 33);
       CurrPractice := GetPractice(true, true);
       if OnLine then
       begin
@@ -5184,7 +5184,7 @@ begin
         SetLength(RoleNames,1);
         RoleNames[0] := CurrPractice.GetRoleFromPracUserType(aUstNameIndex, CurrPractice).RoleName;
 
-        Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Sending Data', 66);
+        Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Sending Data', 66);
 
         if IsUserOnline then
         begin
@@ -5203,7 +5203,7 @@ begin
           begin
             if aChangePassword and (aOldPassword <> aNewPassword) then
             begin
-              Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Sending Data', 88);
+              Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Sending Data', 88);
 
               Result := UpdatePracticeUserPass(aUserId,
                                                aUserCode,
@@ -5216,7 +5216,7 @@ begin
             if Result then
             begin
               aIsUserCreated := false;
-              Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finished', 100);
+              Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Finished', 100);
             end;
           end;
         end
@@ -5236,7 +5236,7 @@ begin
           begin
             aUserId := UserGuid;
             aIsUserCreated := True;
-            Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finished', 100);
+            Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Finished', 100);
           end;
         end;
       end
@@ -5252,7 +5252,7 @@ begin
       begin
         LogUtil.LogMsg(lmError, UNIT_NAME, 'Exception running AddEditPracUser, Error Message : ' + E.Message);
 
-        raise Exception.Create(BKPRACTICENAME + ' is unable to update the user to ' + BANKLINK_ONLINE_NAME + '. Please contact ' + TProduct.BrandName + ' Support for assistance.');
+        raise Exception.Create(bkBranding.PracticeProductName + ' is unable to update the user to ' + bkBranding.ProductOnlineName + '. Please contact ' + TProduct.BrandName + ' Support for assistance.');
       end;
     end;
   finally
@@ -5274,7 +5274,7 @@ begin
 
   Screen.Cursor := crHourGlass;
   Progress.StatusSilent := False;
-  Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Connecting', 10);
+  Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Connecting', 10);
 
   try
     try
@@ -5283,7 +5283,7 @@ begin
 
       if Online then
       begin
-        Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Sending Data', 50);
+        Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Sending Data', 50);
         if aUserCode = '' then
           UserGuid := aUserGuid
         else
@@ -5300,13 +5300,13 @@ begin
       end;
 
       if Result then
-        Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finished', 100);
+        Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Finished', 100);
     except
       on E : Exception do
       begin
         LogUtil.LogMsg(lmError, UNIT_NAME, 'Exception running DeletePracUser, Error Message : ' + E.Message);
         
-        raise Exception.Create(BKPRACTICENAME + ' is unable to delete the user from ' + BANKLINK_ONLINE_NAME + '. Please contact ' + TProduct.BrandName + ' Support for assistance.');
+        raise Exception.Create(bkBranding.PracticeProductName + ' is unable to delete the user from ' + bkBranding.ProductOnlineName + '. Please contact ' + TProduct.BrandName + ' Support for assistance.');
       end;
     end;
   finally
@@ -5397,19 +5397,19 @@ begin
   begin
     Screen.Cursor := crHourGlass;
     Progress.StatusSilent := False;
-    Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Connecting', 10);
+    Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Connecting', 10);
   end;
 
   try
     if not Assigned(aPractice) then
     begin
       if ShowProgress then
-        Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Sending Data', 40);
+        Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Sending Data', 40);
       aPractice := GetPractice;
     end;
 
     if ShowProgress then
-      Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Sending Data', 60);
+      Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Sending Data', 60);
 
     if aLinkedUserGuid = '' then
       UserGuid := GetPracUserGuid(aUserCode, aPractice)
@@ -5424,7 +5424,7 @@ begin
                                           'change practice user password on');
 
     if (Result) and (ShowProgress) then
-      Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finished', 100);
+      Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Finished', 100);
 
   finally
     if ShowProgress then
@@ -5460,12 +5460,12 @@ begin
     begin
       Screen.Cursor := crHourGlass;
       Progress.StatusSilent := False;
-      Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Connecting', 10);
+      Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Connecting', 10);
     end;
 
     try
       if ShowProgress then
-        Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Getting Available Data Exports', 50);
+        Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Getting Available Data Exports', 50);
 
       if (PracticeCode = '') then
         PracticeCode := AdminSystem.fdFields.fdBankLink_Code;
@@ -5481,7 +5481,7 @@ begin
       end;
 
       if ShowProgress then
-        Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finished', 100);
+        Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Finished', 100);
     finally
       if ShowProgress then
       begin
@@ -5520,12 +5520,12 @@ begin
     begin
       Screen.Cursor := crHourGlass;
       Progress.StatusSilent := False;
-      Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Connecting', 10);
+      Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Connecting', 10);
     end;
 
     try
       if ShowProgress then
-        Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Getting Available Data Exports', 50);
+        Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Getting Available Data Exports', 50);
 
       BlopiInterface :=  GetServiceFacade;
       
@@ -5545,7 +5545,7 @@ begin
       end;
 
       if ShowProgress then
-        Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finished', 100);
+        Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Finished', 100);
     finally
       if ShowProgress then
       begin
@@ -5579,12 +5579,12 @@ begin
     begin
       Screen.Cursor := crHourGlass;
       Progress.StatusSilent := False;
-      Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Connecting', 10);
+      Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Connecting', 10);
     end;
 
     try
       if ShowProgress then
-        Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Getting Bank Accounts', 50);
+        Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Getting Bank Accounts', 50);
 
       BlopiInterface :=  GetServiceFacade;
       
@@ -5601,7 +5601,7 @@ begin
 
       if ShowProgress then
       begin
-        Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finished', 100);
+        Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Finished', 100);
       end;
     finally
       if ShowProgress then
@@ -5648,12 +5648,12 @@ begin
     begin
       Screen.Cursor := crHourGlass;
       Progress.StatusSilent := False;
-      Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Connecting', 10);
+      Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Connecting', 10);
     end;
 
     try
       if ShowProgress then
-        Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Getting Available Data Exports', 50);
+        Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Getting Available Data Exports', 50);
 
       BlopiInterface :=  GetServiceFacade;
 
@@ -5675,7 +5675,7 @@ begin
       end;
 
       if ShowProgress then
-        Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finished', 100);
+        Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Finished', 100);
     finally
       if ShowProgress then
       begin
@@ -5769,12 +5769,12 @@ begin
     begin
       Screen.Cursor := crHourGlass;
       Progress.StatusSilent := False;
-      Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Connecting', 10);
+      Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Connecting', 10);
     end;
 
     try
       if ShowProgress then
-        Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Getting Client Accounts Vendors', 50);
+        Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Getting Client Accounts Vendors', 50);
 
       BlopiInterface :=  GetServiceFacade;
 
@@ -5851,7 +5851,7 @@ begin
       Result := True;
 
       if ShowProgress then
-        Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finished', 100);
+        Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Finished', 100);
     finally
       if ShowProgress then
       begin
@@ -5893,12 +5893,12 @@ begin
     begin
       Screen.Cursor := crHourGlass;
       Progress.StatusSilent := False;
-      Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Connecting', 10);
+      Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Connecting', 10);
     end;
 
     try
       if ShowProgress then
-        Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Getting Client Accounts Vendors', 50);
+        Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Getting Client Accounts Vendors', 50);
 
       BlopiInterface :=  GetServiceFacade;
 
@@ -5928,7 +5928,7 @@ begin
       end;
 
       if ShowProgress then
-        Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finished', 100);
+        Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Finished', 100);
     finally
       if ShowProgress then
       begin
@@ -6119,7 +6119,7 @@ begin
     end;
   end;
 
-  raise Exception.Create('Practice User Role does not exist on ' + BANKLINK_ONLINE_NAME + '.');
+  raise Exception.Create('Practice User Role does not exist on ' + bkBranding.ProductOnlineName + '.');
 end;
 
 //------------------------------------------------------------------------------
@@ -6165,7 +6165,7 @@ var
   MessageDetails: String;
   ShowDetails: Boolean;
 begin
-  MainMessage := Format('%s encountered a problem while connecting to %s. Please see the details below or contact ' + TProduct.BrandName + ' Support for assistance.', [BKPRACTICENAME, BANKLINK_ONLINE_NAME]);
+  MainMessage := Format('%s encountered a problem while connecting to %s. Please see the details below or contact ' + TProduct.BrandName + ' Support for assistance.', [bkBranding.PracticeProductName, bkBranding.ProductOnlineName]);
   
   MessageDetails := E.Message;
 
@@ -6181,7 +6181,7 @@ begin
   else
   if E is EDOMParseError then
   begin
-    MainMessage := Format('%s encountered a problem connecting to %s. Please contact ' + TProduct.BrandName + ' Support for assistance', [BKPRACTICENAME, BANKLINK_ONLINE_NAME]);
+    MainMessage := Format('%s encountered a problem connecting to %s. Please contact ' + TProduct.BrandName + ' Support for assistance', [bkBranding.PracticeProductName, bkBranding.ProductOnlineName]);
     
     ShowDetails := False;
   end;

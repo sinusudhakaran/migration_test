@@ -1226,7 +1226,7 @@ begin
   CiCoClient.OnProgressEvent := DoStatusProgress;
   try
     try
-      UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Connecting', 0);
+      UpdateAppStatus(bkBranding.ProductOnlineName, 'Connecting', 0);
       Attempt := -1;
       while (Attempt < 3) do begin
         Inc(Attempt);
@@ -1272,7 +1272,7 @@ begin
         else
           ErrMsg := E.Message;
 
-        HelpfulErrorMsg('Unable to connect to ' + BANKLINK_ONLINE_NAME + ': ' + ErrMsg, 0);
+        HelpfulErrorMsg('Unable to connect to ' + bkBranding.ProductOnlineName + ': ' + ErrMsg, 0);
       end;
     end;
   finally
@@ -3103,7 +3103,7 @@ end;
 procedure TfmeClientLookup.DoStatusProgress(APercentComplete : integer;
                                             AMessage         : string);
 begin
-  UpdateAppStatus(BANKLINK_ONLINE_NAME, AMessage, APercentComplete);
+  UpdateAppStatus(bkBranding.ProductOnlineName, AMessage, APercentComplete);
 end;
 
 function TfmeClientLookup.EditBooksBankLinkOnlineLogin: Boolean;
@@ -3848,7 +3848,7 @@ begin
   if not FUsingAdminSystem then Exit;
   PasswordDlg := TBkPasswordDialog.Create(self);
   try
-    PasswordDlg.Caption := 'Log in to ' + BANKLINK_ONLINE_NAME;
+    PasswordDlg.Caption := 'Log in to ' + bkBranding.ProductOnlineName;
     PasswordDlg.DefaultUser := AdminSystem.fdFields.fdBankLink_Code;
     if (AdminSystem.fdFields.fdBankLink_Connect_Password = '') and (AttemptCount = 0) then
       Msg := 'The login password has not been set.  Please enter your password.'

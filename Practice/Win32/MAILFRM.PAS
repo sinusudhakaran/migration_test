@@ -1955,15 +1955,15 @@ begin //SendSceduledEmail
                     ClientMessage := ClientMessage +
                                      Format('The Client File %s is now available via %s. ' +
                                             'To access this client file select ‘Get Client Files | from %s’.',
-                                            [EmailInfo.ClientCode, Globals.BANKLINK_ONLINE_NAME,
-                                             Globals.BANKLINK_ONLINE_NAME]);
+                                            [EmailInfo.ClientCode, bkBranding.ProductOnlineName,
+                                             bkBranding.ProductOnlineName]);
 
                     if EmailInfo.IsFirstPracUpload then
                     begin
                       ClientMessage := ClientMessage + #10#10 +
                          'Subdomain: ' + GetBankLinkOnlineSubDomain +  #10 +
                          'Username: ' + EmailInfo.EmailAddress + #10#10 +
-                         'If you are new to ' + Globals.BANKLINK_ONLINE_NAME + ', you will receive ' +
+                         'If you are new to ' + bkBranding.ProductOnlineName + ', you will receive ' +
                          'an email shortly which will help you complete the ' +
                          'setup process. Please wait for this email before continuing.';
                     end;

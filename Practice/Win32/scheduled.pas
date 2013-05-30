@@ -162,7 +162,7 @@ uses
   RptDateUtils, BKDEFS, BaList32, SysObj32, SBAList32, trxList32,
   ReportImages, cfList32, usrlist32, PrintMgrObj, WinUtils, WebXOffice,
   ClientUtils, BusinessProductsExport, Windows, ClientHomePageFrm, ClientManagerFrm,
-  Math, UBatchBase, grpList32, ctypelist32;
+  Math, UBatchBase, grpList32, ctypelist32, bkBranding;
 
 Const
    UnitName = 'SCHEDULED';
@@ -2071,8 +2071,8 @@ begin
                                  wfWebNotes :  DestString := WebNotesName;
                              end;
                rdCSVExport : DestString := 'CSV Export';
-               rdCheckOut  : DestString := BKBOOKSNAME;
-               rdBankLinkOnline : DestString := BANKLINK_ONLINE_NAME;
+               rdCheckOut  : DestString := bkBranding.BooksProductName;
+               rdBankLinkOnline : DestString := bkBranding.ProductOnlineName;
                rdBusinessProduct: DestString := 'Business Prod';
             end;
           end;

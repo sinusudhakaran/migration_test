@@ -43,7 +43,7 @@ type
 {-----------------------------------------------------------}
 implementation
 
-uses Globals;
+uses Globals, bkBranding;
 
 {$R *.DFM}
 
@@ -69,7 +69,7 @@ begin
   {$IFDEF SmartBooks}
   Caption := 'Log in to SmartBooks Direct';
   {$ELSE}
-  Caption := 'Log in to ' + BCONNECTNAME;
+  Caption := 'Log in to ' + bkBranding.BooksProductName;
   {$ENDIF}
 end;
 

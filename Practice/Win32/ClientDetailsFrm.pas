@@ -239,7 +239,7 @@ begin
    FEnableClientSettings := true;
    bkXPThemes.ThemeForm( Self);
    lblCountry.Font.Name := Font.Name;
-   lblConnectName.caption := BCONNECTNAME+' Co&de';
+   lblConnectName.caption := bkBranding.BooksProductName+' Co&de';
    chkOffsite.Caption := 'Allow client to download directly via BankLink &Secure';
 
    SetUpHelp;
@@ -471,8 +471,8 @@ begin
                         'Check this if you want to be prompted on open to purge old entries.'; }
 
    chkOffsite.Hint      :=
-                        'Check to configure this Client for downloading of transactions in ' + BKBOOKSNAME + '|'+
-                        'Check to configure this Client for downloading of transactions in ' + BKBOOKSNAME;
+                        'Check to configure this Client for downloading of transactions in ' + bkBranding.BooksProductName + '|'+
+                        'Check to configure this Client for downloading of transactions in ' + bkBranding.BooksProductName;
 
    eConnectCode.Hint    :=
                         'Enter the '+SHORTAPPNAME+' Code for this Off-site Client|'+

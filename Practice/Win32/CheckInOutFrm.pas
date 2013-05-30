@@ -399,7 +399,7 @@ begin
       //must select something if using checkout
       if (DialogMode in [ dmCheckOut, dmSend]) and ( Codes = '') then begin
         if (FFileTransferMethod = ftmOnline) then
-          HelpfulWarningMsg('Please select a client to send to ' + BANKLINK_ONLINE_NAME, 0);
+          HelpfulWarningMsg('Please select a client to send to ' + bkBranding.ProductOnlineName, 0);
         Exit;
       end;
 
@@ -407,7 +407,7 @@ begin
       if ( DialogMode = dmCheckIn) and ( Codes = '') then
       begin
         if (FFileTransferMethod = ftmOnline) then
-          HelpfulWarningMsg('Please select a client to update from ' + BANKLINK_ONLINE_NAME, 0)
+          HelpfulWarningMsg('Please select a client to update from ' + bkBranding.ProductOnlineName, 0)
         else begin
           ClientLookupFrame.FilesDirectory := SelectedDir;
           ClientLookupFrame.Reload;
@@ -615,7 +615,7 @@ begin
     AddColumn( 'Code', 110, cluCode);
     AddColumn( 'Name', -1, cluName);
     AddColumn( 'Status', 150, cluStatus);
-    AddColumn( BANKLINK_ONLINE_NAME + ' Status', 245, cluBankLinkOnline);
+    AddColumn( bkBranding.ProductOnlineName + ' Status', 245, cluBankLinkOnline);
     AddColumn( 'Modified Date', 100, cluModifiedDate);
 
     SetupColumns;
@@ -654,9 +654,9 @@ begin
   if Assigned(AdminSystem) then Exit;
 
   if ClientLookupFrame.NoOnlineConnection then
-    lblBankLinkOnline.Caption := BANKLINK_ONLINE_NAME + ' Status: NOT CONNECTED'
+    lblBankLinkOnline.Caption := bkBranding.ProductOnlineName + ' Status: NOT CONNECTED'
   else
-    lblBankLinkOnline.Caption := BANKLINK_ONLINE_NAME + ' Status: CONNECTED';
+    lblBankLinkOnline.Caption := bkBranding.ProductOnlineName + ' Status: CONNECTED';
   lblBankLinkOnline.Caption := lblBankLinkOnline.Caption + #10 + 'Subdomain: ' +
                                Globals.INI_BankLink_Online_SubDomain;
   lblBankLinkOnline.Caption := lblBankLinkOnline.Caption + #10 + 'Username: ' +

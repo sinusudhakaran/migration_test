@@ -755,7 +755,7 @@ begin
   except
     on E:Exception do
     begin
-      HelpfulErrorMsg('Error exporting transactions to ' + BANKLINK_ONLINE_NAME + ': ' + E.Message, 0);
+      HelpfulErrorMsg('Error exporting transactions to ' + bkBranding.ProductOnlineName + ': ' + E.Message, 0);
     end;
   end;
 end;

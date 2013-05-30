@@ -1703,7 +1703,7 @@ begin
     ftmNone,
     ftmFile: Msg := Format('Send %s to %s succeeded',[Code, RemoteFileName]);
     ftmOnline      : Msg := Format('Send %s to %s ''%s\%s'' succeeded',
-                                   [Code, BANKLINK_ONLINE_NAME,
+                                   [Code, bkBranding.ProductOnlineName,
                                     AdminSystem.fdFields.fdBankLink_Code, Code]);
   end;
   LogUtil.LogMsg(lmInfo, UnitName, ThisMethodName + ' : ' + Msg);
@@ -1876,7 +1876,7 @@ begin
       ftmOnline:
             begin
               if DebugMe then begin
-                Msg := Format('%s : Send Copy to %s', [ThisMethodName, BANKLINK_ONLINE_NAME]);
+                Msg := Format('%s : Send Copy to %s', [ThisMethodName, bkBranding.ProductOnlineName]);
                 LogUtil.LogMsg(lmDebug, UnitName, Msg);
               end;
               BankLinkOnlineMgr.Silent := IsScheduledReport;
@@ -1943,9 +1943,9 @@ begin
     ftmNone,
     ftmFile  : Msg := Format('Send %s to %s succeeded',[Code, RemoteFileName]);
     ftmOnline: if SendCopy then
-                 Msg := Format('Send copy %s to %s succeeded',[Code, BANKLINK_ONLINE_NAME]);    
+                 Msg := Format('Send copy %s to %s succeeded',[Code, bkBranding.ProductOnlineName]);    
                else
-                 Msg := Format('Send %s to %s succeeded',[Code, BANKLINK_ONLINE_NAME]);
+                 Msg := Format('Send %s to %s succeeded',[Code, bkBranding.ProductOnlineName]);
   end;
   LogUtil.LogMsg(lmInfo, UnitName, ThisMethodName + ' : ' + Msg);
   if not IsScheduledReport then
@@ -2152,7 +2152,7 @@ begin
           (GetClientWithNoEmail(CodeList) <> '') then begin
           Msg := Format('A valid email address is required for clients files to '+
                         'be sent via %s. Please update the following clients: %s',
-                        [BANKLINK_ONLINE_NAME, GetClientWithNoEmail(CodeList)]);
+                        [bkBranding.ProductOnlineName, GetClientWithNoEmail(CodeList)]);
           HelpfulErrorMsg(Msg, 0);
         end;
 
@@ -2186,7 +2186,7 @@ begin
             EmailBody := EmailBody + #10#10 +
                          'Subdomain: ' + GetBankLinkOnlineSubDomain +  #10 +
                          'Username: ' + GetEmailAddress(CodeList) + #10#10 +
-                         'If you are new to ' + BANKLINK_ONLINE_NAME + ', you will receive ' +
+                         'If you are new to ' + bkBranding.ProductOnlineName + ', you will receive ' +
                          'an email shortly which will help you complete the ' +
                          'setup process. Please wait for this email before continuing.';
           SendMailTo('Send Client File(s) via ' + bkBranding.ProductOnlineName,
@@ -2279,7 +2279,7 @@ begin
    except
       on E : EDownloadFailed do begin
          Msg := Format('Download from %s failed for %s.  Error: %s',
-                       [BANKLINK_ONLINE_NAME, CODE, E.Message]);
+                       [bkBranding.ProductOnlineName, CODE, E.Message]);
          LogUtil.LogMsg(lmInfo,UnitName,ThisMethodName + ' '+Msg);
          if not IsScheduledReports then
            ProgressFrm.mProgress.Lines.Add( Msg);
@@ -2612,7 +2612,7 @@ begin
    end;
 
    if (ASendMethod = ftmOnline) then
-     Msg := Format('Update %s from %s succeeded',[Code, BANKLINK_ONLINE_NAME])
+     Msg := Format('Update %s from %s succeeded',[Code, bkBranding.ProductOnlineName])
    else
      Msg := Format('Update %s from %s succeeded',[Code, RemoteFileName]);
 
@@ -2654,7 +2654,7 @@ begin
       CodeList.StrictDelimiter := True;
       Title := 'Select Client(s) to Update';
       if (ASendMethod = ftmOnline) then
-        Title := Title + ' from ' + BANKLINK_ONLINE_NAME;
+        Title := Title + ' from ' + bkBranding.ProductOnlineName;
       CodeList.DelimitedText := SelectCodesToGet(Title, ASendMethod, CodesToCheckIn);
       if CodeList.Count = 0 then
         Exit;

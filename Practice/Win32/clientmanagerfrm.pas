@@ -3396,7 +3396,7 @@ begin
   if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Enter DoSendOnline');
 
   //BankLink Online transfer
-  Codes := CheckInOutFrm.SelectCodesToSend('Select Client(s) to Send via ' + BANKLINK_ONLINE_NAME,
+  Codes := CheckInOutFrm.SelectCodesToSend('Select Client(s) to Send via ' + bkBranding.ProductOnlineName,
                                            ftmOnline, FirstUpload,
                                            FlagReadOnly, EditEmail, SendEmail,
                                            ClientLookup.SelectedCodes);

@@ -6,7 +6,8 @@ uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls,
   bkXPThemes,
-  OsFont, ExtCtrls, ComCtrls;
+  OsFont, ExtCtrls, ComCtrls,
+  bkProduct;
 
 type
   TDlgLicense = class(TForm)
@@ -16,6 +17,7 @@ type
     pBtn: TPanel;
     btnNo: TButton;
     btnYes: TButton;
+    mmoBankstream: TMemo;
     procedure FormCreate(Sender: TObject);
   private
     { Private declarations }
@@ -37,6 +39,17 @@ begin
   bkXPThemes.ThemeForm( Self);
   FAbout := False;
   mmoEULA.WordWrap := True;
+
+  if TProduct.ProductBrand = btBankstream then
+  begin
+    mmoEULA.Visible := False;
+    mmoBankstream.Visible := True;
+  end
+  else
+  begin
+    mmoBankstream.Visible := False;
+    mmoEULA.Visible := True;
+  end;
 end;
 
 procedure TDlgLicense.SetAbout(Value: Boolean);

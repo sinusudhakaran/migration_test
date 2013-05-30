@@ -744,7 +744,7 @@ begin
               cbPrimaryContact.Enabled := False;
               if Visible then
               begin
-                if YesNoDlg.AskYesNo(Globals.BANKLINK_ONLINE_NAME,
+                if YesNoDlg.AskYesNo(bkBranding.ProductOnlineName,
                                      'You are not currently registered for ' + bkBranding.ProductOnlineName + '. ' +
                                      'Would you like to register now?', dlg_no, 0) = DLG_YES then
                 begin
@@ -1463,7 +1463,7 @@ begin
     //Paint text
     TargetCanvas.Font := appimages.Font;
     TargetCanvas.Font.Color := clBlue;
-    NodeCaption := Globals.BANKLINK_ONLINE_NAME + ' ' + NodeData.tdCaption;
+    NodeCaption := bkBranding.ProductOnlineName + ' ' + NodeData.tdCaption;
     InflateRect(ItemRect, -6, -2);
     DrawText(TargetCanvas.Handle, PChar(NodeCaption), StrLen(PChar(NodeCaption)),
              ItemRect, DT_LEFT or DT_VCENTER or DT_SINGLELINE);
@@ -2032,7 +2032,7 @@ begin
                                   'The file that you have selected is quite large ' +
                                   ' (' + IntToStr( fSize div 1024) + 'Kb) and will greatly increase the size '+
                                   'of your ' + glConst.ECODING_APP_NAME + ' and ' +
-                                   BKBOOKSNAME + ' files.'#13#13 +
+                                   bkBranding.BooksProductName + ' files.'#13#13 +
                                    'Please confirm that you wish to use this file.',
                                    DLG_YES, 0) <> DLG_YES then
             begin

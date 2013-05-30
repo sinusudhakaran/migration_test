@@ -65,7 +65,7 @@ function  LogFileName : string;
 implementation
 {----------------------------------}
 uses
-   ErrorLog, SysUtils;
+   ErrorLog, SysUtils, bkProduct;
 {----------------------------------}
 procedure LogMsg( MsgType : TMessageType; UnitName, msg : string; Stat_ID : byte = 0; LockLog: Boolean = True);
 var
@@ -83,11 +83,11 @@ begin
    begin
      if LockLog then
      begin
-       SysLog.SysLogMessage(sysLogType,unitName,msg, Stat_ID);
+       SysLog.SysLogMessage(sysLogType,unitName, TProduct.Rebrand(msg), Stat_ID);
      end
      else
      begin
-       SysLog.SysLogMessageNoLock(sysLogType,unitName,msg, Stat_ID);
+       SysLog.SysLogMessageNoLock(sysLogType,unitName, TProduct.Rebrand(msg), Stat_ID);
      end;
    end;
 end;

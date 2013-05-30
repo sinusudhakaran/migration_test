@@ -87,8 +87,6 @@ var
   procedure StyleECFHOnlineMenuItem(MenuItem: TMenuItem);
   procedure StyleNewClientWizardLogo(Image: TImage);
 
-
-  function ProductName: String;
   function ProductOnlineName: String;
   function BooksProductName: String;
   function NotesProductName: String;
@@ -506,19 +504,14 @@ begin
   end;
 end;
 
-function ProductName: String;
-begin
-  Result := TProduct.BrandName;
-end;
-
 function ProductOnlineName: String;
 begin
-  Result := Format('%s Online', [ProductName]);
+  Result := Format('%s Online', [TProduct.BrandName]);
 end;
 
 function PracticeProductName: String;
 begin
-  Result := Format('%s Practice', [ProductName]);
+  Result := Format('%s Practice', [TProduct.BrandName]);
 end;
 
 procedure StyleMainBannerPanel(Panel: TRzPanel);
@@ -698,22 +691,22 @@ end;
 
 function BooksProductName: String;
 begin
-  Result := Format('%s Books', [ProductName]);
+  Result := Format('%s Books', [TProduct.BrandName]);
 end;
 
 function NotesProductName: String;
 begin
-  Result := Format('%s Notes', [ProductName]);
+  Result := Format('%s Notes', [TProduct.BrandName]);
 end;
 
 function NotesOnlineProductName: String;
 begin
-  Result := Format('%s Notes Online', [ProductName]);
+  Result := Format('%s Notes Online', [TProduct.BrandName]);
 end;
 
 function BConnectName: String;
 begin
-  Result := Format('%s Secure', [ProductName]);
+  Result := Format('%s Secure', [TProduct.BrandName]);
 end;
 
 initialization

@@ -174,7 +174,7 @@ begin
     blsInitialLogin:
       begin
         //Initial login
-        Caption := 'Login to ' + BANKLINK_ONLINE_NAME;
+        Caption := 'Login to ' + bkBranding.ProductOnlineName;
         eSubDomain.Text := Globals.INI_BankLink_Online_SubDomain;
         eUsername.Text := Globals.INI_BankLink_Online_Username;
         eCurrent.Text := Globals.INI_BankLink_Online_Password;
@@ -189,7 +189,7 @@ begin
     blsChangePasswordRequired:
       begin
         //Reset password
-        Caption := 'Reset ' + BANKLINK_ONLINE_NAME + ' Password';
+        Caption := 'Reset ' + bkBranding.ProductOnlineName + ' Password';
         //Hide subdomain and username
         if pnlDomainAndUser.Visible then begin
           pnlDomainAndUser.Visible := False;
@@ -206,7 +206,7 @@ begin
     blsChangePassword:
       begin
         //Change password
-        Caption := 'Change ' + BANKLINK_ONLINE_NAME + ' Password';
+        Caption := 'Change ' + bkBranding.ProductOnlineName + ' Password';
         //Hide subdomain and username
         if pnlDomainAndUser.Visible then begin
           pnlDomainAndUser.Visible := False;
@@ -328,7 +328,7 @@ begin
   if (Globals.INI_BankLink_Online_Password = '') then begin
     if eCurrent.CanFocus then
       eCurrent.SetFocus;
-    HelpfulErrorMsg('Please enter your ' + BANKLINK_ONLINE_NAME + ' password.',0);
+    HelpfulErrorMsg('Please enter your ' + bkBranding.ProductOnlineName + ' password.',0);
     Exit;
   end;
 
@@ -371,7 +371,7 @@ begin
   try
     StatusSilent := False;
     try
-      UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Connecting', 0);
+      UpdateAppStatus(bkBranding.ProductOnlineName, 'Connecting', 0);
       CiCoClient.OnProgressEvent := DoStatusProgress;
 
 //      CiCoClient.GetBooksUserExists(Globals.INI_BankLink_Online_Username,
@@ -413,7 +413,7 @@ begin
   except
     on E: Exception do begin
       HelpfulErrorMsg('Unable to connect to ' +
-                       BANKLINK_ONLINE_NAME + ': ' + E.Message, 0);
+                       bkBranding.ProductOnlineName + ': ' + E.Message, 0);
       Exit;
     end;
   end;
@@ -431,7 +431,7 @@ begin
   try
     StatusSilent := False;
     try
-      UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Connecting', 0);
+      UpdateAppStatus(bkBranding.ProductOnlineName, 'Connecting', 0);
       CiCoClient.OnProgressEvent := DoStatusProgress;
       CiCoClient.SetBooksUserPassword(Globals.INI_BankLink_Online_Username,
                                       eCurrent.Text,
@@ -449,14 +449,14 @@ begin
     on E: exception do
       begin
         HelpfulErrorMsg(Format('Error changing %s User password: %s',
-                               [BANKLINK_ONLINE_NAME, E.Message]), 0);
+                               [bkBranding.ProductOnlineName, E.Message]), 0);
         Exit;
       end;
   end;
   if not ((FServerResponse.Status = '200') and
           (Lowercase(FServerResponse.Description) = 'password changes')) then begin
     TempStr := Format('Error changing %s User password: %s',
-                      [BANKLINK_ONLINE_NAME, FServerResponse.Description]);
+                      [bkBranding.ProductOnlineName, FServerResponse.Description]);
     HelpfulErrorMsg(TempStr ,0);
     Exit;
   end;
@@ -465,7 +465,7 @@ end;
 procedure TChangePasswordForm.DoStatusProgress(APercentComplete : integer;
                                                AMessage         : string);
 begin
-  UpdateAppStatus(BANKLINK_ONLINE_NAME, AMessage, APercentComplete);
+  UpdateAppStatus(bkBranding.ProductOnlineName, AMessage, APercentComplete);
 end;
 
 end.

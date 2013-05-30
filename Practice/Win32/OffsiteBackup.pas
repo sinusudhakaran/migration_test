@@ -53,7 +53,8 @@ uses
   Progress,
   WinUtils,
   SysUtils, Windows,
-  VCLUnZip, kpZipObj;
+  VCLUnZip, kpZipObj,
+  bkBranding;
 
 const
   Unitname = 'offsitebackup';
@@ -216,7 +217,7 @@ begin
    OD := TOpenDialog.Create( NIL );
    Try
       OD.InitialDir := INI_BackupDir;
-      OD.Filter     := BKBOOKSNAME + ' Backup (*' + Globals.OFFSITEBACKUPEXTN + ')|*' + Globals.OFFSITEBACKUPEXTN;
+      OD.Filter     := bkBranding.BooksProductName + ' Backup (*' + Globals.OFFSITEBACKUPEXTN + ')|*' + Globals.OFFSITEBACKUPEXTN;
       OD.Filename   := '';
       OD.Options    := [ ofHideReadOnly, ofFileMustExist, ofPathMustExist, ofDontAddToRecent, ofEnableSizing, ofNoChangeDir];
       If OD.Execute then

@@ -1440,7 +1440,7 @@ begin
       ClientCode := MyClient.clFields.clCode;
       if ShowUpdateMsg then      
         HelpfulInfoMsg(Format('Settings for %s have been successfully updated to ' +
-                       '%s.',[ClientCode, BANKLINK_ONLINE_NAME]), 0);
+                       '%s.',[ClientCode, bkBranding.ProductOnlineName]), 0);
     end;
   end
   else

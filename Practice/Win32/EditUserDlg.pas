@@ -1337,15 +1337,15 @@ begin { TdlgEditUser.Execute }
     begin
       Screen.Cursor := crHourGlass;
       Progress.StatusSilent := False;
-      Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Connecting', 10);
+      Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Connecting', 10);
 
       try
         if ProductConfigService.Online then
         begin
-          Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Sending Data to ' + BANKLINK_ONLINE_NAME, 50);
+          Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Sending Data to ' + bkBranding.ProductOnlineName, 50);
           UserGuid := ProductConfigService.GetPracUserGuid(User.usCode, Practice);
           fIsPrimaryUser := ProductConfigService.IsPrimPracUser(User.usCode, Practice);
-          Progress.UpdateAppStatus(BANKLINK_ONLINE_NAME, 'Finnished', 100);
+          Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Finnished', 100);
         end
         else
         begin

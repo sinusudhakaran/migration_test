@@ -517,7 +517,7 @@ begin
   inherited;
 
   if Assigned(fProgressEvent) then
-    fProgressEvent(5, 'Connected to ' + BANKLINK_ONLINE_NAME);
+    fProgressEvent(5, 'Connected to ' + bkBranding.ProductOnlineName);
 end;
 
 //------------------------------------------------------------------------------
@@ -528,7 +528,7 @@ begin
   inherited;
 
   if Assigned(fProgressEvent) then
-    fProgressEvent(100, BANKLINK_ONLINE_NAME + ' Connection Completed');
+    fProgressEvent(100, bkBranding.ProductOnlineName + ' Connection Completed');
 end;
 
 //------------------------------------------------------------------------------
@@ -588,9 +588,9 @@ begin
   inherited;
 
   if ADirection = 0 then
-    StrMessage := 'Start Transfer : to ' + BANKLINK_ONLINE_NAME
+    StrMessage := 'Start Transfer : to ' + bkBranding.ProductOnlineName
   else
-    StrMessage := 'Start Transfer : from ' + BANKLINK_ONLINE_NAME;
+    StrMessage := 'Start Transfer : from ' + bkBranding.ProductOnlineName;
 
   // Status Event
   if Assigned(fStatusEvent) then
@@ -623,9 +623,9 @@ begin
   inherited;
 
   if ADirection = 0 then
-    StrMessage := 'Transfering : to ' + BANKLINK_ONLINE_NAME
+    StrMessage := 'Transfering : to ' + bkBranding.ProductOnlineName
   else
-    StrMessage := 'Transfering : from ' + BANKLINK_ONLINE_NAME;
+    StrMessage := 'Transfering : from ' + bkBranding.ProductOnlineName;
 
   // Status Event
   if Assigned(fStatusEvent) then
@@ -656,9 +656,9 @@ begin
   inherited;
 
   if ADirection = 0 then
-    StrMessage := 'End Transfer : to ' + BANKLINK_ONLINE_NAME
+    StrMessage := 'End Transfer : to ' + bkBranding.ProductOnlineName
   else
-    StrMessage := 'End Transfer : from ' + BANKLINK_ONLINE_NAME;
+    StrMessage := 'End Transfer : from ' + bkBranding.ProductOnlineName;
 
   // Status Event
   if Assigned(fStatusEvent) then

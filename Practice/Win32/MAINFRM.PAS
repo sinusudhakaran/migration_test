@@ -1291,12 +1291,12 @@ begin
                 +'Save the Client File you are working on';
    if FAdminSystemFound then begin
      //Practice
-     AppName1 := BKBOOKSNAME;
-     AppName2 := BKPRACTICENAME;
+     AppName1 := bkBranding.BooksProductName;
+     AppName2 := bkBranding.PracticeProductName;
    end else begin
      //Books
-     AppName1 := BKPRACTICENAME;
-     AppName2 := BKBOOKSNAME;
+     AppName1 := bkBranding.PracticeProductName;
+     AppName2 := bkBranding.BooksProductName;
    end;
    tbGetClientFiles.Hint  :=
                 'Update a Client File|'
