@@ -484,7 +484,7 @@ begin
   cmbMonths.ItemIndex := 0;
   SetImportDate;
   if (AdminSystem.fdFields.fdExport_Charges_Remarks = '') or RemarkMatchesMonth(AdminSystem.fdFields.fdExport_Charges_Remarks) then
-    eRemarks.Text := REMARKS + cmbMonths.Text
+    eRemarks.Text := TProduct.Rebrand(REMARKS) + cmbMonths.Text
   else
     eRemarks.Text := AdminSystem.fdFields.fdExport_Charges_Remarks;
 
@@ -2135,7 +2135,7 @@ begin
   Result := False;
   for i := 0 to Pred(cmbMonths.Items.Count) do
   begin
-    if s = (REMARKS + cmbMonths.Items[i]) then
+    if s = (TProduct.Rebrand(REMARKS) + cmbMonths.Items[i]) then
     begin
       Result := True;
       break;
@@ -2206,7 +2206,7 @@ begin
   end;
   GridHasBeenDisplayed := False;
   if RemarkMatchesMonth(eRemarks.Text) then
-    eRemarks.Text := REMARKS + cmbMonths.Text;
+    eRemarks.Text := TProduct.Rebrand(REMARKS) + cmbMonths.Text;
   if (not UserEditedDate) then
     SetImportDate;
 end;

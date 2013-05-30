@@ -1037,7 +1037,7 @@ begin
     begin
       LogUtil.LogMsg(lmError, UNIT_NAME, 'Exception running CreateNewClientUser, Error Message : ' + E.Message);
       
-      raise Exception.Create(bkBranding.PracticeProductName + ' is unable to create a new user ' + bkBranding.ProductOnlineName + '. Please contact' + TProduct.BrandName + ' Support for assistance.');
+      raise Exception.Create(bkBranding.PracticeProductName + ' is unable to create a new user ' + bkBranding.ProductOnlineName + '. Please contact ' + TProduct.BrandName + ' Support for assistance.');
     end;
   end;
 
@@ -5046,7 +5046,7 @@ begin
       begin
         LogUtil.LogMsg(lmError, UNIT_NAME, 'Exception running UpdateClient, Error Message : ' + E.Message);
 
-        raise Exception.Create(bkBranding.PracticeProductName + ' is unable to save the client to ' + bkBranding.ProductOnlineName + '. Please contact BankLink Support for assistance.');
+        raise Exception.Create(bkBranding.PracticeProductName + ' is unable to save the client to ' + bkBranding.ProductOnlineName + '. Please contact ' + TProduct.BrandName + ' Support for assistance.');
       end;
     end;
   finally

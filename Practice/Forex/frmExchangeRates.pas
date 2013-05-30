@@ -117,7 +117,8 @@ uses
   IniSettings,
   BKHelp,
   ForexHelpers,
-  ExchangeGainLoss;
+  ExchangeGainLoss,
+  bkProduct;
 
 
 {$R *.dfm}
@@ -287,7 +288,7 @@ begin
          'Enter the starting and finishing date for the period you want to unlock.') then exit;
 
    //Warning
-   if AskYesNo('Unlock Exchange Rate Period', UNLOCK_WARNING, Dlg_No, 0) = DLG_YES then begin
+   if AskYesNo('Unlock Exchange Rate Period', TProduct.Rebrand(UNLOCK_WARNING), Dlg_No, 0) = DLG_YES then begin
      UnlockRatesRec.Range := Range;
      UnlockRatesRec.LockCount := 0;
      FSource.Iterate(UnLockRates,True,@UnlockRatesRec);

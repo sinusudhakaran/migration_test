@@ -292,7 +292,7 @@ uses
   SYAUDIT, SYATIO, SYUSIO, SYFDIO, SYDLIO, SYSBIO, SYAMIO, SYCFIO, SYSMIO,
   BKAUDIT, BKPDIO, BKCLIO, BKCEIO, BKBAIO, BKCHIO, BKTXIO, BKMDIO, BKMLIO,
   BKPLIO, BKHDIO, BKDSIO, BKglIO,
-  MCAUDIT, MCEHIO, MCERIO;
+  MCAUDIT, MCEHIO, MCERIO, bkProduct;
 
 const
   //Audit type strings
@@ -553,7 +553,7 @@ begin
 {$IFNDEF LOOKUPDLL}
   Result := '';
   if (AAuditType <= arMax)then
-    Result := arNames[AAuditType]
+    Result := TProduct.Rebrand(arNames[AAuditType])
   else if AAuditType = arAll then
     Result := 'All';
 {$ENDIF}

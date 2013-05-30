@@ -1170,7 +1170,7 @@ begin
 
             if User.HasRoles([ProductConfigService.CachedPractice.GetUserRoleNameFromPracUserType(ustSystem)]) then
             begin
-              HelpfulWarningMsg(bkBranding.PracticeProductName + 'BankLink Practice cannot link a user with a user type of Normal to an Administrator user on ' + bkBranding.ProductOnlineName + '.', 0);
+              HelpfulWarningMsg(bkBranding.PracticeProductName + ' cannot link a user with a user type of Normal to an Administrator user on ' + bkBranding.ProductOnlineName + '.', 0);
 
               TComboBox(Sender).ItemIndex := FCurrentUserTypeIndex;
 

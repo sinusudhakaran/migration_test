@@ -121,7 +121,7 @@ begin
             end
             else
             begin
-              HelpfulInfoMsg(bkBranding.PracticeProductName + ' did not find any transactions up to ' + StDateToDateString(BKDATEFORMAT, edtTransactionsToDate.AsStDate, False) + ' to export to BankLink Online.', 0);
+              HelpfulInfoMsg(bkBranding.PracticeProductName + ' did not find any transactions up to ' + StDateToDateString(BKDATEFORMAT, edtTransactionsToDate.AsStDate, False) + ' to export to ' + bkBranding.ProductOnlineName + '.', 0);
             end;
           end
           else
@@ -198,7 +198,7 @@ begin
 
   chkExportChartOfAccounts.Checked := True;
 
-  TfrmModalProgress.ShowProgress(Self, 'Please wait...', 'Export data to BankLink Online', GetMaxExportableDate);
+  TfrmModalProgress.ShowProgress(Self, 'Please wait...', 'Export data to ' + bkBranding.ProductOnlineName, GetMaxExportableDate);
 
   if FMaxExportableDate > 0 then
   begin

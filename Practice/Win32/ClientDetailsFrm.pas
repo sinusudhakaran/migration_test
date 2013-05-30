@@ -240,7 +240,7 @@ begin
    bkXPThemes.ThemeForm( Self);
    lblCountry.Font.Name := Font.Name;
    lblConnectName.caption := bkBranding.BooksProductName+' Co&de';
-   chkOffsite.Caption := 'Allow client to download directly via BankLink &Secure';
+   chkOffsite.Caption := 'Allow client to download directly via ' + TProduct.BrandName + ' &Secure';
 
    SetUpHelp;
 

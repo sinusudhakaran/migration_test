@@ -5167,7 +5167,7 @@ begin
         UPDATEMF.UpdateMenus;
         UPDATEMF.UpdateSystemMenus;
         HelpfulErrorMsg( 'You do not have sufficient rights to Update a file,' + #13 +
-         'please see your' + TProduct.BrandName + ' Administrator.',0);
+         'please see your ' + TProduct.BrandName + ' Administrator.',0);
         if Assigned(AdminSystem) then
           DoClientManager(0,0,0,0);
       end;
