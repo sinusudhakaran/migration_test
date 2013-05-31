@@ -86,6 +86,11 @@ var
   procedure StyleBankLinkButton(Button: TRzToolButton);
   procedure StyleECFHOnlineMenuItem(MenuItem: TMenuItem);
   procedure StyleNewClientWizardLogo(Image: TImage);
+  procedure StyleTransRangeText(TransRangeLabel: TLabel);
+  procedure StyleFinalizedText(FinalizedText: TLabel);
+  procedure StyleBudgetStartText(StartText: TLabel);
+  procedure StyleBudgetAllExclusiveText(AllExclusiveText: TLabel);
+  procedure StyleBudgetReminderNote(ReminderNoteText: TLabel);
 
   function ProductOnlineName: String;
   function BooksProductName: String;
@@ -339,7 +344,14 @@ end;
 
 function BannerTextColor: Integer;
 begin
-  Result := RGB(0, 55, 122);
+  if TProduct.ProductBrand = btBankstream then
+  begin
+    Result := RGB(0, 55, 122);
+  end
+  else
+  begin
+    Result := clWhite;
+  end;
 end;
 
 function TobBarStartColor: Integer;
@@ -373,7 +385,7 @@ function TopTitleColor: Integer;
 begin
   if TProduct.ProductBrand = btBankstream then
   begin
-    Result := clWhite;
+    Result := BannerTextColor;
   end
   else
   begin
@@ -553,7 +565,8 @@ procedure StyleLoginVersionText(VersionLabel: TLabel);
 begin
   if TProduct.ProductBrand = btBankstream then
   begin
-    VersionLabel.Align := alLeft;
+    VersionLabel.Align := alRight;
+    VersionLabel.Color := BannerTextColor;
   end;
 end;
 
@@ -569,7 +582,7 @@ procedure StyleBannerText(Text: TLabel);
 begin
   if TProduct.ProductBrand = btBankstream then
   begin
-    Text.Font.Color := clWhite;
+    Text.Font.Color := BannerTextColor;
   end;  
 end;
 
@@ -686,6 +699,66 @@ begin
   begin
     Image.Width := 32;
     Image.Height := 32;
+  end;
+end;
+
+procedure StyleTransRangeText(TransRangeLabel: TLabel);
+begin
+  if TProduct.ProductBrand = btBankstream then
+  begin
+    TransRangeLabel.Font.Color := BannerTextColor;
+  end
+  else
+  begin
+    TransRangeLabel.Font.Color := clWhite;
+  end;
+end;
+
+procedure StyleFinalizedText(FinalizedText: TLabel);
+begin
+  if TProduct.ProductBrand = btBankstream then
+  begin
+    FinalizedText.Font.Color := BannerTextColor;
+  end
+  else
+  begin
+    FinalizedText.Font.Color := clWhite;
+  end;
+end;
+
+procedure StyleBudgetStartText(StartText: TLabel);
+begin
+  if TProduct.ProductBrand = btBankstream then
+  begin
+    StartText.Font.Color := BannerTextColor;
+  end
+  else
+  begin
+    StartText.Font.Color := clWhite;
+  end;  
+end;
+
+procedure StyleBudgetAllExclusiveText(AllExclusiveText: TLabel);
+begin
+  if TProduct.ProductBrand = btBankstream then
+  begin
+    AllExclusiveText.Font.Color := BannerTextColor;
+  end
+  else
+  begin
+    AllExclusiveText.Font.Color := clWhite;
+  end;
+end;
+
+procedure StyleBudgetReminderNote(ReminderNoteText: TLabel);
+begin
+  if TProduct.ProductBrand = btBankstream then
+  begin
+    ReminderNoteText.Font.Color := BannerTextColor;
+  end
+  else
+  begin
+    ReminderNoteText.Font.Color := clWhite;
   end;
 end;
 

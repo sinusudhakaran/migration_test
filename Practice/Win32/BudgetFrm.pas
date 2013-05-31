@@ -79,7 +79,7 @@ type
     lblStart: TLabel;
     edtName: TEdit;
     lblAllExclude: TLabel;
-    Label1: TLabel;
+    lblReminderNote: TLabel;
     lblname: TLabel;
     imgGraphic: TImage;
     Restoredefaultcolumnwidths1: TMenuItem;
@@ -338,7 +338,12 @@ begin
    lblName.Font.Name := Font.Name;
    lblStart.Font.Name := Font.Name;
    lblAllexclude.Font.Name := Font.Name;
-   label1.Font.Name := Font.Name;
+   lblReminderNote.Font.Name := Font.Name;
+
+   bkBranding.StyleBudgetStartText(lblStart);
+   bkBranding.StyleBudgetAllExclusiveText(lblAllExclude);
+   bkBranding.StyleBudgetReminderNote(lblReminderNote);   
+
    bkXPThemes.ThemeForm( Self);
    DataAssigned := false;
    InitTable;

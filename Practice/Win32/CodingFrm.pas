@@ -1096,6 +1096,8 @@ begin
   //lblTransRange.Font.Color := bkBranding.TopTitleColor;
   //lblFinalised.Font.Color := bkBranding.TopTitleColor;
 
+  StyleTransRangeText(lblTransRange);
+  StyleFinalizedText(lblFinalised);
 
   //imgGraphic.Picture := AppImages.imgLogo.Picture;
   SetUpHelp;
