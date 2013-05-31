@@ -66,5 +66,13 @@ object frmECodingOptions: TfrmECodingOptions
     inherited lblPassword: TLabel
       FocusControl = ecExportOptions.edtPassword
     end
+    inherited edtPassword: TEdit
+      Height = 21
+      ExplicitHeight = 21
+    end
+    inherited edtConfirm: TEdit
+      Height = 21
+      ExplicitHeight = 21
+    end
   end
 end

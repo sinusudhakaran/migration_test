@@ -57,7 +57,8 @@ uses
   bkxpThemes,
   ComboUtils,
   CountryUtils,
-  WarningMoreFrm;
+  WarningMoreFrm,
+  bkProduct;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmECodingOptions.FormCreate(Sender: TObject);
@@ -157,9 +158,9 @@ procedure TfrmECodingOptions.BrandDialog;
 begin
  
    if ecExportOptions.ExportDestination =  ecDestWebX then
-       Caption := wfNames[ecExportOptions.WebExportFormat] + ' Options'
+       Caption := TProduct.Rebrand(wfNames[ecExportOptions.WebExportFormat]) + ' Options'
    else
-       Caption := glConst.ECODING_APP_NAME + ' Options';
+       Caption := TProduct.Rebrand(glConst.ECODING_APP_NAME) + ' Options';
 end;
 
 procedure TfrmECodingOptions.ecExportOptionscmbWebFormatsChange(
