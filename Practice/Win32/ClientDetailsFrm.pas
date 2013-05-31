@@ -726,7 +726,7 @@ begin
   // Web Export to BankLink test
   if (MyClient.clFields.clWeb_Export_Format = wfWebNotes) and not FInWizard then
   begin
-    CodeType := format( 'You have selected'#13'Web export to %s,'#13'under Accounting System.'#13#13, [WebNotesName]);
+    CodeType := format( 'You have selected'#13'Web export to %s,'#13'under Accounting System.'#13#13, [bkBranding.NotesOnlineProductName]);
     if EContact.Text = '' then
     begin
       HelpfulWarningMsg(CodeType + 'This requires a Contact Name.', 0);
