@@ -50,6 +50,8 @@ begin
     mmoBankstream.Visible := False;
     mmoEULA.Visible := True;
   end;
+
+  lAccept.Caption := TProduct.Rebrand(lAccept.Caption);
 end;
 
 procedure TDlgLicense.SetAbout(Value: Boolean);
