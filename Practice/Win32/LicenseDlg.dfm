@@ -1208,7 +1208,7 @@ object DlgLicense: TDlgLicense
       
         '          with Bankstream'#39's privacy policy.  Bankstream'#39's privac' +
         'y policy can be'
-      '          viewed at [insert website]')
+      '          viewed at www.bankstream.co.uk')
     ParentFont = False
     ReadOnly = True
     ScrollBars = ssVertical
