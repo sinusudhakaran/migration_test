@@ -29,7 +29,9 @@ uses
   classes,
   clObj32,
   sysobj32,
-  TransactionUtils;
+  TransactionUtils,
+  bkProduct,
+  bkBranding;
 
 type
   //----------------------------------------------------------------------------
@@ -200,7 +202,7 @@ begin
   Result := False;
   EmailMessage := '';
   NotifyClient := False;
-  UpdateAppStatus(Format('Export to %s', [wfNames[wfWebNotes]]),'Initializing', 5);
+  UpdateAppStatus(Format('Export to %s', [TProduct.Rebrand(wfNames[wfWebNotes])]),'Initializing', 5);
   WebClient := TWebNotesClient.CreateUsingIni(GetBK5Ini);
   service := TWebNotesDataUpload.Create;
   try
@@ -235,7 +237,7 @@ begin
 
       // The autocode may remove the Progressbar
       // So we just set it up again..
-      UpdateAppStatus(Format('Export to %s', [wfNames[wfWebNotes]]),'Sending', 10);
+      UpdateAppStatus(Format('Export to %s', [TProduct.Rebrand(wfNames[wfWebNotes])]),'Sending', 10);
 
       if WebClient.UpLoad(Batch, Reply) then
       begin
@@ -249,7 +251,7 @@ begin
             (Service.ReplyURL > '') then
             EmailMessage := format
               (#13#13'There are new %s transactions available click the link below to access %s and log in using your email address and password.'#13#13'%s'#13#13,
-              [WebNotesName, BankLinkLiveName, Service.ReplyURL]);
+              [bkBranding.NotesOnlineProductName, bkBranding.ProductOnlineName, Service.ReplyURL]);
 
 
           SaveUrl(Service.ReplyURL);
@@ -302,7 +304,7 @@ begin
     except
       on E:Exception do
       begin
-        HandleWNException(e, UnitName,Format('Export to %s',[WebNotesName]), not IsScheduledReport);
+        HandleWNException(e, UnitName,Format('Export to %s',[bkBranding.NotesOnlineProductName]), not IsScheduledReport);
         raise EWebNotesDataUploadError.Create( E.Message );
       end;
     end;

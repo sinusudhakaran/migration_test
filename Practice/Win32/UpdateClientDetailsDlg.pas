@@ -63,7 +63,7 @@ uses
   bkxpThemes,
   BKConst,
   ErrorMoreFrm,
-  ClientUtils;
+  ClientUtils, bkBranding;
 
 {$R *.dfm}
 
@@ -136,7 +136,7 @@ begin
 
     // Web Export to BankLink test
     if UsesWebNotes then begin
-      errors := format( 'You have selected'#13'Web export to %s,'#13'under Accounting System.'#13#13, [WebNotesName]);
+      errors := format( 'You have selected'#13'Web export to %s,'#13'under Accounting System.'#13#13, [bkBranding.NotesOnlineProductName]);
       if EContact.Text = '' then begin
          HelpfulWarningMsg(errors + 'This requires a Contact Name.', 0);
          CanClose := False;

@@ -249,7 +249,8 @@ uses
   ServiceAgreementDlg,
   UpdateMF,
   commctrl, bkProduct,
-  bkUrls, bkBranding;
+  bkUrls, bkBranding,
+  bkContactInformation;
 
 const
   UnitName = 'PRACDETAILSFRM';
@@ -533,20 +534,20 @@ begin
   //Notes online option is dependant on the service being enabled
   cmbWebFormats.Clear;
   for i := wfMin to wfMax do
-    if (wfNames[i] = WebNotesName) then begin
+    if (TProduct.Rebrand(wfNames[i]) = bkBranding.NotesOnlineProductName) then begin
       if (UseBankLinkOnline and not ProductConfigService.ServiceSuspended) then
         if (ProductConfigService.IsNotesOnlineEnabled) then
           if not ExcludeFromWebFormatList(AdminSystem.fdFields.fdCountry, i) then
-            cmbWebFormats.Items.AddObject(wfNames[i], TObject(i));
+            cmbWebFormats.Items.AddObject(TProduct.Rebrand(wfNames[i]), TObject(i));
     end else
       if not ExcludeFromWebFormatList(AdminSystem.fdFields.fdCountry, i) then
-        cmbWebFormats.Items.AddObject(wfNames[i], TObject(i));
+        cmbWebFormats.Items.AddObject(TProduct.Rebrand(wfNames[i]), TObject(i));
 
   //Set to default if currently Notes Online and Notes Online is disabled
   ComboUtils.SetComboIndexByIntObject(WebExportFormat, cmbWebFormats);
   if UseBankLinkOnline and not ProductConfigService.ServiceSuspended then begin
     //If web export format currently WebNotes and product not enabled then set to None
-    if (wfNames[WebExportFormat] = WebNotesName) and (not ProductConfigService.IsNotesOnlineEnabled) then
+    if (TProduct.Rebrand(wfNames[WebExportFormat]) = bkBranding.NotesOnlineProductName) and (not ProductConfigService.IsNotesOnlineEnabled) then
       ComboUtils.SetComboIndexByIntObject(wfDefault, cmbWebFormats);
   end;
 end;
@@ -1059,7 +1060,7 @@ begin
 
        //Web
        fdWeb_Export_Format         := ComboUtils.GetComboCurrentIntObject(cmbWebFormats);
-       if (wfNames[fdWeb_Export_Format] = WebNotesName) and
+       if (TProduct.Rebrand(wfNames[fdWeb_Export_Format]) = bkBranding.NotesOnlineProductName) and
           (not ProductConfigService.IsNotesOnlineEnabled) then
          fdWeb_Export_Format := wfDefault;
 
@@ -1370,7 +1371,7 @@ begin
          // Send email to support
         if (NewProducts.Count > 0) or (RemovedProducts.Count > 0) then
         begin
-          MailTo := whSupportEmail[AdminSystem.fdFields.fdCountry];
+          MailTo := TContactInformation.SupportEmail[AdminSystem.fdFields.fdCountry];
 
           MailSubject := bkBranding.ProductOnlineName + ' product and service updates (' + AdminSystem.fdFields.fdBankLink_Code + ')';
 

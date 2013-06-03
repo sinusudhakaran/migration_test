@@ -158,7 +158,7 @@ procedure TfrmECodingOptions.BrandDialog;
 begin
  
    if ecExportOptions.ExportDestination =  ecDestWebX then
-       Caption := TProduct.Rebrand(wfNames[ecExportOptions.WebExportFormat]) + ' Options'
+       Caption := TProduct.Rebrand(TProduct.Rebrand(wfNames[ecExportOptions.WebExportFormat])) + ' Options'
    else
        Caption := TProduct.Rebrand(glConst.ECODING_APP_NAME) + ' Options';
 end;

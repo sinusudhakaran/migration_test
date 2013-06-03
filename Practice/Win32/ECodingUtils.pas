@@ -737,7 +737,7 @@ begin
 
          if (aClient.clFields.clWeb_Export_Format = wfWebNotes)
          and (Dest = ecDestWebX) then begin
-            sMsg := Inttostr(Count) + ' entries successfully exported to ' + wfNames[wfWebNotes];
+            sMsg := Inttostr(Count) + ' entries successfully exported to ' + TProduct.Rebrand(wfNames[wfWebNotes]);
             HelpfulInfoMsg(sMsg, 0);
             //*** Flag Audit ***
             aClient.ClientAuditMgr.FlagAudit(arBankLinkNotesOnline, 0, aaNone, sMsg);
@@ -763,11 +763,11 @@ begin
          begin 
             // Build The email,
             //Subject should be the URL..
-            SendMailTo(Format('Export to %s Notification', [WebnotesName]),
+            SendMailTo(Format('Export to %s Notification', [bkBranding.NotesOnlineProductName]),
                        ClientUserEmail, // Recipients
 
                        Format('Export to %s, notification for %s (%s to %s)', // Subject
-                              [wfNames[wfWebNotes],
+                              [TProduct.Rebrand(wfNames[wfWebNotes]),
                                aClient.clFields.clCode,
                                bkDate2Str(DateFrom),
                                bkDate2Str(DateTo)]),
@@ -823,7 +823,7 @@ begin
            else
              AddAutomaticToDoItem( aClient.clFields.clCode,
                                    ttyExportBNotes,
-                                   Format( ToDoMsg_ManualECoding,
+                                   Format( TProduct.Rebrand(ToDoMsg_ManualECoding),
                                            [ bkDate2Str( DateFrom),
                                              bkDate2Str( DateTo),
                                              bkDate2Str(CurrentDate)

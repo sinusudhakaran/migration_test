@@ -27,7 +27,8 @@ uses
    {$ifdef MadExceptLog}
    MadExcept,
    {$endif}
-   BKUTIL32;
+   BKUTIL32,
+   bkContactInformation;
 
 const
    UnitName = 'EXCEPTH';
@@ -88,7 +89,7 @@ begin
          try
            if Assigned( AdminSystem) and ( not CurrUser.HasRestrictedAccess) then begin
              lblSupportContact1.Caption := whNames[AdminSystem.fdFields.fdCountry];
-             lblSupportContact2.Caption := whSupportPhoneNo[AdminSystem.fdFields.fdCountry];
+             lblSupportContact2.Caption := TContactInformation.SupportPhoneNo[AdminSystem.fdFields.fdCountry];
            end
             else
             begin

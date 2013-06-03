@@ -472,7 +472,7 @@ begin
       cmbWebFormats.Clear;
       for i := wfMin to wfMax do
       begin
-        if (wfNames[i] = WebNotesName) then
+        if (TProduct.Rebrand(wfNames[i]) = bkBranding.NotesOnlineProductName) then
         begin
           if (UseBankLinkOnline and
               ProductConfigService.OnLine and
@@ -480,13 +480,13 @@ begin
               (MyClient.clFields.clWeb_Export_Format = wfWebNotes) then
           begin
             if not ExcludeFromWebFormatList(clCountry, i) then
-              cmbWebFormats.Items.AddObject(wfNames[i], TObject(i));
+              cmbWebFormats.Items.AddObject(TProduct.Rebrand(wfNames[i]), TObject(i));
           end;
         end
         else
         begin
           if not ExcludeFromWebFormatList(clCountry, i) then
-            cmbWebFormats.Items.AddObject(wfNames[i], TObject(i));
+            cmbWebFormats.Items.AddObject(TProduct.Rebrand(wfNames[i]), TObject(i));
         end;
       end;
 
@@ -924,13 +924,13 @@ begin
       begin
         aMsg := Format( 'The Web Export Format for this client is set to %s. ' +
                           #13#10#13#10 + 'If you want to keep this setting, please go back to Client Details and enter a Contact Name and an Email address, or change the Web Export Format before clicking OK',
-                          [WebNotesName]);
+                          [bkBranding.NotesOnlineProductName]);
       end
       else
       begin
         aMsg := Format( 'Web export to %s requires both an Email address and a contact name' +
                         #13#10 + 'Please update the Client Details before selecting this option',
-                        [WebNotesName]);
+                        [bkBranding.NotesOnlineProductName]);
       end;
       
       HelpfulWarningMsg(aMsg, 0);

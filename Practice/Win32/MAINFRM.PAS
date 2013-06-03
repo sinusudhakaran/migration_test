@@ -5184,7 +5184,7 @@ begin
           ((not Assigned(AdminSystem)) and PRACINI_ShowImportExportInOffsite) then
          ImportOK := DoImportTRF
        else
-         HelpfulErrorMsg( 'You do not have sufficient rights to Import a ' + ECodingDisplayName + ' file,' + #13 +
+         HelpfulErrorMsg( 'You do not have sufficient rights to Import a ' + bkBranding.NotesProductName + ' file,' + #13 +
           'please see your ' + TProduct.BrandName + ' Administrator.',0);
        if Assigned(AdminSystem) then
          DoClientManager(0,0,0,0);

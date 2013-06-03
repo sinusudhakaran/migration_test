@@ -547,7 +547,7 @@ begin
       begin
         Msg := Format( 'The Web Export Format for this client is set to %s. ' +
                         #13#10#13#10 + 'If you want to keep this setting, please go back to Client Details and enter a Contact Name and an Email address, or change the Web Export Format under Accounting System before clicking OK',
-                        [WebNotesName]);
+                        [bkBranding.NotesOnlineProductName]);
                         
         HelpfulWarningMsg(Msg, 0);
 

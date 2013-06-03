@@ -25,9 +25,9 @@ uses
 var
   BankstreamSupportPhoneNo : Array[ whMin..whMax ] of String[ 20 ] = ('0800 226 554', '1 800 123 242', '0800 500 3081');
 
-  BankstreamSupportEmail : Array[ whMin..whMax ] of String[ 30 ] = ('support@banklink.co.nz', 'support@banklink.com.au', 'support@bankstream.com');
+  BankstreamSupportEmail : Array[ whMin..whMax ] of String[ 30 ] = ('support@bankstream.co.nz', 'support@bankstream.com.au', 'support@bankstream.com');
 
-  BankstreamClientServicesEmail : Array[ whMin..whMax ] of String[ 30 ] = ('clientservices@banklink.co.nz', 'clientservices@banklink.com.au', 'clientservices@bankstream.com');
+  BankstreamClientServicesEmail : Array[ whMin..whMax ] of String[ 30 ] = ('clientservices@bankstream.co.nz', 'clientservices@bankstream.com.au', 'clientservices@bankstream.com');
 
 { TContactInformation }
 
@@ -35,7 +35,7 @@ class function TContactInformation.GetClientServicesEmail(Index: Integer): Strin
 begin
   if TProduct.ProductBrand = btbankstream then
   begin
-    Result := BankstreamSupportPhoneNo[Index];
+    Result := BankstreamClientServicesEmail[Index];
   end
   else
   begin

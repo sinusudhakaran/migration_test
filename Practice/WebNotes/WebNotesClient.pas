@@ -93,7 +93,8 @@ uses
   IniFiles,
   StrUtils,
   WebUtils,
-  bkUrls;
+  bkUrls,
+  bkBranding;
 
 const
   //UnitName = 'WebNotesService';
@@ -119,7 +120,7 @@ begin
       'Please check your internet'#13 +
       'or connection settings'#13#13 +
       'Error: %s',
-      [Action, BankLinkLiveName, e.message]),0);
+      [Action, bkBranding.ProductOnlineName, e.message]),0);
 
   end
   else
@@ -128,7 +129,7 @@ begin
       '%s failed'#13#13 +
       '%s service response incorrect'#13'Please try again later'#13#13 +
       'Error: %s',
-      [Action, BankLinkLiveName, e.message]),0);
+      [Action, bkBranding.ProductOnlineName, e.message]),0);
   end;
 end;
 

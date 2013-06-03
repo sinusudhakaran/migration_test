@@ -417,7 +417,7 @@ begin
   end;
 
    // Could hide and or make disabled, Comes from Webservice...
-  lOnline.Caption := TProduct.Rebrand(format('&%s',[BankLinkLiveName]));
+  lOnline.Caption := format('&%s',[bkBranding.ProductOnlineName]);
   EOnlineLink.Text := PRACINI_OnlineLink;
 
 

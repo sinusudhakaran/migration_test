@@ -147,8 +147,10 @@ uses
   AuditMgr,
   Files,
   WebUtils,
-  UTransactionCompare;
-
+  UTransactionCompare,
+  bkBranding,
+  bkProduct;
+  
 const
    UnitName = 'WebNotesDataUpload';
    DebugMe : boolean = False;
@@ -1016,17 +1018,17 @@ begin
         bkPayee := Client.clPayee_List.Find_Payee_Number(Result);
         if Assigned(bkPayee) then begin
            if not IsNew then
-              AddToImportNotes( BKT, 'Payee ' + bkPayee.pdName + ' (' + inttostr( bkPayee.pdNumber) + ')', WebNotesName)
+              AddToImportNotes( BKT, 'Payee ' + bkPayee.pdName + ' (' + inttostr( bkPayee.pdNumber) + ')', bkBranding.NotesOnlineProductName)
         end else
-           AddToImportNotes( BKT, format('Unkown payee (%d)',[Result])  , WebNotesName);
+           AddToImportNotes( BKT, format('Unkown payee (%d)',[Result])  , bkBranding.NotesOnlineProductName);
      end else begin
         // Diffrent but zero, i.e was somthing before..
         // Cannot realy happen but he...
         bkPayee := Client.clPayee_List.Find_Payee_Number(BKT.txPayee_Number);
         if Assigned(bkPayee) then
-           AddToImportNotes( BKT, 'Payee removed ' + bkPayee.pdName + ' (' + inttostr(BKT.txPayee_Number) + ')', WebNotesName)
+           AddToImportNotes( BKT, 'Payee removed ' + bkPayee.pdName + ' (' + inttostr(BKT.txPayee_Number) + ')', bkBranding.NotesOnlineProductName)
         else
-           AddToImportNotes( BKT, format('Unkown payee (%d) removed',[BKT.txPayee_Number])  , WebNotesName);
+           AddToImportNotes( BKT, format('Unkown payee (%d) removed',[BKT.txPayee_Number])  , bkBranding.NotesOnlineProductName);
      end;
   end;
 
@@ -1061,16 +1063,16 @@ begin
               BKD.dsPayee_Number := bkPayee.pdFields.pdNumber
            else
               // Add as note..
-              AddToImportNotes( BKD, 'Payee ' + bkPayee.pdName + ' (' + inttostr( bkPayee.pdNumber) + ')', WebNotesName)
+              AddToImportNotes( BKD, 'Payee ' + bkPayee.pdName + ' (' + inttostr( bkPayee.pdNumber) + ')', bkBranding.NotesOnlineProductName)
         end else
-           AddToImportNotes( BKD, format('Unkown payee (%d)',[Result])  , WebNotesName);
+           AddToImportNotes( BKD, format('Unkown payee (%d)',[Result])  , bkBranding.NotesOnlineProductName);
      end else begin
         // Cannot realy happen but he...
         bkPayee := Client.clPayee_List.Find_Payee_Number(BKD.dsPayee_Number);
         if Assigned(bkPayee) then
-           AddToImportNotes( BKD, 'Payee removed ' + bkPayee.pdName + ' (' + inttostr(BKD.dsPayee_Number) + ')', WebNotesName)
+           AddToImportNotes( BKD, 'Payee removed ' + bkPayee.pdName + ' (' + inttostr(BKD.dsPayee_Number) + ')', bkBranding.NotesOnlineProductName)
         else
-           AddToImportNotes( BKD, format('Unkown payee (%d) removed',[BKD.dsPayee_Number])  , WebNotesName);
+           AddToImportNotes( BKD, format('Unkown payee (%d) removed',[BKD.dsPayee_Number])  , bkBranding.NotesOnlineProductName);
      end;
   end;
 
@@ -1122,7 +1124,7 @@ begin
       end else begin
         //bk5 transaction already has an amount, so add a note to import notes
         if lMoney <> 0 then
-           AddToImportNotes( BKT, 'Amount '+ Money2Str(lMoney), WebNotesName );
+           AddToImportNotes( BKT, 'Amount '+ Money2Str(lMoney), bkBranding.NotesOnlineProductName );
       end;
     end;
 
@@ -1139,7 +1141,7 @@ begin
          if GetCodeByAttr(FromNode,nCodedBy) in [cbManual] then
             NeedToUpdateGST := true;
       end else begin
-         AddToImportNotes( BKT, 'Account Code ' + LString, WebNotesName);
+         AddToImportNotes( BKT, 'Account Code ' + LString, bkBranding.NotesOnlineProductName);
       end;
     end;
 
@@ -1250,7 +1252,7 @@ begin
        or ((lMoney = 0) and (BKT.txAccount = '')) then begin
           aMsg := Client.TaxSystemNameUC + ' Amount    ' + Money2Str(LMoney);
         end;
-        AddToImportNotes(BKT, aMsg, WebNotesName);
+        AddToImportNotes(BKT, aMsg, bkBranding.NotesOnlineProductName);
     end;
 
     //tax inv
@@ -1265,7 +1267,7 @@ begin
       if BKT.txQuantity = 0 then begin
          BKT.txQuantity := lMoney;
       end else
-         AddToImportNotes(BKT , 'Quantity   ' + FormatFloat('#,##0.####', lMoney/10000), WebNotesName);
+         AddToImportNotes(BKT , 'Quantity   ' + FormatFloat('#,##0.####', lMoney/10000), bkBranding.NotesOnlineProductName);
     end;
 
     ImportSuperfund(FromNode, BKT);
@@ -1289,15 +1291,15 @@ begin
     lString := GetStringAttr(FromNode, nUPIState);
     if ((lString = upNames[upUPD]) or (lString = upNames[upUPC]) or (lString = upNames[upUPW]))
     and ( lMoney <> 0) then begin
-       AddToImportNotes( BKT, 'Amount ' + Money2Str(lMoney), WebNotesName);
+       AddToImportNotes( BKT, 'Amount ' + Money2Str(lMoney), bkBranding.NotesOnlineProductName);
     end;
     //account
     lString := GetStringAttr(FromNode,nChartCode);
     if (lString <> '') then
-       AddToImportNotes( BKT, 'Account Code ' + lString, WebNotesName);
+       AddToImportNotes( BKT, 'Account Code ' + lString, bkBranding.NotesOnlineProductName);
     //gst, tax inv
     if GetBoolAttr(FromNode, nTaxEdited) then begin
-        AddToImportNotes( BKT, Client.TaxSystemNameUC + ' Amount ' + Money2Str(GetMoneyAttr(Fromnode, nTaxAmount)), WebNotesName);
+        AddToImportNotes( BKT, Client.TaxSystemNameUC + ' Amount ' + Money2Str(GetMoneyAttr(Fromnode, nTaxAmount)), bkBranding.NotesOnlineProductName);
     end;
     //payee
     ImportPayee(FromNode, BKT, False);
@@ -1306,7 +1308,7 @@ begin
     lMoney := GetQtyAttr(FromNode,nQuantity);
     lMoney := ForceSignToMatchAmount(lMoney, GetMoneyAttr(FromNode,nAmount));
     if (lMoney <> 0) then begin
-       AddToImportNotes( BKT, 'Quantity ' + FormatFloat('#,##0.####', lMoney/10000), WebNotesName);
+       AddToImportNotes( BKT, 'Quantity ' + FormatFloat('#,##0.####', lMoney/10000), bkBranding.NotesOnlineProductName);
     end;
 
     //tax invoice
@@ -1342,14 +1344,14 @@ begin
                 aMsg := 'The franking credit amounts do not match the calculated amounts ''Franked: $' + Money2Str( BKT^.txSF_Franked) +
                 ' Unfranked: $' +  Money2Str( BKT^.txSF_UnFranked) +
                 ' Franking Credits: $' +  Money2Str( BKT^.txSF_Imputed_Credit) + '''';
-                AddToImportNotes( BKT,aMsg , WebNotesName);
+                AddToImportNotes( BKT,aMsg , bkBranding.NotesOnlineProductName);
              end;
 
           end else begin
              aMsg := 'Superfund: ''Franked: $' + Money2Str( GetMoneyAttr(FromNode, nSFFranked)) +
                 ' Unfranked: $' +  Money2Str( GetMoneyAttr(FromNode, nSFUnFranked)) +
                 ' Franking Credits: $' +  Money2Str( GetMoneyAttr(FromNode, nSFFrankingCredit)) + '''';
-                AddToImportNotes( BKT,aMsg , WebNotesName);
+                AddToImportNotes( BKT,aMsg , bkBranding.NotesOnlineProductName);
           end;
        end;
     end;
@@ -1379,14 +1381,14 @@ begin
                 aMsg := 'The franking credit amounts do not match the calculated amounts ''Franked: $' + Money2Str(BKD.dsSF_Franked) +
                 ' Unfranked: $' +  Money2Str(BKD.dsSF_UnFranked) +
                 ' Franking Credits: $' +  Money2Str(BKD.dsSF_Imputed_Credit) + '''';
-                AddToImportNotes( BKD,aMsg , WebNotesName);
+                AddToImportNotes( BKD,aMsg , bkBranding.NotesOnlineProductName);
              end;
 
           end else begin
              aMsg := 'Superfund: ''Franked: $' + Money2Str( GetMoneyAttr(FromNode, nSFFranked)) +
                 ' Unfranked: $' +  Money2Str( GetMoneyAttr(FromNode, nSFUnFranked)) +
                 ' Franking Credits: $' +  Money2Str( GetMoneyAttr(FromNode, nSFFrankingCredit)) + '''';
-                AddToImportNotes( BKD,aMsg , WebNotesName);
+                AddToImportNotes( BKD,aMsg , bkBranding.NotesOnlineProductName);
           end;
        end;
     end;
@@ -1578,7 +1580,7 @@ begin
       if short then
          Result := Format('Data from %s until %s', [bkDate2Str(FirstDate),bkDate2Str(LastDate)])
       else
-         Result := Format('%s data available from %s until %s', [WebNotesName, bkDate2Str(FirstDate),bkDate2Str(LastDate)])
+         Result := Format('%s data available from %s until %s', [bkBranding.NotesOnlineProductName, bkDate2Str(FirstDate),bkDate2Str(LastDate)])
    else
       if short then
          result := 'No data available'
@@ -1663,7 +1665,7 @@ begin
    NeedConfig := true;
 
    // Get going...
-   lAvailable.Caption := Format('Checking for %s transactions', [wfNames[wfWebNotes]]);
+   lAvailable.Caption := Format('Checking for %s transactions', [TProduct.Rebrand(wfNames[wfWebNotes])]);
    UpdateAppStatus(lAvailable.Caption,'Initializing', 0);
    WebClient := TWebNotesClient.CreateUsingIni(GetBK5Ini);
    kc := Screen.Cursor;
@@ -1679,7 +1681,7 @@ begin
          TestAvailableResponse(Reply);
    except
       on e: Exception do begin
-         HandleWNException(e,unitname, Format('Checking for %s transactions', [wfNames[wfWebNotes]]));
+         HandleWNException(e,unitname, Format('Checking for %s transactions', [TProduct.Rebrand(wfNames[wfWebNotes])]));
          Exit;
       end;
    end;
@@ -1706,7 +1708,7 @@ begin
       else
          Reply := 'more ';
 
-      lAvailable.Caption := Format('No %s%s transactions available', [Reply, wfNames[wfWebNotes] ]);
+      lAvailable.Caption := Format('No %s%s transactions available', [Reply, TProduct.Rebrand(wfNames[wfWebNotes])]);
       HelpfulInfoMsg(Format('%s for:'#13'%s',[lAvailable.Caption, Client.clExtendedName ] ),0);
    end;
 
@@ -1716,7 +1718,7 @@ procedure TWebNotesImportForm.FormCreate(Sender: TObject);
 begin
     bkXPThemes.ThemeForm( Self);
     BKHelpSetUp(Self, BKH_Importing_a_BankLink_Notes_Online_file_into_BankLink_Practice);
-    self.Caption := Format('Import from %s',[WebNotesName]);
+    self.Caption := Format('Import from %s',[bkBranding.NotesOnlineProductName]);
     ImportedCount := 0;
     NewCount := 0;
     RejectedCount := 0;
@@ -1901,7 +1903,7 @@ var
 begin
     Result := false;
 
-    UpdateAppStatus(Format('Downloading %s transactions', [wfNames[wfWebNotes]]),'Initializing', 0);
+    UpdateAppStatus(Format('Downloading %s transactions', [TProduct.Rebrand(wfNames[wfWebNotes])]),'Initializing', 0);
     WebClient := TWebNotesClient.CreateUsingIni(GetBK5Ini);
 
 
@@ -1926,7 +1928,7 @@ begin
          Result := True; // I've got the data..
 
          // Now try to update the status at the webnots end..
-         UpdateAppStatus(Format('Updating %s status', [wfNames[wfWebNotes]]),'Initializing', 0);
+         UpdateAppStatus(Format('Updating %s status', [TProduct.Rebrand(wfNames[wfWebNotes])]),'Initializing', 0);
          try
              WebClient.SetDownloadStatus(DownloadId, nBatchComplete, Reply);
              // Could test the response, but not much I can do to fix a problem
@@ -1937,7 +1939,7 @@ begin
 
    except
       on e: Exception do
-         HandleWNException(e,UnitName,format('Downloading %s transactions', [wfNames[wfWebNotes]]));
+         HandleWNException(e,UnitName,format('Downloading %s transactions', [TProduct.Rebrand(wfNames[wfWebNotes])]));
 
    end;
    finally
@@ -1961,7 +1963,7 @@ var
   lPayee: Integer;
   BkPayee: TPayee;
 begin
-  AddToImportNotes(BKT, 'Dissection cannot be imported.  Details added to notes', WebNotesName);
+  AddToImportNotes(BKT, 'Dissection cannot be imported.  Details added to notes', bkBranding.NotesOnlineProductName);
 
   ExtraNotes := TStringList.Create;
   try

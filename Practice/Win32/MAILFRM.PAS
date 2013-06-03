@@ -213,7 +213,8 @@ Uses
   LogUtil,
   WinUtils,
   BKDEFS, StDate, bkDateUtils, ClientHomePageFrm, ThirdPartyHelper,
-  bkBranding, bkProduct;
+  bkBranding, bkProduct,
+  bkContactInformation;
 
 {$R *.DFM}
 
@@ -238,7 +239,7 @@ begin
    result := '';
 
    if Assigned( AdminSystem) then
-     result := whSupportEmail[ AdminSystem.fdFields.fdCountry ]
+     result := TContactInformation.SupportEmail[ AdminSystem.fdFields.fdCountry ]
    else
    if ThirdPartyDLLDetected and ( ThirdPartySupportName <> '') then
    begin
@@ -1808,7 +1809,7 @@ begin
       EMAIL_CHECKOUT,
       EMAIL_BANKLINK_ONLINE  : Result := BOOKS_FILE;
       EMAIL_WEBNOTES         : begin
-                                  Result := format('New %s transactions are available', [WebNotesName]);
+                                  Result := format('New %s transactions are available', [bkBranding.NotesOnlineProductName]);
                                   Exit;
                                end;
       EMAIL_BUSINESS_PRODUCT : Result := BUSINESS_FILE;

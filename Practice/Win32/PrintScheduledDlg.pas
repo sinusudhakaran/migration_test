@@ -1285,7 +1285,7 @@ begin
     msg := msg + ', ' + glConst.WEBX_GENERIC_APP_NAME + ' Files';
 
   msg := msg + ', ' + bkBranding.BooksProductName  + ', ' +
-    bkBranding.BooksProductName + ' Files via ' + bkConst.BankLinkLiveName;
+    bkBranding.BooksProductName + ' Files via ' + bkBranding.ProductOnlineName;
 
   if cbToBusinessProducts.Visible then
     msg := msg + ', Business Product Files';
@@ -1497,8 +1497,8 @@ end;
 
 procedure TdlgPrintScheduled.btnWebNotesMsgClick(Sender: TObject);
 begin
-    EditScheduledReportsMessage( Format ('%s Message', [bkconst.WebNotesName] ),
-       Format ('Type a subject and a message which will be added to all %s notifications sent when Scheduled Reports are generated.',[bkconst.WebNotesName]),
+    EditScheduledReportsMessage( Format ('%s Message', [bkBranding.NotesOnlineProductName] ),
+       Format ('Type a subject and a message which will be added to all %s notifications sent when Scheduled Reports are generated.',[bkBranding.NotesOnlineProductName]),
                                webNotesSubject,
                                WebNotesMessage);
 end;

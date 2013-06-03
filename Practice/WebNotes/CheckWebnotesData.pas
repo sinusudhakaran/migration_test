@@ -74,7 +74,8 @@ uses
   Globals,
   WebNotesSchema,
   WebUtils,
-  SysUtils;
+  SysUtils,
+  bkBranding;
 
 const
   IniSection = 'WebNotes';
@@ -653,7 +654,7 @@ begin
       if Count > 0 then
       begin
         Result := format('%s transactions available from %s until %s',
-                         [WebnotesName,
+                         [bkBranding.NotesOnlineProductName,
                          bkdate2str(FirstDate),
                          bkdate2str(LastDate)]);
       end;

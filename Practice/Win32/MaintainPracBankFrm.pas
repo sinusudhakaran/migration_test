@@ -130,7 +130,8 @@ uses
   HistoricalDlg,
   AuditMgr,
   ClientHomePageFrm,
-  bkUrls;
+  bkUrls,
+  bkContactInformation;
 
 //------------------------------------------------------------------------------
 procedure TfrmMaintainPracBank.FormCreate(Sender: TObject);
@@ -490,10 +491,10 @@ begin
     begin
       //Send the frequency change request
       case AdminSystem.fdFields.fdCountry of
-        whAustralia: Recipient := whClientServicesEmail[whAustralia];
-        whUK: Recipient := whClientServicesEmail[whUK];
+        whAustralia: Recipient := TContactInformation.ClientServicesEmail[whAustralia];
+        whUK: Recipient := TContactInformation.ClientServicesEmail[whUK];
       else
-        Recipient := whClientServicesEmail[whNewZealand];
+        Recipient := TContactInformation.ClientServicesEmail[whNewZealand];
       end;
 
       Body := FrequencyRequestForm.GetBodyText(AdminSystem.fdFields.fdBankLink_Code);
@@ -762,9 +763,9 @@ var
         // Make up the parts...
         Result := False;
         case AdminSystem.fdFields.fdCountry of
-           whAustralia: Recipient := whClientServicesEmail[whAustralia];
-           whUK: Recipient := whClientServicesEmail[whUK];
-           else Recipient := whClientServicesEmail[whNewZealand];
+           whAustralia: Recipient := TContactInformation.ClientServicesEmail[whAustralia];
+           whUK: Recipient := TContactInformation.ClientServicesEmail[whUK];
+           else Recipient := TContactInformation.ClientServicesEmail[whNewZealand];
         end;
 
          Body := format(

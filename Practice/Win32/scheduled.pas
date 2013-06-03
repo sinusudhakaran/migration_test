@@ -162,7 +162,7 @@ uses
   RptDateUtils, BKDEFS, BaList32, SysObj32, SBAList32, trxList32,
   ReportImages, cfList32, usrlist32, PrintMgrObj, WinUtils, WebXOffice,
   ClientUtils, BusinessProductsExport, Windows, ClientHomePageFrm, ClientManagerFrm,
-  Math, UBatchBase, grpList32, ctypelist32, bkBranding;
+  Math, UBatchBase, grpList32, ctypelist32, bkBranding, bkProduct;
 
 Const
    UnitName = 'SCHEDULED';
@@ -1877,7 +1877,7 @@ begin
                   else
                     AddAutomaticToDoItem( aClient.clFields.clCode,
                                    ttyExportBNotes,
-                                   Format( ToDoMsg_ManualECoding,
+                                   Format( TProduct.Rebrand(ToDoMsg_ManualECoding),
                                            [ bkDate2Str( srOptions.srTrxFromDate),
                                              bkDate2Str( srOptions.srTrxToDate),
                                              bkDate2Str(CurrentDate)
@@ -2068,7 +2068,7 @@ begin
                rdWebX      : case MyClient.clFields.clWeb_Export_Format of
                                  wfNone : DestString :=  '';
                                  wfWebX :  DestString := glConst.WEBX_APP_NAME;
-                                 wfWebNotes :  DestString := WebNotesName;
+                                 wfWebNotes :  DestString := bkBranding.NotesOnlineProductName;
                              end;
                rdCSVExport : DestString := 'CSV Export';
                rdCheckOut  : DestString := bkBranding.BooksProductName;

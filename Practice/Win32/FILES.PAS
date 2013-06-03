@@ -1615,7 +1615,7 @@ begin
                                                ClientUserEmail, ClientUserName, AFirstUpload);
                 if DebugMe then
                   LogUtil.LogMsg(lmDebug, UnitName, Format('%s : Uploaded to %s',
-                                 [ThisMethodName, BankLinkLiveName]));
+                                 [ThisMethodName, bkBranding.ProductOnlineName]));
               end;
       end;
     except
@@ -1889,7 +1889,7 @@ begin
                                              ANotifyPractice, NotifyEmailAddress);
               if DebugMe then
                 LogUtil.LogMsg(lmDebug, UnitName, Format('%s : Uploaded to %s',
-                               [ThisMethodName, BankLinkLiveName]));
+                               [ThisMethodName, bkBranding.ProductOnlineName]));
             end;
     end;
   except
