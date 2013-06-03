@@ -334,7 +334,7 @@ function BannerColor: Integer;
 begin
   if TProduct.ProductBrand = btBankstream then
   begin
-    Result := clWhite;
+    Result := RGB(255, 255, 255);
   end
   else
   begin
