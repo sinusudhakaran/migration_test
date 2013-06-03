@@ -360,7 +360,7 @@ begin
    btnEmailMsg.Hint :=
       'Setup the E-mail message that the Reports will be attached to';
    btnBNotesMsg.Hint :=
-      'Setup the ' + glConst.ECoding_App_Name + ' E-mail message that the Reports will be attached to';
+      'Setup the ' + bkBranding.NotesProductName + ' E-mail message that the Reports will be attached to';
    btnCheckOutMsg.Hint :=
       'Setup the ' + bkBranding.BooksProductName + ' E-mail message that the Reports will be attached to';
    {btnBusinessProductsMsg.Hint :=
@@ -369,7 +369,7 @@ begin
                  'Transactions received in selected month which have not been sent yet';
    rbAll.Hint := 'All transactions received in selected month|' +
                  'All transactions received in selected month';
-   cbToECoding.Hint := 'Include reports to be sent via a ' + glConst.ECoding_App_Name + ' file';
+   cbToECoding.Hint := 'Include reports to be sent via a ' + bkBranding.NotesProductName + ' file';
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TdlgPrintScheduled.rbRangeClick(Sender: TObject);
@@ -1257,9 +1257,9 @@ end;
 
 procedure TdlgPrintScheduled.btnBNotesMsgClick(Sender: TObject);
 begin
-  EditScheduledReportsMessage( glConst.ECODING_APP_NAME + ' Message',
+  EditScheduledReportsMessage( bkBranding.NotesProductName + ' Message',
                                'Type a subject and a message which will be added to all ' +
-                               glConst.ECODING_APP_NAME + ' files sent when Scheduled Reports are generated.',
+                               bkBranding.NotesProductName + ' files sent when Scheduled Reports are generated.',
                                BNotesSubject,
                                BNotesMessage);
 
@@ -1280,7 +1280,7 @@ var
 begin
   msg := 'You have not specified one of the following destinations :'+#13#10 +
     'Printed Reports, Faxed Reports, E-Mailed Reports, ' +
-    glConst.ECODING_APP_NAME + ' Files';
+    bkBranding.NotesProductName + ' Files';
 
   if cbToWebX.Visible then
     msg := msg + ', ' + glConst.WEBX_GENERIC_APP_NAME + ' Files';

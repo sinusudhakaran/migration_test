@@ -71,7 +71,8 @@ uses
    SuperfieldsUtils,
    ECodingUtils, ClientUtils, SchedRepUtils, Globals,
    ISO_4217,
-   ForexHelpers;
+   ForexHelpers,
+   bkBranding;
 
 const
    UnitName = 'BNotesInterface';
@@ -963,7 +964,7 @@ begin
       begin
         //bk5 transaction already has an amount, so add a note to import notes
         if ECT^.txAmount <> 0 then
-          AddToImportNotes( BKT, 'Amount '+ Money2Str( ECT^.txAmount), glConst.ECODING_APP_NAME);
+          AddToImportNotes( BKT, 'Amount '+ Money2Str( ECT^.txAmount), bkBranding.NotesProductName);
       end;
     end;
 
@@ -981,7 +982,7 @@ begin
           NeedToUpdateGST     := true;
       end
       else begin
-        AddToImportNotes( BKT, 'Account Code ' + ECT.txAccount, glConst.ECODING_APP_NAME);
+        AddToImportNotes( BKT, 'Account Code ' + ECT.txAccount, bkBranding.NotesProductName);
       end;
     end;
 
@@ -995,7 +996,7 @@ begin
       if (Assigned( ecPayee) and ( ecPayee.pdFields.pdAdded_By_ECoding)) then
       begin
         //new payee, flag in import notes
-        AddToImportNotes( BKT, UnknownPayeeMsg( ecPayee), glConst.ECODING_APP_NAME);
+        AddToImportNotes( BKT, UnknownPayeeMsg( ecPayee), bkBranding.NotesProductName);
       end
       else
       begin
@@ -1009,7 +1010,7 @@ begin
         begin
           if not Assigned( bkPayee) then
           begin
-            AddToImportNotes( BKT, UnknownPayeeMsg( ecPayee), glConst.ECODING_APP_NAME);
+            AddToImportNotes( BKT, UnknownPayeeMsg( ecPayee), bkBranding.NotesProductName);
           end
           else
           begin
@@ -1028,7 +1029,7 @@ begin
             else
               AddToImportNotes( BKT, 'Payee ' + bkPayee.pdName +
                                      ' (' + inttostr( bkPayee.pdNumber) + ')',
-                                     glConst.ECODING_APP_NAME);
+                                     bkBranding.NotesProductName);
           end;
         end;
       end;
@@ -1066,7 +1067,7 @@ begin
       ecJob := ecFile.ecJobs.Find_Job_Code(ECT^.txJob_Code);
       bkJob := aClient.clJobs.FindCode(ECT^.txJob_Code);
       if Assigned(ecJob) and not Assigned(bkJob) then
-        AddToImportNotes(BKT, UnknownJobMsg(ecJob), glConst.ECODING_APP_NAME)
+        AddToImportNotes(BKT, UnknownJobMsg(ecJob), bkBranding.NotesProductName)
       else
       begin
         //if there was no existing job then apply new job
@@ -1080,9 +1081,9 @@ begin
         begin
           //add notes
           if ECT^.txJob_Code = '' then
-            AddToImportNotes(BKT, 'Job Removed', glConst.ECODING_APP_NAME)  //deleted job
+            AddToImportNotes(BKT, 'Job Removed', bkBranding.NotesProductName)  //deleted job
           else
-            AddToImportNotes(BKT, 'Job ' + bkJob.jhHeading + ' (' + bkJob.jhCode + ')', glConst.ECODING_APP_NAME);
+            AddToImportNotes(BKT, 'Job ' + bkJob.jhHeading + ' (' + bkJob.jhCode + ')', bkBranding.NotesProductName);
 
         end;
 
@@ -1141,7 +1142,7 @@ begin
       begin
          aMsg := aClient.TaxSystemNameUC + ' Amount    ' + Money2Str( ECT.txGST_Amount);
       end;
-      AddToImportNotes( BKT, aMsg, glConst.ECODING_APP_NAME);
+      AddToImportNotes( BKT, aMsg, bkBranding.NotesProductName);
     end;
 
     //tax inv
@@ -1159,7 +1160,7 @@ begin
         BKT.txTransfered_To_Online := False;
       end
       else
-         AddToImportNotes( BKT, 'Quantity   ' + FormatFloat('#,##0.####', ECT.txQuantity/10000), glConst.ECODING_APP_NAME);
+         AddToImportNotes( BKT, 'Quantity   ' + FormatFloat('#,##0.####', ECT.txQuantity/10000), bkBranding.NotesProductName);
     end;
 
      //Superfields
@@ -1185,14 +1186,14 @@ begin
                 aMsg := 'The franking credit amounts do not match the calculated amounts ''Franked: $' + Money2Str( BKT^.txSF_Franked) +
                 ' Unfranked: $' +  Money2Str( BKT^.txSF_UnFranked) +
                 ' Franking Credits: $' +  Money2Str( BKT^.txSF_Imputed_Credit) + '''';
-                AddToImportNotes( BKT,aMsg , glConst.ECODING_APP_NAME);
+                AddToImportNotes( BKT,aMsg , bkBranding.NotesProductName);
              end;
 
           end else begin
              aMsg := 'Superfund: ''Franked: $' + Money2Str( ECT^.txSF_Franked) +
                 ' Unfranked: $' +  Money2Str( ECT^.txSF_UnFranked) +
                 ' Franking Credits: $' +  Money2Str( ECT^.txSF_Franking_Credit) + '''';
-                AddToImportNotes( BKT,aMsg , glConst.ECODING_APP_NAME);
+                AddToImportNotes( BKT,aMsg , bkBranding.NotesProductName);
 
           end;
        end;
@@ -1218,15 +1219,15 @@ begin
 
     if ( ECT.txUPI_State in [ upUPD, upUPC, upUPW]) and ( ECT.txAmount <> 0) then
     begin
-       AddToImportNotes( BKT, 'Amount ' + Money2Str( ECT.txAmount), glConst.ECODING_APP_NAME);
+       AddToImportNotes( BKT, 'Amount ' + Money2Str( ECT.txAmount), bkBranding.NotesProductName);
     end;
     //account
     if ( ECT.txAccount <> '') then
-       AddToImportNotes( BKT, 'Account Code ' + ECT.txAccount, glConst.ECODING_APP_NAME);
+       AddToImportNotes( BKT, 'Account Code ' + ECT.txAccount, bkBranding.NotesProductName);
     //gst, tax inv
     if ( ECT.txGST_Has_Been_Edited) then
     begin
-       AddToImportNotes( BKT, aClient.TaxSystemNameUC + ' Amount ' + Money2Str( ECT.txGST_Amount), glConst.ECODING_APP_NAME);
+       AddToImportNotes( BKT, aClient.TaxSystemNameUC + ' Amount ' + Money2Str( ECT.txGST_Amount), bkBranding.NotesProductName);
     end;
     //payee
     if ( ECT.txPayee_Number <> 0) and ( ECT.txPayee_Number <> BKT.txPayee_Number) then
@@ -1237,15 +1238,15 @@ begin
        if Assigned( bkPayee) and ((ecPayee = nil) or (not ecPayee.pdFields.pdAdded_By_ECoding)) then
          AddToImportNotes( BKT, ' Payee ' + bkPayee.pdName +
                                 ' (' + inttostr( bkPayee.pdNumber) + ')',
-                                glConst.ECODING_APP_NAME)
+                                bkBranding.NotesProductName)
        else
-         AddToImportNotes( BKT, UnknownPayeeMsg( ecPayee), glConst.ECODING_APP_NAME);
+         AddToImportNotes( BKT, UnknownPayeeMsg( ecPayee), bkBranding.NotesProductName);
     end;
     //quantity
     ECT^.txQuantity := ForceSignToMatchAmount( ECT^.txQuantity, ECT^.txAmount);
     if ( ECT.txQuantity <> 0) then
     begin
-       AddToImportNotes( BKT, 'Quantity ' + FormatFloat('#,##0.####', ECT.txQuantity/10000), glConst.ECODING_APP_NAME);
+       AddToImportNotes( BKT, 'Quantity ' + FormatFloat('#,##0.####', ECT.txQuantity/10000), bkBranding.NotesProductName);
     end;
 
     //tax invoice
@@ -1306,7 +1307,7 @@ var
   NewLine    : string;
   ECPayee    : ecPayeeObj.TecPayee;
 begin
-  AddToImportNotes( T, 'Dissection cannot be imported.  Details added to notes', glConst.ECODING_APP_NAME);
+  AddToImportNotes( T, 'Dissection cannot be imported.  Details added to notes', bkBranding.NotesProductName);
 
   ExtraNotes := TStringList.Create;
   try
@@ -1367,7 +1368,7 @@ begin
     ecJob := ecFile.ecJobs.Find_Job_Code(ECT^.txJob_Code);
     bkJob := aClient.clJobs.FindCode(ECT^.txJob_Code);
     if Assigned(ecJob) and not Assigned(bkJob) then
-      AddToImportNotes(BKT, UnknownJobMsg(ecJob), glConst.ECODING_APP_NAME)
+      AddToImportNotes(BKT, UnknownJobMsg(ecJob), bkBranding.NotesProductName)
     else
     begin
       //if there was no existing job then apply new job
@@ -1381,10 +1382,10 @@ begin
       begin
         //add notes
         if ECT^.txJob_Code = '' then
-          AddToImportNotes(BKT, 'Job Removed', glConst.ECODING_APP_NAME)
+          AddToImportNotes(BKT, 'Job Removed', bkBranding.NotesProductName)
         else
           //deleted job
-          AddToImportNotes(BKT, 'Job ' + bkJob.jhHeading + ' (' + bkJob.jhCode + ')', glConst.ECODING_APP_NAME);
+          AddToImportNotes(BKT, 'Job ' + bkJob.jhHeading + ' (' + bkJob.jhCode + ')', bkBranding.NotesProductName);
       end;
     end;
   end;
@@ -1402,7 +1403,7 @@ begin
     ecJob := ecFile.ecJobs.Find_Job_Code(ECD^.dsJob_Code);
     bkJob := aClient.clJobs.FindCode(ECD^.dsJob_Code);
     if Assigned(ecJob) and not Assigned(bkJob) then
-      AddToImportNotes(BKD, UnknownJobMsg(ecJob), glConst.ECODING_APP_NAME)
+      AddToImportNotes(BKD, UnknownJobMsg(ecJob), bkBranding.NotesProductName)
     else
     begin
       //if there was no existing job then apply new job
@@ -1415,10 +1416,10 @@ begin
       begin
         //add notes
         if ECD^.dsJob_Code = '' then
-          AddToImportNotes(BKD, 'Job Removed', glConst.ECODING_APP_NAME)
+          AddToImportNotes(BKD, 'Job Removed', bkBranding.NotesProductName)
         else
           //deleted job
-          AddToImportNotes(BKD, 'Job ' + bkJob.jhHeading + ' (' + bkJob.jhCode + ')', glConst.ECODING_APP_NAME);
+          AddToImportNotes(BKD, 'Job ' + bkJob.jhHeading + ' (' + bkJob.jhCode + ')', bkBranding.NotesProductName);
       end;
     end;
   end;
@@ -1490,9 +1491,9 @@ begin
     if ect^.txPayee_Number <> 0 then
     begin
       if Assigned( bkPayee) and (( ecPayee = nil) or (not ecPayee.pdFields.pdAdded_By_ECoding)) then
-        AddToImportNotes( BKT, 'Payee ' + bkPayee.pdName + ' (' + inttostr( bkPayee.pdNumber) + ')', glConst.ECODING_APP_NAME)
+        AddToImportNotes( BKT, 'Payee ' + bkPayee.pdName + ' (' + inttostr( bkPayee.pdNumber) + ')', bkBranding.NotesProductName)
       else
-        AddToImportNotes( BKT, UnknownPayeeMsg( ecPayee), glConst.ECODING_APP_NAME);
+        AddToImportNotes( BKT, UnknownPayeeMsg( ecPayee), bkBranding.NotesProductName);
     end;
   end;
 
@@ -1556,7 +1557,7 @@ begin
       if ( ECD.dsGST_Amount <> BKD.dsGST_Amount) or
          (( ECD.dsGST_Amount = 0) and ( BKD.dsAccount = '')) then
       begin
-        AddToImportNotes( BKD, aClient.TaxSystemNameUC + ' Amount  ' + Money2Str( ECD.dsGST_Amount), glConst.ECODING_APP_NAME);
+        AddToImportNotes( BKD, aClient.TaxSystemNameUC + ' Amount  ' + Money2Str( ECD.dsGST_Amount), bkBranding.NotesProductName);
       end;
 
     //Quantity
@@ -1568,7 +1569,7 @@ begin
         BKD^.dsQuantity := ECD^.dsQuantity;
       end
       else
-        AddToImportNotes( BKD, 'Quantity  ' + FormatFloat('#,##0.####', ECD.dsQuantity/10000), glConst.ECODING_APP_NAME);
+        AddToImportNotes( BKD, 'Quantity  ' + FormatFloat('#,##0.####', ECD.dsQuantity/10000), bkBranding.NotesProductName);
     end;
 
     //Tax Invoice
@@ -1588,9 +1589,9 @@ begin
         ecPayee := ecFile.ecPayees.Find_Payee_Number( ECD^.dsPayee_Number);
 
         if Assigned( bkPayee) and (( ecPayee = nil) or (not ecPayee.pdFields.pdAdded_By_ECoding)) then
-          AddToImportNotes( BKD, 'Payee ' + bkPayee.pdName + ' (' + inttostr( bkPayee.pdNumber) + ')', glConst.ECODING_APP_NAME)
+          AddToImportNotes( BKD, 'Payee ' + bkPayee.pdName + ' (' + inttostr( bkPayee.pdNumber) + ')', bkBranding.NotesProductName)
         else
-          AddToImportNotes( BKD, UnknownPayeeMsg( ecPayee), glConst.ECODING_APP_NAME);
+          AddToImportNotes( BKD, UnknownPayeeMsg( ecPayee), bkBranding.NotesProductName);
       end;
     end;
 
@@ -1696,13 +1697,13 @@ begin
              if FrankingCredit(BKD^.dsSF_Franked, BKT^.txDate_Effective) <> BKD^.dsSF_Imputed_Credit  then begin
                   AddToImportNotes( BKD,'The franking credit amounts do not match the calculated amounts ''Franked: $' + Money2Str( BKd^.dsSF_Franked) +
                   ' Unfranked: $' +  Money2Str( BKD^.dsSF_UnFranked) +
-                  ' Franking Credits: $' +  Money2Str( BKD^.dsSF_Imputed_Credit) + '''', glConst.ECODING_APP_NAME) ;
+                  ' Franking Credits: $' +  Money2Str( BKD^.dsSF_Imputed_Credit) + '''', bkBranding.NotesProductName) ;
              end;
           end else begin
              // Just make a Note..
              AddToImportNotes( BKD,'Superfund ''Franked: $' + Money2Str( ECD^.dsSF_Franked) +
                   ' Unfranked: $' +  Money2Str( ECD^.dsSF_UnFranked) +
-                  ' Franking Credits: $' +  Money2Str( ECD^.dsSF_Franking_Credit) + '''', glConst.ECODING_APP_NAME) ;
+                  ' Franking Credits: $' +  Money2Str( ECD^.dsSF_Franking_Credit) + '''', bkBranding.NotesProductName) ;
           end;
        end;
     end;
@@ -1777,7 +1778,7 @@ begin
       if ( ECD^.dsGST_Amount <> BKD^.dsGST_Amount) or
          (( ECD^.dsGST_Amount = 0) and ( BKD^.dsAccount = ''))
       then
-        AddToImportNotes( BKD, aClient.TaxSystemNameUC + ' Amount  ' + Money2Str( ECD^.dsGST_Amount), glConst.ECODING_APP_NAME);
+        AddToImportNotes( BKD, aClient.TaxSystemNameUC + ' Amount  ' + Money2Str( ECD^.dsGST_Amount), bkBranding.NotesProductName);
 
     BKD.dsQuantity          := ForceSignToMatchAmount( ECD.dsQuantity, BKD.dsAmount);
     BKD.dsNotes             := ECD.dsNotes;
@@ -1806,13 +1807,13 @@ begin
              if FrankingCredit(BKD^.dsSF_Franked, BKT^.txDate_Effective) <> BKD^.dsSF_Imputed_Credit  then begin
                   AddToImportNotes( BKD,'The franking credit amounts do not match the calculated amounts ''Franked: $' + Money2Str( BKd^.dsSF_Franked) +
                   ' Unfranked: $' +  Money2Str( BKD^.dsSF_UnFranked) +
-                  ' Franking Credits: $' +  Money2Str( BKD^.dsSF_Imputed_Credit) + '''', glConst.ECODING_APP_NAME) ;
+                  ' Franking Credits: $' +  Money2Str( BKD^.dsSF_Imputed_Credit) + '''', bkBranding.NotesProductName) ;
              end;
           end else begin
              // Just make a Note..
              AddToImportNotes( BKD,'Superfund ''Franked: $' + Money2Str( ECD^.dsSF_Franked) +
                   ' Unfranked: $' +  Money2Str( ECD^.dsSF_UnFranked) +
-                  ' Franking Credits: $' +  Money2Str( ECD^.dsSF_Franking_Credit) + '''', glConst.ECODING_APP_NAME) ;
+                  ' Franking Credits: $' +  Money2Str( ECD^.dsSF_Franking_Credit) + '''', bkBranding.NotesProductName) ;
           end;
        end;
     end;
@@ -1864,7 +1865,7 @@ begin
     if Assigned( ecPayee) and (ecPayee.pdFields.pdAdded_By_ECoding) then
     begin
       //payee is new, don't try to match it
-      AddToImportNotes( BKT, UnknownPayeeMsg( ecPayee), glConst.ECODING_APP_NAME);
+      AddToImportNotes( BKT, UnknownPayeeMsg( ecPayee), bkBranding.NotesProductName);
     end
     else
     begin
@@ -1873,7 +1874,7 @@ begin
       if not Assigned( bkPayee) then
       begin
         //no matching payee found in bk5
-        AddToImportNotes( BKT, UnknownPayeeMsg( ecPayee), glConst.ECODING_APP_NAME);
+        AddToImportNotes( BKT, UnknownPayeeMsg( ecPayee), bkBranding.NotesProductName);
       end
       else
       begin
@@ -1991,7 +1992,7 @@ begin
       if ( ECD^.dsGST_Amount <> BKD^.dsGST_Amount) or
          (( ECD^.dsGST_Amount = 0) and ( BKD^.dsAccount = ''))
       then
-        AddToImportNotes( BKD, aClient.TaxSystemNameUC + ' Amount  ' + Money2Str( ECD^.dsGST_Amount), glConst.ECODING_APP_NAME);
+        AddToImportNotes( BKD, aClient.TaxSystemNameUC + ' Amount  ' + Money2Str( ECD^.dsGST_Amount), bkBranding.NotesProductName);
 
     //Quantity
     BKD.dsQuantity          := ForceSignToMatchAmount( ECD.dsQuantity, BKD.dsAmount);
@@ -2026,13 +2027,13 @@ begin
              if FrankingCredit(BKD^.dsSF_Franked, BKT^.txDate_Effective) <> BKD^.dsSF_Imputed_Credit  then begin
                   AddToImportNotes( BKD,'The franking credit amounts do not match the calculated amounts ''Franked: $' + Money2Str( BKd^.dsSF_Franked) +
                   ' Unfranked: $' +  Money2Str( BKD^.dsSF_UnFranked) +
-                  ' Franking Credits: $' +  Money2Str( BKD^.dsSF_Imputed_Credit) + '''', glConst.ECODING_APP_NAME) ;
+                  ' Franking Credits: $' +  Money2Str( BKD^.dsSF_Imputed_Credit) + '''', bkBranding.NotesProductName) ;
              end;
           end else begin
              // Just make a Note..
              AddToImportNotes( BKD,'Superfund ''Franked: $' + Money2Str( ECD^.dsSF_Franked) +
                   ' Unfranked: $' +  Money2Str( ECD^.dsSF_UnFranked) +
-                  ' Franking Credits: $' +  Money2Str( ECD^.dsSF_Franking_Credit) + '''', glConst.ECODING_APP_NAME) ;
+                  ' Franking Credits: $' +  Money2Str( ECD^.dsSF_Franking_Credit) + '''', bkBranding.NotesProductName) ;
           end;
        end;
     end;
@@ -2127,7 +2128,7 @@ begin
       ecPayee := ecFile.ecPayees.Find_Payee_Number( ECD^.dsPayee_Number);
       if ( Assigned( ecPayee) and ( ecPayee.pdFields.pdAdded_By_ECoding)) then
       begin
-        AddToImportNotes( BKD, UnknownPayeeMsg( ecPayee), glConst.ECODING_APP_NAME);
+        AddToImportNotes( BKD, UnknownPayeeMsg( ecPayee), bkBranding.NotesProductName);
       end
       else
       begin
@@ -2135,7 +2136,7 @@ begin
 
         if not Assigned( bkPayee) then
         begin
-          AddToImportNotes( BKD, UnknownPayeeMsg( ecPayee), glConst.ECODING_APP_NAME);
+          AddToImportNotes( BKD, UnknownPayeeMsg( ecPayee), bkBranding.NotesProductName);
           UseBK5PayeeInformation := false;
         end
         else
@@ -2222,7 +2223,7 @@ begin
       if ( ECD^.dsGST_Amount <> BKD^.dsGST_Amount) or
          (( ECD^.dsGST_Amount = 0) and ( BKD^.dsAccount = ''))
       then
-        AddToImportNotes( BKD, aClient.TaxSystemNameUC + ' Amount  ' + Money2Str( ECD^.dsGST_Amount), glConst.ECODING_APP_NAME);
+        AddToImportNotes( BKD, aClient.TaxSystemNameUC + ' Amount  ' + Money2Str( ECD^.dsGST_Amount), bkBranding.NotesProductName);
 
     ImportDissectionJob(ECT, ECfile, BKD, ECD, aClient);
 
@@ -2248,13 +2249,13 @@ begin
              if FrankingCredit(BKD^.dsSF_Franked, BKT^.txDate_Effective) <> BKD^.dsSF_Imputed_Credit  then begin
                   AddToImportNotes( BKD,'The franking credit amounts do not match the calculated amounts ''Franked: $' + Money2Str( BKd^.dsSF_Franked) +
                   ' Unfranked: $' +  Money2Str( BKD^.dsSF_UnFranked) +
-                  ' Franking Credits: $' +  Money2Str( BKD^.dsSF_Imputed_Credit) + '''', glConst.ECODING_APP_NAME) ;
+                  ' Franking Credits: $' +  Money2Str( BKD^.dsSF_Imputed_Credit) + '''', bkBranding.NotesProductName) ;
              end;
           end else begin
              // Just make a Note..
               AddToImportNotes( BKD,'Superfund ''Franked: $' + Money2Str( ECD^.dsSF_Franked) +
                   ' Unfranked: $' +  Money2Str( ECD^.dsSF_UnFranked) +
-                  ' Franking Credits: $' +  Money2Str( ECD^.dsSF_Franking_Credit) + '''', glConst.ECODING_APP_NAME) ;
+                  ' Franking Credits: $' +  Money2Str( ECD^.dsSF_Franking_Credit) + '''', bkBranding.NotesProductName) ;
           end;
        end;
     end;

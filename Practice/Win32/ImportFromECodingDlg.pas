@@ -190,7 +190,7 @@ begin
 
 
         else
-          HelpfulWarningMsg('You must specify a file name to import the ' + glConst.ECODING_APP_NAME + ' file from.',0);
+          HelpfulWarningMsg('You must specify a file name to import the ' + bkBranding.NotesProductName + ' file from.',0);
         exit;
      end;
 

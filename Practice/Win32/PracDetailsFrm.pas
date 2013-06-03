@@ -2032,7 +2032,7 @@ begin
             if YesNoDlg.AskYesNo( 'Confirm Logo',
                                   'The file that you have selected is quite large ' +
                                   ' (' + IntToStr( fSize div 1024) + 'Kb) and will greatly increase the size '+
-                                  'of your ' + glConst.ECODING_APP_NAME + ' and ' +
+                                  'of your ' + bkBranding.NotesProductName + ' and ' +
                                    bkBranding.BooksProductName + ' files.'#13#13 +
                                    'Please confirm that you wish to use this file.',
                                    DLG_YES, 0) <> DLG_YES then

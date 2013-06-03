@@ -496,7 +496,7 @@ var
             case CurrRec^.SendBy of
                rdEmail           : PutString( 'E-Mail');
                rdPrinter         : PutString( 'Printer');
-               rdEcoding         : PutString( glConst.ECODING_APP_NAME);
+               rdEcoding         : PutString( bkBranding.NotesProductName);
                rdWebX            : PutString( WEBX_GENERIC_APP_NAME);
                rdScreen          : PutString( 'Preview');
                rdFax             : PutString( 'Fax');
@@ -738,7 +738,7 @@ begin
              case CurrRec^.SendBy of
                 rdEmail           : SchSumRpt.PutString('E-Mail');
                 rdPrinter         : SchSumRpt.PutString('Printer');
-                rdEcoding         : SchSumRpt.PutString(glConst.ECODING_APP_NAME);
+                rdEcoding         : SchSumRpt.PutString(bkBranding.NotesProductName);
                 rdWebX            : SchSumRpt.PutString(WEBX_GENERIC_APP_NAME);
                 rdScreen          : SchSumRpt.PutString('Preview');
                 rdFax             : SchSumRpt.PutString('Fax');

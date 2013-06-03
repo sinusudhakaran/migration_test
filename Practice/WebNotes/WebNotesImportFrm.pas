@@ -387,7 +387,7 @@ begin
       if GetBoolAttr(DNode,ntaxEdited) then
          if ( lTaxamount <> BKD.dsGST_Amount)
          or (( lTaxamount = 0) and ( BKD.dsAccount = '')) then
-            AddToImportNotes( BKD, Client.TaxSystemNameUC + ' Amount  ' + Money2Str( lTaxamount), glConst.ECODING_APP_NAME);
+            AddToImportNotes( BKD, Client.TaxSystemNameUC + ' Amount  ' + Money2Str( lTaxamount), bkBranding.NotesProductName);
 
       //Quantity
       BKD.dsQuantity := ForceSignToMatchAmount(GetQtyAttr(DNode,nQuantity), BKD.dsAmount);
@@ -536,7 +536,7 @@ begin
      if (GetBoolAttr(DNode,nTaxEdited)) then
         if (lMoney <> BKD.dsGST_Amount)
         or ((lMoney = 0) and (BKD.dsAccount = '')) then begin
-           AddToImportNotes(BKD, Client.TaxSystemNameUC + ' Amount  ' + Money2Str(LMoney), glConst.ECODING_APP_NAME);
+           AddToImportNotes(BKD, Client.TaxSystemNameUC + ' Amount  ' + Money2Str(LMoney), bkBranding.NotesProductName);
      end;
 
      //Quantity
@@ -546,7 +546,7 @@ begin
         if BKD.dsQuantity = 0 then begin
            BKD^.dsQuantity := lMoney;
         end else
-           AddToImportNotes( BKD, 'Quantity  ' + FormatFloat('#,##0.####', LMoney/10000), glConst.ECODING_APP_NAME);
+           AddToImportNotes( BKD, 'Quantity  ' + FormatFloat('#,##0.####', LMoney/10000), bkBranding.NotesProductName);
      end;
 
      //Tax Invoice
@@ -666,7 +666,7 @@ begin
   if wnJob <> BKD.dsJob_Code then begin
      bkJob := Client.clJobs.FindCode(wnJob);
      if (wnJob > '') and (not Assigned(bkJob)) then
-         AddToImportNotes(BKD,Format('Unknown Job %s', [wnjob]), glConst.ECODING_APP_NAME)
+         AddToImportNotes(BKD,Format('Unknown Job %s', [wnjob]), bkBranding.NotesProductName)
     else begin
       //if there was no existing job then apply new job
       if BKD.dsJob_Code = '' then begin
@@ -675,10 +675,10 @@ begin
       end else begin
          //add notes
          if wnJob = '' then
-            AddToImportNotes(BKD, 'Job Removed', glConst.ECODING_APP_NAME)
+            AddToImportNotes(BKD, 'Job Removed', bkBranding.NotesProductName)
         else
            //deleted job
-           AddToImportNotes(BKD, 'Job ' + bkJob.jhHeading + ' (' + bkJob.jhCode + ')', glConst.ECODING_APP_NAME);
+           AddToImportNotes(BKD, 'Job ' + bkJob.jhHeading + ' (' + bkJob.jhCode + ')', bkBranding.NotesProductName);
       end;
     end;
   end;
@@ -694,7 +694,7 @@ begin
      bkJob := Client.clJobs.FindCode(wnJob);
      if (wnJob > '')
      and (not Assigned(bkJob)) then
-        AddToImportNotes(BKT,Format('Unknown Job %s', [wnjob]), glConst.ECODING_APP_NAME)
+        AddToImportNotes(BKT,Format('Unknown Job %s', [wnjob]), bkBranding.NotesProductName)
      else begin
         //if there was no existing job then apply new job
         if BKT.txJob_Code = '' then begin
@@ -703,9 +703,9 @@ begin
         end else begin
            //add notes
            if wnJob = '' then //deleted job
-              AddToImportNotes(BKT, 'Job Removed', glConst.ECODING_APP_NAME)
+              AddToImportNotes(BKT, 'Job Removed', bkBranding.NotesProductName)
            else
-              AddToImportNotes(BKT, 'Job ' + bkJob.jhHeading + ' (' + bkJob.jhCode + ')', glConst.ECODING_APP_NAME);
+              AddToImportNotes(BKT, 'Job ' + bkJob.jhHeading + ' (' + bkJob.jhCode + ')', bkBranding.NotesProductName);
       end;
     end;
   end;
@@ -1006,7 +1006,7 @@ begin
      except
         // Its not a number.. Must be new Payee
         Result := 0;
-        AddToImportNotes(BKT,Format('New Payee %s', [wnPayeeText]), glConst.ECODING_APP_NAME);
+        AddToImportNotes(BKT,Format('New Payee %s', [wnPayeeText]), bkBranding.NotesProductName);
         Exit;
      end;
   end else
@@ -1046,7 +1046,7 @@ begin
      except
         // Its not a number.. Must be new Payee
         Result := 0;
-        AddToImportNotes(BKD,Format('New Payee %s', [wnPayeeText]), glConst.ECODING_APP_NAME);
+        AddToImportNotes(BKD,Format('New Payee %s', [wnPayeeText]), bkBranding.NotesProductName);
         Exit;
      end;
   end else

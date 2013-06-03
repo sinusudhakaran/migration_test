@@ -236,7 +236,7 @@ var
          if ExportDestination = ecDestWebX then
           HelpfulWarningMsg('You must specify a file name for the ' + glConst.WEBX_GENERIC_APP_NAME + ' file.',0)
         else
-         HelpfulWarningMsg('You must specify a file name for the ' + glConst.ECODING_APP_NAME + ' file.',0);
+         HelpfulWarningMsg('You must specify a file name for the ' + bkBranding.NotesProductName + ' file.',0);
         exit;
      end;
       //append default extention if one not specified

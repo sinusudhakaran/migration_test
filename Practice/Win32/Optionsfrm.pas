@@ -137,7 +137,7 @@ uses
   WinUtils,
   ErrorMorefrm,
   UpdateMF,
-  UpgradeHelper, BKDEFS, GenUtils, NewReportUtils, bkProduct;
+  UpgradeHelper, BKDEFS, GenUtils, NewReportUtils, bkProduct, bkBranding;
 
 const
   Unitname = 'OptionsFrm';
@@ -246,12 +246,12 @@ begin
    //fill file assocation tab
    if tsFiles.TabVisible then
    begin
-      gbTRFfiles.Caption := glConst.ECoding_App_Name + ' files';
-      lblClickOnBNotes.Caption := 'When I click on a ' + glConst.ECODING_APP_NAME + ' file';
+      gbTRFfiles.Caption := bkBranding.NotesProductName + ' files';
+      lblClickOnBNotes.Caption := 'When I click on a ' + bkBranding.NotesProductName + ' file';
       rbOpenTRFwithHandler.Caption := '&Ask me whether to open it in ' +
                                      SHORTAPPNAME + ' or ' +
-                                     glConst.ECODING_APP_NAME;
-      rbOpenTRFwithBNotes.Caption := 'O&pen it with ' + glConst.ECODING_APP_NAME;
+                                     bkBranding.NotesProductName;
+      rbOpenTRFwithBNotes.Caption := 'O&pen it with ' + bkBranding.NotesProductName;
 
       case GetTRFAssociation of
         AS_BNotes     : rbOpenTRFwithBNotes.Checked := true;

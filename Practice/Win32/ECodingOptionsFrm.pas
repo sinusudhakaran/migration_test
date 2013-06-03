@@ -58,7 +58,7 @@ uses
   ComboUtils,
   CountryUtils,
   WarningMoreFrm,
-  bkProduct;
+  bkProduct, bkBranding;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmECodingOptions.FormCreate(Sender: TObject);
@@ -160,7 +160,7 @@ begin
    if ecExportOptions.ExportDestination =  ecDestWebX then
        Caption := TProduct.Rebrand(TProduct.Rebrand(wfNames[ecExportOptions.WebExportFormat])) + ' Options'
    else
-       Caption := TProduct.Rebrand(glConst.ECODING_APP_NAME) + ' Options';
+       Caption := TProduct.Rebrand(bkBranding.NotesProductName) + ' Options';
 end;
 
 procedure TfrmECodingOptions.ecExportOptionscmbWebFormatsChange(

@@ -104,7 +104,8 @@ uses
   Globals,
   syDefs,
   BKCONST,
-  glConst;
+  glConst,
+  bkBranding;
 
 procedure TfmeECodingExport.chkIncludeChartClick(Sender: TObject);
 begin
@@ -251,7 +252,7 @@ begin
      end;
 
      else begin
-        Caption := glConst.ECODING_APP_NAME + ' Options';
+        Caption := bkBranding.NotesProductName + ' Options';
         edtPassword.Visible := True;
         edtConfirm.Visible := True;
         LblPassword.Visible := True;

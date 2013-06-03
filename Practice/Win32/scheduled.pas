@@ -2064,7 +2064,7 @@ begin
                rdPrinter   : DestString := 'Printer';
                rdFax       : DestString := 'Fax';
                rdEmail     : DestString := 'Email';
-               rdECoding   : DestString := glConst.ECODING_APP_NAME;
+               rdECoding   : DestString := bkBranding.NotesProductName;
                rdWebX      : case MyClient.clFields.clWeb_Export_Format of
                                  wfNone : DestString :=  '';
                                  wfWebX :  DestString := glConst.WEBX_APP_NAME;

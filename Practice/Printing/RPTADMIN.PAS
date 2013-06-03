@@ -850,7 +850,7 @@ const
           srdPrinted: PutString( 'Printer');
           srdEmail: PutString( 'E-Mail');
           srdFax: PutString( 'Fax');
-          srdECoding: PutString( glConst.ECODING_APP_NAME);
+          srdECoding: PutString( bkBranding.NotesProductName);
           srdCSVExport: PutString( 'CSV Export');
           srdWebX: PutString(glConst.WEBX_GENERIC_APP_NAME);
           srdCheckOut: PutString(bkBranding.BooksProductName +  ' (Email)');
