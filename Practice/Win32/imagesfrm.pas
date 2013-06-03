@@ -66,12 +66,12 @@ type
     imgLookupGroup: TImage;
     imgLookupClientType: TImage;
     imgBankstreamLogin: TImage;
-    imgClientHomepageLogo: TImage;
     imgBankstreamLogoHiColor: TImage;
     imgBankstreamLogo256: TImage;
     imgDownloadBankstreamLogo: TImage;
     imgBankstreamIcon: TImage;
     imgMainBackgroundLogo: TImage;
+    imgClientHomepageLogo: TImage;
     procedure FormCreate(Sender: TObject);
   private
 
