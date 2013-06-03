@@ -193,6 +193,8 @@ begin
   lblWillAdd.Caption := Globals.ShortAppName + ' will add a task to the client when you:';
 
   chkBNotes.Caption := TProduct.Rebrand(chkBNotes.Caption);
+
+  lblOpenFile.Caption := TProduct.Rebrand(lblOpenFile.Caption)
 end;
 
 //------------------------------------------------------------------------------

@@ -276,6 +276,7 @@ begin
   FaxPrinter := '';
 
   cbToECoding.caption := '&' + bkBranding.NotesProductName + ' Files';
+  cbToECoding.Hint := TProduct.Rebrand(cbToECoding.Hint);
 
   ImagesFrm.AppImages.Misc.GetBitmap(MISC_FINDFOLDER_BMP,btnOpenDialog.Glyph);
   btnBNotesMsg.Caption := '&' + bkBranding.NotesProductName + ' Message';
