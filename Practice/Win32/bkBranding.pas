@@ -67,6 +67,7 @@ var
   function TopBannerImage: TPicture;
   function DownloadDiskImageBanner: TPicture;
   function BankstreamLogo: TPicture;
+  function ReportLogo: TPicture;
 
   procedure StyleTopLeftImage(Image: TImage);
   procedure StyleTopRightImage(Image: TImage);
@@ -484,6 +485,18 @@ begin
   else
   begin
     Result := AppImages.imgBankLinkB.Picture;
+  end;
+end;
+
+function ReportLogo: TPicture;
+begin
+  if TProduct.ProductBrand = btBankstream then
+  begin
+    Result := AppImages.imgReports.Picture;
+  end
+  else
+  begin
+    Result := AppImages.imgBankLinkLogoWhiteBkgnd.Picture;
   end;
 end;
 
