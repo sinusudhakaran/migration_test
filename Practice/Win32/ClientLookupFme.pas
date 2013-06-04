@@ -2144,7 +2144,7 @@ begin
               if not ( sysClientRec^.cfSchd_Rep_Method_Filter in [ srdMin..srdMax]) then
                 Exit;
 
-              CellText := srdNames[ sysClientRec^.cfSchd_Rep_Method_Filter];
+              CellText := TProduct.Rebrand(srdNames[ sysClientRec^.cfSchd_Rep_Method_Filter]);
             end;
           end;
 
