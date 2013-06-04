@@ -11,7 +11,7 @@ unit SYAuditValues;
 interface
 
 uses
-  BKDEFS, AuditMgr, SYAuditUtils;
+  BKDEFS, AuditMgr, SYAuditUtils, bkProduct;
 
   procedure AddSystemAuditValues(AAuditRecord: TAudit_Trail_Rec; var Values: string);
   procedure AddUserAuditValues(AAuditRecord: TAudit_Trail_Rec; var Values: string);
@@ -627,7 +627,7 @@ begin
                                        bkDate2Str(TClient_File_Rec(ARecord^).cfFinancial_Year_Starts), Values);
       //Schd_Rep_Method
       99: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_Client_File, Token),
-                                       srdNames[TClient_File_Rec(ARecord^).cfSchd_Rep_Method], Values);
+                                       TProduct.Rebrand(srdNames[TClient_File_Rec(ARecord^).cfSchd_Rep_Method]), Values);
 //   tkcfSpareBoolean                     = 100 ;
 //   tkcfPending_ToDo_Count               = 101 ;
 //   tkcfNext_ToDo_Desc                   = 102 ;
