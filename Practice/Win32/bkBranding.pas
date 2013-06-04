@@ -578,8 +578,7 @@ procedure StyleLoginVersionText(VersionLabel: TLabel);
 begin
   if TProduct.ProductBrand = btBankstream then
   begin
-    VersionLabel.Align := alRight;
-    VersionLabel.Color := BannerTextColor;
+    VersionLabel.Font.Color := BannerTextColor;
   end;
 end;
 
