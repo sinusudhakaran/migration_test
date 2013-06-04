@@ -20,7 +20,8 @@ implementation
 uses
    CodingStatsList32,csDefs,bkDateUtils,
    SysUtils, eCollect, StStrS, StDateSt, StDate, LockUtils,
-  Globals, LogUtil, GlobalCache, Windows, SyDefs, BkConst, Admin32, Classes;
+  Globals, LogUtil, GlobalCache, Windows, SyDefs, BkConst, Admin32, Classes,
+  bkProduct;
 // -----------------------------------------------------------------------------
 
 type
@@ -298,7 +299,7 @@ begin
   for i := roMin to roMax do
     SetUsage(SCHED_REP_ID_TEXT + ' ' + roNames[i], 0);
   for i := srdMin to srdMax do
-    SetUsage(SCHED_REP_ID_TEXT + ' ' + srdNames[i], 0);
+    SetUsage(SCHED_REP_ID_TEXT + ' ' + TProduct.Rebrand(srdNames[i]), 0);
 
   UsageList.ResetSubStr(ACCT_SYS_ID_TEXT);
   UsageList.ResetSubStr(ACCT_SYS_COUNT_TEXT);
@@ -326,7 +327,7 @@ begin
         if p.cfReporting_Period in [roMin..roMax] then
            IncUsage(SCHED_REP_ID_TEXT + ' ' + roNames[ p.cfReporting_Period]);
         if p.cfSchd_Rep_Method in [srdMin..srdMax] then
-           IncUsage(SCHED_REP_ID_TEXT + ' ' + srdNames[ p.cfSchd_Rep_Method]);
+           IncUsage(SCHED_REP_ID_TEXT + ' ' + TProduct.Rebrand(srdNames[ p.cfSchd_Rep_Method]));
         if p.cfJob_Count <> 0 then
            inc(JobsCount);
         if p.cfDivision_Count <> 0 then
