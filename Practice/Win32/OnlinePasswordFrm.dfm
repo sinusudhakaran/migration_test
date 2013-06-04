@@ -34,7 +34,7 @@ object frmOnlinePassword: TfrmOnlinePassword
     Left = 16
     Top = 8
     Width = 398
-    Height = 73
+    Height = 89
     AutoSize = False
     Caption = 
       'Practice is unable to authenticate with BankLink Online because ' +
