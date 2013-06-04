@@ -8,8 +8,8 @@ uses
 type
   TUrls = class
   private
-    class function GetBankLinkWebSites(Index: Integer): String; static;
-    class function GetBankLinkWebSiteURLs(Index: Integer): String; static;
+    class function GetWebSites(Index: Integer): String; static;
+    class function GetWebSiteURLs(Index: Integer): String; static;
   public
     class function DefaultNZCatalogServer: String; static;
     class function DefaultAUCatalogServer: String; static;
@@ -27,14 +27,21 @@ type
     class function DefInstListLinkUK: String; static;
     class function ProvisionalAccountUrl: String; static;
 
-    class property BankLinkWebSites[Index: Integer]: String read GetBankLinkWebSites;
-    class property BankLinkWebSiteURLs[Index: Integer]: String read GetBankLinkWebSiteURLs;
+    class property WebSites[Index: Integer]: String read GetWebSites;
+    class property WebSiteURLs[Index: Integer]: String read GetWebSiteURLs;
   end;
   
 implementation
 
 uses
   bkBranding, Globals, bkConst;
+
+const
+  BankstreamWebSites : Array[ whMin..whMax ] of String[ 20 ] =
+  ( 'www.banklink.co.nz', 'www.banklink.com.au', 'www.bankstream.co.uk' );
+
+  BankstreamWebSiteURLs : Array[ whMin..whMax ] of String[ 30 ] =
+  ( 'http://www.banklink.co.nz', 'http://www.banklink.com.au', 'http://www.bankstream.co.uk' );
 
 { TUrls }
 
@@ -211,29 +218,25 @@ begin
   end;
 end;
 
-class function TUrls.GetBankLinkWebSites(Index: Integer): String;
+class function TUrls.GetWebSites(Index: Integer): String;
 begin
-  {
   if TProduct.ProductBrand = btBankstream then
   begin
-    Result := 'www.bankstream.co.uk'
+    Result := BankstreamWebSites[Index];
   end
   else
-  }
   begin
     Result := whBankLinkWebSites[Index];
   end;
 end;
 
-class function TUrls.GetBankLinkWebSiteURLs(Index: Integer): String;
+class function TUrls.GetWebSiteURLs(Index: Integer): String;
 begin
-  {
   if TProduct.ProductBrand = btBankstream then
   begin
-    Result := 'http://www.bankstream.co.uk';
+    Result := BankstreamWebSiteURLs[Index];
   end
   else
-  }
   begin
     Result := whBankLinkWebSiteURLs[Index];
   end;

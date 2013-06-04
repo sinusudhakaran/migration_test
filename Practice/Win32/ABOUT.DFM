@@ -138,7 +138,7 @@ object frmAbout: TfrmAbout
       TabOrder = 0
       OnClick = btnCloseClick
     end
-    object Panel1: TPanel
+    object pnlBankLink: TPanel
       Left = 16
       Top = 113
       Width = 351
@@ -230,6 +230,63 @@ object frmAbout: TfrmAbout
       TabOrder = 2
       Visible = False
       OnClick = btnEULAClick
+    end
+    object pnlBankstream: TPanel
+      Left = 16
+      Top = 113
+      Width = 351
+      Height = 104
+      BevelOuter = bvNone
+      BorderWidth = 1
+      BorderStyle = bsSingle
+      Ctl3D = False
+      ParentCtl3D = False
+      TabOrder = 3
+      object Label1: TLabel
+        Left = 13
+        Top = 15
+        Width = 103
+        Height = 13
+        Caption = 'For support, contact:'
+        ShowAccelChar = False
+        Transparent = True
+      end
+      object lblBankstreamPh1: TLabel
+        Left = 20
+        Top = 35
+        Width = 28
+        Height = 13
+        Caption = 'lblPh1'
+      end
+      object lblBankstreamEmailTo: TLabel
+        Left = 61
+        Top = 60
+        Width = 97
+        Height = 13
+        Cursor = crHandPoint
+        Caption = 'mailto:Email address'
+        ShowAccelChar = False
+        Transparent = True
+        OnClick = lblBankstreamEmailToClick
+      end
+      object lblBankstreamWebpage: TLabel
+        Left = 20
+        Top = 79
+        Width = 85
+        Height = 13
+        Cursor = crHandPoint
+        Caption = 'http:WebAddress'
+        ShowAccelChar = False
+        Transparent = True
+        OnClick = lblBankstreamWebpageClick
+      end
+      object lblBankstreamEmail: TLabel
+        Left = 20
+        Top = 60
+        Width = 28
+        Height = 13
+        Caption = 'Email:'
+      end
     end
   end
   object pnlGraphic: TPanel

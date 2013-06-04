@@ -32,16 +32,24 @@ type
     lblVersion: TLabel;
     lblWebPage: TLabel;
     lblWinVer: TLabel;
-    Panel1: TPanel;
+    pnlBankLink: TPanel;
     pnlDetails: TPanel;
     pnlGraphic: TPanel;
     btnEULA2: TButton;
+    pnlBankstream: TPanel;
+    Label1: TLabel;
+    lblBankstreamPh1: TLabel;
+    lblBankstreamEmailTo: TLabel;
+    lblBankstreamWebpage: TLabel;
+    lblBankstreamEmail: TLabel;
     procedure btnCloseClick(Sender: TObject);
     procedure btnEULAClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure lblEmailToClick(Sender: TObject);
     procedure lblWebPageClick(Sender: TObject);
+    procedure lblBankstreamWebpageClick(Sender: TObject);
+    procedure lblBankstreamEmailToClick(Sender: TObject);
   private
     { Private declarations }
     ShellCommand_Web : string;
@@ -81,6 +89,9 @@ begin
 
    SetHyperlinkFont(lblEmailTo.Font);
    SetHyperlinkFont(lblWebPage.Font);
+   SetHyperlinkFont(lblBankstreamEmailTo.Font);
+   SetHyperlinkFont(lblBankstreamWebPage.Font);
+
 
 //   lblWinVer.Font.Color := clHighLight;
 //   lblUser.Font.Color := clHighLight;
@@ -128,12 +139,17 @@ begin
    lblCountry1.caption  := '';
    lblCountry2.caption  := '';
    lblPh1.caption       := '';
+   lblBankstreamPh1.Caption  := '';
    lblPh2.caption       := '';
    lblCountry.caption   := '';
 
+
+
    lblWebPage.Caption   := '';
    ShellCommand_Web     := '';
+   lblBankstreamWebPage.Caption   := '';
    lblEmailTo.Caption     := '';
+   lblBankstreamEmailTo.Caption := '';
 
 
    lblTitle.Font.Name := self.Font.Name;
@@ -144,14 +160,17 @@ begin
       if AdminSystem.fdFields.fdCountry in [ whMin..whMax ] then
       Begin
         lblCountry.Caption  := whShortNames[ AdminSystem.fdFields.fdCountry ];
-        lblWebPage.Caption  := TUrls.BankLinkWebSites[ AdminSystem.fdFields.fdCountry ];
-        ShellCommand_Web    := TUrls.BankLinkWebSiteURLs[ AdminSystem.fdFields.fdCountry ];
+        lblWebPage.Caption  := TUrls.WebSites[ AdminSystem.fdFields.fdCountry ];
+        lblBankstreamWebPage.Caption  := TUrls.WebSites[ AdminSystem.fdFields.fdCountry ];
+        ShellCommand_Web    := TUrls.WebSiteURLs[ AdminSystem.fdFields.fdCountry ];
         lblCountry1.caption := whNames[ AdminSystem.fdFields.fdCountry ];
         lblPh1.caption      := TContactInformation.SupportPhoneNo[ AdminSystem.fdFields.fdCountry ];
+        lblBankstreamPh1.Caption := TContactInformation.SupportPhoneNo[ AdminSystem.fdFields.fdCountry ];
       end
       else
       begin
          lblWebPage.visible := false;
+         lblbankstreamWebPage.Visible := False;
       end;
    end
    else
@@ -163,6 +182,10 @@ begin
        lblPh1.caption      := ThirdPartySupportPhone;
        lblEmailTo.caption  := ThirdPartySupportEmail;
        lblWebPage.caption  := ThirdPartySupportWebsite;
+
+       lblBankstreamPh1.caption      := ThirdPartySupportPhone;
+       lblBankstreamEmailTo.caption  := ThirdPartySupportEmail;
+       lblBankstreamWebPage.caption  := ThirdPartySupportWebsite;
      end
      else
      //no admin system, show contact details for the accountant
@@ -177,6 +200,8 @@ begin
         lblCountry1.Caption  := ContactName;
         lblPh1.Caption       := ContactPhone;
 
+        lblBankstreamPh1.caption      := ContactPhone;
+
         //show practice details as well unless the practice is the contact
         if ContactName <> MyClient.clFields.clPractice_Name then
         begin
@@ -190,9 +215,11 @@ begin
         begin
           //show web site address
           lblWebPage.Caption := Trim( WebsiteAddress);
+          lblBankstreamWebPage.Caption := Trim( WebsiteAddress);
           ShellCommand_Web := LowerCase( WebSiteAddress);
           //show email address
           lblEmailTo.Caption := ContactEmail;
+          lblBankstreamEmailTo.Caption := ContactEmail;
         end;
      end
      else begin
@@ -204,6 +231,10 @@ begin
    lblWebPage.Visible := ( lblWebPage.Caption <> '');  
    lblEmailTo.Visible   := ( lblEmailTo.Caption <> '');
    lblEmail.Visible := lblEmailTo.Visible;
+
+   lblBankstreamWebPage.Visible := ( lblBankstreamWebPage.Caption <> '');
+   lblBankstreamEmailTo.Visible   := ( lblBankstreamEmailTo.Caption <> '');
+   lblBankstreamEmail.Visible := lblBankstreamEmailTo.Visible;
 {$IFDEF FullDebugMode}
    DebugLabel.Caption := 'FastMM DEBUG MODE';
 {$ENDIF}
@@ -217,8 +248,14 @@ begin
     btnEULA2.Visible := True;
     pnlGraphic.Visible := False;
     Width := Width - pnlGraphic.Width;
+    pnlBankstream.Visible := True;
+    pnlBankLink.Visible := False;
+  end
+  else
+  begin
+    pnlBankstream.Visible := False;
+    pnlBankLink.Visible := True;
   end;
-
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmAbout.btnCloseClick(Sender: TObject);
@@ -252,6 +289,23 @@ begin
   end;
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+procedure TfrmAbout.lblBankstreamEmailToClick(Sender: TObject);
+var
+  Command : String;
+begin
+  if lblBankstreamEmailTo.caption <> '' then
+  begin
+    Command := 'mailto:' + lblBankstreamEmailTo.Caption;
+    ShellExecute(0, 'open', PChar( Command), nil, nil, SW_NORMAL);
+  end;
+end;
+
+procedure TfrmAbout.lblBankstreamWebpageClick(Sender: TObject);
+begin
+   if ShellCommand_Web <> '' then
+      ShellExecute(0, 'open', PChar( ShellCommand_Web), nil, nil, SW_NORMAL);
+end;
+
 procedure TfrmAbout.lblEmailToClick(Sender: TObject);
 var
   Command : String;
