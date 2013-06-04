@@ -782,7 +782,14 @@ end;
 
 function TVersionInfo.GetLegalCopyright: string;
 begin
-  Result := TProduct.Rebrand(FLegalCopyright);
+  if TProduct.ProductBrand = btBankstream then
+  begin
+    Result := Chr(169) + ' '  + TProduct.BrandName + ' Limited 2013';
+  end
+  else
+  begin
+    Result := FLegalCopyright;
+  end;
 end;
 
 function TVersionInfo.GetProductName: string;
