@@ -112,7 +112,8 @@ uses
    ReportImages,
    ClientSelectFme,
    AuditMgr, BKTXIO, BKCLIO, ExchangeRateList, GSTCALC32,
-   bkBranding;
+   bkBranding,
+   bkProduct;
 
 type
    //Client status record for whats due list
@@ -1541,7 +1542,7 @@ begin
               SkipColumn;
 
             if cfSchd_Rep_Method in [srdMin..srdMax] then
-              PutString(srdNames[cfSchd_Rep_Method])
+              PutString(TProduct.Rebrand(srdNames[cfSchd_Rep_Method]))
             else
               SkipColumn;            
 
