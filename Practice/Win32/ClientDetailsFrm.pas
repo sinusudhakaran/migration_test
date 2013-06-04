@@ -1605,7 +1605,7 @@ begin
     else if MyClient.clFields.clWeb_Export_Format = wfWebNotes then
       NumProducts := '1';
 
-    SetProductsCaption('This client currently has access to ' + NumProducts +
+    SetProductsCaption('This client currently has access to ' + NumProducts +  ' ' +
                        bkBranding.ProductOnlineName + ' product(s)');
   end;
 end;
