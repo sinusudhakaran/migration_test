@@ -35,7 +35,8 @@ uses
   RptParams,
   SysUtils, Classes, htmlUtils, NewReportObj, Globals, Graphics, NewReportUtils,
   repcols, reportImages, imagesfrm, bkConst,  jsFastHTMLParser, ErrorMoreFrm,
-  bkProduct;
+  bkProduct,
+  bkBranding;
 
 type
   TLineStyle = ( lsNone, lsNormal, lsFixedWidth, lsCode, lsNewPage, lsBig, lsBold, lsSmall);
@@ -285,7 +286,9 @@ begin
       //need to add the banklink logo into the report image list so can
       //display on each page
       Logo := TPicture.Create;  //will be destroyed when list is cleared
-      Logo.Assign( ImagesFrm.AppImages.imgBankLinkLogoWhiteBkgnd.Picture);
+
+      Logo.Assign(bkBranding.ReportLogo);
+
       AddPictureToReportImageList( Logo, 'banklink_logo', 56, 15);
 
       //set up report
