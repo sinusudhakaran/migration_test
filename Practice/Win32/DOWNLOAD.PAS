@@ -1351,7 +1351,7 @@ end;
 procedure DownloadFromBConnect;
 begin
   if not (AskYesNo('System Backup',
-                   'You must back up your '+SHORTAPPNAME+' System before you Download from '+bkBranding.BooksProductName+'.'#13#13+
+                   'You must back up your '+SHORTAPPNAME+' System before you Download from ' + bkBranding.BConnectName + '.'#13#13+
                    'Have you backed up your '+SHORTAPPNAME+' System?',DLG_YES,0) = DLG_YES) then
      Exit;
 

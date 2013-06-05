@@ -69,7 +69,7 @@ begin
   {$IFDEF SmartBooks}
   Caption := 'Log in to SmartBooks Direct';
   {$ELSE}
-  Caption := 'Log in to ' + bkBranding.BooksProductName;
+  Caption := 'Log in to ' + bkBranding.BConnectName;
   {$ENDIF}
 end;
 

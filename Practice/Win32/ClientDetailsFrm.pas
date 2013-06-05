@@ -239,7 +239,7 @@ begin
    FEnableClientSettings := true;
    bkXPThemes.ThemeForm( Self);
    lblCountry.Font.Name := Font.Name;
-   lblConnectName.caption := bkBranding.BooksProductName+' Co&de';
+   lblConnectName.caption := bkBranding.BConnectName + ' Co&de';
    chkOffsite.Caption := 'Allow client to download directly via ' + TProduct.BrandName + ' &Secure';
 
    SetUpHelp;
