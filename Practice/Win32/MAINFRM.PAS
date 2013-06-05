@@ -1237,7 +1237,9 @@ begin
   mnsSystemStartNewMonth.Caption := TProduct.Rebrand(mnsSystemStartNewMonth.Caption);
   mniExportdatatoBanklinkOnline.Caption := TProduct.Rebrand(mniExportdatatoBanklinkOnline.Caption);
   actSendViaOnline.Caption := TProduct.Rebrand(actSendViaOnline.Caption);
-  actGetFromOnline.Caption := TProduct.Rebrand(actGetFromOnline.Caption); 
+  actGetFromOnline.Caption := TProduct.Rebrand(actGetFromOnline.Caption);
+
+  mniSystemBankLinkConnect.Caption := TProduct.Rebrand(mniSystemBankLinkConnect.Caption);
 
   Screen.OnActiveFormChange := ActiveFormChange;
   if DebugMe then LogUtil.LogMsg(lmDebug,unitname,'Form Created');
