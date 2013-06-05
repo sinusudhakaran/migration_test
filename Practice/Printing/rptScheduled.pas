@@ -674,7 +674,7 @@ begin
              rpsNotesOnlineError :
                SchSumRpt.RenderTitleLine(bkBranding.NotesOnlineProductName + ' data for the following clients were not generated due to errors');
              rpsCiCoOnlineError  :
-               SchSumRpt.RenderTitleLine(bkBranding.BooksProductName + ' files to be sent via BankLink Online for the following clients were not generated due to errors');
+               SchSumRpt.RenderTitleLine(bkBranding.BooksProductName + ' files to be sent via ' + bkBranding.ProductOnlineName + ' for the following clients were not generated due to errors');
              rptEmailOnlineError :
                SchSumRpt.RenderTitleLine('Emails for the following ' + bkBranding.ProductOnlineName + ' clients were not generated due to errors');
            end;
@@ -744,7 +744,7 @@ begin
                 rdFax             : SchSumRpt.PutString('Fax');
                 rdCSVExport       : SchSumRpt.PutString('CSV Export');
                 rdCheckOut        : SchSumRpt.PutString(bkBranding.BooksProductName + ' (Email)');
-                rdBankLinkOnline  : SchSumRpt.PutString(bkBranding.BooksProductName + ' (via Online)');
+                rdBankLinkOnline  : SchSumRpt.PutString(bkBranding.BooksProductName + ' (Online)');
                 rdBusinessProduct : SchSumRpt.PutString('Business Prod');
              else
                 SchSumRpt.SkipColumn;
