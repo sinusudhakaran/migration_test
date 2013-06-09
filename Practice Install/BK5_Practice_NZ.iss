@@ -78,7 +78,7 @@ Name: "{group}\BankLink Practice"; Filename: "{app}\BK5WIN.EXE"
 Name: "{group}\Create Initial Database"; Filename: "{app}\BK5WIN.EXE"; Parameters: "/dbcreate";
 
 [Tasks]
-Name: installReDist; Description: "Install Visual C++ 2008 Redistributable";
+Name: createdb; Description: "Create an initial database";
 
 [Code]
 function WillInstallReDist: Boolean;
