@@ -67,11 +67,8 @@ Source: "..\Binaries\PracticeApplicationService.exe"; DestDir: "{app}\Practice S
 Source: "..\Binaries\PracticeServerConsole.exe"; DestDir: "{app}\Practice Server"
 Source: "..\Practice Server\Service\PracticeApplicationService.ini"; DestDir: "{app}\Practice Server"
 
-[Tasks]
-Name: installReDist; Description: "Install Visual C++ 2008 Redistributable";
-
 [Run]
-Filename: "{app}\vcredist_x86.exe"; Parameters : "/q:a"; Description : "Install Visual C++ 2008 Redistributable"; WorkingDir: "{app}"; Tasks : installReDist; Check : WillInstallReDist;
+Filename: "{app}\vcredist_x86.exe"; Parameters : "/q:a"; Description : "Install Visual C++ 2008 Redistributable"; WorkingDir: "{app}"; Check : WillInstallReDist;
 Filename: "{app}\BK5WIN.EXE"; Description : "Start BankLink Practice"; WorkingDir: "{app}"; Flags: postinstall nowait;
 
 [Registry]

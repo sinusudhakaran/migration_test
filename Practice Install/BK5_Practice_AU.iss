@@ -98,7 +98,6 @@ Name: "{group}\Create Initial Database"; Filename: "{app}\BK5WIN.EXE"; Parameter
 
 [Tasks]
 Name: installReDist; Description: "Install Visual C++ 2008 Redistributable";
-Name: createdb; Description: "Create an initial database";
 
 [Code]
 function WillInstallReDist: Boolean;
@@ -111,7 +110,7 @@ begin
 end;
 
 [Run]
-Filename: "{app}\vcredist_x86.exe"; Parameters : "/q:a"; Description : "Install Visual C++ 2008 Redistributable"; WorkingDir: "{app}"; Tasks : installReDist; Check : WillInstallReDist;
+Filename: "{app}\vcredist_x86.exe"; Parameters : "/q:a"; Description : "Install Visual C++ 2008 Redistributable"; WorkingDir: "{app}"; Check : WillInstallReDist;
 Filename: "{app}\BK5WIN.EXE"; Parameters : "/dbcreate_norun"; Description : "Create an initial BankLink Practice Database"; WorkingDir: "{app}"; Tasks : createdb;
 Filename: "{app}\BK5WIN.EXE"; Description : "Start BankLink Practice"; WorkingDir: "{app}"; Flags: postinstall nowait;
 

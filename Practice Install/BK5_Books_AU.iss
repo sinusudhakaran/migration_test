@@ -17,7 +17,6 @@ AppendDefaultDirName=no
 
 [Tasks]
 Name: "desktopicon"; Description: "Create a &desktop icon"; GroupDescription: "Additional icons:"; MinVersion: 4,4
-Name: installReDist; Description: "Install Visual C++ 2008 Redistributable";
 
 [Files]
 Source: "..\Binaries\BK5WIN.EXE"; DestDir: "{app}"
@@ -59,7 +58,7 @@ Root: HKCU; Subkey: "Software\BankLink"; Flags: uninsdeletekeyifempty
 Root: HKCU; Subkey: "Software\BankLink\"; ValueType: string; ValueName: "InstallPath"; ValueData: "{app}"
 
 [Run]
-Filename: "{app}\vcredist_x86.exe"; Parameters : "/q:a"; Description : "Install Visual C++ 2008 Redistributable"; WorkingDir: "{app}"; Tasks : installReDist; Check : WillInstallReDist;
+Filename: "{app}\vcredist_x86.exe"; Parameters : "/q:a"; Description : "Install Visual C++ 2008 Redistributable"; WorkingDir: "{app}"; Check : WillInstallReDist;
 
 [Code]
 function WillInstallReDist: Boolean;

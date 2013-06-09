@@ -54,11 +54,8 @@ Root: HKCR; Subkey: "BankLink.bkHandlr\shell\open\ddeexec\Topic"; ValueType: str
 Root: HKCU; Subkey: "Software\BankLink"; Flags: uninsdeletekeyifempty
 Root: HKCU; Subkey: "Software\BankLink\"; ValueType: string; ValueName: "InstallPath"; ValueData: "{app}"
 
-[Tasks]
-Name: installReDist; Description: "Install Visual C++ 2008 Redistributable";
-
 [Run]
-Filename: "{app}\vcredist_x86.exe"; Parameters : "/q:a"; Description : "Install Visual C++ 2008 Redistributable"; WorkingDir: "{app}"; Tasks : installReDist; Check : WillInstallReDist;
+Filename: "{app}\vcredist_x86.exe"; Parameters : "/q:a"; Description : "Install Visual C++ 2008 Redistributable"; WorkingDir: "{app}"; Check : WillInstallReDist;
 
 [Code]
 function NextButtonClick(CurPageID: Integer): Boolean;
