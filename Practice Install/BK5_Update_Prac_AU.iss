@@ -103,5 +103,5 @@ var
 begin
   GetWindowsVersionEx(Version);
 
-  Result = (Version.Major < 6);
+  Result := (Version.Major < 6);
 end;
