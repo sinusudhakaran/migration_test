@@ -885,6 +885,10 @@ begin
 
    lblClientName.Font.Color :=  TopTitleColor;
 
+   bkBranding.StyleMainBannerPanel(PnlTitle);
+   bkBranding.StyleTopLeftImage(imgLeft);
+   bkbranding.StyleTopRightImage(imgRight);
+
    if frmMain.UsingCustomPracticeLogo then begin
       imgRight.AutoSize := False;
       imgRight.Stretch := True;
@@ -892,10 +896,6 @@ begin
       imgRight.Transparent := False;
       imgRight.Width := frmMain.imgPracticeLogo.Width;
       PnlTitle.Height := Max (imgLeft.Height ,  frmMain.imgPracticeLogo.Height);
-   end else begin
-     bkBranding.StyleMainBannerPanel(PnlTitle);
-     bkBranding.StyleTopLeftImage(imgLeft);
-     bkbranding.StyleTopRightImage(imgRight);
    end;
 
    lblClientName.Font.Name := Self.Font.Name;
