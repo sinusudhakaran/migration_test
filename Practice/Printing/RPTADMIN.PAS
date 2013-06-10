@@ -1571,9 +1571,9 @@ begin
     AddColAuto(Job,cLeft, 9.5,Gcgap,'Code',jtLeft);
     AddColAuto(Job,cLeft,30.8,Gcgap,'Name',jtLeft);
     AddColAuto(Job,cLeft,19.6,Gcgap,'Staff Member',jtLeft);
-    AddColAuto(Job,cLeft, 7.8,Gcgap,'Starts',jtLeft);
+    AddColAuto(Job,cLeft, 7,Gcgap,'Starts',jtLeft);
     AddColAuto(Job,cLeft,20.0,Gcgap,'Reporting Frequency',jtLeft);
-    AddColAuto(Job,cLeft,20.0,Gcgap,'Destination',jtLeft);
+    AddColAuto(Job,cLeft,20.8,Gcgap,'Destination',jtLeft);
 
     AddCommonFooter(Job);
 
