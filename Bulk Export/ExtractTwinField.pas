@@ -172,7 +172,7 @@ begin
       FieldsA.CommaText := List[Index1];
       FieldsB.CommaText := List[Index2];
 
-      Result := CompareText(FieldsA[5] + FieldsA[6] + FieldsA[0], FieldsA[5] + FieldsB[6] + FieldsB[0]);
+      Result := CompareText(FieldsA[6] + FieldsA[7] + FieldsA[0], FieldsB[6] + FieldsB[7] + FieldsB[0]);
     finally
       FieldsB.Free;
     end;
@@ -194,7 +194,7 @@ procedure CloseOutputFile;
 var
   Index: Integer;
 begin
-  FExportLines.CustomSort(DoCompare); 
+  FExportLines.CustomSort(DoCompare);
   
   for Index := 0 to FExportLines.Count - 1 do
   begin
