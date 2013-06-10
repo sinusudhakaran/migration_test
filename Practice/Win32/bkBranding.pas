@@ -83,6 +83,7 @@ var
   procedure StyleBooksClientName(ClientName: TLabel);
   procedure StyleBooksVersionLabel(VersionLabel: TLabel);
   procedure StyleSimpleUIBannerPanel(Panel: TRzPanel);
+  procedure StyleSimpleUILeftBannerImage(Image: TImage);
   procedure StyleSimpleUIRightBannerImage(Image: TImage);
   procedure StyleBankLinkButton(Button: TRzToolButton);
   procedure StyleECFHOnlineMenuItem(MenuItem: TMenuItem);
@@ -679,11 +680,16 @@ begin
   end;
 end;
 
+procedure StyleSimpleUILeftBannerImage(Image: TImage);
+begin
+  StyleTopLeftImage(Image); 
+end;
+
 procedure StyleSimpleUIRightBannerImage(Image: TImage);
 begin
   if TProduct.ProductBrand = btBankstream then
   begin
-    bkBranding.StyleTopRightImage(Image);
+    Image.Visible := False;
   end
   else
   begin
