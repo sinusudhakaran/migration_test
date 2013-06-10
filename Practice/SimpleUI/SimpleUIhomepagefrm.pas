@@ -702,7 +702,7 @@ begin
    lblNavLevel2.Top := lblHome.Top;
    lblNavLevel3.Top := lblHome.Top;
 
-   bkBranding.StyleTopLeftImage(imgLeft); 
+   bkBranding.StyleSimpleUILeftBannerImage(imgLeft); 
    bkBranding.StyleSimpleUIRightBannerImage(imgRight); 
    bkBranding.StyleSimpleUIBannerPanel(pnlExtraTitleBar);
    
@@ -717,10 +717,12 @@ begin
    begin
      pnlExtraTitleBar.Height := imgRight.Picture.Height;
    end;
+        
+   StyleBooksClientName(lblClientname);
+   StyleBooksClientName(lblCurrentPeriod);
 
    if TProduct.ProductBrand = btBankstream then
    begin
-     lblClientName.Font.Color := clWhite;
      lblClientName.Left := 10;
      lblCurrentPeriod.Left := 10;
    end
