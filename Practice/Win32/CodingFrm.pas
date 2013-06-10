@@ -604,7 +604,8 @@ uses
    CountryUtils, SetClearTransferFlags, ExchangeRateList, AuditMgr,
    BankLinkOnlineServices,
    dxList32,
-   CAUtils;
+   CAUtils,
+   bkProduct;
 
 const
    UnitName = 'CODINGFRM';
@@ -1088,10 +1089,10 @@ begin
   pnlExtraTitleBar.GradientColorStart := bkBranding.TobBarStartColor;
   pnlExtraTitleBar.GradientColorStop  := bkBranding.TopBarStopColor;
 
-  bkBranding.StyleTopRightImage(imgRight);
+  bkBranding.StyleTopBannerRightImage(imgRight);
 
   pnlExtraTitleBar.Height := imgRight.Picture.Height;
-
+  
   lblAcctDetails.Font.Color := bkBranding.TopTitleColor;
   //lblTransRange.Font.Color := bkBranding.TopTitleColor;
   //lblFinalised.Font.Color := bkBranding.TopTitleColor;

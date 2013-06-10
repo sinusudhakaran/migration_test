@@ -243,7 +243,7 @@ object frmClientHomePage: TfrmClientHomePage
             Options = [coEnabled, coParentBidiMode, coParentColor, coShowDropMark, coVisible]
             Position = 4
             Tag = 8
-            Width = 228
+            Width = 232
             WideText = 'Currency'
           end>
       end
@@ -309,13 +309,12 @@ object frmClientHomePage: TfrmClientHomePage
           Left = 28
           Top = 0
           Width = 39
-          Height = 23
+          Height = 13
           Margins.Top = 0
           Margins.Bottom = 0
           Align = alLeft
           Caption = 'Legend:'
           Layout = tlCenter
-          ExplicitHeight = 13
         end
         object tbtnClose: TRzToolButton
           Left = 0
@@ -421,8 +420,8 @@ object frmClientHomePage: TfrmClientHomePage
     object lblClientName: TLabel
       Left = 134
       Top = 0
-      Width = 995
-      Height = 31
+      Width = 95
+      Height = 21
       Margins.Left = 0
       Margins.Top = 0
       Margins.Right = 0
@@ -442,8 +441,6 @@ object frmClientHomePage: TfrmClientHomePage
       Transparent = True
       Layout = tlCenter
       WordWrap = True
-      ExplicitWidth = 95
-      ExplicitHeight = 21
     end
     object imgRight: TImage
       Left = 1129

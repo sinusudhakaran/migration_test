@@ -886,8 +886,8 @@ begin
    lblClientName.Font.Color :=  TopTitleColor;
 
    bkBranding.StyleMainBannerPanel(PnlTitle);
-   bkBranding.StyleTopLeftImage(imgLeft);
-   bkbranding.StyleTopRightImage(imgRight);
+   bkBranding.StyleMainBannerLogo(imgLeft);
+   bkbranding.StyleMainBannerCustomLogo(imgRight);
 
    if frmMain.UsingCustomPracticeLogo then begin
       imgRight.AutoSize := False;

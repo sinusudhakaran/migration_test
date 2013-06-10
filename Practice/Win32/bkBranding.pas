@@ -69,8 +69,9 @@ var
   function BankstreamLogo: TPicture;
   function ReportLogo: TPicture;
 
-  procedure StyleTopLeftImage(Image: TImage);
-  procedure StyleTopRightImage(Image: TImage);
+  procedure StyleMainBannerLogo(Image: TImage);
+  procedure StyleMainBannerCustomLogo(Image: TImage);
+  procedure StyleTopBannerRightImage(Image: TImage);
   procedure StyleMainBannerPanel(Panel: TRzPanel);
   procedure StyleLoginImage(Image: TImage);
   procedure StyleLoginBannerPanel(Panel: TPanel);
@@ -501,7 +502,7 @@ begin
   end;
 end;
 
-procedure StyleTopLeftImage(Image: TImage);
+procedure StyleMainBannerLogo(Image: TImage);
 begin
   if TProduct.ProductBrand = btBankstream then
   begin
@@ -519,7 +520,7 @@ begin
   end;
 end;
 
-procedure StyleTopRightImage(Image: TImage);
+procedure StyleMainBannerCustomLogo(Image: TImage);
 begin
   if TProduct.ProductBrand = btBankstream then
   begin
@@ -533,6 +534,18 @@ begin
   else
   begin
     Image.Transparent := True;
+    Image.Picture := CodingBanner;
+  end;
+end;
+
+procedure StyleTopBannerRightImage(Image: TImage);
+begin
+  if TProduct.ProductBrand = btBankstream then
+  begin
+    StyleMainBannerLogo(Image);
+  end
+  else
+  begin
     Image.Picture := CodingBanner;
   end;
 end;
@@ -682,7 +695,7 @@ end;
 
 procedure StyleSimpleUILeftBannerImage(Image: TImage);
 begin
-  StyleTopLeftImage(Image); 
+  StyleMainBannerLogo(Image); 
 end;
 
 procedure StyleSimpleUIRightBannerImage(Image: TImage);

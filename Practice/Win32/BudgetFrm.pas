@@ -753,7 +753,7 @@ begin
    lblDetails.Font.Color := bkBranding.TopTitleColor;
    lblName.Font.Color := bkBranding.TopTitleColor;
 
-   bkBranding.StyleTopRightImage(imgGraphic);
+   bkBranding.StyleTopBannerRightImage(imgGraphic);
    
    mniLockLeftmostClick(Sender);
 

@@ -759,7 +759,7 @@ begin
 
    bkBranding.StyleTransRangeText(lblTransRange); 
 
-   bkBranding.StyleTopRightImage(imgGraphic);
+   bkBranding.StyleTopBannerRightImage(imgGraphic);
 
    DittoLineInProgress := False;
 end;

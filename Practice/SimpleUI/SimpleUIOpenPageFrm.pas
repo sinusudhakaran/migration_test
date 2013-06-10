@@ -140,7 +140,7 @@ var
   s  : string;
 begin
    bkBranding.StyleSimpleUIBannerPanel(pnlExtraTitleBar);
-   bkBranding.StyleTopLeftImage(imgLeft);
+   bkBranding.StyleMainBannerLogo(imgLeft);
    bkBranding.StyleSimpleUIRightBannerImage(imgRight);
 
    if TProduct.ProductBrand = btBankstream then

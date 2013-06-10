@@ -545,8 +545,8 @@ begin
   GBClientmanager.GradientColorStop := bkBranding.GroupBackGroundStopColor;
   GBClientmanager.GradientColorStart := bkBranding.GroupBackGroundStartColor;
 
-  bkBranding.StyleTopLeftImage(imgLogo);
-  bkBranding.StyleTopRightImage(imgRight);
+  bkBranding.StyleMainBannerLogo(imgLogo);
+  bkBranding.StyleMainBannerCustomLogo(imgRight);
   bkBranding.StyleMainBannerPanel(PnlLogo);
 
   pnlFilter.Height := cmbFilter.ClientHeight + 7;
