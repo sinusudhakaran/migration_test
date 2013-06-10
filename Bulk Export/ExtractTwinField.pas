@@ -459,7 +459,7 @@ begin
     begin
       EType.Index := BasicTwinField;
       EType.Code  := TwinField;
-      EType.Description := 'TwinField CSV';
+      EType.Description := 'Twinfield CSV';
       EType.ExtractClass := ClassBase;
       Result := True;
     end;
