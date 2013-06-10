@@ -229,7 +229,7 @@ const                   // 12345678
   BBTechBasicCode       = 'BBTech';
   ClassSuperBasicCode   = 'ClssSupr';
   IDSSuper              = 'IDSSuper';
-  TwinField             = 'TwnFdCSV';
+  TwinField             = 'TwnfdCSV';
 
 implementation
 
