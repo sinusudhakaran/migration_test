@@ -504,7 +504,13 @@ procedure StyleTopLeftImage(Image: TImage);
 begin
   if TProduct.ProductBrand = btBankstream then
   begin
-    Image.Visible := False;
+    Image.Visible := True;
+    Image.Margins.Top := 0;
+    Image.Margins.Bottom := 0;
+    Image.Center := True;
+    Image.Proportional := False;
+    Image.Picture := TopBannerImage;
+    Image.Align := alRight;
   end
   else
   begin
@@ -517,10 +523,11 @@ begin
   if TProduct.ProductBrand = btBankstream then
   begin
     Image.Visible := True;
+    Image.Align := alLeft;
+    Image.Proportional := True;
+    Image.Center := True;
     Image.Margins.Top := 0;
     Image.Margins.Bottom := 0;
-    Image.Center := True;
-    Image.Picture := TopBannerImage;
   end
   else
   begin
