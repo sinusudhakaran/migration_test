@@ -245,10 +245,15 @@ begin
       Job.bkHtmlVersion := 1;
       Job.bkHtmlSubVersion := 1;  //1.1
 
-      NzFooter := 'BankLink New Zealand PO Box 56-354 Dominion Rd Auckland NZ. Freephone 0800 226 554 Fax 09 630 2759 www.banklink.co.nz';
-      AuFooter := 'BankLink Australia GPO Box 4608 Sydney NSW 2001 Australia. Freephone 1800 123 242 Freefax 1800 123 807 www.banklink.com.au';
-      UKFooter := TProduct.BrandName + ' United Kingdom 9 Devonshire Square, London EC2M 4YF. Freephone 0800 500 3084 ' + TUrls.WebSites[whUK];
-
+      if TProduct.ProductBrand <> btBankstream then
+      begin
+        NzFooter := 'BankLink New Zealand PO Box 56-354 Dominion Rd Auckland NZ. Freephone 0800 226 554 Fax 09 630 2759 www.banklink.co.nz';
+        AuFooter := 'BankLink Australia GPO Box 4608 Sydney NSW 2001 Australia. Freephone 1800 123 242 Freefax 1800 123 807 www.banklink.com.au';
+      end
+      else
+      begin
+        UKFooter := TProduct.BrandName + ' United Kingdom 9 Devonshire Square, London EC2M 4YF. Freephone 0800 500 3084 ' + TUrls.WebSites[whUK];
+      end;
 
       i := 0;
       EndOfHeaderFound := false;
