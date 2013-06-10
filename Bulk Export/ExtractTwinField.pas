@@ -138,7 +138,7 @@ begin
 
     ldlg.Caption :='Twinfield CSV Setup';
     ldlg.eFilename.Text := GetExtractPath(Session);
-    ldlg.ckSeparate.Checked := False;
+    ldlg.ckSeparate.Checked := Bool(GetPrivateProfileInt(TwinField, keySeparateClientFiles, 0, Session.IniFile));
 
     if ldlg.ShowModal = mrOK then
     begin
