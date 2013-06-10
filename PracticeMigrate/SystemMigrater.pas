@@ -1510,7 +1510,7 @@ begin
           Exit;
        if PrefixList.Count = 0 then
           Exit;
-       MyAction := ForAction.NewAction('Master memorizations');
+       MyAction := ForAction.NewAction('Master memorisations');
        MyAction.Target := PrefixList.Count;
 
        for I := 0 to PrefixList.Count - 1 do begin

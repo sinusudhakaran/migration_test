@@ -477,7 +477,7 @@ begin //Add account
 
        MemList := TGuidList.Create(Account.baMemorisations_List);
        MemList.reverse;
-       if not RunGuidList(MyAction,'Memorizations',MemList,AddMemorisation) then
+       if not RunGuidList(MyAction,'Memorisations',MemList,AddMemorisation) then
           Exit;
 
        GetMasteMemList;
