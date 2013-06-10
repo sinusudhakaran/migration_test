@@ -2158,6 +2158,14 @@ begin //SendSceduledEmail
                sMsg := 'Disconnect Failed (' + e.Message + ')';
                LogUtil.LogMsg( lmError, UnitName, sMsg);
             end;
+            on e: Exception do
+            begin
+               sMsg := 'Unable to Send Mail. Connection Failed ('+ e.Message +')';
+
+               LogUtil.LogMsg( lmError, UnitName, sMsg);
+
+               HelpfulErrorMsg( 'Unable to Send Mail for some clients.  See Log for details.',0);
+            end;
          end;
          //
       end;
