@@ -439,7 +439,8 @@ begin
     ef_AccountStart  :Result := TrapException(Session, AccountStart);
 
     ef_Transaction   :Result := TrapException(Session, Transaction);
-    ef_Dissection    :Result := TrapException(Session, Transaction);
+    ef_Dissection    :Result := er_OK;
+    ef_Dissected     :Result := TrapException(Session, Transaction);
 
     ef_CanConfig    : case Session.Index of
                          0: Result := er_OK;
