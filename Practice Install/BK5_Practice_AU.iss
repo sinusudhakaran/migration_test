@@ -57,7 +57,7 @@ Source: "3rd Party\ACTCHART.EXE"; DestDir: "{app}"
 Source: "3rd Party\S6BNK.COM"; DestDir: "{app}"
 Source: "3rd Party\libeay32.dll"; DestDir: "{app}"
 Source: "3rd Party\zint.dll"; DestDir: "{app}"
-Source: "3rd Party\vcredist_x86.exe"; DestDir: "{app}"
+Source: "3rd Party\vcredist_x86.exe"; DestDir: "{app}\Support"
 
 Source: "AuthorityForms\Client Authority Form.pdf"; DestDir: "{app}"
 Source: "AuthorityForms\CAF_Generator.xlt"; DestDir: "{app}"
@@ -99,18 +99,7 @@ Name: "{group}\Create Initial Database"; Filename: "{app}\BK5WIN.EXE"; Parameter
 [Tasks]
 Name: createdb; Description: "Create an initial database";
 
-[Code]
-function WillInstallReDist: Boolean;
-var
-  Version: TWindowsVersion;
-begin
-  GetWindowsVersionEx(Version);
-
-  Result := (Version.Major < 6);
-end;
-
 [Run]
-Filename: "{app}\vcredist_x86.exe"; Parameters : "/q:a"; Description : "Install Visual C++ 2008 Redistributable"; WorkingDir: "{app}"; Check : WillInstallReDist;
 Filename: "{app}\BK5WIN.EXE"; Parameters : "/dbcreate_norun"; Description : "Create an initial BankLink Practice Database"; WorkingDir: "{app}"; Tasks : createdb;
 Filename: "{app}\BK5WIN.EXE"; Description : "Start BankLink Practice"; WorkingDir: "{app}"; Flags: postinstall nowait;
 

@@ -37,7 +37,7 @@ Source: "3rd Party\ipwssl6.dll"; DestDir: "{app}"
 Source: "3rd Party\gdiplus.dll"; DestDir: "{app}"
 Source: "3rd Party\libeay32.dll"; DestDir: "{app}"
 Source: "3rd Party\zint.dll"; DestDir: "{app}"
-Source: "3rd Party\vcredist_x86.exe"; DestDir: "{app}"
+Source: "3rd Party\vcredist_x86.exe"; DestDir: "{app}\Support"
 
 [Icons]
 Name: "{group}\BankLink Books"; Filename: "{app}\BK5WIN.EXE"
@@ -56,16 +56,3 @@ Root: HKCR; Subkey: "BankLink.bkHandlr\shell\open\ddeexec\Application"; ValueTyp
 Root: HKCR; Subkey: "BankLink.bkHandlr\shell\open\ddeexec\Topic"; ValueType: string; ValueName: ""; ValueData: "bksystem"
 Root: HKCU; Subkey: "Software\BankLink"; Flags: uninsdeletekeyifempty
 Root: HKCU; Subkey: "Software\BankLink\"; ValueType: string; ValueName: "InstallPath"; ValueData: "{app}"
-
-[Run]
-Filename: "{app}\vcredist_x86.exe"; Parameters : "/q:a"; Description : "Install Visual C++ 2008 Redistributable"; WorkingDir: "{app}"; Check : WillInstallReDist;
-
-[Code]
-function WillInstallReDist: Boolean;
-var
-  Version: TWindowsVersion;
-begin
-  GetWindowsVersionEx(Version);
-
-  Result := (Version.Major < 6);
-end;
