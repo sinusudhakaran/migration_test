@@ -1074,8 +1074,10 @@ function TBudget_Detail_RecTable.Insert(MyID, BudgetID: TGuid; Period: Integer;
   end;
 
 begin with Value^ do
+  // Note: Budget amounts do NOT need to be divided by 100, so use DirectToSQL
+
   Result := RunValues([ ToSQL(MyID),ToSQL(BudgetID),ToSQL(bdAccount_Code),ToSQL(Period),
-                   ToSQL(Trunc(RoundTo(bdBudget[Period],0))),QtyToSQL(RemakeQty),QtyToSQL(RemakeEach)],[]);
+                   DirectToSQL(Trunc(RoundTo(bdBudget[Period],0))),QtyToSQL(RemakeQty),QtyToSQL(RemakeEach)],[]);
 end;
 
 procedure TBudget_Detail_RecTable.SetupTable;

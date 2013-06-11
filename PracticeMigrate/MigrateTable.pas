@@ -51,6 +51,9 @@ type
     class function CleanToSQL(Value: string): string;
     class function NewGuid : TGuid;
 
+    // No adjustments, values go directly into the variant
+    class function DirectToSQL(Value: Money): variant; overload; static;
+
     function GuidToText(Value: TGuid): string;
   end;
 
@@ -148,6 +151,13 @@ begin
       Result := StDate.StDateToDateTime(Value);
 end;
 
+class function TMigrateTable.DirectToSQL(Value: Money): variant;
+begin
+  if Value = Unknown then
+    result := null
+  else
+    result := Value;
+end;
 
 function TMigrateTable.GuidToText(Value: TGuid): string;
 begin
