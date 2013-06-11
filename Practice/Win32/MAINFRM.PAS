@@ -1740,7 +1740,7 @@ begin
     //position practice logo
     with imgPracticeLogo do
     begin
-      Top := imgLogo.Top + lblVersion.Height;
+      Top := imgLogo.Top + lblVersion.Height + 2;
       Left := TForm(Sender).ClientWidth - (imgPracticeLogo.Width + GetSystemMetrics( SM_CXVSCROLL ) + 8);
     end;
 
@@ -1770,7 +1770,10 @@ begin
 {$endif}
    if TProduct.ProductBrand = btBankstream then
    begin
-     Top := imgLogo.Top + 2;
+     if imgPracticeLogo.Visible then
+     begin
+       Top := imgLogo.Top;
+     end;
    end;
    
    Left := TForm(Sender).ClientWidth - (lblVersion.Width + GetSystemMetrics( SM_CXVSCROLL ) + 8);
