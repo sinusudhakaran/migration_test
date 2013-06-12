@@ -873,6 +873,12 @@ begin
       PreLoaded := Destination > '';
       fromDir := '';
 
+{$IFDEF DEBUG_JARNO}
+  EFromDir.ReadOnly := false;
+  fromDir := 'C:\Testing\uk_practice\';
+  Cbservers.Text := 'BANKLINK-JARNO\BANKLINK';
+{$ENDIF}
+
       progress := SelectSource;
       Application.CreateForm(TAppImages, AppImages);
    finally
