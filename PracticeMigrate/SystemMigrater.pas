@@ -1855,8 +1855,11 @@ begin
 
    // BLOPI (BankLink Online Practice Integration}
    if(System.fdFields.fdUse_BankLink_Online) then begin
-      if (System.fdFields.fdLast_BankLink_Online_Update > 0)
-      or (System.fdFields.fdBankLink_Online_Config > '') then
+      if System.fdFields.fdBanklink_Online_Suspended then
+         // Suspended
+         ParameterTable.Update('PracticeBankLinkOnlineStatus', 3)
+      else if (System.fdFields.fdLast_BankLink_Online_Update > 0)
+           or (System.fdFields.fdBankLink_Online_Config > '') then
          // Been succesfull
          ParameterTable.Update('PracticeBankLinkOnlineStatus', 1)
       else
@@ -1865,6 +1868,8 @@ begin
 
        if PRACINI_OnlineLink > '' then
            ParameterTable.Update('BankLinkPracticeDomain', GetDomain(PRACINI_OnlineLink), 'nvarchar(255)');
+
+       ParameterTable.Update('BankLinkOnlineTermsVersion', System.fdFields.fdLast_Agreed_To_BLOSA, 'nvarchar(255)');
    end else
       ParameterTable.Update('PracticeBankLinkOnlineStatus', 0);
 
