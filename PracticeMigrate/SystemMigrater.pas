@@ -231,6 +231,7 @@ end;
 implementation
 
 uses
+   MigrateTable,
    Windows,
    reportTypes,
    logger,
@@ -1815,7 +1816,7 @@ begin
 
 
 
-   ParameterTable.Update('SystemReportPassword', System.fdFields.fdSystem_Report_Password,'nvarchar(60)');
+   ParameterTable.Update('SystemReportPassword', String(TMigrateTable.PWToSQL(LowerCase(System.fdFields.fdSystem_Report_Password))),'nvarchar(60)');
    ParameterTable.Update('ShowOverDueWhenClosingClientFile', System.fdFields.fdTask_Tracking_Prompt_Type = ttOnlyIfOutstanding);
    //ParameterTable.Update('TaskTrackingPromptType', System.fdFields.fdTask_Tracking_Prompt_Type);
    ParameterTable.Update('TaxInterfaceUsed', GetProviderID(TaxSystem,System.fdFields.fdCountry, System.fdFields.fdTax_Interface_Used));
