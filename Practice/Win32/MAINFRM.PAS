@@ -1778,7 +1778,14 @@ begin
 {$endif}
    if TProduct.ProductBrand = btBankstream then
    begin
-     Top := imgLogo.Top;
+     if imgPracticeLogo.Visible then
+     begin
+       Visible := False;
+     end
+     else
+     begin
+       Top := imgLogo.Top;
+     end;
    end;
    
    Left := TForm(Sender).ClientWidth - (lblVersion.Width + GetSystemMetrics( SM_CXVSCROLL ) + 8);
