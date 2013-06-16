@@ -290,7 +290,7 @@ Begin
    and (AChart.ItemCount = 0) then
    Begin
       AChart.Free;
-      Msg := Format( 'BankLink couldn''t find any accounts in the file %s', [ FileName ] );
+      Msg := Format(TProduct.BrandName + ' couldn''t find any accounts in the file %s', [ FileName ] );
       LogUtil.LogMsg( lmError, UnitName, ThisMethodName + ' : ' + Msg );
       raise ERefreshFailed.Create( Msg );
    end;      
