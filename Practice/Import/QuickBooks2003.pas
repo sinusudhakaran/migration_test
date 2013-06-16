@@ -45,7 +45,8 @@ uses
    ChartUtils,
    GenUtils,
    Templates,
-   gstCalc32;
+   gstCalc32,
+   bkProduct;
 
 Const
   UnitName = 'QuickBooks 2003';
@@ -144,7 +145,7 @@ begin
   if Assigned( AChart ) and ( AChart.ItemCount = 0 ) then
   Begin
     FreeAndNil(AChart);
-    Msg := 'BankLink couldn''t find any accounts to import.';
+    Msg := TProduct.BrandName + ' couldn''t find any accounts to import.';
     LogUtil.LogMsg( lmError, UnitName, ThisMethodName + ' : ' + Msg );
     Raise ERefreshFailed.Create( Msg );
   end;
