@@ -50,7 +50,8 @@ uses
   SHFolder,
   GenUtils,
   bkUrls,
-  bkProduct;
+  bkProduct,
+  StrUtils;
 
 const
    GrpMainForm = 'MainForm';
@@ -152,8 +153,16 @@ var
   iDefaultValue  : integer;
 begin
    CommonDocFolder := ShellGetFolderPath(CSIDL_APPDATA);
-   DocFolder := IncludeTrailingPathDelimiter(CommonDocFolder + 'BankLink\' + SHORTAPPNAME);
+
+   DocFolder := IncludeTrailingPathDelimiter(CommonDocFolder + TProduct.BrandName + '\' + SHORTAPPNAME);
+
+   if not DirectoryExists(DocFolder) then
+   begin
+     DocFolder := IncludeTrailingPathDelimiter(CommonDocFolder + 'BankLink\' + ReplaceStr(SHORTAPPNAME, 'Bankstream', 'BankLink'));
+   end;
+
    DocFile := DocFolder + INIFILENAME;
+
    WinFolder := GetWinDir;
    WinFile := WinFolder + INIFILENAME;
    if BKFileExists(WinFile) and (not BKFileExists(DocFile)) and (DocFolder <> WinFolder) then // move it to common folder
@@ -354,7 +363,8 @@ var
   IniFile : TMemIniFile;
 begin
    {Write Form Settings into INI File}
-   DocFolder := ShellGetFolderPath(CSIDL_APPDATA) + 'BankLink\' + SHORTAPPNAME + '\';
+   DocFolder := ShellGetFolderPath(CSIDL_APPDATA) + TProduct.BrandName + '\' + SHORTAPPNAME + '\';
+
    if not DirectoryExists(DocFolder) then
      ForceDirectories(DocFolder);
    IniFile := TMemIniFile.Create(DocFolder + INIFILENAME);
