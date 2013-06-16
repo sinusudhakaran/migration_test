@@ -1278,6 +1278,7 @@ procedure TdlgPrintScheduled.NothingToDoMsg;
 var
   msg: string;
 begin
+  {
   msg := 'You have not specified one of the following destinations :'+#13#10 +
     'Printed Reports, Faxed Reports, E-Mailed Reports, ' +
     bkBranding.NotesProductName + ' Files';
@@ -1290,6 +1291,10 @@ begin
 
   if cbToBusinessProducts.Visible then
     msg := msg + ', Business Product Files';
+   }
+
+  msg := 'In order to run scheduled reports you must specify at least one destination.';
+
 
   HelpfulInfoMsg(msg, 0);
 end;
