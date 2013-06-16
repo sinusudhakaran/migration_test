@@ -40,7 +40,8 @@ uses
    Windows,
    Templates,
    gstCalc32,
-   WinUtils;
+   WinUtils,
+   bkProduct;
 
 Const
    UnitName = 'QuickBooks';
