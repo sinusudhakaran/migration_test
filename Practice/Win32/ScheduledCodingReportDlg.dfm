@@ -52,6 +52,10 @@ object dlgSchedCodingReportSettings: TdlgSchedCodingReportSettings
     TabOrder = 2
     object tbsOptions: TTabSheet
       Caption = '&Options'
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object Label1: TLabel
         Left = 24
         Top = 16
@@ -99,7 +103,7 @@ object dlgSchedCodingReportSettings: TdlgSchedCodingReportSettings
         Width = 169
         Height = 21
         Style = csDropDownList
-        ItemHeight = 13
+        ItemHeight = 0
         TabOrder = 0
         OnChange = cmbStyleChange
       end
@@ -109,7 +113,7 @@ object dlgSchedCodingReportSettings: TdlgSchedCodingReportSettings
         Width = 169
         Height = 21
         Style = csDropDownList
-        ItemHeight = 13
+        ItemHeight = 0
         TabOrder = 1
       end
       object cmbInclude: TComboBox
@@ -118,7 +122,7 @@ object dlgSchedCodingReportSettings: TdlgSchedCodingReportSettings
         Width = 169
         Height = 21
         Style = csDropDownList
-        ItemHeight = 13
+        ItemHeight = 0
         TabOrder = 2
       end
       object cmbLeave: TComboBox

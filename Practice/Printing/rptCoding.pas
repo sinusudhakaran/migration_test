@@ -67,7 +67,8 @@ uses
   NewReportUtils,
   SYDEFS,
   Admin32,
-  ClientHomePagefrm;
+  ClientHomePagefrm,
+  bkProduct;
 
 const
   TaxInvBoxEmpty = '[  ]';
@@ -201,7 +202,7 @@ begin
          AddJobHeader(Job,siTitle,'CODING REPORT '+S, true );
          //AddJobHeader(Job,jtCenter,1.6,'CODING REPORT '+S, true);
 
-         S := 'BY '+UpperCase(csNames[Sort]);
+         S := 'BY '+ TProduct.Rebrand(UpperCase(csNames[Sort]));
 
          Case include of
             esAllEntries   : S := S + ', ALL ENTRIES';

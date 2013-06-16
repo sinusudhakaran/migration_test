@@ -3617,9 +3617,9 @@ begin
   begin
     NewItem := TMenuItem.Create( popSortBy );
     if Assigned(MyClient) then
-       NewItem.Caption := 'By '+ Localise( MyClient.clFields.clCountry, csNames[csSortByOrder[j]])
+       NewItem.Caption := 'By '+ Localise( MyClient.clFields.clCountry, TProduct.Rebrand(csNames[csSortByOrder[j]]))
     else
-       NewItem.Caption := 'By '+ csNames[csSortByOrder[j]];
+       NewItem.Caption := 'By '+ TProduct.Rebrand(csNames[csSortByOrder[j]]);
     NewItem.OnClick := mniSortByClick;
     NewItem.Visible := not( csSortByOrder[j] in xclude);
     NewItem.Enabled := true;

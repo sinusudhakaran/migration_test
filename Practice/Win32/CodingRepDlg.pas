@@ -153,7 +153,8 @@ uses
   omnixmlUtils,
   Imagesfrm,
   StdHints,
-  WinUtils;
+  WinUtils,
+  bkProduct;
 
 {$R *.DFM}
 
@@ -193,7 +194,7 @@ begin
       csDateEffective, csReference, csChequeNumber, csDatePresented,
       csAccountCode, csByValue :
         begin
-          cmbSort.Items.AddObject(csNames[csSortByOrder[i]], TObject(csSortByOrder[i]));
+          cmbSort.Items.AddObject(TProduct.Rebrand(csNames[csSortByOrder[i]]), TObject(csSortByOrder[i]));
         end;
 
       csByNarration :
@@ -201,7 +202,7 @@ begin
           if MyClient.clFields.clCountry = whNewZealand then
             cmbSort.Items.AddObject('Narration/Other Party', TObject(csSortByOrder[i]))
           else
-            cmbSort.Items.AddObject(csNames[csSortByOrder[i]], TObject(csSortByOrder[i]));
+            cmbSort.Items.AddObject(TProduct.Rebrand(csNames[csSortByOrder[i]]), TObject(csSortByOrder[i]));
         end;
     end;
   end;
@@ -780,14 +781,14 @@ begin
        Break;
     end;
 
-  s :=  GetNodeTextStr(Value,'Sort',csNames[sort]);
+  s :=  GetNodeTextStr(Value,'Sort',TProduct.Rebrand(csNames[sort]));
   for i := 0 to csMax do
      {if (i = csByNarration)
      and(Client.clFields.clCountry = whNewZealand) then
         if sametext( 'Narration/Other Party', s) then begin
            Sort := i;
            Break;
-        end else} if SameText(s,csNames[i]) then begin
+        end else} if SameText(s,TProduct.Rebrand(csNames[i])) then begin
            Sort := i;
            Break;
         end;
@@ -817,7 +818,7 @@ procedure TCodingReportSettings.SaveToNode(Value: IXMLNode);
 begin
   inherited;
   SetNodeTextStr(Value,'Style',rsNames[Style]);
-  SetNodeTextStr(Value,'Sort',csNames[Sort]);
+  SetNodeTextStr(Value,'Sort',TProduct.Rebrand(csNames[Sort]));
   SetNodeTextStr(Value,'Include',esNames[Include]);
   SetNodeTextInt(Value,'Leave_Lines',Leave);
   SetNodeBool(Value,'Rule_Line_Between_Entries',Rule);

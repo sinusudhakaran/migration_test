@@ -89,7 +89,8 @@ implementation
 uses
   bkConst,
   BKHelp,
-  UserReportSettings;
+  UserReportSettings,
+  bkProduct;
 
 {$R *.DFM}
 
@@ -129,7 +130,7 @@ begin
                  csAccountCode,
                  csByValue,
                  csByNarration ]) then
-      cmbSort.Items.AddObject(csNames[csSortByOrder[i]], TObject(csSortByOrder[i]));  //csByNarration do
+      cmbSort.Items.AddObject(TProduct.Rebrand(csNames[csSortByOrder[i]]), TObject(csSortByOrder[i]));  //csByNarration do
   end;
 end;
 

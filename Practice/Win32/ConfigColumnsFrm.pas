@@ -149,7 +149,8 @@ uses
   Globals,
   IniFiles,
   CodingFormConst,
-  BKConst, YesNoDlg, WinUtils, InfoMoreFrm;
+  BKConst, YesNoDlg, WinUtils, InfoMoreFrm,
+  bkProduct;
 
 {$R *.DFM}
 
@@ -390,7 +391,7 @@ begin
       Refresh;
    end;
    if lblSort.Visible then
-     lblSort.Caption := 'Sort By: ' + csNames[SortColumn];
+     lblSort.Caption := 'Sort By: ' + TProduct.Rebrand(csNames[SortColumn]);
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmConfigure.ReorderUsingDefaults;
@@ -834,7 +835,7 @@ procedure TfrmConfigure.btnLoadClick(Sender: TObject);
 begin
   LoadTemplate;
   if lblSort.Visible then
-    lblSort.Caption := 'Sort By: ' + csNames[SortColumn];
+    lblSort.Caption := 'Sort By: ' + TProduct.Rebrand(csNames[SortColumn]);
 end;
 
 procedure TfrmConfigure.FormShow(Sender: TObject);
@@ -845,7 +846,7 @@ begin
   else
   begin
     lblSort.Visible := False;
-    lblSort.Caption := 'Sort By: ' + csNames[SortColumn];
+    lblSort.Caption := 'Sort By: ' + TProduct.Rebrand(csNames[SortColumn]);
   end;
 end;
 

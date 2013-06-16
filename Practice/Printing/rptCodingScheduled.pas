@@ -102,7 +102,8 @@ uses
   ToDoHandler,
   Admin32,
   RenderEngineObj,
-  RptCoding;
+  RptCoding,
+  bkProduct;
 
 const
   TaxInvBoxEmpty = '[  ]';
@@ -1193,7 +1194,7 @@ begin
 
        AddJobHeader(Job,siTitle,'CODING REPORT '+S, true);
 
-       S := 'BY '+UpperCase(csNames[clScheduled_Coding_Report_Sort_Order]);
+       S := 'BY '+ TProduct.Rebrand(UpperCase(csNames[clScheduled_Coding_Report_Sort_Order]));
 
        Case clScheduled_Coding_Report_Entry_Selection of
           esAllEntries   : S := S + ', ALL ENTRIES';
