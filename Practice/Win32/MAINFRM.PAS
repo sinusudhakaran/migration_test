@@ -1555,7 +1555,7 @@ begin
                    begin
                      ProductConfigService.ResumeService;
                      
-                     LogUtil.LogMsg(lmInfo, 'ServiceAgreementDlg', 'The ' + bkBranding.ProductOnlineName + ' service agreement has been accepted. The ' + bkBranding.ProductOnlineName + ' service has been resumed.', 0);
+                     LogUtil.LogMsg(lmInfo, 'ServiceAgreementDlg', 'The ' + bkBranding.ProductOnlineName + ' service has been resumed.', 0);
                    end
                    else
                    begin
