@@ -924,7 +924,7 @@ begin
           //show progress window of any of the client files where skipped
           if SkippedCount > 0 then
           begin
-            ProgressFrm.mProgress.Lines.Add( 'Errors occured, abandoning send.');
+            ProgressFrm.mProgress.Lines.Add( 'Errors occurred, abandoning send.');
             ProgressFrm.btnOK.Enabled := true;
             ProgressFrm.Hide;
             ProgressFrm.ShowModal;
