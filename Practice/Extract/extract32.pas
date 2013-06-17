@@ -312,7 +312,7 @@ begin
          end;
 
          on e : EInOutError do begin
-            Msg := 'EInOutError occured : '+E.message;
+            Msg := 'EInOutError occurred : '+E.message;
             HelpfulErrorMsg(Msg,0);
             Logutil.LogMsg(lmError, UnitName, ThisMethodName + ' : ' + Msg);
          end;
