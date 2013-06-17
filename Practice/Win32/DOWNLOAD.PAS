@@ -1310,7 +1310,7 @@ begin
     end;
   except
      on E : EDownloadVerify do begin
-        HelpfulErrorMsg('A error occurred while verifying the downloaded data.'+#13+#13+
+        HelpfulErrorMsg('An error occurred while verifying the downloaded data.'+#13+#13+
                         E.Message+ #13+#13+
                         'Please contact '+SHORTAPPNAME+' support.',0);
      end;
