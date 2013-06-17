@@ -354,6 +354,7 @@ begin
       IniFile.Free;
    end;
 end;
+
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure BK5WriteINI;
 var
@@ -361,12 +362,28 @@ var
   i : integer;
   EncryptedPassword, DocFolder : string;
   IniFile : TMemIniFile;
+  SettingsFileExisted: Boolean;
+  BankLinkSettingsFile: String;
 begin
    {Write Form Settings into INI File}
    DocFolder := ShellGetFolderPath(CSIDL_APPDATA) + TProduct.BrandName + '\' + SHORTAPPNAME + '\';
 
    if not DirectoryExists(DocFolder) then
      ForceDirectories(DocFolder);
+
+   if TProduct.ProductBrand <> btBankLink then
+   begin
+     if not FileExists(DocFolder + INIFILENAME) then
+     begin
+       BankLinkSettingsFile := ShellGetFolderPath(CSIDL_APPDATA) + 'BankLink\' + ReplaceStr(SHORTAPPNAME, TProduct.BrandName, 'BankLink') + '\' + INIFILENAME;
+
+       if FileExists(BankLinkSettingsFile) then
+       begin
+         CopyFile(PChar(BankLinkSettingsFile), PChar(DocFolder + INIFILENAME), True);
+       end;
+     end;
+   end;
+   
    IniFile := TMemIniFile.Create(DocFolder + INIFILENAME);
    try
      //Save Main Form Window Status
