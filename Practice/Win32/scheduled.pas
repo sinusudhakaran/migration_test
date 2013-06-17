@@ -1527,7 +1527,8 @@ begin
        end;
 
        if Boolean(AdminSystem.fdFields.fdSched_Rep_Books_Custom_Doc)
-       and (AdminSystem.fdFields.fdSched_Rep_Books_Custom_Doc_GUID > '') then begin
+       and (AdminSystem.fdFields.fdSched_Rep_Books_Custom_Doc_GUID > '')
+       and (aClient.clFields.clCheckOut_Scheduled_Reports or aClient.clFields.clEmail_Scheduled_Reports) then begin
           srOptions.srCustomDocGUID := AdminSystem.fdFields.fdSched_Rep_Books_Custom_Doc_GUID;
           if DoScheduledReport(REPORT_CUSTOM_DOCUMENT, rdEmail, srOptions) then
              EmailInfo.AddAttachment(srOptions.srAttachment)
@@ -1536,7 +1537,8 @@ begin
        end;
 
        if Boolean(AdminSystem.fdFields.fdSched_Rep_Online_Custom_Doc)
-       and (AdminSystem.fdFields.fdSched_Rep_Online_Custom_Doc_GUID > '') then begin
+       and (AdminSystem.fdFields.fdSched_Rep_Online_Custom_Doc_GUID > '')
+       and (aClient.clExtra.ceOnline_Scheduled_Reports) then begin
           srOptions.srCustomDocGUID := AdminSystem.fdFields.fdSched_Rep_Online_Custom_Doc_GUID;
           if DoScheduledReport(REPORT_CUSTOM_DOCUMENT, rdEmail, srOptions) then
              EmailInfo.AddAttachment(srOptions.srAttachment)
