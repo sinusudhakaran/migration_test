@@ -2160,11 +2160,49 @@ begin //SendSceduledEmail
             end;
             on e: Exception do
             begin
-               sMsg := 'Unable to Send Mail. Connection Failed ('+ e.Message +')';
+              for I := 0 to EmailList.Count - 1 do 
+              begin
+                EmailInfo := EmailList[I];
 
-               LogUtil.LogMsg( lmError, UnitName, sMsg);
+                // Undo checkout
+                if (EmailInfo.EmailType = EMAIL_CHECKOUT) then // check back in
+                begin
+                  //Note: If we get to this stage for a BankLink Online file then it has
+                  //been uploaded - so we don't need to undo the checkout
+                  CheckInClient(EmailInfo.ClientCode, EmailOutboxDir, nil, True);
+                end;
+              
+                // Decrement ecoding sequence
+                if EmailInfo.EmailType = EMAIL_ECODING then 
+                begin
+                  OpenAClient(EmailInfo.ClientCode, MyClient, True);
 
-               HelpfulErrorMsg( 'Unable to Send Mail for some clients.  See Log for details.',0);
+                  if Assigned(MyClient) then 
+                  begin
+                    Dec(MyClient.clFields.clECoding_Last_File_No);
+                    Files.DoClientSave( TRUE, MyClient);
+                  end;
+
+                  MyClient.Free;
+
+                  MyClient := nil;         
+                end;
+
+                for j := 0 to srOptions.srSummaryInfoList.Count-1 do 
+                begin
+                  if (pSchdRepSummaryRec(srOptions.srSummaryInfoList.Items[j]).ClientCode = EmailInfo.ClientCode) then 
+                  begin
+                    pSchdRepSummaryRec(srOptions.srSummaryInfoList.Items[j]).EmailSendFail := True;
+                    pSchdRepSummaryRec(srOptions.srSummaryInfoList.Items[j]).Completed := False;
+                  end;
+                end;  
+              end;
+                      
+              sMsg := 'Unable to Send Mail. Connection Failed ('+ e.Message +')';
+
+              LogUtil.LogMsg( lmError, UnitName, sMsg);
+
+              HelpfulErrorMsg( 'Unable to Send Mail for some clients.  See Log for details.',0);
             end;
          end;
          //
