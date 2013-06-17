@@ -1203,7 +1203,7 @@ begin
       //crash system because client file will have been updated
       On E : Exception do
       begin
-        EMsg := 'An error occured during the import of ' + filename +'. ' + E.Message;
+        EMsg := 'An error occurred during the import of ' + filename +'. ' + E.Message;
         Raise Exception.Create( EMsg);
         Exit;
       end;
