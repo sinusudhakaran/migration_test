@@ -1549,7 +1549,7 @@ end;
          NewItem.MemList := TGuidList.Create(TMemorisations_List(NewItem.MemRec.smMemorisations));
          // ReSequence..
          NewItem.MemList.reverse;
-         RunGuidList(MyAction, NewItem.MemRec.smBank_Prefix, NewItem.MemList, AddMasterMem);
+         RunGuidList(MyAction, NewItem.MemRec.smBank_Prefix, NewItem.MemList, AddMasterMem, true);
          MasterMemLists.Add(NewItem);
          MyAction.Count := I + 1;
       end;
@@ -2126,10 +2126,10 @@ begin
          exit;
    end;
 
-   if not RunGuidList(MyAction,'Client Groups',ClientGroupList, AddClientGroup) then
+   if not RunGuidList(MyAction,'Client Groups',ClientGroupList, AddClientGroup, true) then
       Exit;
 
-   if not RunGuidList(MyAction,'Client Types',ClientTypeList, AddClientType) then
+   if not RunGuidList(MyAction,'Client Types',ClientTypeList, AddClientType, true) then
       Exit;
 
    MyAction.Counter := 5;
