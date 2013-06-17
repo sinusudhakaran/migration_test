@@ -420,7 +420,7 @@ begin
       //crash system because client file will have been updated
       On E : Exception do
       begin
-        Msg := 'An error occured during the import of ' + filename +'. ' + E.Message;
+        Msg := 'An error occurred during the import of ' + filename +'. ' + E.Message;
         Raise Exception.Create( Msg);
         Exit;
       end;
@@ -520,7 +520,7 @@ begin
         //crash system because client file will have been updated
         On E : Exception do
         begin
-          Msg := 'An error occured during the import of ' + filename +'. ' + E.Message;
+          Msg := 'An error occurred during the import of ' + filename +'. ' + E.Message;
           Raise Exception.Create( Msg);
           Exit;
         end;
