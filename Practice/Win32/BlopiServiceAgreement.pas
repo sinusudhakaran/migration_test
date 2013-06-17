@@ -126,39 +126,52 @@ begin
       try
         AdminSystem.fdFields.fdLast_Agreed_To_BLOSA := ServiceAgreementVersion;
 
-        UserObj := ProductConfigService.GetPrimaryContact(false);
-        if Assigned(UserObj) then
-        begin
-          UserEmail := UserObj.EMail;
-          UserFullname := UserObj.FullName;
-        end
-        else
-        begin
-          UserEmail := '';
-          UserFullname := '';
-        end;
-
-        SendServiceAgreementEmail(AdminSystem.fdFields.fdPractice_Name_for_Reports,
-                                  AdminSystem.fdFields.fdBankLink_Code,
-                                  UserFullname,
-                                  UserEmail,
-                                  ServiceAgreementVersion,
-                                  SigneeName,
-                                  SigneeTitle);
-
         SaveAdminSystem;
-
-        LogUtil.LogMsg(lmInfo, 'ServiceAgreementDlg', Format('BankLink Online service agreement accepted by - SigneeName: %s; SigneeTile: %s; Service Agreement Version: %s', [SigneeName, SigneeTitle, ServiceAgreementVersion]), 0);
-
-        Result := True;
       except
-        if AdminIsLocked then
+        on E:Exception do
         begin
-          UnLockAdmin;
+          LogUtil.LogMsg(lmInfo, 'ServiceAgreementDlg', 'An exception occurred while saving the new ' + bkBranding.ProductOnlineName + ' service agreement version number to the system db: ' + E.Message, 0);
+
+          if AdminIsLocked then
+          begin
+            UnLockAdmin;
+          end;
+
+          raise;
         end;
-        
-        raise;
       end;
+
+      UserObj := ProductConfigService.GetPrimaryContact(false);
+
+      if Assigned(UserObj) then
+      begin
+        UserEmail := UserObj.EMail;
+        UserFullname := UserObj.FullName;
+      end
+      else
+      begin
+        UserEmail := '';
+        UserFullname := '';
+      end;
+
+      LogUtil.LogMsg(lmInfo, 'ServiceAgreementDlg', Format(bkBranding.ProductOnlineName + ' service agreement accepted by - SigneeName: %s; SigneeTile: %s; Service Agreement Version: %s', [SigneeName, SigneeTitle, ServiceAgreementVersion]), 0);
+
+      if SendServiceAgreementEmail(AdminSystem.fdFields.fdPractice_Name_for_Reports,
+                                AdminSystem.fdFields.fdBankLink_Code,
+                                UserFullname,
+                                UserEmail,
+                                ServiceAgreementVersion,
+                                SigneeName,
+                                SigneeTitle) then
+      begin
+        LogUtil.LogMsg(lmInfo, 'ServiceAgreementDlg', bkBranding.ProductOnlineName + ' service agreement accepted email has been sent.', 0);
+      end
+      else
+      begin
+        LogUtil.LogMsg(lmInfo, 'ServiceAgreementDlg', bkBranding.ProductOnlineName + ' service agreement accepted email was not sent.', 0);
+      end;
+
+      Result := True;
     end
     else
     begin
