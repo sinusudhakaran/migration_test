@@ -1548,9 +1548,18 @@ begin
                  begin
                    // Suspend when new version is available and then on Resume when ok is clicked
                    ProductConfigService.SuspendService;
+
+                   LogUtil.LogMsg(lmInfo, 'ServiceAgreementDlg', 'The ' + bkBranding.ProductOnlineName + ' service agreement version has changed. The ' + bkBranding.ProductOnlineName + ' service has been suspended until the new version is accepted.', 0);
+
                    if TBlopiServiceAgreement.SignServiceAgreement then
                    begin
                      ProductConfigService.ResumeService;
+                     
+                     LogUtil.LogMsg(lmInfo, 'ServiceAgreementDlg', 'The ' + bkBranding.ProductOnlineName + ' service agreement has been accepted. The ' + bkBranding.ProductOnlineName + ' service has been resumed.', 0);
+                   end
+                   else
+                   begin
+                     LogUtil.LogMsg(lmInfo, 'ServiceAgreementDlg', 'The ' + bkBranding.ProductOnlineName + ' service agreement has not been accepted. The service will remain suspended until the new service agreement has accepted.', 0);
                    end;
                  end;
                finally
