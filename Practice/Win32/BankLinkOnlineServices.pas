@@ -2759,7 +2759,7 @@ begin
           begin
             HelpfulErrorMsg(bkBranding.PracticeProductName + ' is unable to authenticate with ' + bkBranding.ProductOnlineName + '. Please contact ' + TProduct.BrandName + ' Support for assistance.', 0);
 
-            LogUtil.LogMsg(lmError, UNIT_NAME, 'An error occured while authenticating with BankLink Online.');
+            LogUtil.LogMsg(lmError, UNIT_NAME, 'An error occurred while authenticating with BankLink Online.');
 
             Exit;
           end
@@ -2795,7 +2795,7 @@ begin
   begin
     HelpfulErrorMsg('You are not a ' + bkBRanding.ProductOnlineName + ' enabled user. Only ' + bkBranding.ProductOnlineName + ' enabled users can update ' + bkBranding.ProductOnlineName + '. Please contact ' + TProduct.BrandName + ' Support for assistance.', 0);
 
-    LogUtil.LogMsg(lmError, UNIT_NAME, 'An error occured while authenticating with ' + bkBranding.ProductOnlineName + '.');
+    LogUtil.LogMsg(lmError, UNIT_NAME, 'An error occurred while authenticating with ' + bkBranding.ProductOnlineName + '.');
 
     Exit;  
   end;
