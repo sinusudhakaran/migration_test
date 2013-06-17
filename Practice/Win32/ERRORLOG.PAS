@@ -472,7 +472,7 @@ begin
       on e : exception do
       begin
         aMsg := E.message + ' [' + E.ClassName + '] ' +
-                 'occured during SysLogMessage. Message was ' + Msg;
+                 'occurred during SysLogMessage. Message was ' + Msg;
         raise Exception.Create( aMsg);
       end;
     end;
@@ -530,7 +530,7 @@ begin
       on e : exception do
       begin
         aMsg := E.message + ' [' + E.ClassName + '] ' +
-                'occured during SysLogMessage. Message was ' + Msg;
+                'occurred during SysLogMessage. Message was ' + Msg;
         raise Exception.Create( aMsg);
       end;
     end;
@@ -599,7 +599,7 @@ begin
       //should get to see this
       on e : exception do begin
         aMsg := E.message + ' [' + E.ClassName + '] ' +
-                            'occured during SysLogMessage.';
+                            'occurred during SysLogMessage.';
         raise Exception.Create( aMsg);
       end;
     end;
