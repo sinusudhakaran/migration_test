@@ -400,7 +400,7 @@ begin
   try
     if not E.ClassNameIs('EBKStartupForceTerminate') then
     begin
-      ShowMessage( 'An error has occured during start up. '+ E.Message + ' [' + E.Classname + ']'#13#13 +
+      ShowMessage( 'An error has occurred during start up. '+ E.Message + ' [' + E.Classname + ']'#13#13 +
                    SHORTAPPNAME + ' will now terminate.' );
       LogMsg( lmError, Unitname, 'Start Up error ' + StartUpStep + '. ' + E.Message + ' [' + E.Classname + ']');
     end;
