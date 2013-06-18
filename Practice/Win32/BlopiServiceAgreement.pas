@@ -154,7 +154,7 @@ begin
         UserFullname := '';
       end;
 
-      LogUtil.LogMsg(lmInfo, 'ServiceAgreementDlg', Format(bkBranding.ProductOnlineName + ' service agreement accepted by - Signee Name: %s; Signee Tile: %s; Service Agreement Version: %s', [SigneeName, SigneeTitle, ServiceAgreementVersion]), 0);
+      LogUtil.LogMsg(lmInfo, 'ServiceAgreementDlg', Format(bkBranding.ProductOnlineName + ' service agreement accepted by - Signee Name: %s; Signee Title: %s; Service Agreement Version: %s', [SigneeName, SigneeTitle, ServiceAgreementVersion]), 0);
 
       if SendServiceAgreementEmail(AdminSystem.fdFields.fdPractice_Name_for_Reports,
                                 AdminSystem.fdFields.fdBankLink_Code,
