@@ -1313,9 +1313,9 @@ begin
 
         if (AdminSystem.fdFields.fdSort_Reports_By = srsoStaffMember) then
         begin
-          AddColAuto(Job,cLeft,8.0,GcGap,'Coding',jtLeft);
-          AddColAuto(Job,cLeft,8.0,GcGap,'Chart',jtLeft);
-          AddColAuto(Job,cLeft,8.0,GcGap,'Payees',jtLeft);
+          AddColAuto(Job,cLeft,7.0,GcGap,'Coding',jtLeft);
+          AddColAuto(Job,cLeft,7.0,GcGap,'Chart',jtLeft);
+          AddColAuto(Job,cLeft,7.0,GcGap,'Payees',jtLeft);
           AddColAuto(Job,cLeft,6.0,GcGap,'Jobs',jtLeft);
         end
         else
@@ -1326,7 +1326,15 @@ begin
           AddColAuto(Job,cLeft,4.0,GcGap,'Jobs',jtLeft);
           AddColAuto(Job,cLeft,10,GcGap,'Staff Member', jtLeft);
         end;
-        AddColAuto(Job,cLeft,15,GcGap,'Send To',jtLeft);
+
+        if AdminSystem.fdFields.fdSort_Reports_By = srsoStaffMember then
+        begin
+          AddColAuto(Job,cLeft,16,GcGap,'Send To',jtLeft);
+        end
+        else
+        begin
+          AddColAuto(Job,cLeft,15,GcGap,'Send To',jtLeft);
+        end;
 
         AddCommonFooter(Job);
 
