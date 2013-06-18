@@ -154,7 +154,7 @@ begin
         UserFullname := '';
       end;
 
-      LogUtil.LogMsg(lmInfo, 'ServiceAgreementDlg', Format(bkBranding.ProductOnlineName + ' service agreement accepted by - SigneeName: %s; SigneeTile: %s; Service Agreement Version: %s', [SigneeName, SigneeTitle, ServiceAgreementVersion]), 0);
+      LogUtil.LogMsg(lmInfo, 'ServiceAgreementDlg', Format(bkBranding.ProductOnlineName + ' service agreement accepted by - Signee Name: %s; Signee Tile: %s; Service Agreement Version: %s', [SigneeName, SigneeTitle, ServiceAgreementVersion]), 0);
 
       if SendServiceAgreementEmail(AdminSystem.fdFields.fdPractice_Name_for_Reports,
                                 AdminSystem.fdFields.fdBankLink_Code,
@@ -164,11 +164,11 @@ begin
                                 SigneeName,
                                 SigneeTitle) then
       begin
-        LogUtil.LogMsg(lmInfo, 'ServiceAgreementDlg', bkBranding.ProductOnlineName + ' service agreement accepted email has been sent.', 0);
+        LogUtil.LogMsg(lmInfo, 'ServiceAgreementDlg', bkBranding.ProductOnlineName + ' service agreement accepted. Email has been sent.', 0);
       end
       else
       begin
-        LogUtil.LogMsg(lmInfo, 'ServiceAgreementDlg', bkBranding.ProductOnlineName + ' service agreement accepted email was not sent.', 0);
+        LogUtil.LogMsg(lmInfo, 'ServiceAgreementDlg', bkBranding.ProductOnlineName + ' service agreement accepted. Email was not sent.', 0);
       end;
 
       Result := True;
