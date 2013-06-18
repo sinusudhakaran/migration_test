@@ -66,7 +66,8 @@ var
   function SplashScreenBanner: TPicture;
   function TopBannerImage: TPicture;
   function DownloadDiskImageBanner: TPicture;
-  function BankstreamLogo: TPicture;
+  function ProductIcon32x32: TPicture;
+  function ProductIcon16x16: TPicture;
   function ReportLogo: TPicture;
 
   procedure StyleMainBannerLogo(Image: TImage);
@@ -478,7 +479,7 @@ begin
   end;
 end;
 
-function BankstreamLogo: TPicture;
+function ProductIcon32x32: TPicture;
 begin
   if TProduct.ProductBrand = btBankstream then
   begin
@@ -488,6 +489,11 @@ begin
   begin
     Result := AppImages.imgBankLinkB.Picture;
   end;
+end;
+
+function ProductIcon16x16: TPicture;
+begin
+  Result := AppImages.imgBankstreamIcon16x16.Picture;
 end;
 
 function ReportLogo: TPicture;
@@ -731,7 +737,7 @@ end;
 
 procedure StyleNewClientWizardLogo(Image: TImage);
 begin
-  Image.Picture := BankstreamLogo;
+  Image.Picture := ProductIcon32x32;
 
   if TProduct.ProductBrand = btBankstream then
   begin
