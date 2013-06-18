@@ -58,7 +58,7 @@ type
     LProgressImp: TLabel;
     ilActions: TImageList;
     Cbservers: TComboBox;
-    TabSheet1: TTabSheet;
+    tsStatistics: TTabSheet;
     Panel1: TPanel;
     LStatsImp: TLabel;
     VirtualStringTree1: TVirtualStringTree;
@@ -622,7 +622,7 @@ begin
       try
          Connection.CommandTimeout := BaseCommandTimeout;
 
-         logger.logMessageProc(Info,format('Conneted to: [%s].[%s] , SessionID: (%u)',[ASource,Acatalog,sesionID ]));
+         logger.logMessageProc(Info,format('Connected to: [%s].[%s] , SessionID: (%u)',[ASource,Acatalog,sesionID ]));
          //TMigrater.RunSQL(Connection,MyAction,'DBCC TRACEON (610)', 'Trace on');
          TMigrater.RunSQL(Connection,MyAction,Format('DBCC SHRINKFILE(''%s_Log'',1)',[ACatalog]), 'Shrink Log');
 
@@ -875,7 +875,7 @@ begin
 
 {$IFDEF DEBUG_JARNO}
   EFromDir.ReadOnly := false;
-  fromDir := 'C:\Testing\uk_practice\';
+  fromDir := 'C:\Testing\brokencurrencies\';
   Cbservers.Text := 'BANKLINK-JARNO\BANKLINK';
 {$ENDIF}
 
@@ -1373,6 +1373,10 @@ end;
 initialization
    Progress.OnUpdateMessageBar := nil;
    SystemCritical := TSystemCritical.Create;
+{$IFDEF DEBUG}
+   // This makes Ctrl-F2 a lot easier
+   SingleUser := false;
+{$ENDIF}
 
 finalization
    SystemCritical.IsCritical := False;

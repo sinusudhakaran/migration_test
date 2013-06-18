@@ -547,11 +547,11 @@ object formMain: TformMain
     Top = 87
     Width = 760
     Height = 424
-    ActivePage = TsProgress
+    ActivePage = tsStatistics
     Align = alClient
     TabOrder = 2
     object tsBrowse: TTabSheet
-      Caption = 'tsBrowse'
+      Caption = 'Browse'
       ImageIndex = 2
       DesignSize = (
         752
@@ -669,10 +669,6 @@ object formMain: TformMain
     end
     object tsSelect: TTabSheet
       Caption = 'Select options'
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       DesignSize = (
         752
         394)
@@ -750,7 +746,7 @@ object formMain: TformMain
           Top = 3
           Width = 269
           Height = 17
-          Caption = 'cbClients'
+          Caption = 'Clients'
           Checked = True
           State = cbChecked
           TabOrder = 0
@@ -806,7 +802,7 @@ object formMain: TformMain
         Top = 72
         Width = 209
         Height = 17
-        Caption = '&&Transactions'
+        Caption = 'Transactions'
         Checked = True
         State = cbChecked
         TabOrder = 7
@@ -906,8 +902,8 @@ object formMain: TformMain
         end
       end
     end
-    object TabSheet1: TTabSheet
-      Caption = 'TabSheet1'
+    object tsStatistics: TTabSheet
+      Caption = 'Statistics'
       ImageIndex = 3
       object Panel1: TPanel
         Left = 0
@@ -990,7 +986,7 @@ object formMain: TformMain
     Left = 176
     Top = 8
     Bitmap = {
-      494C010104001000180118001800FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C010104001000200118001800FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000600000003000000001002000000000000048
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
