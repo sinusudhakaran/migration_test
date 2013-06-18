@@ -83,8 +83,8 @@ procedure TfrmCinfo.FormCreate(Sender: TObject);
 begin
   bkXPThemes.ThemeForm( Self);
   lblForeign.Font.Style := [fsBold];
-  image1.Picture := BankstreamLogo;
-  image2.Picture := BankstreamLogo;
+  image1.Picture := ProductIcon32x32;
+  image2.Picture := ProductIcon32x32;
   SetUpHelp;
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
