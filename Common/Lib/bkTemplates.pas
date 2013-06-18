@@ -20,7 +20,7 @@ uses
 
 const
   istBankstreamUKTemplateFileNames : Array[ istMin..istMax ] of String =
-    ( '', 'Bankstream_UK_CAF_Template.pdf', 'Bankstream_UK_HSBC_Template.pdf' );
+    ( '', 'UK_CAF_Template.pdf', 'UK_HSBC_Template.pdf' );
 
 
 { TTemplates }
