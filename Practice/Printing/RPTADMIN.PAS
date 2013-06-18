@@ -1329,7 +1329,7 @@ begin
 
         if AdminSystem.fdFields.fdSort_Reports_By = srsoStaffMember then
         begin
-          AddColAuto(Job,cLeft,16,GcGap,'Send To',jtLeft);
+          AddColAuto(Job,cLeft,18,GcGap,'Send To',jtLeft);
         end
         else
         begin
