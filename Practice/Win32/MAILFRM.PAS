@@ -419,7 +419,14 @@ begin
   FShowPracDetails := True;
   FAllowCheckOutToSupport := False;
 
-  ImageList1.Add(Image1.Picture.Bitmap, nil);
+  if TProduct.ProductBrand = btBankLink then
+  begin
+    ImageList1.Add(Image1.Picture.Bitmap, nil);
+  end
+  else
+  begin
+    ImageList1.Add(bkBranding.ProductIcon16x16.Bitmap, nil);
+  end;
 
   SetUpHelp;
   FAutomatic := False;
