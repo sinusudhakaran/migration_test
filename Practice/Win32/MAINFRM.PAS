@@ -1559,7 +1559,7 @@ begin
                    end
                    else
                    begin
-                     LogUtil.LogMsg(lmInfo, 'ServiceAgreementDlg', 'The ' + bkBranding.ProductOnlineName + ' service agreement has not been accepted. The service will remain suspended until the new service agreement has accepted.', 0);
+                     LogUtil.LogMsg(lmInfo, 'ServiceAgreementDlg', 'The ' + bkBranding.ProductOnlineName + ' service agreement has not been accepted. The service will remain suspended until the new service agreement is accepted.', 0);
                    end;
                  end;
                finally
