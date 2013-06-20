@@ -97,7 +97,7 @@ begin
     end else if Pos( pwSwitch, S) > 0 then
     begin
       //Password specified
-      p := Copy( CaseSensitiveStr, Pos(pwSwitch, CaseSensitiveStr) + Length(pwSwitch), MaxPWLenght);
+      p := Copy( CaseSensitiveStr, Pos(pwSwitch, S) + Length(pwSwitch), MaxPWLenght);
 
       if p <> '' then
       begin
