@@ -503,7 +503,6 @@ object formMain: TformMain
     Action = actExecute
     Anchors = [akRight, akBottom]
     TabOrder = 2
-    ExplicitTop = 142
   end
   object btnExit: TButton
     Left = 490
@@ -514,7 +513,6 @@ object formMain: TformMain
     Action = actExit
     Anchors = [akRight, akBottom]
     TabOrder = 3
-    ExplicitTop = 142
   end
   object ProgressBar: TProgressBar
     Left = 15
@@ -524,7 +522,6 @@ object formMain: TformMain
     Anchors = [akLeft, akRight, akBottom]
     Position = 100
     TabOrder = 4
-    ExplicitTop = 145
   end
   object grpOptions: TGroupBox
     Left = 15
@@ -534,7 +531,6 @@ object formMain: TformMain
     Anchors = [akLeft, akTop, akRight, akBottom]
     Caption = 'Options'
     TabOrder = 5
-    ExplicitHeight = 69
     DesignSize = (
       549
       70)

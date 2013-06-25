@@ -114,8 +114,7 @@ implementation
 
 uses
   ShellUtils,
-  LogUtil,
-  StackTracing;
+  LogUtil;
 
 Const
   MSG_SELECT_FOLDER         = 'Select a %S directory';
@@ -376,6 +375,7 @@ end;
 procedure TformMain.actExecuteExecute(Sender: TObject);
 var
   Msg : string;
+  IsWarning : boolean;
 begin
   if not Validate then
     Exit;
@@ -403,15 +403,22 @@ begin
       fMuddler.SetAllEmailToOne := chkSetAllEmailsToOne.Checked;
       fMuddler.GlobalEmail := edtGlobalEmail.text;
 
-      fMuddler.Execute(edtSourceDirectory.Text, edtDestinationDirectory.Text);
+      IsWarning := fMuddler.Execute(edtSourceDirectory.Text, edtDestinationDirectory.Text);
 
-      Messagedlg(MSG_FINISHED, mtInformation, [mbOk], 0);
+      msg := MSG_FINISHED;
+      if IsWarning then
+        msg := msg + #10 + 'There are ' + inttostr(fMuddler.warnings) + ' warnings, please check the Log for details.';
+
+      if IsWarning then
+        Messagedlg(msg, mtWarning, [mbOk], 0)
+      else
+        Messagedlg(msg, mtInformation, [mbOk], 0);
+
     except
       On E : Exception do
       begin
         Msg := format(MSG_ERROR_OCCURED,[E.Message]);
         LogUtil.LogError(UNITNAME, Msg);
-        GetAndLogStackTrace(UNITNAME, 'actExecuteExecute');
         Messagedlg(Msg, mtError, [mbOk], 0);
       end;
     end;

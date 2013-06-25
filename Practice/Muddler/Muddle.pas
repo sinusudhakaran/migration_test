@@ -122,6 +122,7 @@ Type
     fOnlyMuddleEmails     : Boolean;
     fSetAllEmailToOne     : Boolean;
     fGlobalEmail          : String;
+    fWarnings             : integer;
 
     procedure SetProgressUpdate(ProgressPercent : single; MessageStr : String);
     procedure CopyFolder(SourceDirectory, DestinationDirectory: string; FileCount : integer; var FileIndex : integer);
@@ -203,7 +204,7 @@ Type
     destructor Destroy; override;
 
     procedure AddBk5ExeToDataFile(Bk5File : string);
-    procedure Execute(SourceDirectory, DestinationDirectory : string);
+    function Execute(SourceDirectory, DestinationDirectory : string) : Boolean;
     procedure MakeBasicData;
 
     property OnProgressUpdate : TProgressEvent read fOnProgressUpdate write fOnProgressUpdate;
@@ -212,6 +213,7 @@ Type
     property SetAllEmailToOne : Boolean read fSetAllEmailToOne write fSetAllEmailToOne;
     property GlobalEmail : String read fGlobalEmail write fGlobalEmail;
     property AppFolder : String read fAppFolder write fAppFolder;
+    property warnings : integer read fwarnings write fwarnings;
   end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -269,6 +271,8 @@ const
                           btOpeningBalances,
                           btYearEndAdjustments,
                           btStockBalances];
+  UNITNAME = 'Muddle';
+  MSG_ERROR_OCCURED = 'Error : Muddle Process : %s';
 
 { TClientItem }
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -1415,6 +1419,7 @@ var
   FileCount  : integer;
   FileIndex  : integer;
   ClientObj  : TClientObj;
+  Msg : string;
 begin
   // Upgrade DB
   LoadAdminSystem(false, 'StartUp');
@@ -1446,19 +1451,33 @@ begin
       ClientObj := TClientObj.Create;
 
       try
-        NewClient := TClientItem.Create;
-        NewClient.FileName := LeftStr(SearchRec.Name,Pos('.',SearchRec.Name)-1);
+        try
+          NewClient := TClientItem.Create;
+          NewClient.FileName := LeftStr(SearchRec.Name,Pos('.',SearchRec.Name)-1);
 
-        ClientObj.Open(NewClient.FileName, FILEEXTN);
-        NewClient.clCode := ClientObj.clFields.clCode;
-        NewClient.clName := ClientObj.clFields.clName;
-        NewClient.clSystem_LRN := ClientObj.clFields.clSystem_LRN;
+          ClientObj.Open(NewClient.FileName, FILEEXTN);
+          NewClient.clCode := ClientObj.clFields.clCode;
+          NewClient.clName := ClientObj.clFields.clName;
+          NewClient.clSystem_LRN := ClientObj.clFields.clSystem_LRN;
 
-        fClientList.Add(NewClient);
-        inc(FileIndex);
+          fClientList.Add(NewClient);
+          inc(FileIndex);
 
-        SetProgressUpdate(35 + ((FileIndex/FileCount) * 15), 'Retrieving Client Info');
-        FindResult := FindNext(SearchRec);
+          SetProgressUpdate(35 + ((FileIndex/FileCount) * 15), 'Retrieving Client Info');
+          FindResult := FindNext(SearchRec);
+        except
+          On E : Exception do
+          begin
+            inc(FileIndex);
+            inc(fwarnings);
+
+            SetProgressUpdate(35 + ((FileIndex/FileCount) * 15), 'Retrieving Client Info');
+            FindResult := FindNext(SearchRec);
+
+            Msg := 'Error Loading Client - ' + NewClient.FileName + ', ' + format(MSG_ERROR_OCCURED,[E.Message]);
+            LogUtil.LogError(UNITNAME, Msg);
+          end;
+        end;
       finally
         //ClientObj.Save;
         FreeAndNil(ClientObj);
@@ -1751,8 +1770,9 @@ begin
 end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-procedure TMuddler.Execute(SourceDirectory, DestinationDirectory : string);
+function TMuddler.Execute(SourceDirectory, DestinationDirectory : string) : Boolean;
 begin
+  fwarnings := 0;
   fSourceDirectory      := SourceDirectory;
   fDestinationDirectory := DestinationDirectory;
   DataDir := fDestinationDirectory + '\';
@@ -1773,6 +1793,8 @@ begin
   end;
 
   Save;
+
+  Result := (fwarnings > 0);
 end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
