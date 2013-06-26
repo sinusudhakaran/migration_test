@@ -1,0 +1,99 @@
+[FileVersion]
+Version=6.0
+[Compiler]
+A=8
+B=0
+C=0
+D=0
+E=0
+F=0
+G=1
+H=1
+I=1
+J=0
+K=0
+L=0
+M=0
+N=1
+O=1
+P=1
+Q=0
+R=0
+S=0
+T=0
+U=0
+V=1
+W=0
+X=1
+Y=0
+Z=1
+ShowHints=1
+ShowWarnings=1
+UnitAliases=WinTypes=Windows;WinProcs=Windows;DbiTypes=BDE;DbiProcs=BDE;DbiErrs=BDE;
+[Linker]
+MapFile=0
+OutputObjs=0
+ConsoleApp=1
+DebugInfo=0
+RemoteSymbols=0
+MinStackSize=16384
+MaxStackSize=1048576
+ImageBase=4194304
+ExeDescription=
+[Directories]
+OutputDir=
+UnitOutputDir=
+PackageDLLOutputDir=
+PackageDCPOutputDir=
+SearchPath=..\Shared;..\Win32;..\Win32\Download;c:\delphi components\vclzip
+Packages=vcl;rtl;vclx;bdertl;vclie;xmlrtl;inet;inetdbbde;inetdbxpress;nmfast;P163_R60;B303vr60;B303cr60;TeeUI;Tee;TeeDB;TeeLanguage;TeePro;TeeQR;TeeImage;TeeGL;osg6220;osdg6220;Rz252N60;Rz252D60;S303_R60;S303BR60;CRYPTOS_D6;o401_r60;o401br60;Bk5pack_D6;NNWFaxD6;BKPrinting_101;VCLZipD6;VclSmp;vclshlctrls;dbrtl;adortl;vcldb;qrpt;vcldbx;dsnap;cds;bdecds;ibxpress;visualclx;visualdbclx;dbexpress;dbxcds;dclOffice2k;soaprtl;inetdb;indy
+Conditionals=
+DebugSourceDirs=
+UsePackages=0
+[Parameters]
+RunParams=
+HostApplication=
+Launcher=
+UseLauncher=0
+DebugCWD=
+[Language]
+ActiveLang=
+ProjectLang=
+RootDir=C:\Program Files\Borland\Delphi6\Projects\
+[Version Info]
+IncludeVerInfo=0
+AutoIncBuild=0
+MajorVer=1
+MinorVer=0
+Release=0
+Build=0
+Debug=0
+PreRelease=0
+Special=0
+Private=0
+DLL=0
+Locale=5129
+CodePage=1252
+[Excluded Packages]
+c:\program files\borland\delphi6\Bin\dcltee60.bpl=TeeChart Components
+c:\program files\borland\delphi6\Bin\dcldss60.bpl=Borland Decision Cube Components
+c:\program files\borland\delphi6\Bin\dcltqr60.bpl=TeeChart for QuickReport Components
+[HistoryLists\hlDebugSourcePath]
+Count=1
+Item0=$(DELPHI)\source\vcl;C:\LocalCode\BK5\Shared\
+[HistoryLists\hlUnitAliases]
+Count=1
+Item0=WinTypes=Windows;WinProcs=Windows;DbiTypes=BDE;DbiProcs=BDE;DbiErrs=BDE;
+[HistoryLists\hlSearchPath]
+Count=11
+Item0=..\Shared;..\Win32;..\Win32\Download;c:\delphi components\vclzip
+Item1=..\Shared;..\Win32;..\Win32\Download
+Item2=..\..\BK5\Shared;..\..\BK5\Win32;..\..\BK5\Win32\Download
+Item3=C:\Work\BK5\Shared;C:\Work\BK5\Win32;C:\Work\BK5\Win32\Download
+Item4=C:\Work\BK5\Win32;C:\Work\BK5\Win32\Download
+Item5=C:\Work\BK5\Win32\Download
+Item6=..\shared\;orpheus\;printing\;crypto\;internet\;extract\;bconnect\;$(DELPHI)\Source\Rtl\Win;lists\;import\;component\;ecoding\;ecoding\database\;C:\Delphi Components\toolbar97D6\Source;C:\Delphi Components\NWFax\Source\Delphi6;C:\Work\BK5\Win32\Download
+Item7=..\shared\;orpheus\;printing\;crypto\;internet\;extract\;bconnect\;$(DELPHI)\Source\Rtl\Win;lists\;import\;component\;ecoding\;ecoding\database\;C:\Delphi Components\toolbar97D6\Source;C:\Delphi Components\NWFax\Source\Delphi6
+Item8=..\shared\;orpheus\;printing\;crypto\;internet\;extract\;bconnect\;$(DELPHI)\Source\Rtl\Win;lists\;import\;component\;C:\Delphi Components\toolbar97D6\Source;C:\Delphi Components\NWFax\Source\Delphi6
+Item9=..\shared\;orpheus\;printing\;crypto\;internet\;extract\;bconnect\;$(DELPHI)\Source\Rtl\Win;lists\;import\;component\;c:\localcode\ecoding;c:\localcode\ecoding\database;C:\Delphi Components\toolbar97D6\Source;C:\Delphi Components\NWFax\Source\Delphi6
+Item10=..\
