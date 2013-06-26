@@ -875,8 +875,8 @@ begin
 
 {$IFDEF DEBUG_JARNO}
   EFromDir.ReadOnly := false;
-  fromDir := 'C:\Testing\brokencurrencies\';
-  Cbservers.Text := 'BANKLINK-JARNO\BANKLINK';
+  fromDir := 'C:\Testing\angela\';
+  Cbservers.Text := 'BANKLINK-JARNO\BANKLINK1';
 {$ENDIF}
 
       progress := SelectSource;
