@@ -52,7 +52,7 @@ type
     procedure SetTarget(const Value: Integer);
     procedure SetCounter(const Value: Integer);
     function AddAction(Title: string; Insert: Boolean; AItem: TGuidObject = nil):TMigrateAction;
-    procedure SetWarning(const Value: Boolean); overload;
+    procedure SetWarning(const Value: Boolean);
     procedure propagateWarning(FromNode:PVirtualNode);
     procedure propagateFailed(FromNode:PVirtualNode);
     procedure SetRunSize(const Value: Int64);
