@@ -47,11 +47,12 @@ type
     procedure SetStatus(const Value: TMigratestatus);
     procedure Changed;
     procedure SetError(const Value: string);
+    procedure SetErrorValue(const Value: string; const aSetExitCode: boolean);
     procedure ShowMe;
     procedure SetTarget(const Value: Integer);
     procedure SetCounter(const Value: Integer);
     function AddAction(Title: string; Insert: Boolean; AItem: TGuidObject = nil):TMigrateAction;
-    procedure SetWarning(const Value: Boolean);
+    procedure SetWarning(const Value: Boolean); overload;
     procedure propagateWarning(FromNode:PVirtualNode);
     procedure propagateFailed(FromNode:PVirtualNode);
     procedure SetRunSize(const Value: Int64);
@@ -186,7 +187,8 @@ end;
 
 procedure TMigrateAction.AddWarning(const Awarning: string);
 begin
-   Error := Awarning;
+   // Note: use SetErrorValue, because we don't want to change the ExitCode
+   SetErrorValue(aWarning, false);
    Warning := True;
    Status := HasWarning;
 end;
@@ -597,6 +599,27 @@ begin
 
       propagateWarning(Self.Node);
    end;
+end;
+
+procedure TMigrateAction.SetErrorValue(const Value: string; const aSetExitCode: boolean);
+begin
+  // Note: same as SetError, but without setting the exitcode
+
+  if Value > '' then begin
+
+     if FError > ''  then
+        FError := FError + '; ';
+
+     // Don't set the exit code for warnings, etc
+     if aSetExitCode and (ExitCode >= 0) then
+        ExitCode := -1;
+
+     Logger.LogMessage(logger.Warning, format ('%s Failed with Error: %s', [Title, Value]));
+
+     FError := FError + Value;
+  end;
+
+  Changed;
 end;
 
 procedure TMigrateAction.ShowMe;
