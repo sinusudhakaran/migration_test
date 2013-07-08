@@ -600,6 +600,7 @@ function SetBKAdminLocation( aAdminDir : PChar) : LongBool; stdcall;
 var
   Dir : string;
 begin
+  InitLocking;
   result := false;
   try
     Dir := aAdminDir;
