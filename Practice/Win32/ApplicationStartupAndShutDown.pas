@@ -143,11 +143,8 @@ const
 
   Var
     v1, v2, v3, v4: Word;
-    Connected : boolean;
 
 begin
-  Connected := false;
-  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
   AdminSystem := nil;
 
   StartUpStep := 'Check for fxsapi dll';
