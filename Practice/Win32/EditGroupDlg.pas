@@ -281,6 +281,7 @@ begin
   MyDlg := TdlgEditGroup.Create(Application.MainForm);
   Try
     BKHelpSetUp(MyDlg, BKH_Client_Types);
+    MyDlg.eFullName.Hint := 'Enter a description of the Client Type';
 
     If MyDlg.Execute(eClientType) then
     begin
@@ -289,7 +290,7 @@ begin
       with MyDlg do
       begin
         StoredLRN := eClientType.ctLRN;
-        StoredName := eClientType.ctName;
+        StoredName := eClientType.ctName;  
 
         if LoadAdminSystem(true, ThisMethodName) then
         begin
@@ -409,6 +410,7 @@ begin
 
    MyDlg := TdlgEditGroup.Create(Application.MainForm);
    Try
+      MyDlg.eFullName.Hint := 'Enter a description of the Client Type';
       BKHelpSetUp(MyDlg, BKH_Client_Types);
       if MyDlg.Execute(pClient_Type_Rec(nil)) then begin
          with MyDlg do begin
