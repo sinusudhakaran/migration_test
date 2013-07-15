@@ -65,7 +65,8 @@ function LookupClientCodes( Title         : string;
 implementation
 
 uses
-  bkXPThemes, Globals, AppUserObj, Admin32, BKHelp, InfoMoreFrm, bkconst, VirtualTrees;
+  bkXPThemes, Globals, AppUserObj, Admin32, BKHelp, InfoMoreFrm, bkconst, VirtualTrees,
+  Math;
 
 {$R *.dfm}
 
@@ -143,10 +144,29 @@ function LookupClientCodes( Title         : string;
                             OKCaption     : string = OpenCaption) : string;
 //returns a delimited list of client codes with quotes if in multi select mode
 //or a single code if in single select mode
+const
+  CodeColWidth     = 150;
+  NameColMaxWidth  = 750;
+  StatusColWidth   = 200;
+  AssignedColWidth = 100;
 var
-  ClientLookup : TfrmClientLookup;
-  HideViewButtons : boolean;
-  DefaultSort     : TClientLookupCol;
+  ClientLookup          : TfrmClientLookup;
+  HideViewButtons       : boolean;
+  DefaultSort           : TClientLookupCol;
+  WidthOfNonNameColumns : integer;
+
+  // We don't need the Name column to be wider than the maximum length of a clients name (60 characters)
+  function GetWidthOfAllVisibleColumns: integer;
+  begin
+    Result := CodeColWidth + NameColMaxWidth;
+    if not (coHideStatusColumn in luOptions) then
+      Result := Result + StatusColWidth;
+    if (coShowAssignedToColumn in luOptions) then
+      Result := Result + AssignedColWidth;
+    WidthOfNonNameColumns := (Result - NameColMaxWidth);
+    Result := Result + 20; // Needs to be a bit wider than the sum of its columns
+  end;
+
 begin
   result := '';
 
@@ -163,7 +183,7 @@ begin
       ShowPopMenu := OKCaption = OpenCaption;
       //Set default width and height
       Height  := Round( Screen.WorkAreaHeight * 0.8);
-      Width   := Round( Screen.WorkAreaWidth * 0.8 );
+      Width   := Min(GetWidthOfAllVisibleColumns, Screen.WorkAreaWidth);
       //Position window
       Top     := ( Screen.WorkAreaHeight - Height ) div 2;
       Left    := ( Screen.WorkAreaWidth - Width ) div 2;
@@ -185,21 +205,24 @@ begin
 
         //add columns and build the grid
         ClearColumns;
-        AddColumn( 'Code', 150, cluCode);
-        AddColumn( 'Name', -1, cluName);
+        AddColumn( 'Code', CodeColWidth, cluCode);
+        if (ClientLookup.Width - WidthOfNonNameColumns >= NameColMaxWidth) then
+          AddColumn( 'Name', NameColMaxWidth, cluName)
+        else
+          AddColumn( 'Name', -1, cluName);
 
         DefaultSort := TClientLookupCol(UserINI_Client_Lookup_Sort_Column);
 
         if not ( coHideStatusColumn in luOptions) then
         begin
-          AddColumn( 'Status', 200, cluStatus);
+          AddColumn( 'Status', StatusColWidth, cluStatus);
           if (Ord(DefaultSort) > Ord(cluStatus)) then
             DefaultSort := cluStatus;
         end;
 
         if ( coShowAssignedToColumn in luOptions) then
         begin
-          AddColumn( 'Assigned To', 100, cluUser);
+          AddColumn( 'Assigned To', AssignedColWidth, cluUser);
           if (Ord(DefaultSort) > Ord(cluUser)) or (Ord(DefaultSort) = Ord(cluStatus)) then
             DefaultSort := cluCode;
         end;
@@ -227,8 +250,6 @@ begin
         //set up events
         OnSelectionChanged := SelectionChanged;
         OnGridDblClick     := FrameDblClick;
-
-
       end;
 
       if ShowModal = mrOK then
