@@ -473,9 +473,9 @@ begin
    if AskYesNoCheck( 'Edit ' + FTaxName + ' Class for Account',
                      'This will change the ' + FTaxName + ' Class and Amount for all Entries that '+
                      'are coded to this chart code, which are yet to be transferred or finalised. '#13#13+
-                     'Entries where the ' + FTaxName + ' has been overriden will not be affected.'#13#13+
+                     'Entries where the ' + FTaxName + ' has been overridden will not be affected.'#13#13+
                      'Please confirm you want to do this?',
-                     '&Dont Ask Me this again',
+                     '&Don''t ask me this again',
                      INI_DontShowMe_EditChartGST,
                      DLG_YES, 0) <> DLG_YES then begin
       cmbGST.ItemIndex := LastGSTCmbIndex;
