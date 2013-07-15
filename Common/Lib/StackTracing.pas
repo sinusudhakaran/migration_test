@@ -31,16 +31,28 @@ end;
 procedure LogStackTrace(aUnitName, aFunctionName: string; aStackTrace: TStackTrace; aStat_ID : byte = 0);
 var
   Index: Integer;
+  Exit : boolean;
 begin
   LogMsg(lmDebug, aUnitName, '-------------' + UpperCase(aFunctionName) + ' BEGIN STACK TRACE----------------', aStat_ID, false);
+  Exit := false;
+  Index := 0;
 
-  for Index := 0 to Length(StackTrace) - 1 do
+  while (Exit = false) and (Index < Length(StackTrace)) do
   begin
-    LogMsg(lmDebug, aUnitName, Format('%p',[aStackTrace[Index].Addr]) + ' ' +
-                                            IntToStr(aStackTrace[Index].relLine) + ' ' +
-                                            aStackTrace[Index].ModuleName + ' ' +
-                                            aStackTrace[Index].UnitName + ' ' +
-                                            aStackTrace[Index].FunctionName, aStat_ID, false);
+    try
+      if (aStackTrace[Index].Addr = nil) then
+        Exit := true
+      else
+        LogMsg(lmDebug, aUnitName, Format('%p',[aStackTrace[Index].Addr]) + ' ' +
+                                                IntToStr(aStackTrace[Index].relLine) + ' ' +
+                                                aStackTrace[Index].ModuleName + ' ' +
+                                                aStackTrace[Index].UnitName + ' ' +
+                                                aStackTrace[Index].FunctionName, aStat_ID, false);
+    except
+      Exit := true;
+    end;
+
+    inc(Index);
   end;
 
   LogMsg(lmDebug, aUnitName, '-------------' + UpperCase(aFunctionName) + 'END STACK TRACE----------------', aStat_ID, false);

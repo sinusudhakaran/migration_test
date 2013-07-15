@@ -831,16 +831,34 @@ begin
     If assigned(CurrUser) then CurrUser.ShowPrinterDialog := INI_ShowPrintOptions;
   end;
 
-  if (result) then begin
+  if (result) then
+  begin
+    if (CurrUser.Code <> SuperUserCode) then
+    begin
+      INISettings.ReadUsersINI( CurrUser.Code);
+      MadAddEmailBodyValue('User-Code',CurrUser.Code  );
+      MadAddEmailBodyValue('User-Name',CurrUser.FullName  );
+    end
+    else
+      MadAddEmailBodyValue('User-Name','SuperUser');
 
-    if (CurrUser.Code <> SuperUserCode) then begin
-       INISettings.ReadUsersINI( CurrUser.Code);
-       MadAddEmailBodyValue('User-Code',CurrUser.Code  );
-       MadAddEmailBodyValue('User-Name',CurrUser.FullName  );
-    end else
-       MadAddEmailBodyValue('User-Name','SuperUser');
+    if Debugme then
+    begin
+      LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + 'User-Code:' + CurrUser.Code + ', User-Name:' + CurrUser.FullName );
+      LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + 'IPClientLocking SwitchedOn : ' + BoolToStr(PRACINI_IPClientLocking_SwitchedOn,true));
+      LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + 'NetLocking On : ' + BoolToStr(LockUtils.FileLocking.NetLockingOn,true));
+      LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + 'ExecDir : ' + ExecDir);
+
+      if LockUtils.FileLocking.NetLockingOn then
+      begin
+        LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + 'Server IP : ' + TNetworkFileLocking(LockUtils.FileLocking).ServerIP);
+        LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + 'Server Port : ' + TNetworkFileLocking(LockUtils.FileLocking).ServerPort);
+      end;
+    end;
   end;
-  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
+
+  if DebugMe then
+    LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
 //------------------------------------------------------------------------------
 function LogoutUser : boolean;
@@ -892,7 +910,7 @@ end;
 //------------------------------------------------------------------------------
 
 initialization
-   DebugMe := DebugUnit(UnitName);
+  DebugMe := DebugUnit(UnitName);
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
 end.

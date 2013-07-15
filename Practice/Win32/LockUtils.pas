@@ -127,6 +127,11 @@ Type
     function LoopLockingCall() : Boolean; override;
 
     procedure OnLockLogging(aMethod : String; aMesssage : String);
+
+    function GetServerIP() : string;
+    procedure SetServerIP(aValue : string);
+    function GetServerPort() : string;
+    procedure SetServerPort(aValue : string);
   public
     constructor Create; virtual;
     destructor Destroy; override;
@@ -145,6 +150,8 @@ Type
     procedure ClientIPLoginUser(aUserCode : string; aWorkstation : string);
 
     property LockMessageDisplaying : boolean read fLockMessageDisplaying write fLockMessageDisplaying;
+    property ServerIP : string read GetServerIP write SetServerIP;
+    property ServerPort : string read GetServerPort write SetServerPort;
   end;
 
 // Called just after the first read of the Ini file so it can init the locking
@@ -602,6 +609,30 @@ destructor TNetworkFileLocking.Destroy;
 begin
   FreeAndNil(fIPClientLock);
   inherited;
+end;
+
+//------------------------------------------------------------------------------
+function TNetworkFileLocking.GetServerIP: string;
+begin
+  Result := fIPClientLock.ServerIP;
+end;
+
+//------------------------------------------------------------------------------
+procedure TNetworkFileLocking.SetServerIP(aValue: string);
+begin
+  fIPClientLock.ServerIP := aValue;
+end;
+
+//------------------------------------------------------------------------------
+function TNetworkFileLocking.GetServerPort: string;
+begin
+  Result := Inttostr(fIPClientLock.ServerTCPPort);
+end;
+
+//------------------------------------------------------------------------------
+procedure TNetworkFileLocking.SetServerPort(aValue: string);
+begin
+  fIPClientLock.ServerTCPPort := Strtoint(aValue);
 end;
 
 //------------------------------------------------------------------------------
