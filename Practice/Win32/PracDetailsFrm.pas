@@ -560,7 +560,7 @@ begin
   and (GetComboCurrentIntObject(cmbSystem,asNone) = asNone) then begin
      PageControl1.ActivePage := tbsInterfaces;
      cmbSystem.SetFocus;
-     HelpfulErrorMsg('Please select either an Accounting or Superfund sytem.',0);
+     HelpfulErrorMsg('Please select either an Accounting or Superfund system.',0);
      Exit;
   end;
 
