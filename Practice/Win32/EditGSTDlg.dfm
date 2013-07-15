@@ -4,7 +4,7 @@ object dlgEditGST: TdlgEditGST
   BorderStyle = bsDialog
   Caption = 'GST Set Up'
   ClientHeight = 446
-  ClientWidth = 627
+  ClientWidth = 662
   Color = clBtnFace
   DefaultMonitor = dmMainForm
   ParentFont = True
@@ -15,25 +15,23 @@ object dlgEditGST: TdlgEditGST
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   DesignSize = (
-    627
+    662
     446)
   PixelsPerInch = 96
   TextHeight = 13
   object pcGST: TPageControl
     Left = 0
     Top = 0
-    Width = 627
+    Width = 662
     Height = 406
     ActivePage = tsGSTRates
     Align = alTop
     TabOrder = 0
     OnChange = pcGSTChange
+    ExplicitWidth = 765
     object pgDetails: TTabSheet
       Caption = '&Details'
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
+      ExplicitWidth = 757
       object bvlBAS: TBevel
         Left = 8
         Top = 185
@@ -132,7 +130,7 @@ object dlgEditGST: TdlgEditGST
         Width = 145
         Height = 21
         Style = csDropDownList
-        ItemHeight = 0
+        ItemHeight = 13
         TabOrder = 3
         OnChange = cmbBasisChange
       end
@@ -142,7 +140,7 @@ object dlgEditGST: TdlgEditGST
         Width = 145
         Height = 21
         Style = csDropDownList
-        ItemHeight = 0
+        ItemHeight = 13
         TabOrder = 5
         OnChange = cmbPeriodChange
       end
@@ -152,7 +150,7 @@ object dlgEditGST: TdlgEditGST
         Width = 145
         Height = 21
         Style = csDropDownList
-        ItemHeight = 0
+        ItemHeight = 13
         TabOrder = 4
         OnChange = cmbPeriodChange
       end
@@ -184,7 +182,7 @@ object dlgEditGST: TdlgEditGST
         Width = 145
         Height = 21
         Style = csDropDownList
-        ItemHeight = 0
+        ItemHeight = 13
         TabOrder = 6
         OnChange = cmbPAYGWithheldChange
       end
@@ -194,7 +192,7 @@ object dlgEditGST: TdlgEditGST
         Width = 145
         Height = 21
         Style = csDropDownList
-        ItemHeight = 0
+        ItemHeight = 13
         TabOrder = 7
         OnChange = cmbPAYGWithheldChange
       end
@@ -275,19 +273,16 @@ object dlgEditGST: TdlgEditGST
     object tsGSTRates: TTabSheet
       Caption = '&Rates'
       ImageIndex = 2
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
+      ExplicitWidth = 757
       object Label5: TLabel
-        Left = 176
+        Left = 228
         Top = 30
         Width = 74
         Height = 13
         Caption = 'Effective Dates'
       end
       object sbtnChart: TSpeedButton
-        Left = 542
+        Left = 569
         Top = 26
         Width = 71
         Height = 25
@@ -296,21 +291,21 @@ object dlgEditGST: TdlgEditGST
         OnClick = sbtnChartClick
       end
       object Label7: TLabel
-        Left = 296
+        Left = 333
         Top = 8
         Width = 32
         Height = 13
         Caption = 'Rate 1'
       end
       object Label8: TLabel
-        Left = 384
+        Left = 416
         Top = 8
         Width = 32
         Height = 13
         Caption = 'Rate 2'
       end
       object Label9: TLabel
-        Left = 464
+        Left = 504
         Top = 8
         Width = 32
         Height = 13
@@ -319,7 +314,7 @@ object dlgEditGST: TdlgEditGST
       object tblRates: TOvcTable
         Left = 3
         Top = 55
-        Width = 613
+        Width = 643
         Height = 262
         ActiveRow = 2
         RowLimit = 21
@@ -396,7 +391,7 @@ object dlgEditGST: TdlgEditGST
           'dlgEditGST.colNormPercent')
       end
       object eDate1: TOvcPictureField
-        Left = 281
+        Left = 310
         Top = 27
         Width = 79
         Height = 22
@@ -424,7 +419,7 @@ object dlgEditGST: TdlgEditGST
         RangeLow = {00000000000000000000}
       end
       object eDate2: TOvcPictureField
-        Left = 366
+        Left = 395
         Top = 27
         Width = 77
         Height = 22
@@ -452,7 +447,7 @@ object dlgEditGST: TdlgEditGST
         RangeLow = {00000000000000000000}
       end
       object eDate3: TOvcPictureField
-        Left = 449
+        Left = 478
         Top = 27
         Width = 86
         Height = 22
@@ -510,10 +505,7 @@ object dlgEditGST: TdlgEditGST
     object pgBASRules: TTabSheet
       Caption = '&BAS Fields'
       ImageIndex = 3
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
+      ExplicitWidth = 757
       object Label10: TLabel
         Left = 8
         Top = 8
@@ -566,10 +558,7 @@ object dlgEditGST: TdlgEditGST
     object pgReportSettings: TTabSheet
       Caption = 'Report O&ptions'
       ImageIndex = 4
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
+      ExplicitWidth = 757
       object gbxAccrual: TGroupBox
         Left = 8
         Top = 4
@@ -644,7 +633,7 @@ object dlgEditGST: TdlgEditGST
           Width = 145
           Height = 21
           Style = csDropDownList
-          ItemHeight = 0
+          ItemHeight = 13
           TabOrder = 0
           Items.Strings = (
             'Effective Date'
@@ -709,10 +698,7 @@ object dlgEditGST: TdlgEditGST
     object pgCalcMethod: TTabSheet
       Caption = 'Calculation &Method'
       ImageIndex = 4
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
+      ExplicitWidth = 757
       object Label12: TLabel
         Left = 16
         Top = 64
@@ -881,10 +867,7 @@ object dlgEditGST: TdlgEditGST
     object tsTaxRates: TTabSheet
       Caption = '&Other Rates'
       ImageIndex = 5
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
+      ExplicitWidth = 757
       object Label3: TLabel
         Left = 311
         Top = 25
@@ -1123,7 +1106,7 @@ object dlgEditGST: TdlgEditGST
     end
   end
   object btnOk: TButton
-    Left = 460
+    Left = 495
     Top = 417
     Width = 75
     Height = 25
@@ -1132,9 +1115,10 @@ object dlgEditGST: TdlgEditGST
     Default = True
     TabOrder = 1
     OnClick = btnOkClick
+    ExplicitLeft = 598
   end
   object btnCancel: TButton
-    Left = 544
+    Left = 579
     Top = 417
     Width = 75
     Height = 25
@@ -1143,6 +1127,7 @@ object dlgEditGST: TdlgEditGST
     Caption = 'Cancel'
     TabOrder = 2
     OnClick = btnCancelClick
+    ExplicitLeft = 682
   end
   object OvcController1: TOvcController
     EntryCommands.TableList = (
