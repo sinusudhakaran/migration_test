@@ -326,7 +326,7 @@ end;
 procedure TfrmRemapChart.btnChartBrowseClick(Sender: TObject);
 begin
    OpenDlg.FileName := ChartFilename;
-   OpenDLG.Filter := 'CSV File *.csv|*.csv|Remap File *.cht|*.cht|';
+   OpenDLG.Filter := 'CSV File *.csv|*.csv';
    OpenDLG.FilterIndex := 0;
    if OpenDlg.Execute then begin
       LoadChartFile(OpenDlg.FileName);
@@ -367,7 +367,7 @@ end;
 procedure TfrmRemapChart.btnGSTBrowseClick(Sender: TObject);
 begin
    OpenDlg.FileName := GSTFilename;
-   OpenDLG.Filter := 'CSV File *.csv|*.csv|Remap File *.'+ MyClient.TaxSystemName +'|*.'+ MyClient.TaxSystemName+'|';
+   OpenDLG.Filter := 'CSV File *.csv|*.csv';
    OpenDLG.FilterIndex := 0;
    if OpenDlg.Execute then begin
       LoadGSTFile(OpenDlg.FileName);
