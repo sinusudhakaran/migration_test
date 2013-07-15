@@ -193,7 +193,7 @@ type
                               var SOAPRequest: InvString);
 
     procedure DoAfterSecureExecute(const MethodName: string; SOAPResponse: TStream);
-    
+
     procedure CreateXMLError(Document: IXMLDocument; const MethodName, ErrorCode, ErrorMessage: String);
 
     procedure SetTimeOuts(ConnecTimeout : DWord ;
@@ -545,6 +545,8 @@ uses
   Admin32,
   bkBranding,
   bkProduct;
+  ShlObj,
+  DateUtils;
 
 const
   UNIT_NAME = 'BankLinkOnlineServices';
@@ -2183,18 +2185,34 @@ begin
 
       OnlineUser := ProductConfigService.GetOnlineUserLinkedToCode(Username, FPractice, False);
 
+      if Debugme then
+      begin
+        LogUtil.LogMsg(lmInfo, UNIT_NAME, 'AuthenticateUser : Assigned(OnlineUser) - ' + booltostr(Assigned(OnlineUser), True));
+        LogUtil.LogMsg(lmInfo, UNIT_NAME, 'AuthenticateUser : IgnoreOnlineUser - ' + booltostr(IgnoreOnlineUser, True));
+      end;
+
       if Assigned(OnlineUser) or IgnoreOnlineUser then
       begin
         AuthenticationService := GetAuthenticationServiceFacade;
 
         if (IgnoreOnlineUser) and (not Assigned(OnlineUser)) then
         begin
+          if Debugme then
+            LogUtil.LogMsg(lmInfo, UNIT_NAME, 'Before AuthenticateUser Call - SubDomain:' + FSubDomain + ',  Email:' + CurrUser.EmailAddress + ',  Password:' + Password);
+
           Response := AuthenticationService.AuthenticateUser(FSubDomain, CurrUser.EmailAddress, Password);
         end
         else
         begin
+          if Debugme then
+            LogUtil.LogMsg(lmInfo, UNIT_NAME, 'Before AuthenticateUser Call - SubDomain:' + FSubDomain + ',  Email:' + OnlineUser.EMail + ',  Password:' + Password);
+
           Response := AuthenticationService.AuthenticateUser(FSubDomain, OnlineUser.EMail, Password);
         end;
+
+        if Debugme then
+          LogUtil.LogMsg(lmInfo, UNIT_NAME, 'Responce - ' + booltostr(Response.Success, True));
+
         Result := Response.Success;
 
         if Response.IsPasswordChangeRequired then
@@ -2233,11 +2251,79 @@ end;
 procedure TProductConfigService.DoAfterSecureExecute(const MethodName: string; SOAPResponse: TStream);
 var
   Buffer: array[0..255] of Char;
+  LogXmlFile : String;
+  FileStr : TFileStream;
+  Folder : String;
+  BufferPath : packed array[ 0..MAX_PATH ] of Char;
+  SearchRec  : TSearchRec;
+  FindResult : integer;
+  FileDate : TDateTime;
 begin
-  SOAPResponse.Position := 0;
+  if DebugMe then
+  begin
+    if SHGetSpecialFolderPath(Application.Handle, @BufferPath[0], CSIDL_COOKIES, false) then
+    begin
+      Folder := BufferPath;
+      LogUtil.LogMsg(lmInfo, UNIT_NAME, 'Cookie folder : ' + Folder);
 
+      FindResult := FindFirst(Folder + '\*.*', (faAnyfile) , SearchRec);
+      try
+        while FindResult = 0 do
+        begin
+          if ((SearchRec.Attr and faAnyfile) <> 0) then
+          begin
+            if FileAge(Folder + '\' + SearchRec.Name, FileDate) then
+            begin
+              if not (SearchRec.Name = 'index.dat') and
+                 (incDay(now(), -1) < FileDate) then
+              begin
+                try
+                  FileStr := TFileStream.Create(Folder + '\' + SearchRec.Name, fmOpenRead);
+                  try
+                    FileStr.Position := 0;
+                    FileStr.Read(Buffer, 256);
+
+                    if Pos(uppercase('banklink'), uppercase(Buffer)) > 0 then
+                    begin
+                      LogUtil.LogMsg(lmInfo, UNIT_NAME, 'BankLink Cookie : ' + SearchRec.Name + ', Date and Time :' + DateTimeToStr(FileDate));
+                    end;
+
+                  finally
+                    FreeAndNil(FileStr);
+                  end;
+                except
+                  on E:Exception do
+                  begin
+                    LogUtil.LogMsg(lmError, UNIT_NAME, 'Error Reading Cookie : ' + SearchRec.Name + ', Date and Time :' + DateTimeToStr(FileDate));
+                  end;
+                end;
+              end;
+            end;
+          end;
+
+          FindResult := FindNext(SearchRec);
+        end;
+
+      finally
+        SysUtils.FindClose(SearchRec);
+      end;
+    end;
+
+    LogXmlFile := Globals.DataDir + 'Blopi_Responce_' + MethodName + '_' +
+                      FormatDateTime('yyyy-mm-dd hh-mm-ss zzz', Now) + '.txt';
+
+    SOAPResponse.Position :=0;
+    FileStr := TFileStream.Create(LogXmlFile, fmCreate);
+    try
+      FileStr.CopyFrom(SOAPResponse, SOAPResponse.Size);
+    finally
+      FreeAndNil(FileStr);
+    end;
+  end;
+
+  SOAPResponse.Position := 0;
   SOAPResponse.Read(Buffer, 256);
-  
+
   if Pos('!DOCTYPE html', Buffer) > 0 then
   begin
     raise EAuthenticationException.Create('You are not authenticated');
@@ -2275,7 +2361,7 @@ begin
 
       if DebugMe then
       begin
-        LogXmlFile := Globals.DataDir + 'Blopi_' + MethodName + '_' +
+        LogXmlFile := Globals.DataDir + 'Blopi_Request_' + MethodName + '_' +
                       FormatDateTime('yyyy-mm-dd hh-mm-ss zzz', Now) + '.xml';
 
         Document.SaveToFile(LogXmlFile);
@@ -2338,6 +2424,7 @@ var
   BlopiInterface: IBlopiServiceFacade;
   ReturnMsg: MessageResponseOfstring;
   ShowProgress : Boolean;
+
 begin
   try
     ShowProgress := Progress.StatusSilent;
@@ -2740,6 +2827,13 @@ var
   PasswordReset : boolean;
 begin
   Result := False;
+
+  if Debugme then
+  begin
+    LogUtil.LogMsg(lmInfo, UNIT_NAME, 'ReAuthenticateUser : CurrUser.AllowBanklinkOnline - ' + booltostr(CurrUser.AllowBanklinkOnline, True));
+    LogUtil.LogMsg(lmInfo, UNIT_NAME, 'ReAuthenticateUser : IgnoreOnlineStatus - ' + booltostr(IgnoreOnlineStatus, True));
+    LogUtil.LogMsg(lmInfo, UNIT_NAME, 'ReAuthenticateUser : OfflineAuthentication - ' + booltostr(OfflineAuthentication, True));
+  end;
 
   if CurrUser.AllowBanklinkOnline or IgnoreOnlineStatus then
   begin
@@ -5699,6 +5793,7 @@ var
 begin
   HTTPRIO := THTTPRIO.Create(nil);
   HTTPRIO.OnBeforeExecute := DoBeforeExecute;
+  HTTPRIO.OnAfterExecute := DoAfterSecureExecute;
 
   Result := GetIP5Auth(False, GetBanklinkOnlineURL('/Services/P5auth.svc'), HTTPRIO)
 end;

@@ -2,11 +2,13 @@ program ResetPractice;
 
 uses
   Forms,
-  FResetPractice;
+  FResetPractice,
+  LockUtils;
 
 {$R *.res}
 
 begin
+  InitLocking;
   Application.Initialize;
   Application.MainFormOnTaskbar := True;
   Application.CreateForm(TfrmResetPractice, frmResetPractice);

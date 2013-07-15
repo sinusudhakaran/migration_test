@@ -12,11 +12,17 @@ procedure CopyFile(const FileName, DestName: string; ProgressProc : TFCopyProgre
 //******************************************************************************
 implementation
 uses
-  WinUtils, Windows;
+  WinUtils,
+  Windows,
+  LogUtil;
 
 const
   SFCreateError = 'Cannot create file %s';
   SFOpenError = 'Cannot open file %s';
+  UnitName = 'fCopy';
+
+var
+  DebugMe       : boolean = false;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure CopyFile(const FileName, DestName: string; ProgressProc : TFCopyProgressCallbackProc = nil);
@@ -40,6 +46,9 @@ begin
      TotalSize := WinUtils.GetFileSize( Filename);
 
    GetMem(CopyBuffer, ChunkSize); { allocate the buffer }
+
+   if DebugMe then
+     LogUtil.LogMsg(lmInfo, UnitName, 'CopyFile - FileName :' + FileName + ', DestName:' + DestName);
 
    try
       Source := FileOpen(FileName, fmShareDenyWrite); { open source file }
@@ -70,5 +79,8 @@ begin
       FreeMem(CopyBuffer, ChunkSize ); { free the buffer }
    end;
 end;
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
+initialization
+  DebugMe := DebugUnit( UnitName );
 end.
