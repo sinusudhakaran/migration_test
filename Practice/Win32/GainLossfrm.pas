@@ -92,6 +92,7 @@ var
 begin
   Result := True;
   MonthFound := False;
+  // We only want to populate the grid if we find a MonthEnding which matches the current month
   for i := 0 to fMonths.Count - 1 do
   begin
     DecodeDate(FPeriodEndDate, Y1, M1, D1);
@@ -206,8 +207,7 @@ begin
       begin
         ClearRows;
       end;
-      
-      if (fMonths[FSelectedMonthIndex].NrAlreadyRun > 0) then
+      if (fMonths[FSelectedMonthIndex].NrAlreadyRun > 0) then // Check if Calculate Ex. Gain/Loss has been run for this month
       begin
         Result := True;
         if not RowsCleared then
@@ -333,22 +333,24 @@ begin
   SetLength(FGridMonthEndingBankAccounts, 0);
 end;
 
+// Back (previous month)
 procedure TfrmGainLoss.tbPreviousClick(Sender: TObject);
+var
+  LastDay: TStDate;
 begin
-  // Simply decreasing the month by one wouldn't work, because months have varying lengths eg. 28 Feb -> 28 Jan
-  FPeriodEndDate := IncDay(FPeriodEndDate, 1);
-  FPeriodEndDate := IncMonth(FPeriodEndDate, -1);
-  FPeriodEndDate := IncDay(FPeriodEndDate, -1);
+  LastDay := GetLastDayOfLastMonth(DateTimeToStDate(FPeriodEndDate));
+  FPeriodEndDate := StDateToDateTime(LastDay);
   if UpdateGridMonth(True) then
     UpdatePeriodEndDate;
 end;
 
+// Forward (next month)
 procedure TfrmGainLoss.tbNextClick(Sender: TObject);
+var
+  LastDay: TStDate;
 begin
-  // Simply increasing the month by one wouldn't work, because months have varying lengths eg. 28 Feb -> 28 Mar
-  FPeriodEndDate := IncDay(FPeriodEndDate, 1);
-  FPeriodEndDate := IncMonth(FPeriodEndDate, 1);
-  FPeriodEndDate := IncDay(FPeriodEndDate, -1);
+  LastDay := GetLastDayOfMonth(DateTimeToStDate(IncMonth(FPeriodEndDate, 1)));
+  FPeriodEndDate := StDateToDateTime(LastDay);
   if UpdateGridMonth(True) then
     UpdatePeriodEndDate;
 end;
