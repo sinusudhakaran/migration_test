@@ -544,7 +544,7 @@ uses
   XSBuiltIns,
   Admin32,
   bkBranding,
-  bkProduct;
+  bkProduct,
   ShlObj,
   DateUtils;
 
