@@ -206,7 +206,7 @@ type
   private
     { Private declarations }
     fContext           : TEditGSTContext;
-    
+
     okPressed          : boolean;
     editMode           : boolean;
     removingMask       : boolean;
@@ -607,6 +607,7 @@ begin
        pgCalcMethod.TabVisible := false;
        pnlBASReportOptions.Visible := false;
 
+       tblRates.Columns[ DescCol].Width := tblRates.Columns[ DescCol].Width + 19;
        tblRates.Columns[ BusinessNormPercentCol].Hidden := true;
        LastVisibleCol  := AccountCol;
 

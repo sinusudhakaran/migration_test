@@ -28,10 +28,8 @@ object dlgEditGST: TdlgEditGST
     Align = alTop
     TabOrder = 0
     OnChange = pcGSTChange
-    ExplicitWidth = 765
     object pgDetails: TTabSheet
       Caption = '&Details'
-      ExplicitWidth = 757
       object bvlBAS: TBevel
         Left = 8
         Top = 185
@@ -273,9 +271,8 @@ object dlgEditGST: TdlgEditGST
     object tsGSTRates: TTabSheet
       Caption = '&Rates'
       ImageIndex = 2
-      ExplicitWidth = 757
       object Label5: TLabel
-        Left = 228
+        Left = 220
         Top = 30
         Width = 74
         Height = 13
@@ -353,7 +350,15 @@ object dlgEditGST: TdlgEditGST
         OnGetCellAttributes = tblRatesGetCellAttributes
         OnUserCommand = tblRatesUserCommand
         CellData = (
-          'dlgEditGST.colHeader')
+          'dlgEditGST.colHeader'
+          'dlgEditGST.colNormPercent'
+          'dlgEditGST.colAccount'
+          'dlgEditGST.colRate3'
+          'dlgEditGST.colRate2'
+          'dlgEditGST.colRate1'
+          'dlgEditGST.celGSTType'
+          'dlgEditGST.colDesc'
+          'dlgEditGST.ColID')
         RowData = (
           22)
         ColData = (
@@ -505,7 +510,6 @@ object dlgEditGST: TdlgEditGST
     object pgBASRules: TTabSheet
       Caption = '&BAS Fields'
       ImageIndex = 3
-      ExplicitWidth = 757
       object Label10: TLabel
         Left = 8
         Top = 8
@@ -558,7 +562,6 @@ object dlgEditGST: TdlgEditGST
     object pgReportSettings: TTabSheet
       Caption = 'Report O&ptions'
       ImageIndex = 4
-      ExplicitWidth = 757
       object gbxAccrual: TGroupBox
         Left = 8
         Top = 4
@@ -698,7 +701,6 @@ object dlgEditGST: TdlgEditGST
     object pgCalcMethod: TTabSheet
       Caption = 'Calculation &Method'
       ImageIndex = 4
-      ExplicitWidth = 757
       object Label12: TLabel
         Left = 16
         Top = 64
@@ -867,7 +869,6 @@ object dlgEditGST: TdlgEditGST
     object tsTaxRates: TTabSheet
       Caption = '&Other Rates'
       ImageIndex = 5
-      ExplicitWidth = 757
       object Label3: TLabel
         Left = 311
         Top = 25
@@ -1115,7 +1116,6 @@ object dlgEditGST: TdlgEditGST
     Default = True
     TabOrder = 1
     OnClick = btnOkClick
-    ExplicitLeft = 598
   end
   object btnCancel: TButton
     Left = 579
@@ -1127,7 +1127,6 @@ object dlgEditGST: TdlgEditGST
     Caption = 'Cancel'
     TabOrder = 2
     OnClick = btnCancelClick
-    ExplicitLeft = 682
   end
   object OvcController1: TOvcController
     EntryCommands.TableList = (
@@ -1159,6 +1158,7 @@ object dlgEditGST: TdlgEditGST
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
+    Options = [efoCaretToEnd]
     PictureMask = '###.####'
     Table = tblRates
     Left = 176
@@ -1175,6 +1175,7 @@ object dlgEditGST: TdlgEditGST
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
+    Options = [efoCaretToEnd]
     PictureMask = '###.####'
     Table = tblRates
     Left = 216
@@ -1191,6 +1192,7 @@ object dlgEditGST: TdlgEditGST
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
+    Options = [efoCaretToEnd]
     PictureMask = '###.####'
     Table = tblRates
     Left = 256
@@ -1255,6 +1257,7 @@ object dlgEditGST: TdlgEditGST
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
+    Options = [efoCaretToEnd]
     PictureMask = '###.##'
     Table = tblRates
     Left = 328
