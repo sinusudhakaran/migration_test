@@ -15,8 +15,19 @@ unit ClientLookupExFrm;
 interface
 
 uses
-  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, ClientLookupFme, ExtCtrls, RzGroupBar, StdCtrls,
+  Windows,
+  Messages,
+  SysUtils,
+  Variants,
+  Classes,
+  Graphics,
+  Controls,
+  Forms,
+  Dialogs,
+  ClientLookupFme,
+  ExtCtrls,
+  RzGroupBar,
+  StdCtrls,
   OSFont;
 
 type
@@ -65,8 +76,16 @@ function LookupClientCodes( Title         : string;
 implementation
 
 uses
-  bkXPThemes, Globals, AppUserObj, Admin32, BKHelp, InfoMoreFrm, bkconst, VirtualTrees,
-  Math;
+  bkXPThemes,
+  Globals,
+  AppUserObj,
+  Admin32,
+  BKHelp,
+  InfoMoreFrm,
+  bkconst,
+  VirtualTrees,
+  Math,
+  MonitorUtils;
 
 {$R *.dfm}
 
@@ -149,22 +168,32 @@ const
   NameColMaxWidth  = 750;
   StatusColWidth   = 200;
   AssignedColWidth = 100;
+  HMargin = 40;
+  VMargin = 80;
+
 var
   ClientLookup          : TfrmClientLookup;
   HideViewButtons       : boolean;
   DefaultSort           : TClientLookupCol;
   WidthOfNonNameColumns : integer;
+  WorkArea  : TRect;
+  dskWidth  : integer;
+  dskHeight : integer;
+  vsbWidth  : integer;
 
   // We don't need the Name column to be wider than the maximum length of a clients name (60 characters)
   function GetWidthOfAllVisibleColumns: integer;
   begin
     Result := CodeColWidth + NameColMaxWidth;
+
     if not (coHideStatusColumn in luOptions) then
       Result := Result + StatusColWidth;
+
     if (coShowAssignedToColumn in luOptions) then
       Result := Result + AssignedColWidth;
+
     WidthOfNonNameColumns := (Result - NameColMaxWidth);
-    Result := Result + 20; // Needs to be a bit wider than the sum of its columns
+    //Result := Result + 20; // Needs to be a bit wider than the sum of its columns
   end;
 
 begin
@@ -181,12 +210,8 @@ begin
 
       Caption  := Title;
       ShowPopMenu := OKCaption = OpenCaption;
-      //Set default width and height
-      Height  := Round( Screen.WorkAreaHeight * 0.8);
-      Width   := Min(GetWidthOfAllVisibleColumns, Screen.WorkAreaWidth);
-      //Position window
-      Top     := ( Screen.WorkAreaHeight - Height ) div 2;
-      Left    := ( Screen.WorkAreaWidth - Width ) div 2;
+
+      SetFormWorkArea(ClientLookup, GetWidthOfAllVisibleColumns);
 
       with ClientLookupFrame do
       begin

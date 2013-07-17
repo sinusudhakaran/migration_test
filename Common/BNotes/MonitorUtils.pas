@@ -1,34 +1,35 @@
 unit MonitorUtils;
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-{
-  Title:   Monitor Utilities
-
-  Written: Dec 1999
-  Authors: Matthew
-
-  Purpose: Provide utilities to read screen and/or desktop settings
-
-  Notes:   The multimonitor stubs don't see to work for Win95 so test if
-           mm is supported and use a difference call.
-}
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
+//------------------------------------------------------------------------------
+//  Title:   Monitor Utilities
+//
+//  Written: Dec 1999
+//  Authors: Matthew
+//
+//  Purpose: Provide utilities to read screen and/or desktop settings
+//
+//  Notes:   The multimonitor stubs don't see to work for Win95 so test if
+//           mm is supported and use a difference call.
+//------------------------------------------------------------------------------
 interface
+
 uses
-   windows;
+  windows,
+  forms;
 
 function GetDesktopWorkArea : TRect;
+procedure SetFormWorkArea(aForm : TForm; MaxWidth : integer; HMargin : integer = 40; VMargin : integer = 80);
 
 var
-   MultiMonitorsOK : boolean;
+  MultiMonitorsOK : boolean;
 
-//******************************************************************************
+//------------------------------------------------------------------------------
 implementation
-uses
-   forms,
-   multimon;
 
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+uses
+  multimon,
+  math;
+
+//------------------------------------------------------------------------------
 function GetDesktopWorkArea : TRect;
 var
    Mon      : HMonitor;
@@ -54,7 +55,8 @@ begin
       result := WorkArea;
    end;
 end;
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 function MultiMonitorsSupported : boolean;
 //Test this during initialization
 const
@@ -73,7 +75,30 @@ begin
       result := Assigned(Addr);
    end;
 end;
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
+procedure SetFormWorkArea(aForm : TForm; MaxWidth : integer; HMargin : integer = 40; VMargin : integer = 80);
+var
+  WorkArea  : TRect;
+  dskWidth  : integer;
+  dskHeight : integer;
+  vsbWidth  : integer;
+begin
+  //Get Width Vertical Scroll Bar, Size of desktop (excludes taskbar)
+  vsbWidth    := GetSystemMetrics( SM_CXVSCROLL );
+  //Find out what area we have to work with
+  WorkArea    := GetDesktopWorkArea;
+  dskWidth    := WorkArea.Right - WorkArea.Left;
+  dskHeight   := WorkArea.Bottom - WorkArea.Top;
+  //Set Size and Position, Center in Desktop area
+  aForm.ClientWidth := Min(MaxWidth + vsbWidth, dskWidth - HMargin);
+  aForm.Height      := (dskHeight - VMargin);
+  aForm.Top         := WorkArea.Top + (dskHeight - aForm.Height) div 2;
+  aForm.Left        := WorkArea.Left +(dskWidth - aForm.Width) div 2;
+end;
+
+//------------------------------------------------------------------------------
 initialization
-   MultiMonitorsOK := MultiMonitorsSupported;
+  MultiMonitorsOK := MultiMonitorsSupported;
+
 end.
