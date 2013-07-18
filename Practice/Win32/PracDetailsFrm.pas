@@ -634,6 +634,14 @@ begin
   //Set primary contact
   TempUser := TBloUserRead(cbPrimaryContact.Items.Objects[cbPrimaryContact.ItemIndex]);
   ProductConfigService.SetPrimaryContact(TempUser);
+
+  if DebugMe then
+  begin
+    LogUtil.LogMsg(lmDebug, UnitName,
+      'Primary Contact changed to ' +
+      TempUser.FullName
+    );
+  end;
 end;
 
 procedure TfrmPracticeDetails.chklistExportToClickCheck(Sender: TObject);
@@ -788,6 +796,15 @@ begin
           UseBankLinkOnline and
           ProductConfigService.IsExportDataEnabled and
           not ProductConfigService.ServiceSuspended;
+
+      // Online status changed?
+      if DebugMe then
+      begin
+        LogUtil.LogMsg(lmDebug, UnitName,
+          'Online status changed to '+
+          BoolToStr(ckUseBankLinkOnline.Checked, true)
+        );
+      end;
 
       ckUseBankLinkOnline.Enabled := ProductConfigService.OnLine;
     finally

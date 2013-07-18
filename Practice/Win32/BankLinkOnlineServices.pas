@@ -954,6 +954,10 @@ begin
       BlopiInterface :=  GetSecureServiceFacade;
       
       try
+        if DebugMe then LogUtil.LogMsg(lmDebug, UNIT_NAME,
+          'CreateClient for ' + aNewClient.Abn
+        );
+
         MsgResponse := BlopiInterface.CreateClient(CountryText(AdminSystem.fdFields.fdCountry),
                                                    AdminSystem.fdFields.fdBankLink_Code,
                                                    AdminSystem.fdFields.fdBankLink_Connect_Password,
@@ -963,6 +967,10 @@ begin
         begin
           if ReAuthenticateUser(Cancelled, ConnectionError) and not (Cancelled or ConnectionError) then
           begin
+            if DebugMe then LogUtil.LogMsg(lmDebug, UNIT_NAME,
+              'CreateClient for ' + aNewClient.Abn
+            );
+
             MsgResponse := BlopiInterface.CreateClient(CountryText(AdminSystem.fdFields.fdCountry),
                                                    AdminSystem.fdFields.fdBankLink_Code,
                                                    AdminSystem.fdFields.fdBankLink_Connect_Password,
@@ -1009,6 +1017,10 @@ begin
     BlopiInterface  := GetSecureServiceFacade;
 
     try
+      if DebugMe then LogUtil.LogMsg(lmDebug, UNIT_NAME,
+        'CreateClientUser for ' + NewUser.UserCode
+      );
+
       MsgResponseOfGuid := BlopiInterface.CreateClientUser(CountryText(AdminSystem.fdFields.fdCountry),
                                                          AdminSystem.fdFields.fdBankLink_Code,
                                                          AdminSystem.fdFields.fdBankLink_Connect_Password,
@@ -1019,6 +1031,10 @@ begin
       begin
         if ReAuthenticateUser(Cancelled, ConnectionError) and not (Cancelled or ConnectionError) then
         begin
+          if DebugMe then LogUtil.LogMsg(lmDebug, UNIT_NAME,
+            'CreateClientUser for ' + NewUser.UserCode
+          );
+          
           MsgResponseOfGuid := BlopiInterface.CreateClientUser(CountryText(AdminSystem.fdFields.fdCountry),
                                                        AdminSystem.fdFields.fdBankLink_Code,
                                                        AdminSystem.fdFields.fdBankLink_Connect_Password,
@@ -1059,6 +1075,11 @@ var
 begin
   BlopiInterface  := GetServiceFacade;
   TheGuid := CreateNewClient(aNewClient);
+
+  if DebugMe then LogUtil.LogMsg(lmDebug, UNIT_NAME,
+    'CreateClientUser for ' + aNewUserCreate.UserCode
+  );
+
   MsgResponseOfGuid := BlopiInterface.CreateClientUser(CountryText(AdminSystem.fdFields.fdCountry),
                                                          AdminSystem.fdFields.fdBankLink_Code,
                                                          AdminSystem.fdFields.fdBankLink_Connect_Password,
@@ -3160,6 +3181,10 @@ begin
       Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Resetting user password', 70);
 
       try
+        if DebugMe then LogUtil.LogMsg(lmDebug, UNIT_NAME,
+          'ResetPracticeUserPassword for ' + EmailAddress
+        );
+
         MsgResponse := BlopiInterface.ResetPracticeUserPassword(CountryText(AdminSystem.fdFields.fdCountry),
                                                AdminSystem.fdFields.fdBankLink_Code,
                                                AdminSystem.fdFields.fdBankLink_Connect_Password,
@@ -3170,6 +3195,10 @@ begin
         begin
           if ReAuthenticateUser(Cancelled, ConnectionError) and not (Cancelled or ConnectionError) then
           begin
+            if DebugMe then LogUtil.LogMsg(lmDebug, UNIT_NAME,
+              'ResetPracticeUserPassword for ' + EmailAddress
+            );
+
             MsgResponse := BlopiInterface.ResetPracticeUserPassword(CountryText(AdminSystem.fdFields.fdCountry),
                                              AdminSystem.fdFields.fdBankLink_Code,
                                              AdminSystem.fdFields.fdBankLink_Connect_Password,
@@ -3226,6 +3255,10 @@ begin
   try
     try
       Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Resetting user password', 70);
+
+      if DebugMe then LogUtil.LogMsg(lmDebug, UNIT_NAME,
+        'ResetUserPassword for ' + aEmailAddress
+      );
 
       MsgResponse := BlopiInterface.ResetUserPassword(CountryText(AdminSystem.fdFields.fdCountry),
                                                       AdminSystem.fdFields.fdBankLink_Code,
@@ -3311,6 +3344,10 @@ begin
 
         Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Saving Practice Details', 33);
 
+        if DebugMe then LogUtil.LogMsg(lmDebug, UNIT_NAME,
+          'SavePractice'
+        );
+
         MsgResponce := BlopiInterface.SavePractice(PracCountryCode, PracCode, PracPassHash, PracUpdate);
         if not MessageResponseHasError(MsgResponce, 'update the Practice settings to') then
         begin
@@ -3390,6 +3427,10 @@ begin
 
           Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Saving Practice data export settings', 33);
 
+          if DebugMe then LogUtil.LogMsg(lmDebug, UNIT_NAME,
+            'SavePracticeDataSubscribers'
+          );
+
           MsgResponce := BlopiInterface.SavePracticeDataSubscribers(PracCountryCode, PracCode, PracPassHash, VendorExports);
 
           if not MessageResponseHasError(MsgResponce, 'update the Practice data export settings to') then
@@ -3457,6 +3498,10 @@ begin
           BlopiInterface := GetServiceFacade;
           if ShowProgressBar then
             Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Saving Client data export settings', 33);
+
+          if DebugMe then LogUtil.LogMsg(lmDebug, UNIT_NAME,
+            'SaveClientDataSubscribers for ' + PracCode
+          );
 
           MsgResponce := BlopiInterface.SaveClientDataSubscribers(PracCountryCode,
                                                                   PracCode,
@@ -3553,7 +3598,11 @@ begin
             AccountData.AccountName := aAccountName;
             AccountData.AccountNumber := aAccountNumber;
             AccountData.Subscribers := aVendorExports;
-            
+
+            if DebugMe then LogUtil.LogMsg(lmDebug, UNIT_NAME,
+              'SaveBankAccountDataSubscribers for ' + PracCode
+            );
+
             MsgResponce := BlopiInterface.SaveBankAccountDataSubscribers(PracCountryCode,
                                                                          PracCode,
                                                                          PracPassHash,
@@ -4015,6 +4064,10 @@ begin
     if not PracticeUserExists(aEmail) then
     begin
       try
+        if DebugMe then LogUtil.LogMsg(lmDebug, UNIT_NAME,
+          'CreateClientUser for ' + BloUserCreate.UserCode
+        );
+        
         MsgResponceGuid := BlopiInterface.CreateClientUser(CountryText(AdminSystem.fdFields.fdCountry),
                                                 AdminSystem.fdFields.fdBankLink_Code,
                                                 AdminSystem.fdFields.fdBankLink_Connect_Password,
@@ -4026,6 +4079,10 @@ begin
         begin
           if ReAuthenticateUser(Cancelled, ConnectionError) and not (Cancelled or ConnectionError) then
           begin
+            if DebugMe then LogUtil.LogMsg(lmDebug, UNIT_NAME,
+              'CreateClientUser for ' + BloUserCreate.UserCode
+            );
+            
             MsgResponceGuid := BlopiInterface.CreateClientUser(CountryText(AdminSystem.fdFields.fdCountry),
                                               AdminSystem.fdFields.fdBankLink_Code,
                                               AdminSystem.fdFields.fdBankLink_Connect_Password,
@@ -4094,6 +4151,10 @@ begin
     BloUserUpdate.UserCode     := aUserCode;
 
     try
+      if DebugMe then LogUtil.LogMsg(lmDebug, UNIT_NAME,
+        'SaveClientUser for ' + BloUserUpdate.UserCode
+      );
+
       Response := BlopiInterface.SaveClientUser(CountryText(AdminSystem.fdFields.fdCountry),
                                             AdminSystem.fdFields.fdBankLink_Code,
                                             AdminSystem.fdFields.fdBankLink_Connect_Password,
@@ -4104,6 +4165,10 @@ begin
       begin
         if ReAuthenticateUser(Cancelled, ConnectionError) and not (Cancelled or ConnectionError) then
         begin
+          if DebugMe then LogUtil.LogMsg(lmDebug, UNIT_NAME,
+            'SaveClientUser for ' + BloUserUpdate.UserCode
+          );
+
           Response := BlopiInterface.SaveClientUser(CountryText(AdminSystem.fdFields.fdCountry),
                                           AdminSystem.fdFields.fdBankLink_Code,
                                           AdminSystem.fdFields.fdBankLink_Connect_Password,
@@ -4271,6 +4336,10 @@ begin
   BlopiInterface := GetSecureServiceFacade;
 
   try
+    if DebugMe then LogUtil.LogMsg(lmDebug, UNIT_NAME,
+      'ChangePracticeUserPassword for ' + aUserCode
+    );
+
     Response := BlopiInterface.ChangePracticeUserPassword(CountryText(AdminSystem.fdFields.fdCountry),
                                                       AdminSystem.fdFields.fdBankLink_Code,
                                                       AdminSystem.fdFields.fdBankLink_Connect_Password,
@@ -4283,6 +4352,10 @@ begin
     begin
       if AuthenticateUser(AdminSystem.fdFields.fdBankLink_Code, aUserCode, aOldPassword, AuthenticationStatus) then
       begin
+        if DebugMe then LogUtil.LogMsg(lmDebug, UNIT_NAME,
+          'ChangePracticeUserPassword for ' + aUserCode
+        );
+
         Response := BlopiInterface.ChangePracticeUserPassword(CountryText(AdminSystem.fdFields.fdCountry),
                                                     AdminSystem.fdFields.fdBankLink_Code,
                                                     AdminSystem.fdFields.fdBankLink_Connect_Password,
@@ -4334,6 +4407,10 @@ begin
     CreateUser.Password     := aPassword;
 
     try
+      if DebugMe then LogUtil.LogMsg(lmDebug, UNIT_NAME,
+        'CreatePracticeUser for ' + aUserCode
+      );
+
       Response := BlopiInterface.CreatePracticeUser(CountryText(AdminSystem.fdFields.fdCountry),
                                                 AdminSystem.fdFields.fdBankLink_Code,
                                                 AdminSystem.fdFields.fdBankLink_Connect_Password,
@@ -4345,6 +4422,10 @@ begin
         begin
           if ReAuthenticateUser(Cancelled, ConnectionError) and not (Cancelled or ConnectionError) then
           begin
+            if DebugMe then LogUtil.LogMsg(lmDebug, UNIT_NAME,
+              'CreatePracticeUser for ' + aUserCode
+            );
+
             Response := BlopiInterface.CreatePracticeUser(CountryText(AdminSystem.fdFields.fdCountry),
                                               AdminSystem.fdFields.fdBankLink_Code,
                                               AdminSystem.fdFields.fdBankLink_Connect_Password,
@@ -4444,6 +4525,10 @@ begin
     UpdateUser.Subscription := aSubscription;
 
     try
+      if DebugMe then LogUtil.LogMsg(lmDebug, UNIT_NAME,
+        'SavePracticeUser for ' + aUserCode
+      );
+
       Response := BlopiInterface.SavePracticeUser(CountryText(AdminSystem.fdFields.fdCountry),
                                               AdminSystem.fdFields.fdBankLink_Code,
                                               AdminSystem.fdFields.fdBankLink_Connect_Password,
@@ -4454,6 +4539,10 @@ begin
         begin
           if ReAuthenticateUser(Cancelled, ConnectionError, aUserCode = CurrUser.Code) and not (Cancelled or ConnectionError) then
           begin
+            if DebugMe then LogUtil.LogMsg(lmDebug, UNIT_NAME,
+              'SavePracticeUser for ' + aUserCode
+            );
+            
             Response := BlopiInterface.SavePracticeUser(CountryText(AdminSystem.fdFields.fdCountry),
                                             AdminSystem.fdFields.fdBankLink_Code,
                                             AdminSystem.fdFields.fdBankLink_Connect_Password,
@@ -4493,6 +4582,10 @@ begin
   BlopiInterface := GetSecureServiceFacade;
 
   try
+    if DebugMe then LogUtil.LogMsg(lmDebug, UNIT_NAME,
+      'DeleteUser for ' + aUserCode
+    );
+
     Response := BlopiInterface.DeleteUser(CountryText(AdminSystem.fdFields.fdCountry),
                                       AdminSystem.fdFields.fdBankLink_Code,
                                       AdminSystem.fdFields.fdBankLink_Connect_Password,
@@ -4502,6 +4595,10 @@ begin
     begin
       if ReAuthenticateUser(Cancelled, ConnectionError) and not (Cancelled or ConnectionError) then
       begin
+        if DebugMe then LogUtil.LogMsg(lmDebug, UNIT_NAME,
+          'DeleteUser for ' + aUserCode
+        );
+        
         Response := BlopiInterface.DeleteUser(CountryText(AdminSystem.fdFields.fdCountry),
                                     AdminSystem.fdFields.fdBankLink_Code,
                                     AdminSystem.fdFields.fdBankLink_Connect_Password,
@@ -4640,7 +4737,11 @@ begin
 
           try
             IBizzCredentials.ExternalSubscriberId := AcclipseCode;
-            
+
+            if DebugMe then LogUtil.LogMsg(lmDebug, UNIT_NAME,
+              'SavePracticeDataSubscriberCredentials for ' + PracCode
+            );
+
             MsgResponce := BlopiInterface.SavePracticeDataSubscriberCredentials(PracCountryCode, PracCode, PracPassHash, GetIBizzExportGuid, IBizzCredentials);
 
             if not MessageResponseHasError(MsgResponce, 'update the iBizz subscriber credentials to') then
@@ -4721,6 +4822,10 @@ begin
           BloClientCreate.SecureCode       := MyClient.clFields.clBankLink_Code;
 
           try
+            if DebugMe then LogUtil.LogMsg(lmDebug, UNIT_NAME,
+              'CreateClient for ' + BloClientCreate.Abn
+            );
+
             MsgResponseGuid := BlopiInterface.CreateClient(CountryText(AdminSystem.fdFields.fdCountry),
                                                          AdminSystem.fdFields.fdBankLink_Code,
                                                          AdminSystem.fdFields.fdBankLink_Connect_Password,
@@ -4731,6 +4836,10 @@ begin
             begin
               if ReAuthenticateUser(Cancelled, ConnectionError) and not (Cancelled or ConnectionError) then
               begin
+                if DebugMe then LogUtil.LogMsg(lmDebug, UNIT_NAME,
+                  'CreateClient for ' + BloClientCreate.Abn
+                );
+                
                 MsgResponseGuid := BlopiInterface.CreateClient(CountryText(AdminSystem.fdFields.fdCountry),
                                                        AdminSystem.fdFields.fdBankLink_Code,
                                                        AdminSystem.fdFields.fdBankLink_Connect_Password,
@@ -4899,6 +5008,10 @@ begin
             BloClientUpdate.SecureCode           := MyClient.clFields.clBankLink_Code;
 
             try
+              if DebugMe then LogUtil.LogMsg(lmDebug, UNIT_NAME,
+                'SaveClient for ' + aUserEmail
+              );
+
               MsgResponse := BlopiInterface.SaveClient(CountryText(AdminSystem.fdFields.fdCountry),
                                                      AdminSystem.fdFields.fdBankLink_Code,
                                                      AdminSystem.fdFields.fdBankLink_Connect_Password,
@@ -4908,6 +5021,10 @@ begin
               begin
                 if ReAuthenticateUser(Cancelled, ConnectionError) and not (Cancelled or ConnectionError) then
                 begin
+                  if DebugMe then LogUtil.LogMsg(lmDebug, UNIT_NAME,
+                    'SaveClient for ' + aUserEmail
+                  );
+
                   MsgResponse := BlopiInterface.SaveClient(CountryText(AdminSystem.fdFields.fdCountry),
                                                    AdminSystem.fdFields.fdBankLink_Code,
                                                    AdminSystem.fdFields.fdBankLink_Connect_Password,
@@ -5099,6 +5216,10 @@ begin
         BloClientUpdate.Subscription         := aExistingClient.Subscription;
 
         try
+          if DebugMe then LogUtil.LogMsg(lmDebug, UNIT_NAME,
+            'SaveClient for ' + aExistingClient.ClientCode
+          );
+          
           MsgResponse := BlopiInterface.SaveClient(CountryText(AdminSystem.fdFields.fdCountry),
                                                  AdminSystem.fdFields.fdBankLink_Code,
                                                  AdminSystem.fdFields.fdBankLink_Connect_Password,
@@ -5110,6 +5231,10 @@ begin
           begin
             if ReAuthenticateUser(Cancelled, ConnectionError) and not (Cancelled or ConnectionError) then
             begin
+              if DebugMe then LogUtil.LogMsg(lmDebug, UNIT_NAME,
+                'SaveClient for ' + aExistingClient.ClientCode
+              );
+              
               MsgResponse := BlopiInterface.SaveClient(CountryText(AdminSystem.fdFields.fdCountry),
                                                AdminSystem.fdFields.fdBankLink_Code,
                                                AdminSystem.fdFields.fdBankLink_Connect_Password,
