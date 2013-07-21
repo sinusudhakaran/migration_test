@@ -164,7 +164,7 @@ begin
   begin
     PRACINI_CurrentVersion := WINUTILS.GetAppVersionStr;
 
-    LogUtil.LogMsg(lmDebug, UnitName, 'New Version Detected '+PRACINI_CurrentVersion, ERRORLOG.stat_ResetStatsFile);
+    LogUtil.LogMsg(lmInfo, UnitName, 'New Version Detected '+PRACINI_CurrentVersion, ERRORLOG.stat_ResetStatsFile);
     //Update the practice ini file with new version str
     GetBuildInfo(v1, v2, v3, v4);
     if (v1 = 5) and
