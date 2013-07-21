@@ -2251,6 +2251,9 @@ begin
         AuthenticationResult := paOffLineUser;
       end;
     finally
+      if assigned(Response) then
+        FreeAndNil(Response);
+
       if ShowProgress then
       begin
         Progress.StatusSilent := True;
