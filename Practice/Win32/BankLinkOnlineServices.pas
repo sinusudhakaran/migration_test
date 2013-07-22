@@ -1559,7 +1559,7 @@ begin
             if Assigned(PracticeDetailResponse.Result) then
             begin
               AdminSystem.fdFields.fdLast_BankLink_Online_Update := stDate.CurrentDate;
-              FPractice := PracticeDetailResponse.Result;
+              CopyRemotableObject(PracticeDetailResponse.Result, FPractice);
               FRegistered := True;
               FValidBConnectDetails := True;
 
@@ -1617,6 +1617,9 @@ begin
         end;
       end;
     finally
+      if Assigned(PracticeDetailResponse) then
+        FreeAndNil(PracticeDetailResponse);
+
       if ShowProgress then
       begin
         Progress.StatusSilent := True;
