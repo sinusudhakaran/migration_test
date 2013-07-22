@@ -52,6 +52,8 @@ type
   TBloIBizzCredentials               = BlopiServiceFacade.PracticeDataSubscriberCredentials;
   TBloArrayOfPracticeDataSubscriberCount = BlopiServiceFacade.ArrayOfPracticeDataSubscriberCount;
 
+  TBloArrayOfRemotable = Array of TRemotable;
+
   TBloArrayOfPracticeBankAccount = BlopiServiceFacade.ArrayOfPracticeBankAccount;
 
   TBloUploadResult = BlopiServiceFacade.UploadResult;
@@ -168,7 +170,9 @@ type
 
     procedure SynchronizeClientSettings(BlopiClient: TBloClientReadDetail);
 
-    procedure CopyRemotableObject(ASource, ATarget: TRemotable);
+    procedure CopyRemotableObject(ASource, ATarget: TRemotable); overload;
+    procedure CopyRemotableObject(ASource, ATarget: TBloArrayOfRemotable); overload;
+
 
     function IsUserCreatedOnBankLinkOnline(const APractice : TBloPracticeRead;
                                            const AUserId   : TBloGuid   = '';
@@ -901,8 +905,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TProductConfigService.CopyRemotableObject(ASource,
-  ATarget: TRemotable);
+procedure TProductConfigService.CopyRemotableObject(ASource, ATarget: TRemotable);
 var
   Converter: IObjConverter;
   NodeObject: IXMLNode;
@@ -919,6 +922,18 @@ begin
                                     'CopyObject', '', [ocoDontPrefixNode],
                                     XMLStr);
   ATarget.SOAPToObject(NodeRoot, NodeObject, Converter);
+end;
+
+//------------------------------------------------------------------------------
+procedure TProductConfigService.CopyRemotableObject(ASource, ATarget: TBloArrayOfRemotable);
+var
+  Index : integer;
+begin
+  SetLength(ATarget, length(ASource));
+  for Index := 0 to length(ASource)-1 do
+  begin
+    CopyRemotableObject(ASource[Index], ATarget[Index]);
+  end;
 end;
 
 //------------------------------------------------------------------------------
@@ -982,14 +997,16 @@ begin
           end;  
         end;
       end;
-    
+
       if not MessageResponseHasError(MsgResponse, 'create client on') then
-        Result := MsgResponse.Result;
+        Result := Copy(MsgResponse.Result, 1, Length(MsgResponse.Result));
 
       if ShowProgress then
         Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Finished', 100);
 
     finally
+      FreeAndNil(MsgResponse);
+
       if ShowProgress then
       begin
         Progress.StatusSilent := True;
@@ -1014,55 +1031,59 @@ var
   ConnectionError: Boolean;
 begin
   try
-    BlopiInterface  := GetSecureServiceFacade;
-
     try
-      if DebugMe then LogUtil.LogMsg(lmDebug, UNIT_NAME,
-        'CreateClientUser for ' + NewUser.UserCode
-      );
+      BlopiInterface  := GetSecureServiceFacade;
 
-      MsgResponseOfGuid := BlopiInterface.CreateClientUser(CountryText(AdminSystem.fdFields.fdCountry),
+      try
+        if DebugMe then LogUtil.LogMsg(lmDebug, UNIT_NAME,
+          'CreateClientUser for ' + NewUser.UserCode
+        );
+
+        MsgResponseOfGuid := BlopiInterface.CreateClientUser(CountryText(AdminSystem.fdFields.fdCountry),
+                                                           AdminSystem.fdFields.fdBankLink_Code,
+                                                           AdminSystem.fdFields.fdBankLink_Connect_Password,
+                                                           ClientGUID,
+                                                           NewUser);
+      except
+        on E: EAuthenticationException do
+        begin
+          if ReAuthenticateUser(Cancelled, ConnectionError) and not (Cancelled or ConnectionError) then
+          begin
+            if DebugMe then LogUtil.LogMsg(lmDebug, UNIT_NAME,
+              'CreateClientUser for ' + NewUser.UserCode
+            );
+
+            MsgResponseOfGuid := BlopiInterface.CreateClientUser(CountryText(AdminSystem.fdFields.fdCountry),
                                                          AdminSystem.fdFields.fdBankLink_Code,
                                                          AdminSystem.fdFields.fdBankLink_Connect_Password,
                                                          ClientGUID,
                                                          NewUser);
-    except
-      on E: EAuthenticationException do
-      begin
-        if ReAuthenticateUser(Cancelled, ConnectionError) and not (Cancelled or ConnectionError) then
-        begin
-          if DebugMe then LogUtil.LogMsg(lmDebug, UNIT_NAME,
-            'CreateClientUser for ' + NewUser.UserCode
-          );
-          
-          MsgResponseOfGuid := BlopiInterface.CreateClientUser(CountryText(AdminSystem.fdFields.fdCountry),
-                                                       AdminSystem.fdFields.fdBankLink_Code,
-                                                       AdminSystem.fdFields.fdBankLink_Connect_Password,
-                                                       ClientGUID,
-                                                       NewUser);
-        end
-        else
-        begin
-          Exit;
+          end
+          else
+          begin
+            Exit;
+          end;
         end;
+      end;
+
+      Result := Copy(MsgResponseOfGuid.Result,1,length(MsgResponseOfGuid.Result));
+    except
+      on E : Exception do
+      begin
+        LogUtil.LogMsg(lmError, UNIT_NAME, 'Exception running CreateNewClientUser, Error Message : ' + E.Message);
+
+        raise Exception.Create(bkBranding.PracticeProductName + ' is unable to create a new user ' + bkBranding.ProductOnlineName + '. Please contact ' + TProduct.BrandName + ' Support for assistance.');
       end;
     end;
 
-      
-    Result := MsgResponseOfGuid.Result;
-  except
-    on E : Exception do
-    begin
-      LogUtil.LogMsg(lmError, UNIT_NAME, 'Exception running CreateNewClientUser, Error Message : ' + E.Message);
-      
-      raise Exception.Create(bkBranding.PracticeProductName + ' is unable to create a new user ' + bkBranding.ProductOnlineName + '. Please contact ' + TProduct.BrandName + ' Support for assistance.');
-    end;
-  end;
+    if not MessageResponseHasError(MsgResponseOfGuid, 'update practice user password on') then
+      LogUtil.LogMsg(lmInfo, UNIT_NAME, 'User ' + NewUser.FullName + ' has been successfully created on BankLink Online.')
+    else
+      LogUtil.LogMsg(lmInfo, UNIT_NAME, 'User ' + NewUser.FullName + ' was not created on BankLink Online.');
 
-  if not MessageResponseHasError(MsgResponseOfGuid, 'update practice user password on') then
-    LogUtil.LogMsg(lmInfo, UNIT_NAME, 'User ' + NewUser.FullName + ' has been successfully created on BankLink Online.')
-  else
-    LogUtil.LogMsg(lmInfo, UNIT_NAME, 'User ' + NewUser.FullName + ' was not created on BankLink Online.');
+  finally
+    FreeAndNil(MsgResponseOfGuid);
+  end;
 end;
 
 //------------------------------------------------------------------------------
@@ -1073,25 +1094,31 @@ var
   ClientDetailResponse: MessageResponseOfClientReadDetailMIdCYrSK;
   BlopiInterface: IBlopiServiceFacade;
 begin
-  BlopiInterface  := GetServiceFacade;
-  TheGuid := CreateNewClient(aNewClient);
+  try
+    BlopiInterface  := GetServiceFacade;
+    TheGuid := CreateNewClient(aNewClient);
 
-  if DebugMe then LogUtil.LogMsg(lmDebug, UNIT_NAME,
-    'CreateClientUser for ' + aNewUserCreate.UserCode
-  );
+    if DebugMe then LogUtil.LogMsg(lmDebug, UNIT_NAME,
+      'CreateClientUser for ' + aNewUserCreate.UserCode
+    );
 
-  MsgResponseOfGuid := BlopiInterface.CreateClientUser(CountryText(AdminSystem.fdFields.fdCountry),
-                                                         AdminSystem.fdFields.fdBankLink_Code,
-                                                         AdminSystem.fdFields.fdBankLink_Connect_Password,
-                                                         TheGuid,
-                                                         aNewUserCreate);
+    MsgResponseOfGuid := BlopiInterface.CreateClientUser(CountryText(AdminSystem.fdFields.fdCountry),
+                                                           AdminSystem.fdFields.fdBankLink_Code,
+                                                           AdminSystem.fdFields.fdBankLink_Connect_Password,
+                                                           TheGuid,
+                                                           aNewUserCreate);
 
 
-  ClientDetailResponse := BlopiInterface.GetClient(CountryText(AdminSystem.fdFields.fdCountry),
-                                                     AdminSystem.fdFields.fdBankLink_Code,
-                                                     AdminSystem.fdFields.fdBankLink_Connect_Password,
-                                                     MsgResponseOfGuid.Result);
-  Result := ClientDetailResponse.Result;
+    ClientDetailResponse := BlopiInterface.GetClient(CountryText(AdminSystem.fdFields.fdCountry),
+                                                       AdminSystem.fdFields.fdBankLink_Code,
+                                                       AdminSystem.fdFields.fdBankLink_Connect_Password,
+                                                       MsgResponseOfGuid.Result);
+
+    CopyRemotableObject(ClientDetailResponse.Result, Result);
+  finally
+    FreeAndNil(MsgResponseOfGuid);
+    FreeAndNil(ClientDetailResponse);
+  end;
 end;
 
 //------------------------------------------------------------------------------
@@ -1144,12 +1171,14 @@ begin
                                                        
       if not MessageResponseHasError(MessageResponse(DataSubscriberCredentialsResponse), 'get the iBizz subscriber credentials from') then
       begin
-        Result := DataSubscriberCredentialsResponse.Result;
+        CopyRemotableObject(DataSubscriberCredentialsResponse.Result, Result);
       end;
 
       if ShowProgress then
         Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Finished', 100);
     finally
+      FreeAndNil(DataSubscriberCredentialsResponse);
+
       if ShowProgress then
       begin
         Progress.StatusSilent := True;
@@ -1284,7 +1313,7 @@ begin
 
       if not MessageResponseHasError(MessageResponse(ClientDetailResponse), 'get the client settings from') then
       begin
-        Result := ClientDetailResponse.Result;
+        CopyRemotableObject(ClientDetailResponse.Result, Result);
 
         if SynchronizeBlopi then
         begin
@@ -1295,6 +1324,8 @@ begin
       if ShowProgress then
         Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Finished', 100);
     finally
+      FreeAndNil(ClientDetailResponse);
+
       if ShowProgress then
       begin
         Progress.StatusSilent := True;
@@ -1384,7 +1415,7 @@ begin
         case CheckResponse(BlopiClientGuid) of
           rtClientFound:
           begin
-            Id := BlopiClientGuid.Result;
+            Id := Copy(BlopiClientGuid.Result,1,length(BlopiClientGuid.Result));
 
             Result := True;
           end;
@@ -1401,6 +1432,8 @@ begin
         end;
       end;
     finally
+      FreeAndNil(BlopiClientGuid);
+
       if ShowProgress then
       begin
         Progress.StatusSilent := True;
@@ -1617,8 +1650,7 @@ begin
         end;
       end;
     finally
-      if Assigned(PracticeDetailResponse) then
-        FreeAndNil(PracticeDetailResponse);
+      FreeAndNil(PracticeDetailResponse);
 
       if ShowProgress then
       begin
@@ -1679,12 +1711,14 @@ begin
                                                         AdminSystem.fdFields.fdBankLink_Connect_Password);
         if not MessageResponseHasError(MessageResponse(BlopiClientList), 'load the client list from') then
           if Assigned(BlopiClientList.Result) then
-            FClientList := BlopiClientList.Result;
+            CopyRemotableObject(BlopiClientList.Result, FClientList);
 
         if ShowProgress then
           Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Finished', 100);
       end;
     finally
+      FreeAndNil(BlopiClientList);
+
       if ShowProgress then
       begin
         Progress.StatusSilent := True;
@@ -1906,12 +1940,14 @@ begin
                                                        
       if not MessageResponseHasError(MessageResponse(DataSubscriberCredentialsResponse), 'get the vendor subscribers') then
       begin
-        Result := DataSubscriberCredentialsResponse.Result;
+        CopyRemotableObject(TBloArrayOfRemotable(DataSubscriberCredentialsResponse.Result), TBloArrayOfRemotable(Result));
       end;
 
       if ShowProgress then
         Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Finished', 100);
     finally
+      FreeAndNil(DataSubscriberCredentialsResponse);
+
       if ShowProgress then
       begin
         Progress.StatusSilent := True;
@@ -2254,8 +2290,7 @@ begin
         AuthenticationResult := paOffLineUser;
       end;
     finally
-      if assigned(Response) then
-        FreeAndNil(Response);
+      FreeAndNil(Response);
 
       if ShowProgress then
       begin
@@ -2471,12 +2506,14 @@ begin
                                                             AdminSystem.fdFields.fdBankLink_Connect_Password);
       if not MessageResponseHasError(MessageResponse(ReturnMsg), 'get the service agreement version from') then
       begin
-        Result := ReturnMsg.Result;
+        Result := Copy(ReturnMsg.Result,1,length(ReturnMsg.Result));
       end;
 
       if ShowProgress then
         Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Finished', 100);
     finally
+      FreeAndNil(ReturnMsg);
+
       if ShowProgress then
       begin
         Progress.StatusSilent := True;
@@ -2517,12 +2554,14 @@ begin
                                                         AdminSystem.fdFields.fdBankLink_Connect_Password);
       if not MessageResponseHasError(MessageResponse(ReturnMsg), 'get the service agreement from') then
       begin
-        Result := ReturnMsg.Result;
+        Result := Copy(ReturnMsg.Result, 1, length(ReturnMsg.Result));
       end;
 
       if ShowProgress then
         Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Finished', 100);
     finally
+      FreeAndNil(ReturnMsg);
+
       if ShowProgress then
       begin
         Progress.StatusSilent := True;
@@ -3237,6 +3276,8 @@ begin
       end;
     end;
   finally
+    FreeAndNil(MsgResponse);
+
     Progress.StatusSilent := True;
     Progress.ClearStatus;
     Screen.Cursor := crDefault;
@@ -3289,6 +3330,8 @@ begin
       end;
     end;
   finally
+    FreeAndNil(MsgResponse);
+
     Progress.StatusSilent := True;
     Progress.ClearStatus;
     Screen.Cursor := crDefault;
@@ -3363,6 +3406,8 @@ begin
         end;
 
       finally
+        FreeAndNil(MsgResponce);
+
         Progress.StatusSilent := True;
         Progress.ClearStatus;
         Screen.Cursor := crDefault;
@@ -4073,7 +4118,7 @@ begin
         if DebugMe then LogUtil.LogMsg(lmDebug, UNIT_NAME,
           'CreateClientUser for ' + BloUserCreate.UserCode
         );
-        
+
         MsgResponceGuid := BlopiInterface.CreateClientUser(CountryText(AdminSystem.fdFields.fdCountry),
                                                 AdminSystem.fdFields.fdBankLink_Code,
                                                 AdminSystem.fdFields.fdBankLink_Connect_Password,
@@ -4104,7 +4149,7 @@ begin
 
       if not MessageResponseHasError(MsgResponceGuid, 'create the client user on', true) then
       begin
-        UserId := MsgResponceGuid.Result;
+        UserId := copy(MsgResponceGuid.Result,1,Length(MsgResponceGuid.Result));
 
         LogUtil.LogMsg(lmInfo, UNIT_NAME, 'Client User ' + aUserCode + ' has been successfully updated on BankLink Online.');
 
@@ -4125,6 +4170,7 @@ begin
     end;
 
   finally
+    FreeAndNil(MsgResponceGuid);
     FreeAndNil(BloUserCreate);
   end;
 end;
@@ -4195,6 +4241,7 @@ begin
 
     Result := not MessageResponseHasError(Response, ErrorHandlerMessage);
   finally
+    FreeAndNil(Response);
     FreeAndNil(BloUserUpdate);
   end;
 end;
@@ -4338,10 +4385,10 @@ var
   AuthenticationStatus: TAuthenticationStatus;
 begin
   Result := False;
-  
-  BlopiInterface := GetSecureServiceFacade;
 
   try
+    BlopiInterface := GetSecureServiceFacade;
+    try
     if DebugMe then LogUtil.LogMsg(lmDebug, UNIT_NAME,
       'ChangePracticeUserPassword for ' + aUserCode
     );
@@ -4353,35 +4400,38 @@ begin
                                                       aOldPassword,
                                                       aNewPassword);
 
-  except
-    on E: EAuthenticationException do
-    begin
-      if AuthenticateUser(AdminSystem.fdFields.fdBankLink_Code, aUserCode, aOldPassword, AuthenticationStatus) then
+    except
+      on E: EAuthenticationException do
       begin
-        if DebugMe then LogUtil.LogMsg(lmDebug, UNIT_NAME,
-          'ChangePracticeUserPassword for ' + aUserCode
-        );
+        if AuthenticateUser(AdminSystem.fdFields.fdBankLink_Code, aUserCode, aOldPassword, AuthenticationStatus) then
+        begin
+          if DebugMe then LogUtil.LogMsg(lmDebug, UNIT_NAME,
+            'ChangePracticeUserPassword for ' + aUserCode
+          );
 
-        Response := BlopiInterface.ChangePracticeUserPassword(CountryText(AdminSystem.fdFields.fdCountry),
-                                                    AdminSystem.fdFields.fdBankLink_Code,
-                                                    AdminSystem.fdFields.fdBankLink_Connect_Password,
-                                                    aUserId,
-                                                    aOldPassword,
-                                                    aNewPassword);
-      end
-      else
-      begin
-        Exit;
+          Response := BlopiInterface.ChangePracticeUserPassword(CountryText(AdminSystem.fdFields.fdCountry),
+                                                      AdminSystem.fdFields.fdBankLink_Code,
+                                                      AdminSystem.fdFields.fdBankLink_Connect_Password,
+                                                      aUserId,
+                                                      aOldPassword,
+                                                      aNewPassword);
+        end
+        else
+        begin
+          Exit;
+        end;
       end;
     end;
+
+    if Response.Success then
+      LogUtil.LogMsg(lmInfo, UNIT_NAME, 'Practice User ' + aUserCode + ' password has been successfully changed on BankLink Online.')
+    else
+      LogUtil.LogMsg(lmInfo, UNIT_NAME, 'Practice User ' + aUserCode + ' password was not changed on BankLink Online.');
+
+    Result := not MessageResponseHasError(Response, ErrorHandlerMessage);
+  finally
+    FreeAndNil(Response);
   end;
-
-  if Response.Success then
-    LogUtil.LogMsg(lmInfo, UNIT_NAME, 'Practice User ' + aUserCode + ' password has been successfully changed on BankLink Online.')
-  else
-    LogUtil.LogMsg(lmInfo, UNIT_NAME, 'Practice User ' + aUserCode + ' password was not changed on BankLink Online.');
-
-  Result := not MessageResponseHasError(Response, ErrorHandlerMessage);
 end;
 
 //------------------------------------------------------------------------------
@@ -4428,9 +4478,8 @@ begin
         begin
           if ReAuthenticateUser(Cancelled, ConnectionError) and not (Cancelled or ConnectionError) then
           begin
-            if DebugMe then LogUtil.LogMsg(lmDebug, UNIT_NAME,
-              'CreatePracticeUser for ' + aUserCode
-            );
+            if DebugMe then
+              LogUtil.LogMsg(lmDebug, UNIT_NAME, 'CreatePracticeUser for ' + aUserCode);
 
             Response := BlopiInterface.CreatePracticeUser(CountryText(AdminSystem.fdFields.fdCountry),
                                               AdminSystem.fdFields.fdBankLink_Code,
@@ -4440,7 +4489,7 @@ begin
           else
           begin
             Exit;
-          end;     
+          end;
         end;
       end;
 
@@ -4451,9 +4500,10 @@ begin
 
     if not MessageResponseHasError(Response, ErrorHandlerMessage) and Assigned(Response) then
     begin
-      Result := Response.Result;
+      Result := Copy(Response.Result, 1, length(Response.Result));
     end;
   finally
+    FreeAndNil(Response);
     FreeAndNil(CreateUser);
   end;
 end;
@@ -4569,6 +4619,7 @@ begin
 
     Result := not MessageResponseHasError(Response, ErrorHandlerMessage);
   finally
+    FreeAndNil(Response);
     FreeAndNil(UpdateUser);
   end;
 end;
@@ -4584,45 +4635,49 @@ var
   Response: MessageResponse;
 begin
   Result := False;
-  
-  BlopiInterface := GetSecureServiceFacade;
 
   try
-    if DebugMe then LogUtil.LogMsg(lmDebug, UNIT_NAME,
-      'DeleteUser for ' + aUserCode
-    );
+    BlopiInterface := GetSecureServiceFacade;
 
-    Response := BlopiInterface.DeleteUser(CountryText(AdminSystem.fdFields.fdCountry),
+    try
+      if DebugMe then LogUtil.LogMsg(lmDebug, UNIT_NAME,
+        'DeleteUser for ' + aUserCode
+      );
+
+      Response := BlopiInterface.DeleteUser(CountryText(AdminSystem.fdFields.fdCountry),
+                                        AdminSystem.fdFields.fdBankLink_Code,
+                                        AdminSystem.fdFields.fdBankLink_Connect_Password,
+                                        aUserId);
+    except
+      on E: EAuthenticationException do
+      begin
+        if ReAuthenticateUser(Cancelled, ConnectionError) and not (Cancelled or ConnectionError) then
+        begin
+          if DebugMe then LogUtil.LogMsg(lmDebug, UNIT_NAME,
+            'DeleteUser for ' + aUserCode
+          );
+
+          Response := BlopiInterface.DeleteUser(CountryText(AdminSystem.fdFields.fdCountry),
                                       AdminSystem.fdFields.fdBankLink_Code,
                                       AdminSystem.fdFields.fdBankLink_Connect_Password,
                                       aUserId);
-  except
-    on E: EAuthenticationException do
-    begin
-      if ReAuthenticateUser(Cancelled, ConnectionError) and not (Cancelled or ConnectionError) then
-      begin
-        if DebugMe then LogUtil.LogMsg(lmDebug, UNIT_NAME,
-          'DeleteUser for ' + aUserCode
-        );
-        
-        Response := BlopiInterface.DeleteUser(CountryText(AdminSystem.fdFields.fdCountry),
-                                    AdminSystem.fdFields.fdBankLink_Code,
-                                    AdminSystem.fdFields.fdBankLink_Connect_Password,
-                                    aUserId);
-      end
-      else
-      begin
-        Exit;
-      end;      
+        end
+        else
+        begin
+          Exit;
+        end;      
+      end;
     end;
+
+    if Response.Success then
+      LogUtil.LogMsg(lmInfo, UNIT_NAME, 'User ' + aUserCode + ' has been successfully deleted from BankLink Online.')
+    else
+      LogUtil.LogMsg(lmInfo, UNIT_NAME, 'User ' + aUserCode + ' was not deleted from BankLink Online.');
+
+    Result := not MessageResponseHasError(Response, ErrorHandlerMessage);
+  finally
+    FreeAndNil(Response);
   end;
-
-  if Response.Success then
-    LogUtil.LogMsg(lmInfo, UNIT_NAME, 'User ' + aUserCode + ' has been successfully deleted from BankLink Online.')
-  else
-    LogUtil.LogMsg(lmInfo, UNIT_NAME, 'User ' + aUserCode + ' was not deleted from BankLink Online.');
-
-  Result := not MessageResponseHasError(Response, ErrorHandlerMessage);
 end;
 
 //------------------------------------------------------------------------------
@@ -4864,6 +4919,7 @@ begin
             MyClient.Opened := True;
           ClientID := GetClientGuid(BloClientCreate.ClientCode);
         finally
+          FreeAndNil(MsgResponseGuid);
           FreeAndNil(BloClientCreate);
         end;
 
@@ -5053,6 +5109,7 @@ begin
               LogUtil.LogMsg(lmInfo, UNIT_NAME, 'Client ' + ClientCode + ' was not updated on BankLink Online.');
 
           finally
+            FreeAndNil(MsgResponse);
             FreeAndNil(BloClientUpdate);
           end;
         end;
@@ -5145,31 +5202,35 @@ var
   NewClientReadDetail: TBloClientReadDetail;
   PrimaryContact: TBloUserRead;
 begin
-  ClientGuid := GetClientGuid(ClientCode);
-  BlopiInterface := ProductConfigService.GetServiceFacade;
-  ClientDetailResponse := BlopiInterface.GetClient(CountryText(AdminSystem.fdFields.fdCountry),
-                                                   AdminSystem.fdFields.fdBankLink_Code,
-                                                   AdminSystem.fdFields.fdBankLink_Connect_Password,
-                                                   ClientGuid);
-  NewClientReadDetail := ClientDetailResponse.Result;
-  NewClientReadDetail.Status := BlopiServiceFacade.Active;
+  try
+    ClientGuid := GetClientGuid(ClientCode);
+    BlopiInterface := ProductConfigService.GetServiceFacade;
+    ClientDetailResponse := BlopiInterface.GetClient(CountryText(AdminSystem.fdFields.fdCountry),
+                                                     AdminSystem.fdFields.fdBankLink_Code,
+                                                     AdminSystem.fdFields.fdBankLink_Connect_Password,
+                                                     ClientGuid);
+    CopyRemotableObject(ClientDetailResponse.Result, NewClientReadDetail);
+    NewClientReadDetail.Status := BlopiServiceFacade.Active;
 
-  PrimaryContact := NewClientReadDetail.GetPrimaryUser;
+    PrimaryContact := NewClientReadDetail.GetPrimaryUser;
 
-  {
+    {
+      ProductConfigService.UpdateClient(ClientReadDetail, NewClientReadDetail.BillingFrequency,
+                                      NewClientReadDetail.MaxOfflineDays, NewClientReadDetail.Status,
+                                      NewClientReadDetail.Subscription, NewClientReadDetail.Users[0].EMail,
+                                      NewClientReadDetail.Users[0].FullName, false);
+      }
+
     ProductConfigService.UpdateClient(ClientReadDetail, NewClientReadDetail.BillingFrequency,
-                                    NewClientReadDetail.MaxOfflineDays, NewClientReadDetail.Status,
-                                    NewClientReadDetail.Subscription, NewClientReadDetail.Users[0].EMail,
-                                    NewClientReadDetail.Users[0].FullName, false);
-    }
-    
-  ProductConfigService.UpdateClient(ClientReadDetail, NewClientReadDetail.BillingFrequency,
-                                    NewClientReadDetail.MaxOfflineDays, NewClientReadDetail.Status,
-                                    NewClientReadDetail.Subscription, PrimaryContact.EMail,
-                                    PrimaryContact.FullName, false);  
+                                      NewClientReadDetail.MaxOfflineDays, NewClientReadDetail.Status,
+                                      NewClientReadDetail.Subscription, PrimaryContact.EMail,
+                                      PrimaryContact.FullName, false);
 
 
-  ClientReadDetail := NewClientReadDetail;
+    ClientReadDetail := NewClientReadDetail;
+  finally
+    FreeAndNil(ClientDetailResponse);
+  end;
 end;
 
 //------------------------------------------------------------------------------
@@ -5261,6 +5322,7 @@ begin
           LogUtil.LogMsg(lmInfo, UNIT_NAME, 'Client ' + aExistingClient.ClientCode + ' was not marked as Deleted on BankLink Online.');
 
       finally
+        FreeAndNil(MsgResponse);
         FreeAndNil(BloClientUpdate);
       end;
 
@@ -5702,12 +5764,14 @@ begin
                                                        
       if not MessageResponseHasError(MessageResponse(DataPlatformSubscriberResponse), 'get the vendor export types from') then
       begin
-        Result := DataPlatformSubscriberResponse.Result;
+        CopyRemotableObject(DataPlatformSubscriberResponse.Result, Result);
       end;
 
       if ShowProgress then
         Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Finished', 100);
     finally
+      FreeAndNil(DataPlatformSubscriberResponse);
+
       if ShowProgress then
       begin
         Progress.StatusSilent := True;
