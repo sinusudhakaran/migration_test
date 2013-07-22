@@ -2208,8 +2208,8 @@ begin
 
       if Debugme then
       begin
-        LogUtil.LogMsg(lmInfo, UNIT_NAME, 'AuthenticateUser : Assigned(OnlineUser) - ' + booltostr(Assigned(OnlineUser), True));
-        LogUtil.LogMsg(lmInfo, UNIT_NAME, 'AuthenticateUser : IgnoreOnlineUser - ' + booltostr(IgnoreOnlineUser, True));
+        LogUtil.LogMsg(lmDebug, UNIT_NAME, 'AuthenticateUser : Assigned(OnlineUser) - ' + booltostr(Assigned(OnlineUser), True));
+        LogUtil.LogMsg(lmDebug, UNIT_NAME, 'AuthenticateUser : IgnoreOnlineUser - ' + booltostr(IgnoreOnlineUser, True));
       end;
 
       if Assigned(OnlineUser) or IgnoreOnlineUser then
@@ -2219,20 +2219,20 @@ begin
         if (IgnoreOnlineUser) and (not Assigned(OnlineUser)) then
         begin
           if Debugme then
-            LogUtil.LogMsg(lmInfo, UNIT_NAME, 'Before AuthenticateUser Call - SubDomain:' + FSubDomain + ',  Email:' + CurrUser.EmailAddress + ',  Password:' + Password);
+            LogUtil.LogMsg(lmDebug, UNIT_NAME, 'Before AuthenticateUser Call - SubDomain:' + FSubDomain + ',  Email:' + CurrUser.EmailAddress + ',  Password:' + Password);
 
           Response := AuthenticationService.AuthenticateUser(FSubDomain, CurrUser.EmailAddress, Password);
         end
         else
         begin
           if Debugme then
-            LogUtil.LogMsg(lmInfo, UNIT_NAME, 'Before AuthenticateUser Call - SubDomain:' + FSubDomain + ',  Email:' + OnlineUser.EMail + ',  Password:' + Password);
+            LogUtil.LogMsg(lmDebug, UNIT_NAME, 'Before AuthenticateUser Call - SubDomain:' + FSubDomain + ',  Email:' + OnlineUser.EMail + ',  Password:' + Password);
 
           Response := AuthenticationService.AuthenticateUser(FSubDomain, OnlineUser.EMail, Password);
         end;
 
         if Debugme then
-          LogUtil.LogMsg(lmInfo, UNIT_NAME, 'Responce - ' + booltostr(Response.Success, True));
+          LogUtil.LogMsg(lmDebug, UNIT_NAME, 'Responce - ' + booltostr(Response.Success, True));
 
         Result := Response.Success;
 
@@ -2288,7 +2288,7 @@ begin
     if SHGetSpecialFolderPath(Application.Handle, @BufferPath[0], CSIDL_COOKIES, false) then
     begin
       Folder := BufferPath;
-      LogUtil.LogMsg(lmInfo, UNIT_NAME, 'Cookie folder : ' + Folder);
+      LogUtil.LogMsg(lmDebug, UNIT_NAME, 'Cookie folder : ' + Folder);
 
       FindResult := FindFirst(Folder + '\*.*', (faAnyfile) , SearchRec);
       try
@@ -2309,7 +2309,7 @@ begin
 
                     if Pos(uppercase('banklink'), uppercase(Buffer)) > 0 then
                     begin
-                      LogUtil.LogMsg(lmInfo, UNIT_NAME, 'BankLink Cookie : ' + SearchRec.Name + ', Date and Time :' + DateTimeToStr(FileDate));
+                      LogUtil.LogMsg(lmDebug, UNIT_NAME, 'BankLink Cookie : ' + SearchRec.Name + ', Date and Time :' + DateTimeToStr(FileDate));
                     end;
 
                   finally
@@ -2854,9 +2854,9 @@ begin
 
   if Debugme then
   begin
-    LogUtil.LogMsg(lmInfo, UNIT_NAME, 'ReAuthenticateUser : CurrUser.AllowBanklinkOnline - ' + booltostr(CurrUser.AllowBanklinkOnline, True));
-    LogUtil.LogMsg(lmInfo, UNIT_NAME, 'ReAuthenticateUser : IgnoreOnlineStatus - ' + booltostr(IgnoreOnlineStatus, True));
-    LogUtil.LogMsg(lmInfo, UNIT_NAME, 'ReAuthenticateUser : OfflineAuthentication - ' + booltostr(OfflineAuthentication, True));
+    LogUtil.LogMsg(lmDebug, UNIT_NAME, 'ReAuthenticateUser : CurrUser.AllowBanklinkOnline - ' + booltostr(CurrUser.AllowBanklinkOnline, True));
+    LogUtil.LogMsg(lmDebug, UNIT_NAME, 'ReAuthenticateUser : IgnoreOnlineStatus - ' + booltostr(IgnoreOnlineStatus, True));
+    LogUtil.LogMsg(lmDebug, UNIT_NAME, 'ReAuthenticateUser : OfflineAuthentication - ' + booltostr(OfflineAuthentication, True));
   end;
 
   if CurrUser.AllowBanklinkOnline or IgnoreOnlineStatus then
