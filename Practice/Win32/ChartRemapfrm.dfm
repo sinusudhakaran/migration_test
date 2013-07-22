@@ -1,7 +1,7 @@
 object frmRemapChart: TfrmRemapChart
   Left = 0
   Top = 0
-  ActiveControl = eChartFile
+  ActiveControl = EGstFile
   BorderIcons = [biSystemMenu, biMaximize]
   Caption = 'frmRemapChart'
   ClientHeight = 467
@@ -58,7 +58,7 @@ object frmRemapChart: TfrmRemapChart
     Top = 0
     Width = 791
     Height = 426
-    ActivePage = tsChart
+    ActivePage = tsGST
     Align = alClient
     TabOrder = 1
     object tsChart: TTabSheet

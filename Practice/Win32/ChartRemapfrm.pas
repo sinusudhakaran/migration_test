@@ -1041,8 +1041,8 @@ function TfrmRemapChart.GSTIndex(const Value: string): Integer;
 begin
    if Value > '' then
       for Result := low(MyClient.clFields.clGST_Class_Codes) to high(MyClient.clFields.clGST_Class_Codes) do
-         if SameText(MyClient.clFields.clGST_Class_Codes[Result], Value) then
-            Exit;
+         if SameStr(MyClient.clFields.clGST_Class_Codes[Result], Value) then
+           Exit;
 
    // Still here..
    Result := 0;  // -1 ??
