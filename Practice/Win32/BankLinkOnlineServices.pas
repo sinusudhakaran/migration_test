@@ -914,6 +914,10 @@ var
   XML: IXMLDocument;
   XMLStr: WideString;
 begin
+  // This can be nil, easier to not act on it here
+  if not assigned(ATarget) then
+    exit;
+
   XML:= NewXMLDocument;
   NodeRoot:= XML.AddChild('Root');
   NodeParent:= NodeRoot.AddChild('Parent');
