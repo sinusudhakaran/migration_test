@@ -245,7 +245,7 @@ begin
       HelpfulInfoMsg(Format('%s has been successfully deleted from ' + bkBranding.PracticeProductName + ' and ' + bkBranding.ProductOnlineName + '.', [Name]), 0 );
 
     LogUtil.LogMsg(lmInfo, UNITNAME,
-                   Format('User %s was deleted by %s.', [Code, CurrUser.FullName]));
+                   Format('User %s was deleted by %s.', [Name, CurrUser.FullName]));
   end
   else
     HelpfulErrorMsg('Could not update User Details at this time. Admin System unavailable.',0);
