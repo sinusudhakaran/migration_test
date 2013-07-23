@@ -2037,6 +2037,7 @@ var
   HTTPRIO: THTTPRIO;
   Cancelled: Boolean;
   ConnectionError: Boolean;
+  BloUploadResult : TBloUploadResult;
 begin
   AuthenticationError := False;
   
@@ -2046,30 +2047,37 @@ begin
 
   try
     try
-      Result := ServiceProvider.ProcessData(
-        CountryText(AdminSystem.fdFields.fdCountry),
-        AdminSystem.fdFields.fdBankLink_Code,
-        AdminSystem.fdFields.fdBankLink_Connect_Password,
-        EncodeText(XMLData));
+      try
+        BloUploadResult := ServiceProvider.ProcessData(
+          CountryText(AdminSystem.fdFields.fdCountry),
+          AdminSystem.fdFields.fdBankLink_Code,
+          AdminSystem.fdFields.fdBankLink_Connect_Password,
+          EncodeText(XMLData));
 
-    except
-      on E: EAuthenticationException do
-      begin
-        if ReAuthenticateUser(Cancelled, ConnectionError) and not (Cancelled or ConnectionError) then
+        CopyRemotableObject(BloUploadResult, Result);
+      except
+        on E: EAuthenticationException do
         begin
-          Result := ServiceProvider.ProcessData(
-            CountryText(AdminSystem.fdFields.fdCountry),
-            AdminSystem.fdFields.fdBankLink_Code,
-            AdminSystem.fdFields.fdBankLink_Connect_Password,
-            EncodeText(XMLData));
-        end
-        else
-        begin
-          AuthenticationError := True;
-          
-          Exit;
+          if ReAuthenticateUser(Cancelled, ConnectionError) and not (Cancelled or ConnectionError) then
+          begin
+            BloUploadResult := ServiceProvider.ProcessData(
+              CountryText(AdminSystem.fdFields.fdCountry),
+              AdminSystem.fdFields.fdBankLink_Code,
+              AdminSystem.fdFields.fdBankLink_Connect_Password,
+              EncodeText(XMLData));
+
+            CopyRemotableObject(BloUploadResult, Result);
+          end
+          else
+          begin
+            AuthenticationError := True;
+
+            Exit;
+          end;
         end;
       end;
+    finally
+      FreeAndNil(BloUploadResult);
     end;
   except
     on E: Exception do
@@ -3501,7 +3509,8 @@ begin
         end;
 
       finally
-        FreeandNil(PracUpdate);
+        FreeAndNil(MsgResponce);
+        FreeAndNil(PracUpdate);
       end;
 
       if not Result and aShowMessage then
@@ -3578,7 +3587,8 @@ begin
         end;
 
       finally
-        FreeandNil(PracUpdate);
+        FreeAndNil(MsgResponce);
+        FreeAndNil(PracUpdate);
       end;
 
       if aShowMessage then
@@ -3680,7 +3690,8 @@ begin
         end;
 
       finally
-        FreeandNil(PracUpdate);
+        FreeAndNil(MsgResponce);
+        FreeAndNil(PracUpdate);
       end;
 
       if aShowMessage then
@@ -4573,7 +4584,7 @@ var
   Response: MessageResponse;
 begin
   Result := False;
-  
+
   BlopiInterface := GetSecureServiceFacade;
 
   UpdateUser := TBloUserUpdatePractice.Create;
@@ -4825,6 +4836,7 @@ begin
         end;
 
       finally
+        FreeAndNil(MsgResponce);
         FreeandNil(PracUpdate);
       end;
 
@@ -5834,7 +5846,7 @@ begin
                                      1,
                                      '152') then
       begin
-        Result := DataPlatformSubscriberResponse.Result;
+        CopyRemotableObject(DataPlatformSubscriberResponse.Result, Result);
       end;
 
       if ShowProgress then
@@ -5880,14 +5892,14 @@ begin
         Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Getting Bank Accounts', 50);
 
       BlopiInterface :=  GetServiceFacade;
-      
+
       MsgResponse := BlopiInterface.GetBankAccounts(CountryText(AdminSystem.fdFields.fdCountry),
                                                    AdminSystem.fdFields.fdBankLink_Code,
                                                    AdminSystem.fdFields.fdBankLink_Connect_Password);
 
       if not MessageResponseHasError(MsgResponse, 'get bank accounts from') then
       begin
-        Result := MsgResponse.Result;
+        CopyRemotableObject(TBloArrayOfRemotable(MsgResponse.Result), TBloArrayOfRemotable(Result));
 
         Success := True;
       end;
@@ -5897,6 +5909,8 @@ begin
         Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Finished', 100);
       end;
     finally
+      FreeAndNil(MsgResponse);
+
       if ShowProgress then
       begin
         Progress.StatusSilent := True;
@@ -5959,7 +5973,7 @@ begin
 
       if not MessageResponseHasError(MessageResponse(DataPlatformSubscriberResponse), 'get the vendor export types from') then
       begin
-        Result := DataPlatformSubscriberResponse.Result;
+        CopyRemotableObject(DataPlatformSubscriberResponse.Result, Result);
 
         Result.Available := GetVendorsHidingNonPractice(AvailableServiceArray,
                                                         DataPlatformSubscriberResponse.Result.Available);
@@ -5970,6 +5984,8 @@ begin
       if ShowProgress then
         Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Finished', 100);
     finally
+      FreeAndNil(DataPlatformSubscriberResponse);
+
       if ShowProgress then
       begin
         Progress.StatusSilent := True;
@@ -6147,6 +6163,8 @@ begin
       if ShowProgress then
         Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Finished', 100);
     finally
+      FreeAndNil(DataPlatformClientSubscriberResponse);
+
       if ShowProgress then
       begin
         Progress.StatusSilent := True;
@@ -6204,7 +6222,7 @@ begin
 
       if not MessageResponseHasError(MessageResponse(DataPlatformClientSubscriberResponse), 'get the client accounts vendors', False, 0, '', ReportResponseErrors) then
       begin
-        BankAccounts := DataPlatformClientSubscriberResponse.Result.BankAccounts;
+        CopyRemotableObject(TBloArrayOfRemotable(DataPlatformClientSubscriberResponse.Result.BankAccounts), TBloArrayOfRemotable(BankAccounts));
 
         Result := bloSuccess;
       end
@@ -6224,6 +6242,8 @@ begin
       if ShowProgress then
         Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Finished', 100);
     finally
+      FreeAndNil(DataPlatformClientSubscriberResponse);
+
       if ShowProgress then
       begin
         Progress.StatusSilent := True;
