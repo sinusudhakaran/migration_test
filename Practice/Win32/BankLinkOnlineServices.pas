@@ -390,7 +390,7 @@ type
 
     //User methods
     function GetUnLinkedOnlineUsers(aPractice : TBloPracticeRead = nil) : TBloArrayOfUserRead;
-    function GetOnlineUserLinkedToCode(aUserCode : String; aPractice: TBloPracticeRead = nil; ShowProgress: Boolean = True): TBloUserRead;
+    function GetOnlineUserLinkedToCode(aUserCode : String; aPractice: TBloPracticeRead = Nil; ShowProgress: Boolean = True) : TBloUserRead;
 
     function AddEditPracUser(var   aUserId         : TBloGuid;
                              const aEMail          : WideString;
@@ -918,13 +918,15 @@ begin
   if not assigned(ATarget) then
     exit;
 
-  XML:= NewXMLDocument;
-  NodeRoot:= XML.AddChild('Root');
-  NodeParent:= NodeRoot.AddChild('Parent');
-  Converter:= TSOAPDomConv.Create(NIL);
-  NodeObject:= ASource.ObjectToSOAP(NodeRoot, NodeParent, Converter,
-                                    'CopyObject', '', [ocoDontPrefixNode],
-                                    XMLStr);
+  XML := NewXMLDocument;
+  Converter := TSOAPDomConv.Create(NIL);
+
+  NodeRoot   := XML.AddChild('Root');
+  NodeParent := NodeRoot.AddChild('Parent');
+  NodeObject := ASource.ObjectToSOAP(NodeRoot, NodeParent, Converter,
+                                     'CopyObject', '', [ocoDontPrefixNode],
+                                     XMLStr);
+
   ATarget.SOAPToObject(NodeRoot, NodeObject, Converter);
 end;
 
@@ -1537,10 +1539,13 @@ begin
   //dialog is open - so dont't reset it.
   if aUpdateUseOnline then
     UseBankLinkOnline := False;
+
   FreeAndNil(FPractice);
   FPractice := TBloPracticeRead.Create;
+
   FreeAndNil(FPracticeCopy);
   FPracticeCopy := TBloPracticeRead.Create;
+
   try
     ShowProgress := Progress.StatusSilent and AllowProgressBar;
 
@@ -1583,19 +1588,16 @@ begin
           begin
             FOnline := True;
 
-            {Moved to after we have retrived the practice data otherwise it could be working with out of date data.
-            for i := 1 to Screen.FormCount - 1 do
-            begin
-              if (Screen.Forms[i].Name = 'frmClientManager') then
-              begin
-                SendMessage(Screen.Forms[i].Handle, BK_PRACTICE_DETAILS_CHANGED, 0, 0);
-                break;
-              end;
-            end;}
-
             if Assigned(PracticeDetailResponse.Result) then
             begin
               AdminSystem.fdFields.fdLast_BankLink_Online_Update := stDate.CurrentDate;
+
+              if Assigned(FPractice) then
+              begin
+                FreeAndNil(FPractice);
+                FPractice := TBloPracticeRead.Create;
+              end;
+              
               CopyRemotableObject(PracticeDetailResponse.Result, FPractice);
               FRegistered := True;
               FValidBConnectDetails := True;
@@ -2498,7 +2500,6 @@ var
   BlopiInterface: IBlopiServiceFacade;
   ReturnMsg: MessageResponseOfstring;
   ShowProgress : Boolean;
-
 begin
   try
     ShowProgress := Progress.StatusSilent;
@@ -4072,32 +4073,36 @@ begin
 end;
 
 //-----------------------------------------------------------------------------
-function TProductConfigService.GetOnlineUserLinkedToCode(aUserCode : String; aPractice: TBloPracticeRead; ShowProgress: Boolean): TBloUserRead;
+function TProductConfigService.GetOnlineUserLinkedToCode(aUserCode : String; aPractice: TBloPracticeRead; ShowProgress: Boolean) : TBloUserRead;
 var
-  OnlineUserIndex : integer;
+  OnlineUserIndex  : integer;
+  PracticePassedIn : Boolean;
+  Found : Boolean;
 begin
-  Result := Nil;
+  Found := false;
 
-  if not Assigned(aPractice) then
-    aPractice := GetPractice(ShowProgress);
-
-  if not online then
-    Exit;
-
-  for OnlineUserIndex := 0 to high(aPractice.Users) do
+  if online then
   begin
-    if (aUserCode = aPractice.Users[OnlineUserIndex].UserCode) then
+
+    PracticePassedIn := Assigned(aPractice);
+
+    if not PracticePassedIn then
+      aPractice := GetPractice(ShowProgress);
+
+    for OnlineUserIndex := 0 to high(aPractice.Users) do
     begin
-      Result := TBloUserRead.Create;
-      Result.EMail := aPractice.Users[OnlineUserIndex].EMail;
-      Result.Id := aPractice.Users[OnlineUserIndex].Id;
-      Result.FullName := aPractice.Users[OnlineUserIndex].FullName;
-      Result.RoleNames := aPractice.Users[OnlineUserIndex].RoleNames;
-      Result.Subscription := aPractice.Users[OnlineUserIndex].Subscription;
-      Result.UserCode := aPractice.Users[OnlineUserIndex].UserCode;
-      Exit;
+      if (aUserCode = aPractice.Users[OnlineUserIndex].UserCode) then
+      begin
+        Found := true;
+        Result := aPractice.Users[OnlineUserIndex];
+
+        Break;
+      end;
     end;
   end;
+
+  if not found then
+    Result := nil;
 end;
 
 //------------------------------------------------------------------------------
