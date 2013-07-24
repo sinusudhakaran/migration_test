@@ -5857,6 +5857,8 @@ begin
       if ShowProgress then
         Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Finished', 100);
     finally
+      FreeAndNil(DataPlatformSubscriberResponse);
+
       if ShowProgress then
       begin
         Progress.StatusSilent := True;
