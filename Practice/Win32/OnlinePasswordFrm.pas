@@ -81,24 +81,28 @@ var
 begin
   PasswordPrompt := TfrmOnlinePassword.Create(nil);
 
-  if Screen.ActiveForm <> nil then
-  begin
-    PasswordPrompt.PopupParent := Screen.ActiveForm;
-    PasswordPrompt.PopupMode := pmExplicit;
-  end;
+  try
+    if Screen.ActiveForm <> nil then
+    begin
+      PasswordPrompt.PopupParent := Screen.ActiveForm;
+      PasswordPrompt.PopupMode := pmExplicit;
+    end;
 
-  PasswordPrompt.SetEmail(aUserEmail);
-  PasswordPrompt.PasswordReset := false;
+    PasswordPrompt.SetEmail(aUserEmail);
+    PasswordPrompt.PasswordReset := false;
 
-  if PasswordPrompt.ShowModal = mrOk then
-  begin
-    aPasswordReset := PasswordPrompt.PasswordReset;
-    Password := PasswordPrompt.Password;
-    Result := True;
-  end
-  else
-  begin
-    Result := False;
+    if PasswordPrompt.ShowModal = mrOk then
+    begin
+      aPasswordReset := PasswordPrompt.PasswordReset;
+      Password := PasswordPrompt.Password;
+      Result := True;
+    end
+    else
+    begin
+      Result := False;
+    end;
+  finally
+    FreeAndNil(PasswordPrompt);
   end;
 end;
 
