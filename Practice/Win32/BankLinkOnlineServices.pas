@@ -4081,14 +4081,13 @@ var
 begin
   Found := false;
 
+  PracticePassedIn := Assigned(aPractice);
+
+  if not PracticePassedIn then
+    aPractice := GetPractice(ShowProgress);
+
   if online then
   begin
-
-    PracticePassedIn := Assigned(aPractice);
-
-    if not PracticePassedIn then
-      aPractice := GetPractice(ShowProgress);
-
     for OnlineUserIndex := 0 to high(aPractice.Users) do
     begin
       if (aUserCode = aPractice.Users[OnlineUserIndex].UserCode) then
