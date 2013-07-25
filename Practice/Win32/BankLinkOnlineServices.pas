@@ -976,7 +976,7 @@ begin
       
       try
         if DebugMe then LogUtil.LogMsg(lmDebug, UNIT_NAME,
-          'CreateClient for ' + aNewClient.Abn
+          'CreateClient for ' + aNewClient.Name_
         );
 
         MsgResponse := BlopiInterface.CreateClient(CountryText(AdminSystem.fdFields.fdCountry),
@@ -989,7 +989,7 @@ begin
           if ReAuthenticateUser(Cancelled, ConnectionError) and not (Cancelled or ConnectionError) then
           begin
             if DebugMe then LogUtil.LogMsg(lmDebug, UNIT_NAME,
-              'CreateClient for ' + aNewClient.Abn
+              'CreateClient for ' + aNewClient.Name_
             );
 
             MsgResponse := BlopiInterface.CreateClient(CountryText(AdminSystem.fdFields.fdCountry),
@@ -4904,7 +4904,7 @@ begin
 
           try
             if DebugMe then LogUtil.LogMsg(lmDebug, UNIT_NAME,
-              'CreateClient for ' + BloClientCreate.Abn
+              'CreateClient for ' + BloClientCreate.Name_
             );
 
             MsgResponseGuid := BlopiInterface.CreateClient(CountryText(AdminSystem.fdFields.fdCountry),
@@ -4918,7 +4918,7 @@ begin
               if ReAuthenticateUser(Cancelled, ConnectionError) and not (Cancelled or ConnectionError) then
               begin
                 if DebugMe then LogUtil.LogMsg(lmDebug, UNIT_NAME,
-                  'CreateClient for ' + BloClientCreate.Abn
+                  'CreateClient for ' + BloClientCreate.Name_
                 );
                 
                 MsgResponseGuid := BlopiInterface.CreateClient(CountryText(AdminSystem.fdFields.fdCountry),
