@@ -174,7 +174,9 @@ type
 
     function CountClientProducts(ClientDetails: TBloClientReadDetail): Integer;
     function GetClientSubscriptionCategory(SubscriptionId: TBloGuid): TBloCatalogueEntry;
-    
+
+    procedure FillClientReadDetail(aClientCode : string; aSynchronizeBlopi : boolean);
+
     function  OkToPost : boolean;
     procedure UpdatePracticeContactDetails( ContactType : byte);
     procedure ShowPracticeContactDetails(ReadOnly : Boolean);
@@ -186,6 +188,8 @@ type
     procedure AfterShow(var Message: TMessage); message UM_AFTERSHOW;
   public
     { Public declarations }
+    destructor Destroy; override;
+
     function Execute(PCode: string = ''; InWizard: Boolean = False) : boolean;
   end;
 
@@ -231,6 +235,13 @@ uses
 const
    Unitname = 'ClientDetailsFrm';
    lnone = '<none>';
+
+//------------------------------------------------------------------------------
+procedure TfrmClientDetails.FillClientReadDetail(aClientCode: string; aSynchronizeBlopi: boolean);
+begin
+  FreeAndNil(FClientReadDetail);
+  FClientReadDetail := ProductConfigService.GetClientDetailsWithCode(MyClient.clFields.clCode, False);
+end;
 
 //------------------------------------------------------------------------------
 procedure TfrmClientDetails.FormCreate(Sender: TObject);
@@ -365,7 +376,7 @@ begin
 
           if btnClientSettings.Enabled then
           begin
-            FClientReadDetail := ProductConfigService.GetClientDetailsWithCode(MyClient.clFields.clCode, True);
+            FillClientReadDetail(MyClient.clFields.clCode, True);
           end;
           
           if btnClientSettings.Enabled and Assigned(CachedPracticeDetail) then
@@ -528,8 +539,8 @@ begin
   if EditBanklinkOnlineSettings(Self, MyClient.clFields.clWeb_Export_Format = wfWebNotes,
                                 false, ShowServicesAvailable) then
   begin
-    FClientReadDetail := ProductConfigService.GetClientDetailsWithCode(MyClient.clFields.clCode, False);
-    
+    FillClientReadDetail(MyClient.clFields.clCode, False);
+
     UpdateProductsLabel;
   end;
 end;
@@ -1650,6 +1661,13 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+destructor TfrmClientDetails.Destroy;
+begin
+  FreeAndNil(FClientReadDetail);
+  inherited;
+end;
+
+//------------------------------------------------------------------------------
 procedure TfrmClientDetails.ShowPracticeContactDetails(ReadOnly : Boolean);
 begin
   if (ReadOnly) then
@@ -1783,4 +1801,4 @@ begin
 end;
 
 end.
-                                   
+

@@ -432,28 +432,26 @@ object frmClientManager: TfrmClientManager
           Left = 630
           Top = 0
           Width = 96
-          Height = 18
+          Height = 13
           Margins.Top = 0
           Margins.Bottom = 0
           Align = alLeft
           Caption = '99999 Clients Listed'
           Layout = tlCenter
           Visible = False
-          ExplicitHeight = 13
         end
         object Label1: TLabel
           AlignWithMargins = True
           Left = 343
           Top = 0
           Width = 33
-          Height = 18
+          Height = 13
           Margins.Left = 9
           Margins.Top = 0
           Margins.Bottom = 0
           Align = alLeft
           Caption = 'Search'
           Layout = tlCenter
-          ExplicitHeight = 13
         end
         object imgCannotConnect: TImage
           AlignWithMargins = True
@@ -491,7 +489,7 @@ object frmClientManager: TfrmClientManager
           Left = 754
           Top = 0
           Width = 163
-          Height = 18
+          Height = 13
           Hint = 
             'BankLink Practice will not display any BankLink Online related s' +
             'ettings or functions'
@@ -503,7 +501,6 @@ object frmClientManager: TfrmClientManager
           ShowHint = True
           Layout = tlCenter
           Visible = False
-          ExplicitHeight = 13
         end
         object cmbFilter: TComboBox
           AlignWithMargins = True
@@ -515,7 +512,7 @@ object frmClientManager: TfrmClientManager
           Margins.Bottom = 0
           Align = alLeft
           Style = csDropDownList
-          ItemHeight = 13
+          ItemHeight = 0
           TabOrder = 0
           OnChange = cmbFilterChange
         end

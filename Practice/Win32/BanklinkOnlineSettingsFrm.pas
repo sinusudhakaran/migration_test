@@ -111,6 +111,8 @@ type
 
     procedure AfterShow(var Message: TMessage); message UM_AFTERSHOW;
   public
+    destructor Destroy; override;
+
     function Execute(TickNotesOnline, ForceActiveClient: boolean) : boolean;
 
     procedure LoadClientInfo(TickNotesOnline: boolean);
@@ -225,7 +227,9 @@ begin
                 DLG_NO,
                 0) = DLG_YES then
     begin
+      FreeAndNil(ClientReadDetail);
       ClientReadDetail := ProductConfigService.GetClientDetailsWithCode(MyClient.clFields.clCode);
+
       ProductConfigService.UpdateClientStatus(ClientReadDetail, MyClient.clFields.clCode);
       ClientReadDetail.Status := BlopiServiceFacade.Active;
       LoadClientInfo(True);
@@ -473,6 +477,13 @@ begin
 
     Exit;
   end;
+end;
+
+//------------------------------------------------------------------------------
+destructor TfrmBanklinkOnlineSettings.Destroy;
+begin
+  FreeAndNil(ClientReadDetail);
+  inherited;
 end;
 
 //------------------------------------------------------------------------------
@@ -1403,11 +1414,12 @@ begin
         begin
           MyClient.clExtra.ceOnlineValuesStored := False;
         end;
-        
+
         ShowUpdateMsg := not Result;
 
         if Result then
         begin
+          FreeAndNil(ClientReadDetail);
           ClientReadDetail := ProductConfigService.GetClientDetailsWithCode(MyClient.clFields.clCode);
         end;
       end
@@ -1449,6 +1461,7 @@ begin
 
     if TempClientDetail <> nil then
     begin
+      FreeAndNil(ClientReadDetail);
       ClientReadDetail := TempClientDetail;
     end;
   end;

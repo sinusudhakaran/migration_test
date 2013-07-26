@@ -372,6 +372,10 @@ object frmClientDetails: TfrmClientDetails
     object tbsOptions: TTabSheet
       Caption = 'Options'
       ImageIndex = 3
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object chkNewTrx: TCheckBox
         Left = 16
         Top = 27
@@ -427,7 +431,7 @@ object frmClientDetails: TfrmClientDetails
           Width = 209
           Height = 21
           Style = csDropDownList
-          ItemHeight = 13
+          ItemHeight = 0
           TabOrder = 1
         end
         object txtLastDiskID: TEdit

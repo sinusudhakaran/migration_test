@@ -1319,6 +1319,7 @@ begin
 
       if not MessageResponseHasError(MessageResponse(ClientDetailResponse), 'get the client settings from') then
       begin
+        Result := TBloClientReadDetail.Create;
         CopyRemotableObject(ClientDetailResponse.Result, Result);
 
         if SynchronizeBlopi then
@@ -1480,7 +1481,7 @@ begin
           Result := True;
         end;
       finally
-        ClientReadDetail.Free;
+        FreeAndNil(ClientReadDetail);
       end;
     end;
   end;

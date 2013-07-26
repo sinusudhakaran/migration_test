@@ -662,9 +662,13 @@ begin
 
               if Assigned(BlopiClientDetails) then
               begin
-                if not ProductConfigService.UpdateClientNotesOption(BlopiClientDetails, clWeb_Export_Format) then
-                begin
-                  clWeb_Export_Format := OldWebExportFormat;
+                try
+                  if not ProductConfigService.UpdateClientNotesOption(BlopiClientDetails, clWeb_Export_Format) then
+                  begin
+                    clWeb_Export_Format := OldWebExportFormat;
+                  end;
+                finally
+                  FreeAndNil(BlopiClientDetails);
                 end;
               end
               else

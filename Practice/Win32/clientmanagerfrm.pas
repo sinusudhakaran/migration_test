@@ -2163,104 +2163,97 @@ begin
 
     ClientDet := nil;
 
-    if UseBanklinkOnline then
-    begin
-      if not ProductConfigService.OnLine then
+    try
+      if UseBanklinkOnline then
       begin
-        ShowMessage(bkBranding.PracticeProductName + ' is unable to connect to ' + bkBranding.ProductOnlineName);
-        Exit;
+        if not ProductConfigService.OnLine then
+        begin
+          ShowMessage(bkBranding.PracticeProductName + ' is unable to connect to ' + bkBranding.ProductOnlineName);
+          Exit;
+        end;
+
+        if not ProductConfigService.Online then
+          Exit;
+
+        ClientDet := ProductConfigService.GetClientDetailsWithCode(ClientCode);
       end;
 
-      if not ProductConfigService.Online then
-        Exit;
+      if Assigned(ClientDet) then
+      begin
+        if not ProductConfigService.IsPracticeActive then
+          Exit;
 
-      ClientDet := ProductConfigService.GetClientDetailsWithCode(ClientCode);
+        ClientID := ClientDet.Id;
+      end;
+
+      DeleteMsgStr := 'Deleting this client will remove ALL TRANSACTIONS in the ' +
+                      'client file and will REMOVE the client file from the ' +
+                      'Administration System.' + #13#10 + #13#10;
+
+      if Assigned(ClientDet) then
+      begin
+        if not(ClientID = '') and (high(ClientDet.Subscription) > -1) then
+        begin
+          DeleteMsgStr := DeleteMsgStr +
+                          'Deleting this client will also, permanently remove ALL CLIENT DATA ' + #13#10 +
+                          '& ACCESS for the following products: ' + #13#10 + #13#10;
+
+          for i := low(ClientDet.Subscription) to high(ClientDet.Subscription) do
+          begin
+            CatalogueEntry := ProductConfigService.GetCatFromSub(ClientDet.Subscription[i]);
+
+            if Assigned(CatalogueEntry) then
+            begin
+              DeleteMsgStr := DeleteMsgStr + '  ' +
+                ProductConfigService.GetCatFromSub(ClientDet.Subscription[i]).Description +
+                #13#10;
+
+              if i = high(ClientDet.Subscription) then
+                DeleteMsgStr := DeleteMsgStr + #13#10;
+            end;
+          end;
+        end;
+      end;
+
+
+      DeleteMsgStr := DeleteMsgStr + 'Are you sure you want to delete Client (' +
+                      ClientCode + ' : ' + ClientName + ')';
+      if not(ClientID = '') then
+        DeleteMsgStr := DeleteMsgStr + ' from ' + bkBranding.PracticeProductName;
+      DeleteMsgStr := DeleteMsgStr + '?';
+
+      if (AskYesNo('Delete Client', DeleteMsgStr, DLG_NO, 0) <> DLG_YES) then
+        Exit;
+    except
+      on E : Exception do
+      begin
+        HelpfulErrorMsg(E.Message, 0);
+        Exit;
+      end;
     end;
-    
-    if Assigned(ClientDet) then
+
+  
+    if DeleteClientFile(ClientCode, ClientDet) then
     begin
-      if not ProductConfigService.IsPracticeActive then
-        Exit;
+      RefreshLookup(StringCodeToSelect);
+      UpdateFilter(Integer(cmbFilter.Items.Objects[cmbFilter.ItemIndex]));
+      ClientLookup.ScrollBy(0, ScrollPos);
+    end
+    else
+      Exit;
 
-      ClientID := ClientDet.Id;
-    end;
-
-    DeleteMsgStr := 'Deleting this client will remove ALL TRANSACTIONS in the ' +
-                    'client file and will REMOVE the client file from the ' +
-                    'Administration System.' + #13#10 + #13#10;
+    DeleteMsgStr := 'Client (' + ClientCode + ' : ' + ClientName + ') has been ' +
+                    'removed from ' + bkBranding.PracticeProductName;
 
     if Assigned(ClientDet) then
     begin
       if not(ClientID = '') and (high(ClientDet.Subscription) > -1) then
-      begin
-        DeleteMsgStr := DeleteMsgStr +
-                        'Deleting this client will also, permanently remove ALL CLIENT DATA ' + #13#10 +
-                        '& ACCESS for the following products: ' + #13#10 + #13#10;
-
-        for i := low(ClientDet.Subscription) to high(ClientDet.Subscription) do
-        begin
-          CatalogueEntry := ProductConfigService.GetCatFromSub(ClientDet.Subscription[i]);
-
-          if Assigned(CatalogueEntry) then
-          begin
-            DeleteMsgStr := DeleteMsgStr + '  ' +
-              ProductConfigService.GetCatFromSub(ClientDet.Subscription[i]).Description +
-              #13#10;
-
-            if i = high(ClientDet.Subscription) then
-              DeleteMsgStr := DeleteMsgStr + #13#10;
-          end;
-        end;
-      end;
+        DeleteMsgStr := DeleteMsgStr + ' and ' + bkBranding.ProductOnlineName;
     end;
-
-    DeleteMsgStr := DeleteMsgStr + 'Are you sure you want to delete Client (' +
-                    ClientCode + ' : ' + ClientName + ')';
-    if not(ClientID = '') then
-      DeleteMsgStr := DeleteMsgStr + ' from ' + bkBranding.PracticeProductName;
-    DeleteMsgStr := DeleteMsgStr + '?';
-
-    if (AskYesNo('Delete Client', DeleteMsgStr, DLG_NO, 0) <> DLG_YES) then
-      Exit;
-
-    { Now done inside the DeleteClientFile routinue
-    if not(ClientID = '') and (high(ClientDet.Subscription) > -1) then
-    begin
-      if not ProductConfigService.DeleteClient(ClientDet) then
-      begin
-        HelpfulErrorMsg('Unable to Connect to BankLink Online.', 0);
-        Exit;
-      end;
-    end;
-    }
-  except
-    on E : Exception do
-    begin
-      HelpfulErrorMsg(E.Message, 0);
-      Exit;
-    end;
+  finally
+    FreeAndNil(ClientDet);
   end;
 
-  
-  if DeleteClientFile(ClientCode, ClientDet) then
-  begin
-    RefreshLookup(StringCodeToSelect);
-    UpdateFilter(Integer(cmbFilter.Items.Objects[cmbFilter.ItemIndex]));
-    ClientLookup.ScrollBy(0, ScrollPos);
-  end
-  else
-    Exit;
-
-
-  DeleteMsgStr := 'Client (' + ClientCode + ' : ' + ClientName + ') has been ' +
-                  'removed from ' + bkBranding.PracticeProductName;
-
-  if Assigned(ClientDet) then
-  begin
-    if not(ClientID = '') and (high(ClientDet.Subscription) > -1) then
-      DeleteMsgStr := DeleteMsgStr + ' and ' + bkBranding.ProductOnlineName;
-  end;
-  
   DeleteMsgStr := DeleteMsgStr + '.';
 
   HelpfulInfoMsg(DeleteMsgStr, 0 );
