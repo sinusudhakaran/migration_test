@@ -1155,8 +1155,6 @@ begin
           end;
           ProductConfigService.CopyRemotableObject(TBloArrayOfRemotable(PracticeExportDataService.Current),
                                                    TBloArrayOfRemotable(AvailableServiceArray));
-
-          AvailableServiceArray := PracticeExportDataService.Current;
         end;
       end;
 
