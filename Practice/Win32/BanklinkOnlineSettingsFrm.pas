@@ -481,8 +481,18 @@ end;
 
 //------------------------------------------------------------------------------
 destructor TfrmBanklinkOnlineSettings.Destroy;
+var
+  Index : integer;
 begin
   FreeAndNil(ClientReadDetail);
+
+  for Index := 0 to length(AvailableServiceArray)-1 do
+  begin
+    FreeAndNil(AvailableServiceArray[Index]);
+  end;
+  SetLength(AvailableServiceArray, 0);
+  AvailableServiceArray := nil;
+
   inherited;
 end;
 
@@ -592,6 +602,7 @@ var
   MaxOfflineDays, NewExportsStr : String;
   BillingFrequency : WideString;
   ClientAccessChanged, ExportFound: Boolean;
+  TempName : WideString;
 begin
   Result := False;
   NotesOnlineTicked := False;
@@ -846,7 +857,8 @@ begin
         begin
           if (ModifiedDataExports[i] = AvailableServiceArray[j].Id) then
           begin
-            NewExports.Add(AvailableServiceArray[j].Name_);
+            TempName := Copy(AvailableServiceArray[j].Name_,1,Length(AvailableServiceArray[j].Name_));
+            NewExports.Add(TempName);
             break;
           end;
         end;
@@ -864,41 +876,8 @@ begin
                   'Other Functions | Bank Accounts.');
     end;
 
-    FreeAndNil(NewExports);  
+    FreeAndNil(NewExports);
 
-
-    (* We only want to send an email with products at the practice level have changed, not at the client level.
-    if ProductsChanged then
-    begin
-      // Send email to support
-      MailTo := whSupportEmail[AdminSystem.fdFields.fdCountry];
-      MailSubject := 'Banklink Online product and service updates (' + AdminSystem.fdFields.fdBankLink_Code + ')';
-      MailBody := 'This practice has changed its Banklink Online product and service settings' + #10#10 +
-                  'Practice Name: ' + AdminSystem.fdFields.fdPractice_Name_for_Reports + #10 +
-                  'Practice Code: ' + AdminSystem.fdFields.fdBankLink_Code + #10#10 +
-                  'The BankLink Online Administrator (Primary Contact) for the practice' + #10 +
-                  'Name: ' + edtUserName.text + #10 +
-                  // Can't find phone number... do we have this at all for the practice administrator?
-                  'Email Address: ' + edtEmailAddress.text + #10#10 +
-                  'Updated settings:' + #10;
-      for i := 0 to NewProducts.Count - 1 do
-        MailBody := MailBody + NewProducts[i] + ' is now enabled' + #10;
-      for i := 0 to RemovedProducts.Count - 1 do
-        MailBody := MailBody + RemovedProducts[i] + ' is now disabled' + #10;
-      MailBody := MailBody + #10 +
-                     'Product and service settings:' + #10;
-      for i := 0 to chklistProducts.Count - 1 do
-      begin
-        MailBody := MailBody + chklistProducts.Items[i] + ' - ';
-        if chklistProducts.Checked[i] then
-          MailBody := MailBody + 'enabled' + #10
-        else
-          MailBody := MailBody + 'disabled' + #10;
-      end;
-      SendMailTo('Email to Support', MailTo, MailSubject, MailBody);
-    end;
-    *)
-    
     Result := True;
   finally
     FreeAndNil(NewProducts);
@@ -1011,6 +990,8 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmBanklinkOnlineSettings.LoadClientInfo(TickNotesOnline: boolean);
 var
+  TempGuid             : WideString;
+  TempName             : WideString;
   ProdIndex            : integer;
   SubIndex             : integer;
   ProductGuid          : TBloGuid;
@@ -1029,13 +1010,13 @@ var
   PracticeExportDataService   : TBloDataPlatformSubscription;
   ExportToSortList: TStringList;
   PrimaryUser:         TBloUserRead;
-  
+
   function HasCachedSubscription(CachedProdId: TBloGuid): boolean;
   var
     j: integer;
   begin
     Result := false;
-    for j := 1 to High(MyClient.clExtra.ceOnlineSubscription) do      
+    for j := 1 to High(MyClient.clExtra.ceOnlineSubscription) do
     begin
       if (MyClient.clExtra.ceOnlineSubscription[j] = CachedProdId) then
       begin
@@ -1092,198 +1073,229 @@ begin
   //Load products
   chklistProducts.Clear;
 
-  if not Assigned(ClientReadDetail) then
-  begin
-    // Adds the Subscriptions/Products for the Practice to the List
-    for ProdIndex := Low(ProductConfigService.ProductList) to High(ProductConfigService.ProductList) do
-    begin
-      ProductGuid := ProductConfigService.ProductList[ProdIndex];
-      CatEntry := ProductConfigService.GetCatalogueEntry(ProductGuid);
 
-      if Assigned(CatEntry) then
+  try
+    if not Assigned(ClientReadDetail) then
+    begin
+      // Adds the Subscriptions/Products for the Practice to the List
+      for ProdIndex := Low(ProductConfigService.ProductList) to High(ProductConfigService.ProductList) do
       begin
-        if (CatEntry.CatalogueType <> 'Service') then
+        ProductGuid := ProductConfigService.ProductList[ProdIndex];
+        CatEntry := ProductConfigService.GetCatalogueEntry(ProductGuid);
+
+        if Assigned(CatEntry) then
         begin
-          chklistProducts.AddItem(CatEntry.Description, TProductSubscription.Create(CatEntry.Id));
-        end
-        else if (CatEntry.Id = ProductConfigService.GetExportDataId) then
-        begin
-          DataExportEnabled := True;
-        end;
-      end;
-    end;
-  end else
-  begin
-    for ProdIndex := Low(ClientReadDetail.Catalogue) to High(ClientReadDetail.Catalogue) do
-    begin
-      CatEntry := ClientReadDetail.Catalogue[ProdIndex]; 
-
-      if Assigned(CatEntry) then
-      begin
-        if (CatEntry.CatalogueType <> 'Service') then
-          chklistProducts.AddItem(CatEntry.Description, TProductSubscription.Create(CatEntry.Id))
-        else if (CatEntry.Id = ProductConfigService.GetExportDataId) then
-          DataExportEnabled := True;
-      end;  
-    end;
-  end;
-
-  // Load services
-  if DataExportEnabled then
-  begin
-    if Assigned(ClientReadDetail) then
-    begin
-      ClientID := ClientReadDetail.Id;
-    end;
-
-    if ClientID <> '' then
-    begin
-      ClientExportDataService := ProductConfigService.GetClientVendorExports(ClientID);
-
-      if Assigned(ClientExportDataService) then
-      begin
-        AvailableServiceArray := ClientExportDataService.Available;
-      end;
-    end
-    else
-    begin
-      PracticeExportDataService := ProductConfigService.GetPracticeVendorExports;
-
-      if Assigned(PracticeExportDataService) then
-      begin
-        AvailableServiceArray := PracticeExportDataService.Current;
-      end;  
-    end;
-
-    ExportToSortList := TStringList.Create;
-
-    try
-      ExportToSortList.Sorted := True;
-
-      for AvailableServiceIndex := 0 to High(AvailableServiceArray) do
-      begin
-        ExportToSortList.AddObject(AvailableServiceArray[AvailableServiceIndex].Name_, TDataExportOption.Create(AvailableServiceArray[AvailableServiceIndex].Id));
-      end;
-
-      for AvailableServiceIndex := 0 to ExportToSortList.Count - 1 do
-      begin
-        chkListServicesAvailable.AddItem(ExportToSortList[AvailableServiceIndex], ExportToSortList.Objects[AvailableServiceIndex]);
-      end;
-    finally
-      ExportToSortList.Free;
-    end;
-  
-    if Assigned(ClientExportDataService) then
-    begin
-      for ClientServiceIndex := 0 to High(ClientExportDataService.Current) do
-      begin
-        for AvailableServiceIndex := 0 to High(AvailableServiceArray) do
-        begin
-          if (ClientExportDataService.Current[ClientServiceIndex].Id = AvailableServiceArray[AvailableServiceIndex].Id) then
+          if (CatEntry.CatalogueType <> 'Service') then
           begin
-            chkListServicesAvailable.Checked[AvailableServiceIndex] := true;
-
-            ProductConfigService.AddItemToArrayGuid(OriginalDataExports, ClientExportDataService.Current[ClientServiceIndex].Id);
-            ProductConfigService.AddItemToArrayGuid(ModifiedDataExports, ClientExportDataService.Current[ClientServiceIndex].Id);
-
-            break;
+            chklistProducts.AddItem(CatEntry.Description, TProductSubscription.Create(CatEntry.Id));
+          end
+          else if (CatEntry.Id = ProductConfigService.GetExportDataId) then
+          begin
+            DataExportEnabled := True;
           end;
         end;
       end;
-    end;
-  end
-  else
-  begin
-    grpServicesAvailable.Visible := false;
-    AdjustControlPositions;
-  end;
-
-  // Existing Client
-  if IsClientOnline then
-  begin
-    if MyClient.clExtra.ceOnlineValuesStored then
-      MyClient.clExtra.ceOnlineValuesStored := false;
-
-    PrimaryUser := ClientReadDetail.GetPrimaryUser;
-
-    if Assigned(PrimaryUser) then
+    end else
     begin
-      UserFullName := PrimaryUser.FullName;
-      UserEmail := PrimaryUser.EMail;
-    end
-    else
-    begin
-      UserFullName := MyClient.clFields.clContact_Name;
-      UserEMail    := MyClient.clFields.clClient_EMail_Address;
-    end;
-
-    FillDetailIn(ClientReadDetail.BillingFrequency,
-                 ClientReadDetail.MaxOfflineDays,
-                 ClientReadDetail.Status,
-                 ClientReadDetail.Subscription,
-                 UserEMail,
-                 UserFullName);
-  end
-  // New Client
-  else
-  begin
-    if MyClient.clExtra.ceOnlineValuesStored then
-    begin
-      SetLength(Subscription, MyClient.clExtra.ceOnlineSubscriptionCount);
-      for SubIndex := 1 to MyClient.clExtra.ceOnlineSubscriptionCount do
-        Subscription[SubIndex-1] := MyClient.clExtra.ceOnlineSubscription[SubIndex];
-
-      FillDetailIn(MyClient.clExtra.ceOnlineBillingFrequency,
-                   MyClient.clExtra.ceOnlineMaxOfflineDays,
-                   TBloStatus(MyClient.clExtra.ceOnlineStatus),
-                   Subscription,
-                   MyClient.clExtra.ceOnlineUserEMail,
-                   MyClient.clExtra.ceOnlineUserFullName);
-    end
-    else
-    begin
-      Status := staActive;
-      cmbConnectDays.Text := 'Always';
-      cmbBillingFrequency.Text := 'Monthly';
-      cmbBillingFrequency.SelLength := 0;
-      cmbConnectDays.SelLength := 0;
-      edtUserName.Text := MyClient.clFields.clContact_Name;
-      edtEmailAddress.Text := MyClient.clFields.clClient_EMail_Address;
-    end;
-  end;
-
-  if TickNotesOnline then
-  begin
-    // Checks the Products that Client Subscribes to
-    for ProdIndex := 0 to chklistProducts.Items.Count - 1 do
-    begin
-      if TProductSubscription(chklistProducts.Items.Objects[ProdIndex]).id = ProductConfigService.GetNotesId then
-        chklistProducts.Checked[ProdIndex] := True;
-    end;
-
-    if not HasCachedSubscription(ProductConfigService.GetNotesId) then
-    begin
-      MyClient.clExtra.ceOnlineSubscription[MyClient.clExtra.ceOnlineSubscriptionCount + 1] := 
-        ProductConfigService.GetNotesId;  
-      MyClient.clExtra.ceOnlineSubscriptionCount := MyClient.clExtra.ceOnlineSubscriptionCount + 1;
-    end;
-  end;
-  
-  //If the client is opened in read-only mode then disable the notes online product.
-  if MyClient.clFields.clFile_Read_Only then
-  begin
-    for Index := 0 to chklistProducts.Items.Count - 1 do
-    begin
-      if TProductSubscription(chklistProducts.Items.Objects[Index]).id = ProductConfigService.GetNotesId then
+      for ProdIndex := Low(ClientReadDetail.Catalogue) to High(ClientReadDetail.Catalogue) do
       begin
-        chklistProducts.ItemEnabled[Index] := False;
+        CatEntry := ClientReadDetail.Catalogue[ProdIndex];
 
-        Break;
+        if Assigned(CatEntry) then
+        begin
+          if (CatEntry.CatalogueType <> 'Service') then
+            chklistProducts.AddItem(CatEntry.Description, TProductSubscription.Create(CatEntry.Id))
+          else if (CatEntry.Id = ProductConfigService.GetExportDataId) then
+            DataExportEnabled := True;
+        end;
       end;
     end;
-  end;
 
-  fOldEmail := edtEmailAddress.Text;
+    // Load services
+    if DataExportEnabled then
+    begin
+      if Assigned(ClientReadDetail) then
+      begin
+        ClientID := ClientReadDetail.Id;
+      end;
+
+      if ClientID <> '' then
+      begin
+        ClientExportDataService := ProductConfigService.GetClientVendorExports(ClientID);
+
+        if Assigned(ClientExportDataService) then
+        begin
+          for Index := 0 to length(AvailableServiceArray)-1 do
+          begin
+            FreeAndNil(AvailableServiceArray[Index]);
+          end;
+          SetLength(AvailableServiceArray, length(ClientExportDataService.Available));
+          for Index := 0 to length(AvailableServiceArray)-1 do
+          begin
+            AvailableServiceArray[Index] := TBloDataPlatformSubscriber.Create;
+          end;
+          ProductConfigService.CopyRemotableObject(TBloArrayOfRemotable(ClientExportDataService.Available),
+                                                   TBloArrayOfRemotable(AvailableServiceArray));
+        end;
+      end
+      else
+      begin
+        PracticeExportDataService := ProductConfigService.GetPracticeVendorExports;
+
+        if Assigned(PracticeExportDataService) then
+        begin
+          for Index := 0 to length(AvailableServiceArray)-1 do
+          begin
+            FreeAndNil(AvailableServiceArray[Index]);
+          end;
+          SetLength(AvailableServiceArray, length(PracticeExportDataService.Current));
+          for Index := 0 to length(AvailableServiceArray)-1 do
+          begin
+            AvailableServiceArray[Index] := TBloDataPlatformSubscriber.Create;
+          end;
+          ProductConfigService.CopyRemotableObject(TBloArrayOfRemotable(PracticeExportDataService.Current),
+                                                   TBloArrayOfRemotable(AvailableServiceArray));
+
+          AvailableServiceArray := PracticeExportDataService.Current;
+        end;
+      end;
+
+      ExportToSortList := TStringList.Create;
+
+      try
+        ExportToSortList.Sorted := True;
+
+        for AvailableServiceIndex := 0 to High(AvailableServiceArray) do
+        begin
+          TempName := Copy(AvailableServiceArray[AvailableServiceIndex].Name_, 1, Length(AvailableServiceArray[AvailableServiceIndex].Name_));
+          TempGuid := Copy(AvailableServiceArray[AvailableServiceIndex].Id, 1, Length(AvailableServiceArray[AvailableServiceIndex].Id));
+          ExportToSortList.AddObject(TempName, TDataExportOption.Create(TempGuid));
+        end;
+
+        for AvailableServiceIndex := 0 to ExportToSortList.Count - 1 do
+        begin
+          chkListServicesAvailable.AddItem(ExportToSortList[AvailableServiceIndex], ExportToSortList.Objects[AvailableServiceIndex]);
+        end;
+      finally
+        ExportToSortList.Free;
+      end;
+  
+      if Assigned(ClientExportDataService) then
+      begin
+        for ClientServiceIndex := 0 to High(ClientExportDataService.Current) do
+        begin
+          for AvailableServiceIndex := 0 to High(AvailableServiceArray) do
+          begin
+            if (ClientExportDataService.Current[ClientServiceIndex].Id = AvailableServiceArray[AvailableServiceIndex].Id) then
+            begin
+              chkListServicesAvailable.Checked[AvailableServiceIndex] := true;
+
+              TempGuid := Copy(ClientExportDataService.Current[ClientServiceIndex].Id, 1, Length(ClientExportDataService.Current[ClientServiceIndex].Id));
+              ProductConfigService.AddItemToArrayGuid(OriginalDataExports, TempGuid);
+              ProductConfigService.AddItemToArrayGuid(ModifiedDataExports, TempGuid);
+
+              break;
+            end;
+          end;
+        end;
+      end;
+    end
+    else
+    begin
+      grpServicesAvailable.Visible := false;
+      AdjustControlPositions;
+    end;
+
+    // Existing Client
+    if IsClientOnline then
+    begin
+      if MyClient.clExtra.ceOnlineValuesStored then
+        MyClient.clExtra.ceOnlineValuesStored := false;
+
+      PrimaryUser := ClientReadDetail.GetPrimaryUser;
+
+      if Assigned(PrimaryUser) then
+      begin
+        UserFullName := PrimaryUser.FullName;
+        UserEmail := PrimaryUser.EMail;
+      end
+      else
+      begin
+        UserFullName := MyClient.clFields.clContact_Name;
+        UserEMail    := MyClient.clFields.clClient_EMail_Address;
+      end;
+
+      FillDetailIn(ClientReadDetail.BillingFrequency,
+                   ClientReadDetail.MaxOfflineDays,
+                   ClientReadDetail.Status,
+                   ClientReadDetail.Subscription,
+                   UserEMail,
+                   UserFullName);
+    end
+    // New Client
+    else
+    begin
+      if MyClient.clExtra.ceOnlineValuesStored then
+      begin
+        SetLength(Subscription, MyClient.clExtra.ceOnlineSubscriptionCount);
+        for SubIndex := 1 to MyClient.clExtra.ceOnlineSubscriptionCount do
+          Subscription[SubIndex-1] := MyClient.clExtra.ceOnlineSubscription[SubIndex];
+
+        FillDetailIn(MyClient.clExtra.ceOnlineBillingFrequency,
+                     MyClient.clExtra.ceOnlineMaxOfflineDays,
+                     TBloStatus(MyClient.clExtra.ceOnlineStatus),
+                     Subscription,
+                     MyClient.clExtra.ceOnlineUserEMail,
+                     MyClient.clExtra.ceOnlineUserFullName);
+      end
+      else
+      begin
+        Status := staActive;
+        cmbConnectDays.Text := 'Always';
+        cmbBillingFrequency.Text := 'Monthly';
+        cmbBillingFrequency.SelLength := 0;
+        cmbConnectDays.SelLength := 0;
+        edtUserName.Text := MyClient.clFields.clContact_Name;
+        edtEmailAddress.Text := MyClient.clFields.clClient_EMail_Address;
+      end;
+    end;
+
+    if TickNotesOnline then
+    begin
+      // Checks the Products that Client Subscribes to
+      for ProdIndex := 0 to chklistProducts.Items.Count - 1 do
+      begin
+        if TProductSubscription(chklistProducts.Items.Objects[ProdIndex]).id = ProductConfigService.GetNotesId then
+          chklistProducts.Checked[ProdIndex] := True;
+      end;
+
+      if not HasCachedSubscription(ProductConfigService.GetNotesId) then
+      begin
+        MyClient.clExtra.ceOnlineSubscription[MyClient.clExtra.ceOnlineSubscriptionCount + 1] :=
+          ProductConfigService.GetNotesId;  
+        MyClient.clExtra.ceOnlineSubscriptionCount := MyClient.clExtra.ceOnlineSubscriptionCount + 1;
+      end;
+    end;
+  
+    //If the client is opened in read-only mode then disable the notes online product.
+    if MyClient.clFields.clFile_Read_Only then
+    begin
+      for Index := 0 to chklistProducts.Items.Count - 1 do
+      begin
+        if TProductSubscription(chklistProducts.Items.Objects[Index]).id = ProductConfigService.GetNotesId then
+        begin
+          chklistProducts.ItemEnabled[Index] := False;
+
+          Break;
+        end;
+      end;
+    end;
+
+    fOldEmail := edtEmailAddress.Text;
+  finally
+    FreeAndNil(ClientExportDataService);
+    FreeAndNil(PracticeExportDataService);
+  end;
 end;
 
 //------------------------------------------------------------------------------

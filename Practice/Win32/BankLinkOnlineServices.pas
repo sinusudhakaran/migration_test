@@ -170,9 +170,6 @@ type
 
     procedure SynchronizeClientSettings(BlopiClient: TBloClientReadDetail);
 
-    procedure CopyRemotableObject(ASource, ATarget: TRemotable); overload;
-    procedure CopyRemotableObject(ASource, ATarget: TBloArrayOfRemotable); overload;
-
 
     function IsUserCreatedOnBankLinkOnline(const APractice : TBloPracticeRead;
                                            const AUserId   : TBloGuid   = '';
@@ -301,6 +298,9 @@ type
     function GetServiceSuspended: Boolean;
     function ErrorOccurred: Boolean;
   public
+    procedure CopyRemotableObject(ASource, ATarget: TRemotable); overload;
+    procedure CopyRemotableObject(ASource, ATarget: TBloArrayOfRemotable); overload;
+
     function IsExportDataEnabled : Boolean;
     function IsExportDataEnabledFoAccount(const aBankAcct : TBank_Account) : Boolean;
 
@@ -935,7 +935,6 @@ procedure TProductConfigService.CopyRemotableObject(ASource, ATarget: TBloArrayO
 var
   Index : integer;
 begin
-  SetLength(ATarget, length(ASource));
   for Index := 0 to length(ASource)-1 do
   begin
     CopyRemotableObject(ASource[Index], ATarget[Index]);
@@ -1120,6 +1119,7 @@ begin
                                                        AdminSystem.fdFields.fdBankLink_Connect_Password,
                                                        MsgResponseOfGuid.Result);
 
+    Result := TBloClientReadDetail.Create;
     CopyRemotableObject(ClientDetailResponse.Result, Result);
   finally
     FreeAndNil(MsgResponseOfGuid);
@@ -1177,6 +1177,7 @@ begin
                                                        
       if not MessageResponseHasError(MessageResponse(DataSubscriberCredentialsResponse), 'get the iBizz subscriber credentials from') then
       begin
+        Result := TBloIBizzCredentials.create;
         CopyRemotableObject(DataSubscriberCredentialsResponse.Result, Result);
       end;
 
@@ -1718,7 +1719,10 @@ begin
                                                         AdminSystem.fdFields.fdBankLink_Connect_Password);
         if not MessageResponseHasError(MessageResponse(BlopiClientList), 'load the client list from') then
           if Assigned(BlopiClientList.Result) then
+          begin
+            FClientList := ClientList.Create;
             CopyRemotableObject(BlopiClientList.Result, FClientList);
+          end;
 
         if ShowProgress then
           Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Finished', 100);
@@ -1947,6 +1951,12 @@ begin
                                                        
       if not MessageResponseHasError(MessageResponse(DataSubscriberCredentialsResponse), 'get the vendor subscribers') then
       begin
+        SetLength(Result, length(DataSubscriberCredentialsResponse.Result));
+        for Index := 0 to length(Result)-1 do
+        begin
+          Result[Index] := PracticeDataSubscriberCount.Create;
+        end;
+
         CopyRemotableObject(TBloArrayOfRemotable(DataSubscriberCredentialsResponse.Result), TBloArrayOfRemotable(Result));
       end;
 
@@ -2007,9 +2017,13 @@ var
   FPracticeVendorExports : TBloDataPlatformSubscription;
 begin
   Result := false;
-  FPracticeVendorExports := GetPracticeVendorExports;
-  if Assigned(FPracticeVendorExports) then
-    Result := (Length(FPracticeVendorExports.Current) > 0);
+  try
+    FPracticeVendorExports := GetPracticeVendorExports;
+    if Assigned(FPracticeVendorExports) then
+      Result := (Length(FPracticeVendorExports.Current) > 0);
+  finally
+    FreeAndNil(FPracticeVendorExports);
+  end;
 end;
 
 //------------------------------------------------------------------------------
@@ -2057,6 +2071,7 @@ begin
           AdminSystem.fdFields.fdBankLink_Connect_Password,
           EncodeText(XMLData));
 
+        Result := TBloUploadResult.create;
         CopyRemotableObject(BloUploadResult, Result);
       except
         on E: EAuthenticationException do
@@ -2069,6 +2084,8 @@ begin
               AdminSystem.fdFields.fdBankLink_Connect_Password,
               EncodeText(XMLData));
 
+            FreeAndNil(Result);
+            Result := TBloUploadResult.create;
             CopyRemotableObject(BloUploadResult, Result);
           end
           else
@@ -4023,7 +4040,8 @@ begin
                             aSubscribers[VenIndex].id) then
       begin
         SetLength(Result, Length(Result)+1);
-        Result[High(Result)] := aSubscribers[VenIndex];
+        Result[High(Result)] := DataPlatformSubscriber.Create;
+        CopyRemotableObject(aSubscribers[VenIndex], Result[High(Result)]);
       end;
     end;
   end;
@@ -5230,6 +5248,7 @@ begin
                                                      AdminSystem.fdFields.fdBankLink_Code,
                                                      AdminSystem.fdFields.fdBankLink_Connect_Password,
                                                      ClientGuid);
+    NewClientReadDetail := TBloClientReadDetail.Create;
     CopyRemotableObject(ClientDetailResponse.Result, NewClientReadDetail);
     NewClientReadDetail.Status := BlopiServiceFacade.Active;
 
@@ -5785,6 +5804,7 @@ begin
                                                        
       if not MessageResponseHasError(MessageResponse(DataPlatformSubscriberResponse), 'get the vendor export types from') then
       begin
+        Result := TBloDataPlatformSubscription.Create;
         CopyRemotableObject(DataPlatformSubscriberResponse.Result, Result);
       end;
 
@@ -5851,6 +5871,7 @@ begin
                                      1,
                                      '152') then
       begin
+        Result := TBloDataPlatformSubscription.Create;
         CopyRemotableObject(DataPlatformSubscriberResponse.Result, Result);
       end;
 
@@ -5882,6 +5903,7 @@ var
   ShowProgress : Boolean;
   Cancelled: Boolean;
   ConnectionError: Boolean;
+  Index : integer;
 begin
   Success := False;
 
@@ -5906,6 +5928,12 @@ begin
 
       if not MessageResponseHasError(MsgResponse, 'get bank accounts from') then
       begin
+        SetLength(Result, Length(MsgResponse.Result));
+        for Index := 0 to Length(Result)-1 do
+        begin
+          Result[Index] := PracticeBankAccount.Create;
+        end;
+
         CopyRemotableObject(TBloArrayOfRemotable(MsgResponse.Result), TBloArrayOfRemotable(Result));
 
         Success := True;
@@ -5937,19 +5965,22 @@ end;
 function TProductConfigService.GetAccountVendors(aClientGuid : TBloGuid; aAccountID: Integer;
                                                  ShowProgressBar: boolean): TBloDataPlatformSubscription;
 var
-  DataPlatformSubscriberResponse: MessageResponseOfDataPlatformSubscription6cY85e5k;
+  DataPlatformSubscriberResponse : MessageResponseOfDataPlatformSubscription6cY85e5k;
+  BlopiInterface            : IBlopiServiceFacade;
+  PracticeExportDataService : TBloDataPlatformSubscription;
+  AvailableServiceArray     : TBloArrayOfDataPlatformSubscriber;
   ShowProgress: Boolean;
-  BlopiInterface: IBlopiServiceFacade;
-  PracticeExportDataService   : TBloDataPlatformSubscription;
-  AvailableServiceArray : TBloArrayOfDataPlatformSubscriber;
+  Index : integer;
 begin
   Result := nil;
 
-  PracticeExportDataService := GetPracticeVendorExports(ShowProgressBar);
-  if Assigned(PracticeExportDataService) then
-    AvailableServiceArray := PracticeExportDataService.Current;
-
   try
+    PracticeExportDataService := GetPracticeVendorExports(ShowProgressBar);
+    if Assigned(PracticeExportDataService) then
+    begin
+      AvailableServiceArray := PracticeExportDataService.Current;
+    end;
+
     if not Assigned(AdminSystem) then
       Exit;
 
@@ -5980,10 +6011,16 @@ begin
 
       if not MessageResponseHasError(MessageResponse(DataPlatformSubscriberResponse), 'get the vendor export types from') then
       begin
+        Result := TBloDataPlatformSubscription.Create;
         CopyRemotableObject(DataPlatformSubscriberResponse.Result, Result);
 
+        for Index := 0 to Length(Result.Available)-1 do
+          FreeAndNil(Result.Available[Index]);
         Result.Available := GetVendorsHidingNonPractice(AvailableServiceArray,
                                                         DataPlatformSubscriberResponse.Result.Available);
+
+        for Index := 0 to Length(Result.Current)-1 do
+          FreeAndNil(Result.Current[Index]);
         Result.Current   := GetVendorsHidingNonPractice(AvailableServiceArray,
                                                         DataPlatformSubscriberResponse.Result.Current);
       end;
@@ -5992,6 +6029,9 @@ begin
         Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Finished', 100);
     finally
       FreeAndNil(DataPlatformSubscriberResponse);
+      FreeAndNil(PracticeExportDataService);
+      SetLength(AvailableServiceArray, 0);
+      AvailableServiceArray := nil;
 
       if ShowProgress then
       begin
@@ -6196,6 +6236,7 @@ var
   DataPlatformClientSubscriberResponse: MessageResponseOfDataPlatformClient6cY85e5k;
   ShowProgress: Boolean;
   BlopiInterface: IBlopiServiceFacade;
+  Index : integer;
 begin
   Result := bloFailedNonFatal;
 
@@ -6229,6 +6270,12 @@ begin
 
       if not MessageResponseHasError(MessageResponse(DataPlatformClientSubscriberResponse), 'get the client accounts vendors', False, 0, '', ReportResponseErrors) then
       begin
+        SetLength(BankAccounts, Length(DataPlatformClientSubscriberResponse.Result.BankAccounts));
+        for Index := 0 to Length(BankAccounts)-1 do
+        begin
+          BankAccounts[Index] := DataPlatformBankAccount.Create;
+        end;
+
         CopyRemotableObject(TBloArrayOfRemotable(DataPlatformClientSubscriberResponse.Result.BankAccounts), TBloArrayOfRemotable(BankAccounts));
 
         Result := bloSuccess;

@@ -196,7 +196,7 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmMaintainBank.FormDestroy(Sender: TObject);
 begin
-  FVendorColumns.Free;
+  FreeAndNil(FVendorColumns);
 end;
 
 //------------------------------------------------------------------------------

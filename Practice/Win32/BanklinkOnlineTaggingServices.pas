@@ -432,6 +432,7 @@ var
   ExportTransactionsWeight: Integer;
   AuthenticationError: Boolean;
   DeletedTransactions: IXMLNode;
+  ClientBankAccountVendorsIndex : integer;
 begin
   FatalError := False;
 
@@ -628,7 +629,14 @@ begin
                         XMLDocument.Active := False;
                       end;
                     finally
-                      TransactionsExported.Free;
+                      for ClientBankAccountVendorsIndex := 0 to Length(ClientBankAccountVendors)-1 do
+                      begin
+                        FreeAndNil(ClientBankAccountVendors[ClientBankAccountVendorsIndex]);
+                      end;
+                      SetLength(ClientBankAccountVendors,0);
+                      ClientBankAccountVendors := nil;
+
+                      FreeAndNil(TransactionsExported);
                     end;
                   end;
                 end
@@ -768,6 +776,7 @@ var
   i, j, AccountVendorsLength: integer;
   FoundVendor: boolean;
   ClientGuid: TBloGuid;
+  AccountVendorGuid : WideString;
 begin
   // Creating list of vendors that have been added to the client
   for i := 0 to High(ModifiedVendors) do
@@ -789,30 +798,39 @@ begin
     ClientGuid := ClientReadDetail.Id
   else
     ClientGuid := ProductConfigService.GetClientGuid(MyClient.clFields.clCode);
-  AccountVendors := ProductConfigService.GetAccountVendors(ClientGuid,
-                                                           BankAccount.baFields.baCore_Account_ID,
-                                                           ShowProgressBar);
 
-  // Creating list of vendors that the account currently has. Note that, when the
-  // user removes a vendor from a client, this change should NOT recurse down to
-  // its accounts (nor should removing a vendor from a practice recurse to its
-  // clients)
-  for i := 0 to High(AccountVendors.Current) do
-    ProductConfigService.AddItemToArrayGuid(AccountVendorsModified, AccountVendors.Current[i].Id);
+  try
+    AccountVendors := ProductConfigService.GetAccountVendors(ClientGuid,
+                                                             BankAccount.baFields.baCore_Account_ID,
+                                                             ShowProgressBar);
 
-  // Adding vendors which have just been added to the client to the list
-  // of account vendors
-  for i := 0 to High(ClientVendorsAdded) do
-    ProductConfigService.AddItemToArrayGuid(AccountVendorsModified, ClientVendorsAdded[i]);
+    // Creating list of vendors that the account currently has. Note that, when the
+    // user removes a vendor from a client, this change should NOT recurse down to
+    // its accounts (nor should removing a vendor from a practice recurse to its
+    // clients)
+    for i := 0 to High(AccountVendors.Current) do
+    begin
+      AccountVendorGuid := Copy(AccountVendors.Current[i].Id , 1, length(AccountVendors.Current[i].Id));
+      ProductConfigService.AddItemToArrayGuid(AccountVendorsModified, AccountVendorGuid);
+    end;
 
-  // Save account vendors
-  ProductConfigService.SaveAccountVendorExports(ClientGuid,
-                                                BankAccount.baFields.baCore_Account_ID,
-                                                BankAccount.baFields.baBank_Account_Name,
-                                                BankAccount.baFields.baBank_Account_Number,
-                                                AccountVendorsModified,
-                                                False,
-                                                False);
+
+    // Adding vendors which have just been added to the client to the list
+    // of account vendors
+    for i := 0 to High(ClientVendorsAdded) do
+      ProductConfigService.AddItemToArrayGuid(AccountVendorsModified, ClientVendorsAdded[i]);
+
+    // Save account vendors
+    ProductConfigService.SaveAccountVendorExports(ClientGuid,
+                                                  BankAccount.baFields.baCore_Account_ID,
+                                                  BankAccount.baFields.baBank_Account_Name,
+                                                  BankAccount.baFields.baBank_Account_Number,
+                                                  AccountVendorsModified,
+                                                  False,
+                                                  False);
+  finally
+    FreeAndNil(AccountVendors);
+  end;
 end;
 
 class procedure TBanklinkOnlineTaggingServices.GetAccountVendors(BankAccount: TBank_Account; out TaggedAccount: TTaggedAccount);
@@ -832,6 +850,7 @@ var
   ClientBankAccountVendors: TBloArrayOfDataPlatformBankAccount;
   ClientGuid: TBloGuid;
   DeletedTransaction: pDeleted_Transaction_Rec;
+  Index : integer;
 begin
   Result := -1;
 
@@ -840,7 +859,7 @@ begin
     begin
       ClientProgressStepSize := 100 / AdminSystem.fdSystem_Client_File_List.ItemCount;
 
-      ProgressForm.UpdateProgressLabel('Checking client files and bank accounts'); 
+      ProgressForm.UpdateProgressLabel('Checking client files and bank accounts');
 
       for ClientIndex := 0 to AdminSystem.fdSystem_Client_File_List.ItemCount -1 do
       begin
@@ -904,6 +923,13 @@ begin
               end;
             finally
               FreeAndNil(Client);
+
+              for Index := 0 to Length(ClientBankAccountVendors)-1 do
+              begin
+                FreeAndNil(ClientBankAccountVendors[Index]);
+              end;
+              SetLength(ClientBankAccountVendors,0);
+              ClientBankAccountVendors := nil;
             end;
           end;
         end;

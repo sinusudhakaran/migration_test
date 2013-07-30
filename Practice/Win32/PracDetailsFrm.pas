@@ -154,6 +154,7 @@ type
     procedure PageControl1Changing(Sender: TObject; var AllowChange: Boolean);
     procedure chklistExportToMatch(Sender: TObject);
     procedure chklistExportToClickCheck(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
   private
     { Private declarations }
     okPressed : boolean;
@@ -178,7 +179,7 @@ type
     procedure SetUpSuper(const SuperfundSystem: Byte);
     procedure SetUpWebExport(const WebExportFormat: Byte);
     procedure LoadPracticeDetails;
-    procedure LoadDataExports(PracticeVendorExports: TBloDataPlatformSubscription);
+    procedure LoadDataExports();
 
     function DataExportSettingsChanged: Boolean;
     function VendorExportsChanged: Boolean;
@@ -270,8 +271,13 @@ var
 
 //------------------------------------------------------------------------------
 procedure TfrmPracticeDetails.FormCreate(Sender: TObject);
+var
+  I : integer;
 begin
-  FPracticeVendorExports := nil;
+  FreeAndNil(FPracticeVendorExports);
+  for I := 0 to length(FVendorSubscriberCount)-1 do
+    FreeAndNil(FVendorSubscriberCount[I]);
+  SetLength(FVendorSubscriberCount,0);
   FVendorSubscriberCount := nil;
 
   bkXPThemes.ThemeForm( Self);
@@ -299,6 +305,19 @@ begin
   tsBankLinkOnline.Caption := TProduct.Rebrand(tsBankLinkOnline.Caption);
   lblSelectProducts.Caption := TProduct.Rebrand(lblSelectProducts.Caption);
   ckUseBankLinkOnline.Caption := TProduct.Rebrand(ckUseBankLinkOnline.Caption);
+end;
+
+procedure TfrmPracticeDetails.FormDestroy(Sender: TObject);
+var
+  Index : integer;
+begin
+  chklistExportTo.ReleaseObjects;
+
+  FreeAndNil(FPracticeVendorExports);
+  for Index := 0 to length(FVendorSubscriberCount)-1 do
+    FreeAndNil(FVendorSubscriberCount[Index]);
+  SetLength(FVendorSubscriberCount,0);
+  FVendorSubscriberCount := nil;
 end;
 
 function TfrmPracticeDetails.GetVendorExportName(VendorExportGuid: TBloGuid; PracticeVendorExports: TBloDataPlatformSubscription): String;
@@ -423,7 +442,7 @@ begin
   begin
     if Length(FPracticeVendorExports.Available) > 0 then
     begin
-      LoadDataExports(FPracticeVendorExports);
+      LoadDataExports();
 
       FirstVisibleTab := GetFirstVisibleTab;
 
@@ -686,9 +705,12 @@ begin
   if not FEnablingBankLinkOnline then
   begin
     FEnablingBankLinkOnline := True;
-    
+
     try
-      FPracticeVendorExports := nil;
+      FreeAndNil(FPracticeVendorExports);
+      for I := 0 to length(FVendorSubscriberCount)-1 do
+        FreeAndNil(FVendorSubscriberCount[I]);
+      SetLength(FVendorSubscriberCount,0);
       FVendorSubscriberCount := nil;
 
       chklistExportTo.Clear;
@@ -1736,11 +1758,12 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TfrmPracticeDetails.LoadDataExports(PracticeVendorExports: TBloDataPlatformSubscription);
+procedure TfrmPracticeDetails.LoadDataExports();
 var
   Index: Integer;
   IIndex: Integer;
   VendorSortList: TStringList;
+  NewVendorExport : TVendorExport;
 begin
   chklistExportTo.ReleaseObjects;
   chklistExportTo.Clear;
@@ -1754,7 +1777,8 @@ begin
           
     for Index := 0 to Length(FPracticeVendorExports.Available) - 1 do
     begin
-      VendorSortList.AddObject(FPracticeVendorExports.Available[Index].Name_, TVendorExport.Create(FPracticeVendorExports.Available[Index].Id));
+      NewVendorExport := TVendorExport.Create(FPracticeVendorExports.Available[Index].Id);
+      VendorSortList.AddObject(FPracticeVendorExports.Available[Index].Name_, NewVendorExport);
     end;
 
     for Index := 0 to VendorSortList.Count - 1 do
@@ -1774,7 +1798,7 @@ begin
       end;
     end;
   finally
-    VendorSortList.Free;
+    FreeAndNil(VendorSortList);
   end;
 end;
 
