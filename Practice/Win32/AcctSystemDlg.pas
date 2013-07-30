@@ -827,10 +827,10 @@ begin
              and (Software.IsSuperFund(whAustralia,I) = RBSuper.Checked )then
                cmbSystem.items.AddObject(saNames[i], TObject( i ) );
           end;
-        end else begin // UK
+        end else begin
           for i := saMin to saMax do begin
              if (not Software.ExcludeFromAccSysList(clCountry, i)) or ( i = claccounting_system_used) then
-               cmbSystem.items.AddObject(suNames[i], TObject( i ) );
+               cmbSystem.items.AddObject(saNames[i], TObject( i ) );
           end;
         end;
       end;
