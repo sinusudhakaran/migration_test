@@ -197,6 +197,7 @@ end;
 procedure TfrmMaintainBank.FormDestroy(Sender: TObject);
 begin
   FreeAndNil(FVendorColumns);
+  ProductConfigService.FreeClientAccVendorsRecord(fClientAccVendors);
 end;
 
 //------------------------------------------------------------------------------
@@ -292,6 +293,7 @@ begin
   begin
     if ProductConfigService.IsPracticeProductEnabled(ProductConfigService.GetExportDataId, True) then
     begin
+      ProductConfigService.FreeClientAccVendorsRecord(fClientAccVendors);
       ProductConfigService.GetClientAccountsVendors(MyClient.clFields.clCode, '', fClientAccVendors, True);
     end;
   end;

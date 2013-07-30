@@ -298,6 +298,8 @@ type
     function GetServiceSuspended: Boolean;
     function ErrorOccurred: Boolean;
   public
+    procedure FreeClientAccVendorsRecord(aClientAccVendors : TClientAccVendors);
+
     procedure CopyRemotableObject(ASource, ATarget: TRemotable); overload;
     procedure CopyRemotableObject(ASource, ATarget: TBloArrayOfRemotable); overload;
 
@@ -2188,6 +2190,19 @@ begin
   end;
 end;
 
+procedure TProductConfigService.FreeClientAccVendorsRecord(aClientAccVendors: TClientAccVendors);
+var
+  Index : integer;
+begin
+  for Index := 0 to length(aClientAccVendors.ClientVendors)-1 do
+    FreeAndNil(aClientAccVendors.ClientVendors[Index]);
+  SetLength(aClientAccVendors.ClientVendors, 0);
+
+  for Index := 0 to length(aClientAccVendors.AccountsVendors)-1 do
+    FreeAndNil(aClientAccVendors.AccountsVendors[Index].AccountVendors);
+  SetLength(aClientAccVendors.AccountsVendors, 0);
+end;
+
 //------------------------------------------------------------------------------
 procedure TProductConfigService.AddXMLNStoArrays(const aCurrNode : IXMLNode;
                                                  var aNameList : TArrVarTypeData);
@@ -2740,18 +2755,24 @@ var
   AvailableServiceArray : TBloArrayOfDataPlatformSubscriber;
   i: integer;
 begin
-  PracticeExportDataService := GetPracticeVendorExports;
-  if Assigned(PracticeExportDataService) then
-    AvailableServiceArray := PracticeExportDataService.Current;
+  try
+    PracticeExportDataService := GetPracticeVendorExports;
+    if Assigned(PracticeExportDataService) then
+      AvailableServiceArray := PracticeExportDataService.Current;
 
-  Result := False;
-  for i := 0 to High(AvailableServiceArray) do
-  begin
-    if (ClientVendorGuid = AvailableServiceArray[i].Id) then
+    Result := False;
+    for i := 0 to High(AvailableServiceArray) do
     begin
-      Result := True;
-      break;
+      if (ClientVendorGuid = AvailableServiceArray[i].Id) then
+      begin
+        Result := True;
+        break;
+      end;
     end;
+  finally
+    FreeAndNil(PracticeExportDataService);
+    SetLength(AvailableServiceArray, 0);
+    AvailableServiceArray := nil;
   end;
 end;
 
@@ -6100,10 +6121,6 @@ var
 begin
   Result := false;
 
-  PracticeExportDataService := GetPracticeVendorExports;
-  if Assigned(PracticeExportDataService) then
-    AvailableServiceArray := PracticeExportDataService.Current;
-
   if aClientGuid = '' then
   begin
     ClientGuid := GetClientGuid(AClientCode);
@@ -6130,6 +6147,10 @@ begin
     end;
 
     try
+      PracticeExportDataService := GetPracticeVendorExports;
+      if Assigned(PracticeExportDataService) then
+        AvailableServiceArray := PracticeExportDataService.Current;
+
       if ShowProgress then
         Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Getting Client Accounts Vendors', 50);
 
@@ -6160,7 +6181,7 @@ begin
             GetVendorsHidingNonPractice(AvailableServiceArray,
                                         DataPlatformClientSubscriberResponse.Result.Available);
 
-          aClientAccVendors.AccountsVendors[AccountIndex].AccountID := 
+          aClientAccVendors.AccountsVendors[AccountIndex].AccountID :=
             DataPlatformClientSubscriberResponse.Result.BankAccounts[AccountIndex].AccountId;
 
           aClientAccVendors.AccountsVendors[AccountIndex].ExportDataEnabled := False;
@@ -6211,6 +6232,9 @@ begin
         Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Finished', 100);
     finally
       FreeAndNil(DataPlatformClientSubscriberResponse);
+      FreeAndNil(PracticeExportDataService);
+      SetLength(AvailableServiceArray, 0);
+      AvailableServiceArray := nil;
 
       if ShowProgress then
       begin
