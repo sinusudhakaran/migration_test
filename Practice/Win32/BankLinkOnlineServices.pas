@@ -4978,26 +4978,28 @@ begin
           if Result then
             MyClient.Opened := True;
           ClientID := GetClientGuid(BloClientCreate.ClientCode);
+
+
+          if Result then
+          begin
+            LogUtil.LogMsg(lmInfo, UNIT_NAME, 'Client ' + ClientCode + ' has been successfully created on BankLink Online.');
+
+            Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Saving Client User', 70);
+            Result := AddEditClientUser(Nil,
+                                        aSubscription,
+                                        MsgResponseGuid.Result,
+                                        ClientCode,
+                                        UserId,
+                                        aUserEMail,
+                                        aUserFullName);
+          end
+          else
+            LogUtil.LogMsg(lmInfo, UNIT_NAME, 'Client ' + ClientCode + ' was not created on BankLink Online.');
+
         finally
           FreeAndNil(MsgResponseGuid);
           FreeAndNil(BloClientCreate);
         end;
-
-        if Result then
-        begin
-          LogUtil.LogMsg(lmInfo, UNIT_NAME, 'Client ' + ClientCode + ' has been successfully created on BankLink Online.');
-
-          Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Saving Client User', 70);
-          Result := AddEditClientUser(Nil,
-                                      aSubscription,
-                                      MsgResponseGuid.Result,
-                                      ClientCode,
-                                      UserId,
-                                      aUserEMail,
-                                      aUserFullName);
-        end
-        else
-          LogUtil.LogMsg(lmInfo, UNIT_NAME, 'Client ' + ClientCode + ' was not created on BankLink Online.');
 
         if Result then
         begin
