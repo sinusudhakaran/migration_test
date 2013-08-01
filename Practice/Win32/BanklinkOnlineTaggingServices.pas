@@ -72,7 +72,7 @@ type
     class procedure CleanXML(Node: IXMLNode); static;
   public
     class procedure UpdateAccountVendors(ClientReadDetail: TBloClientReadDetail; Client: TClientObj; OriginalVendors, ModifiedVendors: TBloArrayOfGuid; ProgressForm: ISingleProgressForm); overload; static; // Update vendors for a client
-    class procedure UpdateAccountVendors(ClientReadDetail: TBloClientReadDetail; BankAccount: TBank_Account; OriginalVendors, ModifiedVendors: TBloArrayOfGuid; ShowProgressBar: Boolean = True); overload; static; // Update vendors for a single account
+    class procedure UpdateAccountVendors(ClientReadDetail: TBloClientReadDetail; BankAccount: TBank_Account; ClientOriginalVendors, ClientModifiedVendors: TBloArrayOfGuid; ShowProgressBar: Boolean = True); overload; static; // Update vendors for a single account
 
     class procedure GetAccountVendors(BankAccount: TBank_Account; out TaggedAccount: TTaggedAccount); static;
     class procedure GetTaggedAccounts(ClientReadDetail: TBloClientReadDetail; out TaggedAccounts: array of TTaggedAccount); overload; static;
@@ -769,29 +769,47 @@ begin
 end;
 
 // Update account vendors for a single account
-class procedure TBanklinkOnlineTaggingServices.UpdateAccountVendors(ClientReadDetail: TBloClientReadDetail; BankAccount: TBank_Account; OriginalVendors, ModifiedVendors: TBloArrayOfGuid; ShowProgressBar: boolean = True);
+class procedure TBanklinkOnlineTaggingServices.UpdateAccountVendors(ClientReadDetail: TBloClientReadDetail; BankAccount: TBank_Account; ClientOriginalVendors, ClientModifiedVendors: TBloArrayOfGuid; ShowProgressBar: boolean = True);
 var
   AccountVendors: TBloDataPlatformSubscription;
-  ClientVendorsAdded, AccountVendorsModified: TBloArrayOfGuid;
-  i, j, AccountVendorsLength: integer;
+  ClientVendorsAdded, ClientVendorsRemoved, NewAccountVendors : TBloArrayOfGuid;
+  OrgVenIndex, ModVenIndex, AccountVendorsLength, AccCurIndex, Index: integer;
   FoundVendor: boolean;
   ClientGuid: TBloGuid;
   AccountVendorGuid : WideString;
 begin
-  // Creating list of vendors that have been added to the client
-  for i := 0 to High(ModifiedVendors) do
+  // Build a list of vendors that were removed
+  for OrgVenIndex := 0 to High(ClientOriginalVendors) do
   begin
     FoundVendor := False;
-    for j := 0 to High(OriginalVendors) do
+    for ModVenIndex := 0 to High(ClientModifiedVendors) do
     begin
-      if (ModifiedVendors[i] = OriginalVendors[j]) then
+      if (ClientOriginalVendors[OrgVenIndex] = ClientModifiedVendors[ModVenIndex]) then
       begin
-        FoundVendor := True; // Vendor was already there, it has not been added
+        FoundVendor := True;
         break;
       end;
     end;
-    if not FoundVendor then // This is a new vendor
-      ProductConfigService.AddItemToArrayGuid(ClientVendorsAdded, ModifiedVendors[i]);
+
+    if not FoundVendor then // vendors is in Original List but not in Modified so it must of been removed
+      ProductConfigService.AddItemToArrayGuid(ClientVendorsRemoved, ClientOriginalVendors[OrgVenIndex]);
+  end;
+
+  // Build a list of vendors that were added
+  for ModVenIndex := 0 to High(ClientModifiedVendors) do
+  begin
+    FoundVendor := False;
+    for OrgVenIndex := 0 to High(ClientOriginalVendors) do
+    begin
+      if (ClientModifiedVendors[ModVenIndex] = ClientOriginalVendors[OrgVenIndex]) then
+      begin
+        FoundVendor := True;
+        break;
+      end;
+    end;
+
+    if not FoundVendor then // vendors is in Modified List but not in Original so it must of been added
+      ProductConfigService.AddItemToArrayGuid(ClientVendorsAdded, ClientModifiedVendors[ModVenIndex]);
   end;
 
   if Assigned(ClientReadDetail) then
@@ -800,32 +818,32 @@ begin
     ClientGuid := ProductConfigService.GetClientGuid(MyClient.clFields.clCode);
 
   try
+    // Gets the Account Vendor Info
     AccountVendors := ProductConfigService.GetAccountVendors(ClientGuid,
                                                              BankAccount.baFields.baCore_Account_ID,
                                                              ShowProgressBar);
 
-    // Creating list of vendors that the account currently has. Note that, when the
-    // user removes a vendor from a client, this change should NOT recurse down to
-    // its accounts (nor should removing a vendor from a practice recurse to its
-    // clients)
-    for i := 0 to High(AccountVendors.Current) do
+    //Copies the List of Current Vendors into a new list
+    for Index := 0 to High(AccountVendors.Current) do
     begin
-      AccountVendorGuid := Copy(AccountVendors.Current[i].Id , 1, length(AccountVendors.Current[i].Id));
-      ProductConfigService.AddItemToArrayGuid(AccountVendorsModified, AccountVendorGuid);
+      AccountVendorGuid := Copy(AccountVendors.Current[Index].Id , 1, length(AccountVendors.Current[Index].Id));
+      ProductConfigService.AddItemToArrayGuid(NewAccountVendors, AccountVendorGuid);
     end;
 
+    // Remove Vendors which are in ClientVendorsRemoved List
+    for Index := 0 to High(ClientVendorsRemoved) do
+      ProductConfigService.RemoveItemFromArrayGuid(NewAccountVendors, ClientVendorsRemoved[Index]);
 
-    // Adding vendors which have just been added to the client to the list
-    // of account vendors
-    for i := 0 to High(ClientVendorsAdded) do
-      ProductConfigService.AddItemToArrayGuid(AccountVendorsModified, ClientVendorsAdded[i]);
+    // Add Vendors which are in ClientVendorsAdded List
+    for Index := 0 to High(ClientVendorsAdded) do
+      ProductConfigService.AddItemToArrayGuid(NewAccountVendors, ClientVendorsAdded[Index]);
 
     // Save account vendors
     ProductConfigService.SaveAccountVendorExports(ClientGuid,
                                                   BankAccount.baFields.baCore_Account_ID,
                                                   BankAccount.baFields.baBank_Account_Name,
                                                   BankAccount.baFields.baBank_Account_Number,
-                                                  AccountVendorsModified,
+                                                  NewAccountVendors,
                                                   False,
                                                   False);
   finally
