@@ -754,7 +754,7 @@ begin
             Exit;
         end;
 
-        Result := ProductConfigService.DeletePracUser('', UserGuid);
+        Result := ProductConfigService.DeletePracUser(UserCode, UserGuid);
       end;
 
       if Result then
