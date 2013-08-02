@@ -1669,19 +1669,23 @@ begin
   try
     ClientCode := ClientLookup.FirstSelectedCode;
     OpenClient(ClientCode);
-    try
-      ShowServicesAvailable := ((MyClient.clFields.clDownload_From <> dlBankLinkConnect) or
-                                (Trim(MyClient.clFields.clBankLink_Code) = ''));
-      if ProductConfigService.IsExportDataEnabled then
-        ShowServicesAvailable := ShowServicesAvailable and
-                                 ProductConfigService.PracticeHasVendors;
-      if EditBanklinkOnlineSettings(Self, false, false, ShowServicesAvailable) then
-      begin
-        //Need to reload TProductConfigService.Clients after blopi has been updated.  Probably better to update this locally somehow.
-        ProductConfigService.LoadClientList;
+
+    if assigned(MyClient) then
+    begin
+      try
+        ShowServicesAvailable := ((MyClient.clFields.clDownload_From <> dlBankLinkConnect) or
+                                  (Trim(MyClient.clFields.clBankLink_Code) = ''));
+        if ProductConfigService.IsExportDataEnabled then
+          ShowServicesAvailable := ShowServicesAvailable and
+                                   ProductConfigService.PracticeHasVendors;
+        if EditBanklinkOnlineSettings(Self, false, false, ShowServicesAvailable) then
+        begin
+          //Need to reload TProductConfigService.Clients after blopi has been updated.  Probably better to update this locally somehow.
+          ProductConfigService.LoadClientList;
+        end;
+      finally
+        CloseClient();
       end;
-    finally
-      CloseClient();
     end;
   finally
     ClientLookup.vtClients.EndUpdate;
