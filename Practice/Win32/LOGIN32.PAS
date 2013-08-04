@@ -369,10 +369,11 @@ var
   FullName: String;
   pUser: pUser_Rec;
   AuthenticationStatus: TAuthenticationStatus;
+  AuthStatusStr : string;
 begin
   Result := False;
-
   Cancelled := False;
+  OfflineAuthentication := False;
 
   FullName := User.usName;
 
@@ -418,6 +419,19 @@ begin
   if AuthenticationStatus = paOfflineUser then
   begin
     OfflineAuthentication := True;
+  end;
+
+  if DebugMe then
+  begin
+    case AuthenticationStatus of
+      paNone            : AuthStatusStr := 'None';
+      paConnectionError : AuthStatusStr := 'Connection Error';
+      paOffLineUser     : AuthStatusStr := 'OffLine User';
+      paChangePassword  : AuthStatusStr := 'Change Password';
+    end;
+
+    LogUtil.LogMsg(lmDebug, UnitName, 'LoginOnline : AuthenticationStatus = ' + AuthStatusStr);
+    LogUtil.LogMsg(lmDebug, UnitName, 'LoginOnline : OfflineAuthentication = ' + booltostr(OfflineAuthentication,true));
   end;
 end;
 
