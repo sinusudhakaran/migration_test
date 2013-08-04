@@ -311,7 +311,7 @@ var
   OfflineAuthentication: Boolean;
 begin
   Result := False;
-
+  OfflineAuthentication := false;
   Cancelled := False;
 
   FPassword := pass;
@@ -321,7 +321,7 @@ begin
   begin
     Exit;
   end;
-  
+
   if User.usAllow_Banklink_Online and ProductConfigService.ServiceActive then
   begin
     if LoginOnline(User^, uName, FPassword, Cancelled, OfflineAuthentication) then
