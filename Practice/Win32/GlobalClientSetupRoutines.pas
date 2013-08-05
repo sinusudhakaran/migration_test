@@ -1659,7 +1659,7 @@ begin
        //remove from admin system
        AdminSystem.fdSystem_File_Access_List.Delete_Client_File( ClientLRN );
        AdminSystem.fdSystem_Client_File_List.DelFreeItem( ClientFile );
-       LogUtil.LogMsg(lmInfo,'ThisMethodName','Client '+ClientCode+' deleted from Admin System OK');
+       LogUtil.LogMsg(lmInfo, ThisMethodName,'Client '+ClientCode+' deleted from Admin System OK');
 
        //*** Flag Audit ***
        SystemAuditMgr.FlagAudit(arSystemClientFiles);
@@ -1930,7 +1930,7 @@ begin
           //remove from admin system
           AdminSystem.fdSystem_File_Access_List.Delete_Client_File( ClientLRN );
           AdminSystem.fdSystem_Client_File_List.DelFreeItem( ClientFile );
-          LogUtil.LogMsg(lmInfo,'ThisMethodName','Prospect '+ClientCode+' deleted from Admin System OK');
+          LogUtil.LogMsg(lmInfo, ThisMethodName, 'Prospect ' + ClientCode + ' deleted from Admin System OK');
 
           //*** Flag Audit ***
           SystemAuditMgr.FlagAudit(arSystemClientFiles);
