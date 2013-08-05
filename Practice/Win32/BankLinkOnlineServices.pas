@@ -429,6 +429,7 @@ type
     function GetExportDataId: TBloGuid;
     function GetIBizzExportGuid: TBloGuid;
     function GetBGLExportGuid: TBloGuid;
+    function GuidToDesc(const aGuid: TBloGuid): string;
 
     function GuidsEqual(GuidA, GuidB: TBloGuid): Boolean;
     function GuidArraysEqual(GuidArrayA, GuidArrayB: TBloArrayOfGuid): Boolean;
@@ -557,6 +558,9 @@ uses
 const
   UNIT_NAME = 'BankLinkOnlineServices';
   INIFILE_NAME = 'BankLinkOnline.ini';
+
+  { NOTE: any changes in PRODUCT_GUID or VENDOR_EXPORT_GUID also need to be
+    supported in function GuidToDesc. }
 
   PRODUCT_GUID_CICO = '6D700B31-DAEE-4847-8CB2-82C21328AC33';
   PRODUCT_GUID_NOTES_ONLINE = '6D700B31-DAEE-4847-8CB2-82C21328AC30';
@@ -837,6 +841,10 @@ procedure TProductConfigService.AddProduct(AProductId: TBloGuid);
 var
   Subscription : TBloArrayOfGuid;
 begin
+  if DebugMe then LogUtil.LogMsg(lmDebug, UNIT_NAME,
+    'AddProduct ' + GuidToDesc(aProductId) + ' to practice ' + FPracticeCopy.DisplayName
+  );
+
   Subscription := FPracticeCopy.Subscription;
   try
     AddItemToArrayGuid(Subscription, AProductId);
@@ -852,6 +860,10 @@ var
   SubArray: TBloArrayOfGuid;
   WarningStr, Msg: string;
 begin
+  if DebugMe then LogUtil.LogMsg(lmDebug, UNIT_NAME,
+    'ClearAllProducts for practice ' + FPracticeCopy.DisplayName
+  );
+
   //Copy the subscription array
   SetLength(SubArray, Length(FPracticeCopy.Subscription));
   for i := Low(FPracticeCopy.Subscription) to High(FPracticeCopy.Subscription) do
@@ -1210,6 +1222,29 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+function TProductConfigService.GetBGLExportGuid: TBloGuid;
+begin
+  Result := VENDOR_EXPORT_GUID_BGL;
+end;
+
+//------------------------------------------------------------------------------
+function TProductConfigService.GuidToDesc(const aGuid: TBloGuid): string;
+begin
+  if SameText(aGuid, PRODUCT_GUID_CICO) then
+    result := 'CiCo'
+  else if SameText(aGuid, PRODUCT_GUID_NOTES_ONLINE) then
+    result := 'Notes'
+  else if SameText(aGuid, PRODUCT_GUID_EXPORT_DATA) then
+    result := 'Export Data'
+  else if SameText(aGuid, VENDOR_EXPORT_GUID_IBIZZ) then
+    result := 'IBizz'
+  else if SameText(aGuid, VENDOR_EXPORT_GUID_BGL) then
+    result := 'BGL'
+  else
+    result := aGuid; // Just return the GUID
+end;
+
+//------------------------------------------------------------------------------
 function TProductConfigService.GetBanklinkOnlineURL(Service: String): String;
 begin
   if Trim(FSubdomain) <> '' then
@@ -1229,12 +1264,6 @@ begin
   begin
     Result := Result + Service;
   end;
-end;
-
-//------------------------------------------------------------------------------
-function TProductConfigService.GetBGLExportGuid: TBloGuid;
-begin
-  Result := VENDOR_EXPORT_GUID_BGL;
 end;
 
 //------------------------------------------------------------------------------
@@ -3181,6 +3210,10 @@ var
   Msg: string;
   TempCatalogueEntry: TBloCatalogueEntry;
 begin
+  if DebugMe then LogUtil.LogMsg(lmDebug, UNIT_NAME,
+    'RemoveProduct ' + GuidToDesc(aProductId) + ' to practice ' + FPracticeCopy.DisplayName
+  );
+
   Result := '';
   try
     if not Assigned(FClientList) then
