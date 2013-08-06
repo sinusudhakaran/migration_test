@@ -280,6 +280,7 @@ var
   ClientVendors : TBloArrayOfGuid;
   ClientExportDataService : TBloDataPlatformSubscription;
   ClientID                : TBloGuid;
+
 begin
   ClientRec := pClient_File_Rec(lvFiles.Selected.SubItems.Objects[0]);
   if not Assigned(clientRec) then exit;
@@ -322,14 +323,19 @@ begin
       if ProductConfigService.GetClientGuid(ToClient.clFields.clCode, ClientID) then
       begin
         ClientExportDataService := ProductConfigService.GetClientVendorExports(ClientID);
-        if Assigned(ClientExportDataService) then
-        begin
-          SetLength(ClientVendors, length(ClientExportDataService.Current));
-          for VendorIndex := 0 to high(ClientVendors) do
+        try
+          if Assigned(ClientExportDataService) then
           begin
-            ClientVendors[VendorIndex] := ClientExportDataService.Current[VendorIndex].Id;
-            VendorNames.Add(ClientExportDataService.Current[VendorIndex].Name_);
+            SetLength(ClientVendors, length(ClientExportDataService.Current));
+            for VendorIndex := 0 to high(ClientVendors) do
+            begin
+              ClientVendors[VendorIndex] := ClientExportDataService.Current[VendorIndex].Id;
+              VendorNames.Add(Copy(ClientExportDataService.Current[VendorIndex].Name_, 1,
+                                   length(ClientExportDataService.Current[VendorIndex].Name_)));
+            end;
           end;
+        finally
+          FreeAndNil(ClientExportDataService);
         end;
       end;
     end;
