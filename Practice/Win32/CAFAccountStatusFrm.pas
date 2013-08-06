@@ -37,7 +37,8 @@ type
 
     FLastSortedColumn: Integer;
     FLastSortDirection: TSortDirection;
-    
+
+    destructor Destroy; override;
     function Refresh: Boolean;
     
     function CheckFilter(const AccountStatus: String; FilterType: TAccountFilterType): Boolean;
@@ -99,6 +100,18 @@ begin
   begin
     SortAccountStatusList(FLastSortedColumn, FLastSortDirection);
   end;
+end;
+
+destructor TfrmCAFAccountStatus.Destroy;
+var
+  Index : integer;
+begin
+  for Index := 0 to Length(FAccountList)-1 do
+    FreeAndNil(FAccountList[Index]);
+  SetLength(FAccountList, 0);
+  FAccountList := nil;
+
+  inherited;
 end;
 
 function TfrmCAFAccountStatus.DoAccountNameColumnCompare(NodeData1, NodeData2: PNodeData): Integer;
@@ -165,7 +178,7 @@ begin
       AccountStatusForm.ShowModal;
     end;
   finally
-    AccountStatusForm.Free;
+    FreeAndNil(AccountStatusForm);
   end;
 end;
 
@@ -214,7 +227,12 @@ begin
 end;
 
 function TfrmCAFAccountStatus.Refresh: Boolean;
+var
+  Index : integer;
 begin
+  for Index := 0 to Length(FAccountList)-1 do
+    FreeAndNil(FAccountList[Index]);
+
   FAccountList := ProductConfigService.GetAccountStatusList(Result);
 
   if Result then

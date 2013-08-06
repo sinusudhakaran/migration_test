@@ -5,7 +5,7 @@ object frmCAFAccountStatus: TfrmCAFAccountStatus
   BorderIcons = [biSystemMenu, biMaximize]
   Caption = 'Account Status'
   ClientHeight = 495
-  ClientWidth = 1001
+  ClientWidth = 1009
   Color = clBtnFace
   Constraints.MinHeight = 238
   Constraints.MinWidth = 397
@@ -20,7 +20,7 @@ object frmCAFAccountStatus: TfrmCAFAccountStatus
   OnCreate = FormCreate
   OnKeyPress = FormKeyPress
   DesignSize = (
-    1001
+    1009
     495)
   PixelsPerInch = 96
   TextHeight = 13
@@ -43,7 +43,7 @@ object frmCAFAccountStatus: TfrmCAFAccountStatus
   object lvAccountStatus: TVirtualStringTree
     Left = 8
     Top = 72
-    Width = 985
+    Width = 993
     Height = 357
     Anchors = [akLeft, akTop, akRight, akBottom]
     ButtonStyle = bsTriangle
@@ -63,6 +63,7 @@ object frmCAFAccountStatus: TfrmCAFAccountStatus
     OnCompareNodes = lvAccountStatusCompareNodes
     OnGetText = lvAccountStatusGetText
     OnHeaderClick = lvAccountStatusHeaderClick
+    ExplicitWidth = 985
     Columns = <
       item
         Options = [coAllowClick, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible]
@@ -104,12 +105,13 @@ object frmCAFAccountStatus: TfrmCAFAccountStatus
   object StatusBar1: TStatusBar
     Left = 0
     Top = 476
-    Width = 1001
+    Width = 1009
     Height = 19
     Panels = <>
+    ExplicitWidth = 1001
   end
   object Button1: TButton
-    Left = 918
+    Left = 926
     Top = 442
     Width = 75
     Height = 25
@@ -118,6 +120,7 @@ object frmCAFAccountStatus: TfrmCAFAccountStatus
     Default = True
     ModalResult = 1
     TabOrder = 2
+    ExplicitLeft = 918
   end
   object cmbAccountFilter: TComboBox
     Left = 100
