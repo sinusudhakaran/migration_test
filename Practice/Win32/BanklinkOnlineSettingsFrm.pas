@@ -1330,6 +1330,10 @@ var
   ClientID: TBloGuid;
   TempClientDetail : TBloClientReadDetail;
 begin
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName,
+    'SaveClientInfo: ' + MyClient.clFields.clCode
+  );
+
   ClientID := '';
   ShowUpdateMsg := True;
   NotesOnlineTicked := False;
@@ -1362,7 +1366,7 @@ begin
       begin
         if (CatEntry.CatalogueType = 'Service') then
         begin
-          ProductConfigService.AddItemToArrayGuid(Subscription, CatEntry.id); 
+          ProductConfigService.AddItemToArrayGuid(Subscription, CatEntry.id);
         end;
       end;
     end;
@@ -1414,7 +1418,7 @@ begin
 
       MyClient.clExtra.ceOnlineUserEMail    := edtEmailAddress.Text;
       MyClient.clExtra.ceOnlineUserFullName := edtUserName.Text;
-      
+
       MyClient.clExtra.ceOnlineValuesStored := True;
 
       Result := True;
@@ -1423,12 +1427,12 @@ begin
     begin
       for SubIndex := 1 to MyClient.clExtra.ceOnlineSubscriptionCount do
       begin
-        if SubIndex > Length(Subscription) then               
+        if SubIndex > Length(Subscription) then
           MyClient.clExtra.ceOnlineSubscription[SubIndex] := ''
         else
           MyClient.clExtra.ceOnlineSubscription[SubIndex] := Subscription[SubIndex-1];
-      end;       
-    
+      end;
+
       if (NumProdTicked > 0) or (Length(ModifiedDataExports) > 0) then
       begin
         Result := ProductConfigService.CreateClient(AnsiLeftStr(cmbBillingFrequency.Text, 1),
@@ -1459,11 +1463,11 @@ begin
       end;
     end;
   end;
-  
+
   MyClient.clExtra.ceDeliverDataDirectToBLO := chkDeliverData.Checked;
   MyClient.clExtra.ceBLOSecureCode := edtSecureCode.Text;
 
-  
+
   if Result then
   begin
     UpdateClientWebFormat(Subscription);
@@ -1479,7 +1483,7 @@ begin
     if Result then
     begin
       ClientCode := MyClient.clFields.clCode;
-      if ShowUpdateMsg then      
+      if ShowUpdateMsg then
         HelpfulInfoMsg(Format('Settings for %s have been successfully updated to ' +
                        '%s.',[ClientCode, bkBranding.ProductOnlineName]), 0);
     end;
