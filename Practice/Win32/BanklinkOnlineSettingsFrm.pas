@@ -166,6 +166,9 @@ uses
 const
   UnitName = 'BanklinkOnlineSettingsFrm';
 
+var
+  DebugMe : Boolean = False;
+  
 //------------------------------------------------------------------------------
 procedure TfrmBanklinkOnlineSettings.btnSelectAllClick(Sender: TObject);
 var
@@ -363,11 +366,27 @@ end;
 
 procedure TfrmBanklinkOnlineSettings.chklistServicesAvailableClickCheck(
   Sender: TObject);
+var
+  TempName: string;
 begin
+  TempName := chkListServicesAvailable.Items[chklistServicesAvailable.ItemIndex];
+
   if chklistServicesAvailable.Checked[chklistServicesAvailable.ItemIndex] then
+  begin
+    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName,
+      'Services add: ' + TempName
+    );
+
     ProductConfigService.AddItemToArrayGuid(ModifiedDataExports, TDataExportOption(chklistServicesAvailable.Items.Objects[chklistServicesAvailable.ItemIndex]).Guid)
+  end
   else
+  begin
+    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName,
+      'Services remove: ' + TempName
+    );
+    
     ProductConfigService.RemoveItemFromArrayGuid(ModifiedDataExports, TDataExportOption(chklistServicesAvailable.Items.Objects[chklistServicesAvailable.ItemIndex]).Guid);
+  end;
 end;
 
 function TfrmBanklinkOnlineSettings.ClientSettingChanged: Boolean;
@@ -1503,6 +1522,9 @@ constructor TProductSubscription.Create(Guid: TBloGuid);
 begin
   FId := Guid;
 end;
+
+initialization
+  DebugMe := DebugUnit(UnitName);
 
 end.
 

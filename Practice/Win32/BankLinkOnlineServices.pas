@@ -430,6 +430,7 @@ type
     function GetIBizzExportGuid: TBloGuid;
     function GetBGLExportGuid: TBloGuid;
     function GuidToDesc(const aGuid: TBloGuid): string;
+    procedure LogGuids(const aName: string; const aGuids: TBloArrayOfGuid);
 
     function GuidsEqual(GuidA, GuidB: TBloGuid): Boolean;
     function GuidArraysEqual(GuidArrayA, GuidArrayB: TBloArrayOfGuid): Boolean;
@@ -842,7 +843,7 @@ var
   Subscription : TBloArrayOfGuid;
 begin
   if DebugMe then LogUtil.LogMsg(lmDebug, UNIT_NAME,
-    'AddProduct ' + GuidToDesc(aProductId) + ' to practice ' + FPracticeCopy.DisplayName
+    'AddProduct ' + GuidToDesc(aProductId)
   );
 
   Subscription := FPracticeCopy.Subscription;
@@ -861,7 +862,7 @@ var
   WarningStr, Msg: string;
 begin
   if DebugMe then LogUtil.LogMsg(lmDebug, UNIT_NAME,
-    'ClearAllProducts for practice ' + FPracticeCopy.DisplayName
+    'ClearAllProducts'
   );
 
   //Copy the subscription array
@@ -1237,11 +1238,36 @@ begin
   else if SameText(aGuid, PRODUCT_GUID_EXPORT_DATA) then
     result := 'Export Data'
   else if SameText(aGuid, VENDOR_EXPORT_GUID_IBIZZ) then
-    result := 'IBizz'
+    result := 'iBizz'
   else if SameText(aGuid, VENDOR_EXPORT_GUID_BGL) then
     result := 'BGL'
+
+  // Subscribers
+  else if SameText(aGuid, '42275A45-218F-439E-9326-097CC76E2114') then
+    result := 'iBizz'
+  else if SameText(aGuid, 'B6AE05DC-2D1D-476C-B8EB-B89F42C27304') then
+    result := 'MYOB'
+
   else
     result := aGuid; // Just return the GUID
+end;
+
+//------------------------------------------------------------------------------
+procedure TProductConfigService.LogGuids(const aName: string;
+  const aGuids: TBloArrayOfGuid);
+var
+  sMsg: string;
+  i: integer;
+begin
+  sMsg := aName + ': ';
+  for i := 0 to High(aGuids) do
+  begin
+    if (i <> 0) then
+      sMsg := sMsg + ', ';
+
+    sMsg := sMsg + GuidToDesc(aGuids[i]);
+  end;
+  LogUtil.LogMsg(lmDebug, UNIT_NAME, sMsg);
 end;
 
 //------------------------------------------------------------------------------
@@ -3211,7 +3237,7 @@ var
   TempCatalogueEntry: TBloCatalogueEntry;
 begin
   if DebugMe then LogUtil.LogMsg(lmDebug, UNIT_NAME,
-    'RemoveProduct ' + GuidToDesc(aProductId) + ' to practice ' + FPracticeCopy.DisplayName
+    'RemoveProduct ' + GuidToDesc(aProductId)
   );
 
   Result := '';
@@ -3563,9 +3589,8 @@ begin
 
           Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Saving Practice data export settings', 33);
 
-          if DebugMe then LogUtil.LogMsg(lmDebug, UNIT_NAME,
-            'SavePracticeDataSubscribers'
-          );
+          if DebugMe then
+            LogGuids('SavePracticeDataSubscribers', VendorExports);
 
           MsgResponce := BlopiInterface.SavePracticeDataSubscribers(PracCountryCode, PracCode, PracPassHash, VendorExports);
 
@@ -3636,8 +3661,8 @@ begin
           if ShowProgressBar then
             Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Saving Client data export settings', 33);
 
-          if DebugMe then LogUtil.LogMsg(lmDebug, UNIT_NAME,
-            'SaveClientDataSubscribers for ' + PracCode
+          if DebugMe then
+            LogGuids('SaveClientDataSubscribers', aVendorExports
           );
 
           MsgResponce := BlopiInterface.SaveClientDataSubscribers(PracCountryCode,
@@ -3737,9 +3762,8 @@ begin
             AccountData.AccountNumber := aAccountNumber;
             AccountData.Subscribers := aVendorExports;
 
-            if DebugMe then LogUtil.LogMsg(lmDebug, UNIT_NAME,
-              'SaveBankAccountDataSubscribers for ' + PracCode
-            );
+            if DebugMe then
+              LogGuids('SaveBankAccountDataSubscribers for ' + AccountData.AccountNumber, aVendorExports);
 
             MsgResponce := BlopiInterface.SaveBankAccountDataSubscribers(PracCountryCode,
                                                                          PracCode,
