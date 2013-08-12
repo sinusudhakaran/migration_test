@@ -233,4 +233,58 @@ const                   // 12345678
 
 implementation
 
+// Takes in a disk code, returns BSB and account number
+procedure ProcessDiskCode(InputString: string; var Bsb, AccountNum: string);
+const
+  NumericalChars = ['0'..'9'];
+var
+  InputStringNumericOnly: string;
+  FirstSixChars, RemainingChars: string;
+
+  function StripNonNumeric(const AValue: string): string;
+  var
+    SrcPtr, DestPtr: PChar;
+  begin
+    SrcPtr := PChar(AValue);
+    SetLength(Result, Length(AValue));
+    DestPtr := PChar(Result);
+    while SrcPtr[0] <> #0 do
+    begin
+      if SrcPtr[0] in NumericalChars then
+      begin
+        DestPtr[0] := SrcPtr[0];
+        Inc(DestPtr);
+      end;
+      Inc(SrcPtr);
+      if (SrcPtr = '') then
+        break;
+    end;
+    SetLength(Result, DestPtr - PChar(Result));
+  end;
+
+begin
+  InputStringNumericOnly := StripNonNumeric(InputString);
+
+  // Condition 1: disk code has 12 characters or more, first character is numeric
+  if (Length(InputString) > 11) and (InputString[1] in NumericalChars) then
+  begin
+    FirstSixChars := Copy(InputString, 1, 6);
+    RemainingChars := Copy(InputString, 7);
+    if (FirstSixChars = StripNonNumeric(FirstSixChars)) then
+      Bsb := FirstSixChars;
+      AccountNum := StripNonNumeric(RemainingChars);
+  end else
+  // Condition 2: disk code has 12 or less numeric characters, first character is non-numeric
+  if (Length(InputStringNumericOnly) < 13) and not (InputString[1] in NumericalChars) then
+  begin
+    Bsb := '000000';
+    AccountNum := InputStringNumericOnly;
+  end else
+  // Condition 3: disk code has more than 12 characters, first character is non-numeric
+  begin
+    Bsb := Copy(InputStringNumericOnly, 1, 6);
+    AccountNum := Copy(InputStringNumericOnly, 7);
+  end;
+end;
+
 end.

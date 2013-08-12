@@ -96,7 +96,7 @@ begin
    Writeln(OutputFile, '"Account Number","Date","Type","Reference",' +
                         '"Analysis","Amount","Other Party","Particulars",'+
                         '"GST Amount","GST Class","Quantity","Code",'+
-                        '"Narration","Contra","ClientCode","Closing Balance","Notes"' );
+                        '"Narration","Contra","ClientCode","Closing Balance","Notes","BSB"' );
 
 end;
 
@@ -278,11 +278,13 @@ end;
 
 
 procedure WriteSimpleFields(var Session: TExtractSession);
-
+var
+  Bsb, AccountNum: string;
 begin
+   ProcessDiskCode(CurrentAccount, Bsb, AccountNum);
    with ExtractFieldHelper do
    Writeln(Outputfile,
-     CurrentAccount, ',',
+     {CurrentAccount}ForceQuotes(AccountNum), ',',
      ForceQuotes(GetField(f_Date)), ',',
      ForceQuotes(GetField(f_TransType)), ',',
      CleanTextField(GetField(f_Reference)), ',',
@@ -298,7 +300,8 @@ begin
      CurrentContra, ',',
      CurrentClientCode, ',',
      ForceQuotes(GetField(f_Balance,'0.00')), ',',
-     ExtractFieldHelper.RemoveCRLF(CleanTextField(GetField(f_Notes)))
+     ExtractFieldHelper.RemoveCRLF(CleanTextField(GetField(f_Notes))),
+     ForceQuotes(Bsb)
    );
 
 end;
