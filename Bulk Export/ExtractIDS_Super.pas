@@ -95,7 +95,7 @@ begin
   Writeln(OutputFile, '"Account Number","Date","Type","Reference",' +
                       '"Analysis","Amount","Other Party","Particulars",'+
                       '"GST Amount","GST Class","Quantity","Code",'+
-                      '"Narration","Contra","ClientCode","Closing Balance","Notes","Bsb"' );
+                      '"Narration","Contra","ClientCode","Closing Balance","Notes","BSB"' );
 end;
 
 
