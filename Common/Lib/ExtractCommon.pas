@@ -21,7 +21,7 @@ unit ExtractCommon;
 
 interface
 uses
-   Windows, graphics;
+   Windows, graphics, SysUtils;
 
 
 
@@ -265,22 +265,32 @@ var
 begin
   InputStringNumericOnly := StripNonNumeric(InputString);
 
+  // Special conditions
+  if (AnsiCompareText(InputString, 'Cash Journals') = 0) then // Note: AnsiCompareText is not case sensitive
+  begin
+    Bsb := '000000';
+    AccountNum := '11111111';
+  end else
+  if (AnsiCompareText(InputString, 'Accrual Journals') = 0) then
+  begin
+    Bsb := '000000';
+    AccountNum := '99999999';
+  end else
   // Condition 1: disk code has 12 characters or more, first character is numeric
   if (Length(InputString) > 11) and (InputString[1] in NumericalChars) then
   begin
-    FirstSixChars := Copy(InputString, 1, 6);
-    RemainingChars := Copy(InputString, 7);
-    if (FirstSixChars = StripNonNumeric(FirstSixChars)) then
-      Bsb := FirstSixChars;
-      AccountNum := StripNonNumeric(RemainingChars);
+    FirstSixChars := Copy(InputStringNumericOnly, 1, 6);
+    RemainingChars := Copy(InputStringNumericOnly, 7);
+    Bsb := FirstSixChars;
+    AccountNum := RemainingChars;
   end else
-  // Condition 2: disk code has 12 or less numeric characters, first character is non-numeric
-  if (Length(InputStringNumericOnly) < 13) and not (InputString[1] in NumericalChars) then
+  // Condition 2: disk code has 11 or less numeric characters, first character is non-numeric
+  if (Length(InputStringNumericOnly) < 12) and not (InputString[1] in NumericalChars) then
   begin
     Bsb := '000000';
     AccountNum := InputStringNumericOnly;
   end else
-  // Condition 3: disk code has more than 12 characters, first character is non-numeric
+  // Condition 3: disk code has 12 or more characters, first character is non-numeric
   begin
     Bsb := Copy(InputStringNumericOnly, 1, 6);
     AccountNum := Copy(InputStringNumericOnly, 7);
