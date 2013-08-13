@@ -274,10 +274,10 @@ begin
    Result := er_OK;
 end;
 
-{
 // Takes in a disk code, returns BSB and account number.
-// NOTE: PUT ANY CHANGES MADE HERE INTO PROCESSDISKCODE IN EXTRACTCOMMON.
-//
+// NOTE: PUT ANY CHANGES MADE HERE INTO PROCESSDISKCODE IN EXTRACTCOMMON, for some
+// reason this unit can't access ProcessDiskCode in ExtractCommon so I've had to
+// duplicate the functionality
 procedure ProcessDiskCode(InputString: string; var Bsb, AccountNum: string);
 const
   NumericalChars = ['0'..'9'];
@@ -312,14 +312,12 @@ begin
   // Special conditions
   if (AnsiCompareText(InputString, 'Cash Journals') = 0) then // Note: AnsiCompareText is not case sensitive
   begin
-    // Bsb := '000000';
-    Bsb := '000001';
+    Bsb := '000000';
     AccountNum := '11111111';
   end else
   if (AnsiCompareText(InputString, 'Accrual Journals') = 0) then
   begin
-    // Bsb := '000000';
-    Bsb := '000002';
+    Bsb := '000000';
     AccountNum := '99999999';
   end else
   // Condition 1: disk code has 12 characters or more, first character is numeric
@@ -327,31 +325,26 @@ begin
   begin
     FirstSixChars := Copy(InputStringNumericOnly, 1, 6);
     RemainingChars := Copy(InputStringNumericOnly, 7);
-    // Bsb := FirstSixChars;
-    Bsb := '000003';
+    Bsb := FirstSixChars;
     AccountNum := RemainingChars;
   end else
   // Condition 2: disk code has 11 or less numeric characters, first character is non-numeric
   if (Length(InputStringNumericOnly) < 12) and not (InputString[1] in NumericalChars) then
   begin
-    // Bsb := '000000';
-    Bsb := '000004';
+    Bsb := '000000';
     AccountNum := InputStringNumericOnly;
   end else
   // Condition 3: disk code has 12 or more characters, first character is non-numeric
   begin
-    // Bsb := Copy(InputStringNumericOnly, 1, 6);
-    Bsb := '000005';
+    Bsb := Copy(InputStringNumericOnly, 1, 6);
     AccountNum := Copy(InputStringNumericOnly, 7);
   end;
 end;
-}
 
 procedure WriteSimpleFields(var Session: TExtractSession);
 var
   Bsb, AccountNum: string;
 begin
-//  ShowMessage('ExtractIDS_Super.WriteSimpleFields');
   ProcessDiskCode(CurrentAccount, Bsb, AccountNum);
   with ExtractFieldHelper do
     Writeln(Outputfile,
