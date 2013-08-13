@@ -275,9 +275,6 @@ begin
 end;
 
 // Takes in a disk code, returns BSB and account number.
-// NOTE: PUT ANY CHANGES MADE HERE INTO PROCESSDISKCODE IN EXTRACTCOMMON, for some
-// reason this unit can't access ProcessDiskCode in ExtractCommon so I've had to
-// duplicate the functionality
 procedure ProcessDiskCode(InputString: string; var Bsb, AccountNum: string);
 const
   NumericalChars = ['0'..'9'];
@@ -307,15 +304,18 @@ var
   end;
 
 begin
+  // NOTE: PUT ANY CHANGES MADE HERE INTO PROCESSDISKCODE IN EXTRACTCOMMON, for some
+  // reason this unit can't access ProcessDiskCode in ExtractCommon so I've had to
+  // duplicate the functionality
   InputStringNumericOnly := StripNonNumeric(InputString);
 
-  // Special conditions
-  if (AnsiCompareText(InputString, 'Cash Journals') = 0) then // Note: AnsiCompareText is not case sensitive
+  /// Special conditions
+  if (AnsiCompareStr(AnsiUpperCase(InputString), 'CASH JOURNALS') = 0) then // Note: AnsiCompareText is not case sensitive
   begin
     Bsb := '000000';
     AccountNum := '11111111';
   end else
-  if (AnsiCompareText(InputString, 'Accrual Journals') = 0) then
+  if (AnsiCompareStr(AnsiUpperCase(InputString), 'ACCRUAL JOURNALS') = 0) then
   begin
     Bsb := '000000';
     AccountNum := '99999999';
