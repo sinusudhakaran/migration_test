@@ -281,7 +281,7 @@ procedure WriteSimpleFields(var Session: TExtractSession);
 var
   Bsb, AccountNum: string;
 begin
-   ShowMessage('WriteSimpleFields');
+//   ShowMessage('ExtractCSV.WriteSimpleFields');
    ProcessDiskCode(CurrentAccount, Bsb, AccountNum);
    with ExtractFieldHelper do
    Writeln(Outputfile,
