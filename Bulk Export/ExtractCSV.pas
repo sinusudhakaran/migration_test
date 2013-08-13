@@ -281,7 +281,7 @@ procedure WriteSimpleFields(var Session: TExtractSession);
 var
   Bsb, AccountNum: string;
 begin
-  if (AnsiCompareStr(AnsiUpperCase(CurrentAccount), 'CASH JOURNALS') = 0) then
+  if (AnsiCompareStr(AnsiUpperCase(Trim(CurrentAccount)), 'CASH JOURNALS') = 0) then
     ShowMessage('Cash Journals found')
   else
     ShowMessage(CurrentAccount);
