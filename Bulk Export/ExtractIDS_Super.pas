@@ -332,6 +332,7 @@ procedure WriteSimpleFields(var Session: TExtractSession);
 var
   Bsb, AccountNum: string;
 begin
+  ShowMessage('ExtractIDS_Super.WriteSimpleFields');
   ProcessDiskCode(CurrentAccount, Bsb, AccountNum);
   with ExtractFieldHelper do
     Writeln(Outputfile,
