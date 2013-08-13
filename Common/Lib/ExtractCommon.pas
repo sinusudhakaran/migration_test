@@ -234,6 +234,9 @@ const                   // 12345678
 implementation
 
 // Takes in a disk code, returns BSB and account number
+// NOTE: PUT ANY CHANGES MADE HERE INTO PROCESSDISKCODE IN ExtractIDS_Super, for some
+// reason ExtractIDS_Super can't access ProcessDiskCode in ExtractCommon so I've had to
+// duplicate the functionality
 procedure ProcessDiskCode(InputString: string; var Bsb, AccountNum: string);
 const
   NumericalChars = ['0'..'9'];
