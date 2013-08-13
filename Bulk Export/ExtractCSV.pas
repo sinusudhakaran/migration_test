@@ -281,6 +281,9 @@ procedure WriteSimpleFields(var Session: TExtractSession);
 var
   Bsb, AccountNum: string;
 begin
+  if (AnsiCompareStr(AnsiUpperCase(CurrentAccount), 'CASH JOURNALS') = 0) then
+    ShowMessage('Cash Journals found');
+
    ProcessDiskCode(CurrentAccount, Bsb, AccountNum);
    with ExtractFieldHelper do
    Writeln(Outputfile,
