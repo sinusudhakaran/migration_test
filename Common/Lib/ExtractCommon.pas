@@ -269,12 +269,12 @@ begin
   InputStringNumericOnly := StripNonNumeric(InputString);
 
   // Special conditions
-  if (AnsiCompareStr(AnsiUpperCase(InputString), 'CASH JOURNALS') = 0) then // Note: AnsiCompareText is not case sensitive
+  if (AnsiPos('Cash Journals', InputString) <> 0) then
   begin
     Bsb := '000000';
     AccountNum := '11111111';
   end else
-  if (AnsiCompareStr(AnsiUpperCase(InputString), 'ACCRUAL JOURNALS') = 0) then
+  if (AnsiPos('Accrual Journals', InputString) <> 0) then
   begin
     Bsb := '000000';
     AccountNum := '99999999';

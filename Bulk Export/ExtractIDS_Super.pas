@@ -309,13 +309,13 @@ begin
   // duplicate the functionality
   InputStringNumericOnly := StripNonNumeric(InputString);
 
-  /// Special conditions
-  if (AnsiCompareStr(AnsiUpperCase(InputString), 'CASH JOURNALS') = 0) then // Note: AnsiCompareText is not case sensitive
+  // Special conditions
+  if (AnsiPos('Cash Journals', InputString) <> 0) then
   begin
     Bsb := '000000';
     AccountNum := '11111111';
   end else
-  if (AnsiCompareStr(AnsiUpperCase(InputString), 'ACCRUAL JOURNALS') = 0) then
+  if (AnsiPos('Accrual Journals', InputString) <> 0) then
   begin
     Bsb := '000000';
     AccountNum := '99999999';
@@ -345,11 +345,6 @@ procedure WriteSimpleFields(var Session: TExtractSession);
 var
   Bsb, AccountNum: string;
 begin
-  // if (AnsiCompareStr(AnsiUpperCase(Trim(CurrentAccount)), 'CASH JOURNALS') = 0) then
-  if (AnsiPos('ournal', CurrentAccount) <> 0) then
-    ShowMessage('Cash Journals found')
-  else
-    Showmessage(CurrentAccount);
   ProcessDiskCode(CurrentAccount, Bsb, AccountNum);
   with ExtractFieldHelper do
     Writeln(Outputfile,
