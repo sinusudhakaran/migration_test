@@ -1400,7 +1400,7 @@ begin
                      VendorNames.Add(Copy(ClientExportDataService.Current[i].Name_, 1, length(ClientExportDataService.Current[i].Name_)));
                    HelpfulWarningMsg('Your changes will allow the client to download data directly from ' +
                                      TProduct.BrandName + ' but this client is set up to export data to ' + bkBranding.ProductOnlineName +
-                                     'for ' + GetCommaSepStrFromList(VendorNames) + '.' +
+                                     ' for ' + GetCommaSepStrFromList(VendorNames) + '.' +
                                      ' This means that data can be exported to ' + GetCommaSepStrFromList(VendorNames) +
                                      ' only when the file is available in ' + bkBranding.PracticeProductName + '.', 0);
                  finally
