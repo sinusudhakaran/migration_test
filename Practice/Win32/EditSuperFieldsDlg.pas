@@ -339,7 +339,7 @@ end;
 procedure TdlgEditSuperFields.FormCreate(Sender: TObject);
 begin
   ThemeForm( Self);
-  if MyClient.clFields.clAccounting_System_Used = saBGLSimpleFund then
+  if MyClient.clFields.clAccounting_System_Used in [saBGLSimpleFund, saBGL360] then
      BKHelpSetUp(Self, BKH_Transferring_transactions_from_BankLink_to_BGL_Simple_Fund)
   else
      BKHelpSetUp(Self, BKH_Transferring_transactions_from_BankLink_Practice_to_BGL_Simple_Ledger );

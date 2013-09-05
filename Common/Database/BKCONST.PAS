@@ -579,7 +579,8 @@ CONST
    saSageHandisoftSuperfund = 51;
    saAcclipse = 52;
    saMYOBAccRight = 53;
-   saMax = 53;
+   saBGL360 = 54;
+   saMax = 54;
 
    saNames : Array[ saMin..saMax ] of String[36] =
       //'123456789012345678901234567890'
@@ -614,7 +615,7 @@ CONST
         'Catsoft Ledgercat 2000'    ,                 //saCatSoft
         'BCS Accounting'            ,                 //saBCSAccounting
         'MYOB Accountants Office'   ,                 //saMYOBAccountan
-        'Supercorp Superfund'            ,                 //saSolution6SuperFund
+        'Supercorp Superfund'       ,                 //saSolution6SuperFund
         'Ledger Assistant'          ,                 //saTaxAssistant
         'MYOB General Journals',                      //saMYOBGen
         'Accomplish CashManager',                     //saAccomplishCashManager
@@ -636,7 +637,8 @@ CONST
         'ProSuper',                                   //saProSuper
         'Sage HandiSoft SuperFund',                   //saSageHandisoftSuperfund
         'iFirm',                                      //saAcclipse
-        'MYOB General Journals (2012)'                //snMYOBAccRight
+        'MYOB General Journals (2012)',               //snMYOBAccRight
+        'BGL Simple Fund 360'                         //saBGL360
       );
 
       DESKTOP_SUPER_CHART_FILENAME = 'Desktop Super Chart List.csv';

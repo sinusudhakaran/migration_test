@@ -124,7 +124,7 @@ Begin
                saLotus123         : ;
                saAttache          : Result := DefaultDir + clCode + '\BANKLINK.CSV';
                saHandiLedger      : Result := DefaultDir + clCode + '.ASC';
-               saBGLSimpleFund, saBGLSimpleLedger    : Result := DefaultDir + clCode + '\BANKLINK.CSV';
+               saBGLSimpleFund, saBGLSimpleLedger, saBGL360    : Result := DefaultDir + clCode + '\BANKLINK.CSV';
                saMYOB             : Result := DefaultDir + clCode + '.TXT';
                saCeeDataCDS1      : ;
                saSolution6CLS3    : Result := clCode + '.TXT';

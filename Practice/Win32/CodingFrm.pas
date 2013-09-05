@@ -4204,7 +4204,7 @@ var
       if PayeeLine.plSF_Edited
       and CanUseSuperFundFields (MyClient.clFields.clCountry,MyClient.clFields.clAccounting_System_Used ) then begin
 
-         Result := (not (MyClient.clFields.clAccounting_System_Used in [saBGLSimpleFund, saBGLSimpleLedger]))
+         Result := (not (MyClient.clFields.clAccounting_System_Used in [saBGLSimpleFund, saBGLSimpleLedger, saBGL360]))
                 or (pT.txDate_Effective >= mcSwitchDate); // cannot do new and Old list
 
       end else

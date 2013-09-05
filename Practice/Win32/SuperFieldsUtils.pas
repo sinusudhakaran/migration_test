@@ -1939,7 +1939,7 @@ begin
   result := false;
    IncUsage('Edit Superfund Transaction');
   case MyClient.clFields.clAccounting_System_Used of
-   saBGLSimpleFund, saBGLSimpleLedger: result := EditBGLFields(pT, Move, T, L);
+   saBGLSimpleFund, saBGLSimpleLedger, saBGL360: result := EditBGLFields(pT, Move, T, L);
    saSupervisor, saSolution6SuperFund, saSuperMate: result := EditSupervisorFields(pT, Move, T, L);
    saDesktopSuper, saClassSuperIP: result := EditDesktopFields(pT, BA, Move, T, L, MyClient.clFields.clAccounting_System_Used);
    saSageHandisoftSuperfund: Result := EditSageHandisoftFields(pT, Move, T, L);
@@ -1952,7 +1952,7 @@ begin
   result := false;
   IncUsage('Edit Superfund Dissection');
   case MyClient.clFields.clAccounting_System_Used of
-   saBGLSimpleFund, saBGLSimpleLedger: result := EditBGLFields(ParentTrans, pWD, Move, T, L);
+   saBGLSimpleFund, saBGLSimpleLedger, saBGL360: result := EditBGLFields(ParentTrans, pWD, Move, T, L);
    saSupervisor, saSolution6SuperFund, saSuperMate: result := EditSupervisorFields(ParentTrans, pWD, Move, T, L);
    saDesktopSuper, saClassSuperIP: result := EditDesktopFields(ParentTrans, pWD, BA, Move, T, L, MyClient.clFields.clAccounting_System_Used);
    saSageHandisoftSuperfund: Result := EditSageHandisoftFields(ParentTrans, pWD, Move, T, L);
@@ -1965,7 +1965,7 @@ begin
   result := false;
   IncUsage('Edit Superfund Journal');
   case MyClient.clFields.clAccounting_System_Used of
-   saBGLSimpleFund, saBGLSimpleLedger: result := EditBGLFields(ParentTrans, pWJ, Move, T, L);
+   saBGLSimpleFund, saBGLSimpleLedger, saBGL360: result := EditBGLFields(ParentTrans, pWJ, Move, T, L);
    saSupervisor, saSolution6SuperFund, saSuperMate: result := EditSupervisorFields(ParentTrans, pWJ, Move, T, L);
    saDesktopSuper, saClassSuperIP: result := EditDesktopFields(ParentTrans, pWJ, BA, Move, T, L, MyClient.clFields.clAccounting_System_Used);
    saSageHandisoftSuperfund: Result := EditSageHandisoftFields(ParentTrans, pWJ, Move, T, L);
@@ -1985,7 +1985,7 @@ begin
      sfPayee : IncUsage('Edit Superfund Memorisation');
   end;
   case MyClient.clFields.clAccounting_System_Used of
-     saBGLSimpleFund, saBGLSimpleLedger: result := EditBGLFields(ParentTrans, Mem, Move, T, L);
+     saBGLSimpleFund, saBGLSimpleLedger, saBGL360: result := EditBGLFields(ParentTrans, Mem, Move, T, L);
      saSupervisor, saSolution6SuperFund, saSuperMate: result := EditSupervisorFields(ParentTrans,Mem, Move, T, L);
      saDesktopSuper, saClassSuperIP: result := EditDesktopFields(ParentTrans, Mem, BA, Move, T, L, MyClient.clFields.clAccounting_System_Used, aSDMode);
 

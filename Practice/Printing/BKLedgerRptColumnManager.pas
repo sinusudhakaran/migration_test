@@ -297,7 +297,7 @@ begin
     Result := True
   else begin
     case AccountingSystem of
-      saBGLSimpleFund, saBGLSimpleLedger: Result := (AccountingSystemUsed in [saBGLSimpleFund, saBGLSimpleLedger]);
+      saBGLSimpleFund, saBGLSimpleLedger, saBGL360: Result := (AccountingSystemUsed in [saBGLSimpleFund, saBGLSimpleLedger, saBGL360]);
       saSolution6SuperFund, saSupervisor, saSuperMate: Result := (AccountingSystemUsed in [saSolution6SuperFund, saSupervisor, saSuperMate]);
     end;
   end;
@@ -324,7 +324,7 @@ begin
     tkchAlternative_Code     : Result := Software.AlternativeChartCodeName(Country,AccountingSystemUsed);
   else
     case AccountingSystemUsed of
-      saBGLSimpleFund, saBGLSimpleLedger:
+      saBGLSimpleFund, saBGLSimpleLedger, saBGL360:
         //BGL
         case aDataToken of
           tktxSF_Imputed_Credit        : Result := 'Imputed CR';
@@ -968,7 +968,8 @@ begin
     //Superfund specific columns
     case AccountingSystemUsed of
       saBGLSimpleFund,
-      saBGLSimpleLedger: AddBGLColumns;
+      saBGLSimpleLedger,
+      saBGL360: AddBGLColumns;
       saDesktopSuper: AddDesktopSuperColumns;
       saSolution6SuperFund, saSupervisor, saSuperMate: AddMYOBSuperFundColumns;
       //These superfunds currently don't have any additional fields in Practice

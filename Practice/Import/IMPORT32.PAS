@@ -134,7 +134,7 @@ procedure RefreshChart;
          saLotus123       : ;
          saAttache        : AttacheOZ.RefreshChart;
          saHandiLedger    : Handiledger.RefreshChart;
-         saBGLSimpleFund, saBGLSimpleLedger  : SimpleFund.RefreshChart;
+         saBGLSimpleFund, saBGLSimpleLedger, saBGL360  : SimpleFund.RefreshChart;
          saMYOB           : MYOB.RefreshChart;
          saMYOBGen        : MYOBGen.RefreshChart;
          saCeeDataCDS1    : ;

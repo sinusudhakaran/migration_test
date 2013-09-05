@@ -109,7 +109,7 @@ VAR
       if MemorisationLine.mlSF_Edited
       and (aClient.clFields.clCountry = whAustralia) then begin
 
-         Result := (not (aClient.clFields.clAccounting_System_Used in [saBGLSimpleFund, saBGLSimpleLedger]))
+         Result := (not (aClient.clFields.clAccounting_System_Used in [saBGLSimpleFund, saBGLSimpleLedger, saBGL360]))
                 or (Transaction.txDate_Effective >= mcSwitchDate); // cannot do new and Old list
 
       end else

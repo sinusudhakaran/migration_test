@@ -1191,7 +1191,8 @@ begin
        // Member, Fund and Transaction fields are more System specific
        case Client.clFields.clAccounting_System_Used of
          saBGLSimpleFund,
-         saBGLSimpleLedger:  AddBGLFields(aDiss.dsTransaction.txDate_Effective,
+         saBGLSimpleLedger,
+         saBGL360:  AddBGLFields(aDiss.dsTransaction.txDate_Effective,
                                           aDiss.dsSF_Member_Component);
 
          saSupervisor, saSolution6SuperFund: ;
@@ -1795,7 +1796,8 @@ begin
        // Fund, Member and Transaction are more system specific
        case Client.clFields.clAccounting_System_Used of
          saBGLSimpleFund,
-         saBGLSimpleLedger: AddBGLFields(aTrans.txDate_Effective,
+         saBGLSimpleLedger,
+         saBGL360: AddBGLFields(aTrans.txDate_Effective,
                                          aTrans.txSF_Member_Component);
 
          saSupervisor, saSolution6SuperFund: ;

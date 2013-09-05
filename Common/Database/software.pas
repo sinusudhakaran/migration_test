@@ -241,7 +241,8 @@ begin
                          saProSuper,
                          saClassSuperIP,
                          saAcclipse,
-                         saMYOBAccRight      ] ) then
+                         saMYOBAccRight,
+                         saBGL360      ] ) then
             Result := True;
       end;
       whUK    : begin
@@ -387,7 +388,7 @@ begin
                                          saDesktopSuper, saSolution6SuperFund,
                                          saPraemium, saSupervisor, saIRESSXplan,
                                          saSuperMate, saRewardSuper, saProSuper,
-                                         saSageHandisoftSuperfund];
+                                         saSageHandisoftSuperfund, saBGL360];
   end;
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -399,7 +400,8 @@ begin
     whAustralia: Result := aType in [ saBGLSimpleFund, saSupervisor,
                                       saSolution6SuperFund, saDesktopSuper,
                                       saBGLSimpleLedger, saSuperMate,
-                                      saSageHandisoftSuperfund, saClassSuperIP];
+                                      saSageHandisoftSuperfund, saClassSuperIP,
+                                      saBGL360];
   end;
   if Result then
      if (sdMode in [sfMem])
@@ -530,7 +532,7 @@ end;
 function HasAlternativeChartCode(aCountry, aType : byte) : boolean;
 begin
    case aCountry of
-   whAustralia : Result := (aType = saBGLSimpleFund)
+   whAustralia : Result := (aType in [saBGLSimpleFund, saBGL360])
    else Result := False;
    end;
 end;
@@ -542,7 +544,7 @@ begin
    case aCountry of
    whAustralia :
        case aType of
-          saBGLSimpleFund : Result := 'ASX Code';
+          saBGLSimpleFund, saBGL360 : Result := 'ASX Code';
        end
    end;
 end;

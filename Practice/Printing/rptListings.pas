@@ -2637,7 +2637,7 @@ procedure ListMemDetail(Sender : TObject);
                AddValueLine('Unfranked',MemLine^.mlSF_PCFranked, true);
 
                case MyClient.clFields.clAccounting_System_Used of
-               saBGLSimpleFund, saBGLSimpleLedger: begin
+               saBGLSimpleFund, saBGLSimpleLedger, saBGL360: begin
 
                      AddValueLine('Tax Free Dist', MemLine.mlSF_Tax_Free_Dist, MemLine.mlLine_Type = mltPercentage);
                      AddValueLine('Tax Exempt Dist', MemLine.mlSF_Tax_Exempt_Dist, MemLine.mlLine_Type = mltPercentage);
