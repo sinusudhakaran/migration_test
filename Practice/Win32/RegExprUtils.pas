@@ -22,6 +22,7 @@ uses
   Function RegExIsEmailValid(aEmail : String) : Boolean;
   Function RegExIsPasswordValid(aPassword : String) : Boolean;
   Function RegExIsAlphaNumeric(aString : String; AllowUnderscore : boolean): Boolean;
+  function RegReplaceStr(needle, replacement, haystack: string): string;
 
 //------------------------------------------------------------------------------
 implementation
@@ -73,6 +74,17 @@ begin
   PerlRegEx.Subject := aString;
     
   Result := PerlRegEx.Match;
+end;
+
+function RegReplaceStr(needle, replacement, haystack: string): string;
+begin
+  PerlRegEx.Options := [preMultiLine, preSingleLine];
+  PerlRegEx.RegEx := needle;
+  PerlRegEx.Subject := haystack;
+  PerlRegEx.Replacement := replacement;
+  PerlRegEx.Match;
+  PerlRegEx.ReplaceAll;
+  Result := PerlRegEx.Subject;
 end;
 
 //------------------------------------------------------------------------------
