@@ -29,9 +29,14 @@ uses
 
 const
   SF_FILE  = 'CHART.DBF';
+  SF360_File = 'CHART.CSV';
   SF_EXTN  = 'DBF';
+  SF360_EXTN = 'CSV';
   UnitName = 'SIMPLEFUND';
   DebugMe  : Boolean = False;
+
+var
+  SFFileName : string;
 
 //------------------------------------------------------------------------------
 
@@ -39,7 +44,7 @@ procedure ReadDBaseFile(ClientRef : string; FilePath : string; Chart : TChart);
 const
   ThisMethodName = 'ReadDBaseFile';
 var
- DBaseFile               : tDBaseFile;
+ DBaseFile            : tDBaseFile;
  i                    : integer;
  Deleted              : boolean;
  Code                 : Bk5CodeStr;
@@ -51,18 +56,18 @@ var
  Msg                  : string;
 
 begin
-   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
+ if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
 
  //check for existence of both files}
- if not BKFileExists(FilePath + SF_FILE) then begin
-    Msg := Format('Cannot Find The Account File %s%s', [ FilePath, SF_FILE ]);
+ if not BKFileExists(FilePath + SFFileName) then begin
+    Msg := Format('Cannot Find The Account File %s%s', [ FilePath, SFFileName ]);
     LogUtil.LogMsg(lmError, UnitName, ThisMethodName + ' - ' + Msg );
     raise EExtractData.CreateFmt( '%s - %s : %s', [ UnitName, ThisMethodName, Msg ] );
  end;
  ACode1 := '';
 
  try
-   DBaseFile := tDBaseFile.Create(FilePath + SF_FILE);
+   DBaseFile := tDBaseFile.Create(FilePath + SFFileName);
    for I := 0 to DBaseFile.FieldList.ItemCount - 1 do
        ACode1 := ACode1 + ', ' + TDBaseField(DBaseFile.FieldList.Items[i]).FieldName ;
    try
@@ -102,7 +107,7 @@ begin
 
           if Code <> '' then begin
              if (Chart.FindCode( Code )<> NIL ) then Begin
-                LogUtil.LogMsg( lmError, UnitName, 'Duplicate Code '+Code+' found in '+FilePath + SF_FILE );
+                LogUtil.LogMsg( lmError, UnitName, 'Duplicate Code '+Code+' found in '+FilePath + SFFileName );
              end else Begin
                 //insert new account into chart
                 NewAccount := New_Account_Rec;
@@ -124,7 +129,7 @@ begin
    end;
  except
    on E: Exception do begin
-     HelpfulInfoMsg( Format('Cannot Load The Account File %s%s', [ FilePath, SF_FILE ]), 0 );
+     HelpfulInfoMsg( Format('Cannot Load The Account File %s%s', [ FilePath, SFFileName ]), 0 );
    end;
  end;
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
@@ -145,11 +150,16 @@ var
 begin
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
 
-  if not Assigned(MyClient) then 
+  if not Assigned(MyClient) then
      Exit;
 
   with MyClient.clFields do begin
-    ChartFileName := AddSlash(clLoad_Client_Files_From) + SF_FILE;
+    if (clAccounting_System_Used = saBGL360) then
+      SFFileName := SF360_File
+    else
+      SFFileName := SF_File;
+
+    ChartFileName := AddSlash(clLoad_Client_Files_From) + SFFileName;
     //check file exists, ask for a new one if not
     if not BKFileExists(ChartFileName) then begin
       HCtx := 0; //hcSFUND001;
@@ -157,7 +167,7 @@ begin
         FileType := 'Simple Ledger File'
       else
         FileType := 'Simple Fund File';
-      if not ChartUtils.LoadChartFrom(clCode,ChartFileName,clLoad_Client_Files_From,FileType + '|'+SF_FILE,SF_EXTN,HCtx) then
+      if not ChartUtils.LoadChartFrom(clCode,ChartFileName,clLoad_Client_Files_From,FileType + '|'+SFFileName,SF_EXTN,HCtx) then
         Exit;
     end;
     LoadFromPath := ExtractFilePath(ChartFileName);
