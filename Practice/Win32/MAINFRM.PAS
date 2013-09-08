@@ -32,7 +32,7 @@ uses
   pfNamesDlg, updateMF, CodingFrm, SysObj32, Admin32, BudgetFrm, Login32, CodingFormCommands,
   jpeg, AppEvnts, ModalProcessorDlg, ActnList, RzButton, RzPanel, DdeMan, ExportChargesFrm,
   BatchReportFrm,{,threadData}
-  OSFont, Progress;
+  OSFont, Progress, BudgetImportExport;
 
 const
   BK_SHOWCM = (WM_USER + 1);
@@ -430,10 +430,12 @@ type
     actGetFromOnline: TAction;
     mniChangePassword: TMenuItem;
     mniExportdatatoBanklinkOnline: TMenuItem;
-    RzSpacer3: TRzSpacer;
     mmiTaxablePaymentsReport: TMenuItem;
     mniExchangeGainLossWizard: TMenuItem;
     N46: TMenuItem;
+    tbBudgetImport: TRzToolButton;
+    tbBudgetExport: TRzToolButton;
+    RzSpacer5: TRzSpacer;
     procedure FormResize(Sender: TObject);
     procedure tmClockTimer(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -716,6 +718,8 @@ type
     procedure mniExportdatatoBanklinkOnlineClick(Sender: TObject);
     procedure mmiTaxablePaymentsReportClick(Sender: TObject);
     procedure mniExchangeGainLossWizardClick(Sender: TObject);
+    procedure tbBudgetImportClick(Sender: TObject);
+    procedure tbBudgetExportClick(Sender: TObject);
   private
     { Private declarations }
     FClientInstance,
@@ -4951,6 +4955,16 @@ end;
 procedure TfrmMain.tbBudgetCloseClick(Sender: TObject);
 begin
   DoBudgetTBarCommand(ecbQuit);
+end;
+
+procedure TfrmMain.tbBudgetImportClick(Sender: TObject);
+begin
+  DoBudgetTBarCommand(ecbImport);
+end;
+
+procedure TfrmMain.tbBudgetExportClick(Sender: TObject);
+begin
+  DoBudgetTBarCommand(ecbExport);
 end;
 
 procedure TfrmMain.tbChartClick(Sender: TObject);

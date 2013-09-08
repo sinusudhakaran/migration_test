@@ -127,6 +127,8 @@ const
   BUDGET_AVERAGE_BMP      = 3;
   BUDGET_SMOOTH_BMP       = 4;
   BUDGET_ZERO_BMP         = 5;
+  BUDGET_EXPORT           = 10;
+  BUDGET_IMPORT           = 11;
 
   MAINTAIN_VIEW_BMP       = 0;
   MAINTAIN_DELETE_BMP     = 1;

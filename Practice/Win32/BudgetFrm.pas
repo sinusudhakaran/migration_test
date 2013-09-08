@@ -3,43 +3,40 @@ unit BudgetFrm;
 {  provide editing functionality for a budget      }
 {  one budget per form                             }
 {--------------------------------------------------}
+//------------------------------------------------------------------------------
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms,
-  OvcTCmmn, OvcTCell, OvcTCHdr, StdCtrls, OvcBase, OvcTable, BkConst,
-  ExtCtrls, ComCtrls, OvcTCNum, OvcTCEdt, BKDEFS,RzButton,
-  budobj32, Menus, RzPanel, OSfont, ActnList, chList32, ovctcbef, ovctcstr,
-  MoneyDef;
-
-type
-   EClearType = (clrAll,clrColumn,clrRow);
-
-   TBudgetRec = record
-     bAccount     : Bk5CodeStr;
-     bDesc        : string[40];
-     bAmounts     : Array[1..12] of integer;
-     bQuantitys   : Array[1..12] of Money;
-     bUnitPrices  : Array[1..12] of Money;
-     bTotal       : integer;
-     bIsPosting   : boolean;
-     bDetailLine  : pBudget_Detail_Rec;
-   end;
-
-   TBudgetData = Array of tBudgetRec;  {dynamic array}
-
-   TExternalCmdBudget = ( ecbGenerate,     {budget form commands}
-                          ecbCopy,
-                          ecbSplit,
-                          ecbAverage,
-                          ecbSmooth,
-                          ecbZero,
-                          ecbPercentageChange,
-                          ecbHideUnused,
-                          ecbShowAll,
-                          ecbChart,
-                          ecbQuit
-                          );
+  Windows,
+  Messages,
+  SysUtils,
+  Classes,
+  Graphics,
+  Controls,
+  Forms,
+  OvcTCmmn,
+  OvcTCell,
+  OvcTCHdr,
+  StdCtrls,
+  OvcBase,
+  OvcTable,
+  BkConst,
+  ExtCtrls,
+  ComCtrls,
+  OvcTCNum,
+  OvcTCEdt,
+  BKDEFS,
+  RzButton,
+  budobj32,
+  Menus,
+  RzPanel,
+  OSfont,
+  ActnList,
+  chList32,
+  ovctcbef,
+  ovctcstr,
+  MoneyDef,
+  BudgetImportExport;
 
 type
   TfrmBudget = class(TForm)
@@ -67,8 +64,7 @@ type
     mniSplit: TMenuItem;
     mniAverage: TMenuItem;
     mniSmooth: TMenuItem;
-    mniClear: TMenuItem;
-    mniIncrease: TMenuItem;
+    mniClearAll: TMenuItem;
     N2: TMenuItem;
     mniEnterBalance: TMenuItem;
     N3: TMenuItem;
@@ -96,9 +92,13 @@ type
     N1: TMenuItem;
     mniShowAll: TMenuItem;
     mniChartLookup: TMenuItem;
-    mniClearColumn: TMenuItem;
+    mniClear: TMenuItem;
     mniClearRow: TMenuItem;
     mniEnterQuantity: TMenuItem;
+    N4: TMenuItem;
+    mniImport: TMenuItem;
+    mniExport: TMenuItem;
+    mniClearColumn: TMenuItem;
     procedure FormCreate(Sender: TObject);
     procedure tblBudgetGetCellData(Sender: TObject; RowNum,
       ColNum: Integer; var Data: Pointer; Purpose: TOvcCellDataPurpose);
@@ -148,12 +148,15 @@ type
     procedure mniHideUnusedClick(Sender: TObject);
     procedure mniShowAllClick(Sender: TObject);
     procedure mniChartLookupClick(Sender: TObject);
-    procedure mniClearColumnClick(Sender: TObject);
+    procedure mniClearClick(Sender: TObject);
     procedure mniClearRowClick(Sender: TObject);
     procedure ColMonthOwnerDraw(Sender: TObject; TableCanvas: TCanvas;
       const CellRect: TRect; RowNum, ColNum: Integer;
       const CellAttr: TOvcCellAttributes; Data: Pointer; var DoneIt: Boolean);
     procedure mniEnterQuantityClick(Sender: TObject);
+    procedure mniImportClick(Sender: TObject);
+    procedure mniExportClick(Sender: TObject);
+    procedure mniClearColumnClick(Sender: TObject);
   private
     { Private declarations }
     FHint            : THintWindow;
@@ -196,6 +199,8 @@ type
     procedure DoShowAll;
     procedure DoChartLookup;
     procedure DoUnitPriceEntry;
+    procedure DoImport;
+    procedure DoExport;
 
     procedure DoDeleteLine;
 
@@ -231,12 +236,12 @@ type
   end;
 
 var
-  FClearButton     : TRzToolButton;
+  FClearButton : TRzToolButton;
 
-
+//------------------------------------------------------------------------------
 procedure DoBudgets(tbClear: TRzToolButton = nil);
 
-//******************************************************************************
+//------------------------------------------------------------------------------
 implementation
 
 {$R *.DFM}
@@ -278,7 +283,9 @@ uses
    Math,
    Dialogs,
    ExchangeGainLoss,
-   baObj32;
+   baObj32,
+   ExportBudgetDlg,
+   ShellAPI;
 
 const
    {status panel constants}
@@ -314,6 +321,7 @@ var
 
 
 // Redraw main form on minimize
+//------------------------------------------------------------------------------
 procedure TfrmBudget.WMSysCommand(var msg: TWMSyscommand);
 begin
   if ((msg.CmdType and $FFF0) = SC_MINIMIZE) or
@@ -322,7 +330,8 @@ begin
   else
     inherited;
 end;
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 procedure TfrmBudget.FormCreate(Sender: TObject);
 var
   i: Integer;
@@ -342,7 +351,7 @@ begin
 
    bkBranding.StyleBudgetStartText(lblStart);
    bkBranding.StyleBudgetAllExclusiveText(lblAllExclude);
-   bkBranding.StyleBudgetReminderNote(lblReminderNote);   
+   bkBranding.StyleBudgetReminderNote(lblReminderNote);
 
    bkXPThemes.ThemeForm( Self);
    DataAssigned := false;
@@ -374,7 +383,8 @@ begin
      FHint.Canvas.Font.Size := 5;
   end;
 end;
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 procedure TfrmBudget.SetupHelp;
 begin
    Self.ShowHint    := INI_ShowFormHints;
@@ -386,14 +396,16 @@ begin
       'Click to edit the Budget Name|'+
       'Click here to edit the name of this Budget';
 end;
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 function TfrmBudget.RowNumOK(RowNum : integer): boolean;
 begin
    result := (1 <= RowNum)
           and (RowNum <= tblBudget.RowLimit-1)
           and DataAssigned;
 end;
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 function TfrmBudget.RowDataOK(RowNum:integer;Routine:string):boolean;
 {important routine - verifies that the rownum is a valid row        }
 {then verifies that the currently loaded row is the same as this row}
@@ -420,7 +432,8 @@ begin
      HelpfulErrorMsg(msg,0);
   end;
 end;
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 procedure TfrmBudget.ReadCellforPaint(RowNum, ColNum: Integer; var Data: Pointer);
 begin
  Data := nil;
@@ -448,6 +461,7 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 function TfrmBudget.GetTotalForRow(RowNum: Integer): Integer;
 var
   I: Integer;
@@ -456,7 +470,8 @@ begin
   for I := MonthMin to MonthMax do
     Result := Result + FData[RowNum - 1].bAmounts[i-MonthBase];
 end;
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 procedure TfrmBudget.ReadCellforEdit(RowNum, ColNum: Integer; var Data: Pointer);
 {read the data for an editable cell into the current record variables}
 begin
@@ -479,7 +494,8 @@ begin
     end;{case}
   end;
 end;
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 procedure TfrmBudget.WriteCell(RowNum, ColNum: Integer; var Data: Pointer);
 {data is pointed to the variables which hold info for the current record}
 begin
@@ -494,7 +510,8 @@ begin
     end;{case}
    end  ;
 end;
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 procedure TfrmBudget.tblBudgetGetCellData(Sender: TObject; RowNum,
   ColNum: Integer; var Data: Pointer; Purpose: TOvcCellDataPurpose);
 begin
@@ -512,7 +529,8 @@ begin
             WriteCell(RowNum,ColNum,Data);
   end;
 end;
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 procedure TfrmBudget.tblBudgetActiveCellMoving(Sender: TObject;
   Command: Word; var RowNum, ColNum: Integer);
 begin
@@ -523,7 +541,8 @@ begin
      tblBudget.LeftCol := 0;
   end;
 end;
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 procedure TfrmBudget.tblBudgetGetCellAttributes(Sender: TObject;
   RowNum, ColNum: Integer; var CellAttr: TOvcCellAttributes);
 begin
@@ -540,7 +559,8 @@ begin
   if DataAssigned and RowNumOK(RowNum) and (not (FData[RowNum-1].bIsPosting)) then
      CellAttr.caFont.Style := [fsBold];
 end;
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 procedure TfrmBudget.InitTable;
 begin
    with tblBudget.Controller.EntryCommands do begin
@@ -569,6 +589,8 @@ begin
 
    AltLineColor := BKCOLOR_CREAM
 end;
+
+//------------------------------------------------------------------------------
 procedure TfrmBudget.lblnameClick(Sender: TObject);
 begin
    EdtName.Height := lblName.ClientHeight;
@@ -577,7 +599,7 @@ begin
    EdtName.SetFocus;
 end;
 
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
 procedure TfrmBudget.tblBudgetUserCommand(Sender: TObject;
   Command: Word);
 begin
@@ -610,7 +632,8 @@ begin
          DoEnterBalance;
    end;
 end;
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 procedure TfrmBudget.tblBudgetBeginEdit(Sender: TObject; RowNum,
   ColNum: Integer; var AllowIt: Boolean);
 begin
@@ -621,12 +644,8 @@ begin
 
   AllowIt := FData[RowNum-1].bIsPosting;
 end;
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-procedure TfrmBudget.EndEditRow(RowNum, ColNum : integer; var AllowIt : boolean);
-begin
 
-end;
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
 procedure TfrmBudget.tblBudgetEndEdit(Sender: TObject;
   Cell: TOvcTableCellAncestor; RowNum, ColNum: Integer;
   var AllowIt: Boolean);
@@ -636,6 +655,8 @@ begin
    if RowDataOK(RowNum,'BEndEdit') then
         EndEditRow(RowNum,ColNum, AllowIt);
 end;
+
+//------------------------------------------------------------------------------
 function TfrmBudget.AmountMatchesQuantityFormula(RowIndex, ColIndex: Integer): boolean;
 var
   Quantity: Money;
@@ -650,7 +671,7 @@ begin
   Result := CalculatedAmount = Amount;
 end;
 
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
 procedure TfrmBudget.tblBudgetDoneEdit(Sender: TObject; RowNum,
   ColNum: Integer);
 {data for the record has been saved into the variables.  should now save into database}
@@ -702,7 +723,8 @@ begin
   end; {if row ok}
   UpdateShowHideEnabledState;
 end;
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 procedure TfrmBudget.tblBudgetEnteringRow(Sender: TObject;
   RowNum: Integer);
 var
@@ -721,7 +743,8 @@ begin
   Code := '<'+ trim(FData[CurrentRow-1].bAccount)+'> '+FData[CurrentRow-1].bDesc;
   stsDissect.Panels[PANELTEXT].text := Code;
 end;
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 procedure TfrmBudget.ReadRow(RowNum : integer);
 var
  i : integer;
@@ -731,6 +754,8 @@ begin
      for i := 1 to 12 do
        eAmounts[i] := FData[RowNum-1].bAmounts[i];
 end;
+
+//------------------------------------------------------------------------------
 procedure TfrmBudget.Restoredefaultcolumnwidths1Click(Sender: TObject);
 var
   i: Integer;
@@ -742,7 +767,7 @@ begin
     tblBudget.Columns[i].Width := 90;
 end;
 
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
 procedure TfrmBudget.FormShow(Sender: TObject);
 begin
    tblBudget.setfocus;
@@ -760,7 +785,8 @@ begin
    //ExtraTitleBar.Color    := bkBranding.HeaderBackgroundColor;
    //edtName.Color          := bkBranding.HeaderBackgroundColor;
 end;
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 procedure TfrmBudget.tblBudgetActiveCellChanged(Sender: TObject;
   RowNum, ColNum: Integer);
 begin
@@ -771,7 +797,8 @@ begin
 
    //Hint Msgs
 end;
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 procedure TfrmBudget.tblBudgetExit(Sender: TObject);
 var
   Msg : TWMKey;
@@ -783,7 +810,8 @@ begin
       ColMonth1.SendKeyToTable(Msg);
    end;
 end;
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 procedure TfrmBudget.FormClose(Sender: TObject; var Action: TCloseAction);
 var
   i: Integer;
@@ -801,7 +829,7 @@ begin
   RefreshHomepage ([HPR_Coding], Caption);
 end;
 
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
 procedure TFrmBudget.RefreshTableWithData(ShowZeros: Boolean);
 var
   Account : pAccount_Rec;
@@ -879,6 +907,7 @@ begin
   UpdateShowHideEnabledState;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmBudget.SetBudget(const Value: TBudget);
 var
   i : integer;
@@ -907,7 +936,8 @@ begin
   lblName.Caption := Budget.buFields.buName;
   lblStart.caption   := 'Starts '+bkDate2Str(Budget.buFields.buStart_Date);
 end;
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 procedure TfrmBudget.UpdateLine(index: integer);
 {syncronizes the editor lines and the lines stored in the budget}
 {adds, edits or deletes budget line where necessary}
@@ -960,6 +990,7 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmBudget.UpdateShowHideEnabledState;
 var
   ShowEnabled: boolean;
@@ -974,11 +1005,13 @@ begin
   mniHideUnused.Enabled := HideEnabled;
 end;
 
+//------------------------------------------------------------------------------
 function TfrmBudget.AllRowsShowing: boolean;
 begin
   Result := Length(FData) = FChart.ItemCount;
 end;
 
+//------------------------------------------------------------------------------
 function TfrmBudget.UnusedRowsShowing: boolean;
 var
   I: Integer;
@@ -1006,31 +1039,31 @@ begin
   end;
 end;
 
-
-
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
 procedure TfrmBudget.UpdateAllLines;
 var i : integer;
 begin
   for i := Low(FData) to High(FData) do
      UpdateLine(i);
-  UpdateShowHideEnabledState;     
+  UpdateShowHideEnabledState;
 end;
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 procedure TfrmBudget.FormShortCut(var Msg: TWMKey; var Handled: Boolean);
 {interupts quickkeys for table so that cell can be switched out of editmode}
 
-      Procedure SetVKeyState( vkey: Byte; down: Boolean );
-      Var
-        keys: TKeyboardState;
-      Begin
-        getKeyboardstate( keys );
-        If down then
-            keys[vkey] := keys[vkey] or $80
-        Else
-            keys[vkey] := keys[vkey] and $7F;
-        setKeyboardState( keys );
-      End;
+  //----------------------------------------------------------------------------
+  Procedure SetVKeyState( vkey: Byte; down: Boolean );
+  Var
+    keys: TKeyboardState;
+  Begin
+    getKeyboardstate( keys );
+    If down then
+      keys[vkey] := keys[vkey] or $80
+    Else
+      keys[vkey] := keys[vkey] and $7F;
+    setKeyboardState( keys );
+  End;
 
 begin
    if EditMode and (GetKeyState(VK_CONTROL) < 0) then
@@ -1075,23 +1108,33 @@ begin
      end;
    end;
 end;
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 // Popup Clicks
 procedure TfrmBudget.mniChartLookupClick(Sender: TObject);
 begin
   DoChartLookup;
 end;
 
+//------------------------------------------------------------------------------
+procedure TfrmBudget.mniClearClick(Sender: TObject);
+begin
+
+end;
+
+//------------------------------------------------------------------------------
 procedure TfrmBudget.mniClearColumnClick(Sender: TObject);
 begin
   DoClearValues(clrColumn);
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmBudget.mniClearRowClick(Sender: TObject);
 begin
   DoClearValues(clrRow);
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmBudget.mniCopyClick(Sender: TObject);
 begin
    DoCopy;
@@ -1101,35 +1144,38 @@ procedure TfrmBudget.mniSplitClick(Sender: TObject);
 begin
    DoSplit;
 end;
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+//------------------------------------------------------------------------------
 procedure TfrmBudget.mniAverageClick(Sender: TObject);
 begin
    DoAverage;
 end;
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 procedure TfrmBudget.mniGenerateClick(Sender: TObject);
 begin
    DoGenerate;
 end;
+
+//------------------------------------------------------------------------------
 procedure TfrmBudget.mniHideUnusedClick(Sender: TObject);
 begin
   DoHideUnused;
 end;
 
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
 procedure TfrmBudget.mniShowAllClick(Sender: TObject);
 begin
   DoShowAll;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmBudget.mniSmoothClick(Sender: TObject);
 begin
    DoSmooth;
 end;
 
-
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
 Procedure TfrmBudget.DoCopy;
 {updates current line}
 Var
@@ -1171,7 +1217,7 @@ Begin
   end;
 end;
 
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
 procedure TfrmBudget.DoChartLookup;
 var
   Code: String;
@@ -1195,6 +1241,7 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmBudget.AddChartCodeToTable(NewCode: String; SetActive: Boolean);
 var
   I: Integer;
@@ -1266,6 +1313,7 @@ begin
   UpdateShowHideEnabledState;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmBudget.ColMonthOwnerDraw(Sender: TObject; TableCanvas: TCanvas;
   const CellRect: TRect; RowNum, ColNum: Integer;
   const CellAttr: TOvcCellAttributes; Data: Pointer; var DoneIt: Boolean);
@@ -1301,12 +1349,14 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 function TfrmBudget.HasQuantityFormula(RowIndex, ColumnIndex: Integer): Boolean;
 begin
   //Quantatiy must be greater than one (stored as 10000)
   Result := (FData[RowIndex].bQuantitys[ColumnIndex] > 10000) and (FData[RowIndex].bUnitPrices[ColumnIndex] > 0)
 end;
 
+//------------------------------------------------------------------------------
 function TfrmBudget.CompareCodes(CodeA, CodeB: string): Integer;
 begin
   if UseXlonSort then
@@ -1319,6 +1369,7 @@ begin
     Result := StStrS.CompStringS( CodeA, CodeB);
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmBudget.DoClearValues(clrClearType: EClearType);
 var
  i,j : integer;
@@ -1372,6 +1423,7 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmBudget.ClearCell(RowIndex, ColumnIndex: Integer);
 begin
   FData[RowIndex].bAmounts[ColumnIndex] := 0;
@@ -1379,12 +1431,13 @@ begin
   FData[RowIndex].bQuantitys[ColumnIndex] := 0;
 end;
 
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
 procedure TfrmBudget.DoShowAll;
 begin
   RefreshTableWithData(true);
 end;
 
+//------------------------------------------------------------------------------
 Procedure TfrmBudget.DoSmooth;
 {updates entire table}
 Var
@@ -1436,7 +1489,8 @@ Begin
     end;
   end;
 end;
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 procedure TfrmBudget.DoAverage;
 {updates current edit line}
 Var
@@ -1483,7 +1537,8 @@ Begin
     AllowRedraw := true;
   end;
 end;
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 procedure TfrmBudget.DoSplit;
 {updates current edit line}
 Var
@@ -1526,6 +1581,7 @@ Begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmBudget.DoUnitPriceEntry;
 var
   RowIndex, ColumnIndex: Integer;
@@ -1571,7 +1627,7 @@ begin
   tblBudget.AllowRedraw := true;
 end;
 
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
 procedure TfrmBudget.DoGenerate;
 {updates complete table}
 var
@@ -1724,12 +1780,14 @@ begin
   end;
 
 end;
+
+//------------------------------------------------------------------------------
 procedure TfrmBudget.DoHideUnused;
 begin
   RefreshTableWithData(false);
 end;
 
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
 procedure TfrmBudget.CheckEditMode;
 var
   key2 : TWMKey;
@@ -1741,7 +1799,8 @@ begin
     Application.ProcessMessages;
   end;
 end;
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 procedure TfrmBudget.FormActivate(Sender: TObject);
 begin
   DoActivateBudgetForm;
@@ -1758,12 +1817,14 @@ begin
       FClearButton.DropDownMenu := popClearItems;
   Repaint;
 end;
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 procedure TfrmBudget.FormDeactivate(Sender: TObject);
 begin
    DoDeactivateBudgetForm;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmBudget.FormDestroy(Sender: TObject);
 begin
    FreeAndNil(FChart);
@@ -1774,7 +1835,7 @@ begin
    end;
 end;
 
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
 procedure TfrmBudget.ProcessExternalCmd(command: TExternalCmdBudget);
 begin
    AutoSaveUtils.DisableAutoSave;
@@ -1791,27 +1852,33 @@ begin
        ecbShowAll  : DoShowAll;
        ecbChart    : DoChartLookup;
        ecbQuit     : Close;
+       ecbImport   : DoImport;
+       ecbExport   : DoExport;
      end;
    finally
      EnableAutoSave;
    end;
 end;
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 procedure TfrmBudget.ActClearAllExecute(Sender: TObject);
 begin
   DoClearValues(clrAll);
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmBudget.ActClearColumnExecute(Sender: TObject);
 begin
   DoClearValues(clrColumn);
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmBudget.ActClearRowExecute(Sender: TObject);
 begin
   DoClearValues(clrRow);
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmBudget.BkMouseWheelHandler(Sender: TObject; Shift: TShiftState;
   Delta, XPos, YPos: Word );
 begin
@@ -1823,17 +1890,19 @@ begin
   end;
 end;
 
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
 procedure TfrmBudget.mnuCloseClick(Sender: TObject);
 begin
    Close;
 end;
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 procedure TfrmBudget.edtNameEnter(Sender: TObject);
 begin
 
 end;
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 procedure TfrmBudget.edtNameExit(Sender: TObject);
 begin
   edtName.Hide;
@@ -1842,7 +1911,8 @@ begin
   //edtName.Color := ExtraTitleBar.Color;
   //edtName.Font.Color := clCaptionText;
 end;
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 procedure TfrmBudget.edtNameKeyPress(Sender: TObject; var Key: Char);
 begin
    if key = #13 then begin
@@ -1850,13 +1920,14 @@ begin
       Key := #0;
    end;
 end;
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 procedure TfrmBudget.edtNameChange(Sender: TObject);
 begin
    Self.caption := 'Edit Budget '+edtName.text;
 end;
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 procedure DoBudgets(tbClear: TRzToolButton = nil);
 var
   SelectedList : TstringList;
@@ -1945,27 +2016,68 @@ begin
     SelectedList.Free;
   end;
 end;
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 procedure TfrmBudget.mniEnterBalanceClick(Sender: TObject);
 begin
   DoEnterBalance;
 end;
+
+//------------------------------------------------------------------------------
 procedure TfrmBudget.mniEnterQuantityClick(Sender: TObject);
 begin
   DoUnitPriceEntry;
 end;
 
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
 procedure TfrmBudget.DoEnterBalance;
 var
-   NewBalance : Money;
+  NewBalance : Money;
 begin
-   NewBalance := Budget.buFields.buEstimated_Opening_Bank_Balance;
-   if EditBudgetOpeningBalance( Budget.buFields.buStart_Date, NewBalance) then begin
-      Budget.buFields.buEstimated_Opening_Bank_Balance := NewBalance;
-   end;
+  NewBalance := Budget.buFields.buEstimated_Opening_Bank_Balance;
+  if EditBudgetOpeningBalance( Budget.buFields.buStart_Date, NewBalance) then
+  begin
+    Budget.buFields.buEstimated_Opening_Bank_Balance := NewBalance;
+  end;
 end;
 
+//------------------------------------------------------------------------------
+procedure TfrmBudget.DoImport;
+begin
+
+end;
+
+//------------------------------------------------------------------------------
+procedure TfrmBudget.DoExport;
+var
+  BudgetFilePath : string;
+  IncludeUnusedChartCodes : boolean;
+  BudgetImportExport : TBudgetImportExport;
+  MsgStr : string;
+begin
+  BudgetImportExport := TBudgetImportExport.Create;
+  try
+    BudgetFilePath := BudgetImportExport.GetDefaultFileLocation(MyClient.clFields.clCode);
+
+    if DoExportBudget(BudgetFilePath, IncludeUnusedChartCodes) then
+    begin
+      if BudgetImportExport.ExportBudget(BudgetFilePath, IncludeUnusedChartCodes, FData, Budget.buFields.buStart_Date, MsgStr) then
+      begin
+        BudgetImportExport.SetDefaultFileLocation(MyClient.clFields.clCode, BudgetFilePath);
+
+        MsgStr := Format('Budget saved to "%s".%s%sDo you want to view it now?', [BudgetFilePath, #13#10, #13#10]);
+        if (AskYesNo(rfNames[rfPDF], MsgStr, DLG_YES, 0) = DLG_YES) then
+          ShellExecute(0, 'open', PChar(BudgetFilePath), nil, nil, SW_SHOWMAXIMIZED);
+      end
+      else
+        HelpfulErrorMsg(MsgStr, 0);
+    end;
+  finally
+    FreeAndNil(BudgetImportExport);
+  end;
+end;
+
+//------------------------------------------------------------------------------
 function TfrmBudget.RowContainsFormulas(RowIndex:Integer): boolean;
 var
   I: Integer;
@@ -1981,6 +2093,7 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 function TfrmBudget.BudgetContainsFormulas: boolean;
 var
   I: Integer;
@@ -1996,7 +2109,7 @@ begin
   end;
 end;
 
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
 procedure TfrmBudget.DoDeleteLine;
 var
    j : integer;
@@ -2017,7 +2130,8 @@ begin
     end;
   end;
 end;
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 procedure TfrmBudget.mniLockLeftmostClick(Sender: TObject);
 begin
    mniLockLeftMost.Checked := not mniLockLeftmost.Checked;
@@ -2035,12 +2149,14 @@ begin
       tblBudget.AllowRedraw := true;
    end;
 end;
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 procedure TfrmBudget.SetIsClosing(const Value: Boolean);
 begin
   FIsClosing := Value;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmBudget.FormCloseQuery(Sender: TObject;
   var CanClose: Boolean);
 var
@@ -2089,16 +2205,31 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 function TfrmBudget.FormIsInEditMode: boolean;
 begin
   result := tblBudget.InEditingState;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmBudget.mniIncreaseDecreaseClick(Sender: TObject);
 begin
   DoPercentageChange;
 end;
 
+//------------------------------------------------------------------------------
+procedure TfrmBudget.mniImportClick(Sender: TObject);
+begin
+  DoImport;
+end;
+
+//------------------------------------------------------------------------------
+procedure TfrmBudget.mniExportClick(Sender: TObject);
+begin
+  DoExport;
+end;
+
+//------------------------------------------------------------------------------
 function TfrmBudget.IncreaseAmount( aAmount : Integer; perc : double; var ValueTooLarge: boolean) : integer;
 var
  NewAmount : Int64;
@@ -2113,6 +2244,7 @@ begin
    result := NewAmount;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmBudget.IncreaseCellBy(RowIndex, ColumnIndex: Integer; Percent: double; var ValueTooLarge: Boolean);
 var
   UnitPrice: Money;
@@ -2145,6 +2277,7 @@ begin
   UpdateLine(RowIndex);
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmBudget.DoPercentageChange;
 var
   ValueTooLarge : boolean;
@@ -2226,6 +2359,7 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmBudget.tblBudgetMouseDown(Sender: TObject;
   Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 // Catch Right Click and decide which PopUp to display
@@ -2243,6 +2377,7 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmBudget.ShowPopUp( x, y : Integer; PopMenu :TPopUpMenu );
 var
    ClientPt, ScreenPt : TPoint;
@@ -2253,6 +2388,7 @@ begin
    PopMenu.Popup(ScreenPt.x, ScreenPt.y);
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmBudget.tblBudgetVSThumbChanged(Sender: TObject;
   RowNum: TRowNum);
 Var
@@ -2277,6 +2413,7 @@ begin
    end;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmBudget.HideCustomHint;
 var
    R: TRect;
@@ -2295,8 +2432,14 @@ begin
    end;
 end;
 
+//------------------------------------------------------------------------------
+procedure TfrmBudget.EndEditRow(RowNum, ColNum : integer; var AllowIt : boolean);
+begin
 
+end;
+
+//------------------------------------------------------------------------------
 initialization
    DebugMe := DebugUnit(UnitName);
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 end.

@@ -2,8 +2,8 @@ object frmMain: TfrmMain
   Left = 315
   Top = 258
   Caption = 'TT'
-  ClientHeight = 1004
-  ClientWidth = 881
+  ClientHeight = 862
+  ClientWidth = 965
   Color = 10459904
   Constraints.MinHeight = 360
   Constraints.MinWidth = 512
@@ -23,18 +23,19 @@ object frmMain: TfrmMain
   OnResize = FormResize
   OnShow = FormShow
   DesignSize = (
-    881
-    1004)
+    965
+    862)
   PixelsPerInch = 96
   TextHeight = 13
   object imgPracticeLogo: TImage
-    Left = 556
+    Left = 640
     Top = 136
     Width = 317
     Height = 79
     Anchors = [akTop, akRight]
     Stretch = True
     Visible = False
+    ExplicitLeft = 556
   end
   object Image1: TImage
     Left = 80
@@ -75,7 +76,7 @@ object frmMain: TfrmMain
     Stretch = True
   end
   object lblVersion: TLabel
-    Left = 812
+    Left = 896
     Top = 59
     Width = 45
     Height = 13
@@ -93,8 +94,8 @@ object frmMain: TfrmMain
   end
   object MainStatus: TStatusBar
     Left = 0
-    Top = 980
-    Width = 881
+    Top = 838
+    Width = 965
     Height = 24
     Panels = <
       item
@@ -117,7 +118,7 @@ object frmMain: TfrmMain
   object rzToolbars: TPanel
     Left = 0
     Top = 0
-    Width = 881
+    Width = 965
     Height = 131
     Align = alTop
     AutoSize = True
@@ -480,9 +481,9 @@ object frmMain: TfrmMain
       end
     end
     object rztBudget: TRzToolbar
-      Left = 2
+      Left = 3
       Top = 70
-      Width = 859
+      Width = 955
       Align = alNone
       AutoResize = False
       AutoStyle = False
@@ -511,14 +512,16 @@ object frmMain: TfrmMain
         tbSplit
         tbBudgetHide
         tbBudgetShow
-        tbBudgetHelp
         tbBudgetClose
-        RzSpacer3)
+        tbBudgetImport
+        tbBudgetExport
+        tbBudgetHelp
+        RzSpacer5)
       object tbZero: TRzToolButton
         Left = 61
         Top = 4
         Width = 88
-        DropDownMenu = frmBudget.popClearItems
+        DropDownMenu = PopGetClients
         ImageIndex = 5
         ToolStyle = tsDropDown
         Caption = 'Clear'
@@ -571,7 +574,7 @@ object frmMain: TfrmMain
         OnClick = tbSplitClick
       end
       object tbBudgetHelp: TRzToolButton
-        Left = 699
+        Left = 879
         Top = 4
         ImageIndex = 20
         Images = AppImages.Maintain
@@ -603,7 +606,7 @@ object frmMain: TfrmMain
         OnClick = tbBudgetChartClick
       end
       object tbBudgetClose: TRzToolButton
-        Left = 759
+        Left = 699
         Top = 4
         ImageIndex = 2
         Images = AppImages.Maintain
@@ -611,8 +614,26 @@ object frmMain: TfrmMain
         Visible = False
         OnClick = tbBudgetCloseClick
       end
-      object RzSpacer3: TRzSpacer
+      object tbBudgetImport: TRzToolButton
+        Left = 759
+        Top = 4
+        Hint = 'Import Budget'
+        ImageIndex = 11
+        Images = AppImages.Budgets
+        Caption = 'Import'
+        OnClick = tbBudgetImportClick
+      end
+      object tbBudgetExport: TRzToolButton
         Left = 819
+        Top = 4
+        Hint = 'Export Budget'
+        ImageIndex = 10
+        Images = AppImages.Budgets
+        Caption = 'Export'
+        OnClick = tbBudgetExportClick
+      end
+      object RzSpacer5: TRzSpacer
+        Left = 939
         Top = 4
       end
     end
