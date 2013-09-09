@@ -2057,6 +2057,8 @@ var
 begin
   BudgetImportExport := TBudgetImportExport.Create;
   try
+    BudgetImportExport.BudgetDefaultFile := UserDir + BUDGET_DEFAULT_FILENAME;
+
     BudgetFilePath := BudgetImportExport.GetDefaultFileLocation(MyClient.clFields.clCode);
 
     if DoExportBudget(BudgetFilePath, IncludeUnusedChartCodes) then

@@ -12,7 +12,8 @@ uses
   utPayeeObj in '..\Tests\utPayeeObj.pas',
   utUpgrade in '..\Tests\utUpgrade.pas',
   utWebXOffice in '..\Tests\utWebXOffice.pas',
-  utAuditTrail in '..\Tests\utAuditTrail.pas';
+  utAuditTrail in '..\Tests\utAuditTrail.pas',
+  utBudgetImportExport in '..\Tests\utBudgetImportExport.pas';
 
 {$R *.res}
 

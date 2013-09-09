@@ -13,6 +13,7 @@ uses
   BKDefs;
 
 const
+  BUDGET_DEFAULT_FILENAME = 'BudgetDefaultLocations.dat';
   UnitName = 'BudgetImportExport';
 
 //------------------------------------------------------------------------------
@@ -49,6 +50,8 @@ type
 
   TBudgetImportExport = class
   private
+    fBudgetDefaultFile : string;
+
     function GetIOErrorDescription(ErrorCode : integer; ErrorMsg : string) : string;
     function GetFileLocIndex(aBudgetDefaults : TStringList; aClientCode: string; var aIndex : integer) : boolean;
   public
@@ -61,6 +64,8 @@ type
                           aStartDate : integer;
                           var aMsg : string) : boolean;
     function ImportBudget(aBudgetFilePath : string) : boolean;
+
+    property BudgetDefaultFile : string read fBudgetDefaultFile write fBudgetDefaultFile;
   end;
 
 //------------------------------------------------------------------------------
@@ -72,9 +77,6 @@ uses
   strutils,
   LogUtil,
   Globals;
-
-const
-  BUDGET_DEFAULT_FILENAME = 'BudgetDefaultLocations.dat';
 
 { TBudgetImportExport }
 //------------------------------------------------------------------------------
@@ -115,12 +117,12 @@ var
   Index, CommaIndex : integer;
 begin
   Result := '';
-  if FileExists(UserDir + BUDGET_DEFAULT_FILENAME) then
+  if FileExists(fBudgetDefaultFile) then
   begin
     BudgetDefaults := TStringList.Create;
     try
       try
-        BudgetDefaults.LoadFromFile(UserDir + BUDGET_DEFAULT_FILENAME);
+        BudgetDefaults.LoadFromFile(fBudgetDefaultFile);
 
         if GetFileLocIndex(BudgetDefaults, aClientCode, Index) then
         begin
@@ -153,9 +155,9 @@ begin
 
   try
     try
-      if FileExists(UserDir + BUDGET_DEFAULT_FILENAME) then
+      if FileExists(fBudgetDefaultFile) then
       begin
-        BudgetDefaults.LoadFromFile(UserDir + BUDGET_DEFAULT_FILENAME);
+        BudgetDefaults.LoadFromFile(fBudgetDefaultFile);
 
         found := GetFileLocIndex(BudgetDefaults, aClientCode, Index);
         if found then
@@ -165,7 +167,7 @@ begin
       if not found then
         BudgetDefaults.Add(aClientCode + ',' + aFileLocation);
 
-      BudgetDefaults.SaveToFile(UserDir + BUDGET_DEFAULT_FILENAME);
+      BudgetDefaults.SaveToFile(fBudgetDefaultFile);
     except
       on e : Exception do
         LogUtil.LogMsg( lmError, UnitName, ThisMethodName + ' : Error Accessing file : ' +
@@ -232,7 +234,7 @@ begin
         if Not aIncludeUnusedChartCodes then
         begin
           OkToWriteLine := false;
-          for DateIndex := 0 to 11 do
+          for DateIndex := 1 to 12 do
           begin
             if aData[DataIndex].bAmounts[DateIndex] <> 0 then
             begin
@@ -249,10 +251,10 @@ begin
           DataLine := DataLine + '"' + aData[DataIndex].bDesc + '",';
           DataLine := DataLine + IntToStr(aData[DataIndex].bTotal) + ',';
 
-          for DateIndex := 0 to 11 do
+          for DateIndex := 1 to 12 do
           begin
             DataLine := DataLine + IntToStr(aData[DataIndex].bAmounts[DateIndex]);
-            if DateIndex < 11 then
+            if DateIndex < 12 then
               DataLine := DataLine +  ',';
           end;
 
