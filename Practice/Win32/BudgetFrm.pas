@@ -2054,12 +2054,28 @@ var
   IncludeUnusedChartCodes : boolean;
   BudgetImportExport : TBudgetImportExport;
   MsgStr : string;
+
+  function ReplaceSlashWithMinus(aInString : string) : string;
+  var
+    Index : integer;
+  begin
+    Result := '';
+    for Index := 1 to length(aInString) do
+      if aInString[Index] = '/' then
+        Result := Result + '-'
+      else
+        Result := Result + aInString[Index];
+  end;
+
 begin
   BudgetImportExport := TBudgetImportExport.Create;
   try
     BudgetImportExport.BudgetDefaultFile := UserDir + BUDGET_DEFAULT_FILENAME;
 
     BudgetFilePath := BudgetImportExport.GetDefaultFileLocation(MyClient.clFields.clCode);
+
+    if BudgetFilePath = '' then
+      BudgetFilePath := UserDir + MyClient.clFields.clCode + ReplaceSlashWithMinus(bkDate2Str(Budget.buFields.buStart_Date)) + '.csv';
 
     if DoExportBudget(BudgetFilePath, IncludeUnusedChartCodes) then
     begin
