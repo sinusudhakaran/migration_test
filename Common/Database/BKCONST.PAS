@@ -1826,7 +1826,7 @@ const
        'Foreign Income',
        'Foreign Tax Credits',
        'Capital Gains Index',
-       'Capital Gains Dist',
+       'Capital Gains Disc',
        'Capital Gains Other',
        'Other Expenses',
        'CGT Date',
