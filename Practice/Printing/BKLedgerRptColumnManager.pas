@@ -381,7 +381,7 @@ begin
           tktxSF_Special_Income        : Result := 'Special Income';
           tktxSF_Foreign_Tax_Credits   : Result := 'Foreign CR';
           tktxSF_Foreign_Capital_Gains_Credit : Result := 'Foreign CG CR';
-          tktxSF_TFN_Credits           : Result := 'Witholding CR';
+          tktxSF_TFN_Credits           : Result := 'Withholding CR';
           tktxSF_Other_Tax_Credit      : Result := 'Other Tax CR';
           tktxSF_Non_Resident_Tax      : Result := 'Non-resident Tax';
         end;
