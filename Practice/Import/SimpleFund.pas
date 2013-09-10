@@ -25,7 +25,8 @@ implementation
 uses
   Globals, sysutils, InfoMoreFrm, bkconst,   chList32, bkchio,
   bkdefs, ovcDate, ErrorMoreFrm, dbaseReader, stDateSt, WarningMoreFrm, 
-  ChartUtils, GenUtils, bkDateUtils, Progress, LogUtil, bk5Except, WinUtils;
+  ChartUtils, GenUtils, bkDateUtils, Progress, LogUtil, bk5Except, WinUtils,
+  Classes, glConst;
 
 const
   SF_FILE  = 'CHART.DBF';
@@ -137,6 +138,108 @@ end;
 
 //------------------------------------------------------------------------------
 
+procedure ReadCSVFile(FilePath: string; NewChart: TChart);
+const
+  ThisMethodName = 'ReadCSVFile';
+var
+  AccountType : string;
+  CSVFile     : TextFile;
+  FieldList   : TStringList;
+  GSTInfo     : boolean;
+  i           : integer;
+  Line        : string;
+  Msg         : string;
+  NewAccount  : pAccount_Rec;
+
+begin
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins');
+
+  // Check if chart file exists
+  if not BKFileExists(FilePath) then
+  begin
+    Msg := Format('Cannot Find The Account File %s%s', [ FilePath ]);
+    LogUtil.LogMsg(lmError, UnitName, ThisMethodName + ' - ' + Msg );
+    raise EExtractData.CreateFmt( '%s - %s : %s', [ UnitName, ThisMethodName, Msg ] );
+  end;
+
+  try
+    UpdateAppStatus('Loading Chart','',0);
+    try
+      AssignFile(CSVFile, FilePath);
+      Reset(CSVFile);
+      // NewChart := TChart.Create(MyClient.ClientAuditMgr);
+      try
+        UpdateAppStatusLine2('Reading');
+        ReadLn(CSVFile, Line); // just skipping past the headers
+        FieldList := TStringList.Create;
+        while not EOF(CSVFile) do
+        begin
+          ReadLn(CSVFile, Line);
+          FieldList.Delimiter := ',';
+          FieldList.StrictDelimiter := True;
+          FieldList.DelimitedText := Line;
+          if (NewChart.FindCode(FieldList.Strings[0]) <> nil) then
+            LogUtil.LogMsg( lmError, UnitName, 'Duplicate Code '+FieldList.Strings[0]+' found in '+FilePath )
+          else
+          begin
+            NewAccount := New_Account_Rec;
+            NewAccount^.chAccount_Code := FieldList.Strings[0];
+            AccountType := FieldList.Strings[1];
+            NewAccount^.chAccount_Type := ord(AccountType[1]);
+            NewAccount^.chPosting_Allowed := (FieldList.Strings[1] <> 'H');
+            NewAccount^.chAccount_Description := FieldList.Strings[2];
+            NewChart.Insert(NewAccount);
+          end;
+        end;
+
+        (*
+        if NewChart.ItemCount > 0 then
+        begin
+          MergeCharts(NewChart, MyClient);
+          MyClient.clFields.clLoad_Client_Files_From := ExtractFilePath(FilePath);
+          MyClient.clFields.clChart_Last_Updated     := CurrentDate;
+
+          GSTInfo := False;
+          for i := 1 to MAX_GST_CLASS do
+            if MyClient.clFields.clGST_Rates[i,1] <> 0 then GSTInfo := True;
+
+          If not GSTInfo then Begin
+            MyClient.clFields.clGST_Applies_From[1] := DMYtoStDate(1,1,80,BKDATEEPOCH);
+
+            MyClient.clFields.clGST_Class_Names[1]  := 'GST Income';
+            MyClient.clFields.clGST_Rates[1,1]      := 125000;
+            MyClient.clFields.clGST_Class_Types[1]  := gtIncomeGST; {i}
+
+            MyClient.clFields.clGST_Class_Names[2]  := 'GST Expenditure';
+            MyClient.clFields.clGST_Rates[2,1]      := 125000;
+            MyClient.clFields.clGST_Class_Types[2]  := gtExpenditureGST; {e}
+
+            MyClient.clFields.clGST_Class_Names[3]  := 'Exempt';
+            MyClient.clFields.clGST_Rates[3,1]      := 0;
+            MyClient.clFields.clGST_Class_Types[3]  := gtExempt; {x}
+          end;
+        end;
+        *)
+
+      finally
+//        NewChart.Free;   {free is ok because Merge charts will have set NewChart to nil}
+        CloseFile(CSVFile);
+      end;
+    finally
+      ClearStatus(True);
+    end;
+  except
+    on E : EInOutError do //Normally EExtractData but File I/O only
+    begin
+      Msg := Format( 'Error Refreshing Chart %s. %s', [FilePath, E.Message ] );
+      LogUtil.LogMsg( lmError, UnitName, ThisMethodName + ' : ' + Msg );
+      HelpfulErrorMsg( Msg + #13+#13+'The existing chart has not been modified.', 0 );
+      exit;
+    end;
+  end;
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
+end;
+
 procedure RefreshChart;
 const
    ThisMethodName = 'RefreshChart';  
@@ -144,7 +247,6 @@ var
    ChartFileName     : string;
    HCtx              : integer;
    NewChart          : TChart;
-   LoadFromPath      : string;
    Msg               : string;
    FileType          : string;
 begin
@@ -170,12 +272,14 @@ begin
       if not ChartUtils.LoadChartFrom(clCode,ChartFileName,clLoad_Client_Files_From,FileType + '|'+SFFileName,SF_EXTN,HCtx) then
         Exit;
     end;
-    LoadFromPath := ExtractFilePath(ChartFileName);
     try
       NewChart := TChart.Create(MyClient.ClientAuditMgr);
       UpdateAppStatus('Loading Chart','Reading Chart',0);
       try
-        ReadDBaseFile(clCode, LoadFromPath, NewChart);
+        if (clAccounting_System_Used = saBGL360) then
+          ReadCSVFile(ChartFileName, NewChart)
+        else
+          ReadDBaseFile(clCode, ExtractFilePath(ChartFileName), NewChart);
         If NewChart.ItemCount > 0 then begin              //  Assigned( NewChart ) then  {new chart will be nil if no accounts or an error occured}
            MergeCharts(NewChart,MyClient);
            clLoad_Client_Files_From := ExtractFilePath(ChartFileName);
