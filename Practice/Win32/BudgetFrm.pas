@@ -2094,7 +2094,8 @@ begin
     BudgetFilePath := BudgetImportExport.GetDefaultFileLocation(MyClient.clFields.clCode);
 
     if BudgetFilePath = '' then
-      BudgetFilePath := UserDir + MyClient.clFields.clCode + ReplaceSlashWithMinus(bkDate2Str(Budget.buFields.buStart_Date)) + '.csv';
+      BudgetFilePath := UserDir + MyClient.clFields.clCode + ' ' +
+                        ReplaceSlashWithMinus(bkDate2Str(Budget.buFields.buStart_Date)) + '.csv';
 
     if DoExportBudget(BudgetFilePath, IncludeUnusedChartCodes) then
     begin
