@@ -2103,7 +2103,7 @@ begin
         BudgetImportExport.SetDefaultFileLocation(MyClient.clFields.clCode, BudgetFilePath);
 
         MsgStr := Format('Budget saved to "%s".%s%sDo you want to view it now?', [BudgetFilePath, #13#10, #13#10]);
-        if (AskYesNo(rfNames[rfPDF], MsgStr, DLG_YES, 0) = DLG_YES) then
+        if (AskYesNo(rfNames[rfCSV], MsgStr, DLG_YES, 0) = DLG_YES) then
           ShellExecute(0, 'open', PChar(BudgetFilePath), nil, nil, SW_SHOWMAXIMIZED);
       end
       else
