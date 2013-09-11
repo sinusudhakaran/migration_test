@@ -168,6 +168,7 @@ type
     CurrentRow       : integer;
     AltLineColor     : integer;
     FBudget          : TBudget;
+    fShowZeros       : boolean;
 
     eAmounts         : Array[1..12] of integer;
     FIsClosing: Boolean; {current edit values for record}
@@ -213,6 +214,7 @@ type
     procedure tblBudgetVSThumbChanged(Sender: TObject; RowNum: TRowNum);
     procedure HideCustomHint;
     function GetTotalForRow(RowNum: Integer): Integer;
+    procedure RefreshFData(ShowZeros: Boolean; var aDataIndex : integer);
     procedure RefreshTableWithData(ShowZeros: Boolean);
     procedure UpdateShowHideEnabledState;
     function UnusedRowsShowing: boolean;
@@ -338,6 +340,7 @@ var
   i: Integer;
 begin
    //Use a copy of the client chart that can be sorted
+   fShowZeros := true;
    FChart := TCustomSortChart.Create(nil);
    FChart.CopyChart(MyClient.clChart);
    if UseXlonSort then
@@ -831,10 +834,10 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TFrmBudget.RefreshTableWithData(ShowZeros: Boolean);
+procedure TFrmBudget.RefreshFData(ShowZeros: Boolean; var aDataIndex : integer);
 var
   Account : pAccount_Rec;
-  AccountIndex, DataIndex: Integer;
+  AccountIndex : Integer;
   pBudgetRec: pBudget_Detail_Rec;
   MonthIndex: Integer;
   HasData: Boolean;
@@ -844,7 +847,7 @@ begin
   DataAssigned := false;
   SetLength(FData, FChart.ItemCount);   //allocate enough for current chart
 
-  DataIndex := 0;
+  aDataIndex := 0;
   for AccountIndex := 0 to FChart.ITemCount-1 do with FChart do
   begin
     Account := Account_At(AccountIndex);
@@ -868,37 +871,46 @@ begin
         Continue;
     end;
 
-    FData[DataIndex].bAccount := Account.chAccount_Code;
-    FData[DataIndex].bDesc    := Account.chAccount_Description;
-    FData[DataIndex].bIsPosting := Account.chPosting_Allowed;
-    FData[DataIndex].bDetailLine := pBudgetRec;
+    FData[aDataIndex].bAccount := Account.chAccount_Code;
+    FData[aDataIndex].bDesc    := Account.chAccount_Description;
+    FData[aDataIndex].bIsPosting := Account.chPosting_Allowed;
+    FData[aDataIndex].bDetailLine := pBudgetRec;
     for MonthIndex := 1 to 12 do
     begin
       if Assigned(pBudgetRec) then
       begin
-        FData[DataIndex].bAmounts[MonthIndex] := Round(FData[DataIndex].bDetailLine.bdBudget[MonthIndex]);
-        FData[DataIndex].bQuantitys[MonthIndex] := FData[DataIndex].bDetailLine.bdQty_Budget[MonthIndex];
-        FData[DataIndex].bUnitPrices[MonthIndex] := FData[DataIndex].bDetailLine.bdEach_Budget[MonthIndex];
+        FData[aDataIndex].bAmounts[MonthIndex] := Round(FData[aDataIndex].bDetailLine.bdBudget[MonthIndex]);
+        FData[aDataIndex].bQuantitys[MonthIndex] := FData[aDataIndex].bDetailLine.bdQty_Budget[MonthIndex];
+        FData[aDataIndex].bUnitPrices[MonthIndex] := FData[aDataIndex].bDetailLine.bdEach_Budget[MonthIndex];
       end
       else
       begin
-        FData[DataIndex].bAmounts[MonthIndex] := 0;
-        FData[DataIndex].bQuantitys[MonthIndex] := 0;
-        FData[DataIndex].bUnitPrices[MonthIndex] := 0;
+        FData[aDataIndex].bAmounts[MonthIndex] := 0;
+        FData[aDataIndex].bQuantitys[MonthIndex] := 0;
+        FData[aDataIndex].bUnitPrices[MonthIndex] := 0;
       end;
     end;
-    Inc(DataIndex);
+    Inc(aDataIndex);
   end;
 
-  if (DataIndex = 0) and not ShowZeros then
+  if (aDataIndex = 0) and not ShowZeros then
   begin
     HelpfulInfoMsg('There are no used entries. '+SHORTAPPNAME+ ' will display all entries.', 0);
     RefreshTableWithData(true);
     Exit;
   end;
-  
 
-  SetLength(FData, DataIndex);
+  SetLength(FData, aDataIndex);
+end;
+
+//------------------------------------------------------------------------------
+procedure TFrmBudget.RefreshTableWithData(ShowZeros: Boolean);
+var
+  DataIndex : integer;
+begin
+  fShowZeros := ShowZeros;
+  RefreshFData(ShowZeros, DataIndex);
+
   tblBudget.RowLimit := DataIndex + 1;
   DataAssigned := true;
 
@@ -2073,6 +2085,7 @@ var
   IncludeUnusedChartCodes : boolean;
   BudgetImportExport : TBudgetImportExport;
   MsgStr : string;
+  DataIndex : integer;
 
   function ReplaceSlashWithMinus(aInString : string) : string;
   var
@@ -2087,6 +2100,9 @@ var
   end;
 
 begin
+  if not fShowZeros then
+    RefreshFData(true, DataIndex);
+
   BudgetImportExport := TBudgetImportExport.Create;
   try
     BudgetImportExport.BudgetDefaultFile := UserDir + BUDGET_DEFAULT_FILENAME;
@@ -2111,6 +2127,9 @@ begin
         HelpfulErrorMsg(MsgStr, 0);
     end;
   finally
+    if not fShowZeros then
+      RefreshFData(false, DataIndex);
+
     FreeAndNil(BudgetImportExport);
   end;
 end;

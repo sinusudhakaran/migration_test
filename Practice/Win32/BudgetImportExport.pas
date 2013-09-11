@@ -246,6 +246,11 @@ begin
 
         if OkToWriteLine then
         begin
+          aData[DataIndex].bTotal := 0;
+          for DateIndex := 1 to 12 do
+            aData[DataIndex].bTotal := aData[DataIndex].bTotal +
+                                       aData[DataIndex].bAmounts[DateIndex];
+
           DataLine := '';
           DataLine := DataLine + '"' + aData[DataIndex].bAccount + '",';
           DataLine := DataLine + '"' + aData[DataIndex].bDesc + '",';
