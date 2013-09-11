@@ -285,6 +285,7 @@ uses
    ExchangeGainLoss,
    baObj32,
    ExportBudgetDlg,
+   ImportBudgetDlg,
    ShellAPI;
 
 const
@@ -2043,8 +2044,26 @@ end;
 
 //------------------------------------------------------------------------------
 procedure TfrmBudget.DoImport;
+var
+  BudgetFilePath : string;
+  BudgetImportExport : TBudgetImportExport;
+  MsgStr : string;
 begin
+  BudgetImportExport := TBudgetImportExport.Create;
+  try
+    BudgetImportExport.BudgetDefaultFile := '';
 
+    if DoImportBudget(BudgetFilePath) then
+    begin
+      if BudgetImportExport.ImportBudget(BudgetFilePath) then
+      begin
+      end
+      else
+        HelpfulErrorMsg(MsgStr, 0);
+    end;
+  finally
+    FreeAndNil(BudgetImportExport);
+  end;
 end;
 
 //------------------------------------------------------------------------------

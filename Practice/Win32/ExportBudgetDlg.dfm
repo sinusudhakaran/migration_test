@@ -2,7 +2,7 @@ object frmExportBudget: TfrmExportBudget
   Left = 0
   Top = 0
   BorderStyle = bsDialog
-  Caption = 'frmExportBudget'
+  Caption = 'Export Budget'
   ClientHeight = 113
   ClientWidth = 525
   Color = clBtnFace

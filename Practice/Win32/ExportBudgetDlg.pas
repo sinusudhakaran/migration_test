@@ -15,7 +15,8 @@ uses
   Dialogs,
   OSFont,
   StdCtrls,
-  Buttons, ExtDlgs;
+  Buttons,
+  ExtDlgs;
 
 type
   TfrmExportBudget = class(TForm)
