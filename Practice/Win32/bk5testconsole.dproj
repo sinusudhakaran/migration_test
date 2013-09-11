@@ -62,6 +62,8 @@
     <DCCReference Include="..\Tests\utAuditTrail.pas">
       <Form>$R *.res</Form>
     </DCCReference>
+    <DCCReference Include="..\Tests\utBGL360.pas" />
+    <DCCReference Include="..\Tests\utBudgetImportExport.pas" />
     <DCCReference Include="..\Tests\utFileExtensionUtils.pas" />
     <DCCReference Include="..\Tests\utGUIReportSchedule.pas" />
     <DCCReference Include="..\Tests\utMemorisationsObj.pas" />
