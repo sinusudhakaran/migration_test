@@ -6,7 +6,7 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <DCC_DCCCompiler>DCC32</DCC_DCCCompiler>
-    <DCC_DependencyCheckOutputName>bk5testconsole.exe</DCC_DependencyCheckOutputName>
+    <DCC_DependencyCheckOutputName>C:\Testing\Practice Unit Tests\bk5testconsole.exe</DCC_DependencyCheckOutputName>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <Version>7.0</Version>
@@ -34,22 +34,25 @@
     <DCC_HppOutput>..\..\DCU</DCC_HppOutput>
     <DCC_BplOutput>..\Binaries</DCC_BplOutput>
     <DCC_DcpOutput>..\DCU</DCC_DcpOutput>
-    <DCC_UnitSearchPath>$(BDS)\lib\Debug;$(BDS)\Lib\Debug\Indy10;..\$(COMMON);..\$(COMMON)\Core;..\$(COMMON)\Core\Download;..\$(COMMON)\Database;..\$(COMMON)\Lib;..\$(COMMON)\BNotes;..\$(COMMON)\BNotes\Database;..\..\Practice\Authority Forms;..\..\Practice\BASForm;..\..\Practice\Bconnect;..\..\Practice\Component;..\..\Practice\Extended MAPI;..\..\Practice\Extract;..\..\Practice\Forex;..\..\Practice\Graphs;..\..\Practice\Import;..\..\Practice\Lists;..\..\Practice\Orpheus;..\..\Practice\Printing;..\..\Practice\WebNotes;..\..\Practice\Win32;..\..\Practice\SimpleUI</DCC_UnitSearchPath>
-    <DCC_ResourcePath>$(BDS)\lib\Debug;$(BDS)\Lib\Debug\Indy10;..\$(COMMON);..\$(COMMON)\Core;..\$(COMMON)\Core\Download;..\$(COMMON)\Database;..\$(COMMON)\Lib;..\$(COMMON)\BNotes;..\$(COMMON)\BNotes\Database;..\..\Practice\Authority Forms;..\..\Practice\BASForm;..\..\Practice\Bconnect;..\..\Practice\Component;..\..\Practice\Extended MAPI;..\..\Practice\Extract;..\..\Practice\Forex;..\..\Practice\Graphs;..\..\Practice\Import;..\..\Practice\Lists;..\..\Practice\Orpheus;..\..\Practice\Printing;..\..\Practice\WebNotes;..\..\Practice\Win32;..\..\Practice\SimpleUI</DCC_ResourcePath>
-    <DCC_ObjPath>$(BDS)\lib\Debug;$(BDS)\Lib\Debug\Indy10;..\$(COMMON);..\$(COMMON)\Core;..\$(COMMON)\Core\Download;..\$(COMMON)\Database;..\$(COMMON)\Lib;..\$(COMMON)\BNotes;..\$(COMMON)\BNotes\Database;..\..\Practice\Authority Forms;..\..\Practice\BASForm;..\..\Practice\Bconnect;..\..\Practice\Component;..\..\Practice\Extended MAPI;..\..\Practice\Extract;..\..\Practice\Forex;..\..\Practice\Graphs;..\..\Practice\Import;..\..\Practice\Lists;..\..\Practice\Orpheus;..\..\Practice\Printing;..\..\Practice\WebNotes;..\..\Practice\Win32;..\..\Practice\SimpleUI</DCC_ObjPath>
-    <DCC_IncludePath>$(BDS)\lib\Debug;$(BDS)\Lib\Debug\Indy10;..\$(COMMON);..\$(COMMON)\Core;..\$(COMMON)\Core\Download;..\$(COMMON)\Database;..\$(COMMON)\Lib;..\$(COMMON)\BNotes;..\$(COMMON)\BNotes\Database;..\..\Practice\Authority Forms;..\..\Practice\BASForm;..\..\Practice\Bconnect;..\..\Practice\Component;..\..\Practice\Extended MAPI;..\..\Practice\Extract;..\..\Practice\Forex;..\..\Practice\Graphs;..\..\Practice\Import;..\..\Practice\Lists;..\..\Practice\Orpheus;..\..\Practice\Printing;..\..\Practice\WebNotes;..\..\Practice\Win32;..\..\Practice\SimpleUI</DCC_IncludePath>
+    <DCC_UnitSearchPath>$(BDS)\RaveReports\Lib;C:\Program Files (x86)\Steema Software\TeeChart 2013 for Delphi 2007\Delphi11\Lib;$(BDS)\lib\Debug;$(BDS)\Lib\Debug\Indy10;..\..\Common;..\..\Common\Core;..\..\Common\Core\Download;..\..\Common\Database;..\..\Common\Lib;..\..\Common\BNotes;..\..\Common\BNotes\Database;..\..\Practice\Authority Forms;..\..\Practice\BASForm;..\..\Practice\Bconnect;..\..\Practice\Component;..\..\Practice\Extended MAPI;..\..\Practice\Extract;..\..\Practice\Forex;..\..\Practice\Graphs;..\..\Practice\Import;..\..\Practice\Lists;..\..\Practice\Orpheus;..\..\Practice\Printing;..\..\Practice\WebNotes;..\..\Practice\Win32;..\..\Practice\SimpleUI</DCC_UnitSearchPath>
+    <DCC_ResourcePath>$(BDS)\RaveReports\Lib;C:\Program Files (x86)\Steema Software\TeeChart 2013 for Delphi 2007\Delphi11\Lib;$(BDS)\lib\Debug;$(BDS)\Lib\Debug\Indy10;..\..\Common;..\..\Common\Core;..\..\Common\Core\Download;..\..\Common\Database;..\..\Common\Lib;..\..\Common\BNotes;..\..\Common\BNotes\Database;..\..\Practice\Authority Forms;..\..\Practice\BASForm;..\..\Practice\Bconnect;..\..\Practice\Component;..\..\Practice\Extended MAPI;..\..\Practice\Extract;..\..\Practice\Forex;..\..\Practice\Graphs;..\..\Practice\Import;..\..\Practice\Lists;..\..\Practice\Orpheus;..\..\Practice\Printing;..\..\Practice\WebNotes;..\..\Practice\Win32;..\..\Practice\SimpleUI</DCC_ResourcePath>
+    <DCC_ObjPath>$(BDS)\RaveReports\Lib;C:\Program Files (x86)\Steema Software\TeeChart 2013 for Delphi 2007\Delphi11\Lib;$(BDS)\lib\Debug;$(BDS)\Lib\Debug\Indy10;..\..\Common;..\..\Common\Core;..\..\Common\Core\Download;..\..\Common\Database;..\..\Common\Lib;..\..\Common\BNotes;..\..\Common\BNotes\Database;..\..\Practice\Authority Forms;..\..\Practice\BASForm;..\..\Practice\Bconnect;..\..\Practice\Component;..\..\Practice\Extended MAPI;..\..\Practice\Extract;..\..\Practice\Forex;..\..\Practice\Graphs;..\..\Practice\Import;..\..\Practice\Lists;..\..\Practice\Orpheus;..\..\Practice\Printing;..\..\Practice\WebNotes;..\..\Practice\Win32;..\..\Practice\SimpleUI</DCC_ObjPath>
+    <DCC_IncludePath>$(BDS)\RaveReports\Lib;C:\Program Files (x86)\Steema Software\TeeChart 2013 for Delphi 2007\Delphi11\Lib;$(BDS)\lib\Debug;$(BDS)\Lib\Debug\Indy10;..\..\Common;..\..\Common\Core;..\..\Common\Core\Download;..\..\Common\Database;..\..\Common\Lib;..\..\Common\BNotes;..\..\Common\BNotes\Database;..\..\Practice\Authority Forms;..\..\Practice\BASForm;..\..\Practice\Bconnect;..\..\Practice\Component;..\..\Practice\Extended MAPI;..\..\Practice\Extract;..\..\Practice\Forex;..\..\Practice\Graphs;..\..\Practice\Import;..\..\Practice\Lists;..\..\Practice\Orpheus;..\..\Practice\Printing;..\..\Practice\WebNotes;..\..\Practice\Win32;..\..\Practice\SimpleUI</DCC_IncludePath>
     <DCC_WriteableConstants>True</DCC_WriteableConstants>
     <DCC_IntegerOverflowCheck>True</DCC_IntegerOverflowCheck>
     <DCC_RangeChecking>True</DCC_RangeChecking>
     <DCC_StrictVarStrings>False</DCC_StrictVarStrings>
     <DCC_ConsoleTarget>True</DCC_ConsoleTarget>
     <DCC_MapFile>3</DCC_MapFile>
+    <DCC_ExeOutput>C:\Testing\Practice Unit Tests</DCC_ExeOutput>
   </PropertyGroup>
   <ProjectExtensions>
     <Borland.Personality>Delphi.Personality</Borland.Personality>
     <Borland.ProjectType>VCLApplication</Borland.ProjectType>
     <BorlandProject>
 <BorlandProject><Delphi.Personality><Parameters><Parameters Name="UseLauncher">False</Parameters><Parameters Name="LoadAllSymbols">True</Parameters><Parameters Name="LoadUnspecifiedSymbols">False</Parameters></Parameters><VersionInfo><VersionInfo Name="IncludeVerInfo">False</VersionInfo><VersionInfo Name="AutoIncBuild">False</VersionInfo><VersionInfo Name="MajorVer">1</VersionInfo><VersionInfo Name="MinorVer">0</VersionInfo><VersionInfo Name="Release">0</VersionInfo><VersionInfo Name="Build">0</VersionInfo><VersionInfo Name="Debug">False</VersionInfo><VersionInfo Name="PreRelease">False</VersionInfo><VersionInfo Name="Special">False</VersionInfo><VersionInfo Name="Private">False</VersionInfo><VersionInfo Name="DLL">False</VersionInfo><VersionInfo Name="Locale">5129</VersionInfo><VersionInfo Name="CodePage">1252</VersionInfo></VersionInfo><VersionInfoKeys><VersionInfoKeys Name="CompanyName"></VersionInfoKeys><VersionInfoKeys Name="FileDescription"></VersionInfoKeys><VersionInfoKeys Name="FileVersion">1.0.0.0</VersionInfoKeys><VersionInfoKeys Name="InternalName"></VersionInfoKeys><VersionInfoKeys Name="LegalCopyright"></VersionInfoKeys><VersionInfoKeys Name="LegalTrademarks"></VersionInfoKeys><VersionInfoKeys Name="OriginalFilename"></VersionInfoKeys><VersionInfoKeys Name="ProductName"></VersionInfoKeys><VersionInfoKeys Name="ProductVersion">1.0.0.0</VersionInfoKeys><VersionInfoKeys Name="Comments"></VersionInfoKeys></VersionInfoKeys><Excluded_Packages>
+      
+      
       
       <Excluded_Packages Name="$(BDS)\bin\dcloffice2k100.bpl">Microsoft Office 2000 Sample Automation Server Wrapper Components</Excluded_Packages>
     </Excluded_Packages><Source><Source Name="MainSource">bk5testconsole.dpr</Source></Source></Delphi.Personality></BorlandProject></BorlandProject>
@@ -60,7 +63,11 @@
       <MainSource>MainSource</MainSource>
     </DelphiCompile>
     <DCCReference Include="..\Tests\utAuditTrail.pas">
-      <Form>$R *.res</Form>
+      <Form>,
+  utBudgetImportExport in '..\Tests\utBudgetImportExport.pas',
+  utBGL360 in '..\Tests\utBGL360.pas';
+
+{$R *.res</Form>
     </DCCReference>
     <DCCReference Include="..\Tests\utBGL360.pas" />
     <DCCReference Include="..\Tests\utBudgetImportExport.pas" />
