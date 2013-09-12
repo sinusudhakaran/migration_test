@@ -63,7 +63,8 @@ type
                           aData : TBudgetData;
                           aStartDate : integer;
                           var aMsg : string) : boolean;
-    function ImportBudget(aBudgetFilePath : string) : boolean;
+    function ImportBudget(aBudgetFilePath : string;
+                          var aMsg : string) : boolean;
 
     property BudgetDefaultFile : string read fBudgetDefaultFile write fBudgetDefaultFile;
   end;
@@ -281,9 +282,43 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TBudgetImportExport.ImportBudget(aBudgetFilePath: string): boolean;
+function TBudgetImportExport.ImportBudget(aBudgetFilePath: string;
+                                          var aMsg : string): boolean;
+const
+  ThisMethodName = 'ImportBudget';
+var
+  InputFile : Text;
+  InStrLine : string;
+  Done : boolean;
 begin
+  Done := false;
+  try
+    AssignFile(InputFile, aBudgetFilePath);
+    Reset(InputFile);
 
+    try
+      readln(InputFile, InStrLine);
+
+    finally
+      CloseFile(InputFile);
+    end;
+
+  except
+    on e : EInOutError do
+    begin
+      aMsg := Format( 'Unable to Export file. %s', [ GetIOErrorDescription(E.ErrorCode, E.Message) ] );
+      LogUtil.LogMsg( lmError, UnitName, ThisMethodName + ' : ' + aMsg );
+      Done := true;
+    end;
+    on e : Exception do
+    begin
+      if not Done then
+      begin
+        aMsg := Format( 'Unable to Export file. %s', [E.Message] );
+        LogUtil.LogMsg( lmError, UnitName, ThisMethodName + ' : ' + aMsg );
+      end;
+    end;
+  end;
 end;
 
 end.

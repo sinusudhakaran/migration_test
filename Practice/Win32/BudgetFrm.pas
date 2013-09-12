@@ -2065,12 +2065,9 @@ begin
   try
     BudgetImportExport.BudgetDefaultFile := '';
 
-    if DoImportBudget(BudgetFilePath) then
+    if DoImportBudget(BudgetFilePath, FBudget.buFields.buName) then
     begin
-      if BudgetImportExport.ImportBudget(BudgetFilePath) then
-      begin
-      end
-      else
+      if not BudgetImportExport.ImportBudget(BudgetFilePath, MsgStr) then
         HelpfulErrorMsg(MsgStr, 0);
     end;
   finally
