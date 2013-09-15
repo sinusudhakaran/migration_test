@@ -14,6 +14,7 @@ type
    fBudgetImportExport : TBudgetImportExport;
 
    procedure CreateBudgetDefaultFile;
+   procedure CreateBudgetFile(aFilePath : string);
    function CreateBudgetData : TBudgetData;
  protected
    procedure Setup; override;
@@ -22,10 +23,14 @@ type
    procedure TestGetDefaultFileLocation;
    procedure TestSetDefaultFileLocation;
    procedure TestExportBudget;
+   procedure TestImportBudget;
  end;
 
 //------------------------------------------------------------------------------
 implementation
+
+uses
+  BUDOBJ32;
 
 { TPayeesTestCase }
 //------------------------------------------------------------------------------
@@ -49,6 +54,24 @@ begin
     BudgetDefaults.SaveToFile('BudgetDefaultFile.dat');
   finally
     BudgetDefaults.free;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+procedure TBudgetImportExportTestCase.CreateBudgetFile(aFilePath : string);
+var
+  TestFile : Text;
+begin
+  AssignFile(TestFile, aFilePath);
+  Rewrite(TestFile);
+  try
+    Writeln(TestFile, '"Account","Description","Total","Jan 00","Feb 00","Mar 00","Apr 00","May 00","Jun 00","Jul 00","Aug 00","Sep 00","Oct 00","Nov 00","Dec 00"');
+    Writeln(TestFile, '"001","New Values",17800,1100,1200,1300,1400,1500,1600,1700,1800,1900,11000,11100,11200');
+    Writeln(TestFile, '"003","Cleared Values",0,0,0,0,0,0,0,0,0,0,0,0,0');
+    Writeln(TestFile, '"004","Not Found",14200,0,200,0,400,0,600,0,800,0,1000,0,1200');
+    Writeln(TestFile, '"005","Not Found",4200,0,200,0,2400,0,600,0,800,0,1000,0,1200');
+  finally
+    closefile(TestFile);
   end;
 end;
 
@@ -221,6 +244,90 @@ begin
     Check(LineStr = '"003","Test Description 003",4200,0,200,0,400,0,600,0,800,0,1000,0,1200');
   finally
     closefile(TestFile);
+  end;
+end;
+
+//------------------------------------------------------------------------------
+procedure TBudgetImportExportTestCase.TestImportBudget;
+const
+  BUDGET_FILE = 'BudgetFile.csv';
+var
+  BudgetData : TBudgetData;
+  ResExpBudget : boolean;
+  Budget : TBudget;
+  MsgStr : string;
+  ChartCodeSkipped : boolean;
+begin
+  Budget := TBudget.create;
+
+  try
+    // Include Unused Chart Codes Test
+    BudgetData := CreateBudgetData;
+    CreateBudgetFile(BUDGET_FILE);
+
+    ResExpBudget := fBudgetImportExport.ImportBudget(BUDGET_FILE,
+                                                     BudgetData,
+                                                     Budget,
+                                                     MsgStr,
+                                                     ChartCodeSkipped);
+
+    Check(Length(BudgetData) = 3);
+
+    if Length(BudgetData) = 3 then
+    begin
+      // Altered Line
+      Check(BudgetData[0].bAccount = '001');
+      Check(BudgetData[0].bDesc = 'Test Description 001');
+      Check(BudgetData[0].bTotal = 46800);
+      Check(BudgetData[0].bAmounts[1] = 1100);
+      Check(BudgetData[0].bAmounts[2] = 1200);
+      Check(BudgetData[0].bAmounts[3] = 1300);
+      Check(BudgetData[0].bAmounts[4] = 1400);
+      Check(BudgetData[0].bAmounts[5] = 1500);
+      Check(BudgetData[0].bAmounts[6] = 1600);
+      Check(BudgetData[0].bAmounts[7] = 1700);
+      Check(BudgetData[0].bAmounts[8] = 1800);
+      Check(BudgetData[0].bAmounts[9] = 1900);
+      Check(BudgetData[0].bAmounts[10] = 11000);
+      Check(BudgetData[0].bAmounts[11] = 11100);
+      Check(BudgetData[0].bAmounts[12] = 11200);
+
+      // Unchanged Line
+      Check(BudgetData[1].bAccount = '002');
+      Check(BudgetData[1].bDesc = '0123456789012345678901234567890123456789');
+      Check(BudgetData[1].bTotal = 0);
+      Check(BudgetData[1].bAmounts[1] = 0);
+      Check(BudgetData[1].bAmounts[2] = 0);
+      Check(BudgetData[1].bAmounts[3] = 0);
+      Check(BudgetData[1].bAmounts[4] = 0);
+      Check(BudgetData[1].bAmounts[5] = 0);
+      Check(BudgetData[1].bAmounts[6] = 0);
+      Check(BudgetData[1].bAmounts[7] = 0);
+      Check(BudgetData[1].bAmounts[8] = 0);
+      Check(BudgetData[1].bAmounts[9] = 0);
+      Check(BudgetData[1].bAmounts[10] = 0);
+      Check(BudgetData[1].bAmounts[11] = 0);
+      Check(BudgetData[1].bAmounts[12] = 0);
+
+      // Cleared Value Line
+      Check(BudgetData[2].bAccount = '003');
+      Check(BudgetData[2].bDesc = 'Test Description 003');
+      Check(BudgetData[2].bTotal = 0);
+      Check(BudgetData[2].bAmounts[1] = 0);
+      Check(BudgetData[2].bAmounts[2] = 0);
+      Check(BudgetData[2].bAmounts[3] = 0);
+      Check(BudgetData[2].bAmounts[4] = 0);
+      Check(BudgetData[2].bAmounts[5] = 0);
+      Check(BudgetData[2].bAmounts[6] = 0);
+      Check(BudgetData[2].bAmounts[7] = 0);
+      Check(BudgetData[2].bAmounts[8] = 0);
+      Check(BudgetData[2].bAmounts[9] = 0);
+      Check(BudgetData[2].bAmounts[10] = 0);
+      Check(BudgetData[2].bAmounts[11] = 0);
+      Check(BudgetData[2].bAmounts[12] = 0);
+    end;
+  finally
+    Budget.Free;
   end;
 end;
 
