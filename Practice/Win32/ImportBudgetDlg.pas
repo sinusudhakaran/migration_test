@@ -14,7 +14,8 @@ uses
   Forms,
   Dialogs,
   StdCtrls,
-  Buttons, ExtDlgs;
+  Buttons,
+  ExtDlgs;
 
 type
   TfrmImportBudget = class(TForm)
@@ -100,7 +101,7 @@ procedure TfrmImportBudget.btnOkClick(Sender: TObject);
 begin
   if not fileexists(edtBudgetFile.Text) then
   begin
-    HelpfulErrorMsg('The file you have selected does not exist, please re-enter the file.', 0);
+    HelpfulErrorMsg('The specified file does not exist.' + #13#10 + #13#10 + 'Filename : ' + edtBudgetFile.Text, 0);
     edtBudgetFile.SetFocus;
     exit;
   end;

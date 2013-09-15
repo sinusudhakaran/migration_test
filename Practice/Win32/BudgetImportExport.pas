@@ -10,7 +10,8 @@ uses
   Classes,
   bkConst,
   MoneyDef,
-  BKDefs;
+  BKDefs,
+  BUDOBJ32;
 
 const
   BUDGET_DEFAULT_FILENAME = 'BudgetDefaultLocations.dat';
@@ -54,6 +55,8 @@ type
 
     function GetIOErrorDescription(ErrorCode : integer; ErrorMsg : string) : string;
     function GetFileLocIndex(aBudgetDefaults : TStringList; aClientCode: string; var aIndex : integer) : boolean;
+    function AmountMatchesQuantityFormula(var aData : TBudgetData; RowIndex, ColIndex: Integer): boolean;
+    procedure BudgetEditRow(var aData : TBudgetData; var aBudget : TBudget; aBudgetAmount, RowNum, ColNum: Integer);
   public
     function GetDefaultFileLocation(aClientCode : string) : string;
     procedure SetDefaultFileLocation(aClientCode, aFileLocation : string);
@@ -64,7 +67,10 @@ type
                           aStartDate : integer;
                           var aMsg : string) : boolean;
     function ImportBudget(aBudgetFilePath : string;
-                          var aMsg : string) : boolean;
+                          var aData : TBudgetData;
+                          var aBudget : TBudget;
+                          var aMsg : string;
+                          var aChartCodesSkipped : boolean ) : boolean;
 
     property BudgetDefaultFile : string read fBudgetDefaultFile write fBudgetDefaultFile;
   end;
@@ -77,7 +83,9 @@ uses
   StDateSt,
   strutils,
   LogUtil,
-  Globals;
+  Globals,
+  BudgetUnitPriceEntry,
+  BKbdIO;
 
 { TBudgetImportExport }
 //------------------------------------------------------------------------------
@@ -282,23 +290,156 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+function TBudgetImportExport.AmountMatchesQuantityFormula(var aData : TBudgetData; RowIndex, ColIndex: Integer): boolean;
+var
+  Quantity: Money;
+  UnitPrice: Money;
+  CalculatedAmount : Money;
+  Amount: Integer;
+begin
+  Quantity := aData[RowIndex].bQuantitys[ColIndex];
+  UnitPrice := aData[RowIndex].bUnitPrices[ColIndex];
+  CalculatedAmount := TfrmBudgetUnitPriceEntry.CalculateTotal(UnitPrice, Quantity);
+  Amount := aData[RowIndex].bAmounts[ColIndex];
+  Result := CalculatedAmount = Amount;
+end;
+
+  //------------------------------------------------------------------------------
+procedure TBudgetImportExport.BudgetEditRow(var aData : TBudgetData; var aBudget : TBudget; aBudgetAmount, RowNum, ColNum: Integer);
+var
+  NewLine : pBudget_Detail_Rec;
+begin
+  aData[RowNum].bAmounts[ColNum] := aBudgetAmount;
+  if (aBudgetAmount = 0) or not AmountMatchesQuantityFormula(aData, RowNum, ColNum) then
+  begin
+    aData[RowNum].bQuantitys[ColNum] := 0;
+    aData[RowNum].bUnitPrices[ColNum] := 0;
+  end;
+
+  if aData[RowNum].bDetailLine = nil then
+  begin
+    NewLine := New_Budget_Detail_Rec;
+    NewLine.bdAccount_Code := aData[Rownum].bAccount;
+    aBudget.buDetail.Insert(NewLine);
+
+    aData[RowNum].bDetailLine := NewLine;
+  end;
+
+  aData[RowNum].bDetailLine.bdBudget[ColNum] := aBudgetAmount;
+  aData[RowNum].bDetailLine.bdQty_Budget[ColNum] := aData[RowNum].bQuantitys[ColNum];
+  aData[RowNum].bDetailLine.bdEach_Budget[ColNum] := aData[RowNum].bUnitPrices[ColNum];
+end;
+
+//------------------------------------------------------------------------------
 function TBudgetImportExport.ImportBudget(aBudgetFilePath: string;
-                                          var aMsg : string): boolean;
+                                          var aData : TBudgetData;
+                                          var aBudget : TBudget;
+                                          var aMsg : string;
+                                          var aChartCodesSkipped : boolean): boolean;
 const
   ThisMethodName = 'ImportBudget';
 var
   InputFile : Text;
   InStrLine : string;
   Done : boolean;
+  InLineData : TStringList;
+  ErrorLines : TStringList;
+  DataIndex, DateIndex : integer;
+  LineHasError : boolean;
+  LineNumber : integer;
+  InValue : integer;
+
+  function GetDataIndexWithAccount(aAccount : string) : integer;
+  var
+    Index : integer;
+  begin
+    Result := -1;
+    for Index := 0 to high(aData) do
+    begin
+      if aData[Index].bAccount = aAccount then
+      begin
+        Result := Index;
+        Exit;
+      end;
+    end;
+  end;
+
 begin
   Done := false;
+  Result := false;
+  LineNumber := 0;
   try
     AssignFile(InputFile, aBudgetFilePath);
     Reset(InputFile);
 
     try
-      readln(InputFile, InStrLine);
+      InLineData := TStringList.Create;
+      ErrorLines := TStringList.Create;
+      try
+        if eof(InputFile) then
+        begin
+          aMsg := 'Unable to Import file. The file is empty.';
+          Exit;
+        end;
 
+        // Ignore header
+        readln(InputFile, InStrLine);
+        inc(LineNumber);
+
+        // ignore header
+        if eof(InputFile) then
+        begin
+          aMsg := 'Unable to Import file. The file has no data.';
+          Exit;
+        end;
+
+        while not eof(InputFile) do
+        begin
+          LineHasError := false;
+          readln(InputFile, InStrLine);
+          inc(LineNumber);
+          InLineData.CommaText := InStrLine;
+
+          if InLineData.Count <> 15 then
+          begin
+            ErrorLines.Add('Line-' + inttostr(LineNumber) + ' Incorrect amount of columns');
+            break;
+          end;
+
+          DataIndex := GetDataIndexWithAccount(InLineData[0]);
+          if DataIndex <> -1 then
+          begin
+            for DateIndex := 1 to 12 do
+            begin
+              if TryStrtoInt(InLineData[2 + DateIndex], InValue) then
+              begin
+                BudgetEditRow(aData, aBudget, InValue, DataIndex, DateIndex);
+                ErrorLines.Add('');
+              end
+              else
+              begin
+                ErrorLines.Add('Line-' + inttostr(LineNumber) + 'Date Row-' +
+                               inttostr(DateIndex) + ' Can''t convert value to a number');
+              end;
+            end;
+
+            aData[DataIndex].bTotal := 0;
+            for DateIndex := 1 to 12 do
+              aData[DataIndex].bTotal := aData[DataIndex].bTotal +
+                                         aData[DataIndex].bAmounts[DateIndex];
+          end
+          else
+          begin
+            ErrorLines.Add('Line-' + inttostr(LineNumber) + ' Can''t find account');
+            aChartCodesSkipped := true;
+          end;
+        end;
+
+        Result := true;
+      finally
+        FreeAndNil(InLineData);
+        FreeAndNil(ErrorLines);
+      end;
     finally
       CloseFile(InputFile);
     end;
@@ -306,7 +447,7 @@ begin
   except
     on e : EInOutError do
     begin
-      aMsg := Format( 'Unable to Export file. %s', [ GetIOErrorDescription(E.ErrorCode, E.Message) ] );
+      aMsg := Format( 'Unable to Import file. %s', [ GetIOErrorDescription(E.ErrorCode, E.Message) ] );
       LogUtil.LogMsg( lmError, UnitName, ThisMethodName + ' : ' + aMsg );
       Done := true;
     end;
@@ -314,7 +455,7 @@ begin
     begin
       if not Done then
       begin
-        aMsg := Format( 'Unable to Export file. %s', [E.Message] );
+        aMsg := Format( 'Unable to Import file. %s', [E.Message] );
         LogUtil.LogMsg( lmError, UnitName, ThisMethodName + ' : ' + aMsg );
       end;
     end;

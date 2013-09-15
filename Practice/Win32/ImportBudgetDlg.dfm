@@ -11,7 +11,7 @@ object frmImportBudget: TfrmImportBudget
   Font.Name = 'Tahoma'
   Font.Style = []
   OldCreateOrder = False
-  Position = poDesktopCenter
+  Position = poScreenCenter
   OnCreate = FormCreate
   DesignSize = (
     568

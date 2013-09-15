@@ -215,7 +215,7 @@ type
     procedure HideCustomHint;
     function GetTotalForRow(RowNum: Integer): Integer;
     procedure RefreshFData(ShowZeros: Boolean; var aDataIndex : integer);
-    procedure RefreshTableWithData(ShowZeros: Boolean);
+    procedure RefreshTableWithData(ShowZeros: Boolean; aRefreshFdata : Boolean = true);
     procedure UpdateShowHideEnabledState;
     function UnusedRowsShowing: boolean;
     function AllRowsShowing: boolean;
@@ -696,7 +696,7 @@ begin
             {budget line for this cell}
 
             FData[RowNum-1].bAmounts[ColNum-MonthBase] := eAmounts[ColNum-MonthBase];
-            if (eAmounts[ColNum - MonthBase] = 0) or not AmountMatchesQuantityFormula(RowNum - 1, ColNum - MonthBase)  then
+            if (eAmounts[ColNum - MonthBase] = 0) or not AmountMatchesQuantityFormula(RowNum - 1, ColNum - MonthBase) then
             begin
               FData[RowNum - 1].bQuantitys[ColNum - MonthBase] := 0;
               FData[RowNum - 1].bUnitPrices[ColNum - MonthBase] := 0;
@@ -704,11 +704,11 @@ begin
 
             if FData[RowNum-1].bDetailLine = nil then
             begin
-               NewLine := New_Budget_Detail_Rec;
-               NewLine.bdAccount_Code := fData[Rownum-1].bAccount;
-               Budget.buDetail.Insert(NewLine);
+              NewLine := New_Budget_Detail_Rec;
+              NewLine.bdAccount_Code := fData[Rownum-1].bAccount;
+              Budget.buDetail.Insert(NewLine);
 
-               FData[RowNum-1].bDetailLine := NewLine;
+              FData[RowNum-1].bDetailLine := NewLine;
             end;
 
             FData[RowNum-1].bDetailLine.bdBudget[ColNum-MonthBase] := eAmounts[ColNum-MonthBase];
@@ -904,12 +904,14 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TFrmBudget.RefreshTableWithData(ShowZeros: Boolean);
+procedure TFrmBudget.RefreshTableWithData(ShowZeros: Boolean; aRefreshFdata : Boolean);
 var
   DataIndex : integer;
 begin
   fShowZeros := ShowZeros;
-  RefreshFData(ShowZeros, DataIndex);
+
+  if aRefreshFdata then
+    RefreshFData(ShowZeros, DataIndex);
 
   tblBudget.RowLimit := DataIndex + 1;
   DataAssigned := true;
@@ -2060,17 +2062,31 @@ var
   BudgetFilePath : string;
   BudgetImportExport : TBudgetImportExport;
   MsgStr : string;
+  ChartCodeSkipped : boolean;
+  DataIndex : integer;
 begin
+  ChartCodeSkipped := false;
+  if not fShowZeros then
+    RefreshFData(true, DataIndex);
+
   BudgetImportExport := TBudgetImportExport.Create;
   try
     BudgetImportExport.BudgetDefaultFile := '';
 
     if DoImportBudget(BudgetFilePath, FBudget.buFields.buName) then
     begin
-      if not BudgetImportExport.ImportBudget(BudgetFilePath, MsgStr) then
-        HelpfulErrorMsg(MsgStr, 0);
+      if not BudgetImportExport.ImportBudget(BudgetFilePath, FData, FBudget, MsgStr, ChartCodeSkipped) then
+        HelpfulErrorMsg(MsgStr, 0)
+      else
+      begin
+        if ChartCodeSkipped then
+          HelpfulErrorMsg('There were accounts in the selected file which do not exist in the current ' +
+                          'client''s chart of accounts. These acounts were not imported', 0)
+      end;
     end;
   finally
+    RefreshTableWithData(fShowZeros);
+
     FreeAndNil(BudgetImportExport);
   end;
 end;
