@@ -230,6 +230,7 @@ var
   s: string;
   OKToDelete : Boolean;
   Budget : TBudget;
+  BudgetName : string;
 begin
   Result := False;
 
@@ -243,9 +244,10 @@ begin
   begin
     OKToDelete := False;
     Budget := TBudget(CheckedList.Objects[i]);
+    BudgetName := Budget.buFields.buName;
     if BudgetVisible(Budget) then
     begin
-      s := 'Budget ' + Budget.buFields.buName + ' is currently being edited. ' +
+      s := 'Budget ' + BudgetName + ' is currently being edited. ' +
            ' Do you want to close and delete it?';
       if AskYesNo('Delete Budget?',s,DLG_NO,0) = DLG_YES then
       begin
@@ -261,7 +263,7 @@ begin
 
   Result := true;
 
-  LogUtil.LogMsg(lmInfo,'BUDGETLOOKUP','User Deleted Budget '+ Name);
+  LogUtil.LogMsg(lmInfo,'BUDGETLOOKUP','User Deleted Budget '+ BudgetName);
 end;
 //------------------------------------------------------------------------------
 procedure TfrmBudgetLook.tbDeleteClick(Sender: TObject);
