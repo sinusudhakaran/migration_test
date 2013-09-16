@@ -2066,8 +2066,6 @@ var
   DataIndex : integer;
 begin
   ChartCodeSkipped := false;
-  if not fShowZeros then
-    RefreshFData(true, DataIndex);
 
   BudgetImportExport := TBudgetImportExport.Create;
   try
@@ -2075,18 +2073,23 @@ begin
 
     if DoImportBudget(BudgetFilePath, FBudget.buFields.buName) then
     begin
-      if not BudgetImportExport.ImportBudget(BudgetFilePath, FData, FBudget, MsgStr, ChartCodeSkipped) then
-        HelpfulErrorMsg(MsgStr, 0)
-      else
-      begin
-        if ChartCodeSkipped then
-          HelpfulErrorMsg('There were accounts in the selected file which do not exist in the current ' +
-                          'client''s chart of accounts. These acounts were not imported', 0)
+      try
+        if not fShowZeros then
+          RefreshFData(true, DataIndex);
+
+        if not BudgetImportExport.ImportBudget(BudgetFilePath, FData, FBudget, MsgStr, ChartCodeSkipped) then
+          HelpfulErrorMsg(MsgStr, 0)
+        else
+        begin
+          if ChartCodeSkipped then
+            HelpfulErrorMsg('There were accounts in the selected file which do not exist in the current ' +
+                            'client''s chart of accounts. These acounts were not imported', 0)
+        end;
+      finally
+        RefreshTableWithData(fShowZeros);
       end;
     end;
   finally
-    RefreshTableWithData(fShowZeros);
-
     FreeAndNil(BudgetImportExport);
   end;
 end;
@@ -2112,9 +2115,6 @@ var
   end;
 
 begin
-  if not fShowZeros then
-    RefreshFData(true, DataIndex);
-
   BudgetImportExport := TBudgetImportExport.Create;
   try
     BudgetImportExport.BudgetDefaultFile := UserDir + BUDGET_DEFAULT_FILENAME;
@@ -2128,21 +2128,26 @@ begin
 
     if DoExportBudget(BudgetFilePath, IncludeUnusedChartCodes) then
     begin
-      if BudgetImportExport.ExportBudget(BudgetFilePath, IncludeUnusedChartCodes, FData, Budget.buFields.buStart_Date, MsgStr) then
-      begin
-        BudgetImportExport.SetDefaultFileLocation(MyClient.clFields.clCode, BudgetFilePath);
+      if not fShowZeros then
+        RefreshFData(true, DataIndex);
 
-        MsgStr := Format('Budget saved to "%s".%s%sDo you want to view it now?', [BudgetFilePath, #13#10, #13#10]);
-        if (AskYesNo(rfNames[rfCSV], MsgStr, DLG_YES, 0) = DLG_YES) then
-          ShellExecute(0, 'open', PChar(BudgetFilePath), nil, nil, SW_SHOWMAXIMIZED);
-      end
-      else
-        HelpfulErrorMsg(MsgStr, 0);
+      try
+        if BudgetImportExport.ExportBudget(BudgetFilePath, IncludeUnusedChartCodes, FData, Budget.buFields.buStart_Date, MsgStr) then
+        begin
+          BudgetImportExport.SetDefaultFileLocation(MyClient.clFields.clCode, BudgetFilePath);
+
+          MsgStr := Format('Budget saved to "%s".%s%sDo you want to view it now?', [BudgetFilePath, #13#10, #13#10]);
+          if (AskYesNo(rfNames[rfCSV], MsgStr, DLG_YES, 0) = DLG_YES) then
+            ShellExecute(0, 'open', PChar(BudgetFilePath), nil, nil, SW_SHOWMAXIMIZED);
+        end
+        else
+          HelpfulErrorMsg(MsgStr, 0);
+      finally
+        if not fShowZeros then
+          RefreshTableWithData(fShowZeros);
+      end;
     end;
   finally
-    if not fShowZeros then
-      RefreshFData(false, DataIndex);
-
     FreeAndNil(BudgetImportExport);
   end;
 end;
