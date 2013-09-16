@@ -23,6 +23,7 @@ interface
 uses
    Windows, graphics, SysUtils;
 
+procedure ProcessDiskCode(InputString: string; var Bsb, AccountNum: string);
 
 
 // Basic Version handeling
