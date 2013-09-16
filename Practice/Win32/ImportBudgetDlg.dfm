@@ -1,9 +1,10 @@
 object frmImportBudget: TfrmImportBudget
   Left = 0
   Top = 0
+  BorderStyle = bsDialog
   Caption = 'Import Budget'
-  ClientHeight = 101
-  ClientWidth = 568
+  ClientHeight = 111
+  ClientWidth = 578
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -14,8 +15,8 @@ object frmImportBudget: TfrmImportBudget
   Position = poScreenCenter
   OnCreate = FormCreate
   DesignSize = (
-    568
-    101)
+    578
+    111)
   PixelsPerInch = 96
   TextHeight = 13
   object lblFilename: TLabel
@@ -32,7 +33,7 @@ object frmImportBudget: TfrmImportBudget
     ParentFont = False
   end
   object btnToFile: TSpeedButton
-    Left = 535
+    Left = 545
     Top = 8
     Width = 25
     Height = 24
@@ -46,7 +47,7 @@ object frmImportBudget: TfrmImportBudget
   object edtBudgetFile: TEdit
     Left = 133
     Top = 8
-    Width = 396
+    Width = 406
     Height = 24
     Hint = 'Enter the filename to import from'
     Anchors = [akLeft, akTop, akRight]
@@ -59,10 +60,11 @@ object frmImportBudget: TfrmImportBudget
     ParentShowHint = False
     ShowHint = True
     TabOrder = 0
+    ExplicitWidth = 396
   end
   object btnOk: TButton
-    Left = 404
-    Top = 68
+    Left = 414
+    Top = 78
     Width = 75
     Height = 25
     Anchors = [akRight, akBottom]
@@ -76,10 +78,12 @@ object frmImportBudget: TfrmImportBudget
     ParentFont = False
     TabOrder = 1
     OnClick = btnOkClick
+    ExplicitLeft = 404
+    ExplicitTop = 68
   end
   object btnCancel: TButton
-    Left = 485
-    Top = 68
+    Left = 495
+    Top = 78
     Width = 75
     Height = 25
     Anchors = [akRight, akBottom]
@@ -93,6 +97,8 @@ object frmImportBudget: TfrmImportBudget
     ModalResult = 2
     ParentFont = False
     TabOrder = 2
+    ExplicitLeft = 485
+    ExplicitTop = 68
   end
   object OpenTextFileDialog: TOpenTextFileDialog
     DefaultExt = 'csv'
