@@ -332,15 +332,6 @@ begin
           HelpfulInfoMsg( 'There aren''t any new entries to extract from "'+baBank_Account_Number+'" in this date range!', 0 );
           exit;
        end;
-
-       (*
-       if not TravUtils.AllCoded( BA, FromDate, ToDate ) then
-       Begin
-          HelpfulInfoMsg( 'You must code all the entries before you can extract them.', 0 );
-          Exit;
-       end;
-       *)
-
        Assign( XFile, SaveTo );
        SetTextBuf( XFile, Buffer );
        Rewrite( XFile );
@@ -401,15 +392,6 @@ end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-procedure DoAccountTrailer;
-const
-  ThisMethodName = 'DoAccountTrailer';
-begin
-  //
-end;
-
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 procedure DoClassSuperIPTransaction;
 const
   ThisMethodName = 'DoClassSuperIPTransaction';
@@ -435,15 +417,6 @@ end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-procedure DoClassSuperIPDissection;
-const
-  ThisMethodName = 'DoClassSuperIPDissection';
-begin
-  //
-end;
-
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 procedure ExtractDataBGL360(const FromDate, ToDate: TStDate; const SaveTo : string);
 const
    ThisMethodName = 'ExtractDataBGL360';
@@ -460,8 +433,6 @@ VAR
       FOutputDocument := CreateXMLDoc;
     Result := FOutputDocument;
   end;
-
-
 
 begin
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
@@ -502,30 +473,6 @@ begin
                        ', in the selected date range.',0);
         Exit;
       end;
-      //Uncoded entries
-      {
-      if not AllowUncoded then begin
-        if not TravUtils.AllCoded(BA, FromDate, ToDate) then begin
-          HelpfulInfoMsg( 'Account "' + BA.baFields.baBank_Account_Number +
-                          '" has uncoded entries. You must code all the ' +
-                          'entries before you can extract them.',  0 );
-          Exit;
-        end;
-      end;
-      }
-      //Bank contra
-      {
-      if not AllowBlankContra then begin
-        if BA.baFields.baContra_Account_Code = '' then begin
-          HelpfulInfoMsg('Before you can extract these entries, ' +
-                         'you must specify a contra account code ' +
-                         'for bank account "'+ BA.baFields.baBank_Account_Number +
-                         '". To do this, go to the Other ' +
-                         'Functions|Bank Accounts option and edit the account', 0 );
-          Exit;
-        end;
-      end;
-      }
     end;
 
     //Output XML
@@ -546,9 +493,7 @@ begin
         Traverse.SetSortMethod(csDateEffective);
         Traverse.SetSelectionMethod(Traverse.twAllNewEntries);
         Traverse.SetOnAHProc(DoAccountHeader);
-        // Traverse.SetOnATProc(DoAccountTrailer);
         Traverse.SetOnEHProc(DoClassSuperIPTransaction);
-        // Traverse.SetOnDSProc(DoClassSuperIPDissection);
         Traverse.TraverseEntriesForAnAccount(BA, FromDate, ToDate);
       end;
 
@@ -569,8 +514,6 @@ begin
   finally
 
   end;
-
-
 
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
