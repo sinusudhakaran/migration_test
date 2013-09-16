@@ -231,7 +231,7 @@ begin
                   saLotus123        : HelpfulInfoMsg( 'Sorry, Lotus 1-2-3 is not supported in '+ShortAppName, 0 );
                   saAttache         : AttacheXOZ.ExtractData(FD, TD, Path );
                   saHandiLedger     : HandiLedgerX.ExtractData( FD, TD, Path );
-                  saBGLSimpleFund, saBGLSimpleLedger, saBGL360   : SimpleFundX.ExtractData( FD, TD, Path );
+                  saBGLSimpleFund, saBGLSimpleLedger, saBGL360   : SimpleFundX.ExtractData( clAccounting_System_Used, FD, TD, Path );
                   saMYOB            : MYOBX.ExtractData(FD, TD, Path);
                   saCeeDataCDS1     : HelpfulInfoMsg( 'Sorry, the CDS1 Format is not supported at present in '+ShortAppName, 0 );
                   saSolution6CLS3   : CLS3X.ExtractData( FD, TD, Path );

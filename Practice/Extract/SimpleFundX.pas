@@ -28,32 +28,38 @@ unit SimpleFundX;
 //------------------------------------------------------------------------------
 interface uses StDate;
 
-procedure ExtractData( const FromDate, ToDate : TStDate; const SaveTo : string );
+procedure ExtractData( const SuperFundType: byte; const FromDate, ToDate : TStDate; const SaveTo : string );
+procedure ExtractDataBGL(const FromDate, ToDate: TStDate; const SaveTo : string);
+procedure ExtractDataBGL360(const FromDate, ToDate: TStDate; const SaveTo : string);
 
 //******************************************************************************
 implementation
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 uses
-   SuperFieldsUtils,
-   TransactionUtils,
-   Classes,
-   Traverse,
-   Globals,
-   GenUtils,
-   bkDateUtils,
-   TravUtils,
-   YesNoDlg,
-   LogUtil,
-   BaObj32,
-   dlgSelect,
-   BkConst,
-   MoneyDef,
-   SysUtils,
-   StStrS,
-   InfoMoreFrm,
-   BKDefs,
-   glConst;
+  BaObj32,
+  baUtils,
+  BkConst,
+  bkDateUtils,
+  BKDefs,
+  Classes,
+  dlgSelect,
+  ExtractCommon,
+  GenUtils,
+  glConst,
+  Globals,
+  InfoMoreFrm,
+  LogUtil,
+  MoneyDef,
+  OmniXML,
+  OmniXMLUtils,
+  StStrS,
+  SuperFieldsUtils,
+  SysUtils,
+  TransactionUtils,
+  Traverse,
+  TravUtils,
+  YesNoDlg;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -64,10 +70,19 @@ Const
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Var
-   XFile              : Text;
-   Buffer             : array[ 1..2048 ] of Byte;
-   NoOfEntries        : LongInt;
-
+  XFile             : Text;
+  Buffer            : array[ 1..2048 ] of Byte;
+  NoOfEntries       : LongInt;
+  FCloseBalance     : Money;
+  FAccountNode      : IxmlNode;
+  FOutputDocument   : IXMLDocument;
+  FClientNode       : IxmlNode;
+  FBalancesNode     : IxmlNode;
+  FDateMask         : shortString;
+  FRootNode         : IxmlNode;
+  FTransactionsNode : IxmlNode;
+  FTransactionNode  : IxmlNode;
+  FNoOfEntries      : integer;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -150,6 +165,24 @@ Begin
    Writeln( XFile );
 
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+function FormatFloatForXml(AFloat: comp; ADecimalPlaces: integer = 2;
+                           AdivBy: integer = 100): string;
+var
+  i: integer;
+  FormatPic: string;
+begin
+  if AFloat = 0 then
+    Exit;
+
+  FormatPic := '#0.';
+  for i := 0 to ADecimalPlaces - 1 do
+    FormatPic := FormatPic + '0';
+  FormatPic := FormatPic + ';-' + FormatPic;
+  Result := FormatFloat(FormatPic, AFloat/ADivBy);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -244,66 +277,302 @@ end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-procedure ExtractData( const FromDate, ToDate : TStDate; const SaveTo : string );
+function OutputDocument: IXMLDocument;
+begin
+  if FOutputDocument = nil then
+    FOutputDocument := CreateXMLDoc;
+  Result := FOutputDocument;
+end;
 
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+procedure AddFieldNode(var ToNode: IxmlNode; const Name, Value: string);
+begin
+  if Value > '' then // No empty Tags...
+    SetNodeTextStr(ToNode,Name,Value);
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+procedure ExtractData( const SuperFundType: byte; const FromDate, ToDate : TStDate; const SaveTo : string );
 const
    ThisMethodName = 'ExtractData';
+Begin
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
+  if (SuperFundType = saBGLSimpleFund) then
+    ExtractDataBGL(FromDate, ToDate, SaveTo)
+  else if (SuperFundType = saBGL360) then
+    ExtractDataBGL360(FromDate, ToDate, SaveTo);
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
+end;
 
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+procedure ExtractDataBGL(const FromDate, ToDate: TStDate; const SaveTo : string);
+const
+   ThisMethodName = 'ExtractDataBGL';
 VAR
    BA : TBank_Account;
    Msg          : String;
    OK           : Boolean;
-Begin
-   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
-   Msg := 'Extract data [BGL Simple Fund format] from '+BkDate2Str( FromDate ) + ' to ' + bkDate2Str( ToDate );
-   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' ' + Msg );
+begin
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
+  Msg := 'Extract data [BGL Simple Fund format] from '+BkDate2Str( FromDate ) + ' to ' + bkDate2Str( ToDate );
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' ' + Msg );
 
-   with MyClient.clFields do
-   begin
-      BA := dlgSelect.SelectBankAccountForExport( FromDate, ToDate );
-      if not Assigned( BA ) then Exit;
+  with MyClient.clFields do
+  begin
+    BA := dlgSelect.SelectBankAccountForExport( FromDate, ToDate );
+    if not Assigned( BA ) then Exit;
 
-      With BA.baFields do
-      Begin
-         if TravUtils.NumberAvailableForExport( BA, FromDate, ToDate  )= 0 then
-         Begin
-            HelpfulInfoMsg( 'There aren''t any new entries to extract from "'+baBank_Account_Number+'" in this date range!', 0 );
-            exit;
-         end;
+    With BA.baFields do
+    Begin
+       if TravUtils.NumberAvailableForExport( BA, FromDate, ToDate  )= 0 then
+       Begin
+          HelpfulInfoMsg( 'There aren''t any new entries to extract from "'+baBank_Account_Number+'" in this date range!', 0 );
+          exit;
+       end;
 
-         (*
-         if not TravUtils.AllCoded( BA, FromDate, ToDate ) then
-         Begin
-            HelpfulInfoMsg( 'You must code all the entries before you can extract them.', 0 );
-            Exit;
-         end;
-         *)
+       (*
+       if not TravUtils.AllCoded( BA, FromDate, ToDate ) then
+       Begin
+          HelpfulInfoMsg( 'You must code all the entries before you can extract them.', 0 );
+          Exit;
+       end;
+       *)
 
-         Assign( XFile, SaveTo );
-         SetTextBuf( XFile, Buffer );
-         Rewrite( XFile );
+       Assign( XFile, SaveTo );
+       SetTextBuf( XFile, Buffer );
+       Rewrite( XFile );
 
-         Try
-            NoOfEntries := 0;
-            TRAVERSE.Clear;
-            TRAVERSE.SetSortMethod( csDateEffective );
-            TRAVERSE.SetSelectionMethod( twAllNewEntries );
-            TRAVERSE.SetOnEHProc( DoTransaction );
-            TRAVERSE.SetOnDSProc( DoDissection );
-            TRAVERSE.TraverseEntriesForAnAccount( BA, FromDate, ToDate );
-            OK := True;
-         finally
-            System.Close( XFile );
-         end;
+       Try
+          NoOfEntries := 0;
+          TRAVERSE.Clear;
+          TRAVERSE.SetSortMethod( csDateEffective );
+          TRAVERSE.SetSelectionMethod( twAllNewEntries );
+          TRAVERSE.SetOnEHProc( DoTransaction );
+          TRAVERSE.SetOnDSProc( DoDissection );
+          TRAVERSE.TraverseEntriesForAnAccount( BA, FromDate, ToDate );
+          OK := True;
+       finally
+          System.Close( XFile );
+       end;
+    end;
+    if OK then
+    Begin
+       Msg := SysUtils.Format( 'Extract Data Complete. %d Entries were saved in %s',[ NoOfEntries, SaveTo ] );
+       LogUtil.LogMsg(lmInfo, UnitName, ThisMethodName + ' : ' + Msg );
+       HelpfulInfoMsg( Msg, 0 );
+    end;
+  end; { Scope of MyClient }
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+procedure DoAccountHeader;
+const
+  ThisMethodName = 'DoAccountHeader';
+var
+  OpenBalance, SystemOpBal, SystemClBal: Money;
+  BSB, AccountNum: string;
+begin
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins');
+
+  OpenBalance := 0;
+  FCloseBalance := 0;
+  if Assigned(Bank_Account) then
+  begin
+    baUtils.GetBalances(Bank_Account,  Traverse_From, Traverse_To, OpenBalance,
+                        FCloseBalance, SystemOpBal, SystemClBal);
+  end;
+
+  FAccountNode := OutputDocument.CreateElement('Balance');
+  FBalancesNode.AppendChild(FAccountNode);
+  AddFieldNode(FAccountNode, 'BalanceDate', Date2Str(Traverse_From, FdateMask ));
+  AddFieldNode(FAccountNode, 'BalanceAmount', FormatFloatForXml(OpenBalance));
+  ProcessDiskCode(Bank_Account.baFields.baBank_Account_Number, BSB, AccountNum);
+  AddFieldNode(FAccountNode, 'BSB', BSB);
+  AddFieldNode(FAccountNode, 'Bank_Account_No', AccountNum);
+  AddFieldNode(FAccountNode, 'Balance_Type', '10'); // 10 = Opening Balance, 15 = Closing Balance
+
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends');
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+procedure DoAccountTrailer;
+const
+  ThisMethodName = 'DoAccountTrailer';
+begin
+  //
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+procedure DoClassSuperIPTransaction;
+const
+  ThisMethodName = 'DoClassSuperIPTransaction';
+var
+  BSB, AccountNum: string;
+begin
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins');
+
+  FTransactionNode := OutputDocument.CreateElement('Transaction');
+  FTransactionsNode.AppendChild(FTransactionNode);
+  AddFieldNode(FTransactionNode, 'Transaction_Type', 'Other Transaction');
+  AddFieldNode(FTransactionNode, 'Transaction_Date', Date2Str(Transaction^.txDate_Effective, FDateMask));
+  AddFieldNode(FTransactionNode, 'Amount', FormatFloatForXml(Transaction^.txAmount));
+  AddFieldNode(FTransactionNode, 'Text', Transaction^.txGL_Narration);
+  AddFieldNode(FTransactionNode, 'Account_Code', '91000');
+  AddFieldNode(FTransactionNode, 'Other_Reference', Transaction^.txReference);
+  ProcessDiskCode(TBank_Account(Transaction^.txBank_Account).baFields.baBank_Account_Number, BSB, AccountNum);
+  AddFieldNode(FTransactionNode, 'BSB', BSB);
+  AddFieldNode(FTransactionNode, 'Bank_Account_No', AccountNum);
+
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends');
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+procedure DoClassSuperIPDissection;
+const
+  ThisMethodName = 'DoClassSuperIPDissection';
+begin
+  //
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+procedure ExtractDataBGL360(const FromDate, ToDate: TStDate; const SaveTo : string);
+const
+   ThisMethodName = 'ExtractDataBGL360';
+VAR
+  BA : TBank_Account;
+  Msg          : String;
+  No           : Integer;
+  Selected: TStringList;
+  PI: IXMLProcessingInstruction;
+
+  function OutputDocument: IXMLDocument;
+  begin
+    if FOutputDocument = nil then
+      FOutputDocument := CreateXMLDoc;
+    Result := FOutputDocument;
+  end;
+
+
+
+begin
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
+
+  Msg := 'Extract data [BK5 XML format] from ' + BkDate2Str(FromDate) +
+         ' to ' + bkDate2Str(ToDate);
+
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' ' + Msg);
+
+  Selected := dlgSelect.SelectBankAccountsForExport( FromDate, ToDate );
+  if Selected = NIL then
+    Exit;
+
+  try
+    FRootNode := nil;
+    FClientNode := nil;
+    FAccountNode := nil;
+    FTransactionsNode := nil;
+    FNoOfEntries := 0;
+    OutputDocument.LoadXML(''); // Clear
+    PI := OutputDocument.CreateProcessingInstruction('xml', 'version="1.0" encoding="ISO-8859-1"');
+    OutputDocument.AppendChild(PI);
+    FRootNode := EnsureNode(OutputDocument, 'BGL_Import_Export');
+    SetNodeTextStr(FRootNode, 'Supplier', 'BGLBankDataService');
+    SetNodeTextStr(FRootNode, 'Product', 'SF360');
+    SetNodeTextStr(FRootNode, 'Import_Export_Version', '5.0');
+
+    FDateMask := 'dd/mm/YYYY';
+
+    for No := 0 to Pred(Selected.Count) do
+    begin
+      BA := TBank_Account(Selected.Objects[No]);
+
+      //No entries
+      if TravUtils.NumberAvailableForExport(BA, FromDate, ToDate) = 0 then begin
+        HelpfulInfoMsg('There are no new entries to extract, for ' +
+                       BA.baFields.baBank_Account_Number +
+                       ', in the selected date range.',0);
+        Exit;
       end;
-      if OK then
-      Begin
-         Msg := SysUtils.Format( 'Extract Data Complete. %d Entries were saved in %s',[ NoOfEntries, SaveTo ] );
-         LogUtil.LogMsg(lmInfo, UnitName, ThisMethodName + ' : ' + Msg );
-         HelpfulInfoMsg( Msg, 0 );
+      //Uncoded entries
+      {
+      if not AllowUncoded then begin
+        if not TravUtils.AllCoded(BA, FromDate, ToDate) then begin
+          HelpfulInfoMsg( 'Account "' + BA.baFields.baBank_Account_Number +
+                          '" has uncoded entries. You must code all the ' +
+                          'entries before you can extract them.',  0 );
+          Exit;
+        end;
       end;
-   end; { Scope of MyClient }
-   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
+      }
+      //Bank contra
+      {
+      if not AllowBlankContra then begin
+        if BA.baFields.baContra_Account_Code = '' then begin
+          HelpfulInfoMsg('Before you can extract these entries, ' +
+                         'you must specify a contra account code ' +
+                         'for bank account "'+ BA.baFields.baBank_Account_Number +
+                         '". To do this, go to the Other ' +
+                         'Functions|Bank Accounts option and edit the account', 0 );
+          Exit;
+        end;
+      end;
+      }
+    end;
+
+    //Output XML
+    if Assigned(MyClient) then
+    begin
+      //Client
+      FClientNode := OutputDocument.CreateElement('Entity_Details');
+      FRootNode.AppendChild(FClientNode);
+      SetNodeTextStr(FClientNode, 'Entity_Code', MyClient.clFields.clCode);
+      FBalancesNode := OutputDocument.CreateElement('BankBalances');
+      FClientNode.AppendChild(FBalancesNode);
+      FTransactionsNode := OutputDocument.CreateElement('Transactions');
+      FClientNode.AppendChild(FTransactionsNode);
+      
+      for No := 0 to Pred( Selected.Count ) do begin
+        BA := TBank_Account(Selected.Objects[ No ]);
+        Traverse.Clear;
+        Traverse.SetSortMethod(csDateEffective);
+        Traverse.SetSelectionMethod(Traverse.twAllNewEntries);
+        Traverse.SetOnAHProc(DoAccountHeader);
+        // Traverse.SetOnATProc(DoAccountTrailer);
+        Traverse.SetOnEHProc(DoClassSuperIPTransaction);
+        // Traverse.SetOnDSProc(DoClassSuperIPDissection);
+        Traverse.TraverseEntriesForAnAccount(BA, FromDate, ToDate);
+      end;
+
+      //Write XML file
+      OutputDocument.Save(SaveTo ,ofIndent);
+      FOutputDocument := nil;
+      FRootNode := nil;
+      FClientNode := nil;
+      FAccountNode := nil;
+      FTransactionsNode := nil;
+      //Display message
+      Msg := SysUtils.Format('Extract Data Complete. %d Entries were saved in %s',
+                             [FNoOfEntries, SaveTo]);
+      LogUtil.LogMsg(lmInfo, UnitName, ThisMethodName + ' : ' + Msg );
+      HelpfulInfoMsg( Msg, 0 );
+    end;
+
+  finally
+
+  end;
+
+
+
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
