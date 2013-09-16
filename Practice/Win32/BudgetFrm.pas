@@ -2100,15 +2100,14 @@ var
   MsgStr : string;
   DataIndex : integer;
 
-  function ReplaceSlashWithMinus(aInString : string) : string;
+  //-----------------------------------------------------------------
+  function RemoveInvalidCharacters(aInString : string) : string;
   var
     Index : integer;
   begin
     Result := '';
     for Index := 1 to length(aInString) do
-      if aInString[Index] = '/' then
-        Result := Result + '-'
-      else
+      if not (aInString[Index] in ['/',':','\','/','*','"','<','>','|','~','?']) then
         Result := Result + aInString[Index];
   end;
 
@@ -2122,9 +2121,10 @@ begin
 
     BudgetFilePath := BudgetImportExport.GetDefaultFileLocation(MyClient.clFields.clCode);
 
+
     if BudgetFilePath = '' then
       BudgetFilePath := UserDir + MyClient.clFields.clCode + ' ' +
-                        ReplaceSlashWithMinus(bkDate2Str(Budget.buFields.buStart_Date)) + '.csv';
+                        RemoveInvalidCharacters(Budget.buFields.buName) + '.csv';
 
     if DoExportBudget(BudgetFilePath, IncludeUnusedChartCodes) then
     begin
