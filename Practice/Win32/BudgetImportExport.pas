@@ -398,7 +398,10 @@ begin
           LineHasError := false;
           readln(InputFile, InStrLine);
           inc(LineNumber);
-          InLineData.CommaText := InStrLine;
+
+          InLineData.Delimiter := ',';
+          InLineData.StrictDelimiter := True;
+          InLineData.DelimitedText := InStrLine;
 
           if InLineData.Count <> 15 then
           begin
