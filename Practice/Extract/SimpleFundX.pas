@@ -45,10 +45,12 @@ uses
   Classes,
   dlgSelect,
   ExtractCommon,
+  ExtractHelpers,
   GenUtils,
   glConst,
   Globals,
   InfoMoreFrm,
+  IniFiles,
   LogUtil,
   MoneyDef,
   OmniXML,
@@ -70,19 +72,31 @@ Const
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Var
-  XFile             : Text;
-  Buffer            : array[ 1..2048 ] of Byte;
-  NoOfEntries       : LongInt;
-  FCloseBalance     : Money;
-  FAccountNode      : IxmlNode;
-  FOutputDocument   : IXMLDocument;
-  FClientNode       : IxmlNode;
-  FBalancesNode     : IxmlNode;
-  FDateMask         : shortString;
-  FRootNode         : IxmlNode;
-  FTransactionsNode : IxmlNode;
-  FTransactionNode  : IxmlNode;
-  FNoOfEntries      : integer;
+  XFile               : Text;
+  Buffer              : array[ 1..2048 ] of Byte;
+  NoOfEntries         : LongInt;
+  FCloseBalance       : Money;
+  FAccountNode        : IxmlNode;
+  FOutputDocument     : IXMLDocument;
+  FClientNode         : IxmlNode;
+  FBalancesNode       : IxmlNode;
+  FDateMask           : shortString;
+  FRootNode           : IxmlNode;
+  FTransactionsNode   : IxmlNode;
+  FTransactionNode    : IxmlNode;
+  FNoOfEntries        : integer;
+  FExtractFieldHelper : TExtractFieldHelper;
+  FFields             : TStringList;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+function ExtractFieldHelper: TExtractFieldHelper;
+begin
+   if not Assigned(FExtractFieldHelper) then
+      FExtractFieldHelper := TExtractFieldHelper.Create;
+
+   Result := FExtractFieldHelper;
+end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -392,30 +406,93 @@ end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+procedure AddGuid(var ToNode: IxmlNode; const Value: string; MaxLen: integer = 16);
+var
+  id: string;
+  i : integer;
+begin
+  id := '';
+  for i := Length(Value) downto 1 do begin
+    if Value[i] in ['0'..'9', 'A'..'F'] then begin
+       id := Value[i] + id;
+        if Length(id) >= MaxLen then
+          Break; // Thats all we can fit..
+     end;
+  end;
+  AddFieldNode(ToNode, 'Other_Reference', id);
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 procedure DoClassSuperIPTransaction;
 const
   ThisMethodName = 'DoClassSuperIPTransaction';
+var
+  BSB, AccountNum, AccountCode: string;
+  PracIniFile: TIniFile;
+
+  procedure AddField(const Name, Value: string);
+  begin
+     if Value > '' then
+        FFields.Add(Name + '=' + Value );
+  end;
+begin
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins');
+
+  If ( Transaction^.txFirst_Dissection = NIL ) then
+  begin // only create node if there are no dissections, DoClassSuperIPTransaction handles dissections
+    FTransactionNode := OutputDocument.CreateElement('Transaction');
+    FTransactionsNode.AppendChild(FTransactionNode);
+    AddFieldNode(FTransactionNode, 'Transaction_Type', 'Other Transaction');
+    AddFieldNode(FTransactionNode, 'Transaction_Date', Date2Str(Transaction^.txDate_Effective, FDateMask));
+    AddFieldNode(FTransactionNode, 'Amount', FormatFloatForXml(Transaction^.txAmount));
+    AddFieldNode(FTransactionNode, 'Text', Transaction^.txGL_Narration);
+    AccountCode := Transaction^.txAccount;
+    if (AccountCode = '') then
+    begin
+      PracIniFile := TIniFile.Create(ExecDir + PRACTICEINIFILENAME);
+      AccountCode := PracIniFile.ReadString(BGLXMLcode, 'ExtractCode', '91000');
+      if AccountCode = '' then
+        AccountCode := '91000'; // default account code for uncoded transactions
+    end;
+    AddFieldNode(FTransactionNode, 'Account_Code', AccountCode);
+    TransactionUtils.CheckExternalGUID(Transaction);
+    AddGuid(FTransactionNode, Uppercase(Transaction^.txExternal_GUID), 15);
+    ProcessDiskCode(TBank_Account(Transaction^.txBank_Account).baFields.baBank_Account_Number, BSB, AccountNum);
+    AddFieldNode(FTransactionNode, 'BSB', BSB);
+    AddFieldNode(FTransactionNode, 'Bank_Account_No', AccountNum);
+  end;
+
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends');
+end; 
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+procedure DoClassSuperIPDissection;
+const
+  ThisMethodName = 'DoClassSuperIPDissection';
 var
   BSB, AccountNum: string;
 begin
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins');
 
-  FTransactionNode := OutputDocument.CreateElement('Transaction');
+  FTransactionNode := OutputDocument.CreateElement('Transaction'); // BGL 360 export should output dissections as 'transactions'
   FTransactionsNode.AppendChild(FTransactionNode);
+
+  TransactionUtils.CheckExternalGUID(Dissection);
   AddFieldNode(FTransactionNode, 'Transaction_Type', 'Other Transaction');
-  AddFieldNode(FTransactionNode, 'Transaction_Date', Date2Str(Transaction^.txDate_Effective, FDateMask));
-  AddFieldNode(FTransactionNode, 'Amount', FormatFloatForXml(Transaction^.txAmount));
-  AddFieldNode(FTransactionNode, 'Text', Transaction^.txGL_Narration);
+  AddFieldNode(FTransactionNode, 'Transaction_Date', Date2Str(Dissection^.dsTransaction^.txDate_Effective, FDateMask));
+  AddFieldNode(FTransactionNode, 'Amount', FormatFloatForXml(Dissection^.dsAmount));
+  AddFieldNode(FTransactionNode, 'Text', Dissection^.dsGL_Narration);
   AddFieldNode(FTransactionNode, 'Account_Code', '91000');
-  AddFieldNode(FTransactionNode, 'Other_Reference', Transaction^.txReference);
-  ProcessDiskCode(TBank_Account(Transaction^.txBank_Account).baFields.baBank_Account_Number, BSB, AccountNum);
+  TransactionUtils.CheckExternalGUID(Dissection);
+  AddGuid(FTransactionNode, Uppercase(Dissection^.dsExternal_GUID), 15);
+  ProcessDiskCode(TBank_Account(Dissection^.dsBank_Account).baFields.baBank_Account_Number, BSB, AccountNum);
   AddFieldNode(FTransactionNode, 'BSB', BSB);
   AddFieldNode(FTransactionNode, 'Bank_Account_No', AccountNum);
 
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends');
 end;
-
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 procedure ExtractDataBGL360(const FromDate, ToDate: TStDate; const SaveTo : string);
 const
@@ -432,6 +509,11 @@ VAR
     if FOutputDocument = nil then
       FOutputDocument := CreateXMLDoc;
     Result := FOutputDocument;
+  end;
+
+  procedure AddNumberField(const Name: string; Value: Integer);
+  begin
+     FFields.Add(Name + '=' + InttoStr(Value));
   end;
 
 begin
@@ -456,7 +538,7 @@ begin
     PI := OutputDocument.CreateProcessingInstruction('xml', 'version="1.0" encoding="ISO-8859-1"');
     OutputDocument.AppendChild(PI);
     FRootNode := EnsureNode(OutputDocument, 'BGL_Import_Export');
-    SetNodeTextStr(FRootNode, 'Supplier', 'BGLBankDataService');
+    SetNodeTextStr(FRootNode, 'Supplier', 'MYOB BankLink');
     SetNodeTextStr(FRootNode, 'Product', 'SF360');
     SetNodeTextStr(FRootNode, 'Import_Export_Version', '5.0');
 
@@ -494,6 +576,7 @@ begin
         Traverse.SetSelectionMethod(Traverse.twAllNewEntries);
         Traverse.SetOnAHProc(DoAccountHeader);
         Traverse.SetOnEHProc(DoClassSuperIPTransaction);
+        Traverse.SetOnDSProc(DoClassSuperIPDissection);
         Traverse.TraverseEntriesForAnAccount(BA, FromDate, ToDate);
       end;
 
