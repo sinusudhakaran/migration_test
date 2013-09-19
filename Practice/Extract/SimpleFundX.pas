@@ -26,11 +26,15 @@ unit SimpleFundX;
                 Used by Flinders
 }
 //------------------------------------------------------------------------------
-interface uses StDate;
+interface
+
+uses
+  Classes,
+  StDate;
 
 procedure ExtractData( const SuperFundType: byte; const FromDate, ToDate : TStDate; const SaveTo : string );
 procedure ExtractDataBGL(const FromDate, ToDate: TStDate; const SaveTo : string);
-procedure ExtractDataBGL360(const FromDate, ToDate: TStDate; const SaveTo : string);
+procedure ExtractDataBGL360(const FromDate, ToDate: TStDate; const SaveTo : string; TestAccountList: TStringList = nil);
 
 //******************************************************************************
 implementation
@@ -42,7 +46,6 @@ uses
   BkConst,
   bkDateUtils,
   BKDefs,
-  Classes,
   dlgSelect,
   ExtractCommon,
   ExtractHelpers,
@@ -494,7 +497,7 @@ begin
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends');
 end;
 
-procedure ExtractDataBGL360(const FromDate, ToDate: TStDate; const SaveTo : string);
+procedure ExtractDataBGL360(const FromDate, ToDate: TStDate; const SaveTo : string; TestAccountList: TStringList = nil);
 const
    ThisMethodName = 'ExtractDataBGL360';
 VAR
@@ -517,16 +520,24 @@ VAR
   end;
 
 begin
-  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
+  if DebugMe then
+    LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
 
   Msg := 'Extract data [BK5 XML format] from ' + BkDate2Str(FromDate) +
          ' to ' + bkDate2Str(ToDate);
 
-  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' ' + Msg);
+  if DebugMe then
+    LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' ' + Msg);
 
-  Selected := dlgSelect.SelectBankAccountsForExport( FromDate, ToDate );
-  if Selected = NIL then
-    Exit;
+  if (TestAccountList <> nil) then
+  begin
+    Selected := TestAccountList;
+  end else
+  begin
+    Selected := dlgSelect.SelectBankAccountsForExport( FromDate, ToDate );
+    if Selected = NIL then
+      Exit;
+  end;
 
   try
     FRootNode := nil;
@@ -590,8 +601,10 @@ begin
       //Display message
       Msg := SysUtils.Format('Extract Data Complete. %d Entries were saved in %s',
                              [FNoOfEntries, SaveTo]);
-      LogUtil.LogMsg(lmInfo, UnitName, ThisMethodName + ' : ' + Msg );
-      HelpfulInfoMsg( Msg, 0 );
+      if DebugMe then
+        LogUtil.LogMsg(lmInfo, UnitName, ThisMethodName + ' : ' + Msg );
+      if (TestAccountList = nil) then
+        HelpfulInfoMsg( Msg, 0 );
     end;
 
   finally
