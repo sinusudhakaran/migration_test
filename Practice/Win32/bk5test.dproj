@@ -18,10 +18,10 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <Version>7.0</Version>
     <DCC_Define>DEBUG;SSLV6;BK_UNITTESTINGON</DCC_Define>
-    <DCC_UnitSearchPath>..\..\Common;..\..\Common\Core;..\..\Common\Core\Download;..\..\Common\Database;..\..\Common\Lib;..\Authority Forms\;..\BASForm\;..\Bconnect\;..\Component\;..\Crypto\;..\Ecoding\;..\Ecoding\database\;..\Extended MAPI\;..\Extract\;..\Forex\;..\Graphs\;..\Import\;..\Lists\;..\Orpheus\;..\Printing\;..\WebNotes\;..\Win32\;..\SimpleUI;..\..\Common\BNotes;..\..\Common\BNotes\Database;C:\Components\WPTools5\D2007;C:\Components\TPerlRegEx</DCC_UnitSearchPath>
-    <DCC_ResourcePath>..\..\Common;..\..\Common\Core;..\..\Common\Core\Download;..\..\Common\Database;..\..\Common\Lib;..\Authority Forms\;..\BASForm\;..\Bconnect\;..\Component\;..\Crypto\;..\Ecoding\;..\Ecoding\database\;..\Extended MAPI\;..\Extract\;..\Forex\;..\Graphs\;..\Import\;..\Lists\;..\Orpheus\;..\Printing\;..\WebNotes\;..\Win32\;..\SimpleUI;..\..\Common\BNotes;..\..\Common\BNotes\Database;C:\Components\WPTools5\D2007;C:\Components\TPerlRegEx</DCC_ResourcePath>
-    <DCC_ObjPath>..\..\Common;..\..\Common\Core;..\..\Common\Core\Download;..\..\Common\Database;..\..\Common\Lib;..\Authority Forms\;..\BASForm\;..\Bconnect\;..\Component\;..\Crypto\;..\Ecoding\;..\Ecoding\database\;..\Extended MAPI\;..\Extract\;..\Forex\;..\Graphs\;..\Import\;..\Lists\;..\Orpheus\;..\Printing\;..\WebNotes\;..\Win32\;..\SimpleUI;..\..\Common\BNotes;..\..\Common\BNotes\Database;C:\Components\WPTools5\D2007;C:\Components\TPerlRegEx</DCC_ObjPath>
-    <DCC_IncludePath>..\..\Common;..\..\Common\Core;..\..\Common\Core\Download;..\..\Common\Database;..\..\Common\Lib;..\Authority Forms\;..\BASForm\;..\Bconnect\;..\Component\;..\Crypto\;..\Ecoding\;..\Ecoding\database\;..\Extended MAPI\;..\Extract\;..\Forex\;..\Graphs\;..\Import\;..\Lists\;..\Orpheus\;..\Printing\;..\WebNotes\;..\Win32\;..\SimpleUI;..\..\Common\BNotes;..\..\Common\BNotes\Database;C:\Components\WPTools5\D2007;C:\Components\TPerlRegEx</DCC_IncludePath>
+    <DCC_UnitSearchPath>..\..\Common;..\..\Common\Core;..\..\Common\Core\Download;..\..\Common\Database;..\..\Common\Lib;..\Authority Forms\;..\BASForm\;..\Bconnect\;..\Component\;..\Crypto\;..\Ecoding\;..\Ecoding\database\;..\Extended MAPI\;..\Extract\;..\Forex\;..\Graphs\;..\Import\;..\Lists\;..\Orpheus\;..\Printing\;..\WebNotes\;..\Win32\;..\SimpleUI;..\..\Common\BNotes;..\..\Common\BNotes\Database;C:\Components\WPTools5\D2007;C:\Components\TPerlRegEx;..\..\Bulk Export</DCC_UnitSearchPath>
+    <DCC_ResourcePath>..\..\Common;..\..\Common\Core;..\..\Common\Core\Download;..\..\Common\Database;..\..\Common\Lib;..\Authority Forms\;..\BASForm\;..\Bconnect\;..\Component\;..\Crypto\;..\Ecoding\;..\Ecoding\database\;..\Extended MAPI\;..\Extract\;..\Forex\;..\Graphs\;..\Import\;..\Lists\;..\Orpheus\;..\Printing\;..\WebNotes\;..\Win32\;..\SimpleUI;..\..\Common\BNotes;..\..\Common\BNotes\Database;C:\Components\WPTools5\D2007;C:\Components\TPerlRegEx;..\..\Bulk Export</DCC_ResourcePath>
+    <DCC_ObjPath>..\..\Common;..\..\Common\Core;..\..\Common\Core\Download;..\..\Common\Database;..\..\Common\Lib;..\Authority Forms\;..\BASForm\;..\Bconnect\;..\Component\;..\Crypto\;..\Ecoding\;..\Ecoding\database\;..\Extended MAPI\;..\Extract\;..\Forex\;..\Graphs\;..\Import\;..\Lists\;..\Orpheus\;..\Printing\;..\WebNotes\;..\Win32\;..\SimpleUI;..\..\Common\BNotes;..\..\Common\BNotes\Database;C:\Components\WPTools5\D2007;C:\Components\TPerlRegEx;..\..\Bulk Export</DCC_ObjPath>
+    <DCC_IncludePath>..\..\Common;..\..\Common\Core;..\..\Common\Core\Download;..\..\Common\Database;..\..\Common\Lib;..\Authority Forms\;..\BASForm\;..\Bconnect\;..\Component\;..\Crypto\;..\Ecoding\;..\Ecoding\database\;..\Extended MAPI\;..\Extract\;..\Forex\;..\Graphs\;..\Import\;..\Lists\;..\Orpheus\;..\Printing\;..\WebNotes\;..\Win32\;..\SimpleUI;..\..\Common\BNotes;..\..\Common\BNotes\Database;C:\Components\WPTools5\D2007;C:\Components\TPerlRegEx;..\..\Bulk Export</DCC_IncludePath>
     <DCC_ExeOutput>C:\Unit testing</DCC_ExeOutput>
     <DCC_DcuOutput>..\..\DCU</DCC_DcuOutput>
     <DCC_ObjOutput>..\..\DCU</DCC_ObjOutput>
@@ -52,6 +52,8 @@
     <DCCReference Include="..\Tests\UTmxUtils.pas" />
     <DCCReference Include="..\Tests\utMYOB.pas" />
     <DCCReference Include="..\Tests\utPayeeObj.pas" />
+    <DCCReference Include="..\Tests\utSimpleFundX.pas" />
+    <DCCReference Include="..\Tests\utTestTemplate.pas" />
     <DCCReference Include="..\Tests\utUpgrade.pas" />
     <DCCReference Include="..\Tests\utWebXOffice.pas" />
   </ItemGroup>

@@ -14,7 +14,9 @@ uses
   utWebXOffice in '..\Tests\utWebXOffice.pas',
   utAuditTrail in '..\Tests\utAuditTrail.pas' {/utBudgetImportExport in '..\Tests\utBudgetImportExport.pas';},
   utBudgetImportExport in '..\Tests\utBudgetImportExport.pas',
-  utBGL360 in '..\Tests\utBGL360.pas';
+  utBGL360 in '..\Tests\utBGL360.pas',
+  utTestTemplate in '..\Tests\utTestTemplate.pas',
+  utSimpleFundX in '..\Tests\utSimpleFundX.pas';
 
 {$R *.RES}
 
