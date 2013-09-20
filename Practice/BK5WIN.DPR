@@ -66,8 +66,8 @@ uses
   BanklinkOnlineSettingsFrm in 'Win32\BanklinkOnlineSettingsFrm.pas' {frmBanklinkOnlineSettings},
   BlopiClient in 'Win32\BlopiClient.pas',
   AcclipseX in 'Extract\AcclipseX.pas',
-  INISettings in 'Win32\INISettings.pas',
-  ExtractHelpers in '..\Bulk Export\ExtractHelpers.pas';
+  INISettings in 'Win32\INISettings.pas';
+//  ExtractHelpers in '..\Bulk Export\ExtractHelpers.pas';
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
