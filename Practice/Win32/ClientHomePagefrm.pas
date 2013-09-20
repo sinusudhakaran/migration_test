@@ -1266,11 +1266,14 @@ procedure TfrmClientHomePage.RefreshMems;
 
 begin
    if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Enter RefreshMems');
-   if MemsWrong then begin
-      acMems.Visible := True;
-   end else begin
-      acMems.Visible := False;
-   end;
+
+   if (not MemsWrong) or
+        ((not Assigned(AdminSystem)) and
+         (fTheClient.clExtra.ceBlock_Client_Edit_Mems)) then
+     acMems.Visible := False
+   else
+     acMems.Visible := True;
+
    if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Exit RefreshMems');
 end;
 
