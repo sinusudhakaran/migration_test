@@ -14,7 +14,7 @@ uses
   ExtractCommon in '..\Common\Lib\ExtractCommon.pas',
   frmCSVConfig in 'frmCSVConfig.pas' {CSVConfig},
   ExtractIDS_Super in 'ExtractIDS_Super.pas',
-  ExtractHelpers in 'ExtractHelpers.pas';
+  ExtractHelpers in '..\Common\Lib\ExtractHelpers.pas';
 
 {$R *.res}
 

@@ -12,7 +12,7 @@ library BBE_Twinfield;
 
 uses
   ExtractCommon in '..\Common\Lib\ExtractCommon.pas',
-  ExtractHelpers in 'ExtractHelpers.pas',
+  ExtractHelpers in '..\Common\Lib\ExtractHelpers.pas',
   ExtractTwinField in 'ExtractTwinField.pas';
 
 {$R *.res}

@@ -12,7 +12,7 @@ library BBE_1Place;
 
 uses
   ExtractCommon in '..\Common\Lib\ExtractCommon.pas',
-  ExtractHelpers in 'ExtractHelpers.pas',
+  ExtractHelpers in '..\Common\Lib\ExtractHelpers.pas',
   frm1PlaceConfig in 'frm1PlaceConfig.pas' {OnePlaceConfig},
   Extract1Place in 'Extract1Place.pas';
 

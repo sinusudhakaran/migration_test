@@ -12,7 +12,7 @@ library BBE_SuperMateXML;
 
 uses
   ExtractCommon in '..\Common\Lib\ExtractCommon.pas',
-  ExtractHelpers in 'ExtractHelpers.pas',
+  ExtractHelpers in '..\Common\Lib\ExtractHelpers.pas',
   frmXMLConfig in 'frmXMLConfig.pas' {XMLConfig},
   ExtractSuperMateXML in 'ExtractSuperMateXML.pas';
 

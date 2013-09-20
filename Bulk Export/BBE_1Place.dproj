@@ -41,6 +41,7 @@
       <MainSource>MainSource</MainSource>
     </DelphiCompile>
     <DCCReference Include="..\Common\Lib\ExtractCommon.pas" />
+    <DCCReference Include="..\Common\Lib\ExtractHelpers.pas" />
     <DCCReference Include="Extract1Place.pas" />
     <DCCReference Include="ExtractHelpers.pas" />
     <DCCReference Include="frm1PlaceConfig.pas">

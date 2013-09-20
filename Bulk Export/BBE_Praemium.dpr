@@ -12,7 +12,7 @@ library BBE_Praemium;
 
 uses
 ExtractCommon in '..\Common\Lib\ExtractCommon.pas',
-  ExtractHelpers in 'ExtractHelpers.pas',
+  ExtractHelpers in '..\Common\Lib\ExtractHelpers.pas',
   frmPraemiumConfig in 'frmPraemiumConfig.pas' {PraemiumConfig},
   ExtractPraemium in 'ExtractPraemium.pas';
 
