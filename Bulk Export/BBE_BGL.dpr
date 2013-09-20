@@ -14,7 +14,7 @@ uses
   ExtractCommon in '..\Common\Lib\ExtractCommon.pas',
   frmBGLConfig in 'frmBGLConfig.pas' {BGLXMLConfig},
   ExtractBGL in 'ExtractBGL.pas',
-  ExtractHelpers in 'ExtractHelpers.pas';
+  ExtractHelpers in '..\Common\Lib\ExtractHelpers.pas';
 
 {$R *.res}
 
