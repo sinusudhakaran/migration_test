@@ -94,6 +94,7 @@ const
 
    DefLinkGST101 = 'https://www.ird.govt.nz/cgi-bin/form.cgi?form=gst101';
    DefLinkGST103 = 'https://www.ird.govt.nz/cgi-bin/form.cgi?form=gst103';
+   DefLinkTaxAgentGSTReturn = 'https://www.ird.govt.nz/cgi-bin/form.cgi?form=taxagentgstreturn';
    DefLinkGST_Books = 'https://www.ird.govt.nz';
    DefInstListLinkNZ = 'http://www.banklink.co.nz/about_institutions.html';
    DefInstListLinkAU = 'http://www.banklink.com.au/about_institutions.html';
@@ -631,12 +632,13 @@ begin
         PRACINI_InstListLinkUK := ReadString(GrpPracLinks,'InstitutionListUK', TUrls.DefInstListLinkUK);
 
         if Assigned(AdminSystem) then
-          PRACINI_GST101Link := ReadString(GrpPracLinks ,'Gst101',DefLinkGST103)
+          PRACINI_GST101Link := ReadString(GrpPracLinks ,'Gst101',DefLinkTaxAgentGSTReturn)
         else
           PRACINI_GST101Link := ReadString(GrpPracLinks ,'Gst101',DefLinkGST_Books);
 
-        if Sametext(PRACINI_GST101Link,DefLinkGST101) then  // Case 8815
-           PRACINI_GST101Link := DefLinkGST103;
+        if Sametext(PRACINI_GST101Link, DefLinkGST101) or    // Case 8815
+           Sametext(PRACINI_GST101Link, DefLinkGST103) then  // Senario 86231
+           PRACINI_GST101Link := DefLinkTaxAgentGSTReturn;
 
         PRACINI_OnlineLink := ReadString(GrpPracLinks ,'OnlineLink','');
 
