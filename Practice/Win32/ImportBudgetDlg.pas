@@ -108,7 +108,7 @@ begin
 
   if AskYesNo('Import Budget', 'All figures in budget ' + fBudgetName +
                                ' will be replaced by those in the selected file.' +
-                               #13#10 + #13#10 + 'Please confirm that you wish to do this?',
+                               #13#10 + #13#10 + 'Are you sure you want to continue?',
               DLG_YES, 0) <> DLG_YES then
   begin
     exit;
