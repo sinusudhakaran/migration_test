@@ -258,11 +258,13 @@ begin
   Check(BGLImportExport.SelectSingleNode('Import_Export_Version').Text = '5.0');
   Check(BGLImportExport.LastChild.NodeName = 'Entity_Details');
   Check(BGLImportExport.LastChild.FirstChild.XML = '<Entity_Code>UNITTEST</Entity_Code>');
-  BankBalances := XmlTestDoc.SelectSingleNode('//BankBalances');
+  BankBalances := XmlTestDoc.LastChild.LastChild.ChildNodes.Item[1];
   Check(BankBalances.FirstChild.SelectSingleNode('BalanceAmount').Text = '-269.00');
   Check(BankBalances.LastChild.SelectSingleNode('BSB').Text = '67890');
-  Transactions := XmlTestDoc.SelectSingleNode('//Transactions');
-//  Check(Transactions.FirstChild.SelectSingleNode('Transaction_Type').Text
+  Transactions := XmlTestDoc.LastChild.LastChild.ChildNodes.Item[2];
+  Check(Transactions.FirstChild.SelectSingleNode('Transaction_Date').Text = '01/04/2004');
+  Check(Transactions.ChildNodes.Item[1].SelectSingleNode('Amount').Text = '60.00');
+  Check(Transactions.ChildNodes.Item[2].SelectSingleNode('Text').Text = 'Line 2');
 end;
 
 initialization
