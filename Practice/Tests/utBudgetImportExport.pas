@@ -168,8 +168,6 @@ begin
   Check(fBudgetImportExport.GetDefaultFileLocation('CLT00001') = 'c:\test\test001.csv');
   Check(fBudgetImportExport.GetDefaultFileLocation('CLT00005') = 'c:\test\test005.csv');
   Check(fBudgetImportExport.GetDefaultFileLocation('CLT00010') = 'c:\test\test010.csv');
-
-  Check('test', 'test2'); // WILL REVERT THIS LATER, it's a deliberate fail, checking to see if the build machine will fail the build because of this
 end;
 
 //------------------------------------------------------------------------------
