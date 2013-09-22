@@ -325,6 +325,8 @@ begin
       Check(BudgetData[2].bAmounts[10] = 0);
       Check(BudgetData[2].bAmounts[11] = 0);
       Check(BudgetData[2].bAmounts[12] = 0);
+
+      Check('test' = 'test2'); // REVERT THIS
     end;
   finally
     Budget.Free;
