@@ -115,7 +115,7 @@ object frmExportBudget: TfrmExportBudget
   end
   object SaveTextFileDialog: TSaveTextFileDialog
     DefaultExt = 'csv'
-    Filter = 'CSV Files (*.csv)|*.csv|All Files (*.*)|*.*'
+    Filter = 'CSV Files (*.csv)|*.csv'
     Left = 8
     Top = 80
   end
