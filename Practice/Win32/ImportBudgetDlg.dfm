@@ -60,7 +60,6 @@ object frmImportBudget: TfrmImportBudget
     ParentShowHint = False
     ShowHint = True
     TabOrder = 0
-    ExplicitWidth = 396
   end
   object btnOk: TButton
     Left = 414
@@ -78,8 +77,6 @@ object frmImportBudget: TfrmImportBudget
     ParentFont = False
     TabOrder = 1
     OnClick = btnOkClick
-    ExplicitLeft = 404
-    ExplicitTop = 68
   end
   object btnCancel: TButton
     Left = 495
@@ -97,12 +94,10 @@ object frmImportBudget: TfrmImportBudget
     ModalResult = 2
     ParentFont = False
     TabOrder = 2
-    ExplicitLeft = 485
-    ExplicitTop = 68
   end
   object OpenTextFileDialog: TOpenTextFileDialog
     DefaultExt = 'csv'
-    Filter = 'CSV Files (*.csv)|*.csv|All Files (*.*)|*.*'
+    Filter = 'CSV Files (*.csv)|*.csv'
     Left = 8
     Top = 64
   end
