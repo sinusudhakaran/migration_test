@@ -265,8 +265,6 @@ begin
   Check(Transactions.FirstChild.SelectSingleNode('Transaction_Date').Text = '01/04/2004');
   Check(Transactions.ChildNodes.Item[1].SelectSingleNode('Amount').Text = '60.00');
   Check(Transactions.ChildNodes.Item[2].SelectSingleNode('Text').Text = 'Line 2');
-
-  Check('test1' = 'test2'); // will revert this later
 end;
 
 initialization
