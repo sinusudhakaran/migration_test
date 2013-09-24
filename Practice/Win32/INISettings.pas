@@ -52,7 +52,8 @@ uses
   bkUrls,
   bkProduct,
   StrUtils,
-  dbCreate;
+  dbCreate,
+  Admin32;
 
 const
    GrpMainForm = 'MainForm';
