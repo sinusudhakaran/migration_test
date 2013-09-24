@@ -96,7 +96,7 @@ const
    DefLinkGST101 = 'https://www.ird.govt.nz/cgi-bin/form.cgi?form=gst101';
    DefLinkGST103 = 'https://www.ird.govt.nz/cgi-bin/form.cgi?form=gst103';
    DefLinkTaxAgentGSTReturn = 'https://www.ird.govt.nz/cgi-bin/form.cgi?form=taxagentgstreturn';
-   DefLinkGST_Books = 'https://www.ird.govt.nz867123768132';
+   DefLinkGST_Books = 'https://www.ird.govt.nz';
    DefInstListLinkNZ = 'http://www.banklink.co.nz/about_institutions.html';
    DefInstListLinkAU = 'http://www.banklink.com.au/about_institutions.html';
    DefInstListLinkUK = 'http://www.banklink.co.uk/institutions.html';
@@ -632,13 +632,15 @@ begin
         PRACINI_InstListLinkAU := ReadString(GrpPracLinks,'InstitutionListAU', TUrls.DefInstListLinkAU);
         PRACINI_InstListLinkUK := ReadString(GrpPracLinks,'InstitutionListUK', TUrls.DefInstListLinkUK);
 
-        if Assigned(AdminSystem) or (CheckDBCreateParam) then
+        // Sets Defaults if no data exists
+        if (AdminExists or CheckDBCreateParam or CheckDBCreateParamNoRun) then
           PRACINI_GST101Link := ReadString(GrpPracLinks ,'Gst101',DefLinkTaxAgentGSTReturn)
         else
           PRACINI_GST101Link := ReadString(GrpPracLinks ,'Gst101',DefLinkGST_Books);
 
+        // Updates data if set to old defaults
         if (Sametext(PRACINI_GST101Link, DefLinkGST101) or Sametext(PRACINI_GST101Link, DefLinkGST103)) and
-           (Assigned(AdminSystem) or (CheckDBCreateParam)) then
+           (AdminExists or CheckDBCreateParam or CheckDBCreateParamNoRun) then
           PRACINI_GST101Link := DefLinkTaxAgentGSTReturn;
 
         PRACINI_OnlineLink := ReadString(GrpPracLinks ,'OnlineLink','');
