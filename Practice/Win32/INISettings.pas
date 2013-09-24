@@ -96,7 +96,7 @@ const
    DefLinkGST101 = 'https://www.ird.govt.nz/cgi-bin/form.cgi?form=gst101';
    DefLinkGST103 = 'https://www.ird.govt.nz/cgi-bin/form.cgi?form=gst103';
    DefLinkTaxAgentGSTReturn = 'https://www.ird.govt.nz/cgi-bin/form.cgi?form=taxagentgstreturn';
-   DefLinkGST_Books = 'https://www.ird.govt.nz';
+   DefLinkGST_Books = 'https://www.ird.govt.nz867123768132';
    DefInstListLinkNZ = 'http://www.banklink.co.nz/about_institutions.html';
    DefInstListLinkAU = 'http://www.banklink.com.au/about_institutions.html';
    DefInstListLinkUK = 'http://www.banklink.co.uk/institutions.html';
