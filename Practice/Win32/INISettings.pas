@@ -52,8 +52,7 @@ uses
   bkUrls,
   bkProduct,
   StrUtils,
-  dbCreate,
-  Admin32;
+  dbCreate;
 
 const
    GrpMainForm = 'MainForm';
@@ -542,6 +541,15 @@ var
   SaveRequired : boolean;
   StrGuid : string;
   Guid : TGuid;
+
+  function IsPractice : boolean;
+  begin
+    Result := assigned(AdminSystem) or
+              CheckDBCreateParam or
+              CheckDBCreateParamNoRun or
+              BKFileExists(DATADIR + SYSFILENAME);
+  end;
+
 begin
    SaveRequired := false;
 
@@ -634,14 +642,14 @@ begin
         PRACINI_InstListLinkUK := ReadString(GrpPracLinks,'InstitutionListUK', TUrls.DefInstListLinkUK);
 
         // Sets Defaults if no data exists
-        if (AdminExists or CheckDBCreateParam or CheckDBCreateParamNoRun) then
+        if IsPractice then
           PRACINI_GST101Link := ReadString(GrpPracLinks ,'Gst101',DefLinkTaxAgentGSTReturn)
         else
           PRACINI_GST101Link := ReadString(GrpPracLinks ,'Gst101',DefLinkGST_Books);
 
         // Updates data if set to old defaults
         if (Sametext(PRACINI_GST101Link, DefLinkGST101) or Sametext(PRACINI_GST101Link, DefLinkGST103)) and
-           (AdminExists or CheckDBCreateParam or CheckDBCreateParamNoRun) then
+           (IsPractice) then
           PRACINI_GST101Link := DefLinkTaxAgentGSTReturn;
 
         PRACINI_OnlineLink := ReadString(GrpPracLinks ,'OnlineLink','');
