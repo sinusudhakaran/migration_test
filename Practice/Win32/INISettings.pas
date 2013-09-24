@@ -637,9 +637,9 @@ begin
         else
           PRACINI_GST101Link := ReadString(GrpPracLinks ,'Gst101',DefLinkGST_Books);
 
-        if Sametext(PRACINI_GST101Link, DefLinkGST101) or    // Case 8815
-           Sametext(PRACINI_GST101Link, DefLinkGST103) then  // Senario 86231
-           PRACINI_GST101Link := DefLinkTaxAgentGSTReturn;
+        if (Sametext(PRACINI_GST101Link, DefLinkGST101) or Sametext(PRACINI_GST101Link, DefLinkGST103)) and
+           (Assigned(AdminSystem) or (CheckDBCreateParam)) then
+          PRACINI_GST101Link := DefLinkTaxAgentGSTReturn;
 
         PRACINI_OnlineLink := ReadString(GrpPracLinks ,'OnlineLink','');
 
