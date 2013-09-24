@@ -619,7 +619,7 @@ end;
 Initialization
    DebugMe := LogUtil.DebugUnit( UnitName );
 Finalization
-  FExtractFieldHelper.Destroy;
+  FreeAndNil(FExtractFieldHelper);
 end.
 
 
