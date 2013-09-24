@@ -51,7 +51,8 @@ uses
   GenUtils,
   bkUrls,
   bkProduct,
-  StrUtils;
+  StrUtils,
+  dbCreate;
 
 const
    GrpMainForm = 'MainForm';
@@ -631,7 +632,7 @@ begin
         PRACINI_InstListLinkAU := ReadString(GrpPracLinks,'InstitutionListAU', TUrls.DefInstListLinkAU);
         PRACINI_InstListLinkUK := ReadString(GrpPracLinks,'InstitutionListUK', TUrls.DefInstListLinkUK);
 
-        if Assigned(AdminSystem) then
+        if Assigned(AdminSystem) or (CheckDBCreateParam) then
           PRACINI_GST101Link := ReadString(GrpPracLinks ,'Gst101',DefLinkTaxAgentGSTReturn)
         else
           PRACINI_GST101Link := ReadString(GrpPracLinks ,'Gst101',DefLinkGST_Books);
