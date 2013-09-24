@@ -85,7 +85,8 @@ uses
   LogUtil,
   Globals,
   BudgetUnitPriceEntry,
-  BKbdIO;
+  BKbdIO,
+  GenUtils;
 
 { TBudgetImportExport }
 //------------------------------------------------------------------------------
@@ -261,7 +262,13 @@ begin
                                        aData[DataIndex].bAmounts[DateIndex];
 
           DataLine := '';
-          DataLine := DataLine + '"' + aData[DataIndex].bAccount + '",';
+
+          // Add a space if account is not numeric
+          if IsNumeric(aData[DataIndex].bAccount) then
+            DataLine := DataLine + '"' + aData[DataIndex].bAccount + '",'
+          else
+            DataLine := DataLine + '" ' + aData[DataIndex].bAccount + '",';
+
           DataLine := DataLine + '"' + aData[DataIndex].bDesc + '",';
           DataLine := DataLine + IntToStr(aData[DataIndex].bTotal) + ',';
 
@@ -409,7 +416,7 @@ begin
             break;
           end;
 
-          DataIndex := GetDataIndexWithAccount(InLineData[0]);
+          DataIndex := GetDataIndexWithAccount(Trim(InLineData[0]));
           if DataIndex <> -1 then
           begin
             for DateIndex := 1 to 12 do
