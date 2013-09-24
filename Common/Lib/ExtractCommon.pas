@@ -219,6 +219,7 @@ const
 // Max Lenght only 8 Chars
 const                   // 12345678
   CSVSimple             = 'CSV00';
+  BGL360code            = 'BGL360';
   BGLXMLcode            = 'BGLXML00';
   XMLBasicCode          = 'XML00';
   OnePlaceBasicCode     = '1Place00';

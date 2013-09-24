@@ -41,7 +41,8 @@ implementation
 
 procedure TBGLXMLConfig.btnBrowseClick(Sender: TObject);
 begin
-   SaveDlg.FileName := eFilename.Text;
+  SaveDlg.InitialDir := ExtractFileDir(eFileName.Text);
+  SaveDlg.FileName := ExtractFileName(eFileName.Text);
    if SaveDlg.Execute then
       eFilename.Text := SaveDlg.FileName;
 end;
