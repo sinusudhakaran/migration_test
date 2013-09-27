@@ -288,7 +288,8 @@ uses
    baObj32,
    ExportBudgetDlg,
    ImportBudgetDlg,
-   ShellAPI;
+   ShellAPI,
+   ImportBudgetResultsDlg;
 
 const
    {status panel constants}
@@ -2060,12 +2061,20 @@ end;
 procedure TfrmBudget.DoImport;
 var
   BudgetFilePath : string;
+  BudgetErrorFile : string;
   BudgetImportExport : TBudgetImportExport;
   MsgStr : string;
   ChartCodeSkipped : boolean;
   DataIndex : integer;
+  BudgetCopy : TBudgetData;
+  RowsImported : integer;
+  RowsNotImported : integer;
 begin
   ChartCodeSkipped := false;
+
+  BudgetErrorFile := UserDir + MyClient.clFields.clCode + ' ' +
+                     RemoveInvalidCharacters(Budget.buFields.buName) + ' ' +
+                     FormatDateTime('yyyy-mm-dd hh-mm-ss', Now) + '.txt';
 
   BudgetImportExport := TBudgetImportExport.Create;
   try
@@ -2077,13 +2086,26 @@ begin
         if not fShowZeros then
           RefreshFData(true, DataIndex);
 
-        if not BudgetImportExport.ImportBudget(BudgetFilePath, FData, FBudget, MsgStr, ChartCodeSkipped) then
+        BudgetImportExport.ClearWasUpdated(FData);
+        BudgetCopy := BudgetImportExport.CopyBudgetData(FData);
+
+        if not BudgetImportExport.ImportBudget(BudgetFilePath,
+                                               BudgetErrorFile,
+                                               RowsImported,
+                                               RowsNotImported,
+                                               BudgetCopy,
+                                               MsgStr) then
           HelpfulErrorMsg(MsgStr, 0)
         else
         begin
-          if ChartCodeSkipped then
-            HelpfulErrorMsg('There were accounts in the selected file which do not exist in the current ' +
-                            'client''s chart of accounts. These acounts were not imported', 0)
+          if VerifyBudgetImport(BudgetFilePath,
+                                BudgetErrorFile,
+                                RowsImported,
+                                RowsNotImported) then
+          begin
+            FData := BudgetImportExport.CopyBudgetData(BudgetCopy);
+            BudgetImportExport.UpdateBudgetDetailRows(FData, FBudget);
+          end;
         end;
       finally
         RefreshTableWithData(fShowZeros);
@@ -2102,17 +2124,6 @@ var
   BudgetImportExport : TBudgetImportExport;
   MsgStr : string;
   DataIndex : integer;
-
-  //-----------------------------------------------------------------
-  function RemoveInvalidCharacters(aInString : string) : string;
-  var
-    Index : integer;
-  begin
-    Result := '';
-    for Index := 1 to length(aInString) do
-      if not (aInString[Index] in ['/',':','\','/','*','"','<','>','|','~','?']) then
-        Result := Result + aInString[Index];
-  end;
 
 begin
   BudgetImportExport := TBudgetImportExport.Create;

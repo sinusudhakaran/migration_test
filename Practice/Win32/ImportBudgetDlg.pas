@@ -106,13 +106,13 @@ begin
     exit;
   end;
 
-  if AskYesNo('Import Budget', 'All figures in budget ' + fBudgetName +
+  {if AskYesNo('Import Budget', 'All figures in budget ' + fBudgetName +
                                ' will be replaced by those in the selected file.' +
                                #13#10 + #13#10 + 'Are you sure you want to continue?',
               DLG_YES, 0) <> DLG_YES then
   begin
     exit;
-  end;
+  end;}
 
   fBudgetFilePath := edtBudgetFile.Text;
 

@@ -157,6 +157,8 @@ function ReplaceIllegalFileChars(aInstr : string; aReplaceChar : char) : string;
 
 function TrimedGuid(AGuid: TGuid): String;
 
+function RemoveInvalidCharacters(aInString : string) : string;
+
 
 
 //******************************************************************************
@@ -1296,6 +1298,17 @@ begin
     else
       Result := Result + aInstr[StrIndex];
   end;
+end;
+
+//-----------------------------------------------------------------
+function RemoveInvalidCharacters(aInString : string) : string;
+var
+  Index : integer;
+begin
+  Result := '';
+  for Index := 1 to length(aInString) do
+    if not (aInString[Index] in ['/',':','\','/','*','"','<','>','|','~','?']) then
+      Result := Result + aInString[Index];
 end;
 
 End.
