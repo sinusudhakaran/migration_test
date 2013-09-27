@@ -74,6 +74,7 @@
     <DCCReference Include="..\Tests\UTmxUtils.pas" />
     <DCCReference Include="..\Tests\utMYOB.pas" />
     <DCCReference Include="..\Tests\utPayeeObj.pas" />
+    <DCCReference Include="..\Tests\utSimpleFund360Bulk.pas" />
     <DCCReference Include="..\Tests\utSimpleFundX.pas" />
     <DCCReference Include="..\Tests\utUpgrade.pas" />
     <DCCReference Include="..\Tests\utWebXOffice.pas" />

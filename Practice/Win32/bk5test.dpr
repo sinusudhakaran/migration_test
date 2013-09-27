@@ -15,6 +15,7 @@ uses
   utAuditTrail in '..\Tests\utAuditTrail.pas' {/utBudgetImportExport in '..\Tests\utBudgetImportExport.pas';},
   utBudgetImportExport in '..\Tests\utBudgetImportExport.pas',
   utBGL360 in '..\Tests\utBGL360.pas',
+  utSimpleFund360Bulk in '..\Tests\utSimpleFund360Bulk.pas',
   utSimpleFundX in '..\Tests\utSimpleFundX.pas';
 
 {$R *.RES}

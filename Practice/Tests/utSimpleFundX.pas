@@ -25,7 +25,7 @@ type
     AccountList: TStringList;
     procedure CreateBK5TestClient;
   protected
-    procedure Setup; override;
+    procedure SetUp; override;
     procedure TearDown; override;
   published
     procedure TestExtractBGL360;
@@ -227,7 +227,7 @@ begin
   MyClient := BK5TestClient;
 end;
 
-procedure TSimpleFundXTestCase.Setup;
+procedure TSimpleFundXTestCase.SetUp;
 begin
   CreateBK5TestClient;
 end;

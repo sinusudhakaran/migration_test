@@ -36,6 +36,7 @@ type
      procedure SetFields(const Value: Pchar); overload;
      procedure SetFields(const Value: string); overload;
 
+     function GetFields: string;     
      function GetField(const Value: string): string; overload;
      function GetField(const Value, Default: string): string; overload;
 
@@ -128,6 +129,11 @@ begin
          Value[i] := '.';
    end;
    Result := Value;
+end;
+
+function TExtractFieldHelper.GetFields: string;
+begin
+  Result := FFields.GetText;
 end;
 
 function TExtractFieldHelper.GetField(const Value: string): string;

@@ -265,9 +265,6 @@ var
   end;
 
 begin
-  // NOTE: PUT ANY CHANGES MADE HERE INTO PROCESSDISKCODE IN EXTRACTIDS_SUPER, for some
-  // reason ExtractIDS_Super can't access ProcessDiskCode in ExtractCommon so I've had to
-  // duplicate the functionality
   InputStringNumericOnly := StripNonNumeric(InputString);
 
   // Special conditions

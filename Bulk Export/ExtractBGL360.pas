@@ -4,14 +4,17 @@ interface
 uses
   ExtractCommon,
   Windows,
-  Graphics;
-
+  Graphics,
+  OmniXML;
 
 function GetExtractVersion: Integer; stdcall;
 procedure procInitDllApplication(ApplicationHandle : HWnd; BaseFont: TFont); stdcall;
 function DoBulkExport(var Session: TExtractSession): Integer; stdcall;
 function GetExtractType(Index: integer; var EType: ExtractType): Boolean; stdcall;
 function CheckFeature(const index, Feature: Integer): Integer; stdcall;
+procedure WriteBGLFields(var Session: TExtractSession; var TestNode: IxmlNode; TestRun: boolean = false);
+function ClientStart(var Session: TExtractSession): Integer; stdcall;
+procedure StartFile;
 
 implementation
 
@@ -366,7 +369,7 @@ const // from bkConst // did not want to link it in...
    btYearEndAdjustments = 6;       //non transferring
    btStockBalances = 7;
 
-procedure WriteBGLFields(var Session: TExtractSession);
+procedure WriteBGLFields(var Session: TExtractSession; var TestNode: IxmlNode; TestRun: boolean = false);
 var LTrans: IXMLNode;
 
     procedure AddField(const Name,Value: string);
@@ -433,12 +436,35 @@ var LTrans: IXMLNode;
 
         AddField('Text',Ref);
     end;
+
+    procedure StrToFile(const FileName, SourceString : string);
+    var
+      Stream : TFileStream;
+    begin
+      Stream:= TFileStream.Create(FileName, fmCreate);
+      try
+        Stream.WriteBuffer(Pointer(SourceString)^, Length(SourceString));
+      finally
+        Stream.Free;
+      end;
+    end;
+
 begin
-   LTrans := TransactionsNode.AppendChild(FOutputDocument.CreateElement('Transaction'));
+  if TestRun then
+  begin
+    StartFile;
+    TransactionsNode := OutputDocument.CreateElement('Transactions');
+  end;
+
+  LTrans := TransactionsNode.AppendChild(FOutputDocument.CreateElement('Transaction'));
+
    with ExtractFieldHelper do begin
 
      AddField('Transaction_Type','Other Transaction');
      AddField('Account_Code_Type','Simple Fund');
+
+     if TestRun then
+       SetFields(Session.Data);
 
      AddGuid(Uppercase(GetField(f_TransID)));
 
@@ -487,17 +513,21 @@ begin
      AddField('Discount_Capital_Gain',GetField(f_CGD));
      AddField('Other_Capital_Gain',GetField(f_CGO));
      AddField('Member_Component',CleanTextField(GetField(f_MemComp)));
-
    end;
+
+   if TestRun then
+     TestNode := TransactionsNode;
 end;
 
 
 
 function Transaction(var Session: TExtractSession): Integer; stdcall;
+var
+  TestNode: IXmlNode;
 begin
    ExtractFieldHelper.SetFields(Session.Data);
    case Session.Index of
-   BGL360:  WriteBGLFields(Session);
+   BGL360:  WriteBGLFields(Session, TestNode);
    end;
    Result := er_OK;
 end;
