@@ -25,7 +25,6 @@ uses
   Forms,
   SysUtils,
   OmniXMLUtils,
-  OmniXML,
   Classes;
 
 
