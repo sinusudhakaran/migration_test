@@ -24,6 +24,7 @@ type
    procedure TestSetDefaultFileLocation;
    procedure TestExportBudget;
    procedure TestImportBudget;
+   procedure TestCopyBudget;
  end;
 
 //------------------------------------------------------------------------------
@@ -85,6 +86,7 @@ begin
   // Line One
   Result[0].bAccount := '001';
   Result[0].bDesc := 'Test Description 001';
+  Result[0].bIsPosting := false;
 
   Result[0].bAmounts[1] := 100;
   Result[0].bAmounts[2] := 200;
@@ -106,6 +108,7 @@ begin
   // Line Two
   Result[1].bAccount := '002';
   Result[1].bDesc := '0123456789012345678901234567890123456789';
+  Result[1].bIsPosting := true;
 
   Result[1].bAmounts[1] := 0;
   Result[1].bAmounts[2] := 0;
@@ -120,6 +123,7 @@ begin
   Result[1].bAmounts[11] := 0;
   Result[1].bAmounts[12] := 0;
 
+
   Result[1].bTotal := 0;
   for Index := 1 to 12 do
     Result[1].bTotal := Result[1].bTotal + Result[1].bAmounts[Index];
@@ -127,6 +131,7 @@ begin
     // Line Three
   Result[2].bAccount := '003';
   Result[2].bDesc := 'Test Description 003';
+  Result[2].bIsPosting := true;
 
   Result[2].bAmounts[1] := 0;
   Result[2].bAmounts[2] := 200;
@@ -184,6 +189,37 @@ begin
   Check(fBudgetImportExport.GetDefaultFileLocation('CLT00010') = 'c:\test\test010.csv');
   Check(fBudgetImportExport.GetDefaultFileLocation('CLT00011') = 'test011.csv');
   Check(fBudgetImportExport.GetDefaultFileLocation('CLT00002') = 'c:\test\test002.csv');
+end;
+
+//------------------------------------------------------------------------------
+procedure TBudgetImportExportTestCase.TestCopyBudget;
+var
+  BudgetData : TBudgetData;
+  BudgetDataCopy : TBudgetData;
+  BudgetIndex : integer;
+begin
+  BudgetData := CreateBudgetData;
+
+  BudgetDataCopy := fBudgetImportExport.CopyBudgetData(BudgetData);
+
+  for BudgetIndex := 0 to Length(BudgetData) - 1 do
+  begin
+    Check(BudgetData[BudgetIndex].bAccount     = BudgetDataCopy[BudgetIndex].bAccount);
+    Check(BudgetData[BudgetIndex].bDesc        = BudgetDataCopy[BudgetIndex].bDesc);
+    Check(BudgetData[BudgetIndex].bTotal       = BudgetDataCopy[BudgetIndex].bTotal);
+    Check(BudgetData[BudgetIndex].bAmounts[1]  = BudgetDataCopy[BudgetIndex].bAmounts[1]);
+    Check(BudgetData[BudgetIndex].bAmounts[2]  = BudgetDataCopy[BudgetIndex].bAmounts[2]);
+    Check(BudgetData[BudgetIndex].bAmounts[3]  = BudgetDataCopy[BudgetIndex].bAmounts[3]);
+    Check(BudgetData[BudgetIndex].bAmounts[4]  = BudgetDataCopy[BudgetIndex].bAmounts[4]);
+    Check(BudgetData[BudgetIndex].bAmounts[5]  = BudgetDataCopy[BudgetIndex].bAmounts[5]);
+    Check(BudgetData[BudgetIndex].bAmounts[6]  = BudgetDataCopy[BudgetIndex].bAmounts[6]);
+    Check(BudgetData[BudgetIndex].bAmounts[7]  = BudgetDataCopy[BudgetIndex].bAmounts[7]);
+    Check(BudgetData[BudgetIndex].bAmounts[8]  = BudgetDataCopy[BudgetIndex].bAmounts[8]);
+    Check(BudgetData[BudgetIndex].bAmounts[9]  = BudgetDataCopy[BudgetIndex].bAmounts[9]);
+    Check(BudgetData[BudgetIndex].bAmounts[10] = BudgetDataCopy[BudgetIndex].bAmounts[10]);
+    Check(BudgetData[BudgetIndex].bAmounts[11] = BudgetDataCopy[BudgetIndex].bAmounts[11]);
+    Check(BudgetData[BudgetIndex].bAmounts[12] = BudgetDataCopy[BudgetIndex].bAmounts[12]);
+  end;
 end;
 
 //------------------------------------------------------------------------------
@@ -275,22 +311,22 @@ begin
 
   if Length(BudgetData) = 3 then
   begin
-    // Altered Line
+    // Altered Line but is not posting
     Check(BudgetData[0].bAccount = '001');
     Check(BudgetData[0].bDesc = 'Test Description 001');
-    Check(BudgetData[0].bTotal = 46800);
-    Check(BudgetData[0].bAmounts[1] = 1100);
-    Check(BudgetData[0].bAmounts[2] = 1200);
-    Check(BudgetData[0].bAmounts[3] = 1300);
-    Check(BudgetData[0].bAmounts[4] = 1400);
-    Check(BudgetData[0].bAmounts[5] = 1500);
-    Check(BudgetData[0].bAmounts[6] = 1600);
-    Check(BudgetData[0].bAmounts[7] = 1700);
-    Check(BudgetData[0].bAmounts[8] = 1800);
-    Check(BudgetData[0].bAmounts[9] = 1900);
-    Check(BudgetData[0].bAmounts[10] = 11000);
-    Check(BudgetData[0].bAmounts[11] = 11100);
-    Check(BudgetData[0].bAmounts[12] = 11200);
+    Check(BudgetData[0].bTotal = 7800);
+    Check(BudgetData[0].bAmounts[1] = 100);
+    Check(BudgetData[0].bAmounts[2] = 200);
+    Check(BudgetData[0].bAmounts[3] = 300);
+    Check(BudgetData[0].bAmounts[4] = 400);
+    Check(BudgetData[0].bAmounts[5] = 500);
+    Check(BudgetData[0].bAmounts[6] = 600);
+    Check(BudgetData[0].bAmounts[7] = 700);
+    Check(BudgetData[0].bAmounts[8] = 800);
+    Check(BudgetData[0].bAmounts[9] = 900);
+    Check(BudgetData[0].bAmounts[10] = 1000);
+    Check(BudgetData[0].bAmounts[11] = 1100);
+    Check(BudgetData[0].bAmounts[12] = 1200);
 
     // Unchanged Line
     Check(BudgetData[1].bAccount = '002');

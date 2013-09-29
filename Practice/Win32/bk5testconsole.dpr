@@ -12,15 +12,11 @@ uses
   utPayeeObj in '..\Tests\utPayeeObj.pas',
   utUpgrade in '..\Tests\utUpgrade.pas',
   utWebXOffice in '..\Tests\utWebXOffice.pas',
-  utAuditTrail in '..\Tests\utAuditTrail.pas' {,
-  utBudgetImportExport in '..\Tests\utBudgetImportExport.pas',
-  utBGL360 in '..\Tests\utBGL360.pas';
-
-{$R *.res},
+  utAuditTrail in '..\Tests\utAuditTrail.pas',
   utBudgetImportExport in '..\Tests\utBudgetImportExport.pas',
   utBGL360 in '..\Tests\utBGL360.pas',
-  utSimpleFundX in '..\Tests\utSimpleFundX.pas',
-  utSimpleFund360Bulk in '..\Tests\utSimpleFund360Bulk.pas';
+  utSimpleFundX in '..\Tests\utSimpleFundX.pas';
+  //utSimpleFund360Bulk in '..\Tests\utSimpleFund360Bulk.pas';
 
 {$R *.res}
 
