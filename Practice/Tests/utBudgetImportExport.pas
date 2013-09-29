@@ -251,83 +251,80 @@ end;
 procedure TBudgetImportExportTestCase.TestImportBudget;
 const
   BUDGET_FILE = 'BudgetFile.csv';
+  BUDGET_FILE_ERROR = 'BudgetFileError.txt';
 var
   BudgetData : TBudgetData;
   ResExpBudget : boolean;
-  Budget : TBudget;
   MsgStr : string;
-  ChartCodeSkipped : boolean;
+
+  RowsImported : integer;
+  RowsNotImported : integer;
 begin
-  Budget := TBudget.create;
+  // Include Unused Chart Codes Test
+  BudgetData := CreateBudgetData;
+  CreateBudgetFile(BUDGET_FILE);
 
-  try
-    // Include Unused Chart Codes Test
-    BudgetData := CreateBudgetData;
-    CreateBudgetFile(BUDGET_FILE);
+  ResExpBudget := fBudgetImportExport.ImportBudget(BUDGET_FILE,
+                                                   BUDGET_FILE_ERROR,
+                                                   RowsImported,
+                                                   RowsNotImported,
+                                                   BudgetData,
+                                                   MsgStr);
 
-    ResExpBudget := fBudgetImportExport.ImportBudget(BUDGET_FILE,
-                                                     BudgetData,
-                                                     Budget,
-                                                     MsgStr,
-                                                     ChartCodeSkipped);
+  Check(Length(BudgetData) = 3);
 
-    Check(Length(BudgetData) = 3);
+  if Length(BudgetData) = 3 then
+  begin
+    // Altered Line
+    Check(BudgetData[0].bAccount = '001');
+    Check(BudgetData[0].bDesc = 'Test Description 001');
+    Check(BudgetData[0].bTotal = 46800);
+    Check(BudgetData[0].bAmounts[1] = 1100);
+    Check(BudgetData[0].bAmounts[2] = 1200);
+    Check(BudgetData[0].bAmounts[3] = 1300);
+    Check(BudgetData[0].bAmounts[4] = 1400);
+    Check(BudgetData[0].bAmounts[5] = 1500);
+    Check(BudgetData[0].bAmounts[6] = 1600);
+    Check(BudgetData[0].bAmounts[7] = 1700);
+    Check(BudgetData[0].bAmounts[8] = 1800);
+    Check(BudgetData[0].bAmounts[9] = 1900);
+    Check(BudgetData[0].bAmounts[10] = 11000);
+    Check(BudgetData[0].bAmounts[11] = 11100);
+    Check(BudgetData[0].bAmounts[12] = 11200);
 
-    if Length(BudgetData) = 3 then
-    begin
-      // Altered Line
-      Check(BudgetData[0].bAccount = '001');
-      Check(BudgetData[0].bDesc = 'Test Description 001');
-      Check(BudgetData[0].bTotal = 46800);
-      Check(BudgetData[0].bAmounts[1] = 1100);
-      Check(BudgetData[0].bAmounts[2] = 1200);
-      Check(BudgetData[0].bAmounts[3] = 1300);
-      Check(BudgetData[0].bAmounts[4] = 1400);
-      Check(BudgetData[0].bAmounts[5] = 1500);
-      Check(BudgetData[0].bAmounts[6] = 1600);
-      Check(BudgetData[0].bAmounts[7] = 1700);
-      Check(BudgetData[0].bAmounts[8] = 1800);
-      Check(BudgetData[0].bAmounts[9] = 1900);
-      Check(BudgetData[0].bAmounts[10] = 11000);
-      Check(BudgetData[0].bAmounts[11] = 11100);
-      Check(BudgetData[0].bAmounts[12] = 11200);
+    // Unchanged Line
+    Check(BudgetData[1].bAccount = '002');
+    Check(BudgetData[1].bDesc = '0123456789012345678901234567890123456789');
+    Check(BudgetData[1].bTotal = 0);
+    Check(BudgetData[1].bAmounts[1] = 0);
+    Check(BudgetData[1].bAmounts[2] = 0);
+    Check(BudgetData[1].bAmounts[3] = 0);
+    Check(BudgetData[1].bAmounts[4] = 0);
+    Check(BudgetData[1].bAmounts[5] = 0);
+    Check(BudgetData[1].bAmounts[6] = 0);
+    Check(BudgetData[1].bAmounts[7] = 0);
+    Check(BudgetData[1].bAmounts[8] = 0);
+    Check(BudgetData[1].bAmounts[9] = 0);
+    Check(BudgetData[1].bAmounts[10] = 0);
+    Check(BudgetData[1].bAmounts[11] = 0);
+    Check(BudgetData[1].bAmounts[12] = 0);
 
-      // Unchanged Line
-      Check(BudgetData[1].bAccount = '002');
-      Check(BudgetData[1].bDesc = '0123456789012345678901234567890123456789');
-      Check(BudgetData[1].bTotal = 0);
-      Check(BudgetData[1].bAmounts[1] = 0);
-      Check(BudgetData[1].bAmounts[2] = 0);
-      Check(BudgetData[1].bAmounts[3] = 0);
-      Check(BudgetData[1].bAmounts[4] = 0);
-      Check(BudgetData[1].bAmounts[5] = 0);
-      Check(BudgetData[1].bAmounts[6] = 0);
-      Check(BudgetData[1].bAmounts[7] = 0);
-      Check(BudgetData[1].bAmounts[8] = 0);
-      Check(BudgetData[1].bAmounts[9] = 0);
-      Check(BudgetData[1].bAmounts[10] = 0);
-      Check(BudgetData[1].bAmounts[11] = 0);
-      Check(BudgetData[1].bAmounts[12] = 0);
-
-      // Cleared Value Line
-      Check(BudgetData[2].bAccount = '003');
-      Check(BudgetData[2].bDesc = 'Test Description 003');
-      Check(BudgetData[2].bTotal = 0);
-      Check(BudgetData[2].bAmounts[1] = 0);
-      Check(BudgetData[2].bAmounts[2] = 0);
-      Check(BudgetData[2].bAmounts[3] = 0);
-      Check(BudgetData[2].bAmounts[4] = 0);
-      Check(BudgetData[2].bAmounts[5] = 0);
-      Check(BudgetData[2].bAmounts[6] = 0);
-      Check(BudgetData[2].bAmounts[7] = 0);
-      Check(BudgetData[2].bAmounts[8] = 0);
-      Check(BudgetData[2].bAmounts[9] = 0);
-      Check(BudgetData[2].bAmounts[10] = 0);
-      Check(BudgetData[2].bAmounts[11] = 0);
-      Check(BudgetData[2].bAmounts[12] = 0);
-    end;
-  finally
-    Budget.Free;
+    // Cleared Value Line
+    Check(BudgetData[2].bAccount = '003');
+    Check(BudgetData[2].bDesc = 'Test Description 003');
+    Check(BudgetData[2].bTotal = 0);
+    Check(BudgetData[2].bAmounts[1] = 0);
+    Check(BudgetData[2].bAmounts[2] = 0);
+    Check(BudgetData[2].bAmounts[3] = 0);
+    Check(BudgetData[2].bAmounts[4] = 0);
+    Check(BudgetData[2].bAmounts[5] = 0);
+    Check(BudgetData[2].bAmounts[6] = 0);
+    Check(BudgetData[2].bAmounts[7] = 0);
+    Check(BudgetData[2].bAmounts[8] = 0);
+    Check(BudgetData[2].bAmounts[9] = 0);
+    Check(BudgetData[2].bAmounts[10] = 0);
+    Check(BudgetData[2].bAmounts[11] = 0);
+    Check(BudgetData[2].bAmounts[12] = 0);
   end;
 end;
 
