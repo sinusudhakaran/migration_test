@@ -17,7 +17,7 @@ function DefaultFileName : ShortString;
 implementation
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-uses BKConst, Globals;
+uses BKConst, Globals, bkDateUtils;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -124,7 +124,8 @@ Begin
                saLotus123         : ;
                saAttache          : Result := DefaultDir + clCode + '\BANKLINK.CSV';
                saHandiLedger      : Result := DefaultDir + clCode + '.ASC';
-               saBGLSimpleFund, saBGLSimpleLedger, saBGL360    : Result := DefaultDir + clCode + '\BANKLINK.CSV';
+               saBGLSimpleFund, saBGLSimpleLedger    : Result := DefaultDir + clCode + '\BANKLINK.CSV';
+               saBGL360           : Result := DefaultDir + clCode + '_' + Date2Str(MyClient.clFields.clPeriod_Start_Date, 'ddmmyyyy') + '_' + Date2Str(MyClient.clFields.clPeriod_End_Date, 'ddmmyyyy') + '.XML';
                saMYOB             : Result := DefaultDir + clCode + '.TXT';
                saCeeDataCDS1      : ;
                saSolution6CLS3    : Result := clCode + '.TXT';
