@@ -519,7 +519,7 @@ begin
     Check(TestNode.FirstChild.ChildNodes.Item[9].Text       = '13.33');
     Check(TestNode.FirstChild.ChildNodes.Item[10].NodeName  = 'GST_Rate');
     Check(TestNode.FirstChild.ChildNodes.Item[10].Text      = 'N/A');
-    Check('a' = 'b'); // remove this
+//    Check('a' = 'b'); // remove this
   finally
     TestNode := nil
   end;
