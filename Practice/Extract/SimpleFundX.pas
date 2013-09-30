@@ -582,13 +582,16 @@ begin
       
       for No := 0 to Pred( Selected.Count ) do begin
         BA := TBank_Account(Selected.Objects[ No ]);
-        Traverse.Clear;
-        Traverse.SetSortMethod(csDateEffective);
-        Traverse.SetSelectionMethod(Traverse.twAllNewEntries);
-        Traverse.SetOnAHProc(DoAccountHeader);
-        Traverse.SetOnEHProc(DoClassSuperIPTransaction);
-        Traverse.SetOnDSProc(DoClassSuperIPDissection);
-        Traverse.TraverseEntriesForAnAccount(BA, FromDate, ToDate);
+        if (AnsiPos('Journals', BA.baFields.baBank_Account_Number) = 0) then // don't include journals
+        begin
+          Traverse.Clear;
+          Traverse.SetSortMethod(csDateEffective);
+          Traverse.SetSelectionMethod(Traverse.twAllNewEntries);
+          Traverse.SetOnAHProc(DoAccountHeader);
+          Traverse.SetOnEHProc(DoClassSuperIPTransaction);
+          Traverse.SetOnDSProc(DoClassSuperIPDissection);
+          Traverse.TraverseEntriesForAnAccount(BA, FromDate, ToDate);
+        end;
       end;
 
       //Write XML file
