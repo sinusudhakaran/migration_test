@@ -466,6 +466,8 @@ begin
     AddFieldNode(FTransactionNode, 'Bank_Account_No', AccountNum);
   end;
 
+  inc(NoOfEntries);
+
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends');
 end; 
 
@@ -603,7 +605,7 @@ begin
       FTransactionsNode := nil;
       //Display message
       Msg := SysUtils.Format('Extract Data Complete. %d Entries were saved in %s',
-                             [FNoOfEntries, SaveTo]);
+                             [NoOfEntries, SaveTo]);
       if DebugMe then
         LogUtil.LogMsg(lmInfo, UnitName, ThisMethodName + ' : ' + Msg );
       if (TestAccountList = nil) then
