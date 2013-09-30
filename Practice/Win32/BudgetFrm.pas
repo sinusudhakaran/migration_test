@@ -2074,7 +2074,7 @@ begin
 
   BudgetErrorFile := UserDir + MyClient.clFields.clCode + ' ' +
                      RemoveInvalidCharacters(Budget.buFields.buName) + ' ' +
-                     FormatDateTime('yyyy-mm-dd hh-mm-ss', Now) + '.txt';
+                     FormatDateTime('yyyy-mm-dd hh-mm-ss', Now) + '.log';
 
   BudgetImportExport := TBudgetImportExport.Create;
   try
@@ -2105,6 +2105,15 @@ begin
           begin
             FData := BudgetImportExport.CopyBudgetData(BudgetCopy);
             BudgetImportExport.UpdateBudgetDetailRows(FData, FBudget);
+          end;
+        end;
+
+        if FileExists(BudgetErrorFile) then
+        begin
+          try
+            DeleteFile(BudgetErrorFile);
+          except
+            // try delete log file if there is an error just ignore
           end;
         end;
       finally
