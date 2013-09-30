@@ -486,7 +486,7 @@ begin
               else
                 Codestr := '(Error finding Code)';
 
-              WriteLn(ErrorFile, 'Row-' + inttostr(LineNumber) + ', Code-' + Trim(Codestr) +
+              WriteLn(ErrorFile, 'Row ' + inttostr(LineNumber) + ', Code ' + Trim(Codestr) +
                                  ', Incorrect amount of columns, 15 expected, ' + inttostr(InLineData.Count) + ' found.');
               aRowsNotImported := aRowsNotImported + 1;
             end
@@ -501,8 +501,8 @@ begin
                   begin
                     if not TryStrtoInt(InLineData[2 + DateIndex], DataHolder[DateIndex]) then
                     begin
-                      WriteLn(ErrorFile, 'Row-' + inttostr(LineNumber) + ', Column-' + inttostr(DateIndex+2) +
-                                         ', Code-' + Trim(InLineData[0]) + ' Error converting value to a number.');
+                      WriteLn(ErrorFile, 'Row ' + inttostr(LineNumber) + ', Column ' + inttostr(DateIndex+2) +
+                                         ', Code ' + Trim(InLineData[0]) + ', Error converting value to a number.');
                       LineHasError := true;
                       aRowsNotImported := aRowsNotImported + 1;
                       break;
@@ -529,8 +529,8 @@ begin
                   begin
                     if not TryStrtoInt(InLineData[2 + DateIndex], DataHolder[DateIndex]) then
                     begin
-                      WriteLn(ErrorFile, 'Row-' + inttostr(LineNumber) + ', Column-' + inttostr(DateIndex+2) +
-                                         ', Code-' + Trim(InLineData[0]) + ' Error converting value to a number.');
+                      WriteLn(ErrorFile, 'Row ' + inttostr(LineNumber) + ', Column ' + inttostr(DateIndex+2) +
+                                         ', Code ' + Trim(InLineData[0]) + ', Error converting value to a number.');
                       LineHasError := true;
                       aRowsNotImported := aRowsNotImported + 1;
                       break;
@@ -544,8 +544,8 @@ begin
                     begin
                       if DataHolder[DateIndex] <> aBudgetData[DataIndex].bAmounts[DateIndex] then
                       begin
-                        WriteLn(ErrorFile, 'Row-' + inttostr(LineNumber) + ', Code-' + Trim(InLineData[0]) +
-                                       ' Data Row is not a posting row and cannot be updated.');
+                        WriteLn(ErrorFile, 'Row ' + inttostr(LineNumber) + ', Code ' + Trim(InLineData[0]) +
+                                       ', Data Row is not a posting row and cannot be updated.');
                         aRowsNotImported := aRowsNotImported + 1;
                         break;
                       end;
@@ -555,8 +555,8 @@ begin
               end
               else
               begin
-                WriteLn(ErrorFile, 'Row-' + inttostr(LineNumber) + ', Code-' + Trim(InLineData[0]) +
-                                   ', Cannot find Account code');
+                WriteLn(ErrorFile, 'Row ' + inttostr(LineNumber) + ', Code ' + Trim(InLineData[0]) +
+                                   ', Cannot find Account code.');
                 aRowsNotImported := aRowsNotImported + 1;
               end;
             end;
