@@ -518,9 +518,33 @@ begin
                 end
                 else
                 begin
-                  WriteLn(ErrorFile, 'Row-' + inttostr(LineNumber) + ', Code-' + Trim(InLineData[0]) +
-                                     ' Data Row is not a posting row and cannot be updated.');
-                  aRowsNotImported := aRowsNotImported + 1;
+                  // Try convert data for logic below to run
+                  for DateIndex := 1 to 12 do
+                  begin
+                    if not TryStrtoInt(InLineData[2 + DateIndex], DataHolder[DateIndex]) then
+                    begin
+                      WriteLn(ErrorFile, 'Row-' + inttostr(LineNumber) + ', Column-' + inttostr(DateIndex+2) +
+                                         ', Code-' + Trim(InLineData[0]) + ' Error converting value to a number.');
+                      LineHasError := true;
+                      aRowsNotImported := aRowsNotImported + 1;
+                      break;
+                    end;
+                  end;
+
+                  // Only show nohn posting error if data is differant
+                  if not LineHasError then
+                  begin
+                    for DateIndex := 1 to 12 do
+                    begin
+                      if DataHolder[DateIndex] <> aBudgetData[DataIndex].bAmounts[DateIndex] then
+                      begin
+                        WriteLn(ErrorFile, 'Row-' + inttostr(LineNumber) + ', Code-' + Trim(InLineData[0]) +
+                                       ' Data Row is not a posting row and cannot be updated.');
+                        aRowsNotImported := aRowsNotImported + 1;
+                        break;
+                      end;
+                    end;
+                  end;
                 end;
               end
               else
