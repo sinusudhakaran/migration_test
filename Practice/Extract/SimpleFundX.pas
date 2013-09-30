@@ -439,6 +439,31 @@ var
      if Value > '' then
         FFields.Add(Name + '=' + Value );
   end;
+
+  function CleanTextField(const Value: string): string;
+  begin
+     Result := ExtractFieldHelper.ReplaceQuotesAndCommas
+               (
+                  ExtractFieldHelper.RemoveQuotes(Value)
+               );
+  end;
+
+  procedure AddTextNode;
+  var
+    Ref, Nar: string;
+  begin
+    Nar := CleanTextField(Transaction^.txGL_Narration);
+    Ref := CleanTextField(IntToStr(Transaction^.txCheque_Number));
+    if Ref > '' then
+       if Nar > '' then
+          Ref := Nar + ' BL Ref: ' + Ref
+       else
+          Ref := 'BL Ref: ' + Ref
+    else
+       Ref := Nar;
+    AddFieldNode(FTransactionNode, 'Text', Ref);
+  end;
+
 begin
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins');
 
@@ -451,7 +476,7 @@ begin
     AddFieldNode(FTransactionNode, 'Transaction_Type', 'Other Transaction');
     AddFieldNode(FTransactionNode, 'Transaction_Date', Date2Str(Transaction^.txDate_Effective, FDateMask));
     AddFieldNode(FTransactionNode, 'Amount', FormatFloatForXml(Transaction^.txAmount));
-    AddFieldNode(FTransactionNode, 'Text', Transaction^.txGL_Narration);
+    AddTextNode;
     AccountCode := Transaction^.txAccount;
     if (AccountCode = '') then
     begin
