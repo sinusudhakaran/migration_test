@@ -4,7 +4,7 @@ uses
   Forms,
   TestFrameWork,
   GUITestRunner,
-  utSimpleFund360Bulk in '..\Practice\Tests\utSimpleFund360Bulk.pas';
+  utSimpleFund360Bulk;
 
 {$R *.RES}
 

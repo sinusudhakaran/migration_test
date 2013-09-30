@@ -18,10 +18,10 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <Version>7.0</Version>
     <DCC_Define>DEBUG;SSLV6;BK_UNITTESTINGON</DCC_Define>
-    <DCC_UnitSearchPath>..\Common;..\Common\Core;..\Common\Core\Download;..\Common\Database;..\Common\Lib;..\Practice\Authority Forms\;..\Practice\BASForm\;..\Practice\Bconnect\;..\Practice\Component\;..\Practice\Extended MAPI\;..\Practice\Extract\;..\Practice\Forex\;..\Practice\Graphs\;..\Practice\Import\;..\Practice\Lists\;..\Practice\Orpheus\;..\Practice\Printing\;..\Practice\WebNotes\;..\Practice\Win32\;..\Practice\SimpleUI;..\Common\BNotes;..\Common\BNotes\Database;C:\Components\WPTools5\D2007;C:\Components\TPerlRegEx;..\Components\OmniXML</DCC_UnitSearchPath>
-    <DCC_ResourcePath>..\Common;..\Common\Core;..\Common\Core\Download;..\Common\Database;..\Common\Lib;..\Practice\Authority Forms\;..\Practice\BASForm\;..\Practice\Bconnect\;..\Practice\Component\;..\Practice\Extended MAPI\;..\Practice\Extract\;..\Practice\Forex\;..\Practice\Graphs\;..\Practice\Import\;..\Practice\Lists\;..\Practice\Orpheus\;..\Practice\Printing\;..\Practice\WebNotes\;..\Practice\Win32\;..\Practice\SimpleUI;..\Common\BNotes;..\Common\BNotes\Database;C:\Components\WPTools5\D2007;C:\Components\TPerlRegEx;..\Components\OmniXML</DCC_ResourcePath>
-    <DCC_ObjPath>..\Common;..\Common\Core;..\Common\Core\Download;..\Common\Database;..\Common\Lib;..\Practice\Authority Forms\;..\Practice\BASForm\;..\Practice\Bconnect\;..\Practice\Component\;..\Practice\Extended MAPI\;..\Practice\Extract\;..\Practice\Forex\;..\Practice\Graphs\;..\Practice\Import\;..\Practice\Lists\;..\Practice\Orpheus\;..\Practice\Printing\;..\Practice\WebNotes\;..\Practice\Win32\;..\Practice\SimpleUI;..\Common\BNotes;..\Common\BNotes\Database;C:\Components\WPTools5\D2007;C:\Components\TPerlRegEx;..\Components\OmniXML</DCC_ObjPath>
-    <DCC_IncludePath>..\Common;..\Common\Core;..\Common\Core\Download;..\Common\Database;..\Common\Lib;..\Practice\Authority Forms\;..\Practice\BASForm\;..\Practice\Bconnect\;..\Practice\Component\;..\Practice\Extended MAPI\;..\Practice\Extract\;..\Practice\Forex\;..\Practice\Graphs\;..\Practice\Import\;..\Practice\Lists\;..\Practice\Orpheus\;..\Practice\Printing\;..\Practice\WebNotes\;..\Practice\Win32\;..\Practice\SimpleUI;..\Common\BNotes;..\Common\BNotes\Database;C:\Components\WPTools5\D2007;C:\Components\TPerlRegEx;..\Components\OmniXML</DCC_IncludePath>
+    <DCC_UnitSearchPath>..\Common;..\Common\Core;..\Common\Core\Download;..\Common\Database;..\Common\Lib;..\Practice\Authority Forms\;..\Practice\BASForm\;..\Practice\Bconnect\;..\Practice\Component\;..\Practice\Extended MAPI\;..\Practice\Extract\;..\Practice\Forex\;..\Practice\Graphs\;..\Practice\Import\;..\Practice\Lists\;..\Practice\Orpheus\;..\Practice\Printing\;..\Practice\WebNotes\;..\Practice\Win32\;..\Practice\SimpleUI;..\Common\BNotes;..\Common\BNotes\Database;C:\Components\WPTools5\D2007;C:\Components\TPerlRegEx;..\Components\OmniXML;..\Practice\Tests</DCC_UnitSearchPath>
+    <DCC_ResourcePath>..\Common;..\Common\Core;..\Common\Core\Download;..\Common\Database;..\Common\Lib;..\Practice\Authority Forms\;..\Practice\BASForm\;..\Practice\Bconnect\;..\Practice\Component\;..\Practice\Extended MAPI\;..\Practice\Extract\;..\Practice\Forex\;..\Practice\Graphs\;..\Practice\Import\;..\Practice\Lists\;..\Practice\Orpheus\;..\Practice\Printing\;..\Practice\WebNotes\;..\Practice\Win32\;..\Practice\SimpleUI;..\Common\BNotes;..\Common\BNotes\Database;C:\Components\WPTools5\D2007;C:\Components\TPerlRegEx;..\Components\OmniXML;..\Practice\Tests</DCC_ResourcePath>
+    <DCC_ObjPath>..\Common;..\Common\Core;..\Common\Core\Download;..\Common\Database;..\Common\Lib;..\Practice\Authority Forms\;..\Practice\BASForm\;..\Practice\Bconnect\;..\Practice\Component\;..\Practice\Extended MAPI\;..\Practice\Extract\;..\Practice\Forex\;..\Practice\Graphs\;..\Practice\Import\;..\Practice\Lists\;..\Practice\Orpheus\;..\Practice\Printing\;..\Practice\WebNotes\;..\Practice\Win32\;..\Practice\SimpleUI;..\Common\BNotes;..\Common\BNotes\Database;C:\Components\WPTools5\D2007;C:\Components\TPerlRegEx;..\Components\OmniXML;..\Practice\Tests</DCC_ObjPath>
+    <DCC_IncludePath>..\Common;..\Common\Core;..\Common\Core\Download;..\Common\Database;..\Common\Lib;..\Practice\Authority Forms\;..\Practice\BASForm\;..\Practice\Bconnect\;..\Practice\Component\;..\Practice\Extended MAPI\;..\Practice\Extract\;..\Practice\Forex\;..\Practice\Graphs\;..\Practice\Import\;..\Practice\Lists\;..\Practice\Orpheus\;..\Practice\Printing\;..\Practice\WebNotes\;..\Practice\Win32\;..\Practice\SimpleUI;..\Common\BNotes;..\Common\BNotes\Database;C:\Components\WPTools5\D2007;C:\Components\TPerlRegEx;..\Components\OmniXML;..\Practice\Tests</DCC_IncludePath>
     <DCC_ExeOutput>C:\Unit testing</DCC_ExeOutput>
     <DCC_DcuOutput>..\DCU</DCC_DcuOutput>
     <DCC_ObjOutput>..\DCU</DCC_ObjOutput>
@@ -39,18 +39,5 @@
     <DelphiCompile Include="BGL360_test.dpr">
       <MainSource>MainSource</MainSource>
     </DelphiCompile>
-    <DCCReference Include="..\PracTests\Practice\utSimpleFund360Bulk.pas" />
-    <DCCReference Include="..\PracticeTests\Practice\utSimpleFund360Bulk.pas" />
-    <DCCReference Include="..\Practice\Tests\Practice\utSimpleFund360Bulk.pas" />
-    <DCCReference Include="..\Practice\Tests\utSimpleFund360Bulk.pas" />
-    <DCCReference Include="..\PracticTests\Practice\utSimpleFund360Bulk.pas" />
-    <DCCReference Include="..\PractiTests\Practice\utSimpleFund360Bulk.pas" />
-    <DCCReference Include="..\PractTests\Practice\utSimpleFund360Bulk.pas" />
-    <DCCReference Include="..\PraTests\Practice\utSimpleFund360Bulk.pas" />
-    <DCCReference Include="..\PrTests\Practice\utSimpleFund360Bulk.pas" />
-    <DCCReference Include="..\PTests\Practice\utSimpleFund360Bulk.pas" />
-    <DCCReference Include="..\Tests\Practice\utSimpleFund360Bulk.pas">
-      <Form>$R *.RES</Form>
-    </DCCReference>
   </ItemGroup>
 </Project>
