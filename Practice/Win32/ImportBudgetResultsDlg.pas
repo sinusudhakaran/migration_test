@@ -64,6 +64,13 @@ begin
   try
     DlgImportBudgetResults.lblImported.Caption := InttoStr(aRowsImported) + ' Account(s) will be updated';
     DlgImportBudgetResults.lblRejected.Caption := InttoStr(aRowsNotImported) + ' Account(s) rejected';
+
+    if aRowsNotImported = 0 then
+    begin
+      DlgImportBudgetResults.pnlRejects.Visible := false;
+      DlgImportBudgetResults.Height := DlgImportBudgetResults.Height - (DlgImportBudgetResults.pnlRejects.Height + 20);
+    end;
+
     DlgImportBudgetResults.lblFile.Caption := 'From File : ' + ExtractFileName(aBudgetFilename);
     DlgImportBudgetResults.Filename := aErrorFilename;
 

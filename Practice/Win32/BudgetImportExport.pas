@@ -418,6 +418,7 @@ var
   LineNumber : integer;
   InValue : integer;
   DataHolder : array[1..12] of integer;
+  Codestr : string;
 
   function GetDataIndexWithAccount(aAccount : string) : integer;
   var
@@ -480,7 +481,12 @@ begin
 
             if InLineData.Count <> 15 then
             begin
-              WriteLn(ErrorFile, 'Row-' + inttostr(LineNumber) + ', Code-' + Trim(InLineData[0]) +
+              if InLineData.Count > 0 then
+                Codestr := InLineData[0]
+              else
+                Codestr := '(Error finding Code)';
+
+              WriteLn(ErrorFile, 'Row-' + inttostr(LineNumber) + ', Code-' + Trim(Codestr) +
                                  ', Incorrect amount of columns, 15 expected, ' + inttostr(InLineData.Count) + ' found.');
               aRowsNotImported := aRowsNotImported + 1;
             end
