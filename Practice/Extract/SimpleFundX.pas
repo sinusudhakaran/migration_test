@@ -442,6 +442,8 @@ var
 begin
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins');
 
+  Transaction^.txDate_Transferred := CurrentDate;
+
   If ( Transaction^.txFirst_Dissection = NIL ) then
   begin // only create node if there are no dissections, DoClassSuperIPTransaction handles dissections
     FTransactionNode := OutputDocument.CreateElement('Transaction');
