@@ -302,9 +302,9 @@ end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-procedure AddFieldNode(var ToNode: IxmlNode; const Name, Value: string);
+procedure AddFieldNode(var ToNode: IxmlNode; const Name, Value: string; AllowEmpty: boolean = false);
 begin
-  if Value > '' then // No empty Tags...
+  if (Value > '') or AllowEmpty then
     SetNodeTextStr(ToNode,Name,Value);
 end;
 
@@ -462,7 +462,7 @@ var
           Ref := 'BL Ref: ' + Ref
     else
        Ref := Nar;
-    AddFieldNode(FTransactionNode, 'Text', Ref);
+    AddFieldNode(FTransactionNode, 'Text', Ref, True);
   end;
 
 begin
@@ -521,7 +521,7 @@ var
           Ref := 'BL Ref: ' + Ref
     else
        Ref := Nar;
-    AddFieldNode(FTransactionNode, 'Text', Ref);
+    AddFieldNode(FTransactionNode, 'Text', Ref, True);
   end;
 begin
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins');
