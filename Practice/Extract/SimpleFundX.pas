@@ -574,7 +574,7 @@ begin
     FClientNode := nil;
     FAccountNode := nil;
     FTransactionsNode := nil;
-    FNoOfEntries := 0;
+    NoOfEntries := 0;
     OutputDocument.LoadXML(''); // Clear
     PI := OutputDocument.CreateProcessingInstruction('xml', 'version="1.0" encoding="ISO-8859-1"');
     OutputDocument.AppendChild(PI);
@@ -611,8 +611,9 @@ begin
       FClientNode.AppendChild(FTransactionsNode);
 
       for No := 0 to Pred( Selected.Count ) do begin
+        BA := TBank_Account(Selected.Objects[No]);
         Traverse.Clear;
-        IsJournal := (AnsiPos('Journals', BA.baFields.baBank_Account_Number) <> 0);
+        IsJournal := (AnsiPos('Journals', TBank_Account(Selected.Objects[No]).baFields.baBank_Account_Number) <> 0);
 
         Traverse.SetSortMethod(csDateEffective);
         Traverse.SetSelectionMethod(Traverse.twAllNewEntries);
