@@ -436,12 +436,25 @@ end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+procedure AddAccountCodeNode(AccountCode: string);
+var
+  PracIniFile: TIniFile;
+begin
+  if (AccountCode = '') then
+  begin
+    PracIniFile := TIniFile.Create(ExecDir + PRACTICEINIFILENAME);
+    AccountCode := PracIniFile.ReadString(BGLXMLcode, 'ExtractCode', '91000');
+    if AccountCode = '' then
+      AccountCode := '91000'; // default account code for uncoded transactions
+  end;
+  AddFieldNode(FTransactionNode, 'Account_Code', AccountCode);
+end;
+
 procedure DoClassSuperIPTransaction;
 const
   ThisMethodName = 'DoClassSuperIPTransaction';
 var
   BSB, AccountNum, AccountCode: string;
-  PracIniFile: TIniFile;
 
   procedure AddField(const Name, Value: string);
   begin
@@ -478,15 +491,7 @@ begin
     AddFieldNode(FTransactionNode, 'Transaction_Date', Date2Str(Transaction^.txDate_Effective, FDateMask));
     AddFieldNode(FTransactionNode, 'Amount', FormatFloatForXml(Transaction^.txAmount));
     AddTextNode;
-    AccountCode := Transaction^.txAccount;
-    if (AccountCode = '') then
-    begin
-      PracIniFile := TIniFile.Create(ExecDir + PRACTICEINIFILENAME);
-      AccountCode := PracIniFile.ReadString(BGLXMLcode, 'ExtractCode', '91000');
-      if AccountCode = '' then
-        AccountCode := '91000'; // default account code for uncoded transactions
-    end;
-    AddFieldNode(FTransactionNode, 'Account_Code', AccountCode);
+    AddAccountCodeNode(Transaction^.txAccount);
     TransactionUtils.CheckExternalGUID(Transaction);
     AddGuid(FTransactionNode, Uppercase(Transaction^.txExternal_GUID), 15);
     ProcessDiskCode(TBank_Account(Transaction^.txBank_Account).baFields.baBank_Account_Number, BSB, AccountNum);
@@ -534,7 +539,7 @@ begin
   AddFieldNode(FTransactionNode, 'Transaction_Date', Date2Str(Dissection^.dsTransaction^.txDate_Effective, FDateMask));
   AddFieldNode(FTransactionNode, 'Amount', FormatFloatForXml(Dissection^.dsAmount));
   AddTextNode;
-  AddFieldNode(FTransactionNode, 'Account_Code', '91000');
+  AddAccountCodeNode(Dissection^.dsAccount);
   TransactionUtils.CheckExternalGUID(Dissection);
   AddGuid(FTransactionNode, Uppercase(Dissection^.dsExternal_GUID), 15);
   ProcessDiskCode(TBank_Account(Dissection^.dsBank_Account).baFields.baBank_Account_Number, BSB, AccountNum);
