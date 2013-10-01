@@ -20,7 +20,7 @@ implementation
 uses
   ExtractDlg, Globals, baobj32, Software, ContraDlg, WarningMoreFrm,
   ErrorMoreFrm, LogUtil, bkConst, InfoMoreFrm, StDate, S6INI,
-  classes, bkDateUtils, SysUtils, ClientHomePagefrm,
+  classes, bkDateUtils, SysUtils, ClientHomePagefrm, ExUtil,
 
   AcclipseX,
   AccountSoftX,
@@ -167,7 +167,11 @@ begin
 
    with MyClient.clFields do
    Begin
-      clSave_Client_Files_To := Path;
+
+      if not ((ExUtil.DefaultFileName = Path) and (MyClient.clFields.clAccounting_System_Used = saBGL360)) then
+        // The default file name for BGL 360 is based off the current date,
+        // so it shouldn't be saved as the path for next time
+        clSave_Client_Files_To := Path;
       
       Try
          Case clCountry of
