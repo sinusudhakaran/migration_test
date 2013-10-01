@@ -535,6 +535,7 @@ VAR
   No           : Integer;
   Selected: TStringList;
   PI: IXMLProcessingInstruction;
+  IsJournal: boolean;
 
   function OutputDocument: IXMLDocument;
   begin
@@ -608,19 +609,18 @@ begin
       FClientNode.AppendChild(FBalancesNode);
       FTransactionsNode := OutputDocument.CreateElement('Transactions');
       FClientNode.AppendChild(FTransactionsNode);
-      
+
       for No := 0 to Pred( Selected.Count ) do begin
-        BA := TBank_Account(Selected.Objects[ No ]);
-        if (AnsiPos('Journals', BA.baFields.baBank_Account_Number) = 0) then // don't include journals
-        begin
-          Traverse.Clear;
-          Traverse.SetSortMethod(csDateEffective);
-          Traverse.SetSelectionMethod(Traverse.twAllNewEntries);
+        Traverse.Clear;
+        IsJournal := (AnsiPos('Journals', BA.baFields.baBank_Account_Number) <> 0);
+
+        Traverse.SetSortMethod(csDateEffective);
+        Traverse.SetSelectionMethod(Traverse.twAllNewEntries);
+        if not IsJournal then
           Traverse.SetOnAHProc(DoAccountHeader);
-          Traverse.SetOnEHProc(DoClassSuperIPTransaction);
-          Traverse.SetOnDSProc(DoClassSuperIPDissection);
-          Traverse.TraverseEntriesForAnAccount(BA, FromDate, ToDate);
-        end;
+        Traverse.SetOnEHProc(DoClassSuperIPTransaction);
+        Traverse.SetOnDSProc(DoClassSuperIPDissection);
+        Traverse.TraverseEntriesForAnAccount(BA, FromDate, ToDate);
       end;
 
       //Write XML file
