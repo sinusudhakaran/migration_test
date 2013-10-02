@@ -7,7 +7,7 @@ uses
   bkConst,
   bkDefs,
   Classes,
-  clObj32,
+  //clObj32,
   TestFramework; // DUnit
 
 const
@@ -20,10 +20,11 @@ const
 type
   TSimpleFund360BulkTestCase = class(TTestCase)
   private
-    BK5TestClient: TClientObj;
-    Chart230, Chart400 : pAccount_Rec;
-    AccountList: TStringList;
-    procedure CreateBK5TestClient;
+    //BK5TestClient: TClientObj;
+    //Chart230, Chart400 : pAccount_Rec;
+    //AccountList: TStringList;
+    function CreateTransactionRec : pTransaction_Rec;
+    //procedure CreateBK5TestClient;
   protected
     procedure Setup; override;
     procedure TearDown; override;
@@ -36,7 +37,14 @@ implementation
 { TSimpleFundXTestCase }
 
 uses
-  baObj32,
+  OmniXML,
+  ExtractBGL360,
+  ExtractCommon,
+  MoneyDef,
+  SysUtils,
+  StDateSt,
+  BKTXIO;
+  {baObj32,
   BKchIO,
   BKdsIO,
   BulkExtractFrm,
@@ -45,14 +53,31 @@ uses
   glConst,
   Globals,
   MoneyDef,
-  OmniXML,
+
   SimpleFundX,
   Software,
   StDateSt,
   SysUtils,
-  trxList32;
+  trxList32;}
 
-procedure TSimpleFund360BulkTestCase.CreateBK5TestClient;
+function TSimpleFund360BulkTestCase.CreateTransactionRec : pTransaction_Rec;
+begin
+  Result := BKTXIO.New_Transaction_Rec;
+
+  Result^.txDate_Presented  := Apr01_2004;
+  Result.txDate_Effective   := Apr01_2004;
+  Result.txAmount           := 12000;
+  Result.txAccount          := '230';
+  Result.txNotes            := 'NOTE';
+  Result.txGL_Narration     := 'Account 1 Tran1';
+  Result.txTax_Invoice_Available   := false;
+  Result.txPayee_Number     := 0;
+  Result.txGST_Class := 1;
+  Result.txGST_Amount := Round(12000 / 9);
+  Result.txExternal_GUID := '11';
+end;
+
+{procedure TSimpleFund360BulkTestCase.CreateBK5TestClient;
 var
   ba : TBank_Account;
   pt : pTransaction_Rec;
@@ -75,17 +100,16 @@ begin
   //gst rates (NZ)
   BK5TestClient.clFields.clGST_Applies_From[1] := 138883; // 01 Jan 1980
 
-  {Income}
   BK5TestClient.clFields.clGST_Class_Codes[1]  := 'I';
   BK5TestClient.clFields.clGST_Class_Names[1]  := 'GST on Sales';
   BK5TestClient.clFields.clGST_Class_Types[1]  := gtOutputTax;
   BK5TestClient.clFields.clGST_Rates[1,1]      := 125000;
-  {Expenditure}
+
   BK5TestClient.clFields.clGST_Class_Codes[2]  := 'E';
   BK5TestClient.clFields.clGST_Class_Names[2]  := 'GST on Purchases';
   BK5TestClient.clFields.clGST_Class_Types[2]  := gtInputTax;
   BK5TestClient.clFields.clGST_Rates[2,1]      := 125000;
-  {Exempt}
+
   BK5TestClient.clFields.clGST_Class_Codes[3]  := 'X';
   BK5TestClient.clFields.clGST_Class_Names[3]  := 'Exempt';
   BK5TestClient.clFields.clGST_Class_Types[3]  := gtExempt;
@@ -233,16 +257,16 @@ begin
   AccountList.AddObject(ba.baFields.baBank_Account_Number, ba);
 
   MyClient := BK5TestClient;
-end;
+end; }
 
 procedure TSimpleFund360BulkTestCase.Setup;
 begin
-  CreateBK5TestClient;
+  //CreateBK5TestClient;
 end;
 
 procedure TSimpleFund360BulkTestCase.TearDown;
 begin
-  BK5TestClient.Free;
+  //BK5TestClient.Free;
 
 end;
 
@@ -259,29 +283,21 @@ var
   TestTrans     : pTransaction_Rec;
   TransText     : string;
 
+  procedure AddDateField(const Name: string; Value: Integer);
+  begin
+     if Value <> 0 then
+        FFields.Add(Name + '=' + StDateToDateString('dd/mm/yyyy',Value,False));
+  end;
+
   procedure AddField(const Name, Value: string);
   begin
      if Value > '' then
         FFields.Add(Name + '=' + Value );
   end;
 
-  function LookupChart(const Value: string): string;
-  begin
-     Result := '';
-     if (Value > '')
-     and Assigned(bk5testclient) then
-         Result := bk5testclient.clChart.FindDesc(Value);
-  end;
-
   procedure AddNumberField(const Name: string; Value: Integer);
   begin
      FFields.Add(Name + '=' + InttoStr(Value));
-  end;
-
-  procedure AddDateField(const Name: string; Value: Integer);
-  begin
-     if Value <> 0 then
-        FFields.Add(Name + '=' + StDateToDateString('dd/mm/yyyy',Value,False));
   end;
 
   procedure AddMoneyField(const Name: string; Value: Money);
@@ -290,6 +306,64 @@ var
      or (Value=0) then
      else
         FFields.Add(Name + '=' + Format('%.2f',[Value/100]));
+  end;
+
+  procedure AddTaxFields(TaxAmount: Money; TaxClass: Integer);
+  var
+    Code, Desc : string;
+  begin
+     {if TaxClass > 0 then begin
+        if LookupTaxClass(TaxClass, Code, Desc) then begin
+           AddField(f_TaxCode,Code);
+           AddField(f_TaxDesc,Desc);
+        end; }
+        AddMoneyField(f_Tax,TaxAmount);
+     //end;
+  end;
+
+  procedure AddQtyField(const Name: string; Value: Money);
+  begin
+    if Value <> 0 then
+        FFields.Add(Name + '=' + Format('%.4f',[Value/10000]));
+  end;
+
+  function GetFullNotes (pT: pTransaction_Rec): string;
+  begin
+     Result := '';
+     if Assigned(pt) then begin
+        Result := pt.txECoding_Import_Notes;
+        if pt.txNotes > '' then begin
+           if Result > '' then
+              Result := Result + '; ';
+           Result := Result + pt.txNotes;
+        end;
+     end;
+  end;
+
+  function LookupChart(const Value: string): string;
+  begin
+     Result := '';
+     {if (Value > '')
+     and Assigned(bk5testclient) then
+         Result := bk5testclient.clChart.FindDesc(Value);}
+  end;
+
+  function LookupJob(const Value: string): string;
+  begin
+     Result := '';
+     {if (Value > '')
+     and Assigned(BK5TestClient) then
+         Result := BK5TestClient.clJobs.JobName(Value);}
+  end;
+
+  {
+
+  function LookupChart(const Value: string): string;
+  begin
+     Result := '';
+     if (Value > '')
+     and Assigned(bk5testclient) then
+         Result := bk5testclient.clChart.FindDesc(Value);
   end;
 
   function LookupTaxClass(const Value: integer; var Code, Desc: string ): boolean;
@@ -313,25 +387,6 @@ var
            AddField(f_TaxDesc,Desc);
         end;
         AddMoneyField(f_Tax,TaxAmount);
-     end;
-  end;
-
-  procedure AddQtyField(const Name: string; Value: Money);
-  begin
-    if Value <> 0 then
-        FFields.Add(Name + '=' + Format('%.4f',[Value/10000]));
-  end;
-
-  function GetFullNotes (pT: pTransaction_Rec): string;
-  begin
-     Result := '';
-     if Assigned(pt) then begin
-        Result := pt.txECoding_Import_Notes;
-        if pt.txNotes > '' then begin
-           if Result > '' then
-              Result := Result + '; ';
-           Result := Result + pt.txNotes;
-        end;
      end;
   end;
 
@@ -381,7 +436,7 @@ var
         FFields.Add(Name + '=1/2' )
      else
         FFields.Add(Name + '=2/3' )
-  end;
+  end;  }
 
   function TransactionToText(aTrans: pTransaction_Rec): string;
   begin
@@ -419,7 +474,7 @@ var
     AddField(f_JobDesc, lookupJob(aTrans.txJob_Code));
 
     // Superfund...
-    if IsSuperFund(BK5TestClient.clFields.clCountry,BK5TestClient.clFields.clAccounting_System_Used) then begin
+    {if IsSuperFund(BK5TestClient.clFields.clCountry,BK5TestClient.clFields.clAccounting_System_Used) then begin}
 
        // Common Fields (Typically Money)
        AddDateField(f_CGTDate,aTrans.txSF_CGT_Date);
@@ -452,13 +507,10 @@ var
        AddMoneyField(f_OT_Credit, aTrans.txSF_Other_Tax_Credit);
        AddMoneyField(f_NonResidentTax, aTrans.txSF_Non_Resident_Tax);
 
-       // Fund, Member and Transaction are more system specific
-       case BK5TestClient.clFields.clAccounting_System_Used of
-         saBGL360: AddBGLFields(aTrans.txDate_Effective,
-                                         aTrans.txSF_Member_Component);
-       end;
+       //AddBGLFields(aTrans.txDate_Effective,
+       //                                  aTrans.txSF_Member_Component);
 
-    end;
+    {end; }
 
     // Running balance
     if FCurrentBal <> Unknown then
@@ -467,7 +519,9 @@ var
   end;
 
 begin
-  TestTrans := BK5TestClient.clBank_Account_List.Bank_Account_At(0).baTransaction_List.Transaction_At(0);
+  TestTrans := CreateTransactionRec;
+
+  //TestTrans := BK5TestClient.clBank_Account_List.Bank_Account_At(0).baTransaction_List.Transaction_At(0);
   TransText := TransactionToText(TestTrans);
   Session.Data := PAnsiChar(AnsiString(TransText));
 
