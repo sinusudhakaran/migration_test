@@ -5,6 +5,14 @@ unit clObj32;
 interface
 uses
    Classes, bkDefs, ioStream,
+{$UNDEF ParserDllOrClientOnly}
+{$IFDEF ParserDll}
+{$DEFINE ParserDllOrClientOnly}
+{$ENDIF}
+{$IFDEF ClientOnly}
+{$DEFINE ParserDllOrClientOnly}
+{$ENDIF}
+
 {$IFDEF ParserDll}
    // The Parser DLL just need to read the client fields
    // All the rest is not needed,
@@ -43,7 +51,7 @@ type
     constructor Create;
     destructor Destroy; override;
   private
-{$IFDEF ParserDll}
+{$IFDEF ParserDllOrClientOnly}
     procedure ReadFromDataStream( var S : TIOStream);
 {$ELSE}
     FExchangeSource: TExchangeSource;
@@ -56,7 +64,7 @@ type
     function GetDataStreamFromZipStream(const FileCode: String; const ZipStream : TBigMemoryStream): TIOStream;
 
     procedure LogDebugMsg(S: string; Error: Boolean = false);
-{$IFDEF ParserDll}
+{$IFDEF ParserDllOrClientOnly}
 {$ELSE}
     function  GetLongName  : string;
 
@@ -74,7 +82,7 @@ type
   public
     procedure Open(FileCode, FileExtension : String);
 
-{$IFDEF ParserDll}
+{$IFDEF ParserDllOrClientOnly}
 {$ELSE}
     // Used for Books TokenIO
     procedure SaveToDataStream( var S : TIOStream; DefaultSize : integer = 0);
@@ -142,7 +150,7 @@ type
 {$ENDIF}
   end;
 
-{$IFDEF ParserDll}
+{$IFDEF ParserDllOrClientOnly}
    var  // So we don't need Globals or WinUtils
      DataDir : string;
      SAV_EXTN : string  = '.SAV';
@@ -164,7 +172,7 @@ uses
    cryptx,
    windows,
 
-{$IFDEF ParserDll}
+{$IFDEF ParserDllOrClientOnly}
 {$ELSE}
    baObj32,
    budobj32,
@@ -218,7 +226,7 @@ begin
    clFields.clRecord_Type := tkBegin_Client;
    clFields.clEOR         := tkEnd_Client;
    clWas_Code             := '';
-{$IFDEF ParserDll}
+{$IFDEF ParserDllOrClientOnly}
 {$ELSE}
    //Audit table
    FLastAuditRecordID := 0;
@@ -251,7 +259,7 @@ begin
    LogDebugMsg(ThisMethodName + ' Ends');
 end;
 
-{$IFNDEF ParserDLL}
+{$IFNDEF ParserDllOrClientOnly}
 
 function TClientObj.CurrencySymbol: String;
 begin
@@ -275,7 +283,7 @@ begin
    LogDebugMsg( ThisMethodName + ' Begins');
    //free all the rest
    BKCLIO.Free_Client_Rec_Dynamic_Fields( clFields);
-{$IFDEF ParserDll}
+{$IFDEF ParserDllOrClientOnly}
 {$ELSE}
    FreeAndNil(FExchangeSource);
 
@@ -303,7 +311,7 @@ begin
    LogDebugMsg( ThisMethodName + ' Ends');
 end;
 
-{$IFNDEF ParserDll}
+{$IFNDEF ParserDllOrClientOnly}
 procedure TClientObj.DoAudit(AAuditType: TAuditType; AClientCopy: TClientObj);
 var
   AuditInfo: TAuditInfo;
@@ -337,7 +345,7 @@ begin
 end;
 {$ENDIF}
 
-{$IFNDEF ParserDll}
+{$IFNDEF ParserDllOrClientOnly}
 
 function TClientObj.DrCrStr(const Amount: Money): String;
 begin
@@ -392,7 +400,7 @@ const
   ThisMethodName = 'TClientObj.LoadFromStream';
 var
   Token : byte;
-{$IFDEF ParserDll}
+{$IFDEF ParserDllOrClientOnly}
 {$ELSE}
   Msg   : String;
 {$ENDIF}
@@ -403,7 +411,7 @@ begin
   begin
     case Token of
        tkBegin_Client            : Read_Client_Rec(clFields,s);
-{$IFDEF ParserDll}
+{$IFNDEF ParserDllOrClientOnly}
        else Break; //Where are done..
     end;
 {$ELSE}
@@ -624,12 +632,12 @@ begin
     try
       //read values from data stream
       ReadFromDataStream( DataStream );
-  {$IFNDEF ParserDll}
+  {$IFNDEF ParserDllOrClientOnly}
       ClientCopyReload(DataStream);
   {$ENDIF}
 
 
-  {$IFDEF ParserDll}
+  {$IFDEF ParserDllOrClientOnly}
         // Realy only interested in
         // Practice Name and Code
   {$ELSE}
@@ -668,7 +676,7 @@ end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TClientObj.LogDebugMsg(S: string; Error: Boolean = false);
 begin
-{$IFDEF ParserDll}
+{$IFDEF ParserDllOrClientOnly}
    // We Dont realy use this, but stops me having to add so many switches...
 {$ELSE}
   if Error then
@@ -680,7 +688,7 @@ begin
 end;
 
 
-{$IFNDEF ParserDll}
+{$IFNDEF ParserDllOrClientOnly}
 
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -749,7 +757,7 @@ end;
 
 {$ENDIF}
 
-{$IFDEF ParserDll}
+{$IFDEF ParserDllOrClientOnly}
 
 //******************************************************************************
 //
@@ -926,7 +934,7 @@ Begin
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-{$IFNDEF ParserDll}
+{$IFNDEF ParserDllOrClientOnly}
 function TClientObj.GetClientCopy: TClientObj;
 begin
   if not Assigned(FClientCopy) then begin
@@ -1238,7 +1246,7 @@ procedure TClientObj.SaveToDataStream(var S: TIOStream; DefaultSize : integer = 
 var
   CRC : LongWord;
 begin
-{$IFNDEF ParserDll}
+{$IFNDEF ParserDllOrClientOnly}
   //*** Flag Audit ***
   //Can't select which bank accounts to audit yet - so all
   //need to be checked on client save.
@@ -1257,7 +1265,7 @@ begin
   Self.SaveToStream( S);
   S.Size := S.Position;
   EmbedCRC( S);
-{$IFNDEF ParserDll}
+{$IFNDEF ParserDllOrClientOnly}
   ClientCopyReload(S);
 {$ENDIF}
 
@@ -1408,7 +1416,7 @@ begin
   Result := whChequeEntryType[ clFields.clCountry ];
 end;
 
-{$IFNDEF ParserDll}
+{$IFNDEF ParserDllOrClientOnly}
 procedure TClientObj.ClientCopyReload(var S: TIOStream);
 begin
   FClientAuditMgr.Country := clFields.clCountry;
@@ -1434,7 +1442,7 @@ begin
   try
     S.Write(CRC, SizeOf(CRC));
     Self.SaveToStream(S);
-{$IFNDEF ParserDll}    
+{$IFNDEF ParserDllOrClientOnly}
     ClientCopyReload(S);
 {$ENDIF}
   finally
@@ -1577,7 +1585,7 @@ end;
 {$ENDIF}
 
 initialization
-{$IFDEF ParserDll}
+{$IFDEF ParserDllOrClientOnly}
    DataDir := ExtractFilePath(ParamStr(0));
 {$ELSE}
    DebugMe := DebugUnit(UnitName);
