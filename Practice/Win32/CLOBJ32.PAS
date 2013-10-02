@@ -4,7 +4,6 @@ unit clObj32;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 interface
 uses
-   Classes, bkDefs, ioStream,
 {$UNDEF ParserDllOrClientOnly}
 {$IFDEF ParserDll}
 {$DEFINE ParserDllOrClientOnly}
@@ -12,6 +11,12 @@ uses
 {$IFDEF ClientOnly}
 {$DEFINE ParserDllOrClientOnly}
 {$ENDIF}
+   {$IFNDEF ClientOnly}
+   Classes,
+   {$ENDIF} // ClientOnly
+   bkDefs,
+   ioStream,
+
 
 {$IFDEF ParserDllOrClientOnly}
    // The Parser DLL just need to read the client fields
@@ -23,7 +28,10 @@ uses
    PayeeObj,
    CustomHeadingsListObj, ExchangeRateList, mcDefs, AuditMgr,
 {$ENDIF}
-   sysutils, MoneyDef;
+{$IFNDEF ClientOnly}
+   sysutils,
+{$ENDIF} // ClientOnly
+   MoneyDef;
 
 type
   TClientObj = Class
@@ -51,18 +59,22 @@ type
     constructor Create;
     destructor Destroy; override;
   private
-{$IFDEF ParserDllOrClientOnly}
+{$IFDEF ParserDll}
     procedure ReadFromDataStream( var S : TIOStream);
 {$ELSE}
+{$IFNDEF ClientOnly}
     FExchangeSource: TExchangeSource;
     FLastAuditRecordID: integer;
     FClientCopy: TClientObj;
-{$ENDIF}
+{$ENDIF} // ClientOnly
+{$ENDIF} // ParserDll
+{$IFNDEF ClientOnly}
     procedure LoadFromStream( var s:TIOStream);
     procedure GetZipStreamFromFile(var Filename : String; const ZipStream : TBigMemoryStream);
     procedure GetZipStreamFromStream(var Filename: String;  const stream: TStream; const ZipStream : TBigMemoryStream);
     function GetDataStreamFromZipStream(const FileCode: String; const ZipStream : TBigMemoryStream): TIOStream;
 
+{$ENDIF} // ClientOnly
     procedure LogDebugMsg(S: string; Error: Boolean = false);
 {$IFDEF ParserDllOrClientOnly}
 {$ELSE}
@@ -80,7 +92,9 @@ type
                                 NewClient: boolean = false);
 {$ENDIF}
   public
+    {$IFNDEF ClientOnly}
     procedure Open(FileCode, FileExtension : String);
+    {$ENDIF}
 
 {$IFDEF ParserDllOrClientOnly}
 {$ELSE}
@@ -157,20 +171,24 @@ type
      FILEEXTN : string  = '.BK5';
      SYSFILENAME : string = 'system.db';
      ShortAppName : string = 'BankLink';
-     function BKFileExists(Filename: string): Boolean;
 {$ELSE}
 {$ENDIF}
+{$IFDEF ParserDll}
+  function BKFileExists(Filename: string): Boolean;
+{$ENDIF}
+
 
 //******************************************************************************
 implementation
 uses
+{$IFDEF ClientOnly}
+   {$ELSE}
    ClientWrapper,
-   bkclio,
-   tokens,
    crcFileUtils,
    bkcrc,
    cryptx,
    windows,
+   {$ENDIF}
 
 {$IFDEF ParserDllOrClientOnly}
 {$ELSE}
@@ -195,8 +213,13 @@ uses
    GSTUTIL32,
    WebUtils,
 {$ENDIF}
+   {$IFDEF ClientOnly}
+   {$ELSE}
    bk5Except,
-   VclZip;
+   VclZip,
+   {$ENDIF}
+   bkclIO,
+   tokens;
 
 const
   UnitName  = 'CLOBJ32';
@@ -395,6 +418,8 @@ end;
 {$ENDIF}
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+{$IFDEF ClientOnly}
+{$ELSE}
 procedure TClientObj.LoadFromStream(var s : TIOStream);
 const
   ThisMethodName = 'TClientObj.LoadFromStream';
@@ -443,6 +468,7 @@ begin
 
   LogDebugMsg( ThisMethodName + ' Ends');
 end;
+{$ENDIF} // ClientOnly
 
 //******************************************************************************
 //
@@ -451,7 +477,7 @@ end;
 //******************************************************************************
 
 
-
+{$IFNDEF ClientOnly}
 function TClientObj.GetDataStreamFromZipStream(const FileCode: String;
   const ZipStream: TBigMemoryStream): TIOstream;
 var
@@ -497,7 +523,9 @@ begin
       end;
 
 end;
+{$ENDIF}
 
+{$IFNDEF ClientOnly}
 procedure TClientObj.GetZipStreamFromFile(var Filename: String; const ZipStream: TBigMemoryStream);
 
 var
@@ -580,9 +608,11 @@ begin
 
     ZipStream.Position := 0;
 end;
+{$ENDIF}
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+{$IFNDEF ClientOnly}
 procedure TClientObj.ReadFromDataStream(var S: TIOStream);
 var
   CRC : LongWord;
@@ -599,9 +629,11 @@ begin
   Self.LoadFromStream( S);
 
 end;
+{$ENDIF}
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+{$IFNDEF ClientOnly}
 procedure TClientObj.Open(FileCode, FileExtension : String);
 const
   ThisMethodName = 'TClientObj.Open';
@@ -670,8 +702,7 @@ begin
 
   LogDebugMsg( ThisMethodName + ' ends');
 end;
-
-
+{$ENDIF}
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TClientObj.LogDebugMsg(S: string; Error: Boolean = false);
@@ -757,7 +788,7 @@ end;
 
 {$ENDIF}
 
-{$IFDEF ParserDllOrClientOnly}
+{$IFDEF ParserDll}
 
 //******************************************************************************
 //
@@ -780,6 +811,7 @@ end;
 //
 //******************************************************************************
 
+{$IFNDEF ClientOnly}
 procedure TClientObj.RefreshExchangeSource(DefaultGST: Boolean = True);
 var
   LExchangeRates: TExchangeRateList;
@@ -799,7 +831,6 @@ begin
     end;
   end;
 end;
-
 
 procedure TClientObj.FillAccountingSystemList(Value: Tstrings);
 var I: Integer;
@@ -932,6 +963,7 @@ Begin
          end;
    LogDebugMsg( ThisMethodName + ' Ends' );
 end;
+{$ENDIF} // ClientOnly
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 {$IFNDEF ParserDllOrClientOnly}
@@ -944,6 +976,7 @@ begin
 end;
 {$ENDIF}
 
+{$IFNDEF ClientOnly}
 Function TClientObj.GetCurrentCRC : LongInt;
 const
    ThisMethodName = 'TClientObj.GetCurrentCRC';
@@ -1246,7 +1279,7 @@ procedure TClientObj.SaveToDataStream(var S: TIOStream; DefaultSize : integer = 
 var
   CRC : LongWord;
 begin
-{$IFNDEF ParserDllOrClientOnly}
+{$IFNDEF ParserDll}
   //*** Flag Audit ***
   //Can't select which bank accounts to audit yet - so all
   //need to be checked on client save.
@@ -1265,7 +1298,7 @@ begin
   Self.SaveToStream( S);
   S.Size := S.Position;
   EmbedCRC( S);
-{$IFNDEF ParserDllOrClientOnly}
+{$IFNDEF ParserDll}
   ClientCopyReload(S);
 {$ENDIF}
 
@@ -1416,7 +1449,7 @@ begin
   Result := whChequeEntryType[ clFields.clCountry ];
 end;
 
-{$IFNDEF ParserDllOrClientOnly}
+{$IFNDEF ParserDll}
 procedure TClientObj.ClientCopyReload(var S: TIOStream);
 begin
   FClientAuditMgr.Country := clFields.clCountry;
@@ -1442,7 +1475,7 @@ begin
   try
     S.Write(CRC, SizeOf(CRC));
     Self.SaveToStream(S);
-{$IFNDEF ParserDllOrClientOnly}
+{$IFNDEF ParserDll}
     ClientCopyReload(S);
 {$ENDIF}
   finally
@@ -1582,13 +1615,17 @@ begin
   end;
 end;
 
+{$ENDIF} // End of IFNDEF for ClientOnly
+
 {$ENDIF}
 
 initialization
-{$IFDEF ParserDllOrClientOnly}
+{$IFDEF ParserDll}
    DataDir := ExtractFilePath(ParamStr(0));
 {$ELSE}
+{$IFNDEF ClientOnly}
    DebugMe := DebugUnit(UnitName);
-{$ENDIF}
+{$ENDIF} // ClientOnly
+{$ENDIF} // ParserDll
 end.
 
