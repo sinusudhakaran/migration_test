@@ -13,7 +13,7 @@ uses
 {$DEFINE ParserDllOrClientOnly}
 {$ENDIF}
 
-{$IFDEF ParserDll}
+{$IFDEF ParserDllOrClientOnly}
    // The Parser DLL just need to read the client fields
    // All the rest is not needed,
    // and is removed to keep the Dll file size under control
@@ -28,7 +28,7 @@ uses
 type
   TClientObj = Class
     clFields               : TClient_Rec;
-{$IFDEF ParserDll}
+{$IFDEF ParserDllOrClientOnly}
 {$ELSE}
     clBank_Account_List    : TBank_Account_List;
     clChart                : TChart;
