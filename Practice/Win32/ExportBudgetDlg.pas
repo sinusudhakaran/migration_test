@@ -55,7 +55,8 @@ uses
   ImagesFrm,
   bkXPThemes,
   YesNoDlg,
-  Globals;
+  Globals,
+  ErrorMoreFrm;
 
 //------------------------------------------------------------------------------
 function DoExportBudget(var BudgetFilePath : string;
@@ -104,7 +105,29 @@ end;
 
 //------------------------------------------------------------------------------
 procedure TfrmExportBudget.btnOkClick(Sender: TObject);
+var
+  DirPath : string;
 begin
+  DirPath := ExtractFilePath(edtBudgetFile.Text);
+
+  if not DirectoryExists(DirPath) then
+  begin
+    if AskYesNo('Create Directory',
+                'The folder '+DirPath +' does not exist. Do you want to Create it?',
+                 DLG_YES,0) <> DLG_YES then
+    begin
+      Exit;
+    end;
+
+    ForceDirectories(DirPath);
+
+    if not DirectoryExists(DirPath) then
+    begin
+      HelpfulErrorMsg('Cannot Create Extract Data Directory '+DirPath,0);
+      Exit;
+    end;
+  end;
+
   if fileexists(edtBudgetFile.Text) then
   begin
     if AskYesNo('Overwrite File', 'The file ' + ExtractFileName(edtBudgetFile.Text) + ' already exists. Overwrite?',
