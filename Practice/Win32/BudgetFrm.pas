@@ -2059,6 +2059,8 @@ end;
 
 //------------------------------------------------------------------------------
 procedure TfrmBudget.DoImport;
+const
+  ThisMethodName = 'DoImport';
 var
   BudgetFilePath : string;
   BudgetErrorFile : string;
@@ -2105,6 +2107,11 @@ begin
           begin
             FData := BudgetImportExport.CopyBudgetData(BudgetCopy);
             BudgetImportExport.UpdateBudgetDetailRows(FData, FBudget);
+
+            LogUtil.LogMsg( lmInfo, UnitName, ThisMethodName + ' : ' +
+                            'From File : ' + ExtractFileName(BudgetFilePath) + ', ' +
+                            InttoStr(RowsImported) + ' Account(s) updated, ' +
+                            InttoStr(RowsNotImported) + ' Account(s) rejected' );
           end;
         end;
 
