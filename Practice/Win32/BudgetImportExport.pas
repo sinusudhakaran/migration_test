@@ -501,7 +501,7 @@ begin
                   begin
                     if not TryStrtoInt(InLineData[2 + DateIndex], DataHolder[DateIndex]) then
                     begin
-                      WriteLn(ErrorFile, 'Row ' + inttostr(LineNumber) + ', Column ' + inttostr(DateIndex+2) +
+                      WriteLn(ErrorFile, 'Row ' + inttostr(LineNumber) + ', Column ' + inttostr(DateIndex + 3) +
                                          ', Code ' + Trim(InLineData[0]) + ', Error converting value to a number.');
                       LineHasError := true;
                       aRowsNotImported := aRowsNotImported + 1;
