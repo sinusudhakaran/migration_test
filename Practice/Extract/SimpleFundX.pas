@@ -443,7 +443,7 @@ begin
   if (AccountCode = '') then
   begin
     PracIniFile := TIniFile.Create(ExecDir + PRACTICEINIFILENAME);
-    AccountCode := PracIniFile.ReadString(BGLXMLcode, 'ExtractCode', '91000');
+    AccountCode := PracIniFile.ReadString(BGL360code, 'ExtractCode', '91000');
     if AccountCode = '' then
       AccountCode := '91000'; // default account code for uncoded transactions
   end;
