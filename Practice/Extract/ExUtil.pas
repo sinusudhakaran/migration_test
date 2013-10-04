@@ -17,32 +17,46 @@ function DefaultFileName : ShortString;
 implementation
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-uses BKConst, Globals, bkDateUtils;
+uses
+  BKConst,
+  bkDateUtils,
+  Globals,
+  sysutils;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 function DefaultFileName : ShortString;
 
-   Procedure AddDirSymbol( Var S : ShortString );
-   Var p : Byte;
-   Begin
-      p:=Ord( S[0] );
-      If ( p>0 ) and ( S[p]<>'\' ) then S:=S+'\';
-   end;
+  Procedure AddDirSymbol( Var S : ShortString );
+  Var p : Byte;
+  Begin
+    p:=Ord( S[0] );
+    If ( p>0 ) and ( S[p]<>'\' ) then S:=S+'\';
+  end;
 
-   
+  function GetSABGL360ExtractDir(RootDir: ShortString): string;
+  begin
+    if (ExtractFileExt(RootDir) <> '') then
+      RootDir := ExtractFileDir(RootDir);
+    if (RootDir <> '') then
+      AddDirSymbol(RootDir);
+    Result := RootDir;
+  end;
 
 Var
    DefaultDir  : ShortString;
 Begin
    Result := '';
-   
+
    With MyClient.clFields do
    Begin
-      If clSave_Client_Files_To <> '' then
+      If (clSave_Client_Files_To <> '') then
       Begin
-         Result := clSave_Client_Files_To;
-         exit;
+        if clAccounting_System_Used = saBGL360 then
+          Result := GetSABGL360ExtractDir(clSave_Client_Files_To)
+        else
+          Result := clSave_Client_Files_To;
+        exit;
       end;
 
       DefaultDir := '';
@@ -125,7 +139,7 @@ Begin
                saAttache          : Result := DefaultDir + clCode + '\BANKLINK.CSV';
                saHandiLedger      : Result := DefaultDir + clCode + '.ASC';
                saBGLSimpleFund, saBGLSimpleLedger    : Result := DefaultDir + clCode + '\BANKLINK.CSV';
-               saBGL360           : Result := DefaultDir + clCode + '_' + Date2Str(MyClient.clFields.clPeriod_Start_Date, 'ddmmyyyy') + '_' + Date2Str(MyClient.clFields.clPeriod_End_Date, 'ddmmyyyy') + '.XML';
+               saBGL360           : Result := GetSABGL360ExtractDir(DefaultDir);
                saMYOB             : Result := DefaultDir + clCode + '.TXT';
                saCeeDataCDS1      : ;
                saSolution6CLS3    : Result := clCode + '.TXT';

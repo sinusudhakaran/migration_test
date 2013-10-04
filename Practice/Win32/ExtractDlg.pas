@@ -168,6 +168,8 @@ begin
      chkNewFormat.Checked := NewFormat;
 
      eTo.Text := ExUtil.DefaultFileName;
+     if (Myclient.clfields.clAccounting_System_Used = saBGL360) then
+      eTo.Text := ExtractFileDir(eTo.Text) + '\<AUTO>.xml';
 
      gCodingDateFrom := clPeriod_Start_Date;
      gCodingDateTo   := clPeriod_End_Date;

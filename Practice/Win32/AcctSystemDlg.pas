@@ -614,7 +614,15 @@ begin
         end;
         clChart_Is_Locked           := chkLockChart.Checked;
         clAccount_Code_Mask         := eMask.text;
-        clSave_Client_Files_To      := Trim( eTo.text);
+        // Only the directory for BGL 360, could add other systems to this as well
+        if (clAccounting_System_Used = saBGL360) then
+        begin
+          if (ExtractFileExt(eTo.Text) = '') then
+            clSave_Client_Files_To  := Trim(eTo.Text) // user has selected a folder, not a file
+          else
+            clSave_Client_Files_To  := ExtractFileDir(Trim( eTo.text)); // user has selected a file, we just want the folder
+        end else
+          clSave_Client_Files_To      := Trim( eTo.text);
         clAlternate_Extract_ID      := Trim(edtExtractID.Text);
         clUse_Alterate_ID_for_extract := chkUseCustomLedgerCode.Checked;
         clTax_Ledger_Code           := eTaxLedger.Text;

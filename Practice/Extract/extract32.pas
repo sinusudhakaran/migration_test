@@ -117,6 +117,21 @@ var
    PeriodIndex: Integer;
    PeriodList: TDateList;
    BankIndex: Integer;
+
+   // Extracts the folder part of the path.
+   // In case you're wondering why this is necessary, simply using ExtractFileDir on a directory
+   // path without a backslash at the end would strip out the last folder name
+   // eg. c:\test\test2 would become c:\test
+   function GetFolderFromPath: string;
+   begin
+     if (ExtractFileExt(Path) = '') then
+       Result := Path // user has selected a folder, not a file
+     else
+       Result := ExtractFileDir(Path);
+     if (Copy(Result, Length(Result), 1) <> '\') then
+       Result := Result + '\';
+   end;
+   
 begin
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
 
@@ -168,10 +183,10 @@ begin
    with MyClient.clFields do
    Begin
 
-      if not ((ExUtil.DefaultFileName = Path) and (MyClient.clFields.clAccounting_System_Used = saBGL360)) then
+      if (MyClient.clFields.clAccounting_System_Used = saBGL360) then
         // The default file name for BGL 360 is based off the current date,
         // so it shouldn't be saved as the path for next time
-        clSave_Client_Files_To := Path;
+        clSave_Client_Files_To := ExtractFileDir(Path);
       
       Try
          Case clCountry of
@@ -235,14 +250,15 @@ begin
                   saLotus123        : HelpfulInfoMsg( 'Sorry, Lotus 1-2-3 is not supported in '+ShortAppName, 0 );
                   saAttache         : AttacheXOZ.ExtractData(FD, TD, Path );
                   saHandiLedger     : HandiLedgerX.ExtractData( FD, TD, Path );
-                  saBGLSimpleFund, saBGLSimpleLedger, saBGL360   : SimpleFundX.ExtractData( clAccounting_System_Used, FD, TD, Path );
+                  saBGLSimpleFund, saBGLSimpleLedger : SimpleFundX.ExtractData( clAccounting_System_Used, FD, TD, Path );
+                  saBGL360          : SimpleFundX.ExtractData( clAccounting_System_Used, FD, TD, GetFolderFromPath + clCode + '_' + Date2Str(FD, 'ddmmyyyy') + '_' + Date2Str(TD, 'ddmmyyyy') + '.XML');
                   saMYOB            : MYOBX.ExtractData(FD, TD, Path);
                   saCeeDataCDS1     : HelpfulInfoMsg( 'Sorry, the CDS1 Format is not supported at present in '+ShortAppName, 0 );
                   saSolution6CLS3   : CLS3X.ExtractData( FD, TD, Path );
                   saSolution6CLS4   : CLS41X.ExtractData( FD, TD, Path );
                   saSolution6MAS41  : MAS41X.ExtractData( FD, TD, Path );
-                  saQBWo		      : QuickBooksX.ExtractData( FD, TD,True, Path );
-                  saQBWn		      : QuickBooksX.ExtractData( FD, TD,False, Path );
+                  saQBWo		        : QuickBooksX.ExtractData( FD, TD,True, Path );
+                  saQBWn		        : QuickBooksX.ExtractData( FD, TD,False, Path );
                   saBK5CSV          : CSVX.ExtractData( FD, TD, Path );
                   saTaxAssistant    : CSVX.ExtractData( FD, TD, Path );
                   saElite           : CSVX.ExtractData( FD, TD, Path);
