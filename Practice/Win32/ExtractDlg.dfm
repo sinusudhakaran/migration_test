@@ -91,7 +91,6 @@ object dlgExtract: TdlgExtract
     inherited btnPrev: TSpeedButton
       Left = 241
       Top = 5
-      OnClick = DateSelectorbtnPrevClick
       ExplicitLeft = 241
       ExplicitTop = 5
     end

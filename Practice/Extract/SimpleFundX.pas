@@ -468,7 +468,7 @@ var
   begin
     Nar := CleanTextField(Transaction^.txGL_Narration);
     Ref := CleanTextField(IntToStr(Transaction^.txCheque_Number));
-    if Ref > '' then
+    if (Ref > '') and (Ref <> '0') then
        if Nar > '' then
           Ref := Nar + ' BL Ref: ' + Ref
        else
@@ -519,7 +519,7 @@ var
     Nar := CleanTextField(Dissection^.dsGL_Narration);
     Ref := CleanTextField(IntToStr(Dissection^.dsTransaction^.txCheque_Number));
 
-    if Ref > '' then
+    if (Ref > '') and (Ref <> '0') then
        if Nar > '' then
           Ref := Nar + ' BL Ref: ' + Ref
        else
