@@ -2084,10 +2084,10 @@ begin
 
     if DoImportBudget(BudgetFilePath, FBudget.buFields.buName) then
     begin
-      try
-        if not fShowZeros then
-          RefreshFData(true, DataIndex);
+      if not fShowZeros then
+        RefreshFData(true, DataIndex);
 
+      try
         BudgetImportExport.ClearWasUpdated(FData);
         BudgetCopy := BudgetImportExport.CopyBudgetData(FData);
 
@@ -2097,21 +2097,33 @@ begin
                                                RowsNotImported,
                                                BudgetCopy,
                                                MsgStr) then
-          HelpfulErrorMsg(MsgStr, 0)
+        begin
+          tblBudget.AllowRedraw := false;
+          try
+            HelpfulErrorMsg(MsgStr, 0);
+          finally
+            tblBudget.AllowRedraw := true;
+          end;
+        end
         else
         begin
-          if VerifyBudgetImport(BudgetFilePath,
-                                BudgetErrorFile,
-                                RowsImported,
-                                RowsNotImported) then
-          begin
-            FData := BudgetImportExport.CopyBudgetData(BudgetCopy);
-            BudgetImportExport.UpdateBudgetDetailRows(FData, FBudget);
+          tblBudget.AllowRedraw := false;
+          try
+            if VerifyBudgetImport(BudgetFilePath,
+                                  BudgetErrorFile,
+                                  RowsImported,
+                                  RowsNotImported) then
+            begin
+              FData := BudgetImportExport.CopyBudgetData(BudgetCopy);
+              BudgetImportExport.UpdateBudgetDetailRows(FData, FBudget);
 
-            LogUtil.LogMsg( lmInfo, UnitName, ThisMethodName + ' : ' +
-                            'From File : ' + ExtractFileName(BudgetFilePath) + ', ' +
-                            InttoStr(RowsImported) + ' Account(s) updated, ' +
-                            InttoStr(RowsNotImported) + ' Account(s) rejected' );
+              LogUtil.LogMsg( lmInfo, UnitName, ThisMethodName + ' : ' +
+                              'From File : ' + ExtractFileName(BudgetFilePath) + ', ' +
+                              InttoStr(RowsImported) + ' Account(s) updated, ' +
+                              InttoStr(RowsNotImported) + ' Account(s) rejected' );
+            end;
+          finally
+            tblBudget.AllowRedraw := true;
           end;
         end;
 
@@ -2164,8 +2176,14 @@ begin
           BudgetImportExport.SetDefaultFileLocation(MyClient.clFields.clCode, BudgetFilePath);
 
           MsgStr := Format('Budget saved to "%s".%s%sDo you want to view it now?', [BudgetFilePath, #13#10, #13#10]);
-          if (AskYesNo(rfNames[rfCSV], MsgStr, DLG_YES, 0) = DLG_YES) then
-            ShellExecute(0, 'open', PChar(BudgetFilePath), nil, nil, SW_SHOWMAXIMIZED);
+
+          tblBudget.AllowRedraw := false;
+          try
+            if (AskYesNo(rfNames[rfCSV], MsgStr, DLG_YES, 0) = DLG_YES) then
+              ShellExecute(0, 'open', PChar(BudgetFilePath), nil, nil, SW_SHOWMAXIMIZED);
+          finally
+            tblBudget.AllowRedraw := true;
+          end;
         end
         else
           HelpfulErrorMsg(MsgStr, 0);
