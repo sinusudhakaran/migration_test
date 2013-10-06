@@ -179,7 +179,7 @@ begin
       end;
       ldlg.Caption := 'BGL 360 Setup';
       ldlg.eFilename.Text := GetExtractPath(Session);
-      ldlg.eClearing.Text := GetPrivateProfileText(BGL360code, keyExtractCode,'998', Session.IniFile);
+      ldlg.eClearing.Text := GetPrivateProfileText(BGL360code, keyExtractCode,'91000', Session.IniFile);
       ldlg.rbSplit.Checked := Bool(GetPrivateProfileInt(BGL360code,keySeparateClientFiles,0,Session.IniFile));
       ldlg.ckCoding.Checked := Bool(GetPrivateProfileInt(BGL360code,keyCodedOnly,0,Session.IniFile));
       if ldlg.ShowModal = mrOK then begin
