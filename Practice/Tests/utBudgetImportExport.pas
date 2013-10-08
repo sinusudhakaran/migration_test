@@ -41,16 +41,16 @@ var
 begin
   BudgetDefaults := TStringList.create;
   try
-    BudgetDefaults.Add('CLT00001' + ',' + 'c:\test\test001.csv');
-    BudgetDefaults.Add('CLT00002' + ',' + 'c:\test\test002.csv');
-    BudgetDefaults.Add('CLT00003' + ',' + 'c:\test\test003.csv');
-    BudgetDefaults.Add('CLT00004' + ',' + 'c:\test\test004.csv');
-    BudgetDefaults.Add('CLT00005' + ',' + 'c:\test\test005.csv');
-    BudgetDefaults.Add('CLT00006' + ',' + 'c:\test\test006.csv');
-    BudgetDefaults.Add('CLT00007' + ',' + 'c:\test\test007.csv');
-    BudgetDefaults.Add('CLT00008' + ',' + 'c:\test\test008.csv');
-    BudgetDefaults.Add('CLT00009' + ',' + 'c:\test\test009.csv');
-    BudgetDefaults.Add('CLT00010' + ',' + 'c:\test\test010.csv');
+    BudgetDefaults.Add('CLT00001' + ',' + 'Budget001' + ',' + 'c:\test\test001_001.csv');
+    BudgetDefaults.Add('CLT00001' + ',' + 'Budget002' + ',' + 'c:\test\test001_002.csv');
+    BudgetDefaults.Add('CLT00001' + ',' + 'Budget003' + ',' + 'c:\test\test001_003.csv');
+    BudgetDefaults.Add('CLT00002' + ',' + 'Budget001' + ',' + 'c:\test\test002_001.csv');
+    BudgetDefaults.Add('CLT00002' + ',' + 'Budget002' + ',' + 'c:\test\test002_002.csv');
+    BudgetDefaults.Add('CLT00003' + ',' + 'Budget001' + ',' + 'c:\test\test003_001.csv');
+    BudgetDefaults.Add('CLT00004' + ',' + 'Budget001' + ',' + 'c:\test\test004_001.csv');
+    BudgetDefaults.Add('CLT00004' + ',' + 'Budget002' + ',' + 'c:\test\test004_002.csv');
+    BudgetDefaults.Add('CLT00004' + ',' + 'Budget003' + ',' + 'c:\test\test004_003.csv');
+    BudgetDefaults.Add('CLT00005' + ',' + 'Budget001' + ',' + 'c:\test\test005_001.csv');
 
     BudgetDefaults.SaveToFile('BudgetDefaultFile.dat');
   finally
@@ -170,9 +170,9 @@ procedure TBudgetImportExportTestCase.TestGetDefaultFileLocation;
 begin
   fBudgetImportExport.BudgetDefaultFile := 'BudgetDefaultFile.dat';
 
-  Check(fBudgetImportExport.GetDefaultFileLocation('CLT00001') = 'c:\test\test001.csv');
-  Check(fBudgetImportExport.GetDefaultFileLocation('CLT00005') = 'c:\test\test005.csv');
-  Check(fBudgetImportExport.GetDefaultFileLocation('CLT00010') = 'c:\test\test010.csv');
+  Check(fBudgetImportExport.GetDefaultFileLocation('CLT00001','Budget001') = 'c:\test\test001_001.csv');
+  Check(fBudgetImportExport.GetDefaultFileLocation('CLT00004','Budget003') = 'c:\test\test004_003.csv');
+  Check(fBudgetImportExport.GetDefaultFileLocation('CLT00005','Budget001') = 'c:\test\test005_001.csv');
 end;
 
 //------------------------------------------------------------------------------
@@ -180,15 +180,16 @@ procedure TBudgetImportExportTestCase.TestSetDefaultFileLocation;
 begin
   fBudgetImportExport.BudgetDefaultFile := 'BudgetDefaultFile.dat';
 
-  fBudgetImportExport.SetDefaultFileLocation('CLT00001', 'test001.csv');
-  fBudgetImportExport.SetDefaultFileLocation('CLT00011', 'test011.csv');
-  fBudgetImportExport.SetDefaultFileLocation('CLT00005', 'test005.csv');
+  fBudgetImportExport.SetDefaultFileLocation('CLT00001', 'Budget004', 'test001_004.csv');
+  fBudgetImportExport.SetDefaultFileLocation('CLT00006', 'Budget001', 'test006_001.csv');
+  fBudgetImportExport.SetDefaultFileLocation('CLT00003', 'Budget002', 'test003_002.csv');
 
-  Check(fBudgetImportExport.GetDefaultFileLocation('CLT00001') = 'test001.csv');
-  Check(fBudgetImportExport.GetDefaultFileLocation('CLT00005') = 'test005.csv');
-  Check(fBudgetImportExport.GetDefaultFileLocation('CLT00010') = 'c:\test\test010.csv');
-  Check(fBudgetImportExport.GetDefaultFileLocation('CLT00011') = 'test011.csv');
-  Check(fBudgetImportExport.GetDefaultFileLocation('CLT00002') = 'c:\test\test002.csv');
+  Check(fBudgetImportExport.GetDefaultFileLocation('CLT00001','Budget001') = 'c:\test\test001_001.csv');
+  Check(fBudgetImportExport.GetDefaultFileLocation('CLT00004','Budget003') = 'c:\test\test004_003.csv');
+  Check(fBudgetImportExport.GetDefaultFileLocation('CLT00005','Budget001') = 'c:\test\test005_001.csv');
+  Check(fBudgetImportExport.GetDefaultFileLocation('CLT00001','Budget004') = 'test001_004.csv');
+  Check(fBudgetImportExport.GetDefaultFileLocation('CLT00006','Budget001') = 'test006_001.csv');
+  Check(fBudgetImportExport.GetDefaultFileLocation('CLT00003','Budget002') = 'test003_002.csv');
 end;
 
 //------------------------------------------------------------------------------
