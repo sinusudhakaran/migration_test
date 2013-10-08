@@ -289,7 +289,8 @@ uses
    ExportBudgetDlg,
    ImportBudgetDlg,
    ShellAPI,
-   ImportBudgetResultsDlg;
+   ImportBudgetResultsDlg,
+   usageutils;
 
 const
    {status panel constants}
@@ -2116,6 +2117,7 @@ begin
             begin
               FData := BudgetImportExport.CopyBudgetData(BudgetCopy);
               BudgetImportExport.UpdateBudgetDetailRows(FData, FBudget);
+              incusage('Import Budgets');
 
               LogUtil.LogMsg( lmInfo, UnitName, ThisMethodName + ' : ' +
                               'From File : ' + ExtractFileName(BudgetFilePath) + ', ' +
@@ -2176,6 +2178,7 @@ begin
           BudgetImportExport.SetDefaultFileLocation(MyClient.clFields.clCode, BudgetFilePath);
 
           MsgStr := Format('Budget saved to "%s".%s%sDo you want to view it now?', [BudgetFilePath, #13#10, #13#10]);
+          incusage('Export Budgets');
 
           tblBudget.AllowRedraw := false;
           try
