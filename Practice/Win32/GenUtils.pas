@@ -1307,7 +1307,7 @@ var
 begin
   Result := '';
   for Index := 1 to length(aInString) do
-    if not (aInString[Index] in ['/',':','\','/','*','"','<','>','|','~','?']) then
+    if not (aInString[Index] in ['/',':','\','/','*','"','<','>','|','~','?',',']) then
       Result := Result + aInString[Index];
 end;
 

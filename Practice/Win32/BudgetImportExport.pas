@@ -55,12 +55,18 @@ type
     fBudgetDefaultFile : string;
 
     function GetIOErrorDescription(ErrorCode : integer; ErrorMsg : string) : string;
-    function GetFileLocIndex(aBudgetDefaults : TStringList; aClientCode: string; var aIndex : integer) : boolean;
+    function GetDefFileLineData(aBudgetDefaults : TStringList;
+                                aClientCode : string;
+                                aBudgetName : string;
+                                var aIndex : integer) : TStringList;
     function AmountMatchesQuantityFormula(var aData : TBudgetData; RowIndex, ColIndex: Integer): boolean;
     procedure BudgetEditRow(var aBudgetData : TBudgetData; aBudgetAmount, RowNum, ColNum: Integer);
   public
-    function GetDefaultFileLocation(aClientCode : string) : string;
-    procedure SetDefaultFileLocation(aClientCode, aFileLocation : string);
+    function GetDefaultFileLocation(aClientCode : string;
+                                    aBudgetName : string) : string;
+    procedure SetDefaultFileLocation(aClientCode   : string;
+                                     aBudgetName   : string;
+                                     aFileLocation : string);
 
     function ExportBudget(aBudgetFilePath : string;
                           aIncludeUnusedChartCodes : boolean;
@@ -95,55 +101,67 @@ uses
 
 { TBudgetImportExport }
 //------------------------------------------------------------------------------
-function TBudgetImportExport.GetFileLocIndex(aBudgetDefaults: TStringList;
-                                             aClientCode: string;
-                                             var aIndex: integer): boolean;
+function TBudgetImportExport.GetDefFileLineData(aBudgetDefaults : TStringList;
+                                                aClientCode : string;
+                                                aBudgetName : string;
+                                                var aIndex : integer) : TStringList;
 var
   CommaIndex : integer;
   Index : integer;
   ClientCode : string;
 begin
   aIndex := -1;
-  Result := false;
+  Result := TStringList.Create;
   for Index := 0 to aBudgetDefaults.Count - 1 do
   begin
-    CommaIndex := pos(',',aBudgetDefaults.Strings[Index]);
+    Result.Clear;
+    Result.Delimiter := ',';
+    Result.StrictDelimiter := True;
+    Result.DelimitedText := aBudgetDefaults.Strings[Index];
 
-    if (CommaIndex > 1) then
+    if Result.Count <> 3 then
     begin
-      ClientCode := LeftStr(aBudgetDefaults.Strings[Index], CommaIndex-1);
+      // Invalid data found don't load any of the file could be corrupt or an old version
+      FreeAndNil(Result);
+      Exit;
+    end;
 
-      if aClientCode = ClientCode then
-      begin
-        Result := true;
-        aIndex := Index;
-        break;
-      end;
+    if (Result[0] = aClientCode) and
+       (Result[1] = aBudgetName) then
+    begin
+      //Found what we are looking for, exit with results
+      aIndex := Index;
+      Exit;
     end;
   end;
+  // nothing found free results
+  FreeAndNil(Result);
 end;
 
 //------------------------------------------------------------------------------
-function TBudgetImportExport.GetDefaultFileLocation(aClientCode: string): string;
+function TBudgetImportExport.GetDefaultFileLocation(aClientCode: string;
+                                                    aBudgetName : string): string;
 const
   ThisMethodName = 'GetDefaultFileLocation';
 var
   BudgetDefaults : TStringList;
-  Index, CommaIndex : integer;
+  BudgetLineData : TStringList;
+  LineIndex : integer;
 begin
   Result := '';
   if FileExists(fBudgetDefaultFile) then
   begin
     BudgetDefaults := TStringList.Create;
+    BudgetDefaults.Delimiter := ',';
+    BudgetDefaults.StrictDelimiter := True;
     try
       try
         BudgetDefaults.LoadFromFile(fBudgetDefaultFile);
 
-        if GetFileLocIndex(BudgetDefaults, aClientCode, Index) then
-        begin
-          CommaIndex := pos(',',BudgetDefaults.Strings[Index]);
-          Result := RightStr(BudgetDefaults.Strings[Index], length(BudgetDefaults.Strings[Index]) - CommaIndex);
-        end;
+        BudgetLineData := GetDefFileLineData(BudgetDefaults, aClientCode, aBudgetName, LineIndex);
+
+        if Assigned(BudgetLineData) then
+          Result := BudgetLineData[2];
 
       except
         on e : Exception do
@@ -157,30 +175,35 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TBudgetImportExport.SetDefaultFileLocation(aClientCode, aFileLocation: string);
+procedure TBudgetImportExport.SetDefaultFileLocation(aClientCode   : string;
+                                                     aBudgetName   : string;
+                                                     aFileLocation : string);
 const
   ThisMethodName = 'SetDefaultFileLocation';
 var
   BudgetDefaults : TStringList;
-  Index, CommaIndex : integer;
+  BudgetLineData : TStringList;
+  LineIndex : integer;
   found : boolean;
 begin
   found := false;
   BudgetDefaults := TStringList.Create;
-
+  BudgetDefaults.Delimiter := ',';
+  BudgetDefaults.StrictDelimiter := True;
   try
     try
       if FileExists(fBudgetDefaultFile) then
       begin
         BudgetDefaults.LoadFromFile(fBudgetDefaultFile);
 
-        found := GetFileLocIndex(BudgetDefaults, aClientCode, Index);
-        if found then
-          BudgetDefaults.Strings[Index] := aClientCode + ',' + aFileLocation;
+        BudgetLineData := GetDefFileLineData(BudgetDefaults, aClientCode, aBudgetName, LineIndex);
+
+        if Assigned(BudgetLineData) then
+          BudgetDefaults.Strings[LineIndex] := aClientCode + ',' + aBudgetName + ',' + aFileLocation;
       end;
 
       if not found then
-        BudgetDefaults.Add(aClientCode + ',' + aFileLocation);
+        BudgetDefaults.Add(aClientCode + ',' + aBudgetName + ',' + aFileLocation);
 
       BudgetDefaults.SaveToFile(fBudgetDefaultFile);
     except
