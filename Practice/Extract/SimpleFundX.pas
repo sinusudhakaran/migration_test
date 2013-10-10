@@ -185,6 +185,7 @@ end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+{ Moved to ExtractCommon, remove this after successful build
 function FormatFloatForXml(AFloat: comp; ADecimalPlaces: integer = 2;
                            AdivBy: integer = 100): string;
 var
@@ -200,6 +201,7 @@ begin
   FormatPic := FormatPic + ';-' + FormatPic;
   Result := FormatFloat(FormatPic, AFloat/ADivBy);
 end;
+}
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

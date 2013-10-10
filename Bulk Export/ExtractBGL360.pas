@@ -14,19 +14,22 @@ function GetExtractType(Index: integer; var EType: ExtractType): Boolean; stdcal
 function CheckFeature(const index, Feature: Integer): Integer; stdcall;
 procedure WriteBGLFields(var Session: TExtractSession; var TestNode: IxmlNode; TestRun: boolean = false);
 function ClientStart(var Session: TExtractSession): Integer; stdcall;
+function AccountStart(var Session: TExtractSession): Integer; stdcall;
 procedure StartFile;
 
 implementation
 
-uses
+uses  
   ExtractHelpers,
   Controls,
   frmBGLConfig,
   Forms,
+  MoneyDef,
+  StDate,
+  StDateSt,
   SysUtils,
   OmniXMLUtils,
   Classes;
-
 
 const
   BGL360 = 0;
@@ -46,6 +49,8 @@ var // General Extract vars
    //Export Specific
    CurrentClientCode: string;
    CurrentAccount: string;
+   OpenBalance: string;
+   BalanceDate: string;
    CurrentContra: string;
    DefaultCode: string;
    DateText: string;
@@ -96,7 +101,9 @@ end;
 var
   FOutputDocument: IXMLDocument;
   BaseNode: IxmlNode;
+  BankBalancesNode: IxmlNode;
   TransactionsNode: IxmlNode;
+  ClientNode: IxmlNode;
 
 function OutputDocument :IXMLDocument;
 begin
@@ -196,6 +203,7 @@ begin
    finally
       ldlg.Free;
    end;
+   result := 0;
 end;
 
 
@@ -302,30 +310,16 @@ end;
 
 
 function ClientStart(var Session: TExtractSession): Integer; stdcall;
-var ClientNode: IXMLNode;
 begin
-   ExtractFieldHelper.SetFields(Session.Data);
-   CurrentClientCode := CleanTextField(ExtractFieldHelper.GetField(f_Code));
-   if FilePerClient then begin
-      OutputFileName := ExtractFilePath(OutputFileName)
-                      + CurrentClientCode
-                      + '_SF360_'
-                      + DateText
-                      + '.xml';
-      StartFile;
-      SaveFile(OutputFileName); // Test if we can write it rather than find out at the end
-   end;
-
-   // Build the Entity Details for the Client
-   ClientNode := OutputDocument.CreateElement('Entity_Details');
-   BaseNode.AppendChild(ClientNode);
-
-   SetNodeTextStr(ClientNode,'Entity_Code',CurrentClientCode);
-
-   TransactionsNode := OutputDocument.CreateElement('Transactions');
-   ClientNode.AppendChild(TransactionsNode);
-
-   Result := er_OK;
+  ExtractFieldHelper.SetFields(Session.Data);
+  CurrentClientCode := CleanTextField(ExtractFieldHelper.GetField(f_Code));
+  // Build the Entity Details for the Client
+  ClientNode := OutputDocument.CreateElement('Entity_Details');
+  BaseNode.AppendChild(ClientNode);
+  SetNodeTextStr(ClientNode,'Entity_Code',CurrentClientCode);
+  BankBalancesNode := OutputDocument.CreateElement('BankBalances');
+  ClientNode.AppendChild(BankBalancesNode);
+  Result := er_OK;
 end;
 
 function ClientEnd (var Session: TExtractSession): Integer; stdcall;
@@ -343,11 +337,60 @@ end;
 //******************************************************************************
 
 function AccountStart(var Session: TExtractSession): Integer; stdcall;
+const
+  FDateMask = 'dd/mm/YYYY';
+var
+  AccountNum    : String;
+  BalanceAmount : Comp;
+  BSB           : String;
+  BalanceNode   : IXmlNode;
+
+  procedure AddFieldNode(var ToNode: IxmlNode; const Name, Value: string; AllowEmpty: boolean = false);
+  begin
+    if (Value > '') or AllowEmpty then
+      SetNodeTextStr(ToNode,Name,Value);
+  end;
+
+  Function Date2Str( CONST ADate: Integer; Const APicture : ShortString) : ShortString;
+  Begin
+    If ADate <= 0 then
+      Result := '' { Bad date or null date }
+    else
+      Result := StDateSt.StDateToDateString( APicture, ADate, False );
+  end;
+
 begin
-   ExtractFieldHelper.SetFields(Session.Data);
-   CurrentAccount := CleanTextField(ExtractFieldHelper.GetField(f_Number));
-   CurrentContra := CleanTextField(ExtractFieldHelper.GetField(f_ContraCode));
-   Result := er_OK;
+  ExtractFieldHelper.SetFields(Session.Data);
+  CurrentClientCode := CleanTextField(ExtractFieldHelper.GetField(f_Code));
+  CurrentAccount := CleanTextField(ExtractFieldHelper.GetField(f_Number));
+  OpenBalance := CleanTextField(ExtractFieldHelper.GetField(f_Balance));
+  BalanceDate := CleanTextField(ExtractFieldHelper.GetField(f_Date));
+  if FilePerClient then begin
+    OutputFileName := ExtractFilePath(OutputFileName)
+                    + CurrentClientCode
+                    + '_SF360_'
+                    + DateText
+                    + '.xml';
+    StartFile;
+    SaveFile(OutputFileName); // Test if we can write it rather than find out at the end
+  end;
+
+  BalanceNode := OutputDocument.CreateElement('Balance');
+  BankBalancesNode.AppendChild(BalanceNode);
+  AddFieldNode(BalanceNode, 'BalanceDate', BalanceDate);
+  if OpenBalance = '' then
+    OpenBalance := '0';
+  DoubleToComp(StrToFloat(OpenBalance), BalanceAmount);
+  AddFieldNode(BalanceNode, 'BalanceAmount', FormatFloatForXml(BalanceAmount));
+  ProcessDiskCode(CurrentAccount, BSB, AccountNum);
+  AddFieldNode(BalanceNode, 'BSB', BSB);
+  AddFieldNode(BalanceNode, 'Bank_Account_No', CurrentAccount);
+  AddFieldNode(BalanceNode, 'Balance_Type', '10'); // 10 = Opening Balance, 15 = Closing Balance
+
+  TransactionsNode := OutputDocument.CreateElement('Transactions');
+  ClientNode.AppendChild(TransactionsNode);
+
+  Result := er_OK;
 end;
 
 
@@ -559,7 +602,7 @@ begin
 
    ef_CanConfig    : case Session.Index of
                        BGL360: begin // Also Doubles as get initial settings...
-                            DefaultCode := GetPrivateProfileText(BGL360code, keyExtractCode,'998', Session.IniFile);
+                            DefaultCode := GetPrivateProfileText(BGL360code, keyExtractCode,'91000', Session.IniFile);
                             CodedOnly :=  GetPrivateProfileInt(BGL360code,keyCodedOnly,0,Session.IniFile) = 1;
                             Result := er_OK;
                        end;
