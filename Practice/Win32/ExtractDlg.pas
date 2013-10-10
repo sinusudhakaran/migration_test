@@ -158,66 +158,73 @@ end;
 function TdlgExtract.Execute: boolean;
 var
   NewFormat : boolean;
+  ExtractDir: string;
 begin
-   SysUtils.SetCurrentDir( Globals.DataDir);
+  SysUtils.SetCurrentDir( Globals.DataDir);
 
-   with MyClient.clFields do begin
-     lblFormat.caption := 'The file will be saved in '+ MyClient.clAccountingSystemName + ' format.';
-     NewFormat := Software.CanExtractInNewFormat(clCountry,clAccounting_System_Used);
-     chkNewFormat.Visible := NewFormat;
-     chkNewFormat.Checked := NewFormat;
+  with MyClient.clFields do begin
+    lblFormat.caption := 'The file will be saved in '+ MyClient.clAccountingSystemName + ' format.';
+    NewFormat := Software.CanExtractInNewFormat(clCountry,clAccounting_System_Used);
+    chkNewFormat.Visible := NewFormat;
+    chkNewFormat.Checked := NewFormat;
 
-     eTo.Text := ExUtil.DefaultFileName;
-     if (Myclient.clfields.clAccounting_System_Used = saBGL360) then
-      eTo.Text := ExtractFileDir(eTo.Text) + '\<AUTO>.xml';
+    eTo.Text := ExUtil.DefaultFileName;
+    if (Myclient.clfields.clAccounting_System_Used = saBGL360) then
+    begin
+      ExtractDir := ExtractFileDir(eTo.Text) + '\';
+      if (ExtractDir = '\') then
+        ExtractDir := DATADIR;
 
-     gCodingDateFrom := clPeriod_Start_Date;
-     gCodingDateTo   := clPeriod_End_Date;
+      eTo.Text := ExtractDir + '_AUTO_.xml';
+    end;
 
-     //set dates
-     DateSelector.ClientObj := MyClient;
-     fDataFrom := ClDateUtils.BAllData( MyClient );
-     fDataTo   := ClDateUtils.EAllData( MyClient );
-     DateSelector.InitDateSelect( fDataFrom, fDataTo, eTo);
+    gCodingDateFrom := clPeriod_Start_Date;
+    gCodingDateTo   := clPeriod_End_Date;
 
-     //SetDateFromTo( gCodingDateFrom, gCodingDateTo );
+    //set dates
+    DateSelector.ClientObj := MyClient;
+    fDataFrom := ClDateUtils.BAllData( MyClient );
+    fDataTo   := ClDateUtils.EAllData( MyClient );
+    DateSelector.InitDateSelect( fDataFrom, fDataTo, eTo);
+
+    //SetDateFromTo( gCodingDateFrom, gCodingDateTo );
 
 
-     if Software.IsXPA8Interface( clCountry, clAccounting_System_Used) then
-     begin
-       lblFormat.caption := 'Entries will be extracted in '+ MyClient.clAccountingSystemName + ' format.';
-       lblMessage.Caption := '';
-       label6.Caption := 'XPA Ledger';
-     end;
+    if Software.IsXPA8Interface( clCountry, clAccounting_System_Used) then
+    begin
+     lblFormat.caption := 'Entries will be extracted in '+ MyClient.clAccountingSystemName + ' format.';
+     lblMessage.Caption := '';
+     label6.Caption := 'XPA Ledger';
+    end;
 
-     if Software.IsMYOBAO_DLL_Interface( clCountry, clAccounting_System_Used) then
-     begin
-       lblFormat.caption := 'Entries will be extracted in '+ Software.GetMYOBAO_Name( clCountry) + ' format.';
-       lblMessage.Caption := '';
-       label6.Caption := 'Ledger Path';
-     end;
+    if Software.IsMYOBAO_DLL_Interface( clCountry, clAccounting_System_Used) then
+    begin
+     lblFormat.caption := 'Entries will be extracted in '+ Software.GetMYOBAO_Name( clCountry) + ' format.';
+     lblMessage.Caption := '';
+     label6.Caption := 'Ledger Path';
+    end;
 
-     if not Software.UseSaveToField( clCountry, clAccounting_System_Used) then
-     begin
-       pnlSaveTo.Visible := false;
-       Self.Height := Self.Height - pnlSaveTo.Height;
-       DateSelector.NextControl := btnOK;
-     end;
+    if not Software.UseSaveToField( clCountry, clAccounting_System_Used) then
+    begin
+     pnlSaveTo.Visible := false;
+     Self.Height := Self.Height - pnlSaveTo.Height;
+     DateSelector.NextControl := btnOK;
+    end;
 
-     if Software.IsSol6_COM_Interface( clCountry, clAccounting_System_Used) then
-     begin
-       pnlMASLedgerCode.Visible := true;
-       if clUse_Alterate_ID_for_extract then
-          lblLedgerCodeToUse.Caption := clAlternate_Extract_ID
-       else
-          lblLedgerCodeToUse.Caption := clCode;
-     end;
-   end;
+    if Software.IsSol6_COM_Interface( clCountry, clAccounting_System_Used) then
+    begin
+     pnlMASLedgerCode.Visible := true;
+     if clUse_Alterate_ID_for_extract then
+        lblLedgerCodeToUse.Caption := clAlternate_Extract_ID
+     else
+        lblLedgerCodeToUse.Caption := clCode;
+    end;
+  end;
 
-   lblData.caption := 'There are exportable transactions from: '+bkDate2Str(fDataFrom)+ ' to '+bkDate2Str(fDataTo);
+  lblData.caption := 'There are exportable transactions from: '+bkDate2Str(fDataFrom)+ ' to '+bkDate2Str(fDataTo);
 
-   ShowModal;
-   result := okPressed;
+  ShowModal;
+  result := okPressed;
 end;
 //------------------------------------------------------------------------------
 procedure TdlgExtract.FormShow(Sender: TObject);

@@ -37,7 +37,10 @@ function DefaultFileName : ShortString;
   function GetSABGL360ExtractDir(RootDir: ShortString): string;
   begin
     if (ExtractFileExt(RootDir) <> '') then
+    begin
+      AddDirSymbol(RootDir);
       RootDir := ExtractFileDir(RootDir);
+    end;
     if (RootDir <> '') then
       AddDirSymbol(RootDir);
     Result := RootDir;
