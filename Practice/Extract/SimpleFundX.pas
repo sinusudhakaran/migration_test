@@ -444,10 +444,14 @@ var
 begin
   if (AccountCode = '') then
   begin
-    PracIniFile := TIniFile.Create(ExecDir + PRACTICEINIFILENAME);
-    AccountCode := PracIniFile.ReadString(BGL360code, 'ExtractCode', '91000');
-    if AccountCode = '' then
-      AccountCode := '91000'; // default account code for uncoded transactions
+    try
+      PracIniFile := TIniFile.Create(ExecDir + PRACTICEINIFILENAME);
+      AccountCode := PracIniFile.ReadString(BGL360code, 'ExtractCode', '91000');
+      if AccountCode = '' then
+        AccountCode := '91000'; // default account code for uncoded transactions
+    finally
+      PracIniFile.Free;
+    end;
   end;
   AddFieldNode(FTransactionNode, 'Account_Code', AccountCode);
 end;
