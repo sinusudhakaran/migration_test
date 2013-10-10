@@ -135,9 +135,9 @@ Begin
 
    Write( XFile, '"',Date2Str( ADate, 'dd/mm/yyyy' ),'",' );
 
-   Write( XFile, '"',TrimSpacesS(ReplaceCommasAndQuotes(ARefce)), '",' );
+   Write( XFile, '"',TrimSpacesS(ARefce), '",' );
 
-   Write( XFile, '"',ReplaceCommasAndQuotes(AAccount), '",' );
+   Write( XFile, '"',AAccount, '",' );
 
    Write( XFile, '"', AAmount/100:0:2, '",' );
 
@@ -146,7 +146,7 @@ Begin
    else
      Write( XFile, '"', GetQuantityStringForExtract(0), '",' );
 
-   Write( XFile, '"',Copy(TrimSpacesS( ReplaceCommasAndQuotes(ANarration)), 1, GetMaxNarrationLength), '",' );
+   Write( XFile, '"',Copy(TrimSpacesS( ANarration), 1, GetMaxNarrationLength), '",' );
 
    //BGL Simplefund requires that gst amount is always a positive number
    AbsGSTAmount := abs( AGSTAmount);
