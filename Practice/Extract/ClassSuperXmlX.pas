@@ -15,7 +15,7 @@ uses
   Software,
   TransactionUtils, Classes, Traverse, Globals, GenUtils, bkDateUtils, bautils,
   TravUtils, YesNoDlg, LogUtil, BaObj32, dlgSelect, BkConst, MoneyDef,
-  SysUtils, StStrS, InfoMoreFrm, BKDefs, glConst, OmniXMLUtils, OmniXML;
+  SysUtils, StStrS, InfoMoreFrm, BKDefs, glConst, OmniXMLUtils, OmniXML, ExtractCommon;
 
 const
   UNIT_NAME = 'CSVX';
@@ -31,6 +31,7 @@ var
   FCloseBalance: Money;
   FDateMask: shortString;
 
+{ Moved to ExtractCommon, remove this after successful build
 function FormatFloatForXml(AFloat: comp; ADecimalPlaces: integer = 2;
                            AdivBy: integer = 100): string;
 var
@@ -46,6 +47,7 @@ begin
   FormatPic := FormatPic + ';-' + FormatPic;
   Result := FormatFloat(FormatPic, AFloat/ADivBy);
 end;
+}
 
 function LookupChart(const Value: string): string;
 begin

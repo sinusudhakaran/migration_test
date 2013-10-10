@@ -12,7 +12,7 @@ procedure ExtractData(const FromDate, ToDate: TStDate; const SaveTo: string;
 implementation
 
 uses
-  TransactionUtils, Classes, Traverse, Globals, GenUtils, bkDateUtils, bautils,
+  TransactionUtils, Classes, ExtractCommon, Traverse, Globals, GenUtils, bkDateUtils, bautils,
   TravUtils, YesNoDlg, LogUtil, BaObj32, dlgSelect, BkConst, MoneyDef,
   SysUtils, StStrS, InfoMoreFrm, BKDefs, glConst, OmniXMLUtils, OmniXML;
 
@@ -29,6 +29,7 @@ var
   FNoOfEntries: integer;
   FCloseBalance: Money;
 
+{ Moved to ExtractCommon, remove this after successful build
 function FormatFloatForXml(AFloat: comp; ADecimalPlaces: integer = 2;
                            AdivBy: integer = 100): string;
 var
@@ -44,6 +45,7 @@ begin
   FormatPic := FormatPic + ';-' + FormatPic;
   Result := FormatFloat(FormatPic, AFloat/ADivBy);
 end;
+}
 
 function LookupChart(const Value: string): string;
 begin
