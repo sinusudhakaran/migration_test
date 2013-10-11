@@ -25,7 +25,7 @@ Function SaveChartTo(ClientCode: string; Var aFileName: string; aInitDir: string
    aFilter: string; DefExtn: string; HelpCtx: Integer) : boolean;
 
 function MergeCharts(var NewChart : TChart; const aClient : TClientObj;
-  const ReplaceChartID: Boolean = False) : boolean;
+  const ReplaceChartID: Boolean = False; KeepSubAndReportGroups: Boolean = false) : boolean;
 
 //------------------------------------------------------------------------------
 
@@ -158,7 +158,7 @@ End;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function MergeCharts(var NewChart : TChart; const aClient : TClientObj;
-  const ReplaceChartID: Boolean = False) : boolean;
+  const ReplaceChartID: Boolean = False; KeepSubAndReportGroups: Boolean = false) : boolean;
 // Used by each of the import chart routines to merge the new chart list into
 // the existing chart list.
 const
@@ -237,6 +237,9 @@ begin
        //copy across stored fields
        if Assigned(ExistingAccount) then
        begin
+          //Keep the 'posting allowed?' setting
+          NewAccount.chPosting_Allowed := ExistingAccount.chPosting_Allowed;
+
           //Keep the same Audit ID
           NewAccount.chAudit_Record_ID := ExistingAccount.chAudit_Record_ID;
 
@@ -258,7 +261,9 @@ begin
           end;
 
           //maintain existing account type info unless a report group is defined
-          If ( NewAccount.chAccount_Type = atNone ) and ( ExistingAccount.chAccount_Type <> atNone ) then begin
+          if KeepSubAndReportGroups or
+             ( NewAccount.chAccount_Type = atNone ) and ( ExistingAccount.chAccount_Type <> atNone ) then
+          begin
              NewAccount.chAccount_Type := ExistingAccount.chAccount_Type ;
              NewAccount.chSubtype      := ExistingAccount.chSubtype;
           end;
