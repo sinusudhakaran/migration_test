@@ -191,7 +191,6 @@ CONST
    atUnknownDR       = 17;
    atUnknownCR       = 18;
    //new report groups for 5.2
-   // remove this line, just need to check something in as a test
    atCurrentAsset    = 19;
    atCurrentLiability  = 20;
    atLongTermLiability = 21;

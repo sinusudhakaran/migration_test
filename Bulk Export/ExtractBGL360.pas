@@ -16,7 +16,6 @@ procedure WriteBGLFields(var Session: TExtractSession; var TestNode: IxmlNode; T
 function ClientStart(var Session: TExtractSession): Integer; stdcall;
 function AccountStart(var Session: TExtractSession): Integer; stdcall;
 procedure StartFile;
-// remove this line, just testing if I can do a merge
 
 implementation
 
