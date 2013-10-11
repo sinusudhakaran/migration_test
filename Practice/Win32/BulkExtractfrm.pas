@@ -59,7 +59,6 @@ uses
    software,
    BKUTIL32, Merge32, TransactionUtils,
    ExtractCommon,
-   MoneyDef,
    Contnrs,
    baObj32, clobj32,
    SyDefs, bkDefs,
