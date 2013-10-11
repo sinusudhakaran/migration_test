@@ -74,7 +74,8 @@ uses
    ipscore, ipshttps,
    glConst, Globals, Winutils,
    SageHandisoftSuperConst,
-   bkProduct;
+   bkProduct,
+   MoneyDef;
 
 
 
