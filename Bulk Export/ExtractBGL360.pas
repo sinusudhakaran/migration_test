@@ -24,7 +24,6 @@ uses
   Controls,
   frmBGLConfig,
   Forms,
-  MoneyDef,
   StDate,
   StDateSt,
   SysUtils,
