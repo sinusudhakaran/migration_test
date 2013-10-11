@@ -310,6 +310,17 @@ end;
 
 function ClientStart(var Session: TExtractSession): Integer; stdcall;
 begin
+  CurrentClientCode := CleanTextField(ExtractFieldHelper.GetField(f_Code));
+  if FilePerClient then begin
+    OutputFileName := ExtractFilePath(OutputFileName)
+                    + CurrentClientCode
+                    + '_SF360_'
+                    + DateText
+                    + '.xml';
+    StartFile;
+    SaveFile(OutputFileName); // Test if we can write it rather than find out at the end
+  end;
+
   ExtractFieldHelper.SetFields(Session.Data);
   CurrentClientCode := CleanTextField(ExtractFieldHelper.GetField(f_Code));
   // Build the Entity Details for the Client
@@ -360,19 +371,9 @@ var
 
 begin
   ExtractFieldHelper.SetFields(Session.Data);
-  CurrentClientCode := CleanTextField(ExtractFieldHelper.GetField(f_Code));
   CurrentAccount := CleanTextField(ExtractFieldHelper.GetField(f_Number));
   OpenBalance := CleanTextField(ExtractFieldHelper.GetField(f_Balance));
   BalanceDate := CleanTextField(ExtractFieldHelper.GetField(f_Date));
-  if FilePerClient then begin
-    OutputFileName := ExtractFilePath(OutputFileName)
-                    + CurrentClientCode
-                    + '_SF360_'
-                    + DateText
-                    + '.xml';
-    StartFile;
-    SaveFile(OutputFileName); // Test if we can write it rather than find out at the end
-  end;
 
   BalanceNode := OutputDocument.CreateElement('Balance');
   BankBalancesNode.AppendChild(BalanceNode);
