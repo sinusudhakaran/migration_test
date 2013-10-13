@@ -151,6 +151,7 @@ var
    NewChart          : TChart;
    Msg               : string;
    FileType          : string;
+   Extn              : string;
 begin
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
 
@@ -159,11 +160,21 @@ begin
 
   with MyClient.clFields do begin
     if (clAccounting_System_Used = saBGL360) then
-      SFFileName := SF360_File
-    else
+    begin
+      SFFileName := SF360_File;
+      Extn       := SF360_EXTN;
+    end else
+    begin
       SFFileName := SF_File;
+      Extn       := SF_EXTN;
+    end;
 
-    ChartFileName := AddSlash(clLoad_Client_Files_From) + SFFileName;
+    if clLoad_Client_Files_From = '' then
+      ChartFileName := ''
+    else if DirectoryExists(clLoad_Client_Files_From) then
+      ChartFileName := AddSlash(clLoad_Client_Files_From) + SFFileName
+    else
+      ChartFileName := clLoad_Client_Files_From;
     //check file exists, ask for a new one if not
     if not BKFileExists(ChartFileName) then begin
       HCtx := 0; //hcSFUND001;
@@ -171,7 +182,7 @@ begin
         FileType := 'Simple Ledger File'
       else
         FileType := 'Simple Fund File';
-      if not ChartUtils.LoadChartFrom(clCode,ChartFileName,clLoad_Client_Files_From,FileType + '|'+SFFileName,SF_EXTN,HCtx) then
+      if not ChartUtils.LoadChartFrom(clCode,ChartFileName,clLoad_Client_Files_From,FileType + '|'+'*.'+Extn,Extn,HCtx) then
         Exit;
     end;
     try
