@@ -663,7 +663,8 @@ begin
       //Display message
       Msg := SysUtils.Format('Extract Data Complete. %d Entries were saved in %s',
                              [NoOfEntries, SaveTo]);
-      LogUtil.LogMsg(lmInfo, UnitName, ThisMethodName + ' : ' + Msg );
+      if DebugMe then      
+        LogUtil.LogMsg(lmInfo, UnitName, ThisMethodName + ' : ' + Msg );
       if (TestAccountList = nil) then
         HelpfulInfoMsg( Msg, 0 );
     end;
