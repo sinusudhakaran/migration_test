@@ -428,16 +428,6 @@ end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-function CleanTextField(const Value: string): string;
-begin
-  Result := ExtractFieldHelper.ReplaceQuotesAndCommas
-           (
-              ExtractFieldHelper.RemoveQuotes(Value)
-           );
-end;
-
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 procedure AddAccountCodeNode(AccountCode: string);
 var
   PracIniFile: TIniFile;
@@ -472,8 +462,8 @@ var
   var
     Ref, Nar: string;
   begin
-    Nar := CleanTextField(Transaction^.txGL_Narration);
-    Ref := CleanTextField(IntToStr(Transaction^.txCheque_Number));
+    Nar := Transaction^.txGL_Narration;
+    Ref := IntToStr(Transaction^.txCheque_Number);
     if (Ref > '') and (Ref <> '0') then
        if Nar > '' then
           Ref := Nar + ' BL Ref: ' + Ref
@@ -522,8 +512,8 @@ var
   var
     Ref, Nar: string;
   begin
-    Nar := CleanTextField(Dissection^.dsGL_Narration);
-    Ref := CleanTextField(IntToStr(Dissection^.dsTransaction^.txCheque_Number));
+    Nar := Dissection^.dsGL_Narration;
+    Ref := IntToStr(Dissection^.dsTransaction^.txCheque_Number);
 
     if (Ref > '') and (Ref <> '0') then
        if Nar > '' then
