@@ -89,10 +89,8 @@ begin
     Check(NewChart.Account_At(0)^.chPosting_Allowed       = false);
     Check(NewChart.Account_At(0)^.chAccount_Description   = '********** INCOME ACCOUNTS **********');
     Check(NewChart.Account_At(6)^.chAccount_Code          = '30100');
-    Check(NewChart.Account_At(6)^.chPosting_Allowed       = true);
     Check(NewChart.Account_At(6)^.chAccount_Description   = 'Accountancy Fees');
     Check(NewChart.Account_At(37)^.chAccount_Code         = '92000');
-    Check(NewChart.Account_At(37)^.chPosting_Allowed      = true);
     Check(NewChart.Account_At(37)^.chAccount_Description  = 'Investment Income Data Clearing Account');
   finally
     NewChart.Destroy;
