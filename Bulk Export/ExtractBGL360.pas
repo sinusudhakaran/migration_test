@@ -310,6 +310,7 @@ end;
 
 function ClientStart(var Session: TExtractSession): Integer; stdcall;
 begin
+  ExtractFieldHelper.SetFields(Session.Data);
   CurrentClientCode := CleanTextField(ExtractFieldHelper.GetField(f_Code));
   if FilePerClient then begin
     OutputFileName := ExtractFilePath(OutputFileName)
@@ -329,6 +330,8 @@ begin
   SetNodeTextStr(ClientNode,'Entity_Code',CurrentClientCode);
   BankBalancesNode := OutputDocument.CreateElement('BankBalances');
   ClientNode.AppendChild(BankBalancesNode);
+  TransactionsNode := OutputDocument.CreateElement('Transactions');
+  ClientNode.AppendChild(TransactionsNode);
   Result := er_OK;
 end;
 
@@ -351,7 +354,6 @@ const
   FDateMask = 'dd/mm/YYYY';
 var
   AccountNum    : String;
-  BalanceAmount : Comp;
   BSB           : String;
   BalanceNode   : IXmlNode;
 
@@ -372,6 +374,13 @@ var
 begin
   ExtractFieldHelper.SetFields(Session.Data);
   CurrentAccount := CleanTextField(ExtractFieldHelper.GetField(f_Number));
+
+  if AnsiPos('Journal', CurrentAccount) <> 0 then
+  begin
+    Result := er_OK;
+    Exit; // Don't include journals
+  end;
+
   OpenBalance := CleanTextField(ExtractFieldHelper.GetField(f_Balance));
   BalanceDate := CleanTextField(ExtractFieldHelper.GetField(f_Date));
 
@@ -380,15 +389,11 @@ begin
   AddFieldNode(BalanceNode, 'BalanceDate', BalanceDate);
   if OpenBalance = '' then
     OpenBalance := '0';
-  DoubleToComp(StrToFloat(OpenBalance), BalanceAmount);
-  AddFieldNode(BalanceNode, 'BalanceAmount', FormatFloatForXml(BalanceAmount));
+  AddFieldNode(BalanceNode, 'BalanceAmount', OpenBalance);
   ProcessDiskCode(CurrentAccount, BSB, AccountNum);
   AddFieldNode(BalanceNode, 'BSB', BSB);
-  AddFieldNode(BalanceNode, 'Bank_Account_No', CurrentAccount);
+  AddFieldNode(BalanceNode, 'Bank_Account_No', AccountNum);
   AddFieldNode(BalanceNode, 'Balance_Type', '10'); // 10 = Opening Balance, 15 = Closing Balance
-
-  TransactionsNode := OutputDocument.CreateElement('Transactions');
-  ClientNode.AppendChild(TransactionsNode);
 
   Result := er_OK;
 end;
@@ -412,86 +417,92 @@ const // from bkConst // did not want to link it in...
    btStockBalances = 7;
 
 procedure WriteBGLFields(var Session: TExtractSession; var TestNode: IxmlNode; TestRun: boolean = false);
-var LTrans: IXMLNode;
+var
+  AccountNum : String;
+  BSB        : String;
+  LTrans     : IXMLNode;
 
-    procedure AddField(const Name,Value: string);
-    begin
-       if Value > '' then
-          SetNodeTextStr(LTrans,Name,Value);
+  procedure AddField(const Name,Value: string);
+  begin
+     if Value > '' then
+        SetNodeTextStr(LTrans,Name,Value);
+  end;
+
+  procedure AddTaxClass(const Value: string);
+  begin
+     if Length(Value) > 0 then
+        case Value[1] of
+        '1' :AddField('GST_Rate','100%');
+        '2' :AddField('GST_Rate','75%');
+        //'3' :AddField('GST_Rate','48.5%');  // BGL Spec
+        '3' :AddField('GST_Rate','46.5%');    // ATO See case 7664
+        '4' :AddField('GST_Rate','0% (ITD)');
+        '5' :AddField('GST_Rate','0% (ITA)');
+        '6' :AddField('GST_Rate','GST Free');
+        else AddField('GST_Rate','N/A');
+        end
+     else
+        AddField('GST_Rate','N/A')
+  end;
+
+  procedure AddGuid(const Value: string);
+  var id: string;
+      i,o : integer;
+  begin   //1234567890123456789
+     id := '               ';
+     o := Length(id);
+     for i := Length(Value) downto 1 do begin
+        if Value[i] in ['0'..'9', 'A'..'F'] then begin
+           id[o] := Value[i];
+           dec(o);
+           if o < 1 then
+              Break; // Thats all we can fit..
+        end;
+     end;
+     AddField('Other_Reference',id);
+  end;
+
+  procedure AddCode(const Value: string);
+  begin
+     if Value = '' then
+        AddField('Account_Code',DefaultCode)
+     else
+        AddField('Account_Code',Value);
+  end;
+
+  procedure AddText;
+  var Ref, Nar: string;
+  begin
+
+      Nar := CleanTextField(ExtractFieldHelper.GetField(f_Narration));
+      Ref := CleanTextField(ExtractFieldHelper.GetField(f_ChequeNo));
+      if Ref > '' then
+         if Nar > '' then
+            Ref := Nar + ' BL Ref: ' + Ref
+         else
+            Ref := 'BL Ref: ' + Ref
+      else
+         Ref := Nar;
+
+      AddField('Text',Ref);
+  end;
+
+  procedure StrToFile(const FileName, SourceString : string);
+  var
+    Stream : TFileStream;
+  begin
+    Stream:= TFileStream.Create(FileName, fmCreate);
+    try
+      Stream.WriteBuffer(Pointer(SourceString)^, Length(SourceString));
+    finally
+      Stream.Free;
     end;
-
-    procedure AddTaxClass(const Value: string);
-    begin
-       if Length(Value) > 0 then
-          case Value[1] of
-          '1' :AddField('GST_Rate','100%');
-          '2' :AddField('GST_Rate','75%');
-          //'3' :AddField('GST_Rate','48.5%');  // BGL Spec
-          '3' :AddField('GST_Rate','46.5%');    // ATO See case 7664
-          '4' :AddField('GST_Rate','0% (ITD)');
-          '5' :AddField('GST_Rate','0% (ITA)');
-          '6' :AddField('GST_Rate','GST Free');
-          else AddField('GST_Rate','N/A');
-          end
-       else
-          AddField('GST_Rate','N/A')
-    end;
-
-    procedure AddGuid(const Value: string);
-    var id: string;
-        i,o : integer;
-    begin   //1234567890123456789
-       id := '               ';
-       o := Length(id);
-       for i := Length(Value) downto 1 do begin
-          if Value[i] in ['0'..'9', 'A'..'F'] then begin
-             id[o] := Value[i];
-             dec(o);
-             if o < 1 then
-                Break; // Thats all we can fit..
-          end;
-       end;
-       AddField('Other_Reference',id);
-    end;
-
-    procedure AddCode(const Value: string);
-    begin
-       if Value = '' then
-          AddField('Account_Code',DefaultCode)
-       else
-          AddField('Account_Code',Value);
-    end;
-
-    procedure AddText;
-    var Ref, Nar: string;
-    begin
-
-        Nar := CleanTextField(ExtractFieldHelper.GetField(f_Narration));
-        Ref := CleanTextField(ExtractFieldHelper.GetField(f_ChequeNo));
-        if Ref > '' then
-           if Nar > '' then
-              Ref := Nar + ' BL Ref: ' + Ref
-           else
-              Ref := 'BL Ref: ' + Ref
-        else
-           Ref := Nar;
-
-        AddField('Text',Ref);
-    end;
-
-    procedure StrToFile(const FileName, SourceString : string);
-    var
-      Stream : TFileStream;
-    begin
-      Stream:= TFileStream.Create(FileName, fmCreate);
-      try
-        Stream.WriteBuffer(Pointer(SourceString)^, Length(SourceString));
-      finally
-        Stream.Free;
-      end;
-    end;
+  end;
 
 begin
+  if Session.AccountType <> btBank then
+    Exit; // no journals
+
   if TestRun then
   begin
     StartFile;
@@ -501,7 +512,6 @@ begin
   LTrans := TransactionsNode.AppendChild(FOutputDocument.CreateElement('Transaction'));
 
    with ExtractFieldHelper do begin
-
      AddField('Transaction_Type','Other Transaction');
      AddField('Account_Code_Type','Simple Fund');
 
@@ -510,12 +520,11 @@ begin
 
      AddGuid(Uppercase(GetField(f_TransID)));
 
-     AddField('Bank_Account_No',CurrentAccount);
+     ProcessDiskCode(CurrentAccount, BSB, AccountNum);
+     AddField('BSB', BSB);
+     AddField('Bank_Account_No', AccountNum);
 
-     if Session.AccountType = btBank then
-        AddField('Transaction_Source','Bank Statement')
-     else
-        AddField('Transaction_Source','Journal');
+     AddField('Transaction_Source','Bank Statement');
 
      if Session.AccountType in [btBank,btCashJournals] then
         AddField('Cash','Cash')
@@ -525,7 +534,6 @@ begin
      AddCode(GetField(f_Code));
 
      AddField('Transaction_Date',GetField(f_Date));
-
 
      AddText;
 
