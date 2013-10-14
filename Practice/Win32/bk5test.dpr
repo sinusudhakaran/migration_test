@@ -2,6 +2,7 @@ program bk5test;
 
 uses
   Forms,
+  LockUtils,
   TestFrameWork,
   GUITestRunner,
   utFileExtensionUtils in '..\Tests\utFileExtensionUtils.pas',
@@ -21,6 +22,7 @@ uses
 {$R *.RES}
 
 begin
+ InitLocking;  
  Application.Initialize;
  GUITestRunner.RunRegisteredTests;
 end.
