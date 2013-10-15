@@ -25,7 +25,8 @@ Function SaveChartTo(ClientCode: string; Var aFileName: string; aInitDir: string
    aFilter: string; DefExtn: string; HelpCtx: Integer) : boolean;
 
 function MergeCharts(var NewChart : TChart; const aClient : TClientObj;
-  const ReplaceChartID: Boolean = False; KeepSubAndReportGroups: Boolean = false) : boolean;
+  const ReplaceChartID: Boolean = False; KeepSubAndReportGroups: Boolean = false;
+  KeepPostingAllowed: boolean = false) : boolean;
 
 //------------------------------------------------------------------------------
 
@@ -158,7 +159,8 @@ End;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function MergeCharts(var NewChart : TChart; const aClient : TClientObj;
-  const ReplaceChartID: Boolean = False; KeepSubAndReportGroups: Boolean = false) : boolean;
+  const ReplaceChartID: Boolean = False; KeepSubAndReportGroups: Boolean = false;
+  KeepPostingAllowed: boolean = false): boolean;
 // Used by each of the import chart routines to merge the new chart list into
 // the existing chart list.
 const
@@ -238,7 +240,8 @@ begin
        if Assigned(ExistingAccount) then
        begin
           //Keep the 'posting allowed?' setting
-          NewAccount.chPosting_Allowed := ExistingAccount.chPosting_Allowed;
+          if not KeepPostingAllowed then
+            NewAccount.chPosting_Allowed := ExistingAccount.chPosting_Allowed;
 
           //Keep the same Audit ID
           NewAccount.chAudit_Record_ID := ExistingAccount.chAudit_Record_ID;

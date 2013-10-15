@@ -152,6 +152,7 @@ var
    Msg               : string;
    FileType          : string;
    Extn              : string;
+   UsingBGL360       : boolean;
 begin
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
 
@@ -194,7 +195,8 @@ begin
         else
           ReadDBaseFile(clCode, ExtractFilePath(ChartFileName), NewChart);
         If NewChart.ItemCount > 0 then begin              //  Assigned( NewChart ) then  {new chart will be nil if no accounts or an error occured}
-           MergeCharts(NewChart,MyClient,false,clAccounting_System_Used = saBGL360);
+           UsingBGL360 := clAccounting_System_Used = saBGL360;
+           MergeCharts(NewChart,MyClient,false,UsingBGL360,UsingBGL360);
            clLoad_Client_Files_From := ExtractFilePath(ChartFileName);
            clChart_Last_Updated := CurrentDate;
         end
@@ -265,7 +267,7 @@ begin
             NewAccount^.chAccount_Code := FieldList.Strings[0];
             AccountType := FieldList.Strings[1];
             NewAccount^.chAccount_Type := ord(AccountType[1]);
-            // NewAccount^.chPosting_Allowed := (FieldList.Strings[1] <> 'H');
+            NewAccount^.chPosting_Allowed := (FieldList.Strings[1] <> 'H');
             NewAccount^.chAccount_Description := FieldList.Strings[2];
 
             NewChart.Insert(NewAccount);
