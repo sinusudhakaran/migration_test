@@ -197,7 +197,7 @@ begin
         If NewChart.ItemCount > 0 then begin              //  Assigned( NewChart ) then  {new chart will be nil if no accounts or an error occured}
            UsingBGL360 := clAccounting_System_Used = saBGL360;
            MergeCharts(NewChart,MyClient,false,UsingBGL360,UsingBGL360);
-           clLoad_Client_Files_From := ExtractFilePath(ChartFileName);
+           clLoad_Client_Files_From := ChartFileName;
            clChart_Last_Updated := CurrentDate;
         end
         else begin
