@@ -399,7 +399,7 @@ begin
   FAccountNode := OutputDocument.CreateElement('Balance');
   FBalancesNode.AppendChild(FAccountNode);
   AddFieldNode(FAccountNode, 'BalanceDate', Date2Str(Traverse_From, FdateMask ));
-  AddFieldNode(FAccountNode, 'BalanceAmount', FormatFloatForXml(OpenBalance));
+  AddFieldNode(FAccountNode, 'BalanceAmount', FormatFloatForXml(OpenBalance, 2, 100, true));
   ProcessDiskCode(Bank_Account.baFields.baBank_Account_Number, BSB, AccountNum);
   AddFieldNode(FAccountNode, 'BSB', BSB);
   AddFieldNode(FAccountNode, 'Bank_Account_No', AccountNum);

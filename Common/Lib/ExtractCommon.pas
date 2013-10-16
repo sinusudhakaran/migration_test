@@ -25,7 +25,7 @@ uses
 
 procedure ProcessDiskCode(InputString: string; var Bsb, AccountNum: string);
 function FormatFloatForXml(AFloat: comp; ADecimalPlaces: integer = 2;
-                           AdivBy: integer = 100): string;
+                           AdivBy: integer = 100; AllowZero: boolean = false): string;
 
 
 // Basic Version handeling
@@ -302,13 +302,17 @@ begin
 end;
 
 function FormatFloatForXml(AFloat: comp; ADecimalPlaces: integer = 2;
-                           AdivBy: integer = 100): string;
+                           AdivBy: integer = 100; AllowZero: boolean = false): string;
 var
   i: integer;
   FormatPic: string;
 begin
   if AFloat = 0 then
+  begin
+    if AllowZero then
+      Result := '0';
     Exit;
+  end;
 
   FormatPic := '#0.';
   for i := 0 to ADecimalPlaces - 1 do
