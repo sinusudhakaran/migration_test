@@ -498,9 +498,6 @@ var
   end;
 
 begin
-  if Session.AccountType <> btBank then
-    Exit; // no journals
-
   if TestRun then
   begin
     StartFile;

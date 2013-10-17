@@ -424,7 +424,7 @@ begin
        //Standard file based extract
 
        FileToCheck := eTo.Text;
-	   // If we're using BGL 360, we need to check against what the auto generated file name will be
+	     // If we're using BGL 360, we need to check against what the auto generated file name will be
        if (MyClient.clFields.clAccounting_System_Used = saBGL360) then
          FileToCheck := FileToCheck + MyClient.clFields.clCode + '_' + Date2Str(Fromdate, 'ddmmyyyy') + '_' + Date2Str(ToDate, 'ddmmyyyy') + '.XML';
        if (( FileToCheck <> '') and BKFileExists(FileToCheck)) then
