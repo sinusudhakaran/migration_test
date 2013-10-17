@@ -175,7 +175,7 @@ begin
       if (ExtractDir = '\') then
         ExtractDir := DATADIR;
 
-      eTo.Text := ExtractDir + '_AUTO_.xml';
+      eTo.Text := ExtractDir;
     end;
 
     gCodingDateFrom := clPeriod_Start_Date;
@@ -257,6 +257,9 @@ var
   FromDate, ToDate : integer;
   DirPath : string;
   extn : string;
+  AllowEmptyFileName : boolean;
+
+  FileToCheck: string;
 begin
   Result := false;
 
@@ -315,6 +318,13 @@ begin
   begin
     with MyClient.clFields do
     begin
+      // If we're auto generating a file name, then a blank file name in 'save entries to' is ok.
+      // Can add more systems to this, just BGL 360 for now
+      if clAccounting_System_Used = saBGL360 then
+        AllowEmptyFileName := True
+      else
+        AllowEmptyFileName := False;
+
       //get rid of any spaces in extract dir field
       eTo.Text := Trim( eTo.Text);
 
@@ -326,7 +336,7 @@ begin
       if Software.ExtractDataFileNameRequired( clCountry, clAccounting_System_Used ) then
       begin
         // Check that we have a file name
-        if ( ExtractFileName( eTo.Text ) = '' ) then
+        if ( ExtractFileName( eTo.Text ) = '' ) and not AllowEmptyFileName then
         begin
           HelpfulWarningMsg('You must specify a file name for the extracted entries.',0);
           exit;
@@ -334,7 +344,7 @@ begin
 
         // check that not trying to save to a file which has the same name as a directory
         DirPath := AddSlash(eTo.Text);
-        if DirectoryExists( DirPath ) then
+        if DirectoryExists( DirPath ) and not AllowEmptyFileName then
         begin
           HelpfulWarningMsg('You can''t use this name because a directory called '+DirPath+' already exists.', 0);
           exit;
@@ -412,9 +422,14 @@ begin
      else
      begin
        //Standard file based extract
-       if ( eTo.Text <> '') and BKFileExists(eTo.Text) then
+
+       FileToCheck := eTo.Text;
+	   // If we're using BGL 360, we need to check against what the auto generated file name will be
+       if (MyClient.clFields.clAccounting_System_Used = saBGL360) then
+         FileToCheck := FileToCheck + MyClient.clFields.clCode + '_' + Date2Str(Fromdate, 'ddmmyyyy') + '_' + Date2Str(ToDate, 'ddmmyyyy') + '.XML';
+       if (( FileToCheck <> '') and BKFileExists(FileToCheck)) then
        begin
-         if AskYesNo('Overwrite File','The file '+ExtractFileName(eTo.Text)+' already exists. Overwrite?',dlg_yes,0) <> DLG_YES then
+         if AskYesNo('Overwrite File','The file '+ExtractFileName(FileToCheck)+' already exists. Overwrite?',dlg_yes,0) <> DLG_YES then
            exit;
        end;
      end;
