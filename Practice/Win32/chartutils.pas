@@ -285,7 +285,8 @@ begin
           NewAccount.chLinked_Account_OS      := ExistingAccount.chLinked_Account_OS;
           NewAccount.chLinked_Account_CS      := ExistingAccount.chLinked_Account_CS;
           NewAccount.chHide_In_Basic_Chart    := ExistingAccount.chHide_In_Basic_Chart;
-       end;
+       end else
+          NewAccount.chAccount_Type := atNone; // N/A
 
        //make sure we don't set it to bkFORCE_GST_CLASS_TO_ZERO
        if ( NewAccount.chGST_Class = bkFORCE_GST_CLASS_TO_ZERO) then
