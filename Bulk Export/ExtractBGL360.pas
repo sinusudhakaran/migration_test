@@ -19,7 +19,7 @@ procedure StartFile;
 
 implementation
 
-uses  
+uses
   ExtractHelpers,
   Controls,
   frmBGLConfig,
@@ -262,9 +262,7 @@ begin
    Result := er_OK;
    OutputFileName := FindExtractPath(Session);
    if OutputFileName = '' then
-      if DoBGL360Config(Session) = er_OK then
-         OutputFileName := FindExtractPath(Session);
-
+     OutputFileName := GetExtractPath(Session);
 
    if OutputFileName > '' then begin
       // Can Have a Go...
