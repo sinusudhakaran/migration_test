@@ -486,15 +486,15 @@ begin
     FTransactionNode := OutputDocument.CreateElement('Transaction');
     FTransactionsNode.AppendChild(FTransactionNode);
     AddFieldNode(FTransactionNode, 'Transaction_Type', 'Other Transaction');
-    AddFieldNode(FTransactionNode, 'Transaction_Date', Date2Str(Transaction^.txDate_Effective, FDateMask));
-    AddFieldNode(FTransactionNode, 'Amount', FormatFloatForXml(Transaction^.txAmount));
-    AddTextNode;
-    AddAccountCodeNode(Transaction^.txAccount);
     TransactionUtils.CheckExternalGUID(Transaction);
-    AddGuid(FTransactionNode, Uppercase(Transaction^.txExternal_GUID), 15);
+    AddGuid(FTransactionNode, Uppercase(Transaction^.txExternal_GUID), 15); // <Other_Reference>
     ProcessDiskCode(TBank_Account(Transaction^.txBank_Account).baFields.baBank_Account_Number, BSB, AccountNum);
     AddFieldNode(FTransactionNode, 'BSB', BSB);
     AddFieldNode(FTransactionNode, 'Bank_Account_No', AccountNum);
+    AddAccountCodeNode(Transaction^.txAccount); // <Account_Code>
+    AddFieldNode(FTransactionNode, 'Transaction_Date', Date2Str(Transaction^.txDate_Effective, FDateMask));
+    AddTextNode; // <Text>
+    AddFieldNode(FTransactionNode, 'Amount', FormatFloatForXml(Transaction^.txAmount));
   end;
 
   inc(NoOfEntries);
