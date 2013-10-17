@@ -531,18 +531,16 @@ begin
 
   FTransactionNode := OutputDocument.CreateElement('Transaction'); // BGL 360 export should output dissections as 'transactions'
   FTransactionsNode.AppendChild(FTransactionNode);
-
-  TransactionUtils.CheckExternalGUID(Dissection);
   AddFieldNode(FTransactionNode, 'Transaction_Type', 'Other Transaction');
-  AddFieldNode(FTransactionNode, 'Transaction_Date', Date2Str(Dissection^.dsTransaction^.txDate_Effective, FDateMask));
-  AddFieldNode(FTransactionNode, 'Amount', FormatFloatForXml(Dissection^.dsAmount));
-  AddTextNode;
-  AddAccountCodeNode(Dissection^.dsAccount);
   TransactionUtils.CheckExternalGUID(Dissection);
-  AddGuid(FTransactionNode, Uppercase(Dissection^.dsExternal_GUID), 15);
+  AddGuid(FTransactionNode, Uppercase(Dissection^.dsExternal_GUID), 15); // <Other_Reference>
   ProcessDiskCode(TBank_Account(Dissection^.dsBank_Account).baFields.baBank_Account_Number, BSB, AccountNum);
   AddFieldNode(FTransactionNode, 'BSB', BSB);
   AddFieldNode(FTransactionNode, 'Bank_Account_No', AccountNum);
+  AddAccountCodeNode(Dissection^.dsAccount); // <Account_Code>
+  AddFieldNode(FTransactionNode, 'Transaction_Date', Date2Str(Dissection^.dsTransaction^.txDate_Effective, FDateMask));
+  AddTextNode; // <Text>
+  AddFieldNode(FTransactionNode, 'Amount', FormatFloatForXml(Dissection^.dsAmount));
 
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends');
 end;
