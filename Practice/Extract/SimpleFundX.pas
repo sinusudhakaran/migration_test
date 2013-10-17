@@ -394,6 +394,8 @@ begin
   begin
     baUtils.GetBalances(Bank_Account,  Traverse_From, Traverse_To, OpenBalance,
                         FCloseBalance, SystemOpBal, SystemClBal);
+    if OpenBalance = Unknown then
+      Exit; // don't show accounts with unknown amounts
   end;
 
   FAccountNode := OutputDocument.CreateElement('Balance');

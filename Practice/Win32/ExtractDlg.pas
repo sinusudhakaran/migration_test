@@ -171,7 +171,7 @@ begin
     eTo.Text := ExUtil.DefaultFileName;
     if (Myclient.clfields.clAccounting_System_Used = saBGL360) then
     begin
-      ExtractDir := ExtractFileDir(eTo.Text) + '\';
+      ExtractDir := AddSlash(ExtractFileDir(eTo.Text));
       if (ExtractDir = '\') then
         ExtractDir := DATADIR;
 
