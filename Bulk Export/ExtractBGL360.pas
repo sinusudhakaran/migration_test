@@ -321,7 +321,7 @@ begin
   end;
 
   ExtractFieldHelper.SetFields(Session.Data);
-  CurrentClientCode := CleanTextField(ExtractFieldHelper.GetField(f_Code));
+  CurrentClientCode := ExtractFieldHelper.GetField(f_Code);
   // Build the Entity Details for the Client
   ClientNode := OutputDocument.CreateElement('Entity_Details');
   BaseNode.AppendChild(ClientNode);
@@ -371,7 +371,7 @@ var
 
 begin
   ExtractFieldHelper.SetFields(Session.Data);
-  CurrentAccount := CleanTextField(ExtractFieldHelper.GetField(f_Number));
+  CurrentAccount := ExtractFieldHelper.GetField(f_Number);
 
   if AnsiPos('Journal', CurrentAccount) <> 0 then
   begin
@@ -379,8 +379,8 @@ begin
     Exit; // Don't include journals
   end;
 
-  OpenBalance := CleanTextField(ExtractFieldHelper.GetField(f_Balance));
-  BalanceDate := CleanTextField(ExtractFieldHelper.GetField(f_Date));
+  OpenBalance := ExtractFieldHelper.GetField(f_Balance);
+  BalanceDate := ExtractFieldHelper.GetField(f_Date);
 
   BalanceNode := OutputDocument.CreateElement('Balance');
   BankBalancesNode.AppendChild(BalanceNode);
@@ -472,8 +472,8 @@ var
   var Ref, Nar: string;
   begin
 
-      Nar := CleanTextField(ExtractFieldHelper.GetField(f_Narration));
-      Ref := CleanTextField(ExtractFieldHelper.GetField(f_ChequeNo));
+      Nar := ExtractFieldHelper.GetField(f_Narration);
+      Ref := ExtractFieldHelper.GetField(f_ChequeNo);
       if Ref > '' then
          if Nar > '' then
             Ref := Nar + ' BL Ref: ' + Ref
@@ -557,7 +557,7 @@ begin
      AddField('Indexed_Capital_Gain',GetField(f_CGI));
      AddField('Discount_Capital_Gain',GetField(f_CGD));
      AddField('Other_Capital_Gain',GetField(f_CGO));
-     AddField('Member_Component',CleanTextField(GetField(f_MemComp)));
+     AddField('Member_Component',GetField(f_MemComp));
    end;
 
    if TestRun then
