@@ -424,9 +424,9 @@ var
   BSB        : String;
   LTrans     : IXMLNode;
 
-  procedure AddField(const Name,Value: string);
+  procedure AddField(const Name,Value: string; AllowEmpty: boolean = false);
   begin
-     if Value > '' then
+     if (Value > '') or AllowEmpty then
         SetNodeTextStr(LTrans,Name,Value);
   end;
 
@@ -486,7 +486,7 @@ var
       else
          Ref := Nar;
 
-      AddField('Text',Ref);
+      AddField('Text',Ref,True);
   end;
 
   procedure StrToFile(const FileName, SourceString : string);
