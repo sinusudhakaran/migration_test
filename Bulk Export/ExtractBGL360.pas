@@ -202,7 +202,6 @@ begin
    finally
       ldlg.Free;
    end;
-   result := 0;
 end;
 
 
@@ -262,7 +261,12 @@ begin
    Result := er_OK;
    OutputFileName := FindExtractPath(Session);
    if OutputFileName = '' then
-     OutputFileName := GetExtractPath(Session);
+   begin
+     if DoBGL360Config(Session) = er_OK then
+     begin
+       OutputFileName := FindExtractPath(Session);
+     end;
+   end;
 
    if OutputFileName > '' then begin
       // Can Have a Go...
