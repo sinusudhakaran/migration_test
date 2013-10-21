@@ -539,7 +539,7 @@ begin
 
      AddText;
 
-     AddField('Amount',GetField(f_amount));
+     AddField('Amount',GetField(f_amount, '0'), True);
      AddField('GST',GetField(f_tax));
      AddTaxClass(GetField(f_TaxCode));
 

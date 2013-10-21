@@ -436,8 +436,8 @@ var
 begin
   if (AccountCode = '') then
   begin
+    PracIniFile := TIniFile.Create(ExecDir + PRACTICEINIFILENAME);
     try
-      PracIniFile := TIniFile.Create(ExecDir + PRACTICEINIFILENAME);
       AccountCode := PracIniFile.ReadString(BGL360code, 'ExtractCode', '91000');
       if AccountCode = '' then
         AccountCode := '91000'; // default account code for uncoded transactions
@@ -452,7 +452,7 @@ procedure DoClassSuperIPTransaction;
 const
   ThisMethodName = 'DoClassSuperIPTransaction';
 var
-  BSB, AccountNum, AccountCode: string;
+  BSB, AccountNum: string;
 
   procedure AddField(const Name, Value: string);
   begin
@@ -494,7 +494,8 @@ begin
     AddAccountCodeNode(Transaction^.txAccount); // <Account_Code>
     AddFieldNode(FTransactionNode, 'Transaction_Date', Date2Str(Transaction^.txDate_Effective, FDateMask));
     AddTextNode; // <Text>
-    AddFieldNode(FTransactionNode, 'Amount', FormatFloatForXml(Transaction^.txAmount));
+    AddFieldNode(FTransactionNode, 'Amount',
+                 FormatFloatForXml(Transaction^.txAmount, 2, 100, Globals.PRACINI_ExtractZeroAmounts));
   end;
 
   inc(NoOfEntries);
