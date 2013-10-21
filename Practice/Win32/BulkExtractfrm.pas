@@ -64,7 +64,6 @@ implementation
 
 {$R *.dfm}
 
-
 uses
    HTTPSConnector,
    software,
