@@ -386,17 +386,19 @@ begin
   OpenBalance := ExtractFieldHelper.GetField(f_Balance);
   BalanceDate := ExtractFieldHelper.GetField(f_Date);
 
-  BalanceNode := OutputDocument.CreateElement('Balance');
-  BankBalancesNode.AppendChild(BalanceNode);
-  AddFieldNode(BalanceNode, 'BalanceDate', BalanceDate);
-  if OpenBalance = '' then
-    OpenBalance := '0';
-  AddFieldNode(BalanceNode, 'BalanceAmount', OpenBalance);
-  ProcessDiskCode(CurrentAccount, BSB, AccountNum);
-  AddFieldNode(BalanceNode, 'BSB', BSB);
-  AddFieldNode(BalanceNode, 'Bank_Account_No', AccountNum);
-  AddFieldNode(BalanceNode, 'Balance_Type', '10'); // 10 = Opening Balance, 15 = Closing Balance
-
+  if (ExtractFieldHelper.GetField(f_IsUnknownAmount) <> '1') then  
+  begin
+    BalanceNode := OutputDocument.CreateElement('Balance');
+    BankBalancesNode.AppendChild(BalanceNode);
+    AddFieldNode(BalanceNode, 'BalanceDate', BalanceDate);
+    if OpenBalance = '' then
+      OpenBalance := '0';
+    AddFieldNode(BalanceNode, 'BalanceAmount', OpenBalance);
+    ProcessDiskCode(CurrentAccount, BSB, AccountNum);
+    AddFieldNode(BalanceNode, 'BSB', BSB);
+    AddFieldNode(BalanceNode, 'Bank_Account_No', AccountNum);
+    AddFieldNode(BalanceNode, 'Balance_Type', '10'); // 10 = Opening Balance, 15 = Closing Balance
+  end;
   Result := er_OK;
 end;
 

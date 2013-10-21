@@ -75,7 +75,8 @@ uses
    glConst, Globals, Winutils,
    SageHandisoftSuperConst,
    bkProduct,
-   MoneyDef;
+   MoneyDef,
+   GenUtils;
 
 
 
@@ -946,6 +947,12 @@ begin
       AddNumberField(f_FundID, anAccount.baFields.baDesktop_Super_Ledger_ID)
    else if Software.HasSuperfundLegerCode(Client.clFields.clCountry,Client.clFields.clAccounting_System_Used) then
       AddField(f_FundID, anAccount.baFields.baSuperFund_Ledger_Code);
+
+   // Bulk extracts need to be able to distinguish between unknown amounts and zero amounts
+   if (anAccount.baFields.baCurrent_balance = UNKNOWN) then
+     AddField(f_IsUnknownAmount, '1')
+   else
+     AddField(f_IsUnknownAmount, '0');
 
    if FCurrentBal <> Unknown then
       AddMoneyField(f_Balance,FCurrentBal);

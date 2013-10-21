@@ -507,11 +507,6 @@ var
        AddMoneyField(f_OT_Credit, aTrans.txSF_Other_Tax_Credit);
        AddMoneyField(f_NonResidentTax, aTrans.txSF_Non_Resident_Tax);
 
-       //AddBGLFields(aTrans.txDate_Effective,
-       //                                  aTrans.txSF_Member_Component);
-
-    {end; }
-
     // Running balance
     if FCurrentBal <> Unknown then
       AddMoneyField(f_Balance,FCurrentBal);
@@ -520,8 +515,6 @@ var
 
 begin
   TestTrans := CreateTransactionRec;
-
-  //TestTrans := BK5TestClient.clBank_Account_List.Bank_Account_At(0).baTransaction_List.Transaction_At(0);
   TransText := TransactionToText(TestTrans);
   Session.Data := PAnsiChar(AnsiString(TransText));
 
@@ -573,7 +566,6 @@ begin
     Check(TestNode.FirstChild.ChildNodes.Item[9].Text       = '13.33');
     Check(TestNode.FirstChild.ChildNodes.Item[10].NodeName  = 'GST_Rate');
     Check(TestNode.FirstChild.ChildNodes.Item[10].Text      = 'N/A');
-//    Check('a' = 'b'); // remove this
   finally
     TestNode := nil
   end;

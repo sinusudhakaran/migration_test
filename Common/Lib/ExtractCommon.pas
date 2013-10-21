@@ -200,6 +200,8 @@ const
     c_AU         = 'AU';
     c_UK         = 'UK';
 
+  f_IsUnknownAmount = 'IsUnknownAmount';
+
 // Some Help Procs
 type
   // Used for forms, making sure any launched dll forms apear to belong to the mainApp
