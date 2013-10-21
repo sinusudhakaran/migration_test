@@ -101,9 +101,6 @@ uses
    MoneyDef,
    GenUtils;
 
-
-
-
 type
 
   TBulkExtractorLib = class; // Forward
