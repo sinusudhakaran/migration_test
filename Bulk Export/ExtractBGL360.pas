@@ -386,6 +386,7 @@ begin
   OpenBalance := ExtractFieldHelper.GetField(f_Balance);
   BalanceDate := ExtractFieldHelper.GetField(f_Date);
 
+  // Don't create the balance node if the account balance amount is unknown
   if (ExtractFieldHelper.GetField(f_IsUnknownAmount) <> '1') then  
   begin
     BalanceNode := OutputDocument.CreateElement('Balance');
