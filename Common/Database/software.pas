@@ -268,7 +268,8 @@ begin
             Result := false;
       end;
       whAustralia    : begin
-         If ( aType in [ saQIF ]) then
+         If ( aType in [ saQIF,
+                         saBGL360 ]) then
             Result := false;
       end;
    end;
