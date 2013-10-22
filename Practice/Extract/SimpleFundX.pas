@@ -481,7 +481,8 @@ begin
 
   Transaction^.txDate_Transferred := CurrentDate;
 
-  If ( Transaction^.txFirst_Dissection = NIL ) then
+  If ( Transaction^.txFirst_Dissection = NIL ) and
+     ((Transaction^.txAmount <> 0) or Globals.PRACINI_ExtractZeroAmounts) then
   begin // only create node if there are no dissections, DoClassSuperIPTransaction handles dissections
     FTransactionNode := OutputDocument.CreateElement('Transaction');
     FTransactionsNode.AppendChild(FTransactionNode);
