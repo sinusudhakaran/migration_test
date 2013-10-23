@@ -172,7 +172,7 @@ begin
     if (Myclient.clfields.clAccounting_System_Used = saBGL360) then
     begin
       ExtractDir := AddSlash(ExtractFileDir(eTo.Text));
-      if (ExtractDir = '\') then
+      if (ExtractDir = '') or (ExtractDir = '\') then
         ExtractDir := DATADIR;
 
       eTo.Text := ExtractDir;
