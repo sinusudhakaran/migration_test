@@ -184,9 +184,8 @@ var
   BudgetDefaults : TStringList;
   BudgetLineData : TStringList;
   LineIndex : integer;
-  found : boolean;
 begin
-  found := false;
+  LineIndex := -1;
   BudgetDefaults := TStringList.Create;
   BudgetDefaults.Delimiter := ',';
   BudgetDefaults.StrictDelimiter := True;
@@ -202,7 +201,7 @@ begin
           BudgetDefaults.Strings[LineIndex] := aClientCode + ',' + aBudgetName + ',' + aFileLocation;
       end;
 
-      if not found then
+      if LineIndex = -1 then // not found
         BudgetDefaults.Add(aClientCode + ',' + aBudgetName + ',' + aFileLocation);
 
       BudgetDefaults.SaveToFile(fBudgetDefaultFile);
