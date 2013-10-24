@@ -952,11 +952,12 @@ end;
 
 { TBulkExtractor }
 
-
+                                    
 function TBulkExtractor.AccountToText(anAccount: TBank_Account): string;
 begin
    FFields.Clear;
 
+   AddField(f_AccountType, IntToStr(anAccount.baFields.baAccount_Type));
    AddField(f_Date, StDateToDateString('dd/mm/yyyy', bulkextractors.cursession.fromdate, false));
    AddField(f_Name, anAccount.baFields.baBank_Account_Name );
    AddField(f_Number, anAccount.baFields.baBank_Account_Number);

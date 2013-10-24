@@ -201,6 +201,7 @@ const
     c_UK         = 'UK';
 
   f_IsUnknownAmount = 'IsUnknownAmount';
+  f_AccountType = 'AccountType';
 
 // Some Help Procs
 type

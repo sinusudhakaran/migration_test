@@ -20,6 +20,7 @@ procedure StartFile;
 implementation
 
 uses
+  bkConst,
   ExtractHelpers,
   Controls,
   frmBGLConfig,
@@ -358,6 +359,7 @@ var
   AccountNum    : String;
   BSB           : String;
   BalanceNode   : IXmlNode;
+  AccountType   : String;
 
   procedure AddFieldNode(var ToNode: IxmlNode; const Name, Value: string; AllowEmpty: boolean = false);
   begin
@@ -376,8 +378,9 @@ var
 begin
   ExtractFieldHelper.SetFields(Session.Data);
   CurrentAccount := ExtractFieldHelper.GetField(f_Number);
+  AccountType := ExtractFieldHelper.GetField(f_AccountType);
 
-  if AnsiPos('Journal', CurrentAccount) <> 0 then
+  if (AccountType <> IntToStr(btBank)) then
   begin
     Result := er_OK;
     Exit; // Don't include journals
@@ -387,7 +390,7 @@ begin
   BalanceDate := ExtractFieldHelper.GetField(f_Date);
 
   // Don't create the balance node if the account balance amount is unknown
-  if (ExtractFieldHelper.GetField(f_IsUnknownAmount) <> '1') then  
+  if (ExtractFieldHelper.GetField(f_IsUnknownAmount) <> '1') then
   begin
     BalanceNode := OutputDocument.CreateElement('Balance');
     BankBalancesNode.AppendChild(BalanceNode);

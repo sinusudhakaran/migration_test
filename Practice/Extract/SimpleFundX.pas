@@ -614,7 +614,7 @@ begin
       for No := 0 to Pred( Selected.Count ) do begin
         BA := TBank_Account(Selected.Objects[No]);
         Traverse.Clear;
-        IsJournal := (AnsiPos('Journals', TBank_Account(Selected.Objects[No]).baFields.baBank_Account_Number) <> 0);
+        IsJournal := TBank_Account(Selected.Objects[No]).IsAJournalAccount;
 
         Traverse.SetSortMethod(csDateEffective);
         Traverse.SetSelectionMethod(Traverse.twAllNewEntries);
