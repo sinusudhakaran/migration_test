@@ -185,26 +185,6 @@ end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-{ Moved to ExtractCommon, remove this after successful build
-function FormatFloatForXml(AFloat: comp; ADecimalPlaces: integer = 2;
-                           AdivBy: integer = 100): string;
-var
-  i: integer;
-  FormatPic: string;
-begin
-  if AFloat = 0 then
-    Exit;
-
-  FormatPic := '#0.';
-  for i := 0 to ADecimalPlaces - 1 do
-    FormatPic := FormatPic + '0';
-  FormatPic := FormatPic + ';-' + FormatPic;
-  Result := FormatFloat(FormatPic, AFloat/ADivBy);
-end;
-}
-
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 Procedure DoTransaction;
 
 const

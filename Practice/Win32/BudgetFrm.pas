@@ -1925,6 +1925,7 @@ begin
   edtName.Hide;
   lblname.Show;
   lblName.Caption := Trim(EdtName.Text);;
+  FBudget.buFields.buName := edtName.text;
   //edtName.Color := ExtraTitleBar.Color;
   //edtName.Font.Color := clCaptionText;
 end;
