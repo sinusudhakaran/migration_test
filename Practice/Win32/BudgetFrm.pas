@@ -1925,7 +1925,6 @@ begin
   edtName.Hide;
   lblname.Show;
   lblName.Caption := Trim(EdtName.Text);;
-  FBudget.buFields.buName := edtName.text;
   //edtName.Color := ExtraTitleBar.Color;
   //edtName.Font.Color := clCaptionText;
 end;
@@ -2165,7 +2164,7 @@ begin
 
     if BudgetFilePath = '' then
       BudgetFilePath := UserDir + MyClient.clFields.clCode + ' ' +
-                        RemoveInvalidCharacters(Budget.buFields.buName) + '.csv';
+                        RemoveInvalidCharacters(edtName.Text) + '.csv';
 
     if DoExportBudget(BudgetFilePath, IncludeUnusedChartCodes) then
     begin
