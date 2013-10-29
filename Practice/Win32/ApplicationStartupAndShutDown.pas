@@ -413,8 +413,9 @@ begin
   If (Assigned(AdminSystem)) and (AdminSystem.fdFields.fdCollect_Usage_Data) then SaveUsage;
   //Write local INI settings to c:\windows\system\bk5win.ini
   Bk5WriteINI;
-  //Write a practice ini file if one doesnt exists already
-  if not FileExists( DATADIR + PRACTICEINIFILENAME ) then
+  //Write a practice ini file if one doesnt exists already. Always overwrite if we are running
+  //Books (AdminSystem = false), as it will not have been saved earlier in this case
+  if (AdminExists = false) or not FileExists( DATADIR + PRACTICEINIFILENAME ) then
   begin
     WritePracticeINI_WithLock;
   end;
