@@ -2158,12 +2158,14 @@ var
 begin
   BudgetImportExport := TBudgetImportExport.Create;
   try
-    BudgetImportExport.BudgetDefaultFile := UserDir + BUDGET_DEFAULT_FILENAME;
-
+    BudgetImportExport.BudgetDefaultFile := UserDir + BUDGET_DEFAULT_FILENAME; 
     BudgetFilePath := BudgetImportExport.GetDefaultFileLocation(MyClient.clFields.clCode, RemoveInvalidCharacters(Budget.buFields.buName));
 
     if BudgetFilePath = '' then
       BudgetFilePath := UserDir + MyClient.clFields.clCode + ' ' +
+                        RemoveInvalidCharacters(edtName.Text) + '.csv'
+    else if RemoveInvalidCharacters(Budget.buFields.buName) <> RemoveInvalidCharacters(edtName.Text) then
+      BudgetFilePath := ExtractFilePath(BudgetFilePath) +
                         RemoveInvalidCharacters(edtName.Text) + '.csv';
 
     if DoExportBudget(BudgetFilePath, IncludeUnusedChartCodes) then
@@ -2174,7 +2176,7 @@ begin
       try
         if BudgetImportExport.ExportBudget(BudgetFilePath, IncludeUnusedChartCodes, FData, Budget.buFields.buStart_Date, MsgStr) then
         begin
-          BudgetImportExport.SetDefaultFileLocation(MyClient.clFields.clCode, RemoveInvalidCharacters(Budget.buFields.buName) , BudgetFilePath);
+          BudgetImportExport.SetDefaultFileLocation(MyClient.clFields.clCode, RemoveInvalidCharacters(edtName.Text{Budget.buFields.buName}) , BudgetFilePath);
 
           MsgStr := Format('Budget saved to "%s".%s%sDo you want to view it now?', [BudgetFilePath, #13#10, #13#10]);
           incusage('Export Budgets');
