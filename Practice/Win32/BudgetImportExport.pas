@@ -297,11 +297,15 @@ begin
             DataLine := DataLine + '" ' + aData[DataIndex].bAccount + '",';
 
           DataLine := DataLine + '"' + aData[DataIndex].bDesc + '",';
-          DataLine := DataLine + IntToStr(aData[DataIndex].bTotal) + ',';
+          if MyClient.clChart.FindCode(aData[DataIndex].bAccount)^.chPosting_Allowed then
+            // Non posting chart codes shouldn't display a total in the budget
+            DataLine := DataLine + IntToStr(aData[DataIndex].bTotal) + ',';
 
           for DateIndex := 1 to 12 do
           begin
-            DataLine := DataLine + IntToStr(aData[DataIndex].bAmounts[DateIndex]);
+            if MyClient.clChart.FindCode(aData[DataIndex].bAccount)^.chPosting_Allowed then
+              // Non posting chart codes shouldn't display amounts in the budget
+              DataLine := DataLine + IntToStr(aData[DataIndex].bAmounts[DateIndex]);
             if DateIndex < 12 then
               DataLine := DataLine +  ',';
           end;
