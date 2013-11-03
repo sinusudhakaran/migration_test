@@ -9,6 +9,7 @@
 //  >Import : https://www.banklinkonline.com/Services/BlopiServiceFacade.svc?xsd=xsd1
 //  >Import : https://www.banklinkonline.com/Services/BlopiServiceFacade.svc?xsd=xsd3
 //  >Import : https://www.banklinkonline.com/Services/BlopiServiceFacade.svc?xsd=xsd4
+//  >Import : https://www.banklinkonline.com/Services/BlopiServiceFacade.svc?xsd=xsd5
 // Encoding : utf-8
 // Codegen  : [wfMapStringsToWideStrings+, wfUseScopedEnumeration-]
 // Version  : 1.0
@@ -62,6 +63,8 @@ type
   MessageResponseOfClientListMIdCYrSK = class;   { "http://schemas.datacontract.org/2004/07/BankLink.Common.Services"[GblCplx] }
   MessageResponseOfClientReadDetailMIdCYrSK = class;   { "http://schemas.datacontract.org/2004/07/BankLink.Common.Services"[GblCplx] }
   MessageResponseOfstring = class;              { "http://schemas.datacontract.org/2004/07/BankLink.Common.Services"[GblCplx] }
+  MessageResponseOfArrayOfInstitutionMIdCYrSK = class;   { "http://schemas.datacontract.org/2004/07/BankLink.Common.Services"[GblCplx] }
+  MessageResponseOfArrayOfAccountValidationMIdCYrSK = class;   { "http://schemas.datacontract.org/2004/07/BankLink.Common.Services"[GblCplx] }
   MessageResponseOfDataPlatformSubscription6cY85e5k = class;   { "http://schemas.datacontract.org/2004/07/BankLink.Common.Services"[GblCplx] }
   MessageResponseOfPracticeDataSubscriberCredentials6cY85e5k = class;   { "http://schemas.datacontract.org/2004/07/BankLink.Common.Services"[GblCplx] }
   MessageResponseOfArrayOfPracticeDataSubscriberCount6cY85e5k = class;   { "http://schemas.datacontract.org/2004/07/BankLink.Common.Services"[GblCplx] }
@@ -75,6 +78,8 @@ type
   MessageResponseOfClientListMIdCYrSK2 = class;   { "http://schemas.datacontract.org/2004/07/BankLink.Common.Services"[GblElm] }
   MessageResponseOfClientReadDetailMIdCYrSK2 = class;   { "http://schemas.datacontract.org/2004/07/BankLink.Common.Services"[GblElm] }
   MessageResponseOfstring2 = class;             { "http://schemas.datacontract.org/2004/07/BankLink.Common.Services"[GblElm] }
+  MessageResponseOfArrayOfInstitutionMIdCYrSK2 = class;   { "http://schemas.datacontract.org/2004/07/BankLink.Common.Services"[GblElm] }
+  MessageResponseOfArrayOfAccountValidationMIdCYrSK2 = class;   { "http://schemas.datacontract.org/2004/07/BankLink.Common.Services"[GblElm] }
   MessageResponseOfDataPlatformSubscription6cY85e5k2 = class;   { "http://schemas.datacontract.org/2004/07/BankLink.Common.Services"[GblElm] }
   MessageResponseOfPracticeDataSubscriberCredentials6cY85e5k2 = class;   { "http://schemas.datacontract.org/2004/07/BankLink.Common.Services"[GblElm] }
   MessageResponseOfArrayOfPracticeDataSubscriberCount6cY85e5k2 = class;   { "http://schemas.datacontract.org/2004/07/BankLink.Common.Services"[GblElm] }
@@ -94,6 +99,8 @@ type
   Client               = class;                 { "http://www.banklinkonline.com/2011/11/Blopi"[GblCplx] }
   ClientRead           = class;                 { "http://www.banklinkonline.com/2011/11/Blopi"[GblCplx] }
   ClientReadDetail     = class;                 { "http://www.banklinkonline.com/2011/11/Blopi"[GblCplx] }
+  Institution          = class;                 { "http://www.banklinkonline.com/2011/11/Blopi"[GblCplx] }
+  AccountValidation    = class;                 { "http://www.banklinkonline.com/2011/11/Blopi"[GblCplx] }
   ClientCreate         = class;                 { "http://www.banklinkonline.com/2011/11/Blopi"[GblCplx] }
   ClientUpdate         = class;                 { "http://www.banklinkonline.com/2011/11/Blopi"[GblCplx] }
   CatalogueEntry2      = class;                 { "http://www.banklinkonline.com/2011/11/Blopi"[GblElm] }
@@ -566,6 +573,44 @@ type
     property Result: WideString  Index (IS_OPTN or IS_NLBL) read FResult write SetResult stored Result_Specified;
   end;
 
+  ArrayOfInstitution = array of Institution;    { "http://www.banklinkonline.com/2011/11/Blopi"[GblCplx] }
+
+
+  // ************************************************************************ //
+  // XML       : MessageResponseOfArrayOfInstitutionMIdCYrSK, global, <complexType>
+  // Namespace : http://schemas.datacontract.org/2004/07/BankLink.Common.Services
+  // ************************************************************************ //
+  MessageResponseOfArrayOfInstitutionMIdCYrSK = class(MessageResponse)
+  private
+    FResult: ArrayOfInstitution;
+    FResult_Specified: boolean;
+    procedure SetResult(Index: Integer; const AArrayOfInstitution: ArrayOfInstitution);
+    function  Result_Specified(Index: Integer): boolean;
+  public
+    destructor Destroy; override;
+  published
+    property Result: ArrayOfInstitution  Index (IS_OPTN or IS_NLBL) read FResult write SetResult stored Result_Specified;
+  end;
+
+  ArrayOfAccountValidation = array of AccountValidation;   { "http://www.banklinkonline.com/2011/11/Blopi"[GblCplx] }
+
+
+  // ************************************************************************ //
+  // XML       : MessageResponseOfArrayOfAccountValidationMIdCYrSK, global, <complexType>
+  // Namespace : http://schemas.datacontract.org/2004/07/BankLink.Common.Services
+  // ************************************************************************ //
+  MessageResponseOfArrayOfAccountValidationMIdCYrSK = class(MessageResponse)
+  private
+    FResult: ArrayOfAccountValidation;
+    FResult_Specified: boolean;
+    procedure SetResult(Index: Integer; const AArrayOfAccountValidation: ArrayOfAccountValidation);
+    function  Result_Specified(Index: Integer): boolean;
+  public
+    destructor Destroy; override;
+  published
+    property Result: ArrayOfAccountValidation  Index (IS_OPTN or IS_NLBL) read FResult write SetResult stored Result_Specified;
+  end;
+
 
 
   // ************************************************************************ //
@@ -733,6 +778,28 @@ type
   // Namespace : http://schemas.datacontract.org/2004/07/BankLink.Common.Services
   // ************************************************************************ //
   MessageResponseOfstring2 = class(MessageResponseOfstring)
+  private
+  published
+  end;
+
+
+
+  // ************************************************************************ //
+  // XML       : MessageResponseOfArrayOfInstitutionMIdCYrSK, global, <element>
+  // Namespace : http://schemas.datacontract.org/2004/07/BankLink.Common.Services
+  // ************************************************************************ //
+  MessageResponseOfArrayOfInstitutionMIdCYrSK2 = class(MessageResponseOfArrayOfInstitutionMIdCYrSK)
+  private
+  published
+  end;
+
+
+
+  // ************************************************************************ //
+  // XML       : MessageResponseOfArrayOfAccountValidationMIdCYrSK, global, <element>
+  // Namespace : http://schemas.datacontract.org/2004/07/BankLink.Common.Services
+  // ************************************************************************ //
+  MessageResponseOfArrayOfAccountValidationMIdCYrSK2 = class(MessageResponseOfArrayOfAccountValidationMIdCYrSK)
   private
   published
   end;
@@ -1173,6 +1240,125 @@ type
 
 
   // ************************************************************************ //
+  // XML       : Institution, global, <complexType>
+  // Namespace : http://www.banklinkonline.com/2011/11/Blopi
+  // ************************************************************************ //
+  Institution = class(TRemotable)
+  private
+    FAccountEditMask: WideString;
+    FAccountEditMask_Specified: boolean;
+    FActive: Boolean;
+    FActive_Specified: boolean;
+    FAttachments: WideString;
+    FAttachments_Specified: boolean;
+    FBSBTip: WideString;
+    FBSBTip_Specified: boolean;
+    FBrandName: WideString;
+    FBrandName_Specified: boolean;
+    FCanImportData: Integer;
+    FCanImportData_Specified: boolean;
+    FCode: WideString;
+    FCode_Specified: boolean;
+    FCountryCode: WideString;
+    FCountryCode_Specified: boolean;
+    FHelpfulHints: WideString;
+    FHelpfulHints_Specified: boolean;
+    FHistorical: WideString;
+    FHistorical_Specified: boolean;
+    FModifiedDate: TXSDateTime;
+    FModifiedDate_Specified: boolean;
+    FName_: WideString;
+    FName__Specified: boolean;
+    FTypeCode: WideString;
+    FTypeCode_Specified: boolean;
+    FTypeDescription: WideString;
+    FTypeDescription_Specified: boolean;
+    procedure SetAccountEditMask(Index: Integer; const AWideString: WideString);
+    function  AccountEditMask_Specified(Index: Integer): boolean;
+    procedure SetActive(Index: Integer; const ABoolean: Boolean);
+    function  Active_Specified(Index: Integer): boolean;
+    procedure SetAttachments(Index: Integer; const AWideString: WideString);
+    function  Attachments_Specified(Index: Integer): boolean;
+    procedure SetBSBTip(Index: Integer; const AWideString: WideString);
+    function  BSBTip_Specified(Index: Integer): boolean;
+    procedure SetBrandName(Index: Integer; const AWideString: WideString);
+    function  BrandName_Specified(Index: Integer): boolean;
+    procedure SetCanImportData(Index: Integer; const AInteger: Integer);
+    function  CanImportData_Specified(Index: Integer): boolean;
+    procedure SetCode(Index: Integer; const AWideString: WideString);
+    function  Code_Specified(Index: Integer): boolean;
+    procedure SetCountryCode(Index: Integer; const AWideString: WideString);
+    function  CountryCode_Specified(Index: Integer): boolean;
+    procedure SetHelpfulHints(Index: Integer; const AWideString: WideString);
+    function  HelpfulHints_Specified(Index: Integer): boolean;
+    procedure SetHistorical(Index: Integer; const AWideString: WideString);
+    function  Historical_Specified(Index: Integer): boolean;
+    procedure SetModifiedDate(Index: Integer; const ATXSDateTime: TXSDateTime);
+    function  ModifiedDate_Specified(Index: Integer): boolean;
+    procedure SetName_(Index: Integer; const AWideString: WideString);
+    function  Name__Specified(Index: Integer): boolean;
+    procedure SetTypeCode(Index: Integer; const AWideString: WideString);
+    function  TypeCode_Specified(Index: Integer): boolean;
+    procedure SetTypeDescription(Index: Integer; const AWideString: WideString);
+    function  TypeDescription_Specified(Index: Integer): boolean;
+  public
+    destructor Destroy; override;
+  published
+    property AccountEditMask: WideString   Index (IS_OPTN or IS_NLBL) read FAccountEditMask write SetAccountEditMask stored AccountEditMask_Specified;
+    property Active:          Boolean      Index (IS_OPTN or IS_NLBL) read FActive write SetActive stored Active_Specified;
+    property Attachments:     WideString   Index (IS_OPTN or IS_NLBL) read FAttachments write SetAttachments stored Attachments_Specified;
+    property BSBTip:          WideString   Index (IS_OPTN or IS_NLBL) read FBSBTip write SetBSBTip stored BSBTip_Specified;
+    property BrandName:       WideString   Index (IS_OPTN or IS_NLBL) read FBrandName write SetBrandName stored BrandName_Specified;
+    property CanImportData:   Integer      Index (IS_OPTN or IS_NLBL) read FCanImportData write SetCanImportData stored CanImportData_Specified;
+    property Code:            WideString   Index (IS_OPTN or IS_NLBL) read FCode write SetCode stored Code_Specified;
+    property CountryCode:     WideString   Index (IS_OPTN or IS_NLBL) read FCountryCode write SetCountryCode stored CountryCode_Specified;
+    property HelpfulHints:    WideString   Index (IS_OPTN or IS_NLBL) read FHelpfulHints write SetHelpfulHints stored HelpfulHints_Specified;
+    property Historical:      WideString   Index (IS_OPTN or IS_NLBL) read FHistorical write SetHistorical stored Historical_Specified;
+    property ModifiedDate:    TXSDateTime  Index (IS_OPTN or IS_NLBL) read FModifiedDate write SetModifiedDate stored ModifiedDate_Specified;
+    property Name_:           WideString   Index (IS_OPTN or IS_NLBL) read FName_ write SetName_ stored Name__Specified;
+    property TypeCode:        WideString   Index (IS_OPTN or IS_NLBL) read FTypeCode write SetTypeCode stored TypeCode_Specified;
+    property TypeDescription: WideString   Index (IS_OPTN or IS_NLBL) read FTypeDescription write SetTypeDescription stored TypeDescription_Specified;
+  end;
+
+
+
+  // ************************************************************************ //
+  // XML       : AccountValidation, global, <complexType>
+  // Namespace : http://www.banklinkonline.com/2011/11/Blopi
+  // ************************************************************************ //
+  AccountValidation = class(TRemotable)
+  private
+    FAccountNumber: WideString;
+    FAccountNumber_Specified: boolean;
+    FCountryCode: WideString;
+    FCountryCode_Specified: boolean;
+    FFailureReason: WideString;
+    FFailureReason_Specified: boolean;
+    FInstitutionCode: WideString;
+    FInstitutionCode_Specified: boolean;
+    FValidationPassed: Boolean;
+    FValidationPassed_Specified: boolean;
+    procedure SetAccountNumber(Index: Integer; const AWideString: WideString);
+    function  AccountNumber_Specified(Index: Integer): boolean;
+    procedure SetCountryCode(Index: Integer; const AWideString: WideString);
+    function  CountryCode_Specified(Index: Integer): boolean;
+    procedure SetFailureReason(Index: Integer; const AWideString: WideString);
+    function  FailureReason_Specified(Index: Integer): boolean;
+    procedure SetInstitutionCode(Index: Integer; const AWideString: WideString);
+    function  InstitutionCode_Specified(Index: Integer): boolean;
+    procedure SetValidationPassed(Index: Integer; const ABoolean: Boolean);
+    function  ValidationPassed_Specified(Index: Integer): boolean;
+  published
+    property AccountNumber:    WideString  Index (IS_OPTN or IS_NLBL) read FAccountNumber write SetAccountNumber stored AccountNumber_Specified;
+    property CountryCode:      WideString  Index (IS_OPTN or IS_NLBL) read FCountryCode write SetCountryCode stored CountryCode_Specified;
+    property FailureReason:    WideString  Index (IS_OPTN or IS_NLBL) read FFailureReason write SetFailureReason stored FailureReason_Specified;
+    property InstitutionCode:  WideString  Index (IS_OPTN or IS_NLBL) read FInstitutionCode write SetInstitutionCode stored InstitutionCode_Specified;
+    property ValidationPassed: Boolean     Index (IS_OPTN or IS_NLBL) read FValidationPassed write SetValidationPassed stored ValidationPassed_Specified;
+  end;
+  
+  
+  
+  // ************************************************************************ //
   // XML       : ClientCreate, global, <complexType>
   // Namespace : http://www.banklinkonline.com/2011/11/Blopi
   // ************************************************************************ //
@@ -1474,7 +1660,7 @@ type
     property Result:    ResultCode     Index (IS_OPTN) read FResult write SetResult stored Result_Specified;
   end;
 
-  
+
   // ************************************************************************ //
   // XML       : MessageResponseOfArrayOfPracticeBankAccountrLqac6vj, global, <complexType>
   // Namespace : http://schemas.datacontract.org/2004/07/BankLink.Common.Services
@@ -1483,7 +1669,7 @@ type
   private
     FResult: ArrayOfPracticeBankAccount;
     FResult_Specified: boolean;
-    
+
     procedure SetResult(Index: Integer; const AArrayOfPracticeBankAccount: ArrayOfPracticeBankAccount);
     function  Result_Specified(Index: Integer): boolean;
   public
@@ -1491,6 +1677,7 @@ type
   published
     property Result: ArrayOfPracticeBankAccount  Index (IS_OPTN) read FResult write SetResult stored Result_Specified;
   end;
+
 
   
   // ************************************************************************ //
@@ -1519,6 +1706,8 @@ type
     function  ChangePracticeUserPassword(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const userId: guid; const oldPassword: WideString; const newPassword: WideString
                                          ): MessageResponse; stdcall;
     function  AuthenticatePracticeUser(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const userId: guid; const password: WideString): MessageResponse; stdcall;
+    function  GetInstitutions(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString): MessageResponseOfArrayOfInstitutionMIdCYrSK2; stdcall;
+    function  ValidateAccounts(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const ValidateAccountList: ArrayOfAccountValidation): MessageResponseOfArrayOfAccountValidationMIdCYrSK; stdcall;
     function  DeleteUser(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const userId: guid): MessageResponse; stdcall;
     function  GetClientList(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString): MessageResponseOfClientListMIdCYrSK; stdcall;
     function  GetClient(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const clientId: guid): MessageResponseOfClientReadDetailMIdCYrSK; stdcall;
@@ -2107,6 +2296,48 @@ begin
 end;
 
 function MessageResponseOfstring.Result_Specified(Index: Integer): boolean;
+begin
+  Result := FResult_Specified;
+end;
+
+destructor MessageResponseOfArrayOfInstitutionMIdCYrSK.Destroy;
+var
+  I: Integer;
+begin
+  for I := 0 to Length(FResult)-1 do
+     SysUtils.FreeAndNil(FResult[I]);
+  SetLength(FResult, 0);
+  inherited Destroy;
+end;
+
+procedure MessageResponseOfArrayOfInstitutionMIdCYrSK.SetResult(Index: Integer; const AArrayOfInstitution: ArrayOfInstitution);
+begin
+  FResult := AArrayOfInstitution;
+  FResult_Specified := True;
+end;
+
+function MessageResponseOfArrayOfInstitutionMIdCYrSK.Result_Specified(Index: Integer): boolean;
+begin
+  Result := FResult_Specified;
+end;
+
+destructor MessageResponseOfArrayOfAccountValidationMIdCYrSK.Destroy;
+var
+  I: Integer;
+begin
+  for I := 0 to Length(FResult)-1 do
+     SysUtils.FreeAndNil(FResult[I]);
+  SetLength(FResult, 0);
+  inherited Destroy;
+end;
+
+procedure MessageResponseOfArrayOfAccountValidationMIdCYrSK.SetResult(Index: Integer; const AArrayOfAccountValidation: ArrayOfAccountValidation);
+begin
+  FResult := AArrayOfAccountValidation;
+  FResult_Specified := True;
+end;
+
+function MessageResponseOfArrayOfAccountValidationMIdCYrSK.Result_Specified(Index: Integer): boolean;
 begin
   Result := FResult_Specified;
 end;
@@ -2866,6 +3097,225 @@ begin
   Result := FPrimaryContactUserId_Specified;
 end;
 
+{Institution}
+
+destructor Institution.Destroy;
+begin
+  FreeAndNil(FModifiedDate);
+  inherited Destroy;
+end;
+
+procedure Institution.SetAccountEditMask(Index: Integer; const AWideString: WideString);
+begin
+  FAccountEditMask := AWideString;
+  FAccountEditMask_Specified := True;
+end;
+
+function Institution.AccountEditMask_Specified(Index: Integer): boolean;
+begin
+  Result := FAccountEditMask_Specified;
+end;
+
+procedure Institution.SetActive(Index: Integer; const ABoolean: Boolean);
+begin
+  FActive := ABoolean;
+  FActive_Specified := True;
+end;
+
+function Institution.Active_Specified(Index: Integer): boolean;
+begin
+  Result := FActive_Specified;
+end;
+
+procedure Institution.SetAttachments(Index: Integer; const AWideString: WideString);
+begin
+  FAttachments := AWideString;
+  FAttachments_Specified := True;
+end;
+
+function Institution.Attachments_Specified(Index: Integer): boolean;
+begin
+  Result := FAttachments_Specified;
+end;
+
+procedure Institution.SetBSBTip(Index: Integer; const AWideString: WideString);
+begin
+  FBSBTip := AWideString;
+  FBSBTip_Specified := True;
+end;
+
+function Institution.BSBTip_Specified(Index: Integer): boolean;
+begin
+  Result := FBSBTip_Specified;
+end;
+
+procedure Institution.SetBrandName(Index: Integer; const AWideString: WideString);
+begin
+  FBrandName := AWideString;
+  FBrandName_Specified := True;
+end;
+
+function Institution.BrandName_Specified(Index: Integer): boolean;
+begin
+  Result := FBrandName_Specified;
+end;
+
+procedure Institution.SetCanImportData(Index: Integer; const AInteger: Integer);
+begin
+  FCanImportData := AInteger;
+  FCanImportData_Specified := True;
+end;
+
+function Institution.CanImportData_Specified(Index: Integer): boolean;
+begin
+  Result := FCanImportData_Specified;
+end;
+
+procedure Institution.SetCode(Index: Integer; const AWideString: WideString);
+begin
+  FCode := AWideString;
+  FCode_Specified := True;
+end;
+
+function Institution.Code_Specified(Index: Integer): boolean;
+begin
+  Result := FCode_Specified;
+end;
+
+procedure Institution.SetCountryCode(Index: Integer; const AWideString: WideString);
+begin
+  FCountryCode := AWideString;
+  FCountryCode_Specified := True;
+end;
+
+function Institution.CountryCode_Specified(Index: Integer): boolean;
+begin
+  Result := FCountryCode_Specified;
+end;
+
+procedure Institution.SetHelpfulHints(Index: Integer; const AWideString: WideString);
+begin
+  FHelpfulHints := AWideString;
+  FHelpfulHints_Specified := True;
+end;
+
+function Institution.HelpfulHints_Specified(Index: Integer): boolean;
+begin
+  Result := FHelpfulHints_Specified;
+end;
+
+procedure Institution.SetHistorical(Index: Integer; const AWideString: WideString);
+begin
+  FHistorical := AWideString;
+  FHistorical_Specified := True;
+end;
+
+function Institution.Historical_Specified(Index: Integer): boolean;
+begin
+  Result := FHistorical_Specified;
+end;
+
+procedure Institution.SetModifiedDate(Index: Integer; const ATXSDateTime: TXSDateTime);
+begin
+  FModifiedDate := ATXSDateTime;
+  FModifiedDate_Specified := True;
+end;
+
+function Institution.ModifiedDate_Specified(Index: Integer): boolean;
+begin
+  Result := FModifiedDate_Specified;
+end;
+
+procedure Institution.SetName_(Index: Integer; const AWideString: WideString);
+begin
+  FName_ := AWideString;
+  FName__Specified := True;
+end;
+
+function Institution.Name__Specified(Index: Integer): boolean;
+begin
+  Result := FName__Specified;
+end;
+
+procedure Institution.SetTypeCode(Index: Integer; const AWideString: WideString);
+begin
+  FTypeCode := AWideString;
+  FTypeCode_Specified := True;
+end;
+
+function Institution.TypeCode_Specified(Index: Integer): boolean;
+begin
+  Result := FTypeCode_Specified;
+end;
+
+procedure Institution.SetTypeDescription(Index: Integer; const AWideString: WideString);
+begin
+  FTypeDescription := AWideString;
+  FTypeDescription_Specified := True;
+end;
+
+function Institution.TypeDescription_Specified(Index: Integer): boolean;
+begin
+  Result := FTypeDescription_Specified;
+end;
+
+{AccountValidation}
+
+procedure AccountValidation.SetAccountNumber(Index: Integer; const AWideString: WideString);
+begin
+  FAccountNumber := AWideString;
+  FAccountNumber_Specified := True;
+end;
+
+function AccountValidation.AccountNumber_Specified(Index: Integer): boolean;
+begin
+  Result := FAccountNumber_Specified;
+end;
+
+procedure AccountValidation.SetCountryCode(Index: Integer; const AWideString: WideString);
+begin
+  FCountryCode := AWideString;
+  FCountryCode_Specified := True;
+end;
+
+function AccountValidation.CountryCode_Specified(Index: Integer): boolean;
+begin
+  Result := FCountryCode_Specified;
+end;
+
+procedure AccountValidation.SetFailureReason(Index: Integer; const AWideString: WideString);
+begin
+  FFailureReason := AWideString;
+  FFailureReason_Specified := True;
+end;
+
+function AccountValidation.FailureReason_Specified(Index: Integer): boolean;
+begin
+  Result := FFailureReason_Specified;
+end;
+
+procedure AccountValidation.SetInstitutionCode(Index: Integer; const AWideString: WideString);
+begin
+  FInstitutionCode := AWideString;
+  FInstitutionCode_Specified := True;
+end;
+
+function AccountValidation.InstitutionCode_Specified(Index: Integer): boolean;
+begin
+  Result := FInstitutionCode_Specified;
+end;
+
+procedure AccountValidation.SetValidationPassed(Index: Integer; const ABoolean: Boolean);
+begin
+  FValidationPassed := ABoolean;
+  FValidationPassed_Specified := True;
+end;
+
+function AccountValidation.ValidationPassed_Specified(Index: Integer): boolean;
+begin
+  Result := FValidationPassed_Specified;
+end;
+
 { UploadResult }
 
 function UploadResult.FileCount_Specified(Index: Integer): boolean;
@@ -2968,6 +3418,10 @@ initialization
   RemClassRegistry.RegisterXSClass(MessageResponseOfClientListMIdCYrSK, 'http://schemas.datacontract.org/2004/07/BankLink.Common.Services', 'MessageResponseOfClientListMIdCYrSK');
   RemClassRegistry.RegisterXSClass(MessageResponseOfClientReadDetailMIdCYrSK, 'http://schemas.datacontract.org/2004/07/BankLink.Common.Services', 'MessageResponseOfClientReadDetailMIdCYrSK');
   RemClassRegistry.RegisterXSClass(MessageResponseOfstring, 'http://schemas.datacontract.org/2004/07/BankLink.Common.Services', 'MessageResponseOfstring');
+  RemClassRegistry.RegisterXSInfo(TypeInfo(ArrayOfInstitution), 'http://www.banklinkonline.com/2011/11/Blopi', 'ArrayOfInstitution');
+  RemClassRegistry.RegisterXSClass(MessageResponseOfArrayOfInstitutionMIdCYrSK, 'http://schemas.datacontract.org/2004/07/BankLink.Common.Services', 'MessageResponseOfArrayOfInstitutionMIdCYrSK');
+  RemClassRegistry.RegisterXSInfo(TypeInfo(ArrayOfAccountValidation), 'http://www.banklinkonline.com/2011/11/Blopi', 'ArrayOfAccountValidation');
+  RemClassRegistry.RegisterXSClass(MessageResponseOfArrayOfAccountValidationMIdCYrSK, 'http://schemas.datacontract.org/2004/07/BankLink.Common.Services', 'MessageResponseOfArrayOfAccountValidationMIdCYrSK');
   RemClassRegistry.RegisterXSClass(MessageResponseOfDataPlatformSubscription6cY85e5k, 'http://schemas.datacontract.org/2004/07/BankLink.Common.Services', 'MessageResponseOfDataPlatformSubscription6cY85e5k');
   RemClassRegistry.RegisterXSClass(MessageResponseOfPracticeDataSubscriberCredentials6cY85e5k, 'http://schemas.datacontract.org/2004/07/BankLink.Common.Services', 'MessageResponseOfPracticeDataSubscriberCredentials6cY85e5k');
   RemClassRegistry.RegisterXSClass(MessageResponseOfArrayOfPracticeDataSubscriberCount6cY85e5k, 'http://schemas.datacontract.org/2004/07/BankLink.Common.Services', 'MessageResponseOfArrayOfPracticeDataSubscriberCount6cY85e5k');
@@ -2981,6 +3435,8 @@ initialization
   RemClassRegistry.RegisterXSClass(MessageResponseOfClientListMIdCYrSK2, 'http://schemas.datacontract.org/2004/07/BankLink.Common.Services', 'MessageResponseOfClientListMIdCYrSK2', 'MessageResponseOfClientListMIdCYrSK');
   RemClassRegistry.RegisterXSClass(MessageResponseOfClientReadDetailMIdCYrSK2, 'http://schemas.datacontract.org/2004/07/BankLink.Common.Services', 'MessageResponseOfClientReadDetailMIdCYrSK2', 'MessageResponseOfClientReadDetailMIdCYrSK');
   RemClassRegistry.RegisterXSClass(MessageResponseOfstring2, 'http://schemas.datacontract.org/2004/07/BankLink.Common.Services', 'MessageResponseOfstring2', 'MessageResponseOfstring');
+  RemClassRegistry.RegisterXSClass(MessageResponseOfArrayOfInstitutionMIdCYrSK2, 'http://schemas.datacontract.org/2004/07/BankLink.Common.Services', 'MessageResponseOfArrayOfInstitutionMIdCYrSK2', 'MessageResponseOfArrayOfInstitutionMIdCYrSK');
+  RemClassRegistry.RegisterXSClass(MessageResponseOfArrayOfAccountValidationMIdCYrSK2, 'http://schemas.datacontract.org/2004/07/BankLink.Common.Services', 'MessageResponseOfArrayOfAccountValidationMIdCYrSK2', 'MessageResponseOfArrayOfAccountValidationMIdCYrSK');
   RemClassRegistry.RegisterXSClass(MessageResponseOfDataPlatformSubscription6cY85e5k2, 'http://schemas.datacontract.org/2004/07/BankLink.Common.Services', 'MessageResponseOfDataPlatformSubscription6cY85e5k2', 'MessageResponseOfDataPlatformSubscription6cY85e5k');
   RemClassRegistry.RegisterXSClass(MessageResponseOfPracticeDataSubscriberCredentials6cY85e5k2, 'http://schemas.datacontract.org/2004/07/BankLink.Common.Services', 'MessageResponseOfPracticeDataSubscriberCredentials6cY85e5k2', 'MessageResponseOfPracticeDataSubscriberCredentials6cY85e5k');
   RemClassRegistry.RegisterXSClass(MessageResponseOfArrayOfPracticeDataSubscriberCount6cY85e5k2, 'http://schemas.datacontract.org/2004/07/BankLink.Common.Services', 'MessageResponseOfArrayOfPracticeDataSubscriberCount6cY85e5k2', 'MessageResponseOfArrayOfPracticeDataSubscriberCount6cY85e5k');
@@ -3005,6 +3461,9 @@ initialization
   RemClassRegistry.RegisterExternalPropName(TypeInfo(Client), 'Name_', 'Name');
   RemClassRegistry.RegisterXSClass(ClientRead, 'http://www.banklinkonline.com/2011/11/Blopi', 'ClientRead');
   RemClassRegistry.RegisterXSClass(ClientReadDetail, 'http://www.banklinkonline.com/2011/11/Blopi', 'ClientReadDetail');
+  RemClassRegistry.RegisterXSClass(Institution, 'http://www.banklinkonline.com/2011/11/Blopi', 'Institution');
+  RemClassRegistry.RegisterExternalPropName(TypeInfo(Institution), 'Name_', 'Name');
+  RemClassRegistry.RegisterXSClass(AccountValidation, 'http://www.banklinkonline.com/2011/11/Blopi', 'AccountValidation');
   RemClassRegistry.RegisterXSClass(ClientCreate, 'http://www.banklinkonline.com/2011/11/Blopi', 'ClientCreate');
   RemClassRegistry.RegisterXSClass(ClientUpdate, 'http://www.banklinkonline.com/2011/11/Blopi', 'ClientUpdate');
   RemClassRegistry.RegisterXSClass(CatalogueEntry2, 'http://www.banklinkonline.com/2011/11/Blopi', 'CatalogueEntry2', 'CatalogueEntry');

@@ -17,89 +17,35 @@ uses
   StdCtrls,
   ExtCtrls,
   Mask,
-  OSFont;
+  OSFont,
+  MaskHint;
 
 type
   TfrmTPA = class(TForm)
-    ScrollBox1: TScrollBox;
-    pnlHeader: TPanel;
-    lblTitle: TLabel;
-    lblSubtitle: TLabel;
-    lblAddress: TLabel;
-    pnlAccount3: TPanel;
-    Label4: TLabel;
-    Label5: TLabel;
-    Label6: TLabel;
-    Label7: TLabel;
-    edtName3: TEdit;
-    edtNumber3: TEdit;
-    edtClient3: TEdit;
-    edtCost3: TEdit;
-    pnlAccount2: TPanel;
-    Label12: TLabel;
-    Label13: TLabel;
-    Label14: TLabel;
-    Label15: TLabel;
-    edtName2: TEdit;
-    edtNumber2: TEdit;
-    edtClient2: TEdit;
-    edtCost2: TEdit;
-    pnlFooter: TPanel;
-    lblForm: TLabel;
-    pnlAccount1: TPanel;
-    lblAcName: TLabel;
-    lblAcNum: TLabel;
-    lblClient: TLabel;
-    lblCost: TLabel;
-    edtName1: TEdit;
-    edtNumber1: TEdit;
-    edtClient1: TEdit;
-    edtCost1: TEdit;
-    pnlBank: TPanel;
-    lblTo: TLabel;
-    lblPos: TLabel;
-    edtBank: TEdit;
-    pnl1: TPanel;
-    lblClause1: TLabel;
-    lblPos2: TLabel;
-    cmbMonth: TComboBox;
-    edtYear: TEdit;
-    edtAdvisors: TEdit;
-    edtPractice: TEdit;
-    pnl2: TPanel;
-    lblClause2: TLabel;
-    pnlSign: TPanel;
-    lblDate: TLabel;
     Panel6: TPanel;
     btnPreview: TButton;
     btnFile: TButton;
     btnCancel: TButton;
     btnPrint: TButton;
-    lblPos1: TLabel;
-    pnlExtras: TPanel;
-    lblAdditional: TLabel;
-    pnlService: TPanel;
-    pnlRural: TPanel;
-    rbMonthly: TRadioButton;
-    rbWeekly: TRadioButton;
-    rbReDate: TRadioButton;
-    rbDate: TRadioButton;
-    lblMonthly: TLabel;
-    lblRural: TLabel;
     btnEmail: TButton;
-    cmbDay: TComboBox;
     btnClear: TButton;
     btnImport: TButton;
     Opendlg: TOpenDialog;
-    rbDaily: TRadioButton;
-    lblPracticeCode: TLabel;
-    lblName: TLabel;
-    lblSign: TLabel;
-    cbProvisional: TCheckBox;
-    cmbInstitutionCountry: TComboBox;
-    Label1: TLabel;
-    edtInstitutionName: TEdit;
+    ScrollBox1: TScrollBox;
+    pnlAccount: TPanel;
+    lblAcName: TLabel;
+    lblAcNum: TLabel;
+    lblClient: TLabel;
+    lblCost: TLabel;
+    edtAccountName: TEdit;
+    edtClientCode: TEdit;
+    edtCost1: TEdit;
+    mskAccountNumber: TMaskEdit;
+    lblAccountNumberLine: TLabel;
+    lblAccountNumberHint: TLabel;
+    pnlInstitution: TPanel;
     cmbInstitutionName: TComboBox;
+    lblInstitution: TLabel;
     procedure btnPreviewClick(Sender: TObject);
     procedure btnFileClick(Sender: TObject);
     procedure btnPrintClick(Sender: TObject);
@@ -114,11 +60,17 @@ type
     procedure btnImportClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure cmbInstitutionNameChange(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
+    procedure mskAccountNumberKeyUp(Sender: TObject; var Key: Word;
+      Shift: TShiftState);
   private
     FButton: Byte;
+    fMaskHint : TMaskHint;
     FImportFile: string;
     function ValidateForm: Boolean;
     procedure SetImportFile(const Value: string);
+
+    procedure UpdateMask;
   public
     { Public declarations }
     property ButtonPressed: Byte read FButton;
@@ -152,7 +104,9 @@ var
   Index : integer;
   CountryIndex : integer;
 begin
-  // Institution Country Names
+  fMaskHint := TMaskHint.create;
+
+  {// Institution Country Names
   for Index := 0 to Institutions.CountryCodes.Count-1 do
   begin
     if Institutions.CountryCodes.Strings[Index] = COUNTY_CODE then
@@ -161,18 +115,24 @@ begin
     cmbInstitutionCountry.AddItem(Institutions.CountryNames.Strings[Index],nil);
   end;
   cmbInstitutionCountry.itemindex := CountryIndex;
-  cmbInstitutionCountry.Enabled := false;
+  cmbInstitutionCountry.Enabled := false;}
 
   // Institution Names
   cmbInstitutionName.AddItem('Other', nil);
   for Index := 0 to Institutions.Count-1 do
   begin
     if TInstitutionItem(Institutions.Items[Index]).CountryCode = COUNTY_CODE then
-      cmbInstitutionName.AddItem(TInstitutionItem(Institutions.Items[Index]).Name ,Institutions.Items[Index]);
+      cmbInstitutionName.AddItem(TInstitutionItem(Institutions.Items[Index]).Name ,TInstitutionItem(Institutions.Items[Index]));
   end;
 
   cmbInstitutionName.Width := SET_BANK_WIDTH;
-  edtInstitutionName.Enabled := false;
+  //edtInstitutionName.Enabled := false;
+end;
+
+//------------------------------------------------------------------------------
+procedure TfrmTPA.FormDestroy(Sender: TObject);
+begin
+  FreeAndNil(fMaskHint);
 end;
 
 //------------------------------------------------------------------------------
@@ -182,7 +142,7 @@ var
   yr: Integer;
 begin
   Result := True;
-  y := edtYear.Text;
+{  y := edtYear.Text;
   if (Length(y) > 1) and (y[1] = '0') then
     y := Copy(y, 2, 1);
   yr := StrToIntDef(y, -1);
@@ -255,7 +215,7 @@ begin
     HelpfulErrorMsg('You must enter a Bank Name.', 0);
     edtInstitutionName.SetFocus;
     Result := False;
-  end;
+  end;}
 end;
 
 //------------------------------------------------------------------------------
@@ -271,7 +231,7 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmTPA.btnClearClick(Sender: TObject);
 begin
-  edtName1.Clear;
+  {edtName1.Clear;
   edtName2.Clear;
   edtName3.Clear;
   edtNumber1.Clear;
@@ -297,7 +257,7 @@ begin
   cmbInstitutionName.ItemIndex := -1;
   cmbInstitutionName.Width := SET_BANK_WIDTH;
   edtInstitutionName.Clear;
-  edtInstitutionName.Enabled := false;
+  edtInstitutionName.Enabled := false;}
 end;
 
 //------------------------------------------------------------------------------
@@ -347,20 +307,27 @@ begin
   if cmbInstitutionName.ItemIndex = 0 then
   begin
     cmbInstitutionName.Width := OTHER_BANK_WIDTH;
-    edtInstitutionName.Enabled := true;
-    edtInstitutionName.Text := '';
+    //edtInstitutionName.Enabled := true;
+    //edtInstitutionName.Text := '';
   end
   else
   begin
     cmbInstitutionName.Width := SET_BANK_WIDTH;
-    edtInstitutionName.Enabled := false;
+    //edtInstitutionName.Enabled := false;
+
+    if (Assigned(cmbInstitutionName.Items.Objects[cmbInstitutionName.ItemIndex])) and
+       (cmbInstitutionName.Items.Objects[cmbInstitutionName.ItemIndex] is TInstitutionItem) then
+    begin
+      mskAccountNumber.EditMask := TInstitutionItem(cmbInstitutionName.Items.Objects[cmbInstitutionName.ItemIndex]).AccountEditMask;
+      UpdateMask;
+    end;
   end;
 end;
 
 //------------------------------------------------------------------------------
 procedure TfrmTPA.cmbMonthChange(Sender: TObject);
 begin
-  if cmbMonth.ItemIndex = 1 then
+  {if cmbMonth.ItemIndex = 1 then
   begin
     cmbDay.ItemIndex := 0;
     edtYear.Text := '';
@@ -371,7 +338,7 @@ begin
   begin
     edtYear.Enabled := True;
     cmbDay.Enabled := True;
-  end;
+  end; }
 end;
 
 //------------------------------------------------------------------------------
@@ -393,13 +360,25 @@ procedure TfrmTPA.FormShow(Sender: TObject);
 begin
   FButton := BTN_NONE;
   BKHelpSetUp(Self, BKH_Accessing_a_Third_Party_Authority_form);
-  ScrollBox1.ScrollInView(lblTitle); // scroll to top
+  //ScrollBox1.ScrollInView(lblTitle); // scroll to top
+end;
+
+procedure TfrmTPA.mskAccountNumberKeyUp(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+  UpdateMask;
 end;
 
 //------------------------------------------------------------------------------
 procedure TfrmTPA.SetImportFile(const Value: string);
 begin
   FImportFile := Value;
+end;
+
+//------------------------------------------------------------------------------
+procedure TfrmTPA.UpdateMask;
+begin
+  fMaskHint.DrawMaskHint(lblAccountNumberLine, lblAccountNumberHint, mskAccountNumber, self.Color, $000000FF, $000000FF);
 end;
 
 //------------------------------------------------------------------------------

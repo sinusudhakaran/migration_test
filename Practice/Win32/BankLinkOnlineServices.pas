@@ -52,6 +52,11 @@ type
   TBloIBizzCredentials               = BlopiServiceFacade.PracticeDataSubscriberCredentials;
   TBloArrayOfPracticeDataSubscriberCount = BlopiServiceFacade.ArrayOfPracticeDataSubscriberCount;
 
+  TBloInstitution              = BlopiServiceFacade.Institution;
+  TBloArrayOfInstitution       = BlopiServiceFacade.ArrayOfInstitution;
+  TBloAccountValidation        = BlopiServiceFacade.AccountValidation;
+  TBloArrayOfAccountValidation = BlopiServiceFacade.ArrayOfAccountValidation;
+
   TBloArrayOfRemotable = Array of TRemotable;
 
   TBloArrayOfPracticeBankAccount = BlopiServiceFacade.ArrayOfPracticeBankAccount;
@@ -242,7 +247,7 @@ type
                                var   aUserId   : TBloGuid;
                                const aEMail    : WideString;
                                const aFullName : WideString) : Boolean; overload;
-                               
+
     function CheckClientUser(Client              : TBloClientReadDetail;
                              const EMail         : WideString;
                              const FullName      : WideString;
@@ -265,7 +270,7 @@ type
                                     const aNewPassword : WideString;
                                     const UserEmail    : WideString;
                                     const ErrorHandlerMessage: String) : Boolean;
-                                    
+
     function CreatePracticeUser(const aEmail        : WideString;
                                 const aFullName     : WideString;
                                 const aUserCode     : WideString;
@@ -273,7 +278,7 @@ type
                                 const aSubscription : TBloArrayOfguid;
                                 const aPassword     : WideString;
                                 const ErrorHandlerMessage: String) : Guid;
-                                
+
     function UpdatePracticeUser(const aUserId       : TBloGuid;
                                 const aFullName     : WideString;
                                 const aUserCode     : WideString;
@@ -281,7 +286,7 @@ type
                                 const aSubscription : TBloArrayOfguid;
                                 const Password      : WideString;
                                 const ErrorHandlerMessage: String) : Boolean;
-                                
+
     function DeleteUser(const aUserId      : TBloGuid;
                         const aUserCode    : WideString;
                         const ErrorHandlerMessage: String) : Boolean;
@@ -492,6 +497,10 @@ type
 
     procedure SuspendService;
     procedure ResumeService;
+
+    function GetInstitutionList(out aBloArrayOfInstitution : TBloArrayOfInstitution) : TBloResult;
+    function ValidateAccount(aAccountNumber, aInstCode, aCountryCode : string; var aFailedReason : string) : Boolean;
+    function ValidateAccountList(var aValidateAccountList : TBloArrayOfAccountValidation) : TBloResult;
 
     procedure ResetExceptionTest;
 
@@ -2794,11 +2803,210 @@ begin
           Break;
         end;
       end;
-      
+
       if Assigned(CurrUser) and Assigned(User) then // Checking CurrUser in case the Practice window has been closed
         if CurrUser.Code = User.usCode then
           CurrUser.AllowBanklinkOnline := User.usAllow_Banklink_Online;
     end;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+function TProductConfigService.GetInstitutionList(out aBloArrayOfInstitution : TBloArrayOfInstitution) : TBloResult;
+var
+  BlopiInterface : IBlopiServiceFacade;
+  MsgResponse : MessageResponseOfArrayOfInstitutionMIdCYrSK2;
+  ResponceError : Boolean;
+  Index : integer;
+begin
+  SetLength(aBloArrayOfInstitution, 5);
+  for Index := 0 to Length(aBloArrayOfInstitution)-1 do
+  begin
+    aBloArrayOfInstitution[Index] := TBloInstitution.Create;
+  end;
+
+  aBloArrayOfInstitution[0].AccountEditMask := 'LLLLAAAAA00000;1;';
+  aBloArrayOfInstitution[0].Code := 'AAA';
+  aBloArrayOfInstitution[0].CountryCode := 'NZ';
+  aBloArrayOfInstitution[0].Name_ := 'Bank AAA';
+  aBloArrayOfInstitution[0].Active := true;
+
+  aBloArrayOfInstitution[1].AccountEditMask := 'CCCC0000LLLL;1;';
+  aBloArrayOfInstitution[1].Code := 'AAA';
+  aBloArrayOfInstitution[1].CountryCode := 'OZ';
+  aBloArrayOfInstitution[1].Name_ := 'Bank AAA';
+  aBloArrayOfInstitution[1].Active := true;
+
+  aBloArrayOfInstitution[2].AccountEditMask := '00000LLLLAAAA;1;';
+  aBloArrayOfInstitution[2].Code := 'BBB';
+  aBloArrayOfInstitution[2].CountryCode := 'NZ';
+  aBloArrayOfInstitution[2].Name_ := 'Bank BBB';
+  aBloArrayOfInstitution[2].Active := true;
+
+  aBloArrayOfInstitution[3].AccountEditMask := '00000AAAAAAAA;1;';
+  aBloArrayOfInstitution[3].Code := 'BBB';
+  aBloArrayOfInstitution[3].CountryCode := 'OZ';
+  aBloArrayOfInstitution[3].Name_ := 'Bank BBB';
+  aBloArrayOfInstitution[3].Active := true;
+
+  aBloArrayOfInstitution[4].AccountEditMask := 'AAAAALLLLLLCCCCC0000;1;';
+  aBloArrayOfInstitution[4].Code := 'CCC';
+  aBloArrayOfInstitution[4].CountryCode := 'NZ';
+  aBloArrayOfInstitution[4].Name_ := 'Bank CCC';
+  aBloArrayOfInstitution[4].Active := true;
+  Result := bloSuccess;
+
+
+  {Result := bloFailedNonFatal;
+  Screen.Cursor := crHourGlass;
+  Progress.StatusSilent := False;
+  Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Connecting', 10);
+  aBloArrayOfInstitution := nil;
+
+  BlopiInterface := GetServiceFacade;
+  try
+    try
+      Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Retrieving Institution List', 55);
+
+      try
+        MsgResponse := BlopiInterface.GetInstitutions(CountryText(AdminSystem.fdFields.fdCountry),
+                                                      AdminSystem.fdFields.fdBankLink_Code,
+                                                      AdminSystem.fdFields.fdBankLink_Connect_Password);
+
+        ResponceError := MessageResponseHasError(MsgResponse, 'Get Institution List from');
+
+        if not ResponceError then
+        begin
+          SetLength(aBloArrayOfInstitution, Length(MsgResponse.Result));
+          for Index := 0 to Length(aBloArrayOfInstitution)-1 do
+          begin
+            aBloArrayOfInstitution[Index] := TBloInstitution.Create;
+          end;
+
+          CopyRemotableObject(TBloArrayOfRemotable(MsgResponse.Result), TBloArrayOfRemotable(aBloArrayOfInstitution));
+
+          Result := bloSuccess;
+          LogUtil.LogMsg(lmInfo, UNIT_NAME, 'Successfully retrieved Institutions from BankLink Online.');
+        end
+        else
+        begin
+          LogUtil.LogMsg(lmInfo, UNIT_NAME, 'Institutions were not retrieved from BankLink Online.');
+          result := bloFailedFatal;
+        end;
+
+      finally
+        FreeAndNil(MsgResponse);
+      end;
+
+      if not ResponceError then
+        Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Finished', 100);
+
+    except
+      on E : Exception do
+      begin
+        HandleException('GetInstitutionList', E);
+        Result := bloFailedFatal;
+      end;
+    end;
+  finally
+    Progress.StatusSilent := True;
+    Progress.ClearStatus;
+    Screen.Cursor := crDefault;
+  end;}
+end;
+
+//------------------------------------------------------------------------------
+function TProductConfigService.ValidateAccount(aAccountNumber, aInstCode, aCountryCode: string; var aFailedReason: string): Boolean;
+var
+  AccountList: TBloArrayOfAccountValidation;
+begin
+  aFailedReason := '';
+  Result := false;
+
+  SetLength(AccountList, 1);
+  AccountList[0] := TBloAccountValidation.create;
+
+  try
+    AccountList[0].AccountNumber   := aAccountNumber;
+    AccountList[0].InstitutionCode := aInstCode;
+    AccountList[0].CountryCode     := aCountryCode;
+
+    if (ValidateAccountList(AccountList) in [bloSuccess, bloFailedNonFatal]) then
+    begin
+      Result := AccountList[0].ValidationPassed;
+      if not result then
+        aFailedReason := AccountList[0].FailureReason;
+    end
+  finally
+    FreeAndNil(AccountList);
+    SetLength(AccountList, 0);
+  end;
+end;
+
+//------------------------------------------------------------------------------
+function TProductConfigService.ValidateAccountList(var aValidateAccountList: TBloArrayOfAccountValidation): TBloResult;
+var
+  BlopiInterface  : IBlopiServiceFacade;
+  MsgResponse     : MessageResponseOfArrayOfAccountValidationMIdCYrSK;
+  ResponceError   : Boolean;
+begin
+  Result := bloFailedNonFatal;
+  Screen.Cursor := crHourGlass;
+  Progress.StatusSilent := False;
+  Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Connecting', 10);
+
+  BlopiInterface := GetServiceFacade;
+  try
+    try
+      Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Validate Account List', 55);
+
+      try
+        MsgResponse := BlopiInterface.ValidateAccounts(CountryText(AdminSystem.fdFields.fdCountry),
+                                                       AdminSystem.fdFields.fdBankLink_Code,
+                                                       AdminSystem.fdFields.fdBankLink_Connect_Password,
+                                                       aValidateAccountList);
+
+        ResponceError := MessageResponseHasError(MsgResponse, 'Validate Account List from');
+
+        if not ResponceError then
+        begin
+          if Length(aValidateAccountList) = Length(MsgResponse.Result) then
+          begin
+            CopyRemotableObject(TBloArrayOfRemotable(MsgResponse.Result), TBloArrayOfRemotable(aValidateAccountList));
+
+            Result := bloSuccess;
+            LogUtil.LogMsg(lmInfo, UNIT_NAME, 'Successfully validated Account List from BankLink Online.');
+          end
+          else
+          begin
+            LogUtil.LogMsg(lmInfo, UNIT_NAME, 'Account List returned did not match list sent to BankLink Online.');
+            result := bloFailedFatal;
+          end;
+        end
+        else
+        begin
+          LogUtil.LogMsg(lmInfo, UNIT_NAME, 'Account List was not validated from BankLink Online.');
+          result := bloFailedFatal;
+        end;
+
+      finally
+        FreeAndNil(MsgResponse);
+      end;
+
+      if not ResponceError then
+        Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Finished', 100);
+
+    except
+      on E : Exception do
+      begin
+        HandleException('ValidateAccountList', E);
+        Result := bloFailedFatal;
+      end;
+    end;
+  finally
+    Progress.StatusSilent := True;
+    Progress.ClearStatus;
+    Screen.Cursor := crDefault;
   end;
 end;
 
@@ -2953,7 +3161,7 @@ begin
   MessageDetails := E.Message;
 
   ShowDetails := True;
-  
+
   if E is ESOAPHTTPException then
   begin
     if (Pos(' - URL:', E.Message) > 0) then
@@ -5430,10 +5638,10 @@ begin
             else
             begin
               Exit;
-            end;      
+            end;
           end;
         end;
-                                                       
+
         Result := not MessageResponseHasError(MsgResponse, 'delete client on');
 
         if Result then

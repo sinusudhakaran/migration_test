@@ -58,7 +58,7 @@ var
    AttachmentSent, AskOpen: Boolean;
 begin
    Result := False;
-   Job := TTPAReport.Create(ReportTypes.rptOther);
+   {Job := TTPAReport.Create(ReportTypes.rptOther);
    try
       Job.Values := Values;
       Job.Country := whNewZealand;
@@ -96,22 +96,22 @@ begin
       end;
    finally
       Job.Free;
-   end;
+   end;   }
 end;
 
 //------------------------------------------------------------------------------
 procedure TTPAReport.BKPrint;
 begin
-  if ImportMode then
+  {if ImportMode then
      ImportFile(Values.ImportFile,True)
   else
-     PrintForm;
+     PrintForm;}
 end;
 
 //------------------------------------------------------------------------------
 procedure TTPAReport.FillCollumn(C: TCell);
 begin
-  if C.Col = fcAccountName then
+  {if C.Col = fcAccountName then
     Values.edtName1.Text := GetCellText(C)
   else if C.Col = fcAccountNo then
     Values.edtNumber1.Text := GetCellText(C)
@@ -139,13 +139,13 @@ begin
     Values.cbProvisional.Checked := True;
     if (GetCellText(C) = 'N') then
       Values.cbProvisional.Checked := False;
-  end;
+  end;}
 end;
 
 //------------------------------------------------------------------------------
 function TTPAReport.HaveNewdata: Boolean;
 begin
-  Result := (Values.edtName1.Text > '')
+  {Result := (Values.edtName1.Text > '')
          or (Values.edtNumber1.Text > '')
          or (Values.edtName2.Text > '')
          or (Values.edtNumber2.Text > '')
@@ -153,7 +153,7 @@ begin
          or (Values.edtNumber3.Text > '');
 
   if not Result then
-     ResetForm; // Clear the rest
+     ResetForm; // Clear the rest}
 end;
 
 //------------------------------------------------------------------------------
@@ -164,7 +164,7 @@ var
   BankText : string;
 begin
   {assume we have a canvas of A4 proportions as per GST forms}
-  myCanvas     := CanvasRenderEng.OutputBuilder.Canvas;
+  {myCanvas     := CanvasRenderEng.OutputBuilder.Canvas;
   //*** Form heading
   myCanvas.Font.Size := 18;
   myCanvas.Font.Style := [fsbold];
@@ -296,13 +296,13 @@ begin
   RenderText(Values.lblRural.Caption, Rect(Col1, CurrYPos, ColBoxRight, CurrYPos+CurrLineSize), jtLeft);
   DrawRadio(myCanvas, XYSizeRect(Col1 + 400, CurrYPos, ColBoxRight, CurrYPos+CurrLineSize), ' ' + Values.rbReDate.Caption, True, Values.rbReDate.Checked);
   DrawRadio(myCanvas, XYSizeRect(Col2, CurrYPos, ColBoxRight, CurrYPos+CurrLineSize), ' ' + Values.rbDate.Caption, True, Values.rbDate.Checked);
-  WasPrinted := True;
+  WasPrinted := True;}
 end;
 
 //------------------------------------------------------------------------------
 procedure TTPAReport.ResetForm;
 begin
-  Values.btnClearClick(nil);
+  //Values.btnClearClick(nil);
 end;
 
 //------------------------------------------------------------------------------
@@ -320,10 +320,10 @@ var
 {$ENDIF}
 begin
   // don't draw QRCode if institution is set to other or not set
-  if Values.cmbInstitutionName.ItemIndex < 1 then
-    Exit;
+  {if Values.cmbInstitutionName.ItemIndex < 1 then
+    Exit;}
 {$IFNDEF PRACTICE-7}
-  CAFQRData := TCAFQRData.Create(TCAFQRDataAccount);
+  {CAFQRData := TCAFQRData.Create(TCAFQRDataAccount);
   try
     CafQrCode := TCafQrCode.Create;
     try
@@ -398,7 +398,7 @@ begin
     end;
   finally
     FreeAndNil(CAFQRData);
-  end;
+  end; }
   {$ENDIF}
 end;
 

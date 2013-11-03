@@ -3531,10 +3531,10 @@ begin
       else
         Width := 700;
       Top := 0;
-      edtPractice.Text := AdminSystem.fdFields.fdBankLink_Code;
+      {edtPractice.Text := AdminSystem.fdFields.fdBankLink_Code;
       edtAdvisors.Text := AdminSystem.fdFields.fdPractice_Name_for_Reports;
-      cmbMonth.ItemIndex := 0;      
-      cmbDay.ItemIndex := 0;
+      cmbMonth.ItemIndex := 0;
+      cmbDay.ItemIndex := 0;}
       repeat
       begin
         ShowModal;
