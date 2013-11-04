@@ -240,7 +240,8 @@ begin
                                                    true,
                                                    BudgetData,
                                                    1,
-                                                   PassedMsg);
+                                                   PassedMsg,
+                                                   True);
 
   AssignFile(TestFile, BUDGET_FILE);
   Reset(TestFile);
@@ -249,7 +250,7 @@ begin
     Check(LineStr = '"Account","Description","Total","Jan 00","Feb 00","Mar 00","Apr 00","May 00","Jun 00","Jul 00","Aug 00","Sep 00","Oct 00","Nov 00","Dec 00"');
 
     Readln(TestFile, LineStr);
-    Check(LineStr = '"001","Test Description 001",7800,100,200,300,400,500,600,700,800,900,1000,1100,1200');
+    Check(LineStr = '"001","Test Description 001",,,,,,,,,,,,,'); // No amounts or total for non posting codes
 
     Readln(TestFile, LineStr);
     Check(LineStr = '"002","0123456789012345678901234567890123456789",0,0,0,0,0,0,0,0,0,0,0,0,0');
@@ -266,7 +267,8 @@ begin
                                                    false,
                                                    BudgetData,
                                                    1,
-                                                   PassedMsg);
+                                                   PassedMsg,
+                                                   True);
 
   AssignFile(TestFile, BUDGET_FILE);
   Reset(TestFile);
@@ -275,7 +277,31 @@ begin
     Check(LineStr = '"Account","Description","Total","Jan 00","Feb 00","Mar 00","Apr 00","May 00","Jun 00","Jul 00","Aug 00","Sep 00","Oct 00","Nov 00","Dec 00"');
 
     Readln(TestFile, LineStr);
-    Check(LineStr = '"001","Test Description 001",7800,100,200,300,400,500,600,700,800,900,1000,1100,1200');
+    Check(LineStr = '"001","Test Description 001",,,,,,,,,,,,,'); // No amounts or total for non posting codes
+
+    Readln(TestFile, LineStr);
+    Check(LineStr = '"003","Test Description 003",4200,0,200,0,400,0,600,0,800,0,1000,0,1200');
+  finally
+    closefile(TestFile);
+  end;
+
+  // Don't Include Non-Posting Codes Test
+  BudgetData := CreateBudgetData;
+  ResExpBudget := fBudgetImportExport.ExportBudget(BUDGET_FILE,
+                                                   true,
+                                                   BudgetData,
+                                                   1,
+                                                   PassedMsg,
+                                                   False);
+
+  AssignFile(TestFile, BUDGET_FILE);
+  Reset(TestFile);
+  try
+    Readln(TestFile, LineStr);
+    Check(LineStr = '"Account","Description","Total","Jan 00","Feb 00","Mar 00","Apr 00","May 00","Jun 00","Jul 00","Aug 00","Sep 00","Oct 00","Nov 00","Dec 00"');
+
+    Readln(TestFile, LineStr);
+    Check(LineStr = '"002","0123456789012345678901234567890123456789",0,0,0,0,0,0,0,0,0,0,0,0,0');
 
     Readln(TestFile, LineStr);
     Check(LineStr = '"003","Test Description 003",4200,0,200,0,400,0,600,0,800,0,1000,0,1200');

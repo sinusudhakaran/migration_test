@@ -73,7 +73,7 @@ type
                           aData : TBudgetData;
                           aStartDate : integer;
                           var aMsg : string;
-                          aIncludeNonPostingChartCodes: boolean) : boolean;
+                          aIncludeNonPostingChartCodes: boolean): boolean;
     function CopyBudgetData(aBudgetData : TBudgetData) : TBudgetData;
     procedure ClearWasUpdated(var aBudgetData : TBudgetData);
     procedure UpdateBudgetDetailRows(var aBudgetData : TBudgetData; var aBudget : TBudget);
@@ -242,12 +242,12 @@ function TBudgetImportExport.ExportBudget(aBudgetFilePath: string;
 const
   ThisMethodName = 'ExportBudget';
 var
-  OutputFile : Text;
-  DateIndex  : integer;
-  ColDate    : integer;
-  DataIndex  : integer;
-  HeaderLine : string;
-  DataLine   : string;
+  OutputFile    : Text;
+  DateIndex     : integer;
+  ColDate       : integer;
+  DataIndex     : integer;
+  HeaderLine    : string;
+  DataLine      : string;
   OkToWriteLine : Boolean;
 begin
   Result := false;
@@ -270,7 +270,7 @@ begin
       for DataIndex := 0 to high(aData) do
       begin
         if not (aIncludeNonPostingChartCodes or
-                MyClient.clChart.FindCode(aData[DataIndex].bAccount)^.chPosting_Allowed) then
+                aData[DataIndex].bIsPosting) then
         begin
           OkToWriteLine := false; // No non-posting chart codes
         end else
@@ -306,7 +306,7 @@ begin
             DataLine := DataLine + '" ' + aData[DataIndex].bAccount + '",';
 
           DataLine := DataLine + '"' + aData[DataIndex].bDesc + '",';
-          if MyClient.clChart.FindCode(aData[DataIndex].bAccount)^.chPosting_Allowed then
+          if aData[DataIndex].bIsPosting then          
             // Non posting chart codes shouldn't display a total in the budget
             DataLine := DataLine + IntToStr(aData[DataIndex].bTotal) + ','
           else
@@ -314,7 +314,7 @@ begin
 
           for DateIndex := 1 to 12 do
           begin
-            if MyClient.clChart.FindCode(aData[DataIndex].bAccount)^.chPosting_Allowed then
+            if aData[DataIndex].bIsPosting then
               // Non posting chart codes shouldn't display amounts in the budget
               DataLine := DataLine + IntToStr(aData[DataIndex].bAmounts[DateIndex]);
             if DateIndex < 12 then
