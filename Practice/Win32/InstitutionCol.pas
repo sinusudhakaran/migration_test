@@ -29,6 +29,11 @@ type
 
     // Extra Properties not loaded from blopi
     FEnabled : Boolean;
+    FHasRuralCode : Boolean;
+    FRuralCode : string;
+    fRuralMainItemCode : string;
+    FHasNewName : Boolean;
+    FNewName : String;
   public
     property AccountEditMask: WideString read FAccountEditMask write FAccountEditMask;
     property Active: Boolean read FActive write FActive;
@@ -47,6 +52,11 @@ type
 
     // Extra Properties not loaded from blopi
     property Enabled : Boolean read FEnabled write FEnabled;
+    property HasRuralCode : Boolean read FHasRuralCode write FHasRuralCode;
+    property RuralCode : string read FRuralCode write FRuralCode;
+    property RuralMainItemCode : string read FRuralMainItemCode write FRuralMainItemCode;
+    property HasNewName : Boolean read FHasNewName write FHasNewName;
+    property NewName : String read FNewName write FNewName;
   end;
 
   //----------------------------------------------------------------------------
@@ -58,6 +68,7 @@ type
     fLoaded : boolean;
   protected
     function LoadFromFile(aFileName : string) : boolean;
+    function SaveToFile(aFileName: string): boolean;
     function LoadFromBlopi() : boolean;
     function GetBoolFromString(aInStr: String; adefault : boolean): boolean;
   public
@@ -78,12 +89,16 @@ implementation
 uses
   CsvParser,
   Globals,
+  GenUtils,
   BanklinkOnlineServices;
 
 const
-  INST_CODE         = 0;
-  INST_COUNTRY_CODE = 1;
-  INST_ENABLED      = 2;
+  INST_CODE           = 0;
+  INST_NAME           = 1;
+  INST_COUNTRY_CODE   = 2;
+  INST_ENABLED        = 3;
+  RURAL_POINT_TO_MAIN = 4;
+  RENAME              = 5;
 
 var
   fInstitutions : TInstitutions;
@@ -105,9 +120,10 @@ function TInstitutions.Load: boolean;
 begin
   if not fLoaded then
   begin
+    //fLoaded := SaveToFile(DataDir + INSTITUTIONS_FILENAME);
     fLoaded := LoadFromBlopi();
-    if fLoaded then
-      fLoaded := LoadFromFile(DataDir + INSTITUTIONS_FILENAME);
+    //if fLoaded then
+      //fLoaded := LoadFromFile(DataDir + INSTITUTIONS_FILENAME);
   end;
 
   Result := fLoaded;
@@ -212,6 +228,11 @@ begin
 
       //Defaults for file properties
       NewInstitutionItem.Enabled := true;
+      NewInstitutionItem.HasRuralCode := false;
+      NewInstitutionItem.RuralCode := '';
+      NewInstitutionItem.RuralMainItemCode := '';
+      NewInstitutionItem.HasNewName := false;
+      NewInstitutionItem.NewName := '';
 
       if CountryCodes.Find(NewInstitutionItem.CountryCode, CountryIndex) = false then
       begin
@@ -219,6 +240,37 @@ begin
         CountryNames.Add('');
       end;
     end;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+function TInstitutions.SaveToFile(aFileName: string): boolean;
+var
+  BloArrayOfInstitution : TBloArrayOfInstitution;
+  NewInstitutionItem : TInstitutionItem;
+  ItemIndex : integer;
+  CountryIndex : integer;
+  CsvFile   : TStringList;
+begin
+  Result := (ProductConfigService.GetInstitutionList(BloArrayOfInstitution) in [bloSuccess, bloFailedNonFatal] );
+
+  CsvFile := TStringList.Create;
+
+  try
+    CsvFile.Add('CODE, NAME, COUNTRY_CODE, ENABLED, RURAL_MAIN_CODE, NEW_NAME');
+
+    for ItemIndex := 0 to length(BloArrayOfInstitution) - 1 do
+    begin
+      CsvFile.Add(BloArrayOfInstitution[ItemIndex].Code + ',' +
+                  RemoveInvalidCharacters(BloArrayOfInstitution[ItemIndex].Name_) + ',' +
+                  BloArrayOfInstitution[ItemIndex].CountryCode + ',1,,');
+    end;
+
+    CsvFile.SaveToFile(aFileName);
+    Result := true;
+
+  finally
+    FreeAndNil(CsvFile);
   end;
 end;
 
@@ -249,7 +301,24 @@ begin
 
       if FindItem(CommaLine[INST_CODE], CommaLine[INST_COUNTRY_CODE], FoundInstitutionItem) then
       begin
-        FoundInstitutionItem.Enabled := GetBoolFromString(CommaLine[INST_ENABLED], true); //defaults to true on error
+        FoundInstitutionItem.Enabled := GetBoolFromString(CommaLine[RURAL_POINT_TO_MAIN], true); //defaults to true on error
+        FoundInstitutionItem.RuralMainItemCode := CommaLine[RURAL_POINT_TO_MAIN];
+        FoundInstitutionItem.NewName := CommaLine[RENAME];
+        FoundInstitutionItem.HasNewName := (length(FoundInstitutionItem.NewName) > 0);
+      end;
+    end;
+
+    for Index := 0 to self.count - 1 do
+    begin
+      if length(TInstitutionItem(self.Items[Index]).RuralMainItemCode) > 0 then
+      begin
+        if FindItem(TInstitutionItem(self.Items[Index]).RuralMainItemCode,
+                   TInstitutionItem(self.Items[Index]).CountryCode ,
+                   FoundInstitutionItem) then
+        begin
+          FoundInstitutionItem.HasRuralCode := true;
+          FoundInstitutionItem.RuralCode    := TInstitutionItem(self.Items[Index]).Code;
+        end;
       end;
     end;
 

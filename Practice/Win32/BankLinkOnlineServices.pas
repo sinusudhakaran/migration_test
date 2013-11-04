@@ -1299,6 +1299,8 @@ begin
   begin
     Result := Result + Service;
   end;
+
+  Result := 'http://localhost:56787/Services/BlopiServiceFacade.svc';
 end;
 
 //------------------------------------------------------------------------------
@@ -2819,45 +2821,7 @@ var
   ResponceError : Boolean;
   Index : integer;
 begin
-  SetLength(aBloArrayOfInstitution, 5);
-  for Index := 0 to Length(aBloArrayOfInstitution)-1 do
-  begin
-    aBloArrayOfInstitution[Index] := TBloInstitution.Create;
-  end;
-
-  aBloArrayOfInstitution[0].AccountEditMask := 'LLLLAAAAA00000;1;';
-  aBloArrayOfInstitution[0].Code := 'AAA';
-  aBloArrayOfInstitution[0].CountryCode := 'NZ';
-  aBloArrayOfInstitution[0].Name_ := 'Bank AAA';
-  aBloArrayOfInstitution[0].Active := true;
-
-  aBloArrayOfInstitution[1].AccountEditMask := 'CCCC0000LLLL;1;';
-  aBloArrayOfInstitution[1].Code := 'AAA';
-  aBloArrayOfInstitution[1].CountryCode := 'OZ';
-  aBloArrayOfInstitution[1].Name_ := 'Bank AAA';
-  aBloArrayOfInstitution[1].Active := true;
-
-  aBloArrayOfInstitution[2].AccountEditMask := '00000LLLLAAAA;1;';
-  aBloArrayOfInstitution[2].Code := 'BBB';
-  aBloArrayOfInstitution[2].CountryCode := 'NZ';
-  aBloArrayOfInstitution[2].Name_ := 'Bank BBB';
-  aBloArrayOfInstitution[2].Active := true;
-
-  aBloArrayOfInstitution[3].AccountEditMask := '00000AAAAAAAA;1;';
-  aBloArrayOfInstitution[3].Code := 'BBB';
-  aBloArrayOfInstitution[3].CountryCode := 'OZ';
-  aBloArrayOfInstitution[3].Name_ := 'Bank BBB';
-  aBloArrayOfInstitution[3].Active := true;
-
-  aBloArrayOfInstitution[4].AccountEditMask := 'AAAAALLLLLLCCCCC0000;1;';
-  aBloArrayOfInstitution[4].Code := 'CCC';
-  aBloArrayOfInstitution[4].CountryCode := 'NZ';
-  aBloArrayOfInstitution[4].Name_ := 'Bank CCC';
-  aBloArrayOfInstitution[4].Active := true;
-  Result := bloSuccess;
-
-
-  {Result := bloFailedNonFatal;
+  Result := bloFailedNonFatal;
   Screen.Cursor := crHourGlass;
   Progress.StatusSilent := False;
   Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Connecting', 10);
@@ -2912,7 +2876,7 @@ begin
     Progress.StatusSilent := True;
     Progress.ClearStatus;
     Screen.Cursor := crDefault;
-  end;}
+  end;
 end;
 
 //------------------------------------------------------------------------------
@@ -2927,9 +2891,11 @@ begin
   AccountList[0] := TBloAccountValidation.create;
 
   try
-    AccountList[0].AccountNumber   := aAccountNumber;
-    AccountList[0].InstitutionCode := aInstCode;
-    AccountList[0].CountryCode     := aCountryCode;
+    AccountList[0].AccountNumber    := aAccountNumber;
+    AccountList[0].InstitutionCode  := aInstCode;
+    AccountList[0].CountryCode      := aCountryCode;
+    AccountList[0].FailureReason    := '';
+    AccountList[0].ValidationPassed := false;
 
     if (ValidateAccountList(AccountList) in [bloSuccess, bloFailedNonFatal]) then
     begin
@@ -2938,7 +2904,7 @@ begin
         aFailedReason := AccountList[0].FailureReason;
     end
   finally
-    FreeAndNil(AccountList);
+    FreeAndNil(AccountList[0]);
     SetLength(AccountList, 0);
   end;
 end;

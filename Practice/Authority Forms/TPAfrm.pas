@@ -46,6 +46,7 @@ type
     pnlInstitution: TPanel;
     cmbInstitutionName: TComboBox;
     lblInstitution: TLabel;
+    lblAccountValidationError: TLabel;
     procedure btnPreviewClick(Sender: TObject);
     procedure btnFileClick(Sender: TObject);
     procedure btnPrintClick(Sender: TObject);
@@ -63,7 +64,13 @@ type
     procedure FormDestroy(Sender: TObject);
     procedure mskAccountNumberKeyUp(Sender: TObject; var Key: Word;
       Shift: TShiftState);
+    procedure mskAccountNumberExit(Sender: TObject);
+    procedure mskAccountNumberEnter(Sender: TObject);
+    procedure mskAccountNumberMouseDown(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Integer);
   private
+    fPracticeCode : string;
+    fPracticeName : string;
     FButton: Byte;
     fMaskHint : TMaskHint;
     FImportFile: string;
@@ -71,10 +78,13 @@ type
     procedure SetImportFile(const Value: string);
 
     procedure UpdateMask;
+    function ValidateAccount(aAccountNumber : string; var aFailedReason : string) : boolean;
   public
     { Public declarations }
     property ButtonPressed: Byte read FButton;
     property ImportFile: string read FImportFile write SetImportFile;
+    property PracticeCode : string read fPracticeCode write fPracticeCode;
+    property PracticeName : string read fPracticeName write fPracticeName;
   end;
 
 
@@ -90,7 +100,8 @@ uses
   InfoMoreFrm,
   ShellAPI,
   bkHelp,
-  InstitutionCol;
+  InstitutionCol,
+  BanklinkOnlineServices;
 
 Const
   UNIT_NAME = 'TPAfrm';
@@ -117,12 +128,20 @@ begin
   cmbInstitutionCountry.itemindex := CountryIndex;
   cmbInstitutionCountry.Enabled := false;}
 
+  lblAccountValidationError.Caption := '';
+
   // Institution Names
   cmbInstitutionName.AddItem('Other', nil);
   for Index := 0 to Institutions.Count-1 do
   begin
-    if TInstitutionItem(Institutions.Items[Index]).CountryCode = COUNTY_CODE then
-      cmbInstitutionName.AddItem(TInstitutionItem(Institutions.Items[Index]).Name ,TInstitutionItem(Institutions.Items[Index]));
+    if (TInstitutionItem(Institutions.Items[Index]).CountryCode = COUNTY_CODE) and
+       (TInstitutionItem(Institutions.Items[Index]).Enabled) then
+    begin
+      if TInstitutionItem(Institutions.Items[Index]).HasNewName then
+        cmbInstitutionName.AddItem(TInstitutionItem(Institutions.Items[Index]).NewName, TInstitutionItem(Institutions.Items[Index]))
+      else
+        cmbInstitutionName.AddItem(TInstitutionItem(Institutions.Items[Index]).Name, TInstitutionItem(Institutions.Items[Index]));
+    end;
   end;
 
   cmbInstitutionName.Width := SET_BANK_WIDTH;
@@ -133,6 +152,24 @@ end;
 procedure TfrmTPA.FormDestroy(Sender: TObject);
 begin
   FreeAndNil(fMaskHint);
+end;
+
+//------------------------------------------------------------------------------
+function TfrmTPA.ValidateAccount(aAccountNumber : string; var aFailedReason : string) : boolean;
+const
+  COUNTRY_CODE = 'NZ';
+var
+  FailedReason : string;
+  InstCode : string;
+begin
+  Result := true;
+  if (cmbInstitutionName.ItemIndex > 0) and
+     (Assigned(cmbInstitutionName.Items.Objects[cmbInstitutionName.ItemIndex])) and
+     (cmbInstitutionName.Items.Objects[cmbInstitutionName.ItemIndex] is TInstitutionItem) then
+  begin
+    InstCode := TInstitutionItem(cmbInstitutionName.Items.Objects[cmbInstitutionName.ItemIndex]).Code;
+    Result := ProductConfigService.ValidateAccount(aAccountNumber, InstCode, COUNTRY_CODE, aFailedReason);
+  end;
 end;
 
 //------------------------------------------------------------------------------
@@ -283,12 +320,13 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmTPA.btnImportClick(Sender: TObject);
 begin
-   OpenDlg.FileName := ImportFile;
-   if OpenDlg.Execute then begin
-       ImportFile := OpenDlg.FileName;
-       FButton := BTN_IMPORT;
-       ModalResult := mrOk;
-   end;
+  OpenDlg.FileName := ImportFile;
+  if OpenDlg.Execute then
+  begin
+    ImportFile := OpenDlg.FileName;
+    FButton := BTN_IMPORT;
+    ModalResult := mrOk;
+  end;
 end;
 
 //------------------------------------------------------------------------------
@@ -318,6 +356,7 @@ begin
     if (Assigned(cmbInstitutionName.Items.Objects[cmbInstitutionName.ItemIndex])) and
        (cmbInstitutionName.Items.Objects[cmbInstitutionName.ItemIndex] is TInstitutionItem) then
     begin
+      mskAccountNumber.EditText := '';
       mskAccountNumber.EditMask := TInstitutionItem(cmbInstitutionName.Items.Objects[cmbInstitutionName.ItemIndex]).AccountEditMask;
       UpdateMask;
     end;
@@ -363,8 +402,34 @@ begin
   //ScrollBox1.ScrollInView(lblTitle); // scroll to top
 end;
 
+//------------------------------------------------------------------------------
+procedure TfrmTPA.mskAccountNumberEnter(Sender: TObject);
+begin
+  UpdateMask;
+end;
+
+//------------------------------------------------------------------------------
+procedure TfrmTPA.mskAccountNumberExit(Sender: TObject);
+var
+  FailedReason : string;
+begin
+  if not ValidateAccount(mskAccountNumber.EditText, FailedReason) then
+  begin
+    lblAccountValidationError.Caption := FailedReason;
+    //mskAccountNumber.SetFocus;
+  end;
+end;
+
+//------------------------------------------------------------------------------
 procedure TfrmTPA.mskAccountNumberKeyUp(Sender: TObject; var Key: Word;
   Shift: TShiftState);
+begin
+  UpdateMask;
+end;
+
+//------------------------------------------------------------------------------
+procedure TfrmTPA.mskAccountNumberMouseDown(Sender: TObject;
+  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 begin
   UpdateMask;
 end;

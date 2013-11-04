@@ -1707,7 +1707,7 @@ type
                                          ): MessageResponse; stdcall;
     function  AuthenticatePracticeUser(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const userId: guid; const password: WideString): MessageResponse; stdcall;
     function  GetInstitutions(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString): MessageResponseOfArrayOfInstitutionMIdCYrSK2; stdcall;
-    function  ValidateAccounts(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const ValidateAccountList: ArrayOfAccountValidation): MessageResponseOfArrayOfAccountValidationMIdCYrSK; stdcall;
+    function  ValidateAccounts(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const accountValidation: ArrayOfAccountValidation): MessageResponseOfArrayOfAccountValidationMIdCYrSK; stdcall;
     function  DeleteUser(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const userId: guid): MessageResponse; stdcall;
     function  GetClientList(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString): MessageResponseOfClientListMIdCYrSK; stdcall;
     function  GetClient(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const clientId: guid): MessageResponseOfClientReadDetailMIdCYrSK; stdcall;

@@ -3531,6 +3531,9 @@ begin
       else
         Width := 700;
       Top := 0;
+
+      PracticeCode := AdminSystem.fdFields.fdBankLink_Code;
+      PracticeName := AdminSystem.fdFields.fdPractice_Name_for_Reports;
       {edtPractice.Text := AdminSystem.fdFields.fdBankLink_Code;
       edtAdvisors.Text := AdminSystem.fdFields.fdPractice_Name_for_Reports;
       cmbMonth.ItemIndex := 0;

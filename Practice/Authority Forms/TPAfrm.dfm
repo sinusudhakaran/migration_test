@@ -133,11 +133,12 @@ object frmTPA: TfrmTPA
     Font.Style = []
     ParentFont = False
     TabOrder = 1
+    ExplicitTop = 2
     object pnlAccount: TPanel
       Left = 0
       Top = 73
       Width = 688
-      Height = 89
+      Height = 96
       Align = alTop
       TabOrder = 0
       object lblAcName: TLabel
@@ -149,21 +150,21 @@ object frmTPA: TfrmTPA
       end
       object lblAcNum: TLabel
         Left = 13
-        Top = 40
+        Top = 48
         Width = 83
         Height = 13
         Caption = 'Account Number '
       end
       object lblClient: TLabel
         Left = 416
-        Top = 6
+        Top = 7
         Width = 57
         Height = 13
         Caption = 'Client Code '
       end
       object lblCost: TLabel
         Left = 416
-        Top = 36
+        Top = 52
         Width = 52
         Height = 13
         Caption = 'Cost Code '
@@ -182,6 +183,19 @@ object frmTPA: TfrmTPA
         Width = 3
         Height = 13
       end
+      object lblAccountValidationError: TLabel
+        Left = 112
+        Top = 28
+        Width = 118
+        Height = 13
+        Caption = 'lblAccountValidationError'
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clRed
+        Font.Height = -11
+        Font.Name = 'MS Sans Serif'
+        Font.Style = []
+        ParentFont = False
+      end
       object edtAccountName: TEdit
         Left = 112
         Top = 6
@@ -196,7 +210,7 @@ object frmTPA: TfrmTPA
       end
       object edtClientCode: TEdit
         Left = 493
-        Top = 5
+        Top = 6
         Width = 160
         Height = 21
         Hint = 'Enter the code your practice uses for this client'
@@ -210,7 +224,7 @@ object frmTPA: TfrmTPA
       end
       object edtCost1: TEdit
         Left = 493
-        Top = 32
+        Top = 48
         Width = 160
         Height = 21
         Hint = 'Enter the cost code your practice uses for this client'
@@ -224,11 +238,14 @@ object frmTPA: TfrmTPA
       end
       object mskAccountNumber: TMaskEdit
         Left = 112
-        Top = 37
+        Top = 45
         Width = 281
         Height = 21
         TabOrder = 3
+        OnEnter = mskAccountNumberEnter
+        OnExit = mskAccountNumberExit
         OnKeyUp = mskAccountNumberKeyUp
+        OnMouseDown = mskAccountNumberMouseDown
       end
     end
     object pnlInstitution: TPanel
@@ -238,6 +255,7 @@ object frmTPA: TfrmTPA
       Height = 73
       Align = alTop
       TabOrder = 1
+      ExplicitLeft = -1
       object lblInstitution: TLabel
         Left = 16
         Top = 11
@@ -250,7 +268,7 @@ object frmTPA: TfrmTPA
         Top = 8
         Width = 281
         Height = 21
-        ItemHeight = 0
+        ItemHeight = 13
         TabOrder = 0
         OnChange = cmbInstitutionNameChange
       end
