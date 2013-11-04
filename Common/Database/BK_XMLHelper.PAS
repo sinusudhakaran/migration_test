@@ -3010,6 +3010,8 @@ begin
 	SetIntAttr(Result, 'OnlineSubscriptionCount', ceOnlineSubscriptionCount);
 	SetBoolAttr(Result, 'DeliverDataDirectToBLO', ceDeliverDataDirectToBLO);
 	SetTextAttr(Result, 'BLOSecureCode', ceBLOSecureCode);
+	SetBoolAttr(Result, 'IncludeUnusedChartCodes', ceInclude_Unused_Chart_Codes);
+	SetBoolAttr(Result, 'IncludeNonPostingChartCodes', ceInclude_Non_Posting_Chart_Codes);
 
 	CNode := nil;
 	CCNode := nil;
@@ -3139,6 +3141,8 @@ begin
 	ceOnlineSubscriptionCount := GetIntAttr(Result, 'OnlineSubscriptionCount');
 	ceDeliverDataDirectToBLO := GetBoolAttr(Result, 'DeliverDataDirectToBLO');
 	ceBLOSecureCode := GetTextAttr(Result, 'BLOSecureCode');
+	ceInclude_Unused_Chart_Codes := GetBoolAttr(Result, 'IncludeUnusedChartCodes');
+	ceInclude_Non_Posting_Chart_Codes := GetBoolAttr(Result, 'IncludeNonPostingChartCodes');
 	except
 		on E: Exception do ReRaise (E, 'Reading TClientExtra_Rec');
 	end;

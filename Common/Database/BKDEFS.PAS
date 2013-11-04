@@ -9,8 +9,8 @@ Interface uses MONEYDEF, DATEDEF;
 {  -------------------------------------------------------------------  }
 
 Const
-   BK_IOLIB_Version : Integer = 697;
-   BK_IOLIB_Date    = '13/03/13';
+   BK_IOLIB_Version : Integer = 699;
+   BK_IOLIB_Date    = '04/11/13';
    BK_FILE_VERSION  = 173;  (* Current Version counter for files
                               Changes if structure or method of storing a value would cause
                               data to be represented incorrectly, or an exception to be raised *)
@@ -221,6 +221,8 @@ Const
                             Added Exchange Gain_Loss_Code
                             Added new structure DeleteTransaction
      5.27            172    Added new structure ExchangeGainLoss
+     5.28            173    Adding Include Unused Chart Codes and Include Non-Posting Chart Codes
+     5.29            174    Moved the aforesaid fields (see 5.28) to ClientExtra, there's no room for new fields in Client
    *)
    //Audit Trail - 135 Don't reuse token!!! - Record defined in SY.TXT but also used in Client File
 
@@ -1281,6 +1283,8 @@ Type
       ceOnlineSubscriptionCount          : Integer;       { Stored }
       ceDeliverDataDirectToBLO           : Boolean;       { Stored }
       ceBLOSecureCode                    : String[ 20 ];       { Stored }
+      ceInclude_Unused_Chart_Codes       : Boolean;       { Stored }
+      ceInclude_Non_Posting_Chart_Codes  : Boolean;       { Stored }
       ceEOR                              : Byte;
    end;
 

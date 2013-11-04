@@ -27,17 +27,20 @@ type
     btnToFile: TSpeedButton;
     chkIncludeUnusedChartCodes: TCheckBox;
     SaveTextFileDialog: TSaveTextFileDialog;
+    chkIncludeNonPostingChartCodes: TCheckBox;
     procedure FormCreate(Sender: TObject);
     procedure btnToFileClick(Sender: TObject);
     procedure btnOkClick(Sender: TObject);
   private
     fBudgetFilePath : string;
     fIncludeUnusedChartCodes : boolean;
+    fIncludeNonPostingChartCodes : boolean;
 
     procedure SetBudgetFilePath(aFilePath : string);
   public
     property BudgetFilePath : string read fBudgetFilePath write SetBudgetFilePath;
     property IncludeUnusedChartCodes : boolean read fIncludeUnusedChartCodes write fIncludeUnusedChartCodes;
+    property IncludeNonPostingChartCodes : boolean read fIncludeNonPostingChartCodes write fIncludeNonPostingChartCodes;
   end;
 
 var
@@ -45,7 +48,8 @@ var
 
 //------------------------------------------------------------------------------
 function DoExportBudget(var BudgetFilePath : string;
-                        var IncludeUnusedChartCodes : boolean) : boolean;
+                        var IncludeUnusedChartCodes : boolean;
+                        var IncludeNonPostingChartCodes : boolean) : boolean;
 
 //------------------------------------------------------------------------------
 implementation
@@ -60,11 +64,16 @@ uses
 
 //------------------------------------------------------------------------------
 function DoExportBudget(var BudgetFilePath : string;
-                        var IncludeUnusedChartCodes : boolean) : boolean;
+                        var IncludeUnusedChartCodes : boolean;
+                        var IncludeNonPostingChartCodes : boolean) : boolean;
 var
   frmExportBudget : TfrmExportBudget;
 begin
   frmExportBudget := TfrmExportBudget.Create( Application.Mainform);
+  frmExportBudget.IncludeUnusedChartCodes := MyClient.clExtra.ceInclude_Unused_Chart_Codes;
+  frmExportBudget.IncludeNonPostingChartCodes := MyClient.clExtra.ceInclude_Non_Posting_Chart_Codes;
+  frmExportBudget.chkIncludeUnusedChartCodes.Checked := frmExportBudget.IncludeUnusedChartCodes;
+  frmExportBudget.chkIncludeNonPostingChartCodes.Checked := frmExportBudget.IncludeNonPostingChartCodes;
 
   try
     frmExportBudget.BudgetFilePath := BudgetFilePath;
@@ -72,8 +81,9 @@ begin
 
     if Result then
     begin
-      BudgetFilePath          := frmExportBudget.BudgetFilePath;
-      IncludeUnusedChartCodes := frmExportBudget.IncludeUnusedChartCodes;
+      BudgetFilePath              := frmExportBudget.BudgetFilePath;
+      IncludeUnusedChartCodes     := frmExportBudget.IncludeUnusedChartCodes;
+      IncludeNonPostingChartCodes := frmExportBudget.IncludeNonPostingChartCodes;
     end;
   finally
     FreeAndNil(frmExportBudget);
@@ -140,6 +150,9 @@ begin
 
   fBudgetFilePath := edtBudgetFile.Text;
   fIncludeUnusedChartCodes := chkIncludeUnusedChartCodes.Checked;
+  fIncludeNonPostingChartCodes := chkIncludeNonPostingChartCodes.Checked;
+  MyClient.clExtra.ceInclude_Unused_Chart_Codes := fIncludeUnusedChartCodes;
+  MyClient.clExtra.ceInclude_Non_Posting_Chart_Codes := fIncludeNonPostingChartCodes;
 
   ModalResult := mrOK;
 end;

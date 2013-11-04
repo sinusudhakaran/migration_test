@@ -2151,6 +2151,7 @@ procedure TfrmBudget.DoExport;
 var
   BudgetFilePath : string;
   IncludeUnusedChartCodes : boolean;
+  IncludeNonPostingChartCodes : boolean;
   BudgetImportExport : TBudgetImportExport;
   MsgStr : string;
   DataIndex : integer;
@@ -2168,13 +2169,15 @@ begin
       BudgetFilePath := ExtractFilePath(BudgetFilePath) +
                         RemoveInvalidCharacters(edtName.Text) + '.csv';
 
-    if DoExportBudget(BudgetFilePath, IncludeUnusedChartCodes) then
+    if DoExportBudget(BudgetFilePath, IncludeUnusedChartCodes, IncludeNonPostingChartCodes) then
     begin
       if not fShowZeros then
         RefreshFData(true, DataIndex);
 
       try
-        if BudgetImportExport.ExportBudget(BudgetFilePath, IncludeUnusedChartCodes, FData, Budget.buFields.buStart_Date, MsgStr) then
+        if BudgetImportExport.ExportBudget(BudgetFilePath, IncludeUnusedChartCodes, FData,
+                                           Budget.buFields.buStart_Date, MsgStr,
+                                           IncludeNonPostingChartCodes) then
         begin
           BudgetImportExport.SetDefaultFileLocation(MyClient.clFields.clCode, RemoveInvalidCharacters(edtName.Text{Budget.buFields.buName}) , BudgetFilePath);
 

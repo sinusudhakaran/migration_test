@@ -706,6 +706,8 @@ begin
      //Defaults for new client
      clExtra.ceAllow_Client_Edit_Chart := True;
      clExtra.ceAllow_Client_Unlock_Entries := True;
+     clExtra.ceInclude_Non_Posting_Chart_Codes := True;
+     clExtra.ceInclude_Unused_Chart_Codes := False;
 
      //Set country for client audit
      MyClient.ClientAuditMgr.Country := clCountry;

@@ -95,6 +95,8 @@ CONST
    tkceOnlineSubscriptionCount          = 88 ;
    tkceDeliverDataDirectToBLO           = 89 ;
    tkceBLOSecureCode                    = 90 ;
+   tkceInclude_Unused_Chart_Codes       = 91 ;
+   tkceInclude_Non_Posting_Chart_Codes  = 92 ;
 
 {  -------------------------------------------------------------------  }
 
@@ -178,6 +180,8 @@ Begin
       F.WriteIntegerValue( tkceOnlineSubscriptionCount , ceOnlineSubscriptionCount );
       F.WriteBooleanValue( tkceDeliverDataDirectToBLO , ceDeliverDataDirectToBLO );
       F.WriteStringValue( tkceBLOSecureCode , ceBLOSecureCode );
+      F.WriteBooleanValue( tkceInclude_Unused_Chart_Codes , ceInclude_Unused_Chart_Codes );
+      F.WriteBooleanValue( tkceInclude_Non_Posting_Chart_Codes , ceInclude_Non_Posting_Chart_Codes );
       F.WriteToken( tkEnd_ClientExtra );
    end;
 end; { of Write_ClientExtra_Rec }
@@ -288,6 +292,8 @@ Begin
          tkceOnlineSubscriptionCount          : ceOnlineSubscriptionCount := F.ReadIntegerValue;
          tkceDeliverDataDirectToBLO           : ceDeliverDataDirectToBLO := F.ReadBooleanValue;
          tkceBLOSecureCode                    : ceBLOSecureCode := F.ReadStringValue;
+         tkceInclude_Unused_Chart_Codes       : ceInclude_Unused_Chart_Codes := F.ReadBooleanValue;
+         tkceInclude_Non_Posting_Chart_Codes  : ceInclude_Non_Posting_Chart_Codes := F.ReadBooleanValue;
          else
             Raise ETokenException.CreateFmt( SUnknownToken, [ Token ] );
       end; { of Case }
@@ -338,7 +344,7 @@ begin
   for i := Low(ChangedFields) to High(ChangedFields) do
     ChangedFields[i] := 0;
   j := 0;
-  for i := tkceTAX_Applies_From to tkceBLOSecureCode do begin
+  for i := tkceTAX_Applies_From to tkceInclude_Non_Posting_Chart_Codes do begin
     ChangedFields[j] := i;
     Inc(j);
   end;
@@ -611,6 +617,16 @@ begin
   if (P1.ceBLOSecureCode <> P2.ceBLOSecureCode) then begin
     P3.ceBLOSecureCode := P1.ceBLOSecureCode;
     ChangedFields[i] := tkceBLOSecureCode;
+    Inc(i);
+  end;
+  if (P1.ceInclude_Unused_Chart_Codes <> P2.ceInclude_Unused_Chart_Codes) then begin
+    P3.ceInclude_Unused_Chart_Codes := P1.ceInclude_Unused_Chart_Codes;
+    ChangedFields[i] := tkceInclude_Unused_Chart_Codes;
+    Inc(i);
+  end;
+  if (P1.ceInclude_Non_Posting_Chart_Codes <> P2.ceInclude_Non_Posting_Chart_Codes) then begin
+    P3.ceInclude_Non_Posting_Chart_Codes := P1.ceInclude_Non_Posting_Chart_Codes;
+    ChangedFields[i] := tkceInclude_Non_Posting_Chart_Codes;
     Inc(i);
   end;
 

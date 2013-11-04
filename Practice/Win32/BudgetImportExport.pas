@@ -72,7 +72,8 @@ type
                           aIncludeUnusedChartCodes : boolean;
                           aData : TBudgetData;
                           aStartDate : integer;
-                          var aMsg : string) : boolean;
+                          var aMsg : string;
+                          aIncludeNonPostingChartCodes: boolean) : boolean;
     function CopyBudgetData(aBudgetData : TBudgetData) : TBudgetData;
     procedure ClearWasUpdated(var aBudgetData : TBudgetData);
     procedure UpdateBudgetDetailRows(var aBudgetData : TBudgetData; var aBudget : TBudget);
@@ -236,7 +237,8 @@ function TBudgetImportExport.ExportBudget(aBudgetFilePath: string;
                                           aIncludeUnusedChartCodes : boolean;
                                           aData : TBudgetData;
                                           aStartDate : integer;
-                                          var aMsg : string): boolean;
+                                          var aMsg : string;
+                                          aIncludeNonPostingChartCodes: boolean): boolean;
 const
   ThisMethodName = 'ExportBudget';
 var
@@ -267,16 +269,23 @@ begin
       // Data
       for DataIndex := 0 to high(aData) do
       begin
-        OkToWriteLine := true;
-        if Not aIncludeUnusedChartCodes then
+        if not (aIncludeNonPostingChartCodes or
+                MyClient.clChart.FindCode(aData[DataIndex].bAccount)^.chPosting_Allowed) then
         begin
-          OkToWriteLine := false;
-          for DateIndex := 1 to 12 do
+          OkToWriteLine := false; // No non-posting chart codes
+        end else
+        begin
+          OkToWriteLine := true;
+          if Not aIncludeUnusedChartCodes then
           begin
-            if aData[DataIndex].bAmounts[DateIndex] <> 0 then
+            OkToWriteLine := false;
+            for DateIndex := 1 to 12 do
             begin
-              OkToWriteLine := true;
-              break;
+              if aData[DataIndex].bAmounts[DateIndex] <> 0 then
+              begin
+                OkToWriteLine := true;
+                break;
+              end;
             end;
           end;
         end;

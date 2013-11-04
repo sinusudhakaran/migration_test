@@ -3,7 +3,7 @@ object frmExportBudget: TfrmExportBudget
   Top = 0
   BorderStyle = bsDialog
   Caption = 'Export Budget'
-  ClientHeight = 113
+  ClientHeight = 136
   ClientWidth = 525
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -16,7 +16,7 @@ object frmExportBudget: TfrmExportBudget
   OnCreate = FormCreate
   DesignSize = (
     525
-    113)
+    136)
   PixelsPerInch = 96
   TextHeight = 13
   object lblFilename: TLabel
@@ -46,7 +46,7 @@ object frmExportBudget: TfrmExportBudget
   end
   object btnOk: TButton
     Left = 364
-    Top = 80
+    Top = 103
     Width = 75
     Height = 25
     Anchors = [akRight, akBottom]
@@ -58,12 +58,12 @@ object frmExportBudget: TfrmExportBudget
     Font.Name = 'Tahoma'
     Font.Style = []
     ParentFont = False
-    TabOrder = 2
+    TabOrder = 3
     OnClick = btnOkClick
   end
   object btnCancel: TButton
     Left = 445
-    Top = 80
+    Top = 103
     Width = 75
     Height = 25
     Anchors = [akRight, akBottom]
@@ -76,7 +76,7 @@ object frmExportBudget: TfrmExportBudget
     Font.Style = []
     ModalResult = 2
     ParentFont = False
-    TabOrder = 3
+    TabOrder = 4
   end
   object edtBudgetFile: TEdit
     Left = 116
@@ -112,6 +112,24 @@ object frmExportBudget: TfrmExportBudget
     ShowHint = True
     State = cbChecked
     TabOrder = 1
+  end
+  object chkIncludeNonPostingChartCodes: TCheckBox
+    Left = 12
+    Top = 69
+    Width = 239
+    Height = 17
+    Caption = 'Include Non-Posting Chart Codes'
+    Checked = True
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -13
+    Font.Name = 'Tahoma'
+    Font.Style = []
+    ParentFont = False
+    ParentShowHint = False
+    ShowHint = False
+    State = cbChecked
+    TabOrder = 2
   end
   object SaveTextFileDialog: TSaveTextFileDialog
     DefaultExt = 'csv'

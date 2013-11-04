@@ -873,6 +873,8 @@ begin
     FAuditNamesArray[40,88] := 'OnlineSubscriptionCount';
     FAuditNamesArray[40,89] := 'DeliverDataDirectToBLO';
     FAuditNamesArray[40,90] := 'BLOSecureCode';
+    FAuditNamesArray[40,91] := 'Include_Unused_Chart_Codes';
+    FAuditNamesArray[40,92] := 'Include_Non_Posting_Chart_Codes';
 
    FAuditTableArray[233] := 'Deleted_Transaction';
     FAuditNamesArray[233,235] := 'Date_Deleted';

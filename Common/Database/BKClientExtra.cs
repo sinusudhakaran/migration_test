@@ -386,6 +386,22 @@ namespace BankLink.Practice.BooksIO
 
 
 
+		/// <summary>
+		/// IncludeUnusedChartCodes property
+		/// </summary>
+		[XmlAttribute("IncludeUnusedChartCodes", DataType = "boolean")]
+		public bool IncludeUnusedChartCodes { get; set; }
+
+
+
+		/// <summary>
+		/// IncludeNonPostingChartCodes property
+		/// </summary>
+		[XmlAttribute("IncludeNonPostingChartCodes", DataType = "boolean")]
+		public bool IncludeNonPostingChartCodes { get; set; }
+
+
+
 	}
 
 

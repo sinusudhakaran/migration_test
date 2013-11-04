@@ -208,6 +208,8 @@ $|  5.26            171    Added fields Contractor..ABN to Payee Detail record
 $|                         Added Exchange Gain_Loss_Code
 $|                         Added new structure DeleteTransaction
 $|  5.27            172    Added new structure ExchangeGainLoss
+$|  5.28            173    Adding Include Unused Chart Codes and Include Non-Posting Chart Codes
+$|  5.29            174    Moved the aforesaid fields (see 5.28) to ClientExtra, there's no room for new fields in Client
 $|*)
 
 
@@ -1149,6 +1151,8 @@ F|OnlineValuesStored|Y
 F|OnlineSubscriptionCount|L
 F|DeliverDataDirectToBLO|Y
 F|BLOSecureCode|S|20
+F|Include Unused Chart Codes|Y
+F|Include Non-Posting Chart Codes|Y
 E
 
 N|Deleted Transaction|dx|233
