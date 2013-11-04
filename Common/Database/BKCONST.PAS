@@ -1953,9 +1953,9 @@ const
    ecDestWebX = 2;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    // ECoding import options
-   noFillWithPayeeName = 0;
-   noFillWithNotes     = 1;
-   noFillWithBoth      = 2;
+   noFillWithPayeeName = 1;
+   noFillWithNotes     = 2;
+   noFillWithBoth      = 4;
 
    noDontOverwrite     = 16;
    noHideExample       = 32;
