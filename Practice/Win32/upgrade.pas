@@ -4211,6 +4211,12 @@ const
     end;
   end;
 
+  procedure UpgradeToVersion173;
+  begin
+    aClient.clExtra.ceInclude_Unused_Chart_Codes := False;
+    aClient.clExtra.ceInclude_Non_Posting_Chart_Codes := True;
+  end;
+
 begin
    with aClient.clFields do begin
 
@@ -4555,6 +4561,12 @@ begin
       begin
         UpgradeToVersion171;
         clFile_Version := 171;
+      end;
+      // Non-Posting code changes
+      if (CLFile_Version < 173) then
+      begin
+        UpgradeToVersion173;
+        clFile_Version := 173;
       end;
    end;
 end;
