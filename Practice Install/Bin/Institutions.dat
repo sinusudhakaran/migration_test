@@ -1,126 +1,131 @@
-Code,Name,Country Code,Country
-AFL/NAFL,Allied Farmers - NZ Farmers Livestock,NZ,New Zealand
-NATC,ANZ (and The National Bank) Credit Cards,NZ,New Zealand
-ANZL,ANZ (and The National Bank) Loans and Term Deposits,NZ,New Zealand
-ANZ,ANZ Bank New Zealand,NZ,New Zealand
-ASB,ASB Bank,NZ,New Zealand
-ASCC,ASB Bank Business Credit Cards,NZ,New Zealand
-ATS,ATS - Ashburton Trading Society,NZ,New Zealand
-BRC,Bartercard NZ,NZ,New Zealand
-OZN,BarterZone,NZ,New Zealand
-BNZ,BNZ - Bank of New Zealand,NZ,New Zealand
-BNZC,BNZ Credit Cards,NZ,New Zealand
-CBS,CBS Canterbury (Heartland Building Society),NZ,New Zealand
-CRT,CRT,NZ,New Zealand
-DCNZ,Diners Club NZ,NZ,New Zealand
-FARM,Farmlands,NZ,New Zealand
-FFNT/NFNT,Fonterra,NZ,New Zealand
-HSBC,HSBC,NZ,New Zealand
-KIWI,Kiwibank,NZ,New Zealand
-KICC,Kiwibank Credit Cards,NZ,New Zealand
-NBS,NBS - Nelson Building Society,NZ,New Zealand
-OC,Open Country,NZ,New Zealand
-PWD/PWT,PGG Wrightson,NZ,New Zealand
-PWF,PGG Wrightson Finance (Heartland Building Society),NZ,New Zealand
-RABO,Rabobank New Zealand,NZ,New Zealand
-FNT/NFNT,RD1,NZ,New Zealand
-SBS,SBS - Southland Building Society,NZ,New Zealand
-TCDC,Tatua,NZ,New Zealand
-COOP,The Co-operative Bank,NZ,New Zealand
-NAT,The National Bank (ANZ),NZ,New Zealand
-TSB,TSB Bank,NZ,New Zealand
-WBS,WBS - Wairarapa Building Society,NZ,New Zealand
-WLD,Westland Milk Products,NZ,New Zealand
-WBC,Westpac,NZ,New Zealand
-WBCC,Westpac Credit Card - BusinessPLUS Gold MasterCard,NZ,New Zealand
-ADL,Adelaide Bank,OZ,Australia
-NAC,Alliance One Credit Union,OZ,Australia
-AMP,AMP Bank,OZ,Australia
-ANZ,ANZ,OZ,Australia
-ANCC,ANZ Commercial Credit Cards,OZ,Australia
-ANZC,ANZ Credit Cards,OZ,Australia
-ANZP,ANZ V2 PLUS,OZ,Australia
-ARAB,Arab Bank Australia,OZ,Australia
-ADIG,Armidale Diocesan Investment Group (ADIG),OZ,Australia
-AMM,Australian Money Market,OZ,Australia
-AWB,AWB,OZ,Australia
-BEBS,B & E,OZ,Australia
-BOQ,Bank of Queensland,OZ,Australia
-MEM,Bankmecu,OZ,Australia
-BW,Bankwest,OZ,Australia
-BWCC,Bankwest Credit Cards,OZ,Australia
-BCU,BCU Community Credit Union,OZ,Australia
-BER,BDCU (Berrima District Credit Union),OZ,Australia
-LKI,Beirut Hellenic Bank,OZ,Australia
-BND,Bendigo Bank,OZ,Australia
-BRH,Broken Hill Community Credit Union,OZ,Australia
-BTF,BT Financial Group,OZ,Australia
-BTFC,BT Financial Group ** CASH ONLY SERVICE **,OZ,Australia
-YAR,Central Murray Credit Union,OZ,Australia
-CWE,Central West Credit Union,OZ,Australia
-COA,Coastline Credit Union,OZ,Australia
-CBA,Commonwealth Bank,OZ,Australia
-CCA,Commonwealth Bank Credit Cards,OZ,Australia
-CPS,Community CPS Australia,OZ,Australia
-COF,Country First Credit Union,OZ,Australia
-PWR,Credit Union SA,OZ,Australia
-CUA,CUA (Credit Union Australia),OZ,Australia
-DDH,DDH Graham Limited,OZ,Australia
-DNI,Dnister Ukrainian Credit Co-operative,OZ,Australia
-ELE,ECU (Electricity Credit Union),OZ,Australia
-ELD,Elders Rural Services,OZ,Australia
-FAM,Family First Credit Union,OZ,Australia
-FCCS,FCCS Credit Union,OZ,Australia
-CAL,First Choice Credit Union,OZ,Australia
-BNL,Fonterra (Bonlac Foods),OZ,Australia
-GMC,Goulburn Murray Credit Union Co-Operative,OZ,Australia
-GRE,Greater Building Society,OZ,Australia
-HER,Heritage Bank,OZ,Australia
-HOL,Holiday Coast Credit Union,OZ,Australia
-HRCU,Horizon Credit Union,OZ,Australia
-HSBC,HSBC,OZ,Australia
-HUME,Hume Building Society,OZ,Australia
-ILM,IMB (Illawarra Mutual Building Society),OZ,Australia
-MCAC,Macarthur Credit Union,OZ,Australia
-MQB,Macquarie Bank,OZ,Australia
-MAQ,Macquarie Investment Management,OZ,Australia
-MQW,Macquarie Wrap,OZ,Australia
-MMP,Maritime Mining & Power Credit Union,OZ,Australia
-NAB,National Australia Bank,OZ,Australia
-NABC,National Australia Bank Credit Cards,OZ,Australia
-NPBS,Newcastle Permanent Building Society,OZ,Australia
-MWCU,Northern Beaches Credit Union,OZ,Australia
-NIN,Northern Inland Credit Union,OZ,Australia
-ORA,Orange Credit Union,OZ,Australia
-ORM,Ord Minnett,OZ,Australia
-ACCU,People's Choice Credit Union (trading name of Australian Central Credit Union),OZ,Australia
-PPM,Private Portfolio Managers,OZ,Australia
-QCCU,Queensland Country Credit Union,OZ,Australia
-RAB,Rabobank,OZ,Australia
-ELDB,Rural Bank,OZ,Australia
-RFC,Rural Finance,OZ,Australia
-SYD,SCU (Sydney Credit Union),OZ,Australia
-SGE,SGE Credit Union,OZ,Australia
-SWC,South West Credit,OZ,Australia
-SWS,South West Slopes Credit Union,OZ,Australia
-SOX,Southern Cross Credit Union,OZ,Australia
-EBK,St. George Bank,OZ,Australia
-STGC,St. George Bank Credit Cards,OZ,Australia
-SUM,Summerland Credit Union,OZ,Australia
-SUN,Suncorp Bank,OZ,Australia
-STHD,Sutherland Credit Union,OZ,Australia
-STM,Swan Hill Credit Union,OZ,Australia
-CAP,The Capricornian,OZ,Australia
-ENG,The Community Mutual Group . New England Mutual . Hunter Mutual . Orana Mutual.,OZ,Australia
-MAI,The Mutual (Maitland Mutual Building Society Limited),OZ,Australia
-RCK,The Rock Building Society,OZ,Australia
-TIO,TIO (Territory Insurance Office),OZ,Australia
-WRW,Warwick Credit Union,OZ,Australia
-WAW,WAW Credit Union,OZ,Australia
-WBC,Westpac,OZ,Australia
-WBCC,Westpac Credit Cards,OZ,Australia
-BAY,Wide Bay Australia,OZ,Australia
-HSBC,HSBC UK,UK,United Kingdom
-LTB,Lloyds TSB Bank plc,UK,United Kingdom
-NWB,National Westminster Bank,UK,United Kingdom
-RBS,Royal Bank of Scotland,UK,United Kingdom
+CODE, NAME, COUNTRY_CODE, ENABLED, RURAL_MAIN_CODE, NEW_NAME,
+ACCU,People's Choice Credit Union (trading name of Australian Central Credit Union),AU,1, , ,
+ADIG,Armidale Diocesan Investment Group (ADIG),AU,1, , ,
+ADL,Adelaide Bank,AU,1, , ,
+AMM,Australian Money Market,AU,1, , ,
+AMP,AMP Bank,AU,1, , ,
+ANCC,ANZ Commercial Credit Cards,AU,1, , ,
+ANZ,ANZ,AU,1, , ,
+ANZC,ANZ Credit Cards,AU,1, , ,
+ANZP,ANZ V2 PLUS,AU,1, , ,
+ARAB,Arab Bank Australia,AU,1, , ,
+AWB,AWB,AU,1, , ,
+BAY,Wide Bay Australia,AU,1, , ,
+BCU,BCU Community Credit Union,AU,1, , ,
+BEBS,B & E,AU,1, , ,
+BER,BDCU (Berrima District Credit Union),AU,1, , ,
+BND,Bendigo Bank,AU,1, , ,
+BNL,Fonterra (Bonlac Foods),AU,1, , ,
+BOQ,Bank of Queensland,AU,1, , ,
+BRH,Broken Hill Community Credit Union,AU,1, , ,
+BTF,BT Financial Group,AU,1, , ,
+BTFC,BT Financial Group  CASH ONLY SERVICE ,AU,1, , ,
+BW,Bankwest,AU,1, , ,
+BWCC,Bankwest Credit Cards,AU,1, , ,
+CAL,First Choice Credit Union,AU,1, , ,
+CAP,The Capricornian,AU,1, , ,
+CBA,Commonwealth Bank,AU,1, , ,
+CCA,Commonwealth Bank Credit Cards,AU,1, , ,
+COA,Coastline Credit Union,AU,1, , ,
+COF,Country First Credit Union,AU,1, , ,
+CPS,Beyond Bank Australia (Community CPS Australia),AU,1, , ,
+CUA,CUA (Credit Union Australia),AU,1, , ,
+CWE,Central West Credit Union,AU,1, , ,
+DDH,DDH Graham Limited,AU,1, , ,
+DNI,Dnister Ukrainian Credit Co-operative,AU,1, , ,
+EBK,St. George Bank,AU,1, , ,
+ELD,Elders Rural Services,AU,1, , ,
+ELDB,Rural Bank,AU,1, , ,
+ELE,ECU (Electricity Credit Union),AU,1, , ,
+ENG,The Community Mutual Group . New England Mutual . Hunter Mutual . Orana Mutual.,AU,1, , ,
+FAM,Family First Credit Union,AU,1, , ,
+FCCS,FCCS Credit Union,AU,1, , ,
+GMC,Goulburn Murray Credit Union Co-Operative,AU,1, , ,
+GRE,Greater Building Society,AU,1, , ,
+HER,Heritage Bank,AU,1, , ,
+HOL,Holiday Coast Credit Union,AU,1, , ,
+HRCU,Horizon Credit Union,AU,1, , ,
+HSBC,HSBC,AU,1, , ,
+HUME,Hume Building Society,AU,1, , ,
+ILM,IMB (Illawarra Mutual Building Society),AU,1, , ,
+LKI,Bank of Sydney,AU,1, , ,
+MAI,The Mutual (Maitland Mutual Building Society Limited),AU,1, , ,
+MAQ,Macquarie Investment Management,AU,1, , ,
+MCAC,Macarthur Credit Union,AU,1, , ,
+MEM,Bankmecu,AU,1, , ,
+MMP,Maritime Mining & Power Credit Union,AU,1, , ,
+MQB,Macquarie Bank,AU,1, , ,
+MQW,Macquarie Wrap,AU,1, , ,
+MWCU,Northern Beaches Credit Union,AU,1, , ,
+NAB,National Australia Bank,AU,1, , ,
+NABC,National Australia Bank Credit Cards,AU,1, , ,
+NAC,Alliance One Credit Union,AU,1, , ,
+NIN,Northern Inland Credit Union,AU,1, , ,
+NPBS,Newcastle Permanent Building Society,AU,1, , ,
+ORA,Orange Credit Union,AU,1, , ,
+ORM,Ord Minnett,AU,1, , ,
+PPM,Private Portfolio Managers,AU,1, , ,
+PWR,Credit Union SA,AU,1, , ,
+QCCU,Queensland Country Credit Union,AU,1, , ,
+RAB,Rabobank,AU,1, , ,
+RCK,The Rock Building Society,AU,1, , ,
+RFC,Rural Finance,AU,1, , ,
+SGE,SGE Credit Union,AU,1, , ,
+SOX,Southern Cross Credit Union,AU,1, , ,
+STGC,St. George Bank Credit Cards,AU,1, , ,
+STHD,Sutherland Credit Union,AU,1, , ,
+STM,Swan Hill Credit Union,AU,1, , ,
+SUM,Summerland Credit Union,AU,1, , ,
+SUN,Suncorp Bank,AU,1, , ,
+SWC,South West Credit,AU,1, , ,
+SWS,South West Slopes Credit Union,AU,1, , ,
+SYD,SCU (Sydney Credit Union),AU,1, , ,
+TIO,TIO (Territory Insurance Office),AU,1, , ,
+WAW,WAW Credit Union,AU,1, , ,
+WBC,Westpac,AU,1, , ,
+WBCC,Westpac Credit Cards,AU,1, , ,
+WRW,Warwick Credit Union,AU,1, , ,
+YAR,Central Murray Credit Union,AU,1, , ,
+AFL,Allied Farmers - NZ Farmers Livestock,NZ,1,NAFL, ,
+ANZ,ANZ Bank New Zealand,NZ,1, , ,
+ANZL,ANZ (and The National Bank) Loans and Term Deposits,NZ,1, , ,
+ASB,ASB Bank,NZ,1, , ,
+ASCC,ASB Bank Business Credit Cards,NZ,1, , ,
+ATS,ATS - Ashburton Trading Society,NZ,1, , ,
+BNZ,BNZ - Bank of New Zealand,NZ,1, , ,
+BNZC,BNZ Credit Cards,NZ,1, , ,
+BRC,Bartercard NZ,NZ,1, , ,
+CBS,Heartland Bank,NZ,1, , ,
+COOP,The Co-operative Bank,NZ,1, , ,
+CRT,CRT,NZ,1,NCRT, ,
+DCNZ,Diners Club NZ,NZ,1, , ,
+FARM,Farmlands,NZ,1,NFARM, ,
+FFNT,Fonterra and RD1,NZ,1,NFNT,RD1,
+FNT,Fonterra and RD1,NZ,1,NFNT,Fonterra,
+HSBC,HSBC,NZ,1, , ,
+KICC,Kiwibank Credit Cards,NZ,1, , ,
+KIWI,Kiwibank,NZ,1, , ,
+NAT,The National Bank (ANZ),NZ,1, , ,
+NATC,ANZ (and The National Bank) Credit Cards,NZ,1, , ,
+NBS,NBS - Nelson Building Society,NZ,1, , ,
+OC,Open Country,NZ,1, , ,
+OZN,BarterZone,NZ,1, , ,
+PWD,PGG Wrightson,NZ,1,PWT, , 
+PWF,Heartland Bank (PGG Wrightson Finance),NZ,1, , ,
+RABO,Rabobank New Zealand,NZ,1, , ,
+SBS,SBS - Southland Building Society,NZ,1, , ,
+TCDC,Tatua,NZ,1, , ,
+TSB,TSB Bank,NZ,1, , ,
+WBC,Westpac,NZ,1, , ,
+WBCC,Westpac Credit Card - BusinessPLUS Gold MasterCard,NZ,1, , ,
+WBS,WBS - Wairarapa Building Society,NZ,1, , ,
+WLD,Westland Milk Products,NZ,1, , ,
+AIDF,Anglican Investment & Development Fund,AU,1, , ,
+DLP,Delphi Bank - a division of Bendigo and Adelaide Bank Limited ABN 11 068 049 178,AU,1, , ,
+MQCU,Macquarie Credit Union Limited,AU,1, , ,
+NAFL,Allied Farmers - NZ Farmers Livestock (transaction date),NZ,0,, ,
+NCRT,CRT - original transaction dates used on the statement (NOT re-dated),NZ,0,, ,
+NFARM,Farmlands - original transaction dates used on the statement (NOT re-dated),NZ,0,, ,
+NFNT,Fonterra and RD1,NZ,0,, ,
+PWT,PGG Wrightson,NZ,0,, ,
+,,,,, ,

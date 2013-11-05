@@ -499,8 +499,8 @@ type
     procedure ResumeService;
 
     function GetInstitutionList(out aBloArrayOfInstitution : TBloArrayOfInstitution) : TBloResult;
-    function ValidateAccount(aAccountNumber, aInstCode, aCountryCode : string; var aFailedReason : string) : Boolean;
-    function ValidateAccountList(var aValidateAccountList : TBloArrayOfAccountValidation) : TBloResult;
+    function ValidateAccount(aAccountNumber, aInstCode, aCountryCode : string; var aFailedReason : string; aSupressProgress : boolean) : Boolean;
+    function ValidateAccountList(var aValidateAccountList : TBloArrayOfAccountValidation; aSupressProgress : boolean) : TBloResult;
 
     procedure ResetExceptionTest;
 
@@ -1300,7 +1300,7 @@ begin
     Result := Result + Service;
   end;
 
-  //Result := 'http://localhost:56787/Services/BlopiServiceFacade.svc';
+  Result := 'http://localhost:56787/Services/BlopiServiceFacade.svc';
 end;
 
 //------------------------------------------------------------------------------
@@ -2880,7 +2880,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TProductConfigService.ValidateAccount(aAccountNumber, aInstCode, aCountryCode: string; var aFailedReason: string): Boolean;
+function TProductConfigService.ValidateAccount(aAccountNumber, aInstCode, aCountryCode: string; var aFailedReason: string; aSupressProgress : boolean): Boolean;
 var
   AccountList: TBloArrayOfAccountValidation;
 begin
@@ -2897,7 +2897,7 @@ begin
     AccountList[0].FailureReason    := '';
     AccountList[0].ValidationPassed := false;
 
-    if (ValidateAccountList(AccountList) in [bloSuccess, bloFailedNonFatal]) then
+    if (ValidateAccountList(AccountList, aSupressProgress) in [bloSuccess, bloFailedNonFatal]) then
     begin
       Result := AccountList[0].ValidationPassed;
       if not result then
@@ -2910,7 +2910,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TProductConfigService.ValidateAccountList(var aValidateAccountList: TBloArrayOfAccountValidation): TBloResult;
+function TProductConfigService.ValidateAccountList(var aValidateAccountList: TBloArrayOfAccountValidation; aSupressProgress : boolean): TBloResult;
 var
   BlopiInterface  : IBlopiServiceFacade;
   MsgResponse     : MessageResponseOfArrayOfAccountValidationMIdCYrSK;
@@ -2918,13 +2918,18 @@ var
 begin
   Result := bloFailedNonFatal;
   Screen.Cursor := crHourGlass;
-  Progress.StatusSilent := False;
-  Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Connecting', 10);
+
+  if not aSupressProgress then
+  begin
+    Progress.StatusSilent := False;
+    Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Connecting', 10);
+  end;
 
   BlopiInterface := GetServiceFacade;
   try
     try
-      Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Validate Account List', 55);
+      if not aSupressProgress then
+        Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Validate Account List', 55);
 
       try
         MsgResponse := BlopiInterface.ValidateAccounts(CountryText(AdminSystem.fdFields.fdCountry),
@@ -2960,7 +2965,8 @@ begin
       end;
 
       if not ResponceError then
-        Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Finished', 100);
+        if not aSupressProgress then
+          Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Finished', 100);
 
     except
       on E : Exception do
@@ -2970,8 +2976,12 @@ begin
       end;
     end;
   finally
-    Progress.StatusSilent := True;
-    Progress.ClearStatus;
+    if not aSupressProgress then
+    begin
+      Progress.StatusSilent := True;
+      Progress.ClearStatus;
+    end;
+
     Screen.Cursor := crDefault;
   end;
 end;

@@ -17,7 +17,8 @@ uses
   utBudgetImportExport in '..\Tests\utBudgetImportExport.pas',
   utBGL360 in '..\Tests\utBGL360.pas',
   utSimpleFund360Bulk in '..\Tests\utSimpleFund360Bulk.pas',
-  utSimpleFundX in '..\Tests\utSimpleFundX.pas';
+  utSimpleFundX in '..\Tests\utSimpleFundX.pas',
+  utInstitutionCol in '..\Tests\utInstitutionCol.pas';
 
 {$R *.RES}
 

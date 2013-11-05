@@ -133,7 +133,6 @@ object frmTPA: TfrmTPA
     Font.Style = []
     ParentFont = False
     TabOrder = 1
-    ExplicitTop = 2
     object pnlAccount: TPanel
       Left = 0
       Top = 73
@@ -232,7 +231,7 @@ object frmTPA: TfrmTPA
         MaxLength = 8
         ParentShowHint = False
         ShowHint = True
-        TabOrder = 2
+        TabOrder = 3
         OnExit = edtExit
         OnKeyPress = edtKeyPress
       end
@@ -241,7 +240,7 @@ object frmTPA: TfrmTPA
         Top = 45
         Width = 281
         Height = 21
-        TabOrder = 3
+        TabOrder = 2
         OnEnter = mskAccountNumberEnter
         OnExit = mskAccountNumberExit
         OnKeyUp = mskAccountNumberKeyUp
@@ -255,13 +254,18 @@ object frmTPA: TfrmTPA
       Height = 73
       Align = alTop
       TabOrder = 1
-      ExplicitLeft = -1
       object lblInstitution: TLabel
         Left = 16
         Top = 11
         Width = 51
         Height = 13
         Caption = 'Institution :'
+      end
+      object Label2: TLabel
+        Left = 16
+        Top = 40
+        Width = 3
+        Height = 13
       end
       object cmbInstitutionName: TComboBox
         Left = 112
@@ -271,6 +275,24 @@ object frmTPA: TfrmTPA
         ItemHeight = 13
         TabOrder = 0
         OnChange = cmbInstitutionNameChange
+      end
+    end
+    object grpRural: TGroupBox
+      Left = 0
+      Top = 169
+      Width = 688
+      Height = 105
+      Align = alTop
+      Caption = 'Rural'
+      TabOrder = 2
+      Visible = False
+      ExplicitLeft = -1
+      ExplicitTop = 164
+      object Label1: TLabel
+        Left = 16
+        Top = 16
+        Width = 3
+        Height = 13
       end
     end
   end

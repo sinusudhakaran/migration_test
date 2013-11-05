@@ -30,7 +30,7 @@ type
   public
     function  BlendColors(aFirstColor, aSecondColor : TColor; aPercent: Single) : TColor;
     procedure DrawMaskHint(aLblLine, aLblHint : TLabel; aMaskEdit : TMaskEdit;
-                           aBackColor, aLineColor, aFontColor : TColor);
+                           aBackColor, aLineColor, aFontColor : TColor; aHintGapHeight : integer);
   end;
 
 implementation
@@ -280,7 +280,7 @@ end;
 
 //------------------------------------------------------------------------------
 procedure TMaskHint.DrawMaskHint(aLblLine, aLblHint : TLabel; aMaskEdit: TMaskEdit;
-                                 aBackColor, aLineColor, aFontColor: TColor);
+                                 aBackColor, aLineColor, aFontColor: TColor; aHintGapHeight : integer);
 var
   MaskCursorStrPos : integer;
   StartPos, EndPos : integer;
@@ -298,11 +298,6 @@ var
     DrawAntialisedLine(aLblLine.Canvas, TopX, 0, TopX, TopY, aLineColor);
     DrawAntialisedLine(aLblLine.Canvas, TopX, TopY, BottomX, BottomY, aLineColor);
     DrawAntialisedLine(aLblLine.Canvas, BottomX, BottomY, BottomX, 28, aLineColor);
-
-    //aLblLine.Canvas.MoveTo(TopX, 0);
-    //aLblLine.Canvas.LineTo(TopX, TopY);
-    //aLblLine.Canvas.LineTo(BottomX, BottomY);
-    //aLblLine.Canvas.LineTo(BottomX, 25);
   end;
 
 begin
@@ -349,24 +344,15 @@ begin
     //Adjustments
     TextEndPix := TextEndPix + 4;
 
-    aLblHint.Top := aLblLine.Top + 12;
+    aLblHint.Top := aLblLine.Top + aHintGapHeight;
     aLblHint.Left := aLblLine.Left + TextStrPix + 2;
 
     aLblLine.Repaint;
-    {aLblLine.Canvas.Pen.Width := 3;
-    aLblLine.Canvas.Pen.Color := BlendColors(aLineColor, aBackColor, 0.1);
-    DrawLine(MaskStrPix, 3, TextStrPix, 12);
-    DrawLine(MaskEndPix, 3, TextEndPix, 12);
-
-    aLblLine.Canvas.Pen.Width := 2;
-    aLblLine.Canvas.Pen.Color := BlendColors(aLineColor, aBackColor, 0.3);
-    DrawLine(MaskStrPix, 3, TextStrPix, 12);
-    DrawLine(MaskEndPix, 3, TextEndPix, 12);}
 
     aLblLine.Canvas.Pen.Width := 1;
     aLblLine.Canvas.Pen.Color := aLineColor;
-    DrawLine(MaskStrPix, 3, TextStrPix, 12);
-    DrawLine(MaskEndPix, 3, TextEndPix, 12);
+    DrawLine(MaskStrPix, 3, TextStrPix, aHintGapHeight);
+    DrawLine(MaskEndPix, 3, TextEndPix, aHintGapHeight);
   end;
 end;
 

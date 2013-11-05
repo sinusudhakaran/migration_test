@@ -47,6 +47,9 @@ type
     cmbInstitutionName: TComboBox;
     lblInstitution: TLabel;
     lblAccountValidationError: TLabel;
+    grpRural: TGroupBox;
+    Label1: TLabel;
+    Label2: TLabel;
     procedure btnPreviewClick(Sender: TObject);
     procedure btnFileClick(Sender: TObject);
     procedure btnPrintClick(Sender: TObject);
@@ -168,7 +171,7 @@ begin
      (cmbInstitutionName.Items.Objects[cmbInstitutionName.ItemIndex] is TInstitutionItem) then
   begin
     InstCode := TInstitutionItem(cmbInstitutionName.Items.Objects[cmbInstitutionName.ItemIndex]).Code;
-    Result := ProductConfigService.ValidateAccount(aAccountNumber, InstCode, COUNTRY_CODE, aFailedReason);
+    Result := ProductConfigService.ValidateAccount(aAccountNumber, InstCode, COUNTRY_CODE, aFailedReason, true);
   end;
 end;
 
@@ -347,6 +350,8 @@ begin
     cmbInstitutionName.Width := OTHER_BANK_WIDTH;
     //edtInstitutionName.Enabled := true;
     //edtInstitutionName.Text := '';
+    grpRural.Visible := false;
+    Label2.caption := '';
   end
   else
   begin
@@ -356,6 +361,12 @@ begin
     if (Assigned(cmbInstitutionName.Items.Objects[cmbInstitutionName.ItemIndex])) and
        (cmbInstitutionName.Items.Objects[cmbInstitutionName.ItemIndex] is TInstitutionItem) then
     begin
+      Label2.caption := 'Code - ' + TInstitutionItem(cmbInstitutionName.Items.Objects[cmbInstitutionName.ItemIndex]).Code;
+
+      grpRural.Visible := TInstitutionItem(cmbInstitutionName.Items.Objects[cmbInstitutionName.ItemIndex]).HasRuralCode;
+      if grpRural.Visible then
+        Label1.Caption := 'Rural Code - ' + TInstitutionItem(cmbInstitutionName.Items.Objects[cmbInstitutionName.ItemIndex]).RuralCode;
+
       mskAccountNumber.EditText := '';
       mskAccountNumber.EditMask := TInstitutionItem(cmbInstitutionName.Items.Objects[cmbInstitutionName.ItemIndex]).AccountEditMask;
       UpdateMask;
@@ -443,7 +454,7 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmTPA.UpdateMask;
 begin
-  fMaskHint.DrawMaskHint(lblAccountNumberLine, lblAccountNumberHint, mskAccountNumber, self.Color, $000000FF, $000000FF);
+  fMaskHint.DrawMaskHint(lblAccountNumberLine, lblAccountNumberHint, mskAccountNumber, self.Color, $000000FF, $000000FF, 16);
 end;
 
 //------------------------------------------------------------------------------

@@ -6,7 +6,8 @@ interface
 uses
   Windows,
   SysUtils,
-  Classes;
+  Classes,
+  BanklinkOnlineServices;
 
 type
   //----------------------------------------------------------------------------
@@ -22,7 +23,6 @@ type
     FCountryCode: WideString;
     FHelpfulHints: WideString;
     FHistorical: WideString;
-    FModifiedDate: TDateTime;
     FName : WideString;
     FTypeCode: WideString;
     FTypeDescription: WideString;
@@ -45,7 +45,6 @@ type
     property CountryCode: WideString read FCountryCode write FCountryCode;
     property HelpfulHints: WideString read FHelpfulHints write FHelpfulHints;
     property Historical: WideString read FHistorical write FHistorical;
-    property ModifiedDate: TDateTime read FModifiedDate write FModifiedDate;
     property Name : WideString read FName write FName;
     property TypeCode: WideString read FTypeCode write FTypeCode;
     property TypeDescription: WideString read FTypeDescription write FTypeDescription;
@@ -67,12 +66,13 @@ type
 
     fLoaded : boolean;
   protected
-    function LoadFromFile(aFileName : string) : boolean;
     function SaveToFile(aFileName: string): boolean;
-    function LoadFromBlopi() : boolean;
     function GetBoolFromString(aInStr: String; adefault : boolean): boolean;
   public
     destructor Destroy; override;
+
+    function LoadFromFile(aFileName : string) : boolean;
+    procedure FillDataFromBlopi(aBloArrayOfInstitution : TBloArrayOfInstitution);
 
     function Load() : boolean;
     function CountryCodes : TStringList;
@@ -89,16 +89,15 @@ implementation
 uses
   CsvParser,
   Globals,
-  GenUtils,
-  BanklinkOnlineServices;
+  GenUtils;
 
 const
   INST_CODE           = 0;
   INST_NAME           = 1;
   INST_COUNTRY_CODE   = 2;
   INST_ENABLED        = 3;
-  RURAL_POINT_TO_MAIN = 4;
-  RENAME              = 5;
+  RURAL_CODE          = 4;
+  NEW_NAME            = 5;
 
 var
   fInstitutions : TInstitutions;
@@ -117,13 +116,25 @@ end;
 { TInstitutions }
 //------------------------------------------------------------------------------
 function TInstitutions.Load: boolean;
+var
+  BloArrayOfInstitution : TBloArrayOfInstitution;
+  InstIndex : integer;
 begin
   if not fLoaded then
   begin
-    //fLoaded := SaveToFile(DataDir + INSTITUTIONS_FILENAME);
-    fLoaded := LoadFromBlopi();
-    //if fLoaded then
-      //fLoaded := LoadFromFile(DataDir + INSTITUTIONS_FILENAME);
+    fLoaded := (ProductConfigService.GetInstitutionList(BloArrayOfInstitution) in [bloSuccess, bloFailedNonFatal] );
+
+    if fLoaded then
+    begin
+      try
+        FillDataFromBlopi(BloArrayOfInstitution);
+        fLoaded := LoadFromFile(DataDir + INSTITUTIONS_FILENAME);
+      finally
+        for InstIndex := 0 to length(BloArrayOfInstitution) - 1 do
+          FreeAndNil(BloArrayOfInstitution[InstIndex]);
+        setlength(BloArrayOfInstitution,0);
+      end;
+    end;
   end;
 
   Result := fLoaded;
@@ -194,51 +205,44 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TInstitutions.LoadFromBlopi: boolean;
+procedure TInstitutions.FillDataFromBlopi(aBloArrayOfInstitution : TBloArrayOfInstitution);
 var
-  BloArrayOfInstitution : TBloArrayOfInstitution;
   NewInstitutionItem : TInstitutionItem;
   ItemIndex : integer;
   CountryIndex : integer;
 begin
-  Result := (ProductConfigService.GetInstitutionList(BloArrayOfInstitution) in [bloSuccess, bloFailedNonFatal] );
-
-  if Result then
+  Self.Clear;
+  CountryCodes.clear;
+  CountryNames.clear;
+  for ItemIndex := 0 to length(aBloArrayOfInstitution) - 1 do
   begin
-    Self.Clear;
-    CountryCodes.clear;
-    CountryNames.clear;
-    for ItemIndex := 0 to length(BloArrayOfInstitution) - 1 do
+    NewInstitutionItem := TInstitutionItem.Create(Self);
+    NewInstitutionItem.AccountEditMask := aBloArrayOfInstitution[ItemIndex].AccountEditMask;
+    NewInstitutionItem.Active          := aBloArrayOfInstitution[ItemIndex].Active;
+    NewInstitutionItem.Attachments     := aBloArrayOfInstitution[ItemIndex].Attachments;
+    NewInstitutionItem.BSBTip          := aBloArrayOfInstitution[ItemIndex].BSBTip;
+    NewInstitutionItem.BrandName       := aBloArrayOfInstitution[ItemIndex].BrandName;
+    NewInstitutionItem.CanImportData   := aBloArrayOfInstitution[ItemIndex].CanImportData;
+    NewInstitutionItem.Code            := aBloArrayOfInstitution[ItemIndex].Code;
+    NewInstitutionItem.CountryCode     := aBloArrayOfInstitution[ItemIndex].CountryCode;
+    NewInstitutionItem.HelpfulHints    := aBloArrayOfInstitution[ItemIndex].HelpfulHints;
+    NewInstitutionItem.Historical      := aBloArrayOfInstitution[ItemIndex].Historical;
+    NewInstitutionItem.Name            := aBloArrayOfInstitution[ItemIndex].Name_;
+    NewInstitutionItem.TypeCode        := aBloArrayOfInstitution[ItemIndex].TypeCode;
+    NewInstitutionItem.TypeDescription := aBloArrayOfInstitution[ItemIndex].TypeDescription;
+
+    //Defaults for file properties
+    NewInstitutionItem.Enabled := true;
+    NewInstitutionItem.HasRuralCode := false;
+    NewInstitutionItem.RuralCode := '';
+    NewInstitutionItem.RuralMainItemCode := '';
+    NewInstitutionItem.HasNewName := false;
+    NewInstitutionItem.NewName := '';
+
+    if CountryCodes.Find(NewInstitutionItem.CountryCode, CountryIndex) = false then
     begin
-      NewInstitutionItem := TInstitutionItem.Create(Self);
-      NewInstitutionItem.AccountEditMask := BloArrayOfInstitution[ItemIndex].AccountEditMask;
-      NewInstitutionItem.Active          := BloArrayOfInstitution[ItemIndex].Active;
-      NewInstitutionItem.Attachments     := BloArrayOfInstitution[ItemIndex].Attachments;
-      NewInstitutionItem.BSBTip          := BloArrayOfInstitution[ItemIndex].BSBTip;
-      NewInstitutionItem.BrandName       := BloArrayOfInstitution[ItemIndex].BrandName;
-      NewInstitutionItem.CanImportData   := BloArrayOfInstitution[ItemIndex].CanImportData;
-      NewInstitutionItem.Code            := BloArrayOfInstitution[ItemIndex].Code;
-      NewInstitutionItem.CountryCode     := BloArrayOfInstitution[ItemIndex].CountryCode;
-      NewInstitutionItem.HelpfulHints    := BloArrayOfInstitution[ItemIndex].HelpfulHints;
-      NewInstitutionItem.Historical      := BloArrayOfInstitution[ItemIndex].Historical;
-      //NewInstitutionItem.ModifiedDate    := BloArrayOfInstitution[ItemIndex].ModifiedDate.asDateTime;
-      NewInstitutionItem.Name            := BloArrayOfInstitution[ItemIndex].Name_;
-      NewInstitutionItem.TypeCode        := BloArrayOfInstitution[ItemIndex].TypeCode;
-      NewInstitutionItem.TypeDescription := BloArrayOfInstitution[ItemIndex].TypeDescription;
-
-      //Defaults for file properties
-      NewInstitutionItem.Enabled := true;
-      NewInstitutionItem.HasRuralCode := false;
-      NewInstitutionItem.RuralCode := '';
-      NewInstitutionItem.RuralMainItemCode := '';
-      NewInstitutionItem.HasNewName := false;
-      NewInstitutionItem.NewName := '';
-
-      if CountryCodes.Find(NewInstitutionItem.CountryCode, CountryIndex) = false then
-      begin
-        CountryCodes.Add(NewInstitutionItem.CountryCode);
-        CountryNames.Add('');
-      end;
+      CountryCodes.Add(NewInstitutionItem.CountryCode);
+      CountryNames.Add('');
     end;
   end;
 end;
@@ -263,7 +267,7 @@ begin
     begin
       CsvFile.Add(BloArrayOfInstitution[ItemIndex].Code + ',' +
                   RemoveInvalidCharacters(BloArrayOfInstitution[ItemIndex].Name_) + ',' +
-                  BloArrayOfInstitution[ItemIndex].CountryCode + ',1,,');
+                  BloArrayOfInstitution[ItemIndex].CountryCode + ',1, , ');
     end;
 
     CsvFile.SaveToFile(aFileName);
@@ -280,8 +284,8 @@ var
   CsvFile   : TStringList;  //holds all lines in file
   CommaLine : TStringList;  //holds all fields for a line
   CsvParse  : TCsvParser;
-  LineNo : integer;
-  Index : integer;
+  LineNo    : integer;
+  Index     : integer;
   FoundInstitutionItem : TInstitutionItem;
 begin
   Result := false;
@@ -301,24 +305,11 @@ begin
 
       if FindItem(CommaLine[INST_CODE], CommaLine[INST_COUNTRY_CODE], FoundInstitutionItem) then
       begin
-        FoundInstitutionItem.Enabled := GetBoolFromString(CommaLine[RURAL_POINT_TO_MAIN], true); //defaults to true on error
-        FoundInstitutionItem.RuralMainItemCode := CommaLine[RURAL_POINT_TO_MAIN];
-        FoundInstitutionItem.NewName := CommaLine[RENAME];
-        FoundInstitutionItem.HasNewName := (length(FoundInstitutionItem.NewName) > 0);
-      end;
-    end;
-
-    for Index := 0 to self.count - 1 do
-    begin
-      if length(TInstitutionItem(self.Items[Index]).RuralMainItemCode) > 0 then
-      begin
-        if FindItem(TInstitutionItem(self.Items[Index]).RuralMainItemCode,
-                   TInstitutionItem(self.Items[Index]).CountryCode ,
-                   FoundInstitutionItem) then
-        begin
-          FoundInstitutionItem.HasRuralCode := true;
-          FoundInstitutionItem.RuralCode    := TInstitutionItem(self.Items[Index]).Code;
-        end;
+        FoundInstitutionItem.Enabled := GetBoolFromString(CommaLine[INST_ENABLED], true); //defaults to true on error
+        FoundInstitutionItem.HasRuralCode := (length(trim(CommaLine[RURAL_CODE])) > 0);
+        FoundInstitutionItem.RuralCode    := CommaLine[RURAL_CODE];
+        FoundInstitutionItem.HasNewName := (length(trim(CommaLine[NEW_NAME])) > 0);
+        FoundInstitutionItem.NewName    := CommaLine[NEW_NAME];
       end;
     end;
 
