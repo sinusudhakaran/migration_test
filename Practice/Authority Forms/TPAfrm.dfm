@@ -139,7 +139,7 @@ object frmTPA: TfrmTPA
       Width = 688
       Height = 96
       Align = alTop
-      TabOrder = 0
+      TabOrder = 1
       object lblAcName: TLabel
         Left = 13
         Top = 10
@@ -253,7 +253,7 @@ object frmTPA: TfrmTPA
       Width = 688
       Height = 73
       Align = alTop
-      TabOrder = 1
+      TabOrder = 0
       object lblInstitution: TLabel
         Left = 16
         Top = 11
