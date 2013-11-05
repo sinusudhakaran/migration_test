@@ -561,22 +561,6 @@ begin
                 end
                 else
                 begin
-                  // Try convert data for logic below to run
-                  { No longer checking this for non posting codes, as we are now exporting empty
-                    amount values for them
-                  for DateIndex := 1 to 12 do
-                  begin
-                    if not TryStrtoInt(InLineData[2 + DateIndex], DataHolder[DateIndex]) then
-                    begin
-                      WriteLn(ErrorFile, 'Row ' + inttostr(LineNumber) + ', Column ' + inttostr(DateIndex+2) +
-                                         ', Code ' + Trim(InLineData[0]) + ', Error converting value to a number.');
-                      LineHasError := true;
-                      aRowsNotImported := aRowsNotImported + 1;
-                      break;
-                    end;
-                  end;
-                  }
-
                   // Only show nohn posting error if data is differant
                   if not LineHasError then
                   begin
