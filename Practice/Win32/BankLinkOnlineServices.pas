@@ -1299,8 +1299,6 @@ begin
   begin
     Result := Result + Service;
   end;
-
-  Result := 'http://localhost:56787/Services/BlopiServiceFacade.svc';
 end;
 
 //------------------------------------------------------------------------------
