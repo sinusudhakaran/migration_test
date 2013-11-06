@@ -28,6 +28,7 @@ type
     procedure GetColorFromRGB(aRed, aGreen, aBlue: Byte; var aColor: TColor);
     function GetMaskMessage(aMaskChar : string) : string;
   public
+    function  RemoveUnusedCharsFromAccNumber(aAccountNumber : string) : string;
     function  BlendColors(aFirstColor, aSecondColor : TColor; aPercent: Single) : TColor;
     procedure DrawMaskHint(aLblLine, aLblHint : TLabel; aMaskEdit : TMaskEdit;
                            aBackColor, aLineColor, aFontColor : TColor; aHintGapHeight : integer);
@@ -154,6 +155,19 @@ begin
     Result := tmpBmp.Canvas.TextWidth(aText);
   finally
     FreeAndNil(tmpBmp);
+  end;
+end;
+
+//------------------------------------------------------------------------------
+function TMaskHint.RemoveUnusedCharsFromAccNumber(aAccountNumber: string): string;
+var
+  index : integer;
+begin
+  Result := '';
+  for index := 0 to length(aAccountNumber) - 1 do
+  begin
+    if not (aAccountNumber[index] = '_') then
+      Result := Result + aAccountNumber[index];
   end;
 end;
 

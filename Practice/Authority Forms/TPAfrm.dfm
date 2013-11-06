@@ -133,6 +133,7 @@ object frmTPA: TfrmTPA
     Font.Style = []
     ParentFont = False
     TabOrder = 1
+    ExplicitTop = 2
     object pnlAccount: TPanel
       Left = 0
       Top = 73
@@ -281,18 +282,45 @@ object frmTPA: TfrmTPA
       Left = 0
       Top = 169
       Width = 688
-      Height = 105
+      Height = 48
       Align = alTop
       Caption = 'Rural'
       TabOrder = 2
       Visible = False
-      ExplicitLeft = -1
-      ExplicitTop = 164
       object Label1: TLabel
         Left = 16
         Top = 16
         Width = 3
         Height = 13
+      end
+    end
+    object pnlMaskdata: TPanel
+      Left = 0
+      Top = 217
+      Width = 688
+      Height = 96
+      Align = alTop
+      TabOrder = 3
+      object lblEditMask: TLabel
+        Left = 13
+        Top = 6
+        Width = 54
+        Height = 13
+        Caption = 'lblEditMask'
+      end
+      object lblEditText: TLabel
+        Left = 13
+        Top = 29
+        Width = 49
+        Height = 13
+        Caption = 'lblEditText'
+      end
+      object lblText: TLabel
+        Left = 13
+        Top = 56
+        Width = 31
+        Height = 13
+        Caption = 'lblText'
       end
     end
   end

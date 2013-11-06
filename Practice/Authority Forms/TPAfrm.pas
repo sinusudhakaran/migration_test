@@ -50,6 +50,10 @@ type
     grpRural: TGroupBox;
     Label1: TLabel;
     Label2: TLabel;
+    pnlMaskdata: TPanel;
+    lblEditMask: TLabel;
+    lblEditText: TLabel;
+    lblText: TLabel;
     procedure btnPreviewClick(Sender: TObject);
     procedure btnFileClick(Sender: TObject);
     procedure btnPrintClick(Sender: TObject);
@@ -164,14 +168,17 @@ const
 var
   FailedReason : string;
   InstCode : string;
+  AccountNumber : string;
 begin
   Result := true;
+
+  AccountNumber := trim(fMaskHint.RemoveUnusedCharsFromAccNumber(aAccountNumber));
   if (cmbInstitutionName.ItemIndex > 0) and
      (Assigned(cmbInstitutionName.Items.Objects[cmbInstitutionName.ItemIndex])) and
      (cmbInstitutionName.Items.Objects[cmbInstitutionName.ItemIndex] is TInstitutionItem) then
   begin
     InstCode := TInstitutionItem(cmbInstitutionName.Items.Objects[cmbInstitutionName.ItemIndex]).Code;
-    Result := ProductConfigService.ValidateAccount(aAccountNumber, InstCode, COUNTRY_CODE, aFailedReason, true);
+    Result := ProductConfigService.ValidateAccount(AccountNumber, InstCode, COUNTRY_CODE, aFailedReason, true);
   end;
 end;
 
@@ -424,6 +431,10 @@ procedure TfrmTPA.mskAccountNumberExit(Sender: TObject);
 var
   FailedReason : string;
 begin
+  lblEditMask.Caption := mskAccountNumber.EditMask;
+  lblEditText.Caption := mskAccountNumber.EditText;
+  lblText.Caption := mskAccountNumber.EditMask;
+
   if not ValidateAccount(mskAccountNumber.EditText, FailedReason) then
   begin
     lblAccountValidationError.Caption := FailedReason;
