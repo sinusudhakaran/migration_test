@@ -272,11 +272,14 @@ begin
         if not (aIncludeNonPostingChartCodes or
                 aData[DataIndex].bIsPosting) then
         begin
-          OkToWriteLine := false; // No non-posting chart codes
+          // 'Include Non-Posting Chart codes' is unticked, and this is a non-posting chart code
+          OkToWriteLine := false; // No non-posting chart codes.
         end else
         begin
           OkToWriteLine := true;
-          if Not aIncludeUnusedChartCodes then
+          // Non-posting codes are shown even if they are unused, as long as the
+          // 'Include Non-Posting Codes' checkbox is checked
+          if aData[DataIndex].bIsPosting and not aIncludeUnusedChartCodes then
           begin
             OkToWriteLine := false;
             for DateIndex := 1 to 12 do
