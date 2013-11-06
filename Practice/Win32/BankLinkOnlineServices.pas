@@ -2848,11 +2848,11 @@ begin
           CopyRemotableObject(TBloArrayOfRemotable(MsgResponse.Result), TBloArrayOfRemotable(aBloArrayOfInstitution));
 
           Result := bloSuccess;
-          LogUtil.LogMsg(lmInfo, UNIT_NAME, 'Successfully retrieved Institutions from BankLink Online.');
+          LogUtil.LogMsg(lmInfo, UNIT_NAME, 'Successfully retrieved Institutions from ' + bkBranding.ProductOnlineName + '.');
         end
         else
         begin
-          LogUtil.LogMsg(lmInfo, UNIT_NAME, 'Institutions were not retrieved from BankLink Online.');
+          LogUtil.LogMsg(lmInfo, UNIT_NAME, 'Institutions were not retrieved from ' + bkBranding.ProductOnlineName + '.');
           result := bloFailedFatal;
         end;
 
@@ -2944,17 +2944,17 @@ begin
             CopyRemotableObject(TBloArrayOfRemotable(MsgResponse.Result), TBloArrayOfRemotable(aValidateAccountList));
 
             Result := bloSuccess;
-            LogUtil.LogMsg(lmInfo, UNIT_NAME, 'Successfully validated Account List from BankLink Online.');
+            LogUtil.LogMsg(lmInfo, UNIT_NAME, 'Successfully validated Account List from ' + bkBranding.ProductOnlineName + '.');
           end
           else
           begin
-            LogUtil.LogMsg(lmInfo, UNIT_NAME, 'Account List returned did not match list sent to BankLink Online.');
+            LogUtil.LogMsg(lmInfo, UNIT_NAME, 'Account List returned did not match list sent to ' + bkBranding.ProductOnlineName + '.');
             result := bloFailedFatal;
           end;
         end
         else
         begin
-          LogUtil.LogMsg(lmInfo, UNIT_NAME, 'Account List was not validated from BankLink Online.');
+          LogUtil.LogMsg(lmInfo, UNIT_NAME, 'Account List was not validated from ' + bkBranding.ProductOnlineName + '.');
           result := bloFailedFatal;
         end;
 
