@@ -461,7 +461,10 @@ begin
       TotalCol :
         begin
           FData[RowNum-1].bTotal := GetTotalForRow(RowNum);
-          Data := @FData[RowNum-1].bTotal;
+          if FData[RowNum-1].bIsPosting then
+            Data := @FData[RowNum-1].bTotal
+          else
+            Data := nil;
         end;
     end;{case}
   end;
@@ -1346,8 +1349,13 @@ begin
   DoneIt := true;
   //draw text
   R := CellRect;
-  D := FData[RowNum - 1].bAmounts[ColNum - 2];
-  S := Format('%.0n',[D]);
+  if not FData[RowNum-1].bIsPosting then
+    S := ''
+  else
+  begin
+    D := FData[RowNum - 1].bAmounts[ColNum - 2];
+    S := Format('%.0n',[D]);
+  end;
   TableCanvas.Font := CellAttr.caFont;
   TableCanvas.Brush.Color := CellAttr.caColor;
   TableCanvas.Font.Color  := CellAttr.caFontColor;
