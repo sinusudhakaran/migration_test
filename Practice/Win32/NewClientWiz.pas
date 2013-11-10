@@ -701,6 +701,7 @@ begin
      clSend_Coding_Report               := True;  //set this by default for new clients
      clEmail_Report_Format              := rfPDF;
      clWeb_Export_Format                := fdWeb_Export_Format;
+     clECoding_Import_Options           := noFillWithPayeeName;
 
 
      //Defaults for new client

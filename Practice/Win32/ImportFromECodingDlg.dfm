@@ -29,7 +29,6 @@ object dlgImportBNotes: TdlgImportBNotes
     BevelOuter = bvLowered
     ParentColor = True
     TabOrder = 1
-    ExplicitWidth = 661
     DesignSize = (
       678
       57)
@@ -106,7 +105,6 @@ object dlgImportBNotes: TdlgImportBNotes
       ShowHint = True
       TabOrder = 0
       OnChange = edtFromChange
-      ExplicitWidth = 550
     end
   end
   object btnOk: TButton
@@ -119,7 +117,6 @@ object dlgImportBNotes: TdlgImportBNotes
     Default = True
     ModalResult = 1
     TabOrder = 2
-    ExplicitLeft = 513
   end
   object btnCancel: TButton
     Left = 610
@@ -131,7 +128,6 @@ object dlgImportBNotes: TdlgImportBNotes
     Caption = 'Cancel'
     ModalResult = 2
     TabOrder = 3
-    ExplicitLeft = 593
   end
   object Panel2: TPanel
     Left = 8
@@ -142,7 +138,6 @@ object dlgImportBNotes: TdlgImportBNotes
     BevelInner = bvRaised
     BevelOuter = bvLowered
     TabOrder = 0
-    ExplicitWidth = 661
     DesignSize = (
       678
       316)
@@ -261,7 +256,6 @@ object dlgImportBNotes: TdlgImportBNotes
       Color = clWindow
       TabOrder = 6
       Visible = False
-      ExplicitWidth = 647
       DesignSize = (
         664
         82)
