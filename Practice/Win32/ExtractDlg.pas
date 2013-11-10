@@ -408,6 +408,7 @@ begin
       end;
    end;
 
+   FileToCheck := eTo.Text;
    // ----------- Does the file exist already? ---------------------------------
    if Software.ExtractDataFileNameRequired( MyClient.clFields.clCountry, MyClient.clFields.clAccounting_System_Used ) then
    begin
@@ -422,11 +423,6 @@ begin
      else
      begin
        //Standard file based extract
-
-       FileToCheck := eTo.Text;
-	     // If we're using BGL 360, we need to check against what the auto generated file name will be
-       if (MyClient.clFields.clAccounting_System_Used = saBGL360) then
-         FileToCheck := FileToCheck + MyClient.clFields.clCode + '_' + Date2Str(Fromdate, 'ddmmyyyy') + '_' + Date2Str(ToDate, 'ddmmyyyy') + '.XML';
        if (( FileToCheck <> '') and BKFileExists(FileToCheck)) then
        begin
          if AskYesNo('Overwrite File','The file '+ExtractFileName(FileToCheck)+' already exists. Overwrite?',dlg_yes,0) <> DLG_YES then
@@ -435,9 +431,18 @@ begin
      end;
    end
     else if (MyClient.clFields.clCountry = whNewZealand) and (MyClient.clFields.clAccounting_System_Used in [snQIF]) or
-            (MyClient.clFields.clCountry = whAustralia) and (MyClient.clFields.clAccounting_System_Used in [saQIF]) then
-    begin // check if this folder contains QIF extracts for this client
-      if QIFFilesExist(DirPath, DateSelector.eDateTo.AsStDate) then
+            (MyClient.clFields.clCountry = whAustralia) and (MyClient.clFields.clAccounting_System_Used in [saBGL360, saQIF]) then
+    begin // check if this folder contains BGL360/QIF extracts for this client
+      if (MyClient.clFields.clAccounting_System_Used = saBGL360) then
+      begin
+        // If we're using BGL 360, we need to check against what the auto generated file name will be
+        FileToCheck := FileToCheck + MyClient.clFields.clCode + '_' + Date2Str(Fromdate, 'ddmmyyyy') + '_' + Date2Str(ToDate, 'ddmmyyyy') + '.XML';
+        if ( FileToCheck <> '') and BKFileExists(FileToCheck) then
+        begin
+          if AskYesNo('Overwrite File','The file '+ExtractFileName(FileToCheck)+' already exists. Overwrite?',dlg_yes,0) <> DLG_YES then
+            exit;
+        end;
+      end else if QIFFilesExist(DirPath, DateSelector.eDateTo.AsStDate) then
       begin
         if AskYesNo('Overwrite File','The folder ' + DirPath + ' already contains extracted QIF files for this client and period. Overwrite?',dlg_yes,0) <> DLG_YES then
           exit;
