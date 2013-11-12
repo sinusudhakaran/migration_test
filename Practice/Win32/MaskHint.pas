@@ -161,12 +161,17 @@ end;
 //------------------------------------------------------------------------------
 function TMaskHint.RemoveUnusedCharsFromAccNumber(aAccountNumber: string): string;
 var
+  CurChar : char;
   index : integer;
 begin
   Result := '';
   for index := 1 to length(aAccountNumber) do
   begin
-    if (aAccountNumber[index] >= '0') and (aAccountNumber[index] <= '9') then
+    CurChar := aAccountNumber[index];
+
+    if ((CurChar >= 'a') and (CurChar <='z')) or
+       ((CurChar >= 'A') and (CurChar <='Z')) or
+       ((CurChar >= '0') and (CurChar <='9')) then
       Result := Result + aAccountNumber[index];
   end;
 end;
