@@ -3449,23 +3449,9 @@ begin
         with aForm do
         begin
           try
-            if IsTaskbarHorizontal then
-            begin
-              Height := Application.MainForm.Monitor.WorkareaRect.Bottom - Application.MainForm.Monitor.WorkareaRect.Top - GetTaskBarHeight;
-            end
-            else
-            begin
-              Height := Application.MainForm.Monitor.WorkareaRect.Bottom - Application.MainForm.Monitor.WorkareaRect.Top - GetTaskBarWidth;
-            end;
-
-            if Screen.DesktopWidth < 720 then
-              Width := Screen.DesktopWidth
-            else
-              Width := 720;
-            Top := 0;
-            edtPractice.Text := AdminSystem.fdFields.fdBankLink_Code;
-            edtAdvisors.Text := AdminSystem.fdFields.fdPractice_Name_for_Reports;
-            cmbMonth.ItemIndex := 0;
+            //edtPractice.Text := AdminSystem.fdFields.fdBankLink_Code;
+            //edtAdvisors.Text := AdminSystem.fdFields.fdPractice_Name_for_Reports;
+            //cmbMonth.ItemIndex := 0;
             repeat
             begin
               ShowModal;
@@ -3517,21 +3503,6 @@ begin
   with aForm do
   begin
     try
-      if IsTaskbarHorizontal then
-      begin
-        Height := Application.MainForm.Monitor.WorkareaRect.Bottom - Application.MainForm.Monitor.WorkareaRect.Top - GetTaskBarHeight;
-      end
-      else
-      begin
-        Height := Application.MainForm.Monitor.WorkareaRect.Bottom - Application.MainForm.Monitor.WorkareaRect.Top - GetTaskBarWidth;
-      end;
-
-      if Screen.DesktopWidth < 700 then
-        Width := Screen.DesktopWidth
-      else
-        Width := 700;
-      Top := 0;
-
       PracticeCode := AdminSystem.fdFields.fdBankLink_Code;
       PracticeName := AdminSystem.fdFields.fdPractice_Name_for_Reports;
       {edtPractice.Text := AdminSystem.fdFields.fdBankLink_Code;

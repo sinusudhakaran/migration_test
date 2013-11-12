@@ -59,7 +59,7 @@ var
    AttachmentSent, AskOpen: Boolean;
 begin
    Result := False;
-   Job := TCAFReport.Create(ReportTypes.rptOther);
+   {Job := TCAFReport.Create(ReportTypes.rptOther);
    try
       Job.Values := Values;
       Job.Country := whAustralia;
@@ -96,16 +96,16 @@ begin
       end;
    finally
       Job.Free;
-   end;
+   end;  }
 end;
 
 //------------------------------------------------------------------------------
 procedure TCAFReport.BKPrint;
 begin
-  if ImportMode then
+  {if ImportMode then
      ImportFile(Values.ImportFile,True)
   else
-     PrintForm;
+     PrintForm;}
 end;
 
 //------------------------------------------------------------------------------
@@ -119,11 +119,11 @@ var
   InstIndex : integer;
   {$ENDIF}
 begin
-  // don't draw QRCode if institution is set to other or not set
+  {// don't draw QRCode if institution is set to other or not set
   if Values.cmbInstitutionName.ItemIndex < 1 then
-    Exit;
+    Exit; }
   {$IFNDEF PRACTICE-7}
-  CAFQRData := TCAFQRData.Create(TCAFQRDataAccount);
+  {CAFQRData := TCAFQRData.Create(TCAFQRDataAccount);
   try
     CafQrCode := TCafQrCode.Create;
     try
@@ -192,7 +192,7 @@ begin
     end;
   finally
     FreeAndNil(CAFQRData);
-  end;
+  end;  }
   {$ENDIF}
 end;
 
@@ -208,7 +208,7 @@ var
 begin
    {assume we have a canvas of A4 proportions as per GST forms}
 
-   myCanvas     := CanvasRenderEng.OutputBuilder.Canvas;
+   {myCanvas     := CanvasRenderEng.OutputBuilder.Canvas;
 
    //*** Form heading
    myCanvas.Font.Size := 18;
@@ -340,20 +340,20 @@ begin
    DrawRadio(MyCanvas, XYSizeRect(Col1 + 1300, CurrYPos, Col1 + 1800, CurrYPos+CurrLineSize), ' ' + Values.rbDaily.Caption, True, Values.rbDaily.Checked);
    RenderText(Values.lblServiceFrequency.Caption, Rect(Col1, CurrYPos, Col1 + 250, CurrYPos + CurrLineSize), jtLeft);
    NewLine(5);
-
+                       }
    WasPrinted := True;
 end;
 
 //------------------------------------------------------------------------------
 procedure TCAFReport.ResetForm;
 begin
-   Values.btnClearClick(nil);
+   //Values.btnClearClick(nil);
 end;
 
 //------------------------------------------------------------------------------
 procedure TCAFReport.FillCollumn(C: TCell);
 begin
-   if C.Col = fcAccountName then
+   {if C.Col = fcAccountName then
       Values.edtName1.Text := GetCellText(C)
    else if C.Col = fcBSB then
       Values.edtBSB1.Text := GetCellText(C)
@@ -378,13 +378,13 @@ begin
       Values.cbProvisional.Checked := True;
       if (GetCellText(C) = 'N') then
         Values.cbProvisional.Checked := False;
-   end;
+   end;  }
 end;
 
 //------------------------------------------------------------------------------
 function TCAFReport.HaveNewdata: Boolean;
 begin
-   Result := (Values.edtName1.Text > '')
+   {Result := (Values.edtName1.Text > '')
           or (Values.edtBSB1.Text > '')
           or (Values.edtNumber1.Text > '')
           or (Values.edtName2.Text > '')
@@ -394,7 +394,7 @@ begin
           or (Values.edtBSB3.Text > '')
           or (Values.edtNumber3.Text > '');
    if not Result then
-      ResetForm; // Clear the rest..
+      ResetForm; // Clear the rest..  }
 end;
 
 end.

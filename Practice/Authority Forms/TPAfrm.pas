@@ -423,6 +423,7 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmTPA.mskAccountNumberEnter(Sender: TObject);
 begin
+  lblAccountValidationError.Caption := '';
   UpdateMask;
 end;
 
@@ -434,6 +435,7 @@ begin
   lblEditMask.Caption := mskAccountNumber.EditMask;
   lblEditText.Caption := mskAccountNumber.EditText;
   lblText.Caption := mskAccountNumber.EditMask;
+  lblAccountValidationError.Caption := '';
 
   if not ValidateAccount(mskAccountNumber.EditText, FailedReason) then
   begin

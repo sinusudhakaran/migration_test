@@ -164,9 +164,9 @@ var
   index : integer;
 begin
   Result := '';
-  for index := 0 to length(aAccountNumber) - 1 do
+  for index := 1 to length(aAccountNumber) do
   begin
-    if not (aAccountNumber[index] = '_') then
+    if (aAccountNumber[index] >= '0') and (aAccountNumber[index] <= '9') then
       Result := Result + aAccountNumber[index];
   end;
 end;

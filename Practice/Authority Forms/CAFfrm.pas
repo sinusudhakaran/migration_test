@@ -16,91 +16,43 @@ uses
   Dialogs,
   StdCtrls,
   ExtCtrls,
-  OSFont;
+  OSFont,
+  Mask,
+  MaskHint;
 
 type
   TfrmCAF = class(TForm)
     ScrollBox1: TScrollBox;
-    lblTo: TLabel;
-    lblManager: TLabel;
-    lblBankLink: TLabel;
-    lblPos: TLabel;
-    lblClause1: TLabel;
-    lblPos2: TLabel;
-    lblSign: TLabel;
-    pnlHeader: TPanel;
-    lblTitle: TLabel;
-    lblSubtitle: TLabel;
-    lblAddress: TLabel;
-    pnlAccount3: TPanel;
-    Label4: TLabel;
-    Label5: TLabel;
-    Label6: TLabel;
-    Label7: TLabel;
-    edtName3: TEdit;
-    edtBSB3: TEdit;
-    edtNumber3: TEdit;
-    edtClient3: TEdit;
-    edtCost3: TEdit;
-    edtBank: TEdit;
-    pnlAccount2: TPanel;
-    Label12: TLabel;
-    Label13: TLabel;
-    Label14: TLabel;
-    Label15: TLabel;
-    edtName2: TEdit;
-    edtBSB2: TEdit;
-    edtNumber2: TEdit;
-    edtClient2: TEdit;
-    edtCost2: TEdit;
-    pnlFooter: TPanel;
-    lblForm: TLabel;
-    pnlAccount1: TPanel;
-    lblAcName: TLabel;
-    lblAcNum: TLabel;
-    lblClient: TLabel;
-    lblCost: TLabel;
-    edtName1: TEdit;
-    edtBSB1: TEdit;
-    edtNumber1: TEdit;
-    edtClient1: TEdit;
-    edtCost1: TEdit;
-    edtYear: TEdit;
-    edtAdvisors: TEdit;
-    edtPractice: TEdit;
-    cmbMonth: TComboBox;
     Panel6: TPanel;
     btnPreview: TButton;
     btnFile: TButton;
     btnCancel: TButton;
     btnPrint: TButton;
-    pnlBank: TPanel;
-    pnl1: TPanel;
-    pnl2: TPanel;
-    pnl3: TPanel;
-    pnl4: TPanel;
-    pnlSign: TPanel;
-    lblClause2: TLabel;
-    lblClause3: TLabel;
-    lblClause45: TLabel;
     btnEmail: TButton;
     btnClear: TButton;
     btnImport: TButton;
     Opendlg: TOpenDialog;
-    pnlFrequency: TPanel;
-    lblPracticeCode: TLabel;
-    lblTheGeneralManager: TLabel;
-    Panel1: TPanel;
-    lblAdditionalInfo: TLabel;
-    lblServiceFrequency: TLabel;
-    rbMonthly: TRadioButton;
-    rbWeekly: TRadioButton;
-    rbDaily: TRadioButton;
-    cbProvisional: TCheckBox;
-    cmbInstitutionCountry: TComboBox;
+    pnlMaskdata: TPanel;
+    lblEditMask: TLabel;
+    lblEditText: TLabel;
+    lblText: TLabel;
+    grpRural: TGroupBox;
     Label1: TLabel;
-    edtInstitutionName: TEdit;
-    lblPos1: TLabel;
+    pnlAccount: TPanel;
+    lblAcName: TLabel;
+    lblAcNum: TLabel;
+    lblClient: TLabel;
+    lblCost: TLabel;
+    lblAccountNumberLine: TLabel;
+    lblAccountNumberHint: TLabel;
+    lblAccountValidationError: TLabel;
+    edtAccountName: TEdit;
+    edtClientCode: TEdit;
+    edtCost1: TEdit;
+    mskAccountNumber: TMaskEdit;
+    pnlInstitution: TPanel;
+    lblInstitution: TLabel;
+    Label2: TLabel;
     cmbInstitutionName: TComboBox;
     procedure btnPreviewClick(Sender: TObject);
     procedure btnFileClick(Sender: TObject);
@@ -116,12 +68,24 @@ type
     procedure btnImportClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure cmbInstitutionNameChange(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
+    procedure mskAccountNumberExit(Sender: TObject);
+    procedure mskAccountNumberKeyUp(Sender: TObject; var Key: Word;
+      Shift: TShiftState);
+    procedure mskAccountNumberEnter(Sender: TObject);
+    procedure mskAccountNumberMouseDown(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Integer);
   private
+    fMaskHint : TMaskHint;
+
     { Private declarations }
     FButton: Byte;
     FImportFile: string;
     function ValidateForm: Boolean;
     procedure SetImportFile(const Value: string);
+
+    procedure UpdateMask;
+    function ValidateAccount(aAccountNumber : string; var aFailedReason : string) : boolean;
   public
     { Public declarations }
     property ButtonPressed: Byte read FButton;
@@ -141,11 +105,12 @@ uses
   InfoMoreFrm,
   ShellAPI,
   bkHelp,
-  InstitutionCol;
+  InstitutionCol,
+  BanklinkOnlineServices;
 
 Const
-  UNIT_NAME = 'TPAfrm';
-  COUNTY_CODE = 'OZ';
+  UNIT_NAME = 'CAFfrm';
+  COUNTY_CODE = 'AU';
   SET_BANK_WIDTH = 437;
   OTHER_BANK_WIDTH = 129;
 
@@ -155,16 +120,9 @@ var
   Index : integer;
   CountryIndex : integer;
 begin
-  // Institution Country Names
-  for Index := 0 to Institutions.CountryCodes.Count-1 do
-  begin
-    if Institutions.CountryCodes.Strings[Index] = COUNTY_CODE then
-      CountryIndex := Index;
+  fMaskHint := TMaskHint.create;
 
-    cmbInstitutionCountry.AddItem(Institutions.CountryNames.Strings[Index],nil);
-  end;
-  cmbInstitutionCountry.itemindex := CountryIndex;
-  cmbInstitutionCountry.Enabled := false;
+  lblAccountValidationError.Caption := '';
 
   // Institution Names
   cmbInstitutionName.AddItem('Other', nil);
@@ -175,7 +133,33 @@ begin
   end;
 
   cmbInstitutionName.Width := SET_BANK_WIDTH;
-  edtInstitutionName.Enabled := false;
+end;
+
+//------------------------------------------------------------------------------
+procedure TfrmCAF.FormDestroy(Sender: TObject);
+begin
+  FreeAndNil(fMaskHint);
+end;
+
+//------------------------------------------------------------------------------
+function TfrmCAF.ValidateAccount(aAccountNumber : string; var aFailedReason : string) : boolean;
+const
+  COUNTRY_CODE = 'AU';
+var
+  FailedReason : string;
+  InstCode : string;
+  AccountNumber : string;
+begin
+  Result := true;
+
+  AccountNumber := trim(fMaskHint.RemoveUnusedCharsFromAccNumber(aAccountNumber));
+  if (cmbInstitutionName.ItemIndex > 0) and
+     (Assigned(cmbInstitutionName.Items.Objects[cmbInstitutionName.ItemIndex])) and
+     (cmbInstitutionName.Items.Objects[cmbInstitutionName.ItemIndex] is TInstitutionItem) then
+  begin
+    InstCode := TInstitutionItem(cmbInstitutionName.Items.Objects[cmbInstitutionName.ItemIndex]).Code;
+    Result := ProductConfigService.ValidateAccount(AccountNumber, InstCode, COUNTRY_CODE, aFailedReason, true);
+  end;
 end;
 
 //------------------------------------------------------------------------------
@@ -185,7 +169,7 @@ var
   yr: Integer;
 begin
   Result := True;
-  y := edtYear.Text;
+  {y := edtYear.Text;
   if (Length(y) > 1) and (y[1] = '0') then
     y := Copy(y, 2, 1);
   yr := StrToIntDef(y, -1);
@@ -236,7 +220,7 @@ begin
     HelpfulErrorMsg('You must enter a Bank Name.', 0);
     edtInstitutionName.SetFocus;
     Result := False;
-  end;
+  end;   }
 end;
 
 //------------------------------------------------------------------------------
@@ -252,7 +236,7 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmCAF.btnClearClick(Sender: TObject);
 begin
-  edtName1.Clear;
+  {edtName1.Clear;
   edtName2.Clear;
   edtName3.Clear;
   edtBSB1.Clear;
@@ -278,7 +262,7 @@ begin
   cmbInstitutionName.ItemIndex := -1;
   cmbInstitutionName.Width := SET_BANK_WIDTH;
   edtInstitutionName.Clear;
-  edtInstitutionName.Enabled := false;
+  edtInstitutionName.Enabled := false;}
 end;
 
 //------------------------------------------------------------------------------
@@ -329,26 +313,42 @@ begin
   if cmbInstitutionName.ItemIndex = 0 then
   begin
     cmbInstitutionName.Width := OTHER_BANK_WIDTH;
-    edtInstitutionName.text := '';
-    edtInstitutionName.Enabled := true;
+    //edtInstitutionName.Enabled := true;
+    //edtInstitutionName.Text := '';
+    grpRural.Visible := false;
+    Label2.caption := '';
   end
   else
   begin
     cmbInstitutionName.Width := SET_BANK_WIDTH;
-    edtInstitutionName.Enabled := false;
+    //edtInstitutionName.Enabled := false;
+
+    if (Assigned(cmbInstitutionName.Items.Objects[cmbInstitutionName.ItemIndex])) and
+       (cmbInstitutionName.Items.Objects[cmbInstitutionName.ItemIndex] is TInstitutionItem) then
+    begin
+      Label2.caption := 'Code - ' + TInstitutionItem(cmbInstitutionName.Items.Objects[cmbInstitutionName.ItemIndex]).Code;
+
+      grpRural.Visible := TInstitutionItem(cmbInstitutionName.Items.Objects[cmbInstitutionName.ItemIndex]).HasRuralCode;
+      if grpRural.Visible then
+        Label1.Caption := 'Rural Code - ' + TInstitutionItem(cmbInstitutionName.Items.Objects[cmbInstitutionName.ItemIndex]).RuralCode;
+
+      mskAccountNumber.EditText := '';
+      mskAccountNumber.EditMask := TInstitutionItem(cmbInstitutionName.Items.Objects[cmbInstitutionName.ItemIndex]).AccountEditMask;
+      UpdateMask;
+    end;
   end;
 end;
 
 //------------------------------------------------------------------------------
 procedure TfrmCAF.cmbMonthChange(Sender: TObject);
 begin
-  if cmbMonth.ItemIndex = 1 then
+  {if cmbMonth.ItemIndex = 1 then
   begin
     edtYear.Enabled := False;
     edtYear.Text := '';
   end
   else
-    edtYear.Enabled := True;
+    edtYear.Enabled := True;}
 end;
 
 //------------------------------------------------------------------------------
@@ -370,13 +370,53 @@ procedure TfrmCAF.FormShow(Sender: TObject);
 begin
   FButton := BTN_NONE;
   BKHelpSetUp(Self, BKH_Accessing_a_Client_Authority_Form);
-  ScrollBox1.ScrollInView(lblTitle); // scroll to top
+  //ScrollBox1.ScrollInView(lblTitle); // scroll to top
+end;
+
+procedure TfrmCAF.mskAccountNumberEnter(Sender: TObject);
+begin
+  lblAccountValidationError.Caption := '';
+  UpdateMask;
+end;
+
+procedure TfrmCAF.mskAccountNumberExit(Sender: TObject);
+var
+  FailedReason : string;
+begin
+  lblEditMask.Caption := mskAccountNumber.EditMask;
+  lblEditText.Caption := mskAccountNumber.EditText;
+  lblText.Caption := mskAccountNumber.EditMask;
+
+  lblAccountValidationError.Caption := '';
+  if not ValidateAccount(mskAccountNumber.EditText, FailedReason) then
+  begin
+    lblAccountValidationError.Caption := FailedReason;
+    //mskAccountNumber.SetFocus;
+  end;
+end;
+
+procedure TfrmCAF.mskAccountNumberKeyUp(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+  UpdateMask;
+end;
+
+procedure TfrmCAF.mskAccountNumberMouseDown(Sender: TObject;
+  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+begin
+  UpdateMask;
 end;
 
 //------------------------------------------------------------------------------
 procedure TfrmCAF.SetImportFile(const Value: string);
 begin
   FImportFile := Value;
+end;
+
+//------------------------------------------------------------------------------
+procedure TfrmCAF.UpdateMask;
+begin
+  fMaskHint.DrawMaskHint(lblAccountNumberLine, lblAccountNumberHint, mskAccountNumber, self.Color, $000000FF, $000000FF, 16);
 end;
 
 //------------------------------------------------------------------------------

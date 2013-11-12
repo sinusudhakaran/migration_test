@@ -3,7 +3,7 @@ object frmCAF: TfrmCAF
   Top = 163
   BorderIcons = [biSystemMenu]
   Caption = 'Client Authority Form'
-  ClientHeight = 748
+  ClientHeight = 431
   ClientWidth = 709
   Color = clBtnFace
   Constraints.MinWidth = 350
@@ -18,6 +18,7 @@ object frmCAF: TfrmCAF
   Scaled = False
   OnClose = FormClose
   OnCreate = FormCreate
+  OnDestroy = FormDestroy
   OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 13
@@ -25,7 +26,7 @@ object frmCAF: TfrmCAF
     Left = 0
     Top = 0
     Width = 709
-    Height = 707
+    Height = 390
     Align = alClient
     BevelOuter = bvNone
     Font.Charset = DEFAULT_CHARSET
@@ -35,306 +36,122 @@ object frmCAF: TfrmCAF
     Font.Style = []
     ParentFont = False
     TabOrder = 0
-    object pnlHeader: TPanel
+    ExplicitTop = 2
+    ExplicitHeight = 454
+    object pnlMaskdata: TPanel
       Left = 0
-      Top = 0
-      Width = 688
-      Height = 49
+      Top = 73
+      Width = 705
+      Height = 96
       Align = alTop
-      TabOrder = 6
-      object lblTitle: TLabel
-        Left = 16
-        Top = 4
-        Width = 107
-        Height = 29
-        Caption = 'BankLink'
-        Font.Charset = DEFAULT_CHARSET
-        Font.Color = clWindowText
-        Font.Height = -24
-        Font.Name = 'MS Sans Serif'
-        Font.Style = [fsBold]
-        ParentFont = False
-      end
-      object lblSubtitle: TLabel
-        Left = 16
-        Top = 33
-        Width = 219
+      TabOrder = 0
+      ExplicitTop = 217
+      ExplicitWidth = 688
+      object lblEditMask: TLabel
+        Left = 13
+        Top = 6
+        Width = 54
         Height = 13
-        Caption = '(A Division of Media Transfer Services Limited)'
+        Caption = 'lblEditMask'
       end
-      object lblAddress: TLabel
-        Left = 467
-        Top = 4
-        Width = 207
-        Height = 41
-        AutoSize = False
-        Caption = 'Send completed form to:'#13'BankLink'#13'GPO Box 4608, Sydney 2001, NSW'
-        Font.Charset = DEFAULT_CHARSET
-        Font.Color = clWindowText
-        Font.Height = -11
-        Font.Name = 'MS Sans Serif'
-        Font.Style = [fsBold]
-        ParentFont = False
-        WordWrap = True
+      object lblEditText: TLabel
+        Left = 13
+        Top = 29
+        Width = 49
+        Height = 13
+        Caption = 'lblEditText'
+      end
+      object lblText: TLabel
+        Left = 13
+        Top = 56
+        Width = 31
+        Height = 13
+        Caption = 'lblText'
       end
     end
-    object pnlAccount3: TPanel
+    object grpRural: TGroupBox
       Left = 0
-      Top = 177
-      Width = 688
-      Height = 64
+      Top = 265
+      Width = 705
+      Height = 48
+      Align = alTop
+      Caption = 'Rural'
+      TabOrder = 1
+      Visible = False
+      ExplicitTop = 169
+      ExplicitWidth = 688
+      object Label1: TLabel
+        Left = 16
+        Top = 16
+        Width = 3
+        Height = 13
+      end
+    end
+    object pnlAccount: TPanel
+      Left = 0
+      Top = 169
+      Width = 705
+      Height = 96
       Align = alTop
       TabOrder = 2
-      object Label4: TLabel
+      ExplicitTop = 73
+      ExplicitWidth = 688
+      object lblAcName: TLabel
         Left = 13
         Top = 10
+        Width = 86
+        Height = 13
+        Caption = 'Name of Account '
+      end
+      object lblAcNum: TLabel
+        Left = 13
+        Top = 48
         Width = 83
         Height = 13
-        Caption = 'Name of Account'
+        Caption = 'Account Number '
       end
-      object Label5: TLabel
-        Left = 13
-        Top = 40
-        Width = 80
-        Height = 13
-        Caption = 'Account Number'
-      end
-      object Label6: TLabel
+      object lblClient: TLabel
         Left = 416
-        Top = 10
-        Width = 54
+        Top = 7
+        Width = 57
         Height = 13
-        Caption = 'Client Code'
+        Caption = 'Client Code '
       end
-      object Label7: TLabel
+      object lblCost: TLabel
         Left = 416
-        Top = 40
-        Width = 49
+        Top = 52
+        Width = 52
         Height = 13
-        Caption = 'Cost Code'
+        Caption = 'Cost Code '
       end
-      object edtName3: TEdit
+      object lblAccountNumberLine: TLabel
         Left = 112
-        Top = 6
+        Top = 64
         Width = 281
         Height = 21
-        Hint = 'Enter the account name'
-        MaxLength = 50
-        ParentShowHint = False
-        ShowHint = True
-        TabOrder = 0
-        OnExit = edtExit
+        Alignment = taCenter
+        AutoSize = False
       end
-      object edtBSB3: TEdit
+      object lblAccountNumberHint: TLabel
+        Left = 232
+        Top = 64
+        Width = 3
+        Height = 13
+      end
+      object lblAccountValidationError: TLabel
         Left = 112
-        Top = 36
-        Width = 81
-        Height = 21
-        Hint = 'Enter the BSB for this account'
-        MaxLength = 7
-        ParentShowHint = False
-        ShowHint = True
-        TabOrder = 1
-        OnExit = edtExit
-      end
-      object edtNumber3: TEdit
-        Left = 191
-        Top = 36
-        Width = 202
-        Height = 21
-        Hint = 'Enter the account number'
-        MaxLength = 32
-        ParentShowHint = False
-        ShowHint = True
-        TabOrder = 2
-        OnExit = edtExit
-      end
-      object edtClient3: TEdit
-        Left = 493
-        Top = 6
-        Width = 161
-        Height = 21
-        Hint = 'Enter the code your practice uses for this client'
-        CharCase = ecUpperCase
-        MaxLength = 8
-        ParentShowHint = False
-        ShowHint = True
-        TabOrder = 3
-        OnExit = edtExit
-        OnKeyPress = edtKeyPress
-      end
-      object edtCost3: TEdit
-        Left = 493
-        Top = 37
-        Width = 161
-        Height = 21
-        Hint = 'Enter the cost code your practice uses for this client'
-        CharCase = ecUpperCase
-        MaxLength = 8
-        ParentShowHint = False
-        ShowHint = True
-        TabOrder = 4
-        OnExit = edtExit
-        OnKeyPress = edtKeyPress
-      end
-    end
-    object pnlAccount2: TPanel
-      Left = 0
-      Top = 113
-      Width = 688
-      Height = 64
-      Align = alTop
-      TabOrder = 1
-      object Label12: TLabel
-        Left = 13
-        Top = 10
-        Width = 83
+        Top = 28
+        Width = 118
         Height = 13
-        Caption = 'Name of Account'
-      end
-      object Label13: TLabel
-        Left = 13
-        Top = 40
-        Width = 80
-        Height = 13
-        Caption = 'Account Number'
-      end
-      object Label14: TLabel
-        Left = 416
-        Top = 10
-        Width = 54
-        Height = 13
-        Caption = 'Client Code'
-      end
-      object Label15: TLabel
-        Left = 416
-        Top = 40
-        Width = 49
-        Height = 13
-        Caption = 'Cost Code'
-      end
-      object edtName2: TEdit
-        Left = 112
-        Top = 6
-        Width = 281
-        Height = 21
-        Hint = 'Enter the account name'
-        MaxLength = 50
-        ParentShowHint = False
-        ShowHint = True
-        TabOrder = 0
-        OnExit = edtExit
-      end
-      object edtBSB2: TEdit
-        Left = 112
-        Top = 36
-        Width = 81
-        Height = 21
-        Hint = 'Enter the BSB for this account'
-        MaxLength = 7
-        ParentShowHint = False
-        ShowHint = True
-        TabOrder = 1
-        OnExit = edtExit
-      end
-      object edtNumber2: TEdit
-        Left = 191
-        Top = 36
-        Width = 202
-        Height = 21
-        Hint = 'Enter the account number'
-        MaxLength = 32
-        ParentShowHint = False
-        ShowHint = True
-        TabOrder = 2
-        OnExit = edtExit
-      end
-      object edtClient2: TEdit
-        Left = 493
-        Top = 6
-        Width = 161
-        Height = 21
-        Hint = 'Enter the code your practice uses for this client'
-        CharCase = ecUpperCase
-        MaxLength = 8
-        ParentShowHint = False
-        ShowHint = True
-        TabOrder = 3
-        OnExit = edtExit
-        OnKeyPress = edtKeyPress
-      end
-      object edtCost2: TEdit
-        Left = 493
-        Top = 36
-        Width = 161
-        Height = 21
-        Hint = 'Enter the cost code your practice uses for this client'
-        CharCase = ecUpperCase
-        MaxLength = 8
-        ParentShowHint = False
-        ShowHint = True
-        TabOrder = 4
-        OnExit = edtExit
-        OnKeyPress = edtKeyPress
-      end
-    end
-    object pnlFooter: TPanel
-      Left = 0
-      Top = 241
-      Width = 688
-      Height = 41
-      Align = alTop
-      TabOrder = 7
-      object lblForm: TLabel
-        Left = 16
-        Top = 9
-        Width = 275
-        Height = 24
-        Caption = 'BANKLINK CLIENT AUTHORITY'
+        Caption = 'lblAccountValidationError'
         Font.Charset = DEFAULT_CHARSET
-        Font.Color = clWindowText
-        Font.Height = -18
+        Font.Color = clRed
+        Font.Height = -11
         Font.Name = 'MS Sans Serif'
         Font.Style = []
         ParentFont = False
       end
-    end
-    object pnlAccount1: TPanel
-      Left = 0
-      Top = 49
-      Width = 688
-      Height = 64
-      Align = alTop
-      TabOrder = 0
-      object lblAcName: TLabel
-        Left = 13
-        Top = 10
-        Width = 83
-        Height = 13
-        Caption = 'Name of Account'
-      end
-      object lblAcNum: TLabel
-        Left = 13
-        Top = 40
-        Width = 80
-        Height = 13
-        Caption = 'Account Number'
-      end
-      object lblClient: TLabel
-        Left = 416
-        Top = 6
-        Width = 54
-        Height = 13
-        Caption = 'Client Code'
-      end
-      object lblCost: TLabel
-        Left = 416
-        Top = 36
-        Width = 49
-        Height = 13
-        Caption = 'Cost Code'
-      end
-      object edtName1: TEdit
+      object edtAccountName: TEdit
         Left = 112
         Top = 6
         Width = 281
@@ -346,469 +163,87 @@ object frmCAF: TfrmCAF
         TabOrder = 0
         OnExit = edtExit
       end
-      object edtBSB1: TEdit
-        Left = 112
-        Top = 36
-        Width = 81
-        Height = 21
-        Hint = 'Enter the BSB for this account'
-        MaxLength = 7
-        ParentShowHint = False
-        ShowHint = True
-        TabOrder = 1
-        OnExit = edtExit
-      end
-      object edtNumber1: TEdit
-        Left = 191
-        Top = 36
-        Width = 202
-        Height = 21
-        Hint = 'Enter the account number'
-        MaxLength = 32
-        ParentShowHint = False
-        ShowHint = True
-        TabOrder = 2
-        OnExit = edtExit
-      end
-      object edtClient1: TEdit
+      object edtClientCode: TEdit
         Left = 493
         Top = 6
-        Width = 161
+        Width = 160
         Height = 21
         Hint = 'Enter the code your practice uses for this client'
         CharCase = ecUpperCase
         MaxLength = 8
         ParentShowHint = False
         ShowHint = True
-        TabOrder = 3
+        TabOrder = 1
         OnExit = edtExit
         OnKeyPress = edtKeyPress
       end
       object edtCost1: TEdit
         Left = 493
-        Top = 33
-        Width = 161
+        Top = 48
+        Width = 160
         Height = 21
         Hint = 'Enter the cost code your practice uses for this client'
         CharCase = ecUpperCase
         MaxLength = 8
         ParentShowHint = False
         ShowHint = True
-        TabOrder = 4
+        TabOrder = 3
         OnExit = edtExit
         OnKeyPress = edtKeyPress
       end
-    end
-    object pnlBank: TPanel
-      Left = 0
-      Top = 282
-      Width = 688
-      Height = 119
-      Align = alTop
-      BevelOuter = bvNone
-      TabOrder = 3
-      object lblTo: TLabel
-        Left = 8
-        Top = 15
-        Width = 16
-        Height = 13
-        Caption = 'To:'
-      end
-      object lblManager: TLabel
-        Left = 32
-        Top = 15
-        Width = 481
-        Height = 13
-        Caption = 
-          'The Manager,                                                    ' +
-          '                                                                ' +
-          '                and'
-      end
-      object lblBankLink: TLabel
-        Left = 524
-        Top = 26
-        Width = 151
-        Height = 26
-        Caption = 'Media Transfer Services Limited'#13'("BankLink")'
-      end
-      object lblPos: TLabel
-        Left = 374
-        Top = 100
-        Width = 71
-        Height = 13
-        Caption = '(Branch Name)'
-      end
-      object lblTheGeneralManager: TLabel
-        Left = 524
-        Top = 15
-        Width = 107
-        Height = 13
-        Caption = 'The General Manager,'
-      end
-      object Label1: TLabel
-        Left = 383
-        Top = 57
-        Width = 62
-        Height = 13
-        Caption = '(Bank Name)'
-      end
-      object lblPos1: TLabel
-        Left = 374
-        Top = 100
-        Width = 71
-        Height = 13
-        Caption = '(Branch Name)'
-      end
-      object edtBank: TEdit
-        Left = 8
-        Top = 76
-        Width = 437
+      object mskAccountNumber: TMaskEdit
+        Left = 112
+        Top = 45
+        Width = 281
         Height = 21
-        Hint = 'Enter the name of the branch where the account(s) are held'
-        MaxLength = 50
-        ParentShowHint = False
-        ShowHint = True
         TabOrder = 2
-        OnExit = edtExit
+        OnEnter = mskAccountNumberEnter
+        OnExit = mskAccountNumberExit
+        OnKeyUp = mskAccountNumberKeyUp
+        OnMouseDown = mskAccountNumberMouseDown
       end
-      object cmbInstitutionCountry: TComboBox
-        Left = 13
-        Top = 34
-        Width = 97
-        Height = 21
-        Hint = 'Choose the month in which you want data collection to start'
-        Style = csDropDownList
-        ItemHeight = 13
-        ParentShowHint = False
-        ShowHint = True
-        TabOrder = 3
-        OnChange = cmbMonthChange
+    end
+    object pnlInstitution: TPanel
+      Left = 0
+      Top = 0
+      Width = 705
+      Height = 73
+      Align = alTop
+      TabOrder = 3
+      ExplicitWidth = 688
+      object lblInstitution: TLabel
+        Left = 16
+        Top = 11
+        Width = 51
+        Height = 13
+        Caption = 'Institution :'
       end
-      object edtInstitutionName: TEdit
-        Left = 143
-        Top = 34
-        Width = 302
-        Height = 21
-        Hint = 'Enter the bank where the account(s) are held'
-        MaxLength = 40
-        ParentShowHint = False
-        ShowHint = True
-        TabOrder = 1
-        OnExit = edtExit
+      object Label2: TLabel
+        Left = 16
+        Top = 40
+        Width = 3
+        Height = 13
       end
       object cmbInstitutionName: TComboBox
-        Left = 8
-        Top = 34
-        Width = 129
+        Left = 112
+        Top = 8
+        Width = 281
         Height = 21
-        Hint = 'Select the bank where the account(s) are held'
-        Style = csDropDownList
         ItemHeight = 13
-        ParentShowHint = False
-        ShowHint = True
         TabOrder = 0
         OnChange = cmbInstitutionNameChange
-      end
-    end
-    object pnl1: TPanel
-      Left = 0
-      Top = 401
-      Width = 688
-      Height = 99
-      Align = alTop
-      BevelOuter = bvNone
-      TabOrder = 4
-      object lblClause1: TLabel
-        Left = 8
-        Top = 12
-        Width = 645
-        Height = 39
-        Caption = 
-          '1.    I/We hereby AUTHORISE the Bank and BankLink as at and from' +
-          ' the first of                                  20               ' +
-          'to forward all data and'#13'       information (whether in written, ' +
-          'computer readable or any other format) relating to my/our banks ' +
-          'account/s designated above to each'#13'       other and to'
-      end
-      object lblPos2: TLabel
-        Left = 32
-        Top = 78
-        Width = 91
-        Height = 13
-        Caption = '("my/our advisors")'
-      end
-      object lblPracticeCode: TLabel
-        Left = 510
-        Top = 80
-        Width = 67
-        Height = 13
-        Caption = 'Practice Code'
-      end
-      object cmbMonth: TComboBox
-        Left = 394
-        Top = 6
-        Width = 93
-        Height = 21
-        Hint = 'Choose the month in which you want data collection to start'
-        Style = csDropDownList
-        ItemHeight = 13
-        ParentShowHint = False
-        ShowHint = True
-        TabOrder = 0
-        OnChange = cmbMonthChange
-        Items.Strings = (
-          ''
-          'ASAP'
-          'January'
-          'February'
-          'March'
-          'April'
-          'May'
-          'June'
-          'July'
-          'August'
-          'September'
-          'October'
-          'November'
-          'December')
-      end
-      object edtYear: TEdit
-        Left = 510
-        Top = 6
-        Width = 33
-        Height = 21
-        Hint = 'Enter the year in which you want data collection to start'
-        MaxLength = 2
-        ParentShowHint = False
-        ShowHint = True
-        TabOrder = 1
-        OnExit = edtExit
-      end
-      object edtAdvisors: TEdit
-        Left = 29
-        Top = 51
-        Width = 458
-        Height = 21
-        Hint = 'Enter your practice name'
-        MaxLength = 50
-        ParentShowHint = False
-        ShowHint = True
-        TabOrder = 2
-        OnExit = edtExit
-      end
-      object edtPractice: TEdit
-        Left = 510
-        Top = 53
-        Width = 115
-        Height = 21
-        Hint = 'Enter your BankLink practice code'
-        CharCase = ecUpperCase
-        MaxLength = 8
-        ParentShowHint = False
-        ShowHint = True
-        TabOrder = 3
-        OnExit = edtExit
-        OnKeyPress = edtKeyPress
-      end
-    end
-    object pnl2: TPanel
-      Left = 0
-      Top = 500
-      Width = 688
-      Height = 113
-      Align = alTop
-      BevelOuter = bvNone
-      TabOrder = 8
-      object lblClause2: TLabel
-        Left = 8
-        Top = 3
-        Width = 649
-        Height = 104
-        Caption = 
-          '2.    I/We UNDERSTAND that:'#13'      a) no agency, partnership, joi' +
-          'nt venture or any other type of similar relationship exists betw' +
-          'een the Bank and BankLink and that the '#13'          Bank accepts n' +
-          'o responsibility for the actions of BankLink, my/our advisors or' +
-          ' any other third party;'#13'      b) neither the Bank nor BankLink w' +
-          'ill, subject to any prohibition or limitation imposed by law, be' +
-          ' liable for delays, non-performance, '#13'          failure to perfo' +
-          'rm, processing errors or any other matter or thing arising out o' +
-          'f this authority or any agreement which the Bank or '#13'          B' +
-          'ankLink may have with my/our advisors and which occur for reason' +
-          's beyond the control of respectively the Bank or BankLink, as '#13' ' +
-          '         the case may be, nor will the liability of the Bank and' +
-          '/or BankLink (whether jointly, severally or jointly and severall' +
-          'y) include or '#13'          extend to any special or consequential ' +
-          'loss or damage suffered by me/us.'
-      end
-    end
-    object pnl3: TPanel
-      Left = 0
-      Top = 613
-      Width = 688
-      Height = 48
-      Align = alTop
-      BevelOuter = bvNone
-      TabOrder = 9
-      object lblClause3: TLabel
-        Left = 8
-        Top = 3
-        Width = 663
-        Height = 39
-        Caption = 
-          '3.    I/We ACKNOWLEDGE that the Bank will receive a commission f' +
-          'rom BankLink for disclosing the data and information referred to' +
-          ' above, '#13'       and that the Bank is under no obligation to me/u' +
-          's to supply the data and information referred to above to BankLi' +
-          'nk, and may cease to '#13'       do so without notice to me/us.'
-      end
-    end
-    object pnl4: TPanel
-      Left = 0
-      Top = 661
-      Width = 688
-      Height = 74
-      Align = alTop
-      BevelOuter = bvNone
-      TabOrder = 10
-      object lblClause45: TLabel
-        Left = 8
-        Top = 2
-        Width = 645
-        Height = 65
-        Caption = 
-          '4.    This authority is terminable by any or both of the Bank or' +
-          ' BankLink at any time where seven (7) days notice is given to me' +
-          '/us on any '#13'       grounds thought fit, without rendering the Ba' +
-          'nk and/or BankLink liable in any way.'#13#13'5.    Any revocation of t' +
-          'his authority by me/us will not take effect until 14 days after ' +
-          'written notice of the revocation is received by the '#13'       Bank' +
-          ' from me/us.'
-      end
-    end
-    object pnlSign: TPanel
-      Left = 0
-      Top = 735
-      Width = 688
-      Height = 161
-      Align = alTop
-      BevelOuter = bvNone
-      Constraints.MinWidth = 640
-      TabOrder = 11
-      object lblSign: TLabel
-        Left = 29
-        Top = 23
-        Width = 638
-        Height = 130
-        Caption = 
-          'Dated this ................. day of ............................' +
-          '........................ 20............'#13#13#13#13'.....................' +
-          '................................................................' +
-          '.................        .......................................' +
-          '...............................................................'#13 +
-          '(Account signatory)                                             ' +
-          '                                                                ' +
-          '                                           (Account signatory)'#13#13 +
-          #13'...............................................................' +
-          '.......................................        .................' +
-          '................................................................' +
-          '.....................'#13'(Witness)                                 ' +
-          '                                                                ' +
-          '                                                                ' +
-          '                      (Witness)'
-      end
-    end
-    object pnlFrequency: TPanel
-      Left = 0
-      Top = 896
-      Width = 688
-      Height = 84
-      Align = alBottom
-      BevelOuter = bvNone
-      TabOrder = 5
-      object Panel1: TPanel
-        Tag = 29
-        Left = 29
-        Top = 6
-        Width = 637
-        Height = 77
-        BevelOuter = bvNone
-        BorderWidth = 1
-        BorderStyle = bsSingle
-        Ctl3D = False
-        ParentCtl3D = False
-        TabOrder = 0
-        object lblAdditionalInfo: TLabel
-          Left = 14
-          Top = 9
-          Width = 231
-          Height = 13
-          Caption = 'Additional information to assist BankLink'
-          Font.Charset = DEFAULT_CHARSET
-          Font.Color = clWindowText
-          Font.Height = -11
-          Font.Name = 'MS Sans Serif'
-          Font.Style = [fsBold]
-          ParentFont = False
-        end
-        object lblServiceFrequency: TLabel
-          Left = 14
-          Top = 53
-          Width = 92
-          Height = 13
-          Caption = 'Service Frequency:'
-        end
-        object rbMonthly: TRadioButton
-          Left = 137
-          Top = 52
-          Width = 113
-          Height = 17
-          Hint = 'Click to select monthly data delivery'
-          Caption = 'Monthly'
-          TabOrder = 0
-        end
-        object rbWeekly: TRadioButton
-          Left = 271
-          Top = 52
-          Width = 150
-          Height = 17
-          Hint = 'Click to select weekly data delivery'
-          Caption = 'Weekly (where available)'
-          TabOrder = 1
-          TabStop = True
-        end
-        object rbDaily: TRadioButton
-          Left = 444
-          Top = 52
-          Width = 150
-          Height = 17
-          Hint = 'Click to select daily data delivery'
-          Caption = 'Daily (where available)'
-          Checked = True
-          TabOrder = 2
-          TabStop = True
-        end
-        object cbProvisional: TCheckBox
-          Left = 14
-          Top = 29
-          Width = 586
-          Height = 17
-          Caption = 
-            'Please supply the account(s) above as Provisional Account(s) if ' +
-            'they are not available from the Bank'
-          TabOrder = 3
-        end
       end
     end
   end
   object Panel6: TPanel
     Left = 0
-    Top = 707
+    Top = 390
     Width = 709
     Height = 41
     Align = alBottom
     BevelOuter = bvLowered
     TabOrder = 1
+    ExplicitTop = 707
     DesignSize = (
       709
       41)
@@ -901,7 +336,7 @@ object frmCAF: TfrmCAF
   end
   object Opendlg: TOpenDialog
     Filter = 'Excel file*.xls|*.xls'
-    Left = 320
-    Top = 16
+    Left = 304
+    Top = 456
   end
 end

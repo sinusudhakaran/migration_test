@@ -273,7 +273,7 @@ object frmTPA: TfrmTPA
         Top = 8
         Width = 281
         Height = 21
-        ItemHeight = 13
+        ItemHeight = 0
         TabOrder = 0
         OnChange = cmbInstitutionNameChange
       end
