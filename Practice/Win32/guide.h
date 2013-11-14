@@ -497,7 +497,6 @@
 #define Edit_All_Columns_in_the_Enter_Journal_window	2029
 #define IRESS_Xplan	2030
 #define Journal_entry_toolbar_buttons	2031
-#define Journals_and_notes	2032
 #define List_Charges	2033
 #define Setting_up_the_link_to_IRESS_Xplan	2034
 #define Using_the_Enter_Journal_window	2035
@@ -632,3 +631,7 @@
 #define Taxable_Payments_Report	2144
 #define Exporting_charges_to_MYOB_AE_Practice_Manager	1520
 #define Viewing_the_account_status	2145
+#define Exporting_and_importing_budgets	2146
+#define Coding_transactions_for_BGL_Simple_Ledger	2147
+#define Coding_transactions_for_Class_Super	2148
+#define Coding_transactions_for_Handisoft_Superfund	2149

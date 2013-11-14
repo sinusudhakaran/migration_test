@@ -504,7 +504,6 @@ const
   BKH_Edit_All_Columns_in_the_Enter_Journal_window = 2029;
   BKH_IRESS_Xplan = 2030;
   BKH_Journal_entry_toolbar_buttons = 2031;
-  BKH_Journals_and_notes = 2032;
   BKH_List_Charges = 2033;
   BKH_Setting_up_the_link_to_IRESS_Xplan = 2034;
   BKH_Using_the_Enter_Journal_window = 2035;
@@ -639,8 +638,12 @@ const
   BKH_Taxable_Payments_Report = 2144;
   BKH_Exporting_charges_to_MYOB_AE_Practice_Manager = 1520;
   BKH_Viewing_the_account_status = 2145;
+  BKH_Exporting_and_importing_budgets = 2146;
+  BKH_Coding_transactions_for_BGL_Simple_Ledger = 2147;
+  BKH_Coding_transactions_for_Class_Super = 2148;
+  BKH_Coding_transactions_for_Handisoft_Superfund = 2149;
 
 var
   //filename of HTML help file
-  HelpFileName : String = 'Guide.chm';
+  HelpFileName : String = 'Guide_NZ.chm';
 
