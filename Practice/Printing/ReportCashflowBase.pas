@@ -63,7 +63,7 @@ type
     function  ReportGroupNeedsPrinting( ReportGroup : byte) : boolean;
     function  AccountNeedsPrinting( pAcct : pAccount_Rec) : boolean; virtual;
     procedure PrintControlAccountTitle( aAccount: pAccount_Rec);
-    procedure PrintValuesForPeriod( const Values : TValuesArray; DefaultSign : TSign; AddToColTotal: boolean = True);
+    procedure PrintValuesForPeriod( const Values : TValuesArray; DefaultSign : TSign);
     procedure SetCurrencyFormatForPeriod(const Values : TValuesArray; NewFormat: string);
     procedure SkipPeriod;
 
@@ -1074,8 +1074,7 @@ begin
 end;
 
 procedure TFinancialReportBase.PrintValuesForPeriod( const Values: TValuesArray;
-                                                     DefaultSign : TSign;
-                                                     AddToColTotal: boolean = True);
+                                                     DefaultSign : TSign);
 var
   i : integer;
 begin
@@ -1090,7 +1089,7 @@ begin
         else
            PutPercentage(Values[i],true,DefaultSign)
      else
-        PutMoney(Values[i], DefaultSign, AddToColTotal);
+        PutMoney(Values[i], DefaultSign);
   end;
 end;
 

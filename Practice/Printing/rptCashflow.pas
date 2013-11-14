@@ -1825,7 +1825,6 @@ begin
 
         if ShowThisAccount then
         begin
-          TotalsArrayPos := 0; // DONT CHECK THIS IN
           if NonBaseCurrencyAccount then
           begin
             ExchangeGainLossTable.Initialize(pAcct);
@@ -1974,24 +1973,10 @@ begin
               end
               else 
               begin
-                { DONT CHECK THIS IN (START) }
-                {
-                NumOfTotals := ColumnsPerPeriod * (iVisiblePeriods + 1);
-                SetLength( MovementTotals, NumOfTotals );
-                SetLength( MV_ValuesArray, ColumnsPerPeriod);
-                GetValuesForPeriod( pAcct, PeriodNo, MV_ValuesArray);
-                for j := Low(MovementTotals) to High(MovementTotals) do
-                  MovementTotals[j] := 0;
-                for j := Low( MV_ValuesArray) to High( MV_ValuesArray) do
-                  MovementTotals[TotalsArrayPos] := MovementTotals[TotalsArrayPos] + MV_ValuesArray[j];
-                Inc(TotalsArrayPos);
-                }
-                { DONT CHECK THIS IN (END) }
-
                 FUseBaseAmounts := False;
                 GetClosingBalancesForPeriod( pAcct, PeriodNo, ValuesArray);
                 //PrintValues (Actual closing balance)
-                PrintValuesForPeriod(ValuesArray{MovementTotals}, Debit{, False}); // dont check this in
+                PrintValuesForPeriod( ValuesArray, Debit);
               end;
             end
             else

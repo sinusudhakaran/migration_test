@@ -200,10 +200,10 @@ type
     procedure PutString ( aString : string);
     procedure PutInteger( aInteger : longint);
     procedure PutCurrency( aCurr : currency; IncludeInTotals: Boolean = True); overload;
-    procedure PutCurrency( aCurr : Currency; DefaultSign : TSign; AddToColTotal: boolean = True); overload;
+    procedure PutCurrency( aCurr : Currency; DefaultSign : TSign); overload;
     procedure PutCurrencyTotal(aCurr : currency);
     procedure PutMoney (aMoney : money; IncludeInTotals: Boolean = True); overload;
-    procedure PutMoney (aMoney : money; DefaultSign : TSign; AddToColTotal: boolean = True); overload;
+    procedure PutMoney (aMoney : money; DefaultSign : TSign); overload;
     procedure PutMoneyTotal (aMoney : money);
     procedure PutMoneyDontAdd (aMoney : money);
     procedure PutQuantity(aMoney : money); overload;
@@ -1003,7 +1003,7 @@ begin
      Result := ''; //FormatPercentString(0); not the same as 0 .. just no ref
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-procedure TBKReport.PutCurrency(aCurr: Currency; DefaultSign: TSign; AddToColTotal: boolean = True);
+procedure TBKReport.PutCurrency(aCurr: Currency; DefaultSign: TSign);
 //this overloaded procedure is used when the sign of the value when displayed
 //is different to the sign of the value for the totals
 var
@@ -1024,8 +1024,7 @@ begin
   with FColumns.Report_Column_At(newIndex) do
   begin
     FCurrDetail.add(FormatFloat(FormatString, DisplayAmount));
-    if AddToColTotal then    
-      AddToTotals( aCurr, NewIndex);
+    AddToTotals( aCurr, NewIndex);
   end;
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -1054,12 +1053,12 @@ begin
    PutCurrency(currAmount, IncludeInTotals);
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-procedure TBKReport.PutMoney(aMoney: money; DefaultSign: TSign; AddToColTotal: boolean = True);
+procedure TBKReport.PutMoney(aMoney: money; DefaultSign: TSign);
 var
    currAmount : currency;
 begin
    currAmount := aMoney/100;
-   PutCurrency(currAmount, DefaultSign, AddToColTotal);
+   PutCurrency(currAmount, DefaultSign);
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TBKReport.PutMoneyDontAdd(aMoney: money);
