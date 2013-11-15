@@ -4217,6 +4217,12 @@ const
     aClient.clExtra.ceInclude_Non_Posting_Chart_Codes := True;
   end;
 
+  procedure UpgradeToVersion175;
+  begin
+    if (aClient.clFields.clECoding_Import_Options = 0) then
+      aClient.clFields.clECoding_Import_Options := noFillWithPayeeName;
+  end;
+
 begin
    with aClient.clFields do begin
 
@@ -4567,6 +4573,12 @@ begin
       begin
         UpgradeToVersion174;
         clFile_Version := 174;
+      end;
+      // Adding default for top group of radio buttons in ImportFromECodingDlg
+      if (CLFile_Version < 175) then
+      begin
+        UpgradeToVersion175;
+        clFile_Version := 175;
       end;
    end;
 end;
