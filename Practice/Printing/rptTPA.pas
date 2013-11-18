@@ -54,73 +54,73 @@ uses
 //------------------------------------------------------------------------------
 function DoTPAReport(Values: TfrmTPA; Destination : TReportDest; Mode: TAFMode; Addr: string = '') : Boolean;
 var
-   Job : TTPAReport;
-   AttachmentSent, AskOpen: Boolean;
+  Job : TTPAReport;
+  AttachmentSent, AskOpen: Boolean;
 begin
-   Result := False;
-   {Job := TTPAReport.Create(ReportTypes.rptOther);
-   try
-      Job.Values := Values;
-      Job.Country := whNewZealand;
-      Job.WasPrinted := False;
-      Job.LoadReportSettings(UserPrintSettings,Report_List_Names[Report_TPA]);
-      Job.FileFormats := [ffPDF];
+  Result := False;
+  Job := TTPAReport.Create(ReportTypes.rptOther);
+  try
+    Job.Values     := Values;
+    Job.Country    := whNewZealand;
+    Job.WasPrinted := False;
+    Job.LoadReportSettings(UserPrintSettings, Report_List_Names[Report_TPA]);
+    Job.FileFormats := [ffPDF];
 
-      // Check if we have anything to do..
-      if Mode =  AFImport then
-         if not Job.ImportFile(Values.ImportFile,False) then
-            Exit;
+    // Check if we have anything to do..
+    if Mode = AFImport then
+      if not Job.ImportFile(Values.ImportFile,False) then
+        Exit;
 
-      Job.ImportMode := False;
-      AskOpen := True;
-      case Mode of
-         AFEmail: begin
-               Job.FileDest := rfPDF; //Dont ask for Destination
-               AskOpen := False;      //Dont ask to look at it
-            end;
-         AFImport: begin
-               Job.ImportMode := True;
-            end;
+    Job.ImportMode := False;
+    AskOpen := True;
+    case Mode of
+      AFEmail: begin
+        Job.FileDest := rfPDF; //Dont ask for Destination
+        AskOpen := False;      //Dont ask to look at it
       end;
-
-      if Destination in [rdScreen, rdPrinter, rdFile] then
-         Job.Generate( Destination, nil, True, AskOpen);
-
-      Result := Job.WasPrinted;
-
-      if Result
-      and (Mode = AFEmail) then begin
-
-         MailFrm.SendFileTo( 'Send Third Party Authority Form', Addr, '', Job.ReportFile, AttachmentSent, False, True);
-         DeleteFile(PAnsiChar(Job.ReportFile));
+      AFImport: begin
+        Job.ImportMode := True;
       end;
-   finally
-      Job.Free;
-   end;   }
+    end;
+
+    if Destination in [rdScreen, rdPrinter, rdFile] then
+      Job.Generate( Destination, nil, True, AskOpen);
+
+    Result := Job.WasPrinted;
+
+    if Result and
+      (Mode = AFEmail) then
+    begin
+      MailFrm.SendFileTo( 'Send Third Party Authority Form', Addr, '', Job.ReportFile, AttachmentSent, False, True);
+      DeleteFile(PAnsiChar(Job.ReportFile));
+    end;
+  finally
+    Job.Free;
+  end;
 end;
 
 //------------------------------------------------------------------------------
 procedure TTPAReport.BKPrint;
 begin
-  {if ImportMode then
-     ImportFile(Values.ImportFile,True)
+  if ImportMode then
+    ImportFile(Values.ImportFile,True)
   else
-     PrintForm;}
+    PrintForm;
 end;
 
 //------------------------------------------------------------------------------
-procedure TTPAReport.FillCollumn(C: TCell);
+procedure TTPAReport.FillCollumn(C : TCell);
 begin
   {if C.Col = fcAccountName then
-    Values.edtName1.Text := GetCellText(C)
+    Values.edtNameOfAccount.Text := GetCellText(C)
   else if C.Col = fcAccountNo then
-    Values.edtNumber1.Text := GetCellText(C)
+    Values.edtAccountNumber.Text := GetCellText(C)
   else if C.Col = fcCostCode then
-    Values.edtCost1.Text := GetCellText(C)
+    Values.edtCostCode.Text := GetCellText(C)
   else if C.Col = fcClientCode then
-    Values.edtClient1. Text := GetCellText(C)
+    Values.edtClientCode.Text := GetCellText(C)
   else if C.Col = fcBank then
-    Values.edtBank.Text := GetCellText(C)
+    Values.edtInstitutionName.Text := GetCellText(C)
   else if C.Col = fcMonth then
     Values.cmbMonth.ItemIndex :=
       Values.cmbMonth.Items.IndexOf(GetCellText(C))
@@ -139,21 +139,17 @@ begin
     Values.cbProvisional.Checked := True;
     if (GetCellText(C) = 'N') then
       Values.cbProvisional.Checked := False;
-  end;}
+  end; }
 end;
 
 //------------------------------------------------------------------------------
 function TTPAReport.HaveNewdata: Boolean;
 begin
-  {Result := (Values.edtName1.Text > '')
-         or (Values.edtNumber1.Text > '')
-         or (Values.edtName2.Text > '')
-         or (Values.edtNumber2.Text > '')
-         or (Values.edtName3.Text > '')
-         or (Values.edtNumber3.Text > '');
+  Result := (Values.edtNameOfAccount.Text > '')
+         or (Values.edtAccountNumber.Text > '');
 
   if not Result then
-     ResetForm; // Clear the rest}
+    ResetForm; // Clear the rest
 end;
 
 //------------------------------------------------------------------------------
@@ -162,9 +158,11 @@ var
   myCanvas : TCanvas;
   i : integer;
   BankText : string;
+
+  Year, Month, Day : Word;
 begin
-  {assume we have a canvas of A4 proportions as per GST forms}
-  {myCanvas     := CanvasRenderEng.OutputBuilder.Canvas;
+  //assume we have a canvas of A4 proportions as per GST forms
+  myCanvas     := CanvasRenderEng.OutputBuilder.Canvas;
   //*** Form heading
   myCanvas.Font.Size := 18;
   myCanvas.Font.Style := [fsbold];
@@ -172,18 +170,21 @@ begin
   UserReportSettings.s7Orientation := BK_PORTRAIT;
   CurrLineSize := GetCurrLineSize;
   CurrYPos := RowStart - BoxMargin;
-  RenderText(Values.lblTitle.Caption, Rect(Col0, CurrYPos, ColBoxRight, CurrYPos+CurrLineSize), jtLeft);
+  RenderText('BankLink', Rect(Col0, CurrYPos, ColBoxRight, CurrYPos+CurrLineSize), jtLeft);
   NewLine;
   myCanvas.Font.Size := 7;
   myCanvas.Font.Style := [];
   CurrLineSize := GetCurrLineSizeNoInflation;
-  RenderText(Values.lblSubtitle.Caption, Rect(Col0, CurrYPos, ColBoxRight, CurrYPos+CurrLineSize), jtLeft);
+  RenderText('Incorporating BankLink Limited and Media Transfer Services Limited', Rect(Col0, CurrYPos, ColBoxRight, CurrYPos+CurrLineSize), jtLeft);
   //*** Send To Address
   CurrYPos := 100;
   myCanvas.Font.Size := 10;
   myCanvas.Font.Style := [fsBold];
   CurrLineSize := GetCurrLineSizeNoInflation;
-  RenderSplitText(Values.lblAddress.Caption, Col2 - 165);
+  RenderSplitText('Send completed form to:' + #13 +
+                  'BankLink, PO Box 56354,' + #13 +
+                  'Dominion Road, Auckland 1446',
+                  Col2 - 165);
   //*** Account info
   myCanvas.Font.Size := 7;
   myCanvas.Font.Style := [];
@@ -191,19 +192,25 @@ begin
   CurrLineSize := 40;
   DrawLine;
   NewLine;
-  PrintAccount(Values.edtName1.Text, '', Values.edtNumber1.Text, Values.edtClient1.Text, Values.edtCost1.Text,
-  Values.lblAcName.Caption, Values.lblAcNum.Caption, Values.lblClient.Caption, Values.lblCost.Caption, Col1+200+BoxMargin);
+
+  PrintAccount(Values.edtNameOfAccount.Text,
+               '',
+               Values.AccountNumber,
+               Values.edtClientCode.Text,
+               Values.edtCostCode.Text,
+               'Name of Account ',
+               'Account Number ',
+               'Client Code ',
+               'Cost Code ',
+               Col1 + 200 + BoxMargin);
+
   NewLine;
-  PrintAccount(Values.edtName2.Text, '', Values.edtNumber2.Text, Values.edtClient2.Text, Values.edtCost2.Text,
-  Values.lblAcName.Caption, Values.lblAcNum.Caption, Values.lblClient.Caption, Values.lblCost.Caption, Col1+200+BoxMargin);
   NewLine;
-  PrintAccount(Values.edtName3.Text, '', Values.edtNumber3.Text, Values.edtClient3.Text, Values.edtCost3.Text,
-  Values.lblAcName.Caption, Values.lblAcNum.Caption, Values.lblClient.Caption, Values.lblCost.Caption, Col1+200+BoxMargin);
   //*** Form name
   myCanvas.Font.Size := 14;
   myCanvas.Font.Style := [];
   CurrLineSize := GetCurrLineSize;
-  RenderText(Values.lblForm.Caption, Rect(Col1, CurrYPos, ColBoxRight, CurrYPos+CurrLineSize), jtLeft);
+  RenderText('THIRD PARTY AUTHORITY ', Rect(Col1, CurrYPos, ColBoxRight, CurrYPos+CurrLineSize), jtLeft);
   //*** Bank info
   NewLine;
   DrawBox(XYSizeRect(Col0 - BoxMargin, RowStart - BoxMargin, ColBoxRight + BoxMargin, CurrYPos + BoxMargin));
@@ -211,14 +218,14 @@ begin
   myCanvas.Font.Size := 7;
   myCanvas.Font.Style := [];
   CurrLineSize := GetCurrLineSizeNoInflation;
-  RenderText(Values.lblTo.Caption, Rect(Col0, CurrYPos, ColBoxRight, CurrYPos+CurrLineSize), jtLeft);
+  RenderText('To:  The Manager,', Rect(Col0, CurrYPos, ColBoxRight, CurrYPos+CurrLineSize), jtLeft);
   NewLine;
   myCanvas.Font.Size := myCanvas.Font.Size + 1;
 
-  if Values.cmbInstitutionName.itemindex = 0 then
-    BankText := Values.edtInstitutionName.text + '   ' + Values.edtBank.Text
+  if Values.cmbInstitution.itemindex = 0 then
+    BankText := Values.edtInstitutionName.text + '   ' + Values.edtBranch.Text
   else
-    BankText := Values.cmbInstitutionName.text + '   ' + Values.edtBank.Text;
+    BankText := Values.cmbInstitution.text + '   ' + Values.edtBranch.Text;
 
   RenderText(BankText, Rect(Col0+BoxMargin, CurrYPos+BoxMargin, 1100, CurrYPos+CurrLineSize+(BoxMargin*2)), jtLeft);
 
@@ -227,16 +234,30 @@ begin
   NewLine(3);
   RenderText('(Bank and Branch Name)', Rect(Col0, CurrYPos, ColBoxRight, CurrYPos+CurrLineSize), jtLeft);
   NewLine(2);
-  RenderSplitText(Values.lblPos1.Caption, Col0);
+  RenderSplitText('And:' + #13 +
+                  'To:   The General Manager,' + #13 +
+                  '        Media Transfer Services Ltd',
+                  Col0);
   NewLine(2);
   //*** Clauses and space for signatures
   i := CurrYPos - CurrLineSize*3;
-  RenderSplitText(Values.lblClause1.Caption, Col0);
+  RenderSplitText('As from the               day of                             20 ' +
+                  '         you and each of you are hereby authorised to disclose ' +
+                  'and/or make' + #13 + 'use of all data and information relating to my/our ' +
+                  'bank account/s designated above which may be required in connection ' +
+                  'with the' + #13 + 'performance of the processing services under any ' +
+                  'E.D.P. Services Contract which you or either of you may now or ' +
+                  'hereafter have' + #13 + 'with',
+                  Col0);
+
+  DecodeDate(Values.edtClientStartDte.AsDateTime, Year, Month, Day);
+
+
   CurrYPos := CurrYPos - CurrLineSize*2 - BoxMargin;
   myCanvas.Font.Size := myCanvas.Font.Size + 1;
-  RenderText(Values.cmbDay.Text, Rect(Col1 + 120, i, Col1 + 160, CurrYPos-CurrLineSize), jtLeft);
-  RenderText(Values.cmbMonth.Text, Rect(Col1 + 300, i, Col1 + 480, CurrYPos-CurrLineSize), jtLeft);
-  RenderText(Values.edtYear.Text, Rect(Col1 + 560, i, Col1 + 600, CurrYPos-CurrLineSize), jtLeft);
+  RenderText(inttoStr(Day), Rect(Col1 + 120, i, Col1 + 160, CurrYPos-CurrLineSize), jtLeft);
+  RenderText(moNames[Month], Rect(Col1 + 300, i, Col1 + 480, CurrYPos-CurrLineSize), jtLeft);
+  RenderText(RightStr(inttoStr(Year),2), Rect(Col1 + 560, i, Col1 + 600, CurrYPos-CurrLineSize), jtLeft);
   myCanvas.Font.Size := myCanvas.Font.Size - 1;
   CurrYPos := CurrYPos + CurrLineSize*2 + BoxMargin;
   i := CurrYPos-CurrLineSize*5-Round(CurrLineSize/2);
@@ -249,60 +270,84 @@ begin
   // advisors box
   DrawBox(XYSizeRect(Col0, CurrYPos, Col1 + 900, CurrYPos + BoxHeight));
   // practice box
+
+
+
   DrawBox(XYSizeRect(Col2 - 190, CurrYPos, ColBoxRight - 390, CurrYPos + BoxHeight));
   myCanvas.Font.Size := myCanvas.Font.Size + 1;
-  RenderText(Values.edtAdvisors.Text, Rect(Col0+BoxMargin, CurrYPos+BoxMargin, 1015, CurrYPos+CurrLineSize+(BoxMargin*2)), jtLeft);
-  RenderText(Values.edtPractice.Text, Rect(Col2 - 185, CurrYPos+BoxMargin, Col2+BoxMargin+100, CurrYPos+CurrLineSize + BoxMargin), jtLeft);
+  RenderText(Values.PracticeName, Rect(Col0+BoxMargin, CurrYPos+BoxMargin, 1015, CurrYPos+CurrLineSize+(BoxMargin*2)), jtLeft);
+  RenderText(Values.PracticeCode, Rect(Col2 - 185, CurrYPos+BoxMargin, Col2+BoxMargin+100, CurrYPos+CurrLineSize + BoxMargin), jtLeft);
   myCanvas.Font.Size := myCanvas.Font.Size - 1;
   NewLine(3);
-  RenderText(Values.lblPos2.Caption, Rect(Col0, CurrYPos, ColBoxRight, CurrYPos+CurrLineSize), jtLeft);
+  RenderText('(my/our advisors) ', Rect(Col0, CurrYPos, ColBoxRight, CurrYPos+CurrLineSize), jtLeft);
 
-  RenderText(Values.lblPracticeCode.Caption, Rect(Col2 - 190, CurrYPos, Col2 + 100, CurrYPos+CurrLineSize), jtLeft);
+  RenderText('(Practice Code)', Rect(Col2 - 190, CurrYPos, Col2 + 100, CurrYPos+CurrLineSize), jtLeft);
   NewLine(2);
-  RenderSplitText(Values.lblClause2.Caption, Col0);
+  RenderSplitText('and neither of you shall be liable for delays, non-performance, ' +
+                  'failure to perform, processing errors or any other matter or thing' + #13 +
+                  'arising out of this authority or the contract which occur for ' +
+                  'reasons beyond your control and under no circumstances shall your' + #13 +
+                  'liability (either joint or several) include or extend to any special ' +
+                  'or consequential loss or damage. This authority is terminable by' + #13 +
+                  'you or either of you at any time without notice on any grounds ' +
+                  'you may think fit without rendering you liable in any way.',
+                  Col0);
   NewLine(2);
   //Date
-  RenderSplitText(Values.lblDate.Caption, Col0, True);
+  RenderSplitText('Dated this ................. day of ............................' +
+                  '........................ 20............',
+                  Col0,
+                  True);
   NewLine(4);
 
   CreateQRCode(MyCanvas, XYSizeRect(ColBoxRight-250, CurrYPos-250, ColBoxRight, CurrYPos));
 
   //Name - keep same y pos for signature
   i := CurrYPos;
-  RenderSplitText(Values.lblName.Caption, Col0, True);
+  RenderSplitText('................................................................' +
+                  '............................' + #13 + '(Print name of Third Party) ',
+                  Col0, True);
   CurrYPos := i;
   //Signature
-  RenderSplitText(Values.lblSign.Caption, Col1 + 720, True);
+  RenderSplitText('................................................................' +
+                  '......................................' + #13 + '(Signature of Third Party' +
+                  ')' + #13#13 + 'Signature confirmed:' + #13#13#13 + '......................................' +
+                  '................................................................' +
+                  '    Manager' + #13#13#13 + '..................................................' +
+                  '....................................................    Branch',
+                  Col1 + 720, True);
   NewLine;
   DrawBox(XYSizeRect(Col0 - BoxMargin, CurrYPos, ColBoxRight + BoxMargin, CurrYPos + CurrLineSize*8));
   NewLine;
   myCanvas.Font.Style := [fsBold];
   CurrYPos := CurrYPos - 10;
-  RenderText(Values.lblAdditional.Caption, Rect(Col1, CurrYPos, ColBoxRight, CurrYPos+CurrLineSize), jtLeft);
+  RenderText('Additional Information to assist BankLink processing', Rect(Col1, CurrYPos, ColBoxRight, CurrYPos+CurrLineSize), jtLeft);
   NewLine;
   //Provisional
   CurrYPos := CurrYPos + 20;
   myCanvas.Font.Style := [];
-  DrawCheckbox(Col1, CurrYPos, Values.cbProvisional.Checked);
-  RenderText(Values.cbProvisional.Caption, Rect(Col1 + CurrLineSize + 10, CurrYPos, ColBoxRight, CurrYPos+CurrLineSize), jtLeft);
+  //DrawCheckbox(Col1, CurrYPos, Values.cbProvisional.Checked);
+  RenderText('Please supply the account(s) above as Provisional Account(s) if ' +
+             'they are not available from the Bank',
+             Rect(Col1 + CurrLineSize + 10, CurrYPos, ColBoxRight, CurrYPos+CurrLineSize), jtLeft);
   NewLine(2);
   //Frequency
-  RenderText(Values.lblMonthly.Caption, Rect(Col1, CurrYPos, ColBoxRight, CurrYPos+CurrLineSize), jtLeft);
-  DrawRadio(myCanvas, XYSizeRect(Col1 + 400, CurrYPos, Col1 + 800, CurrYPos+CurrLineSize), ' ' + Values.rbMonthly.Caption, True, Values.rbMonthly.Checked);
-  DrawRadio(myCanvas, XYSizeRect(Col1 + 800, CurrYPos, Col1 + 1400, CurrYPos+CurrLineSize), ' ' + Values.rbWeekly.Caption, True, Values.rbWeekly.Checked);
-  DrawRadio(myCanvas, XYSizeRect(Col1 + 1400, CurrYPos, Col1 + 1800, CurrYPos+CurrLineSize), ' ' + Values.rbDaily.Caption, True, Values.rbDaily.Checked);
+  RenderText('Service Frequency:', Rect(Col1, CurrYPos, ColBoxRight, CurrYPos+CurrLineSize), jtLeft);
+  //DrawRadio(myCanvas, XYSizeRect(Col1 + 400, CurrYPos, Col1 + 800, CurrYPos+CurrLineSize), ' ' + Values.rbMonthly.Caption, True, Values.rbMonthly.Checked);
+  //DrawRadio(myCanvas, XYSizeRect(Col1 + 800, CurrYPos, Col1 + 1400, CurrYPos+CurrLineSize), ' ' + Values.rbWeekly.Caption, True, Values.rbWeekly.Checked);
+  //DrawRadio(myCanvas, XYSizeRect(Col1 + 1400, CurrYPos, Col1 + 1800, CurrYPos+CurrLineSize), ' ' + Values.rbDaily.Caption, True, Values.rbDaily.Checked);
   NewLine(2);
   //Rural Inst
-  RenderText(Values.lblRural.Caption, Rect(Col1, CurrYPos, ColBoxRight, CurrYPos+CurrLineSize), jtLeft);
-  DrawRadio(myCanvas, XYSizeRect(Col1 + 400, CurrYPos, ColBoxRight, CurrYPos+CurrLineSize), ' ' + Values.rbReDate.Caption, True, Values.rbReDate.Checked);
-  DrawRadio(myCanvas, XYSizeRect(Col2, CurrYPos, ColBoxRight, CurrYPos+CurrLineSize), ' ' + Values.rbDate.Caption, True, Values.rbDate.Checked);
-  WasPrinted := True;}
+  RenderText('Rural Institutions Only:', Rect(Col1, CurrYPos, ColBoxRight, CurrYPos+CurrLineSize), jtLeft);
+  //DrawRadio(myCanvas, XYSizeRect(Col1 + 400, CurrYPos, ColBoxRight, CurrYPos+CurrLineSize), ' ' + Values.rbReDate.Caption, True, Values.rbReDate.Checked);
+  //DrawRadio(myCanvas, XYSizeRect(Col2, CurrYPos, ColBoxRight, CurrYPos+CurrLineSize), ' ' + Values.rbDate.Caption, True, Values.rbDate.Checked);
+  WasPrinted := True;
 end;
 
 //------------------------------------------------------------------------------
 procedure TTPAReport.ResetForm;
 begin
-  //Values.btnClearClick(nil);
+  Values.btnClearClick(nil);
 end;
 
 //------------------------------------------------------------------------------
@@ -320,8 +365,9 @@ var
 {$ENDIF}
 begin
   // don't draw QRCode if institution is set to other or not set
-  {if Values.cmbInstitutionName.ItemIndex < 1 then
-    Exit;}
+  if Values.cmbInstitution.ItemIndex < 1 then
+    Exit;
+
 {$IFNDEF PRACTICE-7}
   {CAFQRData := TCAFQRData.Create(TCAFQRDataAccount);
   try
@@ -334,20 +380,6 @@ begin
         CAFQRDataAccount.AccountNumber := Values.edtNumber1.text;
         CAFQRDataAccount.ClientCode    := Values.edtClient1.Text;
         CAFQRDataAccount.CostCode      := Values.edtCost1.Text;
-        CAFQRDataAccount.SMSF          := 'N'; // AU only
-
-        CAFQRDataAccount := TCAFQRDataAccount.Create(CAFQRData);
-        CAFQRDataAccount.AccountName   := Values.edtName2.text;
-        CAFQRDataAccount.AccountNumber := Values.edtNumber2.text;
-        CAFQRDataAccount.ClientCode    := Values.edtClient2.Text;
-        CAFQRDataAccount.CostCode      := Values.edtCost2.Text;
-        CAFQRDataAccount.SMSF          := 'N'; // AU only
-
-        CAFQRDataAccount := TCAFQRDataAccount.Create(CAFQRData);
-        CAFQRDataAccount.AccountName   := Values.edtName3.text;
-        CAFQRDataAccount.AccountNumber := Values.edtNumber3.text;
-        CAFQRDataAccount.ClientCode    := Values.edtClient3.Text;
-        CAFQRDataAccount.CostCode      := Values.edtCost3.Text;
         CAFQRDataAccount.SMSF          := 'N'; // AU only
 
         // Day , Month , Year
@@ -398,7 +430,7 @@ begin
     end;
   finally
     FreeAndNil(CAFQRData);
-  end; }
+  end;  }
   {$ENDIF}
 end;
 

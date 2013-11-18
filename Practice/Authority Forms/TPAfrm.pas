@@ -4,7 +4,7 @@ unit TPAfrm;
 //------------------------------------------------------------------------------
 interface
 
-uses
+uses                                  
   Windows,
   Messages,
   SysUtils,
@@ -18,42 +18,66 @@ uses
   ExtCtrls,
   Mask,
   OSFont,
-  MaskHint;
+  MaskHint,
+  ovcbase,
+  ovcef,
+  ovcpb,
+  ovcpf,
+  MaskValidateEdit;
 
 type
+  TInstitutionType = (inNone, inOther, inBLO);
+
   TfrmTPA = class(TForm)
-    Panel6: TPanel;
+    Opendlg: TOpenDialog;
     btnPreview: TButton;
     btnFile: TButton;
-    btnCancel: TButton;
-    btnPrint: TButton;
     btnEmail: TButton;
-    btnClear: TButton;
+    btnPrint: TButton;
     btnImport: TButton;
-    Opendlg: TOpenDialog;
-    ScrollBox1: TScrollBox;
-    pnlAccount: TPanel;
-    lblAcName: TLabel;
-    lblAcNum: TLabel;
-    lblClient: TLabel;
-    lblCost: TLabel;
-    edtAccountName: TEdit;
-    edtClientCode: TEdit;
-    edtCost1: TEdit;
-    mskAccountNumber: TMaskEdit;
-    lblAccountNumberLine: TLabel;
-    lblAccountNumberHint: TLabel;
-    pnlInstitution: TPanel;
-    cmbInstitutionName: TComboBox;
+    btnClear: TButton;
+    btnCancel: TButton;
+    pnlMain: TPanel;
+    pnlInstTop: TPanel;
     lblInstitution: TLabel;
+    lblInstitutionOther: TLabel;
+    cmbInstitution: TComboBox;
+    edtInstitutionName: TEdit;
+    pnlInstitution: TPanel;
+    pnlInstData: TPanel;
+    lblAccountHintLine: TLabel;
+    edtBranch: TEdit;
+    edtNameOfAccount: TEdit;
+    pnlInstLabels: TPanel;
+    lblBranch: TLabel;
+    lblAccount: TLabel;
+    lblNameOfAccount: TLabel;
+    pnlInstSpacer: TPanel;
+    pnlClient: TPanel;
+    pnlClientLabel: TPanel;
+    lblCostCode: TLabel;
+    lblClientCode: TLabel;
+    lblStartDate: TLabel;
+    pnlClientData: TPanel;
+    edtClientCode: TEdit;
+    edtClientStartDte: TOvcPictureField;
+    edtCostCode: TEdit;
+    pnlClientSpacer: TPanel;
+    pnlData: TPanel;
+    lblRecieved: TLabel;
+    lblSecureCode: TLabel;
+    chkExistingClient: TCheckBox;
+    chkDataToClient: TCheckBox;
+    cmbRecieved: TComboBox;
+    edtSecureCode: TEdit;
+    pnlRural: TPanel;
+    lblRuralInstitutions: TLabel;
+    radReDateTransactions: TRadioButton;
+    radDateShown: TRadioButton;
+    mskAccountNumber: TMaskValidateEdit;
+    pnlAccountError: TPanel;
     lblAccountValidationError: TLabel;
-    grpRural: TGroupBox;
-    Label1: TLabel;
-    Label2: TLabel;
-    pnlMaskdata: TPanel;
-    lblEditMask: TLabel;
-    lblEditText: TLabel;
-    lblText: TLabel;
+    edtAccountNumber: TEdit;
     procedure btnPreviewClick(Sender: TObject);
     procedure btnFileClick(Sender: TObject);
     procedure btnPrintClick(Sender: TObject);
@@ -62,12 +86,11 @@ type
     procedure edtExit(Sender: TObject);
     procedure btnEmailClick(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
-    procedure cmbMonthChange(Sender: TObject);
     procedure edtKeyPress(Sender: TObject; var Key: Char);
     procedure btnClearClick(Sender: TObject);
     procedure btnImportClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
-    procedure cmbInstitutionNameChange(Sender: TObject);
+    procedure cmbInstitutionChange(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure mskAccountNumberKeyUp(Sender: TObject; var Key: Word;
       Shift: TShiftState);
@@ -75,16 +98,33 @@ type
     procedure mskAccountNumberEnter(Sender: TObject);
     procedure mskAccountNumberMouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
+    procedure chkDataToClientClick(Sender: TObject);
+    procedure chkExistingClientClick(Sender: TObject);
+    procedure mskAccountNumberValidateError(var aRaiseError: Boolean);
+    procedure mskAccountNumberValidateEdit(var aRunExistingValidate: Boolean);
+    procedure edtAccountNumberExit(Sender: TObject);
   private
+    fValidAccount : boolean;
+    fAccountNumber : string;
+
+    fValidateError : boolean;
     fPracticeCode : string;
     fPracticeName : string;
     FButton: Byte;
     fMaskHint : TMaskHint;
     FImportFile: string;
+    fInstitutionType : TInstitutionType;
+
+    procedure SetInstitutionControls(aInstitutionType : TInstitutionType);
+    procedure RemovePanelBorders();
+
     function ValidateForm: Boolean;
     procedure SetImportFile(const Value: string);
 
     procedure UpdateMask;
+    procedure SetDataSentToClient(aEnabled : boolean);
+    procedure SetExistingClient(aEnabled : boolean);
+
     function ValidateAccount(aAccountNumber : string; var aFailedReason : string) : boolean;
   public
     { Public declarations }
@@ -92,8 +132,10 @@ type
     property ImportFile: string read FImportFile write SetImportFile;
     property PracticeCode : string read fPracticeCode write fPracticeCode;
     property PracticeName : string read fPracticeName write fPracticeName;
-  end;
 
+    property ValidAccount  : boolean read fValidAccount  write fValidAccount;
+    property AccountNumber : string  read fAccountNumber write fAccountNumber;
+  end;
 
 //------------------------------------------------------------------------------
 implementation
@@ -112,47 +154,46 @@ uses
 
 Const
   UNIT_NAME = 'TPAfrm';
-  COUNTY_CODE = 'NZ';
-  SET_BANK_WIDTH = 437;
-  OTHER_BANK_WIDTH = 129;
+  COUNTRY_CODE = 'NZ';
+  OTHER_BANK_WIDTH = 175;
 
+{ TfrmTPA }
 //------------------------------------------------------------------------------
 procedure TfrmTPA.FormCreate(Sender: TObject);
 var
   Index : integer;
-  CountryIndex : integer;
 begin
+  fValidAccount := false;
+  fAccountNumber := '';
   fMaskHint := TMaskHint.create;
 
-  {// Institution Country Names
-  for Index := 0 to Institutions.CountryCodes.Count-1 do
-  begin
-    if Institutions.CountryCodes.Strings[Index] = COUNTY_CODE then
-      CountryIndex := Index;
-
-    cmbInstitutionCountry.AddItem(Institutions.CountryNames.Strings[Index],nil);
-  end;
-  cmbInstitutionCountry.itemindex := CountryIndex;
-  cmbInstitutionCountry.Enabled := false;}
-
+  RemovePanelBorders;
+  lblAccountHintLine.Caption := '';
   lblAccountValidationError.Caption := '';
 
   // Institution Names
-  cmbInstitutionName.AddItem('Other', nil);
+  cmbInstitution.AddItem('Other', nil);
   for Index := 0 to Institutions.Count-1 do
   begin
-    if (TInstitutionItem(Institutions.Items[Index]).CountryCode = COUNTY_CODE) and
+    if (TInstitutionItem(Institutions.Items[Index]).CountryCode = COUNTRY_CODE) and
        (TInstitutionItem(Institutions.Items[Index]).Enabled) then
     begin
       if TInstitutionItem(Institutions.Items[Index]).HasNewName then
-        cmbInstitutionName.AddItem(TInstitutionItem(Institutions.Items[Index]).NewName, TInstitutionItem(Institutions.Items[Index]))
+        cmbInstitution.AddItem(TInstitutionItem(Institutions.Items[Index]).NewName, TInstitutionItem(Institutions.Items[Index]))
       else
-        cmbInstitutionName.AddItem(TInstitutionItem(Institutions.Items[Index]).Name, TInstitutionItem(Institutions.Items[Index]));
+        cmbInstitution.AddItem(TInstitutionItem(Institutions.Items[Index]).Name, TInstitutionItem(Institutions.Items[Index]));
     end;
   end;
+  cmbInstitution.ItemIndex := -1;
+  SetInstitutionControls(inNone);
+  fValidateError := false;
 
-  cmbInstitutionName.Width := SET_BANK_WIDTH;
-  //edtInstitutionName.Enabled := false;
+  // Data Sent Direct to Client
+  cmbRecieved.AddItem('BankLink Books Secure', nil);
+  cmbRecieved.AddItem('BankLink Online Secure', nil);
+  cmbRecieved.ItemIndex := 0;
+
+  SetDataSentToClient(false);
 end;
 
 //------------------------------------------------------------------------------
@@ -162,247 +203,10 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TfrmTPA.ValidateAccount(aAccountNumber : string; var aFailedReason : string) : boolean;
-const
-  COUNTRY_CODE = 'NZ';
-var
-  FailedReason : string;
-  InstCode : string;
-  AccountNumber : string;
-begin
-  Result := true;
-
-  AccountNumber := trim(fMaskHint.RemoveUnusedCharsFromAccNumber(aAccountNumber));
-  if (cmbInstitutionName.ItemIndex > 0) and
-     (Assigned(cmbInstitutionName.Items.Objects[cmbInstitutionName.ItemIndex])) and
-     (cmbInstitutionName.Items.Objects[cmbInstitutionName.ItemIndex] is TInstitutionItem) then
-  begin
-    InstCode := TInstitutionItem(cmbInstitutionName.Items.Objects[cmbInstitutionName.ItemIndex]).Code;
-    Result := ProductConfigService.ValidateAccount(AccountNumber, InstCode, COUNTRY_CODE, aFailedReason, true);
-  end;
-end;
-
-//------------------------------------------------------------------------------
-function TfrmTPA.ValidateForm: Boolean;
-var
-  y: string;
-  yr: Integer;
-begin
-  Result := True;
-{  y := edtYear.Text;
-  if (Length(y) > 1) and (y[1] = '0') then
-    y := Copy(y, 2, 1);
-  yr := StrToIntDef(y, -1);
-  if Length(edtYear.Text) = 1 then
-    edtYear.Text := '0' + edtYear.Text;
-  if (yr = -1) and (y <> '') then
-  begin
-    HelpfulErrorMsg('You must enter a valid starting year', 0);
-    edtYear.SetFocus;
-    Result := False;
-  end
-  // must have day if month or year exist
-  else if (cmbDay.ItemIndex = 0) and ((cmbMonth.ItemIndex > 1) or (edtYear.Text <> '')) then
-  begin
-    HelpfulErrorMsg('You must choose the starting day', 0);
-    cmbDay.SetFocus;
-    Result := False;
-  end
-  // must have month if day or year exist
-  else if (cmbMonth.ItemIndex = 0) and ((cmbDay.ItemIndex > 0) or (edtYear.Text <> '')) then
-  begin
-    HelpfulErrorMsg('You must choose the starting month', 0);
-    cmbMonth.SetFocus;
-    Result := False;
-  end
-  // must have year if month or day exist
-  else if (edtYear.Text = '') and ((cmbDay.ItemIndex > 0) or (cmbMonth.ItemIndex > 1)) then
-  begin
-    HelpfulErrorMsg('You must enter the starting year', 0);
-    edtYear.SetFocus;
-    Result := False;
-  end
-  else if edtAdvisors.Text = '' then
-  begin
-    HelpfulErrorMsg('You must enter your practice name', 0);
-    edtAdvisors.SetFocus;
-    Result := False;
-  end
-  else if edtPractice.Text = '' then
-  begin
-    HelpfulErrorMsg('You must enter your practice code', 0);
-    edtPractice.SetFocus;
-    Result := False;
-  end;
-  // is entered date valid
-  if Result and (cmbDay.ItemIndex > 0) and (cmbMonth.ItemIndex > 1) and (edtYear.Text <> '') then
-  begin
-    try
-      EncodeDate(yr, cmbMonth.ItemIndex - 1, StrToIntDef(cmbDay.Text, -1));
-    except
-      begin
-        HelpfulErrorMsg('You must enter a valid starting date', 0);
-        cmbDay.SetFocus;
-        Result := False;
-      end;
-    end;
-  end;
-
-  // Institution Name
-  if Result and (cmbInstitutionName.ItemIndex = -1) then
-  begin
-    HelpfulErrorMsg('You must choose a Bank Name.', 0);
-    cmbInstitutionName.SetFocus;
-    Result := False;
-  end;
-
-  // Institution Other Name
-  if Result and (cmbInstitutionName.ItemIndex = 0) and (edtInstitutionName.text = '') then
-  begin
-    HelpfulErrorMsg('You must enter a Bank Name.', 0);
-    edtInstitutionName.SetFocus;
-    Result := False;
-  end;}
-end;
-
-//------------------------------------------------------------------------------
-procedure TfrmTPA.btnPreviewClick(Sender: TObject);
-begin
-  if ValidateForm then
-  begin
-    FButton := BTN_PREVIEW;
-    ModalResult := mrOk;
-  end;
-end;
-
-//------------------------------------------------------------------------------
-procedure TfrmTPA.btnClearClick(Sender: TObject);
-begin
-  {edtName1.Clear;
-  edtName2.Clear;
-  edtName3.Clear;
-  edtNumber1.Clear;
-  edtNumber2.Clear;
-  edtNumber3.Clear;
-  edtClient1.Clear;
-  edtClient2.Clear;
-  edtClient3.Clear;
-  edtCost1.Clear;
-  edtcost2.Clear;
-  edtCost3.Clear;
-  edtbank.Clear;
-  edtYear.Clear;
-  cmbDay.ItemIndex := 0;
-  cmbMonth.ItemIndex := 0;
-  cmbMonthChange(Sender);
-  rbMonthly.Checked := False;
-  rbWeekly.Checked := False;
-  rbDaily.Checked := True;
-  rbReDate.Checked := False;
-  rbDate.Checked := False;
-  cbProvisional.Checked := False;
-  cmbInstitutionName.ItemIndex := -1;
-  cmbInstitutionName.Width := SET_BANK_WIDTH;
-  edtInstitutionName.Clear;
-  edtInstitutionName.Enabled := false;}
-end;
-
-//------------------------------------------------------------------------------
-procedure TfrmTPA.btnEmailClick(Sender: TObject);
-begin
-  if ValidateForm then
-  begin
-    FButton := BTN_EMAIL;
-    ModalResult := mrOk;
-  end;
-end;
-
-//------------------------------------------------------------------------------
-procedure TfrmTPA.btnFileClick(Sender: TObject);
-begin
-  if ValidateForm then
-  begin
-    FButton := BTN_FILE;
-    ModalResult := mrOk;
-  end;
-end;
-
-//------------------------------------------------------------------------------
-procedure TfrmTPA.btnImportClick(Sender: TObject);
-begin
-  OpenDlg.FileName := ImportFile;
-  if OpenDlg.Execute then
-  begin
-    ImportFile := OpenDlg.FileName;
-    FButton := BTN_IMPORT;
-    ModalResult := mrOk;
-  end;
-end;
-
-//------------------------------------------------------------------------------
-procedure TfrmTPA.btnPrintClick(Sender: TObject);
-begin
-  if ValidateForm then
-  begin
-    FButton := BTN_PRINT;
-    ModalResult := mrOk;
-  end;
-end;
-
-//------------------------------------------------------------------------------
-procedure TfrmTPA.cmbInstitutionNameChange(Sender: TObject);
-begin
-  if cmbInstitutionName.ItemIndex = 0 then
-  begin
-    cmbInstitutionName.Width := OTHER_BANK_WIDTH;
-    //edtInstitutionName.Enabled := true;
-    //edtInstitutionName.Text := '';
-    grpRural.Visible := false;
-    Label2.caption := '';
-  end
-  else
-  begin
-    cmbInstitutionName.Width := SET_BANK_WIDTH;
-    //edtInstitutionName.Enabled := false;
-
-    if (Assigned(cmbInstitutionName.Items.Objects[cmbInstitutionName.ItemIndex])) and
-       (cmbInstitutionName.Items.Objects[cmbInstitutionName.ItemIndex] is TInstitutionItem) then
-    begin
-      Label2.caption := 'Code - ' + TInstitutionItem(cmbInstitutionName.Items.Objects[cmbInstitutionName.ItemIndex]).Code;
-
-      grpRural.Visible := TInstitutionItem(cmbInstitutionName.Items.Objects[cmbInstitutionName.ItemIndex]).HasRuralCode;
-      if grpRural.Visible then
-        Label1.Caption := 'Rural Code - ' + TInstitutionItem(cmbInstitutionName.Items.Objects[cmbInstitutionName.ItemIndex]).RuralCode;
-
-      mskAccountNumber.EditText := '';
-      mskAccountNumber.EditMask := TInstitutionItem(cmbInstitutionName.Items.Objects[cmbInstitutionName.ItemIndex]).AccountEditMask;
-      UpdateMask;
-    end;
-  end;
-end;
-
-//------------------------------------------------------------------------------
-procedure TfrmTPA.cmbMonthChange(Sender: TObject);
-begin
-  {if cmbMonth.ItemIndex = 1 then
-  begin
-    cmbDay.ItemIndex := 0;
-    edtYear.Text := '';
-    edtYear.Enabled := False;
-    cmbDay.Enabled := False;
-  end
-  else
-  begin
-    edtYear.Enabled := True;
-    cmbDay.Enabled := True;
-  end; }
-end;
-
-//------------------------------------------------------------------------------
-procedure TfrmTPA.btnCancelClick(Sender: TObject);
+procedure TfrmTPA.FormShow(Sender: TObject);
 begin
   FButton := BTN_NONE;
-  ModalResult := mrCancel;
+  BKHelpSetUp(Self, BKH_Accessing_a_Third_Party_Authority_form);
 end;
 
 //------------------------------------------------------------------------------
@@ -413,11 +217,87 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TfrmTPA.FormShow(Sender: TObject);
+function TfrmTPA.ValidateAccount(aAccountNumber : string; var aFailedReason : string) : boolean;
+var
+  FailedReason : string;
+  InstCode : string;
+  AccountNumber : string;
 begin
-  FButton := BTN_NONE;
-  BKHelpSetUp(Self, BKH_Accessing_a_Third_Party_Authority_form);
-  //ScrollBox1.ScrollInView(lblTitle); // scroll to top
+  Result := false;
+  fValidAccount := false;
+  fAccountNumber := '';
+
+  if length(fMaskHint.RemoveUnusedCharsFromAccNumber(aAccountNumber)) = 0 then
+  begin
+    aFailedReason := 'You must enter an Account Number.';
+    Exit;
+  end;
+
+  if fValidateError then
+  begin
+    aFailedReason := 'The Account Number has not been fully Entered.';
+    Exit;
+  end;
+
+  AccountNumber := trim(fMaskHint.RemoveUnusedCharsFromAccNumber(aAccountNumber));
+  if (cmbInstitution.ItemIndex > 0) and
+     (Assigned(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex])) and
+     (cmbInstitution.Items.Objects[cmbInstitution.ItemIndex] is TInstitutionItem) then
+  begin
+    InstCode := TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex]).Code;
+    Result := ProductConfigService.ValidateAccount(AccountNumber, InstCode, COUNTRY_CODE, aFailedReason, true);
+
+    if Result then
+    begin
+      fValidAccount := true;
+      fAccountNumber := AccountNumber;
+    end;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+function TfrmTPA.ValidateForm: Boolean;
+begin
+  Result := True;
+
+  // Institution Name
+  if Result and (cmbInstitution.ItemIndex = -1) then
+  begin
+    HelpfulErrorMsg('You must choose a Bank Name.', 0);
+    cmbInstitution.SetFocus;
+    Result := False;
+  end;
+
+  // Institution Other Name
+  if Result and (cmbInstitution.ItemIndex = 0) and (edtInstitutionName.text = '') then
+  begin
+    HelpfulErrorMsg('You must enter a Bank Name.', 0);
+    edtInstitutionName.SetFocus;
+    Result := False;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+procedure TfrmTPA.chkDataToClientClick(Sender: TObject);
+begin
+  SetDataSentToClient(chkDataToClient.Checked);
+end;
+
+//------------------------------------------------------------------------------
+procedure TfrmTPA.chkExistingClientClick(Sender: TObject);
+begin
+  SetExistingClient(chkExistingClient.Checked);
+end;
+
+//------------------------------------------------------------------------------
+procedure TfrmTPA.cmbInstitutionChange(Sender: TObject);
+begin
+  case cmbInstitution.ItemIndex of
+    -1 : SetInstitutionControls(inNone);
+    0 : SetInstitutionControls(inOther);
+  else
+    SetInstitutionControls(inBLO);
+  end;
 end;
 
 //------------------------------------------------------------------------------
@@ -425,6 +305,7 @@ procedure TfrmTPA.mskAccountNumberEnter(Sender: TObject);
 begin
   lblAccountValidationError.Caption := '';
   UpdateMask;
+  mskAccountNumber.SetFocus;
 end;
 
 //------------------------------------------------------------------------------
@@ -432,16 +313,12 @@ procedure TfrmTPA.mskAccountNumberExit(Sender: TObject);
 var
   FailedReason : string;
 begin
-  lblEditMask.Caption := mskAccountNumber.EditMask;
-  lblEditText.Caption := mskAccountNumber.EditText;
-  lblText.Caption := mskAccountNumber.EditMask;
   lblAccountValidationError.Caption := '';
-
   if not ValidateAccount(mskAccountNumber.EditText, FailedReason) then
-  begin
     lblAccountValidationError.Caption := FailedReason;
-    //mskAccountNumber.SetFocus;
-  end;
+
+  lblAccountHintLine.Repaint;
+  fValidateError := false;
 end;
 
 //------------------------------------------------------------------------------
@@ -459,15 +336,137 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+procedure TfrmTPA.mskAccountNumberValidateEdit(var aRunExistingValidate: Boolean);
+begin
+  aRunExistingValidate := false;
+
+  fValidateError := mskAccountNumber.DoValidation;
+end;
+
+//------------------------------------------------------------------------------
+procedure TfrmTPA.mskAccountNumberValidateError(var aRaiseError: Boolean);
+begin
+  aRaiseError := false;
+end;
+
+//------------------------------------------------------------------------------
+procedure TfrmTPA.RemovePanelBorders;
+begin
+  pnlInstitution.BevelOuter  := bvNone;
+  pnlInstData.BevelOuter     := bvNone;
+  pnlInstLabels.BevelOuter   := bvNone;
+  pnlInstSpacer.BevelOuter   := bvNone;
+  pnlClient.BevelOuter       := bvNone;
+  pnlClientLabel.BevelOuter  := bvNone;
+  pnlClientData.BevelOuter   := bvNone;
+  pnlClientSpacer.BevelOuter := bvNone;
+  pnlData.BevelOuter         := bvNone;
+  pnlRural.BevelOuter        := bvNone;
+  pnlInstTop.BevelOuter      := bvNone;
+  pnlAccountError.BevelOuter := bvNone;
+end;
+
+//------------------------------------------------------------------------------
+procedure TfrmTPA.SetDataSentToClient(aEnabled: boolean);
+begin
+  cmbRecieved.Visible       := aEnabled;
+  lblRecieved.Visible       := aEnabled;
+  chkExistingClient.Visible := aEnabled;
+
+  if not aEnabled then
+  begin
+    chkExistingClient.Checked := false;
+    SetExistingClient(false);
+  end;
+end;
+
+//------------------------------------------------------------------------------
+procedure TfrmTPA.SetExistingClient(aEnabled: boolean);
+begin
+  lblSecureCode.Visible := aEnabled;
+  edtSecureCode.Visible := aEnabled;
+end;
+
+//------------------------------------------------------------------------------
 procedure TfrmTPA.SetImportFile(const Value: string);
 begin
   FImportFile := Value;
 end;
 
 //------------------------------------------------------------------------------
+procedure TfrmTPA.SetInstitutionControls(aInstitutionType : TInstitutionType);
+var
+  enableControls : boolean;
+begin
+  fInstitutionType := aInstitutionType;
+
+  mskAccountNumber.EditMask := '';
+  mskAccountNumber.EditText := '';
+  edtInstitutionName.Text := '';
+  edtAccountNumber.Text := '';
+  lblAccountValidationError.Caption := '';
+  pnlRural.Visible := false;
+
+  case aInstitutionType of
+    inNone  : begin
+      mskAccountNumber.Visible := false;
+      edtAccountNumber.Visible := true;
+      enableControls := false;
+      edtInstitutionName.Visible := false;
+      lblInstitutionOther.Visible := false;
+      cmbInstitution.Width := edtBranch.Width;
+    end;
+    inOther, inBLO : begin
+      enableControls := true;
+
+      case aInstitutionType of
+        inOther  : begin
+          mskAccountNumber.Visible := false;
+          edtAccountNumber.Visible := true;
+          edtInstitutionName.Visible := true;
+          lblInstitutionOther.Visible := true;
+          cmbInstitution.Width := OTHER_BANK_WIDTH;
+        end;
+        inBLO  : begin
+          mskAccountNumber.Visible := true;
+          edtAccountNumber.Visible := false;
+          edtInstitutionName.Visible := false;
+          lblInstitutionOther.Visible := false;
+          cmbInstitution.Width := edtBranch.Width;
+
+          if (Assigned(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex])) and
+             (cmbInstitution.Items.Objects[cmbInstitution.ItemIndex] is TInstitutionItem) then
+          begin
+            pnlRural.Visible := TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex]).HasRuralCode;
+
+            mskAccountNumber.EditMask := TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex]).AccountEditMask;
+          end;
+        end;
+      end;
+    end;
+  end;
+
+  lblNameOfAccount.enabled  := enableControls;
+  edtNameOfAccount.enabled  := enableControls;
+  lblAccount.enabled        := enableControls;
+  mskAccountNumber.enabled  := enableControls;
+  lblClientCode.enabled     := enableControls;
+  edtClientCode.Enabled     := enableControls;
+  lblCostCode.Enabled       := enableControls;
+  edtCostCode.Enabled       := enableControls;
+  //lblStartDate.Enabled      := enableControls;
+  //edtClientStartDte.Enabled := enableControls;
+  edtBranch.Enabled         := enableControls;
+  lblBranch.Enabled         := enableControls;
+  chkDataToClient.Enabled   := enableControls;
+
+  lblAccountHintLine.Repaint;
+end;
+
+//------------------------------------------------------------------------------
 procedure TfrmTPA.UpdateMask;
 begin
-  fMaskHint.DrawMaskHint(lblAccountNumberLine, lblAccountNumberHint, mskAccountNumber, self.Color, $000000FF, $000000FF, 16);
+  fMaskHint.DrawMaskHint(lblAccountHintLine, mskAccountNumber, self.Color, $00000000, $00000000, clInfoBk, clMedGray , 8);
 end;
 
 //------------------------------------------------------------------------------
@@ -481,12 +480,98 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+procedure TfrmTPA.edtAccountNumberExit(Sender: TObject);
+begin
+  fAccountNumber := trim(edtAccountNumber.Text);
+  fValidAccount := (length(fAccountNumber) > 0);
+end;
+
+//------------------------------------------------------------------------------
 procedure TfrmTPA.edtExit(Sender: TObject);
 var
   e: TEdit;
 begin
   e := Sender as TEdit;
   e.Text := Trim(e.Text);
+end;
+
+//------------------------------------------------------------------------------
+procedure TfrmTPA.btnPreviewClick(Sender: TObject);
+begin
+  if ValidateForm then
+  begin
+    FButton := BTN_PREVIEW;
+    ModalResult := mrOk;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+procedure TfrmTPA.btnFileClick(Sender: TObject);
+begin
+  if ValidateForm then
+  begin
+    FButton := BTN_FILE;
+    ModalResult := mrOk;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+procedure TfrmTPA.btnEmailClick(Sender: TObject);
+begin
+  if ValidateForm then
+  begin
+    FButton := BTN_EMAIL;
+    ModalResult := mrOk;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+procedure TfrmTPA.btnPrintClick(Sender: TObject);
+begin
+  if ValidateForm then
+  begin
+    FButton := BTN_PRINT;
+    ModalResult := mrOk;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+procedure TfrmTPA.btnImportClick(Sender: TObject);
+begin
+  OpenDlg.FileName := ImportFile;
+  if OpenDlg.Execute then
+  begin
+    ImportFile := OpenDlg.FileName;
+    FButton := BTN_IMPORT;
+    ModalResult := mrOk;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+procedure TfrmTPA.btnClearClick(Sender: TObject);
+begin
+  cmbInstitution.ItemIndex := -1;
+  SetInstitutionControls(inNone);
+
+  edtBranch.Text := '';
+  edtNameOfAccount.Text := '';
+  edtAccountNumber.Text := '';
+  mskAccountNumber.EditMask := '';
+  mskAccountNumber.EditText := '';
+  edtClientCode.Text := '';
+  edtClientStartDte.Text := '';
+  edtCostCode.Text := '';
+  edtSecureCode.Text := '';
+  chkExistingClient.Checked := false;
+  chkDataToClient.Checked := false;
+  lblAccountValidationError.Caption := '';
+end;
+
+//------------------------------------------------------------------------------
+procedure TfrmTPA.btnCancelClick(Sender: TObject);
+begin
+  FButton := BTN_NONE;
+  ModalResult := mrCancel;
 end;
 
 end.

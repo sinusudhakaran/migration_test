@@ -20,7 +20,8 @@ type
   TMaskHint = class
   private
     procedure DrawAntialisedLine(Canvas: TCanvas; const AX1, AY1, AX2, AY2: real; const LineColor: TColor);
-    function GetTextWidth(aText : string; aFont : TFont) : integer;
+    function GetTextWidth(aText: string; aFont: TFont) : integer;
+    procedure GetTextWidthAndHeight(aText: string; aFont: TFont; var aTextWidth, aTextHeight : integer);
     function GetMaskTypeArray(aMask : string) : string;
     procedure GetStartAndEndfromCurrentPos(aMaskTypeArr : String; aCurPos : integer;
                                            var aStartPos, aEndPos: integer);
@@ -30,8 +31,9 @@ type
   public
     function  RemoveUnusedCharsFromAccNumber(aAccountNumber : string) : string;
     function  BlendColors(aFirstColor, aSecondColor : TColor; aPercent: Single) : TColor;
-    procedure DrawMaskHint(aLblLine, aLblHint : TLabel; aMaskEdit : TMaskEdit;
-                           aBackColor, aLineColor, aFontColor : TColor; aHintGapHeight : integer);
+    procedure DrawMaskHint(alblHint : TLabel; aMaskEdit: TMaskEdit;
+                           aBackColor, aLineColor, aFontColor, aHintColor, aShadowColor: TColor;
+                           aHintGapHeight : integer);
   end;
 
 implementation
@@ -145,7 +147,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TMaskHint.GetTextWidth(aText: string; aFont: TFont): integer;
+function TMaskHint.GetTextWidth(aText: string; aFont: TFont) : integer;
 var
   tmpBmp : TBitmap;
 begin
@@ -153,6 +155,21 @@ begin
   try
     tmpBmp.Canvas.Font.Assign(aFont);
     Result := tmpBmp.Canvas.TextWidth(aText);
+  finally
+    FreeAndNil(tmpBmp);
+  end;
+end;
+
+//------------------------------------------------------------------------------
+procedure TMaskHint.GetTextWidthAndHeight(aText: string; aFont: TFont; var aTextWidth, aTextHeight : integer);
+var
+  tmpBmp : TBitmap;
+begin
+  tmpBmp := TBitmap.Create;
+  try
+    tmpBmp.Canvas.Font.Assign(aFont);
+    aTextWidth := tmpBmp.Canvas.TextWidth(aText);
+    aTextHeight := tmpBmp.Canvas.TextHeight(aText);
   finally
     FreeAndNil(tmpBmp);
   end;
@@ -298,13 +315,21 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TMaskHint.DrawMaskHint(aLblLine, aLblHint : TLabel; aMaskEdit: TMaskEdit;
-                                 aBackColor, aLineColor, aFontColor: TColor; aHintGapHeight : integer);
+procedure TMaskHint.DrawMaskHint(alblHint : TLabel; aMaskEdit: TMaskEdit;
+                                 aBackColor, aLineColor, aFontColor, aHintColor, aShadowColor: TColor;
+                                 aHintGapHeight : integer);
+const
+  SHADOW_PIXEL_DIFF = 2;
+  HINT_TEXT_BORDER_WIDTH = 3;
 var
   MaskCursorStrPos : integer;
   StartPos, EndPos : integer;
   MaskStrPix, MaskEndPix : integer;
-  HintPixWidth, SingleSidePixDiff : integer;
+
+  HintTextWidth, HintTextHeight : integer;
+  HintTextTop, HintTextLeft : integer;
+  HintBoxTop, HintBoxLeft, HintBoxBottom, HintBoxRight : integer;
+  SingleSidePixDiff : integer;
 
   TextStrPix, TextEndPix : integer;
   CurrMaskChar : string;
@@ -312,66 +337,137 @@ var
   Mask, EditedMask, MaskTypeStr : string;
   index : integer;
 
-  procedure DrawLine(TopX, TopY, BottomX, BottomY : integer );
+  //----------------------------------------------------------------------------
+  procedure DrawHintWindow(aCanvas: TCanvas;
+                           aLeft,aTop,aRight,aBottom : integer;
+                           aPointHeight, aPoint1X, aPoint2X : integer;
+                           aLineColor, aFillColor : TColor;
+                           aAddShadow : Boolean);
+  Const
+    POINT_SIDE_WIDTH = 3;
+  var
+    Point1X1, Point1X2 : integer;
+    Point2X1, Point2X2 : integer;
+    PointBottom : integer;
   begin
-    DrawAntialisedLine(aLblLine.Canvas, TopX, 0, TopX, TopY, aLineColor);
-    DrawAntialisedLine(aLblLine.Canvas, TopX, TopY, BottomX, BottomY, aLineColor);
-    DrawAntialisedLine(aLblLine.Canvas, BottomX, BottomY, BottomX, 28, aLineColor);
+    aCanvas.Pen.Color   := aLineColor;
+    aCanvas.Brush.Color := aFillColor;
+
+    // Point 1
+    Point1X1 := aPoint1X - POINT_SIDE_WIDTH;
+    Point1X2 := aPoint1X + POINT_SIDE_WIDTH;
+    if Point1X1 < aLeft then
+    begin
+      Point1X2 := Point1X2 + (aLeft-Point1X1);
+      Point1X1 := Point1X1 + (aLeft-Point1X1);
+    end;
+
+    // Point 2
+    Point2X1 := aPoint2X - POINT_SIDE_WIDTH;
+    Point2X2 := aPoint2X + POINT_SIDE_WIDTH;
+    if Point2X1 < aLeft then
+    begin
+      Point2X2 := Point2X2 + (aLeft-Point2X1);
+      Point2X1 := Point2X1 + (aLeft-Point2X1);
+    end;
+
+    if aAddShadow then
+    begin
+      aLeft   := aLeft   + SHADOW_PIXEL_DIFF;
+      aTop    := aTop    + SHADOW_PIXEL_DIFF;
+      aRight  := aRight  + SHADOW_PIXEL_DIFF;
+      aBottom := aBottom + SHADOW_PIXEL_DIFF;
+
+      aPoint1X := aPoint1X + SHADOW_PIXEL_DIFF;
+      aPoint2X := aPoint2X + SHADOW_PIXEL_DIFF;
+
+      Point1X1 := Point1X1 + SHADOW_PIXEL_DIFF;
+      Point1X2 := Point1X2 + SHADOW_PIXEL_DIFF;
+      Point2X1 := Point2X1 + SHADOW_PIXEL_DIFF;
+      Point2X2 := Point2X2 + SHADOW_PIXEL_DIFF;
+    end;
+
+    PointBottom := aBottom + aPointHeight;
+
+    aCanvas.Polyline([Point(aLeft, aBottom),
+                      Point(aLeft, aTop),
+                      Point(aRight, aTop),
+                      Point(aRight, aBottom),
+                      Point(Point2X2, aBottom),
+                      Point(aPoint2X, PointBottom),
+                      Point(Point2X1, aBottom),
+                      Point(Point1X2, aBottom),
+                      Point(aPoint1X, PointBottom),
+                      Point(Point1X1, aBottom),
+                      Point(aLeft, aBottom)]);
+
+    aCanvas.FloodFill(aLeft + (aRight div 2), aTop + (aBottom div 2), aLineColor, fsBorder);
+  end;
+
+  //----------------------------------------------------------------------------
+  procedure TextOut(aCanvas: TCanvas; aLeft, aTop : integer; aMessage : string; aColor : TColor);
+  begin
+    aCanvas.Pen.Color := aColor;
+    aCanvas.TextOut(aLeft, aTop, aMessage);
   end;
 
 begin
+  // Initlise Variables
   MaskCursorStrPos := aMaskEdit.SelStart + 1;
   Mask             := aMaskEdit.EditMask;
   EditedMask       := aMaskEdit.EditText;
+  alblHint.Font    := Screen.HintFont;
+
+  // Set Label to be directly above Mask
+  alblHint.Top  := aMaskEdit.Top - alblHint.Height;
+  alblHint.Left := aMaskEdit.Left + 2;
+  alblHint.Repaint;
+
+  // Get Mask Hint Message
   MaskTypeStr      := GetMaskTypeArray(Mask);
   CurrMaskChar     := midstr(MaskTypeStr, MaskCursorStrPos, 1);
   HelpMessage      := GetMaskMessage(CurrMaskChar);
 
+  // Get Mask Start and End X pixel positions
   GetStartAndEndfromCurrentPos(MaskTypeStr, MaskCursorStrPos, StartPos, EndPos);
-
   MaskStrPix := GetTextWidth(leftstr(EditedMask, StartPos-1), aMaskEdit.Font);
-  MaskEndPix := GetTextWidth(leftstr(EditedMask, EndPos), aMaskEdit.Font);
-
-  aLblLine.Top := aMaskEdit.Top + aMaskEdit.Height;
-  aLblLine.Repaint;
-
-  aLblHint.Font.Color := aFontColor;
-  aLblHint.Caption := HelpMessage;
+  MaskEndPix := GetTextWidth(leftstr(EditedMask, EndPos), aMaskEdit.Font) + 2;
 
   if (MaskStrPix = MaskEndPix) or
-     (aLblHint.Caption = '') then
+     (HelpMessage = '') then
   begin
-    aLblHint.Caption := '';
+    HelpMessage := '';
   end
   else
   begin
-    //Adjustments
-    MaskStrPix := MaskStrPix + 2;
-    MaskEndPix := MaskEndPix + 4;
+    // Get Pixel Width and Height using message and font
+    GetTextWidthandHeight(HelpMessage, alblHint.Font, HintTextWidth, HintTextHeight);
 
-    HintPixWidth := GetTextWidth(HelpMessage, aLblHint.Font);
-    SingleSidePixDiff := trunc((HintPixWidth - (MaskEndPix - MaskStrPix))/2);
+    // Get Differance between mask and hint size for one side and then adjust
+    SingleSidePixDiff := trunc(((HintTextWidth + (HINT_TEXT_BORDER_WIDTH*2)) - (MaskEndPix - MaskStrPix))/2);
+    HintBoxLeft := MaskStrPix - SingleSidePixDiff;
+    HintBoxRight := HintBoxLeft + HintTextWidth + (HINT_TEXT_BORDER_WIDTH*2);
 
-    TextStrPix := MaskStrPix - SingleSidePixDiff;
-    TextEndPix := TextStrPix + HintPixWidth;
-    if TextStrPix < 0 then
+    // Adjust if less that Zero
+    if HintBoxLeft < 0 then
     begin
-      TextEndPix := TextEndPix - TextStrPix;
-      TextStrPix := 0;
+      HintBoxRight := HintBoxRight - HintBoxLeft;
+      HintBoxLeft := 0;
     end;
 
-    //Adjustments
-    TextEndPix := TextEndPix + 4;
+    // Set other Hint Sizes
+    HintBoxBottom := alblHint.Height - aHintGapHeight;
+    HintBoxTop    := HintBoxBottom - (HINT_TEXT_BORDER_WIDTH*2) - HintTextHeight;
+    HintTextTop  := HintBoxTop + HINT_TEXT_BORDER_WIDTH;
+    HintTextLeft := HintBoxLeft + HINT_TEXT_BORDER_WIDTH;
 
-    aLblHint.Top := aLblLine.Top + aHintGapHeight;
-    aLblHint.Left := aLblLine.Left + TextStrPix + 2;
-
-    aLblLine.Repaint;
-
-    aLblLine.Canvas.Pen.Width := 1;
-    aLblLine.Canvas.Pen.Color := aLineColor;
-    DrawLine(MaskStrPix, 3, TextStrPix, aHintGapHeight);
-    DrawLine(MaskEndPix, 3, TextEndPix, aHintGapHeight);
+    // Draw the Hint
+    alblHint.Repaint;
+    DrawHintWindow(alblHint.Canvas, HintBoxLeft, HintBoxTop, HintBoxRight, HintBoxBottom,
+                   8, MaskStrPix, MaskEndPix, aShadowColor, aShadowColor, true);
+    DrawHintWindow(alblHint.Canvas, HintBoxLeft, HintBoxTop, HintBoxRight, HintBoxBottom,
+                   8, MaskStrPix, MaskEndPix, aLineColor, aHintColor, false);
+    TextOut(alblHint.Canvas, HintTextLeft, HintTextTop, HelpMessage, aFontColor);
   end;
 end;
 
