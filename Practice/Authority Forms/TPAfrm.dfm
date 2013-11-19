@@ -697,7 +697,7 @@ object frmTPA: TfrmTPA
       end
       object radReDateTransactions: TRadioButton
         Left = 56
-        Top = 40
+        Top = 38
         Width = 525
         Height = 17
         Anchors = [akLeft, akTop, akRight]
@@ -711,10 +711,12 @@ object frmTPA: TfrmTPA
         ParentFont = False
         TabOrder = 0
         TabStop = True
+        OnKeyDown = radReDateTransactionsKeyDown
+        OnMouseDown = radReDateTransactionsMouseDown
       end
       object radDateShown: TRadioButton
         Left = 56
-        Top = 72
+        Top = 71
         Width = 525
         Height = 17
         Anchors = [akLeft, akTop, akRight]
@@ -726,6 +728,8 @@ object frmTPA: TfrmTPA
         Font.Style = []
         ParentFont = False
         TabOrder = 1
+        OnKeyDown = radDateShownKeyDown
+        OnMouseDown = radDateShownMouseDown
       end
     end
     object pnlAccountError: TPanel

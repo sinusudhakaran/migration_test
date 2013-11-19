@@ -104,6 +104,14 @@ type
     procedure mskAccountNumberValidateError(var aRaiseError: Boolean);
     procedure mskAccountNumberValidateEdit(var aRunExistingValidate: Boolean);
     procedure edtAccountNumberExit(Sender: TObject);
+    procedure radDateShownKeyDown(Sender: TObject; var Key: Word;
+      Shift: TShiftState);
+    procedure radDateShownMouseDown(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Integer);
+    procedure radReDateTransactionsKeyDown(Sender: TObject; var Key: Word;
+      Shift: TShiftState);
+    procedure radReDateTransactionsMouseDown(Sender: TObject;
+      Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
   private
     fValidAccount : boolean;
     fAccountNumber : string;
@@ -117,6 +125,7 @@ type
     fInstitutionType : TInstitutionType;
 
     procedure MaskValidateAccNumber();
+    function GetInstitutionCode() : string;
     procedure SetInstitutionControls(aInstitutionType : TInstitutionType);
     procedure RemovePanelBorders();
 
@@ -230,6 +239,23 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+function TfrmTPA.GetInstitutionCode: string;
+begin
+  Result := '';
+
+  if (cmbInstitution.ItemIndex > 0) and
+     (Assigned(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex])) and
+     (cmbInstitution.Items.Objects[cmbInstitution.ItemIndex] is TInstitutionItem) then
+  begin
+    if (TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex]).HasRuralCode) and
+       (radDateShown.checked) then
+      Result := TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex]).RuralCode
+    else
+      Result := TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex]).Code;
+  end;
+end;
+
+//------------------------------------------------------------------------------
 procedure TfrmTPA.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
   if ModalResult = mrCancel then
@@ -267,7 +293,7 @@ begin
      (Assigned(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex])) and
      (cmbInstitution.Items.Objects[cmbInstitution.ItemIndex] is TInstitutionItem) then
   begin
-    InstCode := TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex]).Code;
+    InstCode := GetInstitutionCode();
     Result := ProductConfigService.ValidateAccount(AccountNumber, InstCode, COUNTRY_CODE, aFailedReason, true);
 
     if Result then
@@ -395,6 +421,54 @@ end;
 procedure TfrmTPA.mskAccountNumberValidateError(var aRaiseError: Boolean);
 begin
   aRaiseError := false;
+end;
+
+//------------------------------------------------------------------------------
+procedure TfrmTPA.radDateShownKeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+  if (not radDateShown.checked) and
+     (fInstitutionType = inBLO) then
+  begin
+    lblAccountValidationError.Caption := '';
+    fValidAccount := false;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+procedure TfrmTPA.radDateShownMouseDown(Sender: TObject; Button: TMouseButton;
+  Shift: TShiftState; X, Y: Integer);
+begin
+  if (not radDateShown.checked) and
+     (fInstitutionType = inBLO) then
+  begin
+    lblAccountValidationError.Caption := '';
+    fValidAccount := false;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+procedure TfrmTPA.radReDateTransactionsKeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+  if (not radReDateTransactions.checked) and
+     (fInstitutionType = inBLO) then
+  begin
+    lblAccountValidationError.Caption := '';
+    fValidAccount := false;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+procedure TfrmTPA.radReDateTransactionsMouseDown(Sender: TObject;
+  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+begin
+  if (not radReDateTransactions.checked) and
+     (fInstitutionType = inBLO) then
+  begin
+    lblAccountValidationError.Caption := '';
+    fValidAccount := false;
+  end;
 end;
 
 //------------------------------------------------------------------------------
