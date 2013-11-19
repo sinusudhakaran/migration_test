@@ -30,8 +30,6 @@ object frmCAF: TfrmCAF
     Align = alBottom
     BevelOuter = bvLowered
     TabOrder = 0
-    ExplicitLeft = -8
-    ExplicitTop = 463
     object btnPreview: TButton
       Left = 8
       Top = 8
@@ -39,6 +37,7 @@ object frmCAF: TfrmCAF
       Height = 25
       Hint = 'Preview the Client Authority Form'
       Caption = 'Preview'
+      Default = True
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
       Font.Height = -15
@@ -219,7 +218,7 @@ object frmCAF: TfrmCAF
         Font.Height = -15
         Font.Name = 'MS Sans Serif'
         Font.Style = []
-        ItemHeight = 0
+        ItemHeight = 16
         ParentFont = False
         TabOrder = 0
         OnChange = cmbInstitutionChange
@@ -648,7 +647,7 @@ object frmCAF: TfrmCAF
         Font.Height = -15
         Font.Name = 'MS Sans Serif'
         Font.Style = []
-        ItemHeight = 0
+        ItemHeight = 16
         ParentFont = False
         TabOrder = 1
       end
