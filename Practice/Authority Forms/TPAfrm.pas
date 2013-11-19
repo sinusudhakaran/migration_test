@@ -116,6 +116,7 @@ type
     FImportFile: string;
     fInstitutionType : TInstitutionType;
 
+    procedure MaskValidateAccNumber();
     procedure SetInstitutionControls(aInstitutionType : TInstitutionType);
     procedure RemovePanelBorders();
 
@@ -297,11 +298,22 @@ begin
   end;
 
   //Account Validation
-  if Result and (length(lblAccountValidationError.Caption) > 0) then
+  if (Result) and (fValidAccount = false) and (fInstitutionType = inBLO) then
   begin
-    HelpfulErrorMsg(lblAccountValidationError.Caption, 0);
-    mskAccountNumber.SetFocus;
-    Result := False;
+    if length(lblAccountValidationError.Caption) > 0 then
+      HelpfulErrorMsg(lblAccountValidationError.Caption, 0)
+    else
+    begin
+      MaskValidateAccNumber();
+      if fValidAccount = false then
+        HelpfulErrorMsg(lblAccountValidationError.Caption, 0);
+    end;
+
+    if fValidAccount = false then
+    begin
+      mskAccountNumber.SetFocus;
+      Result := False;
+    end;
   end;
 end;
 
@@ -331,13 +343,12 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmTPA.mskAccountNumberEnter(Sender: TObject);
 begin
-  lblAccountValidationError.Caption := '';
   UpdateMask;
   mskAccountNumber.SetFocus;
 end;
 
 //------------------------------------------------------------------------------
-procedure TfrmTPA.mskAccountNumberExit(Sender: TObject);
+procedure TfrmTPA.MaskValidateAccNumber();
 var
   FailedReason : string;
 begin
@@ -348,6 +359,12 @@ begin
 
   lblAccountHintLine.Repaint;
   fValidateError := false;
+end;
+
+//------------------------------------------------------------------------------
+procedure TfrmTPA.mskAccountNumberExit(Sender: TObject);
+begin
+  MaskValidateAccNumber();
 end;
 
 //------------------------------------------------------------------------------
@@ -489,8 +506,6 @@ begin
   edtClientCode.Enabled     := enableControls;
   lblCostCode.Enabled       := enableControls;
   edtCostCode.Enabled       := enableControls;
-  //lblStartDate.Enabled      := enableControls;
-  //edtClientStartDte.Enabled := enableControls;
   edtBranch.Enabled         := enableControls;
   lblBranch.Enabled         := enableControls;
   chkDataToClient.Enabled   := enableControls;
