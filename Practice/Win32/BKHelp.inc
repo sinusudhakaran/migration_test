@@ -645,5 +645,5 @@ const
 
 var
   //filename of HTML help file
-  HelpFileName : String = 'Guide_NZ.chm';
+  HelpFileName : String = 'Guide.chm';
 
