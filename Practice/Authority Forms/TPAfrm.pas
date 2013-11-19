@@ -4,7 +4,7 @@ unit TPAfrm;
 //------------------------------------------------------------------------------
 interface
 
-uses                                  
+uses
   Windows,
   Messages,
   SysUtils,
@@ -16,8 +16,8 @@ uses
   Dialogs,
   StdCtrls,
   ExtCtrls,
-  Mask,
   OSFont,
+  Mask,
   MaskHint,
   ovcbase,
   ovcef,
@@ -155,13 +155,14 @@ uses
 Const
   UNIT_NAME = 'TPAfrm';
   COUNTRY_CODE = 'NZ';
-  OTHER_BANK_WIDTH = 175;
+  OTHER_BANK_WIDTH = 108;
 
 { TfrmTPA }
 //------------------------------------------------------------------------------
 procedure TfrmTPA.FormCreate(Sender: TObject);
 var
   Index : integer;
+  SortList : TStringList;
 begin
   fValidAccount := false;
   fAccountNumber := '';
@@ -172,17 +173,29 @@ begin
   lblAccountValidationError.Caption := '';
 
   // Institution Names
-  cmbInstitution.AddItem('Other', nil);
-  for Index := 0 to Institutions.Count-1 do
-  begin
-    if (TInstitutionItem(Institutions.Items[Index]).CountryCode = COUNTRY_CODE) and
-       (TInstitutionItem(Institutions.Items[Index]).Enabled) then
+  SortList := TStringList.Create;
+  SortList.Clear;
+  try
+    for Index := 0 to Institutions.Count-1 do
     begin
-      if TInstitutionItem(Institutions.Items[Index]).HasNewName then
-        cmbInstitution.AddItem(TInstitutionItem(Institutions.Items[Index]).NewName, TInstitutionItem(Institutions.Items[Index]))
-      else
-        cmbInstitution.AddItem(TInstitutionItem(Institutions.Items[Index]).Name, TInstitutionItem(Institutions.Items[Index]));
+      if (TInstitutionItem(Institutions.Items[Index]).CountryCode = COUNTRY_CODE) and
+       (TInstitutionItem(Institutions.Items[Index]).Enabled) then
+      begin
+        if TInstitutionItem(Institutions.Items[Index]).HasNewName then
+          SortList.AddObject(TInstitutionItem(Institutions.Items[Index]).NewName, TInstitutionItem(Institutions.Items[Index]))
+        else
+          SortList.AddObject(TInstitutionItem(Institutions.Items[Index]).Name, TInstitutionItem(Institutions.Items[Index]));
+      end;
     end;
+
+    SortList.Sort;
+
+    cmbInstitution.AddItem('Other', nil);
+    for Index := 0 to SortList.Count-1 do
+      cmbInstitution.AddItem(SortList.Strings[Index], SortList.Objects[Index]);
+
+  finally
+    FreeAndNil(SortList);
   end;
   cmbInstitution.ItemIndex := -1;
   SetInstitutionControls(inNone);
@@ -229,13 +242,13 @@ begin
 
   if length(fMaskHint.RemoveUnusedCharsFromAccNumber(aAccountNumber)) = 0 then
   begin
-    aFailedReason := 'You must enter an Account Number.';
+    aFailedReason := 'Please enter an Account Number.';
     Exit;
   end;
 
   if fValidateError then
   begin
-    aFailedReason := 'The Account Number has not been fully Entered.';
+    aFailedReason := 'Account Number is invalid, please re-enter.';
     Exit;
   end;
 
@@ -263,7 +276,7 @@ begin
   // Institution Name
   if Result and (cmbInstitution.ItemIndex = -1) then
   begin
-    HelpfulErrorMsg('You must choose a Bank Name.', 0);
+    HelpfulErrorMsg('Please choose a Institution.', 0);
     cmbInstitution.SetFocus;
     Result := False;
   end;
@@ -271,8 +284,16 @@ begin
   // Institution Other Name
   if Result and (cmbInstitution.ItemIndex = 0) and (edtInstitutionName.text = '') then
   begin
-    HelpfulErrorMsg('You must enter a Bank Name.', 0);
+    HelpfulErrorMsg('Please enter a Institution Name.', 0);
     edtInstitutionName.SetFocus;
+    Result := False;
+  end;
+
+  //Account Validation
+  if Result and (length(lblAccountValidationError.Caption) > 0) then
+  begin
+    HelpfulErrorMsg(lblAccountValidationError.Caption, 0);
+    mskAccountNumber.SetFocus;
     Result := False;
   end;
 end;
@@ -409,8 +430,8 @@ begin
 
   case aInstitutionType of
     inNone  : begin
-      mskAccountNumber.Visible := false;
-      edtAccountNumber.Visible := true;
+      mskAccountNumber.Visible := true;
+      edtAccountNumber.Visible := false;
       enableControls := false;
       edtInstitutionName.Visible := false;
       lblInstitutionOther.Visible := false;
@@ -426,6 +447,7 @@ begin
           edtInstitutionName.Visible := true;
           lblInstitutionOther.Visible := true;
           cmbInstitution.Width := OTHER_BANK_WIDTH;
+          SendMessage(cmbInstitution.Handle, CB_SETDROPPEDWIDTH, edtBranch.Width, 0);
         end;
         inBLO  : begin
           mskAccountNumber.Visible := true;

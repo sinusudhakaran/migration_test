@@ -207,7 +207,7 @@ object frmTPA: TfrmTPA
         ParentFont = False
       end
       object cmbInstitution: TComboBox
-        Left = 153
+        Left = 152
         Top = 16
         Width = 379
         Height = 24
@@ -218,15 +218,15 @@ object frmTPA: TfrmTPA
         Font.Height = -15
         Font.Name = 'MS Sans Serif'
         Font.Style = []
-        ItemHeight = 16
+        ItemHeight = 0
         ParentFont = False
         TabOrder = 0
         OnChange = cmbInstitutionChange
       end
       object edtInstitutionName: TEdit
-        Left = 338
+        Left = 267
         Top = 16
-        Width = 194
+        Width = 265
         Height = 24
         Anchors = [akLeft, akTop, akRight]
         Font.Charset = DEFAULT_CHARSET
@@ -265,6 +265,7 @@ object frmTPA: TfrmTPA
         Color = clWhite
         ParentBackground = False
         TabOrder = 1
+        ExplicitLeft = 151
         DesignSize = (
           392
           131)
@@ -650,7 +651,7 @@ object frmTPA: TfrmTPA
         Font.Height = -15
         Font.Name = 'MS Sans Serif'
         Font.Style = []
-        ItemHeight = 16
+        ItemHeight = 0
         ParentFont = False
         TabOrder = 1
       end
@@ -735,10 +736,12 @@ object frmTPA: TfrmTPA
       Align = alTop
       TabOrder = 5
       object lblAccountValidationError: TLabel
-        Left = 25
-        Top = 4
-        Width = 103
+        Left = 1
+        Top = 5
+        Width = 608
         Height = 16
+        Alignment = taCenter
+        AutoSize = False
         Caption = 'Account Error hint'
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clRed

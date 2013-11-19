@@ -3,7 +3,7 @@ object frmCAF: TfrmCAF
   Top = 163
   BorderIcons = [biSystemMenu]
   Caption = 'Client Authority Form'
-  ClientHeight = 506
+  ClientHeight = 505
   ClientWidth = 632
   Color = clBtnFace
   Constraints.MinWidth = 350
@@ -24,106 +24,137 @@ object frmCAF: TfrmCAF
   TextHeight = 13
   object Panel6: TPanel
     Left = 0
-    Top = 465
+    Top = 464
     Width = 632
     Height = 41
     Align = alBottom
     BevelOuter = bvLowered
     TabOrder = 0
-    ExplicitTop = 390
-    ExplicitWidth = 709
-    DesignSize = (
-      632
-      41)
+    ExplicitLeft = -8
+    ExplicitTop = 463
     object btnPreview: TButton
       Left = 8
       Top = 8
-      Width = 85
+      Width = 83
       Height = 25
       Hint = 'Preview the Client Authority Form'
       Caption = 'Preview'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -15
+      Font.Name = 'MS Sans Serif'
+      Font.Style = []
+      ParentFont = False
       ParentShowHint = False
       ShowHint = True
       TabOrder = 0
       OnClick = btnPreviewClick
     end
     object btnFile: TButton
-      Left = 99
+      Left = 96
       Top = 8
-      Width = 85
+      Width = 83
       Height = 25
       Hint = 'Save the Client Authority Form to a file'
       Caption = 'File'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -15
+      Font.Name = 'MS Sans Serif'
+      Font.Style = []
+      ParentFont = False
       ParentShowHint = False
       ShowHint = True
       TabOrder = 1
       OnClick = btnFileClick
     end
     object btnCancel: TButton
-      Left = 540
+      Left = 536
       Top = 8
-      Width = 85
+      Width = 83
       Height = 25
       Hint = 'Close the Client Authority Form'
-      Anchors = [akRight, akBottom]
       Cancel = True
       Caption = 'Close'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -15
+      Font.Name = 'MS Sans Serif'
+      Font.Style = []
+      ParentFont = False
       ParentShowHint = False
       ShowHint = True
-      TabOrder = 5
+      TabOrder = 6
       OnClick = btnCancelClick
-      ExplicitLeft = 551
     end
     object btnPrint: TButton
-      Left = 358
+      Left = 272
       Top = 8
-      Width = 85
+      Width = 83
       Height = 25
       Hint = 'Print the Client Authority Form'
-      Anchors = [akRight, akBottom]
       Caption = 'Print'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -15
+      Font.Name = 'MS Sans Serif'
+      Font.Style = []
+      ParentFont = False
       ParentShowHint = False
       ShowHint = True
       TabOrder = 3
       OnClick = btnPrintClick
-      ExplicitLeft = 369
     end
     object btnEmail: TButton
-      Left = 189
+      Left = 183
       Top = 8
-      Width = 85
+      Width = 83
       Height = 25
       Hint = 'E-mail the Client Authority Form to the client'
       Caption = 'E-mail'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -15
+      Font.Name = 'MS Sans Serif'
+      Font.Style = []
+      ParentFont = False
       ParentShowHint = False
       ShowHint = True
       TabOrder = 2
       OnClick = btnEmailClick
     end
     object btnClear: TButton
-      Left = 449
+      Left = 448
       Top = 8
-      Width = 85
+      Width = 83
       Height = 25
       Hint = 'Clear the form'
-      Anchors = [akRight, akBottom]
-      Caption = 'Reset Form'
+      Caption = 'Clear'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -15
+      Font.Name = 'MS Sans Serif'
+      Font.Style = []
+      ParentFont = False
       ParentShowHint = False
       ShowHint = True
-      TabOrder = 4
+      TabOrder = 5
       OnClick = btnClearClick
-      ExplicitLeft = 460
     end
     object btnImport: TButton
-      Left = 277
+      Left = 360
       Top = 8
-      Width = 75
+      Width = 83
       Height = 25
-      Anchors = [akTop, akRight]
       Caption = 'Import'
-      TabOrder = 6
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -15
+      Font.Name = 'MS Sans Serif'
+      Font.Style = []
+      ParentFont = False
+      TabOrder = 4
       OnClick = btnImportClick
-      ExplicitLeft = 288
     end
   end
   object pnlMain: TPanel
@@ -188,15 +219,15 @@ object frmCAF: TfrmCAF
         Font.Height = -15
         Font.Name = 'MS Sans Serif'
         Font.Style = []
-        ItemHeight = 16
+        ItemHeight = 0
         ParentFont = False
         TabOrder = 0
         OnChange = cmbInstitutionChange
       end
       object edtInstitutionName: TEdit
-        Left = 338
+        Left = 267
         Top = 16
-        Width = 194
+        Width = 265
         Height = 24
         Anchors = [akLeft, akTop, akRight]
         Font.Charset = DEFAULT_CHARSET
@@ -586,6 +617,7 @@ object frmCAF: TfrmCAF
         Font.Style = []
         ParentFont = False
         TabOrder = 2
+        OnClick = chkExistingClientClick
       end
       object chkDataToClient: TCheckBox
         Left = 22
@@ -602,6 +634,7 @@ object frmCAF: TfrmCAF
         Font.Style = []
         ParentFont = False
         TabOrder = 0
+        OnClick = chkDataToClientClick
       end
       object cmbRecieved: TComboBox
         Left = 381
@@ -615,7 +648,7 @@ object frmCAF: TfrmCAF
         Font.Height = -15
         Font.Name = 'MS Sans Serif'
         Font.Style = []
-        ItemHeight = 16
+        ItemHeight = 0
         ParentFont = False
         TabOrder = 1
       end
@@ -642,10 +675,12 @@ object frmCAF: TfrmCAF
       Align = alTop
       TabOrder = 4
       object lblAccountValidationError: TLabel
-        Left = 25
+        Left = 1
         Top = 4
-        Width = 103
+        Width = 608
         Height = 16
+        Alignment = taCenter
+        AutoSize = False
         Caption = 'Account Error hint'
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clRed
