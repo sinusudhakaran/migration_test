@@ -222,6 +222,8 @@ procedure TfrmCAF.FormShow(Sender: TObject);
 begin
   FButton := BTN_NONE;
   BKHelpSetUp(Self, BKH_Accessing_a_Third_Party_Authority_form);
+
+  cmbInstitution.SetFocus;
 end;
 
 //------------------------------------------------------------------------------
