@@ -221,6 +221,8 @@ begin
   cmbRecieved.ItemIndex := 0;
 
   SetDataSentToClient(false);
+
+  edtClientStartDte.AsDateTime := now();
 end;
 
 //------------------------------------------------------------------------------

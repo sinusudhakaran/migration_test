@@ -209,6 +209,8 @@ begin
   cmbRecieved.ItemIndex := 0;
 
   SetDataSentToClient(false);
+
+  edtClientStartDte.AsDateTime := now();
 end;
 
 //------------------------------------------------------------------------------
@@ -342,7 +344,6 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmCAF.mskAccountNumberEnter(Sender: TObject);
 begin
-  lblAccountValidationError.Caption := '';
   UpdateMask;
   mskAccountNumber.SetFocus;
 end;
