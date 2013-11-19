@@ -1,4 +1,5 @@
 // Third Party Authority Form for NZ accounts
+// Note if you change this form you probably will need to change the other Authority forms too
 unit TPAfrm;
 
 //------------------------------------------------------------------------------
@@ -176,6 +177,7 @@ begin
   SortList := TStringList.Create;
   SortList.Clear;
   try
+    //Sorts the data in a string list
     for Index := 0 to Institutions.Count-1 do
     begin
       if (TInstitutionItem(Institutions.Items[Index]).CountryCode = COUNTRY_CODE) and
@@ -190,6 +192,7 @@ begin
 
     SortList.Sort;
 
+    // Adds other to the Top of the list after sorting
     cmbInstitution.AddItem('Other', nil);
     for Index := 0 to SortList.Count-1 do
       cmbInstitution.AddItem(SortList.Strings[Index], SortList.Objects[Index]);
@@ -197,6 +200,7 @@ begin
   finally
     FreeAndNil(SortList);
   end;
+
   cmbInstitution.ItemIndex := -1;
   SetInstitutionControls(inNone);
   fValidateError := false;
@@ -240,18 +244,21 @@ begin
   fValidAccount := false;
   fAccountNumber := '';
 
+  // Check if there is any data entered
   if length(fMaskHint.RemoveUnusedCharsFromAccNumber(aAccountNumber)) = 0 then
   begin
     aFailedReason := 'Please enter an Account Number.';
     Exit;
   end;
 
+  // check if the Mask validation failed
   if fValidateError then
   begin
     aFailedReason := 'Account Number is invalid, please re-enter.';
     Exit;
   end;
 
+  // Call the Online Validation
   AccountNumber := trim(fMaskHint.RemoveUnusedCharsFromAccNumber(aAccountNumber));
   if (cmbInstitution.ItemIndex > 0) and
      (Assigned(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex])) and
@@ -276,7 +283,7 @@ begin
   // Institution Name
   if Result and (cmbInstitution.ItemIndex = -1) then
   begin
-    HelpfulErrorMsg('Please choose a Institution.', 0);
+    HelpfulErrorMsg('Please choose an Institution.', 0);
     cmbInstitution.SetFocus;
     Result := False;
   end;
@@ -284,7 +291,7 @@ begin
   // Institution Other Name
   if Result and (cmbInstitution.ItemIndex = 0) and (edtInstitutionName.text = '') then
   begin
-    HelpfulErrorMsg('Please enter a Institution Name.', 0);
+    HelpfulErrorMsg('Please enter an Institution Name.', 0);
     edtInstitutionName.SetFocus;
     Result := False;
   end;
@@ -334,6 +341,7 @@ procedure TfrmTPA.mskAccountNumberExit(Sender: TObject);
 var
   FailedReason : string;
 begin
+  // Calls Validation on Exit of Account Number Control
   lblAccountValidationError.Caption := '';
   if not ValidateAccount(mskAccountNumber.EditText, FailedReason) then
     lblAccountValidationError.Caption := FailedReason;
@@ -373,6 +381,8 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmTPA.RemovePanelBorders;
 begin
+  // I kept the Borders here so we can see the controls when developing but when running
+  // they need to be removed
   pnlInstitution.BevelOuter  := bvNone;
   pnlInstData.BevelOuter     := bvNone;
   pnlInstLabels.BevelOuter   := bvNone;
@@ -419,6 +429,7 @@ procedure TfrmTPA.SetInstitutionControls(aInstitutionType : TInstitutionType);
 var
   enableControls : boolean;
 begin
+  // Set Controls depending on what Istitution Type is selected
   fInstitutionType := aInstitutionType;
 
   mskAccountNumber.EditMask := '';
@@ -447,6 +458,8 @@ begin
           edtInstitutionName.Visible := true;
           lblInstitutionOther.Visible := true;
           cmbInstitution.Width := OTHER_BANK_WIDTH;
+          // Combo has no option to set the Drop down wider than the combo so this is
+          // how you set it
           SendMessage(cmbInstitution.Handle, CB_SETDROPPEDWIDTH, edtBranch.Width, 0);
         end;
         inBLO  : begin
