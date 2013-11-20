@@ -19,7 +19,8 @@ uses
   utSimpleFund360Bulk in '..\Tests\utSimpleFund360Bulk.pas',
   utSimpleFundX in '..\Tests\utSimpleFundX.pas',
   utInstitutionCol in '..\Tests\utInstitutionCol.pas',
-  utToDo in '..\Tests\utToDo.pas';
+  utToDo in '..\Tests\utToDo.pas',
+  utBudget in '..\Tests\utBudget.pas';
 
 {$R *.RES}
 

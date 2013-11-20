@@ -17,7 +17,8 @@ uses
   utBGL360 in '..\Tests\utBGL360.pas',
   utSimpleFundX in '..\Tests\utSimpleFundX.pas' {/utSimpleFund360Bulk in '..\Tests\utSimpleFund360Bulk.pas';},
   utInstitutionCol in '..\Tests\utInstitutionCol.pas',
-  utToDo in '..\Tests\utToDo.pas';
+  utToDo in '..\Tests\utToDo.pas',
+  utBudget in '..\Tests\utBudget.pas';
 
 //utSimpleFund360Bulk in '..\Tests\utSimpleFund360Bulk.pas';
 
