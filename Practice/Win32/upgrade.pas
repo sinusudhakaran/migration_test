@@ -4219,8 +4219,13 @@ const
 
   procedure UpgradeToVersion175;
   begin
-    if (aClient.clFields.clECoding_Import_Options = 0) then
-      aClient.clFields.clECoding_Import_Options := noFillWithPayeeName;
+    // Constants for clECoding_Import_Options were changed from 0,1,2 to 1,2,4 to fix a bug
+    case aClient.clFields.clECoding_Import_Options of
+      0: aClient.clFields.clECoding_Import_Options := noFillWithPayeeName;
+      1: aClient.clFields.clECoding_Import_Options := noFillWithNotes;
+      2: aClient.clFields.clECoding_Import_Options := noFillWithBoth;
+    end;
+
   end;
 
 begin
