@@ -28,6 +28,7 @@ type
     chkIncludeUnusedChartCodes: TCheckBox;
     SaveTextFileDialog: TSaveTextFileDialog;
     chkIncludeNonPostingChartCodes: TCheckBox;
+    ckPrefix: TCheckBox;
     procedure FormCreate(Sender: TObject);
     procedure btnToFileClick(Sender: TObject);
     procedure btnOkClick(Sender: TObject);
@@ -57,6 +58,7 @@ implementation
 
 uses
   ImagesFrm,
+  bkConst,
   bkXPThemes,
   YesNoDlg,
   Globals,
@@ -74,6 +76,10 @@ begin
   frmExportBudget.IncludeNonPostingChartCodes := MyClient.clExtra.ceInclude_Non_Posting_Chart_Codes;
   frmExportBudget.chkIncludeUnusedChartCodes.Checked := frmExportBudget.IncludeUnusedChartCodes;
   frmExportBudget.chkIncludeNonPostingChartCodes.Checked := frmExportBudget.IncludeNonPostingChartCodes;
+
+  // Client option
+  ASSERT(MyClient.clExtra.ceAdd_Prefix_For_Account_Code <> prfxInit);
+  frmExportBudget.ckPrefix.Checked := (MyClient.clExtra.ceAdd_Prefix_For_Account_Code = prfxOn);
 
   try
     frmExportBudget.BudgetFilePath := BudgetFilePath;
@@ -151,8 +157,14 @@ begin
   fBudgetFilePath := edtBudgetFile.Text;
   fIncludeUnusedChartCodes := chkIncludeUnusedChartCodes.Checked;
   fIncludeNonPostingChartCodes := chkIncludeNonPostingChartCodes.Checked;
+
   MyClient.clExtra.ceInclude_Unused_Chart_Codes := fIncludeUnusedChartCodes;
   MyClient.clExtra.ceInclude_Non_Posting_Chart_Codes := fIncludeNonPostingChartCodes;
+
+  if ckPrefix.Checked then
+    MyClient.clExtra.ceAdd_Prefix_For_Account_Code := prfxOn
+  else
+    MyClient.clExtra.ceAdd_Prefix_For_Account_Code := prfxOff;
 
   ModalResult := mrOK;
 end;

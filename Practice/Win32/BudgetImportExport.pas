@@ -16,6 +16,7 @@ uses
 const
   BUDGET_DEFAULT_FILENAME = 'BudgetDefaultLocations.dat';
   UnitName = 'BudgetImportExport';
+  ACCOUNT_CODE_PREFIX = 'Acc_';
 
 //------------------------------------------------------------------------------
 type
@@ -74,18 +75,27 @@ type
                           aStartDate : integer;
                           var aMsg : string;
                           aIncludeNonPostingChartCodes: boolean): boolean;
+
     function CopyBudgetData(aBudgetData : TBudgetData) : TBudgetData;
     procedure ClearWasUpdated(var aBudgetData : TBudgetData);
     procedure UpdateBudgetDetailRows(var aBudgetData : TBudgetData; var aBudget : TBudget);
+
     function ImportBudget(aBudgetFilePath: string;
                           aBudgetErrorFilePath : string;
                           var aRowsImported : integer;
                           var aRowsNotImported : integer;
                           var aBudgetData : TBudgetData;
                           var aMsg : string) : boolean;
+    function  RemoveAccountCodePrefix(const aValue: string): string;
 
     property BudgetDefaultFile : string read fBudgetDefaultFile write fBudgetDefaultFile;
   end;
+
+  { Keep this out of the class, so it can be used in BudgetFrm for initializing
+    MyClient.clExtra.ceAdd_Prefix_For_Account_Code. This function is specific to
+    this unit.
+  }
+  function DoAccountCodesNeedToBePrefixed(const aData: TBudgetData): boolean;
 
 //------------------------------------------------------------------------------
 implementation
@@ -245,6 +255,7 @@ var
   OutputFile    : Text;
   DateIndex     : integer;
   ColDate       : integer;
+  bPrefixAccountCode: boolean;
   DataIndex     : integer;
   HeaderLine    : string;
   DataLine      : string;
@@ -265,6 +276,10 @@ begin
         HeaderLine := HeaderLine + ',"' + StDateToDateString('nnn yy', ColDate, true) + '"';
       end;
       Writeln(OutputFile, HeaderLine );
+
+      bPrefixAccountCode :=
+        (MyClient.clExtra.ceAdd_Prefix_For_Account_Code = prfxOn) and
+        DoAccountCodesNeedToBePrefixed(aData);
 
       // Data
       for DataIndex := 0 to high(aData) do
@@ -303,13 +318,13 @@ begin
           DataLine := '';
 
           // Add a space if account is not numeric
-          if IsNumeric(aData[DataIndex].bAccount) then
-            DataLine := DataLine + '"' + aData[DataIndex].bAccount + '",'
+          if bPrefixAccountCode then
+            DataLine := DataLine + '"' + ACCOUNT_CODE_PREFIX + aData[DataIndex].bAccount + '",'
           else
-            DataLine := DataLine + '" ' + aData[DataIndex].bAccount + '",';
+            DataLine := DataLine + '"' + aData[DataIndex].bAccount + '",';
 
           DataLine := DataLine + '"' + aData[DataIndex].bDesc + '",';
-          if aData[DataIndex].bIsPosting then          
+          if aData[DataIndex].bIsPosting then
             // Non posting chart codes shouldn't display a total in the budget
             DataLine := DataLine + IntToStr(aData[DataIndex].bTotal) + ','
           else
@@ -339,6 +354,59 @@ begin
       LogUtil.LogMsg( lmError, UnitName, ThisMethodName + ' : ' + aMsg );
     end;
   end;
+end;
+
+//------------------------------------------------------------------------------
+function DoAccountCodesNeedToBePrefixed(const aData: TBudgetData): boolean;
+var
+  i: integer;
+  sCode: string;
+  dDummy: double;
+  chLeading: char;
+  iDecimalPlace: integer;
+  iLength: integer;
+  chTrailing: char;
+  dtDummy: TDateTime;
+begin
+  for i := 0 to High(aData) do
+  begin
+    sCode := Trim(aData[i].bAccount);
+    if (sCode = '') then
+      continue;
+
+    // Could Excel see this as a number?
+    if TryStrToFloat(sCode, dDummy) then
+    begin
+      { Leading zero?
+        Note: these will be removed from the 'number' by Excel }
+      chLeading := sCode[1];
+      if (chLeading = '0') then
+      begin
+        result := true;
+        exit;
+      end;
+
+      { Trailing zero after a decimal place?
+        Note: these will be removed from the 'number' by Excel }
+      iDecimalPlace := Pos('.', sCode);
+      iLength := Length(sCode);
+      chTrailing := sCode[iLength];
+      if (iDecimalPlace <> 0) and (chTrailing = '0') then
+      begin
+        result := true;
+        exit;
+      end;
+    end;
+
+    // Could Excel see this as a date?
+    if TryStrToDateTime(sCode, dtDummy) then
+    begin
+      result := true;
+      exit;
+    end;
+  end;
+
+  result := false;
 end;
 
 //------------------------------------------------------------------------------
@@ -519,6 +587,10 @@ begin
             InLineData.StrictDelimiter := True;
             InLineData.DelimitedText := InStrLine;
 
+            // Remove the account code prefix, for both error and normal situations
+            if (InLineData.Count > 0) then
+              InLineData[0] := RemoveAccountCodePrefix(InLineData[0]);
+
             if InLineData.Count <> 15 then
             begin
               if InLineData.Count > 0 then
@@ -532,7 +604,7 @@ begin
             end
             else
             begin
-              DataIndex := GetDataIndexWithAccount(Trim(InLineData[0]));
+              DataIndex := GetDataIndexWithAccount(InLineData[0]);
               if DataIndex <> -1 then
               begin
                 if aBudgetData[DataIndex].bIsPosting then
@@ -615,6 +687,22 @@ begin
         LogUtil.LogMsg( lmError, UnitName, ThisMethodName + ' : ' + aMsg );
       end;
     end;
+  end;
+end;
+
+function TBudgetImportExport.RemoveAccountCodePrefix(const aValue: string
+  ): string;
+var
+  iPos: integer;
+  iCode: integer;
+begin
+  iPos := Pos(ACCOUNT_CODE_PREFIX, aValue);
+  if (iPos = 0) then
+    result := aValue
+  else
+  begin
+    iCode := Length(ACCOUNT_CODE_PREFIX) + 1;
+    result := MidStr(aValue, iCode, MaxInt);
   end;
 end;
 

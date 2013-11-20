@@ -2177,6 +2177,16 @@ begin
       BudgetFilePath := ExtractFilePath(BudgetFilePath) +
                         RemoveInvalidCharacters(edtName.Text) + '.csv';
 
+    // Has the prefix default not been initialized yet?
+    if (MyClient.clExtra.ceAdd_Prefix_For_Account_Code = prfxInit) then
+    begin
+      if DoAccountCodesNeedToBePrefixed(FData) then
+        MyClient.clExtra.ceAdd_Prefix_For_Account_Code := prfxOn
+      else
+        MyClient.clExtra.ceAdd_Prefix_For_Account_Code := prfxOff;
+    end;
+    ASSERT(MyClient.clExtra.ceAdd_Prefix_For_Account_Code <> prfxInit);
+
     if DoExportBudget(BudgetFilePath, IncludeUnusedChartCodes, IncludeNonPostingChartCodes) then
     begin
       if not fShowZeros then

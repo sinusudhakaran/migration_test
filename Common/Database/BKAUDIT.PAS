@@ -875,6 +875,7 @@ begin
     FAuditNamesArray[40,90] := 'BLOSecureCode';
     FAuditNamesArray[40,91] := 'Include_Unused_Chart_Codes';
     FAuditNamesArray[40,92] := 'Include_Non_Posting_Chart_Codes';
+    FAuditNamesArray[40,93] := 'Add_Prefix_For_Account_Code';
 
    FAuditTableArray[233] := 'Deleted_Transaction';
     FAuditNamesArray[233,235] := 'Date_Deleted';

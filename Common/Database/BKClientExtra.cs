@@ -402,6 +402,14 @@ namespace BankLink.Practice.BooksIO
 
 
 
+		/// <summary>
+		/// AddPrefixForAccountCode property
+		/// </summary>
+		[XmlAttribute("AddPrefixForAccountCode", DataType = "int")]
+		public Int32 AddPrefixForAccountCode { get; set; }
+
+
+
 	}
 
 

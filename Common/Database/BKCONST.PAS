@@ -2455,6 +2455,11 @@ Const
 
   ftmTransferMethods: array[ftmMin..ftmMax] of string[20] = ('None', 'File', 'Email', 'Online');
 
+  // Prefix for account code (budget export)
+  prfxInit = 0;   prfxMin = 0;
+  prfxOn   = 1;
+  prfxOff  = 2;   prfxMax = 2;
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 IMPLEMENTATION
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

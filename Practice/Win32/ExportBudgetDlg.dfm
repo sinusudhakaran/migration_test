@@ -3,7 +3,7 @@ object frmExportBudget: TfrmExportBudget
   Top = 0
   BorderStyle = bsDialog
   Caption = 'Export Budget'
-  ClientHeight = 136
+  ClientHeight = 152
   ClientWidth = 525
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -16,7 +16,7 @@ object frmExportBudget: TfrmExportBudget
   OnCreate = FormCreate
   DesignSize = (
     525
-    136)
+    152)
   PixelsPerInch = 96
   TextHeight = 13
   object lblFilename: TLabel
@@ -46,7 +46,7 @@ object frmExportBudget: TfrmExportBudget
   end
   object btnOk: TButton
     Left = 364
-    Top = 103
+    Top = 119
     Width = 75
     Height = 25
     Anchors = [akRight, akBottom]
@@ -58,12 +58,13 @@ object frmExportBudget: TfrmExportBudget
     Font.Name = 'Tahoma'
     Font.Style = []
     ParentFont = False
-    TabOrder = 3
+    TabOrder = 4
     OnClick = btnOkClick
+    ExplicitTop = 103
   end
   object btnCancel: TButton
     Left = 445
-    Top = 103
+    Top = 119
     Width = 75
     Height = 25
     Anchors = [akRight, akBottom]
@@ -76,7 +77,8 @@ object frmExportBudget: TfrmExportBudget
     Font.Style = []
     ModalResult = 2
     ParentFont = False
-    TabOrder = 4
+    TabOrder = 5
+    ExplicitTop = 103
   end
   object edtBudgetFile: TEdit
     Left = 116
@@ -131,10 +133,31 @@ object frmExportBudget: TfrmExportBudget
     State = cbChecked
     TabOrder = 2
   end
+  object ckPrefix: TCheckBox
+    Left = 12
+    Top = 93
+    Width = 301
+    Height = 17
+    Hint = 
+      'Adds a Prefix Acc_ to allow account codes to display correctly i' +
+      'n Excel'
+    Caption = 'Add account prefix '#39'Acc_'#39
+    Checked = True
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -13
+    Font.Name = 'Tahoma'
+    Font.Style = []
+    ParentFont = False
+    ParentShowHint = False
+    ShowHint = False
+    State = cbChecked
+    TabOrder = 3
+  end
   object SaveTextFileDialog: TSaveTextFileDialog
     DefaultExt = 'csv'
     Filter = 'CSV Files (*.csv)|*.csv'
-    Left = 8
-    Top = 80
+    Left = 488
+    Top = 40
   end
 end

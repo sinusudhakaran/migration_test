@@ -9,13 +9,13 @@ Interface uses MONEYDEF, DATEDEF;
 {  -------------------------------------------------------------------  }
 
 Const
-   BK_IOLIB_Version : Integer = 702;
-   BK_IOLIB_Date    = '15/11/13';
-   BK_FILE_VERSION  = 175;  (* Current Version counter for files
+   BK_IOLIB_Version : Integer = 705;
+   BK_IOLIB_Date    = '20/11/13';
+   BK_FILE_VERSION  = 176;  (* Current Version counter for files
                               Changes if structure or method of storing a value would cause
                               data to be represented incorrectly, or an exception to be raised *)
    
-   BK_FILE_VERSION_STR = '5.29';   (* Should be changed whenever BK_FILE_VERSION changes. Is used to show user what version they need *)
+   BK_FILE_VERSION_STR = '5.31';   (* Should be changed whenever BK_FILE_VERSION changes. Is used to show user what version they need *)
    
    (*
        History  :     31    New format for GST class codes ( delimited string)
@@ -224,6 +224,7 @@ Const
      5.28            173    Adding Include Unused Chart Codes and Include Non-Posting Chart Codes
      5.29            174    Moved the aforesaid fields (see 5.28) to ClientExtra, there's no room for new fields in Client
      5.30	    175    Upgrading now adds a default value to clFields.clECoding_Import_Options, but this doesn't change anything below
+     5.31	    176    CSV Add prefix account code option
    *)
    //Audit Trail - 135 Don't reuse token!!! - Record defined in SY.TXT but also used in Client File
 
@@ -1286,6 +1287,7 @@ Type
       ceBLOSecureCode                    : String[ 20 ];       { Stored }
       ceInclude_Unused_Chart_Codes       : Boolean;       { Stored }
       ceInclude_Non_Posting_Chart_Codes  : Boolean;       { Stored }
+      ceAdd_Prefix_For_Account_Code      : Integer;       { Stored }
       ceEOR                              : Byte;
    end;
 

@@ -3012,6 +3012,7 @@ begin
 	SetTextAttr(Result, 'BLOSecureCode', ceBLOSecureCode);
 	SetBoolAttr(Result, 'IncludeUnusedChartCodes', ceInclude_Unused_Chart_Codes);
 	SetBoolAttr(Result, 'IncludeNonPostingChartCodes', ceInclude_Non_Posting_Chart_Codes);
+	SetIntAttr(Result, 'AddPrefixForAccountCode', ceAdd_Prefix_For_Account_Code);
 
 	CNode := nil;
 	CCNode := nil;
@@ -3143,6 +3144,7 @@ begin
 	ceBLOSecureCode := GetTextAttr(Result, 'BLOSecureCode');
 	ceInclude_Unused_Chart_Codes := GetBoolAttr(Result, 'IncludeUnusedChartCodes');
 	ceInclude_Non_Posting_Chart_Codes := GetBoolAttr(Result, 'IncludeNonPostingChartCodes');
+	ceAdd_Prefix_For_Account_Code := GetIntAttr(Result, 'AddPrefixForAccountCode');
 	except
 		on E: Exception do ReRaise (E, 'Reading TClientExtra_Rec');
 	end;

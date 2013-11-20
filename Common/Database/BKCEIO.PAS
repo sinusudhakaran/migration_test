@@ -97,6 +97,7 @@ CONST
    tkceBLOSecureCode                    = 90 ;
    tkceInclude_Unused_Chart_Codes       = 91 ;
    tkceInclude_Non_Posting_Chart_Codes  = 92 ;
+   tkceAdd_Prefix_For_Account_Code      = 93 ;
 
 {  -------------------------------------------------------------------  }
 
@@ -182,6 +183,7 @@ Begin
       F.WriteStringValue( tkceBLOSecureCode , ceBLOSecureCode );
       F.WriteBooleanValue( tkceInclude_Unused_Chart_Codes , ceInclude_Unused_Chart_Codes );
       F.WriteBooleanValue( tkceInclude_Non_Posting_Chart_Codes , ceInclude_Non_Posting_Chart_Codes );
+      F.WriteIntegerValue( tkceAdd_Prefix_For_Account_Code , ceAdd_Prefix_For_Account_Code );
       F.WriteToken( tkEnd_ClientExtra );
    end;
 end; { of Write_ClientExtra_Rec }
@@ -294,6 +296,7 @@ Begin
          tkceBLOSecureCode                    : ceBLOSecureCode := F.ReadStringValue;
          tkceInclude_Unused_Chart_Codes       : ceInclude_Unused_Chart_Codes := F.ReadBooleanValue;
          tkceInclude_Non_Posting_Chart_Codes  : ceInclude_Non_Posting_Chart_Codes := F.ReadBooleanValue;
+         tkceAdd_Prefix_For_Account_Code      : ceAdd_Prefix_For_Account_Code := F.ReadIntegerValue;
          else
             Raise ETokenException.CreateFmt( SUnknownToken, [ Token ] );
       end; { of Case }
@@ -344,7 +347,7 @@ begin
   for i := Low(ChangedFields) to High(ChangedFields) do
     ChangedFields[i] := 0;
   j := 0;
-  for i := tkceTAX_Applies_From to tkceInclude_Non_Posting_Chart_Codes do begin
+  for i := tkceTAX_Applies_From to tkceAdd_Prefix_For_Account_Code do begin
     ChangedFields[j] := i;
     Inc(j);
   end;
@@ -627,6 +630,11 @@ begin
   if (P1.ceInclude_Non_Posting_Chart_Codes <> P2.ceInclude_Non_Posting_Chart_Codes) then begin
     P3.ceInclude_Non_Posting_Chart_Codes := P1.ceInclude_Non_Posting_Chart_Codes;
     ChangedFields[i] := tkceInclude_Non_Posting_Chart_Codes;
+    Inc(i);
+  end;
+  if (P1.ceAdd_Prefix_For_Account_Code <> P2.ceAdd_Prefix_For_Account_Code) then begin
+    P3.ceAdd_Prefix_For_Account_Code := P1.ceAdd_Prefix_For_Account_Code;
+    ChangedFields[i] := tkceAdd_Prefix_For_Account_Code;
     Inc(i);
   end;
 
