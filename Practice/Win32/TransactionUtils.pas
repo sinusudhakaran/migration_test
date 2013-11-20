@@ -72,6 +72,9 @@ function IsFullyCodedTransaction(Client: TClientObj; Transaction: pTransaction_R
 
 function RecordDeletedTransactionData(BankAccount: TBank_Account; Transaction: pTransaction_Rec): Boolean;
 
+function IsAccountACreditCard(aAccount : string) : boolean;
+Function MaskCreditCard(aAccount : string) : string;
+
 //******************************************************************************
 implementation
 uses
@@ -584,4 +587,44 @@ begin
     end;
   end;
 end;
+
+//------------------------------------------------------------------------------
+function IsAccountACreditCard(aAccount : string) : boolean;
+var
+  CalIndex     : integer;
+begin
+  // Length of a Credit Card must be atleast 13 digits
+  Result := true;
+  if Length(aAccount) < 13 then
+  begin
+    Result := false;
+    Exit;
+  end;
+
+  for CalIndex := length(aAccount) downto 1 do
+  begin
+    // All Characters of Credit Card must be digits
+    if not ((aAccount[CalIndex] >= '0') and (aAccount[CalIndex] <= '9')) then
+    begin
+      Result := false;
+      Exit;
+    end;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+Function MaskCreditCard(aAccount : string) : string;
+var
+  CalIndex : integer;
+begin
+  Result := '';
+  for CalIndex := length(aAccount) downto 1 do
+  begin
+    if (length(aAccount) - CalIndex) >= 4 then
+      Result := 'X' + Result
+    else
+      Result := aAccount[CalIndex] + Result;
+  end;
+end;
+
 end.

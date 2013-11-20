@@ -193,6 +193,7 @@ type
                                    var aNameList : TArrVarTypeData);
     procedure FindXMLTypeNamesToModify(const aMethodName : String;
                                        var aNameList : TArrVarTypeData);
+    procedure MaskCreditCardForLogs(const aCurrNode : IXMLNode);
     procedure AddXMLNStoArrays(const aCurrNode : IXMLNode;
                                var aNameList : TArrVarTypeData);
     procedure DoBeforeExecute(const MethodName: string;
@@ -563,7 +564,8 @@ uses
   bkBranding,
   bkProduct,
   ShlObj,
-  DateUtils;
+  DateUtils,
+  TransactionUtils;
 
 const
   UNIT_NAME = 'BankLinkOnlineServices';
@@ -2268,6 +2270,29 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+procedure TProductConfigService.MaskCreditCardForLogs(const aCurrNode : IXMLNode);
+var
+  NodeIndex : integer;
+  NodeValue : String;
+begin
+  if not Assigned(aCurrNode) then
+    Exit;
+
+  if UpperCase(aCurrNode.NodeName) = 'ACCOUNTNUMBER' then
+  begin
+    NodeValue := aCurrNode.NodeValue;
+
+    if IsAccountACreditCard(NodeValue) then
+      aCurrNode.NodeValue := MaskCreditCard(NodeValue);
+  end;
+
+  for NodeIndex := 0 to aCurrNode.ChildNodes.Count - 1 do
+  begin
+    MaskCreditCardForLogs(aCurrNode.ChildNodes[NodeIndex]);
+  end;
+end;
+
+//------------------------------------------------------------------------------
 procedure TProductConfigService.AddXMLNStoArrays(const aCurrNode : IXMLNode;
                                                  var aNameList : TArrVarTypeData);
 var
@@ -2286,6 +2311,7 @@ begin
 
   // Searches for the Node Name in the passed Name List
   FindIndex := GetTypeItemIndex(aNameList, aCurrNode.LocalName);
+
   if FindIndex > -1 then
   begin
     if aCurrNode.ChildNodes.Count > 0 then
@@ -2426,11 +2452,13 @@ var
   Buffer: array[0..255] of Char;
   LogXmlFile : String;
   FileStr : TFileStream;
+  StrStream : TStringStream;
   Folder : String;
   BufferPath : packed array[ 0..MAX_PATH ] of Char;
   SearchRec  : TSearchRec;
   FindResult : integer;
   FileDate : TDateTime;
+  Document : IXMLDocument;
 begin
   if DebugMe then
   begin
@@ -2486,11 +2514,27 @@ begin
                       FormatDateTime('yyyy-mm-dd hh-mm-ss zzz', Now) + '.txt';
 
     SOAPResponse.Position :=0;
-    FileStr := TFileStream.Create(LogXmlFile, fmCreate);
+
+    // Loads the SoapRequest into a XML Document
+    Document := NewXMLDocument;
     try
-      FileStr.CopyFrom(SOAPResponse, SOAPResponse.Size);
+      StrStream := TStringStream.Create('');
+      try
+        StrStream.CopyFrom(SOAPResponse, SOAPResponse.Size);
+
+        Document.LoadFromXML(StrStream.DataString);
+
+        if not Document.IsEmptyDoc then
+        begin
+          MaskCreditCardForLogs(Document.DocumentElement);
+
+          Document.SaveToFile(LogXmlFile);
+        end;
+      finally
+        FreeAndNil(StrStream);
+      end;
     finally
-      FreeAndNil(FileStr);
+      Document := nil;
     end;
   end;
 
@@ -2536,6 +2580,8 @@ begin
       begin
         LogXmlFile := Globals.DataDir + 'Blopi_Request_' + MethodName + '_' +
                       FormatDateTime('yyyy-mm-dd hh-mm-ss zzz', Now) + '.xml';
+
+        MaskCreditCardForLogs(Document.DocumentElement);
 
         Document.SaveToFile(LogXmlFile);
 
