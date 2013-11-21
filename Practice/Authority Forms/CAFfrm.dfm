@@ -222,11 +222,10 @@ object frmCAF: TfrmCAF
         Font.Height = -15
         Font.Name = 'MS Sans Serif'
         Font.Style = []
-        ItemHeight = 16
+        ItemHeight = 0
         ParentFont = False
         TabOrder = 0
         OnChange = cmbInstitutionChange
-        ExplicitWidth = 379
       end
       object edtInstitutionName: TEdit
         Left = 267
@@ -364,7 +363,7 @@ object frmCAF: TfrmCAF
           Font.Height = -15
           Font.Name = 'MS Sans Serif'
           Font.Style = []
-          MaxLength = 100
+          MaxLength = 20
           ParentFont = False
           ParentShowHint = False
           ShowHint = True
@@ -669,10 +668,9 @@ object frmCAF: TfrmCAF
         Font.Height = -15
         Font.Name = 'MS Sans Serif'
         Font.Style = []
-        ItemHeight = 16
+        ItemHeight = 0
         ParentFont = False
         TabOrder = 1
-        ExplicitWidth = 210
       end
       object edtSecureCode: TEdit
         Left = 381

@@ -283,7 +283,7 @@ begin
   Result := True;
 
   // Institution Name
-  if Result and (cmbInstitution.ItemIndex = -1) then
+  if Result and (fInstitutionType = inNone) then
   begin
     HelpfulErrorMsg('Please choose an Institution.', 0);
     cmbInstitution.SetFocus;
@@ -291,10 +291,26 @@ begin
   end;
 
   // Institution Other Name
-  if Result and (cmbInstitution.ItemIndex = 0) and (edtInstitutionName.text = '') then
+  if Result and (fInstitutionType = inOther) and (edtInstitutionName.text = '') then
   begin
     HelpfulErrorMsg('Please enter an Institution Name.', 0);
     edtInstitutionName.SetFocus;
+    Result := False;
+  end;
+
+  // Name of Account
+  if Result and (edtNameOfAccount.text = '') then
+  begin
+    HelpfulErrorMsg('Please enter the Name of Account.', 0);
+    edtNameOfAccount.SetFocus;
+    Result := False;
+  end;
+
+  // Account Number
+  if Result and (fInstitutionType = inOther) and (edtAccountNumber.text = '') then
+  begin
+    HelpfulErrorMsg('Please enter an Account Number.', 0);
+    edtAccountNumber.SetFocus;
     Result := False;
   end;
 
@@ -315,6 +331,14 @@ begin
       mskAccountNumber.SetFocus;
       Result := False;
     end;
+  end;
+
+  // Secure Code
+  if Result and (chkExistingClient.Checked = true) and (edtSecureCode.text = '') then
+  begin
+    HelpfulErrorMsg('Please enter a Secure Code.', 0);
+    edtSecureCode.SetFocus;
+    Result := False;
   end;
 end;
 

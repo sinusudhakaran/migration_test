@@ -356,7 +356,7 @@ object frmTPA: TfrmTPA
           Font.Height = -15
           Font.Name = 'MS Sans Serif'
           Font.Style = []
-          MaxLength = 100
+          MaxLength = 20
           ParentFont = False
           ParentShowHint = False
           ShowHint = True
@@ -666,6 +666,7 @@ object frmTPA: TfrmTPA
         Font.Height = -15
         Font.Name = 'MS Sans Serif'
         Font.Style = []
+        MaxLength = 8
         ParentFont = False
         TabOrder = 3
       end
