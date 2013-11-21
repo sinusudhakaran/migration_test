@@ -74,7 +74,8 @@ type
                           aData : TBudgetData;
                           aStartDate : integer;
                           var aMsg : string;
-                          aIncludeNonPostingChartCodes: boolean): boolean;
+                          aIncludeNonPostingChartCodes: boolean;
+                          aPrefixAccountCode: boolean): boolean;
 
     function CopyBudgetData(aBudgetData : TBudgetData) : TBudgetData;
     procedure ClearWasUpdated(var aBudgetData : TBudgetData);
@@ -248,14 +249,14 @@ function TBudgetImportExport.ExportBudget(aBudgetFilePath: string;
                                           aData : TBudgetData;
                                           aStartDate : integer;
                                           var aMsg : string;
-                                          aIncludeNonPostingChartCodes: boolean): boolean;
+                                          aIncludeNonPostingChartCodes: boolean;
+                                          aPrefixAccountCode: boolean): boolean;
 const
   ThisMethodName = 'ExportBudget';
 var
   OutputFile    : Text;
   DateIndex     : integer;
   ColDate       : integer;
-  bPrefixAccountCode: boolean;
   DataIndex     : integer;
   HeaderLine    : string;
   DataLine      : string;
@@ -276,10 +277,6 @@ begin
         HeaderLine := HeaderLine + ',"' + StDateToDateString('nnn yy', ColDate, true) + '"';
       end;
       Writeln(OutputFile, HeaderLine );
-
-      bPrefixAccountCode :=
-        (MyClient.clExtra.ceAdd_Prefix_For_Account_Code = prfxOn) and
-        DoAccountCodesNeedToBePrefixed(aData);
 
       // Data
       for DataIndex := 0 to high(aData) do
@@ -318,7 +315,7 @@ begin
           DataLine := '';
 
           // Add a space if account is not numeric
-          if bPrefixAccountCode then
+          if aPrefixAccountCode then
             DataLine := DataLine + '"' + ACCOUNT_CODE_PREFIX + aData[DataIndex].bAccount + '",'
           else
             DataLine := DataLine + '"' + aData[DataIndex].bAccount + '",';

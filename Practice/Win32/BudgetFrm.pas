@@ -2163,11 +2163,11 @@ var
   BudgetImportExport : TBudgetImportExport;
   MsgStr : string;
   DataIndex : integer;
-
+  bPrefixAccountCode: boolean;
 begin
   BudgetImportExport := TBudgetImportExport.Create;
   try
-    BudgetImportExport.BudgetDefaultFile := UserDir + BUDGET_DEFAULT_FILENAME; 
+    BudgetImportExport.BudgetDefaultFile := UserDir + BUDGET_DEFAULT_FILENAME;
     BudgetFilePath := BudgetImportExport.GetDefaultFileLocation(MyClient.clFields.clCode, RemoveInvalidCharacters(Budget.buFields.buName));
 
     if BudgetFilePath = '' then
@@ -2193,9 +2193,14 @@ begin
         RefreshFData(true, DataIndex);
 
       try
+        // Do this after DoExportBudget dialog
+        bPrefixAccountCode :=
+          (MyClient.clExtra.ceAdd_Prefix_For_Account_Code = prfxOn);
+
         if BudgetImportExport.ExportBudget(BudgetFilePath, IncludeUnusedChartCodes, FData,
                                            Budget.buFields.buStart_Date, MsgStr,
-                                           IncludeNonPostingChartCodes) then
+                                           IncludeNonPostingChartCodes,
+                                           bPrefixAccountCode) then
         begin
           BudgetImportExport.SetDefaultFileLocation(MyClient.clFields.clCode, RemoveInvalidCharacters(edtName.Text{Budget.buFields.buName}) , BudgetFilePath);
 
