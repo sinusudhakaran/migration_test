@@ -69,33 +69,26 @@ end;
 
 procedure TBudgetTest.TestImportExport;
 var
-  iPrefix: integer;
   sPrefixCode: string;
   sMsg: string;
 begin
-  iPrefix := MyClient.clExtra.ceAdd_Prefix_For_Account_Code;
-  try
-    with fData[0] do
-    begin
-      // Export
-      bAccount := '0123';
-      MyClient.clExtra.ceAdd_Prefix_For_Account_Code := prfxOn;
-      if not fExport.ExportBudget(TEST_CSV, true, fData, 1, sMsg, true) then
-        Check(false, 'Error exporting to file');
-      sPrefixCode := ACCOUNT_CODE_PREFIX + bAccount;
-      Check(ExportFileContains(sPrefixCode), 'Export CSV should contain prefix');
-      DeleteFile(TEST_CSV);
+  with fData[0] do
+  begin
+    // Export
+    bAccount := '0123';
+    if not fExport.ExportBudget(TEST_CSV, true, fData, 1, sMsg, true, true) then
+      Check(false, 'Error exporting to file');
+    sPrefixCode := ACCOUNT_CODE_PREFIX + bAccount;
+    Check(ExportFileContains(sPrefixCode), 'Export CSV should contain prefix');
+    DeleteFile(TEST_CSV);
 
-      // Note: can't test import, because it searches MyClient.clChart
+    // Note: can't test import, because it searches MyClient.clChart
 
-      MyClient.clExtra.ceAdd_Prefix_For_Account_Code := prfxOff;
-      if not fExport.ExportBudget(TEST_CSV, true, fData, 1, sMsg, true) then
-        Check(false, 'Error exporting to file');
-      Check(not ExportFileContains(sPrefixCode), 'Export CSV should contain prefix');
-      DeleteFile(TEST_CSV);
-    end;
-  finally
-    MyClient.clExtra.ceAdd_Prefix_For_Account_Code := iPrefix;
+    MyClient.clExtra.ceAdd_Prefix_For_Account_Code := prfxOff;
+    if not fExport.ExportBudget(TEST_CSV, true, fData, 1, sMsg, true, false) then
+      Check(false, 'Error exporting to file');
+    Check(not ExportFileContains(sPrefixCode), 'Export CSV should contain prefix');
+    DeleteFile(TEST_CSV);
   end;
 end;
 

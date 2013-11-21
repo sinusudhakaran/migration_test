@@ -75,7 +75,7 @@ type
                           aStartDate : integer;
                           var aMsg : string;
                           aIncludeNonPostingChartCodes: boolean;
-                          aPrefixAccountCode: boolean): boolean;
+                          aPrefixAccountCode: boolean = false): boolean;
 
     function CopyBudgetData(aBudgetData : TBudgetData) : TBudgetData;
     procedure ClearWasUpdated(var aBudgetData : TBudgetData);
