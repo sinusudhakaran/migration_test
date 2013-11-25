@@ -354,6 +354,44 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+function IsPartialDate(const aCode: string): boolean;
+var
+  iPos: integer;
+  sMonth: string;
+  iMonth: integer;
+  sYear: string;
+  iYear: integer;
+begin
+  result := false;
+
+  // No date separator?
+  iPos := Pos('-', aCode);
+  if (iPos = 0) then
+  begin
+    iPos := Pos('/', aCode);
+    if (iPos = 0) then
+      exit;
+  end;
+  ASSERT(iPos <> 0);
+
+  // Valid month?
+  sMonth := LeftStr(aCode, iPos-1);
+  if not TryStrToInt(sMonth, iMonth) then
+    exit;
+  if not ((1 <= iMonth) and (iMonth <= 12)) then
+    exit;
+
+  // Valid year?
+  sYear := MidStr(aCode, iPos+1, MaxInt);
+  if not TryStrToInt(sYear, iYear) then
+    exit;
+  if (iYear < 1899) then
+    exit;
+
+  result := true;
+end;
+
+//------------------------------------------------------------------------------
 function DoAccountCodesNeedToBePrefixed(const aData: TBudgetData): boolean;
 var
   i: integer;
@@ -400,6 +438,11 @@ begin
     begin
       result := true;
       exit;
+    end;
+
+    // Could Excel see this as a partial date, e.g. 1-1950 => 1/1/1950?
+    if IsPartialDate(sCode) then
+    begin
     end;
   end;
 
