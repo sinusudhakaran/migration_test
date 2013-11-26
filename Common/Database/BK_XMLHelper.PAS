@@ -1129,6 +1129,7 @@ begin
 	SetTextAttr(Result, 'LinkedAccountOS', chLinked_Account_OS);
 	SetTextAttr(Result, 'LinkedAccountCS', chLinked_Account_CS);
 	SetBoolAttr(Result, 'HideInBasicChart', chHide_In_Basic_Chart);
+	SetTextAttr(Result, 'PercentAccount', chPercent_Account);
 
 	CNode := nil;
 	CCNode := nil;
@@ -1164,6 +1165,7 @@ begin
 	chLinked_Account_OS := GetTextAttr(Result, 'LinkedAccountOS');
 	chLinked_Account_CS := GetTextAttr(Result, 'LinkedAccountCS');
 	chHide_In_Basic_Chart := GetBoolAttr(Result, 'HideInBasicChart');
+	chPercent_Account := GetTextAttr(Result, 'PercentAccount');
 	except
 		on E: Exception do ReRaise (E, 'Reading TAccount_Rec');
 	end;

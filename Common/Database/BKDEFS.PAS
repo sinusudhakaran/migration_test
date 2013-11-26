@@ -9,13 +9,13 @@ Interface uses MONEYDEF, DATEDEF;
 {  -------------------------------------------------------------------  }
 
 Const
-   BK_IOLIB_Version : Integer = 705;
-   BK_IOLIB_Date    = '20/11/13';
-   BK_FILE_VERSION  = 176;  (* Current Version counter for files
+   BK_IOLIB_Version : Integer = 706;
+   BK_IOLIB_Date    = '26/11/13';
+   BK_FILE_VERSION  = 177;  (* Current Version counter for files
                               Changes if structure or method of storing a value would cause
                               data to be represented incorrectly, or an exception to be raised *)
    
-   BK_FILE_VERSION_STR = '5.31';   (* Should be changed whenever BK_FILE_VERSION changes. Is used to show user what version they need *)
+   BK_FILE_VERSION_STR = '5.32';   (* Should be changed whenever BK_FILE_VERSION changes. Is used to show user what version they need *)
    
    (*
        History  :     31    New format for GST class codes ( delimited string)
@@ -223,8 +223,9 @@ Const
      5.27            172    Added new structure ExchangeGainLoss
      5.28            173    Adding Include Unused Chart Codes and Include Non-Posting Chart Codes
      5.29            174    Moved the aforesaid fields (see 5.28) to ClientExtra, there's no room for new fields in Client
-     5.30	    175    Upgrading now adds a default value to clFields.clECoding_Import_Options, but this doesn't change anything below
-     5.31	    176    CSV Add prefix account code option
+     5.30            175    Upgrading now adds a default value to clFields.clECoding_Import_Options, but this doesn't change anything below
+     5.31            176    CSV Add prefix account code option
+     5.32            177    Adding 'Percent Account' and 'Percentage' to Account Code fields
    *)
    //Audit Trail - 135 Don't reuse token!!! - Record defined in SY.TXT but also used in Client File
 
@@ -560,6 +561,8 @@ Type
       chLinked_Account_CS                : String[ 20 ];       { Stored }
       chHide_In_Basic_Chart              : Boolean;       { Stored }
       chAudit_Record_ID                  : Integer;       { Stored }
+      chPercent_Account                  : String[ 20 ];       { Stored }
+      chPercentage                       : Double;       { Stored }
       chTemp_Quantity                    : TDynamic_Balances_Rec;
       chTemp_Amount                      : TDynamic_Balances_Rec;
       chTemp_Base_Amount                 : TDynamic_Balances_Rec;

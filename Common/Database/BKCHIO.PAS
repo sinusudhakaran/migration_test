@@ -66,6 +66,8 @@ CONST
    tkchLinked_Account_CS                = 99 ;
    tkchHide_In_Basic_Chart              = 100 ;
    tkchAudit_Record_ID                  = 101 ;
+   tkchPercent_Account                  = 102 ;
+   tkchPercentage                       = 103 ;
 
 {  -------------------------------------------------------------------  }
 
@@ -114,6 +116,8 @@ Begin
       F.WriteStringValue( tkchLinked_Account_CS , chLinked_Account_CS );
       F.WriteBooleanValue( tkchHide_In_Basic_Chart , chHide_In_Basic_Chart );
       F.WriteIntegerValue( tkchAudit_Record_ID , chAudit_Record_ID );
+      F.WriteStringValue( tkchPercent_Account , chPercent_Account );
+      F.WriteDoubleValue( tkchPercentage, chPercentage );
       F.WriteToken( tkEnd_Account );
    end;
 end; { of Write_Account_Rec }
@@ -169,6 +173,8 @@ Begin
          tkchLinked_Account_CS                : chLinked_Account_CS := F.ReadStringValue;
          tkchHide_In_Basic_Chart              : chHide_In_Basic_Chart := F.ReadBooleanValue;
          tkchAudit_Record_ID                  : chAudit_Record_ID := F.ReadIntegerValue;
+         tkchPercent_Account                  : chPercent_Account := F.ReadStringValue;
+         tkchPercentage                       : chPercentage := F.ReadDoubleValue;
          else
             Raise ETokenException.CreateFmt( SUnknownToken, [ Token ] );
       end; { of Case }
@@ -218,7 +224,7 @@ begin
   for i := Low(ChangedFields) to High(ChangedFields) do
     ChangedFields[i] := 0;
   j := 0;
-  for i := tkchAccount_Code to tkchAudit_Record_ID do begin
+  for i := tkchAccount_Code to tkchPercentage do begin
     ChangedFields[j] := i;
     Inc(j);
   end;
@@ -342,6 +348,16 @@ begin
   if (P1.chAudit_Record_ID <> P2.chAudit_Record_ID) then begin
     P3.chAudit_Record_ID := P1.chAudit_Record_ID;
     ChangedFields[i] := tkchAudit_Record_ID;
+    Inc(i);
+  end;
+  if (P1.chPercent_Account <> P2.chPercent_Account) then begin
+    P3.chPercent_Account := P1.chPercent_Account;
+    ChangedFields[i] := tkchPercent_Account;
+    Inc(i);
+  end;
+  if (P1.chPercentage <> P2.chPercentage) then begin
+    P3.chPercentage := P1.chPercentage;
+    ChangedFields[i] := tkchPercentage;
     Inc(i);
   end;
 
