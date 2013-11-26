@@ -443,6 +443,8 @@ begin
     // Could Excel see this as a partial date, e.g. 1-1950 => 1/1/1950?
     if IsPartialDate(sCode) then
     begin
+      result := true;
+      exit;
     end;
   end;
 
