@@ -50,6 +50,8 @@ CONST
    tkbdBudget                           = 123 ;
    tkbdQty_Budget                       = 124 ;
    tkbdEach_Budget                      = 125 ;
+   tkbdPercent_Account                  = 126 ;
+   tkbdPercentage                       = 127 ;
 
 {  -------------------------------------------------------------------  }
 
@@ -82,6 +84,8 @@ Begin
       For i := 0 to 12 do F.WriteBMoneyValue( tkbdBudget , i, bdBudget[ i ] );
       For i := 0 to 12 do F.WriteBMoneyValue( tkbdQty_Budget , i, bdQty_Budget[ i ] );
       For i := 0 to 12 do F.WriteBMoneyValue( tkbdEach_Budget , i, bdEach_Budget[ i ] );
+      F.WriteStringValue( tkbdPercent_Account , bdPercent_Account );
+      F.WriteDoubleValue( tkbdPercentage, bdPercentage );
       F.WriteToken( tkEnd_Budget_Detail );
    end;
 end; { of Write_Budget_Detail_Rec }
@@ -125,6 +129,8 @@ Begin
                CheckBounds( I, 0, 12, 'bdEach_Budget' );
                bdEach_Budget[ I ] := M;
             end;
+         tkbdPercent_Account                  : bdPercent_Account := F.ReadStringValue;
+         tkbdPercentage                       : bdPercentage := F.ReadDoubleValue;
          else
             Raise ETokenException.CreateFmt( SUnknownToken, [ Token ] );
       end; { of Case }
@@ -171,7 +177,7 @@ begin
   for i := Low(ChangedFields) to High(ChangedFields) do
     ChangedFields[i] := 0;
   j := 0;
-  for i := tkbdAccount_Code to tkbdEach_Budget do begin
+  for i := tkbdAccount_Code to tkbdPercentage do begin
     ChangedFields[j] := i;
     Inc(j);
   end;
@@ -216,6 +222,16 @@ begin
                   TEach_Budget_Array(P2.bdEach_Budget), 
                   TEach_Budget_Array(P3.bdEach_Budget)) then begin
     ChangedFields[i] := tkbdEach_Budget;
+    Inc(i);
+  end;
+  if (P1.bdPercent_Account <> P2.bdPercent_Account) then begin
+    P3.bdPercent_Account := P1.bdPercent_Account;
+    ChangedFields[i] := tkbdPercent_Account;
+    Inc(i);
+  end;
+  if (P1.bdPercentage <> P2.bdPercentage) then begin
+    P3.bdPercentage := P1.bdPercentage;
+    ChangedFields[i] := tkbdPercentage;
     Inc(i);
   end;
 

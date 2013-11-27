@@ -1,8 +1,8 @@
-$|BK_FILE_VERSION  = 177;  (* Current Version counter for files
+$|BK_FILE_VERSION  = 178;  (* Current Version counter for files
 $|                           Changes if structure or method of storing a value would cause
 $|                           data to be represented incorrectly, or an exception to be raised *)
 $|
-$|BK_FILE_VERSION_STR = '5.32';   (* Should be changed whenever BK_FILE_VERSION changes. Is used to show user what version they need *)
+$|BK_FILE_VERSION_STR = '5.33';   (* Should be changed whenever BK_FILE_VERSION changes. Is used to show user what version they need *)
 $|
 $|(*
 $|    History  :     31    New format for GST class codes ( delimited string)
@@ -213,6 +213,7 @@ $|  5.29            174    Moved the aforesaid fields (see 5.28) to ClientExtra,
 $|  5.30            175    Upgrading now adds a default value to clFields.clECoding_Import_Options, but this doesn't change anything below
 $|  5.31            176    CSV Add prefix account code option
 $|  5.32            177    Adding 'Percent Account' and 'Percentage' to Account Code fields
+$|  5.33            178    Adding 'Percent Account' and 'Percentage' to Budget Detail fields
 $|*)
 
 
@@ -620,6 +621,8 @@ F|Account Code|S|20
 F|Budget|B$0|12
 F|Qty Budget|B$0|12
 F|Each Budget|B$0|12
+F|Percent Account|S|20
+F|Percentage|R
 E
 
 N|Disk Log|dl|130

@@ -44,6 +44,14 @@ namespace BankLink.Practice.BooksIO
 		public Int64[] EachBudget { get; set; }
 
 
+		/// <summary>
+		/// PercentAccount property
+		/// </summary>
+		[XmlAttribute("PercentAccount", DataType = "string")]
+		public String PercentAccount { get; set; }
+
+
+
 	}
 
 

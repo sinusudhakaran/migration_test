@@ -404,6 +404,8 @@ begin
     FAuditNamesArray[120,123] := 'Budget';
     FAuditNamesArray[120,124] := 'Qty_Budget';
     FAuditNamesArray[120,125] := 'Each_Budget';
+    FAuditNamesArray[120,126] := 'Percent_Account';
+    FAuditNamesArray[120,127] := 'Percentage';
 
    FAuditTableArray[130] := 'Disk_Log';
     FAuditNamesArray[130,132] := 'Disk_ID';

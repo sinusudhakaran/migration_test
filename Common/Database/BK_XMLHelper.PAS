@@ -1516,6 +1516,7 @@ begin
 	SetArray(Result, 'Budgets', bdBudget);
 	SetArray(Result, 'QtyBudgets', bdQty_Budget);
 	SetArray(Result, 'EachBudgets', bdEach_Budget);
+	SetTextAttr(Result, 'PercentAccount', bdPercent_Account);
 
 	CNode := nil;
 	CCNode := nil;
@@ -1536,6 +1537,7 @@ begin
 	GetArray(Result, 'Budgets', bdBudget);
 	GetArray(Result, 'QtyBudgets', bdQty_Budget);
 	GetArray(Result, 'EachBudgets', bdEach_Budget);
+	bdPercent_Account := GetTextAttr(Result, 'PercentAccount');
 	except
 		on E: Exception do ReRaise (E, 'Reading TBudget_Detail_Rec');
 	end;
