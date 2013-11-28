@@ -146,6 +146,7 @@ type
 
     property ValidAccount  : boolean read fValidAccount  write fValidAccount;
     property AccountNumber : string  read fAccountNumber write fAccountNumber;
+    property InstitutionType : TInstitutionType read fInstitutionType write fInstitutionType;
   end;
 
 //------------------------------------------------------------------------------

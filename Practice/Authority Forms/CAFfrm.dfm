@@ -31,8 +31,6 @@ object frmCAF: TfrmCAF
     Align = alBottom
     BevelOuter = bvLowered
     TabOrder = 0
-    ExplicitTop = 464
-    ExplicitWidth = 632
     object btnPreview: TButton
       Left = 8
       Top = 8
@@ -178,7 +176,6 @@ object frmCAF: TfrmCAF
       Color = clWhite
       ParentBackground = False
       TabOrder = 0
-      ExplicitWidth = 612
       DesignSize = (
         607
         65)
@@ -222,7 +219,7 @@ object frmCAF: TfrmCAF
         Font.Height = -15
         Font.Name = 'MS Sans Serif'
         Font.Style = []
-        ItemHeight = 0
+        ItemHeight = 16
         ParentFont = False
         TabOrder = 0
         OnChange = cmbInstitutionChange
@@ -244,7 +241,6 @@ object frmCAF: TfrmCAF
         ShowHint = True
         TabOrder = 1
         Visible = False
-        ExplicitWidth = 265
       end
     end
     object pnlInstitution: TPanel
@@ -260,7 +256,6 @@ object frmCAF: TfrmCAF
       Font.Style = []
       ParentFont = False
       TabOrder = 1
-      ExplicitWidth = 612
       object pnlInstData: TPanel
         Left = 145
         Top = 1
@@ -270,7 +265,6 @@ object frmCAF: TfrmCAF
         Color = clWhite
         ParentBackground = False
         TabOrder = 1
-        ExplicitWidth = 392
         DesignSize = (
           387
           131)
@@ -310,10 +304,9 @@ object frmCAF: TfrmCAF
           ShowHint = True
           TabOrder = 0
           OnExit = edtExit
-          ExplicitWidth = 379
         end
         object edtNameOfAccount: TEdit
-          Left = 8
+          Left = 7
           Top = 45
           Width = 374
           Height = 24
@@ -329,8 +322,6 @@ object frmCAF: TfrmCAF
           ShowHint = True
           TabOrder = 1
           OnEnter = edtExit
-          OnKeyPress = edtKeyPress
-          ExplicitWidth = 379
         end
         object mskAccountNumber: TMaskValidateEdit
           Left = 8
@@ -350,7 +341,6 @@ object frmCAF: TfrmCAF
           OnExit = mskAccountNumberExit
           OnKeyUp = mskAccountNumberKeyUp
           OnMouseDown = mskAccountNumberMouseDown
-          ExplicitWidth = 378
         end
         object edtAccountNumber: TEdit
           Left = 8
@@ -369,7 +359,6 @@ object frmCAF: TfrmCAF
           ShowHint = True
           TabOrder = 3
           OnExit = edtAccountNumberExit
-          ExplicitWidth = 379
         end
       end
       object pnlInstLabels: TPanel
@@ -430,7 +419,6 @@ object frmCAF: TfrmCAF
         Color = clWhite
         ParentBackground = False
         TabOrder = 2
-        ExplicitLeft = 537
       end
     end
     object pnlClient: TPanel
@@ -440,7 +428,6 @@ object frmCAF: TfrmCAF
       Height = 118
       Align = alTop
       TabOrder = 2
-      ExplicitWidth = 612
       object pnlClientLabel: TPanel
         Left = 1
         Top = 1
@@ -499,7 +486,6 @@ object frmCAF: TfrmCAF
         Color = clWhite
         ParentBackground = False
         TabOrder = 1
-        ExplicitWidth = 122
         DesignSize = (
           117
           116)
@@ -518,7 +504,8 @@ object frmCAF: TfrmCAF
           MaxLength = 8
           ParentFont = False
           TabOrder = 0
-          ExplicitWidth = 108
+          OnExit = edtExit
+          OnKeyPress = edtKeyPress
         end
         object edtClientStartDte: TOvcPictureField
           Left = 6
@@ -567,7 +554,8 @@ object frmCAF: TfrmCAF
           MaxLength = 10
           ParentFont = False
           TabOrder = 1
-          ExplicitWidth = 108
+          OnExit = edtExit
+          OnKeyPress = edtKeyPress
         end
       end
       object pnlClientSpacer: TPanel
@@ -579,7 +567,6 @@ object frmCAF: TfrmCAF
         Color = clWhite
         ParentBackground = False
         TabOrder = 2
-        ExplicitLeft = 267
       end
     end
     object pnlData: TPanel
@@ -591,7 +578,6 @@ object frmCAF: TfrmCAF
       Color = clWhite
       ParentBackground = False
       TabOrder = 3
-      ExplicitWidth = 612
       DesignSize = (
         607
         104)
@@ -636,7 +622,6 @@ object frmCAF: TfrmCAF
         ParentFont = False
         TabOrder = 2
         OnClick = chkExistingClientClick
-        ExplicitWidth = 167
       end
       object chkDataToClient: TCheckBox
         Left = 22
@@ -654,7 +639,6 @@ object frmCAF: TfrmCAF
         ParentFont = False
         TabOrder = 0
         OnClick = chkDataToClientClick
-        ExplicitWidth = 162
       end
       object cmbRecieved: TComboBox
         Left = 381
@@ -668,7 +652,7 @@ object frmCAF: TfrmCAF
         Font.Height = -15
         Font.Name = 'MS Sans Serif'
         Font.Style = []
-        ItemHeight = 0
+        ItemHeight = 16
         ParentFont = False
         TabOrder = 1
       end
@@ -685,7 +669,6 @@ object frmCAF: TfrmCAF
         Font.Style = []
         ParentFont = False
         TabOrder = 3
-        ExplicitWidth = 210
       end
     end
     object pnlAccountError: TPanel
@@ -695,7 +678,6 @@ object frmCAF: TfrmCAF
       Height = 27
       Align = alTop
       TabOrder = 4
-      ExplicitWidth = 612
       object lblAccountValidationError: TLabel
         Left = 1
         Top = 4

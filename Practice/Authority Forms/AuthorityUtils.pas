@@ -11,7 +11,8 @@ uses
    Types,
    rptGST101,
    Graphics,
-   ExtCtrls;
+   ExtCtrls,
+   repcols;
 
 function GetTaskBarHeight: Integer;
 function GetTaskBarWidth: Integer;
@@ -58,6 +59,8 @@ type
     fCurSheet: TSheet;
     Country : Integer;
     ImportMode : Boolean;
+
+    function GetTextYPos(aBoxTop: integer): integer;
     function ColumnsFound: Boolean;
     procedure ResetImport;
     procedure TestColumnTitles(C: TCell);
@@ -75,6 +78,19 @@ type
     procedure PrintAccount(const name, bsb, number, client, cost: string;
       const cname, cnumber, cclient, ccost: string; const AcNumPos: Integer; const BSBSep: Boolean = False); // print an account section
     procedure DrawLine; // draw a line across the screen at the current Y position
+    procedure DrawLineAtPos(aLeft, aRight, aYPos : integer);
+    procedure HalfNewLineUp;
+    procedure HalfNewLine;
+    procedure NewLineUp(); overload;
+    procedure NewLineUp(aCount: integer); overload;
+    procedure TextLine(aLabelText : string; aX1Pos, aX2Pos : integer; aTextJustify : TJustifyType = jtLeft);
+    procedure TextBox(aLabelText, aText : string;
+                      aLabelTextFontSize, aTextFontSize : integer;
+                      aLabelTextJustify, aTextJustify : TJustifyType;
+                      aLabelXPos, aTextBoxXStartPos, aTextBoxXEndPos : integer;
+                      aTextBoxYStartPos, aTextBoxYEndPos : integer;
+                      aSetTextToBottom : Boolean = false);
+    procedure CheckBox(aText : string; aX1Pos,aX2Pos : integer; aChecked : Boolean);
     procedure DrawCheckbox(aX, aY: integer; Checked: boolean);
     function GetCurrLineSizeNoInflation: Integer; // sometimes requires less line spacing
     function XYPoint(aX, aY: Integer): TPoint;
@@ -93,8 +109,7 @@ uses
    Windows,
    ShellAPI,
    Classes,
-   SysUtils,
-   RepCols;
+   SysUtils;
 
 const // Import Column Titles
   ct_AccountName = 'Account Name';
@@ -110,6 +125,12 @@ const // Import Column Titles
   ct_Provisional = 'Provisional Accounts';
 
 // The forms are quite big so resize to fit the screen, minus the taskbar
+
+function TAuthorityReport.GetTextYPos(aBoxTop: integer): integer;
+begin
+  Result := aBoxTop + (BoxHeight div 2);
+  Result := Result - (GetCurrLineSizeNoInflation div 2);
+end;
 
 function IsTaskbarAutoHideOn: Boolean;
 var
@@ -348,6 +369,93 @@ begin
   CanvasRenderEng.OutputBuilder.Canvas.MoveTo(T.X, T.Y);
   T := XYPoint(ColBoxRight + BoxMargin, CurrYPos);
   CanvasRenderEng.OutputBuilder.Canvas.LineTo(T.X, T.Y);
+end;
+
+procedure TAuthorityReport.DrawLineAtPos(aLeft, aRight, aYPos : integer);
+var
+  T: TPoint;
+  wasColor : TColor;
+begin
+  wasColor := CanvasRenderEng.OutputBuilder.Canvas.Brush.Color;
+  CanvasRenderEng.OutputBuilder.Canvas.Brush.Color := clBlack;
+
+  T := XYPoint(aLeft, aYPos);
+  CanvasRenderEng.OutputBuilder.Canvas.MoveTo(T.X, T.Y);
+  T := XYPoint(aRight, aYPos);
+  CanvasRenderEng.OutputBuilder.Canvas.LineTo(T.X, T.Y);
+
+  CanvasRenderEng.OutputBuilder.Canvas.Brush.Color := wasColor;
+end;
+
+procedure TAuthorityReport.HalfNewLineUp;
+begin
+  CurrYPos := CurrYPos - round(CurrLineSize/2);
+end;
+
+procedure TAuthorityReport.HalfNewLine;
+begin
+  CurrYPos := CurrYPos + round(CurrLineSize/2);
+end;
+
+procedure TAuthorityReport.NewLineUp;
+begin
+  CurrYPos := CurrYPos - CurrLineSize;
+end;
+
+procedure TAuthorityReport.NewLineUp(aCount: integer);
+begin
+  CurrYPos := CurrYPos - CurrLineSize * aCount;
+end;
+
+procedure TAuthorityReport.TextLine(aLabelText : string; aX1Pos,aX2Pos : integer; aTextJustify : TJustifyType);
+begin
+  RenderText(aLabelText + ' ', Rect(aX1Pos, CurrYPos, aX2Pos, CurrYPos + CurrLineSize), aTextJustify);
+end;
+
+// Print account info
+procedure TAuthorityReport.TextBox(aLabelText, aText : string;
+                                   aLabelTextFontSize, aTextFontSize : integer;
+                                   aLabelTextJustify, aTextJustify : TJustifyType;
+                                   aLabelXPos, aTextBoxXStartPos, aTextBoxXEndPos : integer;
+                                   aTextBoxYStartPos, aTextBoxYEndPos : integer;
+                                   aSetTextToBottom : Boolean);
+var
+  TextYPos : integer;
+  OldFontSize : integer;
+begin
+  TextYPos := GetTextYPos(aTextBoxYStartPos);
+  if aSetTextToBottom then
+    TextYPos := TextYPos + 17;
+
+  OldFontSize := CanvasRenderEng.OutputBuilder.Canvas.Font.Size;
+
+  // Label
+  CanvasRenderEng.OutputBuilder.Canvas.Font.Size := aLabelTextFontSize;
+  RenderText(aLabelText + ' ', Rect(aLabelXPos, TextYPos, aTextBoxXStartPos - 10, TextYPos + CurrLineSize), aLabelTextJustify);
+
+  // Text
+  CanvasRenderEng.OutputBuilder.Canvas.Font.Size := aTextFontSize;
+  RenderText(aText + ' ', Rect(aTextBoxXStartPos + 10, TextYPos - 2, aTextBoxXEndPos - 10, TextYPos + CurrLineSize), aTextJustify);
+
+  // Box
+  DrawBox(XYSizeRect(aTextBoxXStartPos, aTextBoxYStartPos, aTextBoxXEndPos, aTextBoxYEndPos));
+
+  CanvasRenderEng.OutputBuilder.Canvas.Font.Size := OldFontSize;
+end;
+
+procedure TAuthorityReport.CheckBox(aText : string; aX1Pos,aX2Pos : integer; aChecked : Boolean);
+var
+  Point : TPoint;
+begin
+  DrawBox(XYSizeRect(aX1Pos, CurrYPos, aX1Pos + CurrLineSize, CurrYPos + CurrLineSize));
+
+  if aChecked then
+  begin
+    //Point := XYPoint(aX + XMargin, aY + XMargin);
+    //CanvasRenderEng.OutputBuilder.Canvas.MoveTo(T.X, T.Y);
+  end;
+
+  RenderText(aText, Rect(aX1Pos + CurrLineSize*2, CurrYPos, aX2Pos, CurrYPos + CurrLineSize), jtLeft);
 end;
 
 // Print account info

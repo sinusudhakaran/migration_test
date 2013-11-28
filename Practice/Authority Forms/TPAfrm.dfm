@@ -208,7 +208,7 @@ object frmTPA: TfrmTPA
         ParentFont = False
       end
       object cmbInstitution: TComboBox
-        Left = 152
+        Left = 151
         Top = 16
         Width = 379
         Height = 24
@@ -322,7 +322,6 @@ object frmTPA: TfrmTPA
           ShowHint = True
           TabOrder = 1
           OnEnter = edtExit
-          OnKeyPress = edtKeyPress
         end
         object mskAccountNumber: TMaskValidateEdit
           Left = 8
@@ -507,6 +506,8 @@ object frmTPA: TfrmTPA
           MaxLength = 8
           ParentFont = False
           TabOrder = 0
+          OnExit = edtExit
+          OnKeyPress = edtKeyPress
         end
         object edtClientStartDte: TOvcPictureField
           Left = 6
@@ -555,6 +556,8 @@ object frmTPA: TfrmTPA
           MaxLength = 10
           ParentFont = False
           TabOrder = 1
+          OnExit = edtExit
+          OnKeyPress = edtKeyPress
         end
       end
       object pnlClientSpacer: TPanel

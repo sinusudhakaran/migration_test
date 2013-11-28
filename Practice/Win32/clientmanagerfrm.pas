@@ -3449,9 +3449,8 @@ begin
         with aForm do
         begin
           try
-            //edtPractice.Text := AdminSystem.fdFields.fdBankLink_Code;
-            //edtAdvisors.Text := AdminSystem.fdFields.fdPractice_Name_for_Reports;
-            //cmbMonth.ItemIndex := 0;
+            PracticeCode := AdminSystem.fdFields.fdBankLink_Code;
+            PracticeName := AdminSystem.fdFields.fdPractice_Name_for_Reports;
             repeat
             begin
               ShowModal;
@@ -3505,21 +3504,17 @@ begin
     try
       PracticeCode := AdminSystem.fdFields.fdBankLink_Code;
       PracticeName := AdminSystem.fdFields.fdPractice_Name_for_Reports;
-      {edtPractice.Text := AdminSystem.fdFields.fdBankLink_Code;
-      edtAdvisors.Text := AdminSystem.fdFields.fdPractice_Name_for_Reports;
-      cmbMonth.ItemIndex := 0;
-      cmbDay.ItemIndex := 0;}
       repeat
-      begin
-        ShowModal;
-        case ButtonPressed of
-          BTN_PREVIEW: DoTPAReport(aForm, rdScreen,  AFNormal);
-          BTN_FILE   : DoTPAReport(aForm, rdFile,    AFNormal);
-          BTN_PRINT  : DoTPAReport(aForm, rdPrinter, AFNormal);
-          BTN_EMAIL  : DoTPAReport(aForm, rdFile,    AFEmail, GetSelectedEmail);
-          BTN_IMPORT : DoTPAReport(aForm, rdFile,    AFImport);
+        begin
+          ShowModal;
+          case ButtonPressed of
+            BTN_PREVIEW: DoTPAReport(aForm, rdScreen,  AFNormal);
+            BTN_FILE   : DoTPAReport(aForm, rdFile,    AFNormal);
+            BTN_PRINT  : DoTPAReport(aForm, rdPrinter, AFNormal);
+            BTN_EMAIL  : DoTPAReport(aForm, rdFile,    AFEmail, GetSelectedEmail);
+            BTN_IMPORT : DoTPAReport(aForm, rdFile,    AFImport);
+          end;
         end;
-      end;
       until ButtonPressed = BTN_NONE;
     finally
       Free;
