@@ -667,6 +667,7 @@ object frmCAF: TfrmCAF
         Font.Height = -15
         Font.Name = 'MS Sans Serif'
         Font.Style = []
+        MaxLength = 8
         ParentFont = False
         TabOrder = 3
       end
