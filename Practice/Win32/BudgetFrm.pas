@@ -36,7 +36,8 @@ uses
   ovctcbef,
   ovctcstr,
   MoneyDef,
-  BudgetImportExport;
+  BudgetImportExport,
+  PercentageCalculationFrm;
 
 type
   TfrmBudget = class(TForm)
@@ -99,6 +100,7 @@ type
     mniImport: TMenuItem;
     mniExport: TMenuItem;
     mniClearColumn: TMenuItem;
+    mniEnterPercentage: TMenuItem;
     procedure FormCreate(Sender: TObject);
     procedure tblBudgetGetCellData(Sender: TObject; RowNum,
       ColNum: Integer; var Data: Pointer; Purpose: TOvcCellDataPurpose);
@@ -157,6 +159,7 @@ type
     procedure mniImportClick(Sender: TObject);
     procedure mniExportClick(Sender: TObject);
     procedure mniClearColumnClick(Sender: TObject);
+    procedure mniEnterPercentageClick(Sender: TObject);
   private
     { Private declarations }
     FHint            : THintWindow;
@@ -173,6 +176,7 @@ type
     eAmounts         : Array[1..12] of integer;
     FIsClosing: Boolean; {current edit values for record}
     FChart: TCustomSortChart;
+    frmPercentageCalculation: TfrmPercentageCalculation;
 
     procedure InitTable;
     function  RowNumOK(RowNum : integer): boolean;
@@ -200,6 +204,7 @@ type
     procedure DoShowAll;
     procedure DoChartLookup;
     procedure DoUnitPriceEntry;
+    procedure DoPercentageCalculation(DataRow: integer = -1; OnlyUpdateThisColumn: integer = -1);
     procedure DoImport;
     procedure DoExport;
 
@@ -228,6 +233,12 @@ type
     function RowContainsFormulas(RowIndex: Integer): boolean;
     procedure IncreaseCellBy(RowIndex, ColumnIndex: Integer; Percent: double; var ValueTooLarge: Boolean);
     function IncreaseAmount(aAmount: integer; perc: double; var ValueTooLarge: Boolean): integer;
+    function HasPercentageFormula(RowIndex: Integer): Boolean;
+    procedure UpdatePercentageRows;
+    procedure DoInvalidateTable;
+    procedure DoInvalidateRow(RowNum: integer);
+    procedure DoInvalidateColumn(ColNum: integer);
+
   public
     { Public declarations }
     property Budget  : TBudget read FBudget write SetBudget;
@@ -651,7 +662,8 @@ begin
   if not RowDataOK(RowNum,'BBeginEdit')then
      exit;
 
-  AllowIt := FData[RowNum-1].bIsPosting;
+  AllowIt := FData[RowNum-1].bIsPosting and (FData[RowNum-1].PercentAccount = '');
+
 end;
 
 //------------------------------------------------------------------------------
@@ -680,6 +692,19 @@ begin
   Result := CalculatedAmount = Amount;
 end;
 
+// Updating rows with percentages for cases where the
+// rows they derive their values from may have changed
+procedure TfrmBudget.UpdatePercentageRows;
+var
+  i       : integer;
+begin
+  for i := 0 to High(FData) do
+  begin
+    if (FData[i].PercentAccount <> '') then
+      DoPercentageCalculation(i);
+  end;
+end;
+
 //------------------------------------------------------------------------------
 procedure TfrmBudget.tblBudgetDoneEdit(Sender: TObject; RowNum,
   ColNum: Integer);
@@ -690,18 +715,29 @@ procedure TfrmBudget.tblBudgetDoneEdit(Sender: TObject; RowNum,
 {saves direct edits!}
 var
   NewLine : pBudget_Detail_Rec;
+  DisableRow: boolean;
 
 begin
   if RowDataOK(RowNum,'BDoneEdit') then
     begin
+       if Assigned(FData[RowNum - 1].bDetailLine) then
+       begin
+         FData[RowNum - 1].bDetailLine.bdPercent_Account := FData[RowNum - 1].PercentAccount;
+         FData[RowNum - 1].bDetailLine.bdPercentage := FData[RowNum - 1].Percentage;
+       end;
+       // If this row has a percentage set (ie. the amounts are x% of another row), then the user
+       // should not be able to change the cell values directly until they clear the percentage 
+       //DisableRow := (FData[RowNum - 1].bDetailLine.bdPercent_Account <> '') and
+       //              (FData[RowNum - 1].bDetailLine.bdPercentage <> 0);
        case ColNum of
          MonthMin..MonthMax :
          begin
             {write this cell to data structure, also update the associated}
             {budget line for this cell}
-
             FData[RowNum-1].bAmounts[ColNum-MonthBase] := eAmounts[ColNum-MonthBase];
-            if (eAmounts[ColNum - MonthBase] = 0) or not AmountMatchesQuantityFormula(RowNum - 1, ColNum - MonthBase) then
+            if (eAmounts[ColNum - MonthBase] = 0)
+               or not AmountMatchesQuantityFormula(RowNum - 1, ColNum - MonthBase)
+               or (FData[RowNum - 1].PercentAccount <> '') then
             begin
               FData[RowNum - 1].bQuantitys[ColNum - MonthBase] := 0;
               FData[RowNum - 1].bUnitPrices[ColNum - MonthBase] := 0;
@@ -719,16 +755,23 @@ begin
             FData[RowNum-1].bDetailLine.bdBudget[ColNum-MonthBase] := eAmounts[ColNum-MonthBase];
             FData[RowNum-1].bDetailLine.bdQty_Budget[ColNum - MonthBase] := FData[RowNum - 1].bQuantitys[ColNum - MonthBase];
             FData[RowNum-1].bDetailLine.bdEach_Budget[ColNum - MonthBase] := FData[RowNum - 1].bUnitPrices[ColNum - MonthBase];
+//            FData[RowNum-1].bDetailLine.bdPercent_Account := FData[RowNum - 1].PercentAccount;
+//            FData[RowNum-1].bDetailLine.bdPercentage := FData[RowNum - 1].Percentage;
          end;
        end;
 
        {redraw row}
        with tblBudget do begin
           AllowRedraw := false;
-          InvalidateRow(RowNum);
-          InvalidateColumn(TotalCol);
+          DoInvalidateRow(RowNum);
+          DoInvalidateColumn(TotalCol);
           AllowRedraw := true;
        end;
+
+       // tblBudget.Cells.Cell[RowNum,ColNum].Access := otxReadOnly;
+       // tblBudget.Cells.Access[RowNum,ColNum] := otxReadOnly;
+
+       UpdatePercentageRows;
   end; {if row ok}
   UpdateShowHideEnabledState;
 end;
@@ -793,6 +836,7 @@ begin
 
    //ExtraTitleBar.Color    := bkBranding.HeaderBackgroundColor;
    //edtName.Color          := bkBranding.HeaderBackgroundColor;
+   UpdateAllLines; // May need to recalculate percentages, eg. if the chart code a % is based from has been removed
 end;
 
 //------------------------------------------------------------------------------
@@ -879,6 +923,11 @@ begin
     FData[aDataIndex].bAccount := Account.chAccount_Code;
     FData[aDataIndex].bDesc    := Account.chAccount_Description;
     FData[aDataIndex].bIsPosting := Account.chPosting_Allowed;
+    if Assigned(pBudgetRec) then
+    begin
+      FData[aDataIndex].PercentAccount := pBudgetRec.bdPercent_Account;
+      FData[aDataIndex].Percentage := pBudgetRec.bdPercentage;
+    end;
     FData[aDataIndex].bDetailLine := pBudgetRec;
     for MonthIndex := 1 to 12 do
     begin
@@ -921,7 +970,7 @@ begin
   tblBudget.RowLimit := DataIndex + 1;
   DataAssigned := true;
 
-  tblBudget.InvalidateTable;
+  DoInvalidateTable;
   tblBudget.AllowRedraw := true;
 
   UpdateShowHideEnabledState;
@@ -965,6 +1014,8 @@ var
   i : integer;
   DetailLine : pBudget_Detail_Rec;
   HasData : boolean;
+  pAcct: pAccount_Rec;
+  IsValid: boolean;
 begin
   if not DataAssigned then exit;
   if not ((index >= Low(FData)) and (index <= High(Fdata))) then exit;
@@ -989,7 +1040,25 @@ begin
        FData[index].bDetailLine := DetailLine;
     end;
 
+    // Check if percent account code is valid, as it may have been removed
+    if (FData[index].PercentAccount <> '') then
+    begin
+      pAcct := MyClient.clChart.FindCode(FData[index].PercentAccount);
+      IsValid := Assigned(pAcct) and pAcct.chPosting_Allowed;
+      if not IsValid then
+      begin
+        // Can't use a % of an account code which is invalid, clear the percentage and amounts
+        FData[index].PercentAccount := '';
+        FData[index].Percentage := 0;
+        for i := 1 to 12 do          
+          FData[index].bAmounts[i] := 0;
+      end;
+    end;
+
     {update data into budget line}
+    FData[index].bDetailLine.bdPercent_Account := FData[index].PercentAccount;
+    FData[index].bDetailLine.bdPercentage := FData[index].Percentage;
+
     for i := 1 to 12 do
     begin
       FData[index].bDetailLine.bdBudget[i] := FData[index].bAmounts[i];
@@ -1119,12 +1188,13 @@ begin
    end
    else if msg.CharCode = VK_F2 then
       DoChartLookup
-   else if msg.CharCode in [VK_MULTIPLY,VK_OEM_PLUS] then
+   else if msg.CharCode in [VK_MULTIPLY,VK_OEM_PLUS,VK_ADD] then
    begin
      handled := true;
      case msg.CharCode of
        VK_MULTIPLY: DoPercentageChange;
        VK_OEM_PLUS: DoUnitPriceEntry;  // =
+       VK_ADD: DoPercentageCalculation;  // +
      end;
    end;
 end;
@@ -1208,6 +1278,13 @@ Begin
   if not DataAssigned then
      exit;
 
+  if (FData[CurrentRow - 1].PercentAccount <> '') then
+  begin
+    ShowMessage('You cannot use copy on a row which derives its values as a percentage ' +
+                'of another row. You must first clear the percentage');
+    exit;
+  end;
+
   currField := tblBudget.ActiveCol;
   if not (CurrField in  [MonthMin .. MonthMax]) then
      exit;
@@ -1232,7 +1309,7 @@ Begin
   {redraw line}
   with tblBudget do begin
     AllowRedraw := false;
-    InvalidateRow(CurrentRow);
+    DoInvalidateRow(CurrentRow);
     AllowRedraw := true;
   end;
 end;
@@ -1259,6 +1336,7 @@ begin
     //not found, add it
     AddChartCodeToTable(Code, True);
   end;
+  UpdateAllLines;
 end;
 
 //------------------------------------------------------------------------------
@@ -1301,6 +1379,8 @@ begin
 
       pBudgetRec := Budget.buDetail.FindLineByCode(AccountRec.chAccount_Code);
       FData[i].bDetailLine := pBudgetRec;
+      FData[i].PercentAccount := FData[i].bDetailLine.bdPercent_Account;
+      FData[i].Percentage := FData[i].bDetailLine.bdPercentage;
       for MonthIndex := 1 to 12 do
       begin
         if Assigned(pBudgetRec) then
@@ -1326,7 +1406,7 @@ begin
   end;
 
   tblBudget.RowLimit := Length(FData) + 1;
-  tblBudget.InvalidateTable;  {will force reload of current line}
+  DoInvalidateTable;  {will force reload of current line}
   tblBudget.AllowRedraw := true;
   if SetActive then
     tblBudget.SetActiveCell(I + 1, tblBudget.ActiveCol);
@@ -1343,8 +1423,21 @@ var
   R: TRect;
   s : String;
   D: Double;
+  HasPercentage: boolean;
+
+  procedure DrawTriangle(TriColor: integer);
+  begin
+    TableCanvas.Brush.Color := TriColor;
+    TableCanvas.Pen.Color := TriColor;
+    // Draw a triangle in the top right
+    TableCanvas.Polygon( [Point( CellRect.Right - Margin, CellRect.Top),
+                      Point( CellRect.Right, CellRect.Top),
+                      Point( CellRect.Right, CellRect.Top + Margin)]);
+  end;
 begin
   if not assigned(FData) then Exit;
+
+  HasPercentage := HasPercentageFormula(RowNum - 1);
   
   DoneIt := true;
   //draw text
@@ -1356,29 +1449,40 @@ begin
     D := FData[RowNum - 1].bAmounts[ColNum - 2];
     S := Format('%.0n',[D]);
   end;
+
   TableCanvas.Font := CellAttr.caFont;
-  TableCanvas.Brush.Color := CellAttr.caColor;
+  if HasPercentage then
+    // Gray to show that this row is disabled. Users may not directly modify cells which
+    // derive their value as a % of another row, they must first clear the % that has been set
+    TableCanvas.Brush.Color := clSilver
+  else
+    TableCanvas.Brush.Color := CellAttr.caColor;
   TableCanvas.Font.Color  := CellAttr.caFontColor;
-  TableCanvas.FillRect(R);  
+  TableCanvas.FillRect(R);
   DrawText(TableCanvas.Handle, PChar(S), StrLen(PChar(S)), R, DT_RIGHT or DT_VCENTER or DT_SINGLELINE);
 
-
   if HasQuantityFormula(RowNum - 1, ColNum - 2) then
+    DrawTriangle(clBlue); // Draw a blue triangle in the top right of the current cell
+
+  if HasPercentage then
   begin
-    TableCanvas.Brush.Color := clBlue;
-    TableCanvas.Pen.Color := clBlue;
-    //draw a blue triangle in the top right
-    TableCanvas.Polygon( [Point( CellRect.Right - Margin, CellRect.Top),
-                      Point( CellRect.Right, CellRect.Top),
-                      Point( CellRect.Right, CellRect.Top + Margin)]);
+    // Draw a red triangle in the top right of every cell in the current row, should
+    // supercede any blue triangles from quantities as assigning a percentage will
+    // remove any quantities for that row
+    DrawTriangle(clRed);
   end;
 end;
 
 //------------------------------------------------------------------------------
 function TfrmBudget.HasQuantityFormula(RowIndex, ColumnIndex: Integer): Boolean;
 begin
-  //Quantatiy must be greater than one (stored as 10000)
+  //Quantity must be greater than one (stored as 10000)
   Result := (FData[RowIndex].bQuantitys[ColumnIndex] > 10000) and (FData[RowIndex].bUnitPrices[ColumnIndex] > 0)
+end;
+
+function TfrmBudget.HasPercentageFormula(RowIndex: Integer): Boolean;
+begin
+  Result := (FData[RowIndex].PercentAccount <> '');
 end;
 
 //------------------------------------------------------------------------------
@@ -1432,6 +1536,10 @@ begin
 
         clrRow:
         begin
+          // Clear percentage data for this row
+          FData[tblBudget.ActiveRow - 1].PercentAccount := '';
+          FData[tblBudget.ActiveRow - 1].Percentage := 0;
+          
           for i := Low(FData[tblBudget.ActiveRow - 1].bAmounts) to High(Low(FData[tblBudget.ActiveRow - 1].bAmounts)) do
           begin
             ClearCell(tblBudget.ActiveRow - 1, i);
@@ -1442,10 +1550,34 @@ begin
       end;
       UpdateShowHideEnabledState;
     finally
-      InvalidateTable;  {will force reload of current line}
+      DoInvalidateTable;  {will force reload of current line}
       AllowRedraw := true;
     end;
   end;
+end;
+
+// There are enough possible actions that can muck up the percentages that it makes
+// sense to simply update any percentage based rows whenever a column is invalidated
+procedure TfrmBudget.DoInvalidateColumn(ColNum: integer);
+begin
+  UpdatePercentageRows;
+  tblBudget.InvalidateColumn(ColNum);
+end;
+
+// There are enough possible actions that can muck up the percentages that it makes
+// sense to simply update any percentage based rows whenever a row is invalidated
+procedure TfrmBudget.DoInvalidateRow(RowNum: integer);
+begin
+  UpdatePercentageRows;
+  tblBudget.InvalidateRow(RowNum);
+end;
+
+// There are enough possible actions that can muck up the percentages that it makes
+// sense to simply update any percentage based rows whenever the table is invalidated
+procedure TfrmBudget.DoInvalidateTable;
+begin
+  UpdatePercentageRows;
+  tblBudget.InvalidateTable;
 end;
 
 //------------------------------------------------------------------------------
@@ -1509,7 +1641,7 @@ Begin
         UpdateLine(i);
       end;
     finally
-      InvalidateTable;  {will force reload of current line}
+      DoInvalidateTable;  {will force reload of current line}
       AllowRedraw := true;
     end;
   end;
@@ -1558,7 +1690,7 @@ Begin
   {redraw line}
   with tblBudget do begin
     AllowRedraw := false;
-    InvalidateRow(CurrentRow);
+    DoInvalidateRow(CurrentRow);
     AllowRedraw := true;
   end;
 end;
@@ -1574,11 +1706,18 @@ Var
 Begin
   if not DataAssigned then exit;
 
+  if (fData[currentrow-1].PercentAccount <> '') then
+  begin
+    ShowMessage('You cannot use split in a row which derives its values as a percentage ' +
+                'of another row. You must first clear the percentage.');
+    Exit;
+  end;
+
   CheckEditMode;
 
   If ( tblBudget.ActiveCol = MonthMin) then
   Begin
-    InitialValue := eAmounts[tblBudget.ActiveCol-MonthBase];;
+    InitialValue := eAmounts[tblBudget.ActiveCol-MonthBase];
     MonthlyValue := InitialValue div 12;
     RunningValue := 0;
 
@@ -1600,7 +1739,7 @@ Begin
     {redraw line}
     with tblBudget do begin
       AllowRedraw := false;
-      InvalidateRow(CurrentRow);
+      DoInvalidateRow(CurrentRow);
       AllowRedraw := true;
     end;
   end;
@@ -1617,6 +1756,12 @@ var
 begin
   CheckEditMode;
   RowIndex := tblBudget.ActiveRow - 1;
+  if (FData[RowIndex].PercentAccount <> '') then
+  begin
+    ShowMessage('Quantities cannot be entered for cells in a row which is a % of another row. ' +
+                'You must first remove the percentage for this row before setting a quantity');
+    Exit;
+  end;
   ColumnIndex := tblBudget.ActiveCol - 2;
   //get stored unit price and quantity
   UnitPrice := FData[RowIndex].bUnitPrices[ColumnIndex];
@@ -1648,7 +1793,7 @@ begin
   ReadRow( tblBudget.ActiveRow);
   tblBudget.AllowRedraw := false;
   UpdateLine(RowIndex);
-  tblBudget.InvalidateRow(CurrentRow);
+  DoInvalidateRow(CurrentRow);
   tblBudget.AllowRedraw := true;
 end;
 
@@ -1796,7 +1941,7 @@ begin
           DoHideUnused;
       finally
         RefreshTableWithData(AllRowsShowing);
-        InvalidateTable;
+        DoInvalidateTable;
         AllowRedraw := true;
       end;
     end; {with}
@@ -2048,6 +2193,11 @@ begin
   DoEnterBalance;
 end;
 
+procedure TfrmBudget.mniEnterPercentageClick(Sender: TObject);
+begin
+  DoPercentageCalculation;
+end;
+
 //------------------------------------------------------------------------------
 procedure TfrmBudget.mniEnterQuantityClick(Sender: TObject);
 begin
@@ -2075,14 +2225,11 @@ var
   BudgetErrorFile : string;
   BudgetImportExport : TBudgetImportExport;
   MsgStr : string;
-  ChartCodeSkipped : boolean;
   DataIndex : integer;
   BudgetCopy : TBudgetData;
   RowsImported : integer;
   RowsNotImported : integer;
 begin
-  ChartCodeSkipped := false;
-
   BudgetErrorFile := UserDir + MyClient.clFields.clCode + ' ' +
                      RemoveInvalidCharacters(Budget.buFields.buName) + ' ' +
                      FormatDateTime('yyyy-mm-dd hh-mm-ss', Now) + '.log';
@@ -2131,6 +2278,8 @@ begin
                               'From File : ' + ExtractFileName(BudgetFilePath) + ', ' +
                               InttoStr(RowsImported) + ' Account(s) updated, ' +
                               InttoStr(RowsNotImported) + ' Account(s) rejected' );
+
+              UpdatePercentageRows;
             end;
           finally
             tblBudget.AllowRedraw := true;
@@ -2275,7 +2424,7 @@ begin
       ReadRow(currentRow);  {reload current edit values}
       UpdateLine( ActiveRow - 1);
      finally
-      InvalidateTable;  {will force reload of current line}
+      DoInvalidateTable;  {will force reload of current line}
       AllowRedraw := true;
     end;
   end;
@@ -2295,7 +2444,7 @@ begin
          tblBudget.LeftCol    := 0;
       end;
    finally
-      tblBudget.InvalidateTable;
+      DoInvalidateTable;
       tblBudget.AllowRedraw := true;
    end;
 end;
@@ -2428,10 +2577,94 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+procedure TfrmBudget.DoPercentageCalculation(DataRow: integer = -1; OnlyUpdateThisColumn: integer = -1);
+var
+  AccountCodeRow: integer;
+  ColNum: integer;
+
+  function GetAccountCodeRow(AccountCode: string): integer;
+  var
+    i: integer;
+  begin
+    Result := -1;
+    for i := 0 to High(FData) do
+    begin
+      if (FData[i].bAccount = AccountCode) then
+      begin
+        Result := i;
+        break;
+      end;
+    end;
+  end;
+
+begin
+  // If a row has been passed in, this means the user has changed a value in a row from
+  // which another row derives its value.
+  //
+  // If no row has been passed in, this means that the user has just added or modified
+  // a percentage value for a row, in which case we want to use the currently selected
+  // row, and will need to bring up the form for the user to enter the account code
+  // and percentage that they're basing this row off
+  //
+  // If a column has been passed in, then we only need to update that column, as the
+  // user has modified a value in one cell of another row from which this row is derived,
+  // so the other values in this row should remain the same and thus won't require updating
+  if DataRow = -1 then
+  begin
+    DataRow := tblBudget.ActiveRow - 1;
+
+    frmPercentageCalculation := TfrmPercentageCalculation.Create(nil);
+    frmPercentageCalculation.Position := poMainFormCenter;
+    frmPercentageCalculation.edtAccountCode.Text := FData[DataRow].PercentAccount;
+    frmPercentageCalculation.nPercent.Text := FloatToStr(FData[DataRow].Percentage);
+    frmPercentageCalculation.ShowModal;
+
+    if frmPercentageCalculation.ModalResult = mrOK then
+    begin
+      if (FData[DataRow].PercentAccount = '') and
+         (Trim(frmPercentageCalculation.edtAccountCode.Text) = '') then
+        Exit; // There was no percentage and there isn't now, so nothing has changed, don't do anything   
+      FData[DataRow].PercentAccount := Trim(frmPercentageCalculation.edtAccountCode.Text);
+      FData[DataRow].Percentage := StrToFloat(Trim(frmPercentageCalculation.nPercent.Text));
+    end else
+      Exit;
+  end;
+  AccountCodeRow := GetAccountCodeRow(FData[DataRow].PercentAccount);
+
+  for ColNum := 1 to 12 do
+  begin
+    if (OnlyUpdateThisColumn = -1) or (OnlyUpdateThisColumn = ColNum) then
+    begin
+      FData[DataRow].bAmounts[ColNum] :=
+        Round(FData[AccountCodeRow].bAmounts[ColNum] * (FData[DataRow].Percentage / 100));
+      // Assigning a percentage to a row removes any quantities in the same row
+      FData[DataRow].bQuantitys[ColNum] := 0;
+      FData[DataRow].bUnitPrices[ColNum] := 0;
+      if (OnlyUpdateThisColumn <> -1) then
+        break;
+    end;
+  end;
+
+  // Redraw row
+  with tblBudget do
+  begin
+    AllowRedraw := false;
+    // Here we do not call 'DoInvalidateRow' or 'DoInvalidateColumn' as it is
+    // redundant and would cause an infinite loop back to this procedure
+    InvalidateRow(DataRow + 1);
+    InvalidateColumn(TotalCol);
+    AllowRedraw := true;
+  end;
+end;
+
 procedure TfrmBudget.DoPercentageChange;
+const
+  CellsHavePercentWarning : string = 'You cannot change the value of cells which are ' +
+                                     'deriving their value as a percentage of another ' +
+                                     'cell. You must first clear the percentage for ' +
+                                     'this row';
 var
   ValueTooLarge : boolean;
-var
   Percent : double;
   CellsToChange :  BudgetPercentageChangeDlg.TCellTypes;
   DataRow : integer;
@@ -2461,8 +2694,14 @@ begin
     try
       case CellsToChange of
         ctCell : begin
-          IncreaseCellBy(DataRow, DataCol, Percent, ValueTooLarge);
-          tblBudget.InvalidateRow(CurrentRow);
+          if (FData[DataRow].PercentAccount <> '') then
+          begin
+            ShowMessage(CellsHavePercentWarning);
+          end else
+          begin
+            IncreaseCellBy(DataRow, DataCol, Percent, ValueTooLarge);
+            DoInvalidateRow(CurrentRow);
+          end;
         end;
 
         ctColumn : begin
@@ -2470,14 +2709,20 @@ begin
             IncreaseCellBy(i, DataCol, Percent, ValueTooLarge);
 
           ReadRow(currentRow);  {reload current edit values}
-          tblBudget.InvalidateColumn( tblBudget.ActiveCol);
+          DoInvalidateColumn( tblBudget.ActiveCol);
         end;
 
         ctRow : begin
-          for i := 1 to 12 do
-            IncreaseCellBy(DataRow, i, Percent, ValueTooLarge);
-          Updateline( DataRow);
-          tblBudget.InvalidateRow(CurrentRow);
+          if (FData[DataRow].PercentAccount <> '') then
+          begin
+            ShowMessage(CellsHavePercentWarning);
+          end else
+          begin
+            for i := 1 to 12 do
+              IncreaseCellBy(DataRow, i, Percent, ValueTooLarge);
+            Updateline( DataRow);
+            DoInvalidateRow(CurrentRow);
+          end;
         end;
 
         ctAll : begin
@@ -2489,7 +2734,7 @@ begin
             end;
           end;
           ReadRow(currentRow);  {reload current edit values}
-          tblBudget.InvalidateTable;
+          DoInvalidateTable;
         end;
       end;
 

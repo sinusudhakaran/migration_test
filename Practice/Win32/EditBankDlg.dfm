@@ -23,13 +23,8 @@ object dlgEditBank: TdlgEditBank
     ActivePage = tbDetails
     Align = alClient
     TabOrder = 0
-    ExplicitWidth = 638
     object tbDetails: TTabSheet
       Caption = '&Details'
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 630
-      ExplicitHeight = 0
       object lblNo: TLabel
         Left = 24
         Top = 12
@@ -569,10 +564,6 @@ object dlgEditBank: TdlgEditBank
     object tbAnalysis: TTabSheet
       Caption = '&Analysis Coding'
       ImageIndex = 1
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 630
-      ExplicitHeight = 0
       object Label8: TLabel
         Left = 16
         Top = 16
@@ -618,10 +609,6 @@ object dlgEditBank: TdlgEditBank
     object tbBankLinkOnline: TTabSheet
       Caption = 'BankLink Online'
       ImageIndex = 2
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 630
-      ExplicitHeight = 0
       object lblSelectExport: TLabel
         Left = 16
         Top = 11
@@ -669,7 +656,6 @@ object dlgEditBank: TdlgEditBank
     Align = alBottom
     BevelOuter = bvNone
     TabOrder = 1
-    ExplicitWidth = 638
     DesignSize = (
       639
       37)
@@ -693,7 +679,6 @@ object dlgEditBank: TdlgEditBank
       Default = True
       TabOrder = 1
       OnClick = btnOKClick
-      ExplicitLeft = 477
     end
     object btnCancel: TButton
       Left = 559
@@ -705,7 +690,6 @@ object dlgEditBank: TdlgEditBank
       Caption = 'Cancel'
       TabOrder = 2
       OnClick = btnCancelClick
-      ExplicitLeft = 558
     end
   end
   object OvcController1: TOvcController

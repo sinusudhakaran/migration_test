@@ -1347,7 +1347,7 @@ begin
                 'Split Figure|'
                 +'Split the figure in the current cell across all twelve periods';
    tbcopy.Hint  :=
-                'Copy Figure|'
+                'Copy figure to the rest of this row|'
                 +'Copy the figure in the current cell to all the remaining cells in this row';
    tbIncrease.Hint :=
                 'Increase/Decrease figures by a specified percentage';

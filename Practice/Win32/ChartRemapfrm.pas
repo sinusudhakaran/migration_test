@@ -1449,7 +1449,8 @@ var
   LCountT,
   LCountM,
   LCountB,
-  LCountC: Integer;
+  LCountC,
+  LCountP: Integer;
   I, A, J: Integer;
   CI: TChartItem;
   Dis: pDissection_Rec;
@@ -1595,12 +1596,18 @@ begin
 
     // Budgets
     LCount := 0;
+    LCountP := 0;
     for I := 0 to MyClient.clBudget_List.ItemCount -1 do
        with MyClient.clBudget_List.Budget_At(I) do begin
           lCountT := 0;
           for J := 0 to buDetail.ItemCount - 1 do
              with buDetail.Budget_Detail_At(J)^ do
-                bdAccount_Code :=  Value.Remap(bdAccount_Code, lCountT);
+             begin
+                bdAccount_Code    :=  Value.Remap(bdAccount_Code, lCountT);
+                // Don't need LCountP, but I have to put something in there and I don't want to
+                // increment lCountT twice, nor do I want to duplicate this block of code.
+                bdPercent_Account := Value.Remap(bdPercent_Account, lCountP);
+             end;
           if lCountT > 0 then begin
              ResortBudget(buDetail);
              inc(LCount,LCountT);

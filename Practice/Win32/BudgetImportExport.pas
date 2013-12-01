@@ -23,15 +23,17 @@ type
    EClearType = (clrAll,clrColumn,clrRow);
 
    TBudgetRec = record
-     bAccount     : Bk5CodeStr;
-     bDesc        : string[40];
-     bAmounts     : Array[1..12] of integer;
-     bQuantitys   : Array[1..12] of Money;
-     bUnitPrices  : Array[1..12] of Money;
-     bTotal       : integer;
-     bIsPosting   : boolean;
-     bDetailLine  : pBudget_Detail_Rec;
-     bNeedsUpdate : Boolean;
+     bAccount       : Bk5CodeStr;
+     bDesc          : string[40];
+     bAmounts       : Array[1..12] of integer;
+     bQuantitys     : Array[1..12] of Money;
+     bUnitPrices    : Array[1..12] of Money;
+     bTotal         : integer;
+     bIsPosting     : boolean;
+     bDetailLine    : pBudget_Detail_Rec;
+     bNeedsUpdate   : Boolean;
+     PercentAccount : Bk5CodeStr; // Only used if the figures for this row are calculated from a % of another account code, empty otherwise
+     Percentage     : double; // Only used if PercentAccount is not empty, see above
    end;
 
    TBudgetData = Array of tBudgetRec;  {dynamic array}
@@ -506,6 +508,8 @@ begin
         aBudgetData[RowIndex].bDetailLine.bdQty_Budget[ColIndex]  := aBudgetData[RowIndex].bQuantitys[ColIndex];
         aBudgetData[RowIndex].bDetailLine.bdEach_Budget[ColIndex] := aBudgetData[RowIndex].bUnitPrices[ColIndex];
       end;
+      aBudgetData[RowIndex].bDetailLine.bdPercent_Account := aBudgetData[RowIndex].PercentAccount;
+      aBudgetData[RowIndex].bDetailLine.bdPercentage := aBudgetData[RowIndex].Percentage;
 
       aBudgetData[RowIndex].bNeedsUpdate := false;
     end;
@@ -532,6 +536,8 @@ begin
       Result[BudgetIndex].bUnitPrices[MonthIndex] := aBudgetData[BudgetIndex].bUnitPrices[MonthIndex];
     end;
 
+    Result[BudgetIndex].PercentAccount := aBudgetData[BudgetIndex].PercentAccount;
+    Result[BudgetIndex].Percentage := aBudgetData[BudgetIndex].Percentage;
     Result[BudgetIndex].bTotal := aBudgetData[BudgetIndex].bTotal;
     Result[BudgetIndex].bIsPosting := aBudgetData[BudgetIndex].bIsPosting;
     Result[BudgetIndex].bDetailLine := aBudgetData[BudgetIndex].bDetailLine;
@@ -665,15 +671,23 @@ begin
 
                   if not LineHasError then
                   begin
-                    for DateIndex := 1 to 12 do
-                      BudgetEditRow(aBudgetData, DataHolder[DateIndex], DataIndex, DateIndex);
+                    if (aBudgetData[DataIndex].PercentAccount <> '') then
+                    begin
+                      WriteLn(ErrorFile, 'Row ' + IntToStr(LineNumber) + ', Code ' + Trim(InLineData[0]) +
+                              ', Data Row is auto-calculated and cannot be updated.');
+                      aRowsNotImported := aRowsNotImported + 1;
+                    end else
+                    begin
+                      for DateIndex := 1 to 12 do
+                        BudgetEditRow(aBudgetData, DataHolder[DateIndex], DataIndex, DateIndex);
 
-                    aBudgetData[DataIndex].bTotal := 0;
-                    for DateIndex := 1 to 12 do
-                      aBudgetData[DataIndex].bTotal := aBudgetData[DataIndex].bTotal +
-                                                       aBudgetData[DataIndex].bAmounts[DateIndex];
-                    aBudgetData[DataIndex].bNeedsUpdate := true;
-                    aRowsImported := aRowsImported + 1;
+                      aBudgetData[DataIndex].bTotal := 0;
+                      for DateIndex := 1 to 12 do
+                        aBudgetData[DataIndex].bTotal := aBudgetData[DataIndex].bTotal +
+                                                         aBudgetData[DataIndex].bAmounts[DateIndex];
+                      aBudgetData[DataIndex].bNeedsUpdate := true;
+                      aRowsImported := aRowsImported + 1;
+                    end;
                   end;
                 end
                 else
