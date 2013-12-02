@@ -10,6 +10,8 @@ uses
   BanklinkOnlineServices;
 
 type
+  TInstitutionExceptions = (ieNone, ieANZ, ieNAT);
+
   //----------------------------------------------------------------------------
   TInstitutionItem = class(TCollectionItem)
   private
@@ -73,6 +75,7 @@ type
 
     function LoadFromFile(aFileName : string) : boolean;
     procedure FillDataFromBlopi(aBloArrayOfInstitution : TBloArrayOfInstitution);
+    function DoInstituionExceptionCode(aAccount, aCode : string) : TInstitutionExceptions;
 
     function Load() : boolean;
     function CountryCodes : TStringList;
@@ -89,7 +92,8 @@ implementation
 uses
   CsvParser,
   Globals,
-  GenUtils;
+  GenUtils,
+  strutils;
 
 const
   INST_CODE           = 0;
@@ -190,6 +194,23 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+function TInstitutions.DoInstituionExceptionCode(aAccount, aCode : string) : TInstitutionExceptions;
+var
+  Bank : string;
+begin
+  if aCode = 'ANZ' then
+  begin
+    Bank := leftstr(aAccount, 2);
+    if (Bank = '06') then
+      Result := ieNAT
+    else
+      Result := ieANZ;
+  end
+  else
+    Result := ieNone;
+end;
+
+//------------------------------------------------------------------------------
 function TInstitutions.GetBoolFromString(aInStr: String; adefault : boolean): boolean;
 begin
   if (trim(uppercase(aInStr)) = '0') or
@@ -216,6 +237,12 @@ begin
   CountryNames.clear;
   for ItemIndex := 0 to length(aBloArrayOfInstitution) - 1 do
   begin
+    // National Exception - don't show National Bank, this could not be fixed in Online
+    // or Core so the only option I had was to fix it here.
+    if (aBloArrayOfInstitution[ItemIndex].Code = 'NAT') and
+       (aBloArrayOfInstitution[ItemIndex].CountryCode = 'NZ') then
+      Continue;
+
     NewInstitutionItem := TInstitutionItem.Create(Self);
     NewInstitutionItem.AccountEditMask := aBloArrayOfInstitution[ItemIndex].AccountEditMask;
     NewInstitutionItem.Active          := aBloArrayOfInstitution[ItemIndex].Active;

@@ -492,6 +492,11 @@ begin
         else
           CAFQRData.InstitutionCode := TInstitutionItem(Values.cmbInstitution.Items.Objects[InstIndex]).Code;
 
+        // Exception code for ANZ and National Bank, removed National bank so must set to NAT when
+        // ANZ is selected and Account bank is for national
+        if Institutions.DoInstituionExceptionCode(Values.AccountNumber, CAFQRData.InstitutionCode) = ieNAT then
+          CAFQRData.InstitutionCode := 'NAT';
+
         CAFQRData.InstitutionCountry := TInstitutionItem(Values.cmbInstitution.Items.Objects[InstIndex]).CountryCode;
 
         CafQrCode.BuildQRCode(CAFQRData,

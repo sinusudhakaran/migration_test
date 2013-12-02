@@ -297,6 +297,12 @@ begin
      (cmbInstitution.Items.Objects[cmbInstitution.ItemIndex] is TInstitutionItem) then
   begin
     InstCode := GetInstitutionCode();
+
+    // Exception code for ANZ and National Bank, removed National bank so must set to NAT when
+    // ANZ is selected and Account bank is for national
+    if Institutions.DoInstituionExceptionCode(AccountNumber, InstCode) = ieNAT then
+      InstCode := 'NAT';
+
     Result := ProductConfigService.ValidateAccount(AccountNumber, InstCode, COUNTRY_CODE, aFailedReason, true);
 
     if Result then
