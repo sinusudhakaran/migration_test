@@ -36,6 +36,8 @@ type
     fRuralMainItemCode : string;
     FHasNewName : Boolean;
     FNewName : String;
+    FHasNewMask : Boolean;
+    FNewMask : string;
   public
     property AccountEditMask: WideString read FAccountEditMask write FAccountEditMask;
     property Active: Boolean read FActive write FActive;
@@ -58,6 +60,8 @@ type
     property RuralMainItemCode : string read FRuralMainItemCode write FRuralMainItemCode;
     property HasNewName : Boolean read FHasNewName write FHasNewName;
     property NewName : String read FNewName write FNewName;
+    property HasNewMask : Boolean read FHasNewMask write FHasNewMask;
+    property NewMask : string read FNewMask write FNewMask;
   end;
 
   //----------------------------------------------------------------------------
@@ -102,6 +106,7 @@ const
   INST_ENABLED        = 3;
   RURAL_CODE          = 4;
   NEW_NAME            = 5;
+  NEW_MASK            = 6;
 
 var
   fInstitutions : TInstitutions;
@@ -265,6 +270,8 @@ begin
     NewInstitutionItem.RuralMainItemCode := '';
     NewInstitutionItem.HasNewName := false;
     NewInstitutionItem.NewName := '';
+    NewInstitutionItem.HasNewMask := false;
+    NewInstitutionItem.NewMask := '';
 
     if CountryCodes.Find(NewInstitutionItem.CountryCode, CountryIndex) = false then
     begin
@@ -288,13 +295,13 @@ begin
   CsvFile := TStringList.Create;
 
   try
-    CsvFile.Add('CODE, NAME, COUNTRY_CODE, ENABLED, RURAL_MAIN_CODE, NEW_NAME');
+    CsvFile.Add('CODE, NAME, COUNTRY_CODE, ENABLED, RURAL_MAIN_CODE, NEW_NAME, NEW_MASK');
 
     for ItemIndex := 0 to length(BloArrayOfInstitution) - 1 do
     begin
       CsvFile.Add(BloArrayOfInstitution[ItemIndex].Code + ',' +
                   RemoveInvalidCharacters(BloArrayOfInstitution[ItemIndex].Name_) + ',' +
-                  BloArrayOfInstitution[ItemIndex].CountryCode + ',1, , ');
+                  BloArrayOfInstitution[ItemIndex].CountryCode + ',1, , , ');
     end;
 
     CsvFile.SaveToFile(aFileName);
@@ -332,11 +339,13 @@ begin
 
       if FindItem(CommaLine[INST_CODE], CommaLine[INST_COUNTRY_CODE], FoundInstitutionItem) then
       begin
-        FoundInstitutionItem.Enabled := GetBoolFromString(CommaLine[INST_ENABLED], true); //defaults to true on error
+        FoundInstitutionItem.Enabled      := GetBoolFromString(CommaLine[INST_ENABLED], true); //defaults to true on error
         FoundInstitutionItem.HasRuralCode := (length(trim(CommaLine[RURAL_CODE])) > 0);
         FoundInstitutionItem.RuralCode    := CommaLine[RURAL_CODE];
-        FoundInstitutionItem.HasNewName := (length(trim(CommaLine[NEW_NAME])) > 0);
-        FoundInstitutionItem.NewName    := CommaLine[NEW_NAME];
+        FoundInstitutionItem.HasNewName   := (length(trim(CommaLine[NEW_NAME])) > 0);
+        FoundInstitutionItem.NewName      := CommaLine[NEW_NAME];
+        FoundInstitutionItem.HasNewMask   := (length(trim(CommaLine[NEW_MASK])) > 0);
+        FoundInstitutionItem.NewMask      := CommaLine[NEW_MASK];
       end;
     end;
 
