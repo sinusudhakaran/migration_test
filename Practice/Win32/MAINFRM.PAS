@@ -1008,7 +1008,7 @@ uses
   MaintainPayeesFrm,
   MaintainPracBankFrm,
   MaintainUsersFrm,
-  MaintainGroupsFrm,  
+  MaintainGroupsFrm,
   Math,
   Merge32,
   MimeUtils,
@@ -1065,7 +1065,8 @@ uses
   BankLinkOnlineTaggingServices,
   ModalDualProgressFrm,
   BlopiServiceAgreement,
-  bkProduct;
+  bkProduct,
+  BroadcastSystem;
   //StockBalancesDlg;
 
 const
@@ -4684,7 +4685,7 @@ begin
         begin
           RunExchangeGainLossWizard(MyClient);
           RefreshHomepage;
-        end;              
+        end;
       end;
 
       //reset auto save time after the following actions
@@ -4694,6 +4695,9 @@ begin
     finally
       if Modal then EnableMainForm;
     end;
+
+    // Broadcast system for main menu notifications
+    BroadcastMessage(UM_MAINFORM_MODALCOMMAND, command);
   finally
     ProcessFrm.Free;
     if not Globals.ApplicationIsTerminating then // causes AV if shutting down
