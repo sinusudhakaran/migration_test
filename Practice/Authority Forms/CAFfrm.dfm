@@ -341,6 +341,8 @@ object frmCAF: TfrmCAF
           OnExit = mskAccountNumberExit
           OnKeyUp = mskAccountNumberKeyUp
           OnMouseDown = mskAccountNumberMouseDown
+          OnValidateError = mskAccountNumberValidateError
+          OnValidateEdit = mskAccountNumberValidateEdit
         end
         object edtAccountNumber: TEdit
           Left = 8
