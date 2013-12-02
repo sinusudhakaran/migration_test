@@ -40,7 +40,6 @@ type
     procedure edtAccountCodeChange(Sender: TObject);
     procedure btnOKClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
-    procedure edtAccountCodeKeyPress(Sender: TObject; var Key: Char);
   private
     function CheckAccountCodeValidity: boolean;
     { Private declarations }
@@ -94,13 +93,13 @@ begin
   begin
     pubAccountCode := Trim(edtAccountCode.Text);
     pubPercentage := StrToFloat(Trim(nPercent.Text));
-    Self.ModalResult := mrOK;
+    ModalResult := mrOK;
   end;
 
   if (ErrorStrings.Count > 0) then
   begin
     ShowMessage(ErrorStrings.Text);
-    Self.ModalResult := mrNone;
+    ModalResult := mrNone;
   end;
 end;
 
@@ -131,13 +130,6 @@ begin
   CheckAccountCodeValidity;
 end;
 
-procedure TfrmPercentageCalculation.edtAccountCodeKeyPress(Sender: TObject;
-  var Key: Char);
-begin
-  if (key = Chr(VK_RETURN)) then
-    btnOKClick(Sender);
-end;
-
 procedure TfrmPercentageCalculation.FormCreate(Sender: TObject);
 begin
   // imgAccountCode.Picture := ImagesFrm.AppImages.Coding.GetBitmap()
@@ -164,8 +156,6 @@ procedure TfrmPercentageCalculation.nPercentKeyPress(Sender: TObject;
 begin
   if key = '-' then
     key := #0;
-  if (key = Chr(VK_RETURN)) then
-    btnOKClick(Sender);  
 end;
 
 end.

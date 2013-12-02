@@ -51,7 +51,6 @@ object frmPercentageCalculation: TfrmPercentageCalculation
     Height = 21
     TabOrder = 0
     OnChange = edtAccountCodeChange
-    OnKeyPress = edtAccountCodeKeyPress
   end
   object btnClear: TButton
     Left = 16
@@ -68,6 +67,7 @@ object frmPercentageCalculation: TfrmPercentageCalculation
     Width = 50
     Height = 25
     Caption = 'OK'
+    Default = True
     ModalResult = 1
     TabOrder = 4
     OnClick = btnOKClick
@@ -78,6 +78,7 @@ object frmPercentageCalculation: TfrmPercentageCalculation
     Width = 50
     Height = 25
     Caption = 'Cancel'
+    Default = True
     ModalResult = 2
     TabOrder = 5
   end
