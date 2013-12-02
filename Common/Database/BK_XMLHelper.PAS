@@ -1470,6 +1470,7 @@ begin
 	SetTextAttr(Result, 'Name', buName);
 	SetInt64Attr(Result, 'EstimatedOpeningBankBalance', buEstimated_Opening_Bank_Balance);
 	SetBoolAttr(Result, 'IsInclusive', buIs_Inclusive);
+	SetBoolAttr(Result, 'AutomaticallyCalculateGST', buAutomatically_Calculate_GST);
 
 	CNode := nil;
 	CCNode := nil;
@@ -1490,6 +1491,7 @@ begin
 	buName := GetTextAttr(Result, 'Name');
 	buEstimated_Opening_Bank_Balance := GetInt64Attr(Result, 'EstimatedOpeningBankBalance');
 	buIs_Inclusive := GetBoolAttr(Result, 'IsInclusive');
+	buAutomatically_Calculate_GST := GetBoolAttr(Result, 'AutomaticallyCalculateGST');
 	except
 		on E: Exception do ReRaise (E, 'Reading TBudget_Header_Rec');
 	end;

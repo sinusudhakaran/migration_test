@@ -47,6 +47,14 @@ namespace BankLink.Practice.BooksIO
 
 
 
+		/// <summary>
+		/// AutomaticallyCalculateGST property
+		/// </summary>
+		[XmlAttribute("AutomaticallyCalculateGST", DataType = "boolean")]
+		public bool AutomaticallyCalculateGST { get; set; }
+
+
+
 	}
 
 

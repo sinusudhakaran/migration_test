@@ -398,6 +398,7 @@ begin
     FAuditNamesArray[110,113] := 'Name';
     FAuditNamesArray[110,114] := 'Estimated_Opening_Bank_Balance';
     FAuditNamesArray[110,115] := 'Is_Inclusive';
+    FAuditNamesArray[110,116] := 'Automatically_Calculate_GST';
 
    FAuditTableArray[120] := 'Budget_Detail';
     FAuditNamesArray[120,122] := 'Account_Code';

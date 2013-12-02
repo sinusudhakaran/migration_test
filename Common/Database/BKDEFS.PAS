@@ -9,13 +9,13 @@ Interface uses MONEYDEF, DATEDEF;
 {  -------------------------------------------------------------------  }
 
 Const
-   BK_IOLIB_Version : Integer = 707;
-   BK_IOLIB_Date    = '27/11/13';
-   BK_FILE_VERSION  = 178;  (* Current Version counter for files
+   BK_IOLIB_Version : Integer = 708;
+   BK_IOLIB_Date    = '28/11/13';
+   BK_FILE_VERSION  = 179;  (* Current Version counter for files
                               Changes if structure or method of storing a value would cause
                               data to be represented incorrectly, or an exception to be raised *)
    
-   BK_FILE_VERSION_STR = '5.33';   (* Should be changed whenever BK_FILE_VERSION changes. Is used to show user what version they need *)
+   BK_FILE_VERSION_STR = '5.34';   (* Should be changed whenever BK_FILE_VERSION changes. Is used to show user what version they need *)
    
    (*
        History  :     31    New format for GST class codes ( delimited string)
@@ -227,6 +227,7 @@ Const
      5.31            176    CSV Add prefix account code option
      5.32            177    Adding 'Percent Account' and 'Percentage' to Account Code fields
      5.33            178    Adding 'Percent Account' and 'Percentage' to Budget Detail fields
+     5.34            179    Changes for automatically calculation of GST (on/off)
    *)
    //Audit Trail - 135 Don't reuse token!!! - Record defined in SY.TXT but also used in Client File
 
@@ -680,6 +681,7 @@ Type
       buName                             : String[ 40 ];       { Stored }
       buEstimated_Opening_Bank_Balance   : Money;       { Stored }
       buIs_Inclusive                     : Boolean;       { Stored }
+      buAutomatically_Calculate_GST      : Boolean;       { Stored }
       buEOR                              : Byte;
    end;
 

@@ -50,6 +50,7 @@ CONST
    tkbuName                             = 113 ;
    tkbuEstimated_Opening_Bank_Balance   = 114 ;
    tkbuIs_Inclusive                     = 115 ;
+   tkbuAutomatically_Calculate_GST      = 116 ;
 
 {  -------------------------------------------------------------------  }
 
@@ -79,6 +80,7 @@ Begin
       F.WriteStringValue( tkbuName , buName );
       F.WriteMoneyValue( tkbuEstimated_Opening_Bank_Balance , buEstimated_Opening_Bank_Balance );
       F.WriteBooleanValue( tkbuIs_Inclusive , buIs_Inclusive );
+      F.WriteBooleanValue( tkbuAutomatically_Calculate_GST , buAutomatically_Calculate_GST );
       F.WriteToken( tkEnd_Budget_Header );
    end;
 end; { of Write_Budget_Header_Rec }
@@ -105,6 +107,7 @@ Begin
          tkbuName                             : buName := F.ReadStringValue;
          tkbuEstimated_Opening_Bank_Balance   : buEstimated_Opening_Bank_Balance := F.ReadMoneyValue;
          tkbuIs_Inclusive                     : buIs_Inclusive := F.ReadBooleanValue;
+         tkbuAutomatically_Calculate_GST      : buAutomatically_Calculate_GST := F.ReadBooleanValue;
          else
             Raise ETokenException.CreateFmt( SUnknownToken, [ Token ] );
       end; { of Case }
@@ -151,7 +154,7 @@ begin
   for i := Low(ChangedFields) to High(ChangedFields) do
     ChangedFields[i] := 0;
   j := 0;
-  for i := tkbuStart_Date to tkbuIs_Inclusive do begin
+  for i := tkbuStart_Date to tkbuAutomatically_Calculate_GST do begin
     ChangedFields[j] := i;
     Inc(j);
   end;
@@ -193,6 +196,11 @@ begin
   if (P1.buIs_Inclusive <> P2.buIs_Inclusive) then begin
     P3.buIs_Inclusive := P1.buIs_Inclusive;
     ChangedFields[i] := tkbuIs_Inclusive;
+    Inc(i);
+  end;
+  if (P1.buAutomatically_Calculate_GST <> P2.buAutomatically_Calculate_GST) then begin
+    P3.buAutomatically_Calculate_GST := P1.buAutomatically_Calculate_GST;
+    ChangedFields[i] := tkbuAutomatically_Calculate_GST;
     Inc(i);
   end;
 
