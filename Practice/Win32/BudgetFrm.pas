@@ -700,7 +700,7 @@ var
 begin
   for i := 0 to High(FData) do
   begin
-    if (FData[i].PercentAccount <> '') then
+    if HasPercentageFormula(i) then
       DoPercentageCalculation(i);
   end;
 end;
@@ -737,7 +737,7 @@ begin
             FData[RowNum-1].bAmounts[ColNum-MonthBase] := eAmounts[ColNum-MonthBase];
             if (eAmounts[ColNum - MonthBase] = 0)
                or not AmountMatchesQuantityFormula(RowNum - 1, ColNum - MonthBase)
-               or (FData[RowNum - 1].PercentAccount <> '') then
+               or HasPercentageFormula(RowNum - 1) then
             begin
               FData[RowNum - 1].bQuantitys[ColNum - MonthBase] := 0;
               FData[RowNum - 1].bUnitPrices[ColNum - MonthBase] := 0;
@@ -763,8 +763,8 @@ begin
        {redraw row}
        with tblBudget do begin
           AllowRedraw := false;
-          DoInvalidateRow(RowNum);
-          DoInvalidateColumn(TotalCol);
+          tblBudget.InvalidateRow(RowNum);
+          tblBudget.InvalidateColumn(TotalCol);
           AllowRedraw := true;
        end;
 
@@ -1041,7 +1041,7 @@ begin
     end;
 
     // Check if percent account code is valid, as it may have been removed
-    if (FData[index].PercentAccount <> '') then
+    if HasPercentageFormula(index) then    
     begin
       pAcct := MyClient.clChart.FindCode(FData[index].PercentAccount);
       IsValid := Assigned(pAcct) and pAcct.chPosting_Allowed;
@@ -1278,7 +1278,7 @@ Begin
   if not DataAssigned then
      exit;
 
-  if (FData[CurrentRow - 1].PercentAccount <> '') then
+  if HasPercentageFormula(CurrentRow - 1) then         
   begin
     ShowMessage('You cannot use copy on a row which derives its values as a percentage ' +
                 'of another row. You must first clear the percentage');
@@ -1706,7 +1706,7 @@ Var
 Begin
   if not DataAssigned then exit;
 
-  if (fData[currentrow-1].PercentAccount <> '') then
+  if HasPercentageFormula(CurrentRow - 1) then
   begin
     ShowMessage('You cannot use split in a row which derives its values as a percentage ' +
                 'of another row. You must first clear the percentage.');
@@ -1756,7 +1756,7 @@ var
 begin
   CheckEditMode;
   RowIndex := tblBudget.ActiveRow - 1;
-  if (FData[RowIndex].PercentAccount <> '') then
+  if HasPercentageFormula(RowIndex) then                
   begin
     ShowMessage('Quantities cannot be entered for cells in a row which is a % of another row. ' +
                 'You must first remove the percentage for this row before setting a quantity');
@@ -2694,7 +2694,7 @@ begin
     try
       case CellsToChange of
         ctCell : begin
-          if (FData[DataRow].PercentAccount <> '') then
+          if HasPercentageFormula(DataRow) then                 
           begin
             ShowMessage(CellsHavePercentWarning);
           end else
@@ -2713,7 +2713,7 @@ begin
         end;
 
         ctRow : begin
-          if (FData[DataRow].PercentAccount <> '') then
+          if HasPercentageFormula(DataRow) then          
           begin
             ShowMessage(CellsHavePercentWarning);
           end else
