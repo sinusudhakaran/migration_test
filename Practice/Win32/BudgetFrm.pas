@@ -37,8 +37,9 @@ uses
   ovctcstr,
   MoneyDef,
   BudgetImportExport,
-  PercentageCalculationFrm;
-
+  PercentageCalculationFrm,
+  BroadcastSystem;
+  
 type
   TfrmBudget = class(TForm)
     stsDissect: TStatusBar;
@@ -100,6 +101,8 @@ type
     mniImport: TMenuItem;
     mniExport: TMenuItem;
     mniClearColumn: TMenuItem;
+    actAutoCalculateGST: TAction;
+    AutocalculateGST1: TMenuItem;
     mniEnterPercentage: TMenuItem;
     procedure FormCreate(Sender: TObject);
     procedure tblBudgetGetCellData(Sender: TObject; RowNum,
@@ -160,6 +163,8 @@ type
     procedure mniExportClick(Sender: TObject);
     procedure mniClearColumnClick(Sender: TObject);
     procedure mniEnterPercentageClick(Sender: TObject);
+    procedure actAutoCalculateGSTUpdate(Sender: TObject);
+    procedure actAutoCalculateGSTExecute(Sender: TObject);
   private
     { Private declarations }
     FHint            : THintWindow;
@@ -233,17 +238,26 @@ type
     function RowContainsFormulas(RowIndex: Integer): boolean;
     procedure IncreaseCellBy(RowIndex, ColumnIndex: Integer; Percent: double; var ValueTooLarge: Boolean);
     function IncreaseAmount(aAmount: integer; perc: double; var ValueTooLarge: Boolean): integer;
+
     function HasPercentageFormula(RowIndex: Integer): Boolean;
     procedure UpdatePercentageRows;
     procedure DoInvalidateTable;
     procedure DoInvalidateRow(RowNum: integer);
     procedure DoInvalidateColumn(ColNum: integer);
 
+    function  GetAutoCalculateGST: boolean;
+    procedure SetAutoCalculateGST(const aValue: boolean);
+    procedure RefreshGST;
+    procedure UMMainFormModalCommand(var aMsg: TMessage); message UM_MAINFORM_MODALCOMMAND;
+
   public
     { Public declarations }
     property Budget  : TBudget read FBudget write SetBudget;
     property IsClosing : Boolean read FIsClosing write SetIsClosing;
     function FormIsInEditMode: boolean;
+
+    property  AutoCalculateGST: boolean read GetAutoCalculateGST
+                write SetAutoCalculateGST;
 
     procedure ProcessExternalCmd(command: TExternalCmdBudget);
   end;
@@ -264,6 +278,7 @@ uses
    AutoSaveUtils,
    CalculateAccountTotals,
    clObj32,
+   CodingFormCommands,
    bkDateUtils,
    LogUtil,
    ovcDate,
@@ -301,7 +316,8 @@ uses
    ImportBudgetDlg,
    ShellAPI,
    ImportBudgetResultsDlg,
-   usageutils;
+   usageutils,
+   BudgetAutoGST;
 
 const
    {status panel constants}
@@ -664,6 +680,9 @@ begin
 
   AllowIt := FData[RowNum-1].bIsPosting and (FData[RowNum-1].PercentAccount = '');
 
+  // Allow editing of GST, only when we're not automatically calculating it
+  if AutoCalculateGST and FData[RowNum-1].bIsGSTAccountCode then
+    AllowIt := false;
 end;
 
 //------------------------------------------------------------------------------
@@ -760,6 +779,9 @@ begin
          end;
        end;
 
+       // Refresh the GST cells
+       RefreshGST;
+
        {redraw row}
        with tblBudget do begin
           AllowRedraw := false;
@@ -831,7 +853,7 @@ begin
    lblName.Font.Color := bkBranding.TopTitleColor;
 
    bkBranding.StyleTopBannerRightImage(imgGraphic);
-   
+
    mniLockLeftmostClick(Sender);
 
    //ExtraTitleBar.Color    := bkBranding.HeaderBackgroundColor;
@@ -928,6 +950,8 @@ begin
       FData[aDataIndex].PercentAccount := pBudgetRec.bdPercent_Account;
       FData[aDataIndex].Percentage := pBudgetRec.bdPercentage;
     end;
+    FData[aDataIndex].bIsGSTAccountCode :=
+      IsGSTAccountCode(MyClient, FData[aDataIndex].bAccount);
     FData[aDataIndex].bDetailLine := pBudgetRec;
     for MonthIndex := 1 to 12 do
     begin
@@ -946,6 +970,9 @@ begin
     end;
     Inc(aDataIndex);
   end;
+
+  // Now update the GST cells
+  RefreshGST;
 
   if (aDataIndex = 0) and not ShowZeros then
   begin
@@ -1376,6 +1403,8 @@ begin
       FData[i].bAccount := NewCode;
       FData[i].bDesc := AccountRec.chAccount_Description;
       FData[i].bIsPosting := AccountRec.chPosting_Allowed;
+      FData[i].bIsGSTAccountCode :=
+        IsGSTAccountCode(MyClient, FData[i].bAccount);
 
       pBudgetRec := Budget.buDetail.FindLineByCode(AccountRec.chAccount_Code);
       FData[i].bDetailLine := pBudgetRec;
@@ -2031,6 +2060,25 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+procedure TfrmBudget.actAutoCalculateGSTExecute(Sender: TObject);
+begin
+  // Toggle the flag
+  AutoCalculateGST := not AutoCalculateGST;
+
+  // Validate the GST Setup when auto-calculate is turned on
+  if AutoCalculateGST then
+    ValidateGSTSetup(MyClient);
+
+  RefreshGST;
+end;
+
+//------------------------------------------------------------------------------
+procedure TfrmBudget.actAutoCalculateGSTUpdate(Sender: TObject);
+begin
+  actAutoCalculateGST.Checked := AutoCalculateGST;
+end;
+
+//------------------------------------------------------------------------------
 procedure TfrmBudget.ActClearAllExecute(Sender: TObject);
 begin
   DoClearValues(clrAll);
@@ -2252,7 +2300,8 @@ begin
                                                RowsImported,
                                                RowsNotImported,
                                                BudgetCopy,
-                                               MsgStr) then
+                                               MsgStr,
+                                               AutoCalculateGST) then
         begin
           tblBudget.AllowRedraw := false;
           try
@@ -2831,6 +2880,39 @@ end;
 procedure TfrmBudget.EndEditRow(RowNum, ColNum : integer; var AllowIt : boolean);
 begin
 
+end;
+
+//------------------------------------------------------------------------------
+function TfrmBudget.GetAutoCalculateGST: boolean;
+begin
+  result := fBudget.buFields.buAutomatically_Calculate_GST;
+end;
+
+//------------------------------------------------------------------------------
+procedure TfrmBudget.SetAutoCalculateGST(const aValue: boolean);
+begin
+  fBudget.buFields.buAutomatically_Calculate_GST := aValue;
+end;
+
+//------------------------------------------------------------------------------
+procedure TfrmBudget.RefreshGST;
+begin
+  if not AutoCalculateGST then
+    exit;
+
+  // Do the calculations on the budget lines
+  CalculateGST(MyClient, fBudget, fData);
+
+  // Update all the values in the grid control
+  tblBudget.Refresh;
+end;
+
+procedure TfrmBudget.UMMainFormModalCommand(var aMsg: TMessage);
+begin
+  case aMsg.WParam of
+    mf_mcGSTDetails:
+      RefreshGST;
+  end;
 end;
 
 //------------------------------------------------------------------------------

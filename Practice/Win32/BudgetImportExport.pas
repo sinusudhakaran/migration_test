@@ -22,6 +22,8 @@ const
 type
    EClearType = (clrAll,clrColumn,clrRow);
 
+   { Note: when adding new members, you must also change the CopyBudgetData
+     function }
    TBudgetRec = record
      bAccount       : Bk5CodeStr;
      bDesc          : string[40];
@@ -30,6 +32,7 @@ type
      bUnitPrices    : Array[1..12] of Money;
      bTotal         : integer;
      bIsPosting     : boolean;
+     bIsGSTAccountCode : boolean;
      bDetailLine    : pBudget_Detail_Rec;
      bNeedsUpdate   : Boolean;
      PercentAccount : Bk5CodeStr; // Only used if the figures for this row are calculated from a % of another account code, empty otherwise
@@ -88,7 +91,8 @@ type
                           var aRowsImported : integer;
                           var aRowsNotImported : integer;
                           var aBudgetData : TBudgetData;
-                          var aMsg : string) : boolean;
+                          var aMsg : string;
+                          const aAutoCalculateGST: boolean = false): boolean;
     function  RemoveAccountCodePrefix(const aValue: string): string;
 
     property BudgetDefaultFile : string read fBudgetDefaultFile write fBudgetDefaultFile;
@@ -120,9 +124,7 @@ function TBudgetImportExport.GetDefFileLineData(aBudgetDefaults : TStringList;
                                                 aBudgetName : string;
                                                 var aIndex : integer) : TStringList;
 var
-  CommaIndex : integer;
   Index : integer;
-  ClientCode : string;
 begin
   aIndex := -1;
   Result := TStringList.Create;
@@ -470,8 +472,6 @@ end;
 
   //------------------------------------------------------------------------------
 procedure TBudgetImportExport.BudgetEditRow(var aBudgetData : TBudgetData; aBudgetAmount, RowNum, ColNum: Integer);
-var
-  NewLine : pBudget_Detail_Rec;
 begin
   aBudgetData[RowNum].bAmounts[ColNum] := aBudgetAmount;
   if (aBudgetAmount = 0) or not AmountMatchesQuantityFormula(aBudgetData, RowNum, ColNum) then
@@ -540,6 +540,7 @@ begin
     Result[BudgetIndex].Percentage := aBudgetData[BudgetIndex].Percentage;
     Result[BudgetIndex].bTotal := aBudgetData[BudgetIndex].bTotal;
     Result[BudgetIndex].bIsPosting := aBudgetData[BudgetIndex].bIsPosting;
+    Result[BudgetIndex].bIsGSTAccountCode := aBudgetData[BudgetIndex].bIsGSTAccountCode;
     Result[BudgetIndex].bDetailLine := aBudgetData[BudgetIndex].bDetailLine;
     Result[BudgetIndex].bNeedsUpdate := aBudgetData[BudgetIndex].bNeedsUpdate;
   end;
@@ -560,7 +561,8 @@ function TBudgetImportExport.ImportBudget(aBudgetFilePath: string;
                                           var aRowsImported : integer;
                                           var aRowsNotImported : integer;
                                           var aBudgetData : TBudgetData;
-                                          var aMsg : string): boolean;
+                                          var aMsg : string;
+                                          const aAutoCalculateGST: boolean): boolean;
 const
   ThisMethodName = 'ImportBudget';
 var
@@ -572,9 +574,10 @@ var
   DataIndex, DateIndex : integer;
   LineHasError : boolean;
   LineNumber : integer;
-  InValue : integer;
   DataHolder : array[1..12] of integer;
   Codestr : string;
+  bAllowPosting: boolean;
+  sAmount: string;
 
   function GetDataIndexWithAccount(aAccount : string) : integer;
   var
@@ -655,7 +658,13 @@ begin
               DataIndex := GetDataIndexWithAccount(InLineData[0]);
               if DataIndex <> -1 then
               begin
-                if aBudgetData[DataIndex].bIsPosting then
+                // Determine whether we can post
+                bAllowPosting := aBudgetData[DataIndex].bIsPosting;
+                if aAutoCalculateGST and aBudgetData[DataIndex].bIsGSTAccountCode then
+                  bAllowPosting := false;
+
+                // Posting allowed?
+                if bAllowPosting then
                 begin
                   for DateIndex := 1 to 12 do
                   begin
@@ -692,15 +701,34 @@ begin
                 end
                 else
                 begin
-                  // Only show nohn posting error if data is differant
-                  if not LineHasError then
+                  // GST row? (values must match)
+                  if aAutoCalculateGST and aBudgetData[DataIndex].bIsGSTAccountCode then
                   begin
                     for DateIndex := 1 to 12 do
                     begin
-                      if (InLineData[2+ DateIndex] <> '') then                      
+                      sAmount := IntToStr(aBudgetData[DataIndex].bAmounts[DateIndex]);
+                      if (InLineData[2 + DateIndex] <> sAmount) then
+                      begin
+                        WriteLn(ErrorFile,
+                          'Row ' + inttostr(LineNumber) +
+                          ', Code ' + Trim(InLineData[0]) +
+                          ', Data row is auto-calculated and cannot be updated.');
+
+                        Inc(aRowsNotImported);
+
+                        break;
+                      end;
+                    end;
+                  end
+                  else
+                  begin
+                    // Only show non posting error if data is different
+                    for DateIndex := 1 to 12 do
+                    begin
+                      if (InLineData[2+ DateIndex] <> '') then
                       begin
                         WriteLn(ErrorFile, 'Row ' + inttostr(LineNumber) + ', Code ' + Trim(InLineData[0]) +
-                                       ', Data Row is not a posting row and cannot be updated.');
+                                       ', Data row is not a posting row and cannot be updated.');
                         aRowsNotImported := aRowsNotImported + 1;
                         break;
                       end;

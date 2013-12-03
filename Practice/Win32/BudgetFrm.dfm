@@ -627,6 +627,9 @@ object frmBudget: TfrmBudget
       Caption = '&Enter opening balance         Ctrl+B'
       OnClick = mniEnterBalanceClick
     end
+    object AutocalculateGST1: TMenuItem
+      Action = actAutoCalculateGST
+    end
     object N3: TMenuItem
       Caption = '-'
     end
@@ -683,6 +686,11 @@ object frmBudget: TfrmBudget
     object ActClearRow: TAction
       Caption = 'Clear &Row'
       OnExecute = ActClearRowExecute
+    end
+    object actAutoCalculateGST: TAction
+      Caption = 'Auto-calculate GST'
+      OnExecute = actAutoCalculateGSTExecute
+      OnUpdate = actAutoCalculateGSTUpdate
     end
   end
   object popClearItems: TPopupMenu
