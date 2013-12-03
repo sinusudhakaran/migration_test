@@ -580,6 +580,7 @@ end;
 procedure TfrmTPA.SetInstitutionControls(aInstitutionType : TInstitutionType);
 var
   enableControls : boolean;
+  oldInstDroppedDown : boolean;
 begin
   // Set Controls depending on what Istitution Type is selected
   fInstitutionType := aInstitutionType;
@@ -590,6 +591,8 @@ begin
   edtAccountNumber.Text := '';
   lblAccountValidationError.Caption := '';
   pnlRural.Visible := false;
+
+  oldInstDroppedDown := cmbInstitution.DroppedDown;
 
   case aInstitutionType of
     inNone  : begin
@@ -617,7 +620,6 @@ begin
           // Combo has no option to set the Drop down wider than the combo so this is
           // how you set it
           SendMessage(cmbInstitution.Handle, CB_SETDROPPEDWIDTH, edtBranch.Width, 0);
-          cmbInstitution.DroppedDown := true;
         end;
         inBLO  : begin
           mskAccountNumber.Visible := true;
@@ -640,6 +642,8 @@ begin
       end;
     end;
   end;
+
+  cmbInstitution.DroppedDown := oldInstDroppedDown;
 
   lblNameOfAccount.enabled      := enableControls;
   edtNameOfAccount.enabled      := enableControls;

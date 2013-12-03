@@ -580,7 +580,6 @@ object frmCAF: TfrmCAF
       Color = clWhite
       ParentBackground = False
       TabOrder = 3
-      ExplicitTop = 342
       DesignSize = (
         607
         123)

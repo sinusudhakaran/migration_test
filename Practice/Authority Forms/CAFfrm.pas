@@ -494,6 +494,7 @@ end;
 procedure TfrmCAF.SetInstitutionControls(aInstitutionType : TInstitutionType);
 var
   enableControls : boolean;
+  oldInstDroppedDown : boolean;
 begin
   // Set Controls depending on what Istitution Type is selected
   fInstitutionType := aInstitutionType;
@@ -503,6 +504,8 @@ begin
   edtInstitutionName.Text := '';
   edtAccountNumber.Text := '';
   lblAccountValidationError.Caption := '';
+
+  oldInstDroppedDown := cmbInstitution.DroppedDown;
 
   case aInstitutionType of
     inNone  : begin
@@ -550,6 +553,8 @@ begin
       end;
     end;
   end;
+
+  cmbInstitution.DroppedDown := oldInstDroppedDown;
 
   lblNameOfAccount.enabled      := enableControls;
   edtNameOfAccount.enabled      := enableControls;
