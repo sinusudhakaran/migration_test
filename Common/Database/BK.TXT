@@ -514,8 +514,6 @@ F|Linked Account OS|S|20
 F|Linked Account CS|S|20
 F|Hide In Basic Chart|Y
 F|Audit Record ID|L
-F|Percent Account|S|20
-F|Percentage|R
 C|Temp_Quantity|DBR
 C|Temp_Amount|DBR
 C|Temp_Base_Amount|DBR
