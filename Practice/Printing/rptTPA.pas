@@ -361,7 +361,7 @@ begin
   NewLine;
   TextLine('loss or damage.', OutputLeft, OutputRight);
   NewLine(2);
-  TextLine('Any revocation of this authority by me/us will take affect fourteen (14) days after written notice is received by', OutputLeft, OutputRight);
+  TextLine('Any revocation of this authority by me/us will take effect fourteen (14) days after written notice is received by', OutputLeft, OutputRight);
   NewLine;
   TextLine('the Bank from BankLink.', OutputLeft, OutputRight);
   NewLine;
@@ -373,7 +373,7 @@ begin
   myCanvas.Font.Size := 8;
   NewLineUp(2);
 
-  DrawRadio(myCanvas, XYSizeRect(OutputLeft + BoxMargin2*4, CurrYPos, OutputRight, CurrYPos+CurrLineSize), ' Re-date transaction to Payment Date', True, Values.radReDateTransactions.Checked);
+  DrawRadio(myCanvas, XYSizeRect(OutputLeft + BoxMargin2*4, CurrYPos, OutputRight, CurrYPos+CurrLineSize), ' Re-date transactions to Payment Date', True, Values.radReDateTransactions.Checked);
   DrawRadio(myCanvas, XYSizeRect(XPosOneThirds + BoxMargin2*4, CurrYPos, OutputRight, CurrYPos+CurrLineSize), ' Date shown on statement (not re-dated)', True, Values.radDateShown.Checked);
   NewLineUp;
   HalfNewLineUp;
@@ -396,7 +396,7 @@ begin
   NewLineUp;
   HalfNewLineUp;
   DrawCheckbox(OutputLeft + BoxMargin2, CurrYPos, (values.InstitutionType = inOther));
-  TextLine('Please supply the account(s) above as Provisional Account(s) if they are not available from the Bank', OutputLeft + 80 , OutputRight);
+  TextLine('Please supply the account above as Provisional Account if it is not available from the Bank', OutputLeft + 80 , OutputRight);
   NewLineUp;
   HalfNewLineUp;
   myCanvas.Font.Style := [fsBold];
