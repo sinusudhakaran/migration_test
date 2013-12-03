@@ -26,6 +26,9 @@ type
     class function DefInstListLinkAU: String; static;
     class function DefInstListLinkUK: String; static;
     class function ProvisionalAccountUrl: String; static;
+    class function DefSecureFormLinkNZ: String; static;
+    class function DefSecureFormLinkAU: String; static;
+    class function DefIBizzFormLinkAU: String; static;
 
     class property WebSites[Index: Integer]: String read GetWebSites;
     class property WebSiteURLs[Index: Integer]: String read GetWebSiteURLs;
@@ -267,7 +270,22 @@ begin
   }
   begin
     Result := 'http://www.banklink.co.nz';
-  end;  
+  end;
+end;
+
+class function TUrls.DefSecureFormLinkNZ: String;
+begin
+  Result := 'http://www.banklink.co.nz/pdfs/NZ/NZ_BankLink_Secure_Client_Order_Form.pdf';
+end;
+
+class function TUrls.DefSecureFormLinkAU: String;
+begin
+  Result := 'http://www.banklink.com.au/pdfs/AU/AU_BankLink_Secure_Client_Order_Form.pdf';
+end;
+
+class function TUrls.DefIBizzFormLinkAU: String;
+begin
+  Result := 'http://www.banklink.co.nz';
 end;
 
 end.

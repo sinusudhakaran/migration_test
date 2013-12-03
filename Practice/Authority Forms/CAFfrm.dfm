@@ -4,7 +4,7 @@ object frmCAF: TfrmCAF
   BorderIcons = [biSystemMenu]
   BorderStyle = bsSingle
   Caption = 'Client Authority Form'
-  ClientHeight = 507
+  ClientHeight = 521
   ClientWidth = 628
   Color = clBtnFace
   Constraints.MinWidth = 350
@@ -25,7 +25,7 @@ object frmCAF: TfrmCAF
   TextHeight = 13
   object Panel6: TPanel
     Left = 0
-    Top = 466
+    Top = 480
     Width = 628
     Height = 41
     Align = alBottom
@@ -161,7 +161,7 @@ object frmCAF: TfrmCAF
     Left = 8
     Top = 8
     Width = 611
-    Height = 449
+    Height = 466
     BevelKind = bkFlat
     BevelOuter = bvNone
     Color = clWhite
@@ -219,7 +219,7 @@ object frmCAF: TfrmCAF
         Font.Height = -15
         Font.Name = 'MS Sans Serif'
         Font.Style = []
-        ItemHeight = 0
+        ItemHeight = 16
         ParentFont = False
         TabOrder = 0
         OnChange = cmbInstitutionChange
@@ -575,30 +575,18 @@ object frmCAF: TfrmCAF
       Left = 0
       Top = 343
       Width = 607
-      Height = 104
+      Height = 123
       Align = alTop
       Color = clWhite
       ParentBackground = False
       TabOrder = 3
+      ExplicitTop = 342
       DesignSize = (
         607
-        104)
-      object lblRecieved: TLabel
-        Left = 261
-        Top = 27
-        Width = 111
-        Height = 16
-        Caption = 'To be received in :'
-        Font.Charset = DEFAULT_CHARSET
-        Font.Color = clWindowText
-        Font.Height = -15
-        Font.Name = 'MS Sans Serif'
-        Font.Style = []
-        ParentFont = False
-      end
+        123)
       object lblSecureCode: TLabel
-        Left = 261
-        Top = 72
+        Left = 267
+        Top = 80
         Width = 85
         Height = 16
         Caption = 'Secure Code :'
@@ -609,30 +597,61 @@ object frmCAF: TfrmCAF
         Font.Style = []
         ParentFont = False
       end
-      object chkExistingClient: TCheckBox
-        Left = 22
-        Top = 72
-        Width = 162
+      object lblNoteAddFormReq: TLabel
+        Left = 42
+        Top = 50
+        Width = 193
+        Height = 16
+        Caption = 'Note additional form is required'
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clRed
+        Font.Height = -15
+        Font.Name = 'MS Sans Serif'
+        Font.Style = [fsItalic]
+        ParentFont = False
+      end
+      object lblBookSecureLink: TLabel
+        Left = 267
+        Top = 50
+        Width = 85
+        Height = 16
+        Caption = 'Books Secure'
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clBlue
+        Font.Height = -15
+        Font.Name = 'MS Sans Serif'
+        Font.Style = []
+        ParentFont = False
+        ParentShowHint = False
+        ShowHint = True
+        OnClick = lblBookSecureLinkClick
+        OnMouseEnter = lblBookSecureLinkMouseEnter
+        OnMouseLeave = lblBookSecureLinkMouseLeave
+      end
+      object chkDataSecureExisting: TCheckBox
+        Left = 23
+        Top = 80
+        Width = 226
         Height = 17
         Anchors = [akLeft, akTop, akRight]
-        Caption = 'Existing Client'
+        Caption = 'Data sent to existing secure client'
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
         Font.Height = -15
         Font.Name = 'MS Sans Serif'
         Font.Style = []
         ParentFont = False
-        TabOrder = 2
-        OnClick = chkExistingClientClick
+        TabOrder = 1
+        OnClick = chkDataSecureExistingClick
       end
-      object chkDataToClient: TCheckBox
+      object chkDataSecureNew: TCheckBox
         Left = 22
         Top = 27
-        Width = 157
+        Width = 240
         Height = 17
         Hint = 'For BankLink Books Secure or BankLink Online Secure clients'
         Anchors = [akLeft, akTop, akRight]
-        Caption = 'Data sent direct to client'
+        Caption = 'Data sent direct to new secure client'
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
         Font.Height = -15
@@ -640,27 +659,11 @@ object frmCAF: TfrmCAF
         Font.Style = []
         ParentFont = False
         TabOrder = 0
-        OnClick = chkDataToClientClick
-      end
-      object cmbRecieved: TComboBox
-        Left = 381
-        Top = 25
-        Width = 205
-        Height = 24
-        Style = csDropDownList
-        Anchors = [akLeft, akTop, akRight]
-        Font.Charset = DEFAULT_CHARSET
-        Font.Color = clWindowText
-        Font.Height = -15
-        Font.Name = 'MS Sans Serif'
-        Font.Style = []
-        ItemHeight = 0
-        ParentFont = False
-        TabOrder = 1
+        OnClick = chkDataSecureNewClick
       end
       object edtSecureCode: TEdit
-        Left = 381
-        Top = 70
+        Left = 382
+        Top = 78
         Width = 205
         Height = 24
         Anchors = [akLeft, akTop, akRight]
@@ -671,7 +674,7 @@ object frmCAF: TfrmCAF
         Font.Style = []
         MaxLength = 8
         ParentFont = False
-        TabOrder = 3
+        TabOrder = 2
       end
     end
     object pnlAccountError: TPanel

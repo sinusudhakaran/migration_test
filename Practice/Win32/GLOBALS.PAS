@@ -606,6 +606,10 @@ var
     PRACINI_InstListLinkAU              : String = '';
     PRACINI_InstListLinkUK              : String = '';
 
+    PRACINI_SecureFormLinkNZ            : String = '';
+    PRACINI_SecureFormLinkAU            : String = '';
+    PRACINI_IBizzFormLinkAU             : String = '';
+
     PRACINI_OnlineLink                  : String = '';
 
     PRACINI_MAPI_MaskError              : string = '';

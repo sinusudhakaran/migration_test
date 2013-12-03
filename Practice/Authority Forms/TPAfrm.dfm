@@ -4,7 +4,7 @@ object frmTPA: TfrmTPA
   BorderIcons = [biSystemMenu]
   BorderStyle = bsSingle
   Caption = 'Third Party Authority'
-  ClientHeight = 602
+  ClientHeight = 634
   ClientWidth = 634
   Color = clBtnFace
   Constraints.MinWidth = 640
@@ -22,12 +22,12 @@ object frmTPA: TfrmTPA
   OnShow = FormShow
   DesignSize = (
     634
-    602)
+    634)
   PixelsPerInch = 96
   TextHeight = 13
   object btnPreview: TButton
     Left = 8
-    Top = 569
+    Top = 601
     Width = 85
     Height = 25
     Hint = 'Preview the Third Party Authority Form'
@@ -47,7 +47,7 @@ object frmTPA: TfrmTPA
   end
   object btnFile: TButton
     Left = 99
-    Top = 569
+    Top = 601
     Width = 85
     Height = 25
     Hint = 'Save the Third Party Authority Form to a file'
@@ -66,7 +66,7 @@ object frmTPA: TfrmTPA
   end
   object btnEmail: TButton
     Left = 189
-    Top = 569
+    Top = 601
     Width = 85
     Height = 25
     Hint = 'E-mail the Third Party Authority Form to the client'
@@ -85,7 +85,7 @@ object frmTPA: TfrmTPA
   end
   object btnPrint: TButton
     Left = 281
-    Top = 569
+    Top = 601
     Width = 85
     Height = 25
     Hint = 'Print the Third Party Authority Form'
@@ -104,7 +104,7 @@ object frmTPA: TfrmTPA
   end
   object btnImport: TButton
     Left = 372
-    Top = 569
+    Top = 601
     Width = 75
     Height = 25
     Anchors = [akLeft, akBottom]
@@ -120,7 +120,7 @@ object frmTPA: TfrmTPA
   end
   object btnClear: TButton
     Left = 453
-    Top = 569
+    Top = 601
     Width = 85
     Height = 25
     Hint = 'Clear the form'
@@ -139,7 +139,7 @@ object frmTPA: TfrmTPA
   end
   object btnCancel: TButton
     Left = 544
-    Top = 569
+    Top = 601
     Width = 80
     Height = 25
     Hint = 'Close the Third Party Authority Form'
@@ -161,7 +161,7 @@ object frmTPA: TfrmTPA
     Left = 8
     Top = 8
     Width = 616
-    Height = 553
+    Height = 587
     BevelKind = bkFlat
     BevelOuter = bvNone
     Color = clWhite
@@ -219,7 +219,7 @@ object frmTPA: TfrmTPA
         Font.Height = -15
         Font.Name = 'MS Sans Serif'
         Font.Style = []
-        ItemHeight = 0
+        ItemHeight = 16
         ParentFont = False
         TabOrder = 0
         OnChange = cmbInstitutionChange
@@ -575,30 +575,17 @@ object frmTPA: TfrmTPA
       Left = 0
       Top = 343
       Width = 612
-      Height = 104
+      Height = 114
       Align = alTop
       Color = clWhite
       ParentBackground = False
       TabOrder = 3
       DesignSize = (
         612
-        104)
-      object lblRecieved: TLabel
-        Left = 261
-        Top = 27
-        Width = 111
-        Height = 16
-        Caption = 'To be received in :'
-        Font.Charset = DEFAULT_CHARSET
-        Font.Color = clWindowText
-        Font.Height = -15
-        Font.Name = 'MS Sans Serif'
-        Font.Style = []
-        ParentFont = False
-      end
+        114)
       object lblSecureCode: TLabel
-        Left = 261
-        Top = 72
+        Left = 267
+        Top = 80
         Width = 85
         Height = 16
         Caption = 'Secure Code :'
@@ -609,30 +596,73 @@ object frmTPA: TfrmTPA
         Font.Style = []
         ParentFont = False
       end
-      object chkExistingClient: TCheckBox
-        Left = 22
-        Top = 72
-        Width = 167
-        Height = 17
-        Anchors = [akLeft, akTop, akRight]
-        Caption = 'Existing Client'
+      object lblNoteAddFormReq: TLabel
+        Left = 42
+        Top = 50
+        Width = 193
+        Height = 16
+        Caption = 'Note additional form is required'
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clRed
+        Font.Height = -15
+        Font.Name = 'MS Sans Serif'
+        Font.Style = [fsItalic]
+        ParentFont = False
+      end
+      object lblBookSecureLink: TLabel
+        Left = 267
+        Top = 50
+        Width = 85
+        Height = 16
+        Caption = 'Books Secure'
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clBlue
+        Font.Height = -15
+        Font.Name = 'MS Sans Serif'
+        Font.Style = []
+        ParentFont = False
+        ParentShowHint = False
+        ShowHint = True
+        OnClick = lblBookSecureLinkClick
+        OnMouseEnter = lblBookSecureLinkMouseEnter
+        OnMouseLeave = lblBookSecureLinkMouseLeave
+      end
+      object lblOrContactiBizz: TLabel
+        Left = 381
+        Top = 50
+        Width = 91
+        Height = 16
+        Caption = 'or contact iBizz.'
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
         Font.Height = -15
         Font.Name = 'MS Sans Serif'
         Font.Style = []
         ParentFont = False
-        TabOrder = 2
-        OnClick = chkExistingClientClick
       end
-      object chkDataToClient: TCheckBox
+      object chkDataSecureExisting: TCheckBox
+        Left = 22
+        Top = 80
+        Width = 239
+        Height = 17
+        Anchors = [akLeft, akTop, akRight]
+        Caption = 'Data sent to existing secure client'
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -15
+        Font.Name = 'MS Sans Serif'
+        Font.Style = []
+        ParentFont = False
+        TabOrder = 1
+        OnClick = chkDataSecureExistingClick
+      end
+      object chkDataSecureNew: TCheckBox
         Left = 22
         Top = 27
-        Width = 162
+        Width = 239
         Height = 17
-        Hint = 'For BankLink Books Secure or BankLink Online Secure clients'
         Anchors = [akLeft, akTop, akRight]
-        Caption = 'Data sent direct to client'
+        Caption = 'Data sent direct to new secure client'
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
         Font.Height = -15
@@ -640,27 +670,11 @@ object frmTPA: TfrmTPA
         Font.Style = []
         ParentFont = False
         TabOrder = 0
-        OnClick = chkDataToClientClick
-      end
-      object cmbRecieved: TComboBox
-        Left = 381
-        Top = 25
-        Width = 210
-        Height = 24
-        Style = csDropDownList
-        Anchors = [akLeft, akTop, akRight]
-        Font.Charset = DEFAULT_CHARSET
-        Font.Color = clWindowText
-        Font.Height = -15
-        Font.Name = 'MS Sans Serif'
-        Font.Style = []
-        ItemHeight = 0
-        ParentFont = False
-        TabOrder = 1
+        OnClick = chkDataSecureNewClick
       end
       object edtSecureCode: TEdit
         Left = 381
-        Top = 70
+        Top = 78
         Width = 210
         Height = 24
         Anchors = [akLeft, akTop, akRight]
@@ -671,12 +685,12 @@ object frmTPA: TfrmTPA
         Font.Style = []
         MaxLength = 8
         ParentFont = False
-        TabOrder = 3
+        TabOrder = 2
       end
     end
     object pnlRural: TPanel
       Left = 0
-      Top = 447
+      Top = 457
       Width = 612
       Height = 98
       Align = alTop

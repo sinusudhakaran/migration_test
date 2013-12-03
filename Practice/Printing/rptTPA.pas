@@ -382,11 +382,17 @@ begin
   NewLineUp(2);
   TempCurrYPos := CurrYPos;
   CurrYPos := GetTextYPos(CurrYPos);
-  DrawCheckbox(OutputLeft + BoxMargin2, CurrYPos, Values.chkDataToClient.Checked);
+  DrawCheckbox(OutputLeft + BoxMargin2, CurrYPos, (Values.chkDataSecureExisting.Checked or Values.chkDataSecureNew.Checked));
   TextLine('Secure Client', OutputLeft + 80 , OutputRight);
   CurrYPos := TempCurrYPos;
-  TextBox('Existing Secure Code', Values.edtSecureCode.text, myCanvas.Font.Size, myCanvas.Font.Size + 1, jtLeft, jtLeft,
-          XPosOneThirds-30, XPosOneThirds + 280, XPosTwoThirds, CurrYPos, CurrYPos + BoxHeight);
+
+  if Values.chkDataSecureExisting.Checked then
+    TextBox('Existing Secure Code', Values.edtSecureCode.text, myCanvas.Font.Size, myCanvas.Font.Size + 1, jtLeft, jtLeft,
+            XPosOneThirds-30, XPosOneThirds + 280, XPosTwoThirds, CurrYPos, CurrYPos + BoxHeight)
+  else
+    TextBox('Existing Secure Code', '', myCanvas.Font.Size, myCanvas.Font.Size + 1, jtLeft, jtLeft,
+            XPosOneThirds-30, XPosOneThirds + 280, XPosTwoThirds, CurrYPos, CurrYPos + BoxHeight);
+
   NewLineUp;
   HalfNewLineUp;
   DrawCheckbox(OutputLeft + BoxMargin2, CurrYPos, (values.InstitutionType = inOther));
@@ -441,7 +447,8 @@ begin
   if Values.InstitutionType <> inBLO then
     Exit;
 
-  if Values.chkDataToClient.checked then
+  if (Values.chkDataSecureExisting.checked) or
+     (Values.chkDataSecureNew.checked) then
     Exit;
 
 {$IFNDEF PRACTICE-7}

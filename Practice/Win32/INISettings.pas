@@ -641,6 +641,12 @@ begin
         PRACINI_InstListLinkAU := ReadString(GrpPracLinks,'InstitutionListAU', TUrls.DefInstListLinkAU);
         PRACINI_InstListLinkUK := ReadString(GrpPracLinks,'InstitutionListUK', TUrls.DefInstListLinkUK);
 
+        PRACINI_OnlineLink := ReadString(GrpPracLinks , 'OnlineLink', '');
+
+        PRACINI_SecureFormLinkNZ := ReadString(GrpPracLinks,'SecureFormLinkNZ', TUrls.DefSecureFormLinkNZ);
+        PRACINI_SecureFormLinkAU := ReadString(GrpPracLinks,'SecureFormLinkAU', TUrls.DefSecureFormLinkAU);
+        PRACINI_IBizzFormLinkAU := ReadString(GrpPracLinks,'IBizzFormLinkAU', TUrls.DefIBizzFormLinkAU);
+
         // Sets Defaults if no data exists
         if IsPractice then
           PRACINI_GST101Link := ReadString(GrpPracLinks ,'Gst101',DefLinkTaxAgentGSTReturn)
@@ -651,8 +657,6 @@ begin
         if (Sametext(PRACINI_GST101Link, DefLinkGST101) or Sametext(PRACINI_GST101Link, DefLinkGST103)) and
            (IsPractice) then
           PRACINI_GST101Link := DefLinkTaxAgentGSTReturn;
-
-        PRACINI_OnlineLink := ReadString(GrpPracLinks ,'OnlineLink','');
 
         PRACINI_ShowSol6systems := ReadBool( GrpPracEnv,'ShowSol6Systems', False);
         PRACINI_MYOB_AO_Systems := ReadBool( GrpPracEnv,'Show_MYOB_AO_MP_Systems', False);
@@ -821,6 +825,10 @@ begin
            WriteString(GrpPracLinks, 'InstitutionListUK',PRACINI_InstListLinkUK);
 
            WriteString(GrpPracLinks ,'OnlineLink', PRACINI_OnlineLink);
+
+           WriteString(GrpPracLinks, 'SecureFormLinkNZ',PRACINI_SecureFormLinkNZ);
+           WriteString(GrpPracLinks, 'SecureFormLinkAU',PRACINI_SecureFormLinkAU);
+           WriteString(GrpPracLinks, 'IBizzFormLinkAU',PRACINI_IBizzFormLinkAU);
 
 {$IFDEF SmartLink}
            WriteString( GrpPracFingerTips,'URL', PRACINI_FingertipsURL);

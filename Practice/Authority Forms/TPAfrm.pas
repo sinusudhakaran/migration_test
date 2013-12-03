@@ -65,11 +65,9 @@ type
     edtCostCode: TEdit;
     pnlClientSpacer: TPanel;
     pnlData: TPanel;
-    lblRecieved: TLabel;
     lblSecureCode: TLabel;
-    chkExistingClient: TCheckBox;
-    chkDataToClient: TCheckBox;
-    cmbRecieved: TComboBox;
+    chkDataSecureExisting: TCheckBox;
+    chkDataSecureNew: TCheckBox;
     edtSecureCode: TEdit;
     pnlRural: TPanel;
     lblRuralInstitutions: TLabel;
@@ -79,6 +77,9 @@ type
     pnlAccountError: TPanel;
     lblAccountValidationError: TLabel;
     edtAccountNumber: TEdit;
+    lblNoteAddFormReq: TLabel;
+    lblBookSecureLink: TLabel;
+    lblOrContactiBizz: TLabel;
     procedure btnPreviewClick(Sender: TObject);
     procedure btnFileClick(Sender: TObject);
     procedure btnPrintClick(Sender: TObject);
@@ -99,8 +100,8 @@ type
     procedure mskAccountNumberEnter(Sender: TObject);
     procedure mskAccountNumberMouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
-    procedure chkDataToClientClick(Sender: TObject);
-    procedure chkExistingClientClick(Sender: TObject);
+    procedure chkDataSecureNewClick(Sender: TObject);
+    procedure chkDataSecureExistingClick(Sender: TObject);
     procedure mskAccountNumberValidateError(var aRaiseError: Boolean);
     procedure mskAccountNumberValidateEdit(var aRunExistingValidate: Boolean);
     procedure edtAccountNumberExit(Sender: TObject);
@@ -112,6 +113,9 @@ type
       Shift: TShiftState);
     procedure radReDateTransactionsMouseDown(Sender: TObject;
       Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+    procedure lblBookSecureLinkClick(Sender: TObject);
+    procedure lblBookSecureLinkMouseEnter(Sender: TObject);
+    procedure lblBookSecureLinkMouseLeave(Sender: TObject);
   private
     fValidAccount : boolean;
     fAccountNumber : string;
@@ -216,14 +220,11 @@ begin
   SetInstitutionControls(inNone);
   fValidateError := false;
 
-  // Data Sent Direct to Client
-  cmbRecieved.AddItem('BankLink Books Secure', nil);
-  cmbRecieved.AddItem('BankLink Online Secure', nil);
-  cmbRecieved.ItemIndex := 0;
-
   SetDataSentToClient(false);
 
   edtClientStartDte.AsDateTime := now();
+
+  lblBookSecureLink.hint := PRACINI_SecureFormLinkNZ;
 end;
 
 //------------------------------------------------------------------------------
@@ -256,6 +257,31 @@ begin
     else
       Result := TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex]).Code;
   end;
+end;
+
+//------------------------------------------------------------------------------
+procedure TfrmTPA.lblBookSecureLinkClick(Sender: TObject);
+var
+  link : string;
+begin
+  link := PRACINI_SecureFormLinkNZ;
+
+  if length(link) = 0 then
+    exit;
+
+  ShellExecute(0, 'open', PChar(link), nil, nil, SW_NORMAL);
+end;
+
+//------------------------------------------------------------------------------
+procedure TfrmTPA.lblBookSecureLinkMouseEnter(Sender: TObject);
+begin
+  lblBookSecureLink.Font.Style := [fsUnderline];
+end;
+
+//------------------------------------------------------------------------------
+procedure TfrmTPA.lblBookSecureLinkMouseLeave(Sender: TObject);
+begin
+  lblBookSecureLink.Font.Style := [];
 end;
 
 //------------------------------------------------------------------------------
@@ -370,7 +396,7 @@ begin
   end;
 
   // Secure Code
-  if Result and (chkExistingClient.Checked = true) and (edtSecureCode.text = '') then
+  if Result and (chkDataSecureExisting.Checked = true) and (edtSecureCode.text = '') then
   begin
     HelpfulErrorMsg('Please enter a Secure Code.', 0);
     edtSecureCode.SetFocus;
@@ -379,15 +405,15 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TfrmTPA.chkDataToClientClick(Sender: TObject);
+procedure TfrmTPA.chkDataSecureNewClick(Sender: TObject);
 begin
-  SetDataSentToClient(chkDataToClient.Checked);
+  SetDataSentToClient(chkDataSecureNew.Checked);
 end;
 
 //------------------------------------------------------------------------------
-procedure TfrmTPA.chkExistingClientClick(Sender: TObject);
+procedure TfrmTPA.chkDataSecureExistingClick(Sender: TObject);
 begin
-  SetExistingClient(chkExistingClient.Checked);
+  SetExistingClient(chkDataSecureExisting.Checked);
 end;
 
 //------------------------------------------------------------------------------
@@ -526,15 +552,12 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmTPA.SetDataSentToClient(aEnabled: boolean);
 begin
-  cmbRecieved.Visible       := aEnabled;
-  lblRecieved.Visible       := aEnabled;
-  chkExistingClient.Visible := aEnabled;
+  lblNoteAddFormReq.Visible := aEnabled;
+  lblBookSecureLink.Visible := aEnabled;
+  lblOrContactiBizz.Visible := aEnabled;
 
-  if not aEnabled then
-  begin
-    chkExistingClient.Checked := false;
-    SetExistingClient(false);
-  end;
+  if aEnabled then
+    chkDataSecureExisting.Checked := false;
 end;
 
 //------------------------------------------------------------------------------
@@ -542,6 +565,9 @@ procedure TfrmTPA.SetExistingClient(aEnabled: boolean);
 begin
   lblSecureCode.Visible := aEnabled;
   edtSecureCode.Visible := aEnabled;
+
+  if aEnabled then
+    chkDataSecureNew.Checked := false;
 end;
 
 //------------------------------------------------------------------------------
@@ -573,6 +599,10 @@ begin
       edtInstitutionName.Visible := false;
       lblInstitutionOther.Visible := false;
       cmbInstitution.Width := edtBranch.Width;
+      chkDataSecureNew.Checked := false;
+      chkDataSecureExisting.Checked := false;
+      SetDataSentToClient(false);
+      SetExistingClient(false);
     end;
     inOther, inBLO : begin
       enableControls := true;
@@ -587,6 +617,7 @@ begin
           // Combo has no option to set the Drop down wider than the combo so this is
           // how you set it
           SendMessage(cmbInstitution.Handle, CB_SETDROPPEDWIDTH, edtBranch.Width, 0);
+          cmbInstitution.DroppedDown := true;
         end;
         inBLO  : begin
           mskAccountNumber.Visible := true;
@@ -610,17 +641,18 @@ begin
     end;
   end;
 
-  lblNameOfAccount.enabled  := enableControls;
-  edtNameOfAccount.enabled  := enableControls;
-  lblAccount.enabled        := enableControls;
-  mskAccountNumber.enabled  := enableControls;
-  lblClientCode.enabled     := enableControls;
-  edtClientCode.Enabled     := enableControls;
-  lblCostCode.Enabled       := enableControls;
-  edtCostCode.Enabled       := enableControls;
-  edtBranch.Enabled         := enableControls;
-  lblBranch.Enabled         := enableControls;
-  chkDataToClient.Enabled   := enableControls;
+  lblNameOfAccount.enabled      := enableControls;
+  edtNameOfAccount.enabled      := enableControls;
+  lblAccount.enabled            := enableControls;
+  mskAccountNumber.enabled      := enableControls;
+  lblClientCode.enabled         := enableControls;
+  edtClientCode.Enabled         := enableControls;
+  lblCostCode.Enabled           := enableControls;
+  edtCostCode.Enabled           := enableControls;
+  edtBranch.Enabled             := enableControls;
+  lblBranch.Enabled             := enableControls;
+  chkDataSecureNew.Enabled      := enableControls;
+  chkDataSecureExisting.Enabled := enableControls;
 
   lblAccountHintLine.Repaint;
 end;
@@ -724,8 +756,8 @@ begin
   edtClientStartDte.Text := '';
   edtCostCode.Text := '';
   edtSecureCode.Text := '';
-  chkExistingClient.Checked := false;
-  chkDataToClient.Checked := false;
+  chkDataSecureNew.Checked := false;
+  chkDataSecureExisting.Checked := false;
   lblAccountValidationError.Caption := '';
 end;
 
