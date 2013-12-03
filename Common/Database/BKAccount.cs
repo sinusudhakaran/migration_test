@@ -165,14 +165,6 @@ namespace BankLink.Practice.BooksIO
 
 
 
-		/// <summary>
-		/// PercentAccount property
-		/// </summary>
-		[XmlAttribute("PercentAccount", DataType = "string")]
-		public String PercentAccount { get; set; }
-
-
-
 	}
 
 

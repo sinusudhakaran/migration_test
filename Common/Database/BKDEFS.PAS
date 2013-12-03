@@ -9,7 +9,7 @@ Interface uses MONEYDEF, DATEDEF;
 {  -------------------------------------------------------------------  }
 
 Const
-   BK_IOLIB_Version : Integer = 709;
+   BK_IOLIB_Version : Integer = 711;
    BK_IOLIB_Date    = '03/12/13';
    BK_FILE_VERSION  = 180;  (* Current Version counter for files
                               Changes if structure or method of storing a value would cause
@@ -564,8 +564,6 @@ Type
       chLinked_Account_CS                : String[ 20 ];       { Stored }
       chHide_In_Basic_Chart              : Boolean;       { Stored }
       chAudit_Record_ID                  : Integer;       { Stored }
-      chPercent_Account                  : String[ 20 ];       { Stored }
-      chPercentage                       : Double;       { Stored }
       chTemp_Quantity                    : TDynamic_Balances_Rec;
       chTemp_Amount                      : TDynamic_Balances_Rec;
       chTemp_Base_Amount                 : TDynamic_Balances_Rec;

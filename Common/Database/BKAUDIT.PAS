@@ -322,8 +322,6 @@ begin
     FAuditNamesArray[80,99] := 'Linked_Account_CS';
     FAuditNamesArray[80,100] := 'Hide_In_Basic_Chart';
     FAuditNamesArray[80,101] := 'Audit_Record_ID';
-    FAuditNamesArray[80,102] := 'Percent_Account';
-    FAuditNamesArray[80,103] := 'Percentage';
 
    FAuditTableArray[100] := 'Payee';
     FAuditNamesArray[100,102] := 'Number';
