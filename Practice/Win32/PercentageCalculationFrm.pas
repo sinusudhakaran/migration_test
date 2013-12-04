@@ -59,6 +59,7 @@ implementation
 uses
   AccountLookupFrm,
   BKDefs,
+  ErrorMoreFrm,
   Globals;
 
 procedure TfrmPercentageCalculation.btnChartClick(Sender: TObject);
@@ -89,15 +90,15 @@ begin
   if not ValidAccountCode then
     ErrorStrings.Add(ErrorMsg)
   else if (Trim(edtAccountCode.Text) = '') and (Trim(nPercent.Text) <> '0.00') then
-    ErrorStrings.Add('Please enter an Account Code');
+    ErrorStrings.Add('Please enter an Account Code.');
   if (Trim(edtAccountCode.Text) <> '') and (Trim(nPercent.Text) = '0.00') then
-    ErrorStrings.Add('Please enter a Percentage figure')
+    ErrorStrings.Add('Please enter a Percentage figure.')
   else
     ModalResult := mrOK;
 
   if (ErrorStrings.Count > 0) then
   begin
-    ShowMessage(ErrorStrings.Text);
+    HelpfulErrorMsg(ErrorStrings.Text, 0);
     ModalResult := mrNone;
   end;
 end;
@@ -126,17 +127,17 @@ begin
     if not Assigned(pAcct) then
     begin
       IsValid := False;
-      ErrorMsg := 'The code you have picked is not in the Chart of Accounts';
+      ErrorMsg := 'The code you have picked is not in the Chart of Accounts.';
     end else
     if CodesMatch then
     begin
       IsValid   := False;
-      ErrorMsg  := 'Please pick a row other than the current row';
+      ErrorMsg  := 'Please pick a row other than the current row.';
     end else
     if not pAcct.chPosting_Allowed then
     begin
       IsValid   := False;
-      ErrorMsg  := 'You cannot pick a non-posting code';
+      ErrorMsg  := 'You cannot pick a non-posting code.';
     end else
       IsValid := True;
 

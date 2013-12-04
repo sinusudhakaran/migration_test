@@ -1279,8 +1279,8 @@ Begin
 
   if HasPercentageFormula(CurrentRow - 1) then         
   begin
-    ShowMessage('You cannot use copy on a row which derives its values as a percentage ' +
-                'of another row. You must first clear the percentage');
+    HelpfulErrorMsg('You cannot use copy on a row which derives its values as a percentage ' +
+                    'of another row. You must first clear the percentage.', 0);
     exit;
   end;
 
@@ -1708,8 +1708,8 @@ Begin
 
   if HasPercentageFormula(CurrentRow - 1) then
   begin
-    ShowMessage('You cannot use split in a row which derives its values as a percentage ' +
-                'of another row. You must first clear the percentage.');
+    HelpfulErrorMsg('You cannot use split in a row which derives its values as a percentage ' +
+                    'of another row. You must first clear the percentage.', 0);
     Exit;
   end;
 
@@ -1758,8 +1758,9 @@ begin
   RowIndex := tblBudget.ActiveRow - 1;
   if HasPercentageFormula(RowIndex) then                
   begin
-    ShowMessage('Quantities cannot be entered for cells in a row which is a % of another row. ' +
-                'You must first remove the percentage for this row before setting a quantity');
+    HelpfulErrorMsg('Quantities cannot be entered for cells in a row which is a percentage ' +
+                    'of another row. You must first remove the percentage for this row ' +
+                    'before setting a quantity.', 0);
     Exit;
   end;
   ColumnIndex := tblBudget.ActiveCol - 2;
@@ -2694,7 +2695,7 @@ const
   CellsHavePercentWarning : string = 'You cannot change the value of cells which are ' +
                                      'deriving their value as a percentage of another ' +
                                      'cell. You must first clear the percentage for ' +
-                                     'this row';
+                                     'this row.';
 var
   ValueTooLarge : boolean;
   Percent : double;
@@ -2728,7 +2729,7 @@ begin
         ctCell : begin
           if HasPercentageFormula(DataRow) then                 
           begin
-            ShowMessage(CellsHavePercentWarning);
+            HelpfulErrorMsg(CellsHavePercentWarning, 0);
           end else
           begin
             IncreaseCellBy(DataRow, DataCol, Percent, ValueTooLarge);
@@ -2747,7 +2748,7 @@ begin
         ctRow : begin
           if HasPercentageFormula(DataRow) then
           begin
-            ShowMessage(CellsHavePercentWarning);
+            HelpfulErrorMsg(CellsHavePercentWarning, 0);
           end else
           begin
             for i := 1 to 12 do
