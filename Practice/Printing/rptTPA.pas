@@ -321,13 +321,27 @@ begin
 
   //----------------------------------------------------------------------------
   NewLine(2);
-  DecodeDate(Values.edtClientStartDte.AsDateTime, Year, Month, Day);
-  TextBox('As from the', inttoStr(Day), myCanvas.Font.Size, myCanvas.Font.Size + 1, jtLeft, jtCenter,
-          OutputLeft, OutputLeft + 170, OutputLeft + 230, CurrYPos, CurrYPos + BoxHeight, true);
-  TextBox('day of', moNames[Month], myCanvas.Font.Size, myCanvas.Font.Size + 1, jtLeft, jtCenter,
-          OutputLeft + 240, OutputLeft + 340, OutputLeft + 620, CurrYPos, CurrYPos + BoxHeight, true);
-  TextBox('20', RightStr(inttoStr(Year),2), myCanvas.Font.Size, myCanvas.Font.Size + 1, jtLeft, jtCenter,
-          OutputLeft + 640, OutputLeft + 680, OutputLeft + 740, CurrYPos, CurrYPos + BoxHeight, true);
+
+  if length(trim(Values.edtClientStartDte.Text)) <= 4 then
+  begin
+    TextBox('As from the', '', myCanvas.Font.Size, myCanvas.Font.Size + 1, jtLeft, jtCenter,
+            OutputLeft, OutputLeft + 170, OutputLeft + 230, CurrYPos, CurrYPos + BoxHeight, true);
+    TextBox('day of', '', myCanvas.Font.Size, myCanvas.Font.Size + 1, jtLeft, jtCenter,
+            OutputLeft + 240, OutputLeft + 340, OutputLeft + 620, CurrYPos, CurrYPos + BoxHeight, true);
+    TextBox('20', '', myCanvas.Font.Size, myCanvas.Font.Size + 1, jtLeft, jtCenter,
+            OutputLeft + 640, OutputLeft + 680, OutputLeft + 740, CurrYPos, CurrYPos + BoxHeight, true);
+  end
+  else
+  begin
+    DecodeDate(Values.edtClientStartDte.AsDateTime, Year, Month, Day);
+    TextBox('As from the', inttoStr(Day), myCanvas.Font.Size, myCanvas.Font.Size + 1, jtLeft, jtCenter,
+            OutputLeft, OutputLeft + 170, OutputLeft + 230, CurrYPos, CurrYPos + BoxHeight, true);
+    TextBox('day of', moNames[Month], myCanvas.Font.Size, myCanvas.Font.Size + 1, jtLeft, jtCenter,
+            OutputLeft + 240, OutputLeft + 340, OutputLeft + 620, CurrYPos, CurrYPos + BoxHeight, true);
+    TextBox('20', RightStr(inttoStr(Year),2), myCanvas.Font.Size, myCanvas.Font.Size + 1, jtLeft, jtCenter,
+            OutputLeft + 640, OutputLeft + 680, OutputLeft + 740, CurrYPos, CurrYPos + BoxHeight, true);
+  end;
+
   NewLine;
 
   TextLine('you and each of you are hereby authorised to disclose and/or', OutputLeft + 760, OutputRight);

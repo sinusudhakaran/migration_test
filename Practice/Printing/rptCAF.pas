@@ -345,11 +345,24 @@ begin
 
   TextWidth := CanvasRenderEng.GetTextLength('I/We hereby AUTHORISE the Bank and BankLink as at and from the first of');
 
-  TextBox('I/We hereby AUTHORISE the Bank and BankLink as at and from the first of',
-          moNames[Month], myCanvas.Font.Size, myCanvas.Font.Size + 1, jtLeft, jtCenter,
-          OutputLeft, OutputLeft + TextWidth + 20, XPosTwoThirds + 20, CurrYPos, CurrYPos + BoxHeight, true);
-  TextBox('20', RightStr(inttoStr(Year),2), myCanvas.Font.Size, myCanvas.Font.Size + 1, jtLeft, jtCenter,
-          XPosTwoThirds + 30, XPosTwoThirds + 70, XPosTwoThirds + 140, CurrYPos, CurrYPos + BoxHeight, true);
+  if length(trim(Values.edtClientStartDte.Text)) <= 4 then
+  begin
+    TextBox('I/We hereby AUTHORISE the Bank and BankLink as at and from the first of',
+            '', myCanvas.Font.Size, myCanvas.Font.Size + 1, jtLeft, jtCenter,
+            OutputLeft, OutputLeft + TextWidth + 20, XPosTwoThirds + 20, CurrYPos, CurrYPos + BoxHeight, true);
+    TextBox('20', '', myCanvas.Font.Size, myCanvas.Font.Size + 1, jtLeft, jtCenter,
+            XPosTwoThirds + 30, XPosTwoThirds + 70, XPosTwoThirds + 140, CurrYPos, CurrYPos + BoxHeight, true);
+  end
+  else
+  begin
+    TextBox('I/We hereby AUTHORISE the Bank and BankLink as at and from the first of',
+            moNames[Month], myCanvas.Font.Size, myCanvas.Font.Size + 1, jtLeft, jtCenter,
+            OutputLeft, OutputLeft + TextWidth + 20, XPosTwoThirds + 20, CurrYPos, CurrYPos + BoxHeight, true);
+    TextBox('20', RightStr(inttoStr(Year),2), myCanvas.Font.Size, myCanvas.Font.Size + 1, jtLeft, jtCenter,
+            XPosTwoThirds + 30, XPosTwoThirds + 70, XPosTwoThirds + 140, CurrYPos, CurrYPos + BoxHeight, true);
+  end;
+
+
   NewLine;
   TextLine('1.', NumColumn, OutputRight);
   TextLine('to forward all data and', XPosTwoThirds + 150, OutputRight);
