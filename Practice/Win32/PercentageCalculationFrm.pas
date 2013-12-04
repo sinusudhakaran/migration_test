@@ -87,19 +87,23 @@ begin
   ErrorMsg := '';
   ValidAccountCode := CheckAccountCodeValidity(ErrorMsg);
   ErrorStrings := TStringList.Create;
-  if not ValidAccountCode then
-    ErrorStrings.Add(ErrorMsg)
-  else if (Trim(edtAccountCode.Text) = '') and (Trim(nPercent.Text) <> '0.00') then
-    ErrorStrings.Add('Please enter an Account Code.');
-  if (Trim(edtAccountCode.Text) <> '') and (Trim(nPercent.Text) = '0.00') then
-    ErrorStrings.Add('Please enter a Percentage figure.')
-  else
-    ModalResult := mrOK;
+  try
+    if not ValidAccountCode then
+      ErrorStrings.Add(ErrorMsg)
+    else if (Trim(edtAccountCode.Text) = '') and (Trim(nPercent.Text) <> '0.00') then
+      ErrorStrings.Add('Please enter an Account Code.');
+    if (Trim(edtAccountCode.Text) <> '') and (Trim(nPercent.Text) = '0.00') then
+      ErrorStrings.Add('Please enter a Percentage figure.')
+    else
+      ModalResult := mrOK;
 
-  if (ErrorStrings.Count > 0) then
-  begin
-    HelpfulErrorMsg(ErrorStrings.Text, 0);
-    ModalResult := mrNone;
+    if (ErrorStrings.Count > 0) then
+    begin
+      HelpfulErrorMsg(ErrorStrings.Text, 0);
+      ModalResult := mrNone;
+    end;
+  finally
+    FreeAndNil(ErrorStrings);
   end;
 end;
 
