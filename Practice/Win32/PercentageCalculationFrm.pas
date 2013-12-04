@@ -157,7 +157,6 @@ end;
 
 procedure TfrmPercentageCalculation.FormCreate(Sender: TObject);
 begin
-  // imgAccountCode.Picture := ImagesFrm.AppImages.Coding.GetBitmap()
   ImagesFrm.AppImages.Coding.GetBitmap(CODING_CHART_BMP,btnChart.Glyph);
 end;
 

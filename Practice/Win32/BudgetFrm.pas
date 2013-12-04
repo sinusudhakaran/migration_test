@@ -743,10 +743,6 @@ begin
          FData[RowNum - 1].bDetailLine.bdPercent_Account := FData[RowNum - 1].PercentAccount;
          FData[RowNum - 1].bDetailLine.bdPercentage := FData[RowNum - 1].Percentage;
        end;
-       // If this row has a percentage set (ie. the amounts are x% of another row), then the user
-       // should not be able to change the cell values directly until they clear the percentage 
-       //DisableRow := (FData[RowNum - 1].bDetailLine.bdPercent_Account <> '') and
-       //              (FData[RowNum - 1].bDetailLine.bdPercentage <> 0);
        case ColNum of
          MonthMin..MonthMax :
          begin
@@ -773,8 +769,6 @@ begin
             FData[RowNum-1].bDetailLine.bdBudget[ColNum-MonthBase] := eAmounts[ColNum-MonthBase];
             FData[RowNum-1].bDetailLine.bdQty_Budget[ColNum - MonthBase] := FData[RowNum - 1].bQuantitys[ColNum - MonthBase];
             FData[RowNum-1].bDetailLine.bdEach_Budget[ColNum - MonthBase] := FData[RowNum - 1].bUnitPrices[ColNum - MonthBase];
-//            FData[RowNum-1].bDetailLine.bdPercent_Account := FData[RowNum - 1].PercentAccount;
-//            FData[RowNum-1].bDetailLine.bdPercentage := FData[RowNum - 1].Percentage;
          end;
        end;
 
@@ -788,9 +782,6 @@ begin
           tblBudget.InvalidateColumn(TotalCol);
           AllowRedraw := true;
        end;
-
-       // tblBudget.Cells.Cell[RowNum,ColNum].Access := otxReadOnly;
-       // tblBudget.Cells.Access[RowNum,ColNum] := otxReadOnly;
 
        UpdatePercentageRows;
   end; {if row ok}
