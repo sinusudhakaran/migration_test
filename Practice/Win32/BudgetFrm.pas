@@ -734,7 +734,6 @@ procedure TfrmBudget.tblBudgetDoneEdit(Sender: TObject; RowNum,
 {saves direct edits!}
 var
   NewLine : pBudget_Detail_Rec;
-  DisableRow: boolean;
 
 begin
   if RowDataOK(RowNum,'BDoneEdit') then
@@ -858,7 +857,6 @@ begin
 
    //ExtraTitleBar.Color    := bkBranding.HeaderBackgroundColor;
    //edtName.Color          := bkBranding.HeaderBackgroundColor;
-   UpdateAllLines; // May need to recalculate percentages, eg. if the chart code a % is based from has been removed
 end;
 
 //------------------------------------------------------------------------------
@@ -932,7 +930,7 @@ begin
       HasData := false;
       for MonthIndex := 1 to 12 do
       begin
-        if pBudgetRec.bdBudget[MonthIndex] <> 0 then
+        if (pBudgetRec.bdBudget[MonthIndex] <> 0) or (pBudgetRec.bdPercent_Account <> '') then
         begin
           HasData := true;
           break;
@@ -1041,16 +1039,14 @@ var
   i : integer;
   DetailLine : pBudget_Detail_Rec;
   HasData : boolean;
-  pAcct: pAccount_Rec;
-  IsValid: boolean;
 begin
   if not DataAssigned then exit;
   if not ((index >= Low(FData)) and (index <= High(Fdata))) then exit;
 
-  {check if any of the values are non zero}
+  {check if any of the values are non zero, or if they are valued as a % of another account code }
   HasData := false;
   for i := 1 to 12 do
-    if FData[index].bAmounts[i] <> 0 then
+    if (FData[index].bAmounts[i] <> 0) or HasPercentageFormula(index) then
     begin
       HasData := true;
       break;
@@ -1065,22 +1061,7 @@ begin
        DetailLine.bdAccount_Code := FData[index].bAccount;
        Budget.buDetail.Insert(DetailLine);
        FData[index].bDetailLine := DetailLine;
-    end;
-
-    // Check if percent account code is valid, as it may have been removed
-    if HasPercentageFormula(index) then    
-    begin
-      pAcct := MyClient.clChart.FindCode(FData[index].PercentAccount);
-      IsValid := Assigned(pAcct) and pAcct.chPosting_Allowed;
-      if not IsValid then
-      begin
-        // Can't use a % of an account code which is invalid, clear the percentage and amounts
-        FData[index].PercentAccount := '';
-        FData[index].Percentage := 0;
-        for i := 1 to 12 do          
-          FData[index].bAmounts[i] := 0;
-      end;
-    end;
+    end;    
 
     {update data into budget line}
     FData[index].bDetailLine.bdPercent_Account := FData[index].PercentAccount;
@@ -1363,7 +1344,6 @@ begin
     //not found, add it
     AddChartCodeToTable(Code, True);
   end;
-  UpdateAllLines;
 end;
 
 //------------------------------------------------------------------------------
@@ -2493,7 +2473,7 @@ begin
          tblBudget.LeftCol    := 0;
       end;
    finally
-      DoInvalidateTable;
+      tblBudget.InvalidateTable;
       tblBudget.AllowRedraw := true;
    end;
 end;
@@ -2666,6 +2646,7 @@ begin
     frmPercentageCalculation.Position := poMainFormCenter;
     frmPercentageCalculation.edtAccountCode.Text := FData[DataRow].PercentAccount;
     frmPercentageCalculation.nPercent.Text := FloatToStr(FData[DataRow].Percentage);
+    frmPercentageCalculation.CurrentRow := FData[DataRow].bAccount;
     frmPercentageCalculation.ShowModal;
 
     if frmPercentageCalculation.ModalResult = mrOK then
@@ -2684,8 +2665,19 @@ begin
   begin
     if (OnlyUpdateThisColumn = -1) or (OnlyUpdateThisColumn = ColNum) then
     begin
-      FData[DataRow].bAmounts[ColNum] :=
-        Round(FData[AccountCodeRow].bAmounts[ColNum] * (FData[DataRow].Percentage / 100));
+      if (AccountCodeRow = -1) then
+        // In this case, the chart code row our percentages are based off has been deleted, so we
+        // want to zero out the data but keep the formulas in place. The user is responsible for
+        // updating or removing the percentage code and amount
+        FData[DataRow].bAmounts[ColNum] := 0
+      else if not FData[AccountCodeRow].bIsPosting then
+        // In this case, the chart code row our percentages are based off has been set to
+        // non-posting, so we want to zero out the data but keep the formulas in place. The
+        // user is responsible for updating or removing the percentage code and amount
+        FData[DataRow].bAmounts[ColNum] := 0
+      else
+        FData[DataRow].bAmounts[ColNum] :=
+          Round(FData[AccountCodeRow].bAmounts[ColNum] * (FData[DataRow].Percentage / 100));
       // Assigning a percentage to a row removes any quantities in the same row
       FData[DataRow].bQuantitys[ColNum] := 0;
       FData[DataRow].bUnitPrices[ColNum] := 0;
@@ -2762,7 +2754,7 @@ begin
         end;
 
         ctRow : begin
-          if HasPercentageFormula(DataRow) then          
+          if HasPercentageFormula(DataRow) then
           begin
             ShowMessage(CellsHavePercentWarning);
           end else
