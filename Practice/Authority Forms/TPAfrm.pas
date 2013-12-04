@@ -763,6 +763,7 @@ begin
   chkDataSecureNew.Checked := false;
   chkDataSecureExisting.Checked := false;
   lblAccountValidationError.Caption := '';
+  edtClientStartDte.AsDateTime := now();
 end;
 
 //------------------------------------------------------------------------------
