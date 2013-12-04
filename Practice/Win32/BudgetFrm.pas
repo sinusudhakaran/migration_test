@@ -2635,21 +2635,25 @@ begin
     DataRow := tblBudget.ActiveRow - 1;
 
     frmPercentageCalculation := TfrmPercentageCalculation.Create(nil);
-    frmPercentageCalculation.Position := poMainFormCenter;
-    frmPercentageCalculation.edtAccountCode.Text := FData[DataRow].PercentAccount;
-    frmPercentageCalculation.nPercent.Text := FloatToStr(FData[DataRow].Percentage);
-    frmPercentageCalculation.CurrentRow := FData[DataRow].bAccount;
-    frmPercentageCalculation.ShowModal;
+    try
+      frmPercentageCalculation.Position := poMainFormCenter;
+      frmPercentageCalculation.edtAccountCode.Text := FData[DataRow].PercentAccount;
+      frmPercentageCalculation.nPercent.Text := FloatToStr(FData[DataRow].Percentage);
+      frmPercentageCalculation.CurrentRow := FData[DataRow].bAccount;
+      frmPercentageCalculation.ShowModal;
 
-    if frmPercentageCalculation.ModalResult = mrOK then
-    begin
-      if (FData[DataRow].PercentAccount = '') and
-         (Trim(frmPercentageCalculation.edtAccountCode.Text) = '') then
-        Exit; // There was no percentage and there isn't now, so nothing has changed, don't do anything   
-      FData[DataRow].PercentAccount := Trim(frmPercentageCalculation.edtAccountCode.Text);
-      FData[DataRow].Percentage := StrToFloat(Trim(frmPercentageCalculation.nPercent.Text));
-    end else
-      Exit;
+      if frmPercentageCalculation.ModalResult = mrOK then
+      begin
+        if (FData[DataRow].PercentAccount = '') and
+           (Trim(frmPercentageCalculation.edtAccountCode.Text) = '') then
+          Exit; // There was no percentage and there isn't now, so nothing has changed, don't do anything
+        FData[DataRow].PercentAccount := Trim(frmPercentageCalculation.edtAccountCode.Text);
+        FData[DataRow].Percentage := StrToFloat(Trim(frmPercentageCalculation.nPercent.Text));
+      end else
+        Exit;
+    finally
+      FreeAndNil(frmPercentageCalculation);
+    end;
   end;
   AccountCodeRow := GetAccountCodeRow(FData[DataRow].PercentAccount);
 
