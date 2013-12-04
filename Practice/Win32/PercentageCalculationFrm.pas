@@ -3,6 +3,7 @@ unit PercentageCalculationFrm;
 interface
 
 uses
+  BKConst,
   Buttons,
   Classes,
   Controls,
@@ -39,13 +40,13 @@ type
     procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure edtAccountCodeChange(Sender: TObject);
     procedure btnOKClick(Sender: TObject);
-    procedure FormShow(Sender: TObject);
   private
-    function CheckAccountCodeValidity: boolean;
+    fCurrentRow: BK5CodeStr;
+    function CheckAccountCodeValidity(var ErrorMsg: string): boolean;
+    procedure SetCurrentRow(Value: BK5CodeStr);
     { Private declarations }
   public
-    pubAccountCode: string;
-    pubPercentage: double;
+    Property CurrentRow: BK5CodeStr read fCurrentRow write SetCurrentRow;
   end;
 
 var
@@ -80,21 +81,19 @@ procedure TfrmPercentageCalculation.btnOKClick(Sender: TObject);
 var
   ValidAccountCode: boolean;
   ErrorStrings: TStringList;
+  ErrorMsg: string;
 begin
-  ValidAccountCode := CheckAccountCodeValidity;
+  ErrorMsg := '';
+  ValidAccountCode := CheckAccountCodeValidity(ErrorMsg);
   ErrorStrings := TStringList.Create;
   if not ValidAccountCode then
-    ErrorStrings.Add('Account code is invalid')
+    ErrorStrings.Add(ErrorMsg)
   else if (Trim(edtAccountCode.Text) = '') and (Trim(nPercent.Text) <> '0.00') then
     ErrorStrings.Add('Please enter an Account Code');
   if (Trim(edtAccountCode.Text) <> '') and (Trim(nPercent.Text) = '0.00') then
     ErrorStrings.Add('Please enter a Percentage figure')
   else
-  begin
-    pubAccountCode := Trim(edtAccountCode.Text);
-    pubPercentage := StrToFloat(Trim(nPercent.Text));
     ModalResult := mrOK;
-  end;
 
   if (ErrorStrings.Count > 0) then
   begin
@@ -103,11 +102,17 @@ begin
   end;
 end;
 
-function TfrmPercentageCalculation.CheckAccountCodeValidity: boolean;
+function CheckCodesMatch(Code1, Code2: BK5CodeStr): boolean;
+begin
+  Result := (Code1 = Code2);
+end;
+
+function TfrmPercentageCalculation.CheckAccountCodeValidity(var ErrorMsg: string): boolean;
 var
-  s: string;
-  IsValid: boolean;
-  pAcct: pAccount_Rec;
+  CodesMatch  : boolean;
+  IsValid     : boolean;
+  pAcct       : pAccount_Rec;
+  s           : string;
 begin
   // Check validity of account code
   s       := Trim(edtAccountCode.Text);
@@ -116,7 +121,25 @@ begin
   else
   begin
     pAcct   := MyClient.clChart.FindCode( S);
-    IsValid := Assigned(pAcct) and pAcct.chPosting_Allowed;
+    CodesMatch := CheckCodesMatch(CurrentRow, s);
+
+    if not Assigned(pAcct) then
+    begin
+      IsValid := False;
+      ErrorMsg := 'The code you have picked is not in the Chart of Accounts';
+    end else
+    if CodesMatch then
+    begin
+      IsValid   := False;
+      ErrorMsg  := 'Please pick a row other than the current row';
+    end else
+    if not pAcct.chPosting_Allowed then
+    begin
+      IsValid   := False;
+      ErrorMsg  := 'You cannot pick a non-posting code';
+    end else
+      IsValid := True;
+
     if IsValid or (s = '') then
       edtAccountCode.Color := clWindow
     else
@@ -126,8 +149,10 @@ begin
 end;
 
 procedure TfrmPercentageCalculation.edtAccountCodeChange(Sender: TObject);
+var
+  DummyStr: string; // won't actually need this string
 begin
-  CheckAccountCodeValidity;
+  CheckAccountCodeValidity(DummyStr);
 end;
 
 procedure TfrmPercentageCalculation.FormCreate(Sender: TObject);
@@ -145,17 +170,16 @@ begin
     btnChart.Click;  
 end;
 
-procedure TfrmPercentageCalculation.FormShow(Sender: TObject);
-begin
-  pubAccountCode := '';
-  pubPercentage := 0;
-end;
-
 procedure TfrmPercentageCalculation.nPercentKeyPress(Sender: TObject;
   var Key: Char);
 begin
   if key = '-' then
     key := #0;
+end;
+
+procedure TfrmPercentageCalculation.SetCurrentRow(Value: BK5CodeStr);
+begin
+  fCurrentRow := Value;
 end;
 
 end.
