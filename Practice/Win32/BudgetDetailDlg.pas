@@ -86,6 +86,7 @@ var
   OldLine,
   NewBudgetLine : pBudget_Detail_Rec;
   AccountCode: String[ 20 ];
+  CodeRec: pAccount_Rec;
 begin
   if not (Assigned(FromBudget) and Assigned(ToBudget)) then exit;
 
@@ -95,18 +96,22 @@ begin
   begin
      OldLine := FromBudget.buDetail.Budget_Detail_At(i);
      AccountCode := OldLine.bdAccount_Code;
-     if MyClient.clChart.FindCode(AccountCode).chPosting_Allowed then
+     CodeRec := MyClient.clChart.FindCode(AccountCode);
+     if Assigned(CodeRec) then
      begin
-       NewBudgetLine := New_Budget_Detail_Rec;
-       NewBudgetLine.bdAccount_Code := AccountCode;
-       for j := 1 to 12 do
+       if CodeRec.chPosting_Allowed then
        begin
-         NewBudgetLine.bdBudget[j] := OldLine.bdBudget[j];
-         NewBudgetLine.bdQty_Budget[j] := OldLine.bdQty_Budget[j];
-         NewBudgetLine.bdEach_Budget[j] := OldLine.bdEach_Budget[j];
-       end;
+         NewBudgetLine := New_Budget_Detail_Rec;
+         NewBudgetLine.bdAccount_Code := AccountCode;
+         for j := 1 to 12 do
+         begin
+           NewBudgetLine.bdBudget[j] := OldLine.bdBudget[j];
+           NewBudgetLine.bdQty_Budget[j] := OldLine.bdQty_Budget[j];
+           NewBudgetLine.bdEach_Budget[j] := OldLine.bdEach_Budget[j];
+         end;
 
-       ToBudget.buDetail.Insert(NewBudgetLine);
+         ToBudget.buDetail.Insert(NewBudgetLine);
+       end;
      end;
   end;
 end;
