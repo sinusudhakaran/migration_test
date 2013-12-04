@@ -453,7 +453,7 @@ begin
 
   NewLineUp(2);
   DrawCheckbox(OutputLeft + BoxMargin2, CurrYPos, (values.InstitutionType = inOther));
-  TextLine('Please supply the account above as Provisional Account if it is not available from the Bank', OutputLeft + 80 , OutputRight);
+  TextLine('Please supply the account above as a Provisional Account if it is not available from the Bank', OutputLeft + 80 , OutputRight);
   NewLineUp(2);
   myCanvas.Font.Style := [fsBold];
   TextLine('Additional Information to assist BankLink processing', OutputLeft + BoxMargin2 , OutputRight);
