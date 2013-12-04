@@ -2,14 +2,15 @@ object frmPercentageCalculation: TfrmPercentageCalculation
   Left = 0
   Top = 0
   ActiveControl = edtAccountCode
-  BorderIcons = []
-  Caption = 'Percentage Calculation                                  %'
+  BorderIcons = [biSystemMenu]
+  BorderStyle = bsSingle
+  Caption = 'Percentage Calculation'
   ClientHeight = 152
-  ClientWidth = 254
+  ClientWidth = 264
   Color = clBtnFace
-  Constraints.MaxHeight = 190
+  Constraints.MaxHeight = 180
   Constraints.MaxWidth = 270
-  Constraints.MinHeight = 190
+  Constraints.MinHeight = 180
   Constraints.MinWidth = 270
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -52,32 +53,31 @@ object frmPercentageCalculation: TfrmPercentageCalculation
     OnChange = edtAccountCodeChange
   end
   object btnClear: TButton
-    Left = 16
+    Left = 131
     Top = 107
-    Width = 75
+    Width = 50
     Height = 25
     Caption = 'Clear'
-    TabOrder = 3
+    TabOrder = 4
     OnClick = btnClearClick
   end
   object btnOK: TButton
-    Left = 129
+    Left = 74
     Top = 107
     Width = 50
     Height = 25
     Caption = 'OK'
     Default = True
     ModalResult = 1
-    TabOrder = 4
+    TabOrder = 3
     OnClick = btnOKClick
   end
   object btnCancel: TButton
-    Left = 185
+    Left = 187
     Top = 107
     Width = 50
     Height = 25
     Caption = 'Cancel'
-    Default = True
     ModalResult = 2
     TabOrder = 5
   end
