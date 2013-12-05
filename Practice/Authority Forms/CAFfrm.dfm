@@ -192,16 +192,20 @@ object frmCAF: TfrmCAF
         Font.Style = []
         ParentFont = False
       end
-      object lblInstitutionOther: TLabel
+      object imgInfoOtherMsg: TImage
         Left = 24
         Top = 46
-        Width = 563
+        Width = 16
         Height = 16
-        Caption = 
-          #39'Other'#39' is for provisional accounts. For non-provisional account' +
-          's, please select a valid institution.'
+      end
+      object lblInstitutionOther: TLabel
+        Left = 44
+        Top = 46
+        Width = 263
+        Height = 16
+        Caption = 'This will be loaded as a provisional account.'
         Font.Charset = DEFAULT_CHARSET
-        Font.Color = clRed
+        Font.Color = clBlack
         Font.Height = -15
         Font.Name = 'MS Sans Serif'
         Font.Style = []
@@ -219,7 +223,7 @@ object frmCAF: TfrmCAF
         Font.Height = -15
         Font.Name = 'MS Sans Serif'
         Font.Style = []
-        ItemHeight = 16
+        ItemHeight = 0
         ParentFont = False
         TabOrder = 0
         OnChange = cmbInstitutionChange
@@ -596,25 +600,31 @@ object frmCAF: TfrmCAF
         Font.Style = []
         ParentFont = False
       end
-      object lblNoteAddFormReq: TLabel
-        Left = 42
+      object imgInfoAdditionalMsg: TImage
+        Left = 24
         Top = 50
-        Width = 193
+        Width = 16
         Height = 16
-        Caption = 'Note additional form is required'
+      end
+      object lblNoteAddFormReq: TLabel
+        Left = 44
+        Top = 50
+        Width = 194
+        Height = 16
+        Caption = 'An additional form is required for '
         Font.Charset = DEFAULT_CHARSET
-        Font.Color = clRed
+        Font.Color = clBlack
         Font.Height = -15
         Font.Name = 'MS Sans Serif'
-        Font.Style = [fsItalic]
+        Font.Style = []
         ParentFont = False
       end
       object lblBookSecureLink: TLabel
-        Left = 267
+        Left = 238
         Top = 50
-        Width = 85
+        Width = 88
         Height = 16
-        Caption = 'Books Secure'
+        Caption = 'Books Secure.'
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clBlue
         Font.Height = -15

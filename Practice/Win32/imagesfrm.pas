@@ -193,6 +193,9 @@ const
   Manager_DoubleTick        = 30;
   Manager_DoubleNoTick      = 31;
 
+  FILE_ACTIONS_INFO  = 4;
+  FILE_ACTIONS_INFO2 = 39;
+
 //  CHART_BMP = 0;
 //  PAYEE_BMP = 1;
 

@@ -80,6 +80,9 @@ type
     lblNoteAddFormReq: TLabel;
     lblBookSecureLink: TLabel;
     lblOrContactiBizz: TLabel;
+    imgInfoOtherMsg: TImage;
+    imgInfoAdditionalMsg: TImage;
+    lbliBizz: TLabel;
     procedure btnPreviewClick(Sender: TObject);
     procedure btnFileClick(Sender: TObject);
     procedure btnPrintClick(Sender: TObject);
@@ -116,6 +119,9 @@ type
     procedure lblBookSecureLinkClick(Sender: TObject);
     procedure lblBookSecureLinkMouseEnter(Sender: TObject);
     procedure lblBookSecureLinkMouseLeave(Sender: TObject);
+    procedure lbliBizzClick(Sender: TObject);
+    procedure lbliBizzMouseEnter(Sender: TObject);
+    procedure lbliBizzMouseLeave(Sender: TObject);
   private
     fValidAccount : boolean;
     fAccountNumber : string;
@@ -166,12 +172,14 @@ uses
   ShellAPI,
   bkHelp,
   InstitutionCol,
-  BanklinkOnlineServices;
+  BanklinkOnlineServices,
+  imagesFrm;
 
 Const
   UNIT_NAME = 'TPAfrm';
   COUNTRY_CODE = 'NZ';
   OTHER_BANK_WIDTH = 108;
+  IBIZZ_MESSAGE = 'Please contact iBizz.';
 
 { TfrmTPA }
 //------------------------------------------------------------------------------
@@ -225,6 +233,10 @@ begin
   edtClientStartDte.AsDateTime := now();
 
   lblBookSecureLink.hint := PRACINI_SecureFormLinkNZ;
+  lbliBizz.hint := IBIZZ_MESSAGE;
+
+  AppImages.ilFileActions_ClientMgr.GetBitmap(FILE_ACTIONS_INFO2, imgInfoOtherMsg.Picture.Bitmap);
+  AppImages.ilFileActions_ClientMgr.GetBitmap(FILE_ACTIONS_INFO2, imgInfoAdditionalMsg.Picture.Bitmap);
 end;
 
 //------------------------------------------------------------------------------
@@ -257,6 +269,24 @@ begin
     else
       Result := TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex]).Code;
   end;
+end;
+
+//------------------------------------------------------------------------------
+procedure TfrmTPA.lbliBizzClick(Sender: TObject);
+begin
+  HelpfulInfoMsg(IBIZZ_MESSAGE, 0 );
+end;
+
+//------------------------------------------------------------------------------
+procedure TfrmTPA.lbliBizzMouseEnter(Sender: TObject);
+begin
+  lbliBizz.Font.Style := [fsUnderline];
+end;
+
+//------------------------------------------------------------------------------
+procedure TfrmTPA.lbliBizzMouseLeave(Sender: TObject);
+begin
+  lbliBizz.Font.Style := [];
 end;
 
 //------------------------------------------------------------------------------
@@ -552,9 +582,11 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmTPA.SetDataSentToClient(aEnabled: boolean);
 begin
-  lblNoteAddFormReq.Visible := aEnabled;
-  lblBookSecureLink.Visible := aEnabled;
-  lblOrContactiBizz.Visible := aEnabled;
+  lblNoteAddFormReq.Visible    := aEnabled;
+  lblBookSecureLink.Visible    := aEnabled;
+  lblOrContactiBizz.Visible    := aEnabled;
+  lbliBizz.Visible             := aEnabled;
+  imgInfoAdditionalMsg.Visible := aEnabled;
 
   if aEnabled then
     chkDataSecureExisting.Checked := false;
@@ -601,6 +633,7 @@ begin
       enableControls := false;
       edtInstitutionName.Visible := false;
       lblInstitutionOther.Visible := false;
+      imgInfoOtherMsg.Visible := false;
       cmbInstitution.Width := edtBranch.Width;
       chkDataSecureNew.Checked := false;
       chkDataSecureExisting.Checked := false;
@@ -616,6 +649,7 @@ begin
           edtAccountNumber.Visible := true;
           edtInstitutionName.Visible := true;
           lblInstitutionOther.Visible := true;
+          imgInfoOtherMsg.Visible := true;
           cmbInstitution.Width := OTHER_BANK_WIDTH;
           // Combo has no option to set the Drop down wider than the combo so this is
           // how you set it
@@ -626,6 +660,7 @@ begin
           edtAccountNumber.Visible := false;
           edtInstitutionName.Visible := false;
           lblInstitutionOther.Visible := false;
+          imgInfoOtherMsg.Visible := false;
           cmbInstitution.Width := edtBranch.Width;
 
           if (Assigned(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex])) and

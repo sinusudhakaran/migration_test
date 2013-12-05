@@ -193,19 +193,23 @@ object frmTPA: TfrmTPA
         ParentFont = False
       end
       object lblInstitutionOther: TLabel
-        Left = 24
+        Left = 44
         Top = 46
-        Width = 563
+        Width = 263
         Height = 16
-        Caption = 
-          #39'Other'#39' is for provisional accounts. For non-provisional account' +
-          's, please select a valid institution.'
+        Caption = 'This will be loaded as a provisional account.'
         Font.Charset = DEFAULT_CHARSET
-        Font.Color = clRed
+        Font.Color = clBlack
         Font.Height = -15
         Font.Name = 'MS Sans Serif'
         Font.Style = []
         ParentFont = False
+      end
+      object imgInfoOtherMsg: TImage
+        Left = 24
+        Top = 46
+        Width = 16
+        Height = 16
       end
       object cmbInstitution: TComboBox
         Left = 151
@@ -219,7 +223,7 @@ object frmTPA: TfrmTPA
         Font.Height = -15
         Font.Name = 'MS Sans Serif'
         Font.Style = []
-        ItemHeight = 0
+        ItemHeight = 16
         ParentFont = False
         TabOrder = 0
         OnChange = cmbInstitutionChange
@@ -597,20 +601,20 @@ object frmTPA: TfrmTPA
         ParentFont = False
       end
       object lblNoteAddFormReq: TLabel
-        Left = 42
+        Left = 44
         Top = 50
-        Width = 193
+        Width = 194
         Height = 16
-        Caption = 'Note additional form is required'
+        Caption = 'An additional form is required for '
         Font.Charset = DEFAULT_CHARSET
-        Font.Color = clRed
+        Font.Color = clBlack
         Font.Height = -15
         Font.Name = 'MS Sans Serif'
-        Font.Style = [fsItalic]
+        Font.Style = []
         ParentFont = False
       end
       object lblBookSecureLink: TLabel
-        Left = 267
+        Left = 238
         Top = 50
         Width = 85
         Height = 16
@@ -628,17 +632,41 @@ object frmTPA: TfrmTPA
         OnMouseLeave = lblBookSecureLinkMouseLeave
       end
       object lblOrContactiBizz: TLabel
-        Left = 381
+        Left = 326
         Top = 50
-        Width = 91
+        Width = 12
         Height = 16
-        Caption = 'or contact iBizz.'
+        Caption = 'or'
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
         Font.Height = -15
         Font.Name = 'MS Sans Serif'
         Font.Style = []
         ParentFont = False
+      end
+      object imgInfoAdditionalMsg: TImage
+        Left = 24
+        Top = 50
+        Width = 16
+        Height = 16
+      end
+      object lbliBizz: TLabel
+        Left = 342
+        Top = 50
+        Width = 30
+        Height = 16
+        Caption = 'iBizz.'
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clBlue
+        Font.Height = -15
+        Font.Name = 'MS Sans Serif'
+        Font.Style = []
+        ParentFont = False
+        ParentShowHint = False
+        ShowHint = True
+        OnClick = lbliBizzClick
+        OnMouseEnter = lbliBizzMouseEnter
+        OnMouseLeave = lbliBizzMouseLeave
       end
       object chkDataSecureExisting: TCheckBox
         Left = 22

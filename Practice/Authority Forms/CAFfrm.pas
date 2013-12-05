@@ -42,7 +42,6 @@ type
     pnlMain: TPanel;
     pnlInstTop: TPanel;
     lblInstitution: TLabel;
-    lblInstitutionOther: TLabel;
     cmbInstitution: TComboBox;
     edtInstitutionName: TEdit;
     pnlInstitution: TPanel;
@@ -74,6 +73,9 @@ type
     pnlAccountError: TPanel;
     lblAccountValidationError: TLabel;
     edtAccountNumber: TEdit;
+    imgInfoOtherMsg: TImage;
+    lblInstitutionOther: TLabel;
+    imgInfoAdditionalMsg: TImage;
     lblNoteAddFormReq: TLabel;
     lblBookSecureLink: TLabel;
     procedure btnPreviewClick(Sender: TObject);
@@ -153,7 +155,7 @@ uses
   ShellAPI,
   bkHelp,
   InstitutionCol,
-  BanklinkOnlineServices;
+  BanklinkOnlineServices, imagesfrm;
 
 Const
   UNIT_NAME = 'TfrmCAF';
@@ -212,6 +214,9 @@ begin
   edtClientStartDte.AsDateTime := now();
 
   lblBookSecureLink.hint  := PRACINI_SecureFormLinkAU;
+
+  AppImages.ilFileActions_ClientMgr.GetBitmap(FILE_ACTIONS_INFO2, imgInfoOtherMsg.Picture.Bitmap);
+  AppImages.ilFileActions_ClientMgr.GetBitmap(FILE_ACTIONS_INFO2, imgInfoAdditionalMsg.Picture.Bitmap);
 end;
 
 //------------------------------------------------------------------------------
@@ -469,6 +474,7 @@ procedure TfrmCAF.SetDataSentToClient(aEnabled: boolean);
 begin
   lblNoteAddFormReq.Visible := aEnabled;
   lblBookSecureLink.Visible := aEnabled;
+  imgInfoAdditionalMsg.Visible := aEnabled;
 
   if aEnabled then
     chkDataSecureExisting.Checked := false;
@@ -514,6 +520,7 @@ begin
       enableControls := false;
       edtInstitutionName.Visible := false;
       lblInstitutionOther.Visible := false;
+      imgInfoOtherMsg.Visible := false;
       cmbInstitution.Width := edtBranch.Width;
       chkDataSecureNew.Checked := false;
       chkDataSecureExisting.Checked := false;
@@ -529,6 +536,7 @@ begin
           edtAccountNumber.Visible := true;
           edtInstitutionName.Visible := true;
           lblInstitutionOther.Visible := true;
+          imgInfoOtherMsg.Visible := true;
           cmbInstitution.Width := OTHER_BANK_WIDTH;
           // Combo has no option to set the Drop down wider than the combo so this is
           // how you set it
@@ -539,6 +547,7 @@ begin
           edtAccountNumber.Visible := false;
           edtInstitutionName.Visible := false;
           lblInstitutionOther.Visible := false;
+          imgInfoOtherMsg.Visible := false;
           cmbInstitution.Width := edtBranch.Width;
 
           if (Assigned(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex])) and
