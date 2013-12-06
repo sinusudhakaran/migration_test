@@ -799,6 +799,7 @@ begin
   chkDataSecureExisting.Checked := false;
   lblAccountValidationError.Caption := '';
   edtClientStartDte.AsDateTime := now();
+  radReDateTransactions.Checked := true;
 end;
 
 //------------------------------------------------------------------------------
