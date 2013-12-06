@@ -180,11 +180,11 @@ object frmTPA: TfrmTPA
         612
         65)
       object lblInstitution: TLabel
-        Left = 24
-        Top = 22
-        Width = 60
+        Left = 22
+        Top = 19
+        Width = 54
         Height = 16
-        Caption = 'Institution :'
+        Caption = 'Institution'
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
         Font.Height = -15
@@ -212,9 +212,9 @@ object frmTPA: TfrmTPA
         Height = 16
       end
       object cmbInstitution: TComboBox
-        Left = 151
+        Left = 153
         Top = 16
-        Width = 379
+        Width = 401
         Height = 24
         Style = csDropDownList
         Anchors = [akLeft, akTop, akRight]
@@ -229,9 +229,9 @@ object frmTPA: TfrmTPA
         OnChange = cmbInstitutionChange
       end
       object edtInstitutionName: TEdit
-        Left = 267
+        Left = 268
         Top = 16
-        Width = 265
+        Width = 287
         Height = 24
         Anchors = [akLeft, akTop, akRight]
         Font.Charset = DEFAULT_CHARSET
@@ -264,19 +264,20 @@ object frmTPA: TfrmTPA
       object pnlInstData: TPanel
         Left = 145
         Top = 1
-        Width = 392
+        Width = 415
         Height = 131
         Align = alClient
         Color = clWhite
         ParentBackground = False
         TabOrder = 1
+        ExplicitWidth = 392
         DesignSize = (
-          392
+          415
           131)
         object lblAccountHintLine: TLabel
           Left = 8
           Top = 75
-          Width = 379
+          Width = 402
           Height = 31
           Alignment = taCenter
           Anchors = [akLeft, akTop, akRight]
@@ -290,11 +291,12 @@ object frmTPA: TfrmTPA
           Font.Style = []
           ParentColor = False
           ParentFont = False
+          ExplicitWidth = 379
         end
         object edtBranch: TEdit
           Left = 8
           Top = 0
-          Width = 379
+          Width = 402
           Height = 24
           Anchors = [akLeft, akTop, akRight]
           Font.Charset = DEFAULT_CHARSET
@@ -310,9 +312,9 @@ object frmTPA: TfrmTPA
           OnExit = edtExit
         end
         object edtNameOfAccount: TEdit
-          Left = 8
+          Left = 7
           Top = 45
-          Width = 379
+          Width = 402
           Height = 24
           Anchors = [akLeft, akTop, akRight]
           Font.Charset = DEFAULT_CHARSET
@@ -330,7 +332,7 @@ object frmTPA: TfrmTPA
         object mskAccountNumber: TMaskValidateEdit
           Left = 8
           Top = 106
-          Width = 378
+          Width = 401
           Height = 24
           Anchors = [akLeft, akTop, akRight]
           AutoSelect = False
@@ -347,11 +349,12 @@ object frmTPA: TfrmTPA
           OnMouseDown = mskAccountNumberMouseDown
           OnValidateError = mskAccountNumberValidateError
           OnValidateEdit = mskAccountNumberValidateEdit
+          ExplicitWidth = 378
         end
         object edtAccountNumber: TEdit
           Left = 8
           Top = 106
-          Width = 379
+          Width = 402
           Height = 24
           Anchors = [akLeft, akTop, akRight]
           Font.Charset = DEFAULT_CHARSET
@@ -377,11 +380,11 @@ object frmTPA: TfrmTPA
         ParentBackground = False
         TabOrder = 0
         object lblBranch: TLabel
-          Left = 24
-          Top = 5
-          Width = 48
+          Left = 22
+          Top = 3
+          Width = 42
           Height = 16
-          Caption = 'Branch :'
+          Caption = 'Branch'
           Font.Charset = DEFAULT_CHARSET
           Font.Color = clWindowText
           Font.Height = -15
@@ -390,11 +393,11 @@ object frmTPA: TfrmTPA
           ParentFont = False
         end
         object lblAccount: TLabel
-          Left = 24
+          Left = 22
           Top = 109
-          Width = 105
+          Width = 99
           Height = 16
-          Caption = 'Account Number :'
+          Caption = 'Account Number'
           Font.Charset = DEFAULT_CHARSET
           Font.Color = clWindowText
           Font.Height = -15
@@ -403,11 +406,11 @@ object frmTPA: TfrmTPA
           ParentFont = False
         end
         object lblNameOfAccount: TLabel
-          Left = 21
+          Left = 22
           Top = 48
-          Width = 108
+          Width = 102
           Height = 16
-          Caption = 'Name of Account :'
+          Caption = 'Name of Account'
           Font.Charset = DEFAULT_CHARSET
           Font.Color = clWindowText
           Font.Height = -15
@@ -417,9 +420,9 @@ object frmTPA: TfrmTPA
         end
       end
       object pnlInstSpacer: TPanel
-        Left = 537
+        Left = 560
         Top = 1
-        Width = 74
+        Width = 51
         Height = 131
         Align = alRight
         Color = clWhite
@@ -444,11 +447,11 @@ object frmTPA: TfrmTPA
         ParentBackground = False
         TabOrder = 0
         object lblCostCode: TLabel
-          Left = 24
-          Top = 46
-          Width = 69
+          Left = 22
+          Top = 48
+          Width = 63
           Height = 16
-          Caption = 'Cost Code :'
+          Caption = 'Cost Code'
           Font.Charset = DEFAULT_CHARSET
           Font.Color = clWindowText
           Font.Height = -15
@@ -457,11 +460,11 @@ object frmTPA: TfrmTPA
           ParentFont = False
         end
         object lblClientCode: TLabel
-          Left = 24
-          Top = 5
-          Width = 75
+          Left = 22
+          Top = 3
+          Width = 69
           Height = 16
-          Caption = 'Client Code :'
+          Caption = 'Client Code'
           Font.Charset = DEFAULT_CHARSET
           Font.Color = clWindowText
           Font.Height = -15
@@ -470,11 +473,11 @@ object frmTPA: TfrmTPA
           ParentFont = False
         end
         object lblStartDate: TLabel
-          Left = 24
-          Top = 94
-          Width = 65
+          Left = 22
+          Top = 91
+          Width = 59
           Height = 16
-          Caption = 'Start Date :'
+          Caption = 'Start Date'
           Font.Charset = DEFAULT_CHARSET
           Font.Color = clWindowText
           Font.Height = -15
@@ -492,13 +495,15 @@ object frmTPA: TfrmTPA
         Color = clWhite
         ParentBackground = False
         TabOrder = 1
+        ExplicitLeft = 139
+        ExplicitTop = 0
         DesignSize = (
           122
           116)
         object edtClientCode: TEdit
           Left = 8
           Top = 0
-          Width = 108
+          Width = 110
           Height = 24
           Hint = 'The client code from BankLink or your general ledger'
           Anchors = [akLeft, akTop, akRight]
@@ -514,7 +519,7 @@ object frmTPA: TfrmTPA
           OnKeyPress = edtKeyPress
         end
         object edtClientStartDte: TOvcPictureField
-          Left = 6
+          Left = 8
           Top = 88
           Width = 85
           Height = 24
@@ -573,6 +578,7 @@ object frmTPA: TfrmTPA
         Color = clWhite
         ParentBackground = False
         TabOrder = 2
+        ExplicitTop = 0
       end
     end
     object pnlData: TPanel
@@ -589,7 +595,7 @@ object frmTPA: TfrmTPA
         114)
       object lblSecureCode: TLabel
         Left = 267
-        Top = 80
+        Top = 79
         Width = 85
         Height = 16
         Caption = 'Secure Code :'
@@ -670,7 +676,7 @@ object frmTPA: TfrmTPA
       end
       object chkDataSecureExisting: TCheckBox
         Left = 22
-        Top = 80
+        Top = 79
         Width = 239
         Height = 17
         Anchors = [akLeft, akTop, akRight]
@@ -701,9 +707,9 @@ object frmTPA: TfrmTPA
         OnClick = chkDataSecureNewClick
       end
       object edtSecureCode: TEdit
-        Left = 381
-        Top = 78
-        Width = 210
+        Left = 380
+        Top = 76
+        Width = 174
         Height = 24
         Anchors = [akLeft, akTop, akRight]
         Font.Charset = DEFAULT_CHARSET

@@ -181,10 +181,10 @@ object frmCAF: TfrmCAF
         65)
       object lblInstitution: TLabel
         Left = 24
-        Top = 22
-        Width = 60
+        Top = 19
+        Width = 54
         Height = 16
-        Caption = 'Institution :'
+        Caption = 'Institution'
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
         Font.Height = -15
@@ -214,7 +214,7 @@ object frmCAF: TfrmCAF
       object cmbInstitution: TComboBox
         Left = 153
         Top = 16
-        Width = 374
+        Width = 402
         Height = 24
         Style = csDropDownList
         Anchors = [akLeft, akTop, akRight]
@@ -223,7 +223,7 @@ object frmCAF: TfrmCAF
         Font.Height = -15
         Font.Name = 'MS Sans Serif'
         Font.Style = []
-        ItemHeight = 0
+        ItemHeight = 16
         ParentFont = False
         TabOrder = 0
         OnChange = cmbInstitutionChange
@@ -231,7 +231,7 @@ object frmCAF: TfrmCAF
       object edtInstitutionName: TEdit
         Left = 267
         Top = 16
-        Width = 260
+        Width = 288
         Height = 24
         Anchors = [akLeft, akTop, akRight]
         Font.Charset = DEFAULT_CHARSET
@@ -263,19 +263,20 @@ object frmCAF: TfrmCAF
       object pnlInstData: TPanel
         Left = 145
         Top = 1
-        Width = 387
+        Width = 415
         Height = 131
         Align = alClient
         Color = clWhite
         ParentBackground = False
         TabOrder = 1
+        ExplicitWidth = 387
         DesignSize = (
-          387
+          415
           131)
         object lblAccountHintLine: TLabel
           Left = 8
           Top = 75
-          Width = 374
+          Width = 402
           Height = 31
           Alignment = taCenter
           Anchors = [akLeft, akTop, akRight]
@@ -294,7 +295,7 @@ object frmCAF: TfrmCAF
         object edtBranch: TEdit
           Left = 8
           Top = 0
-          Width = 374
+          Width = 401
           Height = 24
           Anchors = [akLeft, akTop, akRight]
           Font.Charset = DEFAULT_CHARSET
@@ -310,9 +311,9 @@ object frmCAF: TfrmCAF
           OnExit = edtExit
         end
         object edtNameOfAccount: TEdit
-          Left = 7
+          Left = 8
           Top = 45
-          Width = 374
+          Width = 403
           Height = 24
           Anchors = [akLeft, akTop, akRight]
           Font.Charset = DEFAULT_CHARSET
@@ -330,7 +331,7 @@ object frmCAF: TfrmCAF
         object mskAccountNumber: TMaskValidateEdit
           Left = 8
           Top = 106
-          Width = 373
+          Width = 401
           Height = 24
           Anchors = [akLeft, akTop, akRight]
           AutoSelect = False
@@ -347,11 +348,12 @@ object frmCAF: TfrmCAF
           OnMouseDown = mskAccountNumberMouseDown
           OnValidateError = mskAccountNumberValidateError
           OnValidateEdit = mskAccountNumberValidateEdit
+          ExplicitWidth = 373
         end
         object edtAccountNumber: TEdit
           Left = 8
           Top = 106
-          Width = 374
+          Width = 401
           Height = 24
           Anchors = [akLeft, akTop, akRight]
           Font.Charset = DEFAULT_CHARSET
@@ -378,10 +380,10 @@ object frmCAF: TfrmCAF
         TabOrder = 0
         object lblBranch: TLabel
           Left = 24
-          Top = 5
-          Width = 48
+          Top = 3
+          Width = 42
           Height = 16
-          Caption = 'Branch :'
+          Caption = 'Branch'
           Font.Charset = DEFAULT_CHARSET
           Font.Color = clWindowText
           Font.Height = -15
@@ -392,9 +394,9 @@ object frmCAF: TfrmCAF
         object lblAccount: TLabel
           Left = 24
           Top = 109
-          Width = 105
+          Width = 99
           Height = 16
-          Caption = 'Account Number :'
+          Caption = 'Account Number'
           Font.Charset = DEFAULT_CHARSET
           Font.Color = clWindowText
           Font.Height = -15
@@ -403,11 +405,11 @@ object frmCAF: TfrmCAF
           ParentFont = False
         end
         object lblNameOfAccount: TLabel
-          Left = 21
+          Left = 24
           Top = 48
-          Width = 108
+          Width = 102
           Height = 16
-          Caption = 'Name of Account :'
+          Caption = 'Name of Account'
           Font.Charset = DEFAULT_CHARSET
           Font.Color = clWindowText
           Font.Height = -15
@@ -417,9 +419,9 @@ object frmCAF: TfrmCAF
         end
       end
       object pnlInstSpacer: TPanel
-        Left = 532
+        Left = 560
         Top = 1
-        Width = 74
+        Width = 46
         Height = 131
         Align = alRight
         Color = clWhite
@@ -445,10 +447,10 @@ object frmCAF: TfrmCAF
         TabOrder = 0
         object lblCostCode: TLabel
           Left = 24
-          Top = 46
-          Width = 69
+          Top = 48
+          Width = 63
           Height = 16
-          Caption = 'Cost Code :'
+          Caption = 'Cost Code'
           Font.Charset = DEFAULT_CHARSET
           Font.Color = clWindowText
           Font.Height = -15
@@ -458,10 +460,10 @@ object frmCAF: TfrmCAF
         end
         object lblClientCode: TLabel
           Left = 24
-          Top = 5
-          Width = 75
+          Top = 3
+          Width = 69
           Height = 16
-          Caption = 'Client Code :'
+          Caption = 'Client Code'
           Font.Charset = DEFAULT_CHARSET
           Font.Color = clWindowText
           Font.Height = -15
@@ -471,10 +473,10 @@ object frmCAF: TfrmCAF
         end
         object lblStartDate: TLabel
           Left = 24
-          Top = 94
-          Width = 65
+          Top = 91
+          Width = 59
           Height = 16
-          Caption = 'Start Date :'
+          Caption = 'Start Date'
           Font.Charset = DEFAULT_CHARSET
           Font.Color = clWindowText
           Font.Height = -15
@@ -514,7 +516,7 @@ object frmCAF: TfrmCAF
           OnKeyPress = edtKeyPress
         end
         object edtClientStartDte: TOvcPictureField
-          Left = 6
+          Left = 8
           Top = 88
           Width = 85
           Height = 24
@@ -573,6 +575,7 @@ object frmCAF: TfrmCAF
         Color = clWhite
         ParentBackground = False
         TabOrder = 2
+        ExplicitTop = -1
       end
     end
     object pnlData: TPanel
@@ -589,7 +592,7 @@ object frmCAF: TfrmCAF
         123)
       object lblSecureCode: TLabel
         Left = 267
-        Top = 80
+        Top = 81
         Width = 85
         Height = 16
         Caption = 'Secure Code :'
@@ -638,8 +641,8 @@ object frmCAF: TfrmCAF
         OnMouseLeave = lblBookSecureLinkMouseLeave
       end
       object chkDataSecureExisting: TCheckBox
-        Left = 23
-        Top = 80
+        Left = 24
+        Top = 81
         Width = 226
         Height = 17
         Anchors = [akLeft, akTop, akRight]
@@ -654,7 +657,7 @@ object frmCAF: TfrmCAF
         OnClick = chkDataSecureExistingClick
       end
       object chkDataSecureNew: TCheckBox
-        Left = 22
+        Left = 24
         Top = 27
         Width = 240
         Height = 17
@@ -673,7 +676,7 @@ object frmCAF: TfrmCAF
       object edtSecureCode: TEdit
         Left = 382
         Top = 78
-        Width = 205
+        Width = 172
         Height = 24
         Anchors = [akLeft, akTop, akRight]
         Font.Charset = DEFAULT_CHARSET
