@@ -213,7 +213,6 @@ var
   NumColumn : integer;
   IndentColumn : integer;
   TextWidth : integer;
-  DispBSB, DispAccNum : string;
 begin
   //assume we have a canvas of A4 proportions as per GST forms
   myCanvas     := CanvasRenderEng.OutputBuilder.Canvas;
@@ -274,21 +273,8 @@ begin
 
   NewLine(3);
 
-  // Separate the account number into BSB and Accnumber
-  ProcessDiskCode(Values.AccountNumber, DispBSB, DispAccNum);
-  if DispBSB = '000000' then
-    DispBSB := '';
-
-  if DispAccNum = '' then
-  begin
-    DispAccNum := DispBSB;
-    DispBSB := '';
-  end;
-
-  TextBox('Account Number', DispBSB, myCanvas.Font.Size, myCanvas.Font.Size + 1, jtLeft, jtLeft,
-          OutputLeft + BoxMargin2, OutputLeft + BoxMargin + 270, OutputLeft + BoxMargin + 550, CurrYPos, CurrYPos + BoxHeight);
-  TextBox('', DispAccNum, myCanvas.Font.Size, myCanvas.Font.Size + 1, jtLeft, jtLeft,
-          0, OutputLeft + BoxMargin + 560, XPosTwoThirds - BoxMargin, CurrYPos, CurrYPos + BoxHeight);
+  TextBox('Account Number', Values.AccountNumber, myCanvas.Font.Size, myCanvas.Font.Size + 1, jtLeft, jtLeft,
+          OutputLeft + BoxMargin2, OutputLeft + BoxMargin + 270, XPosTwoThirds - BoxMargin, CurrYPos, CurrYPos + BoxHeight);
 
   TextBox('Cost Code', Values.edtCostCode.Text, myCanvas.Font.Size, myCanvas.Font.Size + 1, jtLeft, jtLeft,
           XPosTwoThirds + BoxMargin, XPosTwoThirds + BoxMargin + 175, OutputRight - BoxMargin2, CurrYPos, CurrYPos + BoxHeight);
