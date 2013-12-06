@@ -2674,6 +2674,7 @@ begin
       else
         FData[DataRow].bAmounts[ColNum] :=
           Round(FData[AccountCodeRow].bAmounts[ColNum] * (FData[DataRow].Percentage / 100));
+      FData[DataRow].bDetailLine.bdBudget[ColNum] := FData[DataRow].bAmounts[ColNum];
       // Assigning a percentage to a row removes any quantities in the same row
       FData[DataRow].bQuantitys[ColNum] := 0;
       FData[DataRow].bUnitPrices[ColNum] := 0;
