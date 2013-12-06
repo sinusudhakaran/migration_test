@@ -5,13 +5,13 @@ object frmPercentageCalculation: TfrmPercentageCalculation
   BorderIcons = [biSystemMenu]
   BorderStyle = bsSingle
   Caption = 'Percentage Calculation'
-  ClientHeight = 152
-  ClientWidth = 264
+  ClientHeight = 162
+  ClientWidth = 314
   Color = clBtnFace
-  Constraints.MaxHeight = 180
-  Constraints.MaxWidth = 270
-  Constraints.MinHeight = 180
-  Constraints.MinWidth = 270
+  Constraints.MaxHeight = 190
+  Constraints.MaxWidth = 320
+  Constraints.MinHeight = 190
+  Constraints.MinWidth = 320
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
   Font.Height = -11
@@ -53,18 +53,18 @@ object frmPercentageCalculation: TfrmPercentageCalculation
     OnChange = edtAccountCodeChange
   end
   object btnClear: TButton
-    Left = 131
-    Top = 107
-    Width = 50
+    Left = 146
+    Top = 128
+    Width = 75
     Height = 25
     Caption = 'Clear'
     TabOrder = 4
     OnClick = btnClearClick
   end
   object btnOK: TButton
-    Left = 74
-    Top = 107
-    Width = 50
+    Left = 61
+    Top = 128
+    Width = 75
     Height = 25
     Caption = 'OK'
     Default = True
@@ -73,9 +73,9 @@ object frmPercentageCalculation: TfrmPercentageCalculation
     OnClick = btnOKClick
   end
   object btnCancel: TButton
-    Left = 187
-    Top = 107
-    Width = 50
+    Left = 231
+    Top = 128
+    Width = 75
     Height = 25
     Caption = 'Cancel'
     ModalResult = 2
@@ -91,7 +91,7 @@ object frmPercentageCalculation: TfrmPercentageCalculation
   end
   object nPercent: TOvcNumericField
     Left = 114
-    Top = 61
+    Top = 64
     Width = 95
     Height = 21
     Cursor = crIBeam
