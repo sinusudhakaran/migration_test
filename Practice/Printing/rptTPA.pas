@@ -387,8 +387,18 @@ begin
   myCanvas.Font.Size := 8;
   NewLineUp(2);
 
-  DrawRadio(myCanvas, XYSizeRect(OutputLeft + BoxMargin2*4, CurrYPos, OutputRight, CurrYPos+CurrLineSize), ' Re-date transactions to Payment Date', True, Values.radReDateTransactions.Checked);
-  DrawRadio(myCanvas, XYSizeRect(XPosOneThirds + BoxMargin2*4, CurrYPos, OutputRight, CurrYPos+CurrLineSize), ' Date shown on statement (not re-dated)', True, Values.radDateShown.Checked);
+  if (Values.cmbInstitution.ItemIndex > 0) and
+     (TInstitutionItem(Values.cmbInstitution.Items.Objects[Values.cmbInstitution.ItemIndex]).HasRuralCode) then
+  begin
+    DrawRadio(myCanvas, XYSizeRect(OutputLeft + BoxMargin2*4, CurrYPos, OutputRight, CurrYPos+CurrLineSize), ' Re-date transactions to Payment Date', True, Values.radReDateTransactions.Checked);
+    DrawRadio(myCanvas, XYSizeRect(XPosOneThirds + BoxMargin2*4, CurrYPos, OutputRight, CurrYPos+CurrLineSize), ' Date shown on statement (not re-dated)', True, Values.radDateShown.Checked);
+  end
+  else
+  begin
+    DrawRadio(myCanvas, XYSizeRect(OutputLeft + BoxMargin2*4, CurrYPos, OutputRight, CurrYPos+CurrLineSize), ' Re-date transactions to Payment Date', True, false);
+    DrawRadio(myCanvas, XYSizeRect(XPosOneThirds + BoxMargin2*4, CurrYPos, OutputRight, CurrYPos+CurrLineSize), ' Date shown on statement (not re-dated)', True, false);
+  end;
+
   NewLineUp;
   HalfNewLineUp;
   TextLine('Rural Institutions Only:', OutputLeft + BoxMargin2 , OutputRight);
