@@ -212,7 +212,7 @@ object frmTPA: TfrmTPA
         Height = 16
       end
       object cmbInstitution: TComboBox
-        Left = 153
+        Left = 152
         Top = 16
         Width = 401
         Height = 24
@@ -229,7 +229,7 @@ object frmTPA: TfrmTPA
         OnChange = cmbInstitutionChange
       end
       object edtInstitutionName: TEdit
-        Left = 268
+        Left = 271
         Top = 16
         Width = 287
         Height = 24
@@ -270,7 +270,6 @@ object frmTPA: TfrmTPA
         Color = clWhite
         ParentBackground = False
         TabOrder = 1
-        ExplicitWidth = 392
         DesignSize = (
           415
           131)
@@ -296,7 +295,7 @@ object frmTPA: TfrmTPA
         object edtBranch: TEdit
           Left = 8
           Top = 0
-          Width = 402
+          Width = 404
           Height = 24
           Anchors = [akLeft, akTop, akRight]
           Font.Charset = DEFAULT_CHARSET
@@ -312,9 +311,9 @@ object frmTPA: TfrmTPA
           OnExit = edtExit
         end
         object edtNameOfAccount: TEdit
-          Left = 7
+          Left = 8
           Top = 45
-          Width = 402
+          Width = 404
           Height = 24
           Anchors = [akLeft, akTop, akRight]
           Font.Charset = DEFAULT_CHARSET
@@ -332,7 +331,7 @@ object frmTPA: TfrmTPA
         object mskAccountNumber: TMaskValidateEdit
           Left = 8
           Top = 106
-          Width = 401
+          Width = 404
           Height = 24
           Anchors = [akLeft, akTop, akRight]
           AutoSelect = False
@@ -349,12 +348,11 @@ object frmTPA: TfrmTPA
           OnMouseDown = mskAccountNumberMouseDown
           OnValidateError = mskAccountNumberValidateError
           OnValidateEdit = mskAccountNumberValidateEdit
-          ExplicitWidth = 378
         end
         object edtAccountNumber: TEdit
           Left = 8
           Top = 106
-          Width = 402
+          Width = 404
           Height = 24
           Anchors = [akLeft, akTop, akRight]
           Font.Charset = DEFAULT_CHARSET
@@ -495,8 +493,6 @@ object frmTPA: TfrmTPA
         Color = clWhite
         ParentBackground = False
         TabOrder = 1
-        ExplicitLeft = 139
-        ExplicitTop = 0
         DesignSize = (
           122
           116)
@@ -578,7 +574,6 @@ object frmTPA: TfrmTPA
         Color = clWhite
         ParentBackground = False
         TabOrder = 2
-        ExplicitTop = 0
       end
     end
     object pnlData: TPanel
@@ -594,11 +589,11 @@ object frmTPA: TfrmTPA
         612
         114)
       object lblSecureCode: TLabel
-        Left = 267
+        Left = 279
         Top = 79
-        Width = 85
+        Width = 79
         Height = 16
-        Caption = 'Secure Code :'
+        Caption = 'Secure Code'
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
         Font.Height = -15
@@ -709,7 +704,7 @@ object frmTPA: TfrmTPA
       object edtSecureCode: TEdit
         Left = 380
         Top = 76
-        Width = 174
+        Width = 178
         Height = 24
         Anchors = [akLeft, akTop, akRight]
         Font.Charset = DEFAULT_CHARSET

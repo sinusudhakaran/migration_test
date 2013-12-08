@@ -212,9 +212,9 @@ object frmCAF: TfrmCAF
         ParentFont = False
       end
       object cmbInstitution: TComboBox
-        Left = 153
+        Left = 152
         Top = 16
-        Width = 402
+        Width = 403
         Height = 24
         Style = csDropDownList
         Anchors = [akLeft, akTop, akRight]
@@ -269,7 +269,6 @@ object frmCAF: TfrmCAF
         Color = clWhite
         ParentBackground = False
         TabOrder = 1
-        ExplicitWidth = 387
         DesignSize = (
           415
           131)
@@ -313,7 +312,7 @@ object frmCAF: TfrmCAF
         object edtNameOfAccount: TEdit
           Left = 8
           Top = 45
-          Width = 403
+          Width = 401
           Height = 24
           Anchors = [akLeft, akTop, akRight]
           Font.Charset = DEFAULT_CHARSET
@@ -348,7 +347,6 @@ object frmCAF: TfrmCAF
           OnMouseDown = mskAccountNumberMouseDown
           OnValidateError = mskAccountNumberValidateError
           OnValidateEdit = mskAccountNumberValidateEdit
-          ExplicitWidth = 373
         end
         object edtAccountNumber: TEdit
           Left = 8
@@ -575,7 +573,6 @@ object frmCAF: TfrmCAF
         Color = clWhite
         ParentBackground = False
         TabOrder = 2
-        ExplicitTop = -1
       end
     end
     object pnlData: TPanel
@@ -591,11 +588,11 @@ object frmCAF: TfrmCAF
         607
         123)
       object lblSecureCode: TLabel
-        Left = 267
+        Left = 283
         Top = 81
-        Width = 85
+        Width = 79
         Height = 16
-        Caption = 'Secure Code :'
+        Caption = 'Secure Code'
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
         Font.Height = -15
@@ -676,7 +673,7 @@ object frmCAF: TfrmCAF
       object edtSecureCode: TEdit
         Left = 382
         Top = 78
-        Width = 172
+        Width = 173
         Height = 24
         Anchors = [akLeft, akTop, akRight]
         Font.Charset = DEFAULT_CHARSET

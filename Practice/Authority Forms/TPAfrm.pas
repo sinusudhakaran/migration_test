@@ -634,7 +634,7 @@ begin
       edtInstitutionName.Visible := false;
       lblInstitutionOther.Visible := false;
       imgInfoOtherMsg.Visible := false;
-      cmbInstitution.Width := edtBranch.Width;
+      cmbInstitution.Width := edtBranch.Width + 2;
       chkDataSecureNew.Checked := false;
       chkDataSecureExisting.Checked := false;
       SetDataSentToClient(false);
@@ -661,7 +661,7 @@ begin
           edtInstitutionName.Visible := false;
           lblInstitutionOther.Visible := false;
           imgInfoOtherMsg.Visible := false;
-          cmbInstitution.Width := edtBranch.Width;
+          cmbInstitution.Width := edtBranch.Width + 2;
 
           if (Assigned(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex])) and
              (cmbInstitution.Items.Objects[cmbInstitution.ItemIndex] is TInstitutionItem) then
