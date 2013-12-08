@@ -249,6 +249,7 @@ type
     procedure SetAutoCalculateGST(const aValue: boolean);
     procedure RefreshGST;
     procedure UMMainFormModalCommand(var aMsg: TMessage); message UM_MAINFORM_MODALCOMMAND;
+    procedure CreateDetailLine(RowNum: integer);
 
   public
     { Public declarations }
@@ -756,16 +757,7 @@ begin
               FData[RowNum - 1].bQuantitys[ColNum - MonthBase] := 0;
               FData[RowNum - 1].bUnitPrices[ColNum - MonthBase] := 0;
             end;
-
-            if FData[RowNum-1].bDetailLine = nil then
-            begin
-              NewLine := New_Budget_Detail_Rec;
-              NewLine.bdAccount_Code := fData[Rownum-1].bAccount;
-              Budget.buDetail.Insert(NewLine);
-
-              FData[RowNum-1].bDetailLine := NewLine;
-            end;
-
+            CreateDetailLine(RowNum-1);
             FData[RowNum-1].bDetailLine.bdBudget[ColNum-MonthBase] := eAmounts[ColNum-MonthBase];
             FData[RowNum-1].bDetailLine.bdQty_Budget[ColNum - MonthBase] := FData[RowNum - 1].bQuantitys[ColNum - MonthBase];
             FData[RowNum-1].bDetailLine.bdEach_Budget[ColNum - MonthBase] := FData[RowNum - 1].bUnitPrices[ColNum - MonthBase];
@@ -1496,6 +1488,19 @@ begin
   end
   else
     Result := StStrS.CompStringS( CodeA, CodeB);
+end;
+
+procedure TfrmBudget.CreateDetailLine(RowNum: integer);
+var
+  NewLine : pBudget_Detail_Rec;
+begin
+  if FData[RowNum].bDetailLine = nil then
+  begin
+    NewLine := New_Budget_Detail_Rec;
+    NewLine.bdAccount_Code := fData[RowNum].bAccount;
+    Budget.buDetail.Insert(NewLine);
+    FData[RowNum].bDetailLine := NewLine;
+  end;
 end;
 
 //------------------------------------------------------------------------------
@@ -2674,7 +2679,10 @@ begin
       else
         FData[DataRow].bAmounts[ColNum] :=
           Round(FData[AccountCodeRow].bAmounts[ColNum] * (FData[DataRow].Percentage / 100));
+
+      CreateDetailLine(DataRow);
       FData[DataRow].bDetailLine.bdBudget[ColNum] := FData[DataRow].bAmounts[ColNum];
+
       // Assigning a percentage to a row removes any quantities in the same row
       FData[DataRow].bQuantitys[ColNum] := 0;
       FData[DataRow].bUnitPrices[ColNum] := 0;
