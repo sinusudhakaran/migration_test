@@ -251,6 +251,7 @@ begin
   FButton := BTN_NONE;
   BKHelpSetUp(Self, BKH_Accessing_a_Third_Party_Authority_form);
 
+  cmbInstitution.Width := edtBranch.Width;
   cmbInstitution.SetFocus;
 end;
 
@@ -634,7 +635,7 @@ begin
       edtInstitutionName.Visible := false;
       lblInstitutionOther.Visible := false;
       imgInfoOtherMsg.Visible := false;
-      cmbInstitution.Width := edtBranch.Width + 2;
+      cmbInstitution.Width := edtBranch.Width;
       chkDataSecureNew.Checked := false;
       chkDataSecureExisting.Checked := false;
       SetDataSentToClient(false);
@@ -661,7 +662,7 @@ begin
           edtInstitutionName.Visible := false;
           lblInstitutionOther.Visible := false;
           imgInfoOtherMsg.Visible := false;
-          cmbInstitution.Width := edtBranch.Width + 2;
+          cmbInstitution.Width := edtBranch.Width;
 
           if (Assigned(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex])) and
              (cmbInstitution.Items.Objects[cmbInstitution.ItemIndex] is TInstitutionItem) then
