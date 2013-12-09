@@ -315,9 +315,15 @@ end;
 procedure TfrmCAFAccountStatus.lvAccountStatusGetText(Sender: TBaseVirtualTree;
   Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType;
   var CellText: WideString);
+var
+  CreateDate : TDateTime;
 begin
   case Column of
-    0: CellText := FormatDateTime('dd/mm/yy', FAccountList[PNodeData(Sender.GetNodeData(Node)^).Source].CreatedDate.AsDateTime);
+    0: begin
+      // use AsUTCDateTime rather than AsDateTime
+      CreateDate := FAccountList[PNodeData(Sender.GetNodeData(Node)^).Source].CreatedDate.AsUTCDateTime;
+      CellText := FormatDateTime('dd/mm/yy', trunc(CreateDate));
+    end;
     1: CellText := FAccountList[PNodeData(Sender.GetNodeData(Node)^).Source].AccountName;
     2: CellText := FAccountList[PNodeData(Sender.GetNodeData(Node)^).Source].AccountNumber;
     3: CellText := FAccountList[PNodeData(Sender.GetNodeData(Node)^).Source].FileNumber;
