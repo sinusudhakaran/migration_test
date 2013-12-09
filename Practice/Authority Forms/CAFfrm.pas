@@ -229,7 +229,7 @@ end;
 procedure TfrmCAF.FormShow(Sender: TObject);
 begin
   FButton := BTN_NONE;
-  BKHelpSetUp(Self, BKH_Accessing_a_Third_Party_Authority_form);
+  BKHelpSetUp(Self, BKH_Accessing_a_Client_Authority_Form);
 
   cmbInstitution.Width := edtBranch.Width;
   cmbInstitution.SetFocus;
