@@ -251,7 +251,11 @@ begin
   FButton := BTN_NONE;
   BKHelpSetUp(Self, BKH_Accessing_a_Third_Party_Authority_form);
 
-  cmbInstitution.Width := edtBranch.Width;
+  if fInstitutionType = inOther then
+    cmbInstitution.Width := OTHER_BANK_WIDTH
+  else
+    cmbInstitution.Width := edtBranch.Width;
+
   cmbInstitution.SetFocus;
 end;
 

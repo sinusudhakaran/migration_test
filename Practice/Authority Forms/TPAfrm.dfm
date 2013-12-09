@@ -223,7 +223,7 @@ object frmTPA: TfrmTPA
         Font.Height = -15
         Font.Name = 'MS Sans Serif'
         Font.Style = []
-        ItemHeight = 0
+        ItemHeight = 16
         ParentFont = False
         TabOrder = 0
         OnChange = cmbInstitutionChange
