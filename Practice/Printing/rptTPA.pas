@@ -325,7 +325,7 @@ begin
   if length(trim(Values.edtClientStartDte.Text)) <= 4 then
   begin
     TextBox('As from the', '', myCanvas.Font.Size, myCanvas.Font.Size + 1, jtLeft, jtCenter,
-            OutputLeft, OutputLeft + 170, OutputLeft + 230, CurrYPos, CurrYPos + BoxHeight, true);
+            OutputLeft, OutputLeft + 175, OutputLeft + 230, CurrYPos, CurrYPos + BoxHeight, true);
     TextBox('day of', '', myCanvas.Font.Size, myCanvas.Font.Size + 1, jtLeft, jtCenter,
             OutputLeft + 240, OutputLeft + 340, OutputLeft + 620, CurrYPos, CurrYPos + BoxHeight, true);
     TextBox('20', '', myCanvas.Font.Size, myCanvas.Font.Size + 1, jtLeft, jtCenter,
@@ -335,7 +335,7 @@ begin
   begin
     DecodeDate(Values.edtClientStartDte.AsDateTime, Year, Month, Day);
     TextBox('As from the', inttoStr(Day), myCanvas.Font.Size, myCanvas.Font.Size + 1, jtLeft, jtCenter,
-            OutputLeft, OutputLeft + 170, OutputLeft + 230, CurrYPos, CurrYPos + BoxHeight, true);
+            OutputLeft, OutputLeft + 175, OutputLeft + 230, CurrYPos, CurrYPos + BoxHeight, true);
     TextBox('day of', moNames[Month], myCanvas.Font.Size, myCanvas.Font.Size + 1, jtLeft, jtCenter,
             OutputLeft + 240, OutputLeft + 340, OutputLeft + 620, CurrYPos, CurrYPos + BoxHeight, true);
     TextBox('20', RightStr(inttoStr(Year),2), myCanvas.Font.Size, myCanvas.Font.Size + 1, jtLeft, jtCenter,
