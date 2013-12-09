@@ -19,6 +19,7 @@ object frmCAFAccountStatus: TfrmCAFAccountStatus
   Position = poMainFormCenter
   OnCreate = FormCreate
   OnKeyPress = FormKeyPress
+  OnShow = FormShow
   DesignSize = (
     1009
     495)
@@ -63,7 +64,6 @@ object frmCAFAccountStatus: TfrmCAFAccountStatus
     OnCompareNodes = lvAccountStatusCompareNodes
     OnGetText = lvAccountStatusGetText
     OnHeaderClick = lvAccountStatusHeaderClick
-    ExplicitWidth = 985
     Columns = <
       item
         Options = [coAllowClick, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible]
@@ -108,7 +108,6 @@ object frmCAFAccountStatus: TfrmCAFAccountStatus
     Width = 1009
     Height = 19
     Panels = <>
-    ExplicitWidth = 1001
   end
   object Button1: TButton
     Left = 926
@@ -120,7 +119,6 @@ object frmCAFAccountStatus: TfrmCAFAccountStatus
     Default = True
     ModalResult = 1
     TabOrder = 2
-    ExplicitLeft = 918
   end
   object cmbAccountFilter: TComboBox
     Left = 100

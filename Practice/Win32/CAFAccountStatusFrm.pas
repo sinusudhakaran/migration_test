@@ -3,8 +3,20 @@ unit CAFAccountStatusFrm;
 interface
 
 uses
-  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, VirtualTrees, StdCtrls, ComCtrls, OSFont, BankLinkOnlineServices;
+  Windows,
+  Messages,
+  SysUtils,
+  Variants,
+  Classes,
+  Graphics,
+  Controls,
+  Forms,
+  Dialogs,
+  VirtualTrees,
+  StdCtrls,
+  ComCtrls,
+  OSFont,
+  BankLinkOnlineServices;
 
 type
   TAccountFilterType = (afEverythingElse = 0, afActive = 1, afDeleted = 2);
@@ -32,6 +44,7 @@ type
       Column: TColumnIndex; Button: TMouseButton; Shift: TShiftState; X,
       Y: Integer);
     procedure FormKeyPress(Sender: TObject; var Key: Char);
+    procedure FormShow(Sender: TObject);
   private
     FAccountList: TBloArrayOfPracticeBankAccount;
 
@@ -64,7 +77,10 @@ var
 
 implementation
 
-uses bkBranding, bkProduct;
+uses
+  bkBranding,
+  bkProduct,
+  BKHelp;
 
 {$R *.dfm}
 
@@ -204,6 +220,11 @@ begin
   begin
     Close;
   end;
+end;
+
+procedure TfrmCAFAccountStatus.FormShow(Sender: TObject);
+begin
+  Self.HelpContext := BKH_Viewing_the_account_status;
 end;
 
 procedure TfrmCAFAccountStatus.PopulateAccountStatusList;
