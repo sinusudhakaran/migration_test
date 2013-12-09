@@ -188,7 +188,8 @@ begin
 
     if ((CurChar >= 'a') and (CurChar <='z')) or
        ((CurChar >= 'A') and (CurChar <='Z')) or
-       ((CurChar >= '0') and (CurChar <='9')) then
+       ((CurChar >= '0') and (CurChar <='9')) or
+       (CurChar = '.') then
       Result := Result + aAccountNumber[index];
   end;
 end;
