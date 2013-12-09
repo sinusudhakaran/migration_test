@@ -354,7 +354,7 @@ begin
   TextLine('to forward all data and', XPosTwoThirds + 150, OutputRight);
   NewLine;
   CurrYPos := CurrYPos + 8;
-  TextLine('information (whether in written, computer readable or any other format) relating to my/our banks account/s designated above to each', OutputLeft, OutputRight);
+  TextLine('information (whether in written, computer readable or any other format) relating to my/our banks account designated above to each', OutputLeft, OutputRight);
   NewLine;
   TextLine('other and to', OutputLeft, OutputRight);
   NewLine;
@@ -368,7 +368,7 @@ begin
   HalfNewLine;
   CurrYPos := CurrYPos + 5;
   myCanvas.Font.Size := 7;
-  TextLine('(my/our advisors)', OutputLeft, OutputRight);
+  TextLine('("my/our advisors")', OutputLeft, OutputRight);
   TextLine('(Practice Code)', XPosTwoThirds-100, OutputRight);
   myCanvas.Font.Size := 8;
 
@@ -427,9 +427,9 @@ begin
   NewLine;
   HalfNewLine;
   TextLine('6.', NumColumn, OutputRight);
-  TextLine('By signing below I/we agree that my/our personal information may be collected, stored, used and disclosed by', OutputLeft, OutputRight);
+  TextLine('By signing below I/we agree that my/our personal information may be collected, stored, used and disclosed by BankLink', OutputLeft, OutputRight);
   NewLine;
-  TextLine('BankLink in accordance with the BankLink Privacy Policy [http://www.banklink.com.au/index.php/privacy]', OutputLeft, OutputRight);
+  TextLine('in accordance with the BankLink Privacy Policy [http://www.banklink.com.au/index.php/privacy]', OutputLeft, OutputRight);
 
   //----------------------------------------------------------------------------
   // Footer works from the bottom up so we align with the bottom properly
