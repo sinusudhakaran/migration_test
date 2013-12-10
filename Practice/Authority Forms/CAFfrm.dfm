@@ -223,7 +223,7 @@ object frmCAF: TfrmCAF
         Font.Height = -15
         Font.Name = 'MS Sans Serif'
         Font.Style = []
-        ItemHeight = 0
+        ItemHeight = 16
         ParentFont = False
         TabOrder = 0
         OnChange = cmbInstitutionChange
@@ -502,6 +502,7 @@ object frmCAF: TfrmCAF
           Height = 24
           Hint = 'The client code from BankLink or your general ledger'
           Anchors = [akLeft, akTop, akRight]
+          CharCase = ecUpperCase
           Font.Charset = DEFAULT_CHARSET
           Font.Color = clWindowText
           Font.Height = -15
@@ -552,6 +553,7 @@ object frmCAF: TfrmCAF
           Height = 24
           Hint = 'The cost code from your practice management or billing system'
           Anchors = [akLeft, akTop, akRight]
+          CharCase = ecUpperCase
           Font.Charset = DEFAULT_CHARSET
           Font.Color = clWindowText
           Font.Height = -15

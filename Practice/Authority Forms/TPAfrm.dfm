@@ -503,6 +503,7 @@ object frmTPA: TfrmTPA
           Height = 24
           Hint = 'The client code from BankLink or your general ledger'
           Anchors = [akLeft, akTop, akRight]
+          CharCase = ecUpperCase
           Font.Charset = DEFAULT_CHARSET
           Font.Color = clWindowText
           Font.Height = -15
@@ -553,6 +554,7 @@ object frmTPA: TfrmTPA
           Height = 24
           Hint = 'The cost code from your practice management or billing system'
           Anchors = [akLeft, akTop, akRight]
+          CharCase = ecUpperCase
           Font.Charset = DEFAULT_CHARSET
           Font.Color = clWindowText
           Font.Height = -15
