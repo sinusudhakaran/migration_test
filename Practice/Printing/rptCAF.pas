@@ -21,6 +21,7 @@ type
     FValues: TfrmCAF; // pass the form so if text changes we may not have to change the report
     TempMonth : string;
     TempYear  : string;
+    fProvisional : boolean;
   protected
     procedure PrintForm; override;
     procedure ResetForm; override;
@@ -146,16 +147,18 @@ procedure TCAFReport.FillCollumn(C : TCell);
   end;
 begin
   if C.Col = fcAccountName then
-    Values.edtNameOfAccount.Text := GetCellText(C)
+  begin
+    Values.edtNameOfAccount.Text := GetCellText(C);
+    Values.AccountNumber := '';
+    fProvisional := false;
+  end
   else if C.Col = fcBSB then
   begin
-    Values.cmbInstitution.ItemIndex := 0;
-    Values.edtAccountNumber.Text := GetCellText(C) + Values.edtAccountNumber.Text;
+    Values.AccountNumber := GetCellText(C) + Values.AccountNumber;
   end
   else if C.Col = fcAccountNo then
   begin
-    Values.cmbInstitution.ItemIndex := 0;
-    Values.edtAccountNumber.Text := Values.edtAccountNumber.Text + GetCellText(C);
+    Values.AccountNumber := Values.AccountNumber + GetCellText(C);
   end
   else if C.Col = fcCostCode then
     Values.edtCostCode.Text := GetCellText(C)
@@ -175,14 +178,18 @@ begin
   begin
     Values.cmbInstitution.ItemIndex := 0;
     Values.edtInstitutionName.Text := GetCellText(C);
+  end
+  else if C.Col = fcProvisional then
+  begin
+    if (GetCellText(C) = 'Y') then
+      fProvisional := true;
   end;
 end;
 
 //------------------------------------------------------------------------------
 function TCAFReport.HaveNewdata: Boolean;
 begin
-  Result := (Values.edtNameOfAccount.Text > '')
-         or (Values.AccountNumber > '');
+  Result := (Values.AccountNumber > '');
 
   if not Result then
     ResetForm; // Clear the rest
@@ -451,7 +458,7 @@ begin
 
 
   NewLineUp(2);
-  DrawCheckbox(OutputLeft + BoxMargin2, CurrYPos, (values.InstitutionType = inOther));
+  DrawCheckbox(OutputLeft + BoxMargin2, CurrYPos, ((values.InstitutionType = inOther) or (fProvisional)));
   TextLine('Please supply the account above as a Provisional Account if it is not available from the Bank', OutputLeft + 80 , OutputRight);
   NewLineUp(2);
   myCanvas.Font.Style := [fsBold];
@@ -484,6 +491,9 @@ begin
 
 
   WasPrinted := True;
+
+  if ImportMode then
+    Values.AccountNumber := '';
 end;
 
 //------------------------------------------------------------------------------

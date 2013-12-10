@@ -276,7 +276,7 @@ function TfrmCAF.ValidateAccount(aAccountNumber : string; var aFailedReason : st
 var
   FailedReason : string;
   InstCode : string;
-  AccountNumber : string;
+  AccNumber : string;
 begin
   Result := false;
   fValidAccount := false;
@@ -297,7 +297,7 @@ begin
   end;
 
   // Call the Online Validation
-  AccountNumber := trim(fMaskHint.RemoveUnusedCharsFromAccNumber(aAccountNumber));
+  AccNumber := trim(fMaskHint.RemoveUnusedCharsFromAccNumber(aAccountNumber));
   if (cmbInstitution.ItemIndex > 0) and
      (Assigned(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex])) and
      (cmbInstitution.Items.Objects[cmbInstitution.ItemIndex] is TInstitutionItem) then
@@ -308,7 +308,7 @@ begin
     if Result then
     begin
       fValidAccount := true;
-      fAccountNumber := AccountNumber;
+      fAccountNumber := AccNumber;
     end;
   end;
 end;

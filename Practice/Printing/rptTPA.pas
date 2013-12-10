@@ -24,6 +24,7 @@ type
     TempDay   : string;
     TempMonth : string;
     TempYear  : string;
+    fProvisional : boolean;
   protected
     procedure PrintForm; override;
     procedure ResetForm; override;
@@ -150,11 +151,15 @@ procedure TTPAReport.FillCollumn(C : TCell);
   end;
 begin
   if C.Col = fcAccountName then
-    Values.edtNameOfAccount.Text := GetCellText(C)
+  begin
+    Values.edtNameOfAccount.Text := GetCellText(C);
+    Values.AccountNumber := '';
+    fProvisional := false;
+  end
   else if C.Col = fcAccountNo then
   begin
     Values.cmbInstitution.ItemIndex := 0;
-    Values.edtAccountNumber.Text := GetCellText(C);
+    Values.AccountNumber := GetCellText(C);
   end
   else if C.Col = fcCostCode then
     Values.edtCostCode.Text := GetCellText(C)
@@ -179,14 +184,18 @@ begin
   begin
     Values.cmbInstitution.ItemIndex := 0;
     Values.edtInstitutionName.Text := GetCellText(C);
+  end
+  else if C.Col = fcProvisional then
+  begin
+    if (GetCellText(C) = 'Y') then
+      fProvisional := true;
   end;
 end;
 
 //------------------------------------------------------------------------------
 function TTPAReport.HaveNewdata: Boolean;
 begin
-  Result := (Values.edtNameOfAccount.Text > '')
-         or (Values.AccountNumber > '');
+  Result := (Values.AccountNumber > '');
 
   if not Result then
     ResetForm; // Clear the rest
@@ -419,7 +428,7 @@ begin
 
   NewLineUp;
   HalfNewLineUp;
-  DrawCheckbox(OutputLeft + BoxMargin2, CurrYPos, (values.InstitutionType = inOther));
+  DrawCheckbox(OutputLeft + BoxMargin2, CurrYPos, ((values.InstitutionType = inOther) or (fProvisional)));
   TextLine('Please supply the account above as a Provisional Account if it is not available from the Bank', OutputLeft + 80 , OutputRight);
   NewLineUp;
   HalfNewLineUp;
@@ -451,6 +460,9 @@ begin
 
   //----------------------------------------------------------------------------
   WasPrinted := True;
+
+  if ImportMode then
+    Values.AccountNumber := '';
 end;
 
 //------------------------------------------------------------------------------
