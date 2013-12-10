@@ -265,7 +265,7 @@ begin
   // End Pos
   CurrChar := midstr(aMaskTypeArr, aCurPos, 1);
   CurrIndex := aCurPos+1;
-  while (CurrIndex < length(aMaskTypeArr)) and
+  while (CurrIndex <= length(aMaskTypeArr)) and
         (CurrChar = midstr(aMaskTypeArr, CurrIndex, 1)) do
   begin
     CurrChar := midstr(aMaskTypeArr, CurrIndex, 1);
