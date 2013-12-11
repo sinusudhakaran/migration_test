@@ -58,7 +58,8 @@ uses
   Sysutils,
   webutils,
   InstitutionCol,
-  StrUtils;
+  StrUtils,
+  bkDateUtils;
 
 //------------------------------------------------------------------------------
 function DoTPAReport(Values: TfrmTPA; Destination : TReportDest; Mode: TAFMode; Addr: string = '') : Boolean;
@@ -134,12 +135,13 @@ procedure TTPAReport.FillCollumn(C : TCell);
     Year, Month, Day : integer;
     StartDate : TDateTime;
   begin
-    if (TempDay > '') and
-       (TempMonth > '') and
+    if (TempMonth > '') and
        (TempYear > '') then
     begin
-      if (TryStrToInt(TempDay, Day)) and
-         (TryStrToInt(TempMonth, Month)) and
+      if TryStrToInt(TempDay, Day) = false then
+        Day := 1;
+
+      if (TryConvertStrMonthToInt(TempMonth, Month)) and
          (TryStrToInt(TempYear, Year)) then
       begin
         if TryEncodeDate(Year, Month, Day, StartDate) then
@@ -187,7 +189,9 @@ begin
   end
   else if C.Col = fcProvisional then
   begin
-    if (GetCellText(C) = 'Y') then
+    if (GetCellText(C) = 'N') then
+      fProvisional := false
+    else
       fProvisional := true;
   end;
 end;

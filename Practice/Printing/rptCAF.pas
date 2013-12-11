@@ -57,7 +57,8 @@ uses
   webutils,
   InstitutionCol,
   StrUtils,
-  ExtractCommon;
+  ExtractCommon,
+  bkDateUtils;
 
 //------------------------------------------------------------------------------
 function DoCAFReport(Values: TfrmCAF; Destination : TReportDest;  Mode: TAFMode; Addr: string = '') : Boolean;
@@ -134,7 +135,7 @@ procedure TCAFReport.FillCollumn(C : TCell);
     if (TempMonth > '') and
        (TempYear > '') then
     begin
-      if (TryStrToInt(TempMonth, Month)) and
+      if (TryConvertStrMonthToInt(TempMonth, Month)) and
          (TryStrToInt(TempYear, Year)) then
       begin
         Day := 1;
@@ -181,7 +182,9 @@ begin
   end
   else if C.Col = fcProvisional then
   begin
-    if (GetCellText(C) = 'Y') then
+    if (GetCellText(C) = 'N') then
+      fProvisional := false
+    else
       fProvisional := true;
   end;
 end;

@@ -58,12 +58,13 @@ function GetDateRangeS( const DR : TDateRange): ShortString; overload;
 function GetPeriodsBetween(FromDate, ToDate: Integer; ReturnLastDay: Boolean = False): TDateList;
 function BkDate2XSDate(ADate: Integer): String;
 function GetLastDayOfLastMonth(Date: TStDate): TStDate;
+function TryConvertStrMonthToInt(aStrMonth : string; var aMonth : integer) : boolean;
 
 // -----------------------------------------------------------------------------
 Implementation
 // -----------------------------------------------------------------------------
 uses
-  SysUtils, Holidays, XSBuiltIns;  // <- Only links to StDate
+  SysUtils, Holidays, XSBuiltIns, StrUtils, bkConst;  // <- Only links to StDate
 
 {19xx will be applied to dates until more than 30years less that today}
 
@@ -566,6 +567,62 @@ begin
   MaxDays := DaysInMonth(Month, Year, Epoch);
 
   Result := DMYToStDate(MaxDays, Month, Year, Epoch);
+end;
+
+//------------------------------------------------------------------------------
+function TryConvertStrMonthToInt(aStrMonth : string; var aMonth : integer) : boolean;
+var
+  MonthIndex : integer;
+  MonthName : string;
+begin
+  Result := true;
+
+  if length(aStrMonth) = 0 then
+  begin
+    Result := false;
+    Exit;
+  end;
+
+  if TryStrToInt(aStrMonth, aMonth) then
+  begin
+    if (aMonth <= 0) or
+       (aMonth > 12) then
+    begin
+      Result := false;
+      Exit;
+    end;
+  end
+  else
+  begin
+    if length(aStrMonth) = 3 then
+    begin
+      for MonthIndex := 1 to 12 do
+      begin
+        MonthName := moNames[MonthIndex];
+        if LeftStr(UpperCase(MonthName),3) = UpperCase(aStrMonth) then
+        begin
+          aMonth := MonthIndex;
+          Exit;
+        end;
+      end;
+      Result := false;
+      Exit;
+    end
+    else
+    begin
+      for MonthIndex := 1 to 12 do
+      begin
+        MonthName := moNames[MonthIndex];
+        if UpperCase(MonthName) = UpperCase(aStrMonth) then
+        begin
+          aMonth := MonthIndex;
+          Exit;
+        end;
+      end;
+      Result := false;
+      Exit;
+    end;
+  end;
 end;
 
 {$IFDEF DATE_UTILS_TEST}
