@@ -82,22 +82,7 @@ object frmBudget: TfrmBudget
     OnMouseDown = tblBudgetMouseDown
     OnUserCommand = tblBudgetUserCommand
     CellData = (
-      'frmBudget.tblHeader'
-      'frmBudget.ColMonth12'
-      'frmBudget.ColMonth11'
-      'frmBudget.ColMonth10'
-      'frmBudget.ColMonth9'
-      'frmBudget.ColMonth8'
-      'frmBudget.ColMonth7'
-      'frmBudget.ColMonth6'
-      'frmBudget.ColMonth5'
-      'frmBudget.ColMonth4'
-      'frmBudget.ColMonth3'
-      'frmBudget.ColMonth2'
-      'frmBudget.ColMonth1'
-      'frmBudget.ColTotal'
-      'frmBudget.ColDesc'
-      'frmBudget.ColAccount')
+      'frmBudget.tblHeader')
     RowData = (
       22)
     ColData = (
@@ -262,20 +247,6 @@ object frmBudget: TfrmBudget
       Transparent = True
       OnClick = lblnameClick
     end
-    object imgGraphic: TImage
-      Left = 537
-      Top = 0
-      Width = 233
-      Height = 44
-      Align = alRight
-      Anchors = [akTop, akRight]
-      AutoSize = True
-      Center = True
-      Transparent = True
-      ExplicitLeft = 489
-      ExplicitTop = 1
-      ExplicitHeight = 42
-    end
     object edtName: TEdit
       Left = 103
       Top = 2
@@ -297,6 +268,25 @@ object frmBudget: TfrmBudget
       OnEnter = edtNameEnter
       OnExit = edtNameExit
       OnKeyPress = edtNameKeyPress
+    end
+    object rgGST: TRadioGroup
+      Left = 552
+      Top = 0
+      Width = 218
+      Height = 44
+      Margins.Left = 0
+      Margins.Top = 0
+      Margins.Right = 0
+      Margins.Bottom = 0
+      Align = alRight
+      Anchors = [akRight]
+      Columns = 2
+      ItemIndex = 0
+      Items.Strings = (
+        'GST Exclusive'
+        'GST Inclusive')
+      TabOrder = 1
+      OnClick = rgGSTClick
     end
   end
   object DissectController: TOvcController
@@ -533,6 +523,7 @@ object frmBudget: TfrmBudget
     EFColors.Highlight.TextColor = clHighlightText
     Options = [efoCaretToEnd]
     PictureMask = 'i,iii,iii,iii'
+    Table = tblBudget
     OnOwnerDraw = ColMonthOwnerDraw
     Left = 376
     Top = 152

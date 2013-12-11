@@ -38,7 +38,8 @@ uses
   MoneyDef,
   BudgetImportExport,
   PercentageCalculationFrm,
-  BroadcastSystem;
+  BroadcastSystem,
+  GstCalc32;
   
 type
   TfrmBudget = class(TForm)
@@ -79,7 +80,6 @@ type
     lblAllExclude: TLabel;
     lblReminderNote: TLabel;
     lblname: TLabel;
-    imgGraphic: TImage;
     Restoredefaultcolumnwidths1: TMenuItem;
     ColTotal: TOvcTCNumericField;
     ALBudget: TActionList;
@@ -104,6 +104,7 @@ type
     actAutoCalculateGST: TAction;
     AutocalculateGST1: TMenuItem;
     mniEnterPercentage: TMenuItem;
+    rgGST: TRadioGroup;
     procedure FormCreate(Sender: TObject);
     procedure tblBudgetGetCellData(Sender: TObject; RowNum,
       ColNum: Integer; var Data: Pointer; Purpose: TOvcCellDataPurpose);
@@ -165,6 +166,7 @@ type
     procedure mniEnterPercentageClick(Sender: TObject);
     procedure actAutoCalculateGSTUpdate(Sender: TObject);
     procedure actAutoCalculateGSTExecute(Sender: TObject);
+    procedure rgGSTClick(Sender: TObject);
   private
     { Private declarations }
     FHint            : THintWindow;
@@ -249,6 +251,8 @@ type
     procedure SetAutoCalculateGST(const aValue: boolean);
     procedure RefreshGST;
     procedure UMMainFormModalCommand(var aMsg: TMessage); message UM_MAINFORM_MODALCOMMAND;
+    function CalculateGSTAmount(AmountWithGST: integer; MonthIndex: integer; Account: pAccount_Rec; ClassNo: byte): Money;
+    function CalculateGSTAmountFromNet(AmountWithoutGST: integer; MonthIndex: integer; ClassNo: byte): Money;
     procedure CreateDetailLine(RowNum: integer);
 
   public
@@ -416,6 +420,9 @@ begin
      FHint.Canvas.Font.Name := 'Courier';
      FHint.Canvas.Font.Size := 5;
   end;
+
+  // Removing the border from rgGST
+  SetWindowRgn(rgGST.Handle, CreateREctRgn(7, 14, rgGST.Width - 2, rgGST.Height - 2), True);
 end;
 
 //------------------------------------------------------------------------------
@@ -469,10 +476,14 @@ end;
 
 //------------------------------------------------------------------------------
 procedure TfrmBudget.ReadCellforPaint(RowNum, ColNum: Integer; var Data: Pointer);
+var
+  ClassNo     : Byte;
+  GSTAmount: integer;
 begin
- Data := nil;
- {validate}
- if RowNumOK(RowNum) then begin
+  Data := nil;
+
+  {validate}
+  if RowNumOK(RowNum) then begin
     {get data}
     case ColNum of
       AccountCol : Data := @FData[RowNum-1].bAccount;
@@ -480,12 +491,12 @@ begin
       DescCol :    Data := @FData[RowNum-1].bDesc;
 
       MonthMin..MonthMax :
+        begin
            if FData[RowNum-1].bIsPosting then
               Data := @FData[RowNum-1].bAmounts[ColNum-MonthBase]
-           else begin
-              if FData[RowNum-1].bAmounts[ColNum-MonthBase] <> 0 then
-                 Data := @FData[RowNum-1].bAmounts[ColNum-MonthBase];
-           end;
+           else if FData[RowNum-1].bAmounts[ColNum-MonthBase] <> 0 then
+              Data := @FData[RowNum-1].bAmounts[ColNum-MonthBase];
+        end;
       TotalCol :
         begin
           FData[RowNum-1].bTotal := GetTotalForRow(RowNum);
@@ -823,6 +834,16 @@ begin
     tblBudget.Columns[i].Width := 90;
 end;
 
+procedure TfrmBudget.rgGSTClick(Sender: TObject);
+begin
+  if (rgGST.ItemIndex = 0) then
+    lblAllExclude.Caption := 'All figures exclude GST'
+  else
+    lblAllExclude.Caption := 'All figures include GST';
+
+  RefreshTableWithData(fShowZeros, True);
+end;
+
 //------------------------------------------------------------------------------
 procedure TfrmBudget.FormShow(Sender: TObject);
 begin
@@ -833,8 +854,6 @@ begin
    ExtraTitleBar.GradientColorStop  := bkbranding.TopBarStopColor;
    lblDetails.Font.Color := bkBranding.TopTitleColor;
    lblName.Font.Color := bkBranding.TopTitleColor;
-
-   bkBranding.StyleTopBannerRightImage(imgGraphic);
 
    mniLockLeftmostClick(Sender);
 
@@ -886,6 +905,31 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+function TfrmBudget.CalculateGSTAmount(AmountWithGST: integer; MonthIndex: integer; Account: pAccount_Rec; ClassNo: byte): Money;
+var
+  ColDateInt: integer;
+  GSTAmount: Money;
+begin
+  ColDateInt := IncDate(Budget.buFields.buStart_Date, 0, MonthIndex - 1, 0);
+  GstCalc32.CalculateGST(MyClient,
+                         ColDateInt,
+                         Account.chAccount_Code,
+                         AmountWithGST,
+                         ClassNo,
+                         GSTAmount);
+  Result := GSTAmount;
+end;
+
+//------------------------------------------------------------------------------
+function TfrmBudget.CalculateGSTAmountFromNet(AmountWithoutGST: integer; MonthIndex: integer; ClassNo: byte): Money;
+var
+  ColDateInt: integer;
+begin
+  ColDateInt := IncDate(Budget.buFields.buStart_Date, 0, MonthIndex - 1, 0);
+  Result := GstCalc32.CalculateGSTFromNett(MyClient, ColDateInt, AmountWithoutGST, ClassNo);
+end;
+
+//------------------------------------------------------------------------------
 procedure TFrmBudget.RefreshFData(ShowZeros: Boolean; var aDataIndex : integer);
 var
   Account : pAccount_Rec;
@@ -893,6 +937,9 @@ var
   pBudgetRec: pBudget_Detail_Rec;
   MonthIndex: Integer;
   HasData: Boolean;
+  ClassNo: byte;
+  GSTAmount: Money;
+
 begin
   {now load all the data values}
   FData := nil;
@@ -926,6 +973,7 @@ begin
     FData[aDataIndex].bAccount := Account.chAccount_Code;
     FData[aDataIndex].bDesc    := Account.chAccount_Description;
     FData[aDataIndex].bIsPosting := Account.chPosting_Allowed;
+
     if Assigned(pBudgetRec) then
     begin
       FData[aDataIndex].PercentAccount := pBudgetRec.bdPercent_Account;
@@ -934,11 +982,24 @@ begin
     FData[aDataIndex].bIsGSTAccountCode :=
       IsGSTAccountCode(MyClient, FData[aDataIndex].bAccount);
     FData[aDataIndex].bDetailLine := pBudgetRec;
+
     for MonthIndex := 1 to 12 do
     begin
       if Assigned(pBudgetRec) then
       begin
-        FData[aDataIndex].bAmounts[MonthIndex] := Round(FData[aDataIndex].bDetailLine.bdBudget[MonthIndex]);
+        if (rgGST.ItemIndex = 1) then // GST Inclusive
+        begin
+          ClassNo := GetGSTClassNo(MyClient, GetGSTClassCode(MyClient, Account.chGST_Class));
+          GSTAmount := CalculateGSTAmountFromNet(Round(FData[aDataIndex].bDetailLine.bdBudget[MonthIndex]),
+                                                 MonthIndex,
+                                                 ClassNo);
+          FData[aDataIndex].bAmounts[MonthIndex] :=
+            Round(FData[aDataIndex].bDetailLine.bdBudget[MonthIndex] + GSTAmount)
+        end else
+          FData[aDataIndex].bAmounts[MonthIndex] :=
+            Round(FData[aDataIndex].bDetailLine.bdBudget[MonthIndex]);
+
+
         FData[aDataIndex].bQuantitys[MonthIndex] := FData[aDataIndex].bDetailLine.bdQty_Budget[MonthIndex];
         FData[aDataIndex].bUnitPrices[MonthIndex] := FData[aDataIndex].bDetailLine.bdEach_Budget[MonthIndex];
       end
@@ -948,7 +1009,7 @@ begin
         FData[aDataIndex].bQuantitys[MonthIndex] := 0;
         FData[aDataIndex].bUnitPrices[MonthIndex] := 0;
       end;
-    end;
+    end;        
     Inc(aDataIndex);
   end;
 
@@ -1019,9 +1080,12 @@ procedure TfrmBudget.UpdateLine(index: integer);
 {syncronizes the editor lines and the lines stored in the budget}
 {adds, edits or deletes budget line where necessary}
 var
-  i : integer;
-  DetailLine : pBudget_Detail_Rec;
-  HasData : boolean;
+  Account       : pAccount_Rec;
+  ClassNo       : byte;
+  DetailLine    : pBudget_Detail_Rec;
+  GSTAmount     : Money;
+  HasData       : boolean;
+  i             : integer;
 begin
   if not DataAssigned then exit;
   if not ((index >= Low(FData)) and (index <= High(Fdata))) then exit;
@@ -1044,15 +1108,26 @@ begin
        DetailLine.bdAccount_Code := FData[index].bAccount;
        Budget.buDetail.Insert(DetailLine);
        FData[index].bDetailLine := DetailLine;
-    end;    
+    end;
 
     {update data into budget line}
     FData[index].bDetailLine.bdPercent_Account := FData[index].PercentAccount;
     FData[index].bDetailLine.bdPercentage := FData[index].Percentage;
 
+    Account := FChart.FindCode(FData[index].bAccount);
+    ClassNo := GetGSTClassNo(MyClient, GetGSTClassCode(MyClient, Account.chGST_Class));
+
     for i := 1 to 12 do
     begin
-      FData[index].bDetailLine.bdBudget[i] := FData[index].bAmounts[i];
+      if (rgGST.ItemIndex = 1) then // Include GST
+      begin
+        GSTAmount := CalculateGSTAmount(Round(FData[index].bAmounts[i]),
+                                        i,
+                                        FChart.FindCode(FData[index].bAccount),
+                                        ClassNo);
+        FData[index].bDetailLine.bdBudget[i] := FData[index].bAmounts[i] - GSTAmount;
+      end else
+        FData[index].bDetailLine.bdBudget[i] := FData[index].bAmounts[i];
       FData[index].bDetailLine.bdQty_Budget[i] := FData[index].bQuantitys[i];
       FData[index].bDetailLine.bdEach_Budget[i] := FData[index].bUnitPrices[i];
     end;
