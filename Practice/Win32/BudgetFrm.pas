@@ -745,8 +745,10 @@ procedure TfrmBudget.tblBudgetDoneEdit(Sender: TObject; RowNum,
 {for edits that affect other cells those cells will be updated from here also}
 {saves direct edits!}
 var
-  NewLine : pBudget_Detail_Rec;
-
+  Account   : pAccount_Rec;
+  ClassNo   : byte;
+  GSTAmount : Money;
+  NewLine   : pBudget_Detail_Rec;
 begin
   if RowDataOK(RowNum,'BDoneEdit') then
     begin
@@ -769,7 +771,17 @@ begin
               FData[RowNum - 1].bUnitPrices[ColNum - MonthBase] := 0;
             end;
             CreateDetailLine(RowNum-1);
-            FData[RowNum-1].bDetailLine.bdBudget[ColNum-MonthBase] := eAmounts[ColNum-MonthBase];
+            if (rgGST.ItemIndex = 1) then // GST Inclusive
+            begin
+              Account := FChart.FindCode(FData[RowNum-1].bAccount);
+              ClassNo := GetGSTClassNo(MyClient, GetGSTClassCode(MyClient, Account.chGST_Class));
+              GSTAmount := CalculateGSTAmount(eAmounts[ColNum-MonthBase],
+                                              ColNum-MonthBase,
+                                              FChart.FindCode(FData[RowNum-1].bDetailLine.bdAccount_Code),
+                                              ClassNo);
+              FData[RowNum-1].bDetailLine.bdBudget[ColNum-MonthBase] := eAmounts[ColNum-MonthBase] - GSTAmount;
+            end else
+              FData[RowNum-1].bDetailLine.bdBudget[ColNum-MonthBase] := eAmounts[ColNum-MonthBase];
             FData[RowNum-1].bDetailLine.bdQty_Budget[ColNum - MonthBase] := FData[RowNum - 1].bQuantitys[ColNum - MonthBase];
             FData[RowNum-1].bDetailLine.bdEach_Budget[ColNum - MonthBase] := FData[RowNum - 1].bUnitPrices[ColNum - MonthBase];
          end;
@@ -1121,10 +1133,7 @@ begin
     begin
       if (rgGST.ItemIndex = 1) then // Include GST
       begin
-        GSTAmount := CalculateGSTAmount(Round(FData[index].bAmounts[i]),
-                                        i,
-                                        FChart.FindCode(FData[index].bAccount),
-                                        ClassNo);
+        GSTAmount := CalculateGSTAmount(Round(FData[index].bAmounts[i]), i, Account, ClassNo);
         FData[index].bDetailLine.bdBudget[i] := FData[index].bAmounts[i] - GSTAmount;
       end else
         FData[index].bDetailLine.bdBudget[i] := FData[index].bAmounts[i];
