@@ -364,7 +364,7 @@ begin
     if Institutions.DoInstituionExceptionCode(AccNumber, InstCode) = ieNAT then
       InstCode := 'NAT';
 
-    Result := ProductConfigService.ValidateAccount(AccountNumber, InstCode, COUNTRY_CODE, aFailedReason, true);
+    Result := ProductConfigService.ValidateAccount(AccNumber, InstCode, COUNTRY_CODE, aFailedReason, true);
 
     if Result then
     begin
