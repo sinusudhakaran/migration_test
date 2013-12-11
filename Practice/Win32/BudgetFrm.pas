@@ -254,6 +254,7 @@ type
     function CalculateGSTAmount(AmountWithGST: integer; MonthIndex: integer; Account: pAccount_Rec; ClassNo: byte): Money;
     function CalculateGSTAmountFromNet(AmountWithoutGST: integer; MonthIndex: integer; ClassNo: byte): Money;
     procedure CreateDetailLine(RowNum: integer);
+    function ShowFiguresGSTInclusive: boolean;
 
   public
     { Public declarations }
@@ -476,9 +477,6 @@ end;
 
 //------------------------------------------------------------------------------
 procedure TfrmBudget.ReadCellforPaint(RowNum, ColNum: Integer; var Data: Pointer);
-var
-  ClassNo     : Byte;
-  GSTAmount: integer;
 begin
   Data := nil;
 
@@ -748,7 +746,6 @@ var
   Account   : pAccount_Rec;
   ClassNo   : byte;
   GSTAmount : Money;
-  NewLine   : pBudget_Detail_Rec;
 begin
   if RowDataOK(RowNum,'BDoneEdit') then
     begin
@@ -771,7 +768,7 @@ begin
               FData[RowNum - 1].bUnitPrices[ColNum - MonthBase] := 0;
             end;
             CreateDetailLine(RowNum-1);
-            if (rgGST.ItemIndex = 1) then // GST Inclusive
+            if ShowFiguresGSTInclusive then
             begin
               Account := FChart.FindCode(FData[RowNum-1].bAccount);
               ClassNo := GetGSTClassNo(MyClient, GetGSTClassCode(MyClient, Account.chGST_Class));
@@ -848,10 +845,10 @@ end;
 
 procedure TfrmBudget.rgGSTClick(Sender: TObject);
 begin
-  if (rgGST.ItemIndex = 0) then
-    lblAllExclude.Caption := 'All figures exclude GST'
+  if ShowFiguresGSTInclusive then
+    lblAllExclude.Caption := 'All figures include GST'
   else
-    lblAllExclude.Caption := 'All figures include GST';
+    lblAllExclude.Caption := 'All figures exclude GST';
 
   RefreshTableWithData(fShowZeros, True);
 end;
@@ -942,6 +939,22 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+function IsAccountCodeGSTControlGroup(AccountCode: string): boolean;
+var
+  i: integer;
+begin
+  Result := False;
+  for i := Low(MyClient.clFields.clGST_Account_Codes) to High(MyClient.clFields.clGST_Account_Codes) do
+  begin
+    if (AccountCode = MyClient.clFields.clGST_Account_Codes[i]) then
+    begin
+      Result := True;
+      break;
+    end;
+  end;
+end;
+
+//------------------------------------------------------------------------------
 procedure TFrmBudget.RefreshFData(ShowZeros: Boolean; var aDataIndex : integer);
 var
   Account : pAccount_Rec;
@@ -951,7 +964,6 @@ var
   HasData: Boolean;
   ClassNo: byte;
   GSTAmount: Money;
-
 begin
   {now load all the data values}
   FData := nil;
@@ -999,7 +1011,7 @@ begin
     begin
       if Assigned(pBudgetRec) then
       begin
-        if (rgGST.ItemIndex = 1) then // GST Inclusive
+        if ShowFiguresGSTInclusive then // GST Inclusive
         begin
           ClassNo := GetGSTClassNo(MyClient, GetGSTClassCode(MyClient, Account.chGST_Class));
           GSTAmount := CalculateGSTAmountFromNet(Round(FData[aDataIndex].bDetailLine.bdBudget[MonthIndex]),
@@ -1025,8 +1037,11 @@ begin
     Inc(aDataIndex);
   end;
 
-  // Now update the GST cells
-  RefreshGST;
+  // Now update the GST cells. We only want to show the GST values if GST Exclusive has
+  // been selected, if GST inclusive figures are being shown then the GST is included
+  // in the figures for each row, and no separate amount is needed.
+  if not ShowFiguresGSTInclusive then
+    RefreshGST;
 
   if (aDataIndex = 0) and not ShowZeros then
   begin
@@ -1131,7 +1146,7 @@ begin
 
     for i := 1 to 12 do
     begin
-      if (rgGST.ItemIndex = 1) then // Include GST
+      if ShowFiguresGSTInclusive then
       begin
         GSTAmount := CalculateGSTAmount(Round(FData[index].bAmounts[i]), i, Account, ClassNo);
         FData[index].bDetailLine.bdBudget[i] := FData[index].bAmounts[i] - GSTAmount;
@@ -1496,10 +1511,11 @@ procedure TfrmBudget.ColMonthOwnerDraw(Sender: TObject; TableCanvas: TCanvas;
 const
   margin = 4;
 var
-  R: TRect;
-  s : String;
   D: Double;
   HasPercentage: boolean;
+  IsGSTControlGroup: boolean;
+  R: TRect;
+  s : String;
 
   procedure DrawTriangle(TriColor: integer);
   begin
@@ -1514,7 +1530,8 @@ begin
   if not assigned(FData) then Exit;
 
   HasPercentage := HasPercentageFormula(RowNum - 1);
-  
+  IsGSTControlGroup := IsAccountCodeGSTControlGroup(FData[RowNum-1].bAccount);
+
   DoneIt := true;
   //draw text
   R := CellRect;
@@ -1527,9 +1544,14 @@ begin
   end;
 
   TableCanvas.Font := CellAttr.caFont;
-  if HasPercentage then
-    // Gray to show that this row is disabled. Users may not directly modify cells which
-    // derive their value as a % of another row, they must first clear the % that has been set
+  if HasPercentage or (IsGSTControlGroup and ShowFiguresGSTInclusive) then
+    // Gray to show that this row is disabled because:
+    // * Users may not directly modify cells which derive their value as a % of another row,
+    //   they must first clear the % that has been set.
+    // or
+    // * The account code for this row is a GST Control Group, and the table is showing GST
+    //   inclusive figures. There is no need to show a separate GST total when the figures
+    //   are already GST inclusive.
     TableCanvas.Brush.Color := clSilver
   else
     TableCanvas.Brush.Color := CellAttr.caColor;
@@ -2903,6 +2925,11 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+function TfrmBudget.ShowFiguresGSTInclusive: boolean;
+begin
+  Result := (rgGST.ItemIndex = 1);
+end;
+
 procedure TfrmBudget.ShowPopUp( x, y : Integer; PopMenu :TPopUpMenu );
 var
    ClientPt, ScreenPt : TPoint;
