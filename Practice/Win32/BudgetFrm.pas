@@ -939,22 +939,6 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function IsAccountCodeGSTControlGroup(AccountCode: string): boolean;
-var
-  i: integer;
-begin
-  Result := False;
-  for i := Low(MyClient.clFields.clGST_Account_Codes) to High(MyClient.clFields.clGST_Account_Codes) do
-  begin
-    if (AccountCode = MyClient.clFields.clGST_Account_Codes[i]) then
-    begin
-      Result := True;
-      break;
-    end;
-  end;
-end;
-
-//------------------------------------------------------------------------------
 procedure TFrmBudget.RefreshFData(ShowZeros: Boolean; var aDataIndex : integer);
 var
   Account : pAccount_Rec;
@@ -1009,7 +993,7 @@ begin
 
     for MonthIndex := 1 to 12 do
     begin
-      if Assigned(pBudgetRec) then
+      if Assigned(pBudgetRec) and not FData[aDataIndex].bIsGSTAccountCode then
       begin
         if ShowFiguresGSTInclusive then // GST Inclusive
         begin
@@ -1530,7 +1514,7 @@ begin
   if not assigned(FData) then Exit;
 
   HasPercentage := HasPercentageFormula(RowNum - 1);
-  IsGSTControlGroup := IsAccountCodeGSTControlGroup(FData[RowNum-1].bAccount);
+  IsGSTControlGroup := IsGSTAccountCode(MyClient, FData[RowNum-1].bAccount);
 
   DoneIt := true;
   //draw text
