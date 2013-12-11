@@ -144,13 +144,13 @@ begin
       ErrorMsg  := 'You cannot pick a non-posting code.';
     end else
       IsValid := True;
-
-    if IsValid or (s = '') then
-      edtAccountCode.Color := clWindow
-    else
-      edtAccountCode.Color := clRed;
-    Result := IsValid;
   end;
+
+  if IsValid or (s = '') then
+    edtAccountCode.Color := clWindow
+  else
+    edtAccountCode.Color := clRed;
+  Result := IsValid;
 end;
 
 procedure TfrmPercentageCalculation.edtAccountCodeChange(Sender: TObject);
