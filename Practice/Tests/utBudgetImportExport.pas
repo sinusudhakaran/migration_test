@@ -201,7 +201,7 @@ var
 begin
   BudgetData := CreateBudgetData;
 
-  BudgetDataCopy := fBudgetImportExport.CopyBudgetData(BudgetData);
+  BudgetDataCopy := fBudgetImportExport.CopyBudgetData(BudgetData, false, -1); // the third parameter is unnecessary when second parameter is false, see CopyBudgetData
 
   for BudgetIndex := 0 to Length(BudgetData) - 1 do
   begin

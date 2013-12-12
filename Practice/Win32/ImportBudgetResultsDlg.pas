@@ -42,7 +42,8 @@ type
   function VerifyBudgetImport(aBudgetFilename : string;
                               aErrorFilename : string;
                               aRowsImported : integer;
-                              aRowsNotImported : integer) : boolean;
+                              aRowsNotImported : integer;
+                              BudgetShowingGSTExclusive : boolean) : boolean;
 
 //------------------------------------------------------------------------------
 implementation
@@ -56,7 +57,8 @@ uses
 function VerifyBudgetImport(aBudgetFilename : string;
                             aErrorFilename : string;
                             aRowsImported : integer;
-                            aRowsNotImported : integer) : boolean;
+                            aRowsNotImported : integer;
+                            BudgetShowingGSTExclusive : boolean) : boolean;
 var
   DlgImportBudgetResults : TImportBudgetResultsDlg;
 begin

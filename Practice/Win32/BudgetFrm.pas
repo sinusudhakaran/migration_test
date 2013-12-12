@@ -2366,7 +2366,7 @@ begin
 
       try
         BudgetImportExport.ClearWasUpdated(FData);
-        BudgetCopy := BudgetImportExport.CopyBudgetData(FData);
+        BudgetCopy := BudgetImportExport.CopyBudgetData(FData, false, Budget.buFields.buStart_Date);
 
         if not BudgetImportExport.ImportBudget(BudgetFilePath,
                                                BudgetErrorFile,
@@ -2393,10 +2393,11 @@ begin
                                   RowsNotImported,
                                   ShowFiguresGSTInclusive) then
             begin
-              FData := BudgetImportExport.CopyBudgetData(BudgetCopy);
+              rgGST.ItemIndex := ord(GSTInclusive);
+              GSTInclusive := ShowFiguresGSTInclusive;
+              FData := BudgetImportExport.CopyBudgetData(BudgetCopy, GSTInclusive, Budget.buFields.buStart_Date);
               BudgetImportExport.UpdateBudgetDetailRows(FData, FBudget);
               incusage('Import Budgets');
-              rgGST.ItemIndex := ord(GSTInclusive);
               ActiveControl := tblBudget;
 
               LogUtil.LogMsg( lmInfo, UnitName, ThisMethodName + ' : ' +
