@@ -2233,6 +2233,7 @@ var
        BudgetScreen.Caption := 'Edit Budget '+ aBudget.buFields.buName;
        BudgetScreen.Budget  := aBudget;
        BudgetScreen.rgGST.ItemIndex := ord(aBudget.buFields.buIs_Inclusive);
+       BudgetScreen.ActiveControl := BudgetScreen.tblBudget;
 
        if not Assigned(BudgetScreen.Budget) then  {could not be assigned to form}
          BudgetScreen.Close;
@@ -2347,6 +2348,7 @@ var
   BudgetCopy : TBudgetData;
   RowsImported : integer;
   RowsNotImported : integer;
+  GSTInclusive: boolean;
 begin
   BudgetErrorFile := UserDir + MyClient.clFields.clCode + ' ' +
                      RemoveInvalidCharacters(Budget.buFields.buName) + ' ' +
@@ -2356,7 +2358,8 @@ begin
   try
     BudgetImportExport.BudgetDefaultFile := '';
 
-    if DoImportBudget(BudgetFilePath, FBudget.buFields.buName) then
+    GSTInclusive := ShowFiguresGSTInclusive;
+    if DoImportBudget(BudgetFilePath, FBudget.buFields.buName, GSTInclusive) then
     begin
       if not fShowZeros then
         RefreshFData(true, DataIndex);
@@ -2387,11 +2390,14 @@ begin
             if VerifyBudgetImport(BudgetFilePath,
                                   BudgetErrorFile,
                                   RowsImported,
-                                  RowsNotImported) then
+                                  RowsNotImported,
+                                  ShowFiguresGSTInclusive) then
             begin
               FData := BudgetImportExport.CopyBudgetData(BudgetCopy);
               BudgetImportExport.UpdateBudgetDetailRows(FData, FBudget);
               incusage('Import Budgets');
+              rgGST.ItemIndex := ord(GSTInclusive);
+              ActiveControl := tblBudget;
 
               LogUtil.LogMsg( lmInfo, UnitName, ThisMethodName + ' : ' +
                               'From File : ' + ExtractFileName(BudgetFilePath) + ', ' +
@@ -2422,7 +2428,6 @@ begin
   end;
 end;
 
-//------------------------------------------------------------------------------
 procedure TfrmBudget.DoExport;
 var
   BudgetFilePath : string;

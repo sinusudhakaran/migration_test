@@ -83,21 +83,21 @@ object frmBudget: TfrmBudget
     OnUserCommand = tblBudgetUserCommand
     CellData = (
       'frmBudget.tblHeader'
-      'frmBudget.ColAccount'
-      'frmBudget.ColDesc'
-      'frmBudget.ColTotal'
-      'frmBudget.ColMonth1'
-      'frmBudget.ColMonth2'
-      'frmBudget.ColMonth3'
-      'frmBudget.ColMonth4'
-      'frmBudget.ColMonth5'
-      'frmBudget.ColMonth6'
-      'frmBudget.ColMonth7'
-      'frmBudget.ColMonth8'
-      'frmBudget.ColMonth9'
-      'frmBudget.ColMonth10'
+      'frmBudget.ColMonth12'
       'frmBudget.ColMonth11'
-      'frmBudget.ColMonth12')
+      'frmBudget.ColMonth10'
+      'frmBudget.ColMonth9'
+      'frmBudget.ColMonth8'
+      'frmBudget.ColMonth7'
+      'frmBudget.ColMonth6'
+      'frmBudget.ColMonth5'
+      'frmBudget.ColMonth4'
+      'frmBudget.ColMonth3'
+      'frmBudget.ColMonth2'
+      'frmBudget.ColMonth1'
+      'frmBudget.ColTotal'
+      'frmBudget.ColDesc'
+      'frmBudget.ColAccount')
     RowData = (
       22)
     ColData = (
@@ -349,7 +349,6 @@ object frmBudget: TfrmBudget
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd]
     PictureMask = 'i,iii,iii,iii'
     Table = tblBudget
     OnOwnerDraw = ColMonthOwnerDraw
@@ -366,7 +365,6 @@ object frmBudget: TfrmBudget
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd]
     PictureMask = 'i,iii,iii,iii'
     Table = tblBudget
     OnOwnerDraw = ColMonthOwnerDraw
@@ -383,7 +381,6 @@ object frmBudget: TfrmBudget
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd]
     PictureMask = 'i,iii,iii,iii'
     Table = tblBudget
     OnOwnerDraw = ColMonthOwnerDraw
@@ -400,7 +397,6 @@ object frmBudget: TfrmBudget
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd]
     PictureMask = 'i,iii,iii,iii'
     Table = tblBudget
     OnOwnerDraw = ColMonthOwnerDraw
@@ -417,7 +413,6 @@ object frmBudget: TfrmBudget
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd]
     PictureMask = 'i,iii,iii,iii'
     Table = tblBudget
     OnOwnerDraw = ColMonthOwnerDraw
@@ -434,7 +429,6 @@ object frmBudget: TfrmBudget
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd]
     PictureMask = 'i,iii,iii,iii'
     Table = tblBudget
     OnOwnerDraw = ColMonthOwnerDraw
@@ -451,7 +445,6 @@ object frmBudget: TfrmBudget
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd]
     PictureMask = 'i,iii,iii,iii'
     Table = tblBudget
     OnOwnerDraw = ColMonthOwnerDraw
@@ -468,7 +461,6 @@ object frmBudget: TfrmBudget
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd]
     PictureMask = 'i,iii,iii,iii'
     Table = tblBudget
     OnOwnerDraw = ColMonthOwnerDraw
@@ -485,7 +477,6 @@ object frmBudget: TfrmBudget
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd]
     PictureMask = 'i,iii,iii,iii'
     Table = tblBudget
     OnOwnerDraw = ColMonthOwnerDraw
@@ -502,7 +493,6 @@ object frmBudget: TfrmBudget
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd]
     PictureMask = 'i,iii,iii,iii'
     Table = tblBudget
     OnOwnerDraw = ColMonthOwnerDraw
@@ -519,7 +509,6 @@ object frmBudget: TfrmBudget
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd]
     PictureMask = 'i,iii,iii,iii'
     Table = tblBudget
     OnOwnerDraw = ColMonthOwnerDraw
@@ -536,7 +525,6 @@ object frmBudget: TfrmBudget
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd]
     PictureMask = 'i,iii,iii,iii'
     Table = tblBudget
     OnOwnerDraw = ColMonthOwnerDraw
@@ -671,7 +659,6 @@ object frmBudget: TfrmBudget
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd]
     PictureMask = 'i,iii,iii,iii'
     Table = tblBudget
     Left = 480

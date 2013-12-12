@@ -3,7 +3,7 @@ object frmImportBudget: TfrmImportBudget
   Top = 0
   BorderStyle = bsDialog
   Caption = 'Import Budget'
-  ClientHeight = 111
+  ClientHeight = 135
   ClientWidth = 578
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -16,7 +16,7 @@ object frmImportBudget: TfrmImportBudget
   OnCreate = FormCreate
   DesignSize = (
     578
-    111)
+    135)
   PixelsPerInch = 96
   TextHeight = 13
   object lblFilename: TLabel
@@ -44,6 +44,19 @@ object frmImportBudget: TfrmImportBudget
     OnClick = btnToFileClick
     ExplicitLeft = 489
   end
+  object lblImportedFiguresAre: TLabel
+    Left = 12
+    Top = 52
+    Width = 118
+    Height = 16
+    Caption = 'Imported figures are'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -13
+    Font.Name = 'Tahoma'
+    Font.Style = []
+    ParentFont = False
+  end
   object edtBudgetFile: TEdit
     Left = 133
     Top = 8
@@ -63,7 +76,7 @@ object frmImportBudget: TfrmImportBudget
   end
   object btnOk: TButton
     Left = 414
-    Top = 78
+    Top = 102
     Width = 75
     Height = 25
     Anchors = [akRight, akBottom]
@@ -77,10 +90,11 @@ object frmImportBudget: TfrmImportBudget
     ParentFont = False
     TabOrder = 1
     OnClick = btnOkClick
+    ExplicitTop = 78
   end
   object btnCancel: TButton
     Left = 495
-    Top = 78
+    Top = 102
     Width = 75
     Height = 25
     Anchors = [akRight, akBottom]
@@ -94,11 +108,30 @@ object frmImportBudget: TfrmImportBudget
     ModalResult = 2
     ParentFont = False
     TabOrder = 2
+    ExplicitTop = 78
+  end
+  object rgGST: TRadioGroup
+    Left = 136
+    Top = 28
+    Width = 236
+    Height = 51
+    Columns = 2
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -13
+    Font.Name = 'Tahoma'
+    Font.Style = []
+    ItemIndex = 0
+    Items.Strings = (
+      'GST exclusive'
+      'GST inclusive')
+    ParentFont = False
+    TabOrder = 3
   end
   object OpenTextFileDialog: TOpenTextFileDialog
     DefaultExt = 'csv'
     Filter = 'CSV Files (*.csv)|*.csv'
-    Left = 8
-    Top = 64
+    Left = 344
+    Top = 104
   end
 end

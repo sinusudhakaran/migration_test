@@ -15,7 +15,8 @@ uses
   Dialogs,
   StdCtrls,
   Buttons,
-  ExtDlgs;
+  ExtDlgs,
+  ExtCtrls;
 
 type
   TfrmImportBudget = class(TForm)
@@ -25,6 +26,8 @@ type
     btnOk: TButton;
     btnCancel: TButton;
     OpenTextFileDialog: TOpenTextFileDialog;
+    rgGST: TRadioGroup;
+    lblImportedFiguresAre: TLabel;
     procedure btnToFileClick(Sender: TObject);
     procedure btnOkClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -41,7 +44,7 @@ var
   frmImportBudget: TfrmImportBudget;
 
 //------------------------------------------------------------------------------
-function DoImportBudget(var aBudgetFilePath : string; aBudgetName : string) : boolean;
+function DoImportBudget(var aBudgetFilePath : string; aBudgetName : string; var IsGSTInclusive: boolean) : boolean;
 
 //------------------------------------------------------------------------------
 implementation
@@ -55,17 +58,20 @@ uses
   ErrorMoreFrm;
 
 //------------------------------------------------------------------------------
-function DoImportBudget(var aBudgetFilePath : string; aBudgetName : string) : boolean;
+function DoImportBudget(var aBudgetFilePath : string; aBudgetName : string; var IsGSTInclusive: boolean) : boolean;
 var
   frmImportBudget : TfrmImportBudget;
 begin
   frmImportBudget := TfrmImportBudget.Create( Application.Mainform);
 
   try
-    frmImportBudget.BudgetFilePath := aBudgetFilePath;
-    frmImportBudget.BudgetName     := aBudgetName;
+    frmImportBudget.BudgetFilePath  := aBudgetFilePath;
+    frmImportBudget.BudgetName      := aBudgetName;
+    frmImportBudget.rgGST.ItemIndex := Ord(IsGSTInclusive);
 
     Result := IsPositiveResult(frmImportBudget.showmodal);
+    if Result then
+      IsGSTInclusive := (frmImportBudget.rgGST.ItemIndex = 1);
 
     if Result then
       aBudgetFilePath := frmImportBudget.BudgetFilePath;
@@ -79,6 +85,8 @@ procedure TfrmImportBudget.FormCreate(Sender: TObject);
 begin
   bkXPThemes.ThemeForm( Self);
   ImagesFrm.AppImages.Misc.GetBitmap(MISC_FINDFOLDER_BMP, btnToFile.Glyph);
+  // Removing the border from rgGST
+  SetWindowRgn(rgGST.Handle, CreateREctRgn(7, 14, rgGST.Width - 2, rgGST.Height - 2), True);
 end;
 
 //------------------------------------------------------------------------------
