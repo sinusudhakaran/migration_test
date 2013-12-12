@@ -82,7 +82,8 @@ type
                           aIncludeNonPostingChartCodes: boolean;
                           aPrefixAccountCode: boolean = false): boolean;
 
-    function CopyBudgetData(aBudgetData : TBudgetData) : TBudgetData;
+    function CopyBudgetData(aBudgetData : TBudgetData; SubtractGST: boolean;
+                            BudgetStartDate: integer) : TBudgetData;
     procedure ClearWasUpdated(var aBudgetData : TBudgetData);
     procedure UpdateBudgetDetailRows(var aBudgetData : TBudgetData; var aBudget : TBudget);
 
@@ -115,7 +116,8 @@ uses
   Globals,
   BudgetUnitPriceEntry,
   BKbdIO,
-  GenUtils;
+  GenUtils,
+  GSTCalc32;
 
 { TBudgetImportExport }
 //------------------------------------------------------------------------------
@@ -504,7 +506,8 @@ begin
 
       for ColIndex := 1 to 12 do
       begin
-        aBudgetData[RowIndex].bDetailLine.bdBudget[ColIndex]      := aBudgetData[RowIndex].bAmounts[ColIndex];
+        aBudgetData[RowIndex].bDetailLine.bdBudget[ColIndex]      := aBudgetData[RowIndex].bAmounts[ColIndex] -
+                                                                     aBudgetData[RowIndex].bAmountsInclGST[ColIndex];
         aBudgetData[RowIndex].bDetailLine.bdQty_Budget[ColIndex]  := aBudgetData[RowIndex].bQuantitys[ColIndex];
         aBudgetData[RowIndex].bDetailLine.bdEach_Budget[ColIndex] := aBudgetData[RowIndex].bUnitPrices[ColIndex];
       end;
@@ -517,9 +520,14 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TBudgetImportExport.CopyBudgetData(aBudgetData: TBudgetData): TBudgetData;
+function TBudgetImportExport.CopyBudgetData(aBudgetData: TBudgetData; SubtractGST: boolean;
+                                            BudgetStartDate: integer): TBudgetData;
 var
+  Account   : pAccount_Rec;
   BudgetIndex : integer;
+  ClassNo   : byte;
+  GstAmount: Money;
+  MonthDateInt: integer;
   MonthIndex : integer;
 begin
   SetLength(Result, length(aBudgetData));
@@ -529,9 +537,25 @@ begin
     Result[BudgetIndex].bAccount := aBudgetData[BudgetIndex].bAccount;
     Result[BudgetIndex].bDesc    := aBudgetData[BudgetIndex].bDesc;
 
+    if SubtractGST then
+    begin
+      Account := MyClient.clChart.FindCode(aBudgetData[BudgetIndex].bAccount);
+      ClassNo := GetGSTClassNo(MyClient, GetGSTClassCode(MyClient, Account.chGST_Class));
+    end;
     for MonthIndex := 1 to 12 do
     begin
-      Result[BudgetIndex].bAmounts[MonthIndex]    := aBudgetData[BudgetIndex].bAmounts[MonthIndex];
+      if SubtractGST then
+      begin
+        MonthDateInt := IncDate(BudgetStartDate, 0, MonthIndex - 1, 0);
+        CalculateGST(MyClient,
+                     MonthDateInt,
+                     aBudgetData[BudgetIndex].bAccount,
+                     aBudgetData[BudgetIndex].bAmounts[MonthIndex],
+                     ClassNo,
+                     GstAmount);
+        Result[BudgetIndex].bAmounts[MonthIndex]  := Round(aBudgetData[BudgetIndex].bAmounts[MonthIndex] - GstAmount);
+      end else
+        Result[BudgetIndex].bAmounts[MonthIndex]  := aBudgetData[BudgetIndex].bAmounts[MonthIndex];
       Result[BudgetIndex].bQuantitys[MonthIndex]  := aBudgetData[BudgetIndex].bQuantitys[MonthIndex];
       Result[BudgetIndex].bUnitPrices[MonthIndex] := aBudgetData[BudgetIndex].bUnitPrices[MonthIndex];
     end;
