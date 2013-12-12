@@ -10,13 +10,26 @@ unit MemUtils;
 
 interface
 
-uses SysUtils, bkConst, MemorisationsObj;
+uses
+  SysUtils,
+  bkConst,
+  MemorisationsObj;
 
 function HasDuplicateMem( MemToTest : TMemorisation;
                           FMemorisationsList : TMemorisations_List;
                           EditMem : TMemorisation = nil) : Boolean;
 
+  function HasMatchOnCriteria(const aMemorisation: TMemorisation): boolean;
+
+  procedure CopyMemorisation(const aMemFrom: TMemorisation;
+              var aMemTo: TMemorisation);
+
+  
 implementation
+
+uses
+  BKMLIO,
+  bkDefs;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function MemCriteriaMatches( ExistingMemorisation, MemToTest : TMemorisation) : boolean;
@@ -145,5 +158,45 @@ begin
       end;
     end;
 end;
+
+{------------------------------------------------------------------------------}
+function HasMatchOnCriteria(const aMemorisation: TMemorisation): boolean;
+begin
+  with aMemorisation.mdFields^ do
+    result :=
+      (mdMatch_on_Amount <> mxNo) or
+      mdMatch_on_Analysis or
+      mdMatch_on_Other_Party or
+      mdMatch_on_Notes or
+      mdMatch_on_Particulars or
+      mdMatch_on_Refce or
+      mdMatch_on_Statement_Details;
+end;
+
+{------------------------------------------------------------------------------}
+procedure CopyMemorisation(const aMemFrom: TMemorisation;
+  var aMemTo: TMemorisation);
+var
+  iLine: integer;
+  MemLineFrom: pMemorisation_Line_Rec;
+  MemLineTo: pMemorisation_Line_Rec;
+begin
+  { Note: code taken from MainMemFrm.CopyTo.
+    Could perhaps go into TMemorisation itself.
+  }
+
+  aMemTo.mdFields^ := aMemFrom.mdFields^;
+
+  for iLine := aMemFrom.mdLines.First to aMemFrom.mdLines.Last do
+  begin
+    MemLineFrom := aMemFrom.mdLines.MemorisationLine_At(iLine);
+    MemLineTo := BKMLIO.New_Memorisation_Line_Rec;
+    MemLineTo^ := MemLineFrom^;
+    aMemTo.mdLines.Insert(MemLineTo);
+  end;
+
+  // Note: the Insert will set the sequence number
+end;
+
 
 end.

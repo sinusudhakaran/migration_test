@@ -68,6 +68,7 @@ type
      procedure SaveToStream( Var S : TIOStream );
      procedure LoadFromStream( Var S : TIOStream );
      procedure UpdateCRC(var CRC : Longword);
+     property  AuditMgr: TAuditManager read FAuditMgr;
   end;
 
   TMemsArray = Array[0..255] of TMemorisation;

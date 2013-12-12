@@ -81,7 +81,8 @@ uses
   ExchangeRateList, MCDEFS, stTree, stBase,
   BankLinkOnlineServices,
   SYctIO,
-  bkBranding;
+  bkBranding,
+  UpgradeMemorisations;
 // ----------------------------------------------------------------------------
 
 Const
@@ -4225,7 +4226,11 @@ const
       1: aClient.clFields.clECoding_Import_Options := noFillWithNotes;
       2: aClient.clFields.clECoding_Import_Options := noFillWithBoth;
     end;
+  end;
 
+  procedure UpgradeToVersion181;
+  begin
+    UpgradeClient_Memorisation_EntryType(aClient);
   end;
 
 begin
@@ -4584,6 +4589,12 @@ begin
       begin
         UpgradeToVersion175;
         clFile_Version := 175;
+      end;
+      // Memorisations, for 49:Withdrawal
+      if (CLFile_Version < 181) then
+      begin
+        UpgradeToVersion181;
+        clFile_Version := 181;
       end;
    end;
 end;

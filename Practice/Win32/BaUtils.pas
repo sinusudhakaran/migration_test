@@ -14,6 +14,7 @@ Unit bautils;
 Interface
 Uses
    Classes,
+   StrUtils,
    MoneyDef,
    dateDef,
    baObj32,
@@ -46,6 +47,9 @@ function CanManualBankAccountsBeCombined(BL: TBank_Account_List): Boolean;
 function GetValidBankAccountsForCombine(BL: TBank_Account_List): TStringList;
 function GetValidManualBankAccountsForCombine(BL: TBank_Account_List): TStringList;
 function StripM(ba: TBank_Account): string;
+
+function  IsSameInstitution(const aBankAccount: TBank_Account;
+            const aInstitution: string): boolean;
 
 const
    UnitName = 'BAUTILS';
@@ -439,6 +443,17 @@ begin
     end;
   end;
 end;
+
+{------------------------------------------------------------------------------}
+function IsSameInstitution(const aBankAccount: TBank_Account;
+  const aInstitution: string): boolean;
+var
+  sInstitution: string;
+begin
+  sInstitution := LeftStr(aBankAccount.baFields.baBank_Account_Number, 2);
+  result := (sInstitution = aInstitution);
+end;
+
 
 End.
 
