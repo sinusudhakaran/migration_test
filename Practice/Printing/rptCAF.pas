@@ -151,7 +151,6 @@ begin
   begin
     Values.edtNameOfAccount.Text := GetCellText(C);
     Values.AccountNumber := '';
-    fProvisional := false;
   end
   else if C.Col = fcBSB then
   begin
@@ -160,6 +159,7 @@ begin
   else if C.Col = fcAccountNo then
   begin
     Values.AccountNumber := Values.AccountNumber + GetCellText(C);
+    fProvisional := true;
   end
   else if C.Col = fcCostCode then
     Values.edtCostCode.Text := GetCellText(C)
