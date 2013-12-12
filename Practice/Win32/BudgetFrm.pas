@@ -900,6 +900,8 @@ procedure TfrmBudget.FormClose(Sender: TObject; var Action: TCloseAction);
 var
   i: Integer;
 begin
+  Budget.buFields.buIs_Inclusive := ShowFiguresGSTInclusive;
+
   UpdateAllLines;
 
   FIsClosing := true;
@@ -2230,6 +2232,7 @@ var
        FClearButton := tbClear;
        BudgetScreen.Caption := 'Edit Budget '+ aBudget.buFields.buName;
        BudgetScreen.Budget  := aBudget;
+       BudgetScreen.rgGST.ItemIndex := ord(aBudget.buFields.buIs_Inclusive);
 
        if not Assigned(BudgetScreen.Budget) then  {could not be assigned to form}
          BudgetScreen.Close;
