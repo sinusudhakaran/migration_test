@@ -1,4 +1,4 @@
-$|SY_FILE_VERSION   = 131;  (* Current Version counter for files
+$|SY_FILE_VERSION   = 132;  (* Current Version counter for files
 $|                           Changes if structure or method of storing a value would cause
 $|                           data to be represented incorrectly, or an exception to be raised *)
 $|
@@ -119,7 +119,8 @@ $|                            Changed fd Spare Boolean 3 to fd Use BankLink Onli
 $|                            Added BankLink Online Config (reused fd Spare Text 14) and Last Online Upadate fields to Practice Details
 $|    5.23.0 (BLOPI)    129   Added User Data Block and Using Secure Password to practice user
 $|    5.24.0 (BLOPI)    130   Added field for storing the last agreed to banklink online service agreement version
-$|    5.24.0 (BLOPI)    130   Added field for suspending banklink online
+$|    5.24.0 (BLOPI)    131   Added field for suspending banklink online
+$|    5.25.1            132   Memorisations upgrade, code only
 $|*)
 
 N|Practice Details|fd|10

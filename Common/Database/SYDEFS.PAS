@@ -9,9 +9,9 @@ Interface uses MONEYDEF, DATEDEF;
 {  -------------------------------------------------------------------  }
 
 Const
-   SY_IOLIB_Version : Integer = 111;
-   SY_IOLIB_Date    = '13/03/13';
-   SY_FILE_VERSION   = 131;  (* Current Version counter for files
+   SY_IOLIB_Version : Integer = 112;
+   SY_IOLIB_Date    = '12/12/13';
+   SY_FILE_VERSION   = 132;  (* Current Version counter for files
                               Changes if structure or method of storing a value would cause
                               data to be represented incorrectly, or an exception to be raised *)
    
@@ -132,7 +132,8 @@ Const
                                Added BankLink Online Config (reused fd Spare Text 14) and Last Online Upadate fields to Practice Details
        5.23.0 (BLOPI)    129   Added User Data Block and Using Secure Password to practice user
        5.24.0 (BLOPI)    130   Added field for storing the last agreed to banklink online service agreement version
-       5.24.0 (BLOPI)    130   Added field for suspending banklink online
+       5.24.0 (BLOPI)    131   Added field for suspending banklink online
+       5.25.1            132   Memorisations upgrade, code only
    *)
    //Memorisation Detail - 140 Don't reuse token!!! - Record defined in BK.TXT but used in SY for Master Mems
    //Memorisation Line - 145 Don't reuse token!!! - Record defined in BK.TXT but used in SY for Master Mems
