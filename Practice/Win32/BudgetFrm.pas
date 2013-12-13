@@ -226,8 +226,9 @@ type
     procedure tblBudgetVSThumbChanged(Sender: TObject; RowNum: TRowNum);
     procedure HideCustomHint;
     function GetTotalForRow(RowNum: Integer): Integer;
-    procedure RefreshFData(ShowZeros: Boolean; var aDataIndex : integer);
-    procedure RefreshTableWithData(ShowZeros: Boolean; aRefreshFdata : Boolean = true);
+    procedure RefreshFData(ShowZeros: Boolean; var aDataIndex : integer; KeepPercentages: boolean = false);
+    procedure RefreshTableWithData(ShowZeros: Boolean; aRefreshFdata : Boolean = true;
+                                   KeepPercentages: boolean = false);
     procedure UpdateShowHideEnabledState;
     function UnusedRowsShowing: boolean;
     function AllRowsShowing: boolean;
@@ -850,7 +851,7 @@ begin
   else
     lblAllExclude.Caption := 'All figures exclude GST';
 
-  RefreshTableWithData(fShowZeros, True);
+  RefreshTableWithData(fShowZeros, True, True);
 end;
 
 //------------------------------------------------------------------------------
@@ -941,7 +942,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TFrmBudget.RefreshFData(ShowZeros: Boolean; var aDataIndex : integer);
+procedure TFrmBudget.RefreshFData(ShowZeros: Boolean; var aDataIndex : integer; KeepPercentages: boolean = false);
 var
   Account : pAccount_Rec;
   AccountIndex : Integer;
@@ -950,7 +951,13 @@ var
   HasData: Boolean;
   ClassNo: byte;
   GSTAmount: Money;
+  OldData: TBudgetData;
 begin
+  if KeepPercentages then
+    // In this case, the user has toggled the GST Inclusive/Exclusive radio buttons. We haven't yet
+    // saved any new or modified percentages, so these will be kept safe in OldData and copied back in
+    // rather than getting the percentages from the saved budget
+    OldData := FData;
   {now load all the data values}
   FData := nil;
   DataAssigned := false;
@@ -986,8 +993,15 @@ begin
 
     if Assigned(pBudgetRec) then
     begin
-      FData[aDataIndex].PercentAccount := pBudgetRec.bdPercent_Account;
-      FData[aDataIndex].Percentage := pBudgetRec.bdPercentage;
+      if KeepPercentages then
+      begin
+        FData[aDataIndex].PercentAccount := OldData[aDataIndex].PercentAccount;
+        FData[aDataIndex].Percentage := OldData[aDataIndex].Percentage;
+      end else
+      begin
+        FData[aDataIndex].PercentAccount := pBudgetRec.bdPercent_Account;
+        FData[aDataIndex].Percentage := pBudgetRec.bdPercentage;
+      end;
     end;
     FData[aDataIndex].bIsGSTAccountCode :=
       IsGSTAccountCode(MyClient, FData[aDataIndex].bAccount);
@@ -1040,14 +1054,14 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TFrmBudget.RefreshTableWithData(ShowZeros: Boolean; aRefreshFdata : Boolean);
+procedure TFrmBudget.RefreshTableWithData(ShowZeros: Boolean; aRefreshFdata : Boolean; KeepPercentages: boolean);
 var
   DataIndex : integer;
 begin
   fShowZeros := ShowZeros;
 
   if aRefreshFdata then
-    RefreshFData(ShowZeros, DataIndex);
+    RefreshFData(ShowZeros, DataIndex, KeepPercentages);
 
   tblBudget.RowLimit := DataIndex + 1;
   DataAssigned := true;
