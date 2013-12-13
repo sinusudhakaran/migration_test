@@ -66,7 +66,9 @@ uses
   BanklinkOnlineSettingsFrm in 'Win32\BanklinkOnlineSettingsFrm.pas' {frmBanklinkOnlineSettings},
   BlopiClient in 'Win32\BlopiClient.pas',
   AcclipseX in 'Extract\AcclipseX.pas',
-  INISettings in 'Win32\INISettings.pas';
+  INISettings in 'Win32\INISettings.pas',
+  PercentageCalculationFrm in 'Win32\PercentageCalculationFrm.pas' {frmPercentageCalculation};
+
 //  ExtractHelpers in '..\Bulk Export\ExtractHelpers.pas';
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -95,6 +97,7 @@ begin
   Application.CreateForm(TfrmMain, frmMain);
   Application.CreateForm(TAppImages, AppImages);
   Application.CreateForm(TfrmStatus, frmStatus);
+  Application.CreateForm(TfrmPercentageCalculation, frmPercentageCalculation);
   //********************************************
       ApplicationStartUpAndShutDown.AfterFormCreation;
     except

@@ -617,6 +617,23 @@ var
     end;
   end;
 
+  // We don't want to give the row about auto-calculated rows if the row to be imported is the same
+  // as the existing row
+  function IsPercentWarningNeeded: boolean;
+  var
+    i: integer;
+  begin
+    Result := False;
+    for i := Low(DataHolder) to High(DataHolder) do
+    begin
+      if (DataHolder[i] <> aBudgetData[DataIndex].bAmounts[i]) then
+      begin
+        Result := True;
+        break;
+      end;
+    end;
+  end;
+
 begin
   aRowsImported := 0;
   aRowsNotImported := 0;
@@ -705,9 +722,12 @@ begin
                   begin
                     if (aBudgetData[DataIndex].PercentAccount <> '') then
                     begin
-                      WriteLn(ErrorFile, 'Row ' + IntToStr(LineNumber) + ', Code ' + Trim(InLineData[0]) +
-                              ', Data Row is auto-calculated and cannot be updated.');
-                      aRowsNotImported := aRowsNotImported + 1;
+                      if IsPercentWarningNeeded then
+                      begin
+                        WriteLn(ErrorFile, 'Row ' + IntToStr(LineNumber) + ', Code ' + Trim(InLineData[0]) +
+                                ', Data Row is auto-calculated and cannot be updated.');
+                        aRowsNotImported := aRowsNotImported + 1;
+                      end;
                     end else
                     begin
                       for DateIndex := 1 to 12 do
