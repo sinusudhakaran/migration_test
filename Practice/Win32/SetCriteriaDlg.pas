@@ -94,7 +94,7 @@ const
 type
    TChartInfo = record
           Code       : Bk5CodeStr;
-          Desc       : string[40];
+          Desc       : string[60];
           PostAllow  : Boolean;
           dvUp,
           dvDown,

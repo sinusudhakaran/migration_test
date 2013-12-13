@@ -26,7 +26,7 @@ type
      function }
    TBudgetRec = record
      bAccount       : Bk5CodeStr;
-     bDesc          : string[40];
+     bDesc          : string[60];
      bAmounts       : Array[1..12] of integer;
      bQuantitys     : Array[1..12] of Money;
      bUnitPrices    : Array[1..12] of Money;
