@@ -7456,6 +7456,8 @@ end;
 
 procedure TfrmCoding.tbtnCloseClick(Sender: TObject);
 begin
+  EBFind.Text := '';
+  SearchTimerTimer(nil);
   SearchVisible := False;
 end;
 
