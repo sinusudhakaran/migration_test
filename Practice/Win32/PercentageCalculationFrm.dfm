@@ -21,20 +21,14 @@ object frmPercentageCalculation: TfrmPercentageCalculation
   PixelsPerInch = 96
   TextHeight = 13
   object lblAccountCode: TLabel
-    Left = 16
+    Left = 8
     Top = 27
-    Width = 78
-    Height = 14
+    Width = 67
+    Height = 13
     Caption = 'Account Code'
-    Font.Charset = DEFAULT_CHARSET
-    Font.Color = clWindowText
-    Font.Height = -12
-    Font.Name = 'Tahoma'
-    Font.Style = []
-    ParentFont = False
   end
   object lblPercentage: TLabel
-    Left = 16
+    Left = 8
     Top = 67
     Width = 55
     Height = 13
