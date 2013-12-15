@@ -103,6 +103,8 @@ begin
        begin
          NewBudgetLine := New_Budget_Detail_Rec;
          NewBudgetLine.bdAccount_Code := AccountCode;
+         NewBudgetLine.bdPercent_Account := OldLine.bdPercent_Account;
+         NewBudgetLine.bdPercentage := OldLine.bdPercentage;
          for j := 1 to 12 do
          begin
            NewBudgetLine.bdBudget[j] := OldLine.bdBudget[j];
