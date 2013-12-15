@@ -126,6 +126,7 @@ type
     procedure SetImportFile(const Value: string);
 
     procedure UpdateMask;
+    procedure ClearForm();
     procedure SetDataSentToClient(aEnabled : boolean);
     procedure SetExistingClient(aEnabled : boolean);
 
@@ -619,6 +620,28 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+procedure TfrmCAF.ClearForm;
+begin
+  cmbInstitution.ItemIndex := -1;
+  SetInstitutionControls(inNone);
+
+  fAccountNumber := '';
+  edtBranch.Text := '';
+  edtNameOfAccount.Text := '';
+  edtAccountNumber.Text := '';
+  mskAccountNumber.EditMask := '';
+  mskAccountNumber.EditText := '';
+  edtClientCode.Text := '';
+  edtClientStartDte.Text := '';
+  edtCostCode.Text := '';
+  edtSecureCode.Text := '';
+  chkDataSecureNew.Checked := false;
+  chkDataSecureExisting.Checked := false;
+  lblAccountValidationError.Caption := '';
+  edtClientStartDte.AsDateTime := now();
+end;
+
+//------------------------------------------------------------------------------
 procedure TfrmCAF.btnPreviewClick(Sender: TObject);
 begin
   if ValidateForm then
@@ -666,6 +689,7 @@ begin
   begin
     ImportFile := OpenDlg.FileName;
     FButton := BTN_IMPORT;
+    ClearForm();
     ModalResult := mrOk;
   end;
 end;
@@ -673,22 +697,7 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmCAF.btnClearClick(Sender: TObject);
 begin
-  cmbInstitution.ItemIndex := -1;
-  SetInstitutionControls(inNone);
-
-  edtBranch.Text := '';
-  edtNameOfAccount.Text := '';
-  edtAccountNumber.Text := '';
-  mskAccountNumber.EditMask := '';
-  mskAccountNumber.EditText := '';
-  edtClientCode.Text := '';
-  edtClientStartDte.Text := '';
-  edtCostCode.Text := '';
-  edtSecureCode.Text := '';
-  chkDataSecureNew.Checked := false;
-  chkDataSecureExisting.Checked := false;
-  lblAccountValidationError.Caption := '';
-  edtClientStartDte.AsDateTime := now();
+  ClearForm();
 end;
 
 //------------------------------------------------------------------------------

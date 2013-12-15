@@ -740,6 +740,7 @@ begin
   cmbInstitution.ItemIndex := -1;
   SetInstitutionControls(inNone);
 
+  fAccountNumber := '';
   edtBranch.Text := '';
   edtNameOfAccount.Text := '';
   edtAccountNumber.Text := '';
