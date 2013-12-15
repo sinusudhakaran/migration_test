@@ -122,6 +122,7 @@ type
     procedure lbliBizzClick(Sender: TObject);
     procedure lbliBizzMouseEnter(Sender: TObject);
     procedure lbliBizzMouseLeave(Sender: TObject);
+    procedure mskAccountNumberChange(Sender: TObject);
   private
     fValidAccount : boolean;
     fAccountNumber : string;
@@ -461,6 +462,12 @@ begin
   else
     SetInstitutionControls(inBLO);
   end;
+end;
+
+//------------------------------------------------------------------------------
+procedure TfrmTPA.mskAccountNumberChange(Sender: TObject);
+begin
+  fValidAccount := false;
 end;
 
 //------------------------------------------------------------------------------

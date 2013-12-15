@@ -223,7 +223,7 @@ object frmTPA: TfrmTPA
         Font.Height = -15
         Font.Name = 'MS Sans Serif'
         Font.Style = []
-        ItemHeight = 0
+        ItemHeight = 16
         ParentFont = False
         TabOrder = 0
         OnChange = cmbInstitutionChange
@@ -270,6 +270,7 @@ object frmTPA: TfrmTPA
         Color = clWhite
         ParentBackground = False
         TabOrder = 1
+        ExplicitLeft = 139
         DesignSize = (
           415
           131)
@@ -342,6 +343,7 @@ object frmTPA: TfrmTPA
           Font.Style = []
           ParentFont = False
           TabOrder = 2
+          OnChange = mskAccountNumberChange
           OnEnter = mskAccountNumberEnter
           OnExit = mskAccountNumberExit
           OnKeyUp = mskAccountNumberKeyUp

@@ -106,6 +106,7 @@ type
     procedure lblBookSecureLinkClick(Sender: TObject);
     procedure lblBookSecureLinkMouseEnter(Sender: TObject);
     procedure lblBookSecureLinkMouseLeave(Sender: TObject);
+    procedure mskAccountNumberChange(Sender: TObject);
   private
     fValidAccount : boolean;
     fAccountNumber : string;
@@ -400,6 +401,12 @@ begin
   else
     SetInstitutionControls(inBLO);
   end;
+end;
+
+//------------------------------------------------------------------------------
+procedure TfrmCAF.mskAccountNumberChange(Sender: TObject);
+begin
+  fValidAccount := false;
 end;
 
 //------------------------------------------------------------------------------
