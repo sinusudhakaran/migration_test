@@ -3416,12 +3416,20 @@ var
              Result := Pos(FSearchText, IntToStr(Value)) > 0;
           end;
 
-          function TestMoney(const Value: Money): Boolean;
+          function TestMoney(const Value: Money; IgnoreCommas: boolean = false): Boolean;
+          var
+            FilteredAmount, FilteredSearchText: string;
           begin
              Result := False;
              if Value = 0 then
                 Exit;
-             Result := Pos(FSearchText, MakeAmount(Value)) > 0;
+             if IgnoreCommas then
+             begin
+               FilteredSearchText := StringReplace(FSearchText, ',', '', [rfReplaceAll]);
+               FilteredAmount := StringReplace(MakeAmount(Value), ',', '', [rfReplaceAll]);
+               Result := Pos(FilteredSearchText, FilteredAmount) > 0;
+             end else
+               Result := Pos(FSearchText, MakeAmount(Value)) > 0;
           end;
 
           function TestDate(const Value: TstDate): Boolean;
@@ -3457,7 +3465,7 @@ var
             ceAccount : if TestText(pT.txAccount) then
                Exit;
 
-            ceAmount : if TestMoney(pT.txAmount) then
+            ceAmount : if TestMoney(pT.txAmount, True) then
                Exit;
 
             ceNarration : if TestText(pT.txGL_Narration) then
