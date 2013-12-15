@@ -3,9 +3,12 @@ unit UpgradeMemorisations;
 interface
 
 uses
-  clObj32;
+  clObj32,
+  SysObj32;
 
 procedure UpgradeClient_Memorisation_EntryType(const aClient: TClientObj);
+
+procedure UpgradeAdmin_Memorisation_EntryType(const aAdmin: TSystemObj);
 
 
 implementation
@@ -20,7 +23,10 @@ uses
   baList32,
   MemorisationsObj,
   MemUtils,
-  baUtils;
+  baUtils,
+  Globals,
+  SystemMemorisationList,
+  syDefs;
 
 const
   NATIONAL_06 = '06';
@@ -91,6 +97,35 @@ begin
     Mems := BankAccount.baMemorisations_List;
 
     CopyMemorisations(Mems);
+  end;
+end;
+
+
+{------------------------------------------------------------------------------}
+procedure UpgradeAdmin_Memorisation_EntryType(const aAdmin: TSystemObj);
+var
+  SysMems: TSystem_Memorisation_List;
+  iBank: integer;
+  SysMem: pSystem_Memorisation_List_Rec;
+  Mems: TMemorisations_List;
+begin
+  // New Zealand only
+  if (aAdmin.fdFields.fdCountry <> whNewZealand) then
+    exit;
+
+  SysMems := aAdmin.fSystem_Memorisation_List;
+
+  for iBank := SysMems.First to SysMems.Last do
+  begin
+    SysMem := SysMems.System_Memorisation_At(iBank);
+
+    // National (06) only
+    if not IsSameInstitution(SysMem.smBank_Prefix, NATIONAL_06) then
+      continue;
+
+    Mems := TMemorisations_List(SysMem.smMemorisations);
+
+    CopyMemorisations(Mems);  
   end;
 end;
 

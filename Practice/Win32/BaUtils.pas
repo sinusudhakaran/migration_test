@@ -49,7 +49,10 @@ function GetValidManualBankAccountsForCombine(BL: TBank_Account_List): TStringLi
 function StripM(ba: TBank_Account): string;
 
 function  IsSameInstitution(const aBankAccount: TBank_Account;
-            const aInstitution: string): boolean;
+            const aInstitution: string): boolean; overload;
+
+function  IsSameInstitution(const aBankPrefix: string;
+            const aInstitution: string): boolean; overload;
 
 const
    UnitName = 'BAUTILS';
@@ -447,10 +450,21 @@ end;
 {------------------------------------------------------------------------------}
 function IsSameInstitution(const aBankAccount: TBank_Account;
   const aInstitution: string): boolean;
+begin
+  result := IsSameInstitution(aBankAccount.baFields.baBank_Account_Number,
+    aInstitution);
+end;
+
+
+{------------------------------------------------------------------------------}
+function IsSameInstitution(const aBankPrefix: string;
+  const aInstitution: string): boolean;
 var
+  iLength: integer;
   sInstitution: string;
 begin
-  sInstitution := LeftStr(aBankAccount.baFields.baBank_Account_Number, 2);
+  iLength := Length(aInstitution);
+  sInstitution := LeftStr(aBankPrefix, iLength);
   result := (sInstitution = aInstitution);
 end;
 

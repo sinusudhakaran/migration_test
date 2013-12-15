@@ -1584,7 +1584,7 @@ Procedure DoUpgradeAdminToLatestVersion( var UpgradingToVersion : integer; const
     for UserIndex := 0 to AdminSystem.fdSystem_User_List.ItemCount-1 do
     begin
       AdminSystem.fdSystem_User_List.User_At(UserIndex).usUsing_Secure_Authentication := False;
-    end;  
+    end;
   end;
 
   procedure UpgradeAdminToVersion130;
@@ -1599,12 +1599,12 @@ Procedure DoUpgradeAdminToLatestVersion( var UpgradingToVersion : integer; const
       pc.ctName := Name;
       AdminSystem.fdSystem_Client_Type_List.Insert(pc);
     end;
-    
+
   var
     NewClientTypeName: string;
   begin
     UpgradingToVersion := 130;
-    
+
     NewClientTypeName := 'Books via ' + bkBranding.ProductOnlineName;
 
     //For many sites this would have been done already so only do it if it doesn't exist.
@@ -1613,7 +1613,13 @@ Procedure DoUpgradeAdminToLatestVersion( var UpgradingToVersion : integer; const
       AddNewClientType(NewClientTypeName);
     end;
   end;
-  
+
+  procedure UpgradeAdminToVersion132;
+  begin
+    UpgradeAdmin_Memorisation_EntryType(AdminSystem);
+  end;
+
+
 Const
    ThisMethodName = 'DoUpgradeAdminToLatestVersion';
 Var
@@ -1989,7 +1995,12 @@ Begin
             Logutil.LogMsg( lmInfo, ThisMethodName, 'Upgrading to Version 130');
             UpgradeAdminToVersion130;
             LogUtil.LogMsg( lmInfo, ThisMethodName, 'Upgrade completed normally' );
-         end; 
+         end;
+         if ( fdFile_Version < 132) then begin
+            Logutil.LogMsg( lmInfo, ThisMethodName, 'Upgrading to Version 132');
+            UpgradeAdminToVersion132;
+            LogUtil.LogMsg( lmInfo, ThisMethodName, 'Upgrade completed normally' );
+         end;
       end;
       // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
       //  FIELDS AND FILES UPGRADED, NOW SAVE NEW ADMIN SYSTEM
