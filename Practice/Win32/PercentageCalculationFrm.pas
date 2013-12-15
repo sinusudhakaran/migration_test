@@ -11,7 +11,6 @@ uses
   ExtCtrls,
   Forms,
   Graphics,
-  ImagesFrm,
   Messages,
   ovcbase,
   ovcef,
@@ -20,7 +19,8 @@ uses
   StdCtrls,
   SysUtils,
   Variants,
-  Windows;
+  Windows,
+  OSFont;
 
 type
   TfrmPercentageCalculation = class(TForm)
@@ -33,6 +33,7 @@ type
     btnCancel: TButton;
     btnChart: TBitBtn;
     nPercent: TOvcNumericField;
+
     procedure FormCreate(Sender: TObject);
     procedure btnClearClick(Sender: TObject);
     procedure nPercentKeyPress(Sender: TObject; var Key: Char);
@@ -54,13 +55,15 @@ var
 
 implementation
 
-{$R *.dfm}
-
 uses
   AccountLookupFrm,
   BKDefs,
+  bkXPThemes,
   ErrorMoreFrm,
-  Globals;
+  Globals,
+  imagesfrm;
+
+{$R *.dfm}
 
 procedure TfrmPercentageCalculation.btnChartClick(Sender: TObject);
 var
@@ -162,6 +165,7 @@ end;
 
 procedure TfrmPercentageCalculation.FormCreate(Sender: TObject);
 begin
+  bkXPThemes.ThemeForm( Self);
   ImagesFrm.AppImages.Coding.GetBitmap(CODING_CHART_BMP,btnChart.Glyph);
 end;
 

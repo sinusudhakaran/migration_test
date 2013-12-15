@@ -1,3 +1,7 @@
+// Before you start thinking OSFont has your solution to your font issue, you may want
+// to check that you have passed in the sender to the form you're creating, and that
+// you have 'ParentFont' set to true
+
 unit OSFont;
 
 //------------------------------------------------------------------------------

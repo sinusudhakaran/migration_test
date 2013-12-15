@@ -12,13 +12,10 @@ object frmPercentageCalculation: TfrmPercentageCalculation
   Constraints.MaxWidth = 320
   Constraints.MinHeight = 190
   Constraints.MinWidth = 320
-  Font.Charset = DEFAULT_CHARSET
-  Font.Color = clWindowText
-  Font.Height = -11
-  Font.Name = 'Tahoma'
-  Font.Style = []
+  ParentFont = True
   KeyPreview = True
   OldCreateOrder = False
+  Scaled = False
   OnCreate = FormCreate
   OnKeyDown = FormKeyDown
   PixelsPerInch = 96
@@ -26,9 +23,15 @@ object frmPercentageCalculation: TfrmPercentageCalculation
   object lblAccountCode: TLabel
     Left = 16
     Top = 27
-    Width = 67
-    Height = 13
+    Width = 78
+    Height = 14
     Caption = 'Account Code'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -12
+    Font.Name = 'Tahoma'
+    Font.Style = []
+    ParentFont = False
   end
   object lblPercentage: TLabel
     Left = 16

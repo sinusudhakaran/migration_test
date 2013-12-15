@@ -2752,7 +2752,7 @@ begin
   begin
     DataRow := tblBudget.ActiveRow - 1;
 
-    frmPercentageCalculation := TfrmPercentageCalculation.Create(nil);
+    frmPercentageCalculation := TfrmPercentageCalculation.Create(self);
     try
       frmPercentageCalculation.Position := poMainFormCenter;
       frmPercentageCalculation.edtAccountCode.Text := FData[DataRow].PercentAccount;
