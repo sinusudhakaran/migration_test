@@ -121,9 +121,10 @@ Function  CalculateGSTFromNett( aClient : TClientObj; ADate : LongInt; Amount : 
 const
    ThisMethodName = 'CalculateGSTFromNett';
 VAR
-   TaxAmtExt   : Extended;
-   TaxRate     : Extended;
-   WhichRate   : Byte;
+   TaxAmtExt    : Extended;
+   TaxRate      : Extended;
+   WhichRate    : Byte;
+   OldRoundMode : TFPURoundingMode;
 Begin
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
    CalculateGSTFromNett := 0;
@@ -140,8 +141,13 @@ Begin
       TaxRate     := aClient.clFields.clGST_Rates[ ClassNo, WhichRate ] / 1000000.0; { 1250 -> 0.1250 }
       TaxAmtExt   := Amount * TaxRate;
       if RoundUp then
+      begin
+        OldRoundMode := GetRoundMode;
         SetRoundMode(rmUp);
+      end;
       CalculateGSTFromNett := Round( TaxAmtExt );
+      if RoundUp then
+        SetRoundMode(OldRoundMode);
    end;
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
