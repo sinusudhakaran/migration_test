@@ -2066,7 +2066,7 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmBudget.DoHideUnused;
 begin
-  RefreshTableWithData(false);
+  RefreshTableWithData(false, true, true);
 end;
 
 //------------------------------------------------------------------------------
