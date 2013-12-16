@@ -512,6 +512,7 @@ var
   InstCode : string;
   InstSlashPos : integer;
   IsRuralInstSelected : boolean;
+  Day, Month, Year : word;
 {$ENDIF}
 begin
   // don't draw QRCode if institution is set to other or not set
@@ -550,8 +551,9 @@ begin
         CAFQRDataAccount.CostCode      := '';
         CAFQRDataAccount.SMSF          := 'N';
 
-        // Day , Month , Year
-        CAFQRData.StartDate := Values.edtClientStartDte.AsDateTime;
+        // Always set day to 1 for Caf
+        DecodeDate(Values.edtClientStartDte.AsDateTime, Year, Month, Day);
+        CAFQRData.StartDate := EncodeDate(Year, Month, 1);
 
         CAFQRData.PracticeCode        := Values.PracticeCode;
         CAFQRData.PracticeCountryCode := CountryText(AdminSystem.fdFields.fdCountry);
