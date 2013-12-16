@@ -1713,7 +1713,7 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmBudget.DoShowAll;
 begin
-  RefreshTableWithData(true);
+  RefreshTableWithData(true, true, true);
 end;
 
 //------------------------------------------------------------------------------
