@@ -938,7 +938,7 @@ var
   ColDateInt: integer;
 begin
   ColDateInt := IncDate(Budget.buFields.buStart_Date, 0, MonthIndex - 1, 0);
-  Result := GstCalc32.CalculateGSTFromNett(MyClient, ColDateInt, AmountWithoutGST, ClassNo);
+  Result := GstCalc32.CalculateGSTFromNett(MyClient, ColDateInt, AmountWithoutGST, ClassNo, True);
 end;
 
 //------------------------------------------------------------------------------

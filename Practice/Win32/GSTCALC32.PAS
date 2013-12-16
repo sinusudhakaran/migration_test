@@ -12,7 +12,7 @@ USES
 Function  WhichGSTRateApplies( aClient : TClientObj; ADate : LongInt ): Byte;
 Function  CalculateGSTForClass( aClient : TClientObj; ADate : LongInt; Amount : Money; ClassNo : Byte ): Money;
 Procedure CalculateGST( aClient : TClientObj; ADate : LongInt; Account : String; Amount : Money; Var ClassNo : Byte; Var GST : Money );
-Function  CalculateGSTFromNett( aClient : TClientObj; ADate : LongInt; Amount : Money; ClassNo : Byte ): Money;
+Function  CalculateGSTFromNett( aClient : TClientObj; ADate : LongInt; Amount : Money; ClassNo : Byte; RoundUp : boolean = false ): Money;
 
 Function  GetGSTClassNo( aClient : TClientObj; ClassCode : String ) : Byte;
 Function  GetGSTClassCode( aClient : TClientObj; No : byte ): string;
@@ -28,6 +28,7 @@ IMPLEMENTATION USES
   //GLOBALS,
   glConst,
   logutil,
+  math,
   sysutils,
   stStrs,
   ForexHelpers;
@@ -116,7 +117,7 @@ Begin
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-Function  CalculateGSTFromNett( aClient : TClientObj; ADate : LongInt; Amount : Money; ClassNo : Byte ): Money;
+Function  CalculateGSTFromNett( aClient : TClientObj; ADate : LongInt; Amount : Money; ClassNo : Byte ; RoundUp : boolean): Money;
 const
    ThisMethodName = 'CalculateGSTFromNett';
 VAR
@@ -138,6 +139,8 @@ Begin
 
       TaxRate     := aClient.clFields.clGST_Rates[ ClassNo, WhichRate ] / 1000000.0; { 1250 -> 0.1250 }
       TaxAmtExt   := Amount * TaxRate;
+      if RoundUp then
+        SetRoundMode(rmUp);
       CalculateGSTFromNett := Round( TaxAmtExt );
    end;
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
