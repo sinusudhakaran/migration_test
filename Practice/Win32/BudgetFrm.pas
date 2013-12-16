@@ -954,9 +954,9 @@ var
   OldData: TBudgetData;
 begin
   if KeepPercentages then
-    // In this case, the user has toggled the GST Inclusive/Exclusive radio buttons. We haven't yet
-    // saved any new or modified percentages, so these will be kept safe in OldData and copied back in
-    // rather than getting the percentages from the saved budget
+    // In this case, the user has toggled the GST Inclusive/Exclusive radio buttons or pressed Hide Unused.
+    // We haven't yet saved any new or modified percentages, so these will be kept safe in OldData and
+    // copied back in rather than getting the percentages from the saved budget
     OldData := FData;
   {now load all the data values}
   FData := nil;
