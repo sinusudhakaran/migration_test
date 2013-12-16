@@ -159,6 +159,7 @@ begin
   else if C.Col = fcAccountNo then
   begin
     Values.AccountNumber := Values.AccountNumber + GetCellText(C);
+    Values.edtClientStartDte.ClearContents();
     fProvisional := true;
   end
   else if C.Col = fcCostCode then

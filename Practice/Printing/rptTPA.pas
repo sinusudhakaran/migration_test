@@ -161,6 +161,7 @@ begin
   begin
     Values.cmbInstitution.ItemIndex := 0;
     Values.AccountNumber := GetCellText(C);
+    Values.edtClientStartDte.ClearContents();
     fProvisional := true;
   end
   else if C.Col = fcCostCode then
