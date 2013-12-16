@@ -25,18 +25,20 @@ type
    { Note: when adding new members, you must also change the CopyBudgetData
      function }
    TBudgetRec = record
-     bAccount       : Bk5CodeStr;
-     bDesc          : string[60];
-     bAmounts       : Array[1..12] of integer;
-     bQuantitys     : Array[1..12] of Money;
-     bUnitPrices    : Array[1..12] of Money;
-     bTotal         : integer;
-     bIsPosting     : boolean;
+     bAccount        : Bk5CodeStr;
+     bDesc           : string[60];
+     bAmounts        : Array[1..12] of integer;
+     bQuantitys      : Array[1..12] of Money;
+     bUnitPrices     : Array[1..12] of Money;
+     bTotal          : integer;
+     bIsPosting      : boolean;
      bIsGSTAccountCode : boolean;
-     bDetailLine    : pBudget_Detail_Rec;
-     bNeedsUpdate   : Boolean;
-     PercentAccount : Bk5CodeStr; // Only used if the figures for this row are calculated from a % of another account code, empty otherwise
-     Percentage     : double; // Only used if PercentAccount is not empty, see above
+     bDetailLine     : pBudget_Detail_Rec;
+     bNeedsUpdate    : Boolean;
+     PercentAccount  : Bk5CodeStr; // Only used if the figures for this row are calculated from a % of another account code, empty otherwise
+     Percentage      : double; // Only used if PercentAccount is not empty, see above
+     bGstAmounts     : Array[1..12] of integer;
+     ShowGstAmounts : Boolean;
    end;
 
    TBudgetData = Array of tBudgetRec;  {dynamic array}
@@ -302,7 +304,13 @@ begin
             OkToWriteLine := false;
             for DateIndex := 1 to 12 do
             begin
-              if aData[DataIndex].bAmounts[DateIndex] <> 0 then
+              if aData[DataIndex].ShowGstAmounts then
+                DataLine := DataLine + IntToStr(aData[DataIndex].bGstAmounts[DateIndex])
+              else
+                DataLine := DataLine + IntToStr(aData[DataIndex].bAmounts[DateIndex]);
+
+              if ((aData[DataIndex].ShowGstAmounts = true) and (aData[DataIndex].bGstAmounts[DateIndex] <> 0)) or
+                 ((aData[DataIndex].ShowGstAmounts = false) and (aData[DataIndex].bAmounts[DateIndex] <> 0)) then
               begin
                 OkToWriteLine := true;
                 break;
@@ -336,8 +344,14 @@ begin
           for DateIndex := 1 to 12 do
           begin
             if aData[DataIndex].bIsPosting then
+            begin
               // Non posting chart codes shouldn't display amounts in the budget
-              DataLine := DataLine + IntToStr(aData[DataIndex].bAmounts[DateIndex]);
+              if aData[DataIndex].ShowGstAmounts then
+                DataLine := DataLine + IntToStr(aData[DataIndex].bGstAmounts[DateIndex])
+              else
+                DataLine := DataLine + IntToStr(aData[DataIndex].bAmounts[DateIndex]);
+            end;
+
             if DateIndex < 12 then
               DataLine := DataLine +  ',';
           end;

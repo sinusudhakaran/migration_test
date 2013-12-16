@@ -37,9 +37,20 @@ type
   procedure MoveGST(const aClient: TClientObj; var aBudget: TBudgetData;
               const aMonthIndex: integer; const aGST: aTGstClassMoney);
 
+  // Move the GST to the GSTAmount rows with the same control code (gst account code)
+  procedure MoveGSTtoGstAmount(const aClient: TClientObj; var aBudget: TBudgetData;
+              const aMonthIndex: integer; const aGST: aTGstClassMoney);
+
   // Calculate all months
   procedure CalculateGST(const aClient: TClientObj; var aBudget: TBudget;
               var aBudgetData: TBudgetData); overload;
+
+  // Calculate all months
+  procedure ClearGstAmounts(var aBudgetData : TBudgetData);
+
+  // Calculate all months and places values in GSTAmounts var used so the amounts are not persisted
+  procedure CalculateGSTtoGSTAmount(const aClient: TClientObj; var aBudget: TBudget;
+              var aBudgetData: TBudgetData; aAutoCalculateGST : boolean);
 
   { Validate the GST Setup, e.g. every used GST class must have a valid control
     code. }
@@ -186,6 +197,33 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+procedure MoveGSTtoGstAmount(const aClient: TClientObj; var aBudget: TBudgetData;
+  const aMonthIndex: integer; const aGST: aTGstClassMoney);
+var
+  iRow: integer;
+  iClass: integer;
+  sAccount: string;
+begin
+  for iClass := 0 to MAX_GST_CLASS do
+  begin
+    sAccount := aClient.clFields.clGST_Account_Codes[iClass];
+    if (sAccount = '') then
+      continue;
+
+    for iRow := 0 to High(aBudget) do
+    begin
+      if (aBudget[iRow].bAccount <> sAccount) then
+        continue;
+
+      // Note: this must be added
+      aBudget[iRow].ShowGstAmounts := true;
+      aBudget[iRow].bGstAmounts[aMonthIndex] := aBudget[iRow].bGstAmounts[aMonthIndex] +
+        Round(aGST[iClass].Amount);
+    end;
+  end;
+end;
+
+//------------------------------------------------------------------------------
 procedure CalculateGST(const aClient: TClientObj; var aBudget: TBudget;
   var aBudgetData: TBudgetData);
 var
@@ -200,8 +238,53 @@ begin
     // Calculate the GST amounts for all rows, and add them to GST total table
     CalculateGST(aClient, aBudgetData, iMonth, dtMonth, arrGST);
 
-    // Move all GST amounts back to the budget
+    // Move all GST amounts to the budget GSTAmount
     MoveGST(aClient, aBudgetData, iMonth, arrGST);
+
+    // Next month
+    dtMonth := IncDate(dtMonth, 0, 1, 0);
+  end;
+end;
+
+//------------------------------------------------------------------------------
+procedure ClearGstAmounts(var aBudgetData : TBudgetData);
+var
+  iMonth : integer;
+  iRow : integer;
+begin
+  for iRow := 0 to High(aBudgetData) do
+  begin
+    aBudgetData[iRow].ShowGstAmounts := false;
+    for iMonth := 1 to 12 do
+    begin
+      aBudgetData[iRow].bGstAmounts[iMonth] := 0;
+    end;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+procedure CalculateGSTtoGSTAmount(const aClient: TClientObj; var aBudget: TBudget;
+  var aBudgetData: TBudgetData; aAutoCalculateGST : boolean);
+var
+  dtMonth: TStDate;
+  iMonth: integer;
+  arrGST: aTGstClassMoney;
+begin
+  // Clears All Gst Amounts
+  ClearGstAmounts(aBudgetData);
+
+  if not aAutoCalculateGST then
+    exit;
+
+  dtMonth := aBudget.buFields.buStart_Date;
+
+  for iMonth := 1 to 12 do
+  begin
+    // Calculate the GST amounts for all rows, and add them to GST total table
+    CalculateGST(aClient, aBudgetData, iMonth, dtMonth, arrGST);
+
+    // Move all GST amounts to the budget GSTAmount
+    MoveGSTtoGstAmount(aClient, aBudgetData, iMonth, arrGST);
 
     // Next month
     dtMonth := IncDate(dtMonth, 0, 1, 0);

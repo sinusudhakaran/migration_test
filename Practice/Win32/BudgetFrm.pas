@@ -1546,7 +1546,11 @@ begin
     S := ''
   else
   begin
-    D := FData[RowNum - 1].bAmounts[ColNum - 2];
+    if FData[RowNum - 1].ShowGstAmounts then
+      D := FData[RowNum - 1].bGstAmounts[ColNum - 2]
+    else
+      D := FData[RowNum - 1].bAmounts[ColNum - 2];
+
     S := Format('%.0n',[D]);
   end;
 
@@ -3042,11 +3046,8 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmBudget.RefreshGST;
 begin
-  if not AutoCalculateGST then
-    exit;
-
   // Do the calculations on the budget lines
-  CalculateGST(MyClient, fBudget, fData);
+  CalculateGSTtoGSTAmount(MyClient, fBudget, fData, AutoCalculateGST);
 
   // Update all the values in the grid control
   tblBudget.Refresh;
