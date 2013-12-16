@@ -503,6 +503,8 @@ end;
 //------------------------------------------------------------------------------
 procedure TCAFReport.CreateQRCode(aCanvas : TCanvas; aDestRect : TRect);
  {$IFNDEF PRACTICE-7}
+const
+  BLANK_YEAR = 1899;
 var
   CafQrCode  : TCafQrCode;
   CAFQRData  : TCAFQRData;
@@ -553,6 +555,10 @@ begin
 
         // Always set day to 1 for Caf
         DecodeDate(Values.edtClientStartDte.AsDateTime, Year, Month, Day);
+
+        if Year = BLANK_YEAR then
+          DecodeDate(now(), Year, Month, Day);
+
         CAFQRData.StartDate := EncodeDate(Year, Month, 1);
 
         CAFQRData.PracticeCode        := Values.PracticeCode;

@@ -473,6 +473,8 @@ end;
 //------------------------------------------------------------------------------
 procedure TTPAReport.CreateQRCode(aCanvas : TCanvas; aDestRect : TRect);
 {$IFNDEF PRACTICE-7}
+const
+  BLANK_YEAR = 1899;
 var
   CafQrCode  : TCafQrCode;
   CAFQRData  : TCAFQRData;
@@ -482,6 +484,7 @@ var
   InstCode : string;
   InstSlashPos : integer;
   IsRuralInstSelected : boolean;
+  Day, Month, Year : word;
 {$ENDIF}
 begin
   // don't draw QRCode if institution is set to other or not set
@@ -521,7 +524,13 @@ begin
         CAFQRDataAccount.SMSF          := 'N';
 
         // Day , Month , Year
-        CAFQRData.StartDate := Values.edtClientStartDte.AsDateTime;
+
+        DecodeDate(Values.edtClientStartDte.AsDateTime, Year, Month, Day);
+
+        if Year = BLANK_YEAR then
+          DecodeDate(now(), Year, Month, Day);
+
+        CAFQRData.StartDate := EncodeDate(Year, Month, Day);
 
         CAFQRData.PracticeCode        := Values.PracticeCode;
         CAFQRData.PracticeCountryCode := CountryText(AdminSystem.fdFields.fdCountry);
