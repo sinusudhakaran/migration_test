@@ -256,6 +256,7 @@ type
     function CalculateGSTAmountFromNet(AmountWithoutGST: integer; MonthIndex: integer; ClassNo: byte): Money;
     procedure CreateDetailLine(RowNum: integer);
     function ShowFiguresGSTInclusive: boolean;
+    function GetClassNoFromRow(RowNum: integer): byte;
 
   public
     { Public declarations }
@@ -735,6 +736,14 @@ begin
   end;
 end;
 
+function TfrmBudget.GetClassNoFromRow(RowNum: integer): byte;
+var
+  Account   : pAccount_Rec;
+begin
+  Account := FChart.FindCode(FData[RowNum].bAccount);
+  Result := GetGSTClassNo(MyClient, GetGSTClassCode(MyClient, Account.chGST_Class));
+end;
+
 //------------------------------------------------------------------------------
 procedure TfrmBudget.tblBudgetDoneEdit(Sender: TObject; RowNum,
   ColNum: Integer);
@@ -744,7 +753,6 @@ procedure TfrmBudget.tblBudgetDoneEdit(Sender: TObject; RowNum,
 {for edits that affect other cells those cells will be updated from here also}
 {saves direct edits!}
 var
-  Account   : pAccount_Rec;
   ClassNo   : byte;
   GSTAmount : Money;
 begin
@@ -771,8 +779,7 @@ begin
             CreateDetailLine(RowNum-1);
             if ShowFiguresGSTInclusive then
             begin
-              Account := FChart.FindCode(FData[RowNum-1].bAccount);
-              ClassNo := GetGSTClassNo(MyClient, GetGSTClassCode(MyClient, Account.chGST_Class));
+              ClassNo := GetClassNoFromRow(RowNum-1);
               GSTAmount := CalculateGSTAmount(eAmounts[ColNum-MonthBase],
                                               ColNum-MonthBase,
                                               FChart.FindCode(FData[RowNum-1].bDetailLine.bdAccount_Code),
@@ -1142,7 +1149,7 @@ begin
     FData[index].bDetailLine.bdPercentage := FData[index].Percentage;
 
     Account := FChart.FindCode(FData[index].bAccount);
-    ClassNo := GetGSTClassNo(MyClient, GetGSTClassCode(MyClient, Account.chGST_Class));
+    ClassNo := GetClassNoFromRow(index);
 
     for i := 1 to 12 do
     begin
@@ -2718,8 +2725,14 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmBudget.DoPercentageCalculation(DataRow: integer = -1; OnlyUpdateThisColumn: integer = -1);
 var
+  AmountWithCurrentRowGST: Money;
   AccountCodeRow: integer;
   ColNum: integer;
+  NewClassNo: byte;
+  NewGSTAmount: Money;
+  OldAmountWithoutGST: Money;
+  OldClassNo: byte;
+  OldGSTAmount: Money;
 
   function GetAccountCodeRow(AccountCode: string): integer;
   var
@@ -2789,7 +2802,24 @@ begin
         // non-posting, so we want to zero out the data but keep the formulas in place. The
         // user is responsible for updating or removing the percentage code and amount
         FData[DataRow].bAmounts[ColNum] := 0
-      else
+      else if ShowFiguresGSTInclusive then
+      begin
+        // In case the two rows have different GST codes, we need to remove GST from the row
+        // the value is based off, then add the GST for the current row, then multiply by
+        // the percentage 
+        OldClassNo := GetClassNoFromRow(AccountCodeRow);
+        OldGSTAmount := CalculateGSTAmount(FData[AccountCodeRow].bAmounts[ColNum],
+                                           ColNum,
+                                           FChart.FindCode(FData[AccountCodeRow].bDetailLine.bdAccount_Code),
+                                           OldClassNo);
+        OldAmountWithoutGST := FData[AccountCodeRow].bAmounts[ColNum] - OldGSTAmount;
+        NewClassNo := GetClassNoFromRow(DataRow);
+        NewGSTAmount := CalculateGSTAmountFromNet(Round(FData[AccountCodeRow].bDetailLine.bdBudget[ColNum]),
+                                                  ColNum,
+                                                  NewClassNo);
+        AmountWithCurrentRowGST := OldAmountWithoutGST + NewGSTAmount;
+        FData[DataRow].bAmounts[ColNum] := Round(AmountWithCurrentRowGST * (FData[DataRow].Percentage / 100));
+      end else
         FData[DataRow].bAmounts[ColNum] :=
           Round(FData[AccountCodeRow].bAmounts[ColNum] * (FData[DataRow].Percentage / 100));
 
