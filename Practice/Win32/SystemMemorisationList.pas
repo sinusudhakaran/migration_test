@@ -170,7 +170,14 @@ begin
 end;
 
 procedure TSystem_Memorisation_List.FreeItem(Item: Pointer);
+var
+  pSysMem: pSystem_Memorisation_List_Rec;
+  Mems: TMemorisations_List;
 begin
+  pSysMem := pSystem_Memorisation_List_Rec(Item);
+  Mems := TMemorisations_List(pSysMem.smMemorisations);
+  FreeAndNil(Mems);
+
   Dispose(Item);
 end;
 
