@@ -252,8 +252,6 @@ type
     procedure SetAutoCalculateGST(const aValue: boolean);
     procedure RefreshGST;
     procedure UMMainFormModalCommand(var aMsg: TMessage); message UM_MAINFORM_MODALCOMMAND;
-    function CalculateGSTAmount(AmountWithGST: integer; MonthIndex: integer; Account: pAccount_Rec; ClassNo: byte): Money;
-    function CalculateGSTAmountFromNet(AmountWithoutGST: integer; MonthIndex: integer; ClassNo: byte): Money;
     procedure CreateDetailLine(RowNum: integer);
     function ShowFiguresGSTInclusive: boolean;
     function GetClassNoFromRow(RowNum: integer): byte;
@@ -777,16 +775,7 @@ begin
               FData[RowNum - 1].bUnitPrices[ColNum - MonthBase] := 0;
             end;
             CreateDetailLine(RowNum-1);
-            if ShowFiguresGSTInclusive then
-            begin
-              ClassNo := GetClassNoFromRow(RowNum-1);
-              GSTAmount := CalculateGSTAmount(eAmounts[ColNum-MonthBase],
-                                              ColNum-MonthBase,
-                                              FChart.FindCode(FData[RowNum-1].bDetailLine.bdAccount_Code),
-                                              ClassNo);
-              FData[RowNum-1].bDetailLine.bdBudget[ColNum-MonthBase] := eAmounts[ColNum-MonthBase] - GSTAmount;
-            end else
-              FData[RowNum-1].bDetailLine.bdBudget[ColNum-MonthBase] := eAmounts[ColNum-MonthBase];
+            FData[RowNum-1].bDetailLine.bdBudget[ColNum-MonthBase] := eAmounts[ColNum-MonthBase];
             FData[RowNum-1].bDetailLine.bdQty_Budget[ColNum - MonthBase] := FData[RowNum - 1].bQuantitys[ColNum - MonthBase];
             FData[RowNum-1].bDetailLine.bdEach_Budget[ColNum - MonthBase] := FData[RowNum - 1].bUnitPrices[ColNum - MonthBase];
          end;
@@ -924,32 +913,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TfrmBudget.CalculateGSTAmount(AmountWithGST: integer; MonthIndex: integer; Account: pAccount_Rec; ClassNo: byte): Money;
-var
-  ColDateInt: integer;
-  GSTAmount: Money;
-begin
-  ColDateInt := IncDate(Budget.buFields.buStart_Date, 0, MonthIndex - 1, 0);
-  GstCalc32.CalculateGST(MyClient,
-                         ColDateInt,
-                         Account.chAccount_Code,
-                         AmountWithGST,
-                         ClassNo,
-                         GSTAmount);
-  Result := GSTAmount;
-end;
-
-//------------------------------------------------------------------------------
-function TfrmBudget.CalculateGSTAmountFromNet(AmountWithoutGST: integer; MonthIndex: integer; ClassNo: byte): Money;
-var
-  ColDateInt: integer;
-begin
-  ColDateInt := IncDate(Budget.buFields.buStart_Date, 0, MonthIndex - 1, 0);
-  Result := GstCalc32.CalculateGSTFromNett(MyClient, ColDateInt, AmountWithoutGST, ClassNo, True);
-end;
-
-//------------------------------------------------------------------------------
-procedure TFrmBudget.RefreshFData(ShowZeros: Boolean; var aDataIndex : integer; KeepPercentages: boolean = false);
+procedure TFrmBudget.RefreshFData(ShowZeros: boolean; var aDataIndex : integer; KeepPercentages: boolean);
 var
   Account : pAccount_Rec;
   AccountIndex : Integer;
@@ -959,7 +923,9 @@ var
   ClassNo: byte;
   GSTAmount: Money;
   OldData: TBudgetData;
+  GSTInclusive: boolean;
 begin
+  GSTInclusive := ShowFiguresGSTInclusive;
   if KeepPercentages then
     // In this case, the user has toggled the GST Inclusive/Exclusive radio buttons or pressed Hide Unused.
     // We haven't yet saved any new or modified percentages, so these will be kept safe in OldData and
@@ -1010,27 +976,14 @@ begin
         FData[aDataIndex].Percentage := pBudgetRec.bdPercentage;
       end;
     end;
-    FData[aDataIndex].bIsGSTAccountCode :=
-      IsGSTAccountCode(MyClient, FData[aDataIndex].bAccount);
+    FData[aDataIndex].bIsGSTAccountCode := IsGSTAccountCode(MyClient, FData[aDataIndex].bAccount);
     FData[aDataIndex].bDetailLine := pBudgetRec;
 
     for MonthIndex := 1 to 12 do
     begin
       if Assigned(pBudgetRec) and not FData[aDataIndex].bIsGSTAccountCode then
       begin
-        if ShowFiguresGSTInclusive then // GST Inclusive
-        begin
-          ClassNo := GetGSTClassNo(MyClient, GetGSTClassCode(MyClient, Account.chGST_Class));
-          GSTAmount := CalculateGSTAmountFromNet(Round(FData[aDataIndex].bDetailLine.bdBudget[MonthIndex]),
-                                                 MonthIndex,
-                                                 ClassNo);
-          FData[aDataIndex].bAmounts[MonthIndex] :=
-            Round(FData[aDataIndex].bDetailLine.bdBudget[MonthIndex] + GSTAmount)
-        end else
-          FData[aDataIndex].bAmounts[MonthIndex] :=
-            Round(FData[aDataIndex].bDetailLine.bdBudget[MonthIndex]);
-
-
+        FData[aDataIndex].bAmounts[MonthIndex] := Round(FData[aDataIndex].bDetailLine.bdBudget[MonthIndex]);
         FData[aDataIndex].bQuantitys[MonthIndex] := FData[aDataIndex].bDetailLine.bdQty_Budget[MonthIndex];
         FData[aDataIndex].bUnitPrices[MonthIndex] := FData[aDataIndex].bDetailLine.bdEach_Budget[MonthIndex];
       end
@@ -1044,11 +997,7 @@ begin
     Inc(aDataIndex);
   end;
 
-  // Now update the GST cells. We only want to show the GST values if GST Exclusive has
-  // been selected, if GST inclusive figures are being shown then the GST is included
-  // in the figures for each row, and no separate amount is needed.
-  if not ShowFiguresGSTInclusive then
-    RefreshGST;
+  RefreshGST;
 
   if (aDataIndex = 0) and not ShowZeros then
   begin
@@ -1153,12 +1102,7 @@ begin
 
     for i := 1 to 12 do
     begin
-      if ShowFiguresGSTInclusive then
-      begin
-        GSTAmount := CalculateGSTAmount(Round(FData[index].bAmounts[i]), i, Account, ClassNo);
-        FData[index].bDetailLine.bdBudget[i] := FData[index].bAmounts[i] - GSTAmount;
-      end else
-        FData[index].bDetailLine.bdBudget[i] := FData[index].bAmounts[i];
+      FData[index].bDetailLine.bdBudget[i] := FData[index].bAmounts[i];
       FData[index].bDetailLine.bdQty_Budget[i] := FData[index].bQuantitys[i];
       FData[index].bDetailLine.bdEach_Budget[i] := FData[index].bUnitPrices[i];
     end;
@@ -1546,7 +1490,7 @@ begin
     S := ''
   else
   begin
-    if FData[RowNum - 1].ShowGstAmounts then
+    if FData[RowNum - 1].ShowGstAmounts or ShowFiguresGSTInclusive then
       D := FData[RowNum - 1].bGstAmounts[ColNum - 2]
     else
       D := FData[RowNum - 1].bAmounts[ColNum - 2];
@@ -2220,8 +2164,6 @@ begin
   edtName.Hide;
   lblname.Show;
   lblName.Caption := Trim(EdtName.Text);;
-  //edtName.Color := ExtraTitleBar.Color;
-  //edtName.Font.Color := clCaptionText;
 end;
 
 //------------------------------------------------------------------------------
@@ -2806,24 +2748,7 @@ begin
         // non-posting, so we want to zero out the data but keep the formulas in place. The
         // user is responsible for updating or removing the percentage code and amount
         FData[DataRow].bAmounts[ColNum] := 0
-      else if ShowFiguresGSTInclusive then
-      begin
-        // In case the two rows have different GST codes, we need to remove GST from the row
-        // the value is based off, then add the GST for the current row, then multiply by
-        // the percentage 
-        OldClassNo := GetClassNoFromRow(AccountCodeRow);
-        OldGSTAmount := CalculateGSTAmount(FData[AccountCodeRow].bAmounts[ColNum],
-                                           ColNum,
-                                           FChart.FindCode(FData[AccountCodeRow].bDetailLine.bdAccount_Code),
-                                           OldClassNo);
-        OldAmountWithoutGST := FData[AccountCodeRow].bAmounts[ColNum] - OldGSTAmount;
-        NewClassNo := GetClassNoFromRow(DataRow);
-        NewGSTAmount := CalculateGSTAmountFromNet(Round(FData[AccountCodeRow].bDetailLine.bdBudget[ColNum]),
-                                                  ColNum,
-                                                  NewClassNo);
-        AmountWithCurrentRowGST := OldAmountWithoutGST + NewGSTAmount;
-        FData[DataRow].bAmounts[ColNum] := Round(AmountWithCurrentRowGST * (FData[DataRow].Percentage / 100));
-      end else
+      else
         FData[DataRow].bAmounts[ColNum] :=
           Round(FData[AccountCodeRow].bAmounts[ColNum] * (FData[DataRow].Percentage / 100));
 

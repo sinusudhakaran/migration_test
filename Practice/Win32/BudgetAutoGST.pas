@@ -83,6 +83,8 @@ begin
   byGST_Class := pAccount.chGST_Class;
   moAmount := aBudget.bAmounts[aMonthIndex];
   moGSTAmount := CalculateGSTFromNett(aClient, aDate, moAmount, byGST_Class);
+  if not IsGSTAccountCode(aClient, aBudget.bAccount) then
+    aBudget.bGstAmounts[aMonthIndex] := Round(moGSTAmount + moAmount);
 
   // Ensure GST amount sign is correct
   pnSign := ExpectedSign(pAccount.chAccount_Type);
