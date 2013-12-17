@@ -1428,8 +1428,11 @@ begin
 
       pBudgetRec := Budget.buDetail.FindLineByCode(AccountRec.chAccount_Code);
       FData[i].bDetailLine := pBudgetRec;
-      FData[i].PercentAccount := FData[i].bDetailLine.bdPercent_Account;
-      FData[i].Percentage := FData[i].bDetailLine.bdPercentage;
+      if Assigned(pBudgetRec) then
+      begin
+        FData[i].PercentAccount := pBudgetRec.bdPercent_Account;
+        FData[i].Percentage := pBudgetRec.bdPercentage;
+      end;
       for MonthIndex := 1 to 12 do
       begin
         if Assigned(pBudgetRec) then
