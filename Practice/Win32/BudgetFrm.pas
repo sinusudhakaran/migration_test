@@ -195,7 +195,7 @@ type
     procedure EndEditRow(RowNum, ColNum : integer; var AllowIt : boolean);
 
     procedure SetBudget(const Value: TBudget);
-    procedure UpdateLine(index : integer);
+    procedure UpdateLine(index : integer; CopyPercentages: boolean = true);
     procedure UpdateAllLines;
 
     procedure CheckEditMode;
@@ -1059,7 +1059,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TfrmBudget.UpdateLine(index: integer);
+procedure TfrmBudget.UpdateLine(index: integer; CopyPercentages: boolean);
 {syncronizes the editor lines and the lines stored in the budget}
 {adds, edits or deletes budget line where necessary}
 var
@@ -1094,8 +1094,15 @@ begin
     end;
 
     {update data into budget line}
-    FData[index].bDetailLine.bdPercent_Account := FData[index].PercentAccount;
-    FData[index].bDetailLine.bdPercentage := FData[index].Percentage;
+    if CopyPercentages then
+    begin
+      FData[index].bDetailLine.bdPercent_Account := FData[index].PercentAccount;
+      FData[index].bDetailLine.bdPercentage := FData[index].Percentage;
+    end else
+    begin
+      FData[index].bDetailLine.bdPercent_Account := '';
+      FData[index].bDetailLine.bdPercentage := 0;
+    end;
 
     Account := FChart.FindCode(FData[index].bAccount);
     ClassNo := GetClassNoFromRow(index);
@@ -2002,7 +2009,7 @@ begin
             end;
           end;
           ReadRow(currentRow);  {reload current edit values}
-          UpdateLine(i);
+          UpdateLine(i, false);
         end;
         if HideRowsAfter then
           DoHideUnused;
