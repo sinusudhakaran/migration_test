@@ -270,7 +270,6 @@ object frmTPA: TfrmTPA
         Color = clWhite
         ParentBackground = False
         TabOrder = 1
-        ExplicitLeft = 139
         DesignSize = (
           415
           131)
@@ -678,6 +677,7 @@ object frmTPA: TfrmTPA
         Top = 79
         Width = 239
         Height = 17
+        Hint = 'For BankLink Books Secure or BankLink Online Secure clients'
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Data sent to existing secure client'
         Font.Charset = DEFAULT_CHARSET
@@ -694,6 +694,7 @@ object frmTPA: TfrmTPA
         Top = 27
         Width = 239
         Height = 17
+        Hint = 'For BankLink Books Secure or BankLink Online Secure clients'
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Data sent direct to new secure client'
         Font.Charset = DEFAULT_CHARSET

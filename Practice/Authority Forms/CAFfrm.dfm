@@ -645,6 +645,7 @@ object frmCAF: TfrmCAF
         Top = 81
         Width = 226
         Height = 17
+        Hint = 'For BankLink Books Secure or BankLink Online Secure clients'
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Data sent to existing secure client'
         Font.Charset = DEFAULT_CHARSET
