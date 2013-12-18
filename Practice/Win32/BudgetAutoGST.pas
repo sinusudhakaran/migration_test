@@ -82,7 +82,7 @@ begin
   // Calculate GST component
   byGST_Class := pAccount.chGST_Class;
   moAmount := aBudget.bAmounts[aMonthIndex];
-  moGSTAmount := CalculateGSTFromNett(aClient, aDate, moAmount, byGST_Class);
+  moGSTAmount := CalculateGSTFromNett(aClient, aDate, moAmount, byGST_Class, true);
   if not IsGSTAccountCode(aClient, aBudget.bAccount) then
     aBudget.bGstAmounts[aMonthIndex] := Round(moGSTAmount + moAmount);
 
