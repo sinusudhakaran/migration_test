@@ -3484,10 +3484,10 @@ var
                Exit;
 
             ceGSTAmount : if pT.txFirst_Dissection = nil then begin
-                   if TestMoney(pT.txGST_Amount) then
+                   if TestMoney(pT.txGST_Amount, True) then
                       Exit;
                 end else begin
-                   if TestMoney(GSTCalc32.GetGSTTotalForDissection(pT)) then
+                   if TestMoney(GSTCalc32.GetGSTTotalForDissection(pT), True) then
                       Exit;
                 end;
 
@@ -3540,13 +3540,13 @@ var
             ceAction :if TestText(GetFormattedAction(pT)) then
                Exit;
 
-            ceForexAmount: if TestMoney(pT.txAmount) then
+            ceForexAmount: if TestMoney(pT.txAmount, True) then
                Exit;
 
             ceForexRate : if testText( FloatToStr(PT.Default_Forex_Rate)) then
                Exit;
 
-            ceLocalCurrencyAmount : if TestMoney(pT.Local_Amount) then
+            ceLocalCurrencyAmount : if TestMoney(pT.Local_Amount, True) then
                Exit;
 
             ceCoreTransactionId : if TestInteger(BKUTIL32.GetTransCoreID(pT)) then
