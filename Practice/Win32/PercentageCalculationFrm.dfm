@@ -6,12 +6,12 @@ object frmPercentageCalculation: TfrmPercentageCalculation
   BorderStyle = bsSingle
   Caption = 'Percentage Calculation'
   ClientHeight = 162
-  ClientWidth = 314
+  ClientWidth = 484
   Color = clBtnFace
   Constraints.MaxHeight = 190
-  Constraints.MaxWidth = 320
+  Constraints.MaxWidth = 490
   Constraints.MinHeight = 190
-  Constraints.MinWidth = 320
+  Constraints.MinWidth = 490
   ParentFont = True
   KeyPreview = True
   OldCreateOrder = False
@@ -41,6 +41,15 @@ object frmPercentageCalculation: TfrmPercentageCalculation
     Height = 13
     Caption = '%'
   end
+  object lblAccountCodeDesc: TLabel
+    Left = 251
+    Top = 26
+    Width = 217
+    Height = 20
+    AutoSize = False
+    Caption = 'lblAccountCodeDesc'
+    Visible = False
+  end
   object edtAccountCode: TEdit
     Left = 114
     Top = 24
@@ -50,7 +59,7 @@ object frmPercentageCalculation: TfrmPercentageCalculation
     OnChange = edtAccountCodeChange
   end
   object btnClear: TButton
-    Left = 146
+    Left = 316
     Top = 128
     Width = 75
     Height = 25
@@ -59,7 +68,7 @@ object frmPercentageCalculation: TfrmPercentageCalculation
     OnClick = btnClearClick
   end
   object btnOK: TButton
-    Left = 61
+    Left = 231
     Top = 128
     Width = 75
     Height = 25
@@ -70,7 +79,7 @@ object frmPercentageCalculation: TfrmPercentageCalculation
     OnClick = btnOKClick
   end
   object btnCancel: TButton
-    Left = 231
+    Left = 401
     Top = 128
     Width = 75
     Height = 25

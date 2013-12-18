@@ -33,6 +33,7 @@ type
     btnCancel: TButton;
     btnChart: TBitBtn;
     nPercent: TOvcNumericField;
+    lblAccountCodeDesc: TLabel;
 
     procedure FormCreate(Sender: TObject);
     procedure btnClearClick(Sender: TObject);
@@ -159,8 +160,20 @@ end;
 procedure TfrmPercentageCalculation.edtAccountCodeChange(Sender: TObject);
 var
   DummyStr: string; // won't actually need this string
+  pAcct: pAccount_Rec;
+  CaptionSet: boolean;
 begin
-  CheckAccountCodeValidity(DummyStr);
+  CaptionSet := False;
+  if CheckAccountCodeValidity(DummyStr) then
+  begin
+    pAcct:= MyClient.clChart.FindCode(Trim(edtAccountCode.Text));
+    if Assigned( pAcct) then
+    begin
+      lblAccountCodeDesc.Caption := pAcct^.chAccount_Description;
+      CaptionSet := True;
+    end
+  end;
+  lblAccountCodeDesc.Visible := CaptionSet;
 end;
 
 procedure TfrmPercentageCalculation.FormCreate(Sender: TObject);
