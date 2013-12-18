@@ -278,9 +278,6 @@ begin
   // Clears All Gst Amounts
   ClearGstAmounts(aBudgetData);
 
-  if not aAutoCalculateGST then
-    exit;
-
   dtMonth := aBudget.buFields.buStart_Date;
 
   for iMonth := 1 to 12 do
@@ -288,8 +285,9 @@ begin
     // Calculate the GST amounts for all rows, and add them to GST total table
     CalculateGST(aClient, aBudgetData, iMonth, dtMonth, arrGST);
 
-    // Move all GST amounts to the budget GSTAmount
-    MoveGSTtoGstAmount(aClient, aBudgetData, iMonth, arrGST);
+    if aAutoCalculateGST then
+      // Move all GST amounts to the budget GSTAmount
+      MoveGSTtoGstAmount(aClient, aBudgetData, iMonth, arrGST);
 
     // Next month
     dtMonth := IncDate(dtMonth, 0, 1, 0);

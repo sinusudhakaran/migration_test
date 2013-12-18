@@ -25,20 +25,21 @@ type
    { Note: when adding new members, you must also change the CopyBudgetData
      function }
    TBudgetRec = record
-     bAccount        : Bk5CodeStr;
-     bDesc           : string[60];
-     bAmounts        : Array[1..12] of integer;
-     bQuantitys      : Array[1..12] of Money;
-     bUnitPrices     : Array[1..12] of Money;
-     bTotal          : integer;
-     bIsPosting      : boolean;
-     bIsGSTAccountCode : boolean;
-     bDetailLine     : pBudget_Detail_Rec;
-     bNeedsUpdate    : Boolean;
-     PercentAccount  : Bk5CodeStr; // Only used if the figures for this row are calculated from a % of another account code, empty otherwise
-     Percentage      : double; // Only used if PercentAccount is not empty, see above
-     bGstAmounts     : Array[1..12] of integer;
-     ShowGstAmounts : Boolean;
+     bAccount           : Bk5CodeStr;
+     bDesc              : string[60];
+     bAmounts           : Array[1..12] of integer;
+     bQuantitys         : Array[1..12] of Money;
+     bUnitPrices        : Array[1..12] of Money;
+     bTotal             : integer;
+     bIsPosting         : boolean;
+     bIsGSTAccountCode  : boolean;
+     bDetailLine        : pBudget_Detail_Rec;
+     bNeedsUpdate       : Boolean;
+     PercentAccount     : Bk5CodeStr; // Only used if the figures for this row are calculated from a % of another account code, empty otherwise
+     Percentage         : double; // Only used if PercentAccount is not empty, see above
+     bGstAmounts        : Array[1..12] of integer;
+     bTotalWithGST      : integer;
+     ShowGstAmounts     : Boolean;
    end;
 
    TBudgetData = Array of tBudgetRec;  {dynamic array}

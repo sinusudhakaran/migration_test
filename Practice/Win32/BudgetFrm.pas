@@ -225,7 +225,7 @@ type
     procedure WMSysCommand(var msg: TWMSyscommand); message WM_SYSCOMMAND;
     procedure tblBudgetVSThumbChanged(Sender: TObject; RowNum: TRowNum);
     procedure HideCustomHint;
-    function GetTotalForRow(RowNum: Integer): Integer;
+    function GetTotalForRow(RowNum: Integer; IncludeGST: boolean): Integer;
     procedure RefreshFData(ShowZeros: Boolean; var aDataIndex : integer; KeepPercentages: boolean = false);
     procedure RefreshTableWithData(ShowZeros: Boolean; aRefreshFdata : Boolean = true;
                                    KeepPercentages: boolean = false);
@@ -480,6 +480,8 @@ end;
 
 //------------------------------------------------------------------------------
 procedure TfrmBudget.ReadCellforPaint(RowNum, ColNum: Integer; var Data: Pointer);
+var
+  ShowGST: boolean;
 begin
   Data := nil;
 
@@ -500,10 +502,20 @@ begin
         end;
       TotalCol :
         begin
-          FData[RowNum-1].bTotal := GetTotalForRow(RowNum);
-          if FData[RowNum-1].bIsPosting then
-            Data := @FData[RowNum-1].bTotal
+          if ShowFiguresGSTInclusive then
+            ShowGST := not FData[RowNum-1].bIsGSTAccountCode
           else
+            ShowGST := FData[RowNum-1].bIsGSTAccountCode;
+          FData[RowNum-1].bTotal := GetTotalForRow(RowNum, False);
+          if ShowGST then          
+            FData[RowNum-1].bTotalWithGST := GetTotalForRow(RowNum, True);
+          if FData[RowNum-1].bIsPosting then
+          begin
+            if ShowGST then            
+              Data := @FData[RowNum-1].bTotalWithGST
+            else
+              Data := @FData[RowNum-1].bTotal;
+          end else
             Data := nil;
         end;
     end;{case}
@@ -511,13 +523,18 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TfrmBudget.GetTotalForRow(RowNum: Integer): Integer;
+function TfrmBudget.GetTotalForRow(RowNum: Integer; IncludeGST: boolean): Integer;
 var
   I: Integer;
 begin
   Result := 0;
   for I := MonthMin to MonthMax do
-    Result := Result + FData[RowNum - 1].bAmounts[i-MonthBase];
+  begin
+    if IncludeGST then
+      Result := Result + FData[RowNum - 1].bGstAmounts[i-MonthBase]
+    else
+      Result := Result + FData[RowNum - 1].bAmounts[i-MonthBase];
+  end;
 end;
 
 //------------------------------------------------------------------------------
@@ -1546,6 +1563,8 @@ begin
     TableCanvas.Brush.Color := CellAttr.caColor;
   TableCanvas.Font.Color  := CellAttr.caFontColor;
   TableCanvas.FillRect(R);
+  if IsGSTControlGroup and ShowFiguresGSTInclusive then
+    S := '0'; // Don't print values for GST control groups if the GST is already included in the other figures
   DrawText(TableCanvas.Handle, PChar(S), StrLen(PChar(S)), R, DT_RIGHT or DT_VCENTER or DT_SINGLELINE);
 
   if HasQuantityFormula(RowNum - 1, ColNum - 2) then
@@ -3006,7 +3025,7 @@ end;
 procedure TfrmBudget.RefreshGST;
 begin
   // Do the calculations on the budget lines
-  CalculateGSTtoGSTAmount(MyClient, fBudget, fData, True);
+  CalculateGSTtoGSTAmount(MyClient, fBudget, fData, AutoCalculateGST);
 
   // Update all the values in the grid control
   tblBudget.Refresh;
