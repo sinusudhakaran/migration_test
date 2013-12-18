@@ -255,6 +255,7 @@ type
     procedure CreateDetailLine(RowNum: integer);
     function ShowFiguresGSTInclusive: boolean;
     function GetClassNoFromRow(RowNum: integer): byte;
+    procedure EnableOrDisablePercentageInvalidControls(Value: boolean);
 
   public
     { Public declarations }
@@ -424,6 +425,8 @@ begin
 
   // Removing the border from rgGST
   SetWindowRgn(rgGST.Handle, CreateREctRgn(7, 14, rgGST.Width - 2, rgGST.Height - 2), True);
+
+  EnableOrDisablePercentageInvalidControls(True);
 end;
 
 //------------------------------------------------------------------------------
@@ -867,10 +870,30 @@ begin
    //edtName.Color          := bkBranding.HeaderBackgroundColor;
 end;
 
+// When the currently selected cell is on a row which is a percentage of
+// another row, we want to disable some functions
+procedure TfrmBudget.EnableOrDisablePercentageInvalidControls(Value: boolean);
+begin
+  frmMain.tbSmooth.Enabled  := Value;
+  frmMain.tbAverage.Enabled := Value;
+  frmMain.tbCopy.Enabled    := Value;
+  mniAverage.Enabled        := Value;
+  mniSmooth.Enabled         := Value;
+  mniCopy.Enabled           := Value;
+end;
+
 //------------------------------------------------------------------------------
 procedure TfrmBudget.tblBudgetActiveCellChanged(Sender: TObject;
   RowNum, ColNum: Integer);
+var
+  HasPercentage: boolean;
 begin
+  if Assigned(FData) then
+  begin
+    HasPercentage             := HasPercentageFormula(RowNum-1);
+    EnableOrDisablePercentageInvalidControls(not HasPercentage);
+  end;
+
   HideCustomHint; // Changing cells, so Hide the Hint window
    //ensure that current row data is correct
    if (RowNum <> CurrentRow) then
@@ -897,6 +920,7 @@ procedure TfrmBudget.FormClose(Sender: TObject; var Action: TCloseAction);
 var
   i: Integer;
 begin
+  EnableOrDisablePercentageInvalidControls(True);
   Budget.buFields.buIs_Inclusive := ShowFiguresGSTInclusive;
 
   UpdateAllLines;
