@@ -256,10 +256,13 @@ var
 begin
   for iRow := 0 to High(aBudgetData) do
   begin
-    aBudgetData[iRow].ShowGstAmounts := false;
-    for iMonth := 1 to 12 do
+    if aBudgetData[iRow].bIsGSTAccountCode then
     begin
-      aBudgetData[iRow].bGstAmounts[iMonth] := 0;
+      aBudgetData[iRow].ShowGstAmounts := false;
+      for iMonth := 1 to 12 do
+      begin
+        aBudgetData[iRow].bGstAmounts[iMonth] := 0;
+      end;
     end;
   end;
 end;

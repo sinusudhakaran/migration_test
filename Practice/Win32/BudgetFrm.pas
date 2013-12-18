@@ -2982,7 +2982,7 @@ end;
 procedure TfrmBudget.RefreshGST;
 begin
   // Do the calculations on the budget lines
-  CalculateGSTtoGSTAmount(MyClient, fBudget, fData, AutoCalculateGST);
+  CalculateGSTtoGSTAmount(MyClient, fBudget, fData, True);
 
   // Update all the values in the grid control
   tblBudget.Refresh;
