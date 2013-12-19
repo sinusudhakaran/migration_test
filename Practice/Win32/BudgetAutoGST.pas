@@ -25,6 +25,11 @@ type
               const aMonthIndex: integer; const aDate: TStDate;
               var aGST: aTGstClassMoney); overload;
 
+  // Amount from row, stored as a single figure
+  procedure CalculateGST(const aClient: TClientObj; var aBudget: TBudgetRec;
+              const aMonthIndex: integer; const aDate: TStDate;
+              var GSTAmount: double); overload;
+
   // Amount from month
   procedure CalculateGST(const aClient: TClientObj; var aBudget: TBudgetData;
               const aMonthIndex: integer; const aDate: TStDate;
@@ -101,6 +106,33 @@ begin
 
   // Add to total (positive or negative)
   aGST[byGST_Class].Amount := aGST[byGST_Class].Amount + moGSTAmount;
+end;
+
+//------------------------------------------------------------------------------
+procedure CalculateGST(const aClient: TClientObj; var aBudget: TBudgetRec;
+  const aMonthIndex: integer; const aDate: TStDate;
+  var GSTAmount: double); overload;
+var
+  pAccount: pAccount_Rec;
+  byGST_Class: byte;
+  moAmount: Money;
+  moGSTAmount: double;
+  pnSign: TSign;
+begin
+  // Code doesn't exist? (valid situation)
+  pAccount := aClient.clChart.FindCode(aBudget.bAccount);
+  if not assigned(pAccount) then
+    exit;
+
+  // Calculate GST component
+  byGST_Class := pAccount.chGST_Class;
+  moAmount := aBudget.bAmounts[aMonthIndex];
+  moGSTAmount := CalculateGSTFromNett(aClient, aDate, moAmount, byGST_Class, false);
+  if not IsGSTAccountCode(aClient, aBudget.bAccount) then
+    aBudget.bGstAmounts[aMonthIndex] := Round(moGSTAmount + moAmount);
+
+  // Add to total (positive or negative)
+  GSTAmount := GSTAmount + moGSTAmount;
 end;
 
 //------------------------------------------------------------------------------

@@ -12,7 +12,7 @@ USES
 Function  WhichGSTRateApplies( aClient : TClientObj; ADate : LongInt ): Byte;
 Function  CalculateGSTForClass( aClient : TClientObj; ADate : LongInt; Amount : Money; ClassNo : Byte ): Money;
 Procedure CalculateGST( aClient : TClientObj; ADate : LongInt; Account : String; Amount : Money; Var ClassNo : Byte; Var GST : Money );
-Function  CalculateGSTFromNett( aClient : TClientObj; ADate : LongInt; Amount : Money; ClassNo : Byte; RoundUpHalves : boolean = false ): Money;
+Function  CalculateGSTFromNett( aClient : TClientObj; ADate : LongInt; Amount : Money; ClassNo : Byte; RoundToWholeValue: boolean ): double;
 
 Function  GetGSTClassNo( aClient : TClientObj; ClassCode : String ) : Byte;
 Function  GetGSTClassCode( aClient : TClientObj; No : byte ): string;
@@ -117,14 +117,15 @@ Begin
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-Function  CalculateGSTFromNett( aClient : TClientObj; ADate : LongInt; Amount : Money; ClassNo : Byte ; RoundUpHalves : boolean): Money;
+Function  CalculateGSTFromNett( aClient : TClientObj; ADate : LongInt; Amount : Money; ClassNo : Byte; RoundToWholeValue: boolean): double;
 const
    ThisMethodName = 'CalculateGSTFromNett';
 VAR
-   TaxAmtExt    : Extended;
-   TaxRate      : Extended;
-   WhichRate    : Byte;
-   OldRoundMode : TFPURoundingMode;
+   TaxAmtExt     : Extended;
+   TaxRate       : Extended;
+   WhichRate     : Byte;
+   OldRoundMode  : TFPURoundingMode;
+   RoundUpHalves : boolean;
 Begin
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
    CalculateGSTFromNett := 0;
@@ -140,15 +141,19 @@ Begin
 
       TaxRate     := aClient.clFields.clGST_Rates[ ClassNo, WhichRate ] / 1000000.0; { 1250 -> 0.1250 }
       TaxAmtExt   := Amount * TaxRate;
-      RoundUpHalves := RoundUpHalves and (TaxAmtExt - Trunc(TaxAmtExt) = 0.5);
-      if RoundUpHalves then
+      if RoundToWholeValue then
       begin
-        OldRoundMode := GetRoundMode;
-        SetRoundMode(rmUp);
-      end;
-      CalculateGSTFromNett := Round( TaxAmtExt );
-      if RoundUpHalves then
+        RoundUpHalves := TaxAmtExt - Trunc(TaxAmtExt) = 0.5;
+        if RoundUpHalves then
+        begin
+          OldRoundMode := GetRoundMode;
+          SetRoundMode(rmUp);
+        end;
+        // CalculateGSTFromNett := Round( TaxAmtExt );
+        Result := Round( TaxAmtExt );
         SetRoundMode(OldRoundMode);
+      end else
+        Result := TaxAmtExt;
    end;
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
