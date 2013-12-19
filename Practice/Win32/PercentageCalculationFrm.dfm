@@ -48,6 +48,7 @@ object frmPercentageCalculation: TfrmPercentageCalculation
     Height = 20
     AutoSize = False
     Caption = 'lblAccountCodeDesc'
+    ShowAccelChar = False
     Visible = False
   end
   object edtAccountCode: TEdit
