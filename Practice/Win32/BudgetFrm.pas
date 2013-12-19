@@ -977,6 +977,8 @@ var
   GSTAmount: Money;
   OldData: TBudgetData;
   GSTInclusive: boolean;
+  OldDataIndex: integer;
+  i: integer;
 begin
   GSTInclusive := ShowFiguresGSTInclusive;
   if KeepPercentages then
@@ -1021,8 +1023,15 @@ begin
     begin
       if KeepPercentages then
       begin
-        FData[aDataIndex].PercentAccount := OldData[aDataIndex].PercentAccount;
-        FData[aDataIndex].Percentage := OldData[aDataIndex].Percentage;
+        for i := Low(OldData) to High(OldData) do
+        begin
+          if (FData[aDataIndex].bAccount = OldData[i].bAccount) then
+          begin
+            FData[aDataIndex].PercentAccount := OldData[i].PercentAccount;
+            FData[aDataIndex].Percentage := OldData[i].Percentage;
+            break;
+          end;
+        end;
       end else
       begin
         FData[aDataIndex].PercentAccount := pBudgetRec.bdPercent_Account;
