@@ -1722,7 +1722,7 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmBudget.DoShowAll;
 begin
-  RefreshTableWithData(true, true, false);
+  RefreshTableWithData(true, true, true);
 end;
 
 //------------------------------------------------------------------------------
@@ -2087,7 +2087,7 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmBudget.DoHideUnused;
 begin
-  RefreshTableWithData(false, true, false);
+  RefreshTableWithData(false, true, true);
 end;
 
 //------------------------------------------------------------------------------
