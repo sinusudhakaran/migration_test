@@ -1871,7 +1871,7 @@ var
   UnitPrice: Money;
   Quantity: Money;
   Total: Integer;
-
+  DataIndex : integer;
 begin
   CheckEditMode;
   RowIndex := tblBudget.ActiveRow - 1;
@@ -1914,6 +1914,7 @@ begin
   tblBudget.AllowRedraw := false;
   UpdateLine(RowIndex);
   DoInvalidateRow(CurrentRow);
+  RefreshTableWithData(fShowZeros, True, True);
   tblBudget.AllowRedraw := true;
 end;
 

@@ -5,7 +5,7 @@ object frmBudgetUnitPriceEntry: TfrmBudgetUnitPriceEntry
   BorderStyle = bsDialog
   Caption = 'Calculate Budgeted Amount'
   ClientHeight = 149
-  ClientWidth = 269
+  ClientWidth = 281
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -17,30 +17,30 @@ object frmBudgetUnitPriceEntry: TfrmBudgetUnitPriceEntry
   OnCreate = FormCreate
   OnShow = FormShow
   DesignSize = (
-    269
+    281
     149)
   PixelsPerInch = 96
   TextHeight = 13
   object lblUnitPrice: TLabel
     Left = 8
     Top = 10
-    Width = 49
+    Width = 97
     Height = 13
-    Caption = 'Unit Price:'
+    Caption = 'Unit Price (excl GST)'
   end
   object lblQuantity: TLabel
     Left = 8
     Top = 37
-    Width = 46
+    Width = 42
     Height = 13
-    Caption = 'Quantity:'
+    Caption = 'Quantity'
   end
   object lblTotal: TLabel
     Left = 8
-    Top = 74
-    Width = 95
+    Top = 78
+    Width = 92
     Height = 13
-    Caption = 'Total (Rounded):'
+    Caption = 'Total (Rounded)'
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
     Font.Height = -11
@@ -49,7 +49,7 @@ object frmBudgetUnitPriceEntry: TfrmBudgetUnitPriceEntry
     ParentFont = False
   end
   object btnCancel: TButton
-    Left = 186
+    Left = 198
     Top = 116
     Width = 75
     Height = 25
@@ -58,9 +58,10 @@ object frmBudgetUnitPriceEntry: TfrmBudgetUnitPriceEntry
     Caption = '&Cancel'
     ModalResult = 2
     TabOrder = 4
+    ExplicitLeft = 186
   end
   object btnOk: TButton
-    Left = 105
+    Left = 117
     Top = 116
     Width = 75
     Height = 25
@@ -69,9 +70,10 @@ object frmBudgetUnitPriceEntry: TfrmBudgetUnitPriceEntry
     Default = True
     TabOrder = 3
     OnClick = btnOkClick
+    ExplicitLeft = 105
   end
   object nUnitPrice: TOvcNumericField
-    Left = 128
+    Left = 143
     Top = 8
     Width = 130
     Height = 21
@@ -92,7 +94,7 @@ object frmBudgetUnitPriceEntry: TfrmBudgetUnitPriceEntry
     RangeLow = {E175587FED2AB1ECFEFF}
   end
   object nQuantity: TOvcNumericField
-    Left = 128
+    Left = 143
     Top = 35
     Width = 130
     Height = 21
@@ -113,7 +115,7 @@ object frmBudgetUnitPriceEntry: TfrmBudgetUnitPriceEntry
     RangeLow = {E175587FED2AB1ECFEFF}
   end
   object nTotal: TOvcNumericField
-    Left = 128
+    Left = 143
     Top = 72
     Width = 130
     Height = 21
