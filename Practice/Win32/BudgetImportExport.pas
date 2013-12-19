@@ -83,7 +83,8 @@ type
                           aStartDate : integer;
                           var aMsg : string;
                           aIncludeNonPostingChartCodes: boolean;
-                          aPrefixAccountCode: boolean = false): boolean;
+                          aPrefixAccountCode: boolean = false;
+                          GSTInclusive: boolean = false): boolean;
 
     function CopyBudgetData(aBudgetData : TBudgetData; SubtractGST: boolean;
                             BudgetStartDate: integer) : TBudgetData;
@@ -259,7 +260,8 @@ function TBudgetImportExport.ExportBudget(aBudgetFilePath: string;
                                           aStartDate : integer;
                                           var aMsg : string;
                                           aIncludeNonPostingChartCodes: boolean;
-                                          aPrefixAccountCode: boolean): boolean;
+                                          aPrefixAccountCode: boolean;
+                                          GSTInclusive: boolean): boolean;
 const
   ThisMethodName = 'ExportBudget';
 var
@@ -305,7 +307,7 @@ begin
             OkToWriteLine := false;
             for DateIndex := 1 to 12 do
             begin
-              if aData[DataIndex].ShowGstAmounts then
+              if aData[DataIndex].ShowGstAmounts or GSTInclusive then
                 DataLine := DataLine + IntToStr(aData[DataIndex].bGstAmounts[DateIndex])
               else
                 DataLine := DataLine + IntToStr(aData[DataIndex].bAmounts[DateIndex]);
@@ -337,9 +339,13 @@ begin
 
           DataLine := DataLine + '"' + aData[DataIndex].bDesc + '",';
           if aData[DataIndex].bIsPosting then
+          begin
             // Non posting chart codes shouldn't display a total in the budget
-            DataLine := DataLine + IntToStr(aData[DataIndex].bTotal) + ','
-          else
+            if GSTInclusive then
+              DataLine := DataLine + IntToStr(aData[DataIndex].bTotalWithGST) + ','
+            else
+              DataLine := DataLine + IntToStr(aData[DataIndex].bTotal) + ',';
+          end else
             DataLine := DataLine + ',';
 
           for DateIndex := 1 to 12 do
@@ -347,7 +353,7 @@ begin
             if aData[DataIndex].bIsPosting then
             begin
               // Non posting chart codes shouldn't display amounts in the budget
-              if aData[DataIndex].ShowGstAmounts then
+              if aData[DataIndex].ShowGstAmounts or GSTInclusive then
                 DataLine := DataLine + IntToStr(aData[DataIndex].bGstAmounts[DateIndex])
               else
                 DataLine := DataLine + IntToStr(aData[DataIndex].bAmounts[DateIndex]);

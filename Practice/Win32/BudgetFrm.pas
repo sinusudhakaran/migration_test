@@ -2516,7 +2516,8 @@ begin
         if BudgetImportExport.ExportBudget(BudgetFilePath, IncludeUnusedChartCodes, FData,
                                            Budget.buFields.buStart_Date, MsgStr,
                                            IncludeNonPostingChartCodes,
-                                           bPrefixAccountCode) then
+                                           bPrefixAccountCode,
+                                           ShowFiguresGSTInclusive) then
         begin
           BudgetImportExport.SetDefaultFileLocation(MyClient.clFields.clCode, RemoveInvalidCharacters(edtName.Text{Budget.buFields.buName}) , BudgetFilePath);
 
