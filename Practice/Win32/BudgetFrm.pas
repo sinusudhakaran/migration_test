@@ -243,7 +243,7 @@ type
     function IncreaseAmount(aAmount: integer; perc: double; var ValueTooLarge: Boolean): integer;
 
     function HasPercentageFormula(RowIndex: Integer): Boolean;
-    procedure UpdatePercentageRows;
+    procedure UpdatePercentageRows(RefreshTable: boolean);
     procedure DoInvalidateTable;
     procedure DoInvalidateRow(RowNum: integer);
     procedure DoInvalidateColumn(ColNum: integer);
@@ -256,6 +256,8 @@ type
     function ShowFiguresGSTInclusive: boolean;
     function GetClassNoFromRow(RowNum: integer): byte;
     procedure EnableOrDisablePercentageInvalidControls(Value: boolean);
+    function DoRoundUp(Value: double): integer;
+    function DoRoundDown(Value: double): integer;
 
   public
     { Public declarations }
@@ -532,9 +534,6 @@ var
   moGSTAmount: Money;
   dtMonth: TStDate;
   GSTTotal: double;
-  OldRoundMode: TFPURoundingMode;
-  RoundUpHalves: boolean;
-  Remainder: Extended;
 begin
   Result := 0;
   GSTTotal := 0;
@@ -549,17 +548,39 @@ begin
       Result := Result + FData[RowNum - 1].bAmounts[i-MonthBase];
   end;
   if IncludeGST then
-  begin
-    // Need to round 0.5 up to match reports
-    Remainder := GSTTotal - Trunc(GSTTotal);
-    RoundUpHalves := abs(Remainder - 0.5) < 0.0000001;
-    OldRoundMode := GetRoundMode; // would put this in the if statement below but then I get a compiler warning
-    if RoundUpHalves then
-      SetRoundMode(rmUp);
-    Result := Round(GSTTotal);
-    if RoundUpHalves then
-      SetRoundMode(OldRoundMode);
-  end;
+    Result := DoRoundUp(GSTTotal);
+end;
+
+function TfrmBudget.DoRoundUp(Value: double): integer;
+var
+  RoundUpHalves: boolean;
+  Remainder: extended;
+  OldRoundMode: TFPURoundingMode;
+begin
+  Remainder := Value - Trunc(Value);
+  RoundUpHalves := abs(Remainder - 0.5) < 0.0000001;
+  OldRoundMode := GetRoundMode; // would put this in the if statement below but then I get a compiler warning
+  if RoundUpHalves then
+    SetRoundMode(rmUp);
+  Result := Round(Value);
+  if RoundUpHalves then
+    SetRoundMode(OldRoundMode);
+end;
+
+function TfrmBudget.DoRoundDown(Value: double): integer;
+var
+  RoundDownHalves: boolean;
+  Remainder: extended;
+  OldRoundMode: TFPURoundingMode;
+begin
+  Remainder := Value - Trunc(Value);
+  RoundDownHalves := abs(Remainder - 0.5) < 0.0000001;
+  OldRoundMode := GetRoundMode; // would put this in the if statement below but then I get a compiler warning
+  if RoundDownHalves then
+    SetRoundMode(rmDown);
+  Result := Round(Value);
+  if RoundDownHalves then
+    SetRoundMode(OldRoundMode);
 end;
 
 //------------------------------------------------------------------------------
@@ -768,15 +789,22 @@ end;
 
 // Updating rows with percentages for cases where the
 // rows they derive their values from may have changed
-procedure TfrmBudget.UpdatePercentageRows;
+procedure TfrmBudget.UpdatePercentageRows(RefreshTable: boolean);
 var
   i       : integer;
+  AtLeastOneRowUpdated: boolean;
 begin
+  AtLeastOneRowUpdated := False;
   for i := 0 to High(FData) do
   begin
     if HasPercentageFormula(i) then
+    begin
       DoPercentageCalculation(i);
+      AtLeastOneRowUpdated := True;
+    end;
   end;
+  if AtLeastOneRowUpdated and RefreshTable then
+    RefreshTableWithData(fShowZeros, True, True);
 end;
 
 function TfrmBudget.GetClassNoFromRow(RowNum: integer): byte;
@@ -797,7 +825,11 @@ procedure TfrmBudget.tblBudgetDoneEdit(Sender: TObject; RowNum,
 {saves direct edits!}
 var
   ClassNo   : byte;
-  GSTAmount : Money;
+  GSTAmount: double;
+  dtMonth: TStDate;
+  MoAmount: Money;
+  pAccount: pAccount_Rec;
+  GST_Class: byte;
 begin
   if RowDataOK(RowNum,'BDoneEdit') then
     begin
@@ -811,7 +843,18 @@ begin
          begin
             {write this cell to data structure, also update the associated}
             {budget line for this cell}
-            FData[RowNum-1].bAmounts[ColNum-MonthBase] := eAmounts[ColNum-MonthBase];
+            if ShowFiguresGSTInclusive then
+            begin
+              dtMonth := FBudget.buFields.buStart_Date;
+              moAmount := eAmounts[ColNum-MonthBase];
+              pAccount := MyClient.clChart.FindCode(FData[RowNum-1].bAccount);
+              if not assigned(pAccount) then
+                exit;
+              GST_Class := pAccount.chGST_Class;
+              GSTAmount := CalculateGSTFromNett(MyClient, dtMonth, moAmount, GST_Class, false, true);
+              FData[RowNum-1].bAmounts[ColNum-MonthBase] := DoRoundDown(eAmounts[ColNum-MonthBase] - GSTAmount);
+            end else
+              FData[RowNum-1].bAmounts[ColNum-MonthBase] := eAmounts[ColNum-MonthBase];
             if (eAmounts[ColNum - MonthBase] = 0)
                or not AmountMatchesQuantityFormula(RowNum - 1, ColNum - MonthBase)
                or HasPercentageFormula(RowNum - 1) then
@@ -820,7 +863,7 @@ begin
               FData[RowNum - 1].bUnitPrices[ColNum - MonthBase] := 0;
             end;
             CreateDetailLine(RowNum-1);
-            FData[RowNum-1].bDetailLine.bdBudget[ColNum-MonthBase] := eAmounts[ColNum-MonthBase];
+            FData[RowNum-1].bDetailLine.bdBudget[ColNum-MonthBase] := FData[RowNum-1].bAmounts[ColNum-MonthBase];
             FData[RowNum-1].bDetailLine.bdQty_Budget[ColNum - MonthBase] := FData[RowNum - 1].bQuantitys[ColNum - MonthBase];
             FData[RowNum-1].bDetailLine.bdEach_Budget[ColNum - MonthBase] := FData[RowNum - 1].bUnitPrices[ColNum - MonthBase];
          end;
@@ -837,7 +880,7 @@ begin
           AllowRedraw := true;
        end;
 
-       UpdatePercentageRows;
+       UpdatePercentageRows(True);
   end; {if row ok}
   UpdateShowHideEnabledState;
 end;
@@ -1097,6 +1140,7 @@ begin
   tblBudget.RowLimit := DataIndex + 1;
   DataAssigned := true;
 
+  tblBudget.AllowRedraw := false;
   DoInvalidateTable;
   tblBudget.AllowRedraw := true;
 
@@ -1306,7 +1350,7 @@ begin
 
      case msg.CharCode of 
         65: DoShowAll;
-        90: DoHideUnused;  
+        90: DoHideUnused;
      end;
    end
    else if msg.CharCode = VK_F2 then
@@ -1317,7 +1361,11 @@ begin
      case msg.CharCode of
        VK_MULTIPLY: DoPercentageChange;
        VK_OEM_PLUS: DoUnitPriceEntry;  // =
-       VK_ADD: DoPercentageCalculation;  // +
+       VK_ADD:
+       begin
+         DoPercentageCalculation;  // +
+         RefreshTableWithData(fShowZeros, True, True);
+       end;
      end;
    end;
 end;
@@ -1713,7 +1761,7 @@ end;
 // sense to simply update any percentage based rows whenever a column is invalidated
 procedure TfrmBudget.DoInvalidateColumn(ColNum: integer);
 begin
-  UpdatePercentageRows;
+  UpdatePercentageRows(True);
   tblBudget.InvalidateColumn(ColNum);
 end;
 
@@ -1721,7 +1769,7 @@ end;
 // sense to simply update any percentage based rows whenever a row is invalidated
 procedure TfrmBudget.DoInvalidateRow(RowNum: integer);
 begin
-  UpdatePercentageRows;
+  UpdatePercentageRows(True);
   tblBudget.InvalidateRow(RowNum);
 end;
 
@@ -1729,7 +1777,7 @@ end;
 // sense to simply update any percentage based rows whenever the table is invalidated
 procedure TfrmBudget.DoInvalidateTable;
 begin
-  UpdatePercentageRows;
+  UpdatePercentageRows(false);
   tblBudget.InvalidateTable;
 end;
 
@@ -2208,18 +2256,37 @@ end;
 procedure TfrmBudget.ActClearAllExecute(Sender: TObject);
 begin
   DoClearValues(clrAll);
+  with tblBudget do
+  begin
+    AllowRedraw := false;
+    tblBudget.InvalidateTable;
+    AllowRedraw := true;
+  end;
 end;
 
 //------------------------------------------------------------------------------
 procedure TfrmBudget.ActClearColumnExecute(Sender: TObject);
 begin
   DoClearValues(clrColumn);
+  with tblBudget do
+  begin
+    AllowRedraw := false;
+    tblBudget.InvalidateTable;
+    AllowRedraw := true;
+  end;
 end;
 
 //------------------------------------------------------------------------------
 procedure TfrmBudget.ActClearRowExecute(Sender: TObject);
 begin
   DoClearValues(clrRow);
+  {redraw row}
+  with tblBudget do
+  begin
+    AllowRedraw := false;
+    tblBudget.InvalidateTable; // can't just clear this row, %'s may be using its values so may as well update everything
+    AllowRedraw := true;
+  end;
 end;
 
 //------------------------------------------------------------------------------
@@ -2370,6 +2437,7 @@ end;
 procedure TfrmBudget.mniEnterPercentageClick(Sender: TObject);
 begin
   DoPercentageCalculation;
+  RefreshTableWithData(fShowZeros, True, True);
 end;
 
 //------------------------------------------------------------------------------
@@ -2460,7 +2528,7 @@ begin
                               InttoStr(RowsImported) + ' Account(s) updated, ' +
                               InttoStr(RowsNotImported) + ' Account(s) rejected' );
 
-              UpdatePercentageRows;
+              UpdatePercentageRows(True);
             end;
           finally
             tblBudget.AllowRedraw := true;
