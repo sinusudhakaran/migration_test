@@ -159,6 +159,8 @@ function TrimedGuid(AGuid: TGuid): String;
 
 function RemoveInvalidCharacters(aInString : string) : string;
 
+function RoundNumberExt(number, base: extended): extended;
+
 
 
 //******************************************************************************
@@ -1309,6 +1311,28 @@ begin
   for Index := 1 to length(aInString) do
     if not (aInString[Index] in ['/',':','\','/','*','"','<','>','|','~','?',',']) then
       Result := Result + aInString[Index];
+end;
+
+// Thanks to Piotr for this one
+function RoundNumberExt(number, base: extended): extended;
+{Rounds number to the given base}
+const
+  half: extended = 0.49999999; // There are rounding errors in the fp calculator...
+var
+  quot: extended;
+begin
+  if base > 0 then
+    begin
+      if number < 0 then // Handle negative numbers
+        base := -base;
+      quot := number / base;
+      if Frac(quot) < half then
+        result := Int(quot) * base
+      else
+        result := (Int(quot) + 1) * base;
+    end
+  else
+    result := number;
 end;
 
 End.

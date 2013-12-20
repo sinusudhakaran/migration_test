@@ -76,7 +76,7 @@ var
   pAccount: pAccount_Rec;
   byGST_Class: byte;
   moAmount: Money;
-  moGSTAmount: Money;
+  moGSTAmount: double;
   pnSign: TSign;
 begin
   // Code doesn't exist? (valid situation)

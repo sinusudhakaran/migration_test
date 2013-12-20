@@ -126,6 +126,7 @@ VAR
    WhichRate     : Byte;
    OldRoundMode  : TFPURoundingMode;
    RoundUpHalves : boolean;
+   Remainder     : Extended;
 Begin
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
    CalculateGSTFromNett := 0;
@@ -143,15 +144,16 @@ Begin
       TaxAmtExt   := Amount * TaxRate;
       if RoundToWholeValue then
       begin
-        RoundUpHalves := TaxAmtExt - Trunc(TaxAmtExt) = 0.5;
+        // RoundUpHalves := TaxAmtExt - Trunc(TaxAmtExt) = 0.5;
+        Remainder := TaxAmtExt - Trunc(TaxAmtExt);
+        RoundUpHalves := abs(Remainder - 0.5) < 0.0000001;
+        OldRoundMode := GetRoundMode; // would put this in the if statement below but then I get a compiler warning
         if RoundUpHalves then
-        begin
-          OldRoundMode := GetRoundMode;
           SetRoundMode(rmUp);
-        end;
         // CalculateGSTFromNett := Round( TaxAmtExt );
         Result := Round( TaxAmtExt );
-        SetRoundMode(OldRoundMode);
+        if RoundUpHalves then
+          SetRoundMode(OldRoundMode);
       end else
         Result := TaxAmtExt;
    end;

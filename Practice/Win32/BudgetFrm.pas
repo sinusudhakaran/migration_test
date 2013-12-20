@@ -532,6 +532,9 @@ var
   moGSTAmount: Money;
   dtMonth: TStDate;
   GSTTotal: double;
+  OldRoundMode: TFPURoundingMode;
+  RoundUpHalves: boolean;
+  Remainder: Extended;
 begin
   Result := 0;
   GSTTotal := 0;
@@ -546,7 +549,17 @@ begin
       Result := Result + FData[RowNum - 1].bAmounts[i-MonthBase];
   end;
   if IncludeGST then
+  begin
+    // Need to round 0.5 up to match reports
+    Remainder := GSTTotal - Trunc(GSTTotal);
+    RoundUpHalves := abs(Remainder - 0.5) < 0.0000001;
+    OldRoundMode := GetRoundMode; // would put this in the if statement below but then I get a compiler warning
+    if RoundUpHalves then
+      SetRoundMode(rmUp);
     Result := Round(GSTTotal);
+    if RoundUpHalves then
+      SetRoundMode(OldRoundMode);
+  end;
 end;
 
 //------------------------------------------------------------------------------
