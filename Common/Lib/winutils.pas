@@ -522,7 +522,6 @@ const
   RETRY_COUNT = 20;
 var
   Tries: integer;
-  Error: integer;
 begin
   Sleep(10);
   if BKFileExists(FileName) then
@@ -530,13 +529,12 @@ begin
     Tries := 0;
     repeat
       Inc(Tries);
-      if not DeleteFile(FileName) then
-        Error := GetLastError;
+      DeleteFile(FileName);
       Sleep(10 * Tries);
     until (not BKFileExists(FileName) or (Tries > RETRY_COUNT));
+    if Tries > RETRY_COUNT then
+      raise Exception.CreateFmt(SDeleteError, [FileName, SysErrorMessage(GetLastError)]);
   end;
-  if Tries > RETRY_COUNT then
-    raise Exception.CreateFmt(SDeleteError, [FileName, SysErrorMessage(GetLastError)]);
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure RenameFileEx( const OldName, NewName : string );
