@@ -257,13 +257,13 @@ begin
   MIN := Aparam;
 end;
 
+{$HINTS OFF}
 Procedure TCrypto.ShiftLeft(pIV, pNewData: PByte; Pos: WORD);
 {Used in CFB Mode}
 var
  TempPtr: PByte;
  i: BYTE;
 begin
-{$WARN OFF}
  TempPtr := pIV; Inc(TempPtr, Pos);
  For i:= 1 To (FBLOCKSIZE - Pos) do
   pIV^ := TempPtr^; Inc(pIV); Inc(TempPtr);
@@ -271,8 +271,8 @@ begin
   pIV^ := pNewData^; Inc(pIV); Inc(pNewData);
   Dec(Pos);
  Until Pos = 0;
-{$WARN ON}
 end;{TCrypto.ShiftLeft}
+{$HINTS ON}
 
 Procedure TCrypto.GenIVector;
 var
