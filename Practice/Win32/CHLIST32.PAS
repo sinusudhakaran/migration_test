@@ -135,7 +135,6 @@ var
   i: integer;
   P1, P2: pAccount_Rec;
   AuditInfo: TAuditInfo;
-  ProvDateStr: string;
 begin
   AuditInfo.AuditType := arChartOfAccounts;
   AuditInfo.AuditUser := FAuditMgr.CurrentUserCode;
@@ -630,7 +629,6 @@ function TChart.CanPressEnterNow (var ACode : ShortString; NoAtlCode: Boolean = 
 const
   ThisMethodName = 'TChart.CanPressEnterNow';
 Var
-   pCh : pAccount_Rec;
    i : LongInt;
 Begin
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Called' );
@@ -814,7 +812,7 @@ end;
 
 function TChart.MatchAltCode(ACode: string): string;
 var
-  i, j: integer;
+  i: integer;
   Duplicate: boolean;
 begin
   Result := ACode;
