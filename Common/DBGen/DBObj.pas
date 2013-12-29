@@ -18,7 +18,7 @@ Type
       Destructor Destroy; Override;
    end;
 
-Const
+Var
    FieldTypes : TList = NIL;
 
 Procedure ReplaceCodes( Var AString : String; Const ASearchText, AReplaceText : String );

@@ -337,6 +337,7 @@ Begin
             Writeln( IOFile, '  if not Assigned(P2) then begin' );
             Writeln( IOFile, '    Copy_',Name,'_Rec(P1, P3);' );
             Writeln( IOFile, '    SetAllFieldsChanged(ChangedFields);' );
+            Writeln( IOFile, '    Result := True;' );
             Writeln( IOFile, '    Exit;' );
             Writeln( IOFile, '  end;' );
             Writeln( IOFile );
