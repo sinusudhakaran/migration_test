@@ -461,7 +461,7 @@ procedure TfrmRemapChart.ChartGridEditing(Sender: TBaseVirtualTree;
 begin
    if not Assigned(Node) then
       Exit;
-   if Node.Index >= FNewChart.ItemCount then
+   if Node.Index >= Cardinal(FNewChart.ItemCount) then
       Exit;
 
    Allowed :=  column in [ccOldCode, ccNewCode, ccNewName{,ccNewPost}];
@@ -473,7 +473,7 @@ procedure TfrmRemapChart.ChartGridGetText(Sender: TBaseVirtualTree;
 begin
    if not Assigned(Node) then
       Exit;
-   if Node.Index >= FNewChart.ItemCount then
+   if Node.Index >= Cardinal(FNewChart.ItemCount) then
       Exit;
 
    with ChartItem[Node] do begin
@@ -572,7 +572,7 @@ begin
    if not Assigned(Node) then
       Exit;
 
-   if Node.Index >= FNewChart.ItemCount then
+   if Node.Index >= Cardinal(FNewChart.ItemCount) then
       Exit;
 
    case column of
@@ -609,7 +609,7 @@ procedure TfrmRemapChart.ChartGridPaintText(Sender: TBaseVirtualTree;
 begin
   if not Assigned(Node) then
       Exit;
-   if Node.Index >= FNewChart.ItemCount then
+   if Node.Index >= Cardinal(FNewChart.ItemCount) then
       Exit;
 
    with ChartItem[Node] do begin
@@ -874,7 +874,7 @@ procedure TfrmRemapChart.GSTGridEditing(Sender: TBaseVirtualTree;
 begin
    if not Assigned(Node) then
       Exit;
-   if Node.Index >= FNewGST.ItemCount then
+   if Node.Index >= Cardinal(FNewGST.ItemCount) then
       Exit;
 
    Allowed :=  column in [cgOldCode, cgNewCode, cgNewName];
@@ -886,7 +886,7 @@ procedure TfrmRemapChart.GSTGridGetText(Sender: TBaseVirtualTree;
 begin
    if not Assigned(Node) then
       Exit;
-   if Node.Index >= FNewGST.ItemCount then
+   if Node.Index >= Cardinal(FNewGST.ItemCount) then
       Exit;
 
    with GSTItem[Node] do begin
@@ -980,7 +980,7 @@ begin
    if not Assigned(Node) then
       Exit;
 
-   if Node.Index >= FNewGST.ItemCount then
+   if Node.Index >= Cardinal(FNewGST.ItemCount) then
       Exit;
 
    case column of
@@ -1015,7 +1015,7 @@ procedure TfrmRemapChart.GSTGridPaintText(Sender: TBaseVirtualTree;
 begin
    if not Assigned(Node) then
       Exit;
-   if Node.Index >= FNewGST.ItemCount then
+   if Node.Index >= Cardinal(FNewGST.ItemCount) then
       Exit;
 
    with GSTItem[Node] do begin
