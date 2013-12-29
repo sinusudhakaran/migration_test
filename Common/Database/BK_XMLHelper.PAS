@@ -1129,6 +1129,7 @@ begin
 	SetTextAttr(Result, 'LinkedAccountOS', chLinked_Account_OS);
 	SetTextAttr(Result, 'LinkedAccountCS', chLinked_Account_CS);
 	SetBoolAttr(Result, 'HideInBasicChart', chHide_In_Basic_Chart);
+	SetIntAttr(Result, 'AuditRecordID', chAudit_Record_ID);
 
 	CNode := nil;
 	CCNode := nil;
@@ -1164,6 +1165,7 @@ begin
 	chLinked_Account_OS := GetTextAttr(Result, 'LinkedAccountOS');
 	chLinked_Account_CS := GetTextAttr(Result, 'LinkedAccountCS');
 	chHide_In_Basic_Chart := GetBoolAttr(Result, 'HideInBasicChart');
+	chAudit_Record_ID := GetIntAttr(Result, 'AuditRecordID');
 	except
 		on E: Exception do ReRaise (E, 'Reading TAccount_Rec');
 	end;
@@ -1209,6 +1211,7 @@ begin
 		CNode := PNode.AddChild('GLNarration');
 		CNode.NodeValue := pyGL_Narration[I];
 	end;
+	SetIntAttr(Result, 'AuditRecordID', pyAudit_Record_ID);
 
 	CNode := nil;
 	CCNode := nil;
@@ -1262,6 +1265,7 @@ begin
 			pyGL_Narration[I] := ''
 	end;
 
+	pyAudit_Record_ID := GetIntAttr(Result, 'AuditRecordID');
 	except
 		on E: Exception do ReRaise (E, 'Reading TPayee_Rec');
 	end;
@@ -1286,6 +1290,7 @@ begin
 	Result := Node.AddChild(GetXMLNodeName);
 	SetIntAttr(Result, 'Number', pdNumber);
 	SetTextAttr(Result, 'Name', pdName);
+	SetIntAttr(Result, 'AuditRecordID', pdAudit_Record_ID);
 	SetBoolAttr(Result, 'Contractor', pdContractor);
 	SetTextAttr(Result, 'Surname', pdSurname);
 	SetTextAttr(Result, 'GivenName', pdGiven_Name);
@@ -1314,6 +1319,7 @@ begin
 	try
 	pdNumber := GetIntAttr(Result, 'Number');
 	pdName := GetTextAttr(Result, 'Name');
+	pdAudit_Record_ID := GetIntAttr(Result, 'AuditRecordID');
 	pdContractor := GetBoolAttr(Result, 'Contractor');
 	pdSurname := GetTextAttr(Result, 'Surname');
 	pdGiven_Name := GetTextAttr(Result, 'GivenName');
@@ -1386,6 +1392,7 @@ begin
 	SetBoolAttr(Result, 'SFCapitalGainsFractionHalf', plSF_Capital_Gains_Fraction_Half);
 	SetIntAttr(Result, 'SFLedgerID', plSF_Ledger_ID);
 	SetTextAttr(Result, 'SFLedgerName', plSF_Ledger_Name);
+	SetIntAttr(Result, 'AuditRecordID', plAudit_Record_ID);
 
 	CNode := nil;
 	CCNode := nil;
@@ -1442,6 +1449,7 @@ begin
 	plSF_Capital_Gains_Fraction_Half := GetBoolAttr(Result, 'SFCapitalGainsFractionHalf');
 	plSF_Ledger_ID := GetIntAttr(Result, 'SFLedgerID');
 	plSF_Ledger_Name := GetTextAttr(Result, 'SFLedgerName');
+	plAudit_Record_ID := GetIntAttr(Result, 'AuditRecordID');
 	except
 		on E: Exception do ReRaise (E, 'Reading TPayee_Line_Rec');
 	end;
@@ -1629,6 +1637,7 @@ begin
 	SetIntAttr(Result, 'AccountingSystem', mdAccounting_System);
 	SetIntAttr(Result, 'FromDate', mdFrom_Date);
 	SetIntAttr(Result, 'UntilDate', mdUntil_Date);
+	SetIntAttr(Result, 'AuditRecordID', mdAudit_Record_ID);
 
 	CNode := nil;
 	CCNode := nil;
@@ -1668,6 +1677,7 @@ begin
 	mdAccounting_System := GetIntAttr(Result, 'AccountingSystem');
 	mdFrom_Date := GetIntAttr(Result, 'FromDate');
 	mdUntil_Date := GetIntAttr(Result, 'UntilDate');
+	mdAudit_Record_ID := GetIntAttr(Result, 'AuditRecordID');
 	except
 		on E: Exception do ReRaise (E, 'Reading TMemorisation_Detail_Rec');
 	end;
@@ -1730,6 +1740,7 @@ begin
 	SetInt64Attr(Result, 'SFNonResidentTax', mlSF_Non_Resident_Tax);
 	SetInt64Attr(Result, 'SFForeignCapitalGainsCredit', mlSF_Foreign_Capital_Gains_Credit);
 	SetBoolAttr(Result, 'SFCapitalGainsFractionHalf', mlSF_Capital_Gains_Fraction_Half);
+	SetIntAttr(Result, 'AuditRecordID', mlAudit_Record_ID);
 
 	CNode := nil;
 	CCNode := nil;
@@ -1786,6 +1797,7 @@ begin
 	mlSF_Non_Resident_Tax := GetInt64Attr(Result, 'SFNonResidentTax');
 	mlSF_Foreign_Capital_Gains_Credit := GetInt64Attr(Result, 'SFForeignCapitalGainsCredit');
 	mlSF_Capital_Gains_Fraction_Half := GetBoolAttr(Result, 'SFCapitalGainsFractionHalf');
+	mlAudit_Record_ID := GetIntAttr(Result, 'AuditRecordID');
 	except
 		on E: Exception do ReRaise (E, 'Reading TMemorisation_Line_Rec');
 	end;
@@ -1859,6 +1871,7 @@ begin
 	SetTextAttr(Result, 'DefaultForexSource', baDefault_Forex_Source);
 	SetTextAttr(Result, 'DefaultForexDescription', baDefault_Forex_Description);
 	SetTextAttr(Result, 'SuperFundLedgerCode', baSuperFund_Ledger_Code);
+	SetIntAttr(Result, 'AuditRecordID', baAudit_Record_ID);
 	SetIntAttr(Result, 'CoreAccountID', baCore_Account_ID);
 	SetTextAttr(Result, 'SecureOnlineCode', baSecure_Online_Code);
 	SetTextAttr(Result, 'ExchangeGainLossCode', baExchange_Gain_Loss_Code);
@@ -1929,6 +1942,7 @@ begin
 	baDefault_Forex_Source := GetTextAttr(Result, 'DefaultForexSource');
 	baDefault_Forex_Description := GetTextAttr(Result, 'DefaultForexDescription');
 	baSuperFund_Ledger_Code := GetTextAttr(Result, 'SuperFundLedgerCode');
+	baAudit_Record_ID := GetIntAttr(Result, 'AuditRecordID');
 	baCore_Account_ID := GetIntAttr(Result, 'CoreAccountID');
 	baSecure_Online_Code := GetTextAttr(Result, 'SecureOnlineCode');
 	baExchange_Gain_Loss_Code := GetTextAttr(Result, 'ExchangeGainLossCode');
@@ -2031,6 +2045,7 @@ begin
 	SetIntAttr(Result, 'SFTransactionID', txSF_Transaction_ID);
 	SetTextAttr(Result, 'SFTransactionCode', txSF_Transaction_Code);
 	SetBoolAttr(Result, 'SFCapitalGainsFractionHalf', txSF_Capital_Gains_Fraction_Half);
+	SetIntAttr(Result, 'AuditRecordID', txAudit_Record_ID);
 	SetTextAttr(Result, 'JobCode', txJob_Code);
 	SetInt64Attr(Result, 'SpareMoney1', txSpare_Money_1);
 	SetInt64Attr(Result, 'SpareMoney2', txSpare_Money_2);
@@ -2131,6 +2146,7 @@ begin
 	txSF_Transaction_ID := GetIntAttr(Result, 'SFTransactionID');
 	txSF_Transaction_Code := GetTextAttr(Result, 'SFTransactionCode');
 	txSF_Capital_Gains_Fraction_Half := GetBoolAttr(Result, 'SFCapitalGainsFractionHalf');
+	txAudit_Record_ID := GetIntAttr(Result, 'AuditRecordID');
 	txJob_Code := GetTextAttr(Result, 'JobCode');
 	txSpare_Money_1 := GetInt64Attr(Result, 'SpareMoney1');
 	txSpare_Money_2 := GetInt64Attr(Result, 'SpareMoney2');
@@ -2214,6 +2230,7 @@ begin
 	SetIntAttr(Result, 'SFTransactionID', dsSF_Transaction_ID);
 	SetTextAttr(Result, 'SFTransactionCode', dsSF_Transaction_Code);
 	SetBoolAttr(Result, 'SFCapitalGainsFractionHalf', dsSF_Capital_Gains_Fraction_Half);
+	SetIntAttr(Result, 'AuditRecordID', dsAudit_Record_ID);
 	SetTextAttr(Result, 'JobCode', dsJob_Code);
 	SetBoolAttr(Result, 'TaxInvoice', dsTax_Invoice);
 	SetInt64Attr(Result, 'ForeignCurrencyAmount', dsForeign_Currency_Amount);
@@ -2289,6 +2306,7 @@ begin
 	dsSF_Transaction_ID := GetIntAttr(Result, 'SFTransactionID');
 	dsSF_Transaction_Code := GetTextAttr(Result, 'SFTransactionCode');
 	dsSF_Capital_Gains_Fraction_Half := GetBoolAttr(Result, 'SFCapitalGainsFractionHalf');
+	dsAudit_Record_ID := GetIntAttr(Result, 'AuditRecordID');
 	dsJob_Code := GetTextAttr(Result, 'JobCode');
 	dsTax_Invoice := GetBoolAttr(Result, 'TaxInvoice');
 	dsForeign_Currency_Amount := GetInt64Attr(Result, 'ForeignCurrencyAmount');
@@ -2378,6 +2396,7 @@ begin
 	SetBoolAttr(Result, 'UsingFuelPercentMethod', blUsing_Fuel_Percent_Method);
 	SetIntAttr(Result, 'PTFormType', blPT_Form_Type);
 	SetInt64Attr(Result, 'GSTCdjCustoms', blGST_Cdj_Customs);
+	SetIntAttr(Result, 'AuditRecordID', blAudit_Record_ID);
 	SetArray(Result, 'VATAdjustments', blVAT_Adjustments);
 
 	CNode := nil;
@@ -2457,6 +2476,7 @@ begin
 	blUsing_Fuel_Percent_Method := GetBoolAttr(Result, 'UsingFuelPercentMethod');
 	blPT_Form_Type := GetIntAttr(Result, 'PTFormType');
 	blGST_Cdj_Customs := GetInt64Attr(Result, 'GSTCdjCustoms');
+	blAudit_Record_ID := GetIntAttr(Result, 'AuditRecordID');
 	GetArray(Result, 'VATAdjustments', blVAT_Adjustments);
 	except
 		on E: Exception do ReRaise (E, 'Reading TBalances_Rec');
@@ -2483,6 +2503,7 @@ begin
 	SetTextAttr(Result, 'Heading', shHeading);
 	SetIntAttr(Result, 'ReportGroupNo', shReport_Group_No);
 	SetIntAttr(Result, 'SubGroupNo', shSub_Group_No);
+	SetIntAttr(Result, 'AuditRecordID', shAudit_Record_ID);
 
 	CNode := nil;
 	CCNode := nil;
@@ -2502,6 +2523,7 @@ begin
 	shHeading := GetTextAttr(Result, 'Heading');
 	shReport_Group_No := GetIntAttr(Result, 'ReportGroupNo');
 	shSub_Group_No := GetIntAttr(Result, 'SubGroupNo');
+	shAudit_Record_ID := GetIntAttr(Result, 'AuditRecordID');
 	except
 		on E: Exception do ReRaise (E, 'Reading TSubGroup_Heading_Rec');
 	end;
@@ -2526,6 +2548,7 @@ begin
 	Result := Node.AddChild(GetXMLNodeName);
 	SetTextAttr(Result, 'Heading', dhHeading);
 	SetIntAttr(Result, 'DivisionNo', dhDivision_No);
+	SetIntAttr(Result, 'AuditRecordID', dhAudit_Record_ID);
 
 	CNode := nil;
 	CCNode := nil;
@@ -2544,6 +2567,7 @@ begin
 	try
 	dhHeading := GetTextAttr(Result, 'Heading');
 	dhDivision_No := GetIntAttr(Result, 'DivisionNo');
+	dhAudit_Record_ID := GetIntAttr(Result, 'AuditRecordID');
 	except
 		on E: Exception do ReRaise (E, 'Reading TDivision_Heading_Rec');
 	end;
@@ -2606,6 +2630,7 @@ begin
 		CNode.NodeValue := mxGL_Narration[I];
 	end;
 	SetArray(Result, 'LineTypes', mxLine_Type);
+	SetIntAttr(Result, 'AuditRecordID', mxAudit_Record_ID);
 
 	CNode := nil;
 	CCNode := nil;
@@ -2676,6 +2701,7 @@ begin
 	end;
 
 	GetArray(Result, 'LineTypes', mxLine_Type);
+	mxAudit_Record_ID := GetIntAttr(Result, 'AuditRecordID');
 	except
 		on E: Exception do ReRaise (E, 'Reading TMemorised_Transaction_Rec');
 	end;
@@ -2702,6 +2728,7 @@ begin
 	SetTextAttr(Result, 'Heading', hdHeading);
 	SetIntAttr(Result, 'MajorID', hdMajor_ID);
 	SetIntAttr(Result, 'MinorID', hdMinor_ID);
+	SetIntAttr(Result, 'AuditRecordID', hdAudit_Record_ID);
 
 	CNode := nil;
 	CCNode := nil;
@@ -2722,6 +2749,7 @@ begin
 	hdHeading := GetTextAttr(Result, 'Heading');
 	hdMajor_ID := GetIntAttr(Result, 'MajorID');
 	hdMinor_ID := GetIntAttr(Result, 'MinorID');
+	hdAudit_Record_ID := GetIntAttr(Result, 'AuditRecordID');
 	except
 		on E: Exception do ReRaise (E, 'Reading TCustom_Heading_Rec');
 	end;
@@ -2886,6 +2914,7 @@ begin
 	SetIntAttr(Result, 'LRN', jhLRN);
 	SetIntAttr(Result, 'DateCompleted', jhDate_Completed);
 	SetTextAttr(Result, 'Code', jhCode);
+	SetIntAttr(Result, 'AuditRecordID', jhAudit_Record_ID);
 
 	CNode := nil;
 	CCNode := nil;
@@ -2906,6 +2935,7 @@ begin
 	jhLRN := GetIntAttr(Result, 'LRN');
 	jhDate_Completed := GetIntAttr(Result, 'DateCompleted');
 	jhCode := GetTextAttr(Result, 'Code');
+	jhAudit_Record_ID := GetIntAttr(Result, 'AuditRecordID');
 	except
 		on E: Exception do ReRaise (E, 'Reading TJob_Heading_Rec');
 	end;
@@ -2928,6 +2958,22 @@ var PNode, CNode, CCNode: IXMLNode;
 	I, J, M: Integer;
 begin
 	Result := Node.AddChild(GetXMLNodeName);
+	PNode := result.AddChild('TAXAppliesFroms');
+	M :=  Low(ceTAX_Applies_From);
+	for I := Low(ceTAX_Applies_From) to High(ceTAX_Applies_From) do
+		for J := Low(ceTAX_Applies_From[I]) to High(ceTAX_Applies_From[I]) do
+			if ceTAX_Applies_From[I,J] > 0 then begin
+				M := I;
+				Break;
+			end;
+	for I := low(ceTAX_Applies_From) to M do begin
+		CNode := PNode.AddChild('TAXAppliesFroms');
+		CNode := CNode.AddChild('TAXAppliesFroms');
+		for J := Low(ceTAX_Applies_From[I]) to High(ceTAX_Applies_From[I]) do begin
+			CCNode := CNode.AddChild('TAXAppliesFrom');
+			CCNode.NodeValue := (ceTAX_Applies_From[I,J]);
+		end;
+	end;
 	PNode := result.AddChild('TAXRates');
 	M :=  Low(ceTAX_Rates);
 	for I := Low(ceTAX_Rates) to High(ceTAX_Rates) do
@@ -2991,6 +3037,7 @@ begin
 	end;
 	SetIntAttr(Result, 'SUIPeriodStart', ceSUI_Period_Start);
 	SetIntAttr(Result, 'SUIPeriodEnd', ceSUI_Period_End);
+	SetIntAttr(Result, 'AuditRecordID', ceAudit_Record_ID);
 	SetArray(Result, 'SUIStepDones', ceSUI_Step_Done);
 	SetBoolAttr(Result, 'SendJobList', ceSend_Job_List);
 	SetTextAttr(Result, 'SpareString', ceSpare_String);
@@ -3033,6 +3080,28 @@ begin
 	Result := Node.ChildNodes.FindNode(GetXMLNodeName);
 	if not assigned(Result) then exit;
 	try
+		PNode := Result.ChildNodes.FindNode('TAXAppliesFroms');
+	if Assigned(PNode) then begin
+		PNode := PNode.ChildNodes.FindNode('TAXAppliesFroms');
+	end;
+	for I := low(ceTAX_Applies_From) to High(ceTAX_Applies_From) do begin
+		if Assigned(PNode) then begin
+			CNode := PNode.ChildNodes.FindNode('TAXAppliesFroms');
+			if Assigned(CNode) then
+				CCNode := CNode.ChildNodes.FindNode('TAXAppliesFrom')
+			else CCNode := Nil;
+		end else
+			CNode := Nil;
+		for J := Low(ceTAX_Applies_From[I]) to High(ceTAX_Applies_From[I]) do begin
+			if Assigned(CCNode) then begin
+				ceTAX_Applies_From[I,J] := CCNode.Nodevalue;
+				CCNode := CCNode.NextSibling;
+			end else
+				ceTAX_Applies_From[I,J] := 0;
+		end;
+			if Assigned(PNode) then
+				PNode := PNode.NextSibling;
+	end;
 		PNode := Result.ChildNodes.FindNode('TAXRates');
 	if Assigned(PNode) then begin
 		PNode := PNode.ChildNodes.FindNode('TAXRates');
@@ -3116,6 +3185,7 @@ begin
 
 	ceSUI_Period_Start := GetIntAttr(Result, 'SUIPeriodStart');
 	ceSUI_Period_End := GetIntAttr(Result, 'SUIPeriodEnd');
+	ceAudit_Record_ID := GetIntAttr(Result, 'AuditRecordID');
 	GetArray(Result, 'SUIStepDones', ceSUI_Step_Done);
 	ceSend_Job_List := GetBoolAttr(Result, 'SendJobList');
 	ceSpare_String := GetTextAttr(Result, 'SpareString');
@@ -3241,6 +3311,7 @@ begin
 	SetInt64Attr(Result, 'Amount', glAmount);
 	SetTextAttr(Result, 'Account', glAccount);
 	SetIntAttr(Result, 'PostedDate', glPosted_Date);
+	SetIntAttr(Result, 'AuditRecordID', glAudit_Record_ID);
 
 	CNode := nil;
 	CCNode := nil;
@@ -3261,6 +3332,7 @@ begin
 	glAmount := GetInt64Attr(Result, 'Amount');
 	glAccount := GetTextAttr(Result, 'Account');
 	glPosted_Date := GetIntAttr(Result, 'PostedDate');
+	glAudit_Record_ID := GetIntAttr(Result, 'AuditRecordID');
 	except
 		on E: Exception do ReRaise (E, 'Reading TExchange_Gain_Loss_Rec');
 	end;

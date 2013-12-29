@@ -5,7 +5,7 @@ UNIT LAs5IO;
 // when DBGen is run again.
 
 {  -------------------------------------------------------------------  }
-INTERFACE USES LADEFS, IOSTREAM;
+INTERFACE USES LADEFS, IOSTREAM, LAAUDITUTILS;
 {  -------------------------------------------------------------------  }
 
 CONST
@@ -17,6 +17,9 @@ PROCEDURE Write_Form_Rec ( Var O : TForm_Rec ; Var F : TIOStream );
 PROCEDURE Read_Form_Rec ( Var O : TForm_Rec ; Var F : TIOStream );
 FUNCTION  New_Form_Rec : pForm_Rec ;
 PROCEDURE Free_Form_Rec_Dynamic_Fields ( Var O : TForm_Rec );
+FUNCTION Form_Rec_Delta(P1, P2, P3: pForm_Rec; var ChangedFields: TChanged_Fields_Array): Boolean;
+procedure Copy_Form_Rec(P1, P2: pForm_Rec);
+procedure SetAllFieldsChanged(var ChangedFields: TChanged_Fields_Array);
 
 {  -------------------------------------------------------------------  }
 IMPLEMENTATION USES MONEYDEF, MALLOC, BKDBEXCEPT;
@@ -155,6 +158,110 @@ Begin
    Begin
       { Free any dynamically allocated memory }
    end;
+end;
+
+{  -------------------------------------------------------------------  }
+
+procedure SetAllFieldsChanged(var ChangedFields: TChanged_Fields_Array);
+var
+  i, j: integer;
+begin
+  for i := Low(ChangedFields) to High(ChangedFields) do
+    ChangedFields[i] := 0;
+  j := 0;
+  for i := tks5Form_Number to tks5Windows_Form_Type do begin
+    ChangedFields[j] := i;
+    Inc(j);
+  end;
+end;
+
+{  -------------------------------------------------------------------  }
+
+FUNCTION Form_Rec_Delta(P1, P2, P3: pForm_Rec; var ChangedFields: TChanged_Fields_Array): Boolean;
+var
+  i: integer;
+begin
+  for i := Low(ChangedFields) to High(ChangedFields) do
+    ChangedFields[i] := 0;
+
+  //Add
+  if not Assigned(P2) then begin
+    Copy_Form_Rec(P1, P3);
+    SetAllFieldsChanged(ChangedFields);
+    Result := True;
+    Exit;
+  end;
+
+  //Change
+  i := 0;
+  if (P1.s5Form_Number <> P2.s5Form_Number) then begin
+    P3.s5Form_Number := P1.s5Form_Number;
+    ChangedFields[i] := tks5Form_Number;
+    Inc(i);
+  end;
+  if (P1.s5Description <> P2.s5Description) then begin
+    P3.s5Description := P1.s5Description;
+    ChangedFields[i] := tks5Description;
+    Inc(i);
+  end;
+  if (P1.s5Page_Type <> P2.s5Page_Type) then begin
+    P3.s5Page_Type := P1.s5Page_Type;
+    ChangedFields[i] := tks5Page_Type;
+    Inc(i);
+  end;
+  if (P1.s5Page_Length <> P2.s5Page_Length) then begin
+    P3.s5Page_Length := P1.s5Page_Length;
+    ChangedFields[i] := tks5Page_Length;
+    Inc(i);
+  end;
+  if (P1.s5Page_Width <> P2.s5Page_Width) then begin
+    P3.s5Page_Width := P1.s5Page_Width;
+    ChangedFields[i] := tks5Page_Width;
+    Inc(i);
+  end;
+  if (P1.s5Left_Margin <> P2.s5Left_Margin) then begin
+    P3.s5Left_Margin := P1.s5Left_Margin;
+    ChangedFields[i] := tks5Left_Margin;
+    Inc(i);
+  end;
+  if (P1.s5Right_Margin <> P2.s5Right_Margin) then begin
+    P3.s5Right_Margin := P1.s5Right_Margin;
+    ChangedFields[i] := tks5Right_Margin;
+    Inc(i);
+  end;
+  if (P1.s5Top_Margin <> P2.s5Top_Margin) then begin
+    P3.s5Top_Margin := P1.s5Top_Margin;
+    ChangedFields[i] := tks5Top_Margin;
+    Inc(i);
+  end;
+  if (P1.s5Bottom_Margin <> P2.s5Bottom_Margin) then begin
+    P3.s5Bottom_Margin := P1.s5Bottom_Margin;
+    ChangedFields[i] := tks5Bottom_Margin;
+    Inc(i);
+  end;
+  if (P1.s5Windows_Form_Type <> P2.s5Windows_Form_Type) then begin
+    P3.s5Windows_Form_Type := P1.s5Windows_Form_Type;
+    ChangedFields[i] := tks5Windows_Form_Type;
+    Inc(i);
+  end;
+
+  Result := (i > 0);
+end;
+
+{  -------------------------------------------------------------------  }
+
+procedure Copy_Form_Rec(P1, P2: pForm_Rec);
+var
+  S: TIOStream;
+begin
+  S := TIOStream.Create;
+  try
+    Write_Form_Rec(P1^, S);
+    S.Position := 0;
+    Read_Form_Rec(P2^, S);
+  finally
+    S.Free;
+  end;
 end;
 
 {  -------------------------------------------------------------------  }

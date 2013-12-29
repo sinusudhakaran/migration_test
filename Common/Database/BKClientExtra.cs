@@ -3,6 +3,7 @@
 // Any changes will be lost when the file is regenerated
 // **********************************************************
 using System;
+using BankLink.Practice.Common.Entities;
 using System.Xml.Serialization;
 
 
@@ -11,15 +12,22 @@ namespace BankLink.Practice.BooksIO
 	/// <summary>
 	/// BK - ClientExtra class
 	/// </summary>
-	public partial class BKClientExtra
+	public partial class BKClientExtra 
 	{
+
+
+		/// <summary>
+		/// TAXAppliesFrom property
+		/// </summary>
+		[XmlArray("TAXAppliesFroms"),XmlArrayItem("TAXAppliesFroms")]
+		public Int32[,] TAXAppliesFrom { get; set; }
 
 
 		/// <summary>
 		/// TAXRates property
 		/// </summary>
 		[XmlArray("TAXRates"),XmlArrayItem("TAXRates")]
-		public TAXRates[] TAXRates { get; set; }
+		public Int64[,] TAXRates { get; set; }
 
 
 		/// <summary>
@@ -269,6 +277,14 @@ namespace BankLink.Practice.BooksIO
 
 
 		/// <summary>
+		/// AuditRecordID property
+		/// </summary>
+		[XmlAttribute("AuditRecordID", DataType = "int")]
+		public Int32 AuditRecordID { get; set; }
+
+
+
+		/// <summary>
 		/// SUIStepDone property
 		/// </summary>
 		[XmlArray("SUIStepDones"),XmlArrayItem("SUIStepDone", DataType = "boolean")]
@@ -409,22 +425,258 @@ namespace BankLink.Practice.BooksIO
 		public Int32 AddPrefixForAccountCode { get; set; }
 
 
-
-	}
-
-
-	/// <summary>
-	/// TAXRates Array class
-	/// </summary>
-	public class TAXRates
-	{
 		/// <summary>
-		/// Name property
+		/// Class Begin Token
 		/// </summary>
-		[XmlArray("TAXRates"),XmlArrayItem("TAXRate", DataType = "long")]
-		public Int64[] TAXRate { get; set; }
-	}
+		public const byte BeginToken = 40;
+		/// <summary>
+		/// Class End Token
+		/// </summary>
+		public const byte EndToken = 41;
+		/// <summary>
+		/// Write to BKStream
+		/// </summary>
+		public void WriteBKStream(BankLinkTokenStreamWriter s)
+		{
+			s.WriteToken(40);
+			s.WriteMJulDateArray(42, TAXAppliesFrom, false);
+			s.WriteMMoneyArray(43, TAXRates, false);
+			s.WriteByteValue(44, ListEntriesSortOrder);
+			s.WriteByteValue(45, ListEntriesInclude);
+			s.WriteBooleanValue(46, ListEntriesTwoColumn);
+			s.WriteBooleanValue(47, ListEntriesShowBalance);
+			s.WriteBooleanValue(48, ListEntriesShowNotes);
+			s.WriteBooleanValue(49, ListEntriesWrapNarration);
+			s.WriteBooleanValue(50, ListEntriesShowOtherParty);
+			s.WriteBooleanValue(51, BookGenFinanceReports);
+			s.WriteBooleanValue(52, FRSPrintNPChartCodeTitles);
+			s.WriteByteValue(53, FRSNPChartCodeDetailType);
+			s.WriteBooleanValue(54, AllowClientUnlockEntries);
+			s.WriteBooleanValue(55, AllowClientEditChart);
+			s.WriteBooleanValue(56, ECodingDontSendJobs);
+			s.WriteAnsiStringValue(57, CustomCodingReportXML);
+			s.WriteBooleanValue(58, CustomCodingReport);
+			s.WriteBooleanValue(59, CodingReportColumnLine);
+			s.WriteAnsiStringValue(60, ScheduledCustomCRXML);
+			s.WriteBooleanValue(61, BudgetIncludeQuantities);
+			s.WriteBooleanValue(62, ScheduledCRColumnLine);
+			s.WriteBooleanValue(63, CustomLedgerReport);
+			s.WriteAnsiStringValue(64, CustomLedgerReportXML);
+			s.WriteShortStringValue(65, LocalCurrencyCode);
+			s.WriteBooleanValue(66, BlockClientEditMems);
+			s.WriteBooleanValue(67, SendCustomDocuments);
+			s.WriteShortStringArray(68, SendCustomDocumentsList, false);
+			s.WriteBooleanValue(69, ListPayeesDetailed);
+			s.WriteByteValue(70, ListPayeesSortBy);
+			s.WriteBooleanValue(71, ListPayeesRuleLine);
+			s.WriteShortStringArray(72, CustomSFLedgerTitles, false);
+			s.WriteJulDateValue(73, SUIPeriodStart);
+			s.WriteJulDateValue(74, SUIPeriodEnd);
+			s.WriteInt32Value(75, AuditRecordID);
+			s.WriteBooleanArray(76, SUIStepDone, true);
+			s.WriteBooleanValue(77, SendJobList);
+			s.WriteAnsiStringValue(78, SpareString);
+			s.WriteBooleanValue(79, OnlineScheduledReports);
+			s.WriteByteValue(80, FileTransferMethod);
+			s.WriteShortStringValue(81, OnlineBillingFrequency);
+			s.WriteInt32Value(82, OnlineMaxOfflineDays);
+			s.WriteInt32Value(83, OnlineStatus);
+			s.WriteShortStringArray(84, OnlineSubscription, false);
+			s.WriteShortStringValue(85, OnlineUserEMail);
+			s.WriteShortStringValue(86, OnlineUserFullName);
+			s.WriteBooleanValue(87, OnlineValuesStored);
+			s.WriteInt32Value(88, OnlineSubscriptionCount);
+			s.WriteBooleanValue(89, DeliverDataDirectToBLO);
+			s.WriteShortStringValue(90, BLOSecureCode);
+			s.WriteBooleanValue(91, IncludeUnusedChartCodes);
+			s.WriteBooleanValue(92, IncludeNonPostingChartCodes);
+			s.WriteInt32Value(93, AddPrefixForAccountCode);
+			s.WriteToken(41);
+		}
 
+		/// <summary>
+		/// Default Constructor 
+		/// </summary>
+		public BKClientExtra ()
+		{}
+		/// <summary>
+		/// Construct from BKStreamReader
+		/// </summary>
+		public BKClientExtra (BankLinkTokenStreamReader s)
+		{
+			var token = BeginToken;
+			while (token != EndToken)
+			{
+				switch (token)
+				{
+			case 42 :
+				TAXAppliesFrom = s.ReadMJulDateArray("TAXAppliesFrom", 42, 99, 5, false);
+				break;
+			case 43 :
+				TAXRates = s.ReadMMoneyArray("TAXRates", 43, 99, 5, false);
+				break;
+			case 44 :
+				ListEntriesSortOrder = s.ReadByteValue("ListEntriesSortOrder");
+				break;
+			case 45 :
+				ListEntriesInclude = s.ReadByteValue("ListEntriesInclude");
+				break;
+			case 46 :
+				ListEntriesTwoColumn = s.ReadBooleanValue("ListEntriesTwoColumn");
+				break;
+			case 47 :
+				ListEntriesShowBalance = s.ReadBooleanValue("ListEntriesShowBalance");
+				break;
+			case 48 :
+				ListEntriesShowNotes = s.ReadBooleanValue("ListEntriesShowNotes");
+				break;
+			case 49 :
+				ListEntriesWrapNarration = s.ReadBooleanValue("ListEntriesWrapNarration");
+				break;
+			case 50 :
+				ListEntriesShowOtherParty = s.ReadBooleanValue("ListEntriesShowOtherParty");
+				break;
+			case 51 :
+				BookGenFinanceReports = s.ReadBooleanValue("BookGenFinanceReports");
+				break;
+			case 52 :
+				FRSPrintNPChartCodeTitles = s.ReadBooleanValue("FRSPrintNPChartCodeTitles");
+				break;
+			case 53 :
+				FRSNPChartCodeDetailType = s.ReadByteValue("FRSNPChartCodeDetailType");
+				break;
+			case 54 :
+				AllowClientUnlockEntries = s.ReadBooleanValue("AllowClientUnlockEntries");
+				break;
+			case 55 :
+				AllowClientEditChart = s.ReadBooleanValue("AllowClientEditChart");
+				break;
+			case 56 :
+				ECodingDontSendJobs = s.ReadBooleanValue("ECodingDontSendJobs");
+				break;
+			case 57 :
+				CustomCodingReportXML = s.ReadAnsiStringValue("CustomCodingReportXML");
+				break;
+			case 58 :
+				CustomCodingReport = s.ReadBooleanValue("CustomCodingReport");
+				break;
+			case 59 :
+				CodingReportColumnLine = s.ReadBooleanValue("CodingReportColumnLine");
+				break;
+			case 60 :
+				ScheduledCustomCRXML = s.ReadAnsiStringValue("ScheduledCustomCRXML");
+				break;
+			case 61 :
+				BudgetIncludeQuantities = s.ReadBooleanValue("BudgetIncludeQuantities");
+				break;
+			case 62 :
+				ScheduledCRColumnLine = s.ReadBooleanValue("ScheduledCRColumnLine");
+				break;
+			case 63 :
+				CustomLedgerReport = s.ReadBooleanValue("CustomLedgerReport");
+				break;
+			case 64 :
+				CustomLedgerReportXML = s.ReadAnsiStringValue("CustomLedgerReportXML");
+				break;
+			case 65 :
+				LocalCurrencyCode = s.ReadShortStringValue("LocalCurrencyCode");
+				break;
+			case 66 :
+				BlockClientEditMems = s.ReadBooleanValue("BlockClientEditMems");
+				break;
+			case 67 :
+				SendCustomDocuments = s.ReadBooleanValue("SendCustomDocuments");
+				break;
+			case 68 :
+				SendCustomDocumentsList = s.ReadShortStringArray("SendCustomDocumentsList", 68, 10, false);
+				break;
+			case 69 :
+				ListPayeesDetailed = s.ReadBooleanValue("ListPayeesDetailed");
+				break;
+			case 70 :
+				ListPayeesSortBy = s.ReadByteValue("ListPayeesSortBy");
+				break;
+			case 71 :
+				ListPayeesRuleLine = s.ReadBooleanValue("ListPayeesRuleLine");
+				break;
+			case 72 :
+				CustomSFLedgerTitles = s.ReadShortStringArray("CustomSFLedgerTitles", 72, 1, false);
+				break;
+			case 73 :
+				SUIPeriodStart = s.ReadJulDateValue("SUIPeriodStart");
+				break;
+			case 74 :
+				SUIPeriodEnd = s.ReadJulDateValue("SUIPeriodEnd");
+				break;
+			case 75 :
+				AuditRecordID = s.ReadInt32Value("AuditRecordID");
+				break;
+			case 76 :
+				SUIStepDone = s.ReadBooleanArray("SUIStepDone", 76, 32, true);
+				break;
+			case 77 :
+				SendJobList = s.ReadBooleanValue("SendJobList");
+				break;
+			case 78 :
+				SpareString = s.ReadAnsiStringValue("SpareString");
+				break;
+			case 79 :
+				OnlineScheduledReports = s.ReadBooleanValue("OnlineScheduledReports");
+				break;
+			case 80 :
+				FileTransferMethod = s.ReadByteValue("FileTransferMethod");
+				break;
+			case 81 :
+				OnlineBillingFrequency = s.ReadShortStringValue("OnlineBillingFrequency");
+				break;
+			case 82 :
+				OnlineMaxOfflineDays = s.ReadInt32Value("OnlineMaxOfflineDays");
+				break;
+			case 83 :
+				OnlineStatus = s.ReadInt32Value("OnlineStatus");
+				break;
+			case 84 :
+				OnlineSubscription = s.ReadShortStringArray("OnlineSubscription", 84, 64, false);
+				break;
+			case 85 :
+				OnlineUserEMail = s.ReadShortStringValue("OnlineUserEMail");
+				break;
+			case 86 :
+				OnlineUserFullName = s.ReadShortStringValue("OnlineUserFullName");
+				break;
+			case 87 :
+				OnlineValuesStored = s.ReadBooleanValue("OnlineValuesStored");
+				break;
+			case 88 :
+				OnlineSubscriptionCount = s.ReadInt32Value("OnlineSubscriptionCount");
+				break;
+			case 89 :
+				DeliverDataDirectToBLO = s.ReadBooleanValue("DeliverDataDirectToBLO");
+				break;
+			case 90 :
+				BLOSecureCode = s.ReadShortStringValue("BLOSecureCode");
+				break;
+			case 91 :
+				IncludeUnusedChartCodes = s.ReadBooleanValue("IncludeUnusedChartCodes");
+				break;
+			case 92 :
+				IncludeNonPostingChartCodes = s.ReadBooleanValue("IncludeNonPostingChartCodes");
+				break;
+			case 93 :
+				AddPrefixForAccountCode = s.ReadInt32Value("AddPrefixForAccountCode");
+				break;
+			case BeginToken :
+			case EndToken :
+				break;
+			default:
+				throw new Exception(string.Format("unexpected Code: {0} reading ClientExtra",token) );
+				}
+			token = s.ReadToken();
+			}
+		}
+
+
+	}
 
 
 }

@@ -3,6 +3,7 @@
 // Any changes will be lost when the file is regenerated
 // **********************************************************
 using System;
+using BankLink.Practice.Common.Entities;
 using System.Xml.Serialization;
 
 
@@ -11,7 +12,7 @@ namespace BankLink.Practice.BooksIO
 	/// <summary>
 	/// BK - Macro class
 	/// </summary>
-	public partial class BKMacro
+	public partial class BKMacro 
 	{
 
 
@@ -29,6 +30,56 @@ namespace BankLink.Practice.BooksIO
 		[XmlAttribute("Description", DataType = "string")]
 		public String Description { get; set; }
 
+
+		/// <summary>
+		/// Class Begin Token
+		/// </summary>
+		public const byte BeginToken = 240;
+		/// <summary>
+		/// Class End Token
+		/// </summary>
+		public const byte EndToken = 241;
+		/// <summary>
+		/// Write to BKStream
+		/// </summary>
+		public void WriteBKStream(BankLinkTokenStreamWriter s)
+		{
+			s.WriteToken(240);
+			s.WriteShortStringValue(242, Code);
+			s.WriteShortStringValue(243, Description);
+			s.WriteToken(241);
+		}
+
+		/// <summary>
+		/// Default Constructor 
+		/// </summary>
+		public BKMacro ()
+		{}
+		/// <summary>
+		/// Construct from BKStreamReader
+		/// </summary>
+		public BKMacro (BankLinkTokenStreamReader s)
+		{
+			var token = BeginToken;
+			while (token != EndToken)
+			{
+				switch (token)
+				{
+			case 242 :
+				Code = s.ReadShortStringValue("Code");
+				break;
+			case 243 :
+				Description = s.ReadShortStringValue("Description");
+				break;
+			case BeginToken :
+			case EndToken :
+				break;
+			default:
+				throw new Exception(string.Format("unexpected Code: {0} reading Macro",token) );
+				}
+			token = s.ReadToken();
+			}
+		}
 
 
 	}

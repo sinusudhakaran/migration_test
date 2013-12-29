@@ -3,6 +3,7 @@
 // Any changes will be lost when the file is regenerated
 // **********************************************************
 using System;
+using BankLink.Practice.Common.Entities;
 using System.Xml.Serialization;
 
 
@@ -11,7 +12,7 @@ namespace BankLink.Practice.BooksIO
 	/// <summary>
 	/// BK - BudgetDetail class
 	/// </summary>
-	public partial class BKBudgetDetail
+	public partial class BKBudgetDetail 
 	{
 
 
@@ -50,6 +51,68 @@ namespace BankLink.Practice.BooksIO
 		[XmlAttribute("PercentAccount", DataType = "string")]
 		public String PercentAccount { get; set; }
 
+
+		/// <summary>
+		/// Class Begin Token
+		/// </summary>
+		public const byte BeginToken = 120;
+		/// <summary>
+		/// Class End Token
+		/// </summary>
+		public const byte EndToken = 121;
+		/// <summary>
+		/// Write to BKStream
+		/// </summary>
+		public void WriteBKStream(BankLinkTokenStreamWriter s)
+		{
+			s.WriteToken(120);
+			s.WriteShortStringValue(122, AccountCode);
+			s.WriteMoneyArray(123, Budget, true);
+			s.WriteMoneyArray(124, QtyBudget, true);
+			s.WriteMoneyArray(125, EachBudget, true);
+			s.WriteShortStringValue(126, PercentAccount);
+			s.WriteToken(121);
+		}
+
+		/// <summary>
+		/// Default Constructor 
+		/// </summary>
+		public BKBudgetDetail ()
+		{}
+		/// <summary>
+		/// Construct from BKStreamReader
+		/// </summary>
+		public BKBudgetDetail (BankLinkTokenStreamReader s)
+		{
+			var token = BeginToken;
+			while (token != EndToken)
+			{
+				switch (token)
+				{
+			case 122 :
+				AccountCode = s.ReadShortStringValue("AccountCode");
+				break;
+			case 123 :
+				Budget = s.ReadMoneyArray("Budget", 123, 12, true);
+				break;
+			case 124 :
+				QtyBudget = s.ReadMoneyArray("QtyBudget", 124, 12, true);
+				break;
+			case 125 :
+				EachBudget = s.ReadMoneyArray("EachBudget", 125, 12, true);
+				break;
+			case 126 :
+				PercentAccount = s.ReadShortStringValue("PercentAccount");
+				break;
+			case BeginToken :
+			case EndToken :
+				break;
+			default:
+				throw new Exception(string.Format("unexpected Code: {0} reading BudgetDetail",token) );
+				}
+			token = s.ReadToken();
+			}
+		}
 
 
 	}

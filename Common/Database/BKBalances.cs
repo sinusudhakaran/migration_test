@@ -3,6 +3,7 @@
 // Any changes will be lost when the file is regenerated
 // **********************************************************
 using System;
+using BankLink.Practice.Common.Entities;
 using System.Xml.Serialization;
 
 
@@ -11,7 +12,7 @@ namespace BankLink.Practice.BooksIO
 	/// <summary>
 	/// BK - Balances class
 	/// </summary>
-	public partial class BKBalances
+	public partial class BKBalances 
 	{
 
 
@@ -512,10 +513,316 @@ namespace BankLink.Practice.BooksIO
 
 
 		/// <summary>
+		/// AuditRecordID property
+		/// </summary>
+		[XmlAttribute("AuditRecordID", DataType = "int")]
+		public Int32 AuditRecordID { get; set; }
+
+
+
+		/// <summary>
 		/// VATAdjustments property
 		/// </summary>
 		[XmlArray("VATAdjustments"),XmlArrayItem("VATAdjustment", DataType = "long")]
 		public Int64[] VATAdjustments { get; set; }
+
+		/// <summary>
+		/// Class Begin Token
+		/// </summary>
+		public const byte BeginToken = 190;
+		/// <summary>
+		/// Class End Token
+		/// </summary>
+		public const byte EndToken = 191;
+		/// <summary>
+		/// Write to BKStream
+		/// </summary>
+		public void WriteBKStream(BankLinkTokenStreamWriter s)
+		{
+			s.WriteToken(190);
+			s.WriteJulDateValue(192, GSTPeriodStarts);
+			s.WriteJulDateValue(193, GSTPeriodEnds);
+			s.WriteMoneyValue(194, ClosingDebtorsBalance);
+			s.WriteMoneyValue(195, OpeningDebtorsBalance);
+			s.WriteMoneyValue(196, FBTAdjustments);
+			s.WriteMoneyValue(197, OtherAdjustments);
+			s.WriteMoneyValue(198, ClosingCreditorsBalance);
+			s.WriteMoneyValue(199, OpeningCreditorsBalance);
+			s.WriteMoneyValue(200, CreditAdjustments);
+			s.WriteShortStringValue(201, BASDocumentID);
+			s.WriteMoneyValue(202, BAS1CPTLastMonthsIncome);
+			s.WriteMoneyValue(203, BAS1DPTBranchIncome);
+			s.WriteMoneyValue(204, BAS1EPTAssets);
+			s.WriteMoneyValue(205, BAS1FPTTax);
+			s.WriteMoneyValue(206, BAS1GPTRefundUsed);
+			s.WriteMoneyValue(207, BAS5BPTRatio);
+			s.WriteMoneyValue(208, BAS6BGSTAdjPrivUse);
+			s.WriteMoneyValue(209, BAS7VAT4GSTAdjBAssets);
+			s.WriteMoneyValue(210, BASG7GSTAdjAssets);
+			s.WriteMoneyValue(211, BASG18GSTAdjEntertain);
+			s.WriteMoneyValue(212, BASW1GSTAdjChange);
+			s.WriteMoneyValue(213, BASW2GSTAdjExempt);
+			s.WriteMoneyValue(214, BASW3GSTAdjOther);
+			s.WriteMoneyValue(215, BASW4GSTCdjBusUse);
+			s.WriteMoneyValue(216, BAST1VAT1GSTCdjPAssets);
+			s.WriteMoneyValue(217, BAST2VAT2GSTCdjChange);
+			s.WriteMoneyValue(218, BAST3VAT3GSTCdjOther);
+			s.WriteInt32Value(219, BAST4);
+			s.WriteMoneyValue(220, BASF1GSTClosingDebtorsBalanceA);
+			s.WriteMoneyValue(221, BASF2GSTOpeningDebtorsBalanceB);
+			s.WriteMoneyValue(222, BASF3);
+			s.WriteInt32Value(223, BASF4);
+			s.WriteByteValue(224, BASFormUsed);
+			s.WriteByteValue(225, BASGSTOption);
+			s.WriteBooleanValue(226, BASGSTIncluded);
+			s.WriteMoneyValue(227, BASG21GSTClosingCreditorsBalanceA);
+			s.WriteMoneyValue(228, BASG22GSTOpeningCreditorsBalanceB);
+			s.WriteMoneyValue(229, BASG23);
+			s.WriteInt32Value(230, BASG24);
+			s.WriteByteValue(231, BASPAYGInstalmentOption);
+			s.WriteMoneyValue(232, BAST7VAT7);
+			s.WriteMoneyValue(233, BAST8VAT8);
+			s.WriteMoneyValue(234, BAST9VAT9);
+			s.WriteMoneyValue(235, BAS1H);
+			s.WriteMoneyValue(236, GSTAdjPrivUse);
+			s.WriteMoneyValue(237, GSTAdjBAssets);
+			s.WriteMoneyValue(238, GSTAdjAssets);
+			s.WriteMoneyValue(239, GSTAdjEntertain);
+			s.WriteMoneyValue(240, GSTAdjChange);
+			s.WriteMoneyValue(241, GSTAdjExempt);
+			s.WriteMoneyValue(242, GSTAdjOther);
+			s.WriteMoneyValue(243, GSTCdjBusUse);
+			s.WriteMoneyValue(244, GSTCdjPAssets);
+			s.WriteMoneyValue(245, GSTCdjChange);
+			s.WriteMoneyValue(246, GSTCdjOther);
+			s.WriteMoneyValue(247, BAS7C);
+			s.WriteMoneyValue(248, BAS7D);
+			s.WriteMoneyValue(249, BAST6VAT6);
+			s.WriteMoneyValue(250, BAST5VAT5);
+			s.WriteBooleanValue(251, UsingFuelPercentMethod);
+			s.WriteByteValue(252, PTFormType);
+			s.WriteMoneyValue(253, GSTCdjCustoms);
+			s.WriteInt32Value(254, AuditRecordID);
+			s.WriteMoneyArray(255, VATAdjustments, true);
+			s.WriteToken(191);
+		}
+
+		/// <summary>
+		/// Default Constructor 
+		/// </summary>
+		public BKBalances ()
+		{}
+		/// <summary>
+		/// Construct from BKStreamReader
+		/// </summary>
+		public BKBalances (BankLinkTokenStreamReader s)
+		{
+			var token = BeginToken;
+			while (token != EndToken)
+			{
+				switch (token)
+				{
+			case 192 :
+				GSTPeriodStarts = s.ReadJulDateValue("GSTPeriodStarts");
+				break;
+			case 193 :
+				GSTPeriodEnds = s.ReadJulDateValue("GSTPeriodEnds");
+				break;
+			case 194 :
+				ClosingDebtorsBalance = s.ReadMoneyValue("ClosingDebtorsBalance");
+				break;
+			case 195 :
+				OpeningDebtorsBalance = s.ReadMoneyValue("OpeningDebtorsBalance");
+				break;
+			case 196 :
+				FBTAdjustments = s.ReadMoneyValue("FBTAdjustments");
+				break;
+			case 197 :
+				OtherAdjustments = s.ReadMoneyValue("OtherAdjustments");
+				break;
+			case 198 :
+				ClosingCreditorsBalance = s.ReadMoneyValue("ClosingCreditorsBalance");
+				break;
+			case 199 :
+				OpeningCreditorsBalance = s.ReadMoneyValue("OpeningCreditorsBalance");
+				break;
+			case 200 :
+				CreditAdjustments = s.ReadMoneyValue("CreditAdjustments");
+				break;
+			case 201 :
+				BASDocumentID = s.ReadShortStringValue("BASDocumentID");
+				break;
+			case 202 :
+				BAS1CPTLastMonthsIncome = s.ReadMoneyValue("BAS1CPTLastMonthsIncome");
+				break;
+			case 203 :
+				BAS1DPTBranchIncome = s.ReadMoneyValue("BAS1DPTBranchIncome");
+				break;
+			case 204 :
+				BAS1EPTAssets = s.ReadMoneyValue("BAS1EPTAssets");
+				break;
+			case 205 :
+				BAS1FPTTax = s.ReadMoneyValue("BAS1FPTTax");
+				break;
+			case 206 :
+				BAS1GPTRefundUsed = s.ReadMoneyValue("BAS1GPTRefundUsed");
+				break;
+			case 207 :
+				BAS5BPTRatio = s.ReadMoneyValue("BAS5BPTRatio");
+				break;
+			case 208 :
+				BAS6BGSTAdjPrivUse = s.ReadMoneyValue("BAS6BGSTAdjPrivUse");
+				break;
+			case 209 :
+				BAS7VAT4GSTAdjBAssets = s.ReadMoneyValue("BAS7VAT4GSTAdjBAssets");
+				break;
+			case 210 :
+				BASG7GSTAdjAssets = s.ReadMoneyValue("BASG7GSTAdjAssets");
+				break;
+			case 211 :
+				BASG18GSTAdjEntertain = s.ReadMoneyValue("BASG18GSTAdjEntertain");
+				break;
+			case 212 :
+				BASW1GSTAdjChange = s.ReadMoneyValue("BASW1GSTAdjChange");
+				break;
+			case 213 :
+				BASW2GSTAdjExempt = s.ReadMoneyValue("BASW2GSTAdjExempt");
+				break;
+			case 214 :
+				BASW3GSTAdjOther = s.ReadMoneyValue("BASW3GSTAdjOther");
+				break;
+			case 215 :
+				BASW4GSTCdjBusUse = s.ReadMoneyValue("BASW4GSTCdjBusUse");
+				break;
+			case 216 :
+				BAST1VAT1GSTCdjPAssets = s.ReadMoneyValue("BAST1VAT1GSTCdjPAssets");
+				break;
+			case 217 :
+				BAST2VAT2GSTCdjChange = s.ReadMoneyValue("BAST2VAT2GSTCdjChange");
+				break;
+			case 218 :
+				BAST3VAT3GSTCdjOther = s.ReadMoneyValue("BAST3VAT3GSTCdjOther");
+				break;
+			case 219 :
+				BAST4 = s.ReadInt32Value("BAST4");
+				break;
+			case 220 :
+				BASF1GSTClosingDebtorsBalanceA = s.ReadMoneyValue("BASF1GSTClosingDebtorsBalanceA");
+				break;
+			case 221 :
+				BASF2GSTOpeningDebtorsBalanceB = s.ReadMoneyValue("BASF2GSTOpeningDebtorsBalanceB");
+				break;
+			case 222 :
+				BASF3 = s.ReadMoneyValue("BASF3");
+				break;
+			case 223 :
+				BASF4 = s.ReadInt32Value("BASF4");
+				break;
+			case 224 :
+				BASFormUsed = s.ReadByteValue("BASFormUsed");
+				break;
+			case 225 :
+				BASGSTOption = s.ReadByteValue("BASGSTOption");
+				break;
+			case 226 :
+				BASGSTIncluded = s.ReadBooleanValue("BASGSTIncluded");
+				break;
+			case 227 :
+				BASG21GSTClosingCreditorsBalanceA = s.ReadMoneyValue("BASG21GSTClosingCreditorsBalanceA");
+				break;
+			case 228 :
+				BASG22GSTOpeningCreditorsBalanceB = s.ReadMoneyValue("BASG22GSTOpeningCreditorsBalanceB");
+				break;
+			case 229 :
+				BASG23 = s.ReadMoneyValue("BASG23");
+				break;
+			case 230 :
+				BASG24 = s.ReadInt32Value("BASG24");
+				break;
+			case 231 :
+				BASPAYGInstalmentOption = s.ReadByteValue("BASPAYGInstalmentOption");
+				break;
+			case 232 :
+				BAST7VAT7 = s.ReadMoneyValue("BAST7VAT7");
+				break;
+			case 233 :
+				BAST8VAT8 = s.ReadMoneyValue("BAST8VAT8");
+				break;
+			case 234 :
+				BAST9VAT9 = s.ReadMoneyValue("BAST9VAT9");
+				break;
+			case 235 :
+				BAS1H = s.ReadMoneyValue("BAS1H");
+				break;
+			case 236 :
+				GSTAdjPrivUse = s.ReadMoneyValue("GSTAdjPrivUse");
+				break;
+			case 237 :
+				GSTAdjBAssets = s.ReadMoneyValue("GSTAdjBAssets");
+				break;
+			case 238 :
+				GSTAdjAssets = s.ReadMoneyValue("GSTAdjAssets");
+				break;
+			case 239 :
+				GSTAdjEntertain = s.ReadMoneyValue("GSTAdjEntertain");
+				break;
+			case 240 :
+				GSTAdjChange = s.ReadMoneyValue("GSTAdjChange");
+				break;
+			case 241 :
+				GSTAdjExempt = s.ReadMoneyValue("GSTAdjExempt");
+				break;
+			case 242 :
+				GSTAdjOther = s.ReadMoneyValue("GSTAdjOther");
+				break;
+			case 243 :
+				GSTCdjBusUse = s.ReadMoneyValue("GSTCdjBusUse");
+				break;
+			case 244 :
+				GSTCdjPAssets = s.ReadMoneyValue("GSTCdjPAssets");
+				break;
+			case 245 :
+				GSTCdjChange = s.ReadMoneyValue("GSTCdjChange");
+				break;
+			case 246 :
+				GSTCdjOther = s.ReadMoneyValue("GSTCdjOther");
+				break;
+			case 247 :
+				BAS7C = s.ReadMoneyValue("BAS7C");
+				break;
+			case 248 :
+				BAS7D = s.ReadMoneyValue("BAS7D");
+				break;
+			case 249 :
+				BAST6VAT6 = s.ReadMoneyValue("BAST6VAT6");
+				break;
+			case 250 :
+				BAST5VAT5 = s.ReadMoneyValue("BAST5VAT5");
+				break;
+			case 251 :
+				UsingFuelPercentMethod = s.ReadBooleanValue("UsingFuelPercentMethod");
+				break;
+			case 252 :
+				PTFormType = s.ReadByteValue("PTFormType");
+				break;
+			case 253 :
+				GSTCdjCustoms = s.ReadMoneyValue("GSTCdjCustoms");
+				break;
+			case 254 :
+				AuditRecordID = s.ReadInt32Value("AuditRecordID");
+				break;
+			case 255 :
+				VATAdjustments = s.ReadMoneyArray("VATAdjustments", 255, 99, true);
+				break;
+			case BeginToken :
+			case EndToken :
+				break;
+			default:
+				throw new Exception(string.Format("unexpected Code: {0} reading Balances",token) );
+				}
+			token = s.ReadToken();
+			}
+		}
 
 
 	}

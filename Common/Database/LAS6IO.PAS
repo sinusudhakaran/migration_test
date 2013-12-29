@@ -5,7 +5,7 @@ UNIT LAs6IO;
 // when DBGen is run again.
 
 {  -------------------------------------------------------------------  }
-INTERFACE USES LADEFS, IOSTREAM;
+INTERFACE USES LADEFS, IOSTREAM, LAAUDITUTILS;
 {  -------------------------------------------------------------------  }
 
 CONST
@@ -17,6 +17,9 @@ PROCEDURE Write_Report_Setting_Rec ( Var O : TReport_Setting_Rec ; Var F : TIOSt
 PROCEDURE Read_Report_Setting_Rec ( Var O : TReport_Setting_Rec ; Var F : TIOStream );
 FUNCTION  New_Report_Setting_Rec : pReport_Setting_Rec ;
 PROCEDURE Free_Report_Setting_Rec_Dynamic_Fields ( Var O : TReport_Setting_Rec );
+FUNCTION Report_Setting_Rec_Delta(P1, P2, P3: pReport_Setting_Rec; var ChangedFields: TChanged_Fields_Array): Boolean;
+procedure Copy_Report_Setting_Rec(P1, P2: pReport_Setting_Rec);
+procedure SetAllFieldsChanged(var ChangedFields: TChanged_Fields_Array);
 
 {  -------------------------------------------------------------------  }
 IMPLEMENTATION USES MONEYDEF, MALLOC, BKDBEXCEPT;
@@ -161,6 +164,120 @@ Begin
    Begin
       { Free any dynamically allocated memory }
    end;
+end;
+
+{  -------------------------------------------------------------------  }
+
+procedure SetAllFieldsChanged(var ChangedFields: TChanged_Fields_Array);
+var
+  i, j: integer;
+begin
+  for i := Low(ChangedFields) to High(ChangedFields) do
+    ChangedFields[i] := 0;
+  j := 0;
+  for i := tks6Report_Name to tks6Number_of_Copies do begin
+    ChangedFields[j] := i;
+    Inc(j);
+  end;
+end;
+
+{  -------------------------------------------------------------------  }
+
+FUNCTION Report_Setting_Rec_Delta(P1, P2, P3: pReport_Setting_Rec; var ChangedFields: TChanged_Fields_Array): Boolean;
+var
+  i: integer;
+begin
+  for i := Low(ChangedFields) to High(ChangedFields) do
+    ChangedFields[i] := 0;
+
+  //Add
+  if not Assigned(P2) then begin
+    Copy_Report_Setting_Rec(P1, P3);
+    SetAllFieldsChanged(ChangedFields);
+    Result := True;
+    Exit;
+  end;
+
+  //Change
+  i := 0;
+  if (P1.s6Report_Name <> P2.s6Report_Name) then begin
+    P3.s6Report_Name := P1.s6Report_Name;
+    ChangedFields[i] := tks6Report_Name;
+    Inc(i);
+  end;
+  if (P1.s6Printer <> P2.s6Printer) then begin
+    P3.s6Printer := P1.s6Printer;
+    ChangedFields[i] := tks6Printer;
+    Inc(i);
+  end;
+  if (P1.s6Form_Number <> P2.s6Form_Number) then begin
+    P3.s6Form_Number := P1.s6Form_Number;
+    ChangedFields[i] := tks6Form_Number;
+    Inc(i);
+  end;
+  if (P1.s6Location <> P2.s6Location) then begin
+    P3.s6Location := P1.s6Location;
+    ChangedFields[i] := tks6Location;
+    Inc(i);
+  end;
+  if (P1.s6Orientation <> P2.s6Orientation) then begin
+    P3.s6Orientation := P1.s6Orientation;
+    ChangedFields[i] := tks6Orientation;
+    Inc(i);
+  end;
+  if (P1.s6Typeface <> P2.s6Typeface) then begin
+    P3.s6Typeface := P1.s6Typeface;
+    ChangedFields[i] := tks6Typeface;
+    Inc(i);
+  end;
+  if (P1.s6Font <> P2.s6Font) then begin
+    P3.s6Font := P1.s6Font;
+    ChangedFields[i] := tks6Font;
+    Inc(i);
+  end;
+  if (P1.s6Font_Size <> P2.s6Font_Size) then begin
+    P3.s6Font_Size := P1.s6Font_Size;
+    ChangedFields[i] := tks6Font_Size;
+    Inc(i);
+  end;
+  if (P1.s6Style <> P2.s6Style) then begin
+    P3.s6Style := P1.s6Style;
+    ChangedFields[i] := tks6Style;
+    Inc(i);
+  end;
+  if (P1.s6CPI <> P2.s6CPI) then begin
+    P3.s6CPI := P1.s6CPI;
+    ChangedFields[i] := tks6CPI;
+    Inc(i);
+  end;
+  if (P1.s6LPI <> P2.s6LPI) then begin
+    P3.s6LPI := P1.s6LPI;
+    ChangedFields[i] := tks6LPI;
+    Inc(i);
+  end;
+  if (P1.s6Number_of_Copies <> P2.s6Number_of_Copies) then begin
+    P3.s6Number_of_Copies := P1.s6Number_of_Copies;
+    ChangedFields[i] := tks6Number_of_Copies;
+    Inc(i);
+  end;
+
+  Result := (i > 0);
+end;
+
+{  -------------------------------------------------------------------  }
+
+procedure Copy_Report_Setting_Rec(P1, P2: pReport_Setting_Rec);
+var
+  S: TIOStream;
+begin
+  S := TIOStream.Create;
+  try
+    Write_Report_Setting_Rec(P1^, S);
+    S.Position := 0;
+    Read_Report_Setting_Rec(P2^, S);
+  finally
+    S.Free;
+  end;
 end;
 
 {  -------------------------------------------------------------------  }

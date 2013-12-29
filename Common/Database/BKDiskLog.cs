@@ -3,6 +3,7 @@
 // Any changes will be lost when the file is regenerated
 // **********************************************************
 using System;
+using BankLink.Practice.Common.Entities;
 using System.Xml.Serialization;
 
 
@@ -11,7 +12,7 @@ namespace BankLink.Practice.BooksIO
 	/// <summary>
 	/// BK - DiskLog class
 	/// </summary>
-	public partial class BKDiskLog
+	public partial class BKDiskLog 
 	{
 
 
@@ -45,6 +46,64 @@ namespace BankLink.Practice.BooksIO
 		[XmlAttribute("NoofEntries", DataType = "int")]
 		public Int32 NoofEntries { get; set; }
 
+
+		/// <summary>
+		/// Class Begin Token
+		/// </summary>
+		public const byte BeginToken = 130;
+		/// <summary>
+		/// Class End Token
+		/// </summary>
+		public const byte EndToken = 131;
+		/// <summary>
+		/// Write to BKStream
+		/// </summary>
+		public void WriteBKStream(BankLinkTokenStreamWriter s)
+		{
+			s.WriteToken(130);
+			s.WriteShortStringValue(132, DiskID);
+			s.WriteJulDateValue(133, DateDownloaded);
+			s.WriteInt32Value(134, NoofAccounts);
+			s.WriteInt32Value(135, NoofEntries);
+			s.WriteToken(131);
+		}
+
+		/// <summary>
+		/// Default Constructor 
+		/// </summary>
+		public BKDiskLog ()
+		{}
+		/// <summary>
+		/// Construct from BKStreamReader
+		/// </summary>
+		public BKDiskLog (BankLinkTokenStreamReader s)
+		{
+			var token = BeginToken;
+			while (token != EndToken)
+			{
+				switch (token)
+				{
+			case 132 :
+				DiskID = s.ReadShortStringValue("DiskID");
+				break;
+			case 133 :
+				DateDownloaded = s.ReadJulDateValue("DateDownloaded");
+				break;
+			case 134 :
+				NoofAccounts = s.ReadInt32Value("NoofAccounts");
+				break;
+			case 135 :
+				NoofEntries = s.ReadInt32Value("NoofEntries");
+				break;
+			case BeginToken :
+			case EndToken :
+				break;
+			default:
+				throw new Exception(string.Format("unexpected Code: {0} reading DiskLog",token) );
+				}
+			token = s.ReadToken();
+			}
+		}
 
 
 	}

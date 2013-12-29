@@ -3,6 +3,7 @@
 // Any changes will be lost when the file is regenerated
 // **********************************************************
 using System;
+using BankLink.Practice.Common.Entities;
 using System.Xml.Serialization;
 
 
@@ -11,7 +12,7 @@ namespace BankLink.Practice.BooksIO
 	/// <summary>
 	/// BK - Account class
 	/// </summary>
-	public partial class BKAccount
+	public partial class BKAccount 
 	{
 
 
@@ -163,6 +164,136 @@ namespace BankLink.Practice.BooksIO
 		[XmlAttribute("HideInBasicChart", DataType = "boolean")]
 		public bool HideInBasicChart { get; set; }
 
+
+
+		/// <summary>
+		/// AuditRecordID property
+		/// </summary>
+		[XmlAttribute("AuditRecordID", DataType = "int")]
+		public Int32 AuditRecordID { get; set; }
+
+
+		/// <summary>
+		/// Class Begin Token
+		/// </summary>
+		public const byte BeginToken = 80;
+		/// <summary>
+		/// Class End Token
+		/// </summary>
+		public const byte EndToken = 81;
+		/// <summary>
+		/// Write to BKStream
+		/// </summary>
+		public void WriteBKStream(BankLinkTokenStreamWriter s)
+		{
+			s.WriteToken(80);
+			s.WriteShortStringValue(82, AccountCode);
+			s.WriteShortStringValue(83, ChartID);
+			s.WriteShortStringValue(84, AccountDescription);
+			s.WriteByteValue(85, GSTClass);
+			s.WriteBooleanValue(86, PostingAllowed);
+			s.WriteByteValue(87, AccountType);
+			s.WriteBooleanValue(88, EnterQuantity);
+			s.WriteBooleanArray(89, PrintinDivision, false);
+			s.WriteMoneyValue(90, MoneyVarianceUp);
+			s.WriteMoneyValue(91, MoneyVarianceDown);
+			s.WriteMoneyValue(92, PercentVarianceUp);
+			s.WriteMoneyValue(93, PercentVarianceDown);
+			s.WriteMoneyArray(94, LastYearsTotalsSBOnly, false);
+			s.WriteMoneyValue(95, OpeningBalanceSBOnly);
+			s.WriteByteValue(96, Subtype);
+			s.WriteShortStringValue(97, AlternativeCode);
+			s.WriteShortStringValue(98, LinkedAccountOS);
+			s.WriteShortStringValue(99, LinkedAccountCS);
+			s.WriteBooleanValue(100, HideInBasicChart);
+			s.WriteInt32Value(101, AuditRecordID);
+			s.WriteToken(81);
+		}
+
+		/// <summary>
+		/// Default Constructor 
+		/// </summary>
+		public BKAccount ()
+		{}
+		/// <summary>
+		/// Construct from BKStreamReader
+		/// </summary>
+		public BKAccount (BankLinkTokenStreamReader s)
+		{
+			var token = BeginToken;
+			while (token != EndToken)
+			{
+				switch (token)
+				{
+			case 82 :
+				AccountCode = s.ReadShortStringValue("AccountCode");
+				break;
+			case 83 :
+				ChartID = s.ReadShortStringValue("ChartID");
+				break;
+			case 84 :
+				AccountDescription = s.ReadShortStringValue("AccountDescription");
+				break;
+			case 85 :
+				GSTClass = s.ReadByteValue("GSTClass");
+				break;
+			case 86 :
+				PostingAllowed = s.ReadBooleanValue("PostingAllowed");
+				break;
+			case 87 :
+				AccountType = s.ReadByteValue("AccountType");
+				break;
+			case 88 :
+				EnterQuantity = s.ReadBooleanValue("EnterQuantity");
+				break;
+			case 89 :
+				PrintinDivision = s.ReadBooleanArray("PrintinDivision", 89, 250, false);
+				break;
+			case 90 :
+				MoneyVarianceUp = s.ReadMoneyValue("MoneyVarianceUp");
+				break;
+			case 91 :
+				MoneyVarianceDown = s.ReadMoneyValue("MoneyVarianceDown");
+				break;
+			case 92 :
+				PercentVarianceUp = s.ReadMoneyValue("PercentVarianceUp");
+				break;
+			case 93 :
+				PercentVarianceDown = s.ReadMoneyValue("PercentVarianceDown");
+				break;
+			case 94 :
+				LastYearsTotalsSBOnly = s.ReadMoneyArray("LastYearsTotalsSBOnly", 94, 12, false);
+				break;
+			case 95 :
+				OpeningBalanceSBOnly = s.ReadMoneyValue("OpeningBalanceSBOnly");
+				break;
+			case 96 :
+				Subtype = s.ReadByteValue("Subtype");
+				break;
+			case 97 :
+				AlternativeCode = s.ReadShortStringValue("AlternativeCode");
+				break;
+			case 98 :
+				LinkedAccountOS = s.ReadShortStringValue("LinkedAccountOS");
+				break;
+			case 99 :
+				LinkedAccountCS = s.ReadShortStringValue("LinkedAccountCS");
+				break;
+			case 100 :
+				HideInBasicChart = s.ReadBooleanValue("HideInBasicChart");
+				break;
+			case 101 :
+				AuditRecordID = s.ReadInt32Value("AuditRecordID");
+				break;
+			case BeginToken :
+			case EndToken :
+				break;
+			default:
+				throw new Exception(string.Format("unexpected Code: {0} reading Account",token) );
+				}
+			token = s.ReadToken();
+			}
+		}
 
 
 	}

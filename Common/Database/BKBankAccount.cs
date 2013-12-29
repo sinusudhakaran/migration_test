@@ -3,6 +3,7 @@
 // Any changes will be lost when the file is regenerated
 // **********************************************************
 using System;
+using BankLink.Practice.Common.Entities;
 using System.Xml.Serialization;
 
 
@@ -11,7 +12,7 @@ namespace BankLink.Practice.BooksIO
 	/// <summary>
 	/// BK - BankAccount class
 	/// </summary>
-	public partial class BKBankAccount
+	public partial class BKBankAccount 
 	{
 
 
@@ -408,6 +409,14 @@ namespace BankLink.Practice.BooksIO
 
 
 		/// <summary>
+		/// AuditRecordID property
+		/// </summary>
+		[XmlAttribute("AuditRecordID", DataType = "int")]
+		public Int32 AuditRecordID { get; set; }
+
+
+
+		/// <summary>
 		/// CoreAccountID property
 		/// </summary>
 		[XmlAttribute("CoreAccountID", DataType = "int")]
@@ -429,6 +438,268 @@ namespace BankLink.Practice.BooksIO
 		[XmlAttribute("ExchangeGainLossCode", DataType = "string")]
 		public String ExchangeGainLossCode { get; set; }
 
+
+		/// <summary>
+		/// Class Begin Token
+		/// </summary>
+		public const byte BeginToken = 150;
+		/// <summary>
+		/// Class End Token
+		/// </summary>
+		public const byte EndToken = 151;
+		/// <summary>
+		/// Write to BKStream
+		/// </summary>
+		public void WriteBKStream(BankLinkTokenStreamWriter s)
+		{
+			s.WriteToken(150);
+			s.WriteShortStringValue(152, BankAccountNumber);
+			s.WriteShortStringValue(153, BankAccountName);
+			s.WriteShortStringValue(154, BankAccountPassword);
+			s.WriteShortStringValue(155, ContraAccountCode);
+			s.WriteMoneyValue(156, CurrentBalance);
+			s.WriteBooleanValue(157, ApplyMasterMemorisedEntries);
+			s.WriteByteValue(158, AccountType);
+			s.WriteByteArray(159, ColumnOrder, true);
+			s.WriteInt32Array(160, ColumnWidth, true);
+			s.WriteByteValue(161, PreferredView);
+			s.WriteInt32Value(162, HighestBankLinkID);
+			s.WriteInt32Value(163, HighestLRN);
+			s.WriteBooleanArray(164, ColumnisHidden, true);
+			s.WriteJulDateValue(165, AccountExpiryDate);
+			s.WriteInt32Value(166, HighestMatchedItemID);
+			s.WriteBooleanValue(167, NotesAlwaysVisible);
+			s.WriteInt32Value(168, NotesHeight);
+			s.WriteInt32Value(169, LastECodingTransactionUID);
+			s.WriteBooleanArray(170, ColumnIsNotEditable, true);
+			s.WriteBooleanValue(171, ExtendExpiryDate);
+			s.WriteBooleanValue(172, IsAManualAccount);
+			s.WriteInt32Value(173, AnalysisCodingLevel);
+			s.WriteInt32Value(174, ECodingAccountUID);
+			s.WriteInt32Value(175, CodingSortOrder);
+			s.WriteInt32Value(176, ManualAccountType);
+			s.WriteShortStringValue(177, ManualAccountInstitution);
+			s.WriteBooleanValue(178, ManualAccountSentToAdmin);
+			s.WriteAnsiStringValue(179, SpareString);
+			s.WriteBooleanValue(180, IsAProvisionalAccount);
+			s.WriteInt32Value(181, SpareNumber);
+			s.WriteByteValue(182, SpareByte);
+			s.WriteByteArray(183, HDEColumnOrder, true);
+			s.WriteInt32Array(184, HDEColumnWidth, true);
+			s.WriteBooleanArray(185, HDEColumnisHidden, true);
+			s.WriteBooleanArray(186, HDEColumnisNotEditable, true);
+			s.WriteInt32Value(187, HDESortOrder);
+			s.WriteByteArray(188, MDEColumnOrder, true);
+			s.WriteInt32Array(189, MDEColumnWidth, true);
+			s.WriteBooleanArray(190, MDEColumnisHidden, true);
+			s.WriteBooleanArray(191, MDEColumnisNotEditable, true);
+			s.WriteInt32Value(192, MDESortOrder);
+			s.WriteByteArray(193, DISColumnOrder, true);
+			s.WriteInt32Array(194, DISColumnWidth, true);
+			s.WriteBooleanArray(195, DISColumnisHidden, true);
+			s.WriteBooleanArray(196, DISColumnisNotEditable, true);
+			s.WriteInt32Value(197, DISSortOrder);
+			s.WriteInt32Value(198, DesktopSuperLedgerID);
+			s.WriteShortStringValue(199, CurrencyCode);
+			s.WriteShortStringValue(200, DefaultForexSource);
+			s.WriteShortStringValue(201, DefaultForexDescription);
+			s.WriteShortStringValue(202, SuperFundLedgerCode);
+			s.WriteInt32Value(203, AuditRecordID);
+			s.WriteInt32Value(204, CoreAccountID);
+			s.WriteShortStringValue(205, SecureOnlineCode);
+			s.WriteShortStringValue(206, ExchangeGainLossCode);
+			s.WriteToken(151);
+		}
+
+		/// <summary>
+		/// Default Constructor 
+		/// </summary>
+		public BKBankAccount ()
+		{}
+		/// <summary>
+		/// Construct from BKStreamReader
+		/// </summary>
+		public BKBankAccount (BankLinkTokenStreamReader s)
+		{
+			var token = BeginToken;
+			while (token != EndToken)
+			{
+				switch (token)
+				{
+			case 152 :
+				BankAccountNumber = s.ReadShortStringValue("BankAccountNumber");
+				break;
+			case 153 :
+				BankAccountName = s.ReadShortStringValue("BankAccountName");
+				break;
+			case 154 :
+				BankAccountPassword = s.ReadShortStringValue("BankAccountPassword");
+				break;
+			case 155 :
+				ContraAccountCode = s.ReadShortStringValue("ContraAccountCode");
+				break;
+			case 156 :
+				CurrentBalance = s.ReadMoneyValue("CurrentBalance");
+				break;
+			case 157 :
+				ApplyMasterMemorisedEntries = s.ReadBooleanValue("ApplyMasterMemorisedEntries");
+				break;
+			case 158 :
+				AccountType = s.ReadByteValue("AccountType");
+				break;
+			case 159 :
+				ColumnOrder = s.ReadByteArray("ColumnOrder", 159, 32, true);
+				break;
+			case 160 :
+				ColumnWidth = s.ReadInt32Array("ColumnWidth", 160, 32, true);
+				break;
+			case 161 :
+				PreferredView = s.ReadByteValue("PreferredView");
+				break;
+			case 162 :
+				HighestBankLinkID = s.ReadInt32Value("HighestBankLinkID");
+				break;
+			case 163 :
+				HighestLRN = s.ReadInt32Value("HighestLRN");
+				break;
+			case 164 :
+				ColumnisHidden = s.ReadBooleanArray("ColumnisHidden", 164, 32, true);
+				break;
+			case 165 :
+				AccountExpiryDate = s.ReadJulDateValue("AccountExpiryDate");
+				break;
+			case 166 :
+				HighestMatchedItemID = s.ReadInt32Value("HighestMatchedItemID");
+				break;
+			case 167 :
+				NotesAlwaysVisible = s.ReadBooleanValue("NotesAlwaysVisible");
+				break;
+			case 168 :
+				NotesHeight = s.ReadInt32Value("NotesHeight");
+				break;
+			case 169 :
+				LastECodingTransactionUID = s.ReadInt32Value("LastECodingTransactionUID");
+				break;
+			case 170 :
+				ColumnIsNotEditable = s.ReadBooleanArray("ColumnIsNotEditable", 170, 32, true);
+				break;
+			case 171 :
+				ExtendExpiryDate = s.ReadBooleanValue("ExtendExpiryDate");
+				break;
+			case 172 :
+				IsAManualAccount = s.ReadBooleanValue("IsAManualAccount");
+				break;
+			case 173 :
+				AnalysisCodingLevel = s.ReadInt32Value("AnalysisCodingLevel");
+				break;
+			case 174 :
+				ECodingAccountUID = s.ReadInt32Value("ECodingAccountUID");
+				break;
+			case 175 :
+				CodingSortOrder = s.ReadInt32Value("CodingSortOrder");
+				break;
+			case 176 :
+				ManualAccountType = s.ReadInt32Value("ManualAccountType");
+				break;
+			case 177 :
+				ManualAccountInstitution = s.ReadShortStringValue("ManualAccountInstitution");
+				break;
+			case 178 :
+				ManualAccountSentToAdmin = s.ReadBooleanValue("ManualAccountSentToAdmin");
+				break;
+			case 179 :
+				SpareString = s.ReadAnsiStringValue("SpareString");
+				break;
+			case 180 :
+				IsAProvisionalAccount = s.ReadBooleanValue("IsAProvisionalAccount");
+				break;
+			case 181 :
+				SpareNumber = s.ReadInt32Value("SpareNumber");
+				break;
+			case 182 :
+				SpareByte = s.ReadByteValue("SpareByte");
+				break;
+			case 183 :
+				HDEColumnOrder = s.ReadByteArray("HDEColumnOrder", 183, 32, true);
+				break;
+			case 184 :
+				HDEColumnWidth = s.ReadInt32Array("HDEColumnWidth", 184, 32, true);
+				break;
+			case 185 :
+				HDEColumnisHidden = s.ReadBooleanArray("HDEColumnisHidden", 185, 32, true);
+				break;
+			case 186 :
+				HDEColumnisNotEditable = s.ReadBooleanArray("HDEColumnisNotEditable", 186, 32, true);
+				break;
+			case 187 :
+				HDESortOrder = s.ReadInt32Value("HDESortOrder");
+				break;
+			case 188 :
+				MDEColumnOrder = s.ReadByteArray("MDEColumnOrder", 188, 32, true);
+				break;
+			case 189 :
+				MDEColumnWidth = s.ReadInt32Array("MDEColumnWidth", 189, 32, true);
+				break;
+			case 190 :
+				MDEColumnisHidden = s.ReadBooleanArray("MDEColumnisHidden", 190, 32, true);
+				break;
+			case 191 :
+				MDEColumnisNotEditable = s.ReadBooleanArray("MDEColumnisNotEditable", 191, 32, true);
+				break;
+			case 192 :
+				MDESortOrder = s.ReadInt32Value("MDESortOrder");
+				break;
+			case 193 :
+				DISColumnOrder = s.ReadByteArray("DISColumnOrder", 193, 32, true);
+				break;
+			case 194 :
+				DISColumnWidth = s.ReadInt32Array("DISColumnWidth", 194, 32, true);
+				break;
+			case 195 :
+				DISColumnisHidden = s.ReadBooleanArray("DISColumnisHidden", 195, 32, true);
+				break;
+			case 196 :
+				DISColumnisNotEditable = s.ReadBooleanArray("DISColumnisNotEditable", 196, 32, true);
+				break;
+			case 197 :
+				DISSortOrder = s.ReadInt32Value("DISSortOrder");
+				break;
+			case 198 :
+				DesktopSuperLedgerID = s.ReadInt32Value("DesktopSuperLedgerID");
+				break;
+			case 199 :
+				CurrencyCode = s.ReadShortStringValue("CurrencyCode");
+				break;
+			case 200 :
+				DefaultForexSource = s.ReadShortStringValue("DefaultForexSource");
+				break;
+			case 201 :
+				DefaultForexDescription = s.ReadShortStringValue("DefaultForexDescription");
+				break;
+			case 202 :
+				SuperFundLedgerCode = s.ReadShortStringValue("SuperFundLedgerCode");
+				break;
+			case 203 :
+				AuditRecordID = s.ReadInt32Value("AuditRecordID");
+				break;
+			case 204 :
+				CoreAccountID = s.ReadInt32Value("CoreAccountID");
+				break;
+			case 205 :
+				SecureOnlineCode = s.ReadShortStringValue("SecureOnlineCode");
+				break;
+			case 206 :
+				ExchangeGainLossCode = s.ReadShortStringValue("ExchangeGainLossCode");
+				break;
+			case BeginToken :
+			case EndToken :
+				break;
+			default:
+				throw new Exception(string.Format("unexpected Code: {0} reading BankAccount",token) );
+				}
+			token = s.ReadToken();
+			}
+		}
 
 
 	}

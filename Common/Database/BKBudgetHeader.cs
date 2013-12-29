@@ -3,6 +3,7 @@
 // Any changes will be lost when the file is regenerated
 // **********************************************************
 using System;
+using BankLink.Practice.Common.Entities;
 using System.Xml.Serialization;
 
 
@@ -11,7 +12,7 @@ namespace BankLink.Practice.BooksIO
 	/// <summary>
 	/// BK - BudgetHeader class
 	/// </summary>
-	public partial class BKBudgetHeader
+	public partial class BKBudgetHeader 
 	{
 
 
@@ -53,6 +54,68 @@ namespace BankLink.Practice.BooksIO
 		[XmlAttribute("AutomaticallyCalculateGST", DataType = "boolean")]
 		public bool AutomaticallyCalculateGST { get; set; }
 
+
+		/// <summary>
+		/// Class Begin Token
+		/// </summary>
+		public const byte BeginToken = 110;
+		/// <summary>
+		/// Class End Token
+		/// </summary>
+		public const byte EndToken = 111;
+		/// <summary>
+		/// Write to BKStream
+		/// </summary>
+		public void WriteBKStream(BankLinkTokenStreamWriter s)
+		{
+			s.WriteToken(110);
+			s.WriteJulDateValue(112, StartDate);
+			s.WriteShortStringValue(113, Name);
+			s.WriteMoneyValue(114, EstimatedOpeningBankBalance);
+			s.WriteBooleanValue(115, IsInclusive);
+			s.WriteBooleanValue(116, AutomaticallyCalculateGST);
+			s.WriteToken(111);
+		}
+
+		/// <summary>
+		/// Default Constructor 
+		/// </summary>
+		public BKBudgetHeader ()
+		{}
+		/// <summary>
+		/// Construct from BKStreamReader
+		/// </summary>
+		public BKBudgetHeader (BankLinkTokenStreamReader s)
+		{
+			var token = BeginToken;
+			while (token != EndToken)
+			{
+				switch (token)
+				{
+			case 112 :
+				StartDate = s.ReadJulDateValue("StartDate");
+				break;
+			case 113 :
+				Name = s.ReadShortStringValue("Name");
+				break;
+			case 114 :
+				EstimatedOpeningBankBalance = s.ReadMoneyValue("EstimatedOpeningBankBalance");
+				break;
+			case 115 :
+				IsInclusive = s.ReadBooleanValue("IsInclusive");
+				break;
+			case 116 :
+				AutomaticallyCalculateGST = s.ReadBooleanValue("AutomaticallyCalculateGST");
+				break;
+			case BeginToken :
+			case EndToken :
+				break;
+			default:
+				throw new Exception(string.Format("unexpected Code: {0} reading BudgetHeader",token) );
+				}
+			token = s.ReadToken();
+			}
+		}
 
 
 	}

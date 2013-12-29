@@ -5,7 +5,7 @@ UNIT LAs3IO;
 // when DBGen is run again.
 
 {  -------------------------------------------------------------------  }
-INTERFACE USES LADEFS, IOSTREAM;
+INTERFACE USES LADEFS, IOSTREAM, LAAUDITUTILS;
 {  -------------------------------------------------------------------  }
 
 CONST
@@ -17,6 +17,9 @@ PROCEDURE Write_Printer_Rec ( Var O : TPrinter_Rec ; Var F : TIOStream );
 PROCEDURE Read_Printer_Rec ( Var O : TPrinter_Rec ; Var F : TIOStream );
 FUNCTION  New_Printer_Rec : pPrinter_Rec ;
 PROCEDURE Free_Printer_Rec_Dynamic_Fields ( Var O : TPrinter_Rec );
+FUNCTION Printer_Rec_Delta(P1, P2, P3: pPrinter_Rec; var ChangedFields: TChanged_Fields_Array): Boolean;
+procedure Copy_Printer_Rec(P1, P2: pPrinter_Rec);
+procedure SetAllFieldsChanged(var ChangedFields: TChanged_Fields_Array);
 
 {  -------------------------------------------------------------------  }
 IMPLEMENTATION USES MONEYDEF, MALLOC, BKDBEXCEPT;
@@ -143,6 +146,90 @@ Begin
    Begin
       { Free any dynamically allocated memory }
    end;
+end;
+
+{  -------------------------------------------------------------------  }
+
+procedure SetAllFieldsChanged(var ChangedFields: TChanged_Fields_Array);
+var
+  i, j: integer;
+begin
+  for i := Low(ChangedFields) to High(ChangedFields) do
+    ChangedFields[i] := 0;
+  j := 0;
+  for i := tks3Printer_Name to tks3LRN do begin
+    ChangedFields[j] := i;
+    Inc(j);
+  end;
+end;
+
+{  -------------------------------------------------------------------  }
+
+FUNCTION Printer_Rec_Delta(P1, P2, P3: pPrinter_Rec; var ChangedFields: TChanged_Fields_Array): Boolean;
+var
+  i: integer;
+begin
+  for i := Low(ChangedFields) to High(ChangedFields) do
+    ChangedFields[i] := 0;
+
+  //Add
+  if not Assigned(P2) then begin
+    Copy_Printer_Rec(P1, P3);
+    SetAllFieldsChanged(ChangedFields);
+    Result := True;
+    Exit;
+  end;
+
+  //Change
+  i := 0;
+  if (P1.s3Printer_Name <> P2.s3Printer_Name) then begin
+    P3.s3Printer_Name := P1.s3Printer_Name;
+    ChangedFields[i] := tks3Printer_Name;
+    Inc(i);
+  end;
+  if (P1.s3Printer_Model_Name <> P2.s3Printer_Model_Name) then begin
+    P3.s3Printer_Model_Name := P1.s3Printer_Model_Name;
+    ChangedFields[i] := tks3Printer_Model_Name;
+    Inc(i);
+  end;
+  if (P1.s3Library_File_Name <> P2.s3Library_File_Name) then begin
+    P3.s3Library_File_Name := P1.s3Library_File_Name;
+    ChangedFields[i] := tks3Library_File_Name;
+    Inc(i);
+  end;
+  if (P1.s3Connection_Type <> P2.s3Connection_Type) then begin
+    P3.s3Connection_Type := P1.s3Connection_Type;
+    ChangedFields[i] := tks3Connection_Type;
+    Inc(i);
+  end;
+  if (P1.s3Queue_Name <> P2.s3Queue_Name) then begin
+    P3.s3Queue_Name := P1.s3Queue_Name;
+    ChangedFields[i] := tks3Queue_Name;
+    Inc(i);
+  end;
+  if (P1.s3LRN <> P2.s3LRN) then begin
+    P3.s3LRN := P1.s3LRN;
+    ChangedFields[i] := tks3LRN;
+    Inc(i);
+  end;
+
+  Result := (i > 0);
+end;
+
+{  -------------------------------------------------------------------  }
+
+procedure Copy_Printer_Rec(P1, P2: pPrinter_Rec);
+var
+  S: TIOStream;
+begin
+  S := TIOStream.Create;
+  try
+    Write_Printer_Rec(P1^, S);
+    S.Position := 0;
+    Read_Printer_Rec(P2^, S);
+  finally
+    S.Free;
+  end;
 end;
 
 {  -------------------------------------------------------------------  }

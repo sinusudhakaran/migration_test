@@ -3,6 +3,7 @@
 // Any changes will be lost when the file is regenerated
 // **********************************************************
 using System;
+using BankLink.Practice.Common.Entities;
 using System.Xml.Serialization;
 
 
@@ -11,7 +12,7 @@ namespace BankLink.Practice.BooksIO
 	/// <summary>
 	/// BK - Dissection class
 	/// </summary>
-	public partial class BKDissection
+	public partial class BKDissection 
 	{
 
 
@@ -448,6 +449,14 @@ namespace BankLink.Practice.BooksIO
 
 
 		/// <summary>
+		/// AuditRecordID property
+		/// </summary>
+		[XmlAttribute("AuditRecordID", DataType = "int")]
+		public Int32 AuditRecordID { get; set; }
+
+
+
+		/// <summary>
 		/// JobCode property
 		/// </summary>
 		[XmlAttribute("JobCode", DataType = "string")]
@@ -485,6 +494,288 @@ namespace BankLink.Practice.BooksIO
 		[XmlAttribute("OpeningBalanceCurrency", DataType = "string")]
 		public String OpeningBalanceCurrency { get; set; }
 
+
+		/// <summary>
+		/// Class Begin Token
+		/// </summary>
+		public const byte BeginToken = 180;
+		/// <summary>
+		/// Class End Token
+		/// </summary>
+		public const byte EndToken = 181;
+		/// <summary>
+		/// Write to BKStream
+		/// </summary>
+		public void WriteBKStream(BankLinkTokenStreamWriter s)
+		{
+			s.WriteToken(180);
+			s.WriteInt32Value(182, SequenceNo);
+			s.WriteShortStringValue(183, Account);
+			s.WriteMoneyValue(184, Amount);
+			s.WriteByteValue(185, GSTClass);
+			s.WriteMoneyValue(186, GSTAmount);
+			s.WriteMoneyValue(187, Quantity);
+			s.WriteShortStringValue(188, OldNarration);
+			s.WriteBooleanValue(189, HasBeenEdited);
+			s.WriteByteValue(190, JournalType);
+			s.WriteBooleanValue(191, GSTHasBeenEdited);
+			s.WriteInt32Value(192, PayeeNumber);
+			s.WriteAnsiStringValue(193, Notes);
+			s.WriteAnsiStringValue(194, ECodingImportNotes);
+			s.WriteAnsiStringValue(195, GLNarration);
+			s.WriteJulDateValue(196, LinkedJournalDate);
+			s.WriteMoneyValue(197, SFImputedCredit);
+			s.WriteMoneyValue(198, SFTaxFreeDist);
+			s.WriteMoneyValue(199, SFTaxExemptDist);
+			s.WriteMoneyValue(200, SFTaxDeferredDist);
+			s.WriteMoneyValue(201, SFTFNCredits);
+			s.WriteMoneyValue(202, SFForeignIncome);
+			s.WriteMoneyValue(203, SFForeignTaxCredits);
+			s.WriteMoneyValue(204, SFCapitalGainsIndexed);
+			s.WriteMoneyValue(205, SFCapitalGainsDisc);
+			s.WriteBooleanValue(206, SFSuperFieldsEdited);
+			s.WriteMoneyValue(207, SFCapitalGainsOther);
+			s.WriteMoneyValue(208, SFOtherExpenses);
+			s.WriteInt32Value(209, SFCGTDate);
+			s.WriteAnsiStringValue(210, ExternalGUID);
+			s.WriteAnsiStringValue(211, DocumentTitle);
+			s.WriteBooleanValue(212, DocumentStatusUpdateRequired);
+			s.WriteBooleanValue(213, NotesRead);
+			s.WriteBooleanValue(214, ImportNotesRead);
+			s.WriteShortStringValue(215, Reference);
+			s.WriteMoneyValue(216, SFFranked);
+			s.WriteMoneyValue(217, SFUnfranked);
+			s.WriteMoneyValue(218, SFInterest);
+			s.WriteMoneyValue(219, SFCapitalGainsForeignDisc);
+			s.WriteMoneyValue(220, SFRent);
+			s.WriteMoneyValue(221, SFSpecialIncome);
+			s.WriteMoneyValue(222, SFOtherTaxCredit);
+			s.WriteMoneyValue(223, SFNonResidentTax);
+			s.WriteShortStringValue(224, SFMemberID);
+			s.WriteMoneyValue(225, SFForeignCapitalGainsCredit);
+			s.WriteByteValue(226, SFMemberComponent);
+			s.WriteMoneyValue(227, PercentAmount);
+			s.WriteBooleanValue(228, AmountTypeIsPercent);
+			s.WriteInt32Value(229, SFFundID);
+			s.WriteInt32Value(230, SFMemberAccountID);
+			s.WriteShortStringValue(231, SFFundCode);
+			s.WriteShortStringValue(232, SFMemberAccountCode);
+			s.WriteInt32Value(233, SFTransactionID);
+			s.WriteAnsiStringValue(234, SFTransactionCode);
+			s.WriteBooleanValue(235, SFCapitalGainsFractionHalf);
+			s.WriteInt32Value(236, AuditRecordID);
+			s.WriteShortStringValue(237, JobCode);
+			s.WriteBooleanValue(238, TaxInvoice);
+			s.WriteMoneyValue(240, ForeignCurrencyAmount);
+			s.WriteJulDateValue(241, ForexDocumentDate);
+			s.WriteShortStringValue(242, OpeningBalanceCurrency);
+			s.WriteToken(181);
+		}
+
+		/// <summary>
+		/// Default Constructor 
+		/// </summary>
+		public BKDissection ()
+		{}
+		/// <summary>
+		/// Construct from BKStreamReader
+		/// </summary>
+		public BKDissection (BankLinkTokenStreamReader s)
+		{
+			var token = BeginToken;
+			while (token != EndToken)
+			{
+				switch (token)
+				{
+			case 182 :
+				SequenceNo = s.ReadInt32Value("SequenceNo");
+				break;
+			case 183 :
+				Account = s.ReadShortStringValue("Account");
+				break;
+			case 184 :
+				Amount = s.ReadMoneyValue("Amount");
+				break;
+			case 185 :
+				GSTClass = s.ReadByteValue("GSTClass");
+				break;
+			case 186 :
+				GSTAmount = s.ReadMoneyValue("GSTAmount");
+				break;
+			case 187 :
+				Quantity = s.ReadMoneyValue("Quantity");
+				break;
+			case 188 :
+				OldNarration = s.ReadShortStringValue("OldNarration");
+				break;
+			case 189 :
+				HasBeenEdited = s.ReadBooleanValue("HasBeenEdited");
+				break;
+			case 190 :
+				JournalType = s.ReadByteValue("JournalType");
+				break;
+			case 191 :
+				GSTHasBeenEdited = s.ReadBooleanValue("GSTHasBeenEdited");
+				break;
+			case 192 :
+				PayeeNumber = s.ReadInt32Value("PayeeNumber");
+				break;
+			case 193 :
+				Notes = s.ReadAnsiStringValue("Notes");
+				break;
+			case 194 :
+				ECodingImportNotes = s.ReadAnsiStringValue("ECodingImportNotes");
+				break;
+			case 195 :
+				GLNarration = s.ReadAnsiStringValue("GLNarration");
+				break;
+			case 196 :
+				LinkedJournalDate = s.ReadJulDateValue("LinkedJournalDate");
+				break;
+			case 197 :
+				SFImputedCredit = s.ReadMoneyValue("SFImputedCredit");
+				break;
+			case 198 :
+				SFTaxFreeDist = s.ReadMoneyValue("SFTaxFreeDist");
+				break;
+			case 199 :
+				SFTaxExemptDist = s.ReadMoneyValue("SFTaxExemptDist");
+				break;
+			case 200 :
+				SFTaxDeferredDist = s.ReadMoneyValue("SFTaxDeferredDist");
+				break;
+			case 201 :
+				SFTFNCredits = s.ReadMoneyValue("SFTFNCredits");
+				break;
+			case 202 :
+				SFForeignIncome = s.ReadMoneyValue("SFForeignIncome");
+				break;
+			case 203 :
+				SFForeignTaxCredits = s.ReadMoneyValue("SFForeignTaxCredits");
+				break;
+			case 204 :
+				SFCapitalGainsIndexed = s.ReadMoneyValue("SFCapitalGainsIndexed");
+				break;
+			case 205 :
+				SFCapitalGainsDisc = s.ReadMoneyValue("SFCapitalGainsDisc");
+				break;
+			case 206 :
+				SFSuperFieldsEdited = s.ReadBooleanValue("SFSuperFieldsEdited");
+				break;
+			case 207 :
+				SFCapitalGainsOther = s.ReadMoneyValue("SFCapitalGainsOther");
+				break;
+			case 208 :
+				SFOtherExpenses = s.ReadMoneyValue("SFOtherExpenses");
+				break;
+			case 209 :
+				SFCGTDate = s.ReadInt32Value("SFCGTDate");
+				break;
+			case 210 :
+				ExternalGUID = s.ReadAnsiStringValue("ExternalGUID");
+				break;
+			case 211 :
+				DocumentTitle = s.ReadAnsiStringValue("DocumentTitle");
+				break;
+			case 212 :
+				DocumentStatusUpdateRequired = s.ReadBooleanValue("DocumentStatusUpdateRequired");
+				break;
+			case 213 :
+				NotesRead = s.ReadBooleanValue("NotesRead");
+				break;
+			case 214 :
+				ImportNotesRead = s.ReadBooleanValue("ImportNotesRead");
+				break;
+			case 215 :
+				Reference = s.ReadShortStringValue("Reference");
+				break;
+			case 216 :
+				SFFranked = s.ReadMoneyValue("SFFranked");
+				break;
+			case 217 :
+				SFUnfranked = s.ReadMoneyValue("SFUnfranked");
+				break;
+			case 218 :
+				SFInterest = s.ReadMoneyValue("SFInterest");
+				break;
+			case 219 :
+				SFCapitalGainsForeignDisc = s.ReadMoneyValue("SFCapitalGainsForeignDisc");
+				break;
+			case 220 :
+				SFRent = s.ReadMoneyValue("SFRent");
+				break;
+			case 221 :
+				SFSpecialIncome = s.ReadMoneyValue("SFSpecialIncome");
+				break;
+			case 222 :
+				SFOtherTaxCredit = s.ReadMoneyValue("SFOtherTaxCredit");
+				break;
+			case 223 :
+				SFNonResidentTax = s.ReadMoneyValue("SFNonResidentTax");
+				break;
+			case 224 :
+				SFMemberID = s.ReadShortStringValue("SFMemberID");
+				break;
+			case 225 :
+				SFForeignCapitalGainsCredit = s.ReadMoneyValue("SFForeignCapitalGainsCredit");
+				break;
+			case 226 :
+				SFMemberComponent = s.ReadByteValue("SFMemberComponent");
+				break;
+			case 227 :
+				PercentAmount = s.ReadMoneyValue("PercentAmount");
+				break;
+			case 228 :
+				AmountTypeIsPercent = s.ReadBooleanValue("AmountTypeIsPercent");
+				break;
+			case 229 :
+				SFFundID = s.ReadInt32Value("SFFundID");
+				break;
+			case 230 :
+				SFMemberAccountID = s.ReadInt32Value("SFMemberAccountID");
+				break;
+			case 231 :
+				SFFundCode = s.ReadShortStringValue("SFFundCode");
+				break;
+			case 232 :
+				SFMemberAccountCode = s.ReadShortStringValue("SFMemberAccountCode");
+				break;
+			case 233 :
+				SFTransactionID = s.ReadInt32Value("SFTransactionID");
+				break;
+			case 234 :
+				SFTransactionCode = s.ReadAnsiStringValue("SFTransactionCode");
+				break;
+			case 235 :
+				SFCapitalGainsFractionHalf = s.ReadBooleanValue("SFCapitalGainsFractionHalf");
+				break;
+			case 236 :
+				AuditRecordID = s.ReadInt32Value("AuditRecordID");
+				break;
+			case 237 :
+				JobCode = s.ReadShortStringValue("JobCode");
+				break;
+			case 238 :
+				TaxInvoice = s.ReadBooleanValue("TaxInvoice");
+				break;
+			case 240 :
+				ForeignCurrencyAmount = s.ReadMoneyValue("ForeignCurrencyAmount");
+				break;
+			case 241 :
+				ForexDocumentDate = s.ReadJulDateValue("ForexDocumentDate");
+				break;
+			case 242 :
+				OpeningBalanceCurrency = s.ReadShortStringValue("OpeningBalanceCurrency");
+				break;
+			case BeginToken :
+			case EndToken :
+				break;
+			default:
+				throw new Exception(string.Format("unexpected Code: {0} reading Dissection",token) );
+				}
+			token = s.ReadToken();
+			}
+		}
 
 
 	}

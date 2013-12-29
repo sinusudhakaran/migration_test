@@ -3,6 +3,7 @@
 // Any changes will be lost when the file is regenerated
 // **********************************************************
 using System;
+using BankLink.Practice.Common.Entities;
 using System.Xml.Serialization;
 
 
@@ -11,7 +12,7 @@ namespace BankLink.Practice.BooksIO
 	/// <summary>
 	/// BK - DivisionHeading class
 	/// </summary>
-	public partial class BKDivisionHeading
+	public partial class BKDivisionHeading 
 	{
 
 
@@ -29,6 +30,68 @@ namespace BankLink.Practice.BooksIO
 		[XmlAttribute("DivisionNo", DataType = "int")]
 		public Int32 DivisionNo { get; set; }
 
+
+
+		/// <summary>
+		/// AuditRecordID property
+		/// </summary>
+		[XmlAttribute("AuditRecordID", DataType = "int")]
+		public Int32 AuditRecordID { get; set; }
+
+
+		/// <summary>
+		/// Class Begin Token
+		/// </summary>
+		public const byte BeginToken = 210;
+		/// <summary>
+		/// Class End Token
+		/// </summary>
+		public const byte EndToken = 211;
+		/// <summary>
+		/// Write to BKStream
+		/// </summary>
+		public void WriteBKStream(BankLinkTokenStreamWriter s)
+		{
+			s.WriteToken(210);
+			s.WriteShortStringValue(212, Heading);
+			s.WriteInt32Value(213, DivisionNo);
+			s.WriteInt32Value(214, AuditRecordID);
+			s.WriteToken(211);
+		}
+
+		/// <summary>
+		/// Default Constructor 
+		/// </summary>
+		public BKDivisionHeading ()
+		{}
+		/// <summary>
+		/// Construct from BKStreamReader
+		/// </summary>
+		public BKDivisionHeading (BankLinkTokenStreamReader s)
+		{
+			var token = BeginToken;
+			while (token != EndToken)
+			{
+				switch (token)
+				{
+			case 212 :
+				Heading = s.ReadShortStringValue("Heading");
+				break;
+			case 213 :
+				DivisionNo = s.ReadInt32Value("DivisionNo");
+				break;
+			case 214 :
+				AuditRecordID = s.ReadInt32Value("AuditRecordID");
+				break;
+			case BeginToken :
+			case EndToken :
+				break;
+			default:
+				throw new Exception(string.Format("unexpected Code: {0} reading DivisionHeading",token) );
+				}
+			token = s.ReadToken();
+			}
+		}
 
 
 	}

@@ -9,8 +9,8 @@ Interface uses MONEYDEF, DATEDEF;
 {  -------------------------------------------------------------------  }
 
 Const
-   LA_IOLIB_Version : Integer = 118;
-   LA_IOLIB_Date    = '24/11/06';
+   LA_IOLIB_Version : Integer = 116;
+   LA_IOLIB_Date    = '30/12/13';
 
 {  -------------------------------------------------------------------  }
 

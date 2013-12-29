@@ -5,7 +5,7 @@ UNIT LAs7IO;
 // when DBGen is run again.
 
 {  -------------------------------------------------------------------  }
-INTERFACE USES LADEFS, IOSTREAM;
+INTERFACE USES LADEFS, IOSTREAM, LAAUDITUTILS;
 {  -------------------------------------------------------------------  }
 
 CONST
@@ -17,6 +17,9 @@ PROCEDURE Write_Windows_Report_Setting_Rec ( Var O : TWindows_Report_Setting_Rec
 PROCEDURE Read_Windows_Report_Setting_Rec ( Var O : TWindows_Report_Setting_Rec ; Var F : TIOStream );
 FUNCTION  New_Windows_Report_Setting_Rec : pWindows_Report_Setting_Rec ;
 PROCEDURE Free_Windows_Report_Setting_Rec_Dynamic_Fields ( Var O : TWindows_Report_Setting_Rec );
+FUNCTION Windows_Report_Setting_Rec_Delta(P1, P2, P3: pWindows_Report_Setting_Rec; var ChangedFields: TChanged_Fields_Array): Boolean;
+procedure Copy_Windows_Report_Setting_Rec(P1, P2: pWindows_Report_Setting_Rec);
+procedure SetAllFieldsChanged(var ChangedFields: TChanged_Fields_Array);
 
 {  -------------------------------------------------------------------  }
 IMPLEMENTATION USES MONEYDEF, MALLOC, BKDBEXCEPT;
@@ -164,6 +167,125 @@ Begin
    Begin
       { Free any dynamically allocated memory }
    end;
+end;
+
+{  -------------------------------------------------------------------  }
+
+procedure SetAllFieldsChanged(var ChangedFields: TChanged_Fields_Array);
+var
+  i, j: integer;
+begin
+  for i := Low(ChangedFields) to High(ChangedFields) do
+    ChangedFields[i] := 0;
+  j := 0;
+  for i := tks7Report_Name to tks7Format_Style do begin
+    ChangedFields[j] := i;
+    Inc(j);
+  end;
+end;
+
+{  -------------------------------------------------------------------  }
+
+FUNCTION Windows_Report_Setting_Rec_Delta(P1, P2, P3: pWindows_Report_Setting_Rec; var ChangedFields: TChanged_Fields_Array): Boolean;
+var
+  i: integer;
+begin
+  for i := Low(ChangedFields) to High(ChangedFields) do
+    ChangedFields[i] := 0;
+
+  //Add
+  if not Assigned(P2) then begin
+    Copy_Windows_Report_Setting_Rec(P1, P3);
+    SetAllFieldsChanged(ChangedFields);
+    Result := True;
+    Exit;
+  end;
+
+  //Change
+  i := 0;
+  if (P1.s7Report_Name <> P2.s7Report_Name) then begin
+    P3.s7Report_Name := P1.s7Report_Name;
+    ChangedFields[i] := tks7Report_Name;
+    Inc(i);
+  end;
+  if (P1.s7Printer_Name <> P2.s7Printer_Name) then begin
+    P3.s7Printer_Name := P1.s7Printer_Name;
+    ChangedFields[i] := tks7Printer_Name;
+    Inc(i);
+  end;
+  if (P1.s7Paper <> P2.s7Paper) then begin
+    P3.s7Paper := P1.s7Paper;
+    ChangedFields[i] := tks7Paper;
+    Inc(i);
+  end;
+  if (P1.s7Bin <> P2.s7Bin) then begin
+    P3.s7Bin := P1.s7Bin;
+    ChangedFields[i] := tks7Bin;
+    Inc(i);
+  end;
+  if (P1.s7Orientation <> P2.s7Orientation) then begin
+    P3.s7Orientation := P1.s7Orientation;
+    ChangedFields[i] := tks7Orientation;
+    Inc(i);
+  end;
+  if (P1.s7Base_Font_Name <> P2.s7Base_Font_Name) then begin
+    P3.s7Base_Font_Name := P1.s7Base_Font_Name;
+    ChangedFields[i] := tks7Base_Font_Name;
+    Inc(i);
+  end;
+  if (P1.s7Base_Font_Style <> P2.s7Base_Font_Style) then begin
+    P3.s7Base_Font_Style := P1.s7Base_Font_Style;
+    ChangedFields[i] := tks7Base_Font_Style;
+    Inc(i);
+  end;
+  if (P1.s7Base_Font_Size <> P2.s7Base_Font_Size) then begin
+    P3.s7Base_Font_Size := P1.s7Base_Font_Size;
+    ChangedFields[i] := tks7Base_Font_Size;
+    Inc(i);
+  end;
+  if (P1.s7Top_Margin <> P2.s7Top_Margin) then begin
+    P3.s7Top_Margin := P1.s7Top_Margin;
+    ChangedFields[i] := tks7Top_Margin;
+    Inc(i);
+  end;
+  if (P1.s7Left_Margin <> P2.s7Left_Margin) then begin
+    P3.s7Left_Margin := P1.s7Left_Margin;
+    ChangedFields[i] := tks7Left_Margin;
+    Inc(i);
+  end;
+  if (P1.s7Bottom_Margin <> P2.s7Bottom_Margin) then begin
+    P3.s7Bottom_Margin := P1.s7Bottom_Margin;
+    ChangedFields[i] := tks7Bottom_Margin;
+    Inc(i);
+  end;
+  if (P1.s7Right_Margin <> P2.s7Right_Margin) then begin
+    P3.s7Right_Margin := P1.s7Right_Margin;
+    ChangedFields[i] := tks7Right_Margin;
+    Inc(i);
+  end;
+  if (P1.s7Format_Style <> P2.s7Format_Style) then begin
+    P3.s7Format_Style := P1.s7Format_Style;
+    ChangedFields[i] := tks7Format_Style;
+    Inc(i);
+  end;
+
+  Result := (i > 0);
+end;
+
+{  -------------------------------------------------------------------  }
+
+procedure Copy_Windows_Report_Setting_Rec(P1, P2: pWindows_Report_Setting_Rec);
+var
+  S: TIOStream;
+begin
+  S := TIOStream.Create;
+  try
+    Write_Windows_Report_Setting_Rec(P1^, S);
+    S.Position := 0;
+    Read_Windows_Report_Setting_Rec(P2^, S);
+  finally
+    S.Free;
+  end;
 end;
 
 {  -------------------------------------------------------------------  }

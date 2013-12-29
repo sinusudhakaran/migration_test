@@ -201,6 +201,7 @@ begin
   if not Assigned(P2) then begin
     Copy_Deleted_Transaction_Rec(P1, P3);
     SetAllFieldsChanged(ChangedFields);
+    Result := True;
     Exit;
   end;
 

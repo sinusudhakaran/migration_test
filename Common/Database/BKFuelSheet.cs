@@ -3,6 +3,7 @@
 // Any changes will be lost when the file is regenerated
 // **********************************************************
 using System;
+using BankLink.Practice.Common.Entities;
 using System.Xml.Serialization;
 
 
@@ -11,7 +12,7 @@ namespace BankLink.Practice.BooksIO
 	/// <summary>
 	/// BK - FuelSheet class
 	/// </summary>
-	public partial class BKFuelSheet
+	public partial class BKFuelSheet 
 	{
 
 
@@ -69,6 +70,76 @@ namespace BankLink.Practice.BooksIO
 		[XmlAttribute("CreditRate", DataType = "long")]
 		public Int64 CreditRate { get; set; }
 
+
+		/// <summary>
+		/// Class Begin Token
+		/// </summary>
+		public const byte BeginToken = 243;
+		/// <summary>
+		/// Class End Token
+		/// </summary>
+		public const byte EndToken = 244;
+		/// <summary>
+		/// Write to BKStream
+		/// </summary>
+		public void WriteBKStream(BankLinkTokenStreamWriter s)
+		{
+			s.WriteToken(243);
+			s.WriteShortStringValue(245, Account);
+			s.WriteAnsiStringValue(246, FuelType);
+			s.WriteMoneyValue(247, FuelLitres);
+			s.WriteAnsiStringValue(248, FuelUse);
+			s.WriteMoneyValue(249, Percentage);
+			s.WriteMoneyValue(250, FuelEligible);
+			s.WriteMoneyValue(251, CreditRate);
+			s.WriteToken(244);
+		}
+
+		/// <summary>
+		/// Default Constructor 
+		/// </summary>
+		public BKFuelSheet ()
+		{}
+		/// <summary>
+		/// Construct from BKStreamReader
+		/// </summary>
+		public BKFuelSheet (BankLinkTokenStreamReader s)
+		{
+			var token = BeginToken;
+			while (token != EndToken)
+			{
+				switch (token)
+				{
+			case 245 :
+				Account = s.ReadShortStringValue("Account");
+				break;
+			case 246 :
+				FuelType = s.ReadAnsiStringValue("FuelType");
+				break;
+			case 247 :
+				FuelLitres = s.ReadMoneyValue("FuelLitres");
+				break;
+			case 248 :
+				FuelUse = s.ReadAnsiStringValue("FuelUse");
+				break;
+			case 249 :
+				Percentage = s.ReadMoneyValue("Percentage");
+				break;
+			case 250 :
+				FuelEligible = s.ReadMoneyValue("FuelEligible");
+				break;
+			case 251 :
+				CreditRate = s.ReadMoneyValue("CreditRate");
+				break;
+			case BeginToken :
+			case EndToken :
+				break;
+			default:
+				throw new Exception(string.Format("unexpected Code: {0} reading FuelSheet",token) );
+				}
+			token = s.ReadToken();
+			}
+		}
 
 
 	}

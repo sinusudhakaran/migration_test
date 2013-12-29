@@ -3,6 +3,7 @@
 // Any changes will be lost when the file is regenerated
 // **********************************************************
 using System;
+using BankLink.Practice.Common.Entities;
 using System.Xml.Serialization;
 
 
@@ -11,7 +12,7 @@ namespace BankLink.Practice.BooksIO
 	/// <summary>
 	/// BK - PayeeLine class
 	/// </summary>
-	public partial class BKPayeeLine
+	public partial class BKPayeeLine 
 	{
 
 
@@ -333,6 +334,220 @@ namespace BankLink.Practice.BooksIO
 		[XmlAttribute("SFLedgerName", DataType = "string")]
 		public String SFLedgerName { get; set; }
 
+
+
+		/// <summary>
+		/// AuditRecordID property
+		/// </summary>
+		[XmlAttribute("AuditRecordID", DataType = "int")]
+		public Int32 AuditRecordID { get; set; }
+
+
+		/// <summary>
+		/// Class Begin Token
+		/// </summary>
+		public const byte BeginToken = 95;
+		/// <summary>
+		/// Class End Token
+		/// </summary>
+		public const byte EndToken = 96;
+		/// <summary>
+		/// Write to BKStream
+		/// </summary>
+		public void WriteBKStream(BankLinkTokenStreamWriter s)
+		{
+			s.WriteToken(95);
+			s.WriteShortStringValue(97, Account);
+			s.WriteMoneyValue(98, Percentage);
+			s.WriteByteValue(99, GSTClass);
+			s.WriteBooleanValue(100, GSTHasBeenEdited);
+			s.WriteAnsiStringValue(101, GLNarration);
+			s.WriteByteValue(102, LineType);
+			s.WriteMoneyValue(103, GSTAmount);
+			s.WriteMoneyValue(104, SFPCFranked);
+			s.WriteShortStringValue(105, SFMemberID);
+			s.WriteInt32Value(106, SFFundID);
+			s.WriteShortStringValue(107, SFFundCode);
+			s.WriteInt32Value(108, SFTransID);
+			s.WriteAnsiStringValue(109, SFTransCode);
+			s.WriteInt32Value(110, SFMemberAccountID);
+			s.WriteShortStringValue(111, SFMemberAccountCode);
+			s.WriteBooleanValue(112, SFEdited);
+			s.WriteByteValue(113, SFMemberComponent);
+			s.WriteMoneyValue(114, SFPCUnFranked);
+			s.WriteMoneyValue(115, Quantity);
+			s.WriteJulDateValue(116, SFGDTDate);
+			s.WriteMoneyValue(117, SFTaxFreeDist);
+			s.WriteMoneyValue(118, SFTaxExemptDist);
+			s.WriteMoneyValue(119, SFTaxDeferredDist);
+			s.WriteMoneyValue(120, SFTFNCredits);
+			s.WriteMoneyValue(121, SFForeignIncome);
+			s.WriteMoneyValue(122, SFForeignTaxCredits);
+			s.WriteMoneyValue(123, SFCapitalGainsIndexed);
+			s.WriteMoneyValue(124, SFCapitalGainsDisc);
+			s.WriteMoneyValue(125, SFCapitalGainsOther);
+			s.WriteMoneyValue(126, SFOtherExpenses);
+			s.WriteMoneyValue(127, SFInterest);
+			s.WriteMoneyValue(128, SFCapitalGainsForeignDisc);
+			s.WriteMoneyValue(129, SFRent);
+			s.WriteMoneyValue(130, SFSpecialIncome);
+			s.WriteMoneyValue(131, SFOtherTaxCredit);
+			s.WriteMoneyValue(132, SFNonResidentTax);
+			s.WriteMoneyValue(133, SFForeignCapitalGainsCredit);
+			s.WriteBooleanValue(134, SFCapitalGainsFractionHalf);
+			s.WriteInt32Value(135, SFLedgerID);
+			s.WriteAnsiStringValue(136, SFLedgerName);
+			s.WriteInt32Value(137, AuditRecordID);
+			s.WriteToken(96);
+		}
+
+		/// <summary>
+		/// Default Constructor 
+		/// </summary>
+		public BKPayeeLine ()
+		{}
+		/// <summary>
+		/// Construct from BKStreamReader
+		/// </summary>
+		public BKPayeeLine (BankLinkTokenStreamReader s)
+		{
+			var token = BeginToken;
+			while (token != EndToken)
+			{
+				switch (token)
+				{
+			case 97 :
+				Account = s.ReadShortStringValue("Account");
+				break;
+			case 98 :
+				Percentage = s.ReadMoneyValue("Percentage");
+				break;
+			case 99 :
+				GSTClass = s.ReadByteValue("GSTClass");
+				break;
+			case 100 :
+				GSTHasBeenEdited = s.ReadBooleanValue("GSTHasBeenEdited");
+				break;
+			case 101 :
+				GLNarration = s.ReadAnsiStringValue("GLNarration");
+				break;
+			case 102 :
+				LineType = s.ReadByteValue("LineType");
+				break;
+			case 103 :
+				GSTAmount = s.ReadMoneyValue("GSTAmount");
+				break;
+			case 104 :
+				SFPCFranked = s.ReadMoneyValue("SFPCFranked");
+				break;
+			case 105 :
+				SFMemberID = s.ReadShortStringValue("SFMemberID");
+				break;
+			case 106 :
+				SFFundID = s.ReadInt32Value("SFFundID");
+				break;
+			case 107 :
+				SFFundCode = s.ReadShortStringValue("SFFundCode");
+				break;
+			case 108 :
+				SFTransID = s.ReadInt32Value("SFTransID");
+				break;
+			case 109 :
+				SFTransCode = s.ReadAnsiStringValue("SFTransCode");
+				break;
+			case 110 :
+				SFMemberAccountID = s.ReadInt32Value("SFMemberAccountID");
+				break;
+			case 111 :
+				SFMemberAccountCode = s.ReadShortStringValue("SFMemberAccountCode");
+				break;
+			case 112 :
+				SFEdited = s.ReadBooleanValue("SFEdited");
+				break;
+			case 113 :
+				SFMemberComponent = s.ReadByteValue("SFMemberComponent");
+				break;
+			case 114 :
+				SFPCUnFranked = s.ReadMoneyValue("SFPCUnFranked");
+				break;
+			case 115 :
+				Quantity = s.ReadMoneyValue("Quantity");
+				break;
+			case 116 :
+				SFGDTDate = s.ReadJulDateValue("SFGDTDate");
+				break;
+			case 117 :
+				SFTaxFreeDist = s.ReadMoneyValue("SFTaxFreeDist");
+				break;
+			case 118 :
+				SFTaxExemptDist = s.ReadMoneyValue("SFTaxExemptDist");
+				break;
+			case 119 :
+				SFTaxDeferredDist = s.ReadMoneyValue("SFTaxDeferredDist");
+				break;
+			case 120 :
+				SFTFNCredits = s.ReadMoneyValue("SFTFNCredits");
+				break;
+			case 121 :
+				SFForeignIncome = s.ReadMoneyValue("SFForeignIncome");
+				break;
+			case 122 :
+				SFForeignTaxCredits = s.ReadMoneyValue("SFForeignTaxCredits");
+				break;
+			case 123 :
+				SFCapitalGainsIndexed = s.ReadMoneyValue("SFCapitalGainsIndexed");
+				break;
+			case 124 :
+				SFCapitalGainsDisc = s.ReadMoneyValue("SFCapitalGainsDisc");
+				break;
+			case 125 :
+				SFCapitalGainsOther = s.ReadMoneyValue("SFCapitalGainsOther");
+				break;
+			case 126 :
+				SFOtherExpenses = s.ReadMoneyValue("SFOtherExpenses");
+				break;
+			case 127 :
+				SFInterest = s.ReadMoneyValue("SFInterest");
+				break;
+			case 128 :
+				SFCapitalGainsForeignDisc = s.ReadMoneyValue("SFCapitalGainsForeignDisc");
+				break;
+			case 129 :
+				SFRent = s.ReadMoneyValue("SFRent");
+				break;
+			case 130 :
+				SFSpecialIncome = s.ReadMoneyValue("SFSpecialIncome");
+				break;
+			case 131 :
+				SFOtherTaxCredit = s.ReadMoneyValue("SFOtherTaxCredit");
+				break;
+			case 132 :
+				SFNonResidentTax = s.ReadMoneyValue("SFNonResidentTax");
+				break;
+			case 133 :
+				SFForeignCapitalGainsCredit = s.ReadMoneyValue("SFForeignCapitalGainsCredit");
+				break;
+			case 134 :
+				SFCapitalGainsFractionHalf = s.ReadBooleanValue("SFCapitalGainsFractionHalf");
+				break;
+			case 135 :
+				SFLedgerID = s.ReadInt32Value("SFLedgerID");
+				break;
+			case 136 :
+				SFLedgerName = s.ReadAnsiStringValue("SFLedgerName");
+				break;
+			case 137 :
+				AuditRecordID = s.ReadInt32Value("AuditRecordID");
+				break;
+			case BeginToken :
+			case EndToken :
+				break;
+			default:
+				throw new Exception(string.Format("unexpected Code: {0} reading PayeeLine",token) );
+				}
+			token = s.ReadToken();
+			}
+		}
 
 
 	}

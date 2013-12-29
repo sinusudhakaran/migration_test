@@ -3,6 +3,7 @@
 // Any changes will be lost when the file is regenerated
 // **********************************************************
 using System;
+using BankLink.Practice.Common.Entities;
 using System.Xml.Serialization;
 
 
@@ -11,7 +12,7 @@ namespace BankLink.Practice.BooksIO
 	/// <summary>
 	/// BK - PayeeDetail class
 	/// </summary>
-	public partial class BKPayeeDetail
+	public partial class BKPayeeDetail 
 	{
 
 
@@ -28,6 +29,14 @@ namespace BankLink.Practice.BooksIO
 		/// </summary>
 		[XmlAttribute("Name", DataType = "string")]
 		public String Name { get; set; }
+
+
+
+		/// <summary>
+		/// AuditRecordID property
+		/// </summary>
+		[XmlAttribute("AuditRecordID", DataType = "int")]
+		public Int32 AuditRecordID { get; set; }
 
 
 
@@ -109,6 +118,100 @@ namespace BankLink.Practice.BooksIO
 		[XmlAttribute("ABN", DataType = "string")]
 		public String ABN { get; set; }
 
+
+		/// <summary>
+		/// Class Begin Token
+		/// </summary>
+		public const byte BeginToken = 90;
+		/// <summary>
+		/// Class End Token
+		/// </summary>
+		public const byte EndToken = 91;
+		/// <summary>
+		/// Write to BKStream
+		/// </summary>
+		public void WriteBKStream(BankLinkTokenStreamWriter s)
+		{
+			s.WriteToken(90);
+			s.WriteInt32Value(92, Number);
+			s.WriteShortStringValue(93, Name);
+			s.WriteInt32Value(94, AuditRecordID);
+			s.WriteBooleanValue(95, Contractor);
+			s.WriteShortStringValue(96, Surname);
+			s.WriteShortStringValue(97, GivenName);
+			s.WriteShortStringValue(98, OtherName);
+			s.WriteShortStringValue(99, Address);
+			s.WriteShortStringValue(100, Town);
+			s.WriteShortStringValue(101, State);
+			s.WriteShortStringValue(102, PostCode);
+			s.WriteShortStringValue(103, PhoneNumber);
+			s.WriteShortStringValue(104, ABN);
+			s.WriteToken(91);
+		}
+
+		/// <summary>
+		/// Default Constructor 
+		/// </summary>
+		public BKPayeeDetail ()
+		{}
+		/// <summary>
+		/// Construct from BKStreamReader
+		/// </summary>
+		public BKPayeeDetail (BankLinkTokenStreamReader s)
+		{
+			var token = BeginToken;
+			while (token != EndToken)
+			{
+				switch (token)
+				{
+			case 92 :
+				Number = s.ReadInt32Value("Number");
+				break;
+			case 93 :
+				Name = s.ReadShortStringValue("Name");
+				break;
+			case 94 :
+				AuditRecordID = s.ReadInt32Value("AuditRecordID");
+				break;
+			case 95 :
+				Contractor = s.ReadBooleanValue("Contractor");
+				break;
+			case 96 :
+				Surname = s.ReadShortStringValue("Surname");
+				break;
+			case 97 :
+				GivenName = s.ReadShortStringValue("GivenName");
+				break;
+			case 98 :
+				OtherName = s.ReadShortStringValue("OtherName");
+				break;
+			case 99 :
+				Address = s.ReadShortStringValue("Address");
+				break;
+			case 100 :
+				Town = s.ReadShortStringValue("Town");
+				break;
+			case 101 :
+				State = s.ReadShortStringValue("State");
+				break;
+			case 102 :
+				PostCode = s.ReadShortStringValue("PostCode");
+				break;
+			case 103 :
+				PhoneNumber = s.ReadShortStringValue("PhoneNumber");
+				break;
+			case 104 :
+				ABN = s.ReadShortStringValue("ABN");
+				break;
+			case BeginToken :
+			case EndToken :
+				break;
+			default:
+				throw new Exception(string.Format("unexpected Code: {0} reading PayeeDetail",token) );
+				}
+			token = s.ReadToken();
+			}
+		}
 
 
 	}

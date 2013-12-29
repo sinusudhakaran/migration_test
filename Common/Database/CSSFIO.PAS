@@ -164,6 +164,7 @@ begin
   if not Assigned(P2) then begin
     Copy_Coding_Stat_Fields_Rec(P1, P3);
     SetAllFieldsChanged(ChangedFields);
+    Result := True;
     Exit;
   end;
 

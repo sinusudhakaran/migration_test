@@ -167,6 +167,7 @@ begin
   if not Assigned(P2) then begin
     Copy_Client_Type_Rec(P1, P3);
     SetAllFieldsChanged(ChangedFields);
+    Result := True;
     Exit;
   end;
 

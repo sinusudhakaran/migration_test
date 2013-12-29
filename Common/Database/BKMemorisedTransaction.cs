@@ -3,6 +3,7 @@
 // Any changes will be lost when the file is regenerated
 // **********************************************************
 using System;
+using BankLink.Practice.Common.Entities;
 using System.Xml.Serialization;
 
 
@@ -11,7 +12,7 @@ namespace BankLink.Practice.BooksIO
 	/// <summary>
 	/// BK - MemorisedTransaction class
 	/// </summary>
-	public partial class BKMemorisedTransaction
+	public partial class BKMemorisedTransaction 
 	{
 
 
@@ -199,6 +200,156 @@ namespace BankLink.Practice.BooksIO
 		/// </summary>
 		[XmlArray("LineTypes"),XmlArrayItem("LineType", DataType = "unsignedByte")]
 		public byte[] LineType { get; set; }
+
+
+		/// <summary>
+		/// AuditRecordID property
+		/// </summary>
+		[XmlAttribute("AuditRecordID", DataType = "int")]
+		public Int32 AuditRecordID { get; set; }
+
+
+		/// <summary>
+		/// Class Begin Token
+		/// </summary>
+		public const byte BeginToken = 220;
+		/// <summary>
+		/// Class End Token
+		/// </summary>
+		public const byte EndToken = 221;
+		/// <summary>
+		/// Write to BKStream
+		/// </summary>
+		public void WriteBKStream(BankLinkTokenStreamWriter s)
+		{
+			s.WriteToken(220);
+			s.WriteInt32Value(222, SequenceNo);
+			s.WriteByteValue(223, Type);
+			s.WriteMoneyValue(224, Amount);
+			s.WriteShortStringValue(225, Reference);
+			s.WriteShortStringValue(226, Particulars);
+			s.WriteShortStringValue(227, Analysis);
+			s.WriteShortStringValue(228, OtherParty);
+			s.WriteShortStringValue(229, StatementDetails);
+			s.WriteByteValue(230, MatchonAmount);
+			s.WriteBooleanValue(231, MatchonRefce);
+			s.WriteBooleanValue(232, MatchonParticulars);
+			s.WriteBooleanValue(233, MatchonAnalysis);
+			s.WriteBooleanValue(234, MatchonOtherParty);
+			s.WriteBooleanValue(235, MatchOnStatementDetails);
+			s.WriteShortStringArray(236, Account, false);
+			s.WriteMoneyArray(237, Percentage, false);
+			s.WriteByteArray(238, GSTClass, false);
+			s.WriteInt32Value(239, PayeeNumber);
+			s.WriteBooleanValue(240, FromMasterList);
+			s.WriteBooleanArray(241, GSTHasBeenEdited, false);
+			s.WriteBooleanValue(242, MatchonNotes);
+			s.WriteShortStringValue(243, Notes);
+			s.WriteShortStringArray(244, GLNarration, false);
+			s.WriteByteArray(245, LineType, false);
+			s.WriteInt32Value(246, AuditRecordID);
+			s.WriteToken(221);
+		}
+
+		/// <summary>
+		/// Default Constructor 
+		/// </summary>
+		public BKMemorisedTransaction ()
+		{}
+		/// <summary>
+		/// Construct from BKStreamReader
+		/// </summary>
+		public BKMemorisedTransaction (BankLinkTokenStreamReader s)
+		{
+			var token = BeginToken;
+			while (token != EndToken)
+			{
+				switch (token)
+				{
+			case 222 :
+				SequenceNo = s.ReadInt32Value("SequenceNo");
+				break;
+			case 223 :
+				Type = s.ReadByteValue("Type");
+				break;
+			case 224 :
+				Amount = s.ReadMoneyValue("Amount");
+				break;
+			case 225 :
+				Reference = s.ReadShortStringValue("Reference");
+				break;
+			case 226 :
+				Particulars = s.ReadShortStringValue("Particulars");
+				break;
+			case 227 :
+				Analysis = s.ReadShortStringValue("Analysis");
+				break;
+			case 228 :
+				OtherParty = s.ReadShortStringValue("OtherParty");
+				break;
+			case 229 :
+				StatementDetails = s.ReadShortStringValue("StatementDetails");
+				break;
+			case 230 :
+				MatchonAmount = s.ReadByteValue("MatchonAmount");
+				break;
+			case 231 :
+				MatchonRefce = s.ReadBooleanValue("MatchonRefce");
+				break;
+			case 232 :
+				MatchonParticulars = s.ReadBooleanValue("MatchonParticulars");
+				break;
+			case 233 :
+				MatchonAnalysis = s.ReadBooleanValue("MatchonAnalysis");
+				break;
+			case 234 :
+				MatchonOtherParty = s.ReadBooleanValue("MatchonOtherParty");
+				break;
+			case 235 :
+				MatchOnStatementDetails = s.ReadBooleanValue("MatchOnStatementDetails");
+				break;
+			case 236 :
+				Account = s.ReadShortStringArray("Account", 236, 50, false);
+				break;
+			case 237 :
+				Percentage = s.ReadMoneyArray("Percentage", 237, 50, false);
+				break;
+			case 238 :
+				GSTClass = s.ReadByteArray("GSTClass", 238, 50, false);
+				break;
+			case 239 :
+				PayeeNumber = s.ReadInt32Value("PayeeNumber");
+				break;
+			case 240 :
+				FromMasterList = s.ReadBooleanValue("FromMasterList");
+				break;
+			case 241 :
+				GSTHasBeenEdited = s.ReadBooleanArray("GSTHasBeenEdited", 241, 50, false);
+				break;
+			case 242 :
+				MatchonNotes = s.ReadBooleanValue("MatchonNotes");
+				break;
+			case 243 :
+				Notes = s.ReadShortStringValue("Notes");
+				break;
+			case 244 :
+				GLNarration = s.ReadShortStringArray("GLNarration", 244, 50, false);
+				break;
+			case 245 :
+				LineType = s.ReadByteArray("LineType", 245, 50, false);
+				break;
+			case 246 :
+				AuditRecordID = s.ReadInt32Value("AuditRecordID");
+				break;
+			case BeginToken :
+			case EndToken :
+				break;
+			default:
+				throw new Exception(string.Format("unexpected Code: {0} reading MemorisedTransaction",token) );
+				}
+			token = s.ReadToken();
+			}
+		}
 
 
 	}

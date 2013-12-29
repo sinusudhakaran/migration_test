@@ -3,6 +3,7 @@
 // Any changes will be lost when the file is regenerated
 // **********************************************************
 using System;
+using BankLink.Practice.Common.Entities;
 using System.Xml.Serialization;
 
 
@@ -11,7 +12,7 @@ namespace BankLink.Practice.BooksIO
 	/// <summary>
 	/// BK - MoreClient class
 	/// </summary>
-	public partial class BKMoreClient
+	public partial class BKMoreClient 
 	{
 
 
@@ -37,6 +38,60 @@ namespace BankLink.Practice.BooksIO
 		[XmlAttribute("JournalProcessingDuration", DataType = "unsignedByte")]
 		public byte JournalProcessingDuration { get; set; }
 
+
+		/// <summary>
+		/// Class Begin Token
+		/// </summary>
+		public const byte BeginToken = 251;
+		/// <summary>
+		/// Class End Token
+		/// </summary>
+		public const byte EndToken = 252;
+		/// <summary>
+		/// Write to BKStream
+		/// </summary>
+		public void WriteBKStream(BankLinkTokenStreamWriter s)
+		{
+			s.WriteToken(251);
+			s.WriteBooleanValue(253, BASDontPrintFuelSheet);
+			s.WriteBooleanValue(254, Archived);
+			s.WriteByteValue(255, JournalProcessingDuration);
+			s.WriteToken(252);
+		}
+
+		/// <summary>
+		/// Default Constructor 
+		/// </summary>
+		public BKMoreClient ()
+		{}
+		/// <summary>
+		/// Construct from BKStreamReader
+		/// </summary>
+		public BKMoreClient (BankLinkTokenStreamReader s)
+		{
+			var token = BeginToken;
+			while (token != EndToken)
+			{
+				switch (token)
+				{
+			case 253 :
+				BASDontPrintFuelSheet = s.ReadBooleanValue("BASDontPrintFuelSheet");
+				break;
+			case 254 :
+				Archived = s.ReadBooleanValue("Archived");
+				break;
+			case 255 :
+				JournalProcessingDuration = s.ReadByteValue("JournalProcessingDuration");
+				break;
+			case BeginToken :
+			case EndToken :
+				break;
+			default:
+				throw new Exception(string.Format("unexpected Code: {0} reading MoreClient",token) );
+				}
+			token = s.ReadToken();
+			}
+		}
 
 
 	}

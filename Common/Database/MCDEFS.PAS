@@ -9,8 +9,8 @@ Interface uses MONEYDEF, DATEDEF;
 {  -------------------------------------------------------------------  }
 
 Const
-   MC_IOLIB_Version : Integer = 123;
-   MC_IOLIB_Date    = '11/07/11';
+   MC_IOLIB_Version : Integer = 124;
+   MC_IOLIB_Date    = '30/12/13';
    MC_FILE_VERSION  = 102;  (* Current Version counter for files
                               Changes if structure or method of storing a value would cause
                               data to be represented incorrectly, or an exception to be raised *)

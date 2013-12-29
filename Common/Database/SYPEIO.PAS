@@ -170,6 +170,7 @@ begin
   if not Assigned(P2) then begin
     Copy_Provisional_Entries_Log_Rec(P1, P3);
     SetAllFieldsChanged(ChangedFields);
+    Result := True;
     Exit;
   end;
 

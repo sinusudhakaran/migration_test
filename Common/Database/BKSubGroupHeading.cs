@@ -3,6 +3,7 @@
 // Any changes will be lost when the file is regenerated
 // **********************************************************
 using System;
+using BankLink.Practice.Common.Entities;
 using System.Xml.Serialization;
 
 
@@ -11,7 +12,7 @@ namespace BankLink.Practice.BooksIO
 	/// <summary>
 	/// BK - SubGroupHeading class
 	/// </summary>
-	public partial class BKSubGroupHeading
+	public partial class BKSubGroupHeading 
 	{
 
 
@@ -37,6 +38,72 @@ namespace BankLink.Practice.BooksIO
 		[XmlAttribute("SubGroupNo", DataType = "int")]
 		public Int32 SubGroupNo { get; set; }
 
+
+
+		/// <summary>
+		/// AuditRecordID property
+		/// </summary>
+		[XmlAttribute("AuditRecordID", DataType = "int")]
+		public Int32 AuditRecordID { get; set; }
+
+
+		/// <summary>
+		/// Class Begin Token
+		/// </summary>
+		public const byte BeginToken = 200;
+		/// <summary>
+		/// Class End Token
+		/// </summary>
+		public const byte EndToken = 201;
+		/// <summary>
+		/// Write to BKStream
+		/// </summary>
+		public void WriteBKStream(BankLinkTokenStreamWriter s)
+		{
+			s.WriteToken(200);
+			s.WriteShortStringValue(202, Heading);
+			s.WriteInt32Value(203, ReportGroupNo);
+			s.WriteInt32Value(204, SubGroupNo);
+			s.WriteInt32Value(205, AuditRecordID);
+			s.WriteToken(201);
+		}
+
+		/// <summary>
+		/// Default Constructor 
+		/// </summary>
+		public BKSubGroupHeading ()
+		{}
+		/// <summary>
+		/// Construct from BKStreamReader
+		/// </summary>
+		public BKSubGroupHeading (BankLinkTokenStreamReader s)
+		{
+			var token = BeginToken;
+			while (token != EndToken)
+			{
+				switch (token)
+				{
+			case 202 :
+				Heading = s.ReadShortStringValue("Heading");
+				break;
+			case 203 :
+				ReportGroupNo = s.ReadInt32Value("ReportGroupNo");
+				break;
+			case 204 :
+				SubGroupNo = s.ReadInt32Value("SubGroupNo");
+				break;
+			case 205 :
+				AuditRecordID = s.ReadInt32Value("AuditRecordID");
+				break;
+			case BeginToken :
+			case EndToken :
+				break;
+			default:
+				throw new Exception(string.Format("unexpected Code: {0} reading SubGroupHeading",token) );
+				}
+			token = s.ReadToken();
+			}
+		}
 
 
 	}

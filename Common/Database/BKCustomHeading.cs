@@ -3,6 +3,7 @@
 // Any changes will be lost when the file is regenerated
 // **********************************************************
 using System;
+using BankLink.Practice.Common.Entities;
 using System.Xml.Serialization;
 
 
@@ -11,7 +12,7 @@ namespace BankLink.Practice.BooksIO
 	/// <summary>
 	/// BK - CustomHeading class
 	/// </summary>
-	public partial class BKCustomHeading
+	public partial class BKCustomHeading 
 	{
 
 
@@ -45,6 +46,76 @@ namespace BankLink.Practice.BooksIO
 		[XmlAttribute("MinorID", DataType = "int")]
 		public Int32 MinorID { get; set; }
 
+
+
+		/// <summary>
+		/// AuditRecordID property
+		/// </summary>
+		[XmlAttribute("AuditRecordID", DataType = "int")]
+		public Int32 AuditRecordID { get; set; }
+
+
+		/// <summary>
+		/// Class Begin Token
+		/// </summary>
+		public const byte BeginToken = 230;
+		/// <summary>
+		/// Class End Token
+		/// </summary>
+		public const byte EndToken = 231;
+		/// <summary>
+		/// Write to BKStream
+		/// </summary>
+		public void WriteBKStream(BankLinkTokenStreamWriter s)
+		{
+			s.WriteToken(230);
+			s.WriteByteValue(232, HeadingType);
+			s.WriteShortStringValue(233, Heading);
+			s.WriteInt32Value(234, MajorID);
+			s.WriteInt32Value(235, MinorID);
+			s.WriteInt32Value(236, AuditRecordID);
+			s.WriteToken(231);
+		}
+
+		/// <summary>
+		/// Default Constructor 
+		/// </summary>
+		public BKCustomHeading ()
+		{}
+		/// <summary>
+		/// Construct from BKStreamReader
+		/// </summary>
+		public BKCustomHeading (BankLinkTokenStreamReader s)
+		{
+			var token = BeginToken;
+			while (token != EndToken)
+			{
+				switch (token)
+				{
+			case 232 :
+				HeadingType = s.ReadByteValue("HeadingType");
+				break;
+			case 233 :
+				Heading = s.ReadShortStringValue("Heading");
+				break;
+			case 234 :
+				MajorID = s.ReadInt32Value("MajorID");
+				break;
+			case 235 :
+				MinorID = s.ReadInt32Value("MinorID");
+				break;
+			case 236 :
+				AuditRecordID = s.ReadInt32Value("AuditRecordID");
+				break;
+			case BeginToken :
+			case EndToken :
+				break;
+			default:
+				throw new Exception(string.Format("unexpected Code: {0} reading CustomHeading",token) );
+				}
+			token = s.ReadToken();
+			}
+		}
 
 
 	}

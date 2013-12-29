@@ -9,8 +9,8 @@ Interface uses MONEYDEF, DATEDEF;
 {  -------------------------------------------------------------------  }
 
 Const
-   CS_IOLIB_Version : Integer = 109;
-   CS_IOLIB_Date    = '30/03/12';
+   CS_IOLIB_Version : Integer = 110;
+   CS_IOLIB_Date    = '30/12/13';
    CS_FILE_VERSION  = 102;  (* Current Version counter for files
                               Changes if structure or method of storing a value would cause
                               data to be represented incorrectly, or an exception to be raised *)
@@ -40,7 +40,7 @@ Type
 {  -------------------------------------------------------------------  }
 
    tCoding_Statistics_Rec = Packed Record
-      csRecord_Type                      : Byte;                            
+      csRecord_Type                      : Byte;
       csClient_LRN                       : Integer;       { Stored }
       csMonth                            : Integer;       { Stored }
       csUpdated                          : Boolean;       { Stored }

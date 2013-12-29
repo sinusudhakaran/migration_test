@@ -3,6 +3,7 @@
 // Any changes will be lost when the file is regenerated
 // **********************************************************
 using System;
+using BankLink.Practice.Common.Entities;
 using System.Xml.Serialization;
 
 
@@ -11,7 +12,7 @@ namespace BankLink.Practice.BooksIO
 	/// <summary>
 	/// BK - Client class
 	/// </summary>
-	public partial class BKClient
+	public partial class BKClient 
 	{
 
 
@@ -333,7 +334,7 @@ namespace BankLink.Practice.BooksIO
 		/// GSTRates property
 		/// </summary>
 		[XmlArray("GSTRates"),XmlArrayItem("GSTRates")]
-		public GSTRates[] GSTRates { get; set; }
+		public Int64[,] GSTRates { get; set; }
 
 
 		/// <summary>
@@ -1842,22 +1843,986 @@ namespace BankLink.Practice.BooksIO
 		[XmlArray("BudgetColumnWidths"),XmlArrayItem("BudgetColumnWidth", DataType = "int")]
 		public Int32[] BudgetColumnWidth { get; set; }
 
-
-	}
-
-
-	/// <summary>
-	/// GSTRates Array class
-	/// </summary>
-	public class GSTRates
-	{
 		/// <summary>
-		/// Name property
+		/// Class Begin Token
 		/// </summary>
-		[XmlArray("GSTRates"),XmlArrayItem("GSTRate", DataType = "long")]
-		public Int64[] GSTRate { get; set; }
-	}
+		public const byte BeginToken = 20;
+		/// <summary>
+		/// Class End Token
+		/// </summary>
+		public const byte EndToken = 21;
+		/// <summary>
+		/// Write to BKStream
+		/// </summary>
+		public void WriteBKStream(BankLinkTokenStreamWriter s)
+		{
+			s.WriteToken(20);
+			s.WriteShortStringValue(22, Code);
+			s.WriteShortStringValue(23, Name);
+			s.WriteShortStringValue(24, AddressL1);
+			s.WriteShortStringValue(25, AddressL2);
+			s.WriteShortStringValue(26, AddressL3);
+			s.WriteShortStringValue(27, ContactName);
+			s.WriteShortStringValue(28, PhoneNo);
+			s.WriteShortStringValue(29, FaxNo);
+			s.WriteShortStringValue(30, FilePassword);
+			s.WriteShortStringValue(31, PracticeName);
+			s.WriteShortStringValue(32, StaffMemberName);
+			s.WriteShortStringValue(33, PracticeEMailAddress);
+			s.WriteShortStringValue(34, StaffMemberEMailAddress);
+			s.WriteShortStringValue(35, ClientEMailAddress);
+			s.WriteByteValue(36, Country);
+			s.WriteShortStringValue(37, FileName);
+			s.WriteByteValue(38, FileType);
+			s.WriteInt32Value(39, FileVersion);
+			s.WriteInt32Value(40, FileSaveCount);
+			s.WriteShortStringValue(41, BankLinkConnectPassword);
+			s.WriteInt32Value(42, PINNumber);
+			s.WriteBooleanValue(43, OldRestrictAnalysisCodes);
+			s.WriteJulDateValue(44, FinancialYearStarts);
+			s.WriteJulDateValue(45, ReportStartDate);
+			s.WriteByteValue(46, ReportingPeriod);
+			s.WriteByteValue(47, OldSendReportsTo);
+			s.WriteBooleanValue(48, SendCodingReport);
+			s.WriteBooleanValue(49, SendChartofAccounts);
+			s.WriteBooleanValue(50, SendUnpresentedChequeList);
+			s.WriteBooleanValue(51, SendPayeeList);
+			s.WriteBooleanValue(52, SendPayeeReport);
+			s.WriteShortStringArray(53, ShortName, true);
+			s.WriteShortStringArray(54, LongName, true);
+			s.WriteShortStringValue(55, GSTNumber);
+			s.WriteByteValue(56, GSTPeriod);
+			s.WriteByteValue(57, GSTStartMonth);
+			s.WriteJulDateArray(58, GSTAppliesFrom, false);
+			s.WriteShortStringArray(59, GSTClassNames, false);
+			s.WriteByteArray(60, GSTClassTypes, false);
+			s.WriteShortStringArray(61, GSTAccountCodes, false);
+			s.WriteMMoneyArray(62, GSTRates, false);
+			s.WriteByteValue(63, GSTBasis);
+			s.WriteBooleanValue(64, GSTonPresentationDate);
+			s.WriteBooleanValue(65, GSTExcludesAccruals);
+			s.WriteBooleanValue(66, GSTInclusiveCashflow);
+			s.WriteByteValue(67, AccountingSystemUsed);
+			s.WriteShortStringValue(68, AccountCodeMask);
+			s.WriteShortStringValue(69, LoadClientFilesFrom);
+			s.WriteShortStringValue(70, SaveClientFilesTo);
+			s.WriteBooleanValue(71, ChartIsLocked);
+			s.WriteJulDateValue(72, ChartLastUpdated);
+			s.WriteByteValue(73, CodingReportStyle);
+			s.WriteByteValue(74, CodingReportSortOrder);
+			s.WriteByteValue(75, CodingReportEntrySelection);
+			s.WriteByteValue(76, CodingReportBlankLines);
+			s.WriteBooleanValue(77, CodingReportRuleLine);
+			s.WriteBooleanValue(78, CodingReportNewPage);
+			s.WriteShortStringArray(79, OldDivisionNames, false);
+			s.WriteShortStringArray(80, CFHeadings, true);
+			s.WriteShortStringArray(81, PRHeadings, true);
+			s.WriteInt32Value(82, MagicNumber);
+			s.WriteInt32Value(83, ExceptionOptions);
+			s.WriteJulDateValue(84, PeriodStartDate);
+			s.WriteJulDateValue(85, PeriodEndDate);
+			s.WriteBooleanValue(86, FRSPrintChartCodes);
+			s.WriteShortStringValue(87, BankLinkCode);
+			s.WriteInt32Value(88, DiskSequenceNo);
+			s.WriteInt32Value(89, StaffMemberLRN);
+			s.WriteBooleanValue(90, SuppressCheckforNewTXns);
+			s.WriteByteValue(91, DownloadFrom);
+			s.WriteInt32Value(92, LastBatchNumber);
+			s.WriteShortStringValue(93, OldGSTClassCodes);
+			s.WriteShortStringArray(94, DivisionCodeList, false);
+			s.WriteByteValue(95, SBExportAs);
+			s.WriteByteValue(96, SBUploadTo);
+			s.WriteBooleanValue(97, CodingReportPrintTI);
+			s.WriteBooleanValue(98, V31GSTFormatUsed);
+			s.WriteBooleanValue(99, EmailScheduledReports);
+			s.WriteShortStringArray(100, OLDBASSpecialAccounts, false);
+			s.WriteShortStringArray(101, GSTClassCodes, false);
+			s.WriteShortStringValue(102, TaxLedgerCode);
+			s.WriteBooleanValue(103, EOYLockedSBOnly);
+			s.WriteByteArray(104, BASFieldNumber, false);
+			s.WriteByteArray(105, BASFieldSource, false);
+			s.WriteShortStringArray(106, BASFieldAccountCode, false);
+			s.WriteByteArray(107, BASFieldBalanceType, false);
+			s.WriteMoneyArray(108, BASFieldPercent, false);
+			s.WriteMoneyArray(109, GSTBusinessPercent, false);
+			s.WriteByteValue(110, BASCalculationMethod);
+			s.WriteBooleanValue(111, BASDontPrintCalcSheet);
+			s.WriteByteValue(112, BASPAYGWithheldPeriod);
+			s.WriteBooleanValue(113, FaxScheduledReports);
+			s.WriteShortStringArray(114, GraphHeadings, true);
+			s.WriteShortStringArray(115, Notes, true);
+			s.WriteByteValue(116, ChequesExpireWhen);
+			s.WriteBooleanValue(117, ShowNotesOnOpen);
+			s.WriteByteValue(118, ECodingEntrySelection);
+			s.WriteBooleanValue(119, ECodingDontSendChart);
+			s.WriteBooleanValue(120, ECodingDontSendPayees);
+			s.WriteBooleanValue(121, ECodingDontShowQuantity);
+			s.WriteInt32Value(122, ECodingLastFileNo);
+			s.WriteInt32Value(123, ECodingLastFileNoImported);
+			s.WriteBooleanValue(124, ECodingExportScheduledReports);
+			s.WriteByteValue(125, EmailReportFormat);
+			s.WriteByteValue(126, BASPAYGInstalmentPeriod);
+			s.WriteBooleanValue(127, BASIncludeFBTWETLCT);
+			s.WriteByteValue(128, BASLastGSTOption);
+			s.WriteByteValue(129, BASLastPAYGInstalmentOption);
+			s.WriteShortStringValue(130, ECodingDefaultPassword);
+			s.WriteInt32Value(131, ECodingImportOptions);
+			s.WriteShortStringValue(132, ECodingLastImportDir);
+			s.WriteShortStringValue(133, ECodingLastExportDir);
+			s.WriteBooleanValue(134, CodingReportShowOP);
+			s.WriteBooleanValue(135, FRSShowQuantity);
+			s.WriteByteValue(136, CflwCashOnHandStyle);
+			s.WriteBooleanValue(137, CSVExportScheduledReports);
+			s.WriteBooleanValue(138, FRSShowYTD);
+			s.WriteBooleanValue(139, FRSShowVariance);
+			s.WriteByteValue(140, FRSCompareType);
+			s.WriteByteValue(141, FRSReportingPeriodType);
+			s.WriteByteValue(142, FRSReportStyle);
+			s.WriteInt32Value(143, ReportingYearStarts);
+			s.WriteByteValue(144, FRSReportDetailType);
+			s.WriteBooleanValue(145, FRSPromptUsertouseBudgetedfigures);
+			s.WriteShortStringArray(146, BalanceSheetHeadings, true);
+			s.WriteInt32Value(147, LastFinancialYearStart);
+			s.WriteBooleanValue(148, N520ReferenceFixRun);
+			s.WriteByteValue(149, TaxInterfaceUsed);
+			s.WriteAnsiStringValue(150, SaveTaxFilesTo);
+			s.WriteByteValue(151, JournalProcessingPeriod);
+			s.WriteInt32Value(152, LastDiskImageVersion);
+			s.WriteAnsiStringValue(153, PracticeWebSite);
+			s.WriteShortStringValue(154, PracticePhone);
+			s.WriteAnsiStringValue(155, PracticeLogo);
+			s.WriteAnsiStringValue(156, WebSiteLoginURL);
+			s.WriteShortStringValue(157, StaffMemberDirectDial);
+			s.WriteByteValue(158, ContactDetailsToShow);
+			s.WriteBooleanValue(159, ECodingDontAllowUPIs);
+			s.WriteBooleanValue(160, ECodingDontShowAccount);
+			s.WriteBooleanValue(161, ECodingDontShowPayees);
+			s.WriteBooleanValue(162, ECodingDontShowGST);
+			s.WriteBooleanValue(163, ECodingDontShowTaxInvoice);
+			s.WriteAnsiStringValue(164, ScheduledFileAttachments);
+			s.WriteByteValue(165, ScheduledCodingReportStyle);
+			s.WriteByteValue(166, ScheduledCodingReportSortOrder);
+			s.WriteByteValue(167, ScheduledCodingReportEntrySelection);
+			s.WriteByteValue(168, ScheduledCodingReportBlankLines);
+			s.WriteBooleanValue(169, ScheduledCodingReportRuleLine);
+			s.WriteBooleanValue(170, ScheduledCodingReportNewPage);
+			s.WriteBooleanValue(171, ScheduledCodingReportPrintTI);
+			s.WriteBooleanValue(172, ScheduledCodingReportShowOP);
+			s.WriteAnsiStringValue(173, ScheduledClientNoteMessage);
+			s.WriteShortStringValue(174, CustomContactName);
+			s.WriteShortStringValue(175, CustomContactEMailAddress);
+			s.WriteShortStringValue(176, CustomContactPhone);
+			s.WriteBooleanValue(177, EmptyJournalsRemoved);
+			s.WriteInt32Value(178, HighestManualAccountNo);
+			s.WriteInt32Value(179, ContactDetailsEditDate);
+			s.WriteInt32Value(180, ContactDetailsEditTime);
+			s.WriteBooleanValue(181, CopyNarrationDissection);
+			s.WriteShortStringValue(182, ClientCCEMailAddress);
+			s.WriteByteValue(183, BASReportFormat);
+			s.WriteBooleanValue(184, WebXExportScheduledReports);
+			s.WriteInt32Value(185, ECodingWebSpace);
+			s.WriteInt32Value(186, LastECodingAccountUID);
+			s.WriteByteValue(187, WebExportFormat);
+			s.WriteShortStringValue(188, MobileNo);
+			s.WriteBooleanValue(189, LedgerReportSummary);
+			s.WriteBooleanValue(190, LedgerReportShowNotes);
+			s.WriteBooleanValue(191, LedgerReportShowQuantities);
+			s.WriteBooleanValue(192, LedgerReportShowNonTrf);
+			s.WriteBooleanValue(193, LedgerReportShowInactiveCodes);
+			s.WriteByteValue(194, LedgerReportBankContra);
+			s.WriteByteValue(195, LedgerReportGSTContra);
+			s.WriteBooleanValue(196, LedgerReportShowBalances);
+			s.WriteBooleanValue(197, FileReadOnly);
+			s.WriteBooleanValue(198, CheckOutScheduledReports);
+			s.WriteAnsiStringValue(199, ExcludeFromScheduledReports);
+			s.WriteBooleanValue(200, LedgerReportShowGrossAndGST);
+			s.WriteShortStringValue(201, Salutation);
+			s.WriteAnsiStringValue(202, ExternalID);
+			s.WriteInt32Value(203, SystemLRN);
+			s.WriteBooleanValue(204, BusinessProductsScheduledReports);
+			s.WriteByteValue(205, BusinessProductsReportFormat);
+			s.WriteBooleanValue(206, CodingReportWrapNarration);
+			s.WriteBooleanValue(207, LedgerReportWrapNarration);
+			s.WriteBooleanValue(208, ScheduledCodingReportWrapNarration);
+			s.WriteBooleanValue(209, ForceOffsiteCheckOut);
+			s.WriteBooleanValue(210, DisableOffsiteCheckOut);
+			s.WriteAnsiStringValue(211, AlternateExtractID);
+			s.WriteBooleanValue(212, UseAlterateIDforextract);
+			s.WriteJulDateValue(213, LastUseDate);
+			s.WriteBooleanValue(214, UseBasicChart);
+			s.WriteAnsiStringValue(215, GroupName);
+			s.WriteAnsiStringValue(216, ClientTypeName);
+			s.WriteBooleanValue(217, BASIncludeFuel);
+			s.WriteBooleanValue(218, ProfitReportShowPercentage);
+			s.WriteBooleanValue(219, ECodingSendSuperfund);
+			s.WriteInt32Value(220, GroupLRN);
+			s.WriteInt32Value(221, ClientTypeLRN);
+			s.WriteByteValue(222, SpareByte1);
+			s.WriteByteValue(223, SpareByte2);
+			s.WriteAnsiStringValue(224, PracticeCode);
+			s.WriteByteArray(225, CashJColumnOrder, true);
+			s.WriteInt32Array(226, CashJColumnWidth, true);
+			s.WriteBooleanArray(227, CashJColumnisHidden, true);
+			s.WriteBooleanArray(228, CashJColumnisNotEditable, true);
+			s.WriteInt32Value(229, CashJSortOrder);
+			s.WriteByteArray(230, AcrlJColumnOrder, true);
+			s.WriteInt32Array(231, AcrlJColumnWidth, true);
+			s.WriteBooleanArray(232, AcrlJColumnisHidden, true);
+			s.WriteBooleanArray(233, AcrlJColumnisNotEditable, true);
+			s.WriteInt32Value(234, AcrlJSortOrder);
+			s.WriteByteArray(235, StockJColumnOrder, true);
+			s.WriteInt32Array(236, StockJColumnWidth, true);
+			s.WriteBooleanArray(237, StockJColumnisHidden, true);
+			s.WriteBooleanArray(238, StockJColumnisNotEditable, true);
+			s.WriteInt32Value(239, StockJSortOrder);
+			s.WriteByteArray(240, YrEJColumnOrder, true);
+			s.WriteInt32Array(241, YrEJColumnWidth, true);
+			s.WriteBooleanArray(242, YrEJColumnisHidden, true);
+			s.WriteBooleanArray(243, YrEJColumnisNotEditable, true);
+			s.WriteInt32Value(244, YrEJSortOrder);
+			s.WriteByteArray(245, gstJColumnOrder, true);
+			s.WriteInt32Array(246, gstJColumnWidth, true);
+			s.WriteBooleanArray(247, gstJColumnisHidden, true);
+			s.WriteBooleanArray(248, gstJColumnisNotEditable, true);
+			s.WriteInt32Value(249, gstJSortOrder);
+			s.WriteAnsiStringValue(250, FavouriteReportXML);
+			s.WriteBooleanValue(251, AllEditModeCES);
+			s.WriteBooleanValue(252, AllEditModeDIS);
+			s.WriteShortStringValue(253, TFN);
+			s.WriteBooleanArray(254, AllEditModeJournals, true);
+			s.WriteInt32Array(255, BudgetColumnWidth, true);
+			s.WriteToken(21);
+		}
 
+		/// <summary>
+		/// Default Constructor 
+		/// </summary>
+		public BKClient ()
+		{}
+		/// <summary>
+		/// Construct from BKStreamReader
+		/// </summary>
+		public BKClient (BankLinkTokenStreamReader s)
+		{
+			var token = BeginToken;
+			while (token != EndToken)
+			{
+				switch (token)
+				{
+			case 22 :
+				Code = s.ReadShortStringValue("Code");
+				break;
+			case 23 :
+				Name = s.ReadShortStringValue("Name");
+				break;
+			case 24 :
+				AddressL1 = s.ReadShortStringValue("AddressL1");
+				break;
+			case 25 :
+				AddressL2 = s.ReadShortStringValue("AddressL2");
+				break;
+			case 26 :
+				AddressL3 = s.ReadShortStringValue("AddressL3");
+				break;
+			case 27 :
+				ContactName = s.ReadShortStringValue("ContactName");
+				break;
+			case 28 :
+				PhoneNo = s.ReadShortStringValue("PhoneNo");
+				break;
+			case 29 :
+				FaxNo = s.ReadShortStringValue("FaxNo");
+				break;
+			case 30 :
+				FilePassword = s.ReadShortStringValue("FilePassword");
+				break;
+			case 31 :
+				PracticeName = s.ReadShortStringValue("PracticeName");
+				break;
+			case 32 :
+				StaffMemberName = s.ReadShortStringValue("StaffMemberName");
+				break;
+			case 33 :
+				PracticeEMailAddress = s.ReadShortStringValue("PracticeEMailAddress");
+				break;
+			case 34 :
+				StaffMemberEMailAddress = s.ReadShortStringValue("StaffMemberEMailAddress");
+				break;
+			case 35 :
+				ClientEMailAddress = s.ReadShortStringValue("ClientEMailAddress");
+				break;
+			case 36 :
+				Country = s.ReadByteValue("Country");
+				break;
+			case 37 :
+				FileName = s.ReadShortStringValue("FileName");
+				break;
+			case 38 :
+				FileType = s.ReadByteValue("FileType");
+				break;
+			case 39 :
+				FileVersion = s.ReadInt32Value("FileVersion");
+				break;
+			case 40 :
+				FileSaveCount = s.ReadInt32Value("FileSaveCount");
+				break;
+			case 41 :
+				BankLinkConnectPassword = s.ReadShortStringValue("BankLinkConnectPassword");
+				break;
+			case 42 :
+				PINNumber = s.ReadInt32Value("PINNumber");
+				break;
+			case 43 :
+				OldRestrictAnalysisCodes = s.ReadBooleanValue("OldRestrictAnalysisCodes");
+				break;
+			case 44 :
+				FinancialYearStarts = s.ReadJulDateValue("FinancialYearStarts");
+				break;
+			case 45 :
+				ReportStartDate = s.ReadJulDateValue("ReportStartDate");
+				break;
+			case 46 :
+				ReportingPeriod = s.ReadByteValue("ReportingPeriod");
+				break;
+			case 47 :
+				OldSendReportsTo = s.ReadByteValue("OldSendReportsTo");
+				break;
+			case 48 :
+				SendCodingReport = s.ReadBooleanValue("SendCodingReport");
+				break;
+			case 49 :
+				SendChartofAccounts = s.ReadBooleanValue("SendChartofAccounts");
+				break;
+			case 50 :
+				SendUnpresentedChequeList = s.ReadBooleanValue("SendUnpresentedChequeList");
+				break;
+			case 51 :
+				SendPayeeList = s.ReadBooleanValue("SendPayeeList");
+				break;
+			case 52 :
+				SendPayeeReport = s.ReadBooleanValue("SendPayeeReport");
+				break;
+			case 53 :
+				ShortName = s.ReadShortStringArray("ShortName", 53, 100, true);
+				break;
+			case 54 :
+				LongName = s.ReadShortStringArray("LongName", 54, 100, true);
+				break;
+			case 55 :
+				GSTNumber = s.ReadShortStringValue("GSTNumber");
+				break;
+			case 56 :
+				GSTPeriod = s.ReadByteValue("GSTPeriod");
+				break;
+			case 57 :
+				GSTStartMonth = s.ReadByteValue("GSTStartMonth");
+				break;
+			case 58 :
+				GSTAppliesFrom = s.ReadJulDateArray("GSTAppliesFrom", 58, 5, false);
+				break;
+			case 59 :
+				GSTClassNames = s.ReadShortStringArray("GSTClassNames", 59, 99, false);
+				break;
+			case 60 :
+				GSTClassTypes = s.ReadByteArray("GSTClassTypes", 60, 99, false);
+				break;
+			case 61 :
+				GSTAccountCodes = s.ReadShortStringArray("GSTAccountCodes", 61, 99, false);
+				break;
+			case 62 :
+				GSTRates = s.ReadMMoneyArray("GSTRates", 62, 99, 5, false);
+				break;
+			case 63 :
+				GSTBasis = s.ReadByteValue("GSTBasis");
+				break;
+			case 64 :
+				GSTonPresentationDate = s.ReadBooleanValue("GSTonPresentationDate");
+				break;
+			case 65 :
+				GSTExcludesAccruals = s.ReadBooleanValue("GSTExcludesAccruals");
+				break;
+			case 66 :
+				GSTInclusiveCashflow = s.ReadBooleanValue("GSTInclusiveCashflow");
+				break;
+			case 67 :
+				AccountingSystemUsed = s.ReadByteValue("AccountingSystemUsed");
+				break;
+			case 68 :
+				AccountCodeMask = s.ReadShortStringValue("AccountCodeMask");
+				break;
+			case 69 :
+				LoadClientFilesFrom = s.ReadShortStringValue("LoadClientFilesFrom");
+				break;
+			case 70 :
+				SaveClientFilesTo = s.ReadShortStringValue("SaveClientFilesTo");
+				break;
+			case 71 :
+				ChartIsLocked = s.ReadBooleanValue("ChartIsLocked");
+				break;
+			case 72 :
+				ChartLastUpdated = s.ReadJulDateValue("ChartLastUpdated");
+				break;
+			case 73 :
+				CodingReportStyle = s.ReadByteValue("CodingReportStyle");
+				break;
+			case 74 :
+				CodingReportSortOrder = s.ReadByteValue("CodingReportSortOrder");
+				break;
+			case 75 :
+				CodingReportEntrySelection = s.ReadByteValue("CodingReportEntrySelection");
+				break;
+			case 76 :
+				CodingReportBlankLines = s.ReadByteValue("CodingReportBlankLines");
+				break;
+			case 77 :
+				CodingReportRuleLine = s.ReadBooleanValue("CodingReportRuleLine");
+				break;
+			case 78 :
+				CodingReportNewPage = s.ReadBooleanValue("CodingReportNewPage");
+				break;
+			case 79 :
+				OldDivisionNames = s.ReadShortStringArray("OldDivisionNames", 79, 9, false);
+				break;
+			case 80 :
+				CFHeadings = s.ReadShortStringArray("CFHeadings", 80, 40, true);
+				break;
+			case 81 :
+				PRHeadings = s.ReadShortStringArray("PRHeadings", 81, 40, true);
+				break;
+			case 82 :
+				MagicNumber = s.ReadInt32Value("MagicNumber");
+				break;
+			case 83 :
+				ExceptionOptions = s.ReadInt32Value("ExceptionOptions");
+				break;
+			case 84 :
+				PeriodStartDate = s.ReadJulDateValue("PeriodStartDate");
+				break;
+			case 85 :
+				PeriodEndDate = s.ReadJulDateValue("PeriodEndDate");
+				break;
+			case 86 :
+				FRSPrintChartCodes = s.ReadBooleanValue("FRSPrintChartCodes");
+				break;
+			case 87 :
+				BankLinkCode = s.ReadShortStringValue("BankLinkCode");
+				break;
+			case 88 :
+				DiskSequenceNo = s.ReadInt32Value("DiskSequenceNo");
+				break;
+			case 89 :
+				StaffMemberLRN = s.ReadInt32Value("StaffMemberLRN");
+				break;
+			case 90 :
+				SuppressCheckforNewTXns = s.ReadBooleanValue("SuppressCheckforNewTXns");
+				break;
+			case 91 :
+				DownloadFrom = s.ReadByteValue("DownloadFrom");
+				break;
+			case 92 :
+				LastBatchNumber = s.ReadInt32Value("LastBatchNumber");
+				break;
+			case 93 :
+				OldGSTClassCodes = s.ReadShortStringValue("OldGSTClassCodes");
+				break;
+			case 94 :
+				DivisionCodeList = s.ReadShortStringArray("DivisionCodeList", 94, 9, false);
+				break;
+			case 95 :
+				SBExportAs = s.ReadByteValue("SBExportAs");
+				break;
+			case 96 :
+				SBUploadTo = s.ReadByteValue("SBUploadTo");
+				break;
+			case 97 :
+				CodingReportPrintTI = s.ReadBooleanValue("CodingReportPrintTI");
+				break;
+			case 98 :
+				V31GSTFormatUsed = s.ReadBooleanValue("V31GSTFormatUsed");
+				break;
+			case 99 :
+				EmailScheduledReports = s.ReadBooleanValue("EmailScheduledReports");
+				break;
+			case 100 :
+				OLDBASSpecialAccounts = s.ReadShortStringArray("OLDBASSpecialAccounts", 100, 10, false);
+				break;
+			case 101 :
+				GSTClassCodes = s.ReadShortStringArray("GSTClassCodes", 101, 99, false);
+				break;
+			case 102 :
+				TaxLedgerCode = s.ReadShortStringValue("TaxLedgerCode");
+				break;
+			case 103 :
+				EOYLockedSBOnly = s.ReadBooleanValue("EOYLockedSBOnly");
+				break;
+			case 104 :
+				BASFieldNumber = s.ReadByteArray("BASFieldNumber", 104, 100, false);
+				break;
+			case 105 :
+				BASFieldSource = s.ReadByteArray("BASFieldSource", 105, 100, false);
+				break;
+			case 106 :
+				BASFieldAccountCode = s.ReadShortStringArray("BASFieldAccountCode", 106, 100, false);
+				break;
+			case 107 :
+				BASFieldBalanceType = s.ReadByteArray("BASFieldBalanceType", 107, 100, false);
+				break;
+			case 108 :
+				BASFieldPercent = s.ReadMoneyArray("BASFieldPercent", 108, 100, false);
+				break;
+			case 109 :
+				GSTBusinessPercent = s.ReadMoneyArray("GSTBusinessPercent", 109, 100, false);
+				break;
+			case 110 :
+				BASCalculationMethod = s.ReadByteValue("BASCalculationMethod");
+				break;
+			case 111 :
+				BASDontPrintCalcSheet = s.ReadBooleanValue("BASDontPrintCalcSheet");
+				break;
+			case 112 :
+				BASPAYGWithheldPeriod = s.ReadByteValue("BASPAYGWithheldPeriod");
+				break;
+			case 113 :
+				FaxScheduledReports = s.ReadBooleanValue("FaxScheduledReports");
+				break;
+			case 114 :
+				GraphHeadings = s.ReadShortStringArray("GraphHeadings", 114, 200, true);
+				break;
+			case 115 :
+				Notes = s.ReadShortStringArray("Notes", 115, 200, true);
+				break;
+			case 116 :
+				ChequesExpireWhen = s.ReadByteValue("ChequesExpireWhen");
+				break;
+			case 117 :
+				ShowNotesOnOpen = s.ReadBooleanValue("ShowNotesOnOpen");
+				break;
+			case 118 :
+				ECodingEntrySelection = s.ReadByteValue("ECodingEntrySelection");
+				break;
+			case 119 :
+				ECodingDontSendChart = s.ReadBooleanValue("ECodingDontSendChart");
+				break;
+			case 120 :
+				ECodingDontSendPayees = s.ReadBooleanValue("ECodingDontSendPayees");
+				break;
+			case 121 :
+				ECodingDontShowQuantity = s.ReadBooleanValue("ECodingDontShowQuantity");
+				break;
+			case 122 :
+				ECodingLastFileNo = s.ReadInt32Value("ECodingLastFileNo");
+				break;
+			case 123 :
+				ECodingLastFileNoImported = s.ReadInt32Value("ECodingLastFileNoImported");
+				break;
+			case 124 :
+				ECodingExportScheduledReports = s.ReadBooleanValue("ECodingExportScheduledReports");
+				break;
+			case 125 :
+				EmailReportFormat = s.ReadByteValue("EmailReportFormat");
+				break;
+			case 126 :
+				BASPAYGInstalmentPeriod = s.ReadByteValue("BASPAYGInstalmentPeriod");
+				break;
+			case 127 :
+				BASIncludeFBTWETLCT = s.ReadBooleanValue("BASIncludeFBTWETLCT");
+				break;
+			case 128 :
+				BASLastGSTOption = s.ReadByteValue("BASLastGSTOption");
+				break;
+			case 129 :
+				BASLastPAYGInstalmentOption = s.ReadByteValue("BASLastPAYGInstalmentOption");
+				break;
+			case 130 :
+				ECodingDefaultPassword = s.ReadShortStringValue("ECodingDefaultPassword");
+				break;
+			case 131 :
+				ECodingImportOptions = s.ReadInt32Value("ECodingImportOptions");
+				break;
+			case 132 :
+				ECodingLastImportDir = s.ReadShortStringValue("ECodingLastImportDir");
+				break;
+			case 133 :
+				ECodingLastExportDir = s.ReadShortStringValue("ECodingLastExportDir");
+				break;
+			case 134 :
+				CodingReportShowOP = s.ReadBooleanValue("CodingReportShowOP");
+				break;
+			case 135 :
+				FRSShowQuantity = s.ReadBooleanValue("FRSShowQuantity");
+				break;
+			case 136 :
+				CflwCashOnHandStyle = s.ReadByteValue("CflwCashOnHandStyle");
+				break;
+			case 137 :
+				CSVExportScheduledReports = s.ReadBooleanValue("CSVExportScheduledReports");
+				break;
+			case 138 :
+				FRSShowYTD = s.ReadBooleanValue("FRSShowYTD");
+				break;
+			case 139 :
+				FRSShowVariance = s.ReadBooleanValue("FRSShowVariance");
+				break;
+			case 140 :
+				FRSCompareType = s.ReadByteValue("FRSCompareType");
+				break;
+			case 141 :
+				FRSReportingPeriodType = s.ReadByteValue("FRSReportingPeriodType");
+				break;
+			case 142 :
+				FRSReportStyle = s.ReadByteValue("FRSReportStyle");
+				break;
+			case 143 :
+				ReportingYearStarts = s.ReadInt32Value("ReportingYearStarts");
+				break;
+			case 144 :
+				FRSReportDetailType = s.ReadByteValue("FRSReportDetailType");
+				break;
+			case 145 :
+				FRSPromptUsertouseBudgetedfigures = s.ReadBooleanValue("FRSPromptUsertouseBudgetedfigures");
+				break;
+			case 146 :
+				BalanceSheetHeadings = s.ReadShortStringArray("BalanceSheetHeadings", 146, 30, true);
+				break;
+			case 147 :
+				LastFinancialYearStart = s.ReadInt32Value("LastFinancialYearStart");
+				break;
+			case 148 :
+				N520ReferenceFixRun = s.ReadBooleanValue("N520ReferenceFixRun");
+				break;
+			case 149 :
+				TaxInterfaceUsed = s.ReadByteValue("TaxInterfaceUsed");
+				break;
+			case 150 :
+				SaveTaxFilesTo = s.ReadAnsiStringValue("SaveTaxFilesTo");
+				break;
+			case 151 :
+				JournalProcessingPeriod = s.ReadByteValue("JournalProcessingPeriod");
+				break;
+			case 152 :
+				LastDiskImageVersion = s.ReadInt32Value("LastDiskImageVersion");
+				break;
+			case 153 :
+				PracticeWebSite = s.ReadAnsiStringValue("PracticeWebSite");
+				break;
+			case 154 :
+				PracticePhone = s.ReadShortStringValue("PracticePhone");
+				break;
+			case 155 :
+				PracticeLogo = s.ReadAnsiStringValue("PracticeLogo");
+				break;
+			case 156 :
+				WebSiteLoginURL = s.ReadAnsiStringValue("WebSiteLoginURL");
+				break;
+			case 157 :
+				StaffMemberDirectDial = s.ReadShortStringValue("StaffMemberDirectDial");
+				break;
+			case 158 :
+				ContactDetailsToShow = s.ReadByteValue("ContactDetailsToShow");
+				break;
+			case 159 :
+				ECodingDontAllowUPIs = s.ReadBooleanValue("ECodingDontAllowUPIs");
+				break;
+			case 160 :
+				ECodingDontShowAccount = s.ReadBooleanValue("ECodingDontShowAccount");
+				break;
+			case 161 :
+				ECodingDontShowPayees = s.ReadBooleanValue("ECodingDontShowPayees");
+				break;
+			case 162 :
+				ECodingDontShowGST = s.ReadBooleanValue("ECodingDontShowGST");
+				break;
+			case 163 :
+				ECodingDontShowTaxInvoice = s.ReadBooleanValue("ECodingDontShowTaxInvoice");
+				break;
+			case 164 :
+				ScheduledFileAttachments = s.ReadAnsiStringValue("ScheduledFileAttachments");
+				break;
+			case 165 :
+				ScheduledCodingReportStyle = s.ReadByteValue("ScheduledCodingReportStyle");
+				break;
+			case 166 :
+				ScheduledCodingReportSortOrder = s.ReadByteValue("ScheduledCodingReportSortOrder");
+				break;
+			case 167 :
+				ScheduledCodingReportEntrySelection = s.ReadByteValue("ScheduledCodingReportEntrySelection");
+				break;
+			case 168 :
+				ScheduledCodingReportBlankLines = s.ReadByteValue("ScheduledCodingReportBlankLines");
+				break;
+			case 169 :
+				ScheduledCodingReportRuleLine = s.ReadBooleanValue("ScheduledCodingReportRuleLine");
+				break;
+			case 170 :
+				ScheduledCodingReportNewPage = s.ReadBooleanValue("ScheduledCodingReportNewPage");
+				break;
+			case 171 :
+				ScheduledCodingReportPrintTI = s.ReadBooleanValue("ScheduledCodingReportPrintTI");
+				break;
+			case 172 :
+				ScheduledCodingReportShowOP = s.ReadBooleanValue("ScheduledCodingReportShowOP");
+				break;
+			case 173 :
+				ScheduledClientNoteMessage = s.ReadAnsiStringValue("ScheduledClientNoteMessage");
+				break;
+			case 174 :
+				CustomContactName = s.ReadShortStringValue("CustomContactName");
+				break;
+			case 175 :
+				CustomContactEMailAddress = s.ReadShortStringValue("CustomContactEMailAddress");
+				break;
+			case 176 :
+				CustomContactPhone = s.ReadShortStringValue("CustomContactPhone");
+				break;
+			case 177 :
+				EmptyJournalsRemoved = s.ReadBooleanValue("EmptyJournalsRemoved");
+				break;
+			case 178 :
+				HighestManualAccountNo = s.ReadInt32Value("HighestManualAccountNo");
+				break;
+			case 179 :
+				ContactDetailsEditDate = s.ReadInt32Value("ContactDetailsEditDate");
+				break;
+			case 180 :
+				ContactDetailsEditTime = s.ReadInt32Value("ContactDetailsEditTime");
+				break;
+			case 181 :
+				CopyNarrationDissection = s.ReadBooleanValue("CopyNarrationDissection");
+				break;
+			case 182 :
+				ClientCCEMailAddress = s.ReadShortStringValue("ClientCCEMailAddress");
+				break;
+			case 183 :
+				BASReportFormat = s.ReadByteValue("BASReportFormat");
+				break;
+			case 184 :
+				WebXExportScheduledReports = s.ReadBooleanValue("WebXExportScheduledReports");
+				break;
+			case 185 :
+				ECodingWebSpace = s.ReadInt32Value("ECodingWebSpace");
+				break;
+			case 186 :
+				LastECodingAccountUID = s.ReadInt32Value("LastECodingAccountUID");
+				break;
+			case 187 :
+				WebExportFormat = s.ReadByteValue("WebExportFormat");
+				break;
+			case 188 :
+				MobileNo = s.ReadShortStringValue("MobileNo");
+				break;
+			case 189 :
+				LedgerReportSummary = s.ReadBooleanValue("LedgerReportSummary");
+				break;
+			case 190 :
+				LedgerReportShowNotes = s.ReadBooleanValue("LedgerReportShowNotes");
+				break;
+			case 191 :
+				LedgerReportShowQuantities = s.ReadBooleanValue("LedgerReportShowQuantities");
+				break;
+			case 192 :
+				LedgerReportShowNonTrf = s.ReadBooleanValue("LedgerReportShowNonTrf");
+				break;
+			case 193 :
+				LedgerReportShowInactiveCodes = s.ReadBooleanValue("LedgerReportShowInactiveCodes");
+				break;
+			case 194 :
+				LedgerReportBankContra = s.ReadByteValue("LedgerReportBankContra");
+				break;
+			case 195 :
+				LedgerReportGSTContra = s.ReadByteValue("LedgerReportGSTContra");
+				break;
+			case 196 :
+				LedgerReportShowBalances = s.ReadBooleanValue("LedgerReportShowBalances");
+				break;
+			case 197 :
+				FileReadOnly = s.ReadBooleanValue("FileReadOnly");
+				break;
+			case 198 :
+				CheckOutScheduledReports = s.ReadBooleanValue("CheckOutScheduledReports");
+				break;
+			case 199 :
+				ExcludeFromScheduledReports = s.ReadAnsiStringValue("ExcludeFromScheduledReports");
+				break;
+			case 200 :
+				LedgerReportShowGrossAndGST = s.ReadBooleanValue("LedgerReportShowGrossAndGST");
+				break;
+			case 201 :
+				Salutation = s.ReadShortStringValue("Salutation");
+				break;
+			case 202 :
+				ExternalID = s.ReadAnsiStringValue("ExternalID");
+				break;
+			case 203 :
+				SystemLRN = s.ReadInt32Value("SystemLRN");
+				break;
+			case 204 :
+				BusinessProductsScheduledReports = s.ReadBooleanValue("BusinessProductsScheduledReports");
+				break;
+			case 205 :
+				BusinessProductsReportFormat = s.ReadByteValue("BusinessProductsReportFormat");
+				break;
+			case 206 :
+				CodingReportWrapNarration = s.ReadBooleanValue("CodingReportWrapNarration");
+				break;
+			case 207 :
+				LedgerReportWrapNarration = s.ReadBooleanValue("LedgerReportWrapNarration");
+				break;
+			case 208 :
+				ScheduledCodingReportWrapNarration = s.ReadBooleanValue("ScheduledCodingReportWrapNarration");
+				break;
+			case 209 :
+				ForceOffsiteCheckOut = s.ReadBooleanValue("ForceOffsiteCheckOut");
+				break;
+			case 210 :
+				DisableOffsiteCheckOut = s.ReadBooleanValue("DisableOffsiteCheckOut");
+				break;
+			case 211 :
+				AlternateExtractID = s.ReadAnsiStringValue("AlternateExtractID");
+				break;
+			case 212 :
+				UseAlterateIDforextract = s.ReadBooleanValue("UseAlterateIDforextract");
+				break;
+			case 213 :
+				LastUseDate = s.ReadJulDateValue("LastUseDate");
+				break;
+			case 214 :
+				UseBasicChart = s.ReadBooleanValue("UseBasicChart");
+				break;
+			case 215 :
+				GroupName = s.ReadAnsiStringValue("GroupName");
+				break;
+			case 216 :
+				ClientTypeName = s.ReadAnsiStringValue("ClientTypeName");
+				break;
+			case 217 :
+				BASIncludeFuel = s.ReadBooleanValue("BASIncludeFuel");
+				break;
+			case 218 :
+				ProfitReportShowPercentage = s.ReadBooleanValue("ProfitReportShowPercentage");
+				break;
+			case 219 :
+				ECodingSendSuperfund = s.ReadBooleanValue("ECodingSendSuperfund");
+				break;
+			case 220 :
+				GroupLRN = s.ReadInt32Value("GroupLRN");
+				break;
+			case 221 :
+				ClientTypeLRN = s.ReadInt32Value("ClientTypeLRN");
+				break;
+			case 222 :
+				SpareByte1 = s.ReadByteValue("SpareByte1");
+				break;
+			case 223 :
+				SpareByte2 = s.ReadByteValue("SpareByte2");
+				break;
+			case 224 :
+				PracticeCode = s.ReadAnsiStringValue("PracticeCode");
+				break;
+			case 225 :
+				CashJColumnOrder = s.ReadByteArray("CashJColumnOrder", 225, 32, true);
+				break;
+			case 226 :
+				CashJColumnWidth = s.ReadInt32Array("CashJColumnWidth", 226, 32, true);
+				break;
+			case 227 :
+				CashJColumnisHidden = s.ReadBooleanArray("CashJColumnisHidden", 227, 32, true);
+				break;
+			case 228 :
+				CashJColumnisNotEditable = s.ReadBooleanArray("CashJColumnisNotEditable", 228, 32, true);
+				break;
+			case 229 :
+				CashJSortOrder = s.ReadInt32Value("CashJSortOrder");
+				break;
+			case 230 :
+				AcrlJColumnOrder = s.ReadByteArray("AcrlJColumnOrder", 230, 32, true);
+				break;
+			case 231 :
+				AcrlJColumnWidth = s.ReadInt32Array("AcrlJColumnWidth", 231, 32, true);
+				break;
+			case 232 :
+				AcrlJColumnisHidden = s.ReadBooleanArray("AcrlJColumnisHidden", 232, 32, true);
+				break;
+			case 233 :
+				AcrlJColumnisNotEditable = s.ReadBooleanArray("AcrlJColumnisNotEditable", 233, 32, true);
+				break;
+			case 234 :
+				AcrlJSortOrder = s.ReadInt32Value("AcrlJSortOrder");
+				break;
+			case 235 :
+				StockJColumnOrder = s.ReadByteArray("StockJColumnOrder", 235, 32, true);
+				break;
+			case 236 :
+				StockJColumnWidth = s.ReadInt32Array("StockJColumnWidth", 236, 32, true);
+				break;
+			case 237 :
+				StockJColumnisHidden = s.ReadBooleanArray("StockJColumnisHidden", 237, 32, true);
+				break;
+			case 238 :
+				StockJColumnisNotEditable = s.ReadBooleanArray("StockJColumnisNotEditable", 238, 32, true);
+				break;
+			case 239 :
+				StockJSortOrder = s.ReadInt32Value("StockJSortOrder");
+				break;
+			case 240 :
+				YrEJColumnOrder = s.ReadByteArray("YrEJColumnOrder", 240, 32, true);
+				break;
+			case 241 :
+				YrEJColumnWidth = s.ReadInt32Array("YrEJColumnWidth", 241, 32, true);
+				break;
+			case 242 :
+				YrEJColumnisHidden = s.ReadBooleanArray("YrEJColumnisHidden", 242, 32, true);
+				break;
+			case 243 :
+				YrEJColumnisNotEditable = s.ReadBooleanArray("YrEJColumnisNotEditable", 243, 32, true);
+				break;
+			case 244 :
+				YrEJSortOrder = s.ReadInt32Value("YrEJSortOrder");
+				break;
+			case 245 :
+				gstJColumnOrder = s.ReadByteArray("gstJColumnOrder", 245, 32, true);
+				break;
+			case 246 :
+				gstJColumnWidth = s.ReadInt32Array("gstJColumnWidth", 246, 32, true);
+				break;
+			case 247 :
+				gstJColumnisHidden = s.ReadBooleanArray("gstJColumnisHidden", 247, 32, true);
+				break;
+			case 248 :
+				gstJColumnisNotEditable = s.ReadBooleanArray("gstJColumnisNotEditable", 248, 32, true);
+				break;
+			case 249 :
+				gstJSortOrder = s.ReadInt32Value("gstJSortOrder");
+				break;
+			case 250 :
+				FavouriteReportXML = s.ReadAnsiStringValue("FavouriteReportXML");
+				break;
+			case 251 :
+				AllEditModeCES = s.ReadBooleanValue("AllEditModeCES");
+				break;
+			case 252 :
+				AllEditModeDIS = s.ReadBooleanValue("AllEditModeDIS");
+				break;
+			case 253 :
+				TFN = s.ReadShortStringValue("TFN");
+				break;
+			case 254 :
+				AllEditModeJournals = s.ReadBooleanArray("AllEditModeJournals", 254, 7, true);
+				break;
+			case 255 :
+				BudgetColumnWidth = s.ReadInt32Array("BudgetColumnWidth", 255, 14, true);
+				break;
+			case BeginToken :
+			case EndToken :
+				break;
+			default:
+				throw new Exception(string.Format("unexpected Code: {0} reading Client",token) );
+				}
+			token = s.ReadToken();
+			}
+		}
+
+
+	}
 
 
 }
