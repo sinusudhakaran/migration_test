@@ -271,18 +271,16 @@ function FileCodeChanged(P1: pClient_File_Rec; AAuditInfo: TAuditInfo): boolean;
 var
   i: integer;
 begin
-  Result := False;
   for i := Low(AAuditInfo.AuditChangedFields) to High(AAuditInfo.AuditChangedFields) do begin
     Result := (AAuditInfo.AuditChangedFields[i] = 82); //File Code
     if Result then Exit;
   end;
+  Result := False;
 end;
 
 
 procedure tSystem_Client_File_List.SetAuditInfo(P1, P2: pClient_File_Rec;
   var AAuditInfo: TAuditInfo);
-var
-  i: integer;
 begin
   AAuditInfo.AuditAction := aaNone;
   if not Assigned(P1) then begin
