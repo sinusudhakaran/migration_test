@@ -105,6 +105,9 @@ begin
     begin
       Result := CompareText(AccountStatus, 'Deleted') = 0;
     end;
+
+  else
+    Result := false;
   end;
 end;
 
