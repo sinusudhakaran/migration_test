@@ -2228,7 +2228,7 @@ procedure TImportHist.vsFileGetText(Sender: TBaseVirtualTree;
 begin
    if not Assigned(Node) then
       Exit;
-   if Node.Index >= fFilelist.Count then
+   if Node.Index >= Cardinal(fFilelist.Count) then
       Exit;
    with TstringList( fFilelist[Node.Index]) do begin
       if Column >= Count then
@@ -2306,7 +2306,7 @@ procedure TImportHist.vsOutGetText(Sender: TBaseVirtualTree; Node: PVirtualNode;
 begin
    if not Assigned(Node) then
       Exit;
-   if Node.Index >= fOutlist.Count then
+   if Node.Index >= Cardinal(fOutlist.Count) then
       Exit;
    with TOutItem( fOutlist[Node.Index]) do begin
       if Column >= Count then
