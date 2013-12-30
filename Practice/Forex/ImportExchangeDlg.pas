@@ -1219,6 +1219,8 @@ var
    end;
 
 begin
+   ColType := 0;
+
    if pcFormat.ActivePageIndex  > 0 then
      ColType := piRate;
 
@@ -1353,7 +1355,7 @@ procedure TImportExchange.vsFileGetText(Sender: TBaseVirtualTree;
 begin
    if not Assigned(Node) then
       Exit;
-   if Node.Index >= fFilelist.Count then
+   if Node.Index >= Cardinal(fFilelist.Count) then
       Exit;
    with TstringList( fFilelist[Node.Index]) do begin
       if Column >= Count then
@@ -1404,7 +1406,7 @@ procedure TImportExchange.vsOutGetText(Sender: TBaseVirtualTree; Node: PVirtualN
 begin
    if not Assigned(Node) then
       Exit;
-   if Node.Index >= fOutlist.Count then
+   if Node.Index >= Cardinal(fOutlist.Count) then
       Exit;
    with TOutItem(fOutlist[Node.Index]) do begin
       if Column >= Count then
@@ -1525,7 +1527,6 @@ procedure TImportExchange.SetExchangeSource(const Value: PExchangeSource);
 var
     C: Integer;
     R: Integer;
-    I, J: Integer;
 
     procedure AddTab(Name: string);
     var
