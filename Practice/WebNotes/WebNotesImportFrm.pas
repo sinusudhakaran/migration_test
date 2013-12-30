@@ -1656,6 +1656,7 @@ begin
    // reset some stuff...
    fFirstDate := maxint;
    fLastDate := 0;
+   Result := false;
 
    DateSelector.edateFrom.Enabled := False;
    DateSelector.edateFrom.AsStDate := 0;
