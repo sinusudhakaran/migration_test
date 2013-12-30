@@ -2065,6 +2065,7 @@ begin
        end;
 
        //Now we start to print the new code
+       Account := nil;
        if Code = '' then
        begin
          S := 'Uncoded';
