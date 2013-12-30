@@ -94,6 +94,7 @@ var
   AllRatesAreZero: Boolean;
 begin
   Result := false;
+  AllRatesAreZero := True;
   if not Assigned(ExchangeSource) then Exit;
 
   EditExchangeRateForm := TEditExchangeRateForm.Create(Application.MainForm);
