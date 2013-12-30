@@ -118,7 +118,7 @@ begin
       CurrentPos := 1;
       while (CurrentPos < ISOColumns.Count) do begin
         for i := 0 to Pred(ISOColumns.Count) do begin
-          if (CurrentPos = ISOColumns[i].Position) then begin
+          if (Cardinal(CurrentPos) = ISOColumns[i].Position) then begin
             Inc(CurrentPos);
             ISOCode := ISOColumns[i].Text;
             HeaderIndex := ExchangeSource.GetISOIndex(ISOCode, ExchangeSource.Header);
