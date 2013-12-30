@@ -135,6 +135,7 @@ CONST
     TPA_FILENAME = 'Third Party Authority.pdf';
     CAF_FILENAME = 'Client Authority Form.pdf';
     INSTITUTIONS_FILENAME = 'Institutions.dat';
+    REMINDER_VERSION_FILENAME = 'Reminder.dat';
 
 
     FILEEXTN            = '.BK5';
