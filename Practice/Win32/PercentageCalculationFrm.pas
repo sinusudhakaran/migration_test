@@ -123,6 +123,7 @@ var
   pAcct       : pAccount_Rec;
   s           : string;
 begin
+  IsValid := False;
   // Check validity of account code
   s       := Trim(edtAccountCode.Text);
   if (s = '') then
