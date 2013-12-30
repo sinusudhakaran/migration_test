@@ -1290,12 +1290,13 @@ begin
       GridHasBeenDisplayed := True;
       RefreshCharges;
     except
-     on E: Exception do begin
-         HelpfulErrorMsg('The file '#13#13 + Filename + #13#13' is not a valid ' + SHORTAPPNAME + ' charges file.'#13#13 +
-                         'Error: ' + E.Message + #13' in line ' + IntToStr(i)
-                          +#13+ Line.CommaText, 0);
-         PageChange(-1);
-     end;
+      on E: Exception do
+      begin
+        HelpfulErrorMsg('The file '#13#13 + Filename + #13#13' is not a valid ' + SHORTAPPNAME + ' charges file.'#13#13 +
+                        'Error: ' + E.Message + #13' in line ' + IntToStr(FCharges.Count)
+                        +#13+ Line.CommaText, 0);
+        PageChange(-1);
+      end;
     end;
   finally
     Line.Free;
