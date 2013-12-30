@@ -224,7 +224,7 @@ begin
   if Assigned(FAuditMgr) then
     pCustom_Heading_Rec(Item)^.hdAudit_Record_ID := FAuditMgr.NextAuditRecordID;
 
-  inherited Insert(Item);
+  Result := inherited Insert(Item);
 end;
 
 procedure tNew_Custom_Headings_List.LoadFromFile(var S: TIOStream);
