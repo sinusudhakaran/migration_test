@@ -439,6 +439,7 @@ var
   OffLineSubscription : TBloArrayOfguid;
   SubIndex : integer;
 begin
+  LCLRec := nil;
   FInWizard := InWizard;
 
    WebFormatChanged := false;
