@@ -877,11 +877,12 @@ begin
     saDesktopSuper:
       begin
         Payee := MyClient.clPayee_List.Find_Payee_Number(PayeeNumber);
+        PayeeLedgerID := -1;
         if Assigned(Payee) and (Payee.pdLines.ItemCount > 0) then
           PayeeLedgerID := Payee.pdLines.PayeeLine_At(0).plSF_Ledger_ID;
-          if (PayeeLedgerID <> -1) and
-             (baFields.baDesktop_Super_Ledger_ID <> PayeeLedgerID) then
-            DoMessage;
+        if (PayeeLedgerID <> -1) and
+           (baFields.baDesktop_Super_Ledger_ID <> PayeeLedgerID) then
+        DoMessage;
       end;
     saClassSuperIP:
       begin
