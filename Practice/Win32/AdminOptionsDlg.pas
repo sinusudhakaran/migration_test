@@ -521,6 +521,8 @@ begin
     whNewZealand: result := (edtInstListLink.Text <> Globals.PRACINI_InstListLinkNZ);
     whAustralia : result := (edtInstListLink.Text <> Globals.PRACINI_InstListLinkAU);
     whUK        : result := (edtInstListLink.Text <> Globals.PRACINI_InstListLinkUK);
+  else
+    Result := false;
   end;
 end;
 
