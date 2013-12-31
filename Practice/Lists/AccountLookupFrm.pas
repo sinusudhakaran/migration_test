@@ -352,6 +352,7 @@ Begin
    if (not DFound) then
      DRow := Succ( CHSListByDesc.SearchFor( CurrentSearchKey ) );
 
+   ARow := -1;
    if FHasAlternativeCode then begin
      ARow := CHSListByAltCode.HasMatch( CurrentSearchKey );
      AFound := (ARow >= 0);
@@ -412,6 +413,7 @@ Begin
                and (not DFound)
                and (not AFound);
 
+   NewSortOrder := CurrentSortOrder;
    if ( FoundInBoth or FoundInNone ) then
      { Don't change the current sort order }
       NewSortOrder := CurrentSortOrder
