@@ -82,6 +82,8 @@ var
   TemplateFileName: string;
   FirstLine : Boolean;
 begin
+  OK := False;
+
   if DebugMe then LogUtil.LogMsg(lmDebug, UNIT_NAME, THIS_METHOD_NAME + ' Begins');
 
   with MyClient.clFields do begin
