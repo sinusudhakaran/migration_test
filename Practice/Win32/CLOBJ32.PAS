@@ -1285,6 +1285,8 @@ var
   Zipper                   : TVCLZip;
   SavFilename              : string;
 begin
+  Result := nil;
+
   Self.IntegrityCheck;
 
   //update fields in client file
