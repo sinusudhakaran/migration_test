@@ -23,11 +23,11 @@ uses
   bkBranding, Globals, bkConst;
 
 var
-  BankstreamSupportPhoneNo : Array[ whMin..whMax ] of String[ 20 ] = ('0800 226 554', '1 800 123 242', '0800 500 3081');
+  BankstreamSupportPhoneNo : Array[ whMin..whMax ] of String[ 25 ] = ('0800 226 554', '1 800 123 242', '0800 500 3081');
 
-  BankstreamSupportEmail : Array[ whMin..whMax ] of String[ 30 ] = ('support@bankstream.co.nz', 'support@bankstream.com.au', 'support@bankstream.com');
+  BankstreamSupportEmail : Array[ whMin..whMax ] of String[ 50 ] = ('support@bankstream.co.nz', 'support@bankstream.com.au', 'support@bankstream.com');
 
-  BankstreamClientServicesEmail : Array[ whMin..whMax ] of String[ 30 ] = ('clientservices@bankstream.co.nz', 'clientservices@bankstream.com.au', 'clientservices@bankstream.com');
+  BankstreamClientServicesEmail : Array[ whMin..whMax ] of String[ 50 ] = ('clientservices@bankstream.co.nz', 'clientservices@bankstream.com.au', 'clientservices@bankstream.com');
 
 { TContactInformation }
 
