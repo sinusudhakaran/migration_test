@@ -882,7 +882,7 @@ begin
           PayeeLedgerID := Payee.pdLines.PayeeLine_At(0).plSF_Ledger_ID;
         if (PayeeLedgerID <> -1) and
            (baFields.baDesktop_Super_Ledger_ID <> PayeeLedgerID) then
-        DoMessage;
+          DoMessage;
       end;
     saClassSuperIP:
       begin
