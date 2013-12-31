@@ -710,6 +710,7 @@ var
 
     function addReport (Value: TReportBase; ToNode: PVirtualNode): PVirtualNode;
     begin
+      result := nil;
       if ShowFinReports or not
         TBatchReportList.IsReportFinancialReport(Get_ReportListType(Value.Title)) then
        result := ReportList.AddNodeItem(ToNode,Value);
