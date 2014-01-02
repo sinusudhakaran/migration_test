@@ -1218,8 +1218,6 @@ begin
                 end;
               end;
 
-              IncDate(GetLastDayOfMonth(CurrentDate), 1, 0, Y - 3);
-
               SystemClient.cfLast_Processing_Status_Date := GetLastDayOfMonth(CurrentDate);
               //For each year
               for Y := 0 to 2 do begin
