@@ -74,6 +74,8 @@ type
       FAuditMgr: TClientAuditManager;
    public
       constructor Create(AAuditMgr: TClientAuditManager);
+      function Compare( Item1, Item2 : pointer ) : integer; override;
+
       function FindRecordID( ARecordID : integer ):  TPayee;
       function  Payee_At( Index : LongInt ): TPayee;
       function  Find_Payee_Number( CONST ANumber: LongInt ): TPayee;
@@ -177,6 +179,11 @@ begin
 
   FAuditMgr := AAuditMgr;
   FCompare := PayeeCompare;
+end;
+
+function TPayee_List.Compare(Item1, Item2: pointer): integer;
+begin
+  result := PayeeCompare(Item1, Item2);
 end;
 
 procedure TPayee_List.DoAudit(AAuditType: TAuditType;
