@@ -639,6 +639,7 @@ begin
 
   oldInstDroppedDown := cmbInstitution.DroppedDown;
 
+  enableControls := false;
   case aInstitutionType of
     inNone  : begin
       mskAccountNumber.Visible := true;
