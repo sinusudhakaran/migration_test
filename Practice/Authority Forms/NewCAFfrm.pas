@@ -388,6 +388,7 @@ begin
 
   // Bank Name
   PDFFormFieldItemEdit := GetPDFFormFieldEdit(ukCAFBankName);
+  shpNewBankDetails := nil;
   if Assigned(PDFFormFieldItemEdit) then
   begin
     case fInstitution of
@@ -473,12 +474,14 @@ begin
       PDFFormFieldItemEdit.Edit.Left  := BankNameFieldItem.Edit.Left + BankNameFieldItem.Edit.Width + 15;
 
       PDFFormFieldItemEdit.Edit.Width := SET_BRANCH_WIDTH_HSBC;
-      
+
       PDFFormFieldItemEdit.AddLinkFieldByTitle(ukCAFBranchName2);
       PDFFormFieldItemEdit.AddLinkFieldByTitle(ukCAFBranchName3);
     end
     else
     begin
+      ASSERT(Assigned(shpNewBankDetails));
+
       PDFFormFieldItemEdit.Edit.Top   := shpNewBankDetails.Top + 40;
       PDFFormFieldItemEdit.Edit.Left  := shpNewBankDetails.Left + 5;
 
