@@ -19,7 +19,7 @@ type
     fAuditMgr: TClientAuditManager; //Audit Manager
 //    function FindRecordID(ARecordID: integer):  TBank_Account;
   public
-    constructor Create( Owner : TObject; AAuditMgr: TClientAuditManager );
+    constructor Create( Owner : TObject; AAuditMgr: TClientAuditManager ); reintroduce; overload; virtual;
     function Compare(Item1,Item2 : Pointer): Integer; override;
     function FindRecordID(ARecordID: integer):  TBank_Account;
     procedure LoadFromFile(var S : TIOStream);

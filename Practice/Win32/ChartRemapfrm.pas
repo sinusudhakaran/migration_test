@@ -50,7 +50,7 @@ protected
    procedure FreeItem(Item : Pointer); override;
 public
    function Compare(Item1,Item2 : Pointer): Integer; override;
-   constructor Create;
+   constructor Create; override;
    //procedure ReadFromFile(Filename: string);virtual;
    destructor Destroy; override;
    property OldCode: string read FOldCode write SetOldCode;

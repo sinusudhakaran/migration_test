@@ -40,7 +40,7 @@ type
     procedure SetLimit( NewLimit : integer ); virtual;
     procedure SetCount( NewCount : integer );
   public
-    constructor create; virtual;
+    constructor Create; virtual;
     destructor Destroy; override;
 
     procedure AtInsert( Index : integer; Item : Pointer );
@@ -66,7 +66,7 @@ type
     FCompare: TListSortCompare;
   public
     Duplicates : boolean;
-    constructor Create;
+    constructor Create; override;
     function Compare( Item1, Item2 : Pointer ) : Integer; virtual; abstract;
     function IndexOf( Item : Pointer ) : integer; override; //virtual;
     procedure Insert( Item : Pointer ); reintroduce; virtual;

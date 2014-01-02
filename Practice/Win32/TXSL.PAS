@@ -8,7 +8,7 @@ INTERFACE USES
 Type
    tSorted_Transaction_List = class( TExtdSortedCollection )
       Sort_Order : Byte;
-      constructor    Create( ASort_Order : Byte );
+      constructor    Create( ASort_Order : Byte ); reintroduce; overload; virtual;
       function       Compare( Item1, Item2 : pointer ) : integer; override;
       procedure      FreeItem( Item : Pointer ); override;
       function       Transaction_At( Index : Longint ) : pTransaction_Rec;
@@ -24,7 +24,7 @@ CONST
    DebugMe : Boolean = FALSE;
    UnitName = 'TXSL';
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-Constructor TSorted_Transaction_List.Create;
+Constructor TSorted_Transaction_List.Create(ASort_Order : Byte);
 const
   ThisMethodName = 'TSorted_Transaction_List.Create';
 Begin                   { Sorted, AllowDups }

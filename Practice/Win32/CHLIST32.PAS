@@ -38,7 +38,7 @@ type
     protected
       procedure   FreeItem( Item : Pointer ); override;
     public
-      constructor Create(AAuditMgr: TClientAuditManager);
+      constructor Create(AAuditMgr: TClientAuditManager); reintroduce; overload; virtual;
       destructor  Destroy; override;
       function    SearchClosestCode( ACode : String ): pAccount_Rec;
       function    FindNextCode( ACode : String; PostingOnly: Boolean = True ): pAccount_Rec;

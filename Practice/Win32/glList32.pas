@@ -24,7 +24,7 @@ type
     fAuditMgr: TClientAuditManager;
 
   public
-    constructor Create(const aAuditMgr: TClientAuditManager);
+    constructor Create(const aAuditMgr: TClientAuditManager); reintroduce; overload; virtual;
 
   protected
     procedure FreeItem(Item: Pointer); override;

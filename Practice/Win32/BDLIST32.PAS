@@ -6,7 +6,7 @@ INTERFACE USES BKDEFS, ecollect, IOSTREAM;
 
 Type
    TBudget_Detail_List = class(TExtdSortedCollection)
-      CONSTRUCTOR    Create;
+      CONSTRUCTOR    Create; override;
       FUNCTION       Compare( Item1, Item2 : pointer ) : integer; override;
    protected
    public

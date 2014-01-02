@@ -17,7 +17,7 @@ uses
 type
    TUnSorted_Transaction_List = class( TExtdCollection )
       lastSeq   : integer;
-      constructor Create;
+      constructor Create; override;
    protected
       procedure FreeItem( Item : Pointer ); override;
    public

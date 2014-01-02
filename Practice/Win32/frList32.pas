@@ -15,7 +15,7 @@ type
   protected
     procedure FreeItem(Item: Pointer); override;
   public
-    constructor Create;
+    constructor Create; override;
 
     function  Compare(Item1, Item2: Pointer) : integer; override;
 

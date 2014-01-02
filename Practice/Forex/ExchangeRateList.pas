@@ -103,7 +103,7 @@ type
   protected
     procedure FreeItem( Item : Pointer ); override;
   public
-    constructor Create;
+    constructor Create; override;
     destructor Destroy; override;
     function Compare( Item1, Item2 : pointer ) : integer; override;
     function ExchangeSource( Index : LongInt ): TExchangeSource;

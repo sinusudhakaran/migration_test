@@ -38,7 +38,7 @@ type
    tPYSList = class( TExtdSortedCollection )
       Seq         : Integer;
       Sort_Order  : TPYSSortType;
-      constructor Create( ASort_Order : TPYSSortType );
+      constructor Create( ASort_Order : TPYSSortType ); reintroduce; overload; virtual;
       function    Compare( Item1, Item2 : pointer ) : integer; override;
       procedure   FreeItem( Item : Pointer ); override;
       procedure   Insert( Item : Pointer ); override;

@@ -32,7 +32,7 @@ type
   private
     FAuditMgr: TClientAuditManager;
   public
-    constructor Create(AAuditMgr: TClientAuditManager);
+    constructor Create(AAuditMgr: TClientAuditManager); reintroduce; overload; virtual;
     procedure LoadFromFile(var S : TIOStream);
     procedure SaveToFile(var S : TIOStream);
     procedure UpdateCRC(var CRC : LongWord);

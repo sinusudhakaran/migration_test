@@ -37,7 +37,7 @@ type
      FAuditMgr: TAuditManager;
      FLoading : Boolean;
    public
-     constructor Create(AAuditMgr: TAuditManager);
+     constructor Create(AAuditMgr: TAuditManager); reintroduce; overload; virtual;
      function MemorisationLine_At( Index : LongInt ): pMemorisation_Line_Rec;
      function Insert(Item: Pointer): integer; override;
      procedure FreeAll; override;
@@ -85,8 +85,7 @@ type
    public
       mxFirstByEntryType : TMemsArray;
       mxLastByEntryType : TMemsArray;
-      constructor Create(AAuditMgr: TAuditManager); overload;
-      constructor Create; overload;
+      constructor Create(AAuditMgr: TAuditManager); reintroduce; overload; virtual;
       function Compare(Item1,Item2 : Pointer): Integer; override;
       procedure Insert(Item : Pointer); override;
       procedure FreeAll; override;
@@ -136,7 +135,7 @@ type
 
 type
    TMaster_Mem_Lists_Collection = Class( TExtdSortedCollection )
-      constructor Create;
+      constructor Create; override;
       function  Compare(Item1,Item2 : Pointer): Integer; override;
    protected
       procedure FreeItem(Item : Pointer); override;
@@ -556,12 +555,6 @@ begin
   if TMemorisation(Item1).mdFields.mdSequence_No < TMemorisation(Item2).mdFields.mdSequence_No then Compare := -1 else
   if TMemorisation(Item1).mdFields.mdSequence_No > TMemorisation(Item2).mdFields.mdSequence_No then Compare := 1 else
   Compare := 0;
-end;
-
-constructor TMemorisations_List.Create;
-begin
-  //Client not needed for Master mem list
-  Create(nil); 
 end;
 
 constructor TMemorisations_List.Create(AAuditMgr: TAuditManager);

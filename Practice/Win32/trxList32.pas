@@ -23,7 +23,7 @@ type
       procedure SetBank_Account(const Value: TObject);
       procedure SetAuditMgr(const Value: TClientAuditManager);
    public
-      constructor Create( AClient, ABank_Account: TObject; AAuditMgr: TClientAuditManager );
+      constructor Create( AClient, ABank_Account: TObject; AAuditMgr: TClientAuditManager ); reintroduce; overload; virtual;
       function Compare(Item1,Item2 : Pointer): Integer; override;
       procedure Insert(Item:Pointer); override;
       procedure Insert_Transaction_Rec(var p: pTransaction_Rec; NewAuditID: Boolean = True);

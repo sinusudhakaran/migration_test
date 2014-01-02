@@ -8,7 +8,7 @@ uses
 
 type
    TPayee_List_V53 = class(TExtdSortedCollection)   //used by version 5.3 or earlier
-      constructor Create;
+      constructor Create; override;
       function Compare( Item1, Item2 : pointer ) : integer; override;
    protected
       procedure FreeItem( Item : Pointer ); override; 

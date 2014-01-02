@@ -21,7 +21,7 @@ type
 
 type
    TChequesList = class(TExtdSortedCollection)
-      constructor Create;
+      constructor Create; override;
       function Compare(Item1, Item2 : pointer) : integer; override;
    private
       function ChqCompare(aChequeNo: integer; Item2: pointer): integer;

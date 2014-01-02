@@ -8,7 +8,7 @@ USES
 
 Type
    tDisk_List = class( TExtdCollection )
-      CONSTRUCTOR    Create;
+      CONSTRUCTOR    Create; override;
    protected
       PROCEDURE      FreeItem( Item : Pointer ); override;
    public

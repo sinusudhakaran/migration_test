@@ -9,7 +9,7 @@ interface uses ecollect, IOSTREAM, BKDEFS;
 
 Type
    TMacro_List = Class ( TExtdSortedCollection )
-      CONSTRUCTOR    Create;
+      CONSTRUCTOR    Create; override;
       FUNCTION       Compare( Item1, Item2 : pointer ) : integer; override;
    protected
       PROCEDURE      FreeItem( Item : Pointer ); override;

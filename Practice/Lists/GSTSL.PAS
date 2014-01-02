@@ -42,7 +42,7 @@ Type
    tgSList = class( TExtdSortedCollection )
       Seq         : Integer;
       Sort_Order  : TgSSortType;
-      constructor    Create( ASort_Order : TgSSortType );
+      constructor    Create( ASort_Order : TgSSortType ); reintroduce; overload; virtual;
       function       Compare( Item1, Item2 : pointer ) : integer; override;
       procedure      FreeItem( Item : Pointer ); override;
       procedure      Insert( Item : Pointer ); override;

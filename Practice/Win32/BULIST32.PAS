@@ -6,7 +6,7 @@ USES
 
 Type
    TBudget_List = class( TExtdSortedCollection )
-      CONSTRUCTOR    Create;
+      CONSTRUCTOR    Create; override;
       FUNCTION       Compare( Item1, Item2 : pointer ) : integer; override;
    protected
       PROCEDURE      FreeItem( Item : Pointer ); override;

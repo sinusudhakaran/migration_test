@@ -8,7 +8,7 @@ uses
 
 Type
    tSystem_Client_File_List = class(TExtdSortedCollection)
-      constructor Create;
+      constructor Create; override;
       function    Compare( Item1, Item2 : pointer ) : integer; override;
    protected
       procedure   FreeItem( Item : Pointer ); override;

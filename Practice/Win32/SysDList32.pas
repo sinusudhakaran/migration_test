@@ -8,7 +8,7 @@ USES
 
 Type
    tSystem_Disk_Log = class( TExtdCollection )
-      CONSTRUCTOR    Create;
+      CONSTRUCTOR    Create; override;
    protected
       PROCEDURE      FreeItem( Item : Pointer ); override;
       function       FindRecordID( ARecordID : integer ):  pSystem_Disk_Log_Rec;

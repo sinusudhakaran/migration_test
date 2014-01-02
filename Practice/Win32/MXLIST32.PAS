@@ -13,7 +13,7 @@ type
       mxLast                : Array[0..255] of pMemorised_Transaction_Rec;
       LastSeq               : integer;
 
-      constructor Create;
+      constructor Create; override;
       function Compare(Item1,Item2 : Pointer): Integer; override;
    protected
       procedure FreeItem(Item : Pointer); override;
