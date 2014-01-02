@@ -40,14 +40,14 @@ type
     property ExchangeRate: double read FExchangeRate;
   end;
 
-  function EnterForeignCurrencyBalance(const pAccount: pAccount_Rec; AsAtDate: integer): boolean;
+  procedure EnterForeignCurrencyBalance(const pAccount: pAccount_Rec; AsAtDate: integer);
 
 implementation
 
 uses
   GenUtils, Globals, ExchangeRateList, stDateSt, ErrorMoreFrm;
 
-function EnterForeignCurrencyBalance(const pAccount: pAccount_Rec; AsAtDate: integer): boolean;
+procedure EnterForeignCurrencyBalance(const pAccount: pAccount_Rec; AsAtDate: integer);
 var
   frmForeignCurrencyBal: TfrmForeignCurrencyBal;
   S: string;
