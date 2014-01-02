@@ -306,6 +306,7 @@ var
   VendorIndex  : integer;
   FirstVendorCol: boolean;
 begin
+  NewColumn := nil;
   FVendorColumns.Clear;
 
   // Service Call
@@ -328,7 +329,8 @@ begin
 
       FVendorColumns.Add(NewColumn);
     end;
-    if not FirstVendorCol then // ie. is there at least one vendor
+
+    if (assigned(NewColumn)) and (not FirstVendorCol) then // ie. is there at least one vendor
       fOnlineVendorEndCol := NewColumn.Index;
   end;
 end;
