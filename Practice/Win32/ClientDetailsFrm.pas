@@ -1575,6 +1575,7 @@ begin
     end
     else if MyClient.clExtra.ceOnlineValuesStored then
     begin
+      NotesIndex := 0;
       SubscriptionSetToNotes := false;
       for SubIndex := 1 to MyClient.clExtra.ceOnlineSubscriptionCount do
       begin
