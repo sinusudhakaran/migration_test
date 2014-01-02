@@ -55,6 +55,10 @@ type
     procedure SaveToFileOF( Const FileName : String; Const Attachments : TStringList ); override;
     function  LoadFromFileOF( Const FileName : String; Const AttachmentDir : String; Const GetAttachments : Boolean ): TStringList; override;
 
+    procedure ExtractFromStreamOF(const FileName: string;
+                                  FileStream: TStream;
+                                  ToProc: FileExtractProc); override;
+
     procedure LoadFromUpdateFile( const FileName: string);
     procedure Validate; override;
   end;
@@ -1258,6 +1262,14 @@ function TUpdateDiskReader.CanAddTransaction: boolean;
 begin
   raise Exception.Create( 'TUpdateDiskReader.CanAddTransaction should never be called');
 end;
+
+// -----------------------------------------------------------------------------
+procedure TUpdateDiskReader.ExtractFromStreamOF(const FileName: string;
+  FileStream: TStream; ToProc: FileExtractProc);
+begin
+  inherited;
+end;
+
 // -----------------------------------------------------------------------------
 
 function TUpdateDiskReader.LoadFromFileOF(const FileName,
