@@ -822,7 +822,9 @@ var
 begin
   BOOnline := ProductConfigService.OnLine;
   if BOOnline then
-    PracticeOnline := ProductConfigService.IsPracticeActive;
+    PracticeOnline := ProductConfigService.IsPracticeActive
+  else
+    PracticeOnline := false;
   imgCannotConnect.Visible := (ProductConfigService.ServiceActive and
                               ((BOOnline = false) or (PracticeOnline = false)));
   lblCannotConnect.Visible := imgCannotConnect.Visible;
