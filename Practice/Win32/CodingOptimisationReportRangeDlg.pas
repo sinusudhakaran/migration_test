@@ -48,7 +48,7 @@ type
     function Validate: Boolean;
   public
 
-    constructor Create;
+    constructor Create; reintroduce;
   end;
 
   function GetCodingOptimisationReportRange(var CodingOptimisationOptions:
