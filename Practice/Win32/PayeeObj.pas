@@ -40,7 +40,7 @@ type
      procedure SetAuditInfo(P1, P2: pPayee_Line_Rec;
                             AParentID: integer;
                             var AAuditInfo: TAuditInfo);
-     procedure Insert(Item: Pointer; AAuditMgr: TClientAuditManager); overload;
+     procedure Insert(Item: Pointer; AAuditMgr: TClientAuditManager); reintroduce; overload; virtual;
    end;
 
    TPayee = class
@@ -73,7 +73,7 @@ type
    private
       FAuditMgr: TClientAuditManager;
    public
-      constructor Create(AAuditMgr: TClientAuditManager);
+      constructor Create(AAuditMgr: TClientAuditManager); reintroduce; overload; virtual;
       function Compare( Item1, Item2 : pointer ) : integer; override;
 
       function FindRecordID( ARecordID : integer ):  TPayee;
