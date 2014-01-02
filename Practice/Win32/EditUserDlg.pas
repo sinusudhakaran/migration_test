@@ -1274,6 +1274,7 @@ begin { TdlgEditUser.Execute }
 
 //  if (UseBankLinkOnline or
 //     (Assigned(User) and User.usAllow_Banklink_Online)) then
+  Practice := nil;
   if UseBankLinkOnline then
     Practice := ProductConfigService.GetPractice(true);
 
@@ -1342,6 +1343,8 @@ begin { TdlgEditUser.Execute }
       try
         if ProductConfigService.Online then
         begin
+          Assert(Assigned(Practice));
+
           Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Sending Data to ' + bkBranding.ProductOnlineName, 50);
           UserGuid := ProductConfigService.GetPracUserGuid(User.usCode, Practice);
           fIsPrimaryUser := ProductConfigService.IsPrimPracUser(User.usCode, Practice);
