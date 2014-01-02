@@ -694,7 +694,7 @@ begin
                     LastControlAcct := nil;
                   end;
                   //Add extra line before control acct group
-                  if (not StartSection) and (not StartSubGroup) and 
+                  if (not StartSubGroup) and
                      (ControlAcct <> nil) and (ControlAcct <> LastControlAcct)  then begin
                     RenderTextLine('');
                     Inc( iLinesPrinted);
