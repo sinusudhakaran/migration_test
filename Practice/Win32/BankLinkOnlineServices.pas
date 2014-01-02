@@ -2596,7 +2596,7 @@ end;
 
 function TProductConfigService.ErrorOccurred: Boolean;
 begin
-
+  result := false;
 end;
 
 //------------------------------------------------------------------------------
@@ -4404,6 +4404,8 @@ var
   PracticePassedIn : Boolean;
   Found : Boolean;
 begin
+  Result := nil;
+
   Found := false;
 
   PracticePassedIn := Assigned(aPractice);
@@ -5592,6 +5594,8 @@ var
   Cancelled: Boolean;
   ConnectionError: Boolean;
 begin
+  Result := false;
+
   Screen.Cursor := crHourGlass;
   Progress.StatusSilent := False;
   Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Connecting', 10);
@@ -5634,7 +5638,7 @@ begin
           if DebugMe then LogUtil.LogMsg(lmDebug, UNIT_NAME,
             'SaveClient for ' + aExistingClient.ClientCode
           );
-          
+
           MsgResponse := BlopiInterface.SaveClient(CountryText(AdminSystem.fdFields.fdCountry),
                                                  AdminSystem.fdFields.fdBankLink_Code,
                                                  AdminSystem.fdFields.fdBankLink_Connect_Password,
@@ -5649,7 +5653,7 @@ begin
               if DebugMe then LogUtil.LogMsg(lmDebug, UNIT_NAME,
                 'SaveClient for ' + aExistingClient.ClientCode
               );
-              
+
               MsgResponse := BlopiInterface.SaveClient(CountryText(AdminSystem.fdFields.fdCountry),
                                                AdminSystem.fdFields.fdBankLink_Code,
                                                AdminSystem.fdFields.fdBankLink_Connect_Password,
@@ -5992,6 +5996,8 @@ var
   TempPractice: TBloPracticeRead;
   Index: Integer;
 begin
+  Result := nil;
+
   if AUsePracCopy then
   begin
     TempPractice := FPracticeCopy;
