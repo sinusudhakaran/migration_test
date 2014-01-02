@@ -347,6 +347,7 @@ var
   AccVendorIndex : integer;
   VendorFirstIndex : integer;
 begin
+  NewItem := nil;
   lvBank.Items.beginUpdate;
   try
     // Dynamic columns
@@ -396,7 +397,8 @@ begin
       end;
 
       // For this account Get the Vendor data and updates extra columns
-      if (fExportDataEnabled) then
+      VendorFirstIndex := -1;
+      if (assigned(NewItem)) and (fExportDataEnabled) then
       begin
         for ClientVendorIndex := 0 to high(fClientAccVendors.ClientVendors) do
           if ClientVendorIndex = 0 then
@@ -426,7 +428,7 @@ begin
               end;
             end;
 
-            if Found then
+            if (Found) and (VendorFirstIndex > -1)  then
               NewItem.SubItems.Strings[VendorFirstIndex + ClientVendorIndex] := '1';
           end;
         end;
@@ -1208,7 +1210,7 @@ begin
   begin
     VendorGuid := fClientAccVendors.ClientVendors[VendorIndex].Id;
     VendorCount := 0;
-
+    AccSelIndex := 0;
     // Searches for Vendors through all Valid Accounts and if there is only one
     // left in the Current Vendor Set the Flag
     for AccountIndex := 0 to high(fClientAccVendors.AccountsVendors) do
