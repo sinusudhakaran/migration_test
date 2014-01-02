@@ -49,7 +49,10 @@ var
   frmSelectInstitution: TfrmSelectInstitution;
 begin
   if not aCountry = whUK then
+  begin
+    result := mrNone;
     Exit;
+  end;
 
   frmSelectInstitution := TfrmSelectInstitution.Create(Application);
   try
