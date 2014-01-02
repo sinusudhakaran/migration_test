@@ -245,7 +245,7 @@ type
      ClientList         : TList;
      procedure ClearClientList;
    public
-     constructor Create;
+     constructor Create; reintroduce;
      destructor Destroy; override;
    end;
 
@@ -255,7 +255,7 @@ type
      ClientList         : TList;
      procedure ClearClientList;
    public
-     constructor Create;
+     constructor Create; reintroduce;
      destructor Destroy; override;
    end;
 
@@ -3710,13 +3710,14 @@ begin
          Continue;
 
       //Transaction selection
+      PrintAuditRec := false;
       case Report.ReportOptions.AuditSelection of
         byAll: PrintAuditRec := True;
         byTransactionType: PrintAuditRec := (Report.ReportOptions.TransactionType = AuditRecord.atTransaction_Type) or
                                             (Report.ReportOptions.TransactionType = arAll);
         byTransactionID  : PrintAuditRec := (Report.ReportOptions.TransactionID = AuditRecord.atRecord_ID) or
                                             (Report.ReportOptions.IncludeChild and
-                                             (Report.ReportOptions.TransactionID = AuditRecord.atParent_ID));
+                                            (Report.ReportOptions.TransactionID = AuditRecord.atParent_ID));
       end;
 
       //Get changed values
@@ -3884,6 +3885,7 @@ begin
            Continue;
 
         //Transaction selection
+        PrintAuditRec := false;
         case Report.ReportOptions.AuditSelection of
           byAll: PrintAuditRec := True;
           byTransactionType: PrintAuditRec := (Report.ReportOptions.TransactionType = AuditRecord.atTransaction_Type) or
@@ -3898,7 +3900,7 @@ begin
                                               IsVATSetup(Report.ReportOptions.TransactionType, AuditRecord);
           byTransactionID  : PrintAuditRec := (Report.ReportOptions.TransactionID = AuditRecord.atRecord_ID) or
                                               (Report.ReportOptions.IncludeChild and
-                                               (Report.ReportOptions.TransactionID = AuditRecord.atParent_ID));
+                                              (Report.ReportOptions.TransactionID = AuditRecord.atParent_ID));
         end;
 
         //Get changed values
@@ -4055,6 +4057,7 @@ begin
            Continue;
 
         //Transaction selection
+        PrintAuditRec := false;
         case Report.ReportOptions.AuditSelection of
           byAll: PrintAuditRec := True;
           byTransactionType: PrintAuditRec := (Report.ReportOptions.TransactionType = AuditRecord.atTransaction_Type) or
