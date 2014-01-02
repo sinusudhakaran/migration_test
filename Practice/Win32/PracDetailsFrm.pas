@@ -341,6 +341,8 @@ function TfrmPracticeDetails.GetVendorSettingsTab(const VendorName: String): TTa
 var
   Index: Integer;
 begin
+  Result := nil;
+
   for Index := 0 to pgcVendorExportOptions.PageCount - 1 do
   begin
     if pgcVendorExportOptions.Pages[Index].Caption = VendorName then
@@ -1859,6 +1861,8 @@ begin
       vtProducts.NodeDataSize := SizeOf(TTreeData);
       vtProducts.Indent := 0;
 
+      ProductNode := nil;
+      ServiceNode := nil;
       if Length(FPrac.Catalogue) > 0 then begin
         ProductNode := AddTreeNode(vtProducts, nil, 'Products', nil);
         ServiceNode := AddTreeNode(vtProducts, nil, 'Services', nil);
