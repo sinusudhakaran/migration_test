@@ -564,13 +564,14 @@ begin
 
     //List clients that failed to output custom documents
     LastClientCode := '';
+    TitleLinePrinted := False;
     for i := 0 to ReportParam.srSummaryInfoList.Count - 1 do begin
       CurrRec := pSchdRepSummaryRec(ReportParam.srSummaryInfoList[i]);
       if (not CurrRec^.Completed) and (CurrRec^.AccountNo = CUSTOM_DOCUMENT) then begin
         if (not TitleLinePrinted) then
         begin
           RenderTitleLine('Custom documents for the following clients were not generated because they no longer exist');
-          TitleLinePrinted := False;
+          TitleLinePrinted := True;
         end;
 
         if (LastClientCode <> CurrRec^.ClientCode) then
