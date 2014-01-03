@@ -50,7 +50,7 @@ unit WPOBJ_Image;
 // Inform about the use ...
 {$IFNDEF VER130}
 {$IFDEF GRAPHICEX}
-{$MESSAGE Warn '*** GraphicEx included due to compiler symbol "GRAPHICEX"'}
+//{$MESSAGE Warn '*** GraphicEx included due to compiler symbol "GRAPHICEX"'}
 {$ENDIF}
 {$IFDEF GIFIMG}
 {$MESSAGE Warn '*** GifImage included due to compiler symbol "GIFIMG"'}
@@ -83,7 +83,8 @@ unit WPOBJ_Image;
 
 interface
 
-uses Classes, Sysutils, Forms, Windows, WPRTEDefs, WPRTEPaint, Graphics, FileCtrl
+uses Classes, Sysutils, Forms, Windows, WPRTEDefs, WPRTEPaint, Graphics,
+{$WARNINGS OFF}FileCtrl{$WARNINGS ON}
 {$IFDEF PNGIMG}, pngimage{$ENDIF}
 {$IFDEF GIFIMG}, gifimage{$ENDIF}
 {$IFDEF GRAPHICEX}, GraphicEx{$ENDIF}
