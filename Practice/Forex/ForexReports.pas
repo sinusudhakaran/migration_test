@@ -604,7 +604,7 @@ begin
   end;
 end;
 
-function ValidateExchangeGainLossEntries(Params: ForexParams; ErrorOccurred: Boolean): Boolean;
+function ValidateExchangeGainLossEntries(Params: ForexParams; var ErrorOccurred: Boolean): Boolean;
 var
   Index: Integer;
   BankAccount: TBank_Account;
