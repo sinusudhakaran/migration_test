@@ -282,6 +282,7 @@ begin
     if not RefreshAdmin then
       exit;
 
+    Prac := nil;
     if (not UseBankLinkOnline) then
     begin
       lvUsers.Column[4].Caption  := '';
@@ -340,6 +341,7 @@ begin
         begin
           if (User^.usAllow_Banklink_Online) then
           begin
+            Assert(assigned(Prac));
             if (ProductConfigService.OnLine) and
                (ProductConfigService.IsPrimPracUser(User.usCode, Prac)) then
               Online := ONLINE_YES_ADMIN
