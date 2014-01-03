@@ -563,8 +563,8 @@ begin
     PrintAccountsFor(0, 'Reports for the following clients were not generated due to errors', False);
 
     //List clients that failed to output custom documents
-    LastClientCode := '';
     TitleLinePrinted := False;
+    LastClientCode := '';
     for i := 0 to ReportParam.srSummaryInfoList.Count - 1 do begin
       CurrRec := pSchdRepSummaryRec(ReportParam.srSummaryInfoList[i]);
       if (not CurrRec^.Completed) and (CurrRec^.AccountNo = CUSTOM_DOCUMENT) then begin
@@ -639,6 +639,7 @@ begin
     begin
        CurrRec := pSchdRepSummaryRec( SchSumRpt.ReportParam.srSummaryInfoList[SumInfoIndex]);
 
+       PrintRecord := False;
        case RptSections of
          rpsSent :
            PrintRecord := CurrRec^.Completed;
