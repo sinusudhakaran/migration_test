@@ -24990,14 +24990,14 @@ begin
 end;
 
 //----------------------------------------------------------------------------------------------------------------------
-
+{$WARNINGS OFF}
 function TBaseVirtualTree.GetNodeLevel(Node: PVirtualNode): Cardinal;
 
 // returns the level of the given node
 
 var
   Run: PVirtualNode;
-  
+
 begin
   try
   Result := 0;
@@ -25014,6 +25014,7 @@ begin
 
   end;
 end;
+{$WARNINGS ON}
 
 //----------------------------------------------------------------------------------------------------------------------
 
