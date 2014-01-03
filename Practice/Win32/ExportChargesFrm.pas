@@ -52,7 +52,9 @@ type
     ePercent: TOvcNumericField;
     lblView: TLabel;
     lblDate: TLabel;
+    {$WARNINGS OFF}
     eDate: TRzDateTimePicker;
+    {$WARNINGS ON}
     lblRemarks: TLabel;
     eRemarks: TEdit;
     edtFind: TEdit;

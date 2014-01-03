@@ -2094,6 +2094,7 @@ begin
   Result := CommaizeChL(L, ',');
 end;
 
+{$WARNINGS OFF}
 function FormPrimL(const Mask : AnsiString; R : TstFloat; const LtCurr, RtCurr : AnsiString;
                   Sep, DecPt : AnsiChar; AssumeDP : Boolean) : AnsiString;
   {-Returns a formatted string with digits from R merged into the Mask}
@@ -2342,6 +2343,7 @@ Done:
     Result := S + Result;
   end;
 end;
+{$WARNINGS ON}
 
 function FloatFormL(const Mask : AnsiString ; R : TstFloat ; const LtCurr,
                     RtCurr : AnsiString ; Sep, DecPt : AnsiChar) : AnsiString;

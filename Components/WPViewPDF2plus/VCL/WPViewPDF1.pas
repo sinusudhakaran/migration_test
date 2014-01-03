@@ -413,6 +413,7 @@ begin
   Result := CommandEx(COMPDF_DeletePage, N) <> 0;
 end;
 
+{$WARNINGS OFF}
 function TWPViewPDF.SelectPage(Mode, Nr: Integer): Integer;
 begin
   if Mode = -1 then Result := CommandEx(COMPDF_PageSelectionDel, Nr)
@@ -420,6 +421,7 @@ begin
   else if (Mode = 0) and (nr = -1) then Result := CommandEx(COMPDF_PageSelectionInvert, 0)
   else if Mode = 0 then Result := CommandEx(COMPDF_PageSelectionClear, 0);
 end;
+{$WARNINGS ON}
 
 function TWPViewPDF.UnDeletePage(N: Integer): Boolean;
 begin

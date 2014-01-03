@@ -466,6 +466,7 @@ begin
   Result := FSymbol.show_human_readable_text = 1;
 end;
 
+{$WARNINGS OFF}
 function TZintBarcode.GetType: TZBType;
 begin
   case FSymbol.symbology of
@@ -555,6 +556,7 @@ begin
     BARCODE_GRIDMATRIX : Result := tBARCODE_GRIDMATRIX;
   end;
 end;
+{$WARNINGS ON}
 
 procedure TZintBarcode.SetBorderWidth(const Value: Integer);
 begin

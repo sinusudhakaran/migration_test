@@ -1709,6 +1709,7 @@ begin
       else result :=  0;
 end;
 
+{$WARNINGS OFF}
 function TMapFile.Export(newFormat, minDebugInfoOnly: boolean; hideUglyItems: boolean = false) : AnsiString;
 
   procedure WritePackedInteger(st: TMiniStream; int: integer);
@@ -1857,6 +1858,7 @@ begin
     end;
   end;
 end;
+{$WARNINGS ON}
 
 var MapFileCache : array of record time: dword; mf: TMapFile; end;
 
