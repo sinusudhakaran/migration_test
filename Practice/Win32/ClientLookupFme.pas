@@ -1196,7 +1196,7 @@ begin
                          pIDRec^.imGroupID := gidNon_BankLink_Online;
       end;
     end;
-  end;
+  end;                                 
 end;
 
 procedure TfmeClientLookup.SetHeaderHeight(Processing: Boolean);
@@ -2259,6 +2259,7 @@ var
   sysClientRec : pClient_File_Rec;
   pIDRec   : pIntermediateDataRec;
 begin
+  pIDRec := nil;
 
   NodeData := Sender.GetNodeData( Node);
   if nodeData = nil then
