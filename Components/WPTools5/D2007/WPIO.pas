@@ -31,7 +31,7 @@ uses  WPIoANSI
       ,WPObj_Image;
 
 {$IFNDEF VER130}
-{$MESSAGE Warn '*** (Info) Reader and writer classes have been included using unit "WPIO"'}
+//{$MESSAGE Warn '*** (Info) Reader and writer classes have been included using unit "WPIO"'}
 {$ENDIF}
 
 implementation
