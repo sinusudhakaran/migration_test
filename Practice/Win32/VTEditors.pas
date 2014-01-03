@@ -21,7 +21,7 @@ type
 
   TIntfOwnedPersistent = class(TPersistent, IUnknown)
   private
-    FOwner: TPersistent;
+    FOwner: TPersistent;                          
     FOwnerInterface: IUnknown;
     FRefCount: Integer;
     FManaged: Boolean;
@@ -132,7 +132,7 @@ type
     function GetEditText: WideString; override;
     procedure SetEditText(const Value: WideString); override;
   public
-    constructor Create(AOwner: TPersistent); overload;
+    constructor Create(AOwner: TPersistent); overload; override;
     constructor Create(AEditorEnabled: Boolean = True; AIncrement: Integer = 1; AMinValue: Integer = 0; AMaxValue: Integer = 0);  overload;
   published
     property EditorEnabled: Boolean read FEditorEnabled write FEditorEnabled default True;
@@ -170,7 +170,7 @@ type
     procedure ComboDrawItem(Control: TWinControl; Index: Integer; Rect: TRect; State: TOwnerDrawState); virtual;
     procedure ComboMeasureItem(Control: TWinControl; Index: Integer; var Height: Integer); virtual;
   public
-    constructor Create(AOwner: TPersistent); overload;
+    constructor Create(AOwner: TPersistent); overload; override;
     constructor Create(const AList: string; AStyle: TComboBoxStyle; ASorted: Boolean = False); overload;
     constructor Create(APickList: TStrings; AStyle: TComboBoxStyle; ASorted: Boolean = False); overload;
     destructor Destroy; override;
