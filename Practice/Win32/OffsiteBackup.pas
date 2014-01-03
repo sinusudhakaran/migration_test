@@ -207,7 +207,6 @@ var
   BakFilename : string;
   TempFilename : string;
   OD : TOpenDialog;
-  BackupDateTime : Integer;
   VarDateTime    : TDateTime;
   S : string;
   aMsg : string;
@@ -254,8 +253,7 @@ begin
    BakFilename := DataDir + ClientCode + Globals.BACKUPEXTN;
 
    //confirm restore
-   BackupDateTime := FileAge( BackupFilename);
-   VarDateTime := FileDateToDateTime( BackupDateTime);
+   FileAge( BackupFilename, VarDateTime);
    if (Trunc(VarDateTime) = Date) then
      S := S + 'Today'
    else
