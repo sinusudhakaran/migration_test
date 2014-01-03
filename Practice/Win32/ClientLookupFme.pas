@@ -3117,6 +3117,7 @@ begin
     Result := True;
     Reload;
   end else begin
+    Result := False;
     Globals.INI_BankLink_Online_SubDomain := SaveSubdomain;
     Globals.INI_BankLink_Online_Username  := SaveUsername;
     Globals.INI_BankLink_Online_Password  := SavePassword;
