@@ -220,9 +220,9 @@ procedure DetailedTaxablePaymentsDetail(Sender : TObject);
       with TTaxablePaymentsReport(Sender), params do
       begin
        if WrapColumnText then
-       begin
-          MaxNotesLines := 10;
-       end;
+         MaxNotesLines := 10
+       else
+         MaxNotesLines := 1;
 
        if (Notes = '') then
        begin
