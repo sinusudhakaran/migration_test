@@ -14,7 +14,6 @@ type
     FRptID: integer;
     procedure SetRptGUID(const Value: string);
     procedure SetRptID(const Value: integer);
-  published
   public
     property RptID: integer read FRptID write SetRptID;
     property RptGUID: string read FRptGUID write SetRptGUID;
