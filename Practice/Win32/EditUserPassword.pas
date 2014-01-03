@@ -138,6 +138,7 @@ end;
 
 function TEditUserPassword.Initlize(UserCode: String; CurrentPassword: String): Boolean;
 begin
+  Result := false;
   FUserCode := UserCode;
   
   fUser_Rec := AdminSystem.fdSystem_User_List.FindCode(UserCode);
