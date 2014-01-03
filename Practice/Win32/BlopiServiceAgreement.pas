@@ -43,6 +43,7 @@ class function TBlopiServiceAgreement.NewVersionAvailable: Boolean;
 var
   Version: String;
 begin
+  Result := False;
   Version := ProductConfigService.GetServiceAgreementVersion();
 
   if Trim(Version) <> '' then
@@ -61,8 +62,6 @@ begin
           SaveAdminSystem;
 
           LogUtil.LogMsg(lmInfo, 'BlopiServiceAgreement', Format('Local BankLink Online service agreement version is currently blank - updated to version %s', [Version]), 0);
-
-          Result := False;
         except
           if AdminIsLocked then
           begin
@@ -73,10 +72,6 @@ begin
         end;
       end;
     end;
-  end
-  else
-  begin
-    Result := False;
   end;
 end;
 
