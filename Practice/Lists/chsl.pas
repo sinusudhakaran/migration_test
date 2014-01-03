@@ -36,7 +36,7 @@ Type
       Seq         : Integer;
       Sort_Order  : TCHSSortType;
       Use_Xlon_Sort_Order   : boolean;
-      constructor    Create( ASort_Order : TCHSSortType ); override;
+      constructor    Create( ASort_Order : TCHSSortType ); reintroduce;
       function       Compare( Item1, Item2 : pointer ) : integer; override;
       procedure      FreeItem( Item : Pointer ); override;
       procedure      Insert( Item : Pointer ); override;
