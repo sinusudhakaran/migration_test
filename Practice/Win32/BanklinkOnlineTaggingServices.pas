@@ -701,6 +701,7 @@ class function TBanklinkOnlineTaggingServices.IsBankAccountTagged(BankAccount: T
 var
   Index: Integer;
 begin
+  Result := false;
   for Index := 0 to Length(ClientBankAccountVendors) - 1 do
   begin
     if BankAccount.baFields.baCore_Account_ID = ClientBankAccountVendors[Index].AccountId then
