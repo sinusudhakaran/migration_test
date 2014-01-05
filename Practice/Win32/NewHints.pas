@@ -203,7 +203,8 @@ var
   SL            : TStringList;
   Forex         : Boolean;
 begin
-  Result    := '' ;
+  Result := '';
+    
   if not Assigned( T ) then
     exit ;
 
