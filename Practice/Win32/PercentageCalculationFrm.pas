@@ -123,11 +123,10 @@ var
   pAcct       : pAccount_Rec;
   s           : string;
 begin
-  IsValid := False;
   // Check validity of account code
   s       := Trim(edtAccountCode.Text);
   if (s = '') then
-    Result := True // blank account codes do not count as 'invalid' for our purposes
+    IsValid := True // blank account codes do not count as 'invalid' for our purposes
   else
   begin
     pAcct   := MyClient.clChart.FindCode( S);
