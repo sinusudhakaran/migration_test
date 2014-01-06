@@ -1079,7 +1079,6 @@ end;
 
 function TAccount_RecHelper.WriteRecToNode(var Node: IXMLNode): IXMLNode;
 var PNode, CNode, CCNode: IXMLNode;
-	I, J, M: Integer;
 begin
 	Result := Node.AddChild(GetXMLNodeName);
 	SetTextAttr(Result, 'AccountCode', chAccount_Code);
@@ -1110,7 +1109,6 @@ end;
 
 function TAccount_RecHelper.ReadRecFromNode(Node :IXMLNode): IXMLNode;
 var PNode, CNode, CCNode: IXMLNode;
-	I, J: Integer;
 begin
 	if Node.NodeName = GetXMLNodeName then Result := Node
 	else
@@ -1155,7 +1153,7 @@ end;
 
 function TPayee_RecHelper.WriteRecToNode(var Node: IXMLNode): IXMLNode;
 var PNode, CNode, CCNode: IXMLNode;
-	I, J, M: Integer;
+	I, M: Integer;
 begin
 	Result := Node.AddChild(GetXMLNodeName);
 	SetIntAttr(Result, 'Number', pyNumber);
@@ -1190,7 +1188,7 @@ end;
 
 function TPayee_RecHelper.ReadRecFromNode(Node :IXMLNode): IXMLNode;
 var PNode, CNode, CCNode: IXMLNode;
-	I, J: Integer;
+	I: Integer;
 begin
 	if Node.NodeName = GetXMLNodeName then Result := Node
 	else
@@ -1253,7 +1251,6 @@ end;
 
 function TPayee_Detail_RecHelper.WriteRecToNode(var Node: IXMLNode): IXMLNode;
 var PNode, CNode, CCNode: IXMLNode;
-	I, J, M: Integer;
 begin
 	Result := Node.AddChild(GetXMLNodeName);
 	SetIntAttr(Result, 'Number', pdNumber);
@@ -1267,7 +1264,6 @@ end;
 
 function TPayee_Detail_RecHelper.ReadRecFromNode(Node :IXMLNode): IXMLNode;
 var PNode, CNode, CCNode: IXMLNode;
-	I, J: Integer;
 begin
 	if Node.NodeName = GetXMLNodeName then Result := Node
 	else
@@ -1295,7 +1291,6 @@ end;
 
 function TPayee_Line_RecHelper.WriteRecToNode(var Node: IXMLNode): IXMLNode;
 var PNode, CNode, CCNode: IXMLNode;
-	I, J, M: Integer;
 begin
 	Result := Node.AddChild(GetXMLNodeName);
 	SetTextAttr(Result, 'Account', plAccount);
@@ -1347,7 +1342,6 @@ end;
 
 function TPayee_Line_RecHelper.ReadRecFromNode(Node :IXMLNode): IXMLNode;
 var PNode, CNode, CCNode: IXMLNode;
-	I, J: Integer;
 begin
 	if Node.NodeName = GetXMLNodeName then Result := Node
 	else
@@ -1413,7 +1407,6 @@ end;
 
 function TBudget_Header_RecHelper.WriteRecToNode(var Node: IXMLNode): IXMLNode;
 var PNode, CNode, CCNode: IXMLNode;
-	I, J, M: Integer;
 begin
 	Result := Node.AddChild(GetXMLNodeName);
 	SetIntAttr(Result, 'StartDate', buStart_Date);
@@ -1429,7 +1422,6 @@ end;
 
 function TBudget_Header_RecHelper.ReadRecFromNode(Node :IXMLNode): IXMLNode;
 var PNode, CNode, CCNode: IXMLNode;
-	I, J: Integer;
 begin
 	if Node.NodeName = GetXMLNodeName then Result := Node
 	else
@@ -1459,7 +1451,6 @@ end;
 
 function TBudget_Detail_RecHelper.WriteRecToNode(var Node: IXMLNode): IXMLNode;
 var PNode, CNode, CCNode: IXMLNode;
-	I, J, M: Integer;
 begin
 	Result := Node.AddChild(GetXMLNodeName);
 	SetTextAttr(Result, 'AccountCode', bdAccount_Code);
@@ -1475,7 +1466,6 @@ end;
 
 function TBudget_Detail_RecHelper.ReadRecFromNode(Node :IXMLNode): IXMLNode;
 var PNode, CNode, CCNode: IXMLNode;
-	I, J: Integer;
 begin
 	if Node.NodeName = GetXMLNodeName then Result := Node
 	else
@@ -1505,7 +1495,6 @@ end;
 
 function TDisk_Log_RecHelper.WriteRecToNode(var Node: IXMLNode): IXMLNode;
 var PNode, CNode, CCNode: IXMLNode;
-	I, J, M: Integer;
 begin
 	Result := Node.AddChild(GetXMLNodeName);
 	SetTextAttr(Result, 'DiskID', dlDisk_ID);
@@ -1521,7 +1510,6 @@ end;
 
 function TDisk_Log_RecHelper.ReadRecFromNode(Node :IXMLNode): IXMLNode;
 var PNode, CNode, CCNode: IXMLNode;
-	I, J: Integer;
 begin
 	if Node.NodeName = GetXMLNodeName then Result := Node
 	else
@@ -1551,7 +1539,6 @@ end;
 
 function TMemorisation_Detail_RecHelper.WriteRecToNode(var Node: IXMLNode): IXMLNode;
 var PNode, CNode, CCNode: IXMLNode;
-	I, J, M: Integer;
 begin
 	Result := Node.AddChild(GetXMLNodeName);
 	SetIntAttr(Result, 'SequenceNo', mdSequence_No);
@@ -1586,7 +1573,6 @@ end;
 
 function TMemorisation_Detail_RecHelper.ReadRecFromNode(Node :IXMLNode): IXMLNode;
 var PNode, CNode, CCNode: IXMLNode;
-	I, J: Integer;
 begin
 	if Node.NodeName = GetXMLNodeName then Result := Node
 	else
@@ -1635,7 +1621,6 @@ end;
 
 function TMemorisation_Line_RecHelper.WriteRecToNode(var Node: IXMLNode): IXMLNode;
 var PNode, CNode, CCNode: IXMLNode;
-	I, J, M: Integer;
 begin
 	Result := Node.AddChild(GetXMLNodeName);
 	SetTextAttr(Result, 'Account', mlAccount);
@@ -1687,7 +1672,6 @@ end;
 
 function TMemorisation_Line_RecHelper.ReadRecFromNode(Node :IXMLNode): IXMLNode;
 var PNode, CNode, CCNode: IXMLNode;
-	I, J: Integer;
 begin
 	if Node.NodeName = GetXMLNodeName then Result := Node
 	else
@@ -1753,7 +1737,6 @@ end;
 
 function TBank_Account_RecHelper.WriteRecToNode(var Node: IXMLNode): IXMLNode;
 var PNode, CNode, CCNode: IXMLNode;
-	I, J, M: Integer;
 begin
 	Result := Node.AddChild(GetXMLNodeName);
 	SetTextAttr(Result, 'BankAccountNumber', baBank_Account_Number);
@@ -1818,7 +1801,6 @@ end;
 
 function TBank_Account_RecHelper.ReadRecFromNode(Node :IXMLNode): IXMLNode;
 var PNode, CNode, CCNode: IXMLNode;
-	I, J: Integer;
 begin
 	if Node.NodeName = GetXMLNodeName then Result := Node
 	else
@@ -1897,7 +1879,6 @@ end;
 
 function TTransaction_RecHelper.WriteRecToNode(var Node: IXMLNode): IXMLNode;
 var PNode, CNode, CCNode: IXMLNode;
-	I, J, M: Integer;
 begin
 	Result := Node.AddChild(GetXMLNodeName);
 	SetIntAttr(Result, 'SequenceNo', txSequence_No);
@@ -1992,7 +1973,6 @@ end;
 
 function TTransaction_RecHelper.ReadRecFromNode(Node :IXMLNode): IXMLNode;
 var PNode, CNode, CCNode: IXMLNode;
-	I, J: Integer;
 begin
 	if Node.NodeName = GetXMLNodeName then Result := Node
 	else
@@ -2101,7 +2081,6 @@ end;
 
 function TDissection_RecHelper.WriteRecToNode(var Node: IXMLNode): IXMLNode;
 var PNode, CNode, CCNode: IXMLNode;
-	I, J, M: Integer;
 begin
 	Result := Node.AddChild(GetXMLNodeName);
 	SetIntAttr(Result, 'SequenceNo', dsSequence_No);
@@ -2172,7 +2151,6 @@ end;
 
 function TDissection_RecHelper.ReadRecFromNode(Node :IXMLNode): IXMLNode;
 var PNode, CNode, CCNode: IXMLNode;
-	I, J: Integer;
 begin
 	if Node.NodeName = GetXMLNodeName then Result := Node
 	else
@@ -2257,7 +2235,6 @@ end;
 
 function TBalances_RecHelper.WriteRecToNode(var Node: IXMLNode): IXMLNode;
 var PNode, CNode, CCNode: IXMLNode;
-	I, J, M: Integer;
 begin
 	Result := Node.AddChild(GetXMLNodeName);
 	SetIntAttr(Result, 'GSTPeriodStarts', blGST_Period_Starts);
@@ -2332,7 +2309,6 @@ end;
 
 function TBalances_RecHelper.ReadRecFromNode(Node :IXMLNode): IXMLNode;
 var PNode, CNode, CCNode: IXMLNode;
-	I, J: Integer;
 begin
 	if Node.NodeName = GetXMLNodeName then Result := Node
 	else
@@ -2421,7 +2397,6 @@ end;
 
 function TSubGroup_Heading_RecHelper.WriteRecToNode(var Node: IXMLNode): IXMLNode;
 var PNode, CNode, CCNode: IXMLNode;
-	I, J, M: Integer;
 begin
 	Result := Node.AddChild(GetXMLNodeName);
 	SetTextAttr(Result, 'Heading', shHeading);
@@ -2436,7 +2411,6 @@ end;
 
 function TSubGroup_Heading_RecHelper.ReadRecFromNode(Node :IXMLNode): IXMLNode;
 var PNode, CNode, CCNode: IXMLNode;
-	I, J: Integer;
 begin
 	if Node.NodeName = GetXMLNodeName then Result := Node
 	else
@@ -2465,7 +2439,6 @@ end;
 
 function TDivision_Heading_RecHelper.WriteRecToNode(var Node: IXMLNode): IXMLNode;
 var PNode, CNode, CCNode: IXMLNode;
-	I, J, M: Integer;
 begin
 	Result := Node.AddChild(GetXMLNodeName);
 	SetTextAttr(Result, 'Heading', dhHeading);
@@ -2479,7 +2452,6 @@ end;
 
 function TDivision_Heading_RecHelper.ReadRecFromNode(Node :IXMLNode): IXMLNode;
 var PNode, CNode, CCNode: IXMLNode;
-	I, J: Integer;
 begin
 	if Node.NodeName = GetXMLNodeName then Result := Node
 	else
@@ -2507,7 +2479,7 @@ end;
 
 function TMemorised_Transaction_RecHelper.WriteRecToNode(var Node: IXMLNode): IXMLNode;
 var PNode, CNode, CCNode: IXMLNode;
-	I, J, M: Integer;
+	I, M: Integer;
 begin
 	Result := Node.AddChild(GetXMLNodeName);
 	SetIntAttr(Result, 'SequenceNo', mxSequence_No);
@@ -2559,7 +2531,7 @@ end;
 
 function TMemorised_Transaction_RecHelper.ReadRecFromNode(Node :IXMLNode): IXMLNode;
 var PNode, CNode, CCNode: IXMLNode;
-	I, J: Integer;
+	I: Integer;
 begin
 	if Node.NodeName = GetXMLNodeName then Result := Node
 	else
@@ -2580,7 +2552,7 @@ begin
 	mxMatch_on_Analysis := GetBoolAttr(Result, 'MatchonAnalysis');
 	mxMatch_on_Other_Party := GetBoolAttr(Result, 'MatchonOtherParty');
 	mxMatch_On_Statement_Details := GetBoolAttr(Result, 'MatchOnStatementDetails');
-	
+
 	PNode := Result.ChildNodes.FindNode('Accounts');
 	if Assigned(PNode) then
 		CNode := PNode.ChildNodes.FindNode('Account')
@@ -2588,7 +2560,7 @@ begin
 		CNode := Nil;
 	for I := low(mxAccount) to High(mxAccount) do begin
 		if Assigned(CNode) then begin
-			if CNode.Nodevalue <> null then 
+			if CNode.Nodevalue <> null then
 				mxAccount[I] := CNode.Nodevalue
 			else mxAccount[I] := '';
 			CNode := CNode.NextSibling;
@@ -2603,7 +2575,7 @@ begin
 	GetArray(Result, 'GSTHasBeenEdited', mxGST_Has_Been_Edited);
 	mxMatch_on_Notes := GetBoolAttr(Result, 'MatchonNotes');
 	mxNotes := GetTextAttr(Result, 'Notes');
-	
+
 	PNode := Result.ChildNodes.FindNode('GLNarrations');
 	if Assigned(PNode) then
 		CNode := PNode.ChildNodes.FindNode('GLNarration')
@@ -2611,7 +2583,7 @@ begin
 		CNode := Nil;
 	for I := low(mxGL_Narration) to High(mxGL_Narration) do begin
 		if Assigned(CNode) then begin
-			if CNode.Nodevalue <> null then 
+			if CNode.Nodevalue <> null then
 				mxGL_Narration[I] := CNode.Nodevalue
 			else mxGL_Narration[I] := '';
 			CNode := CNode.NextSibling;
@@ -2639,7 +2611,6 @@ end;
 
 function TCustom_Heading_RecHelper.WriteRecToNode(var Node: IXMLNode): IXMLNode;
 var PNode, CNode, CCNode: IXMLNode;
-	I, J, M: Integer;
 begin
 	Result := Node.AddChild(GetXMLNodeName);
 	SetIntAttr(Result, 'HeadingType', hdHeading_Type);
@@ -2655,7 +2626,6 @@ end;
 
 function TCustom_Heading_RecHelper.ReadRecFromNode(Node :IXMLNode): IXMLNode;
 var PNode, CNode, CCNode: IXMLNode;
-	I, J: Integer;
 begin
 	if Node.NodeName = GetXMLNodeName then Result := Node
 	else
@@ -2685,7 +2655,6 @@ end;
 
 function TMacro_RecHelper.WriteRecToNode(var Node: IXMLNode): IXMLNode;
 var PNode, CNode, CCNode: IXMLNode;
-	I, J, M: Integer;
 begin
 	Result := Node.AddChild(GetXMLNodeName);
 	SetTextAttr(Result, 'Code', maCode);
@@ -2699,7 +2668,6 @@ end;
 
 function TMacro_RecHelper.ReadRecFromNode(Node :IXMLNode): IXMLNode;
 var PNode, CNode, CCNode: IXMLNode;
-	I, J: Integer;
 begin
 	if Node.NodeName = GetXMLNodeName then Result := Node
 	else
@@ -2727,7 +2695,6 @@ end;
 
 function TFuel_Sheet_RecHelper.WriteRecToNode(var Node: IXMLNode): IXMLNode;
 var PNode, CNode, CCNode: IXMLNode;
-	I, J, M: Integer;
 begin
 	Result := Node.AddChild(GetXMLNodeName);
 	SetTextAttr(Result, 'Account', fsAccount);
@@ -2746,7 +2713,6 @@ end;
 
 function TFuel_Sheet_RecHelper.ReadRecFromNode(Node :IXMLNode): IXMLNode;
 var PNode, CNode, CCNode: IXMLNode;
-	I, J: Integer;
 begin
 	if Node.NodeName = GetXMLNodeName then Result := Node
 	else
@@ -2779,7 +2745,6 @@ end;
 
 function TMoreClient_RecHelper.WriteRecToNode(var Node: IXMLNode): IXMLNode;
 var PNode, CNode, CCNode: IXMLNode;
-	I, J, M: Integer;
 begin
 	Result := Node.AddChild(GetXMLNodeName);
 	SetBoolAttr(Result, 'BASDontPrintFuelSheet', mcBAS_Dont_Print_Fuel_Sheet);
@@ -2794,7 +2759,6 @@ end;
 
 function TMoreClient_RecHelper.ReadRecFromNode(Node :IXMLNode): IXMLNode;
 var PNode, CNode, CCNode: IXMLNode;
-	I, J: Integer;
 begin
 	if Node.NodeName = GetXMLNodeName then Result := Node
 	else
@@ -2823,7 +2787,6 @@ end;
 
 function TJob_Heading_RecHelper.WriteRecToNode(var Node: IXMLNode): IXMLNode;
 var PNode, CNode, CCNode: IXMLNode;
-	I, J, M: Integer;
 begin
 	Result := Node.AddChild(GetXMLNodeName);
 	SetTextAttr(Result, 'Heading', jhHeading);
@@ -2839,7 +2802,6 @@ end;
 
 function TJob_Heading_RecHelper.ReadRecFromNode(Node :IXMLNode): IXMLNode;
 var PNode, CNode, CCNode: IXMLNode;
-	I, J: Integer;
 begin
 	if Node.NodeName = GetXMLNodeName then Result := Node
 	else
@@ -3020,7 +2982,7 @@ begin
 	ceLocal_Currency_Code := GetTextAttr(Result, 'LocalCurrencyCode');
 	ceBlock_Client_Edit_Mems := GetBoolAttr(Result, 'BlockClientEditMems');
 	ceSend_Custom_Documents := GetBoolAttr(Result, 'SendCustomDocuments');
-	
+
 	PNode := Result.ChildNodes.FindNode('SendCustomDocumentsLists');
 	if Assigned(PNode) then
 		CNode := PNode.ChildNodes.FindNode('SendCustomDocumentsList')
@@ -3028,7 +2990,7 @@ begin
 		CNode := Nil;
 	for I := low(ceSend_Custom_Documents_List) to High(ceSend_Custom_Documents_List) do begin
 		if Assigned(CNode) then begin
-			if CNode.Nodevalue <> null then 
+			if CNode.Nodevalue <> null then
 				ceSend_Custom_Documents_List[I] := CNode.Nodevalue
 			else ceSend_Custom_Documents_List[I] := '';
 			CNode := CNode.NextSibling;
@@ -3039,7 +3001,7 @@ begin
 	ceList_Payees_Detailed := GetBoolAttr(Result, 'ListPayeesDetailed');
 	ceList_Payees_SortBy := GetIntAttr(Result, 'ListPayeesSortBy');
 	ceList_Payees_Rule_Line := GetBoolAttr(Result, 'ListPayeesRuleLine');
-	
+
 	PNode := Result.ChildNodes.FindNode('CustomSFLedgerTitles');
 	if Assigned(PNode) then
 		CNode := PNode.ChildNodes.FindNode('CustomSFLedgerTitle')
@@ -3047,7 +3009,7 @@ begin
 		CNode := Nil;
 	for I := low(ceCustom_SFLedger_Titles) to High(ceCustom_SFLedger_Titles) do begin
 		if Assigned(CNode) then begin
-			if CNode.Nodevalue <> null then 
+			if CNode.Nodevalue <> null then
 				ceCustom_SFLedger_Titles[I] := CNode.Nodevalue
 			else ceCustom_SFLedger_Titles[I] := '';
 			CNode := CNode.NextSibling;
@@ -3065,7 +3027,7 @@ begin
 	ceOnlineBillingFrequency := GetTextAttr(Result, 'OnlineBillingFrequency');
 	ceOnlineMaxOfflineDays := GetIntAttr(Result, 'OnlineMaxOfflineDays');
 	ceOnlineStatus := GetIntAttr(Result, 'OnlineStatus');
-	
+
 	PNode := Result.ChildNodes.FindNode('OnlineSubscriptions');
 	if Assigned(PNode) then
 		CNode := PNode.ChildNodes.FindNode('OnlineSubscription')
@@ -3073,7 +3035,7 @@ begin
 		CNode := Nil;
 	for I := low(ceOnlineSubscription) to High(ceOnlineSubscription) do begin
 		if Assigned(CNode) then begin
-			if CNode.Nodevalue <> null then 
+			if CNode.Nodevalue <> null then
 				ceOnlineSubscription[I] := CNode.Nodevalue
 			else ceOnlineSubscription[I] := '';
 			CNode := CNode.NextSibling;
