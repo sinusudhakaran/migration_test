@@ -408,7 +408,7 @@ end;
 
 
 procedure SetMArray(var OnNode: IXMLNode; Name: string; Value: moneyArray); overload;
-var I, J, M, N: Integer;
+var I, J: Integer;
     PNode,
     CNode,
     CCNode: IXMLNode;
@@ -572,7 +572,6 @@ begin
 end;
 
 function GetInt64Attr(FromNode: IXMLNode; Name : string): Money;
-   var LNode:IXMLNode;
 begin
    if Assigned(FromNode.AttributeNodes.FindNode(Name)) then
   begin

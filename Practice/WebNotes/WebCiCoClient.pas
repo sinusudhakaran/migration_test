@@ -583,7 +583,6 @@ procedure TWebCiCoClient.DoHttpStartTransfer(ASender: TObject;
                                              ADirection: Integer);
 var
   StrMessage : String;
-  Progress : integer;
 begin
   inherited;
 

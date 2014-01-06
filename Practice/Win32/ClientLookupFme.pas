@@ -1916,10 +1916,9 @@ var
   pGroup         : pGroup_Rec;
   pClientType    : pClient_Type_Rec;
   i: Integer;
-  Period, CD, M, MM, EM, Y, D: Integer;
+  Period : Integer;
   FoundIndex : integer;
   ClientCode : String;
-  ProdIndex : integer;
   ProdGuid : TBloGuid;
 
   function FindClientIndex: integer;

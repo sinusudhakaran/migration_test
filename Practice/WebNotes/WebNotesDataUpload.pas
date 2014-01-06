@@ -606,9 +606,7 @@ var
   var
     lClientRec: pClient_File_Rec;
     lNode: IXMLNode;
-    Username: String;
-    EmailAddress: String;
-    
+
     //------------------------------------------------
     procedure AddPracticeContact(Name, Email: string);
     begin

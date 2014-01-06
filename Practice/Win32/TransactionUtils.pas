@@ -94,7 +94,6 @@ end;
 
 function IsFullyCodedTransaction(Client: TClientObj; Transaction: pTransaction_Rec): Boolean;
 var
-  ChartIndex: Integer;
   ChartAccount: pAccount_Rec;
   Dissection: pDissection_Rec;
 begin

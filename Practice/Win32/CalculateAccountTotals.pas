@@ -444,10 +444,6 @@ var
       ExchangeRate: Double;
       OpenBalAmt: Money;
       TestStr: string;
-
-      Index, PeriodNo: integer;
-      GainLossEntry: TExchange_Gain_Loss;
-      Contra: pAccount_Rec;
    begin
       with aClient.clBank_Account_List do
          for i := 0 to Pred( ItemCount) do begin

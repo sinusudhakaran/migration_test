@@ -59,7 +59,6 @@ procedure TfmeAccountSelector.LoadAccounts(aClient: TClientObj;
 var
   i: integer;
   ba: TBank_Account;
-  baStr: string;
   AccntIdx: integer;
 begin
   chkAccounts.Items.Clear;

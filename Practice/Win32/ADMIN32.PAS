@@ -172,7 +172,6 @@ const
 var
   LockMsgFile     : TextFile;
   LockMsgFileName : String;
-  strAdminLocked  : string;
 begin
   try
     ExceptionUnlock := False;
@@ -225,7 +224,6 @@ var
   LockMsgFileName  : String;
   Msg              : String;
   OK               : Boolean;
-  strAdminUnLocked : string;
 begin
   try
     if not ExceptionUnlock then

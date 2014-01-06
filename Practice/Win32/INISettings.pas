@@ -364,7 +364,6 @@ var
   i : integer;
   EncryptedPassword, DocFolder : string;
   IniFile : TMemIniFile;
-  SettingsFileExisted: Boolean;
   BankLinkSettingsFile: String;
 begin
    {Write Form Settings into INI File}

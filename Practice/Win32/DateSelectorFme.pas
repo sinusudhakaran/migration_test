@@ -370,16 +370,13 @@ begin
 
   Result := True;
 end;
-//------------------------------------------------------------------------------
 
+//------------------------------------------------------------------------------
 function TfmeDateSelector.YearStart: Integer;
-var
-  Day: Integer;
-  Month, CMonth: Integer;
-  Year, CYear: Integer;
 begin
   Result := GetCurrentFinancialYear(FClientObj);
 end;
+
 //------------------------------------------------------------------------------
 class function TfmeDateSelector.GetCurrentFinancialYear(
   Client: TClientObj): Integer;

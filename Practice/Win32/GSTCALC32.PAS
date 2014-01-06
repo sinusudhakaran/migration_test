@@ -209,8 +209,6 @@ end;
 Function  GetGSTClassRate( aClient : TClientObj; aDate : integer; ClassNo : byte ): Extended;
 const
    ThisMethodName = 'GetGSTClassRate';
-var
-   WhichRate   : Byte;
 Begin
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Called' );
    Result := GetGSTClassPercent( aClient, aDate, ClassNo) / 1000000.0; { 1250 -> 0.1250 }

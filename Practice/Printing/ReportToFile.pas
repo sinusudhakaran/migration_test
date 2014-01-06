@@ -760,7 +760,6 @@ var
   FinalLine: Boolean;
   Style: TRenderStyle;
   ColumnText: String;
-  TextIndex: Integer;
   WrappedCaptions: array of TWrappedText;
   WrappedCaption: TWrappedText;
 begin

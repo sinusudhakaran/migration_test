@@ -128,7 +128,6 @@ procedure TRenderToFileExcel.Generate;
 //      is destroyed
 var
   i : integer;
-  aCol : TReportColumn;
 
 begin
    //create the data module that contains the Excel component
