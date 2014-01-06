@@ -1170,6 +1170,10 @@ Begin
     FileTrxCount:=0;
     FileTotalTrx:=0;
 
+    InstAccCount:=0;
+    InstTrxCount:=0;
+    InstTotalTrx:=0;
+
     For i := dhAccount_List.First to dhAccount_List.Last do
     Begin
       DBA := dhAccount_List.Disk_Bank_Account_At( i );
@@ -1178,14 +1182,29 @@ Begin
       begin   // relies on accounts being ordered by institution
         if CurrentInstID>=0 then
         begin     // finish previous institution
-          Line:='IT|'+IntToStr(InstAccCount)+'|'+IntToStr(InstTrxCount)+'|'+MoneyToStr(InstTotalTrx);
+          Line := 'IT|'+
+                  IntToStr(InstAccCount) +
+                  '|'+
+                  IntToStr(InstTrxCount)+
+                  '|'+
+                  MoneyToStr(InstTotalTrx);
+
           Writeln(OutFile,Line);
         end;
 
-        Line:='IH|'+whCountryCodes[dhFields.dhCountry_Code]+'|'+IntToStr(DBA.dbFields.dbInstitution_ID)+'|'+filterBar(DBA.dbFields.dbBank_Prefix)+'|'+filterBar(DBA.dbFields.dbBank_Name);
+        Line := 'IH|' +
+                whCountryCodes[dhFields.dhCountry_Code]+
+                '|'+
+                IntToStr(DBA.dbFields.dbInstitution_ID)+
+                '|'+
+                filterBar(DBA.dbFields.dbBank_Prefix)+
+                '|'+
+                filterBar(DBA.dbFields.dbBank_Name);
+
         Writeln(OutFile,Line);
         CurrentInstID:=DBA.dbFields.dbInstitution_ID;
         Inc(FileInstCount);
+
         InstAccCount:=0;
         InstTrxCount:=0;
         InstTotalTrx:=0;
