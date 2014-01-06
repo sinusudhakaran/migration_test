@@ -30,7 +30,7 @@ type
 
 type
    TUEList = class(TExtdSortedCollection)
-      constructor Create;
+      constructor Create; override;
       function Compare(Item1, Item2 : pointer) : integer; override;
 
    protected
@@ -46,7 +46,7 @@ type
 
 type
    TSeqList = class(TExtdSortedCollection)
-      constructor Create;
+      constructor Create; override;
       function Compare(Item1, Item2 : pointer) : integer; override;
    protected
       procedure FreeItem(Item : Pointer); override;

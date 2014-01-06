@@ -9,7 +9,7 @@ uses
 Type
    TSystem_Client_Account_Map = class(TExtdSortedCollection)
       CurrentRecord: LongInt;
-      constructor Create;
+      constructor Create; override;
       function    Compare( Item1, Item2 : pointer ) : integer; override;
    protected
       procedure   FreeItem( Item : Pointer ); override;

@@ -7,7 +7,7 @@ uses ladefs, ecollect, iostream;
 
 type
    TDos_Printer_List = class( TExtdSortedCollection )
-      constructor Create;
+      constructor Create; override;
       function    Compare( Item1, Item2 : pointer ) : integer; override;
 
     protected
@@ -22,7 +22,7 @@ type
    end;
 
    TDos_Form_List = class( TExtdSortedCollection )
-      constructor Create;
+      constructor Create; override;
       function    Compare( Item1, Item2 : pointer ) : integer; override;
 
     protected
@@ -36,7 +36,7 @@ type
    end;
 
    TDos_Report_Setting_List = class( TExtdSortedCollection )
-      constructor Create;
+      constructor Create; override;
       function    Compare( Item1, Item2 : pointer ) : integer; override;
 
     protected
