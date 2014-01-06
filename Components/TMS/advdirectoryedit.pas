@@ -259,4 +259,5 @@ begin
     BtnClick(Self);
 end;
 
+{$WARNINGS ON}
 end.

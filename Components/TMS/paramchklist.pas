@@ -2861,4 +2861,5 @@ end;
 initialization
   GetCheckSize;
 
+{$WARNINGS ON}
 end.

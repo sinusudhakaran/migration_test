@@ -1772,5 +1772,6 @@ initialization
 
 {$ENDIF}
 
+{$WARNINGS ON}
 end.
 

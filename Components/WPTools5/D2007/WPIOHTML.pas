@@ -4329,5 +4329,6 @@ initialization
     GlobalWPToolsCustomEnviroment.RegisterWriter([TWPHTMLWriter]);
   end;
 
+{$WARNINGS ON}
 end.
 

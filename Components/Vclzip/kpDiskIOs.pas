@@ -118,4 +118,5 @@ begin
   end;
 end;
 
+{$WARNINGS ON}
 end.

@@ -3863,6 +3863,8 @@ end;
 {$ENDIF}
 
 
+{$WARNINGS ON}
+{$HINTS ON}
 end.
 
 

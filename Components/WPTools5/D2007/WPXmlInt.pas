@@ -3107,5 +3107,6 @@ finalization
   df.Free;
 {$ENDIF}
 
+{$WARNINGS ON}
 end.
 

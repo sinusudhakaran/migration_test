@@ -3718,5 +3718,6 @@ initialization
 
 finalization
 
+{$WARNINGS ON}
 end.
 

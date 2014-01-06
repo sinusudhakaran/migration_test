@@ -8269,5 +8269,6 @@ finalization
     GlobalWPToolsCustomEnviroment.UnRegisterReader([TWPRTFReader]);
   end;
 
+{$WARNINGS ON}
 end.
 

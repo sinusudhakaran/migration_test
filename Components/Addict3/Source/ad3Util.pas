@@ -952,5 +952,6 @@ end;
 initialization
     FStdMessage     := False;
     FTrialMessage   := False;
+{$HINTS ON}
 end.
 

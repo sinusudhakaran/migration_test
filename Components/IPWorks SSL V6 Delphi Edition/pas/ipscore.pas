@@ -536,5 +536,6 @@ end;
 {$ENDIF}
 
 
+{$WARNINGS ON}
 end.
 

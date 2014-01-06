@@ -2401,5 +2401,6 @@ begin
     FValues.Add(FWPStyleParElementName[wpseBrdLines] + '=' + IntToStr(brdlines));
 end;
 
+{$WARNINGS ON}
 end.
 

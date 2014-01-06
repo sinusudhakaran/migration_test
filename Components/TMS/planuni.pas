@@ -1698,4 +1698,5 @@ initialization
 finalization
   GlobalDeleteAtom(WinControlTrap_Atom);
 
+{$WARNINGS ON}
 end.
