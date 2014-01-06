@@ -128,8 +128,9 @@ Var
 Begin
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
 
-   Count       := 0;
-   NoOfFiles   := 0;
+   Count     := 0;
+   NoOfFiles := 0;
+   FileFound := false;
 
    repeat
      Inc( Count );
