@@ -31,7 +31,7 @@ type
     SuperTotalForeign_Income: Money;
     SuperTotalForeign_Tax_Credits: Money;
     SuperTotalCapital_Gains_Indexed: Money;
-    SuperTotalCapital_Gains_Disc: Money;
+    SuperTotalCapital_Gains_Disc: Money;               
     SuperTotalCapital_Gains_Other: Money;
     SuperTotalOther_Expenses: Money;
     SuperTotalCGT_Date: Money;
@@ -773,12 +773,8 @@ end;
 procedure LGR_Contra_PrintExchangeGainLoss(Sender:TObject);
 Var
    Code  : Bk5CodeStr;
-   RS    : string[20];
    Mgr : TListLedgerTMgr;
-   Avg : Currency;
-   Net : Money;
-   Qty : Money;
-   GSTControlAccount, Notes: string;
+   Notes: string;
    Account: pAccount_Rec;
    //IsSummary: Boolean;
 begin
@@ -1939,18 +1935,8 @@ end;
 
 procedure LGR_PrintExchangeGainLoss(Sender: TObject);
 var
-  BankAccount: TBank_Account;
-  BankIndex: Integer;
-  CodeIndex: Integer;
-  EntryIndex: Integer;
-  GainLossEntryList: TExchangeGainLossEntryList;
-  GainLossEntry: TExchange_Gain_Loss;
-  CodeList: TStringList;
   Account: pAccount_Rec;
   P: pAccount_Rec;
-  Title: String;
-  TitleLineRendered: Boolean;
-  DetailLinesRendered: Boolean;
   Mgr : TListLedgerTMgr;
   Code  : Bk5CodeStr;
   S, Notes : String;
