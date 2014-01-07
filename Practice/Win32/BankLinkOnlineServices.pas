@@ -157,18 +157,13 @@ type
 
   TProductConfigService = class(TObject)
   private
-    fMethodName: string;
-    fSOAPRequest: InvString;
-
     FPractice, FPracticeCopy: TBloPracticeRead;
     FClientList: ClientList;
     FOnLine: Boolean;
     FRegistered: Boolean;
     FValidBConnectDetails: Boolean;
-    FArrNameSpaceList : Array of TRemRegEntry;
 
     FSubDomain: String;
-    FErrorOccurred: Boolean;
     FExceptionRaised: Boolean;
 
     procedure HandleException(const MethodName: String; E: Exception; SuppressErrors: Boolean = False);
@@ -778,11 +773,8 @@ end;
 //------------------------------------------------------------------------------
 function TProductConfigService.ChangePracUserPass(const aUserGuid: TBloGuid; const aUserCode: WideString; const aOldPassword, aNewPassword: WideString; const UserEmail: WideString): Boolean;
 var
-  MsgResponce     : MessageResponse;
   ShowProgress    : Boolean;
 begin
-  Result := false;
-
   ShowProgress := Progress.StatusSilent;
   if ShowProgress then
   begin
@@ -1169,7 +1161,6 @@ var
   DataSubscriberCredentialsResponse: MessageResponseOfPracticeDataSubscriberCredentials6cY85e5k;
   ShowProgress: Boolean;
   BlopiInterface: IBlopiServiceFacade;
-  Index: Integer;
 begin
   Result := nil;
   
@@ -1420,7 +1411,6 @@ end;
 //------------------------------------------------------------------------------
 function TProductConfigService.GetClientGuid(const aClientCode: string): WideString;
 var
-  i: integer;
   Guid: TBloGuid;
 begin
   Result := '';
@@ -1874,7 +1864,7 @@ var
   end;
 
 var
-  UserMessage, CustomMessage, CustomError: String;
+  CustomMessage, CustomError: String;
 begin
   Result := False;
 
@@ -2357,7 +2347,6 @@ var
   Response: P5AuthResponse;
   ShowProgress: Boolean;
   OnlineUser: TBloUserRead;
-  EmailAddress: String;
 begin
   Result := False;
 
@@ -3391,7 +3380,6 @@ var
   UserName: String;
   NotesId : TBloGuid;
   Subscription: TBloArrayOfguid;
-  ClientCode: String;
   BlopiClientChanged: Boolean;
   PrimaryUser: TBloUserRead;
 begin
@@ -3628,8 +3616,6 @@ function TProductConfigService.ResetPracticeUserPasswordUnSecure(const aEmailAdd
 var
   BlopiInterface: IBlopiServiceFacade;
   MsgResponse: MessageResponse;
-  Cancelled: Boolean;
-  ConnectionError: Boolean;
 begin
   Result := False;
 
@@ -4601,12 +4587,9 @@ function TProductConfigService.AddEditClientUser(const aExistingClient : TBloCli
                                                  const aEMail    : WideString;
                                                  const aFullName : WideString) : Boolean;
 var
-  MsgResponce     : MessageResponse;
-  MsgResponceGuid : MessageResponseOfGuid;
   UserCode        : WideString;
   RoleNames       : TBloArrayOfstring;
   ClientId        : TBloGuid;
-  UserId          : TBloGuid;
 begin
   Result := False;
 
@@ -4725,8 +4708,6 @@ function TProductConfigService.UpdatePracticeUserPass(const aUserId      : TBloG
                                                       const ErrorHandlerMessage: String) : Boolean;
 var
   BlopiInterface : IBlopiSecureServiceFacade;
-  Cancelled: Boolean;
-  ConnectionError: Boolean;
   Response: MessageResponse;
   AuthenticationStatus: TAuthenticationStatus;
 begin
@@ -5377,8 +5358,6 @@ var
   end;
 
 var
-  PrimaryUser: TBloUserRead;
-  ClientUser: TBloUserRead;
   Cancelled: Boolean;
   ConnectionError: Boolean;
 begin
@@ -5546,7 +5525,6 @@ procedure TProductConfigService.UpdateClientStatus(var ClientReadDetail: TBloCli
 var
   BlopiInterface  : IBlopiServiceFacade;
   ClientDetailResponse: MessageResponseOfClientReadDetailMIdCYrSK;
-  MsgResponse: MessageResponse;
   ClientGuid: TBloGuid;
   NewClientReadDetail: TBloClientReadDetail;
   PrimaryContact: TBloUserRead;
@@ -5590,7 +5568,6 @@ var
   BlopiInterface  : IBlopiSecureServiceFacade;
   MsgResponse     : MessageResponse;
   UserId          : TBloGuid;
-  PrimaryUser     : TBloUserRead;
   Cancelled: Boolean;
   ConnectionError: Boolean;
 begin
@@ -5716,9 +5693,6 @@ end;
 
 //------------------------------------------------------------------------------
 function TProductConfigService.CheckAuthentication(ServiceResponse: MessageResponse): Boolean;
-var
-  Cancelled: Boolean;
-  ConnectionError: Boolean;
 begin
   Result := True;
   
@@ -5737,7 +5711,6 @@ function TProductConfigService.CheckClientUser(Client: TBloClientReadDetail;
                                                var UserId: TBloGuid;
                                                const aSubscription : TBloArrayOfGuid): Boolean;
 var
-  MsgResponce     : MessageResponse;
   PrimaryUser     : TBloUserRead;
   ClientUser: TBloUserRead;
 begin
@@ -5798,8 +5771,6 @@ function TProductConfigService.AddEditPracUser(var   aUserId         : TBloGuid;
                                                aOldPassword          : WideString;
                                                aNewPassword          : WideString) : Boolean;
 var
-  MsgResponce     : MessageResponse;
-  MsgResponceGuid : MessageResponseOfGuid;
   CurrPractice    : TBloPracticeRead;
   IsUserOnline    : Boolean;
   RoleNames       : TBloArrayOfString;
@@ -5906,7 +5877,6 @@ function TProductConfigService.DeletePracUser(const aUserCode : string;
                                               const aUserGuid : string;
                                               aPractice : TBloPracticeRead) : Boolean;
 var
-  MsgResponce : MessageResponse;
   UserGuid    : TBloGuid;
 begin
   Result := false;
@@ -6027,7 +5997,6 @@ function TProductConfigService.ChangePracUserPass(const aUserCode    : WideStrin
                                                   aPractice          : TBloPracticeRead;
                                                   aLinkedUserGuid    : TBloGuid) : Boolean;
 var
-  MsgResponce     : MessageResponse;
   UserGuid        : WideString;
   ShowProgress    : Boolean;
 begin
@@ -6084,7 +6053,6 @@ var
   DataPlatformSubscriberResponse: MessageResponseOfDataPlatformSubscription6cY85e5k;
   ShowProgress: Boolean;
   BlopiInterface: IBlopiServiceFacade;
-  Index: Integer;
 begin
   Result := nil;
   
@@ -6215,8 +6183,6 @@ var
   BlopiInterface: IBlopiServiceFacade;
   MsgResponse: MessageResponseOfArrayOfPracticeBankAccountrLqac6vj;
   ShowProgress : Boolean;
-  Cancelled: Boolean;
-  ConnectionError: Boolean;
   Index : integer;
 begin
   Success := False;
