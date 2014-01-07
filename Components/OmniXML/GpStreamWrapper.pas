@@ -50,7 +50,9 @@ type
     swStream        : TStream;
   protected
     function  GetPosition: {$IFDEF D7PLUS}int64;{$ELSE}longint;{$ENDIF D7PLUS} virtual;
+    {$WARNINGS OFF}
     function  GetSize: {$IFDEF D7PLUS}int64; override;{$ELSE}longint; virtual;{$ENDIF D7PLUS}
+    {$WARNINGS ON}
     procedure SetPosition(newPosition: {$IFDEF D7PLUS}int64{$ELSE}longint{$ENDIF D7PLUS}); virtual;
     procedure SetSize({$IFDEF D7PLUS}const{$ENDIF D7PLUS}newSize: {$IFDEF D7PLUS}int64{$ELSE}longint{$ENDIF D7PLUS}); override;
     function  WrappedSeek(offset: integer; mode: word): longint; {$IFDEF D7Plus}overload;{$ENDIF D7PLUS}virtual;
