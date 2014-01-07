@@ -528,10 +528,6 @@ end;
 function TfrmBudget.GetTotalForRow(RowNum: Integer; IncludeGST: boolean): Integer;
 var
   I: Integer;
-  pAccount: pAccount_Rec;
-  byGST_Class: byte;
-  moAmount: Money;
-  moGSTAmount: Money;
   dtMonth: TStDate;
   GSTTotal: double;
 begin
@@ -824,7 +820,6 @@ procedure TfrmBudget.tblBudgetDoneEdit(Sender: TObject; RowNum,
 {for edits that affect other cells those cells will be updated from here also}
 {saves direct edits!}
 var
-  ClassNo   : byte;
   GSTAmount: double;
   dtMonth: TStDate;
   MoAmount: Money;
@@ -1029,11 +1024,8 @@ var
   pBudgetRec: pBudget_Detail_Rec;
   MonthIndex: Integer;
   HasData: Boolean;
-  ClassNo: byte;
-  GSTAmount: Money;
   OldData: TBudgetData;
   GSTInclusive: boolean;
-  OldDataIndex: integer;
   i: integer;
 begin
   GSTInclusive := ShowFiguresGSTInclusive;
@@ -1185,7 +1177,6 @@ var
   Account       : pAccount_Rec;
   ClassNo       : byte;
   DetailLine    : pBudget_Detail_Rec;
-  GSTAmount     : Money;
   HasData       : boolean;
   i             : integer;
 begin
@@ -1953,7 +1944,6 @@ var
   UnitPrice: Money;
   Quantity: Money;
   Total: Integer;
-  DataIndex : integer;
 begin
   CheckEditMode;
   RowIndex := tblBudget.ActiveRow - 1;
@@ -2828,14 +2818,8 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmBudget.DoPercentageCalculation(DataRow: integer = -1; OnlyUpdateThisColumn: integer = -1);
 var
-  AmountWithCurrentRowGST: Money;
   AccountCodeRow: integer;
   ColNum: integer;
-  NewClassNo: byte;
-  NewGSTAmount: Money;
-  OldAmountWithoutGST: Money;
-  OldClassNo: byte;
-  OldGSTAmount: Money;
 
   function GetAccountCodeRow(AccountCode: string): integer;
   var
