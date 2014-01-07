@@ -795,6 +795,7 @@ end; { TGpTextStream.StreamName }
   @param   method    Name of TGpTextStream method that called Win32Check.
   @raises  EGpTextStream if (not condition).
 }
+{$WARNINGS OFF}
 procedure TGpTextStream.Win32Check(condition: boolean; method: string);
 var
   Error: EGpTextStream;
@@ -813,6 +814,7 @@ begin
     raise Error;
   end;
 end; { TGpTextStream.Win32Check }
+{$WARNINGS ON}
 
 {:Writes 'count' number of bytes to stream. 'Count' must be an even number as
   data is always expected in Unicode format (two bytes per character). If stream

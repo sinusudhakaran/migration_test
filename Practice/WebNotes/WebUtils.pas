@@ -426,22 +426,30 @@ begin
    end;
 end;
 
+//------------------------------------------------------------------------------
 procedure SetArray(var OnNode: IXMLNode; Name: string; Value: array of Boolean);
-var I,M: Integer;
-    PNode,
-    CNode: IXMLNode;
-    ChildName: string;
+var
+  I: Integer;
+  M: Integer;
+  PNode: IXMLNode;
+  CNode: IXMLNode;
+  ChildName: string;
 begin
-   PNode := OnNode.AddChild(name);
-   ChildName := MakeSingleName(Name);
-   for I := low(Value) to High(Value) do begin
-      if Value[I]  then
-        M := I;
-   end;
-   for I := low(Value) to M do begin
-     CNode := PNode.AddChild(ChildName);
-     CNode.NodeValue := Value[I];
-   end;
+  PNode := OnNode.AddChild(name);
+  ChildName := MakeSingleName(Name);
+
+  M := -1;
+  for I := low(Value) to High(Value) do
+  begin
+    if Value[I]  then
+      M := I;
+  end;
+
+  for I := low(Value) to M do
+  begin
+    CNode := PNode.AddChild(ChildName);
+    CNode.NodeValue := Value[I];
+  end;
 end;
 
 

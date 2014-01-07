@@ -41,6 +41,7 @@ uses
 type
   {:Base stream wrapper class implementing the delayed Seek.
   }
+  {$WARNINGS OFF}
   TGpStreamWrapper = class(TStream)
   private
     swDelayedSeek   : boolean;
@@ -50,9 +51,7 @@ type
     swStream        : TStream;
   protected
     function  GetPosition: {$IFDEF D7PLUS}int64;{$ELSE}longint;{$ENDIF D7PLUS} virtual;
-    {$WARNINGS OFF}
     function  GetSize: {$IFDEF D7PLUS}int64; override;{$ELSE}longint; virtual;{$ENDIF D7PLUS}
-    {$WARNINGS ON}
     procedure SetPosition(newPosition: {$IFDEF D7PLUS}int64{$ELSE}longint{$ENDIF D7PLUS}); virtual;
     procedure SetSize({$IFDEF D7PLUS}const{$ENDIF D7PLUS}newSize: {$IFDEF D7PLUS}int64{$ELSE}longint{$ENDIF D7PLUS}); override;
     function  WrappedSeek(offset: integer; mode: word): longint; {$IFDEF D7Plus}overload;{$ENDIF D7PLUS}virtual;
@@ -66,6 +65,7 @@ type
     {:Wrapped (underlying) stream.}
     property  WrappedStream: TStream read swStream;
   end; { TGpStreamWrapper }
+  {$WARNINGS ON}
 
 implementation
 
@@ -104,10 +104,12 @@ end; { TGpStreamWrapper.GetPosition }
   If descendant overrides this method, it must never call TGpStreamWrapper.Seek
   (directly or indirectly).
 }
+{$WARNINGS OFF}
 function TGpStreamWrapper.GetSize: {$IFDEF D7PLUS}int64;{$ELSE}longint;{$ENDIF D7PLUS}
 begin
   Result := WrappedStream.Size
 end; { TGpStreamWrapper.GetSize }
+{$WARNINGS ON}
 
 {:Repositions stream pointer. Actually only stores this information for later
   use (when stream pointer position is really used).
