@@ -30,7 +30,6 @@ Type
   public
     constructor Create(AMsg       : string;
                        AErrorCode : integer); overload;
-  published
     function IsConnectionProblem : boolean; virtual;
 
     property ErrorCode : integer read FErrorCode write FErrorCode;
@@ -38,7 +37,7 @@ Type
 
   //----------------------------------------------------------------------------
   EWebSoapClientError = class(EWebClientError)
-  published
+  public
     function IsConnectionProblem : boolean; override;
   end;
 
