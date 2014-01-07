@@ -1131,22 +1131,17 @@ end;
 
 procedure TCashflowReportEx.GetExchangeGainLossForPeriod(const pAcct: pAccount_Rec; const ForPeriod: Integer; var Values: TValuesArray);
 var
-  AccountInfo  : TAccountInformation;
   i            : integer;
   ShowLastYear : boolean;
   PeriodStartDate_TY, PeriodStartDate_LY,
   PeriodEndDate_TY, PeriodEndDate_LY: integer;
-  j: integer;
   ThisYearGainLossAmount: Money;
   LastYearGainLossAmount: Money;
-  BudgetGainLossAmount: Money;
   AccountIndex: Integer;
   BankAccount: TBank_Account;
   GainLossIndex: Integer;
   GainLossEntry: TExchange_Gain_Loss;
   BudgetAmount: Money;
-  FullYearBudget: Money;
-  Period: Integer;
 begin
   Assert( Length( ColumnTypes) = Length( Values));
 
@@ -1229,9 +1224,8 @@ function TCashflowReportEx.GetExchangeRateForForexContra(AContraCode: string; Fo
 var
   i: integer;
   ba : TBank_Account;
-  PeriodDate_TY, PeriodDate_LY, PeriodDate_TY_Modified: integer;
+  PeriodDate_TY, PeriodDate_LY: integer;
   TestStr: string;
-  IsStartOfFinancialYear: boolean;
 begin
   Result := 0;
   for i := 0 to ClientForReport.clBank_Account_List.ItemCount - 1 do begin
@@ -1440,7 +1434,6 @@ var
   i            : integer;
   ShowLastYear : boolean;
   ShowBudget   : boolean;
-  Act: Money;
 begin
   Assert( Length( ColumnTypes) = Length( Values));
 
@@ -1490,15 +1483,12 @@ end;
 
 procedure TCashflowReportEx.GetYTD_ExchangeGainLoss(const pAcct: pAccount_Rec; const ToPeriod: integer; var Values: TValuesArray);
 var
-  AccountInfo  : TAccountInformation;
   i            : integer;
   ShowLastYear : boolean;
   PeriodStartDate_TY, PeriodStartDate_LY,
   PeriodEndDate_TY, PeriodEndDate_LY: integer;
-  j: integer;
   ThisYearGainLossAmount: Money;
   LastYearGainLossAmount: Money;
-  BudgetGainLossAmount: Money;
   AccountIndex: Integer;
   BankAccount: TBank_Account;
   GainLossIndex: Integer;
@@ -2048,9 +2038,7 @@ begin
             //5A. Closing balance including exchange gain/loss
             PutString( GetHeading( hdClosing_Balance));
           
-            ForexPreviousPeriods := 0;
-            
-            for PeriodNo:= MinPeriodToShow to MaxPeriodToShow do 
+            for PeriodNo:= MinPeriodToShow to MaxPeriodToShow do
             begin
               if PeriodNo <= ClientForReport.clFields.clTemp_FRS_last_Period_To_Show then
               begin
@@ -2166,7 +2154,6 @@ begin
             GetClosingBalancesForPeriod( pAcct, PeriodNo, CB_ValuesArray);
             GetExchangeGainLossForPeriod(pAcct, PeriodNo, EX_ValuesArray);
 
-            ForexPreviousPeriods := 0;
             if NonBaseCurrencyAccount then
             begin
               GetYTD_ExchangeGainLoss(pAcct, PeriodNo -1, EX_PreviousValuesArray);
@@ -2400,8 +2387,7 @@ function TCashflowReportEx.GetOpeningBalanceAmount(Code: string; IsStartOfFinanc
                                                    PeriodNo: integer): Money;
 var
   AccountInfo: TAccountInformation;
-  Bal, ForexBal: Money;
-  i: integer;
+  Bal: Money;
 begin
   AccountInfo := TAccountInformation.Create(ClientForReport);
   try
@@ -2427,11 +2413,8 @@ var
   PeriodNo: integer;
   PeriodCount: integer;
   ColumnCount: integer;
-  OpeningBalanceExchangeRate, ClosingBalanceExchangeRate: double;
-  LastYear, IsStartOfFinancialYear, NonBaseCurrencyAccount: Boolean;
-  AccountInfo: TAccountInformation;
-  ForexLabel: string;
-  TestStr: string;
+  ClosingBalanceExchangeRate: double;
+  LastYear, IsStartOfFinancialYear: Boolean;
   iVarianceCol: integer;
 begin
   FUseBaseAmounts := True;
