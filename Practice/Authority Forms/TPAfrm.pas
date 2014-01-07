@@ -41,7 +41,6 @@ type
     pnlMain: TPanel;
     pnlInstTop: TPanel;
     lblInstitution: TLabel;
-    lblInstitutionOther: TLabel;
     cmbInstitution: TComboBox;
     edtInstitutionName: TEdit;
     pnlInstitution: TPanel;
@@ -80,9 +79,9 @@ type
     lblNoteAddFormReq: TLabel;
     lblBookSecureLink: TLabel;
     lblOrContactiBizz: TLabel;
-    imgInfoOtherMsg: TImage;
     imgInfoAdditionalMsg: TImage;
     lbliBizz: TLabel;
+    chkSupplyAsProvisional: TCheckBox;
     procedure btnPreviewClick(Sender: TObject);
     procedure btnFileClick(Sender: TObject);
     procedure btnPrintClick(Sender: TObject);
@@ -237,7 +236,6 @@ begin
   lblBookSecureLink.hint := PRACINI_SecureFormLinkNZ;
   lbliBizz.hint := IBIZZ_MESSAGE;
 
-  AppImages.ilFileActions_ClientMgr.GetBitmap(FILE_ACTIONS_INFO2, imgInfoOtherMsg.Picture.Bitmap);
   AppImages.ilFileActions_ClientMgr.GetBitmap(FILE_ACTIONS_INFO2, imgInfoAdditionalMsg.Picture.Bitmap);
 end;
 
@@ -623,6 +621,9 @@ end;
 
 //------------------------------------------------------------------------------
 procedure TfrmTPA.SetInstitutionControls(aInstitutionType : TInstitutionType);
+const
+  PNL_DATA_WIDTH = 146;
+  PNL_DATA_WIDTH_RURAL = 106;
 var
   enableControls : boolean;
   oldInstDroppedDown : boolean;
@@ -642,12 +643,11 @@ begin
   enableControls := false;
   case aInstitutionType of
     inNone  : begin
+      chkSupplyAsProvisional.Visible := false;
       mskAccountNumber.Visible := true;
       edtAccountNumber.Visible := false;
       enableControls := false;
       edtInstitutionName.Visible := false;
-      lblInstitutionOther.Visible := false;
-      imgInfoOtherMsg.Visible := false;
       cmbInstitution.Width := edtBranch.Width;
       chkDataSecureNew.Checked := false;
       chkDataSecureExisting.Checked := false;
@@ -659,22 +659,20 @@ begin
 
       case aInstitutionType of
         inOther  : begin
+          chkSupplyAsProvisional.Visible := true;
           mskAccountNumber.Visible := false;
           edtAccountNumber.Visible := true;
           edtInstitutionName.Visible := true;
-          lblInstitutionOther.Visible := true;
-          imgInfoOtherMsg.Visible := true;
           cmbInstitution.Width := OTHER_BANK_WIDTH;
           // Combo has no option to set the Drop down wider than the combo so this is
           // how you set it
           SendMessage(cmbInstitution.Handle, CB_SETDROPPEDWIDTH, edtBranch.Width, 0);
         end;
         inBLO  : begin
+          chkSupplyAsProvisional.Visible := false;
           mskAccountNumber.Visible := true;
           edtAccountNumber.Visible := false;
           edtInstitutionName.Visible := false;
-          lblInstitutionOther.Visible := false;
-          imgInfoOtherMsg.Visible := false;
           cmbInstitution.Width := edtBranch.Width;
 
           if (Assigned(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex])) and
@@ -691,6 +689,11 @@ begin
       end;
     end;
   end;
+
+  if pnlRural.visible then
+    pnlData.Height := PNL_DATA_WIDTH_RURAL
+  else
+    pnlData.Height := PNL_DATA_WIDTH;
 
   cmbInstitution.DroppedDown := oldInstDroppedDown;
 

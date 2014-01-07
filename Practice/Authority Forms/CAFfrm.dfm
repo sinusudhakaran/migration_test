@@ -4,7 +4,7 @@ object frmCAF: TfrmCAF
   BorderIcons = [biSystemMenu]
   BorderStyle = bsSingle
   Caption = 'Client Authority Form'
-  ClientHeight = 521
+  ClientHeight = 574
   ClientWidth = 628
   Color = clBtnFace
   Constraints.MinWidth = 350
@@ -25,12 +25,13 @@ object frmCAF: TfrmCAF
   TextHeight = 13
   object Panel6: TPanel
     Left = 0
-    Top = 480
+    Top = 533
     Width = 628
     Height = 41
     Align = alBottom
     BevelOuter = bvLowered
     TabOrder = 0
+    ExplicitTop = 521
     object btnPreview: TButton
       Left = 8
       Top = 8
@@ -161,7 +162,7 @@ object frmCAF: TfrmCAF
     Left = 8
     Top = 8
     Width = 611
-    Height = 466
+    Height = 513
     BevelKind = bkFlat
     BevelOuter = bvNone
     Color = clWhite
@@ -192,25 +193,6 @@ object frmCAF: TfrmCAF
         Font.Style = []
         ParentFont = False
       end
-      object imgInfoOtherMsg: TImage
-        Left = 24
-        Top = 46
-        Width = 16
-        Height = 16
-      end
-      object lblInstitutionOther: TLabel
-        Left = 44
-        Top = 46
-        Width = 263
-        Height = 16
-        Caption = 'This will be loaded as a provisional account.'
-        Font.Charset = DEFAULT_CHARSET
-        Font.Color = clBlack
-        Font.Height = -15
-        Font.Name = 'MS Sans Serif'
-        Font.Style = []
-        ParentFont = False
-      end
       object cmbInstitution: TComboBox
         Left = 152
         Top = 16
@@ -223,7 +205,7 @@ object frmCAF: TfrmCAF
         Font.Height = -15
         Font.Name = 'MS Sans Serif'
         Font.Style = []
-        ItemHeight = 0
+        ItemHeight = 16
         ParentFont = False
         TabOrder = 0
         OnChange = cmbInstitutionChange
@@ -582,14 +564,14 @@ object frmCAF: TfrmCAF
       Left = 0
       Top = 343
       Width = 607
-      Height = 123
+      Height = 162
       Align = alTop
       Color = clWhite
       ParentBackground = False
       TabOrder = 3
       DesignSize = (
         607
-        123)
+        162)
       object lblSecureCode: TLabel
         Left = 283
         Top = 81
@@ -688,6 +670,22 @@ object frmCAF: TfrmCAF
         MaxLength = 8
         ParentFont = False
         TabOrder = 2
+      end
+      object chkSupplyAsProvisional: TCheckBox
+        Left = 24
+        Top = 131
+        Width = 393
+        Height = 17
+        Anchors = [akLeft, akTop, akRight]
+        Caption = 'Supply as provisonal if account is not available from the Bank.'
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -15
+        Font.Name = 'MS Sans Serif'
+        Font.Style = []
+        ParentFont = False
+        TabOrder = 3
+        OnClick = chkDataSecureNewClick
       end
     end
     object pnlAccountError: TPanel

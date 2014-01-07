@@ -4,7 +4,7 @@ object frmTPA: TfrmTPA
   BorderIcons = [biSystemMenu]
   BorderStyle = bsSingle
   Caption = 'Third Party Authority'
-  ClientHeight = 634
+  ClientHeight = 613
   ClientWidth = 634
   Color = clBtnFace
   Constraints.MinWidth = 640
@@ -22,12 +22,12 @@ object frmTPA: TfrmTPA
   OnShow = FormShow
   DesignSize = (
     634
-    634)
+    613)
   PixelsPerInch = 96
   TextHeight = 13
   object btnPreview: TButton
     Left = 8
-    Top = 601
+    Top = 580
     Width = 85
     Height = 25
     Hint = 'Preview the Third Party Authority Form'
@@ -44,10 +44,11 @@ object frmTPA: TfrmTPA
     ShowHint = True
     TabOrder = 0
     OnClick = btnPreviewClick
+    ExplicitTop = 578
   end
   object btnFile: TButton
     Left = 99
-    Top = 601
+    Top = 580
     Width = 85
     Height = 25
     Hint = 'Save the Third Party Authority Form to a file'
@@ -63,10 +64,11 @@ object frmTPA: TfrmTPA
     ShowHint = True
     TabOrder = 1
     OnClick = btnFileClick
+    ExplicitTop = 578
   end
   object btnEmail: TButton
     Left = 189
-    Top = 601
+    Top = 580
     Width = 85
     Height = 25
     Hint = 'E-mail the Third Party Authority Form to the client'
@@ -82,10 +84,11 @@ object frmTPA: TfrmTPA
     ShowHint = True
     TabOrder = 2
     OnClick = btnEmailClick
+    ExplicitTop = 578
   end
   object btnPrint: TButton
     Left = 281
-    Top = 601
+    Top = 580
     Width = 85
     Height = 25
     Hint = 'Print the Third Party Authority Form'
@@ -101,10 +104,11 @@ object frmTPA: TfrmTPA
     ShowHint = True
     TabOrder = 3
     OnClick = btnPrintClick
+    ExplicitTop = 578
   end
   object btnImport: TButton
     Left = 372
-    Top = 601
+    Top = 580
     Width = 75
     Height = 25
     Anchors = [akLeft, akBottom]
@@ -117,10 +121,11 @@ object frmTPA: TfrmTPA
     ParentFont = False
     TabOrder = 4
     OnClick = btnImportClick
+    ExplicitTop = 578
   end
   object btnClear: TButton
     Left = 453
-    Top = 601
+    Top = 580
     Width = 85
     Height = 25
     Hint = 'Clear the form'
@@ -136,10 +141,11 @@ object frmTPA: TfrmTPA
     ShowHint = True
     TabOrder = 5
     OnClick = btnClearClick
+    ExplicitTop = 578
   end
   object btnCancel: TButton
     Left = 544
-    Top = 601
+    Top = 580
     Width = 80
     Height = 25
     Hint = 'Close the Third Party Authority Form'
@@ -156,12 +162,13 @@ object frmTPA: TfrmTPA
     ShowHint = True
     TabOrder = 6
     OnClick = btnCancelClick
+    ExplicitTop = 578
   end
   object pnlMain: TPanel
     Left = 8
     Top = 8
     Width = 616
-    Height = 587
+    Height = 561
     BevelKind = bkFlat
     BevelOuter = bvNone
     Color = clWhite
@@ -192,25 +199,6 @@ object frmTPA: TfrmTPA
         Font.Style = []
         ParentFont = False
       end
-      object lblInstitutionOther: TLabel
-        Left = 44
-        Top = 46
-        Width = 263
-        Height = 16
-        Caption = 'This will be loaded as a provisional account.'
-        Font.Charset = DEFAULT_CHARSET
-        Font.Color = clBlack
-        Font.Height = -15
-        Font.Name = 'MS Sans Serif'
-        Font.Style = []
-        ParentFont = False
-      end
-      object imgInfoOtherMsg: TImage
-        Left = 24
-        Top = 46
-        Width = 16
-        Height = 16
-      end
       object cmbInstitution: TComboBox
         Left = 152
         Top = 16
@@ -223,7 +211,7 @@ object frmTPA: TfrmTPA
         Font.Height = -15
         Font.Name = 'MS Sans Serif'
         Font.Style = []
-        ItemHeight = 0
+        ItemHeight = 16
         ParentFont = False
         TabOrder = 0
         OnChange = cmbInstitutionChange
@@ -720,6 +708,22 @@ object frmTPA: TfrmTPA
         MaxLength = 8
         ParentFont = False
         TabOrder = 2
+      end
+      object chkSupplyAsProvisional: TCheckBox
+        Left = 22
+        Top = 131
+        Width = 393
+        Height = 17
+        Anchors = [akLeft, akTop, akRight]
+        Caption = 'Supply as provisonal if account is not available from the Bank.'
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -15
+        Font.Name = 'MS Sans Serif'
+        Font.Style = []
+        ParentFont = False
+        TabOrder = 3
+        OnClick = chkDataSecureNewClick
       end
     end
     object pnlRural: TPanel

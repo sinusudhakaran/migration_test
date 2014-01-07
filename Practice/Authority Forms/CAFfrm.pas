@@ -73,11 +73,10 @@ type
     pnlAccountError: TPanel;
     lblAccountValidationError: TLabel;
     edtAccountNumber: TEdit;
-    imgInfoOtherMsg: TImage;
-    lblInstitutionOther: TLabel;
     imgInfoAdditionalMsg: TImage;
     lblNoteAddFormReq: TLabel;
     lblBookSecureLink: TLabel;
+    chkSupplyAsProvisional: TCheckBox;
     procedure btnPreviewClick(Sender: TObject);
     procedure btnFileClick(Sender: TObject);
     procedure btnPrintClick(Sender: TObject);
@@ -217,7 +216,6 @@ begin
 
   lblBookSecureLink.hint  := PRACINI_SecureFormLinkAU;
 
-  AppImages.ilFileActions_ClientMgr.GetBitmap(FILE_ACTIONS_INFO2, imgInfoOtherMsg.Picture.Bitmap);
   AppImages.ilFileActions_ClientMgr.GetBitmap(FILE_ACTIONS_INFO2, imgInfoAdditionalMsg.Picture.Bitmap);
 end;
 
@@ -529,12 +527,11 @@ begin
   enableControls := false;
   case aInstitutionType of
     inNone  : begin
+      chkSupplyAsProvisional.Visible := false;
       mskAccountNumber.Visible := true;
       edtAccountNumber.Visible := false;
       enableControls := false;
       edtInstitutionName.Visible := false;
-      lblInstitutionOther.Visible := false;
-      imgInfoOtherMsg.Visible := false;
       cmbInstitution.Width := edtBranch.Width;
       chkDataSecureNew.Checked := false;
       chkDataSecureExisting.Checked := false;
@@ -546,22 +543,20 @@ begin
 
       case aInstitutionType of
         inOther  : begin
+          chkSupplyAsProvisional.Visible := true;
           mskAccountNumber.Visible := false;
           edtAccountNumber.Visible := true;
           edtInstitutionName.Visible := true;
-          lblInstitutionOther.Visible := true;
-          imgInfoOtherMsg.Visible := true;
           cmbInstitution.Width := OTHER_BANK_WIDTH;
           // Combo has no option to set the Drop down wider than the combo so this is
           // how you set it
           SendMessage(cmbInstitution.Handle, CB_SETDROPPEDWIDTH, edtBranch.Width, 0);
         end;
         inBLO  : begin
+          chkSupplyAsProvisional.Visible := false;
           mskAccountNumber.Visible := true;
           edtAccountNumber.Visible := false;
           edtInstitutionName.Visible := false;
-          lblInstitutionOther.Visible := false;
-          imgInfoOtherMsg.Visible := false;
           cmbInstitution.Width := edtBranch.Width;
 
           if (Assigned(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex])) and
