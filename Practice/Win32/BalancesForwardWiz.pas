@@ -749,11 +749,6 @@ var
   pAcct : pAccount_Rec;
   i     : integer;
   AccountInfo : TAccountInformation;
-    This_Year_Starts         : integer;
-  This_Year_Ends           : integer;
-  Last_Year_Starts         : integer;
-  Last_Year_Ends           : integer;
-  ISOCodes: string;
 begin
   //need to reset all of the financial parameters as these may have changed
   //when the reports were being printed
@@ -1664,11 +1659,6 @@ var
   AccountInfo            : TAccountInformation;
   Total                  : Money;
   Amount                 : Money;
-    This_Year_Starts         : integer;
-  This_Year_Ends           : integer;
-  Last_Year_Starts         : integer;
-  Last_Year_Ends           : integer;
-  ISOCodes: string;
 begin
   //clear any existing opening balance
   //find the open balance journal account
