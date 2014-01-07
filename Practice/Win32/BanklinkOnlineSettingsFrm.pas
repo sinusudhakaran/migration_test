@@ -9,7 +9,7 @@ uses
   Classes,
   Graphics,
   Controls,
-  Forms,
+  Forms,                     
   Dialogs,
   StdCtrls,
   ExtCtrls,
@@ -84,7 +84,6 @@ type
     fBusyKeyPress : Boolean;
     fReadOnly : Boolean;
     fOldEmail : string;
-    fClientStatus : integer;
 
     ClientReadDetail : TBloClientReadDetail;
     AvailableServiceArray : TBloArrayOfDataPlatformSubscriber;
@@ -213,8 +212,6 @@ procedure TfrmBanklinkOnlineSettings.rbActiveMouseDown(Sender: TObject;
 var
   Msg: String;
   WasSuspended, WasDeactivated: boolean;
-  ClientDetailResponse: MessageResponseOfClientReadDetailMIdCYrSK;
-  BlopiInterface: IBlopiServiceFacade;
 begin
   WasSuspended := rbSuspended.Checked;
   WasDeactivated := rbDeactivated.Checked;
@@ -615,7 +612,7 @@ function TfrmBanklinkOnlineSettings.Validate: Boolean;
 var
   EmailChanged, ProductsChanged, ProductFound, NotesOnlineTicked: boolean;
   NewProducts, RemovedProducts, AllProducts, NewExports: TStringList;
-  PromptMessage, ErrorMsg, MailTo, MailSubject, MailBody: string;
+  PromptMessage, ErrorMsg: string;
   i, j, NumProdTicked : integer;
   ClientStatus : TBloStatus;
   MaxOfflineDays, NewExportsStr : String;
@@ -999,9 +996,7 @@ begin
 end;
 
 procedure TfrmBanklinkOnlineSettings.ExportTaggedAccounts(ProgressForm: ISingleProgressForm);
-var
-  i: integer;
-begin 
+begin
   TBankLinkOnlineTaggingServices.UpdateAccountVendors(ClientReadDetail, MyClient, OriginalDataExports,
                                                       ModifiedDataExports, ProgressForm);
 end;
@@ -1025,7 +1020,6 @@ var
   ClientServiceIndex   : Integer;
   ClientID             : String;
   DataExportEnabled    : boolean;
-  ClientHasServices    : boolean;
   PracticeExportDataService   : TBloDataPlatformSubscription;
   ExportToSortList: TStringList;
   PrimaryUser:         TBloUserRead;
