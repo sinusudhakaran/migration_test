@@ -255,7 +255,6 @@ type
     procedure UMMainFormModalCommand(var aMsg: TMessage); message UM_MAINFORM_MODALCOMMAND;
     procedure CreateDetailLine(RowNum: integer);
     function ShowFiguresGSTInclusive: boolean;
-    function GetClassNoFromRow(RowNum: integer): byte;
     procedure EnableOrDisablePercentageInvalidControls(Value: boolean);
     function CalculateGSTFromNetAmount( aClient : TClientObj; ADate : LongInt; Amount : Money; ClassNo : Byte): double;
 
@@ -771,14 +770,6 @@ begin
     RefreshTableWithData(fShowZeros, True, True);
 end;
 
-function TfrmBudget.GetClassNoFromRow(RowNum: integer): byte;
-var
-  Account   : pAccount_Rec;
-begin
-  Account := FChart.FindCode(FData[RowNum].bAccount);
-  Result := GetGSTClassNo(MyClient, GetGSTClassCode(MyClient, Account.chGST_Class));
-end;
-
 //------------------------------------------------------------------------------
 procedure TfrmBudget.tblBudgetDoneEdit(Sender: TObject; RowNum,
   ColNum: Integer);
@@ -861,9 +852,6 @@ VAR
    TaxAmtExt     : Extended;
    TaxRate       : Extended;
    WhichRate     : Byte;
-   OldRoundMode  : TFPURoundingMode;
-   RoundUpHalves : boolean;
-   Remainder     : Extended;
 Begin
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
    Result := 0;
@@ -961,12 +949,13 @@ end;
 // another row, we want to disable some functions
 procedure TfrmBudget.EnableOrDisablePercentageInvalidControls(Value: boolean);
 begin
-  frmMain.tbSmooth.Enabled  := Value;
   frmMain.tbAverage.Enabled := Value;
   frmMain.tbCopy.Enabled    := Value;
+  frmMain.tbSplit.Enabled   := Value;
   mniAverage.Enabled        := Value;
-  mniSmooth.Enabled         := Value;
   mniCopy.Enabled           := Value;
+  mniSplit.Enabled          := Value;
+  mniEnterQuantity.Enabled  := Value;
 end;
 
 //------------------------------------------------------------------------------
@@ -1032,10 +1021,8 @@ var
   MonthIndex: Integer;
   HasData: Boolean;
   OldData: TBudgetData;
-  GSTInclusive: boolean;
   i: integer;
 begin
-  GSTInclusive := ShowFiguresGSTInclusive;
   if KeepPercentages then
     // In this case, the user has toggled the GST Inclusive/Exclusive radio buttons or pressed Hide Unused.
     // We haven't yet saved any new or modified percentages, so these will be kept safe in OldData and
@@ -1181,8 +1168,6 @@ procedure TfrmBudget.UpdateLine(index: integer; CopyPercentages: boolean);
 {syncronizes the editor lines and the lines stored in the budget}
 {adds, edits or deletes budget line where necessary}
 var
-  Account       : pAccount_Rec;
-  ClassNo       : byte;
   DetailLine    : pBudget_Detail_Rec;
   HasData       : boolean;
   i             : integer;
@@ -1220,9 +1205,6 @@ begin
       FData[index].bDetailLine.bdPercent_Account := '';
       FData[index].bDetailLine.bdPercentage := 0;
     end;
-
-    Account := FChart.FindCode(FData[index].bAccount);
-    ClassNo := GetClassNoFromRow(index);
 
     for i := 1 to 12 do
     begin

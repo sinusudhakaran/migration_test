@@ -123,8 +123,6 @@ VAR
    TaxAmtExt     : Extended;
    TaxRate       : Extended;
    WhichRate     : Byte;
-   RoundUpHalves : boolean;
-   Remainder     : Extended;
 Begin
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
    CalculateGSTFromNett := 0;
