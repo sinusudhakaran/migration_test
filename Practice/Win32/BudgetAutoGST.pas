@@ -63,6 +63,10 @@ type
 
   function RoundToWholeValue(UnroundedAmount: Extended): double;
 
+  function DoRoundUp(Value: double): integer;
+
+  function DoRoundDown(Value: double): integer;
+
 implementation
 
 uses
@@ -133,7 +137,7 @@ begin
   moAmount := aBudget.bAmounts[aMonthIndex];
   moGSTAmount := CalculateGSTFromNett(aClient, aDate, moAmount, byGST_Class);
   if not IsGSTAccountCode(aClient, aBudget.bAccount) then
-    aBudget.bGstAmounts[aMonthIndex] := Round(moGSTAmount + moAmount);
+    aBudget.bGstAmounts[aMonthIndex] := DoRoundUp(moGSTAmount + moAmount);
 
   // Add to total (positive or negative)
   GSTAmount := GSTAmount + moGSTAmount;
@@ -379,6 +383,38 @@ begin
     SetRoundMode(rmUp);
   Result := Round( UnroundedAmount );
   if RoundUpHalves then
+    SetRoundMode(OldRoundMode);
+end;
+
+function DoRoundUp(Value: double): integer;
+var
+  RoundUpHalves: boolean;
+  Remainder: extended;
+  OldRoundMode: TFPURoundingMode;
+begin
+  Remainder := Value - Trunc(Value);
+  RoundUpHalves := abs(Remainder - 0.5) < 0.0000001;
+  OldRoundMode := GetRoundMode; // would put this in the if statement below but then I get a compiler warning
+  if RoundUpHalves then
+    SetRoundMode(rmUp);
+  Result := Round(Value);
+  if RoundUpHalves then
+    SetRoundMode(OldRoundMode);
+end;
+
+function DoRoundDown(Value: double): integer;
+var
+  RoundDownHalves: boolean;
+  Remainder: extended;
+  OldRoundMode: TFPURoundingMode;
+begin
+  Remainder := Value - Trunc(Value);
+  RoundDownHalves := abs(Remainder - 0.5) < 0.0000001;
+  OldRoundMode := GetRoundMode; // would put this in the if statement below but then I get a compiler warning
+  if RoundDownHalves then
+    SetRoundMode(rmDown);
+  Result := Round(Value);
+  if RoundDownHalves then
     SetRoundMode(OldRoundMode);
 end;
 

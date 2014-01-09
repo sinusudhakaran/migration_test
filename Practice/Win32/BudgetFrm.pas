@@ -257,8 +257,6 @@ type
     function ShowFiguresGSTInclusive: boolean;
     function GetClassNoFromRow(RowNum: integer): byte;
     procedure EnableOrDisablePercentageInvalidControls(Value: boolean);
-    function DoRoundUp(Value: double): integer;
-    function DoRoundDown(Value: double): integer;
     function CalculateGSTFromNetAmount( aClient : TClientObj; ADate : LongInt; Amount : Money; ClassNo : Byte): double;
 
   public
@@ -549,38 +547,6 @@ begin
     Result := DoRoundUp(GSTTotal);
 end;
 
-function TfrmBudget.DoRoundUp(Value: double): integer;
-var
-  RoundUpHalves: boolean;
-  Remainder: extended;
-  OldRoundMode: TFPURoundingMode;
-begin
-  Remainder := Value - Trunc(Value);
-  RoundUpHalves := abs(Remainder - 0.5) < 0.0000001;
-  OldRoundMode := GetRoundMode; // would put this in the if statement below but then I get a compiler warning
-  if RoundUpHalves then
-    SetRoundMode(rmUp);
-  Result := Round(Value);
-  if RoundUpHalves then
-    SetRoundMode(OldRoundMode);
-end;
-
-function TfrmBudget.DoRoundDown(Value: double): integer;
-var
-  RoundDownHalves: boolean;
-  Remainder: extended;
-  OldRoundMode: TFPURoundingMode;
-begin
-  Remainder := Value - Trunc(Value);
-  RoundDownHalves := abs(Remainder - 0.5) < 0.0000001;
-  OldRoundMode := GetRoundMode; // would put this in the if statement below but then I get a compiler warning
-  if RoundDownHalves then
-    SetRoundMode(rmDown);
-  Result := Round(Value);
-  if RoundDownHalves then
-    SetRoundMode(OldRoundMode);
-end;
-
 //------------------------------------------------------------------------------
 procedure TfrmBudget.ReadCellforEdit(RowNum, ColNum: Integer; var Data: Pointer);
 {read the data for an editable cell into the current record variables}
@@ -825,6 +791,7 @@ var
   GSTAmount: double;
   dtMonth: TStDate;
   MoAmount: Money;
+  RawAmount: Money;
   pAccount: pAccount_Rec;
   GST_Class: byte;
 begin
@@ -849,7 +816,12 @@ begin
                 exit;
               GST_Class := pAccount.chGST_Class;
               GSTAmount := CalculateGSTFromNetAmount(MyClient, dtMonth, moAmount, GST_Class);
-              FData[RowNum-1].bAmounts[ColNum-MonthBase] := DoRoundDown(eAmounts[ColNum-MonthBase] - GSTAmount);
+              FData[RowNum-1].bAmounts[ColNum-MonthBase] := Round(eAmounts[ColNum-MonthBase] - GSTAmount);
+              // Need to recalculate the shown GST inclusive amount so that it's the stored raw amount + GST, which may
+              // differ slightly from the GST inclusive amount entered by the user
+              RawAmount := FData[RowNum-1].bAmounts[ColNum-MonthBase];
+              FData[RowNum-1].bGSTAmounts[ColNum-MonthBase] :=
+                DoRoundUp(RawAmount + CalculateGSTFromNett(MyClient, dtMonth, RawAmount, GST_Class));
             end else
               FData[RowNum-1].bAmounts[ColNum-MonthBase] := eAmounts[ColNum-MonthBase];
             if (eAmounts[ColNum - MonthBase] = 0)
