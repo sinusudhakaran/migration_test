@@ -106,6 +106,7 @@ type
     procedure lblBookSecureLinkMouseEnter(Sender: TObject);
     procedure lblBookSecureLinkMouseLeave(Sender: TObject);
     procedure mskAccountNumberChange(Sender: TObject);
+    procedure edtInstitutionNameChange(Sender: TObject);
   private
     fValidAccount : boolean;
     fAccountNumber : string;
@@ -274,13 +275,26 @@ end;
 //------------------------------------------------------------------------------
 function TfrmCAF.ValidateAccount(aAccountNumber : string; var aFailedReason : string) : boolean;
 var
-  FailedReason : string;
   InstCode : string;
   AccNumber : string;
 begin
   Result := false;
   fValidAccount := false;
   fAccountNumber := '';
+
+    // Check if the Mapping File is set to ignore Validation
+  if (cmbInstitution.ItemIndex > 0) and
+     (Assigned(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex])) and
+     (cmbInstitution.Items.Objects[cmbInstitution.ItemIndex] is TInstitutionItem) then
+  begin
+    if TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex]).IgnoreValidation then
+    begin
+      AccNumber := trim(fMaskHint.RemoveUnusedCharsFromAccNumber(aAccountNumber));
+      fAccountNumber := AccNumber;
+      fValidAccount := true;
+      Exit;
+    end;
+  end;
 
   // Check if there is any data entered
   if length(fMaskHint.RemoveUnusedCharsFromAccNumber(aAccountNumber)) = 0 then
@@ -620,6 +634,11 @@ var
 begin
   e := Sender as TEdit;
   e.Text := Trim(e.Text);
+end;
+
+procedure TfrmCAF.edtInstitutionNameChange(Sender: TObject);
+begin
+
 end;
 
 //------------------------------------------------------------------------------

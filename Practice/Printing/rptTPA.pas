@@ -487,6 +487,15 @@ var
   Day, Month, Year : word;
 {$ENDIF}
 begin
+  // Check if the Mapping File is set to ignore Validation
+  if (Values.cmbInstitution.ItemIndex > 0) and
+     (Assigned(Values.cmbInstitution.Items.Objects[Values.cmbInstitution.ItemIndex])) and
+     (Values.cmbInstitution.Items.Objects[Values.cmbInstitution.ItemIndex] is TInstitutionItem) then
+  begin
+    if TInstitutionItem(Values.cmbInstitution.Items.Objects[Values.cmbInstitution.ItemIndex]).IgnoreValidation then
+      Exit;
+  end;
+
   // don't draw QRCode if institution is set to other or not set
   if Values.InstitutionType <> inBLO then
     Exit;

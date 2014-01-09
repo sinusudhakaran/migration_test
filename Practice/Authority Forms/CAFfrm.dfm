@@ -31,7 +31,6 @@ object frmCAF: TfrmCAF
     Align = alBottom
     BevelOuter = bvLowered
     TabOrder = 0
-    ExplicitTop = 521
     object btnPreview: TButton
       Left = 8
       Top = 8
@@ -227,6 +226,7 @@ object frmCAF: TfrmCAF
         ShowHint = True
         TabOrder = 1
         Visible = False
+        OnChange = edtInstitutionNameChange
       end
     end
     object pnlInstitution: TPanel

@@ -38,6 +38,7 @@ type
     FNewName : String;
     FHasNewMask : Boolean;
     FNewMask : string;
+    FIgnoreValidation : boolean;
   public
     property AccountEditMask: WideString read FAccountEditMask write FAccountEditMask;
     property Active: Boolean read FActive write FActive;
@@ -62,6 +63,7 @@ type
     property NewName : String read FNewName write FNewName;
     property HasNewMask : Boolean read FHasNewMask write FHasNewMask;
     property NewMask : string read FNewMask write FNewMask;
+    property IgnoreValidation : boolean read FIgnoreValidation write FIgnoreValidation;
   end;
 
   //----------------------------------------------------------------------------
@@ -107,6 +109,7 @@ const
   RURAL_CODE          = 4;
   NEW_NAME            = 5;
   NEW_MASK            = 6;
+  IGNORE_VALIDATION   = 7;
 
 var
   fInstitutions : TInstitutions;
@@ -272,6 +275,7 @@ begin
     NewInstitutionItem.NewName := '';
     NewInstitutionItem.HasNewMask := false;
     NewInstitutionItem.NewMask := '';
+    NewInstitutionItem.IgnoreValidation := false;
 
     if CountryCodes.Find(NewInstitutionItem.CountryCode, CountryIndex) = false then
     begin
@@ -339,13 +343,14 @@ begin
 
       if FindItem(CommaLine[INST_CODE], CommaLine[INST_COUNTRY_CODE], FoundInstitutionItem) then
       begin
-        FoundInstitutionItem.Enabled      := GetBoolFromString(CommaLine[INST_ENABLED], true); //defaults to true on error
-        FoundInstitutionItem.HasRuralCode := (length(trim(CommaLine[RURAL_CODE])) > 0);
-        FoundInstitutionItem.RuralCode    := CommaLine[RURAL_CODE];
-        FoundInstitutionItem.HasNewName   := (length(trim(CommaLine[NEW_NAME])) > 0);
-        FoundInstitutionItem.NewName      := CommaLine[NEW_NAME];
-        FoundInstitutionItem.HasNewMask   := (length(trim(CommaLine[NEW_MASK])) > 0);
-        FoundInstitutionItem.NewMask      := CommaLine[NEW_MASK];
+        FoundInstitutionItem.Enabled          := GetBoolFromString(CommaLine[INST_ENABLED], true); //defaults to true on error
+        FoundInstitutionItem.HasRuralCode     := (length(trim(CommaLine[RURAL_CODE])) > 0);
+        FoundInstitutionItem.RuralCode        := CommaLine[RURAL_CODE];
+        FoundInstitutionItem.HasNewName       := (length(trim(CommaLine[NEW_NAME])) > 0);
+        FoundInstitutionItem.NewName          := CommaLine[NEW_NAME];
+        FoundInstitutionItem.HasNewMask       := (length(trim(CommaLine[NEW_MASK])) > 0);
+        FoundInstitutionItem.NewMask          := CommaLine[NEW_MASK];
+        FoundInstitutionItem.IgnoreValidation := GetBoolFromString(CommaLine[IGNORE_VALIDATION], false);
       end;
     end;
 
