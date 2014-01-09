@@ -1066,7 +1066,8 @@ uses
   ModalDualProgressFrm,
   BlopiServiceAgreement,
   bkProduct,
-  BroadcastSystem;
+  BroadcastSystem,
+  UpgradeReminder;
   //StockBalancesDlg;
 
 const
@@ -1525,6 +1526,8 @@ begin
   ApplicationUtils.DisableMainForm;
 //  HelpfulInfoMsg('This version is for internal use only & is not to be distributed to clients under any circumstances.', 0);
   try
+    UpgradeReminderMsg.TryGetandShowHTMLReminder;
+
     //login user
     if not LoginUser( UserNameToTry ) then
     begin

@@ -65,6 +65,7 @@ type
   MessageResponseOfstring = class;              { "http://schemas.datacontract.org/2004/07/BankLink.Common.Services"[GblCplx] }
   MessageResponseOfArrayOfInstitutionMIdCYrSK = class;   { "http://schemas.datacontract.org/2004/07/BankLink.Common.Services"[GblCplx] }
   MessageResponseOfArrayOfAccountValidationMIdCYrSK = class;   { "http://schemas.datacontract.org/2004/07/BankLink.Common.Services"[GblCplx] }
+  MessageResponseOfPracticeUpgradeReminderMIdCYrSK = class;   { "http://schemas.datacontract.org/2004/07/BankLink.Common.Services"[GblCplx] }
   MessageResponseOfDataPlatformSubscription6cY85e5k = class;   { "http://schemas.datacontract.org/2004/07/BankLink.Common.Services"[GblCplx] }
   MessageResponseOfPracticeDataSubscriberCredentials6cY85e5k = class;   { "http://schemas.datacontract.org/2004/07/BankLink.Common.Services"[GblCplx] }
   MessageResponseOfArrayOfPracticeDataSubscriberCount6cY85e5k = class;   { "http://schemas.datacontract.org/2004/07/BankLink.Common.Services"[GblCplx] }
@@ -80,6 +81,7 @@ type
   MessageResponseOfstring2 = class;             { "http://schemas.datacontract.org/2004/07/BankLink.Common.Services"[GblElm] }
   MessageResponseOfArrayOfInstitutionMIdCYrSK2 = class;   { "http://schemas.datacontract.org/2004/07/BankLink.Common.Services"[GblElm] }
   MessageResponseOfArrayOfAccountValidationMIdCYrSK2 = class;   { "http://schemas.datacontract.org/2004/07/BankLink.Common.Services"[GblElm] }
+  MessageResponseOfPracticeUpgradeReminderMIdCYrSK2 = class;   { "http://schemas.datacontract.org/2004/07/BankLink.Common.Services"[GblElm] }
   MessageResponseOfDataPlatformSubscription6cY85e5k2 = class;   { "http://schemas.datacontract.org/2004/07/BankLink.Common.Services"[GblElm] }
   MessageResponseOfPracticeDataSubscriberCredentials6cY85e5k2 = class;   { "http://schemas.datacontract.org/2004/07/BankLink.Common.Services"[GblElm] }
   MessageResponseOfArrayOfPracticeDataSubscriberCount6cY85e5k2 = class;   { "http://schemas.datacontract.org/2004/07/BankLink.Common.Services"[GblElm] }
@@ -101,6 +103,7 @@ type
   ClientReadDetail     = class;                 { "http://www.banklinkonline.com/2011/11/Blopi"[GblCplx] }
   Institution          = class;                 { "http://www.banklinkonline.com/2011/11/Blopi"[GblCplx] }
   AccountValidation    = class;                 { "http://www.banklinkonline.com/2011/11/Blopi"[GblCplx] }
+  PracticeUpgradeReminder = class;             { "http://www.banklinkonline.com/2011/11/Blopi"[GblElm] }
   ClientCreate         = class;                 { "http://www.banklinkonline.com/2011/11/Blopi"[GblCplx] }
   ClientUpdate         = class;                 { "http://www.banklinkonline.com/2011/11/Blopi"[GblCplx] }
   CatalogueEntry2      = class;                 { "http://www.banklinkonline.com/2011/11/Blopi"[GblElm] }
@@ -614,6 +617,24 @@ type
 
 
   // ************************************************************************ //
+  // XML       : MessageResponseOfPracticeUpgradeReminderMIdCYrSK, global, <complexType>
+  // Namespace : http://schemas.datacontract.org/2004/07/BankLink.Common.Services
+  // ************************************************************************ //
+  MessageResponseOfPracticeUpgradeReminderMIdCYrSK = class(MessageResponse)
+  private
+    FResult: PracticeUpgradeReminder;
+    FResult_Specified: boolean;
+    procedure SetResult(Index: Integer; const APracticeUpgradeReminder: PracticeUpgradeReminder);
+    function  Result_Specified(Index: Integer): boolean;
+  public
+    destructor Destroy; override;
+  published
+    property Result: PracticeUpgradeReminder  Index (IS_OPTN) read FResult write SetResult stored Result_Specified;
+  end;
+
+
+
+  // ************************************************************************ //
   // XML       : MessageResponseOfDataPlatformSubscription6cY85e5k, global, <complexType>
   // Namespace : http://schemas.datacontract.org/2004/07/BankLink.Common.Services
   // ************************************************************************ //
@@ -800,6 +821,17 @@ type
   // Namespace : http://schemas.datacontract.org/2004/07/BankLink.Common.Services
   // ************************************************************************ //
   MessageResponseOfArrayOfAccountValidationMIdCYrSK2 = class(MessageResponseOfArrayOfAccountValidationMIdCYrSK)
+  private
+  published
+  end;
+
+
+
+  // ************************************************************************ //
+  // XML       : MessageResponseOfPracticeUpgradeReminderMIdCYrSK, global, <element>
+  // Namespace : http://schemas.datacontract.org/2004/07/BankLink.Common.Services
+  // ************************************************************************ //
+  MessageResponseOfPracticeUpgradeReminderMIdCYrSK2 = class(MessageResponseOfPracticeUpgradeReminderMIdCYrSK)
   private
   published
   end;
@@ -1356,6 +1388,31 @@ type
     property ValidationPassed: Boolean     Index (IS_OPTN or IS_NLBL) read FValidationPassed write SetValidationPassed stored ValidationPassed_Specified;
   end;
   
+ 
+  
+  // ************************************************************************ //
+  // XML       : PracticeUpgradeReminder, global, <complexType>
+  // Namespace : http://www.banklinkonline.com/2011/11/Blopi
+  // ************************************************************************ //
+  PracticeUpgradeReminder = class(TRemotable)
+  private
+    FLatestVersion: WideString;
+    FLatestVersion_Specified: boolean;
+    FReminderMessage: WideString;
+    FReminderMessage_Specified: boolean;
+    FReminderVersion: WideString;
+    FReminderVersion_Specified: boolean;
+    procedure SetLatestVersion(Index: Integer; const AWideString: WideString);
+    function  LatestVersion_Specified(Index: Integer): boolean;
+    procedure SetReminderMessage(Index: Integer; const AWideString: WideString);
+    function  ReminderMessage_Specified(Index: Integer): boolean;
+    procedure SetReminderVersion(Index: Integer; const AWideString: WideString);
+    function  ReminderVersion_Specified(Index: Integer): boolean;
+  published
+    property LatestVersion:   WideString  Index (IS_OPTN or IS_NLBL) read FLatestVersion write SetLatestVersion stored LatestVersion_Specified;
+    property ReminderMessage: WideString  Index (IS_OPTN or IS_NLBL) read FReminderMessage write SetReminderMessage stored ReminderMessage_Specified;
+    property ReminderVersion: WideString  Index (IS_OPTN or IS_NLBL) read FReminderVersion write SetReminderVersion stored ReminderVersion_Specified;
+  end;
   
   
   // ************************************************************************ //
@@ -1708,6 +1765,7 @@ type
     function  AuthenticatePracticeUser(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const userId: guid; const password: WideString): MessageResponse; stdcall;
     function  GetInstitutions(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString): MessageResponseOfArrayOfInstitutionMIdCYrSK2; stdcall;
     function  ValidateAccounts(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const accountValidation: ArrayOfAccountValidation): MessageResponseOfArrayOfAccountValidationMIdCYrSK; stdcall;
+    function  GetPracticeUpgradeReminder(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString): MessageResponseOfPracticeUpgradeReminderMIdCYrSK; stdcall;
     function  DeleteUser(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const userId: guid): MessageResponse; stdcall;
     function  GetClientList(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString): MessageResponseOfClientListMIdCYrSK; stdcall;
     function  GetClient(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const clientId: guid): MessageResponseOfClientReadDetailMIdCYrSK; stdcall;
@@ -1731,6 +1789,7 @@ type
     function  SaveBankAccountsDataSubscribers(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const clientId: guid; accountDataList: ArrayOfDataPlatformBankAccount): MessageResponse; stdcall;
     function  GetBankAccounts(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString): MessageResponseOfArrayOfPracticeBankAccountrLqac6vj; stdcall;
   end;
+
 
   IBlopiSecureServiceFacade = interface(IInvokable)
   ['{958CF0CB-A3F7-EEBD-CFA2-D2296D3722CD}']
@@ -2340,6 +2399,56 @@ end;
 function MessageResponseOfArrayOfAccountValidationMIdCYrSK.Result_Specified(Index: Integer): boolean;
 begin
   Result := FResult_Specified;
+end;
+
+destructor MessageResponseOfPracticeUpgradeReminderMIdCYrSK.Destroy;
+begin
+  FreeAndNil(FResult);
+  inherited Destroy;
+end;
+
+procedure MessageResponseOfPracticeUpgradeReminderMIdCYrSK.SetResult(Index: Integer; const APracticeUpgradeReminder: PracticeUpgradeReminder);
+begin
+  FResult := APracticeUpgradeReminder;
+  FResult_Specified := True;
+end;
+
+function MessageResponseOfPracticeUpgradeReminderMIdCYrSK.Result_Specified(Index: Integer): boolean;
+begin
+  Result := FResult_Specified;
+end;
+
+procedure PracticeUpgradeReminder.SetLatestVersion(Index: Integer; const AWideString: WideString);
+begin
+  FLatestVersion := AWideString;
+  FLatestVersion_Specified := True;
+end;
+
+function PracticeUpgradeReminder.LatestVersion_Specified(Index: Integer): boolean;
+begin
+  Result := FLatestVersion_Specified;
+end;
+
+procedure PracticeUpgradeReminder.SetReminderMessage(Index: Integer; const AWideString: WideString);
+begin
+  FReminderMessage := AWideString;
+  FReminderMessage_Specified := True;
+end;
+
+function PracticeUpgradeReminder.ReminderMessage_Specified(Index: Integer): boolean;
+begin
+  Result := FReminderMessage_Specified;
+end;
+
+procedure PracticeUpgradeReminder.SetReminderVersion(Index: Integer; const AWideString: WideString);
+begin
+  FReminderVersion := AWideString;
+  FReminderVersion_Specified := True;
+end;
+
+function PracticeUpgradeReminder.ReminderVersion_Specified(Index: Integer): boolean;
+begin
+  Result := FReminderVersion_Specified;
 end;
 
 destructor MessageResponseOfDataPlatformSubscription6cY85e5k.Destroy;
@@ -3380,6 +3489,7 @@ initialization
   InvRegistry.RegisterDefaultSOAPAction(TypeInfo(IBlopiServiceFacade), 'http://www.banklinkonline.com/2011/11/Blopi/IBlopiServiceFacade/%operationName%');
   InvRegistry.RegisterInvokeOptions(TypeInfo(IBlopiServiceFacade), ioDocument);
 
+  InvRegistry.RegisterExternalParamName(TypeInfo(IBlopiServiceFacade), 'GetPracticeUpgradeReminder', 'parameters1', 'parameters');
   InvRegistry.RegisterInterface(TypeInfo(IBlopiSecureServiceFacade), 'http://www.banklinkonline.com/2011/11/Blopi', 'utf-8');
   InvRegistry.RegisterDefaultSOAPAction(TypeInfo(IBlopiSecureServiceFacade), 'http://www.banklinkonline.com/2011/11/Blopi/IBlopiSecureServiceFacade/%operationName%');
   InvRegistry.RegisterInvokeOptions(TypeInfo(IBlopiSecureServiceFacade), ioDocument);
@@ -3422,6 +3532,8 @@ initialization
   RemClassRegistry.RegisterXSClass(MessageResponseOfArrayOfInstitutionMIdCYrSK, 'http://schemas.datacontract.org/2004/07/BankLink.Common.Services', 'MessageResponseOfArrayOfInstitutionMIdCYrSK');
   RemClassRegistry.RegisterXSInfo(TypeInfo(ArrayOfAccountValidation), 'http://www.banklinkonline.com/2011/11/Blopi', 'ArrayOfAccountValidation');
   RemClassRegistry.RegisterXSClass(MessageResponseOfArrayOfAccountValidationMIdCYrSK, 'http://schemas.datacontract.org/2004/07/BankLink.Common.Services', 'MessageResponseOfArrayOfAccountValidationMIdCYrSK');
+  RemClassRegistry.RegisterXSClass(MessageResponseOfPracticeUpgradeReminderMIdCYrSK, 'http://schemas.datacontract.org/2004/07/BankLink.Common.Services', 'MessageResponseOfPracticeUpgradeReminderMIdCYrSK');
+  RemClassRegistry.RegisterXSClass(PracticeUpgradeReminder, 'http://www.banklinkonline.com/2011/11/Blopi', 'PracticeUpgradeReminder');
   RemClassRegistry.RegisterXSClass(MessageResponseOfDataPlatformSubscription6cY85e5k, 'http://schemas.datacontract.org/2004/07/BankLink.Common.Services', 'MessageResponseOfDataPlatformSubscription6cY85e5k');
   RemClassRegistry.RegisterXSClass(MessageResponseOfPracticeDataSubscriberCredentials6cY85e5k, 'http://schemas.datacontract.org/2004/07/BankLink.Common.Services', 'MessageResponseOfPracticeDataSubscriberCredentials6cY85e5k');
   RemClassRegistry.RegisterXSClass(MessageResponseOfArrayOfPracticeDataSubscriberCount6cY85e5k, 'http://schemas.datacontract.org/2004/07/BankLink.Common.Services', 'MessageResponseOfArrayOfPracticeDataSubscriberCount6cY85e5k');
@@ -3437,6 +3549,7 @@ initialization
   RemClassRegistry.RegisterXSClass(MessageResponseOfstring2, 'http://schemas.datacontract.org/2004/07/BankLink.Common.Services', 'MessageResponseOfstring2', 'MessageResponseOfstring');
   RemClassRegistry.RegisterXSClass(MessageResponseOfArrayOfInstitutionMIdCYrSK2, 'http://schemas.datacontract.org/2004/07/BankLink.Common.Services', 'MessageResponseOfArrayOfInstitutionMIdCYrSK2', 'MessageResponseOfArrayOfInstitutionMIdCYrSK');
   RemClassRegistry.RegisterXSClass(MessageResponseOfArrayOfAccountValidationMIdCYrSK2, 'http://schemas.datacontract.org/2004/07/BankLink.Common.Services', 'MessageResponseOfArrayOfAccountValidationMIdCYrSK2', 'MessageResponseOfArrayOfAccountValidationMIdCYrSK');
+  RemClassRegistry.RegisterXSClass(MessageResponseOfPracticeUpgradeReminderMIdCYrSK2, 'http://schemas.datacontract.org/2004/07/BankLink.Common.Services', 'MessageResponseOfPracticeUpgradeReminderMIdCYrSK2', 'MessageResponseOfPracticeUpgradeReminderMIdCYrSK');
   RemClassRegistry.RegisterXSClass(MessageResponseOfDataPlatformSubscription6cY85e5k2, 'http://schemas.datacontract.org/2004/07/BankLink.Common.Services', 'MessageResponseOfDataPlatformSubscription6cY85e5k2', 'MessageResponseOfDataPlatformSubscription6cY85e5k');
   RemClassRegistry.RegisterXSClass(MessageResponseOfPracticeDataSubscriberCredentials6cY85e5k2, 'http://schemas.datacontract.org/2004/07/BankLink.Common.Services', 'MessageResponseOfPracticeDataSubscriberCredentials6cY85e5k2', 'MessageResponseOfPracticeDataSubscriberCredentials6cY85e5k');
   RemClassRegistry.RegisterXSClass(MessageResponseOfArrayOfPracticeDataSubscriberCount6cY85e5k2, 'http://schemas.datacontract.org/2004/07/BankLink.Common.Services', 'MessageResponseOfArrayOfPracticeDataSubscriberCount6cY85e5k2', 'MessageResponseOfArrayOfPracticeDataSubscriberCount6cY85e5k');

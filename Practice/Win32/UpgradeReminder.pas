@@ -53,7 +53,8 @@ uses
   UpgradeReminderFrm,
   WinUtils,
   Globals,
-  LogUtil;
+  LogUtil,
+  BankLinkOnlineServices;
 
 Const
   UnitName = 'UpgradeReminder';
@@ -275,15 +276,39 @@ end;
 
 //------------------------------------------------------------------------------
 function TUpgradeReminder.TryGetOnlineHTMLReminder: boolean;
+const
+  ThisMethodName = 'TryGetOnlineHTMLReminder';
+var
+  PracLatestVersion, UpgReminderVersion, HtmlRemind : string;
 begin
-  fPracticeLatestVersion := '';
-  fUpgradeReminderVersion := '';
-  fHtmlReminder := '';
+  try
+    Result := (ProductConfigService.GetPracUpgReminderMsg(PracLatestVersion, UpgReminderVersion, HtmlRemind, true) in [bloSuccess, bloFailedNonFatal]);
 
-  Result := false;
+    if Result then
+    begin
+      if (length(trim(PracLatestVersion)) = 0) or
+         (length(trim(UpgReminderVersion)) = 0) or
+         (length(trim(HtmlRemind)) = 0) then
+      begin
+        Result := false;
+      end
+      else
+      begin
+        fPracticeLatestVersion := PracLatestVersion;
+        fUpgradeReminderVersion := UpgReminderVersion;
+        fHtmlReminder := HtmlRemind;
+      end;
+    end;
 
-  if Result then
-    Result := SaveLocalHTMLReminder();
+    if Result then
+      Result := SaveLocalHTMLReminder();
+  except
+    On E : Exception do
+    begin
+      LogUtil.LogMsg( lmError, UnitName, ThisMethodName + ' : ' + E.Message);
+      Result := false;
+    end;
+  end;
 end;
 
 //------------------------------------------------------------------------------

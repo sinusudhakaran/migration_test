@@ -56,6 +56,7 @@ type
   TBloArrayOfInstitution       = BlopiServiceFacade.ArrayOfInstitution;
   TBloAccountValidation        = BlopiServiceFacade.AccountValidation;
   TBloArrayOfAccountValidation = BlopiServiceFacade.ArrayOfAccountValidation;
+  TBloPracticeUpgradeReminder  = BlopiServiceFacade.PracticeUpgradeReminder;
 
   TBloArrayOfRemotable = Array of TRemotable;
 
@@ -497,6 +498,7 @@ type
     function GetInstitutionList(out aBloArrayOfInstitution : TBloArrayOfInstitution) : TBloResult;
     function ValidateAccount(aAccountNumber, aInstCode, aCountryCode : string; var aFailedReason : string; aSupressProgress : boolean) : Boolean;
     function ValidateAccountList(var aValidateAccountList : TBloArrayOfAccountValidation; aSupressProgress : boolean) : TBloResult;
+    function GetPracUpgReminderMsg(var aLatestVersion, aReminderVersion, aReminderMessage : string; aSupressProgress : boolean): TBloResult;
 
     procedure ResetExceptionTest;
 
@@ -1292,6 +1294,8 @@ begin
   begin
     Result := Result + Service;
   end;
+
+  //Result := 'http://localhost:56787/Services/BlopiServiceFacade.svc';
 end;
 
 //------------------------------------------------------------------------------
@@ -1909,7 +1913,7 @@ begin
           AddLine(Details, 'StackTrace', AMesageresponse.Exceptions[ErrIndex].StackTrace);
         end;
 
-        if ReportResponseErrors or (Length(AMesageresponse.Exceptions) > 0) then
+        if ReportResponseErrors and (Length(AMesageresponse.Exceptions) > 0) then
         begin
           HelpfulErrorMsg(ErrorMessage, 0, False, Details.Text, not SimpleError);
         end;
@@ -3005,6 +3009,80 @@ begin
       on E : Exception do
       begin
         HandleException('ValidateAccountList', E);
+        Result := bloFailedFatal;
+      end;
+    end;
+  finally
+    if not aSupressProgress then
+    begin
+      Progress.StatusSilent := True;
+      Progress.ClearStatus;
+    end;
+
+    Screen.Cursor := crDefault;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+function TProductConfigService.GetPracUpgReminderMsg(var aLatestVersion, aReminderVersion, aReminderMessage : string; aSupressProgress : boolean): TBloResult;
+var
+  BlopiInterface  : IBlopiServiceFacade;
+  MsgResponse     : MessageResponseOfPracticeUpgradeReminderMIdCYrSK;
+  ResponceError   : Boolean;
+begin
+  Result := bloFailedNonFatal;
+  aLatestVersion := '';
+  aReminderVersion := '';
+  aReminderMessage := '';
+
+  Screen.Cursor := crHourGlass;
+
+  if not aSupressProgress then
+  begin
+    Progress.StatusSilent := False;
+    Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Connecting', 10);
+  end;
+
+  BlopiInterface := GetServiceFacade;
+  try
+    try
+      if not aSupressProgress then
+        Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Retrieve Reminder Message', 55);
+
+      try
+        MsgResponse := BlopiInterface.GetPracticeUpgradeReminder(CountryText(AdminSystem.fdFields.fdCountry),
+                                                                 AdminSystem.fdFields.fdBankLink_Code,
+                                                                 AdminSystem.fdFields.fdBankLink_Connect_Password);
+
+        ResponceError := MessageResponseHasError(MsgResponse, 'Retrieve Reminder Message from', false, 0, '', false);
+
+        if not ResponceError then
+        begin
+          aLatestVersion := Copy(MsgResponse.Result.LatestVersion , 1, Length(MsgResponse.Result.LatestVersion));
+          aReminderVersion := Copy(MsgResponse.Result.ReminderVersion , 1, Length(MsgResponse.Result.ReminderVersion));
+          aReminderMessage := Copy(MsgResponse.Result.ReminderMessage , 1, Length(MsgResponse.Result.ReminderMessage));
+
+          Result := bloSuccess;
+          LogUtil.LogMsg(lmInfo, UNIT_NAME, 'Successfully Retrieved Reminder Message from ' + bkBranding.ProductOnlineName + '.');
+        end
+        else
+        begin
+          LogUtil.LogMsg(lmInfo, UNIT_NAME, 'Reminder Message was not retrieved from ' + bkBranding.ProductOnlineName + '.');
+          result := bloFailedFatal;
+        end;
+
+      finally
+        FreeAndNil(MsgResponse);
+      end;
+
+      if not ResponceError then
+        if not aSupressProgress then
+          Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Finished', 100);
+
+    except
+      on E : Exception do
+      begin
+        HandleException('GetPracUpgReminderMsg', E, true);
         Result := bloFailedFatal;
       end;
     end;
