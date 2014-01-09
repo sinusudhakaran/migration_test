@@ -19,7 +19,6 @@ uses
 type
   TMaskHint = class
   private
-    procedure DrawAntialisedLine(Canvas: TCanvas; const AX1, AY1, AX2, AY2: real; const LineColor: TColor);
     function GetTextWidth(aText: string; aFont: TFont) : integer;
     procedure GetTextWidthAndHeight(aText: string; aFont: TFont; var aTextWidth, aTextHeight : integer);
     function GetMaskTypeArray(aMask : string) : string;
@@ -55,97 +54,6 @@ const
   MESG_MskNumSymOpt   = '0-9, plus or minus';
 
 { TMaskHint }
-//------------------------------------------------------------------------------
-procedure TMaskHint.DrawAntialisedLine(Canvas: TCanvas; const AX1, AY1, AX2, AY2: real; const LineColor: TColor);
-var
-  swapped: boolean;
-
-  procedure plot(const x, y, c: real);
-  var
-    resclr: TColor;
-  begin
-    if swapped then
-      resclr := Canvas.Pixels[round(y), round(x)]
-    else
-      resclr := Canvas.Pixels[round(x), round(y)];
-    resclr := RGB(round(GetRValue(resclr) * (1-c) + GetRValue(LineColor) * c),
-                  round(GetGValue(resclr) * (1-c) + GetGValue(LineColor) * c),
-                  round(GetBValue(resclr) * (1-c) + GetBValue(LineColor) * c));
-    if swapped then
-      Canvas.Pixels[round(y), round(x)] := resclr
-    else
-      Canvas.Pixels[round(x), round(y)] := resclr;
-  end;
-
-  function rfrac(const x: real): real; inline;
-  begin
-    rfrac := 1 - frac(x);
-  end;
-
-  procedure swap(var a, b: real);
-  var
-    tmp: real;
-  begin
-    tmp := a;
-    a := b;
-    b := tmp;
-  end;
-
-var
-  x1, x2, y1, y2, dx, dy, gradient, xend, yend, xgap, xpxl1, ypxl1,
-  xpxl2, ypxl2, intery: real;
-  x: integer;
-
-begin
-
-  x1 := AX1;
-  x2 := AX2;
-  y1 := AY1;
-  y2 := AY2;
-
-  dx := x2 - x1;
-  dy := y2 - y1;
-  swapped := abs(dx) < abs(dy);
-  if swapped then
-  begin
-    swap(x1, y1);
-    swap(x2, y2);
-    swap(dx, dy);
-  end;
-  if x2 < x1 then
-  begin
-    swap(x1, x2);
-    swap(y1, y2);
-  end;
-
-  gradient := dy / dx;
-
-  xend := round(x1);
-  yend := y1 + gradient * (xend - x1);
-  xgap := rfrac(x1 + 0.5);
-  xpxl1 := xend;
-  ypxl1 := floor(yend);
-  plot(xpxl1, ypxl1, rfrac(yend) * xgap);
-  plot(xpxl1, ypxl1 + 1, frac(yend) * xgap);
-  intery := yend + gradient;
-
-  xend := round(x2);
-  yend := y2 + gradient * (xend - x2);
-  xgap := frac(x2 + 0.5);
-  xpxl2 := xend;
-  ypxl2 := floor(yend);
-  plot(xpxl2, ypxl2, rfrac(yend) * xgap);
-  plot(xpxl2, ypxl2 + 1, frac(yend) * xgap);
-
-  for x := round(xpxl1) + 1 to round(xpxl2) - 1 do
-  begin
-    plot(x, floor(intery), rfrac(intery));
-    plot(x, floor(intery) + 1, frac(intery));
-    intery := intery + gradient;
-  end;
-
-end;
-
 //------------------------------------------------------------------------------
 function TMaskHint.GetTextWidth(aText: string; aFont: TFont) : integer;
 var
@@ -332,11 +240,9 @@ var
   HintBoxTop, HintBoxLeft, HintBoxBottom, HintBoxRight : integer;
   SingleSidePixDiff : integer;
 
-  TextStrPix, TextEndPix : integer;
   CurrMaskChar : string;
   HelpMessage : string;
   Mask, EditedMask, MaskTypeStr : string;
-  index : integer;
 
   //----------------------------------------------------------------------------
   procedure DrawHintWindow(aCanvas: TCanvas;
