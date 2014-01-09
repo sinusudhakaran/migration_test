@@ -61,12 +61,15 @@ type
     code. }
   procedure ValidateGSTSetup(const aClient: TClientObj);
 
+  function RoundToWholeValue(UnroundedAmount: Extended): double;
+
 implementation
 
 uses
   GSTCalc32,
   SignUtils,
-  Dialogs;
+  Dialogs,
+  Math;
 
 //------------------------------------------------------------------------------
 procedure CalculateGST(const aClient: TClientObj; var aBudget: TBudgetRec;
@@ -87,7 +90,8 @@ begin
   // Calculate GST component
   byGST_Class := pAccount.chGST_Class;
   moAmount := aBudget.bAmounts[aMonthIndex];
-  moGSTAmount := CalculateGSTFromNett(aClient, aDate, moAmount, byGST_Class, true);
+  moGSTAmount := CalculateGSTFromNett(aClient, aDate, moAmount, byGST_Class);
+  moGSTAmount := RoundToWholeValue(moGSTAmount);
   if not IsGSTAccountCode(aClient, aBudget.bAccount) then
     aBudget.bGstAmounts[aMonthIndex] := Round(moGSTAmount + moAmount);
 
@@ -127,7 +131,7 @@ begin
   // Calculate GST component
   byGST_Class := pAccount.chGST_Class;
   moAmount := aBudget.bAmounts[aMonthIndex];
-  moGSTAmount := CalculateGSTFromNett(aClient, aDate, moAmount, byGST_Class, false);
+  moGSTAmount := CalculateGSTFromNett(aClient, aDate, moAmount, byGST_Class);
   if not IsGSTAccountCode(aClient, aBudget.bAccount) then
     aBudget.bGstAmounts[aMonthIndex] := Round(moGSTAmount + moAmount);
 
@@ -360,6 +364,22 @@ begin
     sLineBreak+
     'You can configure these in the GST Set Up (Other Functions).'
     );
+end;
+
+function RoundToWholeValue(UnroundedAmount: Extended): double;
+var
+  OldRoundMode : TFPURoundingMode;
+  Remainder    : Extended;
+  RoundUpHalves: boolean;
+begin
+  Remainder := UnroundedAmount - Trunc(UnroundedAmount);
+  RoundUpHalves := abs(Remainder - 0.5) < 0.0000001;
+  OldRoundMode := GetRoundMode; // would put this in the if statement below but then I get a compiler warning
+  if RoundUpHalves then
+    SetRoundMode(rmUp);
+  Result := Round( UnroundedAmount );
+  if RoundUpHalves then
+    SetRoundMode(OldRoundMode);
 end;
 
 end.

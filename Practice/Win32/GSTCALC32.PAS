@@ -12,7 +12,7 @@ USES
 Function  WhichGSTRateApplies( aClient : TClientObj; ADate : LongInt ): Byte;
 Function  CalculateGSTForClass( aClient : TClientObj; ADate : LongInt; Amount : Money; ClassNo : Byte ): Money;
 Procedure CalculateGST( aClient : TClientObj; ADate : LongInt; Account : String; Amount : Money; Var ClassNo : Byte; Var GST : Money );
-Function  CalculateGSTFromNett( aClient : TClientObj; ADate : LongInt; Amount : Money; ClassNo : Byte; RoundToWholeValue: boolean; AmountIncludesTax: boolean = false ): double;
+Function  CalculateGSTFromNett( aClient : TClientObj; ADate : LongInt; Amount : Money; ClassNo : Byte ): double;
 
 Function  GetGSTClassNo( aClient : TClientObj; ClassCode : String ) : Byte;
 Function  GetGSTClassCode( aClient : TClientObj; No : byte ): string;
@@ -28,7 +28,6 @@ IMPLEMENTATION USES
   //GLOBALS,
   glConst,
   logutil,
-  math,
   sysutils,
   stStrs,
   ForexHelpers;
@@ -117,14 +116,13 @@ Begin
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-Function  CalculateGSTFromNett( aClient : TClientObj; ADate : LongInt; Amount : Money; ClassNo : Byte; RoundToWholeValue: boolean; AmountIncludesTax: boolean): double;
+Function  CalculateGSTFromNett( aClient : TClientObj; ADate : LongInt; Amount : Money; ClassNo : Byte ): double;
 const
    ThisMethodName = 'CalculateGSTFromNett';
 VAR
    TaxAmtExt     : Extended;
    TaxRate       : Extended;
    WhichRate     : Byte;
-   OldRoundMode  : TFPURoundingMode;
    RoundUpHalves : boolean;
    Remainder     : Extended;
 Begin
@@ -141,26 +139,8 @@ Begin
       If ( aClient.clFields.clGST_Rates[ ClassNo, WhichRate ] = 0 ) then exit;
 
       TaxRate     := aClient.clFields.clGST_Rates[ ClassNo, WhichRate ] / 1000000.0; { 1250 -> 0.1250 }
-      if AmountIncludesTax then
-        // In this case we have passed in the amount including tax, this gives us the tax component of that
-        // amount. Eg. if you have 15% tax and you pass in $115, this should return $100, because $100 +
-        // 15% tax = $115
-        TaxAmtExt   := Amount - (Amount / (1 + TaxRate))
-      else
-        TaxAmtExt   := Amount * TaxRate;
-      if RoundToWholeValue then
-      begin
-        // RoundUpHalves := TaxAmtExt - Trunc(TaxAmtExt) = 0.5;
-        Remainder := TaxAmtExt - Trunc(TaxAmtExt);
-        RoundUpHalves := abs(Remainder - 0.5) < 0.0000001;
-        OldRoundMode := GetRoundMode; // would put this in the if statement below but then I get a compiler warning
-        if RoundUpHalves then
-          SetRoundMode(rmUp);
-        Result := Round( TaxAmtExt );
-        if RoundUpHalves then
-          SetRoundMode(OldRoundMode);
-      end else
-        Result := TaxAmtExt;
+      TaxAmtExt   := Amount * TaxRate;
+      Result := TaxAmtExt;
    end;
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;

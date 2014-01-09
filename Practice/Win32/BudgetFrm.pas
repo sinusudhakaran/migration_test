@@ -39,7 +39,8 @@ uses
   BudgetImportExport,
   PercentageCalculationFrm,
   BroadcastSystem,
-  GstCalc32;
+  GstCalc32,
+  clObj32;
   
 type
   TfrmBudget = class(TForm)
@@ -258,6 +259,7 @@ type
     procedure EnableOrDisablePercentageInvalidControls(Value: boolean);
     function DoRoundUp(Value: double): integer;
     function DoRoundDown(Value: double): integer;
+    function CalculateGSTFromNetAmount( aClient : TClientObj; ADate : LongInt; Amount : Money; ClassNo : Byte): double;
 
   public
     { Public declarations }
@@ -286,7 +288,6 @@ uses
    AccountInfoObj,
    AutoSaveUtils,
    CalculateAccountTotals,
-   clObj32,
    CodingFormCommands,
    bkDateUtils,
    LogUtil,
@@ -326,7 +327,8 @@ uses
    ShellAPI,
    ImportBudgetResultsDlg,
    usageutils,
-   BudgetAutoGST;
+   BudgetAutoGST,
+   glConst;
 
 const
    {status panel constants}
@@ -846,7 +848,7 @@ begin
               if not assigned(pAccount) then
                 exit;
               GST_Class := pAccount.chGST_Class;
-              GSTAmount := CalculateGSTFromNett(MyClient, dtMonth, moAmount, GST_Class, false, true);
+              GSTAmount := CalculateGSTFromNetAmount(MyClient, dtMonth, moAmount, GST_Class);
               FData[RowNum-1].bAmounts[ColNum-MonthBase] := DoRoundDown(eAmounts[ColNum-MonthBase] - GSTAmount);
             end else
               FData[RowNum-1].bAmounts[ColNum-MonthBase] := eAmounts[ColNum-MonthBase];
@@ -878,6 +880,39 @@ begin
        UpdatePercentageRows(True);
   end; {if row ok}
   UpdateShowHideEnabledState;
+end;
+
+function TfrmBudget.CalculateGSTFromNetAmount( aClient : TClientObj; ADate : LongInt; Amount : Money; ClassNo : Byte): double;
+const
+   ThisMethodName = 'CalculateGSTFromNetAmount';
+VAR
+   TaxAmtExt     : Extended;
+   TaxRate       : Extended;
+   WhichRate     : Byte;
+   OldRoundMode  : TFPURoundingMode;
+   RoundUpHalves : boolean;
+   Remainder     : Extended;
+Begin
+   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
+   Result := 0;
+   WhichRate := WhichGSTRateApplies( aClient, ADate );
+   If ( ClassNo in [ 1..MAX_GST_CLASS ] ) and ( WhichRate in [ 1..MAX_GST_CLASS_RATES ] ) then
+   Begin
+      If ( aClient.clFields.clGST_Rates[ ClassNo, WhichRate ] = 1000000 ) then
+      Begin { Special Case - ALL GST }
+         Result := Amount;
+         exit;
+      end;
+      If ( aClient.clFields.clGST_Rates[ ClassNo, WhichRate ] = 0 ) then exit;
+
+      TaxRate     := aClient.clFields.clGST_Rates[ ClassNo, WhichRate ] / 1000000.0; { 1250 -> 0.1250 }
+      // We have passed in the amount including tax, this gives us the tax component of that
+      // amount. Eg. if you have 15% tax and you pass in $115, this should return $100,
+      // because $100 + 15% tax = $115
+      TaxAmtExt   := Amount - (Amount / (1 + TaxRate));
+      Result := TaxAmtExt;
+   end;
+   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
 
 //------------------------------------------------------------------------------
