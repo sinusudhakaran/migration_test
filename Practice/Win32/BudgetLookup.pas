@@ -258,12 +258,13 @@ begin
       OKToDelete := True;
 
     if (OKToDelete) then
+    begin
       MyClient.clBudget_List.DelFreeItem(Budget);
+      LogUtil.LogMsg(lmInfo,'BUDGETLOOKUP','User Deleted Budget '+ BudgetName);
+    end;
   end;
 
   Result := true;
-
-  LogUtil.LogMsg(lmInfo,'BUDGETLOOKUP','User Deleted Budget '+ BudgetName);
 end;
 //------------------------------------------------------------------------------
 procedure TfrmBudgetLook.tbDeleteClick(Sender: TObject);
