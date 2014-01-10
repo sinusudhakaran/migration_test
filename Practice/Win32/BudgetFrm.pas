@@ -558,7 +558,10 @@ begin
     case ColNum of
       MonthMin..MonthMax :
       begin
-         eAmounts[ColNum-MonthBase] := FData[RowNum-1].bAmounts[ColNum-MonthBase];
+         if ShowFiguresGSTInclusive then
+           eAmounts[ColNum-MonthBase] := FData[RowNum-1].bGSTAmounts[ColNum-MonthBase]
+         else
+           eAmounts[ColNum-MonthBase] := FData[RowNum-1].bAmounts[ColNum-MonthBase];
          data := @eAmounts[ColNum-MonthBase];
       end;
     else
@@ -807,7 +810,7 @@ begin
                 exit;
               GST_Class := pAccount.chGST_Class;
               GSTAmount := CalculateGSTFromNetAmount(MyClient, dtMonth, moAmount, GST_Class);
-              FData[RowNum-1].bAmounts[ColNum-MonthBase] := Round(eAmounts[ColNum-MonthBase] - GSTAmount);
+              FData[RowNum-1].bAmounts[ColNum-MonthBase] := Round(moAmount - GSTAmount);
               // Need to recalculate the shown GST inclusive amount so that it's the stored raw amount + GST, which may
               // differ slightly from the GST inclusive amount entered by the user
               RawAmount := FData[RowNum-1].bAmounts[ColNum-MonthBase];
