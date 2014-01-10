@@ -1825,7 +1825,7 @@ Begin
         UpdateLine(i);
       end;
     finally
-      DoInvalidateTable;  {will force reload of current line}
+      RefreshTableWithData(fShowZeros, True, True);  {will force reload of current line}
       AllowRedraw := true;
     end;
   end;
