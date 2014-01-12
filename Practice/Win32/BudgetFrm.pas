@@ -526,24 +526,17 @@ end;
 //------------------------------------------------------------------------------
 function TfrmBudget.GetTotalForRow(RowNum: Integer; IncludeGST: boolean): Integer;
 var
-  I: Integer;
-  dtMonth: TStDate;
-  GSTTotal: double;
+  i: Integer;
 begin
   Result := 0;
-  GSTTotal := 0;
-  dtMonth := FBudget.buFields.buStart_Date;
   for i := MonthMin to MonthMax do
   begin
     if IncludeGST then
     begin
-      CalculateGST(MyClient, FData[RowNum - 1], i-MonthBase, dtMonth, GSTTotal);
-      GSTTotal := GSTTotal + FData[RowNum - 1].bAmounts[i-MonthBase];
+      Result := Result + FData[RowNum - 1].bGstAmounts[i-MonthBase];
     end else
       Result := Result + FData[RowNum - 1].bAmounts[i-MonthBase];
   end;
-  if IncludeGST then
-    Result := DoRoundUp(GSTTotal);
 end;
 
 //------------------------------------------------------------------------------
