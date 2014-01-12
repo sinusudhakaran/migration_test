@@ -44,7 +44,6 @@ object frmTPA: TfrmTPA
     ShowHint = True
     TabOrder = 0
     OnClick = btnPreviewClick
-    ExplicitTop = 578
   end
   object btnFile: TButton
     Left = 99
@@ -64,7 +63,6 @@ object frmTPA: TfrmTPA
     ShowHint = True
     TabOrder = 1
     OnClick = btnFileClick
-    ExplicitTop = 578
   end
   object btnEmail: TButton
     Left = 189
@@ -84,7 +82,6 @@ object frmTPA: TfrmTPA
     ShowHint = True
     TabOrder = 2
     OnClick = btnEmailClick
-    ExplicitTop = 578
   end
   object btnPrint: TButton
     Left = 281
@@ -104,7 +101,6 @@ object frmTPA: TfrmTPA
     ShowHint = True
     TabOrder = 3
     OnClick = btnPrintClick
-    ExplicitTop = 578
   end
   object btnImport: TButton
     Left = 372
@@ -121,7 +117,6 @@ object frmTPA: TfrmTPA
     ParentFont = False
     TabOrder = 4
     OnClick = btnImportClick
-    ExplicitTop = 578
   end
   object btnClear: TButton
     Left = 453
@@ -141,7 +136,6 @@ object frmTPA: TfrmTPA
     ShowHint = True
     TabOrder = 5
     OnClick = btnClearClick
-    ExplicitTop = 578
   end
   object btnCancel: TButton
     Left = 544
@@ -162,7 +156,6 @@ object frmTPA: TfrmTPA
     ShowHint = True
     TabOrder = 6
     OnClick = btnCancelClick
-    ExplicitTop = 578
   end
   object pnlMain: TPanel
     Left = 8
@@ -211,7 +204,7 @@ object frmTPA: TfrmTPA
         Font.Height = -15
         Font.Name = 'MS Sans Serif'
         Font.Style = []
-        ItemHeight = 0
+        ItemHeight = 16
         ParentFont = False
         TabOrder = 0
         OnChange = cmbInstitutionChange
@@ -795,21 +788,6 @@ object frmTPA: TfrmTPA
       Height = 27
       Align = alTop
       TabOrder = 5
-      object lblAccountValidationError: TLabel
-        Left = 1
-        Top = 5
-        Width = 608
-        Height = 16
-        Alignment = taCenter
-        AutoSize = False
-        Caption = 'Account Error hint'
-        Font.Charset = DEFAULT_CHARSET
-        Font.Color = clRed
-        Font.Height = -15
-        Font.Name = 'MS Sans Serif'
-        Font.Style = []
-        ParentFont = False
-      end
     end
   end
   object Opendlg: TOpenDialog

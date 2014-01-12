@@ -226,7 +226,6 @@ object frmCAF: TfrmCAF
         ShowHint = True
         TabOrder = 1
         Visible = False
-        OnChange = edtInstitutionNameChange
       end
     end
     object pnlInstitution: TPanel
@@ -695,21 +694,6 @@ object frmCAF: TfrmCAF
       Height = 27
       Align = alTop
       TabOrder = 4
-      object lblAccountValidationError: TLabel
-        Left = 1
-        Top = 4
-        Width = 608
-        Height = 16
-        Alignment = taCenter
-        AutoSize = False
-        Caption = 'Account Error hint'
-        Font.Charset = DEFAULT_CHARSET
-        Font.Color = clRed
-        Font.Height = -15
-        Font.Name = 'MS Sans Serif'
-        Font.Style = []
-        ParentFont = False
-      end
     end
   end
   object Opendlg: TOpenDialog

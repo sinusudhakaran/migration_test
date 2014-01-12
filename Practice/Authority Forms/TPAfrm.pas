@@ -74,7 +74,6 @@ type
     radDateShown: TRadioButton;
     mskAccountNumber: TMaskValidateEdit;
     pnlAccountError: TPanel;
-    lblAccountValidationError: TLabel;
     edtAccountNumber: TEdit;
     lblNoteAddFormReq: TLabel;
     lblBookSecureLink: TLabel;
@@ -133,6 +132,7 @@ type
     fMaskHint : TMaskHint;
     FImportFile: string;
     fInstitutionType : TInstitutionType;
+    fCurrentDisplayError : string;
 
     procedure MaskValidateAccNumber();
     function GetInstitutionCode() : string;
@@ -174,7 +174,8 @@ uses
   bkHelp,
   InstitutionCol,
   BanklinkOnlineServices,
-  imagesFrm;
+  imagesfrm,
+  AccountValidationErrorDlg;
 
 Const
   UNIT_NAME = 'TPAfrm';
@@ -194,8 +195,6 @@ begin
   fMaskHint := TMaskHint.create;
 
   RemovePanelBorders;
-  lblAccountHintLine.Caption := '';
-  lblAccountValidationError.Caption := '';
 
   // Institution Names
   SortList := TStringList.Create;
@@ -427,13 +426,19 @@ begin
   //Account Validation
   if (Result) and (fValidAccount = false) and (fInstitutionType = inBLO) then
   begin
-    if length(lblAccountValidationError.Caption) > 0 then
-      HelpfulErrorMsg(lblAccountValidationError.Caption, 0)
+    if length(fCurrentDisplayError) > 0 then
+    begin
+      ShowAccountValidationError(TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex]).Name,
+                                 trim(fMaskHint.RemoveUnusedCharsFromAccNumber(mskAccountNumber.EditText)),
+                                 fCurrentDisplayError);
+    end
     else
     begin
       MaskValidateAccNumber();
       if fValidAccount = false then
-        HelpfulErrorMsg(lblAccountValidationError.Caption, 0);
+        ShowAccountValidationError(TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex]).Name,
+                                   trim(fMaskHint.RemoveUnusedCharsFromAccNumber(mskAccountNumber.EditText)),
+                                   fCurrentDisplayError);
     end;
 
     if fValidAccount = false then
@@ -494,9 +499,14 @@ var
   FailedReason : string;
 begin
   // Calls Validation on Exit of Account Number Control
-  lblAccountValidationError.Caption := '';
+  fCurrentDisplayError := '';
   if not ValidateAccount(mskAccountNumber.EditText, FailedReason) then
-    lblAccountValidationError.Caption := FailedReason;
+  begin
+    ShowAccountValidationError(TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex]).Name,
+                               trim(fMaskHint.RemoveUnusedCharsFromAccNumber(mskAccountNumber.EditText)),
+                               FailedReason);
+    fCurrentDisplayError := FailedReason;
+  end;
 
   lblAccountHintLine.Repaint;
   fValidateError := false;
@@ -543,7 +553,7 @@ begin
   if (not radDateShown.checked) and
      (fInstitutionType = inBLO) then
   begin
-    lblAccountValidationError.Caption := '';
+    fCurrentDisplayError := '';
     fValidAccount := false;
   end;
 end;
@@ -555,7 +565,7 @@ begin
   if (not radDateShown.checked) and
      (fInstitutionType = inBLO) then
   begin
-    lblAccountValidationError.Caption := '';
+    fCurrentDisplayError := '';
     fValidAccount := false;
   end;
 end;
@@ -567,7 +577,7 @@ begin
   if (not radReDateTransactions.checked) and
      (fInstitutionType = inBLO) then
   begin
-    lblAccountValidationError.Caption := '';
+    fCurrentDisplayError := '';
     fValidAccount := false;
   end;
 end;
@@ -579,7 +589,7 @@ begin
   if (not radReDateTransactions.checked) and
      (fInstitutionType = inBLO) then
   begin
-    lblAccountValidationError.Caption := '';
+    fCurrentDisplayError := '';
     fValidAccount := false;
   end;
 end;
@@ -648,7 +658,7 @@ begin
   mskAccountNumber.EditText := '';
   edtInstitutionName.Text := '';
   edtAccountNumber.Text := '';
-  lblAccountValidationError.Caption := '';
+  fCurrentDisplayError := '';
   pnlRural.Visible := false;
 
   oldInstDroppedDown := cmbInstitution.DroppedDown;
@@ -776,7 +786,7 @@ begin
   edtSecureCode.Text := '';
   chkDataSecureNew.Checked := false;
   chkDataSecureExisting.Checked := false;
-  lblAccountValidationError.Caption := '';
+  fCurrentDisplayError := '';
   edtClientStartDte.AsDateTime := now();
   radReDateTransactions.Checked := true;
 end;

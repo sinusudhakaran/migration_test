@@ -71,7 +71,6 @@ type
     edtSecureCode: TEdit;
     mskAccountNumber: TMaskValidateEdit;
     pnlAccountError: TPanel;
-    lblAccountValidationError: TLabel;
     edtAccountNumber: TEdit;
     imgInfoAdditionalMsg: TImage;
     lblNoteAddFormReq: TLabel;
@@ -106,7 +105,6 @@ type
     procedure lblBookSecureLinkMouseEnter(Sender: TObject);
     procedure lblBookSecureLinkMouseLeave(Sender: TObject);
     procedure mskAccountNumberChange(Sender: TObject);
-    procedure edtInstitutionNameChange(Sender: TObject);
   private
     fValidAccount : boolean;
     fAccountNumber : string;
@@ -118,6 +116,7 @@ type
     fMaskHint : TMaskHint;
     FImportFile: string;
     fInstitutionType : TInstitutionType;
+    fCurrentDisplayError : string;
 
     procedure MaskValidateAccNumber();
     procedure SetInstitutionControls(aInstitutionType : TInstitutionType);
@@ -157,7 +156,9 @@ uses
   ShellAPI,
   bkHelp,
   InstitutionCol,
-  BanklinkOnlineServices, imagesfrm;
+  BanklinkOnlineServices,
+  imagesfrm,
+  AccountValidationErrorDlg;
 
 Const
   UNIT_NAME = 'TfrmCAF';
@@ -177,7 +178,6 @@ begin
 
   RemovePanelBorders;
   lblAccountHintLine.Caption := '';
-  lblAccountValidationError.Caption := '';
 
   // Institution Names
   SortList := TStringList.Create;
@@ -216,6 +216,7 @@ begin
   edtClientStartDte.AsDateTime := now();
 
   lblBookSecureLink.hint  := PRACINI_SecureFormLinkAU;
+  fCurrentDisplayError := '';
 
   AppImages.ilFileActions_ClientMgr.GetBitmap(FILE_ACTIONS_INFO2, imgInfoAdditionalMsg.Picture.Bitmap);
 end;
@@ -367,13 +368,19 @@ begin
   //Account Validation
   if (Result) and (fValidAccount = false) and (fInstitutionType = inBLO) then
   begin
-    if length(lblAccountValidationError.Caption) > 0 then
-      HelpfulErrorMsg(lblAccountValidationError.Caption, 0)
+    if length(fCurrentDisplayError) > 0 then
+    begin
+      ShowAccountValidationError(TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex]).Name,
+                                 trim(fMaskHint.RemoveUnusedCharsFromAccNumber(mskAccountNumber.EditText)),
+                                 fCurrentDisplayError);
+    end
     else
     begin
       MaskValidateAccNumber();
       if fValidAccount = false then
-        HelpfulErrorMsg(lblAccountValidationError.Caption, 0);
+        ShowAccountValidationError(TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex]).Name,
+                                   trim(fMaskHint.RemoveUnusedCharsFromAccNumber(mskAccountNumber.EditText)),
+                                   fCurrentDisplayError);
     end;
 
     if fValidAccount = false then
@@ -434,9 +441,14 @@ var
   FailedReason : string;
 begin
   // Calls Validation on Exit of Account Number Control
-  lblAccountValidationError.Caption := '';
+  fCurrentDisplayError := '';
   if not ValidateAccount(mskAccountNumber.EditText, FailedReason) then
-    lblAccountValidationError.Caption := FailedReason;
+  begin
+    ShowAccountValidationError(TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex]).Name,
+                               trim(fMaskHint.RemoveUnusedCharsFromAccNumber(mskAccountNumber.EditText)),
+                               FailedReason);
+    fCurrentDisplayError := FailedReason;
+  end;
 
   lblAccountHintLine.Repaint;
   fValidateError := false;
@@ -534,7 +546,7 @@ begin
   mskAccountNumber.EditText := '';
   edtInstitutionName.Text := '';
   edtAccountNumber.Text := '';
-  lblAccountValidationError.Caption := '';
+  fCurrentDisplayError := '';
 
   oldInstDroppedDown := cmbInstitution.DroppedDown;
 
@@ -636,11 +648,6 @@ begin
   e.Text := Trim(e.Text);
 end;
 
-procedure TfrmCAF.edtInstitutionNameChange(Sender: TObject);
-begin
-
-end;
-
 //------------------------------------------------------------------------------
 procedure TfrmCAF.ClearForm;
 begin
@@ -659,7 +666,8 @@ begin
   edtSecureCode.Text := '';
   chkDataSecureNew.Checked := false;
   chkDataSecureExisting.Checked := false;
-  lblAccountValidationError.Caption := '';
+  fCurrentDisplayError := '';
+  fCurrentDisplayError := '';
   edtClientStartDte.AsDateTime := now();
 end;
 
