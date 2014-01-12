@@ -1608,7 +1608,7 @@ begin
   end;
 
   TableCanvas.Font := CellAttr.caFont;
-  if HasPercentage or (IsGSTControlGroup and ShowFiguresGSTInclusive) then
+  if HasPercentage or (IsGSTControlGroup and (ShowFiguresGSTInclusive or AutoCalculateGST)) then
     // Gray to show that this row is disabled because:
     // * Users may not directly modify cells which derive their value as a % of another row,
     //   they must first clear the % that has been set.
