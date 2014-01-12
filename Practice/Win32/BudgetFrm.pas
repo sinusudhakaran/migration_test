@@ -1035,7 +1035,11 @@ begin
     Account := Account_At(AccountIndex);
     pBudgetRec := Budget.buDetail.FindLineByCode(Account.chAccount_Code);
     if not ShowZeros and not Assigned(pBudgetRec) then
-      Continue;
+    begin
+      // GST control rows need to stay visible
+      if not IsGSTAccountCode(MyClient, Account.chAccount_Code) then
+        Continue;
+    end;
 
     //see if the item has data
     if Assigned(pBudgetRec) and not ShowZeros then
@@ -1049,6 +1053,9 @@ begin
           break;
         end;
       end;
+      // GST control rows need to stay visible
+      if IsGSTAccountCode(MyClient, Account.chAccount_Code) then
+        HasData := true;
       if not HasData then
         Continue;
     end;
