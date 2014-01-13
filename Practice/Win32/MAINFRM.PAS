@@ -1526,7 +1526,9 @@ begin
   ApplicationUtils.DisableMainForm;
 //  HelpfulInfoMsg('This version is for internal use only & is not to be distributed to clients under any circumstances.', 0);
   try
-    if Globals.StartupParam_Action = 0 then
+    // Make sure there are no Parameter actions set and the bconnect password has been set
+    if (Globals.StartupParam_Action = 0) and
+       (AdminSystem.fdFields.fdBankLink_Connect_Password <> '') then
       UpgradeReminderMsg.TryGetandShowHTMLReminder;
 
     //login user
