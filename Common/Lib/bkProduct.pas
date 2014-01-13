@@ -32,7 +32,7 @@ begin
   end
   else
   begin
-    Result := 'BankLink';
+    Result := 'MYOB BankLink';
   end;
 end;
 

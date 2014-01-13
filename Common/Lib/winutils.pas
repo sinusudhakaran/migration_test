@@ -292,7 +292,7 @@ begin
 {$IFDEF bkUseFinalBuilderVer}
   Result := VERYEAR;
 {$ELSE}
-  Result := '2013';
+  Result := '2014';
 {$ENDIF}
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

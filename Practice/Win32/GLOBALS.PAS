@@ -20,7 +20,7 @@ uses
   sysobj32, appuserobj, sysUtils, Forms, IPClientLocking;
 const
 
-  SHORTAPPNAME        = 'BankLink';
+  SHORTAPPNAME        = 'MYOB BankLink';
 
   SYSTEMFILE          = 'SYSTEM';
   SYSFILENAME         = SYSTEMFILE+ '.DB';
@@ -101,17 +101,17 @@ CONST
     BKDATEFORMAT          = 'dd/mm/yy';
     BKCENTURYWINDOW       = 30;        {19xx will be applied to dates until more than 30years less that today}
 
-    BCONNECTNAME        = 'BankLink Secure';
+    BCONNECTNAME        = 'MYOB BankLink Secure';
     BConnectShort       = 'Secure';
-    BKBOOKSNAME         = 'BankLink Books';
-    BKPRACTICENAME      = 'BankLink Practice';
-    BANKLINK_ONLINE_NAME= 'BankLink Online';
+    BKBOOKSNAME         = 'MYOB BankLink Books';
+    BKPRACTICENAME      = 'MYOB BankLink Practice';
+    BANKLINK_ONLINE_NAME= 'MYOB BankLink Online';
 {$IFDEF SmartLink}
     DocumentManagementSystemName = 'FingerTips';
 {$ENDIF}
     {about pages}
 {$IFNDEF SmartLink}
-    COPYRIGHTNAME       = 'BankLink Limited';
+    COPYRIGHTNAME       = 'MYOB BankLink Limited';
 {$ELSE}
     COPYRIGHTNAME       = 'Media Transfer Services';
 {$ENDIF}
