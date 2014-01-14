@@ -195,6 +195,7 @@ begin
   fMaskHint := TMaskHint.create;
 
   RemovePanelBorders;
+  lblAccountHintLine.Caption := '';
 
   // Institution Names
   SortList := TStringList.Create;
@@ -645,7 +646,7 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmTPA.SetInstitutionControls(aInstitutionType : TInstitutionType);
 const
-  PNL_DATA_WIDTH = 146;
+  PNL_DATA_WIDTH = 148;
   PNL_DATA_WIDTH_RURAL = 106;
 var
   enableControls : boolean;

@@ -676,7 +676,7 @@ object frmCAF: TfrmCAF
         Width = 393
         Height = 17
         Anchors = [akLeft, akTop, akRight]
-        Caption = 'Supply as provisonal if account is not available from the Bank.'
+        Caption = 'Supply as provisional if account is not available from the Bank'
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
         Font.Height = -15
