@@ -293,6 +293,7 @@ begin
       AccNumber := trim(fMaskHint.RemoveUnusedCharsFromAccNumber(aAccountNumber));
       fAccountNumber := AccNumber;
       fValidAccount := true;
+      Result := true;
       Exit;
     end;
   end;
