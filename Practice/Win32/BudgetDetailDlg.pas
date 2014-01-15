@@ -90,6 +90,11 @@ var
 begin
   if not (Assigned(FromBudget) and Assigned(ToBudget)) then exit;
 
+  // Copy AutoCalculateGST
+  ToBudget.buFields.buAutomatically_Calculate_GST :=
+    FromBudget.buFields.buAutomatically_Calculate_GST;
+
+  // Reset
   ToBudget.buDetail.FreeAll;
 
   for i := 0 to FromBudget.buDetail.ItemCount-1 do
