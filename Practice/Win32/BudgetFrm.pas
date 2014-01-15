@@ -1037,7 +1037,9 @@ begin
     if not ShowZeros and not Assigned(pBudgetRec) then
     begin
       // GST control rows need to stay visible
-      if not IsGSTAccountCode(MyClient, Account.chAccount_Code) then
+      if AutoCalculateGST and IsGSTAccountCode(MyClient, Account.chAccount_Code) then
+        // Continue with the for loop
+      else
         Continue;
     end;
 
@@ -1054,7 +1056,7 @@ begin
         end;
       end;
       // GST control rows need to stay visible
-      if IsGSTAccountCode(MyClient, Account.chAccount_Code) then
+      if AutoCalculateGST and IsGSTAccountCode(MyClient, Account.chAccount_Code) then
         HasData := true;
       if not HasData then
         Continue;
