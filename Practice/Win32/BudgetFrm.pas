@@ -1735,6 +1735,7 @@ begin
           end;
         end;
       end;
+      RefreshTableWithData(fShowZeros, True, True);
       UpdateShowHideEnabledState;
     finally
       DoInvalidateTable;  {will force reload of current line}
@@ -2229,21 +2230,18 @@ end;
 procedure TfrmBudget.ActClearAllExecute(Sender: TObject);
 begin
   DoClearValues(clrAll);
-  RefreshTableWithData(fShowZeros, True, True);
 end;
 
 //------------------------------------------------------------------------------
 procedure TfrmBudget.ActClearColumnExecute(Sender: TObject);
 begin
   DoClearValues(clrColumn);
-  RefreshTableWithData(fShowZeros, True, True);
 end;
 
 //------------------------------------------------------------------------------
 procedure TfrmBudget.ActClearRowExecute(Sender: TObject);
 begin
   DoClearValues(clrRow);
-  RefreshTableWithData(fShowZeros, True, True);
 end;
 
 //------------------------------------------------------------------------------
