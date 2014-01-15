@@ -526,17 +526,30 @@ end;
 //------------------------------------------------------------------------------
 function TfrmBudget.GetTotalForRow(RowNum: Integer; IncludeGST: boolean): Integer;
 var
-  i: Integer;
+  GST_Class : byte;
+  GSTAmount : double;
+  dtMonth   : TStDate;
+  i         : Integer;
+  MoAmount  : Money;
+  pAccount  : pAccount_Rec;
 begin
   Result := 0;
+  GSTAmount := 0;
+  dtMonth := FBudget.buFields.buStart_Date;
+  pAccount := MyClient.clChart.FindCode(FData[RowNum - 1].bAccount);
+  GST_Class := pAccount.chGST_Class;
   for i := MonthMin to MonthMax do
   begin
     if IncludeGST then
     begin
-      Result := Result + FData[RowNum - 1].bGstAmounts[i-MonthBase];
-    end else
-      Result := Result + FData[RowNum - 1].bAmounts[i-MonthBase];
+      moAmount := FData[RowNum - 1].bAmounts[i - MonthBase];
+      GSTAmount := GSTAmount + moAmount + CalculateGSTFromNett(MyClient, dtMonth, moAmount, GST_Class);
+    end
+    else
+      Result := Result + FData[RowNum - 1].bAmounts[i - MonthBase];
   end;
+  if IncludeGST then
+    Result := DoRoundUp(GSTAmount);
 end;
 
 //------------------------------------------------------------------------------
