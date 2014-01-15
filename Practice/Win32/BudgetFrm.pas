@@ -2531,7 +2531,7 @@ begin
     if DoExportBudget(BudgetFilePath, IncludeUnusedChartCodes, IncludeNonPostingChartCodes) then
     begin
       if not fShowZeros then
-        RefreshFData(true, DataIndex);
+        RefreshTableWithData(fShowZeros);
 
       try
         // Do this after DoExportBudget dialog
