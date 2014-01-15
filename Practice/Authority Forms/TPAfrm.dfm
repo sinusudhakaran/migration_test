@@ -569,7 +569,6 @@ object frmTPA: TfrmTPA
       Color = clWhite
       ParentBackground = False
       TabOrder = 3
-      ExplicitTop = 344
       DesignSize = (
         612
         114)
@@ -789,6 +788,21 @@ object frmTPA: TfrmTPA
       Height = 27
       Align = alTop
       TabOrder = 5
+      object lblMaskErrorHint: TLabel
+        Left = 1
+        Top = 6
+        Width = 608
+        Height = 13
+        Alignment = taCenter
+        AutoSize = False
+        Caption = '<Mask Error Hint>'
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clRed
+        Font.Height = -13
+        Font.Name = 'MS Sans Serif'
+        Font.Style = []
+        ParentFont = False
+      end
     end
   end
   object Opendlg: TOpenDialog

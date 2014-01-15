@@ -28,6 +28,7 @@ type
     procedure GetColorFromRGB(aRed, aGreen, aBlue: Byte; var aColor: TColor);
     function GetMaskMessage(aMaskChar : string) : string;
   public
+    function  RemovedMaskBsbFromAccountNumber(aAccountNumber : string; aMaskBsb: string) : string;
     function  RemoveUnusedCharsFromAccNumber(aAccountNumber : string) : string;
     function  BlendColors(aFirstColor, aSecondColor : TColor; aPercent: Single) : TColor;
     procedure DrawMaskHint(alblHint : TLabel; aMaskEdit: TMaskEdit;
@@ -81,6 +82,18 @@ begin
   finally
     FreeAndNil(tmpBmp);
   end;
+end;
+
+//------------------------------------------------------------------------------
+function TMaskHint.RemovedMaskBsbFromAccountNumber(aAccountNumber: string; aMaskBsb: string): string;
+begin
+  if length(aMaskBsb) = 0 then
+  begin
+    Result := aAccountNumber;
+    Exit;
+  end;
+
+  Result := RightStr(aAccountNumber, Length(aAccountNumber)-Length(aMaskBsb));
 end;
 
 //------------------------------------------------------------------------------

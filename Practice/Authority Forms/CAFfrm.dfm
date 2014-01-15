@@ -358,6 +358,8 @@ object frmCAF: TfrmCAF
         Color = clWhite
         ParentBackground = False
         TabOrder = 0
+        ExplicitLeft = 3
+        ExplicitTop = 2
         object lblBranch: TLabel
           Left = 24
           Top = 3
@@ -694,6 +696,21 @@ object frmCAF: TfrmCAF
       Height = 27
       Align = alTop
       TabOrder = 4
+      object lblMaskErrorHint: TLabel
+        Left = -1
+        Top = 6
+        Width = 608
+        Height = 13
+        Alignment = taCenter
+        AutoSize = False
+        Caption = '<Mask Error Hint>'
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clRed
+        Font.Height = -13
+        Font.Name = 'MS Sans Serif'
+        Font.Style = []
+        ParentFont = False
+      end
     end
   end
   object Opendlg: TOpenDialog

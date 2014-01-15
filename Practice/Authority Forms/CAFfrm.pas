@@ -76,6 +76,7 @@ type
     lblNoteAddFormReq: TLabel;
     lblBookSecureLink: TLabel;
     chkSupplyAsProvisional: TCheckBox;
+    lblMaskErrorHint: TLabel;
     procedure btnPreviewClick(Sender: TObject);
     procedure btnFileClick(Sender: TObject);
     procedure btnPrintClick(Sender: TObject);
@@ -108,6 +109,7 @@ type
   private
     fValidAccount : boolean;
     fAccountNumber : string;
+    fMaskBsb : String;
 
     fValidateError : boolean;
     fPracticeCode : string;
@@ -130,7 +132,7 @@ type
     procedure SetDataSentToClient(aEnabled : boolean);
     procedure SetExistingClient(aEnabled : boolean);
 
-    function ValidateAccount(aAccountNumber : string; var aFailedReason : string) : boolean;
+    function ValidateAccount(aAccountNumber : string; var aFailedReason : string; var aShowDlg : boolean) : boolean;
   public
     { Public declarations }
     property ButtonPressed: Byte read FButton;
@@ -174,9 +176,11 @@ var
 begin
   fValidAccount := false;
   fAccountNumber := '';
+  fMaskBsb := '';
   fMaskHint := TMaskHint.create;
 
   RemovePanelBorders;
+  lblMaskErrorHint.Caption := '';
   lblAccountHintLine.Caption := '';
 
   // Institution Names
@@ -274,7 +278,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TfrmCAF.ValidateAccount(aAccountNumber : string; var aFailedReason : string) : boolean;
+function TfrmCAF.ValidateAccount(aAccountNumber : string; var aFailedReason : string; var aShowDlg : boolean) : boolean;
 var
   InstCode : string;
   AccNumber : string;
@@ -282,6 +286,7 @@ begin
   Result := false;
   fValidAccount := false;
   fAccountNumber := '';
+  aShowDlg := true;
 
     // Check if the Mapping File is set to ignore Validation
   if (cmbInstitution.ItemIndex > 0) and
@@ -299,9 +304,10 @@ begin
   end;
 
   // Check if there is any data entered
-  if length(fMaskHint.RemoveUnusedCharsFromAccNumber(aAccountNumber)) = 0 then
+  if length(fMaskHint.RemovedMaskBsbFromAccountNumber(fMaskHint.RemoveUnusedCharsFromAccNumber(mskAccountNumber.Text), fMaskBsb)) = 0 then
   begin
     aFailedReason := 'Please enter an Account Number.';
+    aShowDlg := false;
     Exit;
   end;
 
@@ -309,6 +315,7 @@ begin
   if fValidateError then
   begin
     aFailedReason := 'Account Number is invalid, please re-enter.';
+    aShowDlg := true;
     Exit;
   end;
 
@@ -326,6 +333,7 @@ begin
       fValidAccount := true;
       fAccountNumber := AccNumber;
     end;
+    aShowDlg := true;
   end;
 end;
 
@@ -440,14 +448,24 @@ end;
 procedure TfrmCAF.MaskValidateAccNumber();
 var
   FailedReason : string;
+  ShowDlg : boolean;
 begin
   // Calls Validation on Exit of Account Number Control
   fCurrentDisplayError := '';
-  if not ValidateAccount(mskAccountNumber.EditText, FailedReason) then
+  if not ValidateAccount(mskAccountNumber.EditText, FailedReason, ShowDlg) then
   begin
-    ShowAccountValidationError(TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex]).Name,
-                               trim(fMaskHint.RemoveUnusedCharsFromAccNumber(mskAccountNumber.EditText)),
-                               FailedReason);
+    if ShowDlg then
+    begin
+      ShowAccountValidationError(TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex]).Name,
+                                 trim(fMaskHint.RemoveUnusedCharsFromAccNumber(mskAccountNumber.EditText)),
+                                 FailedReason);
+      lblMaskErrorHint.Caption := '';
+    end
+    else
+    begin
+      lblMaskErrorHint.Caption := FailedReason;
+    end;
+
     fCurrentDisplayError := FailedReason;
   end;
 
@@ -548,6 +566,8 @@ begin
   edtInstitutionName.Text := '';
   edtAccountNumber.Text := '';
   fCurrentDisplayError := '';
+  lblMaskErrorHint.Caption := '';
+  fMaskBsb := '';
 
   oldInstDroppedDown := cmbInstitution.DroppedDown;
 
@@ -594,6 +614,7 @@ begin
             else
               mskAccountNumber.EditMask := TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex]).AccountEditMask;
           end;
+          fMaskBsb := fMaskHint.RemoveUnusedCharsFromAccNumber(mskAccountNumber.Text);
         end;
       end;
     end;
@@ -655,6 +676,7 @@ begin
   cmbInstitution.ItemIndex := -1;
   SetInstitutionControls(inNone);
 
+  fMaskBsb := '';
   fAccountNumber := '';
   edtBranch.Text := '';
   edtNameOfAccount.Text := '';
@@ -669,6 +691,7 @@ begin
   chkDataSecureExisting.Checked := false;
   fCurrentDisplayError := '';
   fCurrentDisplayError := '';
+  lblMaskErrorHint.Caption := '';
   edtClientStartDte.AsDateTime := now();
 end;
 
