@@ -827,15 +827,7 @@ begin
 
        // Refresh the GST cells
        RefreshGST;
-
-       {redraw row}
-       with tblBudget do begin
-          AllowRedraw := false;
-          tblBudget.InvalidateRow(RowNum);
-          tblBudget.InvalidateColumn(TotalCol);
-          AllowRedraw := true;
-       end;
-
+       RefreshTableWithData(fShowZeros, True, True);
        UpdatePercentageRows(True);
   end; {if row ok}
   UpdateShowHideEnabledState;
@@ -1462,12 +1454,8 @@ Begin
   ReadRow(currentRow);  {reload current edit values}
   Updateline(CurrentRow - 1);
 
+  RefreshTableWithData(fShowZeros, True, True);
   {redraw line}
-  with tblBudget do begin
-    AllowRedraw := false;
-    DoInvalidateRow(CurrentRow);
-    AllowRedraw := true;
-  end;
 end;
 
 //------------------------------------------------------------------------------
@@ -1800,7 +1788,6 @@ Begin
   end;
 
   with tblBudget do begin
-    AllowRedraw := false;
     try
       for i := Low(Fdata) to High(FData) do
       begin
@@ -1827,8 +1814,7 @@ Begin
         UpdateLine(i);
       end;
     finally
-      RefreshTableWithData(fShowZeros, True, True);  {will force reload of current line}
-      AllowRedraw := true;
+      RefreshTableWithData(fShowZeros, True, True);
     end;
   end;
 end;
@@ -1873,12 +1859,7 @@ Begin
   ReadRow(currentRow);  {reload current edit values}
   Updateline(CurrentRow-1);
 
-  {redraw line}
-  with tblBudget do begin
-    AllowRedraw := false;
-    DoInvalidateRow(CurrentRow);
-    AllowRedraw := true;
-  end;
+  RefreshTableWithData(fShowZeros, True, True);
 end;
 
 //------------------------------------------------------------------------------
@@ -1922,12 +1903,7 @@ Begin
     ReadRow(currentRow);  {reload current edit values}
     Updateline(CurrentRow-1);
 
-    {redraw line}
-    with tblBudget do begin
-      AllowRedraw := false;
-      DoInvalidateRow(CurrentRow);
-      AllowRedraw := true;
-    end;
+    RefreshTableWithData(fShowZeros, True, True);
   end;
 end;
 
@@ -2240,37 +2216,21 @@ end;
 procedure TfrmBudget.ActClearAllExecute(Sender: TObject);
 begin
   DoClearValues(clrAll);
-  with tblBudget do
-  begin
-    AllowRedraw := false;
-    tblBudget.InvalidateTable;
-    AllowRedraw := true;
-  end;
+  RefreshTableWithData(fShowZeros, True, True);
 end;
 
 //------------------------------------------------------------------------------
 procedure TfrmBudget.ActClearColumnExecute(Sender: TObject);
 begin
   DoClearValues(clrColumn);
-  with tblBudget do
-  begin
-    AllowRedraw := false;
-    tblBudget.InvalidateTable;
-    AllowRedraw := true;
-  end;
+  RefreshTableWithData(fShowZeros, True, True);
 end;
 
 //------------------------------------------------------------------------------
 procedure TfrmBudget.ActClearRowExecute(Sender: TObject);
 begin
   DoClearValues(clrRow);
-  {redraw row}
-  with tblBudget do
-  begin
-    AllowRedraw := false;
-    tblBudget.InvalidateTable; // can't just clear this row, %'s may be using its values so may as well update everything
-    AllowRedraw := true;
-  end;
+  RefreshTableWithData(fShowZeros, True, True);
 end;
 
 //------------------------------------------------------------------------------
