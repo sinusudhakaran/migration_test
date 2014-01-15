@@ -452,6 +452,7 @@ var
 begin
   // Calls Validation on Exit of Account Number Control
   fCurrentDisplayError := '';
+  lblMaskErrorHint.Caption := '';
   if not ValidateAccount(mskAccountNumber.EditText, FailedReason, ShowDlg) then
   begin
     if ShowDlg then
@@ -459,7 +460,6 @@ begin
       ShowAccountValidationError(TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex]).Name,
                                  trim(fMaskHint.RemoveUnusedCharsFromAccNumber(mskAccountNumber.EditText)),
                                  FailedReason);
-      lblMaskErrorHint.Caption := '';
     end
     else
     begin
