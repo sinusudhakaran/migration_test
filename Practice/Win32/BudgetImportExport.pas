@@ -272,6 +272,7 @@ var
   HeaderLine    : string;
   DataLine      : string;
   OkToWriteLine : Boolean;
+  UseGST        : Boolean;
 begin
   Result := false;
   aMsg := '';
@@ -340,8 +341,13 @@ begin
           DataLine := DataLine + '"' + aData[DataIndex].bDesc + '",';
           if aData[DataIndex].bIsPosting then
           begin
-            // Non posting chart codes shouldn't display a total in the budget
             if GSTInclusive then
+              UseGST := not aData[DataIndex].bIsGSTAccountCode
+            else
+              UseGST := aData[DataIndex].bIsGSTAccountCode;
+
+            // Non posting chart codes shouldn't display a total in the budget
+            if UseGST then
               DataLine := DataLine + IntToStr(aData[DataIndex].bTotalWithGST) + ','
             else
               DataLine := DataLine + IntToStr(aData[DataIndex].bTotal) + ',';
