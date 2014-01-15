@@ -50,9 +50,10 @@ const
   MIN_WIDTH = 300;
   MIN_HEIGHT = 130;
   MARGIN = 10;
-  INSTITUON_MSG = 'Institution (%s) and Account Number (%s) appear to be invalid. ' + #13#10 +
-                  'Please enter valid details or, if the details ' +                  'you entered are correct, select Other from the Instituion list ' +                  'to continue.';
 
+  INSTITUON_MSG = 'Institution (%s) and Account Number (%s) appear to be invalid. ' + #13#10 +
+                  'Please check these details are correct. If they are, select Other ' +
+                  'from the Institution list to continue.';
 
 //------------------------------------------------------------------------------
 procedure ShowAccountValidationError(aInstitutionName, aAccountNumber, aCoreError : string);
