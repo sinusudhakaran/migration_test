@@ -3,7 +3,7 @@ object dlgEditBank: TdlgEditBank
   Top = 217
   BorderStyle = bsDialog
   Caption = 'Edit Bank Account Details'
-  ClientHeight = 523
+  ClientHeight = 531
   ClientWidth = 639
   Color = clBtnFace
   ParentFont = True
@@ -19,12 +19,16 @@ object dlgEditBank: TdlgEditBank
     Left = 0
     Top = 0
     Width = 639
-    Height = 486
+    Height = 494
     ActivePage = tbDetails
     Align = alClient
     TabOrder = 0
+    ExplicitHeight = 486
     object tbDetails: TTabSheet
       Caption = '&Details'
+      ExplicitLeft = 3
+      ExplicitTop = 22
+      ExplicitHeight = 482
       object lblNo: TLabel
         Left = 24
         Top = 12
@@ -48,15 +52,15 @@ object dlgEditBank: TdlgEditBank
         Height = 13
       end
       object lblClause: TLabel
-        Left = 3
-        Top = 409
-        Width = 618
+        Left = 5
+        Top = 433
+        Width = 615
         Height = 26
         Caption = 
           '* BankLink wishes to collect the Institution and Account Type in' +
-          ' order to improve the service it provides by determining  whethe' +
-          'r there are any additional account types or institutions which s' +
-          'hould be added to the service.'
+          ' order to improve the service it provides by determining whether' +
+          ' there are any additional account types or institutions which sh' +
+          'ould be added to the service.'
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
         Font.Height = -11
@@ -73,8 +77,8 @@ object dlgEditBank: TdlgEditBank
         Caption = 'M'
       end
       object lblLedgerID: TLabel
-        Left = 159
-        Top = 268
+        Left = 161
+        Top = 297
         Width = 410
         Height = 16
         AutoSize = False
@@ -90,9 +94,11 @@ object dlgEditBank: TdlgEditBank
       end
       object gCalc: TPanel
         Left = 24
-        Top = 295
-        Width = 602
+        Top = 319
+        Width = 593
         Height = 109
+        BevelInner = bvRaised
+        BevelOuter = bvLowered
         Color = clInfoBk
         TabOrder = 8
         object lblPeriod: TLabel
@@ -422,7 +428,7 @@ object dlgEditBank: TdlgEditBank
         Left = 24
         Top = 200
         Width = 602
-        Height = 61
+        Height = 82
         BevelOuter = bvNone
         TabOrder = 6
         object lblType: TLabel
@@ -471,9 +477,9 @@ object dlgEditBank: TdlgEditBank
           OnExit = eNumberExit
         end
         object chkPrivacy: TCheckBox
-          Left = 290
-          Top = 30
-          Width = 312
+          Left = 0
+          Top = 56
+          Width = 593
           Height = 27
           Caption = '&Send Institution and Account Type to BankLink *'
           Checked = True
@@ -483,8 +489,8 @@ object dlgEditBank: TdlgEditBank
         end
       end
       object btnLedgerID: TButton
-        Left = 24
-        Top = 264
+        Left = 26
+        Top = 288
         Width = 129
         Height = 25
         Caption = 'Select &Fund'
@@ -564,6 +570,7 @@ object dlgEditBank: TdlgEditBank
     object tbAnalysis: TTabSheet
       Caption = '&Analysis Coding'
       ImageIndex = 1
+      ExplicitHeight = 458
       object Label8: TLabel
         Left = 16
         Top = 16
@@ -609,6 +616,7 @@ object dlgEditBank: TdlgEditBank
     object tbBankLinkOnline: TTabSheet
       Caption = 'BankLink Online'
       ImageIndex = 2
+      ExplicitHeight = 458
       object lblSelectExport: TLabel
         Left = 16
         Top = 11
@@ -650,12 +658,13 @@ object dlgEditBank: TdlgEditBank
   end
   object pnlFooter: TPanel
     Left = 0
-    Top = 486
+    Top = 494
     Width = 639
     Height = 37
     Align = alBottom
     BevelOuter = bvNone
     TabOrder = 1
+    ExplicitTop = 486
     DesignSize = (
       639
       37)

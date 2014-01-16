@@ -943,6 +943,8 @@ begin
                          and( Assigned(AdminSystem) and CurrUser.CanAccessAdmin)
                          and((PRACINI_AllowAdvanceOptions) or SuperUserLoggedIn);
 
+  sbCalc.Visible := not FAddNew;
+
   if FAddNew
   or (not BankAcct.IsManual) then
   begin
