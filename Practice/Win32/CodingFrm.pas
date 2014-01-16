@@ -3388,6 +3388,7 @@ end;
 procedure TfrmCoding.LoadWorkTranList;
 var
    pT  : pTransaction_Rec;
+   pD  : pDissection_Rec;
    i   : integer;
    bal : Money;
    Amount : Money;
@@ -3552,6 +3553,37 @@ var
             ceCoreTransactionId : if TestInteger(BKUTIL32.GetTransCoreID(pT)) then
                Exit;
 
+            end;
+          end;
+
+          // Now look through the dissections (if any)
+          if (pT.txFirst_Dissection <> nil) then
+          begin
+            pD := pT.txFirst_Dissection;
+            while (pD <> nil) do
+            begin
+              if TestText(pD.dsAccount) then
+                Exit;
+
+              if TestMoney(pD.dsAmount) then
+                Exit;
+
+              if TestInteger(pD.dsPayee_Number) then
+                Exit;
+
+              if TestText( GSTCALC32.GetGSTClassCode( MyClient, pD.dsGST_Class)) then
+                Exit;
+
+              if TestMoney(pD.dsGST_Amount, True) then
+                Exit;
+
+              if TestText( Quantity2Str(pD.dsQuantity)) then
+                Exit;
+
+              if TestText(pD.dsGL_Narration) then
+                Exit;
+
+              pD := pD^.dsNext;
             end;
           end;
 
