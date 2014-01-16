@@ -156,11 +156,11 @@ object frmDeleteRequest: TfrmDeleteRequest
     object LDelete: TLabel
       Left = 59
       Top = 6
-      Width = 446
+      Width = 398
       Height = 13
       Caption = 
         'You should only mark accounts as deleted if the account is no lo' +
-        'nger on the BankLink service.'
+        'nger with BankLink.'
     end
     object LDownload: TLabel
       Left = 59
