@@ -277,26 +277,32 @@ begin
   begin
     Bsb := '000000';
     AccountNum := '11111111';
-  end else
-  if (AnsiPos('Accrual Journals', InputString) <> 0) then
+  end
+  else if (AnsiPos('Accrual Journals', InputString) <> 0) then
   begin
     Bsb := '000000';
     AccountNum := '99999999';
-  end else
+  end
+  else if (InputString = '') then // blank disk code
+  begin
+    Bsb := '';
+    AccountNum := '';
+  end
   // Condition 1: disk code has 12 characters or more, first character is numeric
-  if (Length(InputString) > 11) and (InputString[1] in NumericalChars) then
+  else if (Length(InputString) > 11) and (InputString[1] in NumericalChars) then
   begin
     FirstSixChars := Copy(InputStringNumericOnly, 1, 6);
     RemainingChars := Copy(InputStringNumericOnly, 7);
     Bsb := FirstSixChars;
     AccountNum := RemainingChars;
-  end else
+  end
   // Condition 2: disk code has 11 or less numeric characters, first character is non-numeric
-  if (Length(InputStringNumericOnly) < 12) and not (InputString[1] in NumericalChars) then
+  else if (Length(InputStringNumericOnly) < 12) and not (InputString[1] in NumericalChars) then
   begin
     Bsb := '000000';
     AccountNum := InputStringNumericOnly;
-  end else
+  end
+  else
   // Condition 3: disk code has 12 or more characters, first character is non-numeric
   begin
     Bsb := Copy(InputStringNumericOnly, 1, 6);
