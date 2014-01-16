@@ -15,8 +15,7 @@ uses
   utAuditTrail in '..\Tests\utAuditTrail.pas',
   utBudgetImportExport in '..\Tests\utBudgetImportExport.pas',
   utBGL360 in '..\Tests\utBGL360.pas',
-  utSimpleFundX in '..\Tests\utSimpleFundX.pas' {/utSimpleFund360Bulk in '..\Tests\utSimpleFund360Bulk.pas';},
-  utInstitutionCol in '..\Tests\utInstitutionCol.pas',
+  utSimpleFundX in '..\Tests\utSimpleFundX.pas',  utSimpleFund360Bulk in '..\Tests\utSimpleFund360Bulk.pas',  utInstitutionCol in '..\Tests\utInstitutionCol.pas',
   utToDo in '..\Tests\utToDo.pas',
   utBudget in '..\Tests\utBudget.pas';
 
