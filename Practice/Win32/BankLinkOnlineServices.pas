@@ -1849,7 +1849,7 @@ function TProductConfigService.MessageResponseHasError(
   AMesageresponse: MessageResponse; ErrorText: string; SimpleError: boolean = false;
   ContextMsgInt: integer = 0; ContextErrorCode: string = ''; ReportResponseErrors: Boolean = True): Boolean;
 const
-  MAIN_ERROR_MESSAGE =  BKPRACTICENAME + ' is unable to %s ' + bkBranding.ProductOnlineName + '. Please see the details below or contact BankLink Support for assistance.';
+  MAIN_ERROR_MESSAGE =  BKPRACTICENAME + ' is unable to %s %s. Please see the details below or contact BankLink Support for assistance.';
 var
   ErrorMessage: string;
   ErrIndex : integer;
@@ -1927,7 +1927,7 @@ begin
   else
   begin
     //No response from BankLink Online
-    ErrorMessage := TProduct.Rebrand(Format(MAIN_ERROR_MESSAGE, ['connect to']));
+    ErrorMessage := TProduct.Rebrand(Format(MAIN_ERROR_MESSAGE, ['connect to',bkBranding.ProductOnlineName]));
     HelpfulErrorMsg(ErrorMessage, 0);
   end;
 end;
