@@ -1097,14 +1097,14 @@ begin
       begin
         LogUtil.LogMsg(lmError, UNIT_NAME, 'Exception running CreateNewClientUser, Error Message : ' + E.Message);
 
-        raise Exception.Create(bkBranding.PracticeProductName + ' is unable to create a new user ' + bkBranding.ProductOnlineName + '. Please contact ' + TProduct.BrandName + ' Support for assistance.');
+        raise Exception.Create(bkBranding.PracticeProductName + ' is unable to create a new user on ' + bkBranding.ProductOnlineName + '. Please contact ' + TProduct.BrandName + ' Support for assistance.');
       end;
     end;
 
     if not MessageResponseHasError(MsgResponseOfGuid, 'update practice user password on') then
-      LogUtil.LogMsg(lmInfo, UNIT_NAME, 'User ' + NewUser.FullName + ' has been successfully created on BankLink Online.')
+      LogUtil.LogMsg(lmInfo, UNIT_NAME, 'User ' + NewUser.FullName + ' has been successfully created on ' + bkBranding.ProductOnlineName + '.')
     else
-      LogUtil.LogMsg(lmInfo, UNIT_NAME, 'User ' + NewUser.FullName + ' was not created on BankLink Online.');
+      LogUtil.LogMsg(lmInfo, UNIT_NAME, 'User ' + NewUser.FullName + ' was not created on ' + bkBranding.ProductOnlineName + '.');
 
   finally
     FreeAndNil(MsgResponseOfGuid);
@@ -1849,7 +1849,7 @@ function TProductConfigService.MessageResponseHasError(
   AMesageresponse: MessageResponse; ErrorText: string; SimpleError: boolean = false;
   ContextMsgInt: integer = 0; ContextErrorCode: string = ''; ReportResponseErrors: Boolean = True): Boolean;
 const
-  MAIN_ERROR_MESSAGE =  BKPRACTICENAME + ' is unable to %s BankLink Online. Please see the details below or contact BankLink Support for assistance.';
+  MAIN_ERROR_MESSAGE =  BKPRACTICENAME + ' is unable to %s ' + bkBranding.ProductOnlineName + '. Please see the details below or contact BankLink Support for assistance.';
 var
   ErrorMessage: string;
   ErrIndex : integer;
@@ -3321,7 +3321,7 @@ begin
           begin
             HelpfulErrorMsg(bkBranding.PracticeProductName + ' is unable to authenticate with ' + bkBranding.ProductOnlineName + '. Please contact ' + TProduct.BrandName + ' Support for assistance.', 0);
 
-            LogUtil.LogMsg(lmError, UNIT_NAME, 'An error occurred while authenticating with BankLink Online.');
+            LogUtil.LogMsg(lmError, UNIT_NAME, 'An error occurred while authenticating with ' + bkBranding.ProductOnlineName + '.');
 
             Exit;
           end
@@ -3336,7 +3336,7 @@ begin
             begin
               HelpfulErrorMsg(bkBranding.PracticeProductName + ' authentication with ' + bkBranding.ProductOnlineName + ' failed. Please contact ' + TProduct.BrandName + ' Support for assistance.', 0);
 
-              LogUtil.LogMsg(lmError, UNIT_NAME, ' authentication with BankLink Online failed.');
+              LogUtil.LogMsg(lmError, UNIT_NAME, ' authentication with ' + bkBranding.ProductOnlineName + ' failed.');
 
               Exit;
             end;
@@ -3666,13 +3666,13 @@ begin
       begin
         HelpfulInfoMsg(Format('The user password for %s has been successfully reset on %s.',[EMailAddress, bkBranding.ProductOnlineName]), 0);
 
-        LogUtil.LogMsg(lmInfo, UNIT_NAME, 'The user password for ' + EMailAddress + ' has been successfully reset on BankLink Online.');
+        LogUtil.LogMsg(lmInfo, UNIT_NAME, 'The user password for ' + EMailAddress + ' has been successfully reset on ' + bkBranding.ProductOnlineName + '.');
 
         Result := True;
       end
       else
       begin
-        LogUtil.LogMsg(lmInfo, UNIT_NAME, 'The user password for ' + EMailAddress + ' was not reset on BankLink Online.');
+        LogUtil.LogMsg(lmInfo, UNIT_NAME, 'The user password for ' + EMailAddress + ' was not reset on ' + bkBranding.ProductOnlineName + '.');
       end;
     except
       on E : Exception do
@@ -3718,13 +3718,13 @@ begin
       begin
         HelpfulInfoMsg(Format('A temporary password has been sent to %s.',[aEMailAddress]), 0);
 
-        LogUtil.LogMsg(lmInfo, UNIT_NAME, 'The user password for ' + aEMailAddress + ' has been successfully unsecure reset on BankLink Online.');
+        LogUtil.LogMsg(lmInfo, UNIT_NAME, 'The user password for ' + aEMailAddress + ' has been successfully unsecure reset on ' + bkBranding.ProductOnlineName + '.');
 
         Result := True;
       end
       else
       begin
-        LogUtil.LogMsg(lmInfo, UNIT_NAME, 'The user password for ' + aEMailAddress + ' was not unsecurely reset on BankLink Online.');
+        LogUtil.LogMsg(lmInfo, UNIT_NAME, 'The user password for ' + aEMailAddress + ' was not unsecurely reset on ' + bkBranding.ProductOnlineName + '.');
       end;
     except
       on E : Exception do
@@ -4561,13 +4561,13 @@ begin
       begin
         UserId := copy(MsgResponceGuid.Result,1,Length(MsgResponceGuid.Result));
 
-        LogUtil.LogMsg(lmInfo, UNIT_NAME, 'Client User ' + aUserCode + ' has been successfully updated on BankLink Online.');
+        LogUtil.LogMsg(lmInfo, UNIT_NAME, 'Client User ' + aUserCode + ' has been successfully updated on ' + bkBranding.ProductOnlineName + '.');
 
         Result := True;
       end
       else
       begin
-        LogUtil.LogMsg(lmInfo, UNIT_NAME, 'Client User ' + aUserCode + ' was not updated on BankLink Online.');
+        LogUtil.LogMsg(lmInfo, UNIT_NAME, 'Client User ' + aUserCode + ' was not updated on ' + bkBranding.ProductOnlineName + '.');
       end;
     end
     else
@@ -4645,9 +4645,9 @@ begin
     end;
 
     if Response.Success then
-      LogUtil.LogMsg(lmInfo, UNIT_NAME, 'Client User ' + aUserCode + ' has been successfully updated on BankLink Online.')
+      LogUtil.LogMsg(lmInfo, UNIT_NAME, 'Client User ' + aUserCode + ' has been successfully updated on ' + bkBranding.ProductOnlineName + '.')
     else
-      LogUtil.LogMsg(lmInfo, UNIT_NAME, 'Client User ' + aUserCode + ' was not updated on BankLink Online.');
+      LogUtil.LogMsg(lmInfo, UNIT_NAME, 'Client User ' + aUserCode + ' was not updated on ' + bkBranding.ProductOnlineName + '.');
 
     Result := not MessageResponseHasError(Response, ErrorHandlerMessage);
   finally
@@ -4829,9 +4829,9 @@ begin
     end;
 
     if Response.Success then
-      LogUtil.LogMsg(lmInfo, UNIT_NAME, 'Practice User ' + aUserCode + ' password has been successfully changed on BankLink Online.')
+      LogUtil.LogMsg(lmInfo, UNIT_NAME, 'Practice User ' + aUserCode + ' password has been successfully changed on ' + bkBranding.ProductOnlineName + '.')
     else
-      LogUtil.LogMsg(lmInfo, UNIT_NAME, 'Practice User ' + aUserCode + ' password was not changed on BankLink Online.');
+      LogUtil.LogMsg(lmInfo, UNIT_NAME, 'Practice User ' + aUserCode + ' password was not changed on ' + bkBranding.ProductOnlineName + '.');
 
     Result := not MessageResponseHasError(Response, ErrorHandlerMessage);
   finally
@@ -4899,9 +4899,9 @@ begin
       end;
 
     if Response.Success then
-      LogUtil.LogMsg(lmInfo, UNIT_NAME, 'Practice User ' + aUserCode + ' has been successfully created on BankLink Online.')
+      LogUtil.LogMsg(lmInfo, UNIT_NAME, 'Practice User ' + aUserCode + ' has been successfully created on ' + bkBranding.ProductOnlineName + '.')
     else
-      LogUtil.LogMsg(lmInfo, UNIT_NAME, 'Practice User ' + aUserCode + ' was not created on BankLink Online.');
+      LogUtil.LogMsg(lmInfo, UNIT_NAME, 'Practice User ' + aUserCode + ' was not created on ' + bkBranding.ProductOnlineName + '.');
 
     if not MessageResponseHasError(Response, ErrorHandlerMessage) and Assigned(Response) then
     begin
@@ -5018,9 +5018,9 @@ begin
 
     
     if Response.Success then
-      LogUtil.LogMsg(lmInfo, UNIT_NAME, 'Practice User ' + aUserCode + ' has been successfully updated to BankLink Online.')
+      LogUtil.LogMsg(lmInfo, UNIT_NAME, 'Practice User ' + aUserCode + ' has been successfully updated to ' + bkBranding.ProductOnlineName + '.')
     else
-      LogUtil.LogMsg(lmInfo, UNIT_NAME, 'Practice User ' + aUserCode + ' was not updated to BankLink Online.');
+      LogUtil.LogMsg(lmInfo, UNIT_NAME, 'Practice User ' + aUserCode + ' was not updated to ' + bkBranding.ProductOnlineName + '.');
 
     Result := not MessageResponseHasError(Response, ErrorHandlerMessage);
   finally
@@ -5075,9 +5075,9 @@ begin
     end;
 
     if Response.Success then
-      LogUtil.LogMsg(lmInfo, UNIT_NAME, 'User ' + aUserCode + ' has been successfully deleted from BankLink Online.')
+      LogUtil.LogMsg(lmInfo, UNIT_NAME, 'User ' + aUserCode + ' has been successfully deleted from ' + bkBranding.ProductOnlineName + '.')
     else
-      LogUtil.LogMsg(lmInfo, UNIT_NAME, 'User ' + aUserCode + ' was not deleted from BankLink Online.');
+      LogUtil.LogMsg(lmInfo, UNIT_NAME, 'User ' + aUserCode + ' was not deleted from ' + bkBranding.ProductOnlineName + '.');
 
     Result := not MessageResponseHasError(Response, ErrorHandlerMessage);
   finally
@@ -5328,7 +5328,7 @@ begin
 
           if Result then
           begin
-            LogUtil.LogMsg(lmInfo, UNIT_NAME, 'Client ' + ClientCode + ' has been successfully created on BankLink Online.');
+            LogUtil.LogMsg(lmInfo, UNIT_NAME, 'Client ' + ClientCode + ' has been successfully created on ' + bkBranding.ProductOnlineName + '.');
 
             Progress.UpdateAppStatus(bkBranding.ProductOnlineName, 'Saving Client User', 70);
             Result := AddEditClientUser(Nil,
@@ -5340,7 +5340,7 @@ begin
                                         aUserFullName);
           end
           else
-            LogUtil.LogMsg(lmInfo, UNIT_NAME, 'Client ' + ClientCode + ' was not created on BankLink Online.');
+            LogUtil.LogMsg(lmInfo, UNIT_NAME, 'Client ' + ClientCode + ' was not created on ' + bkBranding.ProductOnlineName + '.');
 
         finally
           FreeAndNil(MsgResponseGuid);
@@ -5510,9 +5510,9 @@ begin
             Result := not MessageResponseHasError(MsgResponse, 'update client on');
 
             if Result then
-              LogUtil.LogMsg(lmInfo, UNIT_NAME, 'Client ' + ClientCode + ' has been successfully updated on BankLink Online.')
+              LogUtil.LogMsg(lmInfo, UNIT_NAME, 'Client ' + ClientCode + ' has been successfully updated on ' + bkBranding.ProductOnlineName + '.')
             else
-              LogUtil.LogMsg(lmInfo, UNIT_NAME, 'Client ' + ClientCode + ' was not updated on BankLink Online.');
+              LogUtil.LogMsg(lmInfo, UNIT_NAME, 'Client ' + ClientCode + ' was not updated on ' + bkBranding.ProductOnlineName + '.');
 
           finally
             FreeAndNil(MsgResponse);
@@ -5724,9 +5724,9 @@ begin
         Result := not MessageResponseHasError(MsgResponse, 'delete client on');
 
         if Result then
-          LogUtil.LogMsg(lmInfo, UNIT_NAME, 'Client ' + aExistingClient.ClientCode + ' has been successfully marked as Deleted on BankLink Online.')
+          LogUtil.LogMsg(lmInfo, UNIT_NAME, 'Client ' + aExistingClient.ClientCode + ' has been successfully marked as Deleted on ' + bkBranding.ProductOnlineName + '.')
         else
-          LogUtil.LogMsg(lmInfo, UNIT_NAME, 'Client ' + aExistingClient.ClientCode + ' was not marked as Deleted on BankLink Online.');
+          LogUtil.LogMsg(lmInfo, UNIT_NAME, 'Client ' + aExistingClient.ClientCode + ' was not marked as Deleted on ' + bkBranding.ProductOnlineName + '.');
 
       finally
         FreeAndNil(MsgResponse);
@@ -5931,9 +5931,9 @@ begin
       else
       begin
         if aIsUserCreated then
-          LogUtil.LogMsg(lmInfo, UNIT_NAME, aUserCode + ' was not created on BankLink Online.')
+          LogUtil.LogMsg(lmInfo, UNIT_NAME, aUserCode + ' was not created on ' + bkBranding.ProductOnlineName + '.')
         else
-          LogUtil.LogMsg(lmInfo, UNIT_NAME, aUserCode + ' was not updated to BankLink Online.');
+          LogUtil.LogMsg(lmInfo, UNIT_NAME, aUserCode + ' was not updated to ' + bkBranding.ProductOnlineName + '.');
       end;
     except
       on E : Exception do
