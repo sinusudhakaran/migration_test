@@ -38,7 +38,11 @@ end;
 
 class function TProduct.Rebrand(Value: String): String;
 begin
-  Result := AnsiReplaceText(Value, 'BankLink', BrandName);
+  { Note:
+    This has been disabled as it was conflicting with the previous way of branding
+    Result := AnsiReplaceText(Value, 'BankLink', BrandName);
+  }
+  result := Value;
 end;
 
 initialization
