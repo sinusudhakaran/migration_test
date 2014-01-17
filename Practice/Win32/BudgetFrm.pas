@@ -526,21 +526,30 @@ end;
 //------------------------------------------------------------------------------
 function TfrmBudget.GetTotalForRow(RowNum: Integer; IncludeGST: boolean): Integer;
 var
-  GST_Class : byte;
-  GSTAmount : double;
-  dtMonth   : TStDate;
-  i         : Integer;
-  MoAmount  : Money;
-  pAccount  : pAccount_Rec;
+  GST_Class     : byte;
+  GSTAmount     : double;
+  dtMonth       : TStDate;
+  i             : Integer;
+  MoAmount      : Money;
+  pAccount      : pAccount_Rec;
+  IsGSTAccountCode: boolean;
 begin
   Result := 0;
   GSTAmount := 0;
   dtMonth := FBudget.buFields.buStart_Date;
   pAccount := MyClient.clChart.FindCode(FData[RowNum - 1].bAccount);
   GST_Class := pAccount.chGST_Class;
+  IsGSTAccountCode := FData[RowNum - 1].bIsGSTAccountCode;
+  if IsGSTAccountCode and ShowFiguresGSTInclusive then
+  begin
+    Result := 0; // GST is already included in the figures for other rows, so we don't need to fill in GST account codes
+    Exit;
+  end;
   for i := MonthMin to MonthMax do
   begin
-    if IncludeGST then
+    if IsGSTAccountCode then
+      Result := Result + FData[RowNum - 1].bGstAmounts[i - MonthBase]
+    else if IncludeGST then
     begin
       moAmount := FData[RowNum - 1].bAmounts[i - MonthBase];
       GSTAmount := GSTAmount + moAmount + CalculateGSTFromNett(MyClient, dtMonth, moAmount, GST_Class);
@@ -548,7 +557,7 @@ begin
     else
       Result := Result + FData[RowNum - 1].bAmounts[i - MonthBase];
   end;
-  if IncludeGST then
+  if IncludeGST and not IsGSTAccountCode then
     Result := DoRoundUp(GSTAmount);
 end;
 
