@@ -1528,6 +1528,7 @@ begin
   try
     // Make sure there are no Parameter actions set and the bconnect password has been set
     if (Globals.StartupParam_Action = 0) and
+       (Assigned(AdminSystem)) and 
        (AdminSystem.fdFields.fdBankLink_Connect_Password <> '') then
       UpgradeReminderMsg.TryGetandShowHTMLReminder;
 
