@@ -1476,6 +1476,7 @@ Begin
   ReadRow(currentRow);  {reload current edit values}
   Updateline(CurrentRow - 1);
 
+  UpdatePercentageRows(false);
   RefreshTableWithData(fShowZeros, True, True);
   {redraw line}
 end;
@@ -1744,6 +1745,7 @@ begin
           end;
         end;
       end;
+      UpdatePercentageRows(false);
       RefreshTableWithData(fShowZeros, True, True);
       UpdateShowHideEnabledState;
     finally
