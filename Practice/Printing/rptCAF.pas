@@ -541,9 +541,15 @@ begin
     try
       QrCodeImage := TImage.Create(nil);
       try
+        InstIndex := Values.cmbInstitution.ItemIndex;
         CAFQRDataAccount := TCAFQRDataAccount.Create(CAFQRData);
         CAFQRDataAccount.AccountName   := Values.edtNameOfAccount.text;
-        CAFQRDataAccount.AccountNumber := Values.AccountNumber;
+        if Institutions.DoInstituionExceptionCode(Values.AccountNumber,
+                                                  TInstitutionItem(Values.cmbInstitution.Items.Objects[InstIndex]).Code) = ieBOQ then
+          CAFQRDataAccount.AccountNumber := Institutions.PadQueensLandAccWithZeros(Values.AccountNumber)
+        else
+          CAFQRDataAccount.AccountNumber := Values.AccountNumber;
+
         CAFQRDataAccount.ClientCode    := Values.edtClientCode.Text;
         CAFQRDataAccount.CostCode      := Values.edtCostCode.Text;
         CAFQRDataAccount.SMSF          := 'N';
@@ -579,7 +585,6 @@ begin
         CAFQRData.TimeStamp := Now;
 
         // Institution Code and Country
-        InstIndex := Values.cmbInstitution.ItemIndex;
         CAFQRData.InstitutionCode := TInstitutionItem(Values.cmbInstitution.Items.Objects[InstIndex]).Code;
 
         CAFQRData.InstitutionCountry := TInstitutionItem(Values.cmbInstitution.Items.Objects[InstIndex]).CountryCode;

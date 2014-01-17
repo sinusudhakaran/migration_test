@@ -326,7 +326,13 @@ begin
      (cmbInstitution.Items.Objects[cmbInstitution.ItemIndex] is TInstitutionItem) then
   begin
     InstCode := TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex]).Code;
-    Result := ProductConfigService.ValidateAccount(AccNumber, InstCode, COUNTRY_CODE, aFailedReason, true);
+
+    // Exception code for Bank of Queensland to insert zeros into the account portion of the account number
+    // less than 10 zeros and more than 7
+    if Institutions.DoInstituionExceptionCode(AccNumber, InstCode) = ieBOQ then
+      Result := ProductConfigService.ValidateAccount(Institutions.PadQueensLandAccWithZeros(AccNumber), InstCode, COUNTRY_CODE, aFailedReason, true)
+    else
+      Result := ProductConfigService.ValidateAccount(AccNumber, InstCode, COUNTRY_CODE, aFailedReason, true);
 
     if Result then
     begin

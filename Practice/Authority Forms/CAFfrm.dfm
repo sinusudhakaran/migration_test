@@ -204,7 +204,7 @@ object frmCAF: TfrmCAF
         Font.Height = -15
         Font.Name = 'MS Sans Serif'
         Font.Style = []
-        ItemHeight = 0
+        ItemHeight = 16
         ParentFont = False
         TabOrder = 0
         OnChange = cmbInstitutionChange
@@ -358,8 +358,6 @@ object frmCAF: TfrmCAF
         Color = clWhite
         ParentBackground = False
         TabOrder = 0
-        ExplicitLeft = 3
-        ExplicitTop = 2
         object lblBranch: TLabel
           Left = 24
           Top = 3

@@ -10,7 +10,7 @@ uses
   BanklinkOnlineServices;
 
 type
-  TInstitutionExceptions = (ieNone, ieANZ, ieNAT);
+  TInstitutionExceptions = (ieNone, ieANZ, ieNAT, ieBOQ);
 
   //----------------------------------------------------------------------------
   TInstitutionItem = class(TCollectionItem)
@@ -82,6 +82,7 @@ type
     function LoadFromFile(aFileName : string) : boolean;
     procedure FillDataFromBlopi(aBloArrayOfInstitution : TBloArrayOfInstitution);
     function DoInstituionExceptionCode(aAccount, aCode : string) : TInstitutionExceptions;
+    function PadQueensLandAccWithZeros(aAccount : string) : string;
 
     function Load() : boolean;
     function CountryCodes : TStringList;
@@ -214,6 +215,8 @@ begin
     else
       Result := ieANZ;
   end
+  else if aCode = 'BOQ' then
+    Result := ieBOQ
   else
     Result := ieNone;
 end;
@@ -361,6 +364,26 @@ begin
     FreeAndNil(CsvFile);
     FreeAndNil(CommaLine);
   end;
+end;
+
+//------------------------------------------------------------------------------
+function TInstitutions.PadQueensLandAccWithZeros(aAccount: string): string;
+var
+  bsbNumber, accPortion : string;
+begin
+  bsbNumber := leftstr(aAccount,6);
+
+  if length(aAccount) > 6 then
+    accPortion := RightStr(aAccount, length(aAccount) - 6)
+  else
+    accPortion := '';
+
+  if Length(accPortion) = 8 then
+    accPortion := '00' + accPortion
+  else if Length(AccPortion) = 8 then
+    accPortion := '0' + accPortion;
+
+  result := bsbNumber + accPortion;
 end;
 
 //------------------------------------------------------------------------------
