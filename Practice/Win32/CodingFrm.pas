@@ -3565,7 +3565,7 @@ var
               if TestText(pD.dsAccount) then
                 Exit;
 
-              if TestMoney(pD.dsAmount) then
+              if TestMoney(pD.dsAmount, True) then
                 Exit;
 
               if TestInteger(pD.dsPayee_Number) then
