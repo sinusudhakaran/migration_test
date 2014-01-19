@@ -23,12 +23,10 @@ object dlgEditBank: TdlgEditBank
     ActivePage = tbDetails
     Align = alClient
     TabOrder = 0
-    ExplicitHeight = 486
     object tbDetails: TTabSheet
       Caption = '&Details'
       ExplicitLeft = 3
       ExplicitTop = 22
-      ExplicitHeight = 482
       object lblNo: TLabel
         Left = 24
         Top = 12
@@ -52,7 +50,7 @@ object dlgEditBank: TdlgEditBank
         Height = 13
       end
       object lblClause: TLabel
-        Left = 5
+        Left = 3
         Top = 433
         Width = 615
         Height = 26
@@ -77,8 +75,8 @@ object dlgEditBank: TdlgEditBank
         Caption = 'M'
       end
       object lblLedgerID: TLabel
-        Left = 161
-        Top = 297
+        Left = 159
+        Top = 293
         Width = 410
         Height = 16
         AutoSize = False
@@ -93,7 +91,7 @@ object dlgEditBank: TdlgEditBank
         FocusControl = cmbCurrency
       end
       object gCalc: TPanel
-        Left = 24
+        Left = 22
         Top = 319
         Width = 593
         Height = 109
@@ -478,7 +476,7 @@ object dlgEditBank: TdlgEditBank
         end
         object chkPrivacy: TCheckBox
           Left = 0
-          Top = 56
+          Top = 60
           Width = 593
           Height = 27
           Caption = '&Send Institution and Account Type to BankLink *'
@@ -489,7 +487,7 @@ object dlgEditBank: TdlgEditBank
         end
       end
       object btnLedgerID: TButton
-        Left = 26
+        Left = 24
         Top = 288
         Width = 129
         Height = 25
@@ -570,7 +568,6 @@ object dlgEditBank: TdlgEditBank
     object tbAnalysis: TTabSheet
       Caption = '&Analysis Coding'
       ImageIndex = 1
-      ExplicitHeight = 458
       object Label8: TLabel
         Left = 16
         Top = 16
@@ -616,7 +613,6 @@ object dlgEditBank: TdlgEditBank
     object tbBankLinkOnline: TTabSheet
       Caption = 'BankLink Online'
       ImageIndex = 2
-      ExplicitHeight = 458
       object lblSelectExport: TLabel
         Left = 16
         Top = 11
@@ -664,7 +660,6 @@ object dlgEditBank: TdlgEditBank
     Align = alBottom
     BevelOuter = bvNone
     TabOrder = 1
-    ExplicitTop = 486
     DesignSize = (
       639
       37)

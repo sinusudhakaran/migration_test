@@ -156,6 +156,7 @@ type
     procedure UpdateAccountVendorInfo;
     function AllAccountsHaveOneVendorSelected(out aMessage : string) : Boolean;
     function GetVendorIndex(aGuid : TBloGuid) : integer;
+    procedure DoRebranding();
   public
     { Public declarations }
     function Execute : boolean;
@@ -208,7 +209,8 @@ uses
   OkCancelDlg,
   DesktopSuper_Utils,
   glConst,
-  LogUtil, bkBranding, bkProduct;
+  LogUtil,
+  bkBranding;
 
 const
   GMargin = 10;
@@ -270,9 +272,7 @@ begin
 
   SetUpHelp;
 
-  lblClause.Caption := TProduct.Rebrand(lblClause.Caption);
-  chkPrivacy.Caption := TProduct.Rebrand(chkPrivacy.Caption);
-  tbBankLinkOnline.Caption := TProduct.Rebrand(tbBankLinkOnline.Caption);
+  DoRebranding;
 end;
 
 //------------------------------------------------------------------------------
@@ -1431,6 +1431,17 @@ begin
   if PickAccount(s) then
     aEdit.Text := s;
   aEdit.Refresh;
+end;
+
+//------------------------------------------------------------------------------
+procedure TdlgEditBank.DoRebranding;
+begin
+  lblClause.Caption := '* ' + bkBranding.BrandName + ' wishes to collect the Institution and Account Type ' +
+                       'in order to improve the service it provides by determining whether there are any ' +
+                       'additional account types or institutions which should be added.';
+
+  chkPrivacy.Caption := '&Send Institution and Account Type to ' + bkBranding.BrandName + ' *';
+  tbBankLinkOnline.Caption := bkBranding.ProductOnlineName;
 end;
 
 //------------------------------------------------------------------------------

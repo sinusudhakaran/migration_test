@@ -96,6 +96,7 @@ var
   procedure StyleBudgetAllExclusiveText(AllExclusiveText: TLabel);
   procedure StyleBudgetReminderNote(ReminderNoteText: TLabel);
 
+  function BrandName: string;
   function ProductOnlineName: String;
   function BooksProductName: String;
   function NotesProductName: String;
@@ -556,14 +557,19 @@ begin
   end;
 end;
 
+function BrandName: string;
+begin
+  Result := TProduct.BrandName;
+end;
+
 function ProductOnlineName: String;
 begin
-  Result := Format('%s Online', [TProduct.BrandName]);
+  Result := Format('%s Online', [BrandName]);
 end;
 
 function PracticeProductName: String;
 begin
-  Result := Format('%s Practice', [TProduct.BrandName]);
+  Result := Format('%s Practice', [BrandName]);
 end;
 
 procedure StyleMainBannerPanel(Panel: TRzPanel);
