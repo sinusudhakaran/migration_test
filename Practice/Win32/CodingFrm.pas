@@ -3584,7 +3584,7 @@ var
 
                     cePayeeName:    if (pD.dsPayee_Number <> 0) then
                                     begin
-                                      APayee := MyClient.clPayee_List.Find_Payee_Number(pT.txPayee_Number);
+                                      APayee := MyClient.clPayee_List.Find_Payee_Number(pD.dsPayee_Number);
                                       if Assigned(APayee) then
                                          if TestText(APayee.pdName) then
                                             Exit;
