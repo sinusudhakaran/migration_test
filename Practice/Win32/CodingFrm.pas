@@ -3392,6 +3392,7 @@ var
    i   : integer;
    bal : Money;
    Amount : Money;
+   pA: pAccount_Rec;
 
    function IncludeTrans: Boolean;
 
@@ -3562,27 +3563,58 @@ var
             pD := pT.txFirst_Dissection;
             while (pD <> nil) do
             begin
-              if TestText(pD.dsAccount) then
-                Exit;
+              for I := 0 to ColumnFmtList.ItemCount - 1 do begin
+                if not ColumnFmtList.ColumnDefn_At(i).cdHidden then // Only search dissections for the columns shown in the current view
+                begin
+                  case ColumnFmtList.ColumnDefn_At(i).cdFieldID of
+                    ceAccount:      if TestText(pD.dsAccount) then
+                                      Exit;
+                    ceDescription:
+                    begin
+                      pA := MyClient.clChart.FindCode(pD.dsAccount);
+                      if TestText(pA.chAccount_Description) then
+                        Exit;
+                    end;
 
-              if TestMoney(pD.dsAmount, True) then
-                Exit;
+                    ceAmount:       if TestMoney(pD.dsAmount, True) then
+                                      Exit;
 
-              if TestInteger(pD.dsPayee_Number) then
-                Exit;
+                    cePayee:        if TestInteger(pD.dsPayee_Number) then
+                                      Exit;
 
-              if TestText( GSTCALC32.GetGSTClassCode( MyClient, pD.dsGST_Class)) then
-                Exit;
+                    cePayeeName:    if (pD.dsPayee_Number <> 0) then
+                                    begin
+                                      APayee := MyClient.clPayee_List.Find_Payee_Number(pT.txPayee_Number);
+                                      if Assigned(APayee) then
+                                         if TestText(APayee.pdName) then
+                                            Exit;
+                                    end;
 
-              if TestMoney(pD.dsGST_Amount, True) then
-                Exit;
+                    ceJob:          if TestText(pD.dsJob_Code) then
+                                      Exit;
 
-              if TestText( Quantity2Str(pD.dsQuantity)) then
-                Exit;
+                    ceJobName:     if (pD.dsJob_code > '') then
+                                   begin
+                                     Job := MyClient.clJobs.FindCode (pD.dsJob_code);
+                                     if Assigned(Job) then
+                                       if TestText(Job.jhHeading) then
+                                         Exit;
+                                   end;
 
-              if TestText(pD.dsGL_Narration) then
-                Exit;
+                    ceGSTClass:    if TestText( GSTCALC32.GetGSTClassCode( MyClient, pD.dsGST_Class)) then
+                                     Exit;
 
+                    ceGSTAmount:   if TestMoney(pD.dsGST_Amount, True) then
+                                     Exit;
+
+                    ceQuantity:    if TestText( Quantity2Str(pD.dsQuantity)) then
+                                     Exit;
+
+                    ceNarration:   if TestText(pD.dsGL_Narration) then
+                                     Exit;
+                  end;
+                end;
+              end;
               pD := pD^.dsNext;
             end;
           end;
