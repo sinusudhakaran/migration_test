@@ -1514,6 +1514,22 @@ var
   pBudgetRec: pBudget_Detail_Rec;
   MonthIndex: Integer;
   CorrectRow: Boolean;
+
+  function GetGSTAmount(moAmount: Money; AccountCode: string): integer;
+  var
+    dtMonth: TStDate;
+    pAccount: pAccount_Rec;
+    GST_Class: byte;
+  begin
+    Result := 0;
+    dtMonth := FBudget.buFields.buStart_Date;
+    pAccount := MyClient.clChart.FindCode(AccountCode);
+    if not assigned(pAccount) then
+      exit;
+    GST_Class := pAccount.chGST_Class;
+    Result := DoRoundUp(moAmount + CalculateGSTFromNett(MyClient, dtMonth, moAmount, GST_Class));
+  end;
+
 begin
   //need to add it to the right position, so can't just add it to the end
   //so increase length of FData, move all data that should be after it down one
@@ -1542,8 +1558,7 @@ begin
       FData[i].bAccount := NewCode;
       FData[i].bDesc := AccountRec.chAccount_Description;
       FData[i].bIsPosting := AccountRec.chPosting_Allowed;
-      FData[i].bIsGSTAccountCode :=
-        IsGSTAccountCode(MyClient, FData[i].bAccount);
+      FData[i].bIsGSTAccountCode := IsGSTAccountCode(MyClient, FData[i].bAccount);
 
       pBudgetRec := Budget.buDetail.FindLineByCode(AccountRec.chAccount_Code);
       FData[i].bDetailLine := pBudgetRec;
@@ -1551,20 +1566,26 @@ begin
       begin
         FData[i].PercentAccount := pBudgetRec.bdPercent_Account;
         FData[i].Percentage := pBudgetRec.bdPercentage;
+      end else
+      begin
+        FData[i].PercentAccount := '';
+        FData[i].Percentage := 0;
       end;
       for MonthIndex := 1 to 12 do
       begin
         if Assigned(pBudgetRec) then
         begin
-          FData[I].bAmounts[MonthIndex] := Round(FData[I].bDetailLine.bdBudget[MonthIndex]);
-          FData[I].bQuantitys[MonthIndex] := FData[I].bDetailLine.bdQty_Budget[MonthIndex];
-          FData[I].bUnitPrices[MonthIndex] := FData[I].bDetailLine.bdEach_Budget[MonthIndex];
+          FData[I].bAmounts[MonthIndex]     := Round(FData[I].bDetailLine.bdBudget[MonthIndex]);
+          FData[I].bGstAmounts[MonthIndex]  := GetGSTAmount(FData[I].bAmounts[MonthIndex], NewCode);
+          FData[I].bQuantitys[MonthIndex]   := FData[I].bDetailLine.bdQty_Budget[MonthIndex];
+          FData[I].bUnitPrices[MonthIndex]  := FData[I].bDetailLine.bdEach_Budget[MonthIndex];
         end
         else
         begin
-          FData[I].bAmounts[MonthIndex] := 0;
-          FData[I].bQuantitys[MonthIndex] := 0;
-          FData[I].bUnitPrices[MonthIndex] := 0;
+          FData[I].bAmounts[MonthIndex]     := 0;
+          FData[I].bGSTAmounts[MonthIndex]  := 0;
+          FData[I].bQuantitys[MonthIndex]   := 0;
+          FData[I].bUnitPrices[MonthIndex]  := 0;
         end;
       end;
       Break;
