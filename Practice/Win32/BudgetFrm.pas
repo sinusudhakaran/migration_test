@@ -170,18 +170,19 @@ type
     procedure rgGSTClick(Sender: TObject);
   private
     { Private declarations }
-    FHint            : THintWindow;
-    HintShowing      : boolean;
-    EditMode         : boolean;
-    FData            : TBudgetData; {this array is used to hold the data for the grid}
-    DataAssigned     : Boolean;
+    FHint                 : THintWindow;
+    HintShowing           : boolean;
+    EditMode              : boolean;
+    FData                 : TBudgetData; {this array is used to hold the data for the grid}
+    DataAssigned          : Boolean;
 
-    CurrentRow       : integer;
-    AltLineColor     : integer;
-    FBudget          : TBudget;
-    fShowZeros       : boolean;
+    CurrentRow            : integer;
+    AltLineColor          : integer;
+    FBudget               : TBudget;
+    fShowZeros            : boolean;
 
-    eAmounts         : Array[1..12] of integer;
+    eAmounts              : Array[1..12] of integer;
+    HideUnusedExceptions  : TStringList;
     FIsClosing: Boolean; {current edit values for record}
     FChart: TCustomSortChart;
     frmPercentageCalculation: TfrmPercentageCalculation;
@@ -428,6 +429,7 @@ begin
   SetWindowRgn(rgGST.Handle, CreateREctRgn(7, 14, rgGST.Width - 2, rgGST.Height - 2), True);
 
   EnableOrDisablePercentageInvalidControls(True);
+  HideUnusedExceptions := TStringList.Create;
 end;
 
 //------------------------------------------------------------------------------
@@ -1032,6 +1034,15 @@ var
   HasData: Boolean;
   OldData: TBudgetData;
   i: integer;
+
+  // If the account code is in the HideUnusedExceptions stringlist, this means the user
+  // has added it after they pressed 'hide unused', so we don't want to hide this
+  // particular code
+  function ForceShowAccountCode(AccountCode: string): boolean;
+  begin
+    Result := (HideUnusedExceptions.IndexOf(AccountCode) <> -1);
+  end;
+
 begin
   if KeepPercentages then
     // In this case, the user has toggled the GST Inclusive/Exclusive radio buttons or pressed Hide Unused.
@@ -1058,7 +1069,7 @@ begin
     end;
 
     //see if the item has data
-    if Assigned(pBudgetRec) and not ShowZeros then
+    if Assigned(pBudgetRec) and not (ShowZeros or ForceShowAccountCode(Account.chAccount_Code)) then
     begin
       HasData := false;
       for MonthIndex := 1 to 12 do
@@ -1531,6 +1542,12 @@ var
   end;
 
 begin
+  // If Hide Unused has been selected, then empty rows will be hidden, however we want to make
+  // an exception for any chart codes the user has just added, hence the HideUnusedExceptions
+  // list. Any codes in this list will not be hidden. The list is cleared whenever Hide Unused
+  // is selected.
+  HideUnusedExceptions.Add(NewCode);
+
   //need to add it to the right position, so can't just add it to the end
   //so increase length of FData, move all data that should be after it down one
   //insert new data and then refresh table
@@ -2163,6 +2180,8 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmBudget.DoHideUnused;
 begin
+  if Assigned(HideUnusedExceptions) then
+    HideUnusedExceptions.Clear;
   RefreshTableWithData(false, true, true);
 end;
 
@@ -2207,6 +2226,8 @@ end;
 procedure TfrmBudget.FormDestroy(Sender: TObject);
 begin
    FreeAndNil(FChart);
+   if Assigned(HideUnusedExceptions) then   
+     FreeAndNil(HideUnusedExceptions);
    if Assigned( FHint ) then begin
       if FHint.HandleAllocated then FHint.ReleaseHandle;
       FHint.Free;
