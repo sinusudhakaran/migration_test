@@ -186,8 +186,7 @@ uses
   LogUtil,
   ErrorLog,
   SyncObjs,
-  bkProduct,
-  bkConst;
+  bkProduct;
 
 const
   TICKS_PER_SECOND = 1000;
@@ -198,8 +197,8 @@ const
       'System Log',
       'System Database',
       'Startup Check',
-      BRAND_PRACTICE_SHORT_NAME + ' INI File',
-      BRAND_PRACTICE_SHORT_NAME + ' Logo File',
+      'Practice INI File',
+      'Practice Logo File',
       'Client Task List',
       'Client Details Cache',
       'Client Notes',
@@ -212,7 +211,7 @@ const
       'WebNotes Update',
       'WebNotes Data',
       'Exchange Rates',
-      BRAND_ONLINE + ' Service Agreement');
+      'BankLink Online Service Agreement');
 
 var
   DebugMe : boolean = false;
