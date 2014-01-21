@@ -4,10 +4,34 @@ unit ExportChargesFrm;
 interface
 
 uses
-  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, Buttons, StdCtrls, ExtCtrls, Grids_ts, TSGrid, ReportDefs, TSMask,
-  ComCtrls, ovcbase, ovcef, ovcpb, ovcnf, ovcpf, RzDTP, Math, SyDefs,
-  OSFont, Menus;
+  Windows,
+  Messages,
+  SysUtils,
+  Variants,
+  Classes,
+  Graphics,
+  Controls,
+  Forms,
+  Dialogs,
+  Buttons,
+  StdCtrls,
+  ExtCtrls,
+  Grids_ts,
+  TSGrid,
+  ReportDefs,
+  TSMask,
+  ComCtrls,
+  ovcbase,
+  ovcef,
+  ovcpb,
+  ovcnf,
+  ovcpf,
+  RzDTP,
+  Math,
+  SyDefs,
+  OSFont,
+  Menus,
+  bkConst;
   {TsGridReport}
 
 type
@@ -159,6 +183,7 @@ type
     procedure CheckSearchKey(Key: Word; Shift: TShiftState);
     function ConvertToHandiNumber(s: string; maxVal, maxWidth: Integer): string;
     procedure LoadFromFile(FileName: String);
+    procedure DoRebranding();
   public
     { Public declarations }
     property ExportType: Byte read FExportType write SetExportType;
@@ -191,7 +216,7 @@ const
   colIncreasedCharge = 11;
 
   CHARGES_COLUMN_NAME = 'Charges';
-  REMARKS = 'BankLink Charges ';
+  REMARKS = BRAND_SHORT_NAME + ' Charges ';
 
 var
   frmExportCharges: TfrmExportCharges;
@@ -201,10 +226,30 @@ implementation
 
 uses
   ReportImages,
-  ImagesFrm, Globals, bkConst, YesNoDlg, WarningMoreFrm, ErrorMoreFrm, ComObj,
-  InfoMoreFrm, WinUtils, GenUtils, bkXPThemes, ShellUtils, Admin32,
-  NewReportUtils, NewReportObj, RepCols, LogUtil, sysbio, RptAdmin, bkHelp,
-  BillingdocReaderFrm, bkDateUtils, StDate, EnterPwdDlg, glConst,
+  ImagesFrm,
+  Globals,
+  YesNoDlg,
+  WarningMoreFrm,
+  ErrorMoreFrm,
+  ComObj,
+  InfoMoreFrm,
+  WinUtils,
+  GenUtils,
+  bkXPThemes,
+  ShellUtils,
+  Admin32,
+  NewReportUtils,
+  NewReportObj,
+  RepCols,
+  LogUtil,
+  sysbio,
+  RptAdmin,
+  bkHelp,
+  BillingdocReaderFrm,
+  bkDateUtils,
+  StDate,
+  EnterPwdDlg,
+  glConst,
   bkProduct;
 
 {$R *.dfm}
@@ -486,7 +531,7 @@ begin
   cmbMonths.ItemIndex := 0;
   SetImportDate;
   if (AdminSystem.fdFields.fdExport_Charges_Remarks = '') or RemarkMatchesMonth(AdminSystem.fdFields.fdExport_Charges_Remarks) then
-    eRemarks.Text := TProduct.Rebrand(REMARKS) + cmbMonths.Text
+    eRemarks.Text := REMARKS + cmbMonths.Text
   else
     eRemarks.Text := AdminSystem.fdFields.fdExport_Charges_Remarks;
 
@@ -504,7 +549,7 @@ begin
   rbSetFixed.Checked := eSetFixed.AsFloat <> 0.0;
   chkFixed.Checked := (eDistribute.AsFloat <> 0.0) or (eAddFixed.AsFloat <> 0.0) or (eSetFixed.AsFloat <> 0.0);
 
-  tgCharges.Col[colOriginalCharge].Heading := TProduct.Rebrand(tgCharges.Col[colOriginalCharge].Heading);
+  DoRebranding();
 end;
 
 procedure TfrmExportCharges.FormDestroy(Sender: TObject);
@@ -1048,6 +1093,11 @@ begin
   Month := Integer(cmbMonths.Items.Objects[cmbMonths.ItemIndex]);
   Filename := DownloadWorkDir + FormatDateTime('mmmyyyy', IncMonth(Date, -Month)) + rfFileExtn[rfCSV];
   Result := BKFileExists(Filename);
+end;
+
+procedure TfrmExportCharges.DoRebranding;
+begin
+  tgCharges.Col[colOriginalCharge].Heading := BRAND_SHORT_NAME + ' Charges';
 end;
 
 procedure TfrmExportCharges.eDateChange(Sender: TObject);
@@ -2138,7 +2188,7 @@ begin
   Result := False;
   for i := 0 to Pred(cmbMonths.Items.Count) do
   begin
-    if s = (TProduct.Rebrand(REMARKS) + cmbMonths.Items[i]) then
+    if s = (REMARKS + cmbMonths.Items[i]) then
     begin
       Result := True;
       break;
@@ -2203,13 +2253,13 @@ begin
     end
     else
     begin
-      HelpfulInfoMsg('The charges data has NOT been saved.', 0);    
+      HelpfulInfoMsg('The charges data has NOT been saved.', 0);
       exit;
     end;
   end;
   GridHasBeenDisplayed := False;
   if RemarkMatchesMonth(eRemarks.Text) then
-    eRemarks.Text := TProduct.Rebrand(REMARKS) + cmbMonths.Text;
+    eRemarks.Text := REMARKS + cmbMonths.Text;
   if (not UserEditedDate) then
     SetImportDate;
 end;

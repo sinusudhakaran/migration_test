@@ -66,6 +66,8 @@ type
     procedure PopulateAccountStatusList;
     procedure SortAccountStatusList(Column: Integer); overload;
     procedure SortAccountStatusList(Column: Integer; Direction: TSortDirection); overload;
+
+    procedure DoRebranding();
   public
     function Execute: Boolean;
     
@@ -80,7 +82,8 @@ implementation
 uses
   bkBranding,
   bkProduct,
-  BKHelp;
+  BKHelp,
+  bkConst;
 
 {$R *.dfm}
 
@@ -166,6 +169,11 @@ begin
     FormatDateTime('yyyymmdd', FAccountList[NodeData2.Source].CreatedDate.AsDateTime) + FAccountList[NodeData2.Source].AccountName);
 end;
 
+procedure TfrmCAFAccountStatus.DoRebranding();
+begin
+  Label1.Caption := 'The following Bank Accounts have been submitted to ' + BRAND_FULL_NAME + ' for processing.';
+end;
+
 function TfrmCAFAccountStatus.DoStatusColumnCompare(NodeData1, NodeData2: PNodeData): Integer;
 begin
   Result := CompareText(
@@ -214,7 +222,7 @@ begin
   
   cmbAccountFilter.ItemIndex := 0;
 
-  Label1.Caption := TProduct.Rebrand(Label1.Caption);
+  DoRebranding();
 end;
 
 procedure TfrmCAFAccountStatus.FormKeyPress(Sender: TObject; var Key: Char);

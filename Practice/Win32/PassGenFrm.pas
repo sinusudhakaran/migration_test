@@ -3,8 +3,18 @@ unit PassGenFrm;
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  StdCtrls, Buttons, RzLabel, ExtCtrls;
+  Windows,
+  Messages,
+  SysUtils,
+  Classes,
+  Graphics,
+  Controls,
+  Forms,
+  Dialogs,
+  StdCtrls,
+  Buttons,
+  RzLabel,
+  ExtCtrls;
 
 type
   TfrmPassGen = class(TForm)
@@ -14,71 +24,66 @@ type
     Button1: TButton;
     Button2: TButton;
     edtPass: TEdit;
-    procedure btnCloseClick(Sender: TObject);
-    procedure btnGenerateClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure Button1Click(Sender: TObject);
     procedure Button2Click(Sender: TObject);
   private
-    { Private declarations }
     procedure SetUpHelp;
+    procedure DoRebranding();
   public
-    { Public declarations }
   end;
 
 var
   frmPassGen: TfrmPassGen;
 
-//******************************************************************************
+//------------------------------------------------------------------------------
 implementation
 {$R *.DFM}
 
 uses
-   PwdSeed;
+  PwdSeed,
+  bkConst;
 
 //------------------------------------------------------------------------------
-procedure TfrmPassGen.btnCloseClick(Sender: TObject);
+procedure TfrmPassGen.DoRebranding;
 begin
-
+  Caption := BRAND_SHORT_NAME + ' Password Generator';
 end;
-//------------------------------------------------------------------------------
-procedure TfrmPassGen.btnGenerateClick(Sender: TObject);
-begin
 
-end;
 //------------------------------------------------------------------------------
 procedure TfrmPassGen.FormCreate(Sender: TObject);
 begin
-   left := 10;
-   top  := 10;
-
-   Caption := TProduct.Rebrand(Caption);
+  left := 10;
+  top  := 10;
+  DoRebranding();
 
 {$IFDEF SmartBooks}
-   Self.Caption := 'SmartBooks Password Utility';
+  Self.Caption := 'SmartBooks Password Utility';
 {$ENDIF}
-   SetUpHelp;
+  SetUpHelp;
 end;
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmPassGen.SetUpHelp;
 begin
 end;
-//------------------------------------------------------------------------------
+
 //------------------------------------------------------------------------------
 procedure TfrmPassGen.Button1Click(Sender: TObject);
 var
-   Err : integer;
-   Va  : integer;
+  Err : integer;
+  Va  : integer;
 begin
-   Val(eSeed.Text,Va,Err);
-   edtPass.text := PasswordFromSeed(Va);
-   edtPass.SelectAll;
-   edtPass.CopyToClipboard;
+  Val(eSeed.Text,Va,Err);
+  edtPass.text := PasswordFromSeed(Va);
+  edtPass.SelectAll;
+  edtPass.CopyToClipboard;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmPassGen.Button2Click(Sender: TObject);
 begin
-   Close;
+  Close;
 end;
 
 end.

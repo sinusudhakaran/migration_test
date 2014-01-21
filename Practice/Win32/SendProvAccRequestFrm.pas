@@ -34,6 +34,7 @@ type
     function GetAccountNumber: string;
     function GetCurrency: string;
     function GetInstitution: string;
+    procedure DoRebranding();
     { Private declarations }
   public
     property AccountNumber: string read GetAccountNumber;
@@ -102,6 +103,11 @@ begin
   Result := true;
 end;
 
+procedure TfrmSendProvAccRequest.DoRebranding;
+begin
+  chkReadTerms.Caption := 'I confirm that I have read and agree to be bound by ' + BRAND_FULL_NAME + '''s' ;
+end;
+
 procedure TfrmSendProvAccRequest.FormCreate(Sender: TObject);
 var
   I: integer;
@@ -123,7 +129,7 @@ begin
     lblCurrencyWarning.Visible := true;
   end;
 
-  chkReadTerms.Caption := TProduct.Rebrand(chkReadTerms.Caption);
+  DoRebranding();
 end;
 
 procedure TfrmSendProvAccRequest.FormShow(Sender: TObject);

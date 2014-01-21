@@ -77,6 +77,7 @@ type
     procedure GetReminderLabels(TaskType: Integer; var Reminder1, Reminder2: TLabel);
     function GetTypeReminderSpinEdit(TaskType: Integer): TRzSpinEdit;
     function GetTypeCloseCheckBox(TaskType: Integer): TCheckBox;
+    procedure DoRebranding();
   public
     procedure LoadSettings;
     procedure SaveSettings;
@@ -186,13 +187,18 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+procedure TfrmClientManagerOptions.DoRebranding;
+begin
+  lblWillAdd.Caption := BRAND_FULL_NAME + ' will add a task to the client when you:';
+  chkBNotes.Caption := 'Export a ' + BRAND_NOTES + ' File';
+end;
+
+//------------------------------------------------------------------------------
 procedure TfrmClientManagerOptions.FormCreate(Sender: TObject);
 begin
   bkXPThemes.ThemeForm( Self);
 
-  lblWillAdd.Caption := Globals.ShortAppName + ' will add a task to the client when you:';
-
-  chkBNotes.Caption := TProduct.Rebrand(chkBNotes.Caption);
+  DoRebranding();
 end;
 
 //------------------------------------------------------------------------------

@@ -201,26 +201,26 @@ object frmMain: TfrmMain
         Action = ActHomePage
       end
       object RzSpacer1: TRzSpacer
-        Left = 647
+        Left = 692
         Top = 4
       end
       object tbOnline: TRzToolButton
         Left = 428
         Top = 4
-        Width = 99
+        Width = 144
         ImageIndex = 20
-        Caption = 'Banklink Online'
+        Caption = 'MYOB Banklink Online'
         OnClick = tbOnlineClick
       end
       object tbAbout: TRzToolButton
-        Left = 527
+        Left = 572
         Top = 4
         Caption = 'About'
         Visible = False
         OnClick = mniHelpAboutClick
       end
       object tbClose: TRzToolButton
-        Left = 587
+        Left = 632
         Top = 4
         ImageIndex = 2
         Images = AppImages.Maintain

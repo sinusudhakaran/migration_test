@@ -341,6 +341,7 @@ type
     function GetBlopiClientNew: TBloClientCreate;
     procedure SetBlopiClientNew(const Value: TBloClientCreate);
     procedure CreateCustomerAuthorityForms(Sender: ISingleProgressForm; CallbackParams: Pointer);
+    procedure DoRebranding();
   protected
     procedure UpdateActions; override;
   public
@@ -576,11 +577,7 @@ begin
   actHelp.Visible := bkHelp.BKHelpFileExists;
   //StartFocus := True;
 
-  imgCannotConnect.Hint := TProduct.Rebrand(imgCannotConnect.Hint);
-  lblCannotConnect.Hint := TProduct.Rebrand(lblCannotConnect.Hint);
-  lblCannotConnect.Caption := TProduct.Rebrand(lblCannotConnect.Caption);
-  actDataAvailable.Caption := TProduct.Rebrand(actDataAvailable.Caption);
-  actBOSettings.Caption := TProduct.Rebrand(actBOSettings.Caption);
+  DoRebranding();
 end;
 
 //------------------------------------------------------------------------------
@@ -2090,6 +2087,17 @@ begin
   if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Enter DoPrintAllTasks');
   rptAdmin.PrintTasksForMultipleClients(ClientLookup.SelectedCodes, rdAsk);
   if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Exit DoPrintAllTasks');
+end;
+
+//------------------------------------------------------------------------------
+procedure TfrmClientManager.DoRebranding;
+begin
+  imgCannotConnect.Hint    := BRAND_PRACTICE + ' will not display any ' + BRAND_ONLINE +
+                              ' related settings or functions';
+  lblCannotConnect.Hint    := imgCannotConnect.Hint;
+  lblCannotConnect.Caption := 'Cannot connect to ' + BRAND_ONLINE;
+  actDataAvailable.Caption := 'There is new ' + BRAND_SHORT_NAME + ' data to download...';
+  actBOSettings.Caption    := 'Edit ' + BRAND_ONLINE +' Settings';
 end;
 
 //------------------------------------------------------------------------------

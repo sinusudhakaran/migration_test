@@ -40,10 +40,6 @@ inherited dlgClientReportSchedule: TdlgClientReportSchedule
     OnChange = PageControl1Change
     object tbsOptions: TTabSheet
       Caption = '&Options'
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object Label1: TLabel
         Left = 5
         Top = 2
@@ -79,7 +75,7 @@ inherited dlgClientReportSchedule: TdlgClientReportSchedule
         Width = 305
         Height = 21
         Style = csDropDownList
-        ItemHeight = 0
+        ItemHeight = 13
         TabOrder = 0
         OnChange = cmbPeriodChange
       end
@@ -89,7 +85,7 @@ inherited dlgClientReportSchedule: TdlgClientReportSchedule
         Width = 305
         Height = 21
         Style = csDropDownList
-        ItemHeight = 0
+        ItemHeight = 13
         TabOrder = 1
         OnChange = cmbPeriodChange
       end
@@ -372,7 +368,7 @@ inherited dlgClientReportSchedule: TdlgClientReportSchedule
           Width = 143
           Height = 21
           Style = csDropDownList
-          ItemHeight = 0
+          ItemHeight = 13
           TabOrder = 1
           OnDropDown = cmbCustomDocListDropDown
         end
@@ -381,10 +377,6 @@ inherited dlgClientReportSchedule: TdlgClientReportSchedule
     object tbsMessage: TTabSheet
       Caption = 'Messa&ge'
       ImageIndex = 1
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       DesignSize = (
         624
         421)
@@ -401,10 +393,6 @@ inherited dlgClientReportSchedule: TdlgClientReportSchedule
     object tbsAttachments: TTabSheet
       Caption = 'A&ttachments'
       ImageIndex = 3
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       DesignSize = (
         624
         421)

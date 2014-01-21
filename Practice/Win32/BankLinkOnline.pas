@@ -3,7 +3,14 @@ unit BankLinkOnline;
 interface
 
 uses
-  Forms, Dialogs, Classes, Windows, Sysutils, ChkProgressFrm, WebCiCoClient;
+  Forms,
+  Dialogs,
+  Classes,
+  Windows,
+  Sysutils,
+  ChkProgressFrm,
+  WebCiCoClient,
+  bkConst;
 
 type
   EUploadFailed = class(Exception);
@@ -40,8 +47,8 @@ type
   end;
 
 const
-  CICOERRORSTR_CLIENT_CLIENTDEACTIVATED = 'This client file is currently de-activated or suspended so you will not be able to transfer files via BankLink Online. Please contact your accountant for assistance.';
-  CICOERRORSTR_PRACTICE_CLIENTDEACTIVATED = 'This client file is currently de-activated or suspended so you will not be able to transfer files via BankLink Online.';
+  CICOERRORSTR_CLIENT_CLIENTDEACTIVATED = 'This client file is currently de-activated or suspended so you will not be able to transfer files via ' + BRAND_ONLINE + '. Please contact your accountant for assistance.';
+  CICOERRORSTR_PRACTICE_CLIENTDEACTIVATED = 'This client file is currently de-activated or suspended so you will not be able to transfer files via ' + BRAND_ONLINE + '.';
 
 
   function BankLinkOnlineMgr: TBankLinkOnlineManager;
@@ -52,7 +59,6 @@ uses
   Globals,
   clObj32,
   glConst,
-  bkConst,
   SYDEFS,
   ErrorMoreFrm,
   CheckInOutFrm,
@@ -63,7 +69,8 @@ uses
   progress,
   RegExprUtils,
   BankLinkOnlineServices,
-  bkBranding, bkProduct;
+  bkBranding,
+  bkProduct;
 
 const
   UNIT_NAME = 'BankLinkOnline';
@@ -544,16 +551,16 @@ begin
   begin
     if ForClient then
     begin
-      Result := TProduct.Rebrand(CICOERRORSTR_CLIENT_CLIENTDEACTIVATED);
+      Result := CICOERRORSTR_CLIENT_CLIENTDEACTIVATED;
     end
     else
     begin
-      Result := TProduct.Rebrand(CICOERRORSTR_PRACTICE_CLIENTDEACTIVATED);
+      Result := CICOERRORSTR_PRACTICE_CLIENTDEACTIVATED;
     end;
   end
   else
   begin
-    Result := TProduct.Rebrand(Response.Description);
+    Result := Response.Description;
   end;
 end;
 

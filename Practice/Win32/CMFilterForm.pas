@@ -306,7 +306,7 @@ begin
         end;
         if cmfsFilterGroup[j] = i then
         begin
-          n := tvFilter.Items.AddChildObject(topn, TProduct.Rebrand(cmfsNames[j]), TObject(j));
+          n := tvFilter.Items.AddChildObject(topn, cmfsNames[j], TObject(j));
           if (CurrentFilter AND cmfsBits[j]) = cmfsBits[j] then
           begin
             Collapse := False;
@@ -399,7 +399,7 @@ begin
         begin
           if n.StateIndex = cFlatChecked then
           begin
-            if (i = cmfsTopUser) and (n.Text <> TProduct.Rebrand(cmfsNames[cmfsUnassigned])) then
+            if (i = cmfsTopUser) and (n.Text <> cmfsNames[cmfsUnassigned]) then
             begin // Handle users differently
                x := Pos (' - ', n.Text);
                if x > 0 then
@@ -407,11 +407,11 @@ begin
                else
                   fn := n.Text;
                NewUserFilter.Add(fn);
-            end else if (i = cmfsTopGroup) and (n.Text <> TProduct.Rebrand(cmfsNames[cmfsUnassignedGroup])) then begin
+            end else if (i = cmfsTopGroup) and (n.Text <> cmfsNames[cmfsUnassignedGroup]) then begin
                // Handle groups differently
                NewGroupFilter.Add(n.Text);
                fn := n.Text;
-            end else if (i = cmfsTopClientType) and (n.Text <> TProduct.Rebrand(cmfsNames[cmfsUnassignedClientType])) then begin
+            end else if (i = cmfsTopClientType) and (n.Text <> cmfsNames[cmfsUnassignedClientType]) then begin
                // Handle users differently
                NewClientTypeFilter.Add(n.Text);
                fn := n.Text;

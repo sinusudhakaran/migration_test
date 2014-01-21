@@ -47,6 +47,7 @@ type
     function ValidNewPassword: Boolean;
     procedure AddNoteToUser(ANote: string);
     procedure DoStatusProgress(APercentComplete: integer; AMessage: string);
+    procedure DoRebranding();
   public
     { Public declarations }
   end;
@@ -65,7 +66,10 @@ uses
   InfoMoreFrm,
   progress,
   Globals,
-  IniSettings, bkBranding, bkProduct;
+  IniSettings,
+  bkBranding,
+  bkProduct,
+  bkConst;
 
 {$R *.dfm}
 
@@ -164,7 +168,7 @@ end;
 
 procedure TChangePasswordForm.FormCreate(Sender: TObject);
 begin
-  lblNote.Caption := TProduct.Rebrand(lblNote.Caption);
+  DoRebranding();
 end;
 
 procedure TChangePasswordForm.FormShow(Sender: TObject);
@@ -460,6 +464,11 @@ begin
     HelpfulErrorMsg(TempStr ,0);
     Exit;
   end;
+end;
+
+procedure TChangePasswordForm.DoRebranding;
+begin
+  lblNote.Caption := 'Note: Note to user about entering their ' + BRAND_ONLINE + ' Login details.';
 end;
 
 procedure TChangePasswordForm.DoStatusProgress(APercentComplete : integer;

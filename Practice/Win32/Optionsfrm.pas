@@ -108,6 +108,7 @@ type
     ExtendedMapiRegistered : boolean;
     procedure SetEnabledState;
     procedure UpdateFontLabel;
+    procedure DoRebranding();
   public
     { Public declarations }
   end;
@@ -137,7 +138,12 @@ uses
   WinUtils,
   ErrorMorefrm,
   UpdateMF,
-  UpgradeHelper, BKDEFS, GenUtils, NewReportUtils, bkProduct, bkBranding;
+  UpgradeHelper,
+  BKDEFS,
+  GenUtils,
+  NewReportUtils,
+  bkProduct,
+  bkBranding;
 
 const
   Unitname = 'OptionsFrm';
@@ -150,18 +156,17 @@ begin
   SetpasswordFont(eMAPIPassword);
   SetpasswordFont(eSMTPPassword);
 {$IFDEF SmartBooks}
-   chkCaptions.Visible := false;
-   chkShowCodeHint.Visible := false;
+  chkCaptions.Visible := false;
+  chkShowCodeHint.Visible := false;
 {$ENDIF}
-   SetUpHelp;
+  SetUpHelp;
 
-   ImagesFrm.AppImages.Misc.GetBitmap(MISC_FINDFOLDER_BMP,btnFolder.Glyph);
+  ImagesFrm.AppImages.Misc.GetBitmap(MISC_FINDFOLDER_BMP,btnFolder.Glyph);
 
-   if Assigned( CurrUser) then begin
-      tsEmail.TabVisible := not CurrUser.HasRestrictedAccess;
-   end;
+  if Assigned( CurrUser) then
+    tsEmail.TabVisible := not CurrUser.HasRestrictedAccess;
 
-   rbOpenTRFwithHandler.Caption := TProduct.Rebrand(rbOpenTRFwithHandler.Caption);
+  DoRebranding();
 end;
 
 procedure TfrmOptions.FormDestroy(Sender: TObject);
@@ -556,11 +561,17 @@ begin
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 procedure TfrmOptions.chkShowHintClick(Sender: TObject);
 begin
    INI_ShowFormHints := chkShowHint.Checked;
    Self.ShowHint    := INI_ShowFormHints;
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+procedure TfrmOptions.DoRebranding;
+begin
+  rbOpenTRFwithHandler.Caption := '&Ask me whether to open it in ' + BRAND_SHORT_NAME +
+                                  ' or ' + BRAND_NOTES;
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

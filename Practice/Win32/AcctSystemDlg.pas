@@ -93,6 +93,7 @@ type
     procedure ShowBankLinkOnlineConfirmation;
     function VerifyForm : boolean;
     procedure FillSystemList;
+    procedure DoReBranding;
   protected
     procedure UpdateActions; override;
   public
@@ -163,7 +164,7 @@ begin
 
    eMask.MaxLength := BKCONST.MaxBK5CodeLen;
 
-   btnCheckBankManID.Caption := TProduct.Rebrand(btnCheckBankManID.Caption);
+   DoReBranding();
 
    SetUpHelp;
 end;
@@ -473,7 +474,7 @@ begin
       cmbWebFormats.Clear;
       for i := wfMin to wfMax do
       begin
-        if (TProduct.Rebrand(wfNames[i]) = bkBranding.NotesOnlineProductName) then
+        if (wfNames[i] = BRAND_NOTES_ONLINE) then
         begin
           if (UseBankLinkOnline and
               ProductConfigService.OnLine and
@@ -481,13 +482,13 @@ begin
               (MyClient.clFields.clWeb_Export_Format = wfWebNotes) then
           begin
             if not ExcludeFromWebFormatList(clCountry, i) then
-              cmbWebFormats.Items.AddObject(TProduct.Rebrand(wfNames[i]), TObject(i));
+              cmbWebFormats.Items.AddObject(wfNames[i], TObject(i));
           end;
         end
         else
         begin
           if not ExcludeFromWebFormatList(clCountry, i) then
-            cmbWebFormats.Items.AddObject(TProduct.Rebrand(wfNames[i]), TObject(i));
+            cmbWebFormats.Items.AddObject(wfNames[i], TObject(i));
         end;
       end;
 
@@ -787,6 +788,12 @@ begin
   begin
     ShowBankLinkOnlineConfirmation;
   end;
+end;
+
+//------------------------------------------------------------------------------
+procedure TdlgAcctSystem.DoReBranding;
+begin
+  btnCheckBankManId.Caption := 'Set &' + BRAND_SHORT_NAME + ' ID';
 end;
 
 //------------------------------------------------------------------------------

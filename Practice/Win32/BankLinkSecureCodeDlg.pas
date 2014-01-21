@@ -16,6 +16,7 @@ type
     procedure FormCreate(Sender: TObject);
   private
     function GetSecureCode: String;
+    procedure DoRebranding();
     { Private declarations }
   public
     class function PromptUser(Owner: TCustomForm; out SecureCode: String): Boolean; static;
@@ -29,7 +30,10 @@ var
 implementation
 
 uses
-  WarningMoreFrm, bkBranding, bkProduct;
+  WarningMoreFrm,
+  bkBranding,
+  bkProduct,
+  bkConst;
   
 {$R *.dfm}
 
@@ -49,10 +53,15 @@ begin
   end;
 end;
 
+procedure TfrmBankLinkSecureCode.DoRebranding;
+begin
+  Caption := 'Enter ' + BRAND_SECURE + ' Code';
+  Label1.Caption := BRAND_SECURE + ' Code';
+end;
+
 procedure TfrmBankLinkSecureCode.FormCreate(Sender: TObject);
 begin
-  Caption := TProduct.Rebrand(Caption);
-  Label1.Caption := TProduct.Rebrand(Label1.Caption);
+  DoRebranding();
 end;
 
 function TfrmBankLinkSecureCode.GetSecureCode: String;

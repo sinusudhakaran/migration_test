@@ -177,6 +177,7 @@ Type
     procedure ShowGeneratedPassword;
     procedure ShowResetPassword;
     procedure ShowEnterPassword;
+    procedure DoRebranding();
 
     property okPressed  : boolean read fokPressed  write fokPressed;
     property formLoaded : boolean read fformLoaded write fformLoaded;
@@ -238,10 +239,7 @@ begin
 
   ShowEnterPassword;
 
-  Label13.Caption := TProduct.Rebrand(Label13.Caption);
-  chkCanAccessBankLinkOnline.Caption := TProduct.Rebrand(chkCanAccessBankLinkOnline.Caption);
-  radCreateNewOnlineUser.Caption := TProduct.Rebrand(radCreateNewOnlineUser.Caption);
-  radLinkExistingOnlineUser.Caption := TProduct.Rebrand(radLinkExistingOnlineUser.Caption);
+  DoRebranding();
 End;
 
 procedure TdlgEditUser.FormDestroy(Sender: TObject);
@@ -1232,6 +1230,14 @@ begin
   end;
 
   FCurrentUserTypeIndex := cmbUserType.ItemIndex;
+end;
+
+procedure TdlgEditUser.DoRebranding;
+begin
+  Label13.Caption := BRAND_ONLINE + ' will automatically generate this user''s password.';
+  chkCanAccessBankLinkOnline.Caption := 'Allow access to &' + BRAND_ONLINE;
+  radCreateNewOnlineUser.Caption := 'C&reate new user on' + BRAND_ONLINE;
+  radLinkExistingOnlineUser.Caption := 'Lin&k to existing user on' + BRAND_ONLINE;
 end;
 
 procedure TdlgEditUser.eDirectDialChange(Sender: TObject);

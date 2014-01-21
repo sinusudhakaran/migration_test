@@ -34,10 +34,9 @@ type
     FDoRequest: boolean;
     function Validate: Boolean;
     procedure SetDoRequest(const Value: boolean);
-    { Private declarations }
+    procedure DoRebranding();
   public
     property DoRequest: boolean read FDoRequest write SetDoRequest;
-    { Public declarations }
   end;
 
 
@@ -47,13 +46,16 @@ implementation
 {$R *.dfm}
 
 uses
-   Imagesfrm,
-   bkdateutils,
-   InfoMoreFrm,
-   BKHelp,
-   bkXPThemes,
-   GenUtils,
-   stDate, bkBranding, bkProduct;
+  Imagesfrm,
+  bkdateutils,
+  InfoMoreFrm,
+  BKHelp,
+  bkXPThemes,
+  GenUtils,
+  stDate,
+  bkBranding,
+  bkProduct,
+  bkConst;
 
 
 procedure TfrmDeleteRequest.btnOKClick(Sender: TObject);
@@ -74,6 +76,12 @@ begin
 
 end;
 
+procedure TfrmDeleteRequest.DoRebranding;
+begin
+  LDelete.Caption := 'You should only mark accounts as deleted if the account is ' +
+                     'no longer with ' + BRAND_FULL_NAME;
+end;
+
 procedure TfrmDeleteRequest.EDateChange(Sender: TObject);
 begin
    //Validate; makes it too hard to get the date right...
@@ -91,11 +99,11 @@ end;
 
 procedure TfrmDeleteRequest.FormCreate(Sender: TObject);
 begin
-   bkXPThemes.ThemeForm(Self);
-   EDate.AsStDate := CurrentDate;
-    Image1.Picture := AppImages.InfoBmp.Picture;
+  bkXPThemes.ThemeForm(Self);
+  EDate.AsStDate := CurrentDate;
+  Image1.Picture := AppImages.InfoBmp.Picture;
 
-   LDelete.Caption := TProduct.Rebrand(LDelete.Caption);
+  DoRebranding();
 end;
 
 procedure TfrmDeleteRequest.SetDoRequest(const Value: boolean);

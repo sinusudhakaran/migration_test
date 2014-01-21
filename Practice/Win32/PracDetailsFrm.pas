@@ -24,7 +24,11 @@ uses
   BankLinkOnlineServices,
   OSFont,
   VirtualTrees,
-  ActnList, CheckLst, RzLstBox, RzChkLst, cxControls;
+  ActnList,
+  CheckLst,
+  RzLstBox,
+  RzChkLst,
+  cxControls;
 
 type
   TCheckListHelper = class helper for TCheckListBox
@@ -199,6 +203,7 @@ type
     function GetVendorExportClientCount(VendorExportGuid: TBloGuid): Integer;
     procedure PopulateSelectedVendorList(var SelectedVendors: TBloArrayOfGuid);
     function IsVendorSelected(VendorExportId: TBloGuid): Boolean;
+    procedure DoRebranding();
   public
     { Public declarations }
     function Execute(SelPracticeMan: Boolean) : boolean;
@@ -243,14 +248,17 @@ uses
   ComboUtils,
   DownloadUtils,
   WinUtils,
-  YesNoDlg, SYDEFS,
+  YesNoDlg,
+  SYDEFS,
   UsageUtils,
   AuditMgr,
   RequestRegFrm,
   ServiceAgreementDlg,
   UpdateMF,
-  commctrl, bkProduct,
-  bkUrls, bkBranding,
+  commctrl,
+  bkProduct,
+  bkUrls,
+  bkBranding,
   bkContactInformation;
 
 const
@@ -302,9 +310,7 @@ begin
 
   FEnablingBankLinkOnline := False;
 
-  tsBankLinkOnline.Caption := TProduct.Rebrand(tsBankLinkOnline.Caption);
-  lblSelectProducts.Caption := TProduct.Rebrand(lblSelectProducts.Caption);
-  ckUseBankLinkOnline.Caption := TProduct.Rebrand(ckUseBankLinkOnline.Caption);
+  DoRebranding();
 end;
 
 procedure TfrmPracticeDetails.FormDestroy(Sender: TObject);
@@ -555,20 +561,20 @@ begin
   //Notes online option is dependant on the service being enabled
   cmbWebFormats.Clear;
   for i := wfMin to wfMax do
-    if (TProduct.Rebrand(wfNames[i]) = bkBranding.NotesOnlineProductName) then begin
+    if (wfNames[i] = BRAND_NOTES_ONLINE) then begin
       if (UseBankLinkOnline and not ProductConfigService.ServiceSuspended) then
         if (ProductConfigService.IsNotesOnlineEnabled) then
           if not ExcludeFromWebFormatList(AdminSystem.fdFields.fdCountry, i) then
-            cmbWebFormats.Items.AddObject(TProduct.Rebrand(wfNames[i]), TObject(i));
+            cmbWebFormats.Items.AddObject(wfNames[i], TObject(i));
     end else
       if not ExcludeFromWebFormatList(AdminSystem.fdFields.fdCountry, i) then
-        cmbWebFormats.Items.AddObject(TProduct.Rebrand(wfNames[i]), TObject(i));
+        cmbWebFormats.Items.AddObject(wfNames[i], TObject(i));
 
   //Set to default if currently Notes Online and Notes Online is disabled
   ComboUtils.SetComboIndexByIntObject(WebExportFormat, cmbWebFormats);
   if UseBankLinkOnline and not ProductConfigService.ServiceSuspended then begin
     //If web export format currently WebNotes and product not enabled then set to None
-    if (TProduct.Rebrand(wfNames[WebExportFormat]) = bkBranding.NotesOnlineProductName) and (not ProductConfigService.IsNotesOnlineEnabled) then
+    if (wfNames[WebExportFormat] = BRAND_NOTES_ONLINE) and (not ProductConfigService.IsNotesOnlineEnabled) then
       ComboUtils.SetComboIndexByIntObject(wfDefault, cmbWebFormats);
   end;
 end;
@@ -1101,7 +1107,7 @@ begin
 
        //Web
        fdWeb_Export_Format         := ComboUtils.GetComboCurrentIntObject(cmbWebFormats);
-       if (TProduct.Rebrand(wfNames[fdWeb_Export_Format]) = bkBranding.NotesOnlineProductName) and
+       if (wfNames[fdWeb_Export_Format] = BRAND_NOTES_ONLINE) and
           (not ProductConfigService.IsNotesOnlineEnabled) then
          fdWeb_Export_Format := wfDefault;
 
@@ -1757,6 +1763,14 @@ end;
 function TfrmPracticeDetails.DataExportSettingsChanged: Boolean;
 begin
   Result := VendorExportsChanged;
+end;
+
+//------------------------------------------------------------------------------
+procedure TfrmPracticeDetails.DoRebranding;
+begin
+  tsBankLinkOnline.Caption := BRAND_ONLINE;
+  lblSelectProducts.Caption := 'Select the ' + BRAND_ONLINE + ' products and services that you wish to have available:';
+  ckUseBankLinkOnline.Caption := 'Use &' + BRAND_ONLINE;
 end;
 
 //------------------------------------------------------------------------------

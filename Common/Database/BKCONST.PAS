@@ -10,22 +10,36 @@ INTERFACE
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 CONST
-   MaxBK5CodeLen = 20; { Version 33 Upgrade }
-   MaxBankPrefixLen = 3;
+  BRAND_FULL_NAME = 'MYOB BankLink';
+  BRAND_SHORT_NAME  = 'BankLink';
+  BRAND_COPYRIGHT = 'MYOB BankLink Limited';
+  BRAND_PRACTICE = 'BankLink Practice';
+  BRAND_PRACTICE_SHORT_NAME = 'Practice';
+  BRAND_BOOKS = 'BankLink Books';
+  BRAND_SECURE = 'BankLink Secure';
+  BRAND_SECURE_SHORT = 'Secure';
+  BRAND_SECURE_ONLINE = 'BankLink Online Secure';
+  BRAND_ONLINE = 'BankLink Online';
+  BRAND_ONLINE_FULL = 'MYOB BankLink Online';
+  BRAND_NOTES = 'BankLink Notes';
+  BRAND_NOTES_ONLINE = 'BankLink Notes Online';
+  BRAND_SUPPORT = 'MYOB BankLink Support';
 
-   MaxNarrationEditLength = 200;   //cannot be more than 255
+  ECodingDisplayName = BRAND_NOTES;
 
-   ECodingDisplayName = 'BankLink Notes';
+  MaxBK5CodeLen = 20; { Version 33 Upgrade }
+  MaxBankPrefixLen = 3;
 
-   WebXDisplayName = 'CCH Web Manager';
+  MaxNarrationEditLength = 200;   //cannot be more than 255
 
-   WebNotesName = 'BankLink Notes Online';
-   BankLinkLiveName = 'BankLink Online';
+  WebXDisplayName = 'CCH Web Manager';
 
+  WebNotesName = BRAND_NOTES_ONLINE;
+  BankLinkLiveName = BRAND_ONLINE;
 
-   DISSECT_DESC = 'DISSECTED';
+  DISSECT_DESC = 'DISSECTED';
 
-   EldersPrefix = '92';
+  EldersPrefix = '92';
 
 TYPE
    BK5CodeStr    = String[ MaxBK5CodeLen ];
@@ -382,7 +396,7 @@ CONST
          'Exchange Rate',
          'Alternative Code',
          'Transaction ID',
-         'Sent to Banklink'
+         'Sent to ' + BRAND_SHORT_NAME
           );
 
   //use this array to pick out items in the order the should appear in picklists
@@ -915,7 +929,7 @@ CONST
    dfFloppy       = 2; dfMax = 2;
 
    dfNames : Array[ dfMin..dfMax ] of String[ 20 ] =
-   ( 'Admin System', 'BankLink Secure', 'Floppy Disk' );
+   ( 'Admin System', BRAND_SECURE, 'Floppy Disk' );
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -1737,7 +1751,8 @@ const
    srdOnline     = 9; srdMax = 9;
 
    srdNames : Array[ srdMin..srdMax] of String[ 20] =
-     ( 'None', 'Printer', 'Email', 'Fax', ECodingDisplayName, 'CSV Export', 'Web', 'BankLink Books', 'Business Products', 'BankLink Online');
+     ( 'None', 'Printer', 'Email', 'Fax', BRAND_NOTES, 'CSV Export', 'Web',
+       BRAND_BOOKS, 'Business Products', BRAND_ONLINE);
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 // Scheduled Reports Report To Send
@@ -1971,7 +1986,7 @@ const
  
 
    wfNames : Array[ wfMin..wfMax ] of String[ 25 ] =
-      ( 'None', WebXDisplayName,  WebNotesName);
+      ( 'None', WebXDisplayName,  BRAND_NOTES_ONLINE);
 
    // Notify options for pClient_File_Rec.cfWebNotes_Email_Notifications
    wnDontNotifyClient = $0001;
@@ -2330,8 +2345,8 @@ const
     'Read-only',
     'Synchronised',
     'Unsynchronised',
-    'BankLink Books',
-    'BankLink Books (Secure)',
+    BRAND_BOOKS,
+    BRAND_BOOKS + ' (Secure)',
     'Action Required Now',
     'Action Required Later',
     'Action Not Required',
@@ -2339,10 +2354,10 @@ const
     'Send To Printer',
     'Send To Email',
     'Send To Fax',
-    'Send To ' + ECodingDisplayName,
+    'Send To ' + BRAND_NOTES,
     'Send To CSV Export',
     'Send To Web',
-    'Send To BankLink Books',
+    'Send To ' + BRAND_BOOKS,
     'Don''t Send Report',
     'Report Every Month',
     'Report Every Two Months',

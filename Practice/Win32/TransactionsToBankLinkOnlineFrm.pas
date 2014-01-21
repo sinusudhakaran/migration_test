@@ -3,9 +3,26 @@ unit TransactionsToBankLinkOnlineFrm;
 interface
 
 uses
-  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, ovcbase, ovcef, ovcpb, ovcpf, Buttons,
-  BanklinkOnlineTaggingServices, OSFont, Menus, StrUtils, Progress,
+  Windows,
+  Messages,
+  SysUtils,
+  Variants,
+  Classes,
+  Graphics,
+  Controls,
+  Forms,
+  Dialogs,
+  StdCtrls,
+  ovcbase,
+  ovcef,
+  ovcpb,
+  ovcpf,
+  Buttons,
+  BanklinkOnlineTaggingServices,
+  OSFont,
+  Menus,
+  StrUtils,
+  Progress,
   StDate;
 
 type
@@ -35,6 +52,7 @@ type
     function ValidateFields: Boolean;
     procedure ExportTaggedAccounts(ProgressForm: IDualProgressForm; CallbackParams: Pointer);
     procedure GetMaxExportableDate(ProgressForm: ISingleProgressForm);
+    procedure DoRebranding();
   public
     class procedure ShowDialog(Owner: TComponent; PopupParent: TCustomForm); static;
   end;
@@ -45,8 +63,23 @@ var
 implementation
 
 uses
-  OvcDate, ImagesFrm, Globals, StDateSt, GenUtils, RzPopups, WarningMoreFrm, YesNoDlg, ModalProgressFrm, ModalDualProgressFrm, BanklinkOnlineServices, InfoMoreFrm, ErrorMoreFrm,
-  LOGUTIL, bkProduct, bkBranding;
+  OvcDate,
+  ImagesFrm,
+  Globals,
+  StDateSt,
+  GenUtils,
+  RzPopups,
+  WarningMoreFrm,
+  YesNoDlg,
+  ModalProgressFrm,
+  ModalDualProgressFrm,
+  BanklinkOnlineServices,
+  InfoMoreFrm,
+  ErrorMoreFrm,
+  LOGUTIL,
+  bkProduct,
+  bkBranding,
+  bkConst;
 
 {$R *.dfm}
 
@@ -162,6 +195,14 @@ begin
   ModalResult := mrCancel;
 end;
 
+procedure TfrmTransactionsToBankLinkOnline.DoRebranding;
+begin
+  Caption := 'Export data to ' + BRAND_ONLINE;
+  Label1.Caption := BRAND_PRACTICE +  ' will send all eligible transactions for all clients to ' +
+                    BRAND_ONLINE + '.';
+
+end;
+
 procedure TfrmTransactionsToBankLinkOnline.ExportTaggedAccounts(ProgressForm: IDualProgressForm; CallbackParams: Pointer);
 var
   ExportOptions: TExportOptions;
@@ -174,8 +215,7 @@ end;
 
 procedure TfrmTransactionsToBankLinkOnline.FormCreate(Sender: TObject);
 begin
-  Caption := TProduct.Rebrand(Caption);
-  Label1.Caption := TProduct.Rebrand(Label1.Caption);
+  DoRebranding();
 end;
 
 procedure TfrmTransactionsToBankLinkOnline.FormKeyPress(Sender: TObject;

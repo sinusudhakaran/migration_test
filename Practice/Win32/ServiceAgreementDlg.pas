@@ -28,6 +28,7 @@ type
     function Execute(out Version, SigneeName, SigneeTitle: String): Boolean;
 
     function ValidateSignature: Boolean;
+    procedure DoRebranding();
   public
     { Public declarations }
   end;
@@ -39,7 +40,11 @@ implementation
 {$R *.dfm}
 
 uses
-  BankLinkOnlineServices, LogUtil, ErrorMoreFrm, bkProduct;
+  BankLinkOnlineServices,
+  LogUtil,
+  ErrorMoreFrm,
+  bkProduct,
+  bkConst;
 
 function ServiceAgreementAccepted(out Version, SigneeName, SigneeTitle: String): Boolean;
 var
@@ -92,6 +97,11 @@ begin
   btnOk.Enabled := chkConfirmation.Checked;
 end;
 
+procedure TfrmServiceAgreement.DoRebranding;
+begin
+  Label2.Caption := 'To use ' + BRAND_ONLINE + ' you must accept this Service Agreement.';
+end;
+
 function TfrmServiceAgreement.Execute(out Version, SigneeName, SigneeTitle: String): Boolean;
 begin
   Result := False;
@@ -110,7 +120,7 @@ end;
 
 procedure TfrmServiceAgreement.FormCreate(Sender: TObject);
 begin
-  Label2.Caption := TProduct.Rebrand(Label2.Caption);
+  DoRebranding();
 end;
 
 procedure TfrmServiceAgreement.FormResize(Sender: TObject);

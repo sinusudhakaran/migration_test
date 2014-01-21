@@ -153,8 +153,8 @@ begin
   ProgressForm := TfrmModalDualProgress.Create(Owner);
 
   try
-    ProgressForm.Caption := TProduct.Rebrand(Caption);
-    ProgressForm.Title := TProduct.Rebrand(Title);
+    ProgressForm.Caption := Caption;
+    ProgressForm.Title := Title;
     ProgressForm.OnStartProcess := OnStartProcessHandler;
     ProgressForm.PopupParent := Owner;
     ProgressForm.PopupMode := pmExplicit;
@@ -270,7 +270,7 @@ procedure TProgressIndicator.UpdateProgress(const ProgressLabel: String; StepSiz
 var
   Remainder: Double;
 begin
-  FProgressLabel.Caption := TProduct.Rebrand(ProgressLabel);
+  FProgressLabel.Caption := ProgressLabel;
 
   if not FProgressLabel.Visible then
   begin
@@ -295,7 +295,7 @@ procedure TProgressIndicator.UpdateProgressLabel(const ProgressLabel: String);
 begin
   if Assigned(FProgressLabel) then
   begin
-    FProgressLabel.Caption := TProduct.Rebrand(ProgressLabel);
+    FProgressLabel.Caption := ProgressLabel;
 
     if not FProgressLabel.Visible then
     begin

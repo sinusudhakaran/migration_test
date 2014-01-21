@@ -1839,7 +1839,7 @@ begin
 
   if (ClientStatus > 0) and (ASendMethod = ftmOnline) then
   begin
-    Msg := TProduct.Rebrand(CICOERRORSTR_CLIENT_CLIENTDEACTIVATED);
+    Msg := CICOERRORSTR_CLIENT_CLIENTDEACTIVATED;
     
     LogUtil.LogMsg(lmInfo, UnitName, ThisMethodName + ' : ' + Msg);
 

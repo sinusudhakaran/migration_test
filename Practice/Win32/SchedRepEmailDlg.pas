@@ -31,7 +31,7 @@ type
     procedure memBodyKeyUp(Sender: TObject; var Key: Word;
       Shift: TShiftState);
   private
-    { Private declarations }
+    procedure DoRebranding();
   public
     { Public declarations }
   end;
@@ -47,16 +47,23 @@ implementation
 {$R *.DFM}
 
 uses
-  bkXPThemes, bkProduct;
+  bkXPThemes,
+  bkProduct,
+  bkConst;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+procedure TdlgSchedReportEmail.DoRebranding;
+begin
+  edtSubject.Text := BRAND_SHORT_NAME + ' Scheduled Reports';
+end;
+
 procedure TdlgSchedReportEmail.FormCreate(Sender: TObject);
 begin
   inherited;
   //bkXPThemes.ThemeForm( Self); in OKCancel
-
-  edtSubject.Text := TProduct.Rebrand(edtSubject.Text);
+  DoRebranding();
 end;
+
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function EditScheduledReportsMessage( Title : string;
                                       LabelCaption : string;

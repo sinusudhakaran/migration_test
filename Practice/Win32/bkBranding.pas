@@ -122,7 +122,10 @@ const
 implementation
 
 uses
-  WinUtils, ImagesFrm, ThirdPartyHelper, bkConst;
+  WinUtils,
+  ImagesFrm,
+  ThirdPartyHelper,
+  bkConst;
 
 const
   BKHICOLOR_BLUE      = $00F5EDDE;  //alt line col for coding, dissect etc
@@ -559,17 +562,17 @@ end;
 
 function BrandName: string;
 begin
-  Result := TProduct.BrandName;
+  Result := BRAND_FULL_NAME;
 end;
 
 function ProductOnlineName: String;
 begin
-  Result := Format('%s Online', [BrandName]);
+  Result := BRAND_ONLINE;
 end;
 
 function PracticeProductName: String;
 begin
-  Result := Format('%s Practice', [BrandName]);
+  Result := BRAND_PRACTICE;
 end;
 
 procedure StyleMainBannerPanel(Panel: TRzPanel);
@@ -814,22 +817,22 @@ end;
 
 function BooksProductName: String;
 begin
-  Result := Format('%s Books', [TProduct.BrandName]);
+  Result := BRAND_BOOKS;
 end;
 
 function NotesProductName: String;
 begin
-  Result := Format('%s Notes', [TProduct.BrandName]);
+  Result := BRAND_NOTES;
 end;
 
 function NotesOnlineProductName: String;
 begin
-  Result := Format('%s Notes Online', [TProduct.BrandName]);
+  Result := BRAND_NOTES_ONLINE;
 end;
 
 function BConnectName: String;
 begin
-  Result := Format('%s Secure', [TProduct.BrandName]);
+  Result := BRAND_SECURE;
 end;
 
 initialization

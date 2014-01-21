@@ -202,7 +202,7 @@ begin
   Result := False;
   EmailMessage := '';
   NotifyClient := False;
-  UpdateAppStatus(Format('Export to %s', [TProduct.Rebrand(wfNames[wfWebNotes])]),'Initializing', 5);
+  UpdateAppStatus(Format('Export to %s', [wfNames[wfWebNotes]]),'Initializing', 5);
   WebClient := TWebNotesClient.CreateUsingIni(GetBK5Ini);
   service := TWebNotesDataUpload.Create;
   try
@@ -237,7 +237,7 @@ begin
 
       // The autocode may remove the Progressbar
       // So we just set it up again..
-      UpdateAppStatus(Format('Export to %s', [TProduct.Rebrand(wfNames[wfWebNotes])]),'Sending', 10);
+      UpdateAppStatus(Format('Export to %s', [wfNames[wfWebNotes]]),'Sending', 10);
 
       if WebClient.UpLoad(Batch, Reply) then
       begin

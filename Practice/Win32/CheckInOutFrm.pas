@@ -70,6 +70,7 @@ type
     procedure CloseupCheckboxes;
     procedure SetCheckBoxOptions;
     procedure ShowBanklinkOnlineStatus;
+    procedure DoRebranding();
   public
     { Public declarations }
   end;
@@ -112,8 +113,7 @@ begin
   ClientLookupFrame.DoCreate;
   ImagesFrm.AppImages.Misc.GetBitmap(MISC_FINDFOLDER_BMP,btnFolder.Glyph);
 
-  lblBankLinkOnline.Caption := TProduct.Rebrand(lblBankLinkOnline.Caption);
-  cbSendEmail.Caption := TProduct.Rebrand(cbSendEmail.Caption);
+  DoRebranding();
 end;
 
 procedure TfrmCheckInOut.FormKeyUp(Sender: TObject; var Key: Word;
@@ -512,6 +512,12 @@ begin
 
   if (pnlFooter.Height < MinimumHeight) then
     pnlFooter.Height := MinimumHeight;
+end;
+
+procedure TfrmCheckInOut.DoRebranding;
+begin
+  lblBankLinkOnline.Caption := BRAND_ONLINE;
+  cbSendEmail.Caption := 'Send an &email message after sending client files to ' + BRAND_ONLINE;
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

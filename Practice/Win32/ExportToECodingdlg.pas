@@ -466,8 +466,8 @@ begin
        ForClient.clFields.clWeb_Export_Format := wfDefault;
 
     case ForClient.clFields.clWeb_Export_Format  of
-      wfWebX : Self.Caption := TProduct.Rebrand('Export ' + wfNames[wfWebX] + ' File');
-      wfWebNotes : Self.Caption := TProduct.Rebrand('Export to ' + wfNames[wfWebNotes]);
+      wfWebX : Self.Caption := 'Export ' + wfNames[wfWebX] + ' File';
+      wfWebNotes : Self.Caption := 'Export to ' + wfNames[wfWebNotes];
     end;
     
 

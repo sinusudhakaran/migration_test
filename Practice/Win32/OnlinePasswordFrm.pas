@@ -32,6 +32,7 @@ type
     fEmail : String;
     fPasswordReset : boolean;
     function GetPassword: String;
+    procedure DoRebranding();
   public
     class function PromptUser(out Password: String; aUserEmail : string; out aPasswordReset : Boolean): Boolean;
 
@@ -48,7 +49,9 @@ implementation
 {$R *.dfm}
 
 uses
-  BankLinkOnlineServices, bkProduct;
+  BankLinkOnlineServices,
+  bkProduct,
+  bkConst;
 
 { TfrmBankLinkOnlinePassword }
 //------------------------------------------------------------------------------
@@ -62,11 +65,23 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+procedure TfrmOnlinePassword.DoRebranding;
+begin
+  Caption := BRAND_ONLINE + ' Password';
+  lblOnlineCaption01.Caption := 'Practice is unable to authenticate with ' +
+                                BRAND_ONLINE + ' because your ' + BRAND_PRACTICE_SHORT_NAME + ' ' +
+                                'password does not match your ' + BRAND_ONLINE + ' password.' +
+                                #13#10 + #13#10 +
+                                'Enter your ' + BRAND_ONLINE + ' password here then click OK:';
+  lblOnlineCaption02.Caption := 'If required, you can request a temporary password to be sent to ' +
+                                '%s using the Reset button below.' + #13#10 + #13#10 +
+                                'Contact ' + BRAND_SUPPORT + ' if you require assistance.';
+end;
+
+//------------------------------------------------------------------------------
 procedure TfrmOnlinePassword.FormCreate(Sender: TObject);
 begin
-  Caption := TProduct.Rebrand(Caption);
-  lblOnlineCaption01.Caption := TProduct.Rebrand(lblOnlineCaption01.Caption);
-  lblOnlineCaption02.Caption := TProduct.Rebrand(lblOnlineCaption02.Caption);
+  DoRebranding();
 end;
 
 function TfrmOnlinePassword.GetPassword: String;

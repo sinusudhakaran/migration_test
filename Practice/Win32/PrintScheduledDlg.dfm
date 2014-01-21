@@ -43,7 +43,7 @@ inherited dlgPrintScheduled: TdlgPrintScheduled
     ModalResult = 0
     TabOrder = 4
     OnClick = btnCancelClick
-    ExplicitLeft = 550
+    ExplicitLeft = 561
     ExplicitTop = 566
   end
   object btnPreview: TButton
@@ -63,13 +63,11 @@ inherited dlgPrintScheduled: TdlgPrintScheduled
     Top = 0
     Width = 643
     Height = 559
-    ActivePage = tsMessages
+    ActivePage = tbsOptions
     Align = alClient
     TabOrder = 0
-    ExplicitWidth = 632
     object tbsOptions: TTabSheet
       Caption = '&Scheduled Reporting Options'
-      ExplicitWidth = 624
       object grpSettings: TGroupBox
         Left = 0
         Top = 68
@@ -305,7 +303,7 @@ inherited dlgPrintScheduled: TdlgPrintScheduled
         end
         object cbOnline: TCheckBox
           Left = 300
-          Top = 71
+          Top = 70
           Width = 314
           Height = 17
           Hint = 'Include reports to be sent via a checked out file'
@@ -390,7 +388,6 @@ inherited dlgPrintScheduled: TdlgPrintScheduled
     object tsMessages: TTabSheet
       Caption = '&Message Setup'
       ImageIndex = 3
-      ExplicitTop = 22
       object GroupBox6: TGroupBox
         Left = 0
         Top = 6

@@ -22,7 +22,7 @@ type
     procedure btnModifyClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
   private
-    { Private declarations }
+    procedure DoRebranding();
   public
     { Public declarations }
   end;
@@ -113,6 +113,11 @@ begin
   end;
 end;
 
+procedure TForm1.DoRebranding;
+begin
+  Caption := BRAND_SHORT_NAME + ' Network Help fix (for MSKB 896054)';
+end;
+
 procedure TForm1.FormCreate(Sender: TObject);
 var
   path : string;
@@ -121,7 +126,7 @@ begin
   edtFilename.Text := Path + 'guide.chm';
   opendialog1.InitialDir := Path;
 
-  Caption := TProduct.Rebrand(Caption);
+  DoRebranding();
 end;
 
 end.

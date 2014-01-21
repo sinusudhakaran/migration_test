@@ -809,6 +809,7 @@ type
     procedure ExportTransactionsToBankLinkOnline;
 
     procedure ExportTaggedAccounts(ProgressForm: IDualProgressForm; CallbackParams: Pointer);
+    procedure DoRebranding();
 
     //procedure ThreadMessage(var Message: TMessage);	message THREAD_MESSAGE;
   protected
@@ -1240,12 +1241,7 @@ begin
   UPDATEMF.UpdateMenus;
   UPDATEMF.UpdateSystemMenus;
 
-  mnsSystemStartNewMonth.Caption := TProduct.Rebrand(mnsSystemStartNewMonth.Caption);
-  mniExportdatatoBanklinkOnline.Caption := TProduct.Rebrand(mniExportdatatoBanklinkOnline.Caption);
-  actSendViaOnline.Caption := TProduct.Rebrand(actSendViaOnline.Caption);
-  actGetFromOnline.Caption := TProduct.Rebrand(actGetFromOnline.Caption);
-
-  mniSystemBankLinkConnect.Caption := TProduct.Rebrand(mniSystemBankLinkConnect.Caption);
+  DoRebranding();
 
   Screen.OnActiveFormChange := ActiveFormChange;
   if DebugMe then LogUtil.LogMsg(lmDebug,unitname,'Form Created');
@@ -2837,6 +2833,15 @@ begin
   RefreshHomepage([HPR_Client]);
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+procedure TfrmMain.DoRebranding;
+begin
+  mniExportdatatoBanklinkOnline.Caption := 'E&xport data to ' + BRAND_ONLINE;
+  mniSystemBankLinkConnect.Caption      := 'Download from &' + BRAND_SECURE;
+  actSendViaOnline.Caption              := 'via &' + BRAND_ONLINE;
+  actGetFromOnline.Caption              := 'from &' + BRAND_ONLINE;
+  tbOnline.Caption                      := BRAND_ONLINE_FULL;
+end;
+
 procedure TfrmMain.DoRefreshChart;
 begin
   Import32.RefreshChart;
@@ -3638,9 +3643,9 @@ begin
   begin
     NewItem := TMenuItem.Create( popSortBy );
     if Assigned(MyClient) then
-       NewItem.Caption := 'By '+ Localise( MyClient.clFields.clCountry, TProduct.Rebrand(csNames[csSortByOrder[j]]))
+       NewItem.Caption := 'By '+ Localise( MyClient.clFields.clCountry, csNames[csSortByOrder[j]])
     else
-       NewItem.Caption := 'By '+ TProduct.Rebrand(csNames[csSortByOrder[j]]);
+       NewItem.Caption := 'By '+ csNames[csSortByOrder[j]];
     NewItem.OnClick := mniSortByClick;
     NewItem.Visible := not( csSortByOrder[j] in xclude);
     NewItem.Enabled := true;

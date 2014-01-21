@@ -15,12 +15,33 @@ unit PrintScheduledDlg;
 
 interface
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  bkOKCancelDlg, StdCtrls, OvcBase, OvcEF, OvcPB, OvcPF, ExtCtrls, ComCtrls,
-  Scheduled, RzCmboBx, Buttons, NewReportObj, PrintMgrObj, ReportDefs, SchedrepUtils;
+  Windows,
+  Messages,
+  SysUtils,
+  Classes,
+  Graphics,
+  Controls,
+  Forms,
+  Dialogs,
+  bkOKCancelDlg,
+  StdCtrls,
+  OvcBase,
+  OvcEF,
+  OvcPB,
+  OvcPF,
+  ExtCtrls,
+  ComCtrls,
+  Scheduled,
+  RzCmboBx,
+  Buttons,
+  NewReportObj,
+  PrintMgrObj,
+  ReportDefs,
+  SchedrepUtils;
 
 type
   TLookupOption = (ltUser, ltGroup, ltClientType);
+  
   TdlgPrintScheduled = class(TbkOKCancelDlgForm)
     btnPreview: TButton;
     OvcController1: TOvcController;
@@ -215,7 +236,7 @@ type
     function DoLookup(LookupType: TLookupOption; Caption: string;
       Multiple: Boolean; AlreadySelectedText: string; var Selection: string): boolean;
     function ValidateRange: boolean;
-{    function TestForWindowsFaxServiceViaCOM: boolean;}
+    procedure DoRebranding();
   public
     function GetSortByValue: integer;
   end;
@@ -247,14 +268,25 @@ uses
   ImagesFrm,
   NNWFax,
   dlgFaxDetails,
-  ssFaxSupport, SYDEFS,
-  {FaxComLib_TLB,}
+  ssFaxSupport,
+  SYDEFS,
   WinUtils,
   Printers,
   PrntInfo,
-  LADEFS, UserReportSettings, NewReportUtils, UsageUtils, CheckInOutFrm,
-  SelectListDlg, bkXPThemes, UsrList32, grpList32, ctypelist32,
-  CustomDocEditorFrm, UBatchBase, bkProduct, bkBranding;
+  LADEFS,
+  UserReportSettings,
+  NewReportUtils,
+  UsageUtils,
+  CheckInOutFrm,
+  SelectListDlg,
+  bkXPThemes,
+  UsrList32,
+  grpList32,
+  ctypelist32,
+  CustomDocEditorFrm,
+  UBatchBase,
+  bkProduct,
+  bkBranding;
 
 {$R *.DFM}
 
@@ -271,38 +303,17 @@ begin
   inherited;
   //bkXPThemes.ThemeForm( Self);
   CodeSelectionList := TStringList.Create;
-  sNoTransactions := 'Transactions have yet to be downloaded into ' + ShortAppName + '.';
   ButtonPressed := btn_none;
   FaxPrinter := '';
 
-  cbToECoding.caption := '&' + bkBranding.NotesProductName + ' Files';
-  cbToECoding.Hint := TProduct.Rebrand(cbToECoding.Hint);
+  ImagesFrm.AppImages.Misc.GetBitmap(MISC_FINDFOLDER_BMP, btnOpenDialog.Glyph);
 
-  ImagesFrm.AppImages.Misc.GetBitmap(MISC_FINDFOLDER_BMP,btnOpenDialog.Glyph);
-  btnBNotesMsg.Caption := '&' + bkBranding.NotesProductName + ' Message';
-
-  gbNotes.Caption := format('Send %s files',[bkBranding.NotesProductName]);
-
-  gbWebNotes.Caption := format('Send %s transactions',[bkBranding.NotesOnlineProductName]);
-  btnWebNotesMsg.Caption := format('&%s Message',[bkBranding.NotesOnlineProductName]);
-
-  cbToECoding.Hint := TProduct.Rebrand(cbToECoding.Hint);
-
-  gbBooks.Caption := TProduct.Rebrand(gbBooks.Caption);
-  btnCheckOutMsg.Caption := TProduct.Rebrand(btnCheckOutMsg.Caption);
-
-  GroupBox5.Caption := TProduct.Rebrand(GroupBox5.Caption);
-  btnOnlineMsg.Caption := TProduct.Rebrand(btnOnlineMsg.Caption);
-
-  cbCheckout.Caption := TProduct.Rebrand(cbCheckOut.Caption);
-  cbCheckout.Hint := TProduct.Rebrand(cbCheckOut.Hint);
-
-  cbOnline.Caption := TProduct.Rebrand(cbOnline.Caption);
-  cbOnline.Hint := TProduct.Rebrand(cbOnline.Hint);
+  DoRebranding();
 
   LoadLookupBitmaps;
   SetUpHelp;
 end;
+
 procedure TdlgPrintScheduled.FormDestroy(Sender: TObject);
 begin
   inherited;
@@ -1890,6 +1901,23 @@ begin
   finally
     dlgSelectList.Free;
   end;
+end;
+
+procedure TdlgPrintScheduled.DoRebranding;
+begin
+  sNoTransactions := 'Transactions have yet to be downloaded into ' + BRAND_FULL_NAME + '.';
+  cbToECoding.caption := '&' + BRAND_NOTES + ' Files';
+  cbToECoding.Hint := 'Include reports to be sent via a ' + BRAND_NOTES + ' file';
+  btnBNotesMsg.Caption := '&' + BRAND_NOTES + ' Message';
+  gbNotes.Caption := format('Send %s files', [BRAND_NOTES]);
+  gbWebNotes.Caption := format('Send %s transactions',[BRAND_NOTES_ONLINE]);
+  btnWebNotesMsg.Caption := format('&%s Message',[BRAND_NOTES_ONLINE]);
+  gbBooks.Caption := 'Send ' + BRAND_NOTES + ' files';
+  btnCheckOutMsg.Caption := BRAND_NOTES + 'Message';
+  GroupBox5.Caption := 'Send ' + BRAND_BOOKS + ' files via ' + BRAND_ONLINE;
+  btnOnlineMsg.Caption := BRAND_NOTES + 'Message';
+  cbCheckout.Caption := BRAND_NOTES + ' files';
+  cbOnline.Caption := BRAND_BOOKS + ' files via ' + BRAND_ONLINE;
 end;
 
 procedure TdlgPrintScheduled.edtSelectionExit(Sender: TObject);

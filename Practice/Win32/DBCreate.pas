@@ -29,6 +29,7 @@ type
     procedure btnOkClick(Sender: TObject);
   private
     { Private declarations }
+    procedure DoRebranding();
   public
     { Public declarations }
     class function Execute : Boolean;
@@ -67,25 +68,24 @@ const
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmDBCreate.FormCreate(Sender: TObject);
 var
-   i : Integer;
+  i : Integer;
 begin
-   bkXPThemes.ThemeForm( Self);
+  bkXPThemes.ThemeForm( Self);
 
-   // Populate Country Combo
-   with cmbCountry do begin
-      for i := whMin to whMax do begin
-         Items.Add( whNames[ i ] );
-      end;
-      ItemIndex := 0;
-   end;
-   // Format Labels
-   with lblDirectory do begin
-      Caption := Format( Caption,[ JustPathnameL( Application.ExeName ) ] );
-   end;
-   SetUpHelp;
+  // Populate Country Combo
+  with cmbCountry do begin
+    for i := whMin to whMax do begin
+       Items.Add( whNames[ i ] );
+    end;
+    ItemIndex := 0;
+  end;
+  // Format Labels
+  with lblDirectory do begin
+    Caption := Format( Caption,[ JustPathnameL( Application.ExeName ) ] );
+  end;
+  SetUpHelp;
 
-   Caption := TProduct.Rebrand(Caption);
-   Label3.Caption := TProduct.Rebrand(Label3.Caption);
+  DoRebranding();
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmDBCreate.SetUpHelp;
@@ -133,6 +133,12 @@ begin
                    sflPracticeName.Text );
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+procedure TfrmDBCreate.DoRebranding;
+begin
+  Caption := 'Create Initial ' + BRAND_PRACTICE + ' Database';
+  Label3.Caption := '&' + BRAND_SHORT_NAME + ' Code';
+end;
+
 class function TfrmDBCreate.Execute : Boolean;
 var
    S : String;

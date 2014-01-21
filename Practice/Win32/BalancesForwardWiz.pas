@@ -208,6 +208,7 @@ type
     procedure UpdateButtons;
 
     procedure DoAccountLookup;
+    procedure DoRebranding();
   public
     { Public declarations }
   end;
@@ -487,7 +488,7 @@ begin
   TempYEAdjustment   := nil;
   YE_Journal_Account := nil;
 
-  lblCurrentYearsEarningsAmt.Caption := TProduct.Rebrand(lblCurrentYearsEarningsAmt.Caption);
+  DoRebranding();
 end;
 
 procedure TwizBalancesForward.Button1Click(Sender: TObject);
@@ -897,6 +898,12 @@ begin
   //allows us to initialise
   if MovingForward then
     InitialiseStep( NewStepId);
+end;
+
+procedure TwizBalancesForward.DoRebranding;
+begin
+  lblCurrentYearsEarningsAmt.Caption :=
+    bkBranding.BrandName + ' has calculated the Current Years Earnings at $xxx,xxx.xx.';
 end;
 
 procedure TwizBalancesForward.DoAfterMoveToStep;

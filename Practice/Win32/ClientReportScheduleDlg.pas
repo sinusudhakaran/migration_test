@@ -116,6 +116,7 @@ type
     procedure SetOptions(const Value: TCrsOptions);
     procedure AddFileToAttachmentListView(FileName: string);
     procedure LoadCustomDocuments;
+    procedure DoRebranding();
   public
     { Public declarations }
     procedure AddCommaListOfAttachments(FileNames: string);
@@ -686,8 +687,7 @@ begin
   ClientToUse := nil;
   LoadCustomDocuments;
 
-  rbCheckOut.Caption := TProduct.Rebrand(rbCheckOut.Caption);
-  rbCheckoutOnline.Caption := TProduct.Rebrand(rbCheckoutOnline.Caption);
+  DoRebranding();
 end;
 
 //------------------------------------------------------------------------------
@@ -889,8 +889,15 @@ begin
        end;
    end; {case}
 end;
-//------------------------------------------------------------------------------
 
+//------------------------------------------------------------------------------
+procedure TdlgClientReportSchedule.DoRebranding;
+begin
+  rbCheckOut.Caption := BRAND_BOOKS + ' File';
+  rbCheckoutOnline.Caption := BRAND_BOOKS + ' File via ' + BRAND_ONLINE;
+end;
+
+//------------------------------------------------------------------------------
 procedure TdlgClientReportSchedule.FormCloseQuery(Sender: TObject;
   var CanClose: Boolean);
 var

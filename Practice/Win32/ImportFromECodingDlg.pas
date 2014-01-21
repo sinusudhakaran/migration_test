@@ -277,7 +277,7 @@ begin
      if ForClient.clFields.clWeb_Export_Format = 255 then
         ForClient.clFields.clWeb_Export_Format := wfdefault;
 
-     Self.caption := TProduct.Rebrand('Import ' + wfNames[ForClient.clFields.clWeb_Export_Format] + ' File');
+     Self.caption := 'Import ' + wfNames[ForClient.clFields.clWeb_Export_Format] + ' File';
      case ForClient.clFields.clWeb_Export_Format of
         wfWebX : begin
             label2.caption := glConst.WEBX_GENERIC_APP_NAME + ' Payee';

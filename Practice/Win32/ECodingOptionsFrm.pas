@@ -35,7 +35,7 @@ type
   public
     { Public declarations }
     procedure BrandDialog;
-   
+
   end;
 
   function SetECodingOptions( var EcOptions : TEcOptions; Country : Byte; Destination: Byte; AccountingSystemUsed: Byte): boolean;
@@ -154,13 +154,11 @@ end;
 
 
 procedure TfrmECodingOptions.BrandDialog;
-
 begin
- 
-   if ecExportOptions.ExportDestination =  ecDestWebX then
-       Caption := TProduct.Rebrand(TProduct.Rebrand(wfNames[ecExportOptions.WebExportFormat])) + ' Options'
-   else
-       Caption := TProduct.Rebrand(bkBranding.NotesProductName) + ' Options';
+  if ecExportOptions.ExportDestination =  ecDestWebX then
+    Caption := wfNames[ecExportOptions.WebExportFormat] + ' Options'
+  else
+    Caption := BRAND_NOTES + ' Options';
 end;
 
 procedure TfrmECodingOptions.ecExportOptionscmbWebFormatsChange(

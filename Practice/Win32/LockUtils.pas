@@ -186,7 +186,8 @@ uses
   LogUtil,
   ErrorLog,
   SyncObjs,
-  bkProduct;
+  bkProduct,
+  bkConst;
 
 const
   TICKS_PER_SECOND = 1000;
@@ -197,8 +198,8 @@ const
       'System Log',
       'System Database',
       'Startup Check',
-      'Practice INI File',
-      'Practice Logo File',
+      BRAND_PRACTICE_SHORT_NAME + ' INI File',
+      BRAND_PRACTICE_SHORT_NAME + ' Logo File',
       'Client Task List',
       'Client Details Cache',
       'Client Notes',
@@ -211,7 +212,7 @@ const
       'WebNotes Update',
       'WebNotes Data',
       'Exchange Rates',
-      'Banklink Online Service Agreement');
+      BRAND_ONLINE + ' Service Agreement');
 
 var
   DebugMe : boolean = false;
@@ -260,13 +261,13 @@ begin
 
   case fLockState of
     lsLocking   : fDelayForm.lblDelay.Caption := 'Waiting for access to the ' +
-                                                 TProduct.Rebrand(ltNames[ fLockType ]) +
+                                                 ltNames[ fLockType ] +
                                                  '... (' +
                                                  IntToStr( aTicksToWait div TICKS_PER_SECOND) +
                                                  's)';
 
     lsUnlocking : fDelayForm.lblDelay.Caption := 'Unlocking the ' +
-                                                 TProduct.Rebrand(ltNames[ fLockType ]);
+                                                 ltNames[ fLockType ];
   end;
 
   fWindowList := DisableTaskWindows( fDelayForm.Handle );

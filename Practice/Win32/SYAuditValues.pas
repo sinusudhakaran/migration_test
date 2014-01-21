@@ -627,7 +627,7 @@ begin
                                        bkDate2Str(TClient_File_Rec(ARecord^).cfFinancial_Year_Starts), Values);
       //Schd_Rep_Method
       99: SystemAuditMgr.AddAuditValue(SYAuditNames.GetAuditFieldName(tkBegin_Client_File, Token),
-                                       TProduct.Rebrand(srdNames[TClient_File_Rec(ARecord^).cfSchd_Rep_Method]), Values);
+                                       srdNames[TClient_File_Rec(ARecord^).cfSchd_Rep_Method], Values);
 //   tkcfSpareBoolean                     = 100 ;
 //   tkcfPending_ToDo_Count               = 101 ;
 //   tkcfNext_ToDo_Desc                   = 102 ;

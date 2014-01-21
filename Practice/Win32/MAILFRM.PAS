@@ -225,7 +225,7 @@ Const
 {$IFDEF SmartBooks}
    TestStrforSupport = '@SMARTBOOKS';
 {$ELSE}
-   TestStrforSupport = '@BANKLINK';
+   TestStrforSupport = '@' + BRAND_SHORT_NAME;
 {$ENDIF}
 
 Var
@@ -310,7 +310,7 @@ begin
                 AddLine(' ');
                 AddLine(APPTITLE + ' ' + WinUtils.GetAppVersionStr);
                 //see if email is being sent to support. If so add practice code and name
-                if (Pos( Uppercase(TProduct.Rebrand(TestStrforSupport)), Uppercase( ToAddresses)) > 0) then begin
+                if (Pos( Uppercase(TestStrforSupport), Uppercase( ToAddresses)) > 0) then begin
                    AddLine('Path '+ExecDir);
                    if RefreshAdmin then begin   //refresh will fail if no admin exists
                       with AdminSystem.fdFields do
@@ -1440,7 +1440,7 @@ begin
            else if Assigned(MyClient) and MyClient.clFields.clForce_Offsite_Check_Out then
            begin
              chkCheckout.Visible := True;
-             chkCheckout.Enabled := (Pos( Uppercase(TProduct.Rebrand(TestStrforSupport)), Uppercase(txtRecipient.Text)) > 0) and (not FAllowCheckOutToSupport);
+             chkCheckout.Enabled := (Pos( Uppercase(TestStrforSupport), Uppercase(txtRecipient.Text)) > 0) and (not FAllowCheckOutToSupport);
            end
            else
              chkCheckout.Visible := True;
@@ -1449,7 +1449,7 @@ begin
          //set the default checkout flag status
          chkCheckout.Checked := chkCheckout.Visible;
 
-         if (Pos( Uppercase(TProduct.Rebrand(TestStrforSupport)), Uppercase(txtRecipient.Text)) > 0) and (not FAllowCheckOutToSupport) then
+         if (Pos( Uppercase(TestStrforSupport), Uppercase(txtRecipient.Text)) > 0) and (not FAllowCheckOutToSupport) then
            chkCheckout.checked := False
          else if (CodeList.Count = 0) and Assigned( MyClient) and (MyClient.clFields.clFile_Read_Only) then
            chkCheckout.Checked := False;
@@ -1760,7 +1760,7 @@ begin
 
       //Set to read-only by default (TFS 34290)
       chkCheckout.Checked := chkCheckout.Visible;
-      if (Pos(Uppercase(TProduct.Rebrand(TestStrforSupport)), Uppercase(txtRecipient.Text)) > 0) and (not FAllowCheckOutToSupport) then
+      if (Pos(Uppercase(TestStrforSupport), Uppercase(txtRecipient.Text)) > 0) and (not FAllowCheckOutToSupport) then
         chkCheckout.Checked := False;
 
       if not CanSelectClient then begin
@@ -2326,7 +2326,7 @@ begin
   begin
     txtRecipient.Text := S;
     //see if this is a banklink address, if so clear the read-only flag
-    if (Pos( Uppercase(TProduct.Rebrand(TestStrforSupport)), Uppercase(txtRecipient.Text)) > 0) and chkCheckout.Visible then
+    if (Pos( Uppercase(TestStrforSupport), Uppercase(txtRecipient.Text)) > 0) and chkCheckout.Visible then
     begin
       chkCheckout.checked := false;
       chkCheckout.Enabled := true;
@@ -2418,7 +2418,7 @@ end;
 procedure TfrmMail.txtRecipientExit(Sender: TObject);
 begin
   //see if this is a banklink address, if so clear the read-only flag
-  if (Pos( Uppercase(TProduct.Rebrand(TestStrforSupport)), Uppercase(txtRecipient.Text)) > 0)
+  if (Pos( Uppercase(TestStrforSupport), Uppercase(txtRecipient.Text)) > 0)
   and chkCheckout.Visible
   and (not FAllowCheckOutToSupport) then begin
      chkCheckout.checked := false;

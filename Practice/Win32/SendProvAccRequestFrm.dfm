@@ -127,7 +127,7 @@ object frmSendProvAccRequest: TfrmSendProvAccRequest
     Top = 109
     Width = 281
     Height = 21
-    ItemHeight = 0
+    ItemHeight = 13
     TabOrder = 4
     Text = 'Select'
   end
@@ -137,7 +137,7 @@ object frmSendProvAccRequest: TfrmSendProvAccRequest
     Width = 281
     Height = 21
     Style = csDropDownList
-    ItemHeight = 0
+    ItemHeight = 13
     TabOrder = 5
     Visible = False
   end
@@ -154,7 +154,7 @@ object frmSendProvAccRequest: TfrmSendProvAccRequest
     Top = 72
     Width = 281
     Height = 21
-    ItemHeight = 0
+    ItemHeight = 13
     TabOrder = 7
   end
 end

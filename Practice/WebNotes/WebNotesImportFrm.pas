@@ -1666,7 +1666,7 @@ begin
    NeedConfig := true;
 
    // Get going...
-   lAvailable.Caption := Format('Checking for %s transactions', [TProduct.Rebrand(wfNames[wfWebNotes])]);
+   lAvailable.Caption := Format('Checking for %s transactions', [wfNames[wfWebNotes]]);
    UpdateAppStatus(lAvailable.Caption,'Initializing', 0);
    WebClient := TWebNotesClient.CreateUsingIni(GetBK5Ini);
    kc := Screen.Cursor;
@@ -1682,7 +1682,7 @@ begin
          TestAvailableResponse(Reply);
    except
       on e: Exception do begin
-         HandleWNException(e,unitname, Format('Checking for %s transactions', [TProduct.Rebrand(wfNames[wfWebNotes])]));
+         HandleWNException(e,unitname, Format('Checking for %s transactions', [wfNames[wfWebNotes]]));
          Exit;
       end;
    end;
@@ -1709,7 +1709,7 @@ begin
       else
          Reply := 'more ';
 
-      lAvailable.Caption := Format('No %s%s transactions available', [Reply, TProduct.Rebrand(wfNames[wfWebNotes])]);
+      lAvailable.Caption := Format('No %s%s transactions available', [Reply, wfNames[wfWebNotes]]);
       HelpfulInfoMsg(Format('%s for:'#13'%s',[lAvailable.Caption, Client.clExtendedName ] ),0);
    end;
 
@@ -1904,7 +1904,7 @@ var
 begin
     Result := false;
 
-    UpdateAppStatus(Format('Downloading %s transactions', [TProduct.Rebrand(wfNames[wfWebNotes])]),'Initializing', 0);
+    UpdateAppStatus(Format('Downloading %s transactions', [wfNames[wfWebNotes]]),'Initializing', 0);
     WebClient := TWebNotesClient.CreateUsingIni(GetBK5Ini);
 
 
@@ -1929,7 +1929,7 @@ begin
          Result := True; // I've got the data..
 
          // Now try to update the status at the webnots end..
-         UpdateAppStatus(Format('Updating %s status', [TProduct.Rebrand(wfNames[wfWebNotes])]),'Initializing', 0);
+         UpdateAppStatus(Format('Updating %s status', [wfNames[wfWebNotes]]),'Initializing', 0);
          try
              WebClient.SetDownloadStatus(DownloadId, nBatchComplete, Reply);
              // Could test the response, but not much I can do to fix a problem
@@ -1940,7 +1940,7 @@ begin
 
    except
       on e: Exception do
-         HandleWNException(e,UnitName,format('Downloading %s transactions', [TProduct.Rebrand(wfNames[wfWebNotes])]));
+         HandleWNException(e,UnitName,format('Downloading %s transactions', [wfNames[wfWebNotes]]));
 
    end;
    finally

@@ -229,6 +229,7 @@ type
     procedure SaveDefaults;
     procedure ApplyDefaults;
     procedure MatchOutItem(Index: Integer);
+    procedure DoRebranding();
     { Private declarations }
   public
     property HDEForm: TdlgHistorical read FHDEForm write SetHDEForm;
@@ -969,6 +970,13 @@ begin
    Result := fCurrentDate;
 end;
 
+procedure TImportHist.DoRebranding;
+begin
+  cbDebitSign.Caption  := 'Reverse Sign, ' + BRAND_SHORT_NAME + ' expects Withdrawals to be Positive';
+  cbCreditSign.Caption := 'Reverse Sign, ' + BRAND_SHORT_NAME + ' expects Deposits to be Negative';
+  cbSign.Caption       := 'Re&verse Sign, ' + BRAND_SHORT_NAME + ' expects Deposits to be Negative';
+end;
+
 procedure TImportHist.EDateChange(Sender: TObject);
 begin
   cbDateChange(nil);
@@ -1023,57 +1031,58 @@ procedure TImportHist.FormCreate(Sender: TObject);
     end;
 
 begin
-   HeaderLineList := TStringList.Create;
+  HeaderLineList := TStringList.Create;
    
-   FInSetup := True;
-   FCursor := Screen.Cursor;
-   Screen.Cursor := crHourGlass;
-   bkXPThemes.ThemeForm( Self);
-   vsOut.Header.Font := Self.Font;
-   vsFile.Header.Font := Self.Font;
-   lInfileTitle.Font.Style := [fsBold];
-   lmappingTitle.Font.Style := [fsBold];
-   lOutputTitle.Font.Style := [fsBold];
+  FInSetup := True;
+  FCursor := Screen.Cursor;
+  Screen.Cursor := crHourGlass;
+  bkXPThemes.ThemeForm( Self);
+  vsOut.Header.Font := Self.Font;
+  vsFile.Header.Font := Self.Font;
+  lInfileTitle.Font.Style := [fsBold];
+  lmappingTitle.Font.Style := [fsBold];
+  lOutputTitle.Font.Style := [fsBold];
 
-   Tmaskedit(SkipLine).MaxLength := 2;
-   fFileList := TobjectList.Create(True);
-   fOutList := TobjectList.Create(True);
-   FReloading := False;
-   pcFormat.ActivePageIndex := 0;//Not the design time one..
+  Tmaskedit(SkipLine).MaxLength := 2;
+  fFileList := TobjectList.Create(True);
+  fOutList := TobjectList.Create(True);
+  FReloading := False;
+  pcFormat.ActivePageIndex := 0;//Not the design time one..
 
-   case MyClient.clFields.clCountry of
-     whNewZealand:;
-     whAustralia, whUK: tsAnalysis.TabVisible := False;
-   end;
-   lbFile.Height := 0;
+  case MyClient.clFields.clCountry of
+    whNewZealand:;
+    whAustralia, whUK: tsAnalysis.TabVisible := False;
+  end;
+  lbFile.Height := 0;
 
-   vsout.BeginUpdate;
-   try
-      vsout.Header.Columns.Clear;
-      AddColumn('Date',piDate);
-      AddColumn('Amount',PiAmount).Alignment := taRightJustify;
-      AddColumn('Reference',piReference);
-      if tsAnalysis.TabVisible then begin
-         AddColumn('Analysis',PiAnalysis);
-         FSubAna := 3;
-         FSubNar := 4;
-      end else begin
-         FSubAna := -1;
-         FSubNar := 3;
-      end;
+  vsout.BeginUpdate;
+  try
+    vsout.Header.Columns.Clear;
+    AddColumn('Date',piDate);
+    AddColumn('Amount',PiAmount).Alignment := taRightJustify;
+    AddColumn('Reference',piReference);
+    if tsAnalysis.TabVisible then
+    begin
+      AddColumn('Analysis',PiAnalysis);
+      FSubAna := 3;
+      FSubNar := 4;
+    end else
+    begin
+      FSubAna := -1;
+      FSubNar := 3;
+    end;
 
-      AddColumn('Narration',PiNarration);
+    AddColumn('Narration',PiNarration);
 
-   finally
-      vsout.EndUpdate;
-   end;
-   vsFile.SyncView := vsOut;
-   vsOut.SyncView := vsFile;
-   PCFormatChange(nil);
+  finally
+    vsout.EndUpdate;
+  end;
 
-   cbDebitSign.Caption := TProduct.Rebrand(cbDebitSign.Caption);
-   cbCreditSign.Caption := TProduct.Rebrand(cbCreditSign.Caption);
-   cbSign.Caption := TProduct.Rebrand(cbSign.Caption);
+  vsFile.SyncView := vsOut;
+  vsOut.SyncView := vsFile;
+  PCFormatChange(nil);
+
+  DoRebranding();
 end;
 
 

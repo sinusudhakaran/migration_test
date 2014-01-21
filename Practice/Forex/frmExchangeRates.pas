@@ -4,10 +4,29 @@ interface
 
 uses
   Virtualtreehandler,
-  ExchangeRateList,  stDate,
-  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, OsFont, ActnList, VirtualTrees, ExtCtrls, RzGroupBar, StdCtrls,
-  ovcbase, ovcef, ovcpb, ovcpf, Menus, bkDateUtils;
+  ExchangeRateList,
+  stDate,
+  Windows,
+  Messages,
+  SysUtils,
+  Variants,
+  Classes,
+  Graphics,
+  Controls,
+  Forms,
+  Dialogs,
+  OsFont,
+  ActnList,
+  VirtualTrees,
+  ExtCtrls,
+  RzGroupBar,
+  StdCtrls,
+  ovcbase,
+  ovcef,
+  ovcpb,
+  ovcpf,
+  Menus,
+  bkDateUtils;
 
 type
   TExchangeRatesfrm = class(TForm)
@@ -96,6 +115,7 @@ type
 function MaintainExchangeRates: Boolean;
 
 implementation
+{$R *.dfm}
 
 uses
   GenUtils,
@@ -108,7 +128,7 @@ uses
   Globals,
   YesNoDlg,
   ErrorMoreFrm,
-  bkBranding,
+  bkConst,
   ISO_4217,
   bkXPThemes,
   frmEditExchangeRate,
@@ -118,11 +138,7 @@ uses
   BKHelp,
   ForexHelpers,
   ExchangeGainLoss,
-  bkProduct;
-
-
-{$R *.dfm}
-
+  bkBranding;
 
 function MaintainExchangeRates: Boolean;
 begin
@@ -270,34 +286,37 @@ end;
 //*****************************************************************************
 
 procedure TExchangeRatesfrm.acUnlockExecute(Sender: TObject);
-const
-  UNLOCK_WARNING = 'If you edit the exchange rates BankLink Practice will ' +
-                   'update the base amounts of coded transactions ' +
-                   'that are not transferred or finalised.'#13#13 +
-                   'Are you sure you want to do this?';
 var
+  UnlockWarningMsg : string;
   Range: tDateRange;
   UnlockRatesRec: TLockRatesRec;
 begin
-   Range := MakeDateRange(FromDate,ToDate);
-   FSource.Iterate(FindLastLocked,False,@Range);
-   //Default from date to the start of the last locked period
-   Range.FromDate := stDate.DateTimeToStDate(DateUtils.StartOfTheMonth(StDateToDateTime(Range.ToDate)));
+  Range := MakeDateRange(FromDate,ToDate);
+  FSource.Iterate(FindLastLocked,False,@Range);
+  //Default from date to the start of the last locked period
+  Range.FromDate := stDate.DateTimeToStDate(DateUtils.StartOfTheMonth(StDateToDateTime(Range.ToDate)));
 
-   if not GetDateRange(Range, 'Unlock Exchange Rate Period',
-         'Enter the starting and finishing date for the period you want to unlock.') then exit;
+  if not GetDateRange(Range, 'Unlock Exchange Rate Period',
+                      'Enter the starting and finishing date for the period you want to unlock.') then
+    exit;
 
-   //Warning
-   if AskYesNo('Unlock Exchange Rate Period', TProduct.Rebrand(UNLOCK_WARNING), Dlg_No, 0) = DLG_YES then begin
-     UnlockRatesRec.Range := Range;
-     UnlockRatesRec.LockCount := 0;
-     FSource.Iterate(UnLockRates,True,@UnlockRatesRec);
-     vtRates.Invalidate;
-     if (UnlockRatesRec.LockCount > 0) then
-       HelpfulInfoMsg(Format('%d exchange rates have been unlocked',[UnlockRatesRec.LockCount]), 0)
-     else
-       HelpfulInfoMsg('There are no exchange rates to be unlocked in this period', 0)
-   end;
+  //Warning
+  UnlockWarningMsg := 'If you edit the exchange rates ' + BRAND_PRACTICE + ' will ' +
+                      'update the base amounts of coded transactions ' +
+                      'that are not transferred or finalised.' + #13#13 +
+                      'Are you sure you want to do this?';
+
+  if AskYesNo('Unlock Exchange Rate Period', UnlockWarningMsg, Dlg_No, 0) = DLG_YES then
+  begin
+    UnlockRatesRec.Range := Range;
+    UnlockRatesRec.LockCount := 0;
+    FSource.Iterate(UnLockRates,True,@UnlockRatesRec);
+    vtRates.Invalidate;
+    if (UnlockRatesRec.LockCount > 0) then
+      HelpfulInfoMsg(Format('%d exchange rates have been unlocked',[UnlockRatesRec.LockCount]), 0)
+    else
+      HelpfulInfoMsg('There are no exchange rates to be unlocked in this period', 0)
+  end;
 end;
 
 

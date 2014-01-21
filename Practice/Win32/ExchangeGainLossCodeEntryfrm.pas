@@ -36,6 +36,8 @@ type
     procedure SetBankAccountName(const Value: String);
     procedure SetExchangeGainLossCode(const Value: String);
     procedure SetCurrencyCode(const Value: String);
+
+    procedure DoRebranding();
   public
     class function EnterExchangeGainLossCode(const BankAccountName, CurrencyCode: String; var ExchangeGainLossCode: string): Boolean; overload; static;
     class function EnterExchangeGainLossCode(const bankAccountName, CurrencyCode: String; PopupParent: TCustomForm; var ExchangeGainLossCode: string): Boolean; overload; static;
@@ -101,7 +103,7 @@ begin
 
   FRemovingMask := False;
 
-  lblMessage.Caption := TProduct.Rebrand(lblMessage.Caption);
+  DoRebranding();
 end;
 
 procedure TfrmExchangeGainLossCodeEntry.FormKeyDown(Sender: TObject;
@@ -191,6 +193,12 @@ begin
       'set to ''Income'', ''Expense'', ''Other Income'' or ''Other Expense''.',
       0);
   end;
+end;
+
+procedure TfrmExchangeGainLossCodeEntry.DoRebranding;
+begin
+  lblMessage.Caption := BRAND_SHORT_NAME + ' needs to know the exchange gain/loss ' +
+                       'code in your client''s chart for this bank account %s (%s).';
 end;
 
 procedure TfrmExchangeGainLossCodeEntry.edtExchangeGainLossCodeChange(Sender: TObject);

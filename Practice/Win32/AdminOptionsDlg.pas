@@ -171,7 +171,7 @@ type
     procedure UpdateFontLabel;
 
     procedure CheckOpportunisticLocking;
-
+    procedure DoRebranding();
 
     { Private declarations }
   protected
@@ -341,8 +341,7 @@ begin
     AdminSystem.fdFields.fdForce_Login := True;
   end;
 
-  chkUsage.Caption := TProduct.Rebrand(chkUsage.Caption);
-  lOnline.Caption := TProduct.Rebrand(lOnline.Caption);
+  DoReBranding();
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TdlgAdminOptions.LoadSettingsFromAdmin;
@@ -785,6 +784,12 @@ end;
 procedure TdlgAdminOptions.ckBulkExportClick(Sender: TObject);
 begin
   UpdateControlsOnForm;
+end;
+
+procedure TdlgAdminOptions.DoRebranding;
+begin
+  chkUsage.Caption := 'Allow ' + bkBranding.BrandName + ' to collect software &usage information';
+  lOnline.Caption := BRAND_ONLINE;
 end;
 
 procedure TdlgAdminOptions.chkExtractQtyClick(Sender: TObject);

@@ -458,8 +458,8 @@ const
 
       'Available',
       'Open',
-      BKBOOKSNAME,
-      BKBOOKSNAME + ' (Secure)',
+      BRAND_BOOKS,
+      BRAND_BOOKS + ' (Secure)',
 
       'Action Required Now',
       'Action Required Later',
@@ -501,8 +501,8 @@ const
       'Invalid Files',
       'Read-Only',
       'Archived',
-      'Files via BankLink Online',
-      'Non-BankLink Online Files'
+      'Files via ' + BRAND_ONLINE,
+      'Non-' + BRAND_ONLINE + ' Files'
      );
 
 const
@@ -1960,7 +1960,7 @@ begin
     ntGroup :
     begin
       if Column = 0 then
-        CellText := TProduct.Rebrand(gidNames[ NodeData.tdFolderID])
+        CellText := gidNames[ NodeData.tdFolderID]
       else
         Exit;
     end;
@@ -2143,7 +2143,7 @@ begin
               if not ( sysClientRec^.cfSchd_Rep_Method_Filter in [ srdMin..srdMax]) then
                 Exit;
 
-              CellText := TProduct.Rebrand(srdNames[ sysClientRec^.cfSchd_Rep_Method_Filter]);
+              CellText := srdNames[ sysClientRec^.cfSchd_Rep_Method_Filter];
             end;
           end;
 
@@ -3319,7 +3319,7 @@ begin
     TargetCanvas.Font := appimages.Font;
     TargetCanvas.Font.Style := [fsBold];
 
-    S := TProduct.Rebrand(gidNames[ NodeData.tdFolderID]);
+    S := gidNames[ NodeData.tdFolderID];
 
     InflateRect( ItemRect, -6, -2 );
     DrawText( TargetCanvas.Handle, PChar( S ), StrLen( PChar( S ) ), ItemRect, DT_LEFT or DT_VCENTER or DT_SINGLELINE);

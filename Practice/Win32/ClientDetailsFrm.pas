@@ -186,6 +186,8 @@ type
     procedure WMActivate(var w_Message: TWMActivate); message WM_ACTIVATE;
 
     procedure AfterShow(var Message: TMessage); message UM_AFTERSHOW;
+
+    procedure DoRebranding();
   public
     { Public declarations }
     destructor Destroy; override;
@@ -246,29 +248,28 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmClientDetails.FormCreate(Sender: TObject);
 begin
-   FLoading := False;
-   FEnableClientSettings := true;
-   bkXPThemes.ThemeForm( Self);
-   lblCountry.Font.Name := Font.Name;
-   lblConnectName.caption := bkBranding.BConnectName + ' Co&de';
-   chkOffsite.Caption := 'Allow client to download directly via ' + TProduct.BrandName + ' &Secure';
+  FLoading := False;
+  FEnableClientSettings := true;
+  bkXPThemes.ThemeForm( Self);
+  lblCountry.Font.Name := Font.Name;
+  lblConnectName.caption := bkBranding.BConnectName + ' Co&de';
+  chkOffsite.Caption := 'Allow client to download directly via ' + TProduct.BrandName + ' &Secure';
 
-   SetUpHelp;
+  SetUpHelp;
 
-   eFinYear.Epoch         := BKDATEEPOCH;
-   eFinYear.PictureMask   := BKDATEFORMAT;
+  eFinYear.Epoch         := BKDATEEPOCH;
+  eFinYear.PictureMask   := BKDATEFORMAT;
 
-   SetPasswordFont(ePassword);
-   SetPassWordFont(eConfirm);
+  SetPasswordFont(ePassword);
+  SetPassWordFont(eConfirm);
 
-   cmbOSDMethod.Clear;
-   cmbOSDMethod.Items.AddObject( bkConst.dfNames[ dfConnect], TObject( dfConnect));
-   cmbOSDMethod.Items.AddObject( bkConst.dfNames[ dfFloppy], TObject( dfFloppy));
+  cmbOSDMethod.Clear;
+  cmbOSDMethod.Items.AddObject( bkConst.dfNames[ dfConnect], TObject( dfConnect));
+  cmbOSDMethod.Items.AddObject( bkConst.dfNames[ dfFloppy], TObject( dfFloppy));
 
-   ChangingDiskID := false;
-   grpBooks.Caption := bkBranding.BooksProductName + ' Clients';
+  ChangingDiskID := false;
 
-   grpBOClients.Caption := TProduct.Rebrand(grpBOClients.Caption);
+  DoRebranding();
 end;
 
 //------------------------------------------------------------------------------
@@ -413,7 +414,7 @@ end;
 
 procedure TfrmClientDetails.SetProductsCaption(NewCaption: string);
 begin
-  lblClientBOProducts.Caption := TProduct.Rebrand(NewCaption);
+  lblClientBOProducts.Caption := NewCaption;
 end;
 
 procedure TfrmClientDetails.SetUpHelp;
@@ -1670,6 +1671,13 @@ destructor TfrmClientDetails.Destroy;
 begin
   FreeAndNil(FClientReadDetail);
   inherited;
+end;
+
+//------------------------------------------------------------------------------
+procedure TfrmClientDetails.DoRebranding;
+begin
+  grpBooks.Caption := BRAND_BOOKS + ' Clients';
+  grpBOClients.Caption := BRAND_ONLINE + ' Clients';
 end;
 
 //------------------------------------------------------------------------------

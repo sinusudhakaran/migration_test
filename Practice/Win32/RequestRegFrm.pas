@@ -51,6 +51,7 @@ type
     function VerifyForm: Boolean;
     procedure SetupForm(ServiceAgreementVersion, ServiceAgreementSignee, ServiceAgreementSigneeTitle: String);
     function SendEmail: Boolean;
+    procedure DoRebranding();
   public
     { Public declarations }
   end;
@@ -66,7 +67,10 @@ uses
   WarningMoreFrm,
   MailFrm,
   LogUtil,
-  Admin32, bkProduct, bkBranding;
+  Admin32,
+  bkProduct,
+  bkBranding,
+  bkConst;
 
 {$R *.dfm}
 //------------------------------------------------------------------------------
@@ -96,6 +100,16 @@ begin
     if (Trim(edtEmail.Text) = '') then
       edtEmail.Text := pUser_Rec(cbAdminName.Items.Objects[cbAdminName.ItemIndex]).usEMail_Address;
   end;
+end;
+
+//------------------------------------------------------------------------------
+procedure TRequestregForm.DoRebranding;
+begin
+  Caption := 'Request ' + BRAND_ONLINE + ' Registration';
+  lblSecureCode.Caption := BRAND_SECURE + ' Code';
+  lblInfo.Caption := 'When your secure area has been created, a member of the ' +
+                     BRAND_SUPPORT + ' Team will contact the above ' + BRAND_ONLINE + ' ' +
+                     'Administrator to provide assistance with using the ' + BRAND_ONLINE + ' service.';
 end;
 
 //------------------------------------------------------------------------------
@@ -134,9 +148,7 @@ end;
 
 procedure TRequestregForm.FormCreate(Sender: TObject);
 begin
-  Caption := TProduct.Rebrand(Caption);
-  lblSecureCode.Caption := TProduct.Rebrand(lblSecureCode.Caption);
-  lblInfo.Caption := TProduct.Rebrand(lblInfo.Caption);
+  DoRebranding();
 end;
 
 //------------------------------------------------------------------------------

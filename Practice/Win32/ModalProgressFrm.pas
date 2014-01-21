@@ -135,7 +135,7 @@ end;
 
 procedure TfrmModalProgress.UpdateProgressLabel(const ProgressLabel: String);
 begin
-  lblProgress.Caption := TProduct.Rebrand(ProgressLabel);
+  lblProgress.Caption := ProgressLabel;
 
   if not lblProgress.Visible then
   begin
@@ -180,8 +180,8 @@ begin
   ProgressForm := TfrmModalProgress.Create(Owner);
 
   try
-    ProgressForm.Caption := TProduct.Rebrand(Caption);
-    ProgressForm.Title := TProduct.Rebrand(Title);
+    ProgressForm.Caption := Caption;
+    ProgressForm.Title := Title;
     ProgressForm.OnStartProcess := OnStartProcessHandler;
     ProgressForm.PopupParent := Owner;
     ProgressForm.PopupMode := pmExplicit;
@@ -199,8 +199,8 @@ begin
   ProgressForm := TfrmModalProgress.Create(Owner);
 
   try
-    ProgressForm.Caption := TProduct.Rebrand(Caption);
-    ProgressForm.Title := TProduct.Rebrand(Title);
+    ProgressForm.Caption := Caption;
+    ProgressForm.Title := Title;
     ProgressForm.ProgressData := ProgressData;
     ProgressForm.RaiseException := False;
     ProgressForm.OnStartProcessEx := OnStartProcessHandlerEx;
@@ -267,7 +267,7 @@ procedure TfrmModalProgress.UpdateProgress(const ProgressLabel: String; StepSize
 var
   Remainder: Double;
 begin
-  lblProgress.Caption := TProduct.Rebrand(ProgressLabel);
+  lblProgress.Caption := ProgressLabel;
 
   if not lblProgress.Visible then
   begin

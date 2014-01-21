@@ -98,8 +98,8 @@ begin
      Self.Hide;
    end;
 
-   lblLine1.caption  := TProduct.Rebrand(Msg1);
-   lblLine2.caption  := TProduct.Rebrand(Msg2);
+   lblLine1.caption  := Msg1;
+   lblLine2.caption  := Msg2;
 
    if (Perc >= 0) and (Perc <= 100) then begin
      pbarAppStatus.percent := round(Perc);

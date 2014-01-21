@@ -295,7 +295,7 @@ begin
       if ProductConfigService.Online then
         ProductConfigService.UpdateUserAllowOnlineSetting;
 
-      lvUsers.Column[4].Caption := TProduct.Rebrand(lvUsers.Column[4].Caption);
+      lvUsers.Column[4].Caption := BRAND_ONLINE;
     end;
 
     with AdminSystem, fdSystem_User_List do

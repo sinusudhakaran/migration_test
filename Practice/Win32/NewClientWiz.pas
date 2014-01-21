@@ -90,7 +90,7 @@ const
 var
   Option      : Array[ TOptions ] of TOptionRec = (
                 ( Title    : 'Client Details';
-                  Notes    : 'BankLink will take you through the steps to create a new '
+                  Notes    : BRAND_FULL_NAME + ' will take you through the steps to create a new '
                            + 'Client File.  Only Step 1 needs to be completed now.  All other steps '
                            + 'can be completed at a later stage.  Click Client Details to begin.';
                   Visible   : False;
@@ -100,7 +100,7 @@ var
                 ( Title    : 'Accounting System';
                   Notes    : 'Specify the accounting system used and the location of the Client''s '
                            + 'Chart of Accounts in the accounting system.  If there is no direct '
-                           + 'link between BankLink and the specified accounting system '
+                           + 'link between ' + BRAND_FULL_NAME + ' and the specified accounting system '
                            + 'the Load Chart From field will be disabled.  You can create a chart manually '
                            + 'in Step 4.';
                   Visible   : False;
@@ -108,7 +108,7 @@ var
                   Complete  : False  ),
 
                 ( Title    : 'GST Set Up';
-                  Notes    : 'Practice GST Rates are loaded into the Client File by default. '
+                  Notes    : BRAND_PRACTICE_SHORT_NAME + ' GST Rates are loaded into the Client File by default. '
                            + 'Enter the GST Reporting details.';
                   Visible   : False;  // Set by Practice options
                   Available : False;
@@ -184,10 +184,10 @@ begin
              begin
                if TOptionRec(Option[opAccountSys]).Complete = false then
                begin
-                 Msg := 'You have selected to use ' + bkBranding.NotesOnlineProductName + ' for this client. ' +
-                        'Please confirm the ' + bkBranding.ProductOnlineName + ' details for this client. ' +
+                 Msg := 'You have selected to use ' + BRAND_NOTES_ONLINE + ' for this client. ' +
+                        'Please confirm the ' + BRAND_ONLINE + ' details for this client. ' +
                         #13#10 + #13#10 +
-                        'The ' + bkBranding.ProductOnlineName + ' settings for this client will be displayed ' +
+                        'The ' + BRAND_ONLINE + ' settings for this client will be displayed ' +
                         'at the end of this wizard.';
                  HelpfulInfoMsg(Msg, 0);
                end;
@@ -207,7 +207,7 @@ begin
                else if (ProductConfigService.IsPracticeDeactivated(false)) then
                  PraticeState := 'deactivated';
 
-               Msg := bkBranding.ProductOnlineName + ' is currently %s. The Web Export Format ' +
+               Msg := BRAND_ONLINE + ' is currently %s. The Web Export Format ' +
                       ' will be set to ''None''.';
 
                HelpfulInfoMsg(format(Msg,[PraticeState]), 0);
@@ -524,17 +524,19 @@ begin
    SetStepStatus
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-procedure TwizNewClient.AnyStepMouseMove(Sender: TObject;
-  Shift: TShiftState; X, Y: Integer);
+procedure TwizNewClient.AnyStepMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
 begin
-   with ( Sender as TBitBtn ) do begin
-      if not ( TOptions( Tag ) = MouseStep ) then begin
-         MouseStep := TOptions( Tag );
-         lblTitle.Caption := TProduct.Rebrand(Option[ MouseStep ].Title);
-         lblNotes.Caption := TProduct.Rebrand(Option[ MouseStep ].Notes);
-      end;
-   end;
+  with ( Sender as TBitBtn ) do
+  begin
+    if not ( TOptions( Tag ) = MouseStep ) then
+    begin
+      MouseStep := TOptions( Tag );
+      lblTitle.Caption := Option[ MouseStep ].Title;
+      lblNotes.Caption := Option[ MouseStep ].Notes;
+    end;
+  end;
 end;
+
 procedure TwizNewClient.btnAcceptClick(Sender: TObject);
 var
   Msg: String;
@@ -547,7 +549,7 @@ begin
       begin
         Msg := Format( 'The Web Export Format for this client is set to %s. ' +
                         #13#10#13#10 + 'If you want to keep this setting, please go back to Client Details and enter a Contact Name and an Email address, or change the Web Export Format under Accounting System before clicking OK',
-                        [bkBranding.NotesOnlineProductName]);
+                        [BRAND_NOTES_ONLINE]);
                         
         HelpfulWarningMsg(Msg, 0);
 
@@ -777,10 +779,10 @@ begin
      (UseBankLinkOnline) and
      (ProductConfigService.GetOnlineClientIndex(MyClient.clFields.clCode) > -1) then
   begin
-    Msg := 'A ' + bkBranding.ProductOnlineName + ' client with this client code already exists. ' +
-           'Linking the ' + bkBranding.PracticeProductName + ' and ' + bkBranding.ProductOnlineName + ' clients cannot ' +
+    Msg := 'A ' + BRAND_ONLINE + ' client with this client code already exists. ' +
+           'Linking the ' + BRAND_PRACTICE + ' and ' + BRAND_ONLINE + ' clients cannot ' +
            'be undone. Are you sure you want to link this client file to the ' +
-           'following ' + bkBranding.ProductOnlineName + ' client? (%s) - (%s)';
+           'following ' + BRAND_ONLINE + ' client? (%s) - (%s)';
 
     if AskYesNo('New Client Wizard',
                 format(Msg, [MyClient.clFields.clCode, MyClient.clFields.clName]),

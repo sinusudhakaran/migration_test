@@ -30,6 +30,7 @@ type
     function GetContraCode: String;
     function GetBankAccountName: String;
     procedure SetBankAccountName(const Value: String);
+    procedure DoRebranding();
   public
     class function EnterContraCode(const BankAccountName: String; out ContraCode: string): Boolean; overload; static;
     class function EnterContraCode(const bankAccountName: String; PopupParent: TCustomForm; out ContraCode: string): Boolean; overload; static;
@@ -91,7 +92,7 @@ begin
 
   FRemovingMask := False;
 
-  lblMessage.Caption := TProduct.Rebrand(lblMessage.Caption);
+  DoRebranding();
 end;
 
 function TfrmContraCodeEntry.GetBankAccountName: String;
@@ -128,6 +129,12 @@ begin
   FBankAccountName := Value;
 
   lblMessage.Caption := Format(lblMessage.Caption, [Value]);
+end;
+
+procedure TfrmContraCodeEntry.DoRebranding;
+begin
+  lblMessage.Caption := BRAND_PRACTICE + ' needs to know the account code in your' +
+                        ' client''s chart for the bank account %s';
 end;
 
 procedure TfrmContraCodeEntry.edtBankAccountCodeChange(Sender: TObject);

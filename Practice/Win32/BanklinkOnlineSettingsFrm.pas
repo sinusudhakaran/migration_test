@@ -96,6 +96,8 @@ type
     procedure AdjustControlPositions;
 
     function GetClientSubscriptionCategory(SubscriptionId: TBloGuid): TBloCatalogueEntry;
+
+    procedure DoRebranding();
   protected
     function Validate : Boolean;
     procedure FillClientDetails;
@@ -285,10 +287,7 @@ end;
 
 procedure TfrmBanklinkOnlineSettings.FormCreate(Sender: TObject);
 begin
-  Caption := TProduct.Rebrand(Caption);
-  chkDeliverData.Caption := TProduct.Rebrand(chkDeliverData.Caption);
-  lblSecureCode.Caption := TProduct.Rebrand(lblSecureCode.Caption);
-  lblSelectProducts.Caption := TProduct.Rebrand(lblSelectProducts.Caption);
+  DoRebranding();
 end;
 
 procedure TfrmBanklinkOnlineSettings.FormDestroy(Sender: TObject);
@@ -510,6 +509,16 @@ begin
   AvailableServiceArray := nil;
 
   inherited;
+end;
+
+//------------------------------------------------------------------------------
+procedure TfrmBanklinkOnlineSettings.DoRebranding;
+begin
+  Caption := BRAND_ONLINE + ' Settings';
+  chkDeliverData.Caption := 'Deli&ver data direct to ' + BRAND_ONLINE;
+  lblSecureCode.Caption := '&' + BRAND_SECURE_ONLINE + ' Code';
+  lblSelectProducts.Caption := 'Select the ' + BRAND_ONLINE + ' products that you wish ' +
+                               'to have available for this client:';
 end;
 
 //------------------------------------------------------------------------------

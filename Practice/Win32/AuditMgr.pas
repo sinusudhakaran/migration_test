@@ -326,9 +326,9 @@ const
      'Opening balances',
      'Unpresented Items',
      'Division & Sub-Group Headings',
-     'BankLink Notes',
-     'BankLink Notes Online',
-     'BankLink Books',
+     BRAND_NOTES,
+     BRAND_NOTES_ONLINE,
+     BRAND_BOOKS,
      'Exchange Rates',
      'Exchange Gain/Loss entries');
 
@@ -553,7 +553,7 @@ begin
 {$IFNDEF LOOKUPDLL}
   Result := '';
   if (AAuditType <= arMax)then
-    Result := TProduct.Rebrand(arNames[AAuditType])
+    Result := arNames[AAuditType]
   else if AAuditType = arAll then
     Result := 'All';
 {$ENDIF}

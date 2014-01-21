@@ -1550,7 +1550,7 @@ begin
               SkipColumn;
 
             if cfSchd_Rep_Method in [srdMin..srdMax] then
-              PutString(TProduct.Rebrand(srdNames[cfSchd_Rep_Method]))
+              PutString(srdNames[cfSchd_Rep_Method])
             else
               SkipColumn;            
 

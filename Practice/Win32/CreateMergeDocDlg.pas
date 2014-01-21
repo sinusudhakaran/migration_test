@@ -40,6 +40,7 @@ type
     FDataSource: string;
     procedure CreateDoc;
     function VerifyForm: Boolean;
+    procedure DoRebranding();
   public
     { Public declarations }
     property Word: TOpWord read FowMerge write FowMerge;
@@ -54,9 +55,23 @@ procedure PerformDocCreation(WordObj: TOpWord; var LoseFocus: Boolean);
 
 implementation
 
-uses ImagesFrm, WarningMoreFrm, ErrorMoreFrm, InfoMoreFrm, YesNoDlg, Globals, WinUtils,
-  GlobalDirectories, bkXPThemes, progress, LogUtil, bkHelp, ShellAPI,
-  bkBranding, bkProduct;
+uses
+  ImagesFrm,
+  WarningMoreFrm,
+  ErrorMoreFrm,
+  InfoMoreFrm,
+  YesNoDlg,
+  Globals,
+  WinUtils,
+  GlobalDirectories,
+  bkXPThemes,
+  progress,
+  LogUtil,
+  bkHelp,
+  ShellAPI,
+  bkBranding,
+  bkProduct,
+  bkConst;
 
 {$R *.dfm}
 
@@ -144,6 +159,13 @@ begin
     LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Create Mail Merge Document Failure: ' + E.Message);
    end;
   end;
+end;
+
+procedure TfrmCreateMergeDoc.DoRebranding;
+begin
+  Label5.Caption := 'The document will be linked to a ' + BRAND_SHORT_NAME + ' ' +
+                    'Data Source containing the supported Mail Merge fields. After ' +
+                    'creation, you can add the Mail Merge fields to the document using Word.';
 end;
 
 // Verify the form is all ok
@@ -236,7 +258,7 @@ begin
   btnFromFile.Glyph := ImagesFrm.AppImages.imgFindStates.Picture.Bitmap;
   ImagesFrm.AppImages.Misc.GetBitmap(MISC_FINDFOLDER_BMP,btnToFile.Glyph);
 
-  Label5.Caption := TProduct.Rebrand(Label5.Caption);
+  DoRebranding();
 end;
 
 // Browse for saved doc

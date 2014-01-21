@@ -1879,7 +1879,7 @@ begin
                   else
                     AddAutomaticToDoItem( aClient.clFields.clCode,
                                    ttyExportBNotes,
-                                   Format( TProduct.Rebrand(ToDoMsg_ManualECoding),
+                                   Format( ToDoMsg_ManualECoding,
                                            [ bkDate2Str( srOptions.srTrxFromDate),
                                              bkDate2Str( srOptions.srTrxToDate),
                                              bkDate2Str(CurrentDate)
