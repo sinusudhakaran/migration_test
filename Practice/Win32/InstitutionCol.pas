@@ -380,7 +380,7 @@ begin
 
   if Length(accPortion) = 8 then
     accPortion := '00' + accPortion
-  else if Length(AccPortion) = 8 then
+  else if Length(AccPortion) = 9 then
     accPortion := '0' + accPortion;
 
   result := bsbNumber + accPortion;
