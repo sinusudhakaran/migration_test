@@ -72,7 +72,7 @@ begin
   CheckNotEquals(0, Integer(AdminSystem.fdSystem_Client_Type_List.FindName('Coding Report')), 'Coding Report not Found');
   CheckNotEquals(0, Integer(AdminSystem.fdSystem_Client_Type_List.FindName('Notes')), 'Notes not Found');
   CheckNotEquals(0, Integer(AdminSystem.fdSystem_Client_Type_List.FindName('Books')), 'Books not Found');
-  CheckNotEquals(0, Integer(AdminSystem.fdSystem_Client_Type_List.FindName('Books via MYOB BankLink Online')), 'Books via MYOB BankLink Online not Found');
+  CheckNotEquals(0, Integer(AdminSystem.fdSystem_Client_Type_List.FindName('Books via BankLink Online')), 'Books via BankLink Online not Found');
   CheckNotEquals(0, Integer(AdminSystem.fdSystem_Client_Type_List.FindName('Books Secure')), 'Books Secure not Found');
   CheckNotEquals(0, Integer(AdminSystem.fdSystem_Client_Type_List.FindName('CodeIT')), 'CodeIT not Found');
   CheckNotEquals(0, Integer(AdminSystem.fdSystem_Client_Type_List.FindName('GST')), 'GST not Found');
