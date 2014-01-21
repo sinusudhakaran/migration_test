@@ -16,8 +16,15 @@ unit Globals;
 //------------------------------------------------------------------------------
 {$IFDEF LOOKUPDLL}
 interface
+
 uses
-  sysobj32, appuserobj, sysUtils, Forms, IPClientLocking;
+  sysobj32,
+  appuserobj,
+  sysUtils,
+  Forms,
+  bkConst,
+  IPClientLocking;
+
 const
 
   SHORTAPPNAME        = BRAND_FULL_NAME;
