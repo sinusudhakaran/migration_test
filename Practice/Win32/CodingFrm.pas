@@ -3434,6 +3434,25 @@ var
                Result := Pos(FSearchText, MakeAmount(Value)) > 0;
           end;
 
+          // Quantities have 4 decimal places, so we need a special function for them
+          function TestQuantity(const Value: double; IgnoreCommas: boolean = false): Boolean;
+          var
+            FilteredAmount, FilteredSearchText: string;
+          begin
+             Result := False;
+             if Value = 0 then
+                Exit;
+             if IgnoreCommas then
+             begin
+               FilteredSearchText := StringReplace(FSearchText, ',', '', [rfReplaceAll]);
+               FilteredAmount := StringReplace(FormatFloat('#,##0.0000;(#,##0.0000)',Value/10000),
+                                               ',', '', [rfReplaceAll]);
+               Result := Pos(FilteredSearchText, FilteredAmount) > 0;
+             end else
+               Result := Pos(FSearchText, FloatToStr(Value)) > 0;
+          end;
+
+
           function TestDate(const Value: TstDate): Boolean;
           begin
              Result := False;
@@ -3493,7 +3512,7 @@ var
                       Exit;
                 end;
 
-            ceQuantity : if TestText( Quantity2Str(pT.txQuantity)) then
+            ceQuantity : if TestQuantity( pT.txQuantity, True) then
                 Exit;
 
             ceEntryType : if TestText(GetFormattedEntryType(pT)) then
@@ -3606,8 +3625,8 @@ var
 
                     ceGSTAmount:   if TestMoney(pD.dsGST_Amount, True) then
                                      Exit;
-
-                    ceQuantity:    if TestText( Quantity2Str(pD.dsQuantity)) then
+                                     
+                    ceQuantity :   if TestQuantity( pD.dsQuantity, True) then
                                      Exit;
 
                     ceNarration:   if TestText(pD.dsGL_Narration) then
