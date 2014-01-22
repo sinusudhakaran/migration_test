@@ -79,7 +79,7 @@ end;
 procedure TfrmDeleteRequest.DoRebranding;
 begin
   LDelete.Caption := 'You should only mark accounts as deleted if the account is ' +
-                     'no longer with ' + BRAND_FULL_NAME;
+                     'no longer with ' + BRAND_FULL_NAME + ' service.';
 end;
 
 procedure TfrmDeleteRequest.EDateChange(Sender: TObject);

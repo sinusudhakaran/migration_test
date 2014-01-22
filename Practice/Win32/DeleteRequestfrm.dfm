@@ -4,7 +4,7 @@ object frmDeleteRequest: TfrmDeleteRequest
   BorderStyle = bsDialog
   Caption = 'Request Account Deletes'
   ClientHeight = 450
-  ClientWidth = 623
+  ClientWidth = 637
   Color = clBtnFace
   ParentFont = True
   OldCreateOrder = False
@@ -16,29 +16,43 @@ object frmDeleteRequest: TfrmDeleteRequest
   object EAccounts: TMemo
     Left = 0
     Top = 82
-    Width = 623
+    Width = 637
     Height = 241
     Align = alClient
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -13
+    Font.Name = 'Tahoma'
+    Font.Style = []
     Lines.Strings = (
       'mAccounts')
+    ParentFont = False
     ReadOnly = True
     ScrollBars = ssBoth
     TabOrder = 0
+    ExplicitWidth = 623
   end
   object Prequest: TPanel
     Left = 0
     Top = 41
-    Width = 623
+    Width = 637
     Height = 41
     Align = alTop
     BevelOuter = bvNone
     TabOrder = 1
+    ExplicitWidth = 623
     object Label1: TLabel
       Left = 8
       Top = 12
-      Width = 219
-      Height = 13
+      Width = 259
+      Height = 16
       Caption = 'Request deletion of the following accounts on'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -13
+      Font.Name = 'Tahoma'
+      Font.Style = []
+      ParentFont = False
     end
     object EDate: TOvcPictureField
       Left = 326
@@ -59,9 +73,15 @@ object frmDeleteRequest: TfrmDeleteRequest
       EFColors.Highlight.BackColor = clHighlight
       EFColors.Highlight.TextColor = clHighlightText
       Epoch = 0
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -13
+      Font.Name = 'Tahoma'
+      Font.Style = []
       InitDateTime = False
       MaxLength = 8
       Options = [efoCaretToEnd]
+      ParentFont = False
       PictureMask = 'DD/mm/yy'
       TabOrder = 0
       OnChange = EDateChange
@@ -73,11 +93,12 @@ object frmDeleteRequest: TfrmDeleteRequest
   object pTop: TPanel
     Left = 0
     Top = 0
-    Width = 623
+    Width = 637
     Height = 41
     Align = alTop
     BevelOuter = bvNone
     TabOrder = 2
+    ExplicitWidth = 623
     object CheckBox: TCheckBox
       Left = 8
       Top = 13
@@ -85,6 +106,12 @@ object frmDeleteRequest: TfrmDeleteRequest
       Height = 17
       Caption = 'Mark accounts as deleted'
       Checked = True
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -13
+      Font.Name = 'Tahoma'
+      Font.Style = []
+      ParentFont = False
       State = cbChecked
       TabOrder = 0
       OnClick = CheckBoxClick
@@ -93,83 +120,124 @@ object frmDeleteRequest: TfrmDeleteRequest
   object pBottom: TPanel
     Left = 0
     Top = 409
-    Width = 623
+    Width = 637
     Height = 41
     Align = alBottom
     TabOrder = 3
+    ExplicitWidth = 623
     DesignSize = (
-      623
+      637
       41)
     object btnOK: TButton
-      Left = 456
+      Left = 470
       Top = 8
       Width = 75
       Height = 25
       Anchors = [akRight, akBottom]
       Caption = 'OK'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -13
+      Font.Name = 'Tahoma'
+      Font.Style = []
+      ParentFont = False
       TabOrder = 0
       OnClick = btnOKClick
+      ExplicitLeft = 456
     end
     object btnCancel: TButton
-      Left = 537
+      Left = 551
       Top = 8
       Width = 75
       Height = 25
       Anchors = [akRight, akBottom]
       Caption = 'Cancel'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -13
+      Font.Name = 'Tahoma'
+      Font.Style = []
       ModalResult = 2
+      ParentFont = False
       TabOrder = 1
+      ExplicitLeft = 537
     end
   end
   object PRequestText: TPanel
     Left = 0
     Top = 368
-    Width = 623
+    Width = 637
     Height = 41
     Align = alBottom
     BevelOuter = bvNone
     TabOrder = 4
+    ExplicitWidth = 623
     object lProcessed: TLabel
       Left = 59
       Top = 6
-      Width = 285
-      Height = 13
+      Width = 339
+      Height = 16
       Caption = 'Please allow 14 days for a delete request to be processed. '
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -13
+      Font.Name = 'Tahoma'
+      Font.Style = []
+      ParentFont = False
     end
     object lCharges: TLabel
       Left = 59
       Top = 25
-      Width = 278
-      Height = 13
+      Width = 330
+      Height = 16
       Caption = 'Normal charges apply until the bank deletes the accounts.'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -13
+      Font.Name = 'Tahoma'
+      Font.Style = []
+      ParentFont = False
     end
   end
   object PDeleteText: TPanel
     Left = 0
     Top = 323
-    Width = 623
+    Width = 637
     Height = 45
     Align = alBottom
     BevelOuter = bvNone
     TabOrder = 5
     Visible = False
+    ExplicitWidth = 623
     object LDelete: TLabel
       Left = 59
       Top = 6
-      Width = 398
-      Height = 13
+      Width = 476
+      Height = 16
       Caption = 
         'You should only mark accounts as deleted if the account is no lo' +
         'nger with BankLink.'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -13
+      Font.Name = 'Tahoma'
+      Font.Style = []
+      ParentFont = False
     end
     object LDownload: TLabel
       Left = 59
       Top = 25
-      Width = 398
-      Height = 13
+      Width = 473
+      Height = 16
       Caption = 
         'Downloaded accounts will be moved to the deleted section of the ' +
         'download report.'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -13
+      Font.Name = 'Tahoma'
+      Font.Style = []
+      ParentFont = False
     end
     object Image1: TImage
       Left = 4
