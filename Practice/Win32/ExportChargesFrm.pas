@@ -169,9 +169,10 @@ type
     procedure AskAPS(filter: string; apsType: Byte; client: string = '-1');
     function GetAPSId(search: string; apsType: Byte; client: string = '-1'): Integer;
     function ExportToCSVFile(toFile : string): Boolean;
-    function ExportToMYOBAOFile(toFile : string): Boolean;
-    function ExportToMYOBFile(toFile : string): Boolean;
-    function GetCSVRowData(forRow : Longint) : String;
+    function ExportToMYOBAOFile(toFile : string; var NumExcludedRows: integer): Boolean;
+    function ExportToMYOBFile(toFile : string; var NumExcludedRows: integer): Boolean;
+    function CheckChargeIsZero(RowNum: integer): Boolean;
+    function GetCSVRowData(forRow : Longint; var IncludeRow: boolean) : String;
     procedure SetButtons(Status: Boolean);
     procedure ActivateCell(c, r: Integer);
     procedure StoreData;
@@ -1032,8 +1033,11 @@ procedure TfrmExportCharges.WriteExportFile;
 var
   Filename: string;
   OK: Boolean;
+  NumExcludedRows: integer;
+  NumExportedCharges: integer;
 begin
   OK := True;
+  NumExcludedRows := 0;
   if xcHasFixedFilename[ExportType] then
   begin
     if eTo.Text = '' then
@@ -1051,14 +1055,17 @@ begin
   StoreData;
   case ExportType of
     xcAPS:   OK := ExportToCSVFile(Filename);
-    xcMYOB:  OK := ExportToMYOBFile(FileName);
-    xcMYOBAO:OK := ExportToMYOBAOFile(FileName);
-    xcHandi: OK := ExportToMYOBAOFile(FileName);
+    xcMYOB:  OK := ExportToMYOBFile(FileName, NumExcludedRows);
+    xcMYOBAO:OK := ExportToMYOBAOFile(FileName, NumExcludedRows);
+    xcHandi: OK := ExportToMYOBAOFile(FileName, NumExcludedRows);
     xcOther: OK := ExportToCSVFile(Filename);
   end;
   if OK then
   begin
-    HelpfulInfoMsg('Exported ' + IntToStr(tgCharges.Rows) + ' charges to '#13 + Filename + '.', 0);
+    NumExportedCharges := tgCharges.Rows - NumExcludedRows;
+    if NumExportedCharges < 0 then // this should never be true
+      NumExportedCharges := 0;
+    HelpfulInfoMsg('Exported ' + IntToStr(NumExportedCharges) + ' charges to '#13 + Filename + '.', 0);
     Closing := True;
     Close;
   end;
@@ -1570,14 +1577,28 @@ begin
   end;
 end;
 
+// Floating point values may be slightly different from zero
+function TfrmExportCharges.CheckChargeIsZero(RowNum: integer): Boolean;
+begin
+  Result := (Abs(StrToFloat(tgCharges.Cell[colIncreasedCharge, RowNum])) < 0.00000001);
+end;
+
 // Get data for a row
-function TfrmExportCharges.GetCSVRowData(forRow : Longint) : String;
+function TfrmExportCharges.GetCSVRowData(forRow : Longint; var IncludeRow: boolean) : String;
 var
   i: Integer;
   s: string;
 begin
   with tgCharges do
   begin
+    if CheckChargeIsZero(forRow) and (FExportType in [xcMYOB, xcMYOBAO]) then
+    begin
+      // No rows with empty charges for MYOB AO/MYOB AE exports
+      IncludeRow := False;
+      Exit;
+    end;
+    IncludeRow := True;
+
     if (FExportType = xcMYOBAO) or (FExportType = xcHandi) then
       Result := FormatDateTime('dd/mm/yy', eDate.Date) + ExportDelimiter
     else
@@ -1613,6 +1634,8 @@ var
   exportFile: TStringList;
   iRow, i: Integer;
   sRowText: String;
+  RowData: string;
+  IncludeRow: boolean;
 begin
   Result := True;
   with tgCharges do
@@ -1639,7 +1662,9 @@ begin
       iRow := 1;
       while (iRow <= Rows) do
       begin
-        exportFile.Add(GetCSVRowData(iRow));
+        RowData := GetCSVRowData(iRow, IncludeRow);
+        if IncludeRow then
+          exportFile.Add(RowData);
         Inc(iRow);
       end;
       try
@@ -1661,13 +1686,16 @@ begin
 end;
 
 // Export current grid to MYOB AO file
-function TfrmExportCharges.ExportToMYOBAOFile(toFile : string): Boolean;
+function TfrmExportCharges.ExportToMYOBAOFile(toFile : string; var NumExcludedRows: integer): Boolean;
 var
   exportFile: TStringList;
   iRow, i: Integer;
   sRowText: String;
+  RowData: string;
+  IncludeRow: boolean;
 begin
   Result := True;
+  NumExcludedRows := 0;
   with tgCharges do
   begin
     EnableRedraw := False;
@@ -1696,7 +1724,11 @@ begin
       iRow := 1;
       while (iRow <= Rows) do
       begin
-        exportFile.Add(GetCSVRowData(iRow));
+        RowData := GetCSVRowData(iRow, IncludeRow);
+        if IncludeRow then
+          exportFile.Add(RowData)
+        else
+          Inc(NumExcludedRows);
         Inc(iRow);
       end;
       try
@@ -1726,13 +1758,14 @@ Per Unit Cost (optional, use 0 if not using)
 Number of Units (optional, use 0 if not using)
 Charge to client (GST excluded monetary value)
 Narration (256 chars max), can be blank}
-function TfrmExportCharges.ExportToMYOBFile(toFile : string): Boolean;
+function TfrmExportCharges.ExportToMYOBFile(toFile : string; var NumExcludedRows: integer): Boolean;
 var
   exportFile: TStringList;
   iRow: Integer;
   sRowText: String;
 begin
   Result := True;
+  NumExcludedRows := 0;
   with tgCharges do
   begin
     EnableRedraw := False;
@@ -1741,6 +1774,11 @@ begin
       iRow := 1;
       while (iRow <= Rows) do
       begin
+        if CheckChargeIsZero(iRow) and (FExportType in [xcMYOB, xcMYOBAO]) then
+        begin
+          inc(NumExcludedRows);
+          Continue; // don't add this row to the export
+        end;
 {        // strip GST 12.5% in NZ, 10% in AU
         gross := Cell[colCharge, iRow];
         if AdminSystem.fdFields.fdCountry = whAustralia then
