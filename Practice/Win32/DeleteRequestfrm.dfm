@@ -30,7 +30,6 @@ object frmDeleteRequest: TfrmDeleteRequest
     ReadOnly = True
     ScrollBars = ssBoth
     TabOrder = 0
-    ExplicitWidth = 623
   end
   object Prequest: TPanel
     Left = 0
