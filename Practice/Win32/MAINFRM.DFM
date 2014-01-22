@@ -201,26 +201,33 @@ object frmMain: TfrmMain
         Action = ActHomePage
       end
       object RzSpacer1: TRzSpacer
-        Left = 692
+        Left = 718
         Top = 4
       end
       object tbOnline: TRzToolButton
         Left = 428
         Top = 4
-        Width = 144
+        Width = 170
         ImageIndex = 20
         Caption = 'MYOB Banklink Online'
+        Constraints.MinWidth = 170
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -13
+        Font.Name = 'Tahoma'
+        Font.Style = []
+        ParentFont = False
         OnClick = tbOnlineClick
       end
       object tbAbout: TRzToolButton
-        Left = 572
+        Left = 598
         Top = 4
         Caption = 'About'
         Visible = False
         OnClick = mniHelpAboutClick
       end
       object tbClose: TRzToolButton
-        Left = 632
+        Left = 658
         Top = 4
         ImageIndex = 2
         Images = AppImages.Maintain
