@@ -182,7 +182,7 @@ type
     fShowZeros            : boolean;
 
     eAmounts              : Array[1..12] of integer;
-    HideUnusedExceptions  : TStringList;
+    ExceptionsToHideUnused  : TStringList;
     FIsClosing: Boolean; {current edit values for record}
     FChart: TCustomSortChart;
     frmPercentageCalculation: TfrmPercentageCalculation;
@@ -429,7 +429,7 @@ begin
   SetWindowRgn(rgGST.Handle, CreateREctRgn(7, 14, rgGST.Width - 2, rgGST.Height - 2), True);
 
   EnableOrDisablePercentageInvalidControls(True);
-  HideUnusedExceptions := TStringList.Create;
+  ExceptionsToHideUnused := TStringList.Create;
 end;
 
 //------------------------------------------------------------------------------
@@ -1040,7 +1040,7 @@ var
   // particular code
   function ForceShowAccountCode(AccountCode: string): boolean;
   begin
-    Result := (HideUnusedExceptions.IndexOf(AccountCode) <> -1);
+    Result := (ExceptionsToHideUnused.IndexOf(AccountCode) <> -1);
   end;
 
 begin
@@ -1059,7 +1059,8 @@ begin
   begin
     Account := Account_At(AccountIndex);
     pBudgetRec := Budget.buDetail.FindLineByCode(Account.chAccount_Code);
-    if not ShowZeros and not Assigned(pBudgetRec) then
+    if (not ShowZeros and not Assigned(pBudgetRec)) and
+    (ExceptionsToHideUnused.IndexOf(Account.chAccount_Code) = -1) then
     begin
       // GST control rows need to stay visible
       if AutoCalculateGST and IsGSTAccountCode(MyClient, Account.chAccount_Code) then
@@ -1546,7 +1547,7 @@ begin
   // an exception for any chart codes the user has just added, hence the HideUnusedExceptions
   // list. Any codes in this list will not be hidden. The list is cleared whenever Hide Unused
   // is selected.
-  HideUnusedExceptions.Add(NewCode);
+  ExceptionsToHideUnused.Add(NewCode);
 
   //need to add it to the right position, so can't just add it to the end
   //so increase length of FData, move all data that should be after it down one
@@ -2180,8 +2181,8 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmBudget.DoHideUnused;
 begin
-  if Assigned(HideUnusedExceptions) then
-    HideUnusedExceptions.Clear;
+  if Assigned(ExceptionsToHideUnused) then
+    ExceptionsToHideUnused.Clear;
   RefreshTableWithData(false, true, true);
 end;
 
@@ -2226,8 +2227,8 @@ end;
 procedure TfrmBudget.FormDestroy(Sender: TObject);
 begin
    FreeAndNil(FChart);
-   if Assigned(HideUnusedExceptions) then   
-     FreeAndNil(HideUnusedExceptions);
+   if Assigned(ExceptionsToHideUnused) then
+     FreeAndNil(ExceptionsToHideUnused);
    if Assigned( FHint ) then begin
       if FHint.HandleAllocated then FHint.ReleaseHandle;
       FHint.Free;
