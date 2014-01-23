@@ -1542,10 +1542,7 @@ begin
        begin
          if AdminSystem.fdFields.fdUse_BankLink_Online then
          begin
-           if not Assigned(ProductConfigService.Practice) then
-           begin
-             ProductConfigService.GetPractice(True);
-           end;
+           ProductConfigService.DetermineOnlineRegisteredStatus;
 
            if ProductConfigService.OnLine and ProductConfigService.Registered then
            begin
