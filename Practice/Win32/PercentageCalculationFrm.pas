@@ -62,7 +62,8 @@ uses
   bkXPThemes,
   ErrorMoreFrm,
   Globals,
-  imagesfrm;
+  imagesfrm,
+  WarningMoreFrm;
 
 {$R *.dfm}
 
@@ -103,7 +104,7 @@ begin
 
     if (ErrorStrings.Count > 0) then
     begin
-      HelpfulErrorMsg(ErrorStrings.Text, 0);
+      HelpfulWarningMsg(ErrorStrings.Text, 0);
       ModalResult := mrNone;
     end;
   finally
@@ -135,17 +136,17 @@ begin
     if not Assigned(pAcct) then
     begin
       IsValid := False;
-      ErrorMsg := 'The code you have picked is not in the Chart of Accounts.';
+      ErrorMsg := 'The code you have entered is not in the Chart of Accounts.';
     end else
     if CodesMatch then
     begin
       IsValid   := False;
-      ErrorMsg  := 'Please pick a row other than the current row.';
+      ErrorMsg  := 'Please select a row other than the current row.';
     end else
     if not pAcct.chPosting_Allowed then
     begin
       IsValid   := False;
-      ErrorMsg  := 'You cannot pick a non-posting code.';
+      ErrorMsg  := 'You cannot enter a non-posting code.';
     end else
       IsValid := True;
   end;
