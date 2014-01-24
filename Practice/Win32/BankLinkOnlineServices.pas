@@ -2400,14 +2400,14 @@ begin
         if (IgnoreOnlineUser) and (not bAssignedOnlineUser) then
         begin
           if Debugme then
-            LogUtil.LogMsg(lmDebug, UNIT_NAME, 'Before AuthenticateUser Call - SubDomain:' + FSubDomain + ',  Email:' + CurrUser.EmailAddress + ',  Password:' + Password);
+            LogUtil.LogMsg(lmDebug, UNIT_NAME, 'Before AuthenticateUser Call - SubDomain:' + FSubDomain + ',  Email:' + CurrUser.EmailAddress{ + ',  Password:' + Password});
 
           Response := AuthenticationService.AuthenticateUser(FSubDomain, CurrUser.EmailAddress, Password);
         end
         else
         begin
           if Debugme then
-            LogUtil.LogMsg(lmDebug, UNIT_NAME, 'Before AuthenticateUser Call - SubDomain:' + FSubDomain + ',  Email:' + sOnlineUserEmail + ',  Password:' + Password);
+            LogUtil.LogMsg(lmDebug, UNIT_NAME, 'Before AuthenticateUser Call - SubDomain:' + FSubDomain + ',  Email:' + sOnlineUserEmail{ + ',  Password:' + Password});
 
           Response := AuthenticationService.AuthenticateUser(FSubDomain, sOnlineUserEmail, Password);
         end;
