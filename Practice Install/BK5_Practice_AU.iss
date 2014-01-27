@@ -62,8 +62,10 @@ Source: "3rd Party\vcredist_x86.exe"; DestDir: "{app}\Support"
 Source: "AuthorityForms\Client Authority Form.pdf"; DestDir: "{app}"
 Source: "AuthorityForms\CAF_Generator.xlt"; DestDir: "{app}"
 
+Source: "Practice CD Files\AU Samples\CHALET.BK5"; DestDir: "{app}\SAMPLES"
 Source: "Practice CD Files\AU Samples\CHALETCO.BK5"; DestDir: "{app}\SAMPLES"
 Source: "Practice CD Files\AU Samples\FARMS.BK5"; DestDir: "{app}\SAMPLES"
+Source: "Practice CD Files\AU Samples\FERG-TC.BK5"; DestDir: "{app}\SAMPLES"
 Source: "Practice CD Files\AU Samples\JOREST1.BK5"; DestDir: "{app}\SAMPLES"
 
 Source: "Practice CD Files\Templates\SOL6.TPM"; DestDir: "{app}\TEMPLATE"
