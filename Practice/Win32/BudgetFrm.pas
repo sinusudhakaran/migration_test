@@ -246,7 +246,7 @@ type
 
     function HasPercentageFormula(RowIndex: Integer): Boolean;
     procedure UpdatePercentageRows(RefreshTable: boolean);
-    procedure DoInvalidateTable;
+    procedure DoInvalidateTable(DoRefreshTable: boolean);
     procedure DoInvalidateRow(RowNum: integer);
     procedure DoInvalidateColumn(ColNum: integer);
 
@@ -1158,7 +1158,7 @@ begin
   DataAssigned := true;
 
   tblBudget.AllowRedraw := false;
-  DoInvalidateTable;
+  DoInvalidateTable(false);
   tblBudget.AllowRedraw := true;
 
   UpdateShowHideEnabledState;
@@ -1616,7 +1616,7 @@ begin
   end;
 
   tblBudget.RowLimit := Length(FData) + 1;
-  DoInvalidateTable;  {will force reload of current line}
+  DoInvalidateTable(false);  {will force reload of current line}
   tblBudget.AllowRedraw := true;
   if SetActive then
     tblBudget.SetActiveCell(I + 1, tblBudget.ActiveCol);
@@ -1788,7 +1788,7 @@ begin
       RefreshTableWithData(fShowZeros, True, True);
       UpdateShowHideEnabledState;
     finally
-      DoInvalidateTable;  {will force reload of current line}
+      DoInvalidateTable(false);  {will force reload of current line}
       AllowRedraw := true;
     end;
   end;
@@ -1812,9 +1812,9 @@ end;
 
 // There are enough possible actions that can muck up the percentages that it makes
 // sense to simply update any percentage based rows whenever the table is invalidated
-procedure TfrmBudget.DoInvalidateTable;
+procedure TfrmBudget.DoInvalidateTable(DoRefreshTable: boolean);
 begin
-  UpdatePercentageRows(false);
+  UpdatePercentageRows(DoRefreshTable);
   tblBudget.InvalidateTable;
 end;
 
@@ -2168,7 +2168,7 @@ begin
           DoHideUnused;
       finally
         RefreshTableWithData(AllRowsShowing);
-        DoInvalidateTable;
+        DoInvalidateTable(false);
         AllowRedraw := true;
       end;
     end; {with}
@@ -2682,7 +2682,7 @@ begin
       ReadRow(currentRow);  {reload current edit values}
       UpdateLine( ActiveRow - 1);
      finally
-      DoInvalidateTable;  {will force reload of current line}
+      DoInvalidateTable(false);  {will force reload of current line}
       AllowRedraw := true;
     end;
   end;
@@ -3012,7 +3012,7 @@ begin
             end;
           end;
           ReadRow(currentRow);  {reload current edit values}
-          DoInvalidateTable;
+          DoInvalidateTable(true);
         end;
       end;
 
