@@ -1922,7 +1922,7 @@ Begin
   ReadRow(currentRow);  {reload current edit values}
   Updateline(CurrentRow-1);
 
-  RefreshTableWithData(fShowZeros, True, True);
+  DoInvalidateTable(True);
 end;
 
 //------------------------------------------------------------------------------
@@ -1962,7 +1962,7 @@ Begin
     ReadRow(currentRow);  {reload current edit values}
     Updateline(CurrentRow-1);
 
-    RefreshTableWithData(fShowZeros, True, True);
+    DoInvalidateTable(True);
   end;
 end;
 
