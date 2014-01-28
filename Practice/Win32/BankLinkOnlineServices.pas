@@ -102,7 +102,7 @@ type
     function IsPracticeAdministrator: Boolean;
     function HasRoles(const RoleList: array of String): Boolean;
   end;
-
+                            
   TClientBaseHelper = class helper for BlopiServiceFacade.Client
   private
     function GetStatusString: string;
@@ -164,7 +164,6 @@ type
     FRegistered: Boolean;
     FValidBConnectDetails: Boolean;
 
-    FStatus: TBloStatus;
     FSubDomain: String;
     FExceptionRaised: Boolean;
 
@@ -216,6 +215,7 @@ type
                                      ContextErrorCode: string = ''; ReportResponseErrors: Boolean = True): Boolean;
 
     function GetProducts : TBloArrayOfGuid;
+    function GetRegistered: Boolean;
     function GetValidBConnectDetails: Boolean;
     procedure RemoveInvalidSubscriptions;
     procedure ShowSuspendDeactiveWarning;
@@ -299,15 +299,6 @@ type
     function GetServiceActive: Boolean;
     function GetServiceSuspended: Boolean;
     function ErrorOccurred: Boolean;
-
-    function  GetRegisteredSubdomain(const aPracticeCode: widestring;
-                const aCountryCode: widestring; const aPracticeHash: widestring;
-                var aRegistered: boolean; var aStatus: TBloStatus;
-                var aSubdomain: widestring): Boolean;
-    function  GetPracticeUserEmailAddress(const aPracticeCode: widestring;
-                const aCountryCode: widestring; const aPracticeHash: widestring;
-                const aUserCode: widestring): widestring;
-
   public
     procedure FreeClientAccVendorsRecord(aClientAccVendors : TClientAccVendors);
 
@@ -511,10 +502,8 @@ type
 
     procedure ResetExceptionTest;
 
-    function DetermineOnlineRegisteredStatus: Boolean;
-
     property OnLine: Boolean read FOnLine;
-    property Registered: Boolean read FRegistered;
+    property Registered: Boolean read GetRegistered;
     property ValidBConnectDetails: Boolean read GetValidBConnectDetails;
     property ProductList : TBloArrayOfGuid read GetProducts;
 
@@ -1756,6 +1745,14 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+function TProductConfigService.GetRegistered: Boolean;
+begin
+  if not Assigned(FPractice) then
+    GetPractice;
+  Result := FRegistered;  
+end;
+
+//------------------------------------------------------------------------------
 procedure TProductConfigService.LoadClientList(PracticeCode: string = '');
 var
   BlopiInterface: IBlopiServiceFacade;
@@ -2353,11 +2350,7 @@ var
   AuthenticationService : IP5Auth;
   Response: P5AuthResponse;
   ShowProgress: Boolean;
-  sPracCode: string;
-  sCountryCode: string;
-  sHash: string;
-  sOnlineUserEmail: string;
-  bAssignedOnlineUser: boolean;
+  OnlineUser: TBloUserRead;
 begin
   Result := False;
 
@@ -2369,7 +2362,7 @@ begin
     if ShowProgress then
     begin
       Screen.Cursor := crHourGlass;
-
+      
       Progress.StatusSilent := False;
       Progress.UpdateAppStatus(BRAND_ONLINE, 'Connecting', 10);
     end;
@@ -2380,36 +2373,31 @@ begin
         Progress.UpdateAppStatus(BRAND_ONLINE, 'Authenticating User', 50);
       end;
 
-      // Attempt to login via email address
-      sPracCode := AdminSystem.fdFields.fdBankLink_Code;
-      sCountryCode := CountryText(AdminSystem.fdFields.fdCountry);
-      sHash := AdminSystem.fdFields.fdBankLink_Connect_Password;
-      sOnlineUserEmail := ProductConfigService.GetPracticeUserEmailAddress(sPracCode, sCountryCode, sHash, Username);
-      bAssignedOnlineUser := (sOnlineUserEmail <> '');
+      OnlineUser := ProductConfigService.GetOnlineUserLinkedToCode(Username, FPractice, False);
 
       if Debugme then
       begin
-        // LogUtil.LogMsg(lmDebug, UNIT_NAME, 'AuthenticateUser : OnlineUserEmail) - ' + sOnlineUserEmail, True);
+        LogUtil.LogMsg(lmDebug, UNIT_NAME, 'AuthenticateUser : Assigned(OnlineUser) - ' + booltostr(Assigned(OnlineUser), True));
         LogUtil.LogMsg(lmDebug, UNIT_NAME, 'AuthenticateUser : IgnoreOnlineUser - ' + booltostr(IgnoreOnlineUser, True));
       end;
 
-      if bAssignedOnlineUser or IgnoreOnlineUser then
+      if Assigned(OnlineUser) or IgnoreOnlineUser then
       begin
         AuthenticationService := GetAuthenticationServiceFacade;
 
-        if (IgnoreOnlineUser) and (not bAssignedOnlineUser) then
+        if (IgnoreOnlineUser) and (not Assigned(OnlineUser)) then
         begin
           if Debugme then
-            LogUtil.LogMsg(lmDebug, UNIT_NAME, 'Before AuthenticateUser Call - SubDomain:' + FSubDomain + ',  Email:' + CurrUser.EmailAddress{ + ',  Password:' + Password});
+            LogUtil.LogMsg(lmDebug, UNIT_NAME, 'Before AuthenticateUser Call - SubDomain:' + FSubDomain + ',  Email:' + CurrUser.EmailAddress + ',  Password:' + Password);
 
           Response := AuthenticationService.AuthenticateUser(FSubDomain, CurrUser.EmailAddress, Password);
         end
         else
         begin
           if Debugme then
-            LogUtil.LogMsg(lmDebug, UNIT_NAME, 'Before AuthenticateUser Call - SubDomain:' + FSubDomain + ',  Email:' + sOnlineUserEmail{ + ',  Password:' + Password});
+            LogUtil.LogMsg(lmDebug, UNIT_NAME, 'Before AuthenticateUser Call - SubDomain:' + FSubDomain + ',  Email:' + OnlineUser.EMail + ',  Password:' + Password);
 
-          Response := AuthenticationService.AuthenticateUser(FSubDomain, sOnlineUserEmail, Password);
+          Response := AuthenticationService.AuthenticateUser(FSubDomain, OnlineUser.EMail, Password);
         end;
 
         if Debugme then
@@ -2599,35 +2587,9 @@ begin
   end;
 end;
 
-//------------------------------------------------------------------------------
 function TProductConfigService.ErrorOccurred: Boolean;
 begin
   result := false;
-end;
-
-//------------------------------------------------------------------------------
-function TProductConfigService.GetRegisteredSubdomain(const aPracticeCode: widestring;
-  const aCountryCode: widestring; const aPracticeHash: widestring;
-  var aRegistered: boolean; var aStatus: TBloStatus;
-  var aSubdomain: widestring): Boolean;
-begin
-{$IFNDEF DEBUG}
-{$MESSAGE Error 'Implement'}
-{$ENDIF}
-
-  result := true;
-end;
-
-//------------------------------------------------------------------------------
-function TProductConfigService.GetPracticeUserEmailAddress(
-  const aPracticeCode: widestring; const aCountryCode: widestring;
-  const aPracticeHash: widestring; const aUserCode: widestring): widestring;
-begin
-{$IFNDEF DEBUG}
-{$MESSAGE Error 'Implement'}
-{$ENDIF}
-
-  result := 'jarno.noordermeer@banklink.co.nz';
 end;
 
 //------------------------------------------------------------------------------
@@ -6712,39 +6674,6 @@ begin
       Result := bloFailedFatal;
     end;
   end;
-end;
-
-//------------------------------------------------------------------------------
-function TProductConfigService.DetermineOnlineRegisteredStatus: Boolean;
-var
-  sPracCode: string;
-  sCountryCode: string;
-  sHash: string;
-  bRegistered: boolean;
-  eStatus: TBloStatus;
-  sSubDomain: widestring;
-begin
-  FOnLine := false;
-  FRegistered := false;
-
-  // Error?
-  sPracCode := AdminSystem.fdFields.fdBankLink_Code;
-  sCountryCode := CountryText(AdminSystem.fdFields.fdCountry);
-  sHash := AdminSystem.fdFields.fdBankLink_Connect_Password;
-  if not GetRegisteredSubdomain(sPracCode, sCountryCode, sHash, bRegistered,
-    eStatus, sSubDomain) then
-  begin
-    result := false;
-    exit;
-  end;
-
-  // Cache
-  FOnLine := true;
-  FRegistered := true;
-  FStatus := eStatus;
-  FSubDomain := sSubDomain;
-
-  result := true;
 end;
 
 { TPracticeHelper }
