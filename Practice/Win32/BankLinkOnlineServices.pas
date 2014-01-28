@@ -500,7 +500,7 @@ type
     function ValidateAccountList(var aValidateAccountList : TBloArrayOfAccountValidation; aSupressProgress : boolean) : TBloResult;
     function GetPracUpgReminderMsg(var aLatestVersion, aReminderVersion, aReminderMessage : string; aSupressProgress : boolean): TBloResult;
 
-    function DetermineOnlineRegisteredStatus(aUpdateUseOnline : boolean): TBloResult;
+    function DetermineOnlineRegisteredStatus(aUpdateUseOnline : boolean = true): TBloResult;
 
     function GetPracticeUserEmailAddress(const aUserCode: widestring): widestring;
 
@@ -2372,13 +2372,13 @@ begin
       sPracCode := AdminSystem.fdFields.fdBankLink_Code;
       sCountryCode := CountryText(AdminSystem.fdFields.fdCountry);
       sHash := AdminSystem.fdFields.fdBankLink_Connect_Password;
-      sOnlineUserEmail := ProductConfigService.GetPracticeUserEmailAddress(sPracCode, sCountryCode, sHash, Username);
+      sOnlineUserEmail := ProductConfigService.GetPracticeUserEmailAddress(Username);
       bAssignedOnlineUser := (sOnlineUserEmail <> '');
 
       if Debugme then
       begin
-        LogUtil.LogMsg(lmDebug, UNIT_NAME, 'AuthenticateUser : OnlineUserEmail) - ' + sOnlineUserEmail, True);
-        LogUtil.LogMsg(lmDebug, UNIT_NAME, 'AuthenticateUser : IgnoreOnlineUser - ' + booltostr(IgnoreOnlineUser, True));
+        LogUtil.LogMsg(lmDebug, UNIT_NAME, 'AuthenticateUser : OnlineUserEmail - ' + sOnlineUserEmail, 0, True);
+        LogUtil.LogMsg(lmDebug, UNIT_NAME, 'AuthenticateUser : IgnoreOnlineUser - ' + booltostr(IgnoreOnlineUser), 0, True);
       end;
 
       if bAssignedOnlineUser or IgnoreOnlineUser then
@@ -2594,9 +2594,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TProductConfigService.GetPracticeUserEmailAddress(
-  const aPracticeCode: widestring; const aCountryCode: widestring;
-  const aPracticeHash: widestring; const aUserCode: widestring): widestring;
+function TProductConfigService.GetPracticeUserEmailAddress(const aUserCode: widestring): widestring;
 begin
 {$IFNDEF DEBUG}
 {$MESSAGE Error 'Implement'}
@@ -3117,9 +3115,12 @@ var
   BlopiInterface  : IBlopiServiceFacade;
   MsgResponse     : MessageResponseOfPracticeRegisteredSubDomainMIdCYrSK;
   ResponceError   : Boolean;
+  ShowProgress    : Boolean;
 begin
   fOnLine     := false;
   fRegistered := false;
+
+  Result := bloSuccess;
 
   if not Assigned(AdminSystem) then
     Exit;
@@ -3136,7 +3137,7 @@ begin
   if aUpdateUseOnline then
     UseBankLinkOnline := False;
 
-  ShowProgress := Progress.StatusSilent and AllowProgressBar;
+  ShowProgress := Progress.StatusSilent;// and AllowProgressBar;
 
   if ShowProgress then
   begin
@@ -3154,9 +3155,9 @@ begin
         UseBankLinkOnline := ServiceActive;
 
       BlopiInterface := GetServiceFacade();
-      MsgResponse := GetRegisteredSubDomain(CountryText(AdminSystem.fdFields.fdCountry),
-                                                        AdminSystem.fdFields.fdBankLink_Code,
-                                                        AdminSystem.fdFields.fdBankLink_Connect_Password);
+      MsgResponse := BlopiInterface.GetRegisteredSubDomain(CountryText(AdminSystem.fdFields.fdCountry),
+                                                           AdminSystem.fdFields.fdBankLink_Code,
+                                                           AdminSystem.fdFields.fdBankLink_Connect_Password);
 
       fOnline := Assigned(MsgResponse);
       fRegistered := (fOnline and Assigned(MsgResponse.Result));
@@ -3164,7 +3165,7 @@ begin
 
       if not ResponceError then
       begin
-        FStatus     := Copy(MsgResponse.Result.Status , 1, Length(MsgResponse.Result.Status));
+        FStatus     := MsgResponse.Result.Status;
         FSubDomain  := Copy(MsgResponse.Result.SubDomain , 1, Length(MsgResponse.Result.SubDomain));
 
         LogUtil.LogMsg(lmInfo, UNIT_NAME, 'Successfully Retrieved Registered Details from ' + BRAND_ONLINE + '.');
@@ -3182,12 +3183,12 @@ begin
     except
       on E:Exception do
       begin
-        HandleException('DetermineOnlineRegisteredStatus', E, SuppressErrors);
+        HandleException('DetermineOnlineRegisteredStatus', E, false); //SuppressErrors);
         Result := bloFailedFatal;
       end;
     end;
   finally
-    FreeAndNil(PracticeDetailResponse);
+    FreeAndNil(MsgResponse);
 
     if ShowProgress then
     begin
