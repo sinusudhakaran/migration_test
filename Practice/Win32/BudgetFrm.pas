@@ -1460,12 +1460,8 @@ Begin
   if not DataAssigned then
      exit;
 
-  if HasPercentageFormula(CurrentRow - 1) then         
-  begin
-    HelpfulErrorMsg('You cannot use copy on a row which derives its values as a percentage ' +
-                    'of another row. You must first clear the percentage.', 0);
-    exit;
-  end;
+  if HasPercentageFormula(CurrentRow - 1) then
+    Exit; // Not allowed on percentage rows
 
   currField := tblBudget.ActiveCol;
   if not (CurrField in  [MonthMin .. MonthMax]) then
@@ -1892,6 +1888,9 @@ Var
 Begin
   if not DataAssigned then exit;
 
+  if HasPercentageFormula(CurrentRow - 1) then
+    Exit; // Not allowed on percentage rows
+
   CheckEditMode;
 
   if not (tblBudget.ActiveCol in [MonthMin .. MonthMax]) then
@@ -1938,11 +1937,7 @@ Begin
   if not DataAssigned then exit;
 
   if HasPercentageFormula(CurrentRow - 1) then
-  begin
-    HelpfulErrorMsg('You cannot use split in a row which derives its values as a percentage ' +
-                    'of another row. You must first clear the percentage.', 0);
-    Exit;
-  end;
+    Exit; // Not allowed on percentage rows
 
   CheckEditMode;
 
@@ -1981,13 +1976,8 @@ var
 begin
   CheckEditMode;
   RowIndex := tblBudget.ActiveRow - 1;
-  if HasPercentageFormula(RowIndex) then                
-  begin
-    HelpfulErrorMsg('Quantities cannot be entered for cells in a row which is a percentage ' +
-                    'of another row. You must first remove the percentage for this row ' +
-                    'before setting a quantity.', 0);
-    Exit;
-  end;
+  if HasPercentageFormula(RowIndex) then
+    Exit; // not allowed on percentage rows
   ColumnIndex := tblBudget.ActiveCol - 2;
   //get stored unit price and quantity
   UnitPrice := FData[RowIndex].bUnitPrices[ColumnIndex];
