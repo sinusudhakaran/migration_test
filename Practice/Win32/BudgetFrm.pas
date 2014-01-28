@@ -2494,7 +2494,7 @@ begin
     if DoImportBudget(BudgetFilePath, FBudget.buFields.buName, GSTInclusive) then
     begin
       if not fShowZeros then
-        RefreshFData(true, DataIndex);
+        RefreshTableWithData(fShowZeros);
 
       try
         BudgetImportExport.ClearWasUpdated(FData);
