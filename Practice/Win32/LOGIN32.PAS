@@ -377,20 +377,6 @@ begin
 
   FullName := User.usName;
 
-  // Can't contact BankLink Online
-  if not ((ProductConfigService.DetermineOnlineRegisteredStatus) in [bloSuccess, bloFailedNonFatal]) then
-  begin
-    OfflineAuthentication := true;
-    exit;
-  end;
-
-  // Not online or registered?
-  if not ProductConfigService.Online or not ProductConfigService.Registered then
-  begin
-    OfflineAuthentication := true;
-    exit;
-  end;
-
   if ProductConfigService.AuthenticateUser(AdminSystem.fdFields.fdBankLink_Code, User.usCode, CurrentPassword, AuthenticationStatus, IgnoreOnlineUser) then
   begin
     if AuthenticationStatus = paChangePassword then
