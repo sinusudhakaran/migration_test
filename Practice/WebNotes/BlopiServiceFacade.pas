@@ -60,6 +60,10 @@ type
   ExceptionDetails     = class;                 { "http://schemas.datacontract.org/2004/07/BankLink.Common.Services"[GblCplx] }
   MessageResponseOfPracticeReadMIdCYrSK = class;   { "http://schemas.datacontract.org/2004/07/BankLink.Common.Services"[GblCplx] }
   MessageResponseOfguid = class;                { "http://schemas.datacontract.org/2004/07/BankLink.Common.Services"[GblCplx] }
+  MessageResponseOfPracticeRegisteredSubDomainMIdCYrSK = class;   { "http://schemas.datacontract.org/2004/07/BankLink.Common.Services"[GblCplx] }
+  MessageResponseOfPracticeUserEmailAdddressMIdCYrSK = class;   { "http://schemas.datacontract.org/2004/07/BankLink.Common.Services"[GblCplx] }
+  PracticeUserEmailAdddress = class;            { "http://www.banklinkonline.com/2011/11/Blopi"[GblCplx] }
+  PracticeRegisteredSubDomain = class;          { "http://www.banklinkonline.com/2011/11/Blopi"[GblCplx] }
   MessageResponseOfClientListMIdCYrSK = class;   { "http://schemas.datacontract.org/2004/07/BankLink.Common.Services"[GblCplx] }
   MessageResponseOfClientReadDetailMIdCYrSK = class;   { "http://schemas.datacontract.org/2004/07/BankLink.Common.Services"[GblCplx] }
   MessageResponseOfstring = class;              { "http://schemas.datacontract.org/2004/07/BankLink.Common.Services"[GblCplx] }
@@ -506,6 +510,77 @@ type
     destructor Destroy; override;
   published
     property Result: PracticeRead  Index (IS_OPTN or IS_NLBL) read FResult write SetResult stored Result_Specified;
+  end;
+
+
+  // ************************************************************************ //
+  // XML       : MessageResponseOfPracticeRegisteredSubDomainMIdCYrSK, global, <complexType>
+  // Namespace : http://schemas.datacontract.org/2004/07/BankLink.Common.Services
+  // ************************************************************************ //
+  MessageResponseOfPracticeRegisteredSubDomainMIdCYrSK = class(MessageResponse)
+  private
+    FResult: PracticeRegisteredSubDomain;
+    FResult_Specified: boolean;
+    procedure SetResult(Index: Integer; const APracticeRegisteredSubDomain: PracticeRegisteredSubDomain);
+    function  Result_Specified(Index: Integer): boolean;
+  public
+    destructor Destroy; override;
+  published
+    property Result: PracticeRegisteredSubDomain  Index (IS_OPTN or IS_NLBL) read FResult write SetResult stored Result_Specified;
+  end;
+
+
+
+  // ************************************************************************ //
+  // XML       : MessageResponseOfPracticeUserEmailAdddressMIdCYrSK, global, <complexType>
+  // Namespace : http://schemas.datacontract.org/2004/07/BankLink.Common.Services
+  // ************************************************************************ //
+  MessageResponseOfPracticeUserEmailAdddressMIdCYrSK = class(MessageResponse)
+  private
+    FResult: PracticeUserEmailAdddress;
+    FResult_Specified: boolean;
+    procedure SetResult(Index: Integer; const APracticeUserEmailAdddress: PracticeUserEmailAdddress);
+    function  Result_Specified(Index: Integer): boolean;
+  public
+    destructor Destroy; override;
+  published
+    property Result: PracticeUserEmailAdddress  Index (IS_OPTN or IS_NLBL) read FResult write SetResult stored Result_Specified;
+  end;
+
+
+
+  // ************************************************************************ //
+  // XML       : PracticeRegisteredSubDomain, global, <complexType>
+  // Namespace : http://www.banklinkonline.com/2011/11/Blopi
+  // ************************************************************************ //
+  PracticeRegisteredSubDomain = class(TRemotable)
+  private
+    FStatus: Status;
+    FStatus_Specified: boolean;
+    FSubDomain: WideString;
+    FSubDomain_Specified: boolean;
+    procedure SetStatus(Index: Integer; const AStatus: Status);
+    function  Status_Specified(Index: Integer): boolean;
+    procedure SetSubDomain(Index: Integer; const AWideString: WideString);
+    function  SubDomain_Specified(Index: Integer): boolean;
+  published
+    property Status:    Status      Index (IS_OPTN or IS_NLBL) read FStatus write SetStatus stored Status_Specified;
+    property SubDomain: WideString  Index (IS_OPTN or IS_NLBL) read FSubDomain write SetSubDomain stored SubDomain_Specified;
+  end;
+
+
+  // ************************************************************************ //
+  // XML       : PracticeUserEmailAdddress, global, <complexType>
+  // Namespace : http://www.banklinkonline.com/2011/11/Blopi
+  // ************************************************************************ //
+  PracticeUserEmailAdddress = class(TRemotable)
+  private
+    FUserEmailAddress: WideString;
+    FUserEmailAddress_Specified: boolean;
+    procedure SetUserEmailAddress(Index: Integer; const AWideString: WideString);
+    function  UserEmailAddress_Specified(Index: Integer): boolean;
+  published
+    property UserEmailAddress: WideString  Index (IS_OPTN or IS_NLBL) read FUserEmailAddress write SetUserEmailAddress stored UserEmailAddress_Specified;
   end;
 
 
@@ -986,6 +1061,7 @@ type
     property Roles:      ArrayOfRole            Index (IS_OPTN or IS_NLBL) read FRoles write SetRoles stored Roles_Specified;
     property Users:      ArrayOfUserRead        Index (IS_OPTN or IS_NLBL) read FUsers write SetUsers stored Users_Specified;
   end;
+
 
 
 
@@ -1754,8 +1830,10 @@ type
     function  GetPracticeCatalogue(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString): MessageResponseOfArrayOfCatalogueEntryMIdCYrSK; stdcall;
     function  GetSmeCatalogue(const countryCode: WideString; const practiceCode: WideString): MessageResponseOfArrayOfCatalogueEntryMIdCYrSK; stdcall;
     function  GetUserCatalogue(const countryCode: WideString; const practiceCode: WideString; const clientCode: WideString): MessageResponseOfArrayOfCatalogueEntryMIdCYrSK; stdcall;
+    function  GetRegisteredSubDomain(const countryCode: WideString; const practiceCode: WideString; const clientCode: WideString): MessageResponseOfPracticeRegisteredSubDomainMIdCYrSK; stdcall;
     function  GetPractice(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString): MessageResponseOfPracticeReadMIdCYrSK; stdcall;
     function  SavePractice(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const practice: PracticeUpdate): MessageResponse; stdcall;
+    function  GetPracticeUserEmailAdddress(const countryCode: WideString; const practiceCode: WideString; const clientCode: WideString; const userCode: WideString): MessageResponseOfPracticeUserEmailAdddressMIdCYrSK; stdcall;
     function  CreatePracticeUser(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const user: UserCreatePractice): MessageResponseOfguid; stdcall;
     function  SavePracticeUser(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const user: UserUpdatePractice): MessageResponse; stdcall;
     function  ResetUserPassword(const countryCode: WideString; const practiceCode: WideString; const userEmail: WideString): MessageResponse; stdcall;
@@ -2301,6 +2379,73 @@ end;
 function MessageResponseOfPracticeReadMIdCYrSK.Result_Specified(Index: Integer): boolean;
 begin
   Result := FResult_Specified;
+end;
+
+destructor MessageResponseOfPracticeRegisteredSubDomainMIdCYrSK.Destroy;
+begin
+  FreeAndNil(FResult);
+  inherited Destroy;
+end;
+
+procedure MessageResponseOfPracticeRegisteredSubDomainMIdCYrSK.SetResult(Index: Integer; const APracticeRegisteredSubDomain: PracticeRegisteredSubDomain);
+begin
+  FResult := APracticeRegisteredSubDomain;
+  FResult_Specified := True;
+end;
+
+function MessageResponseOfPracticeRegisteredSubDomainMIdCYrSK.Result_Specified(Index: Integer): boolean;
+begin
+  Result := FResult_Specified;
+end;
+
+destructor MessageResponseOfPracticeUserEmailAdddressMIdCYrSK.Destroy;
+begin
+  FreeAndNil(FResult);
+  inherited Destroy;
+end;
+
+procedure MessageResponseOfPracticeUserEmailAdddressMIdCYrSK.SetResult(Index: Integer; const APracticeUserEmailAdddress: PracticeUserEmailAdddress);
+begin
+  FResult := APracticeUserEmailAdddress;
+  FResult_Specified := True;
+end;
+
+function MessageResponseOfPracticeUserEmailAdddressMIdCYrSK.Result_Specified(Index: Integer): boolean;
+begin
+  Result := FResult_Specified;
+end;
+
+procedure PracticeUserEmailAdddress.SetUserEmailAddress(Index: Integer; const AWideString: WideString);
+begin
+  FUserEmailAddress := AWideString;
+  FUserEmailAddress_Specified := True;
+end;
+
+function PracticeUserEmailAdddress.UserEmailAddress_Specified(Index: Integer): boolean;
+begin
+  Result := FUserEmailAddress_Specified;
+end;
+
+procedure PracticeRegisteredSubDomain.SetStatus(Index: Integer; const AStatus: Status);
+begin
+  FStatus := AStatus;
+  FStatus_Specified := True;
+end;
+
+function PracticeRegisteredSubDomain.Status_Specified(Index: Integer): boolean;
+begin
+  Result := FStatus_Specified;
+end;
+
+procedure PracticeRegisteredSubDomain.SetSubDomain(Index: Integer; const AWideString: WideString);
+begin
+  FSubDomain := AWideString;
+  FSubDomain_Specified := True;
+end;
+
+function PracticeRegisteredSubDomain.SubDomain_Specified(Index: Integer): boolean;
+begin
+  Result := FSubDomain_Specified;
 end;
 
 procedure MessageResponseOfguid.SetResult(Index: Integer; const Aguid: guid);
@@ -3524,6 +3669,10 @@ initialization
   RemClassRegistry.RegisterXSClass(ExceptionDetails, 'http://schemas.datacontract.org/2004/07/BankLink.Common.Services', 'ExceptionDetails');
   RemClassRegistry.RegisterExternalPropName(TypeInfo(ExceptionDetails), 'Message_', 'Message');
   RemClassRegistry.RegisterXSClass(MessageResponseOfPracticeReadMIdCYrSK, 'http://schemas.datacontract.org/2004/07/BankLink.Common.Services', 'MessageResponseOfPracticeReadMIdCYrSK');
+  RemClassRegistry.RegisterXSClass(MessageResponseOfPracticeRegisteredSubDomainMIdCYrSK, 'http://schemas.datacontract.org/2004/07/BankLink.Common.Services', 'MessageResponseOfPracticeRegisteredSubDomainMIdCYrSK');
+  RemClassRegistry.RegisterXSClass(MessageResponseOfPracticeUserEmailAdddressMIdCYrSK, 'http://schemas.datacontract.org/2004/07/BankLink.Common.Services', 'MessageResponseOfPracticeUserEmailAdddressMIdCYrSK');
+  RemClassRegistry.RegisterXSClass(PracticeUserEmailAdddress, 'http://www.banklinkonline.com/2011/11/Blopi', 'PracticeUserEmailAdddress');
+  RemClassRegistry.RegisterXSClass(PracticeRegisteredSubDomain, 'http://www.banklinkonline.com/2011/11/Blopi', 'PracticeRegisteredSubDomain');
   RemClassRegistry.RegisterXSClass(MessageResponseOfguid, 'http://schemas.datacontract.org/2004/07/BankLink.Common.Services', 'MessageResponseOfguid');
   RemClassRegistry.RegisterXSClass(MessageResponseOfClientListMIdCYrSK, 'http://schemas.datacontract.org/2004/07/BankLink.Common.Services', 'MessageResponseOfClientListMIdCYrSK');
   RemClassRegistry.RegisterXSClass(MessageResponseOfClientReadDetailMIdCYrSK, 'http://schemas.datacontract.org/2004/07/BankLink.Common.Services', 'MessageResponseOfClientReadDetailMIdCYrSK');

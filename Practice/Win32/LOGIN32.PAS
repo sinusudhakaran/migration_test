@@ -378,7 +378,7 @@ begin
   FullName := User.usName;
 
   // Can't contact BankLink Online
-  if not ProductConfigService.DetermineOnlineRegisteredStatus then
+  if not ((ProductConfigService.DetermineOnlineRegisteredStatus) in [bloSuccess, bloFailedNonFatal]) then
   begin
     OfflineAuthentication := true;
     exit;
