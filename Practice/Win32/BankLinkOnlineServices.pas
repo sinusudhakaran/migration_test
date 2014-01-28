@@ -203,7 +203,7 @@ type
     procedure SetTimeOuts(ConnecTimeout : DWord ;
                           SendTimeout   : DWord ;
                           ReciveTimeout : DWord);
-    function GetServiceFacade() : IBlopiServiceFacade;
+    function GetServiceFacade(PracticeCode: string = '') : IBlopiServiceFacade;
     function GetSecureServiceFacade : IBlopiSecureServiceFacade; overload;
     function GetSecureServiceFacade(out HTTPRIO: THTTPRIO) : IBlopiSecureServiceFacade; overload;
     function GetAuthenticationServiceFacade : IP5Auth;
@@ -299,6 +299,15 @@ type
     function GetServiceActive: Boolean;
     function GetServiceSuspended: Boolean;
     function ErrorOccurred: Boolean;
+
+    function  GetRegisteredSubdomain(const aPracticeCode: widestring;
+                const aCountryCode: widestring; const aPracticeHash: widestring;
+                var aRegistered: boolean; var aStatus: TBloStatus;
+                var aSubdomain: widestring): Boolean;
+    function  GetPracticeUserEmailAddress(const aPracticeCode: widestring;
+                const aCountryCode: widestring; const aPracticeHash: widestring;
+                const aUserCode: widestring): widestring;
+
   public
     procedure FreeClientAccVendorsRecord(aClientAccVendors : TClientAccVendors);
 
@@ -500,12 +509,9 @@ type
     function ValidateAccountList(var aValidateAccountList : TBloArrayOfAccountValidation; aSupressProgress : boolean) : TBloResult;
     function GetPracUpgReminderMsg(var aLatestVersion, aReminderVersion, aReminderMessage : string; aSupressProgress : boolean): TBloResult;
 
-    function DetermineOnlineRegisteredStatus(aUpdateUseOnline : boolean = true): TBloResult;
-
-    function GetPracticeUserEmailAddress(const aUserCode: widestring): widestring;
-
-
     procedure ResetExceptionTest;
+
+    function DetermineOnlineRegisteredStatus: Boolean;
 
     property OnLine: Boolean read FOnLine;
     property Registered: Boolean read FRegistered;
@@ -1646,9 +1652,11 @@ begin
         or (aForceOnlineCall) then
         begin
           //Reload from BankLink Online
-          BlopiInterface := GetServiceFacade();
+          if (PracticeCode = '') then
+            PracticeCode := AdminSystem.fdFields.fdBankLink_Code;
+          BlopiInterface := GetServiceFacade(PracticeCode);
           PracticeDetailResponse := BlopiInterface.GetPractice(CountryText(AdminSystem.fdFields.fdCountry),
-                                                               AdminSystem.fdFields.fdBankLink_Code,
+                                                               PracticeCode,
                                                                AdminSystem.fdFields.fdBankLink_Connect_Password);
 
           if Assigned(PracticeDetailResponse) then
@@ -1768,9 +1776,11 @@ begin
         if ShowProgress then
           Progress.UpdateAppStatus(BRAND_ONLINE, 'Getting Client List', 50);
 
-        BlopiInterface := GetServiceFacade();
+        if (PracticeCode = '') then
+          PracticeCode := AdminSystem.fdFields.fdBankLink_Code;
+        BlopiInterface := GetServiceFacade(PracticeCode);
         BlopiClientList := BlopiInterface.GetClientList(CountryText(AdminSystem.fdFields.fdCountry),
-                                                        AdminSystem.fdFields.fdBankLink_Code,
+                                                        PracticeCode,
                                                         AdminSystem.fdFields.fdBankLink_Connect_Password);
         if not MessageResponseHasError(MessageResponse(BlopiClientList), 'load the client list from') then
           if Assigned(BlopiClientList.Result) then
@@ -1995,11 +2005,13 @@ begin
       if ShowProgress then
         Progress.UpdateAppStatus(BRAND_ONLINE, 'Getting Data Export Subscribers', 50);
 
-      BlopiInterface := GetServiceFacade();
+      if (PracticeCode = '') then
+        PracticeCode := AdminSystem.fdFields.fdBankLink_Code;
+      BlopiInterface := GetServiceFacade(PracticeCode);
 
       //Get the vendor export types from BankLink Online
       DataSubscriberCredentialsResponse := BlopiInterface.GetPracticeDataSubscriberCount(CountryText(AdminSystem.fdFields.fdCountry),
-                                                       AdminSystem.fdFields.fdBankLink_Code,
+                                                       PracticeCode,
                                                        AdminSystem.fdFields.fdBankLink_Connect_Password);
                                                        
       if not MessageResponseHasError(MessageResponse(DataSubscriberCredentialsResponse), 'get the vendor subscribers') then
@@ -2372,13 +2384,13 @@ begin
       sPracCode := AdminSystem.fdFields.fdBankLink_Code;
       sCountryCode := CountryText(AdminSystem.fdFields.fdCountry);
       sHash := AdminSystem.fdFields.fdBankLink_Connect_Password;
-      sOnlineUserEmail := ProductConfigService.GetPracticeUserEmailAddress(Username);
+      sOnlineUserEmail := ProductConfigService.GetPracticeUserEmailAddress(sPracCode, sCountryCode, sHash, Username);
       bAssignedOnlineUser := (sOnlineUserEmail <> '');
 
       if Debugme then
       begin
-        LogUtil.LogMsg(lmDebug, UNIT_NAME, 'AuthenticateUser : OnlineUserEmail - ' + sOnlineUserEmail, 0, True);
-        LogUtil.LogMsg(lmDebug, UNIT_NAME, 'AuthenticateUser : IgnoreOnlineUser - ' + booltostr(IgnoreOnlineUser), 0, True);
+        // LogUtil.LogMsg(lmDebug, UNIT_NAME, 'AuthenticateUser : OnlineUserEmail) - ' + sOnlineUserEmail, True);
+        LogUtil.LogMsg(lmDebug, UNIT_NAME, 'AuthenticateUser : IgnoreOnlineUser - ' + booltostr(IgnoreOnlineUser, True));
       end;
 
       if bAssignedOnlineUser or IgnoreOnlineUser then
@@ -2594,7 +2606,22 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TProductConfigService.GetPracticeUserEmailAddress(const aUserCode: widestring): widestring;
+function TProductConfigService.GetRegisteredSubdomain(const aPracticeCode: widestring;
+  const aCountryCode: widestring; const aPracticeHash: widestring;
+  var aRegistered: boolean; var aStatus: TBloStatus;
+  var aSubdomain: widestring): Boolean;
+begin
+{$IFNDEF DEBUG}
+{$MESSAGE Error 'Implement'}
+{$ENDIF}
+
+  result := true;
+end;
+
+//------------------------------------------------------------------------------
+function TProductConfigService.GetPracticeUserEmailAddress(
+  const aPracticeCode: widestring; const aCountryCode: widestring;
+  const aPracticeHash: widestring; const aUserCode: widestring): widestring;
 begin
 {$IFNDEF DEBUG}
 {$MESSAGE Error 'Implement'}
@@ -2738,13 +2765,12 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TProductConfigService.GetServiceFacade(): IBlopiServiceFacade;
+function TProductConfigService.GetServiceFacade(PracticeCode: string = ''): IBlopiServiceFacade;
 var
   HTTPRIO: THTTPRIO;
 begin
   HTTPRIO := THTTPRIO.Create(nil);
   HTTPRIO.OnBeforeExecute := DoBeforeExecute;
-  HTTPRIO.OnAfterExecute := DoAfterSecureExecute;
 
   Result := GetIBlopiServiceFacade(False, GetBanklinkOnlineURL('/Services/BlopiServiceFacade.svc'), HTTPRIO);
 end;
@@ -3106,96 +3132,6 @@ begin
     end;
 
     Screen.Cursor := crDefault;
-  end;
-end;
-
-//------------------------------------------------------------------------------
-function TProductConfigService.DetermineOnlineRegisteredStatus(aUpdateUseOnline : boolean): TBloResult;
-var
-  BlopiInterface  : IBlopiServiceFacade;
-  MsgResponse     : MessageResponseOfPracticeRegisteredSubDomainMIdCYrSK;
-  ResponceError   : Boolean;
-  ShowProgress    : Boolean;
-begin
-  fOnLine     := false;
-  fRegistered := false;
-
-  Result := bloSuccess;
-
-  if not Assigned(AdminSystem) then
-    Exit;
-
-  //Check that BConnect secure code has been assigned
-  if AdminSystem.fdFields.fdBankLink_Code = '' then
-  begin
-    HelpfulErrorMsg('The ' + BRAND_SECURE + ' Code for this practice has not been set. ' +
-                    'Please set this before attempting to use ' + BRAND_ONLINE +
-                    '.', 0);
-    Exit;
-  end;
-
-  if aUpdateUseOnline then
-    UseBankLinkOnline := False;
-
-  ShowProgress := Progress.StatusSilent;// and AllowProgressBar;
-
-  if ShowProgress then
-  begin
-    Screen.Cursor := crHourGlass;
-    Progress.StatusSilent := False;
-    Progress.UpdateAppStatus(BRAND_ONLINE, 'Connecting', 10);
-  end;
-
-  try
-    try
-      if ShowProgress then
-        Progress.UpdateAppStatus(BRAND_ONLINE, 'Getting Practice Details', 50);
-
-      if aUpdateUseOnline then
-        UseBankLinkOnline := ServiceActive;
-
-      BlopiInterface := GetServiceFacade();
-      MsgResponse := BlopiInterface.GetRegisteredSubDomain(CountryText(AdminSystem.fdFields.fdCountry),
-                                                           AdminSystem.fdFields.fdBankLink_Code,
-                                                           AdminSystem.fdFields.fdBankLink_Connect_Password);
-
-      fOnline := Assigned(MsgResponse);
-      fRegistered := (fOnline and Assigned(MsgResponse.Result));
-      ResponceError := MessageResponseHasError(MsgResponse, 'Retrieve Registered Details from', false, 0, '', false);
-
-      if not ResponceError then
-      begin
-        FStatus     := MsgResponse.Result.Status;
-        FSubDomain  := Copy(MsgResponse.Result.SubDomain , 1, Length(MsgResponse.Result.SubDomain));
-
-        LogUtil.LogMsg(lmInfo, UNIT_NAME, 'Successfully Retrieved Registered Details from ' + BRAND_ONLINE + '.');
-        Result := bloSuccess;
-      end
-      else
-      begin
-        LogUtil.LogMsg(lmInfo, UNIT_NAME, 'Registered Details were not retrieved from ' + BRAND_ONLINE + '.');
-        result := bloFailedFatal;
-      end;
-
-      if ShowProgress then
-        Progress.UpdateAppStatus(BRAND_ONLINE, 'Finished', 100);
-
-    except
-      on E:Exception do
-      begin
-        HandleException('DetermineOnlineRegisteredStatus', E, false); //SuppressErrors);
-        Result := bloFailedFatal;
-      end;
-    end;
-  finally
-    FreeAndNil(MsgResponse);
-
-    if ShowProgress then
-    begin
-      Progress.StatusSilent := True;
-      Progress.ClearStatus;
-      Screen.Cursor := crDefault;
-    end;
   end;
 end;
 
@@ -6256,10 +6192,12 @@ begin
       if ShowProgress then
         Progress.UpdateAppStatus(BRAND_ONLINE, 'Getting Available Data Exports', 50);
 
-      BlopiInterface := GetServiceFacade();
+      if (PracticeCode = '') then
+        PracticeCode := AdminSystem.fdFields.fdBankLink_Code;
+      BlopiInterface := GetServiceFacade(PracticeCode);
       //Get the vendor export types from BankLink Online
       DataPlatformSubscriberResponse := BlopiInterface.GetPracticeDataSubscribers(CountryText(AdminSystem.fdFields.fdCountry),
-                                                       AdminSystem.fdFields.fdBankLink_Code,
+                                                       PracticeCode,
                                                        AdminSystem.fdFields.fdBankLink_Connect_Password);
                                                        
       if not MessageResponseHasError(MessageResponse(DataPlatformSubscriberResponse), 'get the vendor export types from') then
@@ -6774,6 +6712,39 @@ begin
       Result := bloFailedFatal;
     end;
   end;
+end;
+
+//------------------------------------------------------------------------------
+function TProductConfigService.DetermineOnlineRegisteredStatus: Boolean;
+var
+  sPracCode: string;
+  sCountryCode: string;
+  sHash: string;
+  bRegistered: boolean;
+  eStatus: TBloStatus;
+  sSubDomain: widestring;
+begin
+  FOnLine := false;
+  FRegistered := false;
+
+  // Error?
+  sPracCode := AdminSystem.fdFields.fdBankLink_Code;
+  sCountryCode := CountryText(AdminSystem.fdFields.fdCountry);
+  sHash := AdminSystem.fdFields.fdBankLink_Connect_Password;
+  if not GetRegisteredSubdomain(sPracCode, sCountryCode, sHash, bRegistered,
+    eStatus, sSubDomain) then
+  begin
+    result := false;
+    exit;
+  end;
+
+  // Cache
+  FOnLine := true;
+  FRegistered := true;
+  FStatus := eStatus;
+  FSubDomain := sSubDomain;
+
+  result := true;
 end;
 
 { TPracticeHelper }
