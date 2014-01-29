@@ -1777,6 +1777,7 @@ begin
         if CheckChargeIsZero(iRow) and (FExportType in [xcMYOB, xcMYOBAO]) then
         begin
           inc(NumExcludedRows);
+          Inc(iRow);
           Continue; // don't add this row to the export
         end;
 {        // strip GST 12.5% in NZ, 10% in AU
