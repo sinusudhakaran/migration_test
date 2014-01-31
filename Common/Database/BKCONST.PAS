@@ -25,6 +25,9 @@ CONST
   BRAND_NOTES_ONLINE = 'BankLink Notes Online';
   BRAND_SUPPORT = 'MYOB BankLink Support';
 
+  // Variations
+  BRAND_BOOKS_K = 'BankLink Boo&ks';
+
   ECodingDisplayName = BRAND_NOTES;
 
   MaxBK5CodeLen = 20; { Version 33 Upgrade }

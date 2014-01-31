@@ -537,7 +537,7 @@ procedure TdlgPrintScheduled.btnOnlineMsgClick(Sender: TObject);
 begin
   EditScheduledReportsMessage(bkBranding.BooksProductName + ' Message',
                                'Type a subject and a message which will be added to all ' +
-                               bkBranding.BooksProductName + ' files sent via ' + bkBranding.ProductOnlineName +
+                               bkBranding.BooksProductName + ' files sent via online' +
                                ' when Scheduled Reports are generated.',
                                OnlineSubject,
                                OnlineMessage);
@@ -1906,18 +1906,18 @@ end;
 procedure TdlgPrintScheduled.DoRebranding;
 begin
   sNoTransactions := 'Transactions have yet to be downloaded into ' + BRAND_FULL_NAME + '.';
-  cbToECoding.caption := '&' + BRAND_NOTES + ' Files';
+  cbToECoding.caption := '&' + BRAND_NOTES + ' files';
   cbToECoding.Hint := 'Include reports to be sent via a ' + BRAND_NOTES + ' file';
   btnBNotesMsg.Caption := '&' + BRAND_NOTES + ' Message';
   gbNotes.Caption := format('Send %s files', [BRAND_NOTES]);
   gbWebNotes.Caption := format('Send %s transactions',[BRAND_NOTES_ONLINE]);
   btnWebNotesMsg.Caption := format('&%s Message',[BRAND_NOTES_ONLINE]);
-  gbBooks.Caption := 'Send ' + BRAND_NOTES + ' files';
-  btnCheckOutMsg.Caption := BRAND_NOTES + 'Message';
-  GroupBox5.Caption := 'Send ' + BRAND_BOOKS + ' files via ' + BRAND_ONLINE;
-  btnOnlineMsg.Caption := BRAND_NOTES + 'Message';
-  cbCheckout.Caption := BRAND_NOTES + ' files';
-  cbOnline.Caption := BRAND_BOOKS + ' files via ' + BRAND_ONLINE;
+  gbBooks.Caption := 'Send ' + BRAND_BOOKS + ' files';
+  btnCheckOutMsg.Caption := BRAND_BOOKS + ' Message';
+  GroupBox5.Caption := 'Send ' + BRAND_BOOKS + ' files via online';
+  btnOnlineMsg.Caption := BRAND_BOOKS + ' Message';
+  cbCheckout.Caption := BRAND_BOOKS_K + ' files';
+  cbOnline.Caption := BRAND_BOOKS + ' files via &online';
 end;
 
 procedure TdlgPrintScheduled.edtSelectionExit(Sender: TObject);

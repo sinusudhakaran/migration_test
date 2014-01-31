@@ -63,7 +63,7 @@ inherited dlgPrintScheduled: TdlgPrintScheduled
     Top = 0
     Width = 643
     Height = 559
-    ActivePage = tbsOptions
+    ActivePage = tsMessages
     Align = alClient
     TabOrder = 0
     object tbsOptions: TTabSheet
@@ -270,7 +270,7 @@ inherited dlgPrintScheduled: TdlgPrintScheduled
           Width = 223
           Height = 17
           Hint = 'Include reports to be sent via a BankLink Notes file'
-          Caption = '&BankLink Notes Files'
+          Caption = '&BankLink Notes files'
           TabOrder = 3
         end
         object cbToWebX: TCheckBox
@@ -279,7 +279,7 @@ inherited dlgPrintScheduled: TdlgPrintScheduled
           Width = 223
           Height = 17
           Hint = 'Include reports to be sent to the Web'
-          Caption = '&Web Files'
+          Caption = '&Web files'
           TabOrder = 5
         end
         object cbCheckOut: TCheckBox
@@ -288,7 +288,7 @@ inherited dlgPrintScheduled: TdlgPrintScheduled
           Width = 169
           Height = 17
           Hint = 'Include reports to be sent via a checked out file'
-          Caption = 'BankLink Boo&ks Files'
+          Caption = 'BankLink Boo&ks files'
           TabOrder = 6
         end
         object cbToBusinessProducts: TCheckBox
@@ -307,7 +307,7 @@ inherited dlgPrintScheduled: TdlgPrintScheduled
           Width = 314
           Height = 17
           Hint = 'Include reports to be sent via a checked out file'
-          Caption = 'BankLink Books Files via BankLink &Online'
+          Caption = 'BankLink Books Files via &online'
           TabOrder = 7
         end
       end
@@ -467,7 +467,7 @@ inherited dlgPrintScheduled: TdlgPrintScheduled
         TabOrder = 1
         object btnCoverPageMsg: TButton
           Left = 410
-          Top = 17
+          Top = 20
           Width = 217
           Height = 25
           Hint = 
@@ -506,7 +506,7 @@ inherited dlgPrintScheduled: TdlgPrintScheduled
         TabOrder = 2
         object btnEmailMsg: TButton
           Left = 410
-          Top = 17
+          Top = 20
           Width = 217
           Height = 25
           Caption = 'E-Ma&il Message '
@@ -542,7 +542,7 @@ inherited dlgPrintScheduled: TdlgPrintScheduled
         TabOrder = 3
         object btnBNotesMsg: TButton
           Left = 410
-          Top = 17
+          Top = 20
           Width = 217
           Height = 25
           Caption = '&BankLink Notes Message '
@@ -578,7 +578,7 @@ inherited dlgPrintScheduled: TdlgPrintScheduled
         TabOrder = 4
         object btnCheckOutMsg: TButton
           Left = 410
-          Top = 17
+          Top = 20
           Width = 217
           Height = 25
           Caption = 'BankLink Boo&ks Message'
@@ -614,7 +614,7 @@ inherited dlgPrintScheduled: TdlgPrintScheduled
         TabOrder = 5
         object btnWebNotesMsg: TButton
           Left = 410
-          Top = 17
+          Top = 20
           Width = 217
           Height = 25
           Caption = '&BankLink WebNotes Message '
@@ -650,7 +650,7 @@ inherited dlgPrintScheduled: TdlgPrintScheduled
         TabOrder = 6
         object btnOnlineMsg: TButton
           Left = 413
-          Top = 17
+          Top = 20
           Width = 213
           Height = 25
           Caption = 'BankLink Boo&ks Message'
@@ -681,6 +681,10 @@ inherited dlgPrintScheduled: TdlgPrintScheduled
     object tbsReportSetup: TTabSheet
       Caption = '&Report Setup'
       ImageIndex = 1
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object GroupBox2: TGroupBox
         Left = 0
         Top = 6
