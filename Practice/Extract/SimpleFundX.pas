@@ -297,7 +297,7 @@ const
    ThisMethodName = 'ExtractData';
 Begin
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
-  if (SuperFundType = saBGLSimpleFund) then
+  if (SuperFundType in [saBGLSimpleFund, saBGLSimpleLedger]) then
     ExtractDataBGL(FromDate, ToDate, SaveTo)
   else if (SuperFundType = saBGL360) then
     ExtractDataBGL360(FromDate, ToDate, SaveTo);
