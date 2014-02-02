@@ -1,1 +1,1 @@
-AppCopyright=Copyright © 1999-2014 BankLink Limited
+AppCopyright=© 2014 MYOB Technology Pty Ltd 
