@@ -2,5 +2,5 @@
 ; Appname and Version Name can changed on the release naming
 
 AppID=BankLinkPractice
-AppName=BankLink Practice 2013 Update  
-AppVerName=BankLink Practice 2013 Update
+AppName=BankLink Practice 2014 Update  
+AppVerName=BankLink Practice 2014 Update

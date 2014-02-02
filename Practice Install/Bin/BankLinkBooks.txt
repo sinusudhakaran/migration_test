@@ -2,5 +2,5 @@
 ; Appname and Version Name can changed on the release naming
 
 AppID=BankLinkBooks
-AppName=BankLink Books 2013
-AppVerName=BankLink Books 2013
+AppName=BankLink Books 2014
+AppVerName=BankLink Books 2014
