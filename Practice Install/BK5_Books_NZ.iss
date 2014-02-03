@@ -5,7 +5,7 @@
 #Include "Bin\BankLinkBooks.txt"
 #include "Bin\BankLinkCopyRight.txt"
 DefaultDirName={sd}\BK5
-DefaultGroupName=BankLink
+DefaultGroupName=MYOB
 DisableStartupPrompt=yes
 LicenseFile=Bin\BK5_EULA.RTF
 MinVersion=4.1,5
@@ -39,8 +39,8 @@ Source: "3rd Party\zint.dll"; DestDir: "{app}"
 Source: "3rd Party\vcredist_x86.exe"; DestDir: "{app}\Support"
 
 [Icons]
-Name: "{group}\BankLink Books"; Filename: "{app}\BK5WIN.EXE"
-Name: "{userdesktop}\BankLink Books"; Filename: "{app}\BK5WIN.EXE"; MinVersion: 4,4; Tasks: desktopicon
+Name: "{group}\MYOB BankLink Books"; Filename: "{app}\BK5WIN.EXE"
+Name: "{userdesktop}\MYOB BankLink Books"; Filename: "{app}\BK5WIN.EXE"; MinVersion: 4,4; Tasks: desktopicon
 
 [Registry]
 Root: HKCR; Subkey: ".bk5"; ValueType: string; ValueName: ""; ValueData: "BankLink.bkHandlr"; Flags: uninsdeletevalue

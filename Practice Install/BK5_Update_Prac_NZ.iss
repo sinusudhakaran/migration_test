@@ -68,7 +68,7 @@ Source: "..\Binaries\PracticeServerConsole.exe"; DestDir: "{app}\Practice Server
 Source: "..\Practice Server\Service\PracticeApplicationService.ini"; DestDir: "{app}\Practice Server"
 
 [Run]
-Filename: "{app}\BK5WIN.EXE"; Description : "Start BankLink Practice"; WorkingDir: "{app}"; Flags: postinstall nowait;
+Filename: "{app}\BK5WIN.EXE"; Description : "Start MYOB BankLink Practice"; WorkingDir: "{app}"; Flags: postinstall nowait;
 
 [Registry]
 Root: HKCU; Subkey: "Software\BankLink"; Flags: uninsdeletekeyifempty
@@ -82,7 +82,7 @@ begin
   begin
     if not FileExists(ExpandConstant('{app}') + '\BK5WIN.exe') then
     begin
-      MsgBox('A previous version of BankLink Practice must exist in the install folder for the upgrade to complete successfully.' + #13#13 + 'Please change the installation folder to your current BankLink Practice folder.', mbError, MB_OK);
+      MsgBox('A previous version of MYOB BankLink Practice must exist in the install folder for the upgrade to complete successfully.' + #13#13 + 'Please change the installation folder to your current MYOB BankLink Practice folder.', mbError, MB_OK);
       Result := False;
     end;
   end;

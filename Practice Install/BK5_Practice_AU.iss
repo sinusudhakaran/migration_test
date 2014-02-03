@@ -5,7 +5,7 @@
 #Include "Bin\BankLinkPractice.txt"
 #include "Bin\BankLinkCopyRight.txt"
 DefaultDirName={sd}\BK5
-DefaultGroupName=BankLink
+DefaultGroupName=MYOB
 DisableStartupPrompt=yes
 LicenseFile=Bin\BK5_EULA.RTF
 MinVersion=4.1,5
@@ -91,15 +91,15 @@ Source: "..\Binaries\PracticeServerConsole.exe"; DestDir: "{app}\Practice Server
 Source: "..\Practice Server\Service\PracticeApplicationService.ini"; DestDir: "{app}\Practice Server"
 
 [Icons]
-Name: "{group}\BankLink Practice"; Filename: "{app}\BK5WIN.EXE"
+Name: "{group}\MYOB BankLink Practice"; Filename: "{app}\BK5WIN.EXE"
 Name: "{group}\Create Initial Database"; Filename: "{app}\BK5WIN.EXE"; Parameters: "/dbcreate";
 
 [Tasks]
 Name: createdb; Description: "Create an initial database";
 
 [Run]
-Filename: "{app}\BK5WIN.EXE"; Parameters : "/dbcreate_norun"; Description : "Create an initial BankLink Practice Database"; WorkingDir: "{app}"; Tasks : createdb;
-Filename: "{app}\BK5WIN.EXE"; Description : "Start BankLink Practice"; WorkingDir: "{app}"; Flags: postinstall nowait;
+Filename: "{app}\BK5WIN.EXE"; Parameters : "/dbcreate_norun"; Description : "Create an initial MYOB BankLink Practice Database"; WorkingDir: "{app}"; Tasks : createdb;
+Filename: "{app}\BK5WIN.EXE"; Description : "Start MYOB BankLink Practice"; WorkingDir: "{app}"; Flags: postinstall nowait;
 
 [Registry]
 Root: HKCU; Subkey: "Software\BankLink"; Flags: uninsdeletekeyifempty

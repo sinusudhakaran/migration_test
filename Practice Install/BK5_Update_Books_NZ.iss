@@ -5,7 +5,7 @@
 #Include "Bin\BankLinkBooksUpdate.txt"
 #include "Bin\BankLinkCopyRight.txt"
 DefaultDirName={sd}\BK5
-DefaultGroupName=BankLink
+DefaultGroupName=MYOB
 DisableStartupPrompt=yes
 LicenseFile=Bin\BK5_EULA.RTF
 MinVersion=4.1,5
@@ -64,7 +64,7 @@ begin
   begin
     if not FileExists(ExpandConstant('{app}') + '\BK5WIN.exe') then
     begin
-      MsgBox('A previous version of BankLink Books must exist in the install folder for the upgrade to complete successfully.' + #13#13 + 'Please change the installation folder to your current BankLink Books folder.', mbError, MB_OK);
+      MsgBox('A previous version of MYOB BankLink Books must exist in the install folder for the upgrade to complete successfully.' + #13#13 + 'Please change the installation folder to your current MYOB BankLink Books folder.', mbError, MB_OK);
       Result := False;
     end;
   end;
