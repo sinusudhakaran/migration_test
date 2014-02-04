@@ -2900,7 +2900,7 @@ begin
         FData[DataRow].bAmounts[ColNum] := 0
       else
         FData[DataRow].bAmounts[ColNum] :=
-          Round(FData[AccountCodeRow].bAmounts[ColNum] * (FData[DataRow].Percentage / 100));
+          DoRoundUp(FData[AccountCodeRow].bAmounts[ColNum] * (FData[DataRow].Percentage / 100));
 
       CreateDetailLine(DataRow);
       FData[DataRow].bDetailLine.bdBudget[ColNum] := FData[DataRow].bAmounts[ColNum];
