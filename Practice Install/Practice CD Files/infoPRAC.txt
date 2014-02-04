@@ -1,7 +1,7 @@
 *** WARNING ***
 
-This upgrade includes a BankLink client file version update. 
+This upgrade includes a MYOB BankLink client file version update. 
 
-All your BankLink Books and BankLink Notes users will be required to upgrade their copy of the software.
+All your MYOB BankLink Books and MYOB BankLink Notes users will be required to upgrade their copy of the software.
 
 Click the Next button to continue with this upgrade, or click the Cancel button to stop the upgrade now.

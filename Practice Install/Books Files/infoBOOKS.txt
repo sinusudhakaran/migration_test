@@ -1,6 +1,6 @@
 *** WARNING ***
 
-This upgrade includes a BankLink client file version update. 
+This upgrade includes a MYOB BankLink client file version update. 
 
 You should only install this upgrade if you have been instructed to do so by your Accountant. If you upgrade before your Accountant, they may no longer be able to open your files.
 
