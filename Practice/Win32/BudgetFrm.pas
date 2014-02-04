@@ -740,7 +740,7 @@ begin
   AllowIt := FData[RowNum-1].bIsPosting and (FData[RowNum-1].PercentAccount = '');
 
   // Allow editing of GST, only when we're not automatically calculating it
-  if AutoCalculateGST and FData[RowNum-1].bIsGSTAccountCode then
+  if (AutoCalculateGST or ShowFiguresGSTInclusive) and FData[RowNum-1].bIsGSTAccountCode then
     AllowIt := false;
 end;
 
@@ -1116,7 +1116,7 @@ begin
 
     for MonthIndex := 1 to 12 do
     begin
-      if Assigned(pBudgetRec) and not FData[aDataIndex].bIsGSTAccountCode then
+      if Assigned(pBudgetRec) and not (ShowFiguresGSTInclusive and FData[aDataIndex].bIsGSTAccountCode) then
       begin
         FData[aDataIndex].bAmounts[MonthIndex] := Round(FData[aDataIndex].bDetailLine.bdBudget[MonthIndex]);
         FData[aDataIndex].bQuantitys[MonthIndex] := FData[aDataIndex].bDetailLine.bdQty_Budget[MonthIndex];
