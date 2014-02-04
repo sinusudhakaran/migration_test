@@ -20,93 +20,6 @@ object frmExportCharges: TfrmExportCharges
   OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 13
-  object pnlOptions: TPanel
-    Left = 0
-    Top = 76
-    Width = 653
-    Height = 330
-    Align = alClient
-    TabOrder = 0
-    object lblSaveTo: TLabel
-      Left = 26
-      Top = 103
-      Width = 75
-      Height = 13
-      Caption = '&Save Entries To'
-      FocusControl = eTo
-    end
-    object lblMonth: TLabel
-      Left = 26
-      Top = 43
-      Width = 78
-      Height = 13
-      Caption = '&Month to Export'
-      FocusControl = cmbMonths
-    end
-    object btnToFolder: TSpeedButton
-      Left = 562
-      Top = 99
-      Width = 25
-      Height = 24
-      Hint = 'Click to Select a Folder'
-      OnClick = btnToFolderClick
-    end
-    object lblDate: TLabel
-      Left = 26
-      Top = 172
-      Width = 58
-      Height = 13
-      Caption = 'Import &Date'
-      FocusControl = eDate
-    end
-    object lblRemarks: TLabel
-      Left = 26
-      Top = 236
-      Width = 41
-      Height = 13
-      Caption = '&Remarks'
-      FocusControl = eRemarks
-    end
-    object eTo: TEdit
-      Left = 146
-      Top = 99
-      Width = 415
-      Height = 24
-      BorderStyle = bsNone
-      TabOrder = 1
-      Text = 'eTo'
-    end
-    object cmbMonths: TComboBox
-      Left = 146
-      Top = 39
-      Width = 151
-      Height = 21
-      Hint = 'Choose the charges month to export'
-      Style = csDropDownList
-      ItemHeight = 13
-      TabOrder = 0
-      OnChange = cmbMonthsChange
-    end
-    object eDate: TRzDateTimePicker
-      Left = 146
-      Top = 168
-      Width = 103
-      Height = 21
-      Date = 38965.379046875000000000
-      Time = 38965.379046875000000000
-      TabOrder = 2
-      OnChange = eDateChange
-    end
-    object eRemarks: TEdit
-      Left = 146
-      Top = 232
-      Width = 415
-      Height = 24
-      BorderStyle = bsNone
-      MaxLength = 200
-      TabOrder = 3
-    end
-  end
   object pnlAdjust: TPanel
     Left = 0
     Top = 76
@@ -673,36 +586,6 @@ object frmExportCharges: TfrmExportCharges
       end
     end
   end
-  object pnlInstructions: TPanel
-    Left = 0
-    Top = 0
-    Width = 653
-    Height = 76
-    Align = alTop
-    TabOrder = 1
-    object lblTitle: TLabel
-      Left = 7
-      Top = 36
-      Width = 618
-      Height = 34
-      AutoSize = False
-      Caption = 'Description'
-      WordWrap = True
-    end
-    object lblHeading: TLabel
-      Left = 7
-      Top = 8
-      Width = 32
-      Height = 16
-      Caption = 'Title'
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clWindowText
-      Font.Height = -15
-      Font.Name = 'MS Sans Serif'
-      Font.Style = [fsBold]
-      ParentFont = False
-    end
-  end
   object pnlButtons: TPanel
     Left = 0
     Top = 406
@@ -765,6 +648,123 @@ object frmExportCharges: TfrmExportCharges
       Caption = '&Save Data'
       TabOrder = 1
       OnClick = btnStoreClick
+    end
+  end
+  object pnlInstructions: TPanel
+    Left = 0
+    Top = 0
+    Width = 653
+    Height = 76
+    Align = alTop
+    TabOrder = 1
+    object lblTitle: TLabel
+      Left = 7
+      Top = 36
+      Width = 618
+      Height = 34
+      AutoSize = False
+      Caption = 'Description'
+      WordWrap = True
+    end
+    object lblHeading: TLabel
+      Left = 7
+      Top = 8
+      Width = 32
+      Height = 16
+      Caption = 'Title'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -15
+      Font.Name = 'MS Sans Serif'
+      Font.Style = [fsBold]
+      ParentFont = False
+    end
+  end
+  object pnlOptions: TPanel
+    Left = 0
+    Top = 76
+    Width = 653
+    Height = 330
+    Align = alClient
+    TabOrder = 0
+    object lblSaveTo: TLabel
+      Left = 26
+      Top = 103
+      Width = 75
+      Height = 13
+      Caption = '&Save Entries To'
+      FocusControl = eTo
+    end
+    object lblMonth: TLabel
+      Left = 26
+      Top = 43
+      Width = 78
+      Height = 13
+      Caption = '&Month to Export'
+      FocusControl = cmbMonths
+    end
+    object btnToFolder: TSpeedButton
+      Left = 562
+      Top = 99
+      Width = 25
+      Height = 24
+      Hint = 'Click to Select a Folder'
+      OnClick = btnToFolderClick
+    end
+    object lblDate: TLabel
+      Left = 26
+      Top = 172
+      Width = 58
+      Height = 13
+      Caption = 'Import &Date'
+      FocusControl = eDate
+    end
+    object lblRemarks: TLabel
+      Left = 26
+      Top = 236
+      Width = 41
+      Height = 13
+      Caption = '&Remarks'
+      FocusControl = eRemarks
+    end
+    object eTo: TEdit
+      Left = 146
+      Top = 99
+      Width = 415
+      Height = 24
+      BorderStyle = bsNone
+      TabOrder = 1
+      Text = 'eTo'
+    end
+    object cmbMonths: TComboBox
+      Left = 146
+      Top = 39
+      Width = 151
+      Height = 21
+      Hint = 'Choose the charges month to export'
+      Style = csDropDownList
+      ItemHeight = 13
+      TabOrder = 0
+      OnChange = cmbMonthsChange
+    end
+    object eDate: TRzDateTimePicker
+      Left = 146
+      Top = 168
+      Width = 103
+      Height = 21
+      Date = 38965.379046875000000000
+      Time = 38965.379046875000000000
+      TabOrder = 2
+      OnChange = eDateChange
+    end
+    object eRemarks: TEdit
+      Left = 146
+      Top = 232
+      Width = 415
+      Height = 24
+      BorderStyle = bsNone
+      MaxLength = 200
+      TabOrder = 3
     end
   end
   object tsMaskDefs1: TtsMaskDefs

@@ -217,7 +217,7 @@ const
   colIncreasedCharge = 11;
 
   CHARGES_COLUMN_NAME = 'Charges';
-  REMARKS = BRAND_SHORT_NAME + ' Charges ';
+  REMARKS = BRAND_FULL_NAME + ' Charges ';
 
 var
   frmExportCharges: TfrmExportCharges;
@@ -385,6 +385,8 @@ end;
 
 // Set system-specific settings
 procedure TfrmExportCharges.SetExportType(Value: Byte);
+var
+  sBrandFileName: string;
 begin
   FExportType := Value;
   Caption := 'Export Charges to ' + xcNames[Value];
@@ -399,6 +401,7 @@ begin
   lblDate.Visible := False;
   eRemarks.Visible := False;
   lblRemarks.Visible := False;
+  sBrandFileName := StringReplace(TProduct.BrandName, ' ', '_', []);
   case Value of
     xcAPS:
       begin
@@ -415,7 +418,7 @@ begin
         tgCharges.Col[colDisbursement].Width := tgCharges.Col[colDisbursement].Width - 15;
         tgCharges.Col[colAssignment].Width := tgCharges.Col[colAssignment].Width - 15;
         if ExtractFileName(AdminSystem.fdFields.fdLast_Export_Charges_Saved_To) = '' then
-          eTo.Text := eTo.Text + Lowercase(TProduct.BrandName);
+          eTo.Text := eTo.Text + Lowercase(sBrandFileName);
         eTo.Text := ChangeFileExt(eTo.Text, xcFilenames[Value]);
       end;
     xcOther:
@@ -428,7 +431,7 @@ begin
         tgCharges.Col[colAcctNo].Width := tgCharges.Col[colAcctNo].Width + 25;
         tgCharges.Col[colAcctName].Width := tgCharges.Col[colAcctName].Width + 100;
         if ExtractFileName(AdminSystem.fdFields.fdLast_Export_Charges_Saved_To) = '' then
-          eTo.Text := eTo.Text + Lowercase(TProduct.BrandName);
+          eTo.Text := eTo.Text + Lowercase(sBrandFileName);
         eTo.Text := ChangeFileExt(eTo.Text, xcFilenames[Value]);
       end;
     xcMYOBAO:
@@ -450,7 +453,7 @@ begin
         eRemarks.Visible := True;
         lblRemarks.Visible := True;
         if ExtractFileName(AdminSystem.fdFields.fdLast_Export_Charges_Saved_To) = '' then
-          eTo.Text := eTo.Text + Lowercase(TProduct.BrandName);
+          eTo.Text := eTo.Text + Lowercase(sBrandFileName);
         eTo.Text := ChangeFileExt(eTo.Text, xcFilenames[Value]);
       end;
     xcHandi:
@@ -467,14 +470,14 @@ begin
         tgCharges.Col[colCostCode].MaskName := 'sysShortInteger';
         tgCharges.Col[colAssignment].Heading := 'Cost Code';
         tgCharges.Col[colAssignment].MaxLength := 3;
-        tgCharges.Col[colAssignment].MaskName := 'sysShortInteger';        
+        tgCharges.Col[colAssignment].MaskName := 'sysShortInteger';
         eDate.Visible := True;
         lblDate.Visible := True;
         eRemarks.Visible := True;
         lblRemarks.Visible := True;
         lblRemarks.Caption := 'Desc&ription';
         if ExtractFileName(AdminSystem.fdFields.fdLast_Export_Charges_Saved_To) = '' then
-          eTo.Text := eTo.Text + Lowercase(TProduct.BrandName);
+          eTo.Text := eTo.Text + Lowercase(sBrandFileName);
         eTo.Text := ChangeFileExt(eTo.Text, xcFilenames[Value]);
       end;
     end;
