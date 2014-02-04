@@ -89,6 +89,7 @@ Var
   FTransactionNode    : IxmlNode;
   FExtractFieldHelper : TExtractFieldHelper;
   FFields             : TStringList;
+  ExtractFileExtn     : string;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -185,8 +186,18 @@ end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-Procedure DoTransaction;
+// We need to strip commas and quotes from CSV files, but leave them in for other file types
+function FilterIfNeeded(Value: string): string;
+begin
+  if (ExtractFileExtn = '.CSV') then
+    Result := ReplaceCommasAndQuotes(Value)
+  else
+    Result := Value;
+end;
 
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Procedure DoTransaction;
 const
   ThisMethodName = 'DoTransaction';
 Begin
@@ -203,11 +214,11 @@ Begin
       If ( txFirst_Dissection = NIL ) then
       Begin
          SWrite( txDate_Effective,           { ADate        : TStDate;         }
-                 GetReference(TransAction,Bank_Account.baFields.baAccount_Type),                { ARefce       : ShortString;     }
-                 txAccount,                  { AAccount     : ShortString;     }
+                 FilterIfNeeded(GetReference(TransAction,Bank_Account.baFields.baAccount_Type)),                { ARefce       : ShortString;     }
+                 FilterIfNeeded(txAccount),                  { AAccount     : ShortString;     }
                  txAmount,                   { AAmount      : Money;           }
                  txQuantity,                 { AQuantity    : Money;           }
-                  GetNarration(TransAction,Bank_Account.baFields.baAccount_Type),             { ANarration   : ShortString );   }
+                 FilterIfNeeded(GetNarration(TransAction,Bank_Account.baFields.baAccount_Type)),             { ANarration   : ShortString );   }
                  txGST_Class,
                  txGST_Amount,
 
@@ -241,15 +252,16 @@ const
    ThisMethodName = 'DoDissection';
 Begin
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
+
    With MyClient.clFields, Bank_Account.baFields, Transaction^, Dissection^ do
    Begin
       SWrite( txDate_Effective,           { ADate        : TStDate;         }
-              getDsctReference(Dissection,Transaction,baAccount_Type),
+              FilterIfNeeded(getDsctReference(Dissection,Transaction,baAccount_Type)),
                                           { ARefce       : ShortString;     }
-              dsAccount,                  { AAccount     : ShortString;     }
+              FilterIfNeeded(dsAccount),                  { AAccount     : ShortString;     }
               dsAmount,                   { AAmount      : Money;           }
               dsQuantity,                 { AQuantity    : Money;           }
-              dsGL_Narration,             { ANarration   : ShortString      }
+              FilterIfNeeded(dsGL_Narration),             { ANarration   : ShortString      }
               dsGST_Class,
               dsGST_Amount,
 
@@ -317,6 +329,8 @@ begin
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
   Msg := 'Extract data [BGL Simple Fund format] from '+BkDate2Str( FromDate ) + ' to ' + bkDate2Str( ToDate );
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' ' + Msg );
+
+  ExtractFileExtn := AnsiUpperCase(ExtractFileExt(SaveTo));
 
   with MyClient.clFields do
   begin
