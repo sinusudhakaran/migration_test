@@ -769,7 +769,7 @@ begin
   Amount := FData[RowIndex].bAmounts[ColIndex];
   Result := CalculatedAmount = Amount;
 end;
-
+                                                    
 // Updating rows with percentages for cases where the
 // rows they derive their values from may have changed
 procedure TfrmBudget.UpdatePercentageRows(RefreshTable: boolean);
@@ -827,7 +827,7 @@ begin
                 exit;
               GST_Class := pAccount.chGST_Class;
               GSTAmount := CalculateGSTFromNetAmount(MyClient, dtMonth, moAmount, GST_Class);
-              FData[RowNum-1].bAmounts[ColNum-MonthBase] := Round(moAmount - GSTAmount);
+              FData[RowNum-1].bAmounts[ColNum-MonthBase] := DoRoundUp(moAmount - GSTAmount);
               // Need to recalculate the shown GST inclusive amount so that it's the stored raw amount + GST, which may
               // differ slightly from the GST inclusive amount entered by the user
               RawAmount := FData[RowNum-1].bAmounts[ColNum-MonthBase];
@@ -1874,7 +1874,7 @@ Begin
         UpdateLine(i);
       end;
     finally
-      RefreshTableWithData(fShowZeros, True, True);
+      UpdatePercentageRows(True);
     end;
   end;
 end;
