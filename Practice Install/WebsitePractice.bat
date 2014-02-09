@@ -16,7 +16,7 @@ if exist "%DirRelease%" echo Is this the correct release folder?
 if exist "%DirRelease%" echo If not, press CTRL+C to terminate this Batch File and edit "DirRelease". 
 if exist "%DirRelease%" pause
 REM Deployment folder
-set DirDeploy=\\banklink-fp\product\FilesForWebsite
+set DirDeploy=\\myob.myobcorp.net\nzakl\Product\FilesForWebsite
 echo Deploy Folder = %DirDeploy%
 REM Check that FilesForWebsite_BUpgrade folder exists
 if not exist "%DirDeploy%" echo **********************************************************

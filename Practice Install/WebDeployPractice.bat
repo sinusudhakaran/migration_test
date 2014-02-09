@@ -22,7 +22,7 @@ REM Check for bkinstall.exe
 if not exist "%DirRelease%\bkinstall.exe" echo Copy bkinstall.exe to %DirRelease% before continuing!
 if not exist "%DirRelease%\bkinstall.exe" pause
 REM Deployment folder
-set DirDeploy=\\banklink-fp\product\FilesForWebsite_BUpgrade
+set DirDeploy=\\myob.myobcorp.net\nzakl\Product\FilesForWebsite_BUpgrade
 echo Deploy Folder = %DirDeploy%
 REM Check that FilesForWebsite_BUpgrade folder exists
 if not exist "%DirDeploy%" echo **********************************************************
