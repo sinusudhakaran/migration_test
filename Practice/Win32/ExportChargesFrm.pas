@@ -2226,16 +2226,19 @@ end;
 function TfrmExportCharges.RemarkMatchesMonth(s: string): Boolean;
 var
   i: Integer;
+  iPos: integer;
 begin
-  Result := False;
   for i := 0 to Pred(cmbMonths.Items.Count) do
   begin
-    if s = (REMARKS + cmbMonths.Items[i]) then
+    iPos := Pos(cmbMonths.Items[i], s);
+    if (iPos <> 0) then
     begin
       Result := True;
-      break;
+      exit;
     end;
   end;
+
+  Result := False;
 end;
 
 procedure TfrmExportCharges.RemoveNoChargeFlag1Click(Sender: TObject);
