@@ -2585,9 +2585,6 @@ begin
 
     if DoExportBudget(BudgetFilePath, IncludeUnusedChartCodes, IncludeNonPostingChartCodes) then
     begin
-      if not fShowZeros then
-        RefreshTableWithData(fShowZeros);
-
       try
         // Do this after DoExportBudget dialog
         bPrefixAccountCode :=
@@ -2616,7 +2613,7 @@ begin
           HelpfulErrorMsg(MsgStr, 0);
       finally
         if not fShowZeros then
-          RefreshTableWithData(fShowZeros);
+          UpdatePercentageRows(True);
       end;
     end;
   finally
