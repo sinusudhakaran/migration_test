@@ -2978,7 +2978,7 @@ begin
         ctRow : begin
           if HasPercentageFormula(DataRow) then
           begin
-            HelpfulErrorMsg(CellsHavePercentWarning, 0);
+            HelpfulWarningMsg(CellsHavePercentWarning, 0);
           end else
           begin
             for i := 1 to 12 do
