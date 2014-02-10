@@ -2924,10 +2924,8 @@ end;
 
 procedure TfrmBudget.DoPercentageChange;
 const
-  CellsHavePercentWarning : string = 'You cannot change the value of cells which are ' +
-                                     'deriving their value as a percentage of another ' +
-                                     'cell. You must first clear the percentage for ' +
-                                     'this row.';
+  CellsHavePercentWarning : string = 'Figures for this row are calculated. To change them, select ' +
+                                     '''Enter Percentage'' then clear or amend the percentage calculation.';
 var
   ValueTooLarge : boolean;
   Percent : double;
@@ -2961,7 +2959,7 @@ begin
         ctCell : begin
           if HasPercentageFormula(DataRow) then                 
           begin
-            HelpfulErrorMsg(CellsHavePercentWarning, 0);
+            HelpfulWarningMsg(CellsHavePercentWarning, 0);
           end else
           begin
             IncreaseCellBy(DataRow, DataCol, Percent, ValueTooLarge);

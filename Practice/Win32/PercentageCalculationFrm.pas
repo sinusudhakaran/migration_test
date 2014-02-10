@@ -141,7 +141,7 @@ begin
     if CodesMatch then
     begin
       IsValid   := False;
-      ErrorMsg  := 'Please select a row other than the current row.';
+      ErrorMsg  := 'The Account Code cannot be the same as the current row. Please select a different code.';
     end else
     if not pAcct.chPosting_Allowed then
     begin
