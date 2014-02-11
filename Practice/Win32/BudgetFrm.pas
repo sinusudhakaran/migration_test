@@ -2483,9 +2483,6 @@ begin
     GSTInclusive := ShowFiguresGSTInclusive;
     if DoImportBudget(BudgetFilePath, FBudget.buFields.buName, GSTInclusive) then
     begin
-      if not fShowZeros then
-        RefreshTableWithData(fShowZeros);
-
       try
         BudgetImportExport.ClearWasUpdated(FData);
         BudgetCopy := BudgetImportExport.CopyBudgetData(FData, false, Budget.buFields.buStart_Date);
@@ -2527,7 +2524,7 @@ begin
                               InttoStr(RowsImported) + ' Account(s) updated, ' +
                               InttoStr(RowsNotImported) + ' Account(s) rejected' );
 
-              UpdatePercentageRows(True);
+              UpdatePercentageRows(False); // Not refreshing table yet, that gets done in the finally block below
             end;
           finally
             tblBudget.AllowRedraw := true;
@@ -2543,7 +2540,7 @@ begin
           end;
         end;
       finally
-        RefreshTableWithData(fShowZeros);
+        RefreshTableWithData(fShowZeros, True, True);
       end;
     end;
   finally
