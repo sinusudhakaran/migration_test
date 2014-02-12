@@ -93,6 +93,7 @@ type
 
     function ImportBudget(aBudgetFilePath: string;
                           aBudgetErrorFilePath : string;
+                          ShowFiguresGSTInclusive: boolean;
                           var aRowsImported : integer;
                           var aRowsNotImported : integer;
                           var aBudgetData : TBudgetData;
@@ -582,6 +583,7 @@ begin
         Result[BudgetIndex].bAmounts[MonthIndex]  := Round(aBudgetData[BudgetIndex].bAmounts[MonthIndex] - GstAmount);
       end else
         Result[BudgetIndex].bAmounts[MonthIndex]  := aBudgetData[BudgetIndex].bAmounts[MonthIndex];
+      Result[BudgetIndex].bGstAmounts[MonthIndex] := aBudgetdata[BudgetIndex].bGstAmounts[MonthIndex];
       Result[BudgetIndex].bQuantitys[MonthIndex]  := aBudgetData[BudgetIndex].bQuantitys[MonthIndex];
       Result[BudgetIndex].bUnitPrices[MonthIndex] := aBudgetData[BudgetIndex].bUnitPrices[MonthIndex];
     end;
@@ -608,6 +610,7 @@ end;
 //------------------------------------------------------------------------------
 function TBudgetImportExport.ImportBudget(aBudgetFilePath: string;
                                           aBudgetErrorFilePath : string;
+                                          ShowFiguresGSTInclusive: boolean;
                                           var aRowsImported : integer;
                                           var aRowsNotImported : integer;
                                           var aBudgetData : TBudgetData;
@@ -649,11 +652,16 @@ var
   function IsPercentWarningNeeded: boolean;
   var
     i: integer;
+    BudgetAmount: integer;
   begin
     Result := False;
     for i := Low(DataHolder) to High(DataHolder) do
     begin
-      if (DataHolder[i] <> aBudgetData[DataIndex].bAmounts[i]) then
+      if ShowFiguresGSTInclusive then
+        BudgetAmount := aBudgetData[DataIndex].bGstAmounts[i]
+      else
+        BudgetAmount := aBudgetData[DataIndex].bAmounts[i];
+      if (DataHolder[i] <> BudgetAmount) then
       begin
         Result := True;
         break;
@@ -718,7 +726,7 @@ begin
 
               WriteLn(ErrorFile, 'Row ' + inttostr(LineNumber) + ', Code ' + Trim(Codestr) +
                                  ', Incorrect amount of columns, 15 expected, ' + inttostr(InLineData.Count) + ' found.');
-              aRowsNotImported := aRowsNotImported + 1;
+              inc(aRowsNotImported);
             end
             else
             begin
@@ -740,7 +748,7 @@ begin
                       WriteLn(ErrorFile, 'Row ' + inttostr(LineNumber) + ', Column ' + inttostr(DateIndex + 3) +
                                          ', Code ' + Trim(InLineData[0]) + ', Error converting value to a number.');
                       LineHasError := true;
-                      aRowsNotImported := aRowsNotImported + 1;
+                      inc(aRowsNotImported);
                       break;
                     end;
                   end;
@@ -753,7 +761,7 @@ begin
                       begin
                         WriteLn(ErrorFile, 'Row ' + IntToStr(LineNumber) + ', Code ' + Trim(InLineData[0]) +
                                 ', Data Row is auto-calculated and cannot be updated.');
-                        aRowsNotImported := aRowsNotImported + 1;
+                        inc(aRowsNotImported);
                       end;
                     end else
                     begin
@@ -765,7 +773,7 @@ begin
                         aBudgetData[DataIndex].bTotal := aBudgetData[DataIndex].bTotal +
                                                          aBudgetData[DataIndex].bAmounts[DateIndex];
                       aBudgetData[DataIndex].bNeedsUpdate := true;
-                      aRowsImported := aRowsImported + 1;
+                      inc(aRowsImported);
                     end;
                   end;
                 end
@@ -799,7 +807,7 @@ begin
                       begin
                         WriteLn(ErrorFile, 'Row ' + inttostr(LineNumber) + ', Code ' + Trim(InLineData[0]) +
                                        ', Data row is not a posting row and cannot be updated.');
-                        aRowsNotImported := aRowsNotImported + 1;
+                        inc(aRowsNotImported);
                         break;
                       end;
                     end;
@@ -810,7 +818,7 @@ begin
               begin
                 WriteLn(ErrorFile, 'Row ' + inttostr(LineNumber) + ', Code ' + Trim(InLineData[0]) +
                                    ', Cannot find Account code.');
-                aRowsNotImported := aRowsNotImported + 1;
+                inc(aRowsNotImported);
               end;
             end;
           end;
