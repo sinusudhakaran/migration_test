@@ -2733,6 +2733,7 @@ var
 begin
   HTTPRIO := THTTPRIO.Create(nil);
   HTTPRIO.OnBeforeExecute := DoBeforeExecute;
+  HTTPRIO.OnAfterExecute := DoAfterSecureExecute;
 
   Result := GetIBlopiServiceFacade(False, GetBanklinkOnlineURL('/Services/BlopiServiceFacade.svc'), HTTPRIO);
 end;
