@@ -61,8 +61,8 @@ type
   MessageResponseOfPracticeReadMIdCYrSK = class;   { "http://schemas.datacontract.org/2004/07/BankLink.Common.Services"[GblCplx] }
   MessageResponseOfguid = class;                { "http://schemas.datacontract.org/2004/07/BankLink.Common.Services"[GblCplx] }
   MessageResponseOfPracticeRegisteredSubDomainMIdCYrSK = class;   { "http://schemas.datacontract.org/2004/07/BankLink.Common.Services"[GblCplx] }
-  MessageResponseOfPracticeUserEmailAdddressMIdCYrSK = class;   { "http://schemas.datacontract.org/2004/07/BankLink.Common.Services"[GblCplx] }
-  PracticeUserEmailAdddress = class;            { "http://www.banklinkonline.com/2011/11/Blopi"[GblCplx] }
+  MessageResponseOfPracticeUserEmailAddressMIdCYrSK = class;   { "http://schemas.datacontract.org/2004/07/BankLink.Common.Services"[GblCplx] }
+  PracticeUserEmailAddress = class;            { "http://www.banklinkonline.com/2011/11/Blopi"[GblCplx] }
   PracticeRegisteredSubDomain = class;          { "http://www.banklinkonline.com/2011/11/Blopi"[GblCplx] }
   MessageResponseOfClientListMIdCYrSK = class;   { "http://schemas.datacontract.org/2004/07/BankLink.Common.Services"[GblCplx] }
   MessageResponseOfClientReadDetailMIdCYrSK = class;   { "http://schemas.datacontract.org/2004/07/BankLink.Common.Services"[GblCplx] }
@@ -532,19 +532,19 @@ type
 
 
   // ************************************************************************ //
-  // XML       : MessageResponseOfPracticeUserEmailAdddressMIdCYrSK, global, <complexType>
+  // XML       : MessageResponseOfPracticeUserEmailAddressMIdCYrSK, global, <complexType>
   // Namespace : http://schemas.datacontract.org/2004/07/BankLink.Common.Services
   // ************************************************************************ //
-  MessageResponseOfPracticeUserEmailAdddressMIdCYrSK = class(MessageResponse)
+  MessageResponseOfPracticeUserEmailAddressMIdCYrSK = class(MessageResponse)
   private
-    FResult: PracticeUserEmailAdddress;
+    FResult: PracticeUserEmailAddress;
     FResult_Specified: boolean;
-    procedure SetResult(Index: Integer; const APracticeUserEmailAdddress: PracticeUserEmailAdddress);
+    procedure SetResult(Index: Integer; const APracticeUserEmailAddress: PracticeUserEmailAddress);
     function  Result_Specified(Index: Integer): boolean;
   public
     destructor Destroy; override;
   published
-    property Result: PracticeUserEmailAdddress  Index (IS_OPTN or IS_NLBL) read FResult write SetResult stored Result_Specified;
+    property Result: PracticeUserEmailAddress  Index (IS_OPTN or IS_NLBL) read FResult write SetResult stored Result_Specified;
   end;
 
 
@@ -570,10 +570,10 @@ type
 
 
   // ************************************************************************ //
-  // XML       : PracticeUserEmailAdddress, global, <complexType>
+  // XML       : PracticeUserEmailAddress, global, <complexType>
   // Namespace : http://www.banklinkonline.com/2011/11/Blopi
   // ************************************************************************ //
-  PracticeUserEmailAdddress = class(TRemotable)
+  PracticeUserEmailAddress = class(TRemotable)
   private
     FUserEmailAddress: WideString;
     FUserEmailAddress_Specified: boolean;
@@ -1830,16 +1830,15 @@ type
     function  GetPracticeCatalogue(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString): MessageResponseOfArrayOfCatalogueEntryMIdCYrSK; stdcall;
     function  GetSmeCatalogue(const countryCode: WideString; const practiceCode: WideString): MessageResponseOfArrayOfCatalogueEntryMIdCYrSK; stdcall;
     function  GetUserCatalogue(const countryCode: WideString; const practiceCode: WideString; const clientCode: WideString): MessageResponseOfArrayOfCatalogueEntryMIdCYrSK; stdcall;
-    function  GetRegisteredSubDomain(const countryCode: WideString; const practiceCode: WideString; const clientCode: WideString): MessageResponseOfPracticeRegisteredSubDomainMIdCYrSK; stdcall;
+    function  GetRegisteredSubDomain(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString): MessageResponseOfPracticeRegisteredSubDomainMIdCYrSK; stdcall;
     function  GetPractice(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString): MessageResponseOfPracticeReadMIdCYrSK; stdcall;
     function  SavePractice(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const practice: PracticeUpdate): MessageResponse; stdcall;
-    function  GetPracticeUserEmailAdddress(const countryCode: WideString; const practiceCode: WideString; const clientCode: WideString; const userCode: WideString): MessageResponseOfPracticeUserEmailAdddressMIdCYrSK; stdcall;
+    function  GetPracticeUserEmailAddress(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const userCode: WideString): MessageResponseOfPracticeUserEmailAddressMIdCYrSK; stdcall;
     function  CreatePracticeUser(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const user: UserCreatePractice): MessageResponseOfguid; stdcall;
     function  SavePracticeUser(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const user: UserUpdatePractice): MessageResponse; stdcall;
     function  ResetUserPassword(const countryCode: WideString; const practiceCode: WideString; const userEmail: WideString): MessageResponse; stdcall;
     function  ResetPracticeUserPassword(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const userId: guid): MessageResponse; stdcall;
-    function  ChangePracticeUserPassword(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const userId: guid; const oldPassword: WideString; const newPassword: WideString
-                                         ): MessageResponse; stdcall;
+    function  ChangePracticeUserPassword(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const userId: guid; const oldPassword: WideString; const newPassword: WideString): MessageResponse; stdcall;
     function  AuthenticatePracticeUser(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const userId: guid; const password: WideString): MessageResponse; stdcall;
     function  GetInstitutions(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString): MessageResponseOfArrayOfInstitutionMIdCYrSK2; stdcall;
     function  ValidateAccounts(const countryCode: WideString; const practiceCode: WideString; const passwordHash: WideString; const accountValidation: ArrayOfAccountValidation): MessageResponseOfArrayOfAccountValidationMIdCYrSK; stdcall;
@@ -2398,30 +2397,30 @@ begin
   Result := FResult_Specified;
 end;
 
-destructor MessageResponseOfPracticeUserEmailAdddressMIdCYrSK.Destroy;
+destructor MessageResponseOfPracticeUserEmailAddressMIdCYrSK.Destroy;
 begin
   FreeAndNil(FResult);
   inherited Destroy;
 end;
 
-procedure MessageResponseOfPracticeUserEmailAdddressMIdCYrSK.SetResult(Index: Integer; const APracticeUserEmailAdddress: PracticeUserEmailAdddress);
+procedure MessageResponseOfPracticeUserEmailAddressMIdCYrSK.SetResult(Index: Integer; const APracticeUserEmailAddress: PracticeUserEmailAddress);
 begin
-  FResult := APracticeUserEmailAdddress;
+  FResult := APracticeUserEmailAddress;
   FResult_Specified := True;
 end;
 
-function MessageResponseOfPracticeUserEmailAdddressMIdCYrSK.Result_Specified(Index: Integer): boolean;
+function MessageResponseOfPracticeUserEmailAddressMIdCYrSK.Result_Specified(Index: Integer): boolean;
 begin
   Result := FResult_Specified;
 end;
 
-procedure PracticeUserEmailAdddress.SetUserEmailAddress(Index: Integer; const AWideString: WideString);
+procedure PracticeUserEmailAddress.SetUserEmailAddress(Index: Integer; const AWideString: WideString);
 begin
   FUserEmailAddress := AWideString;
   FUserEmailAddress_Specified := True;
 end;
 
-function PracticeUserEmailAdddress.UserEmailAddress_Specified(Index: Integer): boolean;
+function PracticeUserEmailAddress.UserEmailAddress_Specified(Index: Integer): boolean;
 begin
   Result := FUserEmailAddress_Specified;
 end;
@@ -3670,8 +3669,8 @@ initialization
   RemClassRegistry.RegisterExternalPropName(TypeInfo(ExceptionDetails), 'Message_', 'Message');
   RemClassRegistry.RegisterXSClass(MessageResponseOfPracticeReadMIdCYrSK, 'http://schemas.datacontract.org/2004/07/BankLink.Common.Services', 'MessageResponseOfPracticeReadMIdCYrSK');
   RemClassRegistry.RegisterXSClass(MessageResponseOfPracticeRegisteredSubDomainMIdCYrSK, 'http://schemas.datacontract.org/2004/07/BankLink.Common.Services', 'MessageResponseOfPracticeRegisteredSubDomainMIdCYrSK');
-  RemClassRegistry.RegisterXSClass(MessageResponseOfPracticeUserEmailAdddressMIdCYrSK, 'http://schemas.datacontract.org/2004/07/BankLink.Common.Services', 'MessageResponseOfPracticeUserEmailAdddressMIdCYrSK');
-  RemClassRegistry.RegisterXSClass(PracticeUserEmailAdddress, 'http://www.banklinkonline.com/2011/11/Blopi', 'PracticeUserEmailAdddress');
+  RemClassRegistry.RegisterXSClass(MessageResponseOfPracticeUserEmailAddressMIdCYrSK, 'http://schemas.datacontract.org/2004/07/BankLink.Common.Services', 'MessageResponseOfPracticeUserEmailAddressMIdCYrSK');
+  RemClassRegistry.RegisterXSClass(PracticeUserEmailAddress, 'http://www.banklinkonline.com/2011/11/Blopi', 'PracticeUserEmailAddress');
   RemClassRegistry.RegisterXSClass(PracticeRegisteredSubDomain, 'http://www.banklinkonline.com/2011/11/Blopi', 'PracticeRegisteredSubDomain');
   RemClassRegistry.RegisterXSClass(MessageResponseOfguid, 'http://schemas.datacontract.org/2004/07/BankLink.Common.Services', 'MessageResponseOfguid');
   RemClassRegistry.RegisterXSClass(MessageResponseOfClientListMIdCYrSK, 'http://schemas.datacontract.org/2004/07/BankLink.Common.Services', 'MessageResponseOfClientListMIdCYrSK');
