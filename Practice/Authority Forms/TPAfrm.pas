@@ -126,6 +126,7 @@ type
     fValidAccount : boolean;
     fAccountNumber : string;
     fMaskBsb : String;
+    fOldInstName : string;
 
     fValidateError : boolean;
     fPracticeCode : string;
@@ -670,14 +671,37 @@ const
 var
   enableControls : boolean;
   oldInstDroppedDown : boolean;
+  AccountNumber : string;
+
+  function CanCopyData(): boolean;
+  begin
+    Result := not ((edtBranch.Text = '') and
+                   (edtNameOfAccount.Text = '') and
+                   (AccountNumber = '') and
+                   (edtClientCode.Text = '') and
+                   (edtCostCode.Text = '') and
+                   (edtSecureCode.Text = ''));
+  end;
+
 begin
+  edtInstitutionName.Text := '';
+  edtAccountNumber.Text := '';
+  if (fInstitutionType = inBLO) and (aInstitutionType = inOther) then
+  begin
+    AccountNumber := fMaskHint.RemovedMaskBsbFromAccountNumber(fMaskHint.RemoveUnusedCharsFromAccNumber(mskAccountNumber.Text), fMaskBsb);
+    if CanCopyData() then
+    begin
+      edtInstitutionName.Text := fOldInstName;
+      edtAccountNumber.Text := AccountNumber;
+    end;
+  end;
+
   // Set Controls depending on what Istitution Type is selected
   fInstitutionType := aInstitutionType;
 
+  fOldInstName := '';
   mskAccountNumber.EditMask := '';
   mskAccountNumber.EditText := '';
-  edtInstitutionName.Text := '';
-  edtAccountNumber.Text := '';
   fCurrentDisplayError := '';
   lblMaskErrorHint.Caption := '';
   fMaskBsb := '';
@@ -732,6 +756,8 @@ begin
 
             fMaskBsb := fMaskHint.RemoveUnusedCharsFromAccNumber(mskAccountNumber.Text);
           end;
+
+          fOldInstName := cmbInstitution.Text;
         end;
       end;
     end;

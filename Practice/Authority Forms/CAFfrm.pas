@@ -110,6 +110,7 @@ type
     fValidAccount : boolean;
     fAccountNumber : string;
     fMaskBsb : String;
+    fOldInstName : string;
 
     fValidateError : boolean;
     fPracticeCode : string;
@@ -563,17 +564,39 @@ procedure TfrmCAF.SetInstitutionControls(aInstitutionType : TInstitutionType);
 var
   enableControls : boolean;
   oldInstDroppedDown : boolean;
-begin
-  // Set Controls depending on what Istitution Type is selected
-  fInstitutionType := aInstitutionType;
+  AccountNumber : string;
 
-  mskAccountNumber.EditMask := '';
-  mskAccountNumber.EditText := '';
+  function CanCopyData(): boolean;
+  begin
+    Result := not ((edtBranch.Text = '') and
+                   (edtNameOfAccount.Text = '') and
+                   (AccountNumber = '') and
+                   (edtClientCode.Text = '') and
+                   (edtCostCode.Text = '') and
+                   (edtSecureCode.Text = ''));
+  end;
+begin
   edtInstitutionName.Text := '';
   edtAccountNumber.Text := '';
+  if (fInstitutionType = inBLO) and (aInstitutionType = inOther) then
+  begin
+    AccountNumber := fMaskHint.RemovedMaskBsbFromAccountNumber(fMaskHint.RemoveUnusedCharsFromAccNumber(mskAccountNumber.Text), fMaskBsb);
+    if CanCopyData() then
+    begin
+      edtInstitutionName.Text := fOldInstName;
+      edtAccountNumber.Text := AccountNumber;
+    end;
+  end;
+
+  // Set Controls depending on what Istitution Type is selected
+  fInstitutionType := aInstitutionType;
+  
+  mskAccountNumber.EditMask := '';
+  mskAccountNumber.EditText := '';
   fCurrentDisplayError := '';
   lblMaskErrorHint.Caption := '';
   fMaskBsb := '';
+  fOldInstName := '';
 
   oldInstDroppedDown := cmbInstitution.DroppedDown;
 
@@ -621,6 +644,8 @@ begin
               mskAccountNumber.EditMask := TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex]).AccountEditMask;
           end;
           fMaskBsb := fMaskHint.RemoveUnusedCharsFromAccNumber(mskAccountNumber.Text);
+
+          fOldInstName := cmbInstitution.Text;
         end;
       end;
     end;
