@@ -2489,6 +2489,7 @@ begin
 
         if not BudgetImportExport.ImportBudget(BudgetFilePath,
                                                BudgetErrorFile,
+                                               GSTInclusive,
                                                RowsImported,
                                                RowsNotImported,
                                                BudgetCopy,
