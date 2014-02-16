@@ -345,7 +345,7 @@ begin
   for i := 0 to MAX_GST_CLASS do
   begin
     sCode := aClient.clFields.clGST_Account_Codes[i];
-    if (sCode = '') then
+    if (sCode = '') and (aClient.clFields.clGST_Class_Names[i] = '') then
       continue;
 
     pAccount := aClient.clChart.FindCode(sCode);
