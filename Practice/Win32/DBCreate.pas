@@ -74,7 +74,7 @@ begin
 
   // Populate Country Combo
   with cmbCountry do begin
-    for i := whMin to whMax do begin
+    for i := whMin to whAustralia do begin // using whAustralia instead of whMax to remove UK from country selection
        Items.Add( whNames[ i ] );
     end;
     ItemIndex := 0;
