@@ -24,7 +24,8 @@ type
     { Public declarations }
   end;
 
-  procedure HelpfulWarningMsg(DispMsg : string; HelpCtx : Word; ButtonText : string = '&OK' );
+  procedure HelpfulWarningMsg(DispMsg : string; HelpCtx : Word; ButtonText : string = '&OK';
+                              CustomWidth: integer = -1 );
 
 implementation
 
@@ -32,13 +33,16 @@ implementation
 
 uses
   bkXPThemes,
-  Globals, imagesfrm;
+  Globals,
+  imagesfrm,
+  Math;
 
 const
   MAX_WIDTH = 500;
   MIN_WIDTH = 300;
 
-procedure HelpfulWarningMsg(DispMsg : string; HelpCtx : word; ButtonText : string = '&OK' );
+procedure HelpfulWarningMsg(DispMsg : string; HelpCtx : word; ButtonText : string = '&OK';
+                            CustomWidth: integer = -1 );
 Const
   MARGIN = 10;
 var
@@ -68,12 +72,20 @@ begin
       btnMore.Top  := btnOK.Top;
 
       //set width
-      dlgWidth := lblText.left + lblText.Width+2*Margin;
+      if (CustomWidth > -1) then
+      begin
+        Width := CustomWidth;
+        lblText.Width := CustomWidth - (2 * Max(lblText.Left, Margin));
+      end
+      else
+      begin
+        dlgWidth := lblText.left + lblText.Width+2*Margin;
 
-      if dlgWidth < MIN_WIDTH then dlgWidth := MIN_WIDTH;
-      if dlgWidth > MAX_WIDTH then dlgWidth := MAX_WIDTH;
+        if dlgWidth < MIN_WIDTH then dlgWidth := MIN_WIDTH;
+        if dlgWidth > MAX_WIDTH then dlgWidth := MAX_WIDTH;
 
-      Width := dlgWidth;
+        Width := dlgWidth;
+      end;
     end;
 
     MyForm.HelpContext := helpCtx;

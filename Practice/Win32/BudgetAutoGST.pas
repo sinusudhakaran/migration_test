@@ -70,10 +70,12 @@ type
 implementation
 
 uses
+  bkConst,
   GSTCalc32,
   SignUtils,
   Dialogs,
-  Math;
+  Math,
+  WarningMoreFrm;
 
 //------------------------------------------------------------------------------
 procedure CalculateGST(const aClient: TClientObj; var aBudget: TBudgetRec;
@@ -340,7 +342,9 @@ var
   i: integer;
   sCode: string;
   pAccount: pAccount_Rec;
-  sIDs: string;
+  NoControlAccountIDs: string;
+  IncorrectGroupIDs: string;
+  WarningMsg: string;
 begin
   for i := 0 to MAX_GST_CLASS do
   begin
@@ -350,24 +354,55 @@ begin
 
     pAccount := aClient.clChart.FindCode(sCode);
     if assigned(pAccount) then
-      continue;
+    begin
+      // Check the control account has the correct group (GST Payable, or GST receivable)
+      if not (pAccount.chAccount_Type in [atGSTPayable, atGSTReceivable]) then
+      begin
+        if (IncorrectGroupIDs <> '') then
+          IncorrectGroupIDs := IncorrectGroupIDs + ', ';
 
-    if (sIDs <> '') then
-      sIDs := sIDs + ', ';
+        IncorrectGroupIDs := IncorrectGroupIDs + aClient.clFields.clGST_Class_Codes[i];
+      end;
+    end
+    else
+    begin
+      // GST ID does not have a control account
+      if (NoControlAccountIDs <> '') then
+        NoControlAccountIDs := NoControlAccountIDs + ', ';
 
-    sIDs := sIDs + aClient.clFields.clGST_Class_Codes[i];
+      NoControlAccountIDs := NoControlAccountIDs + aClient.clFields.clGST_Class_Codes[i];
+    end;
   end;
 
-  if (sIDs = '') then
+  if (NoControlAccountIDs = '') and (IncorrectGroupIDs = '') then
     exit;
 
-  ShowMessage(
-    'The Control Codes for the following GST IDs are missing:' + sLineBreak +
-    sLineBreak +
-    sIDs + sLineBreak +
-    sLineBreak+
-    'You can configure these in the GST Set Up (Other Functions).'
-    );
+  WarningMsg := '';
+  if (NoControlAccountIDs <> '') then
+    WarningMsg := WarningMsg +
+                  'The Control Accounts for the following GST IDs are missing:' + sLineBreak +
+                  sLineBreak +
+                  NoControlAccountIDs + sLineBreak +
+                  sLineBreak+
+                  'You can configure these in: Other Functions | GST Set Up.';
+
+  if (NoControlAccountIDs <> '') and (IncorrectGroupIDs <> '') then
+    WarningMsg := WarningMsg +
+                  sLineBreak +
+                  sLineBreak + 
+                  '------------------------------------------------------------------------------' +
+                  sLineBreak +
+                  sLineBreak;
+
+  if (IncorrectGroupIDs <> '') then
+    WarningMsg := WarningMsg +
+                  'The Control Accounts for the following GST IDs have invalid groups:' + sLineBreak +
+                  sLineBreak +
+                  IncorrectGroupIDs + sLineBreak +
+                  sLineBreak+
+                  'The group for these accounts should be set to either GST Payable or GST Receivable.';
+
+  HelpfulWarningMsg(WarningMsg, 0, '&OK', 500);
 end;
 
 function RoundToWholeValue(UnroundedAmount: Extended): double;
