@@ -253,19 +253,19 @@ begin
   BoxMargin2 := BoxMargin * 2;
 
   //----------------------------------------------------------------------------
-  TextLine('BankLink',OutputLeft + BoxMargin2, OutputRight);
+  TextLine(BRAND_FULL_NAME,OutputLeft + BoxMargin2, OutputRight);
   NewLine;
   myCanvas.Font.Size := 8;
   myCanvas.Font.Style := [];
   CurrLineSize := GetCurrLineSizeNoInflation;
-  TextLine('Incorporating BankLink Limited and Media Transfer Services Limited', OutputLeft + BoxMargin2, OutputRight);
+  TextLine('A Division of Media Transfer Services Limited', OutputLeft + BoxMargin2, OutputRight);
   CurrYPos := OutputTop + BoxMargin;
   myCanvas.Font.Size := 10;
   myCanvas.Font.Style := [fsBold];
   CurrLineSize := GetCurrLineSizeNoInflation;
   TextLine('Send completed form to:',XPosTwoThirds, OutputRight);
   NewLine;
-  TextLine('BankLink, PO Box 56354,',XPosTwoThirds, OutputRight);
+  TextLine(BRAND_FULL_NAME + ', PO Box 56354,',XPosTwoThirds, OutputRight);
   NewLine;
   TextLine('Dominion Road, Auckland 1446',XPosTwoThirds, OutputRight);
   NewLine;
@@ -316,7 +316,7 @@ begin
   TempCurrYPos := CurrYPos;
   TextLine('Media Transfer Services Limited', XPosTwoThirds+60, OutputRight);
   NewLine;
-  TextLine('("BankLink")', XPosTwoThirds+60, OutputRight);
+  TextLine('("' + BRAND_FULL_NAME + '")', XPosTwoThirds+60, OutputRight);
   NewLine;
   CurrYPos := TempCurrYPos;
   if Values.cmbInstitution.itemindex = 0 then
@@ -391,7 +391,7 @@ begin
   NewLine(2);
   TextLine('Any revocation of this authority by me/us will take effect fourteen (14) days after written notice is received by', OutputLeft, OutputRight);
   NewLine;
-  TextLine('the Bank from BankLink.', OutputLeft, OutputRight);
+  TextLine('the Bank from ' + BRAND_FULL_NAME + '.', OutputLeft, OutputRight);
   NewLine;
 
   //----------------------------------------------------------------------------
@@ -438,7 +438,7 @@ begin
   NewLineUp;
   HalfNewLineUp;
   myCanvas.Font.Style := [fsBold];
-  TextLine('Additional Information to assist BankLink processing', OutputLeft + BoxMargin2 , OutputRight);
+  TextLine('Additional Information to assist ' + BRAND_FULL_NAME + ' processing', OutputLeft + BoxMargin2 , OutputRight);
   NewLineUp;
   DrawBox(XYSizeRect(OutputLeft, CurrYPos, OutputRight, OutputBottom));
   myCanvas.Font.Size := 9;

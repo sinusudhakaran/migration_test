@@ -224,6 +224,7 @@ var
   NumColumn : integer;
   IndentColumn : integer;
   TextWidth : integer;
+  Point2StartTest : string;
 begin
   //assume we have a canvas of A4 proportions as per GST forms
   myCanvas     := CanvasRenderEng.OutputBuilder.Canvas;
@@ -252,7 +253,7 @@ begin
   BoxMargin2 := BoxMargin * 2;
 
   //----------------------------------------------------------------------------
-  TextLine('BankLink',OutputLeft + BoxMargin2, OutputRight);
+  TextLine(BRAND_FULL_NAME,OutputLeft + BoxMargin2, OutputRight);
   NewLine;
   myCanvas.Font.Size := 7;
   myCanvas.Font.Style := [];
@@ -265,7 +266,7 @@ begin
   CurrLineSize := GetCurrLineSizeNoInflation;
   TextLine('Send completed form to:',XPosTwoThirds, OutputRight);
   NewLine;
-  TextLine('BankLink',XPosTwoThirds, OutputRight);
+  TextLine(BRAND_FULL_NAME,XPosTwoThirds, OutputRight);
   NewLine;
   TextLine('GPO Box 4608, Sydney 2001, NSW',XPosTwoThirds, OutputRight);
   NewLine;
@@ -298,7 +299,7 @@ begin
   myCanvas.Font.Size := 16;
   myCanvas.Font.Style := [fsBold];
   CurrLineSize := GetCurrLineSizeNoInflation;
-  TextLine('BANKLINK CLIENT AUTHORITY', OutputLeft + 100, OutputRight - 100, jtCenter);
+  TextLine(uppercase(BRAND_FULL_NAME) + ' CLIENT AUTHORITY', OutputLeft + 100, OutputRight - 100, jtCenter);
   NewLine;
   DrawBox(XYSizeRect(OutputLeft, OutputTop, OutputRight, CurrYPos + BoxMargin2 + 10));
 
@@ -316,7 +317,7 @@ begin
   TempCurrYPos := CurrYPos;
   TextLine('Media Transfer Services Limited', XPosTwoThirds+60, OutputRight);
   NewLine;
-  TextLine('("BankLink")', XPosTwoThirds+60, OutputRight);
+  TextLine('("' + BRAND_FULL_NAME + '")', XPosTwoThirds+60, OutputRight);
   NewLine;
   CurrYPos := TempCurrYPos;
   if Values.cmbInstitution.itemindex = 0 then
@@ -339,30 +340,30 @@ begin
   //----------------------------------------------------------------------------
   NewLine;
   DecodeDate(Values.edtClientStartDte.AsDateTime, Year, Month, Day);
-
-  TextWidth := CanvasRenderEng.GetTextLength('I/We hereby AUTHORISE the Bank and BankLink as at and from the first of');
+  Point2StartTest := 'I/We hereby AUTHORISE the Bank and ' + BRAND_FULL_NAME + ' as at and from the first of';
+  TextWidth := CanvasRenderEng.GetTextLength(Point2StartTest);
 
   if length(trim(Values.edtClientStartDte.Text)) <= 4 then
   begin
-    TextBox('I/We hereby AUTHORISE the Bank and BankLink as at and from the first of',
+    TextBox(Point2StartTest,
             '', myCanvas.Font.Size, myCanvas.Font.Size + 1, jtLeft, jtCenter,
-            OutputLeft, OutputLeft + TextWidth + 20, XPosTwoThirds + 20, CurrYPos, CurrYPos + BoxHeight, true);
+            OutputLeft, OutputLeft + TextWidth + 20, XPosTwoThirds + 70, CurrYPos, CurrYPos + BoxHeight, true);
     TextBox('20', '', myCanvas.Font.Size, myCanvas.Font.Size + 1, jtLeft, jtCenter,
-            XPosTwoThirds + 30, XPosTwoThirds + 70, XPosTwoThirds + 140, CurrYPos, CurrYPos + BoxHeight, true);
+            XPosTwoThirds + 80, XPosTwoThirds + 120, XPosTwoThirds + 190, CurrYPos, CurrYPos + BoxHeight, true);
   end
   else
   begin
-    TextBox('I/We hereby AUTHORISE the Bank and BankLink as at and from the first of',
+    TextBox(Point2StartTest,
             moNames[Month], myCanvas.Font.Size, myCanvas.Font.Size + 1, jtLeft, jtCenter,
-            OutputLeft, OutputLeft + TextWidth + 20, XPosTwoThirds + 20, CurrYPos, CurrYPos + BoxHeight, true);
+            OutputLeft, OutputLeft + TextWidth + 20, XPosTwoThirds + 70, CurrYPos, CurrYPos + BoxHeight, true);
     TextBox('20', RightStr(inttoStr(Year),2), myCanvas.Font.Size, myCanvas.Font.Size + 1, jtLeft, jtCenter,
-            XPosTwoThirds + 30, XPosTwoThirds + 70, XPosTwoThirds + 140, CurrYPos, CurrYPos + BoxHeight, true);
+            XPosTwoThirds + 80, XPosTwoThirds + 120, XPosTwoThirds + 190, CurrYPos, CurrYPos + BoxHeight, true);
   end;
 
 
   NewLine;
   TextLine('1.', NumColumn, OutputRight);
-  TextLine('to forward all data and', XPosTwoThirds + 150, OutputRight);
+  TextLine('to forward all data and', XPosTwoThirds + 200, OutputRight);
   NewLine;
   CurrYPos := CurrYPos + 8;
   TextLine('information (whether in written, computer readable or any other format) relating to my/our banks account designated above to each', OutputLeft, OutputRight);
@@ -390,21 +391,23 @@ begin
   TextLine('I/We UNDERSTAND that:', OutputLeft, OutputRight);
   NewLine;
   TextLine('a)', OutputLeft, OutputRight);
-  TextLine('no agency, partnership, joint venture or any other type of similar relationship exists between the Bank and BankLink and that the', IndentColumn, OutputRight);
+  TextLine('no agency, partnership, joint venture or any other type of similar relationship exists between the Bank and ' + BRAND_FULL_NAME + ' and that', IndentColumn, OutputRight);
   NewLine;
-  TextLine('Bank accepts no responsibility for the actions of BankLink, my/our advisors or any other third party;', IndentColumn, OutputRight);
+  TextLine('the Bank accepts no responsibility for the actions of ' + BRAND_FULL_NAME + ', my/our advisors or any other third party;', IndentColumn, OutputRight);
   NewLine;
   HalfNewLine;
   TextLine('b)', OutputLeft, OutputRight);
   TextLine('unless otherwise required or prohibited by any applicable law (including the Australian Consumer Law), neither the Bank nor', IndentColumn, OutputRight);
   NewLine;
-  TextLine('BankLink will be liable for delays, non-performance, failure to perform, processing errors or any other matter or thing arising out', IndentColumn, OutputRight);
+  TextLine(BRAND_FULL_NAME + ' will be liable for delays, non-performance, failure to perform, processing errors or any other matter or thing arising', IndentColumn, OutputRight);
   NewLine;
-  TextLine('of this authority or any agreement which the Bank or BankLink may have with my/our advisors and which occur for reasons beyond', IndentColumn, OutputRight);
+  TextLine('out of this authority or any agreement which the Bank or ' + BRAND_FULL_NAME + ' may have with my/our advisors and which occur for reasons', IndentColumn, OutputRight);
   NewLine;
-  TextLine('the control of respectively the Bank or BankLink, as the case may be, nor will the liability of the Bank and/or BankLink (whether', IndentColumn, OutputRight);
+  TextLine('beyond the control of respectively the Bank or ' + BRAND_FULL_NAME + ', as the case may be, nor will the liability of the Bank and/or', IndentColumn, OutputRight);
   NewLine;
-  TextLine('jointly, severally or jointly and severally) include or extend to any special or consequential loss or damage suffered by me/us.', IndentColumn, OutputRight);
+  TextLine(BRAND_FULL_NAME + ' (whether jointly, severally or jointly and severally) include or extend to any special or consequential loss or', IndentColumn, OutputRight);
+  NewLine;
+  TextLine('damage suffered by me/us.', IndentColumn, OutputRight);
   NewLine;
   TextLine('', IndentColumn, OutputRight);
 
@@ -412,19 +415,19 @@ begin
   NewLine;
   HalfNewLine;
   TextLine('3.', NumColumn, OutputRight);
-  TextLine('I/We ACKNOWLEDGE that the Bank will receive a commission from BankLink for disclosing the data and information referred to above,', OutputLeft, OutputRight);
+  TextLine('I/We ACKNOWLEDGE that the Bank will receive a commission from ' + BRAND_FULL_NAME + ' for disclosing the data and information referred to', OutputLeft, OutputRight);
   NewLine;
-  TextLine('and that the Bank is under no obligation to me/us to supply the data and information referred to above to BankLink, and may cease', OutputLeft, OutputRight);
+  TextLine('above, and that the Bank is under no obligation to me/us to supply the data and information referred to above to ' + BRAND_FULL_NAME + ', and', OutputLeft, OutputRight);
   NewLine;
-  TextLine('to do so without notice to me/us.', OutputLeft, OutputRight);
+  TextLine('may cease to do so without notice to me/us.', OutputLeft, OutputRight);
 
   //----------------------------------------------------------------------------
   NewLine;
   HalfNewLine;
   TextLine('4.', NumColumn, OutputRight);
-  TextLine('This authority is terminable by any or both of the Bank or BankLink at any time where seven (7) days notice is given to me/us on', OutputLeft, OutputRight);
+  TextLine('This authority is terminable by any or both of the Bank or ' + BRAND_FULL_NAME + ' at any time where seven (7) days notice is given to me/us on', OutputLeft, OutputRight);
   NewLine;
-  TextLine('any grounds thought fit, without rendering the Bank and/or BankLink liable in any way.', OutputLeft, OutputRight);
+  TextLine('any grounds thought fit, without rendering the Bank and/or ' + BRAND_FULL_NAME + ' liable in any way.', OutputLeft, OutputRight);
 
   //----------------------------------------------------------------------------
   NewLine;
@@ -438,9 +441,9 @@ begin
   NewLine;
   HalfNewLine;
   TextLine('6.', NumColumn, OutputRight);
-  TextLine('By signing below I/we agree that my/our personal information may be collected, stored, used and disclosed by BankLink', OutputLeft, OutputRight);
+  TextLine('By signing below I/we agree that my/our personal information may be collected, stored, used and disclosed by ' + BRAND_FULL_NAME, OutputLeft, OutputRight);
   NewLine;
-  TextLine('in accordance with the BankLink Privacy Policy [http://www.banklink.com.au/index.php/privacy]', OutputLeft, OutputRight);
+  TextLine('in accordance with the ' + BRAND_FULL_NAME + ' Privacy Policy [http://www.banklink.com.au/index.php/privacy]', OutputLeft, OutputRight);
 
   //----------------------------------------------------------------------------
   // Footer works from the bottom up so we align with the bottom properly
@@ -466,7 +469,7 @@ begin
   TextLine('Please supply the account above as a Provisional Account if it is not available from the Bank', OutputLeft + 80 , OutputRight);
   NewLineUp(2);
   myCanvas.Font.Style := [fsBold];
-  TextLine('Additional Information to assist BankLink processing', OutputLeft + BoxMargin2 , OutputRight);
+  TextLine('Additional Information to assist ' + BRAND_FULL_NAME + ' processing', OutputLeft + BoxMargin2 , OutputRight);
   NewLineUp;
   DrawBox(XYSizeRect(OutputLeft, CurrYPos, OutputRight, OutputBottom));
 
