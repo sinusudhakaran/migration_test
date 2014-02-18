@@ -299,7 +299,7 @@ begin
   myCanvas.Font.Size := 16;
   myCanvas.Font.Style := [fsBold];
   CurrLineSize := GetCurrLineSizeNoInflation;
-  TextLine(uppercase(BRAND_FULL_NAME) + ' CLIENT AUTHORITY', OutputLeft + 100, OutputRight - 100, jtCenter);
+  TextLine('CLIENT AUTHORITY', OutputLeft + 100, OutputRight - 100, jtCenter);
   NewLine;
   DrawBox(XYSizeRect(OutputLeft, OutputTop, OutputRight, CurrYPos + BoxMargin2 + 10));
 
