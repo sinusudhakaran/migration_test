@@ -13,7 +13,7 @@ uses
 
 type
   rTGstClassMoney = record
-    Amount: Money;
+    Amount: double;
   end;
 
   aTGstClassMoney = array[0..MAX_GST_CLASS] of rTGstClassMoney;
@@ -97,7 +97,6 @@ begin
   byGST_Class := pAccount.chGST_Class;
   moAmount := aBudget.bAmounts[aMonthIndex];
   moGSTAmount := CalculateGSTFromNett(aClient, aDate, moAmount, byGST_Class);
-  moGSTAmount := RoundToWholeValue(moGSTAmount);
   if not IsGSTAccountCode(aClient, aBudget.bAccount) then
     aBudget.bGstAmounts[aMonthIndex] := Round(moGSTAmount + moAmount);
 
