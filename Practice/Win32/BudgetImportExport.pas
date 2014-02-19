@@ -657,7 +657,7 @@ var
     Result := False;
     for i := Low(DataHolder) to High(DataHolder) do
     begin
-      if ShowFiguresGSTInclusive then
+      if ShowFiguresGSTInclusive or aBudgetData[DataIndex].bIsGSTAccountCode then
         BudgetAmount := aBudgetData[DataIndex].bGstAmounts[i]
       else
         BudgetAmount := aBudgetData[DataIndex].bAmounts[i];
@@ -752,7 +752,6 @@ begin
                       break;
                     end;
                   end;
-
                   if not LineHasError then
                   begin
                     if (aBudgetData[DataIndex].PercentAccount <> '') then
@@ -776,15 +775,18 @@ begin
                       inc(aRowsImported);
                     end;
                   end;
-                end
+                end // if bAllowPosting then
                 else
                 begin
                   // GST row? (values must match)
-                  if aAutoCalculateGST and aBudgetData[DataIndex].bIsGSTAccountCode then
+                  if aAutoCalculateGST and aBudgetData[DataIndex].bIsGSTAccountCode and IsPercentWarningNeeded then
                   begin
                     for DateIndex := 1 to 12 do
                     begin
-                      sAmount := IntToStr(aBudgetData[DataIndex].bAmounts[DateIndex]);
+                      if aBudgetData[DataIndex].bIsGSTAccountCode then
+                        sAmount := IntToStr(aBudgetData[DataIndex].bGstAmounts[DateIndex])
+                      else
+                        sAmount := IntToStr(aBudgetData[DataIndex].bAmounts[DateIndex]);
                       if (InLineData[2 + DateIndex] <> sAmount) then
                       begin
                         WriteLn(ErrorFile,
