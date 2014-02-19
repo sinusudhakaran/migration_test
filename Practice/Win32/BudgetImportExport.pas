@@ -20,7 +20,7 @@ const
 
 //------------------------------------------------------------------------------
 type
-   EClearType = (clrAll,clrColumn,clrRow);
+   EClearType = (clrAll,clrColumn,clrRow,clrControlRows);
 
    { Note: when adding new members, you must also change the CopyBudgetData
      function }

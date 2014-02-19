@@ -1779,6 +1779,20 @@ begin
             UpdateLine(tblBudget.ActiveRow-1);
           end;
         end;
+        clrControlRows:
+        begin
+          for i := Low(Fdata) to High(FData) do
+          begin
+            if FData[i].bIsGSTAccountCode then
+            begin
+              for j := 1 to 12 do
+                 ClearCell(i,j);
+
+              ReadRow(currentRow);  {reload current edit values}
+              UpdateLine(i);
+            end;
+          end;
+        end;
       end;
       UpdatePercentageRows(false);
       RefreshTableWithData(fShowZeros, True, True);
@@ -2259,7 +2273,10 @@ begin
 
   // Validate the GST Setup when auto-calculate is turned on
   if AutoCalculateGST then
+  begin
+    DoClearValues(clrControlRows);
     ValidateGSTSetup(MyClient);
+  end;
 
   RefreshGST;
   RefreshTableWithData(fShowZeros, True, True);
