@@ -344,6 +344,7 @@ var
   NoControlAccountIDs: string;
   IncorrectGroupIDs: string;
   WarningMsg: string;
+  ExtraHeight: integer;
 begin
   for i := 0 to MAX_GST_CLASS do
   begin
@@ -386,11 +387,15 @@ begin
                   'You can configure these via Other Functions | GST Set Up.';
 
   if (NoControlAccountIDs <> '') and (IncorrectGroupIDs <> '') then
+  begin
     WarningMsg := WarningMsg +
                   sLineBreak +
-                  sLineBreak + 
+                  sLineBreak +
                   '------------------------------------------------------------------------------' +
                   sLineBreak;
+    ExtraHeight := 20;
+  end else
+    ExtraHeight := -20;
 
   if (IncorrectGroupIDs <> '') then
     WarningMsg := WarningMsg +
@@ -401,7 +406,7 @@ begin
                   'The group for these accounts should be set to either GST Payable ' + sLineBreak +
                   'or GST Receivable.';
 
-  HelpfulWarningMsg(WarningMsg, 0, '&OK', 500, 20);
+  HelpfulWarningMsg(WarningMsg, 0, '&OK', 500, ExtraHeight);
 end;
 
 function RoundToWholeValue(UnroundedAmount: Extended): double;
