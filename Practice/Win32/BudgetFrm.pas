@@ -2262,6 +2262,7 @@ begin
     ValidateGSTSetup(MyClient);
 
   RefreshGST;
+  RefreshTableWithData(fShowZeros, True, True);
 end;
 
 //------------------------------------------------------------------------------
