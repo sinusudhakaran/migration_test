@@ -25,7 +25,7 @@ type
   end;
 
   procedure HelpfulWarningMsg(DispMsg : string; HelpCtx : Word; ButtonText : string = '&OK';
-                              CustomWidth: integer = -1 );
+                              CustomWidth: integer = -1; ExtraHeight: integer = 0 );
 
 implementation
 
@@ -42,7 +42,7 @@ const
   MIN_WIDTH = 300;
 
 procedure HelpfulWarningMsg(DispMsg : string; HelpCtx : word; ButtonText : string = '&OK';
-                            CustomWidth: integer = -1 );
+                            CustomWidth: integer = -1; ExtraHeight: integer = 0 );
 Const
   MARGIN = 10;
 var
@@ -66,10 +66,11 @@ begin
       else
         MinHeight := lblText.Height+2*Margin;
 
-      Height     := CapHeight+ MinHeight + btnOK.Height + 2*Margin;
-      btnOK.Top := MinHeight+Margin;
+      Height    := CapHeight+ MinHeight + btnOK.Height + 2*Margin + ExtraHeight;
+      btnOK.Top := MinHeight+Margin+ExtraHeight;
       btnOK.Caption := ButtonText;
       btnMore.Top  := btnOK.Top;
+      lblText.Height := lblText.Height+ExtraHeight;
 
       //set width
       if (CustomWidth > -1) then

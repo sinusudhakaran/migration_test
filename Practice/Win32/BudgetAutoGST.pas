@@ -384,14 +384,13 @@ begin
                   sLineBreak +
                   NoControlAccountIDs + sLineBreak +
                   sLineBreak+
-                  'You can configure these in: Other Functions | GST Set Up.';
+                  'You can configure these via Other Functions | GST Set Up.';
 
   if (NoControlAccountIDs <> '') and (IncorrectGroupIDs <> '') then
     WarningMsg := WarningMsg +
                   sLineBreak +
                   sLineBreak + 
                   '------------------------------------------------------------------------------' +
-                  sLineBreak +
                   sLineBreak;
 
   if (IncorrectGroupIDs <> '') then
@@ -400,9 +399,10 @@ begin
                   sLineBreak +
                   IncorrectGroupIDs + sLineBreak +
                   sLineBreak+
-                  'The group for these accounts should be set to either GST Payable or GST Receivable.';
+                  'The group for these accounts should be set to either GST Payable ' + sLineBreak +
+                  'or GST Receivable.';
 
-  HelpfulWarningMsg(WarningMsg, 0, '&OK', 500);
+  HelpfulWarningMsg(WarningMsg, 0, '&OK', 500, 20);
 end;
 
 function RoundToWholeValue(UnroundedAmount: Extended): double;
