@@ -2,7 +2,7 @@ object frmSelectBK5Folder: TfrmSelectBK5Folder
   Left = 0
   Top = 0
   BorderStyle = bsDialog
-  Caption = 'Select a BankLink folder'
+  Caption = 'Select a MYOB BankLink folder'
   ClientHeight = 288
   ClientWidth = 428
   Color = clBtnFace
@@ -15,6 +15,7 @@ object frmSelectBK5Folder: TfrmSelectBK5Folder
   Position = poScreenCenter
   Scaled = False
   OnCloseQuery = FormCloseQuery
+  OnCreate = FormCreate
   PixelsPerInch = 96
   TextHeight = 13
   object lblCheckin: TLabel
@@ -27,12 +28,12 @@ object frmSelectBK5Folder: TfrmSelectBK5Folder
   object lblBK5File: TLabel
     Left = 16
     Top = 16
-    Width = 97
+    Width = 128
     Height = 13
-    Caption = 'BankLink Client File: '
+    Caption = 'MYOB BankLink Client File: '
   end
   object lblFilename: TLabel
-    Left = 128
+    Left = 152
     Top = 17
     Width = 52
     Height = 13

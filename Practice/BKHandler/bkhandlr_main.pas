@@ -16,14 +16,26 @@ unit bkhandlr_main;
 
 }
 //------------------------------------------------------------------------------
-
 interface
 
 uses
-  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, DdeMan, StdCtrls, ExtCtrls, XPMan,shellapi;
+  Windows,
+  Messages,
+  SysUtils,
+  Variants,
+  Classes,
+  Graphics,
+  Controls,
+  Forms,
+  Dialogs,
+  DdeMan,
+  StdCtrls,
+  ExtCtrls,
+  XPMan,
+  shellapi;
 
 type
+  //----------------------------------------------------------------------------
   TfrmMain = class(TForm)
     DDEClientConv_BK: TDdeClientConv;
     bkSystem: TDdeServerConv;
@@ -86,11 +98,17 @@ type
 var
   frmMain: TfrmMain;
 
+//------------------------------------------------------------------------------
 implementation
-uses
-  Registry, selectbkFolderFrm, TimeUtils,
-  selectTRFcheckinfrm, RegistryUtils;
 {$R *.dfm}
+
+uses
+  Registry,
+  selectbkFolderFrm,
+  TimeUtils,
+  selectTRFcheckinfrm,
+  RegistryUtils,
+  BKHandConsts;
 
 const
   //Command keywords - must be lower case
@@ -102,20 +120,22 @@ const
 Const
   // As per unit ecGlobalConst for BNotes
   // Should link direct but too had for Source-safe ??
-  BN_APP_NAME         = 'BankLink BNotes';
+  BN_APP_NAME         = BRAND_NAME + ' BNotes';
   BN_APP_TITLE        = 'BNotes';
   TRF_FILE_EXTN       = '.trf';
 
   BK5_FILE_EXTN       = '.bk5';
-  BN_REG_ROOT         = 'BankLinkBNotesFile';
+  BN_REG_ROOT         = BRAND_NAME + 'BNotesFile';
 
-
+//------------------------------------------------------------------------------
 procedure TfrmMain.FormCreate(Sender: TObject);
 var
   ExeFilename : string;
   i : integer;
 begin
   DebugMsg( 'Create');
+  Self.Caption := BRAND_FULL_APP_NAME;
+
   fgWindow := GetForegroundWindow;
   DDECommandList := TSTringList.Create;
   ListOfBK5Paths := TStringList.Create;
@@ -141,10 +161,9 @@ begin
   //set self destruct timer
   tmrClose.Interval := 60000 * 5;
   tmrClose.Enabled := true;
-
-
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmMain.FormDestroy(Sender: TObject);
 begin
   DDECommandList.Free;
@@ -153,6 +172,7 @@ begin
      SetForeGroundwindow(FGwindow);
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmMain.bkSystemExecuteMacro(Sender: TObject; Msg: TStrings);
 //checks that there is a command to process and then closes the application
 var
@@ -200,6 +220,7 @@ begin
   Msg.Result := 1;
 end;*)
 
+//------------------------------------------------------------------------------
 procedure TfrmMain.tmrCloseTimer(Sender: TObject);
 begin
   //force a close if still running 2 min after processing the last command
@@ -207,11 +228,13 @@ begin
   Else Application.Terminate;
 end;
 
+//------------------------------------------------------------------------------
 function TfrmMain.DDECommandIs(Keyword : string; Command: string): boolean;
 begin
     result := Pos( '[' + Keyword, lowercase(Command)) = 1;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmMain.ProcessDDECommand(Command: string);
 //decides which method should process a particular command
 //can cache DDE commands and act on them after current command has finished
@@ -256,7 +279,6 @@ begin
     ProcessingDDECommand := false;
   end;
 
-
   //see if we should immediately exit, ignoring cached commands
   if not TerminateAfterCurrentCommand then
   begin
@@ -271,6 +293,7 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 function TfrmMain.CheckIntoBK5Dir( bk5Dir : string; IsRunning : boolean; Filename : string; iBk5Status : integer) : boolean;
 //confirm that the user wants to check in the selected directory
 //parameters:  bk5Dir : directory to check file into
@@ -284,7 +307,7 @@ begin
   begin
     if ( iBK5Status <> 1) then
     begin
-      aMsg := 'BankLink cannot handle your request at the moment, please try again later.';
+      aMsg := BRAND_NAME + ' cannot handle your request at the moment, please try again later.';
       //add some info to tell us why  0 = no path, 1 = send message failed
       aMsg := aMsg + ' [' + inttostr( iBK5Status) + ']';
 
@@ -294,22 +317,23 @@ begin
       exit;
     end
     else
-      aMsg := 'BankLink is currently running in folder '#13#13 +
+      aMsg := BRAND_NAME + ' is currently running in folder '#13#13 +
             bk5Dir + #13+#13 +
             'Would you like to update the file ' + ExtractFileName( Filename) +
-            ' in this copy of BankLink?';
+            ' in this copy of ' + BRAND_NAME + '?';
 
   end
   else
   begin
     aMsg := 'Would you like to update the file ' + ExtractFilename( Filename) + #13#13 +
-            'in the copy of BankLink in the '+  bk5Dir + ' folder?';
+            'in the copy of ' + BRAND_NAME + ' in the '+  bk5Dir + ' folder?';
   end;
 
   if MessageDlg( aMsg, mtConfirmation, [mbYes, mbNo], 0) = mrYes then
     result := true;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmMain.SendCheckInCommand( Filename : string; bk5Dir : string);
 //set up a macro to send to bk5
 var
@@ -317,7 +341,7 @@ var
 begin
   if not FileExists( bk5Dir + 'bk5win.exe') then
   begin
-    ShowMessage('The location specified is not a valid BankLink folder');
+    ShowMessage('The location specified is not a valid ' + BRAND_NAME + ' folder');
     Exit;
   end;
 
@@ -334,6 +358,7 @@ begin
     ShowMessage('Error processing request');
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmMain.BK5_FileTo_BK5(FileName,Path: TFilename);
 //handle check in command
 //checks to see that we are not in a bk5 folder
@@ -345,6 +370,7 @@ var
   ET : EventTimer;
   int_Bk5Status : integer;
 
+  //----------------------------------------------------------------------------
   procedure CleanUpOutlookTempDir;
   begin
     //if this is the temp outlook folder then need to delete it, otherwise
@@ -361,7 +387,7 @@ var
 begin
   if ListOfBK5Paths.Count = 0 then
   begin
-    MessageDlg( 'Cannot find BankLink on this workstation, please run BankLink before '+
+    MessageDlg( 'Cannot find ' + BRAND_NAME + ' on this workstation, please run ' + BRAND_NAME + ' before '+
                 'attempting to do this.', mtInformation, [mbOK], 0);
     Exit;
   end;
@@ -372,7 +398,7 @@ begin
   //test of bk5 in this directory
   if FileExists( Filepath + 'bk5win.exe') then
   begin
-    MessageDlg('Cannot update this file because it is already in a BankLink folder.', mtInformation, [mbOK], 0);
+    MessageDlg('Cannot update this file because it is already in a ' + BRAND_NAME + ' folder.', mtInformation, [mbOK], 0);
     CleanUpOutlookTempDir;
     exit;
   end;
@@ -428,6 +454,7 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 function TfrmMain.GetBK5Status( bk5path : string) : string;
 var
   Cmd : string;
@@ -448,6 +475,7 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 function TfrmMain.FindBK5( var Status : integer) : boolean;
 //sets the handle and dir variables in this form to details of the current bk5
 //also sets the bk5IsBusy flag so we can make sure that bk5 processed the message
@@ -456,12 +484,13 @@ function TfrmMain.FindBK5( var Status : integer) : boolean;
 //parameters:
 //     result : true if can find a running bk5
 
-
-function CheckMutex  : Boolean;
- var Mutex : THandle;
- begin
+  //----------------------------------------------------------------------------
+  function CheckMutex  : Boolean;
+  var
+    Mutex : THandle;
+  begin
     Result := False;
-    Mutex := CreateMutex(nil, False , 'BankLink 5');
+    Mutex := CreateMutex(nil, False , BRAND_NAME + ' 5');
     if (Mutex <> 0) then try
     case GetlastError of
        0 : ; //Nobody owened one..Done..
@@ -472,9 +501,7 @@ function CheckMutex  : Boolean;
     finally
        CloseHandle(Mutex);
     end;
-end;
-
-
+  end;
 
 var
   bk5StatusStr : string;
@@ -521,6 +548,7 @@ begin
   result := ( Status <> 0);
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmMain.ProcessOpen(Command: string);
 
 Var Filename : String;
@@ -558,11 +586,11 @@ begin
          if findbk5(int_Bk5Status) then begin
             // confirm first..
             if MessageDlg(
-               'BankLink is currently running in folder '#13#13 +
+               BRAND_FULL_NAME + ' is currently running in folder '#13#13 +
                   PathOfRunningBK5 +
                #13#13'Would you like to import the file ' +
                   ExtractFileName( Filename) +
-               ' to this copy of BankLink?'
+               ' to this copy of ' + BRAND_NAME + '?'
                  ,mtConfirmation, [mbYes, mbNo], 0) = mrYes then
                      TRF_FileTo_BK5 (Filename,PathOfRunningBK5);
 
@@ -578,6 +606,7 @@ begin
    end;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmMain.ProcessImport(Command: string);
 var FileName : string;
     int_Bk5Status : integer;
@@ -592,11 +621,11 @@ begin // to KB 5 ONLY
         if findbk5(int_Bk5Status) then begin
             // confirm first..
             if MessageDlg(
-               'BankLink is currently running in folder '#13#13 +
+               BRAND_NAME + ' is currently running in folder '#13#13 +
                   PathOfRunningBK5 +
                #13#13'Would you like to import the file ' +
                   ExtractFileName( Filename) +
-               ' to this copy of BankLink?'
+               ' to this copy of ' + BRAND_NAME + '?'
                  ,mtConfirmation, [mbYes, mbNo], 0) = mrYes then
                      TRF_FileTo_BK5 (Filename,PathOfRunningBK5);
 
@@ -612,6 +641,7 @@ begin // to KB 5 ONLY
    end;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmMain.ProcessCheckIn(Command: String);
 Var Filename : String;
 begin
@@ -624,7 +654,7 @@ begin
 
 end;
 
-
+//------------------------------------------------------------------------------
 procedure TfrmMain.DebugMsg(s: string);
 begin
 {$IFDEF bkDebugMsgOn}
@@ -632,6 +662,7 @@ begin
 {$ENDIF}
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmMain.ResetTimer;
 begin
    Try // Courtesy only, Dont want any Exceptions to float to ProcessDDECommand
@@ -641,15 +672,14 @@ begin
    End;
 end;
 
-
-
+//------------------------------------------------------------------------------
 procedure TfrmMain.TRF_FileTo_BNotes(Filename: TFilename);
 
   function BNotesNotRunning : Boolean;
   begin
      Result := false;
      while bNotesRunning do begin
-        case MessageDlg('Banklink Notes is running, please exit first',
+        case MessageDlg(BRAND_NOTES_NAME + ' is running, please exit first',
             mtError,
             [mbCancel,mbretry],
             0) of
@@ -679,12 +709,13 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmMain.SetBNotesPath(const Value: TFilename);
 begin
   FBNotesPath := Value;
 end;
 
-
+//------------------------------------------------------------------------------
 function TfrmMain.BNotesRunning: Boolean;
 Var hMutex : THandle;
 begin
@@ -698,6 +729,7 @@ begin
   End;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmMain.TRF_FileTo_BK5(Filename, Path : TFilename);
 Var macro : String;
 
@@ -711,7 +743,7 @@ Var macro : String;
            1 : Result := true; // Bk5 checks the rest...
 
            Else Begin
-               MessageDlg('BankLink cannot handle your request at the moment'#13' please try again later.',
+               MessageDlg(BRAND_NAME + ' cannot handle your request at the moment'#13' please try again later.',
                        mtInformation,
                        [mbOK],
                        0);
@@ -739,6 +771,7 @@ begin
    end;
 end;
 
+//------------------------------------------------------------------------------
 function TfrmMain.BNotesInstalled: boolean;
 var
   RegObj : TRegistry;
@@ -795,13 +828,13 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 function TfrmMain.BK5Installed: boolean;
 begin
    Result := ListOfBK5Paths.Count > 0;
 end;
 
-
-
+//------------------------------------------------------------------------------
 function TfrmMain.MoveFile(Var Filename : TFilename; Const ToPath: TFilename): Boolean;
 Var Sourcepath, DestPath : TFilename;
 
@@ -845,7 +878,7 @@ begin
    end; // else already there...
 end;
 
-
+//------------------------------------------------------------------------------
 procedure TfrmMain.SetFGWindow(const Value: THandle);
 begin
   FFGWindow := Value;

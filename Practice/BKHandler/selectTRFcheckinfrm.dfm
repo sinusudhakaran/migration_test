@@ -1,9 +1,9 @@
 object SelectTRFcheckinform: TSelectTRFcheckinform
   Left = 0
   Top = 0
-  Width = 467
-  Height = 388
   Caption = 'Select checkinform'
+  ClientHeight = 350
+  ClientWidth = 451
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -11,9 +11,10 @@ object SelectTRFcheckinform: TSelectTRFcheckinform
   Font.Name = 'Tahoma'
   Font.Style = []
   OldCreateOrder = False
+  OnCreate = FormCreate
   DesignSize = (
-    459
-    354)
+    451
+    350)
   PixelsPerInch = 96
   TextHeight = 13
   object Button1: TButton

@@ -1,15 +1,26 @@
 unit selectTRFcheckinfrm;
 
+//------------------------------------------------------------------------------
 interface
 
 uses
-  Registryutils,Windows,FileWrapper, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls;
+  Registryutils,
+  Windows,
+  FileWrapper,
+  Messages,
+  SysUtils,
+  Variants,
+  Classes,
+  Graphics,
+  Controls,
+  Forms,
+  Dialogs,
+  StdCtrls;
 
 type
-   TOpenWith = (OW_BNotes, OW_BK5_Path);
-   // May include Path or DDE options later..
-   TOpenOptions = set of TOpenWith;
+  TOpenWith = (OW_BNotes, OW_BK5_Path);
+  // May include Path or DDE options later..
+  TOpenOptions = set of TOpenWith;
 
 type
   TSelectTRFcheckinform = class(TForm)
@@ -27,6 +38,7 @@ type
     procedure LBBK5PathsDblClick(Sender: TObject);
     procedure CBBK5Click(Sender: TObject);
     procedure CBBNotesClick(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
   private
     FOpenWith: TOpenwith;
     FClientCode: String;
@@ -52,23 +64,23 @@ type
     function Execute : TModalResult;
   end;
 
+  //----------------------------------------------------------------------------
+  Function SelectOpenWith(Var ABK5path : String;
+                          Var OpenWith : TOpenWith;
+                          OpenOptions : TOpenOptions;
+                          Const ATRFFile, BK5Paths : String) : Boolean;
 
-  Function SelectOpenWith (Var ABK5path : String;
-                         Var OpenWith : TOpenWith;
-                         OpenOptions : TOpenOptions;
-                         Const ATRFFile, BK5Paths : String) : Boolean;
-
-
+//------------------------------------------------------------------------------
 implementation
-
 {$R *.dfm}
+uses
+  BKHandConsts;
 
-
-function SelectOpenWith (Var ABK5path : String;
-                         Var OpenWith : TOpenWith;
-                         OpenOptions : TOpenOptions;
-                         Const ATRFFile, BK5Paths : String) : Boolean;
-
+//------------------------------------------------------------------------------
+function SelectOpenWith(Var ABK5path : String;
+                        Var OpenWith : TOpenWith;
+                        OpenOptions : TOpenOptions;
+                        Const ATRFFile, BK5Paths : String) : Boolean;
 var
   dlg : TSelectTRFcheckinform;
 begin
@@ -98,9 +110,8 @@ begin
   end;
 end;
 
-
 { TSelectTRFcheckinform }
-
+//------------------------------------------------------------------------------
 function TSelectTRFcheckinform.GetBK5Path: String;
 begin
    result := '';
@@ -113,18 +124,20 @@ begin
    Result := LBBK5Paths.Items[ LBBK5Paths.ItemIndex];
 end;
 
+//------------------------------------------------------------------------------
 function TSelectTRFcheckinform.GetBK5Paths: String;
 begin
    result := LBBK5Paths.Items.Text;
 end;
 
-
+//------------------------------------------------------------------------------
 procedure TSelectTRFcheckinform.SetBK5Path(const Value: String);
 begin
    If Length(Value) > 0 then
    LBBK5Paths.ItemIndex := LBBK5Paths.Items.IndexOf(Value);
 end;
 
+//------------------------------------------------------------------------------
 procedure TSelectTRFcheckinform.SetBK5Paths(const Value: String);
 begin
    LBBK5Paths.Items.Text := Value;
@@ -132,8 +145,8 @@ begin
      LBBK5Paths.ItemIndex := 0;
 end;
 
+//------------------------------------------------------------------------------
 procedure TSelectTRFcheckinform.SetOpenWith(const Value: TOpenwith);
-
 begin
    if Value in OpenOptions Then begin
       fopenWith := Value;
@@ -150,6 +163,7 @@ begin
    end;
 end;
 
+//------------------------------------------------------------------------------
 procedure TSelectTRFcheckinform.SetTRFFile(const Value: TFilename);
 Var LWrapper : TWrapper;
 begin
@@ -158,24 +172,20 @@ begin
       ClientCode := LWrapper.wCode;
 
       Caption :=
-           'Process BankLink Notes file: ' +
+           'Process ' + BRAND_NOTES_NAME + ' file: ' +
            LBLTRFFile.Caption  +
            ' for: ' +  ClientCode;
    end else begin
       ClientCode := '';
 
       Caption :=
-           'Process BankLink Notes file: ' +
+           'Process ' + BRAND_NOTES_NAME + ' file: ' +
            LBLTRFFile.Caption;
 
    end;
-
-
 end;
 
-
-
-
+//------------------------------------------------------------------------------
 procedure TSelectTRFcheckinform.CBBNotesClick(Sender: TObject);
 begin
    if RBBNotes.Checked then
@@ -185,6 +195,7 @@ begin
 
 end;
 
+//------------------------------------------------------------------------------
 procedure TSelectTRFcheckinform.CBBK5Click(Sender: TObject);
 begin
   if RBBK5.Checked Then
@@ -193,16 +204,19 @@ begin
      OpenWith := OW_BNotes;
 end;
 
+//------------------------------------------------------------------------------
 procedure TSelectTRFcheckinform.SetClientCode(const Value: String);
 begin
   FClientCode := Value;
 end;
 
+//------------------------------------------------------------------------------
 function TSelectTRFcheckinform.Execute: TModalResult;
-   function pathFailed (Apath : TFilename) : Boolean;
-   begin
-      Result := NOT FileExists(APath + Clientcode + '.bk5');
-   end;
+  //----------------------------------------------------------------------------
+  function pathFailed (Apath : TFilename) : Boolean;
+  begin
+    Result := NOT FileExists(APath + Clientcode + '.bk5');
+  end;
 var
   Li : Integer;
 begin
@@ -239,17 +253,30 @@ begin
    Result := Showmodal;
 end;
 
+//------------------------------------------------------------------------------
+procedure TSelectTRFcheckinform.FormCreate(Sender: TObject);
+begin
+  RBBnotes.Caption := '&Open with ' + BRAND_NOTES_NAME;
+  RBBK5.Caption := '&Import into ' + BRAND_NAME;
+end;
+
+//------------------------------------------------------------------------------
 procedure TSelectTRFcheckinform.SetOpenOptions(const Value: TOpenOptions);
+
+  //----------------------------------------------------------------------------
   procedure EnableBNotes (Enable : Boolean);
   begin
      RBBNotes.Enabled := Enable;
   end;
+
+  //----------------------------------------------------------------------------
   procedure EnableBK5 ( Enable : Boolean);
   begin // ?? Should never happen at this stage..
         // No pint running the dialog if BNotes is the only option..
      RBBK5.Enabled := Enable;
      LBBK5Paths.Enabled := Enable;
   end;
+
 begin
   FOpenOptions := Value;
   EnableBNotes (OW_BNotes in FOpenOptions);
@@ -258,17 +285,18 @@ begin
      Openwith := OW_BNotes
   else
      Openwith := OW_BK5_Path
-
 end;
 
+//------------------------------------------------------------------------------
 procedure TSelectTRFcheckinform.LBBK5PathsDblClick(Sender: TObject);
 begin
-   modalresult := mrOK;
+  modalresult := mrOK;
 end;
 
+//------------------------------------------------------------------------------
 procedure TSelectTRFcheckinform.LBBK5PathsClick(Sender: TObject);
 begin
-   OpenWith := OW_BK5_Path;
+  OpenWith := OW_BK5_Path;
 end;
 
 end.

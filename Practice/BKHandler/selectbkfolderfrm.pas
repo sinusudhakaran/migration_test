@@ -1,10 +1,19 @@
 unit selectbkfolderfrm;
 
+//------------------------------------------------------------------------------
 interface
 //simple form for selection which bk5 folder to send the dde commands to
 uses
-  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls;
+  Windows,
+  Messages,
+  SysUtils,
+  Variants,
+  Classes,
+  Graphics,
+  Controls,
+  Forms,
+  Dialogs,
+  StdCtrls;
 
 type
   TfrmSelectBK5Folder = class(TForm)
@@ -16,18 +25,24 @@ type
     lblFilename: TLabel;
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
     procedure cbPathsDblClick(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
   private
     { Private declarations }
   public
     { Public declarations }
   end;
 
+  //---------------------------------------------------------------------------- 
   function SelectBK5Folder( PathsList : string; filename : string) : string;
 
+//------------------------------------------------------------------------------
 implementation
-
 {$R *.dfm}
 
+uses
+  BKHandConsts;
+
+//------------------------------------------------------------------------------
 function SelectBK5Folder( PathsList : string; filename : string) : string;
 //allows the user to select a bk5 folder, returns empty string
 //if nothing selected or cancel pressed
@@ -52,13 +67,13 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmSelectBK5Folder.cbPathsDblClick(Sender: TObject);
 begin
   btnOK.Click;
 end;
 
-
-
+//------------------------------------------------------------------------------
 procedure TfrmSelectBK5Folder.FormCloseQuery(Sender: TObject;
   var CanClose: Boolean);
 begin
@@ -66,10 +81,17 @@ begin
   begin
     if cbPaths.ItemIndex = -1 then
     begin
-      MessageDlg( 'Please select a BankLink folder', mtInformation, [mbOK], 0);
+      MessageDlg( 'Please select a ' + BRAND_NAME + ' folder', mtInformation, [mbOK], 0);
       CanClose := false;
     end;
   end;
+end;
+
+//------------------------------------------------------------------------------
+procedure TfrmSelectBK5Folder.FormCreate(Sender: TObject);
+begin
+  self.caption := 'Select a ' + BRAND_FULL_NAME + ' folder';
+  lblBK5File.caption := BRAND_FULL_NAME + ' Client File:';
 end;
 
 end.

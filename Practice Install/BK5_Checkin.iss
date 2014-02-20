@@ -2,11 +2,11 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 [Setup]
-AppName=BankLink Client File Handler
-AppVerName=BankLink Client File Handler
-AppPublisher=BankLink
-DefaultDirName={pf}\BankLink Client
-DefaultGroupName=BankLink Client
+AppName=MYOB BankLink Client File Handler
+AppVerName=MYOB BankLink Client File Handler
+AppPublisher=MYOB BankLink
+DefaultDirName={pf}\MYOB BankLink Client
+DefaultGroupName=MYOB BankLink Client
 DisableProgramGroupPage=yes
 OutputBaseFilename=bkHandlerSetup
 Compression=lzma

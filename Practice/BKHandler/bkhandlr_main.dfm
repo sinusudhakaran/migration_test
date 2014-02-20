@@ -2,7 +2,7 @@ object frmMain: TfrmMain
   Left = 0
   Top = 50
   BorderStyle = bsSingle
-  Caption = 'BankLink File Handler'
+  Caption = 'MYOB BankLink File Handler'
   ClientHeight = 42
   ClientWidth = 176
   Color = clBtnFace
