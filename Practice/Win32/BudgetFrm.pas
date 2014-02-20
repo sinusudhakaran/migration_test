@@ -1888,7 +1888,8 @@ Begin
         UpdateLine(i);
       end;
     finally
-      UpdatePercentageRows(True);
+      UpdatePercentageRows(False);
+      RefreshTableWithData(fShowZeros, True, True);
     end;
   end;
 end;
@@ -1936,7 +1937,8 @@ Begin
   ReadRow(currentRow);  {reload current edit values}
   Updateline(CurrentRow-1);
 
-  DoInvalidateTable(True);
+  UpdatePercentageRows(False);
+  RefreshTableWithData(fShowZeros, True, True);
 end;
 
 //------------------------------------------------------------------------------
