@@ -893,8 +893,8 @@ end;
 //------------------------------------------------------------------------------
 procedure TdlgClientReportSchedule.DoRebranding;
 begin
-  rbCheckOut.Caption := BRAND_BOOKS + ' File';
-  rbCheckoutOnline.Caption := BRAND_BOOKS + ' File via ' + BRAND_ONLINE;
+  rbCheckOut.Caption := bkBranding.AddAltKeySymbol(BRAND_BOOKS,13) + ' file';
+  rbCheckoutOnline.Caption := BRAND_BOOKS + ' file via online';
 end;
 
 //------------------------------------------------------------------------------

@@ -193,7 +193,7 @@ inherited dlgClientReportSchedule: TdlgClientReportSchedule
           Top = 108
           Width = 161
           Height = 17
-          Caption = '&Notes File'
+          Caption = '&Notes file'
           TabOrder = 4
           OnClick = rbToPrinterClick
         end
@@ -223,7 +223,7 @@ inherited dlgClientReportSchedule: TdlgClientReportSchedule
           Top = 136
           Width = 161
           Height = 17
-          Caption = '&Web File'
+          Caption = '&Web file'
           TabOrder = 6
           OnClick = rbToPrinterClick
         end
@@ -241,7 +241,7 @@ inherited dlgClientReportSchedule: TdlgClientReportSchedule
           Top = 164
           Width = 169
           Height = 17
-          Caption = 'BankLink Boo&ks File'
+          Caption = 'BankLink Boo&ks file'
           TabOrder = 8
           OnClick = rbToPrinterClick
         end
@@ -279,7 +279,7 @@ inherited dlgClientReportSchedule: TdlgClientReportSchedule
           Top = 192
           Width = 299
           Height = 17
-          Caption = 'BankLink Books File via BankLink Online'
+          Caption = 'BankLink Books file via &online'
           TabOrder = 11
           OnClick = rbToPrinterClick
         end

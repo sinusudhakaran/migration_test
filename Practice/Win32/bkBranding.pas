@@ -59,7 +59,7 @@ var
   function TobBarStartColor: Integer;
   function TopBarStopColor: Integer;
   function TopTitleColor: Integer;
-  
+
   procedure InitialiseGraphicsAndColors( CanvasHandleToTest : hDC);
 
   function LoginScreenBanner: TPicture;
@@ -95,6 +95,8 @@ var
   procedure StyleBudgetStartText(StartText: TLabel);
   procedure StyleBudgetAllExclusiveText(AllExclusiveText: TLabel);
   procedure StyleBudgetReminderNote(ReminderNoteText: TLabel);
+
+  function AddAltKeySymbol(aInString : string; aPos : integer) : string;
 
   function BrandName: string;
   function ProductOnlineName: String;
@@ -813,6 +815,16 @@ begin
   begin
     ReminderNoteText.Font.Color := clWhite;
   end;
+end;
+
+function AddAltKeySymbol(aInString : string; aPos : integer) : string;
+const
+  AT_ALT_SYMBOL = '&';
+begin
+  if aPos > 1 then
+    Result := leftstr(aInString, (aPos-1)) + AT_ALT_SYMBOL + Rightstr(aInString, Length(aInString) - (aPos-1))
+  else
+    Result := AT_ALT_SYMBOL + Rightstr(aInString, Length(aInString) - (aPos-1));
 end;
 
 function BooksProductName: String;
