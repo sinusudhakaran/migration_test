@@ -309,7 +309,14 @@ begin
             OkToWriteLine := false;
             for DateIndex := 1 to 12 do
             begin
-              if aData[DataIndex].ShowGstAmounts or GSTInclusive then
+              if GSTInclusive and aData[DataIndex].bIsGSTAccountCode then
+              begin
+                if aIncludeUnusedChartCodes then
+                  DataLine := DataLine + '0'
+                else
+                  break; // Don't include this line of data, it will be all zeros and we don't want those in this case
+              end
+              else if aData[DataIndex].ShowGstAmounts or GSTInclusive then
                 DataLine := DataLine + IntToStr(aData[DataIndex].bGstAmounts[DateIndex])
               else
                 DataLine := DataLine + IntToStr(aData[DataIndex].bAmounts[DateIndex]);
