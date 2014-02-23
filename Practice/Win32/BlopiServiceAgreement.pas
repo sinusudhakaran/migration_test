@@ -61,7 +61,7 @@ begin
 
           SaveAdminSystem;
 
-          LogUtil.LogMsg(lmInfo, 'BlopiServiceAgreement', Format('Local BankLink Online service agreement version is currently blank - updated to version %s', [Version]), 0);
+          LogUtil.LogMsg(lmInfo, 'BlopiServiceAgreement', Format('Local %s service agreement version is currently blank - updated to version %s', [bkBranding.ProductOnlineName, Version]), 0);
         except
           if AdminIsLocked then
           begin

@@ -99,7 +99,7 @@ end;
 
 procedure TfrmServiceAgreement.DoRebranding;
 begin
-  Label2.Caption := 'To use ' + BRAND_ONLINE + ' you must accept this Service Agreement.';
+  Label2.Caption := 'To use ' + BRAND_ONLINE_FULL + ' you must accept this Service Agreement.';
 end;
 
 function TfrmServiceAgreement.Execute(out Version, SigneeName, SigneeTitle: String): Boolean;
