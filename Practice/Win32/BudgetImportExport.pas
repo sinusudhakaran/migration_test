@@ -366,8 +366,10 @@ begin
           begin
             if aData[DataIndex].bIsPosting then
             begin
+              if aIncludeUnusedChartCodes and GSTInclusive and aData[DataIndex].bIsGSTAccountCode then
+                DataLine := DataLine + '0'
               // Non posting chart codes shouldn't display amounts in the budget
-              if aData[DataIndex].ShowGstAmounts or GSTInclusive then
+              else if aData[DataIndex].ShowGstAmounts or GSTInclusive then
                 DataLine := DataLine + IntToStr(aData[DataIndex].bGstAmounts[DateIndex])
               else
                 DataLine := DataLine + IntToStr(aData[DataIndex].bAmounts[DateIndex]);

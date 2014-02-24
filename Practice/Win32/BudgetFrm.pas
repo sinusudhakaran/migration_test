@@ -258,6 +258,7 @@ type
     function ShowFiguresGSTInclusive: boolean;
     procedure EnableOrDisablePercentageInvalidControls(Value: boolean);
     function CalculateGSTFromNetAmount( aClient : TClientObj; ADate : LongInt; Amount : Money; ClassNo : Byte): double;
+    procedure RecalculateTotals;
 
   public
     { Public declarations }
@@ -550,7 +551,12 @@ begin
   for i := MonthMin to MonthMax do
   begin
     if IsGSTAccountCode then
-      Result := Result + FData[RowNum - 1].bGstAmounts[i - MonthBase]
+    begin
+      if not (GetAutoCalculateGST or ShowFiguresGSTInclusive) then
+        Result := Result + FData[RowNum - 1].bAmounts[i - MonthBase]
+      else
+        Result := Result + FData[RowNum - 1].bGstAmounts[i - MonthBase];
+    end
     else if IncludeGST then
     begin
       moAmount := FData[RowNum - 1].bAmounts[i - MonthBase];
@@ -916,6 +922,20 @@ begin
   if RowNumOK(RowNum) then
      for i := 1 to 12 do
        eAmounts[i] := FData[RowNum-1].bAmounts[i];
+end;
+
+procedure TfrmBudget.RecalculateTotals;
+var
+  i: integer;
+begin
+  for i := Low(FData) to High(FData) do
+  begin
+    if FData[i-1].bIsPosting then
+    begin
+      FData[i-1].bTotal := GetTotalForRow(i, False);
+      FData[i-1].bTotalWithGST := GetTotalForRow(i, True);
+    end;
+  end;
 end;
 
 //------------------------------------------------------------------------------
@@ -2613,10 +2633,16 @@ begin
         GetAllDataBeforeExport := not fShowZeros;
         DummyInt := 0;
         if GetAllDataBeforeExport then
+        begin
           RefreshFData(True, DummyInt, True);
+          RecalculateTotals;
+        end;
         AllData := FData;
         if GetAllDataBeforeExport then
+        begin
           RefreshTableWithData(fShowZeros, True, True);
+          RecalculateTotals;
+        end;
 
         if BudgetImportExport.ExportBudget(BudgetFilePath, IncludeUnusedChartCodes, AllData,
                                            Budget.buFields.buStart_Date, MsgStr,
