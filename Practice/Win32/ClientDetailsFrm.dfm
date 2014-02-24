@@ -47,7 +47,7 @@ object frmClientDetails: TfrmClientDetails
     Top = 5
     Width = 589
     Height = 550
-    ActivePage = tbsOptions
+    ActivePage = tsSmartLink
     TabOrder = 0
     object tbsClient: TTabSheet
       Caption = 'Client Details'
@@ -871,10 +871,6 @@ object frmClientDetails: TfrmClientDetails
     object tsSmartLink: TTabSheet
       Caption = 'SmartLink'
       ImageIndex = 4
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object Label19: TLabel
         Left = 16
         Top = 16

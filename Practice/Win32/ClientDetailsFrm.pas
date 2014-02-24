@@ -252,8 +252,6 @@ begin
   FEnableClientSettings := true;
   bkXPThemes.ThemeForm( Self);
   lblCountry.Font.Name := Font.Name;
-  lblConnectName.caption := bkBranding.BConnectName + ' Co&de';
-  chkOffsite.Caption := 'Allow client to download directly via ' + TProduct.BrandName + ' &Secure';
 
   SetUpHelp;
 
@@ -1676,6 +1674,8 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmClientDetails.DoRebranding;
 begin
+  lblConnectName.caption := bkBranding.BConnectName + ' Co&de';
+  chkOffsite.Caption := 'Allow client to download directly via ' + BRAND_SHORT_NAME + ' &Secure';
   grpBooks.Caption := BRAND_BOOKS + ' Clients';
   grpBOClients.Caption := BRAND_ONLINE + ' Clients';
 end;
