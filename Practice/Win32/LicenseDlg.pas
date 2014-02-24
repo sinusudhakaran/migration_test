@@ -39,7 +39,7 @@ procedure TDlgLicense.DoRebranding;
 begin
   lAccept.Caption := 'Do you accept all the terms of the preceding Licence Agreement? ' +
                      'If you choose No, you will not be able to login. To use ' +
-                     BRAND_ONLINE_FULL + ' you must accept this agreement.';
+                     BRAND_FULL_PRACTICE + ' you must accept this agreement.';
 end;
 
 procedure TDlgLicense.FormCreate(Sender: TObject);
@@ -70,7 +70,6 @@ begin
     lRead.Visible := False;
     lAccept.Visible := False;
     btnNo.Caption := '&OK';
-
   end;
 end;
 

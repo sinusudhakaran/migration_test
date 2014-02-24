@@ -3,8 +3,8 @@ object DlgLicense: TDlgLicense
   Top = 332
   BorderStyle = bsDialog
   Caption = 'Licence Agreement'
-  ClientHeight = 317
-  ClientWidth = 549
+  ClientHeight = 319
+  ClientWidth = 563
   Color = clBtnFace
   DefaultMonitor = dmMainForm
   ParentFont = True
@@ -18,7 +18,7 @@ object DlgLicense: TDlgLicense
     AlignWithMargins = True
     Left = 16
     Top = 6
-    Width = 517
+    Width = 531
     Height = 42
     Margins.Left = 16
     Margins.Top = 6
@@ -28,6 +28,12 @@ object DlgLicense: TDlgLicense
     Caption = 
       'Please read the following Licence Agreement. Use the scroll bar ' +
       'or press the Page Down key to view the rest of the agreement.'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -13
+    Font.Name = 'Tahoma'
+    Font.Style = []
+    ParentFont = False
     WordWrap = True
     ExplicitTop = 8
     ExplicitWidth = 505
@@ -35,9 +41,9 @@ object DlgLicense: TDlgLicense
   object lAccept: TLabel
     AlignWithMargins = True
     Left = 16
-    Top = 229
-    Width = 517
-    Height = 41
+    Top = 227
+    Width = 531
+    Height = 45
     Margins.Left = 16
     Margins.Right = 16
     Margins.Bottom = 6
@@ -47,16 +53,22 @@ object DlgLicense: TDlgLicense
       'Do you accept all the terms of the preceding Licence Agreement? ' +
       'If you choose No, you will not be able to login. To use BankLink' +
       ' Practice you must accept this agreement.'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -13
+    Font.Name = 'Tahoma'
+    Font.Style = []
+    ParentFont = False
     WordWrap = True
     ExplicitTop = 224
-    ExplicitWidth = 509
+    ExplicitWidth = 517
   end
   object mmoEULA: TMemo
     AlignWithMargins = True
     Left = 16
     Top = 54
-    Width = 517
-    Height = 169
+    Width = 531
+    Height = 167
     Margins.Left = 16
     Margins.Right = 16
     Align = alClient
@@ -763,13 +775,15 @@ object DlgLicense: TDlgLicense
     ScrollBars = ssVertical
     TabOrder = 0
     WordWrap = False
+    ExplicitWidth = 517
+    ExplicitHeight = 169
   end
   object mmoBankstream: TMemo
     AlignWithMargins = True
     Left = 16
     Top = 54
-    Width = 517
-    Height = 169
+    Width = 531
+    Height = 167
     Margins.Left = 16
     Margins.Right = 16
     Align = alClient
@@ -1212,18 +1226,22 @@ object DlgLicense: TDlgLicense
     ScrollBars = ssVertical
     TabOrder = 2
     WordWrap = False
+    ExplicitWidth = 517
+    ExplicitHeight = 169
   end
   object pBtn: TPanel
     Left = 0
-    Top = 276
-    Width = 549
+    Top = 278
+    Width = 563
     Height = 41
     Align = alBottom
     BevelOuter = bvNone
     TabOrder = 1
+    ExplicitTop = 276
+    ExplicitWidth = 549
     object btnNo: TButton
-      Left = 458
-      Top = 10
+      Left = 472
+      Top = 3
       Width = 75
       Height = 25
       Caption = '&No'
@@ -1231,8 +1249,8 @@ object DlgLicense: TDlgLicense
       TabOrder = 0
     end
     object btnYes: TButton
-      Left = 370
-      Top = 10
+      Left = 391
+      Top = 3
       Width = 75
       Height = 25
       Caption = '&Yes'
