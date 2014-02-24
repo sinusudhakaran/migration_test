@@ -2487,7 +2487,6 @@ var
   BudgetErrorFile : string;
   BudgetImportExport : TBudgetImportExport;
   MsgStr : string;
-  DataIndex : integer;
   BudgetCopy : TBudgetData;
   RowsImported : integer;
   RowsNotImported : integer;
@@ -2577,8 +2576,10 @@ var
   IncludeNonPostingChartCodes : boolean;
   BudgetImportExport : TBudgetImportExport;
   MsgStr : string;
-  DataIndex : integer;
   bPrefixAccountCode: boolean;
+  GetAllDataBeforeExport: boolean;
+  AllData: TBudgetData;
+  DummyInt: integer;
 begin
   BudgetImportExport := TBudgetImportExport.Create;
   try
@@ -2609,7 +2610,15 @@ begin
         bPrefixAccountCode :=
           (MyClient.clExtra.ceAdd_Prefix_For_Account_Code = prfxOn);
 
-        if BudgetImportExport.ExportBudget(BudgetFilePath, IncludeUnusedChartCodes, FData,
+        GetAllDataBeforeExport := not fShowZeros;
+        DummyInt := 0;
+        if GetAllDataBeforeExport then
+          RefreshFData(True, DummyInt, True);
+        AllData := FData;
+        if GetAllDataBeforeExport then
+          RefreshTableWithData(fShowZeros, True, True);
+
+        if BudgetImportExport.ExportBudget(BudgetFilePath, IncludeUnusedChartCodes, AllData,
                                            Budget.buFields.buStart_Date, MsgStr,
                                            IncludeNonPostingChartCodes,
                                            bPrefixAccountCode,
