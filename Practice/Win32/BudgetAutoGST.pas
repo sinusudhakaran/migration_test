@@ -61,11 +61,9 @@ type
     code. }
   procedure ValidateGSTSetup(const aClient: TClientObj);
 
-  function RoundToWholeValue(UnroundedAmount: Extended): double;
+  function DoRoundUpHalves(Value: double): integer;
 
-  function DoRoundUp(Value: double): integer;
-
-  function DoRoundDown(Value: double): integer;
+  function DoRoundDownHalves(Value: double): integer;
 
 implementation
 
@@ -98,7 +96,7 @@ begin
   moAmount := aBudget.bAmounts[aMonthIndex];
   moGSTAmount := CalculateGSTFromNett(aClient, aDate, moAmount, byGST_Class);
   if not IsGSTAccountCode(aClient, aBudget.bAccount) then
-    aBudget.bGstAmounts[aMonthIndex] := DoRoundUp(moGSTAmount + moAmount);
+    aBudget.bGstAmounts[aMonthIndex] := DoRoundUpHalves(moGSTAmount + moAmount);
 
   // Ensure GST amount sign is correct
   pnSign := ExpectedSign(pAccount.chAccount_Type);
@@ -138,7 +136,7 @@ begin
   moAmount := aBudget.bAmounts[aMonthIndex];
   moGSTAmount := CalculateGSTFromNett(aClient, aDate, moAmount, byGST_Class);
   if not IsGSTAccountCode(aClient, aBudget.bAccount) then
-    aBudget.bGstAmounts[aMonthIndex] := DoRoundUp(moGSTAmount + moAmount);
+    aBudget.bGstAmounts[aMonthIndex] := DoRoundUpHalves(moGSTAmount + moAmount);
 
   // Add to total (positive or negative)
   GSTAmount := GSTAmount + moGSTAmount;
@@ -232,8 +230,7 @@ begin
           continue;
 
         // Note: this must be added (see note above)
-        bAmounts[aMonthIndex] := bAmounts[aMonthIndex] +
-          Round(aGST[iClass].Amount);
+        bAmounts[aMonthIndex] := bAmounts[aMonthIndex] + DoRoundUpHalves(aGST[iClass].Amount);
       end;
     end;
   end;
@@ -261,7 +258,7 @@ begin
       // Note: this must be added
       aBudget[iRow].ShowGstAmounts := true;
       aBudget[iRow].bGstAmounts[aMonthIndex] := aBudget[iRow].bGstAmounts[aMonthIndex] +
-        Round(aGST[iClass].Amount);
+        DoRoundUpHalves(aGST[iClass].Amount);
     end;
   end;
 end;
@@ -409,50 +406,44 @@ begin
   HelpfulWarningMsg(WarningMsg, 0, '&OK', 500, ExtraHeight);
 end;
 
-function RoundToWholeValue(UnroundedAmount: Extended): double;
-var
-  OldRoundMode : TFPURoundingMode;
-  Remainder    : Extended;
-  RoundUpHalves: boolean;
-begin
-  Remainder := UnroundedAmount - Trunc(UnroundedAmount);
-  RoundUpHalves := abs(Remainder - 0.5) < 0.0000001;
-  OldRoundMode := GetRoundMode; // would put this in the if statement below but then I get a compiler warning
-  if RoundUpHalves then
-    SetRoundMode(rmUp);
-  Result := Round( UnroundedAmount );
-  if RoundUpHalves then
-    SetRoundMode(OldRoundMode);
-end;
-
-function DoRoundUp(Value: double): integer;
+// Rounds 0.5 up for positive values, or down for negative values.
+// A more technically correct name might be 'DoRoundHalvesAwayFromZero'
+function DoRoundUpHalves(Value: double): integer;
 var
   RoundUpHalves: boolean;
   Remainder: extended;
   OldRoundMode: TFPURoundingMode;
 begin
   Remainder := Value - Trunc(Value);
-  RoundUpHalves := abs(Remainder - 0.5) < 0.0000001;
+  RoundUpHalves := (abs(Remainder) - 0.5) < 0.0000001;
   OldRoundMode := GetRoundMode; // would put this in the if statement below but then I get a compiler warning
   if RoundUpHalves then
     SetRoundMode(rmUp);
-  Result := Round(Value);
+  if (Value < 0) then
+    Result := Round(abs(Value)) * -1
+  else
+    Result := Round(Value);
   if RoundUpHalves then
     SetRoundMode(OldRoundMode);
 end;
 
-function DoRoundDown(Value: double): integer;
+// Rounds 0.5 down for positive values, or up for negative values.
+// A more technically correct name might be 'DoRoundHalvesTowardsZero'
+function DoRoundDownHalves(Value: double): integer;
 var
   RoundDownHalves: boolean;
   Remainder: extended;
   OldRoundMode: TFPURoundingMode;
 begin
   Remainder := Value - Trunc(Value);
-  RoundDownHalves := abs(Remainder - 0.5) < 0.0000001;
+  RoundDownHalves := (abs(Remainder) - 0.5) < 0.0000001;
   OldRoundMode := GetRoundMode; // would put this in the if statement below but then I get a compiler warning
   if RoundDownHalves then
     SetRoundMode(rmDown);
-  Result := Round(Value);
+  if (Value < 0) then
+    Result := Round(abs(Value)) * -1
+  else
+    Result := Round(Value);
   if RoundDownHalves then
     SetRoundMode(OldRoundMode);
 end;

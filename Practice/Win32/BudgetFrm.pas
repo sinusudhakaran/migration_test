@@ -499,10 +499,10 @@ begin
 
       MonthMin..MonthMax :
         begin
-           if FData[RowNum-1].bIsPosting then
-              Data := @FData[RowNum-1].bAmounts[ColNum-MonthBase]
-           else if FData[RowNum-1].bAmounts[ColNum-MonthBase] <> 0 then
-              Data := @FData[RowNum-1].bAmounts[ColNum-MonthBase];
+          if FData[RowNum-1].bIsPosting then
+            Data := @FData[RowNum-1].bAmounts[ColNum-MonthBase]
+          else if FData[RowNum-1].bAmounts[ColNum-MonthBase] <> 0 then
+            Data := @FData[RowNum-1].bAmounts[ColNum-MonthBase];
         end;
       TotalCol :
         begin
@@ -511,11 +511,11 @@ begin
           else
             ShowGST := FData[RowNum-1].bIsGSTAccountCode;
           FData[RowNum-1].bTotal := GetTotalForRow(RowNum, False);
-          if ShowGST then          
+          if ShowGST then
             FData[RowNum-1].bTotalWithGST := GetTotalForRow(RowNum, True);
           if FData[RowNum-1].bIsPosting then
           begin
-            if ShowGST then            
+            if ShowGST then
               Data := @FData[RowNum-1].bTotalWithGST
             else
               Data := @FData[RowNum-1].bTotal;
@@ -536,6 +536,38 @@ var
   MoAmount      : Money;
   pAccount      : pAccount_Rec;
   IsGSTAccountCode: boolean;
+
+  function GetControlCodeTotal(ControlCode: string): integer;
+  var
+    j                     : integer;
+    pAccount2             : pAccount_Rec;
+    GST_Class2            : byte;
+    MatchingAccountFound  : boolean;
+  begin
+    Result := 0;
+    GST_Class2 := 0;
+    MatchingAccountFound := False;
+    for j := Low(FData) to High(FData) do
+    begin
+      if not ((FData[j].bIsPosting = False) or FData[j].bIsGSTAccountCode) then
+      begin
+        pAccount2 := MyClient.clChart.FindCode(FData[j].bAccount);
+        if (MyClient.clFields.clGST_Account_Codes[pAccount2.chGST_Class] = ControlCode) then
+        begin
+          if not MatchingAccountFound then
+          begin
+            // Only need to get this once
+            GST_Class2 := pAccount2.chGST_Class;
+            MatchingAccountFound := True;
+          end;
+          Result := Result + FData[j].bTotal;
+        end;
+      end;
+    end;
+    if MatchingAccountFound then    
+      Result := DoRoundUpHalves(CalculateGSTFromNett(MyClient, dtMonth, Result, GST_Class2));
+    // TODO: multiply result by control code GST rate
+  end;
 begin
   Result := 0;
   GSTAmount := 0;
@@ -566,7 +598,10 @@ begin
       Result := Result + FData[RowNum - 1].bAmounts[i - MonthBase];
   end;
   if IncludeGST and not IsGSTAccountCode then
-    Result := DoRoundUp(GSTAmount);
+    Result := DoRoundUpHalves(GSTAmount);
+  if ISGSTAccountCode then
+    Result := GetControlCodeTotal(pAccount.chAccount_Code);
+  // TODO: Need to have all other totals first before calculating control code totals
 end;
 
 //------------------------------------------------------------------------------
@@ -615,13 +650,33 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmBudget.tblBudgetGetCellData(Sender: TObject; RowNum,
   ColNum: Integer; var Data: Pointer; Purpose: TOvcCellDataPurpose);
+
+  procedure UpdateControlAccountTotals;
+  var
+    i: integer;
+  begin
+    if not (FData[RowNum-1].bIsGSTAccountCode) then
+    begin
+      for i := Low(FData) to High(FData) do
+      begin
+        if FData[i].bIsGSTAccountCode then
+        begin
+          DoInvalidateRow(i+1);
+        end;
+      end;
+    end;
+  end;
+
 begin
   data := nil;
   if not DataAssigned then exit;
 
   case Purpose of
     cdpForPaint:
+    begin
             ReadCellforPaint(RowNum,ColNum,Data);
+            UpdateControlAccountTotals;
+    end;
 
     cdpForEdit:
             ReadCellforEdit(RowNum,ColNum,Data);
@@ -833,12 +888,12 @@ begin
                 exit;
               GST_Class := pAccount.chGST_Class;
               GSTAmount := CalculateGSTFromNetAmount(MyClient, dtMonth, moAmount, GST_Class);
-              FData[RowNum-1].bAmounts[ColNum-MonthBase] := DoRoundUp(moAmount - GSTAmount);
+              FData[RowNum-1].bAmounts[ColNum-MonthBase] := DoRoundUpHalves(moAmount - GSTAmount);
               // Need to recalculate the shown GST inclusive amount so that it's the stored raw amount + GST, which may
               // differ slightly from the GST inclusive amount entered by the user
               RawAmount := FData[RowNum-1].bAmounts[ColNum-MonthBase];
               FData[RowNum-1].bGSTAmounts[ColNum-MonthBase] :=
-                DoRoundUp(RawAmount + CalculateGSTFromNett(MyClient, dtMonth, RawAmount, GST_Class));
+                DoRoundUpHalves(RawAmount + CalculateGSTFromNett(MyClient, dtMonth, RawAmount, GST_Class));
             end else
               FData[RowNum-1].bAmounts[ColNum-MonthBase] := eAmounts[ColNum-MonthBase];
             if (eAmounts[ColNum - MonthBase] = 0)
@@ -1138,7 +1193,7 @@ begin
     begin
       if Assigned(pBudgetRec) and not (ShowFiguresGSTInclusive and FData[aDataIndex].bIsGSTAccountCode) then
       begin
-        FData[aDataIndex].bAmounts[MonthIndex] := Round(FData[aDataIndex].bDetailLine.bdBudget[MonthIndex]);
+        FData[aDataIndex].bAmounts[MonthIndex] := DoRoundUpHalves(FData[aDataIndex].bDetailLine.bdBudget[MonthIndex]);
         FData[aDataIndex].bQuantitys[MonthIndex] := FData[aDataIndex].bDetailLine.bdQty_Budget[MonthIndex];
         FData[aDataIndex].bUnitPrices[MonthIndex] := FData[aDataIndex].bDetailLine.bdEach_Budget[MonthIndex];
       end
@@ -1555,7 +1610,7 @@ var
     if not assigned(pAccount) then
       exit;
     GST_Class := pAccount.chGST_Class;
-    Result := DoRoundUp(moAmount + CalculateGSTFromNett(MyClient, dtMonth, moAmount, GST_Class));
+    Result := DoRoundUpHalves(moAmount + CalculateGSTFromNett(MyClient, dtMonth, moAmount, GST_Class));
   end;
 
 begin
@@ -1609,7 +1664,7 @@ begin
       begin
         if Assigned(pBudgetRec) then
         begin
-          FData[I].bAmounts[MonthIndex]     := Round(FData[I].bDetailLine.bdBudget[MonthIndex]);
+          FData[I].bAmounts[MonthIndex]     := DoRoundUpHalves(FData[I].bDetailLine.bdBudget[MonthIndex]);
           FData[I].bGstAmounts[MonthIndex]  := GetGSTAmount(FData[I].bAmounts[MonthIndex], NewCode);
           FData[I].bQuantitys[MonthIndex]   := FData[I].bDetailLine.bdQty_Budget[MonthIndex];
           FData[I].bUnitPrices[MonthIndex]  := FData[I].bDetailLine.bdEach_Budget[MonthIndex];
@@ -1899,7 +1954,7 @@ Begin
 
         for j := 1 to 12 do
         begin
-          FData[i].bAmounts[j] := By * Round( FData[i].bAmounts[j] / By );
+          FData[i].bAmounts[j] := By * DoRoundUpHalves( FData[i].bAmounts[j] / By );
           FData[i].bQuantitys[j] := 0;
           FData[i].bUnitPrices[j] := 0;
         end;
@@ -2184,7 +2239,7 @@ begin
                 else
                    Amount := Abs( Amount/100 ) * -1;
 
-                FData[i].bAmounts[j] := Round( Amount );
+                FData[i].bAmounts[j] := DoRoundUpHalves( Amount );
               end;
             end;
           end;
@@ -2832,7 +2887,7 @@ function TfrmBudget.IncreaseAmount( aAmount : Integer; perc : double; var ValueT
 var
  NewAmount : Int64;
 begin
- NewAmount := Round( aAmount * perc);
+ NewAmount := DoRoundUpHalves( aAmount * perc);
  if ( NewAmount > High(aAmount)) or ( NewAmount < Low(aAmount)) then
  begin
    result := aAmount;
@@ -2951,7 +3006,7 @@ begin
         FData[DataRow].bAmounts[ColNum] := 0
       else
         FData[DataRow].bAmounts[ColNum] :=
-          DoRoundUp(FData[AccountCodeRow].bAmounts[ColNum] * (FData[DataRow].Percentage / 100));
+          DoRoundUpHalves(FData[AccountCodeRow].bAmounts[ColNum] * (FData[DataRow].Percentage / 100));
 
       CreateDetailLine(DataRow);
       FData[DataRow].bDetailLine.bdBudget[ColNum] := FData[DataRow].bAmounts[ColNum];
