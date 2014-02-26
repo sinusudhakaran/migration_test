@@ -111,7 +111,6 @@ type
     Label1: TLabel;
     btnFind: TButton;
     SearchTimer: TTimer;
-    lblCount: TLabel;
     CelAltCode: TOvcTCString;
     popFind: TPopupMenu;
     miFind: TMenuItem;
@@ -119,6 +118,7 @@ type
     tbtnClose: TRzToolButton;
     celTransferedToOnline: TOvcTCCheckBox;
     celCoreTransactionId: TOvcTCString;
+    lblRecommendedMemorisations: TLabel;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
 
@@ -306,6 +306,7 @@ type
     procedure tblCodingKeyPress(Sender: TObject; var Key: Char);
     procedure ConvertVATAmount(Sender: TObject);
     procedure celAnalysisChange(Sender: TObject);
+    procedure lblRecommendedMemorisationsClick(Sender: TObject);
 
   private
     { Private declarations }
@@ -605,7 +606,8 @@ uses
    BankLinkOnlineServices,
    dxList32,
    CAUtils,
-   bkProduct;
+   bkProduct,
+   RecommendedMemorisationsFrm;
 
 const
    UnitName = 'CODINGFRM';
@@ -1084,7 +1086,7 @@ begin
   lblFinalised.Font.Name := Font.Name;
 
   pnlSearch.Height := Abs(Self.Font.Height * 15 div 8) + 4;
-  
+  SetHyperLinkFont(lblRecommendedMemorisations.Font);
 
   pnlExtraTitleBar.GradientColorStart := bkBranding.TobBarStartColor;
   pnlExtraTitleBar.GradientColorStop  := bkBranding.TopBarStopColor;
@@ -3946,6 +3948,12 @@ end;
 procedure TfrmCoding.JobLookupClick(Sender: TObject);
 begin
   DoLookupJob;
+end;
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+procedure TfrmCoding.lblRecommendedMemorisationsClick(Sender: TObject);
+begin
+  ShowRecommendedMemorisations(self);
 end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

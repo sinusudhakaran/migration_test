@@ -436,6 +436,7 @@ type
     tbBudgetImport: TRzToolButton;
     tbBudgetExport: TRzToolButton;
     RzSpacer5: TRzSpacer;
+    tbRecommendedMemorisations: TRzToolButton;
     procedure FormResize(Sender: TObject);
     procedure tmClockTimer(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -720,6 +721,7 @@ type
     procedure mniExchangeGainLossWizardClick(Sender: TObject);
     procedure tbBudgetImportClick(Sender: TObject);
     procedure tbBudgetExportClick(Sender: TObject);
+    procedure tbRecommendedMemorisationsClick(Sender: TObject);
   private
     { Private declarations }
     FClientInstance,
@@ -1068,7 +1070,8 @@ uses
   BlopiServiceAgreement,
   bkProduct,
   BroadcastSystem,
-  UpgradeReminder;
+  UpgradeReminder,
+  RecommendedMemorisationsFrm;
   //StockBalancesDlg;
 
 const
@@ -5030,6 +5033,10 @@ begin
    DoCodingTBarCommand(ecGoto);
 end;
 
+procedure TfrmMain.tbRecommendedMemorisationsClick(Sender: TObject);
+begin
+  ShowRecommendedMemorisations(self);
+end;
 
 procedure TfrmMain.tbRepeatClick(Sender: TObject);
 begin

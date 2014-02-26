@@ -322,7 +322,7 @@ object frmMain: TfrmMain
     object rztCoding: TRzToolbar
       Left = 18
       Top = 98
-      Width = 843
+      Width = 919
       Align = alNone
       AutoResize = False
       AutoStyle = False
@@ -331,7 +331,7 @@ object frmMain: TfrmMain
       TopMargin = 4
       ButtonWidth = 60
       ShowButtonCaptions = True
-      TextOptions = ttoCustom
+      TextOptions = ttoSelectiveTextOnRight
       OnVisibleChanged = tbarVisibleChanged
       BorderInner = fsPopup
       BorderOuter = fsNone
@@ -355,10 +355,11 @@ object frmMain: TfrmMain
         tbUPI
         tbQuery
         tbCodingHelp
+        tbRecommendedMemorisations
         tbCodingClose
         RzSpacer4)
       object tbCodingHelp: TRzToolButton
-        Left = 61
+        Left = 1
         Top = 29
         ImageIndex = 10
         Caption = 'Help'
@@ -460,14 +461,14 @@ object frmMain: TfrmMain
         OnClick = tbChartClick
       end
       object tbQuery: TRzToolButton
-        Left = 1
-        Top = 29
+        Left = 828
+        Top = 4
         ImageIndex = 18
         Caption = 'Query'
         OnClick = tbQueryClick
       end
       object RzSpacer4: TRzSpacer
-        Left = 181
+        Left = 321
         Top = 29
       end
       object tbJob: TRzToolButton
@@ -478,13 +479,22 @@ object frmMain: TfrmMain
         OnClick = tbJobClick
       end
       object tbCodingClose: TRzToolButton
-        Left = 121
+        Left = 261
         Top = 29
         ImageIndex = 2
         Images = AppImages.Maintain
         Caption = 'Close'
         Visible = False
         OnClick = tbCodingCloseClick
+      end
+      object tbRecommendedMemorisations: TRzToolButton
+        Left = 61
+        Top = 29
+        Width = 200
+        ImageIndex = 2
+        Caption = 'Recommended Memorisations'
+        Constraints.MinWidth = 200
+        OnClick = tbRecommendedMemorisationsClick
       end
     end
     object rztBudget: TRzToolbar

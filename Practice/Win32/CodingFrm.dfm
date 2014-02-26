@@ -457,26 +457,14 @@ object frmCoding: TfrmCoding
       Left = 31
       Top = 2
       Width = 20
-      Height = 13
+      Height = 18
       Margins.Left = 9
       Margins.Top = 0
       Margins.Bottom = 0
       Align = alLeft
       Caption = 'Find'
       Layout = tlCenter
-    end
-    object lblCount: TLabel
-      AlignWithMargins = True
-      Left = 305
-      Top = 2
-      Width = 96
-      Height = 13
-      Margins.Top = 0
-      Margins.Bottom = 0
-      Align = alLeft
-      Caption = '99999 Clients Listed'
-      Layout = tlCenter
-      Visible = False
+      ExplicitHeight = 13
     end
     object tbtnClose: TRzToolButton
       Left = 2
@@ -493,6 +481,15 @@ object frmCoding: TfrmCoding
       Caption = 'Show Legend'
       OnClick = tbtnCloseClick
       ExplicitHeight = 19
+    end
+    object lblRecommendedMemorisations: TLabel
+      Left = 312
+      Top = 4
+      Width = 141
+      Height = 13
+      Cursor = crHandPoint
+      Caption = 'Recommended Memorisations'
+      OnClick = lblRecommendedMemorisationsClick
     end
     object EBFind: TEdit
       AlignWithMargins = True
@@ -1050,8 +1047,8 @@ object frmCoding: TfrmCoding
   object SearchTimer: TTimer
     Enabled = False
     OnTimer = SearchTimerTimer
-    Left = 336
-    Top = 32
+    Left = 344
+    Top = 96
   end
   object CelAltCode: TOvcTCString
     Access = otxReadOnly
