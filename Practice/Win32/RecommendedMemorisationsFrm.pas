@@ -5,7 +5,9 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, VirtualTrees, ovcbase, ovctcmmn, ovctable, ExtCtrls, StdCtrls,
-  dxGDIPlusClasses, ImgList;
+  dxGDIPlusClasses, ImgList,
+
+  OSFont;
 
 type
   TDataType = (
@@ -67,7 +69,8 @@ uses
   Globals,
   baObj32,
   MemorisationsObj,
-  MemoriseDlg;
+  MemoriseDlg,
+  bkXPThemes;
 
 //------------------------------------------------------------------------------
 // ShowRecommendedMemorisations
@@ -101,6 +104,8 @@ var
   pNode: PVirtualNode;
   pData: PTreeData;
 begin
+  bkXPThemes.ThemeForm(self);
+
   Caption := 'Recommended Memorisations for ' + MyClient.clFields.clCode;
 
   PopulateTree;
@@ -192,6 +197,7 @@ begin
   TargetCanvas.FillRect(ItemRect);
 
   TargetCanvas.Font.Color := clWindowText;
+  TargetCanvas.Font.Size := Font.Size;
   TargetCanvas.Font.Style := [fsBold];
   TargetCanvas.TextOut(ItemRect.Left+2, ItemRect.Top, 'Bank account 123456');
 end;

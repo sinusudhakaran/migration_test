@@ -4,7 +4,7 @@ object RecommendedMemorisationsFrm: TRecommendedMemorisationsFrm
   BorderStyle = bsDialog
   Caption = 'Recommended Memorisations for '
   ClientHeight = 491
-  ClientWidth = 632
+  ClientWidth = 677
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -19,7 +19,7 @@ object RecommendedMemorisationsFrm: TRecommendedMemorisationsFrm
   object vstTree: TVirtualStringTree
     Left = 0
     Top = 0
-    Width = 632
+    Width = 677
     Height = 450
     Align = alClient
     Header.AutoSizeIndex = 0
@@ -41,6 +41,7 @@ object RecommendedMemorisationsFrm: TRecommendedMemorisationsFrm
     OnGetText = vstTreeGetText
     OnGetNodeDataSize = vstTreeGetNodeDataSize
     OnMouseDown = vstTreeMouseDown
+    ExplicitWidth = 632
     Columns = <
       item
         Position = 0
@@ -64,6 +65,7 @@ object RecommendedMemorisationsFrm: TRecommendedMemorisationsFrm
       end
       item
         Position = 5
+        Width = 60
       end
       item
         Alignment = taCenter
@@ -74,16 +76,21 @@ object RecommendedMemorisationsFrm: TRecommendedMemorisationsFrm
   object pnlButtons: TPanel
     Left = 0
     Top = 450
-    Width = 632
+    Width = 677
     Height = 41
     Align = alBottom
     BevelOuter = bvNone
     TabOrder = 1
+    ExplicitWidth = 632
+    DesignSize = (
+      677
+      41)
     object btnClose: TButton
-      Left = 536
+      Left = 592
       Top = 8
       Width = 75
       Height = 25
+      Anchors = [akRight, akBottom]
       Cancel = True
       Caption = 'Close'
       ModalResult = 1
