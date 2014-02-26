@@ -415,7 +415,7 @@ var
   OldRoundMode: TFPURoundingMode;
 begin
   Remainder := Value - Trunc(Value);
-  RoundUpHalves := (abs(Remainder) - 0.5) < 0.0000001;
+  RoundUpHalves := ((abs(Remainder) - 0.5) < 0.0000001) and ((abs(Remainder) - 0.5) >= 0);
   OldRoundMode := GetRoundMode; // would put this in the if statement below but then I get a compiler warning
   if RoundUpHalves then
     SetRoundMode(rmUp);
@@ -436,7 +436,7 @@ var
   OldRoundMode: TFPURoundingMode;
 begin
   Remainder := Value - Trunc(Value);
-  RoundDownHalves := (abs(Remainder) - 0.5) < 0.0000001;
+  RoundDownHalves := ((abs(Remainder) - 0.5) < 0.0000001) and ((abs(Remainder) - 0.5) >= 0);
   OldRoundMode := GetRoundMode; // would put this in the if statement below but then I get a compiler warning
   if RoundDownHalves then
     SetRoundMode(rmDown);

@@ -539,34 +539,43 @@ var
 
   function GetControlCodeTotal(ControlCode: string): integer;
   var
-    j                     : integer;
+    j,MonthInt            : integer;
     pAccount2             : pAccount_Rec;
     GST_Class2            : byte;
+    dtMonth2              : TStDate;
     MatchingAccountFound  : boolean;
+    MonthGST              : double;
+    RowTotal              : double;
+    GSTTotal              : double;
   begin
     Result := 0;
-    GST_Class2 := 0;
+    GSTTotal := 0;
     MatchingAccountFound := False;
     for j := Low(FData) to High(FData) do
     begin
+      RowTotal := 0;
       if not ((FData[j].bIsPosting = False) or FData[j].bIsGSTAccountCode) then
       begin
         pAccount2 := MyClient.clChart.FindCode(FData[j].bAccount);
         if (MyClient.clFields.clGST_Account_Codes[pAccount2.chGST_Class] = ControlCode) then
         begin
-          if not MatchingAccountFound then
+          for MonthInt := MonthMin to MonthMax do
           begin
-            // Only need to get this once
+            dtMonth2 := FBudget.buFields.buStart_Date;
+            dtMonth2 := IncDate(dtMonth2, 0, MonthInt - (MonthBase + 1), 0);
             GST_Class2 := pAccount2.chGST_Class;
-            MatchingAccountFound := True;
+            MonthGST := CalculateGSTFromNett(MyClient, dtMonth2, FData[j].bAmounts[MonthInt-MonthBase], GST_Class2);
+            RowTotal := RowTotal + MonthGST;
           end;
-          Result := Result + FData[j].bTotal;
+          if (SignOf(RowTotal) <> ExpectedSign(pAccount2.chAccount_Type)) then
+            RowTotal := RowTotal * -1;
+          MatchingAccountFound := True;
         end;
       end;
+      GSTTotal := GSTTotal + RowTotal;
     end;
-    if MatchingAccountFound then    
-      Result := DoRoundUpHalves(CalculateGSTFromNett(MyClient, dtMonth, Result, GST_Class2));
-    // TODO: multiply result by control code GST rate
+    if MatchingAccountFound then
+      Result := DoRoundUpHalves(GSTTotal);    
   end;
 begin
   Result := 0;
@@ -599,9 +608,8 @@ begin
   end;
   if IncludeGST and not IsGSTAccountCode then
     Result := DoRoundUpHalves(GSTAmount);
-  if ISGSTAccountCode then
+  if ISGSTAccountCode and GetAutoCalculateGST then
     Result := GetControlCodeTotal(pAccount.chAccount_Code);
-  // TODO: Need to have all other totals first before calculating control code totals
 end;
 
 //------------------------------------------------------------------------------
@@ -675,7 +683,8 @@ begin
     cdpForPaint:
     begin
             ReadCellforPaint(RowNum,ColNum,Data);
-            UpdateControlAccountTotals;
+            if GetAutoCalculateGST then            
+              UpdateControlAccountTotals;
     end;
 
     cdpForEdit:
