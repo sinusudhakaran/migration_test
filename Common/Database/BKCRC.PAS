@@ -34,6 +34,7 @@ PROCEDURE UpdateCRC( CONST Rec : TClientExtra_Rec; VAR CRC : LongWord ); OVERLOA
 PROCEDURE UpdateCRC( CONST Rec : TDeleted_Transaction_Rec; VAR CRC : LongWord ); OVERLOAD;
 PROCEDURE UpdateCRC( CONST Rec : TExchange_Gain_Loss_Rec; VAR CRC : LongWord ); OVERLOAD;
 PROCEDURE UpdateCRC( CONST Rec : TFinalized_Exchange_Rate_Rec; VAR CRC : LongWord ); OVERLOAD;
+PROCEDURE UpdateCRC( CONST Rec : TTPR_Payer_Detail_Rec; VAR CRC : LongWord ); OVERLOAD;
 
 // ------------------------------------------------------------------- 
 Implementation uses CRC32, MoneyDef;
@@ -504,6 +505,21 @@ Begin
    With Rec do begin
       RS    := @frRecord_Type;
       RE    := @frEOR;
+      Len   := Integer( RE ) - Integer( RS );
+      CRC32.UpdateCRC( CRC , RS^, Len );
+   end;
+end;
+
+// ------------------------------------------------------------------- 
+
+PROCEDURE UpdateCRC( CONST Rec : TTPR_Payer_Detail_Rec; VAR CRC : LongWord ); OVERLOAD;
+Var
+   Len    : Integer;
+   RS, RE : Pointer;
+Begin
+   With Rec do begin
+      RS    := @prRecord_Type;
+      RE    := @prEOR;
       Len   := Integer( RE ) - Integer( RS );
       CRC32.UpdateCRC( CRC , RS^, Len );
    end;

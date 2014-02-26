@@ -107,6 +107,14 @@ public
 end;
 
 
+TTPR_Supplier_Detail_RecHelper = record helper for TTPR_Supplier_Detail_Rec
+public
+	function WriteRecToNode(var Node: IXMLNode): IXMLNode;
+	function ReadRecFromNode(Node: IXMLNode): IXMLNode;
+	class function GetXMLNodeName: string; static;
+end;
+
+
 // ----------------------------------------------------------------------------
 implementation
 uses
@@ -1542,6 +1550,60 @@ begin
 	smBank_Prefix := GetTextAttr(Result, 'BankPrefix');
 	except
 		on E: Exception do ReRaise (E, 'Reading TSystem_Memorisation_List_Rec');
+	end;
+
+	CNode := nil;
+	CCNode := nil;
+	PNode := nil;
+end;
+
+// ----------------------------------------------------------------------------
+
+class function TTPR_Supplier_Detail_RecHelper.GetXMLNodeName: string;
+begin
+	result := 'SYTPRSupplierDetail';
+end;
+
+
+function TTPR_Supplier_Detail_RecHelper.WriteRecToNode(var Node: IXMLNode): IXMLNode;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J, M: Integer;
+begin
+	Result := Node.AddChild(GetXMLNodeName);
+	SetIntAttr(Result, 'ABN', srABN);
+	SetTextAttr(Result, 'ContactName', srContactName);
+	SetTextAttr(Result, 'ContactPhone', srContactPhone);
+	SetTextAttr(Result, 'StreetAddress1', srStreetAddress1);
+	SetTextAttr(Result, 'StreetAddress2', srStreetAddress2);
+	SetTextAttr(Result, 'Suburb', srSuburb);
+	SetIntAttr(Result, 'StateId', srStateId);
+	SetTextAttr(Result, 'Country', srCountry);
+
+	CNode := nil;
+	CCNode := nil;
+	PNode := nil;
+end;
+
+
+function TTPR_Supplier_Detail_RecHelper.ReadRecFromNode(Node :IXMLNode): IXMLNode;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J: Integer;
+begin
+	if Node.NodeName = GetXMLNodeName then Result := Node
+	else
+	Result := Node.ChildNodes.FindNode(GetXMLNodeName);
+	if not assigned(Result) then exit;
+	try
+	srABN := GetIntAttr(Result, 'ABN');
+	srContactName := GetTextAttr(Result, 'ContactName');
+	srContactPhone := GetTextAttr(Result, 'ContactPhone');
+	srStreetAddress1 := GetTextAttr(Result, 'StreetAddress1');
+	srStreetAddress2 := GetTextAttr(Result, 'StreetAddress2');
+	srSuburb := GetTextAttr(Result, 'Suburb');
+	srStateId := GetIntAttr(Result, 'StateId');
+	srCountry := GetTextAttr(Result, 'Country');
+	except
+		on E: Exception do ReRaise (E, 'Reading TTPR_Supplier_Detail_Rec');
 	end;
 
 	CNode := nil;

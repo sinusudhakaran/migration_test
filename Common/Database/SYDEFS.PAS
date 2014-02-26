@@ -9,9 +9,9 @@ Interface uses MONEYDEF, DATEDEF;
 {  -------------------------------------------------------------------  }
 
 Const
-   SY_IOLIB_Version : Integer = 113;
-   SY_IOLIB_Date    = '30/12/13';
-   SY_FILE_VERSION   = 132;  (* Current Version counter for files
+   SY_IOLIB_Version : Integer = 119;
+   SY_IOLIB_Date    = '27/02/14';
+   SY_FILE_VERSION   = 133;  (* Current Version counter for files
                               Changes if structure or method of storing a value would cause
                               data to be represented incorrectly, or an exception to be raised *)
    
@@ -134,6 +134,7 @@ Const
        5.24.0 (BLOPI)    130   Added field for storing the last agreed to banklink online service agreement version
        5.24.0 (BLOPI)    131   Added field for suspending banklink online
        5.25.1            132   Memorisations upgrade, code only
+       5.25.1            133   New TPR Supplier Detail Table
    *)
    //Memorisation Detail - 140 Don't reuse token!!! - Record defined in BK.TXT but used in SY for Master Mems
    //Memorisation Line - 145 Don't reuse token!!! - Record defined in BK.TXT but used in SY for Master Mems
@@ -153,6 +154,7 @@ Type
    pAudit_Trail_Rec                      = ^tAudit_Trail_Rec ;
    pProvisional_Entries_Log_Rec          = ^tProvisional_Entries_Log_Rec ;
    pSystem_Memorisation_List_Rec         = ^tSystem_Memorisation_List_Rec ;
+   pTPR_Supplier_Detail_Rec              = ^tTPR_Supplier_Detail_Rec ;
 
 {  -------------------------------------------------------------------  }
 
@@ -582,6 +584,21 @@ Type
       smEOR                              : Byte;
    end;
 
+{  -------------------------------------------------------------------  }
+
+   tTPR_Supplier_Detail_Rec = Packed Record
+      srRecord_Type                      : Byte;
+      srABN                              : Integer;       { Stored }
+      srContactName                      : String[ 38 ];       { Stored }
+      srContactPhone                     : String[ 15 ];       { Stored }
+      srStreetAddress1                   : String[ 38 ];       { Stored }
+      srStreetAddress2                   : String[ 38 ];       { Stored }
+      srSuburb                           : String[ 27 ];       { Stored }
+      srStateId                          : Integer;       { Stored }
+      srCountry                          : String[ 20 ];       { Stored }
+      srEOR                              : Byte;
+   end;
+
 Const
    Practice_Details_Rec_Size                 = Sizeof( TPractice_Details_Rec ); 
    System_Disk_Log_Rec_Size                  = Sizeof( TSystem_Disk_Log_Rec ); 
@@ -595,6 +612,7 @@ Const
    Audit_Trail_Rec_Size                      = Sizeof( TAudit_Trail_Rec ); 
    Provisional_Entries_Log_Rec_Size          = Sizeof( TProvisional_Entries_Log_Rec ); 
    System_Memorisation_List_Rec_Size         = Sizeof( TSystem_Memorisation_List_Rec ); 
+   TPR_Supplier_Detail_Rec_Size              = Sizeof( TTPR_Supplier_Detail_Rec ); 
 
 {  -------------------------------------------------------------------  }
 Implementation

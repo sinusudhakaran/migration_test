@@ -1,4 +1,4 @@
-$|BK_FILE_VERSION  = 181;  (* Current Version counter for files
+$|BK_FILE_VERSION  = 182;  (* Current Version counter for files
 $|                           Changes if structure or method of storing a value would cause
 $|                           data to be represented incorrectly, or an exception to be raised *)
 $|
@@ -204,19 +204,20 @@ $|                         Added Core Trans ID High Integer
 $|                         Added Bank Account Core ID
 $|                         Added Bank Account Online Secure Code
 $|                         Changed Transaction Matched_By from type "Memorised Transaction Rec" to "Memorisation Detail Rec"
-$|  5.26            171    Added fields Contractor..ABN to Payee Detail record
+$|  5.25            171    Added fields Contractor..ABN to Payee Detail record
 $|                         Added Exchange Gain_Loss_Code
 $|                         Added new structure DeleteTransaction
-$|  5.27            172    Added new structure ExchangeGainLoss
-$|  5.28            173    Adding Include Unused Chart Codes and Include Non-Posting Chart Codes
-$|  5.29            174    Moved the aforesaid fields (see 5.28) to ClientExtra, there's no room for new fields in Client
-$|  5.30            175    Upgrading now adds a default value to clFields.clECoding_Import_Options, but this doesn't change anything below
-$|  5.31            176    CSV Add prefix account code option
-$|  5.32            177    Adding 'Percent Account' and 'Percentage' to Account Code fields
-$|  5.33            178    Adding 'Percent Account' and 'Percentage' to Budget Detail fields
-$|  5.34            179    Changes for automatically calculation of GST (on/off)
-$|  5.35            180    Removing 5.32 changes, only need 5.33 changes
-$|  5.36            181    Memorisations upgrade, code only
+$|  5.25            172    Added new structure ExchangeGainLoss
+$|  5.25            173    Adding Include Unused Chart Codes and Include Non-Posting Chart Codes
+$|  5.25            174    Moved the aforesaid fields (see 173) to ClientExtra, there's no room for new fields in Client
+$|  5.25            175    Upgrading now adds a default value to clFields.clECoding_Import_Options, but this doesn't change anything below
+$|  5.25            176    CSV Add prefix account code option
+$|  5.25            177    Adding 'Percent Account' and 'Percentage' to Account Code fields
+$|  5.25            178    Adding 'Percent Account' and 'Percentage' to Budget Detail fields
+$|  5.25            179    Changes for automatically calculation of GST (on/off)
+$|  5.25            180    Removing 178 changes, only need 177 changes
+$|  5.25            181    Memorisations upgrade, code only
+$|  5.25            182    New Table TPR Payer Detail
 $|*)
 
 
@@ -1195,4 +1196,16 @@ E
 N|Finalized Exchange Rate|fr|214
 F|Date|D
 F|Rate|R
+E
+
+N|TPR Payer Detail|pr|185
+F|PracContactName|S|38
+F|PracContactPhone|S|15
+F|PracEmailAddress|S|76
+F|TradingName|S|200
+F|Suburb|S|27
+F|StateId|I
+F|Country|S|20
+F|BSB|S|6
+F|Account|S|9
 E

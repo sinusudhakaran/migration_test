@@ -907,6 +907,17 @@ begin
     FAuditNamesArray[214,216] := 'Date';
     FAuditNamesArray[214,217] := 'Rate';
 
+   FAuditTableArray[185] := 'TPR_Payer_Detail';
+    FAuditNamesArray[185,187] := 'PracContactName';
+    FAuditNamesArray[185,188] := 'PracContactPhone';
+    FAuditNamesArray[185,189] := 'PracEmailAddress';
+    FAuditNamesArray[185,190] := 'TradingName';
+    FAuditNamesArray[185,191] := 'Suburb';
+    FAuditNamesArray[185,192] := 'StateId';
+    FAuditNamesArray[185,193] := 'Country';
+    FAuditNamesArray[185,194] := 'BSB';
+    FAuditNamesArray[185,195] := 'Account';
+
 end;
 
 initialization

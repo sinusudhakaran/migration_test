@@ -20,6 +20,7 @@ PROCEDURE UpdateCRC( CONST Rec : TClient_Type_Rec; VAR CRC : LongWord ); OVERLOA
 PROCEDURE UpdateCRC( CONST Rec : TAudit_Trail_Rec; VAR CRC : LongWord ); OVERLOAD;
 PROCEDURE UpdateCRC( CONST Rec : TProvisional_Entries_Log_Rec; VAR CRC : LongWord ); OVERLOAD;
 PROCEDURE UpdateCRC( CONST Rec : TSystem_Memorisation_List_Rec; VAR CRC : LongWord ); OVERLOAD;
+PROCEDURE UpdateCRC( CONST Rec : TTPR_Supplier_Detail_Rec; VAR CRC : LongWord ); OVERLOAD;
 
 // ------------------------------------------------------------------- 
 Implementation uses CRC32, MoneyDef;
@@ -286,6 +287,21 @@ Begin
    With Rec do begin
       RS    := @smRecord_Type;
       RE    := @smMemorisations;
+      Len   := Integer( RE ) - Integer( RS );
+      CRC32.UpdateCRC( CRC , RS^, Len );
+   end;
+end;
+
+// ------------------------------------------------------------------- 
+
+PROCEDURE UpdateCRC( CONST Rec : TTPR_Supplier_Detail_Rec; VAR CRC : LongWord ); OVERLOAD;
+Var
+   Len    : Integer;
+   RS, RE : Pointer;
+Begin
+   With Rec do begin
+      RS    := @srRecord_Type;
+      RE    := @srEOR;
       Len   := Integer( RE ) - Integer( RS );
       CRC32.UpdateCRC( CRC , RS^, Len );
    end;

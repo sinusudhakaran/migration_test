@@ -9,9 +9,9 @@ Interface uses MONEYDEF, DATEDEF;
 {  -------------------------------------------------------------------  }
 
 Const
-   BK_IOLIB_Version : Integer = 713;
-   BK_IOLIB_Date    = '30/12/13';
-   BK_FILE_VERSION  = 181;  (* Current Version counter for files
+   BK_IOLIB_Version : Integer = 716;
+   BK_IOLIB_Date    = '27/02/14';
+   BK_FILE_VERSION  = 182;  (* Current Version counter for files
                               Changes if structure or method of storing a value would cause
                               data to be represented incorrectly, or an exception to be raised *)
    
@@ -217,19 +217,20 @@ Const
                             Added Bank Account Core ID
                             Added Bank Account Online Secure Code
                             Changed Transaction Matched_By from type "Memorised Transaction Rec" to "Memorisation Detail Rec"
-     5.26            171    Added fields Contractor..ABN to Payee Detail record
+     5.25            171    Added fields Contractor..ABN to Payee Detail record
                             Added Exchange Gain_Loss_Code
                             Added new structure DeleteTransaction
-     5.27            172    Added new structure ExchangeGainLoss
-     5.28            173    Adding Include Unused Chart Codes and Include Non-Posting Chart Codes
-     5.29            174    Moved the aforesaid fields (see 5.28) to ClientExtra, there's no room for new fields in Client
-     5.30            175    Upgrading now adds a default value to clFields.clECoding_Import_Options, but this doesn't change anything below
-     5.31            176    CSV Add prefix account code option
-     5.32            177    Adding 'Percent Account' and 'Percentage' to Account Code fields
-     5.33            178    Adding 'Percent Account' and 'Percentage' to Budget Detail fields
-     5.34            179    Changes for automatically calculation of GST (on/off)
-     5.35            180    Removing 5.32 changes, only need 5.33 changes
-     5.36            181    Memorisations upgrade, code only
+     5.25            172    Added new structure ExchangeGainLoss
+     5.25            173    Adding Include Unused Chart Codes and Include Non-Posting Chart Codes
+     5.25            174    Moved the aforesaid fields (see 173) to ClientExtra, there's no room for new fields in Client
+     5.25            175    Upgrading now adds a default value to clFields.clECoding_Import_Options, but this doesn't change anything below
+     5.25            176    CSV Add prefix account code option
+     5.25            177    Adding 'Percent Account' and 'Percentage' to Account Code fields
+     5.25            178    Adding 'Percent Account' and 'Percentage' to Budget Detail fields
+     5.25            179    Changes for automatically calculation of GST (on/off)
+     5.25            180    Removing 178 changes, only need 177 changes
+     5.25            181    Memorisations upgrade, code only
+     5.25            182    New Table TPR Payer Detail
    *)
    //Audit Trail - 135 Don't reuse token!!! - Record defined in SY.TXT but also used in Client File
 
@@ -262,6 +263,7 @@ Type
    pDeleted_Transaction_Rec              = ^tDeleted_Transaction_Rec ;
    pExchange_Gain_Loss_Rec               = ^tExchange_Gain_Loss_Rec ;
    pFinalized_Exchange_Rate_Rec          = ^tFinalized_Exchange_Rate_Rec ;
+   pTPR_Payer_Detail_Rec                 = ^tTPR_Payer_Detail_Rec ;
 
 {  -------------------------------------------------------------------  }
 
@@ -1342,6 +1344,22 @@ Type
       frEOR                              : Byte;
    end;
 
+{  -------------------------------------------------------------------  }
+
+   tTPR_Payer_Detail_Rec = Packed Record
+      prRecord_Type                      : Byte;
+      prPracContactName                  : String[ 38 ];       { Stored }
+      prPracContactPhone                 : String[ 15 ];       { Stored }
+      prPracEmailAddress                 : String[ 76 ];       { Stored }
+      prTradingName                      : String[ 200 ];       { Stored }
+      prSuburb                           : String[ 27 ];       { Stored }
+      prStateId                          : Integer;       { Stored }
+      prCountry                          : String[ 20 ];       { Stored }
+      prBSB                              : String[ 6 ];       { Stored }
+      prAccount                          : String[ 9 ];       { Stored }
+      prEOR                              : Byte;
+   end;
+
 Const
    Client_Rec_Size                           = Sizeof( TClient_Rec ); 
    Account_Rec_Size                          = Sizeof( TAccount_Rec ); 
@@ -1369,6 +1387,7 @@ Const
    Deleted_Transaction_Rec_Size              = Sizeof( TDeleted_Transaction_Rec ); 
    Exchange_Gain_Loss_Rec_Size               = Sizeof( TExchange_Gain_Loss_Rec ); 
    Finalized_Exchange_Rate_Rec_Size          = Sizeof( TFinalized_Exchange_Rate_Rec ); 
+   TPR_Payer_Detail_Rec_Size                 = Sizeof( TTPR_Payer_Detail_Rec ); 
 
 {  -------------------------------------------------------------------  }
 Implementation

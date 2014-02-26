@@ -431,6 +431,16 @@ begin
     FAuditNamesArray[150,152] := 'Audit_Record_ID';
     FAuditNamesArray[150,153] := 'Bank_Prefix';
 
+   FAuditTableArray[175] := 'TPR_Supplier_Detail';
+    FAuditNamesArray[175,177] := 'ABN';
+    FAuditNamesArray[175,178] := 'ContactName';
+    FAuditNamesArray[175,179] := 'ContactPhone';
+    FAuditNamesArray[175,180] := 'StreetAddress1';
+    FAuditNamesArray[175,181] := 'StreetAddress2';
+    FAuditNamesArray[175,182] := 'Suburb';
+    FAuditNamesArray[175,183] := 'StateId';
+    FAuditNamesArray[175,184] := 'Country';
+
 end;
 
 initialization

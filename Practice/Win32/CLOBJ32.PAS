@@ -4,18 +4,31 @@ unit clObj32;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 interface
 uses
-   Classes, bkDefs, ioStream,
+   Classes,
+   bkDefs,
+   ioStream,
 {$IFDEF ParserDll}
    // The Parser DLL just need to read the client fields
    // All the rest is not needed,
    // and is removed to keep the Dll file size under control
 {$ELSE}
-   BaList32, chList32, pyList32, maList32, dlList32,
-   buList32, blList32, jobobj,
+   BaList32,
+   chList32,
+   pyList32,
+   maList32,
+   dlList32,
+   buList32,
+   blList32,
+   jobobj,
    PayeeObj,
-   CustomHeadingsListObj, ExchangeRateList, mcDefs, AuditMgr,
+   prObj32,
+   CustomHeadingsListObj,
+   ExchangeRateList,
+   mcDefs,
+   AuditMgr,
 {$ENDIF}
-   sysutils, MoneyDef;
+   sysutils,
+   MoneyDef;
 
 type
   TClientObj = Class
@@ -34,6 +47,7 @@ type
     clMoreFields           : TMoreClient_Rec;
     clJobs                 : TClient_Job_List;
     clExtra                : TClientExtra_Rec;
+    clTPR_Payee_Detail     : TTPR_Payee_Detail;
     FAuditTable            : TAuditTable;
     FClientAuditMgr        : TClientAuditManager;
     FOpened                : Boolean;
@@ -176,6 +190,7 @@ uses
    bkConst,
    bkbuio,
    bkmcio,
+   bkprio,
    Upgrade,
    WinUtils,
    BKDBExcept,
@@ -244,6 +259,7 @@ begin
    clBalances_List        := TBalances_List.Create;
    clJobs                 := TClient_Job_List.Create;
    clCustom_Headings_List := TNew_Custom_Headings_List.Create(FClientAuditMgr);
+   clTPR_Payee_Detail     := TTPR_Payee_Detail.Create;
 
    //Exchange rate source
    FExchangeSource := TExchangeSource.Create;
@@ -291,6 +307,7 @@ begin
    clJobs.Free;
    BKMCIO.Free_MoreClient_Rec_Dynamic_Fields(clMoreFields);
    BKCEIO.Free_ClientExtra_Rec_Dynamic_Fields (clExtra);
+   FreeAndNil(clTPR_Payee_Detail);
 
    //Audit table
    FreeAndNil(fAuditTable);
@@ -422,6 +439,7 @@ begin
        tkBegin_ClientExtra       : Read_ClientExtra_Rec (clExtra,s);
        tkBeginExchangeRateHeader : FExchangeSource.LoadFromStream( S );
        tkBeginSystem_Audit_Trail_List  : fAuditTable.LoadFromStream(S);
+       tkBegin_TPR_Payer_Detail  : clTPR_Payee_Detail.LoadFromFile(S);
     else
        begin { Should never happen }
           Msg := Format( '%s : Unknown Token %d', [ ThisMethodName, Token ] );
@@ -860,7 +878,8 @@ begin
    clJobs.SaveToFile(S);
    BKCEIO.Write_ClientExtra_Rec(clExtra,S);
    FExchangeSource.SaveToStream( S );
-   fAuditTable.SaveToStream( S );   
+   fAuditTable.SaveToStream( S );
+   clTPR_Payee_Detail.SaveToFile( S );
    S.WriteToken( tkEndSection );
    LogDebugMsg(ThisMethodName + ' Ends' );
 end;
@@ -1132,6 +1151,17 @@ begin
    if clMoreFields.mcEOR <> tkEnd_MoreClient then Begin
       RaiseIntegrityException('clEOR');
    end;
+   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+   if clTPR_Payee_Detail.As_pRec.prRecord_Type <> tkBegin_TPR_Payer_Detail then
+   begin
+     RaiseIntegrityException('clRecord_Type');
+   end;
+   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+   if clTPR_Payee_Detail.As_pRec.prEOR <> tkEnd_TPR_Payer_Detail then
+   begin
+     RaiseIntegrityException('prEOR');
+   end;
+
    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    LastCode := '';
    with clBank_Account_List do Begin

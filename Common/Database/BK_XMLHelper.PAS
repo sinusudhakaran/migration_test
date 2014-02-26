@@ -219,6 +219,14 @@ public
 end;
 
 
+TTPR_Payer_Detail_RecHelper = record helper for TTPR_Payer_Detail_Rec
+public
+	function WriteRecToNode(var Node: IXMLNode): IXMLNode;
+	function ReadRecFromNode(Node: IXMLNode): IXMLNode;
+	class function GetXMLNodeName: string; static;
+end;
+
+
 // ----------------------------------------------------------------------------
 implementation
 uses
@@ -3375,6 +3383,62 @@ begin
 	frDate := GetIntAttr(Result, 'Date');
 	except
 		on E: Exception do ReRaise (E, 'Reading TFinalized_Exchange_Rate_Rec');
+	end;
+
+	CNode := nil;
+	CCNode := nil;
+	PNode := nil;
+end;
+
+// ----------------------------------------------------------------------------
+
+class function TTPR_Payer_Detail_RecHelper.GetXMLNodeName: string;
+begin
+	result := 'BKTPRPayerDetail';
+end;
+
+
+function TTPR_Payer_Detail_RecHelper.WriteRecToNode(var Node: IXMLNode): IXMLNode;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J, M: Integer;
+begin
+	Result := Node.AddChild(GetXMLNodeName);
+	SetTextAttr(Result, 'PracContactName', prPracContactName);
+	SetTextAttr(Result, 'PracContactPhone', prPracContactPhone);
+	SetTextAttr(Result, 'PracEmailAddress', prPracEmailAddress);
+	SetTextAttr(Result, 'TradingName', prTradingName);
+	SetTextAttr(Result, 'Suburb', prSuburb);
+	SetIntAttr(Result, 'StateId', prStateId);
+	SetTextAttr(Result, 'Country', prCountry);
+	SetTextAttr(Result, 'BSB', prBSB);
+	SetTextAttr(Result, 'Account', prAccount);
+
+	CNode := nil;
+	CCNode := nil;
+	PNode := nil;
+end;
+
+
+function TTPR_Payer_Detail_RecHelper.ReadRecFromNode(Node :IXMLNode): IXMLNode;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J: Integer;
+begin
+	if Node.NodeName = GetXMLNodeName then Result := Node
+	else
+	Result := Node.ChildNodes.FindNode(GetXMLNodeName);
+	if not assigned(Result) then exit;
+	try
+	prPracContactName := GetTextAttr(Result, 'PracContactName');
+	prPracContactPhone := GetTextAttr(Result, 'PracContactPhone');
+	prPracEmailAddress := GetTextAttr(Result, 'PracEmailAddress');
+	prTradingName := GetTextAttr(Result, 'TradingName');
+	prSuburb := GetTextAttr(Result, 'Suburb');
+	prStateId := GetIntAttr(Result, 'StateId');
+	prCountry := GetTextAttr(Result, 'Country');
+	prBSB := GetTextAttr(Result, 'BSB');
+	prAccount := GetTextAttr(Result, 'Account');
+	except
+		on E: Exception do ReRaise (E, 'Reading TTPR_Payer_Detail_Rec');
 	end;
 
 	CNode := nil;

@@ -6,15 +6,28 @@ unit SysObj32;
 interface
 
 uses
-  Classes, syDefs, ioStream,
+  Classes,
+  syDefs,
+  ioStream,
   sysutils,
   //dialogs,
 
 {$IFDEF ParserDll}
 {$ELSE}
-  usrList32, cflist32, sysDList32, sbaList32, acList32, amList32, peList32,
-  grplist32, ctypelist32, ExchangeRateList, mcDefs, AuditMgr,
+  usrList32,
+  cflist32,
+  sysDList32,
+  sbaList32,
+  acList32,
+  amList32,
+  peList32,
+  grplist32,
+  ctypelist32,
+  ExchangeRateList,
+  mcDefs,
+  AuditMgr,
   SystemMemorisationList,
+  srObj32,
 {$ENDIF}
   moneydef;
 
@@ -36,6 +49,7 @@ type
       fAuditTable                : TAuditTable;
       fSystem_Memorisation_List  : TSystem_Memorisation_List;
       fSystem_Provisional_List   : TSystem_Provisional_Entries_Log;
+      fdTPR_Supplier_Detail      : TTPR_Supplier_Detail;
 {$ENDIF}
       constructor Create;
       destructor  Destroy; override;
@@ -80,6 +94,7 @@ type
       procedure DoAudit(APracticeDetails: pPractice_Details_Rec; AAuditType: TAuditType);
       property AuditTable: TAuditTable read FAuditTable;
       property SystemMemorisationList: TSystem_Memorisation_List read FSystem_Memorisation_List;
+      property TPR_Supplier_Detail: TTPR_Supplier_Detail read fdTPR_Supplier_Detail;
 {$ENDIF}
 {$IFDEF BK_UNITTESTINGON}
       property TestSystemFileName: string read SystemFileName write SetSystemFileName;
@@ -101,6 +116,7 @@ uses
    bkConst,
    MoneyUtils,
    sySBio,
+   SYsrIO,
 {$ENDIF}
    BK5Except,
    Tokens,
@@ -178,6 +194,7 @@ begin
   fdSystem_Client_Type_List  := TSystem_Client_Type_List.Create;
   fAuditTable                := TAuditTable.Create(SystemAuditMgr);
   fSystem_Memorisation_List  := TSystem_Memorisation_List.Create;
+  fdTPR_Supplier_Detail      := TTPR_Supplier_Detail.Create;
   fSystem_Provisional_List   := TSystem_Provisional_Entries_Log.Create;
   fillChar(fCurrencyList, Sizeof(fCurrencyList), 0);
 {$ENDIF}  
@@ -205,6 +222,7 @@ begin
   FreeAndNil(fdSystem_Client_Type_List);
   FreeAndNil(fAuditTable);
   FreeAndNil(fSystem_Memorisation_List);
+  FreeAndNil(fdTPR_Supplier_Detail);
 //  FreeAndNil(_SystemCopy);
 {$ENDIF}
   {free dynamic fields}
@@ -246,6 +264,7 @@ Begin
          tkBeginSystem_Audit_Trail_List  : fAuditTable.LoadFromStream(S);
          tkBeginSystem_Memorisation_List : fSystem_Memorisation_List.LoadFromStream(S);
          tkBeginSystem_Provisional_Entries_Log : fSystem_Provisional_List.LoadFromFile(S);
+         tkBegin_TPR_Supplier_Detail     : fdTPR_Supplier_Detail.LoadFromFile(S);
          else
          begin { Should never happen }
             Msg := Format( '%s : Unknown Token %d', [ ThisMethodName, Token ] );
@@ -336,6 +355,7 @@ begin
    fSystem_Memorisation_List.SaveToStream( S );
    fAuditTable.SaveToStream( S );
    fSystem_Provisional_List.SaveToFile( S );
+   fdTPR_Supplier_Detail.SaveToFile( S );
 
    LogDebugMsg(ThisMethodName + ' Ends' );
 end;

@@ -1,4 +1,4 @@
-$|SY_FILE_VERSION   = 132;  (* Current Version counter for files
+$|SY_FILE_VERSION   = 133;  (* Current Version counter for files
 $|                           Changes if structure or method of storing a value would cause
 $|                           data to be represented incorrectly, or an exception to be raised *)
 $|
@@ -121,6 +121,7 @@ $|    5.23.0 (BLOPI)    129   Added User Data Block and Using Secure Password to
 $|    5.24.0 (BLOPI)    130   Added field for storing the last agreed to banklink online service agreement version
 $|    5.24.0 (BLOPI)    131   Added field for suspending banklink online
 $|    5.25.1            132   Memorisations upgrade, code only
+$|    5.25.1            133   New TPR Supplier Detail Table
 $|*)
 
 N|Practice Details|fd|10
@@ -505,4 +506,15 @@ N|System Memorisation List|sm|150
 F|Audit Record ID|L
 F|Bank Prefix|S|5
 C|Memorisations|PTR
+E
+
+N|TPR Supplier Detail|sr|175
+F|ABN|I
+F|ContactName|S|38
+F|ContactPhone|S|15
+F|StreetAddress1|S|38
+F|StreetAddress2|S|38
+F|Suburb|S|27
+F|StateId|I
+F|Country|S|20
 E
