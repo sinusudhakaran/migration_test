@@ -669,7 +669,7 @@ procedure TfrmBudget.tblBudgetGetCellData(Sender: TObject; RowNum,
       begin
         if FData[i].bIsGSTAccountCode then
         begin
-          DoInvalidateRow(i+1);
+          tblBudget.InvalidateRow(i+1);
         end;
       end;
     end;
@@ -1902,7 +1902,7 @@ end;
 // There are enough possible actions that can muck up the percentages that it makes
 // sense to simply update any percentage based rows whenever a row is invalidated
 procedure TfrmBudget.DoInvalidateRow(RowNum: integer);
-begin
+begin                                               
   UpdatePercentageRows(True);
   tblBudget.InvalidateRow(RowNum);
 end;
