@@ -866,6 +866,7 @@ var
   RawAmount: Money;
   pAccount: pAccount_Rec;
   GST_Class: byte;
+
 begin
   if RowDataOK(RowNum,'BDoneEdit') then
     begin
@@ -882,6 +883,7 @@ begin
             if ShowFiguresGSTInclusive then
             begin
               dtMonth := FBudget.buFields.buStart_Date;
+              dtMonth := IncDate(dtMonth, 0, ColNum - (MonthBase + 1), 0);
               moAmount := eAmounts[ColNum-MonthBase];
               pAccount := MyClient.clChart.FindCode(FData[RowNum-1].bAccount);
               if not assigned(pAccount) then
@@ -1606,6 +1608,7 @@ var
   begin
     Result := 0;
     dtMonth := FBudget.buFields.buStart_Date;
+    dtMonth := IncDate(dtMonth, 0, MonthIndex - 1, 0);
     pAccount := MyClient.clChart.FindCode(AccountCode);
     if not assigned(pAccount) then
       exit;
