@@ -1209,3 +1209,32 @@ F|Country|S|20
 F|BSB|S|6
 F|Account|S|9
 E
+
+N|Unscanned Transaction|ut|165
+F|Bank Account Number|S|20
+F|Sequence No|L
+E
+
+N|Candidate Mem Processing|cp|166
+F|Candidate ID To Process|L
+F|Next Candidate ID|L
+E
+
+N|Candidate Mem|cm|167
+F|ID|L
+F|Count|L
+F|Type|B
+F|Bank_Account_Number|S|20
+F|Coded_By|B
+F|Account|S|20
+F|Statement_Details|S|100
+E
+
+N|Recommended Mem|rm|168
+F|Type|B
+F|Bank Account Number|S|20
+F|Account|S|20
+F|Statement Details|S|100
+F|Manual Count|L
+F|Uncoded Count|L
+E

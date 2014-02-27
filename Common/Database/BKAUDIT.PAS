@@ -918,6 +918,31 @@ begin
     FAuditNamesArray[185,194] := 'BSB';
     FAuditNamesArray[185,195] := 'Account';
 
+   FAuditTableArray[165] := 'Unscanned_Transaction';
+    FAuditNamesArray[165,167] := 'Bank_Account_Number';
+    FAuditNamesArray[165,168] := 'Sequence_No';
+
+   FAuditTableArray[166] := 'Candidate_Mem_Processing';
+    FAuditNamesArray[166,168] := 'Candidate_ID_To_Process';
+    FAuditNamesArray[166,169] := 'Next_Candidate_ID';
+
+   FAuditTableArray[167] := 'Candidate_Mem';
+    FAuditNamesArray[167,169] := 'ID';
+    FAuditNamesArray[167,170] := 'Count';
+    FAuditNamesArray[167,171] := 'Type';
+    FAuditNamesArray[167,172] := 'Bank_Account_Number';
+    FAuditNamesArray[167,173] := 'Coded_By';
+    FAuditNamesArray[167,174] := 'Account';
+    FAuditNamesArray[167,175] := 'Statement_Details';
+
+   FAuditTableArray[168] := 'Recommended_Mem';
+    FAuditNamesArray[168,170] := 'Type';
+    FAuditNamesArray[168,171] := 'Bank_Account_Number';
+    FAuditNamesArray[168,172] := 'Account';
+    FAuditNamesArray[168,173] := 'Statement_Details';
+    FAuditNamesArray[168,174] := 'Manual_Count';
+    FAuditNamesArray[168,175] := 'Uncoded_Count';
+
 end;
 
 initialization

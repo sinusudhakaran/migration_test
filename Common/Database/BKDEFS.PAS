@@ -9,7 +9,7 @@ Interface uses MONEYDEF, DATEDEF;
 {  -------------------------------------------------------------------  }
 
 Const
-   BK_IOLIB_Version : Integer = 716;
+   BK_IOLIB_Version : Integer = 717;
    BK_IOLIB_Date    = '27/02/14';
    BK_FILE_VERSION  = 182;  (* Current Version counter for files
                               Changes if structure or method of storing a value would cause
@@ -264,6 +264,10 @@ Type
    pExchange_Gain_Loss_Rec               = ^tExchange_Gain_Loss_Rec ;
    pFinalized_Exchange_Rate_Rec          = ^tFinalized_Exchange_Rate_Rec ;
    pTPR_Payer_Detail_Rec                 = ^tTPR_Payer_Detail_Rec ;
+   pUnscanned_Transaction_Rec            = ^tUnscanned_Transaction_Rec ;
+   pCandidate_Mem_Processing_Rec         = ^tCandidate_Mem_Processing_Rec ;
+   pCandidate_Mem_Rec                    = ^tCandidate_Mem_Rec ;
+   pRecommended_Mem_Rec                  = ^tRecommended_Mem_Rec ;
 
 {  -------------------------------------------------------------------  }
 
@@ -1360,6 +1364,51 @@ Type
       prEOR                              : Byte;
    end;
 
+{  -------------------------------------------------------------------  }
+
+   tUnscanned_Transaction_Rec = Packed Record
+      utRecord_Type                      : Byte;
+      utBank_Account_Number              : String[ 20 ];       { Stored }
+      utSequence_No                      : Integer;       { Stored }
+      utEOR                              : Byte;
+   end;
+
+{  -------------------------------------------------------------------  }
+
+   tCandidate_Mem_Processing_Rec = Packed Record
+      cpRecord_Type                      : Byte;
+      cpCandidate_ID_To_Process          : Integer;       { Stored }
+      cpNext_Candidate_ID                : Integer;       { Stored }
+      cpEOR                              : Byte;
+   end;
+
+{  -------------------------------------------------------------------  }
+
+   tCandidate_Mem_Rec = Packed Record
+      cmRecord_Type                      : Byte;
+      cmID                               : Integer;       { Stored }
+      cmCount                            : Integer;       { Stored }
+      cmType                             : Byte;       { Stored }
+      cmBank_Account_Number              : String[ 20 ];       { Stored }
+      cmCoded_By                         : Byte;       { Stored }
+      cmAccount                          : String[ 20 ];       { Stored }
+      cmStatement_Details                : String[ 100 ];       { Stored }
+      cmEOR                              : Byte;
+   end;
+
+{  -------------------------------------------------------------------  }
+
+   tRecommended_Mem_Rec = Packed Record
+      rmRecord_Type                      : Byte;
+      rmType                             : Byte;       { Stored }
+      rmBank_Account_Number              : String[ 20 ];       { Stored }
+      rmAccount                          : String[ 20 ];       { Stored }
+      rmStatement_Details                : String[ 100 ];       { Stored }
+      rmManual_Count                     : Integer;       { Stored }
+      rmUncoded_Count                    : Integer;       { Stored }
+      rmEOR                              : Byte;
+   end;
+
 Const
    Client_Rec_Size                           = Sizeof( TClient_Rec ); 
    Account_Rec_Size                          = Sizeof( TAccount_Rec ); 
@@ -1388,6 +1437,10 @@ Const
    Exchange_Gain_Loss_Rec_Size               = Sizeof( TExchange_Gain_Loss_Rec ); 
    Finalized_Exchange_Rate_Rec_Size          = Sizeof( TFinalized_Exchange_Rate_Rec ); 
    TPR_Payer_Detail_Rec_Size                 = Sizeof( TTPR_Payer_Detail_Rec ); 
+   Unscanned_Transaction_Rec_Size            = Sizeof( TUnscanned_Transaction_Rec ); 
+   Candidate_Mem_Processing_Rec_Size         = Sizeof( TCandidate_Mem_Processing_Rec ); 
+   Candidate_Mem_Rec_Size                    = Sizeof( TCandidate_Mem_Rec ); 
+   Recommended_Mem_Rec_Size                  = Sizeof( TRecommended_Mem_Rec ); 
 
 {  -------------------------------------------------------------------  }
 Implementation

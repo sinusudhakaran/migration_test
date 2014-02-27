@@ -227,6 +227,38 @@ public
 end;
 
 
+TUnscanned_Transaction_RecHelper = record helper for TUnscanned_Transaction_Rec
+public
+	function WriteRecToNode(var Node: IXMLNode): IXMLNode;
+	function ReadRecFromNode(Node: IXMLNode): IXMLNode;
+	class function GetXMLNodeName: string; static;
+end;
+
+
+TCandidate_Mem_Processing_RecHelper = record helper for TCandidate_Mem_Processing_Rec
+public
+	function WriteRecToNode(var Node: IXMLNode): IXMLNode;
+	function ReadRecFromNode(Node: IXMLNode): IXMLNode;
+	class function GetXMLNodeName: string; static;
+end;
+
+
+TCandidate_Mem_RecHelper = record helper for TCandidate_Mem_Rec
+public
+	function WriteRecToNode(var Node: IXMLNode): IXMLNode;
+	function ReadRecFromNode(Node: IXMLNode): IXMLNode;
+	class function GetXMLNodeName: string; static;
+end;
+
+
+TRecommended_Mem_RecHelper = record helper for TRecommended_Mem_Rec
+public
+	function WriteRecToNode(var Node: IXMLNode): IXMLNode;
+	function ReadRecFromNode(Node: IXMLNode): IXMLNode;
+	class function GetXMLNodeName: string; static;
+end;
+
+
 // ----------------------------------------------------------------------------
 implementation
 uses
@@ -3439,6 +3471,192 @@ begin
 	prAccount := GetTextAttr(Result, 'Account');
 	except
 		on E: Exception do ReRaise (E, 'Reading TTPR_Payer_Detail_Rec');
+	end;
+
+	CNode := nil;
+	CCNode := nil;
+	PNode := nil;
+end;
+
+// ----------------------------------------------------------------------------
+
+class function TUnscanned_Transaction_RecHelper.GetXMLNodeName: string;
+begin
+	result := 'BKUnscannedTransaction';
+end;
+
+
+function TUnscanned_Transaction_RecHelper.WriteRecToNode(var Node: IXMLNode): IXMLNode;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J, M: Integer;
+begin
+	Result := Node.AddChild(GetXMLNodeName);
+	SetTextAttr(Result, 'BankAccountNumber', utBank_Account_Number);
+	SetIntAttr(Result, 'SequenceNo', utSequence_No);
+
+	CNode := nil;
+	CCNode := nil;
+	PNode := nil;
+end;
+
+
+function TUnscanned_Transaction_RecHelper.ReadRecFromNode(Node :IXMLNode): IXMLNode;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J: Integer;
+begin
+	if Node.NodeName = GetXMLNodeName then Result := Node
+	else
+	Result := Node.ChildNodes.FindNode(GetXMLNodeName);
+	if not assigned(Result) then exit;
+	try
+	utBank_Account_Number := GetTextAttr(Result, 'BankAccountNumber');
+	utSequence_No := GetIntAttr(Result, 'SequenceNo');
+	except
+		on E: Exception do ReRaise (E, 'Reading TUnscanned_Transaction_Rec');
+	end;
+
+	CNode := nil;
+	CCNode := nil;
+	PNode := nil;
+end;
+
+// ----------------------------------------------------------------------------
+
+class function TCandidate_Mem_Processing_RecHelper.GetXMLNodeName: string;
+begin
+	result := 'BKCandidateMemProcessing';
+end;
+
+
+function TCandidate_Mem_Processing_RecHelper.WriteRecToNode(var Node: IXMLNode): IXMLNode;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J, M: Integer;
+begin
+	Result := Node.AddChild(GetXMLNodeName);
+	SetIntAttr(Result, 'CandidateIDToProcess', cpCandidate_ID_To_Process);
+	SetIntAttr(Result, 'NextCandidateID', cpNext_Candidate_ID);
+
+	CNode := nil;
+	CCNode := nil;
+	PNode := nil;
+end;
+
+
+function TCandidate_Mem_Processing_RecHelper.ReadRecFromNode(Node :IXMLNode): IXMLNode;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J: Integer;
+begin
+	if Node.NodeName = GetXMLNodeName then Result := Node
+	else
+	Result := Node.ChildNodes.FindNode(GetXMLNodeName);
+	if not assigned(Result) then exit;
+	try
+	cpCandidate_ID_To_Process := GetIntAttr(Result, 'CandidateIDToProcess');
+	cpNext_Candidate_ID := GetIntAttr(Result, 'NextCandidateID');
+	except
+		on E: Exception do ReRaise (E, 'Reading TCandidate_Mem_Processing_Rec');
+	end;
+
+	CNode := nil;
+	CCNode := nil;
+	PNode := nil;
+end;
+
+// ----------------------------------------------------------------------------
+
+class function TCandidate_Mem_RecHelper.GetXMLNodeName: string;
+begin
+	result := 'BKCandidateMem';
+end;
+
+
+function TCandidate_Mem_RecHelper.WriteRecToNode(var Node: IXMLNode): IXMLNode;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J, M: Integer;
+begin
+	Result := Node.AddChild(GetXMLNodeName);
+	SetIntAttr(Result, 'ID', cmID);
+	SetIntAttr(Result, 'Count', cmCount);
+	SetIntAttr(Result, 'Type', cmType);
+	SetTextAttr(Result, 'BankAccountNumber', cmBank_Account_Number);
+	SetIntAttr(Result, 'CodedBy', cmCoded_By);
+	SetTextAttr(Result, 'Account', cmAccount);
+	SetTextAttr(Result, 'StatementDetails', cmStatement_Details);
+
+	CNode := nil;
+	CCNode := nil;
+	PNode := nil;
+end;
+
+
+function TCandidate_Mem_RecHelper.ReadRecFromNode(Node :IXMLNode): IXMLNode;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J: Integer;
+begin
+	if Node.NodeName = GetXMLNodeName then Result := Node
+	else
+	Result := Node.ChildNodes.FindNode(GetXMLNodeName);
+	if not assigned(Result) then exit;
+	try
+	cmID := GetIntAttr(Result, 'ID');
+	cmCount := GetIntAttr(Result, 'Count');
+	cmType := GetIntAttr(Result, 'Type');
+	cmBank_Account_Number := GetTextAttr(Result, 'BankAccountNumber');
+	cmCoded_By := GetIntAttr(Result, 'CodedBy');
+	cmAccount := GetTextAttr(Result, 'Account');
+	cmStatement_Details := GetTextAttr(Result, 'StatementDetails');
+	except
+		on E: Exception do ReRaise (E, 'Reading TCandidate_Mem_Rec');
+	end;
+
+	CNode := nil;
+	CCNode := nil;
+	PNode := nil;
+end;
+
+// ----------------------------------------------------------------------------
+
+class function TRecommended_Mem_RecHelper.GetXMLNodeName: string;
+begin
+	result := 'BKRecommendedMem';
+end;
+
+
+function TRecommended_Mem_RecHelper.WriteRecToNode(var Node: IXMLNode): IXMLNode;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J, M: Integer;
+begin
+	Result := Node.AddChild(GetXMLNodeName);
+	SetIntAttr(Result, 'Type', rmType);
+	SetTextAttr(Result, 'BankAccountNumber', rmBank_Account_Number);
+	SetTextAttr(Result, 'Account', rmAccount);
+	SetTextAttr(Result, 'StatementDetails', rmStatement_Details);
+	SetIntAttr(Result, 'ManualCount', rmManual_Count);
+	SetIntAttr(Result, 'UncodedCount', rmUncoded_Count);
+
+	CNode := nil;
+	CCNode := nil;
+	PNode := nil;
+end;
+
+
+function TRecommended_Mem_RecHelper.ReadRecFromNode(Node :IXMLNode): IXMLNode;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J: Integer;
+begin
+	if Node.NodeName = GetXMLNodeName then Result := Node
+	else
+	Result := Node.ChildNodes.FindNode(GetXMLNodeName);
+	if not assigned(Result) then exit;
+	try
+	rmType := GetIntAttr(Result, 'Type');
+	rmBank_Account_Number := GetTextAttr(Result, 'BankAccountNumber');
+	rmAccount := GetTextAttr(Result, 'Account');
+	rmStatement_Details := GetTextAttr(Result, 'StatementDetails');
+	rmManual_Count := GetIntAttr(Result, 'ManualCount');
+	rmUncoded_Count := GetIntAttr(Result, 'UncodedCount');
+	except
+		on E: Exception do ReRaise (E, 'Reading TRecommended_Mem_Rec');
 	end;
 
 	CNode := nil;
