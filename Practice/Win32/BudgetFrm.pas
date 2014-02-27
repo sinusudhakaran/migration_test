@@ -2582,6 +2582,7 @@ var
   RowsImported : integer;
   RowsNotImported : integer;
   GSTInclusive: boolean;
+  DummyInt: integer;
 begin
   BudgetErrorFile := UserDir + MyClient.clFields.clCode + ' ' +
                      RemoveInvalidCharacters(Budget.buFields.buName) + ' ' +
@@ -2594,6 +2595,8 @@ begin
     GSTInclusive := ShowFiguresGSTInclusive;
     if DoImportBudget(BudgetFilePath, FBudget.buFields.buName, GSTInclusive) then
     begin
+      RefreshFData(true, DummyInt, True);
+      
       try
         BudgetImportExport.ClearWasUpdated(FData);
         BudgetCopy := BudgetImportExport.CopyBudgetData(FData, false, Budget.buFields.buStart_Date);
