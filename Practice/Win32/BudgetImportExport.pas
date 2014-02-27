@@ -294,6 +294,8 @@ begin
       // Data
       for DataIndex := 0 to high(aData) do
       begin
+        if (aData[DataIndex].bAccount = '') then
+          Continue;
         if not (aIncludeNonPostingChartCodes or
                 aData[DataIndex].bIsPosting) then
         begin

@@ -557,19 +557,22 @@ var
       if not ((FData[j].bIsPosting = False) or FData[j].bIsGSTAccountCode) then
       begin
         pAccount2 := MyClient.clChart.FindCode(FData[j].bAccount);
-        if (MyClient.clFields.clGST_Account_Codes[pAccount2.chGST_Class] = ControlCode) then
+        if Assigned(pAccount2) then
         begin
-          for MonthInt := MonthMin to MonthMax do
+          if (MyClient.clFields.clGST_Account_Codes[pAccount2.chGST_Class] = ControlCode) then
           begin
-            dtMonth2 := FBudget.buFields.buStart_Date;
-            dtMonth2 := IncDate(dtMonth2, 0, MonthInt - (MonthBase + 1), 0);
-            GST_Class2 := pAccount2.chGST_Class;
-            MonthGST := CalculateGSTFromNett(MyClient, dtMonth2, FData[j].bAmounts[MonthInt-MonthBase], GST_Class2);
-            RowTotal := RowTotal + MonthGST;
+            for MonthInt := MonthMin to MonthMax do
+            begin
+              dtMonth2 := FBudget.buFields.buStart_Date;
+              dtMonth2 := IncDate(dtMonth2, 0, MonthInt - (MonthBase + 1), 0);
+              GST_Class2 := pAccount2.chGST_Class;
+              MonthGST := CalculateGSTFromNett(MyClient, dtMonth2, FData[j].bAmounts[MonthInt-MonthBase], GST_Class2);
+              RowTotal := RowTotal + MonthGST;
+            end;
+            if (SignOf(RowTotal) <> ExpectedSign(pAccount2.chAccount_Type)) then
+              RowTotal := RowTotal * -1;
+            MatchingAccountFound := True;
           end;
-          if (SignOf(RowTotal) <> ExpectedSign(pAccount2.chAccount_Type)) then
-            RowTotal := RowTotal * -1;
-          MatchingAccountFound := True;
         end;
       end;
       GSTTotal := GSTTotal + RowTotal;
@@ -996,10 +999,10 @@ var
 begin
   for i := Low(FData) to High(FData) do
   begin
-    if FData[i-1].bIsPosting then
+    if FData[i].bIsPosting then
     begin
-      FData[i-1].bTotal := GetTotalForRow(i, False);
-      FData[i-1].bTotalWithGST := GetTotalForRow(i, True);
+      FData[i].bTotal := GetTotalForRow(i+1, False);
+      FData[i].bTotalWithGST := GetTotalForRow(i+1, True);
     end;
   end;
 end;
