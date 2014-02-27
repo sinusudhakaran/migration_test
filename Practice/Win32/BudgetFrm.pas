@@ -583,7 +583,6 @@ var
 begin
   Result := 0;
   GSTAmount := 0;
-  dtMonth := FBudget.buFields.buStart_Date;
   pAccount := MyClient.clChart.FindCode(FData[RowNum - 1].bAccount);
   GST_Class := pAccount.chGST_Class;
   IsGSTAccountCode := FData[RowNum - 1].bIsGSTAccountCode;
@@ -594,6 +593,8 @@ begin
   end;
   for i := MonthMin to MonthMax do
   begin
+    dtMonth := FBudget.buFields.buStart_Date;
+    dtMonth := IncDate(dtMonth, 0, i - (MonthBase + 1), 0);
     if IsGSTAccountCode then
     begin
       if not (GetAutoCalculateGST or ShowFiguresGSTInclusive) then
