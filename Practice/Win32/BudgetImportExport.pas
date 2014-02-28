@@ -658,8 +658,8 @@ var
     end;
   end;
 
-  // We don't want to give the row about auto-calculated rows if the row to be imported is the same
-  // as the existing row
+  // We don't want to give the warning about auto-calculated rows if the row
+  // to be imported is the same as the existing row
   function IsPercentWarningNeeded: boolean;
   var
     i: integer;
@@ -668,7 +668,7 @@ var
     Result := False;
     for i := Low(DataHolder) to High(DataHolder) do
     begin
-      if ShowFiguresGSTInclusive or aBudgetData[DataIndex].bIsGSTAccountCode then
+      if ShowFiguresGSTInclusive xor aBudgetData[DataIndex].bIsGSTAccountCode then
         BudgetAmount := aBudgetData[DataIndex].bGstAmounts[i]
       else
         BudgetAmount := aBudgetData[DataIndex].bAmounts[i];
@@ -811,7 +811,7 @@ begin
                       end;
                     end;
                   end
-                  else
+                  else if not aBudgetData[DataIndex].bIsGSTAccountCode then                       
                   begin
                     // Only show non posting error if data is different
                     for DateIndex := 1 to 12 do
