@@ -28,7 +28,8 @@ uses
    AuditMgr,
 {$ENDIF}
    sysutils,
-   MoneyDef;
+   MoneyDef,
+   RecommendedMems;
 
 type
   TClientObj = Class
@@ -48,6 +49,7 @@ type
     clJobs                 : TClient_Job_List;
     clExtra                : TClientExtra_Rec;
     clTPR_Payee_Detail     : TTPR_Payee_Detail;
+    clRecommended_Mems     : TRecommended_Mems;
     FAuditTable            : TAuditTable;
     FClientAuditMgr        : TClientAuditManager;
     FOpened                : Boolean;
@@ -260,6 +262,7 @@ begin
    clJobs                 := TClient_Job_List.Create;
    clCustom_Headings_List := TNew_Custom_Headings_List.Create(FClientAuditMgr);
    clTPR_Payee_Detail     := TTPR_Payee_Detail.Create;
+   clRecommended_Mems     := TRecommended_Mems.Create;
 
    //Exchange rate source
    FExchangeSource := TExchangeSource.Create;
@@ -308,6 +311,7 @@ begin
    BKMCIO.Free_MoreClient_Rec_Dynamic_Fields(clMoreFields);
    BKCEIO.Free_ClientExtra_Rec_Dynamic_Fields (clExtra);
    FreeAndNil(clTPR_Payee_Detail);
+   FreeAndNil(clRecommended_Mems);
 
    //Audit table
    FreeAndNil(fAuditTable);
@@ -440,6 +444,7 @@ begin
        tkBeginExchangeRateHeader : FExchangeSource.LoadFromStream( S );
        tkBeginSystem_Audit_Trail_List  : fAuditTable.LoadFromStream(S);
        tkBegin_TPR_Payer_Detail  : clTPR_Payee_Detail.LoadFromFile(S);
+       tkBegin_Recommended_Mems  : clRecommended_Mems.LoadFromFile(S);
     else
        begin { Should never happen }
           Msg := Format( '%s : Unknown Token %d', [ ThisMethodName, Token ] );
@@ -880,6 +885,7 @@ begin
    FExchangeSource.SaveToStream( S );
    fAuditTable.SaveToStream( S );
    clTPR_Payee_Detail.SaveToFile( S );
+   clRecommended_Mems.SaveToFile(S);
    S.WriteToken( tkEndSection );
    LogDebugMsg(ThisMethodName + ' Ends' );
 end;
