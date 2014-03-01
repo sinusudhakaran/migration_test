@@ -7,6 +7,10 @@ uses
   Dialogs, VirtualTrees, ovcbase, ovctcmmn, ovctable, ExtCtrls, StdCtrls,
   dxGDIPlusClasses, ImgList,
 
+  baObj32,
+  rmObj32,
+  rmList32,
+
   OSFont;
 
 type
@@ -20,7 +24,16 @@ type
   PTreeData = ^TTreeData;
   TTreeData = record
     DataType: TDataType;
+    BankAccount: TBank_Account;
+    RecommendedMem: TRecommended_Mem;
   end;
+
+  TRecommendMems = record
+    BankAccount: TBank_Account;
+    RecommendedMems: array of TRecommended_Mem;
+  end;
+
+  TRecommendedMemArray = array of TRecommendMems;
 
   //----------------------------------------------------------------------------
   // TRecommendedMemorisationsFrm
@@ -50,10 +63,15 @@ type
       TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
       CellRect: TRect);
   private
-    { Private declarations }
+    fData: TRecommendedMemArray;
+
+    function  FindOrAdd(const aBankAccountNumber: string): integer;
+    function  BankAccountNumberToBankAcccount(const aBankAccountNumber: string
+                ): TBank_Account;
+    procedure BuildData;
     procedure PopulateTree;
     function  GetButtonRect(const aCellRect: TRect): TRect;
-    procedure DoCreateNewMemorisation;
+    procedure DoCreateNewMemorisation(const aNode: PVirtualNode);
   public
     { Public declarations }
   end;
@@ -67,7 +85,6 @@ implementation
 
 uses
   Globals,
-  baObj32,
   MemorisationsObj,
   MemoriseDlg,
   bkXPThemes;
@@ -100,51 +117,12 @@ end;
 // TMemorisationForm
 //------------------------------------------------------------------------------
 procedure TRecommendedMemorisationsFrm.FormCreate(Sender: TObject);
-var
-  pNode: PVirtualNode;
-  pData: PTreeData;
 begin
   bkXPThemes.ThemeForm(self);
 
   Caption := 'Recommended Memorisations for ' + MyClient.clFields.clCode;
 
   PopulateTree;
-
-  pNode := vstTree.AddChild(nil);
-  pData := PTreeData(vstTree.GetNodeData(pNode));
-  pData.DataType := dtBankAccount;
-
-  pNode := vstTree.AddChild(nil);
-  pData := PTreeData(vstTree.GetNodeData(pNode));
-  pData.DataType := dtHeader;
-
-  pNode := vstTree.AddChild(nil);
-  pData := PTreeData(vstTree.GetNodeData(pNode));
-  pData.DataType := dtData;
-
-  pNode := vstTree.AddChild(nil);
-  pData := PTreeData(vstTree.GetNodeData(pNode));
-  pData.DataType := dtData;
-
-  pNode := vstTree.AddChild(nil);
-  pData := PTreeData(vstTree.GetNodeData(pNode));
-  pData.DataType := dtDivider;
-
-  pNode := vstTree.AddChild(nil);
-  pData := PTreeData(vstTree.GetNodeData(pNode));
-  pData.DataType := dtBankAccount;
-
-  pNode := vstTree.AddChild(nil);
-  pData := PTreeData(vstTree.GetNodeData(pNode));
-  pData.DataType := dtHeader;
-
-  pNode := vstTree.AddChild(nil);
-  pData := PTreeData(vstTree.GetNodeData(pNode));
-  pData.DataType := dtData;
-
-  pNode := vstTree.AddChild(nil);
-  pData := PTreeData(vstTree.GetNodeData(pNode));
-  pData.DataType := dtData;
 end;
 
 //------------------------------------------------------------------------------
@@ -187,6 +165,7 @@ procedure TRecommendedMemorisationsFrm.vstTreeBeforeItemPaint(
   ItemRect: TRect; var CustomDraw: Boolean);
 var
   pData: PTreeData;
+  sAccount: string;
 begin
   pData := PTreeData(vstTree.GetNodeData(Node));
   if (pData.DataType <> dtBankAccount) then
@@ -199,7 +178,9 @@ begin
   TargetCanvas.Font.Color := clWindowText;
   TargetCanvas.Font.Size := Font.Size;
   TargetCanvas.Font.Style := [fsBold];
-  TargetCanvas.TextOut(ItemRect.Left+2, ItemRect.Top, 'Bank account 123456');
+  sAccount := 'Account ' + pData.BankAccount.baFields.baBank_Account_Number +
+    pData.BankAccount.baFields.baBank_Account_Name;
+  TargetCanvas.TextOut(ItemRect.Left+2, ItemRect.Top, sAccount);
 end;
 
 //------------------------------------------------------------------------------
@@ -208,6 +189,7 @@ procedure TRecommendedMemorisationsFrm.vstTreeGetText(Sender: TBaseVirtualTree;
   var CellText: WideString);
 var
   pData: PTreeData;
+  iTotal: integer;
 begin
   CellText := '';
 
@@ -232,11 +214,31 @@ begin
     dtData:
     begin
       case Column of
-        1: CellText := '06';
-        2: CellText := 'Flowers';
-        3: CellText := '144';
-        4: CellText := '1';
-        5: CellText := '1';
+        // Entry type
+        1:
+        begin
+          CellText := Format('%d:%s', [
+            pData.RecommendedMem.rmFields.rmType,
+            MyClient.clFields.clShort_Name[pData.RecommendedMem.rmFields.rmType]
+            ]);
+        end;
+
+        // Statement details
+        2: CellText := pData.RecommendedMem.rmFields.rmStatement_Details;
+
+        // Code
+        3: CellText := pData.RecommendedMem.rmFields.rmAccount;
+
+        // # Coded
+        4: CellText := IntToStr(pData.RecommendedMem.rmFields.rmManual_Count);
+
+        // Total #
+        5:
+        begin
+          iTotal := pData.RecommendedMem.rmFields.rmManual_Count +
+            pData.RecommendedMem.rmFields.rmUncoded_Count;
+          CellText := IntToStr(iTotal);
+        end;
       end;
     end;
   end;
@@ -289,7 +291,7 @@ begin
   if not PtInRect(ButtonRect, MousePt) then
     exit;
 
-  DoCreateNewMemorisation;
+  DoCreateNewMemorisation(HitInfo.HitNode);
 end;
 
 //------------------------------------------------------------------------------
@@ -309,9 +311,128 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TRecommendedMemorisationsFrm.PopulateTree;
+function TRecommendedMemorisationsFrm.FindOrAdd(const aBankAccountNumber: string
+  ): integer;
+var
+  i: integer;
+  iCount: integer;
 begin
-  // TODO
+  for i := 0 to High(fData) do
+  begin
+    // Found?
+    if (fData[i].BankAccount.baFields.baBank_Account_Number = aBankAccountNumber) then
+    begin
+      result := i;
+      exit;
+    end;
+  end;
+
+  // Add
+  iCount := Length(fData);
+  SetLength(fData, iCount+1);
+  fData[iCount].BankAccount := BankAccountNumberToBankAcccount(aBankAccountNumber);
+
+  result := iCount;
+end;
+
+//------------------------------------------------------------------------------
+function TRecommendedMemorisationsFrm.BankAccountNumberToBankAcccount(
+  const aBankAccountNumber: string): TBank_Account;
+var
+  i: integer;
+  BankAccount: TBank_Account;
+begin
+  for i := 0 to MyClient.clBank_Account_List.ItemCount-1 do
+  begin
+    BankAccount := MyClient.clBank_Account_List.Bank_Account_At(i);
+    if (BankAccount.baFields.baBank_Account_Number = aBankAccountNumber) then
+    begin
+      result := BankAccount;
+      exit;
+    end;
+  end;
+
+  ASSERT(false, 'Should be in-sync (merged) with Bank Accounts');
+  result := nil;
+end;
+
+//------------------------------------------------------------------------------
+procedure TRecommendedMemorisationsFrm.BuildData;
+var
+  Mems: TRecommended_Mem_List;
+  i: integer;
+  Mem: TRecommended_Mem;
+  iBankAccount: integer;
+  iCount: integer;
+begin
+  Mems := MyClient.clRecommended_Mems.Recommended;
+  for i := 0 to Mems.ItemCount-1 do
+  begin
+    Mem := Mems.Recommended_Mem_At(i);
+
+    iBankAccount := FindOrAdd(Mem.rmFields.rmBank_Account_Number);
+
+    with fData[iBankAccount] do
+    begin
+      iCount := Length(RecommendedMems);
+      SetLength(RecommendedMems, iCount+1);
+      RecommendedMems[iCount] := Mem;
+    end;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+procedure TRecommendedMemorisationsFrm.PopulateTree;
+var
+  iHigh: integer;
+  iBankAccount: integer;
+
+  pNode: PVirtualNode;
+  pData: PTreeData;
+
+  iMem: integer;
+begin
+  // Build temporary structure against BankAccount
+  BuildData;
+
+  // Add nodes
+  iHigh := High(fData);
+  for iBankAccount := 0 to iHigh do
+  begin
+    // Data
+    with fData[iBankAccount] do
+    begin
+      // Add bank account number
+      pNode := vstTree.AddChild(nil);
+      pData := PTreeData(vstTree.GetNodeData(pNode));
+      pData.DataType := dtBankAccount;
+      pData.BankAccount := BankAccount;
+
+      // Header
+      pNode := vstTree.AddChild(nil);
+      pData := PTreeData(vstTree.GetNodeData(pNode));
+      pData.DataType := dtHeader;
+
+      // Data
+      for iMem := 0 to High(RecommendedMems) do
+      begin
+        pNode := vstTree.AddChild(nil);
+        pData := PTreeData(vstTree.GetNodeData(pNode));
+        pData.DataType := dtData;
+        pData.BankAccount := BankAccount; // For Create Mem
+        pData.RecommendedMem := RecommendedMems[iMem];
+      end;
+    end;
+
+    // Not last bank account?
+    if (iBankAccount <> iHigh) then
+    begin
+      /// Divider
+      pNode := vstTree.AddChild(nil);
+      pData := PTreeData(vstTree.GetNodeData(pNode));
+      pData.DataType := dtDivider;
+    end;
+  end;
 end;
 
 //------------------------------------------------------------------------------
@@ -344,18 +465,25 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TRecommendedMemorisationsFrm.DoCreateNewMemorisation;
+procedure TRecommendedMemorisationsFrm.DoCreateNewMemorisation(
+  const aNode: PVirtualNode);
 var
+  pData: PTreeData;
+
   BankAccount: TBank_Account;
   Mems: TMemorisations_List;
   Mem: TMemorisation;
   DeleteSelectedMem: boolean;
 begin
-  BankAccount := MyClient.clBank_Account_List.Bank_Account_At(0);
+  pData := PTreeData(vstTree.GetNodeData(aNode));
+  ASSERT(pData.DataType = dtData);
+
+  BankAccount := pData.BankAccount;
   Mems := BankAccount.baMemorisations_List;
   Mem := TMemorisation.Create(Mems.AuditMgr);
   Mem.mdFields.mdMatch_On_Statement_Details := true;
-  Mem.mdFields.mdStatement_Details := 'Test';
+  Mem.mdFields.mdStatement_Details :=
+    pData.RecommendedMem.rmFields.rmStatement_Details;
   try
     DeleteSelectedMem := false;
     EditMemorisation(BankAccount, Mems, Mem, DeleteSelectedMem);

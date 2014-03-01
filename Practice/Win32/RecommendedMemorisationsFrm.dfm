@@ -41,7 +41,6 @@ object RecommendedMemorisationsFrm: TRecommendedMemorisationsFrm
     OnGetText = vstTreeGetText
     OnGetNodeDataSize = vstTreeGetNodeDataSize
     OnMouseDown = vstTreeMouseDown
-    ExplicitWidth = 632
     Columns = <
       item
         Position = 0
@@ -49,11 +48,11 @@ object RecommendedMemorisationsFrm: TRecommendedMemorisationsFrm
       end
       item
         Position = 1
-        Width = 100
+        Width = 110
       end
       item
         Position = 2
-        Width = 200
+        Width = 230
       end
       item
         Position = 3
@@ -81,7 +80,6 @@ object RecommendedMemorisationsFrm: TRecommendedMemorisationsFrm
     Align = alBottom
     BevelOuter = bvNone
     TabOrder = 1
-    ExplicitWidth = 632
     DesignSize = (
       677
       41)
@@ -101,7 +99,7 @@ object RecommendedMemorisationsFrm: TRecommendedMemorisationsFrm
     Left = 304
     Top = 304
     Bitmap = {
-      494C010101001000100010001000FFFFFFFFFF00FFFFFFFFFFFFFFFF424D3600
+      494C010101001000140010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000001000000001002000000000000010
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
@@ -237,6 +235,7 @@ object RecommendedMemorisationsFrm: TRecommendedMemorisationsFrm
       8001000000000000800100000000000080010000000000008001000000000000
       8001000000000000800100000000000080010000000000008001000000000000
       8001000000000000800100000000000080010000000000008001000000000000
-      C003000000000000FFFF000000000000}
+      C003000000000000FFFF00000000000000000000000000000000000000000000
+      000000000000}
   end
 end
