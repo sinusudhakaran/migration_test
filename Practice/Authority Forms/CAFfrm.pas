@@ -564,13 +564,14 @@ procedure TfrmCAF.SetInstitutionControls(aInstitutionType : TInstitutionType);
 var
   enableControls : boolean;
   oldInstDroppedDown : boolean;
-  AccountNumber : string;
+  AccNumber : string;
 
+  //----------------------------------------------------------------------------
   function CanCopyData(): boolean;
   begin
     Result := not ((edtBranch.Text = '') and
                    (edtNameOfAccount.Text = '') and
-                   (AccountNumber = '') and
+                   (AccNumber = '') and
                    (edtClientCode.Text = '') and
                    (edtCostCode.Text = '') and
                    (edtSecureCode.Text = ''));
@@ -580,11 +581,13 @@ begin
   edtAccountNumber.Text := '';
   if (fInstitutionType = inBLO) and (aInstitutionType = inOther) then
   begin
-    AccountNumber := fMaskHint.RemovedMaskBsbFromAccountNumber(fMaskHint.RemoveUnusedCharsFromAccNumber(mskAccountNumber.Text), fMaskBsb);
+    AccNumber := fMaskHint.RemovedMaskBsbFromAccountNumber(fMaskHint.RemoveUnusedCharsFromAccNumber(mskAccountNumber.Text), fMaskBsb);
     if CanCopyData() then
     begin
       edtInstitutionName.Text := fOldInstName;
-      edtAccountNumber.Text := AccountNumber;
+      edtAccountNumber.Text := AccNumber;
+      fAccountNumber := trim(edtAccountNumber.Text);
+      fValidAccount := (length(fAccountNumber) > 0);
     end;
   end;
 
