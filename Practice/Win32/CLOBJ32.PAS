@@ -444,7 +444,7 @@ begin
        tkBeginExchangeRateHeader : FExchangeSource.LoadFromStream( S );
        tkBeginSystem_Audit_Trail_List  : fAuditTable.LoadFromStream(S);
        tkBegin_TPR_Payer_Detail  : clTPR_Payee_Detail.LoadFromFile(S);
-       tkBegin_Recommended_Mems  : clRecommended_Mems.LoadFromFile(S);
+       tkBeginRecommended_Mems   : clRecommended_Mems.LoadFromFile(S);
     else
        begin { Should never happen }
           Msg := Format( '%s : Unknown Token %d', [ ThisMethodName, Token ] );

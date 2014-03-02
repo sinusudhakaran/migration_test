@@ -5,13 +5,12 @@ interface
 uses
   IOStream,
   BKutIO,
+  BKcpIO,
   utList32,
   cpObj32,
   cmList32,
-  rmList32;
-
-const
-  tkBegin_Recommended_Mems = tkBegin_Unscanned_Transaction;
+  rmList32,
+  Tokens;
 
 type
   TRecommended_Mems = class(TObject)
@@ -36,9 +35,12 @@ type
 implementation
 
 uses
-  SysUtils;
+  SysUtils,
+  BKDbExcept;
 
-{ TSomeClass }
+const
+  UnitName = 'RecommendedMems';
+  DebugMe: boolean = false;{ TSomeClass }
 
 constructor TRecommended_Mems.Create;
 begin
@@ -59,19 +61,42 @@ begin
 end;
 
 procedure TRecommended_Mems.LoadFromFile(var S: TIOStream);
+const
+  ThisMethodName = 'TRecommended_Mems.LoadFromStream';
+var
+  Token : byte;
+  Msg   : String;
 begin
-  fUnscanned.LoadFromFile(S);
-  fCandidate.LoadFromFile(S);
-  fCandidates.LoadFromFile(S);
-  fRecommended.LoadFromFile(S);
+  Token := s.ReadToken;
+
+  while (Token <> tkEndSection) do
+  begin
+    case Token of
+      tkBeginUnscanned_Transaction_List : fUnscanned.LoadFromFile(S);
+      tkBegin_Candidate_Mem_Processing  : fCandidate.LoadFromFile(S);
+      tkBeginCandidate_Mem_List         : fCandidates.LoadFromFile(S);
+      tkBeginRecommended_Mem_List       : fRecommended.LoadFromFile(S);
+    else
+      begin { Should never happen }
+        Msg := Format( '%s : Unknown Token %d', [ ThisMethodName, Token ] );
+        raise ETokenException.CreateFmt( '%s - %s', [ UnitName, Msg ] );
+      end;
+    end;
+
+    Token := S.ReadToken;
+  end;
 end;
 
 procedure TRecommended_Mems.SaveToFile(var S: TIOStream);
 begin
+  S.WriteToken(tkBeginRecommended_Mems);
+
   fUnscanned.SaveToFile(S);
   fCandidate.SaveToFile(S);
   fCandidates.SaveToFile(S);
   fRecommended.SaveToFile(S);
+
+  S.WriteToken(tkEndSection);
 end;
 
 end.

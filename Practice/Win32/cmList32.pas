@@ -73,7 +73,7 @@ var
 begin
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins');
 
-  S.WriteToken(tkBegin_Candidate_Mem);
+  S.WriteToken(tkBeginCandidate_Mem_List);
 
   for i := 0 to Pred(ItemCount) do
   begin

@@ -62,6 +62,11 @@ CONST
 
    tkBeginFinalized_Exchange_Rate_List = 73;
 
+   tkBeginRecommended_Mems             = 74;
+   tkBeginUnscanned_Transaction_List   = 75;
+   tkBeginCandidate_Mem_List           = 76;
+   tkBeginRecommended_Mem_List         = 77;
+
    tkLastAuditRecordID        = 252;
    tkEndRecord                = 253;
    tkEndSection               = 254;

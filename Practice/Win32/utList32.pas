@@ -73,7 +73,7 @@ var
 begin
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins');
 
-  S.WriteToken(tkBegin_Unscanned_Transaction);
+  S.WriteToken(tkBeginUnscanned_Transaction_List);
 
   for i := 0 to Pred(ItemCount) do
   begin
