@@ -720,6 +720,7 @@ begin
   edtSecureCode.Text := '';
   chkDataSecureNew.Checked := false;
   chkDataSecureExisting.Checked := false;
+  chkSupplyAsProvisional.Checked := false;
   fCurrentDisplayError := '';
   fCurrentDisplayError := '';
   lblMaskErrorHint.Caption := '';
