@@ -860,7 +860,7 @@ begin
       AtLeastOneRowUpdated := True;
     end;
   end;
-  if AtLeastOneRowUpdated and RefreshTable then
+  if (AtLeastOneRowUpdated or GetAutoCalculateGST) and RefreshTable then
     RefreshTableWithData(fShowZeros, True, True);
 end;
 
