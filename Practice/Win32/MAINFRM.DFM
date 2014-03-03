@@ -494,6 +494,7 @@ object frmMain: TfrmMain
         ImageIndex = 2
         Caption = 'Recommended Memorisations'
         Constraints.MinWidth = 200
+        Visible = False
         OnClick = tbRecommendedMemorisationsClick
       end
     end
