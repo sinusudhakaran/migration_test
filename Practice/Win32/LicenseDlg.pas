@@ -534,6 +534,7 @@ begin
     NZEula.Add('                	excludes, restricts or modifies any condition, warranty,');
     NZEula.Add('                	guarantee, right or remedy under the Australian Consumer Law.');
     NZEula.Add('');
+    NZEula.Add('');
     NZEula.Add('7	Termination');
     NZEula.Add('');
     NZEula.Add('7.1	Without prejudice to any other rights, MYOB BankLink may terminate');
