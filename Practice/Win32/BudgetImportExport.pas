@@ -658,6 +658,25 @@ var
     end;
   end;
 
+  function FillDataHolder: boolean;
+  var
+    DateIndex: integer;
+  begin
+    Result := True;
+    for DateIndex := 1 to 12 do
+    begin
+      if not TryStrtoInt(InLineData[2 + DateIndex], DataHolder[DateIndex]) then
+      begin
+        WriteLn(ErrorFile, 'Row ' + inttostr(LineNumber) + ', Column ' + inttostr(DateIndex + 3) +
+                           ', Code ' + Trim(InLineData[0]) + ', Error converting value to a number.');
+        LineHasError := true;
+        inc(aRowsNotImported);
+        Result := False;
+        break;
+      end;
+    end;
+  end;
+
   // We don't want to give the warning about auto-calculated rows if the row
   // to be imported is the same as the existing row
   function IsPercentWarningNeeded: boolean;
@@ -752,18 +771,7 @@ begin
                 // Posting allowed?
                 if bAllowPosting then
                 begin
-                  for DateIndex := 1 to 12 do
-                  begin
-                    if not TryStrtoInt(InLineData[2 + DateIndex], DataHolder[DateIndex]) then
-                    begin
-                      WriteLn(ErrorFile, 'Row ' + inttostr(LineNumber) + ', Column ' + inttostr(DateIndex + 3) +
-                                         ', Code ' + Trim(InLineData[0]) + ', Error converting value to a number.');
-                      LineHasError := true;
-                      inc(aRowsNotImported);
-                      break;
-                    end;
-                  end;
-                  if not LineHasError then
+                  if FillDataHolder then
                   begin
                     if (aBudgetData[DataIndex].PercentAccount <> '') then
                     begin
@@ -790,28 +798,32 @@ begin
                 else
                 begin
                   // GST row? (values must match)
-                  if aAutoCalculateGST and aBudgetData[DataIndex].bIsGSTAccountCode and IsPercentWarningNeeded then
+                  if aAutoCalculateGST and aBudgetData[DataIndex].bIsGSTAccountCode then
                   begin
-                    for DateIndex := 1 to 12 do
+                    if FillDataHolder then
                     begin
-                      if aBudgetData[DataIndex].bIsGSTAccountCode then
-                        sAmount := IntToStr(aBudgetData[DataIndex].bGstAmounts[DateIndex])
-                      else
-                        sAmount := IntToStr(aBudgetData[DataIndex].bAmounts[DateIndex]);
-                      if (InLineData[2 + DateIndex] <> sAmount) then
+                      if IsPercentWarningNeeded then
                       begin
-                        WriteLn(ErrorFile,
-                          'Row ' + inttostr(LineNumber) +
-                          ', Code ' + Trim(InLineData[0]) +
-                          ', Data row is auto-calculated and cannot be updated.');
-
-                        Inc(aRowsNotImported);
-
-                        break;
+                        for DateIndex := 1 to 12 do
+                        begin
+                          if aBudgetData[DataIndex].bIsGSTAccountCode then
+                            sAmount := IntToStr(aBudgetData[DataIndex].bGstAmounts[DateIndex])
+                          else
+                            sAmount := IntToStr(aBudgetData[DataIndex].bAmounts[DateIndex]);
+                          if (InLineData[2 + DateIndex] <> sAmount) then
+                          begin
+                            WriteLn(ErrorFile,
+                              'Row ' + inttostr(LineNumber) +
+                              ', Code ' + Trim(InLineData[0]) +
+                              ', Data row is auto-calculated and cannot be updated.');
+                            Inc(aRowsNotImported);                                    
+                            break;
+                          end;
+                        end;
                       end;
                     end;
                   end
-                  else if not aBudgetData[DataIndex].bIsGSTAccountCode then                       
+                  else if not aBudgetData[DataIndex].bIsGSTAccountCode then
                   begin
                     // Only show non posting error if data is different
                     for DateIndex := 1 to 12 do
@@ -825,7 +837,7 @@ begin
                       end;
                     end;
                   end;
-                end;
+                end; // if bAllowPosting
               end
               else
               begin
@@ -834,7 +846,7 @@ begin
                 inc(aRowsNotImported);
               end;
             end;
-          end;
+          end; // while not eof(InputFile) do
 
           Result := true;
         finally
