@@ -851,7 +851,7 @@ begin
     PayeeAmendmentIndicator := 'O';
     if not MyClient.clTPR_Payee_Detail.As_pRec.prFirstTimeTPRATOExtractDone then
     begin
-      if AskYesNo('ATO Extract', 'Has the extract already been sent to the ATO?', DLG_NO, 0) = DLG_YES then
+      if AskYesNo('ATO Extract', 'Has the TPAR already been lodged with the ATO for this period?', DLG_NO, 0) = DLG_YES then
         PayeeAmendmentIndicator := 'A';
     end;
 
