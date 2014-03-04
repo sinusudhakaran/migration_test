@@ -6,25 +6,34 @@ uses
   IOStream,
   BKutIO,
   BKcpIO,
+  utObj32,
   utList32,
   cpObj32,
   cmList32,
   rmList32,
-  Tokens;
+  Tokens,
+  baObj32,
+  baList32,
+  BKDefs;
 
 type
   TRecommended_Mems = class(TObject)
   private
+    fBankAccounts: TBank_Account_List;
+
     fUnscanned: TUnscanned_Transaction_List;
     fCandidate: TCandidate_Mem_Processing;
     fCandidates: TCandidate_Mem_List;
     fRecommended: TRecommended_Mem_List;
+
   public
-    constructor Create;
+    constructor Create(const aBankAccounts: TBank_Account_List);
     destructor  Destroy; override;
 
     procedure SaveToFile(var S: TIOStream);
     procedure LoadFromFile(var S: TIOStream);
+
+    procedure UpdateUnprocessedAndCandidateMems;
 
     property  Unscanned: TUnscanned_Transaction_List read fUnscanned;
     property  Candidate: TCandidate_Mem_Processing read fCandidate;
@@ -97,6 +106,35 @@ begin
   fRecommended.SaveToFile(S);
 
   S.WriteToken(tkEndSection);
+end;
+
+procedure TRecommended_Mems.UpdateUnprocessedAndCandidateMems;
+var
+  iBankAccount: integer;
+  BankAccount: TBank_Account;
+  iTransaction: integer;
+  Transaction: pTransaction_Rec;
+  New: TUnscanned_Transaction;
+begin
+  // Unscanned and Candidates must be empty
+  if (Unscanned.ItemCount <> 0) or (Candidates.ItemCount <> 0) then
+    exit;
+
+  for iBankAccount := 0 to fBankAccounts.ItemCount-1 do
+  begin
+    BankAccount := fBankAccounts[iBankAccount];
+
+    for iTransaction := 0 to BankAccount.baTransaction_List.ItemCount-1 do
+    begin
+      Transaction := BankAccount.baTransaction_List.Transaction_At(iTransaction);
+
+      New := TUnscanned_Transaction.Create;
+      New.utFields.utBank_Account_Number := BankAccount.baFields.baBank_Account_Number;
+      New.utFields.utSequence_No := Transaction.txSequence_No;
+
+      Unscanned.Insert(New);
+    end;
+  end;
 end;
 
 end.
