@@ -262,7 +262,7 @@ begin
    clJobs                 := TClient_Job_List.Create;
    clCustom_Headings_List := TNew_Custom_Headings_List.Create(FClientAuditMgr);
    clTPR_Payee_Detail     := TTPR_Payee_Detail.Create;
-   clRecommended_Mems     := TRecommended_Mems.Create;
+   clRecommended_Mems     := TRecommended_Mems.Create(clBank_Account_List);
 
    //Exchange rate source
    FExchangeSource := TExchangeSource.Create;
