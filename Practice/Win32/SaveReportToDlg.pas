@@ -11,15 +11,23 @@ unit SaveReportToDlg;
 
   Notes:
 }
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
+//------------------------------------------------------------------------------
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  StdCtrls, Buttons,
+  Windows,
+  Messages,
+  SysUtils,
+  Classes,
+  Graphics,
+  Controls,
+  Forms,
+  Dialogs,
+  StdCtrls,
+  Buttons,
   ReportDefs,
-  OSFont;
+  OSFont,
+  CustomFileFormats;
 
 type
   TdlgSaveReportTo = class(TForm)
@@ -51,15 +59,28 @@ type
     NameEdited : boolean;
     IgnoreChange : boolean;
     PreviousIndex: Integer; // to restore previous selection if Acclipse is not installed
+    fCustomFileFormats : TCustomFileFormats;
+    fDefaultFileName : string;
+
+    function GetPositionFromIndex(aIndex : integer) : integer;
+    function GetSelectedIndex : integer;
+    function GetSelectedFileNameAndExt : string;
+    function GetSelectedFileExt : string;
+    function GetSelectedFileName : string;
   public
-    { Public declarations }
+    property DefaultFileName : string read fDefaultFileName write fDefaultFileName;
   end;
 
-function GenerateReportTo(var FileName : string; var FileFormat : integer;
-  FileFormats : TFileFormatSet; var Title, Desc: string; var WebID, CatID: Integer;
-  HideAcclipse: Boolean) : boolean;
+//------------------------------------------------------------------------------
+function GenerateReportTo(var FileName : string;
+                          var FileFormat : integer;
+                          FileFormats : TFileFormatSet;
+                          var Title, Desc: string;
+                          var WebID, CatID: Integer;
+                          HideAcclipse: Boolean;
+                          aCustomFileFormats : TCustomFileFormats = nil) : boolean;
 
-//******************************************************************************
+//------------------------------------------------------------------------------
 implementation
 
 {$R *.DFM}
@@ -77,54 +98,69 @@ uses
   WinUtils,
   ComboUtils,
   WebXOffice,
-  glConst;
-  
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  glConst,
+  strutils;
+
+//------------------------------------------------------------------------------
 procedure TdlgSaveReportTo.btnToFolderClick(Sender: TObject);
 var
   Element: Integer;
 begin
-   with svdFilename do begin
-      // Default file type - add 2 - 1 for All files, 1 because FilterIndex starts at 1 instead of 0 (#1743)
-      FilterIndex := Integer(cmbFormat.Items.Objects[cmbFormat.ItemIndex]) + 2;
-      InitialDir := '';
-      if ( eTo.Text <> '') then begin
-         FileName := ExtractFileName(eTo.text);
-         InitialDir := ExtractFilePath(eTo.text);
-      end else begin
-         Element := Integer(cmbFormat.Items.Objects[cmbFormat.ItemIndex]);
-         FileName := 'REPORT' + rfFileExtn[Element];
-      end;
-      if InitialDir = '' then
-          InitialDir := DataDir;
-      if Execute then
-      begin
-        IgnoreChange := True;
-        // If user picked file from browse then we want to change extn when a new type is chosen
-        NameEdited := False;
-        InitialDir := ExtractFilePath(Filename);
-        if sametext(IncludeTrailingBackslash(InitialDir),DataDir)
-        or (InitialDir = '') then // Dont need this
-           eTo.text := ExtractFileName(Filename)
-        else
-           eTo.text := Filename;
+  with svdFilename do
+  begin
+    // Default file type - add 2 - 1 for All files, 1 because FilterIndex starts at 1 instead of 0 (#1743)
+    svdFilename.FilterIndex := GetPositionFromIndex(GetSelectedIndex()) + 2;
+    InitialDir := '';
 
-        Ignorechange := False;
-      end;
-   end;
+    if ( eTo.Text <> '') then
+    begin
+      FileName := ExtractFileName(eTo.text);
+      InitialDir := ExtractFilePath(eTo.text);
+    end
+    else
+    begin
+      FileName := GetSelectedFileNameAndExt();
+    end;
 
-   //make sure all relative paths are relative to data dir after browse
-   SysUtils.SetCurrentDir( Globals.DataDir);
+    if InitialDir = '' then
+      InitialDir := DataDir;
+
+    if Execute then
+    begin
+      IgnoreChange := True;
+      // If user picked file from browse then we want to change extn when a new type is chosen
+      NameEdited := False;
+      InitialDir := ExtractFilePath(Filename);
+
+      if sametext(IncludeTrailingBackslash(InitialDir),DataDir)
+      or (InitialDir = '') then // Dont need this
+        eTo.text := ExtractFileName(Filename)
+      else
+        eTo.text := Filename;
+
+      cmbFormat.ItemIndex := svdFilename.FilterIndex-2;
+      Ignorechange := False;
+    end;
+  end;
+
+  //make sure all relative paths are relative to data dir after browse
+  SysUtils.SetCurrentDir( Globals.DataDir);
 end;
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 //
 // GenerateReportTo
 //
 // FileFormats : specifies a set of file types can be saved. If the set is
 //               empty then all file types can be saved.
 //
-function GenerateReportTo(var FileName : string; var FileFormat : integer;
-  FileFormats : TFileFormatSet; var Title, Desc: string; var WebID, CatID: Integer; HideAcclipse: Boolean) : boolean;
+function GenerateReportTo(var FileName : string;
+                          var FileFormat : integer;
+                          FileFormats : TFileFormatSet;
+                          var Title, Desc: string;
+                          var WebID, CatID: Integer;
+                          HideAcclipse: Boolean;
+                          aCustomFileFormats : TCustomFileFormats = nil) : boolean;
 var
   i : Integer;
   HideInOz: Boolean;
@@ -138,12 +174,31 @@ begin
    end;
 {$ENDIF}
 
-   with TdlgSaveReportTo.Create(Application.MainForm) do begin
+   with TdlgSaveReportTo.Create(Application.MainForm) do
+   begin
+     fCustomFileFormats := aCustomFileFormats;
+     DefaultFileName := FileName;
+
       try
         //Load combo with constants - load in order defined. This means the selected
         //index will be the format identifier
         with cmbFormat do begin
            Clear;
+
+           if (Assigned(fCustomFileFormats)) and
+              (fCustomFileFormats.Count > 0) then
+           begin
+             for i := 0 to fCustomFileFormats.Count-1 do
+             begin
+               // Adds the index of the custom format to the standard formats
+               Items.AddObject(TCustomFileFormat(fCustomFileFormats.Items[i]).Name, TObject(rfMax + i + 1));
+               if TCustomFileFormat(fCustomFileFormats.Items[i]).Selected then
+               begin
+                 ItemIndex := i;
+               end;
+             end;
+           end;
+
            for i := rfMin to rfMax do begin
              if (FileFormats = []) or (TFileFormats(i) in FileFormats) then
              begin
@@ -155,10 +210,11 @@ begin
                Items.AddObject(rfNames[i], TObject(i));
              end;
            end;
+
            //enable/disable and set the itemindex for cmbFormat
            if (Items.Count = 0) then
              Enabled := True
-           else
+           else if ItemIndex < 0 then
            begin
              i := Items.IndexOfObject(TObject(rfExcel));
              if (i <> -1) then
@@ -167,6 +223,32 @@ begin
                ItemIndex := 0;
            end;
         end;
+
+        svdFilename.Filter := 'All Files (*.*)|*.*';
+        if (Assigned(fCustomFileFormats)) and
+           (fCustomFileFormats.Count > 0) then
+        begin
+          for i := 0 to fCustomFileFormats.Count-1 do
+          begin
+            // Adds the index of the custom format to the standard constants
+            svdFilename.Filter := svdFileName.Filter + '|' +
+                                  TCustomFileFormat(fCustomFileFormats.Items[i]).Description + '|*' +
+                                  TCustomFileFormat(fCustomFileFormats.Items[i]).Extension;
+          end;
+        end;
+
+        // Populate the browse dialog with standard constants
+        for i := 0 to rfMax do
+        begin
+          HideInOz := Assigned(MyClient) and (MyClient.clFields.clCountry = whAustralia) and (MyClient.clFields.clWeb_Export_Format = 255);
+          if (i = rfAcclipse) and
+             (HideAcclipse or HideInOz or
+             (Assigned(MyClient) and (MyClient.clFields.clWeb_Export_Format <> wfWebX) and (MyClient.clFields.clWeb_Export_Format <> 255)) ) then
+            Continue;
+
+          svdFilename.Filter := svdFileName.Filter + '|' + rfNames[i] + '|*' + rfFileExtn[i];
+        end;
+
         PreviousIndex := cmbFormat.ItemIndex;
         IgnoreChange := True;
         // Suppress path if in own datadata
@@ -181,15 +263,17 @@ begin
         IgnoreChange := False;
         cmbFormatChange(cmbFormat);
         ShowModal;
-        if ModalResult = mrOK then begin
+        if ModalResult = mrOK then
+        begin
           Filename := eTo.text;
           if ExtractFilePath(Filename) = '' then // Force full path
-             FileName := DataDir + FileName;
+            FileName := DataDir + FileName;
 
-          FileFormat := Integer(cmbFormat.Items.Objects[cmbFormat.ItemIndex]);
+          FileFormat := GetSelectedIndex();
           // Add default filename back if the user hasnt specified a filename
           if ExtractFileExt(Filename) = '' then
-            Filename := ChangeFileExt( Filename, rfFileExtn[FileFormat]);
+            Filename := 'Report' + rfFileExtn[FileFormat];
+
           Title := edtTitle.Text;
           Desc := edtDesc.Text;
           if FileFormat = rfAcclipse then
@@ -200,27 +284,20 @@ begin
           result   := true;
         end;
       finally
-         Free;
+        Free;
       end;
    end;
 end;
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 procedure TdlgSaveReportTo.FormCreate(Sender: TObject);
-var
-  i: Integer;
 begin
   bkXPThemes.ThemeForm( Self);
 
   ImagesFrm.AppImages.Misc.GetBitmap(MISC_FINDFOLDER_BMP,btnToFolder.Glyph);
-
-  // Populate the browse dialog with standard constants
-  svdFilename.Filter := 'All Files (*.*)|*.*';
-  for i := 0 to rfMax do
-  begin
-    svdFilename.Filter := svdFileName.Filter + '|' + rfNames[i] + '|*' + rfFileExtn[i];
-  end;
 end;
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 procedure TdlgSaveReportTo.FormCloseQuery(Sender: TObject;
   var CanClose: Boolean);
 var
@@ -232,7 +309,7 @@ begin
       //Assume failure
       CanClose := false;
 
-        if Integer(cmbFormat.Items.Objects[cmbFormat.ItemIndex]) = rfAcclipse then
+        if GetSelectedIndex() = rfAcclipse then
         begin
           // Verify acclipse
           if Trim(edtTitle.Text) = '' then
@@ -307,45 +384,50 @@ begin
          end;
 //      end;
       //Check if will be overwriting an existing file
-      if Integer(cmbFormat.Items.Objects[cmbFormat.ItemIndex]) = rfAcclipse then
+      if GetSelectedIndex() = rfAcclipse then
       begin
-          fileext := ExtractFileExt(eTo.Text);
-          if fileext = '' then
-            fileext := '.PDF';
-          // Make a unique filename
-          i := 1;
-          filenoext := ChangeFileExt(ExtractFilename(ExtractFilename(eTo.Text)), '');
-          wxfilename := GetWebXDatapath(WEBX_EXPORT_FOLDER) + FileNoExt + '_' +
-                        IntToStr(i) + fileext;
-          while BKFileExists(WxFilename) do
-          begin
-            Inc(i);
-            wxfilename := GetWebXDataPath(WEBX_EXPORT_FOLDER) + FileNoExt + '_' +
-                         IntToStr(i) + fileext;
-          end;
-          eTo.Text := wxfilename;
+        fileext := ExtractFileExt(eTo.Text);
+        if fileext = '' then
+          fileext := '.PDF';
+        // Make a unique filename
+        i := 1;
+        filenoext := ChangeFileExt(ExtractFilename(ExtractFilename(eTo.Text)), '');
+        wxfilename := GetWebXDatapath(WEBX_EXPORT_FOLDER) + FileNoExt + '_' +
+                      IntToStr(i) + fileext;
+        while BKFileExists(WxFilename) do
+        begin
+          Inc(i);
+          wxfilename := GetWebXDataPath(WEBX_EXPORT_FOLDER) + FileNoExt + '_' +
+                       IntToStr(i) + fileext;
+        end;
+        eTo.Text := wxfilename;
       end
       else
       begin
-          fileext := ExtractFileExt(eTo.Text);
-          if fileext = '' then
-            eTo.Text := eTo.Text + rfFileExtn[Integer(cmbFormat.Items.Objects[cmbFormat.ItemIndex])];
-         if BKFileExists(eTo.Text) then begin
-           if AskYesNo('Overwrite File','The file '+ExtractFileName(eTo.Text)+' already exists. Overwrite?',dlg_yes,0) <> DLG_YES
-           then exit;
+        fileext := ExtractFileExt(eTo.Text);
+
+        if fileext = '' then
+          eTo.Text := eTo.Text + GetSelectedFileExt();
+
+        if BKFileExists(eTo.Text) then
+        begin
+          if AskYesNo('Overwrite File','The file '+ExtractFileName(eTo.Text)+' already exists. Overwrite?',dlg_yes,0) <> DLG_YES then
+            exit;
         end;
       end;
       //Nothing failed so can close
       CanClose := true;
    end;
 end;
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 procedure TdlgSaveReportTo.eToChange(Sender: TObject);
 begin
    if not IgnoreChange then
      NameEdited := true;
 end;
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 procedure TdlgSaveReportTo.cmbFormatChange(Sender: TObject);
 //If the user hasn't edited the file name field then change the extension to
 //match the format chosen
@@ -405,6 +487,7 @@ begin
     Height := 295
   else
     Height := 136;
+
   edtTitle.Visible := IsAcclipse;
   edtDesc.Visible := IsAcclipse;
   cmbWebSpace.Visible := IsAcclipse;
@@ -415,28 +498,36 @@ begin
   lblCategory.Visible := IsAcclipse;
   btnToFolder.Visible := not IsAcclipse;
   PreviousIndex := cmbFormat.ItemIndex;
-  if not NameEdited then begin
-     IgnoreChange := true;
-     Element := Integer(cmbFormat.Items.Objects[cmbFormat.ItemIndex]);
-     eTo.Text          := ChangeFileExt( eTo.Text, rfFileExtn[Element]);
-     eTo.Enabled       := true;
-     lblSaveTo.Enabled := true;
-     btnToFolder.enabled := true;
-     IgnoreChange := false;
+
+  if not NameEdited then
+  begin
+    IgnoreChange := true;
+    Element := GetPositionFromIndex(GetSelectedIndex());
+    if fCustomFileFormats.Count > 0 then
+      eTo.Text := IncludeTrailingBackslash(ExtractFilePath(eTo.text)) + GetSelectedFileNameAndExt()
+    else
+      eTo.Text := ChangeFileExt( eTo.Text, GetSelectedFileExt());
+
+    eTo.Enabled       := true;
+    lblSaveTo.Enabled := true;
+    btnToFolder.enabled := true;
+    IgnoreChange := false;
   end;
 end;
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 procedure TdlgSaveReportTo.FormShow(Sender: TObject);
 begin
-   //Set flag that tells us if the user has changed the name field
-   NameEdited := false;
-   //Set flag the tells change method of edit box to ignore the change
-   IgnoreChange := false;
+  //Set flag that tells us if the user has changed the name field
+  NameEdited := false;
+  //Set flag the tells change method of edit box to ignore the change
+  IgnoreChange := false;
 
-   if (cmbFormat.Items.Count = 1) then
-     eTo.SetFocus;
+  if (cmbFormat.Items.Count = 1) then
+    eTo.SetFocus;
 end;
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 procedure TdlgSaveReportTo.cmbWebSpaceChange(Sender: TObject);
 var
   S: TStrings;
@@ -454,6 +545,65 @@ begin
       cmbCategory.ItemIndex := -1;
   finally
     S.Free;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+function TdlgSaveReportTo.GetPositionFromIndex(aIndex : integer) : integer;
+var
+  CustIndex : integer;
+begin
+  Result := -1;
+  for CustIndex := 0 to cmbFormat.Items.Count - 1 do
+  begin
+    if Integer(cmbFormat.Items.Objects[CustIndex]) = aIndex then
+    begin
+      Result := CustIndex;
+      Exit;
+    end;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+function TdlgSaveReportTo.GetSelectedIndex: integer;
+begin
+  Result := Integer(cmbFormat.Items.Objects[cmbFormat.ItemIndex]);
+end;
+
+//------------------------------------------------------------------------------
+function TdlgSaveReportTo.GetSelectedFileNameAndExt: string;
+begin
+  Result := GetSelectedFileName() + GetSelectedFileExt();
+end;
+
+//------------------------------------------------------------------------------
+function TdlgSaveReportTo.GetSelectedFileExt: string;
+var
+  SelectedIndex : integer;
+begin
+  SelectedIndex := GetSelectedIndex();
+
+  if SelectedIndex > rfMax then
+    Result := TCustomFileFormat(fCustomFileFormats.Items[SelectedIndex-1-rfMax]).Extension
+  else
+    Result := rfFileExtn[SelectedIndex];
+end;
+
+//------------------------------------------------------------------------------
+function TdlgSaveReportTo.GetSelectedFileName: string;
+var
+  SelectedIndex : integer;
+  FileLength : integer;
+begin
+  SelectedIndex := GetSelectedIndex();
+
+  if SelectedIndex > rfMax then
+    Result := TCustomFileFormat(fCustomFileFormats.Items[SelectedIndex-1-rfMax]).Filename
+  else
+  begin
+    FileLength := length(ExtractFileName(fDefaultFileName)) - length(ExtractFileExt(fDefaultFileName));
+
+    Result := LeftStr(ExtractFileName(fDefaultFileName), FileLength);
   end;
 end;
 

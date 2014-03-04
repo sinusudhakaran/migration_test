@@ -138,6 +138,36 @@ type
     btnClientSettings: TButton;
     Panel1: TPanel;
     lblClientBOProducts: TLabel;
+    tsTRPPayerDetails: TTabSheet;
+    grpPracticeContactDetails: TGroupBox;
+    grpPayerDetails: TGroupBox;
+    radUsePracticeTPRSupplierDetails: TRadioButton;
+    radUseCustomContactDetails: TRadioButton;
+    lblPracticeContactName: TLabel;
+    edtPracticeContactName: TEdit;
+    lblPracticeContactPhone: TLabel;
+    edtPracticeContactPhone: TEdit;
+    lblPracticeContactEmail: TLabel;
+    edtPracticeContactEmail: TEdit;
+    lblTradingName: TLabel;
+    lblStreetAddress: TLabel;
+    lblSuburb: TLabel;
+    lblPostCode: TLabel;
+    lblSupplierCountry: TLabel;
+    lblState: TLabel;
+    edtTradingName: TEdit;
+    edtStreetAddressLine1: TEdit;
+    edtStreetAddressLine2: TEdit;
+    edtSuburb: TEdit;
+    edtPostCode: TEdit;
+    edtSupplierCountry: TEdit;
+    cmbState: TComboBox;
+    lblSupplierContactName: TLabel;
+    edtSupplierContactName: TEdit;
+    edtSupplierContactPhone: TEdit;
+    lblSupplierContactPhone: TLabel;
+    lblSupplierContactEmail: TLabel;
+    edtSupplierContactEmail: TEdit;
 
     procedure btnOkClick(Sender: TObject);
     procedure btnCancelClick(Sender: TObject);
@@ -155,6 +185,11 @@ type
     procedure chkDisableCheckoutClick(Sender: TObject);
     procedure btnClientSettingsClick(Sender: TObject);
     procedure UpdateProductsLabel;
+    procedure radUseCustomContactDetailsClick(Sender: TObject);
+    procedure radUsePracticeTPRSupplierDetailsClick(Sender: TObject);
+    procedure cmbStateChange(Sender: TObject);
+    procedure edtPostCodeKeyPress(Sender: TObject; var Key: Char);
+    procedure FormActivate(Sender: TObject);
 
   private
     { Private declarations }
@@ -186,6 +221,8 @@ type
     procedure WMActivate(var w_Message: TWMActivate); message WM_ACTIVATE;
 
     procedure AfterShow(var Message: TMessage); message UM_AFTERSHOW;
+
+    procedure SetTRPPracticeContactControls(aUsePracticeDetails : boolean);
 
     procedure DoRebranding();
   public
@@ -230,7 +267,10 @@ uses
    glConst,
    BankLinkSecureCodeDlg,
    GenUtils,
-   bkBranding, bkProduct;
+   bkBranding,
+   bkProduct,
+   CountryUtils,
+   BAutils;
 
 {$R *.DFM}
 
@@ -243,6 +283,18 @@ procedure TfrmClientDetails.FillClientReadDetail(aClientCode: string; aSynchroni
 begin
   FreeAndNil(FClientReadDetail);
   FClientReadDetail := ProductConfigService.GetClientDetailsWithCode(MyClient.clFields.clCode, False);
+end;
+
+//------------------------------------------------------------------------------
+procedure TfrmClientDetails.FormActivate(Sender: TObject);
+begin
+  FLoading := true;
+
+  try
+    cmbStateChange(Sender);
+  finally
+    FLoading := false;
+  end;
 end;
 
 //------------------------------------------------------------------------------
@@ -802,7 +854,7 @@ end;
 function TfrmClientDetails.Execute(PCode: string = ''; InWizard: Boolean = False): boolean;
 var
   AdminLoaded   : boolean;
-  i             : integer;
+  i, index      : integer;
   StoredIndex, StoredIndexGroup, StoredIndexType : integer;
   User          : pUser_Rec;
   Group         : pGroup_Rec;
@@ -821,6 +873,11 @@ var
   AllowClientDirectDownload: Boolean;
   SecureCode: String;
   PrimaryUser: TBloUserRead;
+  CountryCode : string;
+  CountryDesc : string;
+  StateCodeWidth : integer;
+  SpaceWidth : integer;
+  SpaceString : string;
 begin
    FClientReadDetail := nil;
 
@@ -835,6 +892,9 @@ begin
      FLoading := True;
 
      try
+       tsTRPPayerDetails.TabVisible := (Assigned(AdminSystem) and
+                                       (AdminSystem.fdFields.fdCountry = whAustralia));
+
        eCode.text    := clCode;
        wasClientCode := clCode;    //store for later
        prospectCode := PCode;
@@ -1073,7 +1133,56 @@ begin
 
        AllowClientDirectDownload := chkOffsite.Checked;
        SecureCode := eConnectCode.Text;
-     
+
+       if (AdminSystem.fdFields.fdCountry = whAustralia) then
+       begin
+         tsTRPPayerDetails.Visible := true;
+         edtSupplierContactName.Text  := AdminSystem.fdTPR_Supplier_Detail.As_pRec.srContactName;
+         edtSupplierContactPhone.Text := AdminSystem.fdTPR_Supplier_Detail.As_pRec.srContactPhone;
+         edtSupplierContactEmail.Text := AdminSystem.fdFields.fdPractice_EMail_Address;
+
+         if MyClient.clTPR_Payee_Detail.As_pRec.prUsePracticeTPRSupplierDetails then
+         begin
+           radUsePracticeTPRSupplierDetails.Checked := true;
+           edtPracticeContactName.Text  := '';
+           edtPracticeContactPhone.Text := '';
+           edtPracticeContactEmail.Text := '';
+         end
+         else
+         begin
+           radUseCustomContactDetails.Checked := true;
+           edtPracticeContactName.Text  := MyClient.clTPR_Payee_Detail.As_pRec.prPracContactName;
+           edtPracticeContactPhone.Text := MyClient.clTPR_Payee_Detail.As_pRec.prPracContactPhone;
+           edtPracticeContactEmail.Text := MyClient.clTPR_Payee_Detail.As_pRec.prPracEmailAddress;
+         end;
+
+         edtTradingName.Text        := MyClient.clTPR_Payee_Detail.As_pRec.prTradingName;
+         edtStreetAddressLine1.Text := MyClient.clTPR_Payee_Detail.As_pRec.prAddressLine1;
+         edtStreetAddressLine2.Text := MyClient.clTPR_Payee_Detail.As_pRec.prAddressLine2;
+         edtSuburb.Text             := MyClient.clTPR_Payee_Detail.As_pRec.prSuburb;
+
+         SpaceWidth := self.Canvas.TextWidth(' ');
+         for i := MIN_STATE to MAX_STATE do
+         begin
+           GetAustraliaStateFromIndex(i, CountryCode, CountryDesc);
+           StateCodeWidth := self.Canvas.TextWidth(CountryCode);
+
+           SpaceString := '';
+           for index := 0 to trunc((49 - StateCodeWidth) / SpaceWidth) do
+             SpaceString := SpaceString + ' ';
+
+           if i = MAX_STATE then
+             SpaceString := SpaceString + ' ';
+
+           cmbState.AddItem(CountryCode + SpaceString + CountryDesc, nil)
+         end;
+         cmbState.ItemIndex := MyClient.clTPR_Payee_Detail.As_pRec.prStateId;
+         SendMessage(cmbState.Handle, CB_SETDROPPEDWIDTH, 250, 0);
+
+         edtPostCode.Text           := MyClient.clTPR_Payee_Detail.As_pRec.prPostCode;
+         edtSupplierCountry.Text    := MyClient.clTPR_Payee_Detail.As_pRec.prCountry;
+       end;
+
        //****************************
     finally
       FLoading := False;
@@ -1272,16 +1381,44 @@ begin
       clExternal_ID := edtFingertipsClientID.Text;
 {$ENDIF}
 
-      if FileRenamed then begin //force a save immediately
-         //Flag Audit
-         MyClient.ClientAuditMgr.FlagAudit(arClientFiles);
-         SaveClient(false);
+      if (AdminSystem.fdFields.fdCountry = whAustralia) then
+      begin
+        MyClient.clTPR_Payee_Detail.As_pRec.prUsePracticeTPRSupplierDetails :=
+        radUsePracticeTPRSupplierDetails.Checked;
+
+        if radUsePracticeTPRSupplierDetails.Checked then
+        begin
+          MyClient.clTPR_Payee_Detail.As_pRec.prPracContactName  := '';
+          MyClient.clTPR_Payee_Detail.As_pRec.prPracContactPhone := '';
+          MyClient.clTPR_Payee_Detail.As_pRec.prPracEmailAddress := '';
+        end
+        else
+        begin
+          MyClient.clTPR_Payee_Detail.As_pRec.prPracContactName  := edtPracticeContactName.Text;
+          MyClient.clTPR_Payee_Detail.As_pRec.prPracContactPhone := edtPracticeContactPhone.Text;
+          MyClient.clTPR_Payee_Detail.As_pRec.prPracEmailAddress := edtPracticeContactEmail.Text;
+        end;
+
+        MyClient.clTPR_Payee_Detail.As_pRec.prTradingName := edtTradingName.Text;
+        MyClient.clTPR_Payee_Detail.As_pRec.prAddressLine1 := edtStreetAddressLine1.Text;
+        MyClient.clTPR_Payee_Detail.As_pRec.prAddressLine2 := edtStreetAddressLine2.Text;
+        MyClient.clTPR_Payee_Detail.As_pRec.prSuburb := edtSuburb.Text;
+        MyClient.clTPR_Payee_Detail.As_pRec.prStateId := cmbState.ItemIndex;
+        MyClient.clTPR_Payee_Detail.As_pRec.prPostCode := edtPostCode.Text;
+        MyClient.clTPR_Payee_Detail.As_pRec.prCountry := edtSupplierCountry.Text;
       end;
-        
+
+      if FileRenamed then
+      begin //force a save immediately
+        //Flag Audit
+        MyClient.ClientAuditMgr.FlagAudit(arClientFiles);
+        SaveClient(false);
+      end;
+
       if Assigned(FClientReadDetail) and (SecureCode <> clBankLink_Code) then
       begin
         PrimaryUser := FClientReadDetail.GetPrimaryUser;
-        
+
         if Assigned(PrimaryUser) then
         begin
           ProductConfigService.UpdateClient(
@@ -1421,6 +1558,13 @@ begin
      if cmbOSDMethod.ItemIndex = -1 then
        SetComboIndexByIntObject( dfConnect, cmbOSDMethod);
    end;
+end;
+
+//------------------------------------------------------------------------------
+procedure TfrmClientDetails.edtPostCodeKeyPress(Sender: TObject; var Key: Char);
+begin
+  if not (Key in ['0'..'9', Chr(VK_DELETE), Chr(VK_BACK)]) then
+    Key := chr(0);
 end;
 
 //------------------------------------------------------------------------------
@@ -1811,6 +1955,59 @@ procedure TfrmClientDetails.chkDisableCheckoutClick(Sender: TObject);
 begin
   if chkDisableCheckout.Checked then
     chkForceCheckout.Checked := False;
+end;
+
+//------------------------------------------------------------------------------
+procedure TfrmClientDetails.SetTRPPracticeContactControls(aUsePracticeDetails: boolean);
+begin
+  lblSupplierContactName.Enabled  := aUsePracticeDetails;
+  lblSupplierContactPhone.Enabled := aUsePracticeDetails;
+  lblSupplierContactEmail.Enabled := aUsePracticeDetails;
+  edtSupplierContactName.Enabled  := aUsePracticeDetails;
+  edtSupplierContactPhone.Enabled := aUsePracticeDetails;
+  edtSupplierContactEmail.Enabled := aUsePracticeDetails;
+
+  lblPracticeContactName.Enabled  := not aUsePracticeDetails;
+  lblPracticeContactPhone.Enabled := not aUsePracticeDetails;
+  lblPracticeContactEmail.Enabled := not aUsePracticeDetails;
+  edtPracticeContactName.Enabled  := not aUsePracticeDetails;
+  edtPracticeContactPhone.Enabled := not aUsePracticeDetails;
+  edtPracticeContactEmail.Enabled := not aUsePracticeDetails;
+
+  edtPracticeContactName.text  := '';
+  edtPracticeContactPhone.text := '';
+  edtPracticeContactEmail.text := '';
+end;
+
+//------------------------------------------------------------------------------
+procedure TfrmClientDetails.radUsePracticeTPRSupplierDetailsClick(Sender: TObject);
+begin
+  SetTRPPracticeContactControls(true);
+end;
+
+//------------------------------------------------------------------------------
+procedure TfrmClientDetails.radUseCustomContactDetailsClick(Sender: TObject);
+begin
+  SetTRPPracticeContactControls(false);
+end;
+
+//------------------------------------------------------------------------------
+procedure TfrmClientDetails.cmbStateChange(Sender: TObject);
+begin
+  if ((lblSupplierCountry.Visible) and not (cmbState.ItemIndex = MAX_STATE)) or
+     (not (lblSupplierCountry.Visible) and (cmbState.ItemIndex = MAX_STATE)) then
+  begin
+    if not FLoading then
+    begin
+      edtPostCode.text := '';
+      edtSupplierCountry.text := '';
+    end;
+  end;
+
+  lblSupplierCountry.Visible := (cmbState.ItemIndex = MAX_STATE);
+  edtSupplierCountry.Visible := (cmbState.ItemIndex = MAX_STATE);
+  lblPostCode.Visible := not (cmbState.ItemIndex = MAX_STATE);
+  edtPostCode.Visible := not (cmbState.ItemIndex = MAX_STATE);
 end;
 
 end.

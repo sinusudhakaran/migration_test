@@ -347,6 +347,14 @@ begin
     FAuditNamesArray[90,102] := 'Post_Code';
     FAuditNamesArray[90,103] := 'Phone_Number';
     FAuditNamesArray[90,104] := 'ABN';
+    FAuditNamesArray[90,105] := 'BusinessName';
+    FAuditNamesArray[90,106] := 'TradingName';
+    FAuditNamesArray[90,107] := 'Country';
+    FAuditNamesArray[90,108] := 'InstitutionBSB';
+    FAuditNamesArray[90,109] := 'InstitutionAccountNumber';
+    FAuditNamesArray[90,110] := 'IsIndividual';
+    FAuditNamesArray[90,111] := 'AddressLine2';
+    FAuditNamesArray[90,112] := 'StateId';
 
    FAuditTableArray[95] := 'Payee_Line';
     FAuditNamesArray[95,97] := 'Account';
@@ -912,11 +920,16 @@ begin
     FAuditNamesArray[185,188] := 'PracContactPhone';
     FAuditNamesArray[185,189] := 'PracEmailAddress';
     FAuditNamesArray[185,190] := 'TradingName';
-    FAuditNamesArray[185,191] := 'Suburb';
-    FAuditNamesArray[185,192] := 'StateId';
-    FAuditNamesArray[185,193] := 'Country';
-    FAuditNamesArray[185,194] := 'BSB';
-    FAuditNamesArray[185,195] := 'Account';
+    FAuditNamesArray[185,191] := 'AddressLine1';
+    FAuditNamesArray[185,192] := 'AddressLine2';
+    FAuditNamesArray[185,193] := 'Suburb';
+    FAuditNamesArray[185,194] := 'StateId';
+    FAuditNamesArray[185,195] := 'Country';
+    FAuditNamesArray[185,196] := 'PostCode';
+    FAuditNamesArray[185,197] := 'BSB';
+    FAuditNamesArray[185,198] := 'Account';
+    FAuditNamesArray[185,199] := 'UsePracticeTPRSupplierDetails';
+    FAuditNamesArray[185,200] := 'FirstTimeTPRATOExtractDone';
 
    FAuditTableArray[165] := 'Unscanned_Transaction';
     FAuditNamesArray[165,167] := 'Bank_Account_Number';

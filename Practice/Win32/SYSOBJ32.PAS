@@ -251,20 +251,20 @@ Begin
       Token := S.ReadToken;
    end;
 {$ELSE}
-         tkLastAuditRecordID             : FLastAuditRecordID := S.ReadIntegerValue;
-         tkBeginSystem_Disk_Log          : fdSystem_Disk_Log.LoadFromFile( S );
-         tkBeginSystem_Client_File_List  : fdSystem_Client_File_List.LoadFromFile( S );
-         tkBeginSystem_User_List         : fdSystem_User_List.LoadFromFile( S );
-         tkBeginSystem_Bank_Account_List : fdSystem_Bank_Account_List.LoadFromFile( S );
-         tkBeginSystem_Access_List       : fdSystem_File_Access_List.LoadFromFile( S );
-         tkBeginSystem_Client_Account_Map : fdSystem_Client_Account_Map.LoadFromFile( S );
-         tkBeginSystem_Group_List        : fdSystem_Group_List.LoadFromFile( S );
-         tkBeginSystem_Client_Type_List  : fdSystem_Client_Type_List.LoadFromFile( S );
-         tkBeginExchangeRateHeader       : ReadCurrencyList(fCurrencyList,S);
-         tkBeginSystem_Audit_Trail_List  : fAuditTable.LoadFromStream(S);
-         tkBeginSystem_Memorisation_List : fSystem_Memorisation_List.LoadFromStream(S);
+         tkLastAuditRecordID               : FLastAuditRecordID := S.ReadIntegerValue;
+         tkBeginSystem_Disk_Log            : fdSystem_Disk_Log.LoadFromFile( S );
+         tkBeginSystem_Client_File_List    : fdSystem_Client_File_List.LoadFromFile( S );
+         tkBeginSystem_User_List           : fdSystem_User_List.LoadFromFile( S );
+         tkBeginSystem_Bank_Account_List   : fdSystem_Bank_Account_List.LoadFromFile( S );
+         tkBeginSystem_Access_List         : fdSystem_File_Access_List.LoadFromFile( S );
+         tkBeginSystem_Client_Account_Map  : fdSystem_Client_Account_Map.LoadFromFile( S );
+         tkBeginSystem_Group_List          : fdSystem_Group_List.LoadFromFile( S );
+         tkBeginSystem_Client_Type_List    : fdSystem_Client_Type_List.LoadFromFile( S );
+         tkBeginExchangeRateHeader         : ReadCurrencyList(fCurrencyList,S);
+         tkBeginSystem_Audit_Trail_List    : fAuditTable.LoadFromStream(S);
+         tkBeginSystem_Memorisation_List   : fSystem_Memorisation_List.LoadFromStream(S);
+         tkBeginSystem_TPR_Supplier_Detail : fdTPR_Supplier_Detail.LoadFromFile(S);
          tkBeginSystem_Provisional_Entries_Log : fSystem_Provisional_List.LoadFromFile(S);
-         tkBegin_TPR_Supplier_Detail     : fdTPR_Supplier_Detail.LoadFromFile(S);
          else
          begin { Should never happen }
             Msg := Format( '%s : Unknown Token %d', [ ThisMethodName, Token ] );
@@ -353,9 +353,9 @@ begin
    fdSystem_Client_Type_List.SaveToFile( S );
    WriteCurrencyList(fCurrencyList, S);
    fSystem_Memorisation_List.SaveToStream( S );
+   fdTPR_Supplier_Detail.SaveToFile( S );
    fAuditTable.SaveToStream( S );
    fSystem_Provisional_List.SaveToFile( S );
-   fdTPR_Supplier_Detail.SaveToFile( S );
 
    LogDebugMsg(ThisMethodName + ' Ends' );
 end;

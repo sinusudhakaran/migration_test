@@ -277,7 +277,8 @@ uses
   BKDEFS,
   AuditMgr,
   Themes,
-  VatTemplates;
+  VatTemplates,
+  baUtils;
 
 {$R *.DFM}
 
@@ -1498,11 +1499,11 @@ var
    ClassNo,
    RateNo   : integer;
    i        : integer;
-   DashPos  : integer;
    Node     : TTreeNode;
    ArrayPos : integer;
    V        : Double;
    MethodChanged, UserState: Boolean;
+   ABN, Branch : string;
 begin
    Result := false;
    Editmode := false;
@@ -1538,13 +1539,9 @@ begin
           end;
         whAustralia  :
           begin
-            dashPos := Pos( '-' , clGST_Number);
-            if dashPos > 0 then begin
-              eGSTNumber.Text := Copy( clGST_Number, 1, dashPos -1);
-              eABN_Division.Text := Copy ( clGST_Number, dashPos + 1, length( clGST_Number));
-            end
-            else
-              eGSTNumber.Text := clGST_Number;
+            SplitABNandBranchFromGSTNumber(clGST_Number, ABN, Branch);
+            eGSTNumber.Text    := ABN;
+            eABN_Division.Text := Branch;
 
             eTFN.Text := clTFN;
 

@@ -4244,6 +4244,30 @@ const
     UpgradeClient_Memorisation_EntryType(aClient);
   end;
 
+  procedure UpgradeToVersion182;
+  var
+    PayeeIndex : integer;
+    StateIndex : integer;
+    CountryCode, CountryDesc : string;
+  begin
+    aClient.clTPR_Payee_Detail.As_pRec.prUsePracticeTPRSupplierDetails := true;
+    aClient.clTPR_Payee_Detail.As_pRec.prFirstTimeTPRATOExtractDone := true;
+
+    for PayeeIndex := 0 to aClient.clPayee_List.ItemCount-1 do
+    begin
+      aClient.clPayee_List.Payee_At(PayeeIndex).pdFields.pdIsIndividual := true;
+
+      aClient.clPayee_List.Payee_At(PayeeIndex).pdFields.pdStateId := 0;
+      for StateIndex := MIN_STATE to MAX_STATE do
+      begin
+        GetAustraliaStateFromIndex(StateIndex, CountryCode, CountryDesc);
+
+        if Uppercase(aClient.clPayee_List.Payee_At(PayeeIndex).pdFields.pdState) = uppercase(CountryCode) then
+          aClient.clPayee_List.Payee_At(PayeeIndex).pdFields.pdStateId := StateIndex;
+      end;
+    end;
+  end;
+
 begin
    with aClient.clFields do begin
 
@@ -4606,6 +4630,13 @@ begin
       begin
         UpgradeToVersion181;
         clFile_Version := 181;
+      end;
+
+      // ATO Extract for TPR Reports
+      if (CLFile_Version < 182) then
+      begin
+        UpgradeToVersion181;
+        clFile_Version := 182;
       end;
    end;
 end;

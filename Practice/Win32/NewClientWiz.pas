@@ -683,18 +683,23 @@ begin
      clCountry                          := fdCountry;
      clExtra.ceLocal_Currency_Code      := whCurrencyCodes[clCountry];
      clFile_Type                        := 0;  {banklink file}
-     if fdAccounting_System_Used = asNone then begin
-        // Use the super defaults
-        clAccounting_System_Used := fdSuperfund_System;
-        clAccount_Code_Mask      := fdSuperfund_Code_Mask;
-        clLoad_Client_Files_From := fdLoad_Client_Super_Files_From;
-        clSave_Client_Files_To   := fdSave_Client_Super_Files_To;
-     end else begin
-        clAccounting_System_Used := fdAccounting_System_Used;
-        clAccount_Code_Mask      := fdAccount_Code_Mask;
-        clLoad_Client_Files_From := fdLoad_Client_Files_From;
-        clSave_Client_Files_To   := fdSave_Client_Files_To;
+
+     if fdAccounting_System_Used = asNone then
+     begin
+       // Use the super defaults
+       clAccounting_System_Used := fdSuperfund_System;
+       clAccount_Code_Mask      := fdSuperfund_Code_Mask;
+       clLoad_Client_Files_From := fdLoad_Client_Super_Files_From;
+       clSave_Client_Files_To   := fdSave_Client_Super_Files_To;
+     end
+     else
+     begin
+       clAccounting_System_Used := fdAccounting_System_Used;
+       clAccount_Code_Mask      := fdAccount_Code_Mask;
+       clLoad_Client_Files_From := fdLoad_Client_Files_From;
+       clSave_Client_Files_To   := fdSave_Client_Files_To;
      end;
+
      clTemp_FRS_Job_To_Use              := AdminSystem.fdFields.fdBulk_Export_Code; // Use as temp Var
      clTemp_FRS_From_Date               := 0;// Use as temp Var
      clTax_Interface_Used               := fdTax_Interface_Used;
@@ -714,6 +719,8 @@ begin
 
      //Set country for client audit
      MyClient.ClientAuditMgr.Country := clCountry;
+     MyClient.clTPR_Payee_Detail.As_pRec.prUsePracticeTPRSupplierDetails := true;
+     MyClient.clTPR_Payee_Detail.As_pRec.prFirstTimeTPRATOExtractDone := true;
 
      {matches client file to this admin system - VERY IMPORTANT}
      clMagic_Number                     := fdMagic_Number;

@@ -1,12 +1,16 @@
 unit RptContractorPayee;
 
+//------------------------------------------------------------------------------
 interface
 
 uses
-   ReportDefs, UBatchBase;
+  ReportDefs,
+  UBatchBase;
 
+//------------------------------------------------------------------------------
 procedure DoTaxablePaymentsReport(Destination : TReportDest; RptBatch :TReportBase = nil);
 
+//------------------------------------------------------------------------------
 implementation
 
 uses
@@ -22,23 +26,48 @@ uses
   NewReportUtils,
   bkDateUtils,
   PayeeLookupFrm,
-  TaxablePaymentsRptDlg, MoneyDef,
+  TaxablePaymentsRptDlg,
+  MoneyDef,
   RptParams,
-  PayeeObj, clObj32, balist32, trxList32, bkbaio, bktxio, bkdsio, stdate, bkconst,
+  PayeeObj,
+  clObj32,
+  balist32,
+  trxList32,
+  bkbaio,
+  bktxio,
+  bkdsio,
+  stdate,
+  bkconst,
   GSTCalc32,
   ForexHelpers,
   UserReportSettings,
   Graphics,
-  Variants;
+  Variants,
+  ATOFixedWidthFileExtract,
+  CountryUtils,
+  WebUtils,
+  BaUtils,
+  DateUtils,
+  ATOExportMandatoryDataDlg,
+  LogUtil,
+  InfoMoreFrm,
+  YesNoDlg;
+
+const
+  UnitName = 'RptContractorPayee';
 
 type
+  //----------------------------------------------------------------------------
   TTaxablePaymentsReport = class(TBKReport)
+  protected
+    function ValidateATOMandatoryData() : boolean;
   public
     params : TPayeeParameters;
-
+    procedure DoATOExtractCode(aFileName : string);
     function ShowPayeeOnReport( aPayeeNo : integer) : boolean;
   end;
 
+  //----------------------------------------------------------------------------
   PPayeeData = ^TPayeeData;
   TPayeeData = record
     Payee: TPayee;
@@ -47,6 +76,7 @@ type
     GrossAmount: Money;
   end;
 
+//------------------------------------------------------------------------------
 function FindABNAccountCode: String;
 var
   Index: Integer;
@@ -57,19 +87,21 @@ begin
     begin
       Result := MyClient.clFields.clBAS_Field_Account_Code[Index];
 
-      Break; 
+      Break;
     end;
   end;
 end;
-  
+
+//------------------------------------------------------------------------------
 procedure SumPayeeTotals(Params: TPayeeParameters; var PayeeDataList: array of TPayeeData);
 
+  //----------------------------------------------------------------------------
   function GetPayeeData(PayeeNumber: Integer): PPayeeData;
   var
     Index: Integer;
   begin
     Result := nil;
-    
+
     for Index := 0 to Length(PayeeDataList) - 1 do
     begin
       if PayeeDataList[Index].Payee.pdNumber = PayeeNumber then
@@ -126,7 +158,7 @@ begin
               end;
 
               Dissection := Dissection^.dsNext;
-            end;          
+            end;
           end
           else
           begin
@@ -142,7 +174,7 @@ begin
               begin
                 PayeeData.GrossAmount := PayeeData.GrossAmount + Transaction^.Local_Amount;
               end;
-            end;          
+            end;
           end;
         end
         else
@@ -157,7 +189,7 @@ begin
               if (Dissection^.dsPayee_Number <> 0 ) then
               begin
                 PayeeData := GetPayeeData(Dissection^.dsPayee_Number);
-                
+
                 if Assigned(PayeeData) then
                 begin
                   PayeeData.TotalGST := PayeeData.TotalGST + Dissection^.dsGST_Amount;
@@ -174,18 +206,21 @@ begin
               end;
 
               Dissection := Dissection^.dsNext;
-            end;          
-          end;        
+            end;
+          end;
         end;
       end;
     end;
   end; //with transaction^
 end;
 
+//------------------------------------------------------------------------------
 procedure DetailedTaxablePaymentsDetail(Sender : TObject);
 
+  //----------------------------------------------------------------------------
   procedure RenderPayeeTransactions(Payee: TPayee);
-    
+
+    //--------------------------------------------------------------------------
     function SumABN(Transaction: pTransaction_Rec; ABNAccountCode: String): Money;
     var
       Dissection: pDissection_Rec;
@@ -208,6 +243,7 @@ procedure DetailedTaxablePaymentsDetail(Sender : TObject);
       end;
     end;
 
+    //--------------------------------------------------------------------------
     procedure WrapNarration(Notes: string);
     const
       NARRATION_COLUMN = 3;
@@ -437,7 +473,7 @@ begin
     //see if this payee should be included on the report
     for Index := 0 to MyClient.clPayee_List.ItemCount - 1 do
     begin  
-      Payee := MyClient.clPayee_List.Payee_At(Index); 
+      Payee := MyClient.clPayee_List.Payee_At(Index);
 
       if Payee.pdFields.pdContractor and ShowPayeeOnReport(Payee.pdFields.pdNumber) then
       begin
@@ -453,6 +489,7 @@ begin
   end; 
 end;
 
+//------------------------------------------------------------------------------
 procedure WriteColumnValue(Report: TBKReport; ColumnId: Integer; Value: Variant);
 begin
   {Column < then 7 are all text columns.  The remaining are money columns}
@@ -466,6 +503,7 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 procedure TaxablePaymentsDetail(Sender : TObject);
 var
   i,b,t : LongInt;
@@ -484,7 +522,7 @@ Begin
       PayeeDataList[Index].Payee := MyClient.clPayee_List.Payee_At(Index);
       PayeeDataList[Index].NoABNWithholdingTax := 0;
       PayeeDataList[Index].TotalGST := 0;
-      PayeeDataList[Index].GrossAmount := 0; 
+      PayeeDataList[Index].GrossAmount := 0;
     end;
 
     SumPayeeTotals(Params, PayeeDataList);
@@ -522,6 +560,7 @@ Begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 procedure GenerateDetailedTaxablePaymentsReport(Dest: TReportDest; Job: TTaxablePaymentsReport);
 var
   CLeft : Double;
@@ -557,6 +596,7 @@ begin
   Job.Generate(Dest,Job.params);
 end;
 
+//------------------------------------------------------------------------------
 procedure GenerateSummaryTaxablePaymentsReport(Dest: TReportDest; Job: TTaxablePaymentsReport);
 var
   CLeft : Double;
@@ -596,11 +636,13 @@ begin
   Job.Generate(Dest,Job.params);
 end;
 
+//------------------------------------------------------------------------------
 procedure DoTaxablePaymentsReport(Destination : TReportDest; RptBatch: TReportBase = nil);
 var
-   Job   : TTaxablePaymentsReport;
-   Params : TPayeeParameters;
-   ISOCodes: string;
+  Job      : TTaxablePaymentsReport;
+  Params   : TPayeeParameters;
+  ISOCodes : string;
+  ATODefaultFileName : string;
 begin
  //set defaults
 
@@ -639,9 +681,18 @@ begin
 
         Job := TTaxablePaymentsReport.Create(rptOther);
         try
+          Params.CustomFileFormats.Clear;
+
+          if Assigned(AdminSystem) then
+          begin
+            ATODefaultFileName := 'TPAR_' + MyClient.clFields.clCode + '_' +
+                                  Date2Str(GetYearEndDate(MyClient.clFields.clReport_Start_Date), 'dd-mm-yyyy');
+            Params.CustomFileFormats.AddCustomFormat('ATO Extract','ATO Extact File (C01)',ATODefaultFileName,'.C01',Job.DoATOExtractCode, true);
+          end;
+
           //set parameters
           Job.Params := Params;
-                 
+
           if SummaryReport then
           begin
             GenerateSummaryTaxablePaymentsReport(Destination, Job);
@@ -661,8 +712,271 @@ begin
     end;
   end;
 end;
-{ TTaxablePaymentsReport }
 
+//------------------------------------------------------------------------------
+function TTaxablePaymentsReport.ValidateATOMandatoryData(): boolean;
+var
+  ErrorStrings : TArrOfStr;
+  PayerABN : string;
+  PayerBranch : string;
+  PayeeIndex : integer;
+  Payee : TPayee;
+
+  //----------------------------------------------------------------------------
+  procedure AddError(aError : string);
+  begin
+    SetLength(ErrorStrings, Length(ErrorStrings) + 1);
+    ErrorStrings[High(ErrorStrings)] := aError;
+  end;
+
+begin
+  SetLength(ErrorStrings,0);
+
+  // Supplier Data
+  if (Length(AdminSystem.TPR_Supplier_Detail.As_pRec.srABN) < 11) then
+    AddError('Supplier {ABN Number} from System | Practice Details | TPR Supplier Details');
+
+  if (Length(AdminSystem.fdFields.fdPractice_Name_for_Reports) = 0) then
+    AddError('Supplier {Name} from System | Practice Details | Details');
+
+  if (Length(AdminSystem.TPR_Supplier_Detail.As_pRec.srContactName) = 0) then
+    AddError('Supplier {Contact Name} from Other Functions | Client Details | TPR Payer Details');
+
+  if (Length(AdminSystem.TPR_Supplier_Detail.As_pRec.srContactPhone) = 0) then
+    AddError('Supplier {Contact Phone} from Other Functions | Client Details | TPR Payer Details');
+
+  if (Length(AdminSystem.TPR_Supplier_Detail.As_pRec.srStreetAddress1) = 0) then
+    AddError('Supplier {Street Address} from System | Practice Details | TPR Supplier Details');
+
+  if (Length(AdminSystem.TPR_Supplier_Detail.As_pRec.srSuburb) = 0) then
+    AddError('Supplier {Town/Suburb} from System | Practice Details | TPR Supplier Details');
+
+  if (AdminSystem.TPR_Supplier_Detail.As_pRec.srStateId < MAX_STATE) and
+     (Length(AdminSystem.TPR_Supplier_Detail.As_pRec.srPostCode) = 0) then
+    AddError('Supplier {Postcode} from System | Practice Details | TPR Supplier Details');
+
+  if (AdminSystem.TPR_Supplier_Detail.As_pRec.srStateId = MAX_STATE) and
+     (Length(AdminSystem.TPR_Supplier_Detail.As_pRec.srCountry) = 0) then
+    AddError('Supplier {Country} from System | Practice Details | TPR Supplier Details');
+
+  // Payer Data
+  SplitABNandBranchFromGSTNumber(MyClient.clFields.clGST_Number,
+                                 PayerABN,
+                                 PayerBranch);
+  if (Length(PayerABN) < 11) then
+    AddError('Payer {Australian Business No} from Other Functions | GST Set Up | Details');
+
+  if (Length(MyClient.clFields.clName) = 0) then
+    AddError('Payer {Client Name} from Other Functions | Client Details');
+
+  if (Length(MyClient.clTPR_Payee_Detail.As_pRec.prAddressLine1) = 0) then
+    AddError('Payer {Street Address} from Other Functions | Client Details | TPR Payer Details');
+
+  if (Length(MyClient.clTPR_Payee_Detail.As_pRec.prSuburb) = 0) then
+    AddError('Payer {Town/Suburb} from Other Functions | Client Details | TPR Payer Details');
+
+  if (MyClient.clTPR_Payee_Detail.As_pRec.prStateId < MAX_STATE) and
+     (Length(MyClient.clTPR_Payee_Detail.As_pRec.prPostCode) = 0) then
+    AddError('Payer {Postcode} from Other Functions | Client Details | TPR Payer Details');
+
+  if (MyClient.clTPR_Payee_Detail.As_pRec.prStateId = MAX_STATE) and
+     (Length(MyClient.clTPR_Payee_Detail.As_pRec.prCountry) = 0) then
+    AddError('Payer {Country} from Other Functions | Client Details | TPR Payer Details');
+
+  // Payee Data
+  for PayeeIndex := 0 to MyClient.clPayee_List.ItemCount - 1 do
+  begin
+    Payee := MyClient.clPayee_List.Payee_At(PayeeIndex);
+
+    if (not Payee.pdFields.pdIsIndividual) and
+       (Length(Payee.pdFields.pdBusinessName) = 0) then
+      AddError('Payee No.' + inttostr(Payee.pdFields.pdNumber) + ': {Business Name} from Other Functions | Payees');
+
+    if (Payee.pdFields.pdIsIndividual) and
+       (Length(Payee.pdFields.pdGiven_Name) = 0) then
+      AddError('Payee No.' + inttostr(Payee.pdFields.pdNumber) + ': {Given Name} from Other Functions | Payees');
+
+    if (Payee.pdFields.pdIsIndividual) and
+       (Length(Payee.pdFields.pdSurname) = 0) then
+      AddError('Payee No.' + inttostr(Payee.pdFields.pdNumber) + ': {Surname} from Other Functions | Payees');
+
+    if (Length(Payee.pdFields.pdAddress) = 0) then
+      AddError('Payee No.' + inttostr(Payee.pdFields.pdNumber) + ': {Address} from Other Functions | Payees');
+
+    if (Length(Payee.pdFields.pdTown) = 0) then
+      AddError('Payee No.' + inttostr(Payee.pdFields.pdNumber) + ': {Town} from Other Functions | Payees');
+
+    if (Payee.pdFields.pdStateId < MAX_STATE) and
+       (Length(Payee.pdFields.pdPost_Code) = 0) then
+      AddError('Payee No.' + inttostr(Payee.pdFields.pdNumber) + ': {Postcode} from Other Functions | Payees');
+
+    if (Payee.pdFields.pdStateId = MAX_STATE) and
+       (Payee.pdFields.pdCountry = '') then
+      AddError('Payee No.' + inttostr(Payee.pdFields.pdNumber) + ': {Country} from Other Functions | Payees');
+  end;
+
+  Result := (Length(ErrorStrings) = 0);
+  if not Result then
+    ShowATOWarnings(ErrorStrings);
+end;
+
+//------------------------------------------------------------------------------
+procedure TTaxablePaymentsReport.DoATOExtractCode(aFileName : string);
+Const
+  RUN_TYPE = 'T';
+  ThisMethodName = 'DoATOExtractCode';
+var
+  ATOExtract : TATOFixedWidthFileExtract;
+  PayeeIndex : integer;
+  Payee : TPayee;
+  SupplierStateCode : string;
+  SupplierStateDesc : string;
+  PayerABN : string;
+  PayerBranch : string;
+  PayerStateCode : string;
+  PayerStateDesc : string;
+  EndOfReportDate : TDateTime;
+  PayeeDataList: array of TPayeeData;
+  PayerContactName : string;
+  PayerContactPhone : string;
+  PayerContactEmail : string;
+  Msg : string;
+  PayeeAmendmentIndicator : char;
+begin
+  ATOExtract := TATOFixedWidthFileExtract.create();
+  try
+    if not ValidateATOMandatoryData() then
+      Exit;
+
+    PayeeAmendmentIndicator := 'O';
+    if not MyClient.clTPR_Payee_Detail.As_pRec.prFirstTimeTPRATOExtractDone then
+    begin
+      if AskYesNo('ATO Extract', 'Has the extract already been sent to the ATO?', DLG_NO, 0) = DLG_YES then
+        PayeeAmendmentIndicator := 'A';
+    end;
+
+    ATOExtract.OpenATOFile(aFileName);
+    try
+      // Pre Calculated Values
+      //------------------------------------------------------------------------
+      EndOfReportDate := StDateToDateTime(Params.ToDate);
+      GetAustraliaStateFromIndex(AdminSystem.TPR_Supplier_Detail.As_pRec.srStateId,
+                                 SupplierStateCode,
+                                 SupplierStateDesc);
+      SplitABNandBranchFromGSTNumber(MyClient.clFields.clGST_Number,
+                                     PayerABN,
+                                     PayerBranch);
+      GetAustraliaStateFromIndex(MyClient.clTPR_Payee_Detail.As_pRec.prStateId,
+                                 PayerStateCode,
+                                 PayerStateDesc);
+      // Work Out Totals for Payees
+      SetLength(PayeeDataList, MyClient.clPayee_List.ItemCount);
+      for PayeeIndex := 0 to MyClient.clPayee_List.ItemCount - 1 do
+      begin
+        PayeeDataList[PayeeIndex].Payee := MyClient.clPayee_List.Payee_At(PayeeIndex);
+        PayeeDataList[PayeeIndex].NoABNWithholdingTax := 0;
+        PayeeDataList[PayeeIndex].TotalGST := 0;
+        PayeeDataList[PayeeIndex].GrossAmount := 0;
+      end;
+      SumPayeeTotals(Params, PayeeDataList);
+
+      if MyClient.clTPR_Payee_Detail.As_pRec.prUsePracticeTPRSupplierDetails then
+      begin
+        PayerContactName  := AdminSystem.TPR_Supplier_Detail.As_pRec.srContactName;
+        PayerContactPhone := AdminSystem.TPR_Supplier_Detail.As_pRec.srContactPhone;
+        PayerContactEmail := AdminSystem.fdFields.fdPractice_EMail_Address;
+      end
+      else
+      begin
+        PayerContactName  := MyClient.clFields.clContact_Name;
+        PayerContactPhone := MyClient.clFields.clPhone_No;
+        PayerContactEmail := MyClient.clFields.clCustom_Contact_EMail_Address;
+      end;
+
+      // Report Data Write
+      //------------------------------------------------------------------------
+      ATOExtract.WriteSupplierDataRecord1(AdminSystem.TPR_Supplier_Detail.As_pRec.srABN,
+                                          RUN_TYPE,
+                                          EndOfReportDate);
+      ATOExtract.WriteSupplierDataRecord2(AdminSystem.fdFields.fdPractice_Name_for_Reports,
+                                          AdminSystem.TPR_Supplier_Detail.As_pRec.srContactName,
+                                          AdminSystem.TPR_Supplier_Detail.As_pRec.srContactPhone,
+                                          '', // Supplier fax number not used
+                                          AdminSystem.fdFields.fdBankLink_Code);
+      ATOExtract.WriteSupplierDataRecord3(AdminSystem.TPR_Supplier_Detail.As_pRec.srStreetAddress1,
+                                          AdminSystem.TPR_Supplier_Detail.As_pRec.srStreetAddress2,
+                                          AdminSystem.TPR_Supplier_Detail.As_pRec.srSuburb,
+                                          SupplierStateCode,
+                                          AdminSystem.TPR_Supplier_Detail.As_pRec.srPostCode,
+                                          CountryText(AdminSystem.fdFields.fdCountry),
+                                          '',  // Supplier Postal Address not used
+                                          '',  //      |
+                                          '',  //      |
+                                          '',  //      |
+                                          '',  //    \ |/
+                                          '',  //     \/
+                                          AdminSystem.fdFields.fdPractice_EMail_Address);
+      ATOExtract.WritePayerIdentityDataRecord(PayerABN,
+                                              PayerBranch,
+                                              YearOf(EndOfReportDate),
+                                              MyClient.clFields.clName,
+                                              MyClient.clTPR_Payee_Detail.As_pRec.prTradingName,
+                                              MyClient.clTPR_Payee_Detail.As_pRec.prAddressLine1,
+                                              MyClient.clTPR_Payee_Detail.As_pRec.prAddressLine2,
+                                              MyClient.clTPR_Payee_Detail.As_pRec.prSuburb,
+                                              PayerStateCode,
+                                              MyClient.clTPR_Payee_Detail.As_pRec.prPostCode,
+                                              MyClient.clTPR_Payee_Detail.As_pRec.prCountry,
+                                              PayerContactName,
+                                              PayerContactPhone,
+                                              MyClient.clFields.clFax_No,
+                                              PayerContactEmail);
+      ATOExtract.WriteSoftwareDataRecord(BRAND_FULL_PRACTICE);
+
+      for PayeeIndex := 0 to MyClient.clPayee_List.ItemCount - 1 do
+      begin
+        Payee := MyClient.clPayee_List.Payee_At(PayeeIndex);
+
+        // only process contractor payees
+        if not Payee.pdFields.pdContractor then
+          continue;
+
+        ATOExtract.WritePayeeDataRecord(Payee.pdFields.pdABN,
+                                        Payee.pdFields.pdSurname,
+                                        Payee.pdFields.pdGiven_Name,
+                                        Payee.pdFields.pdOther_Name,
+                                        Payee.pdFields.pdBusinessName,
+                                        Payee.pdFields.pdTradingName,
+                                        Payee.pdFields.pdAddress,
+                                        Payee.pdFields.pdAddressLine2,
+                                        Payee.pdFields.pdTown,
+                                        Payee.pdFields.pdState,
+                                        Payee.pdFields.pdPost_Code,
+                                        Payee.pdFields.pdCountry,
+                                        Payee.pdFields.pdPhone_Number,
+                                        Payee.pdFields.pdInstitutionBSB,
+                                        Payee.pdFields.pdInstitutionAccountNumber,
+                                        trunc(PayeeDataList[PayeeIndex].GrossAmount),
+                                        trunc(PayeeDataList[PayeeIndex].NoABNWithholdingTax),
+                                        trunc(PayeeDataList[PayeeIndex].TotalGST),
+                                        PayeeAmendmentIndicator);
+      end;
+
+      ATOExtract.WriteFileTotalDataRecord;
+    finally
+      ATOExtract.CloseATOFile();
+    end;
+  finally
+    FreeAndNil(ATOExtract);
+  end;
+
+  MyClient.clTPR_Payee_Detail.As_pRec.prFirstTimeTPRATOExtractDone := false;
+  Msg := SysUtils.Format( 'ATO extract saved to ''%s''.',[ aFileName ] );
+  LogUtil.LogMsg(lmInfo, UnitName, ThisMethodName + ' : ' + Msg );
+  HelpfulInfoMsg( Msg, 0 );
+end;
+
+//------------------------------------------------------------------------------
 function TTaxablePaymentsReport.ShowPayeeOnReport(aPayeeNo: integer): boolean;
 var
   i : integer;

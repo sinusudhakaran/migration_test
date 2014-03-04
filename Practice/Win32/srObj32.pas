@@ -63,6 +63,8 @@ const
 begin
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins');
 
+  S.WriteToken(tkBeginSystem_TPR_Supplier_Detail);
+
   Write_TPR_Supplier_Detail_Rec(srFields, S);
   S.WriteToken(tkEndSection);
 

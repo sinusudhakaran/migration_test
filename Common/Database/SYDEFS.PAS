@@ -9,7 +9,7 @@ Interface uses MONEYDEF, DATEDEF;
 {  -------------------------------------------------------------------  }
 
 Const
-   SY_IOLIB_Version : Integer = 119;
+   SY_IOLIB_Version : Integer = 122;
    SY_IOLIB_Date    = '27/02/14';
    SY_FILE_VERSION   = 133;  (* Current Version counter for files
                               Changes if structure or method of storing a value would cause
@@ -588,7 +588,7 @@ Type
 
    tTPR_Supplier_Detail_Rec = Packed Record
       srRecord_Type                      : Byte;
-      srABN                              : Integer;       { Stored }
+      srABN                              : String[ 11 ];       { Stored }
       srContactName                      : String[ 38 ];       { Stored }
       srContactPhone                     : String[ 15 ];       { Stored }
       srStreetAddress1                   : String[ 38 ];       { Stored }
@@ -596,6 +596,7 @@ Type
       srSuburb                           : String[ 27 ];       { Stored }
       srStateId                          : Integer;       { Stored }
       srCountry                          : String[ 20 ];       { Stored }
+      srPostCode                         : String[ 4 ];       { Stored }
       srEOR                              : Byte;
    end;
 

@@ -30,16 +30,6 @@ type
 
 type
   TdlgPayeeDetail = class(TForm)
-    memController: TOvcController;
-    pnlMain: TPanel;
-    tblSplit: TOvcTable;
-    Header: TOvcTCColHead;
-    ColAmount: TOvcTCNumericField;
-    ColDesc: TOvcTCString;
-    ColAcct: TOvcTCString;
-    ColGSTCode: TOvcTCString;
-    colNarration: TOvcTCString;
-    colLineType: TOvcTCComboBox;
     Panel3: TPanel;
     btnOK: TButton;
     btnCancel: TButton;
@@ -50,47 +40,72 @@ type
     lblRemPerc: TLabel;
     lblTotalPerc: TLabel;
     lblFixed: TLabel;
+    sBar: TStatusBar;
+    PageControl1: TPageControl;
+    tsPayeeDetails: TTabSheet;
+    tsContractorDetails: TTabSheet;
+    pnlMain: TPanel;
+    tblSplit: TOvcTable;
     Panel2: TPanel;
     sbtnChart: TSpeedButton;
-    pnlHeader: TPanel;
-    Label2: TLabel;
-    nPayeeNo: TOvcNumericField;
-    eName: TEdit;
-    Label1: TLabel;
-    sBar: TStatusBar;
+    sbtnSuper: TSpeedButton;
+    Header: TOvcTCColHead;
+    ColAcct: TOvcTCString;
+    ColDesc: TOvcTCString;
+    colNarration: TOvcTCString;
+    ColGSTCode: TOvcTCString;
+    colLineType: TOvcTCComboBox;
     popPayee: TPopupMenu;
     LookupChart1: TMenuItem;
     LookupGSTClass1: TMenuItem;
     Sep1: TMenuItem;
     FixedAmount1: TMenuItem;
     PercentageofTotal1: TMenuItem;
+    AmountApplyRemainingAmount1: TMenuItem;
     Sep2: TMenuItem;
     CopyContentoftheCellAbove1: TMenuItem;
-    AmountApplyRemainingAmount1: TMenuItem;
     colPercent: TOvcTCNumericField;
-    sbtnSuper: TSpeedButton;
-    pnlPayeeName: TPanel;
-    Label3: TLabel;
-    edtPayeeSurname: TEdit;
-    edtPayeeGivenName: TEdit;
-    Label4: TLabel;
-    Label5: TLabel;
-    edtOtherName: TEdit;
-    pnlPayeeAddress: TPanel;
-    edtPostcode: TEdit;
-    Label6: TLabel;
-    Label7: TLabel;
-    edtAddress: TEdit;
-    Label8: TLabel;
-    Label9: TLabel;
-    Label10: TLabel;
-    edtState: TEdit;
-    edtTown: TEdit;
+    ColAmount: TOvcTCNumericField;
+    memController: TOvcController;
+    pnlPayeeDetails: TPanel;
+    Label2: TLabel;
+    nPayeeNo: TOvcNumericField;
     chkContractorPayee: TCheckBox;
-    pnlPayeeABN: TPanel;
-    Label11: TLabel;
-    edtABN: TMaskEdit;
+    Label1: TLabel;
+    eName: TEdit;
+    grpContractorType: TGroupBox;
+    grpStreetAddress: TGroupBox;
+    lblPayeeSurname: TLabel;
+    edtPayeeSurname: TEdit;
+    lblGivenName: TLabel;
+    edtPayeeGivenName: TEdit;
+    lblSecondGivenName: TLabel;
+    edtSecondGivenName: TEdit;
+    radIndividual: TRadioButton;
+    radBusiness: TRadioButton;
+    lblBusinessName: TLabel;
+    edtBusinessName: TEdit;
+    edtTradingName: TEdit;
+    lblTradingName: TLabel;
+    cmbState: TComboBox;
+    edtPostCode: TEdit;
+    edtStreetAddressLine1: TEdit;
+    edtStreetAddressLine2: TEdit;
+    edtSuburb: TEdit;
+    edtSupplierCountry: TEdit;
+    lblPostCode: TLabel;
+    lblState: TLabel;
+    lblStreetAddress: TLabel;
+    lblSuburb: TLabel;
+    lblSupplierCountry: TLabel;
+    lblPhoneNumber: TLabel;
     edtPhoneNumber: TEdit;
+    lblABN: TLabel;
+    mskABN: TMaskEdit;
+    lblBankAccount: TLabel;
+    Label7: TLabel;
+    edtBankBSB: TEdit;
+    edtBankAccount: TEdit;
 
     procedure tblSplitActiveCellMoving(Sender: TObject; Command: Word;
       var RowNum, ColNum: Integer);
@@ -142,8 +157,15 @@ type
     procedure ColAcctExit(Sender: TObject);
     procedure sbtnSuperClick(Sender: TObject);
     procedure edtPhoneNumberKeyPress(Sender: TObject; var Key: Char);
+    procedure cmbStateChange(Sender: TObject);
+    procedure FormActivate(Sender: TObject);
+    procedure radBusinessClick(Sender: TObject);
+    procedure radIndividualClick(Sender: TObject);
+    procedure edtPostCodeKeyPress(Sender: TObject; var Key: Char);
+    procedure mskABNClick(Sender: TObject);
   private
     { Private declarations }
+    fLoading : boolean;
     OKPressed     : boolean;
     AltLineColor  : integer;
     EditMode      : boolean;
@@ -173,6 +195,7 @@ type
     procedure ShowPopUp( x, y : Integer; PopMenu :TPopUpMenu );
     procedure SetupForAustralia;
     function ValidateForAustralia: Boolean;
+    procedure SetIndividualBusinessControls(aIsIndividual : boolean);
   public
     { Public declarations }
     function Execute(AddContractorPayee: Boolean = False) : boolean;
@@ -209,7 +232,9 @@ uses
   Software,
   AuditMgr,
   warningMorefrm,
-  Clipbrd;
+  Clipbrd,
+  bautils,
+  countryutils;
 
 {$R *.DFM}
 
@@ -242,6 +267,16 @@ var
    DebugMe : boolean = false;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+procedure TdlgPayeeDetail.FormActivate(Sender: TObject);
+begin
+  fLoading := true;
+  try
+    cmbStateChange(Sender);
+  finally
+    fLoading := false;
+  end;
+end;
+
 procedure TdlgPayeeDetail.FormCreate(Sender: TObject);
 var
   w, i : integer;
@@ -328,20 +363,39 @@ begin
   LookupGSTClass1.Caption := 'Lookup &' + FTaxName + ' class                                F7';
   SetUpHelp;
 end;
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TdlgPayeeDetail.FormShow(Sender: TObject);
 begin
-
+  
 end;
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+procedure TdlgPayeeDetail.SetIndividualBusinessControls(aIsIndividual: boolean);
+begin
+  lblPayeeSurname.Enabled    := aIsIndividual;
+  lblGivenName.Enabled       := aIsIndividual;
+  lblSecondGivenName.Enabled := aIsIndividual;
+  lblBusinessName.Enabled    := not aIsIndividual;
+  lblTradingName.Enabled     := not aIsIndividual;
+
+  edtPayeeSurname.Enabled    := aIsIndividual;
+  edtPayeeGivenName.Enabled  := aIsIndividual;
+  edtSecondGivenName.Enabled := aIsIndividual;
+  edtBusinessName.Enabled    := not aIsIndividual;
+  edtTradingName.Enabled     := not aIsIndividual;
+
+  edtPayeeSurname.Text    := '';
+  edtPayeeGivenName.Text  := '';
+  edtSecondGivenName.Text := '';
+  edtBusinessName.Text    := '';
+  edtTradingName.Text     := '';
+end;
+
 procedure TdlgPayeeDetail.SetupForAustralia;
 begin
-  chkContractorPayee.Visible := True;
-  pnlPayeeName.Visible := True;
-  pnlPayeeAddress.Visible := True;
-  pnlPayeeABN.Visible := True;
-
-  Self.Constraints.MinWidth := 1099;
+  chkContractorPayee.Visible := Assigned(Adminsystem);
+  tsContractorDetails.Visible := Assigned(Adminsystem);
 end;
 
 procedure TdlgPayeeDetail.SetUpHelp;
@@ -364,21 +418,25 @@ begin
                     'Enter the given name for this Payee.|'+
                     'Enter the given name for this Payee.';
 
-   edtOtherName.Hint       :=
+   edtSecondGivenName.Hint       :=
                     'Enter any other name for this Payee.|'+
                     'Enter any other name for this Payee.';
 
-   edtAddress.Hint       :=
+   edtStreetAddressLine1.Hint       :=
                     'Enter the address for this Payee.|'+
                     'Enter the address for this Payee.';
 
-   edtTown.Hint       :=
+   edtStreetAddressLine2.Hint       :=
+                    'Enter the address for this Payee.|'+
+                    'Enter the address for this Payee.';
+
+   edtSuburb.Hint       :=
                     'Enter the town for this Payee.|'+
                     'Enter the town for this Payee.';
 
-   edtState.Hint       :=
-                    'Enter the state for this Payee.|'+
-                    'Enter the state for this Payee.';
+   cmbState.Hint       :=
+                    'Select the state for this Payee.|'+
+                    'Select the state for this Payee.';
 
    edtPostCode.Hint       :=
                     'Enter the post code for this Payee.|'+
@@ -388,7 +446,7 @@ begin
                     'Enter the phone number for this Payee.|'+
                     'Enter the phone number for this Payee.';
 
-   edtABN.Hint       :=
+   mskABN.Hint       :=
                      'Enter the ABN for this Payee.|' +
                      'Enter the Australian Business Number for this Payee.';
 
@@ -415,12 +473,14 @@ begin
    okPressed := false;
    close;
 end;
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TdlgPayeeDetail.tblSplitEnter(Sender: TObject);
 begin
   btnOk.Default := false;
   btnCancel.Cancel := false;
 end;
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TdlgPayeeDetail.tblSplitExit(Sender: TObject);
 var
@@ -436,6 +496,7 @@ begin
    btnOK.Default := true;
    btnCancel.Cancel := true;
 end;
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TdlgPayeeDetail.tblSplitGetCellData(Sender: TObject; RowNum,
   ColNum: Integer; var Data: Pointer; Purpose: TOvcCellDataPurpose);
@@ -475,8 +536,8 @@ begin
     TypeCol:
       data := @SplitData[RowNum].LineType;
   end;
-
 end;
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TdlgPayeeDetail.tblSplitBeginEdit(Sender: TObject; RowNum,
   ColNum: Integer; var AllowIt: Boolean);
@@ -834,6 +895,25 @@ begin
 
   RemainingPerc   := Double2Percent(100.0) - TotalPerc;
 end;
+
+procedure TdlgPayeeDetail.cmbStateChange(Sender: TObject);
+begin
+  if ((lblSupplierCountry.Visible) and not (cmbState.ItemIndex = MAX_STATE)) or
+     (not (lblSupplierCountry.Visible) and (cmbState.ItemIndex = MAX_STATE)) then
+  begin
+    if not fLoading then
+    begin
+      edtPostCode.text := '';
+      edtSupplierCountry.text := '';
+    end;
+  end;
+
+  lblSupplierCountry.Visible := (cmbState.ItemIndex = MAX_STATE);
+  edtSupplierCountry.Visible := (cmbState.ItemIndex = MAX_STATE);
+  lblPostCode.Visible := not (cmbState.ItemIndex = MAX_STATE);
+  edtPostCode.Visible := not (cmbState.ItemIndex = MAX_STATE);
+end;
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TdlgPayeeDetail.UpdateTotal;
 var
@@ -876,6 +956,7 @@ function TdlgPayeeDetail.ValidateForAustralia: Boolean;
     begin
       HelpfulWarningMsg(MessageText , 0);
 
+      tsContractorDetails.Show;
       Field.SetFocus;
 
       Result := False;
@@ -892,58 +973,15 @@ function TdlgPayeeDetail.ValidateForAustralia: Boolean;
   end;
 
   function ValidateRequiredFields: Boolean;
-  begin  
+  begin
     Result := False;
 
-    if not ValidateRequiredEditField(edtAddress, 'an Address') then Exit;
-    if not ValidateRequiredEditField(edtTown, 'a Town') then Exit;
-    if not ValidateRequiredEditField(edtState, 'a State') then Exit;
+    if not ValidateRequiredEditField(edtStreetAddressLine1, 'an Address') then Exit;
+    if not ValidateRequiredEditField(edtSuburb, 'a Town') then Exit;
     if not ValidateRequiredEditField(edtPostCode, 'a Postcode') then Exit;
     if not ValidateRequiredEditField(edtPhoneNumber, 'a Phone Number') then Exit;
 
     Result := True;
-  end;
-
-  function ValidateABN(ABN: String): Boolean;
-  {
-    To verify an ABN  ( From ATO Document)
-
-    1)  Subtract 1 from the first left digit to give a new eleven digit number
-    2)  Multiply each of the digits in this new number by its weighting factor
-    3)  Sum the resulting 11 products
-    4)  Divide the total by 89
-    5)  if the remainder is zero then number is valid
-  }
-  const
-     Weighting : Array [ 1..11] of integer = ( 10, 1, 3, 5, 7, 9, 11, 13, 15, 17, 19 );
-  var
-     ABN_Digits : Array[ 1..11] of integer;
-     Sum : integer;
-     i   : integer;
-
-  begin
-     result := false;
-     //check length
-     if Length( ABN) <> 11 then exit;
-
-     //check all char are numeric
-     if not (IsNumeric( ABN)) then exit;
-
-     //load string into digits
-     for i := 1 to 11 do begin
-        ABN_Digits[ i] := Ord( ABN[ i]) - 48;
-     end;
-     //subtract 1
-     Dec( ABN_Digits[ 1]);
-     //multiply and add
-     Sum := 0;
-     for i := 1 to 11 do begin
-        Sum := Sum + ( ABN_Digits[ i] * Weighting[ i]);
-     end;
-     //check the remainder is zero
-     if ( Sum mod 89) <> 0 then exit;
-
-     result := true;
   end;
 
 begin
@@ -954,9 +992,11 @@ begin
     if not ValidateRequiredFields then Exit;
   end;
 
-  if Trim(edtABN.Text) <> '' then
+  if Trim(mskABN.Text) <> '' then
   begin
-    if not ValidateField(edtABN, ValidateABN(edtABN.Text), 'Your Australian Business Number (ABN) is invalid.  Please re-enter it.') then Exit;
+    if not ValidateField(mskABN, ValidateABN(mskABN.Text),
+                         'Your Australian Business Number (ABN) is invalid.  Please re-enter it.') then
+      Exit;
   end;
 
   Result := True;
@@ -999,10 +1039,12 @@ begin
    //trim payee name
    eName.Text := Trim( eName.Text);
 
-   If ( nPayeeNo.AsInteger = 0 ) then begin
-      HelpfulInfoMsg( 'The payee number 0 can not be used!', 0 );
-      nPayeeNo.SetFocus;
-      exit;
+   If ( nPayeeNo.AsInteger = 0 ) then
+   begin
+     HelpfulInfoMsg( 'The payee number 0 can not be used!', 0 );
+     tsPayeeDetails.Show;
+     nPayeeNo.SetFocus;
+     exit;
    end;
 
    // NZ Only - No Analysis Coding in Australia
@@ -1015,9 +1057,11 @@ begin
 
       if AskYesNo('Payee Code Warning',
                   Format( S, [ nPayeeNo.AsInteger] ),
-                  DLG_YES,0 ) <> DLG_NO then begin
-         nPayeeNo.SetFocus;
-         exit;
+                  DLG_YES,0 ) <> DLG_NO then
+      begin
+        tsPayeeDetails.Show;
+        nPayeeNo.SetFocus;
+        exit;
       end;
    end;
 
@@ -1027,8 +1071,8 @@ begin
    CalcRemaining( Fixed, TotalPerc, RemainingPerc, HasDollarLines, HasPercentLines);
    if ( RemainingPerc <> 0) then
    begin
-      HelpfulErrorMsg( 'Remaining percentage is not zero!', 0 );
-      exit;
+     HelpfulErrorMsg( 'Remaining percentage is not zero!', 0 );
+     exit;
    end;
 
    //the first line of the payee can be blank as long as it is the only line
@@ -1075,12 +1119,12 @@ begin
      wasNumber := -1;
    end;
 
-
    With MyClient.clPayee_List do
    Begin
      If ( dNumber <> 0 ) and ( Find_Payee_Number( dNumber )<>nil ) and (dNumber <> wasNumber) then
      Begin
         HelpfulInfoMsg( 'The payee number '+inttostr( dNumber )+' has already been used.', 0 );
+        tsPayeeDetails.Show;
         nPayeeNo.SetFocus;
         exit;
      end;
@@ -1088,6 +1132,7 @@ begin
      If dName = '' then
      Begin
         HelpfulInfoMsg( 'You must enter a payee name', 0 );
+        tsPayeeDetails.Show;
         eName.SetFocus;
         exit;
      end;
@@ -1095,6 +1140,7 @@ begin
      If ( Find_Payee_Name( dName )<> nil ) and (dName <> wasName) then
      Begin
         HelpfulInfoMsg( 'The payee "'+dName+'" has already been entered.', 0 );
+        tsPayeeDetails.Show;
         eName.setFocus;
         exit;
      end;
@@ -1104,7 +1150,7 @@ begin
    begin
      if not ValidateForAustralia then Exit;
 
-     if chkContractorPayee.Checked and not ExistingPayeeContractor and (Trim(edtABN.Text) = '') then
+     if chkContractorPayee.Checked and not ExistingPayeeContractor and (Trim(mskABN.Text) = '') then
      begin
        HelpfulWarningMsg('The ABN is blank for this Contractor Payee. Please ensure that you have completed the below:' + #10#13#10#13 + 'Included a ''No ABN Withholding Tax'' account in the Contractor Payee setup.' + #10#13 + 'Included the ''No ABN Withholding Tax'' account in the W4 rule in GST set up.', 0);
      end;
@@ -1288,9 +1334,17 @@ var
   pAcct    : pAccount_Rec;
   DefaultDesktopSuperFund: integer;
   DefaultClassSuperFund: string;
+  CountryCode : string;
+  CountryDesc : string;
+  StateCodeWidth : integer;
+  SpaceWidth : integer;
+  SpaceString : string;
+  index : integer;
 begin
+   fLoading  := true;
    okPressed := false;
    EditMode  := false;
+   PageControl1.ActivePageIndex := 0;
 
    {set init values}
 
@@ -1332,27 +1386,52 @@ begin
    if MyClient.clFields.clCountry = whAustralia then
    begin
      SetupForAustralia;
-   end
-   else
-   begin
-     pnlHeader.Height := 84;
    end;
+
+   SpaceWidth := self.Canvas.TextWidth(' ');
+   for i := MIN_STATE to MAX_STATE do
+   begin
+     GetAustraliaStateFromIndex(i, CountryCode, CountryDesc);
+     StateCodeWidth := self.Canvas.TextWidth(CountryCode);
+
+     SpaceString := '';
+     for index := 0 to trunc((49 - StateCodeWidth) / SpaceWidth) do
+       SpaceString := SpaceString + ' ';
+
+     if i = MAX_STATE then
+       SpaceString := SpaceString + ' ';
+
+     cmbState.AddItem(CountryCode + SpaceString + CountryDesc, nil)
+   end;
+   SendMessage(cmbState.Handle, CB_SETDROPPEDWIDTH, 250, 0);
 
    if Assigned(Payee) then
    begin
      eName.Text := Payee.pdName;
      nPayeeNo.asInteger := Payee.pdNumber;
-
      chkContractorPayee.Checked := Payee.pdFields.pdContractor;
+
+     if Payee.pdFields.pdIsIndividual then
+       radIndividual.checked := true
+     else
+       radBusiness.checked := true;
+     SetIndividualBusinessControls(Payee.pdFields.pdIsIndividual);
+
      edtPayeeSurname.Text := Payee.pdFields.pdSurname;
      edtPayeeGivenName.Text := Payee.pdFields.pdGiven_Name;
-     edtOtherName.Text := Payee.pdFields.pdOther_Name;
-     edtAddress.Text := Payee.pdFields.pdAddress;
-     edtTown.Text := Payee.pdFields.pdTown;
-     edtState.Text := Payee.pdFields.pdState;
+     edtSecondGivenName.Text := Payee.pdFields.pdOther_Name;
+     edtBusinessName.Text := Payee.pdFields.pdBusinessName;
+     edtTradingName.Text := Payee.pdFields.pdTradingName;
+     edtStreetAddressLine1.Text := Payee.pdFields.pdAddress;
+     edtStreetAddressLine2.Text := Payee.pdFields.pdAddressLine2;
+     edtSuburb.Text := Payee.pdFields.pdTown;
+     cmbState.ItemIndex := Payee.pdFields.pdStateId;
      edtPostCode.Text := Payee.pdFields.pdPost_Code;
+     edtSupplierCountry.Text := Payee.pdFields.pdCountry;
      edtPhoneNumber.Text := Payee.pdFields.pdPhone_Number;
-     edtABN.Text := Payee.pdFields.pdABN;
+     mskABN.Text := Payee.pdFields.pdABN;
+     edtBankBsb.Text := Payee.pdFields.pdInstitutionBSB;
+     edtBankAccount.Text := Payee.pdFields.pdInstitutionAccountNumber;
 
      SplitIndex := 1;
      for i := Payee.pdLines.First to Payee.pdLines.Last do begin
@@ -1417,6 +1496,24 @@ begin
    end
    else
    begin
+     chkContractorPayee.Checked := false;
+     radIndividual.checked := true;
+     edtPayeeSurname.Text := '';
+     edtPayeeGivenName.Text := '';
+     edtSecondGivenName.Text := '';
+     edtBusinessName.Text := '';
+     edtTradingName.Text := '';
+     edtStreetAddressLine1.Text := '';
+     edtStreetAddressLine2.Text := '';
+     edtSuburb.Text := '';
+     cmbState.ItemIndex := 0;
+     edtPostCode.Text := '';
+     edtSupplierCountry.Text := '';
+     edtPhoneNumber.Text := '';
+     mskABN.Text := '';
+     edtBankBsb.Text := '';
+     edtBankAccount.Text := '';
+
      // user is adding a new payee so find the current highest number and inc
      NewPayee := 0;
      for i := MyClient.clPayee_List.First to MyClient.clPayee_List.Last do
@@ -1457,7 +1554,8 @@ begin
    begin
      ActiveControl := eName;
    end;
-   
+
+   fLoading  := false;
    ShowModal;
    result := okPressed;
 end;
@@ -1640,6 +1738,12 @@ begin
   end;
 end;
 
+procedure TdlgPayeeDetail.edtPostCodeKeyPress(Sender: TObject; var Key: Char);
+begin
+  if not (Key in ['0'..'9', Chr(VK_DELETE), Chr(VK_BACK)]) then
+    Key := chr(0);
+end;
+
 procedure TdlgPayeeDetail.eNameChange(Sender: TObject);
 var
    i : integer;
@@ -1682,17 +1786,23 @@ begin
     {save back values}
     aPayee.pdFields.pdNumber := nPayeeNo.AsInteger;
     aPayee.pdFields.pdName   := Trim( eName.Text);
-
     aPayee.pdFields.pdContractor := chkContractorPayee.Checked;
+    aPayee.pdFields.pdIsIndividual := (radIndividual.checked);
     aPayee.pdFields.pdSurname := edtPayeeSurname.Text;
     aPayee.pdFields.pdGiven_Name := edtPayeeGivenName.Text;
-    aPayee.pdFields.pdOther_Name := edtOtherName.Text;
-    aPayee.pdFields.pdAddress := edtAddress.Text;
-    aPayee.pdFields.pdTown := edtTown.Text;
-    aPayee.pdFields.pdState := edtState.Text;
+    aPayee.pdFields.pdOther_Name := edtSecondGivenName.Text;
+    aPayee.pdFields.pdBusinessName := edtBusinessName.Text;
+    aPayee.pdFields.pdTradingName := edtTradingName.Text;
+    aPayee.pdFields.pdAddress := edtStreetAddressLine1.Text;
+    aPayee.pdFields.pdAddressLine2 := edtStreetAddressLine2.Text;
+    aPayee.pdFields.pdTown := edtSuburb.Text;
+    aPayee.pdFields.pdStateId := cmbState.ItemIndex;
     aPayee.pdFields.pdPost_Code := edtPostCode.Text;
+    aPayee.pdFields.pdCountry := edtSupplierCountry.Text;
     aPayee.pdFields.pdPhone_Number := edtPhoneNumber.Text;
-    aPayee.pdFields.pdABN := edtABN.Text;
+    aPayee.pdFields.pdABN := mskABN.Text;
+    aPayee.pdFields.pdInstitutionBSB := edtBankBsb.Text;
+    aPayee.pdFields.pdInstitutionAccountNumber := edtBankAccount.Text;
 
     aPayee.pdLines.FreeAll;
     for i := 1 to GLCONST.Max_py_Lines do
@@ -1932,6 +2042,18 @@ begin
   Self.DoGSTLookup;
 end;
 
+procedure TdlgPayeeDetail.mskABNClick(Sender: TObject);
+var
+  Control: TMaskEdit;
+begin
+  Control := Sender as TMaskEdit;
+  if Control.Text = '' then
+  begin
+    Control.SelText := '';
+    Control.SelStart := 0;
+  end;
+end;
+
 procedure TdlgPayeeDetail.CopyContentoftheCellAbove1Click(Sender: TObject);
 begin
   Self.DoDitto;
@@ -1967,6 +2089,16 @@ procedure TdlgPayeeDetail.PercentageofTotal1Click(Sender: TObject);
 begin
   if SplitData[tblSplit.ActiveRow].LineType = mltPercentage then exit;
   ApplyAmountShortcut('%');
+end;
+
+procedure TdlgPayeeDetail.radIndividualClick(Sender: TObject);
+begin
+  SetIndividualBusinessControls(true);
+end;
+
+procedure TdlgPayeeDetail.radBusinessClick(Sender: TObject);
+begin
+  SetIndividualBusinessControls(false);
 end;
 
 procedure TdlgPayeeDetail.ApplyAmountShortcut(Key: Char);

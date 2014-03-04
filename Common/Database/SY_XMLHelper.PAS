@@ -1570,7 +1570,7 @@ var PNode, CNode, CCNode: IXMLNode;
 	I, J, M: Integer;
 begin
 	Result := Node.AddChild(GetXMLNodeName);
-	SetIntAttr(Result, 'ABN', srABN);
+	SetTextAttr(Result, 'ABN', srABN);
 	SetTextAttr(Result, 'ContactName', srContactName);
 	SetTextAttr(Result, 'ContactPhone', srContactPhone);
 	SetTextAttr(Result, 'StreetAddress1', srStreetAddress1);
@@ -1578,6 +1578,7 @@ begin
 	SetTextAttr(Result, 'Suburb', srSuburb);
 	SetIntAttr(Result, 'StateId', srStateId);
 	SetTextAttr(Result, 'Country', srCountry);
+	SetTextAttr(Result, 'PostCode', srPostCode);
 
 	CNode := nil;
 	CCNode := nil;
@@ -1594,7 +1595,7 @@ begin
 	Result := Node.ChildNodes.FindNode(GetXMLNodeName);
 	if not assigned(Result) then exit;
 	try
-	srABN := GetIntAttr(Result, 'ABN');
+	srABN := GetTextAttr(Result, 'ABN');
 	srContactName := GetTextAttr(Result, 'ContactName');
 	srContactPhone := GetTextAttr(Result, 'ContactPhone');
 	srStreetAddress1 := GetTextAttr(Result, 'StreetAddress1');
@@ -1602,6 +1603,7 @@ begin
 	srSuburb := GetTextAttr(Result, 'Suburb');
 	srStateId := GetIntAttr(Result, 'StateId');
 	srCountry := GetTextAttr(Result, 'Country');
+	srPostCode := GetTextAttr(Result, 'PostCode');
 	except
 		on E: Exception do ReRaise (E, 'Reading TTPR_Supplier_Detail_Rec');
 	end;

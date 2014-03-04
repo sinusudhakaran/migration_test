@@ -1,15 +1,18 @@
 unit RptParams;
 
 interface
-uses ReportDefs,
-     Classes,
-     UBatchBase,
-     budobj32,
-     OmniXML,
-     Globals,
-     StdCtrls,
-     clObj32,
-     chList32;
+
+uses
+  ReportDefs,
+  Classes,
+  UBatchBase,
+  budobj32,
+  OmniXML,
+  Globals,
+  StdCtrls,
+  clObj32,
+  chList32,
+  CustomFileFormats;
 
 type
 
@@ -17,6 +20,7 @@ type
 
   TRPTParameters = class (tobject)
   private
+     fCustomFileFormats : TCustomFileFormats;
      FAccountList : TList;
      FDivisionList: TList;
      FChart: TCustomSortChart; //This chart can be in a different order than the client chart
@@ -142,6 +146,8 @@ type
      function WasNewBatch: Boolean;
      function DlgResult(Btn: Integer = BTN_NONE): Boolean;
      function UsageTitle(Destination: TReportDest): string;
+
+     property CustomFileFormats : TCustomFileFormats read fCustomFileFormats write fCustomFileFormats;
   end;
 
   TGenRptParameters = class (TRptParameters)
@@ -353,8 +359,12 @@ constructor TRPTParameters.Create(aType: Integer;
                                   const ADateMode : tDateMode = dNone ) ;
 begin
    inherited Create;
+
+   fCustomFileFormats := TCustomFileFormats.Create(TCustomFileFormat);
+
    FAccountList := TList.Create;
    FDivisionList := TList.Create;
+
    Reset;
    // Needs to be in this order
    // The Client loads the defaults..
@@ -377,6 +387,9 @@ begin
      FreeAndNil(FChart);
    FDivisionList.Free;
    FAccountList.Free;
+   
+   FreeAndNil(fCustomFileFormats);
+
    inherited;
 end;
 

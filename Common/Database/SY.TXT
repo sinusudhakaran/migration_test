@@ -509,7 +509,7 @@ C|Memorisations|PTR
 E
 
 N|TPR Supplier Detail|sr|175
-F|ABN|I
+F|ABN|S|11
 F|ContactName|S|38
 F|ContactPhone|S|15
 F|StreetAddress1|S|38
@@ -517,4 +517,5 @@ F|StreetAddress2|S|38
 F|Suburb|S|27
 F|StateId|I
 F|Country|S|20
+F|PostCode|S|4
 E

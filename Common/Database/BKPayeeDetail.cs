@@ -119,6 +119,70 @@ namespace BankLink.Practice.BooksIO
 		public String ABN { get; set; }
 
 
+
+		/// <summary>
+		/// BusinessName property
+		/// </summary>
+		[XmlAttribute("BusinessName", DataType = "string")]
+		public String BusinessName { get; set; }
+
+
+
+		/// <summary>
+		/// TradingName property
+		/// </summary>
+		[XmlAttribute("TradingName", DataType = "string")]
+		public String TradingName { get; set; }
+
+
+
+		/// <summary>
+		/// Country property
+		/// </summary>
+		[XmlAttribute("Country", DataType = "string")]
+		public String Country { get; set; }
+
+
+
+		/// <summary>
+		/// InstitutionBSB property
+		/// </summary>
+		[XmlAttribute("InstitutionBSB", DataType = "string")]
+		public String InstitutionBSB { get; set; }
+
+
+
+		/// <summary>
+		/// InstitutionAccountNumber property
+		/// </summary>
+		[XmlAttribute("InstitutionAccountNumber", DataType = "string")]
+		public String InstitutionAccountNumber { get; set; }
+
+
+
+		/// <summary>
+		/// IsIndividual property
+		/// </summary>
+		[XmlAttribute("IsIndividual", DataType = "boolean")]
+		public bool IsIndividual { get; set; }
+
+
+
+		/// <summary>
+		/// AddressLine2 property
+		/// </summary>
+		[XmlAttribute("AddressLine2", DataType = "string")]
+		public String AddressLine2 { get; set; }
+
+
+
+		/// <summary>
+		/// StateId property
+		/// </summary>
+		[XmlAttribute("StateId", DataType = "int")]
+		public Int32 StateId { get; set; }
+
+
 		/// <summary>
 		/// Class Begin Token
 		/// </summary>
@@ -146,6 +210,14 @@ namespace BankLink.Practice.BooksIO
 			s.WriteShortStringValue(102, PostCode);
 			s.WriteShortStringValue(103, PhoneNumber);
 			s.WriteShortStringValue(104, ABN);
+			s.WriteShortStringValue(105, BusinessName);
+			s.WriteShortStringValue(106, TradingName);
+			s.WriteShortStringValue(107, Country);
+			s.WriteShortStringValue(108, InstitutionBSB);
+			s.WriteShortStringValue(109, InstitutionAccountNumber);
+			s.WriteBooleanValue(110, IsIndividual);
+			s.WriteShortStringValue(111, AddressLine2);
+			s.WriteInt32Value(112, StateId);
 			s.WriteToken(91);
 		}
 
@@ -202,6 +274,30 @@ namespace BankLink.Practice.BooksIO
 				break;
 			case 104 :
 				ABN = s.ReadShortStringValue("ABN");
+				break;
+			case 105 :
+				BusinessName = s.ReadShortStringValue("BusinessName");
+				break;
+			case 106 :
+				TradingName = s.ReadShortStringValue("TradingName");
+				break;
+			case 107 :
+				Country = s.ReadShortStringValue("Country");
+				break;
+			case 108 :
+				InstitutionBSB = s.ReadShortStringValue("InstitutionBSB");
+				break;
+			case 109 :
+				InstitutionAccountNumber = s.ReadShortStringValue("InstitutionAccountNumber");
+				break;
+			case 110 :
+				IsIndividual = s.ReadBooleanValue("IsIndividual");
+				break;
+			case 111 :
+				AddressLine2 = s.ReadShortStringValue("AddressLine2");
+				break;
+			case 112 :
+				StateId = s.ReadInt32Value("StateId");
 				break;
 			case BeginToken :
 			case EndToken :

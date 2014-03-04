@@ -561,6 +561,14 @@ F|State|S|3
 F|Post Code|S|4
 F|Phone Number|S|60
 F|ABN|S|14
+F|BusinessName|S|200
+F|TradingName|S|200
+F|Country|S|20
+F|InstitutionBSB|S|6
+F|InstitutionAccountNumber|S|9
+F|IsIndividual|Y
+F|AddressLine2|S|38
+F|StateId|I
 C|Amount|TLB
 C|Total|$
 C|Temp Tag|L
@@ -1203,11 +1211,16 @@ F|PracContactName|S|38
 F|PracContactPhone|S|15
 F|PracEmailAddress|S|76
 F|TradingName|S|200
+F|AddressLine1|S|38
+F|AddressLine2|S|38
 F|Suburb|S|27
 F|StateId|I
 F|Country|S|20
+F|PostCode|S|4
 F|BSB|S|6
 F|Account|S|9
+F|UsePracticeTPRSupplierDetails|Y
+F|FirstTimeTPRATOExtractDone|Y
 E
 
 N|Unscanned Transaction|ut|165

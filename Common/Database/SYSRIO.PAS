@@ -54,6 +54,7 @@ CONST
    tksrSuburb                           = 182 ;
    tksrStateId                          = 183 ;
    tksrCountry                          = 184 ;
+   tksrPostCode                         = 185 ;
 
 {  -------------------------------------------------------------------  }
 
@@ -79,7 +80,7 @@ Begin
    If IsATPR_Supplier_Detail_Rec ( @O ) then With O do
    Begin
       F.WriteToken( tkBegin_TPR_Supplier_Detail );
-      F.WriteIntegerValue( tksrABN , srABN );
+      F.WriteStringValue( tksrABN , srABN );
       F.WriteStringValue( tksrContactName , srContactName );
       F.WriteStringValue( tksrContactPhone , srContactPhone );
       F.WriteStringValue( tksrStreetAddress1 , srStreetAddress1 );
@@ -87,6 +88,7 @@ Begin
       F.WriteStringValue( tksrSuburb , srSuburb );
       F.WriteIntegerValue( tksrStateId , srStateId );
       F.WriteStringValue( tksrCountry , srCountry );
+      F.WriteStringValue( tksrPostCode , srPostCode );
       F.WriteToken( tkEnd_TPR_Supplier_Detail );
    end;
 end; { of Write_TPR_Supplier_Detail_Rec }
@@ -109,7 +111,7 @@ Begin
       Case Token of
          tkBegin_TPR_Supplier_Detail :; { Do Nothing }
          tkEnd_TPR_Supplier_Detail :; { Do Nothing }
-         tksrABN                              : srABN := F.ReadIntegerValue;
+         tksrABN                              : srABN := F.ReadStringValue;
          tksrContactName                      : srContactName := F.ReadStringValue;
          tksrContactPhone                     : srContactPhone := F.ReadStringValue;
          tksrStreetAddress1                   : srStreetAddress1 := F.ReadStringValue;
@@ -117,6 +119,7 @@ Begin
          tksrSuburb                           : srSuburb := F.ReadStringValue;
          tksrStateId                          : srStateId := F.ReadIntegerValue;
          tksrCountry                          : srCountry := F.ReadStringValue;
+         tksrPostCode                         : srPostCode := F.ReadStringValue;
          else
             Raise ETokenException.CreateFmt( SUnknownToken, [ Token ] );
       end; { of Case }
@@ -163,7 +166,7 @@ begin
   for i := Low(ChangedFields) to High(ChangedFields) do
     ChangedFields[i] := 0;
   j := 0;
-  for i := tksrABN to tksrCountry do begin
+  for i := tksrABN to tksrPostCode do begin
     ChangedFields[j] := i;
     Inc(j);
   end;
@@ -226,6 +229,11 @@ begin
   if (P1.srCountry <> P2.srCountry) then begin
     P3.srCountry := P1.srCountry;
     ChangedFields[i] := tksrCountry;
+    Inc(i);
+  end;
+  if (P1.srPostCode <> P2.srPostCode) then begin
+    P3.srPostCode := P1.srPostCode;
+    ChangedFields[i] := tksrPostCode;
     Inc(i);
   end;
 

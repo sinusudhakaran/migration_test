@@ -54,17 +54,23 @@ function  IsSameInstitution(const aBankAccount: TBank_Account;
 function  IsSameInstitution(const aBankPrefix: string;
             const aInstitution: string): boolean; overload;
 
+procedure SplitABNandBranchFromGSTNumber(aGstNumber : string; var aABN, aBranch : string);
+
+function ValidateABN(aABN: String): Boolean;
+
 const
    UnitName = 'BAUTILS';
 
 //******************************************************************************
 Implementation
+
 Uses
-   bkconst,
-   bkDateUtils,
-   Globals,
-   LogUtil,
-   SyDefs;
+  bkconst,
+  bkDateUtils,
+  Globals,
+  LogUtil,
+  SyDefs,
+  GenUtils;
 
 //------------------------------------------------------------------------------
 
@@ -468,6 +474,69 @@ begin
   result := (sInstitution = aInstitution);
 end;
 
+{------------------------------------------------------------------------------}
+procedure SplitABNandBranchFromGSTNumber(aGstNumber : string; var aABN, aBranch : string);
+var
+  dashPos : integer;
+begin
+  aABN := '';
+  aBranch := '';
+
+  dashPos := Pos( '-' , aGstNumber);
+
+  if dashPos > 0 then
+  begin
+    aABN := Copy( aGstNumber, 1, dashPos -1);
+    aBranch := Copy ( aGstNumber, dashPos + 1, length( aGstNumber));
+  end
+  else
+    aABN := aGstNumber;
+end;
+
+function ValidateABN(aABN : String): Boolean;
+{
+  To verify an ABN  ( From ATO Document)
+
+  1)  Subtract 1 from the first left digit to give a new eleven digit number
+  2)  Multiply each of the digits in this new number by its weighting factor
+  3)  Sum the resulting 11 products
+  4)  Divide the total by 89
+  5)  if the remainder is zero then number is valid
+}
+const
+  Weighting : Array [ 1..11] of integer = ( 10, 1, 3, 5, 7, 9, 11, 13, 15, 17, 19 );
+var
+  ABN_Digits : Array[ 1..11] of integer;
+  Sum : integer;
+  i   : integer;
+
+begin
+  result := false;
+  //check length
+  if Length( aABN) <> 11 then
+    exit;
+
+  //check all char are numeric
+  if not (IsNumeric( aABN)) then
+    exit;
+
+  //load string into digits
+  for i := 1 to 11 do begin
+    ABN_Digits[ i] := Ord( aABN[ i]) - 48;
+  end;
+  //subtract 1
+  Dec( ABN_Digits[ 1]);
+  //multiply and add
+  Sum := 0;
+  for i := 1 to 11 do begin
+    Sum := Sum + ( ABN_Digits[ i] * Weighting[ i]);
+  end;
+  //check the remainder is zero
+  if ( Sum mod 89) <> 0 then
+    exit;
+
+  result := true;
+end;
 
 End.
 

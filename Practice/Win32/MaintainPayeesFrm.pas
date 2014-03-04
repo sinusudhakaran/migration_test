@@ -165,14 +165,15 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmMaintainPayees.tbNewClick(Sender: TObject);
 var
-   p : TPayee;
+  p : TPayee;
 begin
-   SearchTerm := '';
-   ForceOnlyOneSelected;
-   if AddPayee(p) then begin
-      RefreshPayeeList;
-      DoSortByColNo( CurrentSortCol);
-      RepositionOnNumber(IntToStr(p.pdFields.pdNumber));
+  SearchTerm := '';
+  ForceOnlyOneSelected;
+  if AddPayee(p) then
+  begin
+    RefreshPayeeList;
+    DoSortByColNo( CurrentSortCol);
+    RepositionOnNumber(IntToStr(p.pdFields.pdNumber));
    end;
 end;
 //------------------------------------------------------------------------------

@@ -24,7 +24,7 @@ object dlgEditGST: TdlgEditGST
     Top = 0
     Width = 662
     Height = 406
-    ActivePage = tsGSTRates
+    ActivePage = pgDetails
     Align = alTop
     TabOrder = 0
     OnChange = pcGSTChange
@@ -164,8 +164,8 @@ object dlgEditGST: TdlgEditGST
         Visible = False
       end
       object eGSTNumber: TMaskEdit
-        Left = 160
-        Top = 32
+        Left = 161
+        Top = 39
         Width = 145
         Height = 24
         BorderStyle = bsNone
@@ -351,14 +351,14 @@ object dlgEditGST: TdlgEditGST
         OnUserCommand = tblRatesUserCommand
         CellData = (
           'dlgEditGST.colHeader'
-          'dlgEditGST.ColID'
-          'dlgEditGST.colDesc'
-          'dlgEditGST.celGSTType'
-          'dlgEditGST.colRate1'
-          'dlgEditGST.colRate2'
-          'dlgEditGST.colRate3'
+          'dlgEditGST.colNormPercent'
           'dlgEditGST.colAccount'
-          'dlgEditGST.colNormPercent')
+          'dlgEditGST.colRate3'
+          'dlgEditGST.colRate2'
+          'dlgEditGST.colRate1'
+          'dlgEditGST.celGSTType'
+          'dlgEditGST.colDesc'
+          'dlgEditGST.ColID')
         RowData = (
           22)
         ColData = (
@@ -701,10 +701,6 @@ object dlgEditGST: TdlgEditGST
     object pgCalcMethod: TTabSheet
       Caption = 'Calculation &Method'
       ImageIndex = 4
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object Label12: TLabel
         Left = 16
         Top = 64
@@ -873,10 +869,6 @@ object dlgEditGST: TdlgEditGST
     object tsTaxRates: TTabSheet
       Caption = '&Other Rates'
       ImageIndex = 5
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object Label3: TLabel
         Left = 311
         Top = 25

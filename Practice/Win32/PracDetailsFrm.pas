@@ -28,7 +28,7 @@ uses
   CheckLst,
   RzLstBox,
   RzChkLst,
-  cxControls;
+  cxControls, Mask;
 
 type
   TCheckListHelper = class helper for TCheckListBox
@@ -121,6 +121,26 @@ type
     pgcVendorExportOptions: TPageControl;
     Label12: TLabel;
     chklistExportTo: TCheckListBox;
+    tbsTPRSupplierDetails: TTabSheet;
+    lblABNNumber: TLabel;
+    lblABNHeading: TLabel;
+    edtContactName: TEdit;
+    lblContactName: TLabel;
+    Label14: TLabel;
+    edtContactPhone: TEdit;
+    lblContactPhone: TLabel;
+    edtStreetAddressLine1: TEdit;
+    lblStreetAddress: TLabel;
+    edtStreetAddressLine2: TEdit;
+    edtSuburb: TEdit;
+    lblSuburb: TLabel;
+    edtPostCode: TEdit;
+    lblPostCode: TLabel;
+    edtSupplierCountry: TEdit;
+    lblSupplierCountry: TLabel;
+    lblState: TLabel;
+    cmbState: TComboBox;
+    mskABN: TMaskEdit;
     
     procedure btnOKClick(Sender: TObject);
     procedure btnCancelClick(Sender: TObject);
@@ -159,8 +179,13 @@ type
     procedure chklistExportToMatch(Sender: TObject);
     procedure chklistExportToClickCheck(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
+    procedure cmbStateChange(Sender: TObject);
+    procedure FormActivate(Sender: TObject);
+    procedure edtPostCodeKeyPress(Sender: TObject; var Key: Char);
+    procedure mskABNClick(Sender: TObject);
   private
     { Private declarations }
+    fLoading : boolean;
     okPressed : boolean;
     PassGenCodeEntered : boolean;
     ChangingDiskID : boolean;
@@ -259,7 +284,9 @@ uses
   bkProduct,
   bkUrls,
   bkBranding,
-  bkContactInformation;
+  bkContactInformation,
+  CountryUtils,
+  bautils;
 
 const
   UnitName = 'PRACDETAILSFRM';
@@ -313,6 +340,7 @@ begin
   DoRebranding();
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmPracticeDetails.FormDestroy(Sender: TObject);
 var
   Index : integer;
@@ -326,6 +354,7 @@ begin
   FVendorSubscriberCount := nil;
 end;
 
+//------------------------------------------------------------------------------
 function TfrmPracticeDetails.GetVendorExportName(VendorExportGuid: TBloGuid; PracticeVendorExports: TBloDataPlatformSubscription): String;
 var
   Index: Integer;
@@ -343,6 +372,7 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 function TfrmPracticeDetails.GetVendorSettingsTab(const VendorName: String): TTabsheet;
 var
   Index: Integer;
@@ -360,6 +390,7 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmPracticeDetails.HideVendorExportSettings;
 var
   Index: Integer;
@@ -844,6 +875,25 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+procedure TfrmPracticeDetails.cmbStateChange(Sender: TObject);
+begin
+  if ((lblSupplierCountry.Visible) and not (cmbState.ItemIndex = MAX_STATE)) or
+     (not (lblSupplierCountry.Visible) and (cmbState.ItemIndex = MAX_STATE)) then
+  begin
+    if not fLoading then
+    begin
+      edtPostCode.text := '';
+      edtSupplierCountry.text := '';
+    end;
+  end;
+
+  lblSupplierCountry.Visible := (cmbState.ItemIndex = MAX_STATE);
+  edtSupplierCountry.Visible := (cmbState.ItemIndex = MAX_STATE);
+  lblPostCode.Visible := not (cmbState.ItemIndex = MAX_STATE);
+  edtPostCode.Visible := not (cmbState.ItemIndex = MAX_STATE);
+end;
+
+//------------------------------------------------------------------------------
 procedure TfrmPracticeDetails.cmbSuperSystemChange(Sender: TObject);
 var
   CurrentSuperSystem: Byte;
@@ -878,10 +928,16 @@ function TfrmPracticeDetails.Execute(SelPracticeMan: Boolean): boolean;
 const
   ThisMethodName = 'TfrmPracticeDetails.Execute';
 var
-  i :integer;
+  i, index :integer;
   LastDiskSequenceNo : integer;
+  CountryCode : string;
+  CountryDesc : string;
+  StateCodeWidth : integer;
+  SpaceWidth : integer;
+  SpaceString : string;
 begin
   okPressed := false;
+  fLoading := true;
   InSetup := true;
   {load values}
   with AdminSystem do
@@ -943,6 +999,7 @@ begin
     case fdFields.fdCountry of
       whNewZealand :
         begin
+            tbsPracticeManagementSystem.Visible := false;
             for i := snMin to snMax do begin
               if (not Software.ExcludeFromAccSysList( fdFields.fdCountry, i)) or ( i = fdFields.fdAccounting_System_Used) then
                   cmbSystem.items.AddObject(snNames[i], TObject( i ) );
@@ -950,16 +1007,18 @@ begin
 
             SetComboIndexByIntObject(fdFields.fdAccounting_System_Used,cmbSystem);
 
-
             gbxTaxInterface.Visible   := false;
             gbxWebExport.Top := gbxTaxInterface.Top;
             cmbTaxInterface.Items.AddObject( tsNames[ tsMin], TObject( tsMin));
             cmbTaxInterface.ItemIndex := 0;
             edtSaveTaxTo.Text         := '';
+            tbsTPRSupplierDetails.Visible := false;
+            tbsTPRSupplierDetails.TabVisible := false;
         end;
 
       whAustralia :
         begin
+            tbsPracticeManagementSystem.Visible := true;
             cmbSuperSystem.items.AddObject( asNoneName, TObject( asNone ) );
             cmbSystem.items.AddObject( asNoneName, TObject( asNone ) );
 
@@ -982,7 +1041,6 @@ begin
             SetComboIndexByIntObject(fdFields.fdSuperfund_System ,cmbSuperSystem);
             SetupSuper(fdFields.fdSuperfund_System);
 
-
             gbxTaxInterface.Visible  := True;
             for i := tsMin to tsMax do
             begin
@@ -992,9 +1050,41 @@ begin
             ComboUtils.SetComboIndexByIntObject( fdFields.fdTax_Interface_Used, cmbTaxInterface);
 
             edtSaveTaxTo.Text := fdFields.fdSave_Tax_Files_To;
+
+            // TRPSupplierDetails
+            mskABN.Text                := fdTPR_Supplier_Detail.As_pRec.srABN;
+            edtContactName.Text        := fdTPR_Supplier_Detail.As_pRec.srContactName;
+            edtContactPhone.Text       := fdTPR_Supplier_Detail.As_pRec.srContactPhone;
+            edtStreetAddressLine1.Text := fdTPR_Supplier_Detail.As_pRec.srStreetAddress1;
+            edtStreetAddressLine2.Text := fdTPR_Supplier_Detail.As_pRec.srStreetAddress2;
+            edtSuburb.Text             := fdTPR_Supplier_Detail.As_pRec.srSuburb;
+
+            SpaceWidth := self.Canvas.TextWidth(' ');
+            for i := MIN_STATE to MAX_STATE do
+            begin
+              GetAustraliaStateFromIndex(i, CountryCode, CountryDesc);
+              StateCodeWidth := self.Canvas.TextWidth(CountryCode);
+
+              SpaceString := '';
+              for index := 0 to trunc((49 - StateCodeWidth) / SpaceWidth) do
+                SpaceString := SpaceString + ' ';
+
+              if i = MAX_STATE then
+                SpaceString := SpaceString + ' ';
+
+              cmbState.AddItem(CountryCode + SpaceString + CountryDesc, nil)
+            end;
+            cmbState.ItemIndex := fdTPR_Supplier_Detail.As_pRec.srStateId;
+            SendMessage(cmbState.Handle, CB_SETDROPPEDWIDTH, 250, 0);
+
+            edtPostCode.Text           := fdTPR_Supplier_Detail.As_pRec.srPostCode;
+            edtSupplierCountry.Text    := fdTPR_Supplier_Detail.As_pRec.srCountry;
+            tbsTPRSupplierDetails.Visible := true;
+            tbsTPRSupplierDetails.TabVisible := true;
         end;
       whUK :
         begin
+            tbsPracticeManagementSystem.Visible := false;
             for i := suMin to suMax do begin
               if ( not Software.ExcludeFromAccSysList( fdFields.fdCountry, i)) or ( i = fdFields.fdAccounting_System_Used) then
                cmbSystem.items.AddObject(suNames[i], TObject( i ) );
@@ -1007,6 +1097,8 @@ begin
             cmbTaxInterface.Items.AddObject( tsNames[ tsMin], TObject( tsMin));
             cmbTaxInterface.ItemIndex := 0;
             edtSaveTaxTo.Text         := '';
+            tbsTPRSupplierDetails.Visible := false;
+            tbsTPRSupplierDetails.TabVisible := false;
         end;
 
       else
@@ -1039,10 +1131,10 @@ begin
        PageControl1.ActivePage := tbsDetails;
 
   end; {with}
-  
+
+  fLoading := false;
   InSetup := False;
 
-  self.
   ShowModal;
 
   if okPressed then
@@ -1113,6 +1205,17 @@ begin
 
        //Practice Management System
        fdPractice_Management_System := ComboUtils.GetComboCurrentIntObject(cmbPracticeManagementSystem);
+
+       // TRPSupplierDetails
+       AdminSystem.fdTPR_Supplier_Detail.As_pRec.srABN            := mskABN.Text;
+       AdminSystem.fdTPR_Supplier_Detail.As_pRec.srContactName    := edtContactName.Text;
+       AdminSystem.fdTPR_Supplier_Detail.As_pRec.srContactPhone   := edtContactPhone.Text;
+       AdminSystem.fdTPR_Supplier_Detail.As_pRec.srStreetAddress1 := edtStreetAddressLine1.Text;
+       AdminSystem.fdTPR_Supplier_Detail.As_pRec.srStreetAddress2 := edtStreetAddressLine2.Text;
+       AdminSystem.fdTPR_Supplier_Detail.As_pRec.srSuburb         := edtSuburb.Text;
+       AdminSystem.fdTPR_Supplier_Detail.As_pRec.srStateId        := cmbState.ItemIndex;
+       AdminSystem.fdTPR_Supplier_Detail.As_pRec.srPostCode       := edtPostCode.Text;
+       AdminSystem.fdTPR_Supplier_Detail.As_pRec.srCountry        := edtSupplierCountry.Text;
 
        //*** Flag Audit ***
        SystemAuditMgr.FlagAudit(arPracticeSetup);
@@ -1279,6 +1382,15 @@ begin
     tbsDetails.Show;
     txtLastDiskID.SetFocus;
     aMsg := 'The Last Disk Processed ID is invalid.';
+    HelpfulWarningMsg( aMSg, 0);
+    Exit;
+  end;
+
+  if (Length(mskABN.Text) > 0) and (not ValidateABN(mskABN.Text)) then
+  begin
+    tbsTPRSupplierDetails.Show;
+    mskABN.SetFocus;
+    aMsg := 'Your Australian Business Number (ABN) is invalid.  Please re-enter it.';
     HelpfulWarningMsg( aMSg, 0);
     Exit;
   end;
@@ -1657,6 +1769,18 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+procedure TfrmPracticeDetails.FormActivate(Sender: TObject);
+begin
+  fLoading := true;
+
+  try
+    cmbStateChange(Sender);
+  finally
+    fLoading := false;
+  end;
+end;
+
+//------------------------------------------------------------------------------
 procedure TfrmPracticeDetails.FormCloseQuery(Sender: TObject;
   var CanClose: Boolean);
 begin
@@ -1904,6 +2028,19 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+procedure TfrmPracticeDetails.mskABNClick(Sender: TObject);
+var
+  Control: TMaskEdit;
+begin
+  Control := Sender as TMaskEdit;
+  if Control.Text = '' then
+  begin
+    Control.SelText := '';
+    Control.SelStart := 0;
+  end;
+end;
+
+//------------------------------------------------------------------------------
 procedure TfrmPracticeDetails.PageControl1Change(Sender: TObject);
 begin
   if (PageControl1.ActivePage = tsBankLinkOnline) and
@@ -1918,6 +2055,7 @@ begin
   FPreviousPage := PageControl1.ActivePageIndex;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmPracticeDetails.PopulateSelectedVendorList(var SelectedVendors: TBloArrayOfGuid);
 var
   Index: Integer;
@@ -2037,6 +2175,7 @@ begin
     Result.CheckType := ctCheckBox;
 end;
 
+//------------------------------------------------------------------------------
 function TfrmPracticeDetails.AddVendorSettingsTab(const VendorName: String): TTabsheet;
 var
   VendorLabel: TLabel;
@@ -2142,6 +2281,7 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmPracticeDetails.RemoveVendorSettingsTab(const VendorName: String);
 var
   Index: Integer;
@@ -2200,9 +2340,10 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmPracticeDetails.ToggleVendorExportSettings(VendorExportGuid: TBloGuid; Visible: Boolean);
 
-
+  //----------------------------------------------------------------------------
   function GetPageIndex(VendorExportName: String): Integer;
   var
     Index: Integer;
@@ -2254,6 +2395,7 @@ begin
   pgcVendorExportOptions.Visible := chklistExportTo.CountCheckedItems > 0;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmPracticeDetails.TreeCompare(Sender: TBaseVirtualTree; Node1,
   Node2: PVirtualNode; Column: TColumnIndex; var Result: Integer);
 var
@@ -2301,6 +2443,14 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
+procedure TfrmPracticeDetails.edtPostCodeKeyPress(Sender: TObject;
+  var Key: Char);
+begin
+  if not (Key in ['0'..'9', Chr(VK_DELETE), Chr(VK_BACK)]) then
+    Key := chr(0);
+end;
+
 { TCheckBoxListHelper }
 
 function TCheckListHelper.CountCheckedItems: Integer;
@@ -2319,12 +2469,13 @@ begin
 end;
 
 { TVendorExport }
-
+//------------------------------------------------------------------------------
 constructor TVendorExport.Create(VendorExportID: TBloGuid);
 begin
   FId := VendorExportID;
 end;
 
+//------------------------------------------------------------------------------
 procedure TCheckListHelper.ReleaseObjects;
 var
   Index: Integer;

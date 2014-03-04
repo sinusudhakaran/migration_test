@@ -440,6 +440,7 @@ begin
     FAuditNamesArray[175,182] := 'Suburb';
     FAuditNamesArray[175,183] := 'StateId';
     FAuditNamesArray[175,184] := 'Country';
+    FAuditNamesArray[175,185] := 'PostCode';
 
 end;
 

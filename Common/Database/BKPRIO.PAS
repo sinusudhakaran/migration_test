@@ -50,11 +50,16 @@ CONST
    tkprPracContactPhone                 = 188 ;
    tkprPracEmailAddress                 = 189 ;
    tkprTradingName                      = 190 ;
-   tkprSuburb                           = 191 ;
-   tkprStateId                          = 192 ;
-   tkprCountry                          = 193 ;
-   tkprBSB                              = 194 ;
-   tkprAccount                          = 195 ;
+   tkprAddressLine1                     = 191 ;
+   tkprAddressLine2                     = 192 ;
+   tkprSuburb                           = 193 ;
+   tkprStateId                          = 194 ;
+   tkprCountry                          = 195 ;
+   tkprPostCode                         = 196 ;
+   tkprBSB                              = 197 ;
+   tkprAccount                          = 198 ;
+   tkprUsePracticeTPRSupplierDetails    = 199 ;
+   tkprFirstTimeTPRATOExtractDone       = 200 ;
 
 {  -------------------------------------------------------------------  }
 
@@ -84,11 +89,16 @@ Begin
       F.WriteStringValue( tkprPracContactPhone , prPracContactPhone );
       F.WriteStringValue( tkprPracEmailAddress , prPracEmailAddress );
       F.WriteStringValue( tkprTradingName , prTradingName );
+      F.WriteStringValue( tkprAddressLine1 , prAddressLine1 );
+      F.WriteStringValue( tkprAddressLine2 , prAddressLine2 );
       F.WriteStringValue( tkprSuburb , prSuburb );
       F.WriteIntegerValue( tkprStateId , prStateId );
       F.WriteStringValue( tkprCountry , prCountry );
+      F.WriteStringValue( tkprPostCode , prPostCode );
       F.WriteStringValue( tkprBSB , prBSB );
       F.WriteStringValue( tkprAccount , prAccount );
+      F.WriteBooleanValue( tkprUsePracticeTPRSupplierDetails , prUsePracticeTPRSupplierDetails );
+      F.WriteBooleanValue( tkprFirstTimeTPRATOExtractDone , prFirstTimeTPRATOExtractDone );
       F.WriteToken( tkEnd_TPR_Payer_Detail );
    end;
 end; { of Write_TPR_Payer_Detail_Rec }
@@ -115,11 +125,16 @@ Begin
          tkprPracContactPhone                 : prPracContactPhone := F.ReadStringValue;
          tkprPracEmailAddress                 : prPracEmailAddress := F.ReadStringValue;
          tkprTradingName                      : prTradingName := F.ReadStringValue;
+         tkprAddressLine1                     : prAddressLine1 := F.ReadStringValue;
+         tkprAddressLine2                     : prAddressLine2 := F.ReadStringValue;
          tkprSuburb                           : prSuburb := F.ReadStringValue;
          tkprStateId                          : prStateId := F.ReadIntegerValue;
          tkprCountry                          : prCountry := F.ReadStringValue;
+         tkprPostCode                         : prPostCode := F.ReadStringValue;
          tkprBSB                              : prBSB := F.ReadStringValue;
          tkprAccount                          : prAccount := F.ReadStringValue;
+         tkprUsePracticeTPRSupplierDetails    : prUsePracticeTPRSupplierDetails := F.ReadBooleanValue;
+         tkprFirstTimeTPRATOExtractDone       : prFirstTimeTPRATOExtractDone := F.ReadBooleanValue;
          else
             Raise ETokenException.CreateFmt( SUnknownToken, [ Token ] );
       end; { of Case }
@@ -166,7 +181,7 @@ begin
   for i := Low(ChangedFields) to High(ChangedFields) do
     ChangedFields[i] := 0;
   j := 0;
-  for i := tkprPracContactName to tkprAccount do begin
+  for i := tkprPracContactName to tkprFirstTimeTPRATOExtractDone do begin
     ChangedFields[j] := i;
     Inc(j);
   end;
@@ -211,6 +226,16 @@ begin
     ChangedFields[i] := tkprTradingName;
     Inc(i);
   end;
+  if (P1.prAddressLine1 <> P2.prAddressLine1) then begin
+    P3.prAddressLine1 := P1.prAddressLine1;
+    ChangedFields[i] := tkprAddressLine1;
+    Inc(i);
+  end;
+  if (P1.prAddressLine2 <> P2.prAddressLine2) then begin
+    P3.prAddressLine2 := P1.prAddressLine2;
+    ChangedFields[i] := tkprAddressLine2;
+    Inc(i);
+  end;
   if (P1.prSuburb <> P2.prSuburb) then begin
     P3.prSuburb := P1.prSuburb;
     ChangedFields[i] := tkprSuburb;
@@ -226,6 +251,11 @@ begin
     ChangedFields[i] := tkprCountry;
     Inc(i);
   end;
+  if (P1.prPostCode <> P2.prPostCode) then begin
+    P3.prPostCode := P1.prPostCode;
+    ChangedFields[i] := tkprPostCode;
+    Inc(i);
+  end;
   if (P1.prBSB <> P2.prBSB) then begin
     P3.prBSB := P1.prBSB;
     ChangedFields[i] := tkprBSB;
@@ -234,6 +264,16 @@ begin
   if (P1.prAccount <> P2.prAccount) then begin
     P3.prAccount := P1.prAccount;
     ChangedFields[i] := tkprAccount;
+    Inc(i);
+  end;
+  if (P1.prUsePracticeTPRSupplierDetails <> P2.prUsePracticeTPRSupplierDetails) then begin
+    P3.prUsePracticeTPRSupplierDetails := P1.prUsePracticeTPRSupplierDetails;
+    ChangedFields[i] := tkprUsePracticeTPRSupplierDetails;
+    Inc(i);
+  end;
+  if (P1.prFirstTimeTPRATOExtractDone <> P2.prFirstTimeTPRATOExtractDone) then begin
+    P3.prFirstTimeTPRATOExtractDone := P1.prFirstTimeTPRATOExtractDone;
+    ChangedFields[i] := tkprFirstTimeTPRATOExtractDone;
     Inc(i);
   end;
 

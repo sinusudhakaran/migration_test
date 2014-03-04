@@ -1341,6 +1341,14 @@ begin
 	SetTextAttr(Result, 'PostCode', pdPost_Code);
 	SetTextAttr(Result, 'PhoneNumber', pdPhone_Number);
 	SetTextAttr(Result, 'ABN', pdABN);
+	SetTextAttr(Result, 'BusinessName', pdBusinessName);
+	SetTextAttr(Result, 'TradingName', pdTradingName);
+	SetTextAttr(Result, 'Country', pdCountry);
+	SetTextAttr(Result, 'InstitutionBSB', pdInstitutionBSB);
+	SetTextAttr(Result, 'InstitutionAccountNumber', pdInstitutionAccountNumber);
+	SetBoolAttr(Result, 'IsIndividual', pdIsIndividual);
+	SetTextAttr(Result, 'AddressLine2', pdAddressLine2);
+	SetIntAttr(Result, 'StateId', pdStateId);
 
 	CNode := nil;
 	CCNode := nil;
@@ -1370,6 +1378,14 @@ begin
 	pdPost_Code := GetTextAttr(Result, 'PostCode');
 	pdPhone_Number := GetTextAttr(Result, 'PhoneNumber');
 	pdABN := GetTextAttr(Result, 'ABN');
+	pdBusinessName := GetTextAttr(Result, 'BusinessName');
+	pdTradingName := GetTextAttr(Result, 'TradingName');
+	pdCountry := GetTextAttr(Result, 'Country');
+	pdInstitutionBSB := GetTextAttr(Result, 'InstitutionBSB');
+	pdInstitutionAccountNumber := GetTextAttr(Result, 'InstitutionAccountNumber');
+	pdIsIndividual := GetBoolAttr(Result, 'IsIndividual');
+	pdAddressLine2 := GetTextAttr(Result, 'AddressLine2');
+	pdStateId := GetIntAttr(Result, 'StateId');
 	except
 		on E: Exception do ReRaise (E, 'Reading TPayee_Detail_Rec');
 	end;
@@ -3439,11 +3455,16 @@ begin
 	SetTextAttr(Result, 'PracContactPhone', prPracContactPhone);
 	SetTextAttr(Result, 'PracEmailAddress', prPracEmailAddress);
 	SetTextAttr(Result, 'TradingName', prTradingName);
+	SetTextAttr(Result, 'AddressLine1', prAddressLine1);
+	SetTextAttr(Result, 'AddressLine2', prAddressLine2);
 	SetTextAttr(Result, 'Suburb', prSuburb);
 	SetIntAttr(Result, 'StateId', prStateId);
 	SetTextAttr(Result, 'Country', prCountry);
+	SetTextAttr(Result, 'PostCode', prPostCode);
 	SetTextAttr(Result, 'BSB', prBSB);
 	SetTextAttr(Result, 'Account', prAccount);
+	SetBoolAttr(Result, 'UsePracticeTPRSupplierDetails', prUsePracticeTPRSupplierDetails);
+	SetBoolAttr(Result, 'FirstTimeTPRATOExtractDone', prFirstTimeTPRATOExtractDone);
 
 	CNode := nil;
 	CCNode := nil;
@@ -3464,11 +3485,16 @@ begin
 	prPracContactPhone := GetTextAttr(Result, 'PracContactPhone');
 	prPracEmailAddress := GetTextAttr(Result, 'PracEmailAddress');
 	prTradingName := GetTextAttr(Result, 'TradingName');
+	prAddressLine1 := GetTextAttr(Result, 'AddressLine1');
+	prAddressLine2 := GetTextAttr(Result, 'AddressLine2');
 	prSuburb := GetTextAttr(Result, 'Suburb');
 	prStateId := GetIntAttr(Result, 'StateId');
 	prCountry := GetTextAttr(Result, 'Country');
+	prPostCode := GetTextAttr(Result, 'PostCode');
 	prBSB := GetTextAttr(Result, 'BSB');
 	prAccount := GetTextAttr(Result, 'Account');
+	prUsePracticeTPRSupplierDetails := GetBoolAttr(Result, 'UsePracticeTPRSupplierDetails');
+	prFirstTimeTPRATOExtractDone := GetBoolAttr(Result, 'FirstTimeTPRATOExtractDone');
 	except
 		on E: Exception do ReRaise (E, 'Reading TTPR_Payer_Detail_Rec');
 	end;

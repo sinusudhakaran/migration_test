@@ -9,10 +9,12 @@ object frmClientDetails: TfrmClientDetails
   Color = clBtnFace
   DefaultMonitor = dmMainForm
   ParentFont = True
+  KeyPreview = True
   OldCreateOrder = False
   Position = poScreenCenter
   Scaled = False
   ShowHint = True
+  OnActivate = FormActivate
   OnCreate = FormCreate
   OnShow = FormShow
   DesignSize = (
@@ -47,7 +49,7 @@ object frmClientDetails: TfrmClientDetails
     Top = 5
     Width = 589
     Height = 550
-    ActivePage = tsSmartLink
+    ActivePage = tsTRPPayerDetails
     TabOrder = 0
     object tbsClient: TTabSheet
       Caption = 'Client Details'
@@ -885,6 +887,429 @@ object frmClientDetails: TfrmClientDetails
         Height = 24
         BorderStyle = bsNone
         TabOrder = 0
+      end
+    end
+    object tsTRPPayerDetails: TTabSheet
+      Caption = 'TRP Payer Details'
+      ImageIndex = 5
+      object grpPracticeContactDetails: TGroupBox
+        Left = 13
+        Top = 8
+        Width = 549
+        Height = 268
+        Caption = 'Practice Contact Details'
+        TabOrder = 0
+        object lblPracticeContactName: TLabel
+          Left = 67
+          Top = 173
+          Width = 80
+          Height = 16
+          Caption = 'Contact Name'
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -13
+          Font.Name = 'Tahoma'
+          Font.Style = []
+          ParentFont = False
+        end
+        object lblPracticeContactPhone: TLabel
+          Left = 67
+          Top = 203
+          Width = 82
+          Height = 16
+          Caption = 'Contact Phone'
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -13
+          Font.Name = 'Tahoma'
+          Font.Style = []
+          ParentFont = False
+        end
+        object lblPracticeContactEmail: TLabel
+          Left = 67
+          Top = 233
+          Width = 83
+          Height = 16
+          Caption = 'Contact E-mail'
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -13
+          Font.Name = 'Tahoma'
+          Font.Style = []
+          ParentFont = False
+        end
+        object lblSupplierContactName: TLabel
+          Left = 67
+          Top = 53
+          Width = 80
+          Height = 16
+          Caption = 'Contact Name'
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -13
+          Font.Name = 'Tahoma'
+          Font.Style = []
+          ParentFont = False
+        end
+        object lblSupplierContactPhone: TLabel
+          Left = 67
+          Top = 83
+          Width = 82
+          Height = 16
+          Caption = 'Contact Phone'
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -13
+          Font.Name = 'Tahoma'
+          Font.Style = []
+          ParentFont = False
+        end
+        object lblSupplierContactEmail: TLabel
+          Left = 67
+          Top = 113
+          Width = 83
+          Height = 16
+          Caption = 'Contact E-mail'
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -13
+          Font.Name = 'Tahoma'
+          Font.Style = []
+          ParentFont = False
+        end
+        object radUsePracticeTPRSupplierDetails: TRadioButton
+          Left = 16
+          Top = 20
+          Width = 497
+          Height = 17
+          Caption = 'Use Practice TPR Supplier Details'
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -13
+          Font.Name = 'Tahoma'
+          Font.Style = []
+          ParentFont = False
+          TabOrder = 0
+          OnClick = radUsePracticeTPRSupplierDetailsClick
+        end
+        object radUseCustomContactDetails: TRadioButton
+          Left = 16
+          Top = 140
+          Width = 497
+          Height = 17
+          Caption = 'Use Custom Contact Details'
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -13
+          Font.Name = 'Tahoma'
+          Font.Style = []
+          ParentFont = False
+          TabOrder = 1
+          OnClick = radUseCustomContactDetailsClick
+        end
+        object edtPracticeContactName: TEdit
+          Left = 160
+          Top = 170
+          Width = 341
+          Height = 21
+          BorderStyle = bsNone
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -13
+          Font.Name = 'Tahoma'
+          Font.Style = []
+          MaxLength = 38
+          ParentFont = False
+          TabOrder = 2
+          Text = 'edtPracticeContactName'
+        end
+        object edtPracticeContactPhone: TEdit
+          Left = 160
+          Top = 200
+          Width = 341
+          Height = 21
+          BorderStyle = bsNone
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -13
+          Font.Name = 'Tahoma'
+          Font.Style = []
+          MaxLength = 15
+          ParentFont = False
+          TabOrder = 3
+          Text = 'edtPracticeContactPhone'
+        end
+        object edtPracticeContactEmail: TEdit
+          Left = 160
+          Top = 230
+          Width = 341
+          Height = 21
+          BorderStyle = bsNone
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -13
+          Font.Name = 'Tahoma'
+          Font.Style = []
+          MaxLength = 15
+          ParentFont = False
+          TabOrder = 4
+          Text = 'edtPracticeContactEmail'
+        end
+        object edtSupplierContactName: TEdit
+          Left = 160
+          Top = 50
+          Width = 341
+          Height = 21
+          BorderStyle = bsNone
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -13
+          Font.Name = 'Tahoma'
+          Font.Style = []
+          MaxLength = 38
+          ParentFont = False
+          ReadOnly = True
+          TabOrder = 5
+          Text = 'edtSupplierContactName'
+        end
+        object edtSupplierContactPhone: TEdit
+          Left = 160
+          Top = 80
+          Width = 341
+          Height = 21
+          BorderStyle = bsNone
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -13
+          Font.Name = 'Tahoma'
+          Font.Style = []
+          MaxLength = 15
+          ParentFont = False
+          ReadOnly = True
+          TabOrder = 6
+          Text = 'edtSupplierContactPhone'
+        end
+        object edtSupplierContactEmail: TEdit
+          Left = 160
+          Top = 110
+          Width = 341
+          Height = 21
+          BorderStyle = bsNone
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -13
+          Font.Name = 'Tahoma'
+          Font.Style = []
+          MaxLength = 15
+          ParentFont = False
+          ReadOnly = True
+          TabOrder = 7
+          Text = 'edtSupplierContactEmail'
+        end
+      end
+      object grpPayerDetails: TGroupBox
+        Left = 12
+        Top = 282
+        Width = 549
+        Height = 231
+        Caption = 'Payer Details'
+        TabOrder = 1
+        object lblTradingName: TLabel
+          Left = 12
+          Top = 33
+          Width = 81
+          Height = 16
+          Caption = 'Trading Name'
+          FocusControl = edtTradingName
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -13
+          Font.Name = 'Tahoma'
+          Font.Style = []
+          ParentFont = False
+        end
+        object lblStreetAddress: TLabel
+          Left = 12
+          Top = 63
+          Width = 85
+          Height = 16
+          Caption = 'Street Address'
+          FocusControl = edtStreetAddressLine1
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -13
+          Font.Name = 'Tahoma'
+          Font.Style = []
+          ParentFont = False
+        end
+        object lblSuburb: TLabel
+          Left = 12
+          Top = 123
+          Width = 78
+          Height = 16
+          Caption = 'Town/Suburb'
+          FocusControl = edtSuburb
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -13
+          Font.Name = 'Tahoma'
+          Font.Style = []
+          ParentFont = False
+        end
+        object lblPostCode: TLabel
+          Left = 11
+          Top = 183
+          Width = 51
+          Height = 16
+          Caption = 'Postcode'
+          FocusControl = edtPostCode
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -13
+          Font.Name = 'Tahoma'
+          Font.Style = []
+          ParentFont = False
+        end
+        object lblSupplierCountry: TLabel
+          Left = 12
+          Top = 183
+          Width = 44
+          Height = 16
+          Caption = 'Country'
+          FocusControl = edtSupplierCountry
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -13
+          Font.Name = 'Tahoma'
+          Font.Style = []
+          ParentFont = False
+        end
+        object lblState: TLabel
+          Left = 12
+          Top = 153
+          Width = 30
+          Height = 16
+          Caption = 'State'
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -13
+          Font.Name = 'Tahoma'
+          Font.Style = []
+          ParentFont = False
+        end
+        object edtTradingName: TEdit
+          Left = 124
+          Top = 30
+          Width = 377
+          Height = 22
+          BorderStyle = bsNone
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -13
+          Font.Name = 'Tahoma'
+          Font.Style = []
+          MaxLength = 200
+          ParentFont = False
+          TabOrder = 0
+          Text = 'edtTradingName'
+        end
+        object edtStreetAddressLine1: TEdit
+          Left = 124
+          Top = 60
+          Width = 377
+          Height = 22
+          BorderStyle = bsNone
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -13
+          Font.Name = 'Tahoma'
+          Font.Style = []
+          MaxLength = 38
+          ParentFont = False
+          TabOrder = 1
+          Text = 'edtStreetAddressLine1'
+        end
+        object edtStreetAddressLine2: TEdit
+          Left = 124
+          Top = 90
+          Width = 377
+          Height = 22
+          BorderStyle = bsNone
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -13
+          Font.Name = 'Tahoma'
+          Font.Style = []
+          MaxLength = 38
+          ParentFont = False
+          TabOrder = 2
+          Text = 'edtStreetAddressLine2'
+        end
+        object edtSuburb: TEdit
+          Left = 124
+          Top = 120
+          Width = 377
+          Height = 22
+          BorderStyle = bsNone
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -13
+          Font.Name = 'Tahoma'
+          Font.Style = []
+          MaxLength = 27
+          ParentFont = False
+          TabOrder = 3
+          Text = 'edtSuburb'
+        end
+        object edtPostCode: TEdit
+          Left = 124
+          Top = 180
+          Width = 80
+          Height = 22
+          BorderStyle = bsNone
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -13
+          Font.Name = 'Tahoma'
+          Font.Style = []
+          MaxLength = 4
+          ParentFont = False
+          TabOrder = 5
+          Text = 'edtPostCode'
+          OnKeyPress = edtPostCodeKeyPress
+        end
+        object edtSupplierCountry: TEdit
+          Left = 124
+          Top = 180
+          Width = 377
+          Height = 22
+          BorderStyle = bsNone
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -13
+          Font.Name = 'Tahoma'
+          Font.Style = []
+          MaxLength = 38
+          ParentFont = False
+          TabOrder = 6
+          Text = 'edtSupplierCountry'
+        end
+        object cmbState: TComboBox
+          Left = 124
+          Top = 149
+          Width = 57
+          Height = 24
+          Style = csDropDownList
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -13
+          Font.Name = 'Tahoma'
+          Font.Style = []
+          ItemHeight = 16
+          ParentFont = False
+          TabOrder = 4
+          OnChange = cmbStateChange
+        end
       end
     end
   end

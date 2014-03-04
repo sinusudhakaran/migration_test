@@ -353,7 +353,8 @@ uses
   LogUtil,
   ErrorMoreFrm,
   YesNoDlg,
-  WinUtils;
+  WinUtils,
+  CustomFileFormats;
 
 const
    UnitName = 'NewReportObj';
@@ -497,36 +498,47 @@ var
   AllOK, DestinationPreChosen: Boolean;
   Title, Desc: string;
   WebID, i,CatID: Integer;
+  SelectedCustomFileFormat : TCustomFileFormat;
+  HasCustomDefault : boolean;
 
   function GetFileType : Boolean;
+  var
+    CustIndex : integer;
   begin
      {$B-}
-     if Assigned(Params)
-     and Params.BatchSetup then begin
-
-        FileFormat := Params.GetBatchInteger('_FileType',rfExcel);
-
-        if Params.RptBatch.RunFileLocation = '' then
-          FileName := UserDir + FUserReportSettings.s7Report_Name+ rfFileExtn[ FileFormat]
-        else
-          FileName := Params.RptBatch.RunFileLocation + FUserReportSettings.s7Report_Name+ rfFileExtn[ FileFormat];
-     end else begin
-        //Set default filename
-        FileFormat := rfExcel;
-        FileName := UserDir + FUserReportSettings.s7Report_Name+ rfFileExtn[ FileFormat];
+     if Assigned(Params) and
+        Params.BatchSetup then
+     begin
+       FileFormat := Params.GetBatchInteger('_FileType',rfExcel);
+       if Params.RptBatch.RunFileLocation = '' then
+         FileName := UserDir + FUserReportSettings.s7Report_Name+ rfFileExtn[ FileFormat]
+       else
+         FileName := Params.RptBatch.RunFileLocation + FUserReportSettings.s7Report_Name+ rfFileExtn[ FileFormat];
+     end
+     else
+     begin
+       //Set default filename
+       FileFormat := rfExcel;
+       FileName := UserDir + FUserReportSettings.s7Report_Name+ rfFileExtn[ FileFormat];
      end;
 
-     Result := GenerateReportTo( Filename, FileFormat, FileFormats, Title, Desc, WebID, CatID, FIsAdmin);
+     if assigned(Params) then
+       Result := GenerateReportTo( Filename, FileFormat, FileFormats, Title, Desc, WebID, CatID, FIsAdmin, Params.CustomFileFormats)
+     else
+       Result := GenerateReportTo( Filename, FileFormat, FileFormats, Title, Desc, WebID, CatID, FIsAdmin, Params.CustomFileFormats);
 
      if Result then
-       if Assigned(Params) then begin
-          if Params.BatchSetup then begin
-             Params.RunReport(Dest,Filename);
-             Params.SetBatchInteger('_FileType',FileFormat);
-          end;
-
-      end;
-  end;
+     begin
+       if Assigned(Params) then
+       begin
+         if Params.BatchSetup then
+         begin
+           Params.RunReport(Dest,Filename);
+           Params.SetBatchInteger('_FileType',FileFormat);
+         end;
+       end;
+     end;
+   end;
 
   function ShowOutput : Boolean;
   begin
@@ -578,7 +590,7 @@ var
   end;
 
 begin
-
+   SelectedCustomFileFormat := nil;
    ClearAllTotals;
    try
       try
@@ -718,9 +730,22 @@ begin
                                IntToStr(WebID), IntToStr(CatID), Title, Desc, 'wx');
                        end;
                      //rfRTF   : RenderEngine := TRenderToFileRTF.Create(Self, Filename, Preview);
+                    else
+                    begin
+                      if FileFormat > rfMax then
+                      begin
+                        SelectedCustomFileFormat := TCustomFileFormat(Params.CustomFileFormats.Items[FileFormat - 1 - rfMax]);
+                      end;
+                    end;
                   end;
 
-                  if Assigned( RenderEngine) then begin
+                  if Assigned(SelectedCustomFileFormat) then
+                  begin
+                    SelectedCustomFileFormat.CustomFormatCode(FileName);
+                  end
+                  else
+                  if Assigned( RenderEngine) then
+                  begin
                      if (AllOK) then RenderEngine.Generate;
 
                      if Assigned(Params) then begin
@@ -793,6 +818,7 @@ begin
       ClearStatus;
    end;
 end;
+
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function TBKReport.LoadReportSettings(PrintMgr: TPrintManagerObj;
   ID: string) : pWindows_Report_Setting_Rec;

@@ -10,7 +10,7 @@ Interface uses MONEYDEF, DATEDEF;
 
 Const
    BK_IOLIB_Version : Integer = 717;
-   BK_IOLIB_Date    = '27/02/14';
+   BK_IOLIB_Date    = '05/03/14';
    BK_FILE_VERSION  = 182;  (* Current Version counter for files
                               Changes if structure or method of storing a value would cause
                               data to be represented incorrectly, or an exception to be raised *)
@@ -624,6 +624,14 @@ Type
       pdPost_Code                        : String[ 4 ];       { Stored }
       pdPhone_Number                     : String[ 60 ];       { Stored }
       pdABN                              : String[ 14 ];       { Stored }
+      pdBusinessName                     : String[ 200 ];       { Stored }
+      pdTradingName                      : String[ 200 ];       { Stored }
+      pdCountry                          : String[ 20 ];       { Stored }
+      pdInstitutionBSB                   : String[ 6 ];       { Stored }
+      pdInstitutionAccountNumber         : String[ 9 ];       { Stored }
+      pdIsIndividual                     : Boolean;       { Stored }
+      pdAddressLine2                     : String[ 38 ];       { Stored }
+      pdStateId                          : Integer;       { Stored }
       pdAmount                           : TLBRec;
       pdTotal                            : Money;
       pdTemp_Tag                         : Integer;
@@ -1356,11 +1364,16 @@ Type
       prPracContactPhone                 : String[ 15 ];       { Stored }
       prPracEmailAddress                 : String[ 76 ];       { Stored }
       prTradingName                      : String[ 200 ];       { Stored }
+      prAddressLine1                     : String[ 38 ];       { Stored }
+      prAddressLine2                     : String[ 38 ];       { Stored }
       prSuburb                           : String[ 27 ];       { Stored }
       prStateId                          : Integer;       { Stored }
       prCountry                          : String[ 20 ];       { Stored }
+      prPostCode                         : String[ 4 ];       { Stored }
       prBSB                              : String[ 6 ];       { Stored }
       prAccount                          : String[ 9 ];       { Stored }
+      prUsePracticeTPRSupplierDetails    : Boolean;       { Stored }
+      prFirstTimeTPRATOExtractDone       : Boolean;       { Stored }
       prEOR                              : Byte;
    end;
 
