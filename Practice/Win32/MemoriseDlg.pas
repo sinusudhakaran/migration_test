@@ -481,8 +481,8 @@ begin
                     'Change the text or add wild card characters if needed|' +
                     'Change the text or add wild card characters if needed';
    eNotes.Hint      :=
-                    'Change the text of add wild card characters if needed|' +
-                    'Change the text of add wild card characters if needed.  Max 40 characters|';
+                    'Change the text or add wild card characters if needed|' +
+                    'Change the text or add wild card characters if needed.  Max 40 characters|';
 
    ePart.Hint       := eRef.Hint;
 
