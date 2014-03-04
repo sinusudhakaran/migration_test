@@ -86,7 +86,9 @@ type
 
                   ecNewJournal,
                   ecSortTransId,
-                  ecSortSentToAndAcc
+                  ecSortSentToAndAcc,
+
+                  ecRecommendedMems
                   );
 
 implementation

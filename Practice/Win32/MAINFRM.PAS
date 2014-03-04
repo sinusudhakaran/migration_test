@@ -5035,7 +5035,7 @@ end;
 
 procedure TfrmMain.tbRecommendedMemorisationsClick(Sender: TObject);
 begin
-  ShowRecommendedMemorisations(self);
+  DoCodingTBarCommand(ecRecommendedMems);
 end;
 
 procedure TfrmMain.tbRepeatClick(Sender: TObject);
