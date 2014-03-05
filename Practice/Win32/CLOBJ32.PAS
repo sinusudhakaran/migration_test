@@ -26,10 +26,10 @@ uses
    ExchangeRateList,
    mcDefs,
    AuditMgr,
+   RecommendedMems,
 {$ENDIF}
    sysutils,
-   MoneyDef,
-   RecommendedMems;
+   MoneyDef;
 
 type
   TClientObj = Class
