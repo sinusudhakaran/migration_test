@@ -56,6 +56,7 @@
     <DCCReference Include="..\Tests\utSimpleFund360Bulk.pas" />
     <DCCReference Include="..\Tests\utSimpleFundX.pas" />
     <DCCReference Include="..\Tests\utToDo.pas" />
+    <DCCReference Include="..\Tests\utTPRExtact.pas" />
     <DCCReference Include="..\Tests\utUpgrade.pas" />
     <DCCReference Include="..\Tests\utWebXOffice.pas" />
   </ItemGroup>
