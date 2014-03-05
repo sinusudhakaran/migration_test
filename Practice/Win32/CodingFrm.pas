@@ -363,7 +363,9 @@ type
     FCountry : Byte;
     FIsForex : Boolean;
     FSearchText: string;
+    FLastKeyPress: TDateTime;
 
+    procedure SetLastKeyPress;
     procedure SetUpHelp;
     procedure LoadWorkTranList;
     procedure InitController;
@@ -444,7 +446,6 @@ type
     procedure DoRecombineEntries;
     procedure DoGotoNotes;
     procedure DoNewJournal(Sender: Tobject = nil);
-    procedure DoRecommendedMems;
     function  ValidCheque(Num: string; This : pTransaction_Rec; var msg: string ): boolean;
 {$IFDEF SmartLink}
     procedure DoLaunchFingertips;
@@ -492,6 +493,7 @@ type
     { Protected declarations }
   public
     { Public declarations }
+    function GetLastKeyPress: TDateTime;
     procedure ProcessExternalCmd(Command : TExternalCmd);
 
     class function CreateAndSetup( aOwner              : Forms.TForm;
@@ -608,6 +610,7 @@ uses
    dxList32,
    CAUtils,
    bkProduct,
+   RecommendedMems,
    RecommendedMemorisationsFrm;
 
 const
@@ -1267,8 +1270,6 @@ begin
            LoadWTLNewSort( csByTransId);
         ecSortSentToAndAcc:
            LoadWTLNewSort( csBySentToAndAcc);
-        ecRecommendedMems:
-          DoRecommendedMems;
      end;
    finally
      EnableAutoSave;
@@ -2724,12 +2725,6 @@ begin
    end;
 end;
 
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-procedure TfrmCoding.DoRecommendedMems;
-begin
-  ShowRecommendedMemorisations(self, BankAccount);
-end;
-
 //------------------------------------------------------------------------------
 procedure TFrmCoding.DoDeleteTrans;
 var
@@ -3962,7 +3957,7 @@ end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmCoding.lblRecommendedMemorisationsClick(Sender: TObject);
 begin
-  DoRecommendedMems;
+  ShowRecommendedMemorisations(self);
 end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -6011,6 +6006,7 @@ end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmCoding.celAccountKeyPress(Sender: TObject; var Key: Char);
 begin
+  SetLastKeyPress;
    //ignore * press if editing
    if (key = '*')  or ((key = '-') and MyClient.clFields.clUse_Minus_As_Lookup_Key) then key := #0;
 end;
@@ -7739,6 +7735,12 @@ begin
    else
       Result := False;
 end;
+
+function TfrmCoding.GetLastKeyPress: TDateTime;
+begin
+  Result := FLastKeyPress;
+end;
+
 function TfrmCoding.GetSearchVisible: Boolean;
 begin
    result := PnlSearch.Visible;
@@ -8273,6 +8275,7 @@ var
    InclusiveAmt  : Double;
    ExchangeRate  : Double;
 begin
+  SetLastKeyPress;
   if not ValidDataRow( tblCoding.ActiveRow ) then exit;
 
   {treat value as percentage}
@@ -9264,6 +9267,13 @@ procedure TfrmCoding.SetIsClosing(const Value: boolean);
 begin
   FIsClosing := Value;
 end;
+
+procedure TfrmCoding.SetLastKeyPress;
+begin
+  if Assigned(recommended_Mems) then
+    recommended_Mems.SetLastCodingFrmKeyPress;
+end;
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 //
 // WMMDIActivate
@@ -9301,6 +9311,7 @@ end;
 
 procedure TfrmCoding.EBFindKeyPress(Sender: TObject; var Key: Char);
 begin
+  SetLastKeyPress;
   if Ord(Key)=VK_RETURN then
       SearchTimerTimer(nil);
 end;
@@ -9953,6 +9964,7 @@ end;
 
 procedure TfrmCoding.tblCodingKeyPress(Sender: TObject; var Key: Char);
 begin
+  SetLastKeyPress;
   if (Key = '/') then
     Key := #0;
 end;
