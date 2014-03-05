@@ -425,6 +425,7 @@ var
               begin
                 MyClient.clRecommended_Mems.Candidates.AtInsert(i, cMem);
                 NewCandidateInserted := True;
+                Break;
               end;
             end;
             if not NewCandidateInserted then
