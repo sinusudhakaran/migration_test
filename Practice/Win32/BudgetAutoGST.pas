@@ -243,13 +243,21 @@ var
   iRow: integer;
   iClass: integer;
   sAccount: string;
+  GSTAmounts: array of double;
+  ApplyGSTAmounts: array of boolean;
 begin
+  SetLength(GSTAmounts, Length(aBudget));
+  for iRow := 0 to High(GSTAmounts) do
+    GSTAmounts[iRow] := 0;
+  SetLength(ApplyGSTAmounts, Length(aBudget));
+  for iRow := 0 to High(GSTAmounts) do
+    ApplyGSTAmounts[iRow] := False;
+
   for iClass := 0 to MAX_GST_CLASS do
   begin
     sAccount := aClient.clFields.clGST_Account_Codes[iClass];
     if (sAccount = '') then
       continue;
-
     for iRow := 0 to High(aBudget) do
     begin
       if (aBudget[iRow].bAccount <> sAccount) then
@@ -257,10 +265,17 @@ begin
 
       // Note: this must be added
       aBudget[iRow].ShowGstAmounts := true;
-      aBudget[iRow].bGstAmounts[aMonthIndex] := aBudget[iRow].bGstAmounts[aMonthIndex] +
-        DoRoundUpHalves(aGST[iClass].Amount);
+      GSTAmounts[iRow] := GSTAmounts[iRow] + aGST[iClass].Amount;
+      ApplyGSTAmounts[iRow] := True;
     end;
   end;
+
+  for iRow := 0 to High(GSTAmounts) do
+  begin
+    if ApplyGSTAmounts[iRow] then    
+      aBudget[iRow].bGstAmounts[aMonthIndex] := DoRoundUpHalves(GSTAmounts[iRow]);
+  end;
+    
 end;
 
 //------------------------------------------------------------------------------
