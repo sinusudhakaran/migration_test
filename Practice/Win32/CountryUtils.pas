@@ -13,15 +13,19 @@ const
   MIN_STATE = 0;
   MAX_STATE = 8;
 
-Function Localise( Country : Byte; S : String ): String;
+Function  Localise( Country : Byte; S : String ): String;
 Procedure GetAustraliaStateFromIndex(aIndex : integer; var aCode, aDescription : string);
+function  GetCountry: byte;
 
 // ---------------------------------------------------------------------------
 implementation
 
 uses
   BKCONST,
-  StrUtils;
+  StrUtils,
+  IniFiles,
+  Globals,
+  SysUtils;
 
 // -----------------------------------------------------------------------------
 Function Localise( Country : Byte; S : String ): String;
@@ -65,6 +69,38 @@ begin
     8 : begin aCode := 'OTH'; aDescription :=	'Overseas addresses'; end;
   else
     begin aCode := ''; aDescription :=	''; end;
+  end;
+end;
+
+function GetCountry: byte;
+var
+  IniFile: TMemIniFile;
+  CountryStr: String;
+begin
+  result := whNewZealand;
+
+  // Practice
+  if assigned(AdminSystem) then
+  begin
+    result := AdminSystem.fdFields.fdCountry;
+    exit;
+  end;
+
+  // Books
+  try
+    IniFile := TMemIniFile.Create(ExecDir + 'app.ini');
+
+    CountryStr := IniFile.ReadString('Installer', 'Country', '');
+
+    if (CountryStr = 'NZ') then
+      result := whNewZealand;
+    if (CountryStr = 'AU') then
+      result := whAustralia;
+    if (CountryStr = 'UK') then
+      result := whUK;
+
+  finally
+    FreeAndNil(IniFile);
   end;
 end;
 

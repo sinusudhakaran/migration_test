@@ -34,7 +34,9 @@ implementation
 {$R *.dfm}
 
 uses
-  bkConst, Globals;
+  bkConst, Globals,
+  IniFiles,
+  CountryUtils;
 
 procedure TDlgLicense.DoRebranding;
 begin
@@ -51,7 +53,7 @@ begin
 
   DoRebranding();
 
-  case AdminSystem.fdFields.fdCountry of
+  case GetCountry of
     whAustralia : UseAUEula;
     whNewZealand: UseNZEula;
   end;
