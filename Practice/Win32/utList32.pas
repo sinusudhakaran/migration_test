@@ -50,7 +50,13 @@ end;
 {------------------------------------------------------------------------------}
 function TUnscanned_Transaction_List.Compare(Item1, Item2: Pointer): integer;
 begin
-  result := 0;
+  if (TUnscanned_Transaction(Item1).utFields.utBank_Account_Number <>
+      TUnscanned_Transaction(Item2).utFields.utBank_Account_Number) or
+     (TUnscanned_Transaction(Item1).utFields.utSequence_No <>
+      TUnscanned_Transaction(Item2).utFields.utSequence_No) then
+    Result := 1
+  else
+    Result := 0;
 end;
 
 {------------------------------------------------------------------------------}

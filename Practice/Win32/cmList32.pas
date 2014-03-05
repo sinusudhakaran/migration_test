@@ -50,7 +50,11 @@ end;
 {------------------------------------------------------------------------------}
 function TCandidate_Mem_List.Compare(Item1, Item2: Pointer): integer;
 begin
-  result := 0;
+  if (TCandidate_Mem(Item1).cmFields.cmID <>
+      TCandidate_Mem(Item2).cmFields.cmID) then
+    Result := 1
+  else
+    Result := 0;
 end;
 
 {------------------------------------------------------------------------------}

@@ -250,7 +250,8 @@ uses
   ForexHelpers,
   YesNoDlg,
   ExchangeGainLossWiz,
-  LockUtils;
+  LockUtils,
+  RecommendedMems;
 {$R *.dfm}
 
 var
@@ -910,6 +911,8 @@ begin
    FClosing := False;
    FAbandon := False;
    RegisterWebNotesUpdate(Self.Handle);
+
+   MyClient.clRecommended_Mems.UpdateUnprocessedAndCandidateMems;
 end;
 
 procedure TfrmClientHomePage.FormDestroy(Sender: TObject);

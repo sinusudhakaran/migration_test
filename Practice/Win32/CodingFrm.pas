@@ -446,6 +446,7 @@ type
     procedure DoRecombineEntries;
     procedure DoGotoNotes;
     procedure DoNewJournal(Sender: Tobject = nil);
+    procedure DoRecommendedMems;
     function  ValidCheque(Num: string; This : pTransaction_Rec; var msg: string ): boolean;
 {$IFDEF SmartLink}
     procedure DoLaunchFingertips;
@@ -1270,6 +1271,8 @@ begin
            LoadWTLNewSort( csByTransId);
         ecSortSentToAndAcc:
            LoadWTLNewSort( csBySentToAndAcc);
+        ecRecommendedMems:
+          DoRecommendedMems;
      end;
    finally
      EnableAutoSave;
@@ -2725,6 +2728,12 @@ begin
    end;
 end;
 
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+procedure TfrmCoding.DoRecommendedMems;
+begin
+  ShowRecommendedMemorisations(self, BankAccount);
+end;
+
 //------------------------------------------------------------------------------
 procedure TFrmCoding.DoDeleteTrans;
 var
@@ -3957,7 +3966,7 @@ end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmCoding.lblRecommendedMemorisationsClick(Sender: TObject);
 begin
-  ShowRecommendedMemorisations(self);
+  DoRecommendedMems;
 end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

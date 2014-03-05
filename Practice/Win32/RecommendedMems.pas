@@ -54,7 +54,6 @@ var
 implementation
 
 uses
-  BAObj32,
   BKConst,
   BKDbExcept,
   cmObj32,
@@ -66,8 +65,7 @@ uses
   MemorisationsObj,
   OSFont,
   rmObj32,
-  SysUtils,
-  utObj32;
+  SysUtils;
 
 const
   UnitName = 'RecommendedMems';
@@ -85,9 +83,9 @@ end;
 
 destructor TRecommended_Mems.Destroy;
 begin
+  FreeAndNil(fCandidates);
   FreeAndNil(fUnscanned);
   FreeAndNil(fCandidate);
-  FreeAndNil(fCandidates);
   FreeAndNil(fRecommended);
 
   inherited;
@@ -364,7 +362,7 @@ var
       try
         // Get first unscanned transaction in unscanned transaction list
         ut := MyClient.clRecommended_Mems.Unscanned.Unscanned_Transaction_At(0);
-        
+
         // Get transaction details for the transaction that matches the sequence number in our record
         utAccount := MyClient.clBank_Account_List.FindCode(ut.utFields.utBank_Account_Number);
         pTranRec := nil;
@@ -373,7 +371,7 @@ var
           pTranRec := utAccount.baTransaction_List.Transaction_At(i);
           if (pTranRec.txSequence_No = ut.utFields.utSequence_No) then
             break;
-        end; 
+        end;
         if (pTranRec = nil) then
           Exit; // Shouldn't get to here
 
@@ -387,7 +385,7 @@ var
           //   * Entry Type
           //   * Bank Account
           //   * Chart of Accounts code
-          //   * Statement Details   
+          //   * Statement Details
           if (pTranRec.txType = cMem.cmFields.cmType) and
              (utAccount.baFields.baBank_Account_Number = cMem.cmFields.cmBank_Account_Number) and
              (pTranRec.txAccount = cMem.cmFields.cmAccount) and
@@ -407,7 +405,7 @@ var
           // Increase next candidate ID for the next candidate to be created
           MyClient.clRecommended_Mems.Candidate.cpFields.cpNext_Candidate_ID :=
             MyClient.clRecommended_Mems.Candidate.cpFields.cpNext_Candidate_ID + 1;
-            
+
           // Fill in details for the new candidate
           cMem.cmFields.cmCount := 1;
           cMem.cmFields.cmType := pTranRec.txType;
@@ -417,19 +415,23 @@ var
           cMem.cmFields.cmStatement_Details := pTranRec.txStatement_Details;
 
           // Insert the new candidate in alphabetical order according to Statement Details
-          NewCandidateInserted := False;
-          for i := MyClient.clRecommended_Mems.Candidates.First to MyClient.clRecommended_Mems.Candidates.Last do
+          if (MyClient.clRecommended_Mems.Candidates.ItemCount > 0) then
           begin
-            if (cMem.cmFields.cmStatement_Details >=
-            MyClient.clRecommended_Mems.Candidates.Candidate_Mem_At(i).cmFields.cmStatement_Details) then
+            NewCandidateInserted := False;
+            for i := MyClient.clRecommended_Mems.Candidates.First to MyClient.clRecommended_Mems.Candidates.Last do
             begin
-              MyClient.clRecommended_Mems.Candidates.AtInsert(i, cMem);
-              NewCandidateInserted := True;
+              if (cMem.cmFields.cmStatement_Details <=
+              MyClient.clRecommended_Mems.Candidates.Candidate_Mem_At(i).cmFields.cmStatement_Details) then
+              begin
+                MyClient.clRecommended_Mems.Candidates.AtInsert(i, cMem);
+                NewCandidateInserted := True;
+              end;
             end;
             if not NewCandidateInserted then
               MyClient.clRecommended_Mems.Candidates.Insert(cMem); // insert at the end
-          end;
-        end;  
+          end else
+            MyClient.clRecommended_Mems.Candidates.Insert(cMem); // this is the first candidate in the list
+        end;
 
       finally
         MyClient.clRecommended_Mems.Unscanned.AtDelete(0); // remove unscanned transaction from list
@@ -448,7 +450,7 @@ begin
     if InCodingForm then
     begin
       // Has it been more than 33 milliseconds yet?
-      while (MilliSecondsBetween(StartTime, Time) > 33) do
+      while (MilliSecondsBetween(StartTime, Time) < 33) do
       begin
         // Has there been a keypress in the last two seconds?
         if (MilliSecondsBetween(StartTime, GetLastCodingFrmKeyPress) <= 2000) then
@@ -475,14 +477,12 @@ end;
 procedure TRecommended_Mems.UpdateCandidateMems(TranRec: pTransaction_Rec; IsEditOperation: boolean);
 var
   Account               : TBank_Account;
-  AccountInt            : integer;
   CandidateInt          : integer;
   CandidateMemRec       : tCandidate_Mem_Rec;
   FirstCandidatePos     : integer;
   LastCandidatePos      : integer;
   MatchingCandidatePos  : integer;
   NewUnscannedTran      : TUnscanned_Transaction;
-  TransactionInt        : integer;
 begin
   if not Assigned(TranRec) then
     Exit; // this shouldn't happen!
@@ -496,6 +496,7 @@ begin
   // * Coding Type
   // * Account Code
   // * Statement Details
+  Account := TBank_Account(TranRec.txBank_Account);
   GetMatchingCandidateRange(TranRec.txStatement_Details,
                             FirstCandidatePos,
                             LastCandidatePos);
