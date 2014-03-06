@@ -1,6 +1,5 @@
 object dlgJournal: TdlgJournal
-  Scaled = False
-Left = 306
+  Left = 306
   Top = 201
   ActiveControl = tblJournal
   BorderIcons = [biSystemMenu, biMaximize]

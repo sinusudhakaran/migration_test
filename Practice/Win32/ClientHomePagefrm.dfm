@@ -1,6 +1,5 @@
 object frmClientHomePage: TfrmClientHomePage
-  Scaled = False
-Left = 0
+  Left = 0
   Top = 0
   ActiveControl = ClientTree
   Caption = 'Home'

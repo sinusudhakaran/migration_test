@@ -1,6 +1,5 @@
 object frmSimpleUIHomePage: TfrmSimpleUIHomePage
-  Scaled = False
-Left = 0
+  Left = 0
   Top = 0
   Caption = 'Home'
   ClientHeight = 427

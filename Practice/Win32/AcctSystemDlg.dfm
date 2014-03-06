@@ -1,6 +1,5 @@
 object dlgAcctSystem: TdlgAcctSystem
-  Scaled = False
-Left = 473
+  Left = 473
   Top = 83
   BorderStyle = bsDialog
   Caption = 'Maintain Accounting System'

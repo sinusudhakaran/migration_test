@@ -1,6 +1,5 @@
 object AddReportFrm: TAddReportFrm
-  Scaled = False
-Left = 0
+  Left = 0
   Top = 0
   BorderIcons = [biSystemMenu, biMaximize]
   Caption = 'Add Favourite Report'

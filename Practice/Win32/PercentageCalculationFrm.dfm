@@ -1,6 +1,5 @@
 object frmPercentageCalculation: TfrmPercentageCalculation
-  Scaled = False
-Left = 0
+  Left = 0
   Top = 0
   ActiveControl = edtAccountCode
   BorderIcons = [biSystemMenu]

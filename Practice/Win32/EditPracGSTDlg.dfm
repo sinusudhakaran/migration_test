@@ -1,6 +1,5 @@
 object dlgEditPracGST: TdlgEditPracGST
-  Scaled = False
-Left = 218
+  Left = 218
   Top = 112
   BorderStyle = bsDialog
   Caption = 'Practice Tax Defaults'

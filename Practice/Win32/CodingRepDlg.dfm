@@ -1,6 +1,5 @@
 object dlgCodingRep: TdlgCodingRep
-  Scaled = False
-Left = 360
+  Left = 360
   Top = 189
   BorderStyle = bsDialog
   Caption = 'Coding Report'

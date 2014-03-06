@@ -1,6 +1,5 @@
 object frmImportProspects: TfrmImportProspects
-  Scaled = False
-Left = 439
+  Left = 439
   Top = 249
   BorderStyle = bsDialog
   Caption = 'Import Prospects'

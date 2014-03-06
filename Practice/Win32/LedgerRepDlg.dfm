@@ -1,6 +1,5 @@
 object dlgLedgerRep: TdlgLedgerRep
-  Scaled = False
-Left = 357
+  Left = 357
   Top = 331
   BorderStyle = bsDialog
   Caption = 'Ledger Report'

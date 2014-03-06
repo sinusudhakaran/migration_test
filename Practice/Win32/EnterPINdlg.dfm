@@ -1,6 +1,5 @@
 object dlgEnterPIN: TdlgEnterPIN
-  Scaled = False
-Left = 312
+  Left = 312
   Top = 238
   Caption = 'Enter P.I.N'
   ClientHeight = 163

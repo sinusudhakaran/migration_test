@@ -1,6 +1,5 @@
 object dlgTrialBalanceOptions: TdlgTrialBalanceOptions
-  Scaled = False
-Left = 379
+  Left = 379
   Top = 239
   BorderStyle = bsDialog
   Caption = 'Trial Balance Report'

@@ -1,6 +1,5 @@
 object dlgGraphRep: TdlgGraphRep
-  Scaled = False
-Left = 307
+  Left = 307
   Top = 200
   BorderStyle = bsDialog
   Caption = 'Graph Options'

@@ -1,6 +1,5 @@
 object ReportOptionDlg: TReportOptionDlg
-  Scaled = False
-Left = 0
+  Left = 0
   Top = 0
   BorderIcons = [biSystemMenu, biMaximize]
   Caption = 'Report And Graph Options'

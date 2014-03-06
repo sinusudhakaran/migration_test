@@ -1,6 +1,5 @@
 object dlgInitCheq: TdlgInitCheq
-  Scaled = False
-Left = 158
+  Left = 158
   Top = 149
   BorderIcons = [biSystemMenu, biMaximize]
   BorderStyle = bsDialog

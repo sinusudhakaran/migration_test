@@ -1,6 +1,5 @@
 object dlgPayeeDetail: TdlgPayeeDetail
-  Scaled = False
-Left = 340
+  Left = 340
   Top = 266
   BorderIcons = [biSystemMenu, biMaximize]
   Caption = 'Payee Details'

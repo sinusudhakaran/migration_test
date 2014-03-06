@@ -1,6 +1,5 @@
 object dlgSettings: TdlgSettings
-  Scaled = False
-Left = 319
+  Left = 319
   Top = 102
   BorderIcons = [biSystemMenu, biHelp]
   BorderStyle = bsDialog

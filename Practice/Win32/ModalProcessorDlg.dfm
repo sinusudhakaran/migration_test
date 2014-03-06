@@ -1,6 +1,5 @@
 object dlgModalProcessor: TdlgModalProcessor
-  Scaled = False
-Left = 434
+  Left = 434
   Top = 311
   BorderIcons = [biSystemMenu]
   BorderStyle = bsNone

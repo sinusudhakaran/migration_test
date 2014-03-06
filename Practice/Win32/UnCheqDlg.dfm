@@ -1,6 +1,5 @@
 object dlgUnCheque: TdlgUnCheque
-  Scaled = False
-Left = 336
+  Left = 336
   Top = 180
   BorderStyle = bsDialog
   Caption = 'Add Unpresented Cheques'

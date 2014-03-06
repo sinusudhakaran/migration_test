@@ -1,6 +1,5 @@
 object CSVConfig: TCSVConfig
-  Scaled = False
-Left = 0
+  Left = 0
   Top = 0
   BorderStyle = bsDialog
   Caption = 'CSVConfig'

@@ -1,6 +1,5 @@
 object dlgChooseContactDetails: TdlgChooseContactDetails
-  Scaled = False
-Left = 294
+  Left = 294
   Top = 207
   BorderIcons = [biSystemMenu]
   BorderStyle = bsSingle

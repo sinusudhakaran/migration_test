@@ -1,6 +1,5 @@
 object ReportStylesDlg: TReportStylesDlg
-  Scaled = False
-Left = 0
+  Left = 0
   Top = 0
   BorderStyle = bsDialog
   Caption = 'Manage Report Styles'

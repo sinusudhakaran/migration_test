@@ -1,6 +1,5 @@
 object dlgHistorical: TdlgHistorical
-  Scaled = False
-Left = 381
+  Left = 381
   Top = 274
   BorderIcons = [biSystemMenu, biMaximize]
   Caption = 'Add Historical Entries'

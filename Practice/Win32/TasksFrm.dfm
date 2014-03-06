@@ -1,6 +1,5 @@
 object frmTasks: TfrmTasks
-  Scaled = False
-Left = 295
+  Left = 295
   Top = 172
   BorderIcons = [biSystemMenu, biMaximize]
   BorderWidth = 3

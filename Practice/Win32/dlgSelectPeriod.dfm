@@ -1,6 +1,5 @@
 object frmSelectPeriod: TfrmSelectPeriod
-  Scaled = False
-Left = 0
+  Left = 0
   Top = 0
   ActiveControl = fmeDateSelector1.eDateFrom
   Caption = 'Select GST period'

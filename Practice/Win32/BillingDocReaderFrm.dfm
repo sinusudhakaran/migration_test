@@ -1,6 +1,5 @@
 object frmBillingDocReader: TfrmBillingDocReader
-  Scaled = False
-Left = 514
+  Left = 514
   Top = 515
   BorderIcons = [biSystemMenu]
   BorderStyle = bsSingle

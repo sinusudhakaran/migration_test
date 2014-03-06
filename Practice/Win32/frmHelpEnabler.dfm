@@ -1,6 +1,5 @@
 object Form1: TForm1
-  Scaled = False
-Left = 333
+  Left = 333
   Top = 322
   BorderStyle = bsToolWindow
   Caption = 'BankLink Network Help fix (for MSKB 896054)'

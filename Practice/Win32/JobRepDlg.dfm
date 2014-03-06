@@ -1,6 +1,5 @@
 object dlgJobRep: TdlgJobRep
-  Scaled = False
-Left = 389
+  Left = 389
   Top = 319
   BorderStyle = bsDialog
   Caption = 'Coding by Job Report'

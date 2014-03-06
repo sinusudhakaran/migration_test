@@ -1,6 +1,5 @@
 object dlgDissection: TdlgDissection
-  Scaled = False
-Left = 348
+  Left = 348
   Top = 289
   ActiveControl = tblDissect
   BorderIcons = [biSystemMenu, biMaximize]

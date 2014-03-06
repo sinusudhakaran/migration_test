@@ -1,6 +1,5 @@
 object DivisionDlg: TDivisionDlg
-  Scaled = False
-Left = 261
+  Left = 261
   Top = 187
   BorderStyle = bsSingle
   Caption = 'Set Up Divisions'

@@ -1,6 +1,5 @@
 object frmClientLookup: TfrmClientLookup
-  Scaled = False
-Left = 365
+  Left = 365
   Top = 292
   BorderIcons = [biSystemMenu, biMaximize]
   Caption = 'Client Lookup Frame'

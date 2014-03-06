@@ -1,6 +1,5 @@
 object AddFavouriteDlg: TAddFavouriteDlg
-  Scaled = False
-Left = 0
+  Left = 0
   Top = 0
   ActiveControl = EName
   BorderStyle = bsDialog

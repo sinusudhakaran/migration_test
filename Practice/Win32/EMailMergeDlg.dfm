@@ -1,6 +1,5 @@
 object frmEMailMerge: TfrmEMailMerge
-  Scaled = False
-Left = 403
+  Left = 403
   Top = 255
   BorderIcons = [biSystemMenu, biMaximize]
   BorderStyle = bsDialog

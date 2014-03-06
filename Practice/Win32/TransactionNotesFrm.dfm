@@ -1,6 +1,5 @@
 object frmTransactionNotes: TfrmTransactionNotes
-  Scaled = False
-Left = 413
+  Left = 413
   Top = 120
   Width = 200
   Height = 524

@@ -1,6 +1,5 @@
 object frmBudget: TfrmBudget
-  Scaled = False
-Left = 309
+  Left = 309
   Top = 235
   ActiveControl = tblBudget
   Caption = 'Enter Budget - <Budget Name>'

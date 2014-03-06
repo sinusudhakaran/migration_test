@@ -1,6 +1,5 @@
 object frmChart: TfrmChart
-  Scaled = False
-Left = 255
+  Left = 255
   Top = 164
   BorderIcons = [biSystemMenu, biMaximize]
   Caption = 'Graph Output'

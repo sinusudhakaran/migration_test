@@ -1,6 +1,5 @@
 object dlgExtract: TdlgExtract
-  Scaled = False
-Left = 279
+  Left = 279
   Top = 200
   BorderStyle = bsDialog
   Caption = 'Extract Data'

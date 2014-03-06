@@ -1,6 +1,5 @@
 object FindReplaceDlg: TFindReplaceDlg
-  Scaled = False
-Left = 0
+  Left = 0
   Top = 0
   Caption = 'Find and Replace'
   ClientHeight = 314

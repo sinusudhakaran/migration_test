@@ -1,6 +1,5 @@
 object frmAdvanceAccountOptions: TfrmAdvanceAccountOptions
-  Scaled = False
-Left = 297
+  Left = 297
   Top = 252
   BorderStyle = bsDialog
   Caption = 'Advanced Bank Account Options'

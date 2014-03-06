@@ -1,6 +1,5 @@
 object frmCheckInOut: TfrmCheckInOut
-  Scaled = False
-Left = 297
+  Left = 297
   Top = 164
   BorderIcons = [biSystemMenu, biMaximize]
   Caption = 'Caption'

@@ -1,6 +1,5 @@
 object frmBConnectHTTPS: TfrmBConnectHTTPS
-  Scaled = False
-Left = 315
+  Left = 315
   Top = 122
   ActiveControl = btnConnect
   BorderStyle = bsToolWindow

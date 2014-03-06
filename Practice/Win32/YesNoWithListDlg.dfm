@@ -1,6 +1,5 @@
 object dlgYesNoWithList: TdlgYesNoWithList
-  Scaled = False
-Left = 351
+  Left = 351
   Top = 191
   BorderStyle = bsDialog
   Caption = 'Clear GST Class?'

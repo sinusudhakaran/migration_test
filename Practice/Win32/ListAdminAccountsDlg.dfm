@@ -1,6 +1,5 @@
 object dlgAdminAccountOptions: TdlgAdminAccountOptions
-  Scaled = False
-Left = 358
+  Left = 358
   Top = 192
   BorderIcons = [biSystemMenu]
   Caption = 'Download Report'

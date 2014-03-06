@@ -1,6 +1,5 @@
 object frmExportCharges: TfrmExportCharges
-  Scaled = False
-Left = 330
+  Left = 330
   Top = 274
   BorderIcons = [biSystemMenu, biMaximize]
   Caption = 'Export Charges'

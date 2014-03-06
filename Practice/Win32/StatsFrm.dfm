@@ -1,6 +1,5 @@
 object frmStatistics: TfrmStatistics
-  Scaled = False
-Left = 354
+  Left = 354
   Top = 319
   Caption = 'frmStatistics'
   ClientHeight = 354

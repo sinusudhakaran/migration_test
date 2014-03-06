@@ -1,6 +1,5 @@
 object frmRecombineEntries: TfrmRecombineEntries
-  Scaled = False
-Left = 280
+  Left = 280
   Top = 169
   BorderStyle = bsDialog
   Caption = 'Recombine Entries'

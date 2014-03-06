@@ -1,6 +1,5 @@
 object frmClientManager: TfrmClientManager
-  Scaled = False
-Left = 0
+  Left = 0
   Top = 157
   Caption = 'Client Manager'
   ClientHeight = 554

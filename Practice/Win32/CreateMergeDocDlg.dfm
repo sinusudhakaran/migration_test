@@ -1,6 +1,5 @@
 object frmCreateMergeDoc: TfrmCreateMergeDoc
-  Scaled = False
-Left = 364
+  Left = 364
   Top = 260
   BorderStyle = bsDialog
   Caption = 'Create a Mail Merge Document'

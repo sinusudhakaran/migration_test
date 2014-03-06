@@ -1,6 +1,5 @@
 object wizBalancesForward: TwizBalancesForward
-  Scaled = False
-Left = 299
+  Left = 299
   Top = 199
   BorderIcons = [biSystemMenu, biMaximize]
   Caption = 'Year End Balances Wizard'

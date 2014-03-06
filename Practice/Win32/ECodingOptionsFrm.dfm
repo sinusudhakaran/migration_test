@@ -1,6 +1,5 @@
 object frmECodingOptions: TfrmECodingOptions
-  Scaled = False
-Left = 298
+  Left = 298
   Top = 236
   BorderStyle = bsDialog
   Caption = 'ECoding Options'

@@ -1,6 +1,5 @@
 object dlgGraphNames: TdlgGraphNames
-  Scaled = False
-Left = 273
+  Left = 273
   Top = 171
   BorderIcons = [biSystemMenu]
   Caption = 'Set Up Graph Headings'

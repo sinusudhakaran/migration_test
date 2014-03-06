@@ -1,6 +1,5 @@
 object frmSelectBK5Folder: TfrmSelectBK5Folder
-  Scaled = False
-Left = 0
+  Left = 0
   Top = 0
   BorderStyle = bsDialog
   Caption = 'Select a MYOB BankLink folder'

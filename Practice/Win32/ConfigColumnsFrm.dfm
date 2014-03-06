@@ -1,6 +1,5 @@
 object frmConfigure: TfrmConfigure
-  Scaled = False
-Left = 354
+  Left = 354
   Top = 208
   BorderIcons = [biSystemMenu]
   BorderStyle = bsDialog

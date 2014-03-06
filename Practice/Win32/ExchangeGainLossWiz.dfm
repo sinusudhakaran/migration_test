@@ -1,6 +1,5 @@
 object wizExchangeGainLoss: TwizExchangeGainLoss
-  Scaled = False
-Left = 480
+  Left = 480
   Top = 386
   BorderIcons = [biSystemMenu, biMaximize]
   Caption = 'Calculate Exchange Gain/Loss Wizard'

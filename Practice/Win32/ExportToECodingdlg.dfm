@@ -1,6 +1,5 @@
 object dlgExportToECoding: TdlgExportToECoding
-  Scaled = False
-Left = 344
+  Left = 344
   Top = 154
   BorderIcons = [biSystemMenu]
   BorderStyle = bsDialog

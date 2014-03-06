@@ -1,6 +1,5 @@
 object ContactDetailsFrm: TContactDetailsFrm
-  Scaled = False
-Left = 404
+  Left = 404
   Top = 291
   BorderStyle = bsDialog
   Caption = 'Edit Contact Details'

@@ -1,6 +1,5 @@
 object dlgSelectGSTPeriod: TdlgSelectGSTPeriod
-  Scaled = False
-Left = 245
+  Left = 245
   Top = 108
   BorderStyle = bsDialog
   Caption = 'Select GST Period'

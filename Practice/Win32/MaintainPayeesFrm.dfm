@@ -1,6 +1,5 @@
 object frmMaintainPayees: TfrmMaintainPayees
-  Scaled = False
-Left = 378
+  Left = 378
   Top = 315
   BorderIcons = [biSystemMenu, biMaximize]
   Caption = 'Maintain Payee List'

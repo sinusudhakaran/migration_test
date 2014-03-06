@@ -1,6 +1,5 @@
 object dlgMemorise: TdlgMemorise
-  Scaled = False
-Left = 345
+  Left = 345
   Top = 246
   BorderIcons = [biSystemMenu, biMaximize]
   Caption = 'Memorise Transaction'

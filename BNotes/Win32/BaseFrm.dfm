@@ -1,6 +1,5 @@
 object frmBase: TfrmBase
-  Scaled = False
-Left = 119
+  Left = 119
   Top = 73
   Caption = 'frmBase'
   ClientHeight = 563

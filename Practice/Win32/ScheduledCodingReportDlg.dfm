@@ -1,6 +1,5 @@
 object dlgSchedCodingReportSettings: TdlgSchedCodingReportSettings
-  Scaled = False
-Left = 415
+  Left = 415
   Top = 356
   BorderStyle = bsDialog
   Caption = 'Setup Coding Report'

@@ -1,6 +1,5 @@
 object dlgFinancialYearStarts: TdlgFinancialYearStarts
-  Scaled = False
-Left = 226
+  Left = 226
   Top = 197
   Width = 560
   Height = 216

@@ -1,6 +1,5 @@
 object dlgStatusReportRange: TdlgStatusReportRange
-  Scaled = False
-Left = 397
+  Left = 397
   Top = 335
   BorderStyle = bsDialog
   Caption = 'Range for Status Report'

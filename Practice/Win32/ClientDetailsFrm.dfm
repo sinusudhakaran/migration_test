@@ -1,6 +1,5 @@
 object frmClientDetails: TfrmClientDetails
-  Scaled = False
-Left = 368
+  Left = 368
   Top = 312
   BorderIcons = [biSystemMenu]
   BorderStyle = bsDialog

@@ -1,6 +1,5 @@
 object dlgEditDesktopFields: TdlgEditDesktopFields
-  Scaled = False
-Left = 317
+  Left = 317
   Top = 224
   BorderStyle = bsDialog
   Caption = 'Superfund Details'

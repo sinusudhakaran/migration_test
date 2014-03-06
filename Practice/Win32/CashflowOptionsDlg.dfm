@@ -1,6 +1,5 @@
 object dlgCashflowOptions: TdlgCashflowOptions
-  Scaled = False
-Left = 304
+  Left = 304
   Top = 245
   BorderStyle = bsDialog
   Caption = 'Custom Cash Flow Reports'

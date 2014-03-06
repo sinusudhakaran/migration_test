@@ -1,6 +1,5 @@
 object dlgDeposit: TdlgDeposit
-  Scaled = False
-Left = 347
+  Left = 347
   Top = 236
   ActiveControl = eReference
   BorderStyle = bsDialog

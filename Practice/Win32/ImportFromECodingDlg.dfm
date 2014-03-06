@@ -1,6 +1,5 @@
 object dlgImportBNotes: TdlgImportBNotes
-  Scaled = False
-Left = 411
+  Left = 411
   Top = 361
   BorderIcons = [biSystemMenu]
   BorderStyle = bsSingle

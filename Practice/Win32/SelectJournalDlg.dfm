@@ -1,6 +1,5 @@
 object dlgSelectJournal: TdlgSelectJournal
-  Scaled = False
-Left = 246
+  Left = 246
   Top = 234
   BorderIcons = [biSystemMenu, biMaximize]
   BorderStyle = bsDialog
