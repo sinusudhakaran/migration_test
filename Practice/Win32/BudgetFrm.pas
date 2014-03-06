@@ -365,19 +365,26 @@ var
 // Redraw main form on minimize
 //------------------------------------------------------------------------------
 procedure TfrmBudget.WMSysCommand(var msg: TWMSyscommand);
+const
+   ThisMethodName = 'WMSysCommand';
 begin
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
   if ((msg.CmdType and $FFF0) = SC_MINIMIZE) or
      ((msg.CmdType and $FFF0) = SC_RESTORE) then
     exit
   else
     inherited;
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
 
 //------------------------------------------------------------------------------
 procedure TfrmBudget.FormCreate(Sender: TObject);
+const
+   ThisMethodName = 'FormCreate';
 var
   i: Integer;
 begin
+   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
    //Use a copy of the client chart that can be sorted
    fShowZeros := true;
    FChart := TCustomSortChart.Create(nil);
@@ -431,11 +438,15 @@ begin
 
   EnableOrDisablePercentageInvalidControls(True);
   ExceptionsToHideUnused := TStringList.Create;
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
 
 //------------------------------------------------------------------------------
 procedure TfrmBudget.SetupHelp;
+const
+   ThisMethodName = 'SetupHelp';
 begin
+   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
    Self.ShowHint    := INI_ShowFormHints;
    Self.HelpContext := BKH_Chapter_9_Budgets;
 
@@ -444,14 +455,19 @@ begin
    //edtName.Hint :=
       'Click to edit the Budget Name|'+
       'Click here to edit the name of this Budget';
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
 
 //------------------------------------------------------------------------------
 function TfrmBudget.RowNumOK(RowNum : integer): boolean;
+const
+   ThisMethodName = 'RowNumOK';
 begin
+   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
    result := (1 <= RowNum)
           and (RowNum <= tblBudget.RowLimit-1)
           and DataAssigned;
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
 
 //------------------------------------------------------------------------------
@@ -460,11 +476,14 @@ function TfrmBudget.RowDataOK(RowNum:integer;Routine:string):boolean;
 {then verifies that the currently loaded row is the same as this row}
 {
 {this is to ensure that we are editing that data the we think we are}
-{especially important for any routine that writes data              }
+{especially important for any routine that writes data           }
+const
+   ThisMethodName = 'RowDataOK';
 var
   NumberMatch: boolean;
   Msg: string;
 begin
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
   result      := false;
   if RowNumOK(RowNum) then begin
      NumberMatch := (CurrentRow = RowNum);
@@ -480,13 +499,17 @@ begin
      Msg := Format('RowNumOK failure: RowNum = %d',[RowNum]);
      HelpfulErrorMsg(msg,0);
   end;
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
 
 //------------------------------------------------------------------------------
 procedure TfrmBudget.ReadCellforPaint(RowNum, ColNum: Integer; var Data: Pointer);
+const
+   ThisMethodName = 'ReadCellForPaint';
 var
   ShowGST: boolean;
 begin
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
   Data := nil;
 
   {validate}
@@ -524,10 +547,13 @@ begin
         end;
     end;{case}
   end;
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
 
 //------------------------------------------------------------------------------
 function TfrmBudget.GetTotalForRow(RowNum: Integer; IncludeGST: boolean): Integer;
+const
+   ThisMethodName = 'GetTotalForRow';
 var
   GST_Class     : byte;
   GSTAmount     : double;
@@ -581,6 +607,7 @@ var
       Result := DoRoundUpHalves(GSTTotal);    
   end;
 begin
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
   Result := 0;
   GSTAmount := 0;
   pAccount := MyClient.clChart.FindCode(FData[RowNum - 1].bAccount);
@@ -614,12 +641,16 @@ begin
     Result := DoRoundUpHalves(GSTAmount);
   if ISGSTAccountCode and GetAutoCalculateGST then
     Result := GetControlCodeTotal(pAccount.chAccount_Code);
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
 
 //------------------------------------------------------------------------------
 procedure TfrmBudget.ReadCellforEdit(RowNum, ColNum: Integer; var Data: Pointer);
 {read the data for an editable cell into the current record variables}
+const
+   ThisMethodName = 'ReadCellForEdit';
 begin
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
  Data := nil;
 
  {validate}
@@ -641,12 +672,16 @@ begin
       end;
     end;{case}
   end;
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
 
 //------------------------------------------------------------------------------
 procedure TfrmBudget.WriteCell(RowNum, ColNum: Integer; var Data: Pointer);
 {data is pointed to the variables which hold info for the current record}
+const
+   ThisMethodName = 'WriteCell';
 begin
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
   data := nil;
 
  {validate}
@@ -657,11 +692,14 @@ begin
               data := @eAmounts[colNum-MonthBase];
     end;{case}
    end  ;
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
 
 //------------------------------------------------------------------------------
 procedure TfrmBudget.tblBudgetGetCellData(Sender: TObject; RowNum,
   ColNum: Integer; var Data: Pointer; Purpose: TOvcCellDataPurpose);
+const
+   ThisMethodName = 'tblBudgetGetCellData';
 
   procedure UpdateControlAccountTotals;
   var
@@ -680,6 +718,7 @@ procedure TfrmBudget.tblBudgetGetCellData(Sender: TObject; RowNum,
   end;
 
 begin
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
   data := nil;
   if not DataAssigned then exit;
 
@@ -697,24 +736,32 @@ begin
     cdpForSave :
             WriteCell(RowNum,ColNum,Data);
   end;
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
 
 //------------------------------------------------------------------------------
 procedure TfrmBudget.tblBudgetActiveCellMoving(Sender: TObject;
   Command: Word; var RowNum, ColNum: Integer);
+const
+   ThisMethodName = 'tblBudgetActiveCellMoving';
 begin
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
   if ColNum <= TotalCol then ColNum := TotalCol+1;
 
   //see if we are currently at left most col and press cc left
   if ( tblBudget.ActiveCol = MonthMin) and ( Command = ccLeft) then begin
      tblBudget.LeftCol := 0;
   end;
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
 
 //------------------------------------------------------------------------------
 procedure TfrmBudget.tblBudgetGetCellAttributes(Sender: TObject;
   RowNum, ColNum: Integer; var CellAttr: TOvcCellAttributes);
+const
+   ThisMethodName = 'tblBudgetGetCellAttributes';
 begin
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
   if ( ColNum < tblBudget.LockedCols) and
      ( CellAttr.caColor = tblBudget.Colors.Locked) and
      ( RowNum > 0) then
@@ -727,11 +774,15 @@ begin
 
   if DataAssigned and RowNumOK(RowNum) and (not (FData[RowNum-1].bIsPosting)) then
      CellAttr.caFont.Style := [fsBold];
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
 
 //------------------------------------------------------------------------------
 procedure TfrmBudget.InitTable;
+const
+   ThisMethodName = 'InitTable';
 begin
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
    with tblBudget.Controller.EntryCommands do begin
      {remove F2 functionallity}
      DeleteCommand('Grid',VK_F2,0,0,0);
@@ -756,22 +807,30 @@ begin
    tblBudget.RowLimit := 5;
    tblBudget.CommandOnEnter := ccRight;
 
-   AltLineColor := BKCOLOR_CREAM
+   AltLineColor := BKCOLOR_CREAM;
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
 
 //------------------------------------------------------------------------------
 procedure TfrmBudget.lblnameClick(Sender: TObject);
+const
+   ThisMethodName = 'lblNameClick';
 begin
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
    EdtName.Height := lblName.ClientHeight;
    lblname.Hide;
    EdtName.Show;
    EdtName.SetFocus;
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
 
 //------------------------------------------------------------------------------
 procedure TfrmBudget.tblBudgetUserCommand(Sender: TObject;
   Command: Word);
+const
+   ThisMethodName = 'tblBudgetUserCommand';
 begin
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
    case Command of
 
       tcDeleteCell: begin
@@ -800,12 +859,16 @@ begin
       tcEnterBal :
          DoEnterBalance;
    end;
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
 
 //------------------------------------------------------------------------------
 procedure TfrmBudget.tblBudgetBeginEdit(Sender: TObject; RowNum,
   ColNum: Integer; var AllowIt: Boolean);
+const
+   ThisMethodName = 'tblBudgetBeginEdit';
 begin
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
   EditMode := true;
 
   if not RowDataOK(RowNum,'BBeginEdit')then
@@ -816,41 +879,53 @@ begin
   // Allow editing of GST, only when we're not automatically calculating it
   if (AutoCalculateGST or ShowFiguresGSTInclusive) and FData[RowNum-1].bIsGSTAccountCode then
     AllowIt := false;
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
 
 //------------------------------------------------------------------------------
 procedure TfrmBudget.tblBudgetEndEdit(Sender: TObject;
   Cell: TOvcTableCellAncestor; RowNum, ColNum: Integer;
   var AllowIt: Boolean);
+const
+   ThisMethodName = 'tblBudgetEndEdit';
 begin
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
    EditMode := false;
 
    if RowDataOK(RowNum,'BEndEdit') then
         EndEditRow(RowNum,ColNum, AllowIt);
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
 
 //------------------------------------------------------------------------------
 function TfrmBudget.AmountMatchesQuantityFormula(RowIndex, ColIndex: Integer): boolean;
+const
+   ThisMethodName = 'AmountMatchesQuantityFormula';
 var
   Quantity: Money;
   UnitPrice: Money;
   CalculatedAmount : Money;
   Amount: Integer;
 begin
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
   Quantity := FData[RowIndex].bQuantitys[ColIndex];
   UnitPrice := FData[RowIndex].bUnitPrices[ColIndex];
   CalculatedAmount := TfrmBudgetUnitPriceEntry.CalculateTotal(UnitPrice, Quantity);
   Amount := FData[RowIndex].bAmounts[ColIndex];
   Result := CalculatedAmount = Amount;
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
                                                     
 // Updating rows with percentages for cases where the
 // rows they derive their values from may have changed
 procedure TfrmBudget.UpdatePercentageRows(RefreshTable: boolean);
+const
+   ThisMethodName = 'UpdatePercentageRows';
 var
   i       : integer;
   AtLeastOneRowUpdated: boolean;
 begin
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
   AtLeastOneRowUpdated := False;
   for i := 0 to High(FData) do
   begin
@@ -862,6 +937,7 @@ begin
   end;
   if (AtLeastOneRowUpdated or GetAutoCalculateGST) and RefreshTable then
     RefreshTableWithData(fShowZeros, True, True);
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
 
 //------------------------------------------------------------------------------
@@ -872,6 +948,8 @@ procedure TfrmBudget.tblBudgetDoneEdit(Sender: TObject; RowNum,
 
 {for edits that affect other cells those cells will be updated from here also}
 {saves direct edits!}
+const
+   ThisMethodName = 'tblBudgetDoneEdit';
 var
   GSTAmount: double;
   dtMonth: TStDate;
@@ -881,6 +959,7 @@ var
   GST_Class: byte;
 
 begin
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
   if RowDataOK(RowNum,'BDoneEdit') then
     begin
        if Assigned(FData[RowNum - 1].bDetailLine) then
@@ -931,6 +1010,7 @@ begin
        UpdatePercentageRows(True);
   end; {if row ok}
   UpdateShowHideEnabledState;
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
 
 function TfrmBudget.CalculateGSTFromNetAmount( aClient : TClientObj; ADate : LongInt; Amount : Money; ClassNo : Byte): double;
@@ -961,14 +1041,18 @@ Begin
       Result := TaxAmtExt;
    end;
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
 
 //------------------------------------------------------------------------------
 procedure TfrmBudget.tblBudgetEnteringRow(Sender: TObject;
   RowNum: Integer);
+const
+   ThisMethodName = 'tblBudgetEnteringRow';
 var
   Code : string;
 begin
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
   if not dataAssigned then exit;
 
   {get current values for active row}
@@ -981,23 +1065,31 @@ begin
   {update account info}
   Code := '<'+ trim(FData[CurrentRow-1].bAccount)+'> '+FData[CurrentRow-1].bDesc;
   stsDissect.Panels[PANELTEXT].text := Code;
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
 
 //------------------------------------------------------------------------------
 procedure TfrmBudget.ReadRow(RowNum : integer);
+const
+   ThisMethodName = 'ReadRow';
 var
  i : integer;
 begin
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
   CurrentRow := RowNum;
   if RowNumOK(RowNum) then
      for i := 1 to 12 do
        eAmounts[i] := FData[RowNum-1].bAmounts[i];
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
 
 procedure TfrmBudget.RecalculateTotals;
+const
+   ThisMethodName = 'RecalculateTotals';
 var
   i: integer;
 begin
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
   for i := Low(FData) to High(FData) do
   begin
     if FData[i].bIsPosting then
@@ -1006,33 +1098,45 @@ begin
       FData[i].bTotalWithGST := GetTotalForRow(i+1, True);
     end;
   end;
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
 
 //------------------------------------------------------------------------------
 procedure TfrmBudget.Restoredefaultcolumnwidths1Click(Sender: TObject);
+const
+   ThisMethodName = 'Restoredefaultcolumnwidths1Click';
 var
   i: Integer;
 begin
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
   tblBudget.Columns[ AccountCol ].Width := CalcAcctColWidth( tblBudget.Canvas, tblBudget.Font, 80);
   tblBudget.Columns[ DescCol ].Width := 179;
   tblBudget.Columns[ TotalCol ].Width := 90;
   for i := MonthMin to MonthMax do
     tblBudget.Columns[i].Width := 90;
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
 
 procedure TfrmBudget.rgGSTClick(Sender: TObject);
+const
+  ThisMethodName = 'rgGSTClick';
 begin
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
   if ShowFiguresGSTInclusive then
     lblAllExclude.Caption := 'All figures include GST'
   else
     lblAllExclude.Caption := 'All figures exclude GST';
 
   RefreshTableWithData(fShowZeros, True, True);
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
 
 //------------------------------------------------------------------------------
 procedure TfrmBudget.FormShow(Sender: TObject);
+const
+   ThisMethodName = 'FormShow';
 begin
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
    tblBudget.setfocus;
    tblBudget.ActiveRow := 1;
    tblBudget.ActiveCol := TotalCol + 1;
@@ -1045,12 +1149,16 @@ begin
 
    //ExtraTitleBar.Color    := bkBranding.HeaderBackgroundColor;
    //edtName.Color          := bkBranding.HeaderBackgroundColor;
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
 
 // When the currently selected cell is on a row which is a percentage of
 // another row, we want to disable some functions
 procedure TfrmBudget.EnableOrDisablePercentageInvalidControls(Value: boolean);
+const
+   ThisMethodName = 'EnableOrDisablePercentageInvalidControls';
 begin
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
   frmMain.tbAverage.Enabled := Value;
   frmMain.tbCopy.Enabled    := Value;
   frmMain.tbSplit.Enabled   := Value;
@@ -1058,14 +1166,18 @@ begin
   mniCopy.Enabled           := Value;
   mniSplit.Enabled          := Value;
   mniEnterQuantity.Enabled  := Value;
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
 
 //------------------------------------------------------------------------------
 procedure TfrmBudget.tblBudgetActiveCellChanged(Sender: TObject;
   RowNum, ColNum: Integer);
+const
+   ThisMethodName = 'tblBudgetActiveCellChanged';
 var
   HasPercentage: boolean;
 begin
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
   if Assigned(FData) then
   begin
     HasPercentage             := HasPercentageFormula(RowNum-1);
@@ -1078,26 +1190,34 @@ begin
       ReadRow(RowNum);
 
    //Hint Msgs
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
 
 //------------------------------------------------------------------------------
 procedure TfrmBudget.tblBudgetExit(Sender: TObject);
+const
+   ThisMethodName = 'tblBudgetExit';
 var
   Msg : TWMKey;
 begin
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
   {lost focus so finalise edit if in edit mode}
    if EditMode then
    begin
       Msg.CharCode := vk_f6;
       ColMonth1.SendKeyToTable(Msg);
    end;
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );   
 end;
 
 //------------------------------------------------------------------------------
 procedure TfrmBudget.FormClose(Sender: TObject; var Action: TCloseAction);
+const
+   ThisMethodName = 'FormClose';
 var
   i: Integer;
 begin
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
   EnableOrDisablePercentageInvalidControls(True);
   Budget.buFields.buIs_Inclusive := ShowFiguresGSTInclusive;
 
@@ -1112,10 +1232,13 @@ begin
   Action := caFree;
   DoClosingBudgetform;
   RefreshHomepage ([HPR_Coding], Caption);
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );  
 end;
 
 //------------------------------------------------------------------------------
 procedure TFrmBudget.RefreshFData(ShowZeros: boolean; var aDataIndex : integer; KeepPercentages: boolean);
+const
+   ThisMethodName = 'RefreshFData';
 var
   Account : pAccount_Rec;
   AccountIndex : Integer;
@@ -1134,6 +1257,7 @@ var
   end;
 
 begin
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
   if KeepPercentages then
     // In this case, the user has toggled the GST Inclusive/Exclusive radio buttons or pressed Hide Unused.
     // We haven't yet saved any new or modified percentages, so these will be kept safe in OldData and
@@ -1232,13 +1356,17 @@ begin
   end;
 
   SetLength(FData, aDataIndex);
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );  
 end;
 
 //------------------------------------------------------------------------------
 procedure TFrmBudget.RefreshTableWithData(ShowZeros: Boolean; aRefreshFdata : Boolean; KeepPercentages: boolean);
+const
+   ThisMethodName = 'RefreshTableWithData';
 var
   DataIndex : integer;
 begin
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
   fShowZeros := ShowZeros;
 
   if aRefreshFdata then
@@ -1252,14 +1380,18 @@ begin
   tblBudget.AllowRedraw := true;
 
   UpdateShowHideEnabledState;
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );  
 end;
 
 //------------------------------------------------------------------------------
 procedure TfrmBudget.SetBudget(const Value: TBudget);
+const
+   ThisMethodName = 'SetBudget';
 var
   i : integer;
   ColDate : integer;
 begin
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
   FBudget := Value;
 
   if FChart.ItemCount = 0 then
@@ -1282,17 +1414,21 @@ begin
   edtName.text := Budget.buFields.buName;
   lblName.Caption := Budget.buFields.buName;
   lblStart.caption   := 'Starts '+bkDate2Str(Budget.buFields.buStart_Date);
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );  
 end;
 
 //------------------------------------------------------------------------------
 procedure TfrmBudget.UpdateLine(index: integer; CopyPercentages: boolean);
 {syncronizes the editor lines and the lines stored in the budget}
 {adds, edits or deletes budget line where necessary}
+const
+   ThisMethodName = 'UpdateLine';
 var
   DetailLine    : pBudget_Detail_Rec;
   HasData       : boolean;
   i             : integer;
 begin
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
   if not DataAssigned then exit;
   if not ((index >= Low(FData)) and (index <= High(Fdata))) then exit;
 
@@ -1345,14 +1481,18 @@ begin
        FData[index].bDetailLine := nil;
     end;
   end;
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );  
 end;
 
 //------------------------------------------------------------------------------
 procedure TfrmBudget.UpdateShowHideEnabledState;
+const
+   ThisMethodName = 'UpdateShowHideEnabledState';
 var
   ShowEnabled: boolean;
   HideEnabled: boolean;
 begin
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
   ShowEnabled := not AllRowsShowing;
   frmMain.tbBudgetShow.Enabled := ShowEnabled;
   mniShowAll.Enabled := ShowEnabled;
@@ -1360,21 +1500,29 @@ begin
   HideEnabled := UnusedRowsShowing;
   frmMain.tbBudgetHide.Enabled := HideEnabled;
   mniHideUnused.Enabled := HideEnabled;
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );  
 end;
 
 //------------------------------------------------------------------------------
 function TfrmBudget.AllRowsShowing: boolean;
+const
+   ThisMethodName = 'AllRowsShowing';
 begin
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
   Result := Length(FData) = FChart.ItemCount;
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );  
 end;
 
 //------------------------------------------------------------------------------
 function TfrmBudget.UnusedRowsShowing: boolean;
+const
+   ThisMethodName = 'UnusedRowsShowing';
 var
   I: Integer;
   j: Integer;
   DataFound: Boolean;
 begin
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
   //returns true if there are any rows with only zeros
   Result := false;
   for I := 0 to High(FData) do
@@ -1394,20 +1542,27 @@ begin
       Exit;
     end;
   end;
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );  
 end;
 
 //------------------------------------------------------------------------------
 procedure TfrmBudget.UpdateAllLines;
+const
+   ThisMethodName = 'UpdateAllLines';
 var i : integer;
 begin
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
   for i := Low(FData) to High(FData) do
      UpdateLine(i);
   UpdateShowHideEnabledState;
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );  
 end;
 
 //------------------------------------------------------------------------------
 procedure TfrmBudget.FormShortCut(var Msg: TWMKey; var Handled: Boolean);
 {interupts quickkeys for table so that cell can be switched out of editmode}
+const
+   ThisMethodName = 'FormShortCut';
 
   //----------------------------------------------------------------------------
   Procedure SetVKeyState( vkey: Byte; down: Boolean );
@@ -1423,6 +1578,7 @@ procedure TfrmBudget.FormShortCut(var Msg: TWMKey; var Handled: Boolean);
   End;
 
 begin
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
    if EditMode and (GetKeyState(VK_CONTROL) < 0) then
    begin
       if msg.CharCode in [65,66,71,75,77,79,84] then
@@ -1469,6 +1625,7 @@ begin
        end;
      end;
    end;
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );   
 end;
 
 //------------------------------------------------------------------------------
@@ -1540,6 +1697,8 @@ end;
 //------------------------------------------------------------------------------
 Procedure TfrmBudget.DoCopy;
 {updates current line}
+const
+  ThisMethodName = 'DoCopy';
 Var
   i           : Word;
   currField   : integer;
@@ -1547,6 +1706,7 @@ Var
   Quantity    : Money;
   UnitPrice   : Money;
 Begin
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
   if not DataAssigned then
      exit;
 
@@ -1577,14 +1737,18 @@ Begin
   UpdatePercentageRows(false);
   RefreshTableWithData(fShowZeros, True, True);
   {redraw line}
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );  
 end;
 
 //------------------------------------------------------------------------------
 procedure TfrmBudget.DoChartLookup;
+const
+  ThisMethodName = 'DoChartLookup';
 var
   Code: String;
   I: Integer;
 begin
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
   Code := FData[tblBudget.ActiveRow - 1].bAccount;
   if PickAccount(Code) then
   begin
@@ -1601,10 +1765,13 @@ begin
     //not found, add it
     AddChartCodeToTable(Code, True);
   end;
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );  
 end;
 
 //------------------------------------------------------------------------------
 procedure TfrmBudget.AddChartCodeToTable(NewCode: String; SetActive: Boolean);
+const
+  ThisMethodName = 'AddChartCodeToTable';
 var
   I: Integer;
   RowCode: String;
@@ -1630,6 +1797,7 @@ var
   end;
 
 begin
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
   // If Hide Unused has been selected, then empty rows will be hidden, however we want to make
   // an exception for any chart codes the user has just added, hence the HideUnusedExceptions
   // list. Any codes in this list will not be hidden. The list is cleared whenever Hide Unused
@@ -1708,6 +1876,7 @@ begin
   if SetActive then
     tblBudget.SetActiveCell(I + 1, tblBudget.ActiveCol);
   UpdateShowHideEnabledState;
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );  
 end;
 
 //------------------------------------------------------------------------------
@@ -1715,6 +1884,7 @@ procedure TfrmBudget.ColMonthOwnerDraw(Sender: TObject; TableCanvas: TCanvas;
   const CellRect: TRect; RowNum, ColNum: Integer;
   const CellAttr: TOvcCellAttributes; Data: Pointer; var DoneIt: Boolean);
 const
+  ThisMethodName = 'ColMonthOwnerDraw';
   margin = 4;
 var
   D: Double;
@@ -1733,6 +1903,7 @@ var
                       Point( CellRect.Right, CellRect.Top + Margin)]);
   end;
 begin
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
   if not assigned(FData) then Exit;
 
   HasPercentage := HasPercentageFormula(RowNum - 1);
@@ -1781,23 +1952,35 @@ begin
     // remove any quantities for that row
     DrawTriangle(clRed);
   end;
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );  
 end;
 
 //------------------------------------------------------------------------------
 function TfrmBudget.HasQuantityFormula(RowIndex, ColumnIndex: Integer): Boolean;
+const
+  ThisMethodName = 'HasQuantityFormula';
 begin
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
   //Quantity must be greater than one (stored as 10000)
-  Result := (FData[RowIndex].bQuantitys[ColumnIndex] > 10000) and (FData[RowIndex].bUnitPrices[ColumnIndex] > 0)
+  Result := (FData[RowIndex].bQuantitys[ColumnIndex] > 10000) and (FData[RowIndex].bUnitPrices[ColumnIndex] > 0);
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );  
 end;
 
 function TfrmBudget.HasPercentageFormula(RowIndex: Integer): Boolean;
+const
+  ThisMethodName = 'HasPercentageFormula';
 begin
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
   Result := (FData[RowIndex].PercentAccount <> '');
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );  
 end;
 
 //------------------------------------------------------------------------------
 function TfrmBudget.CompareCodes(CodeA, CodeB: string): Integer;
+const
+  ThisMethodName = 'CompareCodes';
 begin
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
   if UseXlonSort then
   begin
     Result := XlonSort(CodeA, CodeB);
@@ -1806,12 +1989,16 @@ begin
   end
   else
     Result := StStrS.CompStringS( CodeA, CodeB);
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );    
 end;
 
 procedure TfrmBudget.CreateDetailLine(RowNum: integer);
+const
+  ThisMethodName = 'CreateDetailLine';
 var
   NewLine : pBudget_Detail_Rec;
 begin
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
   if FData[RowNum].bDetailLine = nil then
   begin
     NewLine := New_Budget_Detail_Rec;
@@ -1819,13 +2006,17 @@ begin
     Budget.buDetail.Insert(NewLine);
     FData[RowNum].bDetailLine := NewLine;
   end;
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );  
 end;
 
 //------------------------------------------------------------------------------
 procedure TfrmBudget.DoClearValues(clrClearType: EClearType);
+const
+  ThisMethodName = 'DoClearValues';
 var
  i,j : integer;
 begin
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
   if not DataAssigned then exit;
   CheckEditMode;
 
@@ -1893,54 +2084,78 @@ begin
       AllowRedraw := true;
     end;
   end;
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );  
 end;
 
 // There are enough possible actions that can muck up the percentages that it makes
 // sense to simply update any percentage based rows whenever a column is invalidated
 procedure TfrmBudget.DoInvalidateColumn(ColNum: integer);
+const
+  ThisMethodName = 'DoInvalidateColumn';
 begin
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
   UpdatePercentageRows(True);
   tblBudget.InvalidateColumn(ColNum);
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );  
 end;
 
 // There are enough possible actions that can muck up the percentages that it makes
 // sense to simply update any percentage based rows whenever a row is invalidated
 procedure TfrmBudget.DoInvalidateRow(RowNum: integer);
-begin                                               
+const
+  ThisMethodName = 'DoInvalidateRow';
+begin
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
   UpdatePercentageRows(True);
   tblBudget.InvalidateRow(RowNum);
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );  
 end;
 
 // There are enough possible actions that can muck up the percentages that it makes
 // sense to simply update any percentage based rows whenever the table is invalidated
 procedure TfrmBudget.DoInvalidateTable(DoRefreshTable: boolean);
+const
+  ThisMethodName = 'DoInvalidateTable';
 begin
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
   UpdatePercentageRows(DoRefreshTable);
   tblBudget.InvalidateTable;
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );  
 end;
 
 //------------------------------------------------------------------------------
 procedure TfrmBudget.ClearCell(RowIndex, ColumnIndex: Integer);
+const
+  ThisMethodName = 'ClearCell';
 begin
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
   FData[RowIndex].bAmounts[ColumnIndex] := 0;
   FData[RowIndex].bUnitPrices[ColumnIndex] := 0;
   FData[RowIndex].bQuantitys[ColumnIndex] := 0;
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );  
 end;
 
 //------------------------------------------------------------------------------
 procedure TfrmBudget.DoShowAll;
+const
+  ThisMethodName = 'DoShowAll';
 begin
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
   RefreshTableWithData(true, true, true);
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );  
 end;
 
 //------------------------------------------------------------------------------
 Procedure TfrmBudget.DoSmooth;
 {updates entire table}
+const
+  ThisMethodName = 'DoSmooth';
 Var
   i,j : integer;
   T           : integer;
   By          : LongInt;
 Begin
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
   if not DataAssigned then exit;
 
   checkEditMode;
@@ -1983,15 +2198,19 @@ Begin
       RefreshTableWithData(fShowZeros, True, True);
     end;
   end;
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );  
 end;
 
 //------------------------------------------------------------------------------
 procedure TfrmBudget.DoAverage;
 {updates current edit line}
+const
+  ThisMethodName = 'DoAverage';
 Var
   i           : integer;
   t,t1,b      : integer;
 Begin
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
   if not DataAssigned then exit;
 
   if HasPercentageFormula(CurrentRow - 1) then
@@ -2030,17 +2249,21 @@ Begin
 
   UpdatePercentageRows(False);
   RefreshTableWithData(fShowZeros, True, True);
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );  
 end;
 
 //------------------------------------------------------------------------------
 procedure TfrmBudget.DoSplit;
 {updates current edit line}
+const
+  ThisMethodName = 'DoSplit';
 Var
   i           : integer;
   InitialValue: integer;
   RunningValue: integer;
   MonthlyValue: integer;
 Begin
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
   if not DataAssigned then exit;
 
   if HasPercentageFormula(CurrentRow - 1) then
@@ -2072,16 +2295,20 @@ Begin
     UpdatePercentageRows(false);
     RefreshTableWithData(fShowZeros, True, True);
   end;
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );  
 end;
 
 //------------------------------------------------------------------------------
 procedure TfrmBudget.DoUnitPriceEntry;
+const
+  ThisMethodName = 'DoUnitPriceEntry';
 var
   RowIndex, ColumnIndex: Integer;
   UnitPrice: Money;
   Quantity: Money;
   Total: Integer;
 begin
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
   CheckEditMode;
   RowIndex := tblBudget.ActiveRow - 1;
   if HasPercentageFormula(RowIndex) then
@@ -2120,11 +2347,14 @@ begin
   DoInvalidateRow(CurrentRow);
   RefreshTableWithData(fShowZeros, True, True);
   tblBudget.AllowRedraw := true;
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );  
 end;
 
 //------------------------------------------------------------------------------
 procedure TfrmBudget.DoGenerate;
 {updates complete table}
+const
+  ThisMethodName = 'DoGenerate';
 var
   i,j,k,l : integer;
   AccountInfo : TAccountInformation;
@@ -2142,6 +2372,7 @@ var
   YearStartDate, StartDate, EndDate: TStDate;
   D1,D2,M1,M2,Y1,Y2: integer; 
 begin
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
   if not DataAssigned then exit;
 
   CheckEditMode;
@@ -2273,33 +2504,45 @@ begin
   finally
     AccountInfo.Free;
   end;
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' ); 
 
 end;
 
 //------------------------------------------------------------------------------
 procedure TfrmBudget.DoHideUnused;
+const
+  ThisMethodName = 'DoHideUnused';
 begin
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
   if Assigned(ExceptionsToHideUnused) then
     ExceptionsToHideUnused.Clear;
   RefreshTableWithData(false, true, true);
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );  
 end;
 
 //------------------------------------------------------------------------------
 procedure TfrmBudget.CheckEditMode;
+const
+  ThisMethodName = 'CheckEditMode';
 var
   key2 : TWMKey;
 begin
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
   if EditMode then
   begin
     key2.charcode := vk_f6;
     ColMonth1.SendKeyToTable(key2);
     Application.ProcessMessages;
   end;
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );  
 end;
 
 //------------------------------------------------------------------------------
 procedure TfrmBudget.FormActivate(Sender: TObject);
+const
+  ThisMethodName = 'FormActivate';
 begin
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
   DoActivateBudgetForm;
   EnableMenuItem( GetSystemMenu( handle, False ),
                   SC_MINIMIZE,
@@ -2313,17 +2556,25 @@ begin
   if FClearButton<>nil then
       FClearButton.DropDownMenu := popClearItems;
   Repaint;
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );  
 end;
 
 //------------------------------------------------------------------------------
 procedure TfrmBudget.FormDeactivate(Sender: TObject);
+const
+  ThisMethodName = 'FormDeactivate';
 begin
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
    DoDeactivateBudgetForm;
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );   
 end;
 
 //------------------------------------------------------------------------------
 procedure TfrmBudget.FormDestroy(Sender: TObject);
+const
+  ThisMethodName = 'FormDestroy';
 begin
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
    FreeAndNil(FChart);
    if Assigned(ExceptionsToHideUnused) then
      FreeAndNil(ExceptionsToHideUnused);
@@ -2332,11 +2583,15 @@ begin
       FHint.Free;
       FHint := nil;
    end;
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );   
 end;
 
 //------------------------------------------------------------------------------
 procedure TfrmBudget.ProcessExternalCmd(command: TExternalCmdBudget);
+const
+  ThisMethodName = 'ProcessExternalCmd';
 begin
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
    AutoSaveUtils.DisableAutoSave;
    try
      case command of
@@ -2357,11 +2612,15 @@ begin
    finally
      EnableAutoSave;
    end;
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );   
 end;
 
 //------------------------------------------------------------------------------
 procedure TfrmBudget.actAutoCalculateGSTExecute(Sender: TObject);
+const
+  ThisMethodName = 'actAutoCalculateGSTExecute';
 begin
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
   // Toggle the flag
   AutoCalculateGST := not AutoCalculateGST;
 
@@ -2374,48 +2633,73 @@ begin
 
   RefreshGST;
   RefreshTableWithData(fShowZeros, True, True);
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );  
 end;
 
 //------------------------------------------------------------------------------
 procedure TfrmBudget.actAutoCalculateGSTUpdate(Sender: TObject);
+const
+  ThisMethodName = 'actAutoCalculateGSTUpdate';
 begin
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
   actAutoCalculateGST.Checked := AutoCalculateGST;
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );  
 end;
 
 //------------------------------------------------------------------------------
 procedure TfrmBudget.ActClearAllExecute(Sender: TObject);
+const
+  ThisMethodName = 'ActClearAllExecute';
 begin
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
   DoClearValues(clrAll);
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );  
 end;
 
 //------------------------------------------------------------------------------
 procedure TfrmBudget.ActClearColumnExecute(Sender: TObject);
+const
+  ThisMethodName = 'ActClearColumnExecute';
 begin
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
   DoClearValues(clrColumn);
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );  
 end;
 
 //------------------------------------------------------------------------------
 procedure TfrmBudget.ActClearRowExecute(Sender: TObject);
+const
+  ThisMethodName = 'ActClearRowExecute';
 begin
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
   DoClearValues(clrRow);
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );  
 end;
 
 //------------------------------------------------------------------------------
 procedure TfrmBudget.BkMouseWheelHandler(Sender: TObject; Shift: TShiftState;
   Delta, XPos, YPos: Word );
+const
+  ThisMethodName = 'BkMouseWheelHandler';
 begin
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
   if ( ssShift in Shift )then begin
      if SmallInt(Delta) < 0 then    //need to type cast as a small int so that
        UPDATEMF.SelectNextMDI       //the sign can be tested.  OvcBase.pas should
      else                           //really declare this as SmallInt.
        UPDATEMF.SelectPreviousMDI;
   end;
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );  
 end;
 
 //------------------------------------------------------------------------------
 procedure TfrmBudget.mnuCloseClick(Sender: TObject);
+const
+  ThisMethodName = 'mnuCloseClick';
 begin
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
    Close;
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );   
 end;
 
 //------------------------------------------------------------------------------
@@ -2426,29 +2710,43 @@ end;
 
 //------------------------------------------------------------------------------
 procedure TfrmBudget.edtNameExit(Sender: TObject);
+const
+  ThisMethodName = 'edtNameExit';
 begin
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
   edtName.Hide;
   lblname.Show;
   lblName.Caption := Trim(EdtName.Text);;
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );  
 end;
 
 //------------------------------------------------------------------------------
 procedure TfrmBudget.edtNameKeyPress(Sender: TObject; var Key: Char);
+const
+  ThisMethodName = 'edtNameKeyPress';
 begin
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
    if key = #13 then begin
       tblBudget.setFocus;
       Key := #0;
    end;
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );   
 end;
 
 //------------------------------------------------------------------------------
 procedure TfrmBudget.edtNameChange(Sender: TObject);
+const
+  ThisMethodName = 'edtNameChange';
 begin
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
    Self.caption := 'Edit Budget '+edtName.text;
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );   
 end;
 
 //------------------------------------------------------------------------------
 procedure DoBudgets(tbClear: TRzToolButton = nil);
+const
+  ThisMethodName = 'DoBudgets';
 var
   SelectedList : TstringList;
   Budget       : TBudget;
@@ -2475,6 +2773,7 @@ var
 var
   UserSelectedBudgets : boolean;
 begin
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
   if not Assigned( MyClient) then exit;
   SelectedList  := TStringList.Create;
   try
@@ -2537,36 +2836,53 @@ begin
   finally
     SelectedList.Free;
   end;
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
 
 //------------------------------------------------------------------------------
 procedure TfrmBudget.mniEnterBalanceClick(Sender: TObject);
+const
+  ThisMethodName = 'mniEnterBalanceClick';
 begin
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
   DoEnterBalance;
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
 
 procedure TfrmBudget.mniEnterPercentageClick(Sender: TObject);
+const
+  ThisMethodName = 'mniEnterPercentageClick';
 begin
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
   DoPercentageCalculation;
   RefreshTableWithData(fShowZeros, True, True);
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
 
 //------------------------------------------------------------------------------
 procedure TfrmBudget.mniEnterQuantityClick(Sender: TObject);
+const
+  ThisMethodName = 'mniEnterQuantityClick';
 begin
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
   DoUnitPriceEntry;
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );  
 end;
 
 //------------------------------------------------------------------------------
 procedure TfrmBudget.DoEnterBalance;
+const
+  ThisMethodName = 'DoEnterBalance';
 var
   NewBalance : Money;
 begin
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
   NewBalance := Budget.buFields.buEstimated_Opening_Bank_Balance;
   if EditBudgetOpeningBalance( Budget.buFields.buStart_Date, NewBalance) then
   begin
     Budget.buFields.buEstimated_Opening_Bank_Balance := NewBalance;
   end;
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );  
 end;
 
 //------------------------------------------------------------------------------
@@ -2585,6 +2901,7 @@ var
   DummyInt: integer;
   ShowZeros: boolean;
 begin
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
   BudgetErrorFile := UserDir + MyClient.clFields.clCode + ' ' +
                      RemoveInvalidCharacters(Budget.buFields.buName) + ' ' +
                      FormatDateTime('yyyy-mm-dd hh-mm-ss', Now) + '.log';
@@ -2665,9 +2982,12 @@ begin
   finally
     FreeAndNil(BudgetImportExport);
   end;
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );  
 end;
 
 procedure TfrmBudget.DoExport;
+const
+  ThisMethodName = 'DoExport';
 var
   BudgetFilePath : string;
   IncludeUnusedChartCodes : boolean;
@@ -2679,6 +2999,7 @@ var
   AllData: TBudgetData;
   DummyInt: integer;
 begin
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
   BudgetImportExport := TBudgetImportExport.Create;
   try
     BudgetImportExport.BudgetDefaultFile := UserDir + BUDGET_DEFAULT_FILENAME;
@@ -2751,13 +3072,17 @@ begin
   finally
     FreeAndNil(BudgetImportExport);
   end;
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );  
 end;
 
 //------------------------------------------------------------------------------
 function TfrmBudget.RowContainsFormulas(RowIndex:Integer): boolean;
+const
+  ThisMethodName = 'RowContainsFormulas';
 var
   I: Integer;
 begin
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
   Result := false;
   for I := Low(FData[RowIndex].bQuantitys) to High(FData[RowIndex].bQuantitys) do
   begin
@@ -2767,13 +3092,17 @@ begin
       Break;
     end;
   end;
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );  
 end;
 
 //------------------------------------------------------------------------------
 function TfrmBudget.BudgetContainsFormulas: boolean;
+const
+  ThisMethodName = 'BudgetContainsFormulas';
 var
   I: Integer;
 begin
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
   Result := false;
   for I := Low(FData) to High(FData) do
   begin
@@ -2783,13 +3112,17 @@ begin
       Break;
     end;
   end;
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );  
 end;
 
 //------------------------------------------------------------------------------
 procedure TfrmBudget.DoDeleteLine;
+const
+  ThisMethodName = 'DoDeleteLine';
 var
    j : integer;
 begin
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
   if not tblBudget.StopEditingState( true) then exit;
   if not RowNumOK( tblBudget.ActiveRow) then exit;
 
@@ -2805,11 +3138,15 @@ begin
       AllowRedraw := true;
     end;
   end;
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );  
 end;
 
 //------------------------------------------------------------------------------
 procedure TfrmBudget.mniLockLeftmostClick(Sender: TObject);
+const
+  ThisMethodName = 'mniLockLeftmostClick';
 begin
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
    mniLockLeftMost.Checked := not mniLockLeftmost.Checked;
    tblBudget.AllowRedraw;
    try
@@ -2824,17 +3161,24 @@ begin
       tblBudget.InvalidateTable;
       tblBudget.AllowRedraw := true;
    end;
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );   
 end;
 
 //------------------------------------------------------------------------------
 procedure TfrmBudget.SetIsClosing(const Value: Boolean);
+const
+  ThisMethodName = 'SetIsClosing';
 begin
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
   FIsClosing := Value;
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );  
 end;
 
 //------------------------------------------------------------------------------
 procedure TfrmBudget.FormCloseQuery(Sender: TObject;
   var CanClose: Boolean);
+const
+  ThisMethodName = 'FormCloseQuery';
 var
   NewName : string;
   DateFrom : Integer;
@@ -2842,6 +3186,7 @@ var
   tempBudget : TBudget;
   i : integer;
 begin
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
   if not tblBudget.StopEditingState(True) then
     //date is invalid, ignore the edit and allow form to close
     tblBudget.StopEditingState( False);
@@ -2879,12 +3224,17 @@ begin
       FBudget.buFields.buName := edtName.text;
     end;
   end;
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );  
 end;
 
 //------------------------------------------------------------------------------
 function TfrmBudget.FormIsInEditMode: boolean;
+const
+  ThisMethodName = 'FormIsInEditMode';
 begin
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
   result := tblBudget.InEditingState;
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );  
 end;
 
 //------------------------------------------------------------------------------
@@ -2907,9 +3257,12 @@ end;
 
 //------------------------------------------------------------------------------
 function TfrmBudget.IncreaseAmount( aAmount : Integer; perc : double; var ValueTooLarge: boolean) : integer;
+const
+  ThisMethodName = 'IncreaseAmount';
 var
  NewAmount : Int64;
 begin
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
  NewAmount := DoRoundUpHalves( aAmount * perc);
  if ( NewAmount > High(aAmount)) or ( NewAmount < Low(aAmount)) then
  begin
@@ -2918,15 +3271,19 @@ begin
  end
  else
    result := NewAmount;
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );   
 end;
 
 //------------------------------------------------------------------------------
 procedure TfrmBudget.IncreaseCellBy(RowIndex, ColumnIndex: Integer; Percent: double; var ValueTooLarge: Boolean);
+const
+  ThisMethodName = 'IncreaseCellBy';
 var
   UnitPrice: Money;
   Quantity: Money;
   Amount: Integer;
 begin
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
   if HasQuantityFormula(RowIndex, ColumnIndex) then
   begin
     //increase UnitPrice and recalculate amount
@@ -2951,10 +3308,13 @@ begin
     FData[RowIndex].bAmounts[ColumnIndex] := IncreaseAmount(FData[RowIndex].bAmounts[ColumnIndex], Percent, ValueTooLarge);
 
   UpdateLine(RowIndex);
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );  
 end;
 
 //------------------------------------------------------------------------------
 procedure TfrmBudget.DoPercentageCalculation(DataRow: integer = -1; OnlyUpdateThisColumn: integer = -1);
+const
+  ThisMethodName = 'DoPercentageCalculation';
 var
   AccountCodeRow: integer;
   ColNum: integer;
@@ -2975,6 +3335,7 @@ var
   end;
 
 begin
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
   // If a row has been passed in, this means the user has changed a value in a row from
   // which another row derives its value.
   //
@@ -3052,10 +3413,12 @@ begin
     InvalidateColumn(TotalCol);
     AllowRedraw := true;
   end;
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );  
 end;
 
 procedure TfrmBudget.DoPercentageChange;
 const
+  ThisMethodName = 'DoPercentageChange';
   CellsHavePercentWarning : string = 'Figures for this row are calculated. To change them, select ' +
                                      '''Enter Percentage'' then clear or amend the percentage calculation.';
 var
@@ -3067,6 +3430,7 @@ var
   i,j : integer;
   aMsg : string;
 begin
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
   if not DataAssigned then exit;
 
   CheckEditMode;
@@ -3147,15 +3511,19 @@ begin
       HelpfulInfoMsg( aMsg, 0);
     end;
   end;
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );  
 end;
 
 //------------------------------------------------------------------------------
 procedure TfrmBudget.tblBudgetMouseDown(Sender: TObject;
   Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 // Catch Right Click and decide which PopUp to display
+const
+  ThisMethodName = 'tblBudgetMouseDown';
 var
   ColEstimate, RowEstimate : integer;
 begin
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
   if (Button = mbRight) then begin
     //estimate where click happened
     if tblBudget.CalcRowColFromXY(x,y,RowEstimate,ColEstimate) in [ otrOutside, otrInUnused ] then
@@ -3165,33 +3533,45 @@ begin
     tblBudget.ActiveRow := RowEstimate;
     ShowPopup( x,y,popBudget);
   end;
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );  
 end;
 
 //------------------------------------------------------------------------------
 function TfrmBudget.ShowFiguresGSTInclusive: boolean;
+const
+  ThisMethodName = 'ShowFiguresGSTInclusive';
 begin
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
   Result := (rgGST.ItemIndex = 1);
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );  
 end;
 
 procedure TfrmBudget.ShowPopUp( x, y : Integer; PopMenu :TPopUpMenu );
+const
+  ThisMethodName = 'ShowPopUp';
 var
    ClientPt, ScreenPt : TPoint;
 begin
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
    ClientPt.x := x;
    ClientPt.y := y;
    ScreenPt   := tblBudget.ClientToScreen(ClientPt);
    PopMenu.Popup(ScreenPt.x, ScreenPt.y);
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );   
 end;
 
 //------------------------------------------------------------------------------
 procedure TfrmBudget.tblBudgetVSThumbChanged(Sender: TObject;
   RowNum: TRowNum);
+const
+  ThisMethodName = 'tblBudgetVSThumbChanged';
 Var
    CR     : TPoint;
    MP     : TPoint;
    HR     : TRect;
    Msg    : String;
 begin
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
    if RowNum<0 then exit;
 
    Msg := FData[RowNum].bAccount + ': ' + FData[RowNum].bDesc;
@@ -3206,13 +3586,17 @@ begin
       FHint.Color := Application.HintColor;
       FHint.ActivateHint( HR, Msg );
    end;
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );   
 end;
 
 //------------------------------------------------------------------------------
 procedure TfrmBudget.HideCustomHint;
+const
+  ThisMethodName = 'HideCustomHint';
 var
    R: TRect;
 begin
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
    if Assigned( FHint ) then begin
       if FHint.HandleAllocated then begin // Find where the Hint is, so we can redraw the cells beneath it.
          GetWindowRect( FHint.Handle, R );
@@ -3225,6 +3609,7 @@ begin
          tblBudget.AllowRedraw := True;
       end;
    end;
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );   
 end;
 
 //------------------------------------------------------------------------------
@@ -3235,32 +3620,48 @@ end;
 
 //------------------------------------------------------------------------------
 function TfrmBudget.GetAutoCalculateGST: boolean;
+const
+  ThisMethodName = 'GetAutoCalculateGST';
 begin
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
   result := fBudget.buFields.buAutomatically_Calculate_GST;
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );  
 end;
 
 //------------------------------------------------------------------------------
 procedure TfrmBudget.SetAutoCalculateGST(const aValue: boolean);
+const
+  ThisMethodName = 'SetAutoCalculateGST';
 begin
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
   fBudget.buFields.buAutomatically_Calculate_GST := aValue;
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );  
 end;
 
 //------------------------------------------------------------------------------
 procedure TfrmBudget.RefreshGST;
+const
+  ThisMethodName = 'RefreshGST';
 begin
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
   // Do the calculations on the budget lines
   CalculateGSTtoGSTAmount(MyClient, fBudget, fData, AutoCalculateGST);
 
   // Update all the values in the grid control
   tblBudget.Refresh;
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );  
 end;
 
 procedure TfrmBudget.UMMainFormModalCommand(var aMsg: TMessage);
+const
+  ThisMethodName = 'UMMainFormModalCommand';
 begin
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
   case aMsg.WParam of
     mf_mcGSTDetails:
       RefreshGST;
   end;
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
 
 //------------------------------------------------------------------------------
