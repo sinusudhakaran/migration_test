@@ -251,6 +251,7 @@ var
     IDToProcess          : integer;
     LastCandidatePos     : integer;
     ManuallyCodedCount   : integer;
+    MemAdded             : boolean;
     Memorisation         : TMemorisation;
     MemsPos              : integer;
     NewRecMem            : TRecommended_Mem;
@@ -269,14 +270,19 @@ var
       // Increment next candidate to process
       MyClient.clRecommended_Mems.Candidate.cpFields.cpCandidate_ID_To_Process :=
         MyClient.clRecommended_Mems.Candidate.cpFields.cpCandidate_ID_To_Process + 1;
-      // Does the candidate have a count >= 3 and is it manually coded?
-      if (CandidateMem1.cmFields.cmCount >= 3) and (CandidateMem1.cmFields.cmCoded_By = cbManual) then
+      // Does the candidate have a count >= 3, is manually coded, and it isn't dissected?
+      if (CandidateMem1.cmFields.cmCount >= 3) and
+         (CandidateMem1.cmFields.cmCoded_By = cbManual) and
+         (CandidateMem1.cmFields.cmAccount <> DISSECT_DESC) then
       begin
         GetMatchingCandidateRange(CandidateMem1.cmFields.cmStatement_Details,
                                   FirstCandidatePos, LastCandidatePos);
         ExclusionFound := False;
         // Checking for exclusions: does the key exist in the candidate list with a
-        // different code, or a coding type other than manual?
+        // different code (including dissections, which will always have the code
+        // 'DISSECT' and thus be excluded when we compare account codes, as our
+        // original candidate will never be a dissection, these are filtered out
+        // earlier) or a coding type other than manual? 
         for CandidatePos := FirstCandidatePos to LastCandidatePos do
         begin
           CandidateMem2 := Candidates.Candidate_Mem_At(CandidatePos);
@@ -311,7 +317,7 @@ var
           // * Bank Account Number
           // * Statement Details
           // ... then the answer is yes, so we don't add this candidate to the recommended mems list
-
+          MemAdded := False;
           for AccountsPos := MyClient.clBank_Account_List.First to MyClient.clBank_Account_List.Last do
           begin
             Account := MyClient.clBank_Account_List.Bank_Account_At(AccountsPos);
@@ -336,8 +342,12 @@ var
                   NewRecMem.rmFields.rmManual_Count         := ManuallyCodedCount;
                   NewRecMem.rmFields.rmUncoded_Count        := UncodedCount;
                   MyClient.clRecommended_Mems.Recommended.Insert(NewRecMem);
+                  MemAdded := True;
+                  Break;
                 end;
               end;
+              if MemAdded then
+                Break;
             end;
           end;
         end;
