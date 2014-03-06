@@ -15,7 +15,9 @@ const
 
 Function  Localise( Country : Byte; S : String ): String;
 Procedure GetAustraliaStateFromIndex(aIndex : integer; var aCode, aDescription : string);
+{$IFNDEF LOOKUPDLL}
 function  GetCountry: byte;
+{$ENDIF}
 
 // ---------------------------------------------------------------------------
 implementation
@@ -72,6 +74,7 @@ begin
   end;
 end;
 
+{$IFNDEF LOOKUPDLL}
 function GetCountry: byte;
 var
   IniFile: TMemIniFile;
@@ -103,5 +106,6 @@ begin
     FreeAndNil(IniFile);
   end;
 end;
+{$ENDIF}
 
 end.
