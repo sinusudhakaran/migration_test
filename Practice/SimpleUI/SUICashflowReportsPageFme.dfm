@@ -1,5 +1,6 @@
 object fmeSUICashflowReportsPage: TfmeSUICashflowReportsPage
-  Left = 0
+  Scaled = False
+Left = 0
   Top = 0
   Width = 758
   Height = 546

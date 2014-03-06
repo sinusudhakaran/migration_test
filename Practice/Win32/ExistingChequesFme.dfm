@@ -1,5 +1,6 @@
 object fmeExistingCheques: TfmeExistingCheques
-  Left = 0
+  Scaled = False
+Left = 0
   Top = 0
   Width = 592
   Height = 175

@@ -1,5 +1,6 @@
 object ResynchronizeFrm: TResynchronizeFrm
-  Left = 0
+  Scaled = False
+Left = 0
   Top = 0
   ActiveControl = lClients
   Caption = 'Repatriate '

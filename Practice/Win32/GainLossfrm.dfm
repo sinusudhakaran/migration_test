@@ -1,5 +1,6 @@
 object frmGainLoss: TfrmGainLoss
-  Left = 0
+  Scaled = False
+Left = 0
   Top = 0
   BorderIcons = [biSystemMenu, biMaximize]
   Caption = 'Exchange Gains/Losses'

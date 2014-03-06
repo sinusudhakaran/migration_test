@@ -1,5 +1,6 @@
 inherited frmSend: TfrmSend
-  Left = 260
+  Scaled = False
+Left = 260
   Top = 210
   Caption = 'Send Mail'
   ClientHeight = 455

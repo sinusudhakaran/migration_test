@@ -1,5 +1,6 @@
 object frmTransactionsToBankLinkOnline: TfrmTransactionsToBankLinkOnline
-  Left = 0
+  Scaled = False
+Left = 0
   Top = 0
   ActiveControl = edtTransactionsToDate
   BorderStyle = bsDialog

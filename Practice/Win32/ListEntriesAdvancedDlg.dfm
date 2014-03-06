@@ -1,5 +1,6 @@
 inherited dlgListEntriesAdvanced: TdlgListEntriesAdvanced
-  Left = 392
+  Scaled = False
+Left = 392
   Top = 283
   Caption = 'dlgListEntriesAdvanced'
   ClientHeight = 440

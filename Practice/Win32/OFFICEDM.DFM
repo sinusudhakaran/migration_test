@@ -1,5 +1,6 @@
 object DataModuleOffice: TDataModuleOffice
-  OldCreateOrder = False
+  Scaled = False
+OldCreateOrder = False
   Left = 138
   Top = 125
   Height = 540

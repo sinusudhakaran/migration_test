@@ -1,5 +1,6 @@
 object formMain: TformMain
-  Left = 0
+  Scaled = False
+Left = 0
   Top = 0
   Caption = 'Practice Migration'
   ClientHeight = 552

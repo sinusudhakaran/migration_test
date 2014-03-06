@@ -1,5 +1,6 @@
 object frmNewCAF: TfrmNewCAF
-  Left = 0
+  Scaled = False
+Left = 0
   Top = 0
   Caption = 'Customer Authority Form Details'
   ClientHeight = 587

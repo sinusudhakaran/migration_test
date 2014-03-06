@@ -1,5 +1,6 @@
 object SaveBatchDlg: TSaveBatchDlg
-  Left = 0
+  Scaled = False
+Left = 0
   Top = 0
   Caption = 'Save Reports to:'
   ClientHeight = 132

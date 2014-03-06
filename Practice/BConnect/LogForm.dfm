@@ -1,5 +1,6 @@
 object frmLog: TfrmLog
-  Left = 192
+  Scaled = False
+Left = 192
   Top = 107
   BorderStyle = bsDialog
   Caption = 'View Log'

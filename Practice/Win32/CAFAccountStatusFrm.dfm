@@ -1,5 +1,6 @@
 object frmCAFAccountStatus: TfrmCAFAccountStatus
-  Left = 0
+  Scaled = False
+Left = 0
   Top = 0
   ActiveControl = cmbAccountFilter
   BorderIcons = [biSystemMenu, biMaximize]

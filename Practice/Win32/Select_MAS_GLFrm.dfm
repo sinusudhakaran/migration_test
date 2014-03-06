@@ -1,5 +1,6 @@
 object frmSelectMas_GL: TfrmSelectMas_GL
-  Left = 456
+  Scaled = False
+Left = 456
   Top = 261
   BorderIcons = [biSystemMenu, biMaximize]
   Caption = 'Select Ledger'

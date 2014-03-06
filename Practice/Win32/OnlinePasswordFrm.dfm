@@ -1,5 +1,6 @@
 object frmOnlinePassword: TfrmOnlinePassword
-  Left = 0
+  Scaled = False
+Left = 0
   Top = 0
   ActiveControl = edtPassword
   BorderStyle = bsDialog

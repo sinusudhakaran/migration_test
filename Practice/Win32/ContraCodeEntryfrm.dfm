@@ -1,5 +1,6 @@
 object frmContraCodeEntry: TfrmContraCodeEntry
-  Left = 0
+  Scaled = False
+Left = 0
   Top = 0
   BorderStyle = bsDialog
   Caption = 'Enter Bank Account Contra Code'

@@ -1,5 +1,6 @@
 object frmCAFImportSelector: TfrmCAFImportSelector
-  Left = 0
+  Scaled = False
+Left = 0
   Top = 0
   ActiveControl = cmbInstitution
   BorderStyle = bsDialog

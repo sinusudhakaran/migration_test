@@ -1,5 +1,6 @@
 object Form1: TForm1
-  Left = 348
+  Scaled = False
+Left = 348
   Top = 290
   BorderIcons = [biSystemMenu]
   BorderStyle = bsDialog

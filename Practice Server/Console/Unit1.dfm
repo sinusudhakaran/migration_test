@@ -1,5 +1,6 @@
 object Form1: TForm1
-  Left = 0
+  Scaled = False
+Left = 0
   Top = 0
   Caption = 'Practice Server Administrator'
   ClientHeight = 503

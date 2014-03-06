@@ -1,5 +1,6 @@
 object frmHeaderFooter: TfrmHeaderFooter
-  Left = 0
+  Scaled = False
+Left = 0
   Top = 0
   Caption = 'frmHeaderFooter'
   ClientHeight = 520

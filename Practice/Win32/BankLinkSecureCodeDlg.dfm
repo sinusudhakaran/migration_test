@@ -1,5 +1,6 @@
 object frmBankLinkSecureCode: TfrmBankLinkSecureCode
-  Left = 0
+  Scaled = False
+Left = 0
   Top = 0
   ActiveControl = edtSecureCode
   BorderStyle = bsDialog

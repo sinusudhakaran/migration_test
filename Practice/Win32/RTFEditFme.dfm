@@ -1,5 +1,6 @@
 object fmeEditRTF: TfmeEditRTF
-  Left = 0
+  Scaled = False
+Left = 0
   Top = 0
   Width = 857
   Height = 492

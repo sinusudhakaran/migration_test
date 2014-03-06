@@ -1,5 +1,6 @@
 object frmMailMerge: TfrmMailMerge
-  Left = 432
+  Scaled = False
+Left = 432
   Top = 350
   BorderStyle = bsDialog
   Caption = 'Mail Merge and Print'

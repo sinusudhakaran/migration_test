@@ -1,5 +1,6 @@
 object fmeSysAccounts: TfmeSysAccounts
-  Left = 0
+  Scaled = False
+Left = 0
   Top = 0
   Width = 795
   Height = 240

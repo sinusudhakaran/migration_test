@@ -1,5 +1,6 @@
 inherited frmMain: TfrmMain
-  Left = 369
+  Scaled = False
+Left = 369
   Top = 347
   Caption = 'frmMain'
   ClientHeight = 676

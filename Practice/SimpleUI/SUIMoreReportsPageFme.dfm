@@ -1,5 +1,6 @@
 object fmeSUIMoreReportsPage: TfmeSUIMoreReportsPage
-  Left = 0
+  Scaled = False
+Left = 0
   Top = 0
   Width = 755
   Height = 546

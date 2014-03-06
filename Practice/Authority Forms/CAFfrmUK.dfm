@@ -1,5 +1,6 @@
 object UKCAFfrmz: TUKCAFfrmz
-  Left = 0
+  Scaled = False
+Left = 0
   Top = 0
   Caption = 'UKCAFfrmz'
   ClientHeight = 290

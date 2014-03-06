@@ -1,5 +1,6 @@
 object frmImportCAF: TfrmImportCAF
-  Left = 0
+  Scaled = False
+Left = 0
   Top = 0
   Caption = 'Select a File to Import'
   ClientHeight = 142

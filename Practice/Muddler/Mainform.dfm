@@ -315,6 +315,7 @@ object formMain: TformMain
     0000001FA7E0F0000600001FA7E0FFFFDF00003FA7E0FFFFFFFFFFFFA7E0}
   Menu = MainMenu
   OldCreateOrder = False
+  Scaled = False
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   DesignSize = (

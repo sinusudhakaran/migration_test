@@ -1,5 +1,6 @@
 object frmExportBudget: TfrmExportBudget
-  Left = 0
+  Scaled = False
+Left = 0
   Top = 0
   BorderStyle = bsDialog
   Caption = 'Export Budget'

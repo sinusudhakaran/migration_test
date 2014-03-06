@@ -1,5 +1,6 @@
 inherited frmDissection: TfrmDissection
-  Left = 307
+  Scaled = False
+Left = 307
   Top = 201
   BorderIcons = [biSystemMenu, biMaximize]
   Caption = 'Dissect Entry'

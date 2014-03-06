@@ -1,5 +1,6 @@
 object FmeClientSelect: TFmeClientSelect
-  Left = 0
+  Scaled = False
+Left = 0
   Top = 0
   Width = 629
   Height = 142

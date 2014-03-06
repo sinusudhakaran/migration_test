@@ -1,5 +1,6 @@
 object frmExchangeGainLossCodeEntry: TfrmExchangeGainLossCodeEntry
-  Left = 0
+  Scaled = False
+Left = 0
   Top = 0
   BorderStyle = bsDialog
   Caption = 'Enter Exchange Gain/Loss Code'

@@ -1,5 +1,6 @@
 object RequestregForm: TRequestregForm
-  Left = 0
+  Scaled = False
+Left = 0
   Top = 0
   BorderStyle = bsDialog
   Caption = 'Request BankLink Online Registration'

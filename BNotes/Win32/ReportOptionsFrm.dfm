@@ -1,5 +1,6 @@
 inherited frmReportOptions: TfrmReportOptions
-  BorderStyle = bsDialog
+  Scaled = False
+BorderStyle = bsDialog
   Caption = 'Report Options'
   ClientHeight = 101
   ClientWidth = 222
