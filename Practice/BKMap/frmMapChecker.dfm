@@ -1,6 +1,5 @@
 object MainForm: TMainForm
-  Scaled = False
-Left = 364
+  Left = 364
   Top = 261
   BorderStyle = bsDialog
   Caption = 'BankLink Client-Account Map'

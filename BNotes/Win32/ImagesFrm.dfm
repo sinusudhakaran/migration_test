@@ -1,6 +1,5 @@
 object AppImages: TAppImages
-  Scaled = False
-Left = 292
+  Left = 292
   Top = 211
   Width = 696
   Height = 480

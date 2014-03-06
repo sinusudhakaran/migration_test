@@ -1,6 +1,5 @@
 inherited dlgClientReportSchedule: TdlgClientReportSchedule
-  Scaled = False
-Left = 324
+  Left = 324
   Top = 237
   Caption = 'Report Schedule'
   ClientHeight = 494

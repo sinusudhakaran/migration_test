@@ -1,6 +1,5 @@
 inherited dlgPrintScheduled: TdlgPrintScheduled
-  Scaled = False
-Left = 340
+  Left = 340
   Top = 277
   Caption = 'Generate Scheduled Reports'
   ClientHeight = 596

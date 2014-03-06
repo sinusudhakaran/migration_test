@@ -1,6 +1,5 @@
 inherited frmNotes: TfrmNotes
-  Scaled = False
-Left = 393
+  Left = 393
   Top = 206
   BorderIcons = [biSystemMenu]
   Caption = 'Notes'

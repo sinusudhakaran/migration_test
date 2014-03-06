@@ -1,6 +1,5 @@
 object MainForm: TMainForm
-  Scaled = False
-Left = 309
+  Left = 309
   Top = 345
   Caption = 'Pin for Disk'
   ClientHeight = 284

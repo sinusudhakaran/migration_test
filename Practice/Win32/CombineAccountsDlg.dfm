@@ -1,6 +1,5 @@
 inherited DlgCombineAccounts: TDlgCombineAccounts
-  Scaled = False
-Left = 393
+  Left = 393
   Top = 336
   Caption = 'Combine System Bank Accounts'
   ClientHeight = 290

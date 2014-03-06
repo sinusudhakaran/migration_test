@@ -1,6 +1,5 @@
 object frmResetPractice: TfrmResetPractice
-  Scaled = False
-Left = 0
+  Left = 0
   Top = 0
   Caption = 'Reset Practice'
   ClientHeight = 190

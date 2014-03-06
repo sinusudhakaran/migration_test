@@ -1,6 +1,5 @@
 object frmMailMergePreview: TfrmMailMergePreview
-  Scaled = False
-Left = 325
+  Left = 325
   Top = 326
   BorderStyle = bsDialog
   Caption = 'E-mail Merge Preview'

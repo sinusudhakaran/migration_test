@@ -1,6 +1,5 @@
 inherited frmUPCRange: TfrmUPCRange
-  Scaled = False
-Left = 421
+  Left = 421
   Top = 349
   BorderIcons = [biSystemMenu]
   BorderStyle = bsDialog

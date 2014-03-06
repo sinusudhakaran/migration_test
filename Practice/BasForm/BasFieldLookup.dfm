@@ -1,6 +1,5 @@
 inherited dlgBasFieldLookup: TdlgBasFieldLookup
-  Scaled = False
-Left = 299
+  Left = 299
   Top = 214
   Caption = 'Add New Bas Field'
   ClientHeight = 205

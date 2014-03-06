@@ -1,6 +1,5 @@
 object FromBrowse: TFromBrowse
-  Scaled = False
-Left = 0
+  Left = 0
   Top = 0
   Caption = 'Select BankLink Practice 5 Location to Migrate From'
   ClientHeight = 451

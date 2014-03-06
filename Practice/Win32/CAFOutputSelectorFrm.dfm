@@ -1,6 +1,5 @@
 object frmCAFOutputSelector: TfrmCAFOutputSelector
-  Scaled = False
-Left = 0
+  Left = 0
   Top = 0
   ActiveControl = edtSaveTo
   BorderStyle = bsDialog

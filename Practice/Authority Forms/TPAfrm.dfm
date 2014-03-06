@@ -1,6 +1,5 @@
 object frmTPA: TfrmTPA
-  Scaled = False
-Left = 236
+  Left = 236
   Top = 116
   BorderIcons = [biSystemMenu]
   BorderStyle = bsSingle

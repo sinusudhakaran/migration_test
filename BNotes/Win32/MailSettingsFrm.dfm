@@ -1,6 +1,5 @@
 inherited frmMailSettings: TfrmMailSettings
-  Scaled = False
-Left = 336
+  Left = 336
   Top = 195
   Caption = 'Mail Settings'
   ClientHeight = 396

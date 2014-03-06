@@ -1,6 +1,5 @@
 object PracticeApplicationServer: TPracticeApplicationServer
-  Scaled = False
-OldCreateOrder = False
+  OldCreateOrder = False
   OnCreate = ServiceCreate
   OnDestroy = ServiceDestroy
   DisplayName = 'Practice Application Service'

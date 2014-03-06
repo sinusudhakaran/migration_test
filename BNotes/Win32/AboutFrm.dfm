@@ -1,6 +1,5 @@
 inherited frmAbout: TfrmAbout
-  Scaled = False
-Left = 280
+  Left = 280
   Top = 189
   BorderIcons = [biSystemMenu]
   BorderStyle = bsSingle

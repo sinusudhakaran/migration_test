@@ -1,6 +1,5 @@
 object frmMain: TfrmMain
-  Scaled = False
-Left = 0
+  Left = 0
   Top = 50
   BorderStyle = bsSingle
   Caption = 'MYOB BankLink File Handler'

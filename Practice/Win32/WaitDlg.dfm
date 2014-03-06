@@ -1,6 +1,5 @@
 object DelayForm: TDelayForm
-  Scaled = False
-Left = 281
+  Left = 281
   Top = 300
   BorderIcons = []
   BorderStyle = bsToolWindow

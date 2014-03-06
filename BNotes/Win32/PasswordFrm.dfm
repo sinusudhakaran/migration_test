@@ -1,6 +1,5 @@
 inherited frmPassword: TfrmPassword
-  Scaled = False
-Left = 404
+  Left = 404
   Top = 311
   BorderStyle = bsDialog
   Caption = 'Password'

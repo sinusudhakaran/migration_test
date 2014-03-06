@@ -1,6 +1,5 @@
 object fmeFileOptionsPage: TfmeFileOptionsPage
-  Scaled = False
-Left = 0
+  Left = 0
   Top = 0
   Width = 758
   Height = 546

@@ -1,6 +1,5 @@
 inherited dlgTransferEntries: TdlgTransferEntries
-  Scaled = False
-Left = 316
+  Left = 316
   Top = 344
   Caption = 'Combine Manual & System Bank Accounts'
   ClientHeight = 460

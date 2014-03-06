@@ -1,6 +1,5 @@
 object frmMain: TfrmMain
-  Scaled = False
-Left = 225
+  Left = 225
   Top = 209
   BorderStyle = bsSingle
   Caption = 'BankLink Include file converter'
