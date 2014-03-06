@@ -1,5 +1,6 @@
 object DlgLicense: TDlgLicense
-  Left = 367
+  Scaled = False
+Left = 367
   Top = 332
   BorderStyle = bsDialog
   Caption = 'Licence Agreement'

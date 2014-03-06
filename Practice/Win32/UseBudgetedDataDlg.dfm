@@ -1,5 +1,6 @@
 object dlgUseBudgetedData: TdlgUseBudgetedData
-  Left = 354
+  Scaled = False
+Left = 354
   Top = 301
   BorderStyle = bsDialog
   Caption = 'Use budget data?'

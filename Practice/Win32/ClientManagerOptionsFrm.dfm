@@ -1,5 +1,6 @@
 object frmClientManagerOptions: TfrmClientManagerOptions
-  Left = 353
+  Scaled = False
+Left = 353
   Top = 193
   BorderStyle = bsDialog
   Caption = 'Task Settings'

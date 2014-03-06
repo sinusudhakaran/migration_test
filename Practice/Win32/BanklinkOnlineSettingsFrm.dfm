@@ -1,5 +1,6 @@
 object frmBanklinkOnlineSettings: TfrmBanklinkOnlineSettings
-  Left = 0
+  Scaled = False
+Left = 0
   Top = 0
   BorderStyle = bsDialog
   Caption = 'BankLink Online Settings'

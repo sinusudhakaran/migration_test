@@ -1,5 +1,6 @@
 object dlgEditBank: TdlgEditBank
-  Left = 334
+  Scaled = False
+Left = 334
   Top = 217
   BorderStyle = bsDialog
   Caption = 'Edit Bank Account Details'

@@ -1,5 +1,6 @@
 object dlgDelCheque: TdlgDelCheque
-  Left = 261
+  Scaled = False
+Left = 261
   Top = 205
   BorderIcons = [biSystemMenu]
   BorderStyle = bsDialog

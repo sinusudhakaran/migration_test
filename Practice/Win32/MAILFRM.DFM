@@ -1,5 +1,6 @@
 object frmMail: TfrmMail
-  Left = 294
+  Scaled = False
+Left = 294
   Top = 189
   BorderIcons = [biSystemMenu, biMaximize]
   Caption = 'Send a Client File'

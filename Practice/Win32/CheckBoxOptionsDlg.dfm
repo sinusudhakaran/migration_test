@@ -1,5 +1,6 @@
 object dlgCheckBoxOptions: TdlgCheckBoxOptions
-  Left = 293
+  Scaled = False
+Left = 293
   Top = 233
   Anchors = []
   BorderIcons = [biSystemMenu]

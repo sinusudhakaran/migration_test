@@ -1,5 +1,6 @@
 object dlgDelUnCheque: TdlgDelUnCheque
-  Left = 240
+  Scaled = False
+Left = 240
   Top = 174
   BorderStyle = bsDialog
   Caption = 'Delete Unpresented Cheques'

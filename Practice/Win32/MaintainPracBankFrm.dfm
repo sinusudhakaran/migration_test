@@ -1,5 +1,6 @@
 object frmMaintainPracBank: TfrmMaintainPracBank
-  Left = 262
+  Scaled = False
+Left = 262
   Top = 162
   BorderIcons = [biSystemMenu, biMaximize]
   Caption = 'Maintain Bank Accounts in Admin System'

@@ -1,5 +1,6 @@
 object frmBKLookup: TfrmBKLookup
-  Left = 613
+  Scaled = False
+Left = 613
   Top = 252
   Width = 527
   Height = 426

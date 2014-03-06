@@ -1,5 +1,6 @@
 object dlgProfitAndLossOptions: TdlgProfitAndLossOptions
-  Left = 365
+  Scaled = False
+Left = 365
   Top = 268
   BorderStyle = bsDialog
   Caption = 'Custom Profit and Loss Reports'

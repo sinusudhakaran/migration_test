@@ -1,5 +1,6 @@
 object TestLockingFrm: TTestLockingFrm
-  Left = 404
+  Scaled = False
+Left = 404
   Top = 70
   AutoScroll = False
   Caption = 'Application Locking Test Utility'

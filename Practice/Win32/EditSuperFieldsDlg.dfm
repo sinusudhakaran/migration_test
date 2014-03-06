@@ -1,5 +1,6 @@
 object dlgEditSuperFields: TdlgEditSuperFields
-  Left = 415
+  Scaled = False
+Left = 415
   Top = 256
   BorderStyle = bsDialog
   Caption = 'Superfund Details'

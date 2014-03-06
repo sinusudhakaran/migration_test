@@ -1,5 +1,6 @@
 object Form1: TForm1
-  Left = 421
+  Scaled = False
+Left = 421
   Top = 153
   BorderStyle = bsDialog
   Caption = 'Test Application for  bkLookup DLL'

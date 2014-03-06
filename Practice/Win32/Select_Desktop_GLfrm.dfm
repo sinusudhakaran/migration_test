@@ -1,5 +1,6 @@
 object frmSelect_Desktop_GL: TfrmSelect_Desktop_GL
-  Left = 867
+  Scaled = False
+Left = 867
   Top = 243
   BorderStyle = bsDialog
   Caption = 'Select Fund'

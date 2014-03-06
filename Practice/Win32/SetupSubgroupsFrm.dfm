@@ -1,5 +1,6 @@
 object frmSetupSubGroups: TfrmSetupSubGroups
-  Left = 368
+  Scaled = False
+Left = 368
   Top = 148
   BorderIcons = [biSystemMenu, biMaximize]
   Caption = 'Set Up Sub-groups'

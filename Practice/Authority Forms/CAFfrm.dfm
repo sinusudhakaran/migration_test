@@ -1,5 +1,6 @@
 object frmCAF: TfrmCAF
-  Left = 256
+  Scaled = False
+Left = 256
   Top = 163
   BorderIcons = [biSystemMenu]
   BorderStyle = bsSingle

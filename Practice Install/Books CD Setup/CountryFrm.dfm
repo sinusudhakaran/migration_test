@@ -1,5 +1,6 @@
 object frmLocation: TfrmLocation
-  Left = 359
+  Scaled = False
+Left = 359
   Top = 284
   BorderStyle = bsDialog
   Caption = 'Select Country'

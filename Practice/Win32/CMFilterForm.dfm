@@ -1,5 +1,6 @@
 object frmFilter: TfrmFilter
-  Left = 0
+  Scaled = False
+Left = 0
   Top = 0
   BorderIcons = [biSystemMenu, biMaximize]
   Caption = 'Filter Clients'

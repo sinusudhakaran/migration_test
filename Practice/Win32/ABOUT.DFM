@@ -1,5 +1,6 @@
 object frmAbout: TfrmAbout
-  Left = 545
+  Scaled = False
+Left = 545
   Top = 271
   BorderIcons = [biSystemMenu]
   BorderStyle = bsSingle

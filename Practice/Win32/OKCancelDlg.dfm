@@ -1,5 +1,6 @@
 object dlgOkCancel: TdlgOkCancel
-  Left = 272
+  Scaled = False
+Left = 272
   Top = 299
   BorderStyle = bsDialog
   Caption = 'dlgOkCancel'

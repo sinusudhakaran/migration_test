@@ -1,5 +1,6 @@
 object frmCoding: TfrmCoding
-  Left = 281
+  Scaled = False
+Left = 281
   Top = 293
   Anchors = []
   Caption = 'Code Bank Statements'

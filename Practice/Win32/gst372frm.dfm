@@ -1,5 +1,6 @@
 object FrmGST372: TFrmGST372
-  Left = 402
+  Scaled = False
+Left = 402
   Top = 249
   BorderIcons = [biSystemMenu, biMaximize]
   Caption = 'GST adjustments calculation sheet  IR372'

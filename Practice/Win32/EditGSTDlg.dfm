@@ -1,5 +1,6 @@
 object dlgEditGST: TdlgEditGST
-  Left = 410
+  Scaled = False
+Left = 410
   Top = 293
   BorderStyle = bsDialog
   Caption = 'GST Set Up'

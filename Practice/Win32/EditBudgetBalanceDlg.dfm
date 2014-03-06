@@ -1,5 +1,6 @@
 object dlgEditBudgetBalance: TdlgEditBudgetBalance
-  Left = 329
+  Scaled = False
+Left = 329
   Top = 309
   BorderStyle = bsDialog
   Caption = 'Estimated Opening Bank Balance'

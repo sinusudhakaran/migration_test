@@ -1,5 +1,6 @@
 object frmMain: TfrmMain
-  Left = 315
+  Scaled = False
+Left = 315
   Top = 258
   Caption = 'TT'
   ClientHeight = 862

@@ -129,7 +129,8 @@ Begin
       If NoOfFields > 0 then
       Begin
          LineType := GetAField( 1 );
-         If LineType='$' then Writeln( UnitFile, '   ', GetAField( 2 ) );
+         If LineType='$' then
+           Writeln( UnitFile, '   ', GetAField( 2 ) );
       end;
    end;
    CloseImportFile;

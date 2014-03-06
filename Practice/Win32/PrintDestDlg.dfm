@@ -1,5 +1,6 @@
 object DlgPrintDest: TDlgPrintDest
-  Left = 324
+  Scaled = False
+Left = 324
   Top = 307
   BorderStyle = bsDialog
   Caption = 'Select Report Destination'

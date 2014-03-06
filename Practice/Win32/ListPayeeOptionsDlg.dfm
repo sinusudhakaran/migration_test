@@ -1,5 +1,6 @@
 object dlgListPayeeOptions: TdlgListPayeeOptions
-  Left = 474
+  Scaled = False
+Left = 474
   Top = 315
   BorderStyle = bsDialog
   Caption = 'List Payees'

@@ -1,5 +1,6 @@
 object frmVAT: TfrmVAT
-  Left = 450
+  Scaled = False
+Left = 450
   Top = 189
   BorderIcons = [biSystemMenu, biMaximize]
   Caption = 'VAT Return'

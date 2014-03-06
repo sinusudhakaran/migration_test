@@ -1,5 +1,6 @@
 object frmChkProgress: TfrmChkProgress
-  Left = 482
+  Scaled = False
+Left = 482
   Top = 393
   BorderIcons = [biSystemMenu]
   BorderStyle = bsSingle

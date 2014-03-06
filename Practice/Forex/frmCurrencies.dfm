@@ -1,5 +1,6 @@
 object CurrenciesFrm: TCurrenciesFrm
-  Left = 0
+  Scaled = False
+Left = 0
   Top = 0
   Caption = 'Maintain Currencies'
   ClientHeight = 398

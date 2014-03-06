@@ -1,5 +1,6 @@
 object dlgSelectCheckoutDir: TdlgSelectCheckoutDir
-  Left = 431
+  Scaled = False
+Left = 431
   Top = 338
   BorderStyle = bsDialog
   Caption = 'Send file(s)'

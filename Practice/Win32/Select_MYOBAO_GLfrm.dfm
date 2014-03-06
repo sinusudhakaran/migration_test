@@ -1,5 +1,6 @@
 object frmSelect_MYOBAO_GL: TfrmSelect_MYOBAO_GL
-  Left = 867
+  Scaled = False
+Left = 867
   Top = 243
   BorderStyle = bsDialog
   Caption = 'Select General Ledger'

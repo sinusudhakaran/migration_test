@@ -1,5 +1,6 @@
 object frmBulkResult: TfrmBulkResult
-  Left = 0
+  Scaled = False
+Left = 0
   Top = 0
   Caption = 'frmBulkResult'
   ClientHeight = 442

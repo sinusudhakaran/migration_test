@@ -1,5 +1,6 @@
 object OnePlaceConfig: TOnePlaceConfig
-  Left = 0
+  Scaled = False
+Left = 0
   Top = 0
   BorderStyle = bsDialog
   Caption = '1place Config'

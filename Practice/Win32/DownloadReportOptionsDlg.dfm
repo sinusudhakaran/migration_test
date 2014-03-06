@@ -1,5 +1,6 @@
 object dlgDownloadReportOptions: TdlgDownloadReportOptions
-  Left = 358
+  Scaled = False
+Left = 358
   Top = 192
   BorderIcons = [biSystemMenu]
   Caption = 'Download Report'

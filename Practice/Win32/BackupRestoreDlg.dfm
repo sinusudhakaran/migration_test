@@ -1,5 +1,6 @@
 object dlgBackupRestore: TdlgBackupRestore
-  Left = 417
+  Scaled = False
+Left = 417
   Top = 324
   BorderStyle = bsDialog
   Caption = 'Backup Options'

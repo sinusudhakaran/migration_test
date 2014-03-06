@@ -1,5 +1,6 @@
 object ExchangeRatesfrm: TExchangeRatesfrm
-  Left = 0
+  Scaled = False
+Left = 0
   Top = 0
   Caption = 'Maintain Exchange Rates'
   ClientHeight = 450

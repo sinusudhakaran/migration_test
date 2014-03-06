@@ -1,5 +1,6 @@
 object frmSimpleUIOpen: TfrmSimpleUIOpen
-  Left = 0
+  Scaled = False
+Left = 0
   Top = 0
   Caption = 'Open'
   ClientHeight = 495

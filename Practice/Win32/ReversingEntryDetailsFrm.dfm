@@ -1,5 +1,6 @@
 object frmReversingEntryDetails: TfrmReversingEntryDetails
-  Left = 279
+  Scaled = False
+Left = 279
   Top = 267
   BorderStyle = bsDialog
   Caption = 'Cancel an Unpresented Item'

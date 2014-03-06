@@ -1,5 +1,6 @@
 object dlgPayeeRecode: TdlgPayeeRecode
-  Left = 333
+  Scaled = False
+Left = 333
   Top = 245
   BorderStyle = bsDialog
   Caption = 'Code by Payee'

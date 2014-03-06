@@ -1,5 +1,6 @@
 object dlgRadioOptions: TdlgRadioOptions
-  Left = 243
+  Scaled = False
+Left = 243
   Top = 179
   BorderIcons = [biSystemMenu]
   ClientHeight = 220

@@ -1,5 +1,6 @@
 object dlgHistCheques: TdlgHistCheques
-  Left = 376
+  Scaled = False
+Left = 376
   Top = 270
   BorderIcons = [biSystemMenu]
   Caption = 'Add Cheques'

@@ -1,5 +1,6 @@
 object dlgCopyMemorisations: TdlgCopyMemorisations
-  Left = 236
+  Scaled = False
+Left = 236
   Top = 195
   BorderStyle = bsDialog
   Caption = 'Copy Memorisations To'

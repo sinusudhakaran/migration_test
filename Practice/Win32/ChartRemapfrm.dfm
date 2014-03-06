@@ -1,5 +1,6 @@
 object frmRemapChart: TfrmRemapChart
-  Left = 0
+  Scaled = False
+Left = 0
   Top = 0
   ActiveControl = EGstFile
   BorderIcons = [biSystemMenu, biMaximize]

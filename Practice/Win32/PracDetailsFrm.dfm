@@ -1,5 +1,6 @@
 object frmPracticeDetails: TfrmPracticeDetails
-  Left = 392
+  Scaled = False
+Left = 392
   Top = 300
   BorderIcons = [biSystemMenu, biMaximize]
   BorderStyle = bsDialog

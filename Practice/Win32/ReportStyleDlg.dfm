@@ -1,5 +1,6 @@
 object frmReportStyle: TfrmReportStyle
-  Left = 0
+  Scaled = False
+Left = 0
   Top = 0
   Caption = 'frmReportStyle'
   ClientHeight = 644

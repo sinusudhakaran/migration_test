@@ -1,5 +1,6 @@
 object dlgOpeningBalances: TdlgOpeningBalances
-  Left = 375
+  Scaled = False
+Left = 375
   Top = 114
   BorderIcons = [biSystemMenu, biMaximize]
   Caption = 'Opening Balances'

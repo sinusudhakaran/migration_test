@@ -1,5 +1,6 @@
 object frmBatchReports: TfrmBatchReports
-  Left = 0
+  Scaled = False
+Left = 0
   Top = 0
   BorderIcons = [biSystemMenu, biMaximize]
   Caption = 'Batch Reports'

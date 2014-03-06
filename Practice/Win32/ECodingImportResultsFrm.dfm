@@ -1,5 +1,6 @@
 object frmEcodingImportResults: TfrmEcodingImportResults
-  Left = 277
+  Scaled = False
+Left = 277
   Top = 247
   BorderStyle = bsDialog
   Caption = 'Verify Results'

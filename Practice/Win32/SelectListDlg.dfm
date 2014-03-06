@@ -1,5 +1,6 @@
 object dlgSelectList: TdlgSelectList
-  Left = 402
+  Scaled = False
+Left = 402
   Top = 232
   Anchors = [akRight, akBottom]
   BorderIcons = [biSystemMenu]

@@ -1,5 +1,6 @@
 object frmClientNotes: TfrmClientNotes
-  Left = 313
+  Scaled = False
+Left = 313
   Top = 337
   BorderIcons = [biSystemMenu, biMaximize]
   Caption = 'Client File Notes'

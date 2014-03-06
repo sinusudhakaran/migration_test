@@ -1,5 +1,6 @@
 object frmSendProvAccRequest: TfrmSendProvAccRequest
-  Left = 0
+  Scaled = False
+Left = 0
   Top = 0
   Caption = 'Request Provisional Account'
   ClientHeight = 312

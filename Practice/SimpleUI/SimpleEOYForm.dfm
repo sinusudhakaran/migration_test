@@ -1,5 +1,6 @@
 object frmSimpleEOY: TfrmSimpleEOY
-  Left = 0
+  Scaled = False
+Left = 0
   Top = 0
   BorderStyle = bsDialog
   Caption = 'End of Year process'

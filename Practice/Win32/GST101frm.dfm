@@ -1,5 +1,6 @@
 object frmGST101: TfrmGST101
-  Left = 450
+  Scaled = False
+Left = 450
   Top = 189
   BorderIcons = [biSystemMenu, biMaximize]
   Caption = 'Goods and Services Tax Return'

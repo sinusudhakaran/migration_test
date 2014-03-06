@@ -1,5 +1,6 @@
 object dlgAdminOptions: TdlgAdminOptions
-  Left = 317
+  Scaled = False
+Left = 317
   Top = 231
   ActiveControl = edtInstListLink
   BorderStyle = bsDialog

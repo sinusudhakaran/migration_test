@@ -1,5 +1,6 @@
 object DateRangeFrm: TDateRangeFrm
-  Left = 0
+  Scaled = False
+Left = 0
   Top = 0
   Caption = 'DateRangeFrm'
   ClientHeight = 214

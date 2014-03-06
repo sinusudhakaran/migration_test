@@ -1,5 +1,6 @@
 object FaxDetailsDlg: TFaxDetailsDlg
-  Left = 378
+  Scaled = False
+Left = 378
   Top = 301
   BorderStyle = bsDialog
   Caption = 'Recipient Details'

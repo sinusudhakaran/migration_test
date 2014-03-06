@@ -1,5 +1,6 @@
 object DlgChartReport: TDlgChartReport
-  Left = 277
+  Scaled = False
+Left = 277
   Top = 313
   BorderStyle = bsDialog
   Caption = 'List Chart of Accounts'

@@ -1,5 +1,6 @@
 object dlgBudgetPercentageChange: TdlgBudgetPercentageChange
-  Left = 414
+  Scaled = False
+Left = 414
   Top = 279
   ActiveControl = nPercent
   BorderStyle = bsDialog

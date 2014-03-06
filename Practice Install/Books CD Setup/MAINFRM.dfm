@@ -1,5 +1,6 @@
 object frmMain: TfrmMain
-  Left = 419
+  Scaled = False
+Left = 419
   Top = 336
   Hint = 'Choose the type of install to do...'
   BorderIcons = [biSystemMenu]

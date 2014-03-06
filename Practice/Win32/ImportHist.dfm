@@ -1,5 +1,6 @@
 object frmImportHist: TfrmImportHist
-  Left = 219
+  Scaled = False
+Left = 219
   Top = 128
   BorderIcons = []
   Caption = 'Import Historical Data'
