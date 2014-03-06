@@ -161,25 +161,32 @@ function RemoveInvalidCharacters(aInString : string) : string;
 
 function RoundNumberExt(number, base: extended): extended;
 
-
+function AddFillerData(aInString: string; aFiller: char; aLength : integer; aLeftSide : boolean): string;
+function AddFillerSpaces(aInString: string; aLength : integer): string;
+function InsFillerZeros(aInString: string; aLength : integer): string;
+function RemoveNonNumericData(aInString : string) : string;
 
 //******************************************************************************
 Implementation
 
 Uses
-   SysUtils,
-   ststrs,
-   StDate,
-   StrUtils,
-   DirUtils,
-   bkConst,
-   RzPanel,
-   Windows,
-   RzPopups,
-   bk5except,
-   Globals,
-   DecimalRounding_JH1,
-   CountryUtils;
+  SysUtils,
+  ststrs,
+  StDate,
+  StrUtils,
+  DirUtils,
+  bkConst,
+  RzPanel,
+  Windows,
+  RzPopups,
+  bk5except,
+  Globals,
+  DecimalRounding_JH1,
+  CountryUtils;
+
+Const
+  NUMERIC_PAD_CHAR = '0';
+  FILLER_CHAR = ' ';
 
 //------------------------------------------------------------------------------
 function TrimedGuid(AGuid: TGuid): String;
@@ -1333,6 +1340,55 @@ begin
     end
   else
     result := number;
+end;
+
+//------------------------------------------------------------------------------
+function AddFillerData(aInString: string; aFiller: char; aLength : integer; aLeftSide : boolean): string;
+var
+  FillerIndex : integer;
+  FillerString : string;
+  InStrLength : integer;
+begin
+  InStrLength := length(aInString);
+  Result := aInString;
+
+  if InStrLength >= aLength then
+    Exit;
+
+  FillerString := '';
+  for FillerIndex := (InStrLength + 1) to aLength do
+    FillerString := FillerString + aFiller;
+
+  if aLeftSide then
+    Result := FillerString + Result
+  else
+    Result := Result + FillerString;
+end;
+
+//------------------------------------------------------------------------------
+function AddFillerSpaces(aInString: string; aLength: integer): string;
+begin
+  Result := AddFillerData(aInString, FILLER_CHAR, aLength, false);
+end;
+
+//------------------------------------------------------------------------------
+function InsFillerZeros(aInString: string; aLength: integer): string;
+begin
+  Result := AddFillerData(aInString, NUMERIC_PAD_CHAR, aLength, true);
+end;
+
+//------------------------------------------------------------------------------
+function RemoveNonNumericData(aInString: string): string;
+var
+  Index : integer;
+begin
+  Result := '';
+  for Index := 1 to Length(aInString) do
+  begin
+    if ((aInString[Index] >= '0') and (aInString[Index] <= '9')) or
+       (aInString[Index] = ' ') then
+      Result := Result + aInString[Index];
+  end;
 end;
 
 End.

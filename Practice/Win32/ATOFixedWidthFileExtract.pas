@@ -32,11 +32,6 @@ type
     fTotalRecords : word;
 
   protected
-    function AddFillerData(aInString: string; aFiller: char; aLength : integer; aLeftSide : boolean): string;
-    function AddFillerSpaces(aInString: string; aLength : integer): string;
-    function InsFillerZeros(aInString: string; aLength : integer): string;
-    function RemoveNonNumericData(aInString : string) : string;
-
     // Ato Data Fields
     procedure WritePostCode(aValue : string);
     procedure WriteNumericData(aValue : word; aLength : integer);
@@ -121,46 +116,7 @@ implementation
 uses
   GenUtils;
 
-Const
-  NUMERIC_PAD_CHAR = '0';
-  FILLER_CHAR = ' ';
-
 { TATOFixedWidthFileExtract }
-//------------------------------------------------------------------------------
-function TATOFixedWidthFileExtract.AddFillerData(aInString: string; aFiller: char; aLength : integer; aLeftSide : boolean): string;
-var
-  FillerIndex : integer;
-  FillerString : string;
-  InStrLength : integer;
-begin
-  InStrLength := length(aInString);
-  Result := aInString;
-
-  if InStrLength >= aLength then
-    Exit;
-
-  FillerString := '';
-  for FillerIndex := (InStrLength + 1) to aLength do
-    FillerString := FillerString + aFiller;
-
-  if aLeftSide then
-    Result := FillerString + Result
-  else
-    Result := Result + FillerString;
-end;
-
-//------------------------------------------------------------------------------
-function TATOFixedWidthFileExtract.AddFillerSpaces(aInString: string; aLength: integer): string;
-begin
-  Result := AddFillerData(aInString, FILLER_CHAR, aLength, false);
-end;
-
-//------------------------------------------------------------------------------
-function TATOFixedWidthFileExtract.InsFillerZeros(aInString: string; aLength: integer): string;
-begin
-  Result := AddFillerData(aInString, NUMERIC_PAD_CHAR, aLength, true);
-end;
-
 //------------------------------------------------------------------------------
 procedure TATOFixedWidthFileExtract.WritePostCode(aValue: string);
 var
@@ -475,20 +431,6 @@ begin
   AssignFile(fFile, aFileName);
   Rewrite(fFile);
   fFileOpened := true;
-end;
-
-//------------------------------------------------------------------------------
-function TATOFixedWidthFileExtract.RemoveNonNumericData(aInString: string): string;
-var
-  Index : integer;
-begin
-  Result := '';
-  for Index := 1 to Length(aInString) do
-  begin
-    if ((aInString[Index] >= '0') and (aInString[Index] <= '9')) or
-       (aInString[Index] = ' ') then
-      Result := Result + aInString[Index];
-  end;
 end;
 
 //------------------------------------------------------------------------------

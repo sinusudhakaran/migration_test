@@ -133,7 +133,7 @@ object dlgPayeeDetail: TdlgPayeeDetail
     Top = 0
     Width = 1103
     Height = 521
-    ActivePage = tsPayeeDetails
+    ActivePage = tsContractorDetails
     Align = alClient
     TabOrder = 2
     object tsPayeeDetails: TTabSheet
@@ -175,6 +175,7 @@ object dlgPayeeDetail: TdlgPayeeDetail
           GridPenSet.CellWhenUnfocused.NormalColor = clBlack
           GridPenSet.CellWhenUnfocused.Style = psDash
           GridPenSet.CellWhenUnfocused.Effect = geNone
+          LockedRowsCell = Header
           Options = [otoNoRowResizing, otoEnterToArrow, otoNoSelection]
           ParentCtl3D = False
           TabOrder = 0
@@ -190,33 +191,46 @@ object dlgPayeeDetail: TdlgPayeeDetail
           OnGetCellAttributes = tblSplitGetCellAttributes
           OnMouseDown = tblSplitMouseDown
           OnUserCommand = tblSplitUserCommand
-          ExplicitTop = 29
           CellData = (
-            'dlgPayeeDetail.ColGSTCode')
+            'dlgPayeeDetail.Header'
+            'dlgPayeeDetail.colLineType'
+            'dlgPayeeDetail.colPercent'
+            'dlgPayeeDetail.ColAmount'
+            'dlgPayeeDetail.ColGSTCode'
+            'dlgPayeeDetail.colNarration'
+            'dlgPayeeDetail.ColDesc'
+            'dlgPayeeDetail.ColAcct')
           RowData = (
             21)
           ColData = (
             80
             False
-            False
+            True
+            'dlgPayeeDetail.ColAcct'
             150
             False
-            False
+            True
+            'dlgPayeeDetail.ColDesc'
             134
             False
-            False
+            True
+            'dlgPayeeDetail.colNarration'
             35
             False
-            False
+            True
+            'dlgPayeeDetail.ColGSTCode'
             100
             False
-            False
+            True
+            'dlgPayeeDetail.ColAmount'
             100
             False
-            False
+            True
+            'dlgPayeeDetail.colPercent'
             45
             False
-            False)
+            True
+            'dlgPayeeDetail.colLineType')
         end
         object Panel2: TPanel
           Left = 1
@@ -691,6 +705,7 @@ object dlgPayeeDetail: TdlgPayeeDetail
       '%/$')
     ShowLetters = False
     Adjust = otaCenterLeft
+    Table = tblSplit
     Left = 480
   end
   object ColAcct: TOvcTCString
@@ -776,6 +791,7 @@ object dlgPayeeDetail: TdlgPayeeDetail
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
+    Options = [efoCaretToEnd]
     PictureMask = '###,###,###.####'
     Table = tblSplit
     TableColor = False
@@ -794,7 +810,6 @@ object dlgPayeeDetail: TdlgPayeeDetail
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd]
     PictureMask = '###,###,###.##'
     Table = tblSplit
     TableColor = False

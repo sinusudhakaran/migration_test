@@ -721,6 +721,8 @@ var
   PayerBranch : string;
   PayeeIndex : integer;
   Payee : TPayee;
+  PayeeSortedList : TStringList;
+  PayeeNumber : string;
 
   //----------------------------------------------------------------------------
   procedure AddError(aError : string);
@@ -784,39 +786,63 @@ begin
     AddError('Payer Country from Other Functions | Client Details | TPR Payer Details');
 
   // Payee Data
+
+  PayeeSortedList := TStringList.Create();
+  PayeeSortedList.Sorted := false;
+  try
+    for PayeeIndex := 0 to MyClient.clPayee_List.ItemCount - 1 do
+    begin
+      Payee := MyClient.clPayee_List.Payee_At(PayeeIndex);
+
+      if not Payee.pdFields.pdContractor then
+        continue;
+
+      PayeeNumber := inttostr(Payee.pdFields.pdNumber);
+      PayeeNumber := InsFillerZeros(PayeeNumber, 10);
+      PayeeSortedList.AddObject(PayeeNumber, Payee);
+    end;
+    PayeeSortedList.Sorted := true;
+
+    for PayeeIndex := 0 to PayeeSortedList.Count - 1 do
+    begin
+      Payee := TPayee(PayeeSortedList.Objects[PayeeIndex]);
+
+      if (not Payee.pdFields.pdIsIndividual) and
+         (Length(Payee.pdFields.pdBusinessName) = 0) then
+        AddError('Payee No. ' + inttostr(Payee.pdFields.pdNumber) + ': Business Name from Other Functions | Payees');
+
+      if (Payee.pdFields.pdIsIndividual) and
+         (Length(Payee.pdFields.pdGiven_Name) = 0) then
+        AddError('Payee No. ' + inttostr(Payee.pdFields.pdNumber) + ': Given Name from Other Functions | Payees');
+
+      if (Payee.pdFields.pdIsIndividual) and
+         (Length(Payee.pdFields.pdSurname) = 0) then
+        AddError('Payee No. ' + inttostr(Payee.pdFields.pdNumber) + ': Surname from Other Functions | Payees');
+
+      if (Length(Payee.pdFields.pdAddress) = 0) then
+        AddError('Payee No. ' + inttostr(Payee.pdFields.pdNumber) + ': Address from Other Functions | Payees');
+
+      if (Length(Payee.pdFields.pdTown) = 0) then
+        AddError('Payee No. ' + inttostr(Payee.pdFields.pdNumber) + ': Town from Other Functions | Payees');
+
+      if (Payee.pdFields.pdStateId < MAX_STATE) and
+         (Length(Payee.pdFields.pdPost_Code) = 0) then
+        AddError('Payee No. ' + inttostr(Payee.pdFields.pdNumber) + ': Postcode from Other Functions | Payees');
+
+      if (Payee.pdFields.pdStateId = MAX_STATE) and
+         (Payee.pdFields.pdCountry = '') then
+        AddError('Payee No. ' + inttostr(Payee.pdFields.pdNumber) + ': Country from Other Functions | Payees');
+    end;
+
+  finally
+    FreeAndNil(PayeeSortedList);
+  end;
+
   for PayeeIndex := 0 to MyClient.clPayee_List.ItemCount - 1 do
   begin
     Payee := MyClient.clPayee_List.Payee_At(PayeeIndex);
 
-    // only process contractor payees
-    if not Payee.pdFields.pdContractor then
-      continue;
 
-    if (not Payee.pdFields.pdIsIndividual) and
-       (Length(Payee.pdFields.pdBusinessName) = 0) then
-      AddError('Payee No. ' + inttostr(Payee.pdFields.pdNumber) + ': Business Name from Other Functions | Payees');
-
-    if (Payee.pdFields.pdIsIndividual) and
-       (Length(Payee.pdFields.pdGiven_Name) = 0) then
-      AddError('Payee No. ' + inttostr(Payee.pdFields.pdNumber) + ': Given Name from Other Functions | Payees');
-
-    if (Payee.pdFields.pdIsIndividual) and
-       (Length(Payee.pdFields.pdSurname) = 0) then
-      AddError('Payee No. ' + inttostr(Payee.pdFields.pdNumber) + ': Surname from Other Functions | Payees');
-
-    if (Length(Payee.pdFields.pdAddress) = 0) then
-      AddError('Payee No. ' + inttostr(Payee.pdFields.pdNumber) + ': Address from Other Functions | Payees');
-
-    if (Length(Payee.pdFields.pdTown) = 0) then
-      AddError('Payee No. ' + inttostr(Payee.pdFields.pdNumber) + ': Town from Other Functions | Payees');
-
-    if (Payee.pdFields.pdStateId < MAX_STATE) and
-       (Length(Payee.pdFields.pdPost_Code) = 0) then
-      AddError('Payee No. ' + inttostr(Payee.pdFields.pdNumber) + ': Postcode from Other Functions | Payees');
-
-    if (Payee.pdFields.pdStateId = MAX_STATE) and
-       (Payee.pdFields.pdCountry = '') then
-      AddError('Payee No. ' + inttostr(Payee.pdFields.pdNumber) + ': {Country} from Other Functions | Payees');
   end;
 
   Result := (Length(ErrorStrings) = 0);
