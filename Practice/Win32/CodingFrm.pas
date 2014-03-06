@@ -2770,6 +2770,7 @@ begin
      Exit;
    end;
 
+   MyClient.clRecommended_Mems.UpdateCandidateMems(pT, False);
 
    with pT^ do
    begin
@@ -3317,6 +3318,9 @@ begin
 
 
       if not StartEditingState then Exit;
+
+      if (FieldID = ceAccount) then
+        MyClient.clRecommended_Mems.UpdateCandidateMems(pT, True);
       with ColumnFmtList.ColumnDefn_At(ActiveCol)^ do begin
          if (cdTableCell is TOvcTCString) then begin
             TEdit(cdTableCell.CellEditor).Text := '';
@@ -3352,6 +3356,8 @@ begin
                          dlg_no, 0) <> DLG_Yes then
      Exit;
 
+   MyClient.clRecommended_Mems.UpdateCandidateMems(pT, True);
+
    //dispose of all dissection lines
    Dump_Dissections( pT);
    //clear transaction details
@@ -3380,6 +3386,8 @@ begin
                          'Do you want to delete this Journal entry?',
                          dlg_no, 0) <> DLG_Yes then
       Exit;
+
+   MyClient.clRecommended_Mems.UpdateCandidateMems(pT, False);
 
    I := WorkTranList.IndexOf(pt);
    tblCoding.AllowRedraw := False;
@@ -5102,6 +5110,7 @@ begin
 
       case FieldID of
          ceAccount: begin
+            MyClient.clRecommended_Mems.UpdateCandidateMems(pT, True);
             Account := Trim( TEdit( TOvcTCString(Cell).CellEditor ).Text );
             if (Account <> '') then begin
                if not MyClient.clChart.CanCodeTo( Account ) then begin

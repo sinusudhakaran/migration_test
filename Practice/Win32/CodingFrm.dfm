@@ -457,13 +457,14 @@ object frmCoding: TfrmCoding
       Left = 31
       Top = 2
       Width = 20
-      Height = 13
+      Height = 18
       Margins.Left = 9
       Margins.Top = 0
       Margins.Bottom = 0
       Align = alLeft
       Caption = 'Find'
       Layout = tlCenter
+      ExplicitHeight = 13
     end
     object tbtnClose: TRzToolButton
       Left = 2
@@ -600,6 +601,7 @@ object frmCoding: TfrmCoding
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
+    Options = [efoCaretToEnd, efoTrimBlanks]
     PictureMask = '999999'
     ShowHint = True
     Table = tblCoding
@@ -619,6 +621,7 @@ object frmCoding: TfrmCoding
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
+    Options = [efoCaretToEnd]
     PictureMask = '#########.##'
     ShowHint = True
     Table = tblCoding
@@ -639,6 +642,7 @@ object frmCoding: TfrmCoding
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
+    Options = [efoCaretToEnd]
     PictureMask = '#########.####'
     ShowHint = True
     Table = tblCoding
@@ -1014,7 +1018,6 @@ object frmCoding: TfrmCoding
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd]
     PictureMask = '####.####'
     Table = tblCoding
     Left = 624
@@ -1030,7 +1033,6 @@ object frmCoding: TfrmCoding
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd]
     PictureMask = '########.##'
     Table = tblCoding
     OnChange = celLocalCurrencyAmountChange
