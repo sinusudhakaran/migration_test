@@ -138,7 +138,7 @@ type
     btnClientSettings: TButton;
     Panel1: TPanel;
     lblClientBOProducts: TLabel;
-    tsTRPPayerDetails: TTabSheet;
+    tsTPRPayerDetails: TTabSheet;
     grpPracticeContactDetails: TGroupBox;
     grpPayerDetails: TGroupBox;
     radUsePracticeTPRSupplierDetails: TRadioButton;
@@ -892,9 +892,6 @@ begin
      FLoading := True;
 
      try
-       tsTRPPayerDetails.TabVisible := (Assigned(AdminSystem) and
-                                       (AdminSystem.fdFields.fdCountry = whAustralia));
-
        eCode.text    := clCode;
        wasClientCode := clCode;    //store for later
        prospectCode := PCode;
@@ -1136,7 +1133,7 @@ begin
 
        if (AdminSystem.fdFields.fdCountry = whAustralia) then
        begin
-         tsTRPPayerDetails.Visible := true;
+         tsTPRPayerDetails.Visible := true;
          edtSupplierContactName.Text  := AdminSystem.fdTPR_Supplier_Detail.As_pRec.srContactName;
          edtSupplierContactPhone.Text := AdminSystem.fdTPR_Supplier_Detail.As_pRec.srContactPhone;
          edtSupplierContactEmail.Text := AdminSystem.fdFields.fdPractice_EMail_Address;
@@ -1182,6 +1179,9 @@ begin
          edtPostCode.Text           := MyClient.clTPR_Payee_Detail.As_pRec.prPostCode;
          edtSupplierCountry.Text    := MyClient.clTPR_Payee_Detail.As_pRec.prCountry;
        end;
+
+       tsTPRPayerDetails.TabVisible := (Assigned(AdminSystem) and
+                                       (AdminSystem.fdFields.fdCountry = whAustralia));
 
        //****************************
     finally

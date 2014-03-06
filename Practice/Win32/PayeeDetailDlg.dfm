@@ -133,7 +133,7 @@ object dlgPayeeDetail: TdlgPayeeDetail
     Top = 0
     Width = 1103
     Height = 521
-    ActivePage = tsContractorDetails
+    ActivePage = tsPayeeDetails
     Align = alClient
     TabOrder = 2
     object tsPayeeDetails: TTabSheet
@@ -190,6 +190,7 @@ object dlgPayeeDetail: TdlgPayeeDetail
           OnGetCellAttributes = tblSplitGetCellAttributes
           OnMouseDown = tblSplitMouseDown
           OnUserCommand = tblSplitUserCommand
+          ExplicitTop = 29
           CellData = (
             'dlgPayeeDetail.ColGSTCode')
           RowData = (
@@ -775,7 +776,6 @@ object dlgPayeeDetail: TdlgPayeeDetail
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd]
     PictureMask = '###,###,###.####'
     Table = tblSplit
     TableColor = False
@@ -794,6 +794,7 @@ object dlgPayeeDetail: TdlgPayeeDetail
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
+    Options = [efoCaretToEnd]
     PictureMask = '###,###,###.##'
     Table = tblSplit
     TableColor = False

@@ -193,7 +193,6 @@ type
     procedure DoSuperEdit;
     procedure ApplyAmountShortcut(Key: Char);
     procedure ShowPopUp( x, y : Integer; PopMenu :TPopUpMenu );
-    procedure SetupForAustralia;
     function ValidateForAustralia: Boolean;
     procedure SetIndividualBusinessControls(aIsIndividual : boolean);
   public
@@ -322,7 +321,8 @@ begin
   end;
 
   // Resize Desc Column to fit the table size
-  with tblSplit do begin
+  with tblSplit do
+  begin
      // resize the Desc Column to fit the table width
      W := 0;
      for i := 0 to Pred( Columns.Count ) do begin
@@ -390,12 +390,6 @@ begin
   edtSecondGivenName.Text := '';
   edtBusinessName.Text    := '';
   edtTradingName.Text     := '';
-end;
-
-procedure TdlgPayeeDetail.SetupForAustralia;
-begin
-  chkContractorPayee.Visible := Assigned(Adminsystem);
-  tsContractorDetails.Visible := Assigned(Adminsystem);
 end;
 
 procedure TdlgPayeeDetail.SetUpHelp;
@@ -1251,6 +1245,7 @@ begin
        end;
    end;
 end;
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TdlgPayeeDetail.tblSplitGetCellAttributes(Sender: TObject; RowNum,
   ColNum: Integer; var CellAttr: TOvcCellAttributes);
@@ -1258,11 +1253,13 @@ begin
   if (CellAttr.caColor = tblSplit.Color) then
     if (RowNum >= tblSplit.LockedRows) and (Odd(Rownum)) then CellAttr.caColor := AltLineColor;
 end;
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TdlgPayeeDetail.tblSplitActiveCellChanged(Sender: TObject; RowNum,
   ColNum: Integer);
 begin
 end;
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TdlgPayeeDetail.sbtnChartClick(Sender: TObject);
 begin
@@ -1270,6 +1267,7 @@ begin
   tblSplit.SetFocus;
   tblSplitUserCommand(Self, tcLookup);  
 end;
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TdlgPayeeDetail.sbtnSuperClick(Sender: TObject);
 begin
@@ -1382,11 +1380,6 @@ begin
    end;
    SplitData[1].Amount := 100.0;
    SplitData[1].LineType := BKCONST.pltPercentage;
-
-   if MyClient.clFields.clCountry = whAustralia then
-   begin
-     SetupForAustralia;
-   end;
 
    SpaceWidth := self.Canvas.TextWidth(' ');
    for i := MIN_STATE to MAX_STATE do
@@ -1544,6 +1537,10 @@ begin
 
    {show form}
    AltLineColor := BKCOLOR_CREAM;
+
+   chkContractorPayee.Visible := Assigned(Adminsystem) and (MyClient.clFields.clCountry = whAustralia);
+   tsContractorDetails.Visible := Assigned(Adminsystem) and (MyClient.clFields.clCountry = whAustralia);
+   tsContractorDetails.TabVisible := Assigned(Adminsystem) and (MyClient.clFields.clCountry = whAustralia);
 
    // Skip Focus on Payee Number
    if chkContractorPayee.Visible and not AddContractorPayee then

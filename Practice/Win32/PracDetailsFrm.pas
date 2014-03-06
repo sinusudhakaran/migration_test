@@ -1386,7 +1386,9 @@ begin
     Exit;
   end;
 
-  if (Length(mskABN.Text) > 0) and (not ValidateABN(mskABN.Text)) then
+  if (AdminSystem.fdFields.fdCountry = whAustralia) and
+     (Length(mskABN.Text) > 0) and
+     (not ValidateABN(mskABN.Text)) then
   begin
     tbsTPRSupplierDetails.Show;
     mskABN.SetFocus;

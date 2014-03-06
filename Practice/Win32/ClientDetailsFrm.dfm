@@ -49,7 +49,7 @@ object frmClientDetails: TfrmClientDetails
     Top = 5
     Width = 589
     Height = 550
-    ActivePage = tsTRPPayerDetails
+    ActivePage = tsTPRPayerDetails
     TabOrder = 0
     object tbsClient: TTabSheet
       Caption = 'Client Details'
@@ -889,8 +889,8 @@ object frmClientDetails: TfrmClientDetails
         TabOrder = 0
       end
     end
-    object tsTRPPayerDetails: TTabSheet
-      Caption = 'TRP Payer Details'
+    object tsTPRPayerDetails: TTabSheet
+      Caption = 'TPR Payer Details'
       ImageIndex = 5
       object grpPracticeContactDetails: TGroupBox
         Left = 13

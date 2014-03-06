@@ -566,7 +566,7 @@ var
   CLeft : Double;
 begin
   Job.LoadReportSettings(UserPrintSettings,Report_List_Names[Report_Taxable_Payments_Detailed]);
-         
+
   Job.UserReportSettings.s7Temp_Font_Scale_Factor := 1.0;
     
   //Add Headers
@@ -734,85 +734,89 @@ begin
 
   // Supplier Data
   if (Length(AdminSystem.TPR_Supplier_Detail.As_pRec.srABN) < 11) then
-    AddError('Supplier {ABN Number} from System | Practice Details | TPR Supplier Details');
+    AddError('Supplier ABN Number from System | Practice Details | TPR Supplier Details');
 
   if (Length(AdminSystem.fdFields.fdPractice_Name_for_Reports) = 0) then
-    AddError('Supplier {Name} from System | Practice Details | Details');
+    AddError('Supplier Name from System | Practice Details | Details');
 
   if (Length(AdminSystem.TPR_Supplier_Detail.As_pRec.srContactName) = 0) then
-    AddError('Supplier {Contact Name} from Other Functions | Client Details | TPR Payer Details');
+    AddError('Supplier Contact Name from Other Functions | Client Details | TPR Payer Details');
 
   if (Length(AdminSystem.TPR_Supplier_Detail.As_pRec.srContactPhone) = 0) then
-    AddError('Supplier {Contact Phone} from Other Functions | Client Details | TPR Payer Details');
+    AddError('Supplier Contact Phone from Other Functions | Client Details | TPR Payer Details');
 
   if (Length(AdminSystem.TPR_Supplier_Detail.As_pRec.srStreetAddress1) = 0) then
-    AddError('Supplier {Street Address} from System | Practice Details | TPR Supplier Details');
+    AddError('Supplier Street Address from System | Practice Details | TPR Supplier Details');
 
   if (Length(AdminSystem.TPR_Supplier_Detail.As_pRec.srSuburb) = 0) then
-    AddError('Supplier {Town/Suburb} from System | Practice Details | TPR Supplier Details');
+    AddError('Supplier Town/Suburb from System | Practice Details | TPR Supplier Details');
 
   if (AdminSystem.TPR_Supplier_Detail.As_pRec.srStateId < MAX_STATE) and
      (Length(AdminSystem.TPR_Supplier_Detail.As_pRec.srPostCode) = 0) then
-    AddError('Supplier {Postcode} from System | Practice Details | TPR Supplier Details');
+    AddError('Supplier Postcode from System | Practice Details | TPR Supplier Details');
 
   if (AdminSystem.TPR_Supplier_Detail.As_pRec.srStateId = MAX_STATE) and
      (Length(AdminSystem.TPR_Supplier_Detail.As_pRec.srCountry) = 0) then
-    AddError('Supplier {Country} from System | Practice Details | TPR Supplier Details');
+    AddError('Supplier Country from System | Practice Details | TPR Supplier Details');
 
   // Payer Data
   SplitABNandBranchFromGSTNumber(MyClient.clFields.clGST_Number,
                                  PayerABN,
                                  PayerBranch);
   if (Length(PayerABN) < 11) then
-    AddError('Payer {Australian Business No} from Other Functions | GST Set Up | Details');
+    AddError('Payer Australian Business No from Other Functions | GST Set Up | Details');
 
   if (Length(MyClient.clFields.clName) = 0) then
-    AddError('Payer {Client Name} from Other Functions | Client Details');
+    AddError('Payer Client Name from Other Functions | Client Details');
 
   if (Length(MyClient.clTPR_Payee_Detail.As_pRec.prAddressLine1) = 0) then
-    AddError('Payer {Street Address} from Other Functions | Client Details | TPR Payer Details');
+    AddError('Payer Street Address from Other Functions | Client Details | TPR Payer Details');
 
   if (Length(MyClient.clTPR_Payee_Detail.As_pRec.prSuburb) = 0) then
-    AddError('Payer {Town/Suburb} from Other Functions | Client Details | TPR Payer Details');
+    AddError('Payer Town/Suburb from Other Functions | Client Details | TPR Payer Details');
 
   if (MyClient.clTPR_Payee_Detail.As_pRec.prStateId < MAX_STATE) and
      (Length(MyClient.clTPR_Payee_Detail.As_pRec.prPostCode) = 0) then
-    AddError('Payer {Postcode} from Other Functions | Client Details | TPR Payer Details');
+    AddError('Payer Postcode from Other Functions | Client Details | TPR Payer Details');
 
   if (MyClient.clTPR_Payee_Detail.As_pRec.prStateId = MAX_STATE) and
      (Length(MyClient.clTPR_Payee_Detail.As_pRec.prCountry) = 0) then
-    AddError('Payer {Country} from Other Functions | Client Details | TPR Payer Details');
+    AddError('Payer Country from Other Functions | Client Details | TPR Payer Details');
 
   // Payee Data
   for PayeeIndex := 0 to MyClient.clPayee_List.ItemCount - 1 do
   begin
     Payee := MyClient.clPayee_List.Payee_At(PayeeIndex);
 
+    // only process contractor payees
+    if not Payee.pdFields.pdContractor then
+      continue;
+
     if (not Payee.pdFields.pdIsIndividual) and
        (Length(Payee.pdFields.pdBusinessName) = 0) then
-      AddError('Payee No.' + inttostr(Payee.pdFields.pdNumber) + ': {Business Name} from Other Functions | Payees');
+      AddError('Payee No. ' + inttostr(Payee.pdFields.pdNumber) + ': Business Name from Other Functions | Payees');
 
     if (Payee.pdFields.pdIsIndividual) and
        (Length(Payee.pdFields.pdGiven_Name) = 0) then
-      AddError('Payee No.' + inttostr(Payee.pdFields.pdNumber) + ': {Given Name} from Other Functions | Payees');
+      AddError('Payee No. ' + inttostr(Payee.pdFields.pdNumber) + ': Given Name from Other Functions | Payees');
 
     if (Payee.pdFields.pdIsIndividual) and
        (Length(Payee.pdFields.pdSurname) = 0) then
-      AddError('Payee No.' + inttostr(Payee.pdFields.pdNumber) + ': {Surname} from Other Functions | Payees');
+      AddError('Payee No. ' + inttostr(Payee.pdFields.pdNumber) + ': Surname from Other Functions | Payees');
 
     if (Length(Payee.pdFields.pdAddress) = 0) then
-      AddError('Payee No.' + inttostr(Payee.pdFields.pdNumber) + ': {Address} from Other Functions | Payees');
+      AddError('Payee No. ' + inttostr(Payee.pdFields.pdNumber) + ': Address from Other Functions | Payees');
 
     if (Length(Payee.pdFields.pdTown) = 0) then
-      AddError('Payee No.' + inttostr(Payee.pdFields.pdNumber) + ': {Town} from Other Functions | Payees');
+      AddError('Payee No. ' + inttostr(Payee.pdFields.pdNumber) + ': Town from Other Functions | Payees');
 
     if (Payee.pdFields.pdStateId < MAX_STATE) and
        (Length(Payee.pdFields.pdPost_Code) = 0) then
-      AddError('Payee No.' + inttostr(Payee.pdFields.pdNumber) + ': {Postcode} from Other Functions | Payees');
+      AddError('Payee No. ' + inttostr(Payee.pdFields.pdNumber) + ': Postcode from Other Functions | Payees');
 
     if (Payee.pdFields.pdStateId = MAX_STATE) and
        (Payee.pdFields.pdCountry = '') then
-      AddError('Payee No.' + inttostr(Payee.pdFields.pdNumber) + ': {Country} from Other Functions | Payees');
+      AddError('Payee No. ' + inttostr(Payee.pdFields.pdNumber) + ': {Country} from Other Functions | Payees');
   end;
 
   Result := (Length(ErrorStrings) = 0);
