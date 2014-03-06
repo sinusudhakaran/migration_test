@@ -463,11 +463,9 @@ function TfrmBudget.RowNumOK(RowNum : integer): boolean;
 const
    ThisMethodName = 'RowNumOK';
 begin
-   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
    result := (1 <= RowNum)
           and (RowNum <= tblBudget.RowLimit-1)
           and DataAssigned;
-  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
 
 //------------------------------------------------------------------------------
@@ -761,7 +759,6 @@ procedure TfrmBudget.tblBudgetGetCellAttributes(Sender: TObject;
 const
    ThisMethodName = 'tblBudgetGetCellAttributes';
 begin
-  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
   if ( ColNum < tblBudget.LockedCols) and
      ( CellAttr.caColor = tblBudget.Colors.Locked) and
      ( RowNum > 0) then
@@ -774,7 +771,6 @@ begin
 
   if DataAssigned and RowNumOK(RowNum) and (not (FData[RowNum-1].bIsPosting)) then
      CellAttr.caFont.Style := [fsBold];
-  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
 
 //------------------------------------------------------------------------------
@@ -1052,7 +1048,6 @@ const
 var
   Code : string;
 begin
-  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
   if not dataAssigned then exit;
 
   {get current values for active row}
@@ -1065,7 +1060,6 @@ begin
   {update account info}
   Code := '<'+ trim(FData[CurrentRow-1].bAccount)+'> '+FData[CurrentRow-1].bDesc;
   stsDissect.Panels[PANELTEXT].text := Code;
-  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
 
 //------------------------------------------------------------------------------
@@ -3623,9 +3617,7 @@ function TfrmBudget.GetAutoCalculateGST: boolean;
 const
   ThisMethodName = 'GetAutoCalculateGST';
 begin
-  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
   result := fBudget.buFields.buAutomatically_Calculate_GST;
-  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );  
 end;
 
 //------------------------------------------------------------------------------
