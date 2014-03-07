@@ -833,16 +833,8 @@ begin
          (Payee.pdFields.pdCountry = '') then
         AddError('Payee No. ' + inttostr(Payee.pdFields.pdNumber) + ': Country from Other Functions | Payees');
     end;
-
   finally
     FreeAndNil(PayeeSortedList);
-  end;
-
-  for PayeeIndex := 0 to MyClient.clPayee_List.ItemCount - 1 do
-  begin
-    Payee := MyClient.clPayee_List.Payee_At(PayeeIndex);
-
-
   end;
 
   Result := (Length(ErrorStrings) = 0);
