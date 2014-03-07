@@ -130,7 +130,6 @@ var
   Candidates: TCandidate_Mem_List;
   SearchedStatementDetails: string;
 begin
-  // for i := MyClient.clRecommended_Mems.Candidates.First to MyClient.clRecommended_Mems.Candidates.Last do
   Candidates := MyClient.clRecommended_Mems.Candidates;
   First := Candidates.First;
   Last := Candidates.Last;
@@ -208,7 +207,7 @@ begin
     BankAccount := fBankAccounts[iBankAccount];
 
     for iTransaction := 0 to BankAccount.baTransaction_List.ItemCount-1 do
-   begin
+    begin
       Transaction := BankAccount.baTransaction_List.Transaction_At(iTransaction);
 
       New := TUnscanned_Transaction.Create;
@@ -265,6 +264,8 @@ var
     begin
       // Yes there is
       Result := False;
+      if (IDToProcess >= MyClient.clRecommended_Mems.Candidates.ItemCount) then
+        Exit;
       // Get candidate details
       CandidateMem1 := MyClient.clRecommended_Mems.Candidates.Candidate_Mem_At(IDToProcess);
       // Increment next candidate to process
@@ -322,7 +323,7 @@ var
           begin
             Account := MyClient.clBank_Account_List.Bank_Account_At(AccountsPos);
             // We can check if the account matches here, no need to proceed further if it doesn't match
-            if (CandidateMem1.cmFields.cmBank_Account_Number <> Account.baFields.baBank_Account_Number) then
+            if (CandidateMem1.cmFields.cmBank_Account_Number = Account.baFields.baBank_Account_Number) then
             begin
               for MemsPos := Account.baMemorisations_List.First to Account.baMemorisations_List.Last do
               begin
@@ -404,6 +405,13 @@ var
             // There is already a matching Candidate Mem, so increase its reference count
             cMem.cmFields.cmCount := cMem.cmFields.cmCount + 1;
             MatchingCandidateFound := True;
+            // We will need to rescan this candidate, if only to update it's count in the recommended
+            // mems list. This is particuarly necessary if the count is now 2/3, because this candidate
+            // will now need to be removed from/added to the recommended mems list. So if we've already
+            // scanned past this ID, set the scanning back to this ID
+            if (i < MyClient.clRecommended_Mems.Candidate.cpFields.cpCandidate_ID_To_Process) then
+              MyClient.clRecommended_Mems.Candidate.cpFields.cpCandidate_ID_To_Process := i;
+            Break;
           end;
         end;
         if not MatchingCandidateFound then
@@ -549,5 +557,17 @@ begin
     end;
   end;
 end;
+
+// Removes an account from candidates and recommended mems. Should be called when:
+// * Purging an account
+// * Merging an account
+// * Unattaching an account
+{
+procedure TRecommended_Mems.RemoveAccountFromMems;
+begin
+  // Delete account from candidate mems
+
+end;
+}
 
 end.

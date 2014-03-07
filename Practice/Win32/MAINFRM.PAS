@@ -730,6 +730,7 @@ type
     Image1Top, Image1Left, Image1Width, Image1Height : Integer;
     BackGroundImageVisible : boolean;
     TutorialsFile : string;
+    fMemScanIsBusy : boolean;
 
     LastMFTop,
     LastMFLeft,
@@ -1155,6 +1156,7 @@ end;
 
 procedure TfrmMain.FormCreate(Sender: TObject);
 begin
+  fMemScanIsBusy := False;
   Randomize;
   ApplicationIsStarting := true;
   Globals.DDE_Macro_To_Process := '';
@@ -5514,7 +5516,15 @@ end;
 
 procedure TfrmMain.tmrMemScanTimer(Sender: TObject);
 begin
-  MyClient.clRecommended_Mems.MemScan;
+  if not fMemScanIsBusy then
+  begin
+    try
+      fMemScanIsBusy := True;
+      MyClient.clRecommended_Mems.MemScan;
+    finally
+      fMemScanIsBusy := False;
+    end;
+  end;
 end;
 
 procedure TfrmMain.mniImportFromCSVClick(Sender: TObject);
