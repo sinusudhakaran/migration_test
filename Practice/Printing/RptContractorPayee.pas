@@ -741,12 +741,6 @@ begin
   if (Length(AdminSystem.fdFields.fdPractice_Name_for_Reports) = 0) then
     AddError('Supplier Name from System | Practice Details | Details');
 
-  if (Length(AdminSystem.TPR_Supplier_Detail.As_pRec.srContactName) = 0) then
-    AddError('Supplier Contact Name from Other Functions | Client Details | TPR Payer Details');
-
-  if (Length(AdminSystem.TPR_Supplier_Detail.As_pRec.srContactPhone) = 0) then
-    AddError('Supplier Contact Phone from Other Functions | Client Details | TPR Payer Details');
-
   if (Length(AdminSystem.TPR_Supplier_Detail.As_pRec.srStreetAddress1) = 0) then
     AddError('Supplier Street Address from System | Practice Details | TPR Supplier Details');
 
@@ -765,6 +759,24 @@ begin
   SplitABNandBranchFromGSTNumber(MyClient.clFields.clGST_Number,
                                  PayerABN,
                                  PayerBranch);
+
+  if MyClient.clTPR_Payee_Detail.As_pRec.prUsePracticeTPRSupplierDetails then
+  begin
+    if (Length(AdminSystem.TPR_Supplier_Detail.As_pRec.srContactName) = 0) then
+      AddError('Supplier Contact Name from Other Functions | Practice Details | TPR Supplier Details');
+
+    if (Length(AdminSystem.TPR_Supplier_Detail.As_pRec.srContactPhone) = 0) then
+      AddError('Supplier Contact Phone from Other Functions | Practice Details | TPR Supplier Details');
+  end
+  else
+  begin
+    if (Length(MyClient.clTPR_Payee_Detail.As_pRec.prPracContactName) = 0) then
+      AddError('Payer Contact Name from Other Functions | Client Details | TPR Payer Details');
+
+    if (Length(MyClient.clTPR_Payee_Detail.As_pRec.prPracContactPhone) = 0) then
+      AddError('Payer Contact Phone from Other Functions | Client Details | TPR Payer Details');
+  end;
+
   if (Length(PayerABN) < 11) then
     AddError('Payer Australian Business No from Other Functions | GST Set Up | Details');
 
