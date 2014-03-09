@@ -449,19 +449,27 @@ begin
          //add the payee
          nPayee := TPayee.Create;
 
-         nPayee.pdFields.pdNumber := SourcePayee.pdNumber;
-         nPayee.pdFields.pdName   := SourcePayee.pdName;
-
-         nPayee.pdFields.pdContractor := SourcePayee.pdFields.pdContractor;
-         nPayee.pdFields.pdSurname := SourcePayee.pdFields.pdSurname;
-         nPayee.pdFields.pdGiven_Name := SourcePayee.pdFields.pdGiven_Name;
-         nPayee.pdFields.pdOther_Name := SourcePayee.pdFields.pdOther_Name;
-         nPayee.pdFields.pdAddress := SourcePayee.pdFields.pdAddress;
-         nPayee.pdFields.pdTown := SourcePayee.pdFields.pdTown;
-         nPayee.pdFields.pdState := SourcePayee.pdFields.pdState;
-         nPayee.pdFields.pdPost_Code := SourcePayee.pdFields.pdPost_Code;
-         nPayee.pdFields.pdPhone_Number := SourcePayee.pdFields.pdPhone_Number;
-         nPayee.pdFields.pdABN := SourcePayee.pdFields.pdABN;
+         nPayee.pdFields.pdNumber                   := SourcePayee.pdNumber;
+         nPayee.pdFields.pdName                     := SourcePayee.pdName;
+         nPayee.pdFields.pdABN                      := SourcePayee.pdFields.pdABN;
+         nPayee.pdFields.pdContractor               := SourcePayee.pdFields.pdContractor;
+         nPayee.pdFields.pdSurname                  := SourcePayee.pdFields.pdSurname;
+         nPayee.pdFields.pdGiven_Name               := SourcePayee.pdFields.pdGiven_Name;
+         nPayee.pdFields.pdOther_Name               := SourcePayee.pdFields.pdOther_Name;
+         nPayee.pdFields.pdBusinessName             := SourcePayee.pdFields.pdBusinessName;
+         nPayee.pdFields.pdTradingName              := SourcePayee.pdFields.pdTradingName;
+         nPayee.pdFields.pdAddress                  := SourcePayee.pdFields.pdAddress;
+         nPayee.pdFields.pdAddressLine2             := SourcePayee.pdFields.pdAddressLine2;
+         nPayee.pdFields.pdTown                     := SourcePayee.pdFields.pdTown;
+         nPayee.pdFields.pdState                    := SourcePayee.pdFields.pdState;
+         nPayee.pdFields.pdStateId                  := SourcePayee.pdFields.pdStateId;
+         nPayee.pdFields.pdPost_Code                := SourcePayee.pdFields.pdPost_Code;
+         nPayee.pdFields.pdCountry                  := SourcePayee.pdFields.pdCountry;
+         nPayee.pdFields.pdPhone_Number             := SourcePayee.pdFields.pdPhone_Number;
+         nPayee.pdFields.pdInstitutionBSB           := SourcePayee.pdFields.pdInstitutionBSB;
+         nPayee.pdFields.pdInstitutionAccountNumber := SourcePayee.pdFields.pdInstitutionAccountNumber;
+         nPayee.pdFields.pdIsIndividual             := SourcePayee.pdFields.pdIsIndividual;
+         nPayee.pdFields.pdContractor               := SourcePayee.pdFields.pdContractor;
 
          for j := SourcePayee.pdLines.First to SourcePayee.pdLines.Last do
          begin
