@@ -91,7 +91,7 @@ begin
     fATOFixedWidthFileExtract.WriteSupplierDataRecord3('Address 1','Address 2','Suburb','Sta','1234','New Zealand','Post Address 1','Post Address 2','Post Suburb','Sta','1234','New Zealand','Test@Email.com');
     fATOFixedWidthFileExtract.WritePayerIdentityDataRecord('84111122223','222',2014,'Payer Name','Trade Name','Address 1','Address 2','Suburb','Sta','1234','New Zealand','Contact Name','000 111 2222','999 888 7777','Test@Email.com');
     fATOFixedWidthFileExtract.WriteSoftwareDataRecord('Software Product');
-    fATOFixedWidthFileExtract.WritePayeeDataRecord('84111122223','Surname','First Name','Second Name','Business Name','Trade Name','Address 1','Address 2','Suburb','Sta','','New Zealand','000 111 2222','123456','123456789',300,100,150,'O');
+    fATOFixedWidthFileExtract.WritePayeeDataRecord('84111122223','Surname','First Name','Second Name','Business Name','Trade Name','Address 1','Address 2','Suburb','Sta','','New Zealand','000 111 2222','123456','123456789',30001,10037,15099,'O');
     fATOFixedWidthFileExtract.WriteFileTotalDataRecord();
   finally
     fATOFixedWidthFileExtract.CloseATOFile;
@@ -196,9 +196,9 @@ begin
       Check(MidStr(StringStream.DataString,611+(LineNo*704),15)=('000 111 2222'+GetSpaces(3)),    'Payee Data Record - Contact Phone incorrect');
       Check(MidStr(StringStream.DataString,626+(LineNo*704),6)=('123456'),                        'Payee Data Record - BSB incorrect');
       Check(MidStr(StringStream.DataString,632+(LineNo*704),9)=('123456789'),                     'Payee Data Record - Account incorrect');
-      Check(MidStr(StringStream.DataString,641+(LineNo*704),11)=(GetZeros(8)+'300'),              'Payee Data Record - Amount Paid incorrect');
-      Check(MidStr(StringStream.DataString,652+(LineNo*704),11)=(GetZeros(8)+'100'),              'Payee Data Record - Tax Withheld incorrect');
-      Check(MidStr(StringStream.DataString,663+(LineNo*704),11)=(GetZeros(8)+'150'),              'Payee Data Record - Total GST incorrect');
+      Check(MidStr(StringStream.DataString,641+(LineNo*704),11)=(GetZeros(8)+'300'),            'Payee Data Record - Amount Paid incorrect');
+      Check(MidStr(StringStream.DataString,652+(LineNo*704),11)=(GetZeros(8)+'100'),            'Payee Data Record - Tax Withheld incorrect');
+      Check(MidStr(StringStream.DataString,663+(LineNo*704),11)=(GetZeros(8)+'150'),            'Payee Data Record - Total GST incorrect');
       Check(MidStr(StringStream.DataString,674+(LineNo*704),1)=('O'),           'Payee Data Record - Email incorrect');
       Check(MidStr(StringStream.DataString,675+(LineNo*704),30)=GetSpaces(30),  'Payee Data Record - Filler incorrect');
 
