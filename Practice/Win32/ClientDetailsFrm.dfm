@@ -1289,7 +1289,7 @@ object frmClientDetails: TfrmClientDetails
           Font.Height = -13
           Font.Name = 'Tahoma'
           Font.Style = []
-          MaxLength = 38
+          MaxLength = 20
           ParentFont = False
           TabOrder = 6
           Text = 'edtSupplierCountry'
