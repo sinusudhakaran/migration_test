@@ -912,9 +912,9 @@ begin
       end
       else
       begin
-        PayerContactName  := MyClient.clFields.clContact_Name;
-        PayerContactPhone := MyClient.clFields.clPhone_No;
-        PayerContactEmail := MyClient.clFields.clCustom_Contact_EMail_Address;
+        PayerContactName  := MyClient.clTPR_Payee_Detail.As_pRec.prPracContactName;
+        PayerContactPhone := MyClient.clTPR_Payee_Detail.As_pRec.prPracContactPhone;
+        PayerContactEmail := MyClient.clTPR_Payee_Detail.As_pRec.prPracEmailAddress;
       end;
 
       // Report Data Write
