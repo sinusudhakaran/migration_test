@@ -85,7 +85,7 @@ begin
    BGL360 : begin
           EType.Index := BGL360;
           EType.Code  := BGL360code;
-          EType.Description := 'BGL 360';
+          EType.Description := 'BGL SF360'; // Has been renamed from BGL 360 to BGL SF360
           EType.ExtractClass := ClassBase;
           Result := True;
       end;
@@ -171,8 +171,9 @@ begin
    // Forces a default, so we have a strarting point
    Result := FindExtractPath(Session);
 
+   // Has been renamed to BGL SF360
    if Result = '' then
-      Result := ExtractFilePath(Application.ExeName) + 'BGL360.xml';
+      Result := ExtractFilePath(Application.ExeName) + 'BGL_SF360.xml';
 end;
 
 function DoBGL360Config (var Session: TExtractSession): Integer; stdcall;
@@ -184,7 +185,7 @@ begin
       if Assigned(MyFont) then begin
          ldlg.Font.Assign(MyFont);
       end;
-      ldlg.Caption := 'BGL 360 Setup';
+      ldlg.Caption := 'BGL SF360 Setup';
       ldlg.eFilename.Text := GetExtractPath(Session);
       ldlg.eClearing.Text := GetPrivateProfileText(BGL360code, keyExtractCode,'91000', Session.IniFile);
       ldlg.rbSplit.Checked := Bool(GetPrivateProfileInt(BGL360code,keySeparateClientFiles,0,Session.IniFile));
