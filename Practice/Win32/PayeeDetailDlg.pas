@@ -33,7 +33,7 @@ type
     Panel3: TPanel;
     btnOK: TButton;
     btnCancel: TButton;
-    Panel4: TPanel;
+    pnlTotalAmounts: TPanel;
     lblFixedHdr: TLabel;
     lblTotalPercHdr: TLabel;
     lblRemPercHdr: TLabel;
@@ -163,6 +163,7 @@ type
     procedure radIndividualClick(Sender: TObject);
     procedure edtPostCodeKeyPress(Sender: TObject; var Key: Char);
     procedure mskABNClick(Sender: TObject);
+    procedure PageControl1Change(Sender: TObject);
   private
     { Private declarations }
     fLoading : boolean;
@@ -2080,6 +2081,11 @@ procedure TdlgPayeeDetail.FixedAmount1Click(Sender: TObject);
 begin
   if SplitData[tblSplit.ActiveRow].LineType = mltDollarAmt then exit;
   ApplyAmountShortcut('$');
+end;
+
+procedure TdlgPayeeDetail.PageControl1Change(Sender: TObject);
+begin
+  pnlTotalAmounts.Visible := (PageControl1.ActivePage = tsPayeeDetails);
 end;
 
 procedure TdlgPayeeDetail.PercentageofTotal1Click(Sender: TObject);

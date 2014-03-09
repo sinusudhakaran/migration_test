@@ -59,7 +59,7 @@ object dlgPayeeDetail: TdlgPayeeDetail
       TabOrder = 2
       OnClick = btnCancelClick
     end
-    object Panel4: TPanel
+    object pnlTotalAmounts: TPanel
       Left = 7
       Top = 3
       Width = 366
@@ -136,6 +136,7 @@ object dlgPayeeDetail: TdlgPayeeDetail
     ActivePage = tsContractorDetails
     Align = alClient
     TabOrder = 2
+    OnChange = PageControl1Change
     object tsPayeeDetails: TTabSheet
       Caption = 'Payee Details'
       object pnlMain: TPanel
@@ -193,13 +194,13 @@ object dlgPayeeDetail: TdlgPayeeDetail
           OnUserCommand = tblSplitUserCommand
           CellData = (
             'dlgPayeeDetail.Header'
-            'dlgPayeeDetail.colLineType'
-            'dlgPayeeDetail.colPercent'
-            'dlgPayeeDetail.ColAmount'
-            'dlgPayeeDetail.ColGSTCode'
-            'dlgPayeeDetail.colNarration'
+            'dlgPayeeDetail.ColAcct'
             'dlgPayeeDetail.ColDesc'
-            'dlgPayeeDetail.ColAcct')
+            'dlgPayeeDetail.colNarration'
+            'dlgPayeeDetail.ColGSTCode'
+            'dlgPayeeDetail.ColAmount'
+            'dlgPayeeDetail.colPercent'
+            'dlgPayeeDetail.colLineType')
           RowData = (
             21)
           ColData = (
@@ -791,7 +792,6 @@ object dlgPayeeDetail: TdlgPayeeDetail
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd]
     PictureMask = '###,###,###.####'
     Table = tblSplit
     TableColor = False
@@ -810,6 +810,7 @@ object dlgPayeeDetail: TdlgPayeeDetail
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
+    Options = [efoCaretToEnd]
     PictureMask = '###,###,###.##'
     Table = tblSplit
     TableColor = False
