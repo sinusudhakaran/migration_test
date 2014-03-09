@@ -932,7 +932,7 @@ begin
                                           AdminSystem.TPR_Supplier_Detail.As_pRec.srSuburb,
                                           SupplierStateCode,
                                           AdminSystem.TPR_Supplier_Detail.As_pRec.srPostCode,
-                                          CountryText(AdminSystem.fdFields.fdCountry),
+                                          AdminSystem.TPR_Supplier_Detail.As_pRec.srCountry,
                                           '',  // Supplier Postal Address not used
                                           '',  //      |
                                           '',  //      |
