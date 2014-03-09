@@ -49,7 +49,7 @@ object frmClientDetails: TfrmClientDetails
     Top = 5
     Width = 589
     Height = 550
-    ActivePage = tbsOptions
+    ActivePage = tsTPRPayerDetails
     TabOrder = 0
     object tbsClient: TTabSheet
       Caption = 'Client Details'
@@ -1050,7 +1050,7 @@ object frmClientDetails: TfrmClientDetails
           Font.Height = -13
           Font.Name = 'Tahoma'
           Font.Style = []
-          MaxLength = 15
+          MaxLength = 76
           ParentFont = False
           TabOrder = 4
           Text = 'edtPracticeContactEmail'
@@ -1100,7 +1100,7 @@ object frmClientDetails: TfrmClientDetails
           Font.Height = -13
           Font.Name = 'Tahoma'
           Font.Style = []
-          MaxLength = 15
+          MaxLength = 76
           ParentFont = False
           ReadOnly = True
           TabOrder = 7
