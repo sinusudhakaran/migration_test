@@ -978,9 +978,9 @@ begin
                                         Payee.pdFields.pdPhone_Number,
                                         Payee.pdFields.pdInstitutionBSB,
                                         Payee.pdFields.pdInstitutionAccountNumber,
-                                        trunc(PayeeDataList[PayeeIndex].GrossAmount),
-                                        trunc(PayeeDataList[PayeeIndex].NoABNWithholdingTax),
-                                        trunc(PayeeDataList[PayeeIndex].TotalGST),
+                                        PayeeDataList[PayeeIndex].GrossAmount,
+                                        PayeeDataList[PayeeIndex].NoABNWithholdingTax,
+                                        PayeeDataList[PayeeIndex].TotalGST,
                                         PayeeAmendmentIndicator);
       end;
 

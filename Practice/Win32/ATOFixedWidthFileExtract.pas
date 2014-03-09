@@ -6,7 +6,8 @@ interface
 uses
   Windows,
   SysUtils,
-  Classes;
+  Classes,
+  MoneyDef;
 
 type
   //----------------------------------------------------------------------------
@@ -41,6 +42,7 @@ type
     procedure WriteDateData(aValue : TDateTime);
     procedure WriteFillerData(aLength : integer);
     procedure WriteTelphoneData(aValue : string; aLength : integer);
+    procedure WriteMoneyData(aValue : Money; aLength : integer);
   public
     constructor Create;
     destructor Destroy; override;
@@ -103,9 +105,9 @@ type
                                    aPayerContactTelephone : string;
                                    aPayeeFinancialInstitutionBsb : string;
                                    aPayeeFinancialInstitutionAccount : string;
-                                   aPayeeGrossAmountPaid : word;
-                                   aPayeeTaxWithheld : word;
-                                   aPayeeTotalGst : word;
+                                   aPayeeGrossAmountPaid : Money;
+                                   aPayeeTaxWithheld : Money;
+                                   aPayeeTotalGst : Money;
                                    aPayeeAmendmentIndicator : string);
     procedure WriteFileTotalDataRecord();
   end;
@@ -212,6 +214,16 @@ begin
   Data := AddFillerSpaces(Data, aLength);
 
   write(fFile, Data);
+end;
+
+//------------------------------------------------------------------------------
+procedure TATOFixedWidthFileExtract.WriteMoneyData(aValue : Money; aLength : integer);
+var
+  Data : word;
+begin
+  Data := Trunc(aValue/100);
+
+  WriteNumericData(Data, aLength);
 end;
 
 //------------------------------------------------------------------------------
@@ -368,9 +380,9 @@ procedure TATOFixedWidthFileExtract.WritePayeeDataRecord(aPayeeABNNumber : strin
                                                          aPayerContactTelephone : string;
                                                          aPayeeFinancialInstitutionBsb : string;
                                                          aPayeeFinancialInstitutionAccount : string;
-                                                         aPayeeGrossAmountPaid : word;
-                                                         aPayeeTaxWithheld : word;
-                                                         aPayeeTotalGst : word;
+                                                         aPayeeGrossAmountPaid : Money;
+                                                         aPayeeTaxWithheld : Money;
+                                                         aPayeeTotalGst : Money;
                                                          aPayeeAmendmentIndicator : string);
 begin
   inc(fTotalRecords);
@@ -392,9 +404,9 @@ begin
   WriteTelphoneData(aPayerContactTelephone, 15);
   WriteNumericDataFromText(aPayeeFinancialInstitutionBsb, 6);
   WriteNumericDataFromText(aPayeeFinancialInstitutionAccount, 9);
-  WriteNumericData(aPayeeGrossAmountPaid, 11);
-  WriteNumericData(aPayeeTaxWithheld, 11);
-  WriteNumericData(aPayeeTotalGst, 11);
+  WriteMoneyData(aPayeeGrossAmountPaid, 11);
+  WriteMoneyData(aPayeeTaxWithheld, 11);
+  WriteMoneyData(aPayeeTotalGst, 11);
   WriteAlphaData(aPayeeAmendmentIndicator, 1);
   WriteFillerData(30);
 end;
