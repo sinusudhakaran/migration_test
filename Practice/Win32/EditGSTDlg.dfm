@@ -30,6 +30,8 @@ object dlgEditGST: TdlgEditGST
     OnChange = pcGSTChange
     object pgDetails: TTabSheet
       Caption = '&Details'
+      ExplicitLeft = 0
+      ExplicitTop = 28
       object bvlBAS: TBevel
         Left = 8
         Top = 185
@@ -164,8 +166,8 @@ object dlgEditGST: TdlgEditGST
         Visible = False
       end
       object eGSTNumber: TMaskEdit
-        Left = 161
-        Top = 39
+        Left = 160
+        Top = 32
         Width = 145
         Height = 24
         BorderStyle = bsNone
@@ -351,14 +353,14 @@ object dlgEditGST: TdlgEditGST
         OnUserCommand = tblRatesUserCommand
         CellData = (
           'dlgEditGST.colHeader'
-          'dlgEditGST.colNormPercent'
-          'dlgEditGST.colAccount'
-          'dlgEditGST.colRate3'
-          'dlgEditGST.colRate2'
-          'dlgEditGST.colRate1'
-          'dlgEditGST.celGSTType'
+          'dlgEditGST.ColID'
           'dlgEditGST.colDesc'
-          'dlgEditGST.ColID')
+          'dlgEditGST.celGSTType'
+          'dlgEditGST.colRate1'
+          'dlgEditGST.colRate2'
+          'dlgEditGST.colRate3'
+          'dlgEditGST.colAccount'
+          'dlgEditGST.colNormPercent')
         RowData = (
           22)
         ColData = (
@@ -1158,6 +1160,7 @@ object dlgEditGST: TdlgEditGST
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
+    Options = [efoCaretToEnd]
     PictureMask = '###.####'
     Table = tblRates
     Left = 176
@@ -1174,6 +1177,7 @@ object dlgEditGST: TdlgEditGST
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
+    Options = [efoCaretToEnd]
     PictureMask = '###.####'
     Table = tblRates
     Left = 216
@@ -1190,6 +1194,7 @@ object dlgEditGST: TdlgEditGST
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
+    Options = [efoCaretToEnd]
     PictureMask = '###.####'
     Table = tblRates
     Left = 256
@@ -1254,6 +1259,7 @@ object dlgEditGST: TdlgEditGST
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
+    Options = [efoCaretToEnd]
     PictureMask = '###.##'
     Table = tblRates
     Left = 328
