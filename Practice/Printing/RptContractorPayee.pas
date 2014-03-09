@@ -857,6 +857,8 @@ var
   PayerBranch : string;
   PayerStateCode : string;
   PayerStateDesc : string;
+  PayeeStateCode : string;
+  PayeeStateDesc : string;
   EndOfReportDate : TDateTime;
   PayeeDataList: array of TPayeeData;
   PayerContactName : string;
@@ -963,6 +965,10 @@ begin
         if not Payee.pdFields.pdContractor then
           continue;
 
+        GetAustraliaStateFromIndex(Payee.pdFields.pdStateId,
+                                   PayeeStateCode,
+                                   PayeeStateDesc);
+
         ATOExtract.WritePayeeDataRecord(Payee.pdFields.pdABN,
                                         Payee.pdFields.pdSurname,
                                         Payee.pdFields.pdGiven_Name,
@@ -972,7 +978,7 @@ begin
                                         Payee.pdFields.pdAddress,
                                         Payee.pdFields.pdAddressLine2,
                                         Payee.pdFields.pdTown,
-                                        Payee.pdFields.pdState,
+                                        PayeeStateCode,
                                         Payee.pdFields.pdPost_Code,
                                         Payee.pdFields.pdCountry,
                                         Payee.pdFields.pdPhone_Number,
