@@ -1131,7 +1131,8 @@ begin
        AllowClientDirectDownload := chkOffsite.Checked;
        SecureCode := eConnectCode.Text;
 
-       if (AdminSystem.fdFields.fdCountry = whAustralia) then
+       if (Assigned(AdminSystem)) and
+         (AdminSystem.fdFields.fdCountry = whAustralia) then
        begin
          tsTPRPayerDetails.Visible := true;
          edtSupplierContactName.Text  := AdminSystem.fdTPR_Supplier_Detail.As_pRec.srContactName;
@@ -1381,7 +1382,8 @@ begin
       clExternal_ID := edtFingertipsClientID.Text;
 {$ENDIF}
 
-      if (AdminSystem.fdFields.fdCountry = whAustralia) then
+      if (Assigned(AdminSystem)) and
+        (AdminSystem.fdFields.fdCountry = whAustralia) then
       begin
         MyClient.clTPR_Payee_Detail.As_pRec.prUsePracticeTPRSupplierDetails :=
         radUsePracticeTPRSupplierDetails.Checked;
