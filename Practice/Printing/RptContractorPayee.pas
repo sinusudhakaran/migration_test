@@ -63,6 +63,7 @@ type
   TTaxablePaymentsReport = class(TBKReport)
   protected
     function ValidateATOMandatoryData() : boolean;
+    function GetFinacialYearEnd(aClientStartYear, aToDate : TDateTime) : TDateTime;
   public
     params : TPayeeParameters;
     procedure DoATOExtractCode(aFileName : string);
@@ -716,6 +717,23 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+function TTaxablePaymentsReport.GetFinacialYearEnd(aClientStartYear, aToDate: TDateTime): TDateTime;
+var
+  FinYearEnd :  TDateTime;
+  CltY, CltM, CltD : word;
+  ToY, ToM, ToD : word;
+begin
+  FinYearEnd := incDay(aClientStartYear, -1);
+
+  DecodeDate(FinYearEnd, CltY, CltM, CltD);
+  DecodeDate(aToDate, ToY, ToM, ToD);
+
+  Result := EncodeDate(ToY, CltM, CltD);
+  if Result < aToDate then
+    Result := incDay(Result, 365);
+end;
+
+//------------------------------------------------------------------------------
 function TTaxablePaymentsReport.ValidateATOMandatoryData(): boolean;
 var
   ErrorStrings : TArrOfStr;
@@ -890,6 +908,7 @@ var
   PayeeStateCode : string;
   PayeeStateDesc : string;
   EndOfReportDate : TDateTime;
+  EndOfFinYearDate : TDateTime;
   PayeeDataList: array of TPayeeData;
   PayerContactName : string;
   PayerContactPhone : string;
@@ -914,6 +933,7 @@ begin
       // Pre Calculated Values
       //------------------------------------------------------------------------
       EndOfReportDate := StDateToDateTime(Params.ToDate);
+      EndOfFinYearDate := GetFinacialYearEnd(StDateToDateTime(MyClient.clFields.clFinancial_Year_Starts), EndOfReportDate);
 
       GetAustraliaStateFromIndex(AdminSystem.TPR_Supplier_Detail.As_pRec.srStateId,
                                  SupplierStateCode,
@@ -973,7 +993,7 @@ begin
                                           PayerContactEmail);
       ATOExtract.WritePayerIdentityDataRecord(PayerABN,
                                               PayerBranch,
-                                              YearOf(EndOfReportDate),
+                                              YearOf(EndOfFinYearDate),
                                               MyClient.clFields.clName,
                                               MyClient.clTPR_Payee_Detail.As_pRec.prTradingName,
                                               MyClient.clTPR_Payee_Detail.As_pRec.prAddressLine1,
