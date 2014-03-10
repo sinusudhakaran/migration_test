@@ -168,6 +168,8 @@ begin
         try
           FromBa   := TBank_Account( cmbBankAccounts.Items.Objects[ cmbBankAccounts.ItemIndex]);
           ToBa   := TBank_Account( cmbCombine.Items.Objects[ cmbCombine.ItemIndex]);
+          MyClient.clRecommended_Mems.RemoveAccountFromMems(False, FromBa);
+          MyClient.clRecommended_Mems.RemoveAccountFromMems(False, ToBa);
           TransferCount := 0;
           LogUtil.LogMsg( lmInfo, UnitName, 'Combining entries from ' + FromBa.baFields.baBank_Account_Number + ' to ' + ToBa.BaFields.baBank_Account_Number);
           // Loop around transfering the trx and then deleting trx until end of list
@@ -199,6 +201,7 @@ begin
                 Inc(TransferCount);
               until (ItemCount = 0);
           end;
+          MyClient.clRecommended_Mems.PopulateUnscannedListOneAccount(ToBa);
           // Also copy contra, use master mems, and sched rep selection
           ToBa.baFields.baContra_Account_Code := FromBa.baFields.baContra_Account_Code;
           ToBa.baFields.baExchange_Gain_Loss_Code := FromBa.baFields.baExchange_Gain_Loss_Code;
@@ -229,6 +232,7 @@ begin
             MemTo.mdFields.mdSequence_No := 0;
             ToBa.baMemorisations_List.Insert_Memorisation(MemTo);
           end;
+
           // Delete the From account
           AcctName := FromBa.AccountName;
           AcctNo := FromBa.baFields.baBank_Account_Number;
@@ -263,6 +267,7 @@ begin
           end
           else
             HelpfulErrorMsg('Unable to Delete Bank Account.  Admin System cannot be loaded',0);
+
           LogUtil.LogMsg(lmInfo, UnitName,'Deleted System Bank Account ' + AcctNo + ' - ' + AcctName);
         finally
           ClearStatus;

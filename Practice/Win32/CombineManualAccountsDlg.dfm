@@ -74,7 +74,7 @@ object DlgCombineManualAccounts: TDlgCombineManualAccounts
     Width = 261
     Height = 20
     Style = csDropDownList
-    ItemHeight = 0
+    ItemHeight = 12
     TabOrder = 2
     OnSelect = cmbBankAccountsSelect
   end
@@ -84,7 +84,7 @@ object DlgCombineManualAccounts: TDlgCombineManualAccounts
     Width = 261
     Height = 20
     Style = csDropDownList
-    ItemHeight = 0
+    ItemHeight = 12
     TabOrder = 3
     OnSelect = cmbCombineSelect
   end

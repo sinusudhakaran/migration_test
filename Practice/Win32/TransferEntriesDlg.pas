@@ -432,6 +432,8 @@ begin
                ToDate   := DateSelector.eDateTo.AsStDate;
                TempBa   := TBank_Account( cmbTempAccount.Items.Objects[ cmbTempAccount.ItemIndex]);
                BankBa   := TBank_Account( cmbBankAccount.Items.Objects[ cmbBankAccount.ItemIndex]);
+               MyClient.clRecommended_Mems.RemoveAccountFromMems(False, TempBa);
+               MyClient.clRecommended_Mems.RemoveAccountFromMems(False, BankBa);
                //get date range for temp account transactions - no need to delete any more transactions
                //than necessary
                GetStatsForAccount( TempBa, FromDate, ToDate, TempEntries, TempFromDate, TempToDate);
@@ -509,6 +511,7 @@ begin
                      end;
                   until ( TrxIndex >= ItemCount) or ( pT^.txDate_Effective > TempToDate);
                end;
+               MyClient.clRecommended_Mems.PopulateUnscannedListOneAccount(BankBa);
             finally
                //clear progress
                ClearStatus;

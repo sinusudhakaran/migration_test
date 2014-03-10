@@ -30,6 +30,7 @@ type
 
     function GetLastCodingFrmKeyPress: TDateTime;
     procedure GetMatchingCandidateRange(StatementDetails: string; var FirstCandidatePos, LastCandidatePos: integer);
+    procedure RemoveAccountFromMems(IsPurge: boolean; AccountNo: string); Overload;
   public
     constructor Create(const aBankAccounts: TBank_Account_List);
     destructor  Destroy; override;
@@ -45,7 +46,7 @@ type
     procedure MemScan;
     procedure UpdateCandidateMems(TranRec: pTransaction_Rec; IsEditOperation: boolean);
     procedure SetLastCodingFrmKeyPress;
-    procedure RemoveAccountFromMems(IsPurge: boolean; AccountNo: string);
+    procedure RemoveAccountFromMems(IsPurge: boolean; BankAccount: TBank_Account); Overload;
     procedure RemoveAccountsFromMems(IsPurge: boolean; AccountList: TStringList);
     procedure PopulateUnscannedListOneAccount(BankAccount: TBank_Account);
     procedure PopulateUnscannedListAllAccounts;
@@ -616,6 +617,11 @@ begin
   end;
   // Will need to rebuild recommended mems later, so set ID To Proces back to the start of Candidates
   MyClient.clRecommended_Mems.fCandidate.cpFields.cpCandidate_ID_To_Process := 1;
+end;
+
+procedure TRecommended_Mems.RemoveAccountFromMems(IsPurge: boolean; BankAccount: TBank_Account);
+begin
+  RemoveAccountFromMems(IsPurge, BankAccount.baFields.baBank_Account_Number);
 end;
 
 procedure TRecommended_Mems.RemoveAccountsFromMems(IsPurge: boolean; AccountList: TStringList);

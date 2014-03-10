@@ -157,6 +157,8 @@ begin
         try
           FromBa   := TBank_Account( cmbBankAccounts.Items.Objects[ cmbBankAccounts.ItemIndex]);
           ToBa   := TBank_Account( cmbCombine.Items.Objects[ cmbCombine.ItemIndex]);
+          MyClient.clRecommended_Mems.RemoveAccountFromMems(False, FromBa.baFields.baBank_Account_Number);
+          MyClient.clRecommended_Mems.RemoveAccountFromMems(False, ToBa.baFields.baBank_Account_Number);
           TransferCount := 0;
           LogUtil.LogMsg( lmInfo, UnitName, 'Combining entries from ' + FromBa.baFields.baBank_Account_Number + ' to ' + ToBa.BaFields.baBank_Account_Number);
           // Loop around transfering the trx and then deleting trx until end of list
@@ -188,6 +190,7 @@ begin
                 Inc(TransferCount);
               until (ItemCount = 0);
           end;
+          MyClient.clRecommended_Mems.PopulateUnscannedListOneAccount(ToBa);
           // Also copy contra, use master mems, and sched rep selection
           ToBa.baFields.baContra_Account_Code := FromBa.baFields.baContra_Account_Code;
           ToBa.baFields.baExchange_Gain_Loss_Code := FromBa.baFields.baExchange_Gain_Loss_Code;
