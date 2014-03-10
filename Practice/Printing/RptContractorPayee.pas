@@ -755,6 +755,22 @@ begin
      (Length(AdminSystem.TPR_Supplier_Detail.As_pRec.srCountry) = 0) then
     AddError('Supplier Country from System | Practice Details | TPR Supplier Details');
 
+  // Check if field is longer than max length in ATO extract
+  if (Length(AdminSystem.fdFields.fdPractice_EMail_Address) > 76) then
+    AddError('The E-mail in System | Practice Details | Details exceeds the maximum length required by the ATO. Please shorten to 76 or less.');
+
+  if (Length(MyClient.clFields.clContact_Name) > 38) then
+    AddError('The Contact Name in Other Functions | Client Client | Details exceeds the maximum length required by the ATO. Please shorten to 38 or less.');
+
+  if (Length(MyClient.clFields.clPhone_No) > 15) then
+    AddError('The Phone in Other Functions | Client Client | Details exceeds the maximum length required by the ATO. Please shorten to 15 or less.');
+
+  if (Length(MyClient.clFields.clFax_No) > 15) then
+    AddError('The Fax in Other Functions | Client Client | Details exceeds the maximum length required by the ATO. Please shorten to 15 or less.');
+
+  if (Length(MyClient.clFields.clClient_EMail_Address) > 76) then
+    AddError('The E-mail in Other Functions | Client Client | Details exceeds the maximum length required by the ATO. Please shorten to 76 or less.');
+
   // Payer Data
   SplitABNandBranchFromGSTNumber(MyClient.clFields.clGST_Number,
                                  PayerABN,
