@@ -935,8 +935,8 @@ begin
                                           RUN_TYPE,
                                           EndOfReportDate);
       ATOExtract.WriteSupplierDataRecord2(AdminSystem.fdFields.fdPractice_Name_for_Reports,
-                                          AdminSystem.TPR_Supplier_Detail.As_pRec.srContactName,
-                                          AdminSystem.TPR_Supplier_Detail.As_pRec.srContactPhone,
+                                          PayerContactName,
+                                          PayerContactPhone,
                                           '', // Supplier fax number not used
                                           AdminSystem.fdFields.fdBankLink_Code);
       ATOExtract.WriteSupplierDataRecord3(AdminSystem.TPR_Supplier_Detail.As_pRec.srStreetAddress1,
@@ -951,7 +951,7 @@ begin
                                           '',  //      |
                                           '',  //    \ |/
                                           '',  //     \/
-                                          AdminSystem.fdFields.fdPractice_EMail_Address);
+                                          PayerContactEmail);
       ATOExtract.WritePayerIdentityDataRecord(PayerABN,
                                               PayerBranch,
                                               YearOf(EndOfReportDate),
@@ -963,8 +963,8 @@ begin
                                               PayerStateCode,
                                               MyClient.clTPR_Payee_Detail.As_pRec.prPostCode,
                                               MyClient.clTPR_Payee_Detail.As_pRec.prCountry,
-                                              PayerContactName,
-                                              PayerContactPhone,
+                                              MyClient.clFields.clContact_Name,
+                                              MyClient.clFields.clPhone_No,
                                               MyClient.clFields.clFax_No,
                                               PayerContactEmail);
       ATOExtract.WriteSoftwareDataRecord(BRAND_FULL_PRACTICE);
