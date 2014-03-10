@@ -33,8 +33,9 @@ type
     fTotalRecords : word;
 
   protected
+    function RemoveMultiSpaces(aInstring : string) : string;
+
     // Ato Data Fields
-    procedure WritePostCode(aValue : string);
     procedure WriteNumericData(aValue : word; aLength : integer);
     procedure WriteNumericDataFromText(aValue : string; aLength : integer);
     procedure WriteAlphaNumericData(aValue : string; aLength : integer);
@@ -43,6 +44,7 @@ type
     procedure WriteFillerData(aLength : integer);
     procedure WriteTelphoneData(aValue : string; aLength : integer);
     procedure WriteMoneyData(aValue : Money; aLength : integer);
+    procedure WritePostCode(aValue : string);
   public
     constructor Create;
     destructor Destroy; override;
@@ -116,9 +118,36 @@ type
 implementation
 
 uses
-  GenUtils;
+  GenUtils,
+  LogUtil;
+
+const
+  UnitName = 'ATOFixedWidthFileExtract';
 
 { TATOFixedWidthFileExtract }
+//------------------------------------------------------------------------------
+function TATOFixedWidthFileExtract.RemoveMultiSpaces(aInstring: string): string;
+var
+  StrIndex : integer;
+  LastCharIsSpace : boolean;
+begin
+  Result := '';
+  LastCharIsSpace := false;
+  for StrIndex := 1 to length(aInstring) do
+  begin
+    if not (aInstring[StrIndex] = ' ') then
+      LastCharIsSpace := false;
+
+    if (not LastCharIsSpace) then
+      Result := Result + aInstring[StrIndex]
+    else
+      Result := Result;
+
+    if aInstring[StrIndex] = ' ' then
+      LastCharIsSpace := true;
+  end;
+end;
+
 //------------------------------------------------------------------------------
 procedure TATOFixedWidthFileExtract.WritePostCode(aValue: string);
 var
@@ -164,7 +193,7 @@ procedure TATOFixedWidthFileExtract.WriteAlphaNumericData(aValue : string; aLeng
 var
   Data : string;
 begin
-  Data := Trim(aValue);
+  Data := Trim(RemoveMultiSpaces(aValue));
   Data := AddFillerSpaces(Data, aLength);
 
   write(fFile, Data);
@@ -175,7 +204,7 @@ procedure TATOFixedWidthFileExtract.WriteAlphaData(aValue : string; aLength : in
 var
   Data : string;
 begin
-  Data := Trim(aValue);
+  Data := Trim(RemoveMultiSpaces(aValue));
   Data := AddFillerSpaces(Data, aLength);
 
   write(fFile, Data);
