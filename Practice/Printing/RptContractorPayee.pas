@@ -51,7 +51,9 @@ uses
   ATOExportMandatoryDataDlg,
   LogUtil,
   InfoMoreFrm,
-  YesNoDlg;
+  YesNoDlg,
+  WinUtils,
+  strutils;
 
 const
   UnitName = 'RptContractorPayee';
@@ -912,6 +914,7 @@ begin
       // Pre Calculated Values
       //------------------------------------------------------------------------
       EndOfReportDate := StDateToDateTime(Params.ToDate);
+
       GetAustraliaStateFromIndex(AdminSystem.TPR_Supplier_Detail.As_pRec.srStateId,
                                  SupplierStateCode,
                                  SupplierStateDesc);
@@ -983,7 +986,11 @@ begin
                                               MyClient.clFields.clPhone_No,
                                               MyClient.clFields.clFax_No,
                                               MyClient.clFields.clClient_EMail_Address);
-      ATOExtract.WriteSoftwareDataRecord(BRAND_FULL_PRACTICE);
+
+      ATOExtract.WriteSoftwareDataRecord('COMMERCIAL ' +
+                                         BRAND_FULL_PRACTICE +
+                                         ' Version ' +
+                                         StringReplace(VersionInfo.GetAppVersionStr,' Build ','.', [rfReplaceAll, rfIgnoreCase]));
 
       for PayeeIndex := 0 to MyClient.clPayee_List.ItemCount - 1 do
       begin
