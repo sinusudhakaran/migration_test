@@ -1539,9 +1539,9 @@ begin
    {show form}
    AltLineColor := BKCOLOR_CREAM;
 
-   chkContractorPayee.Visible := Assigned(Adminsystem) and (MyClient.clFields.clCountry = whAustralia);
-   tsContractorDetails.Visible := Assigned(Adminsystem) and (MyClient.clFields.clCountry = whAustralia);
-   tsContractorDetails.TabVisible := Assigned(Adminsystem) and (MyClient.clFields.clCountry = whAustralia);
+   chkContractorPayee.Visible := (MyClient.clFields.clCountry = whAustralia);
+   tsContractorDetails.Visible := (MyClient.clFields.clCountry = whAustralia);
+   tsContractorDetails.TabVisible := (MyClient.clFields.clCountry = whAustralia);
 
    // Skip Focus on Payee Number
    if chkContractorPayee.Visible and not AddContractorPayee then
