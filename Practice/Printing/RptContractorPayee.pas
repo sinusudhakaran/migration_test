@@ -966,7 +966,7 @@ begin
                                               MyClient.clFields.clContact_Name,
                                               MyClient.clFields.clPhone_No,
                                               MyClient.clFields.clFax_No,
-                                              PayerContactEmail);
+                                              MyClient.clFields.clClient_EMail_Address);
       ATOExtract.WriteSoftwareDataRecord(BRAND_FULL_PRACTICE);
 
       for PayeeIndex := 0 to MyClient.clPayee_List.ItemCount - 1 do
