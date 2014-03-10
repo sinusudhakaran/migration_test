@@ -3,6 +3,7 @@ unit RecommendedMems;
 interface
 
 uses
+  Classes,
   IOStream,
   BKutIO,
   BKcpIO,
@@ -36,8 +37,6 @@ type
     procedure SaveToFile(var S: TIOStream);
     procedure LoadFromFile(var S: TIOStream);
 
-    procedure UpdateUnprocessedAndCandidateMems;
-
     property  Unscanned: TUnscanned_Transaction_List read fUnscanned;
     property  Candidate: TCandidate_Mem_Processing read fCandidate;
     property  Candidates: TCandidate_Mem_List read fCandidates;
@@ -46,6 +45,11 @@ type
     procedure MemScan;
     procedure UpdateCandidateMems(TranRec: pTransaction_Rec; IsEditOperation: boolean);
     procedure SetLastCodingFrmKeyPress;
+    procedure RemoveAccountFromMems(IsPurge: boolean; AccountNo: string);
+    procedure RemoveAccountsFromMems(IsPurge: boolean; AccountList: TStringList);
+    procedure PopulateUnscannedListOneAccount(BankAccount: TBank_Account);
+    procedure PopulateUnscannedListAllAccounts;
+    procedure ResetAll;
   end;
 
 var
@@ -190,35 +194,6 @@ begin
   S.WriteToken(tkEndSection);
 end;
 
-procedure TRecommended_Mems.UpdateUnprocessedAndCandidateMems;
-var
-  iBankAccount: integer;
-  BankAccount: TBank_Account;
-  iTransaction: integer;
-  Transaction: pTransaction_Rec;
-  New: TUnscanned_Transaction;
-begin
-  // Unscanned and Candidates must be empty
-  if (Unscanned.ItemCount <> 0) or (Candidates.ItemCount <> 0) then
-    exit;
-
-  for iBankAccount := 0 to fBankAccounts.ItemCount-1 do
-  begin
-    BankAccount := fBankAccounts[iBankAccount];
-
-    for iTransaction := 0 to BankAccount.baTransaction_List.ItemCount-1 do
-    begin
-      Transaction := BankAccount.baTransaction_List.Transaction_At(iTransaction);
-
-      New := TUnscanned_Transaction.Create;
-      New.utFields.utBank_Account_Number := BankAccount.baFields.baBank_Account_Number;
-      New.utFields.utSequence_No := Transaction.txSequence_No;
-
-      Unscanned.Insert(New);
-    end;
-  end;
-end;
-
 function TRecommended_Mems.GetLastCodingFrmKeyPress: TDateTime;
 begin
   Result := FLastCodingFrmKeyPress;
@@ -237,25 +212,26 @@ var
   // Does the recommended memorisation processing, returns true when this is complete
   function DoRecommendedMemProcessing: boolean;
   var
-    Account              : TBank_Account;
-    AccountCodesDiffer   : boolean;
-    AccountIsBlank       : boolean;
-    AccountsPos          : integer;
-    CandidateMem1        : TCandidate_Mem;
-    CandidateMem2        : TCandidate_Mem;
-    CandidatePos         : integer;
-    CodedByIsManual      : boolean;
-    ExclusionFound       : boolean;
-    FirstCandidatePos    : integer;
-    IDToProcess          : integer;
-    LastCandidatePos     : integer;
-    ManuallyCodedCount   : integer;
-    MemAdded             : boolean;
-    Memorisation         : TMemorisation;
-    MemsPos              : integer;
-    NewRecMem            : TRecommended_Mem;
-    NextCandidateID      : integer;
-    UncodedCount         : integer;
+    Account                 : TBank_Account;
+    AccountCodesDiffer      : boolean;
+    AccountsPos             : integer;
+    Candidate2HasBlankCode  : boolean;
+    CandidateMem1           : TCandidate_Mem;
+    CandidateMem2           : TCandidate_Mem;
+    CandidatePos            : integer;
+    CodedByIsManual         : boolean;
+    EitherAccountIsBlank    : boolean;
+    ExclusionFound          : boolean;
+    FirstCandidatePos       : integer;
+    IDToProcess             : integer;
+    LastCandidatePos        : integer;
+    ManuallyCodedCount      : integer;
+    MemAdded                : boolean;
+    Memorisation            : TMemorisation;
+    MemsPos                 : integer;
+    NewRecMem               : TRecommended_Mem;
+    NextCandidateID         : integer;
+    UncodedCount            : integer;
   begin
     IDToProcess     := MyClient.clRecommended_Mems.Candidate.cpFields.cpCandidate_ID_To_Process;
     NextCandidateID := MyClient.clRecommended_Mems.Candidate.cpFields.cpNext_Candidate_ID;
@@ -283,19 +259,29 @@ var
         // different code (including dissections, which will always have the code
         // 'DISSECT' and thus be excluded when we compare account codes, as our
         // original candidate will never be a dissection, these are filtered out
-        // earlier) or a coding type other than manual? 
+        // earlier) or a coding type other than manual?
         for CandidatePos := FirstCandidatePos to LastCandidatePos do
         begin
           CandidateMem2 := Candidates.Candidate_Mem_At(CandidatePos);
-          AccountCodesDiffer := (CandidateMem1.cmFields.cmAccount <> CandidateMem2.cmFields.cmAccount);
-          AccountIsBlank := (CandidateMem1.cmFields.cmAccount = '');
-          CodedByIsManual := (CandidateMem2.cmFields.cmCoded_By = cbManual);
-          if (AccountCodesDiffer and not AccountIsBlank) or not CodedByIsManual then
+          // Does the key (entry type, bank account code, statement details) match? We have already
+          // checked the latter so just check the first two
+          if (CandidateMem1.cmFields.cmType = CandidateMem2.cmFields.cmType) and
+          (CandidateMem1.cmFields.cmBank_Account_Number = CandidateMem2.cmFields.cmBank_Account_Number) then
           begin
-            // Don't recommend this candidate, as there are existing candidates which
-            // conflict with it
-            ExclusionFound := True;
-            Break;
+            AccountCodesDiffer := (CandidateMem1.cmFields.cmAccount <> CandidateMem2.cmFields.cmAccount);
+            EitherAccountIsBlank := (CandidateMem1.cmFields.cmAccount = '') or
+                                    (CandidateMem2.cmFields.cmAccount = '');
+            CodedByIsManual := (CandidateMem2.cmFields.cmCoded_By = cbManual);
+            Candidate2HasBlankCode := (CandidateMem2.cmFields.cmAccount = '');
+            if ((AccountCodesDiffer and not EitherAccountIsBlank) or
+            (CodedByIsManual = false)) and
+            (Candidate2HasBlankCode = false) then
+            begin
+              // Don't recommend this candidate, as there are existing candidates which
+              // conflict with it
+              ExclusionFound := True;
+              Break;
+            end;
           end;
         end;
         if not ExclusionFound then
@@ -406,11 +392,13 @@ var
             cMem.cmFields.cmCount := cMem.cmFields.cmCount + 1;
             MatchingCandidateFound := True;
             // We will need to rescan this candidate, if only to update it's count in the recommended
-            // mems list. This is particuarly necessary if the count is now 2/3, because this candidate
-            // will now need to be removed from/added to the recommended mems list. So if we've already
-            // scanned past this ID, set the scanning back to this ID
-            if (i < MyClient.clRecommended_Mems.Candidate.cpFields.cpCandidate_ID_To_Process) then
-              MyClient.clRecommended_Mems.Candidate.cpFields.cpCandidate_ID_To_Process := i;
+            // mems list. This is particuarly necessary if the count has decreased to 2 or increased to 3,
+            // because this candidate will now need to be removed from/added to the recommended mems list.
+            // So if we've already scanned past this ID, set the scanning back to this ID
+            // CORRECTION: shouldn't need this, because no recommended mems are made until candidate
+            // scanning is complete
+            // if (i < MyClient.clRecommended_Mems.Candidate.cpFields.cpCandidate_ID_To_Process) then
+            //   MyClient.clRecommended_Mems.Candidate.cpFields.cpCandidate_ID_To_Process := i;
             Break;
           end;
         end;
@@ -455,6 +443,13 @@ var
       finally
         MyClient.clRecommended_Mems.Unscanned.AtDelete(0); // remove unscanned transaction from list
       end;
+    end // if (MyClient.clRecommended_Mems.Unscanned.ItemCount > 0) then
+    else
+    begin
+      // Candidate mem scanning is complete, recommended mem scanning can begin, set
+      // CandidateIDToProcess to 1 to make sure the recommended mem scanning will
+      // start from the first candidate
+      MyClient.clRecommended_Mems.Candidate.cpFields.cpCandidate_ID_To_Process := 1;
     end;
   end;
 begin
@@ -482,7 +477,8 @@ begin
             // Unscanned transaction list is empty, candidate and recommended mem
             // processing is done, nothing left to do, time to crack a beer
             Exit;
-        end else
+        end
+        else
         begin
           // There are still unscanned transactions, so do candidate processing
           DoCandidateMemProcessing;
@@ -558,16 +554,89 @@ begin
   end;
 end;
 
+// Builds the unscanned transactions list for all bank accounts
+procedure TRecommended_Mems.PopulateUnscannedListAllAccounts;
+var
+  iBankAccount: integer;
+begin
+  // Unscanned and Candidates must be empty
+  if (Unscanned.ItemCount <> 0) or (Candidates.ItemCount <> 0) then
+    exit;
+
+  for iBankAccount := 0 to fBankAccounts.ItemCount-1 do
+    PopulateUnscannedListOneAccount(fBankAccounts[iBankAccount]);
+end;
+
+// Builds the unscanned transactions list for one bank account
+procedure TRecommended_Mems.PopulateUnscannedListOneAccount(BankAccount: TBank_Account);
+var
+  iTransaction: integer;
+  New: TUnscanned_Transaction;
+  Transaction: pTransaction_Rec;
+begin
+  for iTransaction := 0 to BankAccount.baTransaction_List.ItemCount-1 do
+  begin
+    Transaction := BankAccount.baTransaction_List.Transaction_At(iTransaction);
+
+    New := TUnscanned_Transaction.Create;
+    New.utFields.utBank_Account_Number := BankAccount.baFields.baBank_Account_Number;
+    New.utFields.utSequence_No := Transaction.txSequence_No;
+
+    Unscanned.Insert(New);
+  end;
+end;
+
 // Removes an account from candidates and recommended mems. Should be called when:
-// * Purging an account
+// * Purging an account (in this case, via the RemoveAccountsFromMems method below this one)
 // * Merging an account
 // * Unattaching an account
-{
-procedure TRecommended_Mems.RemoveAccountFromMems;
+procedure TRecommended_Mems.RemoveAccountFromMems(IsPurge: boolean; AccountNo: string);
+var
+  BankAccount: TBank_Account;
+  i: integer;
 begin
-  // Delete account from candidate mems
+  // Delete all candidates with this account number
+  for i := MyClient.clRecommended_Mems.Candidates.First to MyClient.clRecommended_Mems.Candidates.Last do
+    if (MyClient.clRecommended_Mems.Candidates.Candidate_Mem_At(i).cmFields.cmBank_Account_Number = AccountNo) then
+      MyClient.clRecommended_Mems.Candidates.AtDelete(i);
 
+  // Delete all recommended mems with this account number
+  for i := MyClient.clRecommended_Mems.Recommended.First to MyClient.clRecommended_Mems.Recommended.Last do
+    if (MyClient.clRecommended_Mems.Recommended.Recommended_Mem_At(i).rmFields.rmBank_Account_Number = AccountNo) then
+      MyClient.clRecommended_Mems.Recommended.AtDelete(i);
+      
+  if IsPurge then
+  begin
+    // Purge may only remove some of the data for this account, but we have removed all the
+    // candidates with a matching account number, so we need to add all the transactions
+    // for this account to the unscanned list
+    BankAccount := MyClient.clBank_Account_List.FindCode(AccountNo);
+    PopulateUnscannedListOneAccount(BankAccount);
+    // TODO: rescan the account for transactions, add them all to the unscanned list
+  end;
+  // Will need to rebuild recommended mems later, so set ID To Proces back to the start of Candidates
+  MyClient.clRecommended_Mems.fCandidate.cpFields.cpCandidate_ID_To_Process := 1;
 end;
-}
+
+procedure TRecommended_Mems.RemoveAccountsFromMems(IsPurge: boolean; AccountList: TStringList);
+var
+  i: integer;
+begin
+  for i := 0 to AccountList.Count - 1 do
+    RemoveAccountFromMems(IsPurge, AccountList.Strings[i]);
+end;
+
+// This is here for debugging purposes
+procedure TRecommended_Mems.ResetAll;
+begin
+  MyClient.clRecommended_Mems.Candidates.DeleteAll;
+  MyClient.clRecommended_Mems.Candidates.Destroy;
+  MyClient.clRecommended_Mems.Recommended.DeleteAll;
+  MyClient.clRecommended_Mems.Recommended.Destroy;
+  MyClient.clRecommended_Mems.Unscanned.DeleteAll;
+  MyClient.clRecommended_Mems.Unscanned.Destroy;
+  MyClient.clRecommended_Mems.Candidate.cpFields.cpCandidate_ID_To_Process := 1;
+  MyClient.clRecommended_Mems.Candidate.cpFields.cpNext_Candidate_ID := 1;
+end;
 
 end.

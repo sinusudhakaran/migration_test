@@ -489,7 +489,6 @@ object frmCoding: TfrmCoding
       Height = 13
       Cursor = crHandPoint
       Caption = 'Recommended Memorisations'
-      Visible = False
       OnClick = lblRecommendedMemorisationsClick
     end
     object EBFind: TEdit

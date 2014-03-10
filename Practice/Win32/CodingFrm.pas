@@ -1130,6 +1130,8 @@ begin
   Undo := False;
   FSuperTop := -999;
   FSuperLeft := -999;
+
+  MyClient.clRecommended_Mems.PopulateUnscannedListAllAccounts;
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmCoding.ProcessExternalCmd(Command : TExternalCmd);

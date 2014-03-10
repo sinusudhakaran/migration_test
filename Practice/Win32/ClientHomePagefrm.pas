@@ -912,7 +912,7 @@ begin
    FAbandon := False;
    RegisterWebNotesUpdate(Self.Handle);
 
-   MyClient.clRecommended_Mems.UpdateUnprocessedAndCandidateMems;
+   MyClient.clRecommended_Mems.PopulateUnscannedListAllAccounts;
 end;
 
 procedure TfrmClientHomePage.FormDestroy(Sender: TObject);

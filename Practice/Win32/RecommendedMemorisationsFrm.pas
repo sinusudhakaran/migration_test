@@ -274,7 +274,7 @@ begin
 
   with MyClient.clRecommended_Mems, Candidate.cpFields do
   begin
-    if (cpCandidate_ID_To_Process < cpNext_Candidate_ID) and
+    if (cpCandidate_ID_To_Process >= cpNext_Candidate_ID) and
        (cpNext_Candidate_ID <> 1) then
     begin
       if (Recommended.ItemCount = 0) then
