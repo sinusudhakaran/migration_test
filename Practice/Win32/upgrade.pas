@@ -4249,22 +4249,38 @@ const
     PayeeIndex : integer;
     StateIndex : integer;
     CountryCode, CountryDesc : string;
+    found : boolean;
   begin
     aClient.clTPR_Payee_Detail.As_pRec.prUsePracticeTPRSupplierDetails := true;
     aClient.clTPR_Payee_Detail.As_pRec.prFirstTimeTPRATOExtractDone := true;
 
     for PayeeIndex := 0 to aClient.clPayee_List.ItemCount-1 do
     begin
-      aClient.clPayee_List.Payee_At(PayeeIndex).pdFields.pdIsIndividual := true;
-
+      found := false;
       aClient.clPayee_List.Payee_At(PayeeIndex).pdFields.pdStateId := 0;
       for StateIndex := MIN_STATE to MAX_STATE do
       begin
         GetAustraliaStateFromIndex(StateIndex, CountryCode, CountryDesc);
 
         if Uppercase(aClient.clPayee_List.Payee_At(PayeeIndex).pdFields.pdState) = uppercase(CountryCode) then
+        begin
           aClient.clPayee_List.Payee_At(PayeeIndex).pdFields.pdStateId := StateIndex;
+          found := true;
+          break;
+        end;
       end;
+
+      if not found then
+      begin
+        aClient.clPayee_List.Payee_At(PayeeIndex).pdFields.pdStateId := MAX_STATE;
+        aClient.clPayee_List.Payee_At(PayeeIndex).pdFields.pdCountry :=
+          aClient.clPayee_List.Payee_At(PayeeIndex).pdFields.pdState;
+      end;
+
+      aClient.clPayee_List.Payee_At(PayeeIndex).pdFields.pdIsIndividual :=
+        (length(aClient.clPayee_List.Payee_At(PayeeIndex).pdFields.pdSurname) > 0) or
+        (length(aClient.clPayee_List.Payee_At(PayeeIndex).pdFields.pdGiven_Name) > 0) or
+        (length(aClient.clPayee_List.Payee_At(PayeeIndex).pdFields.pdOther_Name) > 0);
     end;
   end;
 
@@ -4635,7 +4651,7 @@ begin
       // ATO Extract for TPR Reports
       if (CLFile_Version < 182) then
       begin
-        UpgradeToVersion181;
+        UpgradeToVersion182;
         clFile_Version := 182;
       end;
    end;
