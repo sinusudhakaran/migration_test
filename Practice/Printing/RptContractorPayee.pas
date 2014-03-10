@@ -689,7 +689,7 @@ begin
           if Assigned(AdminSystem) then
           begin
             ATODefaultFileName := 'TPAR_' + MyClient.clFields.clCode + '_' +
-                                  Date2Str(GetYearEndDate(MyClient.clFields.clReport_Start_Date), 'dd-mm-yyyy');
+                                  Date2Str(Params.ToDate, 'dd-mm-yyyy');
             Params.CustomFileFormats.AddCustomFormat('ATO Extract','ATO Extact File (C01)',ATODefaultFileName,'.C01',Job.DoATOExtractCode, true);
           end;
 
