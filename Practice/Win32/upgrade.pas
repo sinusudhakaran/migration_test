@@ -4272,15 +4272,20 @@ const
 
       if not found then
       begin
-        aClient.clPayee_List.Payee_At(PayeeIndex).pdFields.pdStateId := MAX_STATE;
-        aClient.clPayee_List.Payee_At(PayeeIndex).pdFields.pdCountry :=
-          aClient.clPayee_List.Payee_At(PayeeIndex).pdFields.pdState;
+        if Length(aClient.clPayee_List.Payee_At(PayeeIndex).pdFields.pdState) = 0 then
+        begin
+          aClient.clPayee_List.Payee_At(PayeeIndex).pdFields.pdStateId := MIN_STATE;
+          aClient.clPayee_List.Payee_At(PayeeIndex).pdFields.pdCountry := '';
+        end
+        else
+        begin
+          aClient.clPayee_List.Payee_At(PayeeIndex).pdFields.pdStateId := MAX_STATE;
+          aClient.clPayee_List.Payee_At(PayeeIndex).pdFields.pdCountry :=
+            aClient.clPayee_List.Payee_At(PayeeIndex).pdFields.pdState;
+        end;
       end;
 
-      aClient.clPayee_List.Payee_At(PayeeIndex).pdFields.pdIsIndividual :=
-        (length(aClient.clPayee_List.Payee_At(PayeeIndex).pdFields.pdSurname) > 0) or
-        (length(aClient.clPayee_List.Payee_At(PayeeIndex).pdFields.pdGiven_Name) > 0) or
-        (length(aClient.clPayee_List.Payee_At(PayeeIndex).pdFields.pdOther_Name) > 0);
+      aClient.clPayee_List.Payee_At(PayeeIndex).pdFields.pdIsIndividual := true;
     end;
   end;
 
