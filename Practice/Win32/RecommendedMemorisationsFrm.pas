@@ -31,6 +31,7 @@ type
     Panel1: TPanel;
     lblBankAccount: TLabel;
     lblStatus: TLabel;
+    Images: TImageList;
     procedure FormCreate(Sender: TObject);
     procedure vstTreeGetText(Sender: TBaseVirtualTree; Node: PVirtualNode;
       Column: TColumnIndex; TextType: TVSTTextType; var CellText: WideString);
@@ -78,7 +79,7 @@ uses
   BKDefs;
 
 const
-  ICON_BUTTON = 10;
+  ICON_BUTTON = 0;
   LAST_COLUMN = 5;
   COL_STATEMENTS_DETAILS = 1;
   MSG_STILL_PROCESSING = 'Practice is still scanning for recommendations, please try again later';
@@ -223,8 +224,7 @@ begin
 
   ButtonRect := GetButtonRect(CellRect);
 
-  AppImages.Maintain.Draw(TargetCanvas, ButtonRect.Left, ButtonRect.Top,
-    ICON_BUTTON);
+  Images.Draw(TargetCanvas, ButtonRect.Left, ButtonRect.Top, ICON_BUTTON);
 end;
 
 //------------------------------------------------------------------------------
@@ -349,7 +349,7 @@ begin
 
   TempBitmap := TBitmap.Create;
   try
-    if not AppImages.Maintain.GetBitmap(ICON_BUTTON, TempBitmap) then
+    if not Images.GetBitmap(ICON_BUTTON, TempBitmap) then
       ASSERT(false);
     iImageWidth := TempBitmap.Width;
     iImageHeight := TempBitmap.Height;
