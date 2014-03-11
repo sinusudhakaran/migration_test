@@ -988,7 +988,7 @@ begin
                                           '',  //      |
                                           '',  //      |
                                           '',  //      |
-                                          '',  //    \ |/
+                                          '0000',//  \ |/
                                           '',  //     \/
                                           PayerContactEmail);
       ATOExtract.WritePayerIdentityDataRecord(PayerABN,
