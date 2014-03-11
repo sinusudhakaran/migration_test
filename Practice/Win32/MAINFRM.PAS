@@ -814,6 +814,7 @@ type
 
     procedure ExportTaggedAccounts(ProgressForm: IDualProgressForm; CallbackParams: Pointer);
     procedure DoRebranding();
+    procedure SetMemScanIsBusy(Value: boolean);
 
     //procedure ThreadMessage(var Message: TMessage);	message THREAD_MESSAGE;
   protected
@@ -827,6 +828,7 @@ type
     SavedAutoSaveInterval : Integer;
     SavedAutoSaveClient : string;
     UsingCustomPracticeLogo : boolean;
+    Property MemScanIsBusy : boolean read fMemScanIsBusy write SetMemScanIsBusy;
     procedure DoMainFormCommand( command : byte; Modal : boolean = true); overload;
     procedure DoMainFormCommand( command : byte; Sender : TObject; Modal : boolean = true); overload;
 
@@ -2319,6 +2321,11 @@ end;
 procedure TfrmMain.SetLastActiveMDIChild(const Value: Forms.TForm);
 begin
    FLastActiveMDIChild := Value;
+end;
+
+procedure TfrmMain.SetMemScanIsBusy(Value: boolean);
+begin
+  fMemScanIsBusy := Value;
 end;
 
 procedure TfrmMain.SettheTransferFlagsforaPeriod1Click(Sender: TObject);
