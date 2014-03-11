@@ -132,12 +132,12 @@ procedure TRecommended_Mems.GetMatchingCandidateRange(StatementDetails: string;
 var
   First, Last, Pivot, FoundMatchPosition: integer;
   Found: boolean;
-  Candidates: TCandidate_Mem_List;
+  CandidateList: TCandidate_Mem_List;
   SearchedStatementDetails: string;
 begin
-  Candidates := MyClient.clRecommended_Mems.Candidates;
-  First := Candidates.First;
-  Last := Candidates.Last;
+  CandidateList := Candidates;
+  First := CandidateList.First;
+  Last := CandidateList.Last;
   Found := False;
 
   // Find a Candidate whose Statement Details matched those we have passed in
@@ -146,7 +146,7 @@ begin
   begin
     // Get the middle of the range
     Pivot := (First + Last) div 2;
-    SearchedStatementDetails := Candidates.Candidate_Mem_At(Pivot).cmFields.cmStatement_Details;
+    SearchedStatementDetails := CandidateList.Candidate_Mem_At(Pivot).cmFields.cmStatement_Details;
     // Compare the string in the middle with the searched one
     if (SearchedStatementDetails = StatementDetails) then
     begin
@@ -167,7 +167,7 @@ begin
   FirstCandidatePos := FoundMatchPosition;
   while (FirstCandidatePos > First) do
   begin
-    if (Candidates.Candidate_Mem_At(FirstCandidatePos - 1).cmFields.cmStatement_Details = StatementDetails) then
+    if (CandidateList.Candidate_Mem_At(FirstCandidatePos - 1).cmFields.cmStatement_Details = StatementDetails) then
       FirstCandidatePos := FirstCandidatePos - 1
     else
       Break;
@@ -176,7 +176,7 @@ begin
   LastCandidatePos := FoundMatchPosition;
   while (LastCandidatePos < Last) do
   begin
-    if (Candidates.Candidate_Mem_At(LastCandidatePos + 1).cmFields.cmStatement_Details = StatementDetails) then
+    if (CandidateList.Candidate_Mem_At(LastCandidatePos + 1).cmFields.cmStatement_Details = StatementDetails) then
       LastCandidatePos := LastCandidatePos + 1
     else
       Break;
@@ -234,24 +234,24 @@ var
     NextCandidateID         : integer;
     UncodedCount            : integer;
   begin
-    IDToProcess     := MyClient.clRecommended_Mems.Candidate.cpFields.cpCandidate_ID_To_Process;
-    NextCandidateID := MyClient.clRecommended_Mems.Candidate.cpFields.cpNext_Candidate_ID;
+    IDToProcess     := Candidate.cpFields.cpCandidate_ID_To_Process;
+    NextCandidateID := Candidate.cpFields.cpNext_Candidate_ID;
     // Is there another candidate left to process?
     if (IDToProcess < NextCandidateID) then
     begin
       // Yes there is
       Result := False;
-      if (IDToProcess >= MyClient.clRecommended_Mems.Candidates.ItemCount) then
+      if (IDToProcess >= Candidates.ItemCount) then
       begin
-        MyClient.clRecommended_Mems.Candidate.cpFields.cpCandidate_ID_To_Process :=
-          MyClient.clRecommended_Mems.Candidate.cpFields.cpNext_Candidate_ID;
+        Candidate.cpFields.cpCandidate_ID_To_Process :=
+          Candidate.cpFields.cpNext_Candidate_ID;
         Exit;
       end;
       // Get candidate details
-      CandidateMem1 := MyClient.clRecommended_Mems.Candidates.Candidate_Mem_At(IDToProcess);
+      CandidateMem1 := Candidates.Candidate_Mem_At(IDToProcess);
       // Increment next candidate to process
-      MyClient.clRecommended_Mems.Candidate.cpFields.cpCandidate_ID_To_Process :=
-        MyClient.clRecommended_Mems.Candidate.cpFields.cpCandidate_ID_To_Process + 1;
+      Candidate.cpFields.cpCandidate_ID_To_Process :=
+        Candidate.cpFields.cpCandidate_ID_To_Process + 1;
       // Does the candidate have a count >= 3, is manually coded, and it isn't dissected?
       if (CandidateMem1.cmFields.cmCount >= 3) and
          (CandidateMem1.cmFields.cmCoded_By = cbManual) and
@@ -325,7 +325,6 @@ var
                   // There is no matching existing memorisation, so let's add this candidate
                   // to recommended mems. As far as I can see this doesn't need to be added
                   // alphabetically, but we can change this later if needed
-                  // MyClient.clRecommended_Mems.Recommended.Insert();
                   NewRecMem := TRecommended_Mem.Create;
                   NewRecMem.rmFields.rmType                 := CandidateMem1.cmFields.cmType;
                   NewRecMem.rmFields.rmBank_Account_Number  := CandidateMem1.cmFields.cmBank_Account_Number;
@@ -333,7 +332,7 @@ var
                   NewRecMem.rmFields.rmStatement_Details    := CandidateMem1.cmFields.cmStatement_Details;
                   NewRecMem.rmFields.rmManual_Count         := ManuallyCodedCount;
                   NewRecMem.rmFields.rmUncoded_Count        := UncodedCount;
-                  MyClient.clRecommended_Mems.Recommended.Insert(NewRecMem);
+                  Recommended.Insert(NewRecMem);
                   MemAdded := True;
                   Break;
                 end;
@@ -359,11 +358,11 @@ var
     NewCandidateInserted    : boolean;
   begin
     // Is unscanned list empty?
-    if (MyClient.clRecommended_Mems.Unscanned.ItemCount > 0) then
+    if (Unscanned.ItemCount > 0) then
     begin
       try
         // Get first unscanned transaction in unscanned transaction list
-        ut := MyClient.clRecommended_Mems.Unscanned.Unscanned_Transaction_At(0);
+        ut := Unscanned.Unscanned_Transaction_At(0);
 
         // Get transaction details for the transaction that matches the sequence number in our record
         utAccount := MyClient.clBank_Account_List.FindCode(ut.utFields.utBank_Account_Number);
@@ -379,9 +378,9 @@ var
 
         // Does key exist in candidate memorisation list?
         MatchingCandidateFound := False;
-        for i := MyClient.clRecommended_Mems.Candidates.First to MyClient.clRecommended_Mems.Candidates.Last do
+        for i := Candidates.First to Candidates.Last do
         begin
-          cMem := MyClient.clRecommended_Mems.Candidates.Candidate_Mem_At(i);
+          cMem := Candidates.Candidate_Mem_At(i);
           // Checking our unscanned transaction against the candidate memorisation to see if
           // they match. We check to see if the following match:
           //   * Coded By
@@ -398,14 +397,6 @@ var
             // There is already a matching Candidate Mem, so increase its reference count
             cMem.cmFields.cmCount := cMem.cmFields.cmCount + 1;
             MatchingCandidateFound := True;
-            // We will need to rescan this candidate, if only to update it's count in the recommended
-            // mems list. This is particuarly necessary if the count has decreased to 2 or increased to 3,
-            // because this candidate will now need to be removed from/added to the recommended mems list.
-            // So if we've already scanned past this ID, set the scanning back to this ID
-            // CORRECTION: shouldn't need this, because no recommended mems are made until candidate
-            // scanning is complete
-            // if (i < MyClient.clRecommended_Mems.Candidate.cpFields.cpCandidate_ID_To_Process) then
-            //   MyClient.clRecommended_Mems.Candidate.cpFields.cpCandidate_ID_To_Process := i;
             Break;
           end;
         end;
@@ -413,11 +404,11 @@ var
         begin
           // We haven't found a matching Candidate Mem, so create a new one
           cMem := TCandidate_Mem.Create;
-          cMem.cmFields.cmID := MyClient.clRecommended_Mems.Candidate.cpFields.cpNext_Candidate_ID;
+          cMem.cmFields.cmID := Candidate.cpFields.cpNext_Candidate_ID;
 
           // Increase next candidate ID for the next candidate to be created
-          MyClient.clRecommended_Mems.Candidate.cpFields.cpNext_Candidate_ID :=
-            MyClient.clRecommended_Mems.Candidate.cpFields.cpNext_Candidate_ID + 1;
+          Candidate.cpFields.cpNext_Candidate_ID :=
+            Candidate.cpFields.cpNext_Candidate_ID + 1;
 
           // Fill in details for the new candidate
           cMem.cmFields.cmCount := 1;
@@ -428,35 +419,35 @@ var
           cMem.cmFields.cmStatement_Details := pTranRec.txStatement_Details;
 
           // Insert the new candidate in alphabetical order according to Statement Details
-          if (MyClient.clRecommended_Mems.Candidates.ItemCount > 0) then
+          if (Candidates.ItemCount > 0) then
           begin
             NewCandidateInserted := False;
-            for i := MyClient.clRecommended_Mems.Candidates.First to MyClient.clRecommended_Mems.Candidates.Last do
+            for i := Candidates.First to Candidates.Last do
             begin
               if (cMem.cmFields.cmStatement_Details <=
-              MyClient.clRecommended_Mems.Candidates.Candidate_Mem_At(i).cmFields.cmStatement_Details) then
+              Candidates.Candidate_Mem_At(i).cmFields.cmStatement_Details) then
               begin
-                MyClient.clRecommended_Mems.Candidates.AtInsert(i, cMem);
+                Candidates.AtInsert(i, cMem);
                 NewCandidateInserted := True;
                 Break;
               end;
             end;
             if not NewCandidateInserted then
-              MyClient.clRecommended_Mems.Candidates.Insert(cMem); // insert at the end
+              Candidates.Insert(cMem); // insert at the end
           end else
-            MyClient.clRecommended_Mems.Candidates.Insert(cMem); // this is the first candidate in the list
+            Candidates.Insert(cMem); // this is the first candidate in the list
         end;
 
       finally
-        MyClient.clRecommended_Mems.Unscanned.AtDelete(0); // remove unscanned transaction from list
+        Unscanned.AtDelete(0); // remove unscanned transaction from list
       end;
-    end // if (MyClient.clRecommended_Mems.Unscanned.ItemCount > 0) then
+    end // if (Unscanned.ItemCount > 0) then
     else
     begin
       // Candidate mem scanning is complete, recommended mem scanning can begin, set
       // CandidateIDToProcess to 1 to make sure the recommended mem scanning will
       // start from the first candidate
-      MyClient.clRecommended_Mems.Candidate.cpFields.cpCandidate_ID_To_Process := 1;
+      Candidate.cpFields.cpCandidate_ID_To_Process := 1;
     end;
   end;
 begin
@@ -476,7 +467,7 @@ begin
         if (MilliSecondsBetween(StartTime, GetLastCodingFrmKeyPress) <= 2000) then
           Exit; // There has, so let's not do any scanning so that we don't interfere with the user
         // Is the unscanned list empty?
-        if (MyClient.clRecommended_Mems.Unscanned.Last = -1) then
+        if (Unscanned.Last = -1) then
         begin
           // Unscanned list is empty, so do recommended processing
           if DoRecommendedMemProcessing then
@@ -561,9 +552,9 @@ begin
   end;
 
   // Rescan candidates later
-  MyClient.clRecommended_Mems.Candidate.cpFields.cpCandidate_ID_To_Process := 1;
+  Candidate.cpFields.cpCandidate_ID_To_Process := 1;
   // Clear recommended memorisation list
-  MyClient.clRecommended_Mems.Recommended.DeleteAll;
+  Recommended.DeleteAll;
 end;
 
 // Builds the unscanned transactions list for all bank accounts
@@ -610,25 +601,25 @@ var
 begin
   // Delete all unscanned transactions with this account number,
   // so that we don't have to worry about duplicates being added
-  LoopStart := MyClient.clRecommended_Mems.Unscanned.ItemCount - 1; // Deletions will lower the item count, so we have to get this value before doing any deletions
+  LoopStart := Unscanned.ItemCount - 1; // Deletions will lower the item count, so we have to get this value before doing any deletions
   if (LoopStart >= 0) then
     for i := LoopStart to 0 do
-      if (MyClient.clRecommended_Mems.Unscanned.Unscanned_Transaction_At(i).utFields.utBank_Account_Number = AccountNo) then
-        MyClient.clRecommended_Mems.Unscanned.AtDelete(i);
+      if (Unscanned.Unscanned_Transaction_At(i).utFields.utBank_Account_Number = AccountNo) then
+        Unscanned.AtDelete(i);
 
   // Delete all candidates with this account number
-  LoopStart := MyClient.clRecommended_Mems.Candidates.ItemCount - 1;
+  LoopStart := Candidates.ItemCount - 1;
   if (LoopStart >= 0) then
     for i := LoopStart to 0 do
-      if (MyClient.clRecommended_Mems.Candidates.Candidate_Mem_At(i).cmFields.cmBank_Account_Number = AccountNo) then
-        MyClient.clRecommended_Mems.Candidates.AtDelete(i);
+      if (Candidates.Candidate_Mem_At(i).cmFields.cmBank_Account_Number = AccountNo) then
+        Candidates.AtDelete(i);
 
   // Delete all recommended mems with this account number
-  LoopStart := MyClient.clRecommended_Mems.Recommended.ItemCount - 1;
+  LoopStart := Recommended.ItemCount - 1;
   if (LoopStart >= 0) then
     for i := LoopStart to 0 do
-      if (MyClient.clRecommended_Mems.Recommended.Recommended_Mem_At(i).rmFields.rmBank_Account_Number = AccountNo) then
-        MyClient.clRecommended_Mems.Recommended.AtDelete(i);
+      if (Recommended.Recommended_Mem_At(i).rmFields.rmBank_Account_Number = AccountNo) then
+        Recommended.AtDelete(i);
       
   if IsPurge then
   begin
@@ -640,7 +631,7 @@ begin
     // TODO: rescan the account for transactions, add them all to the unscanned list
   end;
   // Will need to rebuild recommended mems later, so set ID To Proces back to the start of Candidates
-  MyClient.clRecommended_Mems.fCandidate.cpFields.cpCandidate_ID_To_Process := 1;
+  fCandidate.cpFields.cpCandidate_ID_To_Process := 1;
 end;
 
 procedure TRecommended_Mems.RemoveAccountFromMems(IsPurge: boolean; BankAccount: TBank_Account);
@@ -659,14 +650,14 @@ end;
 // This is here for debugging purposes
 procedure TRecommended_Mems.ResetAll;
 begin
-  MyClient.clRecommended_Mems.Candidates.DeleteAll;
-  MyClient.clRecommended_Mems.Candidates.Destroy;
-  MyClient.clRecommended_Mems.Recommended.DeleteAll;
-  MyClient.clRecommended_Mems.Recommended.Destroy;
-  MyClient.clRecommended_Mems.Unscanned.DeleteAll;
-  MyClient.clRecommended_Mems.Unscanned.Destroy;
-  MyClient.clRecommended_Mems.Candidate.cpFields.cpCandidate_ID_To_Process := 1;
-  MyClient.clRecommended_Mems.Candidate.cpFields.cpNext_Candidate_ID := 1;
+  Candidates.DeleteAll;
+  Candidates.Destroy;
+  Recommended.DeleteAll;
+  Recommended.Destroy;
+  Unscanned.DeleteAll;
+  Unscanned.Destroy;
+  Candidate.cpFields.cpCandidate_ID_To_Process := 1;
+  Candidate.cpFields.cpNext_Candidate_ID := 1;
 end;
 
 end.
