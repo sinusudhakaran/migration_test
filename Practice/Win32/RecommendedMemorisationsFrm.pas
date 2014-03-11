@@ -389,12 +389,12 @@ begin
   MemLine.mlPercentage := 100 * 10000; // Use 10000 for percentages
   Mem.mdLines.Insert(MemLine);
 
-  try
-    DeleteSelectedMem := false;
-    EditMemorisation(fBankAccount, Mems, Mem, DeleteSelectedMem);
-  finally
+  // OK pressed, and insert mem?
+  DeleteSelectedMem := false;
+  if EditMemorisation(fBankAccount, Mems, Mem, DeleteSelectedMem) then
+    Mems.Insert_Memorisation(Mem)
+  else
     FreeAndNil(Mem);
-  end;
 end;
 
 
