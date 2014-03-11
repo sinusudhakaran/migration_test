@@ -465,9 +465,8 @@ begin
     // Store current time
     StartTime := Time;
     // Are we in the coding screen?
-    InCodingForm := False;
-    if Assigned(TForm(TfrmCoding)) then
-      InCodingForm := (TfrmCoding.ClassName = Screen.ActiveForm.ClassName);
+    ASSERT(assigned(Screen.ActiveForm), 'There was an AV on the line below before - is this why?');
+    InCodingForm := (TfrmCoding.ClassName = Screen.ActiveForm.ClassName);
     if InCodingForm then
     begin
       // Has it been more than 33 milliseconds yet?
