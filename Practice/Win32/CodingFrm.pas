@@ -1768,7 +1768,7 @@ begin
            SendCmdToAllCodingWindows( ecRecodeTrans)
          else
          begin
-           AutoCodeEntries( MyClient, BankAccount, pT^.txType, TranDateFrom, TranDateTo);
+           AutoCodeEntries( MyClient, BankAccount, pT^.txType, TranDateFrom, TranDateTo, True);
            LoadWTLMaintainPos;
            Refresh;
          end;
@@ -8034,7 +8034,7 @@ procedure TfrmCoding.DoReCodeEntries;
 //finalised flag or editing memorisations.
 //reload the transaction list, maintaining the current position
 begin
-   AutoCodeEntries( MyClient, BankAccount, AllEntries, TranDateFrom, TranDateTo);
+   AutoCodeEntries( MyClient, BankAccount, AllEntries, TranDateFrom, TranDateTo, True);
    LoadWTLMaintainPos;
    Refresh;
 end;
@@ -9289,7 +9289,7 @@ end;
 procedure TfrmCoding.SetLastKeyPress;
 begin
   if Assigned(recommended_Mems) then
-    recommended_Mems.SetLastCodingFrmKeyPress;
+    MyClient.clRecommended_Mems.SetLastCodingFrmKeyPress;
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
