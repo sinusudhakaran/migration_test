@@ -73,7 +73,9 @@ uses
   Globals,
   MemorisationsObj,
   MemoriseDlg,
-  bkXPThemes;
+  bkXPThemes,
+  BKMLIO,
+  BKDefs;
 
 const
   ICON_BUTTON = 10;
@@ -370,14 +372,23 @@ var
   Mems: TMemorisations_List;
   Mem: TMemorisation;
   DeleteSelectedMem: boolean;
+  MemLine: pMemorisation_Line_Rec;
 begin
   pData := PTreeData(vstTree.GetNodeData(aNode));
 
+  // Create memorisation
   Mems := fBankAccount.baMemorisations_List;
   Mem := TMemorisation.Create(Mems.AuditMgr);
   Mem.mdFields.mdMatch_On_Statement_Details := true;
   Mem.mdFields.mdStatement_Details :=
     pData.RecommendedMem.rmFields.rmStatement_Details;
+
+  // Create memorisation line
+  MemLine := New_Memorisation_Line_Rec;
+  MemLine.mlAccount := pData.RecommendedMem.rmFields.rmAccount;
+  MemLine.mlPercentage := 100 * 10000; // Use 10000 for percentages
+  Mem.mdLines.Insert(MemLine);
+
   try
     DeleteSelectedMem := false;
     EditMemorisation(fBankAccount, Mems, Mem, DeleteSelectedMem);
