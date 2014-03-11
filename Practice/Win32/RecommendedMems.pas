@@ -242,7 +242,11 @@ var
       // Yes there is
       Result := False;
       if (IDToProcess >= MyClient.clRecommended_Mems.Candidates.ItemCount) then
+      begin
+        MyClient.clRecommended_Mems.Candidate.cpFields.cpCandidate_ID_To_Process :=
+          MyClient.clRecommended_Mems.Candidate.cpFields.cpNext_Candidate_ID;
         Exit;
+      end;
       // Get candidate details
       CandidateMem1 := MyClient.clRecommended_Mems.Candidates.Candidate_Mem_At(IDToProcess);
       // Increment next candidate to process
@@ -380,11 +384,13 @@ var
           cMem := MyClient.clRecommended_Mems.Candidates.Candidate_Mem_At(i);
           // Checking our unscanned transaction against the candidate memorisation to see if
           // they match. We check to see if the following match:
+          //   * Coded By
           //   * Entry Type
           //   * Bank Account
           //   * Chart of Accounts code
           //   * Statement Details
-          if (pTranRec.txType = cMem.cmFields.cmType) and
+          if (pTranRec.txCoded_By = cMem.cmFields.cmCoded_By) and
+             (pTranRec.txType = cMem.cmFields.cmType) and
              (utAccount.baFields.baBank_Account_Number = cMem.cmFields.cmBank_Account_Number) and
              (pTranRec.txAccount = cMem.cmFields.cmAccount) and
              (pTranRec.txStatement_Details = cMem.cmFields.cmStatement_Details) then
@@ -541,6 +547,7 @@ begin
     if (Candidates.Candidate_Mem_At(MatchingCandidatePos).cmFields.cmCount = 0) then
       // Yes, so remove this candidate from the candidate list
       Candidates.AtDelete(MatchingCandidatePos);
+
     // Is this an edit operation (rather than a delete)?
     if IsEditOperation then
     begin
@@ -553,6 +560,11 @@ begin
       Unscanned.Insert(NewUnscannedTran);
     end;
   end;
+
+  // Rescan candidates later
+  MyClient.clRecommended_Mems.Candidate.cpFields.cpCandidate_ID_To_Process := 1;
+  // Clear recommended memorisation list
+  MyClient.clRecommended_Mems.Recommended.DeleteAll;
 end;
 
 // Builds the unscanned transactions list for all bank accounts

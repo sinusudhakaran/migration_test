@@ -3321,8 +3321,6 @@ begin
 
       if not StartEditingState then Exit;
 
-      if (FieldID = ceAccount) then
-        MyClient.clRecommended_Mems.UpdateCandidateMems(pT, True);
       with ColumnFmtList.ColumnDefn_At(ActiveCol)^ do begin
          if (cdTableCell is TOvcTCString) then begin
             TEdit(cdTableCell.CellEditor).Text := '';

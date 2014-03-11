@@ -20,7 +20,8 @@ USES
 Procedure AutoCodeEntries( aClient : TClientObj;
                            BA : TBank_Account;
                            CONST EntryType : Byte;
-                           CONST FromDate, ToDate : LongInt );
+                           CONST FromDate, ToDate : LongInt;
+                           UpdateRecMemScan: boolean = False );
 
 Function FindMemorisation( const aBankAccount : TBank_Account;
                            const aTransaction : pTransaction_Rec;
@@ -64,7 +65,8 @@ const
 Procedure AutoCodeEntries( aClient : TClientObj;
                            BA : TBank_Account;
                            CONST EntryType : Byte;
-                           CONST FromDate, ToDate : LongInt );
+                           CONST FromDate, ToDate : LongInt;
+                           UpdateRecMemScan: boolean = False );
 
 VAR
    Mask           : Bk5CodeStr;
@@ -251,6 +253,10 @@ Begin
             If Edited then
               Continue;
 
+            // Update recommended memorisation scanning
+            if UpdateRecMemScan then
+              MyClient.clRecommended_Mems.UpdateCandidateMems(Transaction, True);
+
             //clear any existing coding
             txAccount         := '';
             txJob_Code        := '';
@@ -312,7 +318,7 @@ Begin
                       txCoded_By := BKCONST.cbMemorisedC;
 
                     txMatched_By := MX.mdFields;
-                    
+
                     mdDate_Last_Applied := txDate_Effective;
 
                     if not Mx.IsDissected then
@@ -731,7 +737,7 @@ Begin
                           txGST_Has_Been_Edited := false;
                           Continue;
                        end;
-                       
+
                        txTransfered_To_Online := False;
                     end;
                  end;
