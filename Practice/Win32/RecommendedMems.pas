@@ -30,7 +30,7 @@ type
 
     function GetLastCodingFrmKeyPress: TDateTime;
     procedure GetMatchingCandidateRange(StatementDetails: string; var FirstCandidatePos, LastCandidatePos: integer);
-    procedure RemoveAccountFromMems(IsPurge: boolean; AccountNo: string); Overload;
+    procedure RemoveAccountFromMems(AccountNo: string); Overload;
   public
     constructor Create(const aBankAccounts: TBank_Account_List);
     destructor  Destroy; override;
@@ -46,8 +46,8 @@ type
     procedure MemScan;
     procedure UpdateCandidateMems(TranRec: pTransaction_Rec; IsEditOperation: boolean);
     procedure SetLastCodingFrmKeyPress;
-    procedure RemoveAccountFromMems(IsPurge: boolean; BankAccount: TBank_Account); Overload;
-    procedure RemoveAccountsFromMems(IsPurge: boolean; AccountList: TStringList);
+    procedure RemoveAccountFromMems(BankAccount: TBank_Account); Overload;
+    procedure RemoveAccountsFromMems(AccountList: TStringList);
     procedure PopulateUnscannedListOneAccount(BankAccount: TBank_Account);
     procedure PopulateUnscannedListAllAccounts;
     procedure ResetAll;
@@ -67,6 +67,7 @@ uses
   Dialogs,
   Forms,
   Globals,
+  MainFrm,
   MemorisationsObj,
   OSFont,
   rmObj32,
@@ -135,51 +136,56 @@ var
   CandidateList: TCandidate_Mem_List;
   SearchedStatementDetails: string;
 begin
-  CandidateList := Candidates;
-  First := CandidateList.First;
-  Last := CandidateList.Last;
-  Found := False;
+  try
+    frmMain.MemScanIsBusy := True;
+    CandidateList := Candidates;
+    First := CandidateList.First;
+    Last := CandidateList.Last;
+    Found := False;
 
-  // Find a Candidate whose Statement Details matched those we have passed in
-  FoundMatchPosition := 0; // This value shouldn't get used
-  while (First <= Last) and (not Found) do
-  begin
-    // Get the middle of the range
-    Pivot := (First + Last) div 2;
-    SearchedStatementDetails := CandidateList.Candidate_Mem_At(Pivot).cmFields.cmStatement_Details;
-    // Compare the string in the middle with the searched one
-    if (SearchedStatementDetails = StatementDetails) then
+    // Find a Candidate whose Statement Details matched those we have passed in
+    FoundMatchPosition := 0; // This value shouldn't get used
+    while (First <= Last) and (not Found) do
     begin
-      Found := True;
-      FoundMatchPosition := Pivot;
-    end
-    else if (SearchedStatementDetails > StatementDetails) then
-      // Now we'll search within the first half
-      Last := Pivot - 1
-    else
-      // Now we'll search within the second half
-      First := Pivot + 1;
-  end;
+      // Get the middle of the range
+      Pivot := (First + Last) div 2;
+      SearchedStatementDetails := CandidateList.Candidate_Mem_At(Pivot).cmFields.cmStatement_Details;
+      // Compare the string in the middle with the searched one
+      if (SearchedStatementDetails = StatementDetails) then
+      begin
+        Found := True;
+        FoundMatchPosition := Pivot;
+      end
+      else if (SearchedStatementDetails > StatementDetails) then
+        // Now we'll search within the first half
+        Last := Pivot - 1
+      else
+        // Now we'll search within the second half
+        First := Pivot + 1;
+    end;
 
-  // In a normal binary search we would be done, but in our case there may be several
-  // matching candidates (we wouldn't expect there to be too many), and we need to
-  // know about them all. So let's find the positions of the first and last candidates
-  FirstCandidatePos := FoundMatchPosition;
-  while (FirstCandidatePos > First) do
-  begin
-    if (CandidateList.Candidate_Mem_At(FirstCandidatePos - 1).cmFields.cmStatement_Details = StatementDetails) then
-      FirstCandidatePos := FirstCandidatePos - 1
-    else
-      Break;
-  end;
+    // In a normal binary search we would be done, but in our case there may be several
+    // matching candidates (we wouldn't expect there to be too many), and we need to
+    // know about them all. So let's find the positions of the first and last candidates
+    FirstCandidatePos := FoundMatchPosition;
+    while (FirstCandidatePos > First) do
+    begin
+      if (CandidateList.Candidate_Mem_At(FirstCandidatePos - 1).cmFields.cmStatement_Details = StatementDetails) then
+        FirstCandidatePos := FirstCandidatePos - 1
+      else
+        Break;
+    end;
 
-  LastCandidatePos := FoundMatchPosition;
-  while (LastCandidatePos < Last) do
-  begin
-    if (CandidateList.Candidate_Mem_At(LastCandidatePos + 1).cmFields.cmStatement_Details = StatementDetails) then
-      LastCandidatePos := LastCandidatePos + 1
-    else
-      Break;
+    LastCandidatePos := FoundMatchPosition;
+    while (LastCandidatePos < Last) do
+    begin
+      if (CandidateList.Candidate_Mem_At(LastCandidatePos + 1).cmFields.cmStatement_Details = StatementDetails) then
+        LastCandidatePos := LastCandidatePos + 1
+      else
+        Break;
+    end;
+  finally
+    frmMain.MemScanIsBusy := False;
   end;
 end;
 
@@ -498,63 +504,68 @@ var
 begin
   if not Assigned(TranRec) then
     Exit; // this shouldn't happen!
+  try
+    frmMain.MemScanIsBusy := True;
 
-  // Search CandidateMems for a matching key. We can use binary search because
-  // CandidateMems has been created in alphabetical order according to the
-  // Statement Details field.
-  // Key =
-  // * Entry Type
-  // * Bank Account Number
-  // * Coding Type
-  // * Account Code
-  // * Statement Details
-  Account := TBank_Account(TranRec.txBank_Account);
-  GetMatchingCandidateRange(TranRec.txStatement_Details,
-                            FirstCandidatePos,
-                            LastCandidatePos);
-  MatchingCandidatePos := -1;
-  for CandidateInt := FirstCandidatePos to LastCandidatePos do
-  begin
-    CandidateMemRec := Candidates.Candidate_Mem_At(CandidateInt).cmFields;
-    // Statement details has already been matched, no need to check it again
-    if (CandidateMemRec.cmType = TranRec.txType) and
-    (CandidateMemRec.cmBank_Account_Number = Account.baFields.baBank_Account_Number) and
-    (CandidateMemRec.cmCoded_By = TranRec.txCoded_By) and
-    (CandidateMemRec.cmAccount = TranRec.txAccount) then
+    // Search CandidateMems for a matching key. We can use binary search because
+    // CandidateMems has been created in alphabetical order according to the
+    // Statement Details field.
+    // Key =
+    // * Entry Type
+    // * Bank Account Number
+    // * Coding Type
+    // * Account Code
+    // * Statement Details
+    Account := TBank_Account(TranRec.txBank_Account);
+    GetMatchingCandidateRange(TranRec.txStatement_Details,
+                              FirstCandidatePos,
+                              LastCandidatePos);
+    MatchingCandidatePos := -1;
+    for CandidateInt := FirstCandidatePos to LastCandidatePos do
     begin
-      MatchingCandidatePos := CandidateInt;
-      break;
-    end;    
-  end;
-
-  // Has a match been found?
-  if (MatchingCandidatePos <> -1) then
-  begin
-    CandidateMemRec := Candidates.Candidate_Mem_At(MatchingCandidatePos).cmFields;
-    // Decrease count in matching CandidateMem
-    Candidates.Candidate_Mem_At(MatchingCandidatePos).cmFields.cmCount := CandidateMemRec.cmCount - 1;
-    // Does the count for this CandidateMem now equal zero?
-    if (Candidates.Candidate_Mem_At(MatchingCandidatePos).cmFields.cmCount = 0) then
-      // Yes, so remove this candidate from the candidate list
-      Candidates.AtDelete(MatchingCandidatePos);
-
-    // Is this an edit operation (rather than a delete)?
-    if IsEditOperation then
-    begin
-      // Add modified transaction to unscanned list. We can use the old details
-      // (bank account and sequence number), because they don't change when a
-      // transaction gets modified by the user
-      NewUnscannedTran := TUnscanned_Transaction.Create;
-      NewUnscannedTran.utFields.utBank_Account_Number := Account.baFields.baBank_Account_Number;
-      NewUnscannedTran.utFields.utSequence_No := TranRec.txSequence_No;
-      Unscanned.Insert(NewUnscannedTran);
+      CandidateMemRec := Candidates.Candidate_Mem_At(CandidateInt).cmFields;
+      // Statement details has already been matched, no need to check it again
+      if (CandidateMemRec.cmType = TranRec.txType) and
+      (CandidateMemRec.cmBank_Account_Number = Account.baFields.baBank_Account_Number) and
+      (CandidateMemRec.cmCoded_By = TranRec.txCoded_By) and
+      (CandidateMemRec.cmAccount = TranRec.txAccount) then
+      begin
+        MatchingCandidatePos := CandidateInt;
+        break;
+      end;
     end;
-  end;
 
-  // Rescan candidates later
-  Candidate.cpFields.cpCandidate_ID_To_Process := 1;
-  // Clear recommended memorisation list
-  Recommended.DeleteAll;
+    // Has a match been found?
+    if (MatchingCandidatePos <> -1) then
+    begin
+      CandidateMemRec := Candidates.Candidate_Mem_At(MatchingCandidatePos).cmFields;
+      // Decrease count in matching CandidateMem
+      Candidates.Candidate_Mem_At(MatchingCandidatePos).cmFields.cmCount := CandidateMemRec.cmCount - 1;
+      // Does the count for this CandidateMem now equal zero?
+      if (Candidates.Candidate_Mem_At(MatchingCandidatePos).cmFields.cmCount = 0) then
+        // Yes, so remove this candidate from the candidate list
+        Candidates.AtDelete(MatchingCandidatePos);
+
+      // Is this an edit operation (rather than a delete)?
+      if IsEditOperation then
+      begin
+        // Add modified transaction to unscanned list. We can use the old details
+        // (bank account and sequence number), because they don't change when a
+        // transaction gets modified by the user
+        NewUnscannedTran := TUnscanned_Transaction.Create;
+        NewUnscannedTran.utFields.utBank_Account_Number := Account.baFields.baBank_Account_Number;
+        NewUnscannedTran.utFields.utSequence_No := TranRec.txSequence_No;
+        Unscanned.Insert(NewUnscannedTran);
+      end;
+    end;
+
+    // Rescan candidates later
+    Candidate.cpFields.cpCandidate_ID_To_Process := 1;
+    // Clear recommended memorisation list
+    Recommended.DeleteAll;
+  finally
+    frmMain.MemScanIsBusy := False;
+  end;
 end;
 
 // Builds the unscanned transactions list for all bank accounts
@@ -577,15 +588,20 @@ var
   New: TUnscanned_Transaction;
   Transaction: pTransaction_Rec;
 begin
-  for iTransaction := 0 to BankAccount.baTransaction_List.ItemCount-1 do
-  begin
-    Transaction := BankAccount.baTransaction_List.Transaction_At(iTransaction);
+  try
+    frmMain.MemScanIsBusy := True;
+    for iTransaction := 0 to BankAccount.baTransaction_List.ItemCount-1 do
+    begin
+      Transaction := BankAccount.baTransaction_List.Transaction_At(iTransaction);
 
-    New := TUnscanned_Transaction.Create;
-    New.utFields.utBank_Account_Number := BankAccount.baFields.baBank_Account_Number;
-    New.utFields.utSequence_No := Transaction.txSequence_No;
+      New := TUnscanned_Transaction.Create;
+      New.utFields.utBank_Account_Number := BankAccount.baFields.baBank_Account_Number;
+      New.utFields.utSequence_No := Transaction.txSequence_No;
 
-    Unscanned.Insert(New);
+      Unscanned.Insert(New);
+    end;
+  finally
+    frmMain.MemScanIsBusy := False;
   end;
 end;
 
@@ -593,71 +609,90 @@ end;
 // * Purging an account (in this case, via the RemoveAccountsFromMems method below this one)
 // * Merging an account
 // * Unattaching an account
-procedure TRecommended_Mems.RemoveAccountFromMems(IsPurge: boolean; AccountNo: string);
+procedure TRecommended_Mems.RemoveAccountFromMems(AccountNo: string);
 var
   BankAccount: TBank_Account;
   i: integer;
   LoopStart: integer;
 begin
-  // Delete all unscanned transactions with this account number,
-  // so that we don't have to worry about duplicates being added
-  LoopStart := Unscanned.ItemCount - 1; // Deletions will lower the item count, so we have to get this value before doing any deletions
-  if (LoopStart >= 0) then
-    for i := LoopStart to 0 do
-      if (Unscanned.Unscanned_Transaction_At(i).utFields.utBank_Account_Number = AccountNo) then
-        Unscanned.AtDelete(i);
+  try
+    frmMain.MemScanIsBusy := True;
+    // Delete all unscanned transactions with this account number,
+    // so that we don't have to worry about duplicates being added
+    LoopStart := Unscanned.ItemCount - 1; // Deletions will lower the item count, so we have to get this value before doing any deletions
+    if (LoopStart >= 0) then
+      for i := LoopStart downto 0 do
+        if (Unscanned.Unscanned_Transaction_At(i).utFields.utBank_Account_Number = AccountNo) then
+          Unscanned.AtDelete(i);
 
-  // Delete all candidates with this account number
-  LoopStart := Candidates.ItemCount - 1;
-  if (LoopStart >= 0) then
-    for i := LoopStart to 0 do
-      if (Candidates.Candidate_Mem_At(i).cmFields.cmBank_Account_Number = AccountNo) then
-        Candidates.AtDelete(i);
+    // Delete all candidates with this account number
+    LoopStart := Candidates.ItemCount - 1;
+    if (LoopStart >= 0) then
+      for i := LoopStart downto 0 do
+        if (Candidates.Candidate_Mem_At(i).cmFields.cmBank_Account_Number = AccountNo) then
+          Candidates.AtDelete(i);
 
-  // Delete all recommended mems with this account number
-  LoopStart := Recommended.ItemCount - 1;
-  if (LoopStart >= 0) then
-    for i := LoopStart to 0 do
-      if (Recommended.Recommended_Mem_At(i).rmFields.rmBank_Account_Number = AccountNo) then
-        Recommended.AtDelete(i);
-      
-  if IsPurge then
-  begin
-    // Purge may only remove some of the data for this account, but we have removed all the
-    // candidates with a matching account number, so we need to add all the transactions
-    // for this account to the unscanned list
-    BankAccount := MyClient.clBank_Account_List.FindCode(AccountNo);
-    PopulateUnscannedListOneAccount(BankAccount);
-    // TODO: rescan the account for transactions, add them all to the unscanned list
+    // Delete all recommended mems with this account number
+    LoopStart := Recommended.ItemCount - 1;
+    if (LoopStart >= 0) then
+      for i := LoopStart downto 0 do
+        if (Recommended.Recommended_Mem_At(i).rmFields.rmBank_Account_Number = AccountNo) then
+          Recommended.AtDelete(i);
+
+    // Will need to rebuild recommended mems later, so set ID To Proces back to the start of Candidates
+    fCandidate.cpFields.cpCandidate_ID_To_Process := 1;
+  finally
+    frmMain.MemScanIsBusy := False;
   end;
-  // Will need to rebuild recommended mems later, so set ID To Proces back to the start of Candidates
-  fCandidate.cpFields.cpCandidate_ID_To_Process := 1;
 end;
 
-procedure TRecommended_Mems.RemoveAccountFromMems(IsPurge: boolean; BankAccount: TBank_Account);
+procedure TRecommended_Mems.RemoveAccountFromMems(BankAccount: TBank_Account);
 begin
-  RemoveAccountFromMems(IsPurge, BankAccount.baFields.baBank_Account_Number);
+  RemoveAccountFromMems(BankAccount.baFields.baBank_Account_Number);
 end;
 
-procedure TRecommended_Mems.RemoveAccountsFromMems(IsPurge: boolean; AccountList: TStringList);
+// RemoveAccountsFromMems is only called when purging transactions, if you're
+// using it for other reasons you may not want the part where it populates
+// the unscanned list, see comment below
+procedure TRecommended_Mems.RemoveAccountsFromMems(AccountList: TStringList);
 var
+  BankAccount: TBank_Account;
   i: integer;
 begin
   for i := 0 to AccountList.Count - 1 do
-    RemoveAccountFromMems(IsPurge, AccountList.Strings[i]);
+    RemoveAccountFromMems(AccountList.Strings[i]);
+
+  frmMain.MemScanIsBusy := True;
+  try
+    // Purge may only remove some of the data for this account, but we have removed all the
+    // candidates with a matching account number, so we need to add all the transactions
+    // for this account to the unscanned list
+    for i := 0 to AccountList.Count - 1 do
+    begin
+      BankAccount := MyClient.clBank_Account_List.FindCode(AccountList.Strings[i]);
+      PopulateUnscannedListOneAccount(BankAccount);
+    end;
+  finally
+    frmMain.MemScanIsBusy := False;
+  end;
 end;
 
 // This is here for debugging purposes
 procedure TRecommended_Mems.ResetAll;
 begin
-  Candidates.DeleteAll;
-  Candidates.Destroy;
-  Recommended.DeleteAll;
-  Recommended.Destroy;
-  Unscanned.DeleteAll;
-  Unscanned.Destroy;
-  Candidate.cpFields.cpCandidate_ID_To_Process := 1;
-  Candidate.cpFields.cpNext_Candidate_ID := 1;
+  try
+    frmMain.MemScanIsBusy := True;
+    Candidates.DeleteAll;
+    Candidates.Destroy;
+    Recommended.DeleteAll;
+    Recommended.Destroy;
+    Unscanned.DeleteAll;
+    Unscanned.Destroy;
+    Candidate.cpFields.cpCandidate_ID_To_Process := 1;
+    Candidate.cpFields.cpNext_Candidate_ID := 1;
+  finally
+    frmMain.MemScanIsBusy := False;
+  end;                                                  
 end;
 
 end.
