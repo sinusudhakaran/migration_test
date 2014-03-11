@@ -432,8 +432,8 @@ begin
                ToDate   := DateSelector.eDateTo.AsStDate;
                TempBa   := TBank_Account( cmbTempAccount.Items.Objects[ cmbTempAccount.ItemIndex]);
                BankBa   := TBank_Account( cmbBankAccount.Items.Objects[ cmbBankAccount.ItemIndex]);
-               MyClient.clRecommended_Mems.RemoveAccountFromMems(False, TempBa);
-               MyClient.clRecommended_Mems.RemoveAccountFromMems(False, BankBa);
+               MyClient.clRecommended_Mems.RemoveAccountFromMems(TempBa);
+               MyClient.clRecommended_Mems.RemoveAccountFromMems(BankBa);
                //get date range for temp account transactions - no need to delete any more transactions
                //than necessary
                GetStatsForAccount( TempBa, FromDate, ToDate, TempEntries, TempFromDate, TempToDate);

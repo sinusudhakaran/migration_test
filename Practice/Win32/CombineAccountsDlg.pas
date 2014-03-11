@@ -168,8 +168,8 @@ begin
         try
           FromBa   := TBank_Account( cmbBankAccounts.Items.Objects[ cmbBankAccounts.ItemIndex]);
           ToBa   := TBank_Account( cmbCombine.Items.Objects[ cmbCombine.ItemIndex]);
-          MyClient.clRecommended_Mems.RemoveAccountFromMems(False, FromBa);
-          MyClient.clRecommended_Mems.RemoveAccountFromMems(False, ToBa);
+          MyClient.clRecommended_Mems.RemoveAccountFromMems(FromBa);
+          MyClient.clRecommended_Mems.RemoveAccountFromMems(ToBa);
           TransferCount := 0;
           LogUtil.LogMsg( lmInfo, UnitName, 'Combining entries from ' + FromBa.baFields.baBank_Account_Number + ' to ' + ToBa.BaFields.baBank_Account_Number);
           // Loop around transfering the trx and then deleting trx until end of list
