@@ -1213,7 +1213,8 @@ var
 begin
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
   EnableOrDisablePercentageInvalidControls(True);
-  Budget.buFields.buIs_Inclusive := ShowFiguresGSTInclusive;
+  if Assigned(Budget) then  
+    Budget.buFields.buIs_Inclusive := ShowFiguresGSTInclusive;
 
   UpdateAllLines;
 

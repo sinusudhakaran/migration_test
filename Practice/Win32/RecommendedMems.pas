@@ -606,16 +606,29 @@ procedure TRecommended_Mems.RemoveAccountFromMems(IsPurge: boolean; AccountNo: s
 var
   BankAccount: TBank_Account;
   i: integer;
+  LoopStart: integer;
 begin
+  // Delete all unscanned transactions with this account number,
+  // so that we don't have to worry about duplicates being added
+  LoopStart := MyClient.clRecommended_Mems.Unscanned.ItemCount - 1; // Deletions will lower the item count, so we have to get this value before doing any deletions
+  if (LoopStart >= 0) then
+    for i := LoopStart to 0 do
+      if (MyClient.clRecommended_Mems.Unscanned.Unscanned_Transaction_At(i).utFields.utBank_Account_Number = AccountNo) then
+        MyClient.clRecommended_Mems.Unscanned.AtDelete(i);
+
   // Delete all candidates with this account number
-  for i := MyClient.clRecommended_Mems.Candidates.First to MyClient.clRecommended_Mems.Candidates.Last do
-    if (MyClient.clRecommended_Mems.Candidates.Candidate_Mem_At(i).cmFields.cmBank_Account_Number = AccountNo) then
-      MyClient.clRecommended_Mems.Candidates.AtDelete(i);
+  LoopStart := MyClient.clRecommended_Mems.Candidates.ItemCount - 1;
+  if (LoopStart >= 0) then
+    for i := LoopStart to 0 do
+      if (MyClient.clRecommended_Mems.Candidates.Candidate_Mem_At(i).cmFields.cmBank_Account_Number = AccountNo) then
+        MyClient.clRecommended_Mems.Candidates.AtDelete(i);
 
   // Delete all recommended mems with this account number
-  for i := MyClient.clRecommended_Mems.Recommended.First to MyClient.clRecommended_Mems.Recommended.Last do
-    if (MyClient.clRecommended_Mems.Recommended.Recommended_Mem_At(i).rmFields.rmBank_Account_Number = AccountNo) then
-      MyClient.clRecommended_Mems.Recommended.AtDelete(i);
+  LoopStart := MyClient.clRecommended_Mems.Recommended.ItemCount - 1;
+  if (LoopStart >= 0) then
+    for i := LoopStart to 0 do
+      if (MyClient.clRecommended_Mems.Recommended.Recommended_Mem_At(i).rmFields.rmBank_Account_Number = AccountNo) then
+        MyClient.clRecommended_Mems.Recommended.AtDelete(i);
       
   if IsPurge then
   begin
