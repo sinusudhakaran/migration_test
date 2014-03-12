@@ -106,7 +106,8 @@ uses
   ForexHelpers,
   ExchangeGainLoss,
   bkProduct,
-  bkBranding;
+  bkBranding,
+  RecommendedMems;
 
 const
   UnitName = 'FILES';
@@ -1148,6 +1149,7 @@ begin
     //OpenAClient handles the admin system
     if CloseClient then
       OpenAClient(OpenCode,MyClient,false, True, False, IsDDE);  //allow read only
+    MyClient.clRecommended_Mems := TRecommended_Mems.Create(MyClient.clBank_Account_List);
 
     if Assigned(MyClient) then
     begin

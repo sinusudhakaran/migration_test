@@ -367,17 +367,21 @@ var
     if (Unscanned.ItemCount > 0) then
     begin
       try
-        // Get first unscanned transaction in unscanned transaction list
-        ut := Unscanned.Unscanned_Transaction_At(0);
+        try
+          // Get first unscanned transaction in unscanned transaction list
+          ut := Unscanned.Unscanned_Transaction_At(0);
 
-        // Get transaction details for the transaction that matches the sequence number in our record
-        utAccount := MyClient.clBank_Account_List.FindCode(ut.utFields.utBank_Account_Number);
-        pTranRec := nil;
-        for i := utAccount.baTransaction_List.First to utAccount.baTransaction_List.Last do
-        begin
-          pTranRec := utAccount.baTransaction_List.Transaction_At(i);
-          if (pTranRec.txSequence_No = ut.utFields.utSequence_No) then
-            break;
+          // Get transaction details for the transaction that matches the sequence number in our record
+          utAccount := MyClient.clBank_Account_List.FindCode(ut.utFields.utBank_Account_Number);
+          pTranRec := nil;
+          for i := utAccount.baTransaction_List.First to utAccount.baTransaction_List.Last do
+          begin
+            pTranRec := utAccount.baTransaction_List.Transaction_At(i);
+            if (pTranRec.txSequence_No = ut.utFields.utSequence_No) then
+              break;
+          end;
+        finally
+          FreeAndNil(ut);
         end;
         if (pTranRec = nil) then
           Exit; // Shouldn't get to here
@@ -552,10 +556,14 @@ begin
         // Add modified transaction to unscanned list. We can use the old details
         // (bank account and sequence number), because they don't change when a
         // transaction gets modified by the user
-        NewUnscannedTran := TUnscanned_Transaction.Create;
-        NewUnscannedTran.utFields.utBank_Account_Number := Account.baFields.baBank_Account_Number;
-        NewUnscannedTran.utFields.utSequence_No := TranRec.txSequence_No;
-        Unscanned.Insert(NewUnscannedTran);
+        try
+          NewUnscannedTran := TUnscanned_Transaction.Create;
+          NewUnscannedTran.utFields.utBank_Account_Number := Account.baFields.baBank_Account_Number;
+          NewUnscannedTran.utFields.utSequence_No := TranRec.txSequence_No;
+          Unscanned.Insert(NewUnscannedTran);
+        finally
+          FreeAndNil(NewUnscannedTran);
+        end;
       end;
     end;
 
@@ -593,12 +601,14 @@ begin
     for iTransaction := 0 to BankAccount.baTransaction_List.ItemCount-1 do
     begin
       Transaction := BankAccount.baTransaction_List.Transaction_At(iTransaction);
-
-      New := TUnscanned_Transaction.Create;
-      New.utFields.utBank_Account_Number := BankAccount.baFields.baBank_Account_Number;
-      New.utFields.utSequence_No := Transaction.txSequence_No;
-
-      Unscanned.Insert(New);
+      try
+        New := TUnscanned_Transaction.Create;
+        New.utFields.utBank_Account_Number := BankAccount.baFields.baBank_Account_Number;
+        New.utFields.utSequence_No := Transaction.txSequence_No;
+        Unscanned.Insert(New);
+      finally
+        New := nil;
+      end;
     end;
   finally
     frmMain.MemScanIsBusy := False;
@@ -611,7 +621,6 @@ end;
 // * Unattaching an account
 procedure TRecommended_Mems.RemoveAccountFromMems(AccountNo: string);
 var
-  BankAccount: TBank_Account;
   i: integer;
   LoopStart: integer;
 begin
