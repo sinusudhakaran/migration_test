@@ -11,6 +11,7 @@ INTERFACE
 
 CONST
   BRAND_FULL_NAME = 'MYOB BankLink';
+  BRAND_GROUP_NAME = 'MYOB Group';
   BRAND_SHORT_NAME  = 'BankLink';
   BRAND_COPYRIGHT = 'MYOB BankLink Limited';
   BRAND_PRACTICE = 'BankLink Practice';

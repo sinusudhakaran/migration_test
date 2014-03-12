@@ -441,9 +441,11 @@ begin
   NewLine;
   HalfNewLine;
   TextLine('6.', NumColumn, OutputRight);
-  TextLine('By signing below I/we agree that my/our personal information may be collected, stored, used and disclosed by ' + BRAND_FULL_NAME, OutputLeft, OutputRight);
+  TextLine('By signing below I/we acknowledge that my/our personal information may be collected, stored, used and disclosed by', OutputLeft, OutputRight);
   NewLine;
-  TextLine('in accordance with the ' + BRAND_FULL_NAME + ' Privacy Policy [http://www.banklink.com.au/index.php/privacy].', OutputLeft, OutputRight);
+  TextLine(BRAND_FULL_NAME + ' in accordance with the ' + BRAND_GROUP_NAME + ' Privacy Disclosure Statement (www.myob.com.au/privacy-disclosure)', OutputLeft, OutputRight);
+  NewLine;
+  TextLine('and the ' + BRAND_FULL_NAME + ' Privacy Policy (http://www.banklink.com.au/index.php/privacy).', OutputLeft, OutputRight);
 
   //----------------------------------------------------------------------------
   // Footer works from the bottom up so we align with the bottom properly
