@@ -139,10 +139,6 @@ object dlgPayeeDetail: TdlgPayeeDetail
     OnChange = PageControl1Change
     object tsPayeeDetails: TTabSheet
       Caption = 'Payee Details'
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object pnlMain: TPanel
         Left = 0
         Top = 101
@@ -197,7 +193,14 @@ object dlgPayeeDetail: TdlgPayeeDetail
           OnMouseDown = tblSplitMouseDown
           OnUserCommand = tblSplitUserCommand
           CellData = (
-            'dlgPayeeDetail.Header')
+            'dlgPayeeDetail.Header'
+            'dlgPayeeDetail.colLineType'
+            'dlgPayeeDetail.colPercent'
+            'dlgPayeeDetail.ColAmount'
+            'dlgPayeeDetail.ColGSTCode'
+            'dlgPayeeDetail.colNarration'
+            'dlgPayeeDetail.ColDesc'
+            'dlgPayeeDetail.ColAcct')
           RowData = (
             21)
           ColData = (
@@ -382,7 +385,7 @@ object dlgPayeeDetail: TdlgPayeeDetail
         Left = 21
         Top = 16
         Width = 508
-        Height = 321
+        Height = 273
         Caption = 'Contractor Type'
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
@@ -393,7 +396,7 @@ object dlgPayeeDetail: TdlgPayeeDetail
         TabOrder = 0
         object lblPayeeSurname: TLabel
           Left = 36
-          Top = 58
+          Top = 60
           Width = 90
           Height = 16
           Caption = 'Payee &Surname'
@@ -401,7 +404,7 @@ object dlgPayeeDetail: TdlgPayeeDetail
         end
         object lblGivenName: TLabel
           Left = 36
-          Top = 95
+          Top = 90
           Width = 106
           Height = 16
           Caption = 'Payee &Given Name'
@@ -409,7 +412,7 @@ object dlgPayeeDetail: TdlgPayeeDetail
         end
         object lblSecondGivenName: TLabel
           Left = 36
-          Top = 135
+          Top = 120
           Width = 152
           Height = 16
           Caption = 'Payee Second Given Name'
@@ -417,7 +420,7 @@ object dlgPayeeDetail: TdlgPayeeDetail
         end
         object lblBusinessName: TLabel
           Left = 36
-          Top = 221
+          Top = 180
           Width = 86
           Height = 16
           Caption = 'Business Name'
@@ -425,7 +428,7 @@ object dlgPayeeDetail: TdlgPayeeDetail
         end
         object lblTradingName: TLabel
           Left = 36
-          Top = 258
+          Top = 210
           Width = 81
           Height = 16
           Caption = 'Trading Name'
@@ -433,7 +436,7 @@ object dlgPayeeDetail: TdlgPayeeDetail
         end
         object edtPayeeSurname: TEdit
           Left = 200
-          Top = 55
+          Top = 57
           Width = 260
           Height = 21
           BorderStyle = bsNone
@@ -445,7 +448,7 @@ object dlgPayeeDetail: TdlgPayeeDetail
         end
         object edtPayeeGivenName: TEdit
           Left = 200
-          Top = 92
+          Top = 87
           Width = 260
           Height = 21
           BorderStyle = bsNone
@@ -457,7 +460,7 @@ object dlgPayeeDetail: TdlgPayeeDetail
         end
         object edtSecondGivenName: TEdit
           Left = 200
-          Top = 132
+          Top = 117
           Width = 260
           Height = 21
           BorderStyle = bsNone
@@ -469,7 +472,7 @@ object dlgPayeeDetail: TdlgPayeeDetail
         end
         object radIndividual: TRadioButton
           Left = 17
-          Top = 24
+          Top = 30
           Width = 416
           Height = 17
           Caption = 'Individual'
@@ -478,7 +481,7 @@ object dlgPayeeDetail: TdlgPayeeDetail
         end
         object radBusiness: TRadioButton
           Left = 17
-          Top = 187
+          Top = 150
           Width = 416
           Height = 17
           Caption = 'Business'
@@ -487,7 +490,7 @@ object dlgPayeeDetail: TdlgPayeeDetail
         end
         object edtBusinessName: TEdit
           Left = 200
-          Top = 218
+          Top = 177
           Width = 260
           Height = 21
           BorderStyle = bsNone
@@ -499,7 +502,7 @@ object dlgPayeeDetail: TdlgPayeeDetail
         end
         object edtTradingName: TEdit
           Left = 200
-          Top = 255
+          Top = 207
           Width = 260
           Height = 21
           BorderStyle = bsNone
@@ -789,7 +792,6 @@ object dlgPayeeDetail: TdlgPayeeDetail
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd]
     PictureMask = '###,###,###.####'
     Table = tblSplit
     TableColor = False
@@ -808,6 +810,7 @@ object dlgPayeeDetail: TdlgPayeeDetail
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
+    Options = [efoCaretToEnd]
     PictureMask = '###,###,###.##'
     Table = tblSplit
     TableColor = False
