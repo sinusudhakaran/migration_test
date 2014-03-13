@@ -383,8 +383,8 @@ begin
     Eula.Add('        	  	consented to the collection, storage, use and disclosure of');
     Eula.Add('        	  	personal information as set out in the relevant Privacy Policy.');
     Eula.Add('');
-    Eula.Add('9.6	You acknowledge, agree and further warrant that you will collect,store, use');
-    Eula.Add('        	and disclose the personal information of any individual that may be');
+    Eula.Add('9.6	You acknowledge, agree and further warrant that you will collect, store,');
+    Eula.Add('        	use and disclose the personal information of any individual that may be');
     Eula.Add('        	provided to you by MYOB BankLink in accordance with the MYOB BankLink');
     Eula.Add('        	Privacy Policy that is relevant to your jurisdiction.');
 
