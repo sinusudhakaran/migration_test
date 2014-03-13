@@ -153,6 +153,8 @@ var
   IniFile : TMemIniFile;
   Orig_Version  : integer;
   iDefaultValue  : integer;
+  DocFolder_BankLinkOld: string;
+  DocFile_BankLinkOld: string;
 begin
    CommonDocFolder := ShellGetFolderPath(CSIDL_APPDATA);
 
@@ -165,6 +167,7 @@ begin
 
    DocFile := DocFolder + INIFILENAME;
 
+   // Read from old Windows location
    WinFolder := GetWinDir;
    WinFile := WinFolder + INIFILENAME;
    if BKFileExists(WinFile) and (not BKFileExists(DocFile)) and (DocFolder <> WinFolder) then // move it to common folder
@@ -175,6 +178,19 @@ begin
      DeleteFile(PChar(WinFile));
      LogUtil.LogMsg(LogUtil.lmInfo, UnitName, 'Moved INI from ' + WinFile + ' to ' + DocFile);
    end;
+
+   // Read from old BankLink location
+   DocFolder_BankLinkOld := IncludeTrailingPathDelimiter(CommonDocFolder + 'BankLink' + '\' + 'BankLink Practice');
+   DocFile_BankLinkOld := DocFolder_BankLinkOld + INIFILENAME;
+   if FileExists(DocFile_BankLinkOld) and not FileExists(DocFile) then
+   begin
+     if not DirectoryExists(DocFolder) then
+       ForceDirectories(DocFolder);
+     Windows.CopyFile(PChar(DocFile_BankLinkOld), PChar(DocFile), true);
+     DeleteFile(PChar(DocFile_BankLinkOld));
+     LogUtil.LogMsg(LogUtil.lmInfo, UnitName, 'Moved INI from ' + WinFile + ' to ' + DocFile);
+   end;
+
    IniFile := TMemIniFile.Create(DocFile);
    try
       {read form settings from INI}
