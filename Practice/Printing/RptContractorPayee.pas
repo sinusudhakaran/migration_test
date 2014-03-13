@@ -515,6 +515,8 @@ var
   Payee: TPayee;
   Index: Integer;
   RecordLines: TBKReportRecordLines;
+  StateCode, StateDesc : string;
+  AddressCode : string;
 Begin
   with TTaxablePaymentsReport(Sender)  do
   begin
@@ -542,14 +544,29 @@ Begin
         PayeeData := PayeeDataList[I];
 
         RecordLines.BeginUpdate;
-                                      
+
         RecordLines.AddColumnText(0, Payee.pdFields.pdABN, Params.WrapColumnText);
         RecordLines.AddColumnText(1, Payee.pdFields.pdPhone_Number, Params.WrapColumnText);
         RecordLines.AddColumnText(2, Payee.pdFields.pdName, Params.WrapColumnText);
         RecordLines.AddColumnText(3, Payee.pdFields.pdSurname, Params.WrapColumnText);
         RecordLines.AddColumnText(4, Payee.pdFields.pdGiven_Name, Params.WrapColumnText);
         RecordLines.AddColumnText(5, Payee.pdFields.pdOther_Name, Params.WrapColumnText);
-        RecordLines.AddColumnText(6, [Payee.pdFields.pdAddress, Payee.pdFields.pdTown, Format('%s %s',[Payee.pdFields.pdState, Payee.pdFields.pdPost_Code])], Params.WrapColumnText);
+
+        if Payee.pdFields.pdStateid = MAX_STATE then
+        begin
+          AddressCode := Payee.pdFields.pdCountry;
+        end
+        else
+        begin
+          GetAustraliaStateFromIndex(Payee.pdFields.pdStateid, StateCode, StateDesc);
+          AddressCode := Format('%s %s',[StateCode, Payee.pdFields.pdPost_Code]);
+        end;
+        
+        if length(Payee.pdFields.pdAddressLine2) = 0 then
+          RecordLines.AddColumnText(6, [Payee.pdFields.pdAddress, Payee.pdFields.pdTown, AddressCode], Params.WrapColumnText)
+        else
+          RecordLines.AddColumnText(6, [Payee.pdFields.pdAddress, Payee.pdFields.pdAddressLine2, Payee.pdFields.pdTown, AddressCode], Params.WrapColumnText);
+          
         RecordLines.AddColumnValue(7, PayeeData.NoABNWithholdingTax);
         RecordLines.AddColumnValue(8, PayeeData.TotalGST);
         RecordLines.AddColumnValue(9, PayeeData.GrossAmount);
@@ -623,7 +640,7 @@ begin
   AddColAuto(Job,cLeft,      15,Gcgap,'Payee Name', jtLeft);
   AddColAuto(Job,cLeft,      18,Gcgap,'Payee Surname', jtLeft);
   AddColAuto(Job,cLeft,      9,Gcgap,'Given Name', jtLeft);
-  AddColAuto(Job,cLeft,      9,Gcgap,'Other Name', jtLeft);
+  AddColAuto(Job,cLeft,      9,Gcgap,'Second Given Name', jtLeft);
   AddColAuto(Job,cLeft,      14,Gcgap,'Payee Address', jtLeft);
   AddFormatColAuto(Job,cLeft,7,Gcgap,'No ABN Withholding Tax',jtRight,'#,##0.00;(#,##0.00);-', MyClient.FmtMoneyStrBrackets, true);
   AddFormatColAuto(Job,cLeft,7,Gcgap,'Total GST',jtRight,'#,##0.00;(#,##0.00);-', MyClient.FmtMoneyStrBrackets, true);
