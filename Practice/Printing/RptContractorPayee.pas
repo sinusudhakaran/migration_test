@@ -877,10 +877,6 @@ begin
         AddError('Payee No. ' + inttostr(Payee.pdFields.pdNumber) + ': Business Name from Other Functions | Payees');
 
       if (Payee.pdFields.pdIsIndividual) and
-         (Length(Payee.pdFields.pdGiven_Name) = 0) then
-        AddError('Payee No. ' + inttostr(Payee.pdFields.pdNumber) + ': Given Name from Other Functions | Payees');
-
-      if (Payee.pdFields.pdIsIndividual) and
          (Length(Payee.pdFields.pdSurname) = 0) then
         AddError('Payee No. ' + inttostr(Payee.pdFields.pdNumber) + ': Surname from Other Functions | Payees');
 
