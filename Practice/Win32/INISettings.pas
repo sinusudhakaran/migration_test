@@ -153,8 +153,9 @@ var
   IniFile : TMemIniFile;
   Orig_Version  : integer;
   iDefaultValue  : integer;
-  DocFolder_BankLinkOld: string;
-  DocFile_BankLinkOld: string;
+  BankLinkOld_DocFolder: string;
+  BankLinkOld_DocFile: string;
+  BankLinkOld_ShortAppName: string;
 begin
    CommonDocFolder := ShellGetFolderPath(CSIDL_APPDATA);
 
@@ -179,15 +180,18 @@ begin
      LogUtil.LogMsg(LogUtil.lmInfo, UnitName, 'Moved INI from ' + WinFile + ' to ' + DocFile);
    end;
 
-   // Read from old BankLink location
-   DocFolder_BankLinkOld := IncludeTrailingPathDelimiter(CommonDocFolder + 'BankLink' + '\' + 'BankLink Practice');
-   DocFile_BankLinkOld := DocFolder_BankLinkOld + INIFILENAME;
-   if FileExists(DocFile_BankLinkOld) and not FileExists(DocFile) then
+   // Read from old BankLink location (the old string values are hardcoded)
+   BankLinkOld_DocFolder := IncludeTrailingPathDelimiter(CommonDocFolder + 'BankLink' + '\');
+   BankLinkOld_ShortAppName := ReplaceStr(SHORTAPPNAME, TProduct.BrandName, 'BankLink');
+   BankLinkOld_DocFolder := BankLinkOld_DocFolder + BankLinkOld_ShortAppName + '\';
+   BankLinkOld_DocFile := BankLinkOld_DocFolder + INIFILENAME;
+
+   if FileExists(BankLinkOld_DocFile) and not FileExists(DocFile) then
    begin
      if not DirectoryExists(DocFolder) then
        ForceDirectories(DocFolder);
-     Windows.CopyFile(PChar(DocFile_BankLinkOld), PChar(DocFile), true);
-     DeleteFile(PChar(DocFile_BankLinkOld));
+     Windows.CopyFile(PChar(BankLinkOld_DocFile), PChar(DocFile), true);
+     DeleteFile(PChar(BankLinkOld_DocFile));
      LogUtil.LogMsg(LogUtil.lmInfo, UnitName, 'Moved INI from ' + WinFile + ' to ' + DocFile);
    end;
 
