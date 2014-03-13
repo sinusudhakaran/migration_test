@@ -34,6 +34,7 @@ type
   public
     constructor Create(const aBankAccounts: TBank_Account_List);
     destructor  Destroy; override;
+    procedure SetBankAccounts(const aBankAccounts: TBank_Account_List);
 
     procedure SaveToFile(var S: TIOStream);
     procedure LoadFromFile(var S: TIOStream);
@@ -95,6 +96,11 @@ begin
   FreeAndNil(fRecommended);
 
   inherited;
+end;
+
+procedure TRecommended_Mems.SetBankAccounts(const aBankAccounts: TBank_Account_List);
+begin
+  fBankAccounts := aBankAccounts;
 end;
 
 procedure TRecommended_Mems.LoadFromFile(var S: TIOStream);
@@ -357,7 +363,8 @@ var
   var
     i                       : Integer;
     pTranRec                : pTransaction_Rec;
-    ut                      : TUnscanned_Transaction;
+    utBankAccount           : string[20];
+    utSequenceNo            : integer;
     utAccount               : TBank_Account;
     cMem                    : TCandidate_Mem;
     MatchingCandidateFound  : boolean;
@@ -367,21 +374,17 @@ var
     if (Unscanned.ItemCount > 0) then
     begin
       try
-        try
-          // Get first unscanned transaction in unscanned transaction list
-          ut := Unscanned.Unscanned_Transaction_At(0);
-
-          // Get transaction details for the transaction that matches the sequence number in our record
-          utAccount := MyClient.clBank_Account_List.FindCode(ut.utFields.utBank_Account_Number);
-          pTranRec := nil;
-          for i := utAccount.baTransaction_List.First to utAccount.baTransaction_List.Last do
-          begin
-            pTranRec := utAccount.baTransaction_List.Transaction_At(i);
-            if (pTranRec.txSequence_No = ut.utFields.utSequence_No) then
-              break;
-          end;
-        finally
-          FreeAndNil(ut);
+        // Get first unscanned transaction in unscanned transaction list
+        utBankAccount := Unscanned.Unscanned_Transaction_At(0).utFields.utBank_Account_Number;
+        utSequenceNo  := Unscanned.Unscanned_Transaction_At(0).utFields.utSequence_No;
+        // Get transaction details for the transaction that matches the sequence number in our record
+        utAccount := MyClient.clBank_Account_List.FindCode(utBankAccount);
+        pTranRec := nil;
+        for i := utAccount.baTransaction_List.First to utAccount.baTransaction_List.Last do
+        begin
+          pTranRec := utAccount.baTransaction_List.Transaction_At(i);
+          if (pTranRec.txSequence_No = utSequenceNo) then
+            break;
         end;
         if (pTranRec = nil) then
           Exit; // Shouldn't get to here
@@ -447,9 +450,8 @@ var
           end else
             Candidates.Insert(cMem); // this is the first candidate in the list
         end;
-
       finally
-        Unscanned.AtDelete(0); // remove unscanned transaction from list
+        Unscanned.AtFree(0);
       end;
     end // if (Unscanned.ItemCount > 0) then
     else
@@ -548,7 +550,7 @@ begin
       // Does the count for this CandidateMem now equal zero?
       if (Candidates.Candidate_Mem_At(MatchingCandidatePos).cmFields.cmCount = 0) then
         // Yes, so remove this candidate from the candidate list
-        Candidates.AtDelete(MatchingCandidatePos);
+        Candidates.AtFree(MatchingCandidatePos);
 
       // Is this an edit operation (rather than a delete)?
       if IsEditOperation then
@@ -556,21 +558,17 @@ begin
         // Add modified transaction to unscanned list. We can use the old details
         // (bank account and sequence number), because they don't change when a
         // transaction gets modified by the user
-        try
-          NewUnscannedTran := TUnscanned_Transaction.Create;
-          NewUnscannedTran.utFields.utBank_Account_Number := Account.baFields.baBank_Account_Number;
-          NewUnscannedTran.utFields.utSequence_No := TranRec.txSequence_No;
-          Unscanned.Insert(NewUnscannedTran);
-        finally
-          FreeAndNil(NewUnscannedTran);
-        end;
+        NewUnscannedTran := TUnscanned_Transaction.Create;
+        NewUnscannedTran.utFields.utBank_Account_Number := Account.baFields.baBank_Account_Number;
+        NewUnscannedTran.utFields.utSequence_No := TranRec.txSequence_No;
+        Unscanned.Insert(NewUnscannedTran);
       end;
     end;
 
     // Rescan candidates later
     Candidate.cpFields.cpCandidate_ID_To_Process := 1;
     // Clear recommended memorisation list
-    Recommended.DeleteAll;
+    Recommended.FreeAll;
   finally
     frmMain.MemScanIsBusy := False;
   end;
@@ -601,14 +599,10 @@ begin
     for iTransaction := 0 to BankAccount.baTransaction_List.ItemCount-1 do
     begin
       Transaction := BankAccount.baTransaction_List.Transaction_At(iTransaction);
-      try
-        New := TUnscanned_Transaction.Create;
-        New.utFields.utBank_Account_Number := BankAccount.baFields.baBank_Account_Number;
-        New.utFields.utSequence_No := Transaction.txSequence_No;
-        Unscanned.Insert(New);
-      finally
-        New := nil;
-      end;
+      New := TUnscanned_Transaction.Create;
+      New.utFields.utBank_Account_Number := BankAccount.baFields.baBank_Account_Number;
+      New.utFields.utSequence_No := Transaction.txSequence_No;
+      Unscanned.Insert(New);
     end;
   finally
     frmMain.MemScanIsBusy := False;
@@ -632,21 +626,21 @@ begin
     if (LoopStart >= 0) then
       for i := LoopStart downto 0 do
         if (Unscanned.Unscanned_Transaction_At(i).utFields.utBank_Account_Number = AccountNo) then
-          Unscanned.AtDelete(i);
+          Unscanned.AtFree(i);
 
     // Delete all candidates with this account number
     LoopStart := Candidates.ItemCount - 1;
     if (LoopStart >= 0) then
       for i := LoopStart downto 0 do
         if (Candidates.Candidate_Mem_At(i).cmFields.cmBank_Account_Number = AccountNo) then
-          Candidates.AtDelete(i);
+          Candidates.AtFree(i);
 
     // Delete all recommended mems with this account number
     LoopStart := Recommended.ItemCount - 1;
     if (LoopStart >= 0) then
       for i := LoopStart downto 0 do
         if (Recommended.Recommended_Mem_At(i).rmFields.rmBank_Account_Number = AccountNo) then
-          Recommended.AtDelete(i);
+          Recommended.AtFree(i);
 
     // Will need to rebuild recommended mems later, so set ID To Proces back to the start of Candidates
     fCandidate.cpFields.cpCandidate_ID_To_Process := 1;
@@ -686,16 +680,16 @@ begin
   end;
 end;
 
-// This is here for debugging purposes
+// This is here for debugging purposes, it shouldn't be used anywhere permanently
 procedure TRecommended_Mems.ResetAll;
 begin
   try
     frmMain.MemScanIsBusy := True;
-    Candidates.DeleteAll;
+    Candidates.FreeAll;
     Candidates.Destroy;
-    Recommended.DeleteAll;
+    Recommended.FreeAll;
     Recommended.Destroy;
-    Unscanned.DeleteAll;
+    Unscanned.FreeAll;
     Unscanned.Destroy;
     Candidate.cpFields.cpCandidate_ID_To_Process := 1;
     Candidate.cpFields.cpNext_Candidate_ID := 1;

@@ -1149,7 +1149,7 @@ begin
     //OpenAClient handles the admin system
     if CloseClient then
       OpenAClient(OpenCode,MyClient,false, True, False, IsDDE);  //allow read only
-    MyClient.clRecommended_Mems := TRecommended_Mems.Create(MyClient.clBank_Account_List);
+    MyClient.clRecommended_Mems.SetBankAccounts(MyClient.clBank_Account_List);
 
     if Assigned(MyClient) then
     begin
