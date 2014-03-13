@@ -51,6 +51,7 @@ type
     procedure RemoveAccountsFromMems(AccountList: TStringList);
     procedure PopulateUnscannedListOneAccount(BankAccount: TBank_Account);
     procedure PopulateUnscannedListAllAccounts;
+    procedure RemoveRecommendedMems(Account: string; EntryType: byte; StatementDetails: string);
     procedure ResetAll;
   end;
 
@@ -488,8 +489,10 @@ begin
     // Store current time
     StartTime := Time;
     // Are we in the coding screen?
-    ASSERT(assigned(Screen.ActiveForm), 'There was an AV on the line below before - is this why?');
-    InCodingForm := (TfrmCoding.ClassName = Screen.ActiveForm.ClassName);
+    if Assigned(Screen.ActiveForm) then
+      InCodingForm := (TfrmCoding.ClassName = Screen.ActiveForm.ClassName)
+    else
+      InCodingForm := False;
     // Has it been more than 33 milliseconds yet?
     while (MilliSecondsBetween(StartTime, Time) < 33) do
     begin
@@ -696,6 +699,33 @@ begin
   finally
     frmMain.MemScanIsBusy := False;
   end;
+end;
+
+// Called after we have created a new memorisation, any matching recommended mems should be deleted.
+// There may be several if a master mem has been added, but should only be one for normal (account
+// specific) memorisations
+procedure TRecommended_Mems.RemoveRecommendedMems(Account: string; EntryType: byte; StatementDetails: string);
+var
+  i: integer;
+  memRec: tRecommended_Mem_Rec;
+begin
+  for i := 0 to Recommended.ItemCount - 1 do
+  begin
+    memRec := Recommended.Recommended_Mem_At(i).rmFields;
+    // If the account is blank, it's because we've created a new master mem,
+    // which is not specific to one account
+    if ((memRec.rmBank_Account_Number = Account) or (Account = '')) and
+    (memRec.rmType = EntryType) and
+    (memRec.rmStatement_Details = StatementDetails) then
+    begin
+      Recommended.AtFree(i);
+      if (Account <> '') then
+        // We've created a normal (non-master) mem, so there should only be
+        // one matching recommended mem, so we don't need to keep looking
+        break;
+    end;
+  end;
+
 end;
 
 // This is here for debugging purposes, it shouldn't be used anywhere permanently

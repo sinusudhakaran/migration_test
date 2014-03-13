@@ -617,9 +617,27 @@ begin
 end;
 //------------------------------------------------------------------------------
 procedure TdlgMemorise.btnOKClick(Sender: TObject);
-begin             
+var
+  BA: string;
+  EntryTypeCaption: string;
+  EntryTypeStr: string;
+  EntryType: byte;
+begin
    if OKtoPost then
-      Modalresult := mrOk;
+   begin
+     // If there is a recommended memorisation
+     if chkMaster.Checked then
+       BA := ''
+     else
+       BA := SourceBankAccount.baFields.baBank_Account_Number;
+     // The entry type is not stored globally, so the simplest way for us to get
+     // it is to take it from lblType, after stripping out the colon and short name
+     EntryTypeCaption := lblType.Caption;
+     EntryTypeStr := System.Copy(EntryTypeCaption, 1, AnsiPos(':', EntryTypeCaption) - 1);
+     EntryType := StrToInt(EntryTypeStr);
+     MyClient.clRecommended_Mems.RemoveRecommendedMems(BA, EntryType, eStatementDetails.Text);
+     Modalresult := mrOk;
+   end;
 end;
 //------------------------------------------------------------------------------
 procedure TdlgMemorise.btnCopyClick(Sender: TObject);
