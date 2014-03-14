@@ -362,10 +362,13 @@ var
                   for CandidatePos := FirstCandidatePos to LastCandidatePos do
                   begin
                     CandidateMem2 := Candidates.Candidate_Mem_At(CandidatePos);
-                    if (CandidateMem2.cmFields.cmCoded_By = cbManual) then
-                      ManuallyCodedCount := ManuallyCodedCount + CandidateMem2.cmFields.cmCount
-                    else if (CandidateMem2.cmFields.cmCoded_By = cbNotCoded) then
-                      UncodedCount := UncodedCount + CandidateMem2.cmFields.cmCount;
+                    if (CandidateMem1.cmFields.cmBank_Account_Number = CandidateMem2.cmFields.cmBank_Account_Number) then
+                    begin
+                      if (CandidateMem2.cmFields.cmCoded_By = cbManual) then
+                        ManuallyCodedCount := ManuallyCodedCount + CandidateMem2.cmFields.cmCount
+                      else if (CandidateMem2.cmFields.cmCoded_By = cbNotCoded) then
+                        UncodedCount := UncodedCount + CandidateMem2.cmFields.cmCount;
+                    end;
                   end;
 
                   // There is no matching existing memorisation, so let's add this candidate
