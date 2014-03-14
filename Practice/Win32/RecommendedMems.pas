@@ -229,6 +229,7 @@ var
     Account                 : TBank_Account;
     AccountCodesDiffer      : boolean;
     AccountsPos             : integer;
+    BlankStatementDetails   : boolean;
     Candidate2HasBlankCode  : boolean;
     CandidatePos             : integer;
     CandidateMem1           : TCandidate_Mem;
@@ -279,7 +280,8 @@ var
         // different code (including dissections, which will always have the code
         // 'DISSECT' and thus be excluded when we compare account codes, as our
         // original candidate will never be a dissection, these are filtered out
-        // earlier) or a coding type other than manual?
+        // earlier) or a coding type other than manual? Also, is Statement
+        // Details NOT blank?
         for CandidatePos := FirstCandidatePos to LastCandidatePos do
         begin
           CandidateMem2 := Candidates.Candidate_Mem_At(CandidatePos);
@@ -293,6 +295,7 @@ var
             //                         (CandidateMem2.cmFields.cmAccount = '');
             CodedByIsManual := (CandidateMem2.cmFields.cmCoded_By = cbManual);
             Candidate2HasBlankCode := (CandidateMem2.cmFields.cmAccount = '');
+            BlankStatementDetails := (CandidateMem1.cmFields.cmStatement_Details = '');
 
             {
             if ((AccountCodesDiffer and not EitherAccountIsBlank) or
@@ -300,10 +303,10 @@ var
             (Candidate2HasBlankCode = false) then
             }
             if (((not CodedByIsManual) or AccountCodesDiffer) and
-            not Candidate2HasBlankCode) then
+            (not Candidate2HasBlankCode)) or
+            BlankStatementDetails then
             begin
-              // Don't recommend this candidate, as there are existing candidates which
-              // conflict with it
+              // Don't recommend this candidate
               ExclusionFound := True;
               Break;
             end;
