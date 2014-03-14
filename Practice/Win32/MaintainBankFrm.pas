@@ -965,6 +965,9 @@ begin
        //Update ISO Codes in Client_File_Rec
        UpdateISOCodes;
        ReselectAndScroll(lvBank, PrevSelectedIndex, PrevTopIndex);
+
+       // Remove account from recommended memorisations
+       MyClient.clRecommended_Mems.RemoveAccountFromMems(BASelected);
       end;
     end;
   end;
