@@ -31,6 +31,7 @@ type
     function GetLastCodingFrmKeyPress: TDateTime;
     procedure GetMatchingCandidateRange(StatementDetails: string; var FirstCandidatePos, LastCandidatePos: integer);
     procedure RemoveAccountFromMems(AccountNo: string); Overload;
+    procedure ResetAll;
   public
     constructor Create(const aBankAccounts: TBank_Account_List);
     destructor  Destroy; override;
@@ -52,7 +53,6 @@ type
     procedure PopulateUnscannedListOneAccount(BankAccount: TBank_Account);
     procedure PopulateUnscannedListAllAccounts;
     procedure RemoveRecommendedMems(Account: string; EntryType: byte; StatementDetails: string);
-    procedure ResetAll;
   end;
 
 var
@@ -223,22 +223,6 @@ var
   InCodingForm  : boolean;
   StartTime     : TDateTime;
 
-  function GetCandidatePositionByID(ID: integer): integer;
-  var
-    i: integer;
-  begin
-    Result := -1; // if this gets returned, there is no candidate matching the provided ID
-    // TODO: optimize this search
-    for i := 0 to Candidates.ItemCount - 1 do
-    begin
-      if (Candidates.Candidate_Mem_At(i).cmFields.cmID = ID) then
-      begin
-        Result := i;
-        Break;
-      end;
-    end;
-  end;
-
   // Does the recommended memorisation processing, returns true when this is complete
   function DoRecommendedMemProcessing: boolean;
   var
@@ -270,130 +254,121 @@ var
     begin
       // Yes there is
       Result := False;
-      // Get candidate details for the ID given, or the next valid ID if
-      // the candidate matching that ID no longer exists
-      CandidatePos := GetCandidatePositionByID(IDToProcess);
-      while (CandidatePos = -1) do
+      Assert((IDToProcess > Candidates.ItemCount), 'IDToProcess shouldn''t be > Candidates.ItemCount');
+      if (IDToProcess > Candidates.ItemCount) then
       begin
-        inc(IDToProcess);
-        if (IDToProcess >= NextCandidateID) then
-          break; // no candidates left
-        CandidatePos := GetCandidatePositionByID(IDToProcess);
+        Candidate.cpFields.cpCandidate_ID_To_Process :=
+          Candidate.cpFields.cpNext_Candidate_ID;
+        Exit;
       end;
-      if (CandidatePos > -1) then
+      // Get candidate details
+      CandidateMem1 := Candidates.Candidate_Mem_At(IDToProcess - 1);
+      // Increment next candidate to process
+      Candidate.cpFields.cpCandidate_ID_To_Process :=
+        Candidate.cpFields.cpCandidate_ID_To_Process + 1;
+      // Does the candidate have a count >= 3, is manually coded, and it isn't dissected?
+      if (CandidateMem1.cmFields.cmCount >= 3) and
+         (CandidateMem1.cmFields.cmCoded_By = cbManual) and
+         (CandidateMem1.cmFields.cmAccount <> DISSECT_DESC) then
       begin
-        CandidateMem1 := Candidates.Candidate_Mem_At(CandidatePos);
-        // Increment next candidate to process
-        Candidate.cpFields.cpCandidate_ID_To_Process := IDToProcess + 1;
-        // Does the candidate have a count >= 3, is manually coded, and it isn't dissected?
-        if (CandidateMem1.cmFields.cmCount >= 3) and
-           (CandidateMem1.cmFields.cmCoded_By = cbManual) and
-           (CandidateMem1.cmFields.cmAccount <> DISSECT_DESC) then
+        Assert((CandidateMem1.cmFields.cmAccount <> ''), 'Blank account code and manual coding should be mutually exclusive');
+        GetMatchingCandidateRange(CandidateMem1.cmFields.cmStatement_Details,
+                                  FirstCandidatePos, LastCandidatePos);
+        ExclusionFound := False;
+        // Checking for exclusions: does the key exist in the candidate list with a
+        // different code (including dissections, which will always have the code
+        // 'DISSECT' and thus be excluded when we compare account codes, as our
+        // original candidate will never be a dissection, these are filtered out
+        // earlier) or a coding type other than manual?
+        for CandidatePos := FirstCandidatePos to LastCandidatePos do
         begin
-          Assert((CandidateMem1.cmFields.cmAccount <> ''), 'Blank account code and manual coding should be mutually exclusive');
-          GetMatchingCandidateRange(CandidateMem1.cmFields.cmStatement_Details,
-                                    FirstCandidatePos, LastCandidatePos);
-          ExclusionFound := False;
-          // Checking for exclusions: does the key exist in the candidate list with a
-          // different code (including dissections, which will always have the code
-          // 'DISSECT' and thus be excluded when we compare account codes, as our
-          // original candidate will never be a dissection, these are filtered out
-          // earlier) or a coding type other than manual?
-          for CandidatePos := FirstCandidatePos to LastCandidatePos do
+          CandidateMem2 := Candidates.Candidate_Mem_At(CandidatePos);
+          // Does the key (entry type, bank account code, statement details) match? We have already
+          // checked the latter so just check the first two
+          if (CandidateMem1.cmFields.cmType = CandidateMem2.cmFields.cmType) and
+          (CandidateMem1.cmFields.cmBank_Account_Number = CandidateMem2.cmFields.cmBank_Account_Number) then
           begin
-            CandidateMem2 := Candidates.Candidate_Mem_At(CandidatePos);
-            // Does the key (entry type, bank account code, statement details) match? We have already
-            // checked the latter so just check the first two
-            if (CandidateMem1.cmFields.cmType = CandidateMem2.cmFields.cmType) and
-            (CandidateMem1.cmFields.cmBank_Account_Number = CandidateMem2.cmFields.cmBank_Account_Number) then
-            begin
-              AccountCodesDiffer := (CandidateMem1.cmFields.cmAccount <> CandidateMem2.cmFields.cmAccount);
-              // EitherAccountIsBlank := (CandidateMem1.cmFields.cmAccount = '') or
-              //                         (CandidateMem2.cmFields.cmAccount = '');
-              CodedByIsManual := (CandidateMem2.cmFields.cmCoded_By = cbManual);
-              Candidate2HasBlankCode := (CandidateMem2.cmFields.cmAccount = '');
+            AccountCodesDiffer := (CandidateMem1.cmFields.cmAccount <> CandidateMem2.cmFields.cmAccount);
+            // EitherAccountIsBlank := (CandidateMem1.cmFields.cmAccount = '') or
+            //                         (CandidateMem2.cmFields.cmAccount = '');
+            CodedByIsManual := (CandidateMem2.cmFields.cmCoded_By = cbManual);
+            Candidate2HasBlankCode := (CandidateMem2.cmFields.cmAccount = '');
 
-              {
-              if ((AccountCodesDiffer and not EitherAccountIsBlank) or
-              (CodedByIsManual = false)) and
-              (Candidate2HasBlankCode = false) then
-              }
-              if (((not CodedByIsManual) or AccountCodesDiffer) and
-              not Candidate2HasBlankCode) then
-              begin
-                // Don't recommend this candidate, as there are existing candidates which
-                // conflict with it
-                ExclusionFound := True;
-                Break;
-              end;
+            {
+            if ((AccountCodesDiffer and not EitherAccountIsBlank) or
+            (CodedByIsManual = false)) and
+            (Candidate2HasBlankCode = false) then
+            }
+            if (((not CodedByIsManual) or AccountCodesDiffer) and
+            not Candidate2HasBlankCode) then
+            begin
+              // Don't recommend this candidate, as there are existing candidates which
+              // conflict with it
+              ExclusionFound := True;
+              Break;
             end;
           end;
-          if not ExclusionFound then
+        end;
+        if not ExclusionFound then
+        begin
+          // Does an existing matching memorisation already exist? Check the candidate against all
+          // existing memorisations for all of the clients bank accounts. If the following match:
+          // * Entry type
+          // * Bank Account Number
+          // * Statement Details
+          // ... then the answer is yes, so we don't add this candidate to the recommended mems list
+          for AccountsPos := MyClient.clBank_Account_List.First to MyClient.clBank_Account_List.Last do
           begin
-            // Does an existing matching memorisation already exist? Check the candidate against all
-            // existing memorisations for all of the clients bank accounts. If the following match:
-            // * Entry type
-            // * Bank Account Number
-            // * Statement Details
-            // ... then the answer is yes, so we don't add this candidate to the recommended mems list
-            for AccountsPos := MyClient.clBank_Account_List.First to MyClient.clBank_Account_List.Last do
+            Account := MyClient.clBank_Account_List.Bank_Account_At(AccountsPos);
+            // We can check if the account matches here, no need to proceed further if it doesn't match
+            if (CandidateMem1.cmFields.cmBank_Account_Number = Account.baFields.baBank_Account_Number) then
             begin
-              Account := MyClient.clBank_Account_List.Bank_Account_At(AccountsPos);
-              // We can check if the account matches here, no need to proceed further if it doesn't match
-              if (CandidateMem1.cmFields.cmBank_Account_Number = Account.baFields.baBank_Account_Number) then
+              MemAlreadyExists := False;
+              for MemsPos := Account.baMemorisations_List.First to Account.baMemorisations_List.Last do
               begin
-                MemAlreadyExists := False;
-                for MemsPos := Account.baMemorisations_List.First to Account.baMemorisations_List.Last do
+                Memorisation := Account.baMemorisations_List.Memorisation_At(MemsPos);
+                if (CandidateMem1.cmFields.cmType = Memorisation.mdFields.mdType) and
+                   (CandidateMem1.cmFields.cmStatement_Details = Memorisation.mdFields.mdStatement_Details) then
                 begin
-                  Memorisation := Account.baMemorisations_List.Memorisation_At(MemsPos);
-                  if (CandidateMem1.cmFields.cmType = Memorisation.mdFields.mdType) and
-                     (CandidateMem1.cmFields.cmStatement_Details = Memorisation.mdFields.mdStatement_Details) then
-                  begin
-                    MemAlreadyExists := True;
-                    Break;
-                  end;
+                  MemAlreadyExists := True;
+                  Break;
+                end;
+              end;
+
+              if not MemAlreadyExists then
+              begin
+                // Let's get the counts for manually coded and uncoded (blank) transactions
+                ManuallyCodedCount := 0;
+                UncodedCount := 0;
+                for CandidatePos := FirstCandidatePos to LastCandidatePos do
+                begin
+                  CandidateMem2 := Candidates.Candidate_Mem_At(CandidatePos);
+                  if (CandidateMem2.cmFields.cmCoded_By = cbManual) then
+                    ManuallyCodedCount := ManuallyCodedCount + CandidateMem2.cmFields.cmCount
+                  else if (CandidateMem2.cmFields.cmCoded_By = cbNotCoded) then
+                    UncodedCount := UncodedCount + CandidateMem2.cmFields.cmCount;
                 end;
 
-                if not MemAlreadyExists then
-                begin
-                  // Let's get the counts for manually coded and uncoded (blank) transactions
-                  ManuallyCodedCount := 0;
-                  UncodedCount := 0;
-                  for CandidatePos := FirstCandidatePos to LastCandidatePos do
-                  begin
-                    CandidateMem2 := Candidates.Candidate_Mem_At(CandidatePos);
-                    if (CandidateMem1.cmFields.cmBank_Account_Number = CandidateMem2.cmFields.cmBank_Account_Number) then
-                    begin
-                      if (CandidateMem2.cmFields.cmCoded_By = cbManual) then
-                        ManuallyCodedCount := ManuallyCodedCount + CandidateMem2.cmFields.cmCount
-                      else if (CandidateMem2.cmFields.cmCoded_By = cbNotCoded) then
-                        UncodedCount := UncodedCount + CandidateMem2.cmFields.cmCount;
-                    end;
-                  end;
-
-                  // There is no matching existing memorisation, so let's add this candidate
-                  // to recommended mems. This doesn't need to be and so isn't added
-                  // alphabetically, but we can change this later if needed
-                  NewRecMem := TRecommended_Mem.Create;
-                  NewRecMem.rmFields.rmType                 := CandidateMem1.cmFields.cmType;
-                  NewRecMem.rmFields.rmBank_Account_Number  := CandidateMem1.cmFields.cmBank_Account_Number;
-                  NewRecMem.rmFields.rmAccount              := CandidateMem1.cmFields.cmAccount;
-                  NewRecMem.rmFields.rmStatement_Details    := CandidateMem1.cmFields.cmStatement_Details;
-                  NewRecMem.rmFields.rmManual_Count         := ManuallyCodedCount;
-                  NewRecMem.rmFields.rmUncoded_Count        := UncodedCount;
-                  Recommended.Insert(NewRecMem);
-                end;
-
-                // We've found the matching account, so whether or not we've added a
-                // recommended mem, there is no need to keep looking through the accounts
-                Break;
-              end; // if (CandidateMem1.cmFields.cmBank_Account_Number = Account.baFields.baBank_Account_Number) then
-            end; // for AccountsPos := MyClient.clBank_Account_List.First to MyClient.clBank_Account_List.Last do
-          end; // if not ExclusionFound then
-        end; // if (CandidateMem1.cmFields.cmCount >= 3) and (CandidateMem1.cmFields.cmCoded_By = cbManual) and (CandidateMem1.cmFields.cmAccount <> DISSECT_DESC) then
-      end; // if (CandidateID > -1) then
-    end // if (IDToProcess < NextCandidateID) then
-    else
+                // There is no matching existing memorisation, so let's add this candidate
+                // to recommended mems. This doesn't need to be and so isn't added
+                // alphabetically, but we can change this later if needed
+                NewRecMem := TRecommended_Mem.Create;
+                NewRecMem.rmFields.rmType                 := CandidateMem1.cmFields.cmType;
+                NewRecMem.rmFields.rmBank_Account_Number  := CandidateMem1.cmFields.cmBank_Account_Number;
+                NewRecMem.rmFields.rmAccount              := CandidateMem1.cmFields.cmAccount;
+                NewRecMem.rmFields.rmStatement_Details    := CandidateMem1.cmFields.cmStatement_Details;
+                NewRecMem.rmFields.rmManual_Count         := ManuallyCodedCount;
+                NewRecMem.rmFields.rmUncoded_Count        := UncodedCount;
+                Recommended.Insert(NewRecMem);
+              end;
+              // We've found the matching account, so whether or not we've added a
+              // recommended mem, there is no need to keep looking through the accounts
+              Break;
+            end; // if (CandidateMem1.cmFields.cmBank_Account_Number = Account.baFields.baBank_Account_Number) then
+          end; // for AccountsPos := MyClient.clBank_Account_List.First to MyClient.clBank_Account_List.Last do
+        end; // if not ExclusionFound then
+      end; // if (IDToProcess < NextCandidateID) then                                 
+    end else
       Result := True;
   end;
 
