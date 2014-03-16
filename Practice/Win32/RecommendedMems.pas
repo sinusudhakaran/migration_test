@@ -238,7 +238,7 @@ var
     // EitherAccountIsBlank    : boolean;
     ExclusionFound          : boolean;
     FirstCandidatePos       : integer;
-    IDToProcess             : integer;
+    CandidateToProcess      : integer;
     LastCandidatePos        : integer;                    
     ManuallyCodedCount      : integer;
     MemAlreadyExists        : boolean;
@@ -248,22 +248,23 @@ var
     NextCandidateID         : integer;
     UncodedCount            : integer;
   begin
-    IDToProcess     := Candidate.cpFields.cpCandidate_ID_To_Process;
+    if (Candidate.cpFields.cpCandidate_ID_To_Process < 1) then
+      Candidate.cpFields.cpCandidate_ID_To_Process := 1;
+    CandidateToProcess := Candidate.cpFields.cpCandidate_ID_To_Process;
     NextCandidateID := Candidate.cpFields.cpNext_Candidate_ID;
+    if (CandidateToProcess > Candidates.ItemCount) then
+    begin
+      // We have run out of candidates to process
+      CandidateToProcess := NextCandidateID;
+      Candidate.cpFields.cpCandidate_ID_To_Process := CandidateToProcess;
+    end;
     // Is there another candidate left to process?
-    if (IDToProcess < NextCandidateID) then
+    if (CandidateToProcess < NextCandidateID) then
     begin
       // Yes there is
       Result := False;
-      Assert((IDToProcess > Candidates.ItemCount), 'IDToProcess shouldn''t be > Candidates.ItemCount');
-      if (IDToProcess > Candidates.ItemCount) then
-      begin
-        Candidate.cpFields.cpCandidate_ID_To_Process :=
-          Candidate.cpFields.cpNext_Candidate_ID;
-        Exit;
-      end;
       // Get candidate details
-      CandidateMem1 := Candidates.Candidate_Mem_At(IDToProcess - 1);
+      CandidateMem1 := Candidates.Candidate_Mem_At(CandidateToProcess - 1);
       // Increment next candidate to process
       Candidate.cpFields.cpCandidate_ID_To_Process :=
         Candidate.cpFields.cpCandidate_ID_To_Process + 1;
@@ -370,7 +371,7 @@ var
             end; // if (CandidateMem1.cmFields.cmBank_Account_Number = Account.baFields.baBank_Account_Number) then
           end; // for AccountsPos := MyClient.clBank_Account_List.First to MyClient.clBank_Account_List.Last do
         end; // if not ExclusionFound then
-      end; // if (IDToProcess < NextCandidateID) then                                 
+      end; // if (CandidateToProcess < NextCandidateID) then
     end else
       Result := True;
   end;
