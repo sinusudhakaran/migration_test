@@ -4,8 +4,8 @@ object frmClientDetails: TfrmClientDetails
   BorderIcons = [biSystemMenu]
   BorderStyle = bsDialog
   Caption = 'Client Details'
-  ClientHeight = 604
-  ClientWidth = 601
+  ClientHeight = 618
+  ClientWidth = 604
   Color = clBtnFace
   DefaultMonitor = dmMainForm
   ParentFont = True
@@ -18,13 +18,13 @@ object frmClientDetails: TfrmClientDetails
   OnCreate = FormCreate
   OnShow = FormShow
   DesignSize = (
-    601
-    604)
+    604
+    618)
   PixelsPerInch = 96
   TextHeight = 13
   object btnOk: TButton
-    Left = 438
-    Top = 571
+    Left = 441
+    Top = 585
     Width = 75
     Height = 25
     Anchors = [akRight, akBottom]
@@ -32,10 +32,12 @@ object frmClientDetails: TfrmClientDetails
     Default = True
     TabOrder = 1
     OnClick = btnOkClick
+    ExplicitLeft = 438
+    ExplicitTop = 571
   end
   object btnCancel: TButton
-    Left = 518
-    Top = 571
+    Left = 521
+    Top = 585
     Width = 75
     Height = 25
     Anchors = [akRight, akBottom]
@@ -43,23 +45,22 @@ object frmClientDetails: TfrmClientDetails
     Caption = 'Cancel'
     TabOrder = 2
     OnClick = btnCancelClick
+    ExplicitLeft = 518
+    ExplicitTop = 571
   end
   object PageControl1: TPageControl
     Left = 8
-    Top = 5
+    Top = 8
     Width = 589
-    Height = 550
+    Height = 571
     ActivePage = tsTPRPayerDetails
     TabOrder = 0
     object tbsClient: TTabSheet
       Caption = 'Client Details'
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
+      ExplicitHeight = 535
       DesignSize = (
         581
-        522)
+        543)
       object Label1: TLabel
         Left = 16
         Top = 10
@@ -374,10 +375,7 @@ object frmClientDetails: TfrmClientDetails
     object tbsOptions: TTabSheet
       Caption = 'Options'
       ImageIndex = 3
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
+      ExplicitHeight = 535
       object chkNewTrx: TCheckBox
         Left = 16
         Top = 27
@@ -433,7 +431,7 @@ object frmClientDetails: TfrmClientDetails
           Width = 209
           Height = 21
           Style = csDropDownList
-          ItemHeight = 0
+          ItemHeight = 13
           TabOrder = 1
         end
         object txtLastDiskID: TEdit
@@ -572,10 +570,7 @@ object frmClientDetails: TfrmClientDetails
     object tbsAdmin: TTabSheet
       Caption = 'Administration'
       ImageIndex = 1
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
+      ExplicitHeight = 535
       object Label14: TLabel
         Left = 92
         Top = 208
@@ -628,7 +623,7 @@ object frmClientDetails: TfrmClientDetails
         Height = 21
         Style = csDropDownList
         Ctl3D = True
-        ItemHeight = 0
+        ItemHeight = 13
         ParentCtl3D = False
         TabOrder = 0
         OnChange = cmbResponsibleChange
@@ -834,7 +829,7 @@ object frmClientDetails: TfrmClientDetails
         Height = 21
         Style = csDropDownList
         Ctl3D = True
-        ItemHeight = 0
+        ItemHeight = 13
         ParentCtl3D = False
         TabOrder = 3
         OnChange = cmbResponsibleChange
@@ -846,7 +841,7 @@ object frmClientDetails: TfrmClientDetails
         Height = 21
         Style = csDropDownList
         Ctl3D = True
-        ItemHeight = 0
+        ItemHeight = 13
         ParentCtl3D = False
         TabOrder = 4
         OnChange = cmbResponsibleChange
@@ -855,18 +850,15 @@ object frmClientDetails: TfrmClientDetails
     object tbsNotes: TTabSheet
       Caption = 'Notes'
       ImageIndex = 2
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
+      ExplicitHeight = 535
       DesignSize = (
         581
-        522)
+        543)
       object meNotes: TMemo
         Left = 12
         Top = 12
         Width = 561
-        Height = 483
+        Height = 504
         Anchors = [akLeft, akTop, akRight, akBottom]
         Ctl3D = False
         Lines.Strings = (
@@ -875,24 +867,23 @@ object frmClientDetails: TfrmClientDetails
         ParentCtl3D = False
         ScrollBars = ssVertical
         TabOrder = 0
+        ExplicitHeight = 496
       end
       object chkShowOnOpen: TCheckBox
         Left = 12
-        Top = 501
+        Top = 522
         Width = 259
         Height = 17
         Anchors = [akLeft, akBottom]
         Caption = 'Show notes when openin&g this client'
         TabOrder = 1
+        ExplicitTop = 514
       end
     end
     object tsSmartLink: TTabSheet
       Caption = 'SmartLink'
       ImageIndex = 4
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
+      ExplicitHeight = 535
       object Label19: TLabel
         Left = 16
         Top = 16
@@ -912,20 +903,17 @@ object frmClientDetails: TfrmClientDetails
     object tsTPRPayerDetails: TTabSheet
       Caption = 'TPR Payer Details'
       ImageIndex = 5
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
+      ExplicitHeight = 522
       object grpPracticeContactDetails: TGroupBox
         Left = 13
         Top = 8
         Width = 549
-        Height = 268
+        Height = 286
         Caption = 'Practice Contact Details'
         TabOrder = 0
         object lblPracticeContactName: TLabel
           Left = 67
-          Top = 173
+          Top = 180
           Width = 80
           Height = 16
           Caption = 'Contact Name'
@@ -938,7 +926,7 @@ object frmClientDetails: TfrmClientDetails
         end
         object lblPracticeContactPhone: TLabel
           Left = 67
-          Top = 203
+          Top = 210
           Width = 82
           Height = 16
           Caption = 'Contact Phone'
@@ -951,7 +939,7 @@ object frmClientDetails: TfrmClientDetails
         end
         object lblPracticeContactEmail: TLabel
           Left = 67
-          Top = 233
+          Top = 240
           Width = 83
           Height = 16
           Caption = 'Contact E-mail'
@@ -964,7 +952,7 @@ object frmClientDetails: TfrmClientDetails
         end
         object lblSupplierContactName: TLabel
           Left = 67
-          Top = 53
+          Top = 60
           Width = 80
           Height = 16
           Caption = 'Contact Name'
@@ -977,7 +965,7 @@ object frmClientDetails: TfrmClientDetails
         end
         object lblSupplierContactPhone: TLabel
           Left = 67
-          Top = 83
+          Top = 90
           Width = 82
           Height = 16
           Caption = 'Contact Phone'
@@ -990,7 +978,7 @@ object frmClientDetails: TfrmClientDetails
         end
         object lblSupplierContactEmail: TLabel
           Left = 67
-          Top = 113
+          Top = 120
           Width = 83
           Height = 16
           Caption = 'Contact E-mail'
@@ -1003,7 +991,7 @@ object frmClientDetails: TfrmClientDetails
         end
         object radUsePracticeTPRSupplierDetails: TRadioButton
           Left = 16
-          Top = 20
+          Top = 30
           Width = 497
           Height = 17
           Caption = 'Use Practice TPR Supplier Details'
@@ -1018,7 +1006,7 @@ object frmClientDetails: TfrmClientDetails
         end
         object radUseCustomContactDetails: TRadioButton
           Left = 16
-          Top = 140
+          Top = 150
           Width = 497
           Height = 17
           Caption = 'Use Custom Contact Details'
@@ -1033,7 +1021,7 @@ object frmClientDetails: TfrmClientDetails
         end
         object edtPracticeContactName: TEdit
           Left = 160
-          Top = 170
+          Top = 177
           Width = 341
           Height = 21
           BorderStyle = bsNone
@@ -1049,7 +1037,7 @@ object frmClientDetails: TfrmClientDetails
         end
         object edtPracticeContactPhone: TEdit
           Left = 160
-          Top = 200
+          Top = 207
           Width = 341
           Height = 21
           BorderStyle = bsNone
@@ -1065,7 +1053,7 @@ object frmClientDetails: TfrmClientDetails
         end
         object edtPracticeContactEmail: TEdit
           Left = 160
-          Top = 230
+          Top = 237
           Width = 341
           Height = 21
           BorderStyle = bsNone
@@ -1081,7 +1069,7 @@ object frmClientDetails: TfrmClientDetails
         end
         object edtSupplierContactName: TEdit
           Left = 160
-          Top = 50
+          Top = 57
           Width = 341
           Height = 21
           BorderStyle = bsNone
@@ -1098,7 +1086,7 @@ object frmClientDetails: TfrmClientDetails
         end
         object edtSupplierContactPhone: TEdit
           Left = 160
-          Top = 80
+          Top = 87
           Width = 341
           Height = 21
           BorderStyle = bsNone
@@ -1115,7 +1103,7 @@ object frmClientDetails: TfrmClientDetails
         end
         object edtSupplierContactEmail: TEdit
           Left = 160
-          Top = 110
+          Top = 117
           Width = 341
           Height = 21
           BorderStyle = bsNone
@@ -1132,8 +1120,8 @@ object frmClientDetails: TfrmClientDetails
         end
       end
       object grpPayerDetails: TGroupBox
-        Left = 12
-        Top = 282
+        Left = 13
+        Top = 301
         Width = 549
         Height = 231
         Caption = 'Payer Details'
@@ -1329,7 +1317,7 @@ object frmClientDetails: TfrmClientDetails
           Font.Height = -13
           Font.Name = 'Tahoma'
           Font.Style = []
-          ItemHeight = 0
+          ItemHeight = 16
           ParentFont = False
           TabOrder = 4
           OnChange = cmbStateChange
