@@ -380,8 +380,8 @@ begin
   Mems := fBankAccount.baMemorisations_List;
   Mem := TMemorisation.Create(Mems.AuditMgr);
   Mem.mdFields.mdMatch_On_Statement_Details := true;
-  Mem.mdFields.mdStatement_Details :=
-    pData.RecommendedMem.rmFields.rmStatement_Details;
+  Mem.mdFields.mdStatement_Details := pData.RecommendedMem.rmFields.rmStatement_Details;
+  Mem.mdFields.mdType := pData.RecommendedMem.rmFields.rmType;
 
   // Create memorisation line
   MemLine := New_Memorisation_Line_Rec;
