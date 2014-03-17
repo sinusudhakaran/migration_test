@@ -195,6 +195,8 @@ begin
      LogUtil.LogMsg(LogUtil.lmInfo, UnitName, 'Moved INI from ' + WinFile + ' to ' + DocFile);
    end;
 
+   LogUtil.LogMsg(LogUtil.lmInfo, UnitName, 'Read INI from ' + DocFile);
+
    IniFile := TMemIniFile.Create(DocFile);
    try
       {read form settings from INI}
@@ -404,7 +406,9 @@ begin
        end;
      end;
    end;
-   
+
+   LogUtil.LogMsg(LogUtil.lmInfo, UnitName, 'Write INI from ' + DocFolder + INIFILENAME);
+
    IniFile := TMemIniFile.Create(DocFolder + INIFILENAME);
    try
      //Save Main Form Window Status
