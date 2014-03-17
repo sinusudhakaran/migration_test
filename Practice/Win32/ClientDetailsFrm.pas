@@ -626,6 +626,7 @@ var
   CodeType: string;
   BlankEmailIsValid: boolean;
   SecureCode: String;
+  aMsg : string;
 begin
   result := false;
 
@@ -844,6 +845,20 @@ begin
           end;
         end;
       end;
+    end;
+  end;
+
+  if (assigned(AdminSystem)) and
+     (AdminSystem.fdFields.fdCountry = whAustralia) then
+  begin
+    if (cmbState.ItemIndex = MAX_STATE) and
+      (Uppercase(edtSupplierCountry.Text) = Uppercase(whNames[whAustralia])) then
+    begin
+      PageControl1.ActivePage := tsTPRPayerDetails;
+      aMsg := 'The Country cannot be set to ''Australia'' when the State is ''OTH''. Please select the appropriate State.';
+      HelpfulWarningMsg( aMSg, 0);
+      edtSupplierCountry.SetFocus;
+      Exit;
     end;
   end;
 

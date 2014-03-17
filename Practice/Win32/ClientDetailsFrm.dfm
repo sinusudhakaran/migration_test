@@ -32,8 +32,6 @@ object frmClientDetails: TfrmClientDetails
     Default = True
     TabOrder = 1
     OnClick = btnOkClick
-    ExplicitLeft = 438
-    ExplicitTop = 571
   end
   object btnCancel: TButton
     Left = 521
@@ -45,19 +43,16 @@ object frmClientDetails: TfrmClientDetails
     Caption = 'Cancel'
     TabOrder = 2
     OnClick = btnCancelClick
-    ExplicitLeft = 518
-    ExplicitTop = 571
   end
   object PageControl1: TPageControl
     Left = 8
     Top = 8
     Width = 589
     Height = 571
-    ActivePage = tsTPRPayerDetails
+    ActivePage = tbsOptions
     TabOrder = 0
     object tbsClient: TTabSheet
       Caption = 'Client Details'
-      ExplicitHeight = 535
       DesignSize = (
         581
         543)
@@ -375,7 +370,6 @@ object frmClientDetails: TfrmClientDetails
     object tbsOptions: TTabSheet
       Caption = 'Options'
       ImageIndex = 3
-      ExplicitHeight = 535
       object chkNewTrx: TCheckBox
         Left = 16
         Top = 27
@@ -570,7 +564,6 @@ object frmClientDetails: TfrmClientDetails
     object tbsAdmin: TTabSheet
       Caption = 'Administration'
       ImageIndex = 1
-      ExplicitHeight = 535
       object Label14: TLabel
         Left = 92
         Top = 208
@@ -850,7 +843,6 @@ object frmClientDetails: TfrmClientDetails
     object tbsNotes: TTabSheet
       Caption = 'Notes'
       ImageIndex = 2
-      ExplicitHeight = 535
       DesignSize = (
         581
         543)
@@ -867,7 +859,6 @@ object frmClientDetails: TfrmClientDetails
         ParentCtl3D = False
         ScrollBars = ssVertical
         TabOrder = 0
-        ExplicitHeight = 496
       end
       object chkShowOnOpen: TCheckBox
         Left = 12
@@ -877,13 +868,11 @@ object frmClientDetails: TfrmClientDetails
         Anchors = [akLeft, akBottom]
         Caption = 'Show notes when openin&g this client'
         TabOrder = 1
-        ExplicitTop = 514
       end
     end
     object tsSmartLink: TTabSheet
       Caption = 'SmartLink'
       ImageIndex = 4
-      ExplicitHeight = 535
       object Label19: TLabel
         Left = 16
         Top = 16
@@ -903,10 +892,9 @@ object frmClientDetails: TfrmClientDetails
     object tsTPRPayerDetails: TTabSheet
       Caption = 'TPR Payer Details'
       ImageIndex = 5
-      ExplicitHeight = 522
       object grpPracticeContactDetails: TGroupBox
         Left = 13
-        Top = 8
+        Top = 9
         Width = 549
         Height = 286
         Caption = 'Practice Contact Details'

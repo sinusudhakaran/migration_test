@@ -1386,15 +1386,27 @@ begin
     Exit;
   end;
 
-  if (AdminSystem.fdFields.fdCountry = whAustralia) and
-     (Length(mskABN.Text) > 0) and
-     (not ValidateABN(mskABN.Text)) then
+  if (AdminSystem.fdFields.fdCountry = whAustralia) then
   begin
-    tbsTPRSupplierDetails.Show;
-    mskABN.SetFocus;
-    aMsg := 'Your Australian Business Number (ABN) is invalid.  Please re-enter it.';
-    HelpfulWarningMsg( aMSg, 0);
-    Exit;
+    if (Length(mskABN.Text) > 0) and
+       (not ValidateABN(mskABN.Text)) then
+    begin
+      tbsTPRSupplierDetails.Show;
+      mskABN.SetFocus;
+      aMsg := 'Your Australian Business Number (ABN) is invalid.  Please re-enter it.';
+      HelpfulWarningMsg( aMSg, 0);
+      Exit;
+    end;
+
+    if (cmbState.ItemIndex = MAX_STATE) and
+      (Uppercase(edtSupplierCountry.Text) = Uppercase(whNames[whAustralia])) then
+    begin
+      tbsTPRSupplierDetails.Show;
+      aMsg := 'The Country cannot be set to ''Australia'' when the State is ''OTH''. Please select the appropriate State.';
+      HelpfulWarningMsg( aMSg, 0);
+      edtSupplierCountry.SetFocus;
+      Exit;
+    end;
   end;
 
   //tax interface directory

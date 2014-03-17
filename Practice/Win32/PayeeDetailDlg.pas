@@ -979,6 +979,9 @@ function TdlgPayeeDetail.ValidateForAustralia: Boolean;
     Result := True;
   end;
 
+var
+  aMsg : string;
+
 begin
   Result := False;
 
@@ -992,6 +995,16 @@ begin
     if not ValidateField(mskABN, ValidateABN(mskABN.Text),
                          'Your Australian Business Number (ABN) is invalid.  Please re-enter it.') then
       Exit;
+  end;
+
+  if (cmbState.ItemIndex = MAX_STATE) and
+    (Uppercase(edtSupplierCountry.Text) = Uppercase(whNames[whAustralia])) then
+  begin
+    PageControl1.ActivePage := tsContractorDetails;
+    aMsg := 'The Country cannot be set to ''Australia'' when the State is ''OTH''. Please select the appropriate State.';
+    HelpfulWarningMsg( aMSg, 0);
+    edtSupplierCountry.SetFocus;
+    Exit;
   end;
 
   Result := True;
