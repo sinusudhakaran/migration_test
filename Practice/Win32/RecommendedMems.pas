@@ -609,6 +609,9 @@ begin
 
   for iBankAccount := 0 to fBankAccounts.ItemCount-1 do
     PopulateUnscannedListOneAccount(fBankAccounts[iBankAccount]);
+
+  Candidate.cpFields.cpCandidate_ID_To_Process := 1;
+  Candidate.cpFields.cpNext_Candidate_ID := 1;
 end;
 
 // Builds the unscanned transactions list for one bank account
