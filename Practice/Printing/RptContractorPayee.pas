@@ -62,11 +62,13 @@ type
   //----------------------------------------------------------------------------
   TTaxablePaymentsReport = class(TBKReport)
   protected
+    function ValidateNoPayeesforReport() : Boolean;
     function ValidateATOMandatoryData() : boolean;
     function GetFinacialYearEnd(aClientStartYear, aToDate : TDateTime) : TDateTime;
   public
     params : TPayeeParameters;
     procedure DoATOExtractCode(aFileName : string);
+    procedure DoATOExtractValidation(var aResult : Boolean; var aMsg : string);
     function ShowPayeeOnReport( aPayeeNo : integer) : boolean;
   end;
 
@@ -356,7 +358,6 @@ procedure DetailedTaxablePaymentsDetail(Sender : TObject);
     TransGSTAmount: Money;
     Reference: String;
     ChartAccount: pAccount_Rec;
-    ABNAmount: Money;
   begin
     ABNAccountCode := FindABNAccountCode;
     
@@ -467,7 +468,6 @@ procedure DetailedTaxablePaymentsDetail(Sender : TObject);
   end;
   
 var
-  i,b,t : LongInt;
   Payee: TPayee;
   Index: Integer;
 begin
@@ -509,7 +509,7 @@ end;
 //------------------------------------------------------------------------------
 procedure TaxablePaymentsDetail(Sender : TObject);
 var
-  i,b,t : LongInt;
+  i : LongInt;
   PayeeDataList: array of TPayeeData;
   PayeeData: TPayeeData;
   Payee: TPayee;
@@ -561,7 +561,7 @@ Begin
           GetAustraliaStateFromIndex(Payee.pdFields.pdStateid, StateCode, StateDesc);
           AddressCode := Format('%s %s',[StateCode, Payee.pdFields.pdPost_Code]);
         end;
-        
+
         if length(Payee.pdFields.pdAddressLine2) = 0 then
           RecordLines.AddColumnText(6, [Payee.pdFields.pdAddress, Payee.pdFields.pdTown, AddressCode], Params.WrapColumnText)
         else
@@ -707,7 +707,13 @@ begin
           begin
             ATODefaultFileName := 'TPAR_' + MyClient.clFields.clCode + '_' +
                                   Date2Str(Params.ToDate, 'dd-mm-yyyy');
-            Params.CustomFileFormats.AddCustomFormat('ATO Extract','ATO Extact File (C01)',ATODefaultFileName,'.C01',Job.DoATOExtractCode, true);
+            Params.CustomFileFormats.AddCustomFormat('ATO Extract',
+                                                     'ATO Extact File (C01)',
+                                                     ATODefaultFileName,
+                                                     '.C01',
+                                                     Job.DoATOExtractCode,
+                                                     Job.DoATOExtractValidation,
+                                                     true);
           end;
 
           //set parameters
@@ -748,6 +754,29 @@ begin
   Result := EncodeDate(ToY, CltM, CltD);
   if Result < aToDate then
     Result := incDay(Result, 365);
+end;
+
+//------------------------------------------------------------------------------
+function TTaxablePaymentsReport.ValidateNoPayeesforReport() : Boolean;
+var
+  PayeeIndex : integer;
+  Payee : TPayee;
+begin
+  Result := false;
+  for PayeeIndex := 0 to MyClient.clPayee_List.ItemCount - 1 do
+  begin
+    Payee := MyClient.clPayee_List.Payee_At(PayeeIndex);
+
+    if not Payee.pdFields.pdContractor then
+      Continue;
+
+    if (Payee.pdLinesCount = 1) and
+       (Payee.pdFields.pdTotal = 0) then
+      Continue; 
+
+    Result := true;
+    Exit;
+  end;
 end;
 
 //------------------------------------------------------------------------------
@@ -862,12 +891,16 @@ begin
       if not Payee.pdFields.pdContractor then
         continue;
 
+      if (Payee.pdLinesCount = 1) and
+         (Payee.pdFields.pdTotal = 0) then
+        Continue;
+
       PayeeNumber := inttostr(Payee.pdFields.pdNumber);
       PayeeNumber := InsFillerZeros(PayeeNumber, 10);
       PayeeSortedList.AddObject(PayeeNumber, Payee);
     end;
     PayeeSortedList.Sorted := true;
-
+    
     for PayeeIndex := 0 to PayeeSortedList.Count - 1 do
     begin
       Payee := TPayee(PayeeSortedList.Objects[PayeeIndex]);
@@ -901,6 +934,36 @@ begin
   Result := (Length(ErrorStrings) = 0);
   if not Result then
     ShowATOWarnings(ErrorStrings);
+end;
+
+//------------------------------------------------------------------------------
+procedure TTaxablePaymentsReport.DoATOExtractValidation(var aResult : Boolean; var aMsg : string);
+var
+  PayeeCount : integer;
+  PayeeIndex : integer;
+  Payee : TPayee;
+begin
+  aResult := true;
+  PayeeCount := 0;
+  for PayeeIndex := 0 to MyClient.clPayee_List.ItemCount - 1 do
+  begin
+    Payee := MyClient.clPayee_List.Payee_At(PayeeIndex);
+
+    if not Payee.pdFields.pdContractor then
+      continue;
+
+    if (Payee.pdLinesCount = 1) and
+       (Payee.pdFields.pdTotal = 0) then
+      Continue;
+
+    inc(PayeeCount);
+  end;
+
+  if (PayeeCount = 0) then
+  begin
+    aMsg := 'There are no contractor transactions for the selected period.';
+    aResult := false;
+  end;
 end;
 
 //------------------------------------------------------------------------------

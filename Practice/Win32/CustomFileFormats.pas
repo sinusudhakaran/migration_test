@@ -10,6 +10,7 @@ uses
 type
   //----------------------------------------------------------------------------
   TCustomFormatCode = procedure(aFileName : string) of object;
+  TCustomFormatValidation = procedure(var aResult : Boolean; var aMsg : string)  of object;
 
   //----------------------------------------------------------------------------
   TCustomFileFormat = class(TCollectionItem)
@@ -20,8 +21,10 @@ type
     fExtension : string;
     fSelected : boolean;
     fCustomFormatCode : TCustomFormatCode;
+    fCustomFormatValidation : TCustomFormatValidation;
   public
     procedure DoCustomFormatCode(aFileName : string);
+    procedure DoCustomFormatValidation(var aResult : Boolean; var aMsg : string);
 
     property Name : string read fName write fName;
     property Description : string read fDescription write fDescription;
@@ -29,6 +32,7 @@ type
     property Extension : string read fExtension write fExtension;
     property Selected : boolean read fSelected write fSelected;
     property CustomFormatCode : TCustomFormatCode read fCustomFormatCode write fCustomFormatCode;
+    property CustomFormatValidation : TCustomFormatValidation read fCustomFormatValidation write fCustomFormatValidation;
   end;
 
   //----------------------------------------------------------------------------
@@ -37,7 +41,13 @@ type
   public
     destructor Destroy; override;
 
-    procedure AddCustomFormat(aName : string; aDescription : string; aFileName : string; aExtension : string; aCustomFormatCode : TCustomFormatCode; aSelected : boolean);
+    procedure AddCustomFormat(aName : string;
+                              aDescription : string;
+                              aFileName : string;
+                              aExtension : string;
+                              aCustomFormatCode : TCustomFormatCode;
+                              aCustomFormatValidation : TCustomFormatValidation;
+                              aSelected : boolean);
   end;
 
 implementation
@@ -50,19 +60,33 @@ begin
     fCustomFormatCode(aFileName);
 end;
 
+//------------------------------------------------------------------------------
+procedure TCustomFileFormat.DoCustomFormatValidation(var aResult : Boolean; var aMsg : string);
+begin
+  if Assigned(fCustomFormatValidation) then
+    fCustomFormatValidation(aResult, aMsg);
+end;
+
 { TCustomFileFormats }
 //------------------------------------------------------------------------------
-procedure TCustomFileFormats.AddCustomFormat(aName, aDescription, aFileName, aExtension : string; aCustomFormatCode: TCustomFormatCode; aSelected : Boolean);
+procedure TCustomFileFormats.AddCustomFormat(aName,
+                                             aDescription,
+                                             aFileName,
+                                             aExtension : string;
+                                             aCustomFormatCode: TCustomFormatCode;
+                                             aCustomFormatValidation : TCustomFormatValidation;
+                                             aSelected : Boolean);
 var
   NewCustomFormat : TCustomFileFormat;
 begin
   NewCustomFormat := TCustomFileFormat.Create(Self);
-  NewCustomFormat.Name             := aName;
-  NewCustomFormat.Description      := aDescription;
-  NewCustomFormat.FileName         := aFileName;
-  NewCustomFormat.Extension        := aExtension;
-  NewCustomFormat.Selected         := aSelected;
-  NewCustomFormat.CustomFormatCode := aCustomFormatCode;
+  NewCustomFormat.Name                   := aName;
+  NewCustomFormat.Description            := aDescription;
+  NewCustomFormat.FileName               := aFileName;
+  NewCustomFormat.Extension              := aExtension;
+  NewCustomFormat.CustomFormatCode       := aCustomFormatCode;
+  NewCustomFormat.CustomFormatValidation := aCustomFormatValidation;
+  NewCustomFormat.Selected               := aSelected;
 end;
 
 //------------------------------------------------------------------------------

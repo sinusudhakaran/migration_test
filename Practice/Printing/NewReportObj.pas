@@ -681,7 +681,7 @@ begin
                //Ask for format and filename
                if FileIsSet or
                  DestinationPreChosen or
-                 GetFileType then
+                 GetFileType() then
                begin
                   UpdateAppStatus( 'Generating Report',  Self.ReportTitle, 50);
                   if not Preview then

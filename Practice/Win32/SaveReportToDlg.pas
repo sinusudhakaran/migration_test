@@ -301,13 +301,31 @@ end;
 procedure TdlgSaveReportTo.FormCloseQuery(Sender: TObject;
   var CanClose: Boolean);
 var
-   dirPath, filenoext, wxfilename, fileext : string;
-   i: Integer;
+  dirPath, filenoext, wxfilename, fileext : string;
+  i: Integer;
+  ValRes : boolean;
+  ValMsg : string;
 begin
    //verify entry
-   if ModalResult = mrOK then begin
-      //Assume failure
-      CanClose := false;
+   if ModalResult = mrOK then
+   begin
+     //Assume failure
+     CanClose := false;
+
+     if (Assigned(fCustomFileFormats)) and
+       (fCustomFileFormats.Count > 0) then
+     begin
+       if GetSelectedIndex > rfMax then
+       begin
+         TCustomFileFormat(fCustomFileFormats.Items[GetSelectedIndex - 1 - rfMax]).DoCustomFormatValidation(ValRes, ValMsg);
+         if not ValRes then
+         begin
+           cmbFormat.SetFocus;
+           HelpfulWarningMsg(ValMsg,0);
+           exit;
+         end;
+       end;
+     end;
 
         if GetSelectedIndex() = rfAcclipse then
         begin
