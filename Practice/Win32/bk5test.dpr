@@ -13,14 +13,16 @@ uses
   utPayeeObj in '..\Tests\utPayeeObj.pas',
   utUpgrade in '..\Tests\utUpgrade.pas',
   utWebXOffice in '..\Tests\utWebXOffice.pas',
-  utAuditTrail in '..\Tests\utAuditTrail.pas',  utBudgetImportExport in '..\Tests\utBudgetImportExport.pas',
+  utAuditTrail in '..\Tests\utAuditTrail.pas',
+  utBudgetImportExport in '..\Tests\utBudgetImportExport.pas',
   utBGL360 in '..\Tests\utBGL360.pas',
   utSimpleFund360Bulk in '..\Tests\utSimpleFund360Bulk.pas',
   utSimpleFundX in '..\Tests\utSimpleFundX.pas',
   utInstitutionCol in '..\Tests\utInstitutionCol.pas',
   utToDo in '..\Tests\utToDo.pas',
   utBudget in '..\Tests\utBudget.pas',
-  utTPRExtact in '..\Tests\utTPRExtact.pas';
+  utTPRExtact in '..\Tests\utTPRExtact.pas',
+  utRecommendedMems in '..\Tests\utRecommendedMems.pas';
 
 {$R *.RES}
 

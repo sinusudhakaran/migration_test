@@ -18,10 +18,10 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <Version>7.0</Version>
     <DCC_Define>DEBUG;SSLV6;BK_UNITTESTINGON</DCC_Define>
-    <DCC_UnitSearchPath>$(BDS)\lib\Debug;$(BDS)\Lib\Debug\Indy10;$(BDS)\RaveReports\Lib;..\..\Common;..\..\Common\Core;..\..\Common\Core\Download;..\..\Common\Database;..\..\Common\Lib;..\Authority Forms\;..\BASForm\;..\Bconnect\;..\Component\;..\Crypto\;..\Ecoding\;..\Ecoding\database\;..\Extended MAPI\;..\Extract\;..\Forex\;..\Graphs\;..\Import\;..\Lists\;..\Orpheus\;..\Printing\;..\WebNotes\;..\Win32\;..\SimpleUI;..\..\Common\BNotes;..\..\Common\BNotes\Database;C:\Components\WPTools5\D2007;C:\Components\TPerlRegEx;..\..\Bulk Export</DCC_UnitSearchPath>
-    <DCC_ResourcePath>$(BDS)\lib\Debug;$(BDS)\Lib\Debug\Indy10;$(BDS)\RaveReports\Lib;..\..\Common;..\..\Common\Core;..\..\Common\Core\Download;..\..\Common\Database;..\..\Common\Lib;..\Authority Forms\;..\BASForm\;..\Bconnect\;..\Component\;..\Crypto\;..\Ecoding\;..\Ecoding\database\;..\Extended MAPI\;..\Extract\;..\Forex\;..\Graphs\;..\Import\;..\Lists\;..\Orpheus\;..\Printing\;..\WebNotes\;..\Win32\;..\SimpleUI;..\..\Common\BNotes;..\..\Common\BNotes\Database;C:\Components\WPTools5\D2007;C:\Components\TPerlRegEx;..\..\Bulk Export</DCC_ResourcePath>
-    <DCC_ObjPath>$(BDS)\lib\Debug;$(BDS)\Lib\Debug\Indy10;$(BDS)\RaveReports\Lib;..\..\Common;..\..\Common\Core;..\..\Common\Core\Download;..\..\Common\Database;..\..\Common\Lib;..\Authority Forms\;..\BASForm\;..\Bconnect\;..\Component\;..\Crypto\;..\Ecoding\;..\Ecoding\database\;..\Extended MAPI\;..\Extract\;..\Forex\;..\Graphs\;..\Import\;..\Lists\;..\Orpheus\;..\Printing\;..\WebNotes\;..\Win32\;..\SimpleUI;..\..\Common\BNotes;..\..\Common\BNotes\Database;C:\Components\WPTools5\D2007;C:\Components\TPerlRegEx;..\..\Bulk Export</DCC_ObjPath>
-    <DCC_IncludePath>$(BDS)\lib\Debug;$(BDS)\Lib\Debug\Indy10;$(BDS)\RaveReports\Lib;..\..\Common;..\..\Common\Core;..\..\Common\Core\Download;..\..\Common\Database;..\..\Common\Lib;..\Authority Forms\;..\BASForm\;..\Bconnect\;..\Component\;..\Crypto\;..\Ecoding\;..\Ecoding\database\;..\Extended MAPI\;..\Extract\;..\Forex\;..\Graphs\;..\Import\;..\Lists\;..\Orpheus\;..\Printing\;..\WebNotes\;..\Win32\;..\SimpleUI;..\..\Common\BNotes;..\..\Common\BNotes\Database;C:\Components\WPTools5\D2007;C:\Components\TPerlRegEx;..\..\Bulk Export</DCC_IncludePath>
+    <DCC_UnitSearchPath>C:\DCU;$(BDS)\lib\Debug;$(BDS)\Lib\Debug\Indy10;$(BDS)\RaveReports\Lib;..\..\Common;..\..\Common\Core;..\..\Common\Core\Download;..\..\Common\Database;..\..\Common\Lib;..\Authority Forms\;..\BASForm\;..\Bconnect\;..\Component\;..\Crypto\;..\Ecoding\;..\Ecoding\database\;..\Extended MAPI\;..\Extract\;..\Forex\;..\Graphs\;..\Import\;..\Lists\;..\Orpheus\;..\Printing\;..\WebNotes\;..\Win32\;..\SimpleUI;..\..\Common\BNotes;..\..\Common\BNotes\Database;C:\Components\WPTools5\D2007;C:\Components\TPerlRegEx;..\..\Bulk Export;..\..\Components\madCollection3i\madExcept\Sources;..\..\Components\DUnit\Src;..\..\Components\Orpheus;..\..\Components\Virtual Treeview\Source;..\..\Components\SourceForge Officepartner\source;..\..\Components\WPTools5\D2007;..\..\Components\QuickPDF0816Delphi2006;..\..\Components\TMSAdvGlassButton1.1;..\..\Components\Vclzip;..\..\Components\Banklink;..\..\Components\IPWorks SSL V6 Delphi Edition\pas;..\..\Components\TopGrid\Source;..\..\Components\TMS;..\..\Components\NWFax\Source\Delphi7</DCC_UnitSearchPath>
+    <DCC_ResourcePath>C:\DCU;$(BDS)\lib\Debug;$(BDS)\Lib\Debug\Indy10;$(BDS)\RaveReports\Lib;..\..\Common;..\..\Common\Core;..\..\Common\Core\Download;..\..\Common\Database;..\..\Common\Lib;..\Authority Forms\;..\BASForm\;..\Bconnect\;..\Component\;..\Crypto\;..\Ecoding\;..\Ecoding\database\;..\Extended MAPI\;..\Extract\;..\Forex\;..\Graphs\;..\Import\;..\Lists\;..\Orpheus\;..\Printing\;..\WebNotes\;..\Win32\;..\SimpleUI;..\..\Common\BNotes;..\..\Common\BNotes\Database;C:\Components\WPTools5\D2007;C:\Components\TPerlRegEx;..\..\Bulk Export;..\..\Components\madCollection3i\madExcept\Sources;..\..\Components\DUnit\Src;..\..\Components\Orpheus;..\..\Components\Virtual Treeview\Source;..\..\Components\SourceForge Officepartner\source;..\..\Components\WPTools5\D2007;..\..\Components\QuickPDF0816Delphi2006;..\..\Components\TMSAdvGlassButton1.1;..\..\Components\Vclzip;..\..\Components\Banklink;..\..\Components\IPWorks SSL V6 Delphi Edition\pas;..\..\Components\TopGrid\Source;..\..\Components\TMS;..\..\Components\NWFax\Source\Delphi7</DCC_ResourcePath>
+    <DCC_ObjPath>C:\DCU;$(BDS)\lib\Debug;$(BDS)\Lib\Debug\Indy10;$(BDS)\RaveReports\Lib;..\..\Common;..\..\Common\Core;..\..\Common\Core\Download;..\..\Common\Database;..\..\Common\Lib;..\Authority Forms\;..\BASForm\;..\Bconnect\;..\Component\;..\Crypto\;..\Ecoding\;..\Ecoding\database\;..\Extended MAPI\;..\Extract\;..\Forex\;..\Graphs\;..\Import\;..\Lists\;..\Orpheus\;..\Printing\;..\WebNotes\;..\Win32\;..\SimpleUI;..\..\Common\BNotes;..\..\Common\BNotes\Database;C:\Components\WPTools5\D2007;C:\Components\TPerlRegEx;..\..\Bulk Export;..\..\Components\madCollection3i\madExcept\Sources;..\..\Components\DUnit\Src;..\..\Components\Orpheus;..\..\Components\Virtual Treeview\Source;..\..\Components\SourceForge Officepartner\source;..\..\Components\WPTools5\D2007;..\..\Components\QuickPDF0816Delphi2006;..\..\Components\TMSAdvGlassButton1.1;..\..\Components\Vclzip;..\..\Components\Banklink;..\..\Components\IPWorks SSL V6 Delphi Edition\pas;..\..\Components\TopGrid\Source;..\..\Components\TMS;..\..\Components\NWFax\Source\Delphi7</DCC_ObjPath>
+    <DCC_IncludePath>C:\DCU;$(BDS)\lib\Debug;$(BDS)\Lib\Debug\Indy10;$(BDS)\RaveReports\Lib;..\..\Common;..\..\Common\Core;..\..\Common\Core\Download;..\..\Common\Database;..\..\Common\Lib;..\Authority Forms\;..\BASForm\;..\Bconnect\;..\Component\;..\Crypto\;..\Ecoding\;..\Ecoding\database\;..\Extended MAPI\;..\Extract\;..\Forex\;..\Graphs\;..\Import\;..\Lists\;..\Orpheus\;..\Printing\;..\WebNotes\;..\Win32\;..\SimpleUI;..\..\Common\BNotes;..\..\Common\BNotes\Database;C:\Components\WPTools5\D2007;C:\Components\TPerlRegEx;..\..\Bulk Export;..\..\Components\madCollection3i\madExcept\Sources;..\..\Components\DUnit\Src;..\..\Components\Orpheus;..\..\Components\Virtual Treeview\Source;..\..\Components\SourceForge Officepartner\source;..\..\Components\WPTools5\D2007;..\..\Components\QuickPDF0816Delphi2006;..\..\Components\TMSAdvGlassButton1.1;..\..\Components\Vclzip;..\..\Components\Banklink;..\..\Components\IPWorks SSL V6 Delphi Edition\pas;..\..\Components\TopGrid\Source;..\..\Components\TMS;..\..\Components\NWFax\Source\Delphi7</DCC_IncludePath>
     <DCC_ExeOutput>C:\Testing\Practice Unit Tests</DCC_ExeOutput>
     <DCC_DcuOutput>..\..\DCU</DCC_DcuOutput>
     <DCC_ObjOutput>..\..\DCU</DCC_ObjOutput>
@@ -40,9 +40,7 @@
     <DelphiCompile Include="bk5test.dpr">
       <MainSource>MainSource</MainSource>
     </DelphiCompile>
-    <DCCReference Include="..\Tests\utAuditTrail.pas">
-      <Form>/utBudgetImportExport in '..\Tests\utBudgetImportExport.pas';</Form>
-    </DCCReference>
+    <DCCReference Include="..\Tests\utAuditTrail.pas" />
     <DCCReference Include="..\Tests\utBGL360.pas" />
     <DCCReference Include="..\Tests\utBudget.pas" />
     <DCCReference Include="..\Tests\utBudgetImportExport.pas" />
@@ -53,10 +51,14 @@
     <DCCReference Include="..\Tests\UTmxUtils.pas" />
     <DCCReference Include="..\Tests\utMYOB.pas" />
     <DCCReference Include="..\Tests\utPayeeObj.pas" />
+    <DCCReference Include="..\Tests\utRecommendedMems.pas" />
     <DCCReference Include="..\Tests\utSimpleFund360Bulk.pas" />
     <DCCReference Include="..\Tests\utSimpleFundX.pas" />
     <DCCReference Include="..\Tests\utToDo.pas" />
     <DCCReference Include="..\Tests\utTPRExtact.pas" />
+    <DCCReference Include="..\Tests\utTPRExtact.pas,">
+      <Form>$R *.RES</Form>
+    </DCCReference>
     <DCCReference Include="..\Tests\utUpgrade.pas" />
     <DCCReference Include="..\Tests\utWebXOffice.pas" />
   </ItemGroup>
