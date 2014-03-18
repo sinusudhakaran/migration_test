@@ -789,6 +789,7 @@ var
   Payee : TPayee;
   PayeeSortedList : TStringList;
   PayeeNumber : string;
+  PayeeDataList: array of TPayeeData;
 
   //----------------------------------------------------------------------------
   procedure AddError(aError : string);
@@ -879,8 +880,18 @@ begin
      (Length(MyClient.clTPR_Payee_Detail.As_pRec.prCountry) = 0) then
     AddError('Payer Country from Other Functions | Client Details | TPR Payer Details');
 
-  // Payee Data
+  // Work Out Totals for Payees
+  SetLength(PayeeDataList, MyClient.clPayee_List.ItemCount);
+  for PayeeIndex := 0 to MyClient.clPayee_List.ItemCount - 1 do
+  begin
+    PayeeDataList[PayeeIndex].Payee := MyClient.clPayee_List.Payee_At(PayeeIndex);
+    PayeeDataList[PayeeIndex].NoABNWithholdingTax := 0;
+    PayeeDataList[PayeeIndex].TotalGST := 0;
+    PayeeDataList[PayeeIndex].GrossAmount := 0;
+  end;
+  SumPayeeTotals(Params, PayeeDataList);
 
+  // Payee Data
   PayeeSortedList := TStringList.Create();
   PayeeSortedList.Sorted := false;
   try
@@ -888,19 +899,20 @@ begin
     begin
       Payee := MyClient.clPayee_List.Payee_At(PayeeIndex);
 
+      // only process contractor payees
       if not Payee.pdFields.pdContractor then
         continue;
 
-      if (Payee.pdLinesCount = 1) and
-         (Payee.pdFields.pdTotal = 0) then
-        Continue;
+      // only process payees with gross amount greater than zero
+      if PayeeDataList[PayeeIndex].GrossAmount <= 0 then
+        continue;
 
       PayeeNumber := inttostr(Payee.pdFields.pdNumber);
       PayeeNumber := InsFillerZeros(PayeeNumber, 10);
       PayeeSortedList.AddObject(PayeeNumber, Payee);
     end;
     PayeeSortedList.Sorted := true;
-    
+
     for PayeeIndex := 0 to PayeeSortedList.Count - 1 do
     begin
       Payee := TPayee(PayeeSortedList.Objects[PayeeIndex]);
@@ -941,20 +953,36 @@ procedure TTaxablePaymentsReport.DoATOExtractValidation(var aResult : Boolean; v
 var
   PayeeCount : integer;
   PayeeIndex : integer;
+  PayeeLineIndex : integer;
   Payee : TPayee;
+  NoPayeeLines : boolean;
+  PayeeDataList: array of TPayeeData;
 begin
   aResult := true;
+
+  // Work Out Totals for Payees
+  SetLength(PayeeDataList, MyClient.clPayee_List.ItemCount);
+  for PayeeIndex := 0 to MyClient.clPayee_List.ItemCount - 1 do
+  begin
+    PayeeDataList[PayeeIndex].Payee := MyClient.clPayee_List.Payee_At(PayeeIndex);
+    PayeeDataList[PayeeIndex].NoABNWithholdingTax := 0;
+    PayeeDataList[PayeeIndex].TotalGST := 0;
+    PayeeDataList[PayeeIndex].GrossAmount := 0;
+  end;
+  SumPayeeTotals(Params, PayeeDataList);
+
   PayeeCount := 0;
   for PayeeIndex := 0 to MyClient.clPayee_List.ItemCount - 1 do
   begin
     Payee := MyClient.clPayee_List.Payee_At(PayeeIndex);
 
+    // only process contractor payees
     if not Payee.pdFields.pdContractor then
       continue;
 
-    if (Payee.pdLinesCount = 1) and
-       (Payee.pdFields.pdTotal = 0) then
-      Continue;
+    // only process payees with gross amount greater than zero
+    if PayeeDataList[PayeeIndex].GrossAmount <= 0 then
+      continue;
 
     inc(PayeeCount);
   end;
@@ -1094,6 +1122,10 @@ begin
 
         // only process contractor payees
         if not Payee.pdFields.pdContractor then
+          continue;
+
+        // only process payees with gross amount greater than zero
+        if PayeeDataList[PayeeIndex].GrossAmount <= 0 then
           continue;
 
         GetAustraliaStateFromIndex(Payee.pdFields.pdStateId,
