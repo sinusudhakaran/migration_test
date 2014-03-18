@@ -20,7 +20,8 @@ uses
   utInstitutionCol in '..\Tests\utInstitutionCol.pas',
   utToDo in '..\Tests\utToDo.pas',
   utBudget in '..\Tests\utBudget.pas',
-  utTPRExtact in '..\Tests\utTPRExtact.pas';
+  utTPRExtact in '..\Tests\utTPRExtact.pas',
+  utRecommendedMems in '..\Tests\utRecommendedMems.pas';
 
 {$R *.res}
 
