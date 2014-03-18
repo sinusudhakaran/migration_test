@@ -845,18 +845,18 @@ begin
   if MyClient.clTPR_Payee_Detail.As_pRec.prUsePracticeTPRSupplierDetails then
   begin
     if (Length(AdminSystem.TPR_Supplier_Detail.As_pRec.srContactName) = 0) then
-      AddError('Supplier Contact Name from Other Functions | Practice Details | TPR Supplier Details');
+      AddError('Supplier Contact Name from System | Practice Details | TPR Supplier Details');
 
     if (Length(AdminSystem.TPR_Supplier_Detail.As_pRec.srContactPhone) = 0) then
-      AddError('Supplier Contact Phone from Other Functions | Practice Details | TPR Supplier Details');
+      AddError('Supplier Contact Phone from System | Practice Details | TPR Supplier Details');
   end
   else
   begin
     if (Length(MyClient.clTPR_Payee_Detail.As_pRec.prPracContactName) = 0) then
-      AddError('Payer Contact Name from Other Functions | Client Details | TPR Payer Details');
+      AddError('Practice Contact Name from Other Functions | Client Details | TPR Payer Details');
 
     if (Length(MyClient.clTPR_Payee_Detail.As_pRec.prPracContactPhone) = 0) then
-      AddError('Payer Contact Phone from Other Functions | Client Details | TPR Payer Details');
+      AddError('Practice Contact Phone from Other Functions | Client Details | TPR Payer Details');
   end;
 
   if (Length(PayerABN) < 11) then
