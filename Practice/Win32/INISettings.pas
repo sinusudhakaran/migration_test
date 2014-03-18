@@ -173,7 +173,7 @@ begin
        ForceDirectories(DocFolder);
      Windows.CopyFile(PChar(BankLinkOld_DocFile), PChar(DocFile), true);
      DeleteFile(PChar(BankLinkOld_DocFile));
-     LogUtil.LogMsg(LogUtil.lmInfo, UnitName, 'Moved INI from ' + WinFile + ' to ' + DocFile);
+     LogUtil.LogMsg(LogUtil.lmInfo, UnitName, 'Moved INI from ' + BankLinkOld_DocFile + ' to ' + DocFile);
    end;
 
    // Read from old Windows location
