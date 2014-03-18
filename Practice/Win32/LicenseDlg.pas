@@ -334,9 +334,10 @@ begin
     Eula.Add('        	functions to. These entities may be located in Australia, New Zealand,');
     Eula.Add('        	Singapore, India, Malaysia, the Philippines, the United States or other');
     Eula.Add('        	countries. If you do not provide your personal information, it may');
-    Eula.Add('        	affect MYOB BankLink’s ability to do business with you. You consent to');
-    Eula.Add('        	MYOB BankLink collecting, using and disclosing your personal information');
-    Eula.Add('        	for the purposes set out above.');
+    Eula.Add('        	affect MYOB BankLink’s ability to do business with you.');
+    Eula.Add('');
+    Eula.Add('        	You consent to MYOB BankLink collecting, using and disclosing your ');
+    Eula.Add('        	personal information for the purposes set out above.');
     Eula.Add('');
     Eula.Add('9.3	If you acquired this Software in Australia:');
     Eula.Add('');
