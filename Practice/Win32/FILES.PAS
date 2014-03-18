@@ -1149,10 +1149,10 @@ begin
     //OpenAClient handles the admin system
     if CloseClient then
       OpenAClient(OpenCode,MyClient,false, True, False, IsDDE);  //allow read only
-    MyClient.clRecommended_Mems.SetBankAccounts(MyClient.clBank_Account_List);
 
     if Assigned(MyClient) then
     begin
+       MyClient.clRecommended_Mems.SetBankAccounts(MyClient.clBank_Account_List);
        with MyClient.clFields do
          AddToMRU( clCode, clName );
 
