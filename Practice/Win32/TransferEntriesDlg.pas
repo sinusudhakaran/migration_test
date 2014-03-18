@@ -511,7 +511,7 @@ begin
                      end;
                   until ( TrxIndex >= ItemCount) or ( pT^.txDate_Effective > TempToDate);
                end;
-               MyClient.clRecommended_Mems.PopulateUnscannedListOneAccount(BankBa);
+               MyClient.clRecommended_Mems.PopulateUnscannedListOneAccount(BankBa, False);
             finally
                //clear progress
                ClearStatus;

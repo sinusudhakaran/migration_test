@@ -201,7 +201,7 @@ begin
                 Inc(TransferCount);
               until (ItemCount = 0);
           end;
-          MyClient.clRecommended_Mems.PopulateUnscannedListOneAccount(ToBa);
+          MyClient.clRecommended_Mems.PopulateUnscannedListOneAccount(ToBa, False);
           // Also copy contra, use master mems, and sched rep selection
           ToBa.baFields.baContra_Account_Code := FromBa.baFields.baContra_Account_Code;
           ToBa.baFields.baExchange_Gain_Loss_Code := FromBa.baFields.baExchange_Gain_Loss_Code;

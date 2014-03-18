@@ -31,9 +31,10 @@ type
     function GetLastCodingFrmKeyPress: TDateTime;
     procedure GetMatchingCandidateRange(StatementDetails: string; var FirstCandidatePos, LastCandidatePos: integer);
     procedure RemoveAccountFromMems(AccountNo: string); Overload;
-    procedure ResetAll;
+    // procedure ResetAll;
   public
-    constructor Create(const aBankAccounts: TBank_Account_List);
+    constructor Create(const aBankAccounts: TBank_Account_List); reintroduce; overload;
+    constructor Create(const aBankAccount: TBank_Account); reintroduce; overload;
     destructor  Destroy; override;
     procedure SetBankAccounts(const aBankAccounts: TBank_Account_List);
 
@@ -45,16 +46,16 @@ type
     property  Candidates: TCandidate_Mem_List read fCandidates;
     property  Recommended: TRecommended_Mem_List read fRecommended;
 
-    procedure MemScan;
+    procedure MemScan(RunningUnitTest: boolean; TestAccount: TBank_Account);
     procedure UpdateCandidateMems(TranRec: pTransaction_Rec; IsEditOperation: boolean);
     procedure SetLastCodingFrmKeyPress;
     procedure RemoveAccountFromMems(BankAccount: TBank_Account); Overload;
     procedure RemoveAccountsFromMems(AccountList: TStringList);
-    procedure PopulateUnscannedListOneAccount(BankAccount: TBank_Account);
-    procedure PopulateUnscannedListAllAccounts;
+    procedure PopulateUnscannedListOneAccount(BankAccount: TBank_Account; RunningUnitTest: boolean);
+    procedure PopulateUnscannedListAllAccounts(RunningUnitTest: boolean);
     procedure RemoveRecommendedMems(Account: string; EntryType: byte; StatementDetails: string);
   end;
-
+                                                            
 var
   recommended_Mems: TRecommended_Mems;
 
@@ -87,6 +88,15 @@ begin
   fCandidate := TCandidate_Mem_Processing.Create;
   fCandidates := TCandidate_Mem_List.Create;
   fRecommended := TRecommended_Mem_List.Create;
+end;
+
+constructor TRecommended_Mems.Create(const aBankAccount: TBank_Account);
+var
+  aBankAccounts: TBank_Account_List;
+begin
+  aBankAccounts := TBank_Account_List.Create;
+  aBankAccounts.Insert(aBankAccount);
+  Create(aBankAccounts);
 end;
 
 destructor TRecommended_Mems.Destroy;
@@ -144,7 +154,8 @@ var
   SearchedStatementDetails: string;
 begin
   try
-    frmMain.MemScanIsBusy := True;
+    if Assigned(frmMain) then // false if this is a unit test, in which case we don't need to set this boolean anyway
+      frmMain.MemScanIsBusy := True;
     CandidateList := Candidates;
     First := CandidateList.First;
     Last := CandidateList.Last;
@@ -192,7 +203,8 @@ begin
         Break;
     end;
   finally
-    frmMain.MemScanIsBusy := False;
+    if Assigned(frmMain) then // false if this is a unit test, in which case we don't need to set this boolean anyway
+      frmMain.MemScanIsBusy := False;
   end;
 end;
 
@@ -218,10 +230,73 @@ begin
   FLastCodingFrmKeyPress := Time;
 end;
 
-procedure TRecommended_Mems.MemScan;
+procedure TRecommended_Mems.MemScan(RunningUnitTest: boolean; TestAccount: TBank_Account);
 var
   InCodingForm  : boolean;
   StartTime     : TDateTime;
+
+  // Returns true if the account for CandidateMem1 matches the account passed in
+  function AddMemorisationIfUnique(Account            : TBank_Account;
+                                   CandidateMem1      : TCandidate_Mem;
+                                   CandidateMem2      : TCandidate_Mem;
+                                   FirstCandidatePos  : integer;
+                                   LastCandidatePos   : integer): boolean;
+  var
+    CandidatePos        : integer;
+    ManuallyCodedCount  : integer;
+    MemAlreadyExists    : boolean;
+    Memorisation        : TMemorisation;
+    MemsPos             : integer;
+    NewRecMem           : TRecommended_Mem;
+    UncodedCount        : integer;
+  begin
+    Result := False;
+    // We can check if the account matches here, no need to proceed further if it doesn't match
+    if (CandidateMem1.cmFields.cmBank_Account_Number = Account.baFields.baBank_Account_Number) then
+    begin
+      MemAlreadyExists := False;
+      for MemsPos := Account.baMemorisations_List.First to Account.baMemorisations_List.Last do
+      begin
+        Memorisation := Account.baMemorisations_List.Memorisation_At(MemsPos);
+        if (CandidateMem1.cmFields.cmType = Memorisation.mdFields.mdType) and
+           (CandidateMem1.cmFields.cmStatement_Details = Memorisation.mdFields.mdStatement_Details) then
+        begin
+          MemAlreadyExists := True;
+          Break;
+        end;
+      end;
+
+      if not MemAlreadyExists then
+      begin
+        // Let's get the counts for manually coded and uncoded (blank) transactions
+        ManuallyCodedCount := 0;
+        UncodedCount := 0;
+        for CandidatePos := FirstCandidatePos to LastCandidatePos do
+        begin
+          CandidateMem2 := Candidates.Candidate_Mem_At(CandidatePos);
+          if (CandidateMem2.cmFields.cmCoded_By = cbManual) then
+            ManuallyCodedCount := ManuallyCodedCount + CandidateMem2.cmFields.cmCount
+          else if (CandidateMem2.cmFields.cmCoded_By = cbNotCoded) then
+            UncodedCount := UncodedCount + CandidateMem2.cmFields.cmCount;
+        end;
+
+        // There is no matching existing memorisation, so let's add this candidate
+        // to recommended mems. This doesn't need to be and so isn't added
+        // alphabetically, but we can change this later if needed
+        NewRecMem := TRecommended_Mem.Create;
+        NewRecMem.rmFields.rmType                 := CandidateMem1.cmFields.cmType;
+        NewRecMem.rmFields.rmBank_Account_Number  := CandidateMem1.cmFields.cmBank_Account_Number;
+        NewRecMem.rmFields.rmAccount              := CandidateMem1.cmFields.cmAccount;
+        NewRecMem.rmFields.rmStatement_Details    := CandidateMem1.cmFields.cmStatement_Details;
+        NewRecMem.rmFields.rmManual_Count         := ManuallyCodedCount;
+        NewRecMem.rmFields.rmUncoded_Count        := UncodedCount;
+        Recommended.Insert(NewRecMem);
+      end;
+      // We've found the matching account, so whether or not we've added a
+      // recommended mem, there is no need to keep looking through the accounts
+      Result := True;
+    end; // if (CandidateMem1.cmFields.cmBank_Account_Number = Account.baFields.baBank_Account_Number) then
+  end;
 
   // Does the recommended memorisation processing, returns true when this is complete
   function DoRecommendedMemProcessing: boolean;
@@ -240,13 +315,7 @@ var
     FirstCandidatePos       : integer;
     CandidateToProcess      : integer;
     LastCandidatePos        : integer;                    
-    ManuallyCodedCount      : integer;
-    MemAlreadyExists        : boolean;
-    Memorisation            : TMemorisation;
-    MemsPos                 : integer;
-    NewRecMem               : TRecommended_Mem;
     NextCandidateID         : integer;
-    UncodedCount            : integer;
   begin
     if (Candidate.cpFields.cpCandidate_ID_To_Process < 1) then
       Candidate.cpFields.cpCandidate_ID_To_Process := 1;
@@ -283,6 +352,7 @@ var
         // original candidate will never be a dissection, these are filtered out
         // earlier) or a coding type other than manual? Also, is Statement
         // Details NOT blank?
+        CandidateMem2 := nil;
         for CandidatePos := FirstCandidatePos to LastCandidatePos do
         begin
           CandidateMem2 := Candidates.Candidate_Mem_At(CandidatePos);
@@ -321,55 +391,17 @@ var
           // * Bank Account Number
           // * Statement Details
           // ... then the answer is yes, so we don't add this candidate to the recommended mems list
-          for AccountsPos := MyClient.clBank_Account_List.First to MyClient.clBank_Account_List.Last do
+          if RunningUnitTest then
+            AddMemorisationIfUnique(TestAccount, CandidateMem1, CandidateMem2, FirstCandidatePos, LastCandidatePos)
+          else
           begin
-            Account := MyClient.clBank_Account_List.Bank_Account_At(AccountsPos);
-            // We can check if the account matches here, no need to proceed further if it doesn't match
-            if (CandidateMem1.cmFields.cmBank_Account_Number = Account.baFields.baBank_Account_Number) then
+            for AccountsPos := MyClient.clBank_Account_List.First to MyClient.clBank_Account_List.Last do
             begin
-              MemAlreadyExists := False;
-              for MemsPos := Account.baMemorisations_List.First to Account.baMemorisations_List.Last do
-              begin
-                Memorisation := Account.baMemorisations_List.Memorisation_At(MemsPos);
-                if (CandidateMem1.cmFields.cmType = Memorisation.mdFields.mdType) and
-                   (CandidateMem1.cmFields.cmStatement_Details = Memorisation.mdFields.mdStatement_Details) then
-                begin
-                  MemAlreadyExists := True;
-                  Break;
-                end;
-              end;
-
-              if not MemAlreadyExists then
-              begin
-                // Let's get the counts for manually coded and uncoded (blank) transactions
-                ManuallyCodedCount := 0;
-                UncodedCount := 0;
-                for CandidatePos := FirstCandidatePos to LastCandidatePos do
-                begin
-                  CandidateMem2 := Candidates.Candidate_Mem_At(CandidatePos);
-                  if (CandidateMem2.cmFields.cmCoded_By = cbManual) then
-                    ManuallyCodedCount := ManuallyCodedCount + CandidateMem2.cmFields.cmCount
-                  else if (CandidateMem2.cmFields.cmCoded_By = cbNotCoded) then
-                    UncodedCount := UncodedCount + CandidateMem2.cmFields.cmCount;
-                end;
-
-                // There is no matching existing memorisation, so let's add this candidate
-                // to recommended mems. This doesn't need to be and so isn't added
-                // alphabetically, but we can change this later if needed
-                NewRecMem := TRecommended_Mem.Create;
-                NewRecMem.rmFields.rmType                 := CandidateMem1.cmFields.cmType;
-                NewRecMem.rmFields.rmBank_Account_Number  := CandidateMem1.cmFields.cmBank_Account_Number;
-                NewRecMem.rmFields.rmAccount              := CandidateMem1.cmFields.cmAccount;
-                NewRecMem.rmFields.rmStatement_Details    := CandidateMem1.cmFields.cmStatement_Details;
-                NewRecMem.rmFields.rmManual_Count         := ManuallyCodedCount;
-                NewRecMem.rmFields.rmUncoded_Count        := UncodedCount;
-                Recommended.Insert(NewRecMem);
-              end;
-              // We've found the matching account, so whether or not we've added a
-              // recommended mem, there is no need to keep looking through the accounts
-              Break;
-            end; // if (CandidateMem1.cmFields.cmBank_Account_Number = Account.baFields.baBank_Account_Number) then
-          end; // for AccountsPos := MyClient.clBank_Account_List.First to MyClient.clBank_Account_List.Last do
+              Account := MyClient.clBank_Account_List.Bank_Account_At(AccountsPos);
+              if AddMemorisationIfUnique(Account, CandidateMem1, CandidateMem2, FirstCandidatePos, LastCandidatePos) then
+                Break;
+            end; // for AccountsPos := MyClient.clBank_Account_List.First to MyClient.clBank_Account_List.Last do
+          end;
         end; // if not ExclusionFound then
       end; // if (CandidateToProcess < NextCandidateID) then
     end else
@@ -395,7 +427,10 @@ var
         utBankAccount := Unscanned.Unscanned_Transaction_At(0).utFields.utBank_Account_Number;
         utSequenceNo  := Unscanned.Unscanned_Transaction_At(0).utFields.utSequence_No;
         // Get transaction details for the transaction that matches the sequence number in our record
-        utAccount := MyClient.clBank_Account_List.FindCode(utBankAccount);
+        if RunningUnitTest then
+          utAccount := TestAccount
+        else
+          utAccount := MyClient.clBank_Account_List.FindCode(utBankAccount);
         pTranRec := nil;
         // TODO: optimize this search, see TExtdSortedCollection.Search
         for i := utAccount.baTransaction_List.First to utAccount.baTransaction_List.Last do
@@ -487,7 +522,7 @@ var
     end;
   end;
 begin
-  if Assigned(myClient) then // Is the client file open?
+  if Assigned(myClient) or RunningUnitTest then // Is the client file open?
   begin
     // Store current time
     StartTime := Time;
@@ -497,7 +532,7 @@ begin
     else
       InCodingForm := False;
     // Has it been more than 33 milliseconds yet?
-    while (MilliSecondsBetween(StartTime, Time) < 33) do
+    while ((MilliSecondsBetween(StartTime, Time) < 33) or RunningUnitTest) do
     begin
       // Are we in the coding form, and has there been a keypress in the last two seconds?
       if InCodingForm and (MilliSecondsBetween(StartTime, GetLastCodingFrmKeyPress) <= 2000) then
@@ -598,7 +633,7 @@ begin
 end;
 
 // Builds the unscanned transactions list for all bank accounts
-procedure TRecommended_Mems.PopulateUnscannedListAllAccounts;
+procedure TRecommended_Mems.PopulateUnscannedListAllAccounts(RunningUnitTest: boolean);
 var
   iBankAccount: integer;
 begin
@@ -608,21 +643,19 @@ begin
     exit;
 
   for iBankAccount := 0 to fBankAccounts.ItemCount-1 do
-    PopulateUnscannedListOneAccount(fBankAccounts[iBankAccount]);
-
-  Candidate.cpFields.cpCandidate_ID_To_Process := 1;
-  Candidate.cpFields.cpNext_Candidate_ID := 1;
+    PopulateUnscannedListOneAccount(fBankAccounts[iBankAccount], RunningUnitTest);
 end;
 
 // Builds the unscanned transactions list for one bank account
-procedure TRecommended_Mems.PopulateUnscannedListOneAccount(BankAccount: TBank_Account);
+procedure TRecommended_Mems.PopulateUnscannedListOneAccount(BankAccount: TBank_Account; RunningUnitTest: boolean);
 var
   iTransaction: integer;
   New: TUnscanned_Transaction;
   Transaction: pTransaction_Rec;
 begin
   try
-    frmMain.MemScanIsBusy := True;
+    if not RunningUnitTest then
+      frmMain.MemScanIsBusy := True;
     for iTransaction := 0 to BankAccount.baTransaction_List.ItemCount-1 do
     begin
       Transaction := BankAccount.baTransaction_List.Transaction_At(iTransaction);
@@ -632,8 +665,12 @@ begin
       Unscanned.Insert(New);
     end;
   finally
-    frmMain.MemScanIsBusy := False;
+    if not RunningUnitTest then    
+      frmMain.MemScanIsBusy := False;
   end;
+
+  Candidate.cpFields.cpCandidate_ID_To_Process := 1;
+  Candidate.cpFields.cpNext_Candidate_ID := 1;
 end;
 
 // Removes an account from candidates and recommended mems. Should be called when:
@@ -646,7 +683,8 @@ var
   LoopStart: integer;
 begin
   try
-    frmMain.MemScanIsBusy := True;
+    if Assigned(frmMain) then // false for unit tests, which don't need to set this boolean anyway
+      frmMain.MemScanIsBusy := True;
     // Delete all unscanned transactions with this account number,
     // so that we don't have to worry about duplicates being added
     LoopStart := Unscanned.ItemCount - 1; // Deletions will lower the item count, so we have to get this value before doing any deletions
@@ -672,7 +710,8 @@ begin
     // Will need to rebuild recommended mems later, so set ID To Proces back to the start of Candidates
     fCandidate.cpFields.cpCandidate_ID_To_Process := 1;
   finally
-    frmMain.MemScanIsBusy := False;
+    if Assigned(frmMain) then
+      frmMain.MemScanIsBusy := False;
   end;
 end;
 
@@ -700,7 +739,7 @@ begin
     for i := 0 to AccountList.Count - 1 do
     begin
       BankAccount := MyClient.clBank_Account_List.FindCode(AccountList.Strings[i]);
-      PopulateUnscannedListOneAccount(BankAccount);
+      PopulateUnscannedListOneAccount(BankAccount, False);
     end;
   finally
     frmMain.MemScanIsBusy := False;
@@ -735,6 +774,7 @@ begin
 end;
 
 // This is here for debugging purposes, it shouldn't be used anywhere permanently
+{
 procedure TRecommended_Mems.ResetAll;
 begin
   try
@@ -751,5 +791,6 @@ begin
     frmMain.MemScanIsBusy := False;
   end;                                                  
 end;
+}
 
 end.

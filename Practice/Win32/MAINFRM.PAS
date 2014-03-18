@@ -5529,7 +5529,7 @@ begin
       fMemScanIsBusy := True;
       if Assigned(MyClient) then
         if Assigned(MyClient.clRecommended_Mems) then
-          MyClient.clRecommended_Mems.MemScan;
+          MyClient.clRecommended_Mems.MemScan(False, nil);
     finally
       fMemScanIsBusy := False;
     end;

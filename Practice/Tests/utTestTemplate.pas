@@ -13,6 +13,7 @@ type
   private
   protected
     procedure SetUp; override;
+    procedure TearDown; override;
   published
   end;
 
@@ -21,6 +22,12 @@ implementation
 { TUnitTestTemplate }
 
 procedure TUnitTestTemplate.SetUp;
+begin
+  inherited;
+  //
+end;
+
+procedure TUnitTestTemplate.TearDown;
 begin
   inherited;
   //
