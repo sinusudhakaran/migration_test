@@ -162,8 +162,8 @@ begin
     Found := False;
 
     // Find a Candidate whose Statement Details matched those we have passed in
-    FoundMatchPosition := 0; // This value shouldn't get used
-    while (First <= Last) and (not Found) do
+    FoundMatchPosition := -1;
+    while (First <= Last) and (not Found) and (Last <> -1) do
     begin
       // Get the middle of the range
       Pivot := (First + Last) shr 1; // shr = shift right 1 (equivalent to div 2)
@@ -181,6 +181,9 @@ begin
         // Now we'll search within the second half
         First := Pivot + 1;
     end;
+
+    if FoundMatchPosition = -1 then
+      Exit; // there are no matching candidates
 
     // In a normal binary search we would be done, but in our case there may be several
     // matching candidates (we wouldn't expect there to be too many), and we need to
@@ -598,17 +601,20 @@ begin
                               FirstCandidatePos,
                               LastCandidatePos);
     MatchingCandidatePos := -1;
-    for CandidateInt := FirstCandidatePos to LastCandidatePos do
+    if (FirstCandidatePos > -1) then
     begin
-      CandidateMemRec := Candidates.Candidate_Mem_At(CandidateInt).cmFields;
-      // Statement details has already been matched, no need to check it again
-      if (CandidateMemRec.cmType = TranRec.txType) and
-      (CandidateMemRec.cmBank_Account_Number = Account.baFields.baBank_Account_Number) and
-      (CandidateMemRec.cmCoded_By = TranRec.txCoded_By) and
-      (CandidateMemRec.cmAccount = TranRec.txAccount) then
+      for CandidateInt := FirstCandidatePos to LastCandidatePos do
       begin
-        MatchingCandidatePos := CandidateInt;
-        break;
+        CandidateMemRec := Candidates.Candidate_Mem_At(CandidateInt).cmFields;
+        // Statement details has already been matched, no need to check it again
+        if (CandidateMemRec.cmType = TranRec.txType) and
+        (CandidateMemRec.cmBank_Account_Number = Account.baFields.baBank_Account_Number) and
+        (CandidateMemRec.cmCoded_By = TranRec.txCoded_By) and
+        (CandidateMemRec.cmAccount = TranRec.txAccount) then
+        begin
+          MatchingCandidatePos := CandidateInt;
+          break;
+        end;
       end;
     end;
 
