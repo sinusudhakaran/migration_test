@@ -42,6 +42,11 @@ type
   TSplitArray = Array[ 1 .. GLCONST.Max_mx_Lines ] of TmemSplitRec;
 
 type
+  TDlgEditMode = (
+    demCreate,
+    demEdit
+  );
+
   TdlgMemorise = class(TForm)
     GroupBox1: TGroupBox;
     lblType: TLabel;
@@ -220,6 +225,8 @@ type
     WasType: Byte;
     tmrRow: Integer;
     tmrCol: Integer;
+    fDlgEditMode: TDlgEditMode;
+
     procedure UpdateFields(RowNum : integer);
     procedure UpdateTotal;
     function  OKtoPost : boolean;
@@ -248,13 +255,18 @@ type
     procedure LocaliseForm;
   public
     property AccountingSystem: Integer read GetAccountingSystem write SetAccountingSystem;
+    property DlgEditMode: TDlgEditMode read fDlgEditMode write fDlgEditMode;
     { Public declarations }
   end;
 
   function MemoriseEntry(BA: TBank_Account; tr: pTransaction_Rec; var IsAMasterMem: boolean): boolean;
   function EditMemorisation(BA: TBank_Account; MemorisedList: TMemorisations_List;
                             pM: TMemorisation; var DeleteSelectedMem: boolean;
-                            IsCopy: Boolean = False; Prefix: string = ''; CopySaveSeq: integer = -1): boolean;
+                            IsCopy: Boolean = False; Prefix: string = '';
+                            CopySaveSeq: integer = -1;
+                            aDlgEditMode: TDlgEditMode = demEdit): boolean;
+  function  CreateMemorisation(BA: TBank_Account;
+              MemorisedList: TMemorisations_List; pM: TMemorisation): boolean;
 
 
 //******************************************************************************
@@ -1592,12 +1604,16 @@ begin
                         'accounts with this bank and use MASTER Memorisations.';
       end;
 
-      if AskYesNo( 'Confirm Edit',
-                   'Saving the changes to this Memorisation will re-code all Entries'+
-                   ', which match this criteria, '+
-                   'that are yet to be transferred or finalised. '#13#13+
-                   'Please confirm you want to do this.' + ExtraMsg,
-                   DLG_YES, 0) <> DLG_YES then exit;
+      // Only ask this in Edit mode?
+      if (DlgEditMode = demEdit) then
+      begin
+        if AskYesNo( 'Confirm Edit',
+                     'Saving the changes to this Memorisation will re-code all Entries'+
+                     ', which match this criteria, '+
+                     'that are yet to be transferred or finalised. '#13#13+
+                     'Please confirm you want to do this.' + ExtraMsg,
+                     DLG_YES, 0) <> DLG_YES then exit;
+      end;
    end;
 
 
@@ -1966,9 +1982,22 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+function CreateMemorisation(BA: TBank_Account;
+  MemorisedList: TMemorisations_List; pM: TMemorisation): boolean;
+var
+  DeleteSelectedMem: boolean;
+begin
+  DeleteSelectedMem := false;
+
+  result := EditMemorisation(BA, MemorisedList, pM, DeleteSelectedMem, false,
+    '', -1, demCreate);
+end;
+
+//------------------------------------------------------------------------------
 function EditMemorisation(BA: TBank_Account; MemorisedList: TMemorisations_List;
   pM: TMemorisation; var DeleteSelectedMem: boolean;
-  IsCopy: Boolean = False; Prefix: string = ''; CopySaveSeq: integer = -1): boolean;
+  IsCopy: Boolean = False; Prefix: string = ''; CopySaveSeq: integer = -1;
+  aDlgEditMode: TDlgEditMode = demEdit): boolean;
 // edits an existing memorisation
 //
 // parameters: pM   Memorisation to edit
@@ -2003,12 +2032,17 @@ begin
          SourceBankAccount := ba;
 
          LocaliseForm;
-         
+
          with pM do begin
+            fDlgEditMode := aDlgEditMode; // Store for OKToPost
+            case DlgEditMode of
+              demCreate: Caption := 'Create New';
+              demEdit: Caption := 'Edit';
+            end;
             if mdFields.mdFrom_Master_List then
-               Caption := 'Edit MASTER Memorisation'
+               Caption := Caption + ' MASTER Memorisation'
             else
-               Caption := 'Edit Memorisation';
+               Caption := Caption + ' Memorisation';
 
             lblType.Caption := inttostr(mdFields.mdType) + ':' + MyClient.clFields.clShort_Name[mdFields.mdType];
             //set edit boxes

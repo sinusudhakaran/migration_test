@@ -373,7 +373,6 @@ var
 
   Mems: TMemorisations_List;
   Mem: TMemorisation;
-  DeleteSelectedMem: boolean;
   MemLine: pMemorisation_Line_Rec;
 begin
   pData := PTreeData(vstTree.GetNodeData(aNode));
@@ -392,8 +391,7 @@ begin
   Mem.mdLines.Insert(MemLine);
 
   // OK pressed, and insert mem?
-  DeleteSelectedMem := false;
-  if EditMemorisation(fBankAccount, Mems, Mem, DeleteSelectedMem) then
+  if CreateMemorisation(fBankAccount, Mems, Mem) then
   begin
     Mems.Insert_Memorisation(Mem);
     PopulateTree; // Refresh the list of recommended mems, now that we've used one it shouldn't appear any more
