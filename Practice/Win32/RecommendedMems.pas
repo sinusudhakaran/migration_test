@@ -244,7 +244,7 @@ var
   var
     CandidatePos        : integer;
     ManuallyCodedCount  : integer;
-    MemAlreadyExists    : boolean;
+    ExcludeMem          : boolean;
     Memorisation        : TMemorisation;
     MemsPos             : integer;
     NewRecMem           : TRecommended_Mem;
@@ -254,19 +254,29 @@ var
     // We can check if the account matches here, no need to proceed further if it doesn't match
     if (CandidateMem1.cmFields.cmBank_Account_Number = Account.baFields.baBank_Account_Number) then
     begin
-      MemAlreadyExists := False;
+      ExcludeMem := False;
       for MemsPos := Account.baMemorisations_List.First to Account.baMemorisations_List.Last do
       begin
         Memorisation := Account.baMemorisations_List.Memorisation_At(MemsPos);
         if (CandidateMem1.cmFields.cmType = Memorisation.mdFields.mdType) and
            (CandidateMem1.cmFields.cmStatement_Details = Memorisation.mdFields.mdStatement_Details) then
         begin
-          MemAlreadyExists := True;
+          ExcludeMem := True;
           Break;
         end;
       end;
 
-      if not MemAlreadyExists then
+      // Check if any candidates have a matching account code, if so exclude them too
+      // TODO: optimize this if possible
+      for CandidatePos := 0 to Candidates.ItemCount - 1 do
+      begin
+        CandidateMem2 := Candidates.Candidate_Mem_At(CandidatePos);
+        if (CandidateMem1.cmFields.cmAccount = CandidateMem2.cmFields.cmAccount) and
+        not (CandidateMem2.cmFields.cmCoded_By in [cbManual, cbNotCoded]) then
+          ExcludeMem := True;
+      end;
+
+      if not ExcludeMem then
       begin
         // Let's get the counts for manually coded and uncoded (blank) transactions
         ManuallyCodedCount := 0;
