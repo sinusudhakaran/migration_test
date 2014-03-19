@@ -298,6 +298,7 @@ var
   iCount: integer;
 begin
   Mems := MyClient.clRecommended_Mems.Recommended;
+  fData := nil;
   for i := 0 to Mems.ItemCount-1 do
   begin
     Mem := Mems.Recommended_Mem_At(i);
@@ -323,6 +324,7 @@ var
 begin
   // Build temporary structure against BankAccount
   BuildData;
+  vstTree.Clear;
 
   // Add nodes
   for i := 0 to High(fData) do
@@ -392,7 +394,10 @@ begin
   // OK pressed, and insert mem?
   DeleteSelectedMem := false;
   if EditMemorisation(fBankAccount, Mems, Mem, DeleteSelectedMem) then
-    Mems.Insert_Memorisation(Mem)
+  begin
+    Mems.Insert_Memorisation(Mem);
+    PopulateTree; // Refresh the list of recommended mems, now that we've used one it shouldn't appear any more
+  end
   else
     FreeAndNil(Mem);
 end;
