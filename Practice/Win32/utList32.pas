@@ -21,6 +21,7 @@ type
   public
     constructor Create; override;
     function  Compare(Item1, Item2: Pointer) : integer; override;
+    procedure Insert( Item : Pointer ); override;
 
     procedure SaveToFile(var S: TIOStream);
     procedure LoadFromFile(var S: TIOStream);
@@ -153,6 +154,16 @@ begin
     result := Item.As_pRec
   else
     result := nil;
+end;
+
+procedure TUnscanned_Transaction_List.Insert(Item: Pointer);
+var
+  i : integer;
+  found : boolean;
+begin
+  found := Search( Item, I );
+  if not found then // We don't want duplicates, but we can tolerate attempts to add them
+    AtInsert( I, Item );
 end;
 
 {------------------------------------------------------------------------------}
