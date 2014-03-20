@@ -154,6 +154,9 @@ var
   SearchedStatementDetails: string;
 begin
   try
+    FirstCandidatePos := -1;
+    LastCandidatePos  := -1;
+
     if Assigned(frmMain) then // false if this is a unit test, in which case we don't need to set this boolean anyway
       frmMain.MemScanIsBusy := True;
     CandidateList := Candidates;
