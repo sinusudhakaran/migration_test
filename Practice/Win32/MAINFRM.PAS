@@ -1448,6 +1448,8 @@ procedure TfrmMain.FormShow(Sender: TObject);
       end;
    end;
    //--------------------------------------------------------------
+const
+  unitname = 'FormShow';
 var
   UsernameToTry     : string;
   NumUsersLoggedIn  : integer;
@@ -1458,6 +1460,9 @@ var
   ShowSmartLinkHelp : boolean;
 {$ENDIF}
 begin
+  if DebugMe then
+    LogUtil.LogMsg(lmDebug,unitname,'Form Shown Started');
+
   FAdminSystemFound := Assigned( AdminSystem) or AdminExists;
   SetupHelp;
 
@@ -1532,6 +1537,9 @@ begin
   Self.Tag := 99999;  //set this to tell the yes no dialog to display screen center
                   //rather than main form
 
+  if DebugMe then
+    LogUtil.LogMsg(lmDebug,unitname,'Form Shown Step 1 - before Disbale mainform');
+
   ApplicationUtils.DisableMainForm;
 //  HelpfulInfoMsg('This version is for internal use only & is not to be distributed to clients under any circumstances.', 0);
   try
@@ -1539,7 +1547,14 @@ begin
     if (Globals.StartupParam_Action = 0) and
        (Assigned(AdminSystem)) and 
        (AdminSystem.fdFields.fdBankLink_Connect_Password <> '') then
+    begin
+      if DebugMe then
+        LogUtil.LogMsg(lmDebug,unitname,'Form Shown Step 2.1 - before TryGetandShowHTMLReminder');
       UpgradeReminderMsg.TryGetandShowHTMLReminder;
+    end;
+
+    if DebugMe then
+      LogUtil.LogMsg(lmDebug,unitname,'Form Shown Step 2.2 - before LoginUser');
 
     //login user
     if not LoginUser( UserNameToTry ) then
@@ -1740,6 +1755,9 @@ begin
 
   //allow DDE commands to be processed
   ApplicationIsStarting := false;
+
+  if DebugMe then
+    LogUtil.LogMsg(lmDebug,unitname,'Form Shown Finnished');
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmMain.RepositionLogos( Sender : TObject);
