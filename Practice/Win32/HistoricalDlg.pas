@@ -4783,6 +4783,8 @@ begin
       Result := ShowModal = mroK;
 
    finally
+      MyClient.clRecommended_Mems.RemoveAccountFromMems(SelectedBA);
+      MyClient.clRecommended_Mems.PopulateUnscannedListOneAccount(SelectedBA, false);
       Free;
    end;
 end;
