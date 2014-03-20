@@ -4,6 +4,7 @@ program Bk5Win;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 uses
+  madScreenShot,
   madExcept,
   madLinkDisAsm,
   madListHardware,
@@ -89,7 +90,7 @@ begin
       ApplicationStartUpAndShutDown.BeforeAppInitialize;
       Application.Initialize;
       ApplicationStartUpAndShutDown.AfterAppInitialize;
-      Application.MainFormOnTaskBar := true;
+      //Application.MainFormOnTaskBar := true;
 
       //********************************************
       //delphi generated code
