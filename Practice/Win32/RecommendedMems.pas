@@ -633,18 +633,18 @@ begin
       if (Candidates.Candidate_Mem_At(MatchingCandidatePos).cmFields.cmCount = 0) then
         // Yes, so remove this candidate from the candidate list
         Candidates.AtFree(MatchingCandidatePos);
+    end;
 
-      // Is this an edit operation (rather than a delete)?
-      if IsEditOperation then
-      begin
-        // Add modified transaction to unscanned list. We can use the old details
-        // (bank account and sequence number), because they don't change when a
-        // transaction gets modified by the user
-        NewUnscannedTran := TUnscanned_Transaction.Create;
-        NewUnscannedTran.utFields.utBank_Account_Number := Account.baFields.baBank_Account_Number;
-        NewUnscannedTran.utFields.utSequence_No := TranRec.txSequence_No;
-        Unscanned.Insert(NewUnscannedTran);
-      end;
+    // Is this an edit operation (rather than a delete)?
+    if IsEditOperation then
+    begin
+      // Add modified transaction to unscanned list. We can use the old details
+      // (bank account and sequence number), because they don't change when a
+      // transaction gets modified by the user
+      NewUnscannedTran := TUnscanned_Transaction.Create;
+      NewUnscannedTran.utFields.utBank_Account_Number := Account.baFields.baBank_Account_Number;
+      NewUnscannedTran.utFields.utSequence_No := TranRec.txSequence_No;
+      Unscanned.Insert(NewUnscannedTran);
     end;
 
     // Rescan candidates later
