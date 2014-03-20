@@ -480,23 +480,33 @@ begin
     Check(RecommendedMems.Candidates.Candidate_Mem_At(6).cmFields.cmStatement_Details = 'Details 3');
 
     // Recommended Mems (only one for this set of data)
-    Check(RecommendedMems.Recommended.ItemCount = 1);
+    Check(RecommendedMems.Recommended.ItemCount = 2);
 
     // Recommendation 0
     Check(RecommendedMems.Recommended.Recommended_Mem_At(0).rmFields.rmRecord_Type = 168);
-    Check(RecommendedMems.Recommended.Recommended_Mem_At(0).rmFields.rmType = 70);
+    Check(RecommendedMems.Recommended.Recommended_Mem_At(0).rmFields.rmType = 30);
     Check(RecommendedMems.Recommended.Recommended_Mem_At(0).rmFields.rmBank_Account_Number = '12345');
-    Check(RecommendedMems.Recommended.Recommended_Mem_At(0).rmFields.rmAccount = '232');
-    Check(RecommendedMems.Recommended.Recommended_Mem_At(0).rmFields.rmStatement_Details = 'Details 3');
-    Check(RecommendedMems.Recommended.Recommended_Mem_At(0).rmFields.rmManual_Count = 3);
+    Check(RecommendedMems.Recommended.Recommended_Mem_At(0).rmFields.rmAccount = '230');
+    Check(RecommendedMems.Recommended.Recommended_Mem_At(0).rmFields.rmStatement_Details = 'Details 1');
+    Check(RecommendedMems.Recommended.Recommended_Mem_At(0).rmFields.rmManual_Count = 4);
     Check(RecommendedMems.Recommended.Recommended_Mem_At(0).rmFields.rmUncoded_Count = 1);
+
+    // Recommendation 1
+    Check(RecommendedMems.Recommended.Recommended_Mem_At(1).rmFields.rmRecord_Type = 168);
+    Check(RecommendedMems.Recommended.Recommended_Mem_At(1).rmFields.rmType = 70);
+    Check(RecommendedMems.Recommended.Recommended_Mem_At(1).rmFields.rmBank_Account_Number = '12345');
+    Check(RecommendedMems.Recommended.Recommended_Mem_At(1).rmFields.rmAccount = '232');
+    Check(RecommendedMems.Recommended.Recommended_Mem_At(1).rmFields.rmStatement_Details = 'Details 3');
+    Check(RecommendedMems.Recommended.Recommended_Mem_At(1).rmFields.rmManual_Count = 3);
+    Check(RecommendedMems.Recommended.Recommended_Mem_At(1).rmFields.rmUncoded_Count = 1);
 
     // Removing a recommendation
     RecommendedMems.RemoveRecommendedMems('12345', 70, 'Details 3');
-    Check(RecommendedMems.Recommended.ItemCount = 0);
+    Check(RecommendedMems.Recommended.ItemCount = 1);
 
-    // Removing an account from recommendations
+    // Removing an account from recommendations (in our case, the only account)
     RecommendedMems.RemoveAccountFromMems(TestAccount);
+    Check(RecommendedMems.Recommended.ItemCount = 0);
     Check(RecommendedMems.Candidates.ItemCount = 0);
 
   finally
