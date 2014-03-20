@@ -272,12 +272,14 @@ var
         end;
       end;
 
-      // Check if any candidates have a matching account code, if so exclude them too
+      // Check if any candidates have a matching account code, and matching
+      // statement details, if so exclude them too
       // TODO: optimize this if possible
       for CandidatePos := 0 to Candidates.ItemCount - 1 do
       begin
         CandidateMem2 := Candidates.Candidate_Mem_At(CandidatePos);
         if (CandidateMem1.cmFields.cmAccount = CandidateMem2.cmFields.cmAccount) and
+        (CandidateMem1.cmFields.cmStatement_Details = CandidateMem2.cmFields.cmStatement_Details) and
         not (CandidateMem2.cmFields.cmCoded_By in [cbManual, cbNotCoded]) then
           ExcludeMem := True;
       end;
