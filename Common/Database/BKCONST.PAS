@@ -796,11 +796,11 @@ CONST
    whSupportPhoneNo : Array[ whMin..whMax ] of String[ 20 ] =
    ( '0800 226 554', '1 800 123 242', '0800 500 3081' );
 
-   whSupportEmail : Array[ whMin..whMax ] of String[ 30 ] =
-   ( 'support@banklink.co.nz', 'support@banklink.com.au', 'support@banklink.co.uk' );
+   whSupportEmail : Array[ whMin..whMax ] of String[ 60 ] =
+   ( 'banklinksupport@myob.com', 'banklinksupport@myob.com', 'banklinksupport@myob.com' );
 
-   whClientServicesEmail : Array[ whMin..whMax ] of String[ 30 ] =
-   ( 'clientservices@banklink.co.nz', 'clientservices@banklink.com.au', 'clientservices@banklink.co.uk' );
+   whClientServicesEmail : Array[ whMin..whMax ] of String[ 60 ] =
+   ( 'banklinkclientservices@myob.com', 'banklinkclientservices@myob.com', 'banklinkclientservices@myob.com' );
 
    whChequeEntryType : Array[ whMin..whMax ] of Byte = ( 0, 1, 1 );
    whWithdrawalEntryType : Array[ whMin..whMax ] of Byte = ( 49, 9, 9 );
