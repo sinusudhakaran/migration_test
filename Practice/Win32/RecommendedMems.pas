@@ -191,6 +191,10 @@ begin
     // In a normal binary search we would be done, but in our case there may be several
     // matching candidates (we wouldn't expect there to be too many), and we need to
     // know about them all. So let's find the positions of the first and last candidates
+
+    // We go back through the list, from the position of the matching candidate we found,
+    // until we find the first matching candidate, store the position of the first match
+    // as FirstCandidatePos, which will be used in the Recommended Mem logic
     FirstCandidatePos := FoundMatchPosition;
     while (FirstCandidatePos > First) do
     begin
@@ -200,6 +204,9 @@ begin
         Break;
     end;
 
+    // Now we go forward through the list, from the position of the matching candidate we
+    // found, until we find the last matching candidate, store the position of the last
+    // match as LastCandidatePos, which will be used in the Recommended Mem logic
     LastCandidatePos := FoundMatchPosition;
     while (LastCandidatePos < Last) do
     begin
@@ -327,16 +334,54 @@ var
     AccountsPos             : integer;
     BlankStatementDetails   : boolean;
     Candidate2HasBlankCode  : boolean;
-    CandidatePos             : integer;
     CandidateMem1           : TCandidate_Mem;
     CandidateMem2           : TCandidate_Mem;
     CodedByIsManual         : boolean;
     // EitherAccountIsBlank    : boolean;
-    ExclusionFound          : boolean;
     FirstCandidatePos       : integer;
     CandidateToProcess      : integer;
     LastCandidatePos        : integer;                    
     NextCandidateID         : integer;
+
+    // Returns true if we should exclude the candidate
+    function CheckForExclusions: boolean;
+    var
+      CandidatePos: integer;
+    begin
+      Result := False;
+      CandidateMem2 := nil;
+      for CandidatePos := FirstCandidatePos to LastCandidatePos do
+      begin
+        CandidateMem2 := Candidates.Candidate_Mem_At(CandidatePos);
+        // Does the key (entry type, bank account code, statement details) match? We have already
+        // checked the latter so just check the first two
+        if (CandidateMem1.cmFields.cmType = CandidateMem2.cmFields.cmType) and
+        (CandidateMem1.cmFields.cmBank_Account_Number = CandidateMem2.cmFields.cmBank_Account_Number) then
+        begin
+          AccountCodesDiffer := (CandidateMem1.cmFields.cmAccount <> CandidateMem2.cmFields.cmAccount);
+          // EitherAccountIsBlank := (CandidateMem1.cmFields.cmAccount = '') or
+          //                         (CandidateMem2.cmFields.cmAccount = '');
+          CodedByIsManual := (CandidateMem2.cmFields.cmCoded_By = cbManual);
+          Candidate2HasBlankCode := (CandidateMem2.cmFields.cmAccount = '');
+          BlankStatementDetails := (CandidateMem1.cmFields.cmStatement_Details = '');
+
+          {
+          if ((AccountCodesDiffer and not EitherAccountIsBlank) or
+          (CodedByIsManual = false)) and
+          (Candidate2HasBlankCode = false) then
+          }
+          if (((not CodedByIsManual) or AccountCodesDiffer) and
+          (not Candidate2HasBlankCode)) or
+          BlankStatementDetails then
+          begin
+            // Don't recommend this candidate
+            Result := True;
+            Break;
+          end;
+        end;
+      end;
+    end;
+
   begin
     if (Candidate.cpFields.cpCandidate_ID_To_Process < 1) then
       Candidate.cpFields.cpCandidate_ID_To_Process := 1;
@@ -358,7 +403,7 @@ var
       // Increment next candidate to process
       Candidate.cpFields.cpCandidate_ID_To_Process :=
         Candidate.cpFields.cpCandidate_ID_To_Process + 1;
-      // Does the candidate have a count >= 3, is manually coded, and it isn't dissected?
+      // Does the candidate have a count >= 3, is manually coded, and isn't dissected?
       if (CandidateMem1.cmFields.cmCount >= 3) and
          (CandidateMem1.cmFields.cmCoded_By = cbManual) and
          (CandidateMem1.cmFields.cmAccount <> DISSECT_DESC) then
@@ -366,45 +411,13 @@ var
         Assert((CandidateMem1.cmFields.cmAccount <> ''), 'Blank account code and manual coding should be mutually exclusive');
         GetMatchingCandidateRange(CandidateMem1.cmFields.cmStatement_Details,
                                   FirstCandidatePos, LastCandidatePos);
-        ExclusionFound := False;
         // Checking for exclusions: does the key exist in the candidate list with a
         // different code (including dissections, which will always have the code
         // 'DISSECT' and thus be excluded when we compare account codes, as our
         // original candidate will never be a dissection, these are filtered out
         // earlier) or a coding type other than manual? Also, is Statement
         // Details NOT blank?
-        CandidateMem2 := nil;
-        for CandidatePos := FirstCandidatePos to LastCandidatePos do
-        begin
-          CandidateMem2 := Candidates.Candidate_Mem_At(CandidatePos);
-          // Does the key (entry type, bank account code, statement details) match? We have already
-          // checked the latter so just check the first two
-          if (CandidateMem1.cmFields.cmType = CandidateMem2.cmFields.cmType) and
-          (CandidateMem1.cmFields.cmBank_Account_Number = CandidateMem2.cmFields.cmBank_Account_Number) then
-          begin
-            AccountCodesDiffer := (CandidateMem1.cmFields.cmAccount <> CandidateMem2.cmFields.cmAccount);
-            // EitherAccountIsBlank := (CandidateMem1.cmFields.cmAccount = '') or
-            //                         (CandidateMem2.cmFields.cmAccount = '');
-            CodedByIsManual := (CandidateMem2.cmFields.cmCoded_By = cbManual);
-            Candidate2HasBlankCode := (CandidateMem2.cmFields.cmAccount = '');
-            BlankStatementDetails := (CandidateMem1.cmFields.cmStatement_Details = '');
-
-            {
-            if ((AccountCodesDiffer and not EitherAccountIsBlank) or
-            (CodedByIsManual = false)) and
-            (Candidate2HasBlankCode = false) then
-            }
-            if (((not CodedByIsManual) or AccountCodesDiffer) and
-            (not Candidate2HasBlankCode)) or
-            BlankStatementDetails then
-            begin
-              // Don't recommend this candidate
-              ExclusionFound := True;
-              Break;
-            end;
-          end;
-        end;
-        if not ExclusionFound then
+        if not CheckForExclusions then
         begin
           // Does an existing matching memorisation already exist? Check the candidate against all
           // existing memorisations for all of the clients bank accounts. If the following match:
@@ -422,10 +435,11 @@ var
               if AddMemorisationIfUnique(Account, CandidateMem1, CandidateMem2, FirstCandidatePos, LastCandidatePos) then
                 Break;
             end; // for AccountsPos := MyClient.clBank_Account_List.First to MyClient.clBank_Account_List.Last do
-          end;
-        end; // if not ExclusionFound then
-      end; // if (CandidateToProcess < NextCandidateID) then
-    end else
+          end; // if RunningUnitTest
+        end; // if not ExclusionFound
+      end; // if (CandidateMem1.cmFields.cmCount >= 3) and (CandidateMem1.cmFields.cmCoded_By = cbManual) and (CandidateMem1.cmFields.cmAccount <> DISSECT_DESC)
+    end // if (CandidateToProcess < NextCandidateID)
+    else
       Result := True;
   end;
 
