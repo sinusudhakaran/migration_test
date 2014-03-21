@@ -656,7 +656,7 @@ object frmMain: TfrmMain
     end
   end
   object tmrMemScan: TTimer
-    Interval = 5000
+    Interval = 60
     OnTimer = tmrMemScanTimer
     Left = 782
     Top = 4
