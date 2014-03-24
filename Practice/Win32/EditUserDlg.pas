@@ -1236,8 +1236,8 @@ procedure TdlgEditUser.DoRebranding;
 begin
   Label13.Caption := BRAND_ONLINE + ' will automatically generate this user''s password.';
   chkCanAccessBankLinkOnline.Caption := 'Allow access to &' + BRAND_ONLINE;
-  radCreateNewOnlineUser.Caption := 'C&reate new user on' + BRAND_ONLINE;
-  radLinkExistingOnlineUser.Caption := 'Lin&k to existing user on' + BRAND_ONLINE;
+  radCreateNewOnlineUser.Caption := 'C&reate new user on ' + BRAND_ONLINE;
+  radLinkExistingOnlineUser.Caption := 'Lin&k to existing user on ' + BRAND_ONLINE;
 end;
 
 procedure TdlgEditUser.eDirectDialChange(Sender: TObject);
