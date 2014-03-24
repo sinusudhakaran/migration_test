@@ -13,6 +13,7 @@ CONST
   BRAND_FULL_NAME = 'MYOB BankLink';
   BRAND_GROUP_NAME = 'MYOB Group';
   BRAND_SHORT_NAME  = 'BankLink';
+  BRAND_SHORT_NAME_MAIN = 'MYOB';
   BRAND_COPYRIGHT = 'MYOB BankLink Limited';
   BRAND_PRACTICE = 'BankLink Practice';
   BRAND_FULL_PRACTICE = 'MYOB BankLink Practice';

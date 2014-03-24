@@ -137,6 +137,8 @@ Type
     procedure HideClientFiles;
 
   protected
+    function IsEmailAddressSupport(aEmail : string) : boolean;
+
   Public
     procedure UpdateStatus(Sender : TObject; Status: string);
     { Public declarations }
@@ -222,12 +224,6 @@ Const
    UnitName = 'MAILFRM';
    tmpExt = '.rtf';  // Template extention
 
-{$IFDEF SmartBooks}
-   TestStrforSupport = '@SMARTBOOKS';
-{$ELSE}
-   TestStrforSupport = '@' + BRAND_SHORT_NAME;
-{$ENDIF}
-
 Var
    DebugMe : boolean = false;
 
@@ -310,7 +306,8 @@ begin
                 AddLine(' ');
                 AddLine(APPTITLE + ' ' + WinUtils.GetAppVersionStr);
                 //see if email is being sent to support. If so add practice code and name
-                if (Pos( Uppercase(TestStrforSupport), Uppercase( ToAddresses)) > 0) then begin
+                if IsEmailAddressSupport( ToAddresses) then
+                begin
                    AddLine('Path '+ExecDir);
                    if RefreshAdmin then begin   //refresh will fail if no admin exists
                       with AdminSystem.fdFields do
@@ -1440,7 +1437,7 @@ begin
            else if Assigned(MyClient) and MyClient.clFields.clForce_Offsite_Check_Out then
            begin
              chkCheckout.Visible := True;
-             chkCheckout.Enabled := (Pos( Uppercase(TestStrforSupport), Uppercase(txtRecipient.Text)) > 0) and (not FAllowCheckOutToSupport);
+             chkCheckout.Enabled := (IsEmailAddressSupport(txtRecipient.Text)) and (not FAllowCheckOutToSupport);
            end
            else
              chkCheckout.Visible := True;
@@ -1449,7 +1446,7 @@ begin
          //set the default checkout flag status
          chkCheckout.Checked := chkCheckout.Visible;
 
-         if (Pos( Uppercase(TestStrforSupport), Uppercase(txtRecipient.Text)) > 0) and (not FAllowCheckOutToSupport) then
+         if (IsEmailAddressSupport(txtRecipient.Text)) and (not FAllowCheckOutToSupport) then
            chkCheckout.checked := False
          else if (CodeList.Count = 0) and Assigned( MyClient) and (MyClient.clFields.clFile_Read_Only) then
            chkCheckout.Checked := False;
@@ -1760,7 +1757,7 @@ begin
 
       //Set to read-only by default (TFS 34290)
       chkCheckout.Checked := chkCheckout.Visible;
-      if (Pos(Uppercase(TestStrforSupport), Uppercase(txtRecipient.Text)) > 0) and (not FAllowCheckOutToSupport) then
+      if (IsEmailAddressSupport(txtRecipient.Text)) and (not FAllowCheckOutToSupport) then
         chkCheckout.Checked := False;
 
       if not CanSelectClient then begin
@@ -2326,7 +2323,7 @@ begin
   begin
     txtRecipient.Text := S;
     //see if this is a banklink address, if so clear the read-only flag
-    if (Pos( Uppercase(TestStrforSupport), Uppercase(txtRecipient.Text)) > 0) and chkCheckout.Visible then
+    if (IsEmailAddressSupport(txtRecipient.Text)) and chkCheckout.Visible then
     begin
       chkCheckout.checked := false;
       chkCheckout.Enabled := true;
@@ -2374,6 +2371,17 @@ begin
 end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function TfrmMail.IsEmailAddressSupport(aEmail: string): boolean;
+begin
+  {$IFDEF SmartBooks}
+    Result := (Pos('@SMARTBOOKS', Uppercase( aEmail)) > 0);
+  {$ELSE}
+    Result := (Pos( '@' + Uppercase(BRAND_SHORT_NAME), Uppercase( aEmail)) > 0) or
+              (Pos( '@' + Uppercase(BRAND_SHORT_NAME_MAIN), Uppercase( aEmail)) > 0);
+  {$ENDIF}
+end;
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmMail.LoadSignature;
 begin
    if bkFileExists(SignatureFilename)then
@@ -2418,7 +2426,7 @@ end;
 procedure TfrmMail.txtRecipientExit(Sender: TObject);
 begin
   //see if this is a banklink address, if so clear the read-only flag
-  if (Pos( Uppercase(TestStrforSupport), Uppercase(txtRecipient.Text)) > 0)
+  if (IsEmailAddressSupport(txtRecipient.Text))
   and chkCheckout.Visible
   and (not FAllowCheckOutToSupport) then begin
      chkCheckout.checked := false;
