@@ -153,71 +153,64 @@ var
   CandidateList: TCandidate_Mem_List;
   SearchedStatementDetails: string;
 begin
-  try
-    FirstCandidatePos := -1;
-    LastCandidatePos  := -1;
+  FirstCandidatePos := -1;
+  LastCandidatePos  := -1;
 
-    if Assigned(frmMain) then // false if this is a unit test, in which case we don't need to set this boolean anyway
-      frmMain.MemScanIsBusy := True;
-    CandidateList := Candidates;
-    First := CandidateList.First;
-    Last := CandidateList.Last;
-    Found := False;
+  CandidateList := Candidates;
+  First := CandidateList.First;
+  Last := CandidateList.Last;
+  Found := False;
 
-    // Find a Candidate whose Statement Details matched those we have passed in
-    FoundMatchPosition := -1;
-    while (First <= Last) and (not Found) and (Last <> -1) do
+  // Find a Candidate whose Statement Details matched those we have passed in
+  FoundMatchPosition := -1;
+  while (First <= Last) and (not Found) and (Last <> -1) do
+  begin
+    // Get the middle of the range
+    Pivot := (First + Last) shr 1; // shr = shift right 1 (equivalent to div 2)
+    SearchedStatementDetails := CandidateList.Candidate_Mem_At(Pivot).cmFields.cmStatement_Details;
+    // Compare the string in the middle with the searched one
+    if (SearchedStatementDetails = StatementDetails) then
     begin
-      // Get the middle of the range
-      Pivot := (First + Last) shr 1; // shr = shift right 1 (equivalent to div 2)
-      SearchedStatementDetails := CandidateList.Candidate_Mem_At(Pivot).cmFields.cmStatement_Details;
-      // Compare the string in the middle with the searched one
-      if (SearchedStatementDetails = StatementDetails) then
-      begin
-        Found := True;
-        FoundMatchPosition := Pivot;
-      end
-      else if (SearchedStatementDetails > StatementDetails) then
-        // Now we'll search within the first half
-        Last := Pivot - 1
-      else
-        // Now we'll search within the second half
-        First := Pivot + 1;
-    end;
+      Found := True;
+      FoundMatchPosition := Pivot;
+    end
+    else if (SearchedStatementDetails > StatementDetails) then
+      // Now we'll search within the first half
+      Last := Pivot - 1
+    else
+      // Now we'll search within the second half
+      First := Pivot + 1;
+  end;
 
-    if FoundMatchPosition = -1 then
-      Exit; // there are no matching candidates
+  if FoundMatchPosition = -1 then
+    Exit; // there are no matching candidates
 
-    // In a normal binary search we would be done, but in our case there may be several
-    // matching candidates (we wouldn't expect there to be too many), and we need to
-    // know about them all. So let's find the positions of the first and last candidates
+  // In a normal binary search we would be done, but in our case there may be several
+  // matching candidates (we wouldn't expect there to be too many), and we need to
+  // know about them all. So let's find the positions of the first and last candidates
 
-    // We go back through the list, from the position of the matching candidate we found,
-    // until we find the first matching candidate, store the position of the first match
-    // as FirstCandidatePos, which will be used in the Recommended Mem logic
-    FirstCandidatePos := FoundMatchPosition;
-    while (FirstCandidatePos > First) do
-    begin
-      if (CandidateList.Candidate_Mem_At(FirstCandidatePos - 1).cmFields.cmStatement_Details = StatementDetails) then
-        FirstCandidatePos := FirstCandidatePos - 1
-      else
-        Break;
-    end;
+  // We go back through the list, from the position of the matching candidate we found,
+  // until we find the first matching candidate, store the position of the first match
+  // as FirstCandidatePos, which will be used in the Recommended Mem logic
+  FirstCandidatePos := FoundMatchPosition;
+  while (FirstCandidatePos > First) do
+  begin
+    if (CandidateList.Candidate_Mem_At(FirstCandidatePos - 1).cmFields.cmStatement_Details = StatementDetails) then
+      FirstCandidatePos := FirstCandidatePos - 1
+    else
+      Break;
+  end;
 
-    // Now we go forward through the list, from the position of the matching candidate we
-    // found, until we find the last matching candidate, store the position of the last
-    // match as LastCandidatePos, which will be used in the Recommended Mem logic
-    LastCandidatePos := FoundMatchPosition;
-    while (LastCandidatePos < Last) do
-    begin
-      if (CandidateList.Candidate_Mem_At(LastCandidatePos + 1).cmFields.cmStatement_Details = StatementDetails) then
-        LastCandidatePos := LastCandidatePos + 1
-      else
-        Break;
-    end;
-  finally
-    if Assigned(frmMain) then // false if this is a unit test, in which case we don't need to set this boolean anyway
-      frmMain.MemScanIsBusy := False;
+  // Now we go forward through the list, from the position of the matching candidate we
+  // found, until we find the last matching candidate, store the position of the last
+  // match as LastCandidatePos, which will be used in the Recommended Mem logic
+  LastCandidatePos := FoundMatchPosition;
+  while (LastCandidatePos < Last) do
+  begin
+    if (CandidateList.Candidate_Mem_At(LastCandidatePos + 1).cmFields.cmStatement_Details = StatementDetails) then
+      LastCandidatePos := LastCandidatePos + 1
+    else
+      Break;
   end;
 end;
 
@@ -340,7 +333,7 @@ var
     // EitherAccountIsBlank    : boolean;
     FirstCandidatePos       : integer;
     CandidateToProcess      : integer;
-    LastCandidatePos        : integer;                    
+    LastCandidatePos        : integer;
     NextCandidateID         : integer;
 
     // Returns true if we should exclude the candidate
@@ -370,9 +363,22 @@ var
           (CodedByIsManual = false)) and
           (Candidate2HasBlankCode = false) then
           }
+          // This part has been split up a bit to make it more readable, rather than
+          // cramming all the conditions into one big If Statement
           if (((not CodedByIsManual) or AccountCodesDiffer) and
-          (not Candidate2HasBlankCode)) or
-          BlankStatementDetails then
+          (not Candidate2HasBlankCode)) then
+          begin
+            // Don't recommend this candidate
+            Result := True;
+            Break;
+          end;
+          if BlankStatementDetails then
+          begin
+            // Don't recommend this candidate
+            Result := True;
+            Break;
+          end;
+          if (CandidateMem2.cmFields.cmAccount = DISSECT_DESC) then
           begin
             // Don't recommend this candidate
             Result := True;
@@ -591,6 +597,17 @@ begin
 end;
 
 // This procedure should be called when a tranaction is edited or deleted
+// IMPORTANT NOTE: When you call this method, you should do the following in a try/finally statement:
+//   1) Set frmMain.MemScanIsBusy to true (check frmMain is assigned first)
+//   2) Call the method
+//   3) Make any changes to the transaction
+//   4) In the finally, set frmMain.MemScanIsBusy to false (again, check frmMain is assigned first)
+//
+// This will prevent any scanning from being done while changes are made to transactions, we don't
+// want the scanning to use out-of-date information
+//
+// You can put the contents of the entire method in the try/finally if you like, this is probably the
+// easiest and safest way, I have done this most of the time.
 procedure TRecommended_Mems.UpdateCandidateMems(TranRec: pTransaction_Rec; IsEditOperation: boolean);
 var
   Account               : TBank_Account;
@@ -603,71 +620,66 @@ var
 begin
   if not Assigned(TranRec) then
     Exit; // this shouldn't happen!
-  try
-    frmMain.MemScanIsBusy := True;
 
-    // Search CandidateMems for a matching key. We can use binary search because
-    // CandidateMems has been created in alphabetical order according to the
-    // Statement Details field.
-    // Key =
-    // * Entry Type
-    // * Bank Account Number
-    // * Coding Type
-    // * Account Code
-    // * Statement Details
-    Account := TBank_Account(TranRec.txBank_Account);
-    GetMatchingCandidateRange(TranRec.txStatement_Details,
-                              FirstCandidatePos,
-                              LastCandidatePos);
-    MatchingCandidatePos := -1;
-    if (FirstCandidatePos > -1) then
+  // Search CandidateMems for a matching key. We can use binary search because
+  // CandidateMems has been created in alphabetical order according to the
+  // Statement Details field.
+  // Key =
+  // * Entry Type
+  // * Bank Account Number
+  // * Coding Type
+  // * Account Code
+  // * Statement Details
+  Account := TBank_Account(TranRec.txBank_Account);
+  GetMatchingCandidateRange(TranRec.txStatement_Details,
+                            FirstCandidatePos,
+                            LastCandidatePos);
+  MatchingCandidatePos := -1;
+  if (FirstCandidatePos > -1) then
+  begin
+    for CandidateInt := FirstCandidatePos to LastCandidatePos do
     begin
-      for CandidateInt := FirstCandidatePos to LastCandidatePos do
+      CandidateMemRec := Candidates.Candidate_Mem_At(CandidateInt).cmFields;
+      // Statement details has already been matched, no need to check it again
+      if (CandidateMemRec.cmType = TranRec.txType) and
+      (CandidateMemRec.cmBank_Account_Number = Account.baFields.baBank_Account_Number) and
+      (CandidateMemRec.cmCoded_By = TranRec.txCoded_By) and
+      (CandidateMemRec.cmAccount = TranRec.txAccount) then
       begin
-        CandidateMemRec := Candidates.Candidate_Mem_At(CandidateInt).cmFields;
-        // Statement details has already been matched, no need to check it again
-        if (CandidateMemRec.cmType = TranRec.txType) and
-        (CandidateMemRec.cmBank_Account_Number = Account.baFields.baBank_Account_Number) and
-        (CandidateMemRec.cmCoded_By = TranRec.txCoded_By) and
-        (CandidateMemRec.cmAccount = TranRec.txAccount) then
-        begin
-          MatchingCandidatePos := CandidateInt;
-          break;
-        end;
+        MatchingCandidatePos := CandidateInt;
+        break;
       end;
     end;
-
-    // Has a match been found?
-    if (MatchingCandidatePos <> -1) then
-    begin
-      CandidateMemRec := Candidates.Candidate_Mem_At(MatchingCandidatePos).cmFields;
-      // Decrease count in matching CandidateMem
-      Candidates.Candidate_Mem_At(MatchingCandidatePos).cmFields.cmCount := CandidateMemRec.cmCount - 1;
-      // Does the count for this CandidateMem now equal zero?
-      if (Candidates.Candidate_Mem_At(MatchingCandidatePos).cmFields.cmCount = 0) then
-        // Yes, so remove this candidate from the candidate list
-        Candidates.AtFree(MatchingCandidatePos);
-    end;
-
-    // Is this an edit operation (rather than a delete)?
-    if IsEditOperation then
-    begin
-      // Add modified transaction to unscanned list. We can use the old details
-      // (bank account and sequence number), because they don't change when a
-      // transaction gets modified by the user
-      NewUnscannedTran := TUnscanned_Transaction.Create;
-      NewUnscannedTran.utFields.utBank_Account_Number := Account.baFields.baBank_Account_Number;
-      NewUnscannedTran.utFields.utSequence_No := TranRec.txSequence_No;
-      Unscanned.Insert(NewUnscannedTran);
-    end;
-
-    // Rescan candidates later
-    Candidate.cpFields.cpCandidate_ID_To_Process := 1;
-    // Clear recommended memorisation list
-    Recommended.FreeAll;
-  finally
-    frmMain.MemScanIsBusy := False;
   end;
+
+  // Has a match been found?
+  if (MatchingCandidatePos <> -1) then
+  begin
+    CandidateMemRec := Candidates.Candidate_Mem_At(MatchingCandidatePos).cmFields;
+    // Decrease count in matching CandidateMem
+    Candidates.Candidate_Mem_At(MatchingCandidatePos).cmFields.cmCount := CandidateMemRec.cmCount - 1;
+    // Does the count for this CandidateMem now equal zero?
+    if (Candidates.Candidate_Mem_At(MatchingCandidatePos).cmFields.cmCount = 0) then
+      // Yes, so remove this candidate from the candidate list
+      Candidates.AtFree(MatchingCandidatePos);
+  end;
+
+  // Is this an edit operation (rather than a delete)?
+  if IsEditOperation then
+  begin
+    // Add modified transaction to unscanned list. We can use the old details
+    // (bank account and sequence number), because they don't change when a
+    // transaction gets modified by the user
+    NewUnscannedTran := TUnscanned_Transaction.Create;
+    NewUnscannedTran.utFields.utBank_Account_Number := Account.baFields.baBank_Account_Number;
+    NewUnscannedTran.utFields.utSequence_No := TranRec.txSequence_No;
+    Unscanned.Insert(NewUnscannedTran);
+  end;
+
+  // Rescan candidates later
+  Candidate.cpFields.cpCandidate_ID_To_Process := 1;
+  // Clear recommended memorisation list
+  Recommended.FreeAll;
 end;
 
 // Builds the unscanned transactions list for all bank accounts

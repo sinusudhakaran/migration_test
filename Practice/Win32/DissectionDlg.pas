@@ -485,7 +485,8 @@ uses
    PayeeObj, ECollect,
    stStrs, ConfigColumnsFrm, NewReportUtils,
    ForexHelpers,
-   CountryUtils;
+   CountryUtils,
+   MainFrm;
    {,TransactionNotesFrm;}
 
 const
@@ -3331,6 +3332,9 @@ begin
    lDlg := TdlgDissection.Create(Application.MainForm);
    with lDlg do
       try
+         if Assigned(frmMain) then
+           frmMain.MemScanIsBusy := True;
+         MyClient.clRecommended_Mems.UpdateCandidateMems(pT, True);
          BankAcct := BA;
          fIsForex := BA.IsAForexAccount;
          CCode := MyClient.clExtra.ceLocal_Currency_Code;
@@ -3836,6 +3840,8 @@ begin
            AuditIDList.Free;
          end;
       finally
+        if Assigned(frmMain) then
+          frmMain.MemScanIsBusy := False;
         Free;
       end;
 end;

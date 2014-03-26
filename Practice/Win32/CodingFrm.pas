@@ -1629,6 +1629,9 @@ var
    PayeeNotEditable  : Boolean;
    OldPayeeNo        : integer;
 begin
+  try
+   if Assigned(frmMain) then
+     frmMain.MemScanIsBusy := True;
    if not ValidDataRow(tblCoding.ActiveRow) then exit;
    pT   := WorkTranList.Transaction_At( tblCoding.ActiveRow - 1);
    if pT^.txLocked then
@@ -1645,6 +1648,8 @@ begin
       if pD^.dsPayee_Number <> 0 then exit;
       pD := pD^.dsNext;
    end;
+
+   MyClient.clRecommended_Mems.UpdateCandidateMems(pT, True);
 
    //Check to see if a payee col exists and is editable
    PayeeNotEditable :=  not ColumnFmtList.FieldIsEditable( cePayee);
@@ -1704,6 +1709,10 @@ begin
          end;
       end;
    end;
+  finally
+   if Assigned(frmMain) then
+     frmMain.MemScanIsBusy := False;
+  end;
 end; //DoPayeeLookup;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmCoding.DoDissection(JA: Integer = -1);
@@ -2757,6 +2766,9 @@ var
    AuditType: TAuditType;
    DeletedTrans: pDeleted_Transaction_Rec;
 begin
+  try
+   if Assigned(frmMain) then
+     frmMain.MemScanIsBusy := True;
    with tblCoding do
    begin
      if not ValidDataRow(ActiveRow) then exit;
@@ -2832,7 +2844,7 @@ begin
                   pNewTrans^.txAmount          := -1 * txAmount;
 
                   pNewTrans^.txForex_Conversion_Rate   := txOriginal_Forex_Conversion_Rate       ;
-//                  pNewTrans^.txForeign_Currency_Amount := -1 * txOriginal_Foreign_Currency_Amount     ;
+  //                  pNewTrans^.txForeign_Currency_Amount := -1 * txOriginal_Foreign_Currency_Amount     ;
 
                   pNewTrans^.txBank_Seq        := BankAccount.baFields.baNumber;
                   pNewTrans^.txMatched_Item_ID := txMatched_Item_ID;
@@ -2919,10 +2931,10 @@ begin
                     try
                       BankAccount.baTransaction_List.DelFreeItem( pT );
 
-                      BankAccount.baDeleted_Transaction_List.Insert(DeletedTrans); 
+                      BankAccount.baDeleted_Transaction_List.Insert(DeletedTrans);
                     except
                       Dispose_Deleted_Transaction_Rec(DeletedTrans);
-          
+
                       raise;
                     end;
                   end
@@ -3051,7 +3063,7 @@ begin
             pNewTrans^.txAmount         := txAmount;
 
             pNewTrans^.txForex_Conversion_Rate   := txOriginal_Forex_Conversion_Rate       ;
-//            pNewTrans^.txForeign_Currency_Amount := txOriginal_Foreign_Currency_Amount     ;
+  //            pNewTrans^.txForeign_Currency_Amount := txOriginal_Foreign_Currency_Amount     ;
 
             pNewTrans^.txBank_Seq       := BankAccount.baFields.baNumber;
             pNewTrans^.txStatement_Details := txStatement_Details;
@@ -3066,7 +3078,7 @@ begin
                pNewTrans^.txOriginal_Amount        := txOriginal_Amount;
                pNewTrans^.txOriginal_Cheque_Number := txOriginal_Cheque_Number;
                pNewTrans^.txOriginal_Forex_Conversion_Rate   := txOriginal_Forex_Conversion_Rate       ;
-//               pNewTrans^.txOriginal_Foreign_Currency_Amount := txOriginal_Foreign_Currency_Amount     ;
+  //               pNewTrans^.txOriginal_Foreign_Currency_Amount := txOriginal_Foreign_Currency_Amount     ;
                pNewTrans^.txMatched_Item_Id        := txMatched_Item_Id;
             end;
 
@@ -3117,7 +3129,7 @@ begin
             pT^.txOriginal_Cheque_Number := 0;
             pT^.txMatched_Item_ID        := 0;
 
-            
+
             txTransfered_To_Online := False;
             pT^.txTransfered_To_Online := False;
 
@@ -3207,10 +3219,10 @@ begin
               try
                 BankAccount.baTransaction_List.DelFreeItem( pT);
 
-                BankAccount.baDeleted_Transaction_List.Insert(DeletedTrans); 
+                BankAccount.baDeleted_Transaction_List.Insert(DeletedTrans);
               except
                 Dispose_Deleted_Transaction_Rec(DeletedTrans);
-          
+
                 raise;
               end;
             end
@@ -3265,10 +3277,10 @@ begin
         try
           BankAccount.baTransaction_List.DelFreeItem( pT );
 
-          BankAccount.baDeleted_Transaction_List.Insert(DeletedTrans); 
+          BankAccount.baDeleted_Transaction_List.Insert(DeletedTrans);
         except
           Dispose_Deleted_Transaction_Rec(DeletedTrans);
-          
+
           raise;
         end;
       end
@@ -3291,6 +3303,10 @@ begin
       tblCoding.Refresh;
       RefreshHomepage ([HPR_ExchangeGainLoss_Message]);
    end;  //with pT^
+  finally
+   if Assigned(frmMain) then
+     frmMain.MemScanIsBusy := False;
+  end;
 end;
 
 //------------------------------------------------------------------------------
@@ -3344,29 +3360,36 @@ procedure TfrmCoding.DoDeleteDissection( pT : pTransaction_Rec);
 //allows the user to delete all lines from a dissection without using the
 //dissect dlg
 begin
-   if pT^.txLocked then
+  try
+    if Assigned(frmMain) then
+      frmMain.MemScanIsBusy := True;
+    if pT^.txLocked then
       Exit;
-   if pT^.txDate_Transferred <> 0 then
+    if pT^.txDate_Transferred <> 0 then
       Exit;
 
-   if YesNoDlg.AskYesNo( 'Remove Dissection',
+    if YesNoDlg.AskYesNo( 'Remove Dissection',
                          'Do you want to remove all of the dissection lines for this entry?',
                          dlg_no, 0) <> DLG_Yes then
      Exit;
 
-   MyClient.clRecommended_Mems.UpdateCandidateMems(pT, True);
+    MyClient.clRecommended_Mems.UpdateCandidateMems(pT, True);
 
-   //dispose of all dissection lines
-   Dump_Dissections( pT);
-   //clear transaction details
-   pT^.txCoded_By        := cbNotcoded;
-   pT^.txGST_Class       := 0;
-   pT^.txGST_Amount      := 0;
-   pT^.txHas_Been_Edited := False;
-   pT^.txGST_Has_Been_Edited := False;
-   ClearSuperFundFields(pT);
+    //dispose of all dissection lines
+    Dump_Dissections( pT);
+    //clear transaction details
+    pT^.txCoded_By        := cbNotcoded;
+    pT^.txGST_Class       := 0;
+    pT^.txGST_Amount      := 0;
+    pT^.txHas_Been_Edited := False;
+    pT^.txGST_Has_Been_Edited := False;
+    ClearSuperFundFields(pT);
 
-   RedrawRow;
+    RedrawRow;
+  finally
+    if Assigned(frmMain) then
+      frmMain.MemScanIsBusy := False;
+  end;
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmCoding.DoDeleteJournal(pT: pTransaction_Rec);
@@ -5099,10 +5122,13 @@ var
    Payee, aDate : integer;
 
 begin
-   //verify values
-   if not ValidDataRow(RowNum) then exit;
+  try
+    if Assigned(frmMain) then
+      frmMain.MemScanIsBusy := True;
+    //verify values
+    if not ValidDataRow(RowNum) then exit;
 
-   with WorkTranList do begin
+    with WorkTranList do begin
       pT := Transaction_At(RowNum-1);
       FieldID := ColumnFmtList.ColumnDefn_At(ColNum)^.cdFieldID;
 
@@ -5137,8 +5163,8 @@ begin
                AllowIt := false;
             end
             else begin
-//               if (( pT^.txAmount < 0 ) and ( Double2Money(GSTAmt) < pT^.txAmount ))
-//               or (( pT^.txAmount > 0 ) and ( Double2Money(GSTAmt) > pT^.txAmount )) then begin
+    //               if (( pT^.txAmount < 0 ) and ( Double2Money(GSTAmt) < pT^.txAmount ))
+    //               or (( pT^.txAmount > 0 ) and ( Double2Money(GSTAmt) > pT^.txAmount )) then begin
                if (( pT^.Local_Amount < 0 ) and ( Double2Money(GSTAmt) < pT^.Local_Amount ))
                or (( pT^.Local_Amount > 0 ) and ( Double2Money(GSTAmt) > pT^.Local_Amount )) then begin
                   ErrorSound;
@@ -5207,7 +5233,11 @@ begin
           end;
         end;
       end; //case
-   end; //with
+    end; //with
+  finally
+    if Assigned(frmMain) then
+      frmMain.MemScanIsBusy := False;
+  end;
 end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
