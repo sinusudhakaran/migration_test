@@ -134,6 +134,8 @@ begin
     fBankAccount.baFields.baBank_Account_Number + ' ' +
     fBankAccount.baFields.baBank_Account_Name;
 
+  lblBankAccount.Caption := StringReplace(lblBankAccount.Caption, '&', '&&', [rfReplaceAll]);
+
   lblStatus.Caption := DetermineStatus;
 
   PopulateTree;
