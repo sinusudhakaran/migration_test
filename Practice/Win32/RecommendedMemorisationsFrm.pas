@@ -391,7 +391,7 @@ begin
   Mem.mdLines.Insert(MemLine);
 
   // OK pressed, and insert mem?
-  if CreateMemorisation(fBankAccount, Mems, Mem) then
+  if CreateMemorisation(fBankAccount, Mems, Mem, True) then
   begin
     Mems.Insert_Memorisation(Mem);
     PopulateTree; // Refresh the list of recommended mems, now that we've used one it shouldn't appear any more

@@ -264,9 +264,10 @@ type
                             pM: TMemorisation; var DeleteSelectedMem: boolean;
                             IsCopy: Boolean = False; Prefix: string = '';
                             CopySaveSeq: integer = -1;
-                            aDlgEditMode: TDlgEditMode = demEdit): boolean;
+                            aDlgEditMode: TDlgEditMode = demEdit;
+                            FromRecommendedMems: boolean = false): boolean;
   function  CreateMemorisation(BA: TBank_Account;
-              MemorisedList: TMemorisations_List; pM: TMemorisation): boolean;
+              MemorisedList: TMemorisations_List; pM: TMemorisation; FromRecommendedMems: boolean): boolean;
 
 
 //******************************************************************************
@@ -1983,21 +1984,22 @@ end;
 
 //------------------------------------------------------------------------------
 function CreateMemorisation(BA: TBank_Account;
-  MemorisedList: TMemorisations_List; pM: TMemorisation): boolean;
+  MemorisedList: TMemorisations_List; pM: TMemorisation; FromRecommendedMems: boolean): boolean;
 var
   DeleteSelectedMem: boolean;
 begin
   DeleteSelectedMem := false;
 
   result := EditMemorisation(BA, MemorisedList, pM, DeleteSelectedMem, false,
-    '', -1, demCreate);
+    '', -1, demCreate, FromRecommendedMems);
 end;
 
 //------------------------------------------------------------------------------
 function EditMemorisation(BA: TBank_Account; MemorisedList: TMemorisations_List;
   pM: TMemorisation; var DeleteSelectedMem: boolean;
   IsCopy: Boolean = False; Prefix: string = ''; CopySaveSeq: integer = -1;
-  aDlgEditMode: TDlgEditMode = demEdit): boolean;
+  aDlgEditMode: TDlgEditMode = demEdit;
+  FromRecommendedMems: boolean = false): boolean;
 // edits an existing memorisation
 //
 // parameters: pM   Memorisation to edit
@@ -2226,8 +2228,10 @@ begin
          //Show Total Line
          UpdateTotal;
          //turn off memorise to master
-         chkMaster.Enabled := false;
+         chkMaster.Enabled := FromRecommendedMems;
          AllowMasterMemorised := False; // Sounds wrong, but also used for 'Can I Change MasterMem'.. You Cannot ...
+         // Don't show 'Copy to New' if we've come from recommended mems
+         btnCopy.Visible := not FromRecommendedMems;
          //turn off editing of gst col if master
          //or if using Ledger Elite
 
