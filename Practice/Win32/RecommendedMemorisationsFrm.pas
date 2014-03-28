@@ -76,7 +76,9 @@ uses
   MemoriseDlg,
   bkXPThemes,
   BKMLIO,
-  BKDefs;
+  BKDefs,
+  UpdateMF,
+  CodingFormCommands;
 
 const
   ICON_BUTTON = 0;
@@ -397,6 +399,7 @@ begin
   begin
     Mems.Insert_Memorisation(Mem);
     PopulateTree; // Refresh the list of recommended mems, now that we've used one it shouldn't appear any more
+    SendCmdToAllCodingWindows( ecRecodeTrans);
   end
   else
     FreeAndNil(Mem);
