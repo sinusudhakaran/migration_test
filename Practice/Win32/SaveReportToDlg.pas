@@ -320,8 +320,9 @@ begin
          TCustomFileFormat(fCustomFileFormats.Items[GetSelectedIndex - 1 - rfMax]).DoCustomFormatValidation(ValRes, ValMsg);
          if not ValRes then
          begin
-           cmbFormat.SetFocus;
            HelpfulWarningMsg(ValMsg,0);
+           ModalResult := mrCancel;
+           CanClose := true;
            exit;
          end;
        end;
