@@ -50,7 +50,8 @@ type
     procedure UpdateCandidateMems(TranRec: pTransaction_Rec; IsEditOperation: boolean);
     procedure SetLastCodingFrmKeyPress;
     procedure RemoveAccountFromMems(BankAccount: TBank_Account); Overload;
-    procedure RemoveAccountsFromMems(AccountList: TStringList);
+    procedure RemoveAccountsFromMems; overload;
+    procedure RemoveAccountsFromMems(AccountList: TStringList); overload;
     procedure PopulateUnscannedListOneAccount(BankAccount: TBank_Account; RunningUnitTest: boolean);
     procedure PopulateUnscannedListAllAccounts(RunningUnitTest: boolean);
     procedure RemoveRecommendedMems(Account: string; EntryType: byte; StatementDetails: string);
@@ -727,7 +728,7 @@ begin
 end;
 
 // Removes an account from candidates and recommended mems. Should be called when:
-// * Purging an account (in this case, via the RemoveAccountsFromMems method below this one)
+// * Purging an account (in this case, via the RemoveAccountsFromMems method)
 // * Merging an account
 // * Unattaching an account
 procedure TRecommended_Mems.RemoveAccountFromMems(AccountNo: string);
@@ -773,9 +774,19 @@ begin
   RemoveAccountFromMems(BankAccount.baFields.baBank_Account_Number);
 end;
 
-// RemoveAccountsFromMems is only called when purging transactions, if you're
-// using it for other reasons you may not want the part where it populates
-// the unscanned list, see comment below
+// Removes all accounts from candidates and recommended mems
+procedure TRecommended_Mems.RemoveAccountsFromMems;
+var
+  AccountList : TStringList;
+  i           : integer;
+begin
+  AccountList := TStringList.Create;
+  for i := 0 to MyClient.clBank_Account_List.ItemCount - 1 do
+    AccountList.Add(MyClient.clBank_Account_List.Bank_Account_At(i).baFields.baBank_Account_Number);
+  RemoveAccountsFromMems(AccountList);
+end;
+
+// Removes a given list of accounts from candidates and recommended mems
 procedure TRecommended_Mems.RemoveAccountsFromMems(AccountList: TStringList);
 var
   BankAccount: TBank_Account;
@@ -786,9 +797,6 @@ begin
 
   frmMain.MemScanIsBusy := True;
   try
-    // Purge may only remove some of the data for this account, but we have removed all the
-    // candidates with a matching account number, so we need to add all the transactions
-    // for this account to the unscanned list
     for i := 0 to AccountList.Count - 1 do
     begin
       BankAccount := MyClient.clBank_Account_List.FindCode(AccountList.Strings[i]);
