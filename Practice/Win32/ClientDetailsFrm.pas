@@ -1977,13 +1977,6 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmClientDetails.SetTRPPracticeContactControls(aUsePracticeDetails: boolean);
 begin
-  lblSupplierContactName.Enabled  := aUsePracticeDetails;
-  lblSupplierContactPhone.Enabled := aUsePracticeDetails;
-  lblSupplierContactEmail.Enabled := aUsePracticeDetails;
-  edtSupplierContactName.Enabled  := aUsePracticeDetails;
-  edtSupplierContactPhone.Enabled := aUsePracticeDetails;
-  edtSupplierContactEmail.Enabled := aUsePracticeDetails;
-
   lblPracticeContactName.Enabled  := not aUsePracticeDetails;
   lblPracticeContactPhone.Enabled := not aUsePracticeDetails;
   lblPracticeContactEmail.Enabled := not aUsePracticeDetails;

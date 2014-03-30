@@ -905,6 +905,7 @@ object frmClientDetails: TfrmClientDetails
           Width = 80
           Height = 16
           Caption = 'Contact Name'
+          Enabled = False
           Font.Charset = DEFAULT_CHARSET
           Font.Color = clWindowText
           Font.Height = -13
@@ -918,6 +919,7 @@ object frmClientDetails: TfrmClientDetails
           Width = 82
           Height = 16
           Caption = 'Contact Phone'
+          Enabled = False
           Font.Charset = DEFAULT_CHARSET
           Font.Color = clWindowText
           Font.Height = -13
@@ -931,6 +933,7 @@ object frmClientDetails: TfrmClientDetails
           Width = 83
           Height = 16
           Caption = 'Contact E-mail'
+          Enabled = False
           Font.Charset = DEFAULT_CHARSET
           Font.Color = clWindowText
           Font.Height = -13
@@ -944,6 +947,7 @@ object frmClientDetails: TfrmClientDetails
           Width = 80
           Height = 16
           Caption = 'Contact Name'
+          Enabled = False
           Font.Charset = DEFAULT_CHARSET
           Font.Color = clWindowText
           Font.Height = -13
@@ -957,6 +961,7 @@ object frmClientDetails: TfrmClientDetails
           Width = 82
           Height = 16
           Caption = 'Contact Phone'
+          Enabled = False
           Font.Charset = DEFAULT_CHARSET
           Font.Color = clWindowText
           Font.Height = -13
@@ -970,6 +975,7 @@ object frmClientDetails: TfrmClientDetails
           Width = 83
           Height = 16
           Caption = 'Contact E-mail'
+          Enabled = False
           Font.Charset = DEFAULT_CHARSET
           Font.Color = clWindowText
           Font.Height = -13
@@ -1013,6 +1019,7 @@ object frmClientDetails: TfrmClientDetails
           Width = 341
           Height = 21
           BorderStyle = bsNone
+          Enabled = False
           Font.Charset = DEFAULT_CHARSET
           Font.Color = clWindowText
           Font.Height = -13
@@ -1029,6 +1036,7 @@ object frmClientDetails: TfrmClientDetails
           Width = 341
           Height = 21
           BorderStyle = bsNone
+          Enabled = False
           Font.Charset = DEFAULT_CHARSET
           Font.Color = clWindowText
           Font.Height = -13
@@ -1045,6 +1053,7 @@ object frmClientDetails: TfrmClientDetails
           Width = 341
           Height = 21
           BorderStyle = bsNone
+          Enabled = False
           Font.Charset = DEFAULT_CHARSET
           Font.Color = clWindowText
           Font.Height = -13
@@ -1061,6 +1070,7 @@ object frmClientDetails: TfrmClientDetails
           Width = 341
           Height = 21
           BorderStyle = bsNone
+          Enabled = False
           Font.Charset = DEFAULT_CHARSET
           Font.Color = clWindowText
           Font.Height = -13
@@ -1078,6 +1088,7 @@ object frmClientDetails: TfrmClientDetails
           Width = 341
           Height = 21
           BorderStyle = bsNone
+          Enabled = False
           Font.Charset = DEFAULT_CHARSET
           Font.Color = clWindowText
           Font.Height = -13
@@ -1095,6 +1106,7 @@ object frmClientDetails: TfrmClientDetails
           Width = 341
           Height = 21
           BorderStyle = bsNone
+          Enabled = False
           Font.Charset = DEFAULT_CHARSET
           Font.Color = clWindowText
           Font.Height = -13
