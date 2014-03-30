@@ -294,10 +294,13 @@ var
           CandidateMem2 := Candidates.Candidate_Mem_At(CandidatePos);
           if (CandidateMem1.cmFields.cmBank_Account_Number = CandidateMem2.cmFields.cmBank_Account_Number) then
           begin
-            if (CandidateMem2.cmFields.cmCoded_By = cbManual) then
-              ManuallyCodedCount := ManuallyCodedCount + CandidateMem2.cmFields.cmCount
-            else if (CandidateMem2.cmFields.cmCoded_By = cbNotCoded) then
-              UncodedCount := UncodedCount + CandidateMem2.cmFields.cmCount;
+            if (CandidateMem1.cmFields.cmType = CandidateMem2.cmFields.cmType) then
+            begin
+              if (CandidateMem2.cmFields.cmCoded_By = cbManual) then
+                ManuallyCodedCount := ManuallyCodedCount + CandidateMem2.cmFields.cmCount
+              else if (CandidateMem2.cmFields.cmCoded_By = cbNotCoded) then
+                UncodedCount := UncodedCount + CandidateMem2.cmFields.cmCount;
+            end;
           end;
         end;
 
@@ -384,14 +387,6 @@ var
             Result := True;
             Break;
           end;
-          {
-          if not (CandidateMem2.cmFields.cmCoded_By in [cbManual, cbNotCoded]) then
-          begin
-            // Don't recommend this candidate
-            Result := True;
-            Break;
-          end;
-          }                     
         end;
       end;
     end;
