@@ -4353,6 +4353,10 @@ var
    end;
 
 begin
+  if Assigned(frmMain) then
+     frmMain.MemScanIsBusy := True;
+  MyClient.clRecommended_Mems.UpdateCandidateMems(pT, True);
+
   result := true;  //assume success
 
   if pT^.txPayee_Number = 0 then exit;  //don't need to do anything
@@ -4609,6 +4613,9 @@ begin
           txGL_Narration   := pdName;
      end;
   end;  {with payee^}
+
+  if Assigned(frmMain) then
+     frmMain.MemScanIsBusy := False;
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function TfrmCoding.ValidDataRow(RowNum : integer): boolean;

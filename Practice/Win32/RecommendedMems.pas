@@ -326,10 +326,10 @@ var
     AccountCodesDiffer      : boolean;
     AccountsPos             : integer;
     BlankStatementDetails   : boolean;
-    Candidate2HasBlankCode  : boolean;
+    C2HasBlankCode          : boolean;
     CandidateMem1           : TCandidate_Mem;
     CandidateMem2           : TCandidate_Mem;
-    CodedByIsManual         : boolean;
+    C2CodedByIsManual       : boolean;
     // EitherAccountIsBlank    : boolean;
     FirstCandidatePos       : integer;
     CandidateToProcess      : integer;
@@ -354,8 +354,8 @@ var
           AccountCodesDiffer := (CandidateMem1.cmFields.cmAccount <> CandidateMem2.cmFields.cmAccount);
           // EitherAccountIsBlank := (CandidateMem1.cmFields.cmAccount = '') or
           //                         (CandidateMem2.cmFields.cmAccount = '');
-          CodedByIsManual := (CandidateMem2.cmFields.cmCoded_By = cbManual);
-          Candidate2HasBlankCode := (CandidateMem2.cmFields.cmAccount = '');
+          C2CodedByIsManual := (CandidateMem2.cmFields.cmCoded_By = cbManual);
+          C2HasBlankCode := (CandidateMem2.cmFields.cmAccount = '');
           BlankStatementDetails := (CandidateMem1.cmFields.cmStatement_Details = '');
 
           {
@@ -365,8 +365,8 @@ var
           }
           // This part has been split up a bit to make it more readable, rather than
           // cramming all the conditions into one big If Statement
-          if (((not CodedByIsManual) or AccountCodesDiffer) and
-          (not Candidate2HasBlankCode)) then
+          if (((not C2CodedByIsManual) or AccountCodesDiffer) and
+          (not C2HasBlankCode)) then
           begin
             // Don't recommend this candidate
             Result := True;
@@ -384,6 +384,14 @@ var
             Result := True;
             Break;
           end;
+          {
+          if not (CandidateMem2.cmFields.cmCoded_By in [cbManual, cbNotCoded]) then
+          begin
+            // Don't recommend this candidate
+            Result := True;
+            Break;
+          end;
+          }                     
         end;
       end;
     end;
