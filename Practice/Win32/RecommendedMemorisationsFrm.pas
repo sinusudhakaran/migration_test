@@ -82,7 +82,7 @@ uses
 
 const
   ICON_BUTTON = 0;
-  LAST_COLUMN = 5;
+  LAST_COLUMN = 4;
   COL_STATEMENTS_DETAILS = 1;
   MSG_STILL_PROCESSING = 'Practice is still scanning for suggestions, please try again later';
   MSG_NO_MEMORISATIONS = 'There are no Suggested Memorisations at this time';
