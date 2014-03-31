@@ -275,6 +275,9 @@ end;
 
 //------------------------------------------------------------------------------
 function TRecommendedMemorisationsFrm.DetermineStatus: string;
+var
+  AccountHasRecMems           : boolean;
+  i                           : integer;
 begin
   result := '';
 
@@ -283,7 +286,17 @@ begin
     if (cpCandidate_ID_To_Process >= cpNext_Candidate_ID) and
        (cpNext_Candidate_ID <> 1) then
     begin
-      if (Recommended.ItemCount = 0) then
+      AccountHasRecMems := False;
+      for i := 0 to Recommended.ItemCount - 1 do
+      begin
+        if (Recommended.Recommended_Mem_At(i).rmFields.rmBank_Account_Number = 
+        fBankAccount.baFields.baBank_Account_Number) then
+        begin
+          AccountHasRecMems := True;
+          break;
+        end;            
+      end;
+      if not AccountHasRecMems then
         result := MSG_NO_MEMORISATIONS;
     end
     else
