@@ -345,6 +345,7 @@ object frmMain: TfrmMain
         tbPayee
         tbJob
         tbMemorise
+        tbRecommendedMemorisations
         tbDissect
         tbSuper
         tbSort
@@ -354,7 +355,6 @@ object frmMain: TfrmMain
         tbFind
         tbUPI
         tbQuery
-        tbRecommendedMemorisations
         tbCodingHelp
         tbCodingClose
         RzSpacer4)
@@ -492,8 +492,8 @@ object frmMain: TfrmMain
         Top = 29
         Width = 200
         ImageIndex = 2
-        Caption = 'Recommended Memorisations'
-        Constraints.MinWidth = 200
+        Caption = 'Suggested Mems'
+        Constraints.MinWidth = 134
         OnClick = tbRecommendedMemorisationsClick
       end
     end

@@ -62,17 +62,7 @@ object RecommendedMemorisationsFrm: TRecommendedMemorisationsFrm
       item
         Position = 3
         Width = 60
-        WideText = '# Coded'
-      end
-      item
-        Position = 4
-        Width = 60
         WideText = 'Total #'
-      end
-      item
-        Alignment = taCenter
-        Position = 5
-        Width = 40
       end>
   end
   object pnlButtons: TPanel

@@ -84,8 +84,8 @@ const
   ICON_BUTTON = 0;
   LAST_COLUMN = 5;
   COL_STATEMENTS_DETAILS = 1;
-  MSG_STILL_PROCESSING = 'Practice is still scanning for recommendations, please try again later';
-  MSG_NO_MEMORISATIONS = 'There are no Recommended Memorisations at this time';
+  MSG_STILL_PROCESSING = 'Practice is still scanning for suggestions, please try again later';
+  MSG_NO_MEMORISATIONS = 'There are no Suggested Memorisations at this time';
 
 //------------------------------------------------------------------------------
 // ShowRecommendedMemorisations
@@ -203,11 +203,8 @@ begin
     // Code
     2: CellText := pData.RecommendedMem.rmFields.rmAccount;
 
-    // # Coded
-    3: CellText := IntToStr(pData.RecommendedMem.rmFields.rmManual_Count);
-
     // Total #
-    4:
+    3:
     begin
       iTotal := pData.RecommendedMem.rmFields.rmManual_Count +
         pData.RecommendedMem.rmFields.rmUncoded_Count;
