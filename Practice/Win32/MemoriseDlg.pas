@@ -2038,7 +2038,7 @@ begin
          with pM do begin
             fDlgEditMode := aDlgEditMode; // Store for OKToPost
             case DlgEditMode of
-              demCreate: Caption := 'Create New';
+              demCreate: Caption := 'Create';
               demEdit: Caption := 'Edit';
             end;
             if mdFields.mdFrom_Master_List then
