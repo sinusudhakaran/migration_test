@@ -63,6 +63,11 @@ object RecommendedMemorisationsFrm: TRecommendedMemorisationsFrm
         Position = 3
         Width = 60
         WideText = 'Total #'
+      end
+      item
+        Alignment = taCenter
+        Position = 4
+        Width = 40
       end>
   end
   object pnlButtons: TPanel
@@ -115,7 +120,7 @@ object RecommendedMemorisationsFrm: TRecommendedMemorisationsFrm
     Left = 312
     Top = 448
     Bitmap = {
-      494C010101000800200010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C010101000800240010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000001000000001002000000000000010
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
