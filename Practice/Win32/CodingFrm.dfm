@@ -485,10 +485,10 @@ object frmCoding: TfrmCoding
     object lblRecommendedMemorisations: TLabel
       Left = 312
       Top = 4
-      Width = 141
+      Width = 122
       Height = 13
       Cursor = crHandPoint
-      Caption = 'Recommended Memorisations'
+      Caption = 'Suggested Memorisations'
       OnClick = lblRecommendedMemorisationsClick
     end
     object EBFind: TEdit
