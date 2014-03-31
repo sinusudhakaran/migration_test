@@ -525,7 +525,7 @@ var
      if assigned(Params) then
        Result := GenerateReportTo( Filename, FileFormat, FileFormats, Title, Desc, WebID, CatID, FIsAdmin, Params.CustomFileFormats)
      else
-       Result := GenerateReportTo( Filename, FileFormat, FileFormats, Title, Desc, WebID, CatID, FIsAdmin, Params.CustomFileFormats);
+       Result := GenerateReportTo( Filename, FileFormat, FileFormats, Title, Desc, WebID, CatID, FIsAdmin);
 
      if Result then
      begin
