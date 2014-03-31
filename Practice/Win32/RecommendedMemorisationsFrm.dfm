@@ -1,7 +1,7 @@
 object RecommendedMemorisationsFrm: TRecommendedMemorisationsFrm
   Left = 0
   Top = 0
-  Caption = 'Recommended Memorisations for '
+  Caption = 'Suggested Memorisations for '
   ClientHeight = 481
   ClientWidth = 667
   Color = clBtnFace

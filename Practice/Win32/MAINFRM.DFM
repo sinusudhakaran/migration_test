@@ -359,15 +359,15 @@ object frmMain: TfrmMain
         tbCodingClose
         RzSpacer4)
       object tbCodingHelp: TRzToolButton
-        Left = 201
+        Left = 135
         Top = 29
         ImageIndex = 10
         Caption = 'Help'
         OnClick = tbCodingHelpClick
       end
       object tbUPI: TRzToolButton
-        Left = 754
-        Top = 4
+        Left = 1
+        Top = 29
         Width = 74
         DropDownMenu = popUPI
         ImageIndex = 9
@@ -376,7 +376,7 @@ object frmMain: TfrmMain
         OnClick = tbUPIClick
       end
       object tbFind: TRzToolButton
-        Left = 694
+        Left = 828
         Top = 4
         AllowAllUp = True
         GroupIndex = 44
@@ -385,7 +385,7 @@ object frmMain: TfrmMain
         OnClick = tbFindClick
       end
       object tbView: TRzToolButton
-        Left = 620
+        Left = 754
         Top = 4
         Width = 74
         DropDownMenu = popView
@@ -394,7 +394,7 @@ object frmMain: TfrmMain
         Caption = 'View'
       end
       object tbRepeat: TRzToolButton
-        Left = 557
+        Left = 691
         Top = 4
         Width = 63
         ImageIndex = 6
@@ -402,14 +402,14 @@ object frmMain: TfrmMain
         OnClick = tbRepeatClick
       end
       object tbGoto: TRzToolButton
-        Left = 497
+        Left = 631
         Top = 4
         ImageIndex = 5
         Caption = 'Goto'
         OnClick = tbGotoClick
       end
       object tbSort: TRzToolButton
-        Left = 423
+        Left = 557
         Top = 4
         Width = 74
         DropDownMenu = popSortBy
@@ -418,14 +418,14 @@ object frmMain: TfrmMain
         Caption = 'Sort'
       end
       object tbSuper: TRzToolButton
-        Left = 363
+        Left = 497
         Top = 4
         ImageIndex = 11
         Caption = 'Super'
         OnClick = tbSuperClick
       end
       object tbDissect: TRzToolButton
-        Left = 301
+        Left = 435
         Top = 4
         Width = 62
         ImageIndex = 3
@@ -461,14 +461,14 @@ object frmMain: TfrmMain
         OnClick = tbChartClick
       end
       object tbQuery: TRzToolButton
-        Left = 828
-        Top = 4
+        Left = 75
+        Top = 29
         ImageIndex = 18
         Caption = 'Query'
         OnClick = tbQueryClick
       end
       object RzSpacer4: TRzSpacer
-        Left = 321
+        Left = 255
         Top = 29
       end
       object tbJob: TRzToolButton
@@ -479,7 +479,7 @@ object frmMain: TfrmMain
         OnClick = tbJobClick
       end
       object tbCodingClose: TRzToolButton
-        Left = 261
+        Left = 195
         Top = 29
         ImageIndex = 2
         Images = AppImages.Maintain
@@ -488,9 +488,9 @@ object frmMain: TfrmMain
         OnClick = tbCodingCloseClick
       end
       object tbRecommendedMemorisations: TRzToolButton
-        Left = 1
-        Top = 29
-        Width = 200
+        Left = 301
+        Top = 4
+        Width = 134
         ImageIndex = 2
         Caption = 'Suggested Mems'
         Constraints.MinWidth = 134

@@ -2255,7 +2255,9 @@ begin
    //Get and Send buttons need minimum width to display the caption correctly
    tbGetClientFiles.Constraints.MinWidth := 0;
    tbSendClientFiles.Constraints.MinWidth := 0;
+   tbRecommendedMemorisations.Constraints.MinWidth := 0;
    if CaptionOn then begin
+     tbRecommendedMemorisations.Constraints.MinWidth := 134; 
      tbGetClientFiles.Constraints.MinWidth := 145;
      tbSendClientFiles.Constraints.MinWidth := 145;
    end;
