@@ -242,13 +242,13 @@ var
   InCodingForm  : boolean;
   StartTime     : TDateTime;
 
-  // Returns true if the account for CandidateMem1 matches the account passed in
+  // Returns true if there is an existing memorisation which matches CandidateMem1
   function AddMemorisationIfUnique(Account            : TBank_Account;
                                    CandidateMem1      : TCandidate_Mem;
-                                   CandidateMem2      : TCandidate_Mem;
                                    FirstCandidatePos  : integer;
                                    LastCandidatePos   : integer): boolean;
   var
+    CandidateMem2       : TCandidate_Mem;
     CandidatePos        : integer;
     ManuallyCodedCount  : integer;
     ExcludeMem          : boolean;
@@ -276,6 +276,7 @@ var
       // Check if any candidates have a matching account code, and matching
       // statement details, if so exclude them too
       // TODO: optimize this if possible
+      // TODO: check if this is redundant, see similar functionality in CheckForExclusions
       for CandidatePos := 0 to Candidates.ItemCount - 1 do
       begin
         CandidateMem2 := Candidates.Candidate_Mem_At(CandidatePos);
@@ -436,13 +437,13 @@ var
           // * Statement Details
           // ... then the answer is yes, so we don't add this candidate to the recommended mems list
           if RunningUnitTest then
-            AddMemorisationIfUnique(TestAccount, CandidateMem1, CandidateMem2, FirstCandidatePos, LastCandidatePos)
+            AddMemorisationIfUnique(TestAccount, CandidateMem1, FirstCandidatePos, LastCandidatePos)
           else
           begin
             for AccountsPos := MyClient.clBank_Account_List.First to MyClient.clBank_Account_List.Last do
             begin
               Account := MyClient.clBank_Account_List.Bank_Account_At(AccountsPos);
-              if AddMemorisationIfUnique(Account, CandidateMem1, CandidateMem2, FirstCandidatePos, LastCandidatePos) then
+              if AddMemorisationIfUnique(Account, CandidateMem1, FirstCandidatePos, LastCandidatePos) then
                 Break;
             end; // for AccountsPos := MyClient.clBank_Account_List.First to MyClient.clBank_Account_List.Last do
           end; // if RunningUnitTest
@@ -815,7 +816,7 @@ var
   i: integer;
   memRec: tRecommended_Mem_Rec;
 begin
-  for i := 0 to Recommended.ItemCount - 1 do
+  for i := Recommended.Last downto Recommended.First do
   begin
     memRec := Recommended.Recommended_Mem_At(i).rmFields;
     // If the account is blank, it's because we've created a new master mem,
