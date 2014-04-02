@@ -130,7 +130,7 @@ begin
 
   vstTree.Header.Font.Size := Font.Size;
 
-  Caption := 'Recommended Memorisations for ' + MyClient.clFields.clCode;
+  Caption := 'Suggested Memorisations for ' + MyClient.clFields.clCode;
 
   lblBankAccount.Caption := 'Account ' +
     fBankAccount.baFields.baBank_Account_Number + ' ' +
