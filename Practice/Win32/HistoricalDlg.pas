@@ -4708,6 +4708,9 @@ begin
          Free;
       end;
    end;
+
+   MyClient.clRecommended_Mems.RemoveAccountFromMems(SelectedBA);
+   MyClient.clRecommended_Mems.PopulateUnscannedListOneAccount(SelectedBA, false);
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function AddManualData : boolean;
@@ -4989,7 +4992,7 @@ begin
       with TdlgHistorical.CreateAndSetup(TempAccount, True) do try
          Provisional := True;
          IsManual := True;
-         MaxHistTranDate := MaxValidDate; 
+         MaxHistTranDate := MaxValidDate;
 
          if  ShowModal = mrOK then begin
             // Now try and copy tans to
@@ -4999,6 +5002,9 @@ begin
       finally
          Free;
       end;
+
+      MyClient.clRecommended_Mems.RemoveAccountFromMems(TempAccount);
+      MyClient.clRecommended_Mems.PopulateUnscannedListOneAccount(TempAccount, false);
    finally
       FreeAndNil(TempClient);
 
