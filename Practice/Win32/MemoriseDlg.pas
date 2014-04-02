@@ -259,7 +259,8 @@ type
     { Public declarations }
   end;
 
-  function MemoriseEntry(BA: TBank_Account; tr: pTransaction_Rec; var IsAMasterMem: boolean): boolean;
+  function MemoriseEntry(BA: TBank_Account; tr: pTransaction_Rec; var IsAMasterMem: boolean;
+                         MemLine: pMemorisation_Line_Rec = nil): boolean;
   function EditMemorisation(BA: TBank_Account; MemorisedList: TMemorisations_List;
                             pM: TMemorisation; var DeleteSelectedMem: boolean;
                             IsCopy: Boolean = False; Prefix: string = '';
@@ -267,7 +268,7 @@ type
                             aDlgEditMode: TDlgEditMode = demEdit;
                             FromRecommendedMems: boolean = false): boolean;
   function  CreateMemorisation(BA: TBank_Account;
-              MemorisedList: TMemorisations_List; pM: TMemorisation; FromRecommendedMems: boolean): boolean;
+              MemorisedList: TMemorisations_List; pM: TMemorisation): boolean;
 
 
 //******************************************************************************
@@ -306,7 +307,8 @@ uses
   CountryUtils,
   SystemMemorisationList,
   SYDEFS,
-  AuditMgr;
+  AuditMgr,
+  BKtxIO;
 
 {$R *.DFM}
 
@@ -1826,7 +1828,8 @@ begin
   DoneIt := true;
 end;
 //------------------------------------------------------------------------------
-function MemoriseEntry(BA : TBank_Account; tr : pTransaction_Rec; var IsAMasterMem : boolean) : boolean;
+function MemoriseEntry(BA : TBank_Account; tr : pTransaction_Rec; var IsAMasterMem : boolean;
+                       MemLine: pMemorisation_Line_Rec = nil) : boolean;
 // create a new memorisation based on the transaction
 //
 // parameters: ba   Bank Account that transaction and memorisation belong to
@@ -1840,6 +1843,7 @@ var
 //  MasterMemList : TMaster_Memorisations_List;
   MasterMemList : TMemorisations_List;
   SystemMemorisation: pSystem_Memorisation_List_Rec;
+  pAcct : pAccount_Rec;
 begin
    result := false;
    IsAMasterMem := false;
@@ -1923,6 +1927,20 @@ begin
          btnCopy.Visible := False;
          btnCopy.Enabled := False;
 
+         // Block below is only used when creating a memorisation from the Recommended Mems form
+         if Assigned(MemLine) then
+         begin
+           SplitData[1].AcctCode  := MemLine.mlAccount;
+           pAcct := MyClient.clChart.FindCode( MemLine^.mlAccount);
+           if Assigned(pAcct) then
+             SplitData[1].Desc := pAcct^.chAccount_Description
+           else
+             SplitData[1].Desc := '';
+
+           chkMaster.Enabled := True;
+           AllowMasterMemorised := True;
+         end;
+
          //**************************
          if ShowModal = mrOK then begin
          //**************************
@@ -1984,14 +2002,25 @@ end;
 
 //------------------------------------------------------------------------------
 function CreateMemorisation(BA: TBank_Account;
-  MemorisedList: TMemorisations_List; pM: TMemorisation; FromRecommendedMems: boolean): boolean;
+  MemorisedList: TMemorisations_List; pM: TMemorisation): boolean;
 var
+  AuditMgr: TClientAuditManager;
   DeleteSelectedMem: boolean;
+  IsAMasterMem: boolean;
+  MemorisationLine: pMemorisation_Line_Rec;
+  tr: pTransaction_Rec;
 begin
   DeleteSelectedMem := false;
 
-  result := EditMemorisation(BA, MemorisedList, pM, DeleteSelectedMem, false,
-    '', -1, demCreate, FromRecommendedMems);
+  // Create new transaction from provided details, which we will pass into EditMemorisation, which
+  // has been designed expecting a transaction to provide it with details
+  MemorisationLine := pM.mdLines.MemorisationLine_At(0);
+  tr := BKTXIO.New_Transaction_Rec;
+  tr.txStatement_Details  := pM.mdFields.mdStatement_Details;
+  tr.txType               := pM.mdFields.mdType;
+
+  IsAMasterMem := false;
+  result := MemoriseEntry(BA, tr, IsAMasterMem, MemorisationLine);
 end;
 
 //------------------------------------------------------------------------------
