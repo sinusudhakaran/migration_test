@@ -210,6 +210,7 @@ type
     Loading : boolean; //set to true when loading values into form.  Stop onClick events being fired
     InEditMemorisationMode : Boolean;
     GSTClassEditable       : Boolean;
+    CalledFromRecommendedMems: boolean;
 
     AmountToMatch : Money;
     AmountMultiplier : integer;
@@ -353,6 +354,7 @@ var
    W : Integer;
 
 begin
+  CalledFromRecommendedMems := False;
   bkXPThemes.ThemeForm(Self);
   AltLineColor := BKCOLOR_CREAM;
 
@@ -1854,6 +1856,7 @@ begin
    try
       with MemDlg,tr^ do
       begin
+         CalledFromRecommendedMems := Assigned(MemLine);
          BKHelpSetUp(MemDlg, BKH_Chapter_5_Memorisations);
          InEditMemorisationMode := false;
          SourceBankAccount := ba;
@@ -1928,7 +1931,7 @@ begin
          btnCopy.Enabled := False;
 
          // Block below is only used when creating a memorisation from the Recommended Mems form
-         if Assigned(MemLine) then
+         if CalledFromRecommendedMems then
          begin
            SplitData[1].AcctCode  := MemLine.mlAccount;
            pAcct := MyClient.clChart.FindCode( MemLine^.mlAccount);
@@ -1939,6 +1942,7 @@ begin
 
            chkMaster.Enabled := True;
            AllowMasterMemorised := True;
+           MemDlg.Caption := 'Create Memorisation';
          end;
 
          //**************************
@@ -2617,6 +2621,8 @@ procedure TdlgMemorise.FormShow(Sender: TObject);
 begin
   AutoSize(chkMaster);
   AutoSize(chkAccountSystem);
+  if CalledFromRecommendedMems then
+    chkStatementDetails.Checked := True;
 end;
 
 function TdlgMemorise.GetAccountingSystem: Integer;
