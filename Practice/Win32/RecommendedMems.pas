@@ -710,10 +710,12 @@ var
   Transaction: pTransaction_Rec;
 begin
   try
-    MaintainMemScanStatus := frmMain.MemScanIsBusy;
     if not RunningUnitTest then
+    begin
+      MaintainMemScanStatus := frmMain.MemScanIsBusy;
       if not MaintainMemScanStatus then
         frmMain.MemScanIsBusy := True;
+    end;
     for iTransaction := 0 to BankAccount.baTransaction_List.ItemCount-1 do
     begin
       Transaction := BankAccount.baTransaction_List.Transaction_At(iTransaction);
@@ -743,10 +745,12 @@ var
   MaintainMemScanStatus: boolean;
 begin
   try
-    MaintainMemScanStatus := frmMain.MemScanIsBusy;
     if Assigned(frmMain) then // false for unit tests, which don't need to set this boolean anyway
+    begin
+      MaintainMemScanStatus := frmMain.MemScanIsBusy;
       if not MaintainMemScanStatus then
         frmMain.MemScanIsBusy := True;
+    end;
     // Delete all unscanned transactions with this account number,
     // so that we don't have to worry about duplicates being added
     LoopStart := Unscanned.ItemCount - 1; // Deletions will lower the item count, so we have to get this value before doing any deletions
@@ -805,9 +809,12 @@ begin
   for i := 0 to AccountList.Count - 1 do
     RemoveAccountFromMems(AccountList.Strings[i]);
 
-  MaintainMemScanStatus := frmMain.MemScanIsBusy;
-  if not MaintainMemScanStatus then
-    frmMain.MemScanIsBusy := True;
+  if Assigned(frmMain) then
+  begin
+    MaintainMemScanStatus := frmMain.MemScanIsBusy;
+    if not MaintainMemScanStatus then
+      frmMain.MemScanIsBusy := True;
+  end;
   try
     for i := 0 to AccountList.Count - 1 do
     begin
@@ -815,8 +822,9 @@ begin
       PopulateUnscannedListOneAccount(BankAccount, False);
     end;
   finally
-    if not MaintainMemScanStatus then
-      frmMain.MemScanIsBusy := False;
+    if Assigned(frmMain) then    
+      if not MaintainMemScanStatus then
+        frmMain.MemScanIsBusy := False;
   end;
 end;
 
