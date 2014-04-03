@@ -91,6 +91,7 @@ uses
   globals,
   InfoMoreFrm,
   LogUtil,
+  MainFrm,
   MoneyDef,
   NFDiskObj,
   NZDiskObj,
@@ -661,41 +662,57 @@ end;
 procedure DoOffsiteDownloadEx;
 var
   NumImagesFound : integer;
+  MaintainMemScanStatus: boolean;
 begin
   if ( MyClient.clFields.clDownload_From = dlAdminSystem ) then exit;
-  //images found may return the following
-  // -1 : user cancelled copy from floppy or bconnect
-  //  0 : no new disks downloaded, user may be processing disks that are
-  //      already in the directory
-  //  n : number of new disks
-  case MyClient.clFields.clDownload_From of
-    dlFloppyDisk : begin
-      with MyClient.clFields do
-      begin
-        NumImagesFound := DoCopyFloppy(clBankLink_Code,clDisk_Sequence_No);
-      end;
-    end;
-    dlBankLinkConnect :
-    begin
-      NumImagesFound := DoBankLinkOffsiteConnect;
-    end;
-  else
-    NumImagesFound := -1;
-  end;
 
-  //process disk images unless user pressed cancel
-  if NumImagesFound <> -1 then
-  begin
-    try
-      ProcessDiskImages;
-    except
-      on E : EDownloadVerify do
+  try
+    if Assigned(frmMain) then
+    begin
+      MaintainMemScanStatus := frmMain.MemScanIsBusy;
+      frmMain.MemScanIsBusy := True;
+      if Assigned(MyClient) then
+        MyClient.clRecommended_Mems.RemoveAccountsFromMems;
+    end;     
+
+    //images found may return the following
+    // -1 : user cancelled copy from floppy or bconnect
+    //  0 : no new disks downloaded, user may be processing disks that are
+    //      already in the directory
+    //  n : number of new disks
+    case MyClient.clFields.clDownload_From of
+      dlFloppyDisk : begin
+        with MyClient.clFields do
+        begin
+          NumImagesFound := DoCopyFloppy(clBankLink_Code,clDisk_Sequence_No);
+        end;
+      end;
+      dlBankLinkConnect :
       begin
-         HelpfulErrorMsg('An error occurred while verifying the downloaded data.'+#13+#13+
-                         E.Message+ #13+#13+
-                         'Please contact '+SHORTAPPNAME+' support.',0);
+        NumImagesFound := DoBankLinkOffsiteConnect;
+      end;
+    else
+      NumImagesFound := -1;
+    end;
+
+    //process disk images unless user pressed cancel
+    if NumImagesFound <> -1 then
+    begin
+      try
+        ProcessDiskImages;
+      except
+        on E : EDownloadVerify do
+        begin
+           HelpfulErrorMsg('An error occurred while verifying the downloaded data.'+#13+#13+
+                           E.Message+ #13+#13+
+                           'Please contact '+SHORTAPPNAME+' support.',0);
+        end;
       end;
     end;
+  finally
+    if Assigned(frmMain) then    
+      if not MaintainMemScanStatus then
+        frmMain.MemScanIsBusy := False;
   end;
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

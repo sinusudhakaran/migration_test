@@ -47,7 +47,7 @@ type
     property  Recommended: TRecommended_Mem_List read fRecommended;
 
     procedure MemScan(RunningUnitTest: boolean; TestAccount: TBank_Account);
-    procedure UpdateCandidateMems(TranRec: pTransaction_Rec; IsEditOperation: boolean);
+    procedure UpdateCandidateMems(TranRec: pTransaction_Rec; IsEditOrInsertOperation: boolean);
     procedure SetLastCodingFrmKeyPress;
     procedure RemoveAccountFromMems(BankAccount: TBank_Account); Overload;
     procedure RemoveAccountsFromMems; overload;
@@ -613,7 +613,7 @@ end;
 //
 // You can put the contents of the entire method in the try/finally if you like, this is probably the
 // easiest and safest way, I have done this most of the time.
-procedure TRecommended_Mems.UpdateCandidateMems(TranRec: pTransaction_Rec; IsEditOperation: boolean);
+procedure TRecommended_Mems.UpdateCandidateMems(TranRec: pTransaction_Rec; IsEditOrInsertOperation: boolean);
 var
   Account               : TBank_Account;
   CandidateInt          : integer;
@@ -670,7 +670,7 @@ begin
   end;
 
   // Is this an edit operation (rather than a delete)?
-  if IsEditOperation then
+  if IsEditOrInsertOperation then
   begin
     // Add modified transaction to unscanned list. We can use the old details
     // (bank account and sequence number), because they don't change when a
@@ -713,8 +713,7 @@ begin
     if not RunningUnitTest then
     begin
       MaintainMemScanStatus := frmMain.MemScanIsBusy;
-      if not MaintainMemScanStatus then
-        frmMain.MemScanIsBusy := True;
+      frmMain.MemScanIsBusy := True;
     end;
     for iTransaction := 0 to BankAccount.baTransaction_List.ItemCount-1 do
     begin
@@ -748,8 +747,7 @@ begin
     if Assigned(frmMain) then // false for unit tests, which don't need to set this boolean anyway
     begin
       MaintainMemScanStatus := frmMain.MemScanIsBusy;
-      if not MaintainMemScanStatus then
-        frmMain.MemScanIsBusy := True;
+      frmMain.MemScanIsBusy := True;
     end;
     // Delete all unscanned transactions with this account number,
     // so that we don't have to worry about duplicates being added
@@ -812,8 +810,7 @@ begin
   if Assigned(frmMain) then
   begin
     MaintainMemScanStatus := frmMain.MemScanIsBusy;
-    if not MaintainMemScanStatus then
-      frmMain.MemScanIsBusy := True;
+    frmMain.MemScanIsBusy := True;
   end;
   try
     for i := 0 to AccountList.Count - 1 do

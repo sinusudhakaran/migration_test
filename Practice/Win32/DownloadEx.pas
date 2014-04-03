@@ -67,7 +67,8 @@ uses
   DirUtils,
   CsvParser,
   SecureOnlineAccounts,
-  WarningMoreFrm;
+  WarningMoreFrm,
+  MainFrm;
 
 const
   UnitName = 'DownloadEx';
@@ -1107,6 +1108,7 @@ procedure DownloadDiskImages( Source : TDownloadSource);
 var
   NumImagesFound : integer;
   OldStatusSilent: Boolean;
+  MaintainMemScanStatus: boolean;
 begin
   OldStatusSilent := StatusSilent;
 
@@ -1121,6 +1123,15 @@ begin
 
     if not RefreshAdmin then
       Exit;
+
+    if Assigned(frmMain) then
+    begin
+      MaintainMemScanStatus := frmMain.MemScanIsBusy;
+      frmMain.MemScanIsBusy := True;
+      if Assigned(MyClient) then
+        MyClient.clRecommended_Mems.RemoveAccountsFromMems;
+    end;
+
     //Check integrity of the admin system before doing anything
     Admin32.IntegrityCheck;
     //check that test has not been disabled in the prac ini
@@ -1182,6 +1193,9 @@ begin
     end;
   finally
     StatusSilent := OldStatusSilent;
+    if Assigned(frmMain) then    
+      if not MaintainMemScanStatus then
+        frmMain.MemScanIsBusy := False;
   end;
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

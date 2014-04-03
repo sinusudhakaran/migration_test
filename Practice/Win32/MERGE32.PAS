@@ -81,7 +81,8 @@ uses
   CodingStatsList32,
   UsageUtils,
   AuditMgr,
-  SystemMemorisationList;
+  SystemMemorisationList,
+  MainFrm;
 
 const
   UnitName = 'MERGE32';
@@ -198,268 +199,287 @@ Var
    Msg               : string;
    BCode, CCode : String[3];
    Rate : Extended;
+
+   MaintainMemScanStatus: boolean;
 Begin
   if DebugMe then begin
      LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
   end;
 
-  NoOfEntries := 0;
-  FirstDate   := 0;
-  LastDate    := 0;
-
-  AccountPasswordOK := false;
-
-  if not Silent then
-     Msg := 'Importing new transactions...'
-  else
-     Msg := 'Merging new transactions for ' + aClient.clFields.clCode + '...';
-
-  UpdateAppStatus( Msg,'',10);
   try
-     With aClient.clBank_Account_List do
-     Begin
-        For I := 0 to Pred( itemCount ) do
-        Begin
-           Bank_Account := Bank_Account_At( I );
+    if Assigned(frmMain) then
+    begin
+      MaintainMemScanStatus := frmMain.MemScanIsBusy;
+      frmMain.MemScanIsBusy := True;
+      if Assigned(aClient) then
+        aClient.clRecommended_Mems.RemoveAccountsFromMems;
+    end;
 
-           if Bank_Account.baFields.baAccount_Type <> sbtOnlineSecure then
-           begin
-             With Bank_Account, baFields do
-             Begin
-                BCode := baCurrency_Code;
-                CCode := aClient.clExtra.ceLocal_Currency_Code;
+    NoOfEntries := 0;
+    FirstDate   := 0;
+    LastDate    := 0;
 
-                MaxLRN := baHighest_LRN;  //baTransaction_List.HighestLRN;
-                pSB := AdminSystem.fdSystem_Bank_Account_List.FindCode( baBank_Account_Number );
+    AccountPasswordOK := false;
 
-                If Assigned( pSB ) then With pSB^ do If ( sbLast_Transaction_LRN > MaxLRN ) then
-                Begin
-                   psbLRN := pSB.sbLRN; // Keep this in case admin gets a refresh
-                   //must test the bank account password to make sure this is not a restriced account
-                   if(sbAccount_Password <> '') then
-                   begin
-                     //password set - test again bank account password in client
-                     if baFields.baBank_Account_Password = sbAccount_Password then
-                       AccountPasswordOK := true
+    if not Silent then
+       Msg := 'Importing new transactions...'
+    else
+       Msg := 'Merging new transactions for ' + aClient.clFields.clCode + '...';
+
+    UpdateAppStatus( Msg,'',10);
+    try
+       With aClient.clBank_Account_List do
+       Begin
+          For I := 0 to Pred( itemCount ) do
+          Begin
+             Bank_Account := Bank_Account_At( I );
+
+             if Bank_Account.baFields.baAccount_Type <> sbtOnlineSecure then
+             begin
+               With Bank_Account, baFields do
+               Begin
+                  BCode := baCurrency_Code;
+                  CCode := aClient.clExtra.ceLocal_Currency_Code;
+
+                  MaxLRN := baHighest_LRN;  //baTransaction_List.HighestLRN;
+                  pSB := AdminSystem.fdSystem_Bank_Account_List.FindCode( baBank_Account_Number );
+
+                  If Assigned( pSB ) then With pSB^ do If ( sbLast_Transaction_LRN > MaxLRN ) then
+                  Begin
+                     psbLRN := pSB.sbLRN; // Keep this in case admin gets a refresh
+                     //must test the bank account password to make sure this is not a restriced account
+                     if(sbAccount_Password <> '') then
+                     begin
+                       //password set - test again bank account password in client
+                       if baFields.baBank_Account_Password = sbAccount_Password then
+                         AccountPasswordOK := true
+                       else
+                       begin
+                         //password has changed ask user for new one
+                         if EnterPassword('Update Bank Account '+ sbAccount_Number + ' '+sbAccount_Name, sbAccount_Password,0,false,true) then
+                         begin
+                            baFields.baBank_Account_Password := sbAccount_Password;
+                            AccountPasswordOK := true
+                         end
+                         else
+                             if not Silent then HelpfulInfomsg('Invalid Password.  Transactions for Account '+sbAccount_Number + ' '+sbAccount_Name
+                                                              + ' have not been updated.',0);
+                       end;
+                     end
                      else
                      begin
-                       //password has changed ask user for new one
-                       if EnterPassword('Update Bank Account '+ sbAccount_Number + ' '+sbAccount_Name, sbAccount_Password,0,false,true) then
-                       begin
-                          baFields.baBank_Account_Password := sbAccount_Password;
-                          AccountPasswordOK := true
-                       end
-                       else
-                           if not Silent then HelpfulInfomsg('Invalid Password.  Transactions for Account '+sbAccount_Number + ' '+sbAccount_Name
-                                                            + ' have not been updated.',0);
+                       //no password, clear client bank password if there was one
+                       baFields.baBank_Account_Password := '';
+                       AccountPasswordOK := true;
                      end;
-                   end
-                   else
-                   begin
-                     //no password, clear client bank password if there was one
-                     baFields.baBank_Account_Password := '';
-                     AccountPasswordOK := true;
-                   end;
 
-                   //-------------------------
-                   if AccountPasswordOK then
-                   begin
-                     // merge begins
                      //-------------------------
-                     FirstDateThisAccount := 0;
-                     LastDateThisAccount  := 0;
-                     NoForAccount := 0;
+                     if AccountPasswordOK then
+                     begin
+                       // merge begins
+                       //-------------------------
+                       FirstDateThisAccount := 0;
+                       LastDateThisAccount  := 0;
+                       NoForAccount := 0;
 
-                     if DebugMe then begin
-                        Msg := 'Processing account ' + baBank_Account_Number;
-                        LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' : ' + Msg );
+                       if DebugMe then begin
+                          Msg := 'Processing account ' + baBank_Account_Number;
+                          LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' : ' + Msg );
+                       end;
+
+                       eFileName := ArchiveFileName( sbLRN );
+
+                       if (not Silent) or ( DebugMe) or IsScheduledReports then begin
+                          Msg := Format( 'Checking %s for %s (%s)', [ baBank_Account_Number,
+                                                                      aClient.clFields.clCode,
+                                                                      eFileName
+                                                                     ] );
+                          LogUtil.LogMsg(lmInfo, UnitName, ThisMethodName + ' : ' + Msg );
+                       end;
+
+                       If not BKFileExists( eFileName ) then begin
+                         Msg := Format('The Entry File for %s (%s) does not exist %s', [baBank_Account_Number, eFileName, aClient.clFields.clCode ] );
+                         LogUtil.LogMsg(lmError,UnitName, ThisMethodName + ' : ' + Msg );
+                         Raise EInOutError.CreateFmt( '%s - %s : %s', [ UnitName, ThisMethodName, Msg ] );
+                       end;
+                       //build list of unpresented items
+
+                         UEList    := MakeUEList( Bank_Account );
+
+                       //begin import for archive
+                       AssignFile( eFile, eFileName );
+                       Reset( eFile );
+                       try
+                         L := 0;
+                         R := FileSize( eFile )-1;
+                         Repeat
+                            M := ( L+R ) shr 1;
+                            Seek( eFile, M );
+                            Read( eFile, Entry );
+                            If ( Entry.aLRN > MaxLRN ) then
+                               R := M - 1
+                            else
+                               L := M + 1;
+                         Until ( Entry.aLRN = MaxLRN ) or ( L > R );
+
+                         Seek(eFile,M);  //make sure at last position, needed if LRN match not found
+                                         //this happens when the bank account is new
+
+                         {cycle thru importing transactions - this portion of code actually
+                          updates the transaction list in the client file}
+
+                         {a crash at this point should cause the process to halt, the client will
+                          have transactions upto the last good transaction}
+                         FirstAdminLRN := -1;
+
+                         While not EOF( eFile ) do
+                         Begin
+                            Read( eFile, Entry );
+                            With Entry do If ( aLRN > MaxLRN ) then
+                            Begin
+                               if FirstAdminLRN = -1 then FirstAdminLRN := aLRN;
+
+                               //try and match a transaction
+                               UE := NIL;
+                               If (Assigned(UEList) and (aCheque_Number <> 0) and (aAmount <> 0)) then
+                                  UE := UEList.FindUEByNumberAndAmount( aCheque_Number, aAmount );
+
+                               //Make sure the UE item hasnt been matched since UElist was built
+                               //and the presentation date is not earlier than effective date
+                               if Assigned( UE) then begin
+                                  if ( UE^.Presented <> 0) or
+                                     ( UE^.Issued > aDate_Presented) then UE := nil;
+                               end;
+
+                               //Try to match with a UPC before importing
+                               If Assigned( UE ) then With UE^ do Begin
+                                  //an unpresented cheque has been found that matches
+                                  //both the amount and the cheque number.
+                                  //update UPC to show that has been matched
+                                  ptr^.txUPI_State          := upMatchedUPC;
+                                  ptr^.txDate_Presented     := aDate_Presented;
+                                  UE^.Presented             := aDate_Presented;
+                                  ptr^.txOriginal_Reference := aReference;
+                                  ptr^.txOriginal_Source    := aSource;
+                                  ptr^.txOriginal_Type      := aType;
+                                  ptr^.txOriginal_Forex_Conversion_Rate    := ptr^.txForex_Conversion_Rate   ;
+                                  ptr^.txOriginal_Amount                   := ptr^.txAmount;
+                                  ptr^.txOriginal_Cheque_Number            := aCheque_Number;
+                               end
+                               else
+                               Begin
+                                  Transaction := baTransaction_List.New_Transaction;
+                                  With Transaction^ do
+                                  Begin
+                                     txType               := aType;
+                                     txSource             := aSource;
+                                     txDate_Presented     := aDate_Presented;
+                                     txDate_Effective     := aDate_Presented;
+                                     txDate_Transferred   := 0;
+
+                                     txAmount             := aAmount;
+
+                                     txQuantity           := ForceSignToMatchAmount( aQuantity, aAmount);
+                                     txCheque_Number      := aCheque_Number;
+                                     txReference          := aReference;
+                                     txParticulars        := aParticulars;
+                                     txAnalysis           := aAnalysis;
+                                     txOrigBB             := aOrigBB;
+                                     txOther_Party        := aOther_Party;
+                                     txGL_Narration       := aStatement_Details;
+                                     txStatement_Details  := aStatement_Details;
+                                     txBank_Seq           := baFields.baNumber;  //setbank account sequence no to current bank index
+
+                                     txCore_Transaction_ID      := aCoreTransactionID;
+                                     txCore_Transaction_ID_High := aCoreTransactionIDHigh;
+
+                                     //Get extra info for Provisional transactions
+                                     if (txSource = orProvisional) then
+                                       SetProvisionalInfo(aLRN, txTemp_Prov_Entered_By, txTemp_Prov_Date_Time);
+                                  end;
+                                  baTransaction_List.Insert_Transaction_Rec( Transaction );
+                                  aClient.clRecommended_Mems.UpdateCandidateMems(Transaction, True);
+
+                                  //Flag Audit for bank account
+                                  aClient.ClientAuditMgr.FlagAudit(arClientBankAccounts);
+                               end;
+
+                               If baCurrent_Balance <> Unknown then baCurrent_Balance := baCurrent_Balance + aAmount;
+
+                               //- - - - VERY IMPORTANT - - - - - -
+                               baHighest_LRN := aLRN;
+
+                               Inc( NoOfEntries );
+                               Inc( NoForAccount);
+
+                               //update transaction date range for all accounts
+                               If ( FirstDate = 0 ) or ( ( FirstDate > 0 ) and ( aDate_Presented < FirstDate ) ) then
+                                  FirstDate   := ADate_Presented;
+
+                               If ADate_Presented > LastDate then LastDate := ADate_Presented;
+
+
+                               //update transaction date range for this account only
+                               If (FirstDateThisAccount = 0) or ((FirstDateThisAccount>0) and (aDate_Presented < FirstDateThisAccount)) then
+                                  FirstDateThisAccount := ADate_Presented;
+                               If (aDate_Presented > LastDateThisAccount) then
+                                  LastDateThisAccount := ADate_Presented;
+
+                               //show progress
+                               if (sbLast_Transaction_LRN - FirstAdminLRN) > 0 then
+                                 UpdateAppStatusPerc_NR( (aLrn - FirstAdminLRN) / (sbLast_Transaction_LRN - FirstAdminLRN)*100);
+
+                            end; //with Entry do
+                         end; //while not EOF
+                       finally
+                         UEList.Free;
+                         CloseFile( eFile );
+                       end;
+
+                       if ( not Silent) or DebugMe or IsScheduledReports then begin
+                          Msg := Format('%s : Merged %d entries',[ThisMethodName, NoForAccount]);
+                          LogUtil.LogMsg(lmInfo, UnitName, Msg);
+                       end;
+
+                       //Autocode the entries
+                       if NoForAccount > 0 then begin
+                          AutoCodeEntries(aClient, Bank_Account,AllEntries, FirstDateThisAccount, LastDateThisAccount);
+                       end;
+
+                       //Set Earliest Download Date in Client Account Map to MaxInt
+                       SetEarliestDownloadDate(aClient.clFields.clCode, psbLRN);
+
+                       //------------------------
+                       //merge ends
+                       //------------------------
                      end;
+                  end;  {if pbs assigned}
 
-                     eFileName := ArchiveFileName( sbLRN );
+               end; {with bank account}
+             end;
+          end;
+       end; {with bank account list}
+      finally
+        //leave the status window up if scheduled reports in running
+        if not Silent then ClearStatus;
+    end;
 
-                     if (not Silent) or ( DebugMe) or IsScheduledReports then begin
-                        Msg := Format( 'Checking %s for %s (%s)', [ baBank_Account_Number,
-                                                                    aClient.clFields.clCode,
-                                                                    eFileName
-                                                                   ] );
-                        LogUtil.LogMsg(lmInfo, UnitName, ThisMethodName + ' : ' + Msg );
-                     end;
-
-                     If not BKFileExists( eFileName ) then begin
-                       Msg := Format('The Entry File for %s (%s) does not exist %s', [baBank_Account_Number, eFileName, aClient.clFields.clCode ] );
-                       LogUtil.LogMsg(lmError,UnitName, ThisMethodName + ' : ' + Msg );
-                       Raise EInOutError.CreateFmt( '%s - %s : %s', [ UnitName, ThisMethodName, Msg ] );
-                     end;
-                     //build list of unpresented items
-
-                       UEList    := MakeUEList( Bank_Account );
-
-                     //begin import for archive
-                     AssignFile( eFile, eFileName );
-                     Reset( eFile );
-                     try
-                       L := 0;
-                       R := FileSize( eFile )-1;
-                       Repeat
-                          M := ( L+R ) shr 1;
-                          Seek( eFile, M );
-                          Read( eFile, Entry );
-                          If ( Entry.aLRN > MaxLRN ) then
-                             R := M - 1
-                          else
-                             L := M + 1;
-                       Until ( Entry.aLRN = MaxLRN ) or ( L > R );
-
-                       Seek(eFile,M);  //make sure at last position, needed if LRN match not found
-                                       //this happens when the bank account is new
-
-                       {cycle thru importing transactions - this portion of code actually
-                        updates the transaction list in the client file}
-
-                       {a crash at this point should cause the process to halt, the client will
-                        have transactions upto the last good transaction}
-                       FirstAdminLRN := -1;
-
-                       While not EOF( eFile ) do
-                       Begin
-                          Read( eFile, Entry );
-                          With Entry do If ( aLRN > MaxLRN ) then
-                          Begin
-                             if FirstAdminLRN = -1 then FirstAdminLRN := aLRN;
-
-                             //try and match a transaction
-                             UE := NIL;
-                             If (Assigned(UEList) and (aCheque_Number <> 0) and (aAmount <> 0)) then
-                                UE := UEList.FindUEByNumberAndAmount( aCheque_Number, aAmount );
-
-                             //Make sure the UE item hasnt been matched since UElist was built
-                             //and the presentation date is not earlier than effective date
-                             if Assigned( UE) then begin
-                                if ( UE^.Presented <> 0) or
-                                   ( UE^.Issued > aDate_Presented) then UE := nil;
-                             end;
-
-                             //Try to match with a UPC before importing
-                             If Assigned( UE ) then With UE^ do Begin
-                                //an unpresented cheque has been found that matches
-                                //both the amount and the cheque number.
-                                //update UPC to show that has been matched
-                                ptr^.txUPI_State          := upMatchedUPC;
-                                ptr^.txDate_Presented     := aDate_Presented;
-                                UE^.Presented             := aDate_Presented;
-                                ptr^.txOriginal_Reference := aReference;
-                                ptr^.txOriginal_Source    := aSource;
-                                ptr^.txOriginal_Type      := aType;
-                                ptr^.txOriginal_Forex_Conversion_Rate    := ptr^.txForex_Conversion_Rate   ;
-                                ptr^.txOriginal_Amount                   := ptr^.txAmount;
-                                ptr^.txOriginal_Cheque_Number            := aCheque_Number;
-                             end
-                             else
-                             Begin
-                                Transaction := baTransaction_List.New_Transaction;
-                                With Transaction^ do
-                                Begin
-                                   txType               := aType;
-                                   txSource             := aSource;
-                                   txDate_Presented     := aDate_Presented;
-                                   txDate_Effective     := aDate_Presented;
-                                   txDate_Transferred   := 0;
-
-                                   txAmount             := aAmount;
-
-                                   txQuantity           := ForceSignToMatchAmount( aQuantity, aAmount);
-                                   txCheque_Number      := aCheque_Number;
-                                   txReference          := aReference;
-                                   txParticulars        := aParticulars;
-                                   txAnalysis           := aAnalysis;
-                                   txOrigBB             := aOrigBB;
-                                   txOther_Party        := aOther_Party;
-                                   txGL_Narration       := aStatement_Details;
-                                   txStatement_Details  := aStatement_Details;
-                                   txBank_Seq           := baFields.baNumber;  //setbank account sequence no to current bank index
-
-                                   txCore_Transaction_ID      := aCoreTransactionID;
-                                   txCore_Transaction_ID_High := aCoreTransactionIDHigh;
-
-                                   //Get extra info for Provisional transactions
-                                   if (txSource = orProvisional) then
-                                     SetProvisionalInfo(aLRN, txTemp_Prov_Entered_By, txTemp_Prov_Date_Time);
-                                end;
-                                baTransaction_List.Insert_Transaction_Rec( Transaction );
-
-                                //Flag Audit for bank account
-                                aClient.ClientAuditMgr.FlagAudit(arClientBankAccounts);
-                             end;
-
-                             If baCurrent_Balance <> Unknown then baCurrent_Balance := baCurrent_Balance + aAmount;
-
-                             //- - - - VERY IMPORTANT - - - - - -
-                             baHighest_LRN := aLRN;
-
-                             Inc( NoOfEntries );
-                             Inc( NoForAccount);
-
-                             //update transaction date range for all accounts
-                             If ( FirstDate = 0 ) or ( ( FirstDate > 0 ) and ( aDate_Presented < FirstDate ) ) then
-                                FirstDate   := ADate_Presented;
-
-                             If ADate_Presented > LastDate then LastDate := ADate_Presented;
-
-
-                             //update transaction date range for this account only
-                             If (FirstDateThisAccount = 0) or ((FirstDateThisAccount>0) and (aDate_Presented < FirstDateThisAccount)) then
-                                FirstDateThisAccount := ADate_Presented;
-                             If (aDate_Presented > LastDateThisAccount) then
-                                LastDateThisAccount := ADate_Presented;
-
-                             //show progress
-                             if (sbLast_Transaction_LRN - FirstAdminLRN) > 0 then
-                               UpdateAppStatusPerc_NR( (aLrn - FirstAdminLRN) / (sbLast_Transaction_LRN - FirstAdminLRN)*100);
-
-                          end; //with Entry do
-                       end; //while not EOF
-                     finally
-                       UEList.Free;
-                       CloseFile( eFile );
-                     end;
-
-                     if ( not Silent) or DebugMe or IsScheduledReports then begin
-                        Msg := Format('%s : Merged %d entries',[ThisMethodName, NoForAccount]);
-                        LogUtil.LogMsg(lmInfo, UnitName, Msg);
-                     end;
-
-                     //Autocode the entries
-                     if NoForAccount > 0 then begin
-                        AutoCodeEntries(aClient, Bank_Account,AllEntries, FirstDateThisAccount, LastDateThisAccount);
-                     end;
-
-                     //Set Earliest Download Date in Client Account Map to MaxInt
-                     SetEarliestDownloadDate(aClient.clFields.clCode, psbLRN);
-
-                     //------------------------
-                     //merge ends
-                     //------------------------
-                   end;
-                end;  {if pbs assigned}
-
-             end; {with bank account}
-           end;
-        end;
-     end; {with bank account list}
-    finally
-      //leave the status window up if scheduled reports in running
-      if not Silent then ClearStatus;
-  end;
-
-  {report on what happened}
-  if NoOfEntries > 0 then begin
-     if (not Silent) or (IsScheduledReports) then begin
-        Msg := Format('Imported %d transactions dated from %s to %s',
-                      [ NoOfEntries, bkDate2Str( FirstDate ), bkDate2Str( LastDate ) ] );
-        LogUtil.LogMsg(lmInfo, UnitName, ThisMethodName + ' : ' + Msg);
-        if not IsScheduledReports then
-          HelpfulInfoMsg(SHORTAPPNAME+' ' + Msg, 0);
-     end;
+    {report on what happened}
+    if NoOfEntries > 0 then begin
+       if (not Silent) or (IsScheduledReports) then begin
+          Msg := Format('Imported %d transactions dated from %s to %s',
+                        [ NoOfEntries, bkDate2Str( FirstDate ), bkDate2Str( LastDate ) ] );
+          LogUtil.LogMsg(lmInfo, UnitName, ThisMethodName + ' : ' + Msg);
+          if not IsScheduledReports then
+            HelpfulInfoMsg(SHORTAPPNAME+' ' + Msg, 0);
+       end;
+    end;
+  finally
+    if Assigned(frmMain) then
+    begin
+      if not MaintainMemScanStatus then
+        frmMain.MemScanIsBusy := False;
+    end;
   end;
 
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
