@@ -997,7 +997,7 @@ end;
 //------------------------------------------------------------------------------
 procedure TTaxablePaymentsReport.DoATOExtractCode(aFileName : string);
 Const
-  RUN_TYPE = 'T';
+  RUN_TYPE = 'P';
   ThisMethodName = 'DoATOExtractCode';
 var
   ATOExtract : TATOFixedWidthFileExtract;
