@@ -705,12 +705,15 @@ end;
 procedure TRecommended_Mems.PopulateUnscannedListOneAccount(BankAccount: TBank_Account; RunningUnitTest: boolean);
 var
   iTransaction: integer;
+  MaintainMemScanStatus: boolean;
   New: TUnscanned_Transaction;
   Transaction: pTransaction_Rec;
 begin
   try
+    MaintainMemScanStatus := frmMain.MemScanIsBusy;
     if not RunningUnitTest then
-      frmMain.MemScanIsBusy := True;
+      if not MaintainMemScanStatus then
+        frmMain.MemScanIsBusy := True;
     for iTransaction := 0 to BankAccount.baTransaction_List.ItemCount-1 do
     begin
       Transaction := BankAccount.baTransaction_List.Transaction_At(iTransaction);
@@ -720,8 +723,9 @@ begin
       Unscanned.Insert(New);
     end;
   finally
-    if not RunningUnitTest then    
-      frmMain.MemScanIsBusy := False;
+    if not RunningUnitTest then
+      if not MaintainMemScanStatus then
+        frmMain.MemScanIsBusy := False;
   end;
 
   Candidate.cpFields.cpCandidate_ID_To_Process := 1;
@@ -736,10 +740,13 @@ procedure TRecommended_Mems.RemoveAccountFromMems(AccountNo: string);
 var
   i: integer;
   LoopStart: integer;
+  MaintainMemScanStatus: boolean;
 begin
   try
+    MaintainMemScanStatus := frmMain.MemScanIsBusy;
     if Assigned(frmMain) then // false for unit tests, which don't need to set this boolean anyway
-      frmMain.MemScanIsBusy := True;
+      if not MaintainMemScanStatus then
+        frmMain.MemScanIsBusy := True;
     // Delete all unscanned transactions with this account number,
     // so that we don't have to worry about duplicates being added
     LoopStart := Unscanned.ItemCount - 1; // Deletions will lower the item count, so we have to get this value before doing any deletions
@@ -765,8 +772,9 @@ begin
     // Will need to rebuild recommended mems later, so set ID To Proces back to the start of Candidates
     fCandidate.cpFields.cpCandidate_ID_To_Process := 1;
   finally
-    if Assigned(frmMain) then
-      frmMain.MemScanIsBusy := False;
+    if Assigned(frmMain) then // false for unit tests, which don't need to set this boolean anyway
+      if not MaintainMemScanStatus then
+        frmMain.MemScanIsBusy := False;
   end;
 end;
 
@@ -792,11 +800,14 @@ procedure TRecommended_Mems.RemoveAccountsFromMems(AccountList: TStringList);
 var
   BankAccount: TBank_Account;
   i: integer;
+  MaintainMemScanStatus: boolean;
 begin
   for i := 0 to AccountList.Count - 1 do
     RemoveAccountFromMems(AccountList.Strings[i]);
 
-  frmMain.MemScanIsBusy := True;
+  MaintainMemScanStatus := frmMain.MemScanIsBusy;
+  if not MaintainMemScanStatus then
+    frmMain.MemScanIsBusy := True;
   try
     for i := 0 to AccountList.Count - 1 do
     begin
@@ -804,7 +815,8 @@ begin
       PopulateUnscannedListOneAccount(BankAccount, False);
     end;
   finally
-    frmMain.MemScanIsBusy := False;
+    if not MaintainMemScanStatus then
+      frmMain.MemScanIsBusy := False;
   end;
 end;
 
