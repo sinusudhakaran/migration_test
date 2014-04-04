@@ -105,7 +105,8 @@ VAR
    DoAnalysisCoding : boolean;
    SubCode          : string;
    //WasEdited        : Boolean;
-   AuditIDList: TList;   
+   AuditIDList: TList;
+   MaintainMemScanStatus: boolean;
 
    function DoSuperFund: Boolean;
    begin
@@ -127,7 +128,10 @@ Var
 Begin
    try
      if Assigned(frmMain) then
+     begin
+       MaintainMemScanStatus := frmMain.MemScanIsBusy;
        frmMain.MemScanIsBusy := True;
+     end;
 
      With aClient, BA do
      Begin
@@ -757,9 +761,11 @@ Begin
      end; { Scope of Client and BankAccount }
    finally
      if Assigned(frmMain) then
-       frmMain.MemScanIsBusy := False; 
+       if not MaintainMemScanStatus then
+         frmMain.MemScanIsBusy := False;
    end;
 end; { of AUTOCODE }
+
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 Function FindMemorisation( const aBankAccount : TBank_Account;
                            const aTransaction : pTransaction_Rec;

@@ -115,6 +115,7 @@ var A,T: Integer;
     cFound,
     cGStSkipped: Integer;
     sFind,sReplace: string;
+    MaintainMemScanStatus: boolean;
 type
     AccCode = string[20];
 
@@ -133,7 +134,10 @@ type
 begin
    try
      if Assigned(frmMain) then
+     begin
+       MaintainMemScanStatus := frmMain.MemScanIsBusy;
        frmMain.MemScanIsBusy := True;
+     end;
      MyClient.clRecommended_Mems.RemoveAccountsFromMems;
      Result := False;
      // Get the dates...
@@ -217,7 +221,8 @@ begin
      end;
    finally
      if Assigned(frmMain) then
-       frmMain.MemScanIsBusy := False;
+      if not MaintainMemScanStatus then
+        frmMain.MemScanIsBusy := False;
    end;
 end;
 

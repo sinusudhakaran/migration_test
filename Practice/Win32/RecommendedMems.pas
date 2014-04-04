@@ -804,22 +804,23 @@ var
   i: integer;
   MaintainMemScanStatus: boolean;
 begin
-  for i := 0 to AccountList.Count - 1 do
-    RemoveAccountFromMems(AccountList.Strings[i]);
-
-  if Assigned(frmMain) then
-  begin
-    MaintainMemScanStatus := frmMain.MemScanIsBusy;
-    frmMain.MemScanIsBusy := True;
-  end;
   try
+    for i := 0 to AccountList.Count - 1 do
+      RemoveAccountFromMems(AccountList.Strings[i]);
+
+    if Assigned(frmMain) then
+    begin
+      MaintainMemScanStatus := frmMain.MemScanIsBusy;
+      frmMain.MemScanIsBusy := True;
+    end;
+
     for i := 0 to AccountList.Count - 1 do
     begin
       BankAccount := MyClient.clBank_Account_List.FindCode(AccountList.Strings[i]);
       PopulateUnscannedListOneAccount(BankAccount, False);
     end;
   finally
-    if Assigned(frmMain) then    
+    if Assigned(frmMain) then
       if not MaintainMemScanStatus then
         frmMain.MemScanIsBusy := False;
   end;

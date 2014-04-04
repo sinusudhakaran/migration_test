@@ -476,10 +476,8 @@ Begin
     end;
   finally
     if Assigned(frmMain) then
-    begin
       if not MaintainMemScanStatus then
         frmMain.MemScanIsBusy := False;
-    end;
   end;
 
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );

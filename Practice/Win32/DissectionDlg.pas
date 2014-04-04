@@ -1559,29 +1559,41 @@ procedure TdlgDissection.tmrPayeeTimer(Sender: TObject);
 var
    pD  : pWorkDissect_Rec;
    OldPayeeNo: Integer;
+   MaintainMemScanStatus: boolean;
 begin
-   tmrPayee.Enabled := False;
-   if PayeeRow = 0 then
-      Exit;
-   pD := WorkDissect.Items[PayeeRow-1 ];
-   if ( pD^.dtPayee_Number <> tmpPayee ) then begin
-      //tblDissect.ActiveCol := ColumnFmtList.GetColNumOfField(cePayee);
-      OldPayeeNo := pD^.dtPayee_Number;
-      pD^.dtPayee_Number  := tmpPayee;
+   try
+     if Assigned(frmMain) then
+     begin
+       MaintainMemScanStatus := frmMain.MemScanIsBusy;
+       frmMain.MemScanIsBusy := True;
+     end;
+     tmrPayee.Enabled := False;
+     if PayeeRow = 0 then
+        Exit;
+     pD := WorkDissect.Items[PayeeRow-1 ];
+     if ( pD^.dtPayee_Number <> tmpPayee ) then begin
+        //tblDissect.ActiveCol := ColumnFmtList.GetColNumOfField(cePayee);
+        OldPayeeNo := pD^.dtPayee_Number;
+        pD^.dtPayee_Number  := tmpPayee;
 
-      if PayeeEdited(pD,PayeeRow) then
-         pD^.dtHas_Been_Edited := true
-      else
-         pD^.dtPayee_Number := OldPayeeNo;
-      OldPayeeNo := PayeeRow;
-      PayeeRow := -1; // So we know not to exit...
-   end else
-      OldPayeeNo := PayeeRow;
+        if PayeeEdited(pD,PayeeRow) then
+           pD^.dtHas_Been_Edited := true
+        else
+           pD^.dtPayee_Number := OldPayeeNo;
+        OldPayeeNo := PayeeRow;
+        PayeeRow := -1; // So we know not to exit...
+     end else
+        OldPayeeNo := PayeeRow;
 
-   with tblDissect do begin
-      AllowRedraw := false;
-      InvalidateRow(OldPayeeNo);
-      AllowRedraw := true;
+     with tblDissect do begin
+        AllowRedraw := false;
+        InvalidateRow(OldPayeeNo);
+        AllowRedraw := true;
+     end;
+   finally
+     if Assigned(frmMain) then
+       if not MaintainMemScanStatus then
+         frmMain.MemScanIsBusy := False;
    end;
 end;
 
@@ -3325,6 +3337,7 @@ var
    lDlg: TdlgDissection;
    W : Integer;
    AuditIDList: TList;
+   MaintainMemScanStatus: boolean;
 begin
    Result := false;
    if not Assigned(pT) then
@@ -3333,7 +3346,10 @@ begin
    with lDlg do
       try
          if Assigned(frmMain) then
+         begin
+           MaintainMemScanStatus := frmMain.MemScanIsBusy;
            frmMain.MemScanIsBusy := True;
+         end;
          MyClient.clRecommended_Mems.UpdateCandidateMems(pT, True);
          BankAcct := BA;
          fIsForex := BA.IsAForexAccount;
@@ -3841,7 +3857,8 @@ begin
          end;
       finally
         if Assigned(frmMain) then
-          frmMain.MemScanIsBusy := False;
+          if not MaintainMemScanStatus then
+            frmMain.MemScanIsBusy := False;
         Free;
       end;
 end;
