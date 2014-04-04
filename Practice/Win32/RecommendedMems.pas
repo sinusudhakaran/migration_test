@@ -31,7 +31,6 @@ type
     function GetLastCodingFrmKeyPress: TDateTime;
     procedure GetMatchingCandidateRange(StatementDetails: string; var FirstCandidatePos, LastCandidatePos: integer);
     procedure RemoveAccountFromMems(AccountNo: string); Overload;
-    // procedure ResetAll;
   public
     constructor Create(const aBankAccounts: TBank_Account_List); reintroduce; overload;
     constructor Create(const aBankAccount: TBank_Account); reintroduce; overload;
@@ -55,6 +54,8 @@ type
     procedure PopulateUnscannedListOneAccount(BankAccount: TBank_Account; RunningUnitTest: boolean);
     procedure PopulateUnscannedListAllAccounts(RunningUnitTest: boolean);
     procedure RemoveRecommendedMems(Account: string; EntryType: byte; StatementDetails: string);
+
+    procedure ResetAll;
   end;
                                                             
 var
@@ -709,6 +710,7 @@ var
   New: TUnscanned_Transaction;
   Transaction: pTransaction_Rec;
 begin
+  MaintainMemScanStatus := False;
   try
     if not RunningUnitTest then
     begin
@@ -743,6 +745,7 @@ var
   LoopStart: integer;
   MaintainMemScanStatus: boolean;
 begin
+  MaintainMemScanStatus := False;
   try
     if Assigned(frmMain) then // false for unit tests, which don't need to set this boolean anyway
     begin
@@ -804,6 +807,7 @@ var
   i: integer;
   MaintainMemScanStatus: boolean;
 begin
+  MaintainMemScanStatus := False;
   try
     for i := 0 to AccountList.Count - 1 do
       RemoveAccountFromMems(AccountList.Strings[i]);
@@ -854,23 +858,25 @@ begin
 end;
 
 // This is here for debugging purposes, it shouldn't be used anywhere permanently
-{
 procedure TRecommended_Mems.ResetAll;
 begin
   try
     frmMain.MemScanIsBusy := True;
-    Candidates.FreeAll;
-    Candidates.Destroy;
-    Recommended.FreeAll;
-    Recommended.Destroy;
-    Unscanned.FreeAll;
-    Unscanned.Destroy;
-    Candidate.cpFields.cpCandidate_ID_To_Process := 1;
-    Candidate.cpFields.cpNext_Candidate_ID := 1;
+    // should probably remove most of this stuff
+    MyClient.clRecommended_Mems.Candidates.FreeAll;
+    MyClient.clRecommended_Mems.Candidates.Destroy;
+    MyClient.clRecommended_Mems.Recommended.FreeAll;
+    MyClient.clRecommended_Mems.Recommended.Destroy;
+    MyClient.clRecommended_Mems.Unscanned.FreeAll;
+    MyClient.clRecommended_Mems.Unscanned.Destroy;
+    MyClient.clRecommended_Mems.Candidate.cpFields.cpCandidate_ID_To_Process := 1;
+    MyClient.clRecommended_Mems.Candidate.cpFields.cpNext_Candidate_ID := 1;
+    MyClient.clRecommended_Mems.PopulateUnscannedListAllAccounts(false);
+    MyClient.clRecommended_Mems := nil;
+    MyClient.clRecommended_Mems := TRecommended_Mems.Create(MyClient.clBank_Account_List);
   finally
     frmMain.MemScanIsBusy := False;
-  end;                                                  
+  end;
 end;
-}
 
 end.
