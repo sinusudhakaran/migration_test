@@ -2249,6 +2249,7 @@ var
    Wrapper        : TClientWrapper;
    WrapperOfExistingFile : TClientWrapper;
    Msg            : string;
+   MsgToShowUser  : string;
    Attributes  : Integer;
    aClient        : TClientObj;
    RemapAccounts : Boolean;
@@ -2404,9 +2405,12 @@ begin
          //check wrapper version now so dont update a file that cant be openned
          if ( Wrapper.wVersion > BKDEFS.BK_FILE_VERSION) then
          begin
-           Msg := 'Invalid version. Version ' + Wrapper.wVersion_Reqd_Str + ' or later required to update this client file';
+           MsgToShowUser := 'Invalid version. Upgrade ' + BRAND_PRACTICE +
+                            ' to the latest version to update this client file.';
+           Msg := 'Invalid version. Upgrade ' + BRAND_PRACTICE + ' to the latest version (' +
+                  Wrapper.wVersion_Reqd_Str + ') to update this client file.';
            LogUtil.LogMsg(lmInfo,UnitName,ThisMethodName + ' '+Msg);
-           ProgressFrm.mProgress.Lines.Add( Msg);
+           ProgressFrm.mProgress.Lines.Add( MsgToShowUser);
            exit;
          end;
       end;
