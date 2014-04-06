@@ -491,6 +491,7 @@ object frmMain: TfrmMain
         Left = 301
         Top = 4
         Width = 134
+        Hint = 'Suggest Memorisations'
         ImageIndex = 2
         Caption = 'Suggested Mems'
         Constraints.MinWidth = 134
