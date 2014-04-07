@@ -20,8 +20,7 @@ USES
 Procedure AutoCodeEntries( aClient : TClientObj;
                            BA : TBank_Account;
                            CONST EntryType : Byte;
-                           CONST FromDate, ToDate : LongInt;
-                           UpdateRecMemScan: boolean = False );
+                           CONST FromDate, ToDate : LongInt);
 
 Function FindMemorisation( const aBankAccount : TBank_Account;
                            const aTransaction : pTransaction_Rec;
@@ -66,8 +65,7 @@ const
 Procedure AutoCodeEntries( aClient : TClientObj;
                            BA : TBank_Account;
                            CONST EntryType : Byte;
-                           CONST FromDate, ToDate : LongInt;
-                           UpdateRecMemScan: boolean = False );
+                           CONST FromDate, ToDate : LongInt);
 
 VAR
    Mask           : Bk5CodeStr;
@@ -263,8 +261,7 @@ Begin
                 Continue;
 
               // Update recommended memorisation scanning
-              if UpdateRecMemScan then
-                MyClient.clRecommended_Mems.UpdateCandidateMems(Transaction, True);
+              MyClient.clRecommended_Mems.UpdateCandidateMems(Transaction, True);
 
               //clear any existing coding
               txAccount         := '';

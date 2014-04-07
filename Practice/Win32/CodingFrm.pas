@@ -1780,7 +1780,7 @@ begin
            SendCmdToAllCodingWindows( ecRecodeTrans)
          else
          begin
-           AutoCodeEntries( MyClient, BankAccount, pT^.txType, TranDateFrom, TranDateTo, True);
+           AutoCodeEntries( MyClient, BankAccount, pT^.txType, TranDateFrom, TranDateTo);
            LoadWTLMaintainPos;
            Refresh;
          end;
@@ -8108,7 +8108,7 @@ procedure TfrmCoding.DoReCodeEntries;
 //finalised flag or editing memorisations.
 //reload the transaction list, maintaining the current position
 begin
-   AutoCodeEntries( MyClient, BankAccount, AllEntries, TranDateFrom, TranDateTo, True);
+   AutoCodeEntries( MyClient, BankAccount, AllEntries, TranDateFrom, TranDateTo);
    LoadWTLMaintainPos;
    Refresh;
 end;

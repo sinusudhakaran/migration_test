@@ -53,11 +53,11 @@ type
     procedure RemoveAccountsFromMems(AccountList: TStringList); overload;
     procedure PopulateUnscannedListOneAccount(BankAccount: TBank_Account; RunningUnitTest: boolean);
     procedure PopulateUnscannedListAllAccounts(RunningUnitTest: boolean);
-    procedure RemoveRecommendedMems(Account: string; EntryType: byte; StatementDetails: string);
-
+    procedure RemoveRecommendedMems(Account: string; EntryType: byte; StatementDetails: string;
+                                    AddedMasterMem: boolean);
     procedure ResetAll;
   end;
-                                                            
+
 var
   recommended_Mems: TRecommended_Mems;
 
@@ -263,6 +263,8 @@ var
     if (CandidateMem1.cmFields.cmBank_Account_Number = Account.baFields.baBank_Account_Number) then
     begin
       ExcludeMem := False;
+
+      // Checking memorisations for the current account
       for MemsPos := Account.baMemorisations_List.First to Account.baMemorisations_List.Last do
       begin
         Memorisation := Account.baMemorisations_List.Memorisation_At(MemsPos);
@@ -833,7 +835,8 @@ end;
 // Called after we have created a new memorisation, any matching recommended mems should be deleted.
 // There may be several if a master mem has been added, but should only be one for normal (account
 // specific) memorisations
-procedure TRecommended_Mems.RemoveRecommendedMems(Account: string; EntryType: byte; StatementDetails: string);
+procedure TRecommended_Mems.RemoveRecommendedMems(Account: string; EntryType: byte; StatementDetails: string;
+                                                  AddedMasterMem: boolean);
 var
   i: integer;
   memRec: tRecommended_Mem_Rec;
@@ -841,9 +844,7 @@ begin
   for i := Recommended.Last downto Recommended.First do
   begin
     memRec := Recommended.Recommended_Mem_At(i).rmFields;
-    // If the account is blank, it's because we've created a new master mem,
-    // which is not specific to one account
-    if ((memRec.rmBank_Account_Number = Account) or (Account = '')) and
+    if ((memRec.rmBank_Account_Number = Account) or AddedMasterMem) and
     (memRec.rmType = EntryType) and
     (memRec.rmStatement_Details = StatementDetails) then
     begin
@@ -854,7 +855,6 @@ begin
         break;
     end;
   end;
-
 end;
 
 // This is here for debugging purposes, it shouldn't be used anywhere permanently

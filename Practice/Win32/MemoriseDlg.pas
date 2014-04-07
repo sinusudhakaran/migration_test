@@ -652,7 +652,7 @@ begin
      EntryTypeCaption := lblType.Caption;
      EntryTypeStr := System.Copy(EntryTypeCaption, 1, AnsiPos(':', EntryTypeCaption) - 1);
      EntryType := StrToInt(EntryTypeStr);
-     MyClient.clRecommended_Mems.RemoveRecommendedMems(BA, EntryType, eStatementDetails.Text);
+     MyClient.clRecommended_Mems.RemoveRecommendedMems(BA, EntryType, eStatementDetails.Text, chkMaster.Checked);
      Modalresult := mrOk;
    end;
 end;
@@ -2008,14 +2008,10 @@ end;
 function CreateMemorisation(BA: TBank_Account;
   MemorisedList: TMemorisations_List; pM: TMemorisation): boolean;
 var
-  AuditMgr: TClientAuditManager;
-  DeleteSelectedMem: boolean;
   IsAMasterMem: boolean;
   MemorisationLine: pMemorisation_Line_Rec;
   tr: pTransaction_Rec;
 begin
-  DeleteSelectedMem := false;
-
   // Create new transaction from provided details, which we will pass into EditMemorisation, which
   // has been designed expecting a transaction to provide it with details
   MemorisationLine := pM.mdLines.MemorisationLine_At(0);
