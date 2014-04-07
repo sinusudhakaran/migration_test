@@ -480,6 +480,11 @@ var
           utAccount := TestAccount
         else
           utAccount := MyClient.clBank_Account_List.FindCode(utBankAccount);
+
+        if not Assigned(utAccount) then
+          // The account for this unscanned transaction has been removed, so let's get rid of it.
+          // This is in a Try/Finally, so the unscanned transaction will be deleted in the Finally below
+          Exit;
         pTranRec := nil;
         // TODO: optimize this search, see TExtdSortedCollection.Search
         for i := utAccount.baTransaction_List.First to utAccount.baTransaction_List.Last do
