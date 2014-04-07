@@ -501,7 +501,7 @@ begin
     Check(RecommendedMems.Recommended.Recommended_Mem_At(1).rmFields.rmUncoded_Count = 1);
 
     // Removing a recommendation
-    RecommendedMems.RemoveRecommendedMems('12345', 70, 'Details 3');
+    RecommendedMems.RemoveRecommendedMems('12345', 70, 'Details 3', false);
     Check(RecommendedMems.Recommended.ItemCount = 1);
 
     // Removing an account from recommendations (in our case, the only account)
