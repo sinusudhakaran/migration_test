@@ -1154,7 +1154,7 @@ begin
     begin
        MyClient.clRecommended_Mems.SetBankAccounts(MyClient.clBank_Account_List);
        // Uncomment this next line to wipe the recommended mem data for this client.
-       // For debugging purposes only, DO NOT check this in
+       // For debugging purposes only, DO NOT check this in uncommented
        // MyClient.clRecommended_Mems.ResetAll;
 
        with MyClient.clFields do
