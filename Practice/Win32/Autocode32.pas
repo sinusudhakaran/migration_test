@@ -261,7 +261,7 @@ Begin
                 Continue;
 
               // Update recommended memorisation scanning
-              MyClient.clRecommended_Mems.UpdateCandidateMems(Transaction, True);
+              aClient.clRecommended_Mems.UpdateCandidateMems(Transaction, True);
 
               //clear any existing coding
               txAccount         := '';

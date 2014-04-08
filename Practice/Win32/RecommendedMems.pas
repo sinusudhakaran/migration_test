@@ -51,6 +51,7 @@ type
     procedure RemoveAccountFromMems(BankAccount: TBank_Account); Overload;
     procedure RemoveAccountsFromMems; overload;
     procedure RemoveAccountsFromMems(AccountList: TStringList); overload;
+    procedure RemoveAccountsFromMems(AccountList: TBank_Account_List); overload;
     procedure PopulateUnscannedListOneAccount(BankAccount: TBank_Account; RunningUnitTest: boolean);
     procedure PopulateUnscannedListAllAccounts(RunningUnitTest: boolean);
     procedure RemoveRecommendedMems(Account: string; EntryType: byte; StatementDetails: string;
@@ -816,9 +817,6 @@ var
 begin
   MaintainMemScanStatus := False;
   try
-    for i := 0 to AccountList.Count - 1 do
-      RemoveAccountFromMems(AccountList.Strings[i]);
-
     if Assigned(frmMain) then
     begin
       MaintainMemScanStatus := frmMain.MemScanIsBusy;
@@ -826,10 +824,39 @@ begin
     end;
 
     for i := 0 to AccountList.Count - 1 do
+      RemoveAccountFromMems(AccountList.Strings[i]);
+
+    for i := 0 to AccountList.Count - 1 do
     begin
       BankAccount := MyClient.clBank_Account_List.FindCode(AccountList.Strings[i]);
       PopulateUnscannedListOneAccount(BankAccount, False);
     end;
+  finally
+    if Assigned(frmMain) then
+      if not MaintainMemScanStatus then
+        frmMain.MemScanIsBusy := False;
+  end;
+end;
+
+// Removes a given list of accounts from candidates and recommended mems
+procedure TRecommended_Mems.RemoveAccountsFromMems(AccountList: TBank_Account_List);
+var
+  i: integer;
+  MaintainMemScanStatus: boolean;
+begin
+  MaintainMemScanStatus := False;
+  try
+    if Assigned(frmMain) then
+    begin
+      MaintainMemScanStatus := frmMain.MemScanIsBusy;
+      frmMain.MemScanIsBusy := True;
+    end;
+
+    for i := 0 to AccountList.ItemCount - 1 do
+      RemoveAccountFromMems(AccountList.Bank_Account_At(i).baFields.baBank_Account_Number);
+
+    for i := 0 to AccountList.ItemCount - 1 do
+      PopulateUnscannedListOneAccount(AccountList.Bank_Account_At(i), False);
   finally
     if Assigned(frmMain) then
       if not MaintainMemScanStatus then

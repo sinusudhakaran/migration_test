@@ -212,7 +212,7 @@ Begin
       MaintainMemScanStatus := frmMain.MemScanIsBusy;
       frmMain.MemScanIsBusy := True;
       if Assigned(aClient) then
-        aClient.clRecommended_Mems.RemoveAccountsFromMems;
+        aClient.clRecommended_Mems.RemoveAccountsFromMems(aClient.clBank_Account_List);
     end;
 
     NoOfEntries := 0;
