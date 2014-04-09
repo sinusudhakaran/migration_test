@@ -81,7 +81,7 @@ begin
    try
       if lDlg.ShowModal = mrOK then begin
          RefreshHomepage;
-         ReloadCodingScreens;
+         ReloadCodingScreens(false);
       end;
    finally
       ldlg.Free;
@@ -132,13 +132,14 @@ type
     end;
 
 begin
+   MaintainMemScanStatus := false;
    try
      if Assigned(frmMain) then
      begin
        MaintainMemScanStatus := frmMain.MemScanIsBusy;
        frmMain.MemScanIsBusy := True;
+       MyClient.clRecommended_Mems.RemoveAccountsFromMems(false);
      end;
-     MyClient.clRecommended_Mems.RemoveAccountsFromMems;
      Result := False;
      // Get the dates...
      if AllDates then begin
@@ -160,7 +161,7 @@ begin
         if AccountSelector.AccountCheckBox.Checked[A] then begin
            ba := TBank_Account(AccountSelector.AccountCheckBox.Items.Objects[A]);
 
-           AutoCodeEntries(MyClient, ba, AllEntries, D1, D2);
+           AutoCodeEntries(MyClient, ba, AllEntries, D1, D2, false);
 
            //Transactions
            for T := 0 to ba.baTransaction_List.Last do begin
@@ -221,8 +222,11 @@ begin
      end;
    finally
      if Assigned(frmMain) then
+     begin
+      MyClient.clRecommended_Mems.PopulateUnscannedListAllAccounts(false);
       if not MaintainMemScanStatus then
         frmMain.MemScanIsBusy := False;
+     end;
    end;
 end;
 

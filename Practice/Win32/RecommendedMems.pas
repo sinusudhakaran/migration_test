@@ -49,9 +49,9 @@ type
     procedure UpdateCandidateMems(TranRec: pTransaction_Rec; IsEditOrInsertOperation: boolean);
     procedure SetLastCodingFrmKeyPress;
     procedure RemoveAccountFromMems(BankAccount: TBank_Account); Overload;
-    procedure RemoveAccountsFromMems; overload;
-    procedure RemoveAccountsFromMems(AccountList: TStringList); overload;
-    procedure RemoveAccountsFromMems(AccountList: TBank_Account_List); overload;
+    procedure RemoveAccountsFromMems(DoPopulate: boolean = True); overload;
+    procedure RemoveAccountsFromMems(AccountList: TStringList; DoPopulate: boolean = True); overload;
+    procedure RemoveAccountsFromMems(AccountList: TBank_Account_List; DoPopulate: boolean = True); overload;
     procedure PopulateUnscannedListOneAccount(BankAccount: TBank_Account; RunningUnitTest: boolean);
     procedure PopulateUnscannedListAllAccounts(RunningUnitTest: boolean);
     procedure RemoveRecommendedMems(Account: string; EntryType: byte; StatementDetails: string;
@@ -620,8 +620,8 @@ end;
 // This will prevent any scanning from being done while changes are made to transactions, we don't
 // want the scanning to use out-of-date information
 //
-// You can put the contents of the entire method in the try/finally if you like, this is probably the
-// easiest and safest way, I have done this most of the time.
+// You can put the contents of the entire method (the method you call this from) in the try/finally if
+// you like, this is probably the easiest and safest way, I have done this most of the time.
 procedure TRecommended_Mems.UpdateCandidateMems(TranRec: pTransaction_Rec; IsEditOrInsertOperation: boolean);
 var
   Account               : TBank_Account;
@@ -797,7 +797,7 @@ begin
 end;
 
 // Removes all accounts from candidates and recommended mems
-procedure TRecommended_Mems.RemoveAccountsFromMems;
+procedure TRecommended_Mems.RemoveAccountsFromMems(DoPopulate: boolean = True);
 var
   AccountList : TStringList;
   i           : integer;
@@ -805,11 +805,11 @@ begin
   AccountList := TStringList.Create;
   for i := 0 to MyClient.clBank_Account_List.ItemCount - 1 do
     AccountList.Add(MyClient.clBank_Account_List.Bank_Account_At(i).baFields.baBank_Account_Number);
-  RemoveAccountsFromMems(AccountList);
+  RemoveAccountsFromMems(AccountList, DoPopulate);
 end;
 
 // Removes a given list of accounts from candidates and recommended mems
-procedure TRecommended_Mems.RemoveAccountsFromMems(AccountList: TStringList);
+procedure TRecommended_Mems.RemoveAccountsFromMems(AccountList: TStringList; DoPopulate: boolean = True);
 var
   BankAccount: TBank_Account;
   i: integer;
@@ -823,13 +823,18 @@ begin
       frmMain.MemScanIsBusy := True;
     end;
 
+    Unscanned.FreeAll;
+
     for i := 0 to AccountList.Count - 1 do
       RemoveAccountFromMems(AccountList.Strings[i]);
 
-    for i := 0 to AccountList.Count - 1 do
+    if DoPopulate then
     begin
-      BankAccount := MyClient.clBank_Account_List.FindCode(AccountList.Strings[i]);
-      PopulateUnscannedListOneAccount(BankAccount, False);
+      for i := 0 to AccountList.Count - 1 do
+      begin
+        BankAccount := MyClient.clBank_Account_List.FindCode(AccountList.Strings[i]);
+        PopulateUnscannedListOneAccount(BankAccount, False);
+      end;
     end;
   finally
     if Assigned(frmMain) then
@@ -839,7 +844,7 @@ begin
 end;
 
 // Removes a given list of accounts from candidates and recommended mems
-procedure TRecommended_Mems.RemoveAccountsFromMems(AccountList: TBank_Account_List);
+procedure TRecommended_Mems.RemoveAccountsFromMems(AccountList: TBank_Account_List; DoPopulate: boolean = True);
 var
   i: integer;
   MaintainMemScanStatus: boolean;
@@ -852,11 +857,14 @@ begin
       frmMain.MemScanIsBusy := True;
     end;
 
+    Unscanned.FreeAll;
+
     for i := 0 to AccountList.ItemCount - 1 do
       RemoveAccountFromMems(AccountList.Bank_Account_At(i).baFields.baBank_Account_Number);
 
-    for i := 0 to AccountList.ItemCount - 1 do
-      PopulateUnscannedListOneAccount(AccountList.Bank_Account_At(i), False);
+    if DoPopulate then
+      for i := 0 to AccountList.ItemCount - 1 do
+        PopulateUnscannedListOneAccount(AccountList.Bank_Account_At(i), False);
   finally
     if Assigned(frmMain) then
       if not MaintainMemScanStatus then

@@ -212,7 +212,7 @@ Begin
       MaintainMemScanStatus := frmMain.MemScanIsBusy;
       frmMain.MemScanIsBusy := True;
       if Assigned(aClient) then
-        aClient.clRecommended_Mems.RemoveAccountsFromMems(aClient.clBank_Account_List);
+        aClient.clRecommended_Mems.RemoveAccountsFromMems(aClient.clBank_Account_List, false);
     end;
 
     NoOfEntries := 0;
@@ -398,7 +398,6 @@ Begin
                                        SetProvisionalInfo(aLRN, txTemp_Prov_Entered_By, txTemp_Prov_Date_Time);
                                   end;
                                   baTransaction_List.Insert_Transaction_Rec( Transaction );
-                                  aClient.clRecommended_Mems.UpdateCandidateMems(Transaction, True);
 
                                   //Flag Audit for bank account
                                   aClient.ClientAuditMgr.FlagAudit(arClientBankAccounts);
