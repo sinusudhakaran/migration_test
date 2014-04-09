@@ -1460,7 +1460,7 @@ end;
 procedure OpenCodingScreen(DF, DT: Integer; BA: TBank_Account; CodingOptions: TCodingOptions;
                            DoUpdateRecMemCandidates: boolean = True);
 begin
-  CodeTheseEntries(DF, DT, BA, CodingOptions);
+  CodeTheseEntries(DF, DT, BA, CodingOptions, DoUpdateRecMemCandidates);
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 initialization
