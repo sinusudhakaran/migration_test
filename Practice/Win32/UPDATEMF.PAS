@@ -22,7 +22,7 @@ procedure UpdateSystemMenus;
 function  CloseMDIChildren (DoClientHomepage : Boolean = False) : Boolean;
 procedure SelectNextMDI;
 procedure SelectPreviousMDI;
-procedure ReloadCodingScreens;
+procedure ReloadCodingScreens(DoUpdateRecMemCandidates: boolean = True);
 
 procedure DisableMainForm;
 procedure EnableMainForm;
@@ -30,7 +30,8 @@ procedure EnableMainForm;
 procedure CloseCodingScreen(aBankAccount : tBank_Account);
 procedure CloseBudgetScreen(abudget : tBudget);
 
-procedure OpenCodingScreen(DF, DT: Integer; BA: TBank_Account; CodingOptions: TCodingOptions);
+procedure OpenCodingScreen(DF, DT: Integer; BA: TBank_Account; CodingOptions: TCodingOptions;
+                           DoUpdateRecMemCandidates: boolean = True);
 
 procedure DisplayMRU;
 procedure AddToMRU( const FileCode, FileName : ShortString );
@@ -201,13 +202,13 @@ begin
      end;
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-procedure ReloadCodingScreens;
+procedure ReloadCodingScreens(DoUpdateRecMemCandidates: boolean = True);
 var i : integer;
 begin
   for i := 0 to frmMain.MDIChildCount-1 do
      if (frmMain.MDIChildren[i] is TfrmCoding) then
      begin
-        TfrmCoding(frmMain.MDIChildren[i]).Reload;
+        TfrmCoding(frmMain.MDIChildren[i]).Reload(DoUpdateRecMemCandidates);
         Application.ProcessMessages;  //force update of MDI Child counter
      end else if (frmMain.MDIChildren[i] is TBaseClientHomePage) then
      begin
@@ -1456,7 +1457,8 @@ begin
   end; // while
 end;
 
-procedure OpenCodingScreen(DF, DT: Integer; BA: TBank_Account; CodingOptions: TCodingOptions);
+procedure OpenCodingScreen(DF, DT: Integer; BA: TBank_Account; CodingOptions: TCodingOptions;
+                           DoUpdateRecMemCandidates: boolean = True);
 begin
   CodeTheseEntries(DF, DT, BA, CodingOptions);
 end;

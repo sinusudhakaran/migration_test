@@ -511,7 +511,7 @@ type
     property IsClosing        : boolean read FIsClosing write SetIsClosing;
     property IsJournal : Boolean read GetIsJournal;
     function FormIsInEditMode : boolean;
-    procedure Reload;
+    procedure Reload(DoUpdateRecMemCandidates: boolean = True);
     property StartDate: TStDate read TranDateFrom;
     property EndDate: TStDate read TranDateTo;
     property SearchText: string read FSearchText write SetSearchText;
@@ -519,7 +519,8 @@ type
   end;
 
   procedure DoCoding(CodingOptions: TCodingOptions = []);
-  procedure CodeTheseEntries(DateFrom, DateTo : TStDate; BA: TBank_Account = nil; CodingOptions: TCodingOptions = []);
+  procedure CodeTheseEntries(DateFrom, DateTo : TStDate; BA: TBank_Account = nil;
+                             CodingOptions: TCodingOptions = []; DoUpdateRecMemCandidates: boolean = True);
   procedure GetCodingDateRange(var dateFrom,dateTo : TStDate);
 //******************************************************************************
 implementation
@@ -8152,7 +8153,8 @@ begin
   end;
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-procedure CodeTheseEntries(DateFrom, DateTo : TStDate; BA: TBank_Account = nil; CodingOptions: TCodingOptions = []);
+procedure CodeTheseEntries(DateFrom, DateTo : TStDate; BA: TBank_Account = nil;
+                           CodingOptions: TCodingOptions = []; DoUpdateRecMemCandidates: boolean = True);
 {load the coding screens.  Also selected from a list on possible bank accounts
  ignoring journal bankaccounts}
 var
@@ -8183,7 +8185,7 @@ var
             Account.baFields.baContra_Account_Code := Contra_Account_Code;
        end;
 
-       AutoCodeEntries(MyClient, Account, AllEntries, d1,d2);
+       AutoCodeEntries(MyClient, Account, AllEntries, d1,d2, DoUpdateRecMemCandidates);
 
        LockMainForm;
        try
@@ -10062,7 +10064,7 @@ begin
 end;
 
 // Reload form if gst calculation method changes - to reload columns
-procedure TfrmCoding.Reload;
+procedure TfrmCoding.Reload(DoUpdateRecMemCandidates: boolean = True);
 var
    i: Integer;
    ColDefn : pColumnDefn;
@@ -10082,7 +10084,7 @@ begin
     CodingOptions := [CC_RestrictedEditMode]
   else
     CodingOptions := [CC_FullEditMode];
-  OpenCodingScreen(TranDateFrom, TranDateTo, BankAccount, CodingOptions);
+  OpenCodingScreen(TranDateFrom, TranDateTo, BankAccount, CodingOptions, DoUpdateRecMemCandidates);
   FIsReloading := True;
   Close;
 end;
