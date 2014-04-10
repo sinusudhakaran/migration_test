@@ -401,6 +401,8 @@ var
     if (Candidate.cpFields.cpCandidate_ID_To_Process < 1) then
       Candidate.cpFields.cpCandidate_ID_To_Process := 1;
     CandidateToProcess := Candidate.cpFields.cpCandidate_ID_To_Process;
+    if (Candidate.cpFields.cpNext_Candidate_ID <= Candidates.ItemCount) then
+      Candidate.cpFields.cpNext_Candidate_ID := Candidates.ItemCount + 1;
     NextCandidateID := Candidate.cpFields.cpNext_Candidate_ID;
     if (CandidateToProcess > Candidates.ItemCount) then
     begin
