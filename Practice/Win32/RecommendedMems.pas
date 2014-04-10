@@ -30,7 +30,6 @@ type
 
     function GetLastCodingFrmKeyPress: TDateTime;
     procedure GetMatchingCandidateRange(StatementDetails: string; var FirstCandidatePos, LastCandidatePos: integer);
-    procedure RemoveAccountFromMems(AccountNo: string); Overload;
   public
     constructor Create(const aBankAccounts: TBank_Account_List); reintroduce; overload;
     constructor Create(const aBankAccount: TBank_Account); reintroduce; overload;
@@ -48,6 +47,7 @@ type
     procedure MemScan(RunningUnitTest: boolean; TestAccount: TBank_Account);
     procedure UpdateCandidateMems(TranRec: pTransaction_Rec; IsEditOrInsertOperation: boolean);
     procedure SetLastCodingFrmKeyPress;
+    procedure RemoveAccountFromMems(AccountNo: string); Overload;
     procedure RemoveAccountFromMems(BankAccount: TBank_Account); Overload;
     procedure RemoveAccountsFromMems(DoPopulate: boolean = True); overload;
     procedure RemoveAccountsFromMems(AccountList: TStringList; DoPopulate: boolean = True); overload;
@@ -749,6 +749,8 @@ end;
 // * Purging an account (in this case, via the RemoveAccountsFromMems method)
 // * Merging an account
 // * Unattaching an account
+// EDIT: this will now complete wipe out the recommendations, otherwise we run
+// into duplicate recommendations under certain circumstances, eg. bug 87884 in TFS
 procedure TRecommended_Mems.RemoveAccountFromMems(AccountNo: string);
 var
   i: integer;
@@ -777,12 +779,11 @@ begin
         if (Candidates.Candidate_Mem_At(i).cmFields.cmBank_Account_Number = AccountNo) then
           Candidates.AtFree(i);
 
-    // Delete all recommended mems with this account number
+    // Delete all recommended mems
     LoopStart := Recommended.ItemCount - 1;
     if (LoopStart >= 0) then
       for i := LoopStart downto 0 do
-        if (Recommended.Recommended_Mem_At(i).rmFields.rmBank_Account_Number = AccountNo) then
-          Recommended.AtFree(i);
+        Recommended.AtFree(i);
 
     // Will need to rebuild recommended mems later, so set ID To Proces back to the start of Candidates
     fCandidate.cpFields.cpCandidate_ID_To_Process := 1;
