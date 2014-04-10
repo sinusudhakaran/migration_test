@@ -458,6 +458,7 @@ var
   IsAcclipse: Boolean;
   WebXFile: string;
   S: TStrings;
+  CustomFormatsCount: integer;
 begin
    IsAcclipse := GetComboCurrentIntObject(cmbformat) = rfAcclipse;
    if IsAcclipse then
@@ -522,7 +523,12 @@ begin
   begin
     IgnoreChange := true;
     Element := GetPositionFromIndex(GetSelectedIndex());
-    if fCustomFileFormats.Count > 0 then
+
+    if Assigned(fCustomFileFormats) then
+      CustomFormatsCount := fCustomFileFormats.Count
+    else
+      CustomFormatsCount := 0;
+    if CustomFormatsCount > 0 then
       eTo.Text := IncludeTrailingBackslash(ExtractFilePath(eTo.text)) + GetSelectedFileNameAndExt()
     else
       eTo.Text := ChangeFileExt( eTo.Text, GetSelectedFileExt());
