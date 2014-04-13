@@ -401,6 +401,8 @@ begin
   // Create memorisation line
   MemLine := New_Memorisation_Line_Rec;
   MemLine.mlAccount := pData.RecommendedMem.rmFields.rmAccount;
+  MemLine.mlGST_Class := MyClient.clChart.GSTClass(
+    pData.RecommendedMem.rmFields.rmAccount);
   MemLine.mlPercentage := 100 * 10000; // Use 10000 for percentages
   Mem.mdLines.Insert(MemLine);
 
