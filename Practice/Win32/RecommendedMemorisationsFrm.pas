@@ -528,6 +528,7 @@ begin
     pData.RecommendedMem.rmFields.rmAccount);
   MemLine.mlPercentage := 100 * 10000; // Use 10000 for percentages
   Mem.mdLines.Insert(MemLine);
+  RedrawTree;
 
   // OK pressed, and insert mem?
   if CreateMemorisation(fBankAccount, Mems, Mem) then
