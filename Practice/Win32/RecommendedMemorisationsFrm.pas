@@ -52,8 +52,7 @@ type
     procedure vstTreeHeaderClick(Sender: TVTHeader; Column: TColumnIndex;
       Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
     procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
-    procedure vstTreeHeaderMouseMove(Sender: TVTHeader; Shift: TShiftState; X,
-      Y: Integer);
+    procedure vstTreeGetHeaderCursor(Sender: TVTHeader; var Cursor: HICON);
   private
     fBankAccount: TBank_Account;
     fData: array of TRecommended_Mem;
@@ -197,6 +196,13 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+procedure TRecommendedMemorisationsFrm.vstTreeGetHeaderCursor(Sender: TVTHeader;
+  var Cursor: HICON);
+begin
+  // Using this method in lieu of the non-existent 'OnHeaderEnter' event
+  RedrawTree;
+end;
+
 procedure TRecommendedMemorisationsFrm.vstTreeGetNodeDataSize(
   Sender: TBaseVirtualTree; var NodeDataSize: Integer);
 begin
@@ -258,12 +264,6 @@ begin
     vstTree.Header.SortDirection := sdAscending;
   end;
   vstTree.SortTree(vstTree.Header.SortColumn, vstTree.Header.SortDirection);
-end;
-
-procedure TRecommendedMemorisationsFrm.vstTreeHeaderMouseMove(Sender: TVTHeader;
-  Shift: TShiftState; X, Y: Integer);
-begin
-  RedrawTree;
 end;
 
 //------------------------------------------------------------------------------
