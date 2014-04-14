@@ -1940,6 +1940,8 @@ begin
            else
              SplitData[1].Desc := '';
 
+           SplitData[1].GSTClassCode := GetGSTClassCode(MyClient, MemLine.mlGST_Class);
+
            chkMaster.Enabled := True;
            AllowMasterMemorised := True;
            MemDlg.Caption := 'Create Memorisation';
