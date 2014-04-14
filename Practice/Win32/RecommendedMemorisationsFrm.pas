@@ -168,7 +168,7 @@ procedure TRecommendedMemorisationsFrm.RedrawTree;
 begin
   PopulateTree;
   vstTree.SortTree(vstTree.Header.SortColumn, vstTree.Header.SortDirection);
-  Repaint;
+//  Repaint;
 end;
 
 //------------------------------------------------------------------------------
@@ -245,7 +245,7 @@ procedure TRecommendedMemorisationsFrm.vstTreeHeaderClick(Sender: TVTHeader;
   Column: TColumnIndex; Button: TMouseButton; Shift: TShiftState; X,
   Y: Integer);
 begin
-  PopulateTree;
+//  PopulateTree;
   if vstTree.Header.SortColumn = Column then begin
     if vstTree.Header.SortDirection = sdAscending then
       vstTree.Header.SortDirection := sdDescending
@@ -257,6 +257,7 @@ begin
     vstTree.Header.SortColumn := Column;
     vstTree.Header.SortDirection := sdAscending;
   end;
+  vstTree.SortTree(vstTree.Header.SortColumn, vstTree.Header.SortDirection);
 end;
 
 procedure TRecommendedMemorisationsFrm.vstTreeHeaderMouseMove(Sender: TVTHeader;
@@ -360,6 +361,7 @@ var
   ButtonRect: TRect;
   MousePt: TPoint;
 begin
+  RedrawTree;
   vstTree.GetHitTestInfoAt(X, Y, true, HitInfo);
   if not assigned(HitInfo.HitNode) then
     exit;
