@@ -47,6 +47,13 @@ type
       TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
       CellRect: TRect);
     procedure FormResize(Sender: TObject);
+    procedure vstTreeCompareNodes(Sender: TBaseVirtualTree; Node1,
+      Node2: PVirtualNode; Column: TColumnIndex; var CompareResult: Integer);
+    procedure vstTreeHeaderClick(Sender: TVTHeader; Column: TColumnIndex;
+      Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+    procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    procedure vstTreeHeaderMouseMove(Sender: TVTHeader; Shift: TShiftState; X,
+      Y: Integer);
   private
     fBankAccount: TBank_Account;
     fData: array of TRecommended_Mem;
@@ -56,6 +63,7 @@ type
     procedure PopulateTree;
     function  GetButtonRect(const aCellRect: TRect): TRect;
     procedure DoCreateNewMemorisation(const aNode: PVirtualNode);
+    procedure RedrawTree;
   public
     { Public declarations }
     constructor CreateEx(const aOwner: TComponent;
@@ -78,14 +86,20 @@ uses
   BKMLIO,
   BKDefs,
   UpdateMF,
-  CodingFormCommands;
+  CodingFormCommands,
+  GenUtils;
 
 const
   ICON_BUTTON = 0;
-  LAST_COLUMN = 4;
   COL_STATEMENTS_DETAILS = 1;
   MSG_STILL_PROCESSING = 'Practice is still scanning for suggestions, please try again later';
   MSG_NO_MEMORISATIONS = 'There are no Suggested Memorisations at this time';
+  ccEntryType = 0;
+  ccStatementDetails = 1;
+  ccCode = 2;
+  ccTotal = 3;
+  ccPlus = 4;
+  LAST_COLUMN = 4;
 
 //------------------------------------------------------------------------------
 // ShowRecommendedMemorisations
@@ -141,6 +155,20 @@ begin
   lblStatus.Caption := DetermineStatus;
 
   PopulateTree;
+  vstTree.Header.SortColumn := ccEntryType;
+end;
+
+procedure TRecommendedMemorisationsFrm.FormKeyDown(Sender: TObject;
+  var Key: Word; Shift: TShiftState);
+begin
+  RedrawTree;
+end;
+
+procedure TRecommendedMemorisationsFrm.RedrawTree;
+begin
+  PopulateTree;
+  vstTree.SortTree(vstTree.Header.SortColumn, vstTree.Header.SortDirection);
+  Repaint;
 end;
 
 //------------------------------------------------------------------------------
@@ -213,6 +241,30 @@ begin
   end;
 end;
 
+procedure TRecommendedMemorisationsFrm.vstTreeHeaderClick(Sender: TVTHeader;
+  Column: TColumnIndex; Button: TMouseButton; Shift: TShiftState; X,
+  Y: Integer);
+begin
+  PopulateTree;
+  if vstTree.Header.SortColumn = Column then begin
+    if vstTree.Header.SortDirection = sdAscending then
+      vstTree.Header.SortDirection := sdDescending
+    else
+      vstTree.Header.SortDirection := sdAscending;
+  end
+  else
+  begin
+    vstTree.Header.SortColumn := Column;
+    vstTree.Header.SortDirection := sdAscending;
+  end;
+end;
+
+procedure TRecommendedMemorisationsFrm.vstTreeHeaderMouseMove(Sender: TVTHeader;
+  Shift: TShiftState; X, Y: Integer);
+begin
+  RedrawTree;
+end;
+
 //------------------------------------------------------------------------------
 procedure TRecommendedMemorisationsFrm.vstTreeAfterCellPaint(
   Sender: TBaseVirtualTree; TargetCanvas: TCanvas; Node: PVirtualNode;
@@ -226,6 +278,77 @@ begin
   ButtonRect := GetButtonRect(CellRect);
 
   Images.Draw(TargetCanvas, ButtonRect.Left, ButtonRect.Top, ICON_BUTTON);
+end;
+
+procedure TRecommendedMemorisationsFrm.vstTreeCompareNodes(
+  Sender: TBaseVirtualTree; Node1, Node2: PVirtualNode; Column: TColumnIndex;
+  var CompareResult: Integer);
+var
+  pData1, pData2: PTreeData;
+
+  function CompareInt(I1,I2 : Integer): Integer;
+  { compare two integers, return -1, 0 and 1 for I1<I2, I1=I2 and I1>I2 resp.}
+  asm
+    sub eax, edx
+  end;
+
+  function CompareEntryType: integer;
+  var
+    EntryType1, EntryType2: integer;
+  begin
+    EntryType1 := pData1.RecommendedMem.rmFields.rmType;
+    EntryType2 := pData2.RecommendedMem.rmFields.rmType;
+    Result := CompareInt(EntryType1, EntryType2);
+  end;
+
+  function CompareStatementDetails: integer;
+  begin
+    Result := CompareText(pData1.RecommendedMem.rmFields.rmStatement_Details,
+                          pData2.RecommendedMem.rmFields.rmStatement_Details);
+  end;
+
+  function CompareAccountCode: integer;
+  begin
+    Result := CompareText(pData1.RecommendedMem.rmFields.rmAccount,
+                          pData2.RecommendedMem.rmFields.rmAccount);
+  end;
+
+  function CompareTotal: integer;
+  var
+    Total1, Total2: integer;
+  begin
+    Total1 := pData1.RecommendedMem.rmFields.rmManual_Count +
+              pData1.RecommendedMem.rmFields.rmUncoded_Count;
+    Total2 := pData2.RecommendedMem.rmFields.rmManual_Count +
+              pData2.RecommendedMem.rmFields.rmUncoded_Count;
+    Result := CompareInt(Total1, Total2);
+  end;
+
+begin
+  pData1 := PTreeData(vstTree.GetNodeData(Node1));
+  pData2 := PTreeData(vstTree.GetNodeData(Node2));
+
+  if not Assigned(pData1.RecommendedMem) then
+    CompareResult := 1
+  else if not Assigned(pData2.RecommendedMem) then
+    CompareResult := -1
+  else
+  begin
+    case column of
+      ccEntryType         : CompareResult := CompareEntryType;
+      ccStatementDetails  : CompareResult := CompareStatementDetails;
+      ccCode              : CompareResult := CompareAccountCode;
+      ccTotal             : CompareResult := CompareTotal;
+    end;
+
+    // First inner sort: statement details
+    if (CompareResult = 0) and (column <> ccStatementDetails) then
+      CompareResult := CompareStatementDetails;
+
+    // Second inner sort: entry type
+    if (CompareResult = 0) and (column <> ccEntryType) then
+      CompareResult := CompareEntryType;
+  end;
 end;
 
 //------------------------------------------------------------------------------
@@ -409,11 +532,13 @@ begin
   // OK pressed, and insert mem?
   if CreateMemorisation(fBankAccount, Mems, Mem) then
   begin
-    PopulateTree; // Refresh the list of recommended mems, now that we've used one it shouldn't appear any more
+    RedrawTree;
     SendCmdToAllCodingWindows( ecRecodeTrans);
   end
   else
     FreeAndNil(Mem);
+
+
 end;
 
 

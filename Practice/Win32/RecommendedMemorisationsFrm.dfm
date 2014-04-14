@@ -12,9 +12,11 @@ object RecommendedMemorisationsFrm: TRecommendedMemorisationsFrm
   Font.Height = -11
   Font.Name = 'Tahoma'
   Font.Style = []
+  KeyPreview = True
   OldCreateOrder = False
   Position = poMainFormCenter
   OnCreate = FormCreate
+  OnKeyDown = FormKeyDown
   OnResize = FormResize
   PixelsPerInch = 96
   TextHeight = 13
@@ -35,13 +37,17 @@ object RecommendedMemorisationsFrm: TRecommendedMemorisationsFrm
     Header.Options = [hoColumnResize, hoDrag, hoVisible]
     ParentBackground = False
     TabOrder = 0
+    TreeOptions.AutoOptions = [toAutoDropExpand, toAutoScrollOnExpand, toAutoSort, toAutoTristateTracking, toAutoDeleteMovedNodes]
     TreeOptions.PaintOptions = [toShowButtons, toShowDropmark, toShowTreeLines, toThemeAware, toUseBlendedImages]
     TreeOptions.SelectionOptions = [toDisableDrawSelection]
     OnAfterCellPaint = vstTreeAfterCellPaint
+    OnCompareNodes = vstTreeCompareNodes
     OnFocusChanging = vstTreeFocusChanging
     OnFreeNode = vstTreeFreeNode
     OnGetText = vstTreeGetText
     OnGetNodeDataSize = vstTreeGetNodeDataSize
+    OnHeaderClick = vstTreeHeaderClick
+    OnHeaderMouseMove = vstTreeHeaderMouseMove
     OnMouseDown = vstTreeMouseDown
     Columns = <
       item
@@ -120,7 +126,7 @@ object RecommendedMemorisationsFrm: TRecommendedMemorisationsFrm
     Left = 312
     Top = 448
     Bitmap = {
-      494C010101000800340010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C010101000800380010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000001000000001002000000000000010
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
