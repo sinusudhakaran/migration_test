@@ -909,10 +909,10 @@ procedure TRecommended_Mems.RepopulateRecommendedMems;
 var
   RecMemScanningComplete: boolean;
 begin
-  Recommended.FreeAll;
+  MyClient.clRecommended_Mems.Recommended.FreeAll;
+  MyClient.clRecommended_Mems.Candidate.cpFields.cpCandidate_ID_To_Process := 1;
   while True do
   begin
-    MyClient.clRecommended_Mems.Candidate.cpFields.cpCandidate_ID_To_Process := 1;
     RecMemScanningComplete := MyClient.clRecommended_Mems.MemScan(false, nil);     
     if RecMemScanningComplete then
       break;

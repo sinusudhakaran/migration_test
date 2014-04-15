@@ -439,7 +439,7 @@ var
 begin
   Mems := MyClient.clRecommended_Mems.Recommended;
   fData := nil;
-  if Mems.ItemCount = 0 then
+  if (Mems.ItemCount = 0) and (MyClient.clRecommended_Mems.Unscanned.ItemCount = 0) then
   begin
     MyClient.clRecommended_Mems.RepopulateRecommendedMems;
     Mems := MyClient.clRecommended_Mems.Recommended;
@@ -547,7 +547,11 @@ begin
     SendCmdToAllCodingWindows( ecRecodeTrans);
   end
   else
+  begin
     FreeAndNil(Mem);
+    MyClient.clRecommended_Mems.RepopulateRecommendedMems;
+    RedrawTree;
+  end;
 end;
 
 
