@@ -49,14 +49,10 @@ object frmClientDetails: TfrmClientDetails
     Top = 8
     Width = 589
     Height = 571
-    ActivePage = tbsOptions
+    ActivePage = tsTPRPayerDetails
     TabOrder = 0
     object tbsClient: TTabSheet
       Caption = 'Client Details'
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       DesignSize = (
         581
         543)
@@ -568,10 +564,6 @@ object frmClientDetails: TfrmClientDetails
     object tbsAdmin: TTabSheet
       Caption = 'Administration'
       ImageIndex = 1
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object Label14: TLabel
         Left = 92
         Top = 208
@@ -624,7 +616,7 @@ object frmClientDetails: TfrmClientDetails
         Height = 21
         Style = csDropDownList
         Ctl3D = True
-        ItemHeight = 0
+        ItemHeight = 13
         ParentCtl3D = False
         TabOrder = 0
         OnChange = cmbResponsibleChange
@@ -830,7 +822,7 @@ object frmClientDetails: TfrmClientDetails
         Height = 21
         Style = csDropDownList
         Ctl3D = True
-        ItemHeight = 0
+        ItemHeight = 13
         ParentCtl3D = False
         TabOrder = 3
         OnChange = cmbResponsibleChange
@@ -842,7 +834,7 @@ object frmClientDetails: TfrmClientDetails
         Height = 21
         Style = csDropDownList
         Ctl3D = True
-        ItemHeight = 0
+        ItemHeight = 13
         ParentCtl3D = False
         TabOrder = 4
         OnChange = cmbResponsibleChange
@@ -851,10 +843,6 @@ object frmClientDetails: TfrmClientDetails
     object tbsNotes: TTabSheet
       Caption = 'Notes'
       ImageIndex = 2
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       DesignSize = (
         581
         543)
@@ -885,10 +873,6 @@ object frmClientDetails: TfrmClientDetails
     object tsSmartLink: TTabSheet
       Caption = 'SmartLink'
       ImageIndex = 4
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object Label19: TLabel
         Left = 16
         Top = 16
@@ -906,12 +890,8 @@ object frmClientDetails: TfrmClientDetails
       end
     end
     object tsTPRPayerDetails: TTabSheet
-      Caption = 'TPR Payer Details'
+      Caption = 'TPAR Payer Details'
       ImageIndex = 5
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object grpPracticeContactDetails: TGroupBox
         Left = 13
         Top = 9
@@ -1008,7 +988,7 @@ object frmClientDetails: TfrmClientDetails
           Top = 30
           Width = 497
           Height = 17
-          Caption = 'Use Practice TPR Supplier Details'
+          Caption = 'Use Practice TPAR Supplier Details'
           Font.Charset = DEFAULT_CHARSET
           Font.Color = clWindowText
           Font.Height = -13
@@ -1337,7 +1317,7 @@ object frmClientDetails: TfrmClientDetails
           Font.Height = -13
           Font.Name = 'Tahoma'
           Font.Style = []
-          ItemHeight = 0
+          ItemHeight = 16
           ParentFont = False
           TabOrder = 4
           OnChange = cmbStateChange
