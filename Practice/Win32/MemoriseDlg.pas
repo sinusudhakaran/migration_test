@@ -790,7 +790,7 @@ begin
 
      AmountCol: SplitData[RowNum].LineType := pltDollarAmt;
      PercentCol: SplitData[RowNum].LineType := pltPercentage;
-    
+
   end;
 end;
 //------------------------------------------------------------------------------
@@ -1846,6 +1846,7 @@ var
   MasterMemList : TMemorisations_List;
   SystemMemorisation: pSystem_Memorisation_List_Rec;
   pAcct : pAccount_Rec;
+  ClassNo: byte;
 begin
    result := false;
    IsAMasterMem := false;
@@ -1940,7 +1941,9 @@ begin
            else
              SplitData[1].Desc := '';
 
-           SplitData[1].GSTClassCode := GetGSTClassCode(MyClient, MemLine.mlGST_Class);
+           // Set the ClassNo from the Account Code
+           if assigned(pAcct) then
+             SplitData[1].GSTClassCode := GetGSTClassCode(MyClient, pAcct.chGST_Class);
 
            chkMaster.Enabled := True;
            AllowMasterMemorised := True;
