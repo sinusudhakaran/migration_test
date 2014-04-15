@@ -44,7 +44,7 @@ type
     property  Candidates: TCandidate_Mem_List read fCandidates;
     property  Recommended: TRecommended_Mem_List read fRecommended;
 
-    procedure MemScan(RunningUnitTest: boolean; TestAccount: TBank_Account);
+    function MemScan(RunningUnitTest: boolean; TestAccount: TBank_Account): boolean;
     procedure UpdateCandidateMems(TranRec: pTransaction_Rec; IsEditOrInsertOperation: boolean);
     procedure SetLastCodingFrmKeyPress;
     procedure RemoveAccountFromMems(AccountNo: string); Overload;
@@ -56,6 +56,7 @@ type
     procedure PopulateUnscannedListAllAccounts(RunningUnitTest: boolean);
     procedure RemoveRecommendedMems(Account: string; EntryType: byte; StatementDetails: string;
                                     AddedMasterMem: boolean);
+    procedure RepopulateRecommendedMems;
     procedure ResetAll;
   end;
 
@@ -239,7 +240,7 @@ begin
   FLastCodingFrmKeyPress := Time;
 end;
 
-procedure TRecommended_Mems.MemScan(RunningUnitTest: boolean; TestAccount: TBank_Account);
+function TRecommended_Mems.MemScan(RunningUnitTest: boolean; TestAccount: TBank_Account): boolean;
 var
   InCodingForm  : boolean;
   StartTime     : TDateTime;
@@ -579,6 +580,7 @@ var
     end;
   end;
 begin
+  Result := False;
   if Assigned(myClient) or RunningUnitTest then // Is the client file open?
   begin
     // Store current time
@@ -599,9 +601,12 @@ begin
       begin
         // Unscanned list is empty, so do recommended processing
         if DoRecommendedMemProcessing then
+        begin
           // Unscanned transaction list is empty, candidate and recommended mem
           // processing is done, nothing left to do, time to crack a beer
+          Result := True;
           Exit;
+        end;
       end
       else
       begin
@@ -897,6 +902,20 @@ begin
         // one matching recommended mem, so we don't need to keep looking
         break;
     end;
+  end;
+end;
+
+procedure TRecommended_Mems.RepopulateRecommendedMems;
+var
+  RecMemScanningComplete: boolean;
+begin
+  Recommended.FreeAll;
+  while True do
+  begin
+    MyClient.clRecommended_Mems.Candidate.cpFields.cpCandidate_ID_To_Process := 1;
+    RecMemScanningComplete := MyClient.clRecommended_Mems.MemScan(false, nil);     
+    if RecMemScanningComplete then
+      break;
   end;
 end;
 

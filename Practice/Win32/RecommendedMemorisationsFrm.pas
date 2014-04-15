@@ -51,8 +51,8 @@ type
       Node2: PVirtualNode; Column: TColumnIndex; var CompareResult: Integer);
     procedure vstTreeHeaderClick(Sender: TVTHeader; Column: TColumnIndex;
       Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-    procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
-    procedure vstTreeGetHeaderCursor(Sender: TVTHeader; var Cursor: HICON);
+    procedure vstTreeBeforePaint(Sender: TBaseVirtualTree;
+      TargetCanvas: TCanvas);
   private
     fBankAccount: TBank_Account;
     fData: array of TRecommended_Mem;
@@ -63,6 +63,7 @@ type
     function  GetButtonRect(const aCellRect: TRect): TRect;
     procedure DoCreateNewMemorisation(const aNode: PVirtualNode);
     procedure RedrawTree;
+    procedure ResortTree;
   public
     { Public declarations }
     constructor CreateEx(const aOwner: TComponent;
@@ -157,17 +158,16 @@ begin
   vstTree.Header.SortColumn := ccEntryType;
 end;
 
-procedure TRecommendedMemorisationsFrm.FormKeyDown(Sender: TObject;
-  var Key: Word; Shift: TShiftState);
-begin
-  RedrawTree;
-end;
-
 procedure TRecommendedMemorisationsFrm.RedrawTree;
+var
+  OldScrollPos: integer;
 begin
+  OldScrollPos := vstTree.OffsetY;
+  vstTree.BeginUpdate;
   PopulateTree;
   vstTree.SortTree(vstTree.Header.SortColumn, vstTree.Header.SortDirection);
-//  Repaint;
+  vstTree.EndUpdate;
+  vstTree.OffsetY := OldScrollPos;
 end;
 
 //------------------------------------------------------------------------------
@@ -196,13 +196,6 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TRecommendedMemorisationsFrm.vstTreeGetHeaderCursor(Sender: TVTHeader;
-  var Cursor: HICON);
-begin
-  // Using this method in lieu of the non-existent 'OnHeaderEnter' event
-  RedrawTree;
-end;
-
 procedure TRecommendedMemorisationsFrm.vstTreeGetNodeDataSize(
   Sender: TBaseVirtualTree; var NodeDataSize: Integer);
 begin
@@ -251,7 +244,6 @@ procedure TRecommendedMemorisationsFrm.vstTreeHeaderClick(Sender: TVTHeader;
   Column: TColumnIndex; Button: TMouseButton; Shift: TShiftState; X,
   Y: Integer);
 begin
-//  PopulateTree;
   if vstTree.Header.SortColumn = Column then begin
     if vstTree.Header.SortDirection = sdAscending then
       vstTree.Header.SortDirection := sdDescending
@@ -263,7 +255,6 @@ begin
     vstTree.Header.SortColumn := Column;
     vstTree.Header.SortDirection := sdAscending;
   end;
-  vstTree.SortTree(vstTree.Header.SortColumn, vstTree.Header.SortDirection);
 end;
 
 //------------------------------------------------------------------------------
@@ -279,6 +270,17 @@ begin
   ButtonRect := GetButtonRect(CellRect);
 
   Images.Draw(TargetCanvas, ButtonRect.Left, ButtonRect.Top, ICON_BUTTON);
+end;
+
+procedure TRecommendedMemorisationsFrm.vstTreeBeforePaint(
+  Sender: TBaseVirtualTree; TargetCanvas: TCanvas);
+begin
+  ResortTree;
+end;
+
+procedure TRecommendedMemorisationsFrm.ResortTree;
+begin
+  vstTree.SortTree(vstTree.Header.SortColumn, vstTree.Header.SortDirection);
 end;
 
 procedure TRecommendedMemorisationsFrm.vstTreeCompareNodes(
@@ -361,7 +363,6 @@ var
   ButtonRect: TRect;
   MousePt: TPoint;
 begin
-  RedrawTree;
   vstTree.GetHitTestInfoAt(X, Y, true, HitInfo);
   if not assigned(HitInfo.HitNode) then
     exit;
@@ -438,6 +439,11 @@ var
 begin
   Mems := MyClient.clRecommended_Mems.Recommended;
   fData := nil;
+  if Mems.ItemCount = 0 then
+  begin
+    MyClient.clRecommended_Mems.RepopulateRecommendedMems;
+    Mems := MyClient.clRecommended_Mems.Recommended;
+   end;
   for i := 0 to Mems.ItemCount-1 do
   begin
     Mem := Mems.Recommended_Mem_At(i);
@@ -530,18 +536,18 @@ begin
     pData.RecommendedMem.rmFields.rmAccount);
   MemLine.mlPercentage := 100 * 10000; // Use 10000 for percentages
   Mem.mdLines.Insert(MemLine);
-  RedrawTree;
 
   // OK pressed, and insert mem?
   if CreateMemorisation(fBankAccount, Mems, Mem) then
   begin
-    RedrawTree;
+    // Repopulate the recommended mems list from scratch (just the rec mems,
+    // not the unscanned transactions or candidate mems)
+    MyClient.clRecommended_Mems.RepopulateRecommendedMems;
+    RedrawTree; // if we don't do this, the recommendation we just accepted will still be in the list
     SendCmdToAllCodingWindows( ecRecodeTrans);
   end
   else
     FreeAndNil(Mem);
-
-
 end;
 
 

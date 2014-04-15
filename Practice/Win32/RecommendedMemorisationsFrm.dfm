@@ -16,7 +16,6 @@ object RecommendedMemorisationsFrm: TRecommendedMemorisationsFrm
   OldCreateOrder = False
   Position = poMainFormCenter
   OnCreate = FormCreate
-  OnKeyDown = FormKeyDown
   OnResize = FormResize
   PixelsPerInch = 96
   TextHeight = 13
@@ -41,10 +40,10 @@ object RecommendedMemorisationsFrm: TRecommendedMemorisationsFrm
     TreeOptions.PaintOptions = [toShowButtons, toShowDropmark, toShowTreeLines, toThemeAware, toUseBlendedImages]
     TreeOptions.SelectionOptions = [toDisableDrawSelection]
     OnAfterCellPaint = vstTreeAfterCellPaint
+    OnBeforePaint = vstTreeBeforePaint
     OnCompareNodes = vstTreeCompareNodes
     OnFocusChanging = vstTreeFocusChanging
     OnFreeNode = vstTreeFreeNode
-    OnGetHeaderCursor = vstTreeGetHeaderCursor
     OnGetText = vstTreeGetText
     OnGetNodeDataSize = vstTreeGetNodeDataSize
     OnHeaderClick = vstTreeHeaderClick
@@ -126,7 +125,7 @@ object RecommendedMemorisationsFrm: TRecommendedMemorisationsFrm
     Left = 312
     Top = 448
     Bitmap = {
-      494C010101000800400010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C010101000800440010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000001000000001002000000000000010
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
