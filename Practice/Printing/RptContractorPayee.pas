@@ -803,24 +803,24 @@ begin
 
   // Supplier Data
   if (Length(AdminSystem.TPR_Supplier_Detail.As_pRec.srABN) < 11) then
-    AddError('Supplier ABN Number from System | Practice Details | TPR Supplier Details');
+    AddError('Supplier ABN Number from System | Practice Details | TPAR Supplier Details');
 
   if (Length(AdminSystem.fdFields.fdPractice_Name_for_Reports) = 0) then
     AddError('Supplier Name from System | Practice Details | Details');
 
   if (Length(AdminSystem.TPR_Supplier_Detail.As_pRec.srStreetAddress1) = 0) then
-    AddError('Supplier Street Address from System | Practice Details | TPR Supplier Details');
+    AddError('Supplier Street Address from System | Practice Details | TPAR Supplier Details');
 
   if (Length(AdminSystem.TPR_Supplier_Detail.As_pRec.srSuburb) = 0) then
-    AddError('Supplier Town/Suburb from System | Practice Details | TPR Supplier Details');
+    AddError('Supplier Town/Suburb from System | Practice Details | TPAR Supplier Details');
 
   if (AdminSystem.TPR_Supplier_Detail.As_pRec.srStateId < MAX_STATE) and
      (Length(AdminSystem.TPR_Supplier_Detail.As_pRec.srPostCode) = 0) then
-    AddError('Supplier Postcode from System | Practice Details | TPR Supplier Details');
+    AddError('Supplier Postcode from System | Practice Details | TPAR Supplier Details');
 
   if (AdminSystem.TPR_Supplier_Detail.As_pRec.srStateId = MAX_STATE) and
      (Length(AdminSystem.TPR_Supplier_Detail.As_pRec.srCountry) = 0) then
-    AddError('Supplier Country from System | Practice Details | TPR Supplier Details');
+    AddError('Supplier Country from System | Practice Details | TPAR Supplier Details');
 
   // Check if field is longer than max length in ATO extract
   if (Length(AdminSystem.fdFields.fdPractice_EMail_Address) > 76) then
@@ -846,18 +846,18 @@ begin
   if MyClient.clTPR_Payee_Detail.As_pRec.prUsePracticeTPRSupplierDetails then
   begin
     if (Length(AdminSystem.TPR_Supplier_Detail.As_pRec.srContactName) = 0) then
-      AddError('Supplier Contact Name from System | Practice Details | TPR Supplier Details');
+      AddError('Supplier Contact Name from System | Practice Details | TPAR Supplier Details');
 
     if (Length(AdminSystem.TPR_Supplier_Detail.As_pRec.srContactPhone) = 0) then
-      AddError('Supplier Contact Phone from System | Practice Details | TPR Supplier Details');
+      AddError('Supplier Contact Phone from System | Practice Details | TPAR Supplier Details');
   end
   else
   begin
     if (Length(MyClient.clTPR_Payee_Detail.As_pRec.prPracContactName) = 0) then
-      AddError('Practice Contact Name from Other Functions | Client Details | TPR Payer Details');
+      AddError('Practice Contact Name from Other Functions | Client Details | TPAR Payer Details');
 
     if (Length(MyClient.clTPR_Payee_Detail.As_pRec.prPracContactPhone) = 0) then
-      AddError('Practice Contact Phone from Other Functions | Client Details | TPR Payer Details');
+      AddError('Practice Contact Phone from Other Functions | Client Details | TPAR Payer Details');
   end;
 
   if (Length(PayerABN) < 11) then
@@ -867,18 +867,18 @@ begin
     AddError('Payer Client Name from Other Functions | Client Details');
 
   if (Length(MyClient.clTPR_Payee_Detail.As_pRec.prAddressLine1) = 0) then
-    AddError('Payer Street Address from Other Functions | Client Details | TPR Payer Details');
+    AddError('Payer Street Address from Other Functions | Client Details | TPAR Payer Details');
 
   if (Length(MyClient.clTPR_Payee_Detail.As_pRec.prSuburb) = 0) then
-    AddError('Payer Town/Suburb from Other Functions | Client Details | TPR Payer Details');
+    AddError('Payer Town/Suburb from Other Functions | Client Details | TPAR Payer Details');
 
   if (MyClient.clTPR_Payee_Detail.As_pRec.prStateId < MAX_STATE) and
      (Length(MyClient.clTPR_Payee_Detail.As_pRec.prPostCode) = 0) then
-    AddError('Payer Postcode from Other Functions | Client Details | TPR Payer Details');
+    AddError('Payer Postcode from Other Functions | Client Details | TPAR Payer Details');
 
   if (MyClient.clTPR_Payee_Detail.As_pRec.prStateId = MAX_STATE) and
      (Length(MyClient.clTPR_Payee_Detail.As_pRec.prCountry) = 0) then
-    AddError('Payer Country from Other Functions | Client Details | TPR Payer Details');
+    AddError('Payer Country from Other Functions | Client Details | TPAR Payer Details');
 
   // Work Out Totals for Payees
   SetLength(PayeeDataList, MyClient.clPayee_List.ItemCount);
