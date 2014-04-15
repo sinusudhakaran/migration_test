@@ -797,7 +797,7 @@ var
     SetLength(ErrorStrings, Length(ErrorStrings) + 1);
     ErrorStrings[High(ErrorStrings)] := aError;
   end;
-
+                                          
 begin
   SetLength(ErrorStrings,0);
 
