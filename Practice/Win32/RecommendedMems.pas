@@ -790,7 +790,7 @@ begin
       for i := LoopStart downto 0 do
         Recommended.AtFree(i);
 
-    // Will need to rebuild recommended mems later, so set ID To Proces back to the start of Candidates
+    // Will need to rebuild recommended mems later, so set ID To Process back to the start of Candidates
     fCandidate.cpFields.cpCandidate_ID_To_Process := 1;
   finally
     if Assigned(frmMain) then // false for unit tests, which don't need to set this boolean anyway

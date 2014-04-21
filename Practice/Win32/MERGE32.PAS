@@ -206,13 +206,12 @@ Begin
      LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
   end;
 
+  MaintainMemScanStatus := False;
   try
     if Assigned(frmMain) then
     begin
       MaintainMemScanStatus := frmMain.MemScanIsBusy;
       frmMain.MemScanIsBusy := True;
-      if Assigned(aClient) then
-        aClient.clRecommended_Mems.RemoveAccountsFromMems(aClient.clBank_Account_List, false);
     end;
 
     NoOfEntries := 0;
@@ -442,7 +441,7 @@ Begin
 
                        //Autocode the entries
                        if NoForAccount > 0 then begin
-                          AutoCodeEntries(aClient, Bank_Account,AllEntries, FirstDateThisAccount, LastDateThisAccount);
+                          AutoCodeEntries(aClient, Bank_Account,AllEntries, FirstDateThisAccount, LastDateThisAccount, false);
                        end;
 
                        //Set Earliest Download Date in Client Account Map to MaxInt
