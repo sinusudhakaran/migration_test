@@ -968,7 +968,7 @@ var Retrieved: Boolean;
       begin
         if Selected[P] and (FCodingStats.NoOfDownloadedEntries(P)> 0) then
         begin
-          MergeNewDataYN(Client, False, False, False, True);
+          MergeNewDataYN(Client, False, False, False, True, False);
 
           RefreshHomepage ([HPR_ExchangeGainLoss_NewData]);
 

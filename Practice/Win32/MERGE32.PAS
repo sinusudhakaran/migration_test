@@ -32,7 +32,7 @@ procedure UpdateSystemDownloadIndicators;
 // For homepage..
 function NewDataAvailable(aClient : TClientObj) : boolean;
 procedure MergeNewDataYN(aClient : TClientObj; Silent : boolean; IsCheckOut: Boolean = False;
-  ShowPrompt: Boolean = True; IsScheduledReports: Boolean = False);
+  ShowPrompt: Boolean = True; IsScheduledReports: Boolean = False; DoUpdateRecMemCandidates: Boolean = True);
 
 const
   syncdir_Both = 0;
@@ -166,7 +166,8 @@ begin
 end;
 
 {-----------------------------------------------------------------}
-Procedure MergeNewData( aClient : TClientObj; Silent : boolean; IsScheduledReports: Boolean = False);
+Procedure MergeNewData( aClient : TClientObj; Silent : boolean; IsScheduledReports: Boolean = False;
+                        DoUpdateRecMemCandidates: Boolean = True);
 //ONLY called by MergeNewDataYN which prompts the user
 //Admin system is refreshed by MergeNewData when NewDataAvail is called
 const
@@ -443,7 +444,7 @@ Begin
 
                        //Autocode the entries
                        if NoForAccount > 0 then begin
-                          AutoCodeEntries(aClient, Bank_Account,AllEntries, FirstDateThisAccount, LastDateThisAccount, false);
+                          AutoCodeEntries(aClient, Bank_Account,AllEntries, FirstDateThisAccount, LastDateThisAccount, DoUpdateRecMemCandidates);
                        end;
 
                        //Set Earliest Download Date in Client Account Map to MaxInt
@@ -527,7 +528,7 @@ End;
 {-----------------------------------------------------------------}
 
 procedure MergeNewDataYN(aClient : TClientObj; Silent : boolean; IsCheckOut: Boolean = False;
-  ShowPrompt: Boolean = True; IsScheduledReports: Boolean = False);
+  ShowPrompt: Boolean = True; IsScheduledReports: Boolean = False; DoUpdateRecMemCandidates: Boolean = True);
 var
   s: string;
 //only called by SyncClientToAdmin
@@ -546,7 +547,7 @@ begin
                     DLG_YES,0) = DLG_YES ) then
       begin
          {merge data}
-         MergeNewData(aClient, Silent, IsScheduledReports);
+         MergeNewData(aClient, Silent, IsScheduledReports, DoUpdateRecMemCandidates);
          {merge bank balances}
          MergeBankBalances(aClient,Silent);
       end;

@@ -1829,7 +1829,7 @@ begin
           dlBankLinkConnect : ModalProcessorDlg.DoModalCommand(mpcDoOffsiteDownload);
 
           dlAdminSystem : begin
-             MergeNewDataYN(TheClient, False, False, False);
+             MergeNewDataYN(TheClient, False, False, False, False, True);
              RefreshRequest := [HPR_Files, HPR_Coding];
           end;
        end;
