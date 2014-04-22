@@ -78,7 +78,8 @@ uses
   MemorisationsObj,
   OSFont,
   rmObj32,
-  SysUtils;
+  SysUtils,
+  Windows;
 
 const
   UnitName = 'RecommendedMems';
@@ -172,8 +173,8 @@ begin
     // Get the middle of the range
     Pivot := (First + Last) shr 1; // shr = shift right 1 (equivalent to div 2)
     SearchedStatementDetails := CandidateList.Candidate_Mem_At(Pivot).cmFields.cmStatement_Details;
-    // Compare the string in the middle with the searched one
-    if (SearchedStatementDetails = StatementDetails) then
+    // Compare the string in the middle with the searched one (case insensitive)
+    if (AnsiCompareText(SearchedStatementDetails, StatementDetails) = 0) then
     begin
       Found := True;
       FoundMatchPosition := Pivot;
@@ -199,7 +200,8 @@ begin
   FirstCandidatePos := FoundMatchPosition;
   while (FirstCandidatePos > First) do
   begin
-    if (CandidateList.Candidate_Mem_At(FirstCandidatePos - 1).cmFields.cmStatement_Details = StatementDetails) then
+    if (AnsiCompareText(CandidateList.Candidate_Mem_At(FirstCandidatePos - 1).cmFields.cmStatement_Details,
+                        StatementDetails) = 0) then
       FirstCandidatePos := FirstCandidatePos - 1
     else
       Break;
@@ -211,7 +213,8 @@ begin
   LastCandidatePos := FoundMatchPosition;
   while (LastCandidatePos < Last) do
   begin
-    if (CandidateList.Candidate_Mem_At(LastCandidatePos + 1).cmFields.cmStatement_Details = StatementDetails) then
+    if (AnsiCompareText(CandidateList.Candidate_Mem_At(LastCandidatePos + 1).cmFields.cmStatement_Details,
+                        StatementDetails) = 0) then
       LastCandidatePos := LastCandidatePos + 1
     else
       Break;
@@ -271,7 +274,8 @@ var
       begin
         Memorisation := Account.baMemorisations_List.Memorisation_At(MemsPos);
         if (CandidateMem1.cmFields.cmType = Memorisation.mdFields.mdType) and
-           (CandidateMem1.cmFields.cmStatement_Details = Memorisation.mdFields.mdStatement_Details) then
+           (AnsiCompareText(CandidateMem1.cmFields.cmStatement_Details,
+                            Memorisation.mdFields.mdStatement_Details) = 0) then
         begin
           ExcludeMem := True;
           Break;
@@ -286,7 +290,8 @@ var
       begin
         CandidateMem2 := Candidates.Candidate_Mem_At(CandidatePos);
         if (CandidateMem1.cmFields.cmAccount = CandidateMem2.cmFields.cmAccount) and
-        (CandidateMem1.cmFields.cmStatement_Details = CandidateMem2.cmFields.cmStatement_Details) and
+        (AnsiCompareText(CandidateMem1.cmFields.cmStatement_Details,
+                        CandidateMem2.cmFields.cmStatement_Details) = 0) and
         not (CandidateMem2.cmFields.cmCoded_By in [cbManual, cbNotCoded]) then
           ExcludeMem := True;
       end;
@@ -520,7 +525,7 @@ var
              (pTranRec.txType = cMem.cmFields.cmType) and
              (utAccount.baFields.baBank_Account_Number = cMem.cmFields.cmBank_Account_Number) and
              (pTranRec.txAccount = cMem.cmFields.cmAccount) and
-             (pTranRec.txStatement_Details = cMem.cmFields.cmStatement_Details) then
+             (AnsiCompareText(pTranRec.txStatement_Details, cMem.cmFields.cmStatement_Details) = 0) then
           begin
             // There is already a matching Candidate Mem, so increase its reference count
             cMem.cmFields.cmCount := cMem.cmFields.cmCount + 1;
@@ -894,7 +899,7 @@ begin
     memRec := Recommended.Recommended_Mem_At(i).rmFields;
     if ((memRec.rmBank_Account_Number = Account) or AddedMasterMem) and
     (memRec.rmType = EntryType) and
-    (memRec.rmStatement_Details = StatementDetails) then
+    (AnsiCompareText(memRec.rmStatement_Details, StatementDetails) = 0) then
     begin
       Recommended.AtFree(i);
       if (Account <> '') then

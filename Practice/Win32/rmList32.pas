@@ -53,7 +53,8 @@ begin
   if (TRecommended_Mem(Item1).rmFields.rmType              <> TRecommended_Mem(Item2).rmFields.rmType) or
   (TRecommended_Mem(Item1).rmFields.rmBank_Account_Number  <> TRecommended_Mem(Item2).rmFields.rmBank_Account_Number) or
   (TRecommended_Mem(Item1).rmFields.rmAccount              <> TRecommended_Mem(Item2).rmFields.rmAccount) or
-  (TRecommended_Mem(Item1).rmFields.rmStatement_Details    <> TRecommended_Mem(Item2).rmFields.rmStatement_Details) or
+  (AnsiCompareText(TRecommended_Mem(Item1).rmFields.rmStatement_Details,
+                   TRecommended_Mem(Item2).rmFields.rmStatement_Details) <> 0) or
   (TRecommended_Mem(Item1).rmFields.rmManual_Count         <> TRecommended_Mem(Item2).rmFields.rmManual_Count) or
   (TRecommended_Mem(Item1).rmFields.rmUncoded_Count        <> TRecommended_Mem(Item2).rmFields.rmUncoded_Count) then
     Result := 1

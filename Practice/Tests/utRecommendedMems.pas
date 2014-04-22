@@ -423,7 +423,7 @@ begin
     Check(RecommendedMems.Candidates.Candidate_Mem_At(0).cmFields.cmBank_Account_Number = '12345');
     Check(RecommendedMems.Candidates.Candidate_Mem_At(0).cmFields.cmCoded_By = cbNotCoded);
     Check(RecommendedMems.Candidates.Candidate_Mem_At(0).cmFields.cmAccount = '');
-    Check(RecommendedMems.Candidates.Candidate_Mem_At(0).cmFields.cmStatement_Details = 'Details 1');
+    Check(AnsiCompareText(RecommendedMems.Candidates.Candidate_Mem_At(0).cmFields.cmStatement_Details, 'Details 1') = 0);
 
     // Candidate 1
     Check(RecommendedMems.Candidates.Candidate_Mem_At(1).cmFields.cmRecord_Type = 167);
@@ -432,7 +432,7 @@ begin
     Check(RecommendedMems.Candidates.Candidate_Mem_At(1).cmFields.cmBank_Account_Number = '12345');
     Check(RecommendedMems.Candidates.Candidate_Mem_At(1).cmFields.cmCoded_By = cbManual);
     Check(RecommendedMems.Candidates.Candidate_Mem_At(1).cmFields.cmAccount = '230');
-    Check(RecommendedMems.Candidates.Candidate_Mem_At(1).cmFields.cmStatement_Details = 'Details 1');
+    Check(AnsiCompareText(RecommendedMems.Candidates.Candidate_Mem_At(1).cmFields.cmStatement_Details, 'Details 2') = 0);
 
     // Candidate 2
     Check(RecommendedMems.Candidates.Candidate_Mem_At(2).cmFields.cmRecord_Type = 167);
@@ -441,7 +441,7 @@ begin
     Check(RecommendedMems.Candidates.Candidate_Mem_At(2).cmFields.cmBank_Account_Number = '12345');
     Check(RecommendedMems.Candidates.Candidate_Mem_At(2).cmFields.cmCoded_By = cbManual);
     Check(RecommendedMems.Candidates.Candidate_Mem_At(2).cmFields.cmAccount = '231');
-    Check(RecommendedMems.Candidates.Candidate_Mem_At(2).cmFields.cmStatement_Details = 'Details 2');
+    Check(AnsiCompareText(RecommendedMems.Candidates.Candidate_Mem_At(2).cmFields.cmStatement_Details, 'Details 3') = 0);
 
     // Candidate 3
     Check(RecommendedMems.Candidates.Candidate_Mem_At(3).cmFields.cmRecord_Type = 167);
@@ -450,7 +450,7 @@ begin
     Check(RecommendedMems.Candidates.Candidate_Mem_At(3).cmFields.cmBank_Account_Number = '12345');
     Check(RecommendedMems.Candidates.Candidate_Mem_At(3).cmFields.cmCoded_By = cbManual);
     Check(RecommendedMems.Candidates.Candidate_Mem_At(3).cmFields.cmAccount = '231');
-    Check(RecommendedMems.Candidates.Candidate_Mem_At(3).cmFields.cmStatement_Details = 'Details 2');
+    Check(AnsiCompareText(RecommendedMems.Candidates.Candidate_Mem_At(3).cmFields.cmStatement_Details, 'Details 4') = 0);
 
     // Candidate 4
     Check(RecommendedMems.Candidates.Candidate_Mem_At(4).cmFields.cmRecord_Type = 167);
@@ -459,7 +459,7 @@ begin
     Check(RecommendedMems.Candidates.Candidate_Mem_At(4).cmFields.cmBank_Account_Number = '12345');
     Check(RecommendedMems.Candidates.Candidate_Mem_At(4).cmFields.cmCoded_By = cbAutoPayee);
     Check(RecommendedMems.Candidates.Candidate_Mem_At(4).cmFields.cmAccount = '230');
-    Check(RecommendedMems.Candidates.Candidate_Mem_At(4).cmFields.cmStatement_Details = 'Details 2');
+    Check(AnsiCompareText(RecommendedMems.Candidates.Candidate_Mem_At(4).cmFields.cmStatement_Details, 'Details 5') = 0);
 
     // Candidate 5
     Check(RecommendedMems.Candidates.Candidate_Mem_At(5).cmFields.cmRecord_Type = 167);
@@ -468,7 +468,7 @@ begin
     Check(RecommendedMems.Candidates.Candidate_Mem_At(5).cmFields.cmBank_Account_Number = '12345');
     Check(RecommendedMems.Candidates.Candidate_Mem_At(5).cmFields.cmCoded_By = cbNotCoded);
     Check(RecommendedMems.Candidates.Candidate_Mem_At(5).cmFields.cmAccount = '');
-    Check(RecommendedMems.Candidates.Candidate_Mem_At(5).cmFields.cmStatement_Details = 'Details 3');
+    Check(AnsiCompareText(RecommendedMems.Candidates.Candidate_Mem_At(5).cmFields.cmStatement_Details, 'Details 6') = 0);
 
     // Candidate 6
     Check(RecommendedMems.Candidates.Candidate_Mem_At(6).cmFields.cmRecord_Type = 167);
@@ -477,7 +477,7 @@ begin
     Check(RecommendedMems.Candidates.Candidate_Mem_At(6).cmFields.cmBank_Account_Number = '12345');
     Check(RecommendedMems.Candidates.Candidate_Mem_At(6).cmFields.cmCoded_By = cbManual);
     Check(RecommendedMems.Candidates.Candidate_Mem_At(6).cmFields.cmAccount = '232');
-    Check(RecommendedMems.Candidates.Candidate_Mem_At(6).cmFields.cmStatement_Details = 'Details 3');
+    Check(AnsiCompareText(RecommendedMems.Candidates.Candidate_Mem_At(6).cmFields.cmStatement_Details, 'Details 7') = 0);
 
     // Recommended Mems (only one for this set of data)
     Check(RecommendedMems.Recommended.ItemCount = 2);
@@ -487,7 +487,8 @@ begin
     Check(RecommendedMems.Recommended.Recommended_Mem_At(0).rmFields.rmType = 30);
     Check(RecommendedMems.Recommended.Recommended_Mem_At(0).rmFields.rmBank_Account_Number = '12345');
     Check(RecommendedMems.Recommended.Recommended_Mem_At(0).rmFields.rmAccount = '230');
-    Check(RecommendedMems.Recommended.Recommended_Mem_At(0).rmFields.rmStatement_Details = 'Details 1');
+    Check(AnsiCompareText(RecommendedMems.Recommended.Recommended_Mem_At(0).rmFields.rmStatement_Details,
+                          'Details 1') = 0);
     Check(RecommendedMems.Recommended.Recommended_Mem_At(0).rmFields.rmManual_Count = 4);
     Check(RecommendedMems.Recommended.Recommended_Mem_At(0).rmFields.rmUncoded_Count = 1);
 
@@ -496,7 +497,8 @@ begin
     Check(RecommendedMems.Recommended.Recommended_Mem_At(1).rmFields.rmType = 70);
     Check(RecommendedMems.Recommended.Recommended_Mem_At(1).rmFields.rmBank_Account_Number = '12345');
     Check(RecommendedMems.Recommended.Recommended_Mem_At(1).rmFields.rmAccount = '232');
-    Check(RecommendedMems.Recommended.Recommended_Mem_At(1).rmFields.rmStatement_Details = 'Details 3');
+    Check(AnsiCompareText(RecommendedMems.Recommended.Recommended_Mem_At(1).rmFields.rmStatement_Details,
+                          'Details 3') = 0);
     Check(RecommendedMems.Recommended.Recommended_Mem_At(1).rmFields.rmManual_Count = 3);
     Check(RecommendedMems.Recommended.Recommended_Mem_At(1).rmFields.rmUncoded_Count = 1);
 

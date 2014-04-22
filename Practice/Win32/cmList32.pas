@@ -54,7 +54,8 @@ begin
   (TCandidate_Mem(Item1).cmFields.cmBank_Account_Number <> TCandidate_Mem(Item2).cmFields.cmBank_Account_Number) or
   (TCandidate_Mem(Item1).cmFields.cmAccount             <> TCandidate_Mem(Item2).cmFields.cmAccount) or
   (TCandidate_Mem(Item1).cmFields.cmID                  <> TCandidate_Mem(Item2).cmFields.cmID) or
-  (TCandidate_Mem(Item1).cmFields.cmStatement_Details   <> TCandidate_Mem(Item2).cmFields.cmStatement_Details) then
+  (AnsiCompareText(TCandidate_Mem(Item1).cmFields.cmStatement_Details,
+                   TCandidate_Mem(Item2).cmFields.cmStatement_Details) <> 0) then
     Result := 1
   else
     Result := 0;
