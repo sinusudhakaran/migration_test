@@ -30,7 +30,9 @@ uses
   BKDefs,
   BKdsIO,
   RecommendedMems,
-  trxList32;
+  SysUtils,
+  trxList32,
+  Windows;
 
 { TUnitTestTemplate }
 
