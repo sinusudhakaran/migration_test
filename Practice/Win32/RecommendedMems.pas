@@ -558,8 +558,8 @@ var
             // TODO: optimize search, see TExtdSortedCollection.Search
             for i := Candidates.First to Candidates.Last do
             begin
-              if (cMem.cmFields.cmStatement_Details <=
-              Candidates.Candidate_Mem_At(i).cmFields.cmStatement_Details) then
+              if (AnsiCompareText(cMem.cmFields.cmStatement_Details,
+                                  Candidates.Candidate_Mem_At(i).cmFields.cmStatement_Details) <= 0) then
               begin
                 Candidates.AtInsert(i, cMem);
                 NewCandidateInserted := True;
