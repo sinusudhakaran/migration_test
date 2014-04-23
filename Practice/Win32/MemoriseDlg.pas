@@ -1945,8 +1945,6 @@ begin
            if assigned(pAcct) then
              SplitData[1].GSTClassCode := GetGSTClassCode(MyClient, pAcct.chGST_Class);
 
-           chkMaster.Enabled := True;
-           AllowMasterMemorised := True;
            MemDlg.Caption := 'Create Memorisation';
          end;
 
