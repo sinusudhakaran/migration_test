@@ -5764,8 +5764,12 @@ end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmCoding.FormShow(Sender: TObject);
+var
+  ShowRecMemControls: boolean;
 begin
-
+   ShowRecMemControls := (Assigned(AdminSystem) or not MyClient.clExtra.ceBlock_Client_Edit_Mems);
+   lblRecommendedMemorisations.Visible := ShowRecMemControls;
+   frmMain.tbRecommendedMemorisations.Visible := ShowRecMemControls;
    SearchVisible := UserINI_CES_Show_Find;
    tblCoding.Setfocus;
    //pnlExtraTitleBar.Color := bkBranding.HeaderBackgroundColor;
