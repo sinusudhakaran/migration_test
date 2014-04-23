@@ -179,7 +179,7 @@ begin
       Found := True;
       FoundMatchPosition := Pivot;
     end
-    else if (SearchedStatementDetails > StatementDetails) then
+    else if (AnsiCompareText(SearchedStatementDetails, StatementDetails) > 0) then
       // Now we'll search within the first half
       Last := Pivot - 1
     else
@@ -358,6 +358,9 @@ var
     begin
       Result := False;
       CandidateMem2 := nil;
+
+      Assert((FirstCandidatePos <> -1) and (LastCandidatePos <> -1),
+             'FirstCandidatePos and LastCandidatePos shouldn''t be -1 here');
       for CandidatePos := FirstCandidatePos to LastCandidatePos do
       begin
         CandidateMem2 := Candidates.Candidate_Mem_At(CandidatePos);
