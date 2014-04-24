@@ -44,14 +44,6 @@ object dlgMemorise: TdlgMemorise
       Height = 13
       Caption = 'Entry Type'
     end
-    object lblMinus: TLabel
-      Left = 493
-      Top = 200
-      Width = 28
-      Height = 16
-      AutoSize = False
-      Caption = 'CR'
-    end
     object eRef: TEdit
       Left = 170
       Top = 44
@@ -320,6 +312,18 @@ object dlgMemorise: TdlgMemorise
       Caption = 'Applies to'
       TabOrder = 19
       OnClick = cbToClick
+    end
+    object cbMinus: TComboBox
+      Left = 493
+      Top = 197
+      Width = 53
+      Height = 21
+      ItemHeight = 13
+      TabOrder = 20
+      OnChange = cbMinusChange
+      Items.Strings = (
+        'CR'
+        'DR')
     end
   end
   object Panel1: TPanel

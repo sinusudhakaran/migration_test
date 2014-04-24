@@ -96,7 +96,6 @@ type
     lblRemDollar: TLabel;
     lblFixed: TLabel;
     lblAmount: TLabel;
-    lblMinus: TLabel;
     sBar: TStatusBar;
     popMem: TPopupMenu;
     LookupChart1: TMenuItem;
@@ -123,6 +122,7 @@ type
     btnCopy: TButton;
     LookupJob1: TMenuItem;
     Rowtmr: TTimer;
+    cbMinus: TComboBox;
 
     procedure cRefClick(Sender: TObject);
     procedure cPartClick(Sender: TObject);
@@ -200,6 +200,7 @@ type
     procedure eDateFromDblClick(Sender: TObject);
     procedure btnCopyClick(Sender: TObject);
     procedure RowtmrTimer(Sender: TObject);
+    procedure cbMinusChange(Sender: TObject);
   private
     { Private declarations }
     AltLineColor : integer;
@@ -398,7 +399,7 @@ begin
            cValue.Top       := cPart.Top + 3;
            cmbValue.Top     := ePart.Top + 3;
            nValue.Top       := ePart.Top + 3;
-           lblMinus.Top     := nValue.Top + 3;
+           cbMinus.Top      := nValue.Top + 3;
 
            GroupBox1.Height := 180;
            sbtnSuper.Visible :=  CanUseSuperFundFields(MyClient.clFields.clCountry,  MyClient.clFields.clAccounting_System_Used, sfMem);
@@ -581,6 +582,14 @@ end;
 procedure TdlgMemorise.cbFromClick(Sender: TObject);
 begin
   eDateFrom.Enabled := cbFrom.Checked;
+end;
+
+procedure TdlgMemorise.cbMinusChange(Sender: TObject);
+begin
+  case cbMinus.ItemIndex of
+    0: AmountMultiplier := -1;
+    1: AmountMultiplier := 1;
+  end;
 end;
 
 procedure TdlgMemorise.cbToClick(Sender: TObject);
@@ -1890,12 +1899,12 @@ begin
          if AmountToMatch < 0 then
          begin
            AmountMultiplier := -1;
-           lblMinus.Caption := 'CR';
+           cbMinus.ItemIndex := 0;
          end
          else
          begin
            AmountMultiplier := 1;
-           lblMinus.Caption := 'DR';
+           cbMinus.ItemIndex := 1;
          end;
 
          nValue.AsFloat := GenUtils.Money2Double( AmountToMatch) * AmountMultiplier;
@@ -2114,12 +2123,12 @@ begin
             if AmountToMatch < 0 then
             begin
               AmountMultiplier := -1;
-              lblMinus.Caption := 'CR';
+              cbMinus.ItemIndex := 0;
             end
             else
             begin
               AmountMultiplier := 1;
-              lblMinus.Caption := 'DR';
+              cbMinus.ItemIndex := 1;
             end;
             nValue.AsFloat  := Money2Double( AmountToMatch) * AmountMultiplier;
             //set check boxes, set loading so click events dont fire
