@@ -1,8 +1,8 @@
-$|BK_FILE_VERSION  = 182;  (* Current Version counter for files
+$|BK_FILE_VERSION  = 183;  (* Current Version counter for files
 $|                           Changes if structure or method of storing a value would cause
 $|                           data to be represented incorrectly, or an exception to be raised *)
 $|
-$|BK_FILE_VERSION_STR = '5.36';   (* Should be changed whenever BK_FILE_VERSION changes. Is used to show user what version they need *)
+$|BK_FILE_VERSION_STR = '5.37';   (* Should be changed whenever BK_FILE_VERSION changes. Is used to show user what version they need *)
 $|
 $|(*
 $|    History  :     31    New format for GST class codes ( delimited string)
@@ -218,6 +218,7 @@ $|  5.25            179    Changes for automatically calculation of GST (on/off)
 $|  5.25            180    Removing 178 changes, only need 177 changes
 $|  5.25            181    Memorisations upgrade, code only
 $|  5.25            182    New Table TPR Payer Detail
+$|  5.25			183	   Changed length of Statement Details fields in several records to 200
 $|*)
 
 
@@ -653,7 +654,7 @@ F|Reference|S|12
 F|Particulars|S|12
 F|Analysis|S|12
 F|Other Party|S|20
-F|Statement Details|S|100
+F|Statement Details|S|200
 F|Match on Amount|B
 F|Match on Analysis|Y
 F|Match on Other Party|Y
@@ -1061,7 +1062,7 @@ F|Reference|S|12
 F|Particulars|S|12
 F|Analysis|S|12
 F|Other Party|S|20
-F|Statement Details|S|100
+F|Statement Details|S|200
 F|Match on Amount|B
 F|Match on Refce|Y
 F|Match on Particulars|Y
@@ -1240,14 +1241,14 @@ F|Type|B
 F|Bank_Account_Number|S|20
 F|Coded_By|B
 F|Account|S|20
-F|Statement_Details|S|100
+F|Statement_Details|S|200
 E
 
 N|Recommended Mem|rm|168
 F|Type|B
 F|Bank Account Number|S|20
 F|Account|S|20
-F|Statement Details|S|100
+F|Statement Details|S|200
 F|Manual Count|L
 F|Uncoded Count|L
 E

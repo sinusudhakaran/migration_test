@@ -9,13 +9,13 @@ Interface uses MONEYDEF, DATEDEF;
 {  -------------------------------------------------------------------  }
 
 Const
-   BK_IOLIB_Version : Integer = 717;
-   BK_IOLIB_Date    = '05/03/14';
-   BK_FILE_VERSION  = 182;  (* Current Version counter for files
+   BK_IOLIB_Version : Integer = 718;
+   BK_IOLIB_Date    = '24/04/14';
+   BK_FILE_VERSION  = 183;  (* Current Version counter for files
                               Changes if structure or method of storing a value would cause
                               data to be represented incorrectly, or an exception to be raised *)
    
-   BK_FILE_VERSION_STR = '5.36';   (* Should be changed whenever BK_FILE_VERSION changes. Is used to show user what version they need *)
+   BK_FILE_VERSION_STR = '5.37';   (* Should be changed whenever BK_FILE_VERSION changes. Is used to show user what version they need *)
    
    (*
        History  :     31    New format for GST class codes ( delimited string)
@@ -231,6 +231,7 @@ Const
      5.25            180    Removing 178 changes, only need 177 changes
      5.25            181    Memorisations upgrade, code only
      5.25            182    New Table TPR Payer Detail
+     5.25			183	   Changed length of Statement Details fields in several records to 200
    *)
    //Audit Trail - 135 Don't reuse token!!! - Record defined in SY.TXT but also used in Client File
 
@@ -734,7 +735,7 @@ Type
       mdParticulars                      : String[ 12 ];       { Stored }
       mdAnalysis                         : String[ 12 ];       { Stored }
       mdOther_Party                      : String[ 20 ];       { Stored }
-      mdStatement_Details                : String[ 100 ];       { Stored }
+      mdStatement_Details                : String[ 200 ];       { Stored }
       mdMatch_on_Amount                  : Byte;       { Stored }
       mdMatch_on_Analysis                : Boolean;       { Stored }
       mdMatch_on_Other_Party             : Boolean;       { Stored }
@@ -1174,7 +1175,7 @@ Type
       mxParticulars                      : String[ 12 ];       { Stored }
       mxAnalysis                         : String[ 12 ];       { Stored }
       mxOther_Party                      : String[ 20 ];       { Stored }
-      mxStatement_Details                : String[ 100 ];       { Stored }
+      mxStatement_Details                : String[ 200 ];       { Stored }
       mxMatch_on_Amount                  : Byte;       { Stored }
       mxMatch_on_Refce                   : Boolean;       { Stored }
       mxMatch_on_Particulars             : Boolean;       { Stored }
@@ -1405,7 +1406,7 @@ Type
       cmBank_Account_Number              : String[ 20 ];       { Stored }
       cmCoded_By                         : Byte;       { Stored }
       cmAccount                          : String[ 20 ];       { Stored }
-      cmStatement_Details                : String[ 100 ];       { Stored }
+      cmStatement_Details                : String[ 200 ];       { Stored }
       cmEOR                              : Byte;
    end;
 
@@ -1416,7 +1417,7 @@ Type
       rmType                             : Byte;       { Stored }
       rmBank_Account_Number              : String[ 20 ];       { Stored }
       rmAccount                          : String[ 20 ];       { Stored }
-      rmStatement_Details                : String[ 100 ];       { Stored }
+      rmStatement_Details                : String[ 200 ];       { Stored }
       rmManual_Count                     : Integer;       { Stored }
       rmUncoded_Count                    : Integer;       { Stored }
       rmEOR                              : Byte;
