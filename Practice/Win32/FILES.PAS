@@ -2837,7 +2837,7 @@ begin
            //check wrapper version now so dont update a file that cant be openned
            if ( Wrapper.wVersion > BKDEFS.BK_FILE_VERSION) then
            begin
-             aMsg := 'Invalid version. Version ' + Wrapper.wVersion_Reqd_Str + ' or later required to update this client file';
+             aMsg := 'Invalid version. Upgrade ' + BRAND_PRACTICE + ' to the latest version to update this client file.';
              raise ECheckIn.Create( aMsg);
            end;
         end;
