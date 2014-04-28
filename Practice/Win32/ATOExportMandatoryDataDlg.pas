@@ -16,16 +16,18 @@ uses
   OSFont,
   StdCtrls,
   Buttons,
-  ExtDlgs;
+  ExtDlgs, ComCtrls;
 
 type
   TArrOfStr = Array of string;
 
   TATOWarningdlg = class(TForm)
     btnOk: TButton;
-    lstWarnings: TListBox;
     lblHeadingLine: TLabel;
+    lstWarnings: TListBox;
+    procedure FormActivate(Sender: TObject);
   private
+    procedure SetLBScrollExt(aListBox: TListBox);
   public
   end;
 
@@ -53,6 +55,38 @@ begin
   finally
     FreeAndNil(frmATOWarning);
   end;
+end;
+
+//------------------------------------------------------------------------------
+procedure TATOWarningdlg.FormActivate(Sender: TObject);
+begin
+  SetLBScrollExt(lstWarnings);
+end;
+
+//------------------------------------------------------------------------------
+procedure TATOWarningdlg.SetLBScrollExt(aListBox: TListBox);
+var
+  index : integer;
+  max   : integer;
+  xpos  : integer;
+begin
+  if aListBox.Items.Count = 0 then
+  begin
+    max := -10
+  end
+  else
+  begin
+    max := 0;
+    for index := 0 to aListBox.Items.Count -1 do
+    begin
+      xpos := aListBox.Canvas.TextWidth(aListBox.Items[index]);
+      if xpos > max then max := xpos;
+    end;
+  end;
+  // 10 / 8 is for the OSfont increase and the 10 is for spaces not includes
+  max := trunc(max * (10/8)) - 10;
+
+  aListBox.ScrollWidth := max;
 end;
 
 end.

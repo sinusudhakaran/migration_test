@@ -14,6 +14,7 @@ object ATOWarningdlg: TATOWarningdlg
   Font.Style = []
   OldCreateOrder = False
   Position = poScreenCenter
+  OnActivate = FormActivate
   DesignSize = (
     714
     321)
@@ -51,18 +52,12 @@ object ATOWarningdlg: TATOWarningdlg
     TabOrder = 0
   end
   object lstWarnings: TListBox
-    Left = 8
-    Top = 32
-    Width = 699
-    Height = 250
+    Left = 6
+    Top = 30
+    Width = 702
+    Height = 254
     Anchors = [akLeft, akTop, akRight, akBottom]
-    Font.Charset = DEFAULT_CHARSET
-    Font.Color = clWindowText
-    Font.Height = -13
-    Font.Name = 'Tahoma'
-    Font.Style = []
-    ItemHeight = 16
-    ParentFont = False
+    ItemHeight = 13
     TabOrder = 1
   end
 end
