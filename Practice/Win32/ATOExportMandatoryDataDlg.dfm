@@ -38,6 +38,7 @@ object ATOWarningdlg: TATOWarningdlg
     Width = 75
     Height = 25
     Anchors = [akRight, akBottom]
+    Cancel = True
     Caption = '&OK'
     Default = True
     Font.Charset = DEFAULT_CHARSET
@@ -63,7 +64,5 @@ object ATOWarningdlg: TATOWarningdlg
     ItemHeight = 16
     ParentFont = False
     TabOrder = 1
-    ExplicitWidth = 547
-    ExplicitHeight = 197
   end
 end
