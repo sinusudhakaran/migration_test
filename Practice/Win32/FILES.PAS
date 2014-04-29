@@ -2990,7 +2990,7 @@ begin
      on E : ECheckIn do
      begin
        LogUtil.LogMsg( lmError, Unitname, ThisMethodName + ': ' +
-                       'Update from ' + RemoteFilename + ' failed - ' + E.Message);
+                       'Update from ' + RemoteFilename + ' failed - ' + E.Message + ' ' + Wrapper.wVersion_Reqd_Str);
        HelpfulErrorMsg( 'Update of ' + ExtractFilename( RemoteFilename) + ' failed.' + #13#13 + E.Message, 0);
        if Assigned(AdminSystem) then
          DoClientManager(0,0,0,0);
