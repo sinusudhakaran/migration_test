@@ -144,30 +144,30 @@ begin
         begin
           PayeeData := GetPayeeData(Transaction^.txPayee_Number);
 
-          if (Transaction^.txFirst_Dissection <> nil) then
+          if Assigned(PayeeData) then
           begin
-            //see if dissection lines should be part of total
-            Dissection := Transaction^.txFirst_Dissection;
-
-            while Dissection <> nil do
+            if (Transaction^.txFirst_Dissection <> nil) then
             begin
-              PayeeData.TotalGST := PayeeData.TotalGST + Dissection.dsGST_Amount;
+              //see if dissection lines should be part of total
+              Dissection := Transaction^.txFirst_Dissection;
 
-              if (ABNAccount <> '') and (Dissection.dsAccount = ABNAccount) then
+              while Dissection <> nil do
               begin
-                PayeeData.NoABNWithholdingTax := PayeeData.NoABNWithholdingTax + (Dissection^.Local_Amount * -1);
-              end
-              else
-              begin
-                PayeeData.GrossAmount := PayeeData.GrossAmount + Dissection^.Local_Amount;
+                PayeeData.TotalGST := PayeeData.TotalGST + Dissection.dsGST_Amount;
+
+                if (ABNAccount <> '') and (Dissection.dsAccount = ABNAccount) then
+                begin
+                  PayeeData.NoABNWithholdingTax := PayeeData.NoABNWithholdingTax + (Dissection^.Local_Amount * -1);
+                end
+                else
+                begin
+                  PayeeData.GrossAmount := PayeeData.GrossAmount + Dissection^.Local_Amount;
+                end;
+
+                Dissection := Dissection^.dsNext;
               end;
-
-              Dissection := Dissection^.dsNext;
-            end;
-          end
-          else
-          begin
-            if Assigned(PayeeData) then
+            end
+            else
             begin
               PayeeData.TotalGST := PayeeData.TotalGST + Transaction.txGST_Amount;
 
