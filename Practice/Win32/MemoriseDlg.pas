@@ -1960,7 +1960,6 @@ begin
          //**************************
          if ShowModal = mrOK then begin
          //**************************
-
             //{have enough data to create a memorised entry record
 
              //have details of the new master memorisation, now need to update to relevant location
@@ -1998,6 +1997,7 @@ begin
              else begin
                Memorised_Trans := TMemorisation.Create(MyClient.ClientAuditMgr);
                SaveToMemRec(Memorised_Trans, Tr, False);
+               Memorised_Trans.mdFields.mdAmount := Memorised_Trans.mdFields.mdAmount * AmountMultiplier;
                ba.baMemorisations_List.Insert_Memorisation(Memorised_Trans);
              end;
 
