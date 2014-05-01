@@ -398,8 +398,8 @@ begin
 
            cValue.Top       := cPart.Top + 3;
            cmbValue.Top     := ePart.Top + 3;
-           nValue.Top       := ePart.Top + 3;
-           cbMinus.Top      := nValue.Top + 3;
+           nValue.Top       := ePart.Top + 4;
+           cbMinus.Top      := nValue.Top;
 
            GroupBox1.Height := 180;
            sbtnSuper.Visible :=  CanUseSuperFundFields(MyClient.clFields.clCountry,  MyClient.clFields.clAccounting_System_Used, sfMem);
@@ -1984,6 +1984,7 @@ begin
                  MasterMemList := TMemorisations_List(SystemMemorisation.smMemorisations);
                  //insert into list
                  Memorised_Trans.mdFields.mdFrom_Master_List := true;
+                 Memorised_Trans.mdFields.mdAmount := abs(Memorised_Trans.mdFields.mdAmount) * AmountMultiplier;
                  MasterMemList.Insert_Memorisation(Memorised_Trans);
                  IsAMasterMem := True;
                  //*** Flag Audit ***
@@ -1997,7 +1998,7 @@ begin
              else begin
                Memorised_Trans := TMemorisation.Create(MyClient.ClientAuditMgr);
                SaveToMemRec(Memorised_Trans, Tr, False);
-               Memorised_Trans.mdFields.mdAmount := Memorised_Trans.mdFields.mdAmount * AmountMultiplier;
+               Memorised_Trans.mdFields.mdAmount := abs(Memorised_Trans.mdFields.mdAmount) * AmountMultiplier;
                ba.baMemorisations_List.Insert_Memorisation(Memorised_Trans);
              end;
 
@@ -2311,6 +2312,8 @@ begin
                        Memorised_Trans := EditMemorisedList.Memorisation_At(i);
                        if Assigned(Memorised_Trans) then begin
                          if (Memorised_Trans.mdFields.mdSequence_No = SaveSeq) then begin
+                           Memorised_Trans.mdFields.mdAmount := abs(Memorised_Trans.mdFields.mdAmount) *
+                                                                AmountMultiplier;
                            SaveToMemRec(Memorised_Trans, nil, chkMaster.Checked);
                            Break;
                          end;
@@ -2355,6 +2358,8 @@ begin
                    end else begin
                      Memorised_Trans.mdFields.mdFrom_Master_List := True;
                      EditMemorisedList := TMemorisations_List(SystemMemorisation.smMemorisations);
+                     Memorised_Trans.mdFields.mdAmount := abs(Memorised_Trans.mdFields.mdAmount) *
+                                                              AmountMultiplier;
                      EditMemorisedList.Insert_Memorisation(Memorised_Trans, True);
                      //*** Flag Audit ***
                      SystemAuditMgr.FlagAudit(arMasterMemorisations);
@@ -2390,6 +2395,7 @@ begin
                  Memorised_Trans := TMemorisation.Create(BA.AuditMgr);
                  SaveToMemRec(Memorised_Trans, nil, chkMaster.Checked);
                  Memorised_Trans.mdFields.mdType := pm.mdFields.mdType;
+                 Memorised_Trans.mdFields.mdAmount := abs(Memorised_Trans.mdFields.mdAmount) * AmountMultiplier;
                  MemorisedList.Insert_Memorisation(Memorised_Trans);
                  EditMemorisation(ba,ba.baMemorisations_List,Memorised_Trans, DeleteSelectedMem, True);
                end;
@@ -2656,6 +2662,7 @@ procedure TdlgMemorise.cValueClick(Sender: TObject);
 begin
    cmbValue.Enabled := cValue.Checked;
    nValue.Enabled   := cValue.Checked;
+   cbMinus.Enabled  := cValue.Checked;
 
    //set default value
    if not cValue.Checked then

@@ -143,7 +143,7 @@ object dlgMemorise: TdlgMemorise
     end
     object nValue: TOvcNumericField
       Left = 374
-      Top = 197
+      Top = 196
       Width = 113
       Height = 22
       Cursor = crIBeam
@@ -223,7 +223,7 @@ object dlgMemorise: TdlgMemorise
     end
     object cValue: TCheckBox
       Left = 25
-      Top = 196
+      Top = 197
       Width = 129
       Height = 22
       Alignment = taLeftJustify
@@ -257,7 +257,7 @@ object dlgMemorise: TdlgMemorise
       MaxLength = 8
       Options = [efoCaretToEnd]
       PictureMask = 'DD/mm/yy'
-      TabOrder = 16
+      TabOrder = 17
       OnDblClick = eDateFromDblClick
       RangeHigh = {25600D00000000000000}
       RangeLow = {00000000000000000000}
@@ -288,7 +288,7 @@ object dlgMemorise: TdlgMemorise
       MaxLength = 8
       Options = [efoCaretToEnd]
       PictureMask = 'DD/mm/yy'
-      TabOrder = 17
+      TabOrder = 18
       OnDblClick = eDateFromDblClick
       RangeHigh = {25600D00000000000000}
       RangeLow = {00000000000000000000}
@@ -300,7 +300,7 @@ object dlgMemorise: TdlgMemorise
       Height = 17
       Anchors = [akTop, akRight]
       Caption = 'Applies from'
-      TabOrder = 18
+      TabOrder = 19
       OnClick = cbFromClick
     end
     object cbTo: TCheckBox
@@ -310,16 +310,17 @@ object dlgMemorise: TdlgMemorise
       Height = 17
       Anchors = [akTop, akRight]
       Caption = 'Applies to'
-      TabOrder = 19
+      TabOrder = 20
       OnClick = cbToClick
     end
     object cbMinus: TComboBox
       Left = 493
-      Top = 197
+      Top = 196
       Width = 53
       Height = 21
+      Enabled = False
       ItemHeight = 13
-      TabOrder = 20
+      TabOrder = 16
       OnChange = cbMinusChange
       Items.Strings = (
         'CR'
@@ -492,15 +493,15 @@ object dlgMemorise: TdlgMemorise
       OnUserCommand = tblSplitUserCommand
       CellData = (
         'dlgMemorise.Header'
-        'dlgMemorise.ColAcct'
-        'dlgMemorise.ColDesc'
-        'dlgMemorise.colNarration'
-        'dlgMemorise.ColPayee'
-        'dlgMemorise.colJob'
-        'dlgMemorise.ColGSTCode'
-        'dlgMemorise.ColAmount'
+        'dlgMemorise.colLineType'
         'dlgMemorise.ColPercent'
-        'dlgMemorise.colLineType')
+        'dlgMemorise.ColAmount'
+        'dlgMemorise.ColGSTCode'
+        'dlgMemorise.colJob'
+        'dlgMemorise.ColPayee'
+        'dlgMemorise.colNarration'
+        'dlgMemorise.ColDesc'
+        'dlgMemorise.ColAcct')
       RowData = (
         21)
       ColData = (
@@ -706,6 +707,7 @@ object dlgMemorise: TdlgMemorise
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
+    Options = [efoCaretToEnd]
     PictureMask = '###,###,###.##'
     Table = tblSplit
     TableColor = False
@@ -840,6 +842,7 @@ object dlgMemorise: TdlgMemorise
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
+    Options = [efoCaretToEnd, efoTrimBlanks]
     PictureMask = '999999'
     ShowHint = True
     Table = tblSplit
@@ -860,7 +863,6 @@ object dlgMemorise: TdlgMemorise
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd]
     PictureMask = '###,###,###.####'
     Table = tblSplit
     TableColor = False
