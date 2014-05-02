@@ -20,6 +20,7 @@ uses
 type
   TRecommended_Mems = class(TObject)
   private
+    fBankAccount: TBank_Account;
     fBankAccounts: TBank_Account_List;
 
     fUnscanned: TUnscanned_Transaction_List;
@@ -39,11 +40,6 @@ type
     procedure SaveToFile(var S: TIOStream);
     procedure LoadFromFile(var S: TIOStream);
 
-    property  Unscanned: TUnscanned_Transaction_List read fUnscanned;
-    property  Candidate: TCandidate_Mem_Processing read fCandidate;
-    property  Candidates: TCandidate_Mem_List read fCandidates;
-    property  Recommended: TRecommended_Mem_List read fRecommended;
-
     function MemScan(RunningUnitTest: boolean; TestAccount: TBank_Account): boolean;
     procedure UpdateCandidateMems(TranRec: pTransaction_Rec; IsEditOrInsertOperation: boolean);
     procedure SetLastCodingFrmKeyPress;
@@ -58,6 +54,13 @@ type
                                     AddedMasterMem: boolean);
     procedure RepopulateRecommendedMems;
     procedure ResetAll;
+    procedure SetBankAccount(Value: TBank_Account);
+
+    property  BankAccount: TBank_Account read fBankAccount write SetBankAccount;
+    property  Unscanned: TUnscanned_Transaction_List read fUnscanned;
+    property  Candidate: TCandidate_Mem_Processing read fCandidate;
+    property  Candidates: TCandidate_Mem_List read fCandidates;
+    property  Recommended: TRecommended_Mem_List read fRecommended;
   end;
 
 var
@@ -112,6 +115,11 @@ begin
   FreeAndNil(fRecommended);
 
   inherited;
+end;
+
+procedure TRecommended_Mems.SetBankAccount(Value: TBank_Account);
+begin
+  fBankAccount := Value;
 end;
 
 procedure TRecommended_Mems.SetBankAccounts(const aBankAccounts: TBank_Account_List);
@@ -283,7 +291,7 @@ var
       end;
 
       // Check if any candidates have a matching account code, and matching
-      // statement details, if so exclude them too
+      // statement details, and matching bank account number, if so exclude them too
       // TODO: optimize this if possible
       // TODO: check if this is redundant, see similar functionality in CheckForExclusions
       for CandidatePos := 0 to Candidates.ItemCount - 1 do
@@ -292,7 +300,8 @@ var
         if (CandidateMem1.cmFields.cmAccount = CandidateMem2.cmFields.cmAccount) and
         (AnsiCompareText(CandidateMem1.cmFields.cmStatement_Details,
                         CandidateMem2.cmFields.cmStatement_Details) = 0) and
-        not (CandidateMem2.cmFields.cmCoded_By in [cbManual, cbNotCoded]) then
+        (not (CandidateMem2.cmFields.cmCoded_By in [cbManual, cbNotCoded])) and
+        (CandidateMem1.cmFields.cmBank_Account_Number = CandidateMem2.cmFields.cmBank_Account_Number) then
           ExcludeMem := True;
       end;
 
@@ -337,19 +346,20 @@ var
   // Does the recommended memorisation processing, returns true when this is complete
   function DoRecommendedMemProcessing: boolean;
   var
-    Account                 : TBank_Account;
-    AccountCodesDiffer      : boolean;
-    AccountsPos             : integer;
-    BlankStatementDetails   : boolean;
-    C2HasBlankCode          : boolean;
-    CandidateMem1           : TCandidate_Mem;
-    CandidateMem2           : TCandidate_Mem;
-    C2CodedByIsManual       : boolean;
+    Account                   : TBank_Account;
+    AccountCodesDiffer        : boolean;
+    AccountsPos               : integer;
+    BlankStatementDetails     : boolean;
+    C2AccountIsCurrentAccount : boolean;
+    C2HasBlankCode            : boolean;
+    CandidateMem1             : TCandidate_Mem;
+    CandidateMem2             : TCandidate_Mem;
+    C2CodedByIsManual         : boolean;
     // EitherAccountIsBlank    : boolean;
-    FirstCandidatePos       : integer;
-    CandidateToProcess      : integer;
-    LastCandidatePos        : integer;
-    NextCandidateID         : integer;
+    FirstCandidatePos         : integer;
+    CandidateToProcess        : integer;
+    LastCandidatePos          : integer;
+    NextCandidateID           : integer;
 
     // Returns true if we should exclude the candidate
     function CheckForExclusions: boolean;
@@ -376,6 +386,17 @@ var
           C2HasBlankCode := (CandidateMem2.cmFields.cmAccount = '');
           BlankStatementDetails := (CandidateMem1.cmFields.cmStatement_Details = '');
 
+          // We don't want to exclude candidates because of suggestions in a different account.
+          // If C2AccountIsCurrentAccount is true, then the account of the candidate we're comparing
+          // our current candidate to (C1 = current candidate, c2 = compared candidate) is the same
+          // as the current account, OR there is no current account because we're just scanning
+          // mems at this point and are not yet in the suggested mems form
+          if Assigned(fBankAccount) then
+            C2AccountIsCurrentAccount :=
+              (CandidateMem2.cmFields.cmBank_Account_Number = fBankAccount.baFields.baBank_Account_Number)
+          else
+            C2AccountIsCurrentAccount := True;
+
           {
           if ((AccountCodesDiffer and not EitherAccountIsBlank) or
           (CodedByIsManual = false)) and
@@ -384,7 +405,8 @@ var
           // This part has been split up a bit to make it more readable, rather than
           // cramming all the conditions into one big If Statement
           if (((not C2CodedByIsManual) or AccountCodesDiffer) and
-          (not C2HasBlankCode)) then
+          (not C2HasBlankCode)) and
+          C2AccountIsCurrentAccount then
           begin
             // Don't recommend this candidate
             Result := True;
