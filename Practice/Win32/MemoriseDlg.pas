@@ -2312,8 +2312,6 @@ begin
                        Memorised_Trans := EditMemorisedList.Memorisation_At(i);
                        if Assigned(Memorised_Trans) then begin
                          if (Memorised_Trans.mdFields.mdSequence_No = SaveSeq) then begin
-                           Memorised_Trans.mdFields.mdAmount := abs(Memorised_Trans.mdFields.mdAmount) *
-                                                                AmountMultiplier;
                            SaveToMemRec(Memorised_Trans, nil, chkMaster.Checked);
                            Break;
                          end;
@@ -2705,7 +2703,7 @@ begin
        mdFields.mdSequence_No := 0;
      end;
 
-     mdFields.mdAmount    := AmountToMatch;
+     mdFields.mdAmount    := abs(AmountToMatch) * AmountMultiplier;
      mdFields.mdReference := eRef.text;
      mdFields.mdNotes     := eNOtes.text;
 
