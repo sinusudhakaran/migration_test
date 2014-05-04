@@ -60,6 +60,7 @@ CONST
    tkprAccount                          = 198 ;
    tkprUsePracticeTPRSupplierDetails    = 199 ;
    tkprFirstTimeTPRATOExtractDone       = 200 ;
+   tkprTRPATOReportRunUpToYear          = 201 ;
 
 {  -------------------------------------------------------------------  }
 
@@ -99,6 +100,7 @@ Begin
       F.WriteStringValue( tkprAccount , prAccount );
       F.WriteBooleanValue( tkprUsePracticeTPRSupplierDetails , prUsePracticeTPRSupplierDetails );
       F.WriteBooleanValue( tkprFirstTimeTPRATOExtractDone , prFirstTimeTPRATOExtractDone );
+      F.WriteIntegerValue( tkprTRPATOReportRunUpToYear , prTRPATOReportRunUpToYear );
       F.WriteToken( tkEnd_TPR_Payer_Detail );
    end;
 end; { of Write_TPR_Payer_Detail_Rec }
@@ -135,6 +137,7 @@ Begin
          tkprAccount                          : prAccount := F.ReadStringValue;
          tkprUsePracticeTPRSupplierDetails    : prUsePracticeTPRSupplierDetails := F.ReadBooleanValue;
          tkprFirstTimeTPRATOExtractDone       : prFirstTimeTPRATOExtractDone := F.ReadBooleanValue;
+         tkprTRPATOReportRunUpToYear          : prTRPATOReportRunUpToYear := F.ReadIntegerValue;
          else
             Raise ETokenException.CreateFmt( SUnknownToken, [ Token ] );
       end; { of Case }
@@ -181,7 +184,7 @@ begin
   for i := Low(ChangedFields) to High(ChangedFields) do
     ChangedFields[i] := 0;
   j := 0;
-  for i := tkprPracContactName to tkprFirstTimeTPRATOExtractDone do begin
+  for i := tkprPracContactName to tkprTRPATOReportRunUpToYear do begin
     ChangedFields[j] := i;
     Inc(j);
   end;
@@ -274,6 +277,11 @@ begin
   if (P1.prFirstTimeTPRATOExtractDone <> P2.prFirstTimeTPRATOExtractDone) then begin
     P3.prFirstTimeTPRATOExtractDone := P1.prFirstTimeTPRATOExtractDone;
     ChangedFields[i] := tkprFirstTimeTPRATOExtractDone;
+    Inc(i);
+  end;
+  if (P1.prTRPATOReportRunUpToYear <> P2.prTRPATOReportRunUpToYear) then begin
+    P3.prTRPATOReportRunUpToYear := P1.prTRPATOReportRunUpToYear;
+    ChangedFields[i] := tkprTRPATOReportRunUpToYear;
     Inc(i);
   end;
 

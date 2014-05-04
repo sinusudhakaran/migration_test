@@ -9,8 +9,8 @@ Interface uses MONEYDEF, DATEDEF;
 {  -------------------------------------------------------------------  }
 
 Const
-   BK_IOLIB_Version : Integer = 718;
-   BK_IOLIB_Date    = '24/04/14';
+   BK_IOLIB_Version : Integer = 719;
+   BK_IOLIB_Date    = '05/05/14';
    BK_FILE_VERSION  = 183;  (* Current Version counter for files
                               Changes if structure or method of storing a value would cause
                               data to be represented incorrectly, or an exception to be raised *)
@@ -1375,6 +1375,7 @@ Type
       prAccount                          : String[ 9 ];       { Stored }
       prUsePracticeTPRSupplierDetails    : Boolean;       { Stored }
       prFirstTimeTPRATOExtractDone       : Boolean;       { Stored }
+      prTRPATOReportRunUpToYear          : Integer;       { Stored }
       prEOR                              : Byte;
    end;
 

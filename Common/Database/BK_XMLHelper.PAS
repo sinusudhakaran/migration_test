@@ -3465,6 +3465,7 @@ begin
 	SetTextAttr(Result, 'Account', prAccount);
 	SetBoolAttr(Result, 'UsePracticeTPRSupplierDetails', prUsePracticeTPRSupplierDetails);
 	SetBoolAttr(Result, 'FirstTimeTPRATOExtractDone', prFirstTimeTPRATOExtractDone);
+	SetIntAttr(Result, 'TRPATOReportRunUpToYear', prTRPATOReportRunUpToYear);
 
 	CNode := nil;
 	CCNode := nil;
@@ -3495,6 +3496,7 @@ begin
 	prAccount := GetTextAttr(Result, 'Account');
 	prUsePracticeTPRSupplierDetails := GetBoolAttr(Result, 'UsePracticeTPRSupplierDetails');
 	prFirstTimeTPRATOExtractDone := GetBoolAttr(Result, 'FirstTimeTPRATOExtractDone');
+	prTRPATOReportRunUpToYear := GetIntAttr(Result, 'TRPATOReportRunUpToYear');
 	except
 		on E: Exception do ReRaise (E, 'Reading TTPR_Payer_Detail_Rec');
 	end;

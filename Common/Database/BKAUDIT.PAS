@@ -930,6 +930,7 @@ begin
     FAuditNamesArray[185,198] := 'Account';
     FAuditNamesArray[185,199] := 'UsePracticeTPRSupplierDetails';
     FAuditNamesArray[185,200] := 'FirstTimeTPRATOExtractDone';
+    FAuditNamesArray[185,201] := 'TRPATOReportRunUpToYear';
 
    FAuditTableArray[165] := 'Unscanned_Transaction';
     FAuditNamesArray[165,167] := 'Bank_Account_Number';

@@ -1222,6 +1222,7 @@ F|BSB|S|6
 F|Account|S|9
 F|UsePracticeTPRSupplierDetails|Y
 F|FirstTimeTPRATOExtractDone|Y
+F|TRPATOReportRunUpToYear|I
 E
 
 N|Unscanned Transaction|ut|165
