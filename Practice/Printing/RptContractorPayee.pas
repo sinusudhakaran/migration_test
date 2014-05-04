@@ -60,25 +60,33 @@ const
 
 type
   //----------------------------------------------------------------------------
-  TTaxablePaymentsReport = class(TBKReport)
-  protected
-    function ValidateNoPayeesforReport() : Boolean;
-    function ValidateATOMandatoryData() : boolean;
-    function GetFinacialYearEnd(aClientStartYear, aToDate : TDateTime) : TDateTime;
-  public
-    params : TPayeeParameters;
-    procedure DoATOExtractCode(aFileName : string);
-    procedure DoATOExtractValidation(var aResult : Boolean; var aMsg : string);
-    function ShowPayeeOnReport( aPayeeNo : integer) : boolean;
-  end;
-
-  //----------------------------------------------------------------------------
   PPayeeData = ^TPayeeData;
   TPayeeData = record
     Payee: TPayee;
     NoABNWithholdingTax: Money;
     TotalGST: Money;
     GrossAmount: Money;
+  end;
+  TPayeeDataList = array of TPayeeData;
+
+  //----------------------------------------------------------------------------
+  TTaxablePaymentsReport = class(TBKReport)
+  private
+    fPayeeDataList : TPayeeDataList;
+    fArePayeeTotalsCalculated : boolean;
+  protected
+    function ValidateNoPayeesforReport() : Boolean;
+    function ValidateATOMandatoryData() : boolean;
+    function GetFinacialYearEnd(aClientStartYear, aToDate : TDateTime) : TDateTime;
+    function GetTotalsForPayees() : TPayeeDataList;
+  public
+    params : TPayeeParameters;
+
+    constructor Create(RptType: TReportType); override;
+
+    procedure DoATOExtractCode(aFileName : string);
+    procedure DoATOExtractValidation(var aResult : Boolean; var aMsg : string);
+    function ShowPayeeOnReport( aPayeeNo : integer) : boolean;
   end;
 
 //------------------------------------------------------------------------------
@@ -510,7 +518,7 @@ end;
 procedure TaxablePaymentsDetail(Sender : TObject);
 var
   i : LongInt;
-  PayeeDataList: array of TPayeeData;
+  PayeeDataList: TPayeeDataList;
   PayeeData: TPayeeData;
   Payee: TPayee;
   Index: Integer;
@@ -520,17 +528,7 @@ var
 Begin
   with TTaxablePaymentsReport(Sender)  do
   begin
-    SetLength(PayeeDataList, MyClient.clPayee_List.ItemCount);
-
-    for Index := 0 to MyClient.clPayee_List.ItemCount - 1 do
-    begin
-      PayeeDataList[Index].Payee := MyClient.clPayee_List.Payee_At(Index);
-      PayeeDataList[Index].NoABNWithholdingTax := 0;
-      PayeeDataList[Index].TotalGST := 0;
-      PayeeDataList[Index].GrossAmount := 0;
-    end;
-
-    SumPayeeTotals(Params, PayeeDataList);
+    PayeeDataList := GetTotalsForPayees();
 
     RecordLines := TBKReportRecordLines.Create(TTaxablePaymentsReport(Sender), WriteColumnValue);
 
@@ -664,8 +662,7 @@ var
   ISOCodes : string;
   ATODefaultFileName : string;
 begin
- //set defaults
-
+  //set defaults
   Params := TPayeeParameters.Create(ord(Report_Taxable_Payments), MyClient,Rptbatch,DYear);
 
   with params do
@@ -757,6 +754,29 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+function TTaxablePaymentsReport.GetTotalsForPayees(): TPayeeDataList;
+var
+  PayeeIndex : integer;
+begin
+  // Work Out Totals for Payees
+  if not fArePayeeTotalsCalculated then
+  begin
+    SetLength(fPayeeDataList, MyClient.clPayee_List.ItemCount);
+    for PayeeIndex := 0 to MyClient.clPayee_List.ItemCount - 1 do
+    begin
+      fPayeeDataList[PayeeIndex].Payee := MyClient.clPayee_List.Payee_At(PayeeIndex);
+      fPayeeDataList[PayeeIndex].NoABNWithholdingTax := 0;
+      fPayeeDataList[PayeeIndex].TotalGST := 0;
+      fPayeeDataList[PayeeIndex].GrossAmount := 0;
+    end;
+    SumPayeeTotals(Params, fPayeeDataList);
+  end;
+
+  fArePayeeTotalsCalculated := true;
+  Result := fPayeeDataList;
+end;
+
+//------------------------------------------------------------------------------
 function TTaxablePaymentsReport.ValidateNoPayeesforReport() : Boolean;
 var
   PayeeIndex : integer;
@@ -789,7 +809,7 @@ var
   Payee : TPayee;
   PayeeSortedList : TStringList;
   PayeeNumber : string;
-  PayeeDataList: array of TPayeeData;
+  PayeeDataList: TPayeeDataList;
 
   //----------------------------------------------------------------------------
   procedure AddError(aError : string);
@@ -881,15 +901,7 @@ begin
     AddError('Payer Country from Other Functions | Client Details | TPAR Payer Details');
 
   // Work Out Totals for Payees
-  SetLength(PayeeDataList, MyClient.clPayee_List.ItemCount);
-  for PayeeIndex := 0 to MyClient.clPayee_List.ItemCount - 1 do
-  begin
-    PayeeDataList[PayeeIndex].Payee := MyClient.clPayee_List.Payee_At(PayeeIndex);
-    PayeeDataList[PayeeIndex].NoABNWithholdingTax := 0;
-    PayeeDataList[PayeeIndex].TotalGST := 0;
-    PayeeDataList[PayeeIndex].GrossAmount := 0;
-  end;
-  SumPayeeTotals(Params, PayeeDataList);
+  PayeeDataList := GetTotalsForPayees();
 
   // Payee Data
   PayeeSortedList := TStringList.Create();
@@ -956,20 +968,12 @@ var
   PayeeLineIndex : integer;
   Payee : TPayee;
   NoPayeeLines : boolean;
-  PayeeDataList: array of TPayeeData;
+  PayeeDataList: TPayeeDataList;
 begin
   aResult := true;
 
   // Work Out Totals for Payees
-  SetLength(PayeeDataList, MyClient.clPayee_List.ItemCount);
-  for PayeeIndex := 0 to MyClient.clPayee_List.ItemCount - 1 do
-  begin
-    PayeeDataList[PayeeIndex].Payee := MyClient.clPayee_List.Payee_At(PayeeIndex);
-    PayeeDataList[PayeeIndex].NoABNWithholdingTax := 0;
-    PayeeDataList[PayeeIndex].TotalGST := 0;
-    PayeeDataList[PayeeIndex].GrossAmount := 0;
-  end;
-  SumPayeeTotals(Params, PayeeDataList);
+  PayeeDataList := GetTotalsForPayees();
 
   PayeeCount := 0;
   for PayeeIndex := 0 to MyClient.clPayee_List.ItemCount - 1 do
@@ -995,6 +999,13 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+constructor TTaxablePaymentsReport.Create(RptType: TReportType);
+begin
+  inherited;
+  fArePayeeTotalsCalculated := false;
+end;
+
+//------------------------------------------------------------------------------
 procedure TTaxablePaymentsReport.DoATOExtractCode(aFileName : string);
 Const
   RUN_TYPE = 'P';
@@ -1013,7 +1024,7 @@ var
   PayeeStateDesc : string;
   EndOfReportDate : TDateTime;
   EndOfFinYearDate : TDateTime;
-  PayeeDataList: array of TPayeeData;
+  PayeeDataList: TPayeeDataList;
   PayerContactName : string;
   PayerContactPhone : string;
   PayerContactEmail : string;
@@ -1048,16 +1059,9 @@ begin
       GetAustraliaStateFromIndex(MyClient.clTPR_Payee_Detail.As_pRec.prStateId,
                                  PayerStateCode,
                                  PayerStateDesc);
+
       // Work Out Totals for Payees
-      SetLength(PayeeDataList, MyClient.clPayee_List.ItemCount);
-      for PayeeIndex := 0 to MyClient.clPayee_List.ItemCount - 1 do
-      begin
-        PayeeDataList[PayeeIndex].Payee := MyClient.clPayee_List.Payee_At(PayeeIndex);
-        PayeeDataList[PayeeIndex].NoABNWithholdingTax := 0;
-        PayeeDataList[PayeeIndex].TotalGST := 0;
-        PayeeDataList[PayeeIndex].GrossAmount := 0;
-      end;
-      SumPayeeTotals(Params, PayeeDataList);
+      PayeeDataList := GetTotalsForPayees();
 
       if MyClient.clTPR_Payee_Detail.As_pRec.prUsePracticeTPRSupplierDetails then
       begin
