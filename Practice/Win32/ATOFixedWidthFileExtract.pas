@@ -13,15 +13,15 @@ type
   //----------------------------------------------------------------------------
   TATOPayeeData = class
   private
-    fPayeeABNNumber : word;
+    fPayeeABNNumber : longword;
     fPayeeNonIndividualBusinessName : string;
     fPayeeAddress1 : string;
     fPayeeSuburb : string;
     fPayeeState : string;
-    fPayeePostCode : word;
-    fPayeeGrossAmountPaid : word;
-    fPayeeTaxWithheld : word;
-    fPayeeTotalGst : word;
+    fPayeePostCode : longword;
+    fPayeeGrossAmountPaid : longword;
+    fPayeeTaxWithheld : longword;
+    fPayeeTotalGst : longword;
     fPayeeAmendmentIndicator : string;
   end;
 
@@ -30,13 +30,13 @@ type
   private
     fFile : TextFile;
     fFileOpened : Boolean;
-    fTotalRecords : word;
+    fTotalRecords : longword;
 
   protected
     function RemoveMultiSpaces(aInstring : string) : string;
 
     // Ato Data Fields
-    procedure WriteNumericData(aValue : word; aLength : integer);
+    procedure WriteNumericData(aValue : longword; aLength : integer);
     procedure WriteNumericDataFromText(aValue : string; aLength : integer);
     procedure WriteAlphaNumericData(aValue : string; aLength : integer);
     procedure WriteAlphaData(aValue : string; aLength : integer);
@@ -78,7 +78,7 @@ type
                                        aSupplierEmailAddress : string);
     procedure WritePayerIdentityDataRecord(aPayerABNNumber : string;
                                            aPayerBranchNumber : string;
-                                           aPayerFinancialYear : word;
+                                           aPayerFinancialYear : longword;
                                            aPayerName : string;
                                            aPayerTradingName : string;
                                            aPayerAddress1 : string;
@@ -165,7 +165,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TATOFixedWidthFileExtract.WriteNumericData(aValue : word; aLength : integer);
+procedure TATOFixedWidthFileExtract.WriteNumericData(aValue : longword; aLength : integer);
 var
   Data : string;
   DataLength : integer;
@@ -248,9 +248,9 @@ end;
 //------------------------------------------------------------------------------
 procedure TATOFixedWidthFileExtract.WriteMoneyData(aValue : Money; aLength : integer);
 var
-  Data : word;
+  Data : longword;
 begin
-  Data := Trunc(aValue/100);
+  Data := Trunc(aValue/100);;
 
   WriteNumericData(Data, aLength);
 end;
@@ -341,7 +341,7 @@ end;
 //------------------------------------------------------------------------------
 procedure TATOFixedWidthFileExtract.WritePayerIdentityDataRecord(aPayerABNNumber : string;
                                                                  aPayerBranchNumber : string;
-                                                                 aPayerFinancialYear : word;
+                                                                 aPayerFinancialYear : longword;
                                                                  aPayerName : string;
                                                                  aPayerTradingName : string;
                                                                  aPayerAddress1 : string;
