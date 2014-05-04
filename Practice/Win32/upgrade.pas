@@ -4253,6 +4253,7 @@ const
   begin
     aClient.clTPR_Payee_Detail.As_pRec.prUsePracticeTPRSupplierDetails := true;
     aClient.clTPR_Payee_Detail.As_pRec.prFirstTimeTPRATOExtractDone := true;
+    aClient.clTPR_Payee_Detail.As_pRec.prTRPATOReportRunUpToYear := 0;
 
     for PayeeIndex := 0 to aClient.clPayee_List.ItemCount-1 do
     begin
@@ -4287,6 +4288,11 @@ const
 
       aClient.clPayee_List.Payee_At(PayeeIndex).pdFields.pdIsIndividual := true;
     end;
+  end;
+
+  procedure UpgradeToVersion183;
+  begin
+    aClient.clTPR_Payee_Detail.As_pRec.prTRPATOReportRunUpToYear := 0;
   end;
 
 begin
@@ -4658,6 +4664,13 @@ begin
       begin
         UpgradeToVersion182;
         clFile_Version := 182;
+      end;
+
+      // ATO Extract for bug fix
+      if (CLFile_Version < 183) then
+      begin
+        UpgradeToVersion183;
+        clFile_Version := 183;
       end;
    end;
 end;

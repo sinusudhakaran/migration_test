@@ -1036,8 +1036,10 @@ begin
     if not ValidateATOMandatoryData() then
       Exit;
 
+    EndOfReportDate := StDateToDateTime(Params.ToDate);
+    EndOfFinYearDate := GetFinacialYearEnd(StDateToDateTime(MyClient.clFields.clFinancial_Year_Starts), EndOfReportDate);
     PayeeAmendmentIndicator := 'O';
-    if not MyClient.clTPR_Payee_Detail.As_pRec.prFirstTimeTPRATOExtractDone then
+    if (MyClient.clTPR_Payee_Detail.As_pRec.prTRPATOReportRunUpToYear >= yearof(EndOfFinYearDate)) then
     begin
       if AskYesNo('ATO Extract', 'Has the TPAR already been lodged with the ATO for this period?', DLG_NO, 0) = DLG_YES then
         PayeeAmendmentIndicator := 'A';
@@ -1047,9 +1049,6 @@ begin
     try
       // Pre Calculated Values
       //------------------------------------------------------------------------
-      EndOfReportDate := StDateToDateTime(Params.ToDate);
-      EndOfFinYearDate := GetFinacialYearEnd(StDateToDateTime(MyClient.clFields.clFinancial_Year_Starts), EndOfReportDate);
-
       GetAustraliaStateFromIndex(AdminSystem.TPR_Supplier_Detail.As_pRec.srStateId,
                                  SupplierStateCode,
                                  SupplierStateDesc);
@@ -1165,7 +1164,9 @@ begin
     FreeAndNil(ATOExtract);
   end;
 
-  MyClient.clTPR_Payee_Detail.As_pRec.prFirstTimeTPRATOExtractDone := false;
+  if (MyClient.clTPR_Payee_Detail.As_pRec.prTRPATOReportRunUpToYear < yearof(EndOfFinYearDate)) then
+    MyClient.clTPR_Payee_Detail.As_pRec.prTRPATOReportRunUpToYear := yearof(EndOfFinYearDate);
+
   Msg := SysUtils.Format( 'ATO extract saved to ''%s''.',[ aFileName ] );
   LogUtil.LogMsg(lmInfo, UnitName, ThisMethodName + ' : ' + Msg );
   HelpfulInfoMsg( Msg, 0 );

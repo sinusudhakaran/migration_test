@@ -721,6 +721,7 @@ begin
      MyClient.ClientAuditMgr.Country := clCountry;
      MyClient.clTPR_Payee_Detail.As_pRec.prUsePracticeTPRSupplierDetails := true;
      MyClient.clTPR_Payee_Detail.As_pRec.prFirstTimeTPRATOExtractDone := true;
+     MyClient.clTPR_Payee_Detail.As_pRec.prTRPATOReportRunUpToYear := 0;
 
      {matches client file to this admin system - VERY IMPORTANT}
      clMagic_Number                     := fdMagic_Number;
