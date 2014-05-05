@@ -974,7 +974,6 @@ function TdlgPayeeDetail.ValidateForAustralia: Boolean;
     if not ValidateRequiredEditField(edtStreetAddressLine1, 'an Address') then Exit;
     if not ValidateRequiredEditField(edtSuburb, 'a Town') then Exit;
     if not ValidateRequiredEditField(edtPostCode, 'a Postcode') then Exit;
-    if not ValidateRequiredEditField(edtPhoneNumber, 'a Phone Number') then Exit;
 
     Result := True;
   end;
