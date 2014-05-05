@@ -1631,6 +1631,8 @@ var
    OldPayeeNo             : integer;
    MaintainMemScanStatus  : boolean;
 begin
+  MaintainMemScanStatus := False;
+
   try
    if Assigned(frmMain) then
    begin
@@ -2773,6 +2775,8 @@ var
    DeletedTrans: pDeleted_Transaction_Rec;
    MaintainMemScanStatus: boolean;
 begin
+  MaintainMemScanStatus := False;
+
   try
    if Assigned(frmMain) then
    begin
@@ -3373,6 +3377,8 @@ procedure TfrmCoding.DoDeleteDissection( pT : pTransaction_Rec);
 var
   MaintainMemScanStatus: boolean;
 begin
+  MaintainMemScanStatus := False;
+
   try
     if Assigned(frmMain) then
     begin
@@ -4371,6 +4377,8 @@ var
    end;
 
 begin
+  MaintainMemScanStatus := False;
+
   try
     if Assigned(frmMain) then
     begin
@@ -5152,6 +5160,8 @@ var
    Payee, aDate : integer;
    MaintainMemScanStatus: boolean;
 begin
+  MaintainMemScanStatus := False;
+
   try
     if Assigned(frmMain) then
     begin
@@ -7661,6 +7671,8 @@ var
    DefaultGSTAmt: money;
    MaintainMemScanStatus: boolean;
 begin
+   MaintainMemScanStatus := False;
+
    if tmrPayee.Enabled then
       tmrPayee.Enabled := False// So I Don't  do it agian
    else

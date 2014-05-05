@@ -1750,6 +1750,8 @@ var
    end; //RemapGSTID
 
 begin //TfrmRemapChart.RemapCharts;
+  MaintainMemScanStatus := False;
+
   if (AdminSystem.fdFields.fdCountry <> whUK) then
   begin
     if askYesNo('Are you sure','You are about to convert the Chart of Accounts'#13 +

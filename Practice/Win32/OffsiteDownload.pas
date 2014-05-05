@@ -177,6 +177,8 @@ var
 begin
   LogDebugMsg( ThisMethodName + ' starts');
 
+  MaintainMemScanStatus := False;
+
   //count how many disk images there are to process
   with MyClient.clFields do begin
      NumDisksToProcess := NoOfNewFilesToDownload( clBankLink_Code, DOWNLOADINBOXDIR, clDisk_Sequence_No);
@@ -682,6 +684,8 @@ var
   MaintainMemScanStatus: boolean;
 begin
   if ( MyClient.clFields.clDownload_From = dlAdminSystem ) then exit;
+
+  MaintainMemScanStatus := False;
 
   try
     if Assigned(frmMain) then

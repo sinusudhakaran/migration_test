@@ -1110,6 +1110,8 @@ var
   OldStatusSilent: Boolean;
   MaintainMemScanStatus: boolean;
 begin
+  MaintainMemScanStatus := false;
+
   OldStatusSilent := StatusSilent;
 
   StatusSilent := False;

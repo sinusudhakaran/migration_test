@@ -682,6 +682,7 @@ var
 
 
 begin
+  MaintainMemScanStatus := false;
   try
     if Assigned(frmMain) then
     begin
@@ -952,6 +953,7 @@ var
   BA: string;
   MaintainMemScanStatus: boolean;
 begin
+  MaintainMemScanStatus := false;
   try
     if Assigned(frmMain) then
     begin

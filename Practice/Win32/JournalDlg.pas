@@ -4677,6 +4677,7 @@ var
   OldPayeeNo: Integer;
   MaintainMemScanStatus: boolean;
 begin
+   MaintainMemScanStatus := False;
    try
      if Assigned(frmMain) then
      begin
