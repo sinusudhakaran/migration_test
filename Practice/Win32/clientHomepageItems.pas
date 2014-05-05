@@ -511,7 +511,7 @@ begin
 
    ApplicationUtils.DisableMainForm;
    try
-      CodeTheseEntries(ARange.Fromdate, ARange.ToDate ,anAccount, Options);
+      CodeTheseEntries(ARange.Fromdate, ARange.ToDate ,anAccount, Options, False);
       Client.clFields.clPeriod_Start_Date := ARange.FromDate;
       Client.clFields.clPeriod_End_Date := ARange.ToDate;
    finally
@@ -968,7 +968,7 @@ var Retrieved: Boolean;
       begin
         if Selected[P] and (FCodingStats.NoOfDownloadedEntries(P)> 0) then
         begin
-          MergeNewDataYN(Client, False, False, False, True, False);
+          MergeNewDataYN(Client, False, False, False, True, True);
 
           RefreshHomepage ([HPR_ExchangeGainLoss_NewData]);
 
