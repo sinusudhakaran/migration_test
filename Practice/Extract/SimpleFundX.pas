@@ -406,7 +406,7 @@ end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-procedure AddGuid(var ToNode: IxmlNode; const Value: string; MaxLen: integer = 16);
+procedure AddGuid(var ToNode: IxmlNode; const aName: string; const Value: string; MaxLen: integer = 16);
 var
   id: string;
   i : integer;
@@ -419,12 +419,12 @@ begin
           Break; // Thats all we can fit..
      end;
   end;
-  AddFieldNode(ToNode, 'Other_Reference', id);
+  AddFieldNode(ToNode, aName, id);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-procedure AddAccountCodeNode(AccountCode: string);
+procedure AddAccountCodeNode(var aNode: IXMLNode; AccountCode: string);
 var
   PracIniFile: TIniFile;
 begin
@@ -439,7 +439,7 @@ begin
       PracIniFile.Free;
     end;
   end;
-  AddFieldNode(FTransactionNode, 'Account_Code', AccountCode);
+  AddFieldNode(aNode, 'Account_Code', AccountCode);
 end;
 
 procedure DoClassSuperIPTransaction;
@@ -447,6 +447,10 @@ const
   ThisMethodName = 'DoClassSuperIPTransaction';
 var
   BSB, AccountNum: string;
+  ContraEntries: IXMLNode;
+  Entry: IXMLNode;
+  EntryTypeDetail: IXMLNode;
+  OtherTransaction: IXMLNode;
 
   procedure AddField(const Name, Value: string);
   begin
@@ -454,7 +458,7 @@ var
         FFields.Add(Name + '=' + Value );
   end;
 
-  procedure AddTextNode;
+  procedure AddTextNode(var aNode: IXMLNode);
   var
     Ref, Nar: string;
   begin
@@ -467,7 +471,7 @@ var
           Ref := 'BL Ref: ' + Ref
     else
        Ref := Nar;
-    AddFieldNode(FTransactionNode, 'Text', Ref, True);
+    AddFieldNode(aNode, 'Text', Ref, True);
   end;
 
 begin
@@ -480,23 +484,50 @@ begin
   begin // only create node if there are no dissections, DoClassSuperIPTransaction handles dissections
     FTransactionNode := OutputDocument.CreateElement('Transaction');
     FTransactionsNode.AppendChild(FTransactionNode);
-    AddFieldNode(FTransactionNode, 'Transaction_Type', 'Other Transaction');
+
+    // Transaction_Type
+    AddFieldNode(FTransactionNode, 'Transaction_Type', 'Bank_Transaction');
+    // Unique_Reference
     TransactionUtils.CheckExternalGUID(Transaction);
-    AddGuid(FTransactionNode, Uppercase(Transaction^.txExternal_GUID), 15); // <Other_Reference>
+    AddGuid(FTransactionNode, 'Unique_Reference', Uppercase(Transaction^.txExternal_GUID), 15);
+    // BSB and Bank_Account_No
     ProcessDiskCode(TBank_Account(Transaction^.txBank_Account).baFields.baBank_Account_Number, BSB, AccountNum);
     AddFieldNode(FTransactionNode, 'BSB', BSB);
     AddFieldNode(FTransactionNode, 'Bank_Account_No', AccountNum);
-    AddAccountCodeNode(Transaction^.txAccount); // <Account_Code>
+    // Transaction_Date
     AddFieldNode(FTransactionNode, 'Transaction_Date', Date2Str(Transaction^.txDate_Effective, FDateMask));
-    AddTextNode; // <Text>
+    // Text
+    AddTextNode(FTransactionNode);
+    // Amount
     AddFieldNode(FTransactionNode, 'Amount',
+                 FormatFloatForXml(-Transaction^.txAmount, 2, 100, Globals.PRACINI_ExtractZeroAmounts));
+
+    // Contra_Entries
+    ContraEntries := OutputDocument.CreateElement('Contra_Entries');
+    FTransactionNode.AppendChild(ContraEntries);
+    // Entry
+    Entry := OutputDocument.CreateElement('Entry');
+    ContraEntries.AppendChild(Entry);
+    // Entry_Type
+    AddFieldNode(Entry, 'Entry_Type', 'Other_Transaction');
+    // Entry_Type_Detail
+    EntryTypeDetail := OutputDocument.CreateElement('Entry_Type_Detail');
+    Entry.AppendChild(EntryTypeDetail);
+
+    // Other_Transaction
+    OtherTransaction := OutputDocument.CreateElement('Other_Transaction');
+    EntryTypeDetail.AppendChild(OtherTransaction);
+    // Account_Code
+    AddAccountCodeNode(OtherTransaction, Transaction^.txAccount);
+    // Amount
+    AddFieldNode(OtherTransaction, 'Amount',
                  FormatFloatForXml(Transaction^.txAmount, 2, 100, Globals.PRACINI_ExtractZeroAmounts));
   end;
 
   inc(NoOfEntries);
 
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends');
-end; 
+end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -505,8 +536,12 @@ const
   ThisMethodName = 'DoClassSuperIPDissection';
 var
   BSB, AccountNum: string;
+  ContraEntries: IXMLNode;
+  Entry: IXMLNode;
+  EntryTypeDetail: IXMLNode;
+  OtherTransaction: IXMLNode;
 
-  procedure AddTextNode;
+  procedure AddTextNode(var aNode: IXMLNode);
   var
     Ref, Nar: string;
   begin
@@ -520,23 +555,49 @@ var
           Ref := 'BL Ref: ' + Ref
     else
        Ref := Nar;
-    AddFieldNode(FTransactionNode, 'Text', Ref, True);
+    AddFieldNode(aNode, 'Text', Ref, True);
   end;
 begin
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins');
 
   FTransactionNode := OutputDocument.CreateElement('Transaction'); // BGL 360 export should output dissections as 'transactions'
   FTransactionsNode.AppendChild(FTransactionNode);
-  AddFieldNode(FTransactionNode, 'Transaction_Type', 'Other Transaction');
+
+  // Transaction_Type
+  AddFieldNode(FTransactionNode, 'Transaction_Type', 'Bank_Transaction');
+  // Unique_Reference
   TransactionUtils.CheckExternalGUID(Dissection);
-  AddGuid(FTransactionNode, Uppercase(Dissection^.dsExternal_GUID), 15); // <Other_Reference>
+  AddGuid(FTransactionNode, 'Unique_Reference', Uppercase(Dissection^.dsExternal_GUID), 15);
+  // BSB and Bank_Account_No
   ProcessDiskCode(TBank_Account(Dissection^.dsBank_Account).baFields.baBank_Account_Number, BSB, AccountNum);
   AddFieldNode(FTransactionNode, 'BSB', BSB);
   AddFieldNode(FTransactionNode, 'Bank_Account_No', AccountNum);
-  AddAccountCodeNode(Dissection^.dsAccount); // <Account_Code>
+  // Transaction_Date
   AddFieldNode(FTransactionNode, 'Transaction_Date', Date2Str(Dissection^.dsTransaction^.txDate_Effective, FDateMask));
-  AddTextNode; // <Text>
-  AddFieldNode(FTransactionNode, 'Amount', FormatFloatForXml(Dissection^.dsAmount));
+  // Text
+  AddTextNode(FTransactionNode);
+  // Amount
+  AddFieldNode(FTransactionNode, 'Amount', FormatFloatForXml(-Dissection^.dsAmount));
+
+  // Contra_Entries
+  ContraEntries := OutputDocument.CreateElement('Contra_Entries');
+  FTransactionNode.AppendChild(ContraEntries);
+  // Entry
+  Entry := OutputDocument.CreateElement('Entry');
+  ContraEntries.AppendChild(Entry);
+  // Entry_Type
+  AddFieldNode(Entry, 'Entry_Type', 'Other_Transaction');
+  // Entry_Type_Detail
+  EntryTypeDetail := OutputDocument.CreateElement('Entry_Type_Detail');
+  Entry.AppendChild(EntryTypeDetail);
+
+  // Other_Transaction
+  OtherTransaction := OutputDocument.CreateElement('Other_Transaction');
+  EntryTypeDetail.AppendChild(OtherTransaction);
+  // Account_Code
+  AddAccountCodeNode(OtherTransaction, Dissection^.dsAccount);
+  // Amount
+  AddFieldNode(OtherTransaction, 'Amount', FormatFloatForXml(Dissection^.dsAmount));
 
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends');
 end;
