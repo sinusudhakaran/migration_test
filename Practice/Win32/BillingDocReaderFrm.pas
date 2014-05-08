@@ -101,6 +101,8 @@ begin
   for i := 0 to Count - 1 do
     ReportImageAt(i).Free;
 
+  FreeAndNil(ReportImagesList);
+
   inherited;
 end;
 function CompareDiskNumber(Item1, Item2: Pointer): Integer;
