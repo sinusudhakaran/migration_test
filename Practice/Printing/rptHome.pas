@@ -225,6 +225,7 @@ begin
          else
             exit;
 
+      F := nil;
       Job := THomeReport.Create(ReportTypes.rptOther);
       try
          Job.LoadReportSettings(UserPrintSettings,Report_List_Names[REPORT_CLIENTHOME]);
@@ -284,6 +285,7 @@ begin
 
 
       finally
+        FreeAndNil(F);
         Job.Free;
       end;
       Dest := rdAsk; //Ask again...
