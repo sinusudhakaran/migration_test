@@ -51,6 +51,7 @@ type
     procedure cmbImagesDrawItem(Control: TWinControl; Index: Integer;
       Rect: TRect; State: TOwnerDrawState);
     procedure cbIncludeInterimReportsClick(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
   private
     { Private declarations }
     ReportImagesList : TReportImageList;
@@ -91,6 +92,11 @@ begin
   LoadReports(UserINI_Show_Interim_Reports);
 end;
 
+procedure TfrmBillingDocReader.FormDestroy(Sender: TObject);
+begin
+  FreeAndNil(ReportImagesList);
+end;
+
 { TReportImageList }
 
 destructor TReportImageList.Destroy;
@@ -100,8 +106,6 @@ begin
   //empty objects
   for i := 0 to Count - 1 do
     ReportImageAt(i).Free;
-
-  FreeAndNil(ReportImagesList);
 
   inherited;
 end;

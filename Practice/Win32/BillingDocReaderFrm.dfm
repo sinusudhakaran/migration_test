@@ -16,6 +16,7 @@ object frmBillingDocReader: TfrmBillingDocReader
   Position = poScreenCenter
   Scaled = False
   OnCreate = FormCreate
+  OnDestroy = FormDestroy
   DesignSize = (
     542
     130)
