@@ -564,7 +564,7 @@ Begin
           RecordLines.AddColumnText(6, [Payee.pdFields.pdAddress, Payee.pdFields.pdTown, AddressCode], Params.WrapColumnText)
         else
           RecordLines.AddColumnText(6, [Payee.pdFields.pdAddress, Payee.pdFields.pdAddressLine2, Payee.pdFields.pdTown, AddressCode], Params.WrapColumnText);
-          
+
         RecordLines.AddColumnValue(7, PayeeData.NoABNWithholdingTax);
         RecordLines.AddColumnValue(8, PayeeData.TotalGST);
         RecordLines.AddColumnValue(9, PayeeData.GrossAmount);
@@ -575,6 +575,8 @@ Begin
         RenderTextLine('');
       end;
     end;
+
+    FreeAndNil(RecordLines);
   end;
 end;
 
