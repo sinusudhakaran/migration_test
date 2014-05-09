@@ -33,7 +33,7 @@ object RecommendedMemorisationsFrm: TRecommendedMemorisationsFrm
     Header.Font.Style = []
     Header.Height = 21
     Header.MainColumn = 1
-    Header.Options = [hoColumnResize, hoDrag, hoVisible]
+    Header.Options = [hoColumnResize, hoDrag, hoShowSortGlyphs, hoVisible]
     ParentBackground = False
     TabOrder = 0
     TreeOptions.AutoOptions = [toAutoDropExpand, toAutoScrollOnExpand, toAutoSort, toAutoTristateTracking, toAutoDeleteMovedNodes]
@@ -125,7 +125,7 @@ object RecommendedMemorisationsFrm: TRecommendedMemorisationsFrm
     Left = 312
     Top = 448
     Bitmap = {
-      494C0101010008004C0010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C010101000800500010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000001000000001002000000000000010
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
