@@ -2401,17 +2401,17 @@ begin
   else
     AccountInfo := TAccountInformation.Create( MyClient);
 
+  GainLossCodes := TStringList.Create;
+  FMonthEndings := TMonthEndings.Create(MyClient);
   try
     AccountInfo.UseBudgetIfNoActualData     := False;
 
     HideRowsAfter := not AllRowsShowing;
     DoShowAll;
 
-    FMonthEndings := TMonthEndings.Create(MyClient);
     FMonthEndings.Refresh;
 
     // Get list of exchange gain/loss codes
-    GainLossCodes := TStringList.Create;
     for i := 0 to MyClient.clBank_Account_List.ItemCount - 1 do
     begin
       b := MyClient.clBank_Account_List.Bank_Account_At(i);
@@ -2498,8 +2498,11 @@ begin
     end; {with}
   finally
     AccountInfo.Free;
+
+    FreeAndNil(FMonthEndings);
+    FreeAndNil(GainLossCodes);
   end;
-  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' ); 
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 
 end;
 
@@ -2512,7 +2515,7 @@ begin
   if Assigned(ExceptionsToHideUnused) then
     ExceptionsToHideUnused.Clear;
   RefreshTableWithData(false, true, true);
-  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );  
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
 
 //------------------------------------------------------------------------------
