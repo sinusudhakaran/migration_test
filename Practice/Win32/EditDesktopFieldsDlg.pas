@@ -30,7 +30,7 @@ uses
   Dialogs, ovcpf, ovcbase, ovcef, ovcpb, ovcnf, StdCtrls, ExtCtrls, MoneyDef,
   bkconst, software, Buttons, cxGraphics, cxControls, cxContainer, cxEdit, cxTextEdit,
   cxMaskEdit, cxDropDownEdit, dxSkinsCore,
-  OsFont;
+  OsFont, cxLookAndFeels, cxLookAndFeelPainters;
 
 type
   TDS_Rec = record
@@ -935,12 +935,13 @@ begin
   FSkip := 0;
 
   //Temporary list to store ClassSuper Fund codes
-  FClassSuperFundList := TStringList.Create;  
+  FClassSuperFundList := TStringList.Create;
 end;
 
 procedure TdlgEditDesktopFields.FormDestroy(Sender: TObject);
 begin
   FClassSuperFundList.Free;
+  FreeAndNil(Glyph);
 end;
 
 procedure TdlgEditDesktopFields.FormKeyDown(Sender: TObject; var Key: Word;
