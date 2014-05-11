@@ -1954,7 +1954,7 @@ begin
            if assigned(pAcct) then
              SplitData[1].GSTClassCode := GetGSTClassCode(MyClient, pAcct.chGST_Class);
 
-           MemDlg.Caption := 'Create Memorisation';
+           MemDlg.Caption := 'Memorise Transaction';
          end;
 
          //**************************
