@@ -264,7 +264,7 @@ type
   function MemoriseEntry(BA: TBank_Account; tr: pTransaction_Rec; var IsAMasterMem: boolean;
                          MemLine: pMemorisation_Line_Rec = nil): boolean;
   function EditMemorisation(BA: TBank_Account; MemorisedList: TMemorisations_List;
-                            pM: TMemorisation; var DeleteSelectedMem: boolean;
+                            var pM: TMemorisation; var DeleteSelectedMem: boolean;
                             IsCopy: Boolean = False; Prefix: string = '';
                             CopySaveSeq: integer = -1;
                             aDlgEditMode: TDlgEditMode = demEdit;
@@ -2038,7 +2038,7 @@ end;
 
 //------------------------------------------------------------------------------
 function EditMemorisation(BA: TBank_Account; MemorisedList: TMemorisations_List;
-  pM: TMemorisation; var DeleteSelectedMem: boolean;
+  var pM: TMemorisation; var DeleteSelectedMem: boolean;
   IsCopy: Boolean = False; Prefix: string = ''; CopySaveSeq: integer = -1;
   aDlgEditMode: TDlgEditMode = demEdit;
   FromRecommendedMems: boolean = false): boolean;
@@ -2047,8 +2047,51 @@ function EditMemorisation(BA: TBank_Account; MemorisedList: TMemorisations_List;
 // parameters: pM   Memorisation to edit
 //
 // Returns true if ok pressed
+
+{ WORKAROUND:
+  When we fixed the FreeItem for memorisation lists because it was leaking
+  memory, it turned out that when LoadAdminSystem is called, all memorisation
+  entries are re-created, but the old ones are still being used! For example:
+  pM, Memorised_Trans, etc. All AVs.
+
+  As a workaround the Sequence_No of a memorisation is stored, and used to find
+  the 'new' memorisation in the SystemMemorisation field. This works, but
+  unfortunately had to be done four times.
+
+  Because pM is used after this function, the variable type had to be changed to
+  "var" for pM. This works for the recursive version in this function as well.
+
+  High risk change (because of the area it is in), and will require lots of
+  testing. In case of problems, a rollback will never really solve the real
+  problems that are in this area. In general, re-creating objects in the middle
+  of things is not a good idea.
+}
+
 const
    ThisMethodName = 'EditMemorisation';
+var
+  // Access required here for ReplaceMem
+  SystemMemorisation: pSystem_Memorisation_List_Rec;
+
+  //----------------------------------------------------------------------------
+  procedure ReplaceMem(var aMem: TMemorisation; const aMemSequenceNo: integer);
+  var
+    MemList: TMemorisations_List;
+    i: integer;
+    Mem: TMemorisation;
+  begin
+    MemList := TMemorisations_List(SystemMemorisation.smMemorisations);
+    for i := MemList.First to MemList.Last do
+    begin
+      Mem := MemList.Memorisation_At(i);
+      if not assigned(Mem) then
+        continue;
+      if (Mem.mdFields.mdSequence_No <> aMemSequenceNo) then
+        continue;
+      aMem := Mem;
+    end;
+  end;
+
 var
    MemDlg : TdlgMemorise;
    pAcct : pAccount_Rec;
@@ -2056,8 +2099,9 @@ var
    AmountMatchType : byte;
    MemLine : pMemorisation_Line_Rec;
    Memorised_Trans: TMemorisation;
-   SystemMemorisation: pSystem_Memorisation_List_Rec;
    SaveSeq: integer;
+   pM_SequenceNo: integer;
+   Memorised_Trans_SequenceNo: integer;
 begin
    Result := false;
    if not Assigned(pM) then
@@ -2295,6 +2339,10 @@ begin
                    SaveSeq := pM.mdFields.mdSequence_No
                  else
                    SaveSeq := CopySaveSeq;
+
+                 // WORKAROUND:
+                 pM_SequenceNo := pM.mdFields.mdSequence_No;
+
                  if LoadAdminSystem(true, ThisMethodName) then begin
                    SystemMemorisation := AdminSystem.SystemMemorisationList.FindPrefix(Prefix);
                    if not Assigned(SystemMemorisation) then begin
@@ -2306,6 +2354,9 @@ begin
                      HelpfulErrorMsg('The master memorisation can no longer be found in the Admin System.', 0);
                      Exit;
                    end else begin
+                     // WORKAROUND:
+                     ReplaceMem(pM, pM_SequenceNo);
+
                      EditMemorisedList := TMemorisations_List(SystemMemorisation.smMemorisations);
                      //Find and save memorisation
                      for i := EditMemorisedList.First to EditMemorisedList.Last do begin
@@ -2343,6 +2394,11 @@ begin
                  SaveToMemRec(Memorised_Trans, nil, chkMaster.Checked);
                  Memorised_Trans.mdFields.mdType := pm.mdFields.mdType;
                  //---COPY MASTER MEM---
+
+                 // WORKAROUND:
+                 pM_SequenceNo := pM.mdFields.mdSequence_No;
+                 Memorised_Trans_SequenceNo := Memorised_Trans.mdFields.mdSequence_No;
+
                  if LoadAdminSystem(true, ThisMethodName) then begin
                    SystemMemorisation := AdminSystem.SystemMemorisationList.FindPrefix(Prefix);
                    if not Assigned(SystemMemorisation) then begin
@@ -2354,6 +2410,10 @@ begin
                      HelpfulErrorMsg('The master memorisation can no longer be found in the Admin System.', 0);
                      Exit;
                    end else begin
+                     // WORKAROUND:
+                     ReplaceMem(pM, pM_SequenceNo);
+                     ReplaceMem(Memorised_Trans, Memorised_Trans_SequenceNo);
+
                      Memorised_Trans.mdFields.mdFrom_Master_List := True;
                      EditMemorisedList := TMemorisations_List(SystemMemorisation.smMemorisations);
                      Memorised_Trans.mdFields.mdAmount := abs(Memorised_Trans.mdFields.mdAmount) *
@@ -2362,13 +2422,24 @@ begin
                      //*** Flag Audit ***
                      SystemAuditMgr.FlagAudit(arMasterMemorisations);
                      SaveAdminSystem;
+
+                     // WORKAROUND:
+                     pM_SequenceNo := pM.mdFields.mdSequence_No;
+                     Memorised_Trans_SequenceNo := Memorised_Trans.mdFields.mdSequence_No;
+
                      LoadAdminSystem(true, ThisMethodName);
                      UnlockAdmin;
 
                      //Have to get list again after save
                      SystemMemorisation := AdminSystem.SystemMemorisationList.FindPrefix(Prefix);
+
+                     // WORKAROUND:
+                     ReplaceMem(pM, pM_SequenceNo);
+                     ReplaceMem(Memorised_Trans, Memorised_Trans_SequenceNo);
+
                      if Assigned(SystemMemorisation) then
                        MemorisedList := TMemorisations_List(SystemMemorisation.smMemorisations);
+
 
                      //Edit copy
                      if Assigned(MemorisedList) then
@@ -2387,12 +2458,12 @@ begin
                  //---END COPY MASTER MEM---
                end
                else
-               begin  
+               begin
                  SaveToMemRec(pM, nil, chkMaster.Checked);// Save this one..
 
                  Memorised_Trans := TMemorisation.Create(BA.AuditMgr);
                  SaveToMemRec(Memorised_Trans, nil, chkMaster.Checked);
-                 Memorised_Trans.mdFields.mdType := pm.mdFields.mdType;
+                 Memorised_Trans.mdFields.mdType := pM.mdFields.mdType;
                  Memorised_Trans.mdFields.mdAmount := abs(Memorised_Trans.mdFields.mdAmount) * AmountMultiplier;
                  MemorisedList.Insert_Memorisation(Memorised_Trans);
                  EditMemorisation(ba,ba.baMemorisations_List,Memorised_Trans, DeleteSelectedMem, True);
@@ -2402,13 +2473,13 @@ begin
            end;
            else if iscopy then begin
                //need to remove the copy..
-               if pm.mdFields.mdFrom_Master_List then begin
-                   MemorisedList.DelFreeItem(pm);
+               if pM.mdFields.mdFrom_Master_List then begin
+                   MemorisedList.DelFreeItem(pM);
                    if (ModalResult <> mrCancel) then
                      DeleteSelectedMem := True;
 
                end else begin
-                   ba.baMemorisations_List.DelFreeItem(pm);
+                   ba.baMemorisations_List.DelFreeItem(pM);
                end;
                Result := True;
            end;

@@ -11,7 +11,7 @@ unit SystemMemorisationList;
 interface
 
 uses
-  ECollect, Classes, SYDefs, BKDefs, ioStream, sysUtils, AuditMgr, 
+  ECollect, Classes, SYDefs, BKDefs, ioStream, sysUtils, AuditMgr,
   MemorisationsObj;
 
 type
@@ -170,7 +170,18 @@ begin
 end;
 
 procedure TSystem_Memorisation_List.FreeItem(Item: Pointer);
-begin                                                       
+var
+  pSysMem: pSystem_Memorisation_List_Rec;
+  Mems: TMemorisations_List;
+begin
+  pSysMem := pSystem_Memorisation_List_Rec(Item);
+
+  Mems := TMemorisations_List(pSysMem.smMemorisations);
+  ASSERT(Mems is TMemorisations_List);
+
+  FreeAndNil(Mems);
+  pSysMem.smMemorisations := nil;
+
   Dispose(Item);
 end;
 
