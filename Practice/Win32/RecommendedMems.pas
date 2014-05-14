@@ -290,8 +290,12 @@ var
         end;
       end;
 
-      // Check if any candidates have a matching account code, and matching
-      // statement details, and matching bank account number, if so exclude them too
+      // Check if any candidates have:
+      // * A matching account code
+      // * Matching statement details
+      // * A matching bank account number
+      // If a candidate is found that matches all of these, and isn't manually coded
+      // nor uncoded, then exclude our candidate
       // TODO: optimize this if possible
       // TODO: check if this is redundant, see similar functionality in CheckForExclusions
       for CandidatePos := 0 to Candidates.ItemCount - 1 do
