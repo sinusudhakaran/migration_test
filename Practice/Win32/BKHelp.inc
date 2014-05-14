@@ -1,6 +1,6 @@
 //------------------------------------------------------------------------------
 //
-// BKHelp.inc
+// bkhelp.inc
 //
 //------------------------------------------------------------------------------
 
@@ -48,8 +48,6 @@ const
   BKH_Cancelling_unpresented_cheques = 1045;
   BKH_Cancelling_unpresented_deposits = 1046;
   BKH_CaseWare = 1047;
-  BKH_Cash_Flow_12_months_actual = 1048;
-  BKH_Cash_Flow_12_months_actual_or_budget = 1049;
   BKH_Cash_Flow_Actual = 1050;
   BKH_Cash_Flow_Actual_and_budget = 1051;
   BKH_Cash_Flow_Actual_budget_and_variance = 1052;
@@ -515,20 +513,6 @@ const
   BKH_Using_the_budget_functions = 2041;
   BKH_Importing_historical_data = 2042;
   BKH_Importing_contact_details = 2043;
-  BKH_Coding_VAT = 2050;
-  BKH_Report_and_Graph_Options_VAT = 2051;
-  BKH_VAT_journals = 2052;
-  BKH_Finalise_accounting_period_for_VAT_purposes = 2053;
-  BKH_VAT_summary = 2054;
-  BKH_VAT_audit_trail = 2055;
-  BKH_VAT_overrides = 2056;
-  BKH_VAT_Reports = 2057;
-  BKH_VAT_return = 2058;
-  BKH_List_VAT_details = 2059;
-  BKH_List_foreign_currency_entries = 2060;
-  BKH_Setting_Practice_VAT_defaults = 2061;
-  BKH_Assigning_VAT_classes_to_the_chart_of_accounts = 2062;
-  BKH_Practice_VAT_defaults = 2063;
   BKH_Coding_Optimisation_Report = 2064;
   BKH_Converting_a_chart_of_accounts = 2065;
   BKH_Find_and_replace_a_chart_of_accounts_code = 2066;
@@ -574,21 +558,11 @@ const
   BKH_Interfacing_with_Sage_Handisoft_Superfund = 2109;
   BKH_Setting_up_the_link_to_Sage_Handisoft_Superfund = 2110;
   BKH_Transferring_transactions_to_Sage_Handisoft_Superfund = 2111;
-  BKH_Differences_between_data_frequencies = 2112;
   BKH_Creating_a_BankLink_Notes_Online_file_for_a_client_to_access = 2113;
-  BKH_Importing_a_BankLink_Notes_Online_file_into_BankLink_Practice = 2114;
   BKH_Interfacing_with_Class_Super = 2069;
   BKH_Copying_a_chart_from_Class_Super_into_BankLink_Practice = 2115;
   BKH_GST_Return_Transitional = 2116;
-  BKH_Copying_a_chart_from_Sage_50_Accounts_into_BankLink_Practice = 2117;
-  BKH_Sage_50_Accounts = 2118;
-  BKH_TASBooks = 2119;
-  BKH_Copying_a_chart_from_TASBooks_into_BankLink_Practice = 2120;
-  BKH_Maintain_Currencies = 2121;
-  BKH_Maintain_Exchange_Rates = 2122;
   BKH_Importing_a_CSV_format_chart_into_BankLink_Practice = 2124;
-  BKH_Copying_a_chart_from_QuickBooks_Pro_into_BankLink_Practice = 2125;
-  BKH_QuickBooks_Pro = 2126;
   BKH_List_Provisional_Accounts = 2132;
   BKH_What_s_New_in_BankLink_Practice_2011_ = 2133;
   BKH_Chapter_7_Historical_and_manual_data_entry = 1074;
@@ -596,7 +570,6 @@ const
   BKH_Importing_provisional_data = 2127;
   BKH_Signing_clients_onto_The_BankLink_Service = 1326;
   BKH_Combining_manual_and_system_bank_accounts = 1543;
-  BKH_Adding_manual_bank_accounts_uk = 2123;
   BKH_Merging = 1260;
   BKH_Filtering_files_in_the_Clients_page = 1620;
   BKH_The_Processing_Status_column = 1630;
@@ -619,29 +592,28 @@ const
   BKH_Copying_a_chart_from_PA_7_into_BankLink = 1132;
   BKH_Transferring_transactions_from_BankLink_to_PA_7 = 1435;
   BKH_Professional_Accounting_7 = 1457;
-  BKH_Audit_Report = 2134;
   BKH_Sending_a_client_file_via_BankLink_Online = 2135;
   BKH_Updating_a_client_file_from_BankLink_Online = 2136;
   BKH_Sending_a_client_file_to_file = 1089;
   BKH_Updating_a_client_file_from_a_folder = 1088;
   BKH_Sending_a_client_file_via_email = 1314;
   BKH_BankLink_Online_client_options = 2139;
-  BKH_Step_3_VAT_Set_Up = 2140;
   BKH_Exporting_transactions_from_BankLink_to_CCH_WebPractice = 1460;
   BKH_Importing_transactions_from_CCH_WebPractice_to_BankLink = 1461;
   BKH_Interfacing_with_CCH_WebPractice = 1459;
   BKH_Sending_reports_from_BankLink_to_CCH_WebPractice = 1532;
-  BKH_Accessing_a_Customer_Authority_Form = 2141;
-  BKH_Importing_bank_account_details_into_a_Customer_Authority_Form = 2142;
   BKH_Changing_your_password = 2138;
-  BKH_Calculate_exchange_gain_or_loss = 2143;
   BKH_Taxable_Payments_Report = 2144;
   BKH_Exporting_charges_to_MYOB_AE_Practice_Manager = 1520;
   BKH_Viewing_the_account_status = 2145;
   BKH_Exporting_and_importing_budgets = 2146;
+  BKH_Importing_a_COMPANY_NAME1_PRODUCT_NOTES_file_into_COMPANY_NAME1PRODUCT_PRACTICE = 2114;
+  BKH_Cash_Flow_12_months_actual = 1048;
+  BKH_Cash_Flow_12_months_actual_or_budget = 1049;
   BKH_Coding_transactions_for_BGL_Simple_Ledger = 2147;
   BKH_Coding_transactions_for_Class_Super = 2148;
   BKH_Coding_transactions_for_Handisoft_Superfund = 2149;
+  BKH_Suggested_memorisations = 2150;
 
 var
   //filename of HTML help file
