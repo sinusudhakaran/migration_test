@@ -1253,6 +1253,10 @@ object frmMain: TfrmMain
           Caption = 'Set Up &Sub-groups'
           OnClick = mniSetupSubgroupsClick
         end
+        object mniExportCharttoMYOBCashBooks1: TMenuItem
+          Caption = 'E&xport Chart to MYOB Essentials Cashbook'
+          OnClick = mniExportCharttoMYOBCashBooks1Click
+        end
       end
       object mniOFPayees: TMenuItem
         Caption = '&Payees'

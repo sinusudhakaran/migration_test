@@ -437,6 +437,7 @@ type
     tbBudgetExport: TRzToolButton;
     RzSpacer5: TRzSpacer;
     tbRecommendedMemorisations: TRzToolButton;
+    mniExportCharttoMYOBCashBooks1: TMenuItem;
     procedure FormResize(Sender: TObject);
     procedure tmClockTimer(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -723,6 +724,7 @@ type
     procedure tbBudgetExportClick(Sender: TObject);
     procedure tbRecommendedMemorisationsClick(Sender: TObject);
     procedure tmrMemScanTimer(Sender: TObject);
+    procedure mniExportCharttoMYOBCashBooks1Click(Sender: TObject);
   private
     { Private declarations }
     FClientInstance,
@@ -935,6 +937,7 @@ const
   mf_mcGetOnline               = 77;
   mf_mcTransactionsToBankLinkOnline = 78;
   mf_mcExchangeGainLossWizard  = 79;
+  mf_mcExportChartToMYOBEssentialsCashbook = 80;
 
   // Data Export Menu item has been disabled until at a later date the code has been completed
   DATA_EXPORT_MENU_ITEM_ENABLED = false;
@@ -1080,7 +1083,8 @@ uses
   bkProduct,
   BroadcastSystem,
   UpgradeReminder,
-  RecommendedMemorisationsFrm;
+  RecommendedMemorisationsFrm,
+  ChartExportToMYOBCashbook;
   //StockBalancesDlg;
 
 const
@@ -2636,9 +2640,16 @@ end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmMain.mniSetupSubgroupsClick(Sender: TObject);
 begin
-   IncUsage('Sub Groups');
-   DoMainFormCommand( mf_mcEditSubgroups);
+  IncUsage('Sub Groups');
+  DoMainFormCommand( mf_mcEditSubgroups);
 end;
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+procedure TfrmMain.mniExportCharttoMYOBCashBooks1Click(Sender: TObject);
+begin
+  DoMainFormCommand( mf_mcExportChartToMYOBEssentialsCashbook);
+end;
+
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmMain.DoMaintainChart;
 begin
@@ -4669,6 +4680,7 @@ begin
         mf_mcMaintainChart : DoMaintainChart;
         mf_mcEditDivisions : DivisionFrm.EditDivisions;
         mf_mcEditSubGroups : SetupSubgroupsFrm.SetupSubGroups;
+        mf_mcExportChartToMYOBEssentialsCashbook : ChartExportToMYOBEssentialsCashbook.DoChartExport(Screen.ActiveForm);
         mf_mcMaintainPayees : MaintainPayees(BKH_Payees);
         mf_mcmaintainJob:  MaintainJobHeadings;
         mf_mcMaintainBankAccounts : DoMaintainBankAccounts;
