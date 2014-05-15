@@ -1174,6 +1174,7 @@ F|BLOSecureCode|S|20
 F|Include Unused Chart Codes|Y
 F|Include Non-Posting Chart Codes|Y
 F|Add Prefix For Account Code|L
+F|Cashbook GST Map File Location|S|250
 E
 
 N|Deleted Transaction|dx|233

@@ -425,6 +425,14 @@ namespace BankLink.Practice.BooksIO
 		public Int32 AddPrefixForAccountCode { get; set; }
 
 
+
+		/// <summary>
+		/// CashbookGSTMapFileLocation property
+		/// </summary>
+		[XmlAttribute("CashbookGSTMapFileLocation", DataType = "string")]
+		public String CashbookGSTMapFileLocation { get; set; }
+
+
 		/// <summary>
 		/// Class Begin Token
 		/// </summary>
@@ -491,6 +499,7 @@ namespace BankLink.Practice.BooksIO
 			s.WriteBooleanValue(91, IncludeUnusedChartCodes);
 			s.WriteBooleanValue(92, IncludeNonPostingChartCodes);
 			s.WriteInt32Value(93, AddPrefixForAccountCode);
+			s.WriteShortStringValue(94, CashbookGSTMapFileLocation);
 			s.WriteToken(41);
 		}
 
@@ -664,6 +673,9 @@ namespace BankLink.Practice.BooksIO
 				break;
 			case 93 :
 				AddPrefixForAccountCode = s.ReadInt32Value("AddPrefixForAccountCode");
+				break;
+			case 94 :
+				CashbookGSTMapFileLocation = s.ReadShortStringValue("CashbookGSTMapFileLocation");
 				break;
 			case BeginToken :
 			case EndToken :

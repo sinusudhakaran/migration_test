@@ -9,8 +9,8 @@ Interface uses MONEYDEF, DATEDEF;
 {  -------------------------------------------------------------------  }
 
 Const
-   BK_IOLIB_Version : Integer = 719;
-   BK_IOLIB_Date    = '05/05/14';
+   BK_IOLIB_Version : Integer = 722;
+   BK_IOLIB_Date    = '15/05/14';
    BK_FILE_VERSION  = 183;  (* Current Version counter for files
                               Changes if structure or method of storing a value would cause
                               data to be represented incorrectly, or an exception to be raised *)
@@ -1311,6 +1311,7 @@ Type
       ceInclude_Unused_Chart_Codes       : Boolean;       { Stored }
       ceInclude_Non_Posting_Chart_Codes  : Boolean;       { Stored }
       ceAdd_Prefix_For_Account_Code      : Integer;       { Stored }
+      ceCashbook_GST_Map_File_Location   : String[ 250 ];       { Stored }
       ceEOR                              : Byte;
    end;
 

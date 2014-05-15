@@ -88,7 +88,11 @@ uses
   ErrorMoreFrm,
   WarningMoreFrm,
   Globals,
-  YesNoDlg;
+  YesNoDlg,
+  LogUtil;
+
+const
+  UnitName = 'FrmChartExportMapGSTClass';
 
 //------------------------------------------------------------------------------
 function ShowMapGSTClass(w_PopupParent: Forms.TForm; aGSTMapCol : TGSTMapCol) : boolean;
@@ -113,6 +117,8 @@ end;
 { TFrmChartExportMapGSTClass }
 //------------------------------------------------------------------------------
 procedure TFrmChartExportMapGSTClass.btnBrowseClick(Sender: TObject);
+const
+  ThisMethodName = 'btnBrowseClick';
 var
   FileName : string;
   ErrorStr : string;
@@ -132,13 +138,18 @@ begin
       Refesh;
     end
     else
+    begin
       HelpfulErrorMsg(ErrorStr,0);
+      LogUtil.LogMsg(lmError, UnitName, ThisMethodName + ' : ' + ErrorStr );
+    end;
   end;
   FocusGrid(virGstReMap);
 end;
 
 //------------------------------------------------------------------------------
 procedure TFrmChartExportMapGSTClass.btnSaveClick(Sender: TObject);
+const
+  ThisMethodName = 'btnSaveClick';
 var
   FileName : string;
   ErrorStr : string;
@@ -146,7 +157,10 @@ begin
   FileName := edtGstReMapFile.Text;
 
   if not GSTMapCol.SaveGSTFile(FileName, ErrorStr) then
+  begin
     HelpfulErrorMsg(ErrorStr,0);
+    LogUtil.LogMsg(lmError, UnitName, ThisMethodName + ' : ' + ErrorStr );
+  end;
 
   FocusGrid(virGstReMap);
 end;
@@ -159,6 +173,8 @@ end;
 
 //------------------------------------------------------------------------------
 procedure TFrmChartExportMapGSTClass.btnSaveAsClick(Sender: TObject);
+const
+  ThisMethodName = 'btnSaveAsClick';
 var
   FileName : string;
   ErrorStr : string;
@@ -176,7 +192,10 @@ begin
       if GSTMapCol.SaveGSTFile(FileName, ErrorStr) then
         edtGstReMapFile.Text := FileName
       else
+      begin
         HelpfulErrorMsg(ErrorStr,0);
+        LogUtil.LogMsg(lmError, UnitName, ThisMethodName + ' : ' + ErrorStr );
+      end;
   end;
   FocusGrid(virGstReMap);
 end;
@@ -436,6 +455,13 @@ end;
 //------------------------------------------------------------------------------
 function TFrmChartExportMapGSTClass.Execute: boolean;
 begin
+  if (GSTMapCol.PrevGSTFileLocation <> '') and
+     (FileExists(GSTMapCol.PrevGSTFileLocation)) then
+  begin
+    edtGstReMapFile.Text := GSTMapCol.PrevGSTFileLocation;
+    btnSave.Enabled := true;
+  end;
+
   fOkPressed := false;
   Refesh;
   SortAccountStatusList(0);
@@ -451,6 +477,9 @@ begin
     fOkPressed := false;
 
     CanClose := Validate();
+
+    if CanClose then
+      GSTMapCol.PrevGSTFileLocation := edtGstReMapFile.Text;
   end;
 end;
 

@@ -117,6 +117,7 @@ type
   TGSTMapCol = class(TCollection)
   private
     fGSTMapClassInfoArr : TGSTMapClassInfoArr;
+    fPrevGSTFileLocation : string;
   protected
     procedure AddGSTMapItem(aGstIndex : integer;
                             aPracticeGstCode : string;
@@ -143,6 +144,8 @@ type
     function LoadGSTFile(var aFileLines : TStringList; var aFileName : string; var aError : string) : Boolean; overload;
     function LoadGSTFile(var aFilename : string; var aError : string) : boolean; overload;
     function SaveGSTFile(aFilename: string; aError : string): Boolean;
+
+    property PrevGSTFileLocation : string read fPrevGSTFileLocation write fPrevGSTFileLocation;
   end;
 
   //----------------------------------------------------------------------------
@@ -181,14 +184,17 @@ function ChartExportToMYOBEssentialsCashbook() : TChartExportToMYOBCashbook;
 implementation
 
 uses
+  ErrorMoreFrm,
   FrmChartExportMapGSTClass,
   CountryUtils,
   BKConst,
   Globals,
   BKDEFS,
-  glConst;
+  glConst,
+  LogUtil;
 
 Const
+  UnitName = 'ChartExportToMYOBCashbook';
   PRAC_GST_CODE = 0;
   PRAC_GST_DESC = 1;
   CASHBOOK_GST_CODE = 2;
@@ -808,32 +814,17 @@ begin
         LineColumns.Delimiter := ',';
         LineColumns.StrictDelimiter := True;
 
-        // Clear empty practice GST Codes
-        {for LineIndex := Count-1 downto 0 do
-        begin
-          if ItemAtColIndex(LineIndex, GSTMapItem) then
-          begin
-            if GSTMapItem.fPracticeGstCode = '' then
-            begin
-              Delete(LineIndex);
-              FreeAndNil(GSTMapItem);
-            end;
-          end;
-        end; }
-
         // Finds existing GST Items updates any that are found
         for LineIndex := 0 to FileLines.Count-1 do
         begin
           LineColumns.DelimitedText := FileLines[LineIndex];
 
-          GSTClass := GetGSTClassUsingClassDesc(LineColumns[CASHBOOK_GST_CODE] + ' - ' + LineColumns[CASHBOOK_GST_DESC]);
-          if GSTClass <> cgNone then
+          if FindItemUsingPracCode(LineColumns[PRAC_GST_CODE],
+                                   GSTMapItem) then
           begin
-            if FindItemUsingPracCode(LineColumns[PRAC_GST_CODE],
-                                     GSTMapItem) then
-            begin
+            GSTClass := GetGSTClassUsingClassDesc(LineColumns[CASHBOOK_GST_CODE] + ' - ' + LineColumns[CASHBOOK_GST_DESC]);
+            if GSTClass <> cgNone then
               GSTMapItem.CashbookGstClass := GSTClass;
-            end;
           end;
         end;
 
@@ -935,6 +926,8 @@ begin
     atUncodedDR            : Result := ccNone; // ?
     atCurrentYearsEarnings : Result := ccNone; // ?
     atGSTReceivable        : Result := ccLiabilities;
+  else
+    Result := ccNone;
   end;
 end;
 
@@ -973,6 +966,8 @@ begin
     ccAsset        : Result := 1;  // DR
     ccLiabilities  : Result := -1; // CR
     ccEquity       : Result := -1; // CR
+  else
+    Result := 0; // Error
   end;
 end;
 
@@ -995,6 +990,8 @@ begin
     gtExempt         : Result := cgExempt;
     gtZeroRated      : Result := cgZeroRated;
     gtCustoms        : Result := cgCustoms
+  else
+    Result := cgNone;
   end;
 end;
 
@@ -1079,8 +1076,12 @@ end;
 
 //------------------------------------------------------------------------------
 procedure TChartExportToMYOBCashbook.DoChartExport(aPopupParent: TForm);
+const
+  ThisMethodName = 'DoChartExport';
 var
   Res : Boolean;
+  ErrorStr : string;
+  Filename : string;
 begin
   Res := true;
 
@@ -1090,6 +1091,7 @@ begin
     Exit;
   end;
 
+  GSTMapCol.PrevGSTFileLocation := MyClient.clExtra.ceCashbook_GST_Map_File_Location;
   ExportChartFrmProperties.ClientCode := MyClient.clFields.clCode;
   ChartExportCol.FillChartExportCol();
 
@@ -1097,7 +1099,32 @@ begin
   begin
     GSTMapCol.FillGstMapCol();
 
+    if GSTMapCol.PrevGSTFileLocation <> '' then
+    begin
+      if FileExists(GSTMapCol.PrevGSTFileLocation) then
+      begin
+        Filename := GSTMapCol.PrevGSTFileLocation;
+        if not GSTMapCol.LoadGSTFile(Filename, ErrorStr) then
+        begin
+          HelpfulErrorMsg(ErrorStr,0);
+          LogUtil.LogMsg(lmError, UnitName, ThisMethodName + ' : ' + ErrorStr );
+        end;
+      end;
+    end;
+
     Res := ShowMapGSTClass(aPopupParent, fGSTMapCol);
+
+    if (Res) and
+       (GSTMapCol.PrevGSTFileLocation <> MyClient.clExtra.ceCashbook_GST_Map_File_Location) and
+       (FileExists(GSTMapCol.PrevGSTFileLocation)) then
+    begin
+      if not GSTMapCol.SaveGSTFile(Filename, ErrorStr) then
+      begin
+        HelpfulErrorMsg(ErrorStr,0);
+        LogUtil.LogMsg(lmError, UnitName, ThisMethodName + ' : ' + ErrorStr );
+      end;
+      MyClient.clExtra.ceCashbook_GST_Map_File_Location := GSTMapCol.PrevGSTFileLocation;
+    end;
   end;
 
   if Res then
