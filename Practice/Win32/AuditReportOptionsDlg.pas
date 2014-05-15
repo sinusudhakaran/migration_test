@@ -106,7 +106,6 @@ begin
   Result := False;
   frmAuditReportOption := TfrmAuditReportOption.Create(Application.MainForm);
   try
-    BKHelpSetUp(frmAuditReportOption, BKH_Audit_Report);
     with frmAuditReportOption do begin
       Caption := 'Audit Report';
       pnlSelectClient.Visible := True;

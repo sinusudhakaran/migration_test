@@ -104,7 +104,6 @@ var
   ImportSelector: TfrmCAFImportSelector;
 begin
   ImportSelector := TfrmCAFImportSelector.Create(Owner);
-  BKHelpSetUp(ImportSelector, BKH_Importing_bank_account_details_into_a_Customer_Authority_Form);
   try
     if ImportSelector.ShowModal = mrOK then
     begin

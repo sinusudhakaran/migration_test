@@ -63,8 +63,6 @@ begin
     frmGainLoss.fClient := aClient;
     frmGainLoss.FPeriodEndDate := DT;
 
-    BKHelpSetup(frmGainLoss, BKH_Calculate_exchange_gain_or_loss);
-
     // Create here because in the constructor/FormCreate there's no fClient yet
     if not Assigned(frmGainLoss.fMonths) then
       frmGainLoss.fMonths := TMonthEndings.Create(frmGainLoss.fClient);

@@ -54,7 +54,7 @@ object frmAuditReportOption: TfrmAuditReportOption
         Width = 263
         Height = 21
         Style = csDropDownList
-        ItemHeight = 0
+        ItemHeight = 13
         TabOrder = 2
       end
       object rbExchangeRates: TRadioButton
@@ -186,7 +186,7 @@ object frmAuditReportOption: TfrmAuditReportOption
         Width = 263
         Height = 21
         Style = csDropDownList
-        ItemHeight = 0
+        ItemHeight = 13
         TabOrder = 2
       end
       object eTransactionID: TEdit

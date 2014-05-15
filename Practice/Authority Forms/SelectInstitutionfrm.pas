@@ -59,7 +59,6 @@ begin
     //Required for the proper handling of the window z-order so that a modal window does not show-up behind another window
     frmSelectInstitution.PopupParent := w_PopupParent;
     frmSelectInstitution.PopupMode := pmExplicit;
-    BKHelpSetUp(frmSelectInstitution, BKH_Accessing_a_Customer_Authority_Form);
 
     Result := frmSelectInstitution.Execute;
   finally

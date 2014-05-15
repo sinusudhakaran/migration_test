@@ -1718,7 +1718,7 @@ end;
 procedure TWebNotesImportForm.FormCreate(Sender: TObject);
 begin
     bkXPThemes.ThemeForm( Self);
-    BKHelpSetUp(Self, BKH_Importing_a_BankLink_Notes_Online_file_into_BankLink_Practice);
+    BKHelpSetUp(Self, BKH_Importing_COMPANY_NAME2_Notes_Online_transactions_into_COMPANY_NAME2_Practice);
     self.Caption := Format('Import from %s',[bkBranding.NotesOnlineProductName]);
     ImportedCount := 0;
     NewCount := 0;

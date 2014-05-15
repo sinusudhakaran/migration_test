@@ -518,8 +518,6 @@ begin
       FSource.Assign(MyClient.ExchangeSource);
       FBooksSecure := True;
     end;
-
-  BKHelpSetUp(Self, BKH_Maintain_Exchange_Rates);
 end;
 
 procedure TExchangeRatesfrm.FormDestroy(Sender: TObject);

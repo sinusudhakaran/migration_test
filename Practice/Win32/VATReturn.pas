@@ -301,7 +301,6 @@ end;
 procedure TfrmVAT.SetUpHelp;
 begin
    Self.ShowHint    := INI_ShowFormHints;
-   Self.HelpContext := BKH_VAT_return;
    //Components
    btnPreview.Hint     :=
                        STDHINTS.PreviewHint;

@@ -136,7 +136,6 @@ begin
     frmNewCAF.PopupParent := w_PopupParent;
     frmNewCAF.PopupMode   := pmExplicit;
     frmNewCaf.ClientEmail := aClientEmail;
-    BKHelpSetUp(frmNewCAF, BKH_Accessing_a_Customer_Authority_Form);
 
     Result := frmNewCAF.Execute(aCountry, Institution);
   finally

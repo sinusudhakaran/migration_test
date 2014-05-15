@@ -91,6 +91,10 @@ object frmVAT: TfrmVAT
     TabOrder = 1
     object tsVATCalculation: TTabSheet
       Caption = 'VAT Calculation'
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object sbGST: TScrollBox
         Left = 0
         Top = 0

@@ -202,8 +202,6 @@ begin
   try
     with Wizard do
     begin
-      BKHelpSetup(Wizard, BKH_Calculate_exchange_gain_or_loss);
-
       fClient := aClient;
 
       // Validate bank accounts

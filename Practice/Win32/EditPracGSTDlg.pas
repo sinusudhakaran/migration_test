@@ -347,8 +347,6 @@ begin
   case Country of
     whNewZealand, whAustralia:
       BKHelpSetUp(self, BKH_Setting_Practice_GST_Defaults);
-    whUK:
-      BKHelpSetUp(self, BKH_Setting_Practice_VAT_defaults);
   end;
 end;
 //------------------------------------------------------------------------------

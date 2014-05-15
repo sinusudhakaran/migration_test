@@ -114,7 +114,14 @@ object dlgEditPracGST: TdlgEditPracGST
           OnGetCellAttributes = tblRatesGetCellAttributes
           OnUserCommand = tblRatesUserCommand
           CellData = (
-            'dlgEditPracGST.OvcTCColHead1')
+            'dlgEditPracGST.OvcTCColHead1'
+            'dlgEditPracGST.colAccount'
+            'dlgEditPracGST.colRate3'
+            'dlgEditPracGST.colRate2'
+            'dlgEditPracGST.colRate1'
+            'dlgEditPracGST.celGSTType'
+            'dlgEditPracGST.colDesc'
+            'dlgEditPracGST.ColID')
           RowData = (
             22)
           ColData = (
@@ -562,7 +569,6 @@ object dlgEditPracGST: TdlgEditPracGST
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd]
     PictureMask = '###.####'
     Table = tblRates
     Left = 168
@@ -579,7 +585,6 @@ object dlgEditPracGST: TdlgEditPracGST
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd]
     PictureMask = '###.####'
     Table = tblRates
     Left = 208
@@ -596,7 +601,6 @@ object dlgEditPracGST: TdlgEditPracGST
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd]
     PictureMask = '###.####'
     Table = tblRates
     Left = 248
