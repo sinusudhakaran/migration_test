@@ -607,13 +607,13 @@ const
   BKH_Exporting_charges_to_MYOB_AE_Practice_Manager = 1520;
   BKH_Viewing_the_account_status = 2145;
   BKH_Exporting_and_importing_budgets = 2146;
-  BKH_Importing_a_COMPANY_NAME1_PRODUCT_NOTES_file_into_COMPANY_NAME1PRODUCT_PRACTICE = 2114;
   BKH_Cash_Flow_12_months_actual = 1048;
   BKH_Cash_Flow_12_months_actual_or_budget = 1049;
   BKH_Coding_transactions_for_BGL_Simple_Ledger = 2147;
   BKH_Coding_transactions_for_Class_Super = 2148;
   BKH_Coding_transactions_for_Handisoft_Superfund = 2149;
   BKH_Suggested_memorisations = 2150;
+  BKH_Importing_COMPANY_NAME2_Notes_Online_transactions_into_COMPANY_NAME2_Practice = 2114;
 
 var
   //filename of HTML help file
