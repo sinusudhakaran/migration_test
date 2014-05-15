@@ -263,7 +263,7 @@ begin
   Check(BankBalances.LastChild.SelectSingleNode('BSB').Text = '67890');
   Transactions := XmlTestDoc.LastChild.LastChild.ChildNodes.Item[2];
   Check(Transactions.FirstChild.SelectSingleNode('Transaction_Date').Text = '01/04/2004');
-  Check(Transactions.ChildNodes.Item[1].SelectSingleNode('Amount').Text = '60.00');
+  Check(Transactions.ChildNodes.Item[1].SelectSingleNode('Amount').Text = '-60.00');
   Check(Transactions.ChildNodes.Item[2].SelectSingleNode('Text').Text = 'Line 2');
 end;
 
