@@ -188,6 +188,7 @@ implementation
 uses
   ErrorMoreFrm,
   FrmChartExportMapGSTClass,
+  FrmChartExportAccountCodeErrors,
   CountryUtils,
   BKConst,
   Globals,
@@ -1107,6 +1108,7 @@ var
   Res : Boolean;
   ErrorStr : string;
   Filename : string;
+  ErrorStrings : TStringList;
 begin
   Res := true;
 
@@ -1115,6 +1117,18 @@ begin
     Res := false;
     Exit;
   end;
+
+  ErrorStrings := TStringList.Create;
+  Try
+    if not ChartExportCol.CheckAccountCodesLength(ErrorStrings) then
+    begin
+      ShowChartExportAccountCodeErrors(Application.MainForm, ErrorStrings);
+      Res := false;
+      Exit;
+    end;
+  Finally
+    FreeAndNil(ErrorStrings);
+  End;
 
   ExportChartFrmProperties.ClientCode := MyClient.clFields.clCode;
   ChartExportCol.FillChartExportCol();
