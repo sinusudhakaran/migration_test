@@ -297,7 +297,7 @@ begin
 
    FChangesMade := False;
 
-   BKHelpSetUp(Self, BKH_Maintain_Currencies);
+//   BKHelpSetUp(Self, BKH_Maintain_Currencies);
 end;
 
 procedure TCurrenciesFrm.FormDestroy(Sender: TObject);
