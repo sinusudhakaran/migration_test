@@ -19,7 +19,8 @@ uses
   ovcef,
   ovcpb,
   ovcpf,
-  Buttons;
+  Buttons,
+  ExtCtrls;
 
 type
   //----------------------------------------------------------------------------
@@ -28,31 +29,31 @@ type
     fExportBasicChart : boolean;
     fIncludeClosingBalances : boolean;
     fClosingBalanceDate: TDateTime;
-    fFilePath : string;
     fClientCode : string;
+    fExportFileLocation : string;
   public
     property ExportBasicChart : boolean read fExportBasicChart write fExportBasicChart;
     property IncludeClosingBalances : boolean read fIncludeClosingBalances write fIncludeClosingBalances;
     property ClosingBalanceDate: TDateTime read fClosingBalanceDate write fClosingBalanceDate;
-    property FilePath : string read fFilePath write fFilePath;
     property ClientCode : string read fClientCode write fClientCode;
+    property ExportFileLocation : string read fExportFileLocation write fExportFileLocation;
   end;
 
   //------------------------------------------------------------------------------
   TFrmChartExportToMYOBCashBook = class(TForm)
-    grpMain: TGroupBox;
-    lblSaveEntriesTo: TLabel;
-    btnToFolder: TSpeedButton;
-    edtSaveEntriesTo: TEdit;
     btnOk: TButton;
     btnCancel: TButton;
-    dteClosingBalanceDate: TOvcPictureField;
+    SaveDialog: TSaveDialog;
+    pnlMain: TPanel;
     lblExportText: TLabel;
     radExportFullChart: TRadioButton;
     radExportBasicChart: TRadioButton;
     chkIncludeClosingBalances: TCheckBox;
     lblClosingBalanceDate: TLabel;
-    SaveDialog: TSaveDialog;
+    dteClosingBalanceDate: TOvcPictureField;
+    lblSaveEntriesTo: TLabel;
+    edtSaveEntriesTo: TEdit;
+    btnToFolder: TSpeedButton;
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
     procedure chkIncludeClosingBalancesClick(Sender: TObject);
     procedure FormActivate(Sender: TObject);
@@ -78,7 +79,9 @@ implementation
 
 uses
   ImagesFrm,
-  BKConst;
+  BKConst,
+  YesNoDlg,
+  glConst;
 
 //------------------------------------------------------------------------------
 function ShowChartExport(w_PopupParent: Forms.TForm; aExportChartFrmProperties : TExportChartFrmProperties) : boolean;
@@ -123,6 +126,7 @@ end;
 //------------------------------------------------------------------------------
 procedure TFrmChartExportToMYOBCashBook.btnToFolderClick(Sender: TObject);
 begin
+  SaveDialog.FileName := edtSaveEntriesTo.Text;
   if SaveDialog.Execute then
     edtSaveEntriesTo.Text := SaveDialog.FileName;
 end;
@@ -142,6 +146,17 @@ end;
 //------------------------------------------------------------------------------
 function TFrmChartExportToMYOBCashBook.ValidateForm: boolean;
 begin
+  if FileExists(edtSaveEntriesTo.Text) then
+  begin
+    if not (AskYesNo('Overwrite File','The file ' +
+                    ExtractFileName(edtSaveEntriesTo.Text) +
+                    ' already exists. Overwrite?', dlg_yes, 0) = DLG_YES) then
+    begin
+      Result := false;
+      Exit;
+    end;
+  end;
+
   Result := true;
 end;
 
@@ -162,7 +177,7 @@ begin
 
     chkIncludeClosingBalances.Checked := ExportChartFrmProperties.IncludeClosingBalances;
     dteClosingBalanceDate.AsDateTime := ExportChartFrmProperties.fClosingBalanceDate;
-    edtSaveEntriesTo.Text := ExportChartFrmProperties.FilePath;
+    edtSaveEntriesTo.Text := ExportChartFrmProperties.ExportFileLocation;
   end;
 
   Result := (ShowModal = mrOK);
@@ -175,7 +190,7 @@ begin
       ExportChartFrmProperties.ExportBasicChart := (radExportBasicChart.Checked);
       ExportChartFrmProperties.IncludeClosingBalances := chkIncludeClosingBalances.Checked;
       ExportChartFrmProperties.fClosingBalanceDate := dteClosingBalanceDate.AsDateTime;
-      ExportChartFrmProperties.FilePath := edtSaveEntriesTo.Text;
+      ExportChartFrmProperties.ExportFileLocation := edtSaveEntriesTo.Text;
     end;
   end;
 end;

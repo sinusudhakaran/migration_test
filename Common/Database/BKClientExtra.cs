@@ -433,6 +433,14 @@ namespace BankLink.Practice.BooksIO
 		public String CashbookGSTMapFileLocation { get; set; }
 
 
+
+		/// <summary>
+		/// CashbookExportFileLocation property
+		/// </summary>
+		[XmlAttribute("CashbookExportFileLocation", DataType = "string")]
+		public String CashbookExportFileLocation { get; set; }
+
+
 		/// <summary>
 		/// Class Begin Token
 		/// </summary>
@@ -500,6 +508,7 @@ namespace BankLink.Practice.BooksIO
 			s.WriteBooleanValue(92, IncludeNonPostingChartCodes);
 			s.WriteInt32Value(93, AddPrefixForAccountCode);
 			s.WriteShortStringValue(94, CashbookGSTMapFileLocation);
+			s.WriteShortStringValue(95, CashbookExportFileLocation);
 			s.WriteToken(41);
 		}
 
@@ -676,6 +685,9 @@ namespace BankLink.Practice.BooksIO
 				break;
 			case 94 :
 				CashbookGSTMapFileLocation = s.ReadShortStringValue("CashbookGSTMapFileLocation");
+				break;
+			case 95 :
+				CashbookExportFileLocation = s.ReadShortStringValue("CashbookExportFileLocation");
 				break;
 			case BeginToken :
 			case EndToken :

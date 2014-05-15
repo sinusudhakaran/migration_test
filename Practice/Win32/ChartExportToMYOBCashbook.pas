@@ -71,6 +71,7 @@ type
     destructor Destroy; override;
 
     procedure FillChartExportCol();
+    function CheckAccountCodesLength(aErrors : TStringList) : Boolean;
     function ItemAtColIndex(aClientChartIndex: integer; out aChartExportItem : TChartExportItem) : boolean;
   end;
 
@@ -165,6 +166,7 @@ type
     procedure GetMYOBCashbookGSTDetails(aCashBookGstClass : TCashBookGSTClasses;
                                         var aCashBookGstClassCode : string;
                                         var aCashBookGstClassDesc : string);
+    function RunExportChartToFile(aErrorStr : string) : boolean;
   public
     constructor Create;
     destructor Destroy; override;
@@ -255,6 +257,23 @@ begin
                        AccountRec.chAccount_Type,
                        AccountRec.chGST_Class);
   end;
+end;
+
+//------------------------------------------------------------------------------
+function TChartExportCol.CheckAccountCodesLength(aErrors : TStringList) : Boolean;
+var
+  ChartIndex : integer;
+  AccountRec : pAccount_Rec;
+begin
+  for ChartIndex := 0 to MyClient.clChart.ItemCount-1 do
+  begin
+    AccountRec := MyClient.clChart.Account_At(ChartIndex);
+
+    if length(AccountRec.chAccount_Code) > 10 then
+      aErrors.Add(AccountRec.chAccount_Code + ' - ' + AccountRec.chAccount_Description);
+  end;
+
+  Result := (aErrors.Count = 0);
 end;
 
 //------------------------------------------------------------------------------
@@ -1049,6 +1068,12 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+function TChartExportToMYOBCashbook.RunExportChartToFile(aErrorStr : string): boolean;
+begin
+  Result := true;
+end;
+
+//------------------------------------------------------------------------------
 constructor TChartExportToMYOBCashbook.Create;
 begin
   fCountry := GetCountry();
@@ -1060,7 +1085,7 @@ begin
   ExportChartFrmProperties.ExportBasicChart := false;
   ExportChartFrmProperties.IncludeClosingBalances := false;
   ExportChartFrmProperties.ClosingBalanceDate := now();
-  ExportChartFrmProperties.FilePath := '';
+  ExportChartFrmProperties.ExportFileLocation := '';
   ExportChartFrmProperties.ClientCode := '';
 end;
 
@@ -1091,12 +1116,12 @@ begin
     Exit;
   end;
 
-  GSTMapCol.PrevGSTFileLocation := MyClient.clExtra.ceCashbook_GST_Map_File_Location;
   ExportChartFrmProperties.ClientCode := MyClient.clFields.clCode;
   ChartExportCol.FillChartExportCol();
 
   if (Country = whAustralia) then
   begin
+    GSTMapCol.PrevGSTFileLocation := MyClient.clExtra.ceCashbook_GST_Map_File_Location;
     GSTMapCol.FillGstMapCol();
 
     if GSTMapCol.PrevGSTFileLocation <> '' then
@@ -1114,21 +1139,49 @@ begin
 
     Res := ShowMapGSTClass(aPopupParent, fGSTMapCol);
 
-    if (Res) and
-       (GSTMapCol.PrevGSTFileLocation <> MyClient.clExtra.ceCashbook_GST_Map_File_Location) and
-       (FileExists(GSTMapCol.PrevGSTFileLocation)) then
+    if Res then
     begin
-      if not GSTMapCol.SaveGSTFile(Filename, ErrorStr) then
+      Res := GSTMapCol.SaveGSTFile(Filename, ErrorStr);
+
+      if Res then
+      begin
+        if (GSTMapCol.PrevGSTFileLocation <> MyClient.clExtra.ceCashbook_GST_Map_File_Location) then
+          MyClient.clExtra.ceCashbook_GST_Map_File_Location := GSTMapCol.PrevGSTFileLocation;
+      end
+      else
       begin
         HelpfulErrorMsg(ErrorStr,0);
         LogUtil.LogMsg(lmError, UnitName, ThisMethodName + ' : ' + ErrorStr );
       end;
-      MyClient.clExtra.ceCashbook_GST_Map_File_Location := GSTMapCol.PrevGSTFileLocation;
     end;
   end;
 
   if Res then
+  begin
+    if (MyClient.clExtra.ceCashbook_Export_File_Location = '') then
+      ExportChartFrmProperties.ExportFileLocation := UserDir + MyClient.clFields.clCode +
+                                                     '_MYOB_CashBook_Chart.csv'
+    else
+      ExportChartFrmProperties.ExportFileLocation := MyClient.clExtra.ceCashbook_Export_File_Location;
+
     Res := ShowChartExport(aPopupParent, ExportChartFrmProperties);
+
+    if Res then
+    begin
+      Res := RunExportChartToFile(ErrorStr);
+
+      if Res then
+      begin
+        if (ExportChartFrmProperties.ExportFileLocation <> MyClient.clExtra.ceCashbook_Export_File_Location) then
+          MyClient.clExtra.ceCashbook_Export_File_Location := ExportChartFrmProperties.ExportFileLocation;
+      end
+      else
+      begin
+        HelpfulErrorMsg(ErrorStr,0);
+        LogUtil.LogMsg(lmError, UnitName, ThisMethodName + ' : ' + ErrorStr );
+      end;
+    end;
+  end;
 end;
 
 //------------------------------------------------------------------------------

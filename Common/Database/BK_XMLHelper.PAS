@@ -3121,6 +3121,7 @@ begin
 	SetBoolAttr(Result, 'IncludeNonPostingChartCodes', ceInclude_Non_Posting_Chart_Codes);
 	SetIntAttr(Result, 'AddPrefixForAccountCode', ceAdd_Prefix_For_Account_Code);
 	SetTextAttr(Result, 'CashbookGSTMapFileLocation', ceCashbook_GST_Map_File_Location);
+	SetTextAttr(Result, 'CashbookExportFileLocation', ceCashbook_Export_File_Location);
 
 	CNode := nil;
 	CCNode := nil;
@@ -3277,6 +3278,7 @@ begin
 	ceInclude_Non_Posting_Chart_Codes := GetBoolAttr(Result, 'IncludeNonPostingChartCodes');
 	ceAdd_Prefix_For_Account_Code := GetIntAttr(Result, 'AddPrefixForAccountCode');
 	ceCashbook_GST_Map_File_Location := GetTextAttr(Result, 'CashbookGSTMapFileLocation');
+	ceCashbook_Export_File_Location := GetTextAttr(Result, 'CashbookExportFileLocation');
 	except
 		on E: Exception do ReRaise (E, 'Reading TClientExtra_Rec');
 	end;

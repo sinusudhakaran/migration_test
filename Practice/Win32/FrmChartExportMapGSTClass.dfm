@@ -26,7 +26,7 @@ object FrmChartExportMapGSTClass: TFrmChartExportMapGSTClass
     Left = 0
     Top = -5
     Width = 786
-    Height = 489
+    Height = 494
     Anchors = [akLeft, akTop, akRight, akBottom]
     Color = clWhite
     Font.Charset = DEFAULT_CHARSET
@@ -40,7 +40,7 @@ object FrmChartExportMapGSTClass: TFrmChartExportMapGSTClass
     TabOrder = 0
     DesignSize = (
       786
-      489)
+      494)
     object lblGstRemapFile: TLabel
       Left = 12
       Top = 12
@@ -115,7 +115,7 @@ object FrmChartExportMapGSTClass: TFrmChartExportMapGSTClass
       Left = 3
       Top = 71
       Width = 780
-      Height = 415
+      Height = 420
       Anchors = [akLeft, akTop, akRight, akBottom]
       Colors.HotColor = clMenuText
       Colors.UnfocusedSelectionColor = clHighlight
@@ -139,6 +139,7 @@ object FrmChartExportMapGSTClass: TFrmChartExportMapGSTClass
       OnPaintText = virGstReMapPaintText
       OnHeaderClick = virGstReMapHeaderClick
       OnNewText = virGstReMapNewText
+      ExplicitHeight = 415
       Columns = <
         item
           Position = 0
