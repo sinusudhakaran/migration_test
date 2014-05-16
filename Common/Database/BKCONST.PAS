@@ -600,7 +600,7 @@ CONST
    saAcclipse = 52;
    saMYOBAccRight = 53;
    saBGL360 = 54;
-   saMax = {54}53; // hiding BGL 360 in v5.25 and v5.26, change this back to 54 when we want to unhide it
+   saMax = 54; // hiding BGL 360 in v5.25 and v5.26, change this back to 54 when we want to unhide it
 
    saNames : Array[ saMin..saMax ] of String[36] =
       //'123456789012345678901234567890'
@@ -657,8 +657,8 @@ CONST
         'ProSuper',                                   //saProSuper
         'Sage HandiSoft SuperFund',                   //saSageHandisoftSuperfund
         'iFirm',                                      //saAcclipse
-        'MYOB General Journals (2012)'               //snMYOBAccRight
-//        'BGL Simple Fund 360'                         //saBGL360
+        'MYOB General Journals (2012)',                //snMYOBAccRight
+        'BGL Simple Fund 360'                         //saBGL360
       );
 
       DESKTOP_SUPER_CHART_FILENAME = 'Desktop Super Chart List.csv';
