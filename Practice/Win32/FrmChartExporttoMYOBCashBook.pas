@@ -59,7 +59,9 @@ type
     procedure FormActivate(Sender: TObject);
     procedure btnToFolderClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
+    procedure btnOkClick(Sender: TObject);
   private
+    fOkPressed : boolean;
     fExportChartFrmProperties : TExportChartFrmProperties;
   protected
     procedure DoRebranding();
@@ -107,7 +109,13 @@ end;
 //------------------------------------------------------------------------------
 procedure TFrmChartExportToMYOBCashBook.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
 begin
-  CanClose := ValidateForm();
+  CanClose := true;
+  if fOkPressed then
+  begin
+    fOkPressed := false;
+
+    CanClose := ValidateForm();
+  end;
 end;
 
 //------------------------------------------------------------------------------
@@ -121,6 +129,12 @@ end;
 procedure TFrmChartExportToMYOBCashBook.FormActivate(Sender: TObject);
 begin
   chkIncludeClosingBalancesClick(Sender);
+end;
+
+//------------------------------------------------------------------------------
+procedure TFrmChartExportToMYOBCashBook.btnOkClick(Sender: TObject);
+begin
+  fOkPressed := true;
 end;
 
 //------------------------------------------------------------------------------
@@ -163,12 +177,13 @@ end;
 //------------------------------------------------------------------------------
 function TFrmChartExportToMYOBCashBook.Execute: boolean;
 begin
+  fOkPressed := false;
   ImagesFrm.AppImages.Misc.GetBitmap(MISC_FINDFOLDER_BMP,btnToFolder.Glyph);
 
   // Load Default Properties
   if Assigned(ExportChartFrmProperties) then
   begin
-    Self.Caption := 'Export {' + ExportChartFrmProperties.ClientCode + '}''s Chart of Accounts to Cashbook';
+    Self.Caption := 'Export ' + ExportChartFrmProperties.ClientCode + '''s Chart of Accounts to Cashbook';
 
     if ExportChartFrmProperties.ExportBasicChart then
       radExportBasicChart.Checked := true

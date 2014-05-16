@@ -4,8 +4,8 @@ object FrmChartExporttoMYOBCashBook: TFrmChartExporttoMYOBCashBook
   BorderIcons = [biSystemMenu]
   BorderStyle = bsDialog
   Caption = 'Export {ClientCode}'#39's Chart of Accounts to Cashbook'
-  ClientHeight = 317
-  ClientWidth = 515
+  ClientHeight = 316
+  ClientWidth = 652
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -18,13 +18,13 @@ object FrmChartExporttoMYOBCashBook: TFrmChartExporttoMYOBCashBook
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
   DesignSize = (
-    515
-    317)
+    652
+    316)
   PixelsPerInch = 96
   TextHeight = 13
   object btnOk: TButton
-    Left = 351
-    Top = 284
+    Left = 488
+    Top = 283
     Width = 75
     Height = 25
     Anchors = [akRight, akBottom]
@@ -38,11 +38,13 @@ object FrmChartExporttoMYOBCashBook: TFrmChartExporttoMYOBCashBook
     ModalResult = 1
     ParentFont = False
     TabOrder = 0
-    ExplicitTop = 303
+    OnClick = btnOkClick
+    ExplicitLeft = 351
+    ExplicitTop = 284
   end
   object btnCancel: TButton
-    Left = 432
-    Top = 284
+    Left = 569
+    Top = 283
     Width = 75
     Height = 25
     Anchors = [akRight, akBottom]
@@ -56,27 +58,33 @@ object FrmChartExporttoMYOBCashBook: TFrmChartExporttoMYOBCashBook
     ModalResult = 2
     ParentFont = False
     TabOrder = 1
-    ExplicitTop = 303
+    ExplicitLeft = 432
+    ExplicitTop = 284
   end
   object pnlMain: TPanel
     Left = 8
     Top = 8
-    Width = 499
-    Height = 270
+    Width = 636
+    Height = 269
+    Anchors = [akLeft, akTop, akRight, akBottom]
     BevelKind = bkFlat
     BevelOuter = bvNone
     Color = clWhite
     ParentBackground = False
     TabOrder = 2
+    ExplicitWidth = 499
+    ExplicitHeight = 270
     DesignSize = (
-      495
-      266)
+      632
+      265)
     object lblExportText: TLabel
       Left = 20
       Top = 16
-      Width = 365
+      Width = 591
       Height = 16
-      Caption = 'Export MYOB BankLink Practice chart of accounts to .CSV file for'
+      Caption = 
+        'Export MYOB BankLink Practice chart of accounts to .CSV file for' +
+        ' import into MYOB Essentials Cashbook.'
       FocusControl = edtSaveEntriesTo
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
@@ -87,7 +95,7 @@ object FrmChartExporttoMYOBCashBook: TFrmChartExporttoMYOBCashBook
     end
     object lblClosingBalanceDate: TLabel
       Left = 77
-      Top = 161
+      Top = 153
       Width = 119
       Height = 16
       Caption = 'Closing Balance Date'
@@ -101,7 +109,7 @@ object FrmChartExporttoMYOBCashBook: TFrmChartExporttoMYOBCashBook
     end
     object lblSaveEntriesTo: TLabel
       Left = 28
-      Top = 211
+      Top = 206
       Width = 86
       Height = 16
       Anchors = [akLeft, akBottom]
@@ -116,8 +124,8 @@ object FrmChartExporttoMYOBCashBook: TFrmChartExporttoMYOBCashBook
       ExplicitTop = 215
     end
     object btnToFolder: TSpeedButton
-      Left = 456
-      Top = 207
+      Left = 589
+      Top = 202
       Width = 25
       Height = 24
       Hint = 'Click to Select a Folder'
@@ -168,6 +176,7 @@ object FrmChartExporttoMYOBCashBook: TFrmChartExporttoMYOBCashBook
       Width = 169
       Height = 17
       Caption = 'Include closing balances'
+      Enabled = False
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
       Font.Height = -13
@@ -179,7 +188,7 @@ object FrmChartExporttoMYOBCashBook: TFrmChartExporttoMYOBCashBook
     end
     object dteClosingBalanceDate: TOvcPictureField
       Left = 215
-      Top = 161
+      Top = 153
       Width = 105
       Height = 20
       Cursor = crIBeam
@@ -211,8 +220,8 @@ object FrmChartExporttoMYOBCashBook: TFrmChartExporttoMYOBCashBook
     end
     object edtSaveEntriesTo: TEdit
       Left = 120
-      Top = 209
-      Width = 330
+      Top = 204
+      Width = 463
       Height = 22
       Anchors = [akLeft, akRight, akBottom]
       Ctl3D = False
@@ -226,14 +235,14 @@ object FrmChartExporttoMYOBCashBook: TFrmChartExporttoMYOBCashBook
       ParentShowHint = False
       ShowHint = True
       TabOrder = 4
-      ExplicitTop = 213
-      ExplicitWidth = 334
+      ExplicitTop = 205
+      ExplicitWidth = 326
     end
   end
   object SaveDialog: TSaveDialog
     Filter = 'CSV Files (*.CSV)|*.CSV'
     Title = 'Save Entries to'
-    Left = 320
+    Left = 432
     Top = 280
   end
 end

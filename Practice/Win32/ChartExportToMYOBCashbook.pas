@@ -163,10 +163,13 @@ type
 
     function GetGSTClassTypeIndicatorFromGSTClass(aGST_Class : byte) : byte;
     function GetMappedNZGSTTypeCode(aGSTClassTypeIndicator : byte) : TCashBookGSTClasses;
+    function CheckNZGStTypes() : boolean;
+    function CheckReportGroups() : boolean;
     procedure GetMYOBCashbookGSTDetails(aCashBookGstClass : TCashBookGSTClasses;
                                         var aCashBookGstClassCode : string;
                                         var aCashBookGstClassDesc : string);
-    function RunExportChartToFile(aErrorStr : string) : boolean;
+    function RunExportChartToFile(aFilename : string;
+                                  aErrorStr : string) : boolean;
   public
     constructor Create;
     destructor Destroy; override;
@@ -187,6 +190,8 @@ implementation
 
 uses
   ErrorMoreFrm,
+  WarningMoreFrm,
+  InfoMoreFrm,
   FrmChartExportMapGSTClass,
   FrmChartExportAccountCodeErrors,
   CountryUtils,
@@ -213,6 +218,22 @@ begin
     fChartExportToMYOBCashbook := TChartExportToMYOBCashbook.Create;
 
   Result := fChartExportToMYOBCashbook;
+end;
+
+//------------------------------------------------------------------------------
+function GetIOErrorDescription(ErrorCode: integer; ErrorMsg: string): string;
+begin
+  case ErrorCode of
+    2  : Result := 'No such file or directory';
+    3  : Result := 'Path not found';
+    5  : Result := 'I/O Error';
+    13 : Result := 'Permission denied';
+    20 : Result := 'Not a directory';
+    21 : Result := 'Is a directory';
+    32 : Result := 'Check that the file is not already open and try again.';
+  else
+    Result := ErrorMsg;
+  end;
 end;
 
 { TChartExportCol }
@@ -666,7 +687,7 @@ function TGSTMapCol.GetGSTClassCode(aCashbookGstClass: TCashBookGSTClasses): str
 var
   GstClassIndex : integer;
 begin
-  Result := '';
+  Result := 'NTR';
   for GstClassIndex := 0 to length(GetGSTClassMapArr)-1  do
   begin
     if aCashbookGstClass = GetGSTClassMapArr[GstClassIndex].CashbookGstClass then
@@ -964,7 +985,7 @@ begin
     ccExpense      : Result := 'Expense';
     ccOtherIncome  : Result := 'OtherIncome';
     ccOtherExpense : Result := 'OtherExpense';
-    ccAsset        : Result := 'Asset';
+    ccAsset        : Result := 'Assets';
     ccLiabilities  : Result := 'Liabilities';
     ccEquity       : Result := 'Equity';
   end;
@@ -1012,6 +1033,44 @@ begin
     gtCustoms        : Result := cgCustoms
   else
     Result := cgNone;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+function TChartExportToMYOBCashbook.CheckNZGStTypes() : boolean;
+var
+  GstIndex : integer;
+begin
+  Result := true;
+
+  for GstIndex := 0 to high(MyClient.clfields.clGST_Class_Names) do
+  begin
+    if MyClient.clfields.clGST_Class_Names[GstIndex] > '' then
+    begin
+      if GetGSTClassTypeIndicatorFromGSTClass(GstIndex) = 0 then
+      begin
+        Result := false;
+        Exit;
+      end;
+    end;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+function TChartExportToMYOBCashbook.CheckReportGroups() : boolean;
+var
+  ChartIndex : integer;
+  ChartExportItem: TChartExportItem;
+begin
+  Result := true;
+  for ChartIndex := 0 to ChartExportCol.Count-1 do
+  begin
+    ChartExportCol.ItemAtColIndex(ChartIndex, ChartExportItem);
+    if GetMappedReportGroupId(ChartExportItem.ReportGroupId) = ccNone then
+    begin
+      Result := false;
+      Exit;
+    end;
   end;
 end;
 
@@ -1069,9 +1128,82 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TChartExportToMYOBCashbook.RunExportChartToFile(aErrorStr : string): boolean;
+function TChartExportToMYOBCashbook.RunExportChartToFile(aFilename : string;
+                                                         aErrorStr : string): boolean;
+var
+  FileLines   : TStringList;
+  LineColumns : TStringList;
+  LineIndex   : integer;
+  GSTMapItem  : TGSTMapItem;
+  GSTClass    : TCashBookGSTClasses;
+  CashBookGstClassCode : string;
+  CashBookGstClassDesc : string;
+  ChartExportItem: TChartExportItem;
+  GSTClassTypeIndicator : byte;
 begin
-  Result := true;
+  Result := False;
+
+  FileLines := TStringList.Create;
+  FileLines.Clear;
+  try
+    LineColumns := TStringList.Create;
+    try
+      LineColumns.Delimiter := ',';
+      LineColumns.StrictDelimiter := True;
+
+      for LineIndex := 0 to ChartExportCol.Count - 1 do
+      begin
+        if ChartExportCol.ItemAtColIndex(LineIndex, ChartExportItem) then
+        begin
+          LineColumns.Clear;
+
+          LineColumns.Add(ChartExportItem.AccountCode);
+          LineColumns.Add(ChartExportItem.AccountDescription);
+          LineColumns.Add(GetMappedReportGroupCode(ChartExportItem.fReportGroupId));
+
+          if (Country = whAustralia) then
+          begin
+            if GSTMapCol.ItemAtGstIndex(ChartExportItem.GSTClassId, GSTMapItem) then
+              CashBookGstClassCode := GSTMapCol.GetGSTClassCode(GSTMapItem.CashbookGstClass)
+            else
+              CashBookGstClassCode := GSTMapCol.GetGSTClassCode(cgNone);
+          end
+          else if (Country = whNewZealand) then
+          begin
+            GSTClassTypeIndicator := GetGSTClassTypeIndicatorFromGSTClass(ChartExportItem.GSTClassId);
+            GSTClass := GetMappedNZGSTTypeCode(GSTClassTypeIndicator);
+            GetMYOBCashbookGSTDetails(GSTClass, CashBookGstClassCode, CashBookGstClassDesc);
+          end;
+          LineColumns.Add(CashBookGstClassCode);
+          LineColumns.Add(''); // Opeing Balance
+          LineColumns.Add(''); // Opeing Balance Date
+          FileLines.Add(LineColumns.DelimitedText);
+        end;
+      end;
+
+      if FileLines.Count > 0 then
+      begin
+        try
+          FileLines.SaveToFile(aFilename);
+
+          HelpfulInfoMsg(inttostr(FileLines.Count) +
+                                  ' Account codes successfully exported to ' + #13#10#13#10 +
+                                  aFilename,0);
+          Result := True;
+        except
+          on e: exception do
+          begin
+            aErrorStr := Format( 'Cannot save to file %s: '#13'%s',[aFilename, e.Message]);
+          end;
+        end;
+      end;
+
+    finally
+      FreeAndNil(LineColumns);
+    end;
+  finally
+    FreeAndNil(FileLines);
+  end;
 end;
 
 //------------------------------------------------------------------------------
@@ -1133,6 +1265,14 @@ begin
   ExportChartFrmProperties.ClientCode := MyClient.clFields.clCode;
   ChartExportCol.FillChartExportCol();
 
+  if not CheckReportGroups() then
+  begin
+    ErrorStr := 'Please assign a report group to all chart of account codes, Other Functions | Chart of Accounts | Maintain Chart.';
+    HelpfulWarningMsg(ErrorStr,0);
+    Res := false;
+    Exit;
+  end;
+
   if (Country = whAustralia) then
   begin
     GSTMapCol.PrevGSTFileLocation := MyClient.clExtra.ceCashbook_GST_Map_File_Location;
@@ -1168,6 +1308,16 @@ begin
         LogUtil.LogMsg(lmError, UnitName, ThisMethodName + ' : ' + ErrorStr );
       end;
     end;
+  end
+  else if (Country = whNewZealand) then
+  begin
+    if not CheckNZGStTypes() then
+    begin
+      ErrorStr := 'Please assign a GST type to all rates, Other Functions | GST Setup | Rates.';
+      HelpfulWarningMsg(ErrorStr,0);
+      Res := false;
+      Exit;
+    end;
   end;
 
   if Res then
@@ -1182,7 +1332,7 @@ begin
 
     if Res then
     begin
-      Res := RunExportChartToFile(ErrorStr);
+      Res := RunExportChartToFile(ExportChartFrmProperties.ExportFileLocation, ErrorStr);
 
       if Res then
       begin
