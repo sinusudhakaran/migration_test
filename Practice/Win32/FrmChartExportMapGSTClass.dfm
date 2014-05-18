@@ -4,7 +4,7 @@ object FrmChartExportMapGSTClass: TFrmChartExportMapGSTClass
   BorderIcons = [biSystemMenu]
   BorderStyle = bsDialog
   Caption = 'Map GST Class'
-  ClientHeight = 528
+  ClientHeight = 463
   ClientWidth = 788
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -15,18 +15,16 @@ object FrmChartExportMapGSTClass: TFrmChartExportMapGSTClass
   OldCreateOrder = False
   Position = poScreenCenter
   OnCloseQuery = FormCloseQuery
-  OnCreate = FormCreate
-  OnShow = FormShow
   DesignSize = (
     788
-    528)
+    463)
   PixelsPerInch = 96
   TextHeight = 13
   object grpMain: TGroupBox
     Left = 0
     Top = -5
     Width = 786
-    Height = 494
+    Height = 429
     Anchors = [akLeft, akTop, akRight, akBottom]
     Color = clWhite
     Font.Charset = DEFAULT_CHARSET
@@ -40,7 +38,7 @@ object FrmChartExportMapGSTClass: TFrmChartExportMapGSTClass
     TabOrder = 0
     DesignSize = (
       786
-      494)
+      429)
     object lblGstRemapFile: TLabel
       Left = 12
       Top = 12
@@ -111,55 +109,66 @@ object FrmChartExportMapGSTClass: TFrmChartExportMapGSTClass
       TabOrder = 1
       OnClick = btnBrowseClick
     end
-    object virGstReMap: TVirtualStringTree
+    object tblGSTReMap: TOvcTable
       Left = 3
       Top = 71
       Width = 780
-      Height = 420
+      Height = 356
+      ActiveRow = 2
+      RowLimit = 21
+      LockedCols = 0
+      LeftCol = 0
+      ActiveCol = 0
       Anchors = [akLeft, akTop, akRight, akBottom]
-      Colors.HotColor = clMenuText
-      Colors.UnfocusedSelectionColor = clHighlight
-      Colors.UnfocusedSelectionBorderColor = clHighlight
-      Header.AutoSizeIndex = 0
-      Header.Font.Charset = DEFAULT_CHARSET
-      Header.Font.Color = clWindowText
-      Header.Font.Height = -11
-      Header.Font.Name = 'Tahoma'
-      Header.Font.Style = []
-      Header.Options = [hoColumnResize, hoDrag, hoVisible]
-      ParentBackground = False
+      BorderStyle = bsNone
+      Color = clWindow
+      Colors.ActiveUnfocused = clWindow
+      Colors.ActiveUnfocusedText = clWindowText
+      Colors.Editing = clWindow
+      Controller = OvcController
+      GridPenSet.NormalGrid.NormalColor = clBtnShadow
+      GridPenSet.NormalGrid.Style = psSolid
+      GridPenSet.NormalGrid.Effect = geVertical
+      GridPenSet.LockedGrid.NormalColor = clBtnShadow
+      GridPenSet.LockedGrid.Style = psSolid
+      GridPenSet.LockedGrid.Effect = ge3D
+      GridPenSet.CellWhenFocused.NormalColor = clBlack
+      GridPenSet.CellWhenFocused.Style = psSolid
+      GridPenSet.CellWhenFocused.Effect = geBoth
+      GridPenSet.CellWhenUnfocused.NormalColor = clBlack
+      GridPenSet.CellWhenUnfocused.Style = psClear
+      GridPenSet.CellWhenUnfocused.Effect = geBoth
+      LockedRowsCell = colHeader
+      Options = [otoNoRowResizing, otoEnterToArrow]
       TabOrder = 4
-      TreeOptions.MiscOptions = [toAcceptOLEDrop, toEditable, toFullRepaintOnResize, toInitOnSave, toToggleOnDblClick, toWheelPanning]
-      TreeOptions.PaintOptions = [toHideFocusRect, toShowButtons, toShowHorzGridLines, toThemeAware, toUseBlendedImages]
-      TreeOptions.SelectionOptions = [toExtendedFocus, toFullRowSelect]
-      OnCompareNodes = virGstReMapCompareNodes
-      OnCreateEditor = virGstReMapCreateEditor
-      OnFocusChanged = virGstReMapFocusChanged
-      OnGetText = virGstReMapGetText
-      OnPaintText = virGstReMapPaintText
-      OnHeaderClick = virGstReMapHeaderClick
-      OnNewText = virGstReMapNewText
-      ExplicitHeight = 415
-      Columns = <
-        item
-          Position = 0
-          WideText = 'ID'
-        end
-        item
-          Position = 1
-          Width = 350
-          WideText = 'Class Description'
-        end
-        item
-          Position = 2
-          Width = 350
-          WideText = 'MYOB Essentials Cashbook GST class'
-        end>
+      OnGetCellData = tblGSTReMapGetCellData
+      OnGetCellAttributes = tblGSTReMapGetCellAttributes
+      ExplicitHeight = 242
+      CellData = (
+        'FrmChartExportMapGSTClass.colHeader'
+        'FrmChartExportMapGSTClass.colID'
+        'FrmChartExportMapGSTClass.colClassDescription'
+        'FrmChartExportMapGSTClass.colCashBookGSTDropDown')
+      RowData = (
+        22)
+      ColData = (
+        50
+        False
+        True
+        'FrmChartExportMapGSTClass.colID'
+        350
+        False
+        True
+        'FrmChartExportMapGSTClass.colClassDescription'
+        350
+        False
+        True
+        'FrmChartExportMapGSTClass.colCashBookGSTDropDown')
     end
   end
   object btnOk: TButton
     Left = 624
-    Top = 495
+    Top = 430
     Width = 75
     Height = 25
     Anchors = [akRight, akBottom]
@@ -173,10 +182,11 @@ object FrmChartExportMapGSTClass: TFrmChartExportMapGSTClass
     ParentFont = False
     TabOrder = 1
     OnClick = btnOkClick
+    ExplicitTop = 495
   end
   object btnCancel: TButton
     Left = 705
-    Top = 495
+    Top = 430
     Width = 75
     Height = 25
     Anchors = [akRight, akBottom]
@@ -190,6 +200,7 @@ object FrmChartExportMapGSTClass: TFrmChartExportMapGSTClass
     ModalResult = 2
     ParentFont = False
     TabOrder = 2
+    ExplicitTop = 495
   end
   object SaveDlg: TSaveDialog
     DefaultExt = '*.csv'
@@ -203,5 +214,55 @@ object FrmChartExportMapGSTClass: TFrmChartExportMapGSTClass
     Filter = 'Remap File|*.cht|CSV File|*.csv'
     Left = 552
     Top = 496
+  end
+  object OvcController: TOvcController
+    EntryCommands.TableList = (
+      'Default'
+      True
+      ()
+      'WordStar'
+      False
+      ()
+      'Grid'
+      False
+      ())
+    Epoch = 1900
+    Left = 32
+    Top = 432
+  end
+  object colCashBookGSTDropDown: TOvcTCComboBox
+    DropDownCount = 10
+    Items.Strings = (
+      'Income'
+      'Expenditure'
+      'Exempt'
+      'Zero Rated')
+    MaxLength = 15
+    Style = csOwnerDrawFixed
+    Table = tblGSTReMap
+    Left = 128
+    Top = 432
+  end
+  object colID: TOvcTCString
+    MaxLength = 60
+    Table = tblGSTReMap
+    Left = 64
+    Top = 432
+  end
+  object colClassDescription: TOvcTCString
+    MaxLength = 60
+    Table = tblGSTReMap
+    Left = 96
+    Top = 432
+  end
+  object colHeader: TOvcTCColHead
+    Headings.Strings = (
+      'ID'
+      'Class Description'
+      'MYOB Essentials Cashbook GST class'
+      '')
+    ShowLetters = False
+    Table = tblGSTReMap
+    Top = 432
   end
 end

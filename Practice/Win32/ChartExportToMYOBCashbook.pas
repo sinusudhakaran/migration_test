@@ -18,7 +18,8 @@ type
                            ccOtherExpense,
                            ccAsset,
                            ccLiabilities,
-                           ccEquity);
+                           ccEquity,
+                           ccCostOfSales);
 
   TCashBookGSTClasses = (cgNone,
                          cgGoodsandServices,
@@ -83,6 +84,10 @@ type
     fPracticeGstDesc : string;
     fCashbookGstClass : TCashBookGSTClasses;
   public
+    DispPracCode : ShortString;
+    DispPracDesc : ShortString;
+    DispMYOBIndex : integer;
+
     property GstIndex : integer read fGstIndex write fGstIndex;
     property PracticeGstCode : string read fPracticeGstCode write fPracticeGstCode;
     property PracticeGstDesc : string read fPracticeGstDesc write fPracticeGstDesc;
@@ -423,6 +428,10 @@ begin
   NewGSTMapItem.PracticeGstCode  := aPracticeGstCode;
   NewGSTMapItem.PracticeGstDesc  := aPracticeGstDesc;
   NewGSTMapItem.CashbookGstClass := aCashbookGstClass;
+
+  NewGSTMapItem.DispPracCode     := aPracticeGstCode;
+  NewGSTMapItem.DispPracDesc     := aPracticeGstDesc;
+  NewGSTMapItem.DispMYOBIndex    := ord(aCashbookGstClass)-1;
 end;
 
 //------------------------------------------------------------------------------
@@ -865,7 +874,10 @@ begin
           begin
             GSTClass := GetGSTClassUsingClassDesc(LineColumns[CASHBOOK_GST_CODE] + ' - ' + LineColumns[CASHBOOK_GST_DESC]);
             if GSTClass <> cgNone then
+            begin
               GSTMapItem.CashbookGstClass := GSTClass;
+              GSTMapItem.DispMYOBIndex := ord(GSTClass)-1;
+            end;
           end;
         end;
 
@@ -903,6 +915,9 @@ begin
       begin
         if TGSTMapItem(self.Items[LineIndex]).PracticeGstCode = '' then
           Continue;
+
+        TGSTMapItem(self.Items[LineIndex]).fCashbookGstClass :=
+          TCashBookGSTClasses(TGSTMapItem(self.Items[LineIndex]).DispMYOBIndex+1);
 
         LineColumns.Clear;
 
@@ -950,9 +965,9 @@ begin
     atEquity               : Result := ccEquity;
     atDebtors              : Result := ccAsset;
     atCreditors            : Result := ccLiabilities;
-    atOpeningStock         : Result := ccAsset;
-    atPurchases            : Result := ccExpense;
-    atClosingStock         : Result := ccAsset;
+    atOpeningStock         : Result := ccCostOfSales;
+    atPurchases            : Result := ccCostOfSales;
+    atClosingStock         : Result := ccCostOfSales;
     atFixedAssets          : Result := ccAsset;
     atStockOnHand          : Result := ccAsset;
     atBankAccount          : Result := ccAsset; // Cash on hand
@@ -988,6 +1003,7 @@ begin
     ccAsset        : Result := 'Assets';
     ccLiabilities  : Result := 'Liabilities';
     ccEquity       : Result := 'Equity';
+    ccCostOfSales  : Result := 'Cost of Sales';
   end;
 end;
 
@@ -1295,7 +1311,8 @@ begin
 
     if Res then
     begin
-      Res := GSTMapCol.SaveGSTFile(Filename, ErrorStr);
+      if not (Filename = '') then
+        Res := GSTMapCol.SaveGSTFile(Filename, ErrorStr);
 
       if Res then
       begin
