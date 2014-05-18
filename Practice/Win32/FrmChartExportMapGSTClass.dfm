@@ -143,9 +143,11 @@ object FrmChartExportMapGSTClass: TFrmChartExportMapGSTClass
       TabOrder = 4
       OnGetCellData = tblGSTReMapGetCellData
       OnGetCellAttributes = tblGSTReMapGetCellAttributes
-      ExplicitHeight = 242
       CellData = (
-        'FrmChartExportMapGSTClass.colHeader')
+        'FrmChartExportMapGSTClass.colHeader'
+        'FrmChartExportMapGSTClass.colCashBookGSTDropDown'
+        'FrmChartExportMapGSTClass.colClassDescription'
+        'FrmChartExportMapGSTClass.colID')
       RowData = (
         22)
       ColData = (
@@ -179,7 +181,6 @@ object FrmChartExportMapGSTClass: TFrmChartExportMapGSTClass
     ParentFont = False
     TabOrder = 1
     OnClick = btnOkClick
-    ExplicitTop = 495
   end
   object btnCancel: TButton
     Left = 705
@@ -197,7 +198,6 @@ object FrmChartExportMapGSTClass: TFrmChartExportMapGSTClass
     ModalResult = 2
     ParentFont = False
     TabOrder = 2
-    ExplicitTop = 495
   end
   object SaveDlg: TSaveDialog
     DefaultExt = '*.csv'
@@ -241,12 +241,14 @@ object FrmChartExportMapGSTClass: TFrmChartExportMapGSTClass
     Top = 432
   end
   object colID: TOvcTCString
+    Access = otxReadOnly
     MaxLength = 60
     Table = tblGSTReMap
     Left = 64
     Top = 432
   end
   object colClassDescription: TOvcTCString
+    Access = otxReadOnly
     MaxLength = 60
     Table = tblGSTReMap
     Left = 96

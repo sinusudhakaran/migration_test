@@ -224,18 +224,21 @@ procedure TFrmChartExportMapGSTClass.tblGSTReMapGetCellAttributes(
 var
   CurrGSTMapItem : TGSTMapItem;
 begin
-  if (RowNum > 0) then
+  if (CellAttr.caColor = tblGSTReMap.Color) and (RowNum >= tblGSTReMap.LockedRows) then
   begin
-    if (GSTMapCol.ItemAtColIndex(RowNum-1, CurrGSTMapItem)) and
-       (ColNum = MYOBCashbookCol) and
-       (CurrGSTMapItem.DispMYOBIndex = -1) then
-      CellAttr.caColor := clRed
-    else
+    if (RowNum > 0) then
     begin
-      if Odd(RowNum) then
-         CellAttr.caColor := clWindow
+      if (GSTMapCol.ItemAtColIndex(RowNum-1, CurrGSTMapItem)) and
+         (ColNum = MYOBCashbookCol) and
+         (CurrGSTMapItem.DispMYOBIndex = -1) then
+        CellAttr.caColor := clRed
       else
-         CellAttr.caColor := bkBranding.GSTAlternateLineColor;
+      begin
+        if Odd(RowNum) then
+           CellAttr.caColor := clWindow
+        else
+           CellAttr.caColor := bkBranding.GSTAlternateLineColor;
+      end;
     end;
   end;
 end;
