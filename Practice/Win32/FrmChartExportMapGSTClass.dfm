@@ -145,10 +145,7 @@ object FrmChartExportMapGSTClass: TFrmChartExportMapGSTClass
       OnGetCellAttributes = tblGSTReMapGetCellAttributes
       ExplicitHeight = 242
       CellData = (
-        'FrmChartExportMapGSTClass.colHeader'
-        'FrmChartExportMapGSTClass.colID'
-        'FrmChartExportMapGSTClass.colClassDescription'
-        'FrmChartExportMapGSTClass.colCashBookGSTDropDown')
+        'FrmChartExportMapGSTClass.colHeader')
       RowData = (
         22)
       ColData = (

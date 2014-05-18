@@ -1171,6 +1171,10 @@ begin
       begin
         if ChartExportCol.ItemAtColIndex(LineIndex, ChartExportItem) then
         begin
+          if (self.ExportChartFrmProperties.ExportBasicChart = true) and
+             (ChartExportItem.IsBasicChartItem = false) then
+            Continue;
+
           LineColumns.Clear;
 
           LineColumns.Add(ChartExportItem.AccountCode);

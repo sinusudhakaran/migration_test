@@ -215,6 +215,7 @@ end;
 procedure TFrmChartExportMapGSTClass.Refesh;
 begin
   tblGSTReMap.RowLimit := GSTMapCol.Count+1;
+  tblGSTReMap.Refresh;
 end;
 
 //------------------------------------------------------------------------------
