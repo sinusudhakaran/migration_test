@@ -6,7 +6,7 @@ object FrmChartExporttoMYOBCashBook: TFrmChartExporttoMYOBCashBook
   Caption = 
     'Export {ClientCode}'#39's Chart of Accounts to MYOB Essentials Cashb' +
     'ook'
-  ClientHeight = 316
+  ClientHeight = 312
   ClientWidth = 652
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -21,12 +21,12 @@ object FrmChartExporttoMYOBCashBook: TFrmChartExporttoMYOBCashBook
   OnCreate = FormCreate
   DesignSize = (
     652
-    316)
+    312)
   PixelsPerInch = 96
   TextHeight = 13
   object btnOk: TButton
     Left = 488
-    Top = 283
+    Top = 279
     Width = 75
     Height = 25
     Anchors = [akRight, akBottom]
@@ -41,10 +41,11 @@ object FrmChartExporttoMYOBCashBook: TFrmChartExporttoMYOBCashBook
     ParentFont = False
     TabOrder = 0
     OnClick = btnOkClick
+    ExplicitTop = 283
   end
   object btnCancel: TButton
     Left = 569
-    Top = 283
+    Top = 279
     Width = 75
     Height = 25
     Anchors = [akRight, akBottom]
@@ -58,21 +59,20 @@ object FrmChartExporttoMYOBCashBook: TFrmChartExporttoMYOBCashBook
     ModalResult = 2
     ParentFont = False
     TabOrder = 1
+    ExplicitTop = 283
   end
   object pnlMain: TPanel
     Left = 8
     Top = 8
     Width = 636
-    Height = 269
+    Height = 265
     Anchors = [akLeft, akTop, akRight, akBottom]
     BevelKind = bkFlat
     BevelOuter = bvNone
     Color = clWhite
     ParentBackground = False
     TabOrder = 2
-    DesignSize = (
-      632
-      265)
+    ExplicitHeight = 269
     object lblExportText: TLabel
       Left = 20
       Top = 16
@@ -91,7 +91,7 @@ object FrmChartExporttoMYOBCashBook: TFrmChartExporttoMYOBCashBook
     end
     object lblClosingBalanceDate: TLabel
       Left = 75
-      Top = 153
+      Top = 158
       Width = 119
       Height = 16
       Caption = 'Closing Balance Date'
@@ -105,10 +105,9 @@ object FrmChartExporttoMYOBCashBook: TFrmChartExporttoMYOBCashBook
     end
     object lblSaveEntriesTo: TLabel
       Left = 20
-      Top = 202
+      Top = 216
       Width = 86
       Height = 16
-      Anchors = [akLeft, akBottom]
       Caption = 'Save Entries to'
       FocusControl = edtSaveEntriesTo
       Font.Charset = DEFAULT_CHARSET
@@ -120,11 +119,10 @@ object FrmChartExporttoMYOBCashBook: TFrmChartExporttoMYOBCashBook
     end
     object btnToFolder: TSpeedButton
       Left = 585
-      Top = 198
+      Top = 212
       Width = 25
       Height = 24
       Hint = 'Click to Select a Folder'
-      Anchors = [akRight, akBottom]
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
       Font.Height = -13
@@ -132,12 +130,10 @@ object FrmChartExporttoMYOBCashBook: TFrmChartExporttoMYOBCashBook
       Font.Style = []
       ParentFont = False
       OnClick = btnToFolderClick
-      ExplicitLeft = 460
-      ExplicitTop = 211
     end
     object radExportFullChart: TRadioButton
       Left = 56
-      Top = 64
+      Top = 66
       Width = 113
       Height = 17
       Caption = 'Export Full Chart'
@@ -153,7 +149,7 @@ object FrmChartExporttoMYOBCashBook: TFrmChartExporttoMYOBCashBook
     end
     object radExportBasicChart: TRadioButton
       Left = 228
-      Top = 64
+      Top = 66
       Width = 131
       Height = 17
       Caption = 'Export Basic Chart'
@@ -167,7 +163,7 @@ object FrmChartExporttoMYOBCashBook: TFrmChartExporttoMYOBCashBook
     end
     object chkIncludeClosingBalances: TCheckBox
       Left = 56
-      Top = 112
+      Top = 116
       Width = 169
       Height = 17
       Caption = 'Include closing balances'
@@ -182,8 +178,8 @@ object FrmChartExporttoMYOBCashBook: TFrmChartExporttoMYOBCashBook
       OnClick = chkIncludeClosingBalancesClick
     end
     object dteClosingBalanceDate: TOvcPictureField
-      Left = 202
-      Top = 153
+      Left = 200
+      Top = 158
       Width = 105
       Height = 20
       Cursor = crIBeam
@@ -215,10 +211,9 @@ object FrmChartExporttoMYOBCashBook: TFrmChartExporttoMYOBCashBook
     end
     object edtSaveEntriesTo: TEdit
       Left = 112
-      Top = 200
+      Top = 214
       Width = 467
       Height = 22
-      Anchors = [akLeft, akRight, akBottom]
       Ctl3D = False
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
@@ -235,7 +230,7 @@ object FrmChartExporttoMYOBCashBook: TFrmChartExporttoMYOBCashBook
   object SaveDialog: TSaveDialog
     Filter = 'CSV Files (*.CSV)|*.CSV'
     Title = 'Save Entries to'
-    Left = 432
+    Left = 456
     Top = 280
   end
 end
