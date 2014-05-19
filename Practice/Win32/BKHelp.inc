@@ -614,6 +614,7 @@ const
   BKH_Coding_transactions_for_Handisoft_Superfund = 2149;
   BKH_Suggested_memorisations = 2150;
   BKH_Importing_COMPANY_NAME2_Notes_Online_transactions_into_COMPANY_NAME2_Practice = 2114;
+  BKH_Export_chart_to_COMPANY_NAME1_Essentials_Cashbook = 2151;
 
 var
   //filename of HTML help file
