@@ -49,6 +49,7 @@ type
     fGSTClassId : byte;
     fOpeningBalance : string;
     fOpeningBalanceDate : string;
+    fPostingAllowed : boolean;
   public
     property IsBasicChartItem : boolean read fIsBasicChartItem write fIsBasicChartItem;
     property AccountCode : string read fAccountCode write fAccountCode;
@@ -57,6 +58,7 @@ type
     property GSTClassId : byte read fGSTClassId write fGSTClassId;
     property OpeningBalance : string read fOpeningBalance write fOpeningBalance;
     property OpeningBalanceDate : string read fOpeningBalanceDate write fOpeningBalanceDate;
+    property PostingAllowed : boolean read fPostingAllowed write fPostingAllowed;
   end;
 
   //----------------------------------------------------------------------------
@@ -67,7 +69,8 @@ type
                                  aAccountCode : string;
                                  aAccountDescription : string;
                                  aReportGroupId : byte;
-                                 aGSTClassId : byte );
+                                 aGSTClassId : byte;
+                                 aPostingAllowed : boolean );
   public
     destructor Destroy; override;
 
@@ -174,7 +177,7 @@ type
                                         var aCashBookGstClassCode : string;
                                         var aCashBookGstClassDesc : string);
     function RunExportChartToFile(aFilename : string;
-                                  aErrorStr : string) : boolean;
+                                  var aErrorStr : string) : boolean;
     procedure FillGstMapCol();
     function IsGSTClassUsedInChart(aGST_Class : byte) : boolean;
   public
@@ -249,7 +252,8 @@ procedure TChartExportCol.AddChartExportItem(aIsBasicChartItem : boolean;
                                              aAccountCode : string;
                                              aAccountDescription : string;
                                              aReportGroupId : byte;
-                                             aGSTClassId : byte);
+                                             aGSTClassId : byte;
+                                             aPostingAllowed : boolean);
 var
   NewChartExportItem : TChartExportItem;
 begin
@@ -260,6 +264,7 @@ begin
   NewChartExportItem.AccountDescription := aAccountDescription;
   NewChartExportItem.ReportGroupId      := aReportGroupId;
   NewChartExportItem.GSTClassId         := aGSTClassId;
+  NewChartExportItem.PostingAllowed     := aPostingAllowed;
 end;
 
 //------------------------------------------------------------------------------
@@ -284,7 +289,8 @@ begin
                        AccountRec.chAccount_Code,
                        AccountRec.chAccount_Description,
                        AccountRec.chAccount_Type,
-                       AccountRec.chGST_Class);
+                       AccountRec.chGST_Class,
+                       AccountRec.chPosting_Allowed);
   end;
 end;
 
@@ -942,9 +948,15 @@ begin
           FileLines.SaveToFile(aFilename);
           Result := True;
         except
+          on e : EInOutError do
+          begin
+            aError := GetIOErrorDescription(E.ErrorCode, E.Message);
+            Exit;
+          end;
           on e: exception do
           begin
-            aError := Format( 'Cannot save to file %s: '#13'%s',[aFilename, e.Message]);
+            aError := e.Message;
+            Exit;
           end;
         end;
       end;
@@ -1151,7 +1163,7 @@ end;
 
 //------------------------------------------------------------------------------
 function TChartExportToMYOBCashbook.RunExportChartToFile(aFilename : string;
-                                                         aErrorStr : string): boolean;
+                                                         var aErrorStr : string): boolean;
 var
   FileLines   : TStringList;
   LineColumns : TStringList;
@@ -1177,8 +1189,13 @@ begin
       begin
         if ChartExportCol.ItemAtColIndex(LineIndex, ChartExportItem) then
         begin
+          // Don't Allow Non Basic Items when option is set
           if (self.ExportChartFrmProperties.ExportBasicChart = true) and
              (ChartExportItem.IsBasicChartItem = false) then
+            Continue;
+
+          // Don't Allow Non Posting Codes
+          if (ChartExportItem.fPostingAllowed = false) then
             Continue;
 
           LineColumns.Clear;
@@ -1219,7 +1236,8 @@ begin
         except
           on e: exception do
           begin
-            aErrorStr := Format( 'Cannot save to file %s: '#13'%s',[aFilename, e.Message]);
+            aErrorStr := e.Message;
+            Exit;
           end;
         end;
       end;
