@@ -3,7 +3,9 @@ object FrmChartExporttoMYOBCashBook: TFrmChartExporttoMYOBCashBook
   Top = 0
   BorderIcons = [biSystemMenu]
   BorderStyle = bsDialog
-  Caption = 'Export {ClientCode}'#39's Chart of Accounts to Cashbook'
+  Caption = 
+    'Export {ClientCode}'#39's Chart of Accounts to MYOB Essentials Cashb' +
+    'ook'
   ClientHeight = 316
   ClientWidth = 652
   Color = clBtnFace
@@ -39,8 +41,6 @@ object FrmChartExporttoMYOBCashBook: TFrmChartExporttoMYOBCashBook
     ParentFont = False
     TabOrder = 0
     OnClick = btnOkClick
-    ExplicitLeft = 351
-    ExplicitTop = 284
   end
   object btnCancel: TButton
     Left = 569
@@ -58,8 +58,6 @@ object FrmChartExporttoMYOBCashBook: TFrmChartExporttoMYOBCashBook
     ModalResult = 2
     ParentFont = False
     TabOrder = 1
-    ExplicitLeft = 432
-    ExplicitTop = 284
   end
   object pnlMain: TPanel
     Left = 8
@@ -72,8 +70,6 @@ object FrmChartExporttoMYOBCashBook: TFrmChartExporttoMYOBCashBook
     Color = clWhite
     ParentBackground = False
     TabOrder = 2
-    ExplicitWidth = 499
-    ExplicitHeight = 270
     DesignSize = (
       632
       265)
@@ -94,7 +90,7 @@ object FrmChartExporttoMYOBCashBook: TFrmChartExporttoMYOBCashBook
       ParentFont = False
     end
     object lblClosingBalanceDate: TLabel
-      Left = 77
+      Left = 75
       Top = 153
       Width = 119
       Height = 16
@@ -108,8 +104,8 @@ object FrmChartExporttoMYOBCashBook: TFrmChartExporttoMYOBCashBook
       ParentFont = False
     end
     object lblSaveEntriesTo: TLabel
-      Left = 28
-      Top = 206
+      Left = 20
+      Top = 202
       Width = 86
       Height = 16
       Anchors = [akLeft, akBottom]
@@ -121,11 +117,10 @@ object FrmChartExporttoMYOBCashBook: TFrmChartExporttoMYOBCashBook
       Font.Name = 'Tahoma'
       Font.Style = []
       ParentFont = False
-      ExplicitTop = 215
     end
     object btnToFolder: TSpeedButton
-      Left = 589
-      Top = 202
+      Left = 585
+      Top = 198
       Width = 25
       Height = 24
       Hint = 'Click to Select a Folder'
@@ -187,7 +182,7 @@ object FrmChartExporttoMYOBCashBook: TFrmChartExporttoMYOBCashBook
       OnClick = chkIncludeClosingBalancesClick
     end
     object dteClosingBalanceDate: TOvcPictureField
-      Left = 215
+      Left = 202
       Top = 153
       Width = 105
       Height = 20
@@ -219,9 +214,9 @@ object FrmChartExporttoMYOBCashBook: TFrmChartExporttoMYOBCashBook
       RangeLow = {00000000000000000000}
     end
     object edtSaveEntriesTo: TEdit
-      Left = 120
-      Top = 204
-      Width = 463
+      Left = 112
+      Top = 200
+      Width = 467
       Height = 22
       Anchors = [akLeft, akRight, akBottom]
       Ctl3D = False
@@ -235,8 +230,6 @@ object FrmChartExporttoMYOBCashBook: TFrmChartExporttoMYOBCashBook
       ParentShowHint = False
       ShowHint = True
       TabOrder = 4
-      ExplicitTop = 205
-      ExplicitWidth = 326
     end
   end
   object SaveDialog: TSaveDialog

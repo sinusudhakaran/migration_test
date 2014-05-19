@@ -124,17 +124,15 @@ type
   private
     fGSTMapClassInfoArr : TGSTMapClassInfoArr;
     fPrevGSTFileLocation : string;
-  protected
+  public
+    destructor Destroy; override;
+
+    function GetMappedAUGSTTypeCode(aGSTClassDescription : string): TCashBookGSTClasses;
     procedure AddGSTMapItem(aGstIndex : integer;
                             aPracticeGstCode : string;
                             aPracticeGstDesc : string;
                             aCashbookGstClass : TCashBookGSTClasses);
 
-    function GetMappedAUGSTTypeCode(aGSTClassDescription : string): TCashBookGSTClasses;
-  public
-    destructor Destroy; override;
-
-    procedure FillGstMapCol();
     procedure FillGstClassMapArr();
     function ItemAtGstIndex(aGstIndex: integer; out aGSTMapItem : TGSTMapItem) : boolean;
     function ItemAtColIndex(aColIndex: integer; out aGSTMapItem : TGSTMapItem) : boolean;
@@ -146,6 +144,8 @@ type
     function GetGSTClassDescUsingClass(aCashbookGstClass : TCashBookGSTClasses) : string;
     function GetGSTClassUsingClassDesc(aCashbookGstClassDesc : string) : TCashBookGSTClasses;
     function GetGSTClassMapArr() : TGSTMapClassInfoArr;
+
+    Function CheckIfAllGstCodesAreMapped() : boolean;
 
     function LoadGSTFile(var aFileLines : TStringList; var aFileName : string; var aError : string) : Boolean; overload;
     function LoadGSTFile(var aFilename : string; var aError : string) : boolean; overload;
@@ -175,6 +175,8 @@ type
                                         var aCashBookGstClassDesc : string);
     function RunExportChartToFile(aFilename : string;
                                   aErrorStr : string) : boolean;
+    procedure FillGstMapCol();
+    function IsGSTClassUsedInChart(aGST_Class : byte) : boolean;
   public
     constructor Create;
     destructor Destroy; override;
@@ -587,6 +589,28 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+function TGSTMapCol.CheckIfAllGstCodesAreMapped: boolean;
+var
+  GstIndex : integer;
+  GSTMapItem: TGSTMapItem;
+begin
+  Result := true;
+  for GstIndex := 0 to Count-1 do
+  begin
+    if ItemAtColIndex(GstIndex, GSTMapItem) then
+    begin
+      GSTMapItem.CashbookGstClass := TCashBookGSTClasses(GSTMapItem.DispMYOBIndex + 1);
+
+      if GSTMapItem.CashbookGstClass = cgNone then
+      begin
+        Result := false;
+        Exit;
+      end;
+    end;
+  end;
+end;
+
+//------------------------------------------------------------------------------
 destructor TGSTMapCol.Destroy;
 var
   index : integer;
@@ -597,24 +621,6 @@ begin
   SetLength(fGSTMapClassInfoArr, 0);
 
   inherited;
-end;
-
-//------------------------------------------------------------------------------
-procedure TGSTMapCol.FillGstMapCol;
-var
-  GstIndex : integer;
-begin
-  Self.Clear;
-  for GstIndex := 0 to high(MyClient.clfields.clGST_Class_Names) do
-  begin
-    if MyClient.clfields.clGST_Class_Names[GstIndex] > '' then
-    begin
-      AddGSTMapItem(GstIndex,
-                    MyClient.clfields.clGST_Class_Codes[GstIndex],
-                    MyClient.clfields.clGST_Class_Names[GstIndex],
-                    GetMappedAUGSTTypeCode(MyClient.clfields.clGST_Class_Names[GstIndex]));
-    end;
-  end;
 end;
 
 //------------------------------------------------------------------------------
@@ -1227,6 +1233,48 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+procedure TChartExportToMYOBCashbook.FillGstMapCol;
+var
+  GstIndex : integer;
+begin
+  GSTMapCol.Clear;
+  for GstIndex := 0 to high(MyClient.clfields.clGST_Class_Names) do
+  begin
+    if MyClient.clfields.clGST_Class_Names[GstIndex] > '' then
+    begin
+      if IsGSTClassUsedInChart(GstIndex) then
+      begin
+        GSTMapCol.AddGSTMapItem(GstIndex,
+                                MyClient.clfields.clGST_Class_Codes[GstIndex],
+                                MyClient.clfields.clGST_Class_Names[GstIndex],
+                                GSTMapCol.GetMappedAUGSTTypeCode(MyClient.clfields.clGST_Class_Names[GstIndex]));
+      end;
+    end;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+function TChartExportToMYOBCashbook.IsGSTClassUsedInChart(aGST_Class: byte): boolean;
+var
+  ChartIndex : integer;
+  ChartExportItem: TChartExportItem;
+begin
+  Result := false;
+
+  for ChartIndex := 0 to ChartExportCol.count-1 do
+  begin
+    if ChartExportCol.ItemAtColIndex(ChartIndex, ChartExportItem) then
+    begin
+      if ChartExportItem.GSTClassId = aGST_Class then
+      begin
+        Result := true;
+        Exit;
+      end;
+    end;
+  end;
+end;
+
+//------------------------------------------------------------------------------
 constructor TChartExportToMYOBCashbook.Create;
 begin
   fCountry := GetCountry();
@@ -1296,7 +1344,7 @@ begin
   if (Country = whAustralia) then
   begin
     GSTMapCol.PrevGSTFileLocation := MyClient.clExtra.ceCashbook_GST_Map_File_Location;
-    GSTMapCol.FillGstMapCol();
+    FillGstMapCol();
 
     if GSTMapCol.PrevGSTFileLocation <> '' then
     begin
@@ -1311,22 +1359,25 @@ begin
       end;
     end;
 
-    Res := ShowMapGSTClass(aPopupParent, fGSTMapCol);
-
-    if Res then
+    if not GSTMapCol.CheckIfAllGstCodesAreMapped() then
     begin
-      if not (Filename = '') then
-        Res := GSTMapCol.SaveGSTFile(Filename, ErrorStr);
+      Res := ShowMapGSTClass(aPopupParent, fGSTMapCol);
 
       if Res then
       begin
-        if (GSTMapCol.PrevGSTFileLocation <> MyClient.clExtra.ceCashbook_GST_Map_File_Location) then
-          MyClient.clExtra.ceCashbook_GST_Map_File_Location := GSTMapCol.PrevGSTFileLocation;
-      end
-      else
-      begin
-        HelpfulErrorMsg(ErrorStr,0);
-        LogUtil.LogMsg(lmError, UnitName, ThisMethodName + ' : ' + ErrorStr );
+        if not (Filename = '') then
+          Res := GSTMapCol.SaveGSTFile(Filename, ErrorStr);
+
+        if Res then
+        begin
+          if (GSTMapCol.PrevGSTFileLocation <> MyClient.clExtra.ceCashbook_GST_Map_File_Location) then
+            MyClient.clExtra.ceCashbook_GST_Map_File_Location := GSTMapCol.PrevGSTFileLocation;
+        end
+        else
+        begin
+          HelpfulErrorMsg(ErrorStr,0);
+          LogUtil.LogMsg(lmError, UnitName, ThisMethodName + ' : ' + ErrorStr );
+        end;
       end;
     end;
   end

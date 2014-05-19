@@ -269,25 +269,14 @@ end;
 
 //------------------------------------------------------------------------------
 function TFrmChartExportMapGSTClass.Validate: boolean;
-var
-  GstIndex : integer;
-  GSTMapItem : TGSTMapItem;
 begin
   Result := true;
 
-  for GstIndex := 0 to GSTMapCol.Count-1 do
+  if not GSTMapCol.CheckIfAllGstCodesAreMapped() then
   begin
-    if GSTMapCol.ItemAtColIndex(GstIndex, GSTMapItem) then
-    begin
-      GSTMapItem.CashbookGstClass := TCashBookGSTClasses(GSTMapItem.DispMYOBIndex + 1);
-
-      if GSTMapItem.CashbookGstClass = cgNone then
-      begin
-        Result := false;
-        HelpfulWarningMsg('Please assign all GST classes',0);
-        Exit;
-      end;
-    end;
+    Result := false;
+    HelpfulWarningMsg('Please assign all GST classes',0);
+    Exit;
   end;
 end;
 

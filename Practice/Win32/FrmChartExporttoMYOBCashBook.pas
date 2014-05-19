@@ -154,7 +154,8 @@ end;
 //------------------------------------------------------------------------------
 procedure TFrmChartExportToMYOBCashBook.DoRebranding;
 begin
-  edtSaveEntriesTo.Text := 'Export ' + BRAND_FULL_PRACTICE + ' chart of accounts to .CSV file for';
+  lblExportText.Caption := 'Export ' + BRAND_FULL_PRACTICE +
+                           ' chart of accounts to .CSV file for import into MYOB Essentials Cashbook.';
 end;
 
 //------------------------------------------------------------------------------
@@ -183,7 +184,7 @@ begin
   // Load Default Properties
   if Assigned(ExportChartFrmProperties) then
   begin
-    Self.Caption := 'Export ' + ExportChartFrmProperties.ClientCode + '''s Chart of Accounts to Cashbook';
+    Self.Caption := 'Export ' + ExportChartFrmProperties.ClientCode + '''s Chart of Accounts to MYOB Essentials Cashbook';
 
     if ExportChartFrmProperties.ExportBasicChart then
       radExportBasicChart.Checked := true
