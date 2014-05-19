@@ -83,22 +83,21 @@ uses
   ImagesFrm,
   BKConst,
   YesNoDlg,
-  glConst;
+  glConst,
+  BKHelp;
 
 //------------------------------------------------------------------------------
 function ShowChartExport(w_PopupParent: Forms.TForm; aExportChartFrmProperties : TExportChartFrmProperties) : boolean;
 var
   MyDlg : TFrmChartExportToMYOBCashBook;
 begin
-  result := false;
-
   MyDlg := TFrmChartExportToMYOBCashBook.Create(Application.mainForm);
   try
     MyDlg.PopupParent := w_PopupParent;
     MyDlg.PopupMode   := pmExplicit;
     MyDlg.ExportChartFrmProperties := aExportChartFrmProperties;
 
-    //BKHelpSetUp(MyDlg, BKH_Setting_up_BankLink_users);
+    BKHelpSetUp(MyDlg, BKH_Export_chart_to_COMPANY_NAME1_Essentials_Cashbook);
     Result := MyDlg.Execute;
   finally
     FreeAndNil(MyDlg);

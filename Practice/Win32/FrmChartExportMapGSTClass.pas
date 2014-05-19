@@ -79,7 +79,8 @@ uses
   Globals,
   YesNoDlg,
   LogUtil,
-  bkBranding;
+  bkBranding,
+  BKHelp;
 
 const
   UnitName = 'FrmChartExportMapGSTClass';
@@ -104,7 +105,7 @@ begin
     MyDlg.PopupMode   := pmExplicit;
     MyDlg.GSTMapCol   := aGSTMapCol;
 
-    //BKHelpSetUp(MyDlg, BKH_Setting_up_BankLink_users);
+    BKHelpSetUp(MyDlg, BKH_Export_chart_to_COMPANY_NAME1_Essentials_Cashbook);
     Result := MyDlg.Execute;
   finally
     FreeAndNil(MyDlg);
