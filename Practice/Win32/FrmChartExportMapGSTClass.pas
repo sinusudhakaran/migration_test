@@ -53,7 +53,9 @@ type
       var Data: Pointer; Purpose: TOvcCellDataPurpose);
     procedure tblGSTReMapGetCellAttributes(Sender: TObject; RowNum,
       ColNum: Integer; var CellAttr: TOvcCellAttributes);
+    procedure colCashBookGSTDropDownChange(Sender: TObject);
   private
+    fDirty : boolean;
     fGSTMapCol : TGSTMapCol;
     fOkPressed : boolean;
 
@@ -63,7 +65,9 @@ type
     function Validate() : boolean;
   public
     function Execute : boolean;
+
     property GSTMapCol : TGSTMapCol read fGSTMapCol write fGSTMapCol;
+    property Dirty : boolean read fDirty write fDirty;
   end;
 
   //----------------------------------------------------------------------------
@@ -158,6 +162,13 @@ begin
     HelpfulErrorMsg(ErrorStr,0);
     LogUtil.LogMsg(lmError, UnitName, ThisMethodName + ' : ' + ErrorStr );
   end;
+end;
+
+//------------------------------------------------------------------------------
+procedure TFrmChartExportMapGSTClass.colCashBookGSTDropDownChange(
+  Sender: TObject);
+begin
+  fDirty := true;
 end;
 
 //------------------------------------------------------------------------------
@@ -286,6 +297,8 @@ function TFrmChartExportMapGSTClass.Execute: boolean;
 var
   GstClassIndex : integer;
 begin
+  fDirty := false;
+
   if (GSTMapCol.PrevGSTFileLocation <> '') and
      (FileExists(GSTMapCol.PrevGSTFileLocation)) then
   begin
@@ -300,7 +313,9 @@ begin
   end;
 
   fOkPressed := false;
+
   Refesh;
+
   Result := (ShowModal = mrOK);
 end;
 
@@ -313,9 +328,19 @@ begin
     fOkPressed := false;
 
     CanClose := Validate();
+    if not CanClose then
+      Exit;
 
-    if CanClose then
-      GSTMapCol.PrevGSTFileLocation := edtGstReMapFile.Text;
+    if (fDirty) and
+       (edtGstReMapFile.Text = '') then
+    begin
+      if (AskYesNo('Save this mapping','Would you like to save this mapping?', dlg_yes, 0) = DLG_YES) then
+      begin
+        btnSaveAsClick(Sender);
+      end;
+    end;
+
+    GSTMapCol.PrevGSTFileLocation := edtGstReMapFile.Text;
   end;
 end;
 

@@ -6,7 +6,7 @@ object FrmChartExporttoMYOBCashBook: TFrmChartExporttoMYOBCashBook
   Caption = 
     'Export {ClientCode}'#39's Chart of Accounts to MYOB Essentials Cashb' +
     'ook'
-  ClientHeight = 312
+  ClientHeight = 316
   ClientWidth = 652
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -21,12 +21,12 @@ object FrmChartExporttoMYOBCashBook: TFrmChartExporttoMYOBCashBook
   OnCreate = FormCreate
   DesignSize = (
     652
-    312)
+    316)
   PixelsPerInch = 96
   TextHeight = 13
   object btnOk: TButton
     Left = 488
-    Top = 279
+    Top = 283
     Width = 75
     Height = 25
     Anchors = [akRight, akBottom]
@@ -41,11 +41,11 @@ object FrmChartExporttoMYOBCashBook: TFrmChartExporttoMYOBCashBook
     ParentFont = False
     TabOrder = 0
     OnClick = btnOkClick
-    ExplicitTop = 283
+    ExplicitTop = 279
   end
   object btnCancel: TButton
     Left = 569
-    Top = 279
+    Top = 283
     Width = 75
     Height = 25
     Anchors = [akRight, akBottom]
@@ -59,20 +59,20 @@ object FrmChartExporttoMYOBCashBook: TFrmChartExporttoMYOBCashBook
     ModalResult = 2
     ParentFont = False
     TabOrder = 1
-    ExplicitTop = 283
+    ExplicitTop = 279
   end
   object pnlMain: TPanel
     Left = 8
     Top = 8
     Width = 636
-    Height = 265
+    Height = 269
     Anchors = [akLeft, akTop, akRight, akBottom]
     BevelKind = bkFlat
     BevelOuter = bvNone
     Color = clWhite
     ParentBackground = False
     TabOrder = 2
-    ExplicitHeight = 269
+    ExplicitHeight = 265
     object lblExportText: TLabel
       Left = 20
       Top = 16
@@ -167,7 +167,6 @@ object FrmChartExporttoMYOBCashBook: TFrmChartExporttoMYOBCashBook
       Width = 169
       Height = 17
       Caption = 'Include closing balances'
-      Enabled = False
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
       Font.Height = -13
@@ -186,6 +185,7 @@ object FrmChartExporttoMYOBCashBook: TFrmChartExporttoMYOBCashBook
       DataType = pftDate
       AutoSize = False
       CaretOvr.Shape = csBlock
+      Controller = OvcController
       ControlCharColor = clRed
       DecimalPlaces = 0
       EFColors.Disabled.BackColor = clWindow
@@ -206,6 +206,7 @@ object FrmChartExporttoMYOBCashBook: TFrmChartExporttoMYOBCashBook
       ParentFont = False
       PictureMask = 'DD/mm/yy'
       TabOrder = 3
+      OnDblClick = dteClosingBalanceDateDblClick
       RangeHigh = {25600D00000000000000}
       RangeLow = {00000000000000000000}
     end
@@ -231,6 +232,21 @@ object FrmChartExporttoMYOBCashBook: TFrmChartExporttoMYOBCashBook
     Filter = 'CSV Files (*.CSV)|*.CSV'
     Title = 'Save Entries to'
     Left = 456
+    Top = 280
+  end
+  object OvcController: TOvcController
+    EntryCommands.TableList = (
+      'Default'
+      True
+      ()
+      'WordStar'
+      False
+      ()
+      'Grid'
+      False
+      ())
+    Epoch = 1900
+    Left = 424
     Top = 280
   end
 end

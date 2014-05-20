@@ -237,6 +237,7 @@ object FrmChartExportMapGSTClass: TFrmChartExportMapGSTClass
     MaxLength = 15
     Style = csOwnerDrawFixed
     Table = tblGSTReMap
+    OnChange = colCashBookGSTDropDownChange
     Left = 128
     Top = 432
   end

@@ -1377,25 +1377,22 @@ begin
       end;
     end;
 
-    if not GSTMapCol.CheckIfAllGstCodesAreMapped() then
+    Res := ShowMapGSTClass(aPopupParent, fGSTMapCol);
+
+    if Res then
     begin
-      Res := ShowMapGSTClass(aPopupParent, fGSTMapCol);
+      if not (Filename = '') then
+        Res := GSTMapCol.SaveGSTFile(Filename, ErrorStr);
 
       if Res then
       begin
-        if not (Filename = '') then
-          Res := GSTMapCol.SaveGSTFile(Filename, ErrorStr);
-
-        if Res then
-        begin
-          if (GSTMapCol.PrevGSTFileLocation <> MyClient.clExtra.ceCashbook_GST_Map_File_Location) then
-            MyClient.clExtra.ceCashbook_GST_Map_File_Location := GSTMapCol.PrevGSTFileLocation;
-        end
-        else
-        begin
-          HelpfulErrorMsg(ErrorStr,0);
-          LogUtil.LogMsg(lmError, UnitName, ThisMethodName + ' : ' + ErrorStr );
-        end;
+        if (GSTMapCol.PrevGSTFileLocation <> MyClient.clExtra.ceCashbook_GST_Map_File_Location) then
+          MyClient.clExtra.ceCashbook_GST_Map_File_Location := GSTMapCol.PrevGSTFileLocation;
+      end
+      else
+      begin
+        HelpfulErrorMsg(ErrorStr,0);
+        LogUtil.LogMsg(lmError, UnitName, ThisMethodName + ' : ' + ErrorStr );
       end;
     end;
   end

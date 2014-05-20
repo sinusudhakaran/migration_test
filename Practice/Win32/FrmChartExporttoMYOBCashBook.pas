@@ -54,12 +54,14 @@ type
     lblSaveEntriesTo: TLabel;
     edtSaveEntriesTo: TEdit;
     btnToFolder: TSpeedButton;
+    OvcController: TOvcController;
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
     procedure chkIncludeClosingBalancesClick(Sender: TObject);
     procedure FormActivate(Sender: TObject);
     procedure btnToFolderClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure btnOkClick(Sender: TObject);
+    procedure dteClosingBalanceDateDblClick(Sender: TObject);
   private
     fOkPressed : boolean;
     fExportChartFrmProperties : TExportChartFrmProperties;
@@ -84,7 +86,8 @@ uses
   BKConst,
   YesNoDlg,
   glConst,
-  BKHelp;
+  BKHelp,
+  GenUtils;
 
 //------------------------------------------------------------------------------
 function ShowChartExport(w_PopupParent: Forms.TForm; aExportChartFrmProperties : TExportChartFrmProperties) : boolean;
@@ -155,6 +158,19 @@ procedure TFrmChartExportToMYOBCashBook.DoRebranding;
 begin
   lblExportText.Caption := 'Export ' + BRAND_FULL_PRACTICE +
                            ' chart of accounts to .CSV file for import into MYOB Essentials Cashbook.';
+end;
+
+//------------------------------------------------------------------------------
+procedure TFrmChartExportToMYOBCashBook.dteClosingBalanceDateDblClick(Sender: TObject);
+var
+  ld: Integer;
+begin
+  if sender is TOVcPictureField then
+  begin
+    ld := TOVcPictureField(Sender).AsStDate;
+    PopUpCalendar(TEdit(Sender),ld);
+    TOVcPictureField(Sender).AsStDate := ld;
+  end;
 end;
 
 //------------------------------------------------------------------------------
