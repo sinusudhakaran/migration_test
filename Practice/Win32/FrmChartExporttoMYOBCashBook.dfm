@@ -41,7 +41,6 @@ object FrmChartExporttoMYOBCashBook: TFrmChartExporttoMYOBCashBook
     ParentFont = False
     TabOrder = 0
     OnClick = btnOkClick
-    ExplicitTop = 279
   end
   object btnCancel: TButton
     Left = 569
@@ -59,7 +58,6 @@ object FrmChartExporttoMYOBCashBook: TFrmChartExporttoMYOBCashBook
     ModalResult = 2
     ParentFont = False
     TabOrder = 1
-    ExplicitTop = 279
   end
   object pnlMain: TPanel
     Left = 8
@@ -72,7 +70,6 @@ object FrmChartExporttoMYOBCashBook: TFrmChartExporttoMYOBCashBook
     Color = clWhite
     ParentBackground = False
     TabOrder = 2
-    ExplicitHeight = 265
     object lblExportText: TLabel
       Left = 20
       Top = 16
@@ -167,6 +164,7 @@ object FrmChartExporttoMYOBCashBook: TFrmChartExporttoMYOBCashBook
       Width = 169
       Height = 17
       Caption = 'Include closing balances'
+      Enabled = False
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
       Font.Height = -13

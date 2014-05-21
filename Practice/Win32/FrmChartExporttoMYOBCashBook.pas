@@ -207,7 +207,6 @@ begin
       radExportFullChart.Checked := true;
 
     chkIncludeClosingBalances.Checked := ExportChartFrmProperties.IncludeClosingBalances;
-    dteClosingBalanceDate.AsDateTime := ExportChartFrmProperties.fClosingBalanceDate;
     edtSaveEntriesTo.Text := ExportChartFrmProperties.ExportFileLocation;
   end;
 
@@ -220,7 +219,7 @@ begin
     begin
       ExportChartFrmProperties.ExportBasicChart := (radExportBasicChart.Checked);
       ExportChartFrmProperties.IncludeClosingBalances := chkIncludeClosingBalances.Checked;
-      ExportChartFrmProperties.fClosingBalanceDate := dteClosingBalanceDate.AsDateTime;
+      ExportChartFrmProperties.ClosingBalanceDate := dteClosingBalanceDate.AsDateTime;
       ExportChartFrmProperties.ExportFileLocation := edtSaveEntriesTo.Text;
     end;
   end;

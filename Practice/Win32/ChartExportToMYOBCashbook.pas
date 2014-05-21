@@ -8,7 +8,9 @@ uses
   SysUtils,
   Classes,
   Forms,
-  FrmChartExportToMYOBCashBook;
+  FrmChartExportToMYOBCashBook,
+  clObj32,
+  MONEYDEF;
 
 type
   TCashBookChartClasses = (ccNone,
@@ -47,8 +49,8 @@ type
     fAccountDescription : string;
     fReportGroupId : byte;
     fGSTClassId : byte;
-    fOpeningBalance : string;
-    fOpeningBalanceDate : string;
+    fClosingBalance : string;
+    fClosingBalanceDate : string;
     fPostingAllowed : boolean;
   public
     property IsBasicChartItem : boolean read fIsBasicChartItem write fIsBasicChartItem;
@@ -56,8 +58,8 @@ type
     property AccountDescription : string read fAccountDescription write fAccountDescription;
     property ReportGroupId : byte read fReportGroupId write fReportGroupId;
     property GSTClassId : byte read fGSTClassId write fGSTClassId;
-    property OpeningBalance : string read fOpeningBalance write fOpeningBalance;
-    property OpeningBalanceDate : string read fOpeningBalanceDate write fOpeningBalanceDate;
+    property ClosingBalance : string read fClosingBalance write fClosingBalance;
+    property ClosingBalanceDate : string read fClosingBalanceDate write fClosingBalanceDate;
     property PostingAllowed : boolean read fPostingAllowed write fPostingAllowed;
   end;
 
@@ -70,11 +72,17 @@ type
                                  aAccountDescription : string;
                                  aReportGroupId : byte;
                                  aGSTClassId : byte;
-                                 aPostingAllowed : boolean );
+                                 aPostingAllowed : boolean);
+
+    function GetCurrencyFormat(aRoundValues : Boolean) : string;
+    function GetStringFromAmount(aAmount : Money) : string;
+    function GetClosingBalanceAmount(Client : tClientObj; Code: string): Money;
+    function GetOpeningBalanceForInvalidCode(Client : TClientObj; Code: string; D1: Integer): Money;
   public
     destructor Destroy; override;
 
     procedure FillChartExportCol();
+    procedure UpdateClosingBalances(aClosingBalanceDate : Tdatetime);
     function CheckAccountCodesLength(aErrors : TStringList) : Boolean;
     function ItemAtColIndex(aClientChartIndex: integer; out aChartExportItem : TChartExportItem) : boolean;
   end;
@@ -209,7 +217,11 @@ uses
   Globals,
   BKDEFS,
   glConst,
-  LogUtil;
+  LogUtil,
+  AccountInfoObj,
+  ovcdate,
+  baObj32,
+  ISO_4217;
 
 Const
   UnitName = 'ChartExportToMYOBCashbook';
@@ -265,6 +277,118 @@ begin
   NewChartExportItem.ReportGroupId      := aReportGroupId;
   NewChartExportItem.GSTClassId         := aGSTClassId;
   NewChartExportItem.PostingAllowed     := aPostingAllowed;
+  NewChartExportItem.ClosingBalance     := '';
+  NewChartExportItem.ClosingBalanceDate := '';
+end;
+
+//------------------------------------------------------------------------------
+function TChartExportCol.GetCurrencyFormat(aRoundValues : Boolean): string;
+var
+  CurrencySymbol: String;
+begin
+  CurrencySymbol := Get_ISO_4217_Symbol(MyClient.clExtra.ceLocal_Currency_Code);
+
+  if aRoundValues then
+    Result := CurrencySymbol + '#,##0;-' + CurrencySymbol + '#,##0' + ';-'
+  else
+    Result := MyClient.FmtMoneyStr + ';-';
+end;
+
+//------------------------------------------------------------------------------
+function TChartExportCol.GetStringFromAmount(aAmount: Money): string;
+var
+  currAmount : currency;
+begin
+  currAmount := aAmount/100;
+
+  Result := FormatFloat(GetCurrencyFormat(false), currAmount);
+end;
+
+//------------------------------------------------------------------------------
+function TChartExportCol.GetClosingBalanceAmount(Client : tClientObj; Code: string): Money;
+var
+  AccountInfo: TAccountInformation;
+  Balance : Money;
+  DayFinStart, MonthFinStart, YearFinStart: Integer;
+  DayStart, MonthStart, YearStart: Integer;
+begin
+  AccountInfo := TAccountInformation.Create( Client);
+  try
+    StDatetoDMY(Client.clFields.clFinancial_Year_Starts, DayFinStart, MonthFinStart, YearFinStart);
+
+    AccountInfo.UseBudgetIfNoActualData     := False;
+    AccountInfo.LastPeriodOfActualDataToUse := Client.clFields.clTemp_FRS_Last_Actual_Period_To_Use;
+    AccountInfo.AccountCode := Code;
+    AccountInfo.UseBaseAmounts := True;
+    StDatetoDMY(Client.clFields.clFinancial_Year_Starts, DayFinStart, MonthFinStart, YearFinStart);
+    StDatetoDMY(Client.clFields.clTemp_FRS_To_Date, DayStart, MonthStart, YearStart);
+    if (DayFinStart = DayStart) and (MonthFinStart = MonthStart) then // If start date = financial year start then just get opening bal
+      Balance := AccountInfo.OpeningBalanceActualOrBudget(1)
+    else
+      Balance := AccountInfo.ClosingBalanceActualOrBudget(1); // else opening bal at last financial year start + movement up to previous day
+  finally
+    FreeAndNil(AccountInfo);
+  end;
+  Result := Balance;
+end;
+
+// To get an opening balance for an invalid code there are no actual op bals -
+// we just calculate movement from the financial year start
+//------------------------------------------------------------------------------
+function TChartExportCol.GetOpeningBalanceForInvalidCode(Client : TClientObj; Code: string; D1: Integer): Money;
+//Must be net amount !!!
+var
+  BnkAccIndex, TransIndex, DateFrom, DateTo: Integer;
+  Bank_Account : TBank_Account;
+  Transaction_Rec : tTransaction_Rec;
+
+  Curr_Dissect : pDissection_Rec;
+  DayFinStart, MonthFinStart, YearFinStart: Integer;
+  DayStart, MonthStart, YearStart: Integer;
+begin
+  Result := 0;
+
+  // Add all movement between financial year start and day prior to report start
+  DateFrom := Client.clFields.clTemp_FRS_From_Date;
+  DateTo := Client.clFields.clTemp_FRS_To_Date;
+
+  //handle special case where report is being run from fin year start date
+  StDatetoDMY(Client.clFields.clFinancial_Year_Starts, DayFinStart, MonthFinStart, YearFinStart);
+  StDatetoDMY(D1, DayStart, MonthStart, YearStart);
+  if (DayFinStart = DayStart) and (MonthFinStart = MonthStart) then
+  begin
+    result := 0;
+    exit;
+  end;
+
+  for BnkAccIndex := 0 to Pred(Client.clBank_Account_List.ItemCount) do // Loop each bank account
+  begin
+    Bank_Account := Client.clBank_Account_List.Bank_Account_At(BnkAccIndex);
+    for TransIndex := 0 to Pred(Bank_Account.baTransaction_List.ItemCount) do
+    begin
+      Transaction_Rec := Bank_Account.baTransaction_List.Transaction_At(TransIndex)^;
+
+      if (Transaction_Rec.txDate_Effective >= DateFrom) and
+         (Transaction_Rec.txDate_Effective <= DateTo) then
+      begin
+        if (Transaction_Rec.txAccount = Code) then
+        begin
+          Result := Result + ( Transaction_Rec.txTemp_Base_Amount - Transaction_Rec.txGST_Amount)
+        end
+        else
+        if (Transaction_Rec.txFirst_Dissection <> nil) then
+        begin
+          Curr_Dissect := Transaction_Rec.txFirst_Dissection;
+          while Curr_Dissect <> nil do
+          begin
+            if Curr_Dissect.dsAccount = Code then
+              Result := Result + ( Curr_Dissect.dsTemp_Base_Amount - Curr_Dissect.dsGST_Amount);
+            Curr_Dissect := Curr_Dissect.dsNext;
+          end;
+        end;
+      end;
+    end;
+  end;
 end;
 
 //------------------------------------------------------------------------------
@@ -275,7 +399,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TChartExportCol.FillChartExportCol;
+procedure TChartExportCol.FillChartExportCol();
 var
   ChartIndex : integer;
   AccountRec : pAccount_Rec;
@@ -291,6 +415,29 @@ begin
                        AccountRec.chAccount_Type,
                        AccountRec.chGST_Class,
                        AccountRec.chPosting_Allowed);
+  end;
+end;
+
+//------------------------------------------------------------------------------
+procedure TChartExportCol.UpdateClosingBalances(aClosingBalanceDate : Tdatetime);
+var
+  ChartIndex : integer;
+  ChartExportItem : TChartExportItem;
+  ClosingBalance : Money;
+  DisplayClosingBalanceDate : string;
+  DisplayClosingBalance : string;
+begin
+  for ChartIndex := 0 to Count - 1 do
+  begin
+    if ItemAtColIndex(ChartIndex, ChartExportItem) then
+    begin
+      DisplayClosingBalanceDate := FormatDateTime('dd/mm/yyyy', aClosingBalanceDate);
+      ClosingBalance            := GetClosingBalanceAmount(MyClient, ChartExportItem.AccountCode);
+      DisplayClosingBalance     := GetStringFromAmount(ClosingBalance);
+
+      ChartExportItem.ClosingBalanceDate := DisplayClosingBalanceDate;
+      ChartExportItem.ClosingBalance     := DisplayClosingBalance;
+    end;
   end;
 end;
 
@@ -1218,8 +1365,8 @@ begin
             GetMYOBCashbookGSTDetails(GSTClass, CashBookGstClassCode, CashBookGstClassDesc);
           end;
           LineColumns.Add(CashBookGstClassCode);
-          LineColumns.Add(''); // Opeing Balance
-          LineColumns.Add(''); // Opeing Balance Date
+          LineColumns.Add(ChartExportItem.ClosingBalance); // Opeing Balance
+          LineColumns.Add(ChartExportItem.ClosingBalanceDate); // Opeing Balance Date
           FileLines.Add(LineColumns.DelimitedText);
         end;
       end;
@@ -1419,6 +1566,9 @@ begin
 
     if Res then
     begin
+      if ExportChartFrmProperties.IncludeClosingBalances then
+        ChartExportCol.UpdateClosingBalances(ExportChartFrmProperties.ClosingBalanceDate);
+
       Res := RunExportChartToFile(ExportChartFrmProperties.ExportFileLocation, ErrorStr);
 
       if Res then

@@ -4,7 +4,7 @@ object FrmChartExportMapGSTClass: TFrmChartExportMapGSTClass
   BorderIcons = [biSystemMenu]
   BorderStyle = bsDialog
   Caption = 'Map GST Class'
-  ClientHeight = 463
+  ClientHeight = 465
   ClientWidth = 788
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -17,14 +17,14 @@ object FrmChartExportMapGSTClass: TFrmChartExportMapGSTClass
   OnCloseQuery = FormCloseQuery
   DesignSize = (
     788
-    463)
+    465)
   PixelsPerInch = 96
   TextHeight = 13
   object grpMain: TGroupBox
     Left = 0
     Top = -5
     Width = 786
-    Height = 429
+    Height = 431
     Anchors = [akLeft, akTop, akRight, akBottom]
     Color = clWhite
     Font.Charset = DEFAULT_CHARSET
@@ -36,9 +36,10 @@ object FrmChartExportMapGSTClass: TFrmChartExportMapGSTClass
     ParentColor = False
     ParentFont = False
     TabOrder = 0
+    ExplicitHeight = 429
     DesignSize = (
       786
-      429)
+      431)
     object lblGstRemapFile: TLabel
       Left = 12
       Top = 12
@@ -113,7 +114,7 @@ object FrmChartExportMapGSTClass: TFrmChartExportMapGSTClass
       Left = 3
       Top = 71
       Width = 780
-      Height = 356
+      Height = 358
       ActiveRow = 2
       RowLimit = 21
       LockedCols = 0
@@ -143,6 +144,7 @@ object FrmChartExportMapGSTClass: TFrmChartExportMapGSTClass
       TabOrder = 4
       OnGetCellData = tblGSTReMapGetCellData
       OnGetCellAttributes = tblGSTReMapGetCellAttributes
+      ExplicitHeight = 356
       CellData = (
         'FrmChartExportMapGSTClass.colHeader'
         'FrmChartExportMapGSTClass.colCashBookGSTDropDown'
@@ -167,7 +169,7 @@ object FrmChartExportMapGSTClass: TFrmChartExportMapGSTClass
   end
   object btnOk: TButton
     Left = 624
-    Top = 430
+    Top = 432
     Width = 75
     Height = 25
     Anchors = [akRight, akBottom]
@@ -181,10 +183,11 @@ object FrmChartExportMapGSTClass: TFrmChartExportMapGSTClass
     ParentFont = False
     TabOrder = 1
     OnClick = btnOkClick
+    ExplicitTop = 430
   end
   object btnCancel: TButton
     Left = 705
-    Top = 430
+    Top = 432
     Width = 75
     Height = 25
     Anchors = [akRight, akBottom]
@@ -198,6 +201,7 @@ object FrmChartExportMapGSTClass: TFrmChartExportMapGSTClass
     ModalResult = 2
     ParentFont = False
     TabOrder = 2
+    ExplicitTop = 430
   end
   object SaveDlg: TSaveDialog
     DefaultExt = '*.csv'
