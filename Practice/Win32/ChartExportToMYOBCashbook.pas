@@ -10,7 +10,8 @@ uses
   Forms,
   FrmChartExportToMYOBCashBook,
   clObj32,
-  MONEYDEF;
+  MONEYDEF,
+  stDate;
 
 type
   TCashBookChartClasses = (ccNone,
@@ -78,11 +79,14 @@ type
     function GetStringFromAmount(aAmount : Money) : string;
     function GetClosingBalanceAmount(Client : tClientObj; Code: string): Money;
     function GetOpeningBalanceForInvalidCode(Client : TClientObj; Code: string; D1: Integer): Money;
+
+    function GetMappedReportGroupId(aReportGroup : byte) : TCashBookChartClasses;
+    function GetCrDrSignFromReportGroup(aReportGroup : byte) : integer;
   public
     destructor Destroy; override;
 
     procedure FillChartExportCol();
-    procedure UpdateClosingBalances(aClosingBalanceDate : Tdatetime);
+    procedure UpdateClosingBalances(aClosingBalanceDate : TstDate);
     function CheckAccountCodesLength(aErrors : TStringList) : Boolean;
     function ItemAtColIndex(aClientChartIndex: integer; out aChartExportItem : TChartExportItem) : boolean;
   end;
@@ -173,9 +177,7 @@ type
     fGSTMapCol : TGSTMapCol;
     fExportChartFrmProperties : TExportChartFrmProperties;
   protected
-    function GetMappedReportGroupId(aReportGroup : byte) : TCashBookChartClasses;
     function GetMappedReportGroupCode(aReportGroup : byte) : string;
-    function GetCrDrSignFromReportGroup(aReportGroup : byte) : integer;
 
     function GetGSTClassTypeIndicatorFromGSTClass(aGST_Class : byte) : byte;
     function GetMappedNZGSTTypeCode(aGSTClassTypeIndicator : byte) : TCashBookGSTClasses;
@@ -221,7 +223,10 @@ uses
   AccountInfoObj,
   ovcdate,
   baObj32,
-  ISO_4217;
+  ISO_4217,
+  CalculateAccountTotals,
+  bkdateutils,
+  stDateSt;
 
 Const
   UnitName = 'ChartExportToMYOBCashbook';
@@ -302,6 +307,9 @@ begin
   currAmount := aAmount/100;
 
   Result := FormatFloat(GetCurrencyFormat(false), currAmount);
+
+  if Result = '-' then
+    Result := '';
 end;
 
 //------------------------------------------------------------------------------
@@ -392,6 +400,63 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+function TChartExportCol.GetMappedReportGroupId(aReportGroup : byte) : TCashBookChartClasses;
+begin
+  case aReportGroup of
+    atNone                 : Result := ccNone;
+    atIncome               : Result := ccIncome;
+    atDirectExpense        : Result := ccExpense;
+    atExpense              : Result := ccExpense;
+    atOtherExpense         : Result := ccOtherExpense;
+    atOtherIncome          : Result := ccOtherIncome;
+    atEquity               : Result := ccEquity;
+    atDebtors              : Result := ccAsset;
+    atCreditors            : Result := ccLiabilities;
+    atOpeningStock         : Result := ccCostOfSales;
+    atPurchases            : Result := ccCostOfSales;
+    atClosingStock         : Result := ccCostOfSales;
+    atFixedAssets          : Result := ccAsset;
+    atStockOnHand          : Result := ccAsset;
+    atBankAccount          : Result := ccAsset; // Cash on hand
+    atRetainedPorL         : Result := ccNone; // ?
+    atGSTPayable           : Result := ccLiabilities;
+    atUnknownDR            : Result := ccNone;
+    atUnknownCR            : Result := ccNone;
+    atCurrentAsset         : Result := ccAsset;
+    atCurrentLiability     : Result := ccLiabilities;
+    atLongTermLiability    : Result := ccLiabilities;
+    atUncodedCR            : Result := ccNone; // ?
+    atUncodedDR            : Result := ccNone; // ?
+    atCurrentYearsEarnings : Result := ccNone; // ?
+    atGSTReceivable        : Result := ccLiabilities;
+  else
+    Result := ccNone;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+function TChartExportCol.GetCrDrSignFromReportGroup(aReportGroup: byte): integer;
+var
+  MappedGroupId : TCashBookChartClasses;
+begin
+  MappedGroupId := GetMappedReportGroupId(aReportGroup);
+
+  case MappedGroupId of
+    ccNone         : Result := 0;  // Error
+    ccIncome       : Result := -1; // CR
+    ccExpense      : Result := 1;  // DR
+    ccOtherIncome  : Result := -1; // CR
+    ccOtherExpense : Result := 1;  // DR
+    ccAsset        : Result := 1;  // DR
+    ccLiabilities  : Result := -1; // CR
+    ccEquity       : Result := -1; // CR
+  else
+    Result := 0; // Error
+  end;
+end;
+
+
+//------------------------------------------------------------------------------
 destructor TChartExportCol.Destroy;
 begin
 
@@ -419,20 +484,77 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TChartExportCol.UpdateClosingBalances(aClosingBalanceDate : Tdatetime);
+procedure TChartExportCol.UpdateClosingBalances(aClosingBalanceDate : TstDate);
 var
   ChartIndex : integer;
   ChartExportItem : TChartExportItem;
   ClosingBalance : Money;
   DisplayClosingBalanceDate : string;
   DisplayClosingBalance : string;
+  This_Year_Starts : TStDate;
+  This_Year_Ends   : TStDate;
+  Last_Year_Starts : TStDate;
+  Last_Year_Ends   : TStDate;
+  AccountList : TList;
+  DayFinStart, MonthFinStart, YearFinStart: Integer;
+  DayStart, MonthStart, YearStart: Integer;
+  AccountIndex : integer;
+  BankAcc : TBank_Account;
 begin
+  MyClient.clFields.clFRS_Reporting_Period_Type     := frpCustom;
+  MyClient.clFields.clTemp_FRS_Last_Period_To_Show  := 1;
+  MyClient.clFields.clTemp_FRS_Last_Actual_Period_To_Use := MyClient.clFields.clTemp_FRS_Last_Period_To_Show;
+
+  StDatetoDMY(MyClient.clFields.clFinancial_Year_Starts, DayFinStart, MonthFinStart, YearFinStart);
+  StDatetoDMY(aClosingBalanceDate, DayStart, MonthStart, YearStart);
+  {// special case start date = financial year start
+  if (DayFinStart = DayStart) and (MonthFinStart = MonthStart) then
+    MyClient.clFields.clTemp_FRS_To_Date := DMYtoStDate(DayStart, MonthStart, YearStart, Epoch) //selected date
+  else // otherwise we go up to the previous day
+    MyClient.clFields.clTemp_FRS_To_Date := IncDate(aClosingBalanceDate, -1, 0, 0);
+  //go back to last financial year if report month less than year start month
+  //ie. if report date is 1/2/2005 then fin start is 1/4/2004 (NZ example)}
+  if MonthStart < MonthFinStart then
+    YearStart := YearStart - 1;
+
+  MyClient.clFields.cltemp_FRS_from_Date := DMYtoStDate(DayFinStart, MonthFinStart, YearStart, Epoch);
+  MyClient.clFields.clTemp_FRS_To_Date := aClosingBalanceDate;
+
+  {HelpfulErrorMsg('From Date : ' +
+                  StDateToDateString('dd/mm/yyyy', MyClient.clFields.cltemp_FRS_from_Date, true) +
+                  ', To Date : ' +
+                  StDateToDateString('dd/mm/yyyy', MyClient.clFields.clTemp_FRS_To_Date, true), 0);}
+
+  //MyClient.clFields.cltemp_FRS_from_Date := IncDate(aClosingBalanceDate, 1, 0, 0);
+  //MyClient.clFields.clTemp_FRS_To_Date   := IncDate(aClosingBalanceDate, 1, 1, 0);
+
+  MyClient.clFields.clTemp_FRS_Account_Totals_Cash_Only := False;
+  MyClient.clFields.clTemp_FRS_Division_To_Use := 0;
+  MyClient.clFields.clTemp_FRS_Job_To_Use  := '';
+  MyClient.clFields.clTemp_FRS_Budget_To_Use := '';
+  MyClient.clFields.clTemp_FRS_Budget_To_Use_Date := -1;
+  MyClient.clFields.clTemp_FRS_Use_Budgeted_Data_If_No_Actual := False;
+
+  for AccountIndex := 0 to MyClient.clBank_Account_List.ItemCount-1 do
+  begin
+    BankAcc := MyClient.clBank_Account_List.Bank_Account_At(AccountIndex);
+    BankAcc.baFields.baTemp_Include_In_Report := True;
+  end;
+
+  CalculateAccountTotalsForClient(MyClient,
+                                  True,
+                                  nil,
+                                  -1,
+                                  False,
+                                  True);
+
   for ChartIndex := 0 to Count - 1 do
   begin
     if ItemAtColIndex(ChartIndex, ChartExportItem) then
     begin
-      DisplayClosingBalanceDate := FormatDateTime('dd/mm/yyyy', aClosingBalanceDate);
+      DisplayClosingBalanceDate := StDateToDateString('dd/mm/yyyy', IncDate(aClosingBalanceDate, 1, 0, 0), true);
       ClosingBalance            := GetClosingBalanceAmount(MyClient, ChartExportItem.AccountCode);
+      ClosingBalance            := GetCrDrSignFromReportGroup(ChartExportItem.ReportGroupId) * ClosingBalance;
       DisplayClosingBalance     := GetStringFromAmount(ClosingBalance);
 
       ChartExportItem.ClosingBalanceDate := DisplayClosingBalanceDate;
@@ -1118,46 +1240,11 @@ end;
 
 { TChartExportToMYOBCashbook }
 //------------------------------------------------------------------------------
-function TChartExportToMYOBCashbook.GetMappedReportGroupId(aReportGroup : byte) : TCashBookChartClasses;
-begin
-  case aReportGroup of
-    atNone                 : Result := ccNone;
-    atIncome               : Result := ccIncome;
-    atDirectExpense        : Result := ccExpense;
-    atExpense              : Result := ccExpense;
-    atOtherExpense         : Result := ccOtherExpense;
-    atOtherIncome          : Result := ccOtherIncome;
-    atEquity               : Result := ccEquity;
-    atDebtors              : Result := ccAsset;
-    atCreditors            : Result := ccLiabilities;
-    atOpeningStock         : Result := ccCostOfSales;
-    atPurchases            : Result := ccCostOfSales;
-    atClosingStock         : Result := ccCostOfSales;
-    atFixedAssets          : Result := ccAsset;
-    atStockOnHand          : Result := ccAsset;
-    atBankAccount          : Result := ccAsset; // Cash on hand
-    atRetainedPorL         : Result := ccNone; // ?
-    atGSTPayable           : Result := ccLiabilities;
-    atUnknownDR            : Result := ccNone;
-    atUnknownCR            : Result := ccNone;
-    atCurrentAsset         : Result := ccAsset;
-    atCurrentLiability     : Result := ccLiabilities;
-    atLongTermLiability    : Result := ccLiabilities;
-    atUncodedCR            : Result := ccNone; // ?
-    atUncodedDR            : Result := ccNone; // ?
-    atCurrentYearsEarnings : Result := ccNone; // ?
-    atGSTReceivable        : Result := ccLiabilities;
-  else
-    Result := ccNone;
-  end;
-end;
-
-//------------------------------------------------------------------------------
 function TChartExportToMYOBCashbook.GetMappedReportGroupCode(aReportGroup : byte): string;
 var
   MappedGroupId : TCashBookChartClasses;
 begin
-  MappedGroupId := GetMappedReportGroupId(aReportGroup);
+  MappedGroupId := ChartExportCol.GetMappedReportGroupId(aReportGroup);
 
   case MappedGroupId of
     ccNone         : Result := 'Error';
@@ -1169,27 +1256,6 @@ begin
     ccLiabilities  : Result := 'Liabilities';
     ccEquity       : Result := 'Equity';
     ccCostOfSales  : Result := 'Cost of Sales';
-  end;
-end;
-
-//------------------------------------------------------------------------------
-function TChartExportToMYOBCashbook.GetCrDrSignFromReportGroup(aReportGroup: byte): integer;
-var
-  MappedGroupId : TCashBookChartClasses;
-begin
-  MappedGroupId := GetMappedReportGroupId(aReportGroup);
-
-  case MappedGroupId of
-    ccNone         : Result := 0;  // Error
-    ccIncome       : Result := -1; // CR
-    ccExpense      : Result := 1;  // DR
-    ccOtherIncome  : Result := -1; // CR
-    ccOtherExpense : Result := 1;  // DR
-    ccAsset        : Result := 1;  // DR
-    ccLiabilities  : Result := -1; // CR
-    ccEquity       : Result := -1; // CR
-  else
-    Result := 0; // Error
   end;
 end;
 
@@ -1247,7 +1313,7 @@ begin
   for ChartIndex := 0 to ChartExportCol.Count-1 do
   begin
     ChartExportCol.ItemAtColIndex(ChartIndex, ChartExportItem);
-    if GetMappedReportGroupId(ChartExportItem.ReportGroupId) = ccNone then
+    if ChartExportCol.GetMappedReportGroupId(ChartExportItem.ReportGroupId) = ccNone then
     begin
       Result := false;
       Exit;
@@ -1450,7 +1516,7 @@ begin
   fExportChartFrmProperties := TExportChartFrmProperties.Create;
   ExportChartFrmProperties.ExportBasicChart := false;
   ExportChartFrmProperties.IncludeClosingBalances := false;
-  ExportChartFrmProperties.ClosingBalanceDate := now();
+  ExportChartFrmProperties.ClosingBalanceDate := CurrentDate;
   ExportChartFrmProperties.ExportFileLocation := '';
   ExportChartFrmProperties.ClientCode := '';
 end;
@@ -1562,12 +1628,16 @@ begin
     else
       ExportChartFrmProperties.ExportFileLocation := MyClient.clExtra.ceCashbook_Export_File_Location;
 
+    ExportChartFrmProperties.ClosingBalanceDate := BkNull2St(MyClient.clFields.clPeriod_End_Date);
+
     Res := ShowChartExport(aPopupParent, ExportChartFrmProperties);
 
     if Res then
     begin
       if ExportChartFrmProperties.IncludeClosingBalances then
+      begin
         ChartExportCol.UpdateClosingBalances(ExportChartFrmProperties.ClosingBalanceDate);
+      end;
 
       Res := RunExportChartToFile(ExportChartFrmProperties.ExportFileLocation, ErrorStr);
 

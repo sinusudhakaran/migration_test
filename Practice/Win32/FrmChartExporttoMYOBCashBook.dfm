@@ -164,7 +164,6 @@ object FrmChartExporttoMYOBCashBook: TFrmChartExporttoMYOBCashBook
       Width = 169
       Height = 17
       Caption = 'Include closing balances'
-      Enabled = False
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
       Font.Height = -13
@@ -174,11 +173,28 @@ object FrmChartExporttoMYOBCashBook: TFrmChartExporttoMYOBCashBook
       TabOrder = 2
       OnClick = chkIncludeClosingBalancesClick
     end
+    object edtSaveEntriesTo: TEdit
+      Left = 112
+      Top = 214
+      Width = 467
+      Height = 22
+      Ctl3D = False
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -13
+      Font.Name = 'Tahoma'
+      Font.Style = []
+      ParentCtl3D = False
+      ParentFont = False
+      ParentShowHint = False
+      ShowHint = True
+      TabOrder = 3
+    end
     object dteClosingBalanceDate: TOvcPictureField
-      Left = 200
-      Top = 158
+      Left = 208
+      Top = 155
       Width = 105
-      Height = 20
+      Height = 22
       Cursor = crIBeam
       DataType = pftDate
       AutoSize = False
@@ -199,31 +215,14 @@ object FrmChartExporttoMYOBCashBook: TFrmChartExporttoMYOBCashBook
       Font.Name = 'Tahoma'
       Font.Style = []
       InitDateTime = False
-      MaxLength = 8
+      MaxLength = 10
       Options = [efoCaretToEnd]
       ParentFont = False
-      PictureMask = 'DD/mm/yy'
-      TabOrder = 3
+      PictureMask = 'DD/mm/yyyy'
+      TabOrder = 4
       OnDblClick = dteClosingBalanceDateDblClick
       RangeHigh = {25600D00000000000000}
       RangeLow = {00000000000000000000}
-    end
-    object edtSaveEntriesTo: TEdit
-      Left = 112
-      Top = 214
-      Width = 467
-      Height = 22
-      Ctl3D = False
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clWindowText
-      Font.Height = -13
-      Font.Name = 'Tahoma'
-      Font.Style = []
-      ParentCtl3D = False
-      ParentFont = False
-      ParentShowHint = False
-      ShowHint = True
-      TabOrder = 4
     end
   end
   object SaveDialog: TSaveDialog
