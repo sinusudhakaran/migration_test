@@ -183,6 +183,8 @@ type
     function GetMappedNZGSTTypeCode(aGSTClassTypeIndicator : byte) : TCashBookGSTClasses;
     function CheckNZGStTypes() : boolean;
     function CheckReportGroups() : boolean;
+    function CheckGSTControlAccAndRates() : boolean;
+    function CheckOpeningBalancesSetup() : boolean;
     procedure GetMYOBCashbookGSTDetails(aCashBookGstClass : TCashBookGSTClasses;
                                         var aCashBookGstClassCode : string;
                                         var aCashBookGstClassDesc : string);
@@ -226,7 +228,8 @@ uses
   ISO_4217,
   CalculateAccountTotals,
   bkdateutils,
-  stDateSt;
+  stDateSt,
+  JNLUTILS32;
 
 Const
   UnitName = 'ChartExportToMYOBCashbook';
@@ -1322,6 +1325,42 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+function TChartExportToMYOBCashbook.CheckGSTControlAccAndRates() : boolean;
+var
+  GstIndex : integer;
+begin
+  Result := true;
+
+  for GstIndex := 0 to high(MyClient.clfields.clGST_Class_Names) do
+  begin
+    if MyClient.clfields.clGST_Class_Names[GstIndex] > '' then
+    begin
+      if MyClient.clfields.clGST_Account_Codes[GstIndex] = '' then
+      begin
+        Result := false;
+        Exit;
+      end;
+
+      if (MyClient.clfields.clGST_Rates[GstIndex,1] = 0) and
+         (MyClient.clfields.clGST_Rates[GstIndex,2] = 0) and
+         (MyClient.clfields.clGST_Rates[GstIndex,3] = 0) and
+         (MyClient.clfields.clGST_Rates[GstIndex,4] = 0) and
+         (MyClient.clfields.clGST_Rates[GstIndex,5] = 0) then
+      begin
+        Result := false;
+        Exit;
+      end;
+    end;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+function TChartExportToMYOBCashbook.CheckOpeningBalancesSetup: boolean;
+begin
+
+end;
+
+//------------------------------------------------------------------------------
 procedure TChartExportToMYOBCashbook.GetMYOBCashbookGSTDetails(aCashBookGstClass : TCashBookGSTClasses;
                                                                var aCashBookGstClassCode : string;
                                                                var aCashBookGstClassDesc : string);
@@ -1629,6 +1668,9 @@ begin
       ExportChartFrmProperties.ExportFileLocation := MyClient.clExtra.ceCashbook_Export_File_Location;
 
     ExportChartFrmProperties.ClosingBalanceDate := BkNull2St(MyClient.clFields.clPeriod_End_Date);
+    ExportChartFrmProperties.AreGSTAccountSetup := CheckGSTControlAccAndRates();
+    ExportChartFrmProperties.AreOpeningBalancesSetup :=
+      JnlUtils32.CheckForOpeningBalance( MyClient, MyClient.clFields.clReporting_Year_Starts);
 
     Res := ShowChartExport(aPopupParent, ExportChartFrmProperties);
 

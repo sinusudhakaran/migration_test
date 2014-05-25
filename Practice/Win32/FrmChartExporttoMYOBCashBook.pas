@@ -32,12 +32,16 @@ type
     fClosingBalanceDate: TStDate;
     fClientCode : string;
     fExportFileLocation : string;
+    fAreGSTAccountSetup : boolean;
+    fAreOpeningBalancesSetup : boolean;
   public
     property ExportBasicChart : boolean read fExportBasicChart write fExportBasicChart;
     property IncludeClosingBalances : boolean read fIncludeClosingBalances write fIncludeClosingBalances;
     property ClosingBalanceDate: TStDate read fClosingBalanceDate write fClosingBalanceDate;
     property ClientCode : string read fClientCode write fClientCode;
     property ExportFileLocation : string read fExportFileLocation write fExportFileLocation;
+    property AreGSTAccountSetup : boolean read fAreGSTAccountSetup write fAreGSTAccountSetup;
+    property AreOpeningBalancesSetup : boolean read fAreOpeningBalancesSetup write fAreOpeningBalancesSetup;
   end;
 
   //------------------------------------------------------------------------------
@@ -126,6 +130,27 @@ end;
 //------------------------------------------------------------------------------
 procedure TFrmChartExportToMYOBCashBook.chkIncludeClosingBalancesClick(Sender: TObject);
 begin
+  if chkIncludeClosingBalances.Checked then
+  begin
+    if not ExportChartFrmProperties.AreGSTAccountSetup then
+    begin
+      HelpfulErrorMsg('Please enter GST Control accounts for GST rates with a ' +
+                      'percentage amount, Other Functions | GST Setup | Rates.',0);
+      chkIncludeClosingBalances.Checked := false;
+      Exit;
+    end;
+    if not ExportChartFrmProperties.AreOpeningBalancesSetup then
+    begin
+      if not (AskYesNo('Opening balances not been set',
+                       'Opening balances have not been set under Data Entry | ' +
+                       'Opening Balances. Would you like to continue?', dlg_yes, 0) = DLG_YES) then
+      begin
+        chkIncludeClosingBalances.Checked := false;
+        Exit;
+      end;
+    end;
+  end;
+
   dteClosingBalanceDate.Visible := chkIncludeClosingBalances.Checked;
   lblClosingBalanceDate.Visible := chkIncludeClosingBalances.Checked;
 end;
