@@ -1430,8 +1430,10 @@ begin
   Result := False;
 
   FileLines := TStringList.Create;
-  FileLines.Clear;
   try
+    FileLines.Clear;
+    FileLines.Add('Code,Description,Account Group,GST Type,Opening Balance,Opening Balance Date');
+
     LineColumns := TStringList.Create;
     try
       LineColumns.Delimiter := ',';
@@ -1667,6 +1669,7 @@ begin
     else
       ExportChartFrmProperties.ExportFileLocation := MyClient.clExtra.ceCashbook_Export_File_Location;
 
+    ExportChartFrmProperties.IncludeClosingBalances := false;
     ExportChartFrmProperties.ClosingBalanceDate := BkNull2St(MyClient.clFields.clPeriod_End_Date);
     ExportChartFrmProperties.AreGSTAccountSetup := CheckGSTControlAccAndRates();
     ExportChartFrmProperties.AreOpeningBalancesSetup :=

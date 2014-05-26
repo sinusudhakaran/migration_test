@@ -70,6 +70,7 @@ type
   private
     fOkPressed : boolean;
     fExportChartFrmProperties : TExportChartFrmProperties;
+    fLoading : boolean;
   protected
     procedure DoRebranding();
     function ValidateForm : boolean;
@@ -130,7 +131,8 @@ end;
 //------------------------------------------------------------------------------
 procedure TFrmChartExportToMYOBCashBook.chkIncludeClosingBalancesClick(Sender: TObject);
 begin
-  if chkIncludeClosingBalances.Checked then
+  if (chkIncludeClosingBalances.Checked) and
+     (not fLoading) then
   begin
     if not ExportChartFrmProperties.AreGSTAccountSetup then
     begin
@@ -222,6 +224,7 @@ end;
 //------------------------------------------------------------------------------
 function TFrmChartExportToMYOBCashBook.Execute: boolean;
 begin
+  fLoading := true;
   fOkPressed := false;
   ImagesFrm.AppImages.Misc.GetBitmap(MISC_FINDFOLDER_BMP,btnToFolder.Glyph);
 
@@ -240,6 +243,7 @@ begin
     edtSaveEntriesTo.Text := ExportChartFrmProperties.ExportFileLocation;
   end;
 
+  fLoading := false;
   Result := (ShowModal = mrOK);
 
   // if ok Save Properties
