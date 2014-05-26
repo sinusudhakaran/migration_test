@@ -724,8 +724,9 @@ begin
     cdpForPaint:
     begin
             ReadCellforPaint(RowNum,ColNum,Data);
-            if GetAutoCalculateGST then            
-              UpdateControlAccountTotals;
+            if GetAutoCalculateGST then
+              if (RowNum > 0) then
+                UpdateControlAccountTotals;
     end;
 
     cdpForEdit:
