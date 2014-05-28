@@ -3281,12 +3281,9 @@ begin
    //if selected dont do anything
    if CellAttr.caColor = clHighlight then exit;
    S := Integer( Data^ );
-   If (S=0) or Assigned(MyClient.clPayee_List.Find_Payee_Number(S)) then exit;
+   If Assigned(MyClient.clPayee_List.Find_Payee_Number(S)) then exit;
    R := CellRect;
    C := TableCanvas;
-   //paint background
-   C.Brush.Color := clRed;
-   C.FillRect( R );
    //paint border
    C.Pen.Color := CellAttr.caColor;
    //  C.Polyline( [ R.TopLeft, Point( R.Right, R.Top)]);
@@ -3294,7 +3291,18 @@ begin
    {draw data}
    InflateRect( R, -2, -2 );
    C.Font.Color := clWhite;
-   DrawText(C.Handle, PChar( IntToStr(S) ), StrLen( PChar( IntToStr(S) ) ), R, DT_LEFT or DT_VCENTER or DT_SINGLELINE);
+   if (S = 0) then
+   begin
+     C.Brush.Color := CellAttr.caColor;
+     DrawText(C.Handle, '', 0, R, DT_LEFT or DT_VCENTER or DT_SINGLELINE);
+   end
+   else
+   begin
+     //paint background
+     C.Brush.Color := clRed;
+     C.FillRect( R );
+     DrawText(C.Handle, PChar( IntToStr(S) ), StrLen( PChar( IntToStr(S) ) ), R, DT_LEFT or DT_VCENTER or DT_SINGLELINE);
+   end;
    DoneIt := True;
 end;
 
