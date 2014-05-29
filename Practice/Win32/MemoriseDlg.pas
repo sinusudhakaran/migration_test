@@ -3284,25 +3284,18 @@ begin
    If Assigned(MyClient.clPayee_List.Find_Payee_Number(S)) then exit;
    R := CellRect;
    C := TableCanvas;
+   //paint background
+   if (S <> 0) then
+     C.Brush.Color := clRed;
+   C.FillRect( R );
+   DrawText(C.Handle, '', 0, R, DT_LEFT or DT_VCENTER or DT_SINGLELINE);
    //paint border
    C.Pen.Color := CellAttr.caColor;
-   //  C.Polyline( [ R.TopLeft, Point( R.Right, R.Top)]);
    C.Polyline( [ Point( R.Left, R.Bottom-1), Point( R.Right, R.Bottom-1) ]);
    {draw data}
    InflateRect( R, -2, -2 );
    C.Font.Color := clWhite;
-   if (S = 0) then
-   begin
-     C.Brush.Color := CellAttr.caColor;
-     DrawText(C.Handle, '', 0, R, DT_LEFT or DT_VCENTER or DT_SINGLELINE);
-   end
-   else
-   begin
-     //paint background
-     C.Brush.Color := clRed;
-     C.FillRect( R );
-     DrawText(C.Handle, PChar( IntToStr(S) ), StrLen( PChar( IntToStr(S) ) ), R, DT_LEFT or DT_VCENTER or DT_SINGLELINE);
-   end;
+   DrawText(C.Handle, PChar( IntToStr(S) ), StrLen( PChar( IntToStr(S) ) ), R, DT_LEFT or DT_VCENTER or DT_SINGLELINE);
    DoneIt := True;
 end;
 
