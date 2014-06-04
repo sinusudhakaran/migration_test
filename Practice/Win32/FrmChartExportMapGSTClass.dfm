@@ -15,6 +15,7 @@ object FrmChartExportMapGSTClass: TFrmChartExportMapGSTClass
   OldCreateOrder = False
   Position = poScreenCenter
   OnCloseQuery = FormCloseQuery
+  OnShow = FormShow
   DesignSize = (
     788
     465)
@@ -36,7 +37,6 @@ object FrmChartExportMapGSTClass: TFrmChartExportMapGSTClass
     ParentColor = False
     ParentFont = False
     TabOrder = 0
-    ExplicitHeight = 429
     DesignSize = (
       786
       431)
@@ -144,12 +144,11 @@ object FrmChartExportMapGSTClass: TFrmChartExportMapGSTClass
       TabOrder = 4
       OnGetCellData = tblGSTReMapGetCellData
       OnGetCellAttributes = tblGSTReMapGetCellAttributes
-      ExplicitHeight = 356
       CellData = (
         'FrmChartExportMapGSTClass.colHeader'
-        'FrmChartExportMapGSTClass.colCashBookGSTDropDown'
+        'FrmChartExportMapGSTClass.colID'
         'FrmChartExportMapGSTClass.colClassDescription'
-        'FrmChartExportMapGSTClass.colID')
+        'FrmChartExportMapGSTClass.colCashBookGSTDropDown')
       RowData = (
         22)
       ColData = (
@@ -183,7 +182,6 @@ object FrmChartExportMapGSTClass: TFrmChartExportMapGSTClass
     ParentFont = False
     TabOrder = 1
     OnClick = btnOkClick
-    ExplicitTop = 430
   end
   object btnCancel: TButton
     Left = 705
@@ -201,7 +199,6 @@ object FrmChartExportMapGSTClass: TFrmChartExportMapGSTClass
     ModalResult = 2
     ParentFont = False
     TabOrder = 2
-    ExplicitTop = 430
   end
   object SaveDlg: TSaveDialog
     DefaultExt = '*.csv'

@@ -11,7 +11,10 @@ uses
   FrmChartExportToMYOBCashBook,
   clObj32,
   MONEYDEF,
-  stDate;
+  stDate,
+  TravList,
+  BKDEFS,
+  chList32;
 
 type
   TCashBookChartClasses = (ccNone,
@@ -42,6 +45,35 @@ type
     Source: Integer;
   end;
 
+  TTravManagerCashBookExport = class(TTravManager)
+  private
+    fAccountTotalNet : Money;
+    fAccountHasActivity : Boolean;
+    fContraCodePrinted : string;
+    fLastCodePrinted : string;
+    fPrintEmptyCodes : boolean;
+    fDoneSubTotal : boolean;
+    fLastValidCode : string;
+    fSplitCode : string;
+    fBankContraType : byte;
+    fGSTContraType : byte;
+    fBankContra: Byte;
+    fGSTContra: Byte;
+  public
+    property AccountTotalNet : Money read fAccountTotalNet write fAccountTotalNet;
+    property AccountHasActivity : Boolean read fAccountHasActivity write fAccountHasActivity;
+    property ContraCodePrinted : string read fContraCodePrinted write fContraCodePrinted;
+    property LastCodePrinted : string read fLastCodePrinted write fLastCodePrinted;
+    property PrintEmptyCodes : boolean read fPrintEmptyCodes write fPrintEmptyCodes;
+    property DoneSubTotal : boolean read fDoneSubTotal write fDoneSubTotal;
+    property LastValidCode : string read fLastValidCode write fLastValidCode;
+    property SplitCode : string read fSplitCode write fSplitCode;
+    property BankContraType : byte read fBankContraType write fBankContraType;
+    property GSTContraType : byte read fGSTContraType write fGSTContraType;
+    property BankContra : byte read fBankContra write fBankContra;
+    property GSTContra : byte read fGSTContra write fGSTContra;
+  end;
+
   //----------------------------------------------------------------------------
   TChartExportItem = class(TCollectionItem)
   private
@@ -62,11 +94,21 @@ type
     property ClosingBalance : string read fClosingBalance write fClosingBalance;
     property ClosingBalanceDate : string read fClosingBalanceDate write fClosingBalanceDate;
     property PostingAllowed : boolean read fPostingAllowed write fPostingAllowed;
+
   end;
 
   //----------------------------------------------------------------------------
   TChartExportCol = class(TCollection)
   private
+    fChart : TCustomSortChart;
+    fFromDate : TStDate;
+    fTodate   : TStDate;
+
+    procedure LGR_Contra_PrintEntry(Sender:TObject);
+    procedure LGR_Contra_PrintDissect(Sender:Tobject);
+    function DoContras(aTravMgr : TTravManagerCashBookExport; aCode: string) : boolean;
+    procedure CalculateEntry( Sender : TObject);
+    procedure CalculateDisection( Sender : TObject);
   protected
     procedure AddChartExportItem(aIsBasicChartItem : boolean;
                                  aAccountCode : string;
@@ -77,18 +119,31 @@ type
 
     function GetCurrencyFormat(aRoundValues : Boolean) : string;
     function GetStringFromAmount(aAmount : Money) : string;
-    function GetClosingBalanceAmount(Client : tClientObj; Code: string): Money;
+    function GetOpeningBalanceAmount(Client : tClientObj; Code: string): Money;
     function GetOpeningBalanceForInvalidCode(Client : TClientObj; Code: string; D1: Integer): Money;
 
     function GetMappedReportGroupId(aReportGroup : byte) : TCashBookChartClasses;
     function GetCrDrSignFromReportGroup(aReportGroup : byte) : integer;
+
+    function DoesTxUseGSTClass(aClient : TClientObj; aClassId: string; aTrans : pTransaction_Rec): Boolean;
+    function IsABankContra(aCode: string; aStart: Integer): Integer;
+    function IsAGSTContra(aCode: string; aStart: Integer): Integer;
+    function IsThisAContraCode(aCode: string): Boolean;
   public
     destructor Destroy; override;
 
     procedure FillChartExportCol();
+    procedure UpdateClosingBalancesForCode(aCode : String; aClosingBalance : Money);
     procedure UpdateClosingBalances(aClosingBalanceDate : TstDate);
+
+    procedure CalculateTransactionTotals();
     function CheckAccountCodesLength(aErrors : TStringList) : Boolean;
     function ItemAtColIndex(aClientChartIndex: integer; out aChartExportItem : TChartExportItem) : boolean;
+    function ItemAtCode(aCode: string; out aChartExportItem : TChartExportItem) : boolean;
+
+    property Chart    : TCustomSortChart read fChart    write fChart;
+    property FromDate : TStDate          read fFromDate write fFromDate;
+    property Todate   : TStDate          read fTodate   write fTodate;
   end;
 
   //----------------------------------------------------------------------------
@@ -184,7 +239,6 @@ type
     function CheckNZGStTypes() : boolean;
     function CheckReportGroups() : boolean;
     function CheckGSTControlAccAndRates() : boolean;
-    function CheckOpeningBalancesSetup() : boolean;
     procedure GetMYOBCashbookGSTDetails(aCashBookGstClass : TCashBookGSTClasses;
                                         var aCashBookGstClassCode : string;
                                         var aCashBookGstClassDesc : string);
@@ -219,7 +273,6 @@ uses
   CountryUtils,
   BKConst,
   Globals,
-  BKDEFS,
   glConst,
   LogUtil,
   AccountInfoObj,
@@ -229,7 +282,8 @@ uses
   CalculateAccountTotals,
   bkdateutils,
   stDateSt,
-  JNLUTILS32;
+  JNLUTILS32,
+  GenUtils;
 
 Const
   UnitName = 'ChartExportToMYOBCashbook';
@@ -237,6 +291,7 @@ Const
   PRAC_GST_DESC = 1;
   CASHBOOK_GST_CODE = 2;
   CASHBOOK_GST_DESC = 3;
+  NullCode = '<NULLCODE>';
 
 var
   fChartExportToMYOBCashbook : TChartExportToMYOBCashbook;
@@ -316,7 +371,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TChartExportCol.GetClosingBalanceAmount(Client : tClientObj; Code: string): Money;
+function TChartExportCol.GetOpeningBalanceAmount(Client : tClientObj; Code: string): Money;
 var
   AccountInfo: TAccountInformation;
   Balance : Money;
@@ -458,10 +513,11 @@ begin
   end;
 end;
 
-
 //------------------------------------------------------------------------------
 destructor TChartExportCol.Destroy;
 begin
+  if Assigned(FChart) then
+    FreeAndNil(FChart);
 
   inherited;
 end;
@@ -484,21 +540,38 @@ begin
                        AccountRec.chGST_Class,
                        AccountRec.chPosting_Allowed);
   end;
+
+  //Use a copy of the client chart that can be sorted
+  FChart := TCustomSortChart.Create(MyClient.ClientAuditMgr);
+  FChart.CopyChart(MyClient.clChart);
+  if UseXlonSort then
+    FChart.Sort(XlonCompare);
+end;
+
+//------------------------------------------------------------------------------
+procedure TChartExportCol.UpdateClosingBalancesForCode(aCode : String; aClosingBalance : Money);
+var
+  ChartExportItem : TChartExportItem;
+  ClosingBalance : Money;
+  DisplayClosingBalanceDate : string;
+  DisplayClosingBalance : string;
+begin
+  if ItemAtCode(aCode, ChartExportItem) then
+  begin
+    DisplayClosingBalanceDate := StDateToDateString('dd/mm/yyyy', IncDate(FromDate, 1, 0, 0), true);
+    ClosingBalance            := aClosingBalance;
+    ClosingBalance            := GetCrDrSignFromReportGroup(ChartExportItem.ReportGroupId) * ClosingBalance;
+    DisplayClosingBalance     := GetStringFromAmount(ClosingBalance);
+
+    ChartExportItem.ClosingBalanceDate := DisplayClosingBalanceDate;
+    ChartExportItem.ClosingBalance     := DisplayClosingBalance;
+  end;
 end;
 
 //------------------------------------------------------------------------------
 procedure TChartExportCol.UpdateClosingBalances(aClosingBalanceDate : TstDate);
 var
-  ChartIndex : integer;
-  ChartExportItem : TChartExportItem;
-  ClosingBalance : Money;
-  DisplayClosingBalanceDate : string;
-  DisplayClosingBalance : string;
-  This_Year_Starts : TStDate;
-  This_Year_Ends   : TStDate;
-  Last_Year_Starts : TStDate;
-  Last_Year_Ends   : TStDate;
-  AccountList : TList;
+  ClosingBalanceDate : TstDate;
   DayFinStart, MonthFinStart, YearFinStart: Integer;
   DayStart, MonthStart, YearStart: Integer;
   AccountIndex : integer;
@@ -510,26 +583,32 @@ begin
 
   StDatetoDMY(MyClient.clFields.clFinancial_Year_Starts, DayFinStart, MonthFinStart, YearFinStart);
   StDatetoDMY(aClosingBalanceDate, DayStart, MonthStart, YearStart);
-  {// special case start date = financial year start
+  DayStart := 1;
+  ClosingBalanceDate := DMYtoStDate(DayStart, MonthStart, YearStart, Epoch);
+
+  // special case start date = financial year start
   if (DayFinStart = DayStart) and (MonthFinStart = MonthStart) then
     MyClient.clFields.clTemp_FRS_To_Date := DMYtoStDate(DayStart, MonthStart, YearStart, Epoch) //selected date
   else // otherwise we go up to the previous day
-    MyClient.clFields.clTemp_FRS_To_Date := IncDate(aClosingBalanceDate, -1, 0, 0);
+    MyClient.clFields.clTemp_FRS_To_Date := IncDate(ClosingBalanceDate, -1, 0, 0);
   //go back to last financial year if report month less than year start month
-  //ie. if report date is 1/2/2005 then fin start is 1/4/2004 (NZ example)}
+  //ie. if report date is 1/2/2005 then fin start is 1/4/2004 (NZ example)
   if MonthStart < MonthFinStart then
     YearStart := YearStart - 1;
 
   MyClient.clFields.cltemp_FRS_from_Date := DMYtoStDate(DayFinStart, MonthFinStart, YearStart, Epoch);
-  MyClient.clFields.clTemp_FRS_To_Date := aClosingBalanceDate;
 
-  {HelpfulErrorMsg('From Date : ' +
+  FromDate := ClosingBalanceDate;
+  ToDate   := aClosingBalanceDate;
+
+  HelpfulErrorMsg('Bal From Date : ' +
                   StDateToDateString('dd/mm/yyyy', MyClient.clFields.cltemp_FRS_from_Date, true) +
-                  ', To Date : ' +
-                  StDateToDateString('dd/mm/yyyy', MyClient.clFields.clTemp_FRS_To_Date, true), 0);}
-
-  //MyClient.clFields.cltemp_FRS_from_Date := IncDate(aClosingBalanceDate, 1, 0, 0);
-  //MyClient.clFields.clTemp_FRS_To_Date   := IncDate(aClosingBalanceDate, 1, 1, 0);
+                  ', Bal To Date : ' +
+                  StDateToDateString('dd/mm/yyyy', MyClient.clFields.clTemp_FRS_To_Date, true) +
+                  ', Rpt From Date : ' +
+                  StDateToDateString('dd/mm/yyyy', FromDate, true) +
+                  ', Rpt To Date : ' +
+                  StDateToDateString('dd/mm/yyyy', ToDate, true), 0);
 
   MyClient.clFields.clTemp_FRS_Account_Totals_Cash_Only := False;
   MyClient.clFields.clTemp_FRS_Division_To_Use := 0;
@@ -551,18 +630,649 @@ begin
                                   False,
                                   True);
 
-  for ChartIndex := 0 to Count - 1 do
-  begin
-    if ItemAtColIndex(ChartIndex, ChartExportItem) then
-    begin
-      DisplayClosingBalanceDate := StDateToDateString('dd/mm/yyyy', IncDate(aClosingBalanceDate, 1, 0, 0), true);
-      ClosingBalance            := GetClosingBalanceAmount(MyClient, ChartExportItem.AccountCode);
-      ClosingBalance            := GetCrDrSignFromReportGroup(ChartExportItem.ReportGroupId) * ClosingBalance;
-      DisplayClosingBalance     := GetStringFromAmount(ClosingBalance);
+  CalculateTransactionTotals;
+end;
 
-      ChartExportItem.ClosingBalanceDate := DisplayClosingBalanceDate;
-      ChartExportItem.ClosingBalance     := DisplayClosingBalance;
+// Does a given transaction use a given GST class
+//------------------------------------------------------------------------------
+function TChartExportCol.DoesTxUseGSTClass(aClient  : TClientObj;
+                                           aClassId : string;
+                                           aTrans   : pTransaction_Rec): Boolean;
+var
+  Dissection : pDissection_Rec;
+begin
+  Result := False;
+  // check mainline
+  if (aTrans.txGST_Class in [ 1..MAX_GST_CLASS ]) and
+     (aClient.clFields.clGST_Class_Codes[aTrans.txGST_Class] = aClassId) and
+     (aTrans.txGST_Amount <> 0) then
+  begin
+    Result := True;
+    Exit;
+  end;
+
+  // check dissection lines
+  Dissection := aTrans.txFirst_Dissection;
+  while Dissection <> nil do
+  begin
+    if (Dissection.dsGST_Class in [ 1..MAX_GST_CLASS ]) and
+       (aClient.clFields.clGST_Class_Codes[Dissection.dsGST_Class] = aClassId) and
+       (Dissection.dsGST_Amount <> 0) then
+    begin
+      Result := True;
+      Exit;
     end;
+    Dissection := Dissection.dsNext;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+function TChartExportCol.IsABankContra(aCode: string; aStart: Integer): Integer;
+var
+  BA: TBank_Account;
+  T: pTransaction_Rec;
+  i, k: Integer;
+begin
+  Result := -1;
+  if aCode = '' then
+    Exit;
+  for i := aStart to Pred(MyClient.clBank_Account_List.ItemCount) do
+  begin
+    BA := MyClient.clBank_Account_List.Bank_Account_At(i);
+    if (BA.baFields.baContra_Account_Code = aCode) and
+       (not (BA.baFields.baAccount_Type in LedgerNoContrasJournalSet)) then
+    begin
+      // Does this account have any transactions coded within the report dates
+      for k := 0 to Pred(BA.baTransaction_List.ItemCount) do
+      begin
+        T := BA.baTransaction_List.Transaction_At(k);
+        if (T.txDate_Effective >= FromDate) and
+           (T.txDate_Effective <= Todate) then
+        begin
+          Result := i;
+          exit;
+        end;
+      end;
+    end;
+  end;
+end;
+
+// Is the given Code used as a GST control account
+// Returns index into GST rates list, or -1 if not a control account
+//------------------------------------------------------------------------------
+function TChartExportCol.IsAGSTContra(aCode: string; aStart: Integer): Integer;
+var
+  AccCodeIndex, AccIndex, TransIndex: Integer;
+  BA: TBank_Account;
+  T: pTransaction_Rec;
+begin
+  Result := -1;
+  if aCode = '' then
+    Exit;
+  for AccCodeIndex := aStart to High(MyClient.clFields.clGST_Account_Codes) do
+  begin
+    if MyClient.clFields.clGST_Account_Codes[AccCodeIndex] = aCode then
+    begin
+      // Is this GST class used in any included bank account
+      for AccIndex := 0 to Pred(MyClient.clBank_Account_List.ItemCount) do
+      begin
+         BA := MyClient.clBank_Account_List.Bank_Account_At(AccIndex);
+        // Are there any txns using this gst class within the report dates
+        for TransIndex := 0 to Pred(BA.baTransaction_List.ItemCount) do
+        begin
+          T := BA.baTransaction_List.Transaction_At(TransIndex);
+          if (T.txDate_Effective >= FromDate) and
+             (T.txDate_Effective <= Todate) and
+             DoesTxUseGSTClass(MyClient, MyClient.clFields.clGST_Class_Codes[AccCodeIndex], T) then
+          begin
+            Result := AccCodeIndex;
+            Exit;
+          end;
+        end;
+      end;
+
+      for AccIndex := 0 to Pred(MyClient.clBank_Account_List.ItemCount) do
+      begin
+        BA := MyClient.clBank_Account_List.Bank_Account_At(AccIndex);
+        if BA.baFields.baAccount_Type in BKConst.NonTrfJournalsLedgerSet then
+        begin
+          // Are there any txns using this gst class within the report dates
+          for TransIndex := 0 to Pred(BA.baTransaction_List.ItemCount) do
+          begin
+            T := BA.baTransaction_List.Transaction_At(TransIndex);
+            if (T.txDate_Effective >= Fromdate) and
+               (T.txDate_Effective <= Todate) and
+               DoesTxUseGSTClass(MyClient, MyClient.clFields.clGST_Class_Codes[AccCodeIndex], T) then
+            begin
+              Result := AccCodeIndex;
+              Exit;
+            end;
+          end;
+        end;
+      end;
+    end;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+function TChartExportCol.IsThisAContraCode(aCode: string): Boolean;
+begin
+  Result := (IsABankContra(aCode, 0) > -1) or
+            (IsAGSTContra(aCode, Low(MyClient.clFields.clGST_Account_Codes)) > -1);
+end;
+
+//------------------------------------------------------------------------------
+procedure TChartExportCol.LGR_Contra_PrintEntry(Sender:TObject);
+var
+  Code : Bk5CodeStr;
+  ContraTravMgr  : TTravManagerCashBookExport;
+  GSTControlAccount : string;
+  baFields : tBank_Account_Rec;
+begin
+  ContraTravMgr := TTravManagerCashBookExport(Sender);
+
+  //is bank account included in this report?
+  //if not IsBankAccountIncluded(ReportJob, Mgr) then
+  // Exit;
+
+  Code := ContraTravMgr.Transaction^.txAccount;
+  baFields := ContraTravMgr.Bank_Account.baFields;
+  //IsSummary := TListLedgerReport(ReportJob).SummaryOnly;
+
+  //get GST control account if we need to display gst contras
+  if (ContraTravMgr.GSTContraType > Byte(gcNone)) and
+     (ContraTravMgr.Transaction^.txGst_Class in [ 1..MAX_GST_CLASS ]) then
+    GSTControlAccount := MyClient.clFields.clGST_Account_Codes[ContraTravMgr.Transaction^.txGst_Class]
+  else
+    GSTControlAccount := '';
+
+  //does this transaction need to be handled? only if:
+  //it is coded to the handled acount
+  //the bank account it belongs to has this account as the contra
+  //its GST class has this account as the control account
+  //Skip dissections, they are handled in a seperate method
+  if ((ContraTravMgr.ContraCodePrinted <> ContraTravMgr.Transaction^.txAccount) and
+     (ContraTravMgr.ContraCodePrinted <> baFields.baContra_Account_Code) and
+     (ContraTravMgr.ContraCodePrinted <> GSTControlAccount)) or (ContraTravMgr.Transaction^.txAccount = DISSECT_DESC) then
+    exit;
+
+  // #2608 - do not show transactions with $0 GST in the contra section unless coded to this account
+  if (GSTControlAccount = ContraTravMgr.ContraCodePrinted) and
+     (ContraTravMgr.Transaction^.txGST_Amount = 0) and
+     (ContraTravMgr.Transaction^.txAccount <> GSTControlAccount) then
+    exit;
+
+  // #2861 - do not show contras for journals (but show GST)
+  if (baFields.baAccount_Type in LedgerNoContrasJournalSet) and
+     (ContraTravMgr.ContraCodePrinted <> GSTControlAccount) and
+     (ContraTravMgr.ContraCodePrinted <> Code) and
+     (Code <> baFields.baContra_Account_Code) then
+    exit;
+
+  //print contra entries if requested
+  //note: txn may be printed twice (actual entry and contra) if its coded to this account
+
+  //normal txn
+  if (ContraTravMgr.ContraCodePrinted = ContraTravMgr.Transaction^.txAccount) then
+  begin
+    ContraTravMgr.AccountTotalNet := ContraTravMgr.AccountTotalNet +
+                          (ContraTravMgr.Transaction^.txTemp_Base_Amount - ContraTravMgr.Transaction^.txGST_Amount);
+    ContraTravMgr.AccountHasActivity := (ContraTravMgr.Transaction^.txTemp_Base_Amount <> 0) or
+                              (ContraTravMgr.Transaction^.txGST_Amount <> 0);
+  end;
+
+  //bank contra
+  if (ContraTravMgr.ContraCodePrinted = baFields.baContra_Account_Code) and
+     (not (baFields.baAccount_Type in LedgerNoContrasJournalSet)) then
+  begin
+    ContraTravMgr.AccountTotalNet    := ContraTravMgr.AccountTotalNet + (-ContraTravMgr.Transaction^.txTemp_Base_Amount);
+    ContraTravMgr.AccountHasActivity := ContraTravMgr.Transaction^.txTemp_Base_Amount <> 0;
+  end;
+
+  //GST contra
+  if (ContraTravMgr.ContraCodePrinted = GSTControlAccount) then
+  begin
+    ContraTravMgr.AccountTotalNet    := ContraTravMgr.AccountTotalNet + ContraTravMgr.Transaction^.txGST_Amount;
+    ContraTravMgr.AccountHasActivity := ContraTravMgr.Transaction^.txGST_Amount <> 0;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+procedure TChartExportCol.LGR_Contra_PrintDissect(Sender:Tobject);
+var
+  Code : Bk5CodeStr;
+  ContraTravMgr  : TTravManagerCashBookExport;
+  GSTControlAccount : string;
+  baFields : tBank_Account_Rec;
+begin
+  ContraTravMgr := TTravManagerCashBookExport(Sender);
+
+  //is bank account included in this report?
+  //if not IsBankAccountIncluded(ReportJob, Mgr) then
+  // Exit;
+
+  Code := ContraTravMgr.Dissection^.dsAccount;
+  baFields := ContraTravMgr.Bank_Account.baFields;
+  //IsSummary := TListLedgerReport(ReportJob).SummaryOnly;
+
+  //get GST control account if we need to display gst contras
+  if (ContraTravMgr.GSTContraType > Byte(gcNone)) and (ContraTravMgr.Dissection^.dsGst_Class in [ 1..MAX_GST_CLASS ]) then
+    GSTControlAccount := MyClient.clFields.clGST_Account_Codes[ContraTravMgr.Dissection^.dsGst_Class]
+  else
+    GSTControlAccount := '';
+
+  //does this dissection line need to be handled? only if:
+  //it is coded to the handled acount
+  //the bank account it belongs to has this account as the contra
+  //its GST class has this account as the control account
+  if (ContraTravMgr.ContraCodePrinted <> ContraTravMgr.Dissection^.dsAccount) and
+     (ContraTravMgr.ContraCodePrinted <> baFields.baContra_Account_Code) and
+     (ContraTravMgr.ContraCodePrinted <> GSTControlAccount) then
+    exit;
+
+  // #2608 - do not show transactions with $0 GST in the contra section unless coded to this account
+  if (GSTControlAccount = ContraTravMgr.ContraCodePrinted) and
+     (ContraTravMgr.Dissection^.dsGST_Amount = 0) and
+     (ContraTravMgr.Dissection^.dsAccount <> GSTControlAccount) then
+    exit;
+
+  // #2861 - do not show contras for journals (but show GST)
+  if (baFields.baAccount_Type in LedgerNoContrasJournalSet) and
+     (ContraTravMgr.ContraCodePrinted <> GSTControlAccount) and
+     (ContraTravMgr.ContraCodePrinted <> Code) and
+     (Code <> baFields.baContra_Account_Code) then
+    exit;
+
+  //print contra entries if requested
+  //note: txn may be printed twice (actual entry and contra) if its coded to this account
+
+  //normal txn
+  if (ContraTravMgr.ContraCodePrinted = ContraTravMgr.Dissection^.dsAccount) then
+  begin
+    ContraTravMgr.AccountTotalNet    := ContraTravMgr.AccountTotalNet +
+                             (ContraTravMgr.Dissection^.dsTemp_Base_Amount - ContraTravMgr.Dissection^.dsGST_Amount);
+    ContraTravMgr.AccountHasActivity := (ContraTravMgr.Dissection^.dsTemp_Base_Amount <> 0) or
+                              (ContraTravMgr.Dissection^.dsGST_Amount <> 0);
+    ContraTravMgr.AccountHasActivity := True;
+  end;
+
+  //bank contra
+  if (ContraTravMgr.ContraCodePrinted = baFields.baContra_Account_Code) and
+     (not (baFields.baAccount_Type in LedgerNoContrasJournalSet)) then
+  begin
+    ContraTravMgr.AccountTotalNet := ContraTravMgr.AccountTotalNet + (-ContraTravMgr.Dissection^.dsTemp_Base_Amount);
+    ContraTravMgr.AccountHasActivity := ContraTravMgr.Dissection^.dsTemp_Base_Amount <> 0;
+  end;
+
+  //GST contra
+  if (ContraTravMgr.ContraCodePrinted = GSTControlAccount) then // gst contra txn
+  begin
+    ContraTravMgr.AccountTotalNet := ContraTravMgr.AccountTotalNet + ContraTravMgr.Dissection^.dsGST_Amount;
+    ContraTravMgr.AccountHasActivity := ContraTravMgr.Dissection^.dsGST_Amount <> 0;
+  end;
+end;
+
+// Print the bank and gst contra entries
+//------------------------------------------------------------------------------
+function TChartExportCol.DoContras(aTravMgr : TTravManagerCashBookExport; aCode: string) : boolean;
+var
+  ContraTravMgr : TTravManagerCashBookExport;
+  IsBankContra, IsGSTContra: Boolean;
+  BC, GC: Integer;
+  BCType, GCType: Byte;
+begin
+  Result := false;
+  //are bank contras needed in this report for this code
+  BC := IsABankContra(aCode, 0);
+  BCType := aTravMgr.BankContra;
+  IsBankContra := (BCType > Byte(bcNone)) and
+                  (BC > -1);
+  //are gst contras needed in this report for this code
+  GC := IsAGSTContra(aCode, Low(MyClient.clFields.clGST_Account_Codes));
+  GCType := aTravMgr.GSTContra;
+  IsGSTContra := (GCType > Byte(gcNone)) and
+                 (GC > -1);
+  //we will have to look at every transaction again to find transactions with
+  //bank accounts with this contra and to find gst contras
+  if IsBankContra or IsGSTContra then
+  begin
+    ContraTravMgr := TTravManagerCashBookExport.Create;
+    try
+      ContraTravMgr.Clear;
+      ContraTravMgr.SortType             := csDateEffective; // Date order within the contra code
+      ContraTravMgr.SelectionCriteria    := TravList.twAllEntries;
+      ContraTravMgr.AccountTotalNet      := 0;
+      ContraTravMgr.AccountHasActivity   := false;
+      ContraTravMgr.LastCodePrinted      := NullCode;
+      ContraTravMgr.ContraCodePrinted    := aCode;
+      ContraTravMgr.BankContraType       := BCType;
+      ContraTravMgr.GSTContraType        := GCType;
+      ContraTravMgr.OnEnterEntryExt      := LGR_Contra_PrintEntry;
+      ContraTravMgr.OnEnterDissectionExt := LGR_Contra_PrintDissect;
+
+      ContraTravMgr.TraverseAllEntries(fromdate ,Todate);
+
+      aTravMgr.AccountTotalNet := aTravMgr.AccountTotalNet + ContraTravMgr.AccountTotalNet;
+
+      aTravMgr.DoneSubTotal := True;
+      Result := true;
+    finally
+      ContraTravMgr.Free;
+    end;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+procedure TChartExportCol.CalculateEntry( Sender : TObject);
+//trav manager has transactions sorted by account code
+Var
+  Code      : Bk5CodeStr;
+  TravMgr   : TTravManagerCashBookExport;
+  ChartItem : pAccount_Rec;
+  IsContras, IsValidCode, OKToPrint: Boolean;
+  ClosingBalance : Money;
+begin
+  TravMgr := TTravManagerCashBookExport(Sender);
+  Code := TravMgr.Transaction^.txAccount;
+
+  if ( Code = '') then
+    exit;
+
+  // has tx already been printed during contras?
+  if (Code = TravMgr.ContraCodePrinted) and (TravMgr.ContraCodePrinted <> NullCode) then
+    exit;
+
+  TravMgr.ContraCodePrinted := NullCode;
+  IsValidCode := Assigned(Chart.FindCode( Code ));
+
+  if ( Code <> TravMgr.LastCodePrinted) then
+  begin
+    if ( TravMgr.LastCodePrinted <> NullCode) then
+    begin
+      if (TravMgr.AccountHasActivity or TravMgr.PrintEmptyCodes) and
+         (not TravMgr.DoneSubTotal) and
+         (TravMgr.LastCodePrinted <> '') then
+      begin
+        if IsValidCode then
+          ClosingBalance := GetOpeningBalanceAmount(MyClient, TravMgr.LastCodePrinted) + TravMgr.AccountTotalNet
+        else
+          ClosingBalance := GetOpeningBalanceForInvalidCode(MyClient, TravMgr.LastCodePrinted, Fromdate) + TravMgr.AccountTotalNet;
+
+        UpdateClosingBalancesForCode(TravMgr.LastCodePrinted, ClosingBalance);
+      end;
+    end;
+
+    //clear temp information
+    TravMgr.AccountHasActivity := false;
+    TravMgr.AccountTotalNet    := 0;
+    TravMgr.DoneSubTotal       := False;
+    TravMgr.SplitCode          := '';
+
+    //request to show all codes regardless of any activity
+    //look for all codes in between last (valid) one printed and next to be printed
+    if (TravMgr.LastCodePrinted = NullCode) or (TravMgr.LastValidCode = NullCode) then
+      ChartItem := Chart.FindNextCode('', False)
+    else if TravMgr.LastCodePrinted <> TravMgr.LastValidCode then
+      ChartItem := Chart.FindNextCode(TravMgr.LastValidCode, False)
+    else
+      ChartItem := Chart.FindNextCode(TravMgr.LastCodePrinted, False);
+
+    // Some conditions to handle invalid codes
+    OKToPrint := ((not IsValidCode) and
+                   Assigned(ChartItem) and
+                  (ChartItem^.chAccount_Code < Code)) or // this code is invalid but next valid code is less than this one - need to show it
+                 ((not IsValidCode) and
+                  (TravMgr.LastCodePrinted = TravMgr.LastValidCode) and
+                  (TravMgr.LastCodePrinted <> NULLCODE)); // this code is invalid but last was valid - need to show any between last and this
+
+    if Assigned(ChartItem) and (IsValidCode or OKToPrint) then
+    begin
+      while (Code <> '') and (ChartItem^.chAccount_Code <> Code) and (ChartItem^.chAccount_Code < Code) do
+      begin
+        //is code in range?
+        IsContras := IsThisAContraCode(ChartItem^.chAccount_Code);
+        if IsContras then
+        begin
+          DoContras(TravMgr, ChartItem^.chAccount_Code);
+          ClosingBalance := GetOpeningBalanceAmount(MyClient, ChartItem^.chAccount_Code);
+          ClosingBalance := ClosingBalance + TravMgr.AccountTotalNet;
+          UpdateClosingBalancesForCode(ChartItem^.chAccount_Code, ClosingBalance);
+          TravMgr.LastValidCode := ChartItem^.chAccount_Code;
+        end;
+        TravMgr.AccountTotalNet := 0;
+        TravMgr.DoneSubTotal := False;
+        TravMgr.SplitCode := '';
+        ChartItem := Chart.FindNextCode(ChartItem^.chAccount_Code, False);
+        if not Assigned(ChartItem) then
+          Break;
+      end;
+    end;
+
+    TravMgr.LastCodePrinted    := Code;
+    if IsValidCode then
+      TravMgr.LastValidCode := Code;
+    TravMgr.DoneSubTotal := False;
+    TravMgr.SplitCode := '';
+
+    // Show contras for this code - this will display ALL transactions
+    // for this code (so that they display in date order)
+    // so after this we need to move onto next code
+    if IsThisAContraCode(Code) then
+    begin
+      TravMgr.AccountHasActivity := DoContras(TravMgr, Code);
+      TravMgr.ContraCodePrinted := Code;
+      Exit;
+    end;
+  end;
+
+  //store values
+  TravMgr.AccountTotalNet := TravMgr.AccountTotalNet +
+                             ( TravMgr.Transaction^.txTemp_Base_Amount -
+                               TravMgr.Transaction^.txGST_Amount);
+
+  if (TravMgr.Transaction^.txTemp_Base_Amount <> 0) or
+     (TravMgr.Transaction^.txGST_Amount <> 0) then
+    TravMgr.AccountHasActivity := true;
+end;
+
+//------------------------------------------------------------------------------
+procedure TChartExportCol.CalculateDisection( Sender : TObject);
+Var
+  Code    : Bk5CodeStr;
+  TravMgr : TTravManagerCashBookExport;
+  ChartItem : pAccount_Rec;
+  IsContras, IsValidCode, OKToPrint: Boolean;
+  ClosingBalance : Money;
+begin
+  TravMgr := TTravManagerCashBookExport(Sender);
+   //with Mgr, ReportJob,TListLedgerReport(ReportJob).Params, Mgr.Transaction^, Mgr.Dissection^ do begin
+
+  Code := TravMgr.Dissection^.dsAccount;
+  //is code in range?
+  //if not TListLedgerReport(ReportJob).ShowCodeOnReport( Code) then
+  //   Exit;
+
+  // has tx already been printed during contras?
+  if (Code = TravMgr.ContraCodePrinted) and (TravMgr.ContraCodePrinted <> NullCode) then
+    Exit;
+
+  TravMgr.ContraCodePrinted := NullCode;
+  IsValidCode := Assigned(Chart.FindCode( Code ));
+
+//code has changed
+
+  if ( Code <> TravMgr.LastCodePrinted) then
+  begin
+    if ( TravMgr.LastCodePrinted <> NullCode) then
+    begin
+      if (TravMgr.AccountHasActivity or TravMgr.PrintEmptyCodes) and
+         (not TravMgr.DoneSubTotal) and
+         (TravMgr.LastCodePrinted <> '') then
+      begin
+        if IsValidCode then
+          ClosingBalance := GetOpeningBalanceAmount(MyClient, TravMgr.LastCodePrinted) + TravMgr.AccountTotalNet
+        else
+          ClosingBalance := GetOpeningBalanceForInvalidCode(MyClient, TravMgr.LastCodePrinted, Fromdate) + TravMgr.AccountTotalNet;
+
+        UpdateClosingBalancesForCode(TravMgr.LastCodePrinted, ClosingBalance);
+      end;
+    end;
+
+    //clear temp information
+    TravMgr.AccountHasActivity := false;
+    TravMgr.AccountTotalNet    := 0;
+    TravMgr.DoneSubTotal       := False;
+    TravMgr.SplitCode          := '';
+
+    //request to show all codes regardless of any activity
+     //look for all codes in between last one printed and next to be printed
+    if (TravMgr.LastCodePrinted = NullCode) or (TravMgr.LastValidCode = NullCode) then
+      ChartItem := Chart.FindNextCode('', False)
+    else if TravMgr.LastCodePrinted <> TravMgr.LastValidCode then
+      ChartItem := Chart.FindNextCode(TravMgr.LastValidCode, False)
+    else
+      ChartItem := Chart.FindNextCode(TravMgr.LastCodePrinted, False);
+
+    OKToPrint := ((not IsValidCode) and
+                   Assigned(ChartItem) and
+                  (ChartItem^.chAccount_Code < Code)) or // this code is invalid but next valid code is less than this one - need to show it
+                 ((not IsValidCode) and
+                  (TravMgr.LastCodePrinted = TravMgr.LastValidCode) and
+                  (TravMgr.LastCodePrinted <> NULLCODE)); // this code is invalid but last was valid - need to show any between last and this
+
+    if Assigned(ChartItem) and (IsValidCode or OKToPrint) then
+    begin
+      while (Code <> '') and (ChartItem^.chAccount_Code <> Code) and (ChartItem^.chAccount_Code < Code) do
+      begin
+        //is code in range?
+        IsContras := IsThisAContraCode(ChartItem^.chAccount_Code);
+        if IsContras then
+        begin
+          DoContras(TravMgr, ChartItem^.chAccount_Code);
+          ClosingBalance := GetOpeningBalanceAmount(MyClient, ChartItem^.chAccount_Code);
+          ClosingBalance := ClosingBalance + TravMgr.AccountTotalNet;
+          UpdateClosingBalancesForCode(ChartItem^.chAccount_Code, ClosingBalance);
+          TravMgr.LastValidCode := ChartItem^.chAccount_Code;
+        end;
+        TravMgr.AccountTotalNet := 0;
+        TravMgr.DoneSubTotal := False;
+        TravMgr.SplitCode := '';
+        ChartItem := Chart.FindNextCode(ChartItem^.chAccount_Code, False);
+        if not Assigned(ChartItem) then
+          Break;
+      end;
+    end;
+
+    TravMgr.LastCodePrinted    := Code;
+    if IsValidCode then
+      TravMgr.LastValidCode := Code;
+    TravMgr.DoneSubTotal := False;
+    TravMgr.SplitCode := '';
+
+    // Show contras for this code - this will display ALL transactions
+    // for this code (so that they display in date order)
+    // so after this we need to move onto next code
+    if IsThisAContraCode(Code) then
+    begin
+      TravMgr.AccountHasActivity := DoContras(TravMgr, Code);
+      TravMgr.ContraCodePrinted := Code;
+      Exit;
+    end;
+  end;
+
+  //store values
+  TravMgr.AccountTotalNet := TravMgr.AccountTotalNet +
+                             ( TravMgr.Dissection^.dsTemp_Base_Amount -
+                               TravMgr.Dissection^.dsGST_Amount);
+
+  if (TravMgr.Dissection^.dsTemp_Base_Amount <> 0) or
+     (TravMgr.Dissection^.dsGST_Amount <> 0) then
+    TravMgr.AccountHasActivity := true;
+end;
+
+//------------------------------------------------------------------------------
+procedure TChartExportCol.CalculateTransactionTotals;
+var
+  TravMgr   : TTravManagerCashBookExport;
+  ChartItem : pAccount_Rec;
+  IsContras : Boolean;
+  ISOCodes  : string;
+  ClosingBalance : Money;
+begin
+  //Check Forex
+  if not MyClient.HasExchangeRates(ISOCodes, FromDate, ToDate, {ForReport=}True, {AllBankAccounts=}False) then
+  begin
+    HelpfulInfoMsg('The report could not be run because there are missing exchange rates for ' + ISOCodes + '.',0);
+    Exit;
+  end;
+
+  TravMgr := TTravManagerCashBookExport.Create;
+  try
+     TravMgr.Clear;
+     TravMgr.SortType             := csAccountCode;
+     TravMgr.SelectionCriteria    := TravList.twAllEntries;
+
+     TravMgr.AccountTotalNet      := 0;
+     TravMgr.AccountHasActivity   := false;
+     TravMgr.LastCodePrinted      := NullCode;
+     TravMgr.ContraCodePrinted    := NullCode;
+     TravMgr.LastValidCode        := NullCode;
+
+     TravMgr.OnEnterEntryExt      := CalculateEntry;
+     TravMgr.OnEnterDissectionExt := CalculateDisection;
+     TravMgr.DoneSubTotal := False;
+     TravMgr.SplitCode := '';
+
+
+     TravMgr.TraverseAllEntries(Fromdate, Todate);
+
+     if TravMgr.AccountHasActivity then
+     begin
+       if (TravMgr.LastCodePrinted = TravMgr.ContraCodePrinted) then
+       begin
+         ClosingBalance := GetOpeningBalanceAmount(MyClient, TravMgr.LastCodePrinted) + TravMgr.AccountTotalNet;
+         UpdateClosingBalancesForCode(TravMgr.LastCodePrinted, ClosingBalance);
+       end
+       else if (TravMgr.ContraCodePrinted = NullCode) then
+       begin
+         if TravMgr.LastCodePrinted = TravMgr.LastValidCode then
+           ClosingBalance := GetOpeningBalanceAmount(MyClient, TravMgr.LastCodePrinted) + TravMgr.AccountTotalNet
+         else
+           ClosingBalance := GetOpeningBalanceForInvalidCode(MyClient, TravMgr.LastCodePrinted, Fromdate) + TravMgr.AccountTotalNet;
+         UpdateClosingBalancesForCode(TravMgr.LastCodePrinted, ClosingBalance);
+       end;
+
+     end;
+
+     // show remaining empty codes
+     // Show inactive codes if requested
+     TravMgr.AccountTotalNet := 0;
+     TravMgr.DoneSubTotal := False;
+     TravMgr.SplitCode := '';
+     if TravMgr.LastValidCode = NullCode then
+       ChartItem := Chart.FindNextCode('', False)
+     else
+       ChartItem := Chart.FindNextCode(TravMgr.LastValidCode, False);
+     if Assigned(ChartItem) then
+     begin
+       while Assigned(ChartItem) do
+       begin
+         IsContras := IsThisAContraCode(ChartItem^.chAccount_Code);
+         if IsContras then
+         begin
+           DoContras(TravMgr, ChartItem^.chAccount_Code);
+           ClosingBalance := GetOpeningBalanceAmount(MyClient, ChartItem^.chAccount_Code);
+           ClosingBalance := ClosingBalance + TravMgr.AccountTotalNet;
+           UpdateClosingBalancesForCode(ChartItem^.chAccount_Code, ClosingBalance);
+         end;
+         TravMgr.AccountTotalNet := 0;
+         TravMgr.DoneSubTotal := False;
+         TravMgr.SplitCode := '';
+         ChartItem := Chart.FindNextCode(ChartItem^.chAccount_Code, False);
+       end;
+     end;
+  finally
+    TravMgr.Free;
   end;
 end;
 
@@ -593,6 +1303,29 @@ begin
   begin
     aChartExportItem := TChartExportItem(self.Items[aClientChartIndex]);
     Result := true;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+function TChartExportCol.ItemAtCode(aCode: string; out aChartExportItem : TChartExportItem) : boolean;
+var
+  ChartIndex : integer;
+  ChartExportItem : TChartExportItem;
+begin
+  aChartExportItem := nil;
+  result := false;
+
+  for ChartIndex := 0 to Count - 1 do
+  begin
+    if ItemAtColIndex(ChartIndex, ChartExportItem) then
+    begin
+      if ChartExportItem.AccountCode = aCode then
+      begin
+        aChartExportItem := ChartExportItem;
+        Result := True;
+        Exit;
+      end;
+    end;
   end;
 end;
 
@@ -1180,10 +1913,6 @@ var
   FileLines   : TStringList;
   LineColumns : TStringList;
   LineIndex   : integer;
-  GSTMapItem  : TGSTMapItem;
-  GSTClass    : TCashBookGSTClasses;
-  CashBookGstClassCode : string;
-  CashBookGstClassDesc : string;
 begin
   Result := False;
 
@@ -1258,7 +1987,7 @@ begin
     ccAsset        : Result := 'Assets';
     ccLiabilities  : Result := 'Liabilities';
     ccEquity       : Result := 'Equity';
-    ccCostOfSales  : Result := 'Cost of Sales';
+    ccCostOfSales  : Result := 'Cost of sales';
   end;
 end;
 
@@ -1352,12 +2081,6 @@ begin
       end;
     end;
   end;
-end;
-
-//------------------------------------------------------------------------------
-function TChartExportToMYOBCashbook.CheckOpeningBalancesSetup: boolean;
-begin
-
 end;
 
 //------------------------------------------------------------------------------
@@ -1585,10 +2308,7 @@ begin
   Res := true;
 
   if not assigned(MyClient) then
-  begin
-    Res := false;
     Exit;
-  end;
 
   ErrorStrings := TStringList.Create;
   Try
@@ -1609,7 +2329,6 @@ begin
   begin
     ErrorStr := 'Please assign a report group to all chart of account codes, Other Functions | Chart of Accounts | Maintain Chart.';
     HelpfulWarningMsg(ErrorStr,0);
-    Res := false;
     Exit;
   end;
 
@@ -1656,7 +2375,6 @@ begin
     begin
       ErrorStr := 'Please assign a GST type to all rates, Other Functions | GST Setup | Rates.';
       HelpfulWarningMsg(ErrorStr,0);
-      Res := false;
       Exit;
     end;
   end;

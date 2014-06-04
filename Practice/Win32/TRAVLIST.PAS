@@ -75,6 +75,7 @@ type
       FIsLastTransaction: boolean;
       FNoTransactions: boolean;
       FOnEnterEntryExt: TTravEventExt;
+      FOnEnterDissectionExt: TTravEventExt;
       FOnEnterAccountExt: TTravEventExt;
       FTransactionsTraversed: Boolean;
       FOnEnterExchangeGainLoss: TTravEvent;
@@ -92,6 +93,7 @@ type
       procedure SetOnEnterAccount(const Value: TTravEvent);
       procedure SetOnExitAccount(const Value: TTravEvent);
       procedure SetOnEnterDissection(const Value: TTravEvent);
+      procedure SetOnEnterDissectionExt(const Value: TTravEventExt);
       procedure SetOnEnterEntry(const Value: TTravEvent);
       procedure SetOnExitEntry(const Value: TTravEvent);
       procedure SetD1(const Value: integer);
@@ -119,6 +121,7 @@ type
       property OnEnterEntryExt : TTravEventExt read FOnEnterEntryExt write SetOnEnterEntryExt;
       property OnExitEntry    : TTravEvent read FOnExitEntry write SetOnExitEntry;
       property OnEnterDissection : TTravEvent read FOnEnterDissection write SetOnEnterDissection;
+      property OnEnterDissectionExt : TTravEventExt read FOnEnterDissectionExt write SetOnEnterDissectionExt;
       property OnEnterExchangeGainLoss: TTravEvent read FOnEnterExchangeGainLoss write SetOnEnterExchangeGainLoss;
 
       {sorting}
@@ -293,16 +296,17 @@ end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TTravManager.ClearEvents;
 begin
-   FOnEnterEntry      := nil;
-   FOnEnterEntryExt   := nil;   
-   FOnExitEntry       := nil;
-   FOnExitAccount     := nil;
-   FOnEnterAccount    := nil;
-   FOnEnterAccountExt := nil;   
-   FOnEnterDissection := nil;
-   FOnBeforeSort      := nil;
-   FOnSort            := nil;
-   FOnAfterSort       := nil;
+   FOnEnterEntry         := nil;
+   FOnEnterEntryExt      := nil;
+   FOnExitEntry          := nil;
+   FOnExitAccount        := nil;
+   FOnEnterAccount       := nil;
+   FOnEnterAccountExt    := nil;
+   FOnEnterDissection    := nil;
+   FOnEnterDissectionExt := nil;
+   FOnBeforeSort         := nil;
+   FOnSort               := nil;
+   FOnAfterSort          := nil;
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TTravManager.ClearTotals;
@@ -548,6 +552,13 @@ procedure TTravManager.SetOnEnterDissection(const Value: TTravEvent);
 begin
   FOnEnterDissection := Value;
 end;
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+procedure TTravManager.SetOnEnterDissectionExt(const Value: TTravEventExt);
+begin
+  FOnEnterDissectionExt := Value;
+end;
+
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TTravManager.SetOnEnterEntry(const Value: TTravEvent);
 begin
@@ -642,7 +653,7 @@ Begin
                        If Assigned(FOnSort) then FOnSort(Self);
 
                        If ( SortMethod in [ csAccountCode, csByGSTRate ] ) and
-                          ( Assigned( FOnEnterDissection) ) and
+                          ( Assigned( FOnEnterDissection) or Assigned( FOnEnterDissectionExt)) and
                           ( txFirst_Dissection<>NIL ) then
                        Begin
                           CurrDissect := txFirst_Dissection;
@@ -715,7 +726,11 @@ Begin
                    Begin
                       CurrDissect := Ptr;
                       CurrTrans   := CurrDissect^.dsTransaction;
-                      FOnEnterDissection(Self);
+
+                      if Assigned(FOnEnterDissection) then
+                        FOnEnterDissection(Self);
+                      if Assigned(FOnEnterDissectionExt) then
+                        FOnEnterDissectionExt(Self);
                    end;
                  end;
               end;
@@ -754,13 +769,18 @@ Begin
       If Assigned(FOnEnterEntry) then FOnEnterEntry(Self);
       If Assigned(FOnEnterEntryExt) then FOnEnterEntryExt(Self);
 
-      If ( txFirst_Dissection <> nil) and Assigned(FOnEnterDissection) then
+      If ( txFirst_Dissection <> nil) and
+         (Assigned(FOnEnterDissection) or Assigned(FOnEnterDissectionExt)) then
       Begin
          DissectTotal := 0;
          CurrDissect := txFirst_Dissection;
          While (CurrDissect <> nil) do With CurrDissect^ do
          Begin
-            FOnEnterDissection(Self);
+            if Assigned(FOnEnterDissection) then
+              FOnEnterDissection(Self);
+            if Assigned(FOnEnterDissectionExt) then
+              FOnEnterDissectionExt(Self);
+
             DissectTotal := DissectTotal + dsAmount;
             Inc(FNumOfDissect);
             CurrDissect := dsNext;
@@ -878,7 +898,7 @@ Begin
                    If Assigned(FOnSort) then FOnSort(Self);
 
                    If ( SortMethod in [ csAccountCode, csByGSTRate ] ) and
-                      ( Assigned(FOnEnterDissection) ) and
+                      ( Assigned(FOnEnterDissection) or Assigned(FOnEnterDissectionExt)) and
                       ( Assigned( txFirst_Dissection ) ) then
                    Begin
                       CurrDissect := txFirst_Dissection;
@@ -974,7 +994,10 @@ Begin
                     end;
                   end;
 
-                FOnEnterDissection(Self);
+                if Assigned(FOnEnterDissection) then
+                  FOnEnterDissection(Self);
+                if Assigned(FOnEnterDissectionExt) then
+                  FOnEnterDissectionExt(Self);
              end;
 
              ttExchangeGainLoss:

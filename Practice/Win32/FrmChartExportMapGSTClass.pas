@@ -54,6 +54,7 @@ type
     procedure tblGSTReMapGetCellAttributes(Sender: TObject; RowNum,
       ColNum: Integer; var CellAttr: TOvcCellAttributes);
     procedure colCashBookGSTDropDownChange(Sender: TObject);
+    procedure FormShow(Sender: TObject);
   private
     fDirty : boolean;
     fGSTMapCol : TGSTMapCol;
@@ -341,6 +342,16 @@ begin
     end;
 
     GSTMapCol.PrevGSTFileLocation := edtGstReMapFile.Text;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+procedure TFrmChartExportMapGSTClass.FormShow(Sender: TObject);
+begin
+  if GSTMapCol.Count > 0 then
+  begin
+    tblGSTReMap.SetActiveCell(1, MYOBCashBookCol);
+    tblGSTReMap.SetFocus;
   end;
 end;
 

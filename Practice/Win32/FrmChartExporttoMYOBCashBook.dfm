@@ -164,7 +164,6 @@ object FrmChartExporttoMYOBCashBook: TFrmChartExporttoMYOBCashBook
       Width = 169
       Height = 17
       Caption = 'Include closing balances'
-      Enabled = False
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
       Font.Height = -13

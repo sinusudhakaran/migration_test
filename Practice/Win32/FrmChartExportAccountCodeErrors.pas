@@ -59,6 +59,7 @@ function TfrmChartExportAccountCodeErrors.Execute: boolean;
 var
   Index : integer;
 begin
+  Result := false;
   LstErrors.Clear;
   for Index := 0 to fErrors.Count - 1 do
   begin
@@ -66,6 +67,7 @@ begin
   end;
 
   ShowModal;
+  Result := true;
 end;
 
 end.
