@@ -232,6 +232,7 @@ type
     fGSTMapCol : TGSTMapCol;
     fExportChartFrmProperties : TExportChartFrmProperties;
   protected
+    function StripInvalidCharacters(aValue : String) : String;
     function GetMappedReportGroupCode(aReportGroup : byte) : string;
 
     function GetGSTClassTypeIndicatorFromGSTClass(aGST_Class : byte) : byte;
@@ -601,14 +602,14 @@ begin
   FromDate := ClosingBalanceDate;
   ToDate   := aClosingBalanceDate;
 
-  HelpfulErrorMsg('Bal From Date : ' +
+  {HelpfulErrorMsg('Bal From Date : ' +
                   StDateToDateString('dd/mm/yyyy', MyClient.clFields.cltemp_FRS_from_Date, true) +
                   ', Bal To Date : ' +
                   StDateToDateString('dd/mm/yyyy', MyClient.clFields.clTemp_FRS_To_Date, true) +
                   ', Rpt From Date : ' +
                   StDateToDateString('dd/mm/yyyy', FromDate, true) +
                   ', Rpt To Date : ' +
-                  StDateToDateString('dd/mm/yyyy', ToDate, true), 0);
+                  StDateToDateString('dd/mm/yyyy', ToDate, true), 0);}
 
   MyClient.clFields.clTemp_FRS_Account_Totals_Cash_Only := False;
   MyClient.clFields.clTemp_FRS_Division_To_Use := 0;
@@ -1982,8 +1983,8 @@ begin
     ccNone         : Result := 'Error';
     ccIncome       : Result := 'Income';
     ccExpense      : Result := 'Expense';
-    ccOtherIncome  : Result := 'OtherIncome';
-    ccOtherExpense : Result := 'OtherExpense';
+    ccOtherIncome  : Result := 'Other Income';
+    ccOtherExpense : Result := 'Other Expense';
     ccAsset        : Result := 'Assets';
     ccLiabilities  : Result := 'Liabilities';
     ccEquity       : Result := 'Equity';
@@ -2178,7 +2179,7 @@ begin
           LineColumns.Clear;
 
           LineColumns.Add(ChartExportItem.AccountCode);
-          LineColumns.Add(ChartExportItem.AccountDescription);
+          LineColumns.Add(StripInvalidCharacters(ChartExportItem.AccountDescription));
           LineColumns.Add(GetMappedReportGroupCode(ChartExportItem.fReportGroupId));
 
           if (Country = whAustralia) then
@@ -2224,6 +2225,19 @@ begin
     end;
   finally
     FreeAndNil(FileLines);
+  end;
+end;
+
+//------------------------------------------------------------------------------
+function TChartExportToMYOBCashbook.StripInvalidCharacters(aValue: String): String;
+var
+  StrIndex : integer;
+begin
+  Result := '';
+  for StrIndex := 0 to Length(aValue)-1 do
+  begin
+    if not (aValue[StrIndex] = ',') then
+      Result := Result + aValue[StrIndex];
   end;
 end;
 
