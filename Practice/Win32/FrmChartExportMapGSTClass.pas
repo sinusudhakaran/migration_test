@@ -128,6 +128,12 @@ var
 begin
   FileName := edtGstReMapFile.Text;
 
+  if FileExists(FileName) then
+  begin
+    OpenDlg.FileName := FileName;
+    OpenDlg.InitialDir := ExtractFilePath(FileName);
+  end;
+
   OpenDlg.FileName := FileName;
   OpenDLG.Filter := 'CSV File *.csv|*.csv';
   OpenDLG.FilterIndex := 0;

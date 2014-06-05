@@ -45,6 +45,7 @@ type
     Source: Integer;
   end;
 
+  //----------------------------------------------------------------------------
   TTravManagerCashBookExport = class(TTravManager)
   private
     fAccountTotalNet : Money;
@@ -477,7 +478,7 @@ begin
     atFixedAssets          : Result := ccAsset;
     atStockOnHand          : Result := ccAsset;
     atBankAccount          : Result := ccAsset; // Cash on hand
-    atRetainedPorL         : Result := ccNone; // ?
+    atRetainedPorL         : Result := ccNone;  // ?
     atGSTPayable           : Result := ccLiabilities;
     atUnknownDR            : Result := ccNone;
     atUnknownCR            : Result := ccNone;
@@ -509,6 +510,7 @@ begin
     ccAsset        : Result := 1;  // DR
     ccLiabilities  : Result := -1; // CR
     ccEquity       : Result := -1; // CR
+    ccCostOfSales  : Result := 1;  // DR
   else
     Result := 0; // Error
   end;
@@ -543,6 +545,9 @@ begin
   end;
 
   //Use a copy of the client chart that can be sorted
+  if Assigned(FChart) then
+    FreeAndNil(FChart);
+
   FChart := TCustomSortChart.Create(MyClient.ClientAuditMgr);
   FChart.CopyChart(MyClient.clChart);
   if UseXlonSort then
@@ -556,12 +561,18 @@ var
   ClosingBalance : Money;
   DisplayClosingBalanceDate : string;
   DisplayClosingBalance : string;
+  CrDrSignFromReportGroup : integer;
 begin
   if ItemAtCode(aCode, ChartExportItem) then
   begin
     DisplayClosingBalanceDate := StDateToDateString('dd/mm/yyyy', IncDate(FromDate, 1, 0, 0), true);
     ClosingBalance            := aClosingBalance;
-    ClosingBalance            := GetCrDrSignFromReportGroup(ChartExportItem.ReportGroupId) * ClosingBalance;
+    CrDrSignFromReportGroup   := GetCrDrSignFromReportGroup(ChartExportItem.ReportGroupId);
+
+    if CrDrSignFromReportGroup = 0 then
+      CrDrSignFromReportGroup := 1;
+    
+    ClosingBalance            := CrDrSignFromReportGroup * ClosingBalance;
     DisplayClosingBalance     := GetStringFromAmount(ClosingBalance);
 
     ChartExportItem.ClosingBalanceDate := DisplayClosingBalanceDate;

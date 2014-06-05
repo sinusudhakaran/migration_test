@@ -172,7 +172,12 @@ end;
 //------------------------------------------------------------------------------
 procedure TFrmChartExportToMYOBCashBook.btnToFolderClick(Sender: TObject);
 begin
-  SaveDialog.FileName := edtSaveEntriesTo.Text;
+  if FileExists(edtSaveEntriesTo.Text) then
+  begin
+    SaveDialog.FileName   := edtSaveEntriesTo.Text;
+    SaveDialog.InitialDir := ExtractFilePath(edtSaveEntriesTo.Text);
+  end;
+
   if SaveDialog.Execute then
     edtSaveEntriesTo.Text := SaveDialog.FileName;
 end;
