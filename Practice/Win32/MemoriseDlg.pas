@@ -255,6 +255,7 @@ type
     procedure SetAccountingSystem(const Value: Integer);
     function GetAccountingSystem: Integer;
     procedure LocaliseForm;
+    procedure PopulateDataFromPayee(PayeeCode: integer);
   public
     property AccountingSystem: Integer read GetAccountingSystem write SetAccountingSystem;
     property DlgEditMode: TDlgEditMode read fDlgEditMode write fDlgEditMode;
@@ -310,7 +311,8 @@ uses
   SystemMemorisationList,
   SYDEFS,
   AuditMgr,
-  BKtxIO;
+  BKtxIO,
+  PayeeObj;
 
 {$R *.DFM}
 
@@ -3286,7 +3288,9 @@ begin
    C := TableCanvas;
    //paint background
    if (S <> 0) then
-     C.Brush.Color := clRed;
+     C.Brush.Color := clRed
+   else
+     C.Brush.Color := CellAttr.caColor;
    C.FillRect( R );
    DrawText(C.Handle, '', 0, R, DT_LEFT or DT_VCENTER or DT_SINGLELINE);
    //paint border
@@ -3303,6 +3307,7 @@ procedure TdlgMemorise.ColPayeeKeyDown(Sender: TObject; var Key: Word;
   Shift: TShiftState);
 var
   Msg : TWMKey;
+  PayeeCode : integer;
 begin
   //check for lookup key
   if ( Key = VK_F3 ) then begin
@@ -3332,6 +3337,7 @@ begin
        if PickPayee(PayeeCode) then begin
            //if get here then have a valid char from the picklist
            TOvcNumericField(colPayee.CellEditor).AsInteger := PayeeCode;
+           PopulateDataFromPayee(PayeeCode);
            Msg.CharCode := VK_RIGHT;
            colPayee.SendKeyToTable(Msg);
        end
@@ -3341,6 +3347,108 @@ begin
            end;
        end;
     end;
+end;
+
+procedure TdlgMemorise.PopulateDataFromPayee(PayeeCode: integer);
+var
+  APayee                : TPayee;
+  isPayeeDissected      : boolean;
+  LinesRequired         : integer;
+  PayeeLine             : pPayee_Line_Rec;
+  i                     : integer;
+  ActiveRow             : integer;
+  PayeeSplit            : PayeeSplitTotals;
+  PayeeSplitPct         : PayeeSplitPercentages;
+  PayeeFractionOfAmount : extended;
+  GSTClass              : integer;
+
+  function GetRemainingAmount: extended;
+  var
+    i: integer;
+    SplitDataTotal: extended;
+  begin
+    SplitDataTotal := 0;
+    for i := Low(SplitData) to High(SplitData) do
+    begin
+      if (i >= tblSplit.ActiveRow) and (i < tblSplit.ActiveRow + APayee.pdLines.ItemCount) then
+        Continue; // skip the lines that the payee is going to overwrite anyway
+      if (SplitData[i].LineType = 0) then
+        // Percentage
+        SplitDataTotal := SplitDataTotal + (SourceTransaction.txAmount * SplitData[i].Amount / 100)
+      else
+        // Fixed amount
+        SplitDataTotal := SplitDataTotal + (SplitData[i].Amount * 100);
+    end;
+    Result := SourceTransaction.txAmount - SplitDataTotal;
+  end;
+
+  function IsRowBlank(RowNum: integer): boolean;
+  begin
+    Result := not ((SplitData[RowNum].AcctCode     <> '') or
+                   (SplitData[RowNum].Desc         <> '') or
+                   (SplitData[RowNum].GSTClassCode <> '') or
+                   (SplitData[RowNum].Amount       <> 0) or
+                   (SplitData[RowNum].Narration    <> '') or
+                   (SplitData[RowNum].Payee        <> 0));
+  end;
+
+  // If we insert a payee before existing data, we need to move that
+  // data so that it doesn't get overwritten
+  procedure MoveSplitDataLines(NumLines: integer);
+  var
+    RowNum           : integer;
+    AdjustBy         : integer;
+    i                : integer;
+    FirstNonBlankRow : integer;
+  begin
+    if NumLines < 1 then
+      Exit;
+    RowNum := tblSplit.ActiveRow + 1;
+    AdjustBy := 0;
+    FirstNonBlankRow := -1;
+    for i := 0 to NumLines - 1 do
+    begin
+      if not IsRowBlank(RowNum + i) then
+      begin
+        AdjustBy := NumLines - i;
+        FirstNonBlankRow := RowNum + i;
+        break;
+      end;
+    end;
+
+    if FirstNonBlankRow > -1 then    
+      for i := High(SplitData) downto FirstNonBlankRow do
+        SplitData[i] := SplitData[i - AdjustBy];
+
+    tblSplit.Refresh;
+  end;
+
+begin
+  APayee := MyClient.clPayee_List.Find_Payee_Number(PayeeCode);
+  isPayeeDissected := APayee.IsDissected;
+  if isPayeeDissected then
+    LinesRequired := APayee.pdLines.ItemCount
+  else
+    LinesRequired := 1;
+  if LinesRequired = 0 then exit;
+  tblSplit.ActiveCol := AcctCol;
+  PayeePercentageSplit(SourceTransaction.txAmount, APayee, PayeeSplit, PayeeSplitPct);
+  PayeeFractionOfAmount := GetRemainingAmount / SourceTransaction.txAmount;
+  MoveSplitDataLines(APayee.pdLines.ItemCount - 1);
+  for i := 0 to APayee.pdLines.ItemCount - 1 do
+  begin
+    ActiveRow := tblSplit.ActiveRow;
+    PayeeLine := APayee.pdLines.PayeeLine_At(i);
+    GSTClass := PayeeLine.plGST_Class;
+    SplitData[i+ActiveRow].AcctCode     := PayeeLine.plAccount;
+    SplitData[i+ActiveRow].Desc         := MyClient.clChart.FindCode(PayeeLine.plAccount).chAccount_Description;
+    SplitData[i+ActiveRow].Narration    := PayeeLine.plGL_Narration;
+    SplitData[i+ActiveRow].Payee        := PayeeCode;
+    if (GSTClass <> 0) then
+      SplitData[i+ActiveRow].GSTClassCode := IntToStr(GSTClass);
+    SplitData[i+ActiveRow].Amount       := (PayeeSplitPct[i] / 10000) * PayeeFractionOfAmount;
+  end;
+  tblSplit.Refresh;
 end;
 
 procedure TdlgMemorise.DoSuperClear;
