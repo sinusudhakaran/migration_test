@@ -3374,10 +3374,7 @@ var
         Continue; // skip the lines that the payee is going to overwrite anyway
       if (SplitData[i].LineType = 0) then
         // Percentage
-        SplitDataTotal := SplitDataTotal + (SourceTransaction.txAmount * SplitData[i].Amount / 100)
-      else
-        // Fixed amount
-        SplitDataTotal := SplitDataTotal + (SplitData[i].Amount * 100);
+        SplitDataTotal := SplitDataTotal + (SourceTransaction.txAmount * SplitData[i].Amount / 100);
     end;
     Result := SourceTransaction.txAmount - SplitDataTotal;
   end;
