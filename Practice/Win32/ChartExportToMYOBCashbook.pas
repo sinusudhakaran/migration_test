@@ -568,10 +568,6 @@ begin
     DisplayClosingBalanceDate := StDateToDateString('dd/mm/yyyy', IncDate(FromDate, 1, 0, 0), true);
     ClosingBalance            := aClosingBalance;
     CrDrSignFromReportGroup   := GetCrDrSignFromReportGroup(ChartExportItem.ReportGroupId);
-
-    if CrDrSignFromReportGroup = 0 then
-      CrDrSignFromReportGroup := 1;
-    
     ClosingBalance            := CrDrSignFromReportGroup * ClosingBalance;
     DisplayClosingBalance     := GetStringFromAmount(ClosingBalance);
 
@@ -583,35 +579,40 @@ end;
 //------------------------------------------------------------------------------
 procedure TChartExportCol.UpdateClosingBalances(aClosingBalanceDate : TstDate);
 var
-  ClosingBalanceDate : TstDate;
+  BalanceStartDte, BalanceEndDte : TstDate;
+  TransStartDte, TransEndDte : TstDate;
   DayFinStart, MonthFinStart, YearFinStart: Integer;
   DayStart, MonthStart, YearStart: Integer;
   AccountIndex : integer;
   BankAcc : TBank_Account;
 begin
-  MyClient.clFields.clFRS_Reporting_Period_Type     := frpCustom;
-  MyClient.clFields.clTemp_FRS_Last_Period_To_Show  := 1;
-  MyClient.clFields.clTemp_FRS_Last_Actual_Period_To_Use := MyClient.clFields.clTemp_FRS_Last_Period_To_Show;
-
-  StDatetoDMY(MyClient.clFields.clFinancial_Year_Starts, DayFinStart, MonthFinStart, YearFinStart);
+  // Convert Passed User Date
   StDatetoDMY(aClosingBalanceDate, DayStart, MonthStart, YearStart);
+
+  // Set Trans Start Date to 1st of month of current passed date
   DayStart := 1;
-  ClosingBalanceDate := DMYtoStDate(DayStart, MonthStart, YearStart, Epoch);
+  TransStartDte := DMYtoStDate(DayStart, MonthStart, YearStart, Epoch);
+  TransEndDte   := aClosingBalanceDate;
+
+  // Convert Financial Year Start from Client Details
+  StDatetoDMY(MyClient.clFields.clFinancial_Year_Starts, DayFinStart, MonthFinStart, YearFinStart);
 
   // special case start date = financial year start
   if (DayFinStart = DayStart) and (MonthFinStart = MonthStart) then
-    MyClient.clFields.clTemp_FRS_To_Date := DMYtoStDate(DayStart, MonthStart, YearStart, Epoch) //selected date
+    BalanceEndDte := DMYtoStDate(DayStart, MonthStart, YearStart, Epoch) //selected date
   else // otherwise we go up to the previous day
-    MyClient.clFields.clTemp_FRS_To_Date := IncDate(ClosingBalanceDate, -1, 0, 0);
+    BalanceEndDte := IncDate(TransStartDte, -1, 0, 0);
+
   //go back to last financial year if report month less than year start month
   //ie. if report date is 1/2/2005 then fin start is 1/4/2004 (NZ example)
   if MonthStart < MonthFinStart then
     YearStart := YearStart - 1;
+  BalanceStartDte := DMYtoStDate(DayFinStart, MonthFinStart, YearStart, Epoch);
 
-  MyClient.clFields.cltemp_FRS_from_Date := DMYtoStDate(DayFinStart, MonthFinStart, YearStart, Epoch);
-
-  FromDate := ClosingBalanceDate;
-  ToDate   := aClosingBalanceDate;
+  MyClient.clFields.cltemp_FRS_from_Date := BalanceStartDte;
+  MyClient.clFields.clTemp_FRS_To_Date   := BalanceEndDte;
+  FromDate := TransStartDte;
+  ToDate   := TransEndDte;
 
   {HelpfulErrorMsg('Bal From Date : ' +
                   StDateToDateString('dd/mm/yyyy', MyClient.clFields.cltemp_FRS_from_Date, true) +
@@ -622,11 +623,14 @@ begin
                   ', Rpt To Date : ' +
                   StDateToDateString('dd/mm/yyyy', ToDate, true), 0);}
 
-  MyClient.clFields.clTemp_FRS_Account_Totals_Cash_Only := False;
-  MyClient.clFields.clTemp_FRS_Division_To_Use := 0;
-  MyClient.clFields.clTemp_FRS_Job_To_Use  := '';
-  MyClient.clFields.clTemp_FRS_Budget_To_Use := '';
-  MyClient.clFields.clTemp_FRS_Budget_To_Use_Date := -1;
+  MyClient.clFields.clFRS_Reporting_Period_Type               := frpCustom;
+  MyClient.clFields.clTemp_FRS_Last_Period_To_Show            := 1;
+  MyClient.clFields.clTemp_FRS_Last_Actual_Period_To_Use      := MyClient.clFields.clTemp_FRS_Last_Period_To_Show;
+  MyClient.clFields.clTemp_FRS_Account_Totals_Cash_Only       := False;
+  MyClient.clFields.clTemp_FRS_Division_To_Use                := 0;
+  MyClient.clFields.clTemp_FRS_Job_To_Use                     := '';
+  MyClient.clFields.clTemp_FRS_Budget_To_Use                  := '';
+  MyClient.clFields.clTemp_FRS_Budget_To_Use_Date             := -1;
   MyClient.clFields.clTemp_FRS_Use_Budgeted_Data_If_No_Actual := False;
 
   for AccountIndex := 0 to MyClient.clBank_Account_List.ItemCount-1 do
@@ -1498,6 +1502,7 @@ begin
      (UpperCaseInput = uppercase('Capital Purchases')) or
      (UpperCaseInput = uppercase('Purchases (capital)')) or
      (UpperCaseInput = uppercase('Taxable acquisitions - capital (purchases)')) or
+     (UpperCaseInput = uppercase('QUICKBKS – CAG / Cap. Acq. – Inc GST')) or
      (UpperCaseInput = uppercase('Taxable purchases (capital)')) then
   begin
     Result := cgCapitalAcquisitions;
@@ -1528,6 +1533,8 @@ begin
      (UpperCaseInput = uppercase('Capital purchases with no GST')) or
      (UpperCaseInput = uppercase('Estimated purchases for private use/non-deductible')) or
      (UpperCaseInput = uppercase('Estimated purchases for private use/non-deductible (capital)')) or
+     (UpperCaseInput = uppercase('Elite – NCF / Non-Cap. Aqn. – GST FREE')) or
+     (UpperCaseInput = uppercase('MYOBACC – N-TS / Non-taxable supplies')) or
      (UpperCaseInput = uppercase('GST Free')) or
      (UpperCaseInput = uppercase('GST free capital acquisitions')) or
      (UpperCaseInput = uppercase('GST free other acquisitions')) or
