@@ -2252,7 +2252,7 @@ var
   StrIndex : integer;
 begin
   Result := '';
-  for StrIndex := 0 to Length(aValue)-1 do
+  for StrIndex := 1 to Length(aValue) do
   begin
     if not (aValue[StrIndex] = ',') then
       Result := Result + aValue[StrIndex];
