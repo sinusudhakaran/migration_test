@@ -53,6 +53,7 @@ type
     procedure RemoveRecommendedMems(Account: string; EntryType: byte; StatementDetails: string;
                                     AddedMasterMem: boolean);
     procedure RepopulateRecommendedMems;
+    function GetCountOfRecMemsInAccount(AccountNo: string): integer;
     procedure ResetAll;
     procedure SetBankAccount(Value: TBank_Account);
 
@@ -936,6 +937,19 @@ begin
         // one matching recommended mem, so we don't need to keep looking
         break;
     end;
+  end;
+end;
+
+function TRecommended_Mems.GetCountOfRecMemsInAccount(AccountNo: string): integer;
+var
+  i: integer;
+begin
+  Result := 0;
+  for i := 0 to MyClient.clRecommended_Mems.Recommended.ItemCount - 1 do
+  begin
+    if (Trim(MyClient.clRecommended_mems.Recommended.Recommended_Mem_At(i).rmFields.rmBank_Account_Number) =
+    Trim(AccountNo)) then
+      inc(Result);
   end;
 end;
 

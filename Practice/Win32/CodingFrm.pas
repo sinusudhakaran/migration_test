@@ -119,6 +119,7 @@ type
     celTransferedToOnline: TOvcTCCheckBox;
     celCoreTransactionId: TOvcTCString;
     lblRecommendedMemorisations: TLabel;
+    tmrMemLabel: TTimer;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
 
@@ -307,6 +308,7 @@ type
     procedure ConvertVATAmount(Sender: TObject);
     procedure celAnalysisChange(Sender: TObject);
     procedure lblRecommendedMemorisationsClick(Sender: TObject);
+    procedure tmrMemLabelTimer(Sender: TObject);
 
   private
     { Private declarations }
@@ -447,6 +449,7 @@ type
     procedure DoGotoNotes;
     procedure DoNewJournal(Sender: Tobject = nil);
     procedure DoRecommendedMems;
+    procedure UpdateSuggestedMemLabel;
     function  ValidCheque(Num: string; This : pTransaction_Rec; var msg: string ): boolean;
 {$IFDEF SmartLink}
     procedure DoLaunchFingertips;
@@ -7659,6 +7662,11 @@ begin
   SearchVisible := False;
 end;
 
+procedure TfrmCoding.tmrMemLabelTimer(Sender: TObject);
+begin
+  UpdateSuggestedMemLabel;
+end;
+
 procedure TfrmCoding.tmrPayeeTimer(Sender: TObject);
 var
    pT, pNew: pTransaction_Rec;
@@ -7853,6 +7861,17 @@ end;
 function TfrmCoding.GetSearchVisible: Boolean;
 begin
    result := PnlSearch.Visible;
+end;
+
+procedure TfrmCoding.UpdateSuggestedMemLabel;
+var
+  MemCount: integer;
+begin
+  if Assigned(BankAccount) then
+  begin
+    MemCount := MyClient.clRecommended_Mems.GetCountOfRecMemsInAccount(BankAccount.baFields.baBank_Account_Number);
+    lblRecommendedMemorisations.Caption := 'Suggested Memorisations: ' + IntToStr(MemCount) + ' available';
+  end;
 end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -8073,7 +8092,10 @@ begin
 
            end;
       *)
+      
+      tmrMemLabel.Enabled := True;
    end;
+
    result := ThisForm;
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
