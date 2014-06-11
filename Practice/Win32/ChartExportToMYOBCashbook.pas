@@ -2083,20 +2083,17 @@ begin
   begin
     if MyClient.clfields.clGST_Class_Names[GstIndex] > '' then
     begin
-      if MyClient.clfields.clGST_Account_Codes[GstIndex] = '' then
+      if not ((MyClient.clfields.clGST_Rates[GstIndex,1] = 0) and
+              (MyClient.clfields.clGST_Rates[GstIndex,2] = 0) and
+              (MyClient.clfields.clGST_Rates[GstIndex,3] = 0) and
+              (MyClient.clfields.clGST_Rates[GstIndex,4] = 0) and
+              (MyClient.clfields.clGST_Rates[GstIndex,5] = 0)) then
       begin
-        Result := false;
-        Exit;
-      end;
-
-      if (MyClient.clfields.clGST_Rates[GstIndex,1] = 0) and
-         (MyClient.clfields.clGST_Rates[GstIndex,2] = 0) and
-         (MyClient.clfields.clGST_Rates[GstIndex,3] = 0) and
-         (MyClient.clfields.clGST_Rates[GstIndex,4] = 0) and
-         (MyClient.clfields.clGST_Rates[GstIndex,5] = 0) then
-      begin
-        Result := false;
-        Exit;
+        if MyClient.clfields.clGST_Account_Codes[GstIndex] = '' then
+        begin
+          Result := false;
+          Exit;
+        end;
       end;
     end;
   end;
