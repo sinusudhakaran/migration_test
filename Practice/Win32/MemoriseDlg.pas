@@ -123,6 +123,7 @@ type
     LookupJob1: TMenuItem;
     Rowtmr: TTimer;
     cbMinus: TComboBox;
+    tmrPayee: TTimer;
 
     procedure cRefClick(Sender: TObject);
     procedure cPartClick(Sender: TObject);
@@ -201,8 +202,10 @@ type
     procedure btnCopyClick(Sender: TObject);
     procedure RowtmrTimer(Sender: TObject);
     procedure cbMinusChange(Sender: TObject);
+    procedure tmrPayeeTimer(Sender: TObject);
   private
     { Private declarations }
+    PopulatePayee : boolean;
     AltLineColor : integer;
     EditMode : boolean;
     SplitData : TSplitArray;
@@ -255,7 +258,7 @@ type
     procedure SetAccountingSystem(const Value: Integer);
     function GetAccountingSystem: Integer;
     procedure LocaliseForm;
-    procedure PopulateDataFromPayee(PayeeCode: integer);
+    procedure PopulateDataFromPayee(PayeeCode: integer; ChangeActiveCol: boolean = True);
   public
     property AccountingSystem: Integer read GetAccountingSystem write SetAccountingSystem;
     property DlgEditMode: TDlgEditMode read fDlgEditMode write fDlgEditMode;
@@ -312,7 +315,8 @@ uses
   SYDEFS,
   AuditMgr,
   BKtxIO,
-  PayeeObj;
+  PayeeObj,
+  PayeeRecodeDlg;
 
 {$R *.DFM}
 
@@ -792,10 +796,17 @@ begin
         {find the gst class no and the replace the given gst class code to make sure
          that only valid codes are allowed}
         tempNo   := TOvcNumericField( ColPayee.CellEditor).AsInteger;
-        if (tempNo <> 0) and (not Assigned(MyClient.clPayee_List.Find_Payee_Number(tempNo))) then begin
-           WinUtils.ErrorSound;
-           AllowIt := false;
-           EditMode := true;  //still editing
+        if (tempNo <> 0) then
+        begin
+          if Assigned(MyClient.clPayee_List.Find_Payee_Number(tempNo)) then begin
+            if PopulatePayee then            
+              PopulateDataFromPayee(tempNo, false);
+          end else
+          begin
+            WinUtils.ErrorSound;
+            AllowIt := false;
+            EditMode := true;  //still editing
+          end;
         end;
      end;
 
@@ -949,6 +960,11 @@ begin
   end;
 end;
 
+
+procedure TdlgMemorise.tmrPayeeTimer(Sender: TObject);
+begin
+  PopulatePayee := True;
+end;
 
 procedure TdlgMemorise.RowtmrTimer(Sender: TObject);
 
@@ -2704,6 +2720,7 @@ procedure TdlgMemorise.FormShow(Sender: TObject);
       Value.Width := Canvas.TextWidth(Value.caption) + 15;
    end;
 begin
+  PopulatePayee := True;
   AutoSize(chkMaster);
   AutoSize(chkAccountSystem);
   if CalledFromRecommendedMems then
@@ -3281,7 +3298,6 @@ var
 begin
    If ( data = nil ) then exit;
    //if selected dont do anything
-   if CellAttr.caColor = clHighlight then exit;
    S := Integer( Data^ );
    If Assigned(MyClient.clPayee_List.Find_Payee_Number(S)) then exit;
    R := CellRect;
@@ -3299,7 +3315,8 @@ begin
    {draw data}
    InflateRect( R, -2, -2 );
    C.Font.Color := clWhite;
-   DrawText(C.Handle, PChar( IntToStr(S) ), StrLen( PChar( IntToStr(S) ) ), R, DT_LEFT or DT_VCENTER or DT_SINGLELINE);
+   if (CellAttr.caColor <> clHighlight) then
+     DrawText(C.Handle, PChar( IntToStr(S) ), StrLen( PChar( IntToStr(S) ) ), R, DT_LEFT or DT_VCENTER or DT_SINGLELINE);
    DoneIt := True;
 end;
 
@@ -3307,7 +3324,6 @@ procedure TdlgMemorise.ColPayeeKeyDown(Sender: TObject; var Key: Word;
   Shift: TShiftState);
 var
   Msg : TWMKey;
-  PayeeCode : integer;
 begin
   //check for lookup key
   if ( Key = VK_F3 ) then begin
@@ -3349,18 +3365,21 @@ begin
     end;
 end;
 
-procedure TdlgMemorise.PopulateDataFromPayee(PayeeCode: integer);
+procedure TdlgMemorise.PopulateDataFromPayee(PayeeCode: integer; ChangeActiveCol: boolean = True);
 var
+  AcctCode              : string;
   APayee                : TPayee;
   isPayeeDissected      : boolean;
   LinesRequired         : integer;
+  Narration             : string;
   PayeeLine             : pPayee_Line_Rec;
-  i                     : integer;
   ActiveRow             : integer;
   PayeeSplit            : PayeeSplitTotals;
   PayeeSplitPct         : PayeeSplitPercentages;
   PayeeFractionOfAmount : extended;
   GSTClass              : integer;
+  RecodeRequired        : boolean;
+  OriginalPayee         : integer;
 
   function GetRemainingAmount: extended;
   var
@@ -3420,32 +3439,83 @@ var
     tblSplit.Refresh;
   end;
 
+  procedure CreatePayeeLines;
+  var
+    i: integer;
+  begin
+    if ChangeActiveCol then
+      tblSplit.ActiveCol := AcctCol;
+    PayeePercentageSplit(SourceTransaction.txAmount, APayee, PayeeSplit, PayeeSplitPct);
+    PayeeFractionOfAmount := GetRemainingAmount / SourceTransaction.txAmount;
+    MoveSplitDataLines(APayee.pdLines.ItemCount - 1);
+    for i := 0 to APayee.pdLines.ItemCount - 1 do
+    begin
+      ActiveRow := tblSplit.ActiveRow;
+      PayeeLine := APayee.pdLines.PayeeLine_At(i);
+      GSTClass := PayeeLine.plGST_Class;
+      SplitData[i+ActiveRow].AcctCode     := PayeeLine.plAccount;
+      SplitData[i+ActiveRow].Desc         := MyClient.clChart.FindCode(PayeeLine.plAccount).chAccount_Description;
+      SplitData[i+ActiveRow].Narration    := PayeeLine.plGL_Narration;
+      SplitData[i+ActiveRow].Payee        := PayeeCode;
+      if (GSTClass <> 0) then
+        SplitData[i+ActiveRow].GSTClassCode := IntToStr(GSTClass);
+      SplitData[i+ActiveRow].Amount       := (PayeeSplitPct[i] / 10000) * PayeeFractionOfAmount;
+    end;
+    UpdateTotal;
+  end;
+
 begin
+  PopulatePayee := False;
+  tmrPayee.Enabled := False;
+  OriginalPayee := SplitData[tblSplit.ActiveRow].Payee;
   APayee := MyClient.clPayee_List.Find_Payee_Number(PayeeCode);
   isPayeeDissected := APayee.IsDissected;
   if isPayeeDissected then
     LinesRequired := APayee.pdLines.ItemCount
   else
     LinesRequired := 1;
-  if LinesRequired = 0 then exit;
-  tblSplit.ActiveCol := AcctCol;
-  PayeePercentageSplit(SourceTransaction.txAmount, APayee, PayeeSplit, PayeeSplitPct);
-  PayeeFractionOfAmount := GetRemainingAmount / SourceTransaction.txAmount;
-  MoveSplitDataLines(APayee.pdLines.ItemCount - 1);
-  for i := 0 to APayee.pdLines.ItemCount - 1 do
+  if LinesRequired = 0 then
+    exit;
+  if (SplitData[tblSplit.ActiveRow].AcctCode <> '') then
   begin
-    ActiveRow := tblSplit.ActiveRow;
-    PayeeLine := APayee.pdLines.PayeeLine_At(i);
-    GSTClass := PayeeLine.plGST_Class;
-    SplitData[i+ActiveRow].AcctCode     := PayeeLine.plAccount;
-    SplitData[i+ActiveRow].Desc         := MyClient.clChart.FindCode(PayeeLine.plAccount).chAccount_Description;
-    SplitData[i+ActiveRow].Narration    := PayeeLine.plGL_Narration;
-    SplitData[i+ActiveRow].Payee        := PayeeCode;
-    if (GSTClass <> 0) then
-      SplitData[i+ActiveRow].GSTClassCode := IntToStr(GSTClass);
-    SplitData[i+ActiveRow].Amount       := (PayeeSplitPct[i] / 10000) * PayeeFractionOfAmount;
-  end;
+    RecodeRequired := false;
+    //account code must be there already
+    PayeeLine := APayee.FirstLine;
+    if ( PayeeLine <> nil) then
+    begin
+      AcctCode := SplitData[tblSplit.ActiveRow].AcctCode;
+      Narration := SplitData[tblSplit.ActiveRow].Narration;
+      //compare with payee details
+      if IsPayeeDissected
+      or (AcctCode <> PayeeLine.plAccount)
+      or (( Narration <> PayeeLine.plGL_Narration) and ( PayeeLine.plGL_Narration <> '')) then
+         RecodeRequired := true;
+      if RecodeRequired then
+      begin
+        case PayeeRecodeDlg.AskRecodeOnPayeeChange of
+          prCancel :
+          begin
+            with tblSplit do
+              TOvcNumericField(ColPayee.CellEditor).AsInteger := OriginalPayee;
+          end;
+          prNarrationOnly :
+          begin
+            SplitData[tblSplit.ActiveRow].Narration := PayeeLine.plGL_Narration;
+            SplitData[tblSplit.ActiveRow].Payee := PayeeCode;
+          end;
+          else
+          begin
+            CreatePayeeLines;
+          end;
+        end;
+      end else
+        CreatePayeeLines;
+    end;
+  end else
+    CreatePayeeLines;
+
   tblSplit.Refresh;
+  tmrPayee.Enabled := True;
 end;
 
 procedure TdlgMemorise.DoSuperClear;
