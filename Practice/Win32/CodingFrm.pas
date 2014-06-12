@@ -616,7 +616,8 @@ uses
    CAUtils,
    bkProduct,
    RecommendedMems,
-   RecommendedMemorisationsFrm;
+   RecommendedMemorisationsFrm,
+   MemorisationsObj;
 
 const
    UnitName = 'CODINGFRM';
@@ -1770,29 +1771,47 @@ end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmCoding.DoMemorise;
 var
-   pT           : pTransaction_Rec;
-   Msg          : TWMKey;
-   IsAMasterMem : boolean;
+   pT                 : pTransaction_Rec;
+   Msg                : TWMKey;
+   IsAMasterMem       : boolean;
+   MemList            : TMemorisations_List;
+   Mem                : TMemorisation;
+   DeleteSelectedMem  : boolean;
+
+   procedure ApplyMem;
+   begin
+     //the memorisation may have been a master mem, so recode everything
+     if IsAMasterMem then
+       SendCmdToAllCodingWindows( ecRecodeTrans)
+     else
+     begin
+       AutoCodeEntries( MyClient, BankAccount, pT^.txType, TranDateFrom, TranDateTo);
+       LoadWTLMaintainPos;
+       Refresh;
+     end;
+     Msg.CharCode := VK_RIGHT;
+     if ShowAllTran <> SHOW_UNCODED_TX then
+       celAccount.SendKeyToTable(Msg);
+   end;
+
 begin
    if not ValidDataRow(tblCoding.ActiveRow) then exit;
    if not tblCoding.StopEditingState(True) then Exit;
    IncUsage('Memorised Entries');
    with tblCoding do begin
       pT   := WorkTranList.Transaction_At(ActiveRow-1);
-      if MemoriseEntry(BankAccount,pT, IsAMasterMem) then
+      if (pT.txCoded_By in [cbMemorisedC, cbMemorisedM]) and
+      (MyClient.clExtra.ceBlock_Client_Edit_Mems = false) then
       begin
-         //the memorisation may have been a master mem, so recode everything
-         if IsAMasterMem then
-           SendCmdToAllCodingWindows( ecRecodeTrans)
-         else
-         begin
-           AutoCodeEntries( MyClient, BankAccount, pT^.txType, TranDateFrom, TranDateTo);
-           LoadWTLMaintainPos;
-           Refresh;
-         end;
-         Msg.CharCode := VK_RIGHT;
-         if ShowAllTran <> SHOW_UNCODED_TX then
-           celAccount.SendKeyToTable(Msg);
+        MemList := tBank_Account(BankAccount).baMemorisations_List;
+        FindMemorisation(BankAccount, pT, Mem);
+        DeleteSelectedMem := False;
+        if EditMemorisation(BankAccount, MemList, Mem, DeleteSelectedMem) then
+          ApplyMem;
+      end
+      else if MemoriseEntry(BankAccount,pT, IsAMasterMem) then
+      begin
+        ApplyMem;
       end;
    end;
 end;

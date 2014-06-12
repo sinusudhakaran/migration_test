@@ -1148,6 +1148,7 @@ object frmCoding: TfrmCoding
   end
   object tmrMemLabel: TTimer
     Enabled = False
+    Interval = 200
     OnTimer = tmrMemLabelTimer
     Left = 584
     Top = 152
