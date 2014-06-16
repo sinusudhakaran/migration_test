@@ -565,7 +565,7 @@ var
 begin
   if ItemAtCode(aCode, ChartExportItem) then
   begin
-    DisplayClosingBalanceDate := StDateToDateString('dd/mm/yyyy', IncDate(FromDate, 1, 0, 0), true);
+    DisplayClosingBalanceDate := StDateToDateString('dd/mm/yyyy', IncDate(ToDate, 1, 0, 0), true);
     ClosingBalance            := aClosingBalance;
     CrDrSignFromReportGroup   := GetCrDrSignFromReportGroup(ChartExportItem.ReportGroupId);
     ClosingBalance            := CrDrSignFromReportGroup * ClosingBalance;
