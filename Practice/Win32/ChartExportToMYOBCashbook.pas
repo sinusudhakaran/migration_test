@@ -355,15 +355,8 @@ end;
 
 //------------------------------------------------------------------------------
 function TChartExportCol.GetCurrencyFormat(aRoundValues : Boolean): string;
-var
-  CurrencySymbol: String;
 begin
-  CurrencySymbol := Get_ISO_4217_Symbol(MyClient.clExtra.ceLocal_Currency_Code);
-
-  if aRoundValues then
-    Result := CurrencySymbol + '#,##0;-' + CurrencySymbol + '#,##0' + ';-'
-  else
-    Result := MyClient.FmtMoneyStr + ';-';
+  Result := '0.00;-0.00;-';
 end;
 
 //------------------------------------------------------------------------------
