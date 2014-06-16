@@ -34,7 +34,14 @@ type
     fExportFileLocation : string;
     fAreGSTAccountSetup : boolean;
     fAreOpeningBalancesSetup : boolean;
+    fNonBasicCodesHaveBalances : boolean;
+    fIsTransactionsUncodedorInvalidlyCoded : boolean;
   public
+    NonBasicCodes : TStringList;
+
+    constructor Create;
+    destructor Destroy; override;
+
     property ExportBasicChart : boolean read fExportBasicChart write fExportBasicChart;
     property IncludeClosingBalances : boolean read fIncludeClosingBalances write fIncludeClosingBalances;
     property ClosingBalanceDate: TStDate read fClosingBalanceDate write fClosingBalanceDate;
@@ -42,6 +49,9 @@ type
     property ExportFileLocation : string read fExportFileLocation write fExportFileLocation;
     property AreGSTAccountSetup : boolean read fAreGSTAccountSetup write fAreGSTAccountSetup;
     property AreOpeningBalancesSetup : boolean read fAreOpeningBalancesSetup write fAreOpeningBalancesSetup;
+    property NonBasicCodesHaveBalances : boolean read fNonBasicCodesHaveBalances write fNonBasicCodesHaveBalances;
+    property IsTransactionsUncodedorInvalidlyCoded : boolean read  fIsTransactionsUncodedorInvalidlyCoded
+                                                             write fIsTransactionsUncodedorInvalidlyCoded;
   end;
 
   //------------------------------------------------------------------------------
@@ -134,6 +144,7 @@ begin
   if (chkIncludeClosingBalances.Checked) and
      (not fLoading) then
   begin
+
     if not ExportChartFrmProperties.AreGSTAccountSetup then
     begin
       HelpfulErrorMsg('Please enter GST Control accounts for GST rates with a ' +
@@ -141,6 +152,7 @@ begin
       chkIncludeClosingBalances.Checked := false;
       Exit;
     end;
+
     if not ExportChartFrmProperties.AreOpeningBalancesSetup then
     begin
       if not (AskYesNo('Opening balances not been set',
@@ -150,6 +162,23 @@ begin
         chkIncludeClosingBalances.Checked := false;
         Exit;
       end;
+    end;
+
+    if (ExportChartFrmProperties.NonBasicCodesHaveBalances) and
+       (radExportBasicChart.Checked) then
+    begin
+      HelpfulErrorMsg('The following account codes contain balances and are not flagged as basic: ' + #13#10 +
+                      ExportChartFrmProperties.NonBasicCodes.DelimitedText + '.' + #13#10 +
+                      'Please flag these account codes as basic codes, Other Functions | Chart of Accounts | Maintain Chart.',0);
+      chkIncludeClosingBalances.Checked := false;
+      Exit;
+    end;
+
+    if ExportChartFrmProperties.IsTransactionsUncodedorInvalidlyCoded then
+    begin
+      HelpfulErrorMsg('There are uncoded or invalidly coded transactions for the period. The closing balance cannot be calculated.',0);
+      chkIncludeClosingBalances.Checked := false;
+      Exit;
     end;
   end;
 
@@ -262,6 +291,23 @@ begin
       ExportChartFrmProperties.ExportFileLocation := edtSaveEntriesTo.Text;
     end;
   end;
+end;
+
+{ TExportChartFrmProperties }
+//------------------------------------------------------------------------------
+constructor TExportChartFrmProperties.Create;
+begin
+  NonBasicCodes := TStringList.create;
+  NonBasicCodes.Delimiter := ',';
+  NonBasicCodes.StrictDelimiter := True;
+end;
+
+//------------------------------------------------------------------------------
+destructor TExportChartFrmProperties.Destroy;
+begin
+  FreeAndNil(NonBasicCodes);
+
+  inherited;
 end;
 
 end.

@@ -86,6 +86,7 @@ type
     fClosingBalance : string;
     fClosingBalanceDate : string;
     fPostingAllowed : boolean;
+    fHasOpeningBalance : boolean;
   public
     property IsBasicChartItem : boolean read fIsBasicChartItem write fIsBasicChartItem;
     property AccountCode : string read fAccountCode write fAccountCode;
@@ -95,7 +96,7 @@ type
     property ClosingBalance : string read fClosingBalance write fClosingBalance;
     property ClosingBalanceDate : string read fClosingBalanceDate write fClosingBalanceDate;
     property PostingAllowed : boolean read fPostingAllowed write fPostingAllowed;
-
+    property HasOpeningBalance : boolean read fHasOpeningBalance write fHasOpeningBalance;
   end;
 
   //----------------------------------------------------------------------------
@@ -104,6 +105,7 @@ type
     fChart : TCustomSortChart;
     fFromDate : TStDate;
     fTodate   : TStDate;
+    fIsTransactionsUncodedorInvalidlyCoded : boolean;
 
     procedure LGR_Contra_PrintEntry(Sender:TObject);
     procedure LGR_Contra_PrintDissect(Sender:Tobject);
@@ -130,6 +132,7 @@ type
     function IsABankContra(aCode: string; aStart: Integer): Integer;
     function IsAGSTContra(aCode: string; aStart: Integer): Integer;
     function IsThisAContraCode(aCode: string): Boolean;
+    function DoesCodeHaveOpeningBalances(aCode : string) : boolean;
   public
     destructor Destroy; override;
 
@@ -145,6 +148,8 @@ type
     property Chart    : TCustomSortChart read fChart    write fChart;
     property FromDate : TStDate          read fFromDate write fFromDate;
     property Todate   : TStDate          read fTodate   write fTodate;
+    property IsTransactionsUncodedorInvalidlyCoded : boolean read  fIsTransactionsUncodedorInvalidlyCoded
+                                                             write fIsTransactionsUncodedorInvalidlyCoded;
   end;
 
   //----------------------------------------------------------------------------
@@ -248,6 +253,7 @@ type
                                   var aErrorStr : string) : boolean;
     procedure FillGstMapCol();
     function IsGSTClassUsedInChart(aGST_Class : byte) : boolean;
+    function DoNonBasicCodesHaveBalances(var aNonBasicCodes : TStringList) : boolean;
   public
     constructor Create;
     destructor Destroy; override;
@@ -344,6 +350,7 @@ begin
   NewChartExportItem.PostingAllowed     := aPostingAllowed;
   NewChartExportItem.ClosingBalance     := '';
   NewChartExportItem.ClosingBalanceDate := '';
+  NewChartExportItem.HasOpeningBalance  := DoesCodeHaveOpeningBalances(aAccountCode);
 end;
 
 //------------------------------------------------------------------------------
@@ -650,6 +657,54 @@ begin
 end;
 
 // Does a given transaction use a given GST class
+//------------------------------------------------------------------------------
+function TChartExportCol.DoesCodeHaveOpeningBalances(aCode: string): boolean;
+var
+  pJournalTrans : pTransaction_Rec;
+  pJournal_Line : pDissection_Rec;
+  pAccount      : pAccount_Rec;
+  AccIndex , StartDate : integer;
+  BalDate: Integer;
+  Journal_Account : tBank_Account;
+begin
+  Result := false;
+  BalDate := MyClient.clFields.clFinancial_Year_Starts;
+
+  //find the open balance journal account
+  Journal_Account := nil;
+  for AccIndex := 0 to MyClient.clBank_Account_List.itemCount-1 do
+  begin
+    if MyClient.clBank_Account_List.Bank_Account_At( AccIndex ).baFields.baAccount_Type = btOpeningBalances then
+      Journal_Account := MyClient.clBank_Account_List.Bank_Account_At( AccIndex );
+  end;
+
+  if Assigned( Journal_Account) then
+  begin
+    pJournalTrans := jnlUtils32.GetJournalFor( Journal_Account, BalDate);
+
+    if Assigned( pJournalTrans) then
+    begin
+      //load totals into tmp values in chart
+      pJournal_Line := pJournalTrans^.txFirst_Dissection;
+
+      while ( pJournal_Line <> nil) do
+      begin
+        pAccount := nil;
+        if pJournal_Line.dsAccount = aCode then
+          pAccount := MyClient.clChart.FindCode( pJournal_Line.dsAccount);
+
+        if Assigned( pAccount) then
+        begin
+          Result := true;
+          Exit;
+        end;
+
+        pJournal_Line := pJournal_Line.dsNext;
+      end;
+    end;
+  end;
+end;
+
 //------------------------------------------------------------------------------
 function TChartExportCol.DoesTxUseGSTClass(aClient  : TClientObj;
                                            aClassId : string;
@@ -992,7 +1047,10 @@ begin
   Code := TravMgr.Transaction^.txAccount;
 
   if ( Code = '') then
+  begin
+    IsTransactionsUncodedorInvalidlyCoded := true;
     exit;
+  end;
 
   // has tx already been printed during contras?
   if (Code = TravMgr.ContraCodePrinted) and (TravMgr.ContraCodePrinted <> NullCode) then
@@ -1012,7 +1070,10 @@ begin
         if IsValidCode then
           ClosingBalance := GetOpeningBalanceAmount(MyClient, TravMgr.LastCodePrinted) + TravMgr.AccountTotalNet
         else
+        begin
           ClosingBalance := GetOpeningBalanceForInvalidCode(MyClient, TravMgr.LastCodePrinted, Fromdate) + TravMgr.AccountTotalNet;
+          IsTransactionsUncodedorInvalidlyCoded := true;
+        end;
 
         UpdateClosingBalancesForCode(TravMgr.LastCodePrinted, ClosingBalance);
       end;
@@ -1128,7 +1189,10 @@ begin
         if IsValidCode then
           ClosingBalance := GetOpeningBalanceAmount(MyClient, TravMgr.LastCodePrinted) + TravMgr.AccountTotalNet
         else
+        begin
           ClosingBalance := GetOpeningBalanceForInvalidCode(MyClient, TravMgr.LastCodePrinted, Fromdate) + TravMgr.AccountTotalNet;
+          IsTransactionsUncodedorInvalidlyCoded := true;
+        end;
 
         UpdateClosingBalancesForCode(TravMgr.LastCodePrinted, ClosingBalance);
       end;
@@ -1215,6 +1279,7 @@ var
   ISOCodes  : string;
   ClosingBalance : Money;
 begin
+  IsTransactionsUncodedorInvalidlyCoded := false;
   //Check Forex
   if not MyClient.HasExchangeRates(ISOCodes, FromDate, ToDate, {ForReport=}True, {AllBankAccounts=}False) then
   begin
@@ -2421,6 +2486,10 @@ begin
     ExportChartFrmProperties.AreGSTAccountSetup := CheckGSTControlAccAndRates();
     ExportChartFrmProperties.AreOpeningBalancesSetup :=
       JnlUtils32.CheckForOpeningBalance( MyClient, MyClient.clFields.clReporting_Year_Starts);
+    ExportChartFrmProperties.NonBasicCodesHaveBalances :=
+      DoNonBasicCodesHaveBalances(ExportChartFrmProperties.NonBasicCodes);
+    ExportChartFrmProperties.IsTransactionsUncodedorInvalidlyCoded :=
+      ChartExportCol.IsTransactionsUncodedorInvalidlyCoded;
 
     Res := ShowChartExport(aPopupParent, ExportChartFrmProperties);
 
@@ -2442,6 +2511,28 @@ begin
       begin
         HelpfulErrorMsg(ErrorStr,0);
         LogUtil.LogMsg(lmError, UnitName, ThisMethodName + ' : ' + ErrorStr );
+      end;
+    end;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+function TChartExportToMYOBCashbook.DoNonBasicCodesHaveBalances(var aNonBasicCodes : TStringList) : boolean;
+var
+  ChartIndex : integer;
+  aChartExportItem : TChartExportItem;
+begin
+  Result := false;
+  aNonBasicCodes.Clear;
+  for ChartIndex := 0 to ChartExportCol.Count-1 do
+  begin
+    if ChartExportCol.ItemAtColIndex(ChartIndex, aChartExportItem) then
+    begin
+      if (aChartExportItem.HasOpeningBalance) and
+         (not aChartExportItem.IsBasicChartItem) then
+      begin
+        Result := true;
+        aNonBasicCodes.Add(aChartExportItem.AccountCode);
       end;
     end;
   end;
