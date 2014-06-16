@@ -2470,7 +2470,7 @@ begin
   begin
     if (MyClient.clExtra.ceCashbook_Export_File_Location = '') then
       ExportChartFrmProperties.ExportFileLocation := UserDir + MyClient.clFields.clCode +
-                                                     '_MYOB_CashBook_Chart.csv'
+                                                     '_MYOB_Cashbook_Chart.csv'
     else
       ExportChartFrmProperties.ExportFileLocation := MyClient.clExtra.ceCashbook_Export_File_Location;
 
