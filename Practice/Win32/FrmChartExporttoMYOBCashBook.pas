@@ -148,7 +148,7 @@ begin
     if not ExportChartFrmProperties.AreGSTAccountSetup then
     begin
       HelpfulErrorMsg('Please enter GST Control accounts for GST rates with a ' +
-                      'percentage amount, Other Functions | GST Setup | Rates.',0);
+                      'percentage amount under Other Functions | GST Setup | Rates.',0);
       chkIncludeClosingBalances.Checked := false;
       Exit;
     end;
@@ -169,7 +169,7 @@ begin
     begin
       HelpfulErrorMsg('The following account codes contain balances and are not flagged as basic: ' + #13#10 +
                       ExportChartFrmProperties.NonBasicCodes.DelimitedText + '.' + #13#10 +
-                      'Please flag these account codes as basic codes, Other Functions | Chart of Accounts | Maintain Chart.',0);
+                      'Please flag these account codes as basic codes under Other Functions | Chart of Accounts | Maintain Chart.',0);
       chkIncludeClosingBalances.Checked := false;
       Exit;
     end;
