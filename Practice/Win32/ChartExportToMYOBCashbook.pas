@@ -2122,7 +2122,9 @@ begin
   for ChartIndex := 0 to ChartExportCol.Count-1 do
   begin
     ChartExportCol.ItemAtColIndex(ChartIndex, ChartExportItem);
-    if ChartExportCol.GetMappedReportGroupId(ChartExportItem.ReportGroupId) = ccNone then
+
+    if (ChartExportItem.PostingAllowed) and
+       (ChartExportCol.GetMappedReportGroupId(ChartExportItem.ReportGroupId) = ccNone) then
     begin
       Result := false;
       Exit;
