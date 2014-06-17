@@ -3446,7 +3446,10 @@ var
     if ChangeActiveCol then
       tblSplit.ActiveCol := AcctCol;
     PayeePercentageSplit(SourceTransaction.txAmount, APayee, PayeeSplit, PayeeSplitPct);
-    PayeeFractionOfAmount := GetRemainingAmount / SourceTransaction.txAmount;
+    if (SourceTransaction.txAmount = 0) then
+      PayeeFractionOfAmount := 1
+    else
+      PayeeFractionOfAmount := GetRemainingAmount / SourceTransaction.txAmount;
     MoveSplitDataLines(APayee.pdLines.ItemCount - 1);
     for i := 0 to APayee.pdLines.ItemCount - 1 do
     begin
@@ -3454,7 +3457,7 @@ var
       PayeeLine := APayee.pdLines.PayeeLine_At(i);
       GSTClass := PayeeLine.plGST_Class;
       SplitData[i+ActiveRow].AcctCode     := PayeeLine.plAccount;
-      if (PayeeLine.plAccount <> '') then      
+      if (PayeeLine.plAccount <> '') then
         SplitData[i+ActiveRow].Desc       := MyClient.clChart.FindCode(PayeeLine.plAccount).chAccount_Description;
       SplitData[i+ActiveRow].Narration    := PayeeLine.plGL_Narration;
       SplitData[i+ActiveRow].Payee        := PayeeCode;
