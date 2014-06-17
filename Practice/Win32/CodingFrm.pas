@@ -8059,9 +8059,17 @@ begin
 
       with BankAccount, baFields do begin
          if IsAJournalAccount then
-           Caption  := 'Journal Entries ' + BankAccount.Title
+         begin
+           Caption  := 'Journal Entries ' + BankAccount.Title;
+           lblRecommendedMemorisations.Visible := False;
+           frmMain.tbRecommendedMemorisations.Visible := False;
+         end
          else
+         begin
            Caption  := 'Code Entries '+ BankAccount.Title;
+           lblRecommendedMemorisations.Visible := True;
+           frmMain.tbRecommendedMemorisations.Visible := True;
+         end;
 
          with lblAcctDetails do
          begin
