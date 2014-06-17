@@ -3445,11 +3445,18 @@ var
   begin
     if ChangeActiveCol then
       tblSplit.ActiveCol := AcctCol;
-    PayeePercentageSplit(SourceTransaction.txAmount, APayee, PayeeSplit, PayeeSplitPct);
-    if (SourceTransaction.txAmount = 0) then
-      PayeeFractionOfAmount := 1
+    if not Assigned(SourceTransaction) then
+    begin
+      PayeeFractionOfAmount := 1;
+    end
     else
-      PayeeFractionOfAmount := GetRemainingAmount / SourceTransaction.txAmount;
+    begin
+      PayeePercentageSplit(SourceTransaction.txAmount, APayee, PayeeSplit, PayeeSplitPct);
+      if (SourceTransaction.txAmount = 0) then
+        PayeeFractionOfAmount := 1
+      else
+        PayeeFractionOfAmount := GetRemainingAmount / SourceTransaction.txAmount;
+    end;
     MoveSplitDataLines(APayee.pdLines.ItemCount - 1);
     for i := 0 to APayee.pdLines.ItemCount - 1 do
     begin
@@ -3463,7 +3470,11 @@ var
       SplitData[i+ActiveRow].Payee        := PayeeCode;
       if (GSTClass <> 0) then
         SplitData[i+ActiveRow].GSTClassCode := IntToStr(GSTClass);
-      SplitData[i+ActiveRow].Amount       := (PayeeSplitPct[i] / 10000) * PayeeFractionOfAmount;
+      if not Assigned(PayeeSplitPct) then
+        SplitData[i+ActiveRow].Amount     := (APayee.pdLines.PayeeLine_At(i)^.plPercentage / 10000) *
+                                             PayeeFractionOfAmount
+      else
+        SplitData[i+ActiveRow].Amount     := (PayeeSplitPct[i] / 10000) * PayeeFractionOfAmount;
     end;
     UpdateTotal;
   end;
