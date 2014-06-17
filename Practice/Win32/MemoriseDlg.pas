@@ -3454,7 +3454,8 @@ var
       PayeeLine := APayee.pdLines.PayeeLine_At(i);
       GSTClass := PayeeLine.plGST_Class;
       SplitData[i+ActiveRow].AcctCode     := PayeeLine.plAccount;
-      SplitData[i+ActiveRow].Desc         := MyClient.clChart.FindCode(PayeeLine.plAccount).chAccount_Description;
+      if (PayeeLine.plAccount <> '') then      
+        SplitData[i+ActiveRow].Desc       := MyClient.clChart.FindCode(PayeeLine.plAccount).chAccount_Description;
       SplitData[i+ActiveRow].Narration    := PayeeLine.plGL_Narration;
       SplitData[i+ActiveRow].Payee        := PayeeCode;
       if (GSTClass <> 0) then
