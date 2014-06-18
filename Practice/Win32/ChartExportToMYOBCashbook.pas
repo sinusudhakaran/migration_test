@@ -387,13 +387,15 @@ begin
     AccountInfo.UseBudgetIfNoActualData     := False;
     AccountInfo.LastPeriodOfActualDataToUse := Client.clFields.clTemp_FRS_Last_Actual_Period_To_Use;
     AccountInfo.AccountCode := Code;
-    AccountInfo.UseBaseAmounts := True;
+    AccountInfo.UseBaseAmounts := false;
     StDatetoDMY(Client.clFields.clFinancial_Year_Starts, DayFinStart, MonthFinStart, YearFinStart);
     StDatetoDMY(Client.clFields.clTemp_FRS_To_Date, DayStart, MonthStart, YearStart);
-    if (DayFinStart = DayStart) and (MonthFinStart = MonthStart) then // If start date = financial year start then just get opening bal
+
+    // If start date = financial year start then just get opening bal
+    if (DayFinStart = DayStart) and (MonthFinStart = MonthStart) then
       Balance := AccountInfo.OpeningBalanceActualOrBudget(1)
-    else
-      Balance := AccountInfo.ClosingBalanceActualOrBudget(1); // else opening bal at last financial year start + movement up to previous day
+    else // else opening bal at last financial year start + movement up to previous day
+      Balance := AccountInfo.ClosingBalanceActualOrBudget(1);
   finally
     FreeAndNil(AccountInfo);
   end;
@@ -429,7 +431,8 @@ begin
     exit;
   end;
 
-  for BnkAccIndex := 0 to Pred(Client.clBank_Account_List.ItemCount) do // Loop each bank account
+  // Loop each bank account
+  for BnkAccIndex := 0 to Pred(Client.clBank_Account_List.ItemCount) do
   begin
     Bank_Account := Client.clBank_Account_List.Bank_Account_At(BnkAccIndex);
     for TransIndex := 0 to Pred(Bank_Account.baTransaction_List.ItemCount) do
@@ -733,27 +736,28 @@ end;
 //------------------------------------------------------------------------------
 function TChartExportCol.IsABankContra(aCode: string; aStart: Integer): Integer;
 var
-  BA: TBank_Account;
-  T: pTransaction_Rec;
-  i, k: Integer;
+  BankAcc      : TBank_Account;
+  TransRec     : pTransaction_Rec;
+  BankAccIndex : Integer;
+  TransIndex   : Integer;
 begin
   Result := -1;
   if aCode = '' then
     Exit;
-  for i := aStart to Pred(MyClient.clBank_Account_List.ItemCount) do
+  for BankAccIndex := aStart to Pred(MyClient.clBank_Account_List.ItemCount) do
   begin
-    BA := MyClient.clBank_Account_List.Bank_Account_At(i);
-    if (BA.baFields.baContra_Account_Code = aCode) and
-       (not (BA.baFields.baAccount_Type in LedgerNoContrasJournalSet)) then
+    BankAcc := MyClient.clBank_Account_List.Bank_Account_At(BankAccIndex);
+    if (BankAcc.baFields.baContra_Account_Code = aCode) and
+       (not (BankAcc.baFields.baAccount_Type in LedgerNoContrasJournalSet)) then
     begin
       // Does this account have any transactions coded within the report dates
-      for k := 0 to Pred(BA.baTransaction_List.ItemCount) do
+      for TransIndex := 0 to Pred(BankAcc.baTransaction_List.ItemCount) do
       begin
-        T := BA.baTransaction_List.Transaction_At(k);
-        if (T.txDate_Effective >= FromDate) and
-           (T.txDate_Effective <= Todate) then
+        TransRec := BankAcc.baTransaction_List.Transaction_At(TransIndex);
+        if (TransRec.txDate_Effective >= FromDate) and
+           (TransRec.txDate_Effective <= Todate) then
         begin
-          Result := i;
+          Result := BankAccIndex;
           exit;
         end;
       end;
@@ -767,12 +771,13 @@ end;
 function TChartExportCol.IsAGSTContra(aCode: string; aStart: Integer): Integer;
 var
   AccCodeIndex, AccIndex, TransIndex: Integer;
-  BA: TBank_Account;
-  T: pTransaction_Rec;
+  BankAcc: TBank_Account;
+  TransRec: pTransaction_Rec;
 begin
   Result := -1;
   if aCode = '' then
     Exit;
+
   for AccCodeIndex := aStart to High(MyClient.clFields.clGST_Account_Codes) do
   begin
     if MyClient.clFields.clGST_Account_Codes[AccCodeIndex] = aCode then
@@ -780,14 +785,14 @@ begin
       // Is this GST class used in any included bank account
       for AccIndex := 0 to Pred(MyClient.clBank_Account_List.ItemCount) do
       begin
-         BA := MyClient.clBank_Account_List.Bank_Account_At(AccIndex);
+         BankAcc := MyClient.clBank_Account_List.Bank_Account_At(AccIndex);
         // Are there any txns using this gst class within the report dates
-        for TransIndex := 0 to Pred(BA.baTransaction_List.ItemCount) do
+        for TransIndex := 0 to Pred(BankAcc.baTransaction_List.ItemCount) do
         begin
-          T := BA.baTransaction_List.Transaction_At(TransIndex);
-          if (T.txDate_Effective >= FromDate) and
-             (T.txDate_Effective <= Todate) and
-             DoesTxUseGSTClass(MyClient, MyClient.clFields.clGST_Class_Codes[AccCodeIndex], T) then
+          TransRec := BankAcc.baTransaction_List.Transaction_At(TransIndex);
+          if (TransRec.txDate_Effective >= FromDate) and
+             (TransRec.txDate_Effective <= Todate) and
+             DoesTxUseGSTClass(MyClient, MyClient.clFields.clGST_Class_Codes[AccCodeIndex], TransRec) then
           begin
             Result := AccCodeIndex;
             Exit;
@@ -797,16 +802,16 @@ begin
 
       for AccIndex := 0 to Pred(MyClient.clBank_Account_List.ItemCount) do
       begin
-        BA := MyClient.clBank_Account_List.Bank_Account_At(AccIndex);
-        if BA.baFields.baAccount_Type in BKConst.NonTrfJournalsLedgerSet then
+        BankAcc := MyClient.clBank_Account_List.Bank_Account_At(AccIndex);
+        if BankAcc.baFields.baAccount_Type in BKConst.NonTrfJournalsLedgerSet then
         begin
           // Are there any txns using this gst class within the report dates
-          for TransIndex := 0 to Pred(BA.baTransaction_List.ItemCount) do
+          for TransIndex := 0 to Pred(BankAcc.baTransaction_List.ItemCount) do
           begin
-            T := BA.baTransaction_List.Transaction_At(TransIndex);
-            if (T.txDate_Effective >= Fromdate) and
-               (T.txDate_Effective <= Todate) and
-               DoesTxUseGSTClass(MyClient, MyClient.clFields.clGST_Class_Codes[AccCodeIndex], T) then
+            TransRec := BankAcc.baTransaction_List.Transaction_At(TransIndex);
+            if (TransRec.txDate_Effective >= Fromdate) and
+               (TransRec.txDate_Effective <= Todate) and
+               DoesTxUseGSTClass(MyClient, MyClient.clFields.clGST_Class_Codes[AccCodeIndex], TransRec) then
             begin
               Result := AccCodeIndex;
               Exit;
@@ -1101,7 +1106,9 @@ begin
       begin
         //is code in range?
         IsContras := IsThisAContraCode(ChartItem^.chAccount_Code);
-        if IsContras then
+        if (IsContras) or
+           (ChartItem^.chPosting_Allowed or
+            (GetOpeningBalanceAmount(MyClient, ChartItem^.chAccount_Code) <> 0)) then
         begin
           DoContras(TravMgr, ChartItem^.chAccount_Code);
           ClosingBalance := GetOpeningBalanceAmount(MyClient, ChartItem^.chAccount_Code);
@@ -1219,7 +1226,9 @@ begin
       begin
         //is code in range?
         IsContras := IsThisAContraCode(ChartItem^.chAccount_Code);
-        if IsContras then
+        if (IsContras) or
+           (ChartItem^.chPosting_Allowed or
+            (GetOpeningBalanceAmount(MyClient, ChartItem^.chAccount_Code) <> 0)) then
         begin
           DoContras(TravMgr, ChartItem^.chAccount_Code);
           ClosingBalance := GetOpeningBalanceAmount(MyClient, ChartItem^.chAccount_Code);
@@ -1296,7 +1305,7 @@ begin
      TravMgr.OnEnterDissectionExt := CalculateDisection;
      TravMgr.DoneSubTotal := False;
      TravMgr.SplitCode := '';
-
+     TravMgr.PrintEmptyCodes := true;
 
      TravMgr.TraverseAllEntries(Fromdate, Todate);
 
