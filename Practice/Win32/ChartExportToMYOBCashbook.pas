@@ -635,6 +635,7 @@ begin
   MyClient.clFields.clTemp_FRS_Budget_To_Use                  := '';
   MyClient.clFields.clTemp_FRS_Budget_To_Use_Date             := -1;
   MyClient.clFields.clTemp_FRS_Use_Budgeted_Data_If_No_Actual := False;
+  MyClient.clFields.clGST_Inclusive_Cashflow                  := False;
 
   for AccountIndex := 0 to MyClient.clBank_Account_List.ItemCount-1 do
   begin
@@ -1305,7 +1306,6 @@ begin
      TravMgr.OnEnterDissectionExt := CalculateDisection;
      TravMgr.DoneSubTotal := False;
      TravMgr.SplitCode := '';
-     TravMgr.PrintEmptyCodes := true;
 
      TravMgr.TraverseAllEntries(Fromdate, Todate);
 
