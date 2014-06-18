@@ -7889,7 +7889,22 @@ begin
   if Assigned(BankAccount) then
   begin
     MemCount := MyClient.clRecommended_Mems.GetCountOfRecMemsInAccount(BankAccount.baFields.baBank_Account_Number);
-    lblRecommendedMemorisations.Caption := 'Suggested Memorisations: ' + IntToStr(MemCount) + ' available';
+    if (MemCount = 0) then
+    begin
+      if Assigned(frmMain) then
+        frmMain.tbRecommendedMemorisations.Visible := False;
+      lblRecommendedMemorisations.Visible := False;
+    end
+    else
+    begin
+      if not BankAccount.IsAJournalAccount then
+      begin
+        if Assigned(frmMain) then
+          frmMain.tbRecommendedMemorisations.Visible := True;
+        lblRecommendedMemorisations.Visible := True;
+        lblRecommendedMemorisations.Caption := 'Suggested Memorisations: ' + IntToStr(MemCount) + ' available';
+      end;
+    end;
   end;
 end;
 

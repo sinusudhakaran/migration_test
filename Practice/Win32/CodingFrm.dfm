@@ -489,6 +489,7 @@ object frmCoding: TfrmCoding
       Height = 13
       Cursor = crHandPoint
       Caption = 'Suggested Memorisations'
+      Visible = False
       OnClick = lblRecommendedMemorisationsClick
     end
     object EBFind: TEdit
@@ -1147,7 +1148,7 @@ object frmCoding: TfrmCoding
   end
   object tmrMemLabel: TTimer
     Enabled = False
-    Interval = 200
+    Interval = 500
     OnTimer = tmrMemLabelTimer
     Left = 584
     Top = 152
