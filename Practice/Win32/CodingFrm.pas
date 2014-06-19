@@ -7889,7 +7889,7 @@ begin
   if Assigned(BankAccount) then
   begin
     MemCount := MyClient.clRecommended_Mems.GetCountOfRecMemsInAccount(BankAccount.baFields.baBank_Account_Number);
-    if (MemCount = 0) then
+    if (MemCount = 0) or MyClient.clExtra.ceBlock_Client_Edit_Mems then
     begin
       if Assigned(frmMain) then
         frmMain.tbRecommendedMemorisations.Visible := False;
@@ -8074,17 +8074,9 @@ begin
 
       with BankAccount, baFields do begin
          if IsAJournalAccount then
-         begin
-           Caption  := 'Journal Entries ' + BankAccount.Title;
-           lblRecommendedMemorisations.Visible := False;
-           frmMain.tbRecommendedMemorisations.Visible := False;
-         end
+           Caption  := 'Journal Entries ' + BankAccount.Title
          else
-         begin
            Caption  := 'Code Entries '+ BankAccount.Title;
-           lblRecommendedMemorisations.Visible := True;
-           frmMain.tbRecommendedMemorisations.Visible := True;
-         end;
 
          with lblAcctDetails do
          begin
