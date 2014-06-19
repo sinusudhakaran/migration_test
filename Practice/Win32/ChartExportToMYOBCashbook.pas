@@ -1569,7 +1569,7 @@ begin
      (UpperCaseInput = uppercase('Capital Purchases')) or
      (UpperCaseInput = uppercase('Purchases (capital)')) or
      (UpperCaseInput = uppercase('Taxable acquisitions - capital (purchases)')) or
-     (UpperCaseInput = uppercase('QUICKBKS – CAG / Cap. Acq. – Inc GST')) or
+     (UpperCaseInput = uppercase('Cap. Acq. – Inc GST')) or
      (UpperCaseInput = uppercase('Taxable purchases (capital)')) then
   begin
     Result := cgCapitalAcquisitions;
@@ -1600,8 +1600,8 @@ begin
      (UpperCaseInput = uppercase('Capital purchases with no GST')) or
      (UpperCaseInput = uppercase('Estimated purchases for private use/non-deductible')) or
      (UpperCaseInput = uppercase('Estimated purchases for private use/non-deductible (capital)')) or
-     (UpperCaseInput = uppercase('Elite – NCF / Non-Cap. Aqn. – GST FREE')) or
-     (UpperCaseInput = uppercase('MYOBACC – N-TS / Non-taxable supplies')) or
+     (UpperCaseInput = uppercase('Non-Cap. Aqn. – GST FREE')) or
+     (UpperCaseInput = uppercase('Non-taxable supplies')) or
      (UpperCaseInput = uppercase('GST Free')) or
      (UpperCaseInput = uppercase('GST free capital acquisitions')) or
      (UpperCaseInput = uppercase('GST free other acquisitions')) or
