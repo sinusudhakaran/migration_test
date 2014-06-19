@@ -64,7 +64,8 @@ uses
   TransactionUtils,
   Traverse,
   TravUtils,
-  YesNoDlg;
+  YesNoDlg,
+  GSTCalc32;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -451,6 +452,7 @@ var
   Entry: IXMLNode;
   EntryTypeDetail: IXMLNode;
   OtherTransaction: IXMLNode;
+  Rate: Extended;
 
   procedure AddField(const Name, Value: string);
   begin
@@ -522,6 +524,23 @@ begin
     // Amount
     AddFieldNode(OtherTransaction, 'Amount',
                  FormatFloatForXml(Transaction^.txAmount, 2, 100, Globals.PRACINI_ExtractZeroAmounts));
+
+    // Output GST?
+    if (Transaction.txGST_Amount <> 0) then
+    begin
+      // GST_Rate
+      Rate := GetGSTClassPercent(MyClient, Transaction.txDate_Effective, Transaction.txGST_Class);
+      AddFieldNode(
+        OtherTransaction,
+        'GST_Rate',
+        FormatFloatForXml(Rate, 0, 10000, Globals.PRACINI_ExtractZeroAmounts));
+      // GST_Amount
+      AddFieldNode(
+        OtherTransaction,
+        'GST_Amount',
+        FormatFloatForXml(Abs(Transaction^.txGST_Amount), 2, 100, Globals.PRACINI_ExtractZeroAmounts));
+    end;
+
   end;
 
   inc(NoOfEntries);
@@ -540,6 +559,7 @@ var
   Entry: IXMLNode;
   EntryTypeDetail: IXMLNode;
   OtherTransaction: IXMLNode;
+  Rate: extended;
 
   procedure AddTextNode(var aNode: IXMLNode);
   var
@@ -598,6 +618,22 @@ begin
   AddAccountCodeNode(OtherTransaction, Dissection^.dsAccount);
   // Amount
   AddFieldNode(OtherTransaction, 'Amount', FormatFloatForXml(Dissection^.dsAmount));
+
+  // Output GST?
+  if (Dissection.dsGST_Amount <> 0) then
+  begin
+    // GST_Rate
+    Rate := GetGSTClassPercent(MyClient, Transaction.txDate_Effective, Dissection.dsGST_Class);
+    AddFieldNode(
+      OtherTransaction,
+      'GST_Rate',
+      FormatFloatForXml(Rate, 0, 10000, Globals.PRACINI_ExtractZeroAmounts));
+    // GST_Amount
+    AddFieldNode(
+      OtherTransaction,
+      'GST_Amount',
+      FormatFloatForXml(Abs(Dissection^.dsGST_Amount), 2, 100, Globals.PRACINI_ExtractZeroAmounts));
+  end;
 
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends');
 end;
