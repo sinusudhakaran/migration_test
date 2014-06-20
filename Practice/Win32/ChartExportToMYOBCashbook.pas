@@ -203,6 +203,8 @@ type
   public
     destructor Destroy; override;
 
+    function FixCharactersInString(aInstring : string) : string;
+
     function GetMappedAUGSTTypeCode(aGSTClassDescription : string): TCashBookGSTClasses;
     procedure AddGSTMapItem(aGstIndex : integer;
                             aPracticeGstCode : string;
@@ -1535,148 +1537,148 @@ function TGSTMapCol.GetMappedAUGSTTypeCode(aGSTClassDescription : string): TCash
 var
   UpperCaseInput : string;
 begin
-  UpperCaseInput := uppercase(aGSTClassDescription);
+  UpperCaseInput := FixCharactersInString(aGSTClassDescription);
 
-  if (UpperCaseInput = uppercase('10% GST (Sales)')) or
-     (UpperCaseInput = uppercase('Acquisitions subject to GST (other)')) or
-     (UpperCaseInput = uppercase('Expenses')) or
-     (UpperCaseInput = uppercase('Goods and services tax')) or
-     (UpperCaseInput = uppercase('GST')) or
-     (UpperCaseInput = uppercase('GST Payable (Output Tax)')) or
-     (UpperCaseInput = uppercase('Income')) or
-     (UpperCaseInput = uppercase('Income subject to GST')) or
-     (UpperCaseInput = uppercase('Non-Cap. Acq. - Inc GST')) or
-     (UpperCaseInput = uppercase('Non-Cap. Aqn. - Inc. GST')) or
-     (UpperCaseInput = uppercase('Non-capital Purchases')) or
-     (UpperCaseInput = uppercase('Other Acquisitions')) or
-     (UpperCaseInput = uppercase('Purchases (other)')) or
-     (UpperCaseInput = uppercase('Purchases subject to GST')) or
-     (UpperCaseInput = uppercase('Sales subject to GST')) or
-     (UpperCaseInput = uppercase('Supplies subject to GST (normal)')) or
-     (UpperCaseInput = uppercase('Taxable acquisitions - other (purchases)')) or
-     (UpperCaseInput = uppercase('Taxable purchases (non-capital)')) or
-     (UpperCaseInput = uppercase('Taxable sales')) or
-     (UpperCaseInput = uppercase('Taxable supplies')) or
-     (UpperCaseInput = uppercase('Taxable supplies (sales)')) then
+  if (UpperCaseInput = FixCharactersInString('10% GST (Sales)')) or
+     (UpperCaseInput = FixCharactersInString('Acquisitions subject to GST (other)')) or
+     (UpperCaseInput = FixCharactersInString('Expenses')) or
+     (UpperCaseInput = FixCharactersInString('Goods and services tax')) or
+     (UpperCaseInput = FixCharactersInString('GST')) or
+     (UpperCaseInput = FixCharactersInString('GST Payable (Output Tax)')) or
+     (UpperCaseInput = FixCharactersInString('Income')) or
+     (UpperCaseInput = FixCharactersInString('Income subject to GST')) or
+     (UpperCaseInput = FixCharactersInString('Non-Cap. Acq. - Inc GST')) or
+     (UpperCaseInput = FixCharactersInString('Non-Cap. Aqn. - Inc. GST')) or
+     (UpperCaseInput = FixCharactersInString('Non-capital Purchases')) or
+     (UpperCaseInput = FixCharactersInString('Other Acquisitions')) or
+     (UpperCaseInput = FixCharactersInString('Purchases (other)')) or
+     (UpperCaseInput = FixCharactersInString('Purchases subject to GST')) or
+     (UpperCaseInput = FixCharactersInString('Sales subject to GST')) or
+     (UpperCaseInput = FixCharactersInString('Supplies subject to GST (normal)')) or
+     (UpperCaseInput = FixCharactersInString('Taxable acquisitions - other (purchases)')) or
+     (UpperCaseInput = FixCharactersInString('Taxable purchases (non-capital)')) or
+     (UpperCaseInput = FixCharactersInString('Taxable sales')) or
+     (UpperCaseInput = FixCharactersInString('Taxable supplies')) or
+     (UpperCaseInput = FixCharactersInString('Taxable supplies (sales)')) then
   begin
     Result := cgGoodsandServices;
     Exit;
   end;
 
-  if (UpperCaseInput = uppercase('Acquisitions subject to GST (capital)')) or
-     (UpperCaseInput = uppercase('Cap. Aqn. - Inc GST')) or
-     (UpperCaseInput = uppercase('Capital Acquisitions')) or
-     (UpperCaseInput = uppercase('Capital Purchases')) or
-     (UpperCaseInput = uppercase('Purchases (capital)')) or
-     (UpperCaseInput = uppercase('Taxable acquisitions - capital (purchases)')) or
-     (UpperCaseInput = uppercase('Cap. Acq. – Inc GST')) or
-     (UpperCaseInput = uppercase('Taxable purchases (capital)')) then
+  if (UpperCaseInput = FixCharactersInString('Acquisitions subject to GST (capital)')) or
+     (UpperCaseInput = FixCharactersInString('Cap. Aqn. - Inc GST')) or
+     (UpperCaseInput = FixCharactersInString('Capital Acquisitions')) or
+     (UpperCaseInput = FixCharactersInString('Capital Purchases')) or
+     (UpperCaseInput = FixCharactersInString('Purchases (capital)')) or
+     (UpperCaseInput = FixCharactersInString('Taxable acquisitions - capital (purchases)')) or
+     (UpperCaseInput = FixCharactersInString('Cap. Acq. – Inc GST')) or
+     (UpperCaseInput = FixCharactersInString('Taxable purchases (capital)')) then
   begin
     Result := cgCapitalAcquisitions;
     Exit;
   end;
 
-  if (UpperCaseInput = uppercase('Export sales')) or
-     (UpperCaseInput = uppercase('Export sales and income')) or
-     (UpperCaseInput = uppercase('Export Supplies')) or
-     (UpperCaseInput = uppercase('Exports')) or
-     (UpperCaseInput = uppercase('Exports (GST Free)')) or
-     (UpperCaseInput = uppercase('Exports (not subject to GST)')) or
-     (UpperCaseInput = uppercase('Exports (sales)')) or
-     (UpperCaseInput = uppercase('GST Free Exports')) then
+  if (UpperCaseInput = FixCharactersInString('Export sales')) or
+     (UpperCaseInput = FixCharactersInString('Export sales and income')) or
+     (UpperCaseInput = FixCharactersInString('Export Supplies')) or
+     (UpperCaseInput = FixCharactersInString('Exports')) or
+     (UpperCaseInput = FixCharactersInString('Exports (GST Free)')) or
+     (UpperCaseInput = FixCharactersInString('Exports (not subject to GST)')) or
+     (UpperCaseInput = FixCharactersInString('Exports (sales)')) or
+     (UpperCaseInput = FixCharactersInString('GST Free Exports')) then
   begin
     Result := cgExportSales;
     Exit;
   end;
 
-  if (UpperCaseInput = uppercase('Acquisition with no GST')) or
-     (UpperCaseInput = uppercase('Acquisition with no GST (capital)')) or
-     (UpperCaseInput = uppercase('Acquisitions used for private use/non deductible  (capital)')) or
-     (UpperCaseInput = uppercase('Acquisitions used for private use/non deductible  (other)')) or
-     (UpperCaseInput = uppercase('Acquisitions with no GST in the price (capital)')) or
-     (UpperCaseInput = uppercase('Acquisitions with no GST in the price (other)')) or
-     (UpperCaseInput = uppercase('Cap. Acq. - GST Free')) or
-     (UpperCaseInput = uppercase('Capital GST free supplies')) or
-     (UpperCaseInput = uppercase('Capital purchases with no GST')) or
-     (UpperCaseInput = uppercase('Estimated purchases for private use/non-deductible')) or
-     (UpperCaseInput = uppercase('Estimated purchases for private use/non-deductible (capital)')) or
-     (UpperCaseInput = uppercase('Non-Cap. Aqn. – GST FREE')) or
-     (UpperCaseInput = uppercase('Non-taxable supplies')) or
-     (UpperCaseInput = uppercase('GST Free')) or
-     (UpperCaseInput = uppercase('GST free capital acquisitions')) or
-     (UpperCaseInput = uppercase('GST free other acquisitions')) or
-     (UpperCaseInput = uppercase('GST free purchases')) or
-     (UpperCaseInput = uppercase('GST free sales')) or
-     (UpperCaseInput = uppercase('GST Free Supplies')) or
-     (UpperCaseInput = uppercase('GST free supplies (sales')) or
-     (UpperCaseInput = uppercase('GST free supplies (sales)')) or
-     (UpperCaseInput = uppercase('GST-free purchases')) or
-     (UpperCaseInput = uppercase('GST-free purchases (capital)')) or
-     (UpperCaseInput = uppercase('No GST applicable')) or
-     (UpperCaseInput = uppercase('Non-Cap. Acq. - GST Free')) or
-     (UpperCaseInput = uppercase('Non-capital purchases with no GST')) or
-     (UpperCaseInput = uppercase('Non-income tax deductible acquisition')) or
-     (UpperCaseInput = uppercase('Non-taxable purchases')) or
-     (UpperCaseInput = uppercase('Other GST free supplies')) or
-     (UpperCaseInput = uppercase('Other GST-free sales')) or
-     (UpperCaseInput = uppercase('Private Purchases')) or
-     (UpperCaseInput = uppercase('Private use capital acquisitions')) or
-     (UpperCaseInput = uppercase('Private use of non-deductible purchases')) or
-     (UpperCaseInput = uppercase('Private use other acquisitions')) or
-     (UpperCaseInput = uppercase('Private use/non deductible - capital (purchases)')) or
-     (UpperCaseInput = uppercase('Private use/non deductible - other (purchases)')) or
-     (UpperCaseInput = uppercase('Sales not subject to GST')) then
+  if (UpperCaseInput = FixCharactersInString('Acquisition with no GST')) or
+     (UpperCaseInput = FixCharactersInString('Acquisition with no GST (capital)')) or
+     (UpperCaseInput = FixCharactersInString('Acquisitions used for private use/non deductible  (capital)')) or
+     (UpperCaseInput = FixCharactersInString('Acquisitions used for private use/non deductible  (other)')) or
+     (UpperCaseInput = FixCharactersInString('Acquisitions with no GST in the price (capital)')) or
+     (UpperCaseInput = FixCharactersInString('Acquisitions with no GST in the price (other)')) or
+     (UpperCaseInput = FixCharactersInString('Cap. Acq. - GST Free')) or
+     (UpperCaseInput = FixCharactersInString('Capital GST free supplies')) or
+     (UpperCaseInput = FixCharactersInString('Capital purchases with no GST')) or
+     (UpperCaseInput = FixCharactersInString('Estimated purchases for private use/non-deductible')) or
+     (UpperCaseInput = FixCharactersInString('Estimated purchases for private use/non-deductible (capital)')) or
+     (UpperCaseInput = FixCharactersInString('Non-Cap. Aqn. – GST FREE')) or
+     (UpperCaseInput = FixCharactersInString('Non-taxable supplies')) or
+     (UpperCaseInput = FixCharactersInString('GST Free')) or
+     (UpperCaseInput = FixCharactersInString('GST free capital acquisitions')) or
+     (UpperCaseInput = FixCharactersInString('GST free other acquisitions')) or
+     (UpperCaseInput = FixCharactersInString('GST free purchases')) or
+     (UpperCaseInput = FixCharactersInString('GST free sales')) or
+     (UpperCaseInput = FixCharactersInString('GST Free Supplies')) or
+     (UpperCaseInput = FixCharactersInString('GST free supplies (sales')) or
+     (UpperCaseInput = FixCharactersInString('GST free supplies (sales)')) or
+     (UpperCaseInput = FixCharactersInString('GST-free purchases')) or
+     (UpperCaseInput = FixCharactersInString('GST-free purchases (capital)')) or
+     (UpperCaseInput = FixCharactersInString('No GST applicable')) or
+     (UpperCaseInput = FixCharactersInString('Non-Cap. Acq. - GST Free')) or
+     (UpperCaseInput = FixCharactersInString('Non-capital purchases with no GST')) or
+     (UpperCaseInput = FixCharactersInString('Non-income tax deductible acquisition')) or
+     (UpperCaseInput = FixCharactersInString('Non-taxable purchases')) or
+     (UpperCaseInput = FixCharactersInString('Other GST free supplies')) or
+     (UpperCaseInput = FixCharactersInString('Other GST-free sales')) or
+     (UpperCaseInput = FixCharactersInString('Private Purchases')) or
+     (UpperCaseInput = FixCharactersInString('Private use capital acquisitions')) or
+     (UpperCaseInput = FixCharactersInString('Private use of non-deductible purchases')) or
+     (UpperCaseInput = FixCharactersInString('Private use other acquisitions')) or
+     (UpperCaseInput = FixCharactersInString('Private use/non deductible - capital (purchases)')) or
+     (UpperCaseInput = FixCharactersInString('Private use/non deductible - other (purchases)')) or
+     (UpperCaseInput = FixCharactersInString('Sales not subject to GST')) then
   begin
     Result := cgGSTFree;
     Exit;
   end;
 
-  if (UpperCaseInput = uppercase('Input taxed sales')) or
-     (UpperCaseInput = uppercase('Input taxed sales & supplies')) or
-     (UpperCaseInput = uppercase('Input taxed sales and income')) or
-     (UpperCaseInput = uppercase('Input Taxed Supplies')) or
-     (UpperCaseInput = uppercase('Input taxed supplies (sales)')) or
-     (UpperCaseInput = uppercase('Input taxed supplies (sales)')) or
-     (UpperCaseInput = uppercase('Input-taxed Sales & Income & other Supplies')) then
+  if (UpperCaseInput = FixCharactersInString('Input taxed sales')) or
+     (UpperCaseInput = FixCharactersInString('Input taxed sales & supplies')) or
+     (UpperCaseInput = FixCharactersInString('Input taxed sales and income')) or
+     (UpperCaseInput = FixCharactersInString('Input Taxed Supplies')) or
+     (UpperCaseInput = FixCharactersInString('Input taxed supplies (sales)')) or
+     (UpperCaseInput = FixCharactersInString('Input taxed supplies (sales)')) or
+     (UpperCaseInput = FixCharactersInString('Input-taxed Sales & Income & other Supplies')) then
   begin
     Result := cgInputTaxedSales;
     Exit;
   end;
 
-  if (UpperCaseInput = uppercase('Acquisition for input taxed sales')) or
-     (UpperCaseInput = uppercase('Acquisition for input taxed sales (capital)')) or
-     (UpperCaseInput = uppercase('Acquisition with no GST (input taxed)')) or
-     (UpperCaseInput = uppercase('Acquisition with no GST (input taxed) (capital)')) or
-     (UpperCaseInput = uppercase('Acquisitions used to make input taxed income (capital)')) or
-     (UpperCaseInput = uppercase('Acquisitions used to make input taxed income (other)')) or
-     (UpperCaseInput = uppercase('Cap. Acq. - for making Input Taxed Sales')) or
-     (UpperCaseInput = uppercase('Capital purchases for input taxed supplies')) or
-     (UpperCaseInput = uppercase('Capital Purchases for producing input taxed supplies')) or
-     (UpperCaseInput = uppercase('Input taxed capital acquisitions')) or
-     (UpperCaseInput = uppercase('Input taxed other acquisitions')) or
-     (UpperCaseInput = uppercase('Input Taxed Purchases')) or
-     (UpperCaseInput = uppercase('Non-Cap. Aqn. - For Making Input Taxes Supplies')) or
-     (UpperCaseInput = uppercase('Non-Cap.Acq. - for making Input Taxed Sales')) or
-     (UpperCaseInput = uppercase('Other purchases for input taxed supplies')) or
-     (UpperCaseInput = uppercase('Purchases for input taxed sales')) or
-     (UpperCaseInput = uppercase('Purchases for making input-taxed sales')) or
-     (UpperCaseInput = uppercase('Purchases for making input-taxed sales (capital)')) or
-     (UpperCaseInput = uppercase('Purchases for producing input taxed supplies')) or
-     (UpperCaseInput = uppercase('Reduced input tax credit - capital (purchases)')) or
-     (UpperCaseInput = uppercase('Reduced input tax credit - other (purchases)')) then
+  if (UpperCaseInput = FixCharactersInString('Acquisition for input taxed sales')) or
+     (UpperCaseInput = FixCharactersInString('Acquisition for input taxed sales (capital)')) or
+     (UpperCaseInput = FixCharactersInString('Acquisition with no GST (input taxed)')) or
+     (UpperCaseInput = FixCharactersInString('Acquisition with no GST (input taxed) (capital)')) or
+     (UpperCaseInput = FixCharactersInString('Acquisitions used to make input taxed income (capital)')) or
+     (UpperCaseInput = FixCharactersInString('Acquisitions used to make input taxed income (other)')) or
+     (UpperCaseInput = FixCharactersInString('Cap. Acq. - for making Input Taxed Sales')) or
+     (UpperCaseInput = FixCharactersInString('Capital purchases for input taxed supplies')) or
+     (UpperCaseInput = FixCharactersInString('Capital Purchases for producing input taxed supplies')) or
+     (UpperCaseInput = FixCharactersInString('Input taxed capital acquisitions')) or
+     (UpperCaseInput = FixCharactersInString('Input taxed other acquisitions')) or
+     (UpperCaseInput = FixCharactersInString('Input Taxed Purchases')) or
+     (UpperCaseInput = FixCharactersInString('Non-Cap. Aqn. - For Making Input Taxes Supplies')) or
+     (UpperCaseInput = FixCharactersInString('Non-Cap.Acq. - for making Input Taxed Sales')) or
+     (UpperCaseInput = FixCharactersInString('Other purchases for input taxed supplies')) or
+     (UpperCaseInput = FixCharactersInString('Purchases for input taxed sales')) or
+     (UpperCaseInput = FixCharactersInString('Purchases for making input-taxed sales')) or
+     (UpperCaseInput = FixCharactersInString('Purchases for making input-taxed sales (capital)')) or
+     (UpperCaseInput = FixCharactersInString('Purchases for producing input taxed supplies')) or
+     (UpperCaseInput = FixCharactersInString('Reduced input tax credit - capital (purchases)')) or
+     (UpperCaseInput = FixCharactersInString('Reduced input tax credit - other (purchases)')) then
   begin
     Result := cgPurchaseForInput;
     Exit;
   end;
 
-  if (UpperCaseInput = uppercase('Items not reported')) then
+  if (UpperCaseInput = FixCharactersInString('Items not reported')) then
   begin
     Result := cgNotReportable;
     Exit;
   end;
 
-  if (UpperCaseInput = uppercase('No GST/unregistered supplier - capital (purchases)')) or
-     (UpperCaseInput = uppercase('No GST/unregistered supplier - other (purchases)')) then
+  if (UpperCaseInput = FixCharactersInString('No GST/unregistered supplier - capital (purchases)')) or
+     (UpperCaseInput = FixCharactersInString('No GST/unregistered supplier - other (purchases)')) then
   begin
     Result := cgGSTNotRegistered;
     Exit;
@@ -1792,6 +1794,27 @@ begin
       Exit;
     end;
   end;
+end;
+
+//------------------------------------------------------------------------------
+function TGSTMapCol.FixCharactersInString(aInstring: string): string;
+const
+  MINUS = '-';
+  DASH = '–';
+var
+  Index : integer;
+begin
+  Result := '';
+
+  for Index := 1 to length(aInstring) do
+  begin
+    if aInstring[Index] = DASH then
+      Result := Result + MINUS
+    else
+      Result := Result + aInstring[Index];
+  end;
+
+  Result := Uppercase(Result);
 end;
 
 //------------------------------------------------------------------------------

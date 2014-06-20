@@ -3469,7 +3469,7 @@ var
       SplitData[i+ActiveRow].Narration    := PayeeLine.plGL_Narration;
       SplitData[i+ActiveRow].Payee        := PayeeCode;
       if (GSTClass <> 0) then
-        SplitData[i+ActiveRow].GSTClassCode := IntToStr(GSTClass);
+        SplitData[i+ActiveRow].GSTClassCode := MyClient.clFields.clGST_Class_Codes[GSTClass];
       if not Assigned(PayeeSplitPct) then
         SplitData[i+ActiveRow].Amount     := (APayee.pdLines.PayeeLine_At(i)^.plPercentage / 10000) *
                                              PayeeFractionOfAmount
