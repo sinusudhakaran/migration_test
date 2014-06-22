@@ -3380,6 +3380,7 @@ var
   GSTClass              : integer;
   RecodeRequired        : boolean;
   OriginalPayee         : integer;
+  SplitDataPercent      : double;
 
   function GetRemainingAmount: extended;
   var
@@ -3447,7 +3448,11 @@ var
       tblSplit.ActiveCol := AcctCol;
     if not Assigned(SourceTransaction) then
     begin
-      PayeeFractionOfAmount := 1;
+      SplitDataPercent := 0;
+      for i := Low(SplitData) to High(SplitData) do
+        if (SplitData[i].LineType = 0) then        
+          SplitDataPercent := SplitDataPercent + SplitData[i].Amount;
+      PayeeFractionOfAmount := (100 - SplitDataPercent) / 100;
     end
     else
     begin

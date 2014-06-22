@@ -256,6 +256,7 @@ type
     procedure FillGstMapCol();
     function IsGSTClassUsedInChart(aGST_Class : byte) : boolean;
     function DoNonBasicCodesHaveBalances(var aNonBasicCodes : TStringList) : boolean;
+    function GetLastFullyCodedMonth(var aFullyCodedMonth : TStDate): Boolean;
   public
     constructor Create;
     destructor Destroy; override;
@@ -293,7 +294,9 @@ uses
   bkdateutils,
   stDateSt,
   JNLUTILS32,
-  GenUtils;
+  GenUtils,
+  PeriodUtils,
+  DateUtils;
 
 Const
   UnitName = 'ChartExportToMYOBCashbook';
@@ -2110,6 +2113,52 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+function TChartExportToMYOBCashbook.GetLastFullyCodedMonth(var aFullyCodedMonth : TStDate): Boolean;
+Const
+  MAX_YEARS_TO_GOBACK = 10;
+var
+  StartDay, StartMonth, StartYear, PeriodIndex : integer;
+  CurrentYear : integer;
+  MaxCoded : integer;
+  PeriodType : integer;
+
+  MaxPeriods : integer;
+
+  tmpYearStarts, tmpYearEnds : integer;
+begin
+  Result := false;
+  StartYear  := YearOf(Now());
+  StartDay   := 1;
+  StartMonth := 1;
+
+  for CurrentYear := StartYear downto StartYear - MAX_YEARS_TO_GOBACK do
+  begin
+    tmpYearStarts := DmyToStDate(StartDay, StartMonth, CurrentYear, bkDateEpoch);
+    tmpYearEnds   := bkDateUtils.GetYearEndDate( tmpYearStarts);
+
+    PeriodType := frpMonthly;
+
+    MaxPeriods := PeriodUtils.LoadPeriodDetailsIntoArray( MyClient,
+                                                          tmpYearStarts,
+                                                          tmpYearEnds,
+                                                          false,
+                                                          PeriodType,
+                                                          MyClient.clFields.clTemp_Period_Details_This_Year);
+
+    for PeriodIndex := MaxPeriods downto 1 do
+    begin
+      If (MyClient.clFields.clTemp_Period_Details_This_Year[PeriodIndex].HasData) and
+         (not( MyClient.clFields.clTemp_Period_Details_This_Year[PeriodIndex].HasUncodedEntries)) then
+      begin
+        aFullyCodedMonth := MyClient.clFields.clTemp_Period_Details_This_Year[PeriodIndex].Period_End_Date;
+        Result := true;
+        Exit;
+      end;
+    end;
+  end;
+end;
+
+//------------------------------------------------------------------------------
 function TChartExportToMYOBCashbook.GetMappedNZGSTTypeCode(aGSTClassTypeIndicator : byte): TCashBookGSTClasses;
 begin
   case aGSTClassTypeIndicator of
@@ -2425,6 +2474,7 @@ var
   ErrorStr : string;
   Filename : string;
   ErrorStrings : TStringList;
+  BalDate : TStDate;
 begin
   Res := true;
 
@@ -2509,7 +2559,12 @@ begin
       ExportChartFrmProperties.ExportFileLocation := MyClient.clExtra.ceCashbook_Export_File_Location;
 
     ExportChartFrmProperties.IncludeClosingBalances := false;
-    ExportChartFrmProperties.ClosingBalanceDate := BkNull2St(MyClient.clFields.clPeriod_End_Date);
+
+    if GetLastFullyCodedMonth(BalDate) then
+      ExportChartFrmProperties.ClosingBalanceDate := BalDate
+    else
+      ExportChartFrmProperties.ClosingBalanceDate := BkNull2St(MyClient.clFields.clPeriod_End_Date);
+
     ExportChartFrmProperties.AreGSTAccountSetup := CheckGSTControlAccAndRates();
     ExportChartFrmProperties.AreOpeningBalancesSetup :=
       JnlUtils32.CheckForOpeningBalance( MyClient, MyClient.clFields.clReporting_Year_Starts);
