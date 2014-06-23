@@ -3449,9 +3449,12 @@ var
     if not Assigned(SourceTransaction) then
     begin
       SplitDataPercent := 0;
+      // The percentages in the payee should only take up what's left over after the %'s for
+      // the existing rows, excluding those which will be replaced by the payee (if any)
       for i := Low(SplitData) to High(SplitData) do
-        if (SplitData[i].LineType = 0) then        
-          SplitDataPercent := SplitDataPercent + SplitData[i].Amount;
+        if (SplitData[i].LineType = 0) then
+          if (i < ActiveRow) or (i > ActiveRow + aPayee.pdLines.ItemCount - 1) then          
+            SplitDataPercent := SplitDataPercent + SplitData[i].Amount;
       PayeeFractionOfAmount := (100 - SplitDataPercent) / 100;
     end
     else
@@ -3475,11 +3478,23 @@ var
       SplitData[i+ActiveRow].Payee        := PayeeCode;
       if (GSTClass <> 0) then
         SplitData[i+ActiveRow].GSTClassCode := MyClient.clFields.clGST_Class_Codes[GSTClass];
+      // LineType of 0 = percentage, 1 = fixed amount
       if not Assigned(PayeeSplitPct) then
-        SplitData[i+ActiveRow].Amount     := (APayee.pdLines.PayeeLine_At(i)^.plPercentage / 10000) *
-                                             PayeeFractionOfAmount
+      begin
+        if APayee.pdLines.PayeeLine_At(i)^.plLine_Type = 0 then
+          SplitData[i+ActiveRow].Amount := (APayee.pdLines.PayeeLine_At(i)^.plPercentage / 10000) *
+                                           PayeeFractionOfAmount
+        else
+          SplitData[i+ActiveRow].Amount := APayee.pdLines.PayeeLine_At(0)^.plPercentage / 100;
+      end
       else
-        SplitData[i+ActiveRow].Amount     := (PayeeSplitPct[i] / 10000) * PayeeFractionOfAmount;
+      begin
+        if APayee.pdLines.PayeeLine_At(i)^.plLine_Type = 0 then
+          SplitData[i+ActiveRow].Amount   := (PayeeSplitPct[i] / 10000) * PayeeFractionOfAmount
+        else
+          SplitData[i+ActiveRow].Amount   := APayee.pdLines.PayeeLine_At(0)^.plPercentage / 100;
+      end;
+      SplitData[i+ActiveRow].LineType := APayee.pdLines.PayeeLine_At(i)^.plLine_Type;
     end;
     UpdateTotal;
   end;

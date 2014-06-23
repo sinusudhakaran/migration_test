@@ -5796,12 +5796,7 @@ end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmCoding.FormShow(Sender: TObject);
-var
-  ShowRecMemControls: boolean;
 begin
-   ShowRecMemControls := (Assigned(AdminSystem) or not MyClient.clExtra.ceBlock_Client_Edit_Mems);
-   lblRecommendedMemorisations.Visible := ShowRecMemControls;
-   frmMain.tbRecommendedMemorisations.Visible := ShowRecMemControls;
    SearchVisible := UserINI_CES_Show_Find;
    tblCoding.Setfocus;
    //pnlExtraTitleBar.Color := bkBranding.HeaderBackgroundColor;
@@ -7886,13 +7881,22 @@ procedure TfrmCoding.UpdateSuggestedMemLabel;
 var
   MemCount: integer;
 begin
+  if MyClient.clExtra.ceBlock_Client_Edit_Mems or not Assigned(AdminSystem) then
+  begin
+    if Assigned(frmMain) then
+      frmMain.tbRecommendedMemorisations.Visible := False;
+    lblRecommendedMemorisations.Visible := False;
+    Exit;
+  end;
+
+  if Assigned(frmMain) then
+    frmMain.tbRecommendedMemorisations.Visible := True;
+
   if Assigned(BankAccount) then
   begin
     MemCount := MyClient.clRecommended_Mems.GetCountOfRecMemsInAccount(BankAccount.baFields.baBank_Account_Number);
-    if (MemCount = 0) or MyClient.clExtra.ceBlock_Client_Edit_Mems then
+    if (MemCount = 0) then
     begin
-      if Assigned(frmMain) then
-        frmMain.tbRecommendedMemorisations.Visible := False;
       lblRecommendedMemorisations.Visible := False;
     end
     else
@@ -7905,6 +7909,9 @@ begin
         lblRecommendedMemorisations.Caption := 'Suggested Memorisations: ' + IntToStr(MemCount) + ' available';
       end;
     end;
+    if BankAccount.IsAJournalAccount then
+      if Assigned(frmMain) then      
+        frmMain.tbRecommendedMemorisations.Visible := False;
   end;
 end;
 
@@ -8077,6 +8084,7 @@ begin
            Caption  := 'Journal Entries ' + BankAccount.Title
          else
            Caption  := 'Code Entries '+ BankAccount.Title;
+         UpdateSuggestedMemLabel;
 
          with lblAcctDetails do
          begin

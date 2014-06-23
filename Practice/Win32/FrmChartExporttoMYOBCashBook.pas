@@ -24,6 +24,10 @@ uses
   stDate;
 
 type
+  TCalcClosingBalanceEvent = procedure(aClosingBalanceDate : TstDate;
+                                       var aNonBasicCodesHaveBalances : boolean;
+                                       var aNonBasicCodes : TStringList) of object;
+
   //----------------------------------------------------------------------------
   TExportChartFrmProperties = class
   private
@@ -36,11 +40,14 @@ type
     fAreOpeningBalancesSetup : boolean;
     fNonBasicCodesHaveBalances : boolean;
     fIsTransactionsUncodedorInvalidlyCoded : boolean;
+    fCalcClosingBalanceEvent : TCalcClosingBalanceEvent;
   public
     NonBasicCodes : TStringList;
 
     constructor Create;
     destructor Destroy; override;
+
+    procedure CalcClosingBalance(aClosingBalanceDate : TstDate);
 
     property ExportBasicChart : boolean read fExportBasicChart write fExportBasicChart;
     property IncludeClosingBalances : boolean read fIncludeClosingBalances write fIncludeClosingBalances;
@@ -52,6 +59,7 @@ type
     property NonBasicCodesHaveBalances : boolean read fNonBasicCodesHaveBalances write fNonBasicCodesHaveBalances;
     property IsTransactionsUncodedorInvalidlyCoded : boolean read  fIsTransactionsUncodedorInvalidlyCoded
                                                              write fIsTransactionsUncodedorInvalidlyCoded;
+    property CalcClosingBalanceEvent : TCalcClosingBalanceEvent read fCalcClosingBalanceEvent write fCalcClosingBalanceEvent;
   end;
 
   //------------------------------------------------------------------------------
@@ -125,6 +133,19 @@ begin
   end;
 end;
 
+{ TExportChartFrmProperties }
+//------------------------------------------------------------------------------
+procedure TExportChartFrmProperties.CalcClosingBalance(aClosingBalanceDate: TstDate);
+var
+  NonBasicCodesHaveBal: boolean;
+begin
+  if Assigned(fCalcClosingBalanceEvent) then
+  begin
+    fCalcClosingBalanceEvent(aClosingBalanceDate, NonBasicCodesHaveBal, NonBasicCodes);
+    NonBasicCodesHaveBalances := NonBasicCodesHaveBal;
+  end;
+end;
+
 { TFrmChartExportToMYOBCashBook }
 //------------------------------------------------------------------------------
 procedure TFrmChartExportToMYOBCashBook.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
@@ -140,6 +161,21 @@ end;
 
 //------------------------------------------------------------------------------
 procedure TFrmChartExportToMYOBCashBook.chkIncludeClosingBalancesClick(Sender: TObject);
+  //----------------------------------------------------------------------------
+  function AddSpaceAfterComma(aInstring : string) : string;
+  var
+    Index : integer;
+  begin
+    Result := '';
+    for Index := 1 to length(aInstring) do
+    begin
+      Result := Result + aInstring[Index];
+
+      if aInstring[Index] = ',' then
+        Result := Result + ' ';
+    end;
+  end;  
+
 begin
   if (chkIncludeClosingBalances.Checked) and
      (not fLoading) then
@@ -164,11 +200,12 @@ begin
       end;
     end;
 
+    ExportChartFrmProperties.CalcClosingBalance(dteClosingBalanceDate.AsStDate);
     if (ExportChartFrmProperties.NonBasicCodesHaveBalances) and
        (radExportBasicChart.Checked) then
     begin
-      HelpfulErrorMsg('The following account codes contain balances and are not flagged as basic: ' + #13#10 +
-                      ExportChartFrmProperties.NonBasicCodes.DelimitedText + '.' + #13#10 +
+      HelpfulErrorMsg('The following account codes contain balances and are not flagged as basic: ' + #13#10#13#10 +
+                      '      ' + AddSpaceAfterComma(ExportChartFrmProperties.NonBasicCodes.DelimitedText) + #13#10#13#10 +
                       'Please flag these account codes as basic codes under Other Functions | Chart of Accounts | Maintain Chart.',0);
       chkIncludeClosingBalances.Checked := false;
       Exit;
@@ -289,11 +326,13 @@ begin
       ExportChartFrmProperties.IncludeClosingBalances := chkIncludeClosingBalances.Checked;
       ExportChartFrmProperties.ClosingBalanceDate := dteClosingBalanceDate.AsStDate;
       ExportChartFrmProperties.ExportFileLocation := edtSaveEntriesTo.Text;
+
+      if ExportChartFrmProperties.IncludeClosingBalances then
+        ExportChartFrmProperties.CalcClosingBalance(ExportChartFrmProperties.ClosingBalanceDate);
     end;
   end;
 end;
 
-{ TExportChartFrmProperties }
 //------------------------------------------------------------------------------
 constructor TExportChartFrmProperties.Create;
 begin

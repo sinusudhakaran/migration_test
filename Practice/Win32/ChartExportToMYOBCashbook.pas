@@ -132,13 +132,15 @@ type
     function IsABankContra(aCode: string; aStart: Integer): Integer;
     function IsAGSTContra(aCode: string; aStart: Integer): Integer;
     function IsThisAContraCode(aCode: string): Boolean;
-    function DoesCodeHaveOpeningBalances(aCode : string) : boolean;
   public
     destructor Destroy; override;
 
     procedure FillChartExportCol();
     procedure UpdateClosingBalancesForCode(aCode : String; aClosingBalance : Money);
     procedure UpdateClosingBalances(aClosingBalanceDate : TstDate);
+    procedure CheckIfNonBasicCodesHaveBalances(aClosingBalanceDate : TstDate;
+                                               var aNonBasicCodesHaveBalances : boolean;
+                                               var aNonBasicCodes : TStringList);
 
     procedure CalculateTransactionTotals();
     function CheckAccountCodesLength(aErrors : TStringList) : Boolean;
@@ -355,7 +357,7 @@ begin
   NewChartExportItem.PostingAllowed     := aPostingAllowed;
   NewChartExportItem.ClosingBalance     := '';
   NewChartExportItem.ClosingBalanceDate := '';
-  NewChartExportItem.HasOpeningBalance  := DoesCodeHaveOpeningBalances(aAccountCode);
+  NewChartExportItem.HasOpeningBalance  := false;
 end;
 
 //------------------------------------------------------------------------------
@@ -581,6 +583,9 @@ begin
 
     ChartExportItem.ClosingBalanceDate := DisplayClosingBalanceDate;
     ChartExportItem.ClosingBalance     := DisplayClosingBalance;
+
+    if DisplayClosingBalance > '' then
+      ChartExportItem.HasOpeningBalance := true;
   end;
 end;
 
@@ -658,50 +663,28 @@ begin
   CalculateTransactionTotals;
 end;
 
-// Does a given transaction use a given GST class
 //------------------------------------------------------------------------------
-function TChartExportCol.DoesCodeHaveOpeningBalances(aCode: string): boolean;
+procedure TChartExportCol.CheckIfNonBasicCodesHaveBalances(aClosingBalanceDate: TstDate;
+                                                           var aNonBasicCodesHaveBalances: boolean;
+                                                           var aNonBasicCodes : TStringList);
 var
-  pJournalTrans : pTransaction_Rec;
-  pJournal_Line : pDissection_Rec;
-  pAccount      : pAccount_Rec;
-  AccIndex , StartDate : integer;
-  BalDate: Integer;
-  Journal_Account : tBank_Account;
+  CodeIndex : integer;
+  ChartExportItem : TChartExportItem;
 begin
-  Result := false;
-  BalDate := MyClient.clFields.clFinancial_Year_Starts;
+  aNonBasicCodesHaveBalances := false;
+  aNonBasicCodes.Clear;
 
-  //find the open balance journal account
-  Journal_Account := nil;
-  for AccIndex := 0 to MyClient.clBank_Account_List.itemCount-1 do
+  UpdateClosingBalances(aClosingBalanceDate);
+
+  for CodeIndex := 0 to Count-1 do
   begin
-    if MyClient.clBank_Account_List.Bank_Account_At( AccIndex ).baFields.baAccount_Type = btOpeningBalances then
-      Journal_Account := MyClient.clBank_Account_List.Bank_Account_At( AccIndex );
-  end;
-
-  if Assigned( Journal_Account) then
-  begin
-    pJournalTrans := jnlUtils32.GetJournalFor( Journal_Account, BalDate);
-
-    if Assigned( pJournalTrans) then
+    if ItemAtColIndex(CodeIndex, ChartExportItem) then
     begin
-      //load totals into tmp values in chart
-      pJournal_Line := pJournalTrans^.txFirst_Dissection;
-
-      while ( pJournal_Line <> nil) do
+      if (not ChartExportItem.IsBasicChartItem) and
+         (ChartExportItem.HasOpeningBalance) then
       begin
-        pAccount := nil;
-        if pJournal_Line.dsAccount = aCode then
-          pAccount := MyClient.clChart.FindCode( pJournal_Line.dsAccount);
-
-        if Assigned( pAccount) then
-        begin
-          Result := true;
-          Exit;
-        end;
-
-        pJournal_Line := pJournal_Line.dsNext;
+        aNonBasicCodesHaveBalances := true;
+        aNonBasicCodes.Add(ChartExportItem.AccountCode);
       end;
     end;
   end;
@@ -1025,6 +1008,12 @@ begin
       ContraTravMgr.OnEnterEntryExt      := LGR_Contra_PrintEntry;
       ContraTravMgr.OnEnterDissectionExt := LGR_Contra_PrintDissect;
 
+      {HelpfulErrorMsg('Code : ' + aCode +
+                      ', Rpt From Date : ' +
+                      StDateToDateString('dd/mm/yyyy', FromDate, true) +
+                      ', Rpt To Date : ' +
+                      StDateToDateString('dd/mm/yyyy', ToDate, true), 0);}
+
       ContraTravMgr.TraverseAllEntries(fromdate ,Todate);
 
       aTravMgr.AccountTotalNet := aTravMgr.AccountTotalNet + ContraTravMgr.AccountTotalNet;
@@ -1311,6 +1300,8 @@ begin
      TravMgr.OnEnterDissectionExt := CalculateDisection;
      TravMgr.DoneSubTotal := False;
      TravMgr.SplitCode := '';
+     TravMgr.BankContra := Byte(bcAll);
+     TravMgr.GSTContra  := Byte(gcAll);
 
      TravMgr.TraverseAllEntries(Fromdate, Todate);
 
@@ -2572,16 +2563,12 @@ begin
       DoNonBasicCodesHaveBalances(ExportChartFrmProperties.NonBasicCodes);
     ExportChartFrmProperties.IsTransactionsUncodedorInvalidlyCoded :=
       ChartExportCol.IsTransactionsUncodedorInvalidlyCoded;
+    ExportChartFrmProperties.CalcClosingBalanceEvent := ChartExportCol.CheckIfNonBasicCodesHaveBalances;
 
     Res := ShowChartExport(aPopupParent, ExportChartFrmProperties);
 
     if Res then
     begin
-      if ExportChartFrmProperties.IncludeClosingBalances then
-      begin
-        ChartExportCol.UpdateClosingBalances(ExportChartFrmProperties.ClosingBalanceDate);
-      end;
-
       Res := RunExportChartToFile(ExportChartFrmProperties.ExportFileLocation, ErrorStr);
 
       if Res then
