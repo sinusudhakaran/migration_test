@@ -7881,7 +7881,7 @@ procedure TfrmCoding.UpdateSuggestedMemLabel;
 var
   MemCount: integer;
 begin
-  if MyClient.clExtra.ceBlock_Client_Edit_Mems or not Assigned(AdminSystem) then
+  if MyClient.clExtra.ceBlock_Client_Edit_Mems and not Assigned(AdminSystem) then
   begin
     if Assigned(frmMain) then
       frmMain.tbRecommendedMemorisations.Visible := False;

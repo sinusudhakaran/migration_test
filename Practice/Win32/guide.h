@@ -600,10 +600,11 @@
 #define Exporting_charges_to_MYOB_AE_Practice_Manager	1520
 #define Viewing_the_account_status	2145
 #define Exporting_and_importing_budgets	2146
-#define Importing_a_COMPANY_NAME1_PRODUCT_NOTES_file_into_COMPANY_NAME1PRODUCT_PRACTICE	2114
 #define Cash_Flow_12_months_actual	1048
 #define Cash_Flow_12_months_actual_or_budget	1049
 #define Coding_transactions_for_BGL_Simple_Ledger	2147
 #define Coding_transactions_for_Class_Super	2148
 #define Coding_transactions_for_Handisoft_Superfund	2149
 #define Suggested_memorisations	2150
+#define Importing_COMPANY_NAME2_Notes_Online_transactions_into_COMPANY_NAME2_Practice	2114
+#define Export_chart_to_COMPANY_NAME1_Essentials_Cashbook	2151
