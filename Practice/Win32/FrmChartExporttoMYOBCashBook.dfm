@@ -188,7 +188,7 @@ object FrmChartExporttoMYOBCashBook: TFrmChartExporttoMYOBCashBook
       ParentFont = False
       ParentShowHint = False
       ShowHint = True
-      TabOrder = 3
+      TabOrder = 4
     end
     object dteClosingBalanceDate: TOvcPictureField
       Left = 208
@@ -219,7 +219,7 @@ object FrmChartExporttoMYOBCashBook: TFrmChartExporttoMYOBCashBook
       Options = [efoCaretToEnd]
       ParentFont = False
       PictureMask = 'DD/mm/yyyy'
-      TabOrder = 4
+      TabOrder = 3
       OnDblClick = dteClosingBalanceDateDblClick
       RangeHigh = {25600D00000000000000}
       RangeLow = {00000000000000000000}

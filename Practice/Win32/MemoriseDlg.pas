@@ -3453,7 +3453,7 @@ var
       // the existing rows, excluding those which will be replaced by the payee (if any)
       for i := Low(SplitData) to High(SplitData) do
         if (SplitData[i].LineType = 0) then
-          if (i < ActiveRow) or (i > ActiveRow + aPayee.pdLines.ItemCount - 1) then          
+          if (i - 1 < ActiveRow) or (i - 1 > ActiveRow + aPayee.pdLines.ItemCount - 1) then
             SplitDataPercent := SplitDataPercent + SplitData[i].Amount;
       PayeeFractionOfAmount := (100 - SplitDataPercent) / 100;
     end
