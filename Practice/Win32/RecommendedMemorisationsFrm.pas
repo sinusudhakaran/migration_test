@@ -87,7 +87,8 @@ uses
   BKDefs,
   UpdateMF,
   CodingFormCommands,
-  GenUtils;
+  GenUtils,
+  bkhelp;
 
 const
   ICON_BUTTON = 0;
@@ -141,6 +142,7 @@ end;
 procedure TRecommendedMemorisationsFrm.FormCreate(Sender: TObject);
 begin
   bkXPThemes.ThemeForm(self);
+  Self.HelpContext := BKH_Suggested_memorisations;
 
   vstTree.Header.Font.Size := Font.Size;
 

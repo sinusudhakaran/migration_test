@@ -15,7 +15,8 @@ uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, cxGraphics, cxSpinEdit, cxControls, cxContainer, cxEdit, cxTextEdit,
   cxMaskEdit, cxDropDownEdit, ovcbase, ovcef, ovcpb, ovcnf, Buttons, StdCtrls,
-  ExtCtrls, bkConst, bkDefs, MoneyDef, OSFont, SageHandisoftSuperConst;
+  ExtCtrls, bkConst, bkDefs, MoneyDef, OSFont, SageHandisoftSuperConst,
+  cxLookAndFeels, cxLookAndFeelPainters;
 
 type
   TdlgEditSageHandisoftSuperFields = class(TForm)
@@ -380,16 +381,17 @@ end;
 
 procedure TdlgEditSageHandisoftSuperFields.SetupHelp;
 begin
-    Self.ShowHint := INI_ShowFormHints;
-    btnBack.Hint := 'Goto previous line|' +
-                    'Goto previous line';
+  Self.ShowHint := INI_ShowFormHints;
+  btnBack.Hint := 'Goto previous line|' +
+                  'Goto previous line';
 
-    btnNext.Hint := 'Goto next line|' +
-                    'Goto next line';
+  btnNext.Hint := 'Goto next line|' +
+                  'Goto next line';
 
-    btnCalc.Hint := 'Calculate the Franking Credit|' +
-                    'Calculate the Franking Credit';
-    BKHelpSetUp(Self, BKH_Transferring_transactions_to_Sage_Handisoft_Superfund);
+  btnCalc.Hint := 'Calculate the Franking Credit|' +
+                  'Calculate the Franking Credit';
+
+  BKHelpSetUp(Self, BKH_Coding_transactions_for_Handisoft_Superfund);
 end;
 
 function TdlgEditSageHandisoftSuperFields.ValidForm: boolean;

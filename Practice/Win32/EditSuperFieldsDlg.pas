@@ -6,7 +6,8 @@ uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, ExtCtrls, ovcbase, ovcef, ovcpb, ovcnf, MoneyDef,
   ovcpf, bkconst, Buttons, cxGraphics, cxControls, cxContainer, cxEdit,
-  cxTextEdit, cxMaskEdit, cxDropDownEdit, OsFont;
+  cxTextEdit, cxMaskEdit, cxDropDownEdit, OsFont, cxLookAndFeels,
+  cxLookAndFeelPainters;
 
 type
   TdlgEditSuperFields = class(TForm)
@@ -558,21 +559,21 @@ end;
 
 procedure TdlgEditSuperFields.SetUpHelp;
 begin
-    Self.ShowHint    := INI_ShowFormHints;
-    btnBack.Hint := 'Goto previous line|' +
-                    'Goto previous line';
+  Self.ShowHint    := INI_ShowFormHints;
+  btnBack.Hint := 'Goto previous line|' +
+                  'Goto previous line';
 
-    btnNext.Hint := 'Goto next line|' +
-                    'Goto next line';
+  btnNext.Hint := 'Goto next line|' +
+                  'Goto next line';
 
-    btnCalc.Hint := 'Calculate the Imputed Credit|' +
-                    'Calculate the Imputed Credit';
+  btnCalc.Hint := 'Calculate the Imputed Credit|' +
+                  'Calculate the Imputed Credit';
 
-    btnChart.Hint :=  '(F2) Lookup Chart|(F2) Lookup Chart';
+  btnChart.Hint :=  '(F2) Lookup Chart|(F2) Lookup Chart';
 
-    cmbxAccount.Hint := 'Select Chart code|Select Chart code';
+  cmbxAccount.Hint := 'Select Chart code|Select Chart code';
 
-    Self.HelpContext := BKH_Coding_transactions_for_BGL_Simple_Fund;
+  Self.HelpContext := BKH_Coding_transactions_for_BGL_Simple_Ledger;
 end;
 
 procedure TdlgEditSuperFields.btnCalcClick(Sender: TObject);

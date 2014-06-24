@@ -1320,23 +1320,23 @@ end;
 
 procedure TdlgEditDesktopFields.SetupHelp;
 begin
-    Self.ShowHint    := INI_ShowFormHints;
-    btnBack.Hint := 'Goto previous line|' +
-                    'Goto previous line';
+  Self.ShowHint    := INI_ShowFormHints;
+  btnBack.Hint := 'Goto previous line|' +
+                  'Goto previous line';
 
-    btnNext.Hint := 'Goto next line|' +
-                    'Goto next line';
+  btnNext.Hint := 'Goto next line|' +
+                  'Goto next line';
 
-    btnCalc.Hint := 'Calculate the Franking Credits|' +
-                    'Calculate the Franking Credits';
+  btnCalc.Hint := 'Calculate the Franking Credits|' +
+                  'Calculate the Franking Credits';
 
-    btnChart.Hint :=  '(F2) Lookup Chart|(F2) Lookup Chart';
+  btnChart.Hint :=  '(F2) Lookup Chart|(F2) Lookup Chart';
 
-    cmbxAccount.Hint := 'Select Chart code|Select Chart code';
+  cmbxAccount.Hint := 'Select Chart code|Select Chart code';
 
-    btnThird.Hint := 'Change Capital Gains fraction|Change Capital Gains fraction';
+  btnThird.Hint := 'Change Capital Gains fraction|Change Capital Gains fraction';
 
-    Self.HelpContext := BKH_Coding_transactions_for_Desktop_Super;
+  Self.HelpContext := BKH_Coding_transactions_for_Class_Super;
 end;
 
 procedure TdlgEditDesktopFields.FormCloseQuery(Sender: TObject;
