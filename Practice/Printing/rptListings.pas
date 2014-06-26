@@ -2541,7 +2541,8 @@ procedure ListMemDetail(Sender : TObject);
 
       AddTextLine('Applies', mem.DateText);
 
-      AddTextLine('Reference',mem.mdFields.mdReference);
+      if mem.mdFields.mdMatch_on_Refce then      
+        AddTextLine('Reference',mem.mdFields.mdReference);
 
       if mem.mdFields.mdMatch_on_Particulars then begin
          if ( MyClient.clFields.clCountry in [ whAustralia, whUK ] ) then
