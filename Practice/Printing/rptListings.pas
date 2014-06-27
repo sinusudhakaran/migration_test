@@ -2916,7 +2916,7 @@ Begin
             //Build The columns
             cLeft := gCLeft;
             AddColAuto( Job,cleft, 22,gcgap,'', jtLeft); //'Account' removed for clarity
-            AddColAuto( Job,cleft, 9,gcgap,'Amount/Percent', jtRight);
+            AddColAuto( Job,cleft, 9,gcgap,'$/%', jtRight);
             AddColAuto( Job,cleft, 13,gcgap,'Payee', jtLeft);
             AddColAuto( Job,cleft, 10,gcgap,'Job', jtLeft);
             AddColAuto( Job,cleft, 18,gcgap, MyClient.TaxSystemNameUC + ' Class', jtLeft);
