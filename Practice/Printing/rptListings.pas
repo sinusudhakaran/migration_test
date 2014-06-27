@@ -2621,12 +2621,7 @@ procedure ListMemDetail(Sender : TObject);
 
            // #1732 - add narration to report, use statement details if no narration
            if MemLine^.mlGL_Narration = '' then
-           begin
-             if mem.mdFields.mdStatement_Details = '' then
-               PutString('-')
-             else
-              PutString(mem.mdFields.mdStatement_Details);
-           end
+             PutString('-')
            else
              PutString(MemLine^.mlGL_Narration);
 
