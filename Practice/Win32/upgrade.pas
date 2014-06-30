@@ -82,7 +82,8 @@ uses
   BankLinkOnlineServices,
   SYctIO,
   bkBranding,
-  UpgradeMemorisations;
+  UpgradeMemorisations,
+  RecommendedMems;
 // ----------------------------------------------------------------------------
 
 Const
@@ -4311,6 +4312,9 @@ const
       aClient.clRecommended_Mems.PopulateUnscannedListAllAccounts(false);
       aClient.clRecommended_Mems := nil;
       aClient.clRecommended_Mems := TRecommended_Mems.Create(MyClient.clBank_Account_List);
+    finally
+
+    end;
   end;
 
 begin
