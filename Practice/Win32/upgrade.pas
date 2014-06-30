@@ -4295,6 +4295,13 @@ const
     aClient.clTPR_Payee_Detail.As_pRec.prTRPATOReportRunUpToYear := 0;
   end;
 
+  procedure UpgradeToVersion184;
+  begin
+    // Need to clear the suggested mem data, because unscanned transactions from
+    // journals have been erroneously included in the prior version
+    aClient.clRecommended_Mems.ResetAll;
+  end;
+
 begin
    with aClient.clFields do begin
 
@@ -4671,6 +4678,14 @@ begin
       begin
         UpgradeToVersion183;
         clFile_Version := 183;
+      end;
+
+      // Fix for transactions from journals being added to the unscanned transaction
+      // list for suggested mems in prior version
+      if (CLFile_Version < 184) then
+      begin
+        UpgradeToVersion184;
+        clFile_Version := 184;
       end;
    end;
 end;

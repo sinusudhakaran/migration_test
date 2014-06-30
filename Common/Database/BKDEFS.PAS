@@ -9,13 +9,13 @@ Interface uses MONEYDEF, DATEDEF;
 {  -------------------------------------------------------------------  }
 
 Const
-   BK_IOLIB_Version : Integer = 723;
-   BK_IOLIB_Date    = '16/05/14';
-   BK_FILE_VERSION  = 183;  (* Current Version counter for files
+   BK_IOLIB_Version : Integer = 724;
+   BK_IOLIB_Date    = '30/06/14';
+   BK_FILE_VERSION  = 184;  (* Current Version counter for files
                               Changes if structure or method of storing a value would cause
                               data to be represented incorrectly, or an exception to be raised *)
    
-   BK_FILE_VERSION_STR = '5.37';   (* Should be changed whenever BK_FILE_VERSION changes. Is used to show user what version they need *)
+   BK_FILE_VERSION_STR = '5.38';   (* Should be changed whenever BK_FILE_VERSION changes. Is used to show user what version they need *)
    
    (*
        History  :     31    New format for GST class codes ( delimited string)
@@ -231,7 +231,8 @@ Const
      5.25            180    Removing 178 changes, only need 177 changes
      5.25            181    Memorisations upgrade, code only
      5.25            182    New Table TPR Payer Detail
-     5.25			183	   Changed length of Statement Details fields in several records to 200
+     5.25	    183	   Changed length of Statement Details fields in several records to 200
+     5.26            184    Fix for journals being scanned for suggested mems 
    *)
    //Audit Trail - 135 Don't reuse token!!! - Record defined in SY.TXT but also used in Client File
 

@@ -760,6 +760,9 @@ var
   New: TUnscanned_Transaction;
   Transaction: pTransaction_Rec;
 begin
+  if BankAccount.IsAJournalAccount then
+    Exit; // don't scan journals 
+
   MaintainMemScanStatus := False;
   try
     if not RunningUnitTest then
@@ -967,7 +970,8 @@ begin
   end;
 end;
 
-// This is here for debugging purposes, it shouldn't be used anywhere permanently
+// This is here for debugging purposes, it shouldn't be used anywhere permanently,
+// except in upgrade.pas, if we need to clear the suggested mem data
 procedure TRecommended_Mems.ResetAll;
 begin
   try
