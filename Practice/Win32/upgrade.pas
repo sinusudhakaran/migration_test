@@ -4298,6 +4298,7 @@ const
 
   procedure UpgradeToVersion184;
   begin
+  {
     // Need to clear the suggested mem data, because unscanned transactions from
     // journals have been erroneously included in the prior version
     try
@@ -4315,6 +4316,7 @@ const
     finally
 
     end;
+    }
   end;
 
 begin

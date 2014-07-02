@@ -760,8 +760,8 @@ var
   New: TUnscanned_Transaction;
   Transaction: pTransaction_Rec;
 begin
-  if BankAccount.IsAJournalAccount then
-    Exit; // don't scan journals 
+//  if BankAccount.IsAJournalAccount then
+//    Exit; // don't scan journals 
 
   MaintainMemScanStatus := False;
   try
