@@ -4313,7 +4313,7 @@ const
       aClient.clRecommended_Mems := nil;
       aClient.clRecommended_Mems := TRecommended_Mems.Create(MyClient.clBank_Account_List);
     finally
-      aClient.clRecommended_Mems.Free;
+
     end;
   end;
 
