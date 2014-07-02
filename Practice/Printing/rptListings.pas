@@ -2630,7 +2630,7 @@ procedure ListMemDetail(Sender : TObject);
            if (memLine.mlSF_Edited)
            and CanUseSuperFundFields(MyClient.clFields.clCountry,  MyClient.clFields.clAccounting_System_Used) then begin
                AddValueLine('Franked',MemLine^.mlSF_PCFranked, true);
-               AddValueLine('Unfranked',MemLine^.mlSF_PCFranked, true);
+               AddValueLine('Unfranked',MemLine^.mlSF_PCUnFranked, true);
 
                case MyClient.clFields.clAccounting_System_Used of
                saBGLSimpleFund, saBGLSimpleLedger, saBGL360: begin
@@ -2695,6 +2695,11 @@ procedure ListMemDetail(Sender : TObject);
                    end;
 
                end;
+
+               if MyClient.clFields.clAccounting_System_Used in [saDesktopSuper, saClassSuperIP] then
+                 AddTextLine('Units', FloatToStr(MemLine.mlQuantity / 10000))
+               else
+                 AddTextLine('Quantity', FloatToStr(MemLine.mlQuantity / 10000));
 
                RenderTextLine('');
            end;
