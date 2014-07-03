@@ -126,7 +126,9 @@ type
           Value := sReplace;
           inc(cFound);
           // While we are here..
-          tx.txCoded_By := cbManual;
+          if Assigned(ba) then
+            if not ba.IsAJournalAccount then
+              tx.txCoded_By := cbManual;
        end else
           Result := False;
     end;
