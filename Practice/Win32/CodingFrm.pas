@@ -617,7 +617,8 @@ uses
    bkProduct,
    RecommendedMems,
    RecommendedMemorisationsFrm,
-   MemorisationsObj;
+   MemorisationsObj,
+   mxFiles32;
 
 const
    UnitName = 'CODINGFRM';
@@ -1777,6 +1778,8 @@ var
    MemList            : TMemorisations_List;
    Mem                : TMemorisation;
    DeleteSelectedMem  : boolean;
+   BankPrefix         : BankPrefixStr;
+   CanDoMems          : boolean;
 
    procedure ApplyMem;
    begin
@@ -1800,14 +1803,28 @@ begin
    IncUsage('Memorised Entries');
    with tblCoding do begin
       pT   := WorkTranList.Transaction_At(ActiveRow-1);
-      if (pT.txCoded_By in [cbMemorisedC, cbMemorisedM]) and
-      (MyClient.clExtra.ceBlock_Client_Edit_Mems = false) then
+      CanDoMems := (MyClient.clExtra.ceBlock_Client_Edit_Mems = false) or Assigned(AdminSystem);
+      if (pT.txCoded_By in [cbMemorisedC, cbMemorisedM]) and CanDoMems then
       begin
-        MemList := tBank_Account(BankAccount).baMemorisations_List;
-        FindMemorisation(BankAccount, pT, Mem);
-        DeleteSelectedMem := False;
-        if EditMemorisation(BankAccount, MemList, Mem, DeleteSelectedMem) then
-          ApplyMem;
+        if (pT.txCoded_By = cbMemorisedC) then
+        begin
+          MemList := tBank_Account(BankAccount).baMemorisations_List;
+          FindMemorisation(BankAccount, pT, Mem);
+          DeleteSelectedMem := False;
+          BankPrefix := mxFiles32.GetBankPrefix(tBank_Account(BankAccount).baFields.baBank_Account_Number);
+          if EditMemorisation(BankAccount, MemList, Mem, DeleteSelectedMem, False, BankPrefix) then
+            ApplyMem;
+        end
+        else
+        begin
+          if MemoriseEntry(BankAccount,pT, IsAMasterMem) then
+          begin
+            SendCmdToAllCodingWindows( ecRecodeTrans);
+            Msg.CharCode := VK_RIGHT;
+            if ShowAllTran <> SHOW_UNCODED_TX then
+              celAccount.SendKeyToTable(Msg);
+          end;
+        end;
       end
       else if MemoriseEntry(BankAccount,pT, IsAMasterMem) then
       begin
