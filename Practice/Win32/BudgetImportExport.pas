@@ -279,6 +279,7 @@ begin
   aMsg := '';
 
   try
+    Assert(FileExists(aBudgetFilePath));
     AssignFile(OutPutFile, aBudgetFilePath);
     Rewrite(OutPutFile);
     try

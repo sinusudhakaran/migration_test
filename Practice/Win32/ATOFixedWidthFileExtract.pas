@@ -469,6 +469,7 @@ begin
   if fFileOpened then
     Exit;
 
+  Assert(FileExists(aFileName));
   AssignFile(fFile, aFileName);
   Rewrite(fFile);
   fFileOpened := true;
