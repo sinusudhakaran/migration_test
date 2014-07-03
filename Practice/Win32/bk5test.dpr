@@ -5,6 +5,7 @@ uses
   LockUtils,
   TestFrameWork,
   GUITestRunner,
+  ImagesFrm,
   utFileExtensionUtils in '..\Tests\utFileExtensionUtils.pas',
   utGUIReportSchedule in '..\Tests\utGUIReportSchedule.pas',
   utMemorisationsObj in '..\Tests\utMemorisationsObj.pas',
@@ -29,6 +30,7 @@ uses
 begin
   InitLocking;
   Application.Initialize;
+  Application.CreateForm(TAppImages, AppImages);
   GUITestRunner.RunRegisteredTests;
 end.
 
