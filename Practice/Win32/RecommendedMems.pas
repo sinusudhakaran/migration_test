@@ -374,8 +374,8 @@ var
       Result := False;
       CandidateMem2 := nil;
 
-      Assert((FirstCandidatePos <> -1) and (LastCandidatePos <> -1),
-             'FirstCandidatePos and LastCandidatePos shouldn''t be -1 here');
+//      Assert((FirstCandidatePos <> -1) and (LastCandidatePos <> -1),
+//             'FirstCandidatePos and LastCandidatePos shouldn''t be -1 here');
       for CandidatePos := FirstCandidatePos to LastCandidatePos do
       begin
         CandidateMem2 := Candidates.Candidate_Mem_At(CandidatePos);
@@ -461,7 +461,7 @@ var
          (CandidateMem1.cmFields.cmCoded_By = cbManual) and
          (CandidateMem1.cmFields.cmAccount <> DISSECT_DESC) then
       begin
-        Assert((CandidateMem1.cmFields.cmAccount <> ''), 'Blank account code and manual coding should be mutually exclusive');
+//        Assert((CandidateMem1.cmFields.cmAccount <> ''), 'Blank account code and manual coding should be mutually exclusive');
         GetMatchingCandidateRange(CandidateMem1.cmFields.cmStatement_Details,
                                   FirstCandidatePos, LastCandidatePos);
         // Checking for exclusions: does the key exist in the candidate list with a
@@ -534,7 +534,7 @@ var
         end;
         if (pTranRec = nil) then
         begin
-          Assert(not Assigned(pTranRec), 'pTranRec should not be nil here');
+//          Assert(not Assigned(pTranRec), 'pTranRec should not be nil here');
           Exit; // Shouldn't get to here
         end;
 
@@ -610,7 +610,7 @@ var
       // Candidate mem scanning is complete, recommended mem scanning can begin, set
       // CandidateIDToProcess to 1 to make sure the recommended mem scanning will
       // start from the first candidate. Should already be 1 but hey let's be safe
-      Assert((Candidate.cpFields.cpCandidate_ID_To_Process = 1), 'cpCandidate_ID_To_Process should be 1, but it isn''t');
+//      Assert((Candidate.cpFields.cpCandidate_ID_To_Process = 1), 'cpCandidate_ID_To_Process should be 1, but it isn''t');
       Candidate.cpFields.cpCandidate_ID_To_Process := 1;
     end;
   end;

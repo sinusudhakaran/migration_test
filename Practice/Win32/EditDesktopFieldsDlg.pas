@@ -935,13 +935,12 @@ begin
   FSkip := 0;
 
   //Temporary list to store ClassSuper Fund codes
-  FClassSuperFundList := TStringList.Create;
+  FClassSuperFundList := TStringList.Create;  
 end;
 
 procedure TdlgEditDesktopFields.FormDestroy(Sender: TObject);
 begin
   FClassSuperFundList.Free;
-  FreeAndNil(Glyph);
 end;
 
 procedure TdlgEditDesktopFields.FormKeyDown(Sender: TObject; var Key: Word;
@@ -1336,7 +1335,10 @@ begin
 
   btnThird.Hint := 'Change Capital Gains fraction|Change Capital Gains fraction';
 
-  Self.HelpContext := BKH_Coding_transactions_for_Class_Super;
+  if MyClient.clFields.clAccounting_System_Used = saClassSuperIP then
+    Self.HelpContext := BKH_Coding_transactions_for_Class_Super
+  else
+    Self.HelpContext := BKH_Coding_transactions_for_Desktop_Super
 end;
 
 procedure TdlgEditDesktopFields.FormCloseQuery(Sender: TObject;

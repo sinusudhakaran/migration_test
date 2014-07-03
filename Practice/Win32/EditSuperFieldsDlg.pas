@@ -340,10 +340,12 @@ end;
 procedure TdlgEditSuperFields.FormCreate(Sender: TObject);
 begin
   ThemeForm( Self);
+  Self.HelpContext := BKH_Coding_transactions_for_BGL_Simple_Ledger;
+
   if MyClient.clFields.clAccounting_System_Used in [saBGLSimpleFund, saBGL360] then
-     BKHelpSetUp(Self, BKH_Transferring_transactions_from_BankLink_to_BGL_Simple_Fund)
+     BKHelpSetUp(Self, BKH_Coding_transactions_for_BGL_Simple_Fund)
   else
-     BKHelpSetUp(Self, BKH_Transferring_transactions_from_BankLink_Practice_to_BGL_Simple_Ledger );
+     BKHelpSetUp(Self, BKH_Coding_transactions_for_BGL_Simple_Ledger );
   SetUpHelp;
   FReadOnly := false;
   Self.KeyPreview := True;
@@ -572,8 +574,6 @@ begin
   btnChart.Hint :=  '(F2) Lookup Chart|(F2) Lookup Chart';
 
   cmbxAccount.Hint := 'Select Chart code|Select Chart code';
-
-  Self.HelpContext := BKH_Coding_transactions_for_BGL_Simple_Ledger;
 end;
 
 procedure TdlgEditSuperFields.btnCalcClick(Sender: TObject);

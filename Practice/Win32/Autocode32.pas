@@ -775,6 +775,11 @@ Function FindMemorisation( const aBankAccount : TBank_Account;
 // Does not check Master Memorisations
 var
    MX  : TMemorisation;
+   BankPrefix     : BankPrefixStr;
+   MasterMemList  : TMemorisations_List;
+   M: integer;
+   MasterMemX : TMemorisation;
+   SystemMemorisation: pSystem_Memorisation_List_Rec;
 begin
    Result := False;
    with aBankAccount do begin
@@ -791,6 +796,30 @@ begin
          end;
       end;
    end;
+
+   if not Result then
+   begin
+     // Look in master mems
+     BankPrefix := mxFiles32.GetBankPrefix(aBankAccount.baFields.baBank_Account_Number);
+     SystemMemorisation := AdminSystem.SystemMemorisationList.FindPrefix(BankPrefix);
+     if Assigned(SystemMemorisation) then
+     begin
+       MasterMemList := TMemorisations_List(SystemMemorisation.smMemorisations);
+       if Assigned(MasterMemList) then
+       begin
+         for M := MasterMemList.First to MasterMemList.Last do
+         begin
+           MasterMemX := MasterMemList.Memorisation_At(M);
+           if CanMemorise(aTransaction, MasterMemX) then
+           begin
+             Result := True;
+             aMemorisedTransaction := MasterMemX;
+           end;
+         end;
+       end;
+     end;
+   end;
+   
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 Initialization
