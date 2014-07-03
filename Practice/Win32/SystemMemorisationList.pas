@@ -177,10 +177,12 @@ begin
   pSysMem := pSystem_Memorisation_List_Rec(Item);
 
   Mems := TMemorisations_List(pSysMem.smMemorisations);
-  ASSERT(Mems is TMemorisations_List);
-
-  FreeAndNil(Mems);
-  pSysMem.smMemorisations := nil;
+  if Assigned(Mems) then
+  begin
+    ASSERT(Mems is TMemorisations_List);
+    FreeAndNil(Mems);
+    pSysMem.smMemorisations := nil;
+  end;
 
   Dispose(Item);
 end;
