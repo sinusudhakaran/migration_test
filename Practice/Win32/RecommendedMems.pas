@@ -83,7 +83,8 @@ uses
   OSFont,
   rmObj32,
   SysUtils,
-  Windows;
+  Windows,
+  RecommendedMemsV2;
 
 const
   UnitName = 'RecommendedMems';
@@ -634,6 +635,9 @@ begin
       // Is the unscanned list empty?
       if (Unscanned.ItemCount = 0) then
       begin
+        // Run Mems V2
+        RunMemsV2(Candidates, Recommended);
+
         // Unscanned list is empty, so do recommended processing
         if DoRecommendedMemProcessing then
         begin
