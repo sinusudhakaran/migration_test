@@ -764,15 +764,18 @@ var
   New: TUnscanned_Transaction;
   Transaction: pTransaction_Rec;
 begin
-//  if BankAccount.IsAJournalAccount then
-//    Exit; // don't scan journals 
+  {$IfDef MAPCHECK}
+  if BankAccount.IsAJournalAccount then
+    Exit; // don't scan journals
 
   MaintainMemScanStatus := False;
   try
     if not RunningUnitTest then
     begin
-      MaintainMemScanStatus := frmMain.MemScanIsBusy;
-      frmMain.MemScanIsBusy := True;
+      if Assigned(frmMain) then
+        MaintainMemScanStatus := frmMain.MemScanIsBusy;
+      if Assigned(frmMain) then
+        frmMain.MemScanIsBusy := True;
     end;
     for iTransaction := 0 to BankAccount.baTransaction_List.ItemCount-1 do
     begin
@@ -780,7 +783,8 @@ begin
       New := TUnscanned_Transaction.Create;
       New.utFields.utBank_Account_Number := BankAccount.baFields.baBank_Account_Number;
       New.utFields.utSequence_No := Transaction.txSequence_No;
-      Unscanned.Insert(New);
+      if Assigned(Unscanned) then
+        Unscanned.Insert(New);
     end;
   finally
     if not RunningUnitTest then
@@ -790,6 +794,7 @@ begin
 
   Candidate.cpFields.cpCandidate_ID_To_Process := 1;
   Candidate.cpFields.cpNext_Candidate_ID := 1;
+  {$EndIf}
 end;
 
 // Removes an account from candidates and recommended mems. Should be called when:

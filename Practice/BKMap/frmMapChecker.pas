@@ -62,6 +62,7 @@ var
   Client: TClientObj;
   pS: pSystem_Bank_Account_Rec;
 begin
+  {$Define MAPCHECK}
   Result := False;
   OpenAClientForRead(Code, Client);
   try
@@ -88,6 +89,7 @@ begin
     Client.Free;
     Client := nil;
   end;
+  {$UnDef MAPCHECK}   
 end;
 
 procedure TMainForm.btnCheckClick(Sender: TObject);
