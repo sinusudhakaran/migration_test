@@ -50,6 +50,7 @@ type
   -----------------------------------------------------------------------------}
   TCandidateString = class(TObject)
   private
+    fBankAccountNumber: string;
     fAccount: string;
     fEntryType: byte;
     fLCS: TLCS;
@@ -63,6 +64,8 @@ type
 
     function  Compare(const aOther: TCandidateString): boolean;
 
+    property  BankAccountNumber: string read fBankAccountNumber
+                write fBankAccountNumber;
     property  Account: string read fAccount write fAccount;
     property  EntryType: byte read fEntryType write fEntryType;
     property  LCS: TLCS read fLCS;
@@ -80,7 +83,8 @@ type
 
     function  Compare(const aOther: TCandidateStringList): boolean;
 
-    function  FindDuplicate(const aAccount: string; const aEntryType: byte;
+    function  FindDuplicate(const aBankAccountNumber: string; 
+                const aAccount: string; const aEntryType: byte; 
                 const aDetails: string): boolean;
 
     function  FindLCS(const aStartData: boolean; const aDetails: string;
@@ -140,10 +144,11 @@ type
 
 
   {-----------------------------------------------------------------------------
-    TAccountType
+    TCandidateGroup
   -----------------------------------------------------------------------------}
-  TAccountType = class
+  TCandidateGroup = class
   private
+    fBankAccountNumber: string;
     fAccount: string;
     fEntryType: byte;
 
@@ -151,9 +156,11 @@ type
     fCandidates: TList;
 
   public
-    constructor Create(const aAccount: string; const aEntryType: byte);
+    constructor Create(const aBankAccountNumber: string; const aAccount: string;
+                  const aEntryType: byte);
     destructor Destroy; override;
 
+    property  BankAccountNumber: string read fBankAccountNumber;
     property  Account: string read fAccount;
     property  EntryType: byte read fEntryType;
 
@@ -164,14 +171,14 @@ type
 
 
   {-----------------------------------------------------------------------------
-    TAccountTypeList
+    TCandidateGroupList
   -----------------------------------------------------------------------------}
-  TAccountTypeList = class(TList)
+  TCandidateGroupList = class(TList)
   public
     procedure Notify(Ptr: Pointer; Action: TListNotification); override;
 
-    function  Find(const aAccount: string; const aEntryType: byte;
-                var aIndex: integer): boolean;
+    function  Find(const aBankAccountNumber: string; const aAccount: string;
+                const aEntryType: byte; var aIndex: integer): boolean;
 
     procedure LogData;
   end;
@@ -186,7 +193,7 @@ type
     fCandidates: TCandidate_Mem_List;
     fRecommended: TRecommended_Mem_List;
 
-    fAccounts: TAccountTypeList;
+    fGroups: TCandidateGroupList;
     fCandidateStrings: TCandidateStringList;
     fRefinementStrings: TCandidateStringList;
 
@@ -211,6 +218,7 @@ type
     function  MoreThanOneAccount(const aDetails: string;
                 var aAccount: string): boolean;
     function  LessThanMinimumCount(const aDetails: string): boolean;
+    function  FindRecommended(const aRecommended: TRecommended_Mem): boolean;
 
   public
     property  Candidates: TCandidate_Mem_List read fCandidates;
@@ -379,6 +387,7 @@ end;
 //------------------------------------------------------------------------------
 procedure TCandidateString.Assign(const aFrom: TCandidateString);
 begin
+  fBankAccountNumber := aFrom.fBankAccountNumber;
   fAccount := aFrom.fAccount;
   fEntryType := aFrom.fEntryType;
   fLCS.Assign(aFrom.LCS);
@@ -395,6 +404,7 @@ end;
 function TCandidateString.Compare(const aOther: TCandidateString): boolean;
 begin
   result :=
+    (BankAccountNumber = aOther.BankAccountNumber) and
     (Account = aOther.Account) and
     (EntryType = aOther.EntryType) and
     LCS.Compare(aOther.LCS);
@@ -499,8 +509,9 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TCandidateStringList.FindDuplicate(const aAccount: string; 
-  const aEntryType: byte; const aDetails: string): boolean;
+function TCandidateStringList.FindDuplicate(const aBankAccountNumber: string; 
+  const aAccount: string; const aEntryType: byte; const aDetails: string
+  ): boolean;
 var
   i: integer;
   CandidateString: TCandidateString;
@@ -510,7 +521,8 @@ begin
     CandidateString := Items[i];
 
     // Duplicate?
-    if (CandidateString.Account = aAccount) and
+    if (CandidateString.BankAccountNumber = aBankAccountNumber) and
+       (CandidateString.Account = aAccount) and
        (CandidateString.EntryType = aEntryType) and
        (CandidateString.LCS.Details = aDetails) then
     begin
@@ -570,6 +582,10 @@ begin
   begin
     Candidate := GetString(i);
 
+    // BankAccountNumber different?
+    if (Candidate.BankAccountNumber <> aValue.BankAccountNumber) then
+      continue;
+    
     // Note: no need to check the Account Code here (during refinement that is)
 
     // EntryType different?
@@ -762,10 +778,12 @@ end;
 
 
 {-------------------------------------------------------------------------------
-  TAccountType
+  TCandidateGroup
 -------------------------------------------------------------------------------}
-constructor TAccountType.Create(const aAccount: string; const aEntryType: byte);
+constructor TCandidateGroup.Create(const aBankAccountNumber: string;
+  const aAccount: string; const aEntryType: byte);
 begin
+  fBankAccountNumber := aBankAccountNumber;
   fAccount := aAccount;
   fEntryType := aEntryType;
 
@@ -773,7 +791,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-destructor TAccountType.Destroy;
+destructor TCandidateGroup.Destroy;
 begin
   FreeAndNil(fCandidates);
 
@@ -781,7 +799,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TAccountType.Add(const aCandidate: TCandidate_Mem);
+procedure TCandidateGroup.Add(const aCandidate: TCandidate_Mem);
 begin
   ASSERT(assigned(aCandidate));
 
@@ -789,7 +807,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TAccountType.DetermineLCS(const aCandidateStrings: TCandidateStringList);
+procedure TCandidateGroup.DetermineLCS(const aCandidateStrings: TCandidateStringList);
 const
   MANUAL = [cbManual, cbManualPayee, cbECodingManual, cbECodingManualPayee, cbManualSuper];
   AUTOMATIC = [cbMemorisedC, cbAnalysis, cbAutoPayee, cbMemorisedM, cbCodeIT];
@@ -818,15 +836,17 @@ begin
       Candidate := TCandidate_Mem(fCandidates[iRow]);
       CandidateOther := TCandidate_Mem(fCandidates[iRowOther]);
 
+      // Not same Bank Account Number
+      if (Candidate.cmFields.cmBank_Account_Number <> CandidateOther.cmFields.cmBank_Account_Number) then
+        continue;
+
       // Not same Account Code?
       if (Candidate.cmFields.cmAccount <> CandidateOther.cmFields.cmAccount) then
         continue;
 
-      // Not same entry type?      
+      // Not same entry type?
       if (Candidate.cmFields.cmType <> CandidateOther.cmFields.cmType) then
         continue;
-
-      //TODO: Bank Account
 
       { Not manual?
         Note: no need to check the account code because it's already done in
@@ -857,11 +877,15 @@ begin
         continue;
 
       // Duplicate Details?
-      if aCandidateStrings.FindDuplicate(Account, EntryType, sDetails) then
+      if aCandidateStrings.FindDuplicate(BankAccountNumber, Account, EntryType, 
+        sDetails) then
+      begin
         continue;
+      end;
 
       // Create new candidate string
       New := TCandidateString.Create;
+      New.fBankAccountNumber := BankAccountNumber;
       New.Account := Account;
       New.EntryType := EntryType;
       New.LCS.SetData(bStartData, sDetails, bEndData);
@@ -874,34 +898,35 @@ end;
 
 
 {-------------------------------------------------------------------------------
-  TAccountTypeList
+  TCandidateGroupList
 -------------------------------------------------------------------------------}
-procedure TAccountTypeList.Notify(Ptr: Pointer; Action: TListNotification);
+procedure TCandidateGroupList.Notify(Ptr: Pointer; Action: TListNotification);
 var
-  varDelete: TAccountType;
+  varDelete: TCandidateGroup;
 begin
   inherited;
 
   if (Action <> lnDeleted) then
     exit;
 
-  varDelete := TAccountType(Ptr);
+  varDelete := TCandidateGroup(Ptr);
   FreeAndNil(varDelete);
 end;
 
 //------------------------------------------------------------------------------
-function TAccountTypeList.Find(const aAccount: string; const aEntryType: byte;
-  var aIndex: integer): boolean;
+function TCandidateGroupList.Find(const aBankAccountNumber: string;
+  const aAccount: string; const aEntryType: byte; var aIndex: integer): boolean;
 var
   i: integer;
-  varAccount: TAccountType;
+  varAccount: TCandidateGroup;
 begin
   for i := 0 to Count-1 do
   begin
     varAccount := Items[i];
 
     // Match?
-    if (varAccount.Account = aAccount) and 
+    if (varAccount.BankAccountNumber = aBankAccountNumber) and
+       (varAccount.Account = aAccount) and
        (varAccount.EntryType = aEntryType) then
     begin
       result := true;
@@ -914,21 +939,21 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TAccountTypeList.LogData;
+procedure TCandidateGroupList.LogData;
 var
   i: integer;
-  AccountType: TAccountType;
+  Group: TCandidateGroup;
 begin
   if not DebugMe then
     exit;
 
-  Log('Account/EntryType groups:');
+  Log('BankAccountNumber/Account/EntryType groups:');
 
   for i := 0 to Count-1 do
   begin
-    AccountType := TAccountType(Get(i));
+    Group := TCandidateGroup(Get(i));
 
-    Log(AccountType.Account + '/' + IntToStr(AccountType.EntryType));
+    Log(Group.BankAccountNumber + '/' + Group.Account + '/' + IntToStr(Group.EntryType));
   end;
 end;
 
@@ -945,7 +970,7 @@ begin
   fCandidates := aCandidates;
   fRecommended := aRecommended;
 
-  fAccounts := TAccountTypeList.Create;
+  fGroups := TCandidateGroupList.Create;
   fCandidateStrings := TCandidateStringList.Create;
   fRefinementStrings := TCandidateStringList.Create;
 end;
@@ -953,7 +978,7 @@ end;
 //------------------------------------------------------------------------------
 destructor TMemsV2.Destroy;
 begin
-  FreeAndNil(fAccounts);
+  FreeAndNil(fGroups);
   FreeAndNil(fCandidateStrings);
   FreeAndNil(fRefinementStrings);
 
@@ -1029,7 +1054,7 @@ var
 begin
   GetAccountsFromCandidates;
   if DebugMe then
-    fAccounts.LogData;
+    fGroups.LogData;
 
   GetCandidateStrings;
   if DebugMe then
@@ -1083,14 +1108,17 @@ procedure TMemsV2.GetAccountsFromCandidates;
 var
   i: integer;
   Candidate: TCandidate_Mem;
+  sBankAccountNumber: string;
   sAccount: string;
   byEntryType: byte;
   iFound: integer;
-  varAdd: TAccountType;
+  varAdd: TCandidateGroup;
 begin
   for i := 0 to Candidates.ItemCount-1 do
   begin
     Candidate := Candidates[i];
+
+    sBankAccountNumber := Candidate.cmFields.cmBank_Account_Number;
 
     // Uncoded transaction?
     sAccount := Candidate.cmFields.cmAccount;
@@ -1099,12 +1127,13 @@ begin
 
     // Add to account
     byEntryType := Candidate.cmFields.cmType;
-    if fAccounts.Find(sAccount, byEntryType, iFound) then
-      varAdd := fAccounts[iFound]
+    if fGroups.Find(sBankAccountNumber, sAccount, byEntryType, iFound) then
+      varAdd := fGroups[iFound]
     else
     begin
-      varAdd := TAccountType.Create(sAccount, byEntryType);
-      fAccounts.Add(varAdd);
+      varAdd := TCandidateGroup.Create(sBankAccountNumber, sAccount, byEntryType
+        );
+      fGroups.Add(varAdd);
     end;
     ASSERT(assigned(varAdd));
 
@@ -1116,13 +1145,13 @@ end;
 procedure TMemsV2.GetCandidateStrings;
 var
   i: integer;
-  Account: TAccountType;
+  Group: TCandidateGroup;
 begin
   // Determine the LCS for each account
-  for i := 0 to fAccounts.Count-1 do
+  for i := 0 to fGroups.Count-1 do
   begin
-    Account := fAccounts[i];
-    Account.DetermineLCS(fCandidateStrings);
+    Group := fGroups[i];
+    Group.DetermineLCS(fCandidateStrings);
   end;
 end;
 
@@ -1300,11 +1329,15 @@ begin
         Candidate := fCandidateStrings[iRow];
         CandidateOther := fCandidateStrings[iRowOther];
 
+        // BankAccountNumber mismatch?
+        if (Candidate.BankAccountNumber <> CandidateOther.BankAccountNumber) then
+          continue;
+
+        // Note: no need to do Account Code
+        
         // Entry type mismatch?
         if (Candidate.EntryType <> CandidateOther.EntryType) then
           continue;
-
-        // TODO: BankAccount, plus generic combine LCS not the continue
 
         // Found new longer string?
         if FindLCSinLCS(Candidate.LCS, CandidateOther.LCS, bStartData, sDetails,
@@ -1312,6 +1345,7 @@ begin
         begin
           // New LCS
           New := TCandidateString.Create;
+          New.BankAccountNumber := Candidate.BankAccountNumber;
           New.Account := Candidate.Account;
           New.EntryType := Candidate.EntryType;
           New.LCS.SetData(bStartData, sDetails, bEndData);
@@ -1355,20 +1389,23 @@ var
   i: integer;
   Candidate: TCandidateString;
   New: TRecommended_Mem;
-  iDummy: integer;
 begin
   for i := 0 to fCandidateStrings.Count-1 do
   begin
     Candidate := fCandidateStrings[i];
 
+    // Create new
     New := TRecommended_Mem.Create;
-
+    New.rmFields.rmBank_Account_Number := Candidate.BankAccountNumber;
     New.rmFields.rmAccount := Candidate.Account;
     New.rmFields.rmType := Candidate.EntryType;
     New.rmFields.rmStatement_Details := Candidate.LCS.ToString;
 
-    // Already exists?
-    if fRecommended.Search(New, iDummy) then
+    { Already exists?
+      Note: don't use Recommended.Search, because it compares other fields, that
+      are always different, as well.
+    }
+    if FindRecommended(New) then
     begin
       FreeAndNil(New);
       continue;
@@ -1377,8 +1414,37 @@ begin
     if DebugMe then
       Log('Add suggested mem: ' + New.rmFields.rmStatement_Details);
 
-    fRecommended.Insert(New);
+    try
+      fRecommended.Insert(New);
+    except
+      ; // Ignore, we already did our best to check for duplicates
+    end;
   end;
+end;
+
+//------------------------------------------------------------------------------
+function TMemsV2.FindRecommended(const aRecommended: TRecommended_Mem): boolean;
+var
+  i: integer;
+  RecommendedOther: TRecommended_Mem;
+begin
+  for i := 0 to Recommended.ItemCount-1 do
+  begin
+    RecommendedOther := Recommended.Recommended_Mem_At(i);
+
+    // Already exists?
+    if (aRecommended.rmFields.rmBank_Account_Number = RecommendedOther.rmFields.rmBank_Account_Number) and
+       (aRecommended.rmFields.rmAccount = RecommendedOther.rmFields.rmAccount) and
+       (aRecommended.rmFields.rmType = RecommendedOther.rmFields.rmType) and        
+       (aRecommended.rmFields.rmStatement_Details = RecommendedOther.rmFields.rmStatement_Details) then
+    begin
+      result := true;
+
+      exit;
+    end;
+  end;
+
+  result := false;
 end;
 
 
