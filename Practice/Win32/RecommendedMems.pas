@@ -764,7 +764,7 @@ var
   New: TUnscanned_Transaction;
   Transaction: pTransaction_Rec;
 begin
-  {$IfDef MAPCHECK}
+  {$IfNDef MAPCHECK}
   if BankAccount.IsAJournalAccount then
     Exit; // don't scan journals
 
