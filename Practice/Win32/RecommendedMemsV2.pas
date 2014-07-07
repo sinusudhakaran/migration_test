@@ -158,7 +158,7 @@ type
   public
     constructor Create(const aBankAccountNumber: string; const aAccount: string;
                   const aEntryType: byte);
-    destructor Destroy; override;
+    destructor  Destroy; override;
 
     property  BankAccountNumber: string read fBankAccountNumber;
     property  Account: string read fAccount;
