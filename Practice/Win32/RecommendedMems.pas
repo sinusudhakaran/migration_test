@@ -636,7 +636,8 @@ begin
       if (Unscanned.ItemCount = 0) then
       begin
         // Run Mems V2
-        RunMemsV2(Candidates, Recommended);
+        if not RunningUnitTest then        
+          RunMemsV2(Candidates, Recommended);
 
         // Unscanned list is empty, so do recommended processing
         if DoRecommendedMemProcessing then
