@@ -764,7 +764,9 @@ var
   New: TUnscanned_Transaction;
   Transaction: pTransaction_Rec;
 begin
-  {$IfNDef MAPCHECK}
+  {$IfDef MAPCHECK}
+  Exit; // bkmap shouldn't build suggested mems
+  {$EndIf}
   if BankAccount.IsAJournalAccount then
     Exit; // don't scan journals
 
@@ -794,7 +796,6 @@ begin
 
   Candidate.cpFields.cpCandidate_ID_To_Process := 1;
   Candidate.cpFields.cpNext_Candidate_ID := 1;
-  {$EndIf}
 end;
 
 // Removes an account from candidates and recommended mems. Should be called when:
