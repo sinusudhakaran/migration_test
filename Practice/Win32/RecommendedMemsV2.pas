@@ -166,7 +166,7 @@ type
 
     procedure Add(const aCandidate: TCandidate_Mem);
 
-    procedure DetermineLCS(const aCandidateStrings: TCandidateStringList);
+    procedure GetCandidateStrings(const aCandidateStrings: TCandidateStringList);
   end;
 
 
@@ -177,8 +177,13 @@ type
   public
     procedure Notify(Ptr: Pointer; Action: TListNotification); override;
 
+    function  GetGroup(const aIndex: integer): TCandidateGroup;
+    property  Groups[const aIndex: integer]: TCandidateGroup read GetGroup;
+    
     function  Find(const aBankAccountNumber: string; const aAccount: string;
                 const aEntryType: byte; var aIndex: integer): boolean;
+
+    procedure GetCandidateStrings(const aCandidateStrings: TCandidateStringList);
 
     procedure LogData;
   end;
@@ -807,7 +812,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TCandidateGroup.DetermineLCS(const aCandidateStrings: TCandidateStringList);
+procedure TCandidateGroup.GetCandidateStrings(const aCandidateStrings: TCandidateStringList);
 const
   MANUAL = [cbManual, cbManualPayee, cbECodingManual, cbECodingManualPayee, cbManualSuper];
   AUTOMATIC = [cbMemorisedC, cbAnalysis, cbAutoPayee, cbMemorisedM, cbCodeIT];
@@ -914,6 +919,12 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+function TCandidateGroupList.GetGroup(const aIndex: integer): TCandidateGroup;
+begin
+  result := TCandidateGroup(Items[aIndex]);
+end;
+
+//------------------------------------------------------------------------------
 function TCandidateGroupList.Find(const aBankAccountNumber: string;
   const aAccount: string; const aEntryType: byte; var aIndex: integer): boolean;
 var
@@ -936,6 +947,21 @@ begin
   end;
 
   result := false;
+end;
+
+//------------------------------------------------------------------------------
+procedure TCandidateGroupList.GetCandidateStrings(
+  const aCandidateStrings: TCandidateStringList);
+var
+  i: integer;
+  Group: TCandidateGroup;
+begin
+  // Determine the LCS for each account
+  for i := 0 to Count-1 do
+  begin
+    Group := GetGroup(i);
+    Group.GetCandidateStrings(aCandidateStrings);
+  end;
 end;
 
 //------------------------------------------------------------------------------
@@ -1143,16 +1169,8 @@ end;
 
 //------------------------------------------------------------------------------
 procedure TMemsV2.GetCandidateStrings;
-var
-  i: integer;
-  Group: TCandidateGroup;
 begin
-  // Determine the LCS for each account
-  for i := 0 to fGroups.Count-1 do
-  begin
-    Group := fGroups[i];
-    Group.DetermineLCS(fCandidateStrings);
-  end;
+  fGroups.GetCandidateStrings(fCandidateStrings);
 end;
 
 //------------------------------------------------------------------------------
@@ -1541,19 +1559,12 @@ begin
     if not MemsV2.AllowedToRun then
     begin
       if DebugMe then
-        Log('Not enough transactions to run');
+        Log('Mems V2 is not allowed to run');
 
       exit;
     end;
 
-    // Could take some time
-    crCurrent := Screen.Cursor;
-    Screen.Cursor := crHourGlass;
-    try
-      MemsV2.Run;
-    finally
-      Screen.Cursor := crCurrent;
-    end;
+    MemsV2.Run;
   finally
     FreeAndNil(MemsV2);
   end;
