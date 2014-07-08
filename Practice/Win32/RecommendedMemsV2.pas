@@ -3,6 +3,7 @@ unit RecommendedMemsV2;
 interface
 
 uses
+  // Note: MyClient may not be fully loaded, don't use Globals
   Classes,
   SysUtils,
 
@@ -15,6 +16,9 @@ uses
   rmList32,
   ECollect,
 
+  baObj32,
+  baList32,
+  
   LogUtil;
 
 type
@@ -166,7 +170,11 @@ type
 
     procedure Add(const aCandidate: TCandidate_Mem);
 
-    procedure GetCandidateStrings(const aCandidateStrings: TCandidateStringList);
+    function  GetCount: integer;
+    property  Count: integer read GetCount;
+
+    procedure GetCandidateStrings(const aRow: integer; 
+                const aCandidateStrings: TCandidateStringList);
   end;
 
 
@@ -174,6 +182,10 @@ type
     TCandidateGroupList
   -----------------------------------------------------------------------------}
   TCandidateGroupList = class(TList)
+  private
+    fGroupIndex: integer;
+    fCandidateIndex: integer;
+    
   public
     procedure Notify(Ptr: Pointer; Action: TListNotification); override;
 
@@ -183,10 +195,27 @@ type
     function  Find(const aBankAccountNumber: string; const aAccount: string;
                 const aEntryType: byte; var aIndex: integer): boolean;
 
+    // Setup index
+    function  GetFirst: boolean;
+    function  GetNext: boolean;
+    
+    // Process one candidate according to the index
     procedure GetCandidateStrings(const aCandidateStrings: TCandidateStringList);
 
     procedure LogData;
   end;
+
+
+  
+  {-----------------------------------------------------------------------------
+    TMemsV2 state
+  -----------------------------------------------------------------------------}
+  TMemsV2State = (
+    mstUnInitialised,
+    mstProcessing,
+    mstRefinement,
+    mstFinished
+  );
 
 
   {-----------------------------------------------------------------------------
@@ -194,7 +223,10 @@ type
   -----------------------------------------------------------------------------}
   TMemsV2 = class(TObject)
   private
+    fState: TMemsV2State;
+    
     // Note: place holders, do not delete
+    fBankAccounts: TBank_Account_List;
     fCandidates: TCandidate_Mem_List;
     fRecommended: TRecommended_Mem_List;
 
@@ -203,17 +235,19 @@ type
     fRefinementStrings: TCandidateStringList;
 
   public
-    constructor Create(const aCandidates: TCandidate_Mem_List;
+    constructor Create(const aBankAccounts: TBank_Account_List;
+                  const aCandidates: TCandidate_Mem_List;
                   const aRecommended: TRecommended_Mem_List);
     destructor  Destroy; override;
 
     // Run functions
+    procedure Reset;
     function  AllowedToRun: boolean;
-    procedure Run;
+    function  DoProcessing: boolean;
 
   private
     // Main functions for getting candidate strings
-    procedure GetAccountsFromCandidates;
+    procedure GroupCandidateMems;
     procedure GetCandidateStrings;
     procedure EliminateCandidateStrings;
     function  RefineCandidateStrings: boolean;
@@ -245,13 +279,6 @@ type
               var aEndData: boolean): boolean;
 
 
-  {-----------------------------------------------------------------------------
-    RunMemsV2
-  -----------------------------------------------------------------------------}
-  procedure RunMemsV2(const aCandidates: TCandidate_Mem_List;
-              const aRecommended: TRecommended_Mem_List);
-
-
 type
   {-----------------------------------------------------------------------------
     Logging
@@ -264,11 +291,10 @@ type
 implementation
 
 uses
+  // Note: MyClient may not be fully loaded, don't use Globals
   Math,
   bkConst,
   StDate,
-  Globals,
-  baObj32,
   BKDEFS,
   Windows,
   MMSystem,
@@ -812,13 +838,19 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TCandidateGroup.GetCandidateStrings(const aCandidateStrings: TCandidateStringList);
+function TCandidateGroup.GetCount: integer;
+begin
+  result := fCandidates.Count;
+end;
+
+//------------------------------------------------------------------------------
+procedure TCandidateGroup.GetCandidateStrings(const aRow: integer; 
+  const aCandidateStrings: TCandidateStringList);
 const
   MANUAL = [cbManual, cbManualPayee, cbECodingManual, cbECodingManualPayee, cbManualSuper];
   AUTOMATIC = [cbMemorisedC, cbAnalysis, cbAutoPayee, cbMemorisedM, cbCodeIT];
   MANUAL_AUTOMATIC = MANUAL + AUTOMATIC;
 var
-  iRow: integer;
   iRowOther: integer;
 
   Candidate: TCandidate_Mem;
@@ -830,74 +862,71 @@ var
 
   New: TCandidateString;
 begin
-  for iRow := 0 to fCandidates.Count-1 do
+  for iRowOther := 0 to fCandidates.Count-1 do
   begin
-    for iRowOther := 0 to fCandidates.Count-1 do
+    // Same row?
+    if (aRow = iRowOther) then
+      continue;
+
+    Candidate := TCandidate_Mem(fCandidates[aRow]);
+    CandidateOther := TCandidate_Mem(fCandidates[iRowOther]);
+
+    // Not same Bank Account Number
+    if (Candidate.cmFields.cmBank_Account_Number <> CandidateOther.cmFields.cmBank_Account_Number) then
+      continue;
+
+    // Not same Account Code?
+    if (Candidate.cmFields.cmAccount <> CandidateOther.cmFields.cmAccount) then
+      continue;
+
+    // Not same entry type?
+    if (Candidate.cmFields.cmType <> CandidateOther.cmFields.cmType) then
+      continue;
+
+    { Not manual?
+      Note: no need to check the account code because it's already done in
+      obtaining the accounts list.
+    }
+    if not (Candidate.cmFields.cmCoded_By in MANUAL) then
+      continue;
+
+    // Not auto or manual?
+    if not (CandidateOther.cmFields.cmCoded_By in MANUAL_AUTOMATIC) then
+      continue;
+
+    // Can't find longest string?
+    if not FindLCS(Candidate.cmFields.cmStatement_Details,
+      CandidateOther.cmFields.cmStatement_Details, bStartData, sDetails,
+      bEndData) then
     begin
-      // Same row?
-      if (iRow = iRowOther) then
-        continue;
-
-      Candidate := TCandidate_Mem(fCandidates[iRow]);
-      CandidateOther := TCandidate_Mem(fCandidates[iRowOther]);
-
-      // Not same Bank Account Number
-      if (Candidate.cmFields.cmBank_Account_Number <> CandidateOther.cmFields.cmBank_Account_Number) then
-        continue;
-
-      // Not same Account Code?
-      if (Candidate.cmFields.cmAccount <> CandidateOther.cmFields.cmAccount) then
-        continue;
-
-      // Not same entry type?
-      if (Candidate.cmFields.cmType <> CandidateOther.cmFields.cmType) then
-        continue;
-
-      { Not manual?
-        Note: no need to check the account code because it's already done in
-        obtaining the accounts list.
-      }
-      if not (Candidate.cmFields.cmCoded_By in MANUAL) then
-        continue;
-
-      // Not auto or manual?
-      if not (CandidateOther.cmFields.cmCoded_By in MANUAL_AUTOMATIC) then
-        continue;
-
-      // Can't find longest string?
-      if not FindLCS(Candidate.cmFields.cmStatement_Details,
-        CandidateOther.cmFields.cmStatement_Details, bStartData, sDetails,
-        bEndData) then
-      begin
-        continue;
-      end;
-
-      // No start or end tag?
-      if not (bStartData or bEndData) then
-        continue;
-
-      // Not a valid Details?
-      sDetails := Trim(sDetails);
-      if (sDetails = '') then
-        continue;
-
-      // Duplicate Details?
-      if aCandidateStrings.FindDuplicate(BankAccountNumber, Account, EntryType, 
-        sDetails) then
-      begin
-        continue;
-      end;
-
-      // Create new candidate string
-      New := TCandidateString.Create;
-      New.fBankAccountNumber := BankAccountNumber;
-      New.Account := Account;
-      New.EntryType := EntryType;
-      New.LCS.SetData(bStartData, sDetails, bEndData);
-
-      // Add
-      aCandidateStrings.Add(New);
+      continue;
     end;
+
+    // No start or end tag?
+    if not (bStartData or bEndData) then
+      continue;
+
+    // Not a valid Details?
+    sDetails := Trim(sDetails);
+    if (sDetails = '') then
+      continue;
+
+    // Duplicate Details?
+    if aCandidateStrings.FindDuplicate(BankAccountNumber, Account, EntryType, 
+      sDetails) then
+    begin
+      continue;
+    end;
+
+    // Create new candidate string
+    New := TCandidateString.Create;
+    New.fBankAccountNumber := BankAccountNumber;
+    New.Account := Account;
+    New.EntryType := EntryType;
+    New.LCS.SetData(bStartData, sDetails, bEndData);
+
+    // Add
+    aCandidateStrings.Add(New);
   end;
 end;
 
@@ -950,18 +979,63 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+function TCandidateGroupList.GetFirst: boolean;
+begin
+  // Nothing to do?
+  if (Count = 0) then
+  begin
+    result := false;
+    exit;
+  end;
+
+  // Setup index
+  fGroupIndex := 0;
+  // Always at least one candidate per group
+  fCandidateIndex := 0;
+
+  result := true;
+end;
+
+//------------------------------------------------------------------------------
+function TCandidateGroupList.GetNext: boolean;
+var
+  Group: TCandidateGroup;
+begin
+  ASSERT((0 <= fGroupIndex) and (fGroupIndex < Count));
+  Group := GetGroup(fGroupIndex);
+  ASSERT((0 <= fCandidateIndex) and (fCandidateIndex < Group.Count));
+
+  // Last candidate?
+  Inc(fCandidateIndex);
+  if (fCandidateIndex = Group.Count) then
+  begin
+    // Last group?
+    Inc(fGroupIndex);
+    if (fGroupIndex = Count) then
+    begin
+      result := false;
+      exit;
+    end;
+    
+    fCandidateIndex := 0;
+  end;
+  
+  result := true;
+end;
+
+//------------------------------------------------------------------------------
 procedure TCandidateGroupList.GetCandidateStrings(
   const aCandidateStrings: TCandidateStringList);
 var
-  i: integer;
   Group: TCandidateGroup;
 begin
-  // Determine the LCS for each account
-  for i := 0 to Count-1 do
-  begin
-    Group := GetGroup(i);
-    Group.GetCandidateStrings(aCandidateStrings);
-  end;
+  // Get group
+  ASSERT((0 <= fGroupIndex) and (fGroupIndex < Count));
+  Group := GetGroup(fGroupIndex);
+
+  // One candidate row at the time
+  ASSERT((0 <= fCandidateIndex) and (fCandidateIndex < Group.Count));
+  Group.GetCandidateStrings(fCandidateIndex, aCandidateStrings);
 end;
 
 //------------------------------------------------------------------------------
@@ -987,18 +1061,23 @@ end;
 {-------------------------------------------------------------------------------
   TMemsV2
 -------------------------------------------------------------------------------}
-constructor TMemsV2.Create(const aCandidates: TCandidate_Mem_List;
+constructor TMemsV2.Create(const aBankAccounts: TBank_Account_List; 
+  const aCandidates: TCandidate_Mem_List;
   const aRecommended: TRecommended_Mem_List);
 begin
+  ASSERT(assigned(aBankAccounts));
   ASSERT(assigned(aCandidates));
   ASSERT(assigned(aRecommended));
 
+  fBankAccounts := aBankAccounts;
   fCandidates := aCandidates;
   fRecommended := aRecommended;
 
   fGroups := TCandidateGroupList.Create;
   fCandidateStrings := TCandidateStringList.Create;
   fRefinementStrings := TCandidateStringList.Create;
+
+  Reset;
 end;
 
 //------------------------------------------------------------------------------
@@ -1011,11 +1090,18 @@ begin
   inherited; // LAST
 end;
 
-var
-  u_CandidatesCount: integer = -1;
+//------------------------------------------------------------------------------
+procedure TMemsV2.Reset;
+begin
+  fState := mstUnInitialised;
+
+  fGroups.Clear;
+  fCandidateStrings.Clear;
+  fRefinementStrings.Clear;
+end;
 
 //------------------------------------------------------------------------------
-function TMemsV2.AllowedToRun: boolean;
+function TMemsV2.AllowedToRun;
 const
   MIN_MONTHS = 3;
   MIN_TRANSACTIONS = 150;
@@ -1027,25 +1113,14 @@ var
   iTrans: integer;
   Transaction: pTransaction_Rec;
 begin
-  { Nothing to do?
-    Note: RunMemsV2 gets called quite often, so this is a way to exit early
-    if there's nothing to do. }
-  if (Candidates.ItemCount = u_CandidatesCount) then
-  begin
-    result := false;
-    exit;
-  end
-  else
-    u_CandidatesCount := Candidates.ItemCount;
-
   // Init
   dtMonthsAgo := IncDate(CurrentDate, 0, MIN_MONTHS, 0);
   iCount := 0;
 
   // Search transactions for criteria
-  for iBank := 0 to MyClient.clBank_Account_List.ItemCount-1 do
+  for iBank := 0 to fBankAccounts.ItemCount-1 do
   begin
-    BankAccount := MyClient.clBank_Account_List.Bank_Account_At(iBank);
+    BankAccount := fBankAccounts.Bank_Account_At(iBank);
 
     for iTrans := 0 to BankAccount.baTransaction_List.ItemCount-1 do
     begin
@@ -1068,69 +1143,147 @@ begin
     end;
   end;
 
+  // Note: Due to the volume of calls, don't Log anything here
+  
   result := false;
 end;
 
 //------------------------------------------------------------------------------
-procedure TMemsV2.Run;
+function TMemsV2.DoProcessing: boolean;
 const
+  MORE_PROCESSING_TO_DO = true;
+  NO_MORE_PROCESSING_TO_DO = false;
   MAX_ITERATION = 10;
 var
+  dwStart: DWORD;
+  dwDuration: DWORD;
   iIteration: integer;
 begin
-  GetAccountsFromCandidates;
-  if DebugMe then
-    fGroups.LogData;
+  dwStart := timeGetTime;
 
-  GetCandidateStrings;
-  if DebugMe then
-    fCandidateStrings.LogData;
-
-  // Iterate over Eliminate and Refine
-  for iIteration := 1 to MAX_ITERATION do
-  begin
-    if DebugMe then
+  result := NO_MORE_PROCESSING_TO_DO;
+  
+  // Handle state      
+  case fState of
+    mstUnInitialised:
     begin
-      Log('');
-      Log('ITERATION: ' + IntToStr(iIteration));
-      fCandidateStrings.LogData;
+      // Allowed to run on current data?
+      if AllowedToRun then
+      begin
+        // Group candidate mems
+        GroupCandidateMems;
+        if DebugMe then
+          fGroups.LogData;
+
+        // Something to process?
+        if fGroups.GetFirst then
+        begin
+          // Update state
+          fState := mstProcessing;
+          result := MORE_PROCESSING_TO_DO;
+        end
+        else
+        begin
+          // Update state
+          fState := mstFinished;
+          result := NO_MORE_PROCESSING_TO_DO;
+        end;
+      end
+      else
+      begin
+        // Update state
+        fState := mstFinished;
+        result := NO_MORE_PROCESSING_TO_DO;
+      end;
     end;
-
-    EliminateCandidateStrings;
-
-    { Last iteration?
-      Note: we don't run RefineCandidateStrings on the last iteration, because
-      it will wipe out the Account Codes if it has new values.
-    }
-    if (iIteration = MAX_ITERATION) then
-      break;
-
-    // Candidate strings are the same after refining?
-    if not RefineCandidateStrings then
+    
+    mstProcessing: 
     begin
+      GetCandidateStrings;
+      if DebugMe then
+        fCandidateStrings.LogData;
+
+      // More to process?
+      if fGroups.GetNext then
+      begin
+        // Update state
+        result := MORE_PROCESSING_TO_DO;
+      end
+      else
+      begin
+        // Update state
+        fState := mstRefinement;
+        result := MORE_PROCESSING_TO_DO;
+      end;
+    end;
+    
+    mstRefinement:
+    begin
+      // Iterate over Eliminate and Refine
+      for iIteration := 1 to MAX_ITERATION do
+      begin
+        if DebugMe then
+        begin
+          Log('');
+          Log('ITERATION: ' + IntToStr(iIteration));
+          fCandidateStrings.LogData;
+        end;
+
+        EliminateCandidateStrings;
+
+        { Last iteration?
+          Note: we don't run RefineCandidateStrings on the last iteration, because
+          it will wipe out the Account Codes if it has new values.
+        }
+        if (iIteration = MAX_ITERATION) then
+          break;
+
+        // Candidate strings are the same after refining?
+        if not RefineCandidateStrings then
+        begin
+          if DebugMe then
+          begin
+            Log('');
+            Log('Candidates after refinement are identical');
+          end;
+
+          break;
+        end;
+      end;
+
       if DebugMe then
       begin
         Log('');
-        Log('Candidates after refinement are identical');
+        Log('FINAL RESULT:');
+        fCandidateStrings.LogData;
       end;
 
-      break;
+      // Add final result to recommended mems
+      AddCandidateStringsToRecommended;
+
+      // Update state
+      fState := mstFinished;
+      result := MORE_PROCESSING_TO_DO;
     end;
+    
+    mstFinished:
+    begin
+      // Update state
+      result := NO_MORE_PROCESSING_TO_DO;
+    end;
+
+    else
+      ASSERT(false);
   end;
+
+  dwDuration := timeGetTime - dwStart;
 
   if DebugMe then
-  begin
-    Log('');
-    Log('FINAL RESULT:');
-    fCandidateStrings.LogData;
-  end;
-
-  // Add final result to recommended mems
-  AddCandidateStringsToRecommended;
+    Log('Mems V2: ' + IntToStr(dwDuration) + ' ms');
 end;
 
 //------------------------------------------------------------------------------
-procedure TMemsV2.GetAccountsFromCandidates;
+procedure TMemsV2.GroupCandidateMems;
 var
   i: integer;
   Candidate: TCandidate_Mem;
@@ -1538,44 +1691,8 @@ end;
 
 
 {-------------------------------------------------------------------------------
-  RunMemsV2
+  Initialization
 -------------------------------------------------------------------------------}
-procedure RunMemsV2(const aCandidates: TCandidate_Mem_List;
-  const aRecommended: TRecommended_Mem_List);
-var
-  dwStart: DWORD;
-  dwDuration: DWORD;
-  MemsV2: TMemsV2;
-  crCurrent: TCursor;
-begin
-  dwStart := timeGetTime;
-
-  MemsV2 := nil;
-  try
-    MemsV2 := TMemsV2.Create(aCandidates, aRecommended);
-
-    { Transactions older than 3 months or exceeds 150 transactions in the
-      account? }
-    if not MemsV2.AllowedToRun then
-    begin
-      if DebugMe then
-        Log('Mems V2 is not allowed to run');
-
-      exit;
-    end;
-
-    MemsV2.Run;
-  finally
-    FreeAndNil(MemsV2);
-  end;
-
-  dwDuration := timeGetTime - dwStart;
-
-  if DebugMe then
-    Log('Mems V2: ' + IntToStr(dwDuration) + ' ms');
-end;
-
-
 initialization
 begin
   DebugMe := DebugUnit(UnitName);

@@ -15,7 +15,8 @@ uses
   Tokens,
   baObj32,
   baList32,
-  BKDefs;
+  BKDefs,
+  RecommendedMemsV2;
 
 type
   TRecommended_Mems = class(TObject)
@@ -28,6 +29,8 @@ type
     fCandidates: TCandidate_Mem_List;
     fRecommended: TRecommended_Mem_List;
     FLastCodingFrmKeyPress: TDateTime;
+
+    fMemsV2: TMemsV2;
 
     function GetLastCodingFrmKeyPress: TDateTime;
     procedure GetMatchingCandidateRange(StatementDetails: string; var FirstCandidatePos, LastCandidatePos: integer);
@@ -83,8 +86,7 @@ uses
   OSFont,
   rmObj32,
   SysUtils,
-  Windows,
-  RecommendedMemsV2;
+  Windows;
 
 const
   UnitName = 'RecommendedMems';
@@ -98,6 +100,8 @@ begin
   fCandidate := TCandidate_Mem_Processing.Create;
   fCandidates := TCandidate_Mem_List.Create;
   fRecommended := TRecommended_Mem_List.Create;
+
+  fMemsV2 := TMemsV2.Create(fBankAccounts, fCandidates, fRecommended);
 end;
 
 constructor TRecommended_Mems.Create(const aBankAccount: TBank_Account);
@@ -111,6 +115,8 @@ end;
 
 destructor TRecommended_Mems.Destroy;
 begin
+  FreeAndNil(fMemsV2);
+
   FreeAndNil(fCandidates);
   FreeAndNil(fUnscanned);
   FreeAndNil(fCandidate);
@@ -635,9 +641,12 @@ begin
       // Is the unscanned list empty?
       if (Unscanned.ItemCount = 0) then
       begin
-        // Run Mems V2
-        if not RunningUnitTest then        
-          RunMemsV2(Candidates, Recommended);
+        // More processing to do?
+        if fMemsV2.DoProcessing then
+        begin
+          result := false;
+          exit;
+        end;
 
         // Unscanned list is empty, so do recommended processing
         if DoRecommendedMemProcessing then
@@ -737,8 +746,10 @@ begin
     Unscanned.Insert(NewUnscannedTran);
   end;
 
-  // Rescan candidates later
+  // Rescan candidates later (for both MemsV2 as well as MemsV1)
   Candidate.cpFields.cpCandidate_ID_To_Process := 1;
+  fMemsV2.Reset;
+
   // Clear recommended memorisation list
   Recommended.FreeAll;
 end;
@@ -972,7 +983,10 @@ var
   RecMemScanningComplete: boolean;
 begin
   MyClient.clRecommended_Mems.Recommended.FreeAll;
+
   MyClient.clRecommended_Mems.Candidate.cpFields.cpCandidate_ID_To_Process := 1;
+  fMemsV2.Reset;
+
   while True do
   begin
     RecMemScanningComplete := MyClient.clRecommended_Mems.MemScan(false, nil);     
