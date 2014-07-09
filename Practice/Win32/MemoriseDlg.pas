@@ -1218,9 +1218,9 @@ end;
 procedure TdlgMemorise.tblSplitDoneEdit(Sender: TObject; RowNum,
   ColNum: Integer);
 var
-   DefaultClass : integer;
-   SelectedClass : integer;
-
+   APayee        : TPayee;
+   PayeeCode     : integer;
+   i             : integer;
 begin
    Case ColNum of
       AcctCol : begin
@@ -1240,16 +1240,18 @@ begin
 
          RowTmr.Enabled := true;
       end;
-      GSTCodeCol : begin
-         //see if different to default for chart
-         DefaultClass := MyClient.clChart.GSTClass( SplitData[RowNum].AcctCode);
-         SelectedClass := GetGSTClassNo( MyClient, SplitData[RowNum].GSTClassCode);
-         SplitData[RowNum].GST_Has_Been_Edited := ( DefaultClass <> SelectedClass);
-      end;
+      // GSTCodeCol :   GST is handled outside of the case statement 
       TypeCol : begin
          UpdateTotal;
       end;
    end;
+
+   // GST must always be handled in case a payee has been used which overrides the default GST class
+   PayeeCode := SplitData[RowNum].Payee;
+   APayee := MyClient.clPayee_List.Find_Payee_Number(PayeeCode);
+   if Assigned(APayee) then
+     for i := 0 to APayee.pdLines.ItemCount - 1 do
+       SplitData[RowNum+i].GST_Has_Been_Edited := APayee.pdLines.PayeeLine_At(i).plGST_Has_Been_Edited;
 end;
 //------------------------------------------------------------------------------
 procedure TdlgMemorise.ColAcctKeyDown(Sender: TObject; var Key: Word;
