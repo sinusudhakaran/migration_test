@@ -4302,16 +4302,11 @@ const
     // journals have been erroneously included in the prior version
     try
       aClient.clRecommended_Mems.Candidates.FreeAll;
-      aClient.clRecommended_Mems.Candidates.Destroy;
       aClient.clRecommended_Mems.Recommended.FreeAll;
-      aClient.clRecommended_Mems.Recommended.Destroy;
       aClient.clRecommended_Mems.Unscanned.FreeAll;
-      aClient.clRecommended_Mems.Unscanned.Destroy;
       aClient.clRecommended_Mems.Candidate.cpFields.cpCandidate_ID_To_Process := 1;
       aClient.clRecommended_Mems.Candidate.cpFields.cpNext_Candidate_ID := 1;
       aClient.clRecommended_Mems.PopulateUnscannedListAllAccounts(false);
-      aClient.clRecommended_Mems := nil;
-      aClient.clRecommended_Mems := TRecommended_Mems.Create(MyClient.clBank_Account_List);
     finally
 
     end;
