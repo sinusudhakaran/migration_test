@@ -215,6 +215,7 @@ type
     InEditMemorisationMode : Boolean;
     GSTClassEditable       : Boolean;
     CalledFromRecommendedMems: boolean;
+    PayeeUsed: boolean;
 
     AmountToMatch : Money;
     AmountMultiplier : integer;
@@ -362,6 +363,7 @@ var
 
 begin
   CalledFromRecommendedMems := False;
+  PayeeUsed := False;
   bkXPThemes.ThemeForm(Self);
   AltLineColor := BKCOLOR_CREAM;
 
@@ -1253,12 +1255,15 @@ begin
       end;
    end;
 
-   // GST must always be handled in case a payee has been used which overrides the default GST class
-   PayeeCode := SplitData[RowNum].Payee;
-   APayee := MyClient.clPayee_List.Find_Payee_Number(PayeeCode);
-   if Assigned(APayee) then
-     for i := 0 to APayee.pdLines.ItemCount - 1 do
-       SplitData[RowNum+i].GST_Has_Been_Edited := APayee.pdLines.PayeeLine_At(i).plGST_Has_Been_Edited;
+   if PayeeUsed then
+   begin
+     // GST must always be handled if a payee has been used, in case it overrides the default GST class
+     PayeeCode := SplitData[RowNum].Payee;
+     APayee := MyClient.clPayee_List.Find_Payee_Number(PayeeCode);
+     if Assigned(APayee) then
+       for i := 0 to APayee.pdLines.ItemCount - 1 do
+         SplitData[RowNum+i].GST_Has_Been_Edited := APayee.pdLines.PayeeLine_At(i).plGST_Has_Been_Edited;
+   end;
 end;
 //------------------------------------------------------------------------------
 procedure TdlgMemorise.ColAcctKeyDown(Sender: TObject; var Key: Word;
@@ -3510,6 +3515,7 @@ var
 
 begin
   PopulatePayee := False;
+  PayeeUsed := True;
   tmrPayee.Enabled := False;
   OriginalPayee := SplitData[tblSplit.ActiveRow].Payee;
   APayee := MyClient.clPayee_List.Find_Payee_Number(PayeeCode);
@@ -3559,6 +3565,7 @@ begin
     CreatePayeeLines;
 
   tblSplit.Refresh;
+  PayeeUsed := False;
   tmrPayee.Enabled := True;
 end;
 
