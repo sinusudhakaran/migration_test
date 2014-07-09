@@ -632,6 +632,7 @@ begin
       InCodingForm := (TfrmCoding.ClassName = Screen.ActiveForm.ClassName)
     else
       InCodingForm := False;
+
     // Has it been more than 33 milliseconds yet?
     while ((MilliSecondsBetween(StartTime, Time) < 33) or RunningUnitTest) do
     begin
@@ -641,11 +642,17 @@ begin
       // Is the unscanned list empty?
       if (Unscanned.ItemCount = 0) then
       begin
-        // More processing to do?
-        if fMemsV2.DoProcessing then
+        { Before data is available, Unscanned.ItemCount is called several times
+          which puts fMemsV2 in the 'finished' state. We check to see if there
+          are any candidates at all. }
+        if (Candidates.ItemCount <> 0) then
         begin
-          result := false;
-          exit;
+          // More processing to do?
+          if fMemsV2.DoProcessing then
+          begin
+            result := false;
+            exit;
+          end;
         end;
 
         // Unscanned list is empty, so do recommended processing
