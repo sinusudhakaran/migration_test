@@ -1218,6 +1218,8 @@ end;
 procedure TdlgMemorise.tblSplitDoneEdit(Sender: TObject; RowNum,
   ColNum: Integer);
 var
+   DefaultClass  : integer;
+   SelectedClass : integer;
    APayee        : TPayee;
    PayeeCode     : integer;
    i             : integer;
@@ -1240,7 +1242,12 @@ begin
 
          RowTmr.Enabled := true;
       end;
-      // GSTCodeCol :   GST is handled outside of the case statement 
+      GSTCodeCol : begin
+         //see if different to default for chart
+         DefaultClass := MyClient.clChart.GSTClass( SplitData[RowNum].AcctCode);
+         SelectedClass := GetGSTClassNo( MyClient, SplitData[RowNum].GSTClassCode);
+         SplitData[RowNum].GST_Has_Been_Edited := ( DefaultClass <> SelectedClass);
+      end;
       TypeCol : begin
          UpdateTotal;
       end;
