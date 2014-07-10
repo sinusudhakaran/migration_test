@@ -173,7 +173,7 @@ type
     function  GetCount: integer;
     property  Count: integer read GetCount;
 
-    procedure GetCandidateStrings(const aRow: integer; 
+    procedure GetCandidateStrings(const aRow: integer; const aRowOther: integer;
                 const aCandidateStrings: TCandidateStringList);
   end;
 
@@ -185,20 +185,21 @@ type
   private
     fGroupIndex: integer;
     fCandidateIndex: integer;
-    
+    fCandidateOtherIndex: integer;
+
   public
     procedure Notify(Ptr: Pointer; Action: TListNotification); override;
 
     function  GetGroup(const aIndex: integer): TCandidateGroup;
     property  Groups[const aIndex: integer]: TCandidateGroup read GetGroup;
-    
+
     function  Find(const aBankAccountNumber: string; const aAccount: string;
                 const aEntryType: byte; var aIndex: integer): boolean;
 
     // Setup index
     function  GetFirst: boolean;
     function  GetNext: boolean;
-    
+
     // Process one candidate according to the index
     procedure GetCandidateStrings(const aCandidateStrings: TCandidateStringList);
 
@@ -844,15 +845,13 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TCandidateGroup.GetCandidateStrings(const aRow: integer; 
-  const aCandidateStrings: TCandidateStringList);
+procedure TCandidateGroup.GetCandidateStrings(const aRow: integer;
+  const aRowOther: integer; const aCandidateStrings: TCandidateStringList);
 const
   MANUAL = [cbManual, cbManualPayee, cbECodingManual, cbECodingManualPayee, cbManualSuper];
   AUTOMATIC = [cbMemorisedC, cbAnalysis, cbAutoPayee, cbMemorisedM, cbCodeIT];
   MANUAL_AUTOMATIC = MANUAL + AUTOMATIC;
 var
-  iRowOther: integer;
-
   Candidate: TCandidate_Mem;
   CandidateOther: TCandidate_Mem;
 
@@ -862,72 +861,69 @@ var
 
   New: TCandidateString;
 begin
-  for iRowOther := 0 to fCandidates.Count-1 do
+  // Same row?
+  if (aRow = aRowOther) then
+    exit;
+
+  Candidate := TCandidate_Mem(fCandidates[aRow]);
+  CandidateOther := TCandidate_Mem(fCandidates[aRowOther]);
+
+  // Not same Bank Account Number
+  if (Candidate.cmFields.cmBank_Account_Number <> CandidateOther.cmFields.cmBank_Account_Number) then
+    exit;
+
+  // Not same Account Code?
+  if (Candidate.cmFields.cmAccount <> CandidateOther.cmFields.cmAccount) then
+    exit;
+
+  // Not same entry type?
+  if (Candidate.cmFields.cmType <> CandidateOther.cmFields.cmType) then
+    exit;
+
+  { Not manual?
+    Note: no need to check the account code because it's already done in
+    obtaining the accounts list.
+  }
+  if not (Candidate.cmFields.cmCoded_By in MANUAL) then
+    exit;
+
+  // Not auto or manual?
+  if not (CandidateOther.cmFields.cmCoded_By in MANUAL_AUTOMATIC) then
+    exit;
+
+  // Can't find longest string?
+  if not FindLCS(Candidate.cmFields.cmStatement_Details,
+    CandidateOther.cmFields.cmStatement_Details, bStartData, sDetails,
+    bEndData) then
   begin
-    // Same row?
-    if (aRow = iRowOther) then
-      continue;
-
-    Candidate := TCandidate_Mem(fCandidates[aRow]);
-    CandidateOther := TCandidate_Mem(fCandidates[iRowOther]);
-
-    // Not same Bank Account Number
-    if (Candidate.cmFields.cmBank_Account_Number <> CandidateOther.cmFields.cmBank_Account_Number) then
-      continue;
-
-    // Not same Account Code?
-    if (Candidate.cmFields.cmAccount <> CandidateOther.cmFields.cmAccount) then
-      continue;
-
-    // Not same entry type?
-    if (Candidate.cmFields.cmType <> CandidateOther.cmFields.cmType) then
-      continue;
-
-    { Not manual?
-      Note: no need to check the account code because it's already done in
-      obtaining the accounts list.
-    }
-    if not (Candidate.cmFields.cmCoded_By in MANUAL) then
-      continue;
-
-    // Not auto or manual?
-    if not (CandidateOther.cmFields.cmCoded_By in MANUAL_AUTOMATIC) then
-      continue;
-
-    // Can't find longest string?
-    if not FindLCS(Candidate.cmFields.cmStatement_Details,
-      CandidateOther.cmFields.cmStatement_Details, bStartData, sDetails,
-      bEndData) then
-    begin
-      continue;
-    end;
-
-    // No start or end tag?
-    if not (bStartData or bEndData) then
-      continue;
-
-    // Not a valid Details?
-    sDetails := Trim(sDetails);
-    if (sDetails = '') then
-      continue;
-
-    // Duplicate Details?
-    if aCandidateStrings.FindDuplicate(BankAccountNumber, Account, EntryType, 
-      sDetails) then
-    begin
-      continue;
-    end;
-
-    // Create new candidate string
-    New := TCandidateString.Create;
-    New.fBankAccountNumber := BankAccountNumber;
-    New.Account := Account;
-    New.EntryType := EntryType;
-    New.LCS.SetData(bStartData, sDetails, bEndData);
-
-    // Add
-    aCandidateStrings.Add(New);
+    exit;
   end;
+
+  // No start or end tag?
+  if not (bStartData or bEndData) then
+    exit;
+
+  // Not a valid Details?
+  sDetails := Trim(sDetails);
+  if (sDetails = '') then
+    exit;
+
+  // Duplicate Details?
+  if aCandidateStrings.FindDuplicate(BankAccountNumber, Account, EntryType,
+    sDetails) then
+  begin
+    exit;
+  end;
+
+  // Create new candidate string
+  New := TCandidateString.Create;
+  New.fBankAccountNumber := BankAccountNumber;
+  New.Account := Account;
+  New.EntryType := EntryType;
+  New.LCS.SetData(bStartData, sDetails, bEndData);
+
+  // Add
+  aCandidateStrings.Add(New);
 end;
 
 
@@ -992,6 +988,7 @@ begin
   fGroupIndex := 0;
   // Always at least one candidate per group
   fCandidateIndex := 0;
+  fCandidateOtherIndex := 0;
 
   result := true;
 end;
@@ -1004,22 +1001,34 @@ begin
   ASSERT((0 <= fGroupIndex) and (fGroupIndex < Count));
   Group := GetGroup(fGroupIndex);
   ASSERT((0 <= fCandidateIndex) and (fCandidateIndex < Group.Count));
+  ASSERT((0 <= fCandidateOtherIndex) and (fCandidateOtherIndex < Group.Count));
 
-  // Last candidate?
-  Inc(fCandidateIndex);
-  if (fCandidateIndex = Group.Count) then
+  // Next candidate other
+  Inc(fCandidateOtherIndex);
+
+  // Last candidate other?
+  if (fCandidateOtherIndex = Group.Count) then
   begin
-    // Last group?
-    Inc(fGroupIndex);
-    if (fGroupIndex = Count) then
+    // Next candidate
+    Inc(fCandidateIndex);
+    fCandidateOtherIndex := 0;
+
+    // Last candidate?
+    if (fCandidateIndex = Group.Count) then
     begin
-      result := false;
-      exit;
+      // Next group
+      Inc(fGroupIndex);
+      fCandidateIndex := 0;
+
+      // Last group?
+      if (fGroupIndex = Count) then
+      begin
+        result := false;
+        exit;
+      end;
     end;
-    
-    fCandidateIndex := 0;
   end;
-  
+
   result := true;
 end;
 
@@ -1035,7 +1044,9 @@ begin
 
   // One candidate row at the time
   ASSERT((0 <= fCandidateIndex) and (fCandidateIndex < Group.Count));
-  Group.GetCandidateStrings(fCandidateIndex, aCandidateStrings);
+  ASSERT((0 <= fCandidateOtherIndex) and (fCandidateOtherIndex < Group.Count));
+  Group.GetCandidateStrings(fCandidateIndex, fCandidateOtherIndex,
+    aCandidateStrings);
 end;
 
 //------------------------------------------------------------------------------
@@ -1155,15 +1166,11 @@ const
   NO_MORE_PROCESSING_TO_DO = false;
   MAX_ITERATION = 10;
 var
-  dwStart: DWORD;
-  dwDuration: DWORD;
   iIteration: integer;
 begin
-  dwStart := timeGetTime;
-
   result := NO_MORE_PROCESSING_TO_DO;
-  
-  // Handle state      
+
+  // Handle state
   case fState of
     mstUnInitialised:
     begin
@@ -1196,12 +1203,11 @@ begin
         result := NO_MORE_PROCESSING_TO_DO;
       end;
     end;
-    
+
     mstProcessing: 
     begin
+      // Do one unit of work
       GetCandidateStrings;
-      if DebugMe then
-        fCandidateStrings.LogData;
 
       // More to process?
       if fGroups.GetNext then
@@ -1216,7 +1222,7 @@ begin
         result := MORE_PROCESSING_TO_DO;
       end;
     end;
-    
+
     mstRefinement:
     begin
       // Iterate over Eliminate and Refine
@@ -1275,11 +1281,6 @@ begin
     else
       ASSERT(false);
   end;
-
-  dwDuration := timeGetTime - dwStart;
-
-  if DebugMe then
-    Log('Mems V2: ' + IntToStr(dwDuration) + ' ms');
 end;
 
 //------------------------------------------------------------------------------

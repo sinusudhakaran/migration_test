@@ -644,15 +644,16 @@ begin
       begin
         { Before data is available, Unscanned.ItemCount is called several times
           which puts fMemsV2 in the 'finished' state. We check to see if there
-          are any candidates at all. }
+          are any candidates at all.
+          This also solves the problem where MemScan is called while loading a
+          zip stream. VCLZip calls ProcessMessages from there (can be turned
+          off if required). }
         if (Candidates.ItemCount <> 0) then
         begin
-          // More processing to do?
+          { More processing to do?
+            Note: don't give control to DoRecommendedProcessing yet }
           if fMemsV2.DoProcessing then
-          begin
-            result := false;
-            exit;
-          end;
+            continue;
         end;
 
         // Unscanned list is empty, so do recommended processing
@@ -992,6 +993,7 @@ begin
   MyClient.clRecommended_Mems.Recommended.FreeAll;
 
   MyClient.clRecommended_Mems.Candidate.cpFields.cpCandidate_ID_To_Process := 1;
+
   fMemsV2.Reset;
 
   while True do
