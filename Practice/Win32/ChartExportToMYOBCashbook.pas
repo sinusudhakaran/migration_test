@@ -254,7 +254,8 @@ type
                                         var aCashBookGstClassCode : string;
                                         var aCashBookGstClassDesc : string);
     function RunExportChartToFile(aFilename : string;
-                                  var aErrorStr : string) : boolean;
+                                  var aErrorStr : string;
+                                  aShowUI : boolean) : boolean;
     procedure FillGstMapCol();
     function IsGSTClassUsedInChart(aGST_Class : byte) : boolean;
     function DoNonBasicCodesHaveBalances(var aNonBasicCodes : TStringList) : boolean;
@@ -263,7 +264,7 @@ type
     constructor Create;
     destructor Destroy; override;
 
-    procedure DoChartExport(aPopupParent: TForm);
+    procedure DoChartExport(aPopupParent: TForm; aOverrideFilename : string = ''; aOverrideIncludeBalances : boolean = false);
 
     property Country : Byte read fCountry write fCountry;
     property ChartExportCol : TChartExportCol read fChartExportCol write fChartExportCol;
@@ -2286,7 +2287,8 @@ end;
 
 //------------------------------------------------------------------------------
 function TChartExportToMYOBCashbook.RunExportChartToFile(aFilename : string;
-                                                         var aErrorStr : string): boolean;
+                                                         var aErrorStr : string;
+                                                         aShowUI : boolean): boolean;
 var
   FileLines   : TStringList;
   LineColumns : TStringList;
@@ -2354,9 +2356,10 @@ begin
         try
           FileLines.SaveToFile(aFilename);
 
-          HelpfulInfoMsg(inttostr(FileLines.Count) +
-                                  ' Account codes successfully exported to ' + #13#10#13#10 +
-                                  aFilename,0);
+          if aShowUI then
+            HelpfulInfoMsg(inttostr(FileLines.Count) +
+                                    ' Account codes successfully exported to ' + #13#10#13#10 +
+                                    aFilename,0);
           Result := True;
         except
           on e: exception do
@@ -2457,7 +2460,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TChartExportToMYOBCashbook.DoChartExport(aPopupParent: TForm);
+procedure TChartExportToMYOBCashbook.DoChartExport(aPopupParent: TForm; aOverrideFilename : string; aOverrideIncludeBalances : boolean);
 const
   ThisMethodName = 'DoChartExport';
 var
@@ -2466,17 +2469,22 @@ var
   Filename : string;
   ErrorStrings : TStringList;
   BalDate : TStDate;
+  ShowUI : boolean;
 begin
   Res := true;
 
   if not assigned(MyClient) then
     Exit;
 
+  ShowUI := Assigned(aPopupParent);
+
   ErrorStrings := TStringList.Create;
   Try
     if not ChartExportCol.CheckAccountCodesLength(ErrorStrings) then
     begin
-      ShowChartExportAccountCodeErrors(Application.MainForm, ErrorStrings);
+      if ShowUI then
+        ShowChartExportAccountCodeErrors(Application.MainForm, ErrorStrings);
+
       Res := false;
       Exit;
     end;
@@ -2490,7 +2498,10 @@ begin
   if not CheckReportGroups() then
   begin
     ErrorStr := 'Please assign a report group to all chart of account codes, Other Functions | Chart of Accounts | Maintain Chart.';
-    HelpfulWarningMsg(ErrorStr,0);
+
+    if ShowUI then
+      HelpfulWarningMsg(ErrorStr,0);
+
     Exit;
   end;
 
@@ -2506,17 +2517,24 @@ begin
         Filename := GSTMapCol.PrevGSTFileLocation;
         if not GSTMapCol.LoadGSTFile(Filename, ErrorStr) then
         begin
-          HelpfulErrorMsg(ErrorStr,0);
-          LogUtil.LogMsg(lmError, UnitName, ThisMethodName + ' : ' + ErrorStr );
+          if ShowUI then
+          begin
+            HelpfulErrorMsg(ErrorStr,0);
+            LogUtil.LogMsg(lmError, UnitName, ThisMethodName + ' : ' + ErrorStr );
+          end;
         end;
       end;
     end;
 
-    Res := ShowMapGSTClass(aPopupParent, fGSTMapCol);
+    if ShowUI then
+      Res := ShowMapGSTClass(aPopupParent, fGSTMapCol)
+    else
+      Res := true;
 
     if Res then
     begin
-      if not (Filename = '') then
+      if (ShowUI) and
+         (not (Filename = '')) then
         Res := GSTMapCol.SaveGSTFile(Filename, ErrorStr);
 
       if Res then
@@ -2526,8 +2544,11 @@ begin
       end
       else
       begin
-        HelpfulErrorMsg(ErrorStr,0);
-        LogUtil.LogMsg(lmError, UnitName, ThisMethodName + ' : ' + ErrorStr );
+        if ShowUI then
+        begin
+          HelpfulErrorMsg(ErrorStr,0);
+          LogUtil.LogMsg(lmError, UnitName, ThisMethodName + ' : ' + ErrorStr );
+        end;
       end;
     end;
   end
@@ -2535,8 +2556,11 @@ begin
   begin
     if not CheckNZGStTypes() then
     begin
-      ErrorStr := 'Please assign a GST type to all rates, Other Functions | GST Setup | Rates.';
-      HelpfulWarningMsg(ErrorStr,0);
+      if ShowUI then
+      begin
+        ErrorStr := 'Please assign a GST type to all rates, Other Functions | GST Setup | Rates.';
+        HelpfulWarningMsg(ErrorStr,0);
+      end;
       Exit;
     end;
   end;
@@ -2549,7 +2573,7 @@ begin
     else
       ExportChartFrmProperties.ExportFileLocation := MyClient.clExtra.ceCashbook_Export_File_Location;
 
-    ExportChartFrmProperties.IncludeClosingBalances := false;
+    ExportChartFrmProperties.IncludeClosingBalances := aOverrideIncludeBalances;
 
     if GetLastFullyCodedMonth(BalDate) then
       ExportChartFrmProperties.ClosingBalanceDate := BalDate
@@ -2565,11 +2589,17 @@ begin
       ChartExportCol.IsTransactionsUncodedorInvalidlyCoded;
     ExportChartFrmProperties.CalcClosingBalanceEvent := ChartExportCol.CheckIfNonBasicCodesHaveBalances;
 
-    Res := ShowChartExport(aPopupParent, ExportChartFrmProperties);
+    if ShowUI then
+      Res := ShowChartExport(aPopupParent, ExportChartFrmProperties)
+    else
+      Res := true;
 
     if Res then
     begin
-      Res := RunExportChartToFile(ExportChartFrmProperties.ExportFileLocation, ErrorStr);
+      if Length(aOverrideFilename) > 0 then
+        ExportChartFrmProperties.ExportFileLocation := aOverrideFilename;
+
+      Res := RunExportChartToFile(ExportChartFrmProperties.ExportFileLocation, ErrorStr, ShowUI);
 
       if Res then
       begin
@@ -2578,8 +2608,11 @@ begin
       end
       else
       begin
-        HelpfulErrorMsg(ErrorStr,0);
-        LogUtil.LogMsg(lmError, UnitName, ThisMethodName + ' : ' + ErrorStr );
+        if ShowUI then
+        begin
+          HelpfulErrorMsg(ErrorStr,0);
+          LogUtil.LogMsg(lmError, UnitName, ThisMethodName + ' : ' + ErrorStr );
+        end;
       end;
     end;
   end;

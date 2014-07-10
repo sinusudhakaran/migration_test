@@ -52,13 +52,13 @@
     <DCCReference Include="..\Tests\utMYOB.pas" />
     <DCCReference Include="..\Tests\utPayeeObj.pas" />
     <DCCReference Include="..\Tests\utRecommendedMems.pas" />
+    <DCCReference Include="..\Tests\utRecommendedMems.pas">
+      <ModuleName>utCashbookChartExport</ModuleName>
+    </DCCReference>
     <DCCReference Include="..\Tests\utSimpleFund360Bulk.pas" />
     <DCCReference Include="..\Tests\utSimpleFundX.pas" />
     <DCCReference Include="..\Tests\utToDo.pas" />
     <DCCReference Include="..\Tests\utTPRExtact.pas" />
-    <DCCReference Include="..\Tests\utTPRExtact.pas,">
-      <Form>$R *.RES</Form>
-    </DCCReference>
     <DCCReference Include="..\Tests\utUpgrade.pas" />
     <DCCReference Include="..\Tests\utWebXOffice.pas" />
   </ItemGroup>
