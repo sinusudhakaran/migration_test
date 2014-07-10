@@ -88,7 +88,8 @@ uses
   UpdateMF,
   CodingFormCommands,
   GenUtils,
-  bkhelp;
+  bkhelp,
+  Math;
 
 const
   ICON_BUTTON = 0;
@@ -291,19 +292,13 @@ procedure TRecommendedMemorisationsFrm.vstTreeCompareNodes(
 var
   pData1, pData2: PTreeData;
 
-  function CompareInt(I1,I2 : Integer): Integer;
-  { compare two integers, return -1, 0 and 1 for I1<I2, I1=I2 and I1>I2 resp.}
-  asm
-    sub eax, edx
-  end;
-
   function CompareEntryType: integer;
   var
     EntryType1, EntryType2: integer;
   begin
     EntryType1 := pData1.RecommendedMem.rmFields.rmType;
     EntryType2 := pData2.RecommendedMem.rmFields.rmType;
-    Result := CompareInt(EntryType1, EntryType2);
+    Result := CompareValue(EntryType1, EntryType2);
   end;
 
   function CompareStatementDetails: integer;
@@ -326,7 +321,7 @@ var
               pData1.RecommendedMem.rmFields.rmUncoded_Count;
     Total2 := pData2.RecommendedMem.rmFields.rmManual_Count +
               pData2.RecommendedMem.rmFields.rmUncoded_Count;
-    Result := CompareInt(Total1, Total2);
+    Result := CompareValue(Total1, Total2);
   end;
 
 begin
