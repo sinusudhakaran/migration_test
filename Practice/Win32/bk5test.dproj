@@ -28,6 +28,7 @@
     <DCC_HppOutput>..\..\DCU</DCC_HppOutput>
     <DCC_WriteableConstants>True</DCC_WriteableConstants>
     <DCC_Optimize>False</DCC_Optimize>
+    <DCC_RangeChecking>True</DCC_RangeChecking>
   </PropertyGroup>
   <ProjectExtensions>
     <Borland.Personality>Delphi.Personality</Borland.Personality>
@@ -44,6 +45,7 @@
     <DCCReference Include="..\Tests\utBGL360.pas" />
     <DCCReference Include="..\Tests\utBudget.pas" />
     <DCCReference Include="..\Tests\utBudgetImportExport.pas" />
+    <DCCReference Include="..\Tests\utCashbookChartExport.pas" />
     <DCCReference Include="..\Tests\utFileExtensionUtils.pas" />
     <DCCReference Include="..\Tests\utGUIReportSchedule.pas" />
     <DCCReference Include="..\Tests\utInstitutionCol.pas" />
@@ -52,9 +54,6 @@
     <DCCReference Include="..\Tests\utMYOB.pas" />
     <DCCReference Include="..\Tests\utPayeeObj.pas" />
     <DCCReference Include="..\Tests\utRecommendedMems.pas" />
-    <DCCReference Include="..\Tests\utRecommendedMems.pas">
-      <ModuleName>utCashbookChartExport</ModuleName>
-    </DCCReference>
     <DCCReference Include="..\Tests\utSimpleFund360Bulk.pas" />
     <DCCReference Include="..\Tests\utSimpleFundX.pas" />
     <DCCReference Include="..\Tests\utToDo.pas" />

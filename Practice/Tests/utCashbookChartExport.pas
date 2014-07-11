@@ -16,7 +16,7 @@ type
 
    Procedure FillTestClient;
  protected
-   procedure Setup; override;
+   procedure SetUp; override;
    procedure TearDown; override;
  published
    procedure TestExportClientChartNoBalances;

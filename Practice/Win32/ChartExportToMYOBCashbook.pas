@@ -2172,7 +2172,7 @@ var
 begin
   Result := true;
 
-  for GstIndex := 0 to high(MyClient.clfields.clGST_Class_Names) do
+  for GstIndex := 1 to 99 do
   begin
     if MyClient.clfields.clGST_Class_Names[GstIndex] > '' then
     begin
@@ -2212,7 +2212,7 @@ var
 begin
   Result := true;
 
-  for GstIndex := 0 to high(MyClient.clfields.clGST_Class_Names) do
+  for GstIndex := 1 to 99 do
   begin
     if MyClient.clfields.clGST_Class_Names[GstIndex] > '' then
     begin
