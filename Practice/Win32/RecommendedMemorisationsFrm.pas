@@ -436,11 +436,10 @@ var
 begin
   Mems := MyClient.clRecommended_Mems.Recommended;
   fData := nil;
-  if (Mems.ItemCount = 0) and (MyClient.clRecommended_Mems.Unscanned.ItemCount = 0) then
-  begin
-    MyClient.clRecommended_Mems.RepopulateRecommendedMems;
-    Mems := MyClient.clRecommended_Mems.Recommended;
-   end;
+  { Note: The RepopulateRecommendedMems has been removed because with large
+    client files or with Mems V2 this would have taken a long time. It would
+    have affected the startup of the form (FormCreate) and clicking of the "+"
+    button, and leaving the Memorisation edit form. }
   for i := 0 to Mems.ItemCount-1 do
   begin
     Mem := Mems.Recommended_Mem_At(i);
@@ -539,14 +538,14 @@ begin
   begin
     // Repopulate the recommended mems list from scratch (just the rec mems,
     // not the unscanned transactions or candidate mems)
-    MyClient.clRecommended_Mems.RepopulateRecommendedMems;
+    // Note: RepopulateRecommendedMems removed, see note in PopulateTree
     RedrawTree; // if we don't do this, the recommendation we just accepted will still be in the list
     SendCmdToAllCodingWindows( ecRecodeTrans);
   end
   else
   begin
     FreeAndNil(Mem);
-    MyClient.clRecommended_Mems.RepopulateRecommendedMems;
+    // Note: RepopulateRecommendedMems removed, see note in PopulateTree
     RedrawTree;
   end;
 end;
