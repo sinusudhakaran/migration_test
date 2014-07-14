@@ -411,8 +411,8 @@ begin
    end;
 
    if mdFields.mdUntil_Date > 0 then begin
-      if result > '' then result := Result + ',';
-      Result := 'Until ' + bkDate2Str(mdFields.mdUntil_Date);
+      if result <> '' then result := Result + ', ';
+      Result := Result + 'Until ' + bkDate2Str(mdFields.mdUntil_Date);
    end;
 end;
 
