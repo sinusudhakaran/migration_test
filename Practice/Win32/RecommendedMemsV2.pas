@@ -274,7 +274,7 @@ type
               var aStartData: boolean; var aDetails: string;
               var aEndData: boolean): boolean;
 
-  function  LongestCommonSubstring(const AFirst, ASecond: String): string;
+  function  LongestCommonSubstring(const aS1: string; const aS2: string): string;
 
   function  FindLCSInLCS(const aLCS1: TLCS; const aLCS2: TLCS;
               var aStartData: boolean; var aDetails: string;
@@ -1448,9 +1448,9 @@ begin
   for i := 0 to fCandidates.ItemCount-1 do
   begin
     Candidate := fCandidates[i];
-    sDetails := Candidate.cmFields.cmStatement_Details;
 
     // Position of partial match within details
+    sDetails := Candidate.cmFields.cmStatement_Details;
     iPos := Pos(aDetails, sDetails);
     if (iPos = 0) then
       continue;
@@ -1674,64 +1674,50 @@ end;
 
 
 {-------------------------------------------------------------------------------
-  Longest Common Substring
+  Based on LCS Java algorithm from WikiBooks
 
-  Sourced from:
-  http://forum.codecall.net/topic/53596-longest-common-substring/
+  http://en.wikibooks.org/wiki/Algorithm_Implementation/Strings/Longest_common_substring
 -------------------------------------------------------------------------------}
-function CompareStringSection(const aFirst: string; const aFirstIndex: integer;
-  const aSecond: string; const aSecondIndex: integer; const aCount: integer
-  ): boolean;
-var
-  i: integer;
-  chFirst: char;
-  chSecond: char;
-begin
-  for i := 0 to aCount-1 do
-  begin
-    chFirst := aFirst[aFirstIndex + i];
-    chSecond := aSecond[aSecondIndex + i];
-    if (chFirst <> chSecond) then
-    begin
-      result := false;
-
-      exit;
-    end;
-  end;
-
-  result := true;
-end;
-
-//------------------------------------------------------------------------------
-function LongestCommonSubstring(const AFirst, ASecond: String): String;
+function LongestCommonSubstring(const aS1: string; const aS2: string): string;
 const
   MIN_LENGTH = 3;
 var
-  I, J, K: Integer;
-  LSubString: String;
+  iStart: integer;
+  iMax: integer;
+  i: integer;
+  j: integer;
+  iCount: integer;
 begin
   if DebugMe then
     CreateDebugTimer('LongestCommonSubstring');
 
-  Result := '';
-  for I := 1 to Length(AFirst) do for J := 1 to Length(ASecond) do
+  iStart := 1;
+  iMax := 0;
+
+  for i := 1 to Length(aS1) do
   begin
-    K := MIN_LENGTH;
-    while (K <= Length(AFirst)) and (K <= Length(ASecond)) do
+    for j := 1 to Length(aS2) do
     begin
-      if CompareStringSection(AFirst, I, ASecond, J, K) then
+      iCount := 0;
+      while (aS1[i + iCount] = aS2[j + iCount]) do
       begin
-        LSubString := Copy(AFirst, I, K);
-      end else
-      begin
-        if Length(LSubString) > Length(Result) then Result := LSubString;
-        LSubString := '';
+        Inc(iCount);
+        if ((i + iCount) > Length(aS1)) or ((j + iCount) >= Length(aS2)) then
+          break;
       end;
-      if Length(LSubString) > Length(Result) then Result := LSubString;
-      LSubString := '';
-      Inc(K);
+
+      if (iCount > iMax) then
+      begin
+        iStart := i;
+        iMax := iCount;
+      end;
     end;
   end;
+
+  result := Copy(aS1, iStart, iMax);
+  result := Trim(result);
+  if (Length(result) < MIN_LENGTH) then
+    result := '';
 end;
 
 
