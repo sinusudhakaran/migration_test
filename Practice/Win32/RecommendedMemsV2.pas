@@ -244,6 +244,7 @@ type
     // Run functions
     procedure Reset;
     function  AllowedToRun: boolean;
+    // Returns true if there is more to process
     function  DoProcessing: boolean;
 
   private
@@ -300,7 +301,8 @@ uses
   Windows,
   MMSystem,
   Controls,
-  Forms;
+  Forms,
+  DebugTimer;
 
 {-------------------------------------------------------------------------------
   Logging
@@ -548,6 +550,9 @@ var
   i: integer;
   CandidateString: TCandidateString;
 begin
+  if DebugMe then
+    CreateDebugTimer('TCandidateStringList.FindDuplicate');
+  
   for i := 0 to Count-1 do
   begin
     CandidateString := Items[i];
@@ -861,6 +866,9 @@ var
 
   New: TCandidateString;
 begin
+  if DebugMe then
+    CreateDebugTimer('TCandidateGroup.GetCandidateStrings');
+    
   // Same row?
   if (aRow = aRowOther) then
     exit;
@@ -868,9 +876,8 @@ begin
   Candidate := TCandidate_Mem(fCandidates[aRow]);
   CandidateOther := TCandidate_Mem(fCandidates[aRowOther]);
 
-  // Not same Bank Account Number
-  if (Candidate.cmFields.cmBank_Account_Number <> CandidateOther.cmFields.cmBank_Account_Number) then
-    exit;
+  { Note: hierarchy is BankAccountNumber, AccountCode, and EntryType, but for
+    performance reasons the order has been changed }
 
   // Not same Account Code?
   if (Candidate.cmFields.cmAccount <> CandidateOther.cmFields.cmAccount) then
@@ -878,6 +885,10 @@ begin
 
   // Not same entry type?
   if (Candidate.cmFields.cmType <> CandidateOther.cmFields.cmType) then
+    exit;
+
+  // Not same Bank Account Number
+  if (Candidate.cmFields.cmBank_Account_Number <> CandidateOther.cmFields.cmBank_Account_Number) then
     exit;
 
   { Not manual?
@@ -901,11 +912,6 @@ begin
 
   // No start or end tag?
   if not (bStartData or bEndData) then
-    exit;
-
-  // Not a valid Details?
-  sDetails := Trim(sDetails);
-  if (sDetails = '') then
     exit;
 
   // Duplicate Details?
@@ -1168,6 +1174,9 @@ const
 var
   iIteration: integer;
 begin
+  if DebugMe then
+    CreateDebugTimer('TMemsV2.DoProcessing');
+
   result := NO_MORE_PROCESSING_TO_DO;
 
   // Handle state
@@ -1294,6 +1303,9 @@ var
   iFound: integer;
   varAdd: TCandidateGroup;
 begin
+  if DebugMe then
+    CreateDebugTimer('TMemsV2.GroupCandidateMems');
+
   for i := 0 to Candidates.ItemCount-1 do
   begin
     Candidate := Candidates[i];
@@ -1501,14 +1513,17 @@ begin
         Candidate := fCandidateStrings[iRow];
         CandidateOther := fCandidateStrings[iRowOther];
 
-        // BankAccountNumber mismatch?
-        if (Candidate.BankAccountNumber <> CandidateOther.BankAccountNumber) then
-          continue;
+        { Note: hierarchy is BankAccountNumber, AccountCode, and EntryType, but
+          for performance reasons the order has been changed }
 
         // Note: no need to do Account Code
-        
+
         // Entry type mismatch?
         if (Candidate.EntryType <> CandidateOther.EntryType) then
+          continue;
+
+        // BankAccountNumber mismatch?
+        if (Candidate.BankAccountNumber <> CandidateOther.BankAccountNumber) then
           continue;
 
         // Found new longer string?
@@ -1664,18 +1679,47 @@ end;
   Sourced from:
   http://forum.codecall.net/topic/53596-longest-common-substring/
 -------------------------------------------------------------------------------}
+function CompareStringSection(const aFirst: string; const aFirstIndex: integer;
+  const aSecond: string; const aSecondIndex: integer; const aCount: integer
+  ): boolean;
+var
+  i: integer;
+  chFirst: char;
+  chSecond: char;
+begin
+  for i := 0 to aCount-1 do
+  begin
+    chFirst := aFirst[aFirstIndex + i];
+    chSecond := aSecond[aSecondIndex + i];
+    if (chFirst <> chSecond) then
+    begin
+      result := false;
+
+      exit;
+    end;
+  end;
+
+  result := true;
+end;
+
+//------------------------------------------------------------------------------
 function LongestCommonSubstring(const AFirst, ASecond: String): String;
+const
+  MIN_LENGTH = 3;
 var
   I, J, K: Integer;
   LSubString: String;
 begin
+  if DebugMe then
+    CreateDebugTimer('LongestCommonSubstring');
+
   Result := '';
   for I := 1 to Length(AFirst) do for J := 1 to Length(ASecond) do
   begin
-    K := 1;
+    K := MIN_LENGTH;
     while (K <= Length(AFirst)) and (K <= Length(ASecond)) do
     begin
-      if Copy(AFirst, I, K) = Copy(ASecond, J, K) then
+      if CompareStringSection(AFirst, I, ASecond, J, K) then
       begin
         LSubString := Copy(AFirst, I, K);
       end else

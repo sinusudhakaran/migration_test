@@ -86,7 +86,9 @@ uses
   OSFont,
   rmObj32,
   SysUtils,
-  Windows;
+  Windows,
+  LogUtil,
+  DebugTimer;
 
 const
   UnitName = 'RecommendedMems';
@@ -441,6 +443,9 @@ var
     end;
 
   begin
+    if DebugMe then
+      CreateDebugTimer('TRecommended_Mems.DoRecommendedMemProcessing');
+
     if (Candidate.cpFields.cpCandidate_ID_To_Process < 1) then
       Candidate.cpFields.cpCandidate_ID_To_Process := 1;
     CandidateToProcess := Candidate.cpFields.cpCandidate_ID_To_Process;
@@ -514,6 +519,9 @@ var
     MatchingCandidateFound  : boolean;
     NewCandidateInserted    : boolean;
   begin
+    if DebugMe then
+      CreateDebugTimer('TRecommended_Mems.DoCandidateMemProcessing');
+
     // Is unscanned list empty?
     if (Unscanned.ItemCount > 0) then
     begin
@@ -619,26 +627,33 @@ var
       // start from the first candidate. Should already be 1 but hey let's be safe
 //      Assert((Candidate.cpFields.cpCandidate_ID_To_Process = 1), 'cpCandidate_ID_To_Process should be 1, but it isn''t');
       Candidate.cpFields.cpCandidate_ID_To_Process := 1;
+
+      fMemsV2.Reset;
     end;
   end;
 begin
+  if DebugMe then
+    CreateDebugTimer('TRecommended_Mems.MemScan');
+
   Result := False;
   if Assigned(myClient) or RunningUnitTest then // Is the client file open?
   begin
     // Store current time
     StartTime := Time;
+
     // Are we in the coding screen?
     if Assigned(Screen.ActiveForm) then
       InCodingForm := (TfrmCoding.ClassName = Screen.ActiveForm.ClassName)
     else
       InCodingForm := False;
 
+    // Are we in the coding form, and has there been a keypress in the last two seconds?
+    if InCodingForm and (MilliSecondsBetween(StartTime, GetLastCodingFrmKeyPress) <= 2000) then
+      Exit; // We are and there has, let's not do any scanning so that we don't interfere with the user
+
     // Has it been more than 33 milliseconds yet?
     while ((MilliSecondsBetween(StartTime, Time) < 33) or RunningUnitTest) do
     begin
-      // Are we in the coding form, and has there been a keypress in the last two seconds?
-      if InCodingForm and (MilliSecondsBetween(StartTime, GetLastCodingFrmKeyPress) <= 2000) then
-        Exit; // We are and there has, let's not do any scanning so that we don't interfere with the user
       // Is the unscanned list empty?
       if (Unscanned.ItemCount = 0) then
       begin
@@ -1025,6 +1040,11 @@ begin
   finally
     frmMain.MemScanIsBusy := False;
   end;
+end;
+
+initialization
+begin
+  DebugMe := DebugUnit(UnitName);
 end;
 
 end.
