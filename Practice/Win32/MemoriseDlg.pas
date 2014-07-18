@@ -3457,6 +3457,7 @@ var
   procedure CreatePayeeLines;
   var
     i: integer;
+    AccountCode: pAccount_Rec;
   begin
     if ChangeActiveCol then
       tblSplit.ActiveCol := AcctCol;
@@ -3487,7 +3488,11 @@ var
       GSTClass := PayeeLine.plGST_Class;
       SplitData[i+ActiveRow].AcctCode     := PayeeLine.plAccount;
       if (PayeeLine.plAccount <> '') then
-        SplitData[i+ActiveRow].Desc       := MyClient.clChart.FindCode(PayeeLine.plAccount).chAccount_Description;
+      begin
+        AccountCode := MyClient.clChart.FindCode(PayeeLine.plAccount);
+        if Assigned(AccountCode) then        
+          SplitData[i+ActiveRow].Desc     := AccountCode.chAccount_Description;
+      end;
       SplitData[i+ActiveRow].Narration    := PayeeLine.plGL_Narration;
       SplitData[i+ActiveRow].Payee        := PayeeCode;
       if (GSTClass <> 0) then
