@@ -2523,6 +2523,22 @@ procedure ListMemDetail(Sender : TObject);
        end;
     end;
 
+    procedure AddAlignedTextLine(Name: string; value: Money);
+    begin
+      if Value = 0 then
+        Exit;
+      with TBKReport(Sender) do
+      begin
+        PutString(Indent + Name);
+        PutString(FormatFloat(NUMBER_FORMAT, Money2Double(Value)));
+        PutString('');
+        PutString('');
+        PutString('');
+        PutString('');
+        RenderDetailLine;
+      end;
+    end;
+
     procedure AddTextLine(Name, Value: string; indented: Boolean = false);
     var S: string;
     begin
@@ -2649,6 +2665,8 @@ procedure ListMemDetail(Sender : TObject);
                      if (MemLine^.mlSF_Member_Component <> mcNewNA) then
                         AddTextLine('Member Component' , GetSFMemberText(0,MemLine^.mlSF_Member_Component, False), true);
 
+                     AddAlignedTextLine('Quantity', MemLine.mlQuantity / 10000);
+
                   end;
                saSupervisor, saSolution6SuperFund, saSuperMate: begin
                      AddValueLine('Interest', MemLine.mlSF_Interest , MemLine.mlLine_Type = mltPercentage);
@@ -2670,9 +2688,10 @@ procedure ListMemDetail(Sender : TObject);
 
 
                      AddTextLine('Member ID', MemLine.mlSF_Member_ID, true);
+                     AddAlignedTextLine('Quantity', MemLine.mlQuantity / 10000);
 
                   end;
-               saDesktopSuper: begin
+               saDesktopSuper, saClassSuperIP: begin
                      AddValueLine('Foreign Income', MemLine.mlSF_Foreign_Income, MemLine.mlLine_Type = mltPercentage);
                      AddValueLine('Other Taxable', MemLine.mlSF_Other_Expenses , MemLine.mlLine_Type = mltPercentage);
 
@@ -2691,16 +2710,11 @@ procedure ListMemDetail(Sender : TObject);
                      AddTextLine('Investment Code', MemLine.mlSF_Fund_Code, True);
 
                      AddTextLine('Member Account', MemLine.mlSF_Member_Account_Code, True);
-
+                     AddAlignedTextLine('Units', MemLine.mlQuantity / 10000);
                    end;
 
                end;
-
-               if MyClient.clFields.clAccounting_System_Used in [saDesktopSuper, saClassSuperIP] then
-                 AddTextLine('Units', FloatToStr(MemLine.mlQuantity / 10000))
-               else
-                 AddTextLine('Quantity', FloatToStr(MemLine.mlQuantity / 10000));
-
+               
                RenderTextLine('');
            end;
 
