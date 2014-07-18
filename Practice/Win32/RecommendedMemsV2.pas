@@ -1673,6 +1673,66 @@ begin
 end;
 
 
+{$IFDEF DEBUG}
+function CompareStringSection(const aFirst: string; const aFirstIndex: integer;
+  const aSecond: string; const aSecondIndex: integer; const aCount: integer
+  ): boolean;
+var
+  i: integer;
+  chFirst: char;
+  chSecond: char;
+begin
+  for i := 0 to aCount-1 do
+  begin
+    chFirst := aFirst[aFirstIndex + i];
+    chSecond := aSecond[aSecondIndex + i];
+    if (chFirst <> chSecond) then
+    begin
+      result := false;
+
+      exit;
+    end;
+  end;
+
+  result := true;
+end;
+
+//------------------------------------------------------------------------------
+function LongestCommonSubstringOld(const aS1: string; const aS2: string): string;
+const
+  MIN_LENGTH = 3;
+var
+  I, J, K: Integer;
+  LSubString: String;
+begin
+  if DebugMe then
+    CreateDebugTimer('LongestCommonSubstring');
+
+  Result := '';
+  for I := 1 to Length(aS1) do for J := 1 to Length(aS2) do
+  begin
+    K := MIN_LENGTH;
+    while (K <= Length(aS1)) and (K <= Length(aS2)) do
+    begin
+      if CompareStringSection(aS1, I, aS2, J, K) then
+      begin
+        LSubString := Copy(aS1, I, K);
+      end else
+      begin
+        if Length(LSubString) > Length(Result) then Result := LSubString;
+        LSubString := '';
+      end;
+      if Length(LSubString) > Length(Result) then Result := LSubString;
+      LSubString := '';
+      Inc(K);
+    end;
+  end;
+
+  result := Trim(result);
+end;
+{$ENDIF}
+
+
 {-------------------------------------------------------------------------------
   Based on LCS Java algorithm from WikiBooks
 
@@ -1702,7 +1762,7 @@ begin
       while (aS1[i + iCount] = aS2[j + iCount]) do
       begin
         Inc(iCount);
-        if ((i + iCount) > Length(aS1)) or ((j + iCount) >= Length(aS2)) then
+        if ((i + iCount) > Length(aS1)) or ((j + iCount) > Length(aS2)) then
           break;
       end;
 
@@ -1718,6 +1778,10 @@ begin
   result := Trim(result);
   if (Length(result) < MIN_LENGTH) then
     result := '';
+
+{$IFDEF DEBUG}
+  ASSERT(result = LongestCommonSubstringOld(aS1, aS2), aS1 + ', ' + aS2 + ' = ' + result + ' <> ' + LongestCommonSubstringOld(aS1, aS2));
+{$ENDIF}
 end;
 
 
