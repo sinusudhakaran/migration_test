@@ -879,6 +879,11 @@ begin
   { Note: hierarchy is BankAccountNumber, AccountCode, and EntryType, but for
     performance reasons the order has been changed }
 
+  // Uncoded?
+
+  if (Candidate.cmFields.cmAccount = '') then
+    exit;
+
   // Not same Account Code?
   if (Candidate.cmFields.cmAccount <> CandidateOther.cmFields.cmAccount) then
     exit;
@@ -1390,9 +1395,9 @@ var
   sAccountFound: string;
   i: integer;
   Candidate: TCandidate_Mem;
+  sAccount: string;
   sDetails: string;
   iPos: integer;
-  sAccount: string;
 begin
   bFirstAccount := true;
 
@@ -1400,15 +1405,18 @@ begin
   begin
     Candidate := fCandidates[i];
 
+    // Uncoded? (Coded candidates only)
+    sAccount := Candidate.cmFields.cmAccount;
+    if (sAccount = '') then
+      continue;
+
     // Position of partial match within details
     sDetails := Candidate.cmFields.cmStatement_Details;
     iPos := Pos(aDetails, sDetails);
     if (iPos = 0) then
       continue;
 
-    sAccount := Candidate.cmFields.cmAccount;
-
-    // First time we find an account?
+    // First time we found an account?
     if bFirstAccount then
     begin
       bFirstAccount := false;
@@ -1420,6 +1428,9 @@ begin
     // Different account?
     if (sAccountFound <> sAccount) then
     begin
+      if DebugMe then
+        Log('More than one account: ' + sAccountFound + ' <> ' + sAccount);
+
       // More than one account found, stop looking
       result := true;
       exit;
@@ -1706,7 +1717,7 @@ var
   LSubString: String;
 begin
   if DebugMe then
-    CreateDebugTimer('LongestCommonSubstring');
+    CreateDebugTimer('LongestCommonSubstringOld');
 
   Result := '';
   for I := 1 to Length(aS1) do for J := 1 to Length(aS2) do
@@ -1729,6 +1740,8 @@ begin
   end;
 
   result := Trim(result);
+  if (Length(result) < MIN_LENGTH) then
+    result := '';
 end;
 {$ENDIF}
 
