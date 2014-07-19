@@ -80,16 +80,15 @@ type
     TCandidateStringlist
   -----------------------------------------------------------------------------}
   TCandidateStringList = class(TList)
-  public
+  protected
     procedure Notify(Ptr: Pointer; Action: TListNotification); override;
+
+  public
+    procedure AddOrMerge(const aValue: TCandidateString);
 
     procedure Assign(const aFrom: TCandidateStringList);
 
     function  Compare(const aOther: TCandidateStringList): boolean;
-
-    function  FindDuplicate(const aBankAccountNumber: string; 
-                const aAccount: string; const aEntryType: byte; 
-                const aDetails: string): boolean;
 
     function  FindLCS(const aStartData: boolean; const aDetails: string;
                 const aEndData: boolean): boolean; overload;
@@ -100,8 +99,6 @@ type
     function  GetString(const aIndex: integer): TCandidateString;
     property  Strings[const aIndex: integer]: TCandidateString read GetString;
                 default;
-
-    procedure AddOrMerge(const aValue: TCandidateString);
 
     procedure CopyRelevantLCSTo(const aOther: TCandidateStringList);
 
@@ -462,6 +459,50 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+procedure TCandidateStringList.AddOrMerge(const aValue: TCandidateString);
+var
+  i: integer;
+  Candidate: TCandidateString;
+begin
+  // Note: At this point we're the owner of aValue
+
+  for i := 0 to Count-1 do
+  begin
+    Candidate := GetString(i);
+
+    // BankAccountNumber different?
+    if (Candidate.BankAccountNumber <> aValue.BankAccountNumber) then
+      continue;
+    
+    // Note: no need to check the Account Code here (during refinement that is)
+
+    // EntryType different?
+    if (Candidate.EntryType <> aValue.EntryType) then
+      continue;
+    
+    // Different Details?
+    if (Candidate.LCS.Details <> aValue.LCS.Details) then
+      continue;
+
+    // Merge the wildcards
+    Candidate.LCS.StartData := (Candidate.LCS.StartData or aValue.LCS.StartData);
+    Candidate.LCS.EndData := (Candidate.LCS.EndData or aValue.LCS.EndData);
+
+    // We've merged the two candidate strings, so we have to delete this one
+    aValue.Free;
+
+    // Stop searching
+    exit;
+  end;
+
+  if DebugMe then
+    Log('Add: ' + aValue.LCS.ToString + ', ' + IntToStr(Integer(self)));
+
+  // New entry
+  Add(aValue);
+end;
+
+//------------------------------------------------------------------------------
 procedure TCandidateStringList.Assign(const aFrom: TCandidateStringList);
 var
   i: integer;
@@ -543,36 +584,6 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TCandidateStringList.FindDuplicate(const aBankAccountNumber: string; 
-  const aAccount: string; const aEntryType: byte; const aDetails: string
-  ): boolean;
-var
-  i: integer;
-  CandidateString: TCandidateString;
-begin
-  if DebugMe then
-    CreateDebugTimer('TCandidateStringList.FindDuplicate');
-  
-  for i := 0 to Count-1 do
-  begin
-    CandidateString := Items[i];
-
-    // Duplicate?
-    if (CandidateString.BankAccountNumber = aBankAccountNumber) and
-       (CandidateString.Account = aAccount) and
-       (CandidateString.EntryType = aEntryType) and
-       (CandidateString.LCS.Details = aDetails) then
-    begin
-      result := true;
-
-      exit;
-    end;
-  end;
-
-  result := false;
-end;
-
-//------------------------------------------------------------------------------
 function TCandidateStringList.FindLCS(const aStartData: boolean;
   const aDetails: string; const aEndData: boolean): boolean;
 var
@@ -605,50 +616,6 @@ end;
 function TCandidateStringList.GetString(const aIndex: integer): TCandidateString;
 begin
   result := TCandidateString(Items[aIndex]);
-end;
-
-//------------------------------------------------------------------------------
-procedure TCandidateStringList.AddOrMerge(const aValue: TCandidateString);
-var
-  i: integer;
-  Candidate: TCandidateString;
-begin
-  // Note: At this point we're the owner of aValue
-
-  for i := 0 to Count-1 do
-  begin
-    Candidate := GetString(i);
-
-    // BankAccountNumber different?
-    if (Candidate.BankAccountNumber <> aValue.BankAccountNumber) then
-      continue;
-    
-    // Note: no need to check the Account Code here (during refinement that is)
-
-    // EntryType different?
-    if (Candidate.EntryType <> aValue.EntryType) then
-      continue;
-    
-    // Different Details?
-    if (Candidate.LCS.Details <> aValue.LCS.Details) then
-      continue;
-
-    // Merge the wildcards
-    Candidate.LCS.StartData := (Candidate.LCS.StartData or aValue.LCS.StartData);
-    Candidate.LCS.EndData := (Candidate.LCS.EndData or aValue.LCS.EndData);
-
-    // We've merged the two candidate strings, so we have to delete this one
-    aValue.Free;
-
-    // Stop searching
-    exit;
-  end;
-
-  if DebugMe then
-    Log('Add: ' + aValue.LCS.ToString + ', ' + IntToStr(Integer(self)));
-
-  // New entry
-  Add(aValue);
 end;
 
 //------------------------------------------------------------------------------
@@ -919,13 +886,6 @@ begin
   if not (bStartData or bEndData) then
     exit;
 
-  // Duplicate Details?
-  if aCandidateStrings.FindDuplicate(BankAccountNumber, Account, EntryType,
-    sDetails) then
-  begin
-    exit;
-  end;
-
   // Create new candidate string
   New := TCandidateString.Create;
   New.fBankAccountNumber := BankAccountNumber;
@@ -934,7 +894,7 @@ begin
   New.LCS.SetData(bStartData, sDetails, bEndData);
 
   // Add
-  aCandidateStrings.Add(New);
+  aCandidateStrings.AddOrMerge(New);
 end;
 
 
@@ -1667,7 +1627,6 @@ begin
 
   // Longest match
   aDetails := LongestCommonSubstring(aFirst, aSecond);
-  aDetails := Trim(aDetails);
   if (aDetails = '') then
     exit;
 
