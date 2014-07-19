@@ -875,8 +875,8 @@ begin
     exit;
 
   // Can't find longest string?
-  if not FindLCS(Candidate.cmFields.cmStatement_Details,
-    CandidateOther.cmFields.cmStatement_Details, bStartData, sDetails,
+  if not FindLCS(Candidate.GetStatementDetailsLowerCase,
+    CandidateOther.GetStatementDetailsLowerCase, bStartData, sDetails,
     bEndData) then
   begin
     exit;
@@ -1374,7 +1374,7 @@ begin
       continue;
 
     // Position of partial match within details
-    sDetails := Candidate.cmFields.cmStatement_Details;
+    sDetails := Candidate.GetStatementDetailsLowerCase;
     iPos := Pos(aDetails, sDetails);
     if (iPos = 0) then
       continue;
@@ -1424,7 +1424,7 @@ begin
     Candidate := fCandidates[i];
 
     // Position of partial match within details
-    sDetails := Candidate.cmFields.cmStatement_Details;
+    sDetails := Candidate.GetStatementDetailsLowerCase;
     iPos := Pos(aDetails, sDetails);
     if (iPos = 0) then
       continue;
