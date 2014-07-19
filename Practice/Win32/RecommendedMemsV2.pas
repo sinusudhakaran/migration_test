@@ -1315,14 +1315,17 @@ begin
   begin
     Candidate := Candidates[i];
 
-    sBankAccountNumber := Candidate.cmFields.cmBank_Account_Number;
-
     // Uncoded transaction?
     sAccount := Candidate.cmFields.cmAccount;
     if (sAccount = '') then
       continue;
 
+    // DISSECTED?
+    if (sAccount = DISSECT_DESC) then
+      continue;
+
     // Add to account
+    sBankAccountNumber := Candidate.cmFields.cmBank_Account_Number;
     byEntryType := Candidate.cmFields.cmType;
     if fGroups.Find(sBankAccountNumber, sAccount, byEntryType, iFound) then
       varAdd := fGroups[iFound]
