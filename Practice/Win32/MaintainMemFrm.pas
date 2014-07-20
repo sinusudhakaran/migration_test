@@ -649,21 +649,26 @@ begin
            0: AccSel.StateIndex := LoadMemorisations(tBank_Account(AccSel.Data));
            1: LoadMasters(AccSel.Text);
         end; //case
-        // See if we can find the last edited one..
-        for I := 0 to lvMemorised.items.Count - 1 do
-           if (TMemorisation(lvMemorised.Items[I].SubItems.Objects[0]).mdFields^.mdSequence_No = pM.mdFields^.mdSequence_No) then
-           begin
-              lvMemorised.Selected := nil; //Deselect all..
-              lvMemorised.Selected := lvMemorised.Items[I];
-              lvMemorised.Selected.Focused := True;
-              Break;
-           end;
+        if Assigned(lvMemorised.Selected) then
+        begin
+          // See if we can find the last edited one..
+          for I := 0 to lvMemorised.items.Count - 1 do
+          begin
+             if (TMemorisation(lvMemorised.Items[I].SubItems.Objects[0]).mdFields^.mdSequence_No = pM.mdFields^.mdSequence_No) then
+             begin
+                lvMemorised.Selected := nil; //Deselect all..
+                lvMemorised.Selected := lvMemorised.Items[I];
+                lvMemorised.Selected.Focused := True;
+                Break;
+             end;
+          end;
+        end;
 
         MasterMemToDelete := -1;
         if Assigned(AdminSystem) then
         begin
           SystemMemorisation := AdminSystem.SystemMemorisationList.FindPrefix(AccSel.Text);
-          if Assigned(SystemMemorisation) then
+          if Assigned(SystemMemorisation) and Assigned(lvMemorised.Selected) then
           begin
             for i := 0 to TMemorisations_List(SystemMemorisation.smMemorisations).ItemCount - 1 do
             begin
