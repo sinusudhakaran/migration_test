@@ -478,8 +478,11 @@ begin
   begin
     Candidate := GetString(i);
 
-    // BankAccountNumber different?
-    if (Candidate.BankAccountNumber <> aValue.BankAccountNumber) then
+    { Normal order is: BankAccountNumber, Account, EntryType and Details.
+      For performance reasons this is re-ordered. }
+
+    // EntryType different?
+    if (Candidate.EntryType <> aValue.EntryType) then
       continue;
 
     // Note: no need to check the Account Code during refinement
@@ -490,8 +493,8 @@ begin
         continue;
     end;
 
-    // EntryType different?
-    if (Candidate.EntryType <> aValue.EntryType) then
+    // BankAccountNumber different?
+    if (Candidate.BankAccountNumber <> aValue.BankAccountNumber) then
       continue;
 
     // Different Details?
@@ -1338,6 +1341,9 @@ var
   sAccount: string;
 begin
   if DebugMe then
+    CreateDebugTimer('TMemsV2.EliminateCandidateStrings');
+
+  if DebugMe then
   begin
     Log('');
     Log('String Elimination:');
@@ -1485,6 +1491,9 @@ var
   bEndData: boolean;
   New: TCandidateString;
 begin
+  if DebugMe then
+    CreateDebugTimer('TMemsV2.RefineCandidateStrings');
+
   if DebugMe then
   begin
     Log('');
