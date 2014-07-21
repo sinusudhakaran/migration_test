@@ -84,7 +84,8 @@ type
     procedure Notify(Ptr: Pointer; Action: TListNotification); override;
 
   public
-    procedure AddOrMerge(const aValue: TCandidateString);
+    procedure AddOrMerge(const aValue: TCandidateString;
+                const aCheckAccount: boolean);
 
     procedure Assign(const aFrom: TCandidateStringList);
 
@@ -100,7 +101,8 @@ type
     property  Strings[const aIndex: integer]: TCandidateString read GetString;
                 default;
 
-    procedure CopyRelevantLCSTo(const aOther: TCandidateStringList);
+    procedure CopyRelevantLCSTo(const aOther: TCandidateStringList;
+                const aCheckAccount: boolean);
 
     procedure LogData;
   end;
@@ -138,9 +140,11 @@ type
 
     function  IndexOf(const aValue: TCandidateString): integer;
                 
-    procedure AddOrMerge(const aValue: TCandidateString);
+    procedure AddOrMerge(const aValue: TCandidateString;
+                const aCheckAccount: boolean);
 
-    procedure CopyRelevantLCSTo(const aOther: TCandidateStringList);
+    procedure CopyRelevantLCSTo(const aOther: TCandidateStringList;
+                const aCheckAccount: boolean);
   end;
 
 
@@ -459,11 +463,15 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TCandidateStringList.AddOrMerge(const aValue: TCandidateString);
+procedure TCandidateStringList.AddOrMerge(const aValue: TCandidateString;
+  const aCheckAccount: boolean);
 var
   i: integer;
   Candidate: TCandidateString;
 begin
+  if DebugMe then
+    CreateDebugTimer('TCandidateStringList.AddOrMerge');
+
   // Note: At this point we're the owner of aValue
 
   for i := 0 to Count-1 do
@@ -473,13 +481,19 @@ begin
     // BankAccountNumber different?
     if (Candidate.BankAccountNumber <> aValue.BankAccountNumber) then
       continue;
-    
-    // Note: no need to check the Account Code here (during refinement that is)
+
+    // Note: no need to check the Account Code during refinement
+    if aCheckAccount then
+    begin
+      // Account different?
+      if (Candidate.Account <> aValue.Account) then
+        continue;
+    end;
 
     // EntryType different?
     if (Candidate.EntryType <> aValue.EntryType) then
       continue;
-    
+
     // Different Details?
     if (Candidate.LCS.Details <> aValue.LCS.Details) then
       continue;
@@ -620,7 +634,7 @@ end;
 
 //------------------------------------------------------------------------------
 procedure TCandidateStringList.CopyRelevantLCSTo(
-  const aOther: TCandidateStringList);
+  const aOther: TCandidateStringList; const aCheckAccount: boolean);
 var
   i: integer;
   iLowest: integer;
@@ -648,7 +662,7 @@ begin
 
     // Add
     New := Candidate.Copy;
-    aOther.AddOrMerge(New);
+    aOther.AddOrMerge(New, aCheckAccount);
   end;
 end;
 
@@ -746,7 +760,8 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TCandidateStringTree.AddOrMerge(const aValue: TCandidateString);
+procedure TCandidateStringTree.AddOrMerge(const aValue: TCandidateString;
+  const aCheckAccount: boolean);
 var
   iIndex: integer;
   TreeItem: TCandidateStringTreeItem;
@@ -762,12 +777,12 @@ begin
   else
     TreeItem := TreeItems[iIndex];
 
-  TreeItem.CandidateStrings.AddOrMerge(aValue);
+  TreeItem.CandidateStrings.AddOrMerge(aValue, aCheckAccount);
 end;
 
 //------------------------------------------------------------------------------
 procedure TCandidateStringTree.CopyRelevantLCSTo(
-  const aOther: TCandidateStringList);
+  const aOther: TCandidateStringList; const aCheckAccount: boolean);
 var
   i: integer;
   TreeItem: TCandidateStringTreeItem;
@@ -776,7 +791,7 @@ begin
   begin
     TreeItem := TreeItems[i];
 
-    TreeItem.CandidateStrings.CopyRelevantLCSTo(aOther);
+    TreeItem.CandidateStrings.CopyRelevantLCSTo(aOther, aCheckAccount);
   end;
 end;
 
@@ -827,6 +842,11 @@ var
   Candidate: TCandidate_Mem;
   CandidateOther: TCandidate_Mem;
 
+  bCandidateManual: boolean;
+  bCandidateManualAuto: boolean;
+  bCandidateOtherManual: boolean;
+  bCandidateOtherManualAuto: boolean;
+
   bStartData: boolean;
   sDetails: string;
   bEndData: boolean;
@@ -835,44 +855,36 @@ var
 begin
   if DebugMe then
     CreateDebugTimer('TCandidateGroup.GetCandidateStrings');
-    
-  // Same row?
-  if (aRow = aRowOther) then
-    exit;
 
+  ASSERT(aRowOther > aRow);
+  ASSERT(aRow < fCandidates.Count);
+  ASSERT(aRowOther < fCandidates.Count);
+
+  // Get candidates
   Candidate := TCandidate_Mem(fCandidates[aRow]);
   CandidateOther := TCandidate_Mem(fCandidates[aRowOther]);
 
-  { Note: hierarchy is BankAccountNumber, AccountCode, and EntryType, but for
-    performance reasons the order has been changed }
+  ASSERT(Candidate.cmFields.cmBank_Account_Number = BankAccountNumber);
+  ASSERT(CandidateOther.cmFields.cmBank_Account_Number = BankAccountNumber);
+  ASSERT(Candidate.cmFields.cmAccount <> '');
+  ASSERT(Candidate.cmFields.cmAccount = Account);
+  ASSERT(CandidateOther.cmFields.cmAccount <> '');
+  ASSERT(CandidateOther.cmFields.cmAccount = Account);
+  ASSERT(Candidate.cmFields.cmType = EntryType);
+  ASSERT(CandidateOther.cmFields.cmType = EntryType);
 
-  // Uncoded?
+  // Determine manual/automatic status
+  bCandidateManual := (Candidate.cmFields.cmCoded_By in MANUAL);
+  bCandidateManualAuto := (Candidate.cmFields.cmCoded_By in MANUAL_AUTOMATIC);
+  bCandidateOtherManual := (CandidateOther.cmFields.cmCoded_By in MANUAL);
+  bCandidateOtherManualAuto := (CandidateOther.cmFields.cmCoded_By in MANUAL_AUTOMATIC);
 
-  if (Candidate.cmFields.cmAccount = '') then
+  // Not right combination of Manual/Auto?
+  if not ((bCandidateManual and bCandidateOtherManualAuto) or
+          (bCandidateOtherManual and bCandidateManualAuto)) then
+  begin
     exit;
-
-  // Not same Account Code?
-  if (Candidate.cmFields.cmAccount <> CandidateOther.cmFields.cmAccount) then
-    exit;
-
-  // Not same entry type?
-  if (Candidate.cmFields.cmType <> CandidateOther.cmFields.cmType) then
-    exit;
-
-  // Not same Bank Account Number
-  if (Candidate.cmFields.cmBank_Account_Number <> CandidateOther.cmFields.cmBank_Account_Number) then
-    exit;
-
-  { Not manual?
-    Note: no need to check the account code because it's already done in
-    obtaining the accounts list.
-  }
-  if not (Candidate.cmFields.cmCoded_By in MANUAL) then
-    exit;
-
-  // Not auto or manual?
-  if not (CandidateOther.cmFields.cmCoded_By in MANUAL_AUTOMATIC) then
-    exit;
+  end;
 
   // Can't find longest string?
   if not FindLCS(Candidate.GetStatementDetailsLowerCase,
@@ -894,7 +906,7 @@ begin
   New.LCS.SetData(bStartData, sDetails, bEndData);
 
   // Add
-  aCandidateStrings.AddOrMerge(New);
+  aCandidateStrings.AddOrMerge(New, {aCheckAccount=}true);
 end;
 
 
@@ -961,7 +973,8 @@ begin
   fCandidateIndex := 0;
   fCandidateOtherIndex := 0;
 
-  result := true;
+  // We want (0, 0, 1), so we let GetNext do this
+  result := GetNext;
 end;
 
 //------------------------------------------------------------------------------
@@ -978,18 +991,16 @@ begin
   Inc(fCandidateOtherIndex);
 
   // Last candidate other?
-  if (fCandidateOtherIndex = Group.Count) then
+  while (fCandidateOtherIndex = Group.Count) do
   begin
     // Next candidate
     Inc(fCandidateIndex);
-    fCandidateOtherIndex := 0;
 
     // Last candidate?
     if (fCandidateIndex = Group.Count) then
     begin
       // Next group
       Inc(fGroupIndex);
-      fCandidateIndex := 0;
 
       // Last group?
       if (fGroupIndex = Count) then
@@ -997,8 +1008,19 @@ begin
         result := false;
         exit;
       end;
+
+      Group := GetGroup(fGroupIndex);
+
+      fCandidateIndex := 0;
     end;
+
+    // Always searching new ones, not old ones or self (because of A-B = B-A)
+    fCandidateOtherIndex := fCandidateIndex + 1;
   end;
+
+  ASSERT((0 <= fGroupIndex) and (fGroupIndex < Count));
+  ASSERT((0 <= fCandidateIndex) and (fCandidateIndex < Group.Count));
+  ASSERT((0 <= fCandidateOtherIndex) and (fCandidateOtherIndex < Group.Count));
 
   result := true;
 end;
@@ -1012,10 +1034,10 @@ begin
   // Get group
   ASSERT((0 <= fGroupIndex) and (fGroupIndex < Count));
   Group := GetGroup(fGroupIndex);
-
-  // One candidate row at the time
   ASSERT((0 <= fCandidateIndex) and (fCandidateIndex < Group.Count));
   ASSERT((0 <= fCandidateOtherIndex) and (fCandidateOtherIndex < Group.Count));
+
+  // One candidate row at the time
   Group.GetCandidateStrings(fCandidateIndex, fCandidateOtherIndex,
     aCandidateStrings);
 end;
@@ -1487,17 +1509,14 @@ begin
         Candidate := fCandidateStrings[iRow];
         CandidateOther := fCandidateStrings[iRowOther];
 
-        { Note: hierarchy is BankAccountNumber, AccountCode, and EntryType, but
-          for performance reasons the order has been changed }
+        // BankAccountNumber mismatch?
+        if (Candidate.BankAccountNumber <> CandidateOther.BankAccountNumber) then
+          continue;
 
         // Note: no need to do Account Code
 
         // Entry type mismatch?
         if (Candidate.EntryType <> CandidateOther.EntryType) then
-          continue;
-
-        // BankAccountNumber mismatch?
-        if (Candidate.BankAccountNumber <> CandidateOther.BankAccountNumber) then
           continue;
 
         // Found new longer string?
@@ -1510,19 +1529,19 @@ begin
           New.Account := Candidate.Account;
           New.EntryType := Candidate.EntryType;
           New.LCS.SetData(bStartData, sDetails, bEndData);
-          TempStrings.AddOrMerge(New);
+          TempStrings.AddOrMerge(New, {aCheckAccount=}false);
         end
         else
         begin
           // Original LCS
           New := Candidate.Copy;
-          TempStrings.AddOrMerge(New);
+          TempStrings.AddOrMerge(New, {aCheckAccount=}false);
         end;
       end;
 
       { Copy the top LCS (longest string, could be multiple) to the refinement
         strings. }
-      TempStrings.CopyRelevantLCSTo(fRefinementStrings);
+      TempStrings.CopyRelevantLCSTo(fRefinementStrings, {aCheckAccount=}false);
     end;
   finally
     FreeAndNil(TempStrings);
@@ -1623,12 +1642,16 @@ var
   iLength1: integer;
   iLength2: integer;
 begin
-  result := false;
+  if DebugMe then
+    CreateDebugTimer('FindLCS');
 
   // Longest match
   aDetails := LongestCommonSubstring(aFirst, aSecond);
   if (aDetails = '') then
+  begin
+    result := false;
     exit;
+  end;
 
   // Data BEFORE the Details?
   iPos1 := Pos(aDetails, aFirst);
@@ -1646,7 +1669,7 @@ begin
 end;
 
 
-{$IFDEF DEBUG}
+{$IFDEF DEBUG_LCS}
 function CompareStringSection(const aFirst: string; const aFirstIndex: integer;
   const aSecond: string; const aSecondIndex: integer; const aCount: integer
   ): boolean;
@@ -1754,7 +1777,7 @@ begin
   if (Length(result) < MIN_LENGTH) then
     result := '';
 
-{$IFDEF DEBUG}
+{$IFDEF DEBUG_LCS}
   ASSERT(result = LongestCommonSubstringOld(aS1, aS2), aS1 + ', ' + aS2 + ' = ' + result + ' <> ' + LongestCommonSubstringOld(aS1, aS2));
 {$ENDIF}
 end;
