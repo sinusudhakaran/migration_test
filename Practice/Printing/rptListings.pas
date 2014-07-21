@@ -2523,14 +2523,14 @@ procedure ListMemDetail(Sender : TObject);
        end;
     end;
 
-    procedure AddAlignedTextLine(Name: string; value: Money);
+    procedure AddAlignedTextLine(Name: string; value: double);
     begin
       if Value = 0 then
         Exit;
       with TBKReport(Sender) do
       begin
         PutString(Indent + Name);
-        PutString(FormatFloat(NUMBER_FORMAT, Money2Double(Value)));
+        PutString(FormatFloat(PERCENT_FORMAT, Value));
         PutString('');
         PutString('');
         PutString('');
