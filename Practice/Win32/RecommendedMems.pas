@@ -315,19 +315,21 @@ var
       end;
 
       // Checking master mems
-      BankPrefix := mxFiles32.GetBankPrefix(Account.baFields.baBank_Account_Number);
-      SystemMemorisation := AdminSystem.SystemMemorisationList.FindPrefix(BankPrefix);
-      MemList := TMemorisations_List(SystemMemorisation.smMemorisations);
-      for MemsPos := MemList.First to MemList.Last do
+      if Assigned(AdminSystem) then
       begin
-        Memorisation := MemList.Memorisation_At(MemsPos);
-        if DoMemsMatch(true, CandidateMem1, Memorisation) then
+        BankPrefix := mxFiles32.GetBankPrefix(Account.baFields.baBank_Account_Number);
+        SystemMemorisation := AdminSystem.SystemMemorisationList.FindPrefix(BankPrefix);
+        MemList := TMemorisations_List(SystemMemorisation.smMemorisations);
+        for MemsPos := MemList.First to MemList.Last do
         begin
-          ExcludeMem := True;
-          Break;
+          Memorisation := MemList.Memorisation_At(MemsPos);
+          if DoMemsMatch(true, CandidateMem1, Memorisation) then
+          begin
+            ExcludeMem := True;
+            Break;
+          end;
         end;
       end;
-        
 
       // Check if any candidates have:
       // * A matching account code
