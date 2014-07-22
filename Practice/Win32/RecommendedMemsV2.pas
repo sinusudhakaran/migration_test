@@ -198,8 +198,8 @@ type
                 const aEntryType: byte; var aIndex: integer): boolean;
 
     // Setup index
-    function  GetFirst: boolean;
-    function  GetNext: boolean;
+    function  GetFirstCandidateString: boolean;
+    function  GetNextCandidateString: boolean;
 
     // Process one candidate according to the index
     procedure GetCandidateStrings(const aCandidateStrings: TCandidateStringList);
@@ -215,7 +215,9 @@ type
   TMemsV2State = (
     mstUnInitialised,
     mstProcessing,
+    mstElimination,
     mstRefinement,
+    mstRecommendation,
     mstFinished
   );
 
@@ -226,7 +228,7 @@ type
   TMemsV2 = class(TObject)
   private
     fState: TMemsV2State;
-    
+
     // Note: place holders, do not delete
     fBankAccounts: TBank_Account_List;
     fCandidates: TCandidate_Mem_List;
@@ -235,6 +237,10 @@ type
     fGroups: TCandidateGroupList;
     fCandidateStrings: TCandidateStringList;
     fRefinementStrings: TCandidateStringList;
+
+    fIteration: integer;
+    fEliminationIndex: integer;
+    fRefinementIndex: integer;
 
   public
     constructor Create(const aBankAccounts: TBank_Account_List;
@@ -252,15 +258,22 @@ type
     // Main functions for getting candidate strings
     procedure GroupCandidateMems;
     procedure GetCandidateStrings;
-    procedure EliminateCandidateStrings;
-    function  RefineCandidateStrings: boolean;
+    procedure EliminateCandidateString;
+    procedure RefineCandidateString;
     procedure AddCandidateStringsToRecommended;
 
     // Additional helper functions
     function  MoreThanOneAccount(const aDetails: string;
                 var aAccount: string): boolean;
     function  LessThanMinimumCount(const aDetails: string): boolean;
+    function  CopyRefinementStringsToCandidateStrings: boolean;
     function  FindRecommended(const aRecommended: TRecommended_Mem): boolean;
+
+    // Index
+    function  GetFirstElimination: boolean;
+    function  GetNextElimination: boolean;
+    function  GetFirstRefinement: boolean;
+    function  GetNextRefinement: boolean;
 
   public
     property  Candidates: TCandidate_Mem_List read fCandidates;
@@ -961,7 +974,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TCandidateGroupList.GetFirst: boolean;
+function TCandidateGroupList.GetFirstCandidateString: boolean;
 begin
   // Nothing to do?
   if (Count = 0) then
@@ -977,11 +990,11 @@ begin
   fCandidateOtherIndex := 0;
 
   // We want (0, 0, 1), so we let GetNext do this
-  result := GetNext;
+  result := GetNextCandidateString;
 end;
 
 //------------------------------------------------------------------------------
-function TCandidateGroupList.GetNext: boolean;
+function TCandidateGroupList.GetNextCandidateString: boolean;
 var
   Group: TCandidateGroup;
 begin
@@ -1151,7 +1164,7 @@ begin
   end;
 
   // Note: Due to the volume of calls, don't Log anything here
-  
+
   result := false;
 end;
 
@@ -1161,8 +1174,6 @@ const
   MORE_PROCESSING_TO_DO = true;
   NO_MORE_PROCESSING_TO_DO = false;
   MAX_ITERATION = 10;
-var
-  iIteration: integer;
 begin
   if DebugMe then
     CreateDebugTimer('TMemsV2.DoProcessing');
@@ -1171,6 +1182,9 @@ begin
 
   // Handle state
   case fState of
+    {---------------------------------------------------------------------------
+      UnInitialised
+    ---------------------------------------------------------------------------}
     mstUnInitialised:
     begin
       // Allowed to run on current data?
@@ -1182,95 +1196,166 @@ begin
           fGroups.LogData;
 
         // Something to process?
-        if fGroups.GetFirst then
+        if fGroups.GetFirstCandidateString then
         begin
-          // Update state
           fState := mstProcessing;
           result := MORE_PROCESSING_TO_DO;
         end
         else
         begin
-          // Update state
           fState := mstFinished;
           result := NO_MORE_PROCESSING_TO_DO;
         end;
       end
       else
       begin
-        // Update state
         fState := mstFinished;
         result := NO_MORE_PROCESSING_TO_DO;
       end;
     end;
 
-    mstProcessing: 
+    {---------------------------------------------------------------------------
+      Processing
+    ---------------------------------------------------------------------------}
+    mstProcessing:
     begin
       // Do one unit of work
       GetCandidateStrings;
 
       // More to process?
-      if fGroups.GetNext then
+      if fGroups.GetNextCandidateString then
       begin
-        // Update state
         result := MORE_PROCESSING_TO_DO;
       end
       else
       begin
-        // Update state
-        fState := mstRefinement;
-        result := MORE_PROCESSING_TO_DO;
-      end;
-    end;
-
-    mstRefinement:
-    begin
-      // Iterate over Eliminate and Refine
-      for iIteration := 1 to MAX_ITERATION do
-      begin
-        if DebugMe then
+        if GetFirstElimination then
         begin
-          Log('');
-          Log('ITERATION: ' + IntToStr(iIteration));
-          fCandidateStrings.LogData;
-        end;
+          fIteration := 1;
 
-        EliminateCandidateStrings;
-
-        { Last iteration?
-          Note: we don't run RefineCandidateStrings on the last iteration, because
-          it will wipe out the Account Codes if it has new values.
-        }
-        if (iIteration = MAX_ITERATION) then
-          break;
-
-        // Candidate strings are the same after refining?
-        if not RefineCandidateStrings then
-        begin
           if DebugMe then
           begin
             Log('');
-            Log('Candidates after refinement are identical');
+            Log('ITERATION: ' + IntToStr(fIteration));
+            fCandidateStrings.LogData;
           end;
 
-          break;
+          fState := mstElimination;
+          result := MORE_PROCESSING_TO_DO;
+        end
+        else
+        begin
+          fState := mstFinished;
+          result := NO_MORE_PROCESSING_TO_DO;
         end;
       end;
+    end;
 
-      if DebugMe then
+    {---------------------------------------------------------------------------
+      Elimination
+    ---------------------------------------------------------------------------}
+    mstElimination:
+    begin
+      EliminateCandidateString;
+
+      if GetNextElimination then
       begin
-        Log('');
-        Log('FINAL RESULT:');
-        fCandidateStrings.LogData;
+        result := MORE_PROCESSING_TO_DO;
+      end
+      else
+      begin
+        { Last iteration?
+          Note: we don't run RefineCandidateStrings on the last iteration,
+          because it will wipe out the Account Codes if it has new values.
+        }
+        if (fIteration = MAX_ITERATION) then
+        begin
+          fState := mstRecommendation;
+          result := MORE_PROCESSING_TO_DO
+        end
+        else
+        begin
+          if GetFirstRefinement then
+          begin
+            fState := mstRefinement;
+            result := MORE_PROCESSING_TO_DO;
+          end
+          else
+          begin
+            fState := mstFinished;
+            result := NO_MORE_PROCESSING_TO_DO;
+          end;
+        end;
       end;
+    end;
+
+    {---------------------------------------------------------------------------
+      Refinement
+    ---------------------------------------------------------------------------}
+    mstRefinement:
+    begin
+      // Candidate strings are the same after refining?
+      RefineCandidateString;
+
+      if GetNextRefinement then
+      begin
+        result := MORE_PROCESSING_TO_DO;
+      end
+      else
+      begin
+        // Refinement and candidate strings are different?
+        if CopyRefinementStringsToCandidateStrings then
+        begin
+          // Start a new iteration
+          Inc(fIteration);
+
+          if DebugMe then
+          begin
+            Log('');
+            Log('ITERATION: ' + IntToStr(fIteration));
+            fCandidateStrings.LogData;
+          end;
+
+          if GetFirstElimination then
+          begin
+            fState := mstElimination;
+            result := MORE_PROCESSING_TO_DO;
+          end
+          else
+          begin
+            fState := mstFinished;
+            result := NO_MORE_PROCESSING_TO_DO;
+          end;
+        end
+        else
+        begin
+          if DebugMe then
+            Log('Refinement strings and candidate strings are identical');
+
+          fState := mstRecommendation;
+          result := MORE_PROCESSING_TO_DO;
+        end;
+      end;
+    end;
+
+    {---------------------------------------------------------------------------
+      Recommendation
+    ---------------------------------------------------------------------------}
+    mstRecommendation:
+    begin
+      if DebugMe then
+        Log('Add candidate strings to recommended: ' + IntToStr(fCandidateStrings.Count));
 
       // Add final result to recommended mems
       AddCandidateStringsToRecommended;
 
-      // Update state
       fState := mstFinished;
-      result := MORE_PROCESSING_TO_DO;
+      result := NO_MORE_PROCESSING_TO_DO;
     end;
-    
+
+    {---------------------------------------------------------------------------
+      Finished
+    ---------------------------------------------------------------------------}
     mstFinished:
     begin
       // Update state
@@ -1333,9 +1418,8 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TMemsV2.EliminateCandidateStrings;
+procedure TMemsV2.EliminateCandidateString;
 var
-  i: integer;
   CandidateString: TCandidateString;
   sDetails: string;
   sAccount: string;
@@ -1343,38 +1427,33 @@ begin
   if DebugMe then
     CreateDebugTimer('TMemsV2.EliminateCandidateStrings');
 
-  if DebugMe then
+  ASSERT(fEliminationIndex < fCandidateStrings.Count);
+
+  CandidateString := fCandidateStrings[fEliminationIndex];
+  sDetails := CandidateString.LCS.Details;
+
+  if MoreThanOneAccount(sDetails, sAccount) then
   begin
-    Log('');
-    Log('String Elimination:');
+    if DebugMe then
+      Log('More than one account: '+CandidateString.LCS.ToString);
+
+    fCandidateStrings.Delete(fEliminationIndex);
+
+    exit;
+  end
+  else
+  begin
+    { Note: after refinement the Account Code is gone, so we must join them
+      together again here. }
+    CandidateString.Account := sAccount;
   end;
 
-  for i := fCandidateStrings.Count-1 downto 0 do
+  if LessThanMinimumCount(sDetails) then
   begin
-    CandidateString := fCandidateStrings[i];
-    sDetails := CandidateString.LCS.Details;
+    if DebugMe then
+      Log('Count less than minimum: '+CandidateString.LCS.ToString);
 
-    if MoreThanOneAccount(sDetails, sAccount) then
-    begin
-      if DebugMe then
-        Log('More than one account: '+CandidateString.LCS.ToString);
-      fCandidateStrings.Delete(i);
-      continue;
-    end
-    else
-    begin
-      { Note: after refinement the Account Code is gone, so we must join them
-        together again here. }
-      CandidateString.Account := sAccount;
-    end;
-
-    if LessThanMinimumCount(sDetails) then
-    begin
-      if DebugMe then
-        Log('Count less than minimum: '+CandidateString.LCS.ToString);
-      fCandidateStrings.Delete(i);
-      continue;
-    end;
+    fCandidateStrings.Delete(fEliminationIndex);
   end;
 end;
 
@@ -1479,10 +1558,9 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TMemsV2.RefineCandidateStrings: boolean;
+procedure TMemsV2.RefineCandidateString;
 var
   TempStrings: TCandidateStringTree;
-  iRow: integer;
   iRowOther: integer;
   Candidate: TCandidateString;
   CandidateOther: TCandidateString;
@@ -1494,11 +1572,7 @@ begin
   if DebugMe then
     CreateDebugTimer('TMemsV2.RefineCandidateStrings');
 
-  if DebugMe then
-  begin
-    Log('');
-    Log('String Refinement:');
-  end;
+  ASSERT(fRefinementIndex < fCandidateStrings.Count);
 
   { Note: the Account Code will be lost during this process, but will be
     recovered again during the string elimination process. New refined strings
@@ -1506,56 +1580,57 @@ begin
 
   TempStrings := TCandidateStringTree.Create;
   try
-    for iRow := 0 to fCandidateStrings.Count-1 do
+    for iRowOther := 0 to fCandidateStrings.Count-1 do
     begin
-      TempStrings.Clear;
-      
-      for iRowOther := 0 to fCandidateStrings.Count-1 do
+      { Note: it's okay to compare against itself, because we want to retain
+        the LCS if there's only one item per EntryType. }
+
+      Candidate := fCandidateStrings[fRefinementIndex];
+      CandidateOther := fCandidateStrings[iRowOther];
+
+      // BankAccountNumber mismatch?
+      if (Candidate.BankAccountNumber <> CandidateOther.BankAccountNumber) then
+        continue;
+
+      // Note: no need to do Account Code
+
+      // Entry type mismatch?
+      if (Candidate.EntryType <> CandidateOther.EntryType) then
+        continue;
+
+      // Found new longer string?
+      if FindLCSinLCS(Candidate.LCS, CandidateOther.LCS, bStartData, sDetails,
+        bEndData) then
       begin
-        { Note: it's okay to compare against itself, because we want to retain 
-          the LCS if there's only one item per EntryType. }
-            
-        Candidate := fCandidateStrings[iRow];
-        CandidateOther := fCandidateStrings[iRowOther];
-
-        // BankAccountNumber mismatch?
-        if (Candidate.BankAccountNumber <> CandidateOther.BankAccountNumber) then
-          continue;
-
-        // Note: no need to do Account Code
-
-        // Entry type mismatch?
-        if (Candidate.EntryType <> CandidateOther.EntryType) then
-          continue;
-
-        // Found new longer string?
-        if FindLCSinLCS(Candidate.LCS, CandidateOther.LCS, bStartData, sDetails,
-          bEndData) then
-        begin
-          // New LCS
-          New := TCandidateString.Create;
-          New.BankAccountNumber := Candidate.BankAccountNumber;
-          New.Account := Candidate.Account;
-          New.EntryType := Candidate.EntryType;
-          New.LCS.SetData(bStartData, sDetails, bEndData);
-          TempStrings.AddOrMerge(New, {aCheckAccount=}false);
-        end
-        else
-        begin
-          // Original LCS
-          New := Candidate.Copy;
-          TempStrings.AddOrMerge(New, {aCheckAccount=}false);
-        end;
+        // New LCS
+        New := TCandidateString.Create;
+        New.BankAccountNumber := Candidate.BankAccountNumber;
+        New.Account := Candidate.Account;
+        New.EntryType := Candidate.EntryType;
+        New.LCS.SetData(bStartData, sDetails, bEndData);
+        TempStrings.AddOrMerge(New, {aCheckAccount=}false);
+      end
+      else
+      begin
+        // Original LCS
+        New := Candidate.Copy;
+        TempStrings.AddOrMerge(New, {aCheckAccount=}false);
       end;
-
-      { Copy the top LCS (longest string, could be multiple) to the refinement
-        strings. }
-      TempStrings.CopyRelevantLCSTo(fRefinementStrings, {aCheckAccount=}false);
     end;
+
+    { Copy the top LCS (longest string, could be multiple) to the refinement
+      strings. }
+    TempStrings.CopyRelevantLCSTo(fRefinementStrings, {aCheckAccount=}false);
+
   finally
     FreeAndNil(TempStrings);
   end;
 
+end;
+
+//------------------------------------------------------------------------------
+function TMemsV2.CopyRefinementStringsToCandidateStrings: boolean;
+begin
   // The refinement produces the same candidate strings?
   if fCandidateStrings.Compare(fRefinementStrings) then
   begin
@@ -1624,7 +1699,7 @@ begin
     // Already exists?
     if (aRecommended.rmFields.rmBank_Account_Number = RecommendedOther.rmFields.rmBank_Account_Number) and
        (aRecommended.rmFields.rmAccount = RecommendedOther.rmFields.rmAccount) and
-       (aRecommended.rmFields.rmType = RecommendedOther.rmFields.rmType) and        
+       (aRecommended.rmFields.rmType = RecommendedOther.rmFields.rmType) and
        (aRecommended.rmFields.rmStatement_Details = RecommendedOther.rmFields.rmStatement_Details) then
     begin
       result := true;
@@ -1636,6 +1711,38 @@ begin
   result := false;
 end;
 
+//------------------------------------------------------------------------------
+function TMemsV2.GetFirstElimination: boolean;
+begin
+  fEliminationIndex := fCandidateStrings.Count - 1;
+
+  result := (fEliminationIndex >= 0);
+end;
+
+//------------------------------------------------------------------------------
+function TMemsV2.GetNextElimination: boolean;
+begin
+  // Downto
+  Dec(fEliminationIndex);
+
+  result := (fEliminationIndex >= 0);
+end;
+
+//------------------------------------------------------------------------------
+function TMemsV2.GetFirstRefinement: boolean;
+begin
+  fRefinementIndex := 0;
+
+  result := (fRefinementIndex < fCandidateStrings.Count);
+end;
+
+//------------------------------------------------------------------------------
+function TMemsV2.GetNextRefinement: boolean;
+begin
+  Inc(fRefinementIndex);
+
+  result := (fRefinementIndex < fCandidateStrings.Count);
+end;
 
 {-------------------------------------------------------------------------------
   FindLCS
