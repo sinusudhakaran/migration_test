@@ -319,14 +319,17 @@ var
       begin
         BankPrefix := mxFiles32.GetBankPrefix(Account.baFields.baBank_Account_Number);
         SystemMemorisation := AdminSystem.SystemMemorisationList.FindPrefix(BankPrefix);
-        MemList := TMemorisations_List(SystemMemorisation.smMemorisations);
-        for MemsPos := MemList.First to MemList.Last do
+        if Assigned(SystemMemorisation) then
         begin
-          Memorisation := MemList.Memorisation_At(MemsPos);
-          if DoMemsMatch(true, CandidateMem1, Memorisation) then
+          MemList := TMemorisations_List(SystemMemorisation.smMemorisations);
+          for MemsPos := MemList.First to MemList.Last do
           begin
-            ExcludeMem := True;
-            Break;
+            Memorisation := MemList.Memorisation_At(MemsPos);
+            if DoMemsMatch(true, CandidateMem1, Memorisation) then
+            begin
+              ExcludeMem := True;
+              Break;
+            end;
           end;
         end;
       end;
