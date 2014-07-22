@@ -2064,7 +2064,7 @@ begin
   tr.txStatement_Details  := pM.mdFields.mdStatement_Details;
   tr.txType               := pM.mdFields.mdType;
 
-  IsAMasterMem := false;
+  IsAMasterMem := false; // this value is not used
   result := MemoriseEntry(BA, tr, IsAMasterMem, MemorisationLine);
 end;
 

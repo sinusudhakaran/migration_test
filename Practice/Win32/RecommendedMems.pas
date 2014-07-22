@@ -88,7 +88,9 @@ uses
   SysUtils,
   Windows,
   LogUtil,
-  DebugTimer;
+  DebugTimer,
+  SyDefs,
+  mxFiles32;
 
 const
   UnitName = 'RecommendedMems';
@@ -266,6 +268,17 @@ var
   InCodingForm  : boolean;
   StartTime     : TDateTime;
 
+  function DoMemsMatch(MemIsMaster: boolean; CandidateMem: TCandidate_Mem; CompareMem: TMemorisation): boolean;
+  begin
+    Result := (CandidateMem.cmFields.cmType = CompareMem.mdFields.mdType) and
+              (AnsiCompareText(CandidateMem.cmFields.cmStatement_Details,
+                               CompareMem.mdFields.mdStatement_Details) = 0);
+    if MemIsMaster and Result then
+      if Assigned(MyClient) then      
+        if CompareMem.mdFields.mdUse_Accounting_System then
+          Result := (CompareMem.mdFields.mdAccounting_System = MyClient.clFields.clAccounting_System_Used);        
+  end;
+
   // Returns true if there is an existing memorisation which matches CandidateMem1
   function AddMemorisationIfUnique(Account            : TBank_Account;
                                    CandidateMem1      : TCandidate_Mem;
@@ -280,6 +293,9 @@ var
     MemsPos             : integer;
     NewRecMem           : TRecommended_Mem;
     UncodedCount        : integer;
+    MemList             : TMemorisations_List;
+    SystemMemorisation  : pSystem_Memorisation_List_Rec;
+    BankPrefix          : BankPrefixStr;
   begin
     Result := False;
     // We can check if the account matches here, no need to proceed further if it doesn't match
@@ -291,14 +307,27 @@ var
       for MemsPos := Account.baMemorisations_List.First to Account.baMemorisations_List.Last do
       begin
         Memorisation := Account.baMemorisations_List.Memorisation_At(MemsPos);
-        if (CandidateMem1.cmFields.cmType = Memorisation.mdFields.mdType) and
-           (AnsiCompareText(CandidateMem1.cmFields.cmStatement_Details,
-                            Memorisation.mdFields.mdStatement_Details) = 0) then
+        if DoMemsMatch(false, CandidateMem1, Memorisation) then
         begin
           ExcludeMem := True;
           Break;
         end;
       end;
+
+      // Checking master mems
+      BankPrefix := mxFiles32.GetBankPrefix(Account.baFields.baBank_Account_Number);
+      SystemMemorisation := AdminSystem.SystemMemorisationList.FindPrefix(BankPrefix);
+      MemList := TMemorisations_List(SystemMemorisation.smMemorisations);
+      for MemsPos := MemList.First to MemList.Last do
+      begin
+        Memorisation := MemList.Memorisation_At(MemsPos);
+        if DoMemsMatch(true, CandidateMem1, Memorisation) then
+        begin
+          ExcludeMem := True;
+          Break;
+        end;
+      end;
+        
 
       // Check if any candidates have:
       // * A matching account code
