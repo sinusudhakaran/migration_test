@@ -853,9 +853,10 @@ begin
         Unscanned.Insert(New);
     end;
   finally
-    if not RunningUnitTest then
-      if not MaintainMemScanStatus then
-        frmMain.MemScanIsBusy := False;
+    if Assigned(frmMain) then
+      if not RunningUnitTest then
+        if not MaintainMemScanStatus then
+          frmMain.MemScanIsBusy := False;
   end;
 
   Candidate.cpFields.cpCandidate_ID_To_Process := 1;
