@@ -38,6 +38,7 @@ type
     Name: string;
     Duration: DWORD;
     Count: integer;
+    Max: integer;
   end;
 
 
@@ -49,7 +50,7 @@ type
     fStats: array of TStat;
 
   public
-    procedure RecordDuration(const aName: string; const dwDuration: DWORD);
+    procedure RecordDuration(const aName: string; const aDuration: DWORD);
 
     procedure LogStats;
 
@@ -122,7 +123,7 @@ end;
   TDebugStats
 -------------------------------------------------------------------------------}
 procedure TDebugStats.RecordDuration(const aName: string;
-  const dwDuration: DWORD);
+  const aDuration: DWORD);
 var
   i: integer;
   iCount: integer;
@@ -134,8 +135,9 @@ begin
     begin
       if (Name = aName) then
       begin
-        Duration := Duration + dwDuration;
+        Duration := Duration + aDuration;
         Inc(Count);
+        Max := Math.Max(Max, aDuration);
 
         exit;
       end;
@@ -148,8 +150,9 @@ begin
   with fStats[iCount] do
   begin
     Name := aName;
-    Duration := dwDuration;
+    Duration := aDuration;
     Count := 1;
+    Max := aDuration;
   end;
 end;
 
@@ -196,8 +199,8 @@ begin
         iAvg := Round(Duration / Count);
         iPercent := Round(100 * Duration / dwTotal);
 
-        sMsg := Format('%8d x %s | %7d ms | Avg = %2d ms | Percent = %2d %%',
-          [Count, sName, Duration, iAvg, iPercent]);
+        sMsg := Format('%8d x %s | %7d ms | Avg = %4d ms | Max = %4d ms | Percent = %2d %%',
+          [Count, sName, Duration, iAvg, Max, iPercent]);
 
         Output.Add(sMsg);
       end;
