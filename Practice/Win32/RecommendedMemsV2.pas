@@ -18,6 +18,10 @@ uses
 
   baObj32,
   baList32,
+
+  MemorisationsObj,
+  mxFiles32,
+  SYDEFS,
   
   LogUtil;
 
@@ -174,7 +178,7 @@ type
     function  GetCount: integer;
     property  Count: integer read GetCount;
 
-    procedure GetCandidateStrings(const aRow: integer; const aRowOther: integer;
+    procedure GetCandidateString(const aRow: integer; const aRowOther: integer;
                 const aCandidateStrings: TCandidateStringList);
   end;
 
@@ -202,7 +206,7 @@ type
     function  GetNextCandidateString: boolean;
 
     // Process one candidate according to the index
-    procedure GetCandidateStrings(const aCandidateStrings: TCandidateStringList);
+    procedure GetCandidateString(const aCandidateStrings: TCandidateStringList);
 
     procedure LogData;
   end;
@@ -257,7 +261,7 @@ type
   private
     // Main functions for getting candidate strings
     procedure GroupCandidateMems;
-    procedure GetCandidateStrings;
+    procedure GetCandidateString;
     procedure EliminateCandidateString;
     procedure RefineCandidateString;
     procedure AddCandidateStringsToRecommended;
@@ -267,7 +271,15 @@ type
                 var aAccount: string): boolean;
     function  LessThanMinimumCount(const aDetails: string): boolean;
     function  CopyRefinementStringsToCandidateStrings: boolean;
+
+    // InUse helper functions
     function  FindRecommended(const aRecommended: TRecommended_Mem): boolean;
+    function  IsRecommendedInUse(const aRecommended: TRecommended_Mem): boolean;
+    function  FindBankAccount(const aBankAccountNumber: string): TBank_Account;
+    function  IsMemorisation(const aRecommendedMem: TRecommended_Mem;
+                  const aMemorisations: TMemorisations_List): boolean;
+    function  IsMasterMemorisation(const aRecommendedMem: TRecommended_Mem;
+                const aBankPrefix: string): boolean;
 
     // Index
     function  GetFirstElimination: boolean;
@@ -316,6 +328,7 @@ uses
   MMSystem,
   Controls,
   Forms,
+  Globals,
   DebugTimer;
 
 {-------------------------------------------------------------------------------
@@ -848,7 +861,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TCandidateGroup.GetCandidateStrings(const aRow: integer;
+procedure TCandidateGroup.GetCandidateString(const aRow: integer;
   const aRowOther: integer; const aCandidateStrings: TCandidateStringList);
 const
   MANUAL = [cbManual, cbManualPayee, cbECodingManual, cbECodingManualPayee, cbManualSuper];
@@ -870,7 +883,7 @@ var
   New: TCandidateString;
 begin
   if DebugMe then
-    CreateDebugTimer('TCandidateGroup.GetCandidateStrings');
+    CreateDebugTimer('TCandidateGroup.GetCandidateString');
 
   ASSERT(aRowOther > aRow);
   ASSERT(aRow < fCandidates.Count);
@@ -1042,7 +1055,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TCandidateGroupList.GetCandidateStrings(
+procedure TCandidateGroupList.GetCandidateString(
   const aCandidateStrings: TCandidateStringList);
 var
   Group: TCandidateGroup;
@@ -1054,7 +1067,7 @@ begin
   ASSERT((0 <= fCandidateOtherIndex) and (fCandidateOtherIndex < Group.Count));
 
   // One candidate row at the time
-  Group.GetCandidateStrings(fCandidateIndex, fCandidateOtherIndex,
+  Group.GetCandidateString(fCandidateIndex, fCandidateOtherIndex,
     aCandidateStrings);
 end;
 
@@ -1220,7 +1233,7 @@ begin
     mstProcessing:
     begin
       // Do one unit of work
-      GetCandidateStrings;
+      GetCandidateString;
 
       // More to process?
       if fGroups.GetNextCandidateString then
@@ -1412,9 +1425,9 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TMemsV2.GetCandidateStrings;
+procedure TMemsV2.GetCandidateString;
 begin
-  fGroups.GetCandidateStrings(fCandidateStrings);
+  fGroups.GetCandidateString(fCandidateStrings);
 end;
 
 //------------------------------------------------------------------------------
@@ -1675,6 +1688,16 @@ begin
       continue;
     end;
 
+    { Already in use as a memorisation?
+      Note: A recommended mem turned into a memorisation should not be added to
+      the list.
+    }
+    if IsRecommendedInUse(New) then
+    begin
+      FreeAndNil(New);
+      continue;
+    end;
+
     if DebugMe then
       Log('Add suggested mem: ' + New.rmFields.rmStatement_Details);
 
@@ -1709,6 +1732,111 @@ begin
   end;
 
   result := false;
+end;
+
+//------------------------------------------------------------------------------
+function TMemsV2.IsRecommendedInUse(const aRecommended: TRecommended_Mem
+  ): boolean;
+var
+  BankAccount: TBank_Account;
+  sBankPrefix: string;
+begin
+  result := false;
+
+  // Check for memorisation matches
+  BankAccount := FindBankAccount(aRecommended.rmFields.rmBank_Account_Number);
+  if assigned(BankAccount) then
+  begin
+    if IsMemorisation(aRecommended, BankAccount.baMemorisations_List) then
+    begin
+      result := true;
+
+      exit;
+    end;
+  end;
+
+  // Check for master memorisation matches
+  sBankPrefix := GetBankPrefix(aRecommended.rmFields.rmBank_Account_Number);
+  if IsMasterMemorisation(aRecommended, sBankPrefix) then
+  begin
+    result := true;
+
+    exit;
+  end;
+end;
+
+{------------------------------------------------------------------------------}
+function TMemsV2.FindBankAccount(const aBankAccountNumber: string
+  ): TBank_Account;
+var
+  i: integer;
+  BankAccount: TBank_Account;
+begin
+  for i := 0 to fBankAccounts.ItemCount-1 do
+  begin
+    BankAccount := fBankAccounts.Bank_Account_At(i);
+
+    if (BankAccount.baFields.baBank_Account_Number <> aBankAccountNumber) then
+      continue;
+
+    result := BankAccount;
+
+    exit;
+  end;
+
+  result := nil;
+end;
+
+{------------------------------------------------------------------------------}
+function TMemsV2.IsMemorisation(const aRecommendedMem: TRecommended_Mem;
+  const aMemorisations: TMemorisations_List): boolean;
+var
+  i: integer;
+  Memorisation: TMemorisation;
+begin
+  for i := 0 to aMemorisations.ItemCount-1 do
+  begin
+    Memorisation := aMemorisations.Memorisation_At(i);
+
+    with aRecommendedMem.rmFields, Memorisation.mdFields^ do
+    begin
+      if (rmType = mdType) and (rmStatement_Details = mdStatement_Details) then
+      begin
+        result := true;
+
+        exit;
+      end;
+    end;
+  end;
+
+  result := false;
+end;
+
+{------------------------------------------------------------------------------}
+function TMemsV2.IsMasterMemorisation(const aRecommendedMem: TRecommended_Mem;
+  const aBankPrefix: string): boolean;
+var
+  SystemMemorisation: pSystem_Memorisation_List_Rec;
+  Memorisations: TMemorisations_List;
+begin
+  result := false;
+
+  // Books?
+  if not assigned(AdminSystem) then
+    exit;
+
+  // No memorisations for bank prefix?
+  SystemMemorisation :=
+    AdminSystem.SystemMemorisationList.FindPrefix(aBankPrefix);
+  if not assigned(SystemMemorisation) then
+    exit;
+
+  // No memorisation matches?
+  Memorisations := TMemorisations_List(SystemMemorisation.smMemorisations);
+  if not IsMemorisation(aRecommendedMem, Memorisations) then
+    exit;
+
+  result := true;
 end;
 
 //------------------------------------------------------------------------------

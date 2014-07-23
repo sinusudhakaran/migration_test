@@ -53,9 +53,11 @@ type
       Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
     procedure vstTreeBeforePaint(Sender: TBaseVirtualTree;
       TargetCanvas: TCanvas);
+    procedure FormDestroy(Sender: TObject);
   private
     fBankAccount: TBank_Account;
     fData: array of TRecommended_Mem;
+    fAdded: boolean;
 
     function  DetermineStatus: string;
     procedure BuildData;
@@ -159,6 +161,12 @@ begin
 
   PopulateTree;
   vstTree.Header.SortColumn := ccEntryType;
+end;
+
+procedure TRecommendedMemorisationsFrm.FormDestroy(Sender: TObject);
+begin
+  if fAdded then
+    SendCmdToAllCodingWindows( ecRecodeTrans);
 end;
 
 procedure TRecommendedMemorisationsFrm.RedrawTree;
@@ -436,10 +444,12 @@ var
 begin
   Mems := MyClient.clRecommended_Mems.Recommended;
   fData := nil;
+
   { Note: The RepopulateRecommendedMems has been removed because with large
     client files or with Mems V2 this would have taken a long time. It would
     have affected the startup of the form (FormCreate) and clicking of the "+"
     button, and leaving the Memorisation edit form. }
+
   for i := 0 to Mems.ItemCount-1 do
   begin
     Mem := Mems.Recommended_Mem_At(i);
@@ -470,7 +480,7 @@ begin
   // Add nodes
   for i := 0 to High(fData) do
   begin
-    // Data
+    // Add
     pNode := vstTree.AddChild(nil);
     pData := PTreeData(vstTree.GetNodeData(pNode));
     pData.RecommendedMem := fData[i];
@@ -515,6 +525,9 @@ var
   Mems: TMemorisations_List;
   Mem: TMemorisation;
   MemLine: pMemorisation_Line_Rec;
+
+  i: integer;
+  Recommended: TRecommended_Mem_List;
 begin
   pData := PTreeData(vstTree.GetNodeData(aNode));
 
@@ -536,11 +549,27 @@ begin
   // OK pressed, and insert mem?
   if CreateMemorisation(fBankAccount, Mems, Mem) then
   begin
+    { Remove this from the recommended mem list, now that's it been turned
+      into a memorisation. }
+
+    { WORKAROUND: DelFreeItem wasn't working. No idea why, as the item is
+      definitely there. }
+    Recommended := MyClient.clRecommended_Mems.Recommended;
+    for i := 0 to Recommended.ItemCount-1 do
+    begin
+      if (Recommended[i] = pData.RecommendedMem) then
+      begin
+        Recommended.AtDelete(i);
+        FreeAndNil(pData.RecommendedMem);
+        break;
+      end;
+    end;
+
     // Repopulate the recommended mems list from scratch (just the rec mems,
     // not the unscanned transactions or candidate mems)
     // Note: RepopulateRecommendedMems removed, see note in PopulateTree
     RedrawTree; // if we don't do this, the recommendation we just accepted will still be in the list
-    SendCmdToAllCodingWindows( ecRecodeTrans);
+    fAdded := true;
   end
   else
   begin
