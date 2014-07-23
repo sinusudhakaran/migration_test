@@ -7,7 +7,7 @@ uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
   ImgList, ComCtrls, ToolWin, ExtCtrls, baObj32, bkdefs, balist32, StdCtrls,
   bkConst, MemorisationsObj,
-  OSFont;
+  OSFont, RzButton;
 
 type
   TMasterMemInfoRec = record
@@ -23,7 +23,6 @@ type
     tbClose: TToolButton;
     Panel1: TPanel;
     lvMemorised: TListView;
-    stTitle: TStaticText;
     tbMoveUp: TToolButton;
     tbMoveDown: TToolButton;
     tbEdit: TToolButton;
@@ -33,6 +32,13 @@ type
     tbHelp: TToolButton;
     Panel2: TPanel;
     trvAccountView: TTreeView;
+    pnlSearch: TPanel;
+    Label1: TLabel;
+    tbtnClose: TRzToolButton;
+    EBFind: TEdit;
+    btnFind: TButton;
+    stTitle: TStaticText;
+    SearchTimer: TTimer;
     procedure tbEditClick(Sender: TObject);
     procedure tbDeleteClick(Sender: TObject);
     procedure FormShortCut(var Msg: TWMKey; var Handled: Boolean);
@@ -50,6 +56,12 @@ type
       Selected: Boolean);
     procedure tbCopyToClick(Sender: TObject);
     procedure tbHelpClick(Sender: TObject);
+    procedure tbtnCloseClick(Sender: TObject);
+    procedure EBFindChange(Sender: TObject);
+    procedure EBFindKeyPress(Sender: TObject; var Key: Char);
+    procedure btnFindClick(Sender: TObject);
+    procedure FormShow(Sender: TObject);
+    procedure SearchTimerTimer(Sender: TObject);
   private
     { Private declarations }
     BankAccountCount      : integer;
@@ -58,6 +70,15 @@ type
     WorkingOnMasterPrefix : BankPrefixStr;
     FMemorisationChanged  : boolean;  //needed so that CES reloads edited transactions
     BA: TBank_Account;
+
+    SearchVisible : boolean;
+    FSearchText: string;
+    procedure SetSearchText(const Value: string);
+
+    function TestText(const Value: string; aSearchText : string): Boolean;
+    function FindTextInItem(aItem : TListItem; aSearchText : string) : Boolean;
+    procedure Refresh();
+
     procedure LoadAccounts;
     function LoadMemorisations(Bank_Account : TBank_Account): integer;
     procedure LoadMasters( BankPrefix : ShortString);
@@ -69,6 +90,7 @@ type
     { Public declarations }
     property MemorisationChanged : boolean read FMemorisationChanged;
     function Execute : boolean;
+    property SearchText: string read FSearchText write SetSearchText;
   end;
 
 function MaintainMemorised : boolean;
@@ -212,6 +234,25 @@ begin
   tbMoveDown.Enabled := False;
   tbCopyTo.Enabled   := False;
 end;
+
+//------------------------------------------------------------------------------
+procedure TfrmMaintainMem.SearchTimerTimer(Sender: TObject);
+begin
+  SearchTimer.Enabled := False;
+  SearchText := EBFind.Text;
+end;
+
+//------------------------------------------------------------------------------
+procedure TfrmMaintainMem.SetSearchText(const Value: string);
+begin
+  btnFind.Enabled := Value > '';
+  if not SameText (FSearchText, Value) then
+  begin
+    FSearchText := uppercase(Value);
+    Refresh();
+  end;
+end;
+
 //------------------------------------------------------------------------------
 procedure TfrmMaintainMem.SetUpHelp;
 begin
@@ -232,6 +273,7 @@ begin
                     'Delete the selected Memorisation|' +
                     'Delete the selected Memorisation';
 end;
+
 //------------------------------------------------------------------------------
 procedure TfrmMaintainMem.LoadAccounts;
 var
@@ -582,8 +624,11 @@ begin
             AddObject(bkDate2Str( m.mdFields.mdDate_Last_Applied),tobject(m.mdFields.mdDate_Last_Applied));
             AddObject(bkDate2Str( m.mdFields.mdFrom_Date),tobject(m.mdFields.mdFrom_Date));
             AddObject(bkDate2Str( m.mdFields.mduntil_Date),tobject(m.mdFields.mduntil_Date))
+          end;
 
-         end;
+          if length(fSearchText) > 0 then
+            if not FindTextinItem(NewItem, fSearchText) then
+              lvMemorised.items.Delete(lvMemorised.items.Count-1);
        end;
      end;
    finally
@@ -743,6 +788,14 @@ begin
     end;
   end;
 end;
+
+//------------------------------------------------------------------------------
+procedure TfrmMaintainMem.btnFindClick(Sender: TObject);
+begin
+  EBFind.Text := '';
+  SearchTimerTimer(nil);
+end;
+
 //------------------------------------------------------------------------------
 function TfrmMaintainMem.DeleteMemorised(MemorisedList : TMemorisations_List;
   Mem: TMemorisation; Multiple : Boolean; Prefix: string = ''; ShowPrompt: boolean = true): boolean;
@@ -927,8 +980,43 @@ begin
     VK_ESCAPE   : tbClose.click;
   else
     Handled := false;
-  end;                      
+  end;
 end;
+
+//------------------------------------------------------------------------------
+procedure TfrmMaintainMem.FormShow(Sender: TObject);
+begin
+  SearchVisible := true;
+end;
+
+//------------------------------------------------------------------------------
+function TfrmMaintainMem.TestText(const Value: string; aSearchText : string): Boolean;
+begin
+  Result := False;
+  if Value = '' then
+    Exit;
+  Result := Pos(aSearchText, Uppercase(Value)) > 0;
+end;
+
+//------------------------------------------------------------------------------
+function TfrmMaintainMem.FindTextInItem(aItem : TListItem; aSearchText : string) : Boolean;
+var
+  SubItemIndex : integer;
+begin
+  Result := false;
+
+  Result := TestText(aItem.Caption, aSearchText);
+  if Result then
+    Exit;
+
+  for SubItemIndex := 0 to aItem.SubItems.Count  - 1 do
+  begin
+    Result := TestText(aItem.SubItems.Strings[SubItemIndex], aSearchText);
+    if Result then
+      Exit;
+  end;
+end;
+
 //------------------------------------------------------------------------------
 (*
 procedure TfrmMaintainMem.tbViewClick(Sender: TObject);
@@ -1039,6 +1127,15 @@ procedure TfrmMaintainMem.tbMoveUpClick(Sender: TObject);
 begin
    MoveItem(True);
 end;
+
+//------------------------------------------------------------------------------
+procedure TfrmMaintainMem.tbtnCloseClick(Sender: TObject);
+begin
+  EBFind.Text := '';
+  SearchTimerTimer(nil);
+  SearchVisible := False;
+end;
+
 //------------------------------------------------------------------------------
 procedure TfrmMaintainMem.tbMoveDownClick(Sender: TObject);
 begin
@@ -1188,6 +1285,48 @@ begin
             end;
           end;
     end; //case
+  end;
+end;
+
+//------------------------------------------------------------------------------
+procedure TfrmMaintainMem.Refresh;
+var
+  SelNode: TTreeNode;
+begin
+  tbEdit.Enabled := False;
+  tbDelete.Enabled := False;
+  tbCopyTo.Enabled := False;
+  tbMoveUp.Enabled := False;
+  tbMoveDown.Enabled := False;
+  SelNode := trvAccountView.selected;
+  if Assigned(SelNode) then
+  begin
+    if SelNode.ImageIndex = MAINTAIN_FOLDER_CLOSED_BMP then
+    begin
+
+      //was closed, now open this node
+      case SelNode.OverlayIndex{StateIndex} of
+        0 : begin   //client memorisations
+          SelNode.StateIndex := LoadMemorisations(tBank_Account(SelNode.Data));
+          stTitle.Caption := ' Memorisations for '+tBank_Account(SelNode.data).AccountName;
+        end;
+
+        1 : begin  //MASTER memorisations
+          LoadMasters( trvAccountView.selected.text);
+          stTitle.caption := ' MASTER Memorisations for '+ SelNode.text;
+        end;
+      end; //case
+    end
+    else
+    begin
+      stTitle.caption := ' ';
+      lvMemorised.Items.BeginUpdate;
+      try
+        lvMemorised.items.Clear;
+      finally
+        lvMemorised.Items.EndUpdate;
+      end;
+    end;
   end;
 end;
 
@@ -1382,12 +1521,27 @@ begin
     MyDlg.Free;
   end;
 end;
-//------------------------------------------------------------------------------
 
+//------------------------------------------------------------------------------
+procedure TfrmMaintainMem.EBFindChange(Sender: TObject);
+begin
+   // restart the search timer..
+   SearchTimer.Enabled := False;
+   SearchTimer.Enabled := True;
+end;
+
+//------------------------------------------------------------------------------
+procedure TfrmMaintainMem.EBFindKeyPress(Sender: TObject; var Key: Char);
+begin
+  if Ord(Key)=VK_RETURN then
+    SearchTimerTimer(nil);
+end;
+
+//------------------------------------------------------------------------------
 procedure TfrmMaintainMem.EditSelectedMemorisation;
 begin
-   if Assigned( MyClient) and ( tbEdit.Enabled) then
-      tbEdit.Click;
+  if Assigned( MyClient) and ( tbEdit.Enabled) then
+    tbEdit.Click;
 end;
 
 procedure TfrmMaintainMem.lvMemorisedSelectItem(Sender: TObject;
