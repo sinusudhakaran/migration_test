@@ -117,11 +117,12 @@ const
       5.6.0        2: moved some settings to db
    *)
 
-   USER_INI_VERSION = 3;
+   USER_INI_VERSION = 4;
    (* History
       ?.?.?.?     1: Base Version
       ?.?.?.?     2: Introduce UserINI_CM_Filter
       5.15.0      3: Introduce GST Due column, reorder columns around it
+      5.27.0      4: Update CES find to be visible
    *)
 
 
@@ -939,6 +940,11 @@ begin
     UserINI_CM_Column_Widths[icid_NextGSTDue] := 100;
   end;
 
+  if UserINI_Version < 4 then
+  begin
+    UserINI_CES_Show_Find := True;
+  end;
+
   UserINI_Version := USER_INI_VERSION;
 end;
 
@@ -1016,6 +1022,7 @@ begin
 
       //Code Entry Screen, Show Find..
       UserINI_CES_Show_Find := IniFile.ReadBool(GrpUserOptions,'ShowSECFind',UserINI_CES_Show_Find);
+      UserINI_Mem_Show_Find := IniFile.ReadBool(GrpUserOptions,'ShowMEMFind',UserINI_Mem_Show_Find);
 
       //Favourite Reports
       UserINI_FR_GroupWidth := IniFile.ReadInteger( GrpFavouriteReports, 'GroupWidth', 0);
@@ -1119,6 +1126,7 @@ begin
       IniFile.WriteBool( GrpClientMgr, 'SortDescending', UserINI_CM_SortDescending);
 
       IniFile.WriteBool(GrpUserOptions,'ShowSECFind',UserINI_CES_Show_Find);
+      IniFile.WriteBool(GrpUserOptions,'ShowMEMFind',UserINI_Mem_Show_Find);
 
       //Client HomePage
       IniFile.WriteInteger( GrpClientHomepg, 'GroupWidth', UserINI_HP_GroupWidth);

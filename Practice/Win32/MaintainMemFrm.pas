@@ -39,6 +39,8 @@ type
     btnFind: TButton;
     stTitle: TStaticText;
     SearchTimer: TTimer;
+    tbFind: TToolButton;
+    ToolButton3: TToolButton;
     procedure tbEditClick(Sender: TObject);
     procedure tbDeleteClick(Sender: TObject);
     procedure FormShortCut(var Msg: TWMKey; var Handled: Boolean);
@@ -62,6 +64,7 @@ type
     procedure btnFindClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure SearchTimerTimer(Sender: TObject);
+    procedure tbFindClick(Sender: TObject);
   private
     { Private declarations }
     BankAccountCount      : integer;
@@ -71,7 +74,6 @@ type
     FMemorisationChanged  : boolean;  //needed so that CES reloads edited transactions
     BA: TBank_Account;
 
-    SearchVisible : boolean;
     FSearchText: string;
     procedure SetSearchText(const Value: string);
 
@@ -86,11 +88,14 @@ type
       Mem : TMemorisation; Multiple : Boolean; Prefix: string = ''; ShowPrompt: boolean = true) : boolean;
     procedure MoveItem(MoveItemUp : boolean);
     procedure EditSelectedMemorisation;
+    procedure SetSearchVisible(const Value: Boolean);
+    function GetSearchVisible: Boolean;
   public
     { Public declarations }
     property MemorisationChanged : boolean read FMemorisationChanged;
     function Execute : boolean;
     property SearchText: string read FSearchText write SetSearchText;
+    property SearchVisible: Boolean read GetSearchVisible write SetSearchVisible;
   end;
 
 function MaintainMemorised : boolean;
@@ -250,6 +255,27 @@ begin
   begin
     FSearchText := uppercase(Value);
     Refresh();
+  end;
+end;
+
+//------------------------------------------------------------------------------
+procedure TfrmMaintainMem.SetSearchVisible(const Value: Boolean);
+begin
+  pnlSearch.Visible := Value;
+
+  UserINI_MEM_Show_Find := Value;
+
+  if (Value) and (EBFind.Visible) then
+    EBFind.SetFocus
+  else if lvMemorised.Visible then
+    lvMemorised.SetFocus;
+
+  tbFind.Down := Value;
+
+  if not Value then
+  begin
+    EBFind.Text := '';
+    SearchTimerTimer(nil);
   end;
 end;
 
@@ -738,6 +764,13 @@ begin
      end;
   end;
 end;
+
+//------------------------------------------------------------------------------
+procedure TfrmMaintainMem.tbFindClick(Sender: TObject);
+begin
+  SearchVisible := not SearchVisible;
+end;
+
 //------------------------------------------------------------------------------
 procedure TfrmMaintainMem.tbDeleteClick(Sender: TObject);
 var
@@ -986,7 +1019,13 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmMaintainMem.FormShow(Sender: TObject);
 begin
-  SearchVisible := true;
+  SearchVisible := UserINI_MEM_Show_Find;
+end;
+
+//------------------------------------------------------------------------------
+function TfrmMaintainMem.GetSearchVisible: Boolean;
+begin
+  result := PnlSearch.Visible;
 end;
 
 //------------------------------------------------------------------------------

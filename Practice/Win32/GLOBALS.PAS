@@ -518,6 +518,7 @@ var
     UserINI_FR_Column_Widths : Array[ 0..MAX_FAVOURITE_REPORTS_COLUMNS ] of integer;
 
     UserINI_CES_Show_Find: Boolean = true;
+    UserINI_Mem_Show_Find: Boolean = true;
 
     //global setup settings
     UserINI_GS_Column_Widths : Array[ 0..MAX_CLIENT_MANAGER_COLUMNS] of integer;
