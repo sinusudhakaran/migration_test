@@ -483,8 +483,8 @@ object frmCoding: TfrmCoding
       ExplicitHeight = 19
     end
     object lblRecommendedMemorisations: TLabel
-      Left = 312
-      Top = 4
+      Left = 480
+      Top = 3
       Width = 122
       Height = 13
       Cursor = crHandPoint
@@ -496,7 +496,7 @@ object frmCoding: TfrmCoding
       AlignWithMargins = True
       Left = 57
       Top = 2
-      Width = 161
+      Width = 336
       Height = 18
       Margins.Top = 0
       Margins.Bottom = 0
@@ -509,7 +509,7 @@ object frmCoding: TfrmCoding
     end
     object btnFind: TButton
       AlignWithMargins = True
-      Left = 224
+      Left = 399
       Top = 2
       Width = 75
       Height = 18
@@ -520,6 +520,7 @@ object frmCoding: TfrmCoding
       Enabled = False
       TabOrder = 1
       OnClick = btnFindClick
+      ExplicitLeft = 224
     end
   end
   object cntController: TOvcController
@@ -601,7 +602,6 @@ object frmCoding: TfrmCoding
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd, efoTrimBlanks]
     PictureMask = '999999'
     ShowHint = True
     Table = tblCoding
@@ -621,7 +621,6 @@ object frmCoding: TfrmCoding
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd]
     PictureMask = '#########.##'
     ShowHint = True
     Table = tblCoding
@@ -642,7 +641,6 @@ object frmCoding: TfrmCoding
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd]
     PictureMask = '#########.####'
     ShowHint = True
     Table = tblCoding
@@ -1018,6 +1016,7 @@ object frmCoding: TfrmCoding
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
+    Options = [efoCaretToEnd]
     PictureMask = '####.####'
     Table = tblCoding
     Left = 624
@@ -1033,6 +1032,7 @@ object frmCoding: TfrmCoding
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
+    Options = [efoCaretToEnd]
     PictureMask = '########.##'
     Table = tblCoding
     OnChange = celLocalCurrencyAmountChange
