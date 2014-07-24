@@ -111,6 +111,7 @@ const
   NUMBER_FORMAT = '#,##0.00;(#,##0.00);-';
   NUMBER_FORMAT_SIGNED = '#,##0.00;-#,##0.00;-';
   PERCENT_FORMAT = '#.####;(#.####);-';
+  QUANTITY_FORMAT = '###,###,###.####;(###,###,###.####);-';
 
   BAL_FORMAT = '#,##0.00 "OD ";#,##0.00 "IF "; ';
   NullCode = '<NULLCODE>';
@@ -2530,7 +2531,7 @@ procedure ListMemDetail(Sender : TObject);
       with TBKReport(Sender) do
       begin
         PutString(Indent + Name);
-        PutString(FormatFloat(PERCENT_FORMAT, Value));
+        PutString(FormatFloat(QUANTITY_FORMAT, Value));
         PutString('');
         PutString('');
         PutString('');
