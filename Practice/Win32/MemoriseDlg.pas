@@ -49,7 +49,6 @@ type
 
   TdlgMemorise = class(TForm)
     GroupBox1: TGroupBox;
-    lblType: TLabel;
     eRef: TEdit;
     ePart: TEdit;
     eOther: TEdit;
@@ -124,6 +123,7 @@ type
     Rowtmr: TTimer;
     cbMinus: TComboBox;
     tmrPayee: TTimer;
+    cmbType: TComboBox;
 
     procedure cRefClick(Sender: TObject);
     procedure cPartClick(Sender: TObject);
@@ -260,6 +260,8 @@ type
     function GetAccountingSystem: Integer;
     procedure LocaliseForm;
     procedure PopulateDataFromPayee(PayeeCode: integer; ChangeActiveCol: boolean = True);
+    procedure PopulateCmbType(BA: TBank_Account);
+    function GetTxTypeFromCmbType: byte;
   public
     property AccountingSystem: Integer read GetAccountingSystem write SetAccountingSystem;
     property DlgEditMode: TDlgEditMode read fDlgEditMode write fDlgEditMode;
@@ -276,6 +278,7 @@ type
                             FromRecommendedMems: boolean = false): boolean;
   function  CreateMemorisation(BA: TBank_Account;
               MemorisedList: TMemorisations_List; pM: TMemorisation): boolean;
+  function  AsFloatSort(List: TStringList; Index1, Index2: Integer): Integer;
 
 
 //******************************************************************************
@@ -653,8 +656,6 @@ end;
 procedure TdlgMemorise.btnOKClick(Sender: TObject);
 var
   BA: string;
-  EntryTypeCaption: string;
-  EntryTypeStr: string;
   EntryType: byte;
 begin
    if OKtoPost then
@@ -664,14 +665,22 @@ begin
        BA := ''
      else
        BA := SourceBankAccount.baFields.baBank_Account_Number;
-     // The entry type is not stored globally, so the simplest way for us to get
-     // it is to take it from lblType, after stripping out the colon and short name
-     EntryTypeCaption := lblType.Caption;
-     EntryTypeStr := System.Copy(EntryTypeCaption, 1, AnsiPos(':', EntryTypeCaption) - 1);
-     EntryType := StrToInt(EntryTypeStr);
+     EntryType := GetTxTypeFromCmbType;
      MyClient.clRecommended_Mems.RemoveRecommendedMems(BA, EntryType, eStatementDetails.Text, chkMaster.Checked);
      Modalresult := mrOk;
    end;
+end;
+
+// The entry type is not stored globally, so the simplest way for us to get
+// it is to take it from cmbType, after stripping out the colon and short name
+function TdlgMemorise.GetTxTypeFromCmbType: byte;
+var
+  EntryTypeCaption: string;
+  EntryTypeStr: string;
+begin
+  EntryTypeCaption := cmbType.Text;
+  EntryTypeStr := System.Copy(EntryTypeCaption, 1, AnsiPos(':', EntryTypeCaption) - 1);
+  Result := StrToInt(EntryTypeStr);
 end;
 //------------------------------------------------------------------------------
 procedure TdlgMemorise.btnCopyClick(Sender: TObject);
@@ -1571,7 +1580,7 @@ begin
          if AskYesNo( 'Confirm Criteria',
                       'You have not selected any criteria to match on!'#13 +
                       'This Memorisation will be applied to ALL transactions with Entry Type ' +
-                      lblType.Caption + #13#13+
+                      cmbType.Text + #13#13+
                       'Please confirm you want to do this.',
                       DLG_NO, 0) <> DLG_YES then
                         Exit;
@@ -1602,9 +1611,6 @@ begin
           FMemorisationsList := EditMemorisedList;
        end;
        TempMem.mdFields.mdFrom_Master_List := chkMaster.Checked;
-
-       if Assigned(editMem) then
-           TempMem.mdFields.mdType := editMem.mdFields.mdType;
 
        if Assigned( FMemorisationsList) {and Assigned(EditMem)} then
          if (HasDuplicateMem(TempMem, FMemorisationsList, EditMem)) then begin
@@ -1887,7 +1893,6 @@ var
   MasterMemList : TMemorisations_List;
   SystemMemorisation: pSystem_Memorisation_List_Rec;
   pAcct : pAccount_Rec;
-  ClassNo: byte;
 begin
    result := false;
    IsAMasterMem := false;
@@ -1898,6 +1903,7 @@ begin
    try
       with MemDlg,tr^ do
       begin
+         PopulateCmbType(BA);
          CalledFromRecommendedMems := Assigned(MemLine);
          BKHelpSetUp(MemDlg, BKH_Chapter_5_Memorisations);
          InEditMemorisationMode := false;
@@ -1917,7 +1923,8 @@ begin
 
          GSTClassEditable := Software.CanAlterGSTClass( MyClient.clFields.clCountry, MyClient.clFields.clAccounting_System_Used );
 
-         lblType.Caption := IntToStr(txType) + ':' + MyClient.clFields.clshort_name[txType];
+         cmbType.Text := IntToStr(txType) + ':' + MyClient.clFields.clshort_name[txType];
+
          eRef.text      := txReference;
 
          //only use first line
@@ -2142,6 +2149,7 @@ begin
    MemDlg := TdlgMemorise.Create(Application.MainForm);
    with MemDlg do begin
       try
+         PopulateCmbType(BA);
          BKHelpSetUp(MemDlg, BKH_Chapter_5_Memorisations);
          InEditMemorisationMode := true;
          EditMem  := pM;
@@ -2164,7 +2172,7 @@ begin
             else
                Caption := Caption + ' Memorisation';
 
-            lblType.Caption := inttostr(mdFields.mdType) + ':' + MyClient.clFields.clShort_Name[mdFields.mdType];
+            cmbType.Text := inttostr(mdFields.mdType) + ':' + MyClient.clFields.clShort_Name[mdFields.mdType];
             //set edit boxes
             eRef.Text              := mdFields.mdReference;
             case MyClient.clFields.clCountry of
@@ -2800,12 +2808,10 @@ var
   AuditIDList: TList;
 begin
   with pM do begin
+     mdFields.mdType := GetTxTypeFromCmbType;
      //see if this is a new memorisation
      if Assigned(pT) then
-     begin
-       mdFields.mdType := pT^.txType;
        mdFields.mdSequence_No := 0;
-     end;
 
      mdFields.mdAmount    := abs(AmountToMatch) * AmountMultiplier;
      mdFields.mdReference := eRef.text;
@@ -3668,7 +3674,79 @@ begin
    end;
 end;
 
+function AsFloatSort(List: TStringList; Index1, Index2: Integer): Integer;
+var
+   num1, num2: Double;
+begin
+   num1 := StrToFloatDef(List[Index1], 0);
+   num2 := StrToFloatDef(List[Index2], 0); 
 
+   if num1 < num2 then
+     Result := -1
+   else if num1 > num2 then
+     Result := 1
+   else
+     Result := 0;
+end;
+
+// Fills the cmbType combobox with the relevant entry types, see comments below
+procedure TdlgMemorise.PopulateCmbType(BA: TBank_Account);
+var
+  TypeList: TStringList;
+  baNum: integer;
+  i: integer;
+
+  procedure AddTxTypes;
+  var
+    i: integer;
+    txType: byte;
+  begin
+    for i := BA.baTransaction_List.First to BA.baTransaction_List.Last do
+    begin
+      txType := BA.baTransaction_List.Transaction_At(i).txType;
+      TypeList.Add(IntToStr(txType));
+    end;
+  end;
+begin
+  if not Assigned(MyClient) then
+    Exit;
+
+  TypeList := TStringList.Create;
+  try
+    TypeList.CustomSort(AsFloatSort);
+    TypeList.Sorted := True; // need Sorted = True for ignoring duplicates apparently
+    TypeList.Duplicates := dupIgnore;
+    if Assigned(BA) then
+    begin
+      // We have a bank account, so populate the entry type combobox with the entry types from this account
+      AddTxTypes;
+    end else
+    if (MyClient.clBank_Account_List.ItemCount > 0) then
+    begin
+      // We don't have a bank account, so instead let's fill the entry type combobox with all the
+      // entry types from all the accounts in this client. This should only happen for master mems
+      for baNum := 0 to MyClient.clBank_Account_List.ItemCount - 1 do
+      begin
+        BA := MyClient.clBank_Account_List.Bank_Account_At(baNum);
+        AddTxTypes;
+      end;
+    end else
+    begin
+      // We don't have a bank account, and the client doesn't have any either, so let's fill the
+      // entry type combobox with all possible entry types. This should only happen for master mems,
+      // and only when the selected client doesn't have any accounts.
+      for i := Low(MyClient.clFields.clShort_Name) to High(MyClient.clFields.clShort_Name) do
+        if (MyClient.clFields.clShort_Name[i] <> '') then
+          TypeList.Add(IntToStr(i));
+    end;
+    TypeList.Sorted := False; // Need sorted = false for CustomSort apparently
+    TypeList.CustomSort(AsFloatSort);
+    for i := 0 to TypeList.Count - 1 do
+      cmbType.Items.Add(TypeList.Strings[i] + ': ' + MyClient.clFields.clshort_name[StrToInt(TypeList.Strings[i])]);
+  finally
+    TypeList.Free;
+  end;
+end;           
 
 initialization
    debugMe := debugUnit(UnitName);
