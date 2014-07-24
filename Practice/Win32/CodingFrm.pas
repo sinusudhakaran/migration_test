@@ -1783,10 +1783,8 @@ var
 
    procedure ApplyMem;
    begin
-     //the memorisation may have been a master mem, so recode everything
-     if IsAMasterMem then
-       SendCmdToAllCodingWindows( ecRecodeTrans)
-     else
+     SendCmdToAllCodingWindows( ecRecodeTrans);
+     if not IsAMasterMem then
      begin
        AutoCodeEntries( MyClient, BankAccount, pT^.txType, TranDateFrom, TranDateTo);
        LoadWTLMaintainPos;
@@ -1808,6 +1806,7 @@ begin
       begin
         if (pT.txCoded_By = cbMemorisedC) then
         begin
+          IsAMasterMem := False;
           MemList := tBank_Account(BankAccount).baMemorisations_List;
           FindMemorisation(BankAccount, pT, Mem);
           DeleteSelectedMem := False;
