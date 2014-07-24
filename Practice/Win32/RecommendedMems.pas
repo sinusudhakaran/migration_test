@@ -833,9 +833,9 @@ var
   New: TUnscanned_Transaction;
   Transaction: pTransaction_Rec;
 begin
-  {$IfDef MAPCHECK}
+  {$IF Defined(MAPCHECK) or Defined(BKRELINK)}
   Exit; // bkmap shouldn't build suggested mems
-  {$EndIf}
+  {$IFEND}
   if BankAccount.IsAJournalAccount then
     Exit; // don't scan journals
 
