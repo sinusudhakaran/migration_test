@@ -331,6 +331,9 @@ uses
   Globals,
   DebugTimer;
 
+const
+  UNCODED = '';
+
 {-------------------------------------------------------------------------------
   Logging
 -------------------------------------------------------------------------------}
@@ -1400,7 +1403,7 @@ begin
 
     // Uncoded transaction?
     sAccount := Candidate.cmFields.cmAccount;
-    if (sAccount = '') then
+    if (sAccount = UNCODED) then
       continue;
 
     // DISSECTED?
@@ -1490,7 +1493,7 @@ begin
 
     // Uncoded? (Coded candidates only)
     sAccount := Candidate.cmFields.cmAccount;
-    if (sAccount = '') then
+    if (sAccount = UNCODED) then
       continue;
 
     // Position of partial match within details
@@ -1542,6 +1545,10 @@ begin
   for i := 0 to fCandidates.ItemCount-1 do
   begin
     Candidate := fCandidates[i];
+
+    // Uncoded?
+    if (Candidate.cmFields.cmAccount = UNCODED) then
+      continue;
 
     // Position of partial match within details
     sDetails := Candidate.GetStatementDetailsLowerCase;
