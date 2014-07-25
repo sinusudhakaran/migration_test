@@ -280,6 +280,8 @@ type
                   const aMemorisations: TMemorisations_List): boolean;
     function  IsMasterMemorisation(const aRecommendedMem: TRecommended_Mem;
                 const aBankPrefix: string): boolean;
+    procedure GetManualUncodedCount(var aRecommended: TRecommended_Mem;
+                const aDetails: string);
 
     // Index
     function  GetFirstElimination: boolean;
@@ -1700,6 +1702,9 @@ begin
       continue;
     end;
 
+    // Get manual and uncoded account for new recommended mem
+    GetManualUncodedCount(New, Candidate.LCS.Details);
+
     if DebugMe then
       Log('Add suggested mem: ' + New.rmFields.rmStatement_Details);
 
@@ -1839,6 +1844,43 @@ begin
     exit;
 
   result := true;
+end;
+
+//------------------------------------------------------------------------------
+procedure TMemsV2.GetManualUncodedCount(var aRecommended: TRecommended_Mem;
+  const aDetails: string);
+var
+  i: integer;
+  Candidate: TCandidate_Mem;
+  iPos: integer;
+begin
+  if DebugMe then
+    CreateDebugTimer('TMemsV2.GetManualUncodedCount');
+
+  for i := 0 to fCandidates.ItemCount-1 do
+  begin
+    Candidate := fCandidates[i];
+
+    with Candidate.cmFields, aRecommended.rmFields do
+    begin
+      if (cmBank_Account_Number <> rmBank_Account_Number) then
+        continue;
+
+      if (cmType <> rmType) then
+        continue;
+
+      // Does the LCS (without wildcards) fit within the statement details?
+      iPos := Pos(aDetails, Candidate.StatementDetailsLowerCase);
+      if (iPos = 0) then
+        continue;
+
+      // 'Apply' the memorisation and add the count to the total
+      if (cmAccount = rmAccount) then
+        Inc(rmManual_Count, cmCount)
+      else if (cmAccount = UNCODED) then
+        Inc(rmUncoded_Count, cmCount);
+    end;
+  end;
 end;
 
 //------------------------------------------------------------------------------
