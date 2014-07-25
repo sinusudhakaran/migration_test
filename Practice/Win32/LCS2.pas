@@ -47,6 +47,9 @@ type
 
     procedure Parse(const aValue: string);
 
+    function  StringLength(const aStart: integer; const aCount: integer
+                ): integer;
+
     function  Copy(const aStart: integer; const aCount: integer): string;
 
     class function  Compare(
@@ -140,10 +143,12 @@ var
 
   iStart: integer;
   iMaxCount: integer;
+  iMaxLength: integer;
 
   i: integer;
   j: integer;
   iCount: integer;
+  iLength: integer;
 begin
   if DebugMe then
     CreateDebugTimer('LongestCommonSubstring');
@@ -160,6 +165,7 @@ begin
 
     iStart := -1;
     iMaxCount := 0;
+    iMaxLength := 0;
 
     for i := 0 to Tokens1.Count-1 do
     begin
@@ -177,10 +183,12 @@ begin
         end;
 
         // New longest?
-        if (iCount > iMaxCount) then
+        iLength := Tokens1.StringLength(i, iCount);
+        if (iLength > iMaxLength) then
         begin
           iStart := i;
           iMaxCount := iCount;
+          iMaxLength := iLength;
         end;
       end;
     end;
@@ -260,6 +268,26 @@ begin
     end;
 
     sDelimiter := '';
+  end;
+end;
+
+//------------------------------------------------------------------------------
+function TTokens.StringLength(const aStart: integer; const aCount: integer
+  ): integer;
+var
+  i: integer;
+  Token: PToken;
+begin
+  result := 0;
+
+  for i := 0 to aCount-1 do
+  begin
+    Token := Tokens[aStart + i];
+
+    result := result + Length(Token.Text);
+
+    if (i <> aCount-1) then
+      result := result + Length(Token.Delimiter);
   end;
 end;
 
