@@ -247,8 +247,8 @@ begin
 
       if TProduct.ProductBrand <> btBankstream then
       begin
-        NzFooter := 'BankLink New Zealand PO Box 56-354 Dominion Rd Auckland NZ. Freephone 0800 226 554 Fax 09 630 2759 www.banklink.co.nz';
-        AuFooter := 'BankLink Australia GPO Box 4608 Sydney NSW 2001 Australia. Freephone 1800 123 242 Freefax 1800 123 807 www.banklink.com.au';
+        NzFooter := 'MYOB BankLink New Zealand PO Box 56-354 Dominion Rd Auckland NZ. Freephone 0800 226 554 Fax 09 630 2759 www.banklink.co.nz';
+        AuFooter := 'MYOB BankLink Australia GPO Box 4608 Sydney NSW 2001 Australia. Freephone 1800 123 242 Freefax 1800 123 807 www.banklink.com.au';
       end
       else
       begin
