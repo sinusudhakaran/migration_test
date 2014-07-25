@@ -22,7 +22,7 @@ uses
   MemorisationsObj,
   mxFiles32,
   SYDEFS,
-  
+
   LogUtil;
 
 type
@@ -294,14 +294,8 @@ type
 
 
   {-----------------------------------------------------------------------------
-    LCS
+    LCS in LCS
   -----------------------------------------------------------------------------}
-  function  FindLCS(const aFirst: string; const aSecond: string;
-              var aStartData: boolean; var aDetails: string;
-              var aEndData: boolean): boolean;
-
-  function  LongestCommonSubstring(const aS1: string; const aS2: string): string;
-
   function  FindLCSInLCS(const aLCS1: TLCS; const aLCS2: TLCS;
               var aStartData: boolean; var aDetails: string;
               var aEndData: boolean): boolean;
@@ -329,6 +323,7 @@ uses
   Controls,
   Forms,
   Globals,
+  LCS2,
   DebugTimer;
 
 const
@@ -1877,160 +1872,6 @@ begin
   Inc(fRefinementIndex);
 
   result := (fRefinementIndex < fCandidateStrings.Count);
-end;
-
-{-------------------------------------------------------------------------------
-  FindLCS
--------------------------------------------------------------------------------}
-function FindLCS(const aFirst: string; const aSecond: string;
-  var aStartData: boolean; var aDetails: string; var aEndData: boolean
-  ): boolean;
-var
-  iPos1: integer;
-  iPos2: integer;
-  iLastPos1: integer;
-  iLastPos2: integer;
-  iLength1: integer;
-  iLength2: integer;
-begin
-  if DebugMe then
-    CreateDebugTimer('FindLCS');
-
-  // Longest match
-  aDetails := LongestCommonSubstring(aFirst, aSecond);
-  if (aDetails = '') then
-  begin
-    result := false;
-    exit;
-  end;
-
-  // Data BEFORE the Details?
-  iPos1 := Pos(aDetails, aFirst);
-  iPos2 := Pos(aDetails, aSecond);
-  aStartData := (iPos1 > 1) or (iPos2 > 1);
-
-  // Data AFTER the Details?
-  iLastPos1 := iPos1 + Length(aDetails) - 1;
-  iLastPos2 := iPos2 + Length(aDetails) - 1;
-  iLength1 := Length(aFirst);
-  iLength2 := Length(aSecond);
-  aEndData := (iLastPos1 < iLength1) or (iLastPos2 < iLength2);
-
-  result := true;
-end;
-
-
-{$IFDEF DEBUG_LCS}
-function CompareStringSection(const aFirst: string; const aFirstIndex: integer;
-  const aSecond: string; const aSecondIndex: integer; const aCount: integer
-  ): boolean;
-var
-  i: integer;
-  chFirst: char;
-  chSecond: char;
-begin
-  for i := 0 to aCount-1 do
-  begin
-    chFirst := aFirst[aFirstIndex + i];
-    chSecond := aSecond[aSecondIndex + i];
-    if (chFirst <> chSecond) then
-    begin
-      result := false;
-
-      exit;
-    end;
-  end;
-
-  result := true;
-end;
-
-//------------------------------------------------------------------------------
-function LongestCommonSubstringOld(const aS1: string; const aS2: string): string;
-const
-  MIN_LENGTH = 3;
-var
-  I, J, K: Integer;
-  LSubString: String;
-begin
-  if DebugMe then
-    CreateDebugTimer('LongestCommonSubstringOld');
-
-  Result := '';
-  for I := 1 to Length(aS1) do for J := 1 to Length(aS2) do
-  begin
-    K := MIN_LENGTH;
-    while (K <= Length(aS1)) and (K <= Length(aS2)) do
-    begin
-      if CompareStringSection(aS1, I, aS2, J, K) then
-      begin
-        LSubString := Copy(aS1, I, K);
-      end else
-      begin
-        if Length(LSubString) > Length(Result) then Result := LSubString;
-        LSubString := '';
-      end;
-      if Length(LSubString) > Length(Result) then Result := LSubString;
-      LSubString := '';
-      Inc(K);
-    end;
-  end;
-
-  result := Trim(result);
-  if (Length(result) < MIN_LENGTH) then
-    result := '';
-end;
-{$ENDIF}
-
-
-{-------------------------------------------------------------------------------
-  Based on LCS Java algorithm from WikiBooks
-
-  http://en.wikibooks.org/wiki/Algorithm_Implementation/Strings/Longest_common_substring
--------------------------------------------------------------------------------}
-function LongestCommonSubstring(const aS1: string; const aS2: string): string;
-const
-  MIN_LENGTH = 3;
-var
-  iStart: integer;
-  iMax: integer;
-  i: integer;
-  j: integer;
-  iCount: integer;
-begin
-  if DebugMe then
-    CreateDebugTimer('LongestCommonSubstring');
-
-  iStart := 1;
-  iMax := 0;
-
-  for i := 1 to Length(aS1) do
-  begin
-    for j := 1 to Length(aS2) do
-    begin
-      iCount := 0;
-      while (aS1[i + iCount] = aS2[j + iCount]) do
-      begin
-        Inc(iCount);
-        if ((i + iCount) > Length(aS1)) or ((j + iCount) > Length(aS2)) then
-          break;
-      end;
-
-      if (iCount > iMax) then
-      begin
-        iStart := i;
-        iMax := iCount;
-      end;
-    end;
-  end;
-
-  result := Copy(aS1, iStart, iMax);
-  result := Trim(result);
-  if (Length(result) < MIN_LENGTH) then
-    result := '';
-
-{$IFDEF DEBUG_LCS}
-  ASSERT(result = LongestCommonSubstringOld(aS1, aS2), aS1 + ', ' + aS2 + ' = ' + result + ' <> ' + LongestCommonSubstringOld(aS1, aS2));
-{$ENDIF}
 end;
 
 
