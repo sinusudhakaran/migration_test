@@ -1503,6 +1503,10 @@ begin
 
 
          end;
+
+         if length(fSearchText) > 0 then
+           if not FindTextinItem(NewItem, fSearchText) then
+             lvMemorised.items.Delete(lvMemorised.items.Count-1);
        end;
      end;
    finally
@@ -1564,9 +1568,9 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmMaintainMem.EBFindChange(Sender: TObject);
 begin
-   // restart the search timer..
-   SearchTimer.Enabled := False;
-   SearchTimer.Enabled := True;
+  // restart the search timer..
+  SearchTimer.Enabled := False;
+  SearchTimer.Enabled := True;
 end;
 
 //------------------------------------------------------------------------------
