@@ -199,6 +199,7 @@ begin
       GSTDueWidth := 7;
 
       Job := TClientManagerReport.Create(ReportTypes.rptOther);
+      F := nil;
       try
          CreateReportImageList;
          Job.LoadReportSettings(UserPrintSettings,Report_List_Names[REPORT_CLIENTMANAGER]);
@@ -339,7 +340,7 @@ begin
             Col := AddColAuto(Job,left,ProcessingWidth,GcGap,CM.GetColumnCaption(c), jtLeft); // fixed width - minimum
             F := TFont.Create;
             Job.ReportStyle.Items[siDetail].AssignTo(F);
-            F.Name := 'Courier New'; // Need a fixed width font...
+            F.Name := 'Courier New';
             Col.CustomFont := F;
             ShowLegend := True;
           end;
@@ -405,6 +406,7 @@ begin
         Job.Generate(Dest);
 
       finally
+         FreeAndNil(F);
          DestroyReportImageList;
          Job.Free;
       end;
