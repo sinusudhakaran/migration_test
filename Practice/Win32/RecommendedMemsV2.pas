@@ -1807,7 +1807,7 @@ begin
 
     with aRecommendedMem.rmFields, Memorisation.mdFields^ do
     begin
-      if (rmType = mdType) and (rmStatement_Details = mdStatement_Details) then
+      if (rmType = mdType) and SameText(rmStatement_Details, mdStatement_Details) then
       begin
         result := true;
 
