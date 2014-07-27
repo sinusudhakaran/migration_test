@@ -50,9 +50,9 @@ type
     function  StringLength(const aStart: integer; const aCount: integer
                 ): integer;
 
-    function  Copy(const aStart: integer; const aCount: integer): string;
+    function  StringCopy(const aStart: integer; const aCount: integer): string;
 
-    class function  Compare(
+    class function  StringCompare(
                       const aTokens1: TTokens;
                       const aStart1: integer;
                       const aTokens2: TTokens;
@@ -61,6 +61,8 @@ type
                       ): boolean;
 
   private
+    function  TrimDelimiters(const aValue: string): string;
+
     function  IsAlpha(const aValue: char): boolean;
     function  IsDelimiter(const aValue: char): boolean;
     function  IsNumeric(const aValue: char): boolean;
@@ -173,7 +175,7 @@ begin
       begin
         iCount := 0;
 
-        while TTokens.Compare(Tokens1, i, Tokens2, j, iCount+1) do
+        while TTokens.StringCompare(Tokens1, i, Tokens2, j, iCount+1) do
         begin
           Inc(iCount);
 
@@ -196,7 +198,7 @@ begin
     // Minimum length check
     if (iStart <> -1) then
     begin
-      result := Tokens1.Copy(iStart, iMaxCount);
+      result := Tokens1.StringCopy(iStart, iMaxCount);
       result := Trim(result);
       if (Length(result) < MIN_LENGTH) then
         result := '';
@@ -227,6 +229,7 @@ end;
 //------------------------------------------------------------------------------
 procedure TTokens.Parse(const aValue: string);
 var
+  sValue: string;
   iIndex: integer;
   ch: char;
   sWord: string;
@@ -234,25 +237,26 @@ var
 begin
   SetLength(fTokens, 0);
 
+  // Trimming prevents checking for delimiteres
+  sValue := TrimDelimiters(aValue);
+
   iIndex := 1;
-  while (iIndex <= Length(aValue)) do
+  while (iIndex <= Length(sValue)) do
   begin
     sWord := '';
 
-    ch := aValue[iIndex];
+    ch := sValue[iIndex];
 
     if IsAlpha(ch) then
     begin
-      sWord := EatAlpha(iIndex, aValue);
-      sDelimiter := EatDelimiter(iIndex, aValue);
+      sWord := EatAlpha(iIndex, sValue);
+      sDelimiter := EatDelimiter(iIndex, sValue);
     end
     else if IsNumeric(ch) then
     begin
-      sWord := EatNumeric(iIndex, aValue);
-      sDelimiter := EatDelimiter(iIndex, aValue);
+      sWord := EatNumeric(iIndex, sValue);
+      sDelimiter := EatDelimiter(iIndex, sValue);
     end
-    else if IsDelimiter(ch) then
-      Inc(iIndex)
     else
       ASSERT(false);
 
@@ -292,7 +296,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TTokens.Copy(const aStart: integer; const aCount: integer): string;
+function TTokens.StringCopy(const aStart: integer; const aCount: integer): string;
 var
   i: integer;
   Token: PToken;
@@ -311,9 +315,9 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-class function TTokens.Compare(const aTokens1: TTokens; const aStart1: integer;
-  const aTokens2: TTokens; const aStart2: integer; const aCount: integer
-  ): boolean;
+class function TTokens.StringCompare(const aTokens1: TTokens;
+  const aStart1: integer; const aTokens2: TTokens; const aStart2: integer;
+  const aCount: integer): boolean;
 var
   i: integer;
   Token1: PToken;
@@ -344,6 +348,29 @@ begin
   end;
 
   result := true;
+end;
+
+//------------------------------------------------------------------------------
+function TTokens.TrimDelimiters(const aValue: string): string;
+var
+  i: integer;
+  iLength: integer;
+begin
+  i := 1;
+  iLength := Length(aValue);
+
+  while (i <= iLength) and IsDelimiter(aValue[i]) do
+    Inc(i);
+
+  if (i > iLength) then
+    result := ''
+  else
+  begin
+    while IsDelimiter(aValue[iLength]) do
+      Dec(iLength);
+
+    result := System.Copy(aValue, i, iLength - i + 1);
+  end;
 end;
 
 //------------------------------------------------------------------------------
