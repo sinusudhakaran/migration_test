@@ -1001,6 +1001,12 @@ end;
 procedure TfrmMaintainMem.FormShortCut(var Msg: TWMKey;
   var Handled: Boolean);
 begin
+  if (EBFind.Focused) and (Msg.CharCode <> VK_ESCAPE) then
+  begin
+    Exit;
+    Handled := false;
+  end;
+
   Handled := true;
   case Msg.CharCode of
     VK_DELETE   : if tbDelete.Enabled then
@@ -1576,7 +1582,7 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmMaintainMem.EBFindKeyPress(Sender: TObject; var Key: Char);
 begin
-  if Ord(Key)=VK_RETURN then
+  if Ord(Key) = VK_RETURN then
     SearchTimerTimer(nil);
 end;
 
