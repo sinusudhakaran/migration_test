@@ -1008,6 +1008,14 @@ begin
   end;
 
   Handled := true;
+  If (Msg.charcode = Ord('F')) and (GetKeyState(VK_CONTROL) < 0) Then
+  begin
+    if not SearchVisible then
+      SearchVisible := true;
+    EBFind.SetFocus;
+    Exit;
+  end;
+
   case Msg.CharCode of
     VK_DELETE   : if tbDelete.Enabled then
       tbDelete.click;
