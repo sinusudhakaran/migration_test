@@ -66,10 +66,12 @@ type
     function  IsAlpha(const aValue: char): boolean;
     function  IsDelimiter(const aValue: char): boolean;
     function  IsNumeric(const aValue: char): boolean;
+    function  IsAlphaNumeric(const aValue: char): boolean;
 
     function  EatAlpha(var aIndex: integer; const aValue: string): string;
     function  EatDelimiter(var aIndex: integer; const aValue: string): string;
     function  EatNumeric(var aIndex: integer; const aValue: string): string;
+    function  EatAlphaNumeric(var aIndex: integer; const aValue: string): string;
   end;
 
 
@@ -247,14 +249,10 @@ begin
 
     ch := sValue[iIndex];
 
-    if IsAlpha(ch) then
+    // Note: for now we stick with space separated words, nothing fancy
+    if IsAlphaNumeric(ch) then
     begin
-      sWord := EatAlpha(iIndex, sValue);
-      sDelimiter := EatDelimiter(iIndex, sValue);
-    end
-    else if IsNumeric(ch) then
-    begin
-      sWord := EatNumeric(iIndex, sValue);
+      sWord := EatAlphaNumeric(iIndex, sValue);
       sDelimiter := EatDelimiter(iIndex, sValue);
     end
     else
@@ -382,13 +380,19 @@ end;
 //------------------------------------------------------------------------------
 function TTokens.IsDelimiter(const aValue: char): boolean;
 begin
-  result := (aValue = ' ') or (aValue = '-');
+  result := (aValue = ' ');
 end;
 
 //------------------------------------------------------------------------------
 function TTokens.IsNumeric(const aValue: char): boolean;
 begin
   result := (('0' <= aValue) and (aValue <= '9'));
+end;
+
+//------------------------------------------------------------------------------
+function TTokens.IsAlphaNumeric(const aValue: char): boolean;
+begin
+  result := not IsDelimiter(aValue);
 end;
 
 //------------------------------------------------------------------------------
@@ -452,6 +456,26 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
+function TTokens.EatAlphaNumeric(var aIndex: integer; const aValue: string
+  ): string;
+var
+  ch: char;
+begin
+  result := '';
+
+  while (aIndex <= Length(aValue)) do
+  begin
+    ch := aValue[aIndex];
+
+    if IsAlphaNumeric(ch) then
+      result := result + ch
+    else
+      break;
+
+    Inc(aIndex);
+  end;
+end;
 
 {-------------------------------------------------------------------------------
   Initialization
