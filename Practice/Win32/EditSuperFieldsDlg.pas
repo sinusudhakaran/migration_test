@@ -94,6 +94,7 @@ type
     procedure nfImputedCreditChange(Sender: TObject);
     procedure btnCalcClick(Sender: TObject);
     procedure nfUnfrankedChange(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
   private
     FReadOnly, FAutoPresSMinus: boolean;
     FMoveDirection: TFundNavigation;
@@ -360,6 +361,11 @@ begin
   ImagesFrm.AppImages.Maintain.GetBitmap( MAINTAIN_LOCK_BMP, Glyph );
   // showmember component options
   cmbMember.Items.Clear;
+end;
+
+procedure TdlgEditSuperFields.FormDestroy(Sender: TObject);
+begin
+  FreeAndNil(Glyph);
 end;
 
 procedure TdlgEditSuperFields.FormKeyDown(Sender: TObject; var Key: Word;
