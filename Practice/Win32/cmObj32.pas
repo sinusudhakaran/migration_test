@@ -11,7 +11,7 @@ type
   ---------------------------------------------------------------------------- }
   TCandidate_Mem = class
   private
-    fStatementDetailsLowerCase: string;
+    fStatementDetailsUpperCase: string;
   public
     cmFields: tCandidate_Mem_Rec;
   public
@@ -21,8 +21,8 @@ type
     procedure SaveToFile(var S: TIOStream);
     procedure LoadFromFile(var S: TIOStream);
 
-    function  GetStatementDetailsLowerCase: string;
-    property  StatementDetailsLowerCase: string read GetStatementDetailsLowerCase;
+    function  GetStatementDetailsUpperCase: string;
+    property  StatementDetailsUpperCase: string read GetStatementDetailsUpperCase;
 
     function  GetAs_pRec: pCandidate_Mem_Rec;
     property  As_pRec: pCandidate_Mem_Rec read GetAs_pRec;
@@ -101,14 +101,14 @@ begin
 end;
 
 {------------------------------------------------------------------------------}
-function TCandidate_Mem.GetStatementDetailsLowerCase: string;
+function TCandidate_Mem.GetStatementDetailsUpperCase: string;
 begin
-  { Note: on first use this value will be cached to lowercase for use with
+  { Note: on first use this value will be cached to uppercase for use with
     mems2. }
-  if (fStatementDetailsLowerCase = '') and (cmFields.cmStatement_Details <> '') then
-    fStatementDetailsLowerCase := LowerCase(cmFields.cmStatement_Details);
+  if (fStatementDetailsUpperCase = '') and (cmFields.cmStatement_Details <> '') then
+    fStatementDetailsUpperCase := UpperCase(cmFields.cmStatement_Details);
 
-  result := fStatementDetailsLowerCase;
+  result := fStatementDetailsUpperCase;
 end;
 
 {------------------------------------------------------------------------------}
