@@ -1001,7 +1001,8 @@ end;
 procedure TfrmMaintainMem.FormShortCut(var Msg: TWMKey;
   var Handled: Boolean);
 begin
-  if (EBFind.Focused) and (Msg.CharCode <> VK_ESCAPE) then
+  if ((EBFind.Focused) or btnFind.Focused) and
+     (Msg.CharCode <> VK_ESCAPE) then
   begin
     Exit;
     Handled := false;
@@ -1034,6 +1035,8 @@ end;
 procedure TfrmMaintainMem.FormShow(Sender: TObject);
 begin
   SearchVisible := UserINI_MEM_Show_Find;
+  trvAccountView.SetFocus;
+  lvMemorised.SetFocus;
 end;
 
 //------------------------------------------------------------------------------
