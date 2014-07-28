@@ -260,8 +260,8 @@ type
     function GetAccountingSystem: Integer;
     procedure LocaliseForm;
     procedure PopulateDataFromPayee(PayeeCode: integer; ChangeActiveCol: boolean = True);
-    procedure PopulateCmbType(BA: TBank_Account);
-    function GetTxTypeFromCmbType: byte;
+    procedure PopulateCmbType(BA: TBank_Account; EntryType: byte);
+    function GetTxTypeFromCmbType(ItemIndex: integer = -1): byte;
   public
     property AccountingSystem: Integer read GetAccountingSystem write SetAccountingSystem;
     property DlgEditMode: TDlgEditMode read fDlgEditMode write fDlgEditMode;
@@ -657,7 +657,7 @@ procedure TdlgMemorise.btnOKClick(Sender: TObject);
 var
   BA: string;
   EntryType: byte;
-begin
+begin      
    if OKtoPost then
    begin
      // If there is a recommended memorisation
@@ -673,12 +673,15 @@ end;
 
 // The entry type is not stored globally, so the simplest way for us to get
 // it is to take it from cmbType, after stripping out the colon and short name
-function TdlgMemorise.GetTxTypeFromCmbType: byte;
+function TdlgMemorise.GetTxTypeFromCmbType(ItemIndex: integer = -1): byte;
 var
   EntryTypeCaption: string;
   EntryTypeStr: string;
 begin
-  EntryTypeCaption := cmbType.Text;
+  if (ItemIndex = -1) or (ItemIndex >= cmbType.Items.Count) then
+    EntryTypeCaption := cmbType.Text // Get the text for the currently selected item in the combobox
+  else
+    EntryTypeCaption := cmbType.Items.Strings[ItemIndex]; // Get the text for a given item in the combobox
   EntryTypeStr := System.Copy(EntryTypeCaption, 1, AnsiPos(':', EntryTypeCaption) - 1);
   Result := StrToInt(EntryTypeStr);
 end;
@@ -1903,7 +1906,7 @@ begin
    try
       with MemDlg,tr^ do
       begin
-         PopulateCmbType(BA);
+         PopulateCmbType(BA, tr.txType);
          CalledFromRecommendedMems := Assigned(MemLine);
          BKHelpSetUp(MemDlg, BKH_Chapter_5_Memorisations);
          InEditMemorisationMode := false;
@@ -2149,7 +2152,7 @@ begin
    MemDlg := TdlgMemorise.Create(Application.MainForm);
    with MemDlg do begin
       try
-         PopulateCmbType(BA);
+         PopulateCmbType(BA, pM.mdFields.mdType);
          BKHelpSetUp(MemDlg, BKH_Chapter_5_Memorisations);
          InEditMemorisationMode := true;
          EditMem  := pM;
@@ -3690,11 +3693,26 @@ begin
 end;
 
 // Fills the cmbType combobox with the relevant entry types, see comments below
-procedure TdlgMemorise.PopulateCmbType(BA: TBank_Account);
+procedure TdlgMemorise.PopulateCmbType(BA: TBank_Account; EntryType: byte);
 var
   TypeList: TStringList;
   baNum: integer;
   i: integer;
+  EntryTypeItemIndex: integer;
+
+  procedure ChooseDefaultEntryType;
+  var
+    cmbTypeIndex: integer;
+  begin
+    for cmbTypeIndex := 0 to cmbType.Items.Count - 1 do
+    begin
+      if (GetTxTypeFromCmbType(cmbTypeIndex) = EntryType) then
+      begin
+        EntryTypeItemIndex := cmbTypeIndex;
+        break;
+      end;
+    end;
+  end;
 
   procedure AddTxTypes;
   var
@@ -3707,6 +3725,7 @@ var
       TypeList.Add(IntToStr(txType));
     end;
   end;
+
 begin
   if not Assigned(MyClient) then
     Exit;
@@ -3742,7 +3761,11 @@ begin
     TypeList.Sorted := False; // Need sorted = false for CustomSort apparently
     TypeList.CustomSort(AsFloatSort);
     for i := 0 to TypeList.Count - 1 do
+    begin
       cmbType.Items.Add(TypeList.Strings[i] + ': ' + MyClient.clFields.clshort_name[StrToInt(TypeList.Strings[i])]);
+    end;
+    ChooseDefaultEntryType;
+    cmbType.ItemIndex := EntryTypeItemIndex;
   finally
     TypeList.Free;
   end;

@@ -324,6 +324,7 @@ object dlgMemorise: TdlgMemorise
       Top = 19
       Width = 145
       Height = 21
+      Style = csDropDownList
       ItemHeight = 13
       TabOrder = 21
     end
@@ -494,15 +495,15 @@ object dlgMemorise: TdlgMemorise
       OnUserCommand = tblSplitUserCommand
       CellData = (
         'dlgMemorise.Header'
-        'dlgMemorise.colLineType'
-        'dlgMemorise.ColPercent'
-        'dlgMemorise.ColAmount'
-        'dlgMemorise.ColGSTCode'
-        'dlgMemorise.colJob'
-        'dlgMemorise.ColPayee'
-        'dlgMemorise.colNarration'
+        'dlgMemorise.ColAcct'
         'dlgMemorise.ColDesc'
-        'dlgMemorise.ColAcct')
+        'dlgMemorise.colNarration'
+        'dlgMemorise.ColPayee'
+        'dlgMemorise.colJob'
+        'dlgMemorise.ColGSTCode'
+        'dlgMemorise.ColAmount'
+        'dlgMemorise.ColPercent'
+        'dlgMemorise.colLineType')
       RowData = (
         21)
       ColData = (
@@ -708,7 +709,6 @@ object dlgMemorise: TdlgMemorise
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd]
     PictureMask = '###,###,###.##'
     Table = tblSplit
     TableColor = False
@@ -843,7 +843,6 @@ object dlgMemorise: TdlgMemorise
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd, efoTrimBlanks]
     PictureMask = '999999'
     ShowHint = True
     Table = tblSplit
@@ -864,6 +863,7 @@ object dlgMemorise: TdlgMemorise
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
+    Options = [efoCaretToEnd]
     PictureMask = '###,###,###.####'
     Table = tblSplit
     TableColor = False
