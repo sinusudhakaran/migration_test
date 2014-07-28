@@ -916,8 +916,8 @@ begin
   end;
 
   // Can't find longest string?
-  if not FindLCS(Candidate.GetStatementDetailsLowerCase,
-    CandidateOther.GetStatementDetailsLowerCase, bStartData, sDetails,
+  if not FindLCS(Candidate.GetStatementDetailsUpperCase,
+    CandidateOther.GetStatementDetailsUpperCase, bStartData, sDetails,
     bEndData) then
   begin
     exit;
@@ -1494,7 +1494,7 @@ begin
       continue;
 
     // Position of partial match within details
-    sDetails := Candidate.GetStatementDetailsLowerCase;
+    sDetails := Candidate.GetStatementDetailsUpperCase;
     iPos := Pos(aDetails, sDetails);
     if (iPos = 0) then
       continue;
@@ -1548,7 +1548,7 @@ begin
       continue;
 
     // Position of partial match within details
-    sDetails := Candidate.GetStatementDetailsLowerCase;
+    sDetails := Candidate.GetStatementDetailsUpperCase;
     iPos := Pos(aDetails, sDetails);
     if (iPos = 0) then
       continue;
@@ -1870,7 +1870,7 @@ begin
         continue;
 
       // Does the LCS (without wildcards) fit within the statement details?
-      iPos := Pos(aDetails, Candidate.StatementDetailsLowerCase);
+      iPos := Pos(aDetails, Candidate.StatementDetailsUpperCase);
       if (iPos = 0) then
         continue;
 
