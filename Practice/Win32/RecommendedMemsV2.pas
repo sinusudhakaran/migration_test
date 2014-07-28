@@ -267,6 +267,8 @@ type
     procedure AddCandidateStringsToRecommended;
 
     // Additional helper functions
+    function  IsUncoded(const aAccount: string): boolean;
+    function  IsUncodedOrInvalid(const aAccount: string): boolean;
     function  MoreThanOneAccount(const aDetails: string;
                 var aAccount: string): boolean;
     function  LessThanMinimumCount(const aDetails: string): boolean;
@@ -327,9 +329,6 @@ uses
   Globals,
   LCS2,
   DebugTimer;
-
-const
-  UNCODED = '';
 
 {-------------------------------------------------------------------------------
   Logging
@@ -1400,7 +1399,7 @@ begin
 
     // Uncoded transaction?
     sAccount := Candidate.cmFields.cmAccount;
-    if (sAccount = UNCODED) then
+    if IsUncodedOrInvalid(sAccount) then
       continue;
 
     // DISSECTED?
@@ -1471,6 +1470,20 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+function TMemsV2.IsUncoded(const aAccount: string): boolean;
+const
+  UNCODED = '';
+begin
+  result := (aAccount = UNCODED);
+end;
+
+//------------------------------------------------------------------------------
+function TMemsV2.IsUncodedOrInvalid(const aAccount: string): boolean;
+begin
+  result := IsUncoded(aAccount) or not MyClient.clChart.CanCodeTo(aAccount);
+end;
+
+//------------------------------------------------------------------------------
 function TMemsV2.MoreThanOneAccount(const aDetails: string;
   var aAccount: string): boolean;
 var
@@ -1490,7 +1503,7 @@ begin
 
     // Uncoded? (Coded candidates only)
     sAccount := Candidate.cmFields.cmAccount;
-    if (sAccount = UNCODED) then
+    if IsUncodedOrInvalid(sAccount) then
       continue;
 
     // Position of partial match within details
@@ -1544,7 +1557,7 @@ begin
     Candidate := fCandidates[i];
 
     // Uncoded?
-    if (Candidate.cmFields.cmAccount = UNCODED) then
+    if IsUncodedOrInvalid(Candidate.cmFields.cmAccount) then
       continue;
 
     // Position of partial match within details
@@ -1877,7 +1890,7 @@ begin
       // 'Apply' the memorisation and add the count to the total
       if (cmAccount = rmAccount) then
         Inc(rmManual_Count, cmCount)
-      else if (cmAccount = UNCODED) then
+      else if IsUncodedOrInvalid(cmAccount) then
         Inc(rmUncoded_Count, cmCount);
     end;
   end;
