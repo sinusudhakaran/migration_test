@@ -35,15 +35,15 @@ object RecommendedMemorisationsFrm: TRecommendedMemorisationsFrm
     Header.Height = 21
     Header.MainColumn = 1
     Header.Options = [hoColumnResize, hoDrag, hoShowSortGlyphs, hoVisible]
+    LineStyle = lsSolid
     ParentBackground = False
     TabOrder = 0
     TreeOptions.AutoOptions = [toAutoDropExpand, toAutoScrollOnExpand, toAutoSort, toAutoTristateTracking, toAutoDeleteMovedNodes]
-    TreeOptions.PaintOptions = [toShowButtons, toShowDropmark, toShowTreeLines, toThemeAware, toUseBlendedImages]
-    TreeOptions.SelectionOptions = [toDisableDrawSelection]
-    OnAfterCellPaint = vstTreeAfterCellPaint
-    OnBeforePaint = vstTreeBeforePaint
+    TreeOptions.MiscOptions = [toAcceptOLEDrop, toEditable, toFullRepaintOnResize, toInitOnSave, toToggleOnDblClick, toWheelPanning]
+    TreeOptions.PaintOptions = [toShowButtons, toThemeAware, toUseBlendedImages, toUseBlendedSelection]
+    TreeOptions.SelectionOptions = [toExtendedFocus, toFullRowSelect, toRightClickSelect]
     OnCompareNodes = vstTreeCompareNodes
-    OnFocusChanging = vstTreeFocusChanging
+    OnDblClick = vstTreeDblClick
     OnFreeNode = vstTreeFreeNode
     OnGetText = vstTreeGetText
     OnGetNodeDataSize = vstTreeGetNodeDataSize
@@ -69,11 +69,6 @@ object RecommendedMemorisationsFrm: TRecommendedMemorisationsFrm
         Position = 3
         Width = 60
         WideText = 'Total #'
-      end
-      item
-        Alignment = taCenter
-        Position = 4
-        Width = 40
       end>
   end
   object pnlButtons: TPanel
@@ -84,6 +79,7 @@ object RecommendedMemorisationsFrm: TRecommendedMemorisationsFrm
     Align = alBottom
     BevelOuter = bvNone
     TabOrder = 1
+    ExplicitTop = 446
     DesignSize = (
       667
       41)
@@ -104,6 +100,17 @@ object RecommendedMemorisationsFrm: TRecommendedMemorisationsFrm
       Caption = 'Close'
       ModalResult = 1
       TabOrder = 0
+    end
+    object btnCreate: TButton
+      Left = 501
+      Top = 8
+      Width = 75
+      Height = 25
+      Anchors = [akRight, akBottom]
+      Caption = 'Create'
+      Default = True
+      TabOrder = 1
+      OnClick = btnCreateClick
     end
   end
   object Panel1: TPanel
@@ -126,7 +133,7 @@ object RecommendedMemorisationsFrm: TRecommendedMemorisationsFrm
     Left = 312
     Top = 448
     Bitmap = {
-      494C0101010008005C0010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C010101000800640010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000001000000001002000000000000010
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000

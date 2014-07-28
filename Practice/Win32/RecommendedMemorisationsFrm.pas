@@ -3,16 +3,27 @@ unit RecommendedMemorisationsFrm;
 interface
 
 uses
-  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, VirtualTrees, ovcbase, ovctcmmn, ovctable, ExtCtrls, StdCtrls,
-  dxGDIPlusClasses, ImgList,
-
+  Windows,
+  Messages,
+  SysUtils,
+  Variants,
+  Classes,
+  Graphics,
+  Controls,
+  Forms,
+  Dialogs,
+  VirtualTrees,
+  ovcbase,
+  ovctcmmn,
+  ovctable,
+  ExtCtrls,
+  StdCtrls,
+  dxGDIPlusClasses,
+  ImgList,
   baObj32,
   rmObj32,
   rmList32,
-
   OSFont,
-
   ImagesFrm;
 
 type
@@ -32,29 +43,25 @@ type
     lblBankAccount: TLabel;
     lblStatus: TLabel;
     Images: TImageList;
+    btnCreate: TButton;
     procedure FormCreate(Sender: TObject);
     procedure vstTreeGetText(Sender: TBaseVirtualTree; Node: PVirtualNode;
       Column: TColumnIndex; TextType: TVSTTextType; var CellText: WideString);
     procedure vstTreeGetNodeDataSize(Sender: TBaseVirtualTree;
       var NodeDataSize: Integer);
     procedure vstTreeFreeNode(Sender: TBaseVirtualTree; Node: PVirtualNode);
-    procedure vstTreeFocusChanging(Sender: TBaseVirtualTree; OldNode,
-      NewNode: PVirtualNode; OldColumn, NewColumn: TColumnIndex;
-      var Allowed: Boolean);
     procedure vstTreeMouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
-    procedure vstTreeAfterCellPaint(Sender: TBaseVirtualTree;
-      TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
-      CellRect: TRect);
     procedure FormResize(Sender: TObject);
     procedure vstTreeCompareNodes(Sender: TBaseVirtualTree; Node1,
       Node2: PVirtualNode; Column: TColumnIndex; var CompareResult: Integer);
     procedure vstTreeHeaderClick(Sender: TVTHeader; Column: TColumnIndex;
       Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-    procedure vstTreeBeforePaint(Sender: TBaseVirtualTree;
-      TargetCanvas: TCanvas);
     procedure FormDestroy(Sender: TObject);
+    procedure vstTreeDblClick(Sender: TObject);
+    procedure btnCreateClick(Sender: TObject);
   private
+    fMouseDownX, fMouseDownY : integer;
     fBankAccount: TBank_Account;
     fData: array of TRecommended_Mem;
     fAdded: boolean;
@@ -72,10 +79,12 @@ type
                   const aBankAccount: TBank_Account);
   end;
 
+  //----------------------------------------------------------------------------
   function  ShowRecommendedMemorisations(const aOwner: TComponent;
               const aBankAccount: TBank_Account): boolean;
 
 
+//------------------------------------------------------------------------------
 implementation
 
 {$R *.dfm}
@@ -163,12 +172,14 @@ begin
   vstTree.Header.SortColumn := ccEntryType;
 end;
 
+//------------------------------------------------------------------------------
 procedure TRecommendedMemorisationsFrm.FormDestroy(Sender: TObject);
 begin
   if fAdded then
     SendCmdToAllCodingWindows( ecRecodeTrans);
 end;
 
+//------------------------------------------------------------------------------
 procedure TRecommendedMemorisationsFrm.RedrawTree;
 var
   OldScrollPos: integer;
@@ -251,6 +262,7 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 procedure TRecommendedMemorisationsFrm.vstTreeHeaderClick(Sender: TVTHeader;
   Column: TColumnIndex; Button: TMouseButton; Shift: TShiftState; X,
   Y: Integer);
@@ -269,31 +281,12 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TRecommendedMemorisationsFrm.vstTreeAfterCellPaint(
-  Sender: TBaseVirtualTree; TargetCanvas: TCanvas; Node: PVirtualNode;
-  Column: TColumnIndex; CellRect: TRect);
-var
-  ButtonRect: TRect;
-begin
-  if (Column <> LAST_COLUMN) then
-    exit;
-
-  ButtonRect := GetButtonRect(CellRect);
-
-  Images.Draw(TargetCanvas, ButtonRect.Left, ButtonRect.Top, ICON_BUTTON);
-end;
-
-procedure TRecommendedMemorisationsFrm.vstTreeBeforePaint(
-  Sender: TBaseVirtualTree; TargetCanvas: TCanvas);
-begin
-  ResortTree;
-end;
-
 procedure TRecommendedMemorisationsFrm.ResortTree;
 begin
   vstTree.SortTree(vstTree.Header.SortColumn, vstTree.Header.SortDirection);
 end;
 
+//------------------------------------------------------------------------------
 procedure TRecommendedMemorisationsFrm.vstTreeCompareNodes(
   Sender: TBaseVirtualTree; Node1, Node2: PVirtualNode; Column: TColumnIndex;
   var CompareResult: Integer);
@@ -360,38 +353,23 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TRecommendedMemorisationsFrm.vstTreeMouseDown(Sender: TObject;
-  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+procedure TRecommendedMemorisationsFrm.vstTreeDblClick(Sender: TObject);
 var
-  HitInfo: THitInfo;
-  CellRect: TRect;
-  ButtonRect: TRect;
-  MousePt: TPoint;
+  Node : PVirtualNode;
 begin
-  vstTree.GetHitTestInfoAt(X, Y, true, HitInfo);
-  if not assigned(HitInfo.HitNode) then
-    exit;
-  if (HitInfo.HitColumn < 0) then // Can be -2
-    exit;
-
-  CellRect := vstTree.GetDisplayRect(HitInfo.HitNode, HitInfo.HitColumn, false);
-  ButtonRect := GetButtonRect(CellRect);
-
-  MousePt := Point(X, Y);
-
-  if not PtInRect(ButtonRect, MousePt) then
-    exit;
-
-  DoCreateNewMemorisation(HitInfo.HitNode);
+  Node := vstTree.GetNodeAt(fMouseDownX, fMouseDownY);
+  if Assigned(Node) then
+  begin
+    DoCreateNewMemorisation(Node);
+  end;
 end;
 
 //------------------------------------------------------------------------------
-procedure TRecommendedMemorisationsFrm.vstTreeFocusChanging(
-  Sender: TBaseVirtualTree; OldNode, NewNode: PVirtualNode;
-  OldColumn, NewColumn: TColumnIndex; var Allowed: Boolean);
+procedure TRecommendedMemorisationsFrm.vstTreeMouseDown(Sender: TObject;
+  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 begin
-  // Prevents selection highlight bar
-  Allowed := false;
+  fMouseDownX := X;
+  fMouseDownY := Y;
 end;
 
 //------------------------------------------------------------------------------
@@ -435,6 +413,17 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+procedure TRecommendedMemorisationsFrm.btnCreateClick(Sender: TObject);
+var
+  SelNode : PVirtualNode;
+begin
+  SelNode := vstTree.GetFirstSelected();
+
+  if assigned(SelNode) then
+    DoCreateNewMemorisation(SelNode);
+end;
+
+//------------------------------------------------------------------------------
 procedure TRecommendedMemorisationsFrm.BuildData;
 var
   Mems: TRecommended_Mem_List;
@@ -472,18 +461,49 @@ var
   i: integer;
   pNode: PVirtualNode;
   pData: PTreeData;
+  SelNode: PVirtualNode;
+  SelIndex : integer;
 begin
+  SelIndex := 0;
+  SelNode := vstTree.GetFirstSelected;
+  if Assigned(SelNode) then
+  begin
+    pData := PTreeData(vstTree.GetNodeData(SelNode));
+    for i := 0 to High(fData) do
+    begin
+      if fData[i] = pData.RecommendedMem then
+      begin
+        SelIndex := i;
+        break;
+      end;
+    end;
+  end;
+
   // Build temporary structure against BankAccount
   BuildData;
-  vstTree.Clear;
 
-  // Add nodes
-  for i := 0 to High(fData) do
-  begin
-    // Add
-    pNode := vstTree.AddChild(nil);
-    pData := PTreeData(vstTree.GetNodeData(pNode));
-    pData.RecommendedMem := fData[i];
+  vstTree.BeginUpdate;
+  try
+    vstTree.Clear;
+
+    if SelIndex > High(fData) then
+      SelIndex := 0;
+    
+    // Add nodes
+    for i := 0 to High(fData) do
+    begin
+      // Add
+      pNode := vstTree.AddChild(nil);
+      pData := PTreeData(vstTree.GetNodeData(pNode));
+      pData.RecommendedMem := fData[i];
+      if SelIndex = i then
+      begin
+        vstTree.Selected[pNode] := True;
+        vstTree.FocusedNode := pNode;
+      end;
+    end;
+  finally
+    vstTree.EndUpdate;
   end;
 end;
 
@@ -578,6 +598,5 @@ begin
     RedrawTree;
   end;
 end;
-
 
 end.
