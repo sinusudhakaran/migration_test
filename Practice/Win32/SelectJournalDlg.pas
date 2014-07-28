@@ -291,6 +291,7 @@ begin
                  Transaction := NewJournalFor(MyClient, Bank_Account, EffDate);
               Transaction.txReference := ERef.Text;
               Transaction.txGL_Narration := ENarration.Text;
+              Transaction.txAccount := DISSECT_DESC;
               if rgAction.ItemIndex >=0 then
                  JAction := Integer(rgAction.Items.Objects[rgAction.ItemIndex])
               else

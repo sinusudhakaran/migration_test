@@ -252,6 +252,7 @@ Begin
          Destination := NewJournalFor(aClient, B, AutoJnlDate);
          Destination.txGL_Narration := Source.txGL_Narration;
          Destination.txReference := Source.txReference;
+         Destination.txAccount := Source.txAccount;
 
          if LoopCount < 1 then begin
 
