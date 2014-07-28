@@ -321,6 +321,8 @@ procedure TfrmAbout.btnEULAClick(Sender: TObject);
 var
   f: TDlgLicense;
 begin
+  ASSERT(false);
+
   f := TDlgLicense.Create(Self);
   try
     f.About := True;
