@@ -1724,7 +1724,12 @@ begin
     try
       fRecommended.Insert(New);
     except
-      ; // Ignore, we already did our best to check for duplicates
+      // Ignore, we already did our best to check for duplicates
+      on E: Exception do
+      begin
+        FreeAndNil(New);
+        continue;
+      end;
     end;
   end;
 end;
@@ -1743,7 +1748,7 @@ begin
     if (aRecommended.rmFields.rmBank_Account_Number = RecommendedOther.rmFields.rmBank_Account_Number) and
        (aRecommended.rmFields.rmAccount = RecommendedOther.rmFields.rmAccount) and
        (aRecommended.rmFields.rmType = RecommendedOther.rmFields.rmType) and
-       (aRecommended.rmFields.rmStatement_Details = RecommendedOther.rmFields.rmStatement_Details) then
+       SameText(aRecommended.rmFields.rmStatement_Details, RecommendedOther.rmFields.rmStatement_Details) then
     begin
       result := true;
 
