@@ -24,6 +24,8 @@ type
     function  GetStatementDetailsUpperCase: string;
     property  StatementDetailsUpperCase: string read GetStatementDetailsUpperCase;
 
+    function  ToString: string;
+
     function  GetAs_pRec: pCandidate_Mem_Rec;
     property  As_pRec: pCandidate_Mem_Rec read GetAs_pRec;
   end;
@@ -109,6 +111,18 @@ begin
     fStatementDetailsUpperCase := UpperCase(cmFields.cmStatement_Details);
 
   result := fStatementDetailsUpperCase;
+end;
+
+{------------------------------------------------------------------------------}
+function TCandidate_Mem.ToString: string;
+begin
+  result :=
+    IntToStr(cmFields.cmID) + ', ' +
+    cmFields.cmBank_Account_Number + ', ' +
+    cmFields.cmAccount +
+    IntToStr(cmFields.cmType) + ', ' +
+    cmFields.cmStatement_Details +
+    IntToStr(cmFields.cmCount);
 end;
 
 {------------------------------------------------------------------------------}

@@ -271,7 +271,8 @@ type
     function  IsUncodedOrInvalid(const aAccount: string): boolean;
     function  MoreThanOneAccount(const aDetails: string;
                 var aAccount: string): boolean;
-    function  LessThanMinimumCount(const aDetails: string): boolean;
+    function  LessThanMinimumCount(const aCandidateString: TCandidateString
+                ): boolean;
     function  CopyRefinementStringsToCandidateStrings: boolean;
 
     // InUse helper functions
@@ -1433,8 +1434,8 @@ end;
 procedure TMemsV2.EliminateCandidateString;
 var
   CandidateString: TCandidateString;
-  sDetails: string;
   sAccount: string;
+  sDetails: string;
 begin
   if DebugMe then
     CreateDebugTimer('TMemsV2.EliminateCandidateStrings');
@@ -1460,7 +1461,7 @@ begin
     CandidateString.Account := sAccount;
   end;
 
-  if LessThanMinimumCount(sDetails) then
+  if LessThanMinimumCount(CandidateString) then
   begin
     if DebugMe then
       Log('Count less than minimum: '+CandidateString.LCS.ToString);
@@ -1540,7 +1541,8 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TMemsV2.LessThanMinimumCount(const aDetails: string): boolean;
+function TMemsV2.LessThanMinimumCount(const aCandidateString: TCandidateString
+  ): boolean;
 const
   MIN_COUNT = 3;
 var
@@ -1552,21 +1554,32 @@ var
 begin
   iCount := 0;
 
+  if DebugMe then
+    Log('Search: ' + aCandidateString.LCS.Details);
+
   for i := 0 to fCandidates.ItemCount-1 do
   begin
     Candidate := fCandidates[i];
 
-    // Uncoded?
-    if IsUncodedOrInvalid(Candidate.cmFields.cmAccount) then
-      continue;
+    with Candidate.cmFields do
+    begin
+      if (cmBank_Account_Number <> aCandidateString.BankAccountNumber) then
+        continue;
 
-    // Position of partial match within details
-    sDetails := Candidate.GetStatementDetailsUpperCase;
-    iPos := Pos(aDetails, sDetails);
-    if (iPos = 0) then
-      continue;
+      if not (IsUncoded(cmAccount) or (cmAccount = aCandidateString.Account)) then
+        continue;
 
-    iCount := iCount + Candidate.cmFields.cmCount;
+      if (cmType <> aCandidateString.EntryType) then
+        continue;
+
+      sDetails := aCandidateString.LCS.Details;
+      iPos := Pos(sDetails, Candidate.GetStatementDetailsUpperCase);
+      if (iPos = 0) then
+        continue;
+
+      // Update the total
+      iCount := iCount + cmCount;
+    end;
 
     { Minimum already met?
       Note: stop searching which prevents searching the entire list. }
