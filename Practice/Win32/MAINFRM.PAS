@@ -438,6 +438,7 @@ type
     RzSpacer5: TRzSpacer;
     tbRecommendedMemorisations: TRzToolButton;
     mniExportCharttoMYOBCashBooks1: TMenuItem;
+    mniAssert: TMenuItem;
     procedure FormResize(Sender: TObject);
     procedure tmClockTimer(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -725,6 +726,7 @@ type
     procedure tbRecommendedMemorisationsClick(Sender: TObject);
     procedure tmrMemScanTimer(Sender: TObject);
     procedure mniExportCharttoMYOBCashBooks1Click(Sender: TObject);
+    procedure mniAssertClick(Sender: TObject);
   private
     { Private declarations }
     FClientInstance,
@@ -1622,6 +1624,12 @@ begin
        DisplayMRU;
        UpdateSystemMenus;         //set system menus dependant on access level
        UpdateMenus;
+
+       if (ParamCount = 1) and (ParamStr(1) = '/TestCode') then
+       begin
+         if EnterRandomPassword('TestCode') then
+           mnsTest.Visible := true;
+       end;
 
        if mnsTest.Visible then
          ShowMessage( 'Test Menu Item Available');
@@ -4857,6 +4865,11 @@ end;
 procedure TfrmMain.mniRaiseExceptionClick(Sender: TObject);
 begin
   Raise Exception.Create( 'Test Exception raised');
+end;
+
+procedure TfrmMain.mniAssertClick(Sender: TObject);
+begin
+  ASSERT(false);
 end;
 
 procedure TfrmMain.mniMissingChequesClick(Sender: TObject);
