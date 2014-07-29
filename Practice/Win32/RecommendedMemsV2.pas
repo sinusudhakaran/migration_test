@@ -1555,7 +1555,7 @@ begin
   iCount := 0;
 
   if DebugMe then
-    Log('Search: ' + aCandidateString.LCS.Details);
+    Log('LessThanMinimumCount: ' + aCandidateString.LCS.Details);
 
   for i := 0 to fCandidates.ItemCount-1 do
   begin
@@ -1566,7 +1566,10 @@ begin
       if (cmBank_Account_Number <> aCandidateString.BankAccountNumber) then
         continue;
 
-      if not (IsUncodedOrInvalid(cmAccount) or (cmAccount = aCandidateString.Account)) then
+      if IsUncodedOrInvalid(cmAccount) then
+        continue;
+
+      if (cmAccount <> aCandidateString.Account) then
         continue;
 
       if (cmType <> aCandidateString.EntryType) then
@@ -1576,6 +1579,9 @@ begin
       iPos := Pos(sDetails, Candidate.GetStatementDetailsUpperCase);
       if (iPos = 0) then
         continue;
+
+      if DebugMe then
+        Log('Found: ' + Candidate.ToString);
 
       // Update the total
       iCount := iCount + cmCount;
