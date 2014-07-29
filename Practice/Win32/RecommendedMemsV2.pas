@@ -1566,7 +1566,7 @@ begin
       if (cmBank_Account_Number <> aCandidateString.BankAccountNumber) then
         continue;
 
-      if not (IsUncoded(cmAccount) or (cmAccount = aCandidateString.Account)) then
+      if not (IsUncodedOrInvalid(cmAccount) or (cmAccount = aCandidateString.Account)) then
         continue;
 
       if (cmType <> aCandidateString.EntryType) then
