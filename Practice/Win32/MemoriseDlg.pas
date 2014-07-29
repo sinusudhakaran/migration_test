@@ -3700,6 +3700,10 @@ var
   i: integer;
   EntryTypeItemIndex: integer;
 
+  // When the form is first opened, cmbType should show whichever EntryType has
+  // been passed into PopulateCmbType, which is the entry type of the transaction
+  // this memorisation is being based from, or the entry type of the memorisation
+  // which is being edited
   procedure ChooseDefaultEntryType;
   var
     cmbTypeIndex: integer;
@@ -3714,6 +3718,8 @@ var
     end;
   end;
 
+  // Scans through all the transactions in the account, adds their entry types
+  // to TypeList, which will later be used to populate cmbType. Duplicates are ignored.
   procedure AddTxTypes;
   var
     i: integer;
@@ -3758,6 +3764,13 @@ begin
         if (MyClient.clFields.clShort_Name[i] <> '') then
           TypeList.Add(IntToStr(i));
     end;
+    // We also need to add whatever the current entry type is, this will usually already be in the list,
+    // but won't be if a memorisation is copied from a bank account that contains that entry type to
+    // one that doesn't (which it won't if none of the transactions in the account have that entry type).
+    // TypeList has the Duplicates property set to dupIgnore so we won't end up with a duplicate
+    // in the combobox
+    TypeList.Add(IntToStr(EntryType));
+
     TypeList.Sorted := False; // Need sorted = false for CustomSort apparently
     TypeList.CustomSort(AsFloatSort);
     for i := 0 to TypeList.Count - 1 do
