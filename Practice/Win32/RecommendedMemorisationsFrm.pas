@@ -152,6 +152,8 @@ end;
 
 //------------------------------------------------------------------------------
 procedure TRecommendedMemorisationsFrm.FormCreate(Sender: TObject);
+var
+  pNode : PVirtualNode;
 begin
   bkXPThemes.ThemeForm(self);
   Self.HelpContext := BKH_Suggested_memorisations;
@@ -170,6 +172,13 @@ begin
 
   PopulateTree;
   vstTree.Header.SortColumn := ccEntryType;
+
+  pNode := vstTree.GetFirstVisible;
+  if Assigned(pNode) then
+  begin
+    vstTree.Selected[pNode] := True;
+    vstTree.FocusedNode := pNode;
+  end;
 end;
 
 //------------------------------------------------------------------------------
