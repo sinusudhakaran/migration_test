@@ -268,6 +268,8 @@ type
 
     // Additional helper functions
     function  IsUncoded(const aAccount: string): boolean;
+    function  IsDissected(const aAccount: string): boolean;
+    function  IsValidAccount(const aAccount: string): boolean;
     function  IsUncodedOrInvalid(const aAccount: string): boolean;
     function  MoreThanOneAccount(const aDetails: string;
                 var aAccount: string): boolean;
@@ -1404,7 +1406,7 @@ begin
       continue;
 
     // DISSECTED?
-    if (sAccount = DISSECT_DESC) then
+    if IsDissected(sAccount) then
       continue;
 
     // Add to account
@@ -1479,9 +1481,21 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+function TMemsV2.IsDissected(const aAccount: string): boolean;
+begin
+  result := (aAccount = DISSECT_DESC);
+end;
+
+//------------------------------------------------------------------------------
+function TMemsV2.IsValidAccount(const aAccount: string): boolean;
+begin
+  result := MyClient.clChart.CanCodeTo(aAccount) or IsDissected(aAccount);
+end;
+
+//------------------------------------------------------------------------------
 function TMemsV2.IsUncodedOrInvalid(const aAccount: string): boolean;
 begin
-  result := IsUncoded(aAccount) or not MyClient.clChart.CanCodeTo(aAccount);
+  result := IsUncoded(aAccount) or not IsValidAccount(aAccount);
 end;
 
 //------------------------------------------------------------------------------
