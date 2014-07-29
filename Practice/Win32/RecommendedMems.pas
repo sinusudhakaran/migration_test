@@ -744,6 +744,7 @@ var
   LastCandidatePos      : integer;
   MatchingCandidatePos  : integer;
   NewUnscannedTran      : TUnscanned_Transaction;
+  utIndex               : integer;
 begin
   if not Assigned(TranRec) then
     Exit; // this shouldn't happen!
@@ -800,7 +801,11 @@ begin
     NewUnscannedTran := TUnscanned_Transaction.Create;
     NewUnscannedTran.utFields.utBank_Account_Number := Account.baFields.baBank_Account_Number;
     NewUnscannedTran.utFields.utSequence_No := TranRec.txSequence_No;
-    Unscanned.Insert(NewUnscannedTran);
+    utIndex := -1;
+    if Unscanned.Search(NewUnscannedTran, utIndex) then
+      FreeAndNil(NewUnscannedTran)
+    else
+      Unscanned.Insert(NewUnscannedTran);
   end;
 
   // Rescan candidates later (for both MemsV2 as well as MemsV1)
@@ -832,6 +837,7 @@ var
   MaintainMemScanStatus: boolean;
   New: TUnscanned_Transaction;
   Transaction: pTransaction_Rec;
+  utIndex: integer;
 begin
   {$IF Defined(MAPCHECK) or Defined(BKRELINK)}
   Exit; // bkmap shouldn't build suggested mems
@@ -854,8 +860,14 @@ begin
       New := TUnscanned_Transaction.Create;
       New.utFields.utBank_Account_Number := BankAccount.baFields.baBank_Account_Number;
       New.utFields.utSequence_No := Transaction.txSequence_No;
+      utIndex := -1;
       if Assigned(Unscanned) then
-        Unscanned.Insert(New);
+      begin
+        if Unscanned.Search(New, utIndex) then
+          FreeAndNil(New)
+        else
+          Unscanned.Insert(New);
+      end;
     end;
   finally
     if Assigned(frmMain) then
