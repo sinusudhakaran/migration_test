@@ -744,7 +744,6 @@ var
   LastCandidatePos      : integer;
   MatchingCandidatePos  : integer;
   NewUnscannedTran      : TUnscanned_Transaction;
-  UnscannedTranIndex    : integer;
 begin
   if not Assigned(TranRec) then
     Exit; // this shouldn't happen!
@@ -801,11 +800,7 @@ begin
     NewUnscannedTran := TUnscanned_Transaction.Create;
     NewUnscannedTran.utFields.utBank_Account_Number := Account.baFields.baBank_Account_Number;
     NewUnscannedTran.utFields.utSequence_No := TranRec.txSequence_No;
-    UnscannedTranIndex := -1; // just need this for passing into Search below
-    if Unscanned.Search(NewUnscannedTran, UnscannedTranIndex) then
-      FreeAndNil(NewUnscannedTran)
-    else
-      Unscanned.Insert(NewUnscannedTran);
+    Unscanned.Insert(NewUnscannedTran);
   end;
 
   // Rescan candidates later (for both MemsV2 as well as MemsV1)
