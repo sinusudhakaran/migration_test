@@ -2071,11 +2071,17 @@ begin
   // has been designed expecting a transaction to provide it with details
   MemorisationLine := pM.mdLines.MemorisationLine_At(0);
   tr := BKTXIO.New_Transaction_Rec;
-  tr.txStatement_Details  := pM.mdFields.mdStatement_Details;
-  tr.txType               := pM.mdFields.mdType;
 
-  IsAMasterMem := false; // this value is not used
-  result := MemoriseEntry(BA, tr, IsAMasterMem, MemorisationLine);
+  try
+    tr.txStatement_Details  := pM.mdFields.mdStatement_Details;
+    tr.txType               := pM.mdFields.mdType;
+
+    IsAMasterMem := false; // this value is not used
+    result := MemoriseEntry(BA, tr, IsAMasterMem, MemorisationLine);
+  finally
+    Free_Transaction_Rec_Dynamic_Fields(tr^);
+    FreeMem(tr, sizeof(tr));
+  end;
 end;
 
 //------------------------------------------------------------------------------
