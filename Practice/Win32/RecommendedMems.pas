@@ -419,6 +419,8 @@ var
 
 //      Assert((FirstCandidatePos <> -1) and (LastCandidatePos <> -1),
 //             'FirstCandidatePos and LastCandidatePos shouldn''t be -1 here');
+      if (FirstCandidatePos = -1) or (LastCandidatePos = -1) then
+        Exit;
       for CandidatePos := FirstCandidatePos to LastCandidatePos do
       begin
         CandidateMem2 := Candidates.Candidate_Mem_At(CandidatePos);
