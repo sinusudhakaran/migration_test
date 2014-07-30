@@ -1138,7 +1138,7 @@ end;
 //------------------------------------------------------------------------------
 function TMemsV2.AllowedToRun;
 const
-  MIN_MONTHS = 3;
+  MONTHS_BACK = 3;
   MIN_TRANSACTIONS = 150;
 var
   dtMonthsAgo: TStDate;
@@ -1149,7 +1149,7 @@ var
   Transaction: pTransaction_Rec;
 begin
   // Init
-  dtMonthsAgo := IncDate(CurrentDate, 0, MIN_MONTHS, 0);
+  dtMonthsAgo := IncDate(CurrentDate, 0, -MONTHS_BACK, 0);
   iCount := 0;
 
   // Search transactions for criteria
