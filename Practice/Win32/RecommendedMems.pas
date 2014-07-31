@@ -34,6 +34,7 @@ type
 
     function GetLastCodingFrmKeyPress: TDateTime;
     procedure GetMatchingCandidateRange(StatementDetails: string; var FirstCandidatePos, LastCandidatePos: integer);
+    function CompareStrings(Value1, Value2: string): integer;
   public
     constructor Create(const aBankAccounts: TBank_Account_List); reintroduce; overload;
     constructor Create(const aBankAccount: TBank_Account); reintroduce; overload;
@@ -166,6 +167,25 @@ begin
   end;
 end;
 
+// Had to make this because AnsiCompareText was getting some comparisons wrong. This should do
+// the same thing, probably less efficiently, but hopefully without mistakes.
+// To see the mistake I'm talking about, do this in the Evaluate/Modify window:
+// AnsiCompareText('-', '/'): returns -1
+// AnsiCompareText('-a', '/a'): returns 1
+// Both should return -1, because the first character is less than the second character, the
+// following characters are irrelevant
+function TRecommended_Mems.CompareStrings(Value1, Value2: string): integer;
+begin
+  Value1 := UpperCase(Value1);
+  Value2 := UpperCase(Value2);
+  if (Value1 < Value2) then
+    Result := -1
+  else if (Value1 = Value2) then
+    Result := 0
+  else
+    Result := 1;
+end;
+
 // Pass in a Statement Details string, and this procedure will put the position of the
 // first matching Candidate into FirstCandidate and the last into LastCandidate.
 // Uses a binary search as the Candidates should be in alphabetical order according to
@@ -177,6 +197,7 @@ var
   Found: boolean;
   CandidateList: TCandidate_Mem_List;
   SearchedStatementDetails: string;
+  StringCompareInt: integer;
 begin
   FirstCandidatePos := -1;
   LastCandidatePos  := -1;
@@ -194,12 +215,13 @@ begin
     Pivot := (First + Last) shr 1; // shr = shift right 1 (equivalent to div 2)
     SearchedStatementDetails := CandidateList.Candidate_Mem_At(Pivot).cmFields.cmStatement_Details;
     // Compare the string in the middle with the searched one (case insensitive)
-    if (AnsiCompareText(SearchedStatementDetails, StatementDetails) = 0) then
+    StringCompareInt := CompareStrings(SearchedStatementDetails, StatementDetails);
+    if (UpperCase(SearchedStatementDetails) = UpperCase(StatementDetails)) then
     begin
       Found := True;
       FoundMatchPosition := Pivot;
     end
-    else if (AnsiCompareText(SearchedStatementDetails, StatementDetails) > 0) then
+    else if (StringCompareInt > 0) then
       // Now we'll search within the first half
       Last := Pivot - 1
     else
@@ -220,7 +242,7 @@ begin
   FirstCandidatePos := FoundMatchPosition;
   while (FirstCandidatePos > First) do
   begin
-    if (AnsiCompareText(CandidateList.Candidate_Mem_At(FirstCandidatePos - 1).cmFields.cmStatement_Details,
+    if (CompareStrings(CandidateList.Candidate_Mem_At(FirstCandidatePos - 1).cmFields.cmStatement_Details,
                         StatementDetails) = 0) then
       FirstCandidatePos := FirstCandidatePos - 1
     else
@@ -233,7 +255,7 @@ begin
   LastCandidatePos := FoundMatchPosition;
   while (LastCandidatePos < Last) do
   begin
-    if (AnsiCompareText(CandidateList.Candidate_Mem_At(LastCandidatePos + 1).cmFields.cmStatement_Details,
+    if (CompareStrings(CandidateList.Candidate_Mem_At(LastCandidatePos + 1).cmFields.cmStatement_Details,
                         StatementDetails) = 0) then
       LastCandidatePos := LastCandidatePos + 1
     else
@@ -271,7 +293,7 @@ var
   function DoMemsMatch(MemIsMaster: boolean; CandidateMem: TCandidate_Mem; CompareMem: TMemorisation): boolean;
   begin
     Result := (CandidateMem.cmFields.cmType = CompareMem.mdFields.mdType) and
-              (AnsiCompareText(CandidateMem.cmFields.cmStatement_Details,
+              (CompareStrings(CandidateMem.cmFields.cmStatement_Details,
                                CompareMem.mdFields.mdStatement_Details) = 0);
     if MemIsMaster and Result then
       if Assigned(MyClient) then      
@@ -346,7 +368,7 @@ var
       begin
         CandidateMem2 := Candidates.Candidate_Mem_At(CandidatePos);
         if (CandidateMem1.cmFields.cmAccount = CandidateMem2.cmFields.cmAccount) and
-        (AnsiCompareText(CandidateMem1.cmFields.cmStatement_Details,
+        (CompareStrings(CandidateMem1.cmFields.cmStatement_Details,
                         CandidateMem2.cmFields.cmStatement_Details) = 0) and
         (not (CandidateMem2.cmFields.cmCoded_By in [cbManual, cbNotCoded])) and
         (CandidateMem1.cmFields.cmBank_Account_Number = CandidateMem2.cmFields.cmBank_Account_Number) then
@@ -609,7 +631,7 @@ var
              (pTranRec.txType = cMem.cmFields.cmType) and
              (utAccount.baFields.baBank_Account_Number = cMem.cmFields.cmBank_Account_Number) and
              (pTranRec.txAccount = cMem.cmFields.cmAccount) and
-             (AnsiCompareText(pTranRec.txStatement_Details, cMem.cmFields.cmStatement_Details) = 0) then
+             (CompareStrings(pTranRec.txStatement_Details, cMem.cmFields.cmStatement_Details) = 0) then
           begin
             // There is already a matching Candidate Mem, so increase its reference count
             cMem.cmFields.cmCount := cMem.cmFields.cmCount + 1;
@@ -642,7 +664,7 @@ var
             // TODO: optimize search, see TExtdSortedCollection.Search
             for i := Candidates.First to Candidates.Last do
             begin
-              if (AnsiCompareText(cMem.cmFields.cmStatement_Details,
+              if (CompareStrings(cMem.cmFields.cmStatement_Details,
                                   Candidates.Candidate_Mem_At(i).cmFields.cmStatement_Details) <= 0) then
               begin
                 Candidates.AtInsert(i, cMem);
@@ -1029,7 +1051,7 @@ begin
     memRec := Recommended.Recommended_Mem_At(i).rmFields;
     if ((memRec.rmBank_Account_Number = Account) or AddedMasterMem) and
     (memRec.rmType = EntryType) and
-    (AnsiCompareText(memRec.rmStatement_Details, StatementDetails) = 0) then
+    (CompareStrings(memRec.rmStatement_Details, StatementDetails) = 0) then
     begin
       Recommended.AtFree(i);
       if (Account <> '') then
