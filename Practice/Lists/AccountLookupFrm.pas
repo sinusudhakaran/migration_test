@@ -765,7 +765,7 @@ begin
             Alignment   := taLeftJustify;
             Heading     := AlternativeChartCodeName(MyClient.clFields.clCountry, MyClient.clFields.clAccounting_System_Used);
             Visible     := True;
-            Width       := 80;
+            Width       := 120;
             ControlType := ctText;
             SortPicture := TSGrid.spNone;
          end;
