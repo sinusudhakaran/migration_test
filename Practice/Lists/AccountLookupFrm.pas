@@ -11,14 +11,27 @@ unit AccountLookupFrm;
 
 *)
 
+//------------------------------------------------------------------------------
 interface
 
 uses
-  Windows, Messages, Classes, Graphics, Controls, Forms, Dialogs,
-  Grids_ts, TSGrid, CHSL, bkDefs, StdCtrls, ExtCtrls,
-  OSFont;
+  Windows,
+  Messages,
+  Classes,
+  Graphics,
+  Controls,
+  Forms,
+  Dialogs,
+  Grids_ts,
+  TSGrid,
+  CHSL,
+  bkDefs,
+  StdCtrls,
+  ExtCtrls,
+  OSFont,
+  RzBHints;
 
-
+//------------------------------------------------------------------------------
 type
   TAcctFilterFunction = function(const pAcct : pAccount_Rec) : boolean;
 
@@ -27,6 +40,8 @@ type
     pnlBasic: TPanel;
     rbFull: TRadioButton;
     rbBasic: TRadioButton;
+    btnRefreshChart: TButton;
+    pnlRefreshChart: TPanel;
 
     procedure GridCellLoaded(Sender: TObject; DataCol, DataRow: Integer;
       var Value: Variant);
@@ -41,11 +56,14 @@ type
       Y: Integer);
     procedure rbFullClick(Sender: TObject);
     procedure rbBasicClick(Sender: TObject);
+    procedure btnRefreshChartClick(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
   private
     { Private declarations }
     FFilter: TAcctFilterFunction;
     FDefaultSortOrder : tchsSortType;
     FHasAlternativeCode: Boolean;
+    FHint : tHintWindow;
 
     procedure DoNewSearch(Startup: Boolean = False);
     procedure ShowHeadingArrows;
@@ -62,49 +80,80 @@ type
   public
     { Public declarations }
 
-     CurrentSearchKey  : ShortString;
-     CurrentSortOrder  : tCHSSortType;
-     CHSListByCode     : TCHSList;
-     CHSListByDesc     : TCHSList;
-     CHSListByAltCode : TCHSList;
-     property Filter : TAcctFilterFunction read FFilter write SetFilter;
+    CurrentSearchKey  : ShortString;
+    CurrentSortOrder  : tCHSSortType;
+    CHSListByCode     : TCHSList;
+    CHSListByDesc     : TCHSList;
+    CHSListByAltCode : TCHSList;
+    property Filter : TAcctFilterFunction read FFilter write SetFilter;
   end;
 
 function  LookUpChart( Guess : ShortString; FilterFunction : TAcctFilterFunction = nil; ShowOptions: Boolean = True ): ShortString;
 function  PickAccount( var AcctCode : string; FilterFunction : TAcctFilterFunction = nil; ShowOptions: Boolean = True ) : boolean;
 procedure PickCodeForEdit( Sender: TObject; FilterFunction : TAcctFilterFunction = nil; ShowOptions: Boolean = True );
 
-//******************************************************************************
+//------------------------------------------------------------------------------
 implementation
-uses
-   Software,
-   math,
-   bkConst,
-   BKUtil32,
-   CanvasUtils,
-   GenUtils,
-   Globals,
-   ImagesFrm,
-   bkHelp,
-   LogUtil,
-   SysUtils,
-   WinUtils, chList32, bkXPThemes;
-
-Const
-   UnitName = 'AccountLookupFrm';
-   DebugMe  : Boolean = False;
-   
-   GlyphCol = 1;
-   CodeCol  = 2;
-   DescCol  = 3;
-   AltCodeCol  = 4;
-
-   Glyph    : TBitMap = nil;
-
 {$R *.DFM}
 
-//------------------------------------------------------------------------------
+uses
+  Software,
+  math,
+  bkConst,
+  BKUtil32,
+  CanvasUtils,
+  GenUtils,
+  Globals,
+  ImagesFrm,
+  bkHelp,
+  LogUtil,
+  SysUtils,
+  WinUtils,
+  chList32,
+  bkXPThemes,
+  MAINFRM;
 
+Const
+  UnitName = 'AccountLookupFrm';
+  DebugMe  : Boolean = False;
+
+  GlyphCol = 1;
+  CodeCol  = 2;
+  DescCol  = 3;
+  AltCodeCol  = 4;
+
+  Glyph    : TBitMap = nil;
+
+//------------------------------------------------------------------------------
+procedure TfrmAcctLookup.btnRefreshChartClick(Sender: TObject);
+var
+  DataRow : integer;
+begin
+  frmMain.DoMainFormCommand( mf_mcRefreshChart, Sender, true);
+
+  if Grid.Rows > 0 then
+    DataRow := Grid.CurrentDataRow
+  else
+    DataRow := -1;
+
+  RefreshGrid;
+
+  if (Grid.Rows > 0) then
+  begin
+    if (DataRow = -1) or (Grid.Rows < DataRow) then
+    begin
+      Grid.CurrentDataRow := 1;
+      Grid.PutCellInView( 1, 1 );
+    end
+    else
+    begin
+      Grid.CurrentDataRow := DataRow;
+      Grid.PutCellInView( 1, DataRow );
+    end;
+  end;
+end;
+
+//------------------------------------------------------------------------------
 procedure TfrmAcctLookup.GridCellLoaded(Sender: TObject; DataCol,
   DataRow: Integer; var Value: Variant);
 const
@@ -294,12 +343,10 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-
 procedure TfrmAcctLookup.DoNewSearch(Startup: Boolean = False);
-
 const
    ThisMethodName = 'TfrmAcctLookup.DoNewSearch';
-   
+
 { Called when the dialog is first loaded, or when anything is typed on the
   keyboad }
 
@@ -523,43 +570,74 @@ end;
 
 procedure TfrmAcctLookup.FormCreate(Sender: TObject);
 const
-   ThisMethodName = 'TfrmAcctLookup.FormCreate';
+  ThisMethodName = 'TfrmAcctLookup.FormCreate';
+  HINT_CHART_IS_LOCKED = 'Chart is locked';
+var
+  NotRestrictedUser : boolean;
+  RefresChartShown : boolean;
 begin
-   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
-   Grid.HeadingFont := Font;
-   bkXPThemes.ThemeForm( Self);
-   HasAlternativeCode :=
-     HasAlternativeChartCode(MyClient.clFields.clCountry, MyClient.clFields.clAccounting_System_Used);
+  if DebugMe then
+    LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
 
-   SetSize;
-   if not Assigned( Glyph ) then
-   Begin
-      Glyph   := TBitMap.Create;
-      ImagesFrm.AppImages.Maintain.GetBitmap( MAINTAIN_LOCK_BMP, Glyph );
-   end;
-   
-   Caption := 'Select an Account';
+  Grid.HeadingFont := Font;
+  bkXPThemes.ThemeForm( Self);
+  HasAlternativeCode :=
+    HasAlternativeChartCode(MyClient.clFields.clCountry, MyClient.clFields.clAccounting_System_Used);
 
-   // Set up Help Information
+  SetSize;
+  if not Assigned( Glyph ) then
+  Begin
+    Glyph   := TBitMap.Create;
+    ImagesFrm.AppImages.Maintain.GetBitmap( MAINTAIN_LOCK_BMP, Glyph );
+  end;
 
-   Self.ShowHint    := INI_ShowFormHints;
-   Self.HelpContext := 0;
-   Grid.Hint        := 'Highlight the account you want, then press Enter';
+  Caption := 'Select an Account';
 
-   if Assigned(AdminSystem) then begin
-      // Have admin system so just use the Clientfile..
-      rbBasic.Checked := MyClient.clFields.clUse_Basic_Chart;
-   end else begin
-      // Books, Always Basic
-      pnlBasic.Visible := False;
-      rbBasic.Checked := True;
-   end;
+  // Set up Help Information
 
+  Self.ShowHint    := INI_ShowFormHints;
+  Self.HelpContext := 0;
+  Grid.Hint        := 'Highlight the account you want, then press Enter';
 
+  if Assigned(AdminSystem) then
+  begin
+    // Have admin system so just use the Clientfile..
+    rbBasic.Checked := MyClient.clFields.clUse_Basic_Chart;
+  end
+  else
+  begin
+    // Books, Always Basic
+    pnlBasic.Visible := False;
+    rbBasic.Checked := True;
+  end;
 
-   BKHelpSetUp( Self, BKH_Chart_look_up);
+  if Assigned( CurrUser) then
+    NotRestrictedUser := not CurrUser.HasRestrictedAccess
+  else
+    NotRestrictedUser := true;
 
-   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
+  RefresChartShown := NotRestrictedUser and
+                      CanRefreshChart(MyClient.clFields.clCountry,
+                                      MyClient.clFields.clAccounting_System_Used);
+
+  if RefresChartShown then
+  begin
+    if MyClient.clFields.clChart_Is_Locked then
+    begin
+      btnRefreshChart.visible := false;
+      pnlRefreshChart.visible := true;
+      pnlRefreshChart.Hint := HINT_CHART_IS_LOCKED;
+    end
+    else
+      btnRefreshChart.Enabled := true;
+  end
+  else
+    btnRefreshChart.visible := false;
+
+  BKHelpSetUp( Self, BKH_Chart_look_up);
+
+  if DebugMe then
+    LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
 
 //------------------------------------------------------------------------------
@@ -921,11 +999,13 @@ begin
 
 end;
 
+//------------------------------------------------------------------------------
 function TfrmAcctLookup.ShowBasicChart: Boolean;
 begin
   Result := rbBasic.Checked;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmAcctLookup.RefreshGrid;
 var
   i: Integer;
@@ -987,15 +1067,22 @@ begin
    end;
 end;
 
+procedure TfrmAcctLookup.FormDestroy(Sender: TObject);
+begin
+
+end;
+
+//------------------------------------------------------------------------------
 Initialization
-   DebugMe := LogUtil.DebugUnit( UnitName );
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  DebugMe := LogUtil.DebugUnit( UnitName );
+
+//------------------------------------------------------------------------------
 Finalization
-   if Assigned( Glyph ) then
-   Begin
-      Glyph.Free;
-      Glyph := nil;
-   end;
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  if Assigned( Glyph ) then
+  Begin
+    Glyph.Free;
+    Glyph := nil;
+  end;
+
 end.
 
