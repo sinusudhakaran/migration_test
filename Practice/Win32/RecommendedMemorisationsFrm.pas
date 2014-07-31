@@ -467,50 +467,123 @@ end;
 //------------------------------------------------------------------------------
 procedure TRecommendedMemorisationsFrm.PopulateTree;
 var
-  i: integer;
-  pNode: PVirtualNode;
-  pData: PTreeData;
+  Index : integer;
+  FoundSel : boolean;
+  FountNext : boolean;
   SelNode: PVirtualNode;
-  SelIndex : integer;
-begin
-  SelIndex := 0;
-  SelNode := vstTree.GetFirstSelected;
-  if Assigned(SelNode) then
+  NextNode : PVirtualNode;
+
+  SelAccount : string;
+  SelStatement : string;
+  NextAccount : string;
+  NextStatement : string;
+
+  NewNode: PVirtualNode;
+  NewData: PTreeData;
+
+  FirstNode: PVirtualNode;
+
+  //----------------------------------------------------------------------------
+  procedure GetAccAndStatFromNode(aNode: PVirtualNode; var aAccount, aStatement : string);
+  var
+    pData: PTreeData;
   begin
-    pData := PTreeData(vstTree.GetNodeData(SelNode));
-    for i := 0 to High(fData) do
+    aAccount := '';
+    aStatement := '';
+    pData := PTreeData(vstTree.GetNodeData(aNode));
+    if Assigned(pData) then
     begin
-      if fData[i] = pData.RecommendedMem then
-      begin
-        SelIndex := i;
-        break;
-      end;
+      aAccount := pData.RecommendedMem.rmFields.rmAccount;
+      aStatement := pData.RecommendedMem.rmFields.rmStatement_Details;
     end;
+  end;
+
+  //----------------------------------------------------------------------------
+  function IsAccAndStatEqualtoNode(aNode: PVirtualNode; aAccount, aStatement : string) : boolean;
+  var
+    pData: PTreeData;
+  begin
+    Result := false;
+    pData := PTreeData(vstTree.GetNodeData(aNode));
+    if Assigned(pData) then
+    begin
+      if (aAccount = pData.RecommendedMem.rmFields.rmAccount) and
+         (aStatement = pData.RecommendedMem.rmFields.rmStatement_Details) then
+        Result := true;
+    end;
+  end;
+
+begin
+  SelAccount := '';
+  SelStatement := '';
+  NextAccount := '';
+  NextStatement := '';
+  FountNext := false;
+
+  SelNode := vstTree.GetFirstSelected;
+  FoundSel := Assigned(SelNode);
+  if FoundSel then
+  begin
+    GetAccAndStatFromNode(SelNode, SelAccount, SelStatement);
+    NextNode := SelNode.NextSibling;
+    if (not Assigned(NextNode)) or
+       (NextNode = SelNode) then
+      NextNode := SelNode.PrevSibling;
+
+    FountNext := Assigned(NextNode);
+    if FountNext then
+      GetAccAndStatFromNode(NextNode, NextAccount, NextStatement);
   end;
 
   // Build temporary structure against BankAccount
   BuildData;
 
+  FoundSel := false;
+  FountNext := false;
   vstTree.BeginUpdate;
   try
     vstTree.Clear;
-
-    if SelIndex > High(fData) then
-      SelIndex := 0;
-    
     // Add nodes
-    for i := 0 to High(fData) do
+    for Index := 0 to High(fData) do
     begin
       // Add
-      pNode := vstTree.AddChild(nil);
-      pData := PTreeData(vstTree.GetNodeData(pNode));
-      pData.RecommendedMem := fData[i];
-      if SelIndex = i then
+      NewNode := vstTree.AddChild(nil);
+      NewData := PTreeData(vstTree.GetNodeData(NewNode));
+      NewData.RecommendedMem := fData[Index];
+
+      if IsAccAndStatEqualtoNode(NewNode, SelAccount, SelStatement) then
       begin
-        vstTree.Selected[pNode] := True;
-        vstTree.FocusedNode := pNode;
+        FoundSel := true;
+        SelNode := NewNode;
+      end;
+
+      if IsAccAndStatEqualtoNode(NewNode, NextAccount, NextStatement) then
+      begin
+        FountNext := true;
+        NextNode := NewNode;
       end;
     end;
+
+    if FoundSel then
+    begin
+      vstTree.Selected[SelNode] := True;
+      vstTree.FocusedNode := SelNode;
+    end
+    else if FountNext then
+    begin
+      vstTree.Selected[NextNode] := True;
+      vstTree.FocusedNode := NextNode;
+    end
+    else
+    begin
+      FirstNode := vstTree.GetFirst;
+      if Assigned(FirstNode) then
+      begin
+        vstTree.Selected[FirstNode] := True;
+        vstTree.FocusedNode := FirstNode;
+      end;
+    end;
+
   finally
     vstTree.EndUpdate;
   end;
