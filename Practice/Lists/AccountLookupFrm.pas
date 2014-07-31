@@ -57,13 +57,11 @@ type
     procedure rbFullClick(Sender: TObject);
     procedure rbBasicClick(Sender: TObject);
     procedure btnRefreshChartClick(Sender: TObject);
-    procedure FormDestroy(Sender: TObject);
   private
     { Private declarations }
     FFilter: TAcctFilterFunction;
     FDefaultSortOrder : tchsSortType;
     FHasAlternativeCode: Boolean;
-    FHint : tHintWindow;
 
     procedure DoNewSearch(Startup: Boolean = False);
     procedure ShowHeadingArrows;
@@ -540,8 +538,6 @@ procedure TfrmAcctLookup.FormShow(Sender: TObject);
 const
    ThisMethodName = 'TfrmAcctLookup.FormShow';
 Var
-
-   CW             : Integer;
    InitialSearchBlank : boolean;
 begin
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
@@ -1065,11 +1061,6 @@ begin
      Grid.RefreshData( roBoth, rpNone );
      Grid.SetFocus;
    end;
-end;
-
-procedure TfrmAcctLookup.FormDestroy(Sender: TObject);
-begin
-
 end;
 
 //------------------------------------------------------------------------------
