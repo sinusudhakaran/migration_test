@@ -57,6 +57,7 @@ type
     procedure rbFullClick(Sender: TObject);
     procedure rbBasicClick(Sender: TObject);
     procedure btnRefreshChartClick(Sender: TObject);
+    procedure GridColResized(Sender: TObject; RowColnr: Integer);
   private
     FFilter: TAcctFilterFunction;
     FDefaultSortOrder : tchsSortType;
@@ -123,6 +124,7 @@ Const
   AltCodeCol  = 4;
 
   Glyph    : TBitMap = nil;
+  GlyphColWidth = 22;
 
 //------------------------------------------------------------------------------
 procedure TfrmAcctLookup.btnRefreshChartClick(Sender: TObject);
@@ -189,6 +191,11 @@ begin
    end;
    
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
+end;
+
+procedure TfrmAcctLookup.GridColResized(Sender: TObject; RowColnr: Integer);
+begin
+  Grid.Col[GlyphCol].Width := GlyphColWidth;
 end;
 
 //------------------------------------------------------------------------------
@@ -724,7 +731,7 @@ begin
          RowSelectMode    := rsSingle;
          RowMoving        := False;
          ColSelectMode    := csNone;
-         ResizeCols       := rcNone;
+         ResizeCols       := rcSingle;
          CenterPicture    := True;
          StretchPicture   := False;
 
@@ -746,7 +753,7 @@ begin
             Alignment   := taLeftJustify;
             Heading     := '';
             Visible     := True;
-            Width       := 22;
+            Width       := GlyphColWidth;
             ControlType := ctPicture;
             SortPicture := TSGrid.spNone;
          end;
