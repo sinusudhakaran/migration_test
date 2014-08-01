@@ -936,7 +936,7 @@ begin
         else
            Code := SplitData[tblSplit.ActiveRow].AcctCode;
 
-        if PickAccount(Code) then begin
+        if PickAccount(Code, nil, true, not (chkMaster.Checked and Assigned(AdminSystem))) then begin
            // got a Code
            if (ExistingCode = '') // new row started and previous row had a payee
            and (tblSplit.ActiveRow > 1)

@@ -58,10 +58,10 @@ type
     procedure rbBasicClick(Sender: TObject);
     procedure btnRefreshChartClick(Sender: TObject);
   private
-    { Private declarations }
     FFilter: TAcctFilterFunction;
     FDefaultSortOrder : tchsSortType;
     FHasAlternativeCode: Boolean;
+    fShowRefreshChart : boolean;
 
     procedure DoNewSearch(Startup: Boolean = False);
     procedure ShowHeadingArrows;
@@ -83,12 +83,14 @@ type
     CHSListByCode     : TCHSList;
     CHSListByDesc     : TCHSList;
     CHSListByAltCode : TCHSList;
+
     property Filter : TAcctFilterFunction read FFilter write SetFilter;
+    property ShowRefreshChart : boolean read fShowRefreshChart write fShowRefreshChart;
   end;
 
-function  LookUpChart( Guess : ShortString; FilterFunction : TAcctFilterFunction = nil; ShowOptions: Boolean = True ): ShortString;
-function  PickAccount( var AcctCode : string; FilterFunction : TAcctFilterFunction = nil; ShowOptions: Boolean = True ) : boolean;
-procedure PickCodeForEdit( Sender: TObject; FilterFunction : TAcctFilterFunction = nil; ShowOptions: Boolean = True );
+function  LookUpChart( Guess : ShortString; FilterFunction : TAcctFilterFunction = nil; ShowOptions: Boolean = True; ShowRefreshChart : Boolean = True ): ShortString;
+function  PickAccount( var AcctCode : string; FilterFunction : TAcctFilterFunction = nil; ShowOptions: Boolean = True; ShowRefreshChart : Boolean = True  ) : boolean;
+procedure PickCodeForEdit( Sender: TObject; FilterFunction : TAcctFilterFunction = nil; ShowOptions: Boolean = True; ShowRefreshChart : Boolean = True  );
 
 //------------------------------------------------------------------------------
 implementation
@@ -536,30 +538,56 @@ end;
 
 procedure TfrmAcctLookup.FormShow(Sender: TObject);
 const
-   ThisMethodName = 'TfrmAcctLookup.FormShow';
+  ThisMethodName = 'TfrmAcctLookup.FormShow';
+  HINT_CHART_IS_LOCKED = 'Chart is locked';
 Var
-   InitialSearchBlank : boolean;
+  InitialSearchBlank : boolean;
+  NotRestrictedUser : boolean;
+  RefresChartShown : boolean;
 begin
-   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
 
-   InitialSearchBlank := (CurrentSearchKey = '');
+  if Assigned( CurrUser) then
+    NotRestrictedUser := not CurrUser.HasRestrictedAccess
+  else
+    NotRestrictedUser := true;
 
-   FormResize(self);
-   DoNewSearch(True);
+  RefresChartShown := NotRestrictedUser and
+                      CanRefreshChart(MyClient.clFields.clCountry,
+                                      MyClient.clFields.clAccounting_System_Used);
 
-   ResortMaintainCurrentPos( FDefaultSortOrder);
-   if InitialSearchBlank then
-   begin
-     //reposition at top of list
-     if Grid.Rows > 0 then
-     begin
-       Grid.CurrentDataRow := 1;
-       Grid.PutCellInView( 1, 1 );
-     end;
-   end;
-   CurrentSearchKey := '';
+  if (RefresChartShown) and (ShowRefreshChart) then
+  begin
+    if MyClient.clFields.clChart_Is_Locked then
+    begin
+      btnRefreshChart.visible := false;
+      pnlRefreshChart.visible := true;
+      pnlRefreshChart.Hint := HINT_CHART_IS_LOCKED;
+    end
+    else
+      btnRefreshChart.Enabled := true;
+  end
+  else
+    btnRefreshChart.visible := false;
 
-   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
+  InitialSearchBlank := (CurrentSearchKey = '');
+
+  FormResize(self);
+  DoNewSearch(True);
+
+  ResortMaintainCurrentPos( FDefaultSortOrder);
+  if InitialSearchBlank then
+  begin
+    //reposition at top of list
+    if Grid.Rows > 0 then
+    begin
+      Grid.CurrentDataRow := 1;
+      Grid.PutCellInView( 1, 1 );
+    end;
+  end;
+  CurrentSearchKey := '';
+
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
 
 //------------------------------------------------------------------------------
@@ -567,10 +595,6 @@ end;
 procedure TfrmAcctLookup.FormCreate(Sender: TObject);
 const
   ThisMethodName = 'TfrmAcctLookup.FormCreate';
-  HINT_CHART_IS_LOCKED = 'Chart is locked';
-var
-  NotRestrictedUser : boolean;
-  RefresChartShown : boolean;
 begin
   if DebugMe then
     LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
@@ -607,29 +631,6 @@ begin
     rbBasic.Checked := True;
   end;
 
-  if Assigned( CurrUser) then
-    NotRestrictedUser := not CurrUser.HasRestrictedAccess
-  else
-    NotRestrictedUser := true;
-
-  RefresChartShown := NotRestrictedUser and
-                      CanRefreshChart(MyClient.clFields.clCountry,
-                                      MyClient.clFields.clAccounting_System_Used);
-
-  if RefresChartShown then
-  begin
-    if MyClient.clFields.clChart_Is_Locked then
-    begin
-      btnRefreshChart.visible := false;
-      pnlRefreshChart.visible := true;
-      pnlRefreshChart.Hint := HINT_CHART_IS_LOCKED;
-    end
-    else
-      btnRefreshChart.Enabled := true;
-  end
-  else
-    btnRefreshChart.visible := false;
-
   BKHelpSetUp( Self, BKH_Chart_look_up);
 
   if DebugMe then
@@ -638,7 +639,7 @@ end;
 
 //------------------------------------------------------------------------------
 
-Function LookUpChart( Guess : ShortString; FilterFunction : TAcctFilterFunction = nil; ShowOptions: Boolean = True ): ShortString;
+Function LookUpChart( Guess : ShortString; FilterFunction : TAcctFilterFunction = nil; ShowOptions: Boolean = True ; ShowRefreshChart : Boolean = True ): ShortString;
 
 Const
   ThisMethodName = 'LookUpChart';
@@ -655,6 +656,7 @@ begin
 
    LookUpDlg := TfrmAcctLookup.Create(Application.MainForm);
    Try
+     LookUpDlg.ShowRefreshChart := ShowRefreshChart;
       //set filter function if specified
       LookupDlg.Filter := FilterFunction;
       if not ShowOptions then
@@ -836,17 +838,17 @@ begin
 End;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function PickAccount( var AcctCode : string; FilterFunction : TAcctFilterFunction = nil; ShowOptions: Boolean = True) : Boolean;
+function PickAccount( var AcctCode : string; FilterFunction : TAcctFilterFunction = nil; ShowOptions: Boolean = True; ShowRefreshChart : Boolean = True ) : Boolean;
 // Creates Chart Account Lookup form positioned on passed AcctCode.
 // User can select/search for chart code
 begin
   Result := False;
   if not HasAChart then exit;
-  AcctCode := AccountLookupFrm.LookUpChart( AcctCode, FilterFunction, ShowOptions );
+  AcctCode := AccountLookupFrm.LookUpChart( AcctCode, FilterFunction, ShowOptions, ShowRefreshChart );
   if AcctCode<>'' then Result := True;
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-procedure PickCodeForEdit(Sender : Tobject; FilterFunction : TAcctFilterFunction = nil; ShowOptions: Boolean = True);
+procedure PickCodeForEdit(Sender : Tobject; FilterFunction : TAcctFilterFunction = nil; ShowOptions: Boolean = True; ShowRefreshChart : Boolean = True );
 var
   S : string;
 begin
@@ -855,7 +857,8 @@ begin
 
    TEdit(Sender).SetFocus;
    S := TEdit(Sender).Text;
-   if PickAccount( S, FilterFunction, ShowOptions) then TEdit(Sender).text := S;
+   if PickAccount( S, FilterFunction, ShowOptions, ShowRefreshChart) then
+     TEdit(Sender).text := S;
    TEdit(Sender).SelStart := length(S);
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
