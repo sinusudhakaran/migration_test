@@ -905,12 +905,13 @@ begin
      lblAltCodeName.Visible := True;
      lblAltCodeName.Caption := AlternativeChartCodeName(MyClient.clFields.clCountry, MyClient.clFields.clAccounting_System_Used);
      LblAltCode.Visible := True;
-     lvChart.Columns[c_AltCode].Width := lvChart.Columns[c_Code].Width;
+     lvChart.Columns[c_AltCode].Width := 120;
      lvChart.Columns[c_AltCode].MaxWidth := 0;
      lvChart.Columns[c_AltCode].Caption := lblAltCodeName.Caption;
      lblDesc.Top := 70;
      Label9.Top := 70;
-     AltCodeModifier := 0; 
+     AltCodeModifier := 0;
+     self.Width := self.Width + lvChart.Columns[c_AltCode].Width;
   end else begin
      lblAltCodeName.Visible := False;
      LblAltCode.Visible := False;
