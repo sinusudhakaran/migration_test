@@ -940,6 +940,7 @@ end;
 
 procedure TdlgEditDesktopFields.FormDestroy(Sender: TObject);
 begin
+  FreeAndNil(Glyph);
   FClassSuperFundList.Free;
 end;
 
