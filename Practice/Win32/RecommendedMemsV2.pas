@@ -1170,7 +1170,7 @@ begin
 
       // More than 150 transactions?
       Inc(iCount);
-      if (iCount >= MIN_TRANSACTIONS) then
+      if (iCount > MIN_TRANSACTIONS) then
       begin
         result := true;
         exit;
