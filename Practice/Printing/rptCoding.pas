@@ -143,6 +143,7 @@ begin
        BTN_PRINT   : Destination := rdPrinter;
        BTN_PREVIEW : Destination := rdScreen;
        BTN_FILE    : Destination := rdFile;
+       BTN_EMAIL   : Destination := rdEmail;
     else
        Destination := rdAsk;
     end;

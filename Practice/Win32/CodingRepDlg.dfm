@@ -4,7 +4,7 @@ object dlgCodingRep: TdlgCodingRep
   BorderStyle = bsDialog
   Caption = 'Coding Report'
   ClientHeight = 426
-  ClientWidth = 504
+  ClientWidth = 587
   Color = clBtnFace
   DefaultMonitor = dmMainForm
   ParentFont = True
@@ -20,22 +20,18 @@ object dlgCodingRep: TdlgCodingRep
   object PageControl1: TPageControl
     Left = 0
     Top = 0
-    Width = 504
+    Width = 587
     Height = 391
-    ActivePage = tbsOptions
+    ActivePage = tbsColumns
     Align = alClient
     TabOrder = 0
     OnChange = PageControl1Change
     object tbsOptions: TTabSheet
       Caption = '&Options'
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object Panel2: TPanel
         Left = 1
         Top = 0
-        Width = 492
+        Width = 575
         Height = 89
         ParentColor = True
         TabOrder = 0
@@ -111,7 +107,7 @@ object dlgCodingRep: TdlgCodingRep
       object Panel1: TPanel
         Left = 0
         Top = 95
-        Width = 493
+        Width = 576
         Height = 261
         TabOrder = 1
         object Label1: TLabel
@@ -194,7 +190,7 @@ object dlgCodingRep: TdlgCodingRep
           Width = 169
           Height = 21
           Style = csDropDownList
-          ItemHeight = 0
+          ItemHeight = 13
           TabOrder = 0
           OnChange = cmbStyleChange
         end
@@ -204,7 +200,7 @@ object dlgCodingRep: TdlgCodingRep
           Width = 169
           Height = 21
           Style = csDropDownList
-          ItemHeight = 0
+          ItemHeight = 13
           TabOrder = 1
         end
         object cmbInclude: TComboBox
@@ -213,7 +209,7 @@ object dlgCodingRep: TdlgCodingRep
           Width = 169
           Height = 21
           Style = csDropDownList
-          ItemHeight = 0
+          ItemHeight = 13
           TabOrder = 2
         end
         object cmbLeave: TComboBox
@@ -264,7 +260,7 @@ object dlgCodingRep: TdlgCodingRep
       object Panel3: TPanel
         Left = 0
         Top = 0
-        Width = 493
+        Width = 576
         Height = 357
         TabOrder = 0
         inline fmeAccountSelector1: TfmeAccountSelector
@@ -296,13 +292,13 @@ object dlgCodingRep: TdlgCodingRep
   object pnlButtons: TPanel
     Left = 0
     Top = 391
-    Width = 504
+    Width = 587
     Height = 35
     Align = alBottom
     BevelOuter = bvNone
     TabOrder = 1
     DesignSize = (
-      504
+      587
       35)
     object btnPreview: TButton
       Left = 4
@@ -326,46 +322,55 @@ object dlgCodingRep: TdlgCodingRep
       OnClick = btnFileClick
     end
     object btnPrint: TButton
-      Left = 336
+      Left = 419
       Top = 4
       Width = 75
       Height = 25
       Anchors = [akRight, akBottom]
       Caption = '&Print'
-      TabOrder = 3
+      TabOrder = 4
       OnClick = btnPrintClick
     end
     object btnCancel: TButton
-      Left = 420
+      Left = 503
       Top = 4
       Width = 75
       Height = 25
       Anchors = [akRight, akBottom]
       Cancel = True
       Caption = 'Cancel'
-      TabOrder = 4
+      TabOrder = 5
       OnClick = btnCancelClick
     end
     object BtnSave: TBitBtn
-      Left = 253
+      Left = 338
       Top = 4
       Width = 75
       Height = 25
       Caption = 'Sa&ve'
-      TabOrder = 2
+      TabOrder = 3
       OnClick = BtnSaveClick
+    end
+    object btnEmail: TButton
+      Left = 169
+      Top = 4
+      Width = 75
+      Height = 25
+      Caption = 'E&mail'
+      TabOrder = 2
+      OnClick = btnEmailClick
     end
   end
   object dlgLoadCRL: TOpenDialog
     FileName = '*.crl'
     Filter = 'Coding Report Layout (*.crl)|*.crl'
-    Left = 178
+    Left = 274
     Top = 392
   end
   object dlgSaveCRL: TSaveDialog
     FileName = '*.crl'
     Filter = 'Coding Report Layout (*.crl)|*.crl'
-    Left = 209
+    Left = 305
     Top = 392
   end
 end

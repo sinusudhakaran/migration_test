@@ -93,6 +93,7 @@ type
     dlgSaveCRL: TSaveDialog;
     tbsColumns: TTabSheet;
     fmeCustomColumn1: TfmeCustomColumn;
+    btnEmail: TButton;
 
     procedure FormCreate(Sender: TObject);
     procedure SetUpHelp;
@@ -105,6 +106,7 @@ type
     procedure BtnSaveClick(Sender: TObject);
     procedure cmbStyleChange(Sender: TObject);
     procedure PageControl1Change(Sender: TObject);
+    procedure btnEmailClick(Sender: TObject);
   private
     { Private declarations }
     FDataFrom, FDataTo : integer;
@@ -270,6 +272,17 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+procedure TdlgCodingRep.btnEmailClick(Sender: TObject);
+begin
+   if checkOK then
+   begin
+      Pressed := BTN_EMAIL;
+      okPressed := true;
+      close;
+   end;
+end;
+
+//------------------------------------------------------------------------------
 procedure TdlgCodingRep.btnPrintClick(Sender: TObject);
 begin
    if checkOK then
@@ -384,6 +397,7 @@ procedure TdlgCodingRep.btnCancelClick(Sender: TObject);
 begin
    close;
 end;
+
 //------------------------------------------------------------------------------
 procedure TdlgCodingRep.FormShortCut(var Msg: TWMKey; var Handled: Boolean);
 begin
