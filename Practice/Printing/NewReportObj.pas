@@ -334,7 +334,7 @@ Const
   PAGEFIELD = '<PAGE>';
   IMGFIELD = '<IMG'; //open for parameters
   RTFBAND = '<RTF';
-  MISSINGFIELD = '<MISSING>';
+  MISSINGFIELD = '<MISSING>';                                      
 
 
 //******************************************************************************
@@ -355,7 +355,7 @@ uses
   YesNoDlg,
   WinUtils,
   CustomFileFormats,
-  AttachToReportDlg,
+  AttachReportToEmailDlg,
   MailFrm;
 
 const
@@ -559,7 +559,7 @@ var
   begin
      if DoLog then
          LogUtil.LogMsg( lmError, UnitName, ThisMethodName + ' : ' + Msg );
-     {$B-}
+     {$B-}                                                
      if Assigned (Params)
      and Params.BatchRun then
         Params.RptBatch.RunResult := Msg
@@ -576,9 +576,9 @@ var
     Attachments: TStringList;
   begin
     ASSERT(assigned(Params));
-                iReportFormat := rfPDF;
+
     // User cancel?
-    if not ShowAttachToReportFrm(Application.MainForm, iReportFormat, sReportName) then
+    if not ShowAttachReportToEmailFrm(Application.MainForm, iReportFormat, sReportName) then
       exit;
 
     // Can't generate the report?
