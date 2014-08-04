@@ -849,7 +849,7 @@ const
         case cdDestination of
           srdNone: SkipColumn;
           srdPrinted: PutString( 'Printer');
-          srdEmail: PutString( 'E-Mail');
+          srdEmail: PutString( 'EMail');
           srdFax: PutString( 'Fax');
           srdECoding: PutString( bkBranding.NotesProductName);
           srdCSVExport: PutString( 'CSV Export');

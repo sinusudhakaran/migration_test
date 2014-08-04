@@ -647,7 +647,7 @@ begin
 
   if not RegExIsEmailValid(edtEmailAddress.Text) then
   begin
-    ShowMessage('You must enter a valid e-mail address. Please try again.');
+    ShowMessage('You must enter a valid email address. Please try again.');
     edtEmailAddress.SetFocus;
     Exit;
   end;

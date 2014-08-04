@@ -1106,13 +1106,13 @@ begin //called when the client details change
             else
                S := 'Business Product'
          end else if clCheckOut_Scheduled_Reports then
-            S := 'E-Mail and flag as Read-only'
+            S := 'EMail and flag as Read-only'
          else if FtheClient.clExtra.ceOnline_Scheduled_Reports then
             S := 'Send to ' + bkBranding.ProductOnlineName
          else if clEmail_Scheduled_Reports then begin
             if clEmail_Report_Format in [rfMin.. rfMax] then
-               S := 'E-Mail ' + rfNames[clEmail_Report_Format]
-            else S := 'E-Mail'
+               S := 'EMail ' + rfNames[clEmail_Report_Format]
+            else S := 'EMail'
          end else if clWebX_Export_Scheduled_Reports then
             S := 'Web File'
          else if clCSV_Export_Scheduled_Reports and Globals.PRACINI_CSVExport then

@@ -1328,8 +1328,8 @@ begin
                 'Send a Client File|'
                 +'Send a Client File for coding by ' + AppName1 + ' or another ' + AppName2 + ' System';
 //   tbSendTo.Hint  :=
-//                'E-mail the Client File|'
-//                +'E-mail the Client File';
+//                'Email the Client File|'
+//                +'Email the Client File';
 
    //Open client toolbar
    tbCoding.Hint  :=
@@ -1413,7 +1413,7 @@ begin
 
    tbQuery.Hint :=
                 'Query Uncoded Transactions|'
-                +'Send an e-mail to query uncoded transactions';
+                +'Send an email to query uncoded transactions';
 
    BKHelpSetUp( Self, BKH_Start_here_);
 

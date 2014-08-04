@@ -110,8 +110,8 @@ object frmCAF: TfrmCAF
       Top = 8
       Width = 83
       Height = 25
-      Hint = 'E-mail the Client Authority Form to the client'
-      Caption = 'E-mail'
+      Hint = 'Email the Client Authority Form to the client'
+      Caption = 'Email'
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
       Font.Height = -15

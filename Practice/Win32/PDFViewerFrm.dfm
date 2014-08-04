@@ -63,7 +63,7 @@ object PDFViewFrm: TPDFViewFrm
     object tbEmail: TToolButton
       Left = 148
       Top = 0
-      Caption = '&E-mail'
+      Caption = '&Email'
       ImageIndex = 6
       OnClick = tbEmailClick
     end

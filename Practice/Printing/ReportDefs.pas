@@ -251,7 +251,7 @@ const
                         'Test Fax',
 
                         'Mail Merge (Print) Summary',
-                        'Mail Merge (E-mail) Summary',
+                        'Mail Merge (Email) Summary',
 
                         'Disk Image Documents',
                         'List Charges',

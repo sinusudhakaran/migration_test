@@ -225,7 +225,7 @@ inherited dlgPrintScheduled: TdlgPrintScheduled
           FrameHotStyle = fsNone
           FrameStyle = fsNone
           FrameVisible = True
-          ItemHeight = 13
+          ItemHeight = 0
           ParentCtl3D = False
           TabOrder = 0
         end
@@ -260,8 +260,8 @@ inherited dlgPrintScheduled: TdlgPrintScheduled
           Top = 71
           Width = 183
           Height = 17
-          Hint = 'Include reports to be sent via e-mail'
-          Caption = 'E-Maile&d Reports'
+          Hint = 'Include reports to be sent via email'
+          Caption = 'EMaile&d Reports'
           TabOrder = 2
         end
         object cbToECoding: TCheckBox
@@ -502,7 +502,7 @@ inherited dlgPrintScheduled: TdlgPrintScheduled
         Top = 235
         Width = 632
         Height = 56
-        Caption = 'E-Mailed Reports'
+        Caption = 'EMailed Reports'
         TabOrder = 2
         object btnEmailMsg: TButton
           Left = 410
@@ -760,6 +760,10 @@ inherited dlgPrintScheduled: TdlgPrintScheduled
     object TabSheet1: TTabSheet
       Caption = 'Fa&x Setup'
       ImageIndex = 2
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object GroupBox3: TGroupBox
         Left = 0
         Top = 253
@@ -928,7 +932,7 @@ inherited dlgPrintScheduled: TdlgPrintScheduled
           Height = 21
           Hint = 'Select the Fax Transport'
           Style = csDropDownList
-          ItemHeight = 13
+          ItemHeight = 0
           TabOrder = 0
           OnChange = cmbFaxTransportChange
           Items.Strings = (
@@ -944,7 +948,7 @@ inherited dlgPrintScheduled: TdlgPrintScheduled
           Hint = 'Select the fax printer'
           Style = csDropDownList
           Ctl3D = True
-          ItemHeight = 13
+          ItemHeight = 0
           ParentCtl3D = False
           Sorted = True
           TabOrder = 1

@@ -523,7 +523,7 @@ procedure TfrmMailMerge.opemMergeGetColHeaders(Sender: TObject;
 begin
   ColHeaders := VarArrayOf(['Salutation', 'First Name', 'Last Name', 'Company',
     'Address 1', 'Address 2', 'Address 3', 'Business Phone', 'Business Fax',
-    'E-mail Address', 'Mobile', 'Practice'
+    'Email Address', 'Mobile', 'Practice'
     ]);
 end;
 

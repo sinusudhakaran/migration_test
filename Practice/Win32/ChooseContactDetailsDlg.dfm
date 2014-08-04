@@ -43,7 +43,7 @@ object dlgChooseContactDetails: TdlgChooseContactDetails
     Top = 207
     Width = 28
     Height = 13
-    Caption = '&E-mail'
+    Caption = '&Email'
     FocusControl = eMail
   end
   object radPractice: TRadioButton

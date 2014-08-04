@@ -846,7 +846,7 @@ begin
 
   // Check if field is longer than max length in ATO extract
   if (Length(AdminSystem.fdFields.fdPractice_EMail_Address) > 76) then
-    AddError('The E-mail in System | Practice Details | Details exceeds the ATO''s maximum length. Please shorten to 76 characters or less.');
+    AddError('The Email in System | Practice Details | Details exceeds the ATO''s maximum length. Please shorten to 76 characters or less.');
 
   if (Length(MyClient.clFields.clContact_Name) > 38) then
     AddError('The Contact Name in Other Functions | Client Details exceeds the ATO''s maximum length. Please shorten to 38 characters or less.');
@@ -858,7 +858,7 @@ begin
     AddError('The Fax in Other Functions | Client Details exceeds the ATO''s maximum length. Please shorten to 15 characters or less.');
 
   if (Length(MyClient.clFields.clClient_EMail_Address) > 76) then
-    AddError('The E-mail in Other Functions | Client Details exceeds the ATO''s maximum length. Please shorten to 76 characters or less.');
+    AddError('The Email in Other Functions | Client Details exceeds the ATO''s maximum length. Please shorten to 76 characters or less.');
 
   // Payer Data
   SplitABNandBranchFromGSTNumber(MyClient.clFields.clGST_Number,

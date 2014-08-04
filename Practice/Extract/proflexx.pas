@@ -10,7 +10,7 @@ unit proflexx;
   Phone +61 8 8285 7988
   Facsimile +61 8 8285 7672
 
-  E-mail proflex@senet.com.au
+  Email proflex@senet.com.au
   Internet http://www.senet.com.au/proflex/
 
   Lyn Stevens (Programmer)

@@ -369,13 +369,13 @@ begin
       'Include codes up to this code|'+
       'Include codes up to this code';
    btnEmailMsg.Hint :=
-      'Setup the E-mail message that the Reports will be attached to';
+      'Setup the Email message that the Reports will be attached to';
    btnBNotesMsg.Hint :=
-      'Setup the ' + bkBranding.NotesProductName + ' E-mail message that the Reports will be attached to';
+      'Setup the ' + bkBranding.NotesProductName + ' Email message that the Reports will be attached to';
    btnCheckOutMsg.Hint :=
-      'Setup the ' + bkBranding.BooksProductName + ' E-mail message that the Reports will be attached to';
+      'Setup the ' + bkBranding.BooksProductName + ' Email message that the Reports will be attached to';
    {btnBusinessProductsMsg.Hint :=
-      'Setup the Business Products E-mail message that the Reports will be attached to';}
+      'Setup the Business Products Email message that the Reports will be attached to';}
    rbNew.Hint := 'Transactions received in selected month which have not been sent yet|' +
                  'Transactions received in selected month which have not been sent yet';
    rbAll.Hint := 'All transactions received in selected month|' +
@@ -688,8 +688,8 @@ end;
 
 procedure TdlgPrintScheduled.btnEmailMsgClick(Sender: TObject);
 begin
-   EditScheduledReportsMessage( 'E-Mail Message',
-                                'Type a subject and a message which will be added to all E-Mails sent when Scheduled Reports are generated.',
+   EditScheduledReportsMessage( 'EMail Message',
+                                'Type a subject and a message which will be added to all EMails sent when Scheduled Reports are generated.',
                                 EMailSubject,
                                 EMailBody);
 end;
@@ -1291,7 +1291,7 @@ var
 begin
   {
   msg := 'You have not specified one of the following destinations :'+#13#10 +
-    'Printed Reports, Faxed Reports, E-Mailed Reports, ' +
+    'Printed Reports, Faxed Reports, EMailed Reports, ' +
     bkBranding.NotesProductName + ' Files';
 
   if cbToWebX.Visible then

@@ -121,9 +121,9 @@ object frmBanklinkOnlineSettings: TfrmBanklinkOnlineSettings
     object lblEmailAddress: TLabel
       Left = 21
       Top = 81
-      Width = 70
+      Width = 66
       Height = 13
-      Caption = '&E-mail Address'
+      Caption = '&Email Address'
       FocusControl = edtEmailAddress
     end
     object edtUserName: TEdit

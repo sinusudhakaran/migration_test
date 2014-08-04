@@ -328,8 +328,8 @@ begin
                      'Enter the user''s full name|' +
                      'Enter the user''s full name';
   eMail.Hint          :=
-                     'Enter the user''s E-mail address|' +
-                     'Enter the user''s E-mail address';
+                     'Enter the user''s Email address|' +
+                     'Enter the user''s Email address';
   ePass.Hint          :=
                      'Enter a login password|' +
                      'Enter a password that this User must use when logging in. (Required if user has Administrator rights)';

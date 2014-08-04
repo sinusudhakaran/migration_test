@@ -300,7 +300,7 @@ begin
       if Is2007 then
         DeleteFile(newfilename);
       // Log
-      LogUtil.LogMsg(lmInfo, UnitName, ThisMethodName + 'Mail Merge/E-Mail with Subject "' + edtSubject.Text + '" generated on ' + bkdateutils.bkDate2Str(stDate.CurrentDate));
+      LogUtil.LogMsg(lmInfo, UnitName, ThisMethodName + 'Mail Merge/EMail with Subject "' + edtSubject.Text + '" generated on ' + bkdateutils.bkDate2Str(stDate.CurrentDate));
       if chkTask.Checked then
         LogUtil.LogMsg(lmInfo, UnitName, 'Task created "' + edtDescription.Text + '", Reminder on ' + bkdateutils.bkDate2Str(ovcFollowup.AsStDate));
       LogUtil.LogMsg(lmInfo, UnitName, 'Source document: ' + edtDocument.Text);
@@ -309,9 +309,9 @@ begin
   except on E: Exception do
    begin
     FowMerge.Connected := False;
-    HelpFulErrorMsg('There were problems performing the Mail Merge/E-mail using Word.' + #13#13 +
+    HelpFulErrorMsg('There were problems performing the Mail Merge/Email using Word.' + #13#13 +
       'Please see log for more details.', 0);
-    LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Mail Merge/E-mail Failure: ' + E.Message);
+    LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Mail Merge/Email Failure: ' + E.Message);
     Result := False;
    end;
   end;
@@ -447,7 +447,7 @@ procedure TfrmEMailMerge.opemMergeGetColHeaders(Sender: TObject;
 begin
  ColHeaders := VarArrayOf(['Salutation', 'First Name', 'Last Name', 'Company',
     'Address 1', 'Address 2', 'Address 3', 'Business Phone', 'Business Fax',
-    'E-mail Address', 'Mobile', 'Practice'
+    'Email Address', 'Mobile', 'Practice'
     ]);
 end;
 

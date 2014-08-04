@@ -597,7 +597,7 @@ begin
     BK5ReadINI; // get email settings
     if chkFix.Checked then
       bk5files.Clear; // fixed it - still want the log
-    SendClientAndOtherFilesTo('E-Mail Results to BankLink', 'support@banklink.co.nz', 'BankLink Archive Verification',
+    SendClientAndOtherFilesTo('EMail Results to BankLink', 'support@banklink.co.nz', 'BankLink Archive Verification',
       'Here are the results from ' + AdminSnapshot.fdFields.fdBankLink_Code, otherfiles, bk5files, True);
   finally
     INIFile.Add(Edit1.Text);

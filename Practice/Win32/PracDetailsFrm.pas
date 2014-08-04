@@ -518,8 +518,8 @@ begin
     'Enter your Practice Name|'+
     'Enter your Practice Name';
   ePracEMail.Hint   :=
-    'Enter your Practice E-mail address|'+
-    'Enter your Practice E-mail address';
+    'Enter your Practice Email address|'+
+    'Enter your Practice Email address';
   edtPhone.Hint    := 'Enter your contact phone number for clients';
 
   edtWebSite.Hint  := 'Enter the address of your practice web site';

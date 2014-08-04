@@ -144,7 +144,7 @@ begin
          Exit;
       end;
       if EMail.Text = '' then begin
-         HelpfulWarningMsg(errors + 'This requires an E-mail address.', 0);
+         HelpfulWarningMsg(errors + 'This requires an Email address.', 0);
          CanClose := False;
          EMail.SetFocus;
          Exit;

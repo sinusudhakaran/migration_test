@@ -184,7 +184,7 @@ inherited dlgClientReportSchedule: TdlgClientReportSchedule
           Top = 80
           Width = 97
           Height = 17
-          Caption = '&E-Mail'
+          Caption = '&EMail'
           TabOrder = 2
           OnClick = rbToPrinterClick
         end
@@ -377,6 +377,10 @@ inherited dlgClientReportSchedule: TdlgClientReportSchedule
     object tbsMessage: TTabSheet
       Caption = 'Messa&ge'
       ImageIndex = 1
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       DesignSize = (
         624
         421)
@@ -393,6 +397,10 @@ inherited dlgClientReportSchedule: TdlgClientReportSchedule
     object tbsAttachments: TTabSheet
       Caption = 'A&ttachments'
       ImageIndex = 3
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       DesignSize = (
         624
         421)
@@ -437,7 +445,7 @@ inherited dlgClientReportSchedule: TdlgClientReportSchedule
         Top = 393
         Width = 85
         Height = 25
-        Hint = 'Attach Client file(s) to this E-mail'
+        Hint = 'Attach Client file(s) to this Email'
         Anchors = [akLeft, akBottom]
         Caption = 'Attac&h File'
         TabOrder = 1

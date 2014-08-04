@@ -105,7 +105,7 @@ begin
         PutString(Name);
         if Email_Address = '' then
         begin
-          PutString('<no e-mail address>');
+          PutString('<no email address>');
           PutString('FAILED');
         end
         else
@@ -134,7 +134,7 @@ Begin
      Job.LoadReportSettings(UserPrintSettings,Report_List_Names[ REPORT_MAILMERGE_EMAIL]);
 
      //Add Headers
-     AddJobHeader(Job,siTitle,'MAIL MERGE (E-MAIL) SUMMARY REPORT',true);
+     AddJobHeader(Job,siTitle,'MAIL MERGE (EMAIL) SUMMARY REPORT',true);
      AddJobHeader(Job,siSubTitle,Desc,true);
      if DateFollow <> '' then
        AddJobHeader(Job,siSubTitle,'Generated on: ' + DateGenerate + ', Reminder on: ' + DateFollow,true)
@@ -152,7 +152,7 @@ Begin
      cLeft := gCLeft;
      AddColAuto( Job,cLeft,   10, gCGap, 'Client Code', jtLeft);
      AddColAuto( Job,cLeft,   28, gCGap,'Client Name', jtLeft);
-     AddColAuto( Job,cLeft,   40, gCGap,'E-mail Address', jtLeft);
+     AddColAuto( Job,cLeft,   40, gCGap,'Email Address', jtLeft);
      AddColAuto( Job,cLeft,   14, gCGap,'Status', jtLeft);
 
      //Add Footers

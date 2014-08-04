@@ -91,9 +91,9 @@ object frmPracticeDetails: TfrmPracticeDetails
       object Label7: TLabel
         Left = 8
         Top = 66
-        Width = 28
+        Width = 24
         Height = 13
-        Caption = '&E-mail'
+        Caption = '&Email'
         FocusControl = ePracEmail
       end
       object Label10: TLabel

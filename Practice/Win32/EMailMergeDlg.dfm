@@ -3,7 +3,7 @@ object frmEMailMerge: TfrmEMailMerge
   Top = 255
   BorderIcons = [biSystemMenu, biMaximize]
   BorderStyle = bsDialog
-  Caption = 'Mail Merge and E-mail'
+  Caption = 'Mail Merge and Email'
   ClientHeight = 446
   ClientWidth = 514
   Color = clBtnFace
@@ -73,7 +73,7 @@ object frmEMailMerge: TfrmEMailMerge
       Top = 64
       Width = 305
       Height = 17
-      Hint = 'Send the e-mail with the merged data as a Word attachment'
+      Hint = 'Send the email with the merged data as a Word attachment'
       Caption = 'Mail as Attachment (Word document)'
       ParentShowHint = False
       ShowHint = True
@@ -85,7 +85,7 @@ object frmEMailMerge: TfrmEMailMerge
       Top = 55
       Width = 241
       Height = 17
-      Hint = 'Send the e-mail with the merged data as an HTML message'
+      Hint = 'Send the email with the merged data as an HTML message'
       Caption = 'Mail as message (&HTML format)'
       Checked = True
       ParentShowHint = False
@@ -98,7 +98,7 @@ object frmEMailMerge: TfrmEMailMerge
       Top = 25
       Width = 305
       Height = 21
-      Hint = 'Enter the subject for the e-mail message'
+      Hint = 'Enter the subject for the email message'
       MaxLength = 50
       ParentShowHint = False
       ShowHint = True
@@ -110,7 +110,7 @@ object frmEMailMerge: TfrmEMailMerge
       Top = 77
       Width = 233
       Height = 17
-      Hint = 'Send the e-mail with the merged data as a text message'
+      Hint = 'Send the email with the merged data as a text message'
       Caption = 'Mail as message (plain &text format)'
       ParentShowHint = False
       ShowHint = True
@@ -222,7 +222,7 @@ object frmEMailMerge: TfrmEMailMerge
       Height = 52
       Caption = 
         'After the Mail Merge, the merged document will be displayed in W' +
-        'ord. Please click the "Merge to E-mail" button to send the email' +
+        'ord. Please click the "Merge to Email" button to send the email' +
         's.'
       WordWrap = True
     end
@@ -325,7 +325,7 @@ object frmEMailMerge: TfrmEMailMerge
       Top = 11
       Width = 193
       Height = 17
-      Hint = 'Preview the merged e-mail after the merge completes'
+      Hint = 'Preview the merged email after the merge completes'
       Caption = 'Preview'
       Checked = True
       ParentShowHint = False
@@ -339,7 +339,7 @@ object frmEMailMerge: TfrmEMailMerge
       Top = 13
       Width = 161
       Height = 17
-      Hint = 'Send the merged e-mails after the merge completes'
+      Hint = 'Send the merged emails after the merge completes'
       Caption = 'Send'
       ParentShowHint = False
       ShowHint = True
@@ -352,7 +352,7 @@ object frmEMailMerge: TfrmEMailMerge
       Width = 169
       Height = 17
       Hint = 
-        'Open the merged document to manually generate the e-mails (avoid' +
+        'Open the merged document to manually generate the emails (avoid' +
         's the Outlook security question)'
       Caption = 'Manual Generate'
       ParentShowHint = False

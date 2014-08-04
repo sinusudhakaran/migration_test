@@ -70,9 +70,9 @@ object frmTPA: TfrmTPA
     Top = 580
     Width = 85
     Height = 25
-    Hint = 'E-mail the Third Party Authority Form to the client'
+    Hint = 'Email the Third Party Authority Form to the client'
     Anchors = [akLeft, akBottom]
-    Caption = 'E-mail'
+    Caption = 'Email'
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
     Font.Height = -15

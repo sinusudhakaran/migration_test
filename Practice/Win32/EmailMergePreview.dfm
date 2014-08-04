@@ -2,7 +2,7 @@ object frmMailMergePreview: TfrmMailMergePreview
   Left = 325
   Top = 326
   BorderStyle = bsDialog
-  Caption = 'E-mail Merge Preview'
+  Caption = 'Email Merge Preview'
   ClientHeight = 368
   ClientWidth = 495
   Color = clBtnFace

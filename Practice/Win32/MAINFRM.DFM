@@ -1330,7 +1330,7 @@ object frmMain: TfrmMain
           OnClick = mniExportBNToFileClick
         end
         object mniExportBNtoMail: TMenuItem
-          Caption = 'Via &E-Mail'
+          Caption = 'Via &EMail'
           OnClick = mniExportBNtoMailClick
         end
       end
@@ -1692,11 +1692,11 @@ object frmMain: TfrmMain
         Caption = '-'
       end
       object EmailSupport1: TMenuItem
-        Caption = '&E-mail Support'
+        Caption = '&Email Support'
         OnClick = EmailSupport1Click
       end
       object EmailSystemLog1: TMenuItem
-        Caption = 'E-&mail System Log'
+        Caption = 'E&mail System Log'
         OnClick = EmailSystemLog1Click
       end
       object mniHelpViewSystemLog: TMenuItem

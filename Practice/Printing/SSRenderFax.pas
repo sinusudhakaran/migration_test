@@ -37,7 +37,7 @@ type
     SenderDept: PChar;  // Pointer to Sender's Department
     SenderBillingCode: PChar; // Pointer to Sender's Billing Code
     Reserved: PChar;  // Must be NULL
-    DrEMailAddress: PChar;  //Pointer to e-mail address
+    DrEMailAddress: PChar;  //Pointer to email address
     OutputFileName: PChar; // reserverd, must be NULL
   end; {Record ...}
   p_FAX_PRINT_INFO = ^FAX_PRINT_INFO;

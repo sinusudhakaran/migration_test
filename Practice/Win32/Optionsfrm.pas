@@ -296,8 +296,8 @@ begin
 //                    'Reset the default column widths|'+
 //                    'Reset the default column widths in the Code Entries Screen';
    rbMAPI.Hint      :=
-                    'Select this to send E-mail using MAPI Mail (eg Outlook)|'+
-                    'Use a MAPI compliant mail program such as OutLook to send E-mail';
+                    'Select this to send Email using MAPI Mail (eg Outlook)|'+
+                    'Use a MAPI compliant mail program such as OutLook to send Email';
    chkMAPI.Hint     :=
                     'Check this to use the Default MAPI Profile|'+
                     'Check this to use the Default MAPI profile when logging in to your MAPI client';
@@ -308,14 +308,14 @@ begin
                     'Enter the password for the above profile|'+
                     'Enter a password for the MAPI profile specified above';
    rbSMTP.Hint      :=
-                    'Select this to send E-mail using an Internet Mail Server|'+
-                    'Use an Internet Mail Server to send E-mail';
+                    'Select this to send Email using an Internet Mail Server|'+
+                    'Use an Internet Mail Server to send Email';
    eSMTP.Hint       :=
                     'Enter the address of your Internet Mail SMTP Server|'+
                     'Enter the address of your Internet Mail SMTP Server';
    eReturn.Hint     :=
-                    'Enter your Return E-mail Address|'+
-                    'Enter your Return Address to appear on all E-mail sent';
+                    'Enter your Return Email Address|'+
+                    'Enter your Return Address to appear on all Email sent';
    chkAuthentication.Hint :=
                     'Check this if your mail server requires a user name|'+
                     'Check this if your mail server requires you to enter a user name';

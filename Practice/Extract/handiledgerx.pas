@@ -237,7 +237,7 @@ Begin // HWrite
    Write( XFile, '"0",' ); { Opening Flag }
    Write( XFile, '"0",' ); { Closing Flag }
 
-   // New fields as per Tony Cottis' e-mail of 8 Jun 2000.
+   // New fields as per Tony Cottis' email of 8 Jun 2000.
 
    Write( XFile, '"', AAmount/100:0:2, '",' );                    { Signed Amount Field }
 

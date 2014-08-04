@@ -503,8 +503,8 @@ begin
                         'Enter the Client''s Fax number|' +
                         'Enter the Client''s Fax number';
    eMail.Hint           :=
-                        'Enter the Client''s E-mail address|' +
-                        'Enter the Client''s E-mail address';
+                        'Enter the Client''s Email address|' +
+                        'Enter the Client''s Email address';
    eFinYear.Hint        :=
                         'Enter financial year start date|' +
                         'Enter the Client''s current financial year start date';
@@ -779,7 +779,7 @@ begin
     begin
       HelpfulWarningMsg('You have selected' + #13 +
                         'Enhanced Client File Handling.' + #13#13 +
-                        'This requires a Valid E-mail address.', 0);
+                        'This requires a Valid Email address.', 0);
       PageControl1.ActivePage := tbsClient;
       EMail.SetFocus;
       Exit;
@@ -801,7 +801,7 @@ begin
     begin
       if not (BlankEmailIsValid) and (Trim(Email.Text) = '') then
       begin
-        HelpfulWarningMsg(CodeType + 'This requires a Valid E-mail address.', 0);
+        HelpfulWarningMsg(CodeType + 'This requires a Valid Email address.', 0);
         PageControl1.ActivePage := tbsClient;
         EMail.SetFocus;
         Exit;

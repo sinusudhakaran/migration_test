@@ -1,4 +1,4 @@
-// Preview the e-mail merge
+// Preview the email merge
 
 unit EmailMergePreview;
 
@@ -82,7 +82,7 @@ begin
         begin
           Load(cfRec^.cfLRN);
           if Email_address = '' then
-            mmoClients.Lines.Add('<no e-mail address>' + ' will NOT be sent to ' + cfRec^.cfFile_Code + ' (' + Name + ')')
+            mmoClients.Lines.Add('<no email address>' + ' will NOT be sent to ' + cfRec^.cfFile_Code + ' (' + Name + ')')
           else
             mmoClients.Lines.Add(Email_Address + ' at ' + cfRec^.cfFile_Code + ' (' + Name + ')');
         end;

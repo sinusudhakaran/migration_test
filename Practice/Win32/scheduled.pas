@@ -253,7 +253,7 @@ function SendReportsViaEmail(srOptions : TSchReportOptions) : boolean;
 
 
 begin
-   UpdateAppStatus('Sending Reports via E-mail','',-1, ProcessMessages_On);
+   UpdateAppStatus('Sending Reports via Email','',-1, ProcessMessages_On);
    //disable main form so that menus and toolbars can't be used
    DisableMainForm;
    try
@@ -2782,7 +2782,7 @@ begin
         if not PrepareEmailOutbox( Path) then
         begin
           ClearStatus;
-          aMsg := 'Unable to create directory ' + Path + '. Reports sent via E-mail will not be sent.'#13#13+
+          aMsg := 'Unable to create directory ' + Path + '. Reports sent via Email will not be sent.'#13#13+
                   'Do you wish to continue?';
           if YesNoDlg.AskYesNo( 'Unable to create directory',
                                 aMsg, DLG_NO, 0) <> DLG_YES then

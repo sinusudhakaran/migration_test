@@ -690,28 +690,28 @@ begin
    Self.HelpContext := 0;
    //Components
    txtRecipient.Hint     :=
-                         'Enter recipient''s E-mail address|' +
-                         'Enter the E-mail address of the person who you want to send this E-mail to';
+                         'Enter recipient''s Email address|' +
+                         'Enter the Email address of the person who you want to send this Email to';
    txtSubject.Hint       :=
-                         'Enter the subject of the E-mail|' +
-                         'Enter the subject of the E-mail, this is optional';
+                         'Enter the subject of the Email|' +
+                         'Enter the subject of the Email, this is optional';
    eReturnAddr.Hint      :=
-                         'Enter your Return E-mail Address|' +
-                         'Enter your Return E-mail Address in case the recipient wants to reply to you';
+                         'Enter your Return Email Address|' +
+                         'Enter your Return Email Address in case the recipient wants to reply to you';
    btnAttach.Hint        :=
-                         'Attach a file to this E-mail|' +
-                         'Attach a file to this E-mail';
+                         'Attach a file to this Email|' +
+                         'Attach a file to this Email';
    Editor.ERTF.Hint      :=
                          'Enter your message here|' +
                          'Enter your message here';
    btnAttachClient.Hint        :=
-                         'Attach a Client File(s) to this E-mail';
+                         'Attach a Client File(s) to this Email';
    chkCheckOut.Hint      :=
                          'Flag the selected Client File(s) as read-only in your system after sending|' +
                          'Flag the selected Client File(s) as read-only in your system after sending';
    btnSend.Hint          :=
-                         'Send this E-mail|' +
-                         'Send this E-mail';
+                         'Send this Email|' +
+                         'Send this Email';
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmMail.btnSelectClick(Sender: TObject);
@@ -1027,12 +1027,12 @@ begin
 
 
   If pos('@',aMsg) = 0 then begin
-      HelpfulWarningMsg('Please enter a valid e-mail address, with one ''@''.',0);
+      HelpfulWarningMsg('Please enter a valid email address, with one ''@''.',0);
       txtRecipient.SetFocus;
       Exit;
   end;
   If pos('.',aMsg) = 0 then begin
-      HelpfulWarningMsg('Please enter a valid e-mail address, with a ''.''.',0);
+      HelpfulWarningMsg('Please enter a valid email address, with a ''.''.',0);
       txtRecipient.SetFocus;
       Exit;
   end;
@@ -1325,8 +1325,8 @@ begin
    end else begin
       {$B-}
       if Email_Saved
-      and (AskYesNo('Recover Failed E-mail', 'The last time you sent an e-mail it failed to send.' + #13 +
-             'Would you like to recover the previous e-mail and try again now?', DLG_NO, 0) = DLG_YES) then begin
+      and (AskYesNo('Recover Failed Email', 'The last time you sent an email it failed to send.' + #13 +
+             'Would you like to recover the previous email and try again now?', DLG_NO, 0) = DLG_YES) then begin
           txtRecipient.Text := Email_To;
           eReturnAddr.Text := Email_From;
           txtCC.Text := Email_Cc;
@@ -1708,7 +1708,7 @@ begin
          EditMode := False;
          BKHelpSetUp(SendDlg, BKH_Sending_a_client_file_via_email);
          txtRecipient.text := Recipient;
-         caption := 'E-mail Support';
+         caption := 'Email Support';
          chkCheckout.Checked := false;
          if (not Assigned(AdminSystem)) then
          begin
@@ -1908,7 +1908,7 @@ begin //SendSceduledEmail
              NewMessage;
              MailObj.NewMessage;
              //Update app status
-             UpdateAppStatus( 'E-mail Reports to '+ EmailInfo.ClientCode, '', -1, ProcessMessages_On);
+             UpdateAppStatus( 'Email Reports to '+ EmailInfo.ClientCode, '', -1, ProcessMessages_On);
 
              //Build Message
              with AdminSystem.fdFields, EmailInfo do begin

@@ -738,14 +738,14 @@ begin
                         'Produce the Job List Report automatically|' +
                         'Produce the Job List Report automatically';
    rbToEmail.Hint :=
-                        'Send any reports generated via E-mail|'+
-                        'Send any reports generated via E-mail';
+                        'Send any reports generated via Email|'+
+                        'Send any reports generated via Email';
    eMail.Hint           :=
-                        'Enter the Client''s E-mail address|' +
-                        'Enter the Client''s E-mail address';
+                        'Enter the Client''s Email address|' +
+                        'Enter the Client''s Email address';
    eCCeMail.Hint         :=
-                        'Enter the CC Client''s E-mail address|' +
-                        'Enter the CC Client''s E-mail address';
+                        'Enter the CC Client''s Email address|' +
+                        'Enter the CC Client''s Email address';
    chkUseCustomDoc.Hint :=
                         'Produce a selected custom document automatically|' +
                         'Produce a selected custom document  automatically';
@@ -919,7 +919,7 @@ begin
             or (rbToWebX.Checked and (ECodingOptions.WebFormat = wfWebNotes))
           )
        and (Trim( eMail.Text) = '') then begin
-         HelpfulErrorMsg( 'You must specify an E-mail address.', 0);
+         HelpfulErrorMsg( 'You must specify an Email address.', 0);
          CanClose := false;
          PageControl1.ActivePage := tbsOptions;
          eMail.SetFocus;

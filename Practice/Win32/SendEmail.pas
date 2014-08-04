@@ -159,7 +159,7 @@ begin
            except on E: Exception do
              raise EMailConnectFailed.Create('You do not have a MAPI compliant application (such as Outlook) '+
                                   'installed on your workstation (' + E.Message + ').'#13#13 +
-                                  'Please choose "Preferences" from the "File" menu and select the "E-mail" tab. Then change your preferred mail '+
+                                  'Please choose "Preferences" from the "File" menu and select the "Email" tab. Then change your preferred mail '+
                                   'method to "Use Internet Mail"');
            end;
          end
@@ -385,7 +385,7 @@ begin
                        MAPI_E_NOT_SUPPORTED : begin
                           EMsg := 'You do not have a MAPI compliant application (such as Outlook) '+
                                   'installed on your workstation.'#13#13 +
-                                  'Please choose "Preferences" from the "File" menu and select the "E-mail" tab. Then change your preferred mail '+
+                                  'Please choose "Preferences" from the "File" menu and select the "Email" tab. Then change your preferred mail '+
                                   'method to "Use Internet Mail"';
                        end;
                     else
@@ -434,11 +434,11 @@ begin
         if Pos('invalid address', LowerCase(E.Message)) > 0 then
         begin
           if Pos(' ', ipsSMTPS1.From) > 0 then
-            raise EMailSendFailed.Create( 'Invalid ' + UsingAddr + ' e-mail address: ' + ipsSMTPS1.From)
+            raise EMailSendFailed.Create( 'Invalid ' + UsingAddr + ' email address: ' + ipsSMTPS1.From)
           else if Pos(' ', ipsSMTPS1.SendTo) > 0 then
-            raise EMailSendFailed.Create( 'Invalid TO e-mail address: ' + ipsSMTPS1.SendTo)
+            raise EMailSendFailed.Create( 'Invalid TO email address: ' + ipsSMTPS1.SendTo)
           else
-            raise EMailSendFailed.Create( 'Invalid e-mail address')
+            raise EMailSendFailed.Create( 'Invalid email address')
         end
         else
           raise EMailSendFailed.Create(E.Message);
@@ -515,9 +515,9 @@ begin
    if ( INI_Mail_Type = SMTP_MAIL) then begin
       //check that a mail server has been setup
       if INI_SMTP_Server = '' then begin
-         Error := 'Your E-mail settings are configured to use Internet Mail, however '+
+         Error := 'Your Email settings are configured to use Internet Mail, however '+
                   'you have not specified a Internet Mail Server to use.' +#13+#13+
-                  'Please change your E-mail settings (File | Preferences)';
+                  'Please change your Email settings (File | Preferences)';
          result := false;
       end;
    end;

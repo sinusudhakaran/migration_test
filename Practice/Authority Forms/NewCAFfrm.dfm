@@ -37,7 +37,7 @@ object frmNewCAF: TfrmNewCAF
     Width = 75
     Height = 25
     Anchors = [akLeft, akBottom]
-    Caption = '&E-mail'
+    Caption = '&Email'
     TabOrder = 1
     OnClick = btnEmailClick
   end
