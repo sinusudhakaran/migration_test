@@ -2906,6 +2906,7 @@ begin
          BTN_PRINT   : Dest := rdPrinter;
          BTN_PREVIEW : Dest := rdScreen;
          BTN_FILE    : Dest := rdFile;
+         BTN_EMAIL   : Dest := rdEmail;
        else
          Dest := rdAsk;
        end;

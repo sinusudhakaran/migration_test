@@ -652,7 +652,7 @@ object dlgLedgerRep: TdlgLedgerRep
       Height = 25
       Anchors = [akRight, akBottom]
       Caption = '&Print'
-      TabOrder = 3
+      TabOrder = 4
       OnClick = btnOKClick
     end
     object btnCancel: TButton
@@ -666,7 +666,7 @@ object dlgLedgerRep: TdlgLedgerRep
       Caption = 'Cancel'
       ParentShowHint = False
       ShowHint = True
-      TabOrder = 4
+      TabOrder = 5
       OnClick = btnCancelClick
     end
     object btnSave: TBitBtn
@@ -675,8 +675,17 @@ object dlgLedgerRep: TdlgLedgerRep
       Width = 75
       Height = 25
       Caption = 'Sa&ve'
-      TabOrder = 2
+      TabOrder = 3
       OnClick = BtnSaveClick
+    end
+    object btnEmail: TButton
+      Left = 184
+      Top = 8
+      Width = 75
+      Height = 25
+      Caption = 'E&mail'
+      TabOrder = 2
+      OnClick = btnEmailClick
     end
   end
   object OpenDialog1: TOpenDialog

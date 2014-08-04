@@ -123,6 +123,7 @@ type
     pUTitle: TPanel;
     ETitle: TEdit;
     Label2: TLabel;
+    btnEmail: TButton;
     procedure btnCancelClick(Sender: TObject);
     procedure btnOKClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -155,6 +156,7 @@ type
     procedure chkQuantityClick(Sender: TObject);
     procedure chkGrossClick(Sender: TObject);
     procedure fmeCustomColumn1btnSaveTemplateClick(Sender: TObject);
+    procedure btnEmailClick(Sender: TObject);
   private
     { Private declarations }
     FDataFrom, FDataTo : integer;
@@ -521,6 +523,19 @@ begin
      close;
    end;
 end;
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+procedure TdlgLedgerRep.btnEmailClick(Sender: TObject);
+begin
+   if checkOK then
+   begin
+     Pressed  := BTN_EMAIL;
+     okPressed := true;
+     close;
+   end;
+end;
+
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 procedure TdlgLedgerRep.ReadParams(Value: TLRParameters);
