@@ -354,7 +354,9 @@ uses
   ErrorMoreFrm,
   YesNoDlg,
   WinUtils,
-  CustomFileFormats;
+  CustomFileFormats,
+  AttachToReportDlg,
+  MailFrm;
 
 const
    UnitName = 'NewReportObj';
@@ -566,27 +568,40 @@ var
   end;
 
   procedure DoEmail;
+  var
+    sReportName: string;
+    iReportFormat: integer;
+    sFileName: string;
+    sRecipient: string;
+    Attachments: TStringList;
   begin
-     {
-     if Assigned (Params)
-     and Params.BatchRun then with Params,
-        RptBatch.BatchReportList.EmailList.getClientEmail(Client.clFields.clCode) do begin
-        FileName := DataDir + RptBatch.Title+ rfFileExtn[ReportFormat];
+    ASSERT(assigned(Params));
+                iReportFormat := rfPDF;
+    // User cancel?
+    if not ShowAttachToReportFrm(Application.MainForm, iReportFormat, sReportName) then
+      exit;
 
-        if GenerateToFile(FileName,ReportFormat ) then begin
-            RunReport(Dest,FileName);
-            Attachments.Add(Filename);
+    // Can't generate the report?
+    sFileName := DataDir + sReportName + rfFileExtn[iReportFormat];
+    if not GenerateToFile(sFileName, iReportFormat) then
+    begin
+      DoError('Unable to generate report to file', false);
+      exit;
+    end;
 
-            AddMessage(RptBatch.Title);
-            AddMessage(RptBatch.Name,True);
-            AddMessage(RptBatch.GetText(GT_dates),True);
-        end;
-     end else begin
-        }
-         DoError ('Manual emailing not implemented',false);
-        {
-     end;
-        }
+    Params.RunReport(Dest, FileName);
+
+    Attachments := TStringList.Create;
+    try
+      sRecipient := Params.Client.clFields.clClient_EMail_Address;
+      Attachments.Add(sFilename);
+
+      // User cancel?
+      if not SendFilesTo('Send a Report', sRecipient, {Subject=}sReportName, {Body=}'', Attachments) then
+        exit;
+    finally
+      FreeAndNil(Attachments);
+    end;
   end;
 
 begin
