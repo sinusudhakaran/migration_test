@@ -672,18 +672,15 @@ begin
 end;
 
 // The entry type is not stored globally, so the simplest way for us to get
-// it is to take it from cmbType, after stripping out the colon and short name
+// it is to take it from cmbType, after stripping out the colon and short name.
+// If no integer is passed to this method, it will return the currently selected
+// item
 function TdlgMemorise.GetTxTypeFromCmbType(ItemIndex: integer = -1): byte;
-var
-  EntryTypeCaption: string;
-  EntryTypeStr: string;
 begin
   if (ItemIndex = -1) or (ItemIndex >= cmbType.Items.Count) then
-    EntryTypeCaption := cmbType.Text // Get the text for the currently selected item in the combobox
+    Result := byte(cmbType.Items.Objects[cmbType.ItemIndex])
   else
-    EntryTypeCaption := cmbType.Items.Strings[ItemIndex]; // Get the text for a given item in the combobox
-  EntryTypeStr := System.Copy(EntryTypeCaption, 1, AnsiPos(':', EntryTypeCaption) - 1);
-  Result := StrToInt(EntryTypeStr);
+    Result := byte(cmbType.Items.Objects[ItemIndex]);
 end;
 //------------------------------------------------------------------------------
 procedure TdlgMemorise.btnCopyClick(Sender: TObject);
@@ -1926,7 +1923,7 @@ begin
 
          GSTClassEditable := Software.CanAlterGSTClass( MyClient.clFields.clCountry, MyClient.clFields.clAccounting_System_Used );
 
-         cmbType.Text := IntToStr(txType) + ':' + MyClient.clFields.clshort_name[txType];
+         cmbType.ItemIndex := cmbType.Items.IndexOfObject(TObject(txType));
 
          eRef.text      := txReference;
 
@@ -3734,7 +3731,7 @@ var
     for i := BA.baTransaction_List.First to BA.baTransaction_List.Last do
     begin
       txType := BA.baTransaction_List.Transaction_At(i).txType;
-      TypeList.Add(IntToStr(txType));
+      TypeList.AddObject(IntToStr(txType), TObject(txType));
     end;
   end;
 
@@ -3768,21 +3765,20 @@ begin
       // and only when the selected client doesn't have any accounts.
       for i := Low(MyClient.clFields.clShort_Name) to High(MyClient.clFields.clShort_Name) do
         if (MyClient.clFields.clShort_Name[i] <> '') then
-          TypeList.Add(IntToStr(i));
+          TypeList.AddObject(IntToStr(i), TObject(i));
     end;
     // We also need to add whatever the current entry type is, this will usually already be in the list,
     // but won't be if a memorisation is copied from a bank account that contains that entry type to
     // one that doesn't (which it won't if none of the transactions in the account have that entry type).
     // TypeList has the Duplicates property set to dupIgnore so we won't end up with a duplicate
     // in the combobox
-    TypeList.Add(IntToStr(EntryType));
+    TypeList.AddObject(IntToStr(EntryType), TObject(EntryType));
 
     TypeList.Sorted := False; // Need sorted = false for CustomSort apparently
     TypeList.CustomSort(AsFloatSort);
     for i := 0 to TypeList.Count - 1 do
-    begin
-      cmbType.Items.Add(TypeList.Strings[i] + ': ' + MyClient.clFields.clshort_name[StrToInt(TypeList.Strings[i])]);
-    end;
+      cmbType.Items.AddObject(TypeList.Strings[i] + ': ' + MyClient.clFields.clshort_name[Integer(TypeList.Objects[i])],
+                              TypeList.Objects[i]);
     ChooseDefaultEntryType;
     cmbType.ItemIndex := EntryTypeItemIndex;
   finally
