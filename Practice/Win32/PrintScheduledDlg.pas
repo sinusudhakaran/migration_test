@@ -688,8 +688,8 @@ end;
 
 procedure TdlgPrintScheduled.btnEmailMsgClick(Sender: TObject);
 begin
-   EditScheduledReportsMessage( 'EMail Message',
-                                'Type a subject and a message which will be added to all EMails sent when Scheduled Reports are generated.',
+   EditScheduledReportsMessage( 'Email Message',
+                                'Type a subject and a message which will be added to all Emails sent when Scheduled Reports are generated.',
                                 EMailSubject,
                                 EMailBody);
 end;

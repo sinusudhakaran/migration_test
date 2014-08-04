@@ -88,7 +88,7 @@ var
   frmEMailMerge: TfrmEMailMerge;
 
 const
-  UnitName = 'EMailMergeDlg';
+  UnitName = 'EmailMergeDlg';
 
 function PerformEMailMerge(Codes: string; WordObj: TOpWord): Boolean;
 
@@ -105,7 +105,7 @@ uses ImagesFrm, WarningMoreFrm, ErrorMoreFrm, YesNoDlg, glConst, WinUtils,
 // Perform the merge
 function TfrmEMailMerge.EMailDoc: Boolean;
 const
-  ThisMethodName = 'EMailDoc';
+  ThisMethodName = 'EmailDoc';
 var
   MergeDoc: TOpWordDocument;
   Description, newfilename: string;

@@ -261,7 +261,7 @@ inherited dlgPrintScheduled: TdlgPrintScheduled
           Width = 183
           Height = 17
           Hint = 'Include reports to be sent via email'
-          Caption = 'EMaile&d Reports'
+          Caption = 'Emaile&d Reports'
           TabOrder = 2
         end
         object cbToECoding: TCheckBox
@@ -502,7 +502,7 @@ inherited dlgPrintScheduled: TdlgPrintScheduled
         Top = 235
         Width = 632
         Height = 56
-        Caption = 'EMailed Reports'
+        Caption = 'Emailed Reports'
         TabOrder = 2
         object btnEmailMsg: TButton
           Left = 410

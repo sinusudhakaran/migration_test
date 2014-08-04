@@ -102,9 +102,9 @@ begin
      if ( Trim( clFax_No) <> '') then
        RenderTextLine('Fax : '+ clFax_No);
      if ( Trim( clClient_EMail_Address) <> '') then
-        RenderTextLine('EMail : ' + clClient_EMail_Address);
+        RenderTextLine('Email : ' + clClient_EMail_Address);
      if ( Trim( clClient_CC_EMail_Address) <> '') then
-        RenderTextLine('EMail CC: ' + clClient_CC_EMail_Address);
+        RenderTextLine('Email CC: ' + clClient_CC_EMail_Address);
 
      RenderRuledLine;
      RenderTextLine('');
@@ -494,7 +494,7 @@ var
           begin
             //only display on the first line for completed items.
             case CurrRec^.SendBy of
-               rdEmail           : PutString( 'EMail');
+               rdEmail           : PutString( 'Email');
                rdPrinter         : PutString( 'Printer');
                rdEcoding         : PutString( bkBranding.NotesProductName);
                rdWebX            : PutString( WEBX_GENERIC_APP_NAME);
@@ -738,7 +738,7 @@ begin
            begin
              //only display on the first line for completed items.
              case CurrRec^.SendBy of
-                rdEmail           : SchSumRpt.PutString('EMail');
+                rdEmail           : SchSumRpt.PutString('Email');
                 rdPrinter         : SchSumRpt.PutString('Printer');
                 rdEcoding         : SchSumRpt.PutString(bkBranding.NotesProductName);
                 rdWebX            : SchSumRpt.PutString(WEBX_GENERIC_APP_NAME);
