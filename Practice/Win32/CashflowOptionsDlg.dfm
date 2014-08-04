@@ -33,7 +33,7 @@ object dlgCashflowOptions: TdlgCashflowOptions
       Height = 25
       Anchors = [akTop, akRight]
       Caption = '&Print'
-      TabOrder = 3
+      TabOrder = 4
       OnClick = btnPrintClick
     end
     object btnCancel: TButton
@@ -45,7 +45,7 @@ object dlgCashflowOptions: TdlgCashflowOptions
       Cancel = True
       Caption = 'Cancel'
       ModalResult = 2
-      TabOrder = 4
+      TabOrder = 5
       OnClick = btnCancelClick
     end
     object btnPreview: TButton
@@ -73,8 +73,17 @@ object dlgCashflowOptions: TdlgCashflowOptions
       Width = 75
       Height = 25
       Caption = 'Sa&ve'
-      TabOrder = 2
+      TabOrder = 3
       OnClick = BtnSaveClick
+    end
+    object btnEmail: TButton
+      Left = 171
+      Top = 4
+      Width = 75
+      Height = 25
+      Caption = 'E&mail'
+      TabOrder = 2
+      OnClick = btnEmailClick
     end
   end
   object PageControl1: TPageControl

@@ -27,6 +27,7 @@ type
     chkGST: TCheckBox;
     BtnSave: TBitBtn;
     chkQuantities: TCheckBox;
+    btnEmail: TButton;
     procedure btnPreviewClick(Sender: TObject);
     procedure btnPrintClick(Sender: TObject);
     procedure btnCancelClick(Sender: TObject);
@@ -34,6 +35,7 @@ type
     procedure btnFileClick(Sender: TObject);
     procedure btnSaveClick(Sender: TObject);
     function CheckOk : Boolean;
+    procedure btnEmailClick(Sender: TObject);
   private
     { Private declarations }
     Pressed : integer;
@@ -259,6 +261,14 @@ begin
   end;
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+procedure TdlgBudgetReportOptions.btnEmailClick(Sender: TObject);
+begin
+   if CheckOk then begin
+      Pressed := BTN_EMAIL;
+      Close;
+   end;
+end;
+
 procedure TdlgBudgetReportOptions.btnFileClick(Sender: TObject);
 begin
    if CheckOk then begin

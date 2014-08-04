@@ -90,6 +90,7 @@ type
     rbSummarisedNonPost: TRadioButton;
     rbDetailedNonPost: TRadioButton;
     chkPrintNonPostingChartCodeTitles: TCheckBox;
+    btnEmail: TButton;
 
     procedure ControlChange(Sender: TObject);
     procedure btnCancelClick(Sender: TObject);
@@ -114,6 +115,7 @@ type
     procedure cmbBudgetDropDown(Sender: TObject);
     procedure fmeDivisionSelector1btnSelectAllDivisionsClick(Sender: TObject);
     procedure fmeDivisionSelector1btnClearAllDivisionsClick(Sender: TObject);
+    procedure btnEmailClick(Sender: TObject);
 
   private
     { Private declarations }
@@ -768,6 +770,14 @@ begin
   end;
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+procedure TdlgCashflowOptions.btnEmailClick(Sender: TObject);
+begin
+  if VerifyForm then begin
+    BtnPressed := Globals.BTN_EMAIL;
+    GenerateReport;
+  end;
+end;
+
 procedure TdlgCashflowOptions.btnFileClick(Sender: TObject);
 begin
   if VerifyForm then begin
@@ -947,7 +957,6 @@ end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TdlgCashflowOptions.GenerateReport;
 var
-   i : integer;
    Destination : TReportDest;
 begin
    SaveClientSettings(True);
@@ -956,6 +965,7 @@ begin
      BTN_PRINT   : Destination := rdPrinter;
      BTN_PREVIEW : Destination := rdScreen;
      BTN_FILE    : Destination := rdFile;
+     BTN_EMAIL   : Destination := rdEmail;
      BTN_Save    : begin
                      SaveBatchSettings;
                      Close;

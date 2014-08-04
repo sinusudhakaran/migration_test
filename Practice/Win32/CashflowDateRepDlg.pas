@@ -26,6 +26,7 @@ type
     chkLYVariance: TCheckBox;
     DateSelector: TfmeDateSelector;
     btnSave: TBitBtn;
+    btnEmail: TButton;
 
     procedure FormCreate(Sender: TObject);
     procedure SetUpHelp;
@@ -40,6 +41,7 @@ type
     procedure popDateClick(Sender: TObject);
     procedure btnFileClick(Sender: TObject);
     procedure btnSaveClick(Sender: TObject);
+    procedure btnEmailClick(Sender: TObject);
   private
     { Private declarations }
     FDataFrom, FDataTo : integer;
@@ -187,6 +189,15 @@ begin
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+procedure TdlgCashFlowDateRep.btnEmailClick(Sender: TObject);
+begin
+   if CheckOk then begin
+      okPressed := true;
+      Pressed := BTN_EMAIL;
+      Close;
+   end;
+end;
+
 procedure TdlgCashFlowDateRep.btnFileClick(Sender: TObject);
 begin
    if CheckOk then begin

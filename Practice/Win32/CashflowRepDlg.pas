@@ -68,6 +68,7 @@ type
     spnStartYear: TRzSpinEdit;
     Label4: TLabel;
     cmbPeriodLength: TComboBox;
+    btnEmail: TButton;
 
     procedure FormCreate(Sender: TObject);
     procedure SetUpHelp;
@@ -82,6 +83,7 @@ type
     procedure cmbStartMonthChange(Sender: TObject);
     procedure spnStartYearChange(Sender: TObject);
     procedure BtnSaveClick(Sender: TObject);
+    procedure btnEmailClick(Sender: TObject);
 
   private
     { Private declarations }
@@ -657,6 +659,16 @@ begin
         break;
      end;
   end;
+end;
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+procedure TdlgCashFlowRep.btnEmailClick(Sender: TObject);
+begin
+   if CheckBudget  then begin
+      okPressed := true;
+      Pressed := BTN_EMAIL;
+      Close;
+   end;
 end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

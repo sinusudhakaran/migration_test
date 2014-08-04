@@ -191,6 +191,7 @@ begin
             BTN_PREVIEW : Destination := rdScreen;
             BTN_FILE : Destination := rdFile;
             BTN_SAVE : Destination := rdNone;
+            BTN_EMAIL : Destination := rdEmail;
             else Exit;
          end;
       end;
@@ -263,6 +264,7 @@ begin
             BTN_PREVIEW : Destination := rdScreen;
             BTN_FILE : Destination := rdFile;
             BTN_SAVE : Destination := rdNone;
+            BTN_EMAIL : Destination := rdEmail;
             else Destination := rdAsk;
         end;
 
@@ -344,6 +346,7 @@ begin
             BTN_PREVIEW : Destination := rdScreen;
             BTN_FILE : Destination := rdFile;
             BTN_SAVE : Destination := rdNone;
+            BTN_EMAIL : Destination := rdEmail;
             else Destination := rdAsk;
          end;
       end;
@@ -423,6 +426,7 @@ begin
             BTN_PREVIEW : Destination := rdScreen;
             BTN_FILE : Destination := rdFile;
             BTN_SAVE : Destination := rdNone;
+            BTN_EMAIL : Destination := rdEmail;
             else Destination := rdAsk;
          end;
       end;
@@ -498,6 +502,7 @@ begin
             BTN_PREVIEW : Destination := rdScreen;
             BTN_FILE : Destination := rdFile;
             BTN_SAVE : Destination := rdNone;
+            BTN_EMAIL : Destination := rdEmail;
             else Destination := rdAsk;
          end;
        end;
@@ -575,6 +580,7 @@ begin
              BTN_PREVIEW: Destination := rdScreen;
              BTN_FILE: Destination := rdFile;
              BTN_SAVE: Destination := rdNone;
+             BTN_EMAIL : Destination := rdEmail;
              else Destination := rdAsk;
           end;
        end;
@@ -668,6 +674,7 @@ begin
             BTN_PREVIEW : Destination := rdScreen;
             BTN_FILE : Destination := rdFile;
             BTN_SAVE : Destination := rdNone;
+            BTN_EMAIL : Destination := rdEmail;
             else Destination := rdAsk;
          end;
       end;
@@ -772,6 +779,7 @@ begin
             BTN_PREVIEW : Destination := rdScreen;
             BTN_FILE : Destination := rdFile;
             BTN_SAVE : Destination := rdNone;
+            BTN_EMAIL : Destination := rdEmail;
             else Destination := rdAsk;
          end;
       end;
