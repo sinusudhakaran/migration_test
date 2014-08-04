@@ -68,6 +68,8 @@ type
     procedure ShowHeadingArrows;
     procedure SetFilter(const Value: TAcctFilterFunction);
 
+    procedure SetColumnSortOrder(aSortOrder : tCHSSortType);
+
     function GetCurrentlySelectedItem : pchsRec;
     function IndexOf( aAccountCode: ShortString; List : tchSList): integer;
     procedure ResortMaintainCurrentPos(NewSortOrder: tchsSortType);
@@ -129,28 +131,53 @@ Const
 //------------------------------------------------------------------------------
 procedure TfrmAcctLookup.btnRefreshChartClick(Sender: TObject);
 var
-  DataRow : integer;
+  DataRowIndex : integer;
+  SelectedCode : string;
+  FoundRowIndex : integer;
+  SortOrder : tCHSSortType;
 begin
   frmMain.DoMainFormCommand( mf_mcRefreshChart, Sender, true);
 
   if Grid.Rows > 0 then
-    DataRow := Grid.CurrentDataRow
+    SelectedCode := Grid.Cell[2, Grid.CurrentDataRow]
   else
-    DataRow := -1;
+    SelectedCode := '';
+
+  SortOrder := CurrentSortOrder;
 
   RefreshGrid;
 
+  SetColumnSortOrder(SortOrder);
+
   if (Grid.Rows > 0) then
   begin
-    if (DataRow = -1) or (Grid.Rows < DataRow) then
+    if (SelectedCode = '') then
     begin
       Grid.CurrentDataRow := 1;
-      Grid.PutCellInView( 1, 1 );
+      Grid.PutCellInView( 2, 1 );
     end
     else
     begin
-      Grid.CurrentDataRow := DataRow;
-      Grid.PutCellInView( 1, DataRow );
+      FoundRowIndex := 0;
+      for DataRowIndex := 1 to Grid.Rows do
+      begin
+        if Grid.Cell[2, DataRowIndex] = SelectedCode then
+        begin
+          FoundRowIndex := DataRowIndex;
+          break;
+        end;
+      end;
+
+      if FoundRowIndex > 0 then
+      begin
+        Grid.CurrentDataRow := FoundRowIndex;
+        Grid.PutCellInView( 2, FoundRowIndex );
+      end
+      else
+      begin
+        Grid.CurrentDataRow := 1;
+        Grid.PutCellInView( 2, 1 );
+      end;
     end;
   end;
 end;
@@ -240,33 +267,22 @@ end;
 
 procedure TfrmAcctLookup.GridHeadingDown(Sender: TObject; DataCol: Integer);
 const
-   ThisMethodName = 'TfrmAcctLookup.GridHeadingDown';
-Var
-   NewSortOrder : TCHSSortType;
+  ThisMethodName = 'TfrmAcctLookup.GridHeadingDown';
+var
+  NewSortOrder : TCHSSortType;
 begin
-   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
 
-   NewSortOrder := CurrentSortOrder;
-   case DataCol of
-      CodeCol : NewSortOrder := chsSortByCode;
-      DescCol : NewSortOrder := chsSortByDesc;
-      AltCodeCol : NewSortOrder := chsSortByAltCode;
-   end;
-   if NewSortOrder <> CurrentSortOrder then
-   begin { Change the order and return to the top }
-      Screen.Cursor  := crHourGlass;
-      CurrentSortOrder := NewSortOrder;
-      ShowHeadingArrows;
-      Grid.RefreshData( roBoth, rpNone );
-      CurrentSearchKey    := '';
-      Grid.CurrentDataRow := 1;
-      Grid.PutCellInView( 1, 1 );
-      Screen.Cursor := crDefault;
-   end;
+  NewSortOrder := CurrentSortOrder;
+  case DataCol of
+    CodeCol : NewSortOrder := chsSortByCode;
+    DescCol : NewSortOrder := chsSortByDesc;
+    AltCodeCol : NewSortOrder := chsSortByAltCode;
+  end;
 
-   UserINI_Chart_Lookup_Sort_Column := Ord(CurrentSortOrder);
+  SetColumnSortOrder(NewSortOrder);
 
-   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
 
 //------------------------------------------------------------------------------
@@ -869,6 +885,23 @@ begin
    TEdit(Sender).SelStart := length(S);
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+procedure TfrmAcctLookup.SetColumnSortOrder(aSortOrder : tCHSSortType);
+begin
+  if aSortOrder <> CurrentSortOrder then
+  begin
+    Screen.Cursor  := crHourGlass;
+    CurrentSortOrder := aSortOrder;
+    ShowHeadingArrows;
+    Grid.RefreshData( roBoth, rpNone );
+    CurrentSearchKey    := '';
+    Grid.CurrentDataRow := 1;
+    Grid.PutCellInView( 1, 1 );
+    Screen.Cursor := crDefault;
+  end;
+
+  UserINI_Chart_Lookup_Sort_Column := Ord(CurrentSortOrder);
+end;
+
 procedure TfrmAcctLookup.SetFilter(const Value: TAcctFilterFunction);
 begin
   FFilter := Value;
