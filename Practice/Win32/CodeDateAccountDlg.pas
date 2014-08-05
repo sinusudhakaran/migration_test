@@ -44,6 +44,7 @@ type
     btClose: TButton;
     chkWrapNarration: TCheckBox;
     btnSave: TBitBtn;
+    btnEmail: TButton;
 
     procedure btnOKClick(Sender: TObject);
     procedure btCloseClick(Sender: TObject);
@@ -54,6 +55,7 @@ type
     procedure btnPreviewClick(Sender: TObject);
     procedure btnFileClick(Sender: TObject);
     procedure BtnsaveClick(Sender: TObject);
+    procedure btnEmailClick(Sender: TObject);
   private
     { Private declarations }
     FDatesOk  : boolean;
@@ -357,6 +359,14 @@ begin
 end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+procedure TdlgCodeDateAccount.btnEmailClick(Sender: TObject);
+begin
+   if CheckClose then begin
+     Pressed := BTN_EMAIL;
+     Close;
+   end;
+end;
+
 procedure TdlgCodeDateAccount.btnFileClick(Sender: TObject);
 begin
    if CheckClose then begin

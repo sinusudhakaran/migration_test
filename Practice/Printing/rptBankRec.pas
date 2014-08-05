@@ -589,6 +589,7 @@ begin
           BTN_PRINT: Destination := rdPrinter;
           BTN_PREVIEW: Destination := rdScreen;
           BTN_FILE: Destination := rdFile;
+          BTN_EMAIL: Destination := rdEmail;
         else
           Destination := rdAsk;
         end;
@@ -922,6 +923,7 @@ begin
           BTN_PRINT: Dest := rdPrinter;
           BTN_PREVIEW: Dest := rdScreen;
           BTN_FILE: Dest := rdFile;
+          BTN_EMAIL: Dest := rdEmail;
         else
           Dest := rdScreen;
         end;
@@ -1337,6 +1339,7 @@ begin
           BTN_PRINT: Dest := rdPrinter;
           BTN_PREVIEW: Dest := rdScreen;
           BTN_FILE: Dest := rdFile;
+          BTN_EMAIL: Dest := rdEmail;
         else
           Dest := rdScreen;
         end;
