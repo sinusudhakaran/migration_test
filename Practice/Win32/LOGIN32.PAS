@@ -588,6 +588,31 @@ begin
   ShowModal;
   result := okPressed;
 end;
+//------------------------------------------------------------------------------
+{$IFDEF DEBUG_LOGIN}
+function GetDebugUser: string;
+const
+  PARAM_LOGIN = '-LOGIN=';
+var
+  i: integer;
+  sParam: string;
+  iPos: integer;
+begin
+  for i := 0 to ParamCount-1 do
+  begin
+    sParam := ParamStr(i + 1);
+
+    iPos := Pos(PARAM_LOGIN, sParam);
+    if (iPos = 0) then
+      continue;
+
+    result := StringReplace(sParam, PARAM_LOGIN, '', [rfIgnoreCase]);
+    exit;
+  end;
+
+  result := '';
+end;
+{$ENDIF}
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure ResetUser( var aUser : pUser_Rec);
 //resets any files they may have had open
@@ -637,6 +662,16 @@ begin
 
   //setup user
   GlobalCache.cache_Current_Username := Code;  //update global username variable
+
+{$IFDEF DEBUG_LOGIN}
+  // Bypass for Debug User
+  if (Code = GetDebugUser) and Assigned(User) and User^.usLogged_In and
+    (User^.usWorkstation_Logged_In_At = CurrentWorkStation) then
+  begin
+    ResetUser(User);
+    User^.usLogged_In := false;
+  end;
+{$ENDIF}
 
   if Assigned(User) then begin
     if (User^.usLogged_In) then begin
@@ -768,6 +803,32 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
+{$IFDEF DEBUG_LOGIN}
+function LoginDebugUser: boolean;
+var
+  sDebugUser: string;
+  DebugUser: pUser_Rec;
+begin
+  result := false;
+
+  sDebugUser := GetDebugUser;
+  if (sDebugUser = '') then
+    exit;
+
+  DebugUser := AdminSystem.fdSystem_User_List.FindCode(sDebugUser);
+  if not Assigned(DebugUser) then
+    exit;
+
+  with DebugUser^ do
+  begin
+    if not CreateUser(usCode, usName, usPassword, usSystem_Access, usLRN, usMASTER_Access, DebugUser) then
+      exit;
+  end;
+
+  result := true;
+end;
+{$ENDIF}
+//------------------------------------------------------------------------------
 function LoginUser(TryUserName : string): boolean;
 const
   ThisMethodName = 'LoginUser';
@@ -819,6 +880,25 @@ begin
          end;
        end;
      end;
+
+{$IFDEF DEBUG_LOGIN}
+    // Debug login
+    if LoginDebugUser then
+    begin
+      // Copied from below
+      if (CurrUser.Code <> SuperUserCode) then
+      begin
+        INISettings.ReadUsersINI(CurrUser.Code);
+        MadAddEmailBodyValue('User-Code', CurrUser.Code);
+        MadAddEmailBodyValue('User-Name', CurrUser.FullName);
+     end
+     else
+        MadAddEmailBodyValue('User-Name', 'SuperUser');
+
+      result := true;
+      exit;
+    end;
+{$ENDIF}
 
      //manual login
      if RequestLogin(TryUserName, User, Password) then
