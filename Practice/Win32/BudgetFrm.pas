@@ -1368,6 +1368,8 @@ begin
   if aRefreshFdata then
     RefreshFData(ShowZeros, DataIndex, KeepPercentages);
 
+//     tblBudget.ActiveRow := 0;
+
   tblBudget.RowLimit := DataIndex + 1;
   DataAssigned := true;
 
