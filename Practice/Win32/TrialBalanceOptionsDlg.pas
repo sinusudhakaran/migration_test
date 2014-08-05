@@ -25,6 +25,7 @@ type
     chkIncludeCodes: TCheckBox;
     chkGSTInclusive: TCheckBox;
     btnSave: TBitBtn;
+    btnEmail: TButton;
 
     procedure btnPreviewClick(Sender: TObject);
     procedure btnFileClick(Sender: TObject);
@@ -37,6 +38,7 @@ type
     procedure spnStartYearChange(Sender: TObject);
     procedure btnSaveClick(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
+    procedure btnEmailClick(Sender: TObject);
   private
     { Private declarations }
     ThisClient           : TClientObj;
@@ -136,6 +138,14 @@ procedure TdlgTrialBalanceOptions.btnPreviewClick(Sender: TObject);
 begin
   if VerifyForm then begin
     Params.RunBtn := Globals.BTN_PREVIEW;
+    GenerateReport;
+  end;
+end;
+
+procedure TdlgTrialBalanceOptions.btnEmailClick(Sender: TObject);
+begin
+  if VerifyForm then begin
+    Params.RunBtn := Globals.BTN_EMAIL;
     GenerateReport;
   end;
 end;
@@ -368,6 +378,7 @@ begin
     BTN_PRINT   : Destination := rdPrinter;
     BTN_PREVIEW : Destination := rdScreen;
     BTN_FILE    : Destination := rdFile;
+    BTN_EMAIL   : Destination := rdEmail;
   else
     Destination := rdScreen;
   end;

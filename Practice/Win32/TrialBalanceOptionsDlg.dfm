@@ -4,7 +4,7 @@ object dlgTrialBalanceOptions: TdlgTrialBalanceOptions
   BorderStyle = bsDialog
   Caption = 'Trial Balance Report'
   ClientHeight = 231
-  ClientWidth = 424
+  ClientWidth = 504
   Color = clBtnFace
   DefaultMonitor = dmMainForm
   ParentFont = True
@@ -43,7 +43,7 @@ object dlgTrialBalanceOptions: TdlgTrialBalanceOptions
     Width = 124
     Height = 21
     Style = csDropDownList
-    ItemHeight = 0
+    ItemHeight = 13
     TabOrder = 0
     OnChange = cmbStartMonthChange
   end
@@ -85,35 +85,35 @@ object dlgTrialBalanceOptions: TdlgTrialBalanceOptions
   object pnlButtons: TPanel
     Left = 0
     Top = 196
-    Width = 424
+    Width = 504
     Height = 35
     Align = alBottom
     BevelOuter = bvNone
     TabOrder = 5
-    ExplicitWidth = 434
+    ExplicitWidth = 424
     object btnPrint: TButton
-      Left = 256
+      Left = 335
       Top = 4
       Width = 75
       Height = 25
       Caption = '&Print'
       ModalResult = 1
-      TabOrder = 3
+      TabOrder = 4
       OnClick = btnPrintClick
     end
     object btnCancel: TButton
-      Left = 336
+      Left = 416
       Top = 4
       Width = 75
       Height = 25
       Cancel = True
       Caption = 'Cancel'
       ModalResult = 2
-      TabOrder = 4
+      TabOrder = 5
       OnClick = btnCancelClick
     end
     object btnPreview: TButton
-      Left = 16
+      Left = 12
       Top = 4
       Width = 75
       Height = 25
@@ -123,7 +123,7 @@ object dlgTrialBalanceOptions: TdlgTrialBalanceOptions
       OnClick = btnPreviewClick
     end
     object btnFile: TButton
-      Left = 96
+      Left = 92
       Top = 4
       Width = 75
       Height = 25
@@ -132,13 +132,22 @@ object dlgTrialBalanceOptions: TdlgTrialBalanceOptions
       OnClick = btnFileClick
     end
     object btnSave: TBitBtn
-      Left = 176
+      Left = 254
       Top = 4
       Width = 75
       Height = 25
       Caption = 'Sa&ve'
-      TabOrder = 2
+      TabOrder = 3
       OnClick = btnSaveClick
+    end
+    object btnEmail: TButton
+      Left = 173
+      Top = 4
+      Width = 75
+      Height = 25
+      Caption = 'E&mail'
+      TabOrder = 2
+      OnClick = btnEmailClick
     end
   end
   object chkIncludeCodes: TCheckBox
