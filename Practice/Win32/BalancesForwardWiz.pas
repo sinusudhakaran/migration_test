@@ -1639,12 +1639,14 @@ end;
 procedure TwizBalancesForward.DoAccountLookup;
 var
   Code : string;
+  HasChartBeenRefreshed : boolean;
 begin
   if tgEarnings.CurrentDataCol <> ColEarningsAccount then
     tgEarnings.CurrentDataCol := ColEarningsAccount;
 
   Code := tgEarnings.CurrentCell.Value;
-  if PickAccount(Code, EarningsFilter) then begin
+  if PickAccount(Code, HasChartBeenRefreshed, EarningsFilter) then
+  begin
     tgEarnings.CurrentCell.Value := Code;
     tgEarnings.EndEdit( false);
     tgEarnings.CurrentDataCol := colEarningsAmount;

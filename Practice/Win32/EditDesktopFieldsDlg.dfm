@@ -935,7 +935,7 @@ object dlgEditDesktopFields: TdlgEditDesktopFields
       Top = 62
       Width = 145
       Height = 21
-      ItemHeight = 13
+      ItemHeight = 0
       MaxLength = 20
       TabOrder = 3
       Text = '1212'

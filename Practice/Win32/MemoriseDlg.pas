@@ -918,8 +918,9 @@ end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TdlgMemorise.tblSplitUserCommand(Sender: TObject; Command: Word);
 var
-   Msg   : TWMKey;
-   Code  : string;
+  Msg   : TWMKey;
+  Code  : string;
+  HasChartBeenRefreshed : boolean;
 begin
   Code := '';
 
@@ -933,13 +934,15 @@ begin
         else
            Code := SplitData[tblSplit.ActiveRow].AcctCode;
 
-        if PickAccount(Code, nil, true, not (chkMaster.Checked and Assigned(AdminSystem))) then begin
+        if PickAccount(Code, HasChartBeenRefreshed, nil, true, not (chkMaster.Checked and Assigned(AdminSystem))) then
+        begin
            // got a Code
            if (ExistingCode = '') // new row started and previous row had a payee
            and (tblSplit.ActiveRow > 1)
-           and (SplitData[tblSplit.ActiveRow-1].Payee <> 0) then begin
-              SplitData[tblSplit.ActiveRow].Payee := SplitData[tblSplit.ActiveRow-1].Payee;
-              tblSplit.InvalidateCell(tblSplit.ActiveRow, PayeeCol);
+           and (SplitData[tblSplit.ActiveRow-1].Payee <> 0) then
+           begin
+             SplitData[tblSplit.ActiveRow].Payee := SplitData[tblSplit.ActiveRow-1].Payee;
+             tblSplit.InvalidateCell(tblSplit.ActiveRow, PayeeCol);
            end;
            ExistingCode := Code;
            if EditMode then

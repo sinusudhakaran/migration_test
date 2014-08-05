@@ -163,7 +163,7 @@ uses
   ComboUtils,
   Progress,
   CountryUtils,
-  AuditMgr;
+  AuditMgr, MAINFRM;
 
 
 {$R *.DFM}
@@ -274,6 +274,9 @@ begin
             'on the "Accounting System" menu option', 0 );
       end;
    end;
+
+   if (not Result) and (ChartChanged) then
+     frmMain.UpdateWindowsAfterChartRefresh;
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmMaintainChart.RefreshChartList;

@@ -1075,6 +1075,7 @@ procedure TdlgLedgerRep.btnChartClick(Sender: TObject);
 var
   Code : string;
   p: pAccount_rec;
+  HasChartBeenRefreshed : boolean;
 begin
   // If in TO field then automatically select whatever is in the FROM field if TO is blank (#1713)
   Code := tgRanges.CurrentCell.Value;
@@ -1088,7 +1089,7 @@ begin
   else
     Code := '';
 
-  if PickAccount(Code) then
+  if PickAccount(Code, HasChartBeenRefreshed) then
   begin
     //if get here then have a code which can be posted to from picklist
     tgRanges.CurrentCell.Value := Code;

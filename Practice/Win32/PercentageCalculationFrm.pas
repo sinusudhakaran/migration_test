@@ -70,9 +70,10 @@ uses
 procedure TfrmPercentageCalculation.btnChartClick(Sender: TObject);
 var
   s: string;
+  HasChartBeenRefreshed : boolean;
 begin
   s := edtAccountCode.Text;
-  if PickAccount(s) then
+  if PickAccount(s, HasChartBeenRefreshed) then
     edtAccountCode.Text := s;
   edtAccountCode.Refresh;
 end;

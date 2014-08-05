@@ -692,8 +692,9 @@ end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TdlgPayeeDetail.tblSplitUserCommand(Sender: TObject; Command: Word);
 var
-   Msg : TWMKey;
-   Code: string;
+  Msg : TWMKey;
+  Code: string;
+  HasChartBeenRefreshed : boolean;
 begin
   Code := '';
 
@@ -705,15 +706,21 @@ begin
         else
           Code := SplitData[tblSplit.ActiveRow].AcctCode;
 
-        if PickAccount(Code) then
+        if PickAccount(Code, HasChartBeenRefreshed) then
+        begin
+          if HasChartBeenRefreshed then
+            tblSplit.Repaint;
+
           if EditMode then
-             TEdit(ColAcct.CellEditor).Text := Code
-          else begin
-             SplitData[tblSplit.ActiveRow].AcctCode := Code;
-             UpdateFields(tblSplit.ActiveRow);
-             Msg.CharCode := VK_RIGHT;
-             ColAcct.SendKeyToTable(Msg);
-         end;
+            TEdit(ColAcct.CellEditor).Text := Code
+          else
+          begin
+            SplitData[tblSplit.ActiveRow].AcctCode := Code;
+            UpdateFields(tblSplit.ActiveRow);
+            Msg.CharCode := VK_RIGHT;
+            ColAcct.SendKeyToTable(Msg);
+          end;
+        end;
       end;
     tcGSTLookup : DoGSTLookup;
 

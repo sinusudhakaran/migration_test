@@ -854,6 +854,7 @@ type
     procedure ActivateApplication(Sender: TObject);
     procedure mniBatchReportsClick(Sender: TObject);
     procedure RefreshUserControls;
+    procedure UpdateWindowsAfterChartRefresh();
   end;
 
 
@@ -4456,6 +4457,11 @@ begin
         FLastActiveMDIChild.Invalidate; // repaint it..
      end;
   end;
+end;
+
+procedure TfrmMain.UpdateWindowsAfterChartRefresh;
+begin
+  SendCmdToAllCodingWindows( ecRecodeTrans);
 end;
 
 procedure TfrmMain.viaBankLinkOnline1Click(Sender: TObject);

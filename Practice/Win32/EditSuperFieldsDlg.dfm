@@ -876,7 +876,7 @@ object dlgEditSuperFields: TdlgEditSuperFields
       Width = 334
       Height = 21
       Style = csDropDownList
-      ItemHeight = 13
+      ItemHeight = 0
       TabOrder = 8
     end
     object nfUnits: TOvcNumericField

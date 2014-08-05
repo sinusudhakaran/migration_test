@@ -108,10 +108,11 @@ end;
 procedure TfrmContraCodeEntry.LookupContraCode;
 var
   ContraCode: String;
+  HasChartBeenRefreshed : boolean;
 begin
   ContraCode := edtBankAccountCode.Text;
   
-  if PickAccount(ContraCode) then
+  if PickAccount(ContraCode, HasChartBeenRefreshed) then
   begin
     edtBankAccountCode.Text := ContraCode;
 

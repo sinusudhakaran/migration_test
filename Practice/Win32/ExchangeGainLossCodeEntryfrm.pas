@@ -133,10 +133,11 @@ end;
 procedure TfrmExchangeGainLossCodeEntry.LookupExchangeGainLossCode;
 var
   ExchangeGainLossCode: String;
+  HasChartBeenRefreshed : boolean;
 begin
   ExchangeGainLossCode := edtExchangeGainLossCode.Text;
   
-  if PickAccount(ExchangeGainLossCode) then
+  if PickAccount(ExchangeGainLossCode, HasChartBeenRefreshed) then
   begin
     edtExchangeGainLossCode.Text := ExchangeGainLossCode;
 

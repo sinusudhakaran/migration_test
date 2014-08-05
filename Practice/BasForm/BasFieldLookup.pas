@@ -72,16 +72,18 @@ uses
   StdHints;
 
 //------------------------------------------------------------------------------
-
 procedure TdlgBasFieldLookup.DoList;
-var s : string;
+var
+  s : string;
+  HasChartBeenRefreshed : boolean;
 begin
-   s := txtCode.text;
-   if PickAccount(s) then txtCode.text := s;
-   txtCode.Refresh;
+  s := txtCode.text;
+  if PickAccount(s, HasChartBeenRefreshed) then
+    txtCode.text := s;
+  txtCode.Refresh;
 end;
-//------------------------------------------------------------------------------
 
+//------------------------------------------------------------------------------
 procedure TdlgBasFieldLookup.txtCodeChange(Sender: TObject);
 begin
    bkMaskUtils.CheckForMaskChar(txtCode,RemovingMask);

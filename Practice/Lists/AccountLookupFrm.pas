@@ -63,6 +63,7 @@ type
     FDefaultSortOrder : tchsSortType;
     FHasAlternativeCode: Boolean;
     fShowRefreshChart : boolean;
+    fHasChartBeenRefreshed : boolean;
 
     procedure DoNewSearch(Startup: Boolean = False);
     procedure ShowHeadingArrows;
@@ -89,10 +90,11 @@ type
 
     property Filter : TAcctFilterFunction read FFilter write SetFilter;
     property ShowRefreshChart : boolean read fShowRefreshChart write fShowRefreshChart;
+    property HasChartBeenRefreshed : boolean read fHasChartBeenRefreshed write fHasChartBeenRefreshed;
   end;
 
-function  LookUpChart( Guess : ShortString; FilterFunction : TAcctFilterFunction = nil; ShowOptions: Boolean = True; ShowRefreshChart : Boolean = True ): ShortString;
-function  PickAccount( var AcctCode : string; FilterFunction : TAcctFilterFunction = nil; ShowOptions: Boolean = True; ShowRefreshChart : Boolean = True  ) : boolean;
+function  LookUpChart( Guess : ShortString; var aHasChartBeenRefreshed : boolean; FilterFunction : TAcctFilterFunction = nil; ShowOptions: Boolean = True; ShowRefreshChart : Boolean = True ): ShortString;
+function  PickAccount( var AcctCode : string; var aHasChartBeenRefreshed : boolean; FilterFunction : TAcctFilterFunction = nil; ShowOptions: Boolean = True; ShowRefreshChart : Boolean = True  ) : boolean;
 procedure PickCodeForEdit( Sender: TObject; FilterFunction : TAcctFilterFunction = nil; ShowOptions: Boolean = True; ShowRefreshChart : Boolean = True  );
 
 //------------------------------------------------------------------------------
@@ -136,6 +138,7 @@ var
   FoundRowIndex : integer;
   SortOrder : tCHSSortType;
 begin
+  fHasChartBeenRefreshed := true;
   frmMain.DoMainFormCommand( mf_mcRefreshChart, Sender, true);
 
   if Grid.Rows > 0 then
@@ -622,6 +625,7 @@ begin
   if DebugMe then
     LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
 
+  fHasChartBeenRefreshed := false;
   Grid.HeadingFont := Font;
   bkXPThemes.ThemeForm( Self);
   HasAlternativeCode :=
@@ -662,7 +666,7 @@ end;
 
 //------------------------------------------------------------------------------
 
-Function LookUpChart( Guess : ShortString; FilterFunction : TAcctFilterFunction = nil; ShowOptions: Boolean = True ; ShowRefreshChart : Boolean = True ): ShortString;
+Function LookUpChart( Guess : ShortString; var aHasChartBeenRefreshed : boolean; FilterFunction : TAcctFilterFunction = nil; ShowOptions: Boolean = True ; ShowRefreshChart : Boolean = True ): ShortString;
 
 Const
   ThisMethodName = 'LookUpChart';
@@ -817,6 +821,8 @@ begin
 
       If LookUpDlg.ShowModal = mrOK Then
       Begin
+         aHasChartBeenRefreshed := LookUpDlg.HasChartBeenRefreshed;
+
          case LookUpDlg.CurrentSortOrder of
             chsSortByCode : 
                Begin
@@ -861,29 +867,32 @@ begin
 End;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function PickAccount( var AcctCode : string; FilterFunction : TAcctFilterFunction = nil; ShowOptions: Boolean = True; ShowRefreshChart : Boolean = True ) : Boolean;
+function PickAccount( var AcctCode : string; var aHasChartBeenRefreshed : boolean; FilterFunction : TAcctFilterFunction = nil; ShowOptions: Boolean = True; ShowRefreshChart : Boolean = True ) : Boolean;
 // Creates Chart Account Lookup form positioned on passed AcctCode.
 // User can select/search for chart code
 begin
   Result := False;
   if not HasAChart then exit;
-  AcctCode := AccountLookupFrm.LookUpChart( AcctCode, FilterFunction, ShowOptions, ShowRefreshChart );
+  AcctCode := AccountLookupFrm.LookUpChart( AcctCode, aHasChartBeenRefreshed, FilterFunction, ShowOptions, ShowRefreshChart );
   if AcctCode<>'' then Result := True;
 end;
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure PickCodeForEdit(Sender : Tobject; FilterFunction : TAcctFilterFunction = nil; ShowOptions: Boolean = True; ShowRefreshChart : Boolean = True );
 var
   S : string;
+  HasChartBeenRefreshed : boolean;
 begin
    if not ( Sender is TEdit ) then
       Exit;
 
    TEdit(Sender).SetFocus;
    S := TEdit(Sender).Text;
-   if PickAccount( S, FilterFunction, ShowOptions, ShowRefreshChart) then
+   if PickAccount( S, HasChartBeenRefreshed, FilterFunction, ShowOptions, ShowRefreshChart) then
      TEdit(Sender).text := S;
    TEdit(Sender).SelStart := length(S);
 end;
+
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmAcctLookup.SetColumnSortOrder(aSortOrder : tCHSSortType);
 begin

@@ -1426,9 +1426,10 @@ end;
 procedure TdlgEditBank.DoList(const aEdit: TEdit);
 var
   s: string;
+  HasChartBeenRefreshed : boolean;
 begin
   s := aEdit.Text;
-  if PickAccount(s) then
+  if PickAccount(s, HasChartBeenRefreshed) then
     aEdit.Text := s;
   aEdit.Refresh;
 end;

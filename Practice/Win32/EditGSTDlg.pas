@@ -1073,8 +1073,9 @@ end;
 //------------------------------------------------------------------------------
 procedure TdlgEditGST.tblRatesUserCommand(Sender: TObject; Command: Word);
 var
-   Msg : TWmKey;
-   Code : string;
+  Msg : TWmKey;
+  Code : string;
+  HasChartBeenRefreshed : boolean;
 begin
    case Command of
      tcLookup :
@@ -1084,7 +1085,7 @@ begin
          else
            Code := GST_Table[tblRates.ActiveRow].GST_Account_Code;
 
-         if PickAccount(Code) then
+         if PickAccount(Code, HasChartBeenRefreshed) then
            if EditMode then
              TEdit(ColAccount.CellEditor).Text := Code
            else

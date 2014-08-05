@@ -2191,8 +2191,9 @@ this method is called.  We therefore end any existing edit and move to
 the Account column.
 }
 var
-   Code : string;
-   InEditOnEntry : boolean;
+  Code : string;
+  InEditOnEntry : boolean;
+  HasChartBeenRefreshed : boolean;
 begin
    // If Parent Locked then no lookup allowed
    if pTran.txLocked then
@@ -2214,15 +2215,18 @@ begin
 
       Code := TEdit(celAccount.CellEditor).Text;
 
-      if PickAccount(Code) then begin
-          //if get here then have a code which can be posted to from picklist
-          TEdit(celAccount.CellEditor).Text := Code;
-          //no need to do any more because will be handled by celAccount.OnChange
+      if PickAccount(Code, HasChartBeenRefreshed) then
+      begin
+        //if get here then have a code which can be posted to from picklist
+        TEdit(celAccount.CellEditor).Text := Code;
+        //no need to do any more because will be handled by celAccount.OnChange
       end
-      else begin
-          if not InEditOnEntry then begin
-           StopEditingState(true);  //end edit
-          end;
+      else
+      begin
+        if not InEditOnEntry then
+        begin
+          StopEditingState(true);  //end edit
+        end;
       end;
    end;
 end;

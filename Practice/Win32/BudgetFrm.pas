@@ -40,7 +40,8 @@ uses
   PercentageCalculationFrm,
   BroadcastSystem,
   GstCalc32,
-  clObj32;
+  clObj32,
+  CodingFormCommands;
   
 type
   TfrmBudget = class(TForm)
@@ -197,6 +198,8 @@ type
     procedure EndEditRow(RowNum, ColNum : integer; var AllowIt : boolean);
 
     procedure SetBudget(const Value: TBudget);
+    procedure RefreshBudget();
+    procedure RefreshChart();
     procedure UpdateLine(index : integer; CopyPercentages: boolean = true);
     procedure UpdateAllLines;
 
@@ -269,7 +272,8 @@ type
     property  AutoCalculateGST: boolean read GetAutoCalculateGST
                 write SetAutoCalculateGST;
 
-    procedure ProcessExternalCmd(command: TExternalCmdBudget);
+    procedure ProcessExternalCmd(command: TExternalCmdBudget); overload;
+    procedure ProcessExternalCmd(command : TExternalCmd); overload;
   end;
 
 var
@@ -287,7 +291,6 @@ uses
    AccountInfoObj,
    AutoSaveUtils,
    CalculateAccountTotals,
-   CodingFormCommands,
    bkDateUtils,
    LogUtil,
    ovcDate,
@@ -1232,6 +1235,39 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+procedure TfrmBudget.RefreshBudget;
+var
+  ColumnIndex : integer;
+  ColDate : integer;
+begin
+  RefreshTableWithData(true);
+  {update column lables}
+  for ColumnIndex := 0 to 11 do
+  begin
+    ColDate := IncDate(Budget.buFields.buStart_Date, 0, ColumnIndex, 0);
+    tblHeader.Headings[MonthMin + ColumnIndex] := StDateToDateString('nnn yy', ColDate, true);
+  end;
+
+  {update form header}
+  Caption          := 'Edit Budget ' + Budget.buFields.buName;
+  edtName.text     := Budget.buFields.buName;
+  lblName.Caption  := Budget.buFields.buName;
+  lblStart.Caption := 'Starts ' + bkDate2Str(Budget.buFields.buStart_Date);
+end;
+
+//------------------------------------------------------------------------------
+procedure TfrmBudget.RefreshChart;
+begin
+  if assigned(FChart) then
+    FreeAndNil(FChart);
+
+  FChart := TCustomSortChart.Create(nil);
+  FChart.CopyChart(MyClient.clChart);
+
+  RefreshBudget();
+end;
+
+//------------------------------------------------------------------------------
 procedure TFrmBudget.RefreshFData(ShowZeros: boolean; var aDataIndex : integer; KeepPercentages: boolean);
 const
    ThisMethodName = 'RefreshFData';
@@ -1399,19 +1435,8 @@ begin
     exit;
   end;
 
-  RefreshTableWithData(true);
-  {update column lables}
-  for i := 0 to 11 do
-  begin
-     ColDate := IncDate(Budget.buFields.buStart_Date,0,i,0);
-     tblHeader.Headings[MonthMin+i] := StDateToDateString('nnn yy',ColDate,true);
-  end;
+  RefreshBudget();
 
-  {update form header}
-  caption := 'Edit Budget '+Budget.buFields.buName;
-  edtName.text := Budget.buFields.buName;
-  lblName.Caption := Budget.buFields.buName;
-  lblStart.caption   := 'Starts '+bkDate2Str(Budget.buFields.buStart_Date);
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );  
 end;
 
@@ -1745,11 +1770,17 @@ const
 var
   Code: String;
   I: Integer;
+  HasChartBeenRefreshed : boolean;
 begin
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
   Code := FData[tblBudget.ActiveRow - 1].bAccount;
-  if PickAccount(Code) then
+  if PickAccount(Code, HasChartBeenRefreshed) then
   begin
+    if HasChartBeenRefreshed then
+    begin
+      RefreshChart();
+    end;
+
     //see if it's already shown on the grid
     for I := 0 to High(FData) do
     begin
@@ -2590,31 +2621,53 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmBudget.ProcessExternalCmd(command: TExternalCmdBudget);
 const
-  ThisMethodName = 'ProcessExternalCmd';
+  ThisMethodName = 'ProcessExternalCmd (TExternalCmdBudget)';
 begin
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
    AutoSaveUtils.DisableAutoSave;
    try
      case command of
-       ecbGenerate : DoGenerate;
-       ecbCopy     : DoCopy;
-       ecbSplit    : DoSplit;
-       ecbAverage  : DoAverage;
-       ecbSmooth   : DoSmooth;
+       ecbGenerate     : DoGenerate;
+       ecbCopy         : DoCopy;
+       ecbSplit        : DoSplit;
+       ecbAverage      : DoAverage;
+       ecbSmooth       : DoSmooth;
      //  ecbZero     : DoClearALL;
        ecbPercentageChange : DoPercentageChange;
-       ecbHideUnused: DoHideUnused;
-       ecbShowAll  : DoShowAll;
-       ecbChart    : DoChartLookup;
-       ecbQuit     : Close;
-       ecbImport   : DoImport;
-       ecbExport   : DoExport;
+       ecbHideUnused   : DoHideUnused;
+       ecbShowAll      : DoShowAll;
+       ecbChart        : DoChartLookup;
+       ecbQuit         : Close;
+       ecbImport       : DoImport;
+       ecbExport       : DoExport;
      end;
    finally
      EnableAutoSave;
    end;
-  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );   
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
+
+//------------------------------------------------------------------------------
+procedure TfrmBudget.ProcessExternalCmd(command : TExternalCmd);
+const
+  ThisMethodName = 'ProcessExternalCmd (TExternalCmd)';
+begin
+  if DebugMe then
+    LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
+
+  AutoSaveUtils.DisableAutoSave;
+  try
+    case command of
+      ecReCodeTrans : RefreshChart;
+    end;
+  finally
+    EnableAutoSave;
+  end;
+
+  if DebugMe then
+    LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
+end;
+
 
 //------------------------------------------------------------------------------
 procedure TfrmBudget.actAutoCalculateGSTExecute(Sender: TObject);

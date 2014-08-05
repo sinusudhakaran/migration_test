@@ -2838,6 +2838,7 @@ the Account column.
 var
   Code : string;
   InEditOnEntry : boolean;
+  HasChartBeenRefreshed : boolean;
 begin
    with tblHist do begin
       if not ( ColumnFmtList.FieldIsEditable( ceAccount )) then exit;
@@ -2856,7 +2857,8 @@ begin
 
       Code := TEdit(celAccount.CellEditor).Text;
 
-      if PickAccount(Code) then begin
+      if PickAccount(Code, HasChartBeenRefreshed) then
+      begin
           //if get here then have a code which can be posted to from picklist
           TEdit(celAccount.CellEditor).Text := Code;
           //no need to do any more because will be handled by

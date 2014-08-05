@@ -37,7 +37,7 @@ uses
   Dialogs, ovcpf, ovcbase, ovcef, ovcpb, ovcnf, StdCtrls, ExtCtrls, MoneyDef,
   bkconst, Buttons, cxGraphics, cxControls, cxContainer, cxEdit, cxTextEdit,
   cxMaskEdit, cxDropDownEdit,
-  OsFont;
+  OsFont, cxLookAndFeels, cxLookAndFeelPainters;
 
 type
   Tmember = class(TObject)
@@ -181,6 +181,7 @@ type
     procedure GetMembers;
     procedure SetRevenuePercentage(const Value: Boolean);
     procedure SetMemOnly(const Value: Boolean);
+    procedure RefreshChartCodeCombo(aAccount : string = '');
   public
     { Public declarations }
     procedure SetFields( mImputedCredit,
@@ -476,6 +477,21 @@ begin
   FAutoPresSMinus := False;
 end;
 
+procedure TdlgEditSupervisorFields.RefreshChartCodeCombo(aAccount: string);
+var
+  ChartIndex: Integer;
+  pChartAcc : pAccount_Rec;
+begin
+  cmbxAccount.Properties.Items.Add('');
+  for ChartIndex := MyClient.clChart.First to MyClient.clChart.Last do
+  begin
+    pChartAcc := MyClient.clChart.Account_At(ChartIndex);
+    cmbxAccount.Properties.Items.Add(pChartAcc.chAccount_Code);
+    if (aAccount <> '') and (aAccount = pChartAcc.chAccount_Code) then
+      cmbxAccount.ItemIndex := Pred(cmbxAccount.Properties.Items.Count);
+  end;
+end;
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TdlgEditSupervisorFields.SetFields(mImputedCredit, mTaxFreeDist,
   mTaxExemptDist, mTaxDeferredDist, mTFNCredits, mForeignIncome,
@@ -484,9 +500,6 @@ procedure TdlgEditSupervisorFields.SetFields(mImputedCredit, mTaxFreeDist,
   mCapitalGainsForeignDisc, mRent, mSpecialIncome, mOtherTaxCredit, mNonResidentTax,
   mForeignCGCredit: Money;
   mMemberID: string; mUnits: Money; mAccount: string);
-var
-  i: Integer;
-  p: pAccount_Rec;
 begin
 
    SetNumericValue(nfTaxFreeDist, mTaxFreeDist, RevenuePercentage);
@@ -530,14 +543,7 @@ begin
 
   nfUnits.AsFloat := mUnits / 10000;
 
-  cmbxAccount.Properties.Items.Add('');
-  for i := MyClient.clChart.First to MyClient.clChart.Last do
-  begin
-    p := MyClient.clChart.Account_At(i);
-    cmbxAccount.Properties.Items.Add(p.chAccount_Code);
-    if mAccount = p.chAccount_Code then
-      cmbxAccount.ItemIndex := Pred(cmbxAccount.Properties.Items.Count);
-  end;
+  RefreshChartCodeCombo(mAccount);
   FCurrentAccountIndex := cmbxAccount.ItemIndex;
 
   UpdateDisplayTotals;
@@ -634,17 +640,26 @@ end;
 procedure TdlgEditSupervisorFields.btnChartClick(Sender: TObject);
 var
   i: Integer;
-  s: string;
+  SelectedCode : string;
+  HasChartBeenRefreshed : boolean;
 begin
-  s := cmbxAccount.Text;
-  if PickAccount(s) then
+  SelectedCode := cmbxAccount.Text;
+  if PickAccount(SelectedCode, HasChartBeenRefreshed) then
   begin
-    for i := 0 to (cmbxAccount.Properties.Items.Count) do
-      if cmbxAccount.Properties.Items[i] = s then
+    if HasChartBeenRefreshed then
+    begin
+      cmbxAccount.Properties.Items.Clear;
+      RefreshChartCodeCombo();
+    end;
+
+    for i := 0 to cmbxAccount.Properties.Items.Count-1 do
+    begin
+      if cmbxAccount.Properties.Items[i] = SelectedCode then
       begin
         cmbxAccount.ItemIndex := i;
         Break;
       end;
+    end;
   end;
 end;
 

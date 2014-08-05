@@ -1402,6 +1402,7 @@ var
   Code : string;
   InEditOnEntry : boolean;
   pT            : pTransaction_Rec;
+  HasChartBeenRefreshed : boolean;
 begin
    if not ValidDataRow(tblCoding.ActiveRow) then exit;
    pT   := WorkTranList.Transaction_At( tblCoding.ActiveRow - 1);
@@ -1425,7 +1426,8 @@ begin
 
       Code := TEdit(celAccount.CellEditor).Text;
 
-      if PickAccount(Code) then begin
+      if PickAccount(Code, HasChartBeenRefreshed) then
+      begin
           //if get here then have a code which can be posted to from picklist
           TEdit(celAccount.CellEditor).Text := Code;
           //no need to do any more because will be handled by

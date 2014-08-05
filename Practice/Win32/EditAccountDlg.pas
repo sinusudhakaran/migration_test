@@ -1133,14 +1133,15 @@ var
   s : string;
   AccountSelected : boolean;
   aType : integer;
+  HasChartBeenRefreshed : Boolean;
 begin
   s := edtLinkedAccount1.text;
 
   aType := GetCurrentlySelectedGroup;
   case aType of
-    atOpeningStock : AccountSelected := PickAccount( S, ClosingStockFilter, False);
-    atClosingStock : AccountSelected := PickAccount( S, OpeningStockFilter, False);
-    atStockOnHand  : AccountSelected := PickAccount( S, OpeningStockFilter, False);
+    atOpeningStock : AccountSelected := PickAccount( S, HasChartBeenRefreshed, ClosingStockFilter, False);
+    atClosingStock : AccountSelected := PickAccount( S, HasChartBeenRefreshed, OpeningStockFilter, False);
+    atStockOnHand  : AccountSelected := PickAccount( S, HasChartBeenRefreshed, OpeningStockFilter, False);
     else
       AccountSelected := False;
   end;
@@ -1157,12 +1158,13 @@ var
   s : string;
   AccountSelected : boolean;
   aType : integer;
+  HasChartBeenRefreshed : boolean;
 begin
   s := edtLinkedAccount2.text;
 
   aType := GetCurrentlySelectedGroup;
   case aType of
-    atStockOnHand  : AccountSelected := PickAccount( S, ClosingStockFilter, False);
+    atStockOnHand  : AccountSelected := PickAccount( S, HasChartBeenRefreshed, ClosingStockFilter, False);
     else
       AccountSelected := False;
   end;

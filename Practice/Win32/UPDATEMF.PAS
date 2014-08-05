@@ -1377,14 +1377,19 @@ end;
 procedure SendCmdToAllCodingWindows( command : TExternalCmd);
 //send the same command to any coding windows that are loaded
 var
-   i : integer;
+  ChildIndex : integer;
 begin
-   if not Assigned(MyClient) then exit;
-   for i := 0 to frmMain.MDIChildCount - 1 do    // Iterate
-      if (frmMain.MDIChildren[i] is TfrmCoding) then
-         TfrmCoding(frmMain.MDIChildren[i]).ProcessExternalCmd( command)
-      else if (frmMain.MDIChildren[i] is TBaseClientHomePage) then
-         TBaseClientHomePage(frmMain.MDIChildren[i]).ProcessExternalCmd( command)
+  if not Assigned(MyClient) then
+    exit;
+  for ChildIndex := 0 to frmMain.MDIChildCount - 1 do
+  begin
+    if (frmMain.MDIChildren[ChildIndex] is TfrmCoding) then
+      TfrmCoding(frmMain.MDIChildren[ChildIndex]).ProcessExternalCmd( command)
+    else if (frmMain.MDIChildren[ChildIndex] is TBaseClientHomePage) then
+      TBaseClientHomePage(frmMain.MDIChildren[ChildIndex]).ProcessExternalCmd( command)
+    else if (frmMain.MDIChildren[ChildIndex] is TFrmBudget) then
+      TFrmBudget(frmMain.MDIChildren[ChildIndex]).ProcessExternalCmd( command);
+  end;
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function AccountVisible(Acct : TBank_Account) : boolean;

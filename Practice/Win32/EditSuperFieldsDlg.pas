@@ -113,6 +113,7 @@ type
     procedure SetUpHelp;
     procedure SetRevenuePercentage(const Value: Boolean);
     procedure SetMemOnly(const Value: Boolean);
+    procedure RefreshChartCodeCombo(aAccount : string = '');
     { Private declarations }
   public
     { Public declarations }
@@ -270,9 +271,6 @@ procedure TdlgEditSuperFields.SetFields(mImputedCredit, mTaxFreeDist,
   mForeignTaxCredits, mCapitalGains, mDiscountedCapitalGains,
   mOtherExpenses, mCapitalGainsOther, mFranked, mUnfranked : Money;
   dCGTDate: integer; mComponent : byte; mUnits: Money; mAccount: string);
-var
-  i: Integer;
-  p: pAccount_Rec;
 begin
 
   SetNumericValue(nfTaxFreeDist, mTaxFreeDist, RevenuePercentage);
@@ -307,15 +305,9 @@ begin
 
   nfUnits.AsFloat := mUnits / 10000;
 
-  cmbxAccount.Properties.Items.Add('');
-  for i := MyClient.clChart.First to MyClient.clChart.Last do
-  begin
-    p := MyClient.clChart.Account_At(i);
-    cmbxAccount.Properties.Items.Add(p.chAccount_Code);
-    if mAccount = p.chAccount_Code then
-      cmbxAccount.ItemIndex := Pred(cmbxAccount.Properties.Items.Count);
-  end;
+  RefreshChartCodeCombo(mAccount);
   FCurrentAccountIndex := cmbxAccount.ItemIndex;
+
   FAutoPressMinus := (FActualAmount < 0) and (mUnits = 0);
 end;
 
@@ -418,17 +410,26 @@ end;
 procedure TdlgEditSuperFields.btnChartClick(Sender: TObject);
 var
   i: Integer;
-  s: string;
+  SelectedCode: string;
+  HasChartBeenRefreshed : boolean;
 begin
-  s := cmbxAccount.Text;
-  if PickAccount(s) then
+  SelectedCode := cmbxAccount.Text;
+  if PickAccount(SelectedCode, HasChartBeenRefreshed) then
   begin
-    for i := 0 to (cmbxAccount.Properties.Items.Count) do
-      if cmbxAccount.Properties.Items[i] = s then
+    if HasChartBeenRefreshed then
+    begin
+      cmbxAccount.Properties.Items.Clear;
+      RefreshChartCodeCombo();
+    end;
+
+    for i := 0 to cmbxAccount.Properties.Items.Count-1 do
+    begin
+      if cmbxAccount.Properties.Items[i] = SelectedCode then
       begin
         cmbxAccount.ItemIndex := i;
         Break;
       end;
+    end;
   end;
 end;
 
@@ -702,6 +703,21 @@ begin
   FAutoPresSMinus := False;
 end;
 
+
+procedure TdlgEditSuperFields.RefreshChartCodeCombo(aAccount : string = '');
+var
+  ChartIndex : integer;
+  pChartAcc : pAccount_Rec;
+begin
+  cmbxAccount.Properties.Items.Add('');
+  for ChartIndex := MyClient.clChart.First to MyClient.clChart.Last do
+  begin
+    pChartAcc := MyClient.clChart.Account_At(ChartIndex);
+    cmbxAccount.Properties.Items.Add(pChartAcc.chAccount_Code);
+    if (aAccount <> '') and (aAccount = pChartAcc.chAccount_Code) then
+      cmbxAccount.ItemIndex := Pred(cmbxAccount.Properties.Items.Count);
+  end;
+end;
 
 (*
 procedure TdlgEditSuperFields.SetMEMFields(mFranked: Money;
