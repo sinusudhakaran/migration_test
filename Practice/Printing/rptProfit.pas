@@ -113,6 +113,7 @@ begin
          BTN_PREVIEW : Destination := rdScreen;
          BTN_FILE : Destination := rdFile;
          BTN_SAVE : Destination := rdNone;
+         BTN_EMAIL : Destination := rdEmail;
       else
          Destination := rdAsk;
       end;
@@ -174,6 +175,7 @@ begin
          BTN_PREVIEW : Destination := rdScreen;
          BTN_FILE : Destination := rdFile;
          BTN_SAVE : Destination := rdNone;
+         BTN_EMAIL : Destination := rdEmail;
       else
          Destination := rdAsk;
       end;
@@ -233,6 +235,7 @@ begin
          BTN_PREVIEW : Destination := rdScreen;
          BTN_FILE : Destination := rdFile;
          BTN_SAVE : Destination := rdNone;
+         BTN_EMAIL : Destination := rdEmail;
       else
          Destination := rdAsk;
       end;
@@ -299,6 +302,7 @@ begin
          BTN_PREVIEW : Destination := rdScreen;
          BTN_FILE : Destination := rdFile;
          BTN_SAVE : Destination := rdNone;
+         BTN_EMAIL : Destination := rdEmail;
       else
          Destination := rdAsk;
       end;
@@ -363,6 +367,7 @@ begin
          BTN_PREVIEW : Destination := rdScreen;
          BTN_FILE : Destination := rdFile;
          BTN_SAVE : Destination := rdNone;
+         BTN_EMAIL : Destination := rdEmail;
       else
          Destination := rdAsk;
       end;
@@ -425,6 +430,7 @@ begin
          BTN_PREVIEW : Destination := rdScreen;
          BTN_FILE : Destination := rdFile;
          BTN_SAVE : Destination := rdNone;
+         BTN_EMAIL : Destination := rdEmail;
       else
          Destination := rdAsk;
       end;
@@ -479,11 +485,12 @@ begin
          lparam, BKH_12_months_budget, True,True, True, False, False, False, True) then //help link to be added in later
          exit;
 
-      case lParam.RunBtn of
+      case lParam.RunBtn of                                 
          BTN_PRINT : Destination := rdPrinter;
          BTN_PREVIEW : Destination := rdScreen;
          BTN_FILE : Destination := rdFile;
          BTN_SAVE : Destination := rdNone;
+         BTN_EMAIL : Destination := rdEmail;
       else
          Destination := rdAsk;
       end;

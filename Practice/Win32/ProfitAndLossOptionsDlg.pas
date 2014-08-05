@@ -80,6 +80,7 @@ type
     rbSummarisedNonPost: TRadioButton;
     rbDetailedNonPost: TRadioButton;
     chkPrintNonPostingChartCodeTitles: TCheckBox;
+    btnEmail: TButton;
 
     procedure chkCompareClick(Sender: TObject);
     procedure rbDetailedFormatClick(Sender: TObject);
@@ -101,6 +102,7 @@ type
     procedure BtnSaveClick(Sender: TObject);
     procedure ckAllJobsClick(Sender: TObject);
     procedure chkPrintNonPostingChartCodeTitlesClick(Sender: TObject);
+    procedure btnEmailClick(Sender: TObject);
   protected
     { Private declarations }
     LastPeriodOfActualData : integer;
@@ -639,6 +641,14 @@ begin
   end;
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+procedure TdlgProfitAndLossOptions.btnEmailClick(Sender: TObject);
+begin
+  if VerifyForm then begin
+    params.RunBtn := Globals.BTN_EMAIL;
+    GenerateReport;
+  end;
+end;
+
 procedure TdlgProfitAndLossOptions.btnFileClick(Sender: TObject);
 begin
   if VerifyForm then begin
@@ -786,6 +796,7 @@ begin
      BTN_PRINT   : Destination := rdPrinter;
      BTN_PREVIEW : Destination := rdScreen;
      BTN_FILE    : Destination := rdFile;
+     BTN_EMAIL   : Destination := rdEmail;
    else
      Destination := rdScreen;
    end;

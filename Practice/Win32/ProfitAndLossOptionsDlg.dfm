@@ -22,6 +22,7 @@ object dlgProfitAndLossOptions: TdlgProfitAndLossOptions
     Align = alBottom
     BevelOuter = bvNone
     TabOrder = 1
+    ExplicitTop = 415
     DesignSize = (
       633
       35)
@@ -32,7 +33,7 @@ object dlgProfitAndLossOptions: TdlgProfitAndLossOptions
       Height = 25
       Anchors = [akTop, akRight]
       Caption = '&Print'
-      TabOrder = 3
+      TabOrder = 4
       OnClick = btnPrintClick
     end
     object btnCancel: TButton
@@ -44,7 +45,7 @@ object dlgProfitAndLossOptions: TdlgProfitAndLossOptions
       Cancel = True
       Caption = 'Cancel'
       ModalResult = 2
-      TabOrder = 4
+      TabOrder = 5
       OnClick = btnCancelClick
     end
     object btnPreview: TButton
@@ -72,8 +73,17 @@ object dlgProfitAndLossOptions: TdlgProfitAndLossOptions
       Width = 75
       Height = 25
       Caption = 'Sa&ve'
-      TabOrder = 2
+      TabOrder = 3
       OnClick = BtnSaveClick
+    end
+    object btnEmail: TButton
+      Left = 170
+      Top = 4
+      Width = 75
+      Height = 25
+      Caption = 'E&mail'
+      TabOrder = 2
+      OnClick = btnEmailClick
     end
   end
   object PageControl1: TPageControl
@@ -86,10 +96,6 @@ object dlgProfitAndLossOptions: TdlgProfitAndLossOptions
     TabOrder = 0
     object tbsOptions: TTabSheet
       Caption = 'Options'
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object pnlReportStyle: TPanel
         Left = 0
         Top = 0
@@ -132,7 +138,7 @@ object dlgProfitAndLossOptions: TdlgProfitAndLossOptions
           Width = 177
           Height = 21
           Style = csDropDownList
-          ItemHeight = 0
+          ItemHeight = 13
           ItemIndex = 0
           TabOrder = 1
           Text = 'One Month'
@@ -151,7 +157,7 @@ object dlgProfitAndLossOptions: TdlgProfitAndLossOptions
           Width = 177
           Height = 21
           Style = csDropDownList
-          ItemHeight = 0
+          ItemHeight = 13
           ItemIndex = 0
           TabOrder = 0
           Text = 'Single Period (Actual)'
@@ -167,7 +173,7 @@ object dlgProfitAndLossOptions: TdlgProfitAndLossOptions
           Width = 90
           Height = 21
           Style = csDropDownList
-          ItemHeight = 0
+          ItemHeight = 13
           TabOrder = 2
           OnChange = cmbStartMonthChange
         end
@@ -328,7 +334,7 @@ object dlgProfitAndLossOptions: TdlgProfitAndLossOptions
           Height = 21
           Style = csDropDownList
           Enabled = False
-          ItemHeight = 0
+          ItemHeight = 13
           TabOrder = 3
           OnChange = cmbBudgetChange
         end
@@ -395,7 +401,7 @@ object dlgProfitAndLossOptions: TdlgProfitAndLossOptions
           Width = 210
           Height = 21
           Style = csDropDownList
-          ItemHeight = 0
+          ItemHeight = 13
           Sorted = True
           TabOrder = 0
         end
