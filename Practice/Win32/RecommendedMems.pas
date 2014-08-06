@@ -380,17 +380,20 @@ var
         // Let's get the counts for manually coded and uncoded (blank) transactions
         ManuallyCodedCount := 0;
         UncodedCount := 0;
-        for CandidatePos := FirstCandidatePos to LastCandidatePos do
+        if (FirstCandidatePos <> -1) and (LastCandidatePos <> -1) then
         begin
-          CandidateMem2 := Candidates.Candidate_Mem_At(CandidatePos);
-          if (CandidateMem1.cmFields.cmBank_Account_Number = CandidateMem2.cmFields.cmBank_Account_Number) then
+          for CandidatePos := FirstCandidatePos to LastCandidatePos do
           begin
-            if (CandidateMem1.cmFields.cmType = CandidateMem2.cmFields.cmType) then
+            CandidateMem2 := Candidates.Candidate_Mem_At(CandidatePos);
+            if (CandidateMem1.cmFields.cmBank_Account_Number = CandidateMem2.cmFields.cmBank_Account_Number) then
             begin
-              if (CandidateMem2.cmFields.cmCoded_By = cbManual) then
-                ManuallyCodedCount := ManuallyCodedCount + CandidateMem2.cmFields.cmCount
-              else if (CandidateMem2.cmFields.cmCoded_By = cbNotCoded) then
-                UncodedCount := UncodedCount + CandidateMem2.cmFields.cmCount;
+              if (CandidateMem1.cmFields.cmType = CandidateMem2.cmFields.cmType) then
+              begin
+                if (CandidateMem2.cmFields.cmCoded_By = cbManual) then
+                  ManuallyCodedCount := ManuallyCodedCount + CandidateMem2.cmFields.cmCount
+                else if (CandidateMem2.cmFields.cmCoded_By = cbNotCoded) then
+                  UncodedCount := UncodedCount + CandidateMem2.cmFields.cmCount;
+              end;
             end;
           end;
         end;
@@ -441,6 +444,8 @@ var
 
 //      Assert((FirstCandidatePos <> -1) and (LastCandidatePos <> -1),
 //             'FirstCandidatePos and LastCandidatePos shouldn''t be -1 here');
+      if (FirstCandidatePos = -1) or (LastCandidatePos = -1) then
+        Exit;
       for CandidatePos := FirstCandidatePos to LastCandidatePos do
       begin
         CandidateMem2 := Candidates.Candidate_Mem_At(CandidatePos);
