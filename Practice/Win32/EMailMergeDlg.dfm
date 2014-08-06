@@ -218,7 +218,7 @@ object frmEMailMerge: TfrmEMailMerge
     object Label5: TLabel
       Left = 63
       Top = 19
-      Width = 161
+      Width = 171
       Height = 52
       Caption = 
         'After the Mail Merge, the merged document will be displayed in W' +
