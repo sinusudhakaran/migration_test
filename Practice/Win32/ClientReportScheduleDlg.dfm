@@ -184,7 +184,7 @@ inherited dlgClientReportSchedule: TdlgClientReportSchedule
           Top = 80
           Width = 97
           Height = 17
-          Caption = '&EMail'
+          Caption = '&Email'
           TabOrder = 2
           OnClick = rbToPrinterClick
         end
@@ -304,7 +304,7 @@ inherited dlgClientReportSchedule: TdlgClientReportSchedule
           Top = 52
           Width = 28
           Height = 13
-          Caption = 'E-Mai&l'
+          Caption = 'Emai&l'
           FocusControl = eMail
         end
         object Label3: TLabel

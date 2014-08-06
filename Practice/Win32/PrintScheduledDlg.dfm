@@ -509,7 +509,7 @@ inherited dlgPrintScheduled: TdlgPrintScheduled
           Top = 20
           Width = 217
           Height = 25
-          Caption = 'E-Ma&il Message '
+          Caption = 'Ema&il Message '
           TabOrder = 0
           OnClick = btnEmailMsgClick
         end

@@ -54,9 +54,9 @@ object ContactDetailsFrm: TContactDetailsFrm
   object Label9: TLabel
     Left = 16
     Top = 283
-    Width = 28
+    Width = 24
     Height = 13
-    Caption = 'E-&mail'
+    Caption = 'E&mail'
     FocusControl = eMail
   end
   object Label13: TLabel
