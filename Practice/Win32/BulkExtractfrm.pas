@@ -742,16 +742,16 @@ begin
              if AskYesNo('Information',
                         'Cannot authenticate access to this feature.'#13
                       + 'You must contact ' + TProduct.BrandName + ' Support to continue.'#13#13
-                      + 'Do you wish to cotinue?',DLG_NO,0) = DLG_No then begin
-                LogMessage('Support Password Canceled');
+                      + 'Do you wish to continue?',DLG_NO,0) = DLG_No then begin
+                LogMessage('Support Password Cancelled');
                 Exit; //Canceled
              end;
 
-             // Aask for a password...
+             // Ask for a password...
              if not EnterPwdDlg.EnterRandomPassword('Bulk Export') then begin
                 LogMessage('Support Password Failed');
                 HelpfulInfoMsg( 'Cannot authenticate access to this feature.'#13
-                           +'Please contact ' + TProduct.BrandName + ' Support for futher information.', 0 );
+                           +'Please contact ' + TProduct.BrandName + ' Support for further information.', 0 );
                 Exit;
              end;
 
@@ -762,7 +762,7 @@ begin
             // Just Need to prompt
             LogMessage('Export attempted');
             HelpfulInfoMsg( 'Cannot authenticate access to this feature.'#13
-                           +'Please contact ' + TProduct.BrandName + ' Support for futher information.', 0 );
+                           +'Please contact ' + TProduct.BrandName + ' Support for further information.', 0 );
             Exit;
          end;
 
