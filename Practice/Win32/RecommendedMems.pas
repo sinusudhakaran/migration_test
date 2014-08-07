@@ -1115,26 +1115,20 @@ begin
   end;
 end;
 
-// This is here for debugging purposes, it shouldn't be used anywhere permanently,
-// except in upgrade.pas, if we need to clear the suggested mem data
+// Clears the suggested mem data
 procedure TRecommended_Mems.ResetAll;
 begin
   try
-    frmMain.MemScanIsBusy := True;
-    // should probably remove most of this stuff
-    MyClient.clRecommended_Mems.Candidates.FreeAll;
-    MyClient.clRecommended_Mems.Candidates.Destroy;
-    MyClient.clRecommended_Mems.Recommended.FreeAll;
-    MyClient.clRecommended_Mems.Recommended.Destroy;
-    MyClient.clRecommended_Mems.Unscanned.FreeAll;
-    MyClient.clRecommended_Mems.Unscanned.Destroy;
-    MyClient.clRecommended_Mems.Candidate.cpFields.cpCandidate_ID_To_Process := 1;
-    MyClient.clRecommended_Mems.Candidate.cpFields.cpNext_Candidate_ID := 1;
-    MyClient.clRecommended_Mems.PopulateUnscannedListAllAccounts(false);
-    MyClient.clRecommended_Mems := nil;
-    MyClient.clRecommended_Mems := TRecommended_Mems.Create(MyClient.clBank_Account_List);
+    if Assigned(frmMain) then    
+      frmMain.MemScanIsBusy := True;
+    Candidates.FreeAll;
+    Recommended.FreeAll;
+    Unscanned.FreeAll;
+    Candidate.cpFields.cpCandidate_ID_To_Process := 1;
+    Candidate.cpFields.cpNext_Candidate_ID := 1;
   finally
-    frmMain.MemScanIsBusy := False;
+    if Assigned(frmMain) then    
+      frmMain.MemScanIsBusy := False;
   end;
 end;
 
