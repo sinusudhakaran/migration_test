@@ -380,7 +380,7 @@ var
         // Let's get the counts for manually coded and uncoded (blank) transactions
         ManuallyCodedCount := 0;
         UncodedCount := 0;
-        if (FirstCandidatePos <> -1) and (LastCandidatePos <> -1) then
+        if (FirstCandidatePos = -1) or (LastCandidatePos = -1) then
         begin
           // If either of these values are -1, a mistake has been made when generating the candidate
           // list, so we now need to rebuild it. A code change has been made to fix the only known
