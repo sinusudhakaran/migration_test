@@ -35,6 +35,7 @@ type
    RangesArray: TPayeeRangesArray;
    WrapNarration: Boolean;
    ShowTotals: Integer;
+   NetandGstAmounts : boolean;
  end;
 
 
@@ -70,6 +71,7 @@ type
     OpenDialog1: TOpenDialog;
     SaveDialog1: TSaveDialog;
     btnSave: TBitBtn;
+    chkNetandGstAmounts: TCheckBox;
     procedure btnCancelClick(Sender: TObject);
     procedure btnOKClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -132,8 +134,10 @@ uses
   ReportDefs,
   UBatchbase,
   OmniXMLUtils,
-  BKConst, bkXPThemes,
-  pysl, payeeobj;
+  BKConst,
+  bkXPThemes,
+  pysl,
+  payeeobj;
 
 {$R *.DFM}
 
@@ -334,6 +338,7 @@ begin
      MyDlg.rbAllCodes.Checked := ShowAllCodes;
      MyDlg.rbSelectedCodes.Checked := not ShowAllCodes;
      MyDlg.chkWrap.Checked := WrapNarration;
+     MyDlg.chkNetandGstAmounts.Checked := NetandGstAmounts;
      MyDlg.chkTotals.Checked := ShowTotals > -1;
      if ShowTotals > -1 then
        MyDlg.cmbTotals.ItemIndex := ShowTotals;
@@ -361,11 +366,12 @@ begin
 
      if MyDlg.Execute then
      begin
-        FromDate        := StNull2Bk(MyDlg.DateSelector.eDateFrom.AsStDate);
-        ToDate          := StNull2Bk(MyDlg.DateSelector.eDateTo.AsStDate);
-        SummaryReport   := MyDlg.rbSummarised.Checked;
-        ShowAllCodes := MyDlg.rbAllCodes.Checked;
-        WrapNarration := MyDlg.chkWrap.Checked;
+        FromDate         := StNull2Bk(MyDlg.DateSelector.eDateFrom.AsStDate);
+        ToDate           := StNull2Bk(MyDlg.DateSelector.eDateTo.AsStDate);
+        SummaryReport    := MyDlg.rbSummarised.Checked;
+        ShowAllCodes     := MyDlg.rbAllCodes.Checked;
+        WrapNarration    := MyDlg.chkWrap.Checked;
+        NetandGstAmounts := MyDlg.chkNetandGstAmounts.Checked;
         if MyDlg.chkTotals.Checked then
           ShowTotals := MyDlg.cmbTotals.ItemIndex
         else
@@ -621,6 +627,8 @@ begin
    if sametext(s,'Bi-monthly') then ShowTotals := ptBi else
    if sametext(s,'Quarterly') then ShowTotals := ptQuart else
    ShowTotals := -1;
+
+   NetandGstAmounts := GetNodeBool(Value,'NetGstAmounts',False);
 end;
 
 procedure TPayeeParameters.Reset;
@@ -632,9 +640,10 @@ end;
 
 
 procedure TPayeeParameters.SaveToNode(Value: IXMLNode);
-function NoCodes : Boolean;
-  var NN,AN : IXMLNode;
-      I : Integer;
+  function NoCodes : Boolean;
+  var
+    NN,AN : IXMLNode;
+    I : Integer;
   begin
      Result := True;
      NN := nil;
@@ -670,10 +679,11 @@ begin
   ptBi      : SetNodeTextStr(Value,'Totals','Bi-monthly');
   ptQuart   : SetNodeTextStr(Value,'Totals','Quarterly');
   end;
+
+  SetNodeBool(Value,'NetGstAmounts',NetandGstAmounts);
+
   if NoCodes then
       ClearSetting(Value,t_PayeeList);
-
-
 end;
 
 end.
