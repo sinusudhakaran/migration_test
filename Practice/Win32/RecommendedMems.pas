@@ -382,18 +382,28 @@ var
         UncodedCount := 0;
         if (FirstCandidatePos <> -1) and (LastCandidatePos <> -1) then
         begin
-          for CandidatePos := FirstCandidatePos to LastCandidatePos do
+          // If either of these values are -1, a mistake has been made when generating the candidate
+          // list, so we now need to rebuild it. A code change has been made to fix the only known
+          // source of such a mistake, see changeset 70071 in TFS or read the comment above the
+          // CompareStrings function
+          if Assigned(MyClient) then
           begin
-            CandidateMem2 := Candidates.Candidate_Mem_At(CandidatePos);
-            if (CandidateMem1.cmFields.cmBank_Account_Number = CandidateMem2.cmFields.cmBank_Account_Number) then
+            MyClient.clRecommended_Mems.ResetAll;
+            MyClient.clRecommended_Mems.PopulateUnscannedListAllAccounts(false);
+          end;
+          Exit;
+        end;
+        for CandidatePos := FirstCandidatePos to LastCandidatePos do
+        begin
+          CandidateMem2 := Candidates.Candidate_Mem_At(CandidatePos);
+          if (CandidateMem1.cmFields.cmBank_Account_Number = CandidateMem2.cmFields.cmBank_Account_Number) then
+          begin
+            if (CandidateMem1.cmFields.cmType = CandidateMem2.cmFields.cmType) then
             begin
-              if (CandidateMem1.cmFields.cmType = CandidateMem2.cmFields.cmType) then
-              begin
-                if (CandidateMem2.cmFields.cmCoded_By = cbManual) then
-                  ManuallyCodedCount := ManuallyCodedCount + CandidateMem2.cmFields.cmCount
-                else if (CandidateMem2.cmFields.cmCoded_By = cbNotCoded) then
-                  UncodedCount := UncodedCount + CandidateMem2.cmFields.cmCount;
-              end;
+              if (CandidateMem2.cmFields.cmCoded_By = cbManual) then
+                ManuallyCodedCount := ManuallyCodedCount + CandidateMem2.cmFields.cmCount
+              else if (CandidateMem2.cmFields.cmCoded_By = cbNotCoded) then
+                UncodedCount := UncodedCount + CandidateMem2.cmFields.cmCount;
             end;
           end;
         end;
@@ -445,7 +455,19 @@ var
 //      Assert((FirstCandidatePos <> -1) and (LastCandidatePos <> -1),
 //             'FirstCandidatePos and LastCandidatePos shouldn''t be -1 here');
       if (FirstCandidatePos = -1) or (LastCandidatePos = -1) then
+      begin
+        // If either of these values are -1, a mistake has been made when generating the candidate
+        // list, so we now need to rebuild it. A code change has been made to fix the only known
+        // source of such a mistake, see changeset 70071 in TFS or read the comment above the
+        // CompareStrings function
+        if Assigned(MyClient) then
+        begin
+          MyClient.clRecommended_Mems.ResetAll;
+          MyClient.clRecommended_Mems.PopulateUnscannedListAllAccounts(false);
+        end;
         Exit;
+      end;
+
       for CandidatePos := FirstCandidatePos to LastCandidatePos do
       begin
         CandidateMem2 := Candidates.Candidate_Mem_At(CandidatePos);
