@@ -53,6 +53,8 @@ type
     Label1: TLabel;
     lblRange: TLabel;
     btnSave: TBitBtn;
+    Button1: TButton;
+    btnEmail: TButton;
     procedure btnOKClick(Sender: TObject);
     procedure btCloseClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -74,6 +76,7 @@ type
     procedure cmbAccountListChange(Sender: TObject);
     procedure eDateSelectoreDateFromChange(Sender: TObject);
     procedure eDateSelectoreDateToChange(Sender: TObject);
+    procedure btnEmailClick(Sender: TObject);
   private
     { Private declarations }
     FDateFrom,
@@ -347,6 +350,16 @@ begin
 end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+procedure TdlgCodeDateCheque.btnEmailClick(Sender: TObject);
+begin
+   if CheckClose then begin
+     Pressed := BTN_EMAIL;
+     Close;
+   end
+   else
+     Pressed := BTN_NONE;
+end;
+
 procedure TdlgCodeDateCheque.btnFileClick(Sender: TObject);
 begin
    if CheckClose then begin
@@ -425,6 +438,8 @@ begin
 
       btnFile.Visible    := true;
       btnFile.Hint       := STDHINTS.PrintToFileHint;
+
+      btnEmail.Visible   := true;
 
       btnOK.default      := false;
       btnOK.Caption      := '&Print';

@@ -151,6 +151,7 @@ var
                BTN_PRINT    : Destination := rdPrinter;
                BTN_PREVIEW  : Destination := rdScreen;
                BTN_FILE     : Destination := rdFile;
+               BTN_EMAIL    : Destination := rdEmail;
                BTN_SAVE     : case Params.BatchRunMode of
                               R_Setup,R_Batch,R_BatchAdd : exit;
                               {else begin
@@ -597,6 +598,7 @@ begin
             BTN_PRINT   : Destination := rdPrinter;
             BTN_PREVIEW : Destination := rdScreen;
             BTN_FILE    : Destination := rdFile;
+            BTN_EMAIL   : Destination := rdEmail;
          else
             Destination := rdScreen;
          end;

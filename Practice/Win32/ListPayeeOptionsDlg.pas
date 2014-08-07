@@ -49,6 +49,7 @@ type
     ckbRuleLineBetweenPayees: TCheckBox;
     rgSortPayeesBy: TRadioGroup;
     rgReportFormat: TRadioGroup;
+    btnEmail: TButton;
 
     procedure btnPreviewClick(Sender: TObject);
     procedure btnFileClick(Sender: TObject);
@@ -56,6 +57,7 @@ type
     procedure btnCancelClick(Sender: TObject);
     procedure BtnSaveClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
+    procedure btnEmailClick(Sender: TObject);
   private
     { Private declarations }
     ReportDest : TReportDest;
@@ -157,6 +159,13 @@ begin
         Caption := Caption + ' [' + FRptParams.RptBatch.Name + ']';
   end else
      BtnSave.Hide;
+end;
+
+procedure TdlgListPayeeOptions.btnEmailClick(Sender: TObject);
+begin
+  ReportDest := rdEmail;
+  FRptParams.RunBtn := BTN_EMAIL;
+  ModalResult := mrOK;
 end;
 
 procedure TdlgListPayeeOptions.btnFileClick(Sender: TObject);

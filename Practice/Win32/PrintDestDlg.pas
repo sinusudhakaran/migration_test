@@ -18,6 +18,7 @@ type
     btnSave: TBitBtn;
     fmeAccountSelector1: TfmeAccountSelector;
     lDestination: TLabel;
+    btnEmail: TButton;
     procedure btnPreviewClick(Sender: TObject);
     procedure btnPrintClick(Sender: TObject);
     procedure btnCancelClick(Sender: TObject);
@@ -25,6 +26,7 @@ type
     procedure btnFileClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure btnSaveClick(Sender: TObject);
+    procedure btnEmailClick(Sender: TObject);
   private
     FHelpID : integer;
     FRPTParameters: TRPTParameters;
@@ -212,6 +214,14 @@ begin
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+procedure TDlgPrintDest.btnEmailClick(Sender: TObject);
+begin
+   if Verify then begin
+      RptParameters.RunBtn := BTN_EMAIL;
+      Close;
+   end;
+end;
+
 procedure TDlgPrintDest.btnFileClick(Sender: TObject);
 begin
    if Verify then begin

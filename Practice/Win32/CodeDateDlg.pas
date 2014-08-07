@@ -33,6 +33,7 @@ type
     tsAdvanced: TTabSheet;
     fmeAccountSelector1: TfmeAccountSelector;
     chkNonBaseCurrency: TCheckBox;
+    btnEmail: TButton;
 
     procedure btnOKClick(Sender: TObject);
     procedure btCloseClick(Sender: TObject);
@@ -44,6 +45,7 @@ type
     procedure btnFileClick(Sender: TObject);
     procedure BtnSaveClick(Sender: TObject);
     procedure radButton1Click(Sender: TObject);
+    procedure btnEmailClick(Sender: TObject);
 
   private
     { Private declarations }
@@ -351,6 +353,14 @@ begin
 end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+procedure TdlgCodeDate.btnEmailClick(Sender: TObject);
+begin
+   if CheckClose then begin
+     Pressed := BTN_EMAIL;
+     Close;
+   end;
+end;
+
 procedure TdlgCodeDate.btnFileClick(Sender: TObject);
 begin
    if CheckClose then begin
@@ -406,6 +416,8 @@ begin
 
       btnFile.Visible    := true;
       btnFile.Hint       := STDHINTS.PrintToFileHint;
+
+      btnEmail.Visible   := true;
 
       btnOK.default      := false;
       btnOK.Caption      := '&Print';
@@ -499,6 +511,8 @@ begin
 
       btnFile.Visible    := true;
       btnFile.Hint       := STDHINTS.PrintToFileHint;
+
+      btnEmail.Visible   := true;
 
       btnOK.default      := false;
       btnOK.Caption      := '&Print';

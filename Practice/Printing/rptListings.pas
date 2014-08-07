@@ -1416,6 +1416,7 @@ begin
             BTN_PREVIEW : Dest := rdScreen;
             BTN_FILE    : Dest := rdFile;
             BTN_SAVE    : Dest := rdNone;
+            BTN_EMAIL   : Dest := rdEmail;
             else          Exit;
          end;
 
@@ -1811,6 +1812,7 @@ begin
          BTN_PRINT   : Dest := rdPrinter;
          BTN_PREVIEW : Dest := rdScreen;
          BTN_FILE    : Dest := rdFile;
+         BTN_EMAIL   : Dest := rdEmail;
          BTN_SAVE  : begin
              JobParam.SaveNodeSettings;
              JobParam.SetBatchBool('Show_Basic', ShowBasic);
@@ -1909,7 +1911,7 @@ begin
      AddCommonFooter(Job);
 
      Job.OnBKPrint := ListChartDetail;
-     if ( Dest = rdEmail ) then
+     if Scheduled and ( Dest = rdEmail ) then
      begin
         //special case for scheduled reports.  Don't want the user to be asked
         //what file name to use
@@ -2204,7 +2206,7 @@ begin
           //Add Footers
           AddCommonFooter(Job);
 
-          if ( Dest = rdEmail) then
+          if Scheduled and (Dest = rdEmail) then
           begin
             //special case for scheduled reports.  Don't want the user to be asked
             //what file name to use
@@ -2911,6 +2913,7 @@ Begin
                BTN_PRINT    : Dest := rdPrinter;
                BTN_PREVIEW  : Dest := rdScreen;
                BTN_FILE     : Dest := rdFile;
+               BTN_EMAIL    : Dest := rdEmail;
                BTN_SAVE     : case Param.BatchRunMode of
                                  R_Setup,R_Batch,R_BatchAdd : exit;
                               end;
@@ -3320,7 +3323,7 @@ begin
         AddCommonFooter(Job);
 
         Job.OnBKPrint := ListJobDetail;
-        if (Dest = rdEmail) then begin
+        if Scheduled and (Dest = rdEmail) then begin
           //special case for scheduled reports.  Don't want the user to be asked
           //what file name to use
           case MyClient.clFields.clEmail_Report_Format of

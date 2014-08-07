@@ -4,7 +4,7 @@ object DlgPrintDest: TDlgPrintDest
   BorderStyle = bsDialog
   Caption = 'Select Report Destination'
   ClientHeight = 222
-  ClientWidth = 463
+  ClientWidth = 546
   Color = clBtnFace
   DefaultMonitor = dmMainForm
   ParentFont = True
@@ -27,13 +27,14 @@ object DlgPrintDest: TDlgPrintDest
   object pBtn: TPanel
     Left = 0
     Top = 190
-    Width = 463
+    Width = 546
     Height = 32
     Align = alBottom
     BevelOuter = bvNone
     TabOrder = 0
+    ExplicitWidth = 463
     DesignSize = (
-      463
+      546
       32)
     object btnPreview: TButton
       Left = 6
@@ -47,7 +48,7 @@ object DlgPrintDest: TDlgPrintDest
       OnClick = btnPreviewClick
     end
     object btnPrint: TButton
-      Left = 301
+      Left = 384
       Top = 4
       Width = 75
       Height = 25
@@ -55,9 +56,10 @@ object DlgPrintDest: TDlgPrintDest
       Caption = '&Print'
       TabOrder = 1
       OnClick = btnPrintClick
+      ExplicitLeft = 301
     end
     object btnCancel: TButton
-      Left = 381
+      Left = 464
       Top = 4
       Width = 75
       Height = 25
@@ -66,6 +68,7 @@ object DlgPrintDest: TDlgPrintDest
       Caption = 'Cancel'
       TabOrder = 2
       OnClick = btnCancelClick
+      ExplicitLeft = 381
     end
     object btnFile: TButton
       Left = 88
@@ -78,7 +81,7 @@ object DlgPrintDest: TDlgPrintDest
       OnClick = btnFileClick
     end
     object btnSave: TBitBtn
-      Left = 221
+      Left = 304
       Top = 4
       Width = 75
       Height = 25
@@ -86,6 +89,17 @@ object DlgPrintDest: TDlgPrintDest
       Caption = 'Sa&ve'
       TabOrder = 4
       OnClick = btnSaveClick
+      ExplicitLeft = 221
+    end
+    object btnEmail: TButton
+      Left = 169
+      Top = 4
+      Width = 75
+      Height = 25
+      Anchors = [akLeft, akBottom]
+      Caption = 'E&mail'
+      TabOrder = 5
+      OnClick = btnEmailClick
     end
   end
   inline fmeAccountSelector1: TfmeAccountSelector

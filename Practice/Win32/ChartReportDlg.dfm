@@ -4,7 +4,7 @@ object DlgChartReport: TDlgChartReport
   BorderStyle = bsDialog
   Caption = 'List Chart of Accounts'
   ClientHeight = 149
-  ClientWidth = 414
+  ClientWidth = 494
   Color = clBtnFace
   DefaultMonitor = dmMainForm
   ParentFont = True
@@ -15,7 +15,7 @@ object DlgChartReport: TDlgChartReport
   PixelsPerInch = 96
   TextHeight = 13
   object Label1: TLabel
-    Left = 71
+    Left = 141
     Top = 63
     Width = 181
     Height = 13
@@ -42,26 +42,26 @@ object DlgChartReport: TDlgChartReport
     OnClick = btnFileClick
   end
   object btnPrint: TButton
-    Left = 249
+    Left = 329
     Top = 114
     Width = 75
     Height = 25
     Caption = '&Print'
-    TabOrder = 5
+    TabOrder = 6
     OnClick = btnPrintClick
   end
   object btnCancel: TButton
-    Left = 330
+    Left = 410
     Top = 114
     Width = 75
     Height = 25
     Cancel = True
     Caption = 'Cancel'
-    TabOrder = 6
+    TabOrder = 7
     OnClick = btnCancelClick
   end
   object rbFull: TRadioButton
-    Left = 71
+    Left = 141
     Top = 15
     Width = 106
     Height = 16
@@ -71,7 +71,7 @@ object DlgChartReport: TDlgChartReport
     TabStop = True
   end
   object rbBasic: TRadioButton
-    Left = 191
+    Left = 261
     Top = 15
     Width = 122
     Height = 16
@@ -79,12 +79,21 @@ object DlgChartReport: TDlgChartReport
     TabOrder = 1
   end
   object BtnSave: TBitBtn
-    Left = 168
+    Left = 248
     Top = 114
     Width = 75
     Height = 25
     Caption = 'Sa&ve'
-    TabOrder = 4
+    TabOrder = 5
     OnClick = BtnSaveClick
+  end
+  object btnEmail: TButton
+    Left = 167
+    Top = 114
+    Width = 75
+    Height = 25
+    Caption = 'E&mail'
+    TabOrder = 4
+    OnClick = btnEmailClick
   end
 end

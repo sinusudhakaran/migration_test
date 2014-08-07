@@ -4,7 +4,7 @@ object dlgListPayeeOptions: TdlgListPayeeOptions
   BorderStyle = bsDialog
   Caption = 'List Payees'
   ClientHeight = 157
-  ClientWidth = 414
+  ClientWidth = 494
   Color = clBtnFace
   DefaultMonitor = dmMainForm
   ParentFont = True
@@ -13,7 +13,7 @@ object dlgListPayeeOptions: TdlgListPayeeOptions
   Scaled = False
   OnCreate = FormCreate
   DesignSize = (
-    414
+    494
     157)
   PixelsPerInch = 96
   TextHeight = 13
@@ -39,7 +39,7 @@ object dlgListPayeeOptions: TdlgListPayeeOptions
     OnClick = btnFileClick
   end
   object btnOK: TButton
-    Left = 250
+    Left = 330
     Top = 125
     Width = 75
     Height = 25
@@ -47,9 +47,10 @@ object dlgListPayeeOptions: TdlgListPayeeOptions
     Caption = '&Print'
     TabOrder = 3
     OnClick = btnOKClick
+    ExplicitLeft = 250
   end
   object btnCancel: TButton
-    Left = 331
+    Left = 411
     Top = 125
     Width = 75
     Height = 25
@@ -58,9 +59,10 @@ object dlgListPayeeOptions: TdlgListPayeeOptions
     Caption = 'Cancel'
     TabOrder = 4
     OnClick = btnCancelClick
+    ExplicitLeft = 331
   end
   object btnSave: TBitBtn
-    Left = 169
+    Left = 249
     Top = 125
     Width = 75
     Height = 25
@@ -100,5 +102,15 @@ object dlgListPayeeOptions: TdlgListPayeeOptions
       '&Summarised'
       '&Detailed')
     TabOrder = 7
+  end
+  object btnEmail: TButton
+    Left = 169
+    Top = 125
+    Width = 75
+    Height = 25
+    Anchors = [akLeft, akBottom]
+    Caption = 'E&mail'
+    TabOrder = 8
+    OnClick = btnEmailClick
   end
 end

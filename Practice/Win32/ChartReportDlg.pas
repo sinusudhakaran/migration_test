@@ -18,12 +18,14 @@ type
     rbFull: TRadioButton;
     rbBasic: TRadioButton;
     BtnSave: TBitBtn;
+    btnEmail: TButton;
     procedure btnPreviewClick(Sender: TObject);
     procedure btnFileClick(Sender: TObject);
     procedure btnPrintClick(Sender: TObject);
     procedure btnCancelClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure BtnSaveClick(Sender: TObject);
+    procedure btnEmailClick(Sender: TObject);
   private
     { Private declarations }
     FPressed: integer;
@@ -85,6 +87,12 @@ end;
 procedure TDlgChartReport.btnPreviewClick(Sender: TObject);
 begin
    Pressed := BTN_PREVIEW;
+   Close;
+end;
+
+procedure TDlgChartReport.btnEmailClick(Sender: TObject);
+begin
+   Pressed := BTN_EMAIL;
    Close;
 end;
 
