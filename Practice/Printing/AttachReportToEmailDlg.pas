@@ -27,13 +27,14 @@ type
     Label1: TLabel;
     cmbFormat: TComboBox;
     procedure FormCreate(Sender: TObject);
+    procedure btnOkClick(Sender: TObject);
   private
   public
   end;
 
 //------------------------------------------------------------------------------
   function  ShowAttachReportToEmailFrm(const aOwner: TComponent;
-              var aReportFormat: integer; var sReportName: string): boolean;
+              var sReportName: string; var aReportFormat: integer): boolean;
 
 //------------------------------------------------------------------------------
 implementation
@@ -57,21 +58,32 @@ uses
 
 //------------------------------------------------------------------------------
 function ShowAttachReportToEmailFrm(const aOwner: TComponent;
-  var aReportFormat: integer; var sReportName: string): boolean;
+  var sReportName: string; var aReportFormat: integer): boolean;
 var
   Form: TAttachReportToEmailFrm;
   mrResult: integer;
 begin
+  ASSERT((rfMin <= aReportFormat) and (aReportFormat <= rfMax));
+
   Form := TAttachReportToEmailFrm.Create(aOwner);
   try
+    // Data to display
+    Form.edtReportName.Text := sReportName;
+    Form.cmbFormat.ItemIndex := aReportFormat;
+
+    // Show dialog
     mrResult := Form.ShowModal;
 
+    // User cancel?
     result := (mrResult = mrOK);
     if not result then
       exit;
 
-    aReportFormat := Form.cmbFormat.ItemIndex;
+    // Display to data
     sReportName := Form.edtReportName.Text;
+    ASSERT(sReportName <> '');
+    aReportFormat := Form.cmbFormat.ItemIndex;
+    ASSERT((rfMin <= aReportFormat) and (aReportFormat <= rfMax));
   finally
     FreeAndNil(Form);
   end;
@@ -91,6 +103,31 @@ begin
 
   // Default
   cmbFormat.ItemIndex := rfPDF;
+end;
+
+//------------------------------------------------------------------------------
+procedure TAttachReportToEmailFrm.btnOkClick(Sender: TObject);
+var
+  sReportName: string;
+  sExtn: string;
+begin
+  sReportName := Trim(edtReportName.Text);
+  if (sReportName = '') then
+  begin
+    edtReportName.SetFocus;
+    HelpfulWarningMsg('You must specify the report name.', 0);
+    exit;
+  end;
+
+  sExtn := ExtractFileExt(sReportName);
+  if (sExtn <> '') then
+  begin
+    edtReportName.SetFocus;
+    HelpfulWarningMsg('It is not necessary to specify the file extension in the report name.', 0);
+    exit;
+  end;
+
+  ModalResult := mrOk;
 end;
 
 

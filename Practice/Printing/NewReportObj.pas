@@ -578,7 +578,9 @@ var
     ASSERT(assigned(Params));
 
     // User cancel?
-    if not ShowAttachReportToEmailFrm(Application.MainForm, iReportFormat, sReportName) then
+    sReportName := FUserReportSettings.s7Report_Name;
+    iReportFormat := rfPDF;
+    if not ShowAttachReportToEmailFrm(Application.MainForm, sReportName, iReportFormat) then
       exit;
 
     // Can't generate the report?

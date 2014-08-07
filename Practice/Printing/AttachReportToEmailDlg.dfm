@@ -48,8 +48,8 @@ object AttachReportToEmailFrm: TAttachReportToEmailFrm
     Anchors = [akRight, akBottom]
     Caption = 'OK'
     Default = True
-    ModalResult = 1
     TabOrder = 2
+    OnClick = btnOkClick
   end
   object btnCancel: TButton
     Left = 401
