@@ -346,6 +346,7 @@ Begin
            BTN_PRINT   : Dest := rdPrinter;
            BTN_PREVIEW : Dest := rdScreen;
            BTN_FILE    : Dest := rdFile;
+           BTN_EMAIL   : Dest := rdEmail;
            else Dest := rdAsk;
          end;
       end;
@@ -461,6 +462,7 @@ Begin
            BTN_PRINT   : Dest := rdPrinter;
            BTN_PREVIEW : Dest := rdScreen;
            BTN_FILE    : Dest := rdFile;
+           BTN_EMAIL   : Dest := rdEmail;
            else Dest := rdAsk;
          end;
       end;
@@ -739,6 +741,7 @@ begin
          BTN_PRINT : Dest := rdPrinter;
          BTN_PREVIEW : Dest := rdScreen;
          BTN_FILE : Dest := rdFile;
+         BTN_EMAIL : Dest := rdEmail;
          BTN_SAVE : Continue;
          else Dest := rdAsk;
          end;
@@ -1358,6 +1361,7 @@ Begin
             BTN_PRINT : Dest := rdPrinter;
             BTN_PREVIEW : Dest := rdScreen;
             BTN_FILE    : Dest := rdFile;
+            BTN_EMAIL   : Dest := rdEmail;
             else Dest := rdAsk;
             end;
          end;
@@ -1581,6 +1585,7 @@ begin
           BTN_PRINT : Dest := rdPrinter;
           BTN_PREVIEW : Dest := rdScreen;
           BTN_FILE    : Dest := rdFile;
+          BTN_EMAIL   : Dest := rdEmail;
           else Dest := rdAsk;
         end;
       end;
@@ -1917,6 +1922,7 @@ begin
             BTN_PRINT   : Dest := rdPrinter;
             BTN_PREVIEW : Dest := rdScreen;
             BTN_FILE    : Dest := rdFile;
+            BTN_EMAIL   : Dest := rdEmail;
          else
             Dest := rdAsk;
          end;
