@@ -90,7 +90,6 @@ object dlgTrialBalanceOptions: TdlgTrialBalanceOptions
     Align = alBottom
     BevelOuter = bvNone
     TabOrder = 5
-    ExplicitWidth = 424
     object btnPrint: TButton
       Left = 335
       Top = 4

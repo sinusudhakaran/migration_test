@@ -110,6 +110,7 @@ begin
      BTN_PRINT   : Destination := rdPrinter;
      BTN_PREVIEW : Destination := rdScreen;
      BTN_FILE    : Destination := rdFile;
+     BTN_EMAIL   : Destination := rdScreen;
    else
      Destination := rdAsk;
    end;
@@ -202,6 +203,7 @@ begin
               BTN_PRINT   : Destination := rdPrinter;
               BTN_PREVIEW : Destination := rdScreen;
               BTN_FILE    : Destination := rdFile;
+              BTN_EMAIL   : Destination := rdEmail;
               BTN_SAVE    : Destination := rdNone;
               else Destination := rdAsk;
             end;

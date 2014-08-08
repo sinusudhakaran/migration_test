@@ -47,7 +47,7 @@ object frmTaxablePaymentsRptDlg: TfrmTaxablePaymentsRptDlg
     Caption = '&Print'
     ParentShowHint = False
     ShowHint = True
-    TabOrder = 8
+    TabOrder = 9
     OnClick = btnOKClick
   end
   object btnCancel: TButton
@@ -61,7 +61,7 @@ object frmTaxablePaymentsRptDlg: TfrmTaxablePaymentsRptDlg
     Caption = 'Cancel'
     ParentShowHint = False
     ShowHint = True
-    TabOrder = 9
+    TabOrder = 10
     OnClick = btnCancelClick
   end
   object btnPreview: TButton
@@ -347,8 +347,21 @@ object frmTaxablePaymentsRptDlg: TfrmTaxablePaymentsRptDlg
     Width = 75
     Height = 25
     Caption = 'Sa&ve'
-    TabOrder = 7
+    TabOrder = 8
     OnClick = btnSaveClick
+  end
+  object btnEmail: TButton
+    Left = 169
+    Top = 263
+    Width = 75
+    Height = 25
+    Hint = 'Attach Report to Email'
+    Anchors = [akLeft, akBottom]
+    Caption = 'E&mail'
+    ParentShowHint = False
+    ShowHint = True
+    TabOrder = 7
+    OnClick = btnEmailClick
   end
   object tsMaskDefs1: TtsMaskDefs
     Masks = <
@@ -364,15 +377,15 @@ object frmTaxablePaymentsRptDlg: TfrmTaxablePaymentsRptDlg
     Filter = 'Payee Report Template (*.prt)|*.prt'
     Options = [ofHideReadOnly, ofPathMustExist, ofFileMustExist, ofEnableSizing]
     Title = 'Load Payee Report Template'
-    Left = 184
-    Top = 264
+    Left = 288
+    Top = 256
   end
   object SaveDialog1: TSaveDialog
     DefaultExt = '.prt'
     Filter = 'Payee Report Template (*.prt)|*.prt'
     Options = [ofOverwritePrompt, ofHideReadOnly, ofEnableSizing]
     Title = 'Save Payee Report Template'
-    Left = 216
-    Top = 264
+    Left = 320
+    Top = 256
   end
 end

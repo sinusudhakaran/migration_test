@@ -97,7 +97,7 @@ procedure TdlgBudgetReportOptions.SetParams(const Value: TGenRptParameters);
 begin
   FParams := Value;
   if assigned(FParams) then begin
-     FParams.SetDlgButtons(BtnPreview,BtnFile,BtnSave,BtnPrint);
+     FParams.SetDlgButtons(BtnPreview,BtnFile,BtnEmail,BtnSave,BtnPrint);
      if Assigned(FParams.RptBatch) then
         Caption := Caption + ' [' + FParams.RptBatch.Name + ']';
   end else
@@ -236,7 +236,7 @@ begin
 
         ShowModal;
 
-        if Pressed in [ BTN_PRINT, BTN_PREVIEW, BTN_FILE, BTN_SAVE ] then
+        if Pressed in [ BTN_PRINT, BTN_PREVIEW, BTN_FILE, BTN_EMAIL, BTN_SAVE ] then
           with params do
           begin
              Budget := TBudget( cmbBudget.Items.objects[ cmbBudget.ItemIndex ]);

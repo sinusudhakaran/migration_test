@@ -1,16 +1,10 @@
 inherited dlgBalanceSheet: TdlgBalanceSheet
   Caption = 'Balance Sheet Report Options'
   OldCreateOrder = True
-  ExplicitWidth = 320
-  ExplicitHeight = 240
   PixelsPerInch = 96
   TextHeight = 13
   inherited PageControl1: TPageControl
     inherited tbsOptions: TTabSheet
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       inherited pnlReportStyle: TPanel
         inherited Label6: TLabel
           Top = 10

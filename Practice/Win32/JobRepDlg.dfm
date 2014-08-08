@@ -46,7 +46,7 @@ object dlgJobRep: TdlgJobRep
     Caption = '&Print'
     ParentShowHint = False
     ShowHint = True
-    TabOrder = 8
+    TabOrder = 9
     OnClick = btnOKClick
   end
   object btnCancel: TButton
@@ -60,7 +60,7 @@ object dlgJobRep: TdlgJobRep
     Caption = 'Cancel'
     ParentShowHint = False
     ShowHint = True
-    TabOrder = 9
+    TabOrder = 10
     OnClick = btnCancelClick
   end
   object btnPreview: TButton
@@ -341,8 +341,21 @@ object dlgJobRep: TdlgJobRep
     Width = 75
     Height = 25
     Caption = 'Sa&ve'
-    TabOrder = 7
+    TabOrder = 8
     OnClick = btnSaveClick
+  end
+  object btnEmail: TButton
+    Left = 169
+    Top = 263
+    Width = 75
+    Height = 25
+    Hint = 'Send the Report to a file'
+    Anchors = [akLeft, akBottom]
+    Caption = 'E&mail'
+    ParentShowHint = False
+    ShowHint = True
+    TabOrder = 7
+    OnClick = btnEmailClick
   end
   object tsMaskDefs1: TtsMaskDefs
     Masks = <
@@ -358,15 +371,15 @@ object dlgJobRep: TdlgJobRep
     Filter = 'Job Report Template (*.jrt)|*.jrt'
     Options = [ofHideReadOnly, ofPathMustExist, ofFileMustExist, ofEnableSizing]
     Title = 'Load Job Report Template'
-    Left = 184
-    Top = 264
+    Left = 280
+    Top = 256
   end
   object SaveDialog1: TSaveDialog
     DefaultExt = '.jrt'
     Filter = 'Job Report Template (*.jrt)|*.jrt'
     Options = [ofOverwritePrompt, ofHideReadOnly, ofEnableSizing]
     Title = 'Save Job Report Template'
-    Left = 216
-    Top = 264
+    Left = 312
+    Top = 256
   end
 end

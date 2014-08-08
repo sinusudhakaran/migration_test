@@ -529,7 +529,7 @@ procedure TdlgCodingRep.SetReportParams(const Value: TCodingReportSettings);
 begin
   FReportParams := Value;
   if assigned(FReportParams) then begin
-     FReportParams.SetDlgButtons(BtnPreview,BtnFile,BtnSave,BtnPrint);
+     FReportParams.SetDlgButtons(BtnPreview,BtnFile,BtnEmail,BtnSave,BtnPrint);
      if Assigned(FReportParams.RptBatch) then
         Caption := 'Coding Report [' +FReportParams.RptBatch.Name + ']';
   end else

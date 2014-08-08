@@ -72,6 +72,7 @@ type
     SaveDialog1: TSaveDialog;
     btnSave: TBitBtn;
     chkNetandGstAmounts: TCheckBox;
+    btnEmail: TButton;
     procedure btnCancelClick(Sender: TObject);
     procedure btnOKClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -95,6 +96,7 @@ type
     procedure chkTotalsClick(Sender: TObject);
     procedure btnSaveClick(Sender: TObject);
     procedure tgRangesResize(Sender: TObject);
+    procedure btnEmailClick(Sender: TObject);
   private
     { Private declarations }
     FDataFrom, FDataTo : integer;
@@ -275,7 +277,7 @@ procedure TdlgPayeeRep.SetPayeeParameters(const Value: TPayeeParameters);
 begin
   FPayeeParameters := Value;
   if Assigned(FPayeeParameters) then begin
-     FPayeeParameters.SetDlgButtons(BtnPreview,BtnFile,Btnsave,BtnOk);
+     FPayeeParameters.SetDlgButtons(BtnPreview,BtnFile,BtnEmail,Btnsave,BtnOk);
      if Assigned(FPayeeParameters.RptBatch) then
         Caption := Caption + ' [' + FPayeeParameters.RptBatch.Name + ']';
   end;
@@ -297,6 +299,16 @@ begin
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+procedure TdlgPayeeRep.btnEmailClick(Sender: TObject);
+begin
+   if checkOK then
+   begin
+     Pressed  := BTN_EMAIL;
+     okPressed := true;
+     close;
+   end;
+end;
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TdlgPayeeRep.btnFileClick(Sender: TObject);
 begin
    if checkOK then
@@ -307,7 +319,6 @@ begin
    end;
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 procedure TdlgPayeeRep.rbSummarisedClick(Sender: TObject);
 begin
 

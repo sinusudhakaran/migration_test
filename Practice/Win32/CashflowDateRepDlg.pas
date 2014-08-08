@@ -239,7 +239,7 @@ procedure TdlgCashFlowDateRep.SetRptParameters(const Value: TGenRptParameters);
 begin
   FRptParameters := Value;
   if assigned(FRptParameters) then begin
-     FRptParameters.SetDlgButtons(BtnPreview,BtnFile,BtnSave,BtnPrint);
+     FRptParameters.SetDlgButtons(BtnPreview,BtnFile,BtnEmail,BtnSave,BtnPrint);
      if Assigned(FRptParameters.RptBatch) then
         Caption := Caption + ' [' + FRptParameters.RptBatch.Name + ']';
   end;

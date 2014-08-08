@@ -22,7 +22,6 @@ object dlgProfitAndLossOptions: TdlgProfitAndLossOptions
     Align = alBottom
     BevelOuter = bvNone
     TabOrder = 1
-    ExplicitTop = 415
     DesignSize = (
       633
       35)

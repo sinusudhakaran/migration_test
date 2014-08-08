@@ -332,7 +332,7 @@ procedure TdlgCodeDateAccount.SetRptParams(const Value: TRptParameters);
 begin
   FRptParams := Value;
   if assigned(FRptParams) then begin
-     FRptParams.SetDlgButtons(BtnPreview,BtnFile,Btnsave,BtnOk);
+     FRptParams.SetDlgButtons(BtnPreview,BtnFile,BtnEmail,Btnsave,BtnOk);
      if Assigned(FRptParams.RptBatch) then
         Caption := Caption + ' [' + FRptParams.RptBatch.Name + ']';
   end;

@@ -760,7 +760,7 @@ begin
              //Load saved divisions list
              GetBatchDivisions;
           end;
-          SetDlgButtons(BtnPreview,BtnFile,Btnsave,BtnPrint);
+          SetDlgButtons(BtnPreview,BtnFile,BtnEmail,Btnsave,BtnPrint);
 
           //Set selected accounts to checked
           fmeAccountSelector1.UpdateSelectedAccounts( Params);

@@ -840,7 +840,7 @@ begin
       lParams := TCustomRptParameters.Create(ord(Report_Cashflow_Single), aClient,Rptbatch,dYear,true);
       try
         lParams.AccountFilter := [btBank, btCashJournals];
-        lParams.SetDlgButtons(BtnPreview,BtnFile,BtnSave,BtnPrint);
+        lParams.SetDlgButtons(BtnPreview,BtnFile,BtnEmail,BtnSave,BtnPrint);
         if Assigned(RptBatch) then
            Caption := Caption + ' [' + RptBatch.Name + ']';
         BKHelpSetUp(CashflowOptions, BKH_Cash_Flow_Custom);

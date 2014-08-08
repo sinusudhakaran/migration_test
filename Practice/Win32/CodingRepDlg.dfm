@@ -190,7 +190,7 @@ object dlgCodingRep: TdlgCodingRep
           Width = 169
           Height = 21
           Style = csDropDownList
-          ItemHeight = 13
+          ItemHeight = 0
           TabOrder = 0
           OnChange = cmbStyleChange
         end
@@ -200,7 +200,7 @@ object dlgCodingRep: TdlgCodingRep
           Width = 169
           Height = 21
           Style = csDropDownList
-          ItemHeight = 13
+          ItemHeight = 0
           TabOrder = 1
         end
         object cmbInclude: TComboBox
@@ -209,7 +209,7 @@ object dlgCodingRep: TdlgCodingRep
           Width = 169
           Height = 21
           Style = csDropDownList
-          ItemHeight = 13
+          ItemHeight = 0
           TabOrder = 2
         end
         object cmbLeave: TComboBox
@@ -218,7 +218,7 @@ object dlgCodingRep: TdlgCodingRep
           Width = 57
           Height = 21
           Style = csDropDownList
-          ItemHeight = 13
+          ItemHeight = 0
           TabOrder = 3
           Items.Strings = (
             '0'

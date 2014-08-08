@@ -61,6 +61,7 @@ type
     OpenDialog1: TOpenDialog;
     SaveDialog1: TSaveDialog;
     chkWrapColumnText: TCheckBox;
+    btnEmail: TButton;
     procedure btnCancelClick(Sender: TObject);
     procedure btnOKClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -82,6 +83,7 @@ type
     procedure btnLoadClick(Sender: TObject);
     procedure btnSaveClick(Sender: TObject);
     procedure tgRangesResize(Sender: TObject);
+    procedure btnEmailClick(Sender: TObject);
   private
     { Private declarations }
     FDataFrom, FDataTo : integer;
@@ -256,7 +258,7 @@ procedure TfrmTaxablePaymentsRptDlg.SetPayeeParameters(const Value: TPayeeParame
 begin
   FPayeeParameters := Value;
   if Assigned(FPayeeParameters) then begin
-     FPayeeParameters.SetDlgButtons(BtnPreview,BtnFile,Btnsave,BtnOk);
+     FPayeeParameters.SetDlgButtons(BtnPreview,BtnFile,BtnEmail,Btnsave,BtnOk);
      if Assigned(FPayeeParameters.RptBatch) then
         Caption := Caption + ' [' + FPayeeParameters.RptBatch.Name + ']';
   end;
@@ -277,6 +279,16 @@ begin
    end;
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+procedure TfrmTaxablePaymentsRptDlg.btnEmailClick(Sender: TObject);
+begin
+   if checkOK then
+   begin
+     Pressed  := BTN_EMAIL;
+     okPressed := true;
+     close;
+   end;
+end;
 
 procedure TfrmTaxablePaymentsRptDlg.btnFileClick(Sender: TObject);
 begin

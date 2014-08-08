@@ -77,7 +77,7 @@ procedure TDlgChartReport.SetRptParams(const Value: TRPTParameters);
 begin
   FRptParams := Value;
   if assigned(FRptParams) then begin
-     FRptParams.SetDlgButtons(BtnPreview,BtnFile,BtnSave,BtnPrint);
+     FRptParams.SetDlgButtons(BtnPreview,BtnFile,BtnEmail,BtnSave,BtnPrint);
      if Assigned(FRptParams.RptBatch) then //Assumes is set only once
         Caption := Caption + ' [' + FRptParams.RptBatch.Name + ']';
   end else

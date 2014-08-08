@@ -258,7 +258,7 @@ procedure TdlgSelectGSTPeriod.SetrptParams(const Value: TRptParameters);
 begin
   FrptParams := Value;
   if Assigned(FrptParams) then begin
-      FrptParams.SetDlgButtons(nil,nil,BtnSave,OkBtn);
+      FrptParams.SetDlgButtons(nil,nil,nil,BtnSave,OkBtn);
       if FrptParams.BatchRunMode = R_Normal then begin
          BtnSave.Caption := 'Add to Favourites';
          BtnSave.Left := BtnSave.Left - 75;

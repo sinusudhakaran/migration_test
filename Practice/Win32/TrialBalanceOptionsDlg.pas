@@ -116,7 +116,7 @@ begin
            CheckToDate;
         end;
 
-        Params.SetDlgButtons(btnPreview,BtnFile,BtnSave,BtnPrint);
+        Params.SetDlgButtons(btnPreview,BtnFile,BtnEmail,BtnSave,BtnPrint);
         if Assigned(RptBatch) then
            Caption := Caption + ' [' + RptBatch.Name + ']';
 

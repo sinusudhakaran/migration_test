@@ -59,6 +59,7 @@ type
     SaveDialog1: TSaveDialog;
     btnSave: TBitBtn;
     chkGross: TCheckBox;
+    btnEmail: TButton;
     procedure btnCancelClick(Sender: TObject);
     procedure btnOKClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -81,6 +82,7 @@ type
     procedure btnLoadClick(Sender: TObject);
     procedure btnSaveClick(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
+    procedure btnEmailClick(Sender: TObject);
   private
     FDataFrom, FDataTo : integer;
     okPressed : boolean;
@@ -258,7 +260,7 @@ procedure TdlgJobRep.SetJobParameters(const Value: TJobParameters);
 begin
   FJobParameters := Value;
   if Assigned(FJobParameters) then begin
-     FJobParameters.SetDlgButtons(BtnPreview,BtnFile,Btnsave,BtnOk);
+     FJobParameters.SetDlgButtons(BtnPreview,BtnFile,BtnEmail,Btnsave,BtnOk);
      if Assigned(FJobParameters.RptBatch) then
         Caption := Caption + ' [' + FJobParameters.RptBatch.Name + ']';
   end;
@@ -279,6 +281,16 @@ begin
    end;
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+procedure TdlgJobRep.btnEmailClick(Sender: TObject);
+begin
+   if checkOK then
+   begin
+     Pressed  := BTN_EMAIL;
+     okPressed := true;
+     close;
+   end;
+end;
 
 procedure TdlgJobRep.btnFileClick(Sender: TObject);
 begin

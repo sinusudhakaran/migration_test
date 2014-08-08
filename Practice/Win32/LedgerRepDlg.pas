@@ -482,7 +482,7 @@ procedure TdlgLedgerRep.SetReportParams(const Value: TLRParameters);
 begin
   FReportParams := Value;
   if assigned(FReportParams) then begin
-     FReportParams.SetDlgButtons(BtnPreview,BtnFile,BtnSave,BtnOK);
+     FReportParams.SetDlgButtons(BtnPreview,BtnFile,BtnEmail,BtnSave,BtnOK);
      if Assigned(FReportParams.RptBatch) then
         Caption := Caption + ' [' + FReportParams.RptBatch.Name + ']';
   end else

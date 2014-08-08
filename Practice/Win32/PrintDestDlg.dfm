@@ -32,7 +32,6 @@ object DlgPrintDest: TDlgPrintDest
     Align = alBottom
     BevelOuter = bvNone
     TabOrder = 0
-    ExplicitWidth = 463
     DesignSize = (
       546
       32)
@@ -56,7 +55,6 @@ object DlgPrintDest: TDlgPrintDest
       Caption = '&Print'
       TabOrder = 1
       OnClick = btnPrintClick
-      ExplicitLeft = 301
     end
     object btnCancel: TButton
       Left = 464
@@ -68,7 +66,6 @@ object DlgPrintDest: TDlgPrintDest
       Caption = 'Cancel'
       TabOrder = 2
       OnClick = btnCancelClick
-      ExplicitLeft = 381
     end
     object btnFile: TButton
       Left = 88
@@ -89,7 +86,6 @@ object DlgPrintDest: TDlgPrintDest
       Caption = 'Sa&ve'
       TabOrder = 4
       OnClick = btnSaveClick
-      ExplicitLeft = 221
     end
     object btnEmail: TButton
       Left = 169

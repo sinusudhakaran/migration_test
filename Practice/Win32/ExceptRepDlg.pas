@@ -63,6 +63,7 @@ type
     Label2: TLabel;
     Label4: TLabel;
     btnSave: TBitBtn;
+    btnEmail: TButton;
 
     procedure edtFinancialYearStartDateChange(Sender: TObject);
     procedure edtFinancialYearStartDateKeyDown(Sender: TObject; var Key: Word;
@@ -81,6 +82,7 @@ type
     procedure btnFileClick(Sender: TObject);
     procedure btnSaveClick(Sender: TObject);
     procedure CmbStartMonthChange(Sender: TObject);
+    procedure btnEmailClick(Sender: TObject);
 
   private
     SmartOn,changing  : boolean;
@@ -340,6 +342,18 @@ procedure TdlgExceptRpt.btnCancelClick(Sender: TObject);
 begin
    Close;
 end;
+
+//------------------------------------------------------------------------------
+procedure TdlgExceptRpt.btnEmailClick(Sender: TObject);
+begin
+   if CheckOK then
+   begin
+     Pressed := BTN_EMAIL;
+     okPressed := true;
+     Close;
+   end;
+end;
+
 //------------------------------------------------------------------------------
 procedure TdlgExceptRpt.btn1Click(Sender: TObject);
 begin
@@ -448,7 +462,7 @@ procedure TdlgExceptRpt.Setparams(const Value: TExceptParam);
 begin
   FParams := Value;
   if assigned(FParams) then begin
-     FParams.SetDlgButtons(btnPreview, btnFile, btnSave, btnOk);
+     FParams.SetDlgButtons(btnPreview, btnFile, btnEmail, btnSave, btnOk);
      if assigned(FParams.RptBatch) then
         Caption := Caption + ' [' + FParams.RptBatch.Name + ']';
   end else

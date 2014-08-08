@@ -277,7 +277,7 @@ procedure TdlgGraphRep.SetParams(const Value: TGraphParams);
 begin
   FParams := Value;
   if assigned(FParams) then begin
-     FParams.SetDlgButtons(nil,nil,BtnSave,BtnOk);
+     FParams.SetDlgButtons(nil,nil,nil,BtnSave,BtnOk);
      if Assigned(FParams.RptBatch) then //Assumes is set only once
         Caption := Caption + ' [' + FParams.RptBatch.Name + ']';
   end else

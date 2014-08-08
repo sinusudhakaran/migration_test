@@ -154,7 +154,7 @@ procedure TdlgListPayeeOptions.SetRptParams(const Value: TListPayeesParam);
 begin
   FRptParams := Value;
   if Assigned(FRptParams) then begin
-     FRptParams.SetDlgButtons(BtnPreview,BtnFile,BtnSave,BtnOk);
+     FRptParams.SetDlgButtons(BtnPreview,BtnFile,BtnEmail,BtnSave,BtnOk);
      if Assigned(FRptParams.RptBatch) then
         Caption := Caption + ' [' + FRptParams.RptBatch.Name + ']';
   end else

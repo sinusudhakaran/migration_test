@@ -141,7 +141,7 @@ type
      procedure SaveBatchDivisions;
 
      procedure RunReport (Dest: TReportDest; const Filename: string = '');
-     procedure SetDlgButtons(BtnPreview,BtnFile,BtnSave,BtnPrint: TButton);
+     procedure SetDlgButtons(BtnPreview,BtnFile,BtnEmail,BtnSave,BtnPrint: TButton);
      function CheckForBatch(NewName: string = ''; Title: string = ''): Boolean;
      function WasNewBatch: Boolean;
      function DlgResult(Btn: Integer = BTN_NONE): Boolean;
@@ -1058,7 +1058,7 @@ begin
      end;
 end;
 
-procedure TRPTParameters.SetDlgButtons(BtnPreview,BtnFile,BtnSave,BtnPrint: TButton);
+procedure TRPTParameters.SetDlgButtons(BtnPreview,BtnFile,BtnEmail,BtnSave,BtnPrint: TButton);
 begin
  RunBtn := BTN_NONE; //While we are here...
  case BatchRunMode of
@@ -1085,6 +1085,8 @@ begin
                end;
                if Assigned(BtnFile) then
                   BtnFile.Hide;
+               if Assigned(BtnEmail) then
+                  BtnEmail.Hide;
              end;
     end;
 end;

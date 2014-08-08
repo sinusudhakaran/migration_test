@@ -314,7 +314,7 @@ procedure TdlgCodeDateCheque.SetParams(const Value: TRptParameters);
 begin
   FParams := Value;
   if assigned(FParams) then begin
-     FParams.SetDlgButtons(btnPreview, btnFile, btnSave, btnOk);
+     FParams.SetDlgButtons(btnPreview, btnFile, btnEmail, btnSave, btnOk);
      if assigned(FParams.RptBatch) then
         Caption := Caption + ' [' + FParams.RptBatch.Name + ']';
   end else

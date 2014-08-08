@@ -47,7 +47,6 @@ object dlgListPayeeOptions: TdlgListPayeeOptions
     Caption = '&Print'
     TabOrder = 3
     OnClick = btnOKClick
-    ExplicitLeft = 250
   end
   object btnCancel: TButton
     Left = 411
@@ -59,7 +58,6 @@ object dlgListPayeeOptions: TdlgListPayeeOptions
     Caption = 'Cancel'
     TabOrder = 4
     OnClick = btnCancelClick
-    ExplicitLeft = 331
   end
   object btnSave: TBitBtn
     Left = 249

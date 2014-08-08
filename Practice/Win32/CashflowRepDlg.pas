@@ -324,7 +324,7 @@ procedure TdlgCashFlowRep.SetProfitRptParameters(
 begin
   FProfitRptParameters := Value;
   if assigned(FProfitRptParameters) then begin
-     FProfitRptParameters.SetDlgButtons(BtnPreview,BtnFile,BtnSave,BtnOk);
+     FProfitRptParameters.SetDlgButtons(BtnPreview,BtnFile,BtnEmail,BtnSave,BtnOk);
      if Assigned(FProfitRptParameters.RptBatch) then
         Caption := Caption + ' [' + FProfitRptParameters.RptBatch.Name + ']';
   end else

@@ -83,7 +83,7 @@ begin
 
         With chkGSTInclusive do Caption := Localise( ThisClient.clFields.clCountry, Caption );
 
-        Params.SetDlgButtons(BtnPreview, BtnFile, BtnSave, BtnPrint);
+        Params.SetDlgButtons(BtnPreview, BtnFile, BtnEmail, BtnSave, BtnPrint);
         if assigned(RptBatch) then with Params, Client.clFields Do begin
 
 
