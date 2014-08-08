@@ -50,16 +50,23 @@ end;
 {------------------------------------------------------------------------------}
 function TRecommended_Mem_List.Compare(Item1, Item2: Pointer): integer;
 begin
-  if (TRecommended_Mem(Item1).rmFields.rmType              <> TRecommended_Mem(Item2).rmFields.rmType) or
-  (TRecommended_Mem(Item1).rmFields.rmBank_Account_Number  <> TRecommended_Mem(Item2).rmFields.rmBank_Account_Number) or
-  (TRecommended_Mem(Item1).rmFields.rmAccount              <> TRecommended_Mem(Item2).rmFields.rmAccount) or
-  (AnsiCompareText(TRecommended_Mem(Item1).rmFields.rmStatement_Details,
-                   TRecommended_Mem(Item2).rmFields.rmStatement_Details) <> 0) or
-  (TRecommended_Mem(Item1).rmFields.rmManual_Count         <> TRecommended_Mem(Item2).rmFields.rmManual_Count) or
-  (TRecommended_Mem(Item1).rmFields.rmUncoded_Count        <> TRecommended_Mem(Item2).rmFields.rmUncoded_Count) then
-    Result := 1
-  else
-    Result := 0;
+  Result := CompareText(TRecommended_Mem(Item1).rmFields.rmStatement_Details,
+                        TRecommended_Mem(Item2).rmFields.rmStatement_Details);
+  if (Result <> 0) then Exit;
+  Result := CompareValue(TRecommended_Mem(Item1).rmFields.rmType,
+                         TRecommended_Mem(Item2).rmFields.rmType);
+  if (Result <> 0) then Exit;
+  Result := CompareText(TRecommended_Mem(Item1).rmFields.rmBank_Account_Number,
+                        TRecommended_Mem(Item2).rmFields.rmBank_Account_Number);
+  if (Result <> 0) then Exit;
+  Result := CompareText(TRecommended_Mem(Item1).rmFields.rmAccount,
+                        TRecommended_Mem(Item2).rmFields.rmAccount);
+  if (Result <> 0) then Exit;
+  Result := CompareValue(TRecommended_Mem(Item1).rmFields.rmManual_Count,
+                         TRecommended_Mem(Item2).rmFields.rmManual_Count);
+  if (Result <> 0) then Exit;
+  Result := CompareValue(TRecommended_Mem(Item1).rmFields.rmUncoded_Count,
+                         TRecommended_Mem(Item2).rmFields.rmUncoded_Count);
 end;
 
 {------------------------------------------------------------------------------}

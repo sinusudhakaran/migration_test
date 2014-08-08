@@ -50,15 +50,20 @@ end;
 {------------------------------------------------------------------------------}
 function TCandidate_Mem_List.Compare(Item1, Item2: Pointer): integer;
 begin
-  if (TCandidate_Mem(Item1).cmFields.cmType             <> TCandidate_Mem(Item2).cmFields.cmType) or
-  (TCandidate_Mem(Item1).cmFields.cmBank_Account_Number <> TCandidate_Mem(Item2).cmFields.cmBank_Account_Number) or
-  (TCandidate_Mem(Item1).cmFields.cmAccount             <> TCandidate_Mem(Item2).cmFields.cmAccount) or
-  (TCandidate_Mem(Item1).cmFields.cmID                  <> TCandidate_Mem(Item2).cmFields.cmID) or
-  (AnsiCompareText(TCandidate_Mem(Item1).cmFields.cmStatement_Details,
-                   TCandidate_Mem(Item2).cmFields.cmStatement_Details) <> 0) then
-    Result := 1
-  else
-    Result := 0;
+  Result := CompareText(TCandidate_Mem(Item1).cmFields.cmStatement_Details,
+                        TCandidate_Mem(Item2).cmFields.cmStatement_Details);
+  if (Result <> 0) then Exit;
+  Result := CompareValue(TCandidate_Mem(Item1).cmFields.cmType,
+                         TCandidate_Mem(Item2).cmFields.cmType);
+  if (Result <> 0) then Exit;
+  Result := CompareText(TCandidate_Mem(Item1).cmFields.cmBank_Account_Number,
+                        TCandidate_Mem(Item2).cmFields.cmBank_Account_Number);
+  if (Result <> 0) then Exit;
+  Result := CompareText(TCandidate_Mem(Item1).cmFields.cmAccount,
+                        TCandidate_Mem(Item2).cmFields.cmAccount);
+  if (Result <> 0) then Exit;
+  Result := CompareValue(TCandidate_Mem(Item1).cmFields.cmID,
+                         TCandidate_Mem(Item2).cmFields.cmID);
 end;
 
 {------------------------------------------------------------------------------}
