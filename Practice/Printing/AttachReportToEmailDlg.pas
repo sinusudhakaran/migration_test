@@ -30,11 +30,13 @@ type
     procedure btnOkClick(Sender: TObject);
   private
   public
+    procedure Init(const aFileFormats: TFileFormatSet; const aDefault: integer);
   end;
 
 //------------------------------------------------------------------------------
   function  ShowAttachReportToEmailFrm(const aOwner: TComponent;
-              var sReportName: string; var aReportFormat: integer): boolean;
+              const aFileFormats: TFileFormatSet; var sReportName: string;
+              var aReportFormat: integer): boolean;
 
 //------------------------------------------------------------------------------
 implementation
@@ -58,7 +60,8 @@ uses
 
 //------------------------------------------------------------------------------
 function ShowAttachReportToEmailFrm(const aOwner: TComponent;
-  var sReportName: string; var aReportFormat: integer): boolean;
+  const aFileFormats: TFileFormatSet; var sReportName: string;
+  var aReportFormat: integer): boolean;
 var
   Form: TAttachReportToEmailFrm;
   mrResult: integer;
@@ -67,23 +70,29 @@ begin
 
   Form := TAttachReportToEmailFrm.Create(aOwner);
   try
-    // Data to display
-    Form.edtReportName.Text := sReportName;
-    Form.cmbFormat.ItemIndex := aReportFormat;
+    with Form do
+    begin
+      // Populate file formats (with default)
+      Init(aFileFormats, aReportFormat);
 
-    // Show dialog
-    mrResult := Form.ShowModal;
+      // Data to display
+      edtReportName.Text := sReportName;
+      cmbFormat.ItemIndex := aReportFormat;
 
-    // User cancel?
-    result := (mrResult = mrOK);
-    if not result then
-      exit;
+      // Show dialog
+      mrResult := ShowModal;
 
-    // Display to data
-    sReportName := Form.edtReportName.Text;
-    ASSERT(sReportName <> '');
-    aReportFormat := Form.cmbFormat.ItemIndex;
-    ASSERT((rfMin <= aReportFormat) and (aReportFormat <= rfMax));
+      // User cancel?
+      result := (mrResult = mrOK);
+      if not result then
+        exit;
+
+      // Display to data
+      sReportName := edtReportName.Text;
+      ASSERT(sReportName <> '');
+      aReportFormat := Integer(cmbFormat.Items.Objects[cmbFormat.ItemIndex]);
+      ASSERT((rfMin <= aReportFormat) and (aReportFormat <= rfMax));
+    end;
   finally
     FreeAndNil(Form);
   end;
@@ -91,18 +100,38 @@ end;
 
 //------------------------------------------------------------------------------
 procedure TAttachReportToEmailFrm.FormCreate(Sender: TObject);
-var
-  i: Integer;
 begin
   bkXPThemes.ThemeForm(self);
+end;
+
+//------------------------------------------------------------------------------
+procedure TAttachReportToEmailFrm.Init(const aFileFormats: TFileFormatSet;
+  const aDefault: integer);
+var
+  i: integer;
+  FileFormats: TFileFormatSet;
+begin
+  // WORKAROUND: FileFormats needs to be local for "in" to work.
+  FileFormats := aFileFormats;
 
   for i := rfMin to rfMax do
   begin
-    cmbFormat.AddItem(rfNames[i], nil);
-  end;
+    // Always exclude this
+    if (i = rfAcclipse) then
+      continue;
 
-  // Default
-  cmbFormat.ItemIndex := rfPDF;
+    // Accepted file format?
+    if (FileFormats = []) or (TFileFormats(i) in FileFormats) then
+    begin
+      // Add item and actual file format
+      cmbFormat.AddItem(rfNames[i], TObject(i));
+
+      // Default entry?
+      if (i = aDefault) then
+        cmbFormat.ItemIndex := cmbFormat.Items.Count-1;
+    end;
+  end;
+  ASSERT(cmbFormat.Items.Count <> 0);
 end;
 
 //------------------------------------------------------------------------------

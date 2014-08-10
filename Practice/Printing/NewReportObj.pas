@@ -580,8 +580,11 @@ var
     // User cancel?
     sReportName := FUserReportSettings.s7Report_Name;
     iReportFormat := rfPDF;
-    if not ShowAttachReportToEmailFrm(Application.MainForm, sReportName, iReportFormat) then
+    if not ShowAttachReportToEmailFrm(Application.MainForm, FileFormats,
+      sReportName, iReportFormat) then
+    begin
       exit;
+    end;
 
     // Can't generate the report?
     sFileName := DataDir + sReportName + rfFileExtn[iReportFormat];
