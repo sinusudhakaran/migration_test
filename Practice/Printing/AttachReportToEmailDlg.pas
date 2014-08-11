@@ -138,21 +138,12 @@ end;
 procedure TAttachReportToEmailFrm.btnOkClick(Sender: TObject);
 var
   sReportName: string;
-  sExtn: string;
 begin
   sReportName := Trim(edtReportName.Text);
   if (sReportName = '') then
   begin
     edtReportName.SetFocus;
     HelpfulWarningMsg('You must specify the report name.', 0);
-    exit;
-  end;
-
-  sExtn := ExtractFileExt(sReportName);
-  if (sExtn <> '') then
-  begin
-    edtReportName.SetFocus;
-    HelpfulWarningMsg('It is not necessary to specify the file extension in the report name.', 0);
     exit;
   end;
 

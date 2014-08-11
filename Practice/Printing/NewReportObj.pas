@@ -578,7 +578,7 @@ var
     ASSERT(assigned(Params));
 
     // User cancel?
-    sReportName := FUserReportSettings.s7Report_Name;
+    sReportName := FUserReportSettings.s7Report_Name + '.PDF';
     iReportFormat := rfPDF;
     if not ShowAttachReportToEmailFrm(Application.MainForm, FileFormats,
       sReportName, iReportFormat) then
@@ -587,7 +587,7 @@ var
     end;
 
     // Can't generate the report?
-    sFileName := DataDir + sReportName + rfFileExtn[iReportFormat];
+    sFileName := DataDir + sReportName;
     if not GenerateToFile(sFileName, iReportFormat) then
     begin
       DoError('Unable to generate report to file', false);
