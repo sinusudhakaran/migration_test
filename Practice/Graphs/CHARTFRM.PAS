@@ -32,12 +32,14 @@ type
     ChGross: TCheckBox;
     Series5: TLineSeries;
     Series9: TLineSeries;
+    btnEmail: TButton;
     procedure btnPreviewClick(Sender: TObject);
     procedure chLastYearClick(Sender: TObject);
     procedure btnCancelClick(Sender: TObject);
     procedure btnPrintClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure btnFileClick(Sender: TObject);
+    procedure btnEmailClick(Sender: TObject);
   private
     FTrade: Boolean;
     procedure SetTrade(const Value: Boolean);
@@ -179,6 +181,11 @@ begin
   Assert( Assigned( MyClient ) );
   Country := MyClient.clFields.clCountry;
   With Chart1.LeftAxis.Title do Caption := Localise( Country, Caption );
+end;
+
+procedure TfrmChart.btnEmailClick(Sender: TObject);
+begin
+  PrintGraphReport(GraphType, Self, rdEmail, [ffPDF, ffAcclipse],Params);
 end;
 
 procedure TfrmChart.btnFileClick(Sender: TObject);

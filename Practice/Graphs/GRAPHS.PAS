@@ -562,7 +562,7 @@ begin
     Job.ChartWindowPPI := ChartForm.PixelsPerInch;
 
     Job.FileFormats := FileFormats;
-    if Destination in [rdScreen, rdPrinter, rdFile] then
+    if Destination in [rdScreen, rdPrinter, rdFile, rdEmail] then
        Job.Generate(Destination,Params);
   finally
     Job.Free;

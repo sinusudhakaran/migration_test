@@ -97,7 +97,7 @@ object frmChart: TfrmChart
       Height = 25
       Anchors = [akTop, akRight]
       Caption = '&Print'
-      TabOrder = 4
+      TabOrder = 5
       OnClick = btnPrintClick
     end
     object btnCancel: TButton
@@ -108,7 +108,7 @@ object frmChart: TfrmChart
       Anchors = [akTop, akRight]
       Cancel = True
       Caption = 'Cancel'
-      TabOrder = 5
+      TabOrder = 6
       OnClick = btnCancelClick
     end
     object chLastYear: TCheckBox
@@ -152,7 +152,7 @@ object frmChart: TfrmChart
       Caption = 'Sales'
       Checked = True
       State = cbChecked
-      TabOrder = 6
+      TabOrder = 7
       OnClick = chLastYearClick
     end
     object ChNett: TCheckBox
@@ -163,7 +163,7 @@ object frmChart: TfrmChart
       Caption = 'Operating Profit'
       Checked = True
       State = cbChecked
-      TabOrder = 7
+      TabOrder = 8
       OnClick = chLastYearClick
     end
     object ChGross: TCheckBox
@@ -174,8 +174,17 @@ object frmChart: TfrmChart
       Caption = 'Gross Profit'
       Checked = True
       State = cbChecked
-      TabOrder = 8
+      TabOrder = 9
       OnClick = chLastYearClick
+    end
+    object btnEmail: TButton
+      Left = 170
+      Top = 39
+      Width = 75
+      Height = 25
+      Caption = 'E&mail'
+      TabOrder = 4
+      OnClick = btnEmailClick
     end
   end
   object Chart1: TChart
