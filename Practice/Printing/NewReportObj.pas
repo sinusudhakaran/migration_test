@@ -103,6 +103,7 @@ unit NewReportObj;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 interface
+
 uses
    LockUtils,
    ReportTypes,
@@ -143,7 +144,9 @@ type
                  mright : longint;
   end;
 
-type TProcedurePtr = procedure(Sender: TObject); //TNotifyevent?
+type
+  TCallbackProc = procedure() of object; //TNotifyevent?
+  TProcedurePtr = procedure(Sender: TObject); //TNotifyevent?
 
 type
   TBKReport = class( TObject)
@@ -153,6 +156,7 @@ type
     FFooter             : THeaderFooterCollection;
     FUserReportSettings : pWindows_Report_Setting_Rec;
     FOnBKPrint          : TProcedurePtr;
+    FOnBKPrintEx        : TCallbackProc;
     FReportTitle        : string;
     FFileFormats        : TFileFormatSet;
     FOriginalDest       : TReportDest;
@@ -165,7 +169,6 @@ type
 
     FItemStyle: TStyleTypes;
     FBlindOn: Boolean;
-    procedure SetOnBKPrint(const Value: TProcedurePtr);
     procedure SetReportTitle(const Value: string);
     procedure AddToTotals(const aCurr: Currency; const ForColumn : integer);
     procedure SetReportType(const Value: TReportType);
@@ -256,7 +259,8 @@ type
     procedure SaveReportSettings;
     //User Print settings Object
     property  UserReportSettings : pWindows_Report_Setting_Rec read FUserReportSettings;
-    property  OnBKPrint          : TProcedurePtr read FOnBKPrint write SetOnBKPrint;
+    property  OnBKPrint          : TProcedurePtr read FOnBKPrint write FOnBKPrint;
+    property  OnBKPrintEx        : TCallbackProc read FOnBKPrintEx write FOnBKPrintEx;
     property  OnAfterNewPage     : TProcedurePtr read FOnAfterNewPage write FOnAfterNewPage;
     property  ReportTitle        : string read FReportTitle write SetReportTitle;
     property  OriginalDestination : TReportDest read FOriginalDest;
@@ -383,7 +387,11 @@ procedure TBKReport.BKPrint;
 begin
   if Assigned(FOnBKPrint) then
     FOnBKPrint(Self);
+
+  if Assigned(FOnBKPrintEx) then
+    FOnBKPrintEx();
 end;
+
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TBKReport.AfterNewPage(SavedDetail : Boolean);
 begin
@@ -943,12 +951,6 @@ begin
      if assigned(RenderEngine) then
         RenderEngine.SetItemStyle(FItemStyle);
   end;
-end;
-
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-procedure TBKReport.SetOnBKPrint(const Value: TProcedurePtr);
-begin
-   FOnBKPrint := Value;
 end;
 
 
